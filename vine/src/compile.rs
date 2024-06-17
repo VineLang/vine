@@ -1,4 +1,7 @@
-use std::{collections::HashMap, mem::take};
+use std::{
+  collections::BTreeMap,
+  mem::{replace, take},
+};
 
 use ivm::ext::{ExtFn, ExtFnKind};
 use ivy::ast::{Net, Nets, Tree};
@@ -6,18 +9,42 @@ use ivy::ast::{Net, Nets, Tree};
 use crate::ast::*;
 
 #[derive(Default)]
+struct VarGen(usize);
+
+impl VarGen {
+  fn gen(&mut self) -> (Tree, Tree) {
+    let n = self.0;
+    self.0 += 1;
+    let str = format!("n{n}");
+    (Tree::Var(str.clone()), Tree::Var(str))
+  }
+}
+
+#[derive(Default)]
 pub struct Compiler<'ast> {
-  next_var: usize,
+  var: VarGen,
   pairs: Vec<(Tree, Tree)>,
-  scope: HashMap<&'ast Ident, Vec<(usize, Tree)>>,
+  scope: BTreeMap<&'ast Ident, Vec<ScopeEntry>>,
   scope_depth: usize,
   pub nets: Nets,
+}
+
+struct ScopeEntry {
+  depth: usize,
+  value: Tree,
+  last_use: Option<Tree>,
+}
+
+impl ScopeEntry {
+  fn finish(self) -> (Tree, Tree) {
+    (self.value, self.last_use.unwrap_or(Tree::Erase))
+  }
 }
 
 impl<'ast> Compiler<'ast> {
   pub fn compile_item(&mut self, item: &'ast Item) {
     assert_eq!(self.scope_depth, 0);
-    assert_eq!(self.next_var, 0);
+    assert_eq!(self.var.0, 0);
     assert_eq!(self.pairs.len(), 0);
     let (path, root) = match &item.kind {
       ItemKind::Fn(f) => (&f.name, self.compile_fn(&f.params, &f.body)),
@@ -27,14 +54,7 @@ impl<'ast> Compiler<'ast> {
     let pairs = take(&mut self.pairs);
     let net = Net { root, pairs };
     self.nets.insert(format!("{path}"), net);
-    self.next_var = 0;
-  }
-
-  fn new_var(&mut self) -> (Tree, Tree) {
-    let n = self.next_var;
-    self.next_var += 1;
-    let str = format!("n{n}");
-    (Tree::Var(str.clone()), Tree::Var(str))
+    self.var.0 = 0;
   }
 
   fn push_scope(&mut self) {
@@ -43,39 +63,45 @@ impl<'ast> Compiler<'ast> {
 
   fn pop_scope(&mut self) {
     self.scope_depth -= 1;
-    for s in self.scope.values_mut() {
-      if s.last().is_some_and(|x| x.0 > self.scope_depth) {
-        self.pairs.push((Tree::Erase, s.pop().unwrap().1));
+    for stack in self.scope.values_mut() {
+      if stack.last().is_some_and(|x| x.depth > self.scope_depth) {
+        self.pairs.push(stack.pop().unwrap().finish());
       }
     }
   }
 
-  fn declare(&mut self, i: &'ast Ident, v: Tree) {
+  fn declare(&mut self, i: &'ast Ident, value: Tree) {
     let stack = self.scope.entry(i).or_default();
-    if stack.last().is_some_and(|x| x.0 == self.scope_depth) {
-      self.pairs.push((Tree::Erase, stack.pop().unwrap().1));
+    if stack.last().is_some_and(|x| x.depth == self.scope_depth) {
+      self.pairs.push(stack.pop().unwrap().finish());
     }
-    stack.push((self.scope_depth, v));
+    stack.push(ScopeEntry { depth: self.scope_depth, value, last_use: None });
   }
 
-  fn compile_expr(&mut self, t: &'ast Term) -> Tree {
-    match &t.kind {
+  fn compile_expr(&mut self, term: &'ast Term) -> Tree {
+    match &term.kind {
       TermKind::Hole => Tree::Erase,
-      TermKind::Num(n) => Tree::U32(*n),
-      TermKind::Path(p) => Tree::Global(format!("{}", p)),
-      TermKind::Var(v) => {
-        let (d, t) = self.scope.get_mut(v).unwrap().pop().unwrap();
-        let t = self.dup(t);
-        self.scope.get_mut(v).unwrap().push((d, t.0));
-        t.1
+      TermKind::Num(num) => Tree::U32(*num),
+      TermKind::Path(path) => Tree::Global(format!("{}", path)),
+      TermKind::Var(name) => {
+        let v = self.var.gen();
+        let entry = self.scope.get_mut(name).unwrap().last_mut().unwrap();
+        if let Some(prev_use) = replace(&mut entry.last_use, Some(v.0)) {
+          let new_value = self.var.gen();
+          let value = replace(&mut entry.value, new_value.0);
+          self
+            .pairs
+            .push((value, Tree::Comb("dup".to_owned(), Box::new(prev_use), Box::new(new_value.1))));
+        }
+        v.1
       }
-      TermKind::Block(b) => self.compile_block(b),
+      TermKind::Block(block) => self.compile_block(block),
       TermKind::Fn(params, body) => self.compile_fn(params, body),
       TermKind::Call(f, args) => {
         let mut f = self.compile_expr(f);
         for arg in args {
           let arg = self.compile_expr(arg);
-          let out = self.new_var();
+          let out = self.var.gen();
           self.pairs.push((f, Tree::Comb("lam".to_owned(), Box::new(arg), Box::new(out.0))));
           f = out.1;
         }
@@ -135,7 +161,7 @@ impl<'ast> Compiler<'ast> {
       }
       TermKind::Tuple(t) => Self::tup(t.iter().map(|x| self.compile_pat(x))),
       TermKind::String(s) => {
-        let v = self.new_var();
+        let v = self.var.gen();
         Tree::Comb(
           "tup".to_owned(),
           Box::new(Tree::U32(s.chars().count() as u32)),
@@ -171,7 +197,7 @@ impl<'ast> Compiler<'ast> {
     match &t.kind {
       TermKind::Hole => Tree::Erase,
       TermKind::Var(i) => {
-        let v = self.new_var();
+        let v = self.var.gen();
         self.declare(i, v.0);
         v.1
       }
@@ -185,14 +211,14 @@ impl<'ast> Compiler<'ast> {
   }
 
   fn dup(&mut self, t: Tree) -> (Tree, Tree) {
-    let a = self.new_var();
-    let b = self.new_var();
+    let a = self.var.gen();
+    let b = self.var.gen();
     self.pairs.push((t, Tree::Comb("dup".to_owned(), Box::new(a.0), Box::new(b.0))));
     (a.1, b.1)
   }
 
   fn ext_fn(&mut self, f: ExtFn, lhs: Tree, rhs: Tree) -> Tree {
-    let o = self.new_var();
+    let o = self.var.gen();
     self.pairs.push((lhs, Tree::ExtFn(f, Box::new(rhs), Box::new(o.0))));
     o.1
   }

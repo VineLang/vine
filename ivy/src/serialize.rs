@@ -1,6 +1,6 @@
 use std::{
   cell::UnsafeCell,
-  collections::{hash_map::Entry, HashMap},
+  collections::{btree_map::Entry, BTreeMap, HashMap},
   mem::{take, transmute},
   ptr,
 };
@@ -57,7 +57,7 @@ pub struct Serializer<'ast, 'ivm> {
   globals: &'ivm [UnsafeCell<Global<'ivm>>],
   nets: &'ast Nets,
   current: Global<'ivm>,
-  chains: HashMap<&'ast str, &'ast str>,
+  chains: BTreeMap<&'ast str, &'ast str>,
   registers: HashMap<&'ast str, Register>,
   labels: IndexSet<&'ast str>,
 }
@@ -70,7 +70,7 @@ impl<'ast, 'ivm> Serializer<'ast, 'ivm> {
   fn serialize_net(&mut self, net: &'ast Net) {
     self.chains.clear();
     self.registers.clear();
-    self.serialize_tree_to(&net.root, Register::ROOT);
+
     for (a, b) in &net.pairs {
       let (Tree::Var(a), Tree::Var(b)) = (a, b) else { continue };
       let a = self.follow_chain(a);
@@ -78,6 +78,7 @@ impl<'ast, 'ivm> Serializer<'ast, 'ivm> {
       self.chains.insert(a, b);
       self.chains.insert(b, a);
     }
+
     for (a, b) in &self.chains {
       if a < b {
         let r = self.current.instructions.new_register();
@@ -85,6 +86,8 @@ impl<'ast, 'ivm> Serializer<'ast, 'ivm> {
         self.registers.insert(b, r);
       }
     }
+
+    self.serialize_tree_to(&net.root, Register::ROOT);
     for (a, b) in &net.pairs {
       self.serialize_pair(a, b);
     }
