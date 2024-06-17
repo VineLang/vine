@@ -21,7 +21,7 @@ pub trait VisitMut<'a> {
     match &mut term.kind {
       TermKind::Hole
       | TermKind::Path(_)
-      | TermKind::Ident(_)
+      | TermKind::Var(_)
       | TermKind::Num(_)
       | TermKind::String(_) => {}
       TermKind::Ref(a)

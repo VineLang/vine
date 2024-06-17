@@ -18,14 +18,14 @@ pub enum ItemKind {
 
 #[derive(Debug, Clone)]
 pub struct FnItem {
-  pub name: Ident,
+  pub name: Path,
   pub params: Vec<Term>,
   pub body: Block,
 }
 
 #[derive(Debug, Clone)]
 pub struct ConstItem {
-  pub name: Ident,
+  pub name: Path,
   pub value: Term,
 }
 
@@ -34,19 +34,19 @@ pub struct PatternItem {}
 
 #[derive(Debug, Clone)]
 pub struct Struct {
-  pub name: Ident,
+  pub name: Path,
   pub fields: Vec<Ident>,
 }
 
 #[derive(Debug, Clone)]
 pub struct Enum {
-  pub name: Ident,
+  pub name: Path,
   pub variants: Vec<Struct>,
 }
 
 #[derive(Debug, Clone)]
 pub struct ModItem {
-  pub name: Ident,
+  pub name: Path,
   pub inner: Mod,
 }
 
@@ -98,7 +98,7 @@ pub struct Term {
 pub enum TermKind {
   Hole,
   Path(Path),
-  Ident(Ident),
+  Var(Ident),
   Block(Block),
   Assign(B<Term>, B<Term>),
   Match(B<Term>, Vec<(Term, Term)>),
