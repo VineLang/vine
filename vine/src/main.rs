@@ -1,17 +1,11 @@
-#![allow(dead_code)]
+use std::{env::args, fs};
 
-use compile::Compiler;
-use parser::VineParser;
-
-mod ast;
-mod compile;
-mod lexer;
-mod parser;
-mod visit;
+use vine::{compile::Compiler, parser::VineParser};
 
 fn main() {
-  let src = include_str!("../test.vi");
-  let ast = VineParser::parse(src).unwrap();
+  let path = args().nth(1).expect("must supply path");
+  let src = fs::read_to_string(path).unwrap();
+  let ast = VineParser::parse(&src).unwrap();
   let mut compiler = Compiler::default();
   for item in &ast.items {
     compiler.compile_item(item);
