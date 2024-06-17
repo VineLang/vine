@@ -1,0 +1,96 @@
+
+::main {
+  lam(io0 _)
+  io0 = @io_print_byte(62 @io_print_byte(32 @io_flush(0 io1)))
+  ::read_num = lam(ref(io1 io2) dup(n0 n1))
+  n0 = ?(_ ::main::cont lam(io2 lam(n1 _)))
+}
+
+::main::cont {
+  lam(io0 lam(n _))
+  ::fib = lam(n f)
+  ::print_num = lam(ref(io0 io1) f)
+  ::main = lam(io1 _)
+}
+
+::fib {
+  lam(n o)
+  ::fib::loop = lam(n lam(0 lam(1 o)))
+}
+
+::fib::loop {
+  lam(dup(n0 n1) r)
+  n0 = ?(
+    ::fib::end
+    ::fib::cont
+    lam(n1 r)
+  )
+}
+
+::fib::cont {
+  lam(n0 lam(a lam(dup(b0 b1) o)))
+  n0 = @u32_sub(1 n1)
+  a = @u32_add(b0 c)
+  ::fib::loop = lam(n1 lam(b1 lam(c o)))
+}
+
+::fib::end {
+  lam(_ lam(a lam(_ a)))
+}
+
+::read_num {
+  lam(ior n)
+  ::read_num::loop = lam(ior lam(0 n))
+}
+
+::read_num::loop {
+  lam(ref(dup(io0 io1) io2) s)
+  io0 = @io_read_byte(10 dup(byte0 byte1))
+  byte0 = @u32_eq(10 ?(
+    ::read_num::cont
+    ::read_num::end
+    lam(ref(io1 io2) lam(byte1 s))
+  ))
+}
+
+::read_num::cont {
+  lam(ior lam(byte lam(n0 n2)))
+  byte = @u32_sub(48 digit)
+  n0 = @u32_mul(10 @u32_add(digit n1))
+  ::read_num::loop = lam(ior lam(n1 n2))
+}
+
+::read_num::end {
+  lam(ref(io io) lam(_ lam(n n)))
+}
+
+::print_num {
+  lam(ref(io0 io2) lam(dup(num0 num1) _))
+  num0 = ?(
+    ::print_num::zero
+    ::print_num::loop
+    lam(ref(io0 io1) lam(num1 _))
+  )
+  io1 = @io_print_byte(10 @io_flush(0 io2))
+}
+
+::print_num::zero {
+  lam(ref(io0 io1) _)
+  io0 = @io_print_byte(48 io1)
+}
+
+::print_num::loop {
+  lam(ref(io0 io2) lam(dup(n0 n1) _))
+  n0 = @u32_rem(10 @u32_add(48 digit))
+  n1 = @u32_div(10 dup(rest0 rest1))
+  rest0 = ?(
+    ::print_num::end
+    ::print_num::loop
+    lam(ref(io0 io1) lam(rest1 _))
+  )
+  io1 = @io_print_byte(digit io2)
+}
+
+::print_num::end {
+  lam(ref(io io) _)
+}

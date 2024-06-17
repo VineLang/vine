@@ -1,0 +1,16 @@
+
+::main {
+  lam(dup(io0 io1) _)
+  io0 = @io_read_byte(0 dup(byte0 byte1))
+  byte0 = ?(::main::a ::main::b tup(byte1 io1))
+}
+
+::main::a {
+  tup(_ @io_flush(0 _))
+}
+
+::main::b {
+  tup(byte io0)
+  io0 = @io_print_byte(byte io1)
+  ::main = lam(io1 _)
+}

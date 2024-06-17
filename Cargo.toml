@@ -1,0 +1,6 @@
+[workspace]
+resolver = "2"
+members = ["ivm", "ivy", "util"]
+
+[workspace.lints.clippy]
+absolute_paths = "warn"

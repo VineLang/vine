@@ -1,0 +1,13 @@
+[package]
+name = "ivy"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+indexmap = "2.2.6"
+logos = "0.14.0"
+ivm = { path = "../ivm" }
+vine-util = { path = "../util" }
+
+[lints]
+workspace = true
