@@ -1,6 +1,6 @@
 use std::{
   cell::UnsafeCell,
-  collections::HashMap,
+  collections::{hash_map::Entry, HashMap},
   mem::{take, transmute},
   ptr,
 };
@@ -32,6 +32,7 @@ impl Nets {
       globals,
       nets: self,
       current: Default::default(),
+      chains: Default::default(),
       registers: Default::default(),
       labels: Default::default(),
     };
@@ -56,6 +57,7 @@ pub struct Serializer<'ast, 'ivm> {
   globals: &'ivm [UnsafeCell<Global<'ivm>>],
   nets: &'ast Nets,
   current: Global<'ivm>,
+  chains: HashMap<&'ast str, &'ast str>,
   registers: HashMap<&'ast str, Register>,
   labels: IndexSet<&'ast str>,
 }
@@ -66,16 +68,39 @@ impl<'ast, 'ivm> Serializer<'ast, 'ivm> {
   }
 
   fn serialize_net(&mut self, net: &'ast Net) {
+    self.chains.clear();
     self.registers.clear();
     self.serialize_tree_to(&net.root, Register::ROOT);
+    for (a, b) in &net.pairs {
+      let (Tree::Var(a), Tree::Var(b)) = (a, b) else { continue };
+      let a = self.follow_chain(a);
+      let b = self.follow_chain(b);
+      self.chains.insert(a, b);
+      self.chains.insert(b, a);
+    }
+    for (a, b) in &self.chains {
+      if a < b {
+        let r = self.current.instructions.new_register();
+        self.registers.insert(a, r);
+        self.registers.insert(b, r);
+      }
+    }
     for (a, b) in &net.pairs {
       self.serialize_pair(a, b);
     }
   }
 
+  fn follow_chain(&mut self, mut x: &'ast str) -> &'ast str {
+    if let Entry::Occupied(e) = self.chains.entry(x) {
+      x = e.remove();
+      self.chains.remove(x);
+    }
+    x
+  }
+
   fn serialize_pair(&mut self, a: &'ast Tree, b: &'ast Tree) {
     let (a, b) = match (a, b) {
-      (Tree::Var(_), Tree::Var(_)) => panic!("var-var pairs are not supported"),
+      (Tree::Var(_), Tree::Var(_)) => return,
       (a, b @ Tree::Var(_)) => (b, a),
       (a, b) => (a, b),
     };

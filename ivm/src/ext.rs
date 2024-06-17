@@ -143,6 +143,7 @@ macro_rules! ext_fns {
     }
 
     impl ExtFnKind {
+      pub const ALL: &'static [Self] = &[$(Self::$name),*];
       #[allow(clippy::should_implement_trait)]
       pub fn from_str(str: &str) -> Option<Self> {
         match str {

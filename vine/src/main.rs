@@ -1,16 +1,21 @@
 #![allow(dead_code)]
 
+use compile::Compiler;
+use parser::VineParser;
+
 mod ast;
+mod compile;
 mod lexer;
 mod parser;
 mod visit;
 
 fn main() {
   let src = include_str!("../test.vi");
-  _ = dbg!(parser::VineParser::parse(src));
-  // let mut lex = lexer::TokenKind::lexer(src);
-
-  // while let Some(token) = lex.next() {
-  //   println!("{:?} {:?} {:?}", lex.span(), token, lex.slice());
-  // }
+  let ast = VineParser::parse(src).unwrap();
+  let mut compiler = Compiler::default();
+  for item in &ast.items {
+    compiler.compile_item(item);
+  }
+  let nets = compiler.nets;
+  println!("{nets}");
 }

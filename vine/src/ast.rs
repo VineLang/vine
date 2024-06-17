@@ -1,4 +1,4 @@
-use std::fmt::{self, Debug, Write};
+use std::fmt::{self, Debug, Display, Write};
 
 #[derive(Clone)]
 pub struct Item {
@@ -20,7 +20,7 @@ pub enum ItemKind {
 pub struct FnItem {
   pub name: Path,
   pub params: Vec<Term>,
-  pub body: Block,
+  pub body: Term,
 }
 
 #[derive(Debug, Clone)]
@@ -142,7 +142,7 @@ pub enum BinaryOp {
   Concat,
   Mul,
   Div,
-  Mod,
+  Rem,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -161,7 +161,7 @@ pub enum ComparisonOp {
   Ge,
 }
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Ident(pub String);
 
 pub type B<T> = Box<T>;
@@ -193,6 +193,16 @@ impl Term {
 
   pub fn new_binary_op(op: BinaryOp, lhs: Term, rhs: Term) -> Term {
     Term { kind: TermKind::BinaryOp(op, Box::new(lhs), Box::new(rhs)) }
+  }
+}
+
+impl Display for Path {
+  fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    for seg in self.segments.iter() {
+      f.write_str("::")?;
+      f.write_str(&seg.0)?;
+    }
+    Ok(())
   }
 }
 

@@ -120,7 +120,7 @@ impl<'src> VineParser<'src> {
     let name = self.parse_path()?;
     let params = self.parse_term_list()?;
     let body = self.parse_block()?;
-    Ok(FnItem { name, params, body })
+    Ok(FnItem { name, params, body: Term { kind: TermKind::Block(body) } })
   }
 
   fn parse_const_item(&mut self) -> Parse<'src, ConstItem> {
@@ -464,7 +464,7 @@ const BINARY_OP_TABLE: &[(BP, Token, BinaryOp)] = &[
   (BP::Additive,       Token::PlusPlus, BinaryOp::Concat),
   (BP::Multiplicative, Token::Star,     BinaryOp::Mul),
   (BP::Multiplicative, Token::Slash,    BinaryOp::Div),
-  (BP::Multiplicative, Token::Percent,  BinaryOp::Mod),
+  (BP::Multiplicative, Token::Percent,  BinaryOp::Rem),
 ];
 
 #[rustfmt::skip]

@@ -4,10 +4,11 @@ use std::{
 };
 
 use indexmap::IndexMap;
-use ivm::ext::ExtFn;
+use ivm::ext::{ExtFn, ExtFnKind};
 
-#[derive(Debug, Clone)]
+#[derive(Default, Debug, Clone)]
 pub enum Tree {
+  #[default]
   Erase,
   Comb(String, Box<Tree>, Box<Tree>),
   ExtFn(ExtFn, Box<Tree>, Box<Tree>),
@@ -70,5 +71,29 @@ impl Display for Nets {
       write!(f, "\n{name} {net}\n")?;
     }
     Ok(())
+  }
+}
+
+impl Nets {
+  pub fn define_ext_fns(&mut self) {
+    for &f in ExtFnKind::ALL {
+      let net = Net {
+        root: Tree::Comb(
+          "lam".to_owned(),
+          Box::new(Tree::ExtFn(
+            f.into(),
+            Box::new(Tree::Var("r".to_owned())),
+            Box::new(Tree::Var("o".to_owned())),
+          )),
+          Box::new(Tree::Comb(
+            "lam".to_owned(),
+            Box::new(Tree::Var("r".to_owned())),
+            Box::new(Tree::Var("o".to_owned())),
+          )),
+        ),
+        pairs: Vec::new(),
+      };
+      self.insert(format!("::ext::{:?}", f), net);
+    }
   }
 }

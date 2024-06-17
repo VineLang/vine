@@ -6,6 +6,8 @@ edition = "2021"
 [dependencies]
 logos = "0.14.0"
 vine-util = { path = "../util" }
+ivy = { path = "../ivy" }
+ivm = { path = "../ivm" }
 
 [lints]
 workspace = true

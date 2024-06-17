@@ -100,7 +100,7 @@ pub trait VisitMut<'a> {
         for param in &mut f.params {
           self.visit_term(param);
         }
-        self.visit_block(&mut f.body);
+        self.visit_term(&mut f.body);
       }
       ItemKind::Const(c) => {
         self.visit_term(&mut c.value);

@@ -1,0 +1,17 @@
+
+fn ::main(io) {
+  let io = ::ext::io_print_char(io, 'H');
+  let io = ::ext::io_print_char(io, 'e');
+  let io = ::ext::io_print_char(io, 'l');
+  let io = ::ext::io_print_char(io, 'l');
+  let io = ::ext::io_print_char(io, 'o');
+  let io = ::ext::io_print_char(io, ',');
+  let io = ::ext::io_print_char(io, ' ');
+  let io = ::ext::io_print_char(io, 'w');
+  let io = ::ext::io_print_char(io, 'o');
+  let io = ::ext::io_print_char(io, 'r');
+  let io = ::ext::io_print_char(io, 'l');
+  let io = ::ext::io_print_char(io, 'd');
+  let io = ::ext::io_print_char(io, '!');
+  let io = ::ext::io_print_char(io, '\n');
+}
