@@ -1,17 +1,27 @@
 
 fn ::main(io) {
-  let io = ::ext::io_print_char(io, 'H');
-  let io = ::ext::io_print_char(io, 'e');
-  let io = ::ext::io_print_char(io, 'l');
-  let io = ::ext::io_print_char(io, 'l');
-  let io = ::ext::io_print_char(io, 'o');
-  let io = ::ext::io_print_char(io, ',');
-  let io = ::ext::io_print_char(io, ' ');
-  let io = ::ext::io_print_char(io, 'w');
-  let io = ::ext::io_print_char(io, 'o');
-  let io = ::ext::io_print_char(io, 'r');
-  let io = ::ext::io_print_char(io, 'l');
-  let io = ::ext::io_print_char(io, 'd');
-  let io = ::ext::io_print_char(io, '!');
+  let io = ::println(io, "Hello, world!");
+}
+
+fn ::println(io, str) {
+  let io = ::print(io, str);
   let io = ::ext::io_print_char(io, '\n');
+  io
+}
+
+fn ::print(io, str) {
+  let (len, buf) = str;
+  let chars = buf(_);
+  ::ext::branch(len, ::print::end, ::print::cont, io, len, chars)
+}
+
+fn ::print::end(io, len, chars) {
+  io
+}
+
+fn ::print::cont(io, len, chars) {
+  let len = len - 1;
+  let (char, chars) = chars;
+  let io = ::ext::io_print_char(io, char);
+  ::ext::branch(len, ::print::end, ::print::cont, io, len, chars)
 }

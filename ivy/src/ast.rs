@@ -94,6 +94,27 @@ impl Nets {
         pairs: Vec::new(),
       };
       self.insert(format!("::ext::{:?}", f), net);
+      let net = Net {
+        root: Tree::Comb(
+          "lam".to_owned(),
+          Box::new(Tree::Branch(
+            Box::new(Tree::Var("n".to_owned())),
+            Box::new(Tree::Var("p".to_owned())),
+            Box::new(Tree::Var("o".to_owned())),
+          )),
+          Box::new(Tree::Comb(
+            "lam".to_owned(),
+            Box::new(Tree::Var("n".to_owned())),
+            Box::new(Tree::Comb(
+              "lam".to_owned(),
+              Box::new(Tree::Var("p".to_owned())),
+              Box::new(Tree::Var("o".to_owned())),
+            )),
+          )),
+        ),
+        pairs: Vec::new(),
+      };
+      self.insert("::ext::branch".to_owned(), net);
     }
   }
 }

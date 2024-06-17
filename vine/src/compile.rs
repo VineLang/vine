@@ -133,6 +133,21 @@ impl<'ast> Compiler<'ast> {
         }
         last_result
       }
+      TermKind::Tuple(t) => Self::tup(t.iter().map(|x| self.compile_pat(x))),
+      TermKind::String(s) => {
+        let v = self.new_var();
+        Tree::Comb(
+          "tup".to_owned(),
+          Box::new(Tree::U32(s.chars().count() as u32)),
+          Box::new(Tree::Comb(
+            "lam".to_owned(),
+            Box::new(v.0),
+            Box::new(s.chars().rev().fold(v.1, |tail, char| {
+              Tree::Comb("tup".to_owned(), Box::new(Tree::U32(char as u32)), Box::new(tail))
+            })),
+          )),
+        )
+      }
       _ => todo!(),
     }
   }
@@ -160,8 +175,13 @@ impl<'ast> Compiler<'ast> {
         self.declare(i, v.0);
         v.1
       }
+      TermKind::Tuple(t) => Self::tup(t.iter().map(|x| self.compile_pat(x))),
       _ => todo!(),
     }
+  }
+
+  fn tup(ts: impl Iterator<Item = Tree>) -> Tree {
+    ts.reduce(|a, b| Tree::Comb("tup".to_owned(), Box::new(a), Box::new(b))).unwrap_or(Tree::Erase)
   }
 
   fn dup(&mut self, t: Tree) -> (Tree, Tree) {

@@ -137,7 +137,7 @@ pub enum Token {
   Ident,
   #[regex(r"\d[\d\w]*")]
   Num,
-  #[regex(r#""([^\\"]|\\.)+""#)]
+  #[regex(r#""([^\\"]|\\.)*""#)]
   String,
   #[regex(r#"'([^\\']|\\.)+'"#)]
   Char,
