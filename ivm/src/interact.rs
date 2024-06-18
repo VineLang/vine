@@ -126,11 +126,11 @@ impl<'ivm> IVM<'ivm> {
   }
 
   fn call(&mut self, f: Port<'ivm>, lhs: Port<'ivm>) {
-    self.stats.call += 1;
     let ext_fn = unsafe { f.as_ext_fn() };
     let (rhs_wire, out) = unsafe { f.aux() };
     if let Some(rhs) = rhs_wire.load_target() {
       if rhs.tag() == Tag::ExtVal {
+        self.stats.call += 1;
         self.free_wire(rhs_wire);
         let wait_start = Instant::now();
         let result = unsafe { ext_fn.call(lhs.as_ext_val(), rhs.as_ext_val()) };
