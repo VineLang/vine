@@ -1,6 +1,9 @@
 use crate::ast::{Block, Item, ItemKind, ModKind, Stmt, StmtKind, Term, TermKind};
 
 pub trait VisitMut<'a> {
+  fn enter_scope(&mut self) {}
+  fn exit_scope(&mut self) {}
+
   fn visit_bind(&mut self, term: &'a mut Term) {
     self._visit_term(term);
   }
@@ -41,8 +44,10 @@ pub trait VisitMut<'a> {
       TermKind::Match(a, b) => {
         self.visit_term(a);
         for (t, u) in b {
+          self.enter_scope();
           self.visit_bind(t);
           self.visit_term(u);
+          self.exit_scope();
         }
       }
       TermKind::If(a, b, c) => {
@@ -55,15 +60,19 @@ pub trait VisitMut<'a> {
         self.visit_block(b);
       }
       TermKind::For(a, b, c) => {
-        self.visit_bind(a);
+        self.enter_scope();
         self.visit_term(b);
+        self.visit_bind(a);
         self.visit_block(c);
+        self.exit_scope();
       }
       TermKind::Fn(a, b) => {
+        self.enter_scope();
         for t in a {
           self.visit_bind(t);
         }
         self.visit_term(b);
+        self.exit_scope();
       }
       TermKind::Tuple(a) | TermKind::List(a) => {
         for t in a {
@@ -123,8 +132,10 @@ pub trait VisitMut<'a> {
   }
 
   fn _visit_block(&mut self, block: &'a mut Block) {
+    self.enter_scope();
     for stmt in &mut block.stmts {
       self.visit_stmt(stmt);
     }
+    self.exit_scope();
   }
 }

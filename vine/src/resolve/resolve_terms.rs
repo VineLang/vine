@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use crate::{
-  ast::{Block, Ident, Term, TermKind},
+  ast::{Ident, Term, TermKind},
   visit::VisitMut,
 };
 
@@ -46,9 +46,11 @@ struct ScopeEntry {
 }
 
 impl VisitMut<'_> for ResolveVisitor<'_> {
-  fn visit_block(&mut self, block: &mut Block) {
+  fn enter_scope(&mut self) {
     self.scope_depth += 1;
-    self._visit_block(block);
+  }
+
+  fn exit_scope(&mut self) {
     self.scope_depth -= 1;
     for stack in self.scope.values_mut() {
       if stack.last().is_some_and(|x| x.depth > self.scope_depth) {
