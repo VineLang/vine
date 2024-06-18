@@ -119,7 +119,7 @@ impl<'ctx, 'src> VineParser<'ctx, 'src> {
 
   fn parse_fn_item(&mut self) -> Parse<'src, FnItem> {
     self.expect(Token::Fn)?;
-    let name = self.parse_path()?;
+    let name = self.parse_ident()?;
     let params = self.parse_term_list()?;
     let body = self.parse_block()?;
     Ok(FnItem { name, params, body: Term { kind: TermKind::Block(body) } })
@@ -127,7 +127,7 @@ impl<'ctx, 'src> VineParser<'ctx, 'src> {
 
   fn parse_const_item(&mut self) -> Parse<'src, ConstItem> {
     self.expect(Token::Const)?;
-    let name = self.parse_path()?;
+    let name = self.parse_ident()?;
     self.expect(Token::Eq)?;
     let value = self.parse_term()?;
     self.expect(Token::Semi)?;
@@ -143,13 +143,13 @@ impl<'ctx, 'src> VineParser<'ctx, 'src> {
 
   fn parse_enum_item(&mut self) -> Parse<'src, Enum> {
     self.expect(Token::Enum)?;
-    let name = self.parse_path()?;
+    let name = self.parse_ident()?;
     let variants = self.parse_delimited(BRACE_COMMA, Self::parse_struct)?;
     Ok(Enum { name, variants })
   }
 
   fn parse_struct(&mut self) -> Parse<'src, Struct> {
-    let name = self.parse_path()?;
+    let name = self.parse_ident()?;
     let fields = if self.check(Token::OpenParen) {
       self.parse_delimited(PAREN_COMMA, Self::parse_ident)?
     } else {
@@ -164,7 +164,7 @@ impl<'ctx, 'src> VineParser<'ctx, 'src> {
 
   fn parse_mod_item(&mut self) -> Parse<'src, ModItem> {
     self.expect(Token::Mod)?;
-    let name = self.parse_path()?;
+    let name = self.parse_ident()?;
     let items = self.parse_delimited(BRACE, Self::parse_item)?;
     Ok(ModItem { name, inner: Mod { items } })
   }
@@ -177,15 +177,15 @@ impl<'ctx, 'src> VineParser<'ctx, 'src> {
   }
 
   fn parse_use_tree(&mut self) -> Parse<'src, UseTree> {
-    let mut segments = Vec::new();
+    let mut path = Path { segments: Vec::new(), absolute: false };
     while self.check(Token::Ident) {
-      segments.push(self.parse_ident()?);
+      path.segments.push(self.parse_ident()?);
       if !self.eat(Token::ColonColon)? {
-        return Ok(UseTree { path: Path { segments }, children: None });
+        return Ok(UseTree { path, children: None });
       }
     }
     let children = self.parse_delimited(BRACE_COMMA, Self::parse_use_tree)?;
-    Ok(UseTree { path: Path { segments }, children: Some(children) })
+    Ok(UseTree { path, children: Some(children) })
   }
 
   fn parse_term_list(&mut self) -> Parse<'src, Vec<Term>> {
@@ -242,11 +242,8 @@ impl<'ctx, 'src> VineParser<'ctx, 'src> {
     if self.check(Token::Num) {
       return Ok(Term::new_num(self.parse_num()?));
     }
-    if self.check(Token::ColonColon) {
+    if self.check(Token::Ident) || self.check(Token::ColonColon) {
       return Ok(Term::new_path(self.parse_path()?));
-    }
-    if self.check(Token::Ident) {
-      return Ok(Term { kind: TermKind::Var(self.parse_ident()?) });
     }
     if self.check(Token::OpenParen) {
       let mut tuple = false;
@@ -385,8 +382,9 @@ impl<'ctx, 'src> VineParser<'ctx, 'src> {
   }
 
   fn parse_path(&mut self) -> Parse<'src, Path> {
+    let absolute = self.eat(Token::ColonColon)?;
     let segments = self.parse_delimited(PATH, Self::parse_ident)?;
-    Ok(Path { segments })
+    Ok(Path { segments, absolute })
   }
 }
 
@@ -414,8 +412,7 @@ const BRACKET_COMMA: Delimiters = Delimiters {
   separator: Some(Token::Comma),
 };
 
-const PATH: Delimiters =
-  Delimiters { open: Some(Token::ColonColon), close: None, separator: Some(Token::ColonColon) };
+const PATH: Delimiters = Delimiters { open: None, close: None, separator: Some(Token::ColonColon) };
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 #[repr(u8)]

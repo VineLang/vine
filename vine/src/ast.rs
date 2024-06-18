@@ -20,14 +20,14 @@ pub enum ItemKind {
 
 #[derive(Debug, Clone)]
 pub struct FnItem {
-  pub name: Path,
+  pub name: Ident,
   pub params: Vec<Term>,
   pub body: Term,
 }
 
 #[derive(Debug, Clone)]
 pub struct ConstItem {
-  pub name: Path,
+  pub name: Ident,
   pub value: Term,
 }
 
@@ -36,19 +36,19 @@ pub struct PatternItem {}
 
 #[derive(Debug, Clone)]
 pub struct Struct {
-  pub name: Path,
+  pub name: Ident,
   pub fields: Vec<Ident>,
 }
 
 #[derive(Debug, Clone)]
 pub struct Enum {
-  pub name: Path,
+  pub name: Ident,
   pub variants: Vec<Struct>,
 }
 
 #[derive(Debug, Clone)]
 pub struct ModItem {
-  pub name: Path,
+  pub name: Ident,
   pub inner: Mod,
 }
 
@@ -66,6 +66,11 @@ pub struct UseTree {
 #[derive(Clone)]
 pub struct Path {
   pub segments: Vec<Ident>,
+  pub absolute: bool,
+}
+
+impl Path {
+  pub const ROOT: Self = Self { segments: Vec::new(), absolute: true };
 }
 
 #[derive(Default, Debug, Clone)]
@@ -100,7 +105,7 @@ pub struct Term {
 pub enum TermKind {
   Hole,
   Path(Path),
-  Var(Ident),
+  Local(usize),
   Block(Block),
   Assign(B<Term>, B<Term>),
   Match(B<Term>, Vec<(Term, Term)>),
@@ -198,10 +203,29 @@ impl Term {
   }
 }
 
+impl Path {
+  pub fn extend(&self, ext: &[Ident]) -> Self {
+    Path { segments: self.segments.iter().chain(ext).copied().collect(), absolute: self.absolute }
+  }
+
+  pub fn as_ident(&self) -> Option<Ident> {
+    if let [ident] = self.segments[..] {
+      Some(ident)
+    } else {
+      None
+    }
+  }
+}
+
 impl Display for Path {
   fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-    for seg in self.segments.iter() {
+    if self.absolute {
       f.write_str("::")?;
+    }
+    for (i, seg) in self.segments.iter().enumerate() {
+      if i != 0 {
+        f.write_str("::")?;
+      }
       f.write_str(&seg.0)?;
     }
     Ok(())
@@ -210,15 +234,7 @@ impl Display for Path {
 
 impl Debug for Path {
   fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-    f.write_char('`')?;
-    for (i, seg) in self.segments.iter().enumerate() {
-      if i != 0 {
-        f.write_str("::")?;
-      }
-      f.write_str(&seg.0)?;
-    }
-    f.write_char('`')?;
-    Ok(())
+    write!(f, "`{self}`")
   }
 }
 

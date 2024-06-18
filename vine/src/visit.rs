@@ -1,6 +1,10 @@
 use crate::ast::{Block, Item, ItemKind, Stmt, StmtKind, Term, TermKind};
 
 pub trait VisitMut<'a> {
+  fn visit_bind(&mut self, term: &'a mut Term) {
+    self._visit_term(term);
+  }
+
   fn visit_term(&mut self, term: &'a mut Term) {
     self._visit_term(term);
   }
@@ -21,7 +25,7 @@ pub trait VisitMut<'a> {
     match &mut term.kind {
       TermKind::Hole
       | TermKind::Path(_)
-      | TermKind::Var(_)
+      | TermKind::Local(_)
       | TermKind::Num(_)
       | TermKind::String(_) => {}
       TermKind::Ref(a)
@@ -37,7 +41,7 @@ pub trait VisitMut<'a> {
       TermKind::Match(a, b) => {
         self.visit_term(a);
         for (t, u) in b {
-          self.visit_term(t);
+          self.visit_bind(t);
           self.visit_term(u);
         }
       }
@@ -51,13 +55,13 @@ pub trait VisitMut<'a> {
         self.visit_block(b);
       }
       TermKind::For(a, b, c) => {
-        self.visit_term(a);
+        self.visit_bind(a);
         self.visit_term(b);
         self.visit_block(c);
       }
       TermKind::Fn(a, b) => {
         for t in a {
-          self.visit_term(t);
+          self.visit_bind(t);
         }
         self.visit_term(b);
       }
@@ -84,10 +88,10 @@ pub trait VisitMut<'a> {
   fn _visit_stmt(&mut self, stmt: &'a mut Stmt) {
     match &mut stmt.kind {
       StmtKind::Let(l) => {
-        self.visit_term(&mut l.bind);
         if let Some(init) = &mut l.init {
           self.visit_term(init);
         }
+        self.visit_bind(&mut l.bind);
       }
       StmtKind::Term(t, _) => self.visit_term(t),
       StmtKind::Empty => {}

@@ -21,10 +21,10 @@ impl VarGen {
 }
 
 #[derive(Default)]
-pub struct Compiler<'ast> {
+pub struct Compiler {
   var: VarGen,
   pairs: Vec<(Tree, Tree)>,
-  scope: BTreeMap<&'ast Ident, Vec<ScopeEntry>>,
+  scope: BTreeMap<usize, ScopeEntry>,
   scope_depth: usize,
   pub nets: Nets,
 }
@@ -36,24 +36,20 @@ struct ScopeEntry {
 }
 
 impl ScopeEntry {
-  fn finish(self) -> (Tree, Tree) {
-    (self.value, self.last_use.unwrap_or(Tree::Erase))
+  fn finish(&mut self) -> (Tree, Tree) {
+    (take(&mut self.value), self.last_use.take().unwrap_or(Tree::Erase))
   }
 }
 
-impl<'ast> Compiler<'ast> {
-  pub fn compile_item(&mut self, item: &'ast Item) {
+impl Compiler {
+  pub fn compile_global(&mut self, path: &Path, term: &Term) {
     assert_eq!(self.scope_depth, 0);
     assert_eq!(self.var.0, 0);
     assert_eq!(self.pairs.len(), 0);
-    let (path, root) = match &item.kind {
-      ItemKind::Fn(f) => (&f.name, self.compile_fn(&f.params, &f.body)),
-      ItemKind::Const(c) => (&c.name, self.compile_expr(&c.value)),
-      _ => todo!(),
-    };
+    let root = self.compile_expr(term);
     let pairs = take(&mut self.pairs);
     let net = Net { root, pairs };
-    self.nets.insert(format!("{path}"), net);
+    self.nets.insert(path.to_string(), net);
     self.var.0 = 0;
   }
 
@@ -63,29 +59,28 @@ impl<'ast> Compiler<'ast> {
 
   fn pop_scope(&mut self) {
     self.scope_depth -= 1;
-    for stack in self.scope.values_mut() {
-      if stack.last().is_some_and(|x| x.depth > self.scope_depth) {
-        self.pairs.push(stack.pop().unwrap().finish());
+    self.scope.retain(|_, x| {
+      if x.depth <= self.scope_depth {
+        true
+      } else {
+        self.pairs.push(x.finish());
+        false
       }
-    }
+    });
   }
 
-  fn declare(&mut self, i: &'ast Ident, value: Tree) {
-    let stack = self.scope.entry(i).or_default();
-    if stack.last().is_some_and(|x| x.depth == self.scope_depth) {
-      self.pairs.push(stack.pop().unwrap().finish());
-    }
-    stack.push(ScopeEntry { depth: self.scope_depth, value, last_use: None });
+  fn declare(&mut self, i: usize, value: Tree) {
+    self.scope.insert(i, ScopeEntry { depth: self.scope_depth, value, last_use: None });
   }
 
-  fn compile_expr(&mut self, term: &'ast Term) -> Tree {
+  fn compile_expr(&mut self, term: &Term) -> Tree {
     match &term.kind {
       TermKind::Hole => Tree::Erase,
       TermKind::Num(num) => Tree::U32(*num),
-      TermKind::Path(path) => Tree::Global(format!("{}", path)),
-      TermKind::Var(name) => {
+      TermKind::Path(path) => Tree::Global(path.to_string()),
+      TermKind::Local(local) => {
         let v = self.var.gen();
-        let entry = self.scope.get_mut(name).unwrap().last_mut().unwrap();
+        let entry = self.scope.get_mut(local).unwrap();
         if let Some(prev_use) = replace(&mut entry.last_use, Some(v.0)) {
           let new_value = self.var.gen();
           let value = replace(&mut entry.value, new_value.0);
@@ -178,7 +173,7 @@ impl<'ast> Compiler<'ast> {
     }
   }
 
-  fn compile_fn(&mut self, params: &'ast [Term], body: &'ast Term) -> Tree {
+  fn compile_fn(&mut self, params: &[Term], body: &Term) -> Tree {
     let mut result = Tree::Erase;
     let mut cur = &mut result;
     self.push_scope();
@@ -193,12 +188,12 @@ impl<'ast> Compiler<'ast> {
     result
   }
 
-  fn compile_pat(&mut self, t: &'ast Term) -> Tree {
+  fn compile_pat(&mut self, t: &Term) -> Tree {
     match &t.kind {
       TermKind::Hole => Tree::Erase,
-      TermKind::Var(i) => {
+      TermKind::Local(i) => {
         let v = self.var.gen();
-        self.declare(i, v.0);
+        self.declare(*i, v.0);
         v.1
       }
       TermKind::Tuple(t) => Self::tup(t.iter().map(|x| self.compile_pat(x))),
@@ -223,7 +218,7 @@ impl<'ast> Compiler<'ast> {
     o.1
   }
 
-  fn compile_block(&mut self, b: &'ast Block) -> Tree {
+  fn compile_block(&mut self, b: &Block) -> Tree {
     self.push_scope();
     let mut last = Tree::Erase;
     for s in &b.stmts {
@@ -240,7 +235,7 @@ impl<'ast> Compiler<'ast> {
     }
   }
 
-  fn compile_stmt(&mut self, s: &'ast Stmt) -> Tree {
+  fn compile_stmt(&mut self, s: &Stmt) -> Tree {
     match &s.kind {
       StmtKind::Let(l) => {
         let i = l.init.as_ref().map(|x| self.compile_expr(x)).unwrap_or_default();
