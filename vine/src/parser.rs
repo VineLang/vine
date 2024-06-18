@@ -1,6 +1,7 @@
 use std::mem::transmute;
 
 use vine_util::{
+  interner::StringInterner,
   lexer::TokenSet,
   parser::{Parser, ParserState},
 };
@@ -13,11 +14,12 @@ use crate::{
   lexer::Token,
 };
 
-pub struct VineParser<'src> {
+pub struct VineParser<'ctx, 'src> {
+  interner: &'ctx StringInterner<'static>,
   state: ParserState<'src, Token>,
 }
 
-impl<'src> Parser<'src> for VineParser<'src> {
+impl<'ctx, 'src> Parser<'src> for VineParser<'ctx, 'src> {
   type Token = Token;
   type Error = ParseError<'src>;
 
@@ -45,9 +47,9 @@ pub enum ParseError<'src> {
 
 type Parse<'src, T = ()> = Result<T, ParseError<'src>>;
 
-impl<'src> VineParser<'src> {
-  pub fn parse(src: &'src str) -> Parse<'src, Mod> {
-    let mut parser = VineParser { state: ParserState::new(src) };
+impl<'ctx, 'src> VineParser<'ctx, 'src> {
+  pub fn parse(interner: &'ctx StringInterner<'static>, src: &'src str) -> Parse<'src, Mod> {
+    let mut parser = VineParser { interner, state: ParserState::new(src) };
     parser.bump()?;
     let mut items = Vec::new();
     while parser.state.token.is_some() {
@@ -77,7 +79,7 @@ impl<'src> VineParser<'src> {
 
   fn parse_ident(&mut self) -> Parse<'src, Ident> {
     let token = self.expect(Token::Ident)?;
-    Ok(Ident(token.to_owned()))
+    Ok(Ident(self.interner.intern(token)))
   }
 
   fn parse_num(&mut self) -> Parse<'src, u32> {

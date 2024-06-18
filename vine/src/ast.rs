@@ -1,5 +1,7 @@
 use std::fmt::{self, Debug, Display, Write};
 
+use vine_util::interner::Interned;
+
 #[derive(Clone)]
 pub struct Item {
   pub kind: ItemKind,
@@ -161,8 +163,8 @@ pub enum ComparisonOp {
   Ge,
 }
 
-#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct Ident(pub String);
+#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub struct Ident(pub Interned<'static, str>);
 
 pub type B<T> = Box<T>;
 
