@@ -1,16 +1,21 @@
-use std::{env::args, fs};
+use std::env::args;
 
-use vine::{compile::Compiler, parser::VineParser, resolve::Resolver};
+use vine::{compile::Compiler, loader::Loader, resolve::Resolver};
 use vine_util::{arena::BytesArena, interner::StringInterner};
 
 fn main() {
-  let path = args().nth(1).expect("must supply path");
+  let mut args = args();
+  args.next(); // ignore bin path
 
   let arena = &*Box::leak(Box::new(BytesArena::default()));
   let interner = StringInterner::new(arena);
 
-  let src = fs::read_to_string(path).unwrap();
-  let root = VineParser::parse(&interner, &src).unwrap();
+  let mut loader = Loader::new(&interner);
+  loader.load_main_mod(args.next().expect("must supply main mod"));
+  for lib in args {
+    loader.load_mod(lib);
+  }
+  let root = loader.finish();
 
   let mut resolver = Resolver::default();
   resolver.build_graph(root);

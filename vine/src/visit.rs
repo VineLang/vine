@@ -1,4 +1,4 @@
-use crate::ast::{Block, Item, ItemKind, Stmt, StmtKind, Term, TermKind};
+use crate::ast::{Block, Item, ItemKind, ModKind, Stmt, StmtKind, Term, TermKind};
 
 pub trait VisitMut<'a> {
   fn visit_bind(&mut self, term: &'a mut Term) {
@@ -109,11 +109,14 @@ pub trait VisitMut<'a> {
       ItemKind::Const(c) => {
         self.visit_term(&mut c.value);
       }
-      ItemKind::Mod(m) => {
-        for item in &mut m.inner.items {
-          self.visit_item(item)
+      ItemKind::Mod(m) => match &mut m.kind {
+        ModKind::Loaded(items) => {
+          for item in items {
+            self.visit_item(item);
+          }
         }
-      }
+        ModKind::Unloaded(_) => {}
+      },
       ItemKind::Struct(_) | ItemKind::Enum(_) | ItemKind::Use(_) => {}
       ItemKind::Pattern(_) => todo!(),
     }

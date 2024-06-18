@@ -1,4 +1,7 @@
-use std::fmt::{self, Debug, Display, Write};
+use std::{
+  fmt::{self, Debug, Display, Write},
+  path::PathBuf,
+};
 
 use vine_util::interner::Interned;
 
@@ -49,12 +52,13 @@ pub struct Enum {
 #[derive(Debug, Clone)]
 pub struct ModItem {
   pub name: Ident,
-  pub inner: Mod,
+  pub kind: ModKind,
 }
 
 #[derive(Debug, Clone)]
-pub struct Mod {
-  pub items: Vec<Item>,
+pub enum ModKind {
+  Loaded(Vec<Item>),
+  Unloaded(PathBuf),
 }
 
 #[derive(Debug, Clone)]

@@ -4,10 +4,15 @@ use super::{NodeId, Resolver};
 
 impl Resolver {
   pub fn resolve_path(&mut self, base: NodeId, path: &Path) -> NodeId {
-    path.segments.iter().fold(base, |b, &s| self.resolve_one(b, s))
+    let mut check_parents = true;
+    path.segments.iter().fold(base, |b, &s| {
+      let next = self.resolve_one(b, s, check_parents);
+      check_parents = false;
+      next
+    })
   }
 
-  fn resolve_one(&mut self, base: NodeId, segment: Ident) -> NodeId {
+  fn resolve_one(&mut self, base: NodeId, segment: Ident, check_parents: bool) -> NodeId {
     let node = &mut self.nodes[base];
 
     if let Some(&result) = node.children.get(&segment) {
@@ -26,8 +31,10 @@ impl Resolver {
       return resolved;
     }
 
-    if let Some(parent) = node.parent {
-      return self.resolve_one(parent, segment);
+    if check_parents {
+      if let Some(parent) = node.parent {
+        return self.resolve_one(parent, segment, true);
+      }
     }
 
     panic!("cannot resolve {:?} in {:?}", segment, node.canonical);

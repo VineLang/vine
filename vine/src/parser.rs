@@ -1,4 +1,4 @@
-use std::mem::transmute;
+use std::{mem::transmute, path::PathBuf};
 
 use vine_util::{
   interner::StringInterner,
@@ -8,8 +8,8 @@ use vine_util::{
 
 use crate::{
   ast::{
-    BinaryOp, Block, ComparisonOp, ConstItem, Enum, FnItem, Ident, Item, ItemKind, LetStmt, Mod,
-    ModItem, Path, PatternItem, Stmt, StmtKind, Struct, Term, TermKind, UnaryOp, UseTree,
+    BinaryOp, Block, ComparisonOp, ConstItem, Enum, FnItem, Ident, Item, ItemKind, LetStmt,
+    ModItem, ModKind, Path, PatternItem, Stmt, StmtKind, Struct, Term, TermKind, UnaryOp, UseTree,
   },
   lexer::Token,
 };
@@ -48,14 +48,14 @@ pub enum ParseError<'src> {
 type Parse<'src, T = ()> = Result<T, ParseError<'src>>;
 
 impl<'ctx, 'src> VineParser<'ctx, 'src> {
-  pub fn parse(interner: &'ctx StringInterner<'static>, src: &'src str) -> Parse<'src, Mod> {
+  pub fn parse(interner: &'ctx StringInterner<'static>, src: &'src str) -> Parse<'src, Vec<Item>> {
     let mut parser = VineParser { interner, state: ParserState::new(src) };
     parser.bump()?;
     let mut items = Vec::new();
     while parser.state.token.is_some() {
       items.push(parser.parse_item()?);
     }
-    Ok(Mod { items })
+    Ok(items)
   }
 
   fn parse_item(&mut self) -> Parse<'src, Item> {
@@ -165,8 +165,14 @@ impl<'ctx, 'src> VineParser<'ctx, 'src> {
   fn parse_mod_item(&mut self) -> Parse<'src, ModItem> {
     self.expect(Token::Mod)?;
     let name = self.parse_ident()?;
-    let items = self.parse_delimited(BRACE, Self::parse_item)?;
-    Ok(ModItem { name, inner: Mod { items } })
+    if self.eat(Token::Eq)? {
+      let path = self.parse_string()?;
+      self.expect(Token::Semi)?;
+      Ok(ModItem { name, kind: ModKind::Unloaded(PathBuf::from(path)) })
+    } else {
+      let items = self.parse_delimited(BRACE, Self::parse_item)?;
+      Ok(ModItem { name, kind: ModKind::Loaded(items) })
+    }
   }
 
   fn parse_use_item(&mut self) -> Parse<'src, UseTree> {

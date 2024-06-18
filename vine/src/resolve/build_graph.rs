@@ -1,15 +1,16 @@
-use crate::ast::{Ident, Item, ItemKind, Mod, Path, Term, TermKind, UseTree};
+use crate::ast::{Ident, Item, ItemKind, ModKind, Path, Term, TermKind, UseTree};
 
 use super::{Node, NodeId, Resolver};
 
 impl Resolver {
-  pub fn build_graph(&mut self, root: Mod) {
-    self.build_mod(root, Path::ROOT, None);
+  pub fn build_graph(&mut self, root: ModKind) {
+    let node = self.new_node(Path::ROOT, None);
+    self.build_mod(root, node);
   }
 
-  fn build_mod(&mut self, module: Mod, path: Path, parent: Option<NodeId>) -> NodeId {
-    let node = self.new_node(path, parent);
-    for item in module.items {
+  fn build_mod(&mut self, module: ModKind, node: NodeId) -> NodeId {
+    let ModKind::Loaded(items) = module else { unreachable!("module not yet loaded") };
+    for item in items {
       self.build_item(item, node);
     }
     node
@@ -25,9 +26,7 @@ impl Resolver {
       }
       ItemKind::Mod(m) => {
         let child = self.get_or_insert_child(parent, m.name).id;
-        for item in m.inner.items {
-          self.build_item(item, child);
-        }
+        self.build_mod(m.kind, child);
       }
       ItemKind::Use(tree) => {
         Self::build_imports(
