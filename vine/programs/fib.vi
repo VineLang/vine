@@ -1,0 +1,14 @@
+
+use std::{io::println, u32};
+
+fn main(io) {
+  fib(io, 0, 0, 1)
+}
+
+const end = 32;
+
+fn fib(io, n, a, b) {
+  let io = println(io, u32::to_string(a));
+  let (a, b) = (b, a + b);
+  ::ext::branch(n == end, fib, _, io, n + 1, a, b);
+}

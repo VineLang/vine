@@ -1,2 +1,3 @@
 
 mod io = "./io.vi";
+mod u32 = "./u32.vi";

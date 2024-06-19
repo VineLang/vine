@@ -1,0 +1,16 @@
+
+fn to_string(n) {
+  ::ext::branch(n, zero, cont, n, "")
+}
+
+mod to_string {
+  fn zero(_, _) { "0" }
+  fn end(_, s) { s }
+  fn cont(n, s) {
+    let (l, b) = s;
+    let s = (l + 1, fn(x) ('0' + n % 10, b(x)));
+    let n = n / 10;
+    ::ext::branch(n, end, cont, n, s)
+  }
+}
+
