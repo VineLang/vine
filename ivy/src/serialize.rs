@@ -1,6 +1,7 @@
 use std::{
   cell::UnsafeCell,
   collections::{btree_map::Entry, BTreeMap, HashMap},
+  marker::PhantomData,
   mem::{take, transmute},
   ptr,
 };
@@ -13,6 +14,7 @@ use ivm::{
   instruction::{Instruction, Instructions, Register},
   port::{Port, Tag},
 };
+use vine_util::bicycle::{Bicycle, BicycleState};
 
 use crate::ast::{Net, Nets, Tree};
 
@@ -45,9 +47,7 @@ impl Nets {
       unsafe { *globals[i].get() = take(&mut serializer.current) };
     }
 
-    for cur in globals {
-      serializer.visit(cur, Some(1));
-    }
+    PropagateLabels(PhantomData).visit_all(globals);
 
     unsafe { transmute::<&[UnsafeCell<Global<'ivm>>], &[Global<'ivm>]>(globals) }
   }
@@ -153,50 +153,37 @@ impl<'ast, 'ivm> Serializer<'ast, 'ivm> {
         let o = self.serialize_tree(o);
         self.push(Instruction::Binary(Tag::Branch, 0, to, a, o));
       }
-      Tree::Var(_) => unreachable!(),
-    }
-  }
-
-  fn visit(&self, cur: &'ivm UnsafeCell<Global<'ivm>>, depth: Option<usize>) -> usize {
-    let flag = unsafe { &mut (*cur.get()).flag };
-    match *flag {
-      0 => *flag = depth.unwrap(),
-      usize::MAX => return usize::MAX,
-      d if depth.is_some() => return d,
-      _ => *flag = usize::MAX,
-    };
-
-    let head_depth = self._visit(cur, depth);
-
-    let flag = unsafe { &mut (*cur.get()).flag };
-    if depth.is_some_and(|x| x > head_depth) {
-      *flag = head_depth;
-    } else {
-      *flag = usize::MAX;
-      if depth == Some(head_depth) {
-        self._visit(cur, None);
+      Tree::Var(v) => {
+        let old = self.registers.insert(v, to);
+        debug_assert!(old.is_none());
       }
     }
+  }
+}
 
-    head_depth
+struct PropagateLabels<'ivm>(PhantomData<&'ivm mut &'ivm ()>);
+
+impl<'ivm> Bicycle for PropagateLabels<'ivm> {
+  type Node = &'ivm UnsafeCell<Global<'ivm>>;
+
+  fn state(&mut self, cur: Self::Node) -> &BicycleState {
+    unsafe { &*(&mut (*cur.get()).flag as *mut usize as *const BicycleState) }
   }
 
-  fn _visit(&self, cur: &UnsafeCell<Global<'ivm>>, depth: Option<usize>) -> usize {
+  fn visit(&mut self, cur: Self::Node, mut recurse: impl FnMut(&mut Self, Self::Node)) {
     let instructions = unsafe { (*cur.get()).instructions.instructions() };
 
-    let mut head_depth = usize::MAX;
     for i in instructions {
       match i {
         Instruction::Nilary(_, p) if p.tag() == Tag::Global => {
-          let child = unsafe { &*p.addr().0.cast::<UnsafeCell<Global<'ivm>>>() };
+          let child = unsafe { &*p.addr().0.cast::<UnsafeCell<Global>>() };
           if !ptr::addr_eq(child, cur) {
-            head_depth = head_depth.min(self.visit(child, depth.map(|x| x + 1)));
+            recurse(self, child);
             unsafe { (*cur.get()).labels.union(&(*child.get()).labels) }
           }
         }
         _ => {}
       }
     }
-    head_depth
   }
 }
