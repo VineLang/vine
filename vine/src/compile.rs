@@ -154,7 +154,7 @@ impl Compiler {
         }
         last_result
       }
-      TermKind::Tuple(t) => Self::tup(t.iter().map(|x| self.compile_pat(x))),
+      TermKind::Tuple(t) => Self::tup(t.iter().map(|x| self.compile_expr(x))),
       TermKind::String(s) => {
         let v = self.var.gen();
         Tree::Comb(
