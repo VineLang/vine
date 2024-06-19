@@ -20,11 +20,15 @@ impl Resolver {
     for node_id in 0..visitor.resolver.nodes.len() {
       visitor.node = node_id;
 
-      let mut value = visitor.resolver.nodes[node_id].value.take();
+      let node = &mut visitor.resolver.nodes[node_id];
+      let mut value = node.value.take();
       if let Some(value) = &mut value {
         visitor.visit_term(value);
       }
-      visitor.resolver.nodes[node_id].value = value;
+
+      let node = &mut visitor.resolver.nodes[node_id];
+      node.value = value;
+      node.locals = visitor.next_local;
 
       visitor.scope.clear();
       visitor.next_local = 0;

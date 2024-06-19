@@ -23,9 +23,7 @@ fn main() {
 
   let mut compiler = Compiler::default();
   for node in &resolver.nodes {
-    if let Some(value) = &node.value {
-      compiler.compile_global(&node.canonical, value);
-    }
+    compiler.compile_node(node)
   }
 
   let nets = compiler.nets;

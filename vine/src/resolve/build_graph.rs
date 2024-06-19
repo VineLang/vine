@@ -92,6 +92,7 @@ impl Resolver {
       imports: Default::default(),
       parent,
       value: None,
+      locals: 0,
     };
     self.nodes.push(node);
     id

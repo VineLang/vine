@@ -18,6 +18,7 @@ pub struct Node {
   pub id: NodeId,
   pub canonical: Path,
   pub value: Option<Term>,
+  pub locals: usize,
 
   children: HashMap<Ident, NodeId>,
   imports: HashMap<Ident, Option<Path>>,

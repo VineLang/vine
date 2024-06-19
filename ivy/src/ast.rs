@@ -1,5 +1,6 @@
 use std::{
   fmt::{self, Display},
+  mem::replace,
   ops::{Deref, DerefMut},
 };
 
@@ -71,6 +72,25 @@ impl Display for Nets {
       write!(f, "\n{name} {net}\n")?;
     }
     Ok(())
+  }
+}
+
+impl Tree {
+  pub fn n_ary(label: &str, children: impl IntoIterator<Item = Self>) -> Self {
+    let mut children = children.into_iter();
+    let Some(initial) = children.next() else { return Tree::Erase };
+
+    let mut tree = initial;
+    let mut cur = &mut tree;
+
+    for child in children {
+      let prev = replace(cur, Tree::Comb(label.to_owned(), Box::new(Tree::Erase), Box::new(child)));
+      let Tree::Comb(_, l, r) = cur else { unreachable!() };
+      **l = prev;
+      cur = r;
+    }
+
+    tree
   }
 }
 
