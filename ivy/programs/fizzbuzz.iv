@@ -1,6 +1,6 @@
 
 ::main {
-  lam(io _)
+  fn(io _)
   ::loop = tup(io 1)
 }
 
@@ -44,28 +44,28 @@
   num0 = ?(
     ::num::zero
     ::num::loop
-    lam(ior lam(num1 _))
+    fn(ior fn(num1 _))
   )
 }
 
 ::num::zero {
-  lam(ref(io0 io1) _)
+  fn(ref(io0 io1) _)
   io0 = @io_print_byte(48 io1)
 }
 
 ::num::loop {
-  lam(ref(io0 io2) lam(dup(n0 n1) _))
+  fn(ref(io0 io2) fn(dup(n0 n1) _))
   n0 = @u32_rem(10 @u32_add(48 digit))
   n1 = @u32_div(10 dup(rest0 rest1))
   rest0 = ?(
     ::num::end
     ::num::loop
-    lam(ref(io0 io1) lam(rest1 _))
+    fn(ref(io0 io1) fn(rest1 _))
   )
   io1 = @io_print_byte(digit io2)
 }
 
 ::num::end {
-  lam(ref(io io) _)
+  fn(ref(io io) _)
 }
 

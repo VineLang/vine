@@ -39,7 +39,7 @@ impl Nets {
       labels: Default::default(),
     };
 
-    serializer.labels.insert("lam");
+    serializer.labels.insert("fn");
 
     for (i, net) in self.values().enumerate() {
       serializer.current = take(unsafe { &mut *globals[i].get() });

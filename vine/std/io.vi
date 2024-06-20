@@ -18,5 +18,5 @@ fn print(io, str) {
 }
 
 inline_ivy! print_char {
-  lam(@io_print_char(a b) lam(a b))
+  fn(@io_print_char(a b) fn(a b))
 }

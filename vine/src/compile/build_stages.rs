@@ -44,7 +44,7 @@ impl Compiler {
         let mut cur = &mut result;
         for param in params {
           let param = self.build_pat(param);
-          *cur = Tree::Comb("lam".to_owned(), Box::new(param), Box::new(Tree::Erase));
+          *cur = Tree::Comb("fn".to_owned(), Box::new(param), Box::new(Tree::Erase));
           let Tree::Comb(.., next) = cur else { unreachable!() };
           cur = next;
         }
@@ -56,7 +56,7 @@ impl Compiler {
         for arg in args {
           let arg = self.build_expr(arg);
           let out = self.cur.var.gen();
-          self.cur.pairs.push((f, Tree::Comb("lam".to_owned(), Box::new(arg), Box::new(out.0))));
+          self.cur.pairs.push((f, Tree::Comb("fn".to_owned(), Box::new(arg), Box::new(out.0))));
           f = out.1;
         }
         f
@@ -120,7 +120,7 @@ impl Compiler {
           "tup".to_owned(),
           Box::new(Tree::U32(s.chars().count() as u32)),
           Box::new(Tree::Comb(
-            "lam".to_owned(),
+            "fn".to_owned(),
             Box::new(v.0),
             Box::new(s.chars().rev().fold(v.1, |tail, char| {
               Tree::Comb("tup".to_owned(), Box::new(Tree::U32(char as u32)), Box::new(tail))
