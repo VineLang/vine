@@ -1,0 +1,30 @@
+
+use std::{io::println, u32};
+
+const end = 100;
+
+fn main(io) {
+  let n = 1;
+  while n <= end {
+    io = println(io, message(n));
+    n = n + 1;
+  }
+}
+
+fn message(n) {
+  let r3 = n % 3;
+  let r5 = n % 5;
+  if r3 {
+    if r5 {
+      u32::to_string(n)
+    } else {
+      "Buzz"
+    }
+  } else {
+    if r5 {
+      "Fizz"
+    } else {
+      "FizzBuzz"
+    }
+  }
+}
