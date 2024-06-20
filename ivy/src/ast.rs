@@ -16,6 +16,7 @@ pub enum Tree {
   ExtFn(ExtFn, Box<Tree>, Box<Tree>),
   Branch(Box<Tree>, Box<Tree>, Box<Tree>),
   U32(u32),
+  F32(f32),
   Var(String),
   Global(String),
 }
@@ -50,6 +51,8 @@ impl Display for Tree {
       Tree::ExtFn(e, a, b) => write!(f, "@{e:?}({a} {b})"),
       Tree::Branch(a, b, c) => write!(f, "?({a} {b} {c})"),
       Tree::U32(n) => write!(f, "{n}"),
+      Tree::F32(n) if n.is_nan() => write!(f, "+NaN"),
+      Tree::F32(n) => write!(f, "{n:+?}"),
       Tree::Var(v) => write!(f, "{v}"),
       Tree::Global(g) => write!(f, "{g}"),
     }

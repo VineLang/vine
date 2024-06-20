@@ -29,7 +29,9 @@ pub enum Token {
   Question,
 
   #[regex(r"\d[\d\w]*")]
-  Num,
+  U32,
+  #[regex(r"[+-][\d\w\.\+\-]+")]
+  F32,
   #[regex(r"(::\p{ID_Continue}+)+")]
   Global,
   #[regex(r"\p{ID_Start}\p{ID_Continue}*")]

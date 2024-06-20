@@ -55,9 +55,14 @@ impl<'src> IvyParser<'src> {
     Ok(nets)
   }
 
-  fn parse_num(&mut self) -> Parse<'src, u32> {
-    let token = self.expect(Token::Num)?;
-    self.parse_num_like(token, ParseError::InvalidNum)
+  fn parse_u32(&mut self) -> Parse<'src, u32> {
+    let token = self.expect(Token::U32)?;
+    self.parse_u32_like(token, ParseError::InvalidNum)
+  }
+
+  fn parse_f32(&mut self) -> Parse<'src, f32> {
+    let token = self.expect(Token::F32)?;
+    self.parse_f32_like(token, ParseError::InvalidNum)
   }
 
   fn parse_net(&mut self) -> Parse<'src, Net> {
@@ -81,8 +86,12 @@ impl<'src> IvyParser<'src> {
   }
 
   fn parse_tree(&mut self) -> Parse<'src, Tree> {
-    if self.check(Token::Num) {
-      return Ok(Tree::U32(self.parse_num()?));
+    if self.check(Token::U32) {
+      return Ok(Tree::U32(self.parse_u32()?));
+    }
+
+    if self.check(Token::F32) {
+      return Ok(Tree::F32(self.parse_f32()?));
     }
 
     if self.check(Token::Global) {

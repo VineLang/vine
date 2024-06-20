@@ -127,6 +127,9 @@ impl<'ast, 'ivm> Serializer<'ast, 'ivm> {
       Tree::U32(num) => {
         self.push(Instruction::Nilary(to, Port::new_ext_val(ExtVal::new_u32(*num))))
       }
+      Tree::F32(num) => {
+        self.push(Instruction::Nilary(to, Port::new_ext_val(ExtVal::new_f32(*num))))
+      }
       Tree::Comb(label, a, b) => {
         let label = self.labels.insert_full(label).0 as u16;
         self.current.labels.add(label);

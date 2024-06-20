@@ -29,7 +29,8 @@ pub trait VisitMut<'a> {
       TermKind::Hole
       | TermKind::Path(_)
       | TermKind::Local(_)
-      | TermKind::Num(_)
+      | TermKind::U32(_)
+      | TermKind::F32(_)
       | TermKind::String(_) => {}
       TermKind::Ref(a)
       | TermKind::Deref(a)

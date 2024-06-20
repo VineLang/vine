@@ -85,7 +85,7 @@ pub trait Parser<'src> {
     Ok(items)
   }
 
-  fn parse_num_like(
+  fn parse_u32_like(
     &mut self,
     token: &'src str,
     err: fn(&'src str) -> Self::Error,
@@ -107,6 +107,14 @@ pub trait Parser<'src> {
       num = num.checked_mul(radix).and_then(|x| x.checked_add(digit)).ok_or_else(err)?;
     }
     Ok(num)
+  }
+
+  fn parse_f32_like(
+    &mut self,
+    token: &'src str,
+    err: fn(&'src str) -> Self::Error,
+  ) -> Result<f32, Self::Error> {
+    token.parse::<f32>().map_err(|_| err(token))
   }
 
   fn parse_string_like(

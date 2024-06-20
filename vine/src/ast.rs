@@ -137,7 +137,8 @@ pub enum TermKind {
   BinaryOp(BinaryOp, B<Term>, B<Term>),
   LogicalOp(LogicalOp, B<Term>, B<Term>),
   ComparisonOp(B<Term>, Vec<(ComparisonOp, Term)>),
-  Num(u32),
+  U32(u32),
+  F32(f32),
   String(String),
 }
 
@@ -194,8 +195,12 @@ impl Term {
     Term { kind: TermKind::Deref(Box::new(term)) }
   }
 
-  pub fn new_num(num: u32) -> Term {
-    Term { kind: TermKind::Num(num) }
+  pub fn new_u32(num: u32) -> Term {
+    Term { kind: TermKind::U32(num) }
+  }
+
+  pub fn new_f32(num: f32) -> Term {
+    Term { kind: TermKind::F32(num) }
   }
 
   pub fn new_path(path: Path) -> Term {

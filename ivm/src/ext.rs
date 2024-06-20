@@ -6,6 +6,7 @@
 use core::{
   fmt::{self, Debug},
   mem::transmute,
+  ops::{Add, Div, Mul, Sub},
 };
 use std::io::{self, Read, Write};
 
@@ -51,6 +52,12 @@ impl ExtVal {
     Self::new(ExtTy::u32, value)
   }
 
+  /// Creates a new `f32` with the given numeric value.
+  #[inline(always)]
+  pub fn new_f32(value: f32) -> Self {
+    Self::new(ExtTy::f32, value.to_bits())
+  }
+
   /// Accesses the type of this value.
   #[inline(always)]
   pub fn ty(&self) -> ExtTy {
@@ -71,6 +78,14 @@ impl ExtVal {
     self.payload()
   }
 
+  /// Asserts that the type of this value is `f32`, and returns the numeric
+  /// value.
+  #[inline(always)]
+  pub fn as_f32(self) -> f32 {
+    assert_eq!(self.ty(), ExtTy::f32);
+    f32::from_bits(self.payload())
+  }
+
   /// Asserts that the type of this value is `IO`.
   #[inline(always)]
   pub fn as_io(self) {
@@ -84,6 +99,8 @@ impl ExtVal {
 pub enum ExtTy {
   /// A 32-bit unsigned integer; the payload is simply the numeric value.
   u32,
+  /// A 32-bit float; the payload is simply the bits of the float.
+  f32,
   /// An IO handle, denoting the ability to do IO; the payload is always zero.
   IO,
 }
@@ -158,17 +175,19 @@ macro_rules! ext_fns {
 ext_fns! {
   seq,
 
-  u32_add,
-  u32_sub,
-  u32_mul,
-  u32_div,
-  u32_rem,
+  add,
+  sub,
+  mul,
+  div,
+  rem,
+
+  eq,
+  ne,
+  lt,
+  le,
+
   u32_shl,
   u32_shr,
-  u32_eq,
-  u32_ne,
-  u32_lt,
-  u32_le,
   u32_and,
   u32_or,
   u32_xor,
@@ -186,17 +205,19 @@ impl ExtFnKind {
     match self {
       seq => a,
 
-      u32_add => ExtVal::new_u32(a.as_u32().wrapping_add(b.as_u32())),
-      u32_sub => ExtVal::new_u32(a.as_u32().wrapping_sub(b.as_u32())),
-      u32_mul => ExtVal::new_u32(a.as_u32().wrapping_mul(b.as_u32())),
-      u32_div => ExtVal::new_u32(a.as_u32().wrapping_div(b.as_u32())),
-      u32_rem => ExtVal::new_u32(a.as_u32().wrapping_rem(b.as_u32())),
+      add => numeric_op(a, b, u32::wrapping_add, f32::add),
+      sub => numeric_op(a, b, u32::wrapping_sub, f32::sub),
+      mul => numeric_op(a, b, u32::wrapping_mul, f32::mul),
+      div => numeric_op(a, b, u32::wrapping_div, f32::div),
+      rem => numeric_op(a, b, u32::wrapping_rem, f32::rem_euclid),
+
+      eq => comparison(a, b, |a, b| a == b, |a, b| a == b),
+      ne => comparison(a, b, |a, b| a != b, |a, b| a != b),
+      lt => comparison(a, b, |a, b| a < b, |a, b| a < b),
+      le => comparison(a, b, |a, b| a <= b, |a, b| a <= b),
+
       u32_shl => ExtVal::new_u32(a.as_u32().wrapping_shl(b.as_u32())),
       u32_shr => ExtVal::new_u32(a.as_u32().wrapping_shr(b.as_u32())),
-      u32_eq => ExtVal::new_u32(u32::from(a.as_u32() == b.as_u32())),
-      u32_ne => ExtVal::new_u32(u32::from(a.as_u32() != b.as_u32())),
-      u32_lt => ExtVal::new_u32(u32::from(a.as_u32() < b.as_u32())),
-      u32_le => ExtVal::new_u32(u32::from(a.as_u32() <= b.as_u32())),
       u32_and => ExtVal::new_u32(a.as_u32() & b.as_u32()),
       u32_or => ExtVal::new_u32(a.as_u32() | b.as_u32()),
       u32_xor => ExtVal::new_u32(a.as_u32() ^ b.as_u32()),
@@ -227,10 +248,41 @@ impl ExtFnKind {
   }
 }
 
+fn numeric_op(
+  a: ExtVal,
+  b: ExtVal,
+  f_u32: fn(u32, u32) -> u32,
+  f_f32: fn(f32, f32) -> f32,
+) -> ExtVal {
+  match (a.ty(), b.ty()) {
+    (ExtTy::u32, ExtTy::u32) => ExtVal::new_u32(f_u32(a.as_u32(), b.as_u32())),
+    (ExtTy::f32, ExtTy::f32) => ExtVal::new_f32(f_f32(a.as_f32(), b.as_f32())),
+    (ExtTy::u32, ExtTy::f32) => ExtVal::new_f32(f_f32(a.as_u32() as f32, b.as_f32())),
+    (ExtTy::f32, ExtTy::u32) => ExtVal::new_f32(f_f32(a.as_f32(), b.as_u32() as f32)),
+    _ => unimplemented!(),
+  }
+}
+
+fn comparison(
+  a: ExtVal,
+  b: ExtVal,
+  f_u32: fn(u32, u32) -> bool,
+  f_f32: fn(f32, f32) -> bool,
+) -> ExtVal {
+  ExtVal::new_u32(u32::from(match (a.ty(), b.ty()) {
+    (ExtTy::u32, ExtTy::u32) => f_u32(a.as_u32(), b.as_u32()),
+    (ExtTy::f32, ExtTy::f32) => f_f32(a.as_f32(), b.as_f32()),
+    (ExtTy::u32, ExtTy::f32) => f_f32(a.as_u32() as f32, b.as_f32()),
+    (ExtTy::f32, ExtTy::u32) => f_f32(a.as_f32(), b.as_u32() as f32),
+    _ => unimplemented!(),
+  }))
+}
+
 impl Debug for ExtVal {
   fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
     match self.ty() {
       ExtTy::u32 => write!(f, "u32({})", self.payload()),
+      ExtTy::f32 => write!(f, "f32({:?})", self.as_f32()),
       ExtTy::IO => write!(f, "IO"),
     }
   }

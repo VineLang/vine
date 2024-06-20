@@ -25,7 +25,8 @@ impl Compiler {
   fn build_expr(&mut self, term: &Term) -> Tree {
     match &term.kind {
       TermKind::Hole => Tree::Erase,
-      TermKind::Num(num) => Tree::U32(*num),
+      TermKind::U32(num) => Tree::U32(*num),
+      TermKind::F32(num) => Tree::F32(*num),
       TermKind::Path(path) => Tree::Global(path.to_string()),
       TermKind::Local(local) => {
         let v = self.cur.var.gen();
@@ -63,7 +64,7 @@ impl Compiler {
       }
       TermKind::UnaryOp(op, rhs) => {
         let (f, lhs) = match op {
-          UnaryOp::Neg => (ExtFnKind::u32_sub, Tree::U32(0)),
+          UnaryOp::Neg => (ExtFnKind::sub, Tree::U32(0)),
           UnaryOp::Not => (ExtFnKind::u32_xor, Tree::U32(u32::MAX)),
         };
         let rhs = self.build_expr(rhs);
@@ -76,11 +77,11 @@ impl Compiler {
           BinaryOp::BitAnd => ExtFnKind::u32_and,
           BinaryOp::Shl => ExtFnKind::u32_shl,
           BinaryOp::Shr => ExtFnKind::u32_shr,
-          BinaryOp::Add => ExtFnKind::u32_add,
-          BinaryOp::Sub => ExtFnKind::u32_sub,
-          BinaryOp::Mul => ExtFnKind::u32_mul,
-          BinaryOp::Div => ExtFnKind::u32_div,
-          BinaryOp::Rem => ExtFnKind::u32_rem,
+          BinaryOp::Add => ExtFnKind::add,
+          BinaryOp::Sub => ExtFnKind::sub,
+          BinaryOp::Mul => ExtFnKind::mul,
+          BinaryOp::Div => ExtFnKind::div,
+          BinaryOp::Rem => ExtFnKind::rem,
           _ => todo!(),
         };
         let lhs = self.build_expr(lhs);
@@ -92,12 +93,12 @@ impl Compiler {
         let mut lhs = self.build_expr(init);
         for (i, (op, rhs)) in cmps.iter().enumerate() {
           let f = match op {
-            ComparisonOp::Eq => ExtFn::from(ExtFnKind::u32_eq),
-            ComparisonOp::Ne => ExtFn::from(ExtFnKind::u32_ne),
-            ComparisonOp::Lt => ExtFn::from(ExtFnKind::u32_lt),
-            ComparisonOp::Gt => ExtFn::from(ExtFnKind::u32_lt).swap(),
-            ComparisonOp::Le => ExtFn::from(ExtFnKind::u32_le),
-            ComparisonOp::Ge => ExtFn::from(ExtFnKind::u32_le).swap(),
+            ComparisonOp::Eq => ExtFn::from(ExtFnKind::eq),
+            ComparisonOp::Ne => ExtFn::from(ExtFnKind::ne),
+            ComparisonOp::Lt => ExtFn::from(ExtFnKind::lt),
+            ComparisonOp::Gt => ExtFn::from(ExtFnKind::lt).swap(),
+            ComparisonOp::Le => ExtFn::from(ExtFnKind::le),
+            ComparisonOp::Ge => ExtFn::from(ExtFnKind::le).swap(),
           };
           let first = i == 0;
           let last = i == cmps.len() - 1;

@@ -86,25 +86,13 @@ impl<'ctx, 'src> VineParser<'ctx, 'src> {
     Ok(Ident(self.interner.intern(token)))
   }
 
-  fn parse_num(&mut self) -> Parse<'src, u32> {
+  fn parse_num(&mut self) -> Parse<'src, Term> {
     let token = self.expect(Token::Num)?;
-    let bytes = token.as_bytes(); // all valid ascii
-    let (radix, bytes) = match bytes {
-      [b'0', b'b', b @ ..] => (2, b),
-      [b'0', b'o', b @ ..] => (8, b),
-      [b'0', b'x', b @ ..] => (16, b),
-      b => (10, b),
-    };
-    let mut num = 0u32;
-    let err = || ParseError::InvalidNum(token);
-    for &byte in bytes {
-      if byte == b'_' {
-        continue;
-      }
-      let digit = (byte as char).to_digit(radix).ok_or_else(err)?;
-      num = num.checked_mul(radix).and_then(|x| x.checked_add(digit)).ok_or_else(err)?;
+    if token.contains('.') {
+      Ok(Term::new_f32(self.parse_f32_like(token, ParseError::InvalidNum)?))
+    } else {
+      Ok(Term::new_u32(self.parse_u32_like(token, ParseError::InvalidNum)?))
     }
-    Ok(num)
   }
 
   fn parse_string(&mut self) -> Parse<'src, String> {
@@ -258,16 +246,13 @@ impl<'ctx, 'src> VineParser<'ctx, 'src> {
       return Ok(Term::new_unary_op(UnaryOp::Not, self.parse_term_bp(BP::Prefix)?));
     }
     if self.check(Token::Num) {
-      return Ok(Term::new_num(self.parse_num()?));
+      return self.parse_num();
     }
     if self.check(Token::Char) {
-      return Ok(Term::new_num(self.parse_char()? as u32));
+      return Ok(Term::new_u32(self.parse_char()? as u32));
     }
     if self.check(Token::String) {
       return Ok(Term { kind: TermKind::String(self.parse_string()?) });
-    }
-    if self.check(Token::Num) {
-      return Ok(Term::new_num(self.parse_num()?));
     }
     if self.check(Token::Ident) || self.check(Token::ColonColon) {
       return Ok(Term::new_path(self.parse_path()?));
