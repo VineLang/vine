@@ -126,7 +126,7 @@ pub trait VisitMut<'a> {
         }
         ModKind::Unloaded(_) => {}
       },
-      ItemKind::Struct(_) | ItemKind::Enum(_) | ItemKind::Use(_) => {}
+      ItemKind::Struct(_) | ItemKind::Enum(_) | ItemKind::Use(_) | ItemKind::Ivy(_) => {}
       ItemKind::Pattern(_) => todo!(),
     }
   }

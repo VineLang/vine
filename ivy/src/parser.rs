@@ -11,7 +11,7 @@ use crate::{
 use ivm::ext::{ExtFn, ExtFnKind};
 
 pub struct IvyParser<'src> {
-  state: ParserState<'src, Token>,
+  pub state: ParserState<'src, Token>,
 }
 
 #[derive(Debug, Clone)]
@@ -62,9 +62,16 @@ impl<'src> IvyParser<'src> {
 
   fn parse_net(&mut self) -> Parse<'src, Net> {
     self.expect(Token::OpenBrace)?;
+    let net = self.parse_net_inner()?;
+    self.expect(Token::CloseBrace)?;
+    Ok(net)
+  }
+
+  #[doc(hidden)] // used by Vine to parse `inline_ivy!`
+  pub fn parse_net_inner(&mut self) -> Parse<'src, Net> {
     let root = self.parse_tree()?;
     let mut pairs = Vec::new();
-    while !self.eat(Token::CloseBrace)? {
+    while !self.check(Token::CloseBrace) {
       let a = self.parse_tree()?;
       self.expect(Token::Eq)?;
       let b = self.parse_tree()?;

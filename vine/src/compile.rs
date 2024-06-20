@@ -3,7 +3,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use ivy::ast::{Nets, Tree};
 use vine_util::bicycle::BicycleState;
 
-use crate::resolve::Node;
+use crate::resolve::{Node, NodeValue};
 
 mod build_stages;
 mod finish_nets;
@@ -23,10 +23,17 @@ pub struct Compiler {
 
 impl Compiler {
   pub fn compile_node(&mut self, node: &Node) {
-    let Some(term) = &node.value else { return };
-    let init = self.build_stages(node, term);
-    self.infer_interfaces();
-    self.finish_nets(init);
+    let Some(value) = &node.value else { return };
+    match value {
+      NodeValue::Term(term) => {
+        let init = self.build_stages(node, term);
+        self.infer_interfaces();
+        self.finish_nets(init);
+      }
+      NodeValue::Ivy(net) => {
+        self.nets.insert(node.canonical.to_string(), net.clone());
+      }
+    }
   }
 }
 

@@ -1,6 +1,6 @@
 use crate::ast::{Ident, Item, ItemKind, ModKind, Path, Term, TermKind, UseTree};
 
-use super::{Node, NodeId, Resolver};
+use super::{Node, NodeId, NodeValue, Resolver};
 
 impl Resolver {
   pub fn build_graph(&mut self, root: ModKind) {
@@ -19,10 +19,17 @@ impl Resolver {
   fn build_item(&mut self, item: Item, parent: NodeId) {
     match item.kind {
       ItemKind::Fn(f) => {
-        self.define_value(parent, f.name, Term { kind: TermKind::Fn(f.params, Box::new(f.body)) });
+        self.define_value(
+          parent,
+          f.name,
+          NodeValue::Term(Term { kind: TermKind::Fn(f.params, Box::new(f.body)) }),
+        );
       }
       ItemKind::Const(c) => {
-        self.define_value(parent, c.name, c.value);
+        self.define_value(parent, c.name, NodeValue::Term(c.value));
+      }
+      ItemKind::Ivy(i) => {
+        self.define_value(parent, i.name, NodeValue::Ivy(i.net));
       }
       ItemKind::Mod(m) => {
         let child = self.get_or_insert_child(parent, m.name).id;
@@ -39,7 +46,7 @@ impl Resolver {
     }
   }
 
-  fn define_value(&mut self, parent: NodeId, name: Ident, value: Term) {
+  fn define_value(&mut self, parent: NodeId, name: Ident, value: NodeValue) {
     let child = self.get_or_insert_child(parent, name);
     if child.value.is_some() {
       panic!("duplicate definition of {:?}", child.canonical);

@@ -5,7 +5,7 @@ use crate::{
   visit::VisitMut,
 };
 
-use super::{NodeId, Resolver};
+use super::{NodeId, NodeValue, Resolver};
 
 impl Resolver {
   pub fn resolve_terms(&mut self) {
@@ -22,7 +22,7 @@ impl Resolver {
 
       let node = &mut visitor.resolver.nodes[node_id];
       let mut value = node.value.take();
-      if let Some(value) = &mut value {
+      if let Some(NodeValue::Term(value)) = &mut value {
         visitor.visit_term(value);
       }
 

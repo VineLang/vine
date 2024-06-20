@@ -1,7 +1,7 @@
 
 fn println(io, str) {
   let io = print(io, str);
-  let io = ::ext::io_print_char(io, '\n');
+  let io = print_char(io, '\n');
   io
 }
 
@@ -12,7 +12,11 @@ fn print(io, str) {
   while len {
     len = len - 1;
     (char, chars) = chars;
-    io = ::ext::io_print_char(io, char);
+    io = print_char(io, char);
   }
   io
+}
+
+inline_ivy! print_char {
+  lam(@io_print_char(a b) lam(a b))
 }

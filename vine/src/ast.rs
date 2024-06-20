@@ -3,6 +3,7 @@ use std::{
   path::PathBuf,
 };
 
+use ivy::ast::Net;
 use vine_util::interner::Interned;
 
 #[derive(Clone)]
@@ -19,6 +20,7 @@ pub enum ItemKind {
   Pattern(PatternItem),
   Mod(ModItem),
   Use(UseTree),
+  Ivy(InlineIvy),
 }
 
 #[derive(Debug, Clone)]
@@ -65,6 +67,12 @@ pub enum ModKind {
 pub struct UseTree {
   pub path: Path,
   pub children: Option<Vec<UseTree>>,
+}
+
+#[derive(Debug, Clone)]
+pub struct InlineIvy {
+  pub name: Ident,
+  pub net: Net,
 }
 
 #[derive(Clone)]

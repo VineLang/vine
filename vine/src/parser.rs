@@ -1,5 +1,6 @@
 use std::{mem::transmute, path::PathBuf};
 
+use ivy::parser::{IvyParser, ParseError as IvyParseError};
 use vine_util::{
   interner::StringInterner,
   lexer::TokenSet,
@@ -8,8 +9,9 @@ use vine_util::{
 
 use crate::{
   ast::{
-    BinaryOp, Block, ComparisonOp, ConstItem, Enum, FnItem, Ident, Item, ItemKind, LetStmt,
-    ModItem, ModKind, Path, PatternItem, Stmt, StmtKind, Struct, Term, TermKind, UnaryOp, UseTree,
+    BinaryOp, Block, ComparisonOp, ConstItem, Enum, FnItem, Ident, InlineIvy, Item, ItemKind,
+    LetStmt, ModItem, ModKind, Path, PatternItem, Stmt, StmtKind, Struct, Term, TermKind, UnaryOp,
+    UseTree,
   },
   lexer::Token,
 };
@@ -43,6 +45,7 @@ pub enum ParseError<'src> {
   InvalidNum(&'src str),
   InvalidStr(&'src str),
   InvalidChar,
+  IvyParseError(IvyParseError<'src>),
 }
 
 type Parse<'src, T = ()> = Result<T, ParseError<'src>>;
@@ -72,6 +75,7 @@ impl<'ctx, 'src> VineParser<'ctx, 'src> {
         _ if self.check(Token::Pattern) => ItemKind::Pattern(self.parse_pattern_item()?),
         _ if self.check(Token::Mod) => ItemKind::Mod(self.parse_mod_item()?),
         _ if self.check(Token::Use) => ItemKind::Use(self.parse_use_item()?),
+        _ if self.check(Token::InlineIvy) => ItemKind::Ivy(self.parse_ivy_item()?),
         _ => return Ok(None),
       },
     }))
@@ -192,6 +196,23 @@ impl<'ctx, 'src> VineParser<'ctx, 'src> {
     }
     let children = self.parse_delimited(BRACE_COMMA, Self::parse_use_tree)?;
     Ok(UseTree { path, children: Some(children) })
+  }
+
+  fn parse_ivy_item(&mut self) -> Parse<'src, InlineIvy> {
+    self.expect(Token::InlineIvy)?;
+    self.expect(Token::Bang)?;
+    let name = self.parse_ident()?;
+    if !self.check(Token::OpenBrace) {
+      self.unexpected()?;
+    }
+    let vine_lexer = &mut self.state.lexer;
+    let mut ivy_parser = IvyParser { state: ParserState::new(vine_lexer.source()) };
+    ivy_parser.state.lexer.bump(vine_lexer.span().end);
+    ivy_parser.bump().map_err(ParseError::IvyParseError)?;
+    let net = ivy_parser.parse_net_inner().map_err(ParseError::IvyParseError)?;
+    vine_lexer.bump(ivy_parser.state.lexer.span().end - vine_lexer.span().end);
+    self.bump()?;
+    Ok(InlineIvy { name, net })
   }
 
   fn parse_term_list(&mut self) -> Parse<'src, Vec<Term>> {
