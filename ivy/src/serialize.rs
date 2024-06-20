@@ -88,7 +88,7 @@ impl<'ast, 'ivm> Serializer<'ast, 'ivm> {
     }
 
     self.serialize_tree_to(&net.root, Register::ROOT);
-    for (a, b) in &net.pairs {
+    for (a, b) in net.pairs.iter().rev() {
       self.serialize_pair(a, b);
     }
   }
