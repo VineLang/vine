@@ -1,0 +1,69 @@
+
+::main { ::hello_world::main }
+
+::hello_world::main {
+  fn(n1 _)
+  ::std::io::println = fn(n1 fn(tup(13 fn(n3 tup(72 tup(101 tup(108 tup(108 tup(111 tup(44 tup(32 tup(119 tup(111 tup(114 tup(108 tup(100 tup(33 n3))))))))))))))) _))
+}
+
+::std::io::println {
+  fn(n2 fn(n4 n11))
+  ::std::io::print = fn(n2 fn(n4 n7))
+  ::std::io::print_char = fn(n7 fn(10 n11))
+}
+
+::std::io::print {
+  fn(n11 fn(tup(n13 fn(_ n14)) n9))
+  x(n11 x(n9 x(n13 n14))) = ::std::io::print::1
+  _ = _
+}
+
+::std::io::print::1 { x(n6 x(n3 x(dup(?(::std::io::print::3 ::std::io::print::2 x(n6 x(n3 x(n8 n9)))) n8) n9))) }
+
+::std::io::print::2 {
+  x(n6 x(n12 x(@sub(1 n17) tup(n8 n18))))
+  ::std::io::print_char = fn(n6 fn(n8 n15))
+  x(n15 x(n12 x(n17 n18))) = ::std::io::print::1
+}
+
+::std::io::print::3 { x(n1 x(n1 x(_ _))) }
+
+::std::io::print_char { fn(@io_print_char(a b) fn(a b)) }
+
+::std::io::print_bytes {
+  fn(n11 fn(tup(n13 fn(_ n14)) n9))
+  x(n11 x(n9 x(n13 n14))) = ::std::io::print_bytes::1
+  _ = _
+}
+
+::std::io::print_bytes::1 { x(n6 x(n3 x(dup(?(::std::io::print_bytes::3 ::std::io::print_bytes::2 x(n6 x(n3 x(n8 n9)))) n8) n9))) }
+
+::std::io::print_bytes::2 {
+  x(n6 x(n12 x(@sub(1 n17) tup(n8 n18))))
+  ::std::io::print_byte = fn(n6 fn(n8 n15))
+  x(n15 x(n12 x(n17 n18))) = ::std::io::print_bytes::1
+}
+
+::std::io::print_bytes::3 { x(n1 x(n1 x(_ _))) }
+
+::std::io::print_byte { fn(@io_print_byte(a b) fn(a b)) }
+
+::std::u32::to_string { fn(dup(?(::std::u32::to_string::5 ::std::u32::to_string::1 x(n5 n3)) n5) n3) }
+
+::std::u32::to_string::1 {
+  x(n5 n4)
+  x(n5 x(tup(0 fn(n0 n0)) n4)) = ::std::u32::to_string::2
+}
+
+::std::u32::to_string::2 { x(dup(?(::std::u32::to_string::4 ::std::u32::to_string::3 x(n5 x(n6 n4))) n5) x(n6 n4)) }
+
+::std::u32::to_string::3 {
+  x(dup(@rem(10 n7) @div(10 n19)) x(tup(@add(1 n4) fn(n10 n11)) n18))
+  48 = @add(n7 n8)
+  x(n19 x(tup(n4 fn(n10 tup(n8 n11))) n18)) = ::std::u32::to_string::2
+}
+
+::std::u32::to_string::4 { x(_ x(n2 n2)) }
+
+::std::u32::to_string::5 { x(_ tup(1 fn(n0 tup(48 n0)))) }
+

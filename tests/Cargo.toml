@@ -1,0 +1,12 @@
+[package]
+name = "tests"
+edition = "2021"
+publish = false
+
+[[test]]
+name = "tests"
+path = "tests.rs"
+harness = false
+
+[dev-dependencies]
+dyntest = "0.2.1"

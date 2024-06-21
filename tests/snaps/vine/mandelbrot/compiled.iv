@@ -1,0 +1,129 @@
+
+::main { ::mandelbrot::main }
+
+::mandelbrot::max_iter { 128 }
+
+::mandelbrot::width { 125 }
+
+::mandelbrot::height { 45 }
+
+::mandelbrot::scale { +2.6 }
+
+::mandelbrot::center {
+  tup(n0 +0.0)
+  0 = @sub(+0.8 n0)
+}
+
+::mandelbrot::main {
+  fn(n3 _)
+  x(n3 0) = ::mandelbrot::main::1
+}
+
+::mandelbrot::main::1 { x(n5 dup(@lt(::mandelbrot::height ?(::mandelbrot::main::8 ::mandelbrot::main::2 x(n5 n6))) n6)) }
+
+::mandelbrot::main::2 {
+  x(n10 dup(n12 @add(1 n15)))
+  ::std::io::print_char = fn(n1 fn(10 n14))
+  x(n10 x(n1 x(n12 0))) = ::mandelbrot::main::3
+  x(n14 n15) = ::mandelbrot::main::1
+}
+
+::mandelbrot::main::3 { x(n7 x(n4 x(n9 dup(@lt(::mandelbrot::width ?(::mandelbrot::main::7 ::mandelbrot::main::4 x(n7 x(n4 x(n9 n10))))) n10)))) }
+
+::mandelbrot::main::4 {
+  x(n11 x(n25 x(dup(n2 n31) dup(n1 @add(1 n32)))))
+  ::mandelbrot::scale = @div(::mandelbrot::width @mul(n5 @mul(tup(+1.0 +2.0) n7)))
+  tup(n1 n2) = @add(+0.5 @sub(n4 n5))
+  tup(::mandelbrot::width ::mandelbrot::height) = @div(+2.0 n4)
+  ::mandelbrot::center = @add(n7 tup(n13 n15))
+  ::std::io::print_char = fn(n11 fn(n18 n29))
+  ::mandelbrot::mandelbrot = fn(n13 fn(n15 ?(::mandelbrot::main::6 ::mandelbrot::main::5 n18)))
+  x(n29 x(n25 x(n31 n32))) = ::mandelbrot::main::3
+}
+
+::mandelbrot::main::5 { 35 }
+
+::mandelbrot::main::6 { 32 }
+
+::mandelbrot::main::7 { x(n1 x(n1 x(_ _))) }
+
+::mandelbrot::main::8 { x(_ _) }
+
+::mandelbrot::mandelbrot {
+  fn(n10 fn(n11 n8))
+  tup(n12 tup(n13 tup(n14 n15))) = +0.0
+  x(n10 x(n11 x(n12 x(n13 x(n14 x(n15 x(::mandelbrot::max_iter @eq(0 n8)))))))) = ::mandelbrot::mandelbrot::1
+}
+
+::mandelbrot::mandelbrot::1 { x(n16 x(n17 x(n18 x(n19 x(dup(@add(n3 @lt(+4.0 n5)) n20) x(dup(n3 n21) x(dup(@lt$(0 @u32_and(n5 ?(::mandelbrot::mandelbrot::3 ::mandelbrot::mandelbrot::2 x(n16 x(n17 x(n18 x(n19 x(n20 x(n21 x(n22 n15)))))))))) n22) n15))))))) }
+
+::mandelbrot::mandelbrot::2 {
+  x(dup(n6 n32) x(dup(n12 n33) x(n8 x(n10 x(@sub(n4 @add(n6 n7)) x(n4 x(@sub(1 n38) n31)))))))
+  +2.0 = @mul(n8 @mul(n10 @add(n12 n13)))
+  tup(dup(@mul(n17 n36) dup(n17 n34)) dup(@mul(n21 n37) dup(n21 n35))) = tup(n7 n13)
+  x(n32 x(n33 x(n34 x(n35 x(n36 x(n37 x(n38 n31))))))) = ::mandelbrot::mandelbrot::1
+}
+
+::mandelbrot::mandelbrot::3 { x(_ x(_ x(_ x(_ x(_ x(_ x(n7 n7))))))) }
+
+::std::io::println {
+  fn(n2 fn(n4 n11))
+  ::std::io::print = fn(n2 fn(n4 n7))
+  ::std::io::print_char = fn(n7 fn(10 n11))
+}
+
+::std::io::print {
+  fn(n11 fn(tup(n13 fn(_ n14)) n9))
+  x(n11 x(n9 x(n13 n14))) = ::std::io::print::1
+  _ = _
+}
+
+::std::io::print::1 { x(n6 x(n3 x(dup(?(::std::io::print::3 ::std::io::print::2 x(n6 x(n3 x(n8 n9)))) n8) n9))) }
+
+::std::io::print::2 {
+  x(n6 x(n12 x(@sub(1 n17) tup(n8 n18))))
+  ::std::io::print_char = fn(n6 fn(n8 n15))
+  x(n15 x(n12 x(n17 n18))) = ::std::io::print::1
+}
+
+::std::io::print::3 { x(n1 x(n1 x(_ _))) }
+
+::std::io::print_char { fn(@io_print_char(a b) fn(a b)) }
+
+::std::io::print_bytes {
+  fn(n11 fn(tup(n13 fn(_ n14)) n9))
+  x(n11 x(n9 x(n13 n14))) = ::std::io::print_bytes::1
+  _ = _
+}
+
+::std::io::print_bytes::1 { x(n6 x(n3 x(dup(?(::std::io::print_bytes::3 ::std::io::print_bytes::2 x(n6 x(n3 x(n8 n9)))) n8) n9))) }
+
+::std::io::print_bytes::2 {
+  x(n6 x(n12 x(@sub(1 n17) tup(n8 n18))))
+  ::std::io::print_byte = fn(n6 fn(n8 n15))
+  x(n15 x(n12 x(n17 n18))) = ::std::io::print_bytes::1
+}
+
+::std::io::print_bytes::3 { x(n1 x(n1 x(_ _))) }
+
+::std::io::print_byte { fn(@io_print_byte(a b) fn(a b)) }
+
+::std::u32::to_string { fn(dup(?(::std::u32::to_string::5 ::std::u32::to_string::1 x(n5 n3)) n5) n3) }
+
+::std::u32::to_string::1 {
+  x(n5 n4)
+  x(n5 x(tup(0 fn(n0 n0)) n4)) = ::std::u32::to_string::2
+}
+
+::std::u32::to_string::2 { x(dup(?(::std::u32::to_string::4 ::std::u32::to_string::3 x(n5 x(n6 n4))) n5) x(n6 n4)) }
+
+::std::u32::to_string::3 {
+  x(dup(@rem(10 n7) @div(10 n19)) x(tup(@add(1 n4) fn(n10 n11)) n18))
+  48 = @add(n7 n8)
+  x(n19 x(tup(n4 fn(n10 tup(n8 n11))) n18)) = ::std::u32::to_string::2
+}
+
+::std::u32::to_string::4 { x(_ x(n2 n2)) }
+
+::std::u32::to_string::5 { x(_ tup(1 fn(n0 tup(48 n0)))) }
+

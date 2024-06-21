@@ -1,0 +1,99 @@
+
+::main { ::fizzbuzz::main }
+
+::fizzbuzz::end { 100 }
+
+::fizzbuzz::main {
+  fn(n3 _)
+  x(n3 1) = ::fizzbuzz::main::1
+}
+
+::fizzbuzz::main::1 { x(n5 dup(@le(::fizzbuzz::end ?(::fizzbuzz::main::3 ::fizzbuzz::main::2 x(n5 n6))) n6)) }
+
+::fizzbuzz::main::2 {
+  x(n0 dup(n2 @add(1 n12)))
+  ::std::io::println = fn(n0 fn(n3 n11))
+  ::fizzbuzz::message = fn(n2 n3)
+  x(n11 n12) = ::fizzbuzz::main::1
+}
+
+::fizzbuzz::main::3 { x(_ _) }
+
+::fizzbuzz::message { fn(dup(@rem(3 ?(::fizzbuzz::message::4 ::fizzbuzz::message::1 x(n11 x(n12 n9)))) dup(@rem(5 n12) n11)) n9) }
+
+::fizzbuzz::message::1 { x(n6 x(?(::fizzbuzz::message::3 ::fizzbuzz::message::2 x(n6 n5)) n5)) }
+
+::fizzbuzz::message::2 {
+  x(n0 n3)
+  ::std::u32::to_string = fn(n0 n3)
+}
+
+::fizzbuzz::message::3 { x(_ tup(4 fn(n0 tup(66 tup(117 tup(122 tup(122 n0))))))) }
+
+::fizzbuzz::message::4 { x(_ x(?(::fizzbuzz::message::6 ::fizzbuzz::message::5 n5) n5)) }
+
+::fizzbuzz::message::5 { tup(4 fn(n0 tup(70 tup(105 tup(122 tup(122 n0)))))) }
+
+::fizzbuzz::message::6 { tup(8 fn(n0 tup(70 tup(105 tup(122 tup(122 tup(66 tup(117 tup(122 tup(122 n0)))))))))) }
+
+::std::io::println {
+  fn(n2 fn(n4 n11))
+  ::std::io::print = fn(n2 fn(n4 n7))
+  ::std::io::print_char = fn(n7 fn(10 n11))
+}
+
+::std::io::print {
+  fn(n11 fn(tup(n13 fn(_ n14)) n9))
+  x(n11 x(n9 x(n13 n14))) = ::std::io::print::1
+  _ = _
+}
+
+::std::io::print::1 { x(n6 x(n3 x(dup(?(::std::io::print::3 ::std::io::print::2 x(n6 x(n3 x(n8 n9)))) n8) n9))) }
+
+::std::io::print::2 {
+  x(n6 x(n12 x(@sub(1 n17) tup(n8 n18))))
+  ::std::io::print_char = fn(n6 fn(n8 n15))
+  x(n15 x(n12 x(n17 n18))) = ::std::io::print::1
+}
+
+::std::io::print::3 { x(n1 x(n1 x(_ _))) }
+
+::std::io::print_char { fn(@io_print_char(a b) fn(a b)) }
+
+::std::io::print_bytes {
+  fn(n11 fn(tup(n13 fn(_ n14)) n9))
+  x(n11 x(n9 x(n13 n14))) = ::std::io::print_bytes::1
+  _ = _
+}
+
+::std::io::print_bytes::1 { x(n6 x(n3 x(dup(?(::std::io::print_bytes::3 ::std::io::print_bytes::2 x(n6 x(n3 x(n8 n9)))) n8) n9))) }
+
+::std::io::print_bytes::2 {
+  x(n6 x(n12 x(@sub(1 n17) tup(n8 n18))))
+  ::std::io::print_byte = fn(n6 fn(n8 n15))
+  x(n15 x(n12 x(n17 n18))) = ::std::io::print_bytes::1
+}
+
+::std::io::print_bytes::3 { x(n1 x(n1 x(_ _))) }
+
+::std::io::print_byte { fn(@io_print_byte(a b) fn(a b)) }
+
+::std::u32::to_string { fn(dup(?(::std::u32::to_string::5 ::std::u32::to_string::1 x(n5 n3)) n5) n3) }
+
+::std::u32::to_string::1 {
+  x(n5 n4)
+  x(n5 x(tup(0 fn(n0 n0)) n4)) = ::std::u32::to_string::2
+}
+
+::std::u32::to_string::2 { x(dup(?(::std::u32::to_string::4 ::std::u32::to_string::3 x(n5 x(n6 n4))) n5) x(n6 n4)) }
+
+::std::u32::to_string::3 {
+  x(dup(@rem(10 n7) @div(10 n19)) x(tup(@add(1 n4) fn(n10 n11)) n18))
+  48 = @add(n7 n8)
+  x(n19 x(tup(n4 fn(n10 tup(n8 n11))) n18)) = ::std::u32::to_string::2
+}
+
+::std::u32::to_string::4 { x(_ x(n2 n2)) }
+
+::std::u32::to_string::5 { x(_ tup(1 fn(n0 tup(48 n0)))) }
+

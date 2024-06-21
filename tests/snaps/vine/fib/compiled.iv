@@ -1,0 +1,83 @@
+
+::main { ::fib::main }
+
+::fib::end { 32 }
+
+::fib::main {
+  fn(n5 _)
+  x(n5 x(0 x(0 1))) = ::fib::main::1
+}
+
+::fib::main::1 { x(n7 x(dup(@le(::fib::end ?(::fib::main::3 ::fib::main::2 x(n7 x(n8 x(n9 n10))))) n8) x(n9 n10))) }
+
+::fib::main::2 {
+  x(n0 x(@add(1 n20) x(dup(n2 @add(n8 n9)) dup(n6 n8))))
+  ::std::io::println = fn(n0 fn(n3 n19))
+  ::std::u32::to_string = fn(n2 n3)
+  tup(n21 n22) = tup(n6 n9)
+  x(n19 x(n20 x(n21 n22))) = ::fib::main::1
+}
+
+::fib::main::3 { x(_ x(_ x(_ _))) }
+
+::std::io::println {
+  fn(n2 fn(n4 n11))
+  ::std::io::print = fn(n2 fn(n4 n7))
+  ::std::io::print_char = fn(n7 fn(10 n11))
+}
+
+::std::io::print {
+  fn(n11 fn(tup(n13 fn(_ n14)) n9))
+  x(n11 x(n9 x(n13 n14))) = ::std::io::print::1
+  _ = _
+}
+
+::std::io::print::1 { x(n6 x(n3 x(dup(?(::std::io::print::3 ::std::io::print::2 x(n6 x(n3 x(n8 n9)))) n8) n9))) }
+
+::std::io::print::2 {
+  x(n6 x(n12 x(@sub(1 n17) tup(n8 n18))))
+  ::std::io::print_char = fn(n6 fn(n8 n15))
+  x(n15 x(n12 x(n17 n18))) = ::std::io::print::1
+}
+
+::std::io::print::3 { x(n1 x(n1 x(_ _))) }
+
+::std::io::print_char { fn(@io_print_char(a b) fn(a b)) }
+
+::std::io::print_bytes {
+  fn(n11 fn(tup(n13 fn(_ n14)) n9))
+  x(n11 x(n9 x(n13 n14))) = ::std::io::print_bytes::1
+  _ = _
+}
+
+::std::io::print_bytes::1 { x(n6 x(n3 x(dup(?(::std::io::print_bytes::3 ::std::io::print_bytes::2 x(n6 x(n3 x(n8 n9)))) n8) n9))) }
+
+::std::io::print_bytes::2 {
+  x(n6 x(n12 x(@sub(1 n17) tup(n8 n18))))
+  ::std::io::print_byte = fn(n6 fn(n8 n15))
+  x(n15 x(n12 x(n17 n18))) = ::std::io::print_bytes::1
+}
+
+::std::io::print_bytes::3 { x(n1 x(n1 x(_ _))) }
+
+::std::io::print_byte { fn(@io_print_byte(a b) fn(a b)) }
+
+::std::u32::to_string { fn(dup(?(::std::u32::to_string::5 ::std::u32::to_string::1 x(n5 n3)) n5) n3) }
+
+::std::u32::to_string::1 {
+  x(n5 n4)
+  x(n5 x(tup(0 fn(n0 n0)) n4)) = ::std::u32::to_string::2
+}
+
+::std::u32::to_string::2 { x(dup(?(::std::u32::to_string::4 ::std::u32::to_string::3 x(n5 x(n6 n4))) n5) x(n6 n4)) }
+
+::std::u32::to_string::3 {
+  x(dup(@rem(10 n7) @div(10 n19)) x(tup(@add(1 n4) fn(n10 n11)) n18))
+  48 = @add(n7 n8)
+  x(n19 x(tup(n4 fn(n10 tup(n8 n11))) n18)) = ::std::u32::to_string::2
+}
+
+::std::u32::to_string::4 { x(_ x(n2 n2)) }
+
+::std::u32::to_string::5 { x(_ tup(1 fn(n0 tup(48 n0)))) }
+

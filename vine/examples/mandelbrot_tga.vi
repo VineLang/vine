@@ -2,8 +2,8 @@
 use std::io::{print_byte, print_bytes};
 
 const max_iter = 255;
-const width = 1000;
-const height = 800;
+const width = 400;
+const height = 400;
 const scale = 2.6;
 const center = (-0.8, 0.0);
 
