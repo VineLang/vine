@@ -129,6 +129,18 @@ impl Compiler {
           )),
         )
       }
+      TermKind::List(l) => {
+        let v = self.cur.var.gen();
+        Tree::Comb(
+          "tup".to_owned(),
+          Box::new(Tree::U32(l.len() as u32)),
+          Box::new(Tree::Comb(
+            "fn".to_owned(),
+            Box::new(v.0),
+            Box::new(Tree::n_ary("tup", l.iter().map(|el| self.build_expr(el)).chain([v.1]))),
+          )),
+        )
+      }
       TermKind::While(cond, body) => {
         let i = self.new_interface();
         let j = self.new_interface();
