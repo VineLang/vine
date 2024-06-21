@@ -1,0 +1,16 @@
+
+use std::{io::println, u32};
+
+fn main(io) {
+  let i = 0;
+  let n = 0;
+  while i < 5 {
+    i = i + 1;
+    let j = 0;
+    while j < 5 {
+      j = j + 1;
+      n = n + 1;
+      io = println(io, u32::to_string(n));
+    }
+  }
+}
