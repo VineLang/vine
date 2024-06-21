@@ -77,7 +77,7 @@ impl Display for Stats {
     ];
 
     let max_label_width = lines.iter().map(|x| x.0.len()).max().unwrap() + 1;
-    let max_value = lines.iter().filter_map(|x| x.1).map(|x| x.0).max().unwrap();
+    let max_value = lines.iter().filter_map(|x| x.1).map(|x| x.0).max().unwrap().max(1_000_000_000);
     let max_value_width = measure_int(max_value);
 
     for (label, value) in lines {
