@@ -1,0 +1,39 @@
+
+use std::io::{print_byte, print_bytes};
+
+const max_iter = 255;
+const width = 1000;
+const height = 800;
+const scale = 2.6;
+const center = (-0.8, 0.0);
+
+fn main(io) {
+  io = print_bytes(io, [
+    0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    width, width >> 8,
+    height, height >> 8,
+    8, 32,
+  ]);
+  let j = 0;
+  while j < height {
+    let i = 0;
+    while i < width {
+      let (x, y) = center + scale / width * ((i, j) + 0.5 - (width, height) / 2.0);
+      io = print_byte(io, mandelbrot(x, y));
+      i = i + 1;
+    }
+    j = j + 1;
+  }
+}
+
+fn mandelbrot(x0, y0) {
+  let (x, y, x2, y2) = 0.0;
+  let i = max_iter;
+  while (i > 0) & (x2 + y2 < 4.0) {
+    i = i - 1;
+    (x, y) = (x2 - y2 + x0, 2.0 * x * y + y0);
+    x2 = x * x;
+    y2 = y * y;
+  }
+  i
+}

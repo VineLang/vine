@@ -20,3 +20,19 @@ fn print(io, str) {
 inline_ivy! print_char {
   fn(@io_print_char(a b) fn(a b))
 }
+
+fn print_bytes(io, bytes) {
+  let (len, buf) = bytes;
+  let bytes = buf(_);
+  let byte;
+  while len {
+    len = len - 1;
+    (byte, bytes) = bytes;
+    io = print_byte(io, byte);
+  }
+  io
+}
+
+inline_ivy! print_byte {
+  fn(@io_print_byte(a b) fn(a b))
+}
