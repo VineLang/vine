@@ -1,9 +1,9 @@
 
 use std::io::{print_byte, print_bytes};
 
-const max_iter = 255;
-const width = 400;
-const height = 400;
+const max_iter = 64;
+const width = 1024;
+const height = 1024;
 const scale = 2.6;
 const center = (-0.8, 0.0);
 
@@ -28,12 +28,12 @@ fn main(io) {
 
 fn mandelbrot(x0, y0) {
   let (x, y, x2, y2) = 0.0;
-  let i = max_iter;
-  while (i > 0) & (x2 + y2 < 4.0) {
-    i = i - 1;
+  let i = 0;
+  while (i < max_iter) & (x2 + y2 < 4.0) {
+    i = i + 1;
     (x, y) = (x2 - y2 + x0, 2.0 * x * y + y0);
     x2 = x * x;
     y2 = y * y;
-  }
-  i
+  };
+  i * 256 / max_iter
 }
