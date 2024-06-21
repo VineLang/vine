@@ -87,12 +87,15 @@ impl<'a> Bicycle for FlowIn<'a> {
           Step::Get(l, _) => staging.entry(l).or_default().append(Usage::Get),
           Step::Set(l, _) => staging.entry(l).or_default().append(Usage::Set),
           Step::Call(i, _) => {
-            let inw = &mut self.interfaces[i].inward;
+            let inner = &mut self.interfaces[i];
             for (&l, &u) in &staging {
               let u = u.forward();
               if u != Usage::None {
-                inw.entry(l).or_default().union(u);
+                inner.inward.entry(l).or_default().union(u);
               }
+            }
+            for (&l, &u) in &inner.outward {
+              staging.entry(l).or_default().append(u);
             }
           }
         }
@@ -104,12 +107,15 @@ impl<'a> Bicycle for FlowIn<'a> {
           Step::Get(l, _) => staging.entry(l).or_default().prepend(Usage::Get),
           Step::Set(l, _) => staging.entry(l).or_default().prepend(Usage::Set),
           Step::Call(i, _) => {
-            let inw = &mut self.interfaces[i].inward;
+            let inner = &mut self.interfaces[i];
             for (&l, &u) in &staging {
               let u = u.backward();
               if u != Usage::None {
-                inw.entry(l).or_default().union(u);
+                inner.inward.entry(l).or_default().union(u);
               }
+            }
+            for (&l, &u) in &inner.outward {
+              staging.entry(l).or_default().prepend(u);
             }
           }
         }

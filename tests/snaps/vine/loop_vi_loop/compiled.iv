@@ -9,21 +9,21 @@
 ::loop_vi_loop::main::1 { x(n6 x(dup(@lt(5 ?(::loop_vi_loop::main::6 ::loop_vi_loop::main::2 x(n6 x(n7 n8)))) n7) n8)) }
 
 ::loop_vi_loop::main::2 {
-  x(dup(n7 n10) x(@add(1 n11) dup(n8 n12)))
-  x(n7 x(n8 0)) = ::loop_vi_loop::main::3
-  x(n10 x(n11 n12)) = ::loop_vi_loop::main::1
+  x(n7 x(@add(1 n13) n9))
+  x(n7 x(n12 x(n9 x(n14 0)))) = ::loop_vi_loop::main::3
+  x(n12 x(n13 n14)) = ::loop_vi_loop::main::1
 }
 
-::loop_vi_loop::main::3 { x(n6 x(n7 dup(@lt(5 ?(::loop_vi_loop::main::5 ::loop_vi_loop::main::4 x(n6 x(n7 n8)))) n8))) }
+::loop_vi_loop::main::3 { x(n8 x(n4 x(n10 x(n6 dup(@lt(5 ?(::loop_vi_loop::main::5 ::loop_vi_loop::main::4 x(n8 x(n4 x(n10 x(n6 n12)))))) n12))))) }
 
 ::loop_vi_loop::main::4 {
-  x(n6 x(@add(1 dup(n8 n16)) @add(1 n17)))
-  ::std::io::println = fn(n6 fn(n9 n15))
+  x(n6 x(n13 x(@add(1 dup(n8 n19)) x(n15 @add(1 n21)))))
+  ::std::io::println = fn(n6 fn(n9 n17))
   ::std::u32::to_string = fn(n8 n9)
-  x(n15 x(n16 n17)) = ::loop_vi_loop::main::3
+  x(n17 x(n13 x(n19 x(n15 n21)))) = ::loop_vi_loop::main::3
 }
 
-::loop_vi_loop::main::5 { x(_ x(_ _)) }
+::loop_vi_loop::main::5 { x(n1 x(n1 x(n3 x(n3 _)))) }
 
 ::loop_vi_loop::main::6 { x(_ x(_ _)) }
 
