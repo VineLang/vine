@@ -1,6 +1,6 @@
 use std::{
   cell::UnsafeCell,
-  collections::{btree_map::Entry, BTreeMap, HashMap},
+  collections::{BTreeMap, HashMap},
   marker::PhantomData,
   mem::{take, transmute},
   ptr,
@@ -34,7 +34,7 @@ impl Nets {
       globals,
       nets: self,
       current: Default::default(),
-      chains: Default::default(),
+      equivalences: Default::default(),
       registers: Default::default(),
       labels: Default::default(),
     };
@@ -57,7 +57,7 @@ pub struct Serializer<'ast, 'ivm> {
   globals: &'ivm [UnsafeCell<Global<'ivm>>],
   nets: &'ast Nets,
   current: Global<'ivm>,
-  chains: BTreeMap<&'ast str, &'ast str>,
+  equivalences: BTreeMap<&'ast str, &'ast str>,
   registers: HashMap<&'ast str, Register>,
   labels: IndexSet<&'ast str>,
 }
@@ -68,18 +68,18 @@ impl<'ast, 'ivm> Serializer<'ast, 'ivm> {
   }
 
   fn serialize_net(&mut self, net: &'ast Net) {
-    self.chains.clear();
+    self.equivalences.clear();
     self.registers.clear();
 
     for (a, b) in &net.pairs {
       let (Tree::Var(a), Tree::Var(b)) = (a, b) else { continue };
-      let a = self.follow_chain(a);
-      let b = self.follow_chain(b);
-      self.chains.insert(a, b);
-      self.chains.insert(b, a);
+      let a = self.equivalences.remove(&**a).unwrap_or(a);
+      let b = self.equivalences.remove(&**b).unwrap_or(b);
+      self.equivalences.insert(a, b);
+      self.equivalences.insert(b, a);
     }
 
-    for (a, b) in &self.chains {
+    for (a, b) in &self.equivalences {
       if a < b {
         let r = self.current.instructions.new_register();
         self.registers.insert(a, r);
@@ -91,14 +91,6 @@ impl<'ast, 'ivm> Serializer<'ast, 'ivm> {
     for (a, b) in net.pairs.iter().rev() {
       self.serialize_pair(a, b);
     }
-  }
-
-  fn follow_chain(&mut self, mut x: &'ast str) -> &'ast str {
-    if let Entry::Occupied(e) = self.chains.entry(x) {
-      x = e.remove();
-      self.chains.remove(x);
-    }
-    x
   }
 
   fn serialize_pair(&mut self, a: &'ast Tree, b: &'ast Tree) {

@@ -1,5 +1,6 @@
 use std::env::args;
 
+use ivy::optimize::Optimizer;
 use vine::{compile::Compiler, loader::Loader, resolve::Resolver};
 use vine_util::{arena::BytesArena, interner::StringInterner};
 
@@ -26,6 +27,9 @@ fn main() {
     compiler.compile_node(node)
   }
 
-  let nets = compiler.nets;
+  let mut nets = compiler.nets;
+
+  Optimizer::default().optimize(&mut nets);
+
   println!("{nets}");
 }

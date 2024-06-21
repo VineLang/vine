@@ -1,5 +1,6 @@
 use std::{
   fmt::{self, Display},
+  iter,
   mem::replace,
   ops::{Deref, DerefMut},
 };
@@ -7,6 +8,7 @@ use std::{
 use indexmap::IndexMap;
 
 use ivm::ext::ExtFn;
+use vine_util::multi_iter;
 
 #[derive(Default, Debug, Clone)]
 pub enum Tree {
@@ -61,11 +63,15 @@ impl Display for Tree {
 
 impl Display for Net {
   fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-    write!(f, "{{\n  {}", self.root)?;
-    for (a, b) in &self.pairs {
-      write!(f, "\n  {a} = {b}")?;
+    if self.pairs.is_empty() {
+      write!(f, "{{ {} }}", self.root)?;
+    } else {
+      write!(f, "{{\n  {}", self.root)?;
+      for (a, b) in &self.pairs {
+        write!(f, "\n  {a} = {b}")?;
+      }
+      write!(f, "\n}}")?;
     }
-    write!(f, "\n}}")?;
     Ok(())
   }
 }
@@ -76,6 +82,15 @@ impl Display for Nets {
       write!(f, "\n{name} {net}\n")?;
     }
     Ok(())
+  }
+}
+
+impl Net {
+  pub fn trees(&self) -> impl DoubleEndedIterator<Item = &Tree> + Clone {
+    iter::once(&self.root).chain(self.pairs.iter().flat_map(|(a, b)| [a, b]))
+  }
+  pub fn trees_mut(&mut self) -> impl DoubleEndedIterator<Item = &mut Tree> {
+    iter::once(&mut self.root).chain(self.pairs.iter_mut().flat_map(|(a, b)| [a, b]))
   }
 }
 
@@ -95,5 +110,27 @@ impl Tree {
     }
 
     tree
+  }
+
+  pub fn children(&self) -> impl DoubleEndedIterator + ExactSizeIterator<Item = &Self> + Clone {
+    multi_iter!(Children { Zero, Two, Three });
+    match self {
+      Tree::Erase | Tree::U32(_) | Tree::F32(_) | Tree::Var(_) | Tree::Global(_) => {
+        Children::Zero([])
+      }
+      Tree::Comb(_, a, b) | Tree::ExtFn(_, a, b) => Children::Two([&**a, b]),
+      Tree::Branch(a, b, c) => Children::Three([&**a, b, c]),
+    }
+  }
+
+  pub fn children_mut(&mut self) -> impl DoubleEndedIterator + ExactSizeIterator<Item = &mut Self> {
+    multi_iter!(Children { Zero, Two, Three });
+    match self {
+      Tree::Erase | Tree::U32(_) | Tree::F32(_) | Tree::Var(_) | Tree::Global(_) => {
+        Children::Zero([])
+      }
+      Tree::Comb(_, a, b) | Tree::ExtFn(_, a, b) => Children::Two([&mut **a, b]),
+      Tree::Branch(a, b, c) => Children::Three([&mut **a, b, c]),
+    }
   }
 }
