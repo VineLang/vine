@@ -46,7 +46,10 @@ pub trait VisitMut<'a> {
       | TermKind::Move(a)
       | TermKind::Field(a, _)
       | TermKind::UnaryOp(_, a) => self.visit_term(a),
-      TermKind::Assign(a, b) | TermKind::BinaryOp(_, a, b) | TermKind::LogicalOp(_, a, b) => {
+      TermKind::Assign(a, b)
+      | TermKind::BinaryOp(_, a, b)
+      | TermKind::BinaryOpAssign(_, a, b)
+      | TermKind::LogicalOp(_, a, b) => {
         self.visit_term(a);
         self.visit_term(b);
       }

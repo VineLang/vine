@@ -7,7 +7,7 @@ fn main(io) {
   let n = 1;
   while n <= end {
     io.println(message(n));
-    n = n + 1;
+    n += 1;
   }
 }
 

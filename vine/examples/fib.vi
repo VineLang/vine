@@ -10,6 +10,6 @@ fn main(io) {
   while n <= end {
     io.println(u32::to_string(a));
     (a, b) = (b, a + b);
-    n = n + 1;
+    n += 1;
   }
 }

@@ -329,7 +329,11 @@ impl<'ctx, 'src> VineParser<'ctx, 'src> {
     for &(lbp, token, op) in BINARY_OP_TABLE {
       let rbp = lbp.inc(); // left-associative
       if bp.permits(lbp) && self.eat(token)? {
-        return Ok(Ok(Term::new_binary_op(op, lhs, self.parse_term_bp(rbp)?)));
+        if self.eat(Token::Eq)? {
+          return Ok(Ok(Term::new_binary_op_assign(op, lhs, self.parse_term_bp(rbp)?)));
+        } else {
+          return Ok(Ok(Term::new_binary_op(op, lhs, self.parse_term_bp(rbp)?)));
+        }
       }
     }
 

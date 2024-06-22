@@ -40,6 +40,13 @@ impl Compiler {
     }
   }
 
+  fn build_expr_place(&mut self, term: &Term) -> (Tree, Tree) {
+    match self.build_expr(term, ExprCtx::Place) {
+      Expr::Place(t, u) => (t, u),
+      Expr::Value(_) => unreachable!(),
+    }
+  }
+
   fn build_expr(&mut self, term: &Term, ctx: ExprCtx) -> Expr {
     match &term.kind {
       TermKind::Hole => Expr::Value(Tree::Erase),
@@ -98,22 +105,18 @@ impl Compiler {
         Expr::Value(self.ext_fn(f.into(), lhs, rhs))
       }
       TermKind::BinaryOp(op, lhs, rhs) => {
-        let f = match op {
-          BinaryOp::BitOr => ExtFnKind::u32_or,
-          BinaryOp::BitXor => ExtFnKind::u32_xor,
-          BinaryOp::BitAnd => ExtFnKind::u32_and,
-          BinaryOp::Shl => ExtFnKind::u32_shl,
-          BinaryOp::Shr => ExtFnKind::u32_shr,
-          BinaryOp::Add => ExtFnKind::add,
-          BinaryOp::Sub => ExtFnKind::sub,
-          BinaryOp::Mul => ExtFnKind::mul,
-          BinaryOp::Div => ExtFnKind::div,
-          BinaryOp::Rem => ExtFnKind::rem,
-          _ => todo!(),
-        };
+        let f = op_to_ext_fn(op);
         let lhs = self.build_expr_value(lhs);
         let rhs = self.build_expr_value(rhs);
         Expr::Value(self.ext_fn(f.into(), lhs, rhs))
+      }
+      TermKind::BinaryOpAssign(op, lhs, rhs) => {
+        let f = op_to_ext_fn(op);
+        let (lhs, out) = self.build_expr_place(lhs);
+        let rhs = self.build_expr_value(rhs);
+        let res = self.ext_fn(f.into(), lhs, rhs);
+        self.cur.pairs.push((out, res));
+        Expr::Value(Tree::Erase)
       }
       TermKind::ComparisonOp(init, cmps) => {
         let mut last_result = Tree::U32(1);
@@ -364,5 +367,21 @@ impl Compiler {
     let local = self.local_count;
     self.local_count += 1;
     local
+  }
+}
+
+fn op_to_ext_fn(op: &BinaryOp) -> ExtFnKind {
+  match op {
+    BinaryOp::BitOr => ExtFnKind::u32_or,
+    BinaryOp::BitXor => ExtFnKind::u32_xor,
+    BinaryOp::BitAnd => ExtFnKind::u32_and,
+    BinaryOp::Shl => ExtFnKind::u32_shl,
+    BinaryOp::Shr => ExtFnKind::u32_shr,
+    BinaryOp::Add => ExtFnKind::add,
+    BinaryOp::Sub => ExtFnKind::sub,
+    BinaryOp::Mul => ExtFnKind::mul,
+    BinaryOp::Div => ExtFnKind::div,
+    BinaryOp::Rem => ExtFnKind::rem,
+    _ => todo!(),
   }
 }

@@ -138,6 +138,7 @@ pub enum TermKind {
   BinaryOp(BinaryOp, B<Term>, B<Term>),
   LogicalOp(LogicalOp, B<Term>, B<Term>),
   ComparisonOp(B<Term>, Vec<(ComparisonOp, Term)>),
+  BinaryOpAssign(BinaryOp, B<Term>, B<Term>),
   U32(u32),
   F32(f32),
   String(String),
@@ -218,6 +219,10 @@ impl Term {
 
   pub fn new_binary_op(op: BinaryOp, lhs: Term, rhs: Term) -> Term {
     Term { kind: TermKind::BinaryOp(op, Box::new(lhs), Box::new(rhs)) }
+  }
+
+  pub fn new_binary_op_assign(op: BinaryOp, lhs: Term, rhs: Term) -> Term {
+    Term { kind: TermKind::BinaryOpAssign(op, Box::new(lhs), Box::new(rhs)) }
   }
 }
 

@@ -20,9 +20,9 @@ fn main(io) {
     while i < width {
       let (x, y) = center + scale / width * ((i, j) + 0.5 - (width, height) / 2.0);
       io.print_byte(mandelbrot(x, y));
-      i = i + 1;
+      i += 1;
     }
-    j = j + 1;
+    j += 1;
   }
 }
 
@@ -30,7 +30,7 @@ fn mandelbrot(x0, y0) {
   let (x, y, x2, y2) = 0.0;
   let i = 0;
   while (i < max_iter) & (x2 + y2 < 4.0) {
-    i = i + 1;
+    i += 1;
     (x, y) = (x2 - y2 + x0, 2.0 * x * y + y0);
     x2 = x * x;
     y2 = y * y;
