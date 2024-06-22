@@ -11,11 +11,15 @@
 ::fib::main::1 { x(n7 x(dup(@le(::fib::end ?(::fib::main::3 ::fib::main::2 x(n7 x(n8 x(n9 n10))))) n8) x(n9 n10))) }
 
 ::fib::main::2 {
-  x(n0 x(@add(1 n20) x(dup(n3 @add(n8 n9)) dup(n6 n8))))
-  ::std::io::println = fn(ref(n0 n19) fn(n4 _))
-  ::std::u32::to_string = fn(n3 n4)
-  tup(n21 n22) = tup(n6 n9)
-  x(n19 x(n20 x(n21 n22))) = ::fib::main::1
+  x(n0 x(dup(n4 @add(1 n27)) x(dup(n9 @add(n15 n16)) dup(n13 n15))))
+  ::std::io::println = fn(ref(n0 n26) fn(n11 _))
+  ::std::u32::to_string = fn(n4 n5)
+  ::std::str::concat = fn(tup(4 fn(n3 tup(102 tup(105 tup(98 tup(40 n3)))))) fn(n5 n6))
+  ::std::str::concat = fn(n6 fn(tup(4 fn(n7 tup(41 tup(32 tup(61 tup(32 n7)))))) n8))
+  ::std::u32::to_string = fn(n9 n10)
+  ::std::str::concat = fn(n8 fn(n10 n11))
+  tup(n28 n29) = tup(n13 n16)
+  x(n26 x(n27 x(n28 n29))) = ::fib::main::1
 }
 
 ::fib::main::3 { x(_ x(_ x(_ _))) }
@@ -61,6 +65,8 @@
 ::std::io::print_bytes::3 { x(n1 x(n1 x(_ _))) }
 
 ::std::io::print_byte { fn(ref(@io_print_byte(char io) io) fn(char _)) }
+
+::std::str::concat { fn(tup(@add(n9 n10) fn(n15 n16)) fn(tup(n9 fn(n14 n15)) tup(n10 fn(n14 n16)))) }
 
 ::std::u32::to_string { fn(dup(?(::std::u32::to_string::5 ::std::u32::to_string::1 x(n5 n3)) n5) n3) }
 

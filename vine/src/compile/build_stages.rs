@@ -105,16 +105,14 @@ impl Compiler {
         Expr::Value(self.ext_fn(f.into(), lhs, rhs))
       }
       TermKind::BinaryOp(op, lhs, rhs) => {
-        let f = op_to_ext_fn(op);
         let lhs = self.build_expr_value(lhs);
         let rhs = self.build_expr_value(rhs);
-        Expr::Value(self.ext_fn(f.into(), lhs, rhs))
+        Expr::Value(self.op(*op, lhs, rhs))
       }
       TermKind::BinaryOpAssign(op, lhs, rhs) => {
-        let f = op_to_ext_fn(op);
         let (lhs, out) = self.build_expr_place(lhs);
         let rhs = self.build_expr_value(rhs);
-        let res = self.ext_fn(f.into(), lhs, rhs);
+        let res = self.op(*op, lhs, rhs);
         self.cur.pairs.push((out, res));
         Expr::Value(Tree::Erase)
       }
@@ -249,6 +247,31 @@ impl Compiler {
     }
   }
 
+  fn op(&mut self, op: BinaryOp, lhs: Tree, rhs: Tree) -> Tree {
+    let f = match op {
+      BinaryOp::Concat => {
+        let v = self.cur.var.gen();
+        self.cur.pairs.push((
+          Tree::Global("::std::str::concat".to_owned()),
+          Tree::n_ary("fn", [lhs, rhs, v.0]),
+        ));
+        return v.1;
+      }
+      BinaryOp::BitOr => ExtFnKind::u32_or,
+      BinaryOp::BitXor => ExtFnKind::u32_xor,
+      BinaryOp::BitAnd => ExtFnKind::u32_and,
+      BinaryOp::Shl => ExtFnKind::u32_shl,
+      BinaryOp::Shr => ExtFnKind::u32_shr,
+      BinaryOp::Add => ExtFnKind::add,
+      BinaryOp::Sub => ExtFnKind::sub,
+      BinaryOp::Mul => ExtFnKind::mul,
+      BinaryOp::Div => ExtFnKind::div,
+      BinaryOp::Rem => ExtFnKind::rem,
+      _ => todo!(),
+    };
+    self.ext_fn(f.into(), lhs, rhs)
+  }
+
   fn build_pat_value(&mut self, t: &Term) -> Tree {
     match &t.kind {
       TermKind::Hole => Tree::Erase,
@@ -367,21 +390,5 @@ impl Compiler {
     let local = self.local_count;
     self.local_count += 1;
     local
-  }
-}
-
-fn op_to_ext_fn(op: &BinaryOp) -> ExtFnKind {
-  match op {
-    BinaryOp::BitOr => ExtFnKind::u32_or,
-    BinaryOp::BitXor => ExtFnKind::u32_xor,
-    BinaryOp::BitAnd => ExtFnKind::u32_and,
-    BinaryOp::Shl => ExtFnKind::u32_shl,
-    BinaryOp::Shr => ExtFnKind::u32_shr,
-    BinaryOp::Add => ExtFnKind::add,
-    BinaryOp::Sub => ExtFnKind::sub,
-    BinaryOp::Mul => ExtFnKind::mul,
-    BinaryOp::Div => ExtFnKind::div,
-    BinaryOp::Rem => ExtFnKind::rem,
-    _ => todo!(),
   }
 }

@@ -106,6 +106,8 @@
 
 ::std::io::print_byte { fn(ref(@io_print_byte(char io) io) fn(char _)) }
 
+::std::str::concat { fn(tup(@add(n9 n10) fn(n15 n16)) fn(tup(n9 fn(n14 n15)) tup(n10 fn(n14 n16)))) }
+
 ::std::u32::to_string { fn(dup(?(::std::u32::to_string::5 ::std::u32::to_string::1 x(n5 n3)) n5) n3) }
 
 ::std::u32::to_string::1 {

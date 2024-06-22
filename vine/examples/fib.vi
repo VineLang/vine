@@ -8,7 +8,7 @@ fn main(io) {
   let a = 0;
   let b = 1;
   while n <= end {
-    io.println(u32::to_string(a));
+    io.println("fib(" ++ u32::to_string(n) ++ ") = " ++ u32::to_string(a));
     (a, b) = (b, a + b);
     n += 1;
   }

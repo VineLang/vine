@@ -1,0 +1,6 @@
+
+fn concat(a, b) {
+  let (a_len, a_buf) = a;
+  let (b_len, b_buf) = b;
+  (a_len + b_len, fn(x) a_buf(b_buf(x)))
+}
