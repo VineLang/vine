@@ -7,6 +7,17 @@ use crate::{ast::*, resolve::Node};
 
 use super::{stage_name, Compiler, Interface, InterfaceId, Local, Stage, StageId, Step, Usage};
 
+enum ExprCtx {
+  Value,
+  Place,
+  Either,
+}
+
+enum Expr {
+  Value(Tree),
+  Place(Tree, Tree),
+}
+
 impl Compiler {
   pub(super) fn build_stages(&mut self, node: &Node, term: &Term) -> StageId {
     self.local_count = node.locals;
@@ -14,7 +25,7 @@ impl Compiler {
     let i = self.new_interface();
     self.new_stage(i, |slf, s| {
       slf.cur = Stage::default();
-      let root = slf.build_expr(term);
+      let root = slf.build_expr_value(term);
       let root_val = slf.new_local();
       slf.cur.steps.push(Step::Set(root_val, root));
       slf.interfaces[i].inward.insert(root_val, Usage::Get);
@@ -22,53 +33,69 @@ impl Compiler {
     })
   }
 
-  fn build_expr(&mut self, term: &Term) -> Tree {
+  fn build_expr_value(&mut self, term: &Term) -> Tree {
+    match self.build_expr(term, ExprCtx::Value) {
+      Expr::Value(t) => t,
+      Expr::Place(..) => unreachable!(),
+    }
+  }
+
+  fn build_expr(&mut self, term: &Term, ctx: ExprCtx) -> Expr {
     match &term.kind {
-      TermKind::Hole => Tree::Erase,
-      TermKind::U32(num) => Tree::U32(*num),
-      TermKind::F32(num) => Tree::F32(*num),
-      TermKind::Path(path) => Tree::Global(path.to_string()),
-      TermKind::Local(local) => {
-        let v = self.cur.var.gen();
-        self.cur.steps.push(Step::Get(*local, v.0));
-        v.1
-      }
+      TermKind::Hole => Expr::Value(Tree::Erase),
+      TermKind::U32(num) => Expr::Value(Tree::U32(*num)),
+      TermKind::F32(num) => Expr::Value(Tree::F32(*num)),
+      TermKind::Path(path) => Expr::Value(Tree::Global(path.to_string())),
+      TermKind::Local(local) => match ctx {
+        ExprCtx::Value => {
+          let v = self.cur.var.gen();
+          self.cur.steps.push(Step::Get(*local, v.0));
+          Expr::Value(v.1)
+        }
+        ExprCtx::Place | ExprCtx::Either => {
+          let x = self.cur.var.gen();
+          let y = self.cur.var.gen();
+          self.cur.steps.push(Step::Get(*local, x.0));
+          self.cur.steps.push(Step::Set(*local, y.0));
+          Expr::Place(x.1, y.1)
+        }
+      },
       TermKind::Assign(p, e) => {
-        let e = self.build_expr(e);
-        let p = self.build_pat(p);
+        let e = self.build_expr_value(e);
+        let p = self.build_pat_value(p);
         self.cur.pairs.push((p, e));
-        Tree::Erase
+        Expr::Value(Tree::Erase)
       }
-      TermKind::Block(block) => self.build_block(block),
+      TermKind::Block(block) => Expr::Value(self.build_block(block)),
       TermKind::Fn(params, body) => {
         let mut result = Tree::Erase;
         let mut cur = &mut result;
         for param in params {
-          let param = self.build_pat(param);
+          let param = self.build_pat_value(param);
           *cur = Tree::Comb("fn".to_owned(), Box::new(param), Box::new(Tree::Erase));
           let Tree::Comb(.., next) = cur else { unreachable!() };
           cur = next;
         }
-        *cur = self.build_expr(body);
-        result
+        *cur = self.build_expr_value(body);
+        Expr::Value(result)
       }
       TermKind::Call(f, args) => {
-        let mut f = self.build_expr(f);
+        let mut f = self.build_expr_value(f);
         for arg in args {
-          let arg = self.build_expr(arg);
+          let arg = self.build_expr_value(arg);
           let out = self.cur.var.gen();
           self.cur.pairs.push((f, Tree::Comb("fn".to_owned(), Box::new(arg), Box::new(out.0))));
           f = out.1;
         }
-        f
+        Expr::Value(f)
       }
       TermKind::UnaryOp(op, rhs) => {
         let (f, lhs) = match op {
           UnaryOp::Neg => (ExtFnKind::sub, Tree::U32(0)),
           UnaryOp::Not => (ExtFnKind::u32_xor, Tree::U32(u32::MAX)),
         };
-        let rhs = self.build_expr(rhs);
-        self.ext_fn(f.into(), lhs, rhs)
+        let rhs = self.build_expr_value(rhs);
+        Expr::Value(self.ext_fn(f.into(), lhs, rhs))
       }
       TermKind::BinaryOp(op, lhs, rhs) => {
         let f = match op {
@@ -84,13 +111,13 @@ impl Compiler {
           BinaryOp::Rem => ExtFnKind::rem,
           _ => todo!(),
         };
-        let lhs = self.build_expr(lhs);
-        let rhs = self.build_expr(rhs);
-        self.ext_fn(f.into(), lhs, rhs)
+        let lhs = self.build_expr_value(lhs);
+        let rhs = self.build_expr_value(rhs);
+        Expr::Value(self.ext_fn(f.into(), lhs, rhs))
       }
       TermKind::ComparisonOp(init, cmps) => {
         let mut last_result = Tree::U32(1);
-        let mut lhs = self.build_expr(init);
+        let mut lhs = self.build_expr_value(init);
         for (i, (op, rhs)) in cmps.iter().enumerate() {
           let f = match op {
             ComparisonOp::Eq => ExtFn::from(ExtFnKind::eq),
@@ -102,7 +129,7 @@ impl Compiler {
           };
           let first = i == 0;
           let last = i == cmps.len() - 1;
-          let rhs = self.build_expr(rhs);
+          let rhs = self.build_expr_value(rhs);
           let rhs = if last { (rhs, Tree::Erase) } else { self.dup(rhs) };
           let result = self.ext_fn(f, lhs, rhs.0);
           lhs = rhs.1;
@@ -112,12 +139,14 @@ impl Compiler {
             self.ext_fn(ExtFnKind::u32_and.into(), last_result, result)
           };
         }
-        last_result
+        Expr::Value(last_result)
       }
-      TermKind::Tuple(t) => Tree::n_ary("tup", t.iter().map(|x| self.build_expr(x))),
+      TermKind::Tuple(t) => {
+        Expr::Value(Tree::n_ary("tup", t.iter().map(|x| self.build_expr_value(x))))
+      }
       TermKind::String(s) => {
         let v = self.cur.var.gen();
-        Tree::Comb(
+        Expr::Value(Tree::Comb(
           "tup".to_owned(),
           Box::new(Tree::U32(s.chars().count() as u32)),
           Box::new(Tree::Comb(
@@ -127,26 +156,30 @@ impl Compiler {
               Tree::Comb("tup".to_owned(), Box::new(Tree::U32(char as u32)), Box::new(tail))
             })),
           )),
-        )
+        ))
       }
+      TermKind::Ref(p) => Expr::Value(match self.build_expr(p, ExprCtx::Either) {
+        Expr::Value(t) => Tree::Comb("ref".to_owned(), Box::new(t), Box::new(Tree::Erase)),
+        Expr::Place(t, u) => Tree::Comb("ref".to_owned(), Box::new(t), Box::new(u)),
+      }),
       TermKind::List(l) => {
         let v = self.cur.var.gen();
-        Tree::Comb(
+        Expr::Value(Tree::Comb(
           "tup".to_owned(),
           Box::new(Tree::U32(l.len() as u32)),
           Box::new(Tree::Comb(
             "fn".to_owned(),
             Box::new(v.0),
-            Box::new(Tree::n_ary("tup", l.iter().map(|el| self.build_expr(el)).chain([v.1]))),
+            Box::new(Tree::n_ary("tup", l.iter().map(|el| self.build_expr_value(el)).chain([v.1]))),
           )),
-        )
+        ))
       }
       TermKind::While(cond, body) => {
         let i = self.new_interface();
         let j = self.new_interface();
 
         let start = self.new_stage(i, |slf, start| {
-          let cond = slf.build_expr(cond);
+          let cond = slf.build_expr_value(cond);
 
           let body = slf.new_stage(j, |slf, id| {
             let body = slf.build_block(body);
@@ -174,13 +207,13 @@ impl Compiler {
 
         self.cur.steps.push(Step::Call(i, self.stage_tree(start)));
 
-        Tree::Erase
+        Expr::Value(Tree::Erase)
       }
       TermKind::If(cond, then, els) => {
         let val = self.new_local();
         let i = self.new_interface();
 
-        let cond = self.build_expr(cond);
+        let cond = self.build_expr_value(cond);
 
         let then = self.new_stage(i, |slf, id| {
           let then = slf.build_block(then);
@@ -189,7 +222,7 @@ impl Compiler {
         });
 
         let els = self.new_stage(i, |slf, id| {
-          let els = slf.build_expr(els);
+          let els = slf.build_expr_value(els);
           slf.cur.steps.push(Step::Set(val, els));
           id
         });
@@ -207,13 +240,13 @@ impl Compiler {
 
         let v = self.cur.var.gen();
         self.cur.steps.push(Step::Get(val, v.0));
-        v.1
+        Expr::Value(v.1)
       }
       _ => todo!(),
     }
   }
 
-  fn build_pat(&mut self, t: &Term) -> Tree {
+  fn build_pat_value(&mut self, t: &Term) -> Tree {
     match &t.kind {
       TermKind::Hole => Tree::Erase,
       TermKind::Local(local) => {
@@ -221,7 +254,25 @@ impl Compiler {
         self.cur.steps.push(Step::Set(*local, v.0));
         v.1
       }
-      TermKind::Tuple(t) => Tree::n_ary("tup", t.iter().map(|x| self.build_pat(x))),
+      TermKind::Tuple(t) => Tree::n_ary("tup", t.iter().map(|x| self.build_pat_value(x))),
+      TermKind::Ref(p) => {
+        let (a, b) = self.build_pat_place(p);
+        Tree::Comb("ref".to_owned(), Box::new(a), Box::new(b))
+      }
+      _ => todo!(),
+    }
+  }
+
+  fn build_pat_place(&mut self, t: &Term) -> (Tree, Tree) {
+    match &t.kind {
+      TermKind::Hole => self.cur.var.gen(),
+      TermKind::Local(local) => {
+        let x = self.cur.var.gen();
+        let y = self.cur.var.gen();
+        self.cur.steps.push(Step::Set(*local, x.0));
+        self.cur.fin.push(Step::Get(*local, y.0));
+        (x.1, y.1)
+      }
       _ => todo!(),
     }
   }
@@ -238,13 +289,13 @@ impl Compiler {
   fn build_stmt(&mut self, s: &Stmt) -> Tree {
     match &s.kind {
       StmtKind::Let(l) => {
-        let i = l.init.as_ref().map(|x| self.build_expr(x)).unwrap_or_default();
-        let b = self.build_pat(&l.bind);
+        let i = l.init.as_ref().map(|x| self.build_expr_value(x)).unwrap_or_default();
+        let b = self.build_pat_value(&l.bind);
         self.cur.pairs.push((b, i));
         Tree::Erase
       }
       StmtKind::Term(t, semi) => {
-        let t = self.build_expr(t);
+        let t = self.build_expr_value(t);
         if *semi {
           self.erase(t);
           Tree::Erase
@@ -293,6 +344,8 @@ impl Compiler {
     self.cur.outer = interface;
 
     let res = f(self, id);
+
+    self.cur.steps.extend(take(&mut self.cur.fin).into_iter().rev());
 
     self.interfaces[interface].stages.push(id);
     for step in &self.cur.steps {

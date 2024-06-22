@@ -1,38 +1,35 @@
 
-fn println(io, str) {
-  let io = print(io, str);
-  let io = print_char(io, '\n');
-  io
+fn println(&io, str) {
+  io.print(str);
+  io.print_char('\n');
 }
 
-fn print(io, str) {
+fn print(&io, str) {
   let (len, buf) = str;
   let chars = buf(_);
   let char;
   while len {
     len = len - 1;
     (char, chars) = chars;
-    io = print_char(io, char);
+    io.print_char(char);
   }
-  io
 }
 
 inline_ivy! print_char {
-  fn(@io_print_char(a b) fn(a b))
+  fn(ref(@io_print_char(char io) io) fn(char _))
 }
 
-fn print_bytes(io, bytes) {
+fn print_bytes(&io, bytes) {
   let (len, buf) = bytes;
   let bytes = buf(_);
   let byte;
   while len {
     len = len - 1;
     (byte, bytes) = bytes;
-    io = print_byte(io, byte);
+    io.print_byte(byte);
   }
-  io
 }
 
 inline_ivy! print_byte {
-  fn(@io_print_byte(a b) fn(a b))
+  fn(ref(@io_print_byte(char io) io) fn(char _))
 }

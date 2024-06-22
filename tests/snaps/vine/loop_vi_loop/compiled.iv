@@ -17,9 +17,9 @@
 ::loop_vi_loop::main::3 { x(n8 x(n4 x(n10 x(n6 dup(@lt(5 ?(::loop_vi_loop::main::5 ::loop_vi_loop::main::4 x(n8 x(n4 x(n10 x(n6 n12)))))) n12))))) }
 
 ::loop_vi_loop::main::4 {
-  x(n6 x(n13 x(@add(1 dup(n8 n19)) x(n15 @add(1 n21)))))
-  ::std::io::println = fn(n6 fn(n9 n17))
-  ::std::u32::to_string = fn(n8 n9)
+  x(n6 x(n13 x(@add(1 dup(n9 n19)) x(n15 @add(1 n21)))))
+  ::std::io::println = fn(ref(n6 n17) fn(n10 _))
+  ::std::u32::to_string = fn(n9 n10)
   x(n17 x(n13 x(n19 x(n15 n21)))) = ::loop_vi_loop::main::3
 }
 
@@ -28,46 +28,46 @@
 ::loop_vi_loop::main::6 { x(_ x(_ _)) }
 
 ::std::io::println {
-  fn(n2 fn(n4 n11))
-  ::std::io::print = fn(n2 fn(n4 n7))
-  ::std::io::print_char = fn(n7 fn(10 n11))
+  fn(ref(n3 n1) fn(n6 _))
+  ::std::io::print = fn(ref(n3 n8) fn(n6 _))
+  ::std::io::print_char = fn(ref(n8 n1) fn(10 _))
 }
 
 ::std::io::print {
-  fn(n11 fn(tup(n13 fn(_ n14)) n9))
-  x(n11 x(n9 x(n13 n14))) = ::std::io::print::1
+  fn(ref(n11 n1) fn(tup(n13 fn(_ n14)) _))
+  x(n11 x(n1 x(n13 n14))) = ::std::io::print::1
   _ = _
 }
 
 ::std::io::print::1 { x(n6 x(n3 x(dup(?(::std::io::print::3 ::std::io::print::2 x(n6 x(n3 x(n8 n9)))) n8) n9))) }
 
 ::std::io::print::2 {
-  x(n6 x(n12 x(@sub(1 n17) tup(n8 n18))))
-  ::std::io::print_char = fn(n6 fn(n8 n15))
+  x(n6 x(n12 x(@sub(1 n17) tup(n9 n18))))
+  ::std::io::print_char = fn(ref(n6 n15) fn(n9 _))
   x(n15 x(n12 x(n17 n18))) = ::std::io::print::1
 }
 
 ::std::io::print::3 { x(n1 x(n1 x(_ _))) }
 
-::std::io::print_char { fn(@io_print_char(a b) fn(a b)) }
+::std::io::print_char { fn(ref(@io_print_char(char io) io) fn(char _)) }
 
 ::std::io::print_bytes {
-  fn(n11 fn(tup(n13 fn(_ n14)) n9))
-  x(n11 x(n9 x(n13 n14))) = ::std::io::print_bytes::1
+  fn(ref(n11 n1) fn(tup(n13 fn(_ n14)) _))
+  x(n11 x(n1 x(n13 n14))) = ::std::io::print_bytes::1
   _ = _
 }
 
 ::std::io::print_bytes::1 { x(n6 x(n3 x(dup(?(::std::io::print_bytes::3 ::std::io::print_bytes::2 x(n6 x(n3 x(n8 n9)))) n8) n9))) }
 
 ::std::io::print_bytes::2 {
-  x(n6 x(n12 x(@sub(1 n17) tup(n8 n18))))
-  ::std::io::print_byte = fn(n6 fn(n8 n15))
+  x(n6 x(n12 x(@sub(1 n17) tup(n9 n18))))
+  ::std::io::print_byte = fn(ref(n6 n15) fn(n9 _))
   x(n15 x(n12 x(n17 n18))) = ::std::io::print_bytes::1
 }
 
 ::std::io::print_bytes::3 { x(n1 x(n1 x(_ _))) }
 
-::std::io::print_byte { fn(@io_print_byte(a b) fn(a b)) }
+::std::io::print_byte { fn(ref(@io_print_byte(char io) io) fn(char _)) }
 
 ::std::u32::to_string { fn(dup(?(::std::u32::to_string::5 ::std::u32::to_string::1 x(n5 n3)) n5) n3) }
 

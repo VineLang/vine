@@ -1,8 +1,17 @@
-use crate::ast::{Block, Item, ItemKind, ModKind, Stmt, StmtKind, Term, TermKind};
+use crate::{
+  ast::{Block, Item, ItemKind, ModKind, Stmt, StmtKind, Term, TermKind},
+  resolve::{Node, NodeValue},
+};
 
 pub trait VisitMut<'a> {
   fn enter_scope(&mut self) {}
   fn exit_scope(&mut self) {}
+
+  fn visit_node(&mut self, node: &'a mut Node) {
+    if let Some(NodeValue::Term(value)) = &mut node.value {
+      self.visit_term(value);
+    }
+  }
 
   fn visit_bind(&mut self, term: &'a mut Term) {
     self._visit_term(term);

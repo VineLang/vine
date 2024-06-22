@@ -1,7 +1,9 @@
 use std::env::args;
 
 use ivy::optimize::Optimizer;
-use vine::{compile::Compiler, loader::Loader, resolve::Resolver};
+use vine::{
+  compile::Compiler, desugar::Desugar, loader::Loader, resolve::Resolver, visit::VisitMut,
+};
 use vine_util::{arena::BytesArena, interner::StringInterner};
 
 fn main() {
@@ -21,6 +23,10 @@ fn main() {
   let mut resolver = Resolver::default();
   resolver.build_graph(root);
   resolver.resolve_terms();
+
+  for node in &mut resolver.nodes {
+    Desugar.visit_node(node)
+  }
 
   let mut compiler = Compiler::default();
   for node in &resolver.nodes {

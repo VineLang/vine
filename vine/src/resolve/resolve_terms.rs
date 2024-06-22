@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use crate::{
-  ast::{Ident, Term, TermKind},
+  ast::{Ident, Path, Term, TermKind},
   visit::VisitMut,
 };
 
@@ -76,13 +76,22 @@ impl VisitMut<'_> for ResolveVisitor<'_> {
             return;
           }
         }
-        if !path.absolute {
-          let resolved = self.resolver.resolve_path(self.node, path);
-          *path = self.resolver.nodes[resolved].canonical.clone();
-          debug_assert!(path.absolute);
-        }
+        self.visit_path(path);
       }
-      _ => self._visit_term(term),
+      TermKind::Field(_, p) => self.visit_path(p),
+      TermKind::Method(_, p, _) => self.visit_path(p),
+      _ => {}
+    }
+    self._visit_term(term);
+  }
+}
+
+impl<'a> ResolveVisitor<'a> {
+  fn visit_path(&mut self, path: &mut Path) {
+    if !path.absolute {
+      let resolved = self.resolver.resolve_path(self.node, path);
+      *path = self.resolver.nodes[resolved].canonical.clone();
+      debug_assert!(path.absolute);
     }
   }
 }

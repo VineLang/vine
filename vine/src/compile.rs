@@ -72,6 +72,7 @@ struct Stage {
   outer: InterfaceId,
   pairs: Vec<(Tree, Tree)>,
   steps: Vec<Step>,
+  fin: Vec<Step>,
   var: VarGen,
 }
 

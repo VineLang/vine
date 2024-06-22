@@ -8,7 +8,7 @@ const scale = 2.6;
 const center = (-0.8, 0.0);
 
 fn main(io) {
-  io = print_bytes(io, [
+  io.print_bytes([
     0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     width, width >> 8,
     height, height >> 8,
@@ -19,7 +19,7 @@ fn main(io) {
     let i = 0;
     while i < width {
       let (x, y) = center + scale / width * ((i, j) + 0.5 - (width, height) / 2.0);
-      io = print_byte(io, mandelbrot(x, y));
+      io.print_byte(mandelbrot(x, y));
       i = i + 1;
     }
     j = j + 1;

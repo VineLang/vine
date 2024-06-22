@@ -2,5 +2,5 @@
 use std::io::println;
 
 fn main(io) {
-  let io = println(io, "Hello, world!");
+  io.println("Hello, world!");
 }

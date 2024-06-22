@@ -75,7 +75,7 @@ pub struct InlineIvy {
   pub net: Net,
 }
 
-#[derive(Clone)]
+#[derive(Default, Clone)]
 pub struct Path {
   pub segments: Vec<Ident>,
   pub absolute: bool,
@@ -108,13 +108,14 @@ pub struct LetStmt {
   pub init: Option<Term>,
 }
 
-#[derive(Clone)]
+#[derive(Default, Clone)]
 pub struct Term {
   pub kind: TermKind,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Default, Debug, Clone)]
 pub enum TermKind {
+  #[default]
   Hole,
   Path(Path),
   Local(usize),

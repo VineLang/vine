@@ -10,7 +10,7 @@ fn main(io) {
     while j < 5 {
       j = j + 1;
       n = n + 1;
-      io = println(io, u32::to_string(n));
+      io.println(u32::to_string(n));
     }
   }
 }
