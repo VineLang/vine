@@ -33,3 +33,7 @@ fn print_bytes(&io, bytes) {
 inline_ivy! print_byte {
   fn(ref(@io_print_byte(char io) io) fn(char _))
 }
+
+inline_ivy! flush {
+  fn(ref(@io_flush(0 io) io) _)
+}
