@@ -29,6 +29,7 @@ impl<'a> Bicycle for FlowOut<'a> {
 
   fn visit(&mut self, node: Self::Node, mut recurse: impl FnMut(&mut Self, Self::Node)) {
     let mut staging = BTreeMap::<Local, Usage>::new();
+    let mut references = BTreeMap::<Local, usize>::new();
 
     let stages = take(&mut self.interfaces[node].stages);
     for &stage in &stages {
@@ -48,10 +49,19 @@ impl<'a> Bicycle for FlowOut<'a> {
 
       let out = &mut self.interfaces[node].outward;
       for (&l, &u) in &staging {
-        out.entry(l).or_default().union(u);
+        out.entry(l).or_insert(u).union_with(u);
+        *references.entry(l).or_default() += 1;
       }
       staging.clear();
     }
+
+    let out = &mut self.interfaces[node].outward;
+    for (l, r) in references {
+      if r != stages.len() {
+        out.get_mut(&l).unwrap().union_with(Usage::None);
+      }
+    }
+
     self.interfaces[node].stages = stages;
   }
 }
@@ -91,7 +101,7 @@ impl<'a> Bicycle for FlowIn<'a> {
             for (&l, &u) in &staging {
               let u = u.forward();
               if u != Usage::None {
-                inner.inward.entry(l).or_default().union(u);
+                inner.inward.entry(l).or_insert(u).union_with(u);
               }
             }
             for (&l, &u) in &inner.outward {
@@ -111,7 +121,7 @@ impl<'a> Bicycle for FlowIn<'a> {
             for (&l, &u) in &staging {
               let u = u.backward();
               if u != Usage::None {
-                inner.inward.entry(l).or_default().union(u);
+                inner.inward.entry(l).or_insert(u).union_with(u);
               }
             }
             for (&l, &u) in &inner.outward {
@@ -129,10 +139,14 @@ impl Interface {
   fn calc_wires(&mut self) {
     for (local, outward) in &self.outward {
       let inward = self.inward.get(local).copied().unwrap_or_default();
-      if inward.forward() == Usage::Set && outward.backward() == Usage::Get {
+      let output = outward.forward() == Usage::Set && inward.backward() == Usage::Get;
+      let input = inward.forward() == Usage::Set
+        && Usage::join(*outward, if output { Usage::Get } else { Usage::None }).backward()
+          == Usage::Get;
+      if input {
         self.wires.insert((*local, WireDir::Input));
       }
-      if outward.forward() == Usage::Set && inward.backward() == Usage::Get {
+      if output {
         self.wires.insert((*local, WireDir::Output));
       }
     }

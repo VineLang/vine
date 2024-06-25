@@ -94,11 +94,14 @@ enum Usage {
   #[default]
   None,
   Get,
+  MaybeSet,
   Set,
   GetSet,
 }
 
 impl Usage {
+  const ALL: &[Usage] = &[Usage::None, Usage::Get, Usage::MaybeSet, Usage::Set, Usage::GetSet];
+
   fn join(a: Usage, b: Usage) -> Usage {
     match (a, b) {
       (x, Usage::None) => x,
@@ -106,19 +109,24 @@ impl Usage {
       (Usage::Set | Usage::GetSet, _) => a,
       (Usage::Get, Usage::Set | Usage::GetSet) => Usage::GetSet,
       (Usage::Get, Usage::Get) => Usage::Get,
+      (Usage::MaybeSet, Usage::Get) => Usage::GetSet,
+      (Usage::Get, Usage::MaybeSet) => Usage::GetSet,
+      (Usage::MaybeSet, Usage::MaybeSet) => Usage::MaybeSet,
+      (Usage::MaybeSet, Usage::Set) => Usage::Set,
+      (Usage::MaybeSet, Usage::GetSet) => Usage::GetSet,
     }
   }
 
   fn forward(self) -> Self {
     match self {
       Usage::None | Usage::Get => Usage::None,
-      Usage::Set | Usage::GetSet => Usage::Set,
+      Usage::MaybeSet | Usage::Set | Usage::GetSet => Usage::Set,
     }
   }
 
   fn backward(self) -> Self {
     match self {
-      Usage::None | Usage::Set => Usage::None,
+      Usage::None | Usage::Set | Usage::MaybeSet => Usage::None,
       Usage::Get | Usage::GetSet => Usage::Get,
     }
   }
@@ -131,13 +139,46 @@ impl Usage {
     *self = Usage::join(with, *self)
   }
 
-  fn union(&mut self, with: Usage) {
-    *self = match (*self, with) {
-      (x, Usage::None) => x,
-      (Usage::None, x) => x,
+  fn union(a: Usage, b: Usage) -> Usage {
+    macro_rules! sym {
+      ($a:pat, $b:pat) => {
+        ($a, $b) | ($b, $a)
+      };
+    }
+    match (a, b) {
+      (Usage::None, Usage::None) => Usage::None,
       (Usage::Get, Usage::Get) => Usage::Get,
       (Usage::Set, Usage::Set) => Usage::Set,
-      (_, _) => Usage::GetSet,
+      (Usage::MaybeSet, Usage::MaybeSet) => Usage::MaybeSet,
+      sym!(Usage::None, Usage::Get) => Usage::Get,
+      sym!(Usage::None, Usage::GetSet) => Usage::GetSet,
+      sym!(Usage::None, Usage::Set | Usage::MaybeSet) => Usage::MaybeSet,
+      sym!(Usage::MaybeSet, Usage::Set) => Usage::MaybeSet,
+      sym!(Usage::Get | Usage::GetSet, Usage::Set | Usage::GetSet) => Usage::GetSet,
+      sym!(Usage::Get | Usage::GetSet, Usage::MaybeSet) => Usage::GetSet,
+    }
+  }
+
+  fn union_with(&mut self, with: Usage) {
+    *self = Usage::union(*self, with)
+  }
+}
+
+#[test]
+fn usage_axioms() {
+  for &a in Usage::ALL {
+    assert_eq!(Usage::join(a, Usage::None), a);
+    assert_eq!(Usage::join(Usage::None, a), a);
+
+    assert_eq!(Usage::union(a, a), a);
+
+    for &b in Usage::ALL {
+      assert_eq!(Usage::union(a, b), Usage::union(b, a));
+
+      for &c in Usage::ALL {
+        assert_eq!(Usage::union(a, Usage::union(b, c)), Usage::union(Usage::union(a, b), c));
+        assert_eq!(Usage::join(Usage::join(a, b), c), Usage::join(a, Usage::join(b, c)));
+      }
     }
   }
 }
