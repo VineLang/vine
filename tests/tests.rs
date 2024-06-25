@@ -28,6 +28,7 @@ fn tests(t: &mut DynTester) {
     test_vi(t, "vine/examples/fib.vi", b"", ".txt");
     test_vi(t, "vine/examples/fizzbuzz.vi", b"", ".txt");
     test_vi(t, "vine/examples/hello_world.vi", b"", ".txt");
+    test_vi(t, "vine/examples/mandelbrot_sixel.vi", b"", ".sixel");
     test_vi(t, "vine/examples/mandelbrot_tga.vi", b"", ".tga");
     test_vi(t, "vine/examples/mandelbrot.vi", b"", ".txt");
 
