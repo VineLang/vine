@@ -1,10 +1,10 @@
 
 Interactions
-  Total             927_511_920
+  Total             927_511_919
   Annihilate        347_644_982
   Commute             5_242_880
   Copy              190_435_706
-  Erase              29_202_403
+  Erase              29_202_402
   Expand             73_969_508
   Call              259_156_143
   Branch             21_860_298

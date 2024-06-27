@@ -1,10 +1,10 @@
 
 Interactions
-  Total                 15_444
+  Total                 15_411
   Annihilate             7_982
   Commute                    0
   Copy                   1_075
-  Erase                  1_511
+  Erase                  1_478
   Expand                 2_281
   Call                   1_790
   Branch                   805

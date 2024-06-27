@@ -1,10 +1,10 @@
 
 Interactions
-  Total            206_347_473
+  Total            206_299_239
   Annihilate        78_798_999
   Commute            1_310_720
   Copy              41_027_752
-  Erase              7_856_208
+  Erase              7_807_974
   Expand            16_683_905
   Call              55_514_615
   Branch             5_155_274

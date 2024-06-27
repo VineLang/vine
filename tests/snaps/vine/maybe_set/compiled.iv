@@ -20,7 +20,6 @@
 ::std::io::print {
   fn(ref(n11 n1) fn(tup(n13 fn(_ n14)) _))
   x(n11 x(n1 x(n13 n14))) = ::std::io::print::1
-  _ = _
 }
 
 ::std::io::print::1 { x(n6 x(n3 x(dup(?(::std::io::print::3 ::std::io::print::2 x(n6 x(n3 x(n8 n9)))) n8) n9))) }
@@ -38,7 +37,6 @@
 ::std::io::print_bytes {
   fn(ref(n11 n1) fn(tup(n13 fn(_ n14)) _))
   x(n11 x(n1 x(n13 n14))) = ::std::io::print_bytes::1
-  _ = _
 }
 
 ::std::io::print_bytes::1 { x(n6 x(n3 x(dup(?(::std::io::print_bytes::3 ::std::io::print_bytes::2 x(n6 x(n3 x(n8 n9)))) n8) n9))) }

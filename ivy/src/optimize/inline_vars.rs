@@ -27,6 +27,7 @@ impl InlineVars {
             }
           }
         }
+        (Tree::Erase, Tree::Erase) => break false,
         _ => break true,
       }
     });

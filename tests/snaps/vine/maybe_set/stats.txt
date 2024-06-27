@@ -1,10 +1,10 @@
 
 Interactions
-  Total                    205
+  Total                    204
   Annihilate               110
   Commute                    0
   Copy                       9
-  Erase                     27
+  Erase                     26
   Expand                    32
   Call                      17
   Branch                    10
