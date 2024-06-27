@@ -1,8 +1,6 @@
 
 ::main { ::fib_repl::main }
 
-::fib_repl::end { 32 }
-
 ::fib_repl::main { fn(::fib_repl::main::1 _) }
 
 ::fib_repl::main::1 {
@@ -70,23 +68,6 @@
 ::std::io::print::3 { x(n1 x(n1 x(_ _))) }
 
 ::std::io::print_char { fn(ref(@io_print_char(char io) io) fn(char _)) }
-
-::std::io::print_bytes {
-  fn(ref(n11 n1) fn(tup(n13 fn(_ n14)) _))
-  x(n11 x(n1 x(n13 n14))) = ::std::io::print_bytes::1
-}
-
-::std::io::print_bytes::1 { x(n6 x(n3 x(dup(?(::std::io::print_bytes::3 ::std::io::print_bytes::2 x(n6 x(n3 x(n8 n9)))) n8) n9))) }
-
-::std::io::print_bytes::2 {
-  x(n6 x(n12 x(@sub(1 n17) tup(n9 n18))))
-  ::std::io::print_byte = fn(ref(n6 n15) fn(n9 _))
-  x(n15 x(n12 x(n17 n18))) = ::std::io::print_bytes::1
-}
-
-::std::io::print_bytes::3 { x(n1 x(n1 x(_ _))) }
-
-::std::io::print_byte { fn(ref(@io_print_byte(char io) io) fn(char _)) }
 
 ::std::io::flush { fn(ref(@io_flush(0 io) io) _) }
 
