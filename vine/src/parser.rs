@@ -430,6 +430,7 @@ const BRACKET_COMMA: Delimiters = Delimiters {
 
 const PATH: Delimiters = Delimiters { open: None, close: None, separator: Some(Token::ColonColon) };
 
+#[allow(dead_code)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 #[repr(u8)]
 enum BP {
