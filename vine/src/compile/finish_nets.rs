@@ -51,6 +51,7 @@ impl<'a> FinishNets<'a> {
       match step {
         Step::Get(l, t) => self.get_local(l, t),
         Step::Set(l, t) => self.set_local(l, t),
+        Step::Move(l, t) => self.move_local(l, t),
         Step::Call(i, t) => {
           let i = self.interface(i, false);
           self.pairs.push((i, t));
@@ -96,6 +97,16 @@ impl<'a> FinishNets<'a> {
     let prev = local.value.replace(tree);
     if let Some(value) = prev {
       self.pairs.push((value, Tree::n_ary("dup", local.uses.drain(..))));
+    }
+    debug_assert!(local.uses.is_empty());
+  }
+
+  fn move_local(&mut self, local: Local, tree: Tree) {
+    let local = self.locals.entry(local).or_default();
+    if let Some(value) = local.value.take() {
+      self.pairs.push((value, Tree::n_ary("dup", local.uses.drain(..).chain([tree]))));
+    } else if !matches!(tree, Tree::Erase) {
+      self.pairs.push((Tree::Erase, tree));
     }
     debug_assert!(local.uses.is_empty());
   }

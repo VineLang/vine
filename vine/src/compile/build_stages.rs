@@ -28,7 +28,7 @@ impl Compiler {
       let root = slf.build_expr_value(term);
       let root_val = slf.new_local();
       slf.cur.steps.push(Step::Set(root_val, root));
-      slf.interfaces[i].inward.insert(root_val, Usage::Get);
+      slf.interfaces[i].inward.insert(root_val, Usage::GET);
       s
     })
   }
@@ -243,6 +243,18 @@ impl Compiler {
         self.cur.steps.push(Step::Get(val, v.0));
         Expr::Value(v.1)
       }
+      TermKind::Move(t) => match t.kind {
+        TermKind::Local(l) => {
+          let v = self.cur.var.gen();
+          self.cur.steps.push(Step::Move(l, v.0));
+          Expr::Value(v.1)
+        }
+        _ => {
+          let (a, b) = self.build_expr_place(t);
+          self.erase(b);
+          Expr::Value(a)
+        }
+      },
       _ => todo!(),
     }
   }
@@ -299,6 +311,7 @@ impl Compiler {
         self.cur.fin.push(Step::Get(*local, y.0));
         (x.1, y.1)
       }
+      TermKind::Move(t) => (self.build_pat_value(t), Tree::Erase),
       _ => todo!(),
     }
   }

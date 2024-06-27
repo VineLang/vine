@@ -1,5 +1,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 
+use bitflags::bitflags;
+
 use ivy::ast::{Nets, Tree};
 use vine_util::bicycle::BicycleState;
 
@@ -86,49 +88,63 @@ enum WireDir {
 enum Step {
   Get(Local, Tree),
   Set(Local, Tree),
+  Move(Local, Tree),
   Call(InterfaceId, Tree),
 }
 
-#[derive(Default, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-enum Usage {
-  #[default]
-  None,
-  Get,
-  MaybeSet,
-  Set,
-  GetSet,
+bitflags! {
+  #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+  struct Usage: u8 {
+    const MAY_GET = 1;
+    const MAY_SET = 2;
+    const MAY_NOT_SET = 4;
+    const MAY_SET_SOME = 8;
+  }
 }
 
 impl Usage {
-  const ALL: &[Usage] = &[Usage::None, Usage::Get, Usage::MaybeSet, Usage::Set, Usage::GetSet];
+  const NONE: Usage = Usage::MAY_NOT_SET;
+  const GET: Usage = Usage::MAY_GET.union(Usage::MAY_NOT_SET);
+  const SET: Usage = Usage::MAY_SET.union(Usage::MAY_SET_SOME);
+  const MOVE: Usage = Usage::MAY_GET.union(Usage::MAY_SET);
 
-  fn join(a: Usage, b: Usage) -> Usage {
-    match (a, b) {
-      (x, Usage::None) => x,
-      (Usage::None, x) => x,
-      (Usage::Set | Usage::GetSet, _) => a,
-      (Usage::Get, Usage::Set | Usage::GetSet) => Usage::GetSet,
-      (Usage::Get, Usage::Get) => Usage::Get,
-      (Usage::MaybeSet, Usage::Get) => Usage::GetSet,
-      (Usage::Get, Usage::MaybeSet) => Usage::GetSet,
-      (Usage::MaybeSet, Usage::MaybeSet) => Usage::MaybeSet,
-      (Usage::MaybeSet, Usage::Set) => Usage::Set,
-      (Usage::MaybeSet, Usage::GetSet) => Usage::GetSet,
-    }
+  fn may_get(&self) -> bool {
+    self.contains(Usage::MAY_GET)
+  }
+
+  fn may_set(&self) -> bool {
+    self.contains(Usage::MAY_SET)
+  }
+
+  fn may_not_set(&self) -> bool {
+    self.contains(Usage::MAY_NOT_SET)
+  }
+
+  fn may_set_some(&self) -> bool {
+    self.contains(Usage::MAY_SET_SOME)
+  }
+
+  fn new(f: impl FnOnce(&mut Self)) -> Self {
+    let mut x = Self::empty();
+    f(&mut x);
+    x
+  }
+
+  fn join(a: Self, b: Self) -> Self {
+    Usage::new(|u| {
+      u.set(Usage::MAY_GET, a.may_get() | (a.may_not_set() & b.may_get()));
+      u.set(Usage::MAY_SET, a.may_set() | b.may_set());
+      u.set(Usage::MAY_NOT_SET, a.may_not_set() & b.may_not_set());
+      u.set(Usage::MAY_SET_SOME, b.may_set_some() | (b.may_not_set() & a.may_set_some()));
+    })
   }
 
   fn forward(self) -> Self {
-    match self {
-      Usage::None | Usage::Get => Usage::None,
-      Usage::MaybeSet | Usage::Set | Usage::GetSet => Usage::Set,
-    }
+    self & (Usage::MAY_SET | Usage::MAY_SET_SOME)
   }
 
   fn backward(self) -> Self {
-    match self {
-      Usage::None | Usage::Set | Usage::MaybeSet => Usage::None,
-      Usage::Get | Usage::GetSet => Usage::Get,
-    }
+    self & Usage::GET
   }
 
   fn append(&mut self, with: Usage) {
@@ -139,26 +155,6 @@ impl Usage {
     *self = Usage::join(with, *self)
   }
 
-  fn union(a: Usage, b: Usage) -> Usage {
-    macro_rules! sym {
-      ($a:pat, $b:pat) => {
-        ($a, $b) | ($b, $a)
-      };
-    }
-    match (a, b) {
-      (Usage::None, Usage::None) => Usage::None,
-      (Usage::Get, Usage::Get) => Usage::Get,
-      (Usage::Set, Usage::Set) => Usage::Set,
-      (Usage::MaybeSet, Usage::MaybeSet) => Usage::MaybeSet,
-      sym!(Usage::None, Usage::Get) => Usage::Get,
-      sym!(Usage::None, Usage::GetSet) => Usage::GetSet,
-      sym!(Usage::None, Usage::Set | Usage::MaybeSet) => Usage::MaybeSet,
-      sym!(Usage::MaybeSet, Usage::Set) => Usage::MaybeSet,
-      sym!(Usage::Get | Usage::GetSet, Usage::Set | Usage::GetSet) => Usage::GetSet,
-      sym!(Usage::Get | Usage::GetSet, Usage::MaybeSet) => Usage::GetSet,
-    }
-  }
-
   fn union_with(&mut self, with: Usage) {
     *self = Usage::union(*self, with)
   }
@@ -166,19 +162,32 @@ impl Usage {
 
 #[test]
 fn usage_axioms() {
-  for &a in Usage::ALL {
-    assert_eq!(Usage::join(a, Usage::None), a);
-    assert_eq!(Usage::join(Usage::None, a), a);
+  for a in all() {
+    assert_eq!(Usage::join(a, Usage::NONE), a);
+    assert_eq!(Usage::join(Usage::NONE, a), a);
 
     assert_eq!(Usage::union(a, a), a);
 
-    for &b in Usage::ALL {
+    for b in all() {
       assert_eq!(Usage::union(a, b), Usage::union(b, a));
 
-      for &c in Usage::ALL {
-        assert_eq!(Usage::union(a, Usage::union(b, c)), Usage::union(Usage::union(a, b), c));
+      for c in all() {
+        assert_eq!(Usage::union(Usage::union(a, b), c), Usage::union(a, Usage::union(b, c)),);
         assert_eq!(Usage::join(Usage::join(a, b), c), Usage::join(a, Usage::join(b, c)));
+
+        assert_eq!(
+          Usage::join(a, Usage::union(b, c)),
+          Usage::union(Usage::join(a, b), Usage::join(a, c))
+        );
+        assert_eq!(
+          Usage::join(Usage::union(a, b), c),
+          Usage::union(Usage::join(a, c), Usage::join(b, c))
+        );
       }
     }
+  }
+
+  fn all() -> impl Iterator<Item = Usage> {
+    (0..16).map(Usage::from_bits_truncate)
   }
 }

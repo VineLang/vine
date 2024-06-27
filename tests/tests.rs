@@ -34,6 +34,7 @@ fn tests(t: &mut DynTester) {
 
     test_vi(t, "tests/programs/loop_vi_loop.vi", b"", ".txt");
     test_vi(t, "tests/programs/maybe_set.vi", b"", ".txt");
+    test_vi(t, "tests/programs/move_it_move_it.vi", b"", ".txt");
   });
 }
 

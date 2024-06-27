@@ -36,12 +36,13 @@ impl<'a> Bicycle for FlowOut<'a> {
       let stage = &self.stages[stage];
       for step in &stage.steps {
         match *step {
-          Step::Get(l, _) => staging.entry(l).or_default().append(Usage::Get),
-          Step::Set(l, _) => staging.entry(l).or_default().append(Usage::Set),
+          Step::Get(l, _) => staging.entry(l).or_insert(Usage::NONE).append(Usage::GET),
+          Step::Set(l, _) => staging.entry(l).or_insert(Usage::NONE).append(Usage::SET),
+          Step::Move(l, _) => staging.entry(l).or_insert(Usage::NONE).append(Usage::MOVE),
           Step::Call(i, _) => {
             recurse(self, i);
             for (&l, &u) in &self.interfaces[i].outward {
-              staging.entry(l).or_default().append(u);
+              staging.entry(l).or_insert(Usage::NONE).append(u);
             }
           }
         }
@@ -58,7 +59,7 @@ impl<'a> Bicycle for FlowOut<'a> {
     let out = &mut self.interfaces[node].outward;
     for (l, r) in references {
       if r != stages.len() {
-        out.get_mut(&l).unwrap().union_with(Usage::None);
+        out.get_mut(&l).unwrap().union_with(Usage::NONE);
       }
     }
 
@@ -94,18 +95,19 @@ impl<'a> Bicycle for FlowIn<'a> {
       let stage = &self.stages[stage];
       for step in stage.steps.iter() {
         match *step {
-          Step::Get(l, _) => staging.entry(l).or_default().append(Usage::Get),
-          Step::Set(l, _) => staging.entry(l).or_default().append(Usage::Set),
+          Step::Get(l, _) => staging.entry(l).or_insert(Usage::NONE).append(Usage::GET),
+          Step::Set(l, _) => staging.entry(l).or_insert(Usage::NONE).append(Usage::SET),
+          Step::Move(l, _) => staging.entry(l).or_insert(Usage::NONE).append(Usage::MOVE),
           Step::Call(i, _) => {
             let inner = &mut self.interfaces[i];
             for (&l, &u) in &staging {
               let u = u.forward();
-              if u != Usage::None {
+              if !u.is_empty() {
                 inner.inward.entry(l).or_insert(u).union_with(u);
               }
             }
             for (&l, &u) in &inner.outward {
-              staging.entry(l).or_default().append(u);
+              staging.entry(l).or_insert(Usage::NONE).append(u);
             }
           }
         }
@@ -114,18 +116,19 @@ impl<'a> Bicycle for FlowIn<'a> {
       staging.extend(&self.interfaces[node].inward);
       for step in stage.steps.iter().rev() {
         match *step {
-          Step::Get(l, _) => staging.entry(l).or_default().prepend(Usage::Get),
-          Step::Set(l, _) => staging.entry(l).or_default().prepend(Usage::Set),
+          Step::Get(l, _) => staging.entry(l).or_insert(Usage::NONE).prepend(Usage::GET),
+          Step::Set(l, _) => staging.entry(l).or_insert(Usage::NONE).prepend(Usage::SET),
+          Step::Move(l, _) => staging.entry(l).or_insert(Usage::NONE).prepend(Usage::MOVE),
           Step::Call(i, _) => {
             let inner = &mut self.interfaces[i];
             for (&l, &u) in &staging {
               let u = u.backward();
-              if u != Usage::None {
+              if !u.is_empty() {
                 inner.inward.entry(l).or_insert(u).union_with(u);
               }
             }
             for (&l, &u) in &inner.outward {
-              staging.entry(l).or_default().prepend(u);
+              staging.entry(l).or_insert(Usage::NONE).prepend(u);
             }
           }
         }
@@ -138,11 +141,12 @@ impl<'a> Bicycle for FlowIn<'a> {
 impl Interface {
   fn calc_wires(&mut self) {
     for (local, outward) in &self.outward {
-      let inward = self.inward.get(local).copied().unwrap_or_default();
-      let output = outward.forward() == Usage::Set && inward.backward() == Usage::Get;
-      let input = inward.forward() == Usage::Set
-        && Usage::join(*outward, if output { Usage::Get } else { Usage::None }).backward()
-          == Usage::Get;
+      let inward = self.inward.get(local).copied().unwrap_or(Usage::NONE);
+      let output =
+        inward.may_get() & outward.may_set() & (outward.may_not_set() | outward.may_set_some());
+      let input = inward.may_set()
+        & inward.may_set_some()
+        & (outward.may_get() | outward.may_not_set() & output);
       if input {
         self.wires.insert((*local, WireDir::Input));
       }

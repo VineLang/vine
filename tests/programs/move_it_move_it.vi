@@ -1,0 +1,8 @@
+
+use std::io::println;
+
+fn main(it) {
+  let &move it = &move it;
+  (move it).println("move it!");
+  if 1 { it.println("move it?"); }
+}

@@ -8,6 +8,7 @@ logos = "0.14.0"
 vine-util = { path = "../util" }
 ivy = { path = "../ivy" }
 ivm = { path = "../ivm" }
+bitflags = "2.6.0"
 
 [lints]
 workspace = true
