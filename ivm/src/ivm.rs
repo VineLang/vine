@@ -1,13 +1,6 @@
 use std::time::Instant;
 
-use crate::{
-  addr::Addr,
-  ext::ExtVal,
-  global::Global,
-  heap::Heap,
-  port::{Port, Tag},
-  stats::Stats,
-};
+use crate::{addr::Addr, ext::ExtVal, global::Global, heap::Heap, port::Port, stats::Stats};
 
 /// An Interaction Virtual Machine.
 pub struct IVM<'ivm> {
@@ -46,15 +39,12 @@ impl<'ivm> IVM<'ivm> {
     }
   }
 
-  /// Boots this IVM from the `main` function, passing it an IO handle.
+  /// Boots this IVM from the `main` global, connecting it to an IO handle.
   ///
   /// This does not start any processing; [`IVM::normalize`] must be called to
   /// do that.
   pub fn boot(&mut self, main: &'ivm Global<'ivm>) {
-    let a = unsafe { self.new_node(Tag::Comb, 0) };
-    self.link_wire(a.1, Port::new_ext_val(ExtVal::IO));
-    self.link_wire(a.2, Port::ERASE);
-    self.link(a.0, Port::new_global(main));
+    self.link(Port::new_global(main), Port::new_ext_val(ExtVal::IO));
   }
 
   /// Normalize all nets in this IVM.
