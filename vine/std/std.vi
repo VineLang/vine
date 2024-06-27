@@ -1,4 +1,5 @@
 
 mod io = "./io.vi";
+mod option = "./option.vi";
 mod str = "./str.vi";
 mod u32 = "./u32.vi";

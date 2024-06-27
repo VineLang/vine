@@ -1,4 +1,6 @@
 
+use std::{str, option::{Some, None}};
+
 fn println(&io, str) {
   io.print(str);
   io.print_char('\n');
@@ -36,4 +38,31 @@ inline_ivy! print_byte {
 
 inline_ivy! flush {
   fn(ref(@io_flush(0 io) io) _)
+}
+
+fn prompt(&io, msg) {
+  io.print(msg);
+  io.flush();
+  io.read_line()
+}
+
+fn read_line(&io) {
+  let byte = io.read_byte(0);
+  if byte {
+    Some(if byte == '\n' {
+      ""
+    } else {
+      let str = str::single(byte);
+      while { byte = io.read_byte('\n'); byte != '\n' } {
+        str ++= str::single(byte);
+      }
+      str
+    })
+  } else {
+    None
+  }
+}
+
+inline_ivy! read_byte {
+  fn(ref(dup(io0 @io_read_byte(default dup(byte @seq$(io0 io1)))) io1) fn(default byte))
 }

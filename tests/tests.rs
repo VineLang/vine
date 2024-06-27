@@ -17,14 +17,17 @@ dyntest!(tests);
 fn tests(t: &mut DynTester) {
   env::set_current_dir("..").unwrap();
 
+  let fib_repl_input = b"1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n21\n100\n999999\n";
+
   t.group("ivy", |t| {
     test_iv(t, "ivy/examples/cat.iv", b"meow\n", ".txt");
-    test_iv(t, "ivy/examples/fib.iv", b"1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n21\n100\n999999\n", ".txt");
+    test_iv(t, "ivy/examples/fib.iv", fib_repl_input, ".txt");
     test_iv(t, "ivy/examples/fizzbuzz.iv", b"", ".txt");
     test_iv(t, "ivy/examples/hihi.iv", b"", ".txt");
   });
 
   t.group("vine", |t| {
+    test_vi(t, "vine/examples/fib_repl.vi", fib_repl_input, ".txt");
     test_vi(t, "vine/examples/fib.vi", b"", ".txt");
     test_vi(t, "vine/examples/fizzbuzz.vi", b"", ".txt");
     test_vi(t, "vine/examples/hello_world.vi", b"", ".txt");

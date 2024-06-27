@@ -1,0 +1,28 @@
+
+use std::{io::{prompt, println, read_byte, print_char}, u32, option::{is_some, unwrap}};
+
+const end = 32;
+
+fn main(io) {
+  let line;
+  while { line = io.prompt("> "); line.is_some() } {
+    let line = line.unwrap();
+    let num = u32::parse(line);
+    if num.is_some() {
+      let num = num.unwrap();
+      io.println(u32::to_string(fib(num)));
+    } else {
+      io.println("invalid number");
+    }
+  }
+}
+
+fn fib(n) {
+  let a = 0;
+  let b = 1;
+  while n {
+    n -= 1;
+    (a, b) = (b, a + b);
+  }
+  a
+}

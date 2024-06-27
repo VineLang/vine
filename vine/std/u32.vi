@@ -1,4 +1,6 @@
 
+use std::option::{Some, None};
+
 fn to_string(n) {
   if n {
     let str = "";
@@ -10,5 +12,33 @@ fn to_string(n) {
     str
   } else {
     "0"
+  }
+}
+
+fn parse(str) {
+  let (len, buf) = str;
+  if len == 0 {
+    None
+  } else {
+    let chars = buf(_);
+    let good = 1;
+    let num = 0;
+    while len {
+      let char;
+      (char, chars) = chars;
+      good = '0' <= char <= '9';
+      if good {
+        num *= 10;
+        num += char - '0';
+        len -= 1;
+      } else {
+        len = 0;
+      }
+    }
+    if good {
+      Some(num)
+    } else {
+      None
+    }
   }
 }

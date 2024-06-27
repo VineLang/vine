@@ -1,15 +1,52 @@
 
-::main { ::maybe_set::main }
+::main { ::fib_repl::main }
 
-::maybe_set::main {
-  fn(n5 _)
-  0 = ?(::maybe_set::main::2 ::maybe_set::main::1 x(tup(8 fn(n1 tup(111 tup(114 tup(105 tup(103 tup(105 tup(110 tup(97 tup(108 n1)))))))))) n8))
-  ::std::io::println = fn(ref(n5 _) fn(n8 _))
+::fib_repl::end { 32 }
+
+::fib_repl::main { fn(::fib_repl::main::1 _) }
+
+::fib_repl::main::1 {
+  n0
+  ::std::io::prompt = fn(ref(n0 n11) fn(tup(2 fn(n3 tup(62 tup(32 n3)))) n6))
+  ::std::option::is_some = fn(ref(n6 n12) ?(::fib_repl::main::5 ::fib_repl::main::2 x(n11 n12)))
 }
 
-::maybe_set::main::1 { x(_ tup(4 fn(n0 tup(103 tup(111 tup(110 tup(101 n0))))))) }
+::fib_repl::main::2 {
+  x(n14 n0)
+  ::std::option::unwrap = fn(ref(n0 _) n4)
+  ::std::u32::parse = fn(n4 n7)
+  ::std::option::is_some = fn(ref(n7 n16) ?(::fib_repl::main::4 ::fib_repl::main::3 x(n14 x(::fib_repl::main::1 n16))))
+}
 
-::maybe_set::main::2 { x(n1 n1) }
+::fib_repl::main::3 {
+  x(n4 x(n12 n0))
+  ::std::option::unwrap = fn(ref(n0 _) n7)
+  ::std::io::println = fn(ref(n4 n12) fn(n9 _))
+  ::fib_repl::fib = fn(n7 n8)
+  ::std::u32::to_string = fn(n8 n9)
+}
+
+::fib_repl::main::4 {
+  x(n0 x(n6 _))
+  ::std::io::println = fn(ref(n0 n6) fn(tup(14 fn(n3 tup(105 tup(110 tup(118 tup(97 tup(108 tup(105 tup(100 tup(32 tup(110 tup(117 tup(109 tup(98 tup(101 tup(114 n3)))))))))))))))) _))
+}
+
+::fib_repl::main::5 { x(_ _) }
+
+::fib_repl::fib {
+  fn(n5 n3)
+  x(n5 x(0 x(n3 1))) = ::fib_repl::fib::1
+}
+
+::fib_repl::fib::1 { x(dup(?(::fib_repl::fib::3 ::fib_repl::fib::2 x(n6 x(n7 x(n4 n9)))) n6) x(n7 x(n4 n9))) }
+
+::fib_repl::fib::2 {
+  x(@sub(1 n13) x(@add(n5 n6) x(n11 dup(n3 n5))))
+  tup(n14 n16) = tup(n3 n6)
+  x(n13 x(n14 x(n11 n16))) = ::fib_repl::fib::1
+}
+
+::fib_repl::fib::3 { x(_ x(n2 x(n2 _))) }
 
 ::std::io::println {
   fn(ref(n3 n1) fn(n6 _))

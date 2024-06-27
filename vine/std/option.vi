@@ -1,0 +1,13 @@
+
+fn Some(value) { fn(some, none) some(value) }
+const None = fn(some, none) none;
+
+fn is_some(&self) {
+  let out;
+  (self, out) = self(fn(value) (Some(value), 1), (None, 0))
+  out
+}
+
+fn unwrap(&move self) {
+  self(fn(value) value, _)
+}

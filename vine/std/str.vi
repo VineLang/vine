@@ -4,3 +4,7 @@ fn concat(a, b) {
   let (b_len, b_buf) = b;
   (a_len + b_len, fn(x) a_buf(b_buf(x)))
 }
+
+fn single(char) {
+  (1, fn(x) (char, x))
+}
