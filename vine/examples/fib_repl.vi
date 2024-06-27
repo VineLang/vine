@@ -1,8 +1,6 @@
 
 use std::{io::{prompt, println, read_byte, print_char}, u32, option::{is_some, unwrap}};
 
-const end = 32;
-
 fn main(io) {
   let line;
   while { line = io.prompt("> "); line.is_some() } {
