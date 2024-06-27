@@ -3,13 +3,13 @@
 
 ::maybe_set::main {
   fn(n5 _)
-  0 = ?(::maybe_set::main::2 ::maybe_set::main::1 x(tup(8 fn(n1 tup(111 tup(114 tup(105 tup(103 tup(105 tup(110 tup(97 tup(108 n1)))))))))) x(n8 _)))
+  0 = ?(::maybe_set::main::2 ::maybe_set::main::1 x(tup(8 fn(n1 tup(111 tup(114 tup(105 tup(103 tup(105 tup(110 tup(97 tup(108 n1)))))))))) n8))
   ::std::io::println = fn(ref(n5 _) fn(n8 _))
 }
 
-::maybe_set::main::1 { x(_ x(tup(4 fn(n0 tup(103 tup(111 tup(110 tup(101 n0)))))) _)) }
+::maybe_set::main::1 { x(_ tup(4 fn(n0 tup(103 tup(111 tup(110 tup(101 n0))))))) }
 
-::maybe_set::main::2 { x(n1 x(n1 _)) }
+::maybe_set::main::2 { x(n1 n1) }
 
 ::std::io::println {
   fn(ref(n3 n1) fn(n6 _))

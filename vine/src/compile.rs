@@ -107,6 +107,7 @@ impl Usage {
   const GET: Usage = Usage::MAY_GET.union(Usage::MAY_NOT_SET);
   const SET: Usage = Usage::MAY_SET.union(Usage::MAY_SET_SOME);
   const MOVE: Usage = Usage::MAY_GET.union(Usage::MAY_SET);
+  const ERASE: Usage = Usage::MAY_SET;
 
   fn may_get(&self) -> bool {
     self.contains(Usage::MAY_GET)

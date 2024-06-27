@@ -2,10 +2,10 @@
 ::main { ::move_it_move_it::main }
 
 ::move_it_move_it::main {
-  fn(n1 n8)
+  fn(n1 _)
   ref(n3 _) = ref(n1 _)
   ::std::io::println = fn(ref(n3 _) fn(tup(8 fn(n5 tup(109 tup(111 tup(118 tup(101 tup(32 tup(105 tup(116 tup(33 n5)))))))))) _))
-  1 = ?(::move_it_move_it::main::2 ::move_it_move_it::main::1 n8)
+  1 = ?(::move_it_move_it::main::2 ::move_it_move_it::main::1 _)
 }
 
 ::move_it_move_it::main::1 {
