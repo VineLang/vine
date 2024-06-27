@@ -35,17 +35,10 @@ impl<'a> Bicycle for FlowOut<'a> {
     for &stage in &stages {
       let stage = &self.stages[stage];
       for step in &stage.steps {
-        match *step {
-          Step::Get(l, _) => staging.entry(l).or_insert(Usage::NONE).append(Usage::GET),
-          Step::Set(l, _) => staging.entry(l).or_insert(Usage::NONE).append(Usage::SET),
-          Step::Move(l, _) => staging.entry(l).or_insert(Usage::NONE).append(Usage::MOVE),
-          Step::Call(i, _) => {
-            recurse(self, i);
-            for (&l, &u) in &self.interfaces[i].outward {
-              staging.entry(l).or_insert(Usage::NONE).append(u);
-            }
-          }
+        if let Step::Call(i, _) = *step {
+          recurse(self, i);
         }
+        step.usage(self.interfaces, |l, u| staging.entry(l).or_insert(Usage::NONE).append(u));
       }
 
       let out = &mut self.interfaces[node].outward;
@@ -80,7 +73,7 @@ impl<'a> Bicycle for FlowIn<'a> {
   }
 
   fn visit(&mut self, node: Self::Node, mut recurse: impl FnMut(&mut Self, Self::Node)) {
-    let mut staging = BTreeMap::new();
+    let mut staging = BTreeMap::<Local, Usage>::new();
 
     let parents = take(&mut self.interfaces[node].parents);
     for &d in &parents {
@@ -94,44 +87,30 @@ impl<'a> Bicycle for FlowIn<'a> {
       staging.extend(&self.interfaces[node].inward);
       let stage = &self.stages[stage];
       for step in stage.steps.iter() {
-        match *step {
-          Step::Get(l, _) => staging.entry(l).or_insert(Usage::NONE).append(Usage::GET),
-          Step::Set(l, _) => staging.entry(l).or_insert(Usage::NONE).append(Usage::SET),
-          Step::Move(l, _) => staging.entry(l).or_insert(Usage::NONE).append(Usage::MOVE),
-          Step::Call(i, _) => {
-            let inner = &mut self.interfaces[i];
-            for (&l, &u) in &staging {
-              let u = u.forward();
-              if !u.is_empty() {
-                inner.inward.entry(l).or_insert(u).union_with(u);
-              }
-            }
-            for (&l, &u) in &inner.outward {
-              staging.entry(l).or_insert(Usage::NONE).append(u);
+        if let Step::Call(i, _) = *step {
+          let inner = &mut self.interfaces[i];
+          for (&l, &u) in &staging {
+            let u = u.forward();
+            if !u.is_empty() {
+              inner.inward.entry(l).or_insert(u).union_with(u);
             }
           }
         }
+        step.usage(self.interfaces, |l, u| staging.entry(l).or_insert(Usage::NONE).append(u));
       }
       staging.clear();
       staging.extend(&self.interfaces[node].inward);
       for step in stage.steps.iter().rev() {
-        match *step {
-          Step::Get(l, _) => staging.entry(l).or_insert(Usage::NONE).prepend(Usage::GET),
-          Step::Set(l, _) => staging.entry(l).or_insert(Usage::NONE).prepend(Usage::SET),
-          Step::Move(l, _) => staging.entry(l).or_insert(Usage::NONE).prepend(Usage::MOVE),
-          Step::Call(i, _) => {
-            let inner = &mut self.interfaces[i];
-            for (&l, &u) in &staging {
-              let u = u.backward();
-              if !u.is_empty() {
-                inner.inward.entry(l).or_insert(u).union_with(u);
-              }
-            }
-            for (&l, &u) in &inner.outward {
-              staging.entry(l).or_insert(Usage::NONE).prepend(u);
+        if let Step::Call(i, _) = *step {
+          let inner = &mut self.interfaces[i];
+          for (&l, &u) in &staging {
+            let u = u.backward();
+            if !u.is_empty() {
+              inner.inward.entry(l).or_insert(u).union_with(u);
             }
           }
         }
+        step.usage(self.interfaces, |l, u| staging.entry(l).or_insert(Usage::NONE).prepend(u));
       }
     }
     self.interfaces[node].stages = stages;
@@ -152,6 +131,21 @@ impl Interface {
       }
       if output {
         self.wires.insert((*local, WireDir::Output));
+      }
+    }
+  }
+}
+
+impl Step {
+  fn usage(&self, interfaces: &[Interface], mut add: impl FnMut(usize, Usage)) {
+    match *self {
+      Step::Get(l, _) => add(l, Usage::GET),
+      Step::Set(l, _) => add(l, Usage::SET),
+      Step::Move(l, _) => add(l, Usage::MOVE),
+      Step::Call(i, _) => {
+        for (&l, &u) in &interfaces[i].outward {
+          add(l, u);
+        }
       }
     }
   }
