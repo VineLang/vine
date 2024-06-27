@@ -21,7 +21,7 @@ fn tests(t: &mut DynTester) {
 
   t.group("ivy", |t| {
     test_iv(t, "ivy/examples/cat.iv", b"meow\n", ".txt");
-    test_iv(t, "ivy/examples/fib.iv", fib_repl_input, ".txt");
+    test_iv(t, "ivy/examples/fib_repl.iv", fib_repl_input, ".txt");
     test_iv(t, "ivy/examples/fizzbuzz.iv", b"", ".txt");
     test_iv(t, "ivy/examples/hihi.iv", b"", ".txt");
   });
