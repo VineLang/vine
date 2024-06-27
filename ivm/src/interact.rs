@@ -22,10 +22,10 @@ impl<'ivm> IVM<'ivm> {
     match (a.tag(), b.tag()) {
       (Wire, _) => self.link_wire(unsafe { a.as_wire() }, b),
       (_, Wire) => self.link_wire(unsafe { b.as_wire() }, a),
-      sym!(Global | Erase | ExtVal) => self.stats.erase += 1,
+      sym!(Global | Erase) | sym!(ExtVal | Erase) => self.stats.erase += 1,
       sym!(Comb) | sym!(ExtFn) if a.label() == b.label() => self.active_fast.push((a, b)),
-      sym!(Erase, _) | sym!(ExtVal, _) => self.active_fast.push((a, b)),
       sym!(Global, _) | sym!(Comb | ExtFn | Branch) => self.active_slow.push((a, b)),
+      sym!(Erase, _) | sym!(ExtVal, _) => self.active_fast.push((a, b)),
     }
   }
 
@@ -62,7 +62,7 @@ impl<'ivm> IVM<'ivm> {
   pub(crate) fn interact(&mut self, a: Port<'ivm>, b: Port<'ivm>) {
     use Tag::*;
     match ((a.tag(), a), (b.tag(), b)) {
-      sym!((Wire, _), _) | sym!((Global | Erase | ExtVal, _)) => unreachable!(),
+      sym!((Wire, _), _) | sym!((Erase | ExtVal, _)) => unreachable!(),
       sym!((Global, c), (Comb, d)) if !unsafe { c.as_global() }.labels.has(d.label()) => {
         self.copy(c, d)
       }
