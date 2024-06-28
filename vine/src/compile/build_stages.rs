@@ -1,11 +1,12 @@
 use std::mem::{swap, take};
 
 use ivm::ext::{ExtFn, ExtFnKind};
-use ivy::ast::Tree;
 
 use crate::{ast::*, resolve::Node};
 
-use super::{stage_name, Compiler, Interface, InterfaceId, Local, Stage, StageId, Step, Usage};
+use super::{
+  stage_name, Agent, Compiler, Interface, InterfaceId, Local, Port, Stage, StageId, Step, Usage,
+};
 
 enum ExprCtx {
   Value,
@@ -14,8 +15,8 @@ enum ExprCtx {
 }
 
 enum Expr {
-  Value(Tree),
-  Place(Tree, Tree),
+  Value(Port),
+  Place(Port, Port),
 }
 
 impl Compiler {
@@ -33,14 +34,14 @@ impl Compiler {
     })
   }
 
-  fn build_expr_value(&mut self, term: &Term) -> Tree {
+  fn build_expr_value(&mut self, term: &Term) -> Port {
     match self.build_expr(term, ExprCtx::Value) {
       Expr::Value(t) => t,
       Expr::Place(..) => unreachable!(),
     }
   }
 
-  fn build_expr_place(&mut self, term: &Term) -> (Tree, Tree) {
+  fn build_expr_place(&mut self, term: &Term) -> (Port, Port) {
     match self.build_expr(term, ExprCtx::Place) {
       Expr::Place(t, u) => (t, u),
       Expr::Value(_) => unreachable!(),
@@ -49,19 +50,19 @@ impl Compiler {
 
   fn build_expr(&mut self, term: &Term, ctx: ExprCtx) -> Expr {
     match &term.kind {
-      TermKind::Hole => Expr::Value(Tree::Erase),
-      TermKind::U32(num) => Expr::Value(Tree::U32(*num)),
-      TermKind::F32(num) => Expr::Value(Tree::F32(*num)),
-      TermKind::Path(path) => Expr::Value(Tree::Global(path.to_string())),
+      TermKind::Hole => Expr::Value(Port::Erase),
+      TermKind::U32(num) => Expr::Value(Port::U32(*num)),
+      TermKind::F32(num) => Expr::Value(Port::F32(*num)),
+      TermKind::Path(path) => Expr::Value(Port::Global(path.to_string())),
       TermKind::Local(local) => match ctx {
         ExprCtx::Value => {
-          let v = self.cur.var.gen();
+          let v = self.net.new_wire();
           self.cur.steps.push(Step::Get(*local, v.0));
           Expr::Value(v.1)
         }
         ExprCtx::Place | ExprCtx::Either => {
-          let x = self.cur.var.gen();
-          let y = self.cur.var.gen();
+          let x = self.net.new_wire();
+          let y = self.net.new_wire();
           self.cur.steps.push(Step::Get(*local, x.0));
           self.cur.steps.push(Step::Set(*local, y.0));
           Expr::Place(x.1, y.1)
@@ -70,36 +71,31 @@ impl Compiler {
       TermKind::Assign(p, e) => {
         let e = self.build_expr_value(e);
         let p = self.build_pat_value(p);
-        self.cur.pairs.push((p, e));
-        Expr::Value(Tree::Erase)
+        self.net.link(e, p);
+        Expr::Value(Port::Erase)
       }
       TermKind::Block(block) => Expr::Value(self.build_block(block)),
       TermKind::Fn(params, body) => {
-        let mut result = Tree::Erase;
-        let mut cur = &mut result;
+        let result = self.net.new_wire();
+        let mut cur = result.0;
         for param in params {
           let param = self.build_pat_value(param);
-          *cur = Tree::Comb("fn".to_owned(), Box::new(param), Box::new(Tree::Erase));
-          let Tree::Comb(.., next) = cur else { unreachable!() };
-          cur = next;
+          cur = self.apply_comb("fn".to_owned(), cur, param);
         }
-        *cur = self.build_expr_value(body);
-        Expr::Value(result)
+        let body = self.build_expr_value(body);
+        self.net.link(cur, body);
+        Expr::Value(result.1)
       }
       TermKind::Call(f, args) => {
-        let mut f = self.build_expr_value(f);
-        for arg in args {
+        Expr::Value(args.iter().fold(self.build_expr_value(f), |func, arg| {
           let arg = self.build_expr_value(arg);
-          let out = self.cur.var.gen();
-          self.cur.pairs.push((f, Tree::Comb("fn".to_owned(), Box::new(arg), Box::new(out.0))));
-          f = out.1;
-        }
-        Expr::Value(f)
+          self.apply_comb("fn".to_owned(), func, arg)
+        }))
       }
       TermKind::UnaryOp(op, rhs) => {
         let (f, lhs) = match op {
-          UnaryOp::Neg => (ExtFnKind::sub, Tree::U32(0)),
-          UnaryOp::Not => (ExtFnKind::u32_xor, Tree::U32(u32::MAX)),
+          UnaryOp::Neg => (ExtFnKind::sub, Port::U32(0)),
+          UnaryOp::Not => (ExtFnKind::u32_xor, Port::U32(u32::MAX)),
         };
         let rhs = self.build_expr_value(rhs);
         Expr::Value(self.ext_fn(f.into(), lhs, rhs))
@@ -113,11 +109,11 @@ impl Compiler {
         let (lhs, out) = self.build_expr_place(lhs);
         let rhs = self.build_expr_value(rhs);
         let res = self.op(*op, lhs, rhs);
-        self.cur.pairs.push((out, res));
-        Expr::Value(Tree::Erase)
+        self.net.link(out, res);
+        Expr::Value(Port::Erase)
       }
       TermKind::ComparisonOp(init, cmps) => {
-        let mut last_result = Tree::U32(1);
+        let mut last_result = Port::U32(1);
         let mut lhs = self.build_expr_value(init);
         for (i, (op, rhs)) in cmps.iter().enumerate() {
           let f = match op {
@@ -131,7 +127,7 @@ impl Compiler {
           let first = i == 0;
           let last = i == cmps.len() - 1;
           let rhs = self.build_expr_value(rhs);
-          let rhs = if last { (rhs, Tree::Erase) } else { self.dup(rhs) };
+          let rhs = if last { (rhs, Port::Erase) } else { self.dup(rhs) };
           let result = self.ext_fn(f, lhs, rhs.0);
           lhs = rhs.1;
           last_result = if first {
@@ -143,38 +139,18 @@ impl Compiler {
         Expr::Value(last_result)
       }
       TermKind::Tuple(t) => {
-        Expr::Value(Tree::n_ary("tup", t.iter().map(|x| self.build_expr_value(x))))
+        Expr::Value(self.tuple(t.iter().map(|x| |slf: &mut Self| slf.build_expr_value(x))))
       }
-      TermKind::String(s) => {
-        let v = self.cur.var.gen();
-        Expr::Value(Tree::Comb(
-          "tup".to_owned(),
-          Box::new(Tree::U32(s.chars().count() as u32)),
-          Box::new(Tree::Comb(
-            "fn".to_owned(),
-            Box::new(v.0),
-            Box::new(s.chars().rev().fold(v.1, |tail, char| {
-              Tree::Comb("tup".to_owned(), Box::new(Tree::U32(char as u32)), Box::new(tail))
-            })),
-          )),
-        ))
-      }
+      TermKind::String(s) => Expr::Value(
+        self.list(s.chars().count(), s.chars().map(|c| move |_: &mut Self| Port::U32(c as u32))),
+      ),
       TermKind::Ref(p) => Expr::Value(match self.build_expr(p, ExprCtx::Either) {
-        Expr::Value(t) => Tree::Comb("ref".to_owned(), Box::new(t), Box::new(Tree::Erase)),
-        Expr::Place(t, u) => Tree::Comb("ref".to_owned(), Box::new(t), Box::new(u)),
+        Expr::Value(t) => self.new_comb("ref".to_owned(), t, Port::Erase),
+        Expr::Place(t, u) => self.new_comb("ref".to_owned(), t, u),
       }),
-      TermKind::List(l) => {
-        let v = self.cur.var.gen();
-        Expr::Value(Tree::Comb(
-          "tup".to_owned(),
-          Box::new(Tree::U32(l.len() as u32)),
-          Box::new(Tree::Comb(
-            "fn".to_owned(),
-            Box::new(v.0),
-            Box::new(Tree::n_ary("tup", l.iter().map(|el| self.build_expr_value(el)).chain([v.1]))),
-          )),
-        ))
-      }
+      TermKind::List(l) => Expr::Value(
+        self.list(l.len(), l.iter().map(|el| |slf: &mut Self| slf.build_expr_value(el))),
+      ),
       TermKind::While(cond, body) => {
         let i = self.new_interface();
         let j = self.new_interface();
@@ -185,30 +161,23 @@ impl Compiler {
           let body = slf.new_stage(j, |slf, id| {
             let body = slf.build_block(body);
             slf.erase(body);
-            let start = slf.stage_tree(start);
+            let start = slf.stage_port(start);
             slf.cur.steps.push(Step::Call(i, start));
             id
           });
 
           let end = slf.new_stage(j, |_, id| id);
 
-          let r = slf.cur.var.gen();
-          slf.cur.pairs.push((
-            cond,
-            Tree::Branch(
-              Box::new(slf.stage_tree(end)),
-              Box::new(slf.stage_tree(body)),
-              Box::new(r.0),
-            ),
-          ));
+          let r = slf.net.new_wire();
+          slf.cur.agents.push(Agent::Branch(cond, slf.stage_port(end), slf.stage_port(body), r.0));
           slf.cur.steps.push(Step::Call(j, r.1));
 
           start
         });
 
-        self.cur.steps.push(Step::Call(i, self.stage_tree(start)));
+        self.cur.steps.push(Step::Call(i, self.stage_port(start)));
 
-        Expr::Value(Tree::Erase)
+        Expr::Value(Port::Erase)
       }
       TermKind::If(cond, then, els) => {
         let val = self.new_local();
@@ -228,24 +197,17 @@ impl Compiler {
           id
         });
 
-        let r = self.cur.var.gen();
-        self.cur.pairs.push((
-          cond,
-          Tree::Branch(
-            Box::new(self.stage_tree(els)),
-            Box::new(self.stage_tree(then)),
-            Box::new(r.0),
-          ),
-        ));
+        let r = self.net.new_wire();
+        self.cur.agents.push(Agent::Branch(cond, self.stage_port(els), self.stage_port(then), r.0));
         self.cur.steps.push(Step::Call(i, r.1));
 
-        let v = self.cur.var.gen();
+        let v = self.net.new_wire();
         self.cur.steps.push(Step::Get(val, v.0));
         Expr::Value(v.1)
       }
       TermKind::Move(t) => match t.kind {
         TermKind::Local(l) => {
-          let v = self.cur.var.gen();
+          let v = self.net.new_wire();
           self.cur.steps.push(Step::Move(l, v.0));
           Expr::Value(v.1)
         }
@@ -259,15 +221,24 @@ impl Compiler {
     }
   }
 
-  fn op(&mut self, op: BinaryOp, lhs: Tree, rhs: Tree) -> Tree {
+  fn apply_comb(&mut self, label: String, to: Port, with: Port) -> Port {
+    let out = self.net.new_wire();
+    self.cur.agents.push(Agent::Comb(label, to, with, out.0));
+    out.1
+  }
+
+  fn new_comb(&mut self, label: String, a: Port, b: Port) -> Port {
+    let out = self.net.new_wire();
+    self.cur.agents.push(Agent::Comb(label, out.0, a, b));
+    out.1
+  }
+
+  fn op(&mut self, op: BinaryOp, lhs: Port, rhs: Port) -> Port {
     let f = match op {
       BinaryOp::Concat => {
-        let v = self.cur.var.gen();
-        self.cur.pairs.push((
-          Tree::Global("::std::str::concat".to_owned()),
-          Tree::n_ary("fn", [lhs, rhs, v.0]),
-        ));
-        return v.1;
+        let x = Port::Global("::std::str::concat".to_owned());
+        let x = self.apply_comb("fn".to_owned(), x, lhs);
+        return self.apply_comb("fn".to_owned(), x, rhs);
       }
       BinaryOp::BitOr => ExtFnKind::u32_or,
       BinaryOp::BitXor => ExtFnKind::u32_xor,
@@ -284,40 +255,83 @@ impl Compiler {
     self.ext_fn(f.into(), lhs, rhs)
   }
 
-  fn build_pat_value(&mut self, t: &Term) -> Tree {
+  fn build_pat_value(&mut self, t: &Term) -> Port {
     match &t.kind {
-      TermKind::Hole => Tree::Erase,
+      TermKind::Hole => Port::Erase,
       TermKind::Local(local) => {
-        let v = self.cur.var.gen();
+        let v = self.net.new_wire();
         self.cur.steps.push(Step::Set(*local, v.0));
         v.1
       }
-      TermKind::Tuple(t) => Tree::n_ary("tup", t.iter().map(|x| self.build_pat_value(x))),
+      TermKind::Tuple(t) => self.tuple(t.iter().map(|x| |slf: &mut Self| slf.build_pat_value(x))),
       TermKind::Ref(p) => {
         let (a, b) = self.build_pat_place(p);
-        Tree::Comb("ref".to_owned(), Box::new(a), Box::new(b))
+        let r = self.net.new_wire();
+        self.cur.agents.push(Agent::Comb("ref".to_owned(), r.0, a, b));
+        r.1
       }
       _ => todo!(),
     }
   }
 
-  fn build_pat_place(&mut self, t: &Term) -> (Tree, Tree) {
+  fn list<F: FnOnce(&mut Self) -> Port>(
+    &mut self,
+    len: usize,
+    items: impl Iterator<Item = F>,
+  ) -> Port {
+    let root = self.net.new_wire();
+    let buf = self.net.new_wire();
+    let end = self.net.new_wire();
+
+    self.cur.agents.push(Agent::Comb("tup".to_owned(), root.0, Port::U32(len as u32), buf.0));
+
+    let mut cur = self.apply_comb("fn".to_owned(), buf.1, end.0);
+    for item in items {
+      let item = item(self);
+      cur = self.apply_comb("tup".to_owned(), cur, item)
+    }
+    self.net.link(cur, end.1);
+
+    root.1
+  }
+
+  fn tuple<F: FnOnce(&mut Self) -> Port>(&mut self, items: impl Iterator<Item = F>) -> Port {
+    let mut items = items.into_iter();
+    let Some(mut prev_item) = items.next() else { return Port::Erase };
+
+    let root = self.net.new_wire();
+
+    let mut cur = root.0;
+
+    for item in items {
+      let prev = prev_item(self);
+      cur = self.apply_comb("tup".to_owned(), cur, prev);
+      prev_item = item;
+    }
+
+    let last = prev_item(self);
+    self.net.link(last, cur);
+
+    root.1
+  }
+
+  fn build_pat_place(&mut self, t: &Term) -> (Port, Port) {
     match &t.kind {
-      TermKind::Hole => self.cur.var.gen(),
+      TermKind::Hole => self.net.new_wire(),
       TermKind::Local(local) => {
-        let x = self.cur.var.gen();
-        let y = self.cur.var.gen();
+        let x = self.net.new_wire();
+        let y = self.net.new_wire();
         self.cur.steps.push(Step::Set(*local, x.0));
         self.cur.fin.push(Step::Get(*local, y.0));
         (x.1, y.1)
       }
-      TermKind::Move(t) => (self.build_pat_value(t), Tree::Erase),
+      TermKind::Move(t) => (self.build_pat_value(t), Port::Erase),
       _ => todo!(),
     }
   }
 
-  fn build_block(&mut self, b: &Block) -> Tree {
-    let mut last = Tree::Erase;
+  fn build_block(&mut self, b: &Block) -> Port {
+    let mut last = Port::Erase;
     for s in &b.stmts {
       self.erase(last);
       last = self.build_stmt(s);
@@ -325,48 +339,51 @@ impl Compiler {
     last
   }
 
-  fn build_stmt(&mut self, s: &Stmt) -> Tree {
+  fn build_stmt(&mut self, s: &Stmt) -> Port {
     match &s.kind {
       StmtKind::Let(l) => {
-        let i = l.init.as_ref().map(|x| self.build_expr_value(x)).unwrap_or_default();
+        let i = l.init.as_ref().map(|x| self.build_expr_value(x)).unwrap_or(Port::Erase);
         let b = self.build_pat_value(&l.bind);
-        self.cur.pairs.push((b, i));
-        Tree::Erase
+        self.net.link(b, i);
+        Port::Erase
       }
       StmtKind::Term(t, semi) => {
         let t = self.build_expr_value(t);
         if *semi {
           self.erase(t);
-          Tree::Erase
+          Port::Erase
         } else {
           t
         }
       }
-      StmtKind::Empty => Tree::Erase,
+      StmtKind::Empty => Port::Erase,
     }
   }
 
-  fn dup(&mut self, t: Tree) -> (Tree, Tree) {
-    let a = self.cur.var.gen();
-    let b = self.cur.var.gen();
-    self.cur.pairs.push((t, Tree::Comb("dup".to_owned(), Box::new(a.0), Box::new(b.0))));
-    (a.1, b.1)
+  fn dup(&mut self, t: Port) -> (Port, Port) {
+    let t = self.net.follow(t);
+    if t.can_copy() {
+      (t.clone(), t)
+    } else {
+      let a = self.net.new_wire();
+      let b = self.net.new_wire();
+      self.cur.agents.push(Agent::Comb("dup".to_owned(), t, a.0, b.0));
+      (a.1, b.1)
+    }
   }
 
-  fn ext_fn(&mut self, f: ExtFn, lhs: Tree, rhs: Tree) -> Tree {
-    let o = self.cur.var.gen();
-    self.cur.pairs.push((lhs, Tree::ExtFn(f, Box::new(rhs), Box::new(o.0))));
+  fn ext_fn(&mut self, f: ExtFn, lhs: Port, rhs: Port) -> Port {
+    let o = self.net.new_wire();
+    self.cur.agents.push(Agent::ExtFn(f, lhs, rhs, o.0));
     o.1
   }
 
-  fn erase(&mut self, t: Tree) {
-    if !matches!(t, Tree::Erase) {
-      self.cur.pairs.push((Tree::Erase, t));
-    }
+  fn erase(&mut self, t: Port) {
+    self.net.link(t, Port::Erase);
   }
 
-  fn stage_tree(&self, id: StageId) -> Tree {
-    Tree::Global(stage_name(&self.name, id))
+  fn stage_port(&self, id: StageId) -> Port {
+    Port::Global(stage_name(&self.name, id))
   }
 
   fn new_interface(&mut self) -> InterfaceId {
