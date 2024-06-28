@@ -1,4 +1,4 @@
-use std::collections::{BTreeMap, BTreeSet};
+use std::collections::{BTreeMap, BTreeSet, VecDeque};
 
 use bitflags::bitflags;
 
@@ -9,6 +9,7 @@ use crate::resolve::{Node, NodeValue};
 
 mod build_stages;
 mod finish_stages;
+mod fix_interstage_wires;
 mod infer_interfaces;
 mod net_builder;
 
@@ -25,15 +26,21 @@ pub struct Compiler {
   cur_id: StageId,
   local_count: usize,
 
+  forks: Vec<Fork>,
+
   net: NetBuilder,
+
+  return_target: Option<(Local, ForkId)>,
 }
 
 impl Compiler {
   pub fn compile_node(&mut self, node: &Node) {
+    self.net = Default::default();
     let Some(value) = &node.value else { return };
     match value {
       NodeValue::Term(term) => {
         let init = self.build_stages(node, term);
+        self.fix_interstage_wires();
         self.infer_interfaces();
         self.finish_stages(init);
       }
@@ -51,6 +58,7 @@ fn stage_name(base_name: &str, stage_id: StageId) -> String {
 type InterfaceId = usize;
 type StageId = usize;
 type Local = usize;
+type ForkId = usize;
 
 #[derive(Debug, Default)]
 struct Interface {
@@ -66,8 +74,15 @@ struct Interface {
 struct Stage {
   outer: InterfaceId,
   agents: Vec<Agent>,
-  steps: Vec<Step>,
+  steps: VecDeque<Step>,
   fin: Vec<Step>,
+  divergence: ForkId,
+}
+
+#[derive(Debug)]
+struct Fork {
+  ends: Vec<StageId>,
+  divergence: ForkId,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
@@ -82,6 +97,14 @@ enum Step {
   Set(Local, Port),
   Move(Local, Port),
   Call(InterfaceId, Port),
+}
+
+impl Step {
+  fn port_mut(&mut self) -> &mut Port {
+    match self {
+      Step::Get(_, p) | Step::Set(_, p) | Step::Move(_, p) | Step::Call(_, p) => p,
+    }
+  }
 }
 
 bitflags! {

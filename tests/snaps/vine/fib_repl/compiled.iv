@@ -148,31 +148,37 @@
 
 ::std::u32::parse { fn(tup(dup(@eq(0 ?(::std::u32::parse::2 ::std::u32::parse::1 x(n2 x(n0 n1)))) n2) n0) n1) }
 
-::std::u32::parse::1 { x(_ x(_ ::std::option::None)) }
+::std::u32::parse::1 {
+  x(_ x(_ n0))
+  ::std::u32::parse::12 = x(n0 ::std::option::None)
+}
 
 ::std::u32::parse::2 {
-  x(n0 x(fn(_ n1) n3))
-  ::std::u32::parse::3 = x(n0 x(n1 x(1 x(?(::std::u32::parse::9 ::std::u32::parse::8 x(n2 n3)) x(0 n2)))))
+  x(n0 x(fn(_ n1) n2))
+  ::std::u32::parse::3 = x(n0 x(n1 x(0 n2)))
 }
 
-::std::u32::parse::3 { x(dup(?(::std::u32::parse::7 ::std::u32::parse::4 x(n5 n0)) n5) n0) }
+::std::u32::parse::3 { x(dup(?(::std::u32::parse::9 ::std::u32::parse::4 x(n3 n0)) n3) n0) }
 
 ::std::u32::parse::4 {
-  x(n2 x(tup(dup(dup(n0 @le(57 n1)) n10) n5) x(_ x(n7 x(n3 n9)))))
-  48 = @le(n0 @u32_and(n1 dup(?(::std::u32::parse::6 ::std::u32::parse::5 x(n2 x(n4 x(n3 x(n8 n10))))) n6)))
-  ::std::u32::parse::3 = x(n4 x(n5 x(n6 x(n7 x(n8 n9)))))
+  x(n2 x(tup(dup(dup(n0 @le(57 n1)) n6) n3) x(n4 n5)))
+  48 = @le(n0 @u32_and(n1 @ne(1 ?(::std::u32::parse::8 ::std::u32::parse::5 x(n2 x(n3 x(n4 x(n6 n5))))))))
 }
 
-::std::u32::parse::5 { x(@sub(1 n1) x(n1 x(@mul(10 @add(n0 n2)) x(n2 @sub(48 n0))))) }
-
-::std::u32::parse::6 { x(_ x(0 x(n0 x(n0 _)))) }
-
-::std::u32::parse::7 { x(_ x(_ x(n0 x(n0 x(n1 n1))))) }
+::std::u32::parse::5 { x(_ x(_ x(_ x(_ ::std::option::None)))) }
 
 ::std::u32::parse::8 {
-  x(n0 n1)
-  ::std::option::Some = fn(n0 n1)
+  x(@sub(1 n1) x(n2 x(@mul(10 @add(n0 n3)) x(@sub(48 n0) n4))))
+  ::std::u32::parse::3 = x(n1 x(n2 x(n3 n4)))
 }
 
-::std::u32::parse::9 { x(_ ::std::option::None) }
+::std::u32::parse::9 { x(_ x(_ ::std::u32::parse::11)) }
+
+::std::u32::parse::11 {
+  x(n0 n1)
+  ::std::option::Some = fn(n0 n2)
+  ::std::u32::parse::12 = x(n1 n2)
+}
+
+::std::u32::parse::12 { x(n0 n0) }
 

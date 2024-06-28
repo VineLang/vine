@@ -105,6 +105,14 @@ impl Agent {
       Agent::Branch(a, b, c, d) => Ports::Four([a, b, c, d]),
     }
   }
+
+  pub fn ports_mut(&mut self) -> impl Iterator<Item = &mut Port> {
+    multi_iter!(Ports { Three, Four });
+    match self {
+      Agent::ExtFn(_, a, b, c) | Agent::Comb(_, a, b, c) => Ports::Three([a, b, c]),
+      Agent::Branch(a, b, c, d) => Ports::Four([a, b, c, d]),
+    }
+  }
 }
 
 struct FinishNet<'a> {

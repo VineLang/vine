@@ -45,7 +45,8 @@ pub trait VisitMut<'a> {
       | TermKind::Deref(a)
       | TermKind::Move(a)
       | TermKind::Field(a, _)
-      | TermKind::UnaryOp(_, a) => self.visit_term(a),
+      | TermKind::UnaryOp(_, a)
+      | TermKind::Return(a) => self.visit_term(a),
       TermKind::Assign(a, b)
       | TermKind::BinaryOp(_, a, b)
       | TermKind::BinaryOpAssign(_, a, b)

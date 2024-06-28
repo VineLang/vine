@@ -227,6 +227,9 @@ impl<'ctx, 'src> VineParser<'ctx, 'src> {
   }
 
   fn parse_term_prefix(&mut self) -> Parse<'src, Term> {
+    if self.eat(Token::Return)? {
+      return Ok(Term { kind: TermKind::Return(Box::new(self.parse_term_bp(BP::ControlFlow)?)) });
+    }
     if self.eat(Token::And)? {
       return Ok(Term::new_ref(self.parse_term_bp(BP::Prefix)?));
     }

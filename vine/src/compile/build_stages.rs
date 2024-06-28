@@ -5,7 +5,8 @@ use ivm::ext::{ExtFn, ExtFnKind};
 use crate::{ast::*, resolve::Node};
 
 use super::{
-  stage_name, Agent, Compiler, Interface, InterfaceId, Local, Port, Stage, StageId, Step, Usage,
+  stage_name, Agent, Compiler, Fork, ForkId, Interface, InterfaceId, Local, Port, Stage, StageId,
+  Step, Usage,
 };
 
 enum ExprCtx {
@@ -23,15 +24,37 @@ impl Compiler {
   pub(super) fn build_stages(&mut self, node: &Node, term: &Term) -> StageId {
     self.local_count = node.locals;
     self.name = node.canonical.to_string();
+
     let i = self.new_interface();
-    self.new_stage(i, |slf, s| {
-      slf.cur = Stage::default();
-      let root = slf.build_expr_value(term);
-      let root_val = slf.new_local();
-      slf.cur.steps.push(Step::Set(root_val, root));
-      slf.interfaces[i].inward.insert(root_val, Usage::GET);
-      s
-    })
+
+    self.cur_id = 0;
+    self.forks.push(Fork { ends: Vec::new(), divergence: 0 });
+    let init = self.start_stage(i);
+
+    let root = self.build_expr_value(term);
+    let root_val = self.new_local();
+    self.cur.steps.push_back(Step::Set(root_val, root));
+    self.interfaces[i].inward.insert(root_val, Usage::GET);
+
+    self.forks.pop();
+    debug_assert!(self.forks.is_empty());
+
+    swap(&mut self.cur, &mut self.stages[self.cur_id]);
+
+    for (id, stage) in self.stages.iter_mut().enumerate() {
+      stage.steps.extend(take(&mut stage.fin).into_iter().rev());
+
+      let interface_id = stage.outer;
+      let interface = &mut self.interfaces[interface_id];
+      interface.stages.push(id);
+      for step in &stage.steps {
+        if let &Step::Call(inner, _) = step {
+          self.interfaces[inner].parents.insert(interface_id);
+        }
+      }
+    }
+
+    init
   }
 
   fn build_expr_value(&mut self, term: &Term) -> Port {
@@ -57,14 +80,14 @@ impl Compiler {
       TermKind::Local(local) => match ctx {
         ExprCtx::Value => {
           let v = self.net.new_wire();
-          self.cur.steps.push(Step::Get(*local, v.0));
+          self.cur.steps.push_back(Step::Get(*local, v.0));
           Expr::Value(v.1)
         }
         ExprCtx::Place | ExprCtx::Either => {
           let x = self.net.new_wire();
           let y = self.net.new_wire();
-          self.cur.steps.push(Step::Get(*local, x.0));
-          self.cur.steps.push(Step::Set(*local, y.0));
+          self.cur.steps.push_back(Step::Get(*local, x.0));
+          self.cur.steps.push_back(Step::Set(*local, y.0));
           Expr::Place(x.1, y.1)
         }
       },
@@ -76,15 +99,23 @@ impl Compiler {
       }
       TermKind::Block(block) => Expr::Value(self.build_block(block)),
       TermKind::Fn(params, body) => {
-        let result = self.net.new_wire();
-        let mut cur = result.0;
+        let func = self.net.new_wire();
+        let mut cur = func.0;
         for param in params {
           let param = self.build_pat_value(param);
           cur = self.apply_comb("fn".to_owned(), cur, param);
         }
+        let result = self.new_local();
+        let orig = self.cur_id;
+        let old_return = self.return_target.replace((result, self.cur_fork()));
         let body = self.build_expr_value(body);
-        self.net.link(cur, body);
-        Expr::Value(result.1)
+        self.return_target = old_return;
+        self.cur.steps.push_back(Step::Set(result, body));
+        if self.cur_id != orig {
+          self.select_stage(orig);
+        }
+        self.cur.steps.push_back(Step::Get(result, cur));
+        Expr::Value(func.1)
       }
       TermKind::Call(f, args) => {
         Expr::Value(args.iter().fold(self.build_expr_value(f), |func, arg| {
@@ -152,63 +183,73 @@ impl Compiler {
         self.list(l.len(), l.iter().map(|el| |slf: &mut Self| slf.build_expr_value(el))),
       ),
       TermKind::While(cond, body) => {
-        let i = self.new_interface();
-        let j = self.new_interface();
+        self.fork(|slf| {
+          let i = slf.new_interface();
+          let start = slf.new_stage(i, move |slf, start| {
+            let cond = slf.build_expr_value(cond);
 
-        let start = self.new_stage(i, |slf, start| {
-          let cond = slf.build_expr_value(cond);
+            slf.fork(|slf| {
+              let j = slf.new_interface();
+              let body = slf.new_stage(j, |slf, _| {
+                let body = slf.build_block(body);
+                slf.erase(body);
+                let start = slf.stage_port(start);
+                slf.cur.steps.push_back(Step::Call(i, start));
+                false
+              });
 
-          let body = slf.new_stage(j, |slf, id| {
-            let body = slf.build_block(body);
-            slf.erase(body);
-            let start = slf.stage_port(start);
-            slf.cur.steps.push(Step::Call(i, start));
-            id
+              let end = slf.new_stage(j, |_, _| true);
+
+              let r = slf.net.new_wire();
+              slf.cur.agents.push(Agent::Branch(
+                cond,
+                slf.stage_port(end),
+                slf.stage_port(body),
+                r.0,
+              ));
+              slf.cur.steps.push_back(Step::Call(j, r.1));
+            });
+
+            true
           });
 
-          let end = slf.new_stage(j, |_, id| id);
-
-          let r = slf.net.new_wire();
-          slf.cur.agents.push(Agent::Branch(cond, slf.stage_port(end), slf.stage_port(body), r.0));
-          slf.cur.steps.push(Step::Call(j, r.1));
-
-          start
+          slf.cur.steps.push_back(Step::Call(i, slf.stage_port(start)));
         });
-
-        self.cur.steps.push(Step::Call(i, self.stage_port(start)));
 
         Expr::Value(Port::Erase)
       }
       TermKind::If(cond, then, els) => {
         let val = self.new_local();
-        let i = self.new_interface();
 
         let cond = self.build_expr_value(cond);
 
-        let then = self.new_stage(i, |slf, id| {
-          let then = slf.build_block(then);
-          slf.cur.steps.push(Step::Set(val, then));
-          id
-        });
+        self.fork(|slf| {
+          let i = slf.new_interface();
+          let then = slf.new_stage(i, |slf, _| {
+            let then = slf.build_block(then);
+            slf.cur.steps.push_back(Step::Set(val, then));
+            true
+          });
 
-        let els = self.new_stage(i, |slf, id| {
-          let els = slf.build_expr_value(els);
-          slf.cur.steps.push(Step::Set(val, els));
-          id
-        });
+          let els = slf.new_stage(i, |slf, _| {
+            let els = slf.build_expr_value(els);
+            slf.cur.steps.push_back(Step::Set(val, els));
+            true
+          });
 
-        let r = self.net.new_wire();
-        self.cur.agents.push(Agent::Branch(cond, self.stage_port(els), self.stage_port(then), r.0));
-        self.cur.steps.push(Step::Call(i, r.1));
+          let r = slf.net.new_wire();
+          slf.cur.agents.push(Agent::Branch(cond, slf.stage_port(els), slf.stage_port(then), r.0));
+          slf.cur.steps.push_back(Step::Call(i, r.1));
+        });
 
         let v = self.net.new_wire();
-        self.cur.steps.push(Step::Get(val, v.0));
+        self.cur.steps.push_back(Step::Get(val, v.0));
         Expr::Value(v.1)
       }
       TermKind::Move(t) => match t.kind {
         TermKind::Local(l) => {
           let v = self.net.new_wire();
-          self.cur.steps.push(Step::Move(l, v.0));
+          self.cur.steps.push_back(Step::Move(l, v.0));
           Expr::Value(v.1)
         }
         _ => {
@@ -217,6 +258,13 @@ impl Compiler {
           Expr::Value(a)
         }
       },
+      TermKind::Return(r) => {
+        let r = self.build_expr_value(r);
+        let ret = self.return_target.unwrap();
+        self.cur.steps.push_back(Step::Set(ret.0, r));
+        self.diverge(ret.1);
+        Expr::Value(Port::Erase)
+      }
       _ => todo!(),
     }
   }
@@ -260,7 +308,7 @@ impl Compiler {
       TermKind::Hole => Port::Erase,
       TermKind::Local(local) => {
         let v = self.net.new_wire();
-        self.cur.steps.push(Step::Set(*local, v.0));
+        self.cur.steps.push_back(Step::Set(*local, v.0));
         v.1
       }
       TermKind::Tuple(t) => self.tuple(t.iter().map(|x| |slf: &mut Self| slf.build_pat_value(x))),
@@ -321,7 +369,7 @@ impl Compiler {
       TermKind::Local(local) => {
         let x = self.net.new_wire();
         let y = self.net.new_wire();
-        self.cur.steps.push(Step::Set(*local, x.0));
+        self.cur.steps.push_back(Step::Set(*local, x.0));
         self.cur.fin.push(Step::Get(*local, y.0));
         (x.1, y.1)
       }
@@ -392,33 +440,71 @@ impl Compiler {
     id
   }
 
-  fn new_stage<T>(&mut self, interface: InterfaceId, f: impl FnOnce(&mut Self, StageId) -> T) -> T {
-    let old_id = self.cur_id;
-    let id = self.stages.len();
-    self.stages.push(take(&mut self.cur));
-    self.cur_id = id;
-    self.cur.outer = interface;
-
-    let res = f(self, id);
-
-    self.cur.steps.extend(take(&mut self.cur.fin).into_iter().rev());
-
-    self.interfaces[interface].stages.push(id);
-    for step in &self.cur.steps {
-      if let &Step::Call(inner, _) = step {
-        self.interfaces[inner].parents.insert(interface);
-      }
-    }
-
+  fn select_stage(&mut self, id: StageId) {
+    swap(&mut self.cur, &mut self.stages[self.cur_id]);
     swap(&mut self.cur, &mut self.stages[id]);
-    self.cur_id = old_id;
+    self.cur_id = id;
+  }
 
-    res
+  fn new_stage(&mut self, i: InterfaceId, f: impl FnOnce(&mut Self, StageId) -> bool) -> StageId {
+    let old_id = self.cur_id;
+    let id = self.start_stage(i);
+
+    let end = f(self, id);
+
+    let fork = self.forks.last_mut().unwrap();
+    if end {
+      fork.ends.push(self.cur_id);
+    }
+    fork.divergence = fork.divergence.min(self.cur.divergence);
+
+    self.select_stage(old_id);
+
+    id
+  }
+
+  fn start_stage(&mut self, interface: InterfaceId) -> usize {
+    let id = self.stages.len();
+    self.stages.push(Stage::default());
+    self.select_stage(id);
+    self.cur.outer = interface;
+    self.cur.divergence = ForkId::MAX;
+    id
   }
 
   fn new_local(&mut self) -> Local {
     let local = self.local_count;
     self.local_count += 1;
     local
+  }
+
+  fn diverge(&mut self, to: ForkId) {
+    let divergence = self.cur.divergence.min(to);
+    self.cur.divergence = divergence;
+    self.forks[to].ends.push(self.cur_id);
+    let i = self.new_interface();
+    // this dummy stage could still affect interfaces?
+    self.start_stage(i);
+    self.cur.divergence = divergence;
+  }
+
+  fn fork(&mut self, f: impl FnOnce(&mut Self)) {
+    self.forks.push(Fork { ends: Vec::new(), divergence: self.forks.len() });
+    let l = self.forks.len();
+    f(self);
+    debug_assert!(l == self.forks.len());
+    let fork = self.forks.pop().unwrap();
+    if fork.divergence < self.forks.len() {
+      self.diverge(fork.divergence);
+      for &c in &fork.ends {
+        let port = self.stage_port(self.cur_id);
+        let i = self.cur.outer;
+        self.stages[c].steps.push_back(Step::Call(i, port));
+      }
+    };
+  }
+
+  fn cur_fork(&self) -> ForkId {
+    self.forks.len() - 1
   }
 }

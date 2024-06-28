@@ -1,0 +1,5 @@
+zero
+non-zero!
+zero
+
+zero_count: 2
