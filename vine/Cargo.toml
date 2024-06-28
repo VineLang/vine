@@ -9,6 +9,8 @@ vine-util = { path = "../util" }
 ivy = { path = "../ivy" }
 ivm = { path = "../ivm" }
 bitflags = "2.6.0"
+slab = "0.4.9"
+loaned = "0.1.2"
 
 [lints]
 workspace = true

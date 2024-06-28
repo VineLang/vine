@@ -7,50 +7,50 @@
 }
 
 ::mandelbrot::main {
-  fn(n3 _)
-  x(n3 0) = ::mandelbrot::main::1
+  fn(n0 _)
+  ::mandelbrot::main::1 = x(n0 0)
 }
 
-::mandelbrot::main::1 { x(n5 dup(@lt(45 ?(_ ::mandelbrot::main::2 x(n5 n6))) n6)) }
+::mandelbrot::main::1 { x(n0 dup(@lt(45 ?(_ ::mandelbrot::main::2 x(n0 n1))) n1)) }
 
 ::mandelbrot::main::2 {
-  x(n10 dup(n12 @add(1 n15)))
-  ::std::io::print_char = fn(ref(n1 n14) fn(10 _))
-  x(n10 x(n1 x(n12 0))) = ::mandelbrot::main::3
-  x(n14 n15) = ::mandelbrot::main::1
+  x(n0 dup(n2 @add(1 n4)))
+  ::std::io::print_char = fn(ref(n1 n3) fn(10 _))
+  ::mandelbrot::main::3 = x(n0 x(n1 x(n2 0)))
+  ::mandelbrot::main::1 = x(n3 n4)
 }
 
-::mandelbrot::main::3 { x(n7 x(n4 x(n9 dup(@lt(125 ?(::mandelbrot::main::7 ::mandelbrot::main::4 x(n7 x(n4 x(n9 n10))))) n10)))) }
+::mandelbrot::main::3 { x(n0 x(n1 x(n2 dup(@lt(125 ?(::mandelbrot::main::7 ::mandelbrot::main::4 x(n0 x(n1 x(n2 n3))))) n3)))) }
 
 ::mandelbrot::main::4 {
-  x(n11 x(n25 x(dup(n2 n31) dup(n1 @add(1 n32)))))
-  +2.6 = @div(125 @mul(n5 @mul(tup(+1.0 +2.0) n7)))
-  tup(n1 n2) = @add(+0.5 @sub(n4 n5))
-  tup(125 45) = @div(+2.0 n4)
-  ::mandelbrot::center = @add(n7 tup(n14 n16))
-  ::std::io::print_char = fn(ref(n11 n29) fn(n19 _))
-  ::mandelbrot::mandelbrot = fn(n14 fn(n16 ?(32 35 n19)))
-  x(n29 x(n25 x(n31 n32))) = ::mandelbrot::main::3
+  x(n6 x(n9 x(dup(n11 n12) dup(n7 @add(1 n10)))))
+  +2.6 = @div(125 @mul(n1 @mul(tup(+1.0 +2.0) n2)))
+  tup(n7 n11) = @add(+0.5 @sub(n0 n1))
+  tup(125 45) = @div(+2.0 n0)
+  ::mandelbrot::center = @add(n2 tup(n3 n4))
+  ::std::io::print_char = fn(ref(n6 n8) fn(n5 _))
+  ::mandelbrot::mandelbrot = fn(n3 fn(n4 ?(32 35 n5)))
+  ::mandelbrot::main::3 = x(n8 x(n9 x(n12 n10)))
 }
 
-::mandelbrot::main::7 { x(n1 x(n1 _)) }
+::mandelbrot::main::7 { x(n0 x(n0 _)) }
 
 ::mandelbrot::mandelbrot {
-  fn(n10 fn(n11 n8))
-  tup(n12 tup(n13 tup(n14 n15))) = +0.0
-  x(n10 x(n11 x(n12 x(n13 x(n14 x(n15 x(128 @eq(0 n8)))))))) = ::mandelbrot::mandelbrot::1
+  fn(n1 fn(n2 n0))
+  +0.0 = tup(n3 tup(n4 tup(n5 n6)))
+  ::mandelbrot::mandelbrot::1 = x(n1 x(n2 x(n3 x(n4 x(n5 x(n6 x(128 @eq(0 n0))))))))
 }
 
-::mandelbrot::mandelbrot::1 { x(n16 x(n17 x(n18 x(n19 x(dup(@add(n3 @lt(+4.0 n5)) n20) x(dup(n3 n21) x(dup(@lt$(0 @u32_and(n5 ?(::mandelbrot::mandelbrot::3 ::mandelbrot::mandelbrot::2 x(n16 x(n17 x(n18 x(n19 x(n20 x(n21 x(n22 n15)))))))))) n22) n15))))))) }
+::mandelbrot::mandelbrot::1 { x(n1 x(n2 x(n3 x(n4 x(dup(@add(n8 @lt(+4.0 n0)) n7) x(dup(n8 n9) x(dup(@lt$(0 @u32_and(n0 ?(::mandelbrot::mandelbrot::3 ::mandelbrot::mandelbrot::2 x(n1 x(n2 x(n3 x(n4 x(n7 x(n9 x(n5 n6)))))))))) n5) n6))))))) }
 
 ::mandelbrot::mandelbrot::2 {
-  x(dup(n6 n32) x(dup(n12 n33) x(n8 x(n10 x(@sub(n4 @add(n6 n7)) x(n4 x(@sub(1 n38) n31)))))))
-  +2.0 = @mul(n8 @mul(n10 @add(n12 n13)))
-  tup(dup(@mul(n17 n36) dup(n17 n34)) dup(@mul(n21 n37) dup(n21 n35))) = tup(n7 n13)
-  x(n32 x(n33 x(n34 x(n35 x(n36 x(n37 x(n38 n31))))))) = ::mandelbrot::mandelbrot::1
+  x(dup(n9 n10) x(dup(n11 n12) x(n2 x(n3 x(@sub(n4 @add(n9 n0)) x(n4 x(@sub(1 n7) n8)))))))
+  +2.0 = @mul(n2 @mul(n3 @add(n11 n1)))
+  tup(n0 n1) = tup(dup(@mul(n13 n5) dup(n13 n14)) dup(@mul(n15 n6) dup(n15 n16)))
+  ::mandelbrot::mandelbrot::1 = x(n10 x(n12 x(n14 x(n16 x(n5 x(n6 x(n7 n8)))))))
 }
 
-::mandelbrot::mandelbrot::3 { x(_ x(_ x(_ x(_ x(_ x(_ x(n7 n7))))))) }
+::mandelbrot::mandelbrot::3 { x(_ x(_ x(_ x(_ x(_ x(_ x(n0 n0))))))) }
 
 ::std::io::print_char { fn(ref(@io_print_char(char io) io) fn(char _)) }
 

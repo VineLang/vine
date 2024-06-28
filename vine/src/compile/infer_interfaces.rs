@@ -1,9 +1,8 @@
 use std::{collections::BTreeMap, mem::take};
 
-use ivy::ast::Tree;
 use vine_util::bicycle::{Bicycle, BicycleState};
 
-use super::{Compiler, Interface, InterfaceId, Local, Stage, Step, Usage, WireDir};
+use super::{Compiler, Interface, InterfaceId, Local, Port, Stage, Step, Usage, WireDir};
 
 impl Compiler {
   pub(super) fn infer_interfaces(&mut self) {
@@ -141,7 +140,7 @@ impl Step {
   fn usage(&self, interfaces: &[Interface], mut add: impl FnMut(usize, Usage)) {
     match *self {
       Step::Get(l, _) => add(l, Usage::GET),
-      Step::Set(l, Tree::Erase) => add(l, Usage::ERASE),
+      Step::Set(l, Port::Erase) => add(l, Usage::ERASE),
       Step::Set(l, _) => add(l, Usage::SET),
       Step::Move(l, _) => add(l, Usage::MOVE),
       Step::Call(i, _) => {

@@ -2,14 +2,17 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use bitflags::bitflags;
 
-use ivy::ast::{Nets, Tree};
+use ivy::ast::Nets;
 use vine_util::bicycle::BicycleState;
 
 use crate::resolve::{Node, NodeValue};
 
 mod build_stages;
-mod finish_nets;
+mod finish_stages;
 mod infer_interfaces;
+mod net_builder;
+
+use net_builder::*;
 
 #[derive(Debug, Default)]
 pub struct Compiler {
@@ -21,6 +24,8 @@ pub struct Compiler {
   cur: Stage,
   cur_id: StageId,
   local_count: usize,
+
+  net: NetBuilder,
 }
 
 impl Compiler {
@@ -30,7 +35,7 @@ impl Compiler {
       NodeValue::Term(term) => {
         let init = self.build_stages(node, term);
         self.infer_interfaces();
-        self.finish_nets(init);
+        self.finish_stages(init);
       }
       NodeValue::Ivy(net) => {
         self.nets.insert(node.canonical.to_string(), net.clone());
@@ -41,18 +46,6 @@ impl Compiler {
 
 fn stage_name(base_name: &str, stage_id: StageId) -> String {
   format!("{base_name}::{stage_id}")
-}
-
-#[derive(Debug, Default)]
-struct VarGen(usize);
-
-impl VarGen {
-  fn gen(&mut self) -> (Tree, Tree) {
-    let n = self.0;
-    self.0 += 1;
-    let str = format!("n{n}");
-    (Tree::Var(str.clone()), Tree::Var(str))
-  }
 }
 
 type InterfaceId = usize;
@@ -72,10 +65,9 @@ struct Interface {
 #[derive(Debug, Default)]
 struct Stage {
   outer: InterfaceId,
-  pairs: Vec<(Tree, Tree)>,
+  agents: Vec<Agent>,
   steps: Vec<Step>,
   fin: Vec<Step>,
-  var: VarGen,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
@@ -86,10 +78,10 @@ enum WireDir {
 
 #[derive(Debug)]
 enum Step {
-  Get(Local, Tree),
-  Set(Local, Tree),
-  Move(Local, Tree),
-  Call(InterfaceId, Tree),
+  Get(Local, Port),
+  Set(Local, Port),
+  Move(Local, Port),
+  Call(InterfaceId, Port),
 }
 
 bitflags! {

@@ -5,173 +5,173 @@
 
 ::fib_repl::main::1 {
   n0
-  ::std::io::prompt = fn(ref(n0 n11) fn(tup(2 fn(n3 tup(62 tup(32 n3)))) n6))
-  ::std::option::is_some = fn(ref(n6 n12) ?(_ ::fib_repl::main::2 x(n11 n12)))
+  ::std::io::prompt = fn(ref(n0 n3) fn(tup(2 fn(n1 tup(62 tup(32 n1)))) n2))
+  ::std::option::is_some = fn(ref(n2 n4) ?(_ ::fib_repl::main::2 x(n3 n4)))
 }
 
 ::fib_repl::main::2 {
-  x(n14 n0)
-  ::std::option::unwrap = fn(ref(n0 _) n4)
-  ::std::u32::parse = fn(n4 n7)
-  ::std::option::is_some = fn(ref(n7 n16) ?(::fib_repl::main::4 ::fib_repl::main::3 x(n14 x(::fib_repl::main::1 n16))))
+  x(n3 n2)
+  ::std::option::unwrap = fn(ref(n2 _) n0)
+  ::std::u32::parse = fn(n0 n1)
+  ::std::option::is_some = fn(ref(n1 n4) ?(::fib_repl::main::4 ::fib_repl::main::3 x(n3 x(::fib_repl::main::1 n4))))
 }
 
 ::fib_repl::main::3 {
-  x(n4 x(n12 n0))
-  ::std::option::unwrap = fn(ref(n0 _) n7)
-  ::std::io::println = fn(ref(n4 n12) fn(n9 _))
-  ::fib_repl::fib = fn(n7 n8)
-  ::std::u32::to_string = fn(n8 n9)
+  x(n3 x(n4 n5))
+  ::std::option::unwrap = fn(ref(n5 _) n0)
+  ::std::io::println = fn(ref(n3 n4) fn(n2 _))
+  ::fib_repl::fib = fn(n0 n1)
+  ::std::u32::to_string = fn(n1 n2)
 }
 
 ::fib_repl::main::4 {
-  x(n0 x(n6 _))
-  ::std::io::println = fn(ref(n0 n6) fn(tup(14 fn(n3 tup(105 tup(110 tup(118 tup(97 tup(108 tup(105 tup(100 tup(32 tup(110 tup(117 tup(109 tup(98 tup(101 tup(114 n3)))))))))))))))) _))
+  x(n1 x(n2 _))
+  ::std::io::println = fn(ref(n1 n2) fn(tup(14 fn(n0 tup(105 tup(110 tup(118 tup(97 tup(108 tup(105 tup(100 tup(32 tup(110 tup(117 tup(109 tup(98 tup(101 tup(114 n0)))))))))))))))) _))
 }
 
 ::fib_repl::fib {
-  fn(n5 n3)
-  x(n5 x(0 x(n3 1))) = ::fib_repl::fib::1
+  fn(n0 n1)
+  ::fib_repl::fib::1 = x(n0 x(0 x(n1 1)))
 }
 
-::fib_repl::fib::1 { x(dup(?(::fib_repl::fib::3 ::fib_repl::fib::2 x(n6 n7)) n6) n7) }
+::fib_repl::fib::1 { x(dup(?(::fib_repl::fib::3 ::fib_repl::fib::2 x(n3 n0)) n3) n0) }
 
 ::fib_repl::fib::2 {
-  x(@sub(1 n13) x(@add(n5 n6) x(n11 dup(n3 n5))))
-  tup(n14 n16) = tup(n3 n6)
-  x(n13 x(n14 x(n11 n16))) = ::fib_repl::fib::1
+  x(@sub(1 n3) x(@add(n2 n0) x(n5 dup(n1 n2))))
+  tup(n1 n0) = tup(n4 n6)
+  ::fib_repl::fib::1 = x(n3 x(n4 x(n5 n6)))
 }
 
-::fib_repl::fib::3 { x(_ x(n2 x(n2 _))) }
+::fib_repl::fib::3 { x(_ x(n0 x(n0 _))) }
 
 ::std::io::println {
-  fn(ref(n3 n1) fn(n6 _))
-  ::std::io::print = fn(ref(n3 n8) fn(n6 _))
-  ::std::io::print_char = fn(ref(n8 n1) fn(10 _))
+  fn(ref(n0 n3) fn(n1 _))
+  ::std::io::print = fn(ref(n0 n2) fn(n1 _))
+  ::std::io::print_char = fn(ref(n2 n3) fn(10 _))
 }
 
 ::std::io::print {
-  fn(ref(n11 n1) fn(tup(n13 fn(_ n14)) _))
-  x(n11 x(n1 x(n13 n14))) = ::std::io::print::1
+  fn(ref(n0 n1) fn(tup(n2 fn(_ n3)) _))
+  ::std::io::print::1 = x(n0 x(n1 x(n2 n3)))
 }
 
-::std::io::print::1 { x(n6 x(n3 x(dup(?(::std::io::print::3 ::std::io::print::2 x(n6 x(n3 x(n8 n9)))) n8) n9))) }
+::std::io::print::1 { x(n0 x(n1 x(dup(?(::std::io::print::3 ::std::io::print::2 x(n0 x(n1 x(n3 n2)))) n3) n2))) }
 
 ::std::io::print::2 {
-  x(n6 x(n12 x(@sub(1 n17) tup(n9 n18))))
-  ::std::io::print_char = fn(ref(n6 n15) fn(n9 _))
-  x(n15 x(n12 x(n17 n18))) = ::std::io::print::1
+  x(n1 x(n3 x(@sub(1 n4) tup(n0 n5))))
+  ::std::io::print_char = fn(ref(n1 n2) fn(n0 _))
+  ::std::io::print::1 = x(n2 x(n3 x(n4 n5)))
 }
 
-::std::io::print::3 { x(n1 x(n1 _)) }
+::std::io::print::3 { x(n0 x(n0 _)) }
 
 ::std::io::print_char { fn(ref(@io_print_char(char io) io) fn(char _)) }
 
 ::std::io::flush { fn(ref(@io_flush(0 io) io) _) }
 
 ::std::io::prompt {
-  fn(ref(n3 n1) fn(n6 n13))
-  ::std::io::print = fn(ref(n3 n8) fn(n6 _))
-  ::std::io::flush = fn(ref(n8 n11) _)
-  ::std::io::read_line = fn(ref(n11 n1) n13)
+  fn(ref(n0 n4) fn(n1 n5))
+  ::std::io::print = fn(ref(n0 n2) fn(n1 _))
+  ::std::io::flush = fn(ref(n2 n3) _)
+  ::std::io::read_line = fn(ref(n3 n4) n5)
 }
 
 ::std::io::read_line {
-  fn(ref(n2 n1) n9)
-  ::std::io::read_byte = fn(ref(n2 n11) fn(0 dup(?(::std::io::read_line::7 ::std::io::read_line::1 x(n11 x(n1 x(n13 n9)))) n13)))
+  fn(ref(n0 n2) n3)
+  ::std::io::read_byte = fn(ref(n0 n1) fn(0 dup(?(::std::io::read_line::7 ::std::io::read_line::1 x(n1 x(n2 x(n4 n3)))) n4)))
 }
 
 ::std::io::read_line::1 {
-  x(n9 x(n6 x(dup(@eq(10 ?(::std::io::read_line::3 ::std::io::read_line::2 x(n9 x(n6 x(n11 n3))))) n11) n8)))
-  ::std::option::Some = fn(n3 n8)
+  x(n1 x(n2 x(dup(@eq(10 ?(::std::io::read_line::3 ::std::io::read_line::2 x(n1 x(n2 x(n4 n3))))) n4) n0)))
+  ::std::option::Some = fn(n3 n0)
 }
 
-::std::io::read_line::2 { x(n2 x(n2 x(_ tup(0 fn(n0 n0))))) }
+::std::io::read_line::2 { x(n1 x(n1 x(_ tup(0 fn(n0 n0))))) }
 
 ::std::io::read_line::3 {
-  x(n8 x(n5 x(n0 n7)))
-  ::std::str::single = fn(n0 n10)
-  x(n8 x(n5 x(n10 n7))) = ::std::io::read_line::4
+  x(n1 x(n2 x(n0 n4)))
+  ::std::str::single = fn(n0 n3)
+  ::std::io::read_line::4 = x(n1 x(n2 x(n3 n4)))
 }
 
 ::std::io::read_line::4 {
-  x(n0 x(n9 n15))
-  ::std::io::read_byte = fn(ref(n0 n12) fn(10 dup(@ne(10 ?(::std::io::read_line::6 ::std::io::read_line::5 x(n12 x(n9 x(n14 n15))))) n14)))
+  x(n0 x(n2 n3))
+  ::std::io::read_byte = fn(ref(n0 n1) fn(10 dup(@ne(10 ?(::std::io::read_line::6 ::std::io::read_line::5 x(n1 x(n2 x(n5 n3))))) n5)))
 }
 
 ::std::io::read_line::5 {
-  x(n10 x(n6 x(n2 x(n0 n9))))
-  ::std::str::single = fn(n2 n3)
-  ::std::str::concat = fn(n0 fn(n3 n12))
-  x(n10 x(n6 x(n12 n9))) = ::std::io::read_line::4
+  x(n3 x(n4 x(n1 x(n2 n6))))
+  ::std::str::single = fn(n1 n0)
+  ::std::str::concat = fn(n2 fn(n0 n5))
+  ::std::io::read_line::4 = x(n3 x(n4 x(n5 n6)))
 }
 
-::std::io::read_line::6 { x(n1 x(n1 x(_ x(n4 n4)))) }
+::std::io::read_line::6 { x(n0 x(n0 x(_ x(n1 n1)))) }
 
-::std::io::read_line::7 { x(n1 x(n1 x(_ ::std::option::None))) }
+::std::io::read_line::7 { x(n0 x(n0 x(_ ::std::option::None))) }
 
 ::std::io::read_byte { fn(ref(dup(io0 @io_read_byte(default dup(byte @seq$(io0 io1)))) io1) fn(default byte)) }
 
-::std::option::Some { fn(n4 fn(fn(n4 n5) fn(_ n5))) }
+::std::option::Some { fn(n0 fn(fn(n0 n1) fn(_ n1))) }
 
-::std::option::None { fn(_ fn(n2 n2)) }
+::std::option::None { fn(_ fn(n0 n0)) }
 
 ::std::option::is_some {
-  fn(ref(fn(fn(n5 tup(n6 1)) fn(tup(::std::option::None 0) tup(n1 n11))) n1) n11)
-  ::std::option::Some = fn(n5 n6)
+  fn(ref(fn(fn(n0 tup(n1 1)) fn(tup(::std::option::None 0) tup(n2 n3))) n2) n3)
+  ::std::option::Some = fn(n0 n1)
 }
 
-::std::option::unwrap { fn(ref(fn(fn(n3 n3) fn(_ n5)) _) n5) }
+::std::option::unwrap { fn(ref(fn(fn(n0 n0) fn(_ n1)) _) n1) }
 
-::std::str::concat { fn(tup(@add(n9 n10) fn(n15 n16)) fn(tup(n9 fn(n14 n15)) tup(n10 fn(n14 n16)))) }
+::std::str::concat { fn(tup(@add(n0 n1) fn(n3 n4)) fn(tup(n0 fn(n2 n3)) tup(n1 fn(n2 n4)))) }
 
-::std::str::single { fn(n2 tup(1 fn(n3 tup(n2 n3)))) }
+::std::str::single { fn(n0 tup(1 fn(n1 tup(n0 n1)))) }
 
-::std::u32::to_string { fn(dup(?(::std::u32::to_string::5 ::std::u32::to_string::1 x(n5 n3)) n5) n3) }
+::std::u32::to_string { fn(dup(?(::std::u32::to_string::5 ::std::u32::to_string::1 x(n1 n0)) n1) n0) }
 
 ::std::u32::to_string::1 {
-  x(n5 n4)
-  x(n5 x(tup(0 fn(n0 n0)) n4)) = ::std::u32::to_string::2
+  x(n1 n2)
+  ::std::u32::to_string::2 = x(n1 x(tup(0 fn(n0 n0)) n2))
 }
 
-::std::u32::to_string::2 { x(dup(?(::std::u32::to_string::4 ::std::u32::to_string::3 x(n5 n6)) n5) n6) }
+::std::u32::to_string::2 { x(dup(?(::std::u32::to_string::4 ::std::u32::to_string::3 x(n2 n0)) n2) n0) }
 
 ::std::u32::to_string::3 {
-  x(dup(@rem(10 n7) @div(10 n19)) x(tup(@add(1 n4) fn(n10 n11)) n18))
-  48 = @add(n7 n8)
-  x(n19 x(tup(n4 fn(n10 tup(n8 n11))) n18)) = ::std::u32::to_string::2
+  x(dup(@rem(10 n1) @div(10 n5)) x(tup(@add(1 n0) fn(n3 n4)) n6))
+  48 = @add(n1 n2)
+  ::std::u32::to_string::2 = x(n5 x(tup(n0 fn(n3 tup(n2 n4))) n6))
 }
 
-::std::u32::to_string::4 { x(_ x(n2 n2)) }
+::std::u32::to_string::4 { x(_ x(n0 n0)) }
 
 ::std::u32::to_string::5 { x(_ tup(1 fn(n0 tup(48 n0)))) }
 
-::std::u32::parse { fn(tup(dup(@eq(0 ?(::std::u32::parse::2 ::std::u32::parse::1 x(n9 x(n10 n7)))) n9) n10) n7) }
+::std::u32::parse { fn(tup(dup(@eq(0 ?(::std::u32::parse::2 ::std::u32::parse::1 x(n2 x(n0 n1)))) n2) n0) n1) }
 
 ::std::u32::parse::1 { x(_ x(_ ::std::option::None)) }
 
 ::std::u32::parse::2 {
-  x(n11 x(fn(_ n12) n10))
-  x(n11 x(n12 x(1 x(?(::std::u32::parse::9 ::std::u32::parse::8 x(n17 n10)) x(0 n17))))) = ::std::u32::parse::3
+  x(n0 x(fn(_ n1) n3))
+  ::std::u32::parse::3 = x(n0 x(n1 x(1 x(?(::std::u32::parse::9 ::std::u32::parse::8 x(n2 n3)) x(0 n2)))))
 }
 
-::std::u32::parse::3 { x(dup(?(::std::u32::parse::7 ::std::u32::parse::4 x(n8 n9)) n8) n9) }
+::std::u32::parse::3 { x(dup(?(::std::u32::parse::7 ::std::u32::parse::4 x(n5 n0)) n5) n0) }
 
 ::std::u32::parse::4 {
-  x(n20 x(tup(dup(dup(n5 @le(57 n8)) n24) n26) x(_ x(n17 x(n22 n19)))))
-  48 = @le(n5 @u32_and(n8 dup(?(::std::u32::parse::6 ::std::u32::parse::5 x(n20 x(n25 x(n22 x(n29 n24))))) n27)))
-  x(n25 x(n26 x(n27 x(n17 x(n29 n19))))) = ::std::u32::parse::3
+  x(n2 x(tup(dup(dup(n0 @le(57 n1)) n10) n5) x(_ x(n7 x(n3 n9)))))
+  48 = @le(n0 @u32_and(n1 dup(?(::std::u32::parse::6 ::std::u32::parse::5 x(n2 x(n4 x(n3 x(n8 n10))))) n6)))
+  ::std::u32::parse::3 = x(n4 x(n5 x(n6 x(n7 x(n8 n9)))))
 }
 
-::std::u32::parse::5 { x(@sub(1 n12) x(n12 x(@mul(10 @add(n6 n14)) x(n14 @sub(48 n6))))) }
+::std::u32::parse::5 { x(@sub(1 n1) x(n1 x(@mul(10 @add(n0 n2)) x(n2 @sub(48 n0))))) }
 
-::std::u32::parse::6 { x(_ x(0 x(n4 x(n4 _)))) }
+::std::u32::parse::6 { x(_ x(0 x(n0 x(n0 _)))) }
 
-::std::u32::parse::7 { x(_ x(_ x(n3 x(n3 x(n5 n5))))) }
+::std::u32::parse::7 { x(_ x(_ x(n0 x(n0 x(n1 n1))))) }
 
 ::std::u32::parse::8 {
-  x(n0 n3)
-  ::std::option::Some = fn(n0 n3)
+  x(n0 n1)
+  ::std::option::Some = fn(n0 n1)
 }
 
 ::std::u32::parse::9 { x(_ ::std::option::None) }
