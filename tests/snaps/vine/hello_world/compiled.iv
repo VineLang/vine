@@ -17,7 +17,7 @@
   ::std::io::print::1 = x(n0 x(n1 x(n2 n3)))
 }
 
-::std::io::print::1 { x(n0 x(n1 x(dup(?(::std::io::print::3 ::std::io::print::2 x(n0 x(n1 x(n3 n2)))) n3) n2))) }
+::std::io::print::1 { x(n0 x(n1 x(dup(?(::std::io::print::4 ::std::io::print::2 x(n0 x(n1 x(n3 n2)))) n3) n2))) }
 
 ::std::io::print::2 {
   x(n1 x(n3 x(@sub(1 n4) tup(n0 n5))))
@@ -25,7 +25,7 @@
   ::std::io::print::1 = x(n2 x(n3 x(n4 n5)))
 }
 
-::std::io::print::3 { x(n0 x(n0 _)) }
+::std::io::print::4 { x(n0 x(n0 _)) }
 
 ::std::io::print_char { fn(ref(@io_print_char(char io) io) fn(char _)) }
 

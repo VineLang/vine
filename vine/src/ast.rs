@@ -126,6 +126,7 @@ pub enum TermKind {
   While(B<Term>, Block),
   For(B<Term>, B<Term>, Block),
   Fn(Vec<Term>, B<Term>),
+  Return(B<Term>),
   Ref(B<Term>),
   Deref(B<Term>),
   Move(B<Term>),

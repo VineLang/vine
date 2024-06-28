@@ -1,0 +1,18 @@
+
+use std::io::println;
+
+fn main(io) {
+  let zero_count = 0;
+  io.println(foo(0, &zero_count));
+  io.println(foo(1, &zero_count));
+  io.println(foo(0, &zero_count));
+  io.println("\nzero_count: " ++ std::u32::to_string(zero_count));
+}
+
+fn foo(value, &zero_count) {
+  if value {
+    return "non-zero!";
+  }
+  zero_count += 1;
+  "zero"
+}

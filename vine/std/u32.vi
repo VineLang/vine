@@ -21,24 +21,17 @@ fn parse(str) {
     None
   } else {
     let chars = buf(_);
-    let good = 1;
     let num = 0;
     while len {
       let char;
       (char, chars) = chars;
-      good = '0' <= char <= '9';
-      if good {
-        num *= 10;
-        num += char - '0';
-        len -= 1;
-      } else {
-        len = 0;
+      if ('0' <= char <= '9') != 1 {
+        return None;
       }
+      num *= 10;
+      num += char - '0';
+      len -= 1;
     }
-    if good {
-      Some(num)
-    } else {
-      None
-    }
+    Some(num)
   }
 }

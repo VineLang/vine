@@ -17,17 +17,18 @@ dyntest!(tests);
 fn tests(t: &mut DynTester) {
   env::set_current_dir("..").unwrap();
 
-  let fib_repl_input = b"1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n21\n100\n999999\n";
+  let fib_repl_input_iv = b"1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n21\n100\n999999\n";
+  let fib_repl_input_vi = b"1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n21\n100\n999999\n\nabc\n";
 
   t.group("ivy", |t| {
     test_iv(t, "ivy/examples/cat.iv", b"meow\n", ".txt");
-    test_iv(t, "ivy/examples/fib_repl.iv", fib_repl_input, ".txt");
+    test_iv(t, "ivy/examples/fib_repl.iv", fib_repl_input_iv, ".txt");
     test_iv(t, "ivy/examples/fizzbuzz.iv", b"", ".txt");
     test_iv(t, "ivy/examples/hihi.iv", b"", ".txt");
   });
 
   t.group("vine", |t| {
-    test_vi(t, "vine/examples/fib_repl.vi", fib_repl_input, ".txt");
+    test_vi(t, "vine/examples/fib_repl.vi", fib_repl_input_vi, ".txt");
     test_vi(t, "vine/examples/fib.vi", b"", ".txt");
     test_vi(t, "vine/examples/fizzbuzz.vi", b"", ".txt");
     test_vi(t, "vine/examples/hello_world.vi", b"", ".txt");
@@ -35,9 +36,11 @@ fn tests(t: &mut DynTester) {
     test_vi(t, "vine/examples/mandelbrot_tga.vi", b"", ".tga");
     test_vi(t, "vine/examples/mandelbrot.vi", b"", ".txt");
 
+    test_vi(t, "tests/programs/basic_diverge.vi", b"", ".txt");
     test_vi(t, "tests/programs/loop_vi_loop.vi", b"", ".txt");
     test_vi(t, "tests/programs/maybe_set.vi", b"", ".txt");
     test_vi(t, "tests/programs/move_it_move_it.vi", b"", ".txt");
+    test_vi(t, "tests/programs/pretty_div.vi", b"", ".txt");
   });
 }
 
