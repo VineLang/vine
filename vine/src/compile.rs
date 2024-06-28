@@ -168,6 +168,7 @@ fn usage_axioms() {
     assert_eq!(Usage::join(Usage::NONE, a), a);
 
     assert_eq!(Usage::union(a, a), a);
+    assert_eq!(Usage::join(a, a), a);
 
     for b in all() {
       assert_eq!(Usage::union(a, b), Usage::union(b, a));
@@ -183,6 +184,11 @@ fn usage_axioms() {
         assert_eq!(
           Usage::join(Usage::union(a, b), c),
           Usage::union(Usage::join(a, c), Usage::join(b, c))
+        );
+
+        assert_eq!(
+          [a, b, a, c, a].into_iter().reduce(Usage::join),
+          [a, b, c, a].into_iter().reduce(Usage::join),
         );
       }
     }
