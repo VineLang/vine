@@ -42,7 +42,7 @@ impl<'ivm> IVM<'ivm> {
 
   /// Allocates a two-word region of memory within the heap.
   #[inline]
-  fn alloc_node(&mut self) -> Addr {
+  pub(crate) fn alloc_node(&mut self) -> Addr {
     self.stats.mem_alloc += 2;
     let addr = if self.alloc_head != Addr::NULL {
       let addr = self.alloc_head;

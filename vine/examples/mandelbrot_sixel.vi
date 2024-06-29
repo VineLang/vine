@@ -1,9 +1,9 @@
 
-use std::{io::{print_byte, print_bytes, flush}, u32};
+use std::{io::{print_byte, print_bytes, flush}, u32, hint::black_box};
 
-const max_iter = 50;
-const width = 512;
-const height = 512;
+const max_iter = black_box(50);
+const width = black_box(512);
+const height = black_box(512);
 const scale = 2.6;
 const center = (-0.8, 0.0);
 

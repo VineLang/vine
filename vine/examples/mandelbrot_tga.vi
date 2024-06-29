@@ -1,9 +1,9 @@
 
-use std::io::{print_byte, print_bytes};
+use std::{io::{print_byte, print_bytes}, hint::black_box};
 
-const max_iter = 64;
-const width = 1024;
-const height = 1024;
+const max_iter = black_box(64);
+const width = black_box(1024);
+const height = black_box(1024);
 const scale = 2.6;
 const center = (-0.8, 0.0);
 

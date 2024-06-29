@@ -1,12 +1,17 @@
 
 ::main { ::fizzbuzz::main }
 
+::fizzbuzz::end {
+  n0
+  ::std::hint::black_box = fn(100 n0)
+}
+
 ::fizzbuzz::main {
   fn(n0 _)
   ::fizzbuzz::main::1 = x(n0 1)
 }
 
-::fizzbuzz::main::1 { x(n0 dup(@le(100 ?(_ ::fizzbuzz::main::2 x(n0 n1))) n1)) }
+::fizzbuzz::main::1 { x(n0 dup(@le(::fizzbuzz::end ?(_ ::fizzbuzz::main::2 x(n0 n1))) n1)) }
 
 ::fizzbuzz::main::2 {
   x(n1 dup(n2 @add(1 n4)))
@@ -31,6 +36,8 @@
 ::fizzbuzz::message::5 { tup(4 fn(n0 tup(70 tup(105 tup(122 tup(122 n0)))))) }
 
 ::fizzbuzz::message::6 { tup(8 fn(n0 tup(70 tup(105 tup(122 tup(122 tup(66 tup(117 tup(122 tup(122 n0)))))))))) }
+
+::std::hint::black_box { fn(x #black_box(x)) }
 
 ::std::io::println {
   fn(ref(n0 n3) fn(n1 _))

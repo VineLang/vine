@@ -3,6 +3,7 @@ use core::fmt::{self, Debug};
 use crate::{
   ivm::IVM,
   port::{Port, Tag},
+  wire::Wire,
 };
 
 /// A list of instructions to create a net.
@@ -66,6 +67,7 @@ pub enum Instruction<'ivm> {
   /// be that of a binary node, and its label must comply with the tag's
   /// requirements.
   Binary(Tag, u16, Register, Register, Register),
+  InertPair(Register, Register),
 }
 
 /// A "register" of an [`Instruction`], used to identify pairs of ports to link.
@@ -141,6 +143,14 @@ impl<'ivm> IVM<'ivm> {
             self.link_register(p0, node.0);
             self.link_register(p1, Port::new_wire(node.1));
             self.link_register(p2, Port::new_wire(node.2));
+          }
+          Instruction::InertPair(p1, p2) => {
+            let addr = self.alloc_node();
+            let a = Port::new_wire(Wire::from_addr(addr));
+            let b = Port::new_wire(Wire::from_addr(addr.other_half()));
+            self.link_register(p1, a.clone());
+            self.link_register(p2, b.clone());
+            self.inert.push((a, b));
           }
         }
       }

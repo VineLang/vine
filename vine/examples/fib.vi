@@ -1,7 +1,7 @@
 
-use std::{io::println, u32};
+use std::{io::println, u32, hint::black_box};
 
-const end = 32;
+const end = black_box(32);
 
 fn main(io) {
   let n = 0;

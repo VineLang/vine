@@ -1,6 +1,21 @@
 
 ::main { ::mandelbrot::main }
 
+::mandelbrot::max_iter {
+  n0
+  ::std::hint::black_box = fn(128 n0)
+}
+
+::mandelbrot::width {
+  n0
+  ::std::hint::black_box = fn(125 n0)
+}
+
+::mandelbrot::height {
+  n0
+  ::std::hint::black_box = fn(45 n0)
+}
+
 ::mandelbrot::center {
   tup(n0 +0.0)
   0 = @sub(+0.8 n0)
@@ -11,7 +26,7 @@
   ::mandelbrot::main::1 = x(n0 0)
 }
 
-::mandelbrot::main::1 { x(n0 dup(@lt(45 ?(_ ::mandelbrot::main::2 x(n0 n1))) n1)) }
+::mandelbrot::main::1 { x(n0 dup(@lt(::mandelbrot::height ?(_ ::mandelbrot::main::2 x(n0 n1))) n1)) }
 
 ::mandelbrot::main::2 {
   x(n0 dup(n2 @add(1 n4)))
@@ -20,13 +35,13 @@
   ::mandelbrot::main::1 = x(n3 n4)
 }
 
-::mandelbrot::main::3 { x(n0 x(n1 x(n2 dup(@lt(125 ?(::mandelbrot::main::8 ::mandelbrot::main::4 x(n0 x(n1 x(n2 n3))))) n3)))) }
+::mandelbrot::main::3 { x(n0 x(n1 x(n2 dup(@lt(::mandelbrot::width ?(::mandelbrot::main::8 ::mandelbrot::main::4 x(n0 x(n1 x(n2 n3))))) n3)))) }
 
 ::mandelbrot::main::4 {
   x(n6 x(n9 x(dup(n11 n12) dup(n7 @add(1 n10)))))
-  +2.6 = @div(125 @mul(n1 @mul(tup(+1.0 +2.0) n2)))
+  +2.6 = @div(::mandelbrot::width @mul(n1 @mul(tup(+1.0 +2.0) n2)))
   tup(n7 n11) = @add(+0.5 @sub(n0 n1))
-  tup(125 45) = @div(+2.0 n0)
+  tup(::mandelbrot::width ::mandelbrot::height) = @div(+2.0 n0)
   ::mandelbrot::center = @add(n2 tup(n3 n4))
   ::std::io::print_char = fn(ref(n6 n8) fn(n5 _))
   ::mandelbrot::mandelbrot = fn(n3 fn(n4 ?(32 35 n5)))
@@ -38,7 +53,7 @@
 ::mandelbrot::mandelbrot {
   fn(n1 fn(n2 n0))
   +0.0 = tup(n3 tup(n4 tup(n5 n6)))
-  ::mandelbrot::mandelbrot::1 = x(n1 x(n2 x(n3 x(n4 x(n5 x(n6 x(128 @eq(0 n0))))))))
+  ::mandelbrot::mandelbrot::1 = x(n1 x(n2 x(n3 x(n4 x(n5 x(n6 x(::mandelbrot::max_iter @eq(0 n0))))))))
 }
 
 ::mandelbrot::mandelbrot::1 { x(n1 x(n2 x(n3 x(n4 x(dup(@add(n8 @lt(+4.0 n0)) n7) x(dup(n8 n9) x(dup(@lt$(0 @u32_and(n0 ?(::mandelbrot::mandelbrot::4 ::mandelbrot::mandelbrot::2 x(n1 x(n2 x(n3 x(n4 x(n7 x(n9 x(n5 n6)))))))))) n5) n6))))))) }
@@ -51,6 +66,8 @@
 }
 
 ::mandelbrot::mandelbrot::4 { x(_ x(_ x(_ x(_ x(_ x(_ x(n0 n0))))))) }
+
+::std::hint::black_box { fn(x #black_box(x)) }
 
 ::std::io::print_char { fn(ref(@io_print_char(char io) io) fn(char _)) }
 

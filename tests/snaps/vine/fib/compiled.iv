@@ -1,12 +1,17 @@
 
 ::main { ::fib::main }
 
+::fib::end {
+  n0
+  ::std::hint::black_box = fn(32 n0)
+}
+
 ::fib::main {
   fn(n0 _)
   ::fib::main::1 = x(n0 x(0 x(0 1)))
 }
 
-::fib::main::1 { x(n0 x(dup(@le(32 ?(_ ::fib::main::2 x(n0 x(n3 n1)))) n3) n1)) }
+::fib::main::1 { x(n0 x(dup(@le(::fib::end ?(_ ::fib::main::2 x(n0 x(n3 n1)))) n3) n1)) }
 
 ::fib::main::2 {
   x(n8 x(dup(n12 @add(1 n14)) x(dup(n9 @add(n11 n7)) dup(n10 n11))))
@@ -19,6 +24,8 @@
   tup(n10 n7) = tup(n15 n16)
   ::fib::main::1 = x(n13 x(n14 x(n15 n16)))
 }
+
+::std::hint::black_box { fn(x #black_box(x)) }
 
 ::std::io::println {
   fn(ref(n0 n3) fn(n1 _))

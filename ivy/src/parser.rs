@@ -134,6 +134,13 @@ impl<'src> IvyParser<'src> {
       return Ok(Tree::Branch(Box::new(a), Box::new(b), Box::new(c)));
     }
 
+    if self.eat(Token::BlackBox)? {
+      self.expect(Token::OpenParen)?;
+      let a = self.parse_tree()?;
+      self.expect(Token::CloseParen)?;
+      return Ok(Tree::BlackBox(Box::new(a)));
+    }
+
     if self.eat(Token::Hole)? {
       return Ok(Tree::Erase);
     }

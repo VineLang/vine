@@ -28,6 +28,9 @@ pub enum Token {
   #[token("?")]
   Question,
 
+  #[token("#black_box")]
+  BlackBox,
+
   #[regex(r"\d[\d\w]*")]
   U32,
   #[regex(r"[+-][\d\w\.\+\-]+")]

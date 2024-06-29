@@ -21,6 +21,8 @@ pub struct IVM<'ivm> {
   /// allocate memory).
   pub(crate) active_slow: Vec<(Port<'ivm>, Port<'ivm>)>,
 
+  pub(crate) inert: Vec<(Port<'ivm>, Port<'ivm>)>,
+
   /// Used by [`IVM::execute`].
   pub(crate) registers: Vec<Option<Port<'ivm>>>,
 }
@@ -35,6 +37,7 @@ impl<'ivm> IVM<'ivm> {
       registers: Vec::new(),
       active_fast: Vec::new(),
       active_slow: Vec::new(),
+      inert: Vec::new(),
       stats: Stats::default(),
     }
   }

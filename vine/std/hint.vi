@@ -1,0 +1,4 @@
+
+inline_ivy! black_box {
+  fn(x #black_box(x))
+}

@@ -1,4 +1,5 @@
 
+mod hint = "./hint.vi";
 mod io = "./io.vi";
 mod option = "./option.vi";
 mod str = "./str.vi";

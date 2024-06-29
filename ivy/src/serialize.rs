@@ -18,8 +18,17 @@ use vine_util::bicycle::{Bicycle, BicycleState};
 
 use crate::ast::{Net, Nets, Tree};
 
+#[derive(Debug, Default, Clone)]
+pub struct SerializeOptions {
+  pub black_box: bool,
+}
+
 impl Nets {
-  pub fn serialize<'ivm>(&self, globals: &'ivm mut Vec<Global<'ivm>>) -> &'ivm [Global<'ivm>] {
+  pub fn serialize<'ivm>(
+    &self,
+    globals: &'ivm mut Vec<Global<'ivm>>,
+    opts: SerializeOptions,
+  ) -> &'ivm [Global<'ivm>] {
     assert!(globals.is_empty());
     globals.extend(self.keys().map(|name| Global {
       name: name.clone(),
@@ -33,6 +42,7 @@ impl Nets {
     let mut serializer = Serializer {
       globals,
       nets: self,
+      opts,
       current: Default::default(),
       equivalences: Default::default(),
       registers: Default::default(),
@@ -54,6 +64,7 @@ impl Nets {
 pub struct Serializer<'ast, 'ivm> {
   globals: &'ivm [UnsafeCell<Global<'ivm>>],
   nets: &'ast Nets,
+  opts: SerializeOptions,
   current: Global<'ivm>,
   equivalences: BTreeMap<&'ast str, &'ast str>,
   registers: HashMap<&'ast str, Register>,
@@ -70,6 +81,8 @@ impl<'ast, 'ivm> Serializer<'ast, 'ivm> {
     self.registers.clear();
 
     for (a, b) in &net.pairs {
+      let a = if self.opts.black_box { a } else { a.white_box() };
+      let b = if self.opts.black_box { b } else { b.white_box() };
       let (Tree::Var(a), Tree::Var(b)) = (a, b) else { continue };
       let a = self.equivalences.remove(&**a).unwrap_or(a);
       let b = self.equivalences.remove(&**b).unwrap_or(b);
@@ -102,6 +115,7 @@ impl<'ast, 'ivm> Serializer<'ast, 'ivm> {
   }
 
   fn serialize_tree(&mut self, tree: &'ast Tree) -> Register {
+    let tree = if self.opts.black_box { tree } else { tree.white_box() };
     if let Tree::Var(var) = tree {
       *self.registers.entry(var).or_insert_with(|| self.current.instructions.new_register())
     } else {
@@ -149,6 +163,14 @@ impl<'ast, 'ivm> Serializer<'ast, 'ivm> {
       Tree::Var(v) => {
         let old = self.registers.insert(v, to);
         debug_assert!(old.is_none());
+      }
+      Tree::BlackBox(x) => {
+        if self.opts.black_box {
+          let x = self.serialize_tree(x);
+          self.push(Instruction::InertPair(to, x));
+        } else {
+          self.serialize_tree_to(x, to);
+        }
       }
     }
   }
