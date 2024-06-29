@@ -17,7 +17,7 @@
   x(n11 n12) = ::fizzbuzz::main::1
 }
 
-::fizzbuzz::main::3 { x(_ _) }
+::fizzbuzz::main::3 { _ }
 
 ::fizzbuzz::message { fn(dup(@rem(3 ?(::fizzbuzz::message::4 ::fizzbuzz::message::1 x(n11 x(n12 n9)))) dup(@rem(5 n12) n11)) n9) }
 
@@ -55,7 +55,7 @@
   x(n15 x(n12 x(n17 n18))) = ::std::io::print::1
 }
 
-::std::io::print::3 { x(n1 x(n1 x(_ _))) }
+::std::io::print::3 { x(n1 x(n1 _)) }
 
 ::std::io::print_char { fn(ref(@io_print_char(char io) io) fn(char _)) }
 
@@ -66,7 +66,7 @@
   x(n5 x(tup(0 fn(n0 n0)) n4)) = ::std::u32::to_string::2
 }
 
-::std::u32::to_string::2 { x(dup(?(::std::u32::to_string::4 ::std::u32::to_string::3 x(n5 x(n6 n4))) n5) x(n6 n4)) }
+::std::u32::to_string::2 { x(dup(?(::std::u32::to_string::4 ::std::u32::to_string::3 x(n5 n6)) n5) n6) }
 
 ::std::u32::to_string::3 {
   x(dup(@rem(10 n7) @div(10 n19)) x(tup(@add(1 n4) fn(n10 n11)) n18))

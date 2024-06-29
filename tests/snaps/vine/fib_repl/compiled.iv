@@ -29,14 +29,14 @@
   ::std::io::println = fn(ref(n0 n6) fn(tup(14 fn(n3 tup(105 tup(110 tup(118 tup(97 tup(108 tup(105 tup(100 tup(32 tup(110 tup(117 tup(109 tup(98 tup(101 tup(114 n3)))))))))))))))) _))
 }
 
-::fib_repl::main::5 { x(_ _) }
+::fib_repl::main::5 { _ }
 
 ::fib_repl::fib {
   fn(n5 n3)
   x(n5 x(0 x(n3 1))) = ::fib_repl::fib::1
 }
 
-::fib_repl::fib::1 { x(dup(?(::fib_repl::fib::3 ::fib_repl::fib::2 x(n6 x(n7 x(n4 n9)))) n6) x(n7 x(n4 n9))) }
+::fib_repl::fib::1 { x(dup(?(::fib_repl::fib::3 ::fib_repl::fib::2 x(n6 n7)) n6) n7) }
 
 ::fib_repl::fib::2 {
   x(@sub(1 n13) x(@add(n5 n6) x(n11 dup(n3 n5))))
@@ -65,7 +65,7 @@
   x(n15 x(n12 x(n17 n18))) = ::std::io::print::1
 }
 
-::std::io::print::3 { x(n1 x(n1 x(_ _))) }
+::std::io::print::3 { x(n1 x(n1 _)) }
 
 ::std::io::print_char { fn(ref(@io_print_char(char io) io) fn(char _)) }
 
@@ -97,8 +97,8 @@
 }
 
 ::std::io::read_line::4 {
-  x(n0 x(n9 x(n15 n11)))
-  ::std::io::read_byte = fn(ref(n0 n12) fn(10 dup(@ne(10 ?(::std::io::read_line::6 ::std::io::read_line::5 x(n12 x(n9 x(n14 x(n15 n11)))))) n14)))
+  x(n0 x(n9 n15))
+  ::std::io::read_byte = fn(ref(n0 n12) fn(10 dup(@ne(10 ?(::std::io::read_line::6 ::std::io::read_line::5 x(n12 x(n9 x(n14 n15))))) n14)))
 }
 
 ::std::io::read_line::5 {
@@ -136,7 +136,7 @@
   x(n5 x(tup(0 fn(n0 n0)) n4)) = ::std::u32::to_string::2
 }
 
-::std::u32::to_string::2 { x(dup(?(::std::u32::to_string::4 ::std::u32::to_string::3 x(n5 x(n6 n4))) n5) x(n6 n4)) }
+::std::u32::to_string::2 { x(dup(?(::std::u32::to_string::4 ::std::u32::to_string::3 x(n5 n6)) n5) n6) }
 
 ::std::u32::to_string::3 {
   x(dup(@rem(10 n7) @div(10 n19)) x(tup(@add(1 n4) fn(n10 n11)) n18))
@@ -157,7 +157,7 @@
   x(n11 x(n12 x(1 x(?(::std::u32::parse::9 ::std::u32::parse::8 x(n17 n10)) x(0 n17))))) = ::std::u32::parse::3
 }
 
-::std::u32::parse::3 { x(dup(?(::std::u32::parse::7 ::std::u32::parse::4 x(n8 x(n9 x(n10 x(n5 x(n12 n7)))))) n8) x(n9 x(n10 x(n5 x(n12 n7))))) }
+::std::u32::parse::3 { x(dup(?(::std::u32::parse::7 ::std::u32::parse::4 x(n8 n9)) n8) n9) }
 
 ::std::u32::parse::4 {
   x(n20 x(tup(dup(dup(n5 @le(57 n8)) n24) n26) x(_ x(n17 x(n22 n19)))))

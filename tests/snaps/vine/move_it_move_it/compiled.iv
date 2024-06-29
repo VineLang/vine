@@ -10,7 +10,7 @@
 
 ::move_it_move_it::main::1 {
   _
-  ::std::io::println = fn(ref(_ _) fn(tup(8 fn(n3 tup(109 tup(111 tup(118 tup(101 tup(32 tup(105 tup(116 tup(63 n3)))))))))) _))
+  ::std::io::println = fn(_ fn(tup(8 fn(n3 tup(109 tup(111 tup(118 tup(101 tup(32 tup(105 tup(116 tup(63 n3)))))))))) _))
 }
 
 ::move_it_move_it::main::2 { _ }
@@ -34,7 +34,7 @@
   x(n15 x(n12 x(n17 n18))) = ::std::io::print::1
 }
 
-::std::io::print::3 { x(n1 x(n1 x(_ _))) }
+::std::io::print::3 { x(n1 x(n1 _)) }
 
 ::std::io::print_char { fn(ref(@io_print_char(char io) io) fn(char _)) }
 

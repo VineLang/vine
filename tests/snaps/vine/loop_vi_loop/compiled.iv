@@ -3,7 +3,7 @@
 
 ::loop_vi_loop::main {
   fn(n4 _)
-  x(n4 x(0 0)) = ::loop_vi_loop::main::1
+  x(n4 0) = ::loop_vi_loop::main::1
 }
 
 ::loop_vi_loop::main::1 { x(n6 x(dup(@lt(5 ?(::loop_vi_loop::main::6 ::loop_vi_loop::main::2 x(n6 x(n7 n8)))) n7) n8)) }
@@ -25,7 +25,7 @@
 
 ::loop_vi_loop::main::5 { x(n1 x(n1 x(n3 x(n3 _)))) }
 
-::loop_vi_loop::main::6 { x(_ x(_ _)) }
+::loop_vi_loop::main::6 { _ }
 
 ::std::io::println {
   fn(ref(n3 n1) fn(n6 _))
@@ -46,7 +46,7 @@
   x(n15 x(n12 x(n17 n18))) = ::std::io::print::1
 }
 
-::std::io::print::3 { x(n1 x(n1 x(_ _))) }
+::std::io::print::3 { x(n1 x(n1 _)) }
 
 ::std::io::print_char { fn(ref(@io_print_char(char io) io) fn(char _)) }
 
@@ -57,7 +57,7 @@
   x(n5 x(tup(0 fn(n0 n0)) n4)) = ::std::u32::to_string::2
 }
 
-::std::u32::to_string::2 { x(dup(?(::std::u32::to_string::4 ::std::u32::to_string::3 x(n5 x(n6 n4))) n5) x(n6 n4)) }
+::std::u32::to_string::2 { x(dup(?(::std::u32::to_string::4 ::std::u32::to_string::3 x(n5 n6)) n5) n6) }
 
 ::std::u32::to_string::3 {
   x(dup(@rem(10 n7) @div(10 n19)) x(tup(@add(1 n4) fn(n10 n11)) n18))

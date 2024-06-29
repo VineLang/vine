@@ -43,9 +43,9 @@
   x(n25 x(n22 x(n27 n28))) = ::mandelbrot_tga::main::3
 }
 
-::mandelbrot_tga::main::5 { x(n1 x(n1 x(_ _))) }
+::mandelbrot_tga::main::5 { x(n1 x(n1 _)) }
 
-::mandelbrot_tga::main::6 { x(_ _) }
+::mandelbrot_tga::main::6 { _ }
 
 ::mandelbrot_tga::mandelbrot {
   fn(n11 fn(n12 n9))
@@ -77,7 +77,7 @@
   x(n15 x(n12 x(n17 n18))) = ::std::io::print_bytes::1
 }
 
-::std::io::print_bytes::3 { x(n1 x(n1 x(_ _))) }
+::std::io::print_bytes::3 { x(n1 x(n1 _)) }
 
 ::std::io::print_byte { fn(ref(@io_print_byte(char io) io) fn(char _)) }
 

@@ -93,7 +93,7 @@
 
 ::mandelbrot_sixel::main::12 { x(n3 x(n3 36)) }
 
-::mandelbrot_sixel::main::13 { x(n1 x(n1 x(_ _))) }
+::mandelbrot_sixel::main::13 { x(n1 x(n1 _)) }
 
 ::mandelbrot_sixel::mandelbrot {
   fn(n12 fn(n13 n10))
@@ -125,7 +125,7 @@
   x(n15 x(n12 x(n17 n18))) = ::std::io::print_bytes::1
 }
 
-::std::io::print_bytes::3 { x(n1 x(n1 x(_ _))) }
+::std::io::print_bytes::3 { x(n1 x(n1 _)) }
 
 ::std::io::print_byte { fn(ref(@io_print_byte(char io) io) fn(char _)) }
 
@@ -138,7 +138,7 @@
   x(n5 x(tup(0 fn(n0 n0)) n4)) = ::std::u32::to_string::2
 }
 
-::std::u32::to_string::2 { x(dup(?(::std::u32::to_string::4 ::std::u32::to_string::3 x(n5 x(n6 n4))) n5) x(n6 n4)) }
+::std::u32::to_string::2 { x(dup(?(::std::u32::to_string::4 ::std::u32::to_string::3 x(n5 n6)) n5) n6) }
 
 ::std::u32::to_string::3 {
   x(dup(@rem(10 n7) @div(10 n19)) x(tup(@add(1 n4) fn(n10 n11)) n18))

@@ -45,9 +45,9 @@
 
 ::mandelbrot::main::6 { 32 }
 
-::mandelbrot::main::7 { x(n1 x(n1 x(_ _))) }
+::mandelbrot::main::7 { x(n1 x(n1 _)) }
 
-::mandelbrot::main::8 { x(_ _) }
+::mandelbrot::main::8 { _ }
 
 ::mandelbrot::mandelbrot {
   fn(n10 fn(n11 n8))
