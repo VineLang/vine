@@ -1,14 +1,12 @@
 
 ::main { ::fizzbuzz::main }
 
-::fizzbuzz::end { 100 }
-
 ::fizzbuzz::main {
   fn(n3 _)
   x(n3 1) = ::fizzbuzz::main::1
 }
 
-::fizzbuzz::main::1 { x(n5 dup(@le(::fizzbuzz::end ?(::fizzbuzz::main::3 ::fizzbuzz::main::2 x(n5 n6))) n6)) }
+::fizzbuzz::main::1 { x(n5 dup(@le(100 ?(_ ::fizzbuzz::main::2 x(n5 n6))) n6)) }
 
 ::fizzbuzz::main::2 {
   x(n0 dup(n3 @add(1 n12)))
@@ -16,8 +14,6 @@
   ::fizzbuzz::message = fn(n3 n4)
   x(n11 n12) = ::fizzbuzz::main::1
 }
-
-::fizzbuzz::main::3 { _ }
 
 ::fizzbuzz::message { fn(dup(@rem(3 ?(::fizzbuzz::message::4 ::fizzbuzz::message::1 x(n11 x(n12 n9)))) dup(@rem(5 n12) n11)) n9) }
 

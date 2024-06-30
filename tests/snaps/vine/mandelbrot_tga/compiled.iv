@@ -1,14 +1,6 @@
 
 ::main { ::mandelbrot_tga::main }
 
-::mandelbrot_tga::max_iter { 64 }
-
-::mandelbrot_tga::width { 1024 }
-
-::mandelbrot_tga::height { 1024 }
-
-::mandelbrot_tga::scale { +2.6 }
-
 ::mandelbrot_tga::center {
   tup(n0 +0.0)
   0 = @sub(+0.8 n0)
@@ -16,13 +8,13 @@
 
 ::mandelbrot_tga::main {
   fn(n1 _)
-  ::std::io::print_bytes = fn(ref(n1 n10) fn(tup(18 fn(n4 tup(0 tup(0 tup(3 tup(0 tup(0 tup(0 tup(0 tup(0 tup(0 tup(0 tup(0 tup(0 tup(::mandelbrot_tga::width tup(n5 tup(::mandelbrot_tga::height tup(n6 tup(8 tup(32 n4)))))))))))))))))))) _))
-  ::mandelbrot_tga::width = @u32_shr(8 n5)
-  ::mandelbrot_tga::height = @u32_shr(8 n6)
+  ::std::io::print_bytes = fn(ref(n1 n10) fn(tup(18 fn(n4 tup(0 tup(0 tup(3 tup(0 tup(0 tup(0 tup(0 tup(0 tup(0 tup(0 tup(0 tup(0 tup(1024 tup(n5 tup(1024 tup(n6 tup(8 tup(32 n4)))))))))))))))))))) _))
+  1024 = @u32_shr(8 n5)
+  1024 = @u32_shr(8 n6)
   x(n10 0) = ::mandelbrot_tga::main::1
 }
 
-::mandelbrot_tga::main::1 { x(n5 dup(@lt(::mandelbrot_tga::height ?(::mandelbrot_tga::main::6 ::mandelbrot_tga::main::2 x(n5 n6))) n6)) }
+::mandelbrot_tga::main::1 { x(n5 dup(@lt(1024 ?(_ ::mandelbrot_tga::main::2 x(n5 n6))) n6)) }
 
 ::mandelbrot_tga::main::2 {
   x(n6 dup(n8 @add(1 n11)))
@@ -30,13 +22,13 @@
   x(n10 n11) = ::mandelbrot_tga::main::1
 }
 
-::mandelbrot_tga::main::3 { x(n7 x(n4 x(n9 dup(@lt(::mandelbrot_tga::width ?(::mandelbrot_tga::main::5 ::mandelbrot_tga::main::4 x(n7 x(n4 x(n9 n10))))) n10)))) }
+::mandelbrot_tga::main::3 { x(n7 x(n4 x(n9 dup(@lt(1024 ?(::mandelbrot_tga::main::5 ::mandelbrot_tga::main::4 x(n7 x(n4 x(n9 n10))))) n10)))) }
 
 ::mandelbrot_tga::main::4 {
   x(n10 x(n22 x(dup(n2 n27) dup(n1 @add(1 n28)))))
-  ::mandelbrot_tga::scale = @div(::mandelbrot_tga::width @mul(n5 n6))
+  +2.6 = @div(1024 @mul(n5 n6))
   tup(n1 n2) = @add(+0.5 @sub(n4 n5))
-  tup(::mandelbrot_tga::width ::mandelbrot_tga::height) = @div(+2.0 n4)
+  tup(1024 1024) = @div(+2.0 n4)
   ::mandelbrot_tga::center = @add(n6 tup(n13 n15))
   ::std::io::print_byte = fn(ref(n10 n25) fn(n16 _))
   ::mandelbrot_tga::mandelbrot = fn(n13 fn(n15 n16))
@@ -45,15 +37,13 @@
 
 ::mandelbrot_tga::main::5 { x(n1 x(n1 _)) }
 
-::mandelbrot_tga::main::6 { _ }
-
 ::mandelbrot_tga::mandelbrot {
   fn(n11 fn(n12 n9))
   tup(n13 tup(n14 tup(n15 n16))) = +0.0
-  x(n11 x(n12 x(n13 x(n14 x(n15 x(n16 x(0 @mul(256 @div(::mandelbrot_tga::max_iter n9))))))))) = ::mandelbrot_tga::mandelbrot::1
+  x(n11 x(n12 x(n13 x(n14 x(n15 x(n16 x(0 @mul(256 @div(64 n9))))))))) = ::mandelbrot_tga::mandelbrot::1
 }
 
-::mandelbrot_tga::mandelbrot::1 { x(n16 x(n17 x(n18 x(n19 x(dup(@add(n3 @lt(+4.0 n5)) n20) x(dup(n3 n21) x(dup(@lt(::mandelbrot_tga::max_iter @u32_and(n5 ?(::mandelbrot_tga::mandelbrot::3 ::mandelbrot_tga::mandelbrot::2 x(n16 x(n17 x(n18 x(n19 x(n20 x(n21 x(n22 n15)))))))))) n22) n15))))))) }
+::mandelbrot_tga::mandelbrot::1 { x(n16 x(n17 x(n18 x(n19 x(dup(@add(n3 @lt(+4.0 n5)) n20) x(dup(n3 n21) x(dup(@lt(64 @u32_and(n5 ?(::mandelbrot_tga::mandelbrot::3 ::mandelbrot_tga::mandelbrot::2 x(n16 x(n17 x(n18 x(n19 x(n20 x(n21 x(n22 n15)))))))))) n22) n15))))))) }
 
 ::mandelbrot_tga::mandelbrot::2 {
   x(dup(n6 n32) x(dup(n12 n33) x(n8 x(n10 x(@sub(n4 @add(n6 n7)) x(n4 x(@add(1 n38) n31)))))))

@@ -1,14 +1,12 @@
 
 ::main { ::fib::main }
 
-::fib::end { 32 }
-
 ::fib::main {
   fn(n5 _)
   x(n5 x(0 x(0 1))) = ::fib::main::1
 }
 
-::fib::main::1 { x(n7 x(dup(@le(::fib::end ?(::fib::main::3 ::fib::main::2 x(n7 x(n8 n9)))) n8) n9)) }
+::fib::main::1 { x(n7 x(dup(@le(32 ?(_ ::fib::main::2 x(n7 x(n8 n9)))) n8) n9)) }
 
 ::fib::main::2 {
   x(n0 x(dup(n4 @add(1 n27)) x(dup(n9 @add(n15 n16)) dup(n13 n15))))
@@ -21,8 +19,6 @@
   tup(n28 n29) = tup(n13 n16)
   x(n26 x(n27 x(n28 n29))) = ::fib::main::1
 }
-
-::fib::main::3 { _ }
 
 ::std::io::println {
   fn(ref(n3 n1) fn(n6 _))

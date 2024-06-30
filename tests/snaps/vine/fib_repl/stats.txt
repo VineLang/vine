@@ -1,11 +1,11 @@
 
 Interactions
-  Total             14_008_506
+  Total             14_008_505
   Annihilate         6_004_000
   Commute                    0
   Copy               2_000_856
   Erase              1_000_906
-  Expand             2_001_288
+  Expand             2_001_287
   Call               2_000_950
   Branch             1_000_506
 

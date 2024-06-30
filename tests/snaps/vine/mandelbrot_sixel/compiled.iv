@@ -1,14 +1,6 @@
 
 ::main { ::mandelbrot_sixel::main }
 
-::mandelbrot_sixel::max_iter { 50 }
-
-::mandelbrot_sixel::width { 512 }
-
-::mandelbrot_sixel::height { 512 }
-
-::mandelbrot_sixel::scale { +2.6 }
-
 ::mandelbrot_sixel::center {
   tup(n0 +0.0)
   0 = @sub(+0.8 n0)
@@ -46,7 +38,7 @@
 
 ::mandelbrot_sixel::main::3 { x(n1 x(n1 _)) }
 
-::mandelbrot_sixel::main::4 { x(n7 x(n4 x(dup(@lt(::mandelbrot_sixel::height ?(::mandelbrot_sixel::main::13 ::mandelbrot_sixel::main::5 x(n7 x(n4 x(n9 n10))))) n9) n10))) }
+::mandelbrot_sixel::main::4 { x(n7 x(n4 x(dup(@lt(512 ?(::mandelbrot_sixel::main::13 ::mandelbrot_sixel::main::5 x(n7 x(n4 x(n9 n10))))) n9) n10))) }
 
 ::mandelbrot_sixel::main::5 {
   x(n2 x(n39 x(dup(n44 @add(1 n55)) dup(n45 dup(n21 @mul(2 dup(@lt$(32 ?(::mandelbrot_sixel::main::12 ::mandelbrot_sixel::main::11 x(n50 x(n56 n33)))) n50)))))))
@@ -61,13 +53,13 @@
   x(n53 x(n39 x(n55 n56))) = ::mandelbrot_sixel::main::4
 }
 
-::mandelbrot_sixel::main::6 { x(n11 x(n4 x(n13 x(n14 x(n15 x(n16 x(n9 dup(@lt(::mandelbrot_sixel::width ?(::mandelbrot_sixel::main::10 ::mandelbrot_sixel::main::7 x(n11 x(n4 x(n13 x(n14 x(n15 x(n16 x(n9 n18))))))))) n18)))))))) }
+::mandelbrot_sixel::main::6 { x(n11 x(n4 x(n13 x(n14 x(n15 x(n16 x(n9 dup(@lt(512 ?(::mandelbrot_sixel::main::10 ::mandelbrot_sixel::main::7 x(n11 x(n4 x(n13 x(n14 x(n15 x(n16 x(n9 n18))))))))) n18)))))))) }
 
 ::mandelbrot_sixel::main::7 {
   x(n33 x(n26 x(dup(n2 n41) x(dup(n35 n42) x(n16 x(n36 x(n31 dup(n1 @add(1 n46)))))))))
-  ::mandelbrot_sixel::scale = @div(::mandelbrot_sixel::width @mul(n5 n6))
+  +2.6 = @div(512 @mul(n5 n6))
   tup(n1 n2) = @add(+0.5 @sub(n4 n5))
-  tup(::mandelbrot_sixel::width ::mandelbrot_sixel::height) = @div(+2.0 n4)
+  tup(512 512) = @div(+2.0 n4)
   ::mandelbrot_sixel::center = @add(n6 tup(n10 n12))
   ::mandelbrot_sixel::mandelbrot = fn(n10 fn(n12 dup(@ne(n16 ?(::mandelbrot_sixel::main::9 ::mandelbrot_sixel::main::8 x(n33 x(n39 x(n35 x(n36 x(n44 n38))))))) dup(n38 n43))))
   x(n39 x(n26 x(n41 x(n42 x(n43 x(n44 x(n31 n46))))))) = ::mandelbrot_sixel::main::6
@@ -98,10 +90,10 @@
 ::mandelbrot_sixel::mandelbrot {
   fn(n12 fn(n13 n10))
   tup(n14 tup(n15 tup(n16 n17))) = +0.0
-  x(n12 x(n13 x(n14 x(n15 x(n16 x(n17 x(0 @mul(101 @div(::mandelbrot_sixel::max_iter @rem(101 n10)))))))))) = ::mandelbrot_sixel::mandelbrot::1
+  x(n12 x(n13 x(n14 x(n15 x(n16 x(n17 x(0 @mul(101 @div(50 @rem(101 n10)))))))))) = ::mandelbrot_sixel::mandelbrot::1
 }
 
-::mandelbrot_sixel::mandelbrot::1 { x(n16 x(n17 x(n18 x(n19 x(dup(@add(n3 @lt(+4.0 n5)) n20) x(dup(n3 n21) x(dup(@lt(::mandelbrot_sixel::max_iter @u32_and(n5 ?(::mandelbrot_sixel::mandelbrot::3 ::mandelbrot_sixel::mandelbrot::2 x(n16 x(n17 x(n18 x(n19 x(n20 x(n21 x(n22 n15)))))))))) n22) n15))))))) }
+::mandelbrot_sixel::mandelbrot::1 { x(n16 x(n17 x(n18 x(n19 x(dup(@add(n3 @lt(+4.0 n5)) n20) x(dup(n3 n21) x(dup(@lt(50 @u32_and(n5 ?(::mandelbrot_sixel::mandelbrot::3 ::mandelbrot_sixel::mandelbrot::2 x(n16 x(n17 x(n18 x(n19 x(n20 x(n21 x(n22 n15)))))))))) n22) n15))))))) }
 
 ::mandelbrot_sixel::mandelbrot::2 {
   x(dup(n6 n32) x(dup(n12 n33) x(n8 x(n10 x(@sub(n4 @add(n6 n7)) x(n4 x(@add(1 n38) n31)))))))

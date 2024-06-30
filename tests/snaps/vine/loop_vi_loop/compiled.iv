@@ -6,7 +6,7 @@
   x(n4 0) = ::loop_vi_loop::main::1
 }
 
-::loop_vi_loop::main::1 { x(n6 x(dup(@lt(5 ?(::loop_vi_loop::main::6 ::loop_vi_loop::main::2 x(n6 x(n7 n8)))) n7) n8)) }
+::loop_vi_loop::main::1 { x(n6 x(dup(@lt(5 ?(_ ::loop_vi_loop::main::2 x(n6 x(n7 n8)))) n7) n8)) }
 
 ::loop_vi_loop::main::2 {
   x(n7 x(@add(1 n13) n9))
@@ -24,8 +24,6 @@
 }
 
 ::loop_vi_loop::main::5 { x(n1 x(n1 x(n3 x(n3 _)))) }
-
-::loop_vi_loop::main::6 { _ }
 
 ::std::io::println {
   fn(ref(n3 n1) fn(n6 _))

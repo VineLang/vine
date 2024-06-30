@@ -6,7 +6,7 @@
 ::fib_repl::main::1 {
   n0
   ::std::io::prompt = fn(ref(n0 n11) fn(tup(2 fn(n3 tup(62 tup(32 n3)))) n6))
-  ::std::option::is_some = fn(ref(n6 n12) ?(::fib_repl::main::5 ::fib_repl::main::2 x(n11 n12)))
+  ::std::option::is_some = fn(ref(n6 n12) ?(_ ::fib_repl::main::2 x(n11 n12)))
 }
 
 ::fib_repl::main::2 {
@@ -28,8 +28,6 @@
   x(n0 x(n6 _))
   ::std::io::println = fn(ref(n0 n6) fn(tup(14 fn(n3 tup(105 tup(110 tup(118 tup(97 tup(108 tup(105 tup(100 tup(32 tup(110 tup(117 tup(109 tup(98 tup(101 tup(114 n3)))))))))))))))) _))
 }
-
-::fib_repl::main::5 { _ }
 
 ::fib_repl::fib {
   fn(n5 n3)
