@@ -61,7 +61,7 @@ impl Nets {
   }
 }
 
-pub struct Serializer<'ast, 'ivm> {
+struct Serializer<'ast, 'ivm> {
   globals: &'ivm [UnsafeCell<Global<'ivm>>],
   nets: &'ast Nets,
   opts: SerializeOptions,

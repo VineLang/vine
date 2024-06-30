@@ -1,6 +1,8 @@
 use std::time::Instant;
 
-use crate::{addr::Addr, ext::ExtVal, global::Global, heap::Heap, port::Port, stats::Stats};
+use crate::{
+  addr::Addr, ext::ExtVal, global::Global, heap::Heap, port::Port, stats::Stats, wire::Wire,
+};
 
 /// An Interaction Virtual Machine.
 pub struct IVM<'ivm> {
@@ -21,7 +23,7 @@ pub struct IVM<'ivm> {
   /// allocate memory).
   pub(crate) active_slow: Vec<(Port<'ivm>, Port<'ivm>)>,
 
-  pub(crate) inert: Vec<(Port<'ivm>, Port<'ivm>)>,
+  pub inert: Vec<(Port<'ivm>, Port<'ivm>)>,
 
   /// Used by [`IVM::execute`].
   pub(crate) registers: Vec<Option<Port<'ivm>>>,
@@ -48,6 +50,20 @@ impl<'ivm> IVM<'ivm> {
   /// do that.
   pub fn boot(&mut self, main: &'ivm Global<'ivm>) {
     self.link(Port::new_global(main), Port::new_ext_val(ExtVal::IO));
+  }
+
+  /// Boots this IVM from the `main` global, connecting it to a free port.
+  ///
+  /// This does not start any processing; [`IVM::normalize`] must be called to
+  /// do that.
+  pub fn boot_free(&mut self, main: &'ivm Global<'ivm>) -> Port<'ivm> {
+    unsafe {
+      let addr = self.alloc_node();
+      self.free_wire(Wire::from_addr(addr.other_half()));
+      let free = Port::new_wire(Wire::from_addr(addr.other_half()));
+      self.expand(Port::new_global(main), free.clone());
+      free
+    }
   }
 
   /// Normalize all nets in this IVM.

@@ -1,38 +1,5 @@
 
 ::main { ::move_it_move_it::main }
 
-::move_it_move_it::main {
-  fn(n0 _)
-  ref(n0 _) = ref(n1 _)
-  ::std::io::println = fn(ref(n1 _) fn(tup(8 fn(n2 tup(109 tup(111 tup(118 tup(101 tup(32 tup(105 tup(116 tup(33 n2)))))))))) _))
-  1 = ?(_ ::move_it_move_it::main::1 _)
-}
-
-::move_it_move_it::main::1 {
-  _
-  ::std::io::println = fn(_ fn(tup(8 fn(n0 tup(109 tup(111 tup(118 tup(101 tup(32 tup(105 tup(116 tup(63 n0)))))))))) _))
-}
-
-::std::io::println {
-  fn(ref(n0 n3) fn(n1 _))
-  ::std::io::print = fn(ref(n0 n2) fn(n1 _))
-  ::std::io::print_char = fn(ref(n2 n3) fn(10 _))
-}
-
-::std::io::print {
-  fn(ref(n0 n1) fn(tup(n2 fn(_ n3)) _))
-  ::std::io::print::1 = x(n0 x(n1 x(n2 n3)))
-}
-
-::std::io::print::1 { x(n0 x(n1 x(dup(?(::std::io::print::4 ::std::io::print::2 x(n0 x(n1 x(n3 n2)))) n3) n2))) }
-
-::std::io::print::2 {
-  x(n1 x(n3 x(@sub(1 n4) tup(n0 n5))))
-  ::std::io::print_char = fn(ref(n1 n2) fn(n0 _))
-  ::std::io::print::1 = x(n2 x(n3 x(n4 n5)))
-}
-
-::std::io::print::4 { x(n0 x(n0 _)) }
-
-::std::io::print_char { fn(ref(@io_print_char(char io) io) fn(char _)) }
+::move_it_move_it::main { l0(@io_print_char(109 @io_print_char(111 @io_print_char(118 @io_print_char(101 @io_print_char(32 @io_print_char(105 @io_print_char(116 @io_print_char(33 @io_print_char(10 _))))))))) _) }
 

@@ -9,7 +9,7 @@ use crate::{
 };
 
 /// The address of a port, a pointer of only-externally-known interpretation.
-#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[repr(transparent)]
 pub struct Addr(pub *const ());
 

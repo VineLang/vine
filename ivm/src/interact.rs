@@ -63,10 +63,10 @@ impl<'ivm> IVM<'ivm> {
     use Tag::*;
     match ((a.tag(), a), (b.tag(), b)) {
       sym!((Wire, _), _) | sym!((Erase | ExtVal, _)) => unreachable!(),
-      sym!((Global, c), (Comb, d)) if !unsafe { c.as_global() }.labels.has(d.label()) => {
-        self.copy(c, d)
+      sym!((Global, g), (Comb, d)) if !unsafe { g.as_global() }.labels.has(d.label()) => {
+        self.copy(g, d)
       }
-      sym!((Global, c), (_, p)) => self.expand(c, p),
+      sym!((Global, g), (_, p)) => unsafe { self.expand(g, p) },
       ((Comb, a), (Comb, b)) | ((ExtFn, a), (ExtFn, b)) | ((Branch, a), (Branch, b))
         if a.label() == b.label() =>
       {
@@ -79,15 +79,17 @@ impl<'ivm> IVM<'ivm> {
     }
   }
 
+  /// ## Safety
+  /// This port must be [`Tag::Global`].
+  pub(crate) unsafe fn expand(&mut self, g: Port<'ivm>, p: Port<'ivm>) {
+    self.stats.expand += 1;
+    let global = unsafe { g.as_global() };
+    self.execute(&global.instructions, p);
+  }
+
   // Note that all of the following functions are technically unsafe -- they
   // require the ports they are passed to have certain tags. They are not marked
   // as `unsafe` to reduce noise, and as such must be kept private.
-
-  fn expand(&mut self, c: Port<'ivm>, p: Port<'ivm>) {
-    self.stats.expand += 1;
-    let global = unsafe { c.as_global() };
-    self.execute(&global.instructions, p);
-  }
 
   fn annihilate(&mut self, a: Port<'ivm>, b: Port<'ivm>) {
     self.stats.annihilate += 1;

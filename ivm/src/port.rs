@@ -189,10 +189,10 @@ impl<'ivm> Port<'ivm> {
     unsafe { ExtVal::from_bits(self.0.get().bits()) }
   }
 
-  /// Get the address of this port, interpreted as an [`ExtVal`].
+  /// Get the address of this port, interpreted as a [`Global`].
   ///
   /// ## Safety
-  /// This port must be [`Tag::ExtVal`].
+  /// This port must be [`Tag::Global`].
   #[inline(always)]
   pub unsafe fn as_global(&self) -> &'ivm Global<'ivm> {
     debug_assert_eq!(self.tag(), Tag::Global);
