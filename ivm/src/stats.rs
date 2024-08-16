@@ -1,5 +1,6 @@
 use core::{
   fmt::{self, Debug, Display, Write},
+  ops::AddAssign,
   str,
   time::Duration,
 };
@@ -38,7 +39,7 @@ impl Stats {
 
   /// The time spent processing interactions.
   pub fn time_interactions(&self) -> Duration {
-    self.time_total - self.time_io
+    self.time_total.saturating_sub(self.time_io)
   }
 
   /// The speed of the interactions, in interactions per second.
@@ -121,5 +122,22 @@ const fn measure_int(int: u64) -> usize {
   } else {
     let digits = int.ilog10() + 1;
     (digits + (digits - 1) / 3) as usize
+  }
+}
+
+impl AddAssign<Stats> for Stats {
+  fn add_assign(&mut self, rhs: Stats) {
+    self.annihilate += rhs.annihilate;
+    self.commute += rhs.commute;
+    self.copy += rhs.copy;
+    self.erase += rhs.erase;
+    self.expand += rhs.expand;
+    self.call += rhs.call;
+    self.branch += rhs.branch;
+    self.mem_heap += rhs.mem_heap;
+    self.mem_alloc += rhs.mem_alloc;
+    self.mem_free += rhs.mem_free;
+    self.time_total += rhs.time_total;
+    self.time_io += rhs.time_io;
   }
 }

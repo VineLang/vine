@@ -1,4 +1,4 @@
-use core::{alloc::Layout, ptr};
+use core::{alloc::Layout, mem::transmute, ptr, slice::SliceIndex};
 use std::alloc::alloc;
 
 use crate::word::AtomicWord;
@@ -48,5 +48,9 @@ impl Heap {
       }
       Some(Box::from_raw(ptr::slice_from_raw_parts_mut(ptr, nodes) as *mut Heap))
     }
+  }
+
+  pub(crate) fn slice(&self, range: impl SliceIndex<[Node], Output = [Node]>) -> &Self {
+    unsafe { transmute::<&[Node], &Heap>(&self.0[range]) }
   }
 }

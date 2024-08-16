@@ -1,18 +1,16 @@
 use std::time::Instant;
 
-use crate::{addr::Addr, ext::ExtVal, global::Global, heap::Heap, port::Port, stats::Stats};
+use crate::{
+  allocator::Allocator, ext::ExtVal, global::Global, heap::Heap, port::Port, stats::Stats,
+};
 
 /// An Interaction Virtual Machine.
 pub struct IVM<'ivm> {
   /// Execution statistics of this IVM.
   pub stats: Stats,
 
-  /// The heap memory backing this IVM.
-  pub(crate) heap: &'ivm Heap,
-  /// The head pointer of the allocator's freelist.
-  pub(crate) alloc_head: Addr,
-  /// The next unallocated index in the `heap`.
-  pub(crate) alloc_next: usize,
+  pub(crate) alloc: Allocator<'ivm>,
+  pub(crate) alloc_pool: Vec<Allocator<'ivm>>,
 
   /// Active pairs that should be "fast" to process (generally, those which do
   /// not allocate memory).
@@ -28,10 +26,13 @@ pub struct IVM<'ivm> {
 impl<'ivm> IVM<'ivm> {
   /// Creates a new IVM with a given heap.
   pub fn new(heap: &'ivm Heap) -> Self {
+    Self::new_from_allocator(Allocator::new(heap))
+  }
+
+  pub(crate) fn new_from_allocator(alloc: Allocator<'ivm>) -> Self {
     Self {
-      heap,
-      alloc_next: 0,
-      alloc_head: Addr::NULL,
+      alloc,
+      alloc_pool: Vec::new(),
       registers: Vec::new(),
       active_fast: Vec::new(),
       active_slow: Vec::new(),
@@ -51,9 +52,7 @@ impl<'ivm> IVM<'ivm> {
   pub fn normalize(&mut self) {
     let start = Instant::now();
     loop {
-      while let Some((a, b)) = self.active_fast.pop() {
-        self.interact(a, b)
-      }
+      self.do_fast();
       if let Some((a, b)) = self.active_slow.pop() {
         self.interact(a, b)
       } else {
@@ -61,5 +60,11 @@ impl<'ivm> IVM<'ivm> {
       }
     }
     self.stats.time_total += start.elapsed();
+  }
+
+  pub(crate) fn do_fast(&mut self) {
+    while let Some((a, b)) = self.active_fast.pop() {
+      self.interact(a, b)
+    }
   }
 }
