@@ -34,6 +34,7 @@ impl<'ctx> Loader<'ctx> {
         value: Term::new_path(ast::Path {
           segments: vec![self.auto_mod_name(&path), main],
           absolute: true,
+          resolved: None,
         }),
       }),
     });

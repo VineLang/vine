@@ -1,6 +1,6 @@
 use crate::ast::{Ident, Item, ItemKind, ModKind, Path, Term, TermKind, UseTree};
 
-use super::{Node, NodeId, NodeValue, Resolver};
+use super::{Adt, Node, NodeId, NodeValue, Resolver, Variant};
 
 impl Resolver {
   pub fn build_graph(&mut self, root: ModKind) {
@@ -39,10 +39,41 @@ impl Resolver {
         Self::build_imports(
           tree,
           &mut self.nodes[parent],
-          &mut Path { segments: Vec::new(), absolute: false },
+          &mut Path { segments: Vec::new(), absolute: false, resolved: None },
         );
       }
-      ItemKind::Pattern(_) | ItemKind::Struct(_) | ItemKind::Enum(_) => todo!(),
+      ItemKind::Struct(s) => {
+        let child = self.get_or_insert_child(parent, s.name);
+        if child.adt.is_some() || child.variant.is_some() || child.value.is_some() {
+          panic!("duplicate definition of {:?}", child.canonical);
+        }
+        child.adt = Some(Adt { variants: vec![child.id] });
+        child.variant = Some(Variant { adt: child.id, variant: 0, fields: s.fields });
+        child.value = Some(NodeValue::AdtConstructor);
+      }
+      ItemKind::Enum(e) => {
+        let child = self.get_or_insert_child(parent, e.name);
+        if child.adt.is_some() {
+          panic!("duplicate definition of {:?}", child.canonical);
+        }
+        let adt = child.id;
+        let variants = e
+          .variants
+          .into_iter()
+          .enumerate()
+          .map(|(i, v)| {
+            let variant = self.get_or_insert_child(adt, v.name);
+            if variant.variant.is_some() || variant.value.is_some() {
+              panic!("duplicate definition of {:?}", variant.canonical);
+            }
+            variant.variant = Some(Variant { adt, variant: i, fields: v.fields });
+            variant.value = Some(NodeValue::AdtConstructor);
+            variant.id
+          })
+          .collect();
+        self.nodes[adt].adt = Some(Adt { variants });
+      }
+      ItemKind::Pattern(_) => todo!(),
     }
   }
 
@@ -90,16 +121,19 @@ impl Resolver {
     self.nodes.len()
   }
 
-  fn new_node(&mut self, canonical: Path, parent: Option<usize>) -> NodeId {
+  fn new_node(&mut self, mut canonical: Path, parent: Option<usize>) -> NodeId {
     let id = self.nodes.len();
+    canonical.resolved = Some(id);
     let node = Node {
       id,
       canonical,
       children: Default::default(),
       imports: Default::default(),
       parent,
-      value: None,
       locals: 0,
+      value: None,
+      adt: None,
+      variant: None,
     };
     self.nodes.push(node);
     id

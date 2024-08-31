@@ -2,12 +2,17 @@ use std::mem::take;
 
 use crate::{
   ast::{Term, TermKind},
+  resolve::Node,
   visit::VisitMut,
 };
 
 pub struct Desugar;
 
 impl VisitMut<'_> for Desugar {
+  fn visit_node(&mut self, node: &mut Node) {
+    self._visit_node(node)
+  }
+
   fn visit_term(&mut self, term: &mut Term) {
     match &mut term.kind {
       TermKind::Method(receiver, path, args) => {

@@ -5,9 +5,11 @@ use ivm::ext::{ExtFn, ExtFnKind};
 use crate::{ast::*, resolve::Node};
 
 use super::{
-  stage_name, Agent, Compiler, Fork, ForkId, Interface, InterfaceId, Local, Port, Stage, StageId,
-  Step, Usage,
+  stage_name, Agent, Compiler, Fork, ForkId, Interface, InterfaceId, Port, Stage, StageId, Step,
+  Usage,
 };
+
+mod pattern_matching;
 
 enum ExprCtx {
   Value,
@@ -20,7 +22,7 @@ enum Expr {
   Place(Port, Port),
 }
 
-impl Compiler {
+impl Compiler<'_> {
   pub(super) fn build_stages(&mut self, node: &Node, term: &Term) -> StageId {
     self.local_count = node.locals;
     self.name = node.canonical.to_string();
@@ -265,6 +267,7 @@ impl Compiler {
         self.diverge(ret.1);
         Expr::Value(Port::Erase)
       }
+      TermKind::Match(value, arms) => self.build_match(value, arms),
       _ => todo!(),
     }
   }
@@ -472,12 +475,6 @@ impl Compiler {
     id
   }
 
-  fn new_local(&mut self) -> Local {
-    let local = self.local_count;
-    self.local_count += 1;
-    local
-  }
-
   fn diverge(&mut self, to: ForkId) {
     let divergence = self.cur.divergence.min(to);
     self.cur.divergence = divergence;
@@ -502,6 +499,12 @@ impl Compiler {
         self.stages[c].steps.push_back(Step::Call(i, port));
       }
     };
+  }
+
+  fn goto(&mut self, stage: StageId) {
+    let interface = self.stages[stage].outer;
+    let stage = self.stage_port(stage);
+    self.cur.steps.push_back(Step::Call(interface, stage));
   }
 
   fn cur_fork(&self) -> ForkId {

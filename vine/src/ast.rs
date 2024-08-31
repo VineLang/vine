@@ -6,6 +6,8 @@ use std::{
 use ivy::ast::Net;
 use vine_util::interner::Interned;
 
+use crate::resolve::NodeId;
+
 #[derive(Clone)]
 pub struct Item {
   pub kind: ItemKind,
@@ -75,14 +77,15 @@ pub struct InlineIvy {
   pub net: Net,
 }
 
-#[derive(Default, Clone)]
+#[derive(Default, Clone, PartialEq, Eq)]
 pub struct Path {
   pub segments: Vec<Ident>,
   pub absolute: bool,
+  pub resolved: Option<NodeId>,
 }
 
 impl Path {
-  pub const ROOT: Self = Self { segments: Vec::new(), absolute: true };
+  pub const ROOT: Self = Self { segments: Vec::new(), absolute: true, resolved: Some(0) };
 }
 
 #[derive(Default, Debug, Clone)]
@@ -229,7 +232,11 @@ impl Term {
 
 impl Path {
   pub fn extend(&self, ext: &[Ident]) -> Self {
-    Path { segments: self.segments.iter().chain(ext).copied().collect(), absolute: self.absolute }
+    Path {
+      segments: self.segments.iter().chain(ext).copied().collect(),
+      absolute: self.absolute,
+      resolved: None,
+    }
   }
 
   pub fn as_ident(&self) -> Option<Ident> {

@@ -19,8 +19,12 @@ pub type NodeId = usize;
 pub struct Node {
   pub id: NodeId,
   pub canonical: Path,
-  pub value: Option<NodeValue>,
+
   pub locals: usize,
+  pub value: Option<NodeValue>,
+
+  pub adt: Option<Adt>,
+  pub variant: Option<Variant>,
 
   children: HashMap<Ident, NodeId>,
   imports: HashMap<Ident, Option<Path>>,
@@ -31,4 +35,17 @@ pub struct Node {
 pub enum NodeValue {
   Term(Term),
   Ivy(Net),
+  AdtConstructor,
+}
+
+#[derive(Debug)]
+pub struct Adt {
+  pub variants: Vec<NodeId>,
+}
+
+#[derive(Debug)]
+pub struct Variant {
+  pub adt: NodeId,
+  pub variant: usize,
+  pub fields: Vec<Ident>,
 }

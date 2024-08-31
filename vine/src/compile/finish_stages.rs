@@ -8,13 +8,16 @@ use super::{
   Step, WireDir,
 };
 
-impl Compiler {
+impl Compiler<'_> {
   pub(super) fn finish_stages(&mut self, init: StageId) {
     self.nets.reserve(self.stages.len());
     for (id, stage) in self.stages.drain(..).enumerate() {
       let name = if id == init { self.name.clone() } else { stage_name(&self.name, id) };
-      let mut finish =
-        FinishNets { interfaces: &self.interfaces, net: &mut self.net, locals: Default::default() };
+      let mut finish = FinishStage {
+        interfaces: &self.interfaces,
+        net: &mut self.net,
+        locals: Default::default(),
+      };
       let root = finish.finish_stage(stage);
       let net = finish.net.finish(root);
       self.nets.insert(name, net);
@@ -24,7 +27,7 @@ impl Compiler {
 }
 
 #[derive(Debug)]
-struct FinishNets<'a> {
+struct FinishStage<'a> {
   interfaces: &'a [Interface],
   net: &'a mut NetBuilder,
   locals: BTreeMap<Local, LocalState>,
@@ -37,12 +40,17 @@ struct LocalState {
   end: Option<Port>,
 }
 
-impl<'a> FinishNets<'a> {
+impl<'a> FinishStage<'a> {
   fn finish_stage(&mut self, stage: Stage) -> Port {
     assert!(self.net.agents.is_empty());
     self.net.agents = stage.agents;
 
-    let root = self.interface(stage.outer, true);
+    let mut root = self.interface(stage.outer, true);
+
+    if let Some((new_root, old_root)) = stage.header {
+      self.net.link(old_root, root);
+      root = new_root;
+    }
 
     for step in stage.steps {
       match step {

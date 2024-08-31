@@ -4,7 +4,7 @@ use vine_util::bicycle::{Bicycle, BicycleState};
 
 use super::{Compiler, Interface, InterfaceId, Local, Port, Stage, Step, Usage, WireDir};
 
-impl Compiler {
+impl Compiler<'_> {
   pub(super) fn infer_interfaces(&mut self) {
     let all = 0..self.interfaces.len();
     FlowOut { stages: &self.stages, interfaces: &mut self.interfaces }.visit_all(all.clone());

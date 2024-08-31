@@ -175,7 +175,7 @@ impl<'ctx, 'src> VineParser<'ctx, 'src> {
   }
 
   fn parse_use_tree(&mut self) -> Parse<'src, UseTree> {
-    let mut path = Path { segments: Vec::new(), absolute: false };
+    let mut path = Path { segments: Vec::new(), absolute: false, resolved: None };
     while self.check(Token::Ident) {
       path.segments.push(self.parse_ident()?);
       if !self.eat(Token::ColonColon)? {
@@ -403,7 +403,7 @@ impl<'ctx, 'src> VineParser<'ctx, 'src> {
   fn parse_path(&mut self) -> Parse<'src, Path> {
     let absolute = self.eat(Token::ColonColon)?;
     let segments = self.parse_delimited(PATH, Self::parse_ident)?;
-    Ok(Path { segments, absolute })
+    Ok(Path { segments, absolute, resolved: None })
   }
 }
 

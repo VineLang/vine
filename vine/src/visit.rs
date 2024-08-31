@@ -8,6 +8,10 @@ pub trait VisitMut<'a> {
   fn exit_scope(&mut self) {}
 
   fn visit_node(&mut self, node: &'a mut Node) {
+    self._visit_node(node)
+  }
+
+  fn _visit_node(&mut self, node: &'a mut Node) {
     if let Some(NodeValue::Term(value)) = &mut node.value {
       self.visit_term(value);
     }

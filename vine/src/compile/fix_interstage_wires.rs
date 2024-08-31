@@ -2,7 +2,7 @@ use std::collections::{hash_map::Entry, HashMap, VecDeque};
 
 use super::{Compiler, Port, Step};
 
-impl Compiler {
+impl Compiler<'_> {
   pub(super) fn fix_interstage_wires(&mut self) {
     let mut wires = HashMap::<usize, usize>::new();
     for i in 0..self.stages.len() {
@@ -14,6 +14,7 @@ impl Compiler {
         .iter_mut()
         .flat_map(|x| x.ports_mut())
         .chain(x.steps.iter_mut().map(|x| x.port_mut()))
+        .chain(x.header.iter_mut().flat_map(|(a, b)| [a, b]))
       {
         *p = self.net.follow(p.clone());
         if let Some(w) = p.wire() {

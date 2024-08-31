@@ -2,7 +2,7 @@ use std::env::args;
 
 use ivy::optimize::Optimizer;
 use vine::{
-  compile::Compiler, desugar::Desugar, loader::Loader, resolve::Resolver, visit::VisitMut,
+  compile::compile, desugar::Desugar, loader::Loader, resolve::Resolver, visit::VisitMut,
 };
 use vine_util::{arena::BytesArena, interner::StringInterner};
 
@@ -28,12 +28,7 @@ fn main() {
     Desugar.visit_node(node)
   }
 
-  let mut compiler = Compiler::default();
-  for node in &resolver.nodes {
-    compiler.compile_node(node)
-  }
-
-  let mut nets = compiler.nets;
+  let mut nets = compile(&resolver.nodes);
 
   Optimizer::default().optimize(&mut nets);
 

@@ -15,9 +15,33 @@ mod net_builder;
 
 use net_builder::*;
 
+pub fn compile(nodes: &[Node]) -> Nets {
+  let mut compiler = Compiler {
+    nets: Default::default(),
+    nodes,
+    name: Default::default(),
+    interfaces: Default::default(),
+    stages: Default::default(),
+    cur: Default::default(),
+    cur_id: Default::default(),
+    local_count: Default::default(),
+    forks: Default::default(),
+    net: Default::default(),
+    return_target: Default::default(),
+  };
+
+  for node in nodes {
+    compiler.compile_node(node);
+  }
+
+  compiler.nets
+}
+
 #[derive(Debug, Default)]
-pub struct Compiler {
+struct Compiler<'n> {
   pub nets: Nets,
+
+  nodes: &'n [Node],
 
   name: String,
   interfaces: Vec<Interface>,
@@ -33,8 +57,8 @@ pub struct Compiler {
   return_target: Option<(Local, ForkId)>,
 }
 
-impl Compiler {
-  pub fn compile_node(&mut self, node: &Node) {
+impl<'n> Compiler<'n> {
+  fn compile_node(&mut self, node: &Node) {
     self.net = Default::default();
     let Some(value) = &node.value else { return };
     match value {
@@ -47,7 +71,17 @@ impl Compiler {
       NodeValue::Ivy(net) => {
         self.nets.insert(node.canonical.to_string(), net.clone());
       }
+      NodeValue::AdtConstructor => {
+        let net = self.build_adt_constructor(node);
+        self.nets.insert(node.canonical.to_string(), net);
+      }
     }
+  }
+
+  fn new_local(&mut self) -> usize {
+    let l = self.local_count;
+    self.local_count += 1;
+    l
   }
 }
 
@@ -77,6 +111,7 @@ struct Stage {
   steps: VecDeque<Step>,
   fin: Vec<Step>,
   divergence: ForkId,
+  header: Option<(Port, Port)>,
 }
 
 #[derive(Debug)]

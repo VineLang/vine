@@ -88,11 +88,9 @@ impl VisitMut<'_> for ResolveVisitor<'_> {
 
 impl<'a> ResolveVisitor<'a> {
   fn visit_path(&mut self, path: &mut Path) {
-    if !path.absolute {
-      let resolved = self.resolver.resolve_path(self.node, path);
-      *path = self.resolver.nodes[resolved].canonical.clone();
-      debug_assert!(path.absolute);
-    }
+    let resolved = self.resolver.resolve_path(self.node, path);
+    *path = self.resolver.nodes[resolved].canonical.clone();
+    debug_assert!(path.absolute && path.resolved.is_some());
   }
 }
 
@@ -102,6 +100,14 @@ impl VisitMut<'_> for DeclareVisitor<'_, '_> {
   fn visit_term(&mut self, term: &mut Term) {
     match &mut term.kind {
       TermKind::Path(path) => {
+        if let Some(resolved) = self.0.resolver.try_resolve_path(self.0.node, path) {
+          if self.0.resolver.nodes[resolved].variant.is_some() {
+            *path = self.0.resolver.nodes[resolved].canonical.clone();
+            debug_assert!(path.absolute && path.resolved.is_some());
+            return;
+          }
+        }
+
         let ident = path.as_ident().unwrap();
         let local = self.0.next_local;
         self.0.next_local += 1;
