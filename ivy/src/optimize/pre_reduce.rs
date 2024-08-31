@@ -23,6 +23,7 @@ impl Nets {
   }
 }
 
+#[derive(Debug)]
 struct PreReduce<'n> {
   nets: &'n Nets,
   done: Vec<(Tree, Tree)>,
@@ -59,9 +60,14 @@ impl PreReduce<'_> {
   fn _reduce(&mut self) {
     while let Some((a, b)) = self.pairs.pop() {
       match (a, b) {
-        sym!(a @ Tree::BlackBox(_), b) => self.done.push((a, b)),
+        sym!(a @ Tree::BlackBox(_), b) => {
+          self.freeze(&a);
+          self.freeze(&b);
+          self.done.push((a, b));
+        }
         sym!(Tree::Var(v), t) => {
           if self.frozen.remove(&v) {
+            self.freeze(&t);
             self.done.push((Tree::Var(v), t));
           } else {
             match self.vars.entry(v) {
@@ -71,7 +77,6 @@ impl PreReduce<'_> {
               Entry::Occupied(e) => self.pairs.push((t, e.remove())),
             }
           }
-          todo!()
         }
         sym!(Tree::Erase, mut x) => {
           for x in x.children_mut() {
@@ -90,8 +95,8 @@ impl PreReduce<'_> {
           }
         }
         (Tree::Comb(x, a, b), Tree::Comb(y, c, d)) if x == y => {
-          self.pairs.push((*a, *b));
-          self.pairs.push((*c, *d));
+          self.pairs.push((*a, *c));
+          self.pairs.push((*b, *d));
         }
         // sym!((Global, c), (Comb, d)) if !unsafe { c.as_global() }.labels.has(d.label()) => {
         //   self.copy(c, d)
@@ -106,14 +111,26 @@ impl PreReduce<'_> {
         // ((Comb | ExtFn | Branch, a), (Comb | ExtFn | Branch, b)) => self.commute(a, b),
         // sym!((ExtFn, f), (ExtVal, v)) => self.call(f, v),
         // sym!((Branch, b), (ExtVal, v)) => self.branch(b, v),
-        (a, b) => self.done.push((a, b)),
+        (a, b) => {
+          self.freeze(&a);
+          self.freeze(&b);
+          self.done.push((a, b));
+        }
       }
     }
   }
 
   fn freeze(&mut self, tree: &Tree) {
     if let Tree::Var(v) = tree {
-      self.frozen.insert(v.clone());
+      if let Some(t) = self.vars.remove(v) {
+        self.freeze(&t);
+        self.done.push((Tree::Var(v.clone()), t));
+      } else {
+        let inserted = self.frozen.insert(v.clone());
+        if !inserted {
+          self.frozen.remove(v);
+        }
+      }
     } else {
       for child in tree.children() {
         self.freeze(child)
@@ -146,6 +163,6 @@ impl PreReduce<'_> {
   fn new_var(&mut self) -> String {
     let i = self.next_var;
     self.next_var += 1;
-    format!("n{i}")
+    format!("v{i}")
   }
 }
