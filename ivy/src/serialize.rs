@@ -90,6 +90,11 @@ impl<'ast, 'ivm> Serializer<'ast, 'ivm> {
       self.equivalences.insert(b, a);
     }
 
+    if let Tree::Var(v) = net.root.white_box() {
+      let v = self.equivalences.remove(&**v).unwrap_or(v);
+      self.registers.insert(v, Register::ROOT);
+    }
+
     for (a, b) in &self.equivalences {
       if a < b {
         let r = self.current.instructions.new_register();
@@ -105,6 +110,8 @@ impl<'ast, 'ivm> Serializer<'ast, 'ivm> {
   }
 
   fn serialize_pair(&mut self, a: &'ast Tree, b: &'ast Tree) {
+    let a = a.white_box();
+    let b = b.white_box();
     let (a, b) = match (a, b) {
       (Tree::Var(_), Tree::Var(_)) => return,
       (a, b @ Tree::Var(_)) => (b, a),

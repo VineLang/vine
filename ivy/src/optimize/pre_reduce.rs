@@ -61,14 +61,16 @@ impl PreReduce<'_> {
     while let Some((a, b)) = self.pairs.pop() {
       match (a, b) {
         sym!(a @ Tree::BlackBox(_), b) => {
+          let i = self.reserve_done();
           self.freeze(&a);
           self.freeze(&b);
-          self.done.push((a, b));
+          self.done[i] = (a, b);
         }
         sym!(Tree::Var(v), t) => {
           if self.frozen.remove(&v) {
+            let i = self.reserve_done();
             self.freeze(&t);
-            self.done.push((Tree::Var(v), t));
+            self.done[i] = (Tree::Var(v), t);
           } else {
             match self.vars.entry(v) {
               Entry::Vacant(e) => {
@@ -93,6 +95,7 @@ impl PreReduce<'_> {
             let b = self.alpha(b, vars);
             self.pairs.push((a, b));
           }
+          assert!(vars.is_empty());
         }
         (Tree::Comb(x, a, b), Tree::Comb(y, c, d)) if x == y => {
           self.pairs.push((*a, *c));
@@ -112,9 +115,10 @@ impl PreReduce<'_> {
         // sym!((ExtFn, f), (ExtVal, v)) => self.call(f, v),
         // sym!((Branch, b), (ExtVal, v)) => self.branch(b, v),
         (a, b) => {
+          let i = self.reserve_done();
           self.freeze(&a);
           self.freeze(&b);
-          self.done.push((a, b));
+          self.done[i] = (a, b);
         }
       }
     }
@@ -123,8 +127,9 @@ impl PreReduce<'_> {
   fn freeze(&mut self, tree: &Tree) {
     if let Tree::Var(v) = tree {
       if let Some(t) = self.vars.remove(v) {
+        let i = self.reserve_done();
         self.freeze(&t);
-        self.done.push((Tree::Var(v.clone()), t));
+        self.done[i] = (Tree::Var(v.clone()), t);
       } else {
         let inserted = self.frozen.insert(v.clone());
         if !inserted {
@@ -164,5 +169,11 @@ impl PreReduce<'_> {
     let i = self.next_var;
     self.next_var += 1;
     format!("v{i}")
+  }
+
+  fn reserve_done(&mut self) -> usize {
+    let i = self.done.len();
+    self.done.push(Default::default());
+    i
   }
 }

@@ -19,13 +19,16 @@ impl Optimizer {
   pub fn optimize(&mut self, nets: &mut Nets) {
     prune(nets);
     for net in nets.values_mut() {
-      self.inline_vars.apply(net);
+      self.inline_vars.apply(net, false);
       net.eta_reduce();
-      self.inline_vars.apply(net);
+      self.inline_vars.apply(net, false);
     }
     inline_globals(nets);
     prune(nets);
     nets.pre_reduce();
     prune(nets);
+    for net in nets.values_mut() {
+      self.inline_vars.apply(net, true);
+    }
   }
 }

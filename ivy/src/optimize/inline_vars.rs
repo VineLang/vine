@@ -11,10 +11,10 @@ pub(super) struct InlineVars {
 }
 
 impl InlineVars {
-  pub fn apply(&mut self, net: &mut Net) {
+  pub fn apply(&mut self, net: &mut Net, only_var_var: bool) {
     net.pairs.retain_mut(|pair| loop {
       match pair {
-        (Tree::Var(v), t) | (t, Tree::Var(v)) => {
+        (Tree::Var(v), t) | (t, Tree::Var(v)) if !only_var_var || matches!(t, Tree::Var(_)) => {
           let v = take(v);
           let t = take(t);
           match self.mappings.entry(v) {

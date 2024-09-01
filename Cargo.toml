@@ -4,3 +4,7 @@ members = ["ivm", "ivy", "util", "vine", "tests"]
 
 [workspace.lints.clippy]
 absolute_paths = "warn"
+
+[profile.release]
+debug-assertions = true
+debug = true
