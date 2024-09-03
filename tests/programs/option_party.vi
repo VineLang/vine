@@ -1,0 +1,108 @@
+
+use std::{
+  io::println,
+  u32,
+  bool::{true, false},
+  option::Option::{
+    Some,
+    None,
+    map,
+    as_ref,
+    flatten,
+    and_then,
+    or,
+    unwrap_or,
+    is_some,
+    is_none,
+    is_some_and,
+    is_none_or,
+    unwrap,
+  }
+};
+
+fn main(io) {
+  io.println("map:");
+  io.print_option_u32(None.map(fn(x) x + 1));
+  io.print_option_u32(Some(0).map(fn(x) x + 1));
+  io.print_option_u32(Some(100).map(fn(x) x + 1));
+
+  io.println("increment_option:");
+  let option = None;
+  increment_option(&option);
+  io.print_option_u32(option);
+  option = Some(0);
+  increment_option(&option);
+  io.print_option_u32(option);
+  increment_option(&option);
+  io.print_option_u32(option);
+
+  io.println("flatten:");
+  io.print_option_u32(None.flatten());
+  io.print_option_u32(Some(None).flatten());
+  io.print_option_u32(Some(Some(123)).flatten());
+
+  io.println("add_options:");
+  io.print_option_u32(add_options(None, None));
+  io.print_option_u32(add_options(Some(1), None));
+  io.print_option_u32(add_options(None, Some(2)));
+  io.print_option_u32(add_options(Some(1), Some(2)));
+
+  io.println("or:");
+  io.print_option_u32(None.or(None));
+  io.print_option_u32(Some(1).or(None));
+  io.print_option_u32(None.or(Some(2)));
+  io.print_option_u32(Some(1).or(Some(2)));
+
+  io.println("unwrap_or:");
+  io.print_u32(None.unwrap_or(0));
+  io.print_u32(Some(1).unwrap_or(0));
+
+  io.println("is_some:");
+  io.print_bool(None.is_some());
+  io.print_bool(Some(_).is_some());
+
+  io.println("is_none:");
+  io.print_bool(None.is_none());
+  io.print_bool(Some(_).is_none());
+
+  io.println("is_some_and:");
+  io.print_bool(None.is_some_and(fn(x) x > 0));
+  io.print_bool(Some(0).is_some_and(fn(x) x > 0));
+  io.print_bool(Some(1).is_some_and(fn(x) x > 0));
+
+  io.println("is_none_or:");
+  io.print_bool(None.is_none_or(fn(x) x > 0));
+  io.print_bool(Some(0).is_none_or(fn(x) x > 0));
+  io.print_bool(Some(1).is_none_or(fn(x) x > 0));
+
+  io.println("unwrap:");
+  io.print_u32(Some(42).unwrap());
+  io.print_u32(None.unwrap());
+  io.println("io will never work again :(");
+}
+
+fn print_option_u32(&io, option) {
+  io.println("  " ++ match option {
+    Some(val) => "Some(" ++ u32::to_string(val) ++ ")",
+    None => "None",
+  })
+}
+
+fn print_u32(&io, val) {
+  io.println("  " ++ u32::to_string(val))
+}
+
+fn print_bool(&io, bool) {
+  io.println(if bool { "  true" } else { "  false" })
+}
+
+fn increment_option(&option) {
+  match option.as_ref() {
+    Some(&x) => x += 1,
+    None => {}
+  }
+}
+
+fn add_options(a, b) {
+  a.and_then(fn(a) b.map(fn(b) a + b))
+}

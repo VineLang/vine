@@ -1,13 +1,80 @@
 
-fn Some(value) { fn(some, none) some(value) }
-const None = fn(some, none) none;
+use std::bool::{true, false};
 
-fn is_some(&self) {
-  let out;
-  (self, out) = self(fn(value) (Some(value), 1), (None, 0))
-  out
+enum Option {
+  Some(value),
+  None,
 }
 
-fn unwrap(&move self) {
-  self(fn(value) value, _)
+mod Option {
+  fn map(&move self, f) {
+    match self {
+      Some(val) => Some(f(val)),
+      None => None,
+    }
+  }
+
+  fn as_ref(&self) {
+    match &self {
+      &Some(val) => Some(&val),
+      &None => None,
+    }
+  }
+
+  fn flatten(&move self) {
+    match self {
+      Some(Some(val)) => Some(val),
+      _ => None,
+    }
+  }
+
+  fn and_then(&move self, f) {
+    self.map(f).flatten()
+  }
+
+  fn or(&move self, default) {
+    match self {
+      None => default,
+      x => x,
+    }
+  }
+
+  fn unwrap_or(&move self, default) {
+    match self {
+      Some(val) => val,
+      None => default,
+    }
+  }
+
+  fn is_some(&self) {
+    match &self {
+      &Some(_) => true,
+      &None => false,
+    }
+  }
+
+  fn is_none(&self) {
+    match &self {
+      &Some(_) => false,
+      &None => true,
+    }
+  }
+
+  fn is_some_and(&move self, f) {
+    match self {
+      Some(val) => f(val),
+      None => false,
+    }
+  }
+
+  fn is_none_or(&move self, f) {
+    match self {
+      Some(val) => f(val),
+      None => true,
+    }
+  }
+
+  fn unwrap(&move self) {
+    match self { Some(val) => val }
+  }
 }

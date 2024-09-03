@@ -1,5 +1,5 @@
 
-use std::option::{Some, None};
+use std::option::Option::{Some, None};
 
 fn to_string(n) {
   if n {

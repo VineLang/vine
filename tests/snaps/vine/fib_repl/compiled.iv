@@ -6,28 +6,23 @@
 ::fib_repl::main::1 {
   n0
   ::std::io::prompt = fn(ref(n0 n3) fn(tup(2 fn(n1 tup(62 tup(32 n1)))) n2))
-  ::std::option::is_some = fn(ref(n2 n4) ?(_ ::fib_repl::main::2 x(n3 n4)))
+  ::std::option::Option::is_some = fn(ref(n2 n4) ?(_ ::fib_repl::main::2 x(n3 n4)))
 }
 
 ::fib_repl::main::2 {
-  x(n3 n2)
-  ::std::option::unwrap = fn(ref(n2 _) n0)
-  ::std::u32::parse = fn(n0 n1)
-  ::std::option::is_some = fn(ref(n1 n4) ?(::fib_repl::main::4 ::fib_repl::main::3 x(n3 x(::fib_repl::main::1 n4))))
+  x(n2 n3)
+  ::std::option::Option::unwrap = fn(ref(n3 _) n0)
+  ::std::u32::parse = fn(n0 enum(::fib_repl::main::3 enum(::fib_repl::main::4 n1)))
+  ::std::io::println = fn(ref(n2 ::fib_repl::main::1) fn(n1 _))
 }
 
 ::fib_repl::main::3 {
-  x(n3 x(n4 n5))
-  ::std::option::unwrap = fn(ref(n5 _) n0)
-  ::std::io::println = fn(ref(n3 n4) fn(n2 _))
+  enum(n0 n2)
   ::fib_repl::fib = fn(n0 n1)
   ::std::u32::to_string = fn(n1 n2)
 }
 
-::fib_repl::main::4 {
-  x(n1 x(n2 _))
-  ::std::io::println = fn(ref(n1 n2) fn(tup(14 fn(n0 tup(105 tup(110 tup(118 tup(97 tup(108 tup(105 tup(100 tup(32 tup(110 tup(117 tup(109 tup(98 tup(101 tup(114 n0)))))))))))))))) _))
-}
+::fib_repl::main::4 { tup(14 fn(n0 tup(105 tup(110 tup(118 tup(97 tup(108 tup(105 tup(100 tup(32 tup(110 tup(117 tup(109 tup(98 tup(101 tup(114 n0)))))))))))))))) }
 
 ::fib_repl::fib {
   fn(n0 n1)
@@ -83,7 +78,7 @@
 
 ::std::io::read_line::1 {
   x(n1 x(n2 x(dup(@eq(10 ?(::std::io::read_line::3 ::std::io::read_line::2 x(n1 x(n2 x(n4 n3))))) n4) n0)))
-  ::std::option::Some = fn(n3 n0)
+  ::std::option::Option::Some = fn(n3 n0)
 }
 
 ::std::io::read_line::2 { x(n1 x(n1 x(_ tup(0 fn(n0 n0))))) }
@@ -108,20 +103,23 @@
 
 ::std::io::read_line::6 { x(n0 x(n0 x(_ x(n1 n1)))) }
 
-::std::io::read_line::7 { x(n0 x(n0 x(_ ::std::option::None))) }
+::std::io::read_line::7 { x(n0 x(n0 x(_ ::std::option::Option::None))) }
 
 ::std::io::read_byte { fn(ref(dup(io0 @io_read_byte(default dup(byte @seq$(io0 io1)))) io1) fn(default byte)) }
 
-::std::option::Some { fn(n0 fn(fn(n0 n1) fn(_ n1))) }
+::std::option::Option::Some { fn(n0 enum(enum(n0 n1) enum(_ n1))) }
 
-::std::option::None { fn(_ fn(n0 n0)) }
+::std::option::Option::None { enum(_ enum(n0 n0)) }
 
-::std::option::is_some {
-  fn(ref(fn(fn(n0 tup(n1 1)) fn(tup(::std::option::None 0) tup(n2 n3))) n2) n3)
-  ::std::option::Some = fn(n0 n1)
-}
+::std::option::Option::is_some { fn(ref(enum(::std::option::Option::is_some::1 enum(::std::option::Option::is_some::2 x(n2 n3))) n2) n3) }
 
-::std::option::unwrap { fn(ref(fn(fn(n0 n0) fn(_ n1)) _) n1) }
+::std::option::Option::is_some::1 { enum(n0 x(enum(enum(n0 n1) enum(_ n1)) 1)) }
+
+::std::option::Option::is_some::2 { x(enum(_ enum(n0 n0)) 0) }
+
+::std::option::Option::unwrap { fn(ref(enum(::std::option::Option::unwrap::1 enum(_ n0)) _) n0) }
+
+::std::option::Option::unwrap::1 { enum(n0 n0) }
 
 ::std::str::concat { fn(tup(@add(n0 n1) fn(n3 n4)) fn(tup(n0 fn(n2 n3)) tup(n1 fn(n2 n4)))) }
 
@@ -150,7 +148,7 @@
 
 ::std::u32::parse::1 {
   x(_ x(_ n0))
-  ::std::u32::parse::12 = x(n0 ::std::option::None)
+  ::std::u32::parse::12 = x(n0 ::std::option::Option::None)
 }
 
 ::std::u32::parse::2 {
@@ -165,7 +163,7 @@
   48 = @le(n0 @u32_and(n1 @ne(1 ?(::std::u32::parse::8 ::std::u32::parse::5 x(n2 x(n3 x(n4 x(n6 n5))))))))
 }
 
-::std::u32::parse::5 { x(_ x(_ x(_ x(_ ::std::option::None)))) }
+::std::u32::parse::5 { x(_ x(_ x(_ x(_ ::std::option::Option::None)))) }
 
 ::std::u32::parse::8 {
   x(@sub(1 n1) x(n2 x(@mul(10 @add(n0 n3)) x(@sub(48 n0) n4))))
@@ -176,7 +174,7 @@
 
 ::std::u32::parse::11 {
   x(n0 n1)
-  ::std::option::Some = fn(n0 n2)
+  ::std::option::Option::Some = fn(n0 n2)
   ::std::u32::parse::12 = x(n1 n2)
 }
 

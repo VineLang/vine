@@ -1,5 +1,5 @@
 
-use std::{str, option::{Some, None}};
+use std::{str, option::Option::{Some, None}};
 
 fn println(&io, str) {
   io.print(str);

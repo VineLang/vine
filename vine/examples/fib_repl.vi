@@ -1,17 +1,15 @@
 
-use std::{io::{prompt, println, read_byte, print_char}, u32, option::{is_some, unwrap}};
+use std::{io::{prompt, println, read_byte, print_char}, u32, option::Option::{Some, None, is_some, unwrap}};
 
 fn main(io) {
   let line;
   while { line = io.prompt("> "); line.is_some() } {
     let line = line.unwrap();
     let num = u32::parse(line);
-    if num.is_some() {
-      let num = num.unwrap();
-      io.println(u32::to_string(fib(num)));
-    } else {
-      io.println("invalid number");
-    }
+    io.println(match num {
+      Some(num) => u32::to_string(fib(num)),
+      None => "invalid number",
+    });
   }
 }
 
