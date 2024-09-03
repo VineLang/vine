@@ -28,6 +28,7 @@ pub fn compile(nodes: &[Node]) -> Nets {
     forks: Default::default(),
     net: Default::default(),
     return_target: Default::default(),
+    break_target: Default::default(),
   };
 
   for node in nodes {
@@ -55,6 +56,7 @@ struct Compiler<'n> {
   net: NetBuilder,
 
   return_target: Option<(Local, ForkId)>,
+  break_target: Option<ForkId>,
 }
 
 impl<'n> Compiler<'n> {

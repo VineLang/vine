@@ -44,7 +44,8 @@ pub trait VisitMut<'a> {
       | TermKind::Local(_)
       | TermKind::U32(_)
       | TermKind::F32(_)
-      | TermKind::String(_) => {}
+      | TermKind::String(_)
+      | TermKind::Break => {}
       TermKind::Ref(a)
       | TermKind::Deref(a)
       | TermKind::Move(a)
@@ -58,7 +59,7 @@ pub trait VisitMut<'a> {
         self.visit_term(a);
         self.visit_term(b);
       }
-      TermKind::Block(b) => self.visit_block(b),
+      TermKind::Block(b) | TermKind::Loop(b) => self.visit_block(b),
       TermKind::Match(a, b) => {
         self.visit_term(a);
         for (t, u) in b {
@@ -76,6 +77,11 @@ pub trait VisitMut<'a> {
       TermKind::While(a, b) => {
         self.visit_term(a);
         self.visit_block(b);
+      }
+      TermKind::WhileLet(a, b, c) => {
+        self.visit_bind(a);
+        self.visit_term(b);
+        self.visit_block(c);
       }
       TermKind::For(a, b, c) => {
         self.enter_scope();

@@ -53,8 +53,13 @@ fn read_line(&io) {
       ""
     } else {
       let str = str::single(byte);
-      while { byte = io.read_byte('\n'); byte != '\n' } {
-        str ++= str::single(byte);
+      loop {
+        byte = io.read_byte('\n');
+        if byte != '\n' {
+          str ++= str::single(byte);
+        } else {
+          break;
+        }
       }
       str
     })

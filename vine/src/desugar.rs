@@ -1,7 +1,7 @@
 use std::mem::take;
 
 use crate::{
-  ast::{Term, TermKind},
+  ast::{Block, Stmt, StmtKind, Term, TermKind},
   resolve::Node,
   visit::VisitMut,
 };
@@ -28,6 +28,29 @@ impl VisitMut<'_> for Desugar {
         *term = Term::new_deref(Term {
           kind: TermKind::Call(Box::new(Term::new_path(p)), vec![Term::new_ref(o)]),
         })
+      }
+      TermKind::WhileLet(pat, value, body) => {
+        let pat = take(&mut **pat);
+        let value = take(&mut **value);
+        let body = take(body);
+        *term = Term {
+          kind: TermKind::Loop(Block {
+            stmts: vec![Stmt {
+              kind: StmtKind::Term(
+                Term {
+                  kind: TermKind::Match(
+                    Box::new(value),
+                    vec![
+                      (pat, Term { kind: TermKind::Block(body) }),
+                      (Term { kind: TermKind::Hole }, Term { kind: TermKind::Break }),
+                    ],
+                  ),
+                },
+                true,
+              ),
+            }],
+          }),
+        }
       }
       _ => {}
     }

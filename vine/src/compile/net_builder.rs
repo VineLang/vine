@@ -63,6 +63,7 @@ impl NetBuilder {
   }
 }
 
+#[must_use]
 #[derive(Default, Debug, Clone)]
 pub enum Port {
   #[default]

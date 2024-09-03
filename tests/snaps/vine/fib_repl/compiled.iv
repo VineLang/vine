@@ -5,15 +5,13 @@
 
 ::fib_repl::main::1 {
   n0
-  ::std::io::prompt = fn(ref(n0 n3) fn(tup(2 fn(n1 tup(62 tup(32 n1)))) n2))
-  ::std::option::Option::is_some = fn(ref(n2 n4) ?(_ ::fib_repl::main::2 x(n3 n4)))
+  ::std::io::prompt = fn(ref(n0 n2) fn(tup(2 fn(n1 tup(62 tup(32 n1)))) enum(::fib_repl::main::2 enum(_ n2))))
 }
 
 ::fib_repl::main::2 {
-  x(n2 n3)
-  ::std::option::Option::unwrap = fn(ref(n3 _) n0)
-  ::std::u32::parse = fn(n0 enum(::fib_repl::main::3 enum(::fib_repl::main::4 n1)))
-  ::std::io::println = fn(ref(n2 ::fib_repl::main::1) fn(n1 _))
+  enum(n0 n1)
+  ::std::u32::parse = fn(n0 enum(::fib_repl::main::3 enum(::fib_repl::main::4 n2)))
+  ::std::io::println = fn(ref(n1 ::fib_repl::main::1) fn(n2 _))
 }
 
 ::fib_repl::main::3 {
@@ -73,7 +71,7 @@
 
 ::std::io::read_line {
   fn(ref(n0 n2) n3)
-  ::std::io::read_byte = fn(ref(n0 n1) fn(0 dup(?(::std::io::read_line::7 ::std::io::read_line::1 x(n1 x(n2 x(n4 n3)))) n4)))
+  ::std::io::read_byte = fn(ref(n0 n1) fn(0 dup(?(::std::io::read_line::9 ::std::io::read_line::1 x(n1 x(n2 x(n4 n3)))) n4)))
 }
 
 ::std::io::read_line::1 {
@@ -103,23 +101,13 @@
 
 ::std::io::read_line::6 { x(n0 x(n0 x(_ x(n1 n1)))) }
 
-::std::io::read_line::7 { x(n0 x(n0 x(_ ::std::option::Option::None))) }
+::std::io::read_line::9 { x(n0 x(n0 x(_ ::std::option::Option::None))) }
 
 ::std::io::read_byte { fn(ref(dup(io0 @io_read_byte(default dup(byte @seq$(io0 io1)))) io1) fn(default byte)) }
 
 ::std::option::Option::Some { fn(n0 enum(enum(n0 n1) enum(_ n1))) }
 
 ::std::option::Option::None { enum(_ enum(n0 n0)) }
-
-::std::option::Option::is_some { fn(ref(enum(::std::option::Option::is_some::1 enum(::std::option::Option::is_some::2 x(n2 n3))) n2) n3) }
-
-::std::option::Option::is_some::1 { enum(n0 x(enum(enum(n0 n1) enum(_ n1)) 1)) }
-
-::std::option::Option::is_some::2 { x(enum(_ enum(n0 n0)) 0) }
-
-::std::option::Option::unwrap { fn(ref(enum(::std::option::Option::unwrap::1 enum(_ n0)) _) n0) }
-
-::std::option::Option::unwrap::1 { enum(n0 n0) }
 
 ::std::str::concat { fn(tup(@add(n0 n1) fn(n3 n4)) fn(tup(n0 fn(n2 n3)) tup(n1 fn(n2 n4)))) }
 

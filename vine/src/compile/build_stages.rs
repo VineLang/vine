@@ -17,6 +17,7 @@ enum ExprCtx {
   Either,
 }
 
+#[must_use]
 enum Expr {
   Value(Port),
   Place(Port, Port),
@@ -109,9 +110,11 @@ impl Compiler<'_> {
         }
         let result = self.new_local();
         let orig = self.cur_id;
+        let old_break = self.break_target.take();
         let old_return = self.return_target.replace((result, self.cur_fork()));
         let body = self.build_expr_value(body);
         self.return_target = old_return;
+        self.break_target = old_break;
         self.cur.steps.push_back(Step::Set(result, body));
         if self.cur_id != orig {
           self.select_stage(orig);
@@ -184,8 +187,27 @@ impl Compiler<'_> {
       TermKind::List(l) => Expr::Value(
         self.list(l.len(), l.iter().map(|el| |slf: &mut Self| slf.build_expr_value(el))),
       ),
+      TermKind::Loop(body) => {
+        self.fork(|slf| {
+          let i = slf.new_interface();
+          let s = slf.new_stage(i, move |slf, s| {
+            let old = slf.break_target.replace(slf.cur_fork());
+            let body = slf.build_block(body);
+            slf.erase(body);
+            slf.break_target = old;
+            slf.goto(s);
+            false
+          });
+
+          slf.goto(s);
+        });
+
+        Expr::Value(Port::Erase)
+      }
       TermKind::While(cond, body) => {
         self.fork(|slf| {
+          let old_break = slf.break_target.replace(slf.cur_fork());
+
           let i = slf.new_interface();
           let start = slf.new_stage(i, move |slf, start| {
             let cond = slf.build_expr_value(cond);
@@ -214,6 +236,8 @@ impl Compiler<'_> {
 
             true
           });
+
+          slf.break_target = old_break;
 
           slf.cur.steps.push_back(Step::Call(i, slf.stage_port(start)));
         });
@@ -265,6 +289,10 @@ impl Compiler<'_> {
         let ret = self.return_target.unwrap();
         self.cur.steps.push_back(Step::Set(ret.0, r));
         self.diverge(ret.1);
+        Expr::Value(Port::Erase)
+      }
+      TermKind::Break => {
+        self.diverge(self.break_target.unwrap());
         Expr::Value(Port::Erase)
       }
       TermKind::Match(value, arms) => self.build_match(value, arms),

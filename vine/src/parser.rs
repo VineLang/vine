@@ -230,6 +230,9 @@ impl<'ctx, 'src> VineParser<'ctx, 'src> {
     if self.eat(Token::Return)? {
       return Ok(Term { kind: TermKind::Return(Box::new(self.parse_term_bp(BP::ControlFlow)?)) });
     }
+    if self.eat(Token::Break)? {
+      return Ok(Term { kind: TermKind::Break });
+    }
     if self.eat(Token::And)? {
       return Ok(Term::new_ref(self.parse_term_bp(BP::Prefix)?));
     }
@@ -296,9 +299,21 @@ impl<'ctx, 'src> VineParser<'ctx, 'src> {
       return Ok(Term { kind: TermKind::If(Box::new(cond), then, Box::new(else_)) });
     }
     if self.eat(Token::While)? {
-      let cond = self.parse_term()?;
+      if self.eat(Token::Let)? {
+        let pat = self.parse_term_bp(BP::Assignment.inc())?;
+        self.expect(Token::Eq)?;
+        let value = self.parse_term()?;
+        let body = self.parse_block()?;
+        return Ok(Term { kind: TermKind::WhileLet(Box::new(pat), Box::new(value), body) });
+      } else {
+        let cond = self.parse_term()?;
+        let body = self.parse_block()?;
+        return Ok(Term { kind: TermKind::While(Box::new(cond), body) });
+      }
+    }
+    if self.eat(Token::Loop)? {
       let body = self.parse_block()?;
-      return Ok(Term { kind: TermKind::While(Box::new(cond), body) });
+      return Ok(Term { kind: TermKind::Loop(body) });
     }
     if self.eat(Token::For)? {
       let pat = self.parse_term()?;
