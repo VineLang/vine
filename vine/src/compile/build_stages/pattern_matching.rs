@@ -1,19 +1,17 @@
-use std::{collections::HashMap, mem::take, ops::Range};
-
-use ivy::ast::Net;
+use std::{collections::HashMap, ops::Range};
 
 use crate::{
-  compile::{Agent, Local, Port, StageId},
-  resolve::{Adt, NodeId},
+  compile::{Local, StageId},
+  resolve::NodeId,
 };
 
 use super::{Compiler, Expr, Node, Step, Term, TermKind};
 
 impl Compiler<'_> {
-  pub(super) fn build_match(&mut self, value: &Term, arms: &[(Term, Term)]) -> Expr {
-    let value = self.build_expr_value(value);
+  pub(super) fn lower_match(&mut self, value: &Term, arms: &[(Term, Term)]) -> Expr {
+    let value = self.lower_expr_value(value);
     let initial = self.new_match_var(false);
-    self.cur.steps.push_back(Step::Set(initial.local, value));
+    self.set_local_to(initial.local, value);
     let mut arm_counts = vec![0; arms.len()];
     let rows = arms
       .iter()
@@ -27,7 +25,7 @@ impl Compiler<'_> {
 
     let result = self.new_local();
 
-    self.fork(|slf| {
+    self.new_fork(|slf| {
       let arms = arms
         .iter()
         .zip(arm_counts)
@@ -37,8 +35,8 @@ impl Compiler<'_> {
           } else {
             let i = slf.new_interface();
             Arm::Shared(slf.new_stage(i, |slf, _| {
-              let r = slf.build_expr_value(body);
-              slf.cur.steps.push_back(Step::Set(result, r));
+              let r = slf.lower_expr_value(body);
+              slf.set_local_to(result, r);
               true
             }))
           }
@@ -60,11 +58,10 @@ impl Compiler<'_> {
         for (a, b) in body.aliases {
           let x = self.net.new_wire();
           self.cur.steps.push_back(Step::Move(b.local, x.0));
-          self.cur.steps.push_back(Step::Set(a, x.1));
+          self.set_local_to(a, x.1);
           if b.is_place {
-            let y = self.net.new_wire();
-            self.cur.fin.push(Step::Move(a, y.0));
-            self.cur.steps.push_back(Step::Set(b.local, y.1));
+            let y = self.fin_move_local(a);
+            self.set_local_to(b.local, y);
           }
         }
         match arms[body.arm] {
@@ -73,47 +70,32 @@ impl Compiler<'_> {
             false
           }
           Arm::Unique(term) => {
-            let r = self.build_expr_value(term);
-            self.cur.steps.push_back(Step::Set(result, r));
+            let r = self.lower_expr_value(term);
+            self.set_local_to(result, r);
             true
           }
         }
       }
       DecisionTree::Missing => false,
       DecisionTree::Tuple(v, t, next) => {
-        let a = self.tuple(t.clone().map(|l| {
-          move |slf: &mut Self| {
-            let x = slf.net.new_wire();
-            slf.cur.steps.push_back(Step::Set(l, x.0));
-            x.1
-          }
-        }));
+        let a = self.tuple(t.clone(), Self::set_local);
         self.cur.steps.push_back(Step::Move(v.local, a));
         if v.is_place {
-          let a = self.tuple(t.map(|l| {
-            move |slf: &mut Self| {
-              let x = slf.net.new_wire();
-              slf.cur.fin.push(Step::Move(l, x.0));
-              x.1
-            }
-          }));
-          self.cur.steps.push_back(Step::Set(v.local, a));
+          let a = self.tuple(t, Self::fin_move_local);
+          self.set_local_to(v.local, a);
         }
         self.lower_decision_tree(arms, result, *next)
       }
       DecisionTree::Deref(r, v, next) => {
-        let r0 = self.net.new_wire();
         let v0 = self.net.new_wire();
         let v2 = self.net.new_wire();
-        self.cur.steps.push_back(Step::Move(r.local, r0.0));
-        self.cur.agents.push(Agent::Comb("ref".to_owned(), r0.1, v0.0, v2.0));
-        self.cur.steps.push_back(Step::Set(v.local, v0.1));
+        let r0 = self.new_comb("ref", v0.0, v2.0);
+        self.cur.steps.push_back(Step::Move(r.local, r0));
+        self.set_local_to(v.local, v0.1);
         if r.is_place {
-          let v1 = self.net.new_wire();
-          self.cur.fin.push(Step::Move(v.local, v1.0));
-          let r1 = self.net.new_wire();
-          self.cur.steps.push_back(Step::Set(r.local, r1.0));
-          self.cur.agents.push(Agent::Comb("ref".to_owned(), r1.1, v1.1, v2.1));
+          let v1 = self.fin_move_local(v.local);
+          let r1 = self.new_comb("ref", v1, v2.1);
+          self.set_local_to(r.local, r1);
         } else {
           self.cur.fin.push(Step::Move(v.local, v2.1));
         }
@@ -137,50 +119,34 @@ impl Compiler<'_> {
         let i = self.new_interface();
         let val = self.net.new_wire();
         self.cur.steps.push_back(Step::Move(var.local, val.0));
-        let mut cur = val.1;
-        for (v, case) in cases.into_iter().enumerate() {
-          let s = self.new_stage(i, |slf, _| {
-            let root = slf.net.new_wire();
-            let mut cur = root.0;
-            for var in case.vars.clone() {
-              let v = slf.net.new_wire();
-              cur = slf.apply_comb("enum".to_string(), cur, v.0);
-              slf.cur.steps.push_back(Step::Set(var, v.1));
-            }
-            let should_fallback = case.body.is_none();
-            let mut end = false;
-            if let Some(tree) = case.body {
-              end = slf.lower_decision_tree(arms, result, tree);
-            }
-            if var.is_place || should_fallback && fallback_needs_var {
-              let r = slf.build_enum(
-                adt,
-                v,
-                case.vars.clone().map(|var| {
-                  move |slf: &mut Self| {
-                    let v = slf.net.new_wire();
-                    slf.cur.fin.push(Step::Move(var, v.0));
-                    v.1
-                  }
-                }),
-              );
-              slf.cur.steps.push_back(Step::Set(var.local, r));
-            }
-            slf.cur.header = Some((root.1, cur));
-            if should_fallback {
-              if let Some(stage) = fallback_stage {
-                slf.goto(stage);
-              } else if let Some(tree) = fallback.take() {
-                end = slf.lower_decision_tree(arms, result, *tree);
+        let stage =
+          self.apply_combs("enum", val.1, cases.into_iter().enumerate(), |slf, (v, case)| {
+            let s = slf.new_stage(i, |slf, _| {
+              let root = slf.net.new_wire();
+              let inner = slf.apply_combs("enum", root.0, case.vars.clone(), Self::set_local);
+              let should_fallback = case.body.is_none();
+              let mut end = false;
+              if let Some(tree) = case.body {
+                end = slf.lower_decision_tree(arms, result, tree);
               }
-            }
-            end
+              if var.is_place || should_fallback && fallback_needs_var {
+                let r = slf.make_enum(adt, v, case.vars.clone(), Self::fin_move_local);
+                slf.set_local_to(var.local, r);
+              }
+              slf.cur.header = Some((root.1, inner));
+              if should_fallback {
+                if let Some(stage) = fallback_stage {
+                  slf.goto(stage);
+                } else if let Some(tree) = fallback.take() {
+                  end = slf.lower_decision_tree(arms, result, *tree);
+                }
+              }
+              end
+            });
+            slf.stage_port(s)
           });
-          let s = self.stage_port(s);
-          cur = self.apply_comb("enum".to_string(), cur, s);
-        }
 
-        self.cur.steps.push_back(Step::Call(i, cur));
+        self.cur.steps.push_back(Step::Call(i, stage));
 
         false
       }
@@ -189,62 +155,6 @@ impl Compiler<'_> {
 
   fn new_match_var(&mut self, is_place: bool) -> MatchVar {
     MatchVar { local: self.new_local(), is_place }
-  }
-
-  fn build_enum<F: FnOnce(&mut Self) -> Port>(
-    &mut self,
-    adt: &Adt,
-    variant: usize,
-    fields: impl IntoIterator<Item = F>,
-  ) -> Port {
-    let r = self.net.new_wire();
-    let mut cur = r.0;
-    let mut out = Port::Erase;
-    let mut fields = Some(fields);
-    for i in 0..adt.variants.len() {
-      if i == variant {
-        let x = self.net.new_wire();
-        cur = self.apply_comb("enum".to_string(), cur, x.0);
-        let mut cur = x.1;
-        for field in fields.take().unwrap() {
-          let field = field(self);
-          cur = self.apply_comb("enum".to_string(), cur, field);
-        }
-        out = cur;
-      } else {
-        cur = self.apply_comb("enum".to_string(), cur, Port::Erase);
-      }
-    }
-    self.net.link(cur, out);
-    r.1
-  }
-
-  pub(in crate::compile) fn build_adt_constructor(&mut self, node: &Node) -> Net {
-    let variant = node.variant.as_ref().unwrap();
-    let adt = self.nodes[variant.adt].adt.as_ref().unwrap();
-    let root = self.net.new_wire();
-
-    let mut cur = root.0;
-    let fields = variant
-      .fields
-      .iter()
-      .map(|_| {
-        let a = self.net.new_wire();
-        cur = self.apply_comb("fn".to_owned(), take(&mut cur), a.0);
-        a.1
-      })
-      .collect::<Vec<_>>();
-
-    let out = if adt.variants.len() == 1 {
-      self.tuple(fields.into_iter().map(|f| move |_: &mut Self| f))
-    } else {
-      self.build_enum(adt, variant.variant, fields.into_iter().map(|f| move |_: &mut Self| f))
-    };
-
-    self.net.link(cur, out);
-    let stage = take(&mut self.cur);
-    self.net.agents = stage.agents;
-    self.net.finish(root.1)
   }
 }
 

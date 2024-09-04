@@ -91,7 +91,7 @@ impl<'a> FinishStage<'a> {
       };
       if let Some(cur) = cur.replace(next) {
         let r = self.net.new_wire();
-        self.net.agents.push(Agent::Comb("x".to_owned(), cursor, cur, r.0));
+        self.net.agents.push(Agent::Comb("x".into(), cursor, cur, r.0));
         cursor = r.1;
       }
     }
@@ -129,7 +129,7 @@ impl<'a> FinishStage<'a> {
       .reduce(|cur, next| {
         let r = self.net.new_wire();
         let prev = replace(&mut value, r.1);
-        self.net.agents.push(Agent::Comb("dup".to_owned(), prev, cur, r.0));
+        self.net.agents.push(Agent::Comb("dup".into(), prev, cur, r.0));
         next
       })
       .unwrap_or(Port::Erase);

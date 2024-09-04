@@ -74,7 +74,7 @@ impl<'n> Compiler<'n> {
         self.nets.insert(node.canonical.to_string(), net.clone());
       }
       NodeValue::AdtConstructor => {
-        let net = self.build_adt_constructor(node);
+        let net = self.lower_adt_constructor(node);
         self.nets.insert(node.canonical.to_string(), net);
       }
     }
