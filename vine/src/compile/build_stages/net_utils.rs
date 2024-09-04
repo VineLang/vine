@@ -59,9 +59,9 @@ impl Compiler<'_> {
 
     let root = self.net.new_wire();
 
-    let end = self.apply_combs("tup", root.0, items, |slf, item| {
+    let end = self.apply_combs("tup", root.0, items, |self_, item| {
       let prev_item = replace(&mut prev_item, item);
-      f(slf, prev_item)
+      f(self_, prev_item)
     });
 
     let last = f(self, prev_item);
@@ -122,10 +122,10 @@ impl Compiler<'_> {
     let r = self.net.new_wire();
     let mut out = Port::Erase;
     let mut fields = fields.into_iter();
-    let end = self.apply_combs("enum", r.0, 0..adt.variants.len(), |slf, i| {
+    let end = self.apply_combs("enum", r.0, 0..adt.variants.len(), |self_, i| {
       if i == variant {
-        let x = slf.net.new_wire();
-        out = slf.apply_combs("enum", x.0, &mut fields, &mut f);
+        let x = self_.net.new_wire();
+        out = self_.apply_combs("enum", x.0, &mut fields, &mut f);
         x.1
       } else {
         Port::Erase

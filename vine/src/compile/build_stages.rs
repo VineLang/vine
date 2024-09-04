@@ -30,12 +30,12 @@ impl Compiler<'_> {
 
     let i = self.new_interface();
 
-    let init = self.new_fork(|slf| {
-      slf.new_stage(i, |slf, _| {
-        let root = slf.lower_expr_value(term);
-        let root_val = slf.new_local();
-        slf.set_local_to(root_val, root);
-        slf.interfaces[i].inward.insert(root_val, Usage::GET);
+    let init = self.new_fork(|self_| {
+      self_.new_stage(i, |self_, _| {
+        let root = self_.lower_expr_value(term);
+        let root_val = self_.new_local();
+        self_.set_local_to(root_val, root);
+        self_.interfaces[i].inward.insert(root_val, Usage::GET);
         false
       })
     });

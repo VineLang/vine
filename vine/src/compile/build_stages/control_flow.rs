@@ -37,74 +37,84 @@ impl Compiler<'_> {
 
     let cond = self.lower_expr_value(cond);
 
-    self.new_fork(|slf| {
-      let i = slf.new_interface();
-      let then = slf.new_stage(i, |slf, _| {
-        let then = slf.lower_block(then);
-        slf.set_local_to(val, then);
+    self.new_fork(|self_| {
+      let i = self_.new_interface();
+      let then = self_.new_stage(i, |self_, _| {
+        let then = self_.lower_block(then);
+        self_.set_local_to(val, then);
         true
       });
 
-      let els = slf.new_stage(i, |slf, _| {
-        let els = slf.lower_expr_value(els);
-        slf.set_local_to(val, els);
+      let els = self_.new_stage(i, |self_, _| {
+        let els = self_.lower_expr_value(els);
+        self_.set_local_to(val, els);
         true
       });
 
-      let r = slf.net.new_wire();
-      slf.cur.agents.push(Agent::Branch(cond, slf.stage_port(els), slf.stage_port(then), r.0));
-      slf.cur.steps.push_back(Step::Call(i, r.1));
+      let r = self_.net.new_wire();
+      self_.cur.agents.push(Agent::Branch(
+        cond,
+        self_.stage_port(els),
+        self_.stage_port(then),
+        r.0,
+      ));
+      self_.cur.steps.push_back(Step::Call(i, r.1));
     });
 
     Expr::Value(self.get_local(val))
   }
 
   pub(super) fn lower_loop(&mut self, body: &Block) -> Expr {
-    self.new_fork(|slf| {
-      let i = slf.new_interface();
-      let s = slf.new_stage(i, move |slf, s| {
-        let old = slf.break_target.replace(slf.cur_fork());
-        slf.lower_block_erase(body);
-        slf.break_target = old;
-        slf.goto(s);
+    self.new_fork(|self_| {
+      let i = self_.new_interface();
+      let s = self_.new_stage(i, move |self_, s| {
+        let old = self_.break_target.replace(self_.cur_fork());
+        self_.lower_block_erase(body);
+        self_.break_target = old;
+        self_.goto(s);
         false
       });
 
-      slf.goto(s);
+      self_.goto(s);
     });
 
     Expr::Value(Port::Erase)
   }
 
   pub(super) fn lower_while(&mut self, cond: &Term, body: &Block) -> Expr {
-    self.new_fork(|slf| {
-      let old_break = slf.break_target.replace(slf.cur_fork());
+    self.new_fork(|self_| {
+      let old_break = self_.break_target.replace(self_.cur_fork());
 
-      let i = slf.new_interface();
-      let start = slf.new_stage(i, move |slf, start| {
-        let cond = slf.lower_expr_value(cond);
+      let i = self_.new_interface();
+      let start = self_.new_stage(i, move |self_, start| {
+        let cond = self_.lower_expr_value(cond);
 
-        slf.new_fork(|slf| {
-          let j = slf.new_interface();
-          let body = slf.new_stage(j, |slf, _| {
-            slf.lower_block_erase(body);
-            slf.goto(start);
+        self_.new_fork(|self_| {
+          let j = self_.new_interface();
+          let body = self_.new_stage(j, |self_, _| {
+            self_.lower_block_erase(body);
+            self_.goto(start);
             false
           });
 
-          let end = slf.new_stage(j, |_, _| true);
+          let end = self_.new_stage(j, |_, _| true);
 
-          let r = slf.net.new_wire();
-          slf.cur.agents.push(Agent::Branch(cond, slf.stage_port(end), slf.stage_port(body), r.0));
-          slf.cur.steps.push_back(Step::Call(j, r.1));
+          let r = self_.net.new_wire();
+          self_.cur.agents.push(Agent::Branch(
+            cond,
+            self_.stage_port(end),
+            self_.stage_port(body),
+            r.0,
+          ));
+          self_.cur.steps.push_back(Step::Call(j, r.1));
         });
 
         true
       });
 
-      slf.break_target = old_break;
+      self_.break_target = old_break;
 
-      slf.goto(start);
+      self_.goto(start);
     });
 
     Expr::Value(Port::Erase)

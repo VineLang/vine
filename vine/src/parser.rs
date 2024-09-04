@@ -265,9 +265,9 @@ impl<'ctx, 'src> VineParser<'ctx, 'src> {
     }
     if self.check(Token::OpenParen) {
       let mut tuple = false;
-      let mut terms = self.parse_delimited(PAREN_COMMA, |slf| {
-        let term = slf.parse_term()?;
-        if slf.check(Token::Comma) {
+      let mut terms = self.parse_delimited(PAREN_COMMA, |self_| {
+        let term = self_.parse_term()?;
+        if self_.check(Token::Comma) {
           tuple = true;
         }
         Ok(term)
@@ -329,10 +329,10 @@ impl<'ctx, 'src> VineParser<'ctx, 'src> {
     }
     if self.eat(Token::Match)? {
       let scrut = self.parse_term()?;
-      let arms = self.parse_delimited(BRACE_COMMA, |slf| {
-        let pat = slf.parse_term()?;
-        slf.expect(Token::ThickArrow)?;
-        let value = slf.parse_term()?;
+      let arms = self.parse_delimited(BRACE_COMMA, |self_| {
+        let pat = self_.parse_term()?;
+        self_.expect(Token::ThickArrow)?;
+        let value = self_.parse_term()?;
         Ok((pat, value))
       })?;
       return Ok(Term { kind: TermKind::Match(Box::new(scrut), arms) });

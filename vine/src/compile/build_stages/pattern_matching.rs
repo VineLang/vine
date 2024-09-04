@@ -25,7 +25,7 @@ impl Compiler<'_> {
 
     let result = self.new_local();
 
-    self.new_fork(|slf| {
+    self.new_fork(|self_| {
       let arms = arms
         .iter()
         .zip(arm_counts)
@@ -33,17 +33,17 @@ impl Compiler<'_> {
           if count <= 1 {
             Arm::Unique(body)
           } else {
-            let i = slf.new_interface();
-            Arm::Shared(slf.new_stage(i, |slf, _| {
-              let r = slf.lower_expr_value(body);
-              slf.set_local_to(result, r);
+            let i = self_.new_interface();
+            Arm::Shared(self_.new_stage(i, |self_, _| {
+              let r = self_.lower_expr_value(body);
+              self_.set_local_to(result, r);
               true
             }))
           }
         })
         .collect::<Vec<_>>();
 
-      slf.lower_decision_tree(&arms, result, tree);
+      self_.lower_decision_tree(&arms, result, tree);
     });
 
     let r = self.net.new_wire();
@@ -110,7 +110,7 @@ impl Compiler<'_> {
           if fallback.is_some() && cases.iter().filter(|x| x.body.is_none()).count() > 1 {
             fallback.take().map(|tree| {
               let i = self.new_interface();
-              self.new_stage(i, |slf, _| slf.lower_decision_tree(arms, result, *tree))
+              self.new_stage(i, |self_, _| self_.lower_decision_tree(arms, result, *tree))
             })
           } else {
             None
@@ -120,30 +120,30 @@ impl Compiler<'_> {
         let val = self.net.new_wire();
         self.cur.steps.push_back(Step::Move(var.local, val.0));
         let stage =
-          self.apply_combs("enum", val.1, cases.into_iter().enumerate(), |slf, (v, case)| {
-            let s = slf.new_stage(i, |slf, _| {
-              let root = slf.net.new_wire();
-              let inner = slf.apply_combs("enum", root.0, case.vars.clone(), Self::set_local);
+          self.apply_combs("enum", val.1, cases.into_iter().enumerate(), |self_, (v, case)| {
+            let s = self_.new_stage(i, |self_, _| {
+              let root = self_.net.new_wire();
+              let inner = self_.apply_combs("enum", root.0, case.vars.clone(), Self::set_local);
               let should_fallback = case.body.is_none();
               let mut end = false;
               if let Some(tree) = case.body {
-                end = slf.lower_decision_tree(arms, result, tree);
+                end = self_.lower_decision_tree(arms, result, tree);
               }
               if var.is_place || should_fallback && fallback_needs_var {
-                let r = slf.make_enum(adt, v, case.vars.clone(), Self::fin_move_local);
-                slf.set_local_to(var.local, r);
+                let r = self_.make_enum(adt, v, case.vars.clone(), Self::fin_move_local);
+                self_.set_local_to(var.local, r);
               }
-              slf.cur.header = Some((root.1, inner));
+              self_.cur.header = Some((root.1, inner));
               if should_fallback {
                 if let Some(stage) = fallback_stage {
-                  slf.goto(stage);
+                  self_.goto(stage);
                 } else if let Some(tree) = fallback.take() {
-                  end = slf.lower_decision_tree(arms, result, *tree);
+                  end = self_.lower_decision_tree(arms, result, *tree);
                 }
               }
               end
             });
-            slf.stage_port(s)
+            self_.stage_port(s)
           });
 
         self.cur.steps.push_back(Step::Call(i, stage));
