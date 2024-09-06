@@ -8,7 +8,7 @@ use std::{
 use vine_util::interner::StringInterner;
 
 use crate::{
-  ast::{self, ConstItem, Ident, Item, ItemKind, ModItem, ModKind, Term},
+  ast::{self, ConstItem, Ident, Item, ItemKind, ModItem, ModKind, Span, Term, TermKind},
   parser::VineParser,
   visit::{VisitMut, Visitee},
 };
@@ -31,13 +31,18 @@ impl<'ctx> Loader<'ctx> {
     let path = path.into();
     let main = Ident(self.interner.intern("main"));
     self.root.push(Item {
+      span: Span::NONE,
       kind: ItemKind::Const(ConstItem {
         name: main,
-        value: Term::new_path(ast::Path {
-          segments: vec![self.auto_mod_name(&path), main],
-          absolute: true,
-          resolved: None,
-        }),
+        value: Term {
+          span: Span::NONE,
+          kind: TermKind::Path(ast::Path {
+            span: Span::NONE,
+            segments: vec![self.auto_mod_name(&path), main],
+            absolute: true,
+            resolved: None,
+          }),
+        },
       }),
     });
     self.load_mod(path)
@@ -46,6 +51,7 @@ impl<'ctx> Loader<'ctx> {
   pub fn load_mod(&mut self, path: impl Into<PathBuf>) {
     let path = path.into();
     let module = Item {
+      span: Span::NONE,
       kind: ItemKind::Mod(ModItem {
         name: self.auto_mod_name(&path),
         kind: ModKind::Loaded(self.load_file(path)),

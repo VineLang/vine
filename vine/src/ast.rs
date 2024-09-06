@@ -10,6 +10,7 @@ use crate::resolve::NodeId;
 
 #[derive(Clone)]
 pub struct Item {
+  pub span: Span,
   pub kind: ItemKind,
 }
 
@@ -80,22 +81,26 @@ pub struct InlineIvy {
 
 #[derive(Default, Clone, PartialEq, Eq)]
 pub struct Path {
+  pub span: Span,
   pub segments: Vec<Ident>,
   pub absolute: bool,
   pub resolved: Option<NodeId>,
 }
 
 impl Path {
-  pub const ROOT: Self = Self { segments: Vec::new(), absolute: true, resolved: Some(0) };
+  pub const ROOT: Self =
+    Self { span: Span::NONE, segments: Vec::new(), absolute: true, resolved: Some(0) };
 }
 
 #[derive(Default, Debug, Clone)]
 pub struct Block {
+  pub span: Span,
   pub stmts: Vec<Stmt>,
 }
 
 #[derive(Clone)]
 pub struct Stmt {
+  pub span: Span,
   pub kind: StmtKind,
 }
 
@@ -115,6 +120,7 @@ pub struct LetStmt {
 
 #[derive(Default, Clone)]
 pub struct Term {
+  pub span: Span,
   pub kind: TermKind,
 }
 
@@ -196,49 +202,23 @@ pub enum ComparisonOp {
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Ident(pub Interned<'static, str>);
 
-pub type B<T> = Box<T>;
-
-impl Term {
-  pub fn new_ref(term: Term) -> Term {
-    Term { kind: TermKind::Ref(Box::new(term)) }
-  }
-
-  pub fn new_deref(term: Term) -> Term {
-    Term { kind: TermKind::Deref(Box::new(term)) }
-  }
-
-  pub fn new_u32(num: u32) -> Term {
-    Term { kind: TermKind::U32(num) }
-  }
-
-  pub fn new_f32(num: f32) -> Term {
-    Term { kind: TermKind::F32(num) }
-  }
-
-  pub fn new_path(path: Path) -> Term {
-    Term { kind: TermKind::Path(path) }
-  }
-
-  pub fn new_move(term: Term) -> Term {
-    Term { kind: TermKind::Move(Box::new(term)) }
-  }
-
-  pub fn new_unary_op(op: UnaryOp, term: Term) -> Term {
-    Term { kind: TermKind::UnaryOp(op, Box::new(term)) }
-  }
-
-  pub fn new_binary_op(op: BinaryOp, lhs: Term, rhs: Term) -> Term {
-    Term { kind: TermKind::BinaryOp(op, Box::new(lhs), Box::new(rhs)) }
-  }
-
-  pub fn new_binary_op_assign(op: BinaryOp, lhs: Term, rhs: Term) -> Term {
-    Term { kind: TermKind::BinaryOpAssign(op, Box::new(lhs), Box::new(rhs)) }
-  }
+#[derive(Default, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub struct Span {
+  pub file: usize,
+  pub start: usize,
+  pub end: usize,
 }
+
+impl Span {
+  pub const NONE: Span = Span { file: 0, start: 0, end: 0 };
+}
+
+pub type B<T> = Box<T>;
 
 impl Path {
   pub fn extend(&self, ext: &[Ident]) -> Self {
     Path {
+      span: Span::NONE,
       segments: self.segments.iter().chain(ext).copied().collect(),
       absolute: self.absolute,
       resolved: None,

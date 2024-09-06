@@ -10,8 +10,8 @@ use vine_util::{
 use crate::{
   ast::{
     BinaryOp, Block, ComparisonOp, ConstItem, Enum, FnItem, Ident, InlineIvy, Item, ItemKind,
-    LetStmt, ModItem, ModKind, Path, PatternItem, Stmt, StmtKind, Struct, Term, TermKind, UnaryOp,
-    UseTree,
+    LetStmt, ModItem, ModKind, Path, PatternItem, Span, Stmt, StmtKind, Struct, Term, TermKind,
+    UnaryOp, UseTree,
   },
   lexer::Token,
 };
@@ -66,19 +66,20 @@ impl<'ctx, 'src> VineParser<'ctx, 'src> {
   }
 
   fn maybe_parse_item(&mut self) -> Parse<'src, Option<Item>> {
-    Ok(Some(Item {
-      kind: match () {
-        _ if self.check(Token::Fn) => ItemKind::Fn(self.parse_fn_item()?),
-        _ if self.check(Token::Const) => ItemKind::Const(self.parse_const_item()?),
-        _ if self.check(Token::Struct) => ItemKind::Struct(self.parse_struct_item()?),
-        _ if self.check(Token::Enum) => ItemKind::Enum(self.parse_enum_item()?),
-        _ if self.check(Token::Pattern) => ItemKind::Pattern(self.parse_pattern_item()?),
-        _ if self.check(Token::Mod) => ItemKind::Mod(self.parse_mod_item()?),
-        _ if self.check(Token::Use) => ItemKind::Use(self.parse_use_item()?),
-        _ if self.check(Token::InlineIvy) => ItemKind::Ivy(self.parse_ivy_item()?),
-        _ => return Ok(None),
-      },
-    }))
+    let span = self.start_span();
+    let kind = match () {
+      _ if self.check(Token::Fn) => ItemKind::Fn(self.parse_fn_item()?),
+      _ if self.check(Token::Const) => ItemKind::Const(self.parse_const_item()?),
+      _ if self.check(Token::Struct) => ItemKind::Struct(self.parse_struct_item()?),
+      _ if self.check(Token::Enum) => ItemKind::Enum(self.parse_enum_item()?),
+      _ if self.check(Token::Pattern) => ItemKind::Pattern(self.parse_pattern_item()?),
+      _ if self.check(Token::Mod) => ItemKind::Mod(self.parse_mod_item()?),
+      _ if self.check(Token::Use) => ItemKind::Use(self.parse_use_item()?),
+      _ if self.check(Token::InlineIvy) => ItemKind::Ivy(self.parse_ivy_item()?),
+      _ => return Ok(None),
+    };
+    let span = self.end_span(span);
+    Ok(Some(Item { span, kind }))
   }
 
   fn parse_ident(&mut self) -> Parse<'src, Ident> {
@@ -86,12 +87,12 @@ impl<'ctx, 'src> VineParser<'ctx, 'src> {
     Ok(Ident(self.interner.intern(token)))
   }
 
-  fn parse_num(&mut self) -> Parse<'src, Term> {
+  fn parse_num(&mut self) -> Parse<'src, TermKind> {
     let token = self.expect(Token::Num)?;
     if token.contains('.') {
-      Ok(Term::new_f32(self.parse_f32_like(token, ParseError::InvalidNum)?))
+      Ok(TermKind::F32(self.parse_f32_like(token, ParseError::InvalidNum)?))
     } else {
-      Ok(Term::new_u32(self.parse_u32_like(token, ParseError::InvalidNum)?))
+      Ok(TermKind::U32(self.parse_u32_like(token, ParseError::InvalidNum)?))
     }
   }
 
@@ -114,7 +115,7 @@ impl<'ctx, 'src> VineParser<'ctx, 'src> {
     let name = self.parse_ident()?;
     let params = self.parse_term_list()?;
     let body = self.parse_block()?;
-    Ok(FnItem { name, params, body: Term { kind: TermKind::Block(body) } })
+    Ok(FnItem { name, params, body: Term { span: body.span, kind: TermKind::Block(body) } })
   }
 
   fn parse_const_item(&mut self) -> Parse<'src, ConstItem> {
@@ -175,9 +176,11 @@ impl<'ctx, 'src> VineParser<'ctx, 'src> {
   }
 
   fn parse_use_tree(&mut self) -> Parse<'src, UseTree> {
-    let mut path = Path { segments: Vec::new(), absolute: false, resolved: None };
+    let span = self.start_span();
+    let mut path = Path { span: Span::NONE, segments: Vec::new(), absolute: false, resolved: None };
     while self.check(Token::Ident) {
       path.segments.push(self.parse_ident()?);
+      path.span = self.end_span(span);
       if !self.eat(Token::ColonColon)? {
         return Ok(UseTree { path, children: None });
       }
@@ -208,8 +211,10 @@ impl<'ctx, 'src> VineParser<'ctx, 'src> {
   }
 
   fn parse_block(&mut self) -> Parse<'src, Block> {
+    let span = self.start_span();
     let stmts = self.parse_delimited(BRACE, Self::parse_stmt)?;
-    Ok(Block { stmts })
+    let span = self.end_span(span);
+    Ok(Block { span, stmts })
   }
 
   fn parse_term(&mut self) -> Parse<'src, Term> {
@@ -217,54 +222,63 @@ impl<'ctx, 'src> VineParser<'ctx, 'src> {
   }
 
   fn parse_term_bp(&mut self, bp: BP) -> Parse<'src, Term> {
+    let span = self.start_span();
     let mut term = self.parse_term_prefix()?;
     loop {
       term = match self.parse_term_postfix(term, bp)? {
-        Ok(term) => term,
+        Ok(kind) => Term { span: self.end_span(span), kind },
         Err(term) => return Ok(term),
       }
     }
   }
 
   fn parse_term_prefix(&mut self) -> Parse<'src, Term> {
+    let span = self.start_span();
+    let kind = self._parse_term_prefix(span)?;
+    let span = self.end_span(span);
+    Ok(Term { span, kind })
+  }
+  fn _parse_term_prefix(&mut self, span: usize) -> Parse<'src, TermKind> {
     if self.eat(Token::Return)? {
-      return Ok(Term { kind: TermKind::Return(Box::new(self.parse_term_bp(BP::ControlFlow)?)) });
+      return Ok(TermKind::Return(Box::new(self.parse_term_bp(BP::ControlFlow)?)));
     }
     if self.eat(Token::Break)? {
-      return Ok(Term { kind: TermKind::Break });
+      return Ok(TermKind::Break);
     }
     if self.eat(Token::And)? {
-      return Ok(Term::new_ref(self.parse_term_bp(BP::Prefix)?));
+      return Ok(TermKind::Ref(Box::new(self.parse_term_bp(BP::Prefix)?)));
     }
     if self.eat(Token::AndAnd)? {
-      return Ok(Term::new_ref(Term::new_ref(self.parse_term_bp(BP::Prefix)?)));
+      let inner = self.parse_term_bp(BP::Prefix)?;
+      let span = self.end_span(span + 1);
+      return Ok(TermKind::Ref(Box::new(Term { span, kind: TermKind::Ref(Box::new(inner)) })));
     }
     if self.eat(Token::Star)? {
-      return Ok(Term::new_deref(self.parse_term_bp(BP::Prefix)?));
+      return Ok(TermKind::Deref(Box::new(self.parse_term_bp(BP::Prefix)?)));
     }
     if self.eat(Token::Move)? {
-      return Ok(Term::new_move(self.parse_term_bp(BP::Prefix)?));
+      return Ok(TermKind::Move(Box::new(self.parse_term_bp(BP::Prefix)?)));
     }
     if self.eat(Token::Tilde)? {
-      return Ok(Term { kind: TermKind::Inverse(Box::new(self.parse_term_bp(BP::Prefix)?)) });
+      return Ok(TermKind::Inverse(Box::new(self.parse_term_bp(BP::Prefix)?)));
     }
     if self.eat(Token::Minus)? {
-      return Ok(Term::new_unary_op(UnaryOp::Neg, self.parse_term_bp(BP::Prefix)?));
+      return Ok(TermKind::UnaryOp(UnaryOp::Neg, Box::new(self.parse_term_bp(BP::Prefix)?)));
     }
     if self.eat(Token::Bang)? {
-      return Ok(Term::new_unary_op(UnaryOp::Not, self.parse_term_bp(BP::Prefix)?));
+      return Ok(TermKind::UnaryOp(UnaryOp::Not, Box::new(self.parse_term_bp(BP::Prefix)?)));
     }
     if self.check(Token::Num) {
       return self.parse_num();
     }
     if self.check(Token::Char) {
-      return Ok(Term::new_u32(self.parse_char()? as u32));
+      return Ok(TermKind::U32(self.parse_char()? as u32));
     }
     if self.check(Token::String) {
-      return Ok(Term { kind: TermKind::String(self.parse_string()?) });
+      return Ok(TermKind::String(self.parse_string()?));
     }
     if self.check(Token::Ident) || self.check(Token::ColonColon) {
-      return Ok(Term::new_path(self.parse_path()?));
+      return Ok(TermKind::Path(self.parse_path()?));
     }
     if self.check(Token::OpenParen) {
       let mut tuple = false;
@@ -276,16 +290,16 @@ impl<'ctx, 'src> VineParser<'ctx, 'src> {
         Ok(term)
       })?;
       if terms.len() == 1 && !tuple {
-        return Ok(terms.pop().unwrap());
+        return Ok(terms.pop().unwrap().kind);
       }
-      return Ok(Term { kind: TermKind::Tuple(terms) });
+      return Ok(TermKind::Tuple(terms));
     }
     if self.check(Token::OpenBracket) {
       let terms = self.parse_delimited(BRACKET_COMMA, Self::parse_term)?;
-      return Ok(Term { kind: TermKind::List(terms) });
+      return Ok(TermKind::List(terms));
     }
     if self.check(Token::OpenBrace) {
-      return Ok(Term { kind: TermKind::Block(self.parse_block()?) });
+      return Ok(TermKind::Block(self.parse_block()?));
     }
     if self.eat(Token::If)? {
       let cond = self.parse_term()?;
@@ -297,9 +311,9 @@ impl<'ctx, 'src> VineParser<'ctx, 'src> {
           self.unexpected()?
         }
       } else {
-        Term { kind: TermKind::Hole }
+        Term { span: Span::NONE, kind: TermKind::Hole }
       };
-      return Ok(Term { kind: TermKind::If(Box::new(cond), then, Box::new(else_)) });
+      return Ok(TermKind::If(Box::new(cond), then, Box::new(else_)));
     }
     if self.eat(Token::While)? {
       if self.eat(Token::Let)? {
@@ -307,28 +321,28 @@ impl<'ctx, 'src> VineParser<'ctx, 'src> {
         self.expect(Token::Eq)?;
         let value = self.parse_term()?;
         let body = self.parse_block()?;
-        return Ok(Term { kind: TermKind::WhileLet(Box::new(pat), Box::new(value), body) });
+        return Ok(TermKind::WhileLet(Box::new(pat), Box::new(value), body));
       } else {
         let cond = self.parse_term()?;
         let body = self.parse_block()?;
-        return Ok(Term { kind: TermKind::While(Box::new(cond), body) });
+        return Ok(TermKind::While(Box::new(cond), body));
       }
     }
     if self.eat(Token::Loop)? {
       let body = self.parse_block()?;
-      return Ok(Term { kind: TermKind::Loop(body) });
+      return Ok(TermKind::Loop(body));
     }
     if self.eat(Token::For)? {
       let pat = self.parse_term()?;
       self.expect(Token::In)?;
       let iter = self.parse_term()?;
       let body = self.parse_block()?;
-      return Ok(Term { kind: TermKind::For(Box::new(pat), Box::new(iter), body) });
+      return Ok(TermKind::For(Box::new(pat), Box::new(iter), body));
     }
     if self.eat(Token::Fn)? {
       let params = self.parse_term_list()?;
       let body = self.parse_term()?;
-      return Ok(Term { kind: TermKind::Fn(params, Box::new(body)) });
+      return Ok(TermKind::Fn(params, Box::new(body)));
     }
     if self.eat(Token::Match)? {
       let scrutinee = self.parse_term()?;
@@ -338,22 +352,26 @@ impl<'ctx, 'src> VineParser<'ctx, 'src> {
         let value = self_.parse_term()?;
         Ok((pat, value))
       })?;
-      return Ok(Term { kind: TermKind::Match(Box::new(scrutinee), arms) });
+      return Ok(TermKind::Match(Box::new(scrutinee), arms));
     }
     if self.eat(Token::Hole)? {
-      return Ok(Term { kind: TermKind::Hole });
+      return Ok(TermKind::Hole);
     }
     self.unexpected()
   }
 
-  fn parse_term_postfix(&mut self, lhs: Term, bp: BP) -> Parse<'src, Result<Term, Term>> {
+  fn parse_term_postfix(&mut self, lhs: Term, bp: BP) -> Parse<'src, Result<TermKind, Term>> {
     for &(lbp, token, op) in BINARY_OP_TABLE {
       let rbp = lbp.inc(); // left-associative
       if bp.permits(lbp) && self.eat(token)? {
         if self.eat(Token::Eq)? {
-          return Ok(Ok(Term::new_binary_op_assign(op, lhs, self.parse_term_bp(BP::Assignment)?)));
+          return Ok(Ok(TermKind::BinaryOpAssign(
+            op,
+            Box::new(lhs),
+            Box::new(self.parse_term_bp(BP::Assignment)?),
+          )));
         } else {
-          return Ok(Ok(Term::new_binary_op(op, lhs, self.parse_term_bp(rbp)?)));
+          return Ok(Ok(TermKind::BinaryOp(op, Box::new(lhs), Box::new(self.parse_term_bp(rbp)?))));
         }
       }
     }
@@ -370,47 +388,48 @@ impl<'ctx, 'src> VineParser<'ctx, 'src> {
         break;
       }
       if !rhs.is_empty() {
-        return Ok(Ok(Term { kind: TermKind::ComparisonOp(Box::new(lhs), rhs) }));
+        return Ok(Ok(TermKind::ComparisonOp(Box::new(lhs), rhs)));
       }
     }
 
     if bp.permits(BP::Assignment) && self.eat(Token::Eq)? {
       let rhs = self.parse_term_bp(BP::Assignment)?;
-      return Ok(Ok(Term { kind: TermKind::Assign(Box::new(lhs), Box::new(rhs)) }));
+      return Ok(Ok(TermKind::Assign(Box::new(lhs), Box::new(rhs))));
     }
 
     if self.eat(Token::Dot)? {
       let path = self.parse_path()?;
       if self.check(Token::OpenParen) {
         let args = self.parse_term_list()?;
-        return Ok(Ok(Term { kind: TermKind::Method(Box::new(lhs), path, args) }));
+        return Ok(Ok(TermKind::Method(Box::new(lhs), path, args)));
       } else {
-        return Ok(Ok(Term { kind: TermKind::Field(Box::new(lhs), path) }));
+        return Ok(Ok(TermKind::Field(Box::new(lhs), path)));
       }
     }
 
     if self.check(Token::OpenParen) {
       let args = self.parse_term_list()?;
-      return Ok(Ok(Term { kind: TermKind::Call(Box::new(lhs), args) }));
+      return Ok(Ok(TermKind::Call(Box::new(lhs), args)));
     }
 
     Ok(Err(lhs))
   }
 
   pub(crate) fn parse_stmt(&mut self) -> Parse<'src, Stmt> {
-    Ok(Stmt {
-      kind: if self.check(Token::Let) {
-        StmtKind::Let(self.parse_let_stmt()?)
-      } else if self.eat(Token::Semi)? {
-        StmtKind::Empty
-      } else if let Some(item) = self.maybe_parse_item()? {
-        StmtKind::Item(item)
-      } else {
-        let term = self.parse_term()?;
-        let semi = self.eat(Token::Semi)?;
-        StmtKind::Term(term, semi)
-      },
-    })
+    let span = self.start_span();
+    let kind = if self.check(Token::Let) {
+      StmtKind::Let(self.parse_let_stmt()?)
+    } else if self.eat(Token::Semi)? {
+      StmtKind::Empty
+    } else if let Some(item) = self.maybe_parse_item()? {
+      StmtKind::Item(item)
+    } else {
+      let term = self.parse_term()?;
+      let semi = self.eat(Token::Semi)?;
+      StmtKind::Term(term, semi)
+    };
+    let span = self.end_span(span);
+    Ok(Stmt { span, kind })
   }
 
   fn parse_let_stmt(&mut self) -> Parse<'src, LetStmt> {
@@ -421,9 +440,19 @@ impl<'ctx, 'src> VineParser<'ctx, 'src> {
   }
 
   fn parse_path(&mut self) -> Parse<'src, Path> {
+    let span = self.start_span();
     let absolute = self.eat(Token::ColonColon)?;
     let segments = self.parse_delimited(PATH, Self::parse_ident)?;
-    Ok(Path { segments, absolute, resolved: None })
+    let span = self.end_span(span);
+    Ok(Path { span, segments, absolute, resolved: None })
+  }
+
+  fn start_span(&mut self) -> usize {
+    self.state.lexer.span().start
+  }
+
+  fn end_span(&mut self, span: usize) -> Span {
+    Span { file: 0, start: span, end: self.state.lexer.span().end }
   }
 }
 

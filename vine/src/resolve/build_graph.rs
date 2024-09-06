@@ -1,7 +1,7 @@
 use std::mem::replace;
 
 use crate::{
-  ast::{Ident, Item, ItemKind, ModKind, Path, Term, TermKind, UseTree},
+  ast::{Ident, Item, ItemKind, ModKind, Path, Span, Term, TermKind, UseTree},
   visit::{VisitMut, Visitee},
 };
 
@@ -27,7 +27,7 @@ impl Resolver {
         self.define_value(
           parent,
           f.name,
-          NodeValue::Term(Term { kind: TermKind::Fn(f.params, Box::new(f.body)) }),
+          NodeValue::Term(Term { span: item.span, kind: TermKind::Fn(f.params, Box::new(f.body)) }),
         );
       }
       ItemKind::Const(c) => {
@@ -44,7 +44,7 @@ impl Resolver {
         Self::build_imports(
           tree,
           &mut self.nodes[parent],
-          &mut Path { segments: Vec::new(), absolute: false, resolved: None },
+          &mut Path { span: Span::NONE, segments: Vec::new(), absolute: false, resolved: None },
         );
       }
       ItemKind::Struct(s) => {
@@ -164,6 +164,8 @@ struct SubitemVisitor<'a> {
 
 impl VisitMut<'_> for SubitemVisitor<'_> {
   fn visit_item(&mut self, item: &mut Item) {
-    self.resolver.build_item(replace(item, Item { kind: ItemKind::Taken }), self.node);
+    self
+      .resolver
+      .build_item(replace(item, Item { span: Span::NONE, kind: ItemKind::Taken }), self.node);
   }
 }

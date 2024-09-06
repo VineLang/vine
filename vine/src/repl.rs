@@ -17,7 +17,7 @@ use vine_util::{
 };
 
 use crate::{
-  ast::{Block, Ident, Term, TermKind},
+  ast::{Block, Ident, Span, Term, TermKind},
   compile::Compiler,
   desugar::Desugar,
   loader::Loader,
@@ -119,7 +119,7 @@ impl<'ctx, 'ivm> Repl<'ctx, 'ivm> {
     compiler.compile_term(
       &mut self.local_count,
       name.clone(),
-      &Term { kind: TermKind::Block(Block { stmts }) },
+      &Term { span: Span::NONE, kind: TermKind::Block(Block { span: Span::NONE, stmts }) },
       self.vars.values().map(|v| v.local),
     );
 
