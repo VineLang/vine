@@ -42,7 +42,7 @@ impl CompileArgs {
     if !self.no_std {
       self.libs.push(std_path())
     }
-    vine::compiler(vine::Config { main: self.main, libs: self.libs, items: self.items })
+    vine::build(vine::Config { main: self.main, libs: self.libs, items: self.items })
   }
 }
 

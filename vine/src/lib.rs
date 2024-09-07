@@ -23,7 +23,7 @@ pub struct Config {
   pub items: Vec<String>,
 }
 
-pub fn compiler(config: Config) -> Nets {
+pub fn build(config: Config) -> Nets {
   let arena = &*Box::leak(Box::new(BytesArena::default()));
   let interner = StringInterner::new(arena);
 

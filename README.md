@@ -11,7 +11,7 @@ Vine is still under heavy development; there are many bugs, and many things will
 See [`vine/examples/`](./vine/examples/) for examples of Vine.
 
 ```sh
-cargo run -p vine-cli --bin vine -- run vine/examples/$NAME
+cargo run -r --bin vine run vine/examples/$NAME
 ```
 
 If you're curious to learn more, join the [Vine Discord server](https://discord.gg/bgUPV8KjDv).
