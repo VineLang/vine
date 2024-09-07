@@ -11,11 +11,7 @@ Vine is still under heavy development; there are many bugs, and many things will
 See [`vine/examples/`](./vine/examples/) for examples of Vine.
 
 ```sh
-# to compile a vine program to ivy (vine's assembly language):
-cargo run --bin vine vine/examples/$NAME.vi vine/std/std.vi > target/out.iv
-
-# to run an ivy program:
-cargo run --release --bin ivy target/out.iv
+cargo run -p vine-cli --bin vine -- run vine/examples/$NAME
 ```
 
 If you're curious to learn more, join the [Vine Discord server](https://discord.gg/bgUPV8KjDv).
