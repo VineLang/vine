@@ -1,13 +1,35 @@
 {
   "$schema": "https://raw.githubusercontent.com/streetsidesoftware/cspell/main/cspell.schema.json",
   "version": "0.2",
-  "dictionaryDefinitions": [
-    {
-      "name": "project-words",
-      "path": "words.txt"
-    }
+  "words": [
+    "allocs",
+    "bitflags",
+    "cfgs",
+    "cmps",
+    "combinators",
+    "concat",
+    "delims",
+    "deque",
+    "dyntest",
+    "fizzbuzz",
+    "freelist",
+    "hashbrown",
+    "hihi",
+    "ilog",
+    "indexmap",
+    "interner",
+    "interstage",
+    "miri",
+    "nilary",
+    "nonoverlapping",
+    "readback",
+    "repr",
+    "scrutinee",
+    "sixel",
+    "strs"
   ],
-  "enableGlobDot": true,
-  "dictionaries": ["project-words"],
-  "ignorePaths": [".git", "target"]
+  "dictionaries": ["rust"],
+  "files": ["**/*.rs", "**/*.md", "**/*.vi", "**/*.iv"],
+  "ignoreRegExpList": ["HexValues"],
+  "useGitignore": true
 }

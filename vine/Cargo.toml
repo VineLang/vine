@@ -4,13 +4,14 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-logos = "0.14.0"
-vine-util = { path = "../util" }
-ivy = { path = "../ivy" }
-ivm = { path = "../ivm" }
 bitflags = "2.6.0"
-slab = "0.4.9"
 loaned = "0.1.2"
+logos = "0.14.0"
+slab = "0.4.9"
+
+ivm = { path = "../ivm" }
+ivy = { path = "../ivy" }
+vine-util = { path = "../util" }
 
 [lints]
 workspace = true
