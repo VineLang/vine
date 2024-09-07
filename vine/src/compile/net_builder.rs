@@ -99,6 +99,7 @@ pub enum Agent {
 }
 
 impl Agent {
+  #[allow(unused)]
   pub fn ports(&self) -> impl Iterator<Item = &Port> {
     multi_iter!(Ports { Three, Four });
     match self {

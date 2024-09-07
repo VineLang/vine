@@ -15,7 +15,7 @@ mod net_builder;
 
 use net_builder::*;
 
-pub fn compile(nodes: &[Node]) -> Nets {
+pub fn compile(nodes: &[Node], items: &[String]) -> Nets {
   let mut compiler = Compiler {
     nets: Default::default(),
     nodes,
@@ -32,7 +32,10 @@ pub fn compile(nodes: &[Node]) -> Nets {
   };
 
   for node in nodes {
-    compiler.compile_node(node);
+    let canonical = &node.canonical.to_string()[2..];
+    if items.is_empty() || items.iter().any(|x| x == canonical) {
+      compiler.compile_node(node);
+    }
   }
 
   compiler.nets
