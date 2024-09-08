@@ -53,7 +53,7 @@ fn test_vi(t: &mut DynTester, path: &'static str, input: &'static [u8], output_e
   t.group(name, |t| {
     let (sender, receiver) = channel();
     t.test("compile", move || {
-      let (stdout, stderr) = exec(VINE, &[path, "vine/std/std.vi"], &[]);
+      let (stdout, stderr) = exec(VINE, &["build", path], &[]);
       assert!(stderr.is_empty());
       let path = test_snapshot(&["vine", name, "compiled.iv"], &stdout);
       _ = sender.send(path);
@@ -74,7 +74,7 @@ fn test_iv(t: &mut DynTester, path: &'static str, input: &'static [u8], output_e
 }
 
 fn run_iv(group: &str, name: &str, path: &str, input: &[u8], output_ext: &str) {
-  let (stdout, stderr) = exec(IVY, &[path], input);
+  let (stdout, stderr) = exec(IVY, &["run", path], input);
   test_snapshot(&[group, name, &format!("output{output_ext}")], &stdout);
   let full_stats = String::from_utf8(stderr).unwrap();
   let stats = full_stats.split_once("\nTime").unwrap().0;
