@@ -328,14 +328,14 @@ impl<'ctx, 'src> VineParser<'ctx, 'src> {
       return Ok(Term { kind: TermKind::Fn(params, Box::new(body)) });
     }
     if self.eat(Token::Match)? {
-      let scrut = self.parse_term()?;
+      let scrutinee = self.parse_term()?;
       let arms = self.parse_delimited(BRACE_COMMA, |self_| {
         let pat = self_.parse_term()?;
         self_.expect(Token::ThickArrow)?;
         let value = self_.parse_term()?;
         Ok((pat, value))
       })?;
-      return Ok(Term { kind: TermKind::Match(Box::new(scrut), arms) });
+      return Ok(Term { kind: TermKind::Match(Box::new(scrutinee), arms) });
     }
     if self.eat(Token::Hole)? {
       return Ok(Term { kind: TermKind::Hole });

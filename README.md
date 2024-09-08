@@ -1,7 +1,6 @@
 <h1 align="center">
   <img src="https://vine.dev/favicon-1024.png" width="128" align="center">
-  
-  The Vine Programming Language
+  <p>The Vine Programming Language</p>
 </h1>
 
 Vine is an experimental new programming language based on interaction nets.
