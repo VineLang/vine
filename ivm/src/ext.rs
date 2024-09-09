@@ -188,9 +188,15 @@ ext_fns! {
 
   u32_shl,
   u32_shr,
+  u32_rotl,
+  u32_rotr,
+
   u32_and,
   u32_or,
   u32_xor,
+
+  u32_add_high,
+  u32_mul_high,
 
   io_print_char,
   io_print_byte,
@@ -218,9 +224,15 @@ impl ExtFnKind {
 
       u32_shl => ExtVal::new_u32(a.as_u32().wrapping_shl(b.as_u32())),
       u32_shr => ExtVal::new_u32(a.as_u32().wrapping_shr(b.as_u32())),
+      u32_rotl => ExtVal::new_u32(a.as_u32().rotate_left(b.as_u32())),
+      u32_rotr => ExtVal::new_u32(a.as_u32().rotate_right(b.as_u32())),
+
       u32_and => ExtVal::new_u32(a.as_u32() & b.as_u32()),
       u32_or => ExtVal::new_u32(a.as_u32() | b.as_u32()),
       u32_xor => ExtVal::new_u32(a.as_u32() ^ b.as_u32()),
+
+      u32_add_high => ExtVal::new_u32((((a.as_u32() as u64) + (b.as_u32() as u64)) >> 32) as u32),
+      u32_mul_high => ExtVal::new_u32((((a.as_u32() as u64) * (b.as_u32() as u64)) >> 32) as u32),
 
       io_print_char => {
         a.as_io();

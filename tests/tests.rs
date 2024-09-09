@@ -42,6 +42,7 @@ fn tests(t: &mut DynTester) {
     test_vi(t, "tests/programs/move_it_move_it.vi", b"", ".txt");
     test_vi(t, "tests/programs/option_party.vi", b"", ".txt");
     test_vi(t, "tests/programs/pretty_div.vi", b"", ".txt");
+    test_vi(t, "tests/programs/so_random.vi", b"", ".txt");
   });
 }
 
