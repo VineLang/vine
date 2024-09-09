@@ -29,6 +29,7 @@ pub fn compile(nodes: &[Node], items: &[String]) -> Nets {
     net: Default::default(),
     return_target: Default::default(),
     break_target: Default::default(),
+    dup_labels: Default::default(),
   };
 
   for node in nodes {
@@ -60,6 +61,8 @@ struct Compiler<'n> {
 
   return_target: Option<(Local, ForkId)>,
   break_target: Option<ForkId>,
+
+  dup_labels: usize,
 }
 
 impl<'n> Compiler<'n> {
