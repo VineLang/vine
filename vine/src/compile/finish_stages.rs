@@ -17,11 +17,13 @@ impl Compiler<'_> {
         interfaces: &self.interfaces,
         net: &mut self.net,
         locals: Default::default(),
+        dup_label_base: self.dup_labels,
       };
       let root = finish.finish_stage(stage);
       let net = finish.net.finish(root);
       self.nets.insert(name, net);
     }
+    self.dup_labels += self.local_count;
     self.interfaces.clear();
   }
 }
@@ -31,6 +33,7 @@ struct FinishStage<'a> {
   interfaces: &'a [Interface],
   net: &'a mut NetBuilder,
   locals: BTreeMap<Local, LocalState>,
+  dup_label_base: usize,
 }
 
 #[derive(Debug, Default)]
@@ -64,10 +67,10 @@ impl<'a> FinishStage<'a> {
       }
     }
 
-    for (_, mut l) in take(&mut self.locals).into_iter() {
-      if l.end.is_some() || !l.value.can_copy() {
-        l.uses.extend(l.end);
-        self.dup_tree(l.value, l.uses);
+    for (l, mut s) in take(&mut self.locals).into_iter() {
+      if s.end.is_some() || !s.value.can_copy() {
+        s.uses.extend(s.end);
+        self.dup_tree(l, s.value, s.uses);
       }
     }
 
@@ -112,10 +115,10 @@ impl<'a> FinishStage<'a> {
   }
 
   fn set_local(&mut self, local: Local, port: Port) {
-    let local = self.locals.entry(local).or_default();
-    let prev = replace(&mut local.value, port);
-    let uses = take(&mut local.uses);
-    self.dup_tree(prev, uses);
+    let state = self.locals.entry(local).or_default();
+    let prev = replace(&mut state.value, port);
+    let uses = take(&mut state.uses);
+    self.dup_tree(local, prev, uses);
   }
 
   fn move_local(&mut self, local: Local, port: Port) {
@@ -123,13 +126,14 @@ impl<'a> FinishStage<'a> {
     self.set_local(local, Port::Erase);
   }
 
-  fn dup_tree(&mut self, mut value: Port, uses: Vec<Port>) {
+  fn dup_tree(&mut self, local: Local, mut value: Port, uses: Vec<Port>) {
     let last = uses
       .into_iter()
       .reduce(|cur, next| {
         let r = self.net.new_wire();
         let prev = replace(&mut value, r.1);
-        self.net.agents.push(Agent::Comb("dup".into(), prev, cur, r.0));
+        let label = format!("dup{}", self.dup_label_base + local);
+        self.net.agents.push(Agent::Comb(label, prev, cur, r.0));
         next
       })
       .unwrap_or(Port::Erase);
