@@ -14,18 +14,18 @@
   ::mandelbrot_tga::main::1 = x(n4 0)
 }
 
-::mandelbrot_tga::main::1 { x(n0 dup(@lt(1024 ?(_ ::mandelbrot_tga::main::2 x(n0 n1))) n1)) }
+::mandelbrot_tga::main::1 { x(n0 dup7(@lt(1024 ?(_ ::mandelbrot_tga::main::2 x(n0 n1))) n1)) }
 
 ::mandelbrot_tga::main::2 {
-  x(n0 dup(n1 @add(1 n3)))
+  x(n0 dup7(n1 @add(1 n3)))
   ::mandelbrot_tga::main::3 = x(n0 x(n2 x(n1 0)))
   ::mandelbrot_tga::main::1 = x(n2 n3)
 }
 
-::mandelbrot_tga::main::3 { x(n0 x(n1 x(n2 dup(@lt(1024 ?(::mandelbrot_tga::main::5 ::mandelbrot_tga::main::4 x(n0 x(n1 x(n2 n3))))) n3)))) }
+::mandelbrot_tga::main::3 { x(n0 x(n1 x(n2 dup8(@lt(1024 ?(::mandelbrot_tga::main::5 ::mandelbrot_tga::main::4 x(n0 x(n1 x(n2 n3))))) n3)))) }
 
 ::mandelbrot_tga::main::4 {
-  x(n6 x(n9 x(dup(n11 n12) dup(n7 @add(1 n10)))))
+  x(n6 x(n9 x(dup7(n11 n12) dup8(n7 @add(1 n10)))))
   +2.6 = @div(1024 @mul(n1 n2))
   tup(n7 n11) = @add(+0.5 @sub(n0 n1))
   tup(1024 1024) = @div(+2.0 n0)
@@ -43,12 +43,12 @@
   ::mandelbrot_tga::mandelbrot::1 = x(n1 x(n2 x(n3 x(n4 x(n5 x(n6 x(0 @mul(256 @div(64 n0)))))))))
 }
 
-::mandelbrot_tga::mandelbrot::1 { x(n1 x(n2 x(n3 x(n4 x(dup(@add(n8 @lt(+4.0 n0)) n7) x(dup(n8 n9) x(dup(@lt(64 @u32_and(n0 ?(::mandelbrot_tga::mandelbrot::3 ::mandelbrot_tga::mandelbrot::2 x(n1 x(n2 x(n3 x(n4 x(n7 x(n9 x(n5 n6)))))))))) n5) n6))))))) }
+::mandelbrot_tga::mandelbrot::1 { x(n1 x(n2 x(n3 x(n4 x(dup17(@add(n8 @lt(+4.0 n0)) n7) x(dup18(n8 n9) x(dup19(@lt(64 @u32_and(n0 ?(::mandelbrot_tga::mandelbrot::3 ::mandelbrot_tga::mandelbrot::2 x(n1 x(n2 x(n3 x(n4 x(n7 x(n9 x(n5 n6)))))))))) n5) n6))))))) }
 
 ::mandelbrot_tga::mandelbrot::2 {
-  x(dup(n9 n10) x(dup(n11 n12) x(n2 x(n3 x(@sub(n4 @add(n9 n0)) x(n4 x(@add(1 n7) n8)))))))
+  x(dup13(n9 n10) x(dup14(n11 n12) x(n2 x(n3 x(@sub(n4 @add(n9 n0)) x(n4 x(@add(1 n7) n8)))))))
   +2.0 = @mul(n2 @mul(n3 @add(n11 n1)))
-  tup(n0 n1) = tup(dup(@mul(n13 n5) dup(n13 n14)) dup(@mul(n15 n6) dup(n15 n16)))
+  tup(n0 n1) = tup(dup15(@mul(n13 n5) dup15(n13 n14)) dup16(@mul(n15 n6) dup16(n15 n16)))
   ::mandelbrot_tga::mandelbrot::1 = x(n10 x(n12 x(n14 x(n16 x(n5 x(n6 x(n7 n8)))))))
 }
 
@@ -59,7 +59,7 @@
   ::std::io::print_bytes::1 = x(n0 x(n1 x(n2 n3)))
 }
 
-::std::io::print_bytes::1 { x(n0 x(n1 x(dup(?(::std::io::print_bytes::3 ::std::io::print_bytes::2 x(n0 x(n1 x(n3 n2)))) n3) n2))) }
+::std::io::print_bytes::1 { x(n0 x(n1 x(dup38(?(::std::io::print_bytes::3 ::std::io::print_bytes::2 x(n0 x(n1 x(n3 n2)))) n3) n2))) }
 
 ::std::io::print_bytes::2 {
   x(n1 x(n3 x(@sub(1 n4) tup(n0 n5))))

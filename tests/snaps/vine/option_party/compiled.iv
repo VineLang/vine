@@ -16,7 +16,7 @@
   ::option_party::increment_option = fn(ref(::std::option::Option::None n16) _)
   ::option_party::print_option_u32 = fn(ref(n15 n18) fn(n16 _))
   ::std::option::Option::Some = fn(0 n17)
-  ::option_party::increment_option = fn(ref(n17 dup(n116 n117)) _)
+  ::option_party::increment_option = fn(ref(n17 dup5(n116 n117)) _)
   ::option_party::print_option_u32 = fn(ref(n18 n19) fn(n116 _))
   ::option_party::increment_option = fn(ref(n117 n20) _)
   ::option_party::print_option_u32 = fn(ref(n19 n21) fn(n20 _))
@@ -156,7 +156,7 @@
   ::std::io::print::1 = x(n0 x(n1 x(n2 n3)))
 }
 
-::std::io::print::1 { x(n0 x(n1 x(dup(?(::std::io::print::3 ::std::io::print::2 x(n0 x(n1 x(n3 n2)))) n3) n2))) }
+::std::io::print::1 { x(n0 x(n1 x(dup64(?(::std::io::print::3 ::std::io::print::2 x(n0 x(n1 x(n3 n2)))) n3) n2))) }
 
 ::std::io::print::2 {
   x(n1 x(n3 x(@sub(1 n4) tup(n0 n5))))
@@ -247,17 +247,17 @@
 
 ::std::str::concat { fn(tup(@add(n0 n1) fn(n3 n4)) fn(tup(n0 fn(n2 n3)) tup(n1 fn(n2 n4)))) }
 
-::std::u32::to_string { fn(dup(?(::std::u32::to_string::5 ::std::u32::to_string::1 x(n1 n0)) n1) n0) }
+::std::u32::to_string { fn(dup198(?(::std::u32::to_string::5 ::std::u32::to_string::1 x(n1 n0)) n1) n0) }
 
 ::std::u32::to_string::1 {
   x(n1 n2)
   ::std::u32::to_string::2 = x(n1 x(tup(0 fn(n0 n0)) n2))
 }
 
-::std::u32::to_string::2 { x(dup(?(::std::u32::to_string::4 ::std::u32::to_string::3 x(n2 n0)) n2) n0) }
+::std::u32::to_string::2 { x(dup198(?(::std::u32::to_string::4 ::std::u32::to_string::3 x(n2 n0)) n2) n0) }
 
 ::std::u32::to_string::3 {
-  x(dup(@rem(10 n1) @div(10 n5)) x(tup(@add(1 n0) fn(n3 n4)) n6))
+  x(dup198(@rem(10 n1) @div(10 n5)) x(tup(@add(1 n0) fn(n3 n4)) n6))
   48 = @add(n1 n2)
   ::std::u32::to_string::2 = x(n5 x(tup(n0 fn(n3 tup(n2 n4))) n6))
 }
