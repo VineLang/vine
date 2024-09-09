@@ -1,0 +1,24 @@
+
+fn from_u32(val) {
+  (val, 0)
+}
+
+fn to_u32((lo, hi)) {
+  lo
+}
+
+inline_ivy! add {
+  fn(tup(dup(al0 al1) ah) fn(tup(dup(bl0 bl1) bh) tup(l h)))
+  al0 = @add(bl0 l)
+  al1 = @u32_add_high(bl1 c)
+  ah = @add(bh @add(c h))
+}
+
+inline_ivy! mul {
+  fn(tup(dup(al0 dup(al1 al2)) ah) fn(tup(dup(bl0 dup(bl1 bl2)) bh) tup(l h)))
+  al0 = @mul(bl0 l)
+  al1 = @u32_mul_high(bl1 ll)
+  al2 = @mul(bh lh)
+  bl2 = @mul(ah hl)
+  lh = @add(hl @add(ll h))
+}

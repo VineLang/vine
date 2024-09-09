@@ -1,0 +1,23 @@
+// A PCG random number generator (XSH RR 64/32 (LCG) variant).
+
+use std::{u32, u64};
+
+fn new(state, increment) {
+  increment |= u64::from_u32(1);
+  state = u64::add(state, increment);
+  state = u64::add(u64::mul(state, multiplier), increment);
+  (state, increment)
+}
+
+const default = new(
+  (0xd15ea5e5, 0xcafef00d),
+  (0xf767814f, 0x14057b7e),
+);
+
+const multiplier = (0x4c957f2d, 0x5851f42d);
+
+fn gen_u32((&state, &increment)) {
+  let (lo, hi) = state;
+  state = u64::add(u64::mul(state, multiplier), increment);
+  u32::rotate_right((hi >> 13) ^ (hi << 5) ^ (lo >> 27), hi >> 27)
+}
