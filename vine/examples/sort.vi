@@ -1,0 +1,25 @@
+
+use std::{
+  u32,
+  io::println,
+  rng, rng::gen_u32,
+  array::{Array, Array::{push, len, map, join, sort}},
+};
+
+const length = 100;
+const max_val = 1000;
+
+fn main(io) {
+  let rng = rng::default;
+  let nums = Array::empty;
+  while nums.len() < length {
+    nums.push(rng.gen_u32() % max_val);
+  }
+  io.println("unsorted: " ++ show(nums));
+  nums.sort();
+  io.println("sorted: " ++ show(nums));
+}
+
+fn show(nums) {
+  nums.map(u32::to_string).join(", ")
+}

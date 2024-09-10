@@ -43,3 +43,7 @@ inline_ivy! rotate_left {
 inline_ivy! rotate_right {
   fn(@u32_rotr(x y) fn(x y))
 }
+
+inline_ivy! leading_zeros {
+  fn(@u32_clz(0 x) x)
+}

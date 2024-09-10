@@ -1,0 +1,119 @@
+
+mod sort_ = "./array/sort.vi";
+
+mod Array {
+  use sort_::sort;
+
+  const empty = (0, _);
+
+  fn single(value) {
+    (1, value)
+  }
+
+  fn len((&len, &_)) {
+    len
+  }
+
+  fn push((&len, &vals), value) {
+    if len {
+      let cap = calc_cap(len);
+      if len == cap {
+        cap = cap * 2;
+        vals = (vals, _);
+      }
+      let &slot = get_part(len, cap, &vals);
+      slot = value;
+      len += 1;
+    } else {
+      len = 1;
+      vals = value;
+    }
+  }
+
+  fn get((&len, &vals), i) {
+    get_part(i, calc_cap(len), vals)
+  }
+
+  fn get_part(i, cap, &vals) {
+    let half = cap / 2;
+    if half {
+      if i < half {
+        let (&left, &_) = &vals;
+        get_part(i, half, &left)
+      } else {
+        let (&_, &right) = &vals;
+        get_part(i - half, half, &right)
+      }
+    } else {
+      &vals
+    }
+  }
+
+  fn map(&move arr, f) {
+    let (len, vals) = arr;
+    
+    if len { (len, map_part(len, calc_cap(len), vals, f)) } else { Array::empty }
+  }
+
+  fn map_part(len, cap, vals, f) {
+    let half = cap / 2;
+    if half {
+      let (left, right) = vals;
+      if len <= half {
+        (map_part(len, half, left, f), _)
+      } else {
+        (map_full(half, left, f), map_part(len - half, half, right, f))
+      }
+    } else {
+      f(vals)
+    }
+  }
+
+  fn map_full(len, vals, f) {
+    let half = len / 2;
+    if half {
+      let (left, right) = vals;
+      (map_full(half, left, f), map_full(half, right, f))
+    } else {
+      f(vals)
+    }
+  }
+
+  fn join(&move arr, sep) {
+    let (len, vals) = arr;
+    
+    if len { join_part(len, calc_cap(len), vals, sep) } else { "" }
+  }
+
+  fn join_part(len, cap, vals, sep) {
+    let half = cap / 2;
+    if half {
+      let (left, right) = vals;
+      if len <= half {
+        join_part(len, half, left, sep)
+      } else {
+        join_full(half, left, sep)
+          ++ sep
+          ++ join_part(len - half, half, right, sep)
+      }
+    } else {
+      vals
+    }
+  }
+
+  fn join_full(len, vals, sep) {
+    let half = len / 2;
+    if half {
+      let (left, right) = vals;
+      join_full(half, left, sep)
+        ++ sep
+        ++ join_full(half, right, sep)
+    } else {
+      vals
+    }
+  }
+}
+
+fn calc_cap(len) {
+  1 << (32 - u32::leading_zeros(len - 1))
+}
