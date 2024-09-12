@@ -24,6 +24,7 @@
     "nonoverlapping",
     "readback",
     "repr",
+    "rotr",
     "scrutinee",
     "sixel",
     "strs"

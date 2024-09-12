@@ -1,6 +1,5 @@
 use core::{
-  fmt::{self, Debug},
-  fmt::{Display, Write},
+  fmt::{self, Debug, Display, Write},
   str,
   time::Duration,
 };
