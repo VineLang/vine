@@ -6,6 +6,8 @@ use std::{
 use crate::ast::{Net, Tree};
 
 impl Net {
+  /// Apply eta-reduction rules to every net; replacing `(_ _)` with `_` and
+  /// `(a b) ... (a b)` with `x ... x`.
   pub fn eta_reduce(&mut self) {
     let mut walker = WalkTrees::default();
     for tree in self.trees() {

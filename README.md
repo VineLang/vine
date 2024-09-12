@@ -10,7 +10,13 @@ Vine is still under heavy development; there are many bugs, and many things will
 See [`vine/examples/`](./vine/examples/) for examples of Vine.
 
 ```sh
-cargo run -r --bin vine run vine/examples/$NAME
+cargo run -r --bin vine run vine/examples/$NAME.vi
 ```
 
 If you're curious to learn more, join the [Vine Discord server](https://discord.gg/bgUPV8KjDv).
+
+## Sub-Projects
+
+Vine compiles to [Ivy](./ivy/), a low-level interaction-combinator programming language.
+
+Ivy code runs on the [IVM](./ivm/), a performant interaction combinator runtime.

@@ -1,3 +1,43 @@
+//! Conversion of Ivy [`Net`]s to IVM [`Global`]s.
+//!
+//! ## Soundness
+//!
+//! Doing this serialization soundly is a subtle affair; ultimately, we need to
+//! create an immutable cyclic data structure in Rust. There are a few immediate
+//! problems with this:
+//! - Rust data structures are generally acyclic
+//! - Creating cyclic structures generally requires mutation
+//!
+//! The usual solution to this kind of problem would be to use something like
+//! `Arc<Mutex<T>>`. This, however, is not possible in this case, as the
+//! ultimate data structure needs to be traversable without any locking.
+//!
+//! We must therefore take matters into our own hands and write `unsafe` code.
+//! In particular, we will use *temporary* interior mutability, via careful
+//! placement of `UnsafeCell`s, to construct the cyclic structure. When we're
+//! done, we will "freeze" the structure by creating an immutable reference to
+//! it that lives until the structure is dropped.
+//!
+//! Doing this soundly is very subtle, and depends on aspects of the Rust
+//! aliasing model that as of yet are not specified. The code is, however,
+//! compatible with the two current proposed aliasing models -- stacked borrows
+//! and tree borrows -- both theoretically (based on my understanding of the two
+//! models) and empirically (based on Miri's implementation of them).
+//!
+//! The soundness of many of the `unsafe` blocks here is trivial; many of them
+//! are simple operations on the contents of the `UnsafeCell`, which are safe as
+//! long as we only touch one `UnsafeCell` at a time; and since there is no
+//! threading involved here, this is easy to guarantee.
+//!
+//! The subtlety is in ensuring the soundness of the unsafe blocks where we
+//! create `&UnsafeCell<Global>` references; we need to ensure there that they
+//! are never derived from an `&Global` reference, as that would be UB. Thus,
+//! many convenience methods from IVM for dealing with globals are unusable, as
+//! they consistently use `&Global`s. Instead, we must use the lower-level
+//! raw-pointer APIs. In particular, up until the point of freezing, we treat
+//! the address of a [`Tag::Global`] port as an `&UnsafeCell<Global>`, *not* an
+//! `&Global`.
+
 use std::{
   cell::UnsafeCell,
   collections::{BTreeMap, HashMap},
@@ -7,6 +47,7 @@ use std::{
 };
 
 use indexmap::IndexSet;
+
 use ivm::{
   addr::Addr,
   ext::ExtVal,
@@ -19,6 +60,12 @@ use vine_util::bicycle::{Bicycle, BicycleState};
 use crate::ast::{Net, Nets, Tree};
 
 impl Nets {
+  /// Serializes these nets into IVM [`Global`]s, populating the supplied
+  /// `global` buffer (which must be empty), and returning an immutable
+  /// reference to the serialized globals.
+  ///
+  /// The indices of the returned global slice correspond exactly to the indices
+  /// of the nets in the `IndexMap`.
   pub fn serialize<'ivm>(&self, globals: &'ivm mut Vec<Global<'ivm>>) -> &'ivm [Global<'ivm>] {
     assert!(globals.is_empty());
     globals.extend(self.keys().map(|name| Global {
@@ -28,7 +75,12 @@ impl Nets {
       flag: 0,
     }));
     let globals = &mut globals[..];
-    let globals = unsafe { transmute::<&mut [Global<'ivm>], &[UnsafeCell<Global<'ivm>>]>(globals) };
+
+    // Here, we begin the period of temporary interior mutability. Converting a
+    // mutable unique reference to an interior-mutable shared reference is a
+    // safe operation (cf. `UnsafeCell::from_mut`).
+    let globals =
+      unsafe { transmute::<&'ivm mut [Global<'ivm>], &'ivm [UnsafeCell<Global<'ivm>>]>(globals) };
 
     let mut serializer = Serializer {
       globals,
@@ -40,18 +92,21 @@ impl Nets {
     };
 
     for (i, net) in self.values().enumerate() {
+      // Safety: essentially a `Cell::take`.
       serializer.current = take(unsafe { &mut *globals[i].get() });
       serializer.serialize_net(net);
+      // Safety: essentially a `Cell::set`.
       unsafe { *globals[i].get() = take(&mut serializer.current) };
     }
 
     PropagateLabels(PhantomData).visit_all(globals);
 
-    unsafe { transmute::<&[UnsafeCell<Global<'ivm>>], &[Global<'ivm>]>(globals) }
+    // Finally, we end the interior mutability, "freezing" the structure.
+    unsafe { transmute::<&'ivm [UnsafeCell<Global<'ivm>>], &'ivm [Global<'ivm>]>(globals) }
   }
 }
 
-pub struct Serializer<'ast, 'ivm> {
+struct Serializer<'ast, 'ivm> {
   globals: &'ivm [UnsafeCell<Global<'ivm>>],
   nets: &'ast Nets,
   current: Global<'ivm>,
@@ -134,6 +189,8 @@ impl<'ast, 'ivm> Serializer<'ast, 'ivm> {
       }
       Tree::Global(name) => {
         let r = &self.globals[self.nets.get_index_of(name).expect("undefined global")];
+        // Safety: upholds both the requirements of `Tag::Global`, and our
+        // file-local invariant that `Tag::Global` ports are interior-mutable.
         let port =
           unsafe { Port::new(Tag::Global, 0, Addr(r as *const UnsafeCell<Global> as *const ())) };
         self.push(Instruction::Nilary(to, port));
@@ -164,14 +221,22 @@ impl<'ivm> Bicycle for PropagateLabels<'ivm> {
   }
 
   fn visit(&mut self, cur: Self::Node, mut recurse: impl FnMut(&mut Self, Self::Node)) {
+    // Safety: once we get to `PropagateLabels`, we are no longer mutating thw
+    // `instructions`, only the `labels`, so it is safe to create an
+    // `&Instructions` that's held for the entirety of this function.
     let instructions = unsafe { (*cur.get()).instructions.instructions() };
 
     for i in instructions {
       match i {
         Instruction::Nilary(_, p) if p.tag() == Tag::Global => {
+          // Safety: guaranteed by the tag check and our file-local invariant
+          // that `Tag::Global` ports are interior-mutable.
           let child = unsafe { &*p.addr().0.cast::<UnsafeCell<Global>>() };
           if !ptr::addr_eq(child, cur) {
             recurse(self, child);
+            // Safety: we know `child` and `cur` are different pointers, and
+            // nothing else is accessing `labels`, so we can safely mutate
+            // these.
             unsafe { (*cur.get()).labels.union(&(*child.get()).labels) }
           }
         }

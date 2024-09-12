@@ -2,6 +2,7 @@ use std::collections::HashSet;
 
 use crate::ast::{Net, Nets, Tree};
 
+/// Prune unused global nets.
 pub fn prune(nets: &mut Nets) {
   let mut prune = Prune { nets, keep: HashSet::new() };
   prune.visit_global("::main");

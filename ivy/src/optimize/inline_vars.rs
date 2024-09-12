@@ -11,6 +11,8 @@ pub(super) struct InlineVars {
 }
 
 impl InlineVars {
+  //! Remove all `var = tree` pairs, inlining the `tree` into the usage of
+  //! `var`.
   pub fn apply(&mut self, net: &mut Net) {
     net.pairs.retain_mut(|pair| loop {
       match pair {
