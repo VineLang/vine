@@ -2,6 +2,7 @@ use std::collections::HashMap;
 
 use crate::ast::{Net, Nets, Tree};
 
+/// Inline any globals defined to be single-node nets.
 pub fn inline_globals(nets: &mut Nets) {
   let mut inliner = Inliner::default();
   inliner.populate_candidates(nets);
