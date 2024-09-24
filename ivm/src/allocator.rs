@@ -14,13 +14,18 @@ impl<'ivm> IVM<'ivm> {
   /// `tag` must be the tag of a binary node, and `label` must comply with its
   /// requirements.
   #[inline(always)]
-  pub(crate) unsafe fn new_node(
-    &mut self,
-    tag: Tag,
-    label: u16,
-  ) -> (Port<'ivm>, Wire<'ivm>, Wire<'ivm>) {
+  pub unsafe fn new_node(&mut self, tag: Tag, label: u16) -> (Port<'ivm>, Wire<'ivm>, Wire<'ivm>) {
     let addr = self.alloc_node();
     (Port::new(tag, label, addr), Wire::from_addr(addr), Wire::from_addr(addr.other_half()))
+  }
+
+  /// Allocates a new wire, returning both of its ends.
+  pub fn new_wire(&mut self) -> (Wire<'ivm>, Wire<'ivm>) {
+    unsafe {
+      let addr = self.alloc_node();
+      self.free_wire(Wire::from_addr(addr.other_half()));
+      (Wire::from_addr(addr), Wire::from_addr(addr))
+    }
   }
 
   /// Frees the memory backing a wire.

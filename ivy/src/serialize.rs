@@ -39,6 +39,7 @@
 //! `&Global`.
 
 use std::{
+  borrow::Cow,
   cell::UnsafeCell,
   collections::{BTreeMap, HashMap},
   marker::PhantomData,
@@ -66,7 +67,11 @@ impl Nets {
   ///
   /// The indices of the returned global slice correspond exactly to the indices
   /// of the nets in the `IndexMap`.
-  pub fn serialize<'ivm>(&self, globals: &'ivm mut Vec<Global<'ivm>>) -> &'ivm [Global<'ivm>] {
+  pub fn serialize<'ast, 'ivm>(
+    &'ast self,
+    globals: &'ivm mut Vec<Global<'ivm>>,
+    labels: &mut Labels<'ast>,
+  ) -> &'ivm [Global<'ivm>] {
     assert!(globals.is_empty());
     globals.extend(self.keys().map(|name| Global {
       name: name.clone(),
@@ -85,10 +90,10 @@ impl Nets {
     let mut serializer = Serializer {
       globals,
       nets: self,
+      labels,
       current: Default::default(),
       equivalences: Default::default(),
       registers: Default::default(),
-      labels: Default::default(),
     };
 
     for (i, net) in self.values().enumerate() {
@@ -106,16 +111,16 @@ impl Nets {
   }
 }
 
-struct Serializer<'ast, 'ivm> {
+struct Serializer<'l, 'ast, 'ivm> {
   globals: &'ivm [UnsafeCell<Global<'ivm>>],
   nets: &'ast Nets,
+  labels: &'l mut Labels<'ast>,
   current: Global<'ivm>,
   equivalences: BTreeMap<&'ast str, &'ast str>,
   registers: HashMap<&'ast str, Register>,
-  labels: IndexSet<&'ast str>,
 }
 
-impl<'ast, 'ivm> Serializer<'ast, 'ivm> {
+impl<'l, 'ast, 'ivm> Serializer<'l, 'ast, 'ivm> {
   fn push(&mut self, instruction: Instruction<'ivm>) {
     unsafe { self.current.instructions.push(instruction) }
   }
@@ -176,7 +181,7 @@ impl<'ast, 'ivm> Serializer<'ast, 'ivm> {
         self.push(Instruction::Nilary(to, Port::new_ext_val(ExtVal::new_f32(*num))))
       }
       Tree::Comb(label, a, b) => {
-        let label = self.labels.insert_full(label).0 as u16;
+        let label = self.labels.to_id(label);
         self.current.labels.add(label);
         let a = self.serialize_tree(a);
         let b = self.serialize_tree(b);
@@ -243,5 +248,18 @@ impl<'ivm> Bicycle for PropagateLabels<'ivm> {
         _ => {}
       }
     }
+  }
+}
+
+#[derive(Debug, Default)]
+pub struct Labels<'a>(IndexSet<Cow<'a, str>>);
+
+impl<'a> Labels<'a> {
+  pub fn to_id(&mut self, label: impl Into<Cow<'a, str>>) -> u16 {
+    self.0.insert_full(label.into()).0 as u16
+  }
+
+  pub fn from_id(&self, id: u16) -> &str {
+    &self.0[id as usize]
   }
 }
