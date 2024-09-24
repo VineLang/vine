@@ -1,0 +1,127 @@
+
+fn sort((&len, &vals)) {
+  let cap = calc_cap(len);
+  sort_part(len, cap, &vals);
+}
+
+fn sort_part(len, cap, &vals) {
+  let half = cap / 2; 
+  if half {
+    if len <= half {
+      let (&left, &_) = &vals;
+      sort_part(len, half, &left);
+    } else {
+      let (&left, &right) = &vals;
+      let jag = len - half;
+      sort_full(half, &left);
+      sort_part(jag, half, &right);
+      hump_part(jag, half, &left, &right);
+      stack_full(half, &left);
+      stack_part(jag, half, &right);
+    }
+  }
+}
+
+fn sort_full(cap, &vals) {
+  let half = cap / 2; 
+  if half > 1 {
+    let (&left, &right) = &vals;
+    sort_full(half, &left);
+    sort_full(half, &right);
+    hump_full(half, &left, &right);
+    stack_full(half, &left);
+    stack_full(half, &right);
+  }
+}
+
+fn hump_part(len, cap, &a, &b) {
+  let half = cap / 2;
+  if half {
+    if len <= half {
+      let (&_, &ar) = &a;
+      let (&bl, &_) = &b;
+      hump_part(len, half, &ar, &bl)
+    } else {
+      let (&al, &ar) = &a;
+      let (&bl, &br) = &b;
+      hump_full(half, &ar, &bl);
+      hump_part(len - half, half, &al, &br);
+    }
+  } else {
+    cmp(&a, &b);
+  }
+}
+
+fn hump_full(cap, &a, &b) {
+  let half = cap / 2;
+  if half {
+    let (&al, &ar) = &a;
+    let (&bl, &br) = &b;
+    hump_full(half, &ar, &bl);
+    hump_full(half, &al, &br);
+  } else {
+    cmp(&a, &b);
+  }
+}
+
+fn stack_part(len, cap, &vals) {
+  let half = cap / 2; 
+  if half {
+    if len <= half {
+      let (&left, &_) = &vals;
+      stack_part(len, half, &left);
+    } else {
+      let (&left, &right) = &vals;
+      let jag = len - half;
+      slide_part(jag, half, &left, &right);
+      stack_full(half, &left);
+      stack_part(jag, half, &right);
+    }
+  }
+}
+
+fn stack_full(cap, &vals) {
+  let half = cap / 2; 
+  if half {
+    let (&left, &right) = &vals;
+    slide_full(half, &left, &right);
+    stack_full(half, &left);
+    stack_full(half, &right);
+  }
+}
+
+fn slide_part(len, cap, &a, &b) {
+  let half = cap / 2;
+  if half {
+    if len <= half {
+      let (&al, &_) = &a;
+      let (&bl, &_) = &b;
+      slide_part(len, half, &al, &bl)
+    } else {
+      let (&al, &ar) = &a;
+      let (&bl, &br) = &b;
+      slide_full(half, &al, &bl);
+      slide_part(len - half, half, &ar, &br);
+    }
+  } else {
+    cmp(&a, &b);
+  }
+}
+
+fn slide_full(cap, &a, &b) {
+  let half = cap / 2;
+  if half {
+    let (&al, &ar) = &a;
+    let (&bl, &br) = &b;
+    slide_full(half, &al, &bl);
+    slide_full(half, &ar, &br);
+  } else {
+    cmp(&a, &b);
+  }
+}
+
+fn cmp(&a, &b) {
+  if a > b {
+    (b, a) = (a, b)
+  }
+}
