@@ -2,7 +2,10 @@ use std::{fs, path::PathBuf};
 
 use anyhow::Result;
 use clap::{Args, Parser};
-use ivy::parser::IvyParser;
+use rustyline::DefaultEditor;
+
+use ivm::{heap::Heap, IVM};
+use ivy::{parser::IvyParser, repl::Repl, serialize::Labels};
 
 use crate::{Optimizations, RunArgs};
 
@@ -13,6 +16,7 @@ pub enum IvyCommand {
   Run(IvyRunCommand),
   #[command(about = "Optimize an Ivy program")]
   Optimize(IvyOptimizeCommand),
+  Repl(IvyReplCommand),
 }
 
 impl IvyCommand {
@@ -20,6 +24,7 @@ impl IvyCommand {
     match Self::parse() {
       IvyCommand::Run(run) => run.execute(),
       IvyCommand::Optimize(optimize) => optimize.execute(),
+      IvyCommand::Repl(repl) => repl.execute(),
     }
   }
 }
@@ -54,5 +59,40 @@ pub struct IvyOptimizeCommand {
 impl IvyOptimizeCommand {
   pub fn execute(&self) -> Result<()> {
     unimplemented!()
+  }
+}
+
+#[derive(Debug, Args)]
+pub struct IvyReplCommand {
+  #[arg()]
+  src: Option<PathBuf>,
+  #[command(flatten)]
+  run_args: RunArgs,
+}
+
+impl IvyReplCommand {
+  pub fn execute(self) -> Result<()> {
+    let src = self.src.map(fs::read_to_string).unwrap_or(Ok(String::new()))?;
+    let nets = IvyParser::parse(&src).unwrap();
+    let mut globals = Vec::new();
+    let mut labels = Labels::default();
+    let globals = nets.serialize(&mut globals, &mut labels);
+    let heap = Heap::new();
+    let mut ivm = IVM::new(&heap);
+    let mut repl = Repl::new(&mut ivm, &nets, globals, &mut labels);
+    let mut rl = DefaultEditor::new()?;
+    loop {
+      print!("\n{repl}");
+      match rl.readline("> ") {
+        Ok(line) => {
+          _ = rl.add_history_entry(&line);
+          if let Err(err) = repl.exec(&line) {
+            println!("{err:?}");
+          }
+        }
+        Err(_) => break,
+      }
+    }
+    Ok(())
   }
 }

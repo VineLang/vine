@@ -77,12 +77,16 @@ impl<'src> IvyParser<'src> {
     let root = self.parse_tree()?;
     let mut pairs = Vec::new();
     while !self.check(Token::CloseBrace) {
-      let a = self.parse_tree()?;
-      self.expect(Token::Eq)?;
-      let b = self.parse_tree()?;
-      pairs.push((a, b));
+      pairs.push(self.parse_pair()?);
     }
     Ok(Net { root, pairs })
+  }
+
+  pub(super) fn parse_pair(&mut self) -> Parse<'src, (Tree, Tree)> {
+    let a = self.parse_tree()?;
+    self.expect(Token::Eq)?;
+    let b = self.parse_tree()?;
+    Ok((a, b))
   }
 
   fn parse_tree(&mut self) -> Parse<'src, Tree> {

@@ -1,7 +1,7 @@
 use clap::Args;
 
 use ivm::{heap::Heap, IVM};
-use ivy::{ast::Nets, optimize::Optimizer};
+use ivy::{ast::Nets, optimize::Optimizer, serialize::Labels};
 
 #[derive(Debug, Default, Args)]
 pub struct Optimizations {
@@ -26,7 +26,7 @@ pub struct RunArgs {
 impl RunArgs {
   pub fn run(self, nets: Nets) {
     let mut globals = Vec::new();
-    let globals = nets.serialize(&mut globals);
+    let globals = nets.serialize(&mut globals, &mut Labels::default());
     let main = &globals[nets.get_index_of("::main").expect("missing main")];
     let heap = Heap::new();
     let mut ivm = IVM::new(&heap);

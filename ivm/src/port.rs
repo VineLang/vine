@@ -2,13 +2,14 @@ use crate::{
   addr::Addr,
   ext::{ExtFn, ExtVal},
   global::Global,
-  wire::Wire,
+  wire::{Wire, WireRef},
   word::{NonZeroWord, Word},
 };
 use core::{
   fmt::{self, Debug},
   marker::PhantomData,
   mem::transmute,
+  ops::Deref,
   ptr,
 };
 
@@ -208,6 +209,19 @@ impl<'ivm> Port<'ivm> {
   pub unsafe fn aux(self) -> (Wire<'ivm>, Wire<'ivm>) {
     (Wire::from_addr(self.addr()), Wire::from_addr(self.addr().other_half()))
   }
+
+  /// Get the wires leaving the aux ports of this node.
+  ///
+  /// ## Safety
+  /// This port must be the principal port of a binary node: [`Tag::Comb`],
+  /// [`Tag::ExtVal`], or [`Tag::Branch`].
+  #[inline(always)]
+  pub unsafe fn aux_ref(&self) -> (WireRef<'_, 'ivm>, WireRef<'_, 'ivm>) {
+    (
+      WireRef::from_wire(Wire::from_addr(self.addr())),
+      WireRef::from_wire(Wire::from_addr(self.addr().other_half())),
+    )
+  }
 }
 
 impl<'ivm> Debug for Port<'ivm> {
@@ -221,5 +235,33 @@ impl<'ivm> Debug for Port<'ivm> {
       Tag::ExtFn => write!(f, "ExtFn({:?}, {:?})", unsafe { self.as_ext_fn() }, self.addr()),
       Tag::Branch => write!(f, "Branch({:?})", self.addr()),
     }
+  }
+}
+
+/// Semantically analogous to `&'a Port<'ivm>`.
+pub struct PortRef<'a, 'ivm>(Port<'ivm>, PhantomData<&'a ()>);
+
+impl<'a, 'ivm> PortRef<'a, 'ivm> {
+  pub(crate) fn from_port(port: Port<'ivm>) -> Self {
+    PortRef(port, PhantomData)
+  }
+
+  #[inline(always)]
+  pub fn new_wire(wire: &Wire<'ivm>) -> Self {
+    unsafe { PortRef::from_port(Port::new_wire(wire.clone())) }
+  }
+}
+
+impl<'a, 'ivm> Deref for PortRef<'a, 'ivm> {
+  type Target = Port<'ivm>;
+
+  fn deref(&self) -> &Self::Target {
+    &self.0
+  }
+}
+
+impl<'a, 'ivm> From<&'a Port<'ivm>> for PortRef<'a, 'ivm> {
+  fn from(port: &'a Port<'ivm>) -> Self {
+    Self(unsafe { port.clone() }, PhantomData)
   }
 }

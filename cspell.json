@@ -23,8 +23,10 @@
     "nilary",
     "nonoverlapping",
     "readback",
+    "readline",
     "repr",
     "rotr",
+    "rustyline",
     "scrutinee",
     "sixel",
     "strs"

@@ -2,7 +2,7 @@ use std::time::Instant;
 
 use crate::{
   ivm::IVM,
-  port::{Port, Tag},
+  port::{Port, PortRef, Tag},
   wire::Wire,
 };
 
@@ -51,6 +51,21 @@ impl<'ivm> IVM<'ivm> {
       if let Some(q) = unsafe { p.clone().as_wire() }.load_target() {
         self.free_wire(unsafe { p.as_wire() });
         p = q;
+      } else {
+        break;
+      }
+    }
+    p
+  }
+
+  /// Non-destructively follows as many `Wire`s with active targets as currently
+  /// possible.
+  #[inline]
+  pub fn follow_ref<'a>(&self, p: &'a Port<'ivm>) -> PortRef<'a, 'ivm> {
+    let mut p = PortRef::from(p);
+    while p.tag() == Tag::Wire {
+      if let Some(q) = unsafe { p.clone().as_wire() }.load_target() {
+        p = PortRef::from_port(q);
       } else {
         break;
       }

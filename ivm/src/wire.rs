@@ -2,6 +2,8 @@ use core::{
   fmt::{self, Debug},
   marker::PhantomData,
   mem::transmute,
+  ops::Deref,
+  ptr,
 };
 
 use crate::{
@@ -45,10 +47,45 @@ impl<'ivm> Wire<'ivm> {
   pub(crate) fn addr(&self) -> Addr {
     self.0
   }
+
+  /// Unsafely clones a wire by copying its bits.
+  ///
+  /// ## Safety
+  /// At most one clone may be linked.
+  ///
+  /// This can't currently cause UB (just severe logic errors), but may in the
+  /// future.
+  #[inline(always)]
+  pub unsafe fn clone(&self) -> Self {
+    unsafe { ptr::read(self) }
+  }
 }
 
 impl<'ivm> Debug for Wire<'ivm> {
   fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
     write!(f, "Wire({:?})", self.addr())
+  }
+}
+
+/// Semantically analogous to `&'a Wire<'ivm>`.
+pub struct WireRef<'a, 'ivm>(Wire<'ivm>, PhantomData<&'a ()>);
+
+impl<'a, 'ivm> WireRef<'a, 'ivm> {
+  pub(crate) fn from_wire(wire: Wire<'ivm>) -> Self {
+    WireRef(wire, PhantomData)
+  }
+}
+
+impl<'a, 'ivm> Deref for WireRef<'a, 'ivm> {
+  type Target = Wire<'ivm>;
+
+  fn deref(&self) -> &Self::Target {
+    &self.0
+  }
+}
+
+impl<'a, 'ivm> From<&'a Wire<'ivm>> for WireRef<'a, 'ivm> {
+  fn from(wire: &'a Wire<'ivm>) -> Self {
+    Self::from_wire(unsafe { wire.clone() })
   }
 }
