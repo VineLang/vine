@@ -5,7 +5,7 @@ use clap::{Args, Parser};
 use rustyline::DefaultEditor;
 
 use ivm::{heap::Heap, IVM};
-use ivy::{parser::IvyParser, repl::Repl, serialize::Labels};
+use ivy::{host::Host, parser::IvyParser, repl::Repl};
 
 use crate::{Optimizations, RunArgs};
 
@@ -74,12 +74,11 @@ impl IvyReplCommand {
   pub fn execute(self) -> Result<()> {
     let src = self.src.map(fs::read_to_string).unwrap_or(Ok(String::new()))?;
     let nets = IvyParser::parse(&src).unwrap();
-    let mut globals = Vec::new();
-    let mut labels = Labels::default();
-    let globals = nets.serialize(&mut globals, &mut labels);
+    let mut host = &mut Host::default();
+    host.insert_nets(&nets);
     let heap = Heap::new();
     let mut ivm = IVM::new(&heap);
-    let mut repl = Repl::new(&mut ivm, &nets, globals, &mut labels);
+    let mut repl = Repl::new(&mut host, &mut ivm);
     let mut rl = DefaultEditor::new()?;
     loop {
       print!("\n{repl}");

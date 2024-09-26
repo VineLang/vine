@@ -35,19 +35,17 @@
 //! many convenience methods from IVM for dealing with globals are unusable, as
 //! they consistently use `&Global`s. Instead, we must use the lower-level
 //! raw-pointer APIs. In particular, up until the point of freezing, we treat
-//! the address of a [`Tag::Global`] port as an `&UnsafeCell<Global>`, *not* an
+//! the address of a [`Tag::Global`] port as an `&UnsafeCell<Global>` if it's
+//! one of the globals we're currently creating, rather than the usual
 //! `&Global`.
 
 use std::{
-  borrow::Cow,
   cell::UnsafeCell,
   collections::{BTreeMap, HashMap},
-  marker::PhantomData,
-  mem::{take, transmute},
+  mem::take,
+  ops::Range,
   ptr,
 };
-
-use indexmap::IndexSet;
 
 use ivm::{
   addr::Addr,
@@ -58,45 +56,46 @@ use ivm::{
 };
 use vine_util::bicycle::{Bicycle, BicycleState};
 
-use crate::ast::{Net, Nets, Tree};
+use crate::{
+  ast::{Net, Nets, Tree},
+  host::Host,
+};
 
-impl Nets {
-  /// Serializes these nets into IVM [`Global`]s, populating the supplied
-  /// `global` buffer (which must be empty), and returning an immutable
-  /// reference to the serialized globals.
-  ///
-  /// The indices of the returned global slice correspond exactly to the indices
-  /// of the nets in the `IndexMap`.
-  pub fn serialize<'ast, 'ivm>(
-    &'ast self,
-    globals: &'ivm mut Vec<Global<'ivm>>,
-    labels: &mut Labels<'ast>,
-  ) -> &'ivm [Global<'ivm>] {
-    assert!(globals.is_empty());
-    globals.extend(self.keys().map(|name| Global {
+impl<'ivm> Host<'ivm> {
+  /// Inserts `nets` into this host, creating an IVM [`Global`] for each net.
+  /// Inserted nets will shadow any old nets with the same name.
+  pub fn insert_nets(self: &mut &'ivm mut Host<'ivm>, nets: &Nets) {
+    let mut globals_vec = Vec::from_iter(nets.keys().map(|name| Global {
       name: name.clone(),
       labels: LabelSet::NONE,
       instructions: Instructions::default(),
       flag: 0,
     }));
-    let globals = &mut globals[..];
+
+    let globals_mut = &mut globals_vec[..] as *mut [Global<'ivm>];
 
     // Here, we begin the period of temporary interior mutability. Converting a
     // mutable unique reference to an interior-mutable shared reference is a
     // safe operation (cf. `UnsafeCell::from_mut`).
-    let globals =
-      unsafe { transmute::<&'ivm mut [Global<'ivm>], &'ivm [UnsafeCell<Global<'ivm>>]>(globals) };
+    let globals = unsafe { &*(globals_mut as *const [UnsafeCell<Global<'ivm>>]) };
+
+    // We ensure `globals` lasts for `'ivm` by pushing it into `self.global_store`,
+    // which is append-only, and not dropped until after `'ivm`, since the
+    // signature requires the existence of an `&'ivm mut Host<'ivm>`.
+    self.global_store.push(globals_vec);
+
+    self.globals.extend(nets.keys().zip(globals).map(|(name, global)| {
+      (name.clone(), global as *const UnsafeCell<Global<'ivm>> as *const Global<'ivm>)
+    }));
 
     let mut serializer = Serializer {
-      globals,
-      nets: self,
-      labels,
+      host: self,
       current: Default::default(),
       equivalences: Default::default(),
       registers: Default::default(),
     };
 
-    for (i, net) in self.values().enumerate() {
+    for (i, net) in nets.values().enumerate() {
       // Safety: essentially a `Cell::take`.
       serializer.current = take(unsafe { &mut *globals[i].get() });
       serializer.serialize_net(net);
@@ -104,17 +103,15 @@ impl Nets {
       unsafe { *globals[i].get() = take(&mut serializer.current) };
     }
 
-    PropagateLabels(PhantomData).visit_all(globals);
-
     // Finally, we end the interior mutability, "freezing" the structure.
-    unsafe { transmute::<&'ivm [UnsafeCell<Global<'ivm>>], &'ivm [Global<'ivm>]>(globals) }
+    unsafe { _ = &*globals_mut };
+
+    PropagateLabels { mutable: globals.as_ptr_range() }.visit_all(globals);
   }
 }
 
-struct Serializer<'l, 'ast, 'ivm> {
-  globals: &'ivm [UnsafeCell<Global<'ivm>>],
-  nets: &'ast Nets,
-  labels: &'l mut Labels<'ast>,
+pub(crate) struct Serializer<'host, 'ast, 'ivm> {
+  host: &'host mut Host<'ivm>,
   current: Global<'ivm>,
   equivalences: BTreeMap<&'ast str, &'ast str>,
   registers: HashMap<&'ast str, Register>,
@@ -181,8 +178,7 @@ impl<'l, 'ast, 'ivm> Serializer<'l, 'ast, 'ivm> {
         self.push(Instruction::Nilary(to, Port::new_ext_val(ExtVal::new_f32(*num))))
       }
       Tree::Comb(label, a, b) => {
-        let label = self.labels.to_id(label);
-        self.current.labels.add(label);
+        let label = self.host.label_to_u16(label);
         let a = self.serialize_tree(a);
         let b = self.serialize_tree(b);
         self.push(Instruction::Binary(Tag::Comb, label, to, a, b));
@@ -193,11 +189,12 @@ impl<'l, 'ast, 'ivm> Serializer<'l, 'ast, 'ivm> {
         self.push(Instruction::Binary(Tag::ExtFn, f.bits(), to, a, b));
       }
       Tree::Global(name) => {
-        let r = &self.globals[self.nets.get_index_of(name).expect("undefined global")];
-        // Safety: upholds both the requirements of `Tag::Global`, and our
-        // file-local invariant that `Tag::Global` ports are interior-mutable.
-        let port =
-          unsafe { Port::new(Tag::Global, 0, Addr(r as *const UnsafeCell<Global> as *const ())) };
+        let global = self.host.get_raw(name).expect("undefined global");
+        // Safety: upholds the requirements of `Tag::Global`, and preserves the interior
+        // mutability.
+        let port = unsafe {
+          Port::new(Tag::Global, 0, Addr(global as *const UnsafeCell<Global> as *const ()))
+        };
         self.push(Instruction::Nilary(to, port));
       }
       Tree::Branch(z, p, o) => {
@@ -216,7 +213,9 @@ impl<'l, 'ast, 'ivm> Serializer<'l, 'ast, 'ivm> {
   }
 }
 
-struct PropagateLabels<'ivm>(PhantomData<&'ivm mut &'ivm ()>);
+struct PropagateLabels<'ivm> {
+  mutable: Range<*const UnsafeCell<Global<'ivm>>>,
+}
 
 impl<'ivm> Bicycle for PropagateLabels<'ivm> {
   type Node = &'ivm UnsafeCell<Global<'ivm>>;
@@ -234,32 +233,22 @@ impl<'ivm> Bicycle for PropagateLabels<'ivm> {
     for i in instructions {
       match i {
         Instruction::Nilary(_, p) if p.tag() == Tag::Global => {
-          // Safety: guaranteed by the tag check and our file-local invariant
-          // that `Tag::Global` ports are interior-mutable.
-          let child = unsafe { &*p.addr().0.cast::<UnsafeCell<Global>>() };
+          let child = p.addr().0.cast::<Global>();
           if !ptr::addr_eq(child, cur) {
-            recurse(self, child);
+            if self.mutable.contains(&child.cast::<_>()) {
+              // Safety: `child` is one of the globals we're currently
+              // serializing, so it is interior mutable.
+              recurse(self, unsafe { &*child.cast::<UnsafeCell<Global>>() });
+            }
             // Safety: we know `child` and `cur` are different pointers, and
             // nothing else is accessing `labels`, so we can safely mutate
             // these.
-            unsafe { (*cur.get()).labels.union(&(*child.get()).labels) }
+            unsafe { (*cur.get()).labels.union(&(*child).labels) }
           }
         }
+        Instruction::Binary(Tag::Comb, label, ..) => unsafe { (*cur.get()).labels.add(*label) },
         _ => {}
       }
     }
-  }
-}
-
-#[derive(Debug, Default)]
-pub struct Labels<'a>(IndexSet<Cow<'a, str>>);
-
-impl<'a> Labels<'a> {
-  pub fn to_id(&mut self, label: impl Into<Cow<'a, str>>) -> u16 {
-    self.0.insert_full(label.into()).0 as u16
-  }
-
-  pub fn from_id(&self, id: u16) -> &str {
-    &self.0[id as usize]
   }
 }
