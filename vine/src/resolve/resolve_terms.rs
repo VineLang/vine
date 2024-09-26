@@ -1,14 +1,21 @@
-use std::collections::HashMap;
+use std::{
+  collections::{BTreeMap, HashMap},
+  ops::Range,
+};
 
 use crate::{
   ast::{Ident, Path, Term, TermKind},
-  visit::VisitMut,
+  visit::{VisitMut, Visitee},
 };
 
 use super::{NodeId, NodeValue, Resolver};
 
 impl Resolver {
   pub fn resolve_terms(&mut self) {
+    self._resolve_terms(0..self.nodes.len());
+  }
+
+  pub(crate) fn _resolve_terms(&mut self, range: Range<NodeId>) {
     let mut visitor = ResolveVisitor {
       resolver: self,
       node: 0,
@@ -17,7 +24,7 @@ impl Resolver {
       next_local: 0,
     };
 
-    for node_id in 0..visitor.resolver.nodes.len() {
+    for node_id in range {
       visitor.node = node_id;
 
       let node = &mut visitor.resolver.nodes[node_id];
@@ -33,6 +40,28 @@ impl Resolver {
       visitor.scope.clear();
       visitor.next_local = 0;
     }
+  }
+
+  pub(crate) fn resolve_custom<'t>(
+    &mut self,
+    node: NodeId,
+    initial: &BTreeMap<usize, Ident>,
+    local_count: &mut usize,
+    visitee: &'t mut impl Visitee<'t>,
+  ) -> impl Iterator<Item = (Ident, usize)> {
+    let mut visitor = ResolveVisitor {
+      resolver: self,
+      node,
+      scope: initial.iter().map(|(&l, &i)| (i, vec![ScopeEntry { depth: 0, local: l }])).collect(),
+      scope_depth: 0,
+      next_local: *local_count,
+    };
+    visitor.visit(visitee);
+    *local_count = visitor.next_local;
+    visitor.scope.into_iter().filter_map(|(k, e)| {
+      let entry = e.first()?;
+      (entry.depth == 0).then_some((k, entry.local))
+    })
   }
 }
 

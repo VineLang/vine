@@ -36,7 +36,7 @@ impl<'ivm> Host<'ivm> {
     self.globals.get(name).copied()
   }
 
-  pub(crate) fn label_to_u16<'l>(&mut self, label: impl Into<Cow<'l, str>>) -> u16 {
+  pub fn label_to_u16<'l>(&mut self, label: impl Into<Cow<'l, str>>) -> u16 {
     let label = label.into();
     match self.labels.raw_entry_mut_v1().from_key(&*label) {
       RawEntryMut::Occupied(e) => e.index() as u16,
@@ -47,7 +47,7 @@ impl<'ivm> Host<'ivm> {
     }
   }
 
-  fn label_from_u16(&self, label: u16) -> &str {
+  pub fn label_from_u16(&self, label: u16) -> &str {
     self.labels.get_index(label as usize).unwrap().0
   }
 }

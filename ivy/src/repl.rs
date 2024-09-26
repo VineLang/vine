@@ -15,14 +15,14 @@ use crate::{
   parser::{IvyParser, ParseError},
 };
 
-pub struct Repl<'ctx, 'ivm> {
-  pub host: &'ctx mut Host<'ivm>,
+pub struct Repl<'host, 'ctx, 'ivm> {
+  pub host: &'host mut Host<'ivm>,
   pub ivm: &'ctx mut IVM<'ivm>,
-  vars: IndexMap<String, Port<'ivm>>,
+  pub vars: IndexMap<String, Port<'ivm>>,
 }
 
-impl<'ctx, 'ivm> Repl<'ctx, 'ivm> {
-  pub fn new(host: &'ctx mut Host<'ivm>, ivm: &'ctx mut IVM<'ivm>) -> Self {
+impl<'host, 'ctx, 'ivm> Repl<'host, 'ctx, 'ivm> {
+  pub fn new(host: &'host mut Host<'ivm>, ivm: &'ctx mut IVM<'ivm>) -> Self {
     let vars = [("io".to_owned(), Port::new_ext_val(ExtVal::IO))].into_iter().collect();
     Self { host, ivm, vars }
   }
@@ -104,7 +104,7 @@ impl<'ctx, 'ivm> Repl<'ctx, 'ivm> {
   }
 }
 
-impl Display for Repl<'_, '_> {
+impl Display for Repl<'_, '_, '_> {
   fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
     for (var, port) in &self.vars {
       writeln!(f, "{} = {}", var, self.host.read(&self.ivm, port))?;
