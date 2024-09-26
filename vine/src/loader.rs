@@ -9,6 +9,7 @@ use vine_util::interner::StringInterner;
 use crate::{
   ast::{self, ConstItem, Ident, Item, ItemKind, ModItem, ModKind, Term},
   parser::VineParser,
+  visit::VisitMut,
 };
 
 pub struct Loader<'ctx> {
@@ -63,23 +64,25 @@ impl<'ctx> Loader<'ctx> {
     let mut items = VineParser::parse(self.interner, &src).unwrap();
     path.pop();
     for item in &mut items {
-      self.load_item(&path, item);
+      LoadDeps { loader: self, base: &path }.visit_item(item);
     }
     items
   }
+}
 
-  fn load_item(&mut self, base: &Path, item: &mut Item) {
+struct LoadDeps<'a, 'ctx> {
+  loader: &'a mut Loader<'ctx>,
+  base: &'a Path,
+}
+
+impl VisitMut<'_> for LoadDeps<'_, '_> {
+  fn visit_item(&mut self, item: &'_ mut Item) {
     if let ItemKind::Mod(module) = &mut item.kind {
-      match &mut module.kind {
-        ModKind::Unloaded(path) => {
-          module.kind = ModKind::Loaded(self.load_file(base.join(path)));
-        }
-        ModKind::Loaded(items) => {
-          for item in items {
-            self.load_item(base, item);
-          }
-        }
+      if let ModKind::Unloaded(path) = &mut module.kind {
+        module.kind = ModKind::Loaded(self.loader.load_file(self.base.join(path)));
+        return;
       }
     }
+    self._visit_item(item);
   }
 }

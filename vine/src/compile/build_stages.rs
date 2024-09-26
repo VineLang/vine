@@ -234,6 +234,7 @@ impl Compiler<'_> {
           t
         }
       }
+      StmtKind::Item(_) => Port::Erase,
       StmtKind::Empty => Port::Erase,
     }
   }

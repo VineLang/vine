@@ -400,6 +400,8 @@ impl<'ctx, 'src> VineParser<'ctx, 'src> {
         StmtKind::Let(self.parse_let_stmt()?)
       } else if self.eat(Token::Semi)? {
         StmtKind::Empty
+      } else if let Some(item) = self.maybe_parse_item()? {
+        StmtKind::Item(item)
       } else {
         let term = self.parse_term()?;
         let semi = self.eat(Token::Semi)?;

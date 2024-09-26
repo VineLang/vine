@@ -127,6 +127,7 @@ pub trait VisitMut<'a> {
         self.visit_bind(&mut l.bind);
       }
       StmtKind::Term(t, _) => self.visit_term(t),
+      StmtKind::Item(i) => self.visit_item(i),
       StmtKind::Empty => {}
     }
   }
@@ -152,6 +153,7 @@ pub trait VisitMut<'a> {
       },
       ItemKind::Struct(_) | ItemKind::Enum(_) | ItemKind::Use(_) | ItemKind::Ivy(_) => {}
       ItemKind::Pattern(_) => todo!(),
+      ItemKind::Taken => {}
     }
   }
 

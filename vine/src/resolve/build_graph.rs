@@ -1,4 +1,9 @@
-use crate::ast::{Ident, Item, ItemKind, ModKind, Path, Term, TermKind, UseTree};
+use std::mem::replace;
+
+use crate::{
+  ast::{Ident, Item, ItemKind, ModKind, Path, Term, TermKind, UseTree},
+  visit::VisitMut,
+};
 
 use super::{Adt, Node, NodeId, NodeValue, Resolver, Variant};
 
@@ -74,14 +79,21 @@ impl Resolver {
         self.nodes[adt].adt = Some(Adt { variants });
       }
       ItemKind::Pattern(_) => todo!(),
+      ItemKind::Taken => {}
     }
   }
 
-  fn define_value(&mut self, parent: NodeId, name: Ident, value: NodeValue) {
+  fn define_value(&mut self, parent: NodeId, name: Ident, mut value: NodeValue) {
     let child = self.get_or_insert_child(parent, name);
     if child.value.is_some() {
       panic!("duplicate definition of {:?}", child.canonical);
     }
+    let child = child.id;
+    if let NodeValue::Term(term) = &mut value {
+      SubitemVisitor { resolver: self, node: child }.visit_term(term);
+    }
+    let child = &mut self.nodes[child];
+    assert!(child.value.is_none());
     child.value = Some(value);
   }
 
@@ -137,5 +149,16 @@ impl Resolver {
     };
     self.nodes.push(node);
     id
+  }
+}
+
+struct SubitemVisitor<'a> {
+  resolver: &'a mut Resolver,
+  node: NodeId,
+}
+
+impl VisitMut<'_> for SubitemVisitor<'_> {
+  fn visit_item(&mut self, item: &mut Item) {
+    self.resolver.build_item(replace(item, Item { kind: ItemKind::Taken }), self.node);
   }
 }

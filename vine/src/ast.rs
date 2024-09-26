@@ -23,6 +23,7 @@ pub enum ItemKind {
   Mod(ModItem),
   Use(UseTree),
   Ivy(InlineIvy),
+  Taken,
 }
 
 #[derive(Debug, Clone)]
@@ -102,6 +103,7 @@ pub struct Stmt {
 pub enum StmtKind {
   Let(LetStmt),
   Term(Term, bool),
+  Item(Item),
   Empty,
 }
 
