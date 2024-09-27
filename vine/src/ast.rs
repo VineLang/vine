@@ -136,6 +136,7 @@ pub enum TermKind {
   Ref(B<Term>),
   Deref(B<Term>),
   Move(B<Term>),
+  Inverse(B<Term>),
   Tuple(Vec<Term>),
   List(Vec<Term>),
   Field(B<Term>, Path),

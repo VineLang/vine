@@ -245,6 +245,9 @@ impl<'ctx, 'src> VineParser<'ctx, 'src> {
     if self.eat(Token::Move)? {
       return Ok(Term::new_move(self.parse_term_bp(BP::Prefix)?));
     }
+    if self.eat(Token::Tilde)? {
+      return Ok(Term { kind: TermKind::Inverse(Box::new(self.parse_term_bp(BP::Prefix)?)) });
+    }
     if self.eat(Token::Minus)? {
       return Ok(Term::new_unary_op(UnaryOp::Neg, self.parse_term_bp(BP::Prefix)?));
     }

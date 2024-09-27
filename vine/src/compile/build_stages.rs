@@ -14,13 +14,16 @@ mod stage_utils;
 enum ExprCtx {
   Value,
   Place,
-  Either,
+  Space,
+  ValueClear,
+  SpaceClone,
 }
 
 #[must_use]
 enum Expr {
   Value(Port),
   Place(Port, Port),
+  Space(Port),
 }
 
 impl Compiler<'_> {
@@ -61,14 +64,21 @@ impl Compiler<'_> {
   fn lower_expr_value(&mut self, term: &Term) -> Port {
     match self.lower_expr(term, ExprCtx::Value) {
       Expr::Value(t) => t,
-      Expr::Place(..) => unreachable!(),
+      _ => unreachable!(),
     }
   }
 
   fn lower_expr_place(&mut self, term: &Term) -> (Port, Port) {
     match self.lower_expr(term, ExprCtx::Place) {
       Expr::Place(t, u) => (t, u),
-      Expr::Value(_) => unreachable!(),
+      _ => unreachable!(),
+    }
+  }
+
+  fn lower_expr_space(&mut self, term: &Term) -> Port {
+    match self.lower_expr(term, ExprCtx::Space) {
+      Expr::Space(t) => t,
+      _ => unreachable!(),
     }
   }
 
@@ -80,14 +90,21 @@ impl Compiler<'_> {
       TermKind::Path(path) => Expr::Value(Port::Global(path.to_string())),
       TermKind::Local(local) => match ctx {
         ExprCtx::Value => Expr::Value(self.get_local(*local)),
-        ExprCtx::Place | ExprCtx::Either => {
-          Expr::Place(self.get_local(*local), self.set_local(*local))
+        ExprCtx::ValueClear => Expr::Value(self.move_local(*local)),
+        ExprCtx::Place => Expr::Place(self.get_local(*local), self.set_local(*local)),
+        ExprCtx::Space => Expr::Space(self.set_local(*local)),
+        ExprCtx::SpaceClone => {
+          let p = self.get_local(*local);
+          let q = self.set_local(*local);
+          let (x, y) = self.dup(q);
+          self.net.link(x, p);
+          Expr::Space(y)
         }
       },
-      TermKind::Assign(p, e) => {
-        let e = self.lower_expr_value(e);
-        let p = self.lower_pat_value(p);
-        self.net.link(e, p);
+      TermKind::Assign(s, v) => {
+        let v = self.lower_expr_value(v);
+        let s = self.lower_expr_space(s);
+        self.net.link(v, s);
         Expr::Value(Port::Erase)
       }
       TermKind::Block(block) => Expr::Value(self.lower_block(block)),
@@ -141,13 +158,18 @@ impl Compiler<'_> {
         }
         Expr::Value(last_result)
       }
-      TermKind::Tuple(t) => Expr::Value(self.tuple(t, Self::lower_expr_value)),
+      TermKind::Tuple(t) => match ctx {
+        ExprCtx::Value => Expr::Value(self.tuple(t, Self::lower_expr_value)),
+        ExprCtx::Space => Expr::Space(self.tuple(t, Self::lower_expr_space)),
+        _ => todo!(),
+      },
       TermKind::String(s) => {
         Expr::Value(self.list(s.chars().count(), s.chars(), |_, c| Port::U32(c as u32)))
       }
-      TermKind::Ref(p) => Expr::Value(match self.lower_expr(p, ExprCtx::Either) {
+      TermKind::Ref(p) => Expr::Value(match self.lower_expr(p, ExprCtx::Place) {
         Expr::Value(t) => self.new_comb("ref", t, Port::Erase),
         Expr::Place(t, u) => self.new_comb("ref", t, u),
+        _ => unreachable!(),
       }),
       TermKind::List(l) => Expr::Value(self.list(l.len(), l, Self::lower_expr_value)),
       TermKind::Move(t) => match t.kind {
@@ -162,6 +184,22 @@ impl Compiler<'_> {
           Expr::Value(a)
         }
       },
+      TermKind::Inverse(x) => {
+        match self.lower_expr(
+          x,
+          match ctx {
+            ExprCtx::Value => ExprCtx::SpaceClone,
+            ExprCtx::SpaceClone => ExprCtx::Value,
+            ExprCtx::Place => ExprCtx::Place,
+            ExprCtx::Space => ExprCtx::ValueClear,
+            ExprCtx::ValueClear => ExprCtx::Space,
+          },
+        ) {
+          Expr::Value(p) => Expr::Space(p),
+          Expr::Place(p, q) => Expr::Place(q, p),
+          Expr::Space(p) => Expr::Value(p),
+        }
+      }
 
       TermKind::Fn(params, body) => self.lower_fn(params, body),
       TermKind::Loop(body) => self.lower_loop(body),
@@ -185,6 +223,7 @@ impl Compiler<'_> {
         let (a, b) = self.lower_pat_place(p);
         self.new_comb("ref", a, b)
       }
+      TermKind::Inverse(p) => self.lower_pat_space(p),
       _ => todo!(),
     }
   }
@@ -199,6 +238,23 @@ impl Compiler<'_> {
         (x, y.1)
       }
       TermKind::Move(t) => (self.lower_pat_value(t), Port::Erase),
+      TermKind::Inverse(x) => {
+        let (a, b) = self.lower_pat_place(x);
+        (b, a)
+      }
+      _ => todo!(),
+    }
+  }
+
+  fn lower_pat_space(&mut self, t: &Term) -> Port {
+    match &t.kind {
+      TermKind::Hole => Port::Erase,
+      TermKind::Local(local) => {
+        let x = self.net.new_wire();
+        self.cur.fin.push(Step::Move(*local, x.0));
+        x.1
+      }
+      TermKind::Inverse(x) => self.lower_pat_value(x),
       _ => todo!(),
     }
   }
