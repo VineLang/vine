@@ -3,7 +3,6 @@ use std::{
   fmt::{self, Display},
   mem::replace,
   path::PathBuf,
-  usize,
 };
 
 use ivm::{
@@ -77,7 +76,7 @@ impl<'ctx, 'ivm> Repl<'ctx, 'ivm> {
   }
 
   pub fn exec<'src>(&mut self, line: &'src str) -> Result<Option<String>, ParseError<'src>> {
-    let mut parser = VineParser { interner: &self.interner, state: ParserState::new(line) };
+    let mut parser = VineParser { interner: self.interner, state: ParserState::new(line) };
     parser.bump()?;
     let mut stmts = Vec::new();
     while parser.state.token.is_some() {
@@ -148,7 +147,7 @@ impl<'ctx, 'ivm> Repl<'ctx, 'ivm> {
     self.ivm.execute(&self.host.get(&name).unwrap().instructions, Port::new_wire(root));
     self.ivm.normalize();
 
-    let tree = self.host.read(&self.ivm, &*PortRef::new_wire(&out));
+    let tree = self.host.read(self.ivm, &PortRef::new_wire(&out));
     let output = (tree != Tree::Erase).then(|| show(&tree));
     self.ivm.link_wire(out, Port::ERASE);
     self.ivm.normalize();
@@ -204,7 +203,7 @@ fn show(tree: &Tree) -> String {
         cur = r;
       }
       children.push(cur);
-      return format!("({})", children.into_iter().map(|x| show(x)).collect::<Vec<_>>().join(", "));
+      return format!("({})", children.into_iter().map(show).collect::<Vec<_>>().join(", "));
     }
   }
   match tree {
@@ -221,7 +220,7 @@ impl Display for Repl<'_, '_> {
   fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
     for ident in self.locals.values() {
       let var = &self.vars[ident];
-      let value = self.host.read(&self.ivm, &var.value);
+      let value = self.host.read(self.ivm, &var.value);
       if value != Tree::Erase {
         writeln!(f, "{} = {}", ident.0 .0, show(&value))?;
       }

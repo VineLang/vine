@@ -78,7 +78,7 @@ impl IvyReplCommand {
     host.insert_nets(&nets);
     let heap = Heap::new();
     let mut ivm = IVM::new(&heap);
-    let mut repl = Repl::new(&mut host, &mut ivm);
+    let mut repl = Repl::new(host, &mut ivm);
     let mut rl = DefaultEditor::new()?;
     loop {
       print!("\n{repl}");

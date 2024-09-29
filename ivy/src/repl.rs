@@ -107,7 +107,7 @@ impl<'host, 'ctx, 'ivm> Repl<'host, 'ctx, 'ivm> {
 impl Display for Repl<'_, '_, '_> {
   fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
     for (var, port) in &self.vars {
-      writeln!(f, "{} = {}", var, self.host.read(&self.ivm, port))?;
+      writeln!(f, "{} = {}", var, self.host.read(self.ivm, port))?;
     }
     Ok(())
   }
