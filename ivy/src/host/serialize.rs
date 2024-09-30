@@ -110,7 +110,7 @@ impl<'ivm> Host<'ivm> {
   }
 }
 
-pub(crate) struct Serializer<'host, 'ast, 'ivm> {
+struct Serializer<'host, 'ast, 'ivm> {
   host: &'host mut Host<'ivm>,
   current: Global<'ivm>,
   equivalences: BTreeMap<&'ast str, &'ast str>,
