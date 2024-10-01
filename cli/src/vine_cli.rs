@@ -1,4 +1,4 @@
-use std::{fs, path::PathBuf};
+use std::{fs, path::PathBuf, process::exit};
 
 use anyhow::Result;
 use clap::{Args, Parser};
@@ -49,7 +49,13 @@ impl CompileArgs {
     if !self.no_std {
       self.libs.push(std_path())
     }
-    vine::build(vine::Config { main: self.main, libs: self.libs, items: self.items })
+    match vine::build(vine::Config { main: self.main, libs: self.libs, items: self.items }) {
+      Ok(nets) => nets,
+      Err(err) => {
+        eprintln!("{}", err);
+        exit(1);
+      }
+    }
   }
 }
 
@@ -132,7 +138,7 @@ impl VineReplCommand {
           match repl.exec(&line) {
             Ok(Some(result)) => println!("{result}"),
             Ok(None) => {}
-            Err(err) => println!("{err:?}"),
+            Err(err) => eprintln!("{err}"),
           }
         }
         Err(_) => break,

@@ -1,4 +1,5 @@
 use std::{
+  env::current_dir,
   fs,
   mem::take,
   path::{Path, PathBuf},
@@ -9,18 +10,28 @@ use vine_util::interner::StringInterner;
 
 use crate::{
   ast::{self, ConstItem, Ident, Item, ItemKind, ModItem, ModKind, Span, Term, TermKind},
+  diag::{Diag, DiagGroup, FileInfo},
   parser::VineParser,
   visit::{VisitMut, Visitee},
 };
 
 pub struct Loader<'ctx> {
+  cwd: PathBuf,
   interner: &'ctx StringInterner<'static>,
   root: Vec<Item>,
+  pub files: Vec<FileInfo>,
+  pub diags: DiagGroup,
 }
 
 impl<'ctx> Loader<'ctx> {
   pub fn new(interner: &'ctx StringInterner<'static>) -> Self {
-    Self { interner, root: Vec::new() }
+    Self {
+      cwd: current_dir().unwrap(),
+      interner,
+      root: Vec::new(),
+      files: Vec::new(),
+      diags: DiagGroup::default(),
+    }
   }
 
   pub fn finish(&mut self) -> ModKind {
@@ -54,7 +65,7 @@ impl<'ctx> Loader<'ctx> {
       span: Span::NONE,
       kind: ItemKind::Mod(ModItem {
         name: self.auto_mod_name(&path),
-        kind: ModKind::Loaded(self.load_file(path)),
+        kind: self.load_file(path, Span::NONE),
       }),
     };
     self.root.push(module);
@@ -66,14 +77,34 @@ impl<'ctx> Loader<'ctx> {
     )
   }
 
-  fn load_file(&mut self, mut path: PathBuf) -> Vec<Item> {
-    let src = fs::read_to_string(&path).unwrap();
-    let mut items = VineParser::parse(self.interner, &src).unwrap();
+  pub(crate) fn add_file(&mut self, name: String, src: &str) -> usize {
+    let file = self.files.len();
+    self.files.push(FileInfo::new(name, src));
+    file
+  }
+
+  fn load_file(&mut self, path: PathBuf, span: Span) -> ModKind {
+    match self._load_file(path, span) {
+      Ok(items) => ModKind::Loaded(items),
+      Err(diag) => ModKind::Error(self.diags.add(diag)),
+    }
+  }
+
+  fn _load_file(&mut self, mut path: PathBuf, span: Span) -> Result<Vec<Item>, Diag> {
+    let fs_err = |path: &mut PathBuf, err| {
+      let path = take(path);
+      Diag::FsError { span, path, err }
+    };
+    let src = fs::read_to_string(&path).map_err(|err| fs_err(&mut path, err))?;
+    path = path.canonicalize().map_err(|err| fs_err(&mut path, err))?;
+    let name = path.strip_prefix(&self.cwd).unwrap_or(&path).display().to_string();
+    let file = self.add_file(name, &src);
+    let mut items = VineParser::parse(self.interner, &src, file)?;
     path.pop();
     for item in &mut items {
       self.load_deps(&path, item);
     }
-    items
+    Ok(items)
   }
 
   pub(crate) fn load_deps<'t>(&mut self, base: &Path, visitee: &'t mut impl Visitee<'t>) {
@@ -90,7 +121,7 @@ impl VisitMut<'_> for LoadDeps<'_, '_> {
   fn visit_item(&mut self, item: &'_ mut Item) {
     if let ItemKind::Mod(module) = &mut item.kind {
       if let ModKind::Unloaded(path) = &mut module.kind {
-        module.kind = ModKind::Loaded(self.loader.load_file(self.base.join(path)));
+        module.kind = self.loader.load_file(self.base.join(path), item.span);
         return;
       }
     }

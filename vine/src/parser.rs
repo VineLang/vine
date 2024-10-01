@@ -1,9 +1,8 @@
 use std::{mem::transmute, path::PathBuf};
 
-use ivy::parser::{IvyParser, ParseError as IvyParseError};
+use ivy::parser::IvyParser;
 use vine_util::{
   interner::StringInterner,
-  lexer::TokenSet,
   parser::{Parser, ParserState},
 };
 
@@ -13,46 +12,46 @@ use crate::{
     LetStmt, ModItem, ModKind, Path, PatternItem, Span, Stmt, StmtKind, Struct, Term, TermKind,
     UnaryOp, UseTree,
   },
+  diag::Diag,
   lexer::Token,
 };
 
 pub struct VineParser<'ctx, 'src> {
   pub(crate) interner: &'ctx StringInterner<'static>,
   pub(crate) state: ParserState<'src, Token>,
+  pub(crate) file: usize,
 }
 
 impl<'ctx, 'src> Parser<'src> for VineParser<'ctx, 'src> {
   type Token = Token;
-  type Error = ParseError<'src>;
+  type Error = Diag;
 
   fn state(&mut self) -> &mut ParserState<'src, Self::Token> {
     &mut self.state
   }
 
   fn lex_error(&self) -> Self::Error {
-    ParseError::LexError
+    Diag::LexError { span: self.span() }
   }
 
-  fn unexpected_error(&self) -> ParseError<'src> {
-    ParseError::UnexpectedToken { expected: self.state.expected, found: self.state.lexer.slice() }
+  fn unexpected_error(&self) -> Diag {
+    Diag::UnexpectedToken {
+      span: self.span(),
+      expected: self.state.expected,
+      found: self.state.token,
+    }
   }
 }
 
-#[derive(Debug, Clone)]
-pub enum ParseError<'src> {
-  LexError,
-  UnexpectedToken { expected: TokenSet<Token>, found: &'src str },
-  InvalidNum(&'src str),
-  InvalidStr(&'src str),
-  InvalidChar,
-  IvyParseError(IvyParseError<'src>),
-}
-
-type Parse<'src, T = ()> = Result<T, ParseError<'src>>;
+type Parse<'src, T = ()> = Result<T, Diag>;
 
 impl<'ctx, 'src> VineParser<'ctx, 'src> {
-  pub fn parse(interner: &'ctx StringInterner<'static>, src: &'src str) -> Parse<'src, Vec<Item>> {
-    let mut parser = VineParser { interner, state: ParserState::new(src) };
+  pub fn parse(
+    interner: &'ctx StringInterner<'static>,
+    src: &'src str,
+    file: usize,
+  ) -> Parse<'src, Vec<Item>> {
+    let mut parser = VineParser { interner, state: ParserState::new(src), file };
     parser.bump()?;
     let mut items = Vec::new();
     while parser.state.token.is_some() {
@@ -88,24 +87,27 @@ impl<'ctx, 'src> VineParser<'ctx, 'src> {
   }
 
   fn parse_num(&mut self) -> Parse<'src, TermKind> {
+    let span = self.span();
     let token = self.expect(Token::Num)?;
     if token.contains('.') {
-      Ok(TermKind::F32(self.parse_f32_like(token, ParseError::InvalidNum)?))
+      Ok(TermKind::F32(self.parse_f32_like(token, |_| Diag::InvalidNum { span })?))
     } else {
-      Ok(TermKind::U32(self.parse_u32_like(token, ParseError::InvalidNum)?))
+      Ok(TermKind::U32(self.parse_u32_like(token, |_| Diag::InvalidNum { span })?))
     }
   }
 
   fn parse_string(&mut self) -> Parse<'src, String> {
-    self.parse_string_like(Token::String, ParseError::InvalidStr)
+    let span = self.span();
+    self.parse_string_like(Token::String, |_| Diag::InvalidStr { span })
   }
 
   fn parse_char(&mut self) -> Parse<'src, char> {
-    let str = self.parse_string_like(Token::Char, ParseError::InvalidStr)?;
+    let span = self.span();
+    let str = self.parse_string_like(Token::Char, |_| Diag::InvalidChar { span })?;
     let mut chars = str.chars();
-    let char = chars.next().ok_or(ParseError::InvalidChar)?;
+    let char = chars.next().ok_or(Diag::InvalidChar { span })?;
     if chars.next().is_some() {
-      Err(ParseError::InvalidChar)?
+      Err(Diag::InvalidChar { span })?
     }
     Ok(char)
   }
@@ -190,6 +192,7 @@ impl<'ctx, 'src> VineParser<'ctx, 'src> {
   }
 
   fn parse_ivy_item(&mut self) -> Parse<'src, InlineIvy> {
+    let span = self.span();
     self.expect(Token::InlineIvy)?;
     self.expect(Token::Bang)?;
     let name = self.parse_ident()?;
@@ -199,8 +202,8 @@ impl<'ctx, 'src> VineParser<'ctx, 'src> {
     let vine_lexer = &mut self.state.lexer;
     let mut ivy_parser = IvyParser { state: ParserState::new(vine_lexer.source()) };
     ivy_parser.state.lexer.bump(vine_lexer.span().end);
-    ivy_parser.bump().map_err(ParseError::IvyParseError)?;
-    let net = ivy_parser.parse_net_inner().map_err(ParseError::IvyParseError)?;
+    ivy_parser.bump().map_err(|_| Diag::InvalidIvy { span })?;
+    let net = ivy_parser.parse_net_inner().map_err(|_| Diag::InvalidIvy { span })?;
     vine_lexer.bump(ivy_parser.state.lexer.span().end - vine_lexer.span().end);
     self.bump()?;
     Ok(InlineIvy { name, net })
@@ -447,12 +450,16 @@ impl<'ctx, 'src> VineParser<'ctx, 'src> {
     Ok(Path { span, segments, absolute, resolved: None })
   }
 
-  fn start_span(&mut self) -> usize {
+  fn start_span(&self) -> usize {
     self.state.lexer.span().start
   }
 
-  fn end_span(&mut self, span: usize) -> Span {
-    Span { file: 0, start: span, end: self.state.lexer.span().end }
+  fn end_span(&self, span: usize) -> Span {
+    Span { file: self.file, start: span, end: self.state.lexer.span().end }
+  }
+
+  fn span(&self) -> Span {
+    self.end_span(self.start_span())
   }
 }
 

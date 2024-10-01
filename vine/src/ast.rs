@@ -6,7 +6,7 @@ use std::{
 use ivy::ast::Net;
 use vine_util::interner::Interned;
 
-use crate::resolve::NodeId;
+use crate::{diag::ErrorGuaranteed, resolve::NodeId};
 
 #[derive(Clone)]
 pub struct Item {
@@ -65,6 +65,7 @@ pub struct ModItem {
 pub enum ModKind {
   Loaded(Vec<Item>),
   Unloaded(PathBuf),
+  Error(ErrorGuaranteed),
 }
 
 #[derive(Debug, Clone)]
@@ -158,6 +159,7 @@ pub enum TermKind {
   U32(u32),
   F32(f32),
   String(String),
+  Error(ErrorGuaranteed),
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -202,6 +204,12 @@ pub enum ComparisonOp {
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Ident(pub Interned<'static, str>);
 
+impl Display for Ident {
+  fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    write!(f, "{}", self.0 .0)
+  }
+}
+
 #[derive(Default, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Span {
   pub file: usize,
@@ -210,7 +218,7 @@ pub struct Span {
 }
 
 impl Span {
-  pub const NONE: Span = Span { file: 0, start: 0, end: 0 };
+  pub const NONE: Span = Span { file: usize::MAX, start: 0, end: 0 };
 }
 
 pub type B<T> = Box<T>;

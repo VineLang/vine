@@ -21,7 +21,7 @@ use crate::{
   compile::Compiler,
   desugar::Desugar,
   loader::Loader,
-  parser::{ParseError, VineParser},
+  parser::VineParser,
   resolve::{NodeId, Resolver},
   visit::VisitMut,
 };
@@ -58,6 +58,7 @@ impl<'ctx, 'ivm> Repl<'ctx, 'ivm> {
 
     let mut resolver = Resolver::default();
     resolver.build_graph(loader.finish());
+    resolver.resolve_imports();
     resolver.resolve_terms();
 
     let repl_mod = resolver.get_or_insert_child(0, Ident(interner.intern("repl"))).id;
@@ -75,17 +76,24 @@ impl<'ctx, 'ivm> Repl<'ctx, 'ivm> {
     Repl { host, ivm, interner, loader, resolver, repl_mod, line: 0, vars, locals, local_count: 1 }
   }
 
-  pub fn exec<'src>(&mut self, line: &'src str) -> Result<Option<String>, ParseError<'src>> {
-    let mut parser = VineParser { interner: self.interner, state: ParserState::new(line) };
-    parser.bump()?;
+  pub fn exec(&mut self, line: &str) -> Result<Option<String>, String> {
+    let file = self.loader.add_file("input".to_string(), line);
+    let mut parser = VineParser { interner: self.interner, state: ParserState::new(line), file };
+    parser.bump().map_err(|d| d.report(&self.loader.files))?;
     let mut stmts = Vec::new();
     while parser.state.token.is_some() {
-      stmts.push(parser.parse_stmt()?);
+      stmts.push(parser.parse_stmt().map_err(|d| d.report(&self.loader.files))?);
     }
 
     self.loader.load_deps(".".as_ref(), &mut stmts);
 
+    if let Err(e) = self.loader.diags.report(&self.loader.files) {
+      self.loader.finish();
+      return Err(e);
+    }
+
     let new_nodes = self.resolver.nodes.len();
+    let new_uses = self.resolver.next_use_id;
     self.resolver.build_mod(self.loader.finish(), 0);
     self.resolver.extract_subitems(self.repl_mod, &mut stmts);
     let new_nodes = new_nodes..self.resolver.nodes.len();
@@ -93,6 +101,13 @@ impl<'ctx, 'ivm> Repl<'ctx, 'ivm> {
     self.resolver._resolve_terms(new_nodes.clone());
     let binds =
       self.resolver.resolve_custom(self.repl_mod, &self.locals, &mut self.local_count, &mut stmts);
+
+    self.resolver._resolve_imports(new_nodes.clone().chain([self.repl_mod]));
+
+    if let Err(e) = self.resolver.diags.report(&self.loader.files) {
+      self.resolver.revert(new_nodes.start, new_uses);
+      return Err(e);
+    }
 
     for (ident, local) in binds {
       let var = self.vars.entry(ident).or_insert(Var { local: usize::MAX, value: Port::ERASE });
@@ -114,6 +129,7 @@ impl<'ctx, 'ivm> Repl<'ctx, 'ivm> {
 
     let line = self.line;
     self.line += 1;
+
     let name = format!("::repl::{line}");
 
     compiler.compile_term(

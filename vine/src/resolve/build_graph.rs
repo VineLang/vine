@@ -1,11 +1,12 @@
-use std::mem::replace;
+use std::{collections::hash_map::Entry, mem::replace};
 
 use crate::{
   ast::{Ident, Item, ItemKind, ModKind, Path, Span, Term, TermKind, UseTree},
+  diag::{Diag, DiagGroup},
   visit::{VisitMut, Visitee},
 };
 
-use super::{Adt, Node, NodeId, NodeValue, Resolver, Variant};
+use super::{Adt, Member, Node, NodeId, NodeValue, Resolver, Variant};
 
 impl Resolver {
   pub fn build_graph(&mut self, root: ModKind) {
@@ -25,16 +26,17 @@ impl Resolver {
     match item.kind {
       ItemKind::Fn(f) => {
         self.define_value(
+          item.span,
           parent,
           f.name,
           NodeValue::Term(Term { span: item.span, kind: TermKind::Fn(f.params, Box::new(f.body)) }),
         );
       }
       ItemKind::Const(c) => {
-        self.define_value(parent, c.name, NodeValue::Term(c.value));
+        self.define_value(item.span, parent, c.name, NodeValue::Term(c.value));
       }
       ItemKind::Ivy(i) => {
-        self.define_value(parent, i.name, NodeValue::Ivy(i.net));
+        self.define_value(item.span, parent, i.name, NodeValue::Ivy(i.net));
       }
       ItemKind::Mod(m) => {
         let child = self.get_or_insert_child(parent, m.name).id;
@@ -42,15 +44,19 @@ impl Resolver {
       }
       ItemKind::Use(tree) => {
         Self::build_imports(
+          self.next_use_id,
+          &mut self.diags,
           tree,
           &mut self.nodes[parent],
           &mut Path { span: Span::NONE, segments: Vec::new(), absolute: false, resolved: None },
         );
+        self.next_use_id += 1;
       }
       ItemKind::Struct(s) => {
         let child = self.get_or_insert_child(parent, s.name);
         if child.adt.is_some() || child.variant.is_some() || child.value.is_some() {
-          panic!("duplicate definition of {:?}", child.canonical);
+          self.diags.add(Diag::DuplicateItem { span: item.span, name: s.name });
+          return;
         }
         child.adt = Some(Adt { variants: vec![child.id] });
         child.variant = Some(Variant { adt: child.id, variant: 0, fields: s.fields });
@@ -59,21 +65,23 @@ impl Resolver {
       ItemKind::Enum(e) => {
         let child = self.get_or_insert_child(parent, e.name);
         if child.adt.is_some() {
-          panic!("duplicate definition of {:?}", child.canonical);
+          self.diags.add(Diag::DuplicateItem { span: item.span, name: e.name });
+          return;
         }
         let adt = child.id;
         let variants = e
           .variants
           .into_iter()
           .enumerate()
-          .map(|(i, v)| {
+          .filter_map(|(i, v)| {
             let variant = self.get_or_insert_child(adt, v.name);
             if variant.variant.is_some() || variant.value.is_some() {
-              panic!("duplicate definition of {:?}", variant.canonical);
+              self.diags.add(Diag::DuplicateItem { span: item.span, name: v.name });
+              return None;
             }
             variant.variant = Some(Variant { adt, variant: i, fields: v.fields });
             variant.value = Some(NodeValue::AdtConstructor);
-            variant.id
+            Some(variant.id)
           })
           .collect();
         self.nodes[adt].adt = Some(Adt { variants });
@@ -83,10 +91,11 @@ impl Resolver {
     }
   }
 
-  fn define_value(&mut self, parent: NodeId, name: Ident, mut value: NodeValue) -> NodeId {
+  fn define_value(&mut self, span: Span, parent: NodeId, name: Ident, mut value: NodeValue) {
     let child = self.get_or_insert_child(parent, name);
     if child.value.is_some() {
-      panic!("duplicate definition of {:?}", child.canonical);
+      self.diags.add(Diag::DuplicateItem { span, name });
+      return;
     }
     let child = child.id;
     if let NodeValue::Term(term) = &mut value {
@@ -95,7 +104,6 @@ impl Resolver {
     let child = &mut self.nodes[child];
     assert!(child.value.is_none());
     child.value = Some(value);
-    child.id
   }
 
   pub(crate) fn extract_subitems<'t>(&mut self, node: NodeId, visitee: &'t mut impl Visitee<'t>) {
@@ -106,10 +114,17 @@ impl Resolver {
     let next_child = self.next_node_id();
     let parent_node = &mut self.nodes[parent];
     let mut new = false;
-    let child = *parent_node.children.entry(name).or_insert_with(|| {
+    let member = parent_node.members.entry(name).or_insert_with(|| {
       new = true;
-      next_child
+      Member::Child(next_child)
     });
+    let child = match member {
+      Member::Child(child) => *child,
+      _ => {
+        new = true;
+        next_child
+      }
+    };
     if new {
       let path = parent_node.canonical.extend(&[name]);
       self.new_node(path, Some(parent));
@@ -117,18 +132,27 @@ impl Resolver {
     &mut self.nodes[child]
   }
 
-  fn build_imports(tree: UseTree, node: &mut Node, path: &mut Path) {
+  fn build_imports(
+    marker: usize,
+    diags: &mut DiagGroup,
+    tree: UseTree,
+    node: &mut Node,
+    path: &mut Path,
+  ) {
     let initial_len = path.segments.len();
     path.segments.extend(&tree.path.segments);
     if let Some(children) = tree.children {
       for child in children {
-        Self::build_imports(child, node, path);
+        Self::build_imports(marker, diags, child, node, path);
       }
     } else {
       let name = *path.segments.last().unwrap();
-      let prev = node.imports.insert(name, Some(path.clone()));
-      if prev.is_some() {
-        panic!("duplicate import of {:?} in {:?}", name, node.canonical);
+      let mut path = path.clone();
+      path.span = tree.path.span;
+      if let Entry::Vacant(e) = node.members.entry(name) {
+        e.insert(Member::UnresolvedImport(Some(path), marker));
+      } else {
+        diags.add(Diag::DuplicateItem { span: tree.path.span, name });
       }
     }
     path.segments.truncate(initial_len);
@@ -144,8 +168,7 @@ impl Resolver {
     let node = Node {
       id,
       canonical,
-      children: Default::default(),
-      imports: Default::default(),
+      members: Default::default(),
       parent,
       locals: 0,
       value: None,
@@ -154,6 +177,16 @@ impl Resolver {
     };
     self.nodes.push(node);
     id
+  }
+
+  pub fn revert(&mut self, old_node_count: usize, old_use_count: usize) {
+    self.nodes.truncate(old_node_count);
+    for node in &mut self.nodes {
+      node.members.retain(|_, m| match *m {
+        Member::Child(id) => id < old_node_count,
+        Member::ResolvedImport(_, id) | Member::UnresolvedImport(_, id) => id < old_use_count,
+      });
+    }
   }
 }
 
