@@ -1,0 +1,10 @@
+
+use std::io::{
+  println,
+  println,
+  print_ln,
+};
+
+fn main(std::io) {
+  io.println(hallo, world)
+}

@@ -44,6 +44,11 @@ fn tests(t: &mut DynTester) {
     test_vi(t, "tests/programs/option_party.vi", b"", ".txt");
     test_vi(t, "tests/programs/pretty_div.vi", b"", ".txt");
     test_vi(t, "tests/programs/so_random.vi", b"", ".txt");
+
+    t.group("fail", |t| {
+      test_vi_fail(t, "tests/programs/fail/hallo_world.vi");
+      test_vi_fail(t, "tests/programs/fail/missing_no.vi");
+    });
   });
 }
 
@@ -55,7 +60,7 @@ fn test_vi(t: &mut DynTester, path: &'static str, input: &'static [u8], output_e
   t.group(name, |t| {
     let (sender, receiver) = channel();
     t.test("compile", move || {
-      let (stdout, stderr) = exec(VINE, &["build", path], &[]);
+      let (stdout, stderr) = exec(VINE, &["build", path], &[], true);
       assert!(stderr.is_empty());
       let path = test_snapshot(&["vine", name, "compiled.iv"], &stdout);
       _ = sender.send(path);
@@ -68,6 +73,14 @@ fn test_vi(t: &mut DynTester, path: &'static str, input: &'static [u8], output_e
   });
 }
 
+fn test_vi_fail(t: &mut DynTester, path: &'static str) {
+  let name = Path::file_stem(path.as_ref()).unwrap().to_str().unwrap();
+  t.test(name, move || {
+    let (_, stderr) = exec(VINE, &["build", path], &[], false);
+    test_snapshot(&["vine", "fail", &format!("{name}.txt")], &stderr);
+  });
+}
+
 fn test_iv(t: &mut DynTester, path: &'static str, input: &'static [u8], output_ext: &'static str) {
   let name = Path::file_stem(path.as_ref()).unwrap().to_str().unwrap();
   t.test(name, || {
@@ -76,7 +89,7 @@ fn test_iv(t: &mut DynTester, path: &'static str, input: &'static [u8], output_e
 }
 
 fn run_iv(group: &str, name: &str, path: &str, input: &[u8], output_ext: &str) {
-  let (stdout, stderr) = exec(IVY, &["run", path], input);
+  let (stdout, stderr) = exec(IVY, &["run", path], input, true);
   test_snapshot(&[group, name, &format!("output{output_ext}")], &stdout);
   let full_stats = String::from_utf8(stderr).unwrap();
   let stats = full_stats.split_once("\nTime").unwrap().0;
@@ -85,7 +98,7 @@ fn run_iv(group: &str, name: &str, path: &str, input: &[u8], output_ext: &str) {
     .unwrap();
 }
 
-fn exec(bin: &[&str], args: &[&str], input: &[u8]) -> (Vec<u8>, Vec<u8>) {
+fn exec(bin: &[&str], args: &[&str], input: &[u8], success: bool) -> (Vec<u8>, Vec<u8>) {
   let mut child = Command::new(env!("CARGO"))
     .args(["run", "--quiet", "--bin"])
     .args(bin)
@@ -103,12 +116,11 @@ fn exec(bin: &[&str], args: &[&str], input: &[u8]) -> (Vec<u8>, Vec<u8>) {
   let stderr = parallel_read(child.stderr.take().unwrap());
 
   let status = child.wait().unwrap();
-  if !status.success() {
+  if status.success() != success {
     let err = String::from_utf8(stderr.join().unwrap()).unwrap();
     eprintln!("{err}");
     panic!("{status}");
   }
-  assert!(status.success());
 
   (stdout.join().unwrap(), stderr.join().unwrap())
 }
