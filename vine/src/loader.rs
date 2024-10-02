@@ -91,12 +91,13 @@ impl<'ctx> Loader<'ctx> {
   }
 
   fn _load_file(&mut self, mut path: PathBuf, span: Span) -> Result<Vec<Item>, Diag> {
-    let fs_err = |path: &mut PathBuf, err| {
-      let path = take(path);
-      Diag::FsError { span, path, err }
+    let fs_err = |err| Diag::FsError {
+      span,
+      path: path.strip_prefix(&self.cwd).unwrap_or(&path).to_owned(),
+      err,
     };
-    let src = fs::read_to_string(&path).map_err(|err| fs_err(&mut path, err))?;
-    path = path.canonicalize().map_err(|err| fs_err(&mut path, err))?;
+    let src = fs::read_to_string(&path).map_err(fs_err)?;
+    path = path.canonicalize().map_err(fs_err)?;
     let name = path.strip_prefix(&self.cwd).unwrap_or(&path).display().to_string();
     let file = self.add_file(name, &src);
     let mut items = VineParser::parse(self.interner, &src, file)?;
