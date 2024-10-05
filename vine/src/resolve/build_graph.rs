@@ -6,7 +6,7 @@ use crate::{
   visit::{VisitMut, Visitee},
 };
 
-use super::{Adt, Member, Node, NodeId, NodeValue, Resolver, Variant};
+use super::{Adt, Member, Node, NodeId, NodeValue, Resolver, UseId, Variant};
 
 impl Resolver {
   pub fn build_graph(&mut self, root: ModKind) {
@@ -133,7 +133,7 @@ impl Resolver {
   }
 
   fn build_imports(
-    marker: usize,
+    use_id: UseId,
     diags: &mut DiagGroup,
     tree: UseTree,
     node: &mut Node,
@@ -143,14 +143,14 @@ impl Resolver {
     path.segments.extend(&tree.path.segments);
     if let Some(children) = tree.children {
       for child in children {
-        Self::build_imports(marker, diags, child, node, path);
+        Self::build_imports(use_id, diags, child, node, path);
       }
     } else {
       let name = *path.segments.last().unwrap();
       let mut path = path.clone();
       path.span = tree.path.span;
       if let Entry::Vacant(e) = node.members.entry(name) {
-        e.insert(Member::UnresolvedImport(Some(path), marker));
+        e.insert(Member::UnresolvedImport(Some(path), use_id));
       } else {
         diags.add(Diag::DuplicateItem { span: tree.path.span, name });
       }
