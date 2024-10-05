@@ -46,14 +46,20 @@ pub trait VisitMut<'a> {
       | ExprKind::F32(_)
       | ExprKind::String(_)
       | ExprKind::Break
-      | ExprKind::Error(_) => {}
+      | ExprKind::Error(_)
+      | ExprKind::CopyLocal(_)
+      | ExprKind::MoveLocal(_)
+      | ExprKind::SetLocal(_) => {}
       ExprKind::Ref(a)
       | ExprKind::Deref(a)
       | ExprKind::Move(a)
       | ExprKind::Field(a, _)
       | ExprKind::UnaryOp(_, a)
       | ExprKind::Return(a)
-      | ExprKind::Inverse(a) => self.visit_expr(a),
+      | ExprKind::Inverse(a)
+      | ExprKind::Copy(a)
+      | ExprKind::Set(a)
+      | ExprKind::Temp(a) => self.visit_expr(a),
       ExprKind::Assign(a, b)
       | ExprKind::BinaryOp(_, a, b)
       | ExprKind::BinaryOpAssign(_, a, b)

@@ -3,10 +3,8 @@ use crate::{
   compile::{Agent, Compiler, Port, Step},
 };
 
-use super::Result;
-
 impl Compiler<'_> {
-  pub(super) fn lower_fn(&mut self, params: &Vec<Pat>, body: &Expr) -> Result {
+  pub(super) fn lower_fn(&mut self, params: &Vec<Pat>, body: &Expr) -> Port {
     let func = self.net.new_wire();
     let res = self.apply_combs("fn", func.0, params, Self::lower_pat_value);
     let result = self.new_local();
@@ -21,18 +19,18 @@ impl Compiler<'_> {
       self.select_stage(orig);
     }
     self.get_local_to(result, res);
-    Result::Value(func.1)
+    func.1
   }
 
-  pub(super) fn lower_return(&mut self, r: &Expr) -> Result {
+  pub(super) fn lower_return(&mut self, r: &Expr) -> Port {
     let r = self.lower_expr_value(r);
     let ret = self.return_target.unwrap();
     self.set_local_to(ret.0, r);
     self.diverge(ret.1);
-    Result::Value(Port::Erase)
+    Port::Erase
   }
 
-  pub(super) fn lower_if(&mut self, cond: &Expr, then: &Block, els: &Expr) -> Result {
+  pub(super) fn lower_if(&mut self, cond: &Expr, then: &Block, els: &Expr) -> Port {
     let val = self.new_local();
 
     let cond = self.lower_expr_value(cond);
@@ -61,10 +59,10 @@ impl Compiler<'_> {
       self_.cur.steps.push_back(Step::Call(i, r.1));
     });
 
-    Result::Value(self.get_local(val))
+    self.get_local(val)
   }
 
-  pub(super) fn lower_loop(&mut self, body: &Block) -> Result {
+  pub(super) fn lower_loop(&mut self, body: &Block) -> Port {
     self.new_fork(|self_| {
       let i = self_.new_interface();
       let s = self_.new_stage(i, move |self_, s| {
@@ -78,10 +76,10 @@ impl Compiler<'_> {
       self_.goto(s);
     });
 
-    Result::Value(Port::Erase)
+    Port::Erase
   }
 
-  pub(super) fn lower_while(&mut self, cond: &Expr, body: &Block) -> Result {
+  pub(super) fn lower_while(&mut self, cond: &Expr, body: &Block) -> Port {
     self.new_fork(|self_| {
       let old_break = self_.break_target.replace(self_.cur_fork());
 
@@ -117,11 +115,11 @@ impl Compiler<'_> {
       self_.goto(start);
     });
 
-    Result::Value(Port::Erase)
+    Port::Erase
   }
 
-  pub(super) fn lower_break(&mut self) -> Result {
+  pub(super) fn lower_break(&mut self) -> Port {
     self.diverge(self.break_target.unwrap());
-    Result::Value(Port::Erase)
+    Port::Erase
   }
 }

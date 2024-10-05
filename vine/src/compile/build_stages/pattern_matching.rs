@@ -1,14 +1,14 @@
 use std::{collections::HashMap, ops::Range};
 
 use crate::{
-  compile::{Local, StageId},
+  compile::{Local, Port, StageId},
   resolve::NodeId,
 };
 
-use super::{Compiler, Expr, Node, Pat, PatKind, Result, Step};
+use super::{Compiler, Expr, Node, Pat, PatKind, Step};
 
 impl Compiler<'_> {
-  pub(super) fn lower_match(&mut self, value: &Expr, arms: &[(Pat, Expr)]) -> Result {
+  pub(super) fn lower_match(&mut self, value: &Expr, arms: &[(Pat, Expr)]) -> Port {
     let value = self.lower_expr_value(value);
     let initial = self.new_match_var(false);
     self.set_local_to(initial.local, value);
@@ -49,7 +49,7 @@ impl Compiler<'_> {
     let r = self.net.new_wire();
     self.cur.steps.push_back(Step::Move(result, r.0));
 
-    Result::Value(r.1)
+    r.1
   }
 
   fn lower_decision_tree(&mut self, arms: &[Arm], result: Local, tree: DecisionTree) -> bool {

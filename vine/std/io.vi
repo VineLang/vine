@@ -8,7 +8,7 @@ fn println(&io, str) {
 
 fn print(&io, str) {
   let (len, buf) = str;
-  let chars = buf(_);
+  let chars = buf(());
   let char;
   while len {
     len = len - 1;
@@ -23,7 +23,7 @@ inline_ivy! print_char {
 
 fn print_bytes(&io, bytes) {
   let (len, buf) = bytes;
-  let bytes = buf(_);
+  let bytes = buf(());
   let byte;
   while len {
     len = len - 1;

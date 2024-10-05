@@ -61,7 +61,7 @@ impl VisitMut<'_> for Desugar {
           }],
         });
       }
-      _ => {}
+      ExprKind!(!sugar) => {}
     }
     self._visit_expr(expr)
   }

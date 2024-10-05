@@ -1,18 +1,20 @@
 pub mod ast;
 pub mod compile;
 pub mod desugar;
+pub mod diag;
 pub mod loader;
 pub mod parser;
 pub mod repl;
 pub mod resolve;
 pub mod visit;
 
-pub mod diag;
 mod lexer;
+mod validate;
 
 use std::path::PathBuf;
 
 use ivy::ast::Nets;
+use validate::Validate;
 use vine_util::{arena::BytesArena, interner::StringInterner};
 
 use crate::{
@@ -48,9 +50,11 @@ pub fn build(config: Config) -> Result<Nets, String> {
 
   resolver.diags.report(&loader.files)?;
 
-  for node in &mut resolver.nodes {
-    Desugar.visit_node(node)
-  }
+  let mut validate = Validate::default();
+  validate.visit(&mut resolver.nodes);
+  validate.diags.report(&loader.files)?;
+
+  Desugar.visit(&mut resolver.nodes);
 
   Ok(compile(&resolver.nodes, &config.items))
 }

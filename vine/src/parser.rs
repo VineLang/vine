@@ -319,7 +319,7 @@ impl<'ctx, 'src> VineParser<'ctx, 'src> {
           self.unexpected()?
         }
       } else {
-        Expr { span: Span::NONE, kind: ExprKind::Hole }
+        Expr { span: Span::NONE, kind: ExprKind::Block(Block::default()) }
       };
       return Ok(ExprKind::If(Box::new(cond), then, Box::new(else_)));
     }

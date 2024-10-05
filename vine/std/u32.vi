@@ -20,7 +20,7 @@ fn parse(str) {
   if len == 0 {
     None
   } else {
-    let chars = buf(_);
+    let chars = buf(());
     let num = 0;
     while len {
       let char;
