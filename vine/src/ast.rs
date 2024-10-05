@@ -30,14 +30,14 @@ pub enum ItemKind {
 #[derive(Debug, Clone)]
 pub struct FnItem {
   pub name: Ident,
-  pub params: Vec<Term>,
-  pub body: Term,
+  pub params: Vec<Pat>,
+  pub body: Expr,
 }
 
 #[derive(Debug, Clone)]
 pub struct ConstItem {
   pub name: Ident,
-  pub value: Term,
+  pub value: Expr,
 }
 
 #[derive(Debug, Clone)]
@@ -108,57 +108,77 @@ pub struct Stmt {
 #[derive(Debug, Clone)]
 pub enum StmtKind {
   Let(LetStmt),
-  Term(Term, bool),
+  Expr(Expr, bool),
   Item(Item),
   Empty,
 }
 
 #[derive(Debug, Clone)]
 pub struct LetStmt {
-  pub bind: Term,
-  pub init: Option<Term>,
+  pub bind: Pat,
+  pub init: Option<Expr>,
 }
 
 #[derive(Default, Clone)]
-pub struct Term {
+pub struct Expr {
   pub span: Span,
-  pub kind: TermKind,
+  pub kind: ExprKind,
 }
 
 #[derive(Default, Debug, Clone)]
-pub enum TermKind {
+pub enum ExprKind {
   #[default]
   Hole,
   Path(Path),
   Local(usize),
   Block(Block),
-  Assign(B<Term>, B<Term>),
-  Match(B<Term>, Vec<(Term, Term)>),
-  If(B<Term>, Block, B<Term>),
-  While(B<Term>, Block),
-  WhileLet(B<Term>, B<Term>, Block),
+  Assign(B<Expr>, B<Expr>),
+  Match(B<Expr>, Vec<(Pat, Expr)>),
+  If(B<Expr>, Block, B<Expr>),
+  While(B<Expr>, Block),
+  WhileLet(B<Pat>, B<Expr>, Block),
   Loop(Block),
-  For(B<Term>, B<Term>, Block),
-  Fn(Vec<Term>, B<Term>),
-  Return(B<Term>),
+  For(B<Pat>, B<Expr>, Block),
+  Fn(Vec<Pat>, B<Expr>),
+  Return(B<Expr>),
   Break,
-  Ref(B<Term>),
-  Deref(B<Term>),
-  Move(B<Term>),
-  Inverse(B<Term>),
-  Tuple(Vec<Term>),
-  List(Vec<Term>),
-  Field(B<Term>, Path),
-  Method(B<Term>, Path, Vec<Term>),
-  Call(B<Term>, Vec<Term>),
-  UnaryOp(UnaryOp, B<Term>),
-  BinaryOp(BinaryOp, B<Term>, B<Term>),
-  LogicalOp(LogicalOp, B<Term>, B<Term>),
-  ComparisonOp(B<Term>, Vec<(ComparisonOp, Term)>),
-  BinaryOpAssign(BinaryOp, B<Term>, B<Term>),
+  Ref(B<Expr>),
+  Deref(B<Expr>),
+  Move(B<Expr>),
+  Inverse(B<Expr>),
+  Tuple(Vec<Expr>),
+  List(Vec<Expr>),
+  Field(B<Expr>, Path),
+  Method(B<Expr>, Path, Vec<Expr>),
+  Call(B<Expr>, Vec<Expr>),
+  UnaryOp(UnaryOp, B<Expr>),
+  BinaryOp(BinaryOp, B<Expr>, B<Expr>),
+  LogicalOp(LogicalOp, B<Expr>, B<Expr>),
+  ComparisonOp(B<Expr>, Vec<(ComparisonOp, Expr)>),
+  BinaryOpAssign(BinaryOp, B<Expr>, B<Expr>),
   U32(u32),
   F32(f32),
   String(String),
+  Error(ErrorGuaranteed),
+}
+
+#[derive(Default, Clone)]
+pub struct Pat {
+  pub span: Span,
+  pub kind: PatKind,
+}
+
+#[derive(Default, Debug, Clone)]
+pub enum PatKind {
+  #[default]
+  Hole,
+  Adt(Path, Option<Vec<Pat>>),
+  Local(usize),
+  Ref(B<Pat>),
+  Deref(B<Pat>),
+  Move(B<Pat>),
+  Inverse(B<Pat>),
+  Tuple(Vec<Pat>),
   Error(ErrorGuaranteed),
 }
 
@@ -282,4 +302,4 @@ macro_rules! debug_kind {
   )*};
 }
 
-debug_kind!(Item, Stmt, Term);
+debug_kind!(Item, Stmt, Expr, Pat);

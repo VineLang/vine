@@ -3,13 +3,13 @@ use std::collections::HashMap;
 use ivy::ast::Net;
 
 use crate::{
-  ast::{Ident, Path, Term},
+  ast::{Expr, Ident, Path},
   diag::DiagGroup,
 };
 
 mod build_graph;
+mod resolve_exprs;
 mod resolve_path;
-mod resolve_terms;
 
 #[derive(Debug, Default)]
 pub struct Resolver {
@@ -45,7 +45,7 @@ enum Member {
 
 #[derive(Debug)]
 pub enum NodeValue {
-  Term(Term),
+  Expr(Expr),
   Ivy(Net),
   AdtConstructor,
 }

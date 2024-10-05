@@ -44,7 +44,7 @@ pub fn build(config: Config) -> Result<Nets, String> {
   let mut resolver = Resolver::default();
   resolver.build_graph(root);
   resolver.resolve_imports();
-  resolver.resolve_terms();
+  resolver.resolve_exprs();
 
   resolver.diags.report(&loader.files)?;
 

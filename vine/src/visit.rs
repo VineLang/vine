@@ -1,5 +1,5 @@
 use crate::{
-  ast::{Block, Item, ItemKind, ModKind, Stmt, StmtKind, Term, TermKind},
+  ast::{Block, Expr, ExprKind, Item, ItemKind, ModKind, Pat, PatKind, Stmt, StmtKind},
   resolve::{Node, NodeValue},
 };
 
@@ -12,17 +12,17 @@ pub trait VisitMut<'a> {
   }
 
   fn _visit_node(&mut self, node: &'a mut Node) {
-    if let Some(NodeValue::Term(value)) = &mut node.value {
-      self.visit_term(value);
+    if let Some(NodeValue::Expr(value)) = &mut node.value {
+      self.visit_expr(value);
     }
   }
 
-  fn visit_bind(&mut self, term: &'a mut Term) {
-    self._visit_term(term);
+  fn visit_expr(&mut self, expr: &'a mut Expr) {
+    self._visit_expr(expr);
   }
 
-  fn visit_term(&mut self, term: &'a mut Term) {
-    self._visit_term(term);
+  fn visit_pat(&mut self, pat: &'a mut Pat) {
+    self._visit_pat(pat);
   }
 
   fn visit_stmt(&mut self, stmt: &'a mut Stmt) {
@@ -37,84 +37,99 @@ pub trait VisitMut<'a> {
     self._visit_block(block);
   }
 
-  fn _visit_term(&mut self, term: &'a mut Term) {
-    match &mut term.kind {
-      TermKind::Hole
-      | TermKind::Path(_)
-      | TermKind::Local(_)
-      | TermKind::U32(_)
-      | TermKind::F32(_)
-      | TermKind::String(_)
-      | TermKind::Break
-      | TermKind::Error(_) => {}
-      TermKind::Ref(a)
-      | TermKind::Deref(a)
-      | TermKind::Move(a)
-      | TermKind::Field(a, _)
-      | TermKind::UnaryOp(_, a)
-      | TermKind::Return(a)
-      | TermKind::Inverse(a) => self.visit_term(a),
-      TermKind::Assign(a, b)
-      | TermKind::BinaryOp(_, a, b)
-      | TermKind::BinaryOpAssign(_, a, b)
-      | TermKind::LogicalOp(_, a, b) => {
-        self.visit_term(a);
-        self.visit_term(b);
+  fn _visit_expr(&mut self, expr: &'a mut Expr) {
+    match &mut expr.kind {
+      ExprKind::Hole
+      | ExprKind::Path(_)
+      | ExprKind::Local(_)
+      | ExprKind::U32(_)
+      | ExprKind::F32(_)
+      | ExprKind::String(_)
+      | ExprKind::Break
+      | ExprKind::Error(_) => {}
+      ExprKind::Ref(a)
+      | ExprKind::Deref(a)
+      | ExprKind::Move(a)
+      | ExprKind::Field(a, _)
+      | ExprKind::UnaryOp(_, a)
+      | ExprKind::Return(a)
+      | ExprKind::Inverse(a) => self.visit_expr(a),
+      ExprKind::Assign(a, b)
+      | ExprKind::BinaryOp(_, a, b)
+      | ExprKind::BinaryOpAssign(_, a, b)
+      | ExprKind::LogicalOp(_, a, b) => {
+        self.visit_expr(a);
+        self.visit_expr(b);
       }
-      TermKind::Block(b) | TermKind::Loop(b) => self.visit_block(b),
-      TermKind::Match(a, b) => {
-        self.visit_term(a);
+
+      ExprKind::Block(b) | ExprKind::Loop(b) => self.visit_block(b),
+      ExprKind::Match(a, b) => {
+        self.visit_expr(a);
         for (t, u) in b {
           self.enter_scope();
-          self.visit_bind(t);
-          self.visit_term(u);
+          self.visit_pat(t);
+          self.visit_expr(u);
           self.exit_scope();
         }
       }
-      TermKind::If(a, b, c) => {
-        self.visit_term(a);
+      ExprKind::If(a, b, c) => {
+        self.visit_expr(a);
         self.visit_block(b);
-        self.visit_term(c);
+        self.visit_expr(c);
       }
-      TermKind::While(a, b) => {
-        self.visit_term(a);
+      ExprKind::While(a, b) => {
+        self.visit_expr(a);
         self.visit_block(b);
       }
-      TermKind::WhileLet(a, b, c) => {
-        self.visit_bind(a);
-        self.visit_term(b);
+      ExprKind::WhileLet(a, b, c) => {
+        self.visit_pat(a);
+        self.visit_expr(b);
         self.visit_block(c);
       }
-      TermKind::For(a, b, c) => {
+      ExprKind::For(a, b, c) => {
         self.enter_scope();
-        self.visit_term(b);
-        self.visit_bind(a);
+        self.visit_expr(b);
+        self.visit_pat(a);
         self.visit_block(c);
         self.exit_scope();
       }
-      TermKind::Fn(a, b) => {
+      ExprKind::Fn(a, b) => {
         self.enter_scope();
         for t in a {
-          self.visit_bind(t);
+          self.visit_pat(t);
         }
-        self.visit_term(b);
+        self.visit_expr(b);
         self.exit_scope();
       }
-      TermKind::Tuple(a) | TermKind::List(a) => {
+      ExprKind::Tuple(a) | ExprKind::List(a) => {
         for t in a {
-          self.visit_term(t);
+          self.visit_expr(t);
         }
       }
-      TermKind::Call(a, b) | TermKind::Method(a, _, b) => {
-        self.visit_term(a);
+      ExprKind::Call(a, b) | ExprKind::Method(a, _, b) => {
+        self.visit_expr(a);
         for t in b {
-          self.visit_term(t);
+          self.visit_expr(t);
         }
       }
-      TermKind::ComparisonOp(a, b) => {
-        self.visit_term(a);
+      ExprKind::ComparisonOp(a, b) => {
+        self.visit_expr(a);
         for (_, t) in b {
-          self.visit_term(t);
+          self.visit_expr(t);
+        }
+      }
+    }
+  }
+
+  fn _visit_pat(&mut self, pat: &'a mut Pat) {
+    match &mut pat.kind {
+      PatKind::Hole | PatKind::Local(_) | PatKind::Error(_) | PatKind::Adt(_, None) => {}
+      PatKind::Ref(a) | PatKind::Deref(a) | PatKind::Move(a) | PatKind::Inverse(a) => {
+        self.visit_pat(a)
+      }
+      PatKind::Adt(_, Some(a)) | PatKind::Tuple(a) => {
+        for t in a {
+          self.visit_pat(t);
         }
       }
     }
@@ -124,11 +139,11 @@ pub trait VisitMut<'a> {
     match &mut stmt.kind {
       StmtKind::Let(l) => {
         if let Some(init) = &mut l.init {
-          self.visit_term(init);
+          self.visit_expr(init);
         }
-        self.visit_bind(&mut l.bind);
+        self.visit_pat(&mut l.bind);
       }
-      StmtKind::Term(t, _) => self.visit_term(t),
+      StmtKind::Expr(t, _) => self.visit_expr(t),
       StmtKind::Item(i) => self.visit_item(i),
       StmtKind::Empty => {}
     }
@@ -138,12 +153,12 @@ pub trait VisitMut<'a> {
     match &mut item.kind {
       ItemKind::Fn(f) => {
         for param in &mut f.params {
-          self.visit_term(param);
+          self.visit_pat(param);
         }
-        self.visit_term(&mut f.body);
+        self.visit_expr(&mut f.body);
       }
       ItemKind::Const(c) => {
-        self.visit_term(&mut c.value);
+        self.visit_expr(&mut c.value);
       }
       ItemKind::Mod(m) => match &mut m.kind {
         ModKind::Loaded(items) => {
@@ -182,9 +197,15 @@ impl<'t> Visitee<'t> for Node {
   }
 }
 
-impl<'t> Visitee<'t> for Term {
+impl<'t> Visitee<'t> for Expr {
   fn visit(&'t mut self, visitor: &mut (impl VisitMut<'t> + ?Sized)) {
-    visitor.visit_term(self)
+    visitor.visit_expr(self)
+  }
+}
+
+impl<'t> Visitee<'t> for Pat {
+  fn visit(&'t mut self, visitor: &mut (impl VisitMut<'t> + ?Sized)) {
+    visitor.visit_pat(self)
   }
 }
 

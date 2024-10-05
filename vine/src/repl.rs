@@ -17,7 +17,7 @@ use vine_util::{
 };
 
 use crate::{
-  ast::{Block, Ident, Span, Term, TermKind},
+  ast::{Block, Expr, ExprKind, Ident, Span},
   compile::Compiler,
   desugar::Desugar,
   loader::Loader,
@@ -59,7 +59,7 @@ impl<'ctx, 'ivm> Repl<'ctx, 'ivm> {
     let mut resolver = Resolver::default();
     resolver.build_graph(loader.finish());
     resolver.resolve_imports();
-    resolver.resolve_terms();
+    resolver.resolve_exprs();
 
     let repl_mod = resolver.get_or_insert_child(0, Ident(interner.intern("repl"))).id;
 
@@ -98,7 +98,7 @@ impl<'ctx, 'ivm> Repl<'ctx, 'ivm> {
     self.resolver.extract_subitems(self.repl_mod, &mut stmts);
     let new_nodes = new_nodes..self.resolver.nodes.len();
 
-    self.resolver._resolve_terms(new_nodes.clone());
+    self.resolver._resolve_exprs(new_nodes.clone());
     let binds =
       self.resolver.resolve_custom(self.repl_mod, &self.locals, &mut self.local_count, &mut stmts);
 
@@ -132,10 +132,10 @@ impl<'ctx, 'ivm> Repl<'ctx, 'ivm> {
 
     let name = format!("::repl::{line}");
 
-    compiler.compile_term(
+    compiler.compile_expr(
       &mut self.local_count,
       name.clone(),
-      &Term { span: Span::NONE, kind: TermKind::Block(Block { span: Span::NONE, stmts }) },
+      &Expr { span: Span::NONE, kind: ExprKind::Block(Block { span: Span::NONE, stmts }) },
       self.vars.values().map(|v| v.local),
     );
 

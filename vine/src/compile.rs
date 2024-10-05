@@ -6,7 +6,7 @@ use ivy::ast::Nets;
 use vine_util::bicycle::BicycleState;
 
 use crate::{
-  ast::Term,
+  ast::Expr,
   resolve::{Node, NodeValue},
 };
 
@@ -87,8 +87,8 @@ impl<'n> Compiler<'n> {
     self.net = Default::default();
     let Some(value) = &node.value else { return };
     match value {
-      NodeValue::Term(term) => {
-        self.compile_term(&mut { node.locals }, node.canonical.to_string(), term, []);
+      NodeValue::Expr(expr) => {
+        self.compile_expr(&mut { node.locals }, node.canonical.to_string(), expr, []);
       }
       NodeValue::Ivy(net) => {
         self.nets.insert(node.canonical.to_string(), net.clone());
@@ -100,14 +100,14 @@ impl<'n> Compiler<'n> {
     }
   }
 
-  pub(super) fn compile_term(
+  pub(super) fn compile_expr(
     &mut self,
     local_count: &mut usize,
     name: String,
-    term: &Term,
+    expr: &Expr,
     locals: impl IntoIterator<Item = Local>,
   ) {
-    let init_stage = self.build_stages(*local_count, name, term);
+    let init_stage = self.build_stages(*local_count, name, expr);
     let init_interface = &mut self.interfaces[self.stages[init_stage].outer];
     for local in locals {
       let usage = Usage::GET.union(Usage::SET);

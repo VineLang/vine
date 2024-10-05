@@ -4,7 +4,7 @@ use std::{
 };
 
 use crate::{
-  ast::{Ident, Path, Term, TermKind},
+  ast::{Expr, ExprKind, Ident, Pat, PatKind, Path},
   diag::Diag,
   visit::{VisitMut, Visitee},
 };
@@ -12,11 +12,11 @@ use crate::{
 use super::{NodeId, NodeValue, Resolver};
 
 impl Resolver {
-  pub fn resolve_terms(&mut self) {
-    self._resolve_terms(0..self.nodes.len());
+  pub fn resolve_exprs(&mut self) {
+    self._resolve_exprs(0..self.nodes.len());
   }
 
-  pub(crate) fn _resolve_terms(&mut self, range: Range<NodeId>) {
+  pub(crate) fn _resolve_exprs(&mut self, range: Range<NodeId>) {
     let mut visitor = ResolveVisitor {
       resolver: self,
       node: 0,
@@ -30,8 +30,8 @@ impl Resolver {
 
       let node = &mut visitor.resolver.nodes[node_id];
       let mut value = node.value.take();
-      if let Some(NodeValue::Term(value)) = &mut value {
-        visitor.visit_term(value);
+      if let Some(NodeValue::Expr(value)) = &mut value {
+        visitor.visit_expr(value);
       }
 
       let node = &mut visitor.resolver.nodes[node_id];
@@ -93,28 +93,58 @@ impl VisitMut<'_> for ResolveVisitor<'_> {
     }
   }
 
-  fn visit_bind(&mut self, term: &mut Term) {
-    DeclareVisitor(self).visit_term(term);
+  fn visit_pat(&mut self, pat: &mut Pat) {
+    if let PatKind::Adt(path, children) = &mut pat.kind {
+      let non_local_err = match self.resolver.resolve_path(self.node, path) {
+        Ok(resolved) => {
+          if self.resolver.nodes[resolved].variant.is_some() {
+            *path = self.resolver.nodes[resolved].canonical.clone();
+            debug_assert!(path.absolute && path.resolved.is_some());
+            self._visit_pat(pat);
+            return;
+          } else {
+            Diag::BadPatternPath { span: path.span }
+          }
+        }
+        Err(e) => e,
+      };
+
+      let (Some(ident), None) = (path.as_ident(), children) else {
+        pat.kind = PatKind::Error(self.resolver.diags.add(non_local_err));
+        return;
+      };
+      let local = self.next_local;
+      self.next_local += 1;
+      let stack = self.scope.entry(ident).or_default();
+      let top = stack.last_mut();
+      if top.as_ref().is_some_and(|x| x.depth == self.scope_depth) {
+        top.unwrap().local = local;
+      } else {
+        stack.push(ScopeEntry { depth: self.scope_depth, local })
+      }
+      pat.kind = PatKind::Local(local);
+    }
+    self._visit_pat(pat);
   }
 
-  fn visit_term(&mut self, term: &mut Term) {
-    let result = match &mut term.kind {
-      TermKind::Path(path) => {
+  fn visit_expr(&mut self, expr: &mut Expr) {
+    let result = match &mut expr.kind {
+      ExprKind::Path(path) => {
         if let Some(ident) = path.as_ident() {
           if let Some(bind) = self.scope.get(&ident).and_then(|x| x.last()) {
-            term.kind = TermKind::Local(bind.local);
+            expr.kind = ExprKind::Local(bind.local);
             return;
           }
         }
         self.visit_path(path)
       }
-      TermKind::Field(_, p) => self.visit_path(p),
-      TermKind::Method(_, p, _) => self.visit_path(p),
+      ExprKind::Field(_, p) => self.visit_path(p),
+      ExprKind::Method(_, p, _) => self.visit_path(p),
       _ => Ok(()),
     };
-    self._visit_term(term);
+    self._visit_expr(expr);
     if let Err(diag) = result {
-      term.kind = TermKind::Error(self.resolver.diags.add(diag));
+      expr.kind = ExprKind::Error(self.resolver.diags.add(diag));
     }
   }
 }
@@ -125,44 +155,5 @@ impl<'a> ResolveVisitor<'a> {
     *path = self.resolver.nodes[resolved].canonical.clone();
     debug_assert!(path.absolute && path.resolved.is_some());
     Ok(())
-  }
-}
-
-struct DeclareVisitor<'a, 'b>(&'a mut ResolveVisitor<'b>);
-
-impl VisitMut<'_> for DeclareVisitor<'_, '_> {
-  fn visit_term(&mut self, term: &mut Term) {
-    match &mut term.kind {
-      TermKind::Path(path) => {
-        let non_local_err = match self.0.resolver.resolve_path(self.0.node, path) {
-          Ok(resolved) => {
-            if self.0.resolver.nodes[resolved].variant.is_some() {
-              *path = self.0.resolver.nodes[resolved].canonical.clone();
-              debug_assert!(path.absolute && path.resolved.is_some());
-              return;
-            } else {
-              Diag::BadPatternPath { span: path.span }
-            }
-          }
-          Err(e) => e,
-        };
-
-        let Some(ident) = path.as_ident() else {
-          term.kind = TermKind::Error(self.0.resolver.diags.add(non_local_err));
-          return;
-        };
-        let local = self.0.next_local;
-        self.0.next_local += 1;
-        let stack = self.0.scope.entry(ident).or_default();
-        let top = stack.last_mut();
-        if top.as_ref().is_some_and(|x| x.depth == self.0.scope_depth) {
-          top.unwrap().local = local;
-        } else {
-          stack.push(ScopeEntry { depth: self.0.scope_depth, local })
-        }
-        term.kind = TermKind::Local(local);
-      }
-      _ => self._visit_term(term),
-    }
   }
 }
