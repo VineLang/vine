@@ -457,7 +457,18 @@ impl<'ctx, 'src> VineParser<'ctx, 'src> {
       return Ok(PatKind::Inverse(Box::new(self.parse_pat()?)));
     }
     if self.check(Token::OpenParen) {
-      return Ok(PatKind::Tuple(self.parse_pat_list()?));
+      let mut tuple = false;
+      let mut pats = self.parse_delimited(PAREN_COMMA, |self_| {
+        let expr = self_.parse_pat()?;
+        if self_.check(Token::Comma) {
+          tuple = true;
+        }
+        Ok(expr)
+      })?;
+      if pats.len() == 1 && !tuple {
+        return Ok(pats.pop().unwrap().kind);
+      }
+      return Ok(PatKind::Tuple(pats));
     }
     self.unexpected()
   }
