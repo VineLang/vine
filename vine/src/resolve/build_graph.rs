@@ -90,7 +90,7 @@ impl Resolver {
     }
     let child = child.id;
     if let NodeValue::Term(term) = &mut value {
-      self.define_subitems(child, term);
+      self.extract_subitems(child, term);
     }
     let child = &mut self.nodes[child];
     assert!(child.value.is_none());
@@ -98,7 +98,7 @@ impl Resolver {
     child.id
   }
 
-  pub(crate) fn define_subitems<'t>(&mut self, node: NodeId, visitee: &'t mut impl Visitee<'t>) {
+  pub(crate) fn extract_subitems<'t>(&mut self, node: NodeId, visitee: &'t mut impl Visitee<'t>) {
     SubitemVisitor { resolver: self, node }.visit(visitee);
   }
 

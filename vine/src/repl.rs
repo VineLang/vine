@@ -87,7 +87,7 @@ impl<'ctx, 'ivm> Repl<'ctx, 'ivm> {
 
     let new_nodes = self.resolver.nodes.len();
     self.resolver.build_mod(self.loader.finish(), 0);
-    self.resolver.define_subitems(self.repl_mod, &mut stmts);
+    self.resolver.extract_subitems(self.repl_mod, &mut stmts);
     let new_nodes = new_nodes..self.resolver.nodes.len();
 
     self.resolver._resolve_terms(new_nodes.clone());
