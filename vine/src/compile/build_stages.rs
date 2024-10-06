@@ -49,7 +49,7 @@ impl Compiler<'_> {
 
   fn lower_expr_value(&mut self, expr: &Expr) -> Port {
     match &expr.kind {
-      ExprKind!(sugar || error || !value) => unreachable!(),
+      ExprKind![sugar || error || !value] => unreachable!(),
 
       ExprKind::U32(num) => Port::U32(*num),
       ExprKind::F32(num) => Port::F32(*num),
@@ -158,7 +158,7 @@ impl Compiler<'_> {
 
   fn lower_expr_place(&mut self, expr: &Expr) -> (Port, Port) {
     match &expr.kind {
-      ExprKind!(sugar || error || !place) => unreachable!(),
+      ExprKind![sugar || error || !place] => unreachable!(),
       ExprKind::Local(l) => (self.get_local(*l), self.set_local(*l)),
       ExprKind::Inverse(e) => {
         let (a, b) = self.lower_expr_place(e);
@@ -173,7 +173,7 @@ impl Compiler<'_> {
 
   fn lower_expr_space(&mut self, expr: &Expr) -> Port {
     match &expr.kind {
-      ExprKind!(sugar || error || !space) => unreachable!(),
+      ExprKind![sugar || error || !space] => unreachable!(),
       ExprKind::Hole => Port::Erase,
       ExprKind::Set(e) => {
         let (v, s) = self.lower_expr_place(e);
