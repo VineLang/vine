@@ -53,6 +53,8 @@ pub enum Token {
   Question,
   #[token("$")]
   Dollar,
+  #[token("~")]
+  Tilde,
   #[token("=")]
   Eq,
   #[token("==")]

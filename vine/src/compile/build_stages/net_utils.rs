@@ -175,6 +175,12 @@ impl Compiler<'_> {
     self.cur.steps.push_back(Step::Set(local, port));
   }
 
+  pub(super) fn move_local(&mut self, local: Local) -> Port {
+    let x = self.net.new_wire();
+    self.cur.steps.push_back(Step::Move(local, x.0));
+    x.1
+  }
+
   pub(super) fn fin_move_local(&mut self, local: Local) -> Port {
     let x = self.net.new_wire();
     self.cur.fin.push(Step::Move(local, x.0));
