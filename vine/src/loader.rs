@@ -9,7 +9,7 @@ use std::{
 use vine_util::interner::StringInterner;
 
 use crate::{
-  ast::{self, ConstItem, Ident, Item, ItemKind, ModItem, ModKind, Span, Expr, ExprKind},
+  ast::{self, ConstItem, Expr, ExprKind, Ident, Item, ItemKind, ModItem, ModKind, Span},
   diag::{Diag, DiagGroup, FileInfo},
   parser::VineParser,
   visit::{VisitMut, Visitee},

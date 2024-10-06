@@ -77,8 +77,8 @@ impl Validate {
       (Form::Error, _) => {}
       (Form::Value, Form::Value) | (Form::Place, Form::Place) | (Form::Space, Form::Space) => {}
       (Form::Value, Form::Place) => expr.wrap(ExprKind::Temp),
-      (Form::Place, Form::Value) => self.copy_expr(expr),
-      (Form::Place, Form::Space) => self.set_expr(expr),
+      (Form::Place, Form::Value) => Self::copy_expr(expr),
+      (Form::Place, Form::Space) => Self::set_expr(expr),
 
       (Form::Space, Form::Value) => {
         expr.kind = ExprKind::Error(self.diags.add(Diag::ExpectedValueFoundSpaceExpr { span }));
@@ -92,12 +92,12 @@ impl Validate {
     }
   }
 
-  fn copy_expr(&mut self, expr: &mut Expr) {
+  fn copy_expr(expr: &mut Expr) {
     match &mut expr.kind {
       ExprKind::Local(l) => expr.kind = ExprKind::CopyLocal(*l),
       ExprKind::Tuple(t) => {
         for e in t {
-          self.copy_expr(e);
+          Self::copy_expr(e);
         }
       }
       ExprKind::Temp(t) => {
@@ -107,26 +107,26 @@ impl Validate {
     }
   }
 
-  fn set_expr(&mut self, expr: &mut Expr) {
+  fn set_expr(expr: &mut Expr) {
     match &mut expr.kind {
       ExprKind::Local(l) => expr.kind = ExprKind::SetLocal(*l),
-      ExprKind::Inverse(e) => self.move_expr(e),
+      ExprKind::Inverse(e) => Self::move_expr(e),
       ExprKind::Tuple(t) => {
         for e in t {
-          self.set_expr(e);
+          Self::set_expr(e);
         }
       }
       _ => expr.wrap(ExprKind::Set),
     }
   }
 
-  fn move_expr(&mut self, expr: &mut Expr) {
+  fn move_expr(expr: &mut Expr) {
     match &mut expr.kind {
       ExprKind::Local(l) => expr.kind = ExprKind::MoveLocal(*l),
-      ExprKind::Inverse(e) => self.set_expr(e),
+      ExprKind::Inverse(e) => Self::set_expr(e),
       ExprKind::Tuple(t) => {
         for e in t {
-          self.move_expr(e);
+          Self::move_expr(e);
         }
       }
       _ => expr.wrap(ExprKind::Move),
