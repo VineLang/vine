@@ -1,5 +1,6 @@
 use std::{
   fs,
+  mem::take,
   path::{Path, PathBuf},
   str,
 };
@@ -9,6 +10,7 @@ use vine_util::interner::StringInterner;
 use crate::{
   ast::{self, ConstItem, Ident, Item, ItemKind, ModItem, ModKind, Term},
   parser::VineParser,
+  visit::{VisitMut, Visitee},
 };
 
 pub struct Loader<'ctx> {
@@ -21,8 +23,8 @@ impl<'ctx> Loader<'ctx> {
     Self { interner, root: Vec::new() }
   }
 
-  pub fn finish(self) -> ModKind {
-    ModKind::Loaded(self.root)
+  pub fn finish(&mut self) -> ModKind {
+    ModKind::Loaded(take(&mut self.root))
   }
 
   pub fn load_main_mod(&mut self, path: impl Into<PathBuf>) {
@@ -63,23 +65,29 @@ impl<'ctx> Loader<'ctx> {
     let mut items = VineParser::parse(self.interner, &src).unwrap();
     path.pop();
     for item in &mut items {
-      self.load_item(&path, item);
+      self.load_deps(&path, item);
     }
     items
   }
 
-  fn load_item(&mut self, base: &Path, item: &mut Item) {
+  pub(crate) fn load_deps<'t>(&mut self, base: &Path, visitee: &'t mut impl Visitee<'t>) {
+    LoadDeps { loader: self, base }.visit(visitee);
+  }
+}
+
+struct LoadDeps<'a, 'ctx> {
+  loader: &'a mut Loader<'ctx>,
+  base: &'a Path,
+}
+
+impl VisitMut<'_> for LoadDeps<'_, '_> {
+  fn visit_item(&mut self, item: &'_ mut Item) {
     if let ItemKind::Mod(module) = &mut item.kind {
-      match &mut module.kind {
-        ModKind::Unloaded(path) => {
-          module.kind = ModKind::Loaded(self.load_file(base.join(path)));
-        }
-        ModKind::Loaded(items) => {
-          for item in items {
-            self.load_item(base, item);
-          }
-        }
+      if let ModKind::Unloaded(path) = &mut module.kind {
+        module.kind = ModKind::Loaded(self.loader.load_file(self.base.join(path)));
+        return;
       }
     }
+    self._visit_item(item);
   }
 }

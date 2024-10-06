@@ -127,6 +127,7 @@ pub trait VisitMut<'a> {
         self.visit_bind(&mut l.bind);
       }
       StmtKind::Term(t, _) => self.visit_term(t),
+      StmtKind::Item(i) => self.visit_item(i),
       StmtKind::Empty => {}
     }
   }
@@ -152,6 +153,7 @@ pub trait VisitMut<'a> {
       },
       ItemKind::Struct(_) | ItemKind::Enum(_) | ItemKind::Use(_) | ItemKind::Ivy(_) => {}
       ItemKind::Pattern(_) => todo!(),
+      ItemKind::Taken => {}
     }
   }
 
@@ -161,5 +163,54 @@ pub trait VisitMut<'a> {
       self.visit_stmt(stmt);
     }
     self.exit_scope();
+  }
+
+  fn visit(&mut self, visitee: &'a mut (impl Visitee<'a> + ?Sized)) {
+    visitee.visit(self);
+  }
+}
+
+pub trait Visitee<'t> {
+  fn visit(&'t mut self, visitor: &mut (impl VisitMut<'t> + ?Sized));
+}
+
+impl<'t> Visitee<'t> for Node {
+  fn visit(&'t mut self, visitor: &mut (impl VisitMut<'t> + ?Sized)) {
+    visitor.visit_node(self)
+  }
+}
+
+impl<'t> Visitee<'t> for Term {
+  fn visit(&'t mut self, visitor: &mut (impl VisitMut<'t> + ?Sized)) {
+    visitor.visit_term(self)
+  }
+}
+
+impl<'t> Visitee<'t> for Stmt {
+  fn visit(&'t mut self, visitor: &mut (impl VisitMut<'t> + ?Sized)) {
+    visitor.visit_stmt(self)
+  }
+}
+
+impl<'t> Visitee<'t> for Item {
+  fn visit(&'t mut self, visitor: &mut (impl VisitMut<'t> + ?Sized)) {
+    visitor.visit_item(self)
+  }
+}
+
+impl<'t> Visitee<'t> for Block {
+  fn visit(&'t mut self, visitor: &mut (impl VisitMut<'t> + ?Sized)) {
+    visitor.visit_block(self)
+  }
+}
+
+impl<'t, I: ?Sized, T: Visitee<'t> + 't + ?Sized> Visitee<'t> for I
+where
+  for<'a> &'a mut I: IntoIterator<Item = &'a mut T>,
+{
+  fn visit(&'t mut self, visitor: &mut (impl VisitMut<'t> + ?Sized)) {
+    for item in self {
+      visitor.visit(item)
+    }
   }
 }

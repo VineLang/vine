@@ -3,7 +3,11 @@ use std::{fs, path::PathBuf};
 use anyhow::Result;
 use clap::{Args, Parser};
 
-use ivy::ast::Nets;
+use ivm::{heap::Heap, IVM};
+use ivy::{ast::Nets, host::Host};
+use rustyline::DefaultEditor;
+use vine::repl::Repl;
+use vine_util::{arena::BytesArena, interner::StringInterner};
 
 use super::{Optimizations, RunArgs};
 
@@ -14,6 +18,8 @@ pub enum VineCommand {
   Run(VineRunCommand),
   #[command(about = "Compile a Vine program to Ivy")]
   Build(VineBuildCommand),
+
+  Repl(VineReplCommand),
 }
 
 impl VineCommand {
@@ -21,6 +27,7 @@ impl VineCommand {
     match Self::parse() {
       VineCommand::Run(run) => run.execute(),
       VineCommand::Build(build) => build.execute(),
+      VineCommand::Repl(repl) => repl.execute(),
     }
   }
 }
@@ -91,6 +98,45 @@ impl VineBuildCommand {
       fs::write(out, nets.to_string())?;
     } else {
       println!("{nets}");
+    }
+    Ok(())
+  }
+}
+
+#[derive(Debug, Args)]
+pub struct VineReplCommand {
+  #[arg(long)]
+  libs: Vec<PathBuf>,
+  #[arg(long)]
+  no_std: bool,
+}
+
+impl VineReplCommand {
+  pub fn execute(mut self) -> Result<()> {
+    if !self.no_std {
+      self.libs.push(std_path())
+    }
+
+    let host = &mut Host::default();
+    let heap = Heap::new();
+    let mut ivm = IVM::new(&heap);
+    let arena = &*Box::leak(Box::new(BytesArena::default()));
+    let interner = StringInterner::new(arena);
+    let mut repl = Repl::new(host, &mut ivm, &interner, self.libs);
+    let mut rl = DefaultEditor::new()?;
+    loop {
+      print!("\n{repl}");
+      match rl.readline("> ") {
+        Ok(line) => {
+          _ = rl.add_history_entry(&line);
+          match repl.exec(&line) {
+            Ok(Some(result)) => println!("{result}"),
+            Ok(None) => {}
+            Err(err) => println!("{err:?}"),
+          }
+        }
+        Err(_) => break,
+      }
     }
     Ok(())
   }

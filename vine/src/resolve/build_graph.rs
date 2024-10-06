@@ -1,19 +1,24 @@
-use crate::ast::{Ident, Item, ItemKind, ModKind, Path, Term, TermKind, UseTree};
+use std::mem::replace;
+
+use crate::{
+  ast::{Ident, Item, ItemKind, ModKind, Path, Term, TermKind, UseTree},
+  visit::{VisitMut, Visitee},
+};
 
 use super::{Adt, Node, NodeId, NodeValue, Resolver, Variant};
 
 impl Resolver {
   pub fn build_graph(&mut self, root: ModKind) {
     let node = self.new_node(Path::ROOT, None);
+    debug_assert_eq!(node, 0);
     self.build_mod(root, node);
   }
 
-  fn build_mod(&mut self, module: ModKind, node: NodeId) -> NodeId {
+  pub(crate) fn build_mod(&mut self, module: ModKind, node: NodeId) {
     let ModKind::Loaded(items) = module else { unreachable!("module not yet loaded") };
     for item in items {
       self.build_item(item, node);
     }
-    node
   }
 
   fn build_item(&mut self, item: Item, parent: NodeId) {
@@ -74,18 +79,30 @@ impl Resolver {
         self.nodes[adt].adt = Some(Adt { variants });
       }
       ItemKind::Pattern(_) => todo!(),
+      ItemKind::Taken => {}
     }
   }
 
-  fn define_value(&mut self, parent: NodeId, name: Ident, value: NodeValue) {
+  fn define_value(&mut self, parent: NodeId, name: Ident, mut value: NodeValue) -> NodeId {
     let child = self.get_or_insert_child(parent, name);
     if child.value.is_some() {
       panic!("duplicate definition of {:?}", child.canonical);
     }
+    let child = child.id;
+    if let NodeValue::Term(term) = &mut value {
+      self.extract_subitems(child, term);
+    }
+    let child = &mut self.nodes[child];
+    assert!(child.value.is_none());
     child.value = Some(value);
+    child.id
   }
 
-  fn get_or_insert_child(&mut self, parent: NodeId, name: Ident) -> &mut Node {
+  pub(crate) fn extract_subitems<'t>(&mut self, node: NodeId, visitee: &'t mut impl Visitee<'t>) {
+    SubitemVisitor { resolver: self, node }.visit(visitee);
+  }
+
+  pub(crate) fn get_or_insert_child(&mut self, parent: NodeId, name: Ident) -> &mut Node {
     let next_child = self.next_node_id();
     let parent_node = &mut self.nodes[parent];
     let mut new = false;
@@ -137,5 +154,16 @@ impl Resolver {
     };
     self.nodes.push(node);
     id
+  }
+}
+
+struct SubitemVisitor<'a> {
+  resolver: &'a mut Resolver,
+  node: NodeId,
+}
+
+impl VisitMut<'_> for SubitemVisitor<'_> {
+  fn visit_item(&mut self, item: &mut Item) {
+    self.resolver.build_item(replace(item, Item { kind: ItemKind::Taken }), self.node);
   }
 }

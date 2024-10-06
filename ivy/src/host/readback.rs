@@ -8,21 +8,27 @@ use ivm::{
   IVM,
 };
 
-use crate::{ast::Tree, serialize::Labels};
+use crate::{ast::Tree, host::Host};
 
-pub struct Reader<'a, 'ivm> {
-  ivm: &'a IVM<'ivm>,
-  labels: &'a Labels<'a>,
+impl<'ivm> Host<'ivm> {
+  pub fn read(&self, ivm: &IVM<'ivm>, port: &Port<'ivm>) -> Tree {
+    Reader::new(ivm, self).read_port(port)
+  }
+}
+
+struct Reader<'ctx, 'ivm> {
+  ivm: &'ctx IVM<'ivm>,
+  host: &'ctx Host<'ivm>,
   vars: HashMap<Addr, usize>,
   next_var: usize,
 }
 
-impl<'a, 'ivm> Reader<'a, 'ivm> {
-  pub fn new(ivm: &'a IVM<'ivm>, labels: &'a Labels<'a>) -> Self {
-    Reader { ivm, labels, vars: HashMap::new(), next_var: 0 }
+impl<'ctx, 'ivm> Reader<'ctx, 'ivm> {
+  fn new(ivm: &'ctx IVM<'ivm>, host: &'ctx Host<'ivm>) -> Self {
+    Reader { ivm, host, vars: HashMap::new(), next_var: 0 }
   }
 
-  pub fn read_port(&mut self, p: &Port<'ivm>) -> Tree {
+  fn read_port(&mut self, p: &Port<'ivm>) -> Tree {
     let p = self.ivm.follow_ref(p);
     match p.tag() {
       Tag::Wire => {
@@ -50,7 +56,11 @@ impl<'a, 'ivm> Reader<'a, 'ivm> {
       Tag::Comb => {
         let label = p.label();
         let (p1, p2) = unsafe { p.aux_ref() };
-        Tree::Comb(self.labels.from_id(label).to_owned(), self.read_wire(&p1), self.read_wire(&p2))
+        Tree::Comb(
+          self.host.label_from_u16(label).to_owned(),
+          self.read_wire(&p1),
+          self.read_wire(&p2),
+        )
       }
       Tag::ExtFn => {
         let f = unsafe { p.as_ext_fn() };
@@ -68,7 +78,7 @@ impl<'a, 'ivm> Reader<'a, 'ivm> {
     }
   }
 
-  pub fn read_wire(&mut self, w: &Wire<'ivm>) -> Box<Tree> {
+  fn read_wire(&mut self, w: &Wire<'ivm>) -> Box<Tree> {
     Box::new(self.read_port(&PortRef::new_wire(w)))
   }
 }

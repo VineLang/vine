@@ -5,7 +5,10 @@ use bitflags::bitflags;
 use ivy::ast::Nets;
 use vine_util::bicycle::BicycleState;
 
-use crate::resolve::{Node, NodeValue};
+use crate::{
+  ast::Term,
+  resolve::{Node, NodeValue},
+};
 
 mod build_stages;
 mod finish_stages;
@@ -16,26 +19,16 @@ mod net_builder;
 use net_builder::*;
 
 pub fn compile(nodes: &[Node], items: &[String]) -> Nets {
-  let mut compiler = Compiler {
-    nets: Default::default(),
-    nodes,
-    name: Default::default(),
-    interfaces: Default::default(),
-    stages: Default::default(),
-    cur: Default::default(),
-    cur_id: Default::default(),
-    local_count: Default::default(),
-    forks: Default::default(),
-    net: Default::default(),
-    return_target: Default::default(),
-    break_target: Default::default(),
-    dup_labels: Default::default(),
-  };
+  let mut compiler = Compiler::new(nodes);
 
-  for node in nodes {
-    let canonical = &node.canonical.to_string()[2..];
-    if items.is_empty() || items.iter().any(|x| x == canonical) {
-      compiler.compile_node(node);
+  if items.is_empty() {
+    compiler.compile_all();
+  } else {
+    for node in nodes {
+      let canonical = &node.canonical.to_string()[2..];
+      if items.iter().any(|x| x == canonical) {
+        compiler.compile_node(node);
+      }
     }
   }
 
@@ -43,7 +36,7 @@ pub fn compile(nodes: &[Node], items: &[String]) -> Nets {
 }
 
 #[derive(Debug, Default)]
-struct Compiler<'n> {
+pub struct Compiler<'n> {
   pub nets: Nets,
 
   nodes: &'n [Node],
@@ -66,15 +59,36 @@ struct Compiler<'n> {
 }
 
 impl<'n> Compiler<'n> {
-  fn compile_node(&mut self, node: &Node) {
+  pub fn new(nodes: &'n [Node]) -> Self {
+    Compiler {
+      nets: Default::default(),
+      nodes,
+      name: Default::default(),
+      interfaces: Default::default(),
+      stages: Default::default(),
+      cur: Default::default(),
+      cur_id: Default::default(),
+      local_count: Default::default(),
+      forks: Default::default(),
+      net: Default::default(),
+      return_target: Default::default(),
+      break_target: Default::default(),
+      dup_labels: Default::default(),
+    }
+  }
+
+  pub fn compile_all(&mut self) {
+    for node in self.nodes {
+      self.compile_node(node);
+    }
+  }
+
+  pub fn compile_node(&mut self, node: &Node) {
     self.net = Default::default();
     let Some(value) = &node.value else { return };
     match value {
       NodeValue::Term(term) => {
-        let init = self.build_stages(node, term);
-        self.fix_interstage_wires();
-        self.infer_interfaces();
-        self.finish_stages(init);
+        self.compile_term(&mut { node.locals }, node.canonical.to_string(), term, []);
       }
       NodeValue::Ivy(net) => {
         self.nets.insert(node.canonical.to_string(), net.clone());
@@ -84,6 +98,27 @@ impl<'n> Compiler<'n> {
         self.nets.insert(node.canonical.to_string(), net);
       }
     }
+  }
+
+  pub(super) fn compile_term(
+    &mut self,
+    local_count: &mut usize,
+    name: String,
+    term: &Term,
+    locals: impl IntoIterator<Item = Local>,
+  ) {
+    let init_stage = self.build_stages(*local_count, name, term);
+    let init_interface = &mut self.interfaces[self.stages[init_stage].outer];
+    for local in locals {
+      let usage = Usage::GET.union(Usage::SET);
+      init_interface.inward.entry(local).or_insert(usage).union_with(usage);
+      init_interface.wires.insert((local, WireDir::Input));
+      init_interface.wires.insert((local, WireDir::Output));
+    }
+    self.fix_interstage_wires();
+    self.infer_interfaces();
+    self.finish_stages(init_stage);
+    *local_count = self.local_count;
   }
 
   fn new_local(&mut self) -> usize {

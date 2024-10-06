@@ -3,7 +3,6 @@ use std::fmt::{self, Display};
 use indexmap::{map::Entry, IndexMap};
 use ivm::{
   ext::ExtVal,
-  global::Global,
   port::{Port, Tag},
   wire::Wire,
   IVM,
@@ -11,30 +10,21 @@ use ivm::{
 use vine_util::parser::{Parser, ParserState};
 
 use crate::{
-  ast::{Nets, Tree},
+  ast::Tree,
+  host::Host,
   parser::{IvyParser, ParseError},
-  readback::Reader,
-  serialize::Labels,
 };
 
-pub struct Repl<'a, 'l, 'ivm> {
-  ivm: &'a mut IVM<'ivm>,
-  nets: &'a Nets,
-  globals: &'ivm [Global<'ivm>],
-  labels: &'a mut Labels<'l>,
-
-  vars: IndexMap<String, Port<'ivm>>,
+pub struct Repl<'host, 'ctx, 'ivm> {
+  pub host: &'host mut Host<'ivm>,
+  pub ivm: &'ctx mut IVM<'ivm>,
+  pub vars: IndexMap<String, Port<'ivm>>,
 }
 
-impl<'a, 'l, 'ivm> Repl<'a, 'l, 'ivm> {
-  pub fn new(
-    ivm: &'a mut IVM<'ivm>,
-    nets: &'a Nets,
-    globals: &'ivm [Global<'ivm>],
-    labels: &'a mut Labels<'l>,
-  ) -> Self {
+impl<'host, 'ctx, 'ivm> Repl<'host, 'ctx, 'ivm> {
+  pub fn new(host: &'host mut Host<'ivm>, ivm: &'ctx mut IVM<'ivm>) -> Self {
     let vars = [("io".to_owned(), Port::new_ext_val(ExtVal::IO))].into_iter().collect();
-    Self { ivm, nets, globals, labels, vars }
+    Self { host, ivm, vars }
   }
 
   pub fn exec<'s>(&mut self, line: &'s str) -> Result<(), ParseError<'s>> {
@@ -79,9 +69,9 @@ impl<'a, 'l, 'ivm> Repl<'a, 'l, 'ivm> {
       Tree::Erase => Port::ERASE,
       Tree::U32(value) => Port::new_ext_val(ExtVal::new_u32(value)),
       Tree::F32(value) => Port::new_ext_val(ExtVal::new_f32(value)),
-      Tree::Global(name) => Port::new_global(&self.globals[self.nets.get_index_of(&name).unwrap()]),
+      Tree::Global(name) => Port::new_global(self.host.get(&name).unwrap()),
       Tree::Comb(label, a, b) => {
-        let label = self.labels.to_id(label);
+        let label = self.host.label_to_u16(label);
         let n = unsafe { self.ivm.new_node(Tag::Comb, label) };
         self.inject_to(*a, n.1);
         self.inject_to(*b, n.2);
@@ -116,9 +106,8 @@ impl<'a, 'l, 'ivm> Repl<'a, 'l, 'ivm> {
 
 impl Display for Repl<'_, '_, '_> {
   fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-    let mut reader = Reader::new(self.ivm, self.labels);
     for (var, port) in &self.vars {
-      writeln!(f, "{} = {}", var, reader.read_port(port))?;
+      writeln!(f, "{} = {}", var, self.host.read(self.ivm, port))?;
     }
     Ok(())
   }

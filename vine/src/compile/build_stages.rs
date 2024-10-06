@@ -4,7 +4,7 @@ use ivm::ext::{ExtFn, ExtFnKind};
 
 use crate::{ast::*, resolve::Node};
 
-use super::{Compiler, Port, StageId, Step, Usage};
+use super::{Compiler, Port, StageId, Step, Usage, WireDir};
 
 mod control_flow;
 mod net_utils;
@@ -24,9 +24,9 @@ enum Expr {
 }
 
 impl Compiler<'_> {
-  pub(super) fn build_stages(&mut self, node: &Node, term: &Term) -> StageId {
-    self.local_count = node.locals;
-    self.name = node.canonical.to_string();
+  pub(super) fn build_stages(&mut self, locals: usize, name: String, term: &Term) -> StageId {
+    self.local_count = locals;
+    self.name = name;
 
     let i = self.new_interface();
 
@@ -36,6 +36,7 @@ impl Compiler<'_> {
         let root_val = self_.new_local();
         self_.set_local_to(root_val, root);
         self_.interfaces[i].inward.insert(root_val, Usage::GET);
+        self_.interfaces[i].wires.insert((root_val, WireDir::Output));
         false
       })
     });
@@ -195,7 +196,7 @@ impl Compiler<'_> {
       TermKind::Local(local) => {
         let x = self.set_local(*local);
         let y = self.net.new_wire();
-        self.cur.fin.push(Step::Get(*local, y.0));
+        self.cur.fin.push(Step::Move(*local, y.0));
         (x, y.1)
       }
       TermKind::Move(t) => (self.lower_pat_value(t), Port::Erase),
@@ -234,6 +235,7 @@ impl Compiler<'_> {
           t
         }
       }
+      StmtKind::Item(_) => Port::Erase,
       StmtKind::Empty => Port::Erase,
     }
   }

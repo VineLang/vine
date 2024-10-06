@@ -10,7 +10,7 @@ use indexmap::IndexMap;
 use ivm::ext::ExtFn;
 use vine_util::multi_iter;
 
-#[derive(Default, Debug, Clone)]
+#[derive(Default, Debug, Clone, PartialEq)]
 pub enum Tree {
   #[default]
   Erase,

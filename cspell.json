@@ -29,10 +29,21 @@
     "rustyline",
     "scrutinee",
     "sixel",
-    "strs"
+    "strs",
+    "vecs",
+    "visitee"
   ],
-  "dictionaries": ["rust"],
-  "files": ["**/*.rs", "**/*.md", "**/*.vi", "**/*.iv"],
-  "ignoreRegExpList": ["HexValues"],
+  "dictionaries": [
+    "rust"
+  ],
+  "files": [
+    "**/*.rs",
+    "**/*.md",
+    "**/*.vi",
+    "**/*.iv"
+  ],
+  "ignoreRegExpList": [
+    "HexValues"
+  ],
   "useGitignore": true
 }

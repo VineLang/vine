@@ -17,8 +17,8 @@ use crate::{
 };
 
 pub struct VineParser<'ctx, 'src> {
-  interner: &'ctx StringInterner<'static>,
-  state: ParserState<'src, Token>,
+  pub(crate) interner: &'ctx StringInterner<'static>,
+  pub(crate) state: ParserState<'src, Token>,
 }
 
 impl<'ctx, 'src> Parser<'src> for VineParser<'ctx, 'src> {
@@ -394,12 +394,14 @@ impl<'ctx, 'src> VineParser<'ctx, 'src> {
     Ok(Err(lhs))
   }
 
-  fn parse_stmt(&mut self) -> Parse<'src, Stmt> {
+  pub(crate) fn parse_stmt(&mut self) -> Parse<'src, Stmt> {
     Ok(Stmt {
       kind: if self.check(Token::Let) {
         StmtKind::Let(self.parse_let_stmt()?)
       } else if self.eat(Token::Semi)? {
         StmtKind::Empty
+      } else if let Some(item) = self.maybe_parse_item()? {
+        StmtKind::Item(item)
       } else {
         let term = self.parse_term()?;
         let semi = self.eat(Token::Semi)?;
