@@ -1,0 +1,1 @@
+error tests/programs/fail/missing_no.vi:2:1 - cannot read file `tests/programs/fail/no.vi`: No such file or directory (os error 2)

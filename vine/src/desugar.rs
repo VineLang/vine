@@ -1,7 +1,7 @@
 use std::mem::take;
 
 use crate::{
-  ast::{Block, Stmt, StmtKind, Term, TermKind},
+  ast::{Block, Span, Stmt, StmtKind, Term, TermKind},
   resolve::Node,
   visit::VisitMut,
 };
@@ -19,38 +19,47 @@ impl VisitMut<'_> for Desugar {
         let receiver = take(&mut **receiver);
         let path = take(path);
         let mut args = take(args);
-        args.insert(0, Term::new_ref(receiver));
-        *term = Term { kind: TermKind::Call(Box::new(Term::new_path(path)), args) }
+        args.insert(0, Term { span: receiver.span, kind: TermKind::Ref(Box::new(receiver)) });
+        term.kind =
+          TermKind::Call(Box::new(Term { span: path.span, kind: TermKind::Path(path) }), args);
       }
-      TermKind::Field(receiver, p) => {
+      TermKind::Field(receiver, path) => {
         let o = take(&mut **receiver);
-        let p = take(p);
-        *term = Term::new_deref(Term {
-          kind: TermKind::Call(Box::new(Term::new_path(p)), vec![Term::new_ref(o)]),
-        })
+        let path = take(path);
+        term.kind = TermKind::Deref(Box::new(Term {
+          span: term.span,
+          kind: TermKind::Call(
+            Box::new(Term { span: path.span, kind: TermKind::Path(path) }),
+            vec![Term { span: o.span, kind: TermKind::Ref(Box::new(o)) }],
+          ),
+        }))
       }
       TermKind::WhileLet(pat, value, body) => {
         let pat = take(&mut **pat);
         let value = take(&mut **value);
         let body = take(body);
-        *term = Term {
-          kind: TermKind::Loop(Block {
-            stmts: vec![Stmt {
-              kind: StmtKind::Term(
-                Term {
-                  kind: TermKind::Match(
-                    Box::new(value),
-                    vec![
-                      (pat, Term { kind: TermKind::Block(body) }),
-                      (Term { kind: TermKind::Hole }, Term { kind: TermKind::Break }),
-                    ],
-                  ),
-                },
-                true,
-              ),
-            }],
-          }),
-        }
+        term.kind = TermKind::Loop(Block {
+          span: term.span,
+          stmts: vec![Stmt {
+            span: term.span,
+            kind: StmtKind::Term(
+              Term {
+                span: term.span,
+                kind: TermKind::Match(
+                  Box::new(value),
+                  vec![
+                    (pat, Term { span: body.span, kind: TermKind::Block(body) }),
+                    (
+                      Term { span: Span::NONE, kind: TermKind::Hole },
+                      Term { span: Span::NONE, kind: TermKind::Break },
+                    ),
+                  ],
+                ),
+              },
+              true,
+            ),
+          }],
+        });
       }
       _ => {}
     }

@@ -88,7 +88,7 @@ pub trait Parser<'src> {
   fn parse_u32_like(
     &mut self,
     token: &'src str,
-    err: fn(&'src str) -> Self::Error,
+    err: impl Fn(&'src str) -> Self::Error,
   ) -> Result<u32, Self::Error> {
     let bytes = token.as_bytes(); // all valid ascii
     let (radix, bytes) = match bytes {
@@ -112,7 +112,7 @@ pub trait Parser<'src> {
   fn parse_f32_like(
     &mut self,
     token: &'src str,
-    err: fn(&'src str) -> Self::Error,
+    err: impl Fn(&'src str) -> Self::Error,
   ) -> Result<f32, Self::Error> {
     token.parse::<f32>().map_err(|_| err(token))
   }
@@ -120,7 +120,7 @@ pub trait Parser<'src> {
   fn parse_string_like(
     &mut self,
     kind: Self::Token,
-    err: fn(&'src str) -> Self::Error,
+    err: impl Fn(&'src str) -> Self::Error,
   ) -> Result<String, Self::Error> {
     let token = self.expect(kind)?;
     let inner = &token[1..token.len() - 1];

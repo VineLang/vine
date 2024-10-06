@@ -7,6 +7,7 @@ pub mod repl;
 pub mod resolve;
 pub mod visit;
 
+pub mod diag;
 mod lexer;
 
 use std::path::PathBuf;
@@ -24,7 +25,7 @@ pub struct Config {
   pub items: Vec<String>,
 }
 
-pub fn build(config: Config) -> Nets {
+pub fn build(config: Config) -> Result<Nets, String> {
   let arena = &*Box::leak(Box::new(BytesArena::default()));
   let interner = StringInterner::new(arena);
 
@@ -35,15 +36,21 @@ pub fn build(config: Config) -> Nets {
   for lib in config.libs {
     loader.load_mod(lib);
   }
+
+  loader.diags.report(&loader.files)?;
+
   let root = loader.finish();
 
   let mut resolver = Resolver::default();
   resolver.build_graph(root);
+  resolver.resolve_imports();
   resolver.resolve_terms();
+
+  resolver.diags.report(&loader.files)?;
 
   for node in &mut resolver.nodes {
     Desugar.visit_node(node)
   }
 
-  compile(&resolver.nodes, &config.items)
+  Ok(compile(&resolver.nodes, &config.items))
 }

@@ -45,7 +45,8 @@ pub trait VisitMut<'a> {
       | TermKind::U32(_)
       | TermKind::F32(_)
       | TermKind::String(_)
-      | TermKind::Break => {}
+      | TermKind::Break
+      | TermKind::Error(_) => {}
       TermKind::Ref(a)
       | TermKind::Deref(a)
       | TermKind::Move(a)
@@ -150,7 +151,7 @@ pub trait VisitMut<'a> {
             self.visit_item(item);
           }
         }
-        ModKind::Unloaded(_) => {}
+        ModKind::Unloaded(_) | ModKind::Error(_) => {}
       },
       ItemKind::Struct(_) | ItemKind::Enum(_) | ItemKind::Use(_) | ItemKind::Ivy(_) => {}
       ItemKind::Pattern(_) => todo!(),
