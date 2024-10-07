@@ -47,6 +47,7 @@ fn tests(t: &mut DynTester) {
 
     t.group("fail", |t| {
       test_vi_fail(t, "tests/programs/fail/hallo_world.vi");
+      test_vi_fail(t, "tests/programs/fail/informal.vi");
       test_vi_fail(t, "tests/programs/fail/missing_no.vi");
     });
   });

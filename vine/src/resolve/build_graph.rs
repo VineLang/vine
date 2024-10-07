@@ -1,7 +1,7 @@
 use std::{collections::hash_map::Entry, mem::replace};
 
 use crate::{
-  ast::{Ident, Item, ItemKind, ModKind, Path, Span, Term, TermKind, UseTree},
+  ast::{Expr, ExprKind, Ident, Item, ItemKind, ModKind, Path, Span, UseTree},
   diag::{Diag, DiagGroup},
   visit::{VisitMut, Visitee},
 };
@@ -29,11 +29,11 @@ impl Resolver {
           item.span,
           parent,
           f.name,
-          NodeValue::Term(Term { span: item.span, kind: TermKind::Fn(f.params, Box::new(f.body)) }),
+          NodeValue::Expr(Expr { span: item.span, kind: ExprKind::Fn(f.params, Box::new(f.body)) }),
         );
       }
       ItemKind::Const(c) => {
-        self.define_value(item.span, parent, c.name, NodeValue::Term(c.value));
+        self.define_value(item.span, parent, c.name, NodeValue::Expr(c.value));
       }
       ItemKind::Ivy(i) => {
         self.define_value(item.span, parent, i.name, NodeValue::Ivy(i.net));
@@ -98,8 +98,8 @@ impl Resolver {
       return;
     }
     let child = child.id;
-    if let NodeValue::Term(term) = &mut value {
-      self.extract_subitems(child, term);
+    if let NodeValue::Expr(expr) = &mut value {
+      self.extract_subitems(child, expr);
     }
     let child = &mut self.nodes[child];
     assert!(child.value.is_none());

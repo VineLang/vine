@@ -128,7 +128,13 @@ impl VineReplCommand {
     let mut ivm = IVM::new(&heap);
     let arena = &*Box::leak(Box::new(BytesArena::default()));
     let interner = StringInterner::new(arena);
-    let mut repl = Repl::new(host, &mut ivm, &interner, self.libs);
+    let mut repl = match Repl::new(host, &mut ivm, &interner, self.libs) {
+      Ok(repl) => repl,
+      Err(err) => {
+        eprintln!("{err}");
+        exit(1);
+      }
+    };
     let mut rl = DefaultEditor::new()?;
     loop {
       print!("\n{repl}");

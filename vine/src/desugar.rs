@@ -1,7 +1,7 @@
 use std::mem::take;
 
 use crate::{
-  ast::{Block, Span, Stmt, StmtKind, Term, TermKind},
+  ast::{Block, Expr, ExprKind, Pat, PatKind, Span, Stmt, StmtKind},
   resolve::Node,
   visit::VisitMut,
 };
@@ -13,45 +13,45 @@ impl VisitMut<'_> for Desugar {
     self._visit_node(node)
   }
 
-  fn visit_term(&mut self, term: &mut Term) {
-    match &mut term.kind {
-      TermKind::Method(receiver, path, args) => {
+  fn visit_expr(&mut self, expr: &mut Expr) {
+    match &mut expr.kind {
+      ExprKind::Method(receiver, path, args) => {
         let receiver = take(&mut **receiver);
         let path = take(path);
         let mut args = take(args);
-        args.insert(0, Term { span: receiver.span, kind: TermKind::Ref(Box::new(receiver)) });
-        term.kind =
-          TermKind::Call(Box::new(Term { span: path.span, kind: TermKind::Path(path) }), args);
+        args.insert(0, Expr { span: receiver.span, kind: ExprKind::Ref(Box::new(receiver)) });
+        expr.kind =
+          ExprKind::Call(Box::new(Expr { span: path.span, kind: ExprKind::Path(path) }), args);
       }
-      TermKind::Field(receiver, path) => {
+      ExprKind::Field(receiver, path) => {
         let o = take(&mut **receiver);
         let path = take(path);
-        term.kind = TermKind::Deref(Box::new(Term {
-          span: term.span,
-          kind: TermKind::Call(
-            Box::new(Term { span: path.span, kind: TermKind::Path(path) }),
-            vec![Term { span: o.span, kind: TermKind::Ref(Box::new(o)) }],
+        expr.kind = ExprKind::Deref(Box::new(Expr {
+          span: expr.span,
+          kind: ExprKind::Call(
+            Box::new(Expr { span: path.span, kind: ExprKind::Path(path) }),
+            vec![Expr { span: o.span, kind: ExprKind::Ref(Box::new(o)) }],
           ),
         }))
       }
-      TermKind::WhileLet(pat, value, body) => {
+      ExprKind::WhileLet(pat, value, body) => {
         let pat = take(&mut **pat);
         let value = take(&mut **value);
         let body = take(body);
-        term.kind = TermKind::Loop(Block {
-          span: term.span,
+        expr.kind = ExprKind::Loop(Block {
+          span: expr.span,
           stmts: vec![Stmt {
-            span: term.span,
-            kind: StmtKind::Term(
-              Term {
-                span: term.span,
-                kind: TermKind::Match(
+            span: expr.span,
+            kind: StmtKind::Expr(
+              Expr {
+                span: expr.span,
+                kind: ExprKind::Match(
                   Box::new(value),
                   vec![
-                    (pat, Term { span: body.span, kind: TermKind::Block(body) }),
+                    (pat, Expr { span: body.span, kind: ExprKind::Block(body) }),
                     (
-                      Term { span: Span::NONE, kind: TermKind::Hole },
-                      Term { span: Span::NONE, kind: TermKind::Break },
+                      Pat { span: Span::NONE, kind: PatKind::Hole },
+                      Expr { span: Span::NONE, kind: ExprKind::Break },
                     ),
                   ],
                 ),
@@ -61,8 +61,8 @@ impl VisitMut<'_> for Desugar {
           }],
         });
       }
-      _ => {}
+      ExprKind![!sugar] => {}
     }
-    self._visit_term(term)
+    self._visit_expr(expr)
   }
 }

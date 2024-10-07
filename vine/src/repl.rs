@@ -17,12 +17,13 @@ use vine_util::{
 };
 
 use crate::{
-  ast::{Block, Ident, Span, Term, TermKind},
+  ast::{Block, Expr, ExprKind, Ident, Span},
   compile::Compiler,
   desugar::Desugar,
   loader::Loader,
   parser::VineParser,
   resolve::{NodeId, Resolver},
+  validate::Validate,
   visit::VisitMut,
 };
 
@@ -50,18 +51,26 @@ impl<'ctx, 'ivm> Repl<'ctx, 'ivm> {
     ivm: &'ctx mut IVM<'ivm>,
     interner: &'ctx StringInterner<'static>,
     libs: Vec<PathBuf>,
-  ) -> Self {
+  ) -> Result<Self, String> {
     let mut loader = Loader::new(interner);
     for lib in libs {
       loader.load_mod(lib);
     }
 
+    loader.diags.report(&loader.files)?;
+
     let mut resolver = Resolver::default();
     resolver.build_graph(loader.finish());
     resolver.resolve_imports();
-    resolver.resolve_terms();
+    resolver.resolve_exprs();
+
+    resolver.diags.report(&loader.files)?;
 
     let repl_mod = resolver.get_or_insert_child(0, Ident(interner.intern("repl"))).id;
+
+    let mut validate = Validate::default();
+    validate.visit(&mut resolver.nodes);
+    validate.diags.report(&loader.files)?;
 
     Desugar.visit(&mut resolver.nodes);
 
@@ -73,7 +82,18 @@ impl<'ctx, 'ivm> Repl<'ctx, 'ivm> {
     let vars = HashMap::from([(io, Var { local: 0, value: Port::new_ext_val(ExtVal::IO) })]);
     let locals = BTreeMap::from([(0, io)]);
 
-    Repl { host, ivm, interner, loader, resolver, repl_mod, line: 0, vars, locals, local_count: 1 }
+    Ok(Repl {
+      host,
+      ivm,
+      interner,
+      loader,
+      resolver,
+      repl_mod,
+      line: 0,
+      vars,
+      locals,
+      local_count: 1,
+    })
   }
 
   pub fn exec(&mut self, line: &str) -> Result<Option<String>, String> {
@@ -98,7 +118,7 @@ impl<'ctx, 'ivm> Repl<'ctx, 'ivm> {
     self.resolver.extract_subitems(self.repl_mod, &mut stmts);
     let new_nodes = new_nodes..self.resolver.nodes.len();
 
-    self.resolver._resolve_terms(new_nodes.clone());
+    self.resolver._resolve_exprs(new_nodes.clone());
     let binds =
       self.resolver.resolve_custom(self.repl_mod, &self.locals, &mut self.local_count, &mut stmts);
 
@@ -119,6 +139,11 @@ impl<'ctx, 'ivm> Repl<'ctx, 'ivm> {
       }
     }
 
+    let mut validate = Validate::default();
+    validate.visit(&mut stmts);
+    validate.visit(&mut self.resolver.nodes[new_nodes.clone()]);
+    validate.diags.report(&self.loader.files)?;
+
     Desugar.visit(&mut stmts);
     Desugar.visit(&mut self.resolver.nodes[new_nodes.clone()]);
 
@@ -132,10 +157,10 @@ impl<'ctx, 'ivm> Repl<'ctx, 'ivm> {
 
     let name = format!("::repl::{line}");
 
-    compiler.compile_term(
+    compiler.compile_expr(
       &mut self.local_count,
       name.clone(),
-      &Term { span: Span::NONE, kind: TermKind::Block(Block { span: Span::NONE, stmts }) },
+      &Expr { span: Span::NONE, kind: ExprKind::Block(Block { span: Span::NONE, stmts }) },
       self.vars.values().map(|v| v.local),
     );
 

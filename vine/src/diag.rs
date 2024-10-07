@@ -68,6 +68,20 @@ diags! {
     ["invalid pattern; this path is not a struct or enum variant"]
   DuplicateItem { name: Ident }
     ["duplicate definition of `{name}`"]
+  ExpectedSpaceFoundValueExpr
+    ["expected a space expression; found a value expression"]
+  ExpectedValueFoundSpaceExpr
+    ["expected a value expression; found a space expression"]
+  ExpectedPlaceFoundSpaceExpr
+    ["expected a place expression; found a space expression"]
+  MoveNonPlacePat
+    ["`move` is only valid in a place pattern"]
+  DerefNonPlacePat
+    ["`*` is only valid in a place pattern"]
+  RefSpacePat
+    ["`&` is invalid in a space pattern"]
+  ExpectedRefutablePat
+    ["expected an irrefutable pattern"]
 }
 
 #[derive(Default, Debug)]

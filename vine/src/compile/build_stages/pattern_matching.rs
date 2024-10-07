@@ -1,14 +1,14 @@
 use std::{collections::HashMap, ops::Range};
 
 use crate::{
-  compile::{Local, StageId},
+  compile::{Local, Port, StageId},
   resolve::NodeId,
 };
 
-use super::{Compiler, Expr, Node, Step, Term, TermKind};
+use super::{Compiler, Expr, Node, Pat, PatKind, Step};
 
 impl Compiler<'_> {
-  pub(super) fn lower_match(&mut self, value: &Term, arms: &[(Term, Term)]) -> Expr {
+  pub(super) fn lower_match(&mut self, value: &Expr, arms: &[(Pat, Expr)]) -> Port {
     let value = self.lower_expr_value(value);
     let initial = self.new_match_var(false);
     self.set_local_to(initial.local, value);
@@ -49,7 +49,7 @@ impl Compiler<'_> {
     let r = self.net.new_wire();
     self.cur.steps.push_back(Step::Move(result, r.0));
 
-    Expr::Value(r.1)
+    r.1
   }
 
   fn lower_decision_tree(&mut self, arms: &[Arm], result: Local, tree: DecisionTree) -> bool {
@@ -69,8 +69,8 @@ impl Compiler<'_> {
             self.goto(stage);
             false
           }
-          Arm::Unique(term) => {
-            let r = self.lower_expr_value(term);
+          Arm::Unique(expr) => {
+            let r = self.lower_expr_value(expr);
             self.set_local_to(result, r);
             true
           }
@@ -161,7 +161,7 @@ impl Compiler<'_> {
 #[derive(Debug)]
 enum Arm<'t> {
   Shared(StageId),
-  Unique(&'t Term),
+  Unique(&'t Expr),
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -194,7 +194,7 @@ struct Row<'t> {
 #[derive(Debug, Clone)]
 struct Cell<'t> {
   var: MatchVar,
-  pattern: &'t Term,
+  pattern: &'t Pat,
 }
 
 #[derive(Debug, Clone)]
@@ -232,8 +232,8 @@ impl Compiler<'_> {
     match ty {
       PatternType::Tuple(len) => {
         for row in &mut rows {
-          if let Some(term) = row.remove_column(var) {
-            let TermKind::Tuple(children) = &term.kind else { unreachable!() };
+          if let Some(expr) = row.remove_column(var) {
+            let PatKind::Tuple(children) = &expr.kind else { unreachable!() };
             row.cells.extend(children.iter().enumerate().map(|(i, p)| Cell {
               var: MatchVar { local: self.local_count + i, is_place: var.is_place },
               pattern: p,
@@ -248,7 +248,7 @@ impl Compiler<'_> {
       PatternType::Ref => {
         let new_var = self.new_match_var(true);
         unwrap_pattern_one(&mut rows, var, new_var, |t| match &t.kind {
-          TermKind::Ref(x) => x,
+          PatKind::Ref(x) => x,
           _ => unreachable!(),
         });
 
@@ -257,7 +257,7 @@ impl Compiler<'_> {
       PatternType::Move => {
         let new_var = MatchVar { local: var.local, is_place: false };
         unwrap_pattern_one(&mut rows, var, new_var, |t| match &t.kind {
-          TermKind::Move(x) => x,
+          PatKind::Move(x) => x,
           _ => unreachable!(),
         });
 
@@ -270,7 +270,9 @@ impl Compiler<'_> {
 
         for mut row in rows.into_iter() {
           let bucket = if let Some(pat) = row.remove_column(var) {
-            let (v, children) = get_variant(pat);
+            let PatKind::Adt(v, children) = &pat.kind else { unreachable!() };
+            let v = v.resolved.unwrap();
+            let children = children.as_deref().unwrap_or(&[]);
             let v = self.nodes[v].variant.as_ref().unwrap();
             assert_eq!(v.fields.len(), children.len());
             row.cells.extend(children.iter().enumerate().map(|(i, p)| Cell {
@@ -360,7 +362,7 @@ fn unwrap_pattern_one(
   rows: &mut Vec<Row<'_>>,
   var: MatchVar,
   new_var: MatchVar,
-  f: impl Fn(&Term) -> &Term,
+  f: impl Fn(&Pat) -> &Pat,
 ) {
   for row in rows {
     if let Some(cell) = row.get_column_mut(var) {
@@ -370,30 +372,19 @@ fn unwrap_pattern_one(
   }
 }
 
-fn get_variant(pat: &Term) -> (NodeId, &[Term]) {
-  match &pat.kind {
-    TermKind::Path(p) => (p.resolved.unwrap(), &[]),
-    TermKind::Call(x, a) => match &x.kind {
-      TermKind::Path(p) => (p.resolved.unwrap(), a),
-      d => unreachable!("{d:?}"),
-    },
-    _ => unreachable!(),
-  }
-}
-
 impl<'t> Row<'t> {
   fn eliminate_wildcard_cells(&mut self) {
     self.cells.retain(|cell| match cell.pattern.kind {
-      TermKind::Local(l) => {
+      PatKind::Local(l) => {
         self.body.aliases.push((l, cell.var));
         false
       }
-      TermKind::Hole => false,
+      PatKind::Hole => false,
       _ => true,
     });
   }
 
-  fn remove_column(&mut self, var: MatchVar) -> Option<&'t Term> {
+  fn remove_column(&mut self, var: MatchVar) -> Option<&'t Pat> {
     let i = self.get_column_idx(var)?;
     Some(self.cells.remove(i).pattern)
   }
@@ -411,12 +402,12 @@ impl<'t> Row<'t> {
 impl Cell<'_> {
   fn pat_type(&self, nodes: &[Node]) -> PatternType {
     match &self.pattern.kind {
-      TermKind::Path(_) | TermKind::Call(..) => {
-        PatternType::Adt(nodes[get_variant(self.pattern).0].variant.as_ref().unwrap().adt)
+      PatKind::Adt(p, _) => {
+        PatternType::Adt(nodes[p.resolved.unwrap()].variant.as_ref().unwrap().adt)
       }
-      TermKind::Tuple(e) => PatternType::Tuple(e.len()),
-      TermKind::Ref(_) => PatternType::Ref,
-      TermKind::Move(_) => PatternType::Move,
+      PatKind::Tuple(e) => PatternType::Tuple(e.len()),
+      PatKind::Ref(_) => PatternType::Ref,
+      PatKind::Move(_) => PatternType::Move,
       _ => unreachable!(),
     }
   }

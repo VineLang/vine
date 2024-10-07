@@ -9,7 +9,7 @@ use std::{
 use vine_util::interner::StringInterner;
 
 use crate::{
-  ast::{self, ConstItem, Ident, Item, ItemKind, ModItem, ModKind, Span, Term, TermKind},
+  ast::{self, ConstItem, Expr, ExprKind, Ident, Item, ItemKind, ModItem, ModKind, Span},
   diag::{Diag, DiagGroup, FileInfo},
   parser::VineParser,
   visit::{VisitMut, Visitee},
@@ -45,9 +45,9 @@ impl<'ctx> Loader<'ctx> {
       span: Span::NONE,
       kind: ItemKind::Const(ConstItem {
         name: main,
-        value: Term {
+        value: Expr {
           span: Span::NONE,
-          kind: TermKind::Path(ast::Path {
+          kind: ExprKind::Path(ast::Path {
             span: Span::NONE,
             segments: vec![self.auto_mod_name(&path), main],
             absolute: true,

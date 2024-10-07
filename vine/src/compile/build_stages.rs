@@ -11,23 +11,8 @@ mod net_utils;
 mod pattern_matching;
 mod stage_utils;
 
-enum ExprCtx {
-  Value,
-  Place,
-  Space,
-  ValueClear,
-  SpaceClone,
-}
-
-#[must_use]
-enum Expr {
-  Value(Port),
-  Place(Port, Port),
-  Space(Port),
-}
-
 impl Compiler<'_> {
-  pub(super) fn build_stages(&mut self, locals: usize, name: String, term: &Term) -> StageId {
+  pub(super) fn build_stages(&mut self, locals: usize, name: String, expr: &Expr) -> StageId {
     self.local_count = locals;
     self.name = name;
 
@@ -35,7 +20,7 @@ impl Compiler<'_> {
 
     let init = self.new_fork(|self_| {
       self_.new_stage(i, |self_, _| {
-        let root = self_.lower_expr_value(term);
+        let root = self_.lower_expr_value(expr);
         let root_val = self_.new_local();
         self_.set_local_to(root_val, root);
         self_.interfaces[i].inward.insert(root_val, Usage::GET);
@@ -62,78 +47,45 @@ impl Compiler<'_> {
     init
   }
 
-  fn lower_expr_value(&mut self, term: &Term) -> Port {
-    match self.lower_expr(term, ExprCtx::Value) {
-      Expr::Value(t) => t,
-      _ => unreachable!(),
-    }
-  }
+  fn lower_expr_value(&mut self, expr: &Expr) -> Port {
+    match &expr.kind {
+      ExprKind![sugar || error || !value] => unreachable!(),
 
-  fn lower_expr_place(&mut self, term: &Term) -> (Port, Port) {
-    match self.lower_expr(term, ExprCtx::Place) {
-      Expr::Place(t, u) => (t, u),
-      _ => unreachable!(),
-    }
-  }
-
-  fn lower_expr_space(&mut self, term: &Term) -> Port {
-    match self.lower_expr(term, ExprCtx::Space) {
-      Expr::Space(t) => t,
-      _ => unreachable!(),
-    }
-  }
-
-  fn lower_expr(&mut self, term: &Term, ctx: ExprCtx) -> Expr {
-    match &term.kind {
-      TermKind::Hole => Expr::Value(Port::Erase),
-      TermKind::U32(num) => Expr::Value(Port::U32(*num)),
-      TermKind::F32(num) => Expr::Value(Port::F32(*num)),
-      TermKind::Path(path) => Expr::Value(Port::Global(path.to_string())),
-      TermKind::Local(local) => match ctx {
-        ExprCtx::Value => Expr::Value(self.get_local(*local)),
-        ExprCtx::ValueClear => Expr::Value(self.move_local(*local)),
-        ExprCtx::Place => Expr::Place(self.get_local(*local), self.set_local(*local)),
-        ExprCtx::Space => Expr::Space(self.set_local(*local)),
-        ExprCtx::SpaceClone => {
-          let p = self.get_local(*local);
-          let q = self.set_local(*local);
-          let (x, y) = self.dup(q);
-          self.net.link(x, p);
-          Expr::Space(y)
-        }
-      },
-      TermKind::Assign(s, v) => {
+      ExprKind::U32(num) => Port::U32(*num),
+      ExprKind::F32(num) => Port::F32(*num),
+      ExprKind::Path(path) => Port::Global(path.to_string()),
+      ExprKind::Assign(s, v) => {
         let v = self.lower_expr_value(v);
         let s = self.lower_expr_space(s);
         self.net.link(v, s);
-        Expr::Value(Port::Erase)
+        Port::Erase
       }
-      TermKind::Block(block) => Expr::Value(self.lower_block(block)),
-      TermKind::Call(f, args) => {
+      ExprKind::Block(block) => self.lower_block(block),
+      ExprKind::Call(f, args) => {
         let f = self.lower_expr_value(f);
-        Expr::Value(self.apply_combs("fn", f, args, Self::lower_expr_value))
+        self.apply_combs("fn", f, args, Self::lower_expr_value)
       }
-      TermKind::UnaryOp(op, rhs) => {
+      ExprKind::UnaryOp(op, rhs) => {
         let (f, lhs) = match op {
           UnaryOp::Neg => (ExtFnKind::sub, Port::U32(0)),
           UnaryOp::Not => (ExtFnKind::u32_xor, Port::U32(u32::MAX)),
         };
         let rhs = self.lower_expr_value(rhs);
-        Expr::Value(self.ext_fn(f.into(), lhs, rhs))
+        self.ext_fn(f.into(), lhs, rhs)
       }
-      TermKind::BinaryOp(op, lhs, rhs) => {
+      ExprKind::BinaryOp(op, lhs, rhs) => {
         let lhs = self.lower_expr_value(lhs);
         let rhs = self.lower_expr_value(rhs);
-        Expr::Value(self.op(*op, lhs, rhs))
+        self.op(*op, lhs, rhs)
       }
-      TermKind::BinaryOpAssign(op, lhs, rhs) => {
+      ExprKind::BinaryOpAssign(op, lhs, rhs) => {
         let (lhs, out) = self.lower_expr_place(lhs);
         let rhs = self.lower_expr_value(rhs);
         let res = self.op(*op, lhs, rhs);
         self.net.link(out, res);
-        Expr::Value(Port::Erase)
+        Port::Erase
       }
-      TermKind::ComparisonOp(init, cmps) => {
+      ExprKind::ComparisonOp(init, cmps) => {
         let mut last_result = Port::U32(1);
         let mut lhs = self.lower_expr_value(init);
         for (i, (op, rhs)) in cmps.iter().enumerate() {
@@ -157,106 +109,134 @@ impl Compiler<'_> {
             self.ext_fn(ExtFnKind::u32_and.into(), last_result, result)
           };
         }
-        Expr::Value(last_result)
+        last_result
       }
-      TermKind::Tuple(t) => match ctx {
-        ExprCtx::Value => Expr::Value(self.tuple(t, Self::lower_expr_value)),
-        ExprCtx::Space => Expr::Space(self.tuple(t, Self::lower_expr_space)),
-        _ => todo!(),
-      },
-      TermKind::String(s) => {
-        Expr::Value(self.list(s.chars().count(), s.chars(), |_, c| Port::U32(c as u32)))
+      ExprKind::Tuple(t) => self.tuple(t, Self::lower_expr_value),
+      ExprKind::String(s) => self.list(s.chars().count(), s.chars(), |_, c| Port::U32(c as u32)),
+      ExprKind::Ref(p) => {
+        let (t, u) = self.lower_expr_place(p);
+        self.new_comb("ref", t, u)
       }
-      TermKind::Ref(p) => Expr::Value(match self.lower_expr(p, ExprCtx::Place) {
-        Expr::Value(t) => self.new_comb("ref", t, Port::Erase),
-        Expr::Place(t, u) => self.new_comb("ref", t, u),
-        _ => unreachable!(),
-      }),
-      TermKind::List(l) => Expr::Value(self.list(l.len(), l, Self::lower_expr_value)),
-      TermKind::Move(t) => match t.kind {
-        TermKind::Local(l) => {
+      ExprKind::List(l) => self.list(l.len(), l, Self::lower_expr_value),
+      ExprKind::Move(t) => match t.kind {
+        ExprKind::Local(l) => {
           let v = self.net.new_wire();
           self.cur.steps.push_back(Step::Move(l, v.0));
-          Expr::Value(v.1)
+          v.1
         }
         _ => {
           let (a, b) = self.lower_expr_place(t);
           self.erase(b);
-          Expr::Value(a)
+          a
         }
       },
-      TermKind::Inverse(x) => {
-        match self.lower_expr(
-          x,
-          match ctx {
-            ExprCtx::Value => ExprCtx::SpaceClone,
-            ExprCtx::SpaceClone => ExprCtx::Value,
-            ExprCtx::Place => ExprCtx::Place,
-            ExprCtx::Space => ExprCtx::ValueClear,
-            ExprCtx::ValueClear => ExprCtx::Space,
-          },
-        ) {
-          Expr::Value(p) => Expr::Space(p),
-          Expr::Place(p, q) => Expr::Place(q, p),
-          Expr::Space(p) => Expr::Value(p),
-        }
+      ExprKind::Inverse(x) => self.lower_expr_space(x),
+
+      ExprKind::Fn(params, body) => self.lower_fn(params, body),
+      ExprKind::Loop(body) => self.lower_loop(body),
+      ExprKind::While(cond, body) => self.lower_while(cond, body),
+      ExprKind::If(cond, then, els) => self.lower_if(cond, then, els),
+      ExprKind::Return(r) => self.lower_return(r),
+      ExprKind::Break => self.lower_break(),
+
+      ExprKind::Match(value, arms) => self.lower_match(value, arms),
+
+      ExprKind::CopyLocal(l) => self.get_local(*l),
+      ExprKind::MoveLocal(l) => self.move_local(*l),
+
+      ExprKind::Copy(e) => {
+        let (v, s) = self.lower_expr_place(e);
+        let (a, b) = self.dup(v);
+        self.net.link(b, s);
+        a
       }
 
-      TermKind::Fn(params, body) => self.lower_fn(params, body),
-      TermKind::Loop(body) => self.lower_loop(body),
-      TermKind::While(cond, body) => self.lower_while(cond, body),
-      TermKind::If(cond, then, els) => self.lower_if(cond, then, els),
-      TermKind::Return(r) => self.lower_return(r),
-      TermKind::Break => self.lower_break(),
-
-      TermKind::Match(value, arms) => self.lower_match(value, arms),
-
-      _ => todo!(),
+      ExprKind::For(..) => todo!(),
+      ExprKind::LogicalOp(..) => todo!(),
     }
   }
 
-  fn lower_pat_value(&mut self, t: &Term) -> Port {
+  fn lower_expr_place(&mut self, expr: &Expr) -> (Port, Port) {
+    match &expr.kind {
+      ExprKind![sugar || error || !place] => unreachable!(),
+      ExprKind::Local(l) => (self.get_local(*l), self.set_local(*l)),
+      ExprKind::Inverse(e) => {
+        let (a, b) = self.lower_expr_place(e);
+        (b, a)
+      }
+      ExprKind::Temp(e) => (self.lower_expr_value(e), Port::Erase),
+
+      ExprKind::Deref(..) => todo!(),
+      ExprKind::Tuple(..) => todo!(),
+    }
+  }
+
+  fn lower_expr_space(&mut self, expr: &Expr) -> Port {
+    match &expr.kind {
+      ExprKind![sugar || error || !space] => unreachable!(),
+      ExprKind::Hole => Port::Erase,
+      ExprKind::Set(e) => {
+        let (v, s) = self.lower_expr_place(e);
+        self.erase(v);
+        s
+      }
+      ExprKind::Inverse(e) => self.lower_expr_value(e),
+      ExprKind::Tuple(t) => self.tuple(t, Self::lower_expr_space),
+      ExprKind::SetLocal(l) => self.set_local(*l),
+    }
+  }
+
+  fn lower_pat_value(&mut self, t: &Pat) -> Port {
     match &t.kind {
-      TermKind::Hole => Port::Erase,
-      TermKind::Local(local) => self.set_local(*local),
-      TermKind::Tuple(t) => self.tuple(t, Self::lower_pat_value),
-      TermKind::Ref(p) => {
+      PatKind![!value || refutable] => unreachable!(),
+
+      PatKind::Hole => Port::Erase,
+      PatKind::Local(local) => self.set_local(*local),
+      PatKind::Tuple(t) => self.tuple(t, Self::lower_pat_value),
+      PatKind::Ref(p) => {
         let (a, b) = self.lower_pat_place(p);
         self.new_comb("ref", a, b)
       }
-      TermKind::Inverse(p) => self.lower_pat_space(p),
-      _ => todo!(),
+      PatKind::Inverse(p) => self.lower_pat_space(p),
     }
   }
 
-  fn lower_pat_place(&mut self, t: &Term) -> (Port, Port) {
+  fn lower_pat_place(&mut self, t: &Pat) -> (Port, Port) {
     match &t.kind {
-      TermKind::Hole => self.net.new_wire(),
-      TermKind::Local(local) => {
+      PatKind![!place || refutable] => unreachable!(),
+
+      PatKind::Hole => self.net.new_wire(),
+      PatKind::Local(local) => {
         let x = self.set_local(*local);
         let y = self.net.new_wire();
         self.cur.fin.push(Step::Move(*local, y.0));
         (x, y.1)
       }
-      TermKind::Move(t) => (self.lower_pat_value(t), Port::Erase),
-      TermKind::Inverse(x) => {
+      PatKind::Move(t) => (self.lower_pat_value(t), Port::Erase),
+      PatKind::Inverse(x) => {
         let (a, b) = self.lower_pat_place(x);
         (b, a)
       }
-      _ => todo!(),
+
+      PatKind::Ref(_) => todo!(),
+      PatKind::Deref(_) => todo!(),
+      PatKind::Tuple(_) => todo!(),
     }
   }
 
-  fn lower_pat_space(&mut self, t: &Term) -> Port {
+  fn lower_pat_space(&mut self, t: &Pat) -> Port {
     match &t.kind {
-      TermKind::Hole => Port::Erase,
-      TermKind::Local(local) => {
+      PatKind![!space || refutable] => unreachable!(),
+
+      PatKind::Hole => Port::Erase,
+      PatKind::Local(local) => {
         let x = self.net.new_wire();
         self.cur.fin.push(Step::Move(*local, x.0));
         x.1
       }
-      TermKind::Inverse(x) => self.lower_pat_value(x),
-      _ => todo!(),
+      PatKind::Inverse(x) => self.lower_pat_value(x),
+
+      PatKind::Tuple(_) => todo!(),
     }
   }
 
@@ -282,7 +262,7 @@ impl Compiler<'_> {
         self.net.link(b, i);
         Port::Erase
       }
-      StmtKind::Term(t, semi) => {
+      StmtKind::Expr(t, semi) => {
         let t = self.lower_expr_value(t);
         if *semi {
           self.erase(t);

@@ -1,8 +1,10 @@
 use std::{
   fmt::{self, Debug, Display, Write},
+  mem::take,
   path::PathBuf,
 };
 
+use class::Classes;
 use ivy::ast::Net;
 use vine_util::interner::Interned;
 
@@ -30,14 +32,14 @@ pub enum ItemKind {
 #[derive(Debug, Clone)]
 pub struct FnItem {
   pub name: Ident,
-  pub params: Vec<Term>,
-  pub body: Term,
+  pub params: Vec<Pat>,
+  pub body: Expr,
 }
 
 #[derive(Debug, Clone)]
 pub struct ConstItem {
   pub name: Ident,
-  pub value: Term,
+  pub value: Expr,
 }
 
 #[derive(Debug, Clone)]
@@ -108,57 +110,130 @@ pub struct Stmt {
 #[derive(Debug, Clone)]
 pub enum StmtKind {
   Let(LetStmt),
-  Term(Term, bool),
+  Expr(Expr, bool),
   Item(Item),
   Empty,
 }
 
 #[derive(Debug, Clone)]
 pub struct LetStmt {
-  pub bind: Term,
-  pub init: Option<Term>,
+  pub bind: Pat,
+  pub init: Option<Expr>,
 }
 
 #[derive(Default, Clone)]
-pub struct Term {
+pub struct Expr {
   pub span: Span,
-  pub kind: TermKind,
+  pub kind: ExprKind,
 }
 
-#[derive(Default, Debug, Clone)]
-pub enum TermKind {
+#[derive(Default, Debug, Clone, Classes)]
+pub enum ExprKind {
   #[default]
+  #[class(space)]
   Hole,
+  #[class(value)]
   Path(Path),
+  #[class(place)]
   Local(usize),
+  #[class(value)]
   Block(Block),
-  Assign(B<Term>, B<Term>),
-  Match(B<Term>, Vec<(Term, Term)>),
-  If(B<Term>, Block, B<Term>),
-  While(B<Term>, Block),
-  WhileLet(B<Term>, B<Term>, Block),
+  #[class(value)]
+  Assign(B<Expr>, B<Expr>),
+  #[class(value)]
+  Match(B<Expr>, Vec<(Pat, Expr)>),
+  #[class(value)]
+  If(B<Expr>, Block, B<Expr>),
+  #[class(value)]
+  While(B<Expr>, Block),
+  #[class(value, sugar)]
+  WhileLet(B<Pat>, B<Expr>, Block),
+  #[class(value)]
   Loop(Block),
-  For(B<Term>, B<Term>, Block),
-  Fn(Vec<Term>, B<Term>),
-  Return(B<Term>),
+  #[class(value)]
+  For(B<Pat>, B<Expr>, Block),
+  #[class(value)]
+  Fn(Vec<Pat>, B<Expr>),
+  #[class(value)]
+  Return(B<Expr>),
+  #[class(value)]
   Break,
-  Ref(B<Term>),
-  Deref(B<Term>),
-  Move(B<Term>),
-  Inverse(B<Term>),
-  Tuple(Vec<Term>),
-  List(Vec<Term>),
-  Field(B<Term>, Path),
-  Method(B<Term>, Path, Vec<Term>),
-  Call(B<Term>, Vec<Term>),
-  UnaryOp(UnaryOp, B<Term>),
-  BinaryOp(BinaryOp, B<Term>, B<Term>),
-  LogicalOp(LogicalOp, B<Term>, B<Term>),
-  ComparisonOp(B<Term>, Vec<(ComparisonOp, Term)>),
-  BinaryOpAssign(BinaryOp, B<Term>, B<Term>),
+  #[class(value)]
+  Ref(B<Expr>),
+  #[class(place)]
+  Deref(B<Expr>),
+  #[class(value)]
+  Move(B<Expr>),
+  #[class(value, place, space)]
+  Inverse(B<Expr>),
+  #[class(value, place, space)]
+  Tuple(Vec<Expr>),
+  #[class(value)]
+  List(Vec<Expr>),
+  #[class(place, sugar)]
+  Field(B<Expr>, Path),
+  #[class(value, sugar)]
+  Method(B<Expr>, Path, Vec<Expr>),
+  #[class(value)]
+  Call(B<Expr>, Vec<Expr>),
+  #[class(value)]
+  UnaryOp(UnaryOp, B<Expr>),
+  #[class(value)]
+  BinaryOp(BinaryOp, B<Expr>, B<Expr>),
+  #[class(value)]
+  LogicalOp(LogicalOp, B<Expr>, B<Expr>),
+  #[class(value)]
+  ComparisonOp(B<Expr>, Vec<(ComparisonOp, Expr)>),
+  #[class(value)]
+  BinaryOpAssign(BinaryOp, B<Expr>, B<Expr>),
+  #[class(value)]
   U32(u32),
+  #[class(value)]
   F32(f32),
+  #[class(value)]
   String(String),
+  #[class(place, synthetic)]
+  Temp(B<Expr>),
+  #[class(space, synthetic)]
+  Set(B<Expr>),
+  #[class(value, synthetic)]
+  Copy(B<Expr>),
+  #[class(value, synthetic)]
+  CopyLocal(usize),
+  #[class(value, synthetic)]
+  MoveLocal(usize),
+  #[class(space, synthetic)]
+  SetLocal(usize),
+  #[class(error)]
+  Error(ErrorGuaranteed),
+}
+
+#[derive(Default, Clone)]
+pub struct Pat {
+  pub span: Span,
+  pub kind: PatKind,
+}
+
+#[derive(Default, Debug, Clone, Classes)]
+pub enum PatKind {
+  #[default]
+  #[class(value, place, space)]
+  Hole,
+  #[class(value, place, space, refutable)]
+  Adt(Path, Option<Vec<Pat>>),
+  #[class(value, place, space)]
+  Local(usize),
+  #[class(value, place)]
+  Ref(B<Pat>),
+  #[class(place)]
+  Deref(B<Pat>),
+  #[class(place)]
+  Move(B<Pat>),
+  #[class(value, place, space)]
+  Inverse(B<Pat>),
+  #[class(value, place, space)]
+  Tuple(Vec<Pat>),
+  #[class(error)]
   Error(ErrorGuaranteed),
 }
 
@@ -223,6 +298,14 @@ impl Span {
 
 pub type B<T> = Box<T>;
 
+impl Expr {
+  pub fn wrap(&mut self, f: impl FnOnce(B<Self>) -> ExprKind) {
+    let span = self.span;
+    let kind = f(Box::new(take(self)));
+    *self = Expr { span, kind };
+  }
+}
+
 impl Path {
   pub fn extend(&self, ext: &[Ident]) -> Self {
     Path {
@@ -282,4 +365,4 @@ macro_rules! debug_kind {
   )*};
 }
 
-debug_kind!(Item, Stmt, Term);
+debug_kind!(Item, Stmt, Expr, Pat);
