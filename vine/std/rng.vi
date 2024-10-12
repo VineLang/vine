@@ -16,7 +16,7 @@ const default = new(
 
 const multiplier = (0x4c957f2d, 0x5851f42d);
 
-fn gen_u32((&state, &increment)) {
+fn gen_u32(&(state, increment)) {
   let (lo, hi) = state;
   state = u64::add(u64::mul(state, multiplier), increment);
   u32::rotate_right((hi >> 13) ^ (hi << 5) ^ (lo >> 27), hi >> 27)
