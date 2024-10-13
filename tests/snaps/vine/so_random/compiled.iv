@@ -55,7 +55,7 @@
 ::std::rng::multiplier { tup(1284865837 1481765933) }
 
 ::std::rng::gen_u32 {
-  fn(tup(ref(dup127(tup(@u32_shr(27 n3) dup130(@u32_shr(13 @u32_xor(n2 @u32_xor(n3 n4))) dup130(@u32_shl(5 n2) @u32_shr(27 n5)))) n7) n1) ref(dup128(n8 n9) n9)) n6)
+  fn(ref(tup(dup127(tup(@u32_shr(27 n3) dup130(@u32_shr(13 @u32_xor(n2 @u32_xor(n3 n4))) dup130(@u32_shl(5 n2) @u32_shr(27 n5)))) n7) dup128(n8 n9)) tup(n1 n9)) n6)
   ::std::u64::mul = fn(n7 fn(::std::rng::multiplier n0))
   ::std::u64::add = fn(n0 fn(n8 n1))
   ::std::u32::rotate_right = fn(n4 fn(n5 n6))

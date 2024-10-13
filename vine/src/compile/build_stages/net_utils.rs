@@ -70,6 +70,16 @@ impl Compiler<'_> {
     root.1
   }
 
+  pub(super) fn tuple_pairs<T>(
+    &mut self,
+    items: impl IntoIterator<Item = T>,
+    mut f: impl FnMut(&mut Self, T) -> (Port, Port),
+  ) -> (Port, Port) {
+    let mut pairs = items.into_iter().map(|t| f(self, t)).collect::<Vec<_>>();
+
+    (self.tuple(&mut pairs, |_, x| take(&mut x.0)), self.tuple(pairs, |_, x| x.1))
+  }
+
   pub(super) fn list<T>(
     &mut self,
     len: usize,

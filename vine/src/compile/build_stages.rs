@@ -165,9 +165,15 @@ impl Compiler<'_> {
         (b, a)
       }
       ExprKind::Temp(e) => (self.lower_expr_value(e), Port::Erase),
-
-      ExprKind::Deref(..) => todo!(),
-      ExprKind::Tuple(..) => todo!(),
+      ExprKind::Deref(p) => {
+        let r = self.lower_expr_value(p);
+        let x = self.net.new_wire();
+        let y = self.net.new_wire();
+        let s = self.new_comb("ref", x.0, y.0);
+        self.net.link(r, s);
+        (x.1, y.1)
+      }
+      ExprKind::Tuple(t) => self.tuple_pairs(t, Self::lower_expr_place),
     }
   }
 
@@ -217,10 +223,20 @@ impl Compiler<'_> {
         let (a, b) = self.lower_pat_place(x);
         (b, a)
       }
-
-      PatKind::Ref(_) => todo!(),
-      PatKind::Deref(_) => todo!(),
-      PatKind::Tuple(_) => todo!(),
+      PatKind::Ref(p) => {
+        let r = self.lower_pat_place(p);
+        let w = self.net.new_wire();
+        (self.new_comb("ref", r.0, w.0), self.new_comb("ref", r.1, w.1))
+      }
+      PatKind::Deref(p) => {
+        let r = self.lower_pat_value(p);
+        let x = self.net.new_wire();
+        let y = self.net.new_wire();
+        let s = self.new_comb("ref", x.0, y.0);
+        self.net.link(r, s);
+        (x.1, y.1)
+      }
+      PatKind::Tuple(t) => self.tuple_pairs(t, Self::lower_pat_place),
     }
   }
 
@@ -236,7 +252,7 @@ impl Compiler<'_> {
       }
       PatKind::Inverse(x) => self.lower_pat_value(x),
 
-      PatKind::Tuple(_) => todo!(),
+      PatKind::Tuple(t) => self.tuple(t, Self::lower_pat_space),
     }
   }
 
