@@ -138,7 +138,7 @@ impl Compiler<'_> {
       ExprKind::Match(value, arms) => {
         let result = self.new_local();
         self.new_fork(|self_| {
-          self_.lower_match(value, arms.into_iter().map(|(p, a)| (p, a)), |self_, expr| {
+          self_.lower_match(value, arms.iter().map(|(p, a)| (p, a)), |self_, expr| {
             let r = self_.lower_expr_value(expr);
             self_.set_local_to(result, r);
             true

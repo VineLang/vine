@@ -22,7 +22,7 @@ impl Compiler<'_> {
       .into_iter()
       .enumerate()
       .map(|(i, arm)| Row {
-        cells: vec![Cell { var: initial, pattern: &arm.0 }],
+        cells: vec![Cell { var: initial, pattern: arm.0 }],
         body: Body { aliases: vec![], arm: i },
       })
       .collect::<Vec<_>>();

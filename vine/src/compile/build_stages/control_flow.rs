@@ -119,7 +119,7 @@ impl Compiler<'_> {
       }
       ExprKind::Is(expr, pat) => {
         self.lower_match(
-          &expr,
+          expr,
           [(&**pat, yay), (&Pat { span: Span::NONE, kind: PatKind::Hole }, nay)],
           |self_, f| f(self_),
         );
