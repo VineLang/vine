@@ -192,15 +192,15 @@ impl<'a> ResolveVisitor<'a> {
         self.visit_pat(p);
       }
       ExprKind::LogicalOp(LogicalOp::LogicalAnd, a, b) => {
-        self.visit_expr(a);
-        self.visit_expr(b);
+        self.visit_cond(a);
+        self.visit_cond(b);
       }
       ExprKind::LogicalOp(LogicalOp::LogicalOr, a, b) => {
         self.enter_scope();
-        self.visit_expr(a);
+        self.visit_cond(a);
         self.exit_scope();
         self.enter_scope();
-        self.visit_expr(b);
+        self.visit_cond(b);
         self.exit_scope();
       }
     }
