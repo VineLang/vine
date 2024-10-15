@@ -146,8 +146,6 @@ pub enum ExprKind {
   If(B<Expr>, Block, B<Expr>),
   #[class(value)]
   While(B<Expr>, Block),
-  #[class(value, sugar)]
-  WhileLet(B<Pat>, B<Expr>, Block),
   #[class(value)]
   Loop(Block),
   #[class(value)]
@@ -177,10 +175,14 @@ pub enum ExprKind {
   #[class(value)]
   Call(B<Expr>, Vec<Expr>),
   #[class(value)]
-  UnaryOp(UnaryOp, B<Expr>),
+  Neg(B<Expr>),
   #[class(value)]
   BinaryOp(BinaryOp, B<Expr>, B<Expr>),
-  #[class(value)]
+  #[class(value, cond)]
+  Not(B<Expr>),
+  #[class(value, cond)]
+  Is(B<Expr>, B<Pat>),
+  #[class(value, cond)]
   LogicalOp(LogicalOp, B<Expr>, B<Expr>),
   #[class(value)]
   ComparisonOp(B<Expr>, Vec<(ComparisonOp, Expr)>),
@@ -235,12 +237,6 @@ pub enum PatKind {
   Tuple(Vec<Pat>),
   #[class(error)]
   Error(ErrorGuaranteed),
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum UnaryOp {
-  Neg,
-  Not,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

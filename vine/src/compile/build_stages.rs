@@ -4,7 +4,7 @@ use ivm::ext::{ExtFn, ExtFnKind};
 
 use crate::{ast::*, resolve::Node};
 
-use super::{Compiler, Port, StageId, Step, Usage, WireDir};
+use super::{Agent, Compiler, Port, StageId, Step, Usage, WireDir};
 
 mod control_flow;
 mod net_utils;
@@ -65,13 +65,9 @@ impl Compiler<'_> {
         let f = self.lower_expr_value(f);
         self.apply_combs("fn", f, args, Self::lower_expr_value)
       }
-      ExprKind::UnaryOp(op, rhs) => {
-        let (f, lhs) = match op {
-          UnaryOp::Neg => (ExtFnKind::sub, Port::U32(0)),
-          UnaryOp::Not => (ExtFnKind::u32_xor, Port::U32(u32::MAX)),
-        };
+      ExprKind::Neg(rhs) => {
         let rhs = self.lower_expr_value(rhs);
-        self.ext_fn(f.into(), lhs, rhs)
+        self.ext_fn(ExtFnKind::sub.into(), Port::U32(0), rhs)
       }
       ExprKind::BinaryOp(op, lhs, rhs) => {
         let lhs = self.lower_expr_value(lhs);
@@ -139,7 +135,17 @@ impl Compiler<'_> {
       ExprKind::Return(r) => self.lower_return(r),
       ExprKind::Break => self.lower_break(),
 
-      ExprKind::Match(value, arms) => self.lower_match(value, arms),
+      ExprKind::Match(value, arms) => {
+        let result = self.new_local();
+        self.new_fork(|self_| {
+          self_.lower_match(value, arms.into_iter().map(|(p, a)| (p, a)), |self_, expr| {
+            let r = self_.lower_expr_value(expr);
+            self_.set_local_to(result, r);
+            true
+          });
+        });
+        self.move_local(result)
+      }
 
       ExprKind::CopyLocal(l) => self.get_local(*l),
       ExprKind::MoveLocal(l) => self.move_local(*l),
@@ -151,8 +157,23 @@ impl Compiler<'_> {
         a
       }
 
+      ExprKind![cond] => {
+        let result = self.new_local();
+        self.lower_cond(
+          expr,
+          &|self_| {
+            self_.set_local_to(result, Port::U32(1));
+            true
+          },
+          &|self_| {
+            self_.set_local_to(result, Port::U32(0));
+            true
+          },
+        );
+        self.move_local(result)
+      }
+
       ExprKind::For(..) => todo!(),
-      ExprKind::LogicalOp(..) => todo!(),
     }
   }
 
@@ -289,6 +310,62 @@ impl Compiler<'_> {
       }
       StmtKind::Item(_) => Port::Erase,
       StmtKind::Empty => Port::Erase,
+    }
+  }
+
+  fn lower_cond(
+    &mut self,
+    expr: &Expr,
+    yay: &dyn Fn(&mut Self) -> bool,
+    nay: &dyn Fn(&mut Self) -> bool,
+  ) {
+    match &expr.kind {
+      ExprKind![!cond] => {
+        let bool = self.lower_expr_value(expr);
+        let i = self.new_interface();
+        let yay = self.new_stage(i, |self_, _| yay(self_));
+        let nay = self.new_stage(i, |self_, _| nay(self_));
+        let r = self.net.new_wire();
+        self.cur.agents.push(Agent::Branch(bool, self.stage_port(nay), self.stage_port(yay), r.0));
+        self.cur.steps.push_back(Step::Call(i, r.1));
+      }
+      ExprKind::Is(expr, pat) => {
+        self.lower_match(
+          &expr,
+          [(&**pat, yay), (&Pat { span: Span::NONE, kind: PatKind::Hole }, nay)],
+          |self_, f| f(self_),
+        );
+      }
+      ExprKind::Not(cond) => {
+        self.lower_cond(cond, nay, yay);
+      }
+      ExprKind::LogicalOp(LogicalOp::LogicalAnd, a, b) => {
+        let nay = self.share_dyn_stage(nay);
+        self.lower_cond(
+          a,
+          &|self_| {
+            self_.lower_cond(b, yay, &nay);
+            false
+          },
+          &nay,
+        );
+      }
+      ExprKind::LogicalOp(LogicalOp::LogicalOr, a, b) => {
+        let yay = self.share_dyn_stage(yay);
+        self.lower_cond(a, &yay, &|self_| {
+          self_.lower_cond(b, &yay, nay);
+          false
+        });
+      }
+    }
+  }
+
+  fn share_dyn_stage(&mut self, nay: &dyn Fn(&mut Self) -> bool) -> impl Fn(&mut Self) -> bool {
+    let i = self.new_interface();
+    let stage = self.new_stage(i, |self_, _| nay(self_));
+    move |self_| {
+      self_.goto(stage);
+      false
     }
   }
 }

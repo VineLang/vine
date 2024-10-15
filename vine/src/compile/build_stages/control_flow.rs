@@ -1,6 +1,6 @@
 use crate::{
   ast::*,
-  compile::{Agent, Compiler, Port, Step},
+  compile::{Compiler, Port},
 };
 
 impl Compiler<'_> {
@@ -33,30 +33,20 @@ impl Compiler<'_> {
   pub(super) fn lower_if(&mut self, cond: &Expr, then: &Block, els: &Expr) -> Port {
     let val = self.new_local();
 
-    let cond = self.lower_expr_value(cond);
-
     self.new_fork(|self_| {
-      let i = self_.new_interface();
-      let then = self_.new_stage(i, |self_, _| {
-        let then = self_.lower_block(then);
-        self_.set_local_to(val, then);
-        true
-      });
-
-      let els = self_.new_stage(i, |self_, _| {
-        let els = self_.lower_expr_value(els);
-        self_.set_local_to(val, els);
-        true
-      });
-
-      let r = self_.net.new_wire();
-      self_.cur.agents.push(Agent::Branch(
+      self_.lower_cond(
         cond,
-        self_.stage_port(els),
-        self_.stage_port(then),
-        r.0,
-      ));
-      self_.cur.steps.push_back(Step::Call(i, r.1));
+        &|self_| {
+          let then = self_.lower_block(then);
+          self_.set_local_to(val, then);
+          true
+        },
+        &|self_| {
+          let els = self_.lower_expr_value(els);
+          self_.set_local_to(val, els);
+          true
+        },
+      );
     });
 
     self.get_local(val)
@@ -85,29 +75,17 @@ impl Compiler<'_> {
 
       let i = self_.new_interface();
       let start = self_.new_stage(i, move |self_, start| {
-        let cond = self_.lower_expr_value(cond);
-
-        self_.new_fork(|self_| {
-          let j = self_.new_interface();
-          let body = self_.new_stage(j, |self_, _| {
+        self_.lower_cond(
+          cond,
+          &|self_| {
             self_.lower_block_erase(body);
             self_.goto(start);
             false
-          });
+          },
+          &|_| true,
+        );
 
-          let end = self_.new_stage(j, |_, _| true);
-
-          let r = self_.net.new_wire();
-          self_.cur.agents.push(Agent::Branch(
-            cond,
-            self_.stage_port(end),
-            self_.stage_port(body),
-            r.0,
-          ));
-          self_.cur.steps.push_back(Step::Call(j, r.1));
-        });
-
-        true
+        false
       });
 
       self_.break_target = old_break;
