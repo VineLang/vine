@@ -1,6 +1,6 @@
 use crate::{
   ast::*,
-  compile::{Compiler, Port},
+  compile::{Agent, Compiler, Port, Step},
 };
 
 impl Compiler<'_> {
@@ -99,5 +99,61 @@ impl Compiler<'_> {
   pub(super) fn lower_break(&mut self) -> Port {
     self.diverge(self.break_target.unwrap());
     Port::Erase
+  }
+
+  pub(super) fn lower_cond(
+    &mut self,
+    expr: &Expr,
+    yay: &dyn Fn(&mut Self) -> bool,
+    nay: &dyn Fn(&mut Self) -> bool,
+  ) {
+    match &expr.kind {
+      ExprKind![!cond] => {
+        let bool = self.lower_expr_value(expr);
+        let i = self.new_interface();
+        let yay = self.new_stage(i, |self_, _| yay(self_));
+        let nay = self.new_stage(i, |self_, _| nay(self_));
+        let r = self.net.new_wire();
+        self.cur.agents.push(Agent::Branch(bool, self.stage_port(nay), self.stage_port(yay), r.0));
+        self.cur.steps.push_back(Step::Call(i, r.1));
+      }
+      ExprKind::Is(expr, pat) => {
+        self.lower_match(
+          &expr,
+          [(&**pat, yay), (&Pat { span: Span::NONE, kind: PatKind::Hole }, nay)],
+          |self_, f| f(self_),
+        );
+      }
+      ExprKind::Not(cond) => {
+        self.lower_cond(cond, nay, yay);
+      }
+      ExprKind::LogicalOp(LogicalOp::LogicalAnd, a, b) => {
+        let nay = self.share_dyn_stage(nay);
+        self.lower_cond(
+          a,
+          &|self_| {
+            self_.lower_cond(b, yay, &nay);
+            false
+          },
+          &nay,
+        );
+      }
+      ExprKind::LogicalOp(LogicalOp::LogicalOr, a, b) => {
+        let yay = self.share_dyn_stage(yay);
+        self.lower_cond(a, &yay, &|self_| {
+          self_.lower_cond(b, &yay, nay);
+          false
+        });
+      }
+    }
+  }
+
+  fn share_dyn_stage(&mut self, nay: &dyn Fn(&mut Self) -> bool) -> impl Fn(&mut Self) -> bool {
+    let i = self.new_interface();
+    let stage = self.new_stage(i, |self_, _| nay(self_));
+    move |self_| {
+      self_.goto(stage);
+      false
+    }
   }
 }
