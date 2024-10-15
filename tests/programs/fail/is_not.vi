@@ -1,0 +1,8 @@
+
+fn main(x) {
+  if x is y {} else { y }
+  if !(x is y) { y }
+  if x is y || y is z { (y, z) }
+  while x is y {}
+  y
+}

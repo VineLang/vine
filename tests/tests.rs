@@ -38,6 +38,7 @@ fn tests(t: &mut DynTester) {
 
     test_vi(t, "tests/programs/basic_diverge.vi", b"", ".txt");
     test_vi(t, "tests/programs/inverse.vi", b"", ".txt");
+    test_vi(t, "tests/programs/logic.vi", b"", ".txt");
     test_vi(t, "tests/programs/loop_vi_loop.vi", b"", ".txt");
     test_vi(t, "tests/programs/maybe_set.vi", b"", ".txt");
     test_vi(t, "tests/programs/move_it_move_it.vi", b"", ".txt");
@@ -48,6 +49,7 @@ fn tests(t: &mut DynTester) {
     t.group("fail", |t| {
       test_vi_fail(t, "tests/programs/fail/hallo_world.vi");
       test_vi_fail(t, "tests/programs/fail/informal.vi");
+      test_vi_fail(t, "tests/programs/fail/is_not.vi");
       test_vi_fail(t, "tests/programs/fail/missing_no.vi");
     });
   });

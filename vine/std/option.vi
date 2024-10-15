@@ -46,34 +46,6 @@ mod Option {
     }
   }
 
-  fn is_some(&self) {
-    match &self {
-      &Some(_) => true,
-      &None => false,
-    }
-  }
-
-  fn is_none(&self) {
-    match &self {
-      &Some(_) => false,
-      &None => true,
-    }
-  }
-
-  fn is_some_and(&move self, f) {
-    match self {
-      Some(val) => f(val),
-      None => false,
-    }
-  }
-
-  fn is_none_or(&move self, f) {
-    match self {
-      Some(val) => f(val),
-      None => true,
-    }
-  }
-
   fn unwrap(&move self) {
     match self { Some(val) => val }
   }

@@ -9,8 +9,8 @@ use vine_util::{
 use crate::{
   ast::{
     BinaryOp, Block, ComparisonOp, ConstItem, Enum, Expr, ExprKind, FnItem, Ident, InlineIvy, Item,
-    ItemKind, LetStmt, ModItem, ModKind, Pat, PatKind, Path, PatternItem, Span, Stmt, StmtKind,
-    Struct, UnaryOp, UseTree,
+    ItemKind, LetStmt, LogicalOp, ModItem, ModKind, Pat, PatKind, Path, PatternItem, Span, Stmt,
+    StmtKind, Struct, UseTree,
   },
   diag::Diag,
   lexer::Token,
@@ -271,10 +271,10 @@ impl<'ctx, 'src> VineParser<'ctx, 'src> {
       return Ok(ExprKind::Inverse(Box::new(self.parse_expr_bp(BP::Prefix)?)));
     }
     if self.eat(Token::Minus)? {
-      return Ok(ExprKind::UnaryOp(UnaryOp::Neg, Box::new(self.parse_expr_bp(BP::Prefix)?)));
+      return Ok(ExprKind::Neg(Box::new(self.parse_expr_bp(BP::Prefix)?)));
     }
     if self.eat(Token::Bang)? {
-      return Ok(ExprKind::UnaryOp(UnaryOp::Not, Box::new(self.parse_expr_bp(BP::Prefix)?)));
+      return Ok(ExprKind::Not(Box::new(self.parse_expr_bp(BP::Prefix)?)));
     }
     if self.check(Token::Num) {
       return self.parse_num();
@@ -324,17 +324,9 @@ impl<'ctx, 'src> VineParser<'ctx, 'src> {
       return Ok(ExprKind::If(Box::new(cond), then, Box::new(else_)));
     }
     if self.eat(Token::While)? {
-      if self.eat(Token::Let)? {
-        let pat = self.parse_pat()?;
-        self.expect(Token::Eq)?;
-        let value = self.parse_expr()?;
-        let body = self.parse_block()?;
-        return Ok(ExprKind::WhileLet(Box::new(pat), Box::new(value), body));
-      } else {
-        let cond = self.parse_expr()?;
-        let body = self.parse_block()?;
-        return Ok(ExprKind::While(Box::new(cond), body));
-      }
+      let cond = self.parse_expr()?;
+      let body = self.parse_block()?;
+      return Ok(ExprKind::While(Box::new(cond), body));
     }
     if self.eat(Token::Loop)? {
       let body = self.parse_block()?;
@@ -382,6 +374,21 @@ impl<'ctx, 'src> VineParser<'ctx, 'src> {
           return Ok(Ok(ExprKind::BinaryOp(op, Box::new(lhs), Box::new(self.parse_expr_bp(rbp)?))));
         }
       }
+    }
+
+    if bp.permits(BP::LogicalAnd) && self.eat(Token::AndAnd)? {
+      let rhs = self.parse_expr_bp(BP::LogicalAnd)?;
+      return Ok(Ok(ExprKind::LogicalOp(LogicalOp::LogicalAnd, Box::new(lhs), Box::new(rhs))));
+    }
+
+    if bp.permits(BP::LogicalOr) && self.eat(Token::OrOr)? {
+      let rhs = self.parse_expr_bp(BP::LogicalOr)?;
+      return Ok(Ok(ExprKind::LogicalOp(LogicalOp::LogicalOr, Box::new(lhs), Box::new(rhs))));
+    }
+
+    if bp.permits(BP::Is) && self.eat(Token::Is)? {
+      let rhs = self.parse_pat()?;
+      return Ok(Ok(ExprKind::Is(Box::new(lhs), Box::new(rhs))));
     }
 
     if bp.permits(BP::Comparison) {
@@ -554,6 +561,7 @@ enum BP {
   Range,
   LogicalOr,
   LogicalAnd,
+  Is,
   Comparison,
   BitOr,
   BitXor,

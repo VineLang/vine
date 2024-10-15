@@ -54,7 +54,8 @@ pub trait VisitMut<'a> {
       | ExprKind::Deref(a)
       | ExprKind::Move(a)
       | ExprKind::Field(a, _)
-      | ExprKind::UnaryOp(_, a)
+      | ExprKind::Neg(a)
+      | ExprKind::Not(a)
       | ExprKind::Return(a)
       | ExprKind::Inverse(a)
       | ExprKind::Copy(a)
@@ -87,11 +88,6 @@ pub trait VisitMut<'a> {
         self.visit_expr(a);
         self.visit_block(b);
       }
-      ExprKind::WhileLet(a, b, c) => {
-        self.visit_pat(a);
-        self.visit_expr(b);
-        self.visit_block(c);
-      }
       ExprKind::For(a, b, c) => {
         self.enter_scope();
         self.visit_expr(b);
@@ -123,6 +119,10 @@ pub trait VisitMut<'a> {
         for (_, t) in b {
           self.visit_expr(t);
         }
+      }
+      ExprKind::Is(e, p) => {
+        self.visit_expr(e);
+        self.visit_pat(p);
       }
     }
   }

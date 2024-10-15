@@ -1,7 +1,7 @@
 use std::mem::take;
 
 use crate::{
-  ast::{Block, Expr, ExprKind, Pat, PatKind, Span, Stmt, StmtKind},
+  ast::{Expr, ExprKind},
   resolve::Node,
   visit::VisitMut,
 };
@@ -33,33 +33,6 @@ impl VisitMut<'_> for Desugar {
             vec![Expr { span: o.span, kind: ExprKind::Ref(Box::new(o)) }],
           ),
         }))
-      }
-      ExprKind::WhileLet(pat, value, body) => {
-        let pat = take(&mut **pat);
-        let value = take(&mut **value);
-        let body = take(body);
-        expr.kind = ExprKind::Loop(Block {
-          span: expr.span,
-          stmts: vec![Stmt {
-            span: expr.span,
-            kind: StmtKind::Expr(
-              Expr {
-                span: expr.span,
-                kind: ExprKind::Match(
-                  Box::new(value),
-                  vec![
-                    (pat, Expr { span: body.span, kind: ExprKind::Block(body) }),
-                    (
-                      Pat { span: Span::NONE, kind: PatKind::Hole },
-                      Expr { span: Span::NONE, kind: ExprKind::Break },
-                    ),
-                  ],
-                ),
-              },
-              true,
-            ),
-          }],
-        });
       }
       ExprKind![!sugar] => {}
     }
