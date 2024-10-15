@@ -4,7 +4,7 @@ use std::{
 };
 
 use crate::{
-  ast::{Expr, ExprKind, Ident, Pat, PatKind, Path},
+  ast::{Expr, ExprKind, Ident, LogicalOp, Pat, PatKind, Path},
   diag::Diag,
   visit::{VisitMut, Visitee},
 };
@@ -128,23 +128,45 @@ impl VisitMut<'_> for ResolveVisitor<'_> {
   }
 
   fn visit_expr(&mut self, expr: &mut Expr) {
-    let result = match &mut expr.kind {
-      ExprKind::Path(path) => {
-        if let Some(ident) = path.as_ident() {
-          if let Some(bind) = self.scope.get(&ident).and_then(|x| x.last()) {
-            expr.kind = ExprKind::Local(bind.local);
-            return;
-          }
-        }
-        self.visit_path(path)
+    match &mut expr.kind {
+      ExprKind![cond] => {
+        self.enter_scope();
+        self.visit_cond(expr);
+        self.exit_scope();
       }
-      ExprKind::Field(_, p) => self.visit_path(p),
-      ExprKind::Method(_, p, _) => self.visit_path(p),
-      _ => Ok(()),
-    };
-    self._visit_expr(expr);
-    if let Err(diag) = result {
-      expr.kind = ExprKind::Error(self.resolver.diags.add(diag));
+      ExprKind::If(cond, block, els) => {
+        self.enter_scope();
+        self.visit_cond(cond);
+        self.visit_block(block);
+        self.exit_scope();
+        self.visit_expr(els);
+      }
+      ExprKind::While(cond, block) => {
+        self.enter_scope();
+        self.visit_cond(cond);
+        self.visit_block(block);
+        self.exit_scope();
+      }
+      _ => {
+        let result = match &mut expr.kind {
+          ExprKind::Path(path) => {
+            if let Some(ident) = path.as_ident() {
+              if let Some(bind) = self.scope.get(&ident).and_then(|x| x.last()) {
+                expr.kind = ExprKind::Local(bind.local);
+                return;
+              }
+            }
+            self.visit_path(path)
+          }
+          ExprKind::Field(_, p) => self.visit_path(p),
+          ExprKind::Method(_, p, _) => self.visit_path(p),
+          _ => Ok(()),
+        };
+        self._visit_expr(expr);
+        if let Err(diag) = result {
+          expr.kind = ExprKind::Error(self.resolver.diags.add(diag));
+        }
+      }
     }
   }
 }
@@ -155,5 +177,32 @@ impl<'a> ResolveVisitor<'a> {
     *path = self.resolver.nodes[resolved].canonical.clone();
     debug_assert!(path.absolute && path.resolved.is_some());
     Ok(())
+  }
+
+  fn visit_cond(&mut self, cond: &mut Expr) {
+    match &mut cond.kind {
+      ExprKind![!cond] => self.visit_expr(cond),
+      ExprKind::Not(e) => {
+        self.enter_scope();
+        self.visit_cond(e);
+        self.exit_scope();
+      }
+      ExprKind::Is(e, p) => {
+        self.visit_expr(e);
+        self.visit_pat(p);
+      }
+      ExprKind::LogicalOp(LogicalOp::LogicalAnd, a, b) => {
+        self.visit_expr(a);
+        self.visit_expr(b);
+      }
+      ExprKind::LogicalOp(LogicalOp::LogicalOr, a, b) => {
+        self.enter_scope();
+        self.visit_expr(a);
+        self.exit_scope();
+        self.enter_scope();
+        self.visit_expr(b);
+        self.exit_scope();
+      }
+    }
   }
 }
