@@ -1,0 +1,20 @@
+
+use std::{io::{print, print_char}, u32};
+
+fn main(io) {
+  let x = 2;
+  while x < 1000 {
+    dashes(&io, x);
+    x *= x;
+  }
+}
+
+fn dashes(&io, len) {
+  let i = 0;
+  while i < len {
+    io.print_char('□');
+    i += 1;
+  }
+  io.print_char('\n');
+}
+
