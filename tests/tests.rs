@@ -35,6 +35,7 @@ fn tests(t: &mut DynTester) {
     test_vi(t, "vine/examples/mandelbrot_sixel.vi", b"", ".sixel");
     test_vi(t, "vine/examples/mandelbrot_tga.vi", b"", ".tga");
     test_vi(t, "vine/examples/mandelbrot.vi", b"", ".txt");
+    test_vi(t, "vine/examples/primes.vi", b"", ".txt");
 
     test_vi(t, "tests/programs/basic_diverge.vi", b"", ".txt");
     test_vi(t, "tests/programs/inverse.vi", b"", ".txt");
