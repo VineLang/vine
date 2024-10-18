@@ -1,0 +1,53 @@
+
+use std::bool::{true, false};
+
+enum Result {
+  Ok(value),
+  Err(err),
+}
+
+mod Result {
+  fn map(&move self, f) {
+    match self {
+      Ok(val) => Ok(f(val)),
+      Err(err) => Err(err),
+    }
+  }
+
+  fn as_ref(&self) {
+    match &self {
+      &Ok(val) => Ok(&val),
+      &Err(err) => Err(&err),
+    }
+  }
+
+  fn flatten(&move self) {
+    match self {
+      Ok(Ok(val)) => Ok(val),
+      Ok(Err(err)) => Err(err),
+      x => x,
+    }
+  }
+
+  fn and_then(&move self, f) {
+    self.map(f).flatten()
+  }
+
+  fn or(&move self, default) {
+    match self {
+      Err(_) => default,
+      x => x,
+    }
+  }
+
+  fn unwrap_or(&move self, default) {
+    match self {
+      Ok(val) => val,
+      Err(_) => default,
+    }
+  }
+
+  fn unwrap(&move self) {
+    match self { Ok(val) => val }
+  }
+}

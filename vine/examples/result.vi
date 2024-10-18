@@ -1,0 +1,27 @@
+use std::{io::println, result::Result::{Ok, Err}, u32};
+
+fn main(io) {
+  let n = 0
+  while n < 10 {
+    let primeness = isPrime(n);
+
+    match primeness {
+      Ok(n) => io.println(u32::to_string(n) ++ " primality: confirmed"),
+      Err(msg) => io.println(u32::to_string(n) ++ " primality: " ++ msg),
+    }
+
+    n += 1;
+  }
+}
+
+fn isPrime(n) {
+  if n == 0 {
+    return Err("unsure")
+  } else {
+    if n == 1{
+      return Err("depends who's asking")
+    } else {
+      return Ok(n)
+    }
+  }
+}
