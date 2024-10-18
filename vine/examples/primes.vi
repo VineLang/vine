@@ -1,0 +1,35 @@
+
+use std::{io::println, bool::{true, false}, result::Result::{Ok, Err}, u32};
+
+const end = 46;
+
+fn main(io) {
+  let n = 0
+  while n <= end {
+    let primeness = is_prime(n);
+
+    io.println(u32::to_string(n) ++ ": " ++ match primeness {
+      Ok(primeness) => if primeness { "prime" } else { "composite" },
+      Err(msg) => msg,
+    });
+
+    n += 1;
+  }
+}
+
+fn is_prime(n) {
+  if n <= 0 {
+    return Err("primes have to be positive!");
+  }
+  if n == 1 {
+    return Err("depends who's asking");
+  }
+  let d = 2;
+  while d * d <= n {
+    if n % d == 0 {
+      return Ok(false);
+    }
+    d += 1;
+  }
+  Ok(true)
+}
