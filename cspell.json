@@ -22,6 +22,7 @@
     "miri",
     "nilary",
     "nonoverlapping",
+    "primality",
     "readback",
     "readline",
     "repr",
