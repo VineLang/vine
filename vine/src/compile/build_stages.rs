@@ -75,8 +75,8 @@ impl Compiler<'_> {
         self.op(*op, lhs, rhs)
       }
       ExprKind::BinaryOpAssign(op, lhs, rhs) => {
-        let (lhs, out) = self.lower_expr_place(lhs);
         let rhs = self.lower_expr_value(rhs);
+        let (lhs, out) = self.lower_expr_place(lhs);
         let res = self.op(*op, lhs, rhs);
         self.net.link(out, res);
         Port::Erase
