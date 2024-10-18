@@ -1,0 +1,121 @@
+
+::main { ::logic::main }
+
+::logic::main {
+  fn(ref(n0 n33) _)
+  ::logic::print_bool = fn(ref(n0 n1) fn(1 _))
+  ::logic::print_bool = fn(ref(n1 n3) fn(n2 _))
+  1 = ?(0 ::logic::main::2 n2)
+  ::logic::print_bool = fn(ref(n3 n5) fn(n4 _))
+  1 = ?(::logic::main::8 1 n4)
+  ::logic::print_bool = fn(ref(n5 n7) fn(n6 _))
+  1 = ?(::logic::main::13 1 n6)
+  ::logic::print_bool = fn(ref(n7 n9) fn(n8 _))
+  0 = ?(::logic::main::18 1 n8)
+  ::logic::print_bool = fn(ref(n9 n11) fn(n10 _))
+  0 = ?(1 0 n10)
+  ::logic::print_bool = fn(ref(n11 n13) fn(n12 _))
+  1 = ?(0 1 n12)
+  ::std::io::println = fn(ref(n13 n15) fn(tup(3 fn(n14 tup(45 tup(45 tup(45 n14))))) _))
+  ::logic::print_bool = fn(ref(n15 n16) fn(0 _))
+  ::logic::print_bool = fn(ref(n16 n18) fn(n17 _))
+  0 = ?(::logic::main::27 1 n17)
+  ::logic::print_bool = fn(ref(n18 n20) fn(n19 _))
+  1 = ?(0 ::logic::main::31 n19)
+  ::logic::print_bool = fn(ref(n20 n22) fn(n21 _))
+  0 = ?(0 ::logic::main::36 n21)
+  ::logic::print_bool = fn(ref(n22 n24) fn(n23 _))
+  0 = ?(0 ::logic::main::41 n23)
+  ::logic::print_bool = fn(ref(n24 n26) fn(n25 _))
+  1 = ?(1 0 n25)
+  ::logic::print_bool = fn(ref(n26 n28) fn(n27 _))
+  0 = ?(0 1 n27)
+  ::std::io::println = fn(ref(n28 n30) fn(tup(3 fn(n29 tup(45 tup(45 tup(45 n29))))) _))
+  ::logic::print_bool = fn(ref(n30 n32) fn(n31 _))
+  1 = ?(::logic::main::51 1 n31)
+  ::logic::print_bool = fn(ref(n32 n33) fn(n34 _))
+  0 = ?(0 ::logic::main::55 n34)
+}
+
+::logic::main::2 {
+  n0
+  1 = ?(0 1 n0)
+}
+
+::logic::main::8 {
+  n0
+  1 = ?(0 1 n0)
+}
+
+::logic::main::13 {
+  n0
+  0 = ?(0 1 n0)
+}
+
+::logic::main::18 {
+  n0
+  1 = ?(0 1 n0)
+}
+
+::logic::main::27 {
+  n0
+  0 = ?(0 1 n0)
+}
+
+::logic::main::31 {
+  n0
+  0 = ?(0 1 n0)
+}
+
+::logic::main::36 {
+  n0
+  1 = ?(0 1 n0)
+}
+
+::logic::main::41 {
+  n0
+  0 = ?(0 1 n0)
+}
+
+::logic::main::51 {
+  n0
+  _ = ?(0 1 n0)
+}
+
+::logic::main::55 {
+  n0
+  _ = ?(0 1 n0)
+}
+
+::logic::print_bool {
+  fn(n0 fn(?(::logic::print_bool::2 ::logic::print_bool::1 n2) n3))
+  ::std::io::println = fn(n0 fn(n2 n3))
+}
+
+::logic::print_bool::1 { tup(4 fn(n0 tup(116 tup(114 tup(117 tup(101 n0)))))) }
+
+::logic::print_bool::2 { tup(5 fn(n0 tup(102 tup(97 tup(108 tup(115 tup(101 n0))))))) }
+
+::std::io::println {
+  fn(ref(n0 n3) fn(n1 _))
+  ::std::io::print = fn(ref(n0 n2) fn(n1 _))
+  ::std::io::print_char = fn(ref(n2 n3) fn(10 _))
+}
+
+::std::io::print {
+  fn(ref(n0 n1) fn(tup(n2 fn(_ n3)) _))
+  ::std::io::print::1 = x(n0 x(n1 x(n2 n3)))
+}
+
+::std::io::print::1 { x(n0 x(n1 x(dup31(?(::std::io::print::3 ::std::io::print::2 x(n0 x(n1 x(n3 n2)))) n3) n2))) }
+
+::std::io::print::2 {
+  x(n1 x(n3 x(@sub(1 n4) tup(n0 n5))))
+  ::std::io::print_char = fn(ref(n1 n2) fn(n0 _))
+  ::std::io::print::1 = x(n2 x(n3 x(n4 n5)))
+}
+
+::std::io::print::3 { x(n0 x(n0 _)) }
+
+::std::io::print_char { fn(ref(@io_print_char(char io) io) fn(char _)) }
+

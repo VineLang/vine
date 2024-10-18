@@ -188,22 +188,22 @@ impl Validate {
       | ExprKind::Return(..)
       | ExprKind::List(..)
       | ExprKind::Call(..)
-      | ExprKind::UnaryOp(..)
+      | ExprKind::Neg(..)
       | ExprKind::BinaryOp(..)
+      | ExprKind::Not(..)
       | ExprKind::LogicalOp(..)
       | ExprKind::ComparisonOp(..) => self._visit_expr(expr),
 
-      ExprKind::WhileLet(p, v, b) => {
-        self.expect_pat(p, Form::Value, true);
-        self.expect_expr(v, Form::Value);
-        self.visit_block(b);
-      }
       ExprKind::Match(s, a) => {
         self.expect_expr(s, Form::Value);
         for (p, v) in a {
           self.expect_pat(p, Form::Value, true);
           self.expect_expr(v, Form::Value);
         }
+      }
+      ExprKind::Is(e, p) => {
+        self.expect_expr(e, Form::Value);
+        self.expect_pat(p, Form::Value, true);
       }
       ExprKind::Assign(s, v) => {
         self.expect_expr(s, Form::Space);

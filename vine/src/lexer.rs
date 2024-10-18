@@ -118,6 +118,8 @@ pub enum Token {
   Defer,
   #[token("in")]
   In,
+  #[token("is")]
+  Is,
   #[token("return")]
   Return,
   #[token("yield")]

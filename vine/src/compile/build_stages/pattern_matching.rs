@@ -1,58 +1,56 @@
 use std::{collections::HashMap, ops::Range};
 
 use crate::{
-  compile::{Local, Port, StageId},
+  compile::{Local, StageId},
   resolve::NodeId,
 };
 
 use super::{Compiler, Expr, Node, Pat, PatKind, Step};
 
 impl Compiler<'_> {
-  pub(super) fn lower_match(&mut self, value: &Expr, arms: &[(Pat, Expr)]) -> Port {
+  pub(super) fn lower_match<'p, A>(
+    &mut self,
+    value: &Expr,
+    arms: impl IntoIterator<Item = (&'p Pat, A)> + Clone,
+    mut f: impl FnMut(&mut Self, A) -> bool,
+  ) {
     let value = self.lower_expr_value(value);
     let initial = self.new_match_var(false);
     self.set_local_to(initial.local, value);
-    let mut arm_counts = vec![0; arms.len()];
     let rows = arms
-      .iter()
+      .clone()
+      .into_iter()
       .enumerate()
       .map(|(i, arm)| Row {
-        cells: vec![Cell { var: initial, pattern: &arm.0 }],
+        cells: vec![Cell { var: initial, pattern: arm.0 }],
         body: Body { aliases: vec![], arm: i },
       })
-      .collect();
+      .collect::<Vec<_>>();
+    let mut arm_counts = vec![0; rows.len()];
     let tree = self.build_decision_tree(rows, &mut arm_counts);
 
-    let result = self.new_local();
+    let mut arms = arms
+      .into_iter()
+      .zip(arm_counts)
+      .map(|((_, a), count)| {
+        if count <= 1 {
+          Arm::Unique(Some(a))
+        } else {
+          let i = self.new_interface();
+          Arm::Shared(self.new_stage(i, |self_, _| f(self_, a)))
+        }
+      })
+      .collect::<Vec<_>>();
 
-    self.new_fork(|self_| {
-      let arms = arms
-        .iter()
-        .zip(arm_counts)
-        .map(|((_, body), count)| {
-          if count <= 1 {
-            Arm::Unique(body)
-          } else {
-            let i = self_.new_interface();
-            Arm::Shared(self_.new_stage(i, |self_, _| {
-              let r = self_.lower_expr_value(body);
-              self_.set_local_to(result, r);
-              true
-            }))
-          }
-        })
-        .collect::<Vec<_>>();
-
-      self_.lower_decision_tree(&arms, result, tree);
-    });
-
-    let r = self.net.new_wire();
-    self.cur.steps.push_back(Step::Move(result, r.0));
-
-    r.1
+    self.lower_decision_tree(&mut arms, tree, &mut f);
   }
 
-  fn lower_decision_tree(&mut self, arms: &[Arm], result: Local, tree: DecisionTree) -> bool {
+  fn lower_decision_tree<A>(
+    &mut self,
+    arms: &mut [Arm<A>],
+    tree: DecisionTree,
+    f: &mut impl FnMut(&mut Self, A) -> bool,
+  ) -> bool {
     match tree {
       DecisionTree::Leaf(body) => {
         for (a, b) in body.aliases {
@@ -64,16 +62,12 @@ impl Compiler<'_> {
             self.set_local_to(b.local, y);
           }
         }
-        match arms[body.arm] {
+        match &mut arms[body.arm] {
           Arm::Shared(stage) => {
-            self.goto(stage);
+            self.goto(*stage);
             false
           }
-          Arm::Unique(expr) => {
-            let r = self.lower_expr_value(expr);
-            self.set_local_to(result, r);
-            true
-          }
+          Arm::Unique(a) => f(self, a.take().unwrap()),
         }
       }
       DecisionTree::Missing => false,
@@ -84,7 +78,7 @@ impl Compiler<'_> {
           let a = self.tuple(t, Self::fin_move_local);
           self.set_local_to(v.local, a);
         }
-        self.lower_decision_tree(arms, result, *next)
+        self.lower_decision_tree(arms, *next, f)
       }
       DecisionTree::Deref(r, v, next) => {
         let v0 = self.net.new_wire();
@@ -99,7 +93,7 @@ impl Compiler<'_> {
         } else {
           self.cur.fin.push(Step::Move(v.local, v2.1));
         }
-        self.lower_decision_tree(arms, result, *next)
+        self.lower_decision_tree(arms, *next, f)
       }
       DecisionTree::Switch(var, adt, cases, fallback) => {
         let adt = self.nodes[adt].adt.as_ref().unwrap();
@@ -110,7 +104,7 @@ impl Compiler<'_> {
           if fallback.is_some() && cases.iter().filter(|x| x.body.is_none()).count() > 1 {
             fallback.take().map(|tree| {
               let i = self.new_interface();
-              self.new_stage(i, |self_, _| self_.lower_decision_tree(arms, result, *tree))
+              self.new_stage(i, |self_, _| self_.lower_decision_tree(arms, *tree, f))
             })
           } else {
             None
@@ -127,7 +121,7 @@ impl Compiler<'_> {
               let should_fallback = case.body.is_none();
               let mut end = false;
               if let Some(tree) = case.body {
-                end = self_.lower_decision_tree(arms, result, tree);
+                end = self_.lower_decision_tree(arms, tree, f);
               }
               if var.is_place || should_fallback && fallback_needs_var {
                 let r = self_.make_enum(adt, v, case.vars.clone(), Self::fin_move_local);
@@ -138,7 +132,7 @@ impl Compiler<'_> {
                 if let Some(stage) = fallback_stage {
                   self_.goto(stage);
                 } else if let Some(tree) = fallback.take() {
-                  end = self_.lower_decision_tree(arms, result, *tree);
+                  end = self_.lower_decision_tree(arms, *tree, f);
                 }
               }
               end
@@ -159,9 +153,9 @@ impl Compiler<'_> {
 }
 
 #[derive(Debug)]
-enum Arm<'t> {
+enum Arm<A> {
   Shared(StageId),
-  Unique(&'t Expr),
+  Unique(Option<A>),
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]

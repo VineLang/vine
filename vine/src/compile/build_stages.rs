@@ -65,13 +65,9 @@ impl Compiler<'_> {
         let f = self.lower_expr_value(f);
         self.apply_combs("fn", f, args, Self::lower_expr_value)
       }
-      ExprKind::UnaryOp(op, rhs) => {
-        let (f, lhs) = match op {
-          UnaryOp::Neg => (ExtFnKind::sub, Port::U32(0)),
-          UnaryOp::Not => (ExtFnKind::u32_xor, Port::U32(u32::MAX)),
-        };
+      ExprKind::Neg(rhs) => {
         let rhs = self.lower_expr_value(rhs);
-        self.ext_fn(f.into(), lhs, rhs)
+        self.ext_fn(ExtFnKind::sub.into(), Port::U32(0), rhs)
       }
       ExprKind::BinaryOp(op, lhs, rhs) => {
         let lhs = self.lower_expr_value(lhs);
@@ -139,7 +135,17 @@ impl Compiler<'_> {
       ExprKind::Return(r) => self.lower_return(r),
       ExprKind::Break => self.lower_break(),
 
-      ExprKind::Match(value, arms) => self.lower_match(value, arms),
+      ExprKind::Match(value, arms) => {
+        let result = self.new_local();
+        self.new_fork(|self_| {
+          self_.lower_match(value, arms.iter().map(|(p, a)| (p, a)), |self_, expr| {
+            let r = self_.lower_expr_value(expr);
+            self_.set_local_to(result, r);
+            true
+          });
+        });
+        self.move_local(result)
+      }
 
       ExprKind::CopyLocal(l) => self.get_local(*l),
       ExprKind::MoveLocal(l) => self.move_local(*l),
@@ -151,8 +157,23 @@ impl Compiler<'_> {
         a
       }
 
+      ExprKind![cond] => {
+        let result = self.new_local();
+        self.lower_cond(
+          expr,
+          &|self_| {
+            self_.set_local_to(result, Port::U32(1));
+            true
+          },
+          &|self_| {
+            self_.set_local_to(result, Port::U32(0));
+            true
+          },
+        );
+        self.move_local(result)
+      }
+
       ExprKind::For(..) => todo!(),
-      ExprKind::LogicalOp(..) => todo!(),
     }
   }
 

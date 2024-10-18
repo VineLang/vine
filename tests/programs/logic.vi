@@ -1,0 +1,30 @@
+
+use std::{io::println, bool::{true, false}};
+
+fn main(&io) {
+  io.print_bool(true);
+  io.print_bool(true && true);
+  io.print_bool(true || true);
+  io.print_bool(true || false);
+  io.print_bool(false || true);
+  io.print_bool(!false);
+  io.print_bool(!!true);
+  io.println("---");
+  io.print_bool(false);
+  io.print_bool(false || false);
+  io.print_bool(true && false);
+  io.print_bool(false && true);
+  io.print_bool(false && false);
+  io.print_bool(!true);
+  io.print_bool(!!false);
+
+  // Test short-circuiting behavior; `()` is an eraser node,
+  // so would erase `io` if it was evaluated.
+  io.println("---");
+  io.print_bool(true || ());
+  io.print_bool(false && ());
+}
+
+fn print_bool(&io, bool) {
+  io.println(if bool { "true" } else { "false" })
+}

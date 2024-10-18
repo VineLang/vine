@@ -2,7 +2,7 @@
 use std::{io::{prompt, println}, u32, option::Option::{Some, None}};
 
 fn main(io) {
-  while let Some(line) = io.prompt("> ") {
+  while io.prompt("> ") is Some(line) {
     let num = u32::parse(line);
     io.println(match num {
       Some(num) => u32::to_string(fib(num)),
