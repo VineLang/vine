@@ -55,17 +55,17 @@
 
 ::std::io::print_char { fn(ref(@io_print_char(char io) io) fn(char _)) }
 
-::std::u32::to_string { fn(dup181(?(::std::u32::to_string::5 ::std::u32::to_string::1 x(n1 n0)) n1) n0) }
+::std::u32::to_string { fn(dup260(?(::std::u32::to_string::5 ::std::u32::to_string::1 x(n1 n0)) n1) n0) }
 
 ::std::u32::to_string::1 {
   x(n1 n2)
   ::std::u32::to_string::2 = x(n1 x(tup(0 fn(n0 n0)) n2))
 }
 
-::std::u32::to_string::2 { x(dup181(?(::std::u32::to_string::4 ::std::u32::to_string::3 x(n2 n0)) n2) n0) }
+::std::u32::to_string::2 { x(dup260(?(::std::u32::to_string::4 ::std::u32::to_string::3 x(n2 n0)) n2) n0) }
 
 ::std::u32::to_string::3 {
-  x(dup181(@rem(10 n1) @div(10 n5)) x(tup(@add(1 n0) fn(n3 n4)) n6))
+  x(dup260(@rem(10 n1) @div(10 n5)) x(tup(@add(1 n0) fn(n3 n4)) n6))
   48 = @add(n1 n2)
   ::std::u32::to_string::2 = x(n5 x(tup(n0 fn(n3 tup(n2 n4))) n6))
 }
