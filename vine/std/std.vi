@@ -1,4 +1,5 @@
 
+mod array = "./array.vi";
 mod bool = "./bool.vi";
 mod io = "./io.vi";
 mod option = "./option.vi";

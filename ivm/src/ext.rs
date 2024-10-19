@@ -198,6 +198,8 @@ ext_fns! {
   u32_add_high,
   u32_mul_high,
 
+  u32_clz,
+
   io_print_char,
   io_print_byte,
   io_flush,
@@ -233,6 +235,8 @@ impl ExtFnKind {
 
       u32_add_high => ExtVal::new_u32((((a.as_u32() as u64) + (b.as_u32() as u64)) >> 32) as u32),
       u32_mul_high => ExtVal::new_u32((((a.as_u32() as u64) * (b.as_u32() as u64)) >> 32) as u32),
+
+      u32_clz => ExtVal::new_u32(a.as_u32().leading_zeros()),
 
       io_print_char => {
         a.as_io();
