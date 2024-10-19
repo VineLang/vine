@@ -41,10 +41,12 @@ impl<'a> Bicycle for FlowOut<'a> {
         step.usage(self.interfaces, |l, u| staging.entry(l).or_insert(Usage::NONE).append(u));
       }
 
-      let out = &mut self.interfaces[node].outward;
+      let interface = &mut self.interfaces[node];
       for (&l, &u) in &staging {
-        out.entry(l).or_insert(u).union_with(u);
-        *references.entry(l).or_default() += 1;
+        if !interface.declarations.contains(&l) {
+          interface.outward.entry(l).or_insert(u).union_with(u);
+          *references.entry(l).or_default() += 1;
+        }
       }
       staging.clear();
     }

@@ -218,7 +218,10 @@ impl Compiler<'_> {
       PatKind![!value || refutable] => unreachable!(),
 
       PatKind::Hole => Port::Erase,
-      PatKind::Local(local) => self.set_local(*local),
+      PatKind::Local(local) => {
+        self.declare_local(*local);
+        self.set_local(*local)
+      }
       PatKind::Tuple(t) => self.tuple(t, Self::lower_pat_value),
       PatKind::Ref(p) => {
         let (a, b) = self.lower_pat_place(p);
@@ -234,6 +237,7 @@ impl Compiler<'_> {
 
       PatKind::Hole => self.net.new_wire(),
       PatKind::Local(local) => {
+        self.declare_local(*local);
         let x = self.set_local(*local);
         let y = self.net.new_wire();
         self.cur.fin.push(Step::Move(*local, y.0));
@@ -267,6 +271,7 @@ impl Compiler<'_> {
 
       PatKind::Hole => Port::Erase,
       PatKind::Local(local) => {
+        self.declare_local(*local);
         let x = self.net.new_wire();
         self.cur.fin.push(Step::Move(*local, x.0));
         x.1

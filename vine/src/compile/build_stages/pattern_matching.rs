@@ -54,6 +54,7 @@ impl Compiler<'_> {
     match tree {
       DecisionTree::Leaf(body) => {
         for (a, b) in body.aliases {
+          self.declare_local(a);
           let x = self.net.new_wire();
           self.cur.steps.push_back(Step::Move(b.local, x.0));
           self.set_local_to(a, x.1);
@@ -72,6 +73,9 @@ impl Compiler<'_> {
       }
       DecisionTree::Missing => false,
       DecisionTree::Tuple(v, t, next) => {
+        for l in t.clone() {
+          self.declare_local(l);
+        }
         let a = self.tuple(t.clone(), Self::set_local);
         self.cur.steps.push_back(Step::Move(v.local, a));
         if v.is_place {
@@ -81,6 +85,7 @@ impl Compiler<'_> {
         self.lower_decision_tree(arms, *next, f)
       }
       DecisionTree::Deref(r, v, next) => {
+        self.declare_local(v.local);
         let v0 = self.net.new_wire();
         let v2 = self.net.new_wire();
         let r0 = self.new_comb("ref", v0.0, v2.0);
@@ -116,6 +121,9 @@ impl Compiler<'_> {
         let stage =
           self.apply_combs("enum", val.1, cases.into_iter().enumerate(), |self_, (v, case)| {
             let s = self_.new_stage(i, |self_, _| {
+              for s in case.vars.clone() {
+                self_.declare_local(s);
+              }
               let root = self_.net.new_wire();
               let inner = self_.apply_combs("enum", root.0, case.vars.clone(), Self::set_local);
               let should_fallback = case.body.is_none();
@@ -148,7 +156,9 @@ impl Compiler<'_> {
   }
 
   fn new_match_var(&mut self, is_place: bool) -> MatchVar {
-    MatchVar { local: self.new_local(), is_place }
+    let local = self.local_count;
+    self.local_count += 1;
+    MatchVar { local, is_place }
   }
 }
 

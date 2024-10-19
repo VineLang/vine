@@ -124,7 +124,12 @@ impl<'n> Compiler<'n> {
   fn new_local(&mut self) -> usize {
     let l = self.local_count;
     self.local_count += 1;
+    self.declare_local(l);
     l
+  }
+
+  fn declare_local(&mut self, local: usize) {
+    self.interfaces[self.cur.outer].declarations.insert(local);
   }
 }
 
@@ -142,6 +147,7 @@ struct Interface {
   outward: BTreeMap<Local, Usage>,
   inward: BTreeMap<Local, Usage>,
   wires: BTreeSet<(Local, WireDir)>,
+  declarations: BTreeSet<Local>,
   stages: Vec<StageId>,
   parents: BTreeSet<InterfaceId>,
   state: BicycleState,
