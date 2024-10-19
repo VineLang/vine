@@ -1,0 +1,102 @@
+
+use std::option::Option::{Some, None};
+
+mod List {
+  fn len(&(len, f)) {
+    len
+  }
+
+  fn map(&move (len, x), f) {
+    (len, fn(end) {
+      let cur;
+      let result = move ~cur;
+      let buf = x(());
+      while len {
+        let (head, tail) = buf;
+        buf = tail;
+        let p;
+        ~cur = (f(head), move ~p);
+        ~p = move ~cur;
+        len -= 1;
+      }
+      ~cur = end;
+      result
+    })
+  }
+
+  fn pop_front(&(len, f)) {
+    if len {
+      len -= 1;
+      let init;
+      let buf = f(move ~init);
+      let (head, tail) = buf;
+      f = fn(x) { ~init = x; tail };
+      Some(head)
+    } else {
+      None
+    }
+  }
+
+  fn push_back(&list, el) {
+    list ++= [el];
+  }
+
+  fn push_front(&list, el) {
+    list = [el] ++ list;
+  }
+
+  fn join(&move list, sep) {
+    let it = list.into_iter();
+    if it.into_iter::next() is Some(str) {
+      while it.into_iter::next() is Some(val) {
+        str ++= sep ++ val;
+      }
+      str
+    } else {
+      ""
+    }
+  }
+
+  fn to_string(elem_to_string, list) {
+    "[" ++ list.map(elem_to_string).join(", ") ++ "]"
+  }
+
+  fn iter(&(len, f)) {
+    let init;
+    let buf = f(move ~init);
+    let iter = (len, &buf);
+    f = fn(x) { ~init = x; buf };
+    iter
+  }
+
+  mod iter {
+    fn next(&(len, b)) {
+      if len {
+        len -= 1;
+        let &(*v, *c) = b;
+        b = c;
+        Some(v)
+      } else {
+        let &_ = move b;
+        None
+      }
+    }
+  }
+
+  fn into_iter(&move (len, f)) {
+    (len, f(()))
+  }
+
+  mod into_iter {
+    fn next(&(len, b)) {
+      if len {
+        len -= 1;
+        let (v, c) = b;
+        b = c;
+        Some(v)
+      } else {
+        None
+      }
+    }
+  }
+}
