@@ -258,8 +258,9 @@ pub enum BinaryOp {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum LogicalOp {
-  LogicalAnd,
-  LogicalOr,
+  And,
+  Or,
+  Implies,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
