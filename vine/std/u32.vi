@@ -5,8 +5,8 @@ fn to_string(n) {
   if n {
     let str = "";
     while n {
-      let (len, buf) = str;
-      str = (len + 1, fn(x) ('0' + n % 10, buf(x)));
+      let (len, buf, end) = str;
+      str = (len + 1, ('0' + n % 10, buf), end);
       n = n / 10;
     }
     str
@@ -16,11 +16,10 @@ fn to_string(n) {
 }
 
 fn parse(str) {
-  let (len, buf) = str;
+  let (len, chars, _) = str;
   if len == 0 {
     None
   } else {
-    let chars = buf(());
     let num = 0;
     while len {
       let char;

@@ -2,35 +2,30 @@
 use std::option::Option::{Some, None};
 
 mod List {
-  fn len(&(len, f)) {
+  fn len(&(len, _, _)) {
     len
   }
 
-  fn map(&move (len, x), f) {
-    (len, fn(end) {
-      let cur;
-      let result = move ~cur;
-      let buf = x(());
-      while len {
-        let (head, tail) = buf;
-        buf = tail;
-        let p;
-        ~cur = (f(head), move ~p);
-        ~p = move ~cur;
-        len -= 1;
-      }
-      ~cur = end;
-      result
-    })
+  fn map(&move (l, buf, ~_), f) {
+    let len = l;
+    let cur;
+    let result = move ~cur;
+    while l {
+      let (head, tail) = buf;
+      buf = tail;
+      let next;
+      ~cur = (f(head), move ~next);
+      ~next = move ~cur;
+      l -= 1;
+    };
+    (len, result, move cur)
   }
 
-  fn pop_front(&(len, f)) {
+  fn pop_front(&(len, buf, _)) {
     if len {
       len -= 1;
-      let init;
-      let buf = f(move ~init);
       let (head, tail) = buf;
-      f = fn(x) { ~init = x; tail };
+      buf = tail;
       Some(head)
     } else {
       None
@@ -61,39 +56,35 @@ mod List {
     "[" ++ list.map(elem_to_string).join(", ") ++ "]"
   }
 
-  fn iter(&(len, f)) {
-    let init;
-    let buf = f(move ~init);
-    let iter = (len, &buf);
-    f = fn(x) { ~init = x; buf };
-    iter
+  fn iter(&(len, buf, _)) {
+    (len, &buf)
   }
 
   mod iter {
-    fn next(&(len, b)) {
+    fn next(&(len, buf)) {
       if len {
         len -= 1;
-        let &(*v, *c) = b;
-        b = c;
-        Some(v)
+        let &(*head, *tail) = buf;
+        buf = tail;
+        Some(head)
       } else {
-        let &_ = move b;
+        let &_ = move buf;
         None
       }
     }
   }
 
-  fn into_iter(&move (len, f)) {
-    (len, f(()))
+  fn into_iter(&move (len, buf, _)) {
+    (len, buf)
   }
 
   mod into_iter {
-    fn next(&(len, b)) {
+    fn next(&(len, buf)) {
       if len {
         len -= 1;
-        let (v, c) = b;
-        b = c;
-        Some(v)
+        let (head, tail) = buf;
+        buf = tail;
+        Some(head)
       } else {
         None
       }

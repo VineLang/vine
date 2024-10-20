@@ -13,16 +13,16 @@
   ::primes::is_prime = fn(n6 enum(::primes::main::3 enum(::primes::main::6 n3)))
   ::std::io::println = fn(ref(n5 n8) fn(n4 _))
   ::std::u32::to_string = fn(n7 n1)
-  ::std::str::concat = fn(n1 fn(tup(2 fn(n0 tup(58 tup(32 n0)))) n2))
+  ::std::str::concat = fn(n1 fn(tup(2 tup(tup(58 tup(32 n0)) n0)) n2))
   ::std::str::concat = fn(n2 fn(n3 n4))
   ::primes::main::1 = x(n8 n9)
 }
 
 ::primes::main::3 { enum(?(::primes::main::5 ::primes::main::4 n0) n0) }
 
-::primes::main::4 { tup(5 fn(n0 tup(112 tup(114 tup(105 tup(109 tup(101 n0))))))) }
+::primes::main::4 { tup(5 tup(tup(112 tup(114 tup(105 tup(109 tup(101 n0))))) n0)) }
 
-::primes::main::5 { tup(9 fn(n0 tup(99 tup(111 tup(109 tup(112 tup(111 tup(115 tup(105 tup(116 tup(101 n0))))))))))) }
+::primes::main::5 { tup(9 tup(tup(99 tup(111 tup(109 tup(112 tup(111 tup(115 tup(105 tup(116 tup(101 n0))))))))) n0)) }
 
 ::primes::main::6 { enum(n0 n0) }
 
@@ -30,14 +30,14 @@
 
 ::primes::is_prime::1 {
   x(_ n1)
-  ::std::result::Result::Err = fn(tup(27 fn(n0 tup(112 tup(114 tup(105 tup(109 tup(101 tup(115 tup(32 tup(104 tup(97 tup(118 tup(101 tup(32 tup(116 tup(111 tup(32 tup(98 tup(101 tup(32 tup(112 tup(111 tup(115 tup(105 tup(116 tup(105 tup(118 tup(101 tup(33 n0))))))))))))))))))))))))))))) n1)
+  ::std::result::Result::Err = fn(tup(27 tup(tup(112 tup(114 tup(105 tup(109 tup(101 tup(115 tup(32 tup(104 tup(97 tup(118 tup(101 tup(32 tup(116 tup(111 tup(32 tup(98 tup(101 tup(32 tup(112 tup(111 tup(115 tup(105 tup(116 tup(105 tup(118 tup(101 tup(33 n0))))))))))))))))))))))))))) n0)) n1)
 }
 
 ::primes::is_prime::4 { x(dup13(@eq(1 ?(::primes::is_prime::8 ::primes::is_prime::5 x(n1 n0))) n1) n0) }
 
 ::primes::is_prime::5 {
   x(_ n1)
-  ::std::result::Result::Err = fn(tup(20 fn(n0 tup(100 tup(101 tup(112 tup(101 tup(110 tup(100 tup(115 tup(32 tup(119 tup(104 tup(111 tup(39 tup(115 tup(32 tup(97 tup(115 tup(107 tup(105 tup(110 tup(103 n0)))))))))))))))))))))) n1)
+  ::std::result::Result::Err = fn(tup(20 tup(tup(100 tup(101 tup(112 tup(101 tup(110 tup(100 tup(115 tup(32 tup(119 tup(104 tup(111 tup(39 tup(115 tup(32 tup(97 tup(115 tup(107 tup(105 tup(110 tup(103 n0)))))))))))))))))))) n0)) n1)
 }
 
 ::primes::is_prime::8 {
@@ -73,7 +73,7 @@
 }
 
 ::std::io::print {
-  fn(ref(n0 n1) fn(tup(n2 fn(_ n3)) _))
+  fn(ref(n0 n1) fn(tup(n2 tup(n3 _)) _))
   ::std::io::print::1 = x(n0 x(n1 x(n2 n3)))
 }
 
@@ -93,24 +93,24 @@
 
 ::std::result::Result::Err { fn(n0 enum(_ enum(enum(n0 n1) n1))) }
 
-::std::str::concat { fn(tup(@add(n0 n1) fn(n3 n4)) fn(tup(n0 fn(n2 n3)) tup(n1 fn(n2 n4)))) }
+::std::str::concat { fn(tup(@add(n1 n2) tup(n3 n0)) fn(tup(n1 tup(n0 n4)) tup(n2 tup(n3 n4)))) }
 
-::std::u32::to_string { fn(dup266(?(::std::u32::to_string::5 ::std::u32::to_string::1 x(n1 n0)) n1) n0) }
+::std::u32::to_string { fn(dup251(?(::std::u32::to_string::5 ::std::u32::to_string::1 x(n1 n0)) n1) n0) }
 
 ::std::u32::to_string::1 {
   x(n1 n2)
-  ::std::u32::to_string::2 = x(n1 x(tup(0 fn(n0 n0)) n2))
+  ::std::u32::to_string::2 = x(n1 x(tup(0 tup(n0 n0)) n2))
 }
 
-::std::u32::to_string::2 { x(dup266(?(::std::u32::to_string::4 ::std::u32::to_string::3 x(n2 n0)) n2) n0) }
+::std::u32::to_string::2 { x(dup251(?(::std::u32::to_string::4 ::std::u32::to_string::3 x(n2 n0)) n2) n0) }
 
 ::std::u32::to_string::3 {
-  x(dup266(@rem(10 n1) @div(10 n5)) x(tup(@add(1 n0) fn(n3 n4)) n6))
+  x(dup251(@rem(10 n1) @div(10 n5)) x(tup(@add(1 n0) tup(n3 n4)) n6))
   48 = @add(n1 n2)
-  ::std::u32::to_string::2 = x(n5 x(tup(n0 fn(n3 tup(n2 n4))) n6))
+  ::std::u32::to_string::2 = x(n5 x(tup(n0 tup(tup(n2 n3) n4)) n6))
 }
 
 ::std::u32::to_string::4 { x(_ x(n0 n0)) }
 
-::std::u32::to_string::5 { x(_ tup(1 fn(n0 tup(48 n0)))) }
+::std::u32::to_string::5 { x(_ tup(1 tup(tup(48 n0) n0))) }
 

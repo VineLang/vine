@@ -86,10 +86,10 @@ impl Compiler<'_> {
     items: impl IntoIterator<Item = T>,
     f: impl FnMut(&mut Self, T) -> Port,
   ) -> Port {
-    let start = self.net.new_wire();
-    let end = self.apply_combs("tup", start.0, items, f);
-    let buf = self.new_comb("fn", end, start.1);
-    self.new_comb("tup", Port::U32(len as u32), buf)
+    let buf = self.net.new_wire();
+    let end = self.apply_combs("tup", buf.0, items, f);
+    let pair = self.new_comb("tup", buf.1, end);
+    self.new_comb("tup", Port::U32(len as u32), pair)
   }
 
   pub(super) fn op(&mut self, op: BinaryOp, lhs: Port, rhs: Port) -> Port {
