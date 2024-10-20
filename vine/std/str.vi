@@ -1,10 +1,12 @@
 
 fn concat(a, b) {
-  let (a_len, a_buf) = a;
-  let (b_len, b_buf) = b;
-  (a_len + b_len, fn(x) a_buf(b_buf(x)))
+  let (a_len, a_buf, ~a_end) = a;
+  let (b_len, b_buf, ~b_end) = b;
+  a_end = b_buf;
+  (a_len + b_len, a_buf, move ~b_end)
 }
 
 fn single(char) {
-  (1, fn(x) (char, x))
+  let x;
+  (1, (char, move ~x), x)
 }
