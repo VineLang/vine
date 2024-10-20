@@ -67,9 +67,9 @@ fn main(io) {
   io.print_bool(Some(1) is Some(x) && x > 0);
 
   io.println("is_none_or:");
-  io.print_bool(None.is_none_or(fn(x) x > 0));
-  io.print_bool(Some(0).is_none_or(fn(x) x > 0));
-  io.print_bool(Some(1).is_none_or(fn(x) x > 0));
+  io.print_bool(None is Some(x) => x > 0);
+  io.print_bool(Some(0) is Some(x) => x > 0);
+  io.print_bool(Some(1) is Some(x) => x > 0);
 
   io.println("unwrap:");
   io.print_u32(Some(42).unwrap());
@@ -101,11 +101,4 @@ fn increment_option(&option) {
 
 fn add_options(a, b) {
   a.and_then(fn(a) b.map(fn(b) a + b))
-}
-
-fn is_none_or(&move self, f) {
-  match self {
-    Some(val) => f(val),
-    None => true,
-  }
 }
