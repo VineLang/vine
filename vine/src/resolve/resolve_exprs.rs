@@ -191,15 +191,21 @@ impl<'a> ResolveVisitor<'a> {
         self.visit_expr(e);
         self.visit_pat(p);
       }
-      ExprKind::LogicalOp(LogicalOp::LogicalAnd, a, b) => {
+      ExprKind::LogicalOp(LogicalOp::And, a, b) => {
         self.visit_cond(a);
         self.visit_cond(b);
       }
-      ExprKind::LogicalOp(LogicalOp::LogicalOr, a, b) => {
+      ExprKind::LogicalOp(LogicalOp::Or, a, b) => {
         self.enter_scope();
         self.visit_cond(a);
         self.exit_scope();
         self.enter_scope();
+        self.visit_cond(b);
+        self.exit_scope();
+      }
+      ExprKind::LogicalOp(LogicalOp::Implies, a, b) => {
+        self.enter_scope();
+        self.visit_cond(a);
         self.visit_cond(b);
         self.exit_scope();
       }

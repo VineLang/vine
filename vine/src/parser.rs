@@ -378,12 +378,17 @@ impl<'ctx, 'src> VineParser<'ctx, 'src> {
 
     if bp.permits(BP::LogicalAnd) && self.eat(Token::AndAnd)? {
       let rhs = self.parse_expr_bp(BP::LogicalAnd)?;
-      return Ok(Ok(ExprKind::LogicalOp(LogicalOp::LogicalAnd, Box::new(lhs), Box::new(rhs))));
+      return Ok(Ok(ExprKind::LogicalOp(LogicalOp::And, Box::new(lhs), Box::new(rhs))));
     }
 
     if bp.permits(BP::LogicalOr) && self.eat(Token::OrOr)? {
       let rhs = self.parse_expr_bp(BP::LogicalOr)?;
-      return Ok(Ok(ExprKind::LogicalOp(LogicalOp::LogicalOr, Box::new(lhs), Box::new(rhs))));
+      return Ok(Ok(ExprKind::LogicalOp(LogicalOp::Or, Box::new(lhs), Box::new(rhs))));
+    }
+
+    if bp.permits(BP::LogicalImplies) && self.eat(Token::ThickArrow)? {
+      let rhs = self.parse_expr_bp(BP::LogicalImplies)?;
+      return Ok(Ok(ExprKind::LogicalOp(LogicalOp::Implies, Box::new(lhs), Box::new(rhs))));
     }
 
     if bp.permits(BP::Is) && self.eat(Token::Is)? {
@@ -559,6 +564,7 @@ enum BP {
   ControlFlow,
   Assignment,
   Range,
+  LogicalImplies,
   LogicalOr,
   LogicalAnd,
   Is,
