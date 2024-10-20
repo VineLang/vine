@@ -33,7 +33,7 @@ is_some_and:
   false
   false
   true
-is_none_or:
+is_some_implies:
   true
   false
   true

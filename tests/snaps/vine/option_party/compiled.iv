@@ -79,7 +79,7 @@
   ::std::option::Option::Some = fn(0 enum(::option_party::main::15 enum(0 n84)))
   ::option_party::print_bool = fn(ref(n85 n87) fn(n86 _))
   ::std::option::Option::Some = fn(1 enum(::option_party::main::20 enum(0 n86)))
-  ::std::io::println = fn(ref(n87 n89) fn(tup(11 fn(n88 tup(105 tup(115 tup(95 tup(110 tup(111 tup(110 tup(101 tup(95 tup(111 tup(114 tup(58 n88))))))))))))) _))
+  ::std::io::println = fn(ref(n87 n89) fn(tup(16 fn(n88 tup(105 tup(115 tup(95 tup(115 tup(111 tup(109 tup(101 tup(95 tup(105 tup(109 tup(112 tup(108 tup(105 tup(101 tup(115 tup(58 n88)))))))))))))))))) _))
   ::option_party::print_bool = fn(ref(n89 n91) fn(n90 _))
   ::std::option::Option::None = enum(::option_party::main::25 enum(1 n90))
   ::option_party::print_bool = fn(ref(n91 n93) fn(n92 _))

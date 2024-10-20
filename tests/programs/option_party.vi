@@ -66,7 +66,7 @@ fn main(io) {
   io.print_bool(Some(0) is Some(x) && x > 0);
   io.print_bool(Some(1) is Some(x) && x > 0);
 
-  io.println("is_none_or:");
+  io.println("is_some_implies:");
   io.print_bool(None is Some(x) => x > 0);
   io.print_bool(Some(0) is Some(x) => x > 0);
   io.print_bool(Some(1) is Some(x) => x > 0);
