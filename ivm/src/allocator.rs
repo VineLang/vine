@@ -1,11 +1,40 @@
 use crate::{
   addr::Addr,
-  heap::Node,
+  heap::{Heap, Node},
   ivm::IVM,
   port::{Port, Tag},
   wire::Wire,
   word::Word,
 };
+
+pub(crate) struct Allocator<'ivm> {
+  /// The heap memory backing this allocator.
+  pub(crate) heap: &'ivm Heap,
+  /// The head pointer of this allocator's freelist.
+  pub(crate) head: Addr,
+  /// The next unallocated index in the `heap`.
+  pub(crate) next: usize,
+}
+
+impl<'ivm> Allocator<'ivm> {
+  pub(crate) fn new(heap: &'ivm Heap) -> Self {
+    Allocator { heap, head: Addr::NULL, next: 0 }
+  }
+
+  pub(crate) fn shrink(&mut self) {
+    self.heap = self.heap.slice(self.next..);
+    self.next = 0;
+  }
+
+  pub(crate) fn fork(&mut self, index: usize, count: usize) -> Self {
+    self.shrink();
+    let length = self.heap.0.len();
+    let fork_point = length - length / (count + index + 1);
+    let fork = self.heap.slice(fork_point..);
+    self.heap = self.heap.slice(..fork_point);
+    Self::new(fork)
+  }
+}
 
 impl<'ivm> IVM<'ivm> {
   /// Allocates a new binary node with a given `tag` and `label`.
@@ -38,8 +67,8 @@ impl<'ivm> IVM<'ivm> {
       addr.as_word().store(free);
       if addr.other_half().as_word().load() == free {
         let addr = addr.left_half();
-        if addr.as_word().compare_exchange(free, Word::from_ptr(self.alloc_head.0)).is_ok() {
-          self.alloc_head = addr;
+        if addr.as_word().compare_exchange(free, Word::from_ptr(self.alloc.head.0)).is_ok() {
+          self.alloc.head = addr;
         }
       }
     }
@@ -49,17 +78,21 @@ impl<'ivm> IVM<'ivm> {
   #[inline]
   fn alloc_node(&mut self) -> Addr {
     self.stats.mem_alloc += 2;
-    let addr = if self.alloc_head != Addr::NULL {
-      let addr = self.alloc_head;
+    let addr = if self.alloc.head != Addr::NULL {
+      let addr = self.alloc.head;
       let next = unsafe { Addr(addr.as_word().load().ptr()) };
-      self.alloc_head = next;
+      self.alloc.head = next;
       addr
     } else {
       self.stats.mem_heap += 2;
-      let index = self.alloc_next;
-      self.alloc_next += 1;
-      let node = self.heap.0.get(index).expect("OOM");
-      Addr(node as *const Node as *const ())
+      let index = self.alloc.next;
+      self.alloc.next += 1;
+      if let Some(node) = self.alloc.heap.0.get(index) {
+        Addr(node as *const Node as *const ())
+      } else {
+        self.alloc = self.alloc_pool.pop().expect("OOM");
+        return self.alloc_node();
+      }
     };
     unsafe { addr.as_word().store(Word::from_bits(0)) }
     unsafe { addr.other_half().as_word().store(Word::from_bits(0)) }

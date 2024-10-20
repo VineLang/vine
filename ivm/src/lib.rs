@@ -7,6 +7,7 @@
 #![warn(clippy::std_instead_of_core)]
 
 mod ivm;
+mod parallel;
 pub use ivm::*;
 
 pub mod addr;
