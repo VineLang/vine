@@ -1,0 +1,36 @@
+
+use std::{io::println, u32};
+
+const end = 100;
+
+fn main(io) {
+  let n = 1;
+  while n <= end {
+    let sum = sum_divisors(n);
+    let class = if sum == n + 1 { " (prime)" } else if sum == n * 2 { " (perfect!)" } else { "" };
+    io.println(u32::to_string(n) ++ ": " ++ u32::to_string(sum) ++ class);
+    n += 1;
+  }
+}
+
+fn sum_divisors(n) {
+  let sum = 1;
+  let d = 2;
+  while d * d <= n {
+    if n % d != 0 {
+      d += 1;
+      continue;
+    }
+    let pow = d;
+    while n % d == 0 {
+      pow *= d;
+      n /= d;
+    }
+    sum *= (pow - 1) / (d - 1);
+    d += 1;
+  }
+  if n != 1 {
+    sum *= n + 1;
+  }
+  sum
+}

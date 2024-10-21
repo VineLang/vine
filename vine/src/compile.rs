@@ -53,7 +53,7 @@ pub struct Compiler<'n> {
   net: NetBuilder,
 
   return_target: Option<(Local, ForkId)>,
-  break_target: Option<ForkId>,
+  loop_target: Option<(ForkId, StageId)>,
 
   dup_labels: usize,
 }
@@ -72,7 +72,7 @@ impl<'n> Compiler<'n> {
       forks: Default::default(),
       net: Default::default(),
       return_target: Default::default(),
-      break_target: Default::default(),
+      loop_target: Default::default(),
       dup_labels: Default::default(),
     }
   }

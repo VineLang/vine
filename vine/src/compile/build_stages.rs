@@ -134,6 +134,7 @@ impl Compiler<'_> {
       ExprKind::If(cond, then, els) => self.lower_if(cond, then, els),
       ExprKind::Return(r) => self.lower_return(r),
       ExprKind::Break => self.lower_break(),
+      ExprKind::Continue => self.lower_continue(),
 
       ExprKind::Match(value, arms) => {
         let result = self.new_local();

@@ -157,6 +157,8 @@ pub enum ExprKind {
   #[class(value)]
   Break,
   #[class(value)]
+  Continue,
+  #[class(value)]
   Ref(B<Expr>),
   #[class(place)]
   Deref(B<Expr>),
