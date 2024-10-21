@@ -177,7 +177,8 @@ impl Validate {
       | ExprKind::F32(_)
       | ExprKind::String(_)
       | ExprKind::Path(_)
-      | ExprKind::Break => {}
+      | ExprKind::Break
+      | ExprKind::Continue => {}
 
       ExprKind::Block(..)
       | ExprKind::If(..)

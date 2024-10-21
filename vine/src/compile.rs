@@ -54,6 +54,7 @@ pub struct Compiler<'n> {
 
   return_target: Option<(Local, ForkId)>,
   break_target: Option<ForkId>,
+  loop_target: Option<ForkId>,
 
   dup_labels: usize,
 }
@@ -73,6 +74,7 @@ impl<'n> Compiler<'n> {
       net: Default::default(),
       return_target: Default::default(),
       break_target: Default::default(),
+      loop_target: Default::default(),
       dup_labels: Default::default(),
     }
   }

@@ -253,6 +253,9 @@ impl<'ctx, 'src> VineParser<'ctx, 'src> {
     if self.eat(Token::Break)? {
       return Ok(ExprKind::Break);
     }
+    if self.eat(Token::Continue)? {
+      return Ok(ExprKind::Continue);
+    }
     if self.eat(Token::And)? {
       return Ok(ExprKind::Ref(Box::new(self.parse_expr_bp(BP::Prefix)?)));
     }

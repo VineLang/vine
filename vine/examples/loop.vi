@@ -1,0 +1,23 @@
+
+use std::{io::println, u32};
+
+const end = 5;
+
+fn main(io) {
+  io.println("Hello There");
+
+  let n = 1;
+  loop {
+    io.println(u32::to_string(n));
+    if n >= end {
+      break;
+    }
+
+    if n >= 3 {
+      io.println("Prepare to Continue");
+      continue;
+    }
+
+    n += 1;
+  }
+}
