@@ -59,15 +59,12 @@ impl Compiler<'_> {
         let old = self_.break_target.replace(self_.cur_fork());
 
         self_.new_fork(|self_| {
-          let old_loop = self_.loop_target.replace(self_.cur_fork());
+          self_.loop_target.replace(self_.cur_fork());
           self_.lower_block_erase(body);
-
-          self_.loop_target = old_loop;
+          self_.goto(s);
         });
 
         self_.break_target = old;
-
-        self_.goto(s);
         false
       });
 
