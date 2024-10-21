@@ -9,11 +9,11 @@ impl Compiler<'_> {
     let res = self.apply_combs("fn", func.0, params, Self::lower_pat_value);
     let result = self.new_local();
     let orig = self.cur_id;
-    let old_break = self.break_target.take();
+    let old_loop = self.loop_target.take();
     let old_return = self.return_target.replace((result, self.cur_fork()));
     let body = self.lower_expr_value(body);
     self.return_target = old_return;
-    self.break_target = old_break;
+    self.loop_target = old_loop;
     self.set_local_to(result, body);
     if self.cur_id != orig {
       self.select_stage(orig);
@@ -56,10 +56,10 @@ impl Compiler<'_> {
     self.new_fork(|self_| {
       let i = self_.new_interface();
       let s = self_.new_stage(i, move |self_, s| {
-        let old = self_.break_target.replace(self_.cur_fork());
+        let old_loop = self_.loop_target.replace((self_.cur_fork(), s));
         self_.loop_target.replace((self_.cur_fork(), s));
         self_.lower_block_erase(body);
-        self_.break_target = old;
+        self_.loop_target = old_loop;
         self_.goto(s);
         false
       });
@@ -72,16 +72,15 @@ impl Compiler<'_> {
 
   pub(super) fn lower_while(&mut self, cond: &Expr, body: &Block) -> Port {
     self.new_fork(|self_| {
-      let old_break = self_.break_target.replace(self_.cur_fork());
-
       let i = self_.new_interface();
       let start = self_.new_stage(i, move |self_, start| {
         self_.lower_cond(
           cond,
           &|self_| {
-            self_.loop_target.replace((self_.cur_fork(), start));
+            let old_loop = self_.loop_target.replace((self_.cur_fork(), start));
             self_.lower_block_erase(body);
             self_.goto(start);
+            self_.loop_target = old_loop;
             false
           },
           &|_| true,
@@ -90,8 +89,6 @@ impl Compiler<'_> {
         false
       });
 
-      self_.break_target = old_break;
-
       self_.goto(start);
     });
 
@@ -99,7 +96,8 @@ impl Compiler<'_> {
   }
 
   pub(super) fn lower_break(&mut self) -> Port {
-    self.diverge(self.break_target.unwrap());
+    let (fork, _stage) = self.loop_target.unwrap();
+    self.diverge(fork);
     Port::Erase
   }
 
