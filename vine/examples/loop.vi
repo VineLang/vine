@@ -8,6 +8,7 @@ fn main(io) {
 
   let n = 1;
   loop {
+  // while 1 {
     io.println(u32::to_string(n));
     if n >= end {
       break;

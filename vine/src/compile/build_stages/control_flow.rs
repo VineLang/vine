@@ -83,7 +83,11 @@ impl Compiler<'_> {
         self_.lower_cond(
           cond,
           &|self_| {
-            self_.lower_block_erase(body);
+            self_.new_fork(|self_| {
+              self_.loop_target.replace(self_.cur_fork());
+              self_.lower_block_erase(body);
+            });
+
             self_.goto(start);
             false
           },
