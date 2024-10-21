@@ -4,23 +4,19 @@ use std::{io::println, u32};
 const end = 5;
 
 fn main(io) {
-  io.println("Hello There");
-
   let n = 0;
   loop {
-  // while 1 {
-    n += 1;
-
-    io.println(u32::to_string(n));
     if n >= end {
       break;
     }
 
+    n += 1;
+
     if n == 3 {
-      io.println("Prepare to Continue");
+      io.println("continue called! (skipping 3)");
       continue;
     }
 
-
+    io.println(u32::to_string(n));
   }
 }
