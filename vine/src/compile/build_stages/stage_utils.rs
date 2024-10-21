@@ -55,6 +55,17 @@ impl Compiler<'_> {
     self.cur.divergence = divergence;
   }
 
+  pub(super) fn diverge_to(&mut self, fork: ForkId, stage: StageId) {
+    let divergence = self.cur.divergence.min(fork);
+    self.cur.divergence = divergence;
+    self.goto(stage);
+    self.forks[fork].ends.push(self.cur_id);
+    let i = self.new_interface();
+    // this dummy stage could still affect interfaces?
+    self.start_stage(i);
+    self.cur.divergence = divergence;
+  }
+
   pub(super) fn new_fork<T>(&mut self, f: impl FnOnce(&mut Self) -> T) -> T {
     self.forks.push(Fork { ends: Vec::new(), divergence: self.forks.len() });
     let l = self.forks.len();

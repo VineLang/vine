@@ -6,9 +6,11 @@ const end = 5;
 fn main(io) {
   io.println("Hello There");
 
-  let n = 1;
+  let n = 0;
   loop {
   // while 1 {
+    n += 1;
+
     io.println(u32::to_string(n));
     if n >= end {
       break;
@@ -19,6 +21,6 @@ fn main(io) {
       continue;
     }
 
-    n += 1;
+
   }
 }

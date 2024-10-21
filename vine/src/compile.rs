@@ -54,7 +54,7 @@ pub struct Compiler<'n> {
 
   return_target: Option<(Local, ForkId)>,
   break_target: Option<ForkId>,
-  loop_target: Option<ForkId>,
+  loop_target: Option<(ForkId, StageId)>,
 
   dup_labels: usize,
 }

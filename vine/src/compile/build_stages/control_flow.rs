@@ -57,12 +57,8 @@ impl Compiler<'_> {
       let i = self_.new_interface();
       let s = self_.new_stage(i, move |self_, s| {
         let old = self_.break_target.replace(self_.cur_fork());
-
-        self_.new_fork(|self_| {
-          self_.loop_target.replace(self_.cur_fork());
-          self_.lower_block_erase(body);
-        });
-
+        self_.loop_target.replace((self_.cur_fork(), s));
+        self_.lower_block_erase(body);
         self_.break_target = old;
         self_.goto(s);
         false
@@ -83,11 +79,8 @@ impl Compiler<'_> {
         self_.lower_cond(
           cond,
           &|self_| {
-            self_.new_fork(|self_| {
-              self_.loop_target.replace(self_.cur_fork());
-              self_.lower_block_erase(body);
-            });
-
+            self_.loop_target.replace((self_.cur_fork(), start));
+            self_.lower_block_erase(body);
             self_.goto(start);
             false
           },
@@ -111,7 +104,8 @@ impl Compiler<'_> {
   }
 
   pub(super) fn lower_continue(&mut self) -> Port {
-    self.diverge(self.loop_target.unwrap());
+    let (fork, stage) = self.loop_target.unwrap();
+    self.diverge_to(fork, stage);
     Port::Erase
   }
 
