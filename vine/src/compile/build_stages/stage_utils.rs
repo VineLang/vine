@@ -59,9 +59,7 @@ impl Compiler<'_> {
     let divergence = self.cur.divergence.min(fork);
     self.cur.divergence = divergence;
     self.goto(stage);
-    self.forks[fork].ends.push(self.cur_id);
     let i = self.new_interface();
-    // this dummy stage could still affect interfaces?
     self.start_stage(i);
     self.cur.divergence = divergence;
   }
