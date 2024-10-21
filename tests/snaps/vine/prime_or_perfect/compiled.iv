@@ -1,0 +1,109 @@
+
+::main { ::prime_or_perfect::main }
+
+::prime_or_perfect::main {
+  fn(n0 _)
+  ::prime_or_perfect::main::1 = x(n0 1)
+}
+
+::prime_or_perfect::main::1 { x(n0 dup3(@le(100 ?(_ ::prime_or_perfect::main::2 x(n0 n1))) n1)) }
+
+::prime_or_perfect::main::2 {
+  x(n7 dup3(n9 dup3(@add(1 n0) dup3(n10 dup3(n11 @add(1 n13))))))
+  ::prime_or_perfect::sum_divisors = fn(n9 dup4(@eq(n0 ?(::prime_or_perfect::main::4 ::prime_or_perfect::main::3 x(n10 x(n14 n8)))) dup4(n14 n15)))
+  ::std::io::println = fn(ref(n7 n12) fn(n6 _))
+  ::std::u32::to_string = fn(n11 n2)
+  ::std::str::concat = fn(n2 fn(tup(2 fn(n1 tup(58 tup(32 n1)))) n3))
+  ::std::u32::to_string = fn(n15 n4)
+  ::std::str::concat = fn(n3 fn(n4 n5))
+  ::std::str::concat = fn(n5 fn(n8 n6))
+  ::prime_or_perfect::main::1 = x(n12 n13)
+}
+
+::prime_or_perfect::main::3 { x(_ x(_ tup(8 fn(n0 tup(32 tup(40 tup(112 tup(114 tup(105 tup(109 tup(101 tup(41 n0)))))))))))) }
+
+::prime_or_perfect::main::4 { x(@mul(2 n0) x(@eq(n0 ?(::prime_or_perfect::main::6 ::prime_or_perfect::main::5 n1)) n1)) }
+
+::prime_or_perfect::main::5 { tup(11 fn(n0 tup(32 tup(40 tup(112 tup(101 tup(114 tup(102 tup(101 tup(99 tup(116 tup(33 tup(41 n0))))))))))))) }
+
+::prime_or_perfect::main::6 { tup(0 fn(n0 n0)) }
+
+::prime_or_perfect::sum_divisors {
+  fn(n0 n2)
+  ::prime_or_perfect::sum_divisors::1 = x(n0 x(dup10(@ne(1 ?(::prime_or_perfect::sum_divisors::12 ::prime_or_perfect::sum_divisors::11 x(n3 x(n1 n2)))) n3) x(1 x(n1 2))))
+}
+
+::prime_or_perfect::sum_divisors::1 { x(dup10(n0 n1) x(n2 x(n3 x(n4 dup12(@mul(n5 @le(n0 ?(::prime_or_perfect::sum_divisors::10 ::prime_or_perfect::sum_divisors::2 x(n1 x(n2 x(n3 x(n4 n6))))))) dup12(n5 n6)))))) }
+
+::prime_or_perfect::sum_divisors::2 { x(dup10(@rem(n4 @ne(0 ?(::prime_or_perfect::sum_divisors::6 ::prime_or_perfect::sum_divisors::3 x(n0 x(n1 x(n2 x(n3 n5))))))) n0) x(n1 x(n2 x(n3 dup12(n4 n5))))) }
+
+::prime_or_perfect::sum_divisors::3 {
+  x(n0 x(n1 x(n2 x(n3 @add(1 n4)))))
+  ::prime_or_perfect::sum_divisors::1 = x(n0 x(n1 x(n2 x(n3 n4))))
+}
+
+::prime_or_perfect::sum_divisors::6 {
+  x(n2 x(n6 x(@mul(n1 n7) x(n8 dup12(n3 dup12(n4 dup12(@sub(1 n0) @add(1 n9))))))))
+  ::prime_or_perfect::sum_divisors::7 = x(n2 x(n5 x(n4 x(n3 @sub(1 @div(n0 n1))))))
+  ::prime_or_perfect::sum_divisors::1 = x(n5 x(n6 x(n7 x(n8 n9))))
+}
+
+::prime_or_perfect::sum_divisors::7 { x(dup10(@rem(n4 @eq(0 ?(::prime_or_perfect::sum_divisors::9 ::prime_or_perfect::sum_divisors::8 x(n0 x(n1 x(n5 n2)))))) n0) x(n1 x(dup12(n4 n5) n2))) }
+
+::prime_or_perfect::sum_divisors::8 {
+  x(@div(n5 n0) x(n1 x(dup12(n4 dup12(n5 n6)) x(@mul(n4 n2) n3))))
+  ::prime_or_perfect::sum_divisors::7 = x(n0 x(n1 x(n6 x(n2 n3))))
+}
+
+::prime_or_perfect::sum_divisors::9 { x(n0 x(n0 x(_ x(n1 n1)))) }
+
+::prime_or_perfect::sum_divisors::10 { x(n0 x(n0 x(n1 x(n1 _)))) }
+
+::prime_or_perfect::sum_divisors::11 { x(@add(1 n0) x(@mul(n0 n1) n1)) }
+
+::prime_or_perfect::sum_divisors::12 { x(_ x(n0 n0)) }
+
+::std::io::println {
+  fn(ref(n0 n3) fn(n1 _))
+  ::std::io::print = fn(ref(n0 n2) fn(n1 _))
+  ::std::io::print_char = fn(ref(n2 n3) fn(10 _))
+}
+
+::std::io::print {
+  fn(ref(n0 n1) fn(tup(n2 fn(_ n3)) _))
+  ::std::io::print::1 = x(n0 x(n1 x(n2 n3)))
+}
+
+::std::io::print::1 { x(n0 x(n1 x(dup26(?(::std::io::print::3 ::std::io::print::2 x(n0 x(n1 x(n3 n2)))) n3) n2))) }
+
+::std::io::print::2 {
+  x(n1 x(n3 x(@sub(1 n4) tup(n0 n5))))
+  ::std::io::print_char = fn(ref(n1 n2) fn(n0 _))
+  ::std::io::print::1 = x(n2 x(n3 x(n4 n5)))
+}
+
+::std::io::print::3 { x(n0 x(n0 _)) }
+
+::std::io::print_char { fn(ref(@io_print_char(char io) io) fn(char _)) }
+
+::std::str::concat { fn(tup(@add(n0 n1) fn(n3 n4)) fn(tup(n0 fn(n2 n3)) tup(n1 fn(n2 n4)))) }
+
+::std::u32::to_string { fn(dup185(?(::std::u32::to_string::5 ::std::u32::to_string::1 x(n1 n0)) n1) n0) }
+
+::std::u32::to_string::1 {
+  x(n1 n2)
+  ::std::u32::to_string::2 = x(n1 x(tup(0 fn(n0 n0)) n2))
+}
+
+::std::u32::to_string::2 { x(dup185(?(::std::u32::to_string::4 ::std::u32::to_string::3 x(n2 n0)) n2) n0) }
+
+::std::u32::to_string::3 {
+  x(dup185(@rem(10 n1) @div(10 n5)) x(tup(@add(1 n0) fn(n3 n4)) n6))
+  48 = @add(n1 n2)
+  ::std::u32::to_string::2 = x(n5 x(tup(n0 fn(n3 tup(n2 n4))) n6))
+}
+
+::std::u32::to_string::4 { x(_ x(n0 n0)) }
+
+::std::u32::to_string::5 { x(_ tup(1 fn(n0 tup(48 n0)))) }
+

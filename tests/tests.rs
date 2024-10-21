@@ -36,12 +36,13 @@ fn tests(t: &mut DynTester) {
     test_vi(t, "vine/examples/mandelbrot_tga.vi", b"", ".tga");
     test_vi(t, "vine/examples/mandelbrot.vi", b"", ".txt");
     test_vi(t, "vine/examples/primes.vi", b"", ".txt");
+    test_vi(t, "vine/examples/prime_or_perfect.vi", b"", ".txt");
 
     test_vi(t, "tests/programs/basic_diverge.vi", b"", ".txt");
     test_vi(t, "tests/programs/final_countdown.vi", b"", ".txt");
     test_vi(t, "tests/programs/inverse.vi", b"", ".txt");
     test_vi(t, "tests/programs/logic.vi", b"", ".txt");
-    test_vi(t, "tests/programs/loop_continue.vi", b"", ".txt");
+    test_vi(t, "tests/programs/loop_break_continue.vi", b"", ".txt");
     test_vi(t, "tests/programs/loop_vi_loop.vi", b"", ".txt");
     test_vi(t, "tests/programs/maybe_set.vi", b"", ".txt");
     test_vi(t, "tests/programs/move_it_move_it.vi", b"", ".txt");

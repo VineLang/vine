@@ -1,31 +1,26 @@
 
-::main { ::loop_continue::main }
+::main { ::loop_break_continue::main }
 
-::loop_continue::main {
+::loop_break_continue::main {
   fn(n0 _)
-  ::loop_continue::main::1 = x(n0 0)
+  ::loop_break_continue::main::1 = x(n0 0)
 }
 
-::loop_continue::main::1 {
-  n0
-  1 = ?(_ ::loop_continue::main::2 n0)
-}
+::loop_break_continue::main::1 { x(n0 dup3(@le$(5 ?(::loop_break_continue::main::5 _ x(n0 n1))) n1)) }
 
-::loop_continue::main::2 { x(n0 dup3(@le$(5 ?(::loop_continue::main::6 _ x(n0 n1))) n1)) }
+::loop_break_continue::main::5 { x(n0 @add(1 dup3(@eq(3 ?(::loop_break_continue::main::9 ::loop_break_continue::main::6 x(n0 n1))) n1))) }
 
-::loop_continue::main::6 { x(n0 @add(1 dup3(@eq(3 ?(::loop_continue::main::10 ::loop_continue::main::7 x(n0 n1))) n1))) }
-
-::loop_continue::main::7 {
+::loop_break_continue::main::6 {
   x(n1 n3)
   ::std::io::println = fn(ref(n1 n2) fn(tup(29 fn(n0 tup(99 tup(111 tup(110 tup(116 tup(105 tup(110 tup(117 tup(101 tup(32 tup(99 tup(97 tup(108 tup(108 tup(101 tup(100 tup(33 tup(32 tup(40 tup(115 tup(107 tup(105 tup(112 tup(112 tup(105 tup(110 tup(103 tup(32 tup(51 tup(41 n0))))))))))))))))))))))))))))))) _))
-  ::loop_continue::main::1 = x(n2 n3)
+  ::loop_break_continue::main::1 = x(n2 n3)
 }
 
-::loop_continue::main::10 {
+::loop_break_continue::main::9 {
   x(n1 dup3(n3 n4))
   ::std::io::println = fn(ref(n1 n2) fn(n0 _))
   ::std::u32::to_string = fn(n3 n0)
-  ::loop_continue::main::1 = x(n2 n4)
+  ::loop_break_continue::main::1 = x(n2 n4)
 }
 
 ::std::io::println {
