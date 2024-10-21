@@ -61,10 +61,10 @@ impl Compiler<'_> {
         self_.new_fork(|self_| {
           self_.loop_target.replace(self_.cur_fork());
           self_.lower_block_erase(body);
-          self_.goto(s);
         });
 
         self_.break_target = old;
+        self_.goto(s);
         false
       });
 
@@ -107,9 +107,7 @@ impl Compiler<'_> {
   }
 
   pub(super) fn lower_continue(&mut self) -> Port {
-    if let Some(loop_target) = self.loop_target {
-      self.diverge(loop_target);
-    }
+    self.diverge(self.loop_target.unwrap());
     Port::Erase
   }
 
