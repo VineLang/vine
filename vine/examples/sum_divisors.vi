@@ -1,3 +1,4 @@
+
 use std::{io::println, u32};
 
 const end = 100;
