@@ -62,12 +62,9 @@ fn tests(t: &mut DynTester) {
     test_vi_fail(t, "tests/programs/fail/missing_no.vi", &mut vine_fail_tests);
   });
 
-  // Remove any snapshot folders that shouldn't exist
-  t.group("snapshot_removal", |t| {
-    remove_orphan_snapshots("tests/snaps/ivy", &ivy_tests);
-    remove_orphan_snapshots("tests/snaps/vine", &vine_tests);
-    remove_orphan_snapshots("tests/snaps/vine_fail", &vine_fail_tests);
-  });
+  remove_orphan_snapshots("tests/snaps/ivy", &ivy_tests);
+  remove_orphan_snapshots("tests/snaps/vine", &vine_tests);
+  remove_orphan_snapshots("tests/snaps/vine_fail", &vine_fail_tests);
 }
 
 const VINE: &[&str] = &["vine"];
@@ -132,6 +129,8 @@ fn run_iv(group: &str, name: &str, path: &str, input: &[u8], output_ext: &str) {
     .unwrap();
 }
 
+/// Removes any snapshots that don't have a corresponding test associated with
+/// it
 fn remove_orphan_snapshots(path: &'static str, names: &[String]) {
   let Ok(entries) = fs::read_dir(path) else {
     println!("Cannot read path: {}", path);
