@@ -145,6 +145,7 @@ fn remove_orphan_snapshots(path: &'static str, names: &[String]) {
     return;
   };
 
+  let mut orphans = false;
   for entry in entries {
     let Ok(entry) = entry else {
       continue;
@@ -161,12 +162,13 @@ fn remove_orphan_snapshots(path: &'static str, names: &[String]) {
 
     let file_name = file_name_str.to_owned();
     if !names.contains(&file_name) {
+      orphans = true;
       println!("Removing unlisted snaps: {}", path.display());
       let remove_res =
         if path.is_dir() { fs::remove_dir_all(&path) } else { fs::remove_file(&path) };
 
       if let Err(err) = remove_res {
-        panic!(
+        println!(
           "Unable to remove {}: {} - {}",
           if path.is_dir() { "directory" } else { "file" },
           path.display(),
@@ -175,6 +177,8 @@ fn remove_orphan_snapshots(path: &'static str, names: &[String]) {
       }
     }
   }
+
+  assert!(!orphans);
 }
 
 fn exec(bin: &[&str], args: &[&str], input: &[u8], success: bool) -> (Vec<u8>, Vec<u8>) {
