@@ -326,6 +326,7 @@ dependencies = [
  "indexmap",
  "ivm",
  "logos",
+ "slab",
  "vine-util",
 ]
 

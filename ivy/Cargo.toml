@@ -9,6 +9,7 @@ logos = "0.14.0"
 
 ivm = { path = "../ivm" }
 vine-util = { path = "../util" }
+slab = "0.4.9"
 
 [lints]
 workspace = true

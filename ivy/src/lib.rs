@@ -5,3 +5,5 @@ pub mod parser;
 pub mod repl;
 
 mod lexer;
+
+pub mod foo;
