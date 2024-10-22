@@ -63,33 +63,11 @@ fn tests(t: &mut DynTester) {
   });
 
   // Remove any snapshot folders that shouldn't exist
-  remove_orphan_snapshots("tests/snaps/ivy", &ivy_tests);
-  remove_orphan_snapshots("tests/snaps/vine", &vine_tests);
-  remove_orphan_snapshots("tests/snaps/vine_fail", &vine_fail_tests);
-}
-
-fn remove_orphan_snapshots(path: &'static str, names: &[String]) {
-  if let Ok(entries) = fs::read_dir(path) {
-    for entry in entries.flatten() {
-      let path = entry.path();
-      if let Some(folder_name) = path.file_name().and_then(|name| name.to_str()) {
-        println!("folder_name: {}", folder_name);
-        if !names.contains(&folder_name.to_owned()) {
-          println!("Removing unlisted snaps: {}", path.display());
-
-          if path.is_dir() {
-            if fs::remove_dir_all(&path).is_err() {
-              println!("bruh");
-            }
-          } else {
-            if fs::remove_file(&path).is_err() {
-              println!("bruh2");
-            }
-          }
-        }
-      }
-    }
-  }
+  t.group("snapshot_removal", |t| {
+    remove_orphan_snapshots("tests/snaps/ivy", &ivy_tests);
+    remove_orphan_snapshots("tests/snaps/vine", &vine_tests);
+    remove_orphan_snapshots("tests/snaps/vine_fail", &vine_fail_tests);
+  });
 }
 
 const VINE: &[&str] = &["vine"];
@@ -152,6 +130,44 @@ fn run_iv(group: &str, name: &str, path: &str, input: &[u8], output_ext: &str) {
   test_snapshot(&[group, name, "stats.txt"], stats.as_bytes());
   fs::write(get_snapshot_path(&[group, name, "timing.txt"]), full_stats[stats.len()..].as_bytes())
     .unwrap();
+}
+
+fn remove_orphan_snapshots(path: &'static str, names: &[String]) {
+  let Ok(entries) = fs::read_dir(path) else {
+    println!("Cannot read path: {}", path);
+    return;
+  };
+
+  for entry in entries {
+    let Ok(entry) = entry else {
+      continue;
+    };
+
+    let path = entry.path();
+    let Some(file_name) = path.file_stem() else {
+      continue;
+    };
+
+    let Some(file_name_str) = file_name.to_str() else {
+      continue;
+    };
+
+    let file_name = file_name_str.to_owned();
+    if !names.contains(&file_name) {
+      println!("Removing unlisted snaps: {}", path.display());
+      let remove_res =
+        if path.is_dir() { fs::remove_dir_all(&path) } else { fs::remove_file(&path) };
+
+      if let Err(err) = remove_res {
+        println!(
+          "Unable to remove {}: {} - {}",
+          if path.is_dir() { "directory" } else { "file" },
+          path.display(),
+          err
+        );
+      }
+    }
+  }
 }
 
 fn exec(bin: &[&str], args: &[&str], input: &[u8], success: bool) -> (Vec<u8>, Vec<u8>) {
