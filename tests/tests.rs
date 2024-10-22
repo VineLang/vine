@@ -20,51 +20,84 @@ fn tests(t: &mut DynTester) {
   let fib_repl_input_iv = b"1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n21\n100\n999999\n";
   let fib_repl_input_vi = b"1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n21\n100\n999999\n\nabc\n";
 
+  let mut ivy_tests = Vec::new();
+  let mut vine_tests = Vec::new();
+
   t.group("ivy", |t| {
-    test_iv(t, "ivy/examples/cat.iv", b"meow\n", ".txt");
-    test_iv(t, "ivy/examples/fib_repl.iv", fib_repl_input_iv, ".txt");
-    test_iv(t, "ivy/examples/fizzbuzz.iv", b"", ".txt");
-    test_iv(t, "ivy/examples/hihi.iv", b"", ".txt");
+    test_iv(t, "ivy/examples/cat.iv", b"meow\n", ".txt", &mut ivy_tests);
+    test_iv(t, "ivy/examples/fib_repl.iv", fib_repl_input_iv, ".txt", &mut ivy_tests);
+    test_iv(t, "ivy/examples/fizzbuzz.iv", b"", ".txt", &mut ivy_tests);
+    test_iv(t, "ivy/examples/hihi.iv", b"", ".txt", &mut ivy_tests);
   });
 
   t.group("vine", |t| {
-    test_vi(t, "vine/examples/fib_repl.vi", fib_repl_input_vi, ".txt");
-    test_vi(t, "vine/examples/fib.vi", b"", ".txt");
-    test_vi(t, "vine/examples/fizzbuzz.vi", b"", ".txt");
-    test_vi(t, "vine/examples/hello_world.vi", b"", ".txt");
-    test_vi(t, "vine/examples/mandelbrot_sixel.vi", b"", ".sixel");
-    test_vi(t, "vine/examples/mandelbrot_tga.vi", b"", ".tga");
-    test_vi(t, "vine/examples/mandelbrot.vi", b"", ".txt");
-    test_vi(t, "vine/examples/primes.vi", b"", ".txt");
-    test_vi(t, "vine/examples/sum_divisors.vi", b"", ".txt");
+    test_vi(t, "vine/examples/fib_repl.vi", fib_repl_input_vi, ".txt", &mut vine_tests);
+    test_vi(t, "vine/examples/fib.vi", b"", ".txt", &mut vine_tests);
+    test_vi(t, "vine/examples/fizzbuzz.vi", b"", ".txt", &mut vine_tests);
+    test_vi(t, "vine/examples/hello_world.vi", b"", ".txt", &mut vine_tests);
+    test_vi(t, "vine/examples/mandelbrot_sixel.vi", b"", ".sixel", &mut vine_tests);
+    test_vi(t, "vine/examples/mandelbrot_tga.vi", b"", ".tga", &mut vine_tests);
+    test_vi(t, "vine/examples/mandelbrot.vi", b"", ".txt", &mut vine_tests);
+    test_vi(t, "vine/examples/primes.vi", b"", ".txt", &mut vine_tests);
+    test_vi(t, "vine/examples/sum_divisors.vi", b"", ".txt", &mut vine_tests);
 
-    test_vi(t, "tests/programs/basic_diverge.vi", b"", ".txt");
-    test_vi(t, "tests/programs/final_countdown.vi", b"", ".txt");
-    test_vi(t, "tests/programs/inverse.vi", b"", ".txt");
-    test_vi(t, "tests/programs/logic.vi", b"", ".txt");
-    test_vi(t, "tests/programs/loop_break_continue.vi", b"", ".txt");
-    test_vi(t, "tests/programs/loop_vi_loop.vi", b"", ".txt");
-    test_vi(t, "tests/programs/maybe_set.vi", b"", ".txt");
-    test_vi(t, "tests/programs/move_it_move_it.vi", b"", ".txt");
-    test_vi(t, "tests/programs/option_party.vi", b"", ".txt");
-    test_vi(t, "tests/programs/pretty_div.vi", b"", ".txt");
-    test_vi(t, "tests/programs/so_random.vi", b"", ".txt");
-    test_vi(t, "tests/programs/square_case.vi", b"", ".txt");
+    test_vi(t, "tests/programs/basic_diverge.vi", b"", ".txt", &mut vine_tests);
+    test_vi(t, "tests/programs/final_countdown.vi", b"", ".txt", &mut vine_tests);
+    test_vi(t, "tests/programs/inverse.vi", b"", ".txt", &mut vine_tests);
+    test_vi(t, "tests/programs/logic.vi", b"", ".txt", &mut vine_tests);
+    test_vi(t, "tests/programs/loop_break_continue.vi", b"", ".txt", &mut vine_tests);
+    test_vi(t, "tests/programs/loop_vi_loop.vi", b"", ".txt", &mut vine_tests);
+    test_vi(t, "tests/programs/maybe_set.vi", b"", ".txt", &mut vine_tests);
+    test_vi(t, "tests/programs/move_it_move_it.vi", b"", ".txt", &mut vine_tests);
+    test_vi(t, "tests/programs/option_party.vi", b"", ".txt", &mut vine_tests);
+    test_vi(t, "tests/programs/pretty_div.vi", b"", ".txt", &mut vine_tests);
+    test_vi(t, "tests/programs/so_random.vi", b"", ".txt", &mut vine_tests);
+    test_vi(t, "tests/programs/square_case.vi", b"", ".txt", &mut vine_tests);
 
     t.group("fail", |t| {
-      test_vi_fail(t, "tests/programs/fail/hallo_world.vi");
-      test_vi_fail(t, "tests/programs/fail/informal.vi");
-      test_vi_fail(t, "tests/programs/fail/is_not.vi");
-      test_vi_fail(t, "tests/programs/fail/missing_no.vi");
+      test_vi_fail(t, "tests/programs/fail/hallo_world.vi", &mut vine_tests);
+      test_vi_fail(t, "tests/programs/fail/informal.vi", &mut vine_tests);
+      test_vi_fail(t, "tests/programs/fail/is_not.vi", &mut vine_tests);
+      test_vi_fail(t, "tests/programs/fail/missing_no.vi", &mut vine_tests);
     });
   });
+
+  // Remove any snapshot folders that shouldn't exist
+  remove_orphan_snapshots("ivy", &ivy_tests);
+  remove_orphan_snapshots("vine", &vine_tests);
+}
+
+fn remove_orphan_snapshots(path: &'static str, names: &[String]) {
+  if let Ok(entries) = fs::read_dir(path) {
+    for entry in entries.flatten() {
+      let path = entry.path();
+      if path.is_dir() {
+        // Get the folder name as a string
+        if let Some(folder_name) = path.file_name().and_then(|name| name.to_str()) {
+          // Check if the folder is listed in ivy_tests, if not, remove it
+          if !names.contains(&folder_name.to_owned()) {
+            println!("Removing unlisted folder: {}", path.display());
+            fs::remove_dir_all(&path).expect("Failed to remove folder");
+          }
+        }
+      }
+    }
+  }
 }
 
 const VINE: &[&str] = &["vine"];
 const IVY: &[&str] = &["ivy", "--release"];
 
-fn test_vi(t: &mut DynTester, path: &'static str, input: &'static [u8], output_ext: &'static str) {
+fn test_vi(
+  t: &mut DynTester,
+  path: &'static str,
+  input: &'static [u8],
+  output_ext: &'static str,
+  vine_tests: &mut Vec<String>,
+) {
   let name = Path::file_stem(path.as_ref()).unwrap().to_str().unwrap();
+  vine_tests.push(name.to_owned());
+
   t.group(name, |t| {
     let (sender, receiver) = channel();
     t.test("compile", move || {
@@ -81,16 +114,24 @@ fn test_vi(t: &mut DynTester, path: &'static str, input: &'static [u8], output_e
   });
 }
 
-fn test_vi_fail(t: &mut DynTester, path: &'static str) {
+fn test_vi_fail(t: &mut DynTester, path: &'static str, vine_tests: &mut Vec<String>) {
   let name = Path::file_stem(path.as_ref()).unwrap().to_str().unwrap();
+  vine_tests.push(name.to_owned());
   t.test(name, move || {
     let (_, stderr) = exec(VINE, &["build", path], &[], false);
     test_snapshot(&["vine", "fail", &format!("{name}.txt")], &stderr);
   });
 }
 
-fn test_iv(t: &mut DynTester, path: &'static str, input: &'static [u8], output_ext: &'static str) {
+fn test_iv(
+  t: &mut DynTester,
+  path: &'static str,
+  input: &'static [u8],
+  output_ext: &'static str,
+  ivy_tests: &mut Vec<String>,
+) {
   let name = Path::file_stem(path.as_ref()).unwrap().to_str().unwrap();
+  ivy_tests.push(name.to_owned());
   t.test(name, || {
     run_iv("ivy", name, path, input, output_ext);
   });
