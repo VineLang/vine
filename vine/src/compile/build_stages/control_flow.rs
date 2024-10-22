@@ -133,7 +133,7 @@ impl Compiler<'_> {
       ExprKind::Not(cond) => {
         self.lower_cond(cond, nay, yay);
       }
-      ExprKind::LogicalOp(LogicalOp::LogicalAnd, a, b) => {
+      ExprKind::LogicalOp(LogicalOp::And, a, b) => {
         let nay = self.share_dyn_stage(nay);
         self.lower_cond(
           a,
@@ -144,12 +144,23 @@ impl Compiler<'_> {
           &nay,
         );
       }
-      ExprKind::LogicalOp(LogicalOp::LogicalOr, a, b) => {
+      ExprKind::LogicalOp(LogicalOp::Or, a, b) => {
         let yay = self.share_dyn_stage(yay);
         self.lower_cond(a, &yay, &|self_| {
           self_.lower_cond(b, &yay, nay);
           false
         });
+      }
+      ExprKind::LogicalOp(LogicalOp::Implies, a, b) => {
+        let yay = self.share_dyn_stage(yay);
+        self.lower_cond(
+          a,
+          &|self_| {
+            self_.lower_cond(b, &yay, nay);
+            false
+          },
+          &yay,
+        );
       }
     }
   }
