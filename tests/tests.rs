@@ -62,9 +62,17 @@ fn tests(t: &mut DynTester) {
     test_vi_fail(t, "tests/programs/fail/missing_no.vi", &mut vine_fail_tests);
   });
 
-  remove_orphan_snapshots("tests/snaps/ivy", &ivy_tests);
-  remove_orphan_snapshots("tests/snaps/vine", &vine_tests);
-  remove_orphan_snapshots("tests/snaps/vine_fail", &vine_fail_tests);
+  t.group("remove_orphan_snapshots", |t| {
+    t.test("ivy", move || {
+      remove_orphan_snapshots("tests/snaps/ivy", &ivy_tests);
+    });
+    t.test("vine", move || {
+      remove_orphan_snapshots("tests/snaps/vine", &vine_tests);
+    });
+    t.test("vine_fail", move || {
+      remove_orphan_snapshots("tests/snaps/vine_fail", &vine_fail_tests);
+    });
+  });
 }
 
 const VINE: &[&str] = &["vine"];
@@ -158,12 +166,12 @@ fn remove_orphan_snapshots(path: &'static str, names: &[String]) {
         if path.is_dir() { fs::remove_dir_all(&path) } else { fs::remove_file(&path) };
 
       if let Err(err) = remove_res {
-        println!(
+        panic!(
           "Unable to remove {}: {} - {}",
           if path.is_dir() { "directory" } else { "file" },
           path.display(),
           err
-        );
+        )
       }
     }
   }
