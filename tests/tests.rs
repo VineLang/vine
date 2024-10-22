@@ -21,8 +21,6 @@ fn tests(t: &mut DynTester) {
   let fib_repl_input_vi = b"1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n21\n100\n999999\n\nabc\n";
 
   let mut ivy_tests = Vec::new();
-  let mut vine_tests = Vec::new();
-
   t.group("ivy", |t| {
     test_iv(t, "ivy/examples/cat.iv", b"meow\n", ".txt", &mut ivy_tests);
     test_iv(t, "ivy/examples/fib_repl.iv", fib_repl_input_iv, ".txt", &mut ivy_tests);
@@ -30,6 +28,7 @@ fn tests(t: &mut DynTester) {
     test_iv(t, "ivy/examples/hihi.iv", b"", ".txt", &mut ivy_tests);
   });
 
+  let mut vine_tests = Vec::new();
   t.group("vine", |t| {
     test_vi(t, "vine/examples/fib_repl.vi", fib_repl_input_vi, ".txt", &mut vine_tests);
     test_vi(t, "vine/examples/fib.vi", b"", ".txt", &mut vine_tests);
@@ -53,31 +52,39 @@ fn tests(t: &mut DynTester) {
     test_vi(t, "tests/programs/pretty_div.vi", b"", ".txt", &mut vine_tests);
     test_vi(t, "tests/programs/so_random.vi", b"", ".txt", &mut vine_tests);
     test_vi(t, "tests/programs/square_case.vi", b"", ".txt", &mut vine_tests);
+  });
 
-    t.group("fail", |t| {
-      test_vi_fail(t, "tests/programs/fail/hallo_world.vi", &mut vine_tests);
-      test_vi_fail(t, "tests/programs/fail/informal.vi", &mut vine_tests);
-      test_vi_fail(t, "tests/programs/fail/is_not.vi", &mut vine_tests);
-      test_vi_fail(t, "tests/programs/fail/missing_no.vi", &mut vine_tests);
-    });
+  let mut vine_fail_tests = Vec::new();
+  t.group("vine_fail", |t| {
+    test_vi_fail(t, "tests/programs/fail/hallo_world.vi", &mut vine_fail_tests);
+    test_vi_fail(t, "tests/programs/fail/informal.vi", &mut vine_fail_tests);
+    test_vi_fail(t, "tests/programs/fail/is_not.vi", &mut vine_fail_tests);
+    test_vi_fail(t, "tests/programs/fail/missing_no.vi", &mut vine_fail_tests);
   });
 
   // Remove any snapshot folders that shouldn't exist
-  remove_orphan_snapshots("ivy", &ivy_tests);
-  remove_orphan_snapshots("vine", &vine_tests);
+  remove_orphan_snapshots("tests/snaps/ivy", &ivy_tests);
+  remove_orphan_snapshots("tests/snaps/vine", &vine_tests);
+  remove_orphan_snapshots("tests/snaps/vine_fail", &vine_fail_tests);
 }
 
 fn remove_orphan_snapshots(path: &'static str, names: &[String]) {
   if let Ok(entries) = fs::read_dir(path) {
     for entry in entries.flatten() {
       let path = entry.path();
-      if path.is_dir() {
-        // Get the folder name as a string
-        if let Some(folder_name) = path.file_name().and_then(|name| name.to_str()) {
-          // Check if the folder is listed in ivy_tests, if not, remove it
-          if !names.contains(&folder_name.to_owned()) {
-            println!("Removing unlisted folder: {}", path.display());
-            fs::remove_dir_all(&path).expect("Failed to remove folder");
+      if let Some(folder_name) = path.file_name().and_then(|name| name.to_str()) {
+        println!("folder_name: {}", folder_name);
+        if !names.contains(&folder_name.to_owned()) {
+          println!("Removing unlisted snaps: {}", path.display());
+
+          if path.is_dir() {
+            if fs::remove_dir_all(&path).is_err() {
+              println!("bruh");
+            }
+          } else {
+            if fs::remove_file(&path).is_err() {
+              println!("bruh2");
+            }
           }
         }
       }
@@ -119,7 +126,7 @@ fn test_vi_fail(t: &mut DynTester, path: &'static str, vine_tests: &mut Vec<Stri
   vine_tests.push(name.to_owned());
   t.test(name, move || {
     let (_, stderr) = exec(VINE, &["build", path], &[], false);
-    test_snapshot(&["vine", "fail", &format!("{name}.txt")], &stderr);
+    test_snapshot(&["vine_fail", &format!("{name}.txt")], &stderr);
   });
 }
 
