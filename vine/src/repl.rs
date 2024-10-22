@@ -203,8 +203,8 @@ fn show(tree: &Tree) -> String {
       'list: {
         let Tree::U32(len) = **l else { break 'list };
         let Tree::Comb(c, l, r) = &**r else { break 'list };
-        let "fn" = &**c else { break 'list };
-        let mut cur = &**r;
+        let "tup" = &**c else { break 'list };
+        let mut cur = &**l;
         let mut children = vec![];
         for _ in 0..len {
           let Tree::Comb(c, l, r) = cur else { break 'list };
@@ -212,7 +212,7 @@ fn show(tree: &Tree) -> String {
           children.push(l);
           cur = r;
         }
-        if &**l != cur || !matches!(cur, Tree::Var(_)) {
+        if &**r != cur || !matches!(cur, Tree::Var(_)) {
           break 'list;
         }
         let is_str = children.iter().all(

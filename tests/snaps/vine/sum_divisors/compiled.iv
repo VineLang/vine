@@ -13,20 +13,20 @@
   ::sum_divisors::sum_divisors = fn(n9 dup4(@eq(n0 ?(::sum_divisors::main::4 ::sum_divisors::main::3 x(n10 x(n14 n8)))) dup4(n14 n15)))
   ::std::io::println = fn(ref(n7 n12) fn(n6 _))
   ::std::u32::to_string = fn(n11 n2)
-  ::std::str::concat = fn(n2 fn(tup(2 fn(n1 tup(58 tup(32 n1)))) n3))
+  ::std::str::concat = fn(n2 fn(tup(2 tup(tup(58 tup(32 n1)) n1)) n3))
   ::std::u32::to_string = fn(n15 n4)
   ::std::str::concat = fn(n3 fn(n4 n5))
   ::std::str::concat = fn(n5 fn(n8 n6))
   ::sum_divisors::main::1 = x(n12 n13)
 }
 
-::sum_divisors::main::3 { x(_ x(_ tup(8 fn(n0 tup(32 tup(40 tup(112 tup(114 tup(105 tup(109 tup(101 tup(41 n0)))))))))))) }
+::sum_divisors::main::3 { x(_ x(_ tup(8 tup(tup(32 tup(40 tup(112 tup(114 tup(105 tup(109 tup(101 tup(41 n0)))))))) n0)))) }
 
 ::sum_divisors::main::4 { x(@mul(2 n0) x(@eq(n0 ?(::sum_divisors::main::6 ::sum_divisors::main::5 n1)) n1)) }
 
-::sum_divisors::main::5 { tup(11 fn(n0 tup(32 tup(40 tup(112 tup(101 tup(114 tup(102 tup(101 tup(99 tup(116 tup(33 tup(41 n0))))))))))))) }
+::sum_divisors::main::5 { tup(11 tup(tup(32 tup(40 tup(112 tup(101 tup(114 tup(102 tup(101 tup(99 tup(116 tup(33 tup(41 n0))))))))))) n0)) }
 
-::sum_divisors::main::6 { tup(0 fn(n0 n0)) }
+::sum_divisors::main::6 { tup(0 tup(n0 n0)) }
 
 ::sum_divisors::sum_divisors {
   fn(n0 n2)
@@ -70,7 +70,7 @@
 }
 
 ::std::io::print {
-  fn(ref(n0 n1) fn(tup(n2 fn(_ n3)) _))
+  fn(ref(n0 n1) fn(tup(n2 tup(n3 _)) _))
   ::std::io::print::1 = x(n0 x(n1 x(n2 n3)))
 }
 
@@ -86,24 +86,24 @@
 
 ::std::io::print_char { fn(ref(@io_print_char(char io) io) fn(char _)) }
 
-::std::str::concat { fn(tup(@add(n0 n1) fn(n3 n4)) fn(tup(n0 fn(n2 n3)) tup(n1 fn(n2 n4)))) }
+::std::str::concat { fn(tup(@add(n1 n2) tup(n3 n0)) fn(tup(n1 tup(n0 n4)) tup(n2 tup(n3 n4)))) }
 
-::std::u32::to_string { fn(dup185(?(::std::u32::to_string::5 ::std::u32::to_string::1 x(n1 n0)) n1) n0) }
+::std::u32::to_string { fn(dup249(?(::std::u32::to_string::5 ::std::u32::to_string::1 x(n1 n0)) n1) n0) }
 
 ::std::u32::to_string::1 {
   x(n1 n2)
-  ::std::u32::to_string::2 = x(n1 x(tup(0 fn(n0 n0)) n2))
+  ::std::u32::to_string::2 = x(n1 x(tup(0 tup(n0 n0)) n2))
 }
 
-::std::u32::to_string::2 { x(dup185(?(::std::u32::to_string::4 ::std::u32::to_string::3 x(n2 n0)) n2) n0) }
+::std::u32::to_string::2 { x(dup249(?(::std::u32::to_string::4 ::std::u32::to_string::3 x(n2 n0)) n2) n0) }
 
 ::std::u32::to_string::3 {
-  x(dup185(@rem(10 n1) @div(10 n5)) x(tup(@add(1 n0) fn(n3 n4)) n6))
+  x(dup249(@rem(10 n1) @div(10 n5)) x(tup(@add(1 n0) tup(n3 n4)) n6))
   48 = @add(n1 n2)
-  ::std::u32::to_string::2 = x(n5 x(tup(n0 fn(n3 tup(n2 n4))) n6))
+  ::std::u32::to_string::2 = x(n5 x(tup(n0 tup(tup(n2 n3) n4)) n6))
 }
 
 ::std::u32::to_string::4 { x(_ x(n0 n0)) }
 
-::std::u32::to_string::5 { x(_ tup(1 fn(n0 tup(48 n0)))) }
+::std::u32::to_string::5 { x(_ tup(1 tup(tup(48 n0) n0))) }
 

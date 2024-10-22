@@ -8,8 +8,8 @@
 
 ::mandelbrot_sixel::main {
   fn(n0 _)
-  ::std::io::print_bytes = fn(ref(n0 n4) fn(tup(3 fn(n1 tup(27 tup(80 tup(113 n1))))) _))
-  ::std::io::print_bytes = fn(ref(n6 n3) fn(tup(2 fn(n2 tup(27 tup(92 n2)))) _))
+  ::std::io::print_bytes = fn(ref(n0 n4) fn(tup(3 tup(tup(27 tup(80 tup(113 n1))) n1)) _))
+  ::std::io::print_bytes = fn(ref(n6 n3) fn(tup(2 tup(tup(27 tup(92 n2)) n2)) _))
   ::std::io::flush = fn(ref(n3 _) _)
   ::mandelbrot_sixel::main::1 = x(n4 x(n5 0))
   ::mandelbrot_sixel::main::4 = x(n5 x(n6 x(0 1)))
@@ -42,7 +42,7 @@
 
 ::mandelbrot_sixel::main::5 {
   x(n6 x(n16 x(dup8(n14 @add(1 n17)) dup9(n10 dup9(n11 @mul(2 dup9(@lt$(32 ?(::mandelbrot_sixel::main::12 ::mandelbrot_sixel::main::11 x(n12 x(n18 n13)))) n12)))))))
-  ::std::io::print_bytes = fn(ref(n6 n7) fn(tup(2 fn(n0 tup(35 tup(48 n0)))) _))
+  ::std::io::print_bytes = fn(ref(n6 n7) fn(tup(2 tup(tup(35 tup(48 n0)) n0)) _))
   ::std::io::print_byte = fn(ref(n8 n1) fn(33 _))
   ::std::io::print_bytes = fn(ref(n1 n3) fn(n2 _))
   ::std::u32::to_string = fn(n9 n2)
@@ -105,11 +105,11 @@
 ::mandelbrot_sixel::mandelbrot::3 { x(_ x(_ x(_ x(_ x(_ x(_ x(n0 n0))))))) }
 
 ::std::io::print_bytes {
-  fn(ref(n0 n1) fn(tup(n2 fn(_ n3)) _))
+  fn(ref(n0 n1) fn(tup(n2 tup(n3 _)) _))
   ::std::io::print_bytes::1 = x(n0 x(n1 x(n2 n3)))
 }
 
-::std::io::print_bytes::1 { x(n0 x(n1 x(dup45(?(::std::io::print_bytes::3 ::std::io::print_bytes::2 x(n0 x(n1 x(n3 n2)))) n3) n2))) }
+::std::io::print_bytes::1 { x(n0 x(n1 x(dup44(?(::std::io::print_bytes::3 ::std::io::print_bytes::2 x(n0 x(n1 x(n3 n2)))) n3) n2))) }
 
 ::std::io::print_bytes::2 {
   x(n1 x(n3 x(@sub(1 n4) tup(n0 n5))))
@@ -123,22 +123,22 @@
 
 ::std::io::flush { fn(ref(@io_flush(0 io) io) _) }
 
-::std::u32::to_string { fn(dup196(?(::std::u32::to_string::5 ::std::u32::to_string::1 x(n1 n0)) n1) n0) }
+::std::u32::to_string { fn(dup260(?(::std::u32::to_string::5 ::std::u32::to_string::1 x(n1 n0)) n1) n0) }
 
 ::std::u32::to_string::1 {
   x(n1 n2)
-  ::std::u32::to_string::2 = x(n1 x(tup(0 fn(n0 n0)) n2))
+  ::std::u32::to_string::2 = x(n1 x(tup(0 tup(n0 n0)) n2))
 }
 
-::std::u32::to_string::2 { x(dup196(?(::std::u32::to_string::4 ::std::u32::to_string::3 x(n2 n0)) n2) n0) }
+::std::u32::to_string::2 { x(dup260(?(::std::u32::to_string::4 ::std::u32::to_string::3 x(n2 n0)) n2) n0) }
 
 ::std::u32::to_string::3 {
-  x(dup196(@rem(10 n1) @div(10 n5)) x(tup(@add(1 n0) fn(n3 n4)) n6))
+  x(dup260(@rem(10 n1) @div(10 n5)) x(tup(@add(1 n0) tup(n3 n4)) n6))
   48 = @add(n1 n2)
-  ::std::u32::to_string::2 = x(n5 x(tup(n0 fn(n3 tup(n2 n4))) n6))
+  ::std::u32::to_string::2 = x(n5 x(tup(n0 tup(tup(n2 n3) n4)) n6))
 }
 
 ::std::u32::to_string::4 { x(_ x(n0 n0)) }
 
-::std::u32::to_string::5 { x(_ tup(1 fn(n0 tup(48 n0)))) }
+::std::u32::to_string::5 { x(_ tup(1 tup(tup(48 n0) n0))) }
 
