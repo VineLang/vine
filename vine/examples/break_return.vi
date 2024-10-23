@@ -2,19 +2,11 @@
 use std::{io::println, u32};
 
 fn main(io) {
-  println("hey");
+  io.println(loop_unit());
 
-
-  // let a = unit();
-  // let b = loop_unit();
-
-  println("hey");
-
-  /*
-  if a == b {
-    println("Hurray for units!")
-  }
-  */
+  // TODO: how to print tuples?
+  let u = unit();
+  io.println(u);
 }
 
 fn unit() {
@@ -23,6 +15,6 @@ fn unit() {
 
 fn loop_unit() {
   return loop {
-    break;
+    break "hey";
   }
 }
