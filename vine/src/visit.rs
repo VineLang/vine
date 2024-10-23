@@ -45,7 +45,6 @@ pub trait VisitMut<'a> {
       | ExprKind::U32(_)
       | ExprKind::F32(_)
       | ExprKind::String(_)
-      | ExprKind::Break
       | ExprKind::Continue
       | ExprKind::Error(_)
       | ExprKind::CopyLocal(_)
@@ -58,6 +57,7 @@ pub trait VisitMut<'a> {
       | ExprKind::Neg(a)
       | ExprKind::Not(a)
       | ExprKind::Return(a)
+      | ExprKind::Break(a)
       | ExprKind::Inverse(a)
       | ExprKind::Copy(a)
       | ExprKind::Set(a)

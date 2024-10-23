@@ -95,9 +95,11 @@ impl Compiler<'_> {
     Port::Erase
   }
 
-  pub(super) fn lower_break(&mut self) -> Port {
-    let (fork, _stage) = self.loop_target.unwrap();
-    self.diverge(fork);
+  pub(super) fn lower_break(&mut self, r: &Expr) -> Port {
+    let r = self.lower_expr_value(r);
+    let ret = self.return_target.unwrap();
+    self.set_local_to(ret.0, r);
+    self.diverge(ret.1);
     Port::Erase
   }
 

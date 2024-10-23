@@ -251,7 +251,7 @@ impl<'ctx, 'src> VineParser<'ctx, 'src> {
       return Ok(ExprKind::Return(Box::new(self.parse_expr_bp(BP::ControlFlow)?)));
     }
     if self.eat(Token::Break)? {
-      return Ok(ExprKind::Break);
+      return Ok(ExprKind::Break(Box::new(self.parse_expr_bp(BP::ControlFlow)?)));
     }
     if self.eat(Token::Continue)? {
       return Ok(ExprKind::Continue);

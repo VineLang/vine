@@ -133,7 +133,7 @@ impl Compiler<'_> {
       ExprKind::While(cond, body) => self.lower_while(cond, body),
       ExprKind::If(cond, then, els) => self.lower_if(cond, then, els),
       ExprKind::Return(r) => self.lower_return(r),
-      ExprKind::Break => self.lower_break(),
+      ExprKind::Break(r) => self.lower_break(r),
       ExprKind::Continue => self.lower_continue(),
 
       ExprKind::Match(value, arms) => {

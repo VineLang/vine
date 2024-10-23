@@ -155,7 +155,7 @@ pub enum ExprKind {
   #[class(value)]
   Return(B<Expr>),
   #[class(value)]
-  Break,
+  Break(B<Expr>),
   #[class(value)]
   Continue,
   #[class(value)]
