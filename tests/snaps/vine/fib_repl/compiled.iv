@@ -71,15 +71,15 @@
 
 ::std::io::read_line {
   fn(ref(n0 n2) n3)
-  ::std::io::read_byte = fn(ref(n0 n1) fn(0 dup42(?(::std::io::read_line::9 ::std::io::read_line::1 x(n1 x(n2 x(n4 n3)))) n4)))
+  ::std::io::read_byte = fn(ref(n0 n1) fn(0 dup42(?(::std::io::read_line::11 ::std::io::read_line::1 x(n1 x(n2 x(n4 n3)))) n4)))
 }
 
-::std::io::read_line::1 {
-  x(n1 x(n2 x(dup42(@eq(10 ?(::std::io::read_line::3 ::std::io::read_line::2 x(n1 x(n2 x(n4 n3))))) n4) n0)))
-  ::std::option::Option::Some = fn(n3 n0)
-}
+::std::io::read_line::1 { x(n0 x(n1 x(dup42(@eq(10 ?(::std::io::read_line::3 ::std::io::read_line::2 x(n0 x(n1 x(n3 n2))))) n3) n2))) }
 
-::std::io::read_line::2 { x(n1 x(n1 x(_ tup(0 tup(n0 n0))))) }
+::std::io::read_line::2 {
+  x(n1 x(n1 x(_ n2)))
+  ::std::io::read_line::10 = x(n2 tup(0 tup(n0 n0)))
+}
 
 ::std::io::read_line::3 {
   x(n1 x(n2 x(n0 n4)))
@@ -99,9 +99,20 @@
   ::std::io::read_line::4 = x(n3 x(n4 x(n5 n6)))
 }
 
-::std::io::read_line::6 { x(n0 x(n0 x(_ x(n1 n1)))) }
+::std::io::read_line::6 { x(n0 x(n0 _)) }
 
-::std::io::read_line::9 { x(n0 x(n0 x(_ ::std::option::Option::None))) }
+::std::io::read_line::10 {
+  x(n1 n0)
+  ::std::option::Option::Some = fn(n0 n2)
+  ::std::io::read_line::12 = x(n1 n2)
+}
+
+::std::io::read_line::11 {
+  x(n0 x(n0 x(_ n1)))
+  ::std::io::read_line::12 = x(n1 ::std::option::Option::None)
+}
+
+::std::io::read_line::12 { x(n0 n0) }
 
 ::std::io::read_byte { fn(ref(dup(io0 @io_read_byte(default dup(byte @seq$(io0 io1)))) io1) fn(default byte)) }
 
