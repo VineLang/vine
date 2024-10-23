@@ -13,7 +13,7 @@ pub struct Instructions<'ivm> {
   pub(crate) next_register: Register,
   /// The actual list of instructions; see [`Instructions::push`] for the safety
   /// requirements of these instructions.
-  pub(crate) instructions: Vec<Instruction<'ivm>>,
+  pub instructions: Vec<Instruction<'ivm>>,
 }
 
 impl<'ivm> Default for Instructions<'ivm> {

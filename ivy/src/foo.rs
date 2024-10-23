@@ -1,3 +1,5 @@
+#![allow(unused)]
+
 use std::{collections::HashMap, mem::take};
 
 use ivm::ext::ExtFn;
@@ -58,7 +60,7 @@ impl Net {
   }
 
   fn link_wire(&mut self, a: Wire, b: Port) {
-    if let Port::Wire(x) = b {
+    if let Port::Wire(b) = b {
       self.link_wire_wire(a, b);
     } else {
       let slot = &mut self.wires[a];
