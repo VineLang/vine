@@ -134,7 +134,6 @@ impl Compiler<'_> {
       ExprKind::If(cond, then, els) => self.lower_if(cond, then, els),
       ExprKind::Return(None) => {
         let default = Expr { span: Span::NONE, kind: ExprKind::Tuple(vec![]) };
-        eprintln!("{:?}", default);
         self.lower_return(&default)
       }
       ExprKind::Return(Some(r)) => self.lower_return(r),

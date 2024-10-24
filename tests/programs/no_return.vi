@@ -1,0 +1,8 @@
+
+use std::io::println;
+
+fn main(io) {
+  io.println("We should see this");
+  return;
+  io.println("But not this");
+}
