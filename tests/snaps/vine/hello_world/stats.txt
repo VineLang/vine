@@ -10,6 +10,6 @@ Interactions
   Branch                    14
 
 Memory
-  Heap                     512 B
+  Heap                     480 B
   Allocated              6_032 B
   Freed                  6_032 B

@@ -10,6 +10,6 @@ Interactions
   Branch                    26
 
 Memory
-  Heap                     528 B
+  Heap                     496 B
   Allocated             10_848 B
   Freed                 10_848 B
