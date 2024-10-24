@@ -1,0 +1,10 @@
+
+use std::{io::println, u32};
+
+fn main(io) {
+  let res = loop {
+    break "loop result";
+  };
+
+  io.println(res);
+}

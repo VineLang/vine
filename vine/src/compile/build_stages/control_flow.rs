@@ -56,11 +56,12 @@ impl Compiler<'_> {
   }
 
   pub(super) fn lower_loop(&mut self, body: &Block) -> Port {
+    let local = self.new_local();
+
     self.new_fork(|self_| {
       let i = self_.new_interface();
       let s = self_.new_stage(i, move |self_, s| {
-        let old_loop = self_.loop_target.replace((self_.cur_fork(), s));
-        self_.loop_target.replace((self_.cur_fork(), s));
+        let old_loop = self_.loop_target.replace((local, self_.cur_fork(), s));
         self_.lower_block_erase(body);
         self_.loop_target = old_loop;
         self_.goto(s);
@@ -70,7 +71,7 @@ impl Compiler<'_> {
       self_.goto(s);
     });
 
-    Port::Erase
+    self.get_local(local)
   }
 
   pub(super) fn lower_while(&mut self, cond: &Expr, body: &Block) -> Port {
@@ -80,7 +81,8 @@ impl Compiler<'_> {
         self_.lower_cond(
           cond,
           &|self_| {
-            let old_loop = self_.loop_target.replace((self_.cur_fork(), start));
+            let local = self_.new_local();
+            let old_loop = self_.loop_target.replace((local, self_.cur_fork(), start));
             self_.lower_block_erase(body);
             self_.goto(start);
             self_.loop_target = old_loop;
@@ -99,13 +101,18 @@ impl Compiler<'_> {
   }
 
   pub(super) fn lower_break(&mut self, r: Option<&Expr>) -> Port {
-    let (fork, _stage) = self.loop_target.unwrap();
+    let (local, fork, _stage) = self.loop_target.unwrap();
+    if let Some(r) = r {
+      let r = self.lower_expr_value(r);
+      self.set_local_to(local, r);
+    }
+
     self.diverge(fork);
     Port::Erase
   }
 
   pub(super) fn lower_continue(&mut self) -> Port {
-    let (fork, stage) = self.loop_target.unwrap();
+    let (_local, fork, stage) = self.loop_target.unwrap();
     self.diverge_to(fork, stage);
     Port::Erase
   }
