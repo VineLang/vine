@@ -75,13 +75,14 @@ impl Compiler<'_> {
   }
 
   pub(super) fn lower_while(&mut self, cond: &Expr, body: &Block) -> Port {
+    let local = self.new_local();
+
     self.new_fork(|self_| {
       let i = self_.new_interface();
       let start = self_.new_stage(i, move |self_, start| {
         self_.lower_cond(
           cond,
           &|self_| {
-            let local = self_.new_local();
             let old_loop = self_.loop_target.replace((local, self_.cur_fork(), start));
             self_.lower_block_erase(body);
             self_.goto(start);
@@ -97,7 +98,7 @@ impl Compiler<'_> {
       self_.goto(start);
     });
 
-    Port::Erase
+    self.get_local(local)
   }
 
   pub(super) fn lower_break(&mut self, r: Option<&Expr>) -> Port {
