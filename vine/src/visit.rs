@@ -50,6 +50,7 @@ pub trait VisitMut<'a> {
       | ExprKind::Error(_)
       | ExprKind::CopyLocal(_)
       | ExprKind::MoveLocal(_)
+      | ExprKind::Return(None)
       | ExprKind::SetLocal(_) => {}
       ExprKind::Ref(a)
       | ExprKind::Deref(a)
@@ -57,7 +58,7 @@ pub trait VisitMut<'a> {
       | ExprKind::Field(a, _)
       | ExprKind::Neg(a)
       | ExprKind::Not(a)
-      | ExprKind::Return(a)
+      | ExprKind::Return(Some(a))
       | ExprKind::Inverse(a)
       | ExprKind::Copy(a)
       | ExprKind::Set(a)
