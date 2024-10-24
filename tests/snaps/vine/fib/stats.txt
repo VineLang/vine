@@ -10,6 +10,6 @@ Interactions
   Branch                   805
 
 Memory
-  Heap                   1_120 B
-  Allocated            307_680 B
-  Freed                307_680 B
+  Heap                     912 B
+  Allocated            304_944 B
+  Freed                304_944 B
