@@ -132,11 +132,7 @@ impl Compiler<'_> {
       ExprKind::Loop(body) => self.lower_loop(body),
       ExprKind::While(cond, body) => self.lower_while(cond, body),
       ExprKind::If(cond, then, els) => self.lower_if(cond, then, els),
-      ExprKind::Return(None) => {
-        let unit = Expr { span: Span::NONE, kind: ExprKind::Tuple(vec![]) };
-        self.lower_return(&unit)
-      }
-      ExprKind::Return(Some(r)) => self.lower_return(r),
+      ExprKind::Return(r) => self.lower_return(r.as_deref()),
       ExprKind::Break => self.lower_break(),
       ExprKind::Continue => self.lower_continue(),
 
