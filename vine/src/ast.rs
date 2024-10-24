@@ -153,7 +153,7 @@ pub enum ExprKind {
   #[class(value)]
   Fn(Vec<Pat>, B<Expr>),
   #[class(value)]
-  Return(B<Expr>),
+  Return(Option<B<Expr>>),
   #[class(value)]
   Break(B<Expr>),
   #[class(value)]

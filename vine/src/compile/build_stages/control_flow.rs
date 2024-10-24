@@ -22,10 +22,13 @@ impl Compiler<'_> {
     func.1
   }
 
-  pub(super) fn lower_return(&mut self, r: &Expr) -> Port {
-    let r = self.lower_expr_value(r);
+  pub(super) fn lower_return(&mut self, r: Option<&Expr>) -> Port {
     let ret = self.return_target.unwrap();
-    self.set_local_to(ret.0, r);
+    if let Some(r) = r {
+      let r = self.lower_expr_value(r);
+      self.set_local_to(ret.0, r);
+    }
+
     self.diverge(ret.1);
     Port::Erase
   }
