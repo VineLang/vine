@@ -20,7 +20,7 @@
   ::square_case::dashes::1 = x(n1 x(n2 x(n3 0)))
 }
 
-::square_case::dashes::1 { x(n0 x(n1 x(dup6(n2 n3) dup7(@lt(n2 ?(::square_case::dashes::3 ::square_case::dashes::2 x(n0 x(n1 x(n3 n4))))) n4)))) }
+::square_case::dashes::1 { x(n0 x(n1 x(dup7(n2 n3) dup8(@lt(n2 ?(::square_case::dashes::3 ::square_case::dashes::2 x(n0 x(n1 x(n3 n4))))) n4)))) }
 
 ::square_case::dashes::2 {
   x(n0 x(n2 x(n3 @add(1 n4))))

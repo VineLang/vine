@@ -1,0 +1,2 @@
+loop result
+while result

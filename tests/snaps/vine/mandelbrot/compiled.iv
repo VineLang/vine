@@ -41,12 +41,12 @@
   ::mandelbrot::mandelbrot::1 = x(n1 x(n2 x(n3 x(n4 x(n5 x(n6 x(128 @eq(0 n0))))))))
 }
 
-::mandelbrot::mandelbrot::1 { x(n1 x(n2 x(n3 x(n4 x(dup18(@add(n8 @lt(+4.0 n0)) n7) x(dup19(n8 n9) x(dup20(@lt$(0 @u32_and(n0 ?(::mandelbrot::mandelbrot::3 ::mandelbrot::mandelbrot::2 x(n1 x(n2 x(n3 x(n4 x(n7 x(n9 x(n5 n6)))))))))) n5) n6))))))) }
+::mandelbrot::mandelbrot::1 { x(n1 x(n2 x(n3 x(n4 x(dup20(@add(n8 @lt(+4.0 n0)) n7) x(dup21(n8 n9) x(dup22(@lt$(0 @u32_and(n0 ?(::mandelbrot::mandelbrot::3 ::mandelbrot::mandelbrot::2 x(n1 x(n2 x(n3 x(n4 x(n7 x(n9 x(n5 n6)))))))))) n5) n6))))))) }
 
 ::mandelbrot::mandelbrot::2 {
-  x(dup14(n9 n10) x(dup15(n11 n12) x(n2 x(n3 x(@sub(n4 @add(n9 n0)) x(n4 x(@sub(1 n7) n8)))))))
+  x(dup16(n9 n10) x(dup17(n11 n12) x(n2 x(n3 x(@sub(n4 @add(n9 n0)) x(n4 x(@sub(1 n7) n8)))))))
   +2.0 = @mul(n2 @mul(n3 @add(n11 n1)))
-  tup(n0 n1) = tup(dup16(@mul(n13 n5) dup16(n13 n14)) dup17(@mul(n15 n6) dup17(n15 n16)))
+  tup(n0 n1) = tup(dup18(@mul(n13 n5) dup18(n13 n14)) dup19(@mul(n15 n6) dup19(n15 n16)))
   ::mandelbrot::mandelbrot::1 = x(n10 x(n12 x(n14 x(n16 x(n5 x(n6 x(n7 n8)))))))
 }
 
