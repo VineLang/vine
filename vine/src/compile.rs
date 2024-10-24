@@ -53,7 +53,7 @@ pub struct Compiler<'n> {
   net: NetBuilder,
 
   return_target: Option<(Local, ForkId)>,
-  loop_target: Option<(ForkId, StageId)>,
+  loop_target: Option<(Local, ForkId, StageId)>,
 
   dup_labels: usize,
 }

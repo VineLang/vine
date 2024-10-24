@@ -1,0 +1,12 @@
+
+use std::{io::println, u32};
+
+fn main(io) {
+  io.println(loop {
+    break "loop result";
+  });
+
+  io.println(while 1 {
+    break "while result";
+  });
+}
