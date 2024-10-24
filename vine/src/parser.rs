@@ -248,7 +248,11 @@ impl<'ctx, 'src> VineParser<'ctx, 'src> {
 
   fn _parse_expr_prefix(&mut self, span: usize) -> Parse<'src, ExprKind> {
     if self.eat(Token::Return)? {
-      return Ok(ExprKind::Return(Box::new(self.parse_expr_bp(BP::ControlFlow)?)));
+      if self.eat(Token::Semi)? {
+        return Ok(ExprKind::Return(None));
+      }
+
+      return Ok(ExprKind::Return(Some(Box::new(self.parse_expr_bp(BP::ControlFlow)?))));
     }
     if self.eat(Token::Break)? {
       return Ok(ExprKind::Break);

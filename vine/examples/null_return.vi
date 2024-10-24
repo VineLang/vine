@@ -1,0 +1,26 @@
+
+use std::io::println;
+
+fn main(io) {
+  io.println("Hello, world!");
+  io.println(something());
+  let u = unit();
+  let v = something();
+  io.println(something());
+
+  if u == v {
+    io.println("woah");
+  } else {
+    io.println(something());
+  }
+
+  io.println(something());
+}
+
+fn unit() {
+  return;
+}
+
+fn something() {
+  return "yo";
+}
