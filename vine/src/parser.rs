@@ -248,7 +248,7 @@ impl<'ctx, 'src> VineParser<'ctx, 'src> {
 
   fn _parse_expr_prefix(&mut self, span: usize) -> Parse<'src, ExprKind> {
     if self.eat(Token::Return)? {
-      if self.eat(Token::Semi)? {
+      if self.check(Token::Semi) {
         return Ok(ExprKind::Return(None));
       }
 
