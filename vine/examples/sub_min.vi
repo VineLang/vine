@@ -1,0 +1,30 @@
+
+use std::{
+  io::println,
+  u32,
+  option::Option::{Some, None, unwrap},
+  list::{List, List::{iter, iter::next}},
+};
+
+fn main(&io) {
+  let list = [4, 3, 7, 9];
+  sub_min(&list);
+  io.println(List::to_string(u32::to_string, list));
+}
+
+fn sub_min(&list) {
+  let min;
+  let min_acc = None;
+
+  let it = list.iter();
+  while it.next() is Some(&val) {
+    if min_acc is Some(m) => val < m {
+      min_acc = Some(val);
+    }
+
+    val -= ~min;
+  }
+
+  ~min = min_acc.unwrap();
+}
+
