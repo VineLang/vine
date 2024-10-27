@@ -1,11 +1,11 @@
 
 use std::io::{print_byte, print_bytes};
 
-const max_iter = 64;
-const width = 1024;
-const height = 1024;
-const scale = 2.6;
-const center = (-0.8, 0.0);
+const max_iter: u32 = 64;
+const width: u32 = 1024;
+const height: u32 = 1024;
+const scale: f32 = 2.6;
+const center: (f32, f32) = (-0.8, 0.0);
 
 fn main(io) {
   io.print_bytes([

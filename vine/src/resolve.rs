@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use ivy::ast::Net;
 
 use crate::{
-  ast::{Expr, Ident, Path},
+  ast::{Expr, Ident, Path, Type},
   diag::DiagGroup,
 };
 
@@ -59,5 +59,5 @@ pub struct Adt {
 pub struct Variant {
   pub adt: NodeId,
   pub variant: usize,
-  pub fields: Vec<Ident>,
+  pub fields: Vec<Type>,
 }

@@ -1,52 +1,52 @@
 
 use std::bool::{true, false};
 
-enum Option {
-  Some(value),
+enum Option[T] {
+  Some(T),
   None,
 }
 
 mod Option {
-  fn map(&move self, f) {
+  fn map[T, U](&move self: Option[T], f: fn(T) -> U) -> Option[U] {
     match self {
       Some(val) => Some(f(val)),
       None => None,
     }
   }
 
-  fn as_ref(&self) {
+  fn as_ref[T](&self: Option[T]) -> Option[&T] {
     match &self {
       &Some(val) => Some(&val),
       &None => None,
     }
   }
 
-  fn flatten(&move self) {
+  fn flatten[T](&move self: Option[Option[T]]) -> Option[T] {
     match self {
       Some(Some(val)) => Some(val),
       _ => None,
     }
   }
 
-  fn and_then(&move self, f) {
+  fn and_then[T, U](&move self: Option[T], f: fn(T) -> Option[U]) -> Option[U] {
     self.map(f).flatten()
   }
 
-  fn or(&move self, default) {
+  fn or[T](&move self: Option[T], default: Option[T]) -> Option[T] {
     match self {
       None => default,
       x => x,
     }
   }
 
-  fn unwrap_or(&move self, default) {
+  fn unwrap_or[T](&move self: Option[T], default: T) -> T {
     match self {
       Some(val) => val,
       None => default,
     }
   }
 
-  fn unwrap(&move self) {
+  fn unwrap[T](&move self: Option[T]) -> T {
     match self { Some(val) => val }
   }
 }

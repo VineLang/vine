@@ -53,7 +53,7 @@ impl Compiler<'_> {
 
       ExprKind::U32(num) => Port::U32(*num),
       ExprKind::F32(num) => Port::F32(*num),
-      ExprKind::Path(path) => Port::Global(path.to_string()),
+      ExprKind::Path(path) => Port::Global(path.path.to_string()),
       ExprKind::Assign(s, v) => {
         let v = self.lower_expr_value(v);
         let s = self.lower_expr_space(s);
@@ -229,6 +229,7 @@ impl Compiler<'_> {
         self.new_comb("ref", a, b)
       }
       PatKind::Inverse(p) => self.lower_pat_space(p),
+      PatKind::Type(p, _) => self.lower_pat_value(p),
     }
   }
 
@@ -263,6 +264,7 @@ impl Compiler<'_> {
         (x.1, y.1)
       }
       PatKind::Tuple(t) => self.tuple_pairs(t, Self::lower_pat_place),
+      PatKind::Type(p, _) => self.lower_pat_place(p),
     }
   }
 
@@ -278,8 +280,8 @@ impl Compiler<'_> {
         x.1
       }
       PatKind::Inverse(x) => self.lower_pat_value(x),
-
       PatKind::Tuple(t) => self.tuple(t, Self::lower_pat_space),
+      PatKind::Type(p, _) => self.lower_pat_space(p),
     }
   }
 

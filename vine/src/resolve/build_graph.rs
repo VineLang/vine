@@ -165,7 +165,7 @@ impl Resolver {
   fn new_node(&mut self, mut canonical: Path, parent: Option<usize>) -> NodeId {
     let id = self.nodes.len();
     canonical.resolved = Some(id);
-    let node = Node {
+    let mut node = Node {
       id,
       canonical,
       members: Default::default(),
@@ -175,6 +175,9 @@ impl Resolver {
       adt: None,
       variant: None,
     };
+    if let Some(&name) = node.canonical.segments.last() {
+      node.members.insert(name, Member::Child(id));
+    }
     self.nodes.push(node);
     id
   }

@@ -9,7 +9,10 @@ use std::{
 use vine_util::interner::StringInterner;
 
 use crate::{
-  ast::{self, ConstItem, Expr, ExprKind, Ident, Item, ItemKind, ModItem, ModKind, Span},
+  ast::{
+    self, ConstItem, Expr, ExprKind, GenericPath, Ident, Item, ItemKind, ModItem, ModKind, Span,
+    Type, TypeKind,
+  },
   diag::{Diag, DiagGroup, FileInfo},
   parser::VineParser,
   visit::{VisitMut, Visitee},
@@ -41,17 +44,43 @@ impl<'ctx> Loader<'ctx> {
   pub fn load_main_mod(&mut self, path: impl Into<PathBuf>) {
     let path = path.into();
     let main = Ident(self.interner.intern("main"));
+    let io = Ident(self.interner.intern("IO"));
     self.root.push(Item {
       span: Span::NONE,
       kind: ItemKind::Const(ConstItem {
         name: main,
+        generics: Vec::new(),
+        ty: Type {
+          span: Span::NONE,
+          kind: TypeKind::Fn(
+            vec![Type {
+              span: Span::NONE,
+              kind: TypeKind::Ref(Box::new(Type {
+                span: Span::NONE,
+                kind: TypeKind::Path(GenericPath {
+                  path: ast::Path {
+                    span: Span::NONE,
+                    segments: vec![io],
+                    absolute: true,
+                    resolved: None,
+                  },
+                  args: None,
+                }),
+              })),
+            }],
+            None,
+          ),
+        },
         value: Expr {
           span: Span::NONE,
-          kind: ExprKind::Path(ast::Path {
-            span: Span::NONE,
-            segments: vec![self.auto_mod_name(&path), main],
-            absolute: true,
-            resolved: None,
+          kind: ExprKind::Path(ast::GenericPath {
+            path: ast::Path {
+              span: Span::NONE,
+              segments: vec![self.auto_mod_name(&path), main],
+              absolute: true,
+              resolved: None,
+            },
+            args: None,
           }),
         },
       }),

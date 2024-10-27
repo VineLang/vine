@@ -1,12 +1,12 @@
 
-fn concat(a, b) {
+fn concat(a: String, b: String) -> String {
   let (a_len, a_buf, ~a_end) = a;
   let (b_len, b_buf, ~b_end) = b;
   a_end = b_buf;
   (a_len + b_len, a_buf, move ~b_end)
 }
 
-fn single(char) {
+fn single(char: u32) -> String {
   let x;
   (1, (char, move ~x), x)
 }

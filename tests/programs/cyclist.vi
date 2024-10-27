@@ -20,7 +20,7 @@ fn main(io) {
   }
 }
 
-const show = List::to_string(u32::to_string);
+const show: fn(List[u32]) -> String = List::to_string(u32::to_string);
 
 fn cycle(&list, count) {
   let len = list.len();

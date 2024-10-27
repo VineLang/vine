@@ -1,7 +1,7 @@
 
 use std::{io::println, bool::{true, false}, result::Result::{Ok, Err}, u32};
 
-const end = 46;
+const end: u32 = 46;
 
 fn main(io) {
   let n = 0

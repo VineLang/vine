@@ -275,7 +275,7 @@ impl Compiler<'_> {
         for mut row in rows.into_iter() {
           let bucket = if let Some(pat) = row.remove_column(var) {
             let PatKind::Adt(v, children) = &pat.kind else { unreachable!() };
-            let v = v.resolved.unwrap();
+            let v = v.path.resolved.unwrap();
             let children = children.as_deref().unwrap_or(&[]);
             let v = self.nodes[v].variant.as_ref().unwrap();
             assert_eq!(v.fields.len(), children.len());
@@ -407,7 +407,7 @@ impl Cell<'_> {
   fn pat_type(&self, nodes: &[Node]) -> PatternType {
     match &self.pattern.kind {
       PatKind::Adt(p, _) => {
-        PatternType::Adt(nodes[p.resolved.unwrap()].variant.as_ref().unwrap().adt)
+        PatternType::Adt(nodes[p.path.resolved.unwrap()].variant.as_ref().unwrap().adt)
       }
       PatKind::Tuple(e) => PatternType::Tuple(e.len()),
       PatKind::Ref(_) => PatternType::Ref,

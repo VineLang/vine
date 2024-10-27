@@ -95,21 +95,21 @@ impl VisitMut<'_> for ResolveVisitor<'_> {
 
   fn visit_pat(&mut self, pat: &mut Pat) {
     if let PatKind::Adt(path, children) = &mut pat.kind {
-      let non_local_err = match self.resolver.resolve_path(self.node, path) {
+      let non_local_err = match self.resolver.resolve_path(self.node, &path.path) {
         Ok(resolved) => {
           if self.resolver.nodes[resolved].variant.is_some() {
-            *path = self.resolver.nodes[resolved].canonical.clone();
-            debug_assert!(path.absolute && path.resolved.is_some());
+            path.path = self.resolver.nodes[resolved].canonical.clone();
+            debug_assert!(path.path.absolute && path.path.resolved.is_some());
             self._visit_pat(pat);
             return;
           } else {
-            Diag::BadPatternPath { span: path.span }
+            Diag::BadPatternPath { span: path.path.span }
           }
         }
         Err(e) => e,
       };
 
-      let (Some(ident), None) = (path.as_ident(), children) else {
+      let (Some(ident), None) = (path.path.as_ident(), children) else {
         pat.kind = PatKind::Error(self.resolver.diags.add(non_local_err));
         return;
       };
@@ -150,16 +150,16 @@ impl VisitMut<'_> for ResolveVisitor<'_> {
       _ => {
         let result = match &mut expr.kind {
           ExprKind::Path(path) => {
-            if let Some(ident) = path.as_ident() {
+            if let Some(ident) = path.path.as_ident() {
               if let Some(bind) = self.scope.get(&ident).and_then(|x| x.last()) {
                 expr.kind = ExprKind::Local(bind.local);
                 return;
               }
             }
-            self.visit_path(path)
+            self.visit_path(&mut path.path)
           }
-          ExprKind::Field(_, p) => self.visit_path(p),
-          ExprKind::Method(_, p, _) => self.visit_path(p),
+          ExprKind::Field(_, p) => self.visit_path(&mut p.path),
+          ExprKind::Method(_, p, _) => self.visit_path(&mut p.path),
           _ => Ok(()),
         };
         self._visit_expr(expr);

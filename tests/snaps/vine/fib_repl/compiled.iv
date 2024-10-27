@@ -113,17 +113,17 @@
 
 ::std::str::single { fn(n0 tup(1 tup(tup(n0 n1) n1))) }
 
-::std::u32::to_string { fn(dup255(?(::std::u32::to_string::5 ::std::u32::to_string::1 x(n1 n0)) n1) n0) }
+::std::u32::to_string { fn(dup256(?(::std::u32::to_string::5 ::std::u32::to_string::1 x(n1 n0)) n1) n0) }
 
 ::std::u32::to_string::1 {
   x(n1 n2)
   ::std::u32::to_string::2 = x(n1 x(tup(0 tup(n0 n0)) n2))
 }
 
-::std::u32::to_string::2 { x(dup255(?(::std::u32::to_string::4 ::std::u32::to_string::3 x(n2 n0)) n2) n0) }
+::std::u32::to_string::2 { x(dup256(?(::std::u32::to_string::4 ::std::u32::to_string::3 x(n2 n0)) n2) n0) }
 
 ::std::u32::to_string::3 {
-  x(dup255(@rem(10 n1) @div(10 n5)) x(tup(@add(1 n0) tup(n3 n4)) n6))
+  x(dup256(@rem(10 n1) @div(10 n5)) x(tup(@add(1 n0) tup(n3 n4)) n6))
   48 = @add(n1 n2)
   ::std::u32::to_string::2 = x(n5 x(tup(n0 tup(tup(n2 n3) n4)) n6))
 }
@@ -132,7 +132,7 @@
 
 ::std::u32::to_string::5 { x(_ tup(1 tup(tup(48 n0) n0))) }
 
-::std::u32::parse { fn(tup(dup265(@eq(0 ?(::std::u32::parse::2 ::std::u32::parse::1 x(n2 x(n0 n1)))) n2) tup(n0 _)) n1) }
+::std::u32::parse { fn(tup(dup266(@eq(0 ?(::std::u32::parse::2 ::std::u32::parse::1 x(n2 x(n0 n1)))) n2) tup(n0 _)) n1) }
 
 ::std::u32::parse::1 {
   x(_ x(_ n0))
@@ -144,10 +144,10 @@
   ::std::u32::parse::3 = x(n0 x(n1 x(0 n2)))
 }
 
-::std::u32::parse::3 { x(dup265(?(::std::u32::parse::9 ::std::u32::parse::4 x(n3 n0)) n3) n0) }
+::std::u32::parse::3 { x(dup266(?(::std::u32::parse::9 ::std::u32::parse::4 x(n3 n0)) n3) n0) }
 
 ::std::u32::parse::4 {
-  x(n2 x(tup(dup268(dup(n0 @le(57 n1)) n6) n3) x(n4 n5)))
+  x(n2 x(tup(dup269(dup(n0 @le(57 n1)) n6) n3) x(n4 n5)))
   48 = @le(n0 @u32_and(n1 ?(::std::u32::parse::6 ::std::u32::parse::8 x(n2 x(n3 x(n4 x(n6 n5)))))))
 }
 

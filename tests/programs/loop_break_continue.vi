@@ -1,7 +1,7 @@
 
 use std::{io::println, u32};
 
-const end = 5;
+const end: u32 = 5;
 
 fn main(io) {
   let n = 0;

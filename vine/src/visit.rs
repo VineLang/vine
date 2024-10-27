@@ -1,5 +1,8 @@
 use crate::{
-  ast::{Block, Expr, ExprKind, Item, ItemKind, ModKind, Pat, PatKind, Stmt, StmtKind},
+  ast::{
+    Block, Expr, ExprKind, GenericPath, Item, ItemKind, ModKind, Pat, PatKind, Stmt, StmtKind,
+    Type, TypeKind,
+  },
   resolve::{Node, NodeValue},
 };
 
@@ -25,6 +28,10 @@ pub trait VisitMut<'a> {
     self._visit_pat(pat);
   }
 
+  fn visit_type(&mut self, pat: &'a mut Type) {
+    self._visit_type(pat);
+  }
+
   fn visit_stmt(&mut self, stmt: &'a mut Stmt) {
     self._visit_stmt(stmt)
   }
@@ -37,10 +44,13 @@ pub trait VisitMut<'a> {
     self._visit_block(block);
   }
 
+  fn visit_generic_path(&mut self, path: &'a mut GenericPath) {
+    self._visit_generic_path(path)
+  }
+
   fn _visit_expr(&mut self, expr: &'a mut Expr) {
     match &mut expr.kind {
       ExprKind::Hole
-      | ExprKind::Path(_)
       | ExprKind::Local(_)
       | ExprKind::U32(_)
       | ExprKind::F32(_)
@@ -72,6 +82,7 @@ pub trait VisitMut<'a> {
         self.visit_expr(b);
       }
 
+      ExprKind::Path(p) => self.visit_generic_path(p),
       ExprKind::Block(b) | ExprKind::Loop(b) => self.visit_block(b),
       ExprKind::Match(a, b) => {
         self.visit_expr(a);
@@ -111,8 +122,15 @@ pub trait VisitMut<'a> {
           self.visit_expr(t);
         }
       }
-      ExprKind::Call(a, b) | ExprKind::Method(a, _, b) => {
+      ExprKind::Call(a, b) => {
         self.visit_expr(a);
+        for t in b {
+          self.visit_expr(t);
+        }
+      }
+      ExprKind::Method(a, p, b) => {
+        self.visit_expr(a);
+        self.visit_generic_path(p);
         for t in b {
           self.visit_expr(t);
         }
@@ -132,13 +150,46 @@ pub trait VisitMut<'a> {
 
   fn _visit_pat(&mut self, pat: &'a mut Pat) {
     match &mut pat.kind {
-      PatKind::Hole | PatKind::Local(_) | PatKind::Error(_) | PatKind::Adt(_, None) => {}
+      PatKind::Hole | PatKind::Local(_) | PatKind::Error(_) => {}
       PatKind::Ref(a) | PatKind::Deref(a) | PatKind::Move(a) | PatKind::Inverse(a) => {
         self.visit_pat(a)
       }
-      PatKind::Adt(_, Some(a)) | PatKind::Tuple(a) => {
+      PatKind::Tuple(a) => {
         for t in a {
           self.visit_pat(t);
+        }
+      }
+      PatKind::Adt(p, a) => {
+        self.visit_generic_path(p);
+        if let Some(a) = a {
+          for t in a {
+            self.visit_pat(t);
+          }
+        }
+      }
+      PatKind::Type(p, t) => {
+        self.visit_pat(p);
+        self.visit_type(t);
+      }
+    }
+  }
+
+  fn _visit_type(&mut self, ty: &'a mut Type) {
+    match &mut ty.kind {
+      TypeKind::Hole | TypeKind::Generic(_) => {}
+      TypeKind::Ref(t) | TypeKind::Inverse(t) => self.visit_type(t),
+      TypeKind::Path(p) => self.visit_generic_path(p),
+      TypeKind::Tuple(a) => {
+        for t in a {
+          self.visit_type(t);
+        }
+      }
+      TypeKind::Fn(a, r) => {
+        for t in a {
+          self.visit_type(t);
+        }
+        if let Some(r) = r {
+          self.visit_type(r);
         }
       }
     }
@@ -191,6 +242,14 @@ pub trait VisitMut<'a> {
     self.exit_scope();
   }
 
+  fn _visit_generic_path(&mut self, path: &'a mut GenericPath) {
+    if let Some(args) = &mut path.args {
+      for t in args {
+        self.visit_type(t)
+      }
+    }
+  }
+
   fn visit(&mut self, visitee: &'a mut (impl Visitee<'a> + ?Sized)) {
     visitee.visit(self);
   }
@@ -218,6 +277,12 @@ impl<'t> Visitee<'t> for Pat {
   }
 }
 
+impl<'t> Visitee<'t> for Type {
+  fn visit(&'t mut self, visitor: &mut (impl VisitMut<'t> + ?Sized)) {
+    visitor.visit_type(self)
+  }
+}
+
 impl<'t> Visitee<'t> for Stmt {
   fn visit(&'t mut self, visitor: &mut (impl VisitMut<'t> + ?Sized)) {
     visitor.visit_stmt(self)
@@ -233,6 +298,12 @@ impl<'t> Visitee<'t> for Item {
 impl<'t> Visitee<'t> for Block {
   fn visit(&'t mut self, visitor: &mut (impl VisitMut<'t> + ?Sized)) {
     visitor.visit_block(self)
+  }
+}
+
+impl<'t> Visitee<'t> for GenericPath {
+  fn visit(&'t mut self, visitor: &mut (impl VisitMut<'t> + ?Sized)) {
+    visitor.visit_generic_path(self)
   }
 }
 

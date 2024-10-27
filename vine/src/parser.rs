@@ -8,9 +8,9 @@ use vine_util::{
 
 use crate::{
   ast::{
-    BinaryOp, Block, ComparisonOp, ConstItem, Enum, Expr, ExprKind, FnItem, Ident, InlineIvy, Item,
-    ItemKind, LetStmt, LogicalOp, ModItem, ModKind, Pat, PatKind, Path, PatternItem, Span, Stmt,
-    StmtKind, Struct, UseTree,
+    BinaryOp, Block, ComparisonOp, ConstItem, Enum, Expr, ExprKind, FnItem, GenericPath, Ident,
+    InlineIvy, Item, ItemKind, LetStmt, LogicalOp, ModItem, ModKind, Pat, PatKind, Path,
+    PatternItem, Span, Stmt, StmtKind, StructItem, Type, TypeKind, UseTree, Variant,
   },
   diag::Diag,
   lexer::Token,
@@ -115,42 +115,68 @@ impl<'ctx, 'src> VineParser<'ctx, 'src> {
   fn parse_fn_item(&mut self) -> Parse<'src, FnItem> {
     self.expect(Token::Fn)?;
     let name = self.parse_ident()?;
+    let generics = self.parse_generics()?;
     let params = self.parse_pat_list()?;
+    let ret = self.eat(Token::ThinArrow)?.then(|| self.parse_type()).transpose()?;
     let body = self.parse_block()?;
-    Ok(FnItem { name, params, body: Expr { span: body.span, kind: ExprKind::Block(body) } })
+    Ok(FnItem {
+      name,
+      generics,
+      params,
+      ret,
+      body: Expr { span: body.span, kind: ExprKind::Block(body) },
+    })
   }
 
   fn parse_const_item(&mut self) -> Parse<'src, ConstItem> {
     self.expect(Token::Const)?;
     let name = self.parse_ident()?;
+    let generics = self.parse_generics()?;
+    self.expect(Token::Colon)?;
+    let ty = self.parse_type()?;
     self.expect(Token::Eq)?;
     let value = self.parse_expr()?;
     self.expect(Token::Semi)?;
-    Ok(ConstItem { name, value })
+    Ok(ConstItem { name, generics, ty, value })
   }
 
-  fn parse_struct_item(&mut self) -> Parse<'src, Struct> {
+  fn parse_struct_item(&mut self) -> Parse<'src, StructItem> {
     self.expect(Token::Struct)?;
-    let item = self.parse_struct()?;
+    let name = self.parse_ident()?;
+    let generics = self.parse_generics()?;
+    let fields = if self.check(Token::OpenParen) {
+      self.parse_delimited(PAREN_COMMA, Self::parse_type)?
+    } else {
+      Vec::new()
+    };
     self.expect(Token::Semi)?;
-    Ok(item)
+    Ok(StructItem { name, generics, fields })
   }
 
   fn parse_enum_item(&mut self) -> Parse<'src, Enum> {
     self.expect(Token::Enum)?;
     let name = self.parse_ident()?;
-    let variants = self.parse_delimited(BRACE_COMMA, Self::parse_struct)?;
-    Ok(Enum { name, variants })
+    let generics = self.parse_generics()?;
+    let variants = self.parse_delimited(BRACE_COMMA, Self::parse_variant)?;
+    Ok(Enum { name, generics, variants })
   }
 
-  fn parse_struct(&mut self) -> Parse<'src, Struct> {
+  fn parse_variant(&mut self) -> Parse<'src, Variant> {
     let name = self.parse_ident()?;
     let fields = if self.check(Token::OpenParen) {
-      self.parse_delimited(PAREN_COMMA, Self::parse_ident)?
+      self.parse_delimited(PAREN_COMMA, Self::parse_type)?
     } else {
       Vec::new()
     };
-    Ok(Struct { name, fields })
+    Ok(Variant { name, fields })
+  }
+
+  fn parse_generics(&mut self) -> Parse<'src, Vec<Ident>> {
+    if self.check(Token::OpenBracket) {
+      self.parse_delimited(BRACKET_COMMA, Self::parse_ident)
+    } else {
+      Ok(Vec::new())
+    }
   }
 
   fn parse_pattern_item(&mut self) -> Parse<'src, PatternItem> {
@@ -196,6 +222,9 @@ impl<'ctx, 'src> VineParser<'ctx, 'src> {
     self.expect(Token::InlineIvy)?;
     self.expect(Token::Bang)?;
     let name = self.parse_ident()?;
+    let generics = self.parse_generics()?;
+    self.expect(Token::Colon)?;
+    let ty = self.parse_type()?;
     if !self.check(Token::OpenBrace) {
       self.unexpected()?;
     }
@@ -206,7 +235,7 @@ impl<'ctx, 'src> VineParser<'ctx, 'src> {
     let net = ivy_parser.parse_net_inner().map_err(|_| Diag::InvalidIvy { span })?;
     vine_lexer.bump(ivy_parser.state.lexer.span().end - vine_lexer.span().end);
     self.bump()?;
-    Ok(InlineIvy { name, net })
+    Ok(InlineIvy { name, generics, ty, net })
   }
 
   fn parse_expr_list(&mut self) -> Parse<'src, Vec<Expr>> {
@@ -297,7 +326,7 @@ impl<'ctx, 'src> VineParser<'ctx, 'src> {
       return Ok(ExprKind::String(self.parse_string()?));
     }
     if self.check(Token::Ident) || self.check(Token::ColonColon) {
-      return Ok(ExprKind::Path(self.parse_path()?));
+      return Ok(ExprKind::Path(self.parse_generic_path()?));
     }
     if self.check(Token::OpenParen) {
       let mut tuple = false;
@@ -429,7 +458,7 @@ impl<'ctx, 'src> VineParser<'ctx, 'src> {
     }
 
     if self.eat(Token::Dot)? {
-      let path = self.parse_path()?;
+      let path = self.parse_generic_path()?;
       if self.check(Token::OpenParen) {
         let args = self.parse_expr_list()?;
         return Ok(Ok(ExprKind::Method(Box::new(lhs), path, args)));
@@ -450,7 +479,15 @@ impl<'ctx, 'src> VineParser<'ctx, 'src> {
     let span = self.start_span();
     let kind = self._parse_pat(span)?;
     let span = self.end_span(span);
-    Ok(Pat { span, kind })
+    let pat = Pat { span, kind };
+    let span = self.start_span();
+    if self.eat(Token::Colon)? {
+      let span = self.end_span(span);
+      let ty = self.parse_type()?;
+      Ok(Pat { span, kind: PatKind::Type(Box::new(pat), Box::new(ty)) })
+    } else {
+      Ok(pat)
+    }
   }
 
   fn _parse_pat(&mut self, span: usize) -> Parse<'src, PatKind> {
@@ -458,7 +495,7 @@ impl<'ctx, 'src> VineParser<'ctx, 'src> {
       return Ok(PatKind::Hole);
     }
     if self.check(Token::Ident) || self.check(Token::ColonColon) {
-      let path = self.parse_path()?;
+      let path = self.parse_generic_path()?;
       let args = self.check(Token::OpenParen).then(|| self.parse_pat_list()).transpose()?;
       return Ok(PatKind::Adt(path, args));
     }
@@ -496,6 +533,54 @@ impl<'ctx, 'src> VineParser<'ctx, 'src> {
     self.unexpected()
   }
 
+  fn parse_type(&mut self) -> Parse<'src, Type> {
+    let span = self.start_span();
+    let kind = self._parse_type(span)?;
+    let span = self.end_span(span);
+    Ok(Type { span, kind })
+  }
+
+  fn _parse_type(&mut self, span: usize) -> Parse<'src, TypeKind> {
+    if self.eat(Token::Hole)? {
+      return Ok(TypeKind::Hole);
+    }
+    if self.eat(Token::Fn)? {
+      let args = self.parse_delimited(PAREN_COMMA, Self::parse_type)?;
+      let ret = self.eat(Token::ThinArrow)?.then(|| self.parse_type()).transpose()?.map(Box::new);
+      return Ok(TypeKind::Fn(args, ret));
+    }
+    if self.check(Token::OpenParen) {
+      let mut tuple = false;
+      let mut types = self.parse_delimited(PAREN_COMMA, |self_| {
+        let expr = self_.parse_type()?;
+        if self_.check(Token::Comma) {
+          tuple = true;
+        }
+        Ok(expr)
+      })?;
+      if types.len() == 1 && !tuple {
+        return Ok(types.pop().unwrap().kind);
+      }
+      return Ok(TypeKind::Tuple(types));
+    }
+    if self.eat(Token::And)? {
+      return Ok(TypeKind::Ref(Box::new(self.parse_type()?)));
+    }
+    if self.eat(Token::AndAnd)? {
+      let inner = self.parse_type()?;
+      let span = self.end_span(span + 1);
+      return Ok(TypeKind::Ref(Box::new(Type { span, kind: TypeKind::Ref(Box::new(inner)) })));
+    }
+    if self.eat(Token::Tilde)? {
+      return Ok(TypeKind::Inverse(Box::new(self.parse_type()?)));
+    }
+    if self.check(Token::ColonColon) || self.check(Token::Ident) {
+      let path = self.parse_generic_path()?;
+      return Ok(TypeKind::Path(path));
+    }
+    self.unexpected()
+  }
+
   pub(crate) fn parse_stmt(&mut self) -> Parse<'src, Stmt> {
     let span = self.start_span();
     let kind = if self.check(Token::Let) {
@@ -526,6 +611,15 @@ impl<'ctx, 'src> VineParser<'ctx, 'src> {
     let segments = self.parse_delimited(PATH, Self::parse_ident)?;
     let span = self.end_span(span);
     Ok(Path { span, segments, absolute, resolved: None })
+  }
+
+  fn parse_generic_path(&mut self) -> Parse<'src, GenericPath> {
+    let path = self.parse_path()?;
+    let args = self
+      .check(Token::OpenBracket)
+      .then(|| self.parse_delimited(BRACKET_COMMA, Self::parse_type))
+      .transpose()?;
+    Ok(GenericPath { path, args })
   }
 
   fn start_span(&self) -> usize {

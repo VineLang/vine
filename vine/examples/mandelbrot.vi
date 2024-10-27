@@ -1,11 +1,11 @@
 
 use std::io::print_char;
 
-const max_iter = 128;
-const width = 125;
-const height = 45;
-const scale = 2.6;
-const center = (-0.8, 0.0);
+const max_iter: u32 = 128;
+const width: u32 = 125;
+const height: u32 = 45;
+const scale: f32 = 2.6;
+const center: (f32, f32) = (-0.8, 0.0);
 
 fn main(io) {
   let j = 0;

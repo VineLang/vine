@@ -1,3 +1,3 @@
 
-const true = 1;
-const false = 0;
+const true: u32 = 1;
+const false: u32 = 0;

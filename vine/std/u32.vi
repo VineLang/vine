@@ -1,7 +1,7 @@
 
 use std::option::Option::{Some, None};
 
-fn to_string(n) {
+fn to_string(n: u32) -> String {
   if n {
     let str = "";
     while n {
@@ -15,7 +15,7 @@ fn to_string(n) {
   }
 }
 
-fn parse(str) {
+fn parse(str: String) -> Option[u32] {
   let (len, chars, _) = str;
   if len == 0 {
     None
@@ -35,10 +35,10 @@ fn parse(str) {
   }
 }
 
-inline_ivy! rotate_left {
+inline_ivy! rotate_left: fn(u32, u32) -> u32 {
   fn(@u32_rotl(x y) fn(x y))
 }
 
-inline_ivy! rotate_right {
+inline_ivy! rotate_right: fn(u32, u32) -> u32 {
   fn(@u32_rotr(x y) fn(x y))
 }

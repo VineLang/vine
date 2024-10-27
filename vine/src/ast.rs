@@ -20,7 +20,7 @@ pub struct Item {
 pub enum ItemKind {
   Fn(FnItem),
   Const(ConstItem),
-  Struct(Struct),
+  Struct(StructItem),
   Enum(Enum),
   Pattern(PatternItem),
   Mod(ModItem),
@@ -32,13 +32,17 @@ pub enum ItemKind {
 #[derive(Debug, Clone)]
 pub struct FnItem {
   pub name: Ident,
+  pub generics: Vec<Ident>,
   pub params: Vec<Pat>,
+  pub ret: Option<Type>,
   pub body: Expr,
 }
 
 #[derive(Debug, Clone)]
 pub struct ConstItem {
   pub name: Ident,
+  pub generics: Vec<Ident>,
+  pub ty: Type,
   pub value: Expr,
 }
 
@@ -46,15 +50,23 @@ pub struct ConstItem {
 pub struct PatternItem {}
 
 #[derive(Debug, Clone)]
-pub struct Struct {
+pub struct StructItem {
   pub name: Ident,
-  pub fields: Vec<Ident>,
+  pub generics: Vec<Ident>,
+  pub fields: Vec<Type>,
 }
 
 #[derive(Debug, Clone)]
 pub struct Enum {
   pub name: Ident,
-  pub variants: Vec<Struct>,
+  pub generics: Vec<Ident>,
+  pub variants: Vec<Variant>,
+}
+
+#[derive(Debug, Clone)]
+pub struct Variant {
+  pub name: Ident,
+  pub fields: Vec<Type>,
 }
 
 #[derive(Debug, Clone)]
@@ -79,6 +91,8 @@ pub struct UseTree {
 #[derive(Debug, Clone)]
 pub struct InlineIvy {
   pub name: Ident,
+  pub generics: Vec<Ident>,
+  pub ty: Type,
   pub net: Net,
 }
 
@@ -133,7 +147,7 @@ pub enum ExprKind {
   #[class(space)]
   Hole,
   #[class(value)]
-  Path(Path),
+  Path(GenericPath),
   #[class(place)]
   Local(usize),
   #[class(value)]
@@ -171,9 +185,9 @@ pub enum ExprKind {
   #[class(value)]
   List(Vec<Expr>),
   #[class(place, sugar)]
-  Field(B<Expr>, Path),
+  Field(B<Expr>, GenericPath),
   #[class(value, sugar)]
-  Method(B<Expr>, Path, Vec<Expr>),
+  Method(B<Expr>, GenericPath, Vec<Expr>),
   #[class(value)]
   Call(B<Expr>, Vec<Expr>),
   #[class(value)]
@@ -224,7 +238,7 @@ pub enum PatKind {
   #[class(value, place, space)]
   Hole,
   #[class(value, place, space, refutable)]
-  Adt(Path, Option<Vec<Pat>>),
+  Adt(GenericPath, Option<Vec<Pat>>),
   #[class(value, place, space)]
   Local(usize),
   #[class(value, place)]
@@ -237,8 +251,33 @@ pub enum PatKind {
   Inverse(B<Pat>),
   #[class(value, place, space)]
   Tuple(Vec<Pat>),
+  #[class(value, place, space)]
+  Type(B<Pat>, B<Type>),
   #[class(error)]
   Error(ErrorGuaranteed),
+}
+
+#[derive(Default, Debug, Clone)]
+pub struct GenericPath {
+  pub path: Path,
+  pub args: Option<Vec<Type>>,
+}
+
+#[derive(Clone)]
+pub struct Type {
+  pub span: Span,
+  pub kind: TypeKind,
+}
+
+#[derive(Debug, Clone)]
+pub enum TypeKind {
+  Hole,
+  Fn(Vec<Type>, Option<B<Type>>),
+  Tuple(Vec<Type>),
+  Ref(B<Type>),
+  Inverse(B<Type>),
+  Path(GenericPath),
+  Generic(usize),
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -364,4 +403,4 @@ macro_rules! debug_kind {
   )*};
 }
 
-debug_kind!(Item, Stmt, Expr, Pat);
+debug_kind!(Item, Stmt, Expr, Pat, Type);
