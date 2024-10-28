@@ -8,6 +8,7 @@ pub mod repl;
 pub mod resolve;
 pub mod visit;
 
+mod checker;
 mod lexer;
 mod validate;
 

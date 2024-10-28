@@ -9,7 +9,7 @@ use std::{
 use vine_util::lexer::TokenSet;
 
 use crate::{
-  ast::{Ident, Path, Span},
+  ast::{BinaryOp, Ident, Path, Span},
   lexer::Token,
 };
 
@@ -82,6 +82,20 @@ diags! {
     ["`&` is invalid in a space pattern"]
   ExpectedRefutablePat
     ["expected an irrefutable pattern"]
+  CannotInfer
+    ["cannot infer type"]
+  BadBinOp { op: BinaryOp, lhs: String, rhs: String }
+    ["cannot apply operator `{op:?}` to values of types `{lhs}` and `{rhs}`"]
+  MismatchedThenElseTypes { then: String, els: String }
+    ["then block has type `{then}` but else block has type `{els}`"]
+  BadArgCount { ty: String,  expected: usize, got: usize }
+    ["function type `{ty}` expects {expected} arguments, was passed {got}"]
+  NonFunctionCall { ty: String }
+    ["cannot call non-function type `{ty}`"]
+  CannotCompare { lhs: String, rhs: String}
+    ["cannot compare `{lhs}` and `{rhs}`"]
+  NonMethodFunction { ty: String }
+    ["invalid method; function type `{ty}` does not accept reference as first parameter"]
 }
 
 #[derive(Default, Debug)]
@@ -138,7 +152,7 @@ impl Diag {
   }
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct ErrorGuaranteed(());
 
 impl From<ErrorGuaranteed> for Diag {
