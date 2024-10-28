@@ -1,44 +1,44 @@
 
 ::main { ::sub_min::main }
 
-::sub_min::main {
-  fn(n1 _)
-  ::sub_min::sub_min = fn(ref(tup(4 tup(tup(4 tup(3 tup(7 tup(9 n0)))) n0)) n3) _)
-  ::std::io::println = fn(n1 fn(n4 _))
-  ::std::list::List::to_string = fn(::std::u32::to_string fn(n3 n4))
-}
-
-::sub_min::sub_min {
+::sub_min {
   fn(n0 _)
   ::std::list::List::iter = fn(n0 n4)
   ::std::option::Option::unwrap = fn(ref(n3 _) n2)
-  ::sub_min::sub_min::1 = x(_ x(n2 x(::std::option::Option::None x(n3 n4))))
+  ::sub_min::1 = x(_ x(n2 x(::std::option::Option::None x(n3 n4))))
 }
 
-::sub_min::sub_min::1 {
+::sub_min::1 {
   x(n1 x(n2 x(n3 x(n4 n0))))
-  ::std::list::List::iter::next = fn(ref(n0 n5) enum(::sub_min::sub_min::2 enum(::sub_min::sub_min::8 x(n1 x(n2 x(n3 x(n4 n5)))))))
+  ::std::list::List::iter::next = fn(ref(n0 n5) enum(::sub_min::2 enum(::sub_min::8 x(n1 x(n2 x(n3 x(n4 n5)))))))
 }
 
-::sub_min::sub_min::2 {
-  enum(ref(dup9(n4 @sub(n0 n1)) n1) x(n2 x(n5 x(dup7(enum(::sub_min::sub_min::4 enum(::sub_min::sub_min::7 x(n3 x(n6 n4)))) n3) n7))))
-  ::sub_min::sub_min::1 = x(dup(n0 n2) x(n5 x(n6 n7)))
+::sub_min::2 {
+  enum(ref(dup5(n4 @sub(n0 n1)) n1) x(n2 x(n5 x(dup3(enum(::sub_min::4 enum(::sub_min::7 x(n3 x(n6 n4)))) n3) n7))))
+  ::sub_min::1 = x(dup(n0 n2) x(n5 x(n6 n7)))
 }
 
-::sub_min::sub_min::3 {
+::sub_min::3 {
   x(n0 n1)
   ::std::option::Option::Some = fn(n1 n0)
 }
 
-::sub_min::sub_min::4 { enum(n0 x(n1 x(n2 dup9(@lt(n0 ?(::sub_min::sub_min::6 ::sub_min::sub_min::5 x(n1 x(n2 n3)))) n3)))) }
+::sub_min::4 { enum(n0 x(n1 x(n2 dup5(@lt(n0 ?(::sub_min::6 ::sub_min::5 x(n1 x(n2 n3)))) n3)))) }
 
-::sub_min::sub_min::5 { x(_ ::sub_min::sub_min::3) }
+::sub_min::5 { x(_ ::sub_min::3) }
 
-::sub_min::sub_min::6 { x(n0 x(n0 _)) }
+::sub_min::6 { x(n0 x(n0 _)) }
 
-::sub_min::sub_min::7 { x(_ ::sub_min::sub_min::3) }
+::sub_min::7 { x(_ ::sub_min::3) }
 
-::sub_min::sub_min::8 { x(n0 x(n0 x(n1 x(n1 _)))) }
+::sub_min::8 { x(n0 x(n0 x(n1 x(n1 _)))) }
+
+::sub_min::main {
+  fn(n1 _)
+  ::sub_min = fn(ref(tup(4 tup(tup(4 tup(3 tup(7 tup(9 n0)))) n0)) n3) _)
+  ::std::io::println = fn(n1 fn(n4 _))
+  ::std::list::List::to_string = fn(::std::u32::to_string fn(n3 n4))
+}
 
 ::std::io::println {
   fn(ref(n0 n3) fn(n1 _))

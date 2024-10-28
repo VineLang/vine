@@ -216,14 +216,14 @@ impl Compiler<'_> {
 
   fn lower_pat_value(&mut self, t: &Pat) -> Port {
     match &t.kind {
-      PatKind![!value || refutable] => unreachable!(),
+      PatKind![!value] => unreachable!(),
 
-      PatKind::Hole => Port::Erase,
+      PatKind::Hole | PatKind::Adt(_, None) => Port::Erase,
       PatKind::Local(local) => {
         self.declare_local(*local);
         self.set_local(*local)
       }
-      PatKind::Tuple(t) => self.tuple(t, Self::lower_pat_value),
+      PatKind::Tuple(t) | PatKind::Adt(_, Some(t)) => self.tuple(t, Self::lower_pat_value),
       PatKind::Ref(p) => {
         let (a, b) = self.lower_pat_place(p);
         self.new_comb("ref", a, b)
@@ -235,9 +235,9 @@ impl Compiler<'_> {
 
   fn lower_pat_place(&mut self, t: &Pat) -> (Port, Port) {
     match &t.kind {
-      PatKind![!place || refutable] => unreachable!(),
+      PatKind![!place] => unreachable!(),
 
-      PatKind::Hole => self.net.new_wire(),
+      PatKind::Hole | PatKind::Adt(_, None) => self.net.new_wire(),
       PatKind::Local(local) => {
         self.declare_local(*local);
         let x = self.set_local(*local);
@@ -263,16 +263,16 @@ impl Compiler<'_> {
         self.net.link(r, s);
         (x.1, y.1)
       }
-      PatKind::Tuple(t) => self.tuple_pairs(t, Self::lower_pat_place),
+      PatKind::Tuple(t) | PatKind::Adt(_, Some(t)) => self.tuple_pairs(t, Self::lower_pat_place),
       PatKind::Type(p, _) => self.lower_pat_place(p),
     }
   }
 
   fn lower_pat_space(&mut self, t: &Pat) -> Port {
     match &t.kind {
-      PatKind![!space || refutable] => unreachable!(),
+      PatKind![!space] => unreachable!(),
 
-      PatKind::Hole => Port::Erase,
+      PatKind::Hole | PatKind::Adt(_, None) => Port::Erase,
       PatKind::Local(local) => {
         self.declare_local(*local);
         let x = self.net.new_wire();
@@ -280,7 +280,7 @@ impl Compiler<'_> {
         x.1
       }
       PatKind::Inverse(x) => self.lower_pat_value(x),
-      PatKind::Tuple(t) => self.tuple(t, Self::lower_pat_space),
+      PatKind::Tuple(t) | PatKind::Adt(_, Some(t)) => self.tuple(t, Self::lower_pat_space),
       PatKind::Type(p, _) => self.lower_pat_space(p),
     }
   }

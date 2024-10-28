@@ -36,10 +36,9 @@ impl Validate {
       (_, Form::Error) => unreachable!(),
       (PatKind::Error(_), _) => {}
 
-      (PatKind![refutable], _) if !refutable => {
-        pat.kind = PatKind::Error(self.diags.add(Diag::ExpectedRefutablePat { span }))
-      }
-
+      // (PatKind![refutable], _) if !refutable => {
+      //   pat.kind = PatKind::Error(self.diags.add(Diag::ExpectedRefutablePat { span }))
+      // }
       (PatKind::Hole | PatKind::Local(_) | PatKind::Adt(_, None), _) => {}
       (PatKind::Inverse(p), _) => self.expect_pat(p, invert_kind(kind), refutable),
       (PatKind::Adt(_, Some(t)) | PatKind::Tuple(t), _) => {

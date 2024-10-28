@@ -19,7 +19,7 @@ const default: Rng = new(
 const multiplier: u64 = u64(0x4c957f2d, 0x5851f42d);
 
 fn gen_u32(&(state, increment): Rng) -> u32 {
-  let (lo, hi) = state;
+  let u64(lo, hi) = state;
   state = u64::add(u64::mul(state, multiplier), increment);
   u32::rotate_right((hi >> 13) ^ (hi << 5) ^ (lo >> 27), hi >> 27)
 }

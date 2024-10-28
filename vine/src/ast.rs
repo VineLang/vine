@@ -237,7 +237,7 @@ pub enum PatKind {
   #[default]
   #[class(value, place, space)]
   Hole,
-  #[class(value, place, space, refutable)]
+  #[class(value, place, space)]
   Adt(GenericPath, Option<Vec<Pat>>),
   #[class(value, place, space)]
   Local(usize),

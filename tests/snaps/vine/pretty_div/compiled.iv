@@ -1,30 +1,16 @@
 
 ::main { ::pretty_div::main }
 
-::pretty_div::main {
-  fn(n0 _)
-  ::std::io::println = fn(ref(n0 n2) fn(n1 _))
-  ::pretty_div::pretty_div = fn(4 fn(2 n1))
-  ::std::io::println = fn(ref(n2 n4) fn(n3 _))
-  ::pretty_div::pretty_div = fn(5 fn(3 n3))
-  ::std::io::println = fn(ref(n4 n6) fn(n5 _))
-  ::pretty_div::pretty_div = fn(1 fn(1 n5))
-  ::std::io::println = fn(ref(n6 n8) fn(n7 _))
-  ::pretty_div::pretty_div = fn(1 fn(0 n7))
-  ::std::io::println = fn(ref(n8 _) fn(n9 _))
-  ::pretty_div::pretty_div = fn(10 fn(3 n9))
+::pretty_div { fn(dup1(n1 n2) fn(dup2(?(::pretty_div::2 ::pretty_div::1 x(n2 x(n3 x(n0 n1)))) n3) n0)) }
+
+::pretty_div::1 {
+  x(n0 x(dup2(n3 n4) x(n1 n2)))
+  ::pretty_div::4 = x(n0 x(n4 x(n1 x(n3 n2))))
 }
 
-::pretty_div::pretty_div { fn(dup4(n1 n2) fn(dup5(?(::pretty_div::pretty_div::2 ::pretty_div::pretty_div::1 x(n2 x(n3 x(n0 n1)))) n3) n0)) }
+::pretty_div::2 { x(_ x(_ x(tup(19 tup(tup(100 tup(105 tup(118 tup(105 tup(115 tup(105 tup(111 tup(110 tup(32 tup(98 tup(121 tup(32 tup(122 tup(101 tup(114 tup(111 tup(32 tup(58 tup(79 n0))))))))))))))))))) n0)) _))) }
 
-::pretty_div::pretty_div::1 {
-  x(n0 x(dup5(n3 n4) x(n1 n2)))
-  ::pretty_div::pretty_div::4 = x(n0 x(n4 x(n1 x(n3 n2))))
-}
-
-::pretty_div::pretty_div::2 { x(_ x(_ x(tup(19 tup(tup(100 tup(105 tup(118 tup(105 tup(115 tup(105 tup(111 tup(110 tup(32 tup(98 tup(121 tup(32 tup(122 tup(101 tup(114 tup(111 tup(32 tup(58 tup(79 n0))))))))))))))))))) n0)) _))) }
-
-::pretty_div::pretty_div::4 {
+::pretty_div::4 {
   x(n11 x(n12 x(n13 x(n14 @div(n14 n8)))))
   ::std::u32::to_string = fn(n11 n1)
   ::std::str::concat = fn(tup(3 tup(tup(124 tup(95 tup(32 n0))) n0)) fn(n1 n3))
@@ -34,6 +20,20 @@
   ::std::str::concat = fn(n7 fn(tup(6 tup(tup(32 tup(95 tup(124 tup(32 tup(61 tup(32 n6)))))) n6)) n9))
   ::std::u32::to_string = fn(n8 n10)
   ::std::str::concat = fn(n9 fn(n10 n13))
+}
+
+::pretty_div::main {
+  fn(n0 _)
+  ::std::io::println = fn(ref(n0 n2) fn(n1 _))
+  ::pretty_div = fn(4 fn(2 n1))
+  ::std::io::println = fn(ref(n2 n4) fn(n3 _))
+  ::pretty_div = fn(5 fn(3 n3))
+  ::std::io::println = fn(ref(n4 n6) fn(n5 _))
+  ::pretty_div = fn(1 fn(1 n5))
+  ::std::io::println = fn(ref(n6 n8) fn(n7 _))
+  ::pretty_div = fn(1 fn(0 n7))
+  ::std::io::println = fn(ref(n8 _) fn(n9 _))
+  ::pretty_div = fn(10 fn(3 n9))
 }
 
 ::std::io::println {
