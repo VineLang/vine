@@ -5,9 +5,9 @@ use std::mem::take;
 use slab::Slab;
 
 use crate::{
-  ast::{BinaryOp, Block, Expr, ExprKind, GenericPath, Pat, PatKind, Span},
+  ast::{BinaryOp, Block, Expr, ExprKind, GenericPath, Pat, PatKind, Span, StmtKind},
   diag::{Diag, DiagGroup, ErrorGuaranteed},
-  resolve::NodeId,
+  resolve::{Node, NodeId},
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -31,7 +31,7 @@ impl Form {
 
 type TyVar = usize;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 enum Ty {
   U32,
   F32,
@@ -65,14 +65,15 @@ impl Ty {
   const UNIT: Ty = Ty::Tuple(Vec::new());
 }
 
-struct Checker {
+struct Checker<'n> {
+  pub diags: DiagGroup,
+  nodes: &'n mut [Node],
   vars: Vec<Result<Ty, Span>>,
   string: Ty,
   list: NodeId,
-  pub diags: DiagGroup,
 }
 
-impl Checker {
+impl<'n> Checker<'n> {
   fn new_var(&mut self, span: Span) -> Ty {
     let v = self.vars.len();
     self.vars.push(Err(span));
@@ -127,10 +128,6 @@ impl Checker {
       }
       _ => false,
     }
-  }
-
-  fn irref(&self, n: NodeId) -> bool {
-    todo!()
   }
 
   fn infer_expr(&mut self, expr: &mut Expr) -> (Form, Ty) {
@@ -213,11 +210,11 @@ impl Checker {
       }
       ExprKind::While(cond, block) => {
         self.expect_expr_form_ty(cond, Form::Value, &mut Ty::U32);
-        self.expect_unit_block(block);
+        self.infer_block(block);
         Ty::UNIT
       }
       ExprKind::Loop(block) => {
-        self.expect_unit_block(block);
+        self.infer_block(block);
         self.new_var(span)
       }
       ExprKind::For(..) => todo!(),
@@ -401,18 +398,79 @@ impl Checker {
   }
 
   fn print_ty(&self, ty: &Ty) -> String {
-    todo!()
+    match ty {
+      Ty::U32 => "u32".into(),
+      Ty::F32 => "f32".into(),
+      Ty::IO => "IO".into(),
+      Ty::Tuple(t) => {
+        let mut string = "(".to_owned();
+        let mut first = false;
+        for t in t {
+          if !first {
+            string += ", ";
+          }
+          string += &self.print_ty(t);
+          first = false;
+        }
+        if t.len() == 1 {
+          string += ",";
+        }
+        string + ")"
+      }
+      Ty::Fn(args, ret) => {
+        let mut string = "fn(".to_owned();
+        let mut first = false;
+        for t in args {
+          if !first {
+            string += ", ";
+          }
+          string += &self.print_ty(t);
+          first = false;
+        }
+        string += ")";
+        if **ret != Ty::UNIT {
+          string += " -> ";
+          string += &self.print_ty(ty);
+        }
+        string
+      }
+      Ty::Ref(ty) => format!("&{}", self.print_ty(ty)),
+      Ty::Inverse(ty) => format!("~{}", self.print_ty(ty)),
+      Ty::Adt(_, vec) => todo!(),
+      Ty::Opaque(n) => format!("T{n}"),
+      Ty::Var(v) => format!("?{v}"),
+      Ty::Error(_) => format!("??"),
+    }
   }
 
   fn expect_expr_form_ty(&mut self, expr: &mut Expr, form: Form, ty: &mut Ty) {
-    todo!()
+    let mut found = self.expect_expr_form(expr, form);
+    if !self.unify(&mut found, ty) {
+      self.diags.add(Diag::ExpectedTypeFound {
+        span: expr.span,
+        expected: self.print_ty(ty),
+        found: self.print_ty(&found),
+      });
+    }
   }
+
   fn expect_expr_form(&mut self, expr: &mut Expr, form: Form) -> Ty {
-    todo!()
+    let (found, ty) = self.infer_expr(expr);
+    self.coerce_expr(expr, found, form);
+    ty
   }
+
   fn expect_pat_form_ty(&mut self, pat: &mut Pat, form: Form, refutable: bool, ty: &mut Ty) {
-    todo!()
+    let mut found = self.expect_pat_form(pat, form, refutable);
+    if !self.unify(&mut found, ty) {
+      self.diags.add(Diag::ExpectedTypeFound {
+        span: pat.span,
+        expected: self.print_ty(ty),
+        found: self.print_ty(&found),
+      });
+    }
   }
+
   fn expect_pat_form(&mut self, pat: &mut Pat, form: Form, refutable: bool) -> Ty {
     let span = pat.span;
     match (&mut pat.kind, form) {
@@ -458,11 +516,22 @@ impl Checker {
   }
 
   fn infer_block(&mut self, block: &mut Block) -> Ty {
-    todo!()
-  }
-
-  fn expect_unit_block(&mut self, block: &mut Block) -> Ty {
-    todo!()
+    let mut ty = Ty::UNIT;
+    for stmt in block.stmts.iter_mut() {
+      match &mut stmt.kind {
+        StmtKind::Let(l) => {
+          self.expect_pat_form(&mut l.bind, Form::Value, true);
+          if let Some(value) = &mut l.init {
+            self.expect_expr_form_ty(value, Form::Value, &mut ty);
+          }
+        }
+        StmtKind::Expr(e, _) => {
+          ty = self.expect_expr_form(e, Form::Value);
+        }
+        StmtKind::Item(_) | StmtKind::Empty => ty = Ty::UNIT,
+      }
+    }
+    ty
   }
 
   fn concretize(&mut self, ty: &mut Ty) {

@@ -89,13 +89,15 @@ diags! {
   MismatchedThenElseTypes { then: String, els: String }
     ["then block has type `{then}` but else block has type `{els}`"]
   BadArgCount { ty: String,  expected: usize, got: usize }
-    ["function type `{ty}` expects {expected} arguments, was passed {got}"]
+    ["function type `{ty}` expects {expected} arguments; was passed {got}"]
   NonFunctionCall { ty: String }
     ["cannot call non-function type `{ty}`"]
   CannotCompare { lhs: String, rhs: String}
     ["cannot compare `{lhs}` and `{rhs}`"]
   NonMethodFunction { ty: String }
     ["invalid method; function type `{ty}` does not accept reference as first parameter"]
+  ExpectedTypeFound { expected: String, found: String }
+    ["expected type `{expected}`; found `{found}`"]
 }
 
 #[derive(Default, Debug)]
