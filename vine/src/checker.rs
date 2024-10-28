@@ -5,7 +5,7 @@ use std::mem::take;
 use slab::Slab;
 
 use crate::{
-  ast::{BinaryOp, Block, Expr, ExprKind, GenericPath, Pat, Span},
+  ast::{BinaryOp, Block, Expr, ExprKind, GenericPath, Pat, PatKind, Span},
   diag::{Diag, DiagGroup, ErrorGuaranteed},
   resolve::NodeId,
 };
@@ -414,7 +414,47 @@ impl Checker {
     todo!()
   }
   fn expect_pat_form(&mut self, pat: &mut Pat, form: Form, refutable: bool) -> Ty {
-    todo!()
+    let span = pat.span;
+    match (&mut pat.kind, form) {
+      (_, Form::Error(_)) => unreachable!(),
+      (PatKind::Error(e), _) => Ty::Error(*e),
+
+      (PatKind::Adt(_, _), _) => todo!(),
+
+      (PatKind::Hole, _) => self.new_var(span),
+      (PatKind::Local(l), _) => Ty::Var(*l),
+      (PatKind::Inverse(p), _) => self.expect_pat_form(p, form.inverse(), refutable).inverse(),
+      (PatKind::Tuple(t), _) => {
+        Ty::Tuple(t.iter_mut().map(|p| self.expect_pat_form(p, form, refutable)).collect())
+      }
+      (PatKind::Move(p), Form::Place) => self.expect_pat_form(p, Form::Value, refutable),
+      (PatKind::Deref(p), Form::Place) => {
+        let ty = self.new_var(span);
+        self.expect_pat_form_ty(p, Form::Value, refutable, &mut Ty::Ref(Box::new(ty.clone())));
+        ty
+      }
+      (PatKind::Type(p, _), _) => todo!(),
+
+      (PatKind::Ref(p), Form::Value | Form::Place) => {
+        Ty::Ref(Box::new(self.expect_pat_form(p, Form::Place, refutable)))
+      }
+
+      (PatKind::Ref(pat), Form::Space) => {
+        let err = self.diags.add(Diag::RefSpacePat { span });
+        pat.kind = PatKind::Error(err);
+        Ty::Error(err)
+      }
+      (PatKind::Deref(pat), _) => {
+        let err = self.diags.add(Diag::DerefNonPlacePat { span });
+        pat.kind = PatKind::Error(err);
+        Ty::Error(err)
+      }
+      (PatKind::Move(_), _) => {
+        let err = self.diags.add(Diag::MoveNonPlacePat { span });
+        pat.kind = PatKind::Error(err);
+        Ty::Error(err)
+      }
+    }
   }
 
   fn infer_block(&mut self, block: &mut Block) -> Ty {
