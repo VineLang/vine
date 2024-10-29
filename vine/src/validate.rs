@@ -49,9 +49,6 @@ impl Validate {
       (PatKind::Deref(p) | PatKind::Move(p), Form::Place) => {
         self.expect_pat(p, Form::Value, refutable)
       }
-      (PatKind::Type(p, _), _) => {
-        self.expect_pat(p, kind, refutable);
-      }
 
       (PatKind::Ref(p), Form::Value | Form::Place) => self.expect_pat(p, Form::Place, refutable),
 

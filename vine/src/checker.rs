@@ -5,7 +5,7 @@ use std::mem::take;
 use slab::Slab;
 
 use crate::{
-  ast::{BinaryOp, Block, Expr, ExprKind, GenericPath, Pat, PatKind, Span, StmtKind},
+  ast::{BinaryOp, Block, Expr, ExprKind, GenericPath, Pat, PatKind, Span, StmtKind, Type},
   diag::{Diag, DiagGroup, ErrorGuaranteed},
   resolve::{Node, NodeId},
 };
@@ -32,7 +32,7 @@ impl Form {
 type TyVar = usize;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-enum Ty {
+pub enum Ty {
   U32,
   F32,
   IO,
@@ -219,7 +219,10 @@ impl<'n> Checker<'n> {
       }
       ExprKind::For(..) => todo!(),
       ExprKind::Fn(args, ret) => Ty::Fn(
-        args.iter_mut().map(|arg| self.expect_pat_form(arg, Form::Value, false)).collect(),
+        args
+          .iter_mut()
+          .map(|(pat, ty)| self.do_pat(pat, ty.as_mut(), Form::Value, false))
+          .collect(),
         Box::new(self.expect_expr_form(ret, Form::Value)),
       ),
       ExprKind::Return(e) | ExprKind::Break(e) => {
@@ -454,6 +457,10 @@ impl<'n> Checker<'n> {
     }
   }
 
+  fn do_pat(&mut self, pat: &mut Pat, ty: Option<&mut Type>, form: Form, refutable: bool) -> Ty {
+    todo!()
+  }
+
   fn expect_expr_form(&mut self, expr: &mut Expr, form: Form) -> Ty {
     let (found, ty) = self.infer_expr(expr);
     self.coerce_expr(expr, found, form);
@@ -491,7 +498,6 @@ impl<'n> Checker<'n> {
         self.expect_pat_form_ty(p, Form::Value, refutable, &mut Ty::Ref(Box::new(ty.clone())));
         ty
       }
-      (PatKind::Type(p, _), _) => todo!(),
 
       (PatKind::Ref(p), Form::Value | Form::Place) => {
         Ty::Ref(Box::new(self.expect_pat_form(p, Form::Place, refutable)))
@@ -520,7 +526,7 @@ impl<'n> Checker<'n> {
     for stmt in block.stmts.iter_mut() {
       match &mut stmt.kind {
         StmtKind::Let(l) => {
-          self.expect_pat_form(&mut l.bind, Form::Value, true);
+          self.do_pat(&mut l.bind, l.ty.as_mut(), Form::Value, true);
           if let Some(value) = &mut l.init {
             self.expect_expr_form_ty(value, Form::Value, &mut ty);
           }

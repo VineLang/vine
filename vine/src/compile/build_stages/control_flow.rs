@@ -4,9 +4,9 @@ use crate::{
 };
 
 impl Compiler<'_> {
-  pub(super) fn lower_fn(&mut self, params: &Vec<Pat>, body: &Expr) -> Port {
+  pub(super) fn lower_fn(&mut self, params: &Vec<(Pat, Option<Type>)>, body: &Expr) -> Port {
     let func = self.net.new_wire();
-    let res = self.apply_combs("fn", func.0, params, Self::lower_pat_value);
+    let res = self.apply_combs("fn", func.0, params.iter().map(|x| &x.0), Self::lower_pat_value);
     let result = self.new_local();
     let orig = self.cur_id;
     let old_loop = self.loop_target.take();

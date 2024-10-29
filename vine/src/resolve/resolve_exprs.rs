@@ -1,15 +1,16 @@
 use std::{
   collections::{BTreeMap, HashMap},
+  mem::take,
   ops::Range,
 };
 
 use crate::{
-  ast::{Expr, ExprKind, Ident, LogicalOp, Pat, PatKind, Path},
+  ast::{Expr, ExprKind, Ident, LogicalOp, Pat, PatKind, Path, Type, TypeKind},
   diag::Diag,
   visit::{VisitMut, Visitee},
 };
 
-use super::{NodeId, NodeValue, Resolver};
+use super::{NodeId, NodeValueKind, Resolver};
 
 impl Resolver {
   pub fn resolve_exprs(&mut self) {
@@ -20,6 +21,7 @@ impl Resolver {
     let mut visitor = ResolveVisitor {
       resolver: self,
       node: 0,
+      generics: Vec::new(),
       scope: HashMap::new(),
       scope_depth: 0,
       next_local: 0,
@@ -30,8 +32,15 @@ impl Resolver {
 
       let node = &mut visitor.resolver.nodes[node_id];
       let mut value = node.value.take();
-      if let Some(NodeValue::Expr(value)) = &mut value {
-        visitor.visit_expr(value);
+      if let Some(value) = &mut value {
+        visitor.generics = take(&mut value.generics);
+        if let Some(ty) = &mut value.ty {
+          visitor.visit_type(ty);
+        }
+        if let NodeValueKind::Expr(expr) = &mut value.kind {
+          visitor.visit_expr(expr);
+        }
+        value.generics = take(&mut visitor.generics);
       }
 
       let node = &mut visitor.resolver.nodes[node_id];
@@ -53,6 +62,7 @@ impl Resolver {
     let mut visitor = ResolveVisitor {
       resolver: self,
       node,
+      generics: Vec::new(),
       scope: initial.iter().map(|(&l, &i)| (i, vec![ScopeEntry { depth: 0, local: l }])).collect(),
       scope_depth: 0,
       next_local: *local_count,
@@ -69,6 +79,7 @@ impl Resolver {
 struct ResolveVisitor<'a> {
   resolver: &'a mut Resolver,
   node: NodeId,
+  generics: Vec<Ident>,
   scope: HashMap<Ident, Vec<ScopeEntry>>,
   scope_depth: usize,
   next_local: usize,
@@ -167,6 +178,23 @@ impl VisitMut<'_> for ResolveVisitor<'_> {
           expr.kind = ExprKind::Error(self.resolver.diags.add(diag));
         }
       }
+    }
+  }
+
+  fn visit_type(&mut self, ty: &mut Type) {
+    if let TypeKind::Path(path) = &mut ty.kind {
+      if path.args.is_none() {
+        if let Some(ident) = path.path.as_ident() {
+          if let Some((i, _)) = self.generics.iter().enumerate().find(|(_, &g)| g == ident) {
+            ty.kind = TypeKind::Generic(i);
+            return;
+          }
+        }
+      }
+      if let Err(diag) = self.visit_path(&mut path.path) {
+        ty.kind = TypeKind::Error(self.resolver.diags.add(diag));
+      }
+      self._visit_type(ty);
     }
   }
 }

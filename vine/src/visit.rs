@@ -3,7 +3,7 @@ use crate::{
     Block, Expr, ExprKind, GenericPath, Item, ItemKind, ModKind, Pat, PatKind, Stmt, StmtKind,
     Type, TypeKind,
   },
-  resolve::{Node, NodeValue},
+  resolve::{Node, NodeValueKind},
 };
 
 pub trait VisitMut<'a> {
@@ -15,8 +15,10 @@ pub trait VisitMut<'a> {
   }
 
   fn _visit_node(&mut self, node: &'a mut Node) {
-    if let Some(NodeValue::Expr(value)) = &mut node.value {
-      self.visit_expr(value);
+    if let Some(value) = &mut node.value {
+      if let NodeValueKind::Expr(expr) = &mut value.kind {
+        self.visit_expr(expr);
+      }
     }
   }
 
@@ -111,8 +113,11 @@ pub trait VisitMut<'a> {
       }
       ExprKind::Fn(a, b) => {
         self.enter_scope();
-        for t in a {
-          self.visit_pat(t);
+        for (p, t) in a {
+          self.visit_pat(p);
+          if let Some(t) = t {
+            self.visit_type(t);
+          }
         }
         self.visit_expr(b);
         self.exit_scope();
@@ -167,10 +172,6 @@ pub trait VisitMut<'a> {
           }
         }
       }
-      PatKind::Type(p, t) => {
-        self.visit_pat(p);
-        self.visit_type(t);
-      }
     }
   }
 
@@ -192,12 +193,16 @@ pub trait VisitMut<'a> {
           self.visit_type(r);
         }
       }
+      TypeKind::Error(_) => {}
     }
   }
 
   fn _visit_stmt(&mut self, stmt: &'a mut Stmt) {
     match &mut stmt.kind {
       StmtKind::Let(l) => {
+        if let Some(ty) = &mut l.ty {
+          self.visit_type(ty);
+        }
         if let Some(init) = &mut l.init {
           self.visit_expr(init);
         }
@@ -212,8 +217,11 @@ pub trait VisitMut<'a> {
   fn _visit_item(&mut self, item: &'a mut Item) {
     match &mut item.kind {
       ItemKind::Fn(f) => {
-        for param in &mut f.params {
+        for (param, ty) in &mut f.params {
           self.visit_pat(param);
+          if let Some(ty) = ty {
+            self.visit_type(ty);
+          }
         }
         self.visit_expr(&mut f.body);
       }

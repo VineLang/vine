@@ -7,7 +7,7 @@ use vine_util::bicycle::BicycleState;
 
 use crate::{
   ast::Expr,
-  resolve::{Node, NodeValue},
+  resolve::{Node, NodeValueKind},
 };
 
 mod build_stages;
@@ -86,14 +86,14 @@ impl<'n> Compiler<'n> {
   pub fn compile_node(&mut self, node: &Node) {
     self.net = Default::default();
     let Some(value) = &node.value else { return };
-    match value {
-      NodeValue::Expr(expr) => {
+    match &value.kind {
+      NodeValueKind::Expr(expr) => {
         self.compile_expr(&mut { node.locals }, node.canonical.to_string(), expr, []);
       }
-      NodeValue::Ivy(net) => {
+      NodeValueKind::Ivy(net) => {
         self.nets.insert(node.canonical.to_string(), net.clone());
       }
-      NodeValue::AdtConstructor => {
+      NodeValueKind::AdtConstructor => {
         let net = self.lower_adt_constructor(node);
         self.nets.insert(node.canonical.to_string(), net);
       }

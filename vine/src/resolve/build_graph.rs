@@ -6,7 +6,7 @@ use crate::{
   visit::{VisitMut, Visitee},
 };
 
-use super::{Adt, Member, Node, NodeId, NodeValue, Resolver, UseId, Variant};
+use super::{Adt, Member, Node, NodeId, NodeValue, NodeValueKind, Resolver, UseId, Variant};
 
 impl Resolver {
   pub fn build_graph(&mut self, root: ModKind) {
@@ -29,14 +29,31 @@ impl Resolver {
           item.span,
           parent,
           f.name,
-          NodeValue::Expr(Expr { span: item.span, kind: ExprKind::Fn(f.params, Box::new(f.body)) }),
+          NodeValue {
+            generics: f.generics,
+            ty: None,
+            kind: NodeValueKind::Expr(Expr {
+              span: item.span,
+              kind: ExprKind::Fn(f.params, Box::new(f.body)),
+            }),
+          },
         );
       }
       ItemKind::Const(c) => {
-        self.define_value(item.span, parent, c.name, NodeValue::Expr(c.value));
+        self.define_value(
+          item.span,
+          parent,
+          c.name,
+          NodeValue { generics: c.generics, ty: Some(c.ty), kind: NodeValueKind::Expr(c.value) },
+        );
       }
       ItemKind::Ivy(i) => {
-        self.define_value(item.span, parent, i.name, NodeValue::Ivy(i.net));
+        self.define_value(
+          item.span,
+          parent,
+          i.name,
+          NodeValue { generics: i.generics, ty: Some(i.ty), kind: NodeValueKind::Ivy(i.net) },
+        );
       }
       ItemKind::Mod(m) => {
         let child = self.get_or_insert_child(parent, m.name).id;
@@ -58,9 +75,15 @@ impl Resolver {
           self.diags.add(Diag::DuplicateItem { span: item.span, name: s.name });
           return;
         }
-        child.adt = Some(Adt { variants: vec![child.id] });
-        child.variant = Some(Variant { adt: child.id, variant: 0, fields: s.fields });
-        child.value = Some(NodeValue::AdtConstructor);
+        child.adt = Some(Adt { generics: s.generics.clone(), variants: vec![child.id] });
+        child.variant = Some(Variant {
+          generics: s.generics.clone(),
+          adt: child.id,
+          variant: 0,
+          fields: s.fields,
+        });
+        child.value =
+          Some(NodeValue { generics: s.generics, ty: None, kind: NodeValueKind::AdtConstructor });
       }
       ItemKind::Enum(e) => {
         let child = self.get_or_insert_child(parent, e.name);
@@ -79,12 +102,17 @@ impl Resolver {
               self.diags.add(Diag::DuplicateItem { span: item.span, name: v.name });
               return None;
             }
-            variant.variant = Some(Variant { adt, variant: i, fields: v.fields });
-            variant.value = Some(NodeValue::AdtConstructor);
+            variant.variant =
+              Some(Variant { generics: e.generics.clone(), adt, variant: i, fields: v.fields });
+            variant.value = Some(NodeValue {
+              generics: e.generics.clone(),
+              ty: None,
+              kind: NodeValueKind::AdtConstructor,
+            });
             Some(variant.id)
           })
           .collect();
-        self.nodes[adt].adt = Some(Adt { variants });
+        self.nodes[adt].adt = Some(Adt { generics: e.generics, variants });
       }
       ItemKind::Pattern(_) => todo!(),
       ItemKind::Taken => {}
@@ -98,7 +126,7 @@ impl Resolver {
       return;
     }
     let child = child.id;
-    if let NodeValue::Expr(expr) = &mut value {
+    if let NodeValueKind::Expr(expr) = &mut value.kind {
       self.extract_subitems(child, expr);
     }
     let child = &mut self.nodes[child];

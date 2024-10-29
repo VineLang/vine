@@ -33,7 +33,7 @@ pub enum ItemKind {
 pub struct FnItem {
   pub name: Ident,
   pub generics: Vec<Ident>,
-  pub params: Vec<Pat>,
+  pub params: Vec<(Pat, Option<Type>)>,
   pub ret: Option<Type>,
   pub body: Expr,
 }
@@ -132,6 +132,7 @@ pub enum StmtKind {
 #[derive(Debug, Clone)]
 pub struct LetStmt {
   pub bind: Pat,
+  pub ty: Option<Type>,
   pub init: Option<Expr>,
 }
 
@@ -165,7 +166,7 @@ pub enum ExprKind {
   #[class(value)]
   For(B<Pat>, B<Expr>, Block),
   #[class(value)]
-  Fn(Vec<Pat>, B<Expr>),
+  Fn(Vec<(Pat, Option<Type>)>, B<Expr>),
   #[class(value)]
   Return(Option<B<Expr>>),
   #[class(value)]
@@ -251,8 +252,6 @@ pub enum PatKind {
   Inverse(B<Pat>),
   #[class(value, place, space)]
   Tuple(Vec<Pat>),
-  #[class(value, place, space)]
-  Type(B<Pat>, B<Type>),
   #[class(error)]
   Error(ErrorGuaranteed),
 }
@@ -278,6 +277,7 @@ pub enum TypeKind {
   Inverse(B<Type>),
   Path(GenericPath),
   Generic(usize),
+  Error(ErrorGuaranteed),
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

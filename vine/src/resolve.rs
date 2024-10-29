@@ -44,7 +44,14 @@ enum Member {
 }
 
 #[derive(Debug)]
-pub enum NodeValue {
+pub struct NodeValue {
+  pub generics: Vec<Ident>,
+  pub ty: Option<Type>,
+  pub kind: NodeValueKind,
+}
+
+#[derive(Debug)]
+pub enum NodeValueKind {
   Expr(Expr),
   Ivy(Net),
   AdtConstructor,
@@ -52,11 +59,13 @@ pub enum NodeValue {
 
 #[derive(Debug)]
 pub struct Adt {
+  pub generics: Vec<Ident>,
   pub variants: Vec<NodeId>,
 }
 
 #[derive(Debug)]
 pub struct Variant {
+  pub generics: Vec<Ident>,
   pub adt: NodeId,
   pub variant: usize,
   pub fields: Vec<Type>,

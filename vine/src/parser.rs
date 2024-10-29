@@ -116,7 +116,7 @@ impl<'ctx, 'src> VineParser<'ctx, 'src> {
     self.expect(Token::Fn)?;
     let name = self.parse_ident()?;
     let generics = self.parse_generics()?;
-    let params = self.parse_pat_list()?;
+    let params = self.parse_delimited(PAREN_COMMA, Self::parse_pat_type)?;
     let ret = self.eat(Token::ThinArrow)?.then(|| self.parse_type()).transpose()?;
     let body = self.parse_block()?;
     Ok(FnItem {
@@ -380,7 +380,7 @@ impl<'ctx, 'src> VineParser<'ctx, 'src> {
       return Ok(ExprKind::For(Box::new(pat), Box::new(iter), body));
     }
     if self.eat(Token::Fn)? {
-      let params = self.parse_pat_list()?;
+      let params = self.parse_delimited(PAREN_COMMA, Self::parse_pat_type)?;
       let body = self.parse_expr()?;
       return Ok(ExprKind::Fn(params, Box::new(body)));
     }
@@ -479,15 +479,7 @@ impl<'ctx, 'src> VineParser<'ctx, 'src> {
     let span = self.start_span();
     let kind = self._parse_pat(span)?;
     let span = self.end_span(span);
-    let pat = Pat { span, kind };
-    let span = self.start_span();
-    if self.eat(Token::Colon)? {
-      let span = self.end_span(span);
-      let ty = self.parse_type()?;
-      Ok(Pat { span, kind: PatKind::Type(Box::new(pat), Box::new(ty)) })
-    } else {
-      Ok(pat)
-    }
+    Ok(Pat { span, kind })
   }
 
   fn _parse_pat(&mut self, span: usize) -> Parse<'src, PatKind> {
@@ -531,6 +523,12 @@ impl<'ctx, 'src> VineParser<'ctx, 'src> {
       return Ok(PatKind::Tuple(pats));
     }
     self.unexpected()
+  }
+
+  fn parse_pat_type(&mut self) -> Parse<'src, (Pat, Option<Type>)> {
+    let pat = self.parse_pat()?;
+    let ty = self.eat(Token::Colon)?.then(|| self.parse_type()).transpose()?;
+    Ok((pat, ty))
   }
 
   fn parse_type(&mut self) -> Parse<'src, Type> {
@@ -601,8 +599,9 @@ impl<'ctx, 'src> VineParser<'ctx, 'src> {
   fn parse_let_stmt(&mut self) -> Parse<'src, LetStmt> {
     self.expect(Token::Let)?;
     let bind = self.parse_pat()?;
+    let ty = self.eat(Token::Colon)?.then(|| self.parse_type()).transpose()?;
     let init = self.eat(Token::Eq)?.then(|| self.parse_expr()).transpose()?;
-    Ok(LetStmt { bind, init })
+    Ok(LetStmt { bind, ty, init })
   }
 
   fn parse_path(&mut self) -> Parse<'src, Path> {
