@@ -7,7 +7,7 @@ const height: u32 = 512;
 const scale: f32 = 2.6;
 const center: (f32, f32) = (-0.8, 0.0);
 
-fn main(io) {
+fn main(&io: &IO) {
   io.print_bytes([27, 'P', 'q']);
 
   let c = 0;
@@ -71,7 +71,7 @@ fn main(io) {
   io.flush();
 }
 
-fn mandelbrot(x0, y0) {
+fn mandelbrot(x0: f32, y0: f32) -> u32 {
   let (x, y, x2, y2) = 0.0;
   let i = 0;
   while (i < max_iter) & (x2 + y2 < 4.0) {

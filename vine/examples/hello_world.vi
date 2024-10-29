@@ -1,6 +1,6 @@
 
 use std::io::println;
 
-fn main(io) {
+fn main(&io: &IO) {
   io.println("Hello, world!");
 }

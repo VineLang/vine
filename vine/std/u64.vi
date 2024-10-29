@@ -5,7 +5,7 @@ fn from_u32(val: u32) -> u64 {
   u64(val, 0)
 }
 
-fn to_u32((lo, hi)) -> u32 {
+fn to_u32((lo, hi): u64) -> u32 {
   lo
 }
 
