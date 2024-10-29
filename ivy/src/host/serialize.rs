@@ -142,9 +142,14 @@ impl<'l, 'ast, 'ivm> Serializer<'l, 'ast, 'ivm> {
       }
     }
 
-    self.serialize_tree_to(&net.root, Register::ROOT);
+    if let Tree::Var(v) = &net.root {
+      self.registers.insert(v, Register::ROOT);
+    }
     for (a, b) in net.pairs.iter().rev() {
       self.serialize_pair(a, b);
+    }
+    if !matches!(net.root, Tree::Var(_)) {
+      self.serialize_tree_to(&net.root, Register::ROOT);
     }
   }
 

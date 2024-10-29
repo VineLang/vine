@@ -10,6 +10,6 @@ Interactions
   Branch             21_860_298
 
 Memory
-  Heap                      832 B
-  Allocated      20_601_065_120 B
-  Freed          20_601_065_120 B
+  Heap                      736 B
+  Allocated      19_652_533_376 B
+  Freed          19_652_533_376 B

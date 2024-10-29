@@ -11,5 +11,5 @@ Interactions
 
 Memory
   Heap                     880 B
-  Allocated             16_816 B
-  Freed                 16_816 B
+  Allocated             16_800 B
+  Freed                 16_800 B

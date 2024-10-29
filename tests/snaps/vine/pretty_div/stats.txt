@@ -10,6 +10,6 @@ Interactions
   Branch                   127
 
 Memory
-  Heap                   1_328 B
-  Allocated             49_952 B
-  Freed                 49_952 B
+  Heap                   1_264 B
+  Allocated             49_744 B
+  Freed                 49_744 B

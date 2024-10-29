@@ -10,6 +10,6 @@ Interactions
   Branch                     0
 
 Memory
-  Heap                     272 B
+  Heap                     256 B
   Allocated                512 B
   Freed                    512 B

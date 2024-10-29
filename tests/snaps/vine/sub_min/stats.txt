@@ -10,6 +10,6 @@ Interactions
   Branch                    41
 
 Memory
-  Heap                   1_408 B
-  Allocated             20_576 B
-  Freed                 20_576 B
+  Heap                   1_280 B
+  Allocated             20_528 B
+  Freed                 20_528 B
