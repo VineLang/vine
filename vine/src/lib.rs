@@ -10,7 +10,6 @@ pub mod visit;
 
 mod checker;
 mod lexer;
-mod validate;
 
 use std::path::PathBuf;
 
@@ -54,10 +53,6 @@ pub fn build(config: Config) -> Result<Nets, String> {
   let mut checker = Checker::new(&mut resolver, &interner);
   checker.check_items();
   checker.diags.report(&loader.files)?;
-
-  // let mut validate = Validate::default();
-  // validate.visit(&mut resolver.nodes);
-  // validate.diags.report(&loader.files)?;
 
   Desugar.visit(&mut resolver.nodes);
 

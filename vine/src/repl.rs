@@ -18,12 +18,12 @@ use vine_util::{
 
 use crate::{
   ast::{Block, Expr, ExprKind, Ident, Span},
+  checker::{Checker, CheckerState, Ty},
   compile::Compiler,
   desugar::Desugar,
   loader::Loader,
   parser::VineParser,
   resolve::{NodeId, Resolver},
-  validate::Validate,
   visit::VisitMut,
 };
 
@@ -38,6 +38,7 @@ pub struct Repl<'ctx, 'ivm> {
   vars: HashMap<Ident, Var<'ivm>>,
   locals: BTreeMap<usize, Ident>,
   local_count: usize,
+  checker_state: CheckerState,
 }
 
 struct Var<'ivm> {
@@ -68,9 +69,9 @@ impl<'ctx, 'ivm> Repl<'ctx, 'ivm> {
 
     let repl_mod = resolver.get_or_insert_child(0, Ident(interner.intern("repl"))).id;
 
-    let mut validate = Validate::default();
-    validate.visit(&mut resolver.nodes);
-    validate.diags.report(&loader.files)?;
+    let mut checker = Checker::new(&mut resolver, &interner);
+    checker.check_items();
+    checker.diags.report(&loader.files)?;
 
     Desugar.visit(&mut resolver.nodes);
 
@@ -81,6 +82,8 @@ impl<'ctx, 'ivm> Repl<'ctx, 'ivm> {
     let io = Ident(interner.intern("io"));
     let vars = HashMap::from([(io, Var { local: 0, value: Port::new_ext_val(ExtVal::IO) })]);
     let locals = BTreeMap::from([(0, io)]);
+
+    let checker_state = CheckerState { vars: vec![Ok(Ty::IO)], locals: HashMap::from([(0, 0)]) };
 
     Ok(Repl {
       host,
@@ -93,6 +96,7 @@ impl<'ctx, 'ivm> Repl<'ctx, 'ivm> {
       vars,
       locals,
       local_count: 1,
+      checker_state,
     })
   }
 
@@ -139,12 +143,15 @@ impl<'ctx, 'ivm> Repl<'ctx, 'ivm> {
       }
     }
 
-    let mut validate = Validate::default();
-    validate.visit(&mut stmts);
-    validate.visit(&mut self.resolver.nodes[new_nodes.clone()]);
-    validate.diags.report(&self.loader.files)?;
+    let mut block = Block { span: Span::NONE, stmts };
 
-    Desugar.visit(&mut stmts);
+    let mut checker = Checker::new(&mut self.resolver, &self.interner);
+    checker._check_items(new_nodes.clone());
+    let state = checker._check_block(self.checker_state.clone(), &mut block);
+    checker.diags.report(&self.loader.files)?;
+    self.checker_state = state;
+
+    Desugar.visit(&mut block);
     Desugar.visit(&mut self.resolver.nodes[new_nodes.clone()]);
 
     let mut compiler = Compiler::new(&self.resolver.nodes);
@@ -160,7 +167,7 @@ impl<'ctx, 'ivm> Repl<'ctx, 'ivm> {
     compiler.compile_expr(
       &mut self.local_count,
       name.clone(),
-      &Expr { span: Span::NONE, kind: ExprKind::Block(Block { span: Span::NONE, stmts }) },
+      &Expr { span: Span::NONE, kind: ExprKind::Block(block) },
       self.vars.values().map(|v| v.local),
     );
 

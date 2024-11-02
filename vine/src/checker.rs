@@ -1,4 +1,4 @@
-use std::{iter, mem::take, ops::Range};
+use std::{collections::HashMap, iter, mem::take, ops::Range};
 
 use vine_util::interner::StringInterner;
 
@@ -93,15 +93,22 @@ impl Ty {
   const UNIT: Ty = Ty::Tuple(Vec::new());
 }
 
+#[derive(Debug)]
 pub struct Checker<'n> {
   pub diags: DiagGroup,
   nodes: &'n mut [Node],
-  vars: Vec<Result<Ty, Span>>,
+  state: CheckerState,
   list: Option<NodeId>,
   string: Option<Ty>,
   generics: Vec<Ident>,
   return_ty: Option<Ty>,
   loop_ty: Option<Ty>,
+}
+
+#[derive(Default, Debug, Clone)]
+pub(crate) struct CheckerState {
+  pub(crate) vars: Vec<Result<Ty, Span>>,
+  pub(crate) locals: HashMap<usize, TyVar>,
 }
 
 impl<'n> Checker<'n> {
@@ -126,7 +133,7 @@ impl<'n> Checker<'n> {
     Checker {
       diags,
       nodes: &mut resolver.nodes,
-      vars: Vec::new(),
+      state: CheckerState::default(),
       list,
       string,
       generics: Vec::new(),
@@ -146,32 +153,39 @@ impl<'n> Checker<'n> {
     for node in range.clone() {
       self.populate_node_tys(node);
     }
-    debug_assert!(self.vars.is_empty());
+    debug_assert!(self.state.vars.is_empty());
     for node in range.clone() {
       self.check_node(node);
     }
   }
 
   fn check_node(&mut self, node_id: NodeId) {
-    self.vars.clear();
+    debug_assert!(self.state.vars.is_empty() && self.state.locals.is_empty());
     let node = &mut self.nodes[node_id];
     if let Some(value) = &mut node.value {
       if let NodeValueKind::Expr(expr) = &mut value.kind {
         self.generics = take(&mut value.generics);
         let mut ty = value.ty.clone().unwrap();
         let mut expr = take(expr);
-        self.vars.resize_with(node.locals, || Err(Span { file: 0, start: 0, end: 0 }));
         self.expect_expr_form_ty(&mut expr, Form::Value, &mut ty);
         let value = self.nodes[node_id].value.as_mut().unwrap();
         value.kind = NodeValueKind::Expr(expr);
         value.generics = take(&mut self.generics);
       }
     }
+    self.state.vars.clear();
+    self.state.locals.clear();
+  }
+
+  pub(crate) fn _check_block(&mut self, state: CheckerState, block: &mut Block) -> CheckerState {
+    self.state = state;
+    self.infer_block(block);
+    take(&mut self.state)
   }
 
   fn new_var(&mut self, span: Span) -> Ty {
-    let v = self.vars.len();
-    self.vars.push(Err(span));
+    let v = self.state.vars.len();
+    self.state.vars.push(Err(span));
     Ty::Var(v)
   }
 
@@ -187,7 +201,7 @@ impl<'n> Checker<'n> {
       (Ty::Inverse(a), b) => self._unify(a, b, !i, j),
       (Ty::Var(v), Ty::Var(u)) if *v == *u => i == j,
       (Ty::Var(v), Ty::Var(u)) => {
-        let (v, u) = get2_mut(&mut self.vars, *v, *u);
+        let (v, u) = get2_mut(&mut self.state.vars, *v, *u);
         match (&mut *v, &mut *u) {
           (Ok(v), Ok(u)) => {
             *a = v.clone();
@@ -210,7 +224,7 @@ impl<'n> Checker<'n> {
         }
       }
       (&mut ref mut o @ Ty::Var(v), t) | (t, &mut ref mut o @ Ty::Var(v)) => {
-        let v = &mut self.vars[v];
+        let v = &mut self.state.vars[v];
         if let Ok(u) = v {
           *o = u.clone();
           self._unify(a, b, i, j)
@@ -258,7 +272,7 @@ impl<'n> Checker<'n> {
       }
       ExprKind::Error(e) => (Form::Error(*e), Ty::Error(*e)),
       ExprKind::Hole => (Form::Space, self.new_var(span)),
-      ExprKind::Local(l) => (Form::Place, Ty::Var(*l)),
+      ExprKind::Local(l) => (Form::Place, Ty::Var(self.state.locals[l])),
       ExprKind::Deref(_) => todo!(),
       ExprKind::Inverse(expr) => {
         let (form, ty) = self.infer_expr(expr);
@@ -624,7 +638,7 @@ impl<'n> Checker<'n> {
         string
       }
       Ty::Opaque(n) => self.generics[*n].0 .0.into(),
-      Ty::Var(v) => match &self.vars[*v] {
+      Ty::Var(v) => match &self.state.vars[*v] {
         Ok(t) => self.print_ty(t),
         _ => format!("?{v}"),
       },
@@ -717,10 +731,9 @@ impl<'n> Checker<'n> {
 
       (PatKind::Hole, _) => self.new_var(span),
       (PatKind::Local(l), _) => {
-        let var = &mut self.vars[*l];
-        debug_assert!(var.is_err());
-        *var = Err(span);
-        Ty::Var(*l)
+        let old = self.state.locals.insert(*l, self.state.vars.len());
+        debug_assert!(old.is_none());
+        self.new_var(span)
       }
       (PatKind::Inverse(p), _) => self.expect_pat_form(p, form.inverse(), refutable).inverse(),
       (PatKind::Tuple(t), _) => {
@@ -779,7 +792,7 @@ impl<'n> Checker<'n> {
 
   fn concretize(&mut self, ty: &mut Ty) {
     while let Ty::Var(v) = *ty {
-      match self.vars[v].clone() {
+      match self.state.vars[v].clone() {
         Ok(t) => *ty = t,
         Err(span) => {
           let err = self.diags.add(Diag::CannotInfer { span });
