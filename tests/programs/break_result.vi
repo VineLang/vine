@@ -5,8 +5,4 @@ fn main(&io: &IO) {
   io.println(loop {
     break "loop result";
   });
-
-  io.println(while 1 {
-    break "while result";
-  });
 }

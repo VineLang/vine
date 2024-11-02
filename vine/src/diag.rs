@@ -80,7 +80,7 @@ diags! {
     ["`*` is only valid in a place pattern"]
   RefSpacePat
     ["`&` is invalid in a space pattern"]
-  ExpectedRefutablePat
+  ExpectedIrrefutablePat
     ["expected an irrefutable pattern"]
   CannotInfer
     ["cannot infer type"]
@@ -116,6 +116,16 @@ diags! {
     ["type aliases cannot be recursive"]
   NoList
     ["cannot find `std::list::List`"]
+  NoReturn
+    ["no function to return from"]
+  NoLoopBreak
+    ["no loop to break from"]
+  NoLoopContinue
+    ["no loop to continue"]
+  MissingReturnExpr { ty: String }
+    ["expected a value of type `{ty}` to return"]
+  MissingBreakExpr { ty: String }
+    ["expected a value of type `{ty}` to break with"]
 }
 
 #[derive(Default, Debug)]

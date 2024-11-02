@@ -4,6 +4,7 @@ error tests/programs/fail/atypical.vi:3:8 - fn item parameters must be explicitl
 error tests/programs/fail/atypical.vi:3:14 - types in item signatures cannot be elided
 error tests/programs/fail/atypical.vi:4:12 - types in item signatures cannot be elided
 error - expected type `fn(&IO)`; found `fn(IO)`
+error tests/programs/fail/atypical.vi:4:16 - no function to return from
 error tests/programs/fail/atypical.vi:6:16 - expected type `u32`; found `f32`
 error tests/programs/fail/atypical.vi:7:16 - expected type `f32`; found `u32`
 error tests/programs/fail/atypical.vi:8:23 - expected type `(u32, u32)`; found `(f32, f32)`
@@ -23,4 +24,11 @@ error tests/programs/fail/atypical.vi:17:18 - no value associated with `::atypic
 error tests/programs/fail/atypical.vi:18:12 - no type associated with `::atypical::foo`
 error tests/programs/fail/atypical.vi:19:14 - expected type `T`; found `u32`
 error tests/programs/fail/atypical.vi:20:14 - expected type `U`; found `T`
+error tests/programs/fail/atypical.vi:21:7 - expected an irrefutable pattern
+error tests/programs/fail/atypical.vi:21:17 - expected type `::atypical::Ay`; found `u32`
+error tests/programs/fail/atypical.vi:22:3 - cannot apply operator `Add` to values of types `::std::list::List[u32]` and `u32`
+error tests/programs/fail/atypical.vi:23:7 - expected type `u32`; found `&?12`
+error tests/programs/fail/atypical.vi:24:3 - no loop to continue
+error tests/programs/fail/atypical.vi:25:3 - no loop to break from
+error tests/programs/fail/atypical.vi:26:10 - expected type `()`; found `f32`
 error tests/programs/fail/atypical.vi:5:23 - expected type `()`; found `u32`

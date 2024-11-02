@@ -1,4 +1,4 @@
-use std::{mem::take, ops::Range};
+use std::{iter, mem::take, ops::Range};
 
 use vine_util::interner::StringInterner;
 
@@ -100,6 +100,8 @@ pub struct Checker<'n> {
   list: Option<NodeId>,
   string: Option<Ty>,
   generics: Vec<Ident>,
+  return_ty: Option<Ty>,
+  loop_ty: Option<Ty>,
 }
 
 impl<'n> Checker<'n> {
@@ -128,6 +130,8 @@ impl<'n> Checker<'n> {
       list,
       string,
       generics: Vec::new(),
+      return_ty: None,
+      loop_ty: None,
     }
   }
 
@@ -320,37 +324,66 @@ impl<'n> Checker<'n> {
         }
       }
       ExprKind::While(cond, block) => {
+        let old = self.loop_ty.replace(Ty::UNIT);
         self.expect_expr_form_ty(cond, Form::Value, &mut Ty::U32);
         self.infer_block(block);
-        self.new_var(span)
+        self.loop_ty = old;
+        Ty::UNIT
       }
       ExprKind::Loop(block) => {
+        let result = self.new_var(span);
+        let old = self.loop_ty.replace(result.clone());
         self.infer_block(block);
-        self.new_var(span)
+        self.loop_ty = old;
+        result
       }
-      ExprKind::For(..) => todo!(),
       ExprKind::Fn(args, ret, body) => Ty::Fn(
         args
           .iter_mut()
           .map(|(pat, ty)| self.do_pat(pat, ty.as_mut(), Form::Value, false))
           .collect(),
-        Box::new(if let Some(ret) = ret {
-          let mut ty = ret.as_mut().map(|t| self.hydrate_type(t, true)).unwrap_or(Ty::UNIT);
-          self.expect_expr_form_ty(body, Form::Value, &mut ty);
-          ty
-        } else {
-          self.expect_expr_form(body, Form::Value)
+        Box::new({
+          let mut ret = match ret {
+            Some(Some(t)) => self.hydrate_type(t, true),
+            Some(None) => Ty::UNIT,
+            None => self.new_var(span),
+          };
+          let old = self.return_ty.replace(ret.clone());
+          self.expect_expr_form_ty(body, Form::Value, &mut ret);
+          self.return_ty = old;
+          ret
         }),
       ),
-      ExprKind::Return(e) | ExprKind::Break(e) => {
-        // todo: check
-        if let Some(e) = e {
-          self.expect_expr_form(e, Form::Value);
+      ExprKind::Break(e) => {
+        if let Some(ty) = &self.loop_ty {
+          let mut ty = ty.clone();
+          if let Some(e) = e {
+            self.expect_expr_form_ty(e, Form::Value, &mut ty);
+          } else if !self.unify(&mut ty, &mut { Ty::UNIT }) {
+            self.diags.add(Diag::MissingBreakExpr { span, ty: self.print_ty(&ty) });
+          }
+        } else {
+          self.diags.add(Diag::NoLoopBreak { span });
+        }
+        self.new_var(span)
+      }
+      ExprKind::Return(e) => {
+        if let Some(ty) = &self.return_ty {
+          let mut ty = ty.clone();
+          if let Some(e) = e {
+            self.expect_expr_form_ty(e, Form::Value, &mut ty);
+          } else if !self.unify(&mut ty, &mut { Ty::UNIT }) {
+            self.diags.add(Diag::MissingReturnExpr { span, ty: self.print_ty(&ty) });
+          }
+        } else {
+          self.diags.add(Diag::NoReturn { span });
         }
         self.new_var(span)
       }
       ExprKind::Continue => {
-        // todo: check
+        if self.loop_ty.is_none() {
+          self.diags.add(Diag::NoLoopContinue { span });
+        }
         self.new_var(span)
       }
       ExprKind::Ref(expr) => {
@@ -478,6 +511,7 @@ impl<'n> Checker<'n> {
       ExprKind::String(_) => {
         self.string.clone().unwrap_or_else(|| Ty::Error(self.diags.add(Diag::NoList { span })))
       }
+      ExprKind::For(..) => todo!(),
     }
   }
 
@@ -654,6 +688,9 @@ impl<'n> Checker<'n> {
         let adt_id = variant.adt;
         let adt_node = &self.nodes[adt_id];
         let adt = adt_node.adt.as_ref().unwrap();
+        if !refutable && adt.variants.len() > 1 {
+          self.diags.add(Diag::ExpectedIrrefutablePat { span });
+        }
         let generic_count = adt.generics.len();
         if let Err(diag) = Self::check_generic_count(span, variant_node, path, generic_count) {
           return Ty::Error(self.diags.add(diag));
@@ -723,7 +760,7 @@ impl<'n> Checker<'n> {
     for stmt in block.stmts.iter_mut() {
       match &mut stmt.kind {
         StmtKind::Let(l) => {
-          let mut ty = self.do_pat(&mut l.bind, l.ty.as_mut(), Form::Value, true);
+          let mut ty = self.do_pat(&mut l.bind, l.ty.as_mut(), Form::Value, false);
           if let Some(value) = &mut l.init {
             self.expect_expr_form_ty(value, Form::Value, &mut ty);
           }
@@ -886,7 +923,7 @@ impl<'n> Checker<'n> {
     if let Some(generics) = &mut path.generics {
       generics.iter_mut().map(|t| self.hydrate_type(t, true)).collect::<Vec<_>>()
     } else {
-      std::iter::from_fn(|| Some(self.new_var(path.path.span))).take(generic_count).collect()
+      iter::from_fn(|| Some(self.new_var(path.path.span))).take(generic_count).collect()
     }
   }
 
