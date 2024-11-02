@@ -112,6 +112,10 @@ diags! {
     ["fn item parameters must be explicitly typed"]
   ItemTypeHole
     ["types in item signatures cannot be elided"]
+  RecursiveTypeAlias
+    ["type aliases cannot be recursive"]
+  NoList
+    ["cannot find `std::list::List`"]
 }
 
 #[derive(Default, Debug)]

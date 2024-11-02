@@ -5,6 +5,8 @@ struct List[T](u32, ListBuf[T], ~ListBuf[T]);
 
 struct Buf[T](T, Buf[T]);
 
+type String = List[u32];
+
 mod List {
   fn len[T](&List(len, _, _): List[T]) {
     len
@@ -35,6 +37,14 @@ mod List {
       None
     }
   }
+
+  fn concat[T](a: List[T], b: List[T]) -> List[T] {
+    let (a_len, a_buf, ~a_end) = a;
+    let (b_len, b_buf, ~b_end) = b;
+    a_end = b_buf;
+    (a_len + b_len, a_buf, move ~b_end)
+  }
+
 
   fn push_back[T](&list: List[T], el: T) {
     list ++= [el];

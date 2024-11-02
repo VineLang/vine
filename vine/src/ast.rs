@@ -23,6 +23,7 @@ pub enum ItemKind {
   Struct(StructItem),
   Enum(Enum),
   Pattern(PatternItem),
+  Type(TypeItem),
   Mod(ModItem),
   Use(UseTree),
   Ivy(InlineIvy),
@@ -44,6 +45,13 @@ pub struct ConstItem {
   pub generics: Vec<Ident>,
   pub ty: Type,
   pub value: Expr,
+}
+
+#[derive(Debug, Clone)]
+pub struct TypeItem {
+  pub name: Ident,
+  pub generics: Vec<Ident>,
+  pub ty: Type,
 }
 
 #[derive(Debug, Clone)]

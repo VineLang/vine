@@ -10,7 +10,7 @@ use crate::{
   ast::{
     BinaryOp, Block, ComparisonOp, ConstItem, Enum, Expr, ExprKind, FnItem, GenericPath, Ident,
     InlineIvy, Item, ItemKind, LetStmt, LogicalOp, ModItem, ModKind, Pat, PatKind, Path,
-    PatternItem, Span, Stmt, StmtKind, StructItem, Type, TypeKind, UseTree, Variant,
+    PatternItem, Span, Stmt, StmtKind, StructItem, Type, TypeItem, TypeKind, UseTree, Variant,
   },
   diag::Diag,
   lexer::Token,
@@ -71,6 +71,7 @@ impl<'ctx, 'src> VineParser<'ctx, 'src> {
       _ if self.check(Token::Const) => ItemKind::Const(self.parse_const_item()?),
       _ if self.check(Token::Struct) => ItemKind::Struct(self.parse_struct_item()?),
       _ if self.check(Token::Enum) => ItemKind::Enum(self.parse_enum_item()?),
+      _ if self.check(Token::Type) => ItemKind::Type(self.parse_type_item()?),
       _ if self.check(Token::Pattern) => ItemKind::Pattern(self.parse_pattern_item()?),
       _ if self.check(Token::Mod) => ItemKind::Mod(self.parse_mod_item()?),
       _ if self.check(Token::Use) => ItemKind::Use(self.parse_use_item()?),
@@ -159,6 +160,16 @@ impl<'ctx, 'src> VineParser<'ctx, 'src> {
     let generics = self.parse_generics()?;
     let variants = self.parse_delimited(BRACE_COMMA, Self::parse_variant)?;
     Ok(Enum { name, generics, variants })
+  }
+
+  fn parse_type_item(&mut self) -> Parse<'src, TypeItem> {
+    self.expect(Token::Type)?;
+    let name = self.parse_ident()?;
+    let generics = self.parse_generics()?;
+    self.expect(Token::Eq)?;
+    let ty = self.parse_type()?;
+    self.expect(Token::Semi)?;
+    Ok(TypeItem { name, generics, ty })
   }
 
   fn parse_variant(&mut self) -> Parse<'src, Variant> {

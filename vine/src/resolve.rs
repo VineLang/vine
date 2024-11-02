@@ -9,7 +9,8 @@ use crate::{
 };
 
 mod build_graph;
-mod resolve_exprs;
+mod prelude;
+mod resolve_items;
 mod resolve_path;
 
 #[derive(Debug, Default)]
@@ -30,6 +31,7 @@ pub struct Node {
   pub locals: usize,
   pub value: Option<NodeValue>,
 
+  pub typ: Option<NodeType>,
   pub adt: Option<Adt>,
   pub variant: Option<Variant>,
 
@@ -53,6 +55,13 @@ pub struct NodeValue {
 }
 
 #[derive(Debug)]
+pub struct NodeType {
+  pub generics: Vec<Ident>,
+  pub alias: Option<Type>,
+  pub ty: Option<Ty>,
+}
+
+#[derive(Debug)]
 pub enum NodeValueKind {
   Expr(Expr),
   Ivy(Net),
@@ -67,6 +76,7 @@ pub struct Adt {
 
 #[derive(Debug)]
 pub struct Variant {
+  pub generics: Vec<Ident>,
   pub adt: NodeId,
   pub variant: usize,
   pub fields: Vec<Type>,

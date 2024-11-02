@@ -1,15 +1,17 @@
 #![allow(unused)]
 
-use std::mem::take;
+use std::{mem::take, ops::Range};
 
 use slab::Slab;
+use vine_util::interner::StringInterner;
 
 use crate::{
   ast::{
-    BinaryOp, Block, Expr, ExprKind, GenericPath, Pat, PatKind, Span, StmtKind, Type, TypeKind,
+    BinaryOp, Block, Expr, ExprKind, GenericPath, Ident, Pat, PatKind, Path, Span, StmtKind, Type,
+    TypeKind,
   },
   diag::{Diag, DiagGroup, ErrorGuaranteed},
-  resolve::{Node, NodeId, NodeValueKind},
+  resolve::{Node, NodeId, NodeValueKind, Resolver},
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -86,15 +88,60 @@ impl Ty {
   const UNIT: Ty = Ty::Tuple(Vec::new());
 }
 
-struct Checker<'n> {
+pub struct Checker<'n> {
   pub diags: DiagGroup,
   nodes: &'n mut [Node],
   vars: Vec<Result<Ty, Span>>,
-  string: Ty,
-  list: NodeId,
+  list: Option<NodeId>,
+  string: Option<Ty>,
 }
 
 impl<'n> Checker<'n> {
+  pub fn new(resolver: &'n mut Resolver, interner: &StringInterner<'static>) -> Self {
+    let mut diags = DiagGroup::default();
+    let list = resolver
+      .resolve_path(
+        0,
+        &Path {
+          span: Span::NONE,
+          segments: vec![
+            Ident(interner.intern("std")),
+            Ident(interner.intern("list")),
+            Ident(interner.intern("List")),
+          ],
+          absolute: true,
+          resolved: None,
+        },
+      )
+      .ok();
+    let string = list.map(|x| Ty::Adt(x, vec![Ty::U32]));
+    Checker { diags, nodes: &mut resolver.nodes, vars: Vec::new(), list, string }
+  }
+
+  pub fn check_items(&mut self) {
+    self._check_items(0..self.nodes.len());
+  }
+
+  pub(crate) fn _check_items(&mut self, range: Range<NodeId>) {
+    for node in range.clone() {
+      self.populate_node_tys(node);
+    }
+    for node in range.clone() {}
+  }
+
+  fn check_node(&mut self, node_id: NodeId) {
+    let node = &mut self.nodes[node_id];
+    if let Some(value) = &mut node.value {
+      if let NodeValueKind::Expr(expr) = &mut value.kind {
+        let mut ty = value.ty.clone().unwrap();
+        let mut expr = take(expr);
+        self.vars.resize_with(node.locals, || Err(Span::NONE));
+        self.expect_expr_form_ty(&mut expr, Form::Value, &mut ty);
+        self.nodes[node_id].value.as_mut().unwrap().kind = NodeValueKind::Expr(expr);
+      }
+    }
+  }
+
   fn new_var(&mut self, span: Span) -> Ty {
     let v = self.vars.len();
     self.vars.push(Err(span));
@@ -269,7 +316,11 @@ impl<'n> Checker<'n> {
         for el in els {
           self.expect_expr_form_ty(el, Form::Value, &mut item);
         }
-        Ty::Adt(self.list, vec![item])
+        if let Some(list) = self.list {
+          Ty::Adt(list, vec![item])
+        } else {
+          Ty::Error(self.diags.add(Diag::NoList { span }))
+        }
       }
       ExprKind::Method(receiver, path, args) => {
         let mut ty = self.infer_path_value(path);
@@ -368,7 +419,9 @@ impl<'n> Checker<'n> {
       }
       ExprKind::U32(_) => Ty::U32,
       ExprKind::F32(_) => Ty::F32,
-      ExprKind::String(_) => self.string.clone(),
+      ExprKind::String(_) => {
+        self.string.clone().unwrap_or_else(|| Ty::Error(self.diags.add(Diag::NoList { span })))
+      }
     }
   }
 
@@ -380,7 +433,7 @@ impl<'n> Checker<'n> {
         self.concretize(&mut b);
         if self.unify(&mut a, &mut b) {
           if let Ty::Adt(n, _) = a {
-            if n == self.list {
+            if Some(n) == self.list {
               return a;
             }
           }
@@ -553,7 +606,12 @@ impl<'n> Checker<'n> {
       }
 
       (PatKind::Hole, _) => self.new_var(span),
-      (PatKind::Local(l), _) => Ty::Var(*l),
+      (PatKind::Local(l), _) => {
+        let var = &mut self.vars[*l];
+        debug_assert!(var.is_err());
+        *var = Err(span);
+        Ty::Var(*l)
+      }
       (PatKind::Inverse(p), _) => self.expect_pat_form(p, form.inverse(), refutable).inverse(),
       (PatKind::Tuple(t), _) => {
         Ty::Tuple(t.iter_mut().map(|p| self.expect_pat_form(p, form, refutable)).collect())
@@ -714,22 +772,29 @@ impl<'n> Checker<'n> {
       TypeKind::Path(path) => {
         let node_id = path.path.resolved.unwrap();
         let node = &self.nodes[node_id];
-        let Some(adt) = &node.adt else {
+        let Some(typ) = &node.typ else {
           let err = self.diags.add(Diag::PathNoType { span, path: node.canonical.clone() });
           ty.kind = TypeKind::Error(err);
           return Ty::Error(err);
         };
-        let generic_count = adt.generics.len();
+        let generic_count = typ.generics.len();
         if let Err(diag) = Self::check_generic_count(span, node, path, generic_count) {
           let err = self.diags.add(diag);
           ty.kind = TypeKind::Error(err);
           return Ty::Error(err);
         }
-        if path.generics.is_none() && generic_count != 0 {
+        if !inference && path.generics.is_none() && generic_count != 0 {
           return Ty::Error(self.diags.add(Diag::ItemTypeHole { span }));
         }
         let generics = self.hydrate_generics(path, generic_count);
-        Ty::Adt(node_id, generics)
+        let node = &self.nodes[node_id];
+        if node.adt.is_some() {
+          Ty::Adt(node_id, generics)
+        } else if let Some(ty) = &node.typ.as_ref().unwrap().ty {
+          ty.instantiate(&generics)
+        } else {
+          Ty::Error(self.diags.add(Diag::RecursiveTypeAlias { span }))
+        }
       }
       TypeKind::Generic(n) => Ty::Opaque(*n),
       TypeKind::Error(e) => Ty::Error(*e),
@@ -792,7 +857,14 @@ impl<'n> Checker<'n> {
           NodeValueKind::AdtConstructor => todo!(),
         }
       };
+      value.ty = Some(ty);
       self.nodes[node_id].value = Some(value);
+    }
+    if let Some(typ) = &mut self.nodes[node_id].typ {
+      if let Some(mut alias) = typ.alias.take() {
+        let ty = self.hydrate_type(&mut alias, false);
+        self.nodes[node_id].typ.as_mut().unwrap().ty = Some(ty);
+      }
     }
     debug_assert!(self.vars.is_empty());
   }

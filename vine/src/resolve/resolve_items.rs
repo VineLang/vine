@@ -13,11 +13,11 @@ use crate::{
 use super::{NodeId, NodeValueKind, Resolver};
 
 impl Resolver {
-  pub fn resolve_exprs(&mut self) {
-    self._resolve_exprs(0..self.nodes.len());
+  pub fn resolve_items(&mut self) {
+    self._resolve_items(0..self.nodes.len());
   }
 
-  pub(crate) fn _resolve_exprs(&mut self, range: Range<NodeId>) {
+  pub(crate) fn _resolve_items(&mut self, range: Range<NodeId>) {
     let mut visitor = ResolveVisitor {
       resolver: self,
       node: 0,
@@ -46,6 +46,28 @@ impl Resolver {
       let node = &mut visitor.resolver.nodes[node_id];
       node.value = value;
       node.locals = visitor.next_local;
+
+      let mut typ = node.typ.take();
+      if let Some(typ) = &mut typ {
+        if let Some(alias) = &mut typ.alias {
+          visitor.generics = take(&mut typ.generics);
+          visitor.visit_type(alias);
+          typ.generics = take(&mut visitor.generics);
+        }
+      }
+
+      let node = &mut visitor.resolver.nodes[node_id];
+      node.typ = typ;
+
+      let mut variant = node.variant.take();
+      if let Some(variant) = &mut variant {
+        visitor.generics = take(&mut variant.generics);
+        visitor.visit(&mut variant.fields);
+        variant.generics = take(&mut visitor.generics);
+      }
+
+      let node = &mut visitor.resolver.nodes[node_id];
+      node.variant = variant;
 
       visitor.scope.clear();
       visitor.next_local = 0;

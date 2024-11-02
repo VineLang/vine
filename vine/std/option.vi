@@ -1,6 +1,4 @@
 
-use std::bool::{true, false};
-
 enum Option[T] {
   Some(T),
   None,

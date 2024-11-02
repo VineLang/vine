@@ -1,17 +1,22 @@
 use std::{collections::hash_map::Entry, mem::replace};
 
+use vine_util::interner::StringInterner;
+
 use crate::{
   ast::{Expr, ExprKind, Ident, Item, ItemKind, ModKind, Path, Span, UseTree},
   diag::{Diag, DiagGroup},
   visit::{VisitMut, Visitee},
 };
 
-use super::{Adt, Member, Node, NodeId, NodeValue, NodeValueKind, Resolver, UseId, Variant};
+use super::{
+  Adt, Member, Node, NodeId, NodeType, NodeValue, NodeValueKind, Resolver, UseId, Variant,
+};
 
 impl Resolver {
-  pub fn build_graph(&mut self, root: ModKind) {
+  pub fn build_graph(&mut self, interner: &StringInterner<'static>, root: ModKind) {
     let node = self.new_node(Path::ROOT, None);
     debug_assert_eq!(node, 0);
+    self.build_prelude(interner);
     self.build_mod(root, node);
   }
 
@@ -82,13 +87,23 @@ impl Resolver {
       }
       ItemKind::Struct(s) => {
         let child = self.get_or_insert_child(parent, s.name);
-        if child.adt.is_some() || child.variant.is_some() || child.value.is_some() {
+        if child.typ.is_some()
+          || child.adt.is_some()
+          || child.variant.is_some()
+          || child.value.is_some()
+        {
           self.diags.add(Diag::DuplicateItem { span: item.span, name: s.name });
           return;
         }
+        child.typ = Some(NodeType { generics: s.generics.clone(), alias: None, ty: None });
         child.adt = Some(Adt { generics: s.generics.clone(), variants: vec![child.id] });
-        child.variant =
-          Some(Variant { adt: child.id, variant: 0, fields: s.fields, field_tys: None });
+        child.variant = Some(Variant {
+          generics: s.generics.clone(),
+          adt: child.id,
+          variant: 0,
+          fields: s.fields,
+          field_tys: None,
+        });
         child.value = Some(NodeValue {
           generics: s.generics,
           annotation: None,
@@ -98,7 +113,7 @@ impl Resolver {
       }
       ItemKind::Enum(e) => {
         let child = self.get_or_insert_child(parent, e.name);
-        if child.adt.is_some() {
+        if child.typ.is_some() || child.adt.is_some() {
           self.diags.add(Diag::DuplicateItem { span: item.span, name: e.name });
           return;
         }
@@ -113,7 +128,13 @@ impl Resolver {
               self.diags.add(Diag::DuplicateItem { span: item.span, name: v.name });
               return None;
             }
-            variant.variant = Some(Variant { adt, variant: i, fields: v.fields, field_tys: None });
+            variant.variant = Some(Variant {
+              generics: e.generics.clone(),
+              adt,
+              variant: i,
+              fields: v.fields,
+              field_tys: None,
+            });
             variant.value = Some(NodeValue {
               generics: e.generics.clone(),
               annotation: None,
@@ -123,7 +144,17 @@ impl Resolver {
             Some(variant.id)
           })
           .collect();
+        self.nodes[adt].typ =
+          Some(NodeType { generics: e.generics.clone(), alias: None, ty: None });
         self.nodes[adt].adt = Some(Adt { generics: e.generics, variants });
+      }
+      ItemKind::Type(t) => {
+        let child = self.get_or_insert_child(parent, t.name);
+        if child.typ.is_some() || child.adt.is_some() {
+          self.diags.add(Diag::DuplicateItem { span: item.span, name: t.name });
+          return;
+        }
+        child.typ = Some(NodeType { generics: t.generics.clone(), alias: Some(t.ty), ty: None });
       }
       ItemKind::Pattern(_) => todo!(),
       ItemKind::Taken => {}
@@ -211,6 +242,7 @@ impl Resolver {
       parent,
       locals: 0,
       value: None,
+      typ: None,
       adt: None,
       variant: None,
     };

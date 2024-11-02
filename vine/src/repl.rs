@@ -60,9 +60,9 @@ impl<'ctx, 'ivm> Repl<'ctx, 'ivm> {
     loader.diags.report(&loader.files)?;
 
     let mut resolver = Resolver::default();
-    resolver.build_graph(loader.finish());
+    resolver.build_graph(interner, loader.finish());
     resolver.resolve_imports();
-    resolver.resolve_exprs();
+    resolver.resolve_items();
 
     resolver.diags.report(&loader.files)?;
 
@@ -118,7 +118,7 @@ impl<'ctx, 'ivm> Repl<'ctx, 'ivm> {
     self.resolver.extract_subitems(self.repl_mod, &mut stmts);
     let new_nodes = new_nodes..self.resolver.nodes.len();
 
-    self.resolver._resolve_exprs(new_nodes.clone());
+    self.resolver._resolve_items(new_nodes.clone());
     let binds =
       self.resolver.resolve_custom(self.repl_mod, &self.locals, &mut self.local_count, &mut stmts);
 

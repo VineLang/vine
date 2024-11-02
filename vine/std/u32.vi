@@ -1,6 +1,8 @@
 
 use std::option::Option::{Some, None};
 
+type u32 = ::u32;
+
 fn to_string(n: u32) -> String {
   if n {
     let str = "";

@@ -30,8 +30,8 @@ pub trait VisitMut<'a> {
     self._visit_pat(pat);
   }
 
-  fn visit_type(&mut self, pat: &'a mut Type) {
-    self._visit_type(pat);
+  fn visit_type(&mut self, ty: &'a mut Type) {
+    self._visit_type(ty);
   }
 
   fn visit_stmt(&mut self, stmt: &'a mut Stmt) {
@@ -226,9 +226,13 @@ pub trait VisitMut<'a> {
             self.visit_type(ty);
           }
         }
+        if let Some(ty) = &mut f.ret {
+          self.visit_type(ty);
+        }
         self.visit_expr(&mut f.body);
       }
       ItemKind::Const(c) => {
+        self.visit_type(&mut c.ty);
         self.visit_expr(&mut c.value);
       }
       ItemKind::Mod(m) => match &mut m.kind {
@@ -239,9 +243,23 @@ pub trait VisitMut<'a> {
         }
         ModKind::Unloaded(_) | ModKind::Error(_) => {}
       },
-      ItemKind::Struct(_) | ItemKind::Enum(_) | ItemKind::Use(_) | ItemKind::Ivy(_) => {}
+      ItemKind::Struct(s) => {
+        for ty in &mut s.fields {
+          self.visit_type(ty);
+        }
+      }
+      ItemKind::Enum(e) => {
+        for v in &mut e.variants {
+          for ty in &mut v.fields {
+            self.visit_type(ty);
+          }
+        }
+      }
+      ItemKind::Type(t) => {
+        self.visit_type(&mut t.ty);
+      }
       ItemKind::Pattern(_) => todo!(),
-      ItemKind::Taken => {}
+      ItemKind::Use(_) | ItemKind::Ivy(_) | ItemKind::Taken => {}
     }
   }
 

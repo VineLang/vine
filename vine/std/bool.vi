@@ -1,3 +1,5 @@
 
-const true: u32 = 1;
-const false: u32 = 0;
+type bool = u32;
+
+const true: bool = 1;
+const false: bool = 0;

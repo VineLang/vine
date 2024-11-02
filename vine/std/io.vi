@@ -50,11 +50,11 @@ fn read_line(&io: &IO) -> String {
     Some(if byte == '\n' {
       ""
     } else {
-      let str = str::single(byte);
+      let str = [byte];
       loop {
         byte = io.read_byte('\n');
         if byte != '\n' {
-          str ++= str::single(byte);
+          str ++= [byte];
         } else {
           break;
         }
