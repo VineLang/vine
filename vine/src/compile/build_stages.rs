@@ -2,7 +2,7 @@ use std::mem::{swap, take};
 
 use ivm::ext::{ExtFn, ExtFnKind};
 
-use crate::{ast::*, resolve::Node};
+use crate::{ast::*, resolve::Def};
 
 use super::{Compiler, Port, StageId, Step, Usage, WireDir};
 

@@ -23,7 +23,7 @@ use crate::{
   desugar::Desugar,
   loader::Loader,
   parser::VineParser,
-  resolve::{NodeId, Resolver},
+  resolve::{DefId, Resolver},
   visit::VisitMut,
 };
 
@@ -33,7 +33,7 @@ pub struct Repl<'ctx, 'ivm> {
   interner: &'ctx StringInterner<'static>,
   loader: Loader<'ctx>,
   resolver: Resolver,
-  repl_mod: NodeId,
+  repl_mod: DefId,
   line: usize,
   vars: HashMap<Ident, Var<'ivm>>,
   locals: BTreeMap<usize, Ident>,
@@ -63,7 +63,7 @@ impl<'ctx, 'ivm> Repl<'ctx, 'ivm> {
     let mut resolver = Resolver::default();
     resolver.build_graph(interner, loader.finish());
     resolver.resolve_imports();
-    resolver.resolve_items();
+    resolver.resolve_defs();
 
     resolver.diags.report(&loader.files)?;
 
@@ -73,9 +73,9 @@ impl<'ctx, 'ivm> Repl<'ctx, 'ivm> {
     checker.check_items();
     checker.diags.report(&loader.files)?;
 
-    Desugar.visit(&mut resolver.nodes);
+    Desugar.visit(&mut resolver.defs);
 
-    let mut compiler = Compiler::new(&resolver.nodes);
+    let mut compiler = Compiler::new(&resolver.defs);
     compiler.compile_all();
     host.insert_nets(&compiler.nets);
 
@@ -116,20 +116,20 @@ impl<'ctx, 'ivm> Repl<'ctx, 'ivm> {
       return Err(e);
     }
 
-    let new_nodes = self.resolver.nodes.len();
+    let new_defs = self.resolver.defs.len();
     let new_uses = self.resolver.next_use_id;
     self.resolver.build_mod(self.loader.finish(), 0);
     self.resolver.extract_subitems(self.repl_mod, &mut stmts);
-    let new_nodes = new_nodes..self.resolver.nodes.len();
+    let new_defs = new_defs..self.resolver.defs.len();
 
-    self.resolver._resolve_items(new_nodes.clone());
+    self.resolver._resolve_defs(new_defs.clone());
     let binds =
       self.resolver.resolve_custom(self.repl_mod, &self.locals, &mut self.local_count, &mut stmts);
 
-    self.resolver._resolve_imports(new_nodes.clone().chain([self.repl_mod]));
+    self.resolver._resolve_imports(new_defs.clone().chain([self.repl_mod]));
 
     if let Err(e) = self.resolver.diags.report(&self.loader.files) {
-      self.resolver.revert(new_nodes.start, new_uses);
+      self.resolver.revert(new_defs.start, new_uses);
       return Err(e);
     }
 
@@ -146,17 +146,17 @@ impl<'ctx, 'ivm> Repl<'ctx, 'ivm> {
     let mut block = Block { span: Span::NONE, stmts };
 
     let mut checker = Checker::new(&mut self.resolver, self.interner);
-    checker._check_items(new_nodes.clone());
+    checker._check_items(new_defs.clone());
     let state = checker._check_block(self.checker_state.clone(), &mut block);
     checker.diags.report(&self.loader.files)?;
     self.checker_state = state;
 
     Desugar.visit(&mut block);
-    Desugar.visit(&mut self.resolver.nodes[new_nodes.clone()]);
+    Desugar.visit(&mut self.resolver.defs[new_defs.clone()]);
 
-    let mut compiler = Compiler::new(&self.resolver.nodes);
-    for node in &self.resolver.nodes[new_nodes] {
-      compiler.compile_node(node);
+    let mut compiler = Compiler::new(&self.resolver.defs);
+    for def in &self.resolver.defs[new_defs] {
+      compiler.compile_def(def);
     }
 
     let line = self.line;

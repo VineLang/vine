@@ -2,15 +2,15 @@ use std::mem::take;
 
 use crate::{
   ast::{Expr, ExprKind},
-  resolve::Node,
+  resolve::Def,
   visit::VisitMut,
 };
 
 pub struct Desugar;
 
 impl VisitMut<'_> for Desugar {
-  fn visit_node(&mut self, node: &mut Node) {
-    self._visit_node(node)
+  fn visit_def(&mut self, def: &mut Def) {
+    self._visit_def(def)
   }
 
   fn visit_expr(&mut self, expr: &mut Expr) {

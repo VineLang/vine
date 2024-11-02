@@ -3,20 +3,20 @@ use crate::{
     Block, Expr, ExprKind, GenericPath, Item, ItemKind, ModKind, Pat, PatKind, Stmt, StmtKind, Ty,
     TyKind,
   },
-  resolve::{Node, NodeValueKind},
+  resolve::{Def, ValueDefKind},
 };
 
 pub trait VisitMut<'a> {
   fn enter_scope(&mut self) {}
   fn exit_scope(&mut self) {}
 
-  fn visit_node(&mut self, node: &'a mut Node) {
-    self._visit_node(node)
+  fn visit_def(&mut self, def: &'a mut Def) {
+    self._visit_def(def)
   }
 
-  fn _visit_node(&mut self, node: &'a mut Node) {
-    if let Some(value) = &mut node.value {
-      if let NodeValueKind::Expr(expr) = &mut value.kind {
+  fn _visit_def(&mut self, def: &'a mut Def) {
+    if let Some(value_def) = &mut def.value_def {
+      if let ValueDefKind::Expr(expr) = &mut value_def.kind {
         self.visit_expr(expr);
       }
     }
@@ -288,9 +288,9 @@ pub trait Visitee<'t> {
   fn visit(&'t mut self, visitor: &mut (impl VisitMut<'t> + ?Sized));
 }
 
-impl<'t> Visitee<'t> for Node {
+impl<'t> Visitee<'t> for Def {
   fn visit(&'t mut self, visitor: &mut (impl VisitMut<'t> + ?Sized)) {
-    visitor.visit_node(self)
+    visitor.visit_def(self)
   }
 }
 

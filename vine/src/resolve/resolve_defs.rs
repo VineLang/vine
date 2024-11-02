@@ -10,64 +10,64 @@ use crate::{
   visit::{VisitMut, Visitee},
 };
 
-use super::{NodeId, NodeValueKind, Resolver};
+use super::{DefId, Resolver, ValueDefKind};
 
 impl Resolver {
-  pub fn resolve_items(&mut self) {
-    self._resolve_items(0..self.nodes.len());
+  pub fn resolve_defs(&mut self) {
+    self._resolve_defs(0..self.defs.len());
   }
 
-  pub(crate) fn _resolve_items(&mut self, range: Range<NodeId>) {
+  pub(crate) fn _resolve_defs(&mut self, range: Range<DefId>) {
     let mut visitor = ResolveVisitor {
       resolver: self,
-      node: 0,
+      def: 0,
       generics: Vec::new(),
       scope: HashMap::new(),
       scope_depth: 0,
       next_local: 0,
     };
 
-    for node_id in range {
-      visitor.node = node_id;
+    for def_id in range {
+      visitor.def = def_id;
 
-      let node = &mut visitor.resolver.nodes[node_id];
-      let mut value = node.value.take();
-      if let Some(value) = &mut value {
-        visitor.generics = take(&mut value.generics);
-        if let Some(ty) = &mut value.annotation {
+      let def = &mut visitor.resolver.defs[def_id];
+      let mut value_def = def.value_def.take();
+      if let Some(value_def) = &mut value_def {
+        visitor.generics = take(&mut value_def.generics);
+        if let Some(ty) = &mut value_def.annotation {
           visitor.visit_type(ty);
         }
-        if let NodeValueKind::Expr(expr) = &mut value.kind {
+        if let ValueDefKind::Expr(expr) = &mut value_def.kind {
           visitor.visit_expr(expr);
         }
-        value.generics = take(&mut visitor.generics);
+        value_def.generics = take(&mut visitor.generics);
+        value_def.locals = visitor.next_local;
       }
 
-      let node = &mut visitor.resolver.nodes[node_id];
-      node.value = value;
-      node.locals = visitor.next_local;
+      let def = &mut visitor.resolver.defs[def_id];
+      def.value_def = value_def;
 
-      let mut typ = node.typ.take();
-      if let Some(typ) = &mut typ {
-        if let Some(alias) = &mut typ.alias {
-          visitor.generics = take(&mut typ.generics);
+      let mut type_def = def.type_def.take();
+      if let Some(type_def) = &mut type_def {
+        if let Some(alias) = &mut type_def.alias {
+          visitor.generics = take(&mut type_def.generics);
           visitor.visit_type(alias);
-          typ.generics = take(&mut visitor.generics);
+          type_def.generics = take(&mut visitor.generics);
         }
       }
 
-      let node = &mut visitor.resolver.nodes[node_id];
-      node.typ = typ;
+      let def = &mut visitor.resolver.defs[def_id];
+      def.type_def = type_def;
 
-      let mut variant = node.variant.take();
-      if let Some(variant) = &mut variant {
-        visitor.generics = take(&mut variant.generics);
-        visitor.visit(&mut variant.fields);
-        variant.generics = take(&mut visitor.generics);
+      let mut variant_def = def.variant_def.take();
+      if let Some(variant_def) = &mut variant_def {
+        visitor.generics = take(&mut variant_def.generics);
+        visitor.visit(&mut variant_def.fields);
+        variant_def.generics = take(&mut visitor.generics);
       }
 
-      let node = &mut visitor.resolver.nodes[node_id];
-      node.variant = variant;
+      let def = &mut visitor.resolver.defs[def_id];
+      def.variant_def = variant_def;
 
       visitor.scope.clear();
       visitor.next_local = 0;
@@ -76,14 +76,14 @@ impl Resolver {
 
   pub(crate) fn resolve_custom<'t>(
     &mut self,
-    node: NodeId,
+    def: DefId,
     initial: &BTreeMap<usize, Ident>,
     local_count: &mut usize,
     visitee: &'t mut impl Visitee<'t>,
   ) -> impl Iterator<Item = (Ident, usize)> {
     let mut visitor = ResolveVisitor {
       resolver: self,
-      node,
+      def,
       generics: Vec::new(),
       scope: initial.iter().map(|(&l, &i)| (i, vec![ScopeEntry { depth: 0, local: l }])).collect(),
       scope_depth: 0,
@@ -100,7 +100,7 @@ impl Resolver {
 
 struct ResolveVisitor<'a> {
   resolver: &'a mut Resolver,
-  node: NodeId,
+  def: DefId,
   generics: Vec<Ident>,
   scope: HashMap<Ident, Vec<ScopeEntry>>,
   scope_depth: usize,
@@ -128,10 +128,10 @@ impl VisitMut<'_> for ResolveVisitor<'_> {
 
   fn visit_pat(&mut self, pat: &mut Pat) {
     if let PatKind::Adt(path, children) = &mut pat.kind {
-      let non_local_err = match self.resolver.resolve_path(self.node, &path.path) {
+      let non_local_err = match self.resolver.resolve_path(self.def, &path.path) {
         Ok(resolved) => {
-          if self.resolver.nodes[resolved].variant.is_some() {
-            path.path = self.resolver.nodes[resolved].canonical.clone();
+          if self.resolver.defs[resolved].variant_def.is_some() {
+            path.path = self.resolver.defs[resolved].canonical.clone();
             debug_assert!(path.path.absolute && path.path.resolved.is_some());
             self._visit_pat(pat);
             return;
@@ -224,8 +224,8 @@ impl VisitMut<'_> for ResolveVisitor<'_> {
 impl<'a> ResolveVisitor<'a> {
   fn visit_path(&mut self, path: &mut Path) -> Result<(), Diag> {
     let span = path.span;
-    let resolved = self.resolver.resolve_path(self.node, path)?;
-    *path = self.resolver.nodes[resolved].canonical.clone();
+    let resolved = self.resolver.resolve_path(self.def, path)?;
+    *path = self.resolver.defs[resolved].canonical.clone();
     path.span = span;
     debug_assert!(path.absolute && path.resolved.is_some());
     Ok(())

@@ -10,75 +10,74 @@ use crate::{
 
 mod build_graph;
 mod prelude;
-mod resolve_items;
+mod resolve_defs;
 mod resolve_path;
 
 #[derive(Debug, Default)]
 pub struct Resolver {
-  pub nodes: Vec<Node>,
+  pub defs: Vec<Def>,
   pub diags: DiagGroup,
   pub next_use_id: UseId,
 }
 
-pub type NodeId = usize;
+pub type DefId = usize;
 pub type UseId = usize;
 
 #[derive(Debug)]
-pub struct Node {
-  pub id: NodeId,
+pub struct Def {
+  pub id: DefId,
   pub canonical: Path,
 
-  pub locals: usize,
-  pub value: Option<NodeValue>,
-
-  pub typ: Option<NodeType>,
-  pub adt: Option<Adt>,
-  pub variant: Option<Variant>,
+  pub value_def: Option<ValueDef>,
+  pub type_def: Option<TypeDef>,
+  pub adt_def: Option<AdtDef>,
+  pub variant_def: Option<VariantDef>,
 
   members: HashMap<Ident, Member>,
-  parent: Option<NodeId>,
+  parent: Option<DefId>,
 }
 
 #[derive(Debug)]
 enum Member {
-  Child(NodeId),
-  ResolvedImport(NodeId, UseId),
+  Child(DefId),
+  ResolvedImport(DefId, UseId),
   UnresolvedImport(Option<Path>, UseId),
 }
 
 #[derive(Debug)]
-pub struct NodeValue {
+pub struct ValueDef {
   pub generics: Vec<Ident>,
   pub annotation: Option<Ty>,
   pub ty: Option<Type>,
-  pub kind: NodeValueKind,
+  pub locals: usize,
+  pub kind: ValueDefKind,
 }
 
 #[derive(Debug)]
-pub struct NodeType {
-  pub generics: Vec<Ident>,
-  pub alias: Option<Ty>,
-  pub ty: Option<Type>,
-}
-
-#[derive(Debug)]
-pub enum NodeValueKind {
+pub enum ValueDefKind {
   Expr(Expr),
   Ivy(Net),
   AdtConstructor,
 }
 
 #[derive(Debug)]
-pub struct Adt {
+pub struct TypeDef {
   pub generics: Vec<Ident>,
-  pub variants: Vec<NodeId>,
+  pub alias: Option<Ty>,
+  pub ty: Option<Type>,
 }
 
 #[derive(Debug)]
-pub struct Variant {
+pub struct AdtDef {
   pub generics: Vec<Ident>,
-  pub adt: NodeId,
+  pub variants: Vec<DefId>,
+}
+
+#[derive(Debug)]
+pub struct VariantDef {
+  pub generics: Vec<Ident>,
+  pub adt: DefId,
   pub variant: usize,
   pub fields: Vec<Ty>,
-  pub field_tys: Option<Vec<Type>>,
+  pub field_types: Option<Vec<Type>>,
 }

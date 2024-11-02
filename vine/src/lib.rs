@@ -46,7 +46,7 @@ pub fn build(config: Config) -> Result<Nets, String> {
   let mut resolver = Resolver::default();
   resolver.build_graph(&interner, root);
   resolver.resolve_imports();
-  resolver.resolve_items();
+  resolver.resolve_defs();
 
   resolver.diags.report(&loader.files)?;
 
@@ -54,7 +54,7 @@ pub fn build(config: Config) -> Result<Nets, String> {
   checker.check_items();
   checker.diags.report(&loader.files)?;
 
-  Desugar.visit(&mut resolver.nodes);
+  Desugar.visit(&mut resolver.defs);
 
-  Ok(compile(&resolver.nodes, &config.items))
+  Ok(compile(&resolver.defs, &config.items))
 }

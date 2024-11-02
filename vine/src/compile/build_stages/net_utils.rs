@@ -6,7 +6,7 @@ use ivy::ast::Net;
 use crate::{
   ast::*,
   compile::{stage_name, Agent, Compiler, Local, Port, StageId, Step},
-  resolve::{Adt, Node},
+  resolve::{AdtDef, Def},
 };
 
 impl Compiler<'_> {
@@ -129,7 +129,7 @@ impl Compiler<'_> {
 
   pub(super) fn make_enum<T>(
     &mut self,
-    adt: &Adt,
+    adt: &AdtDef,
     variant: usize,
     fields: impl IntoIterator<Item = T>,
     mut f: impl FnMut(&mut Self, T) -> Port,
@@ -150,18 +150,18 @@ impl Compiler<'_> {
     r.1
   }
 
-  pub(in crate::compile) fn lower_adt_constructor(&mut self, node: &Node) -> Net {
-    let variant = node.variant.as_ref().unwrap();
-    let adt = self.nodes[variant.adt].adt.as_ref().unwrap();
+  pub(in crate::compile) fn lower_adt_constructor(&mut self, def: &Def) -> Net {
+    let variant_def = def.variant_def.as_ref().unwrap();
+    let adt_def = self.defs[variant_def.adt].adt_def.as_ref().unwrap();
     let root = self.net.new_wire();
 
-    let fields = variant.fields.iter().map(|_| self.net.new_wire().0).collect::<Vec<_>>();
+    let fields = variant_def.fields.iter().map(|_| self.net.new_wire().0).collect::<Vec<_>>();
     let ret = self.apply_combs("fn", root.0, fields.iter().cloned(), id);
 
-    let out = if adt.variants.len() == 1 {
+    let out = if adt_def.variants.len() == 1 {
       self.tuple(fields, id)
     } else {
-      self.make_enum(adt, variant.variant, fields, id)
+      self.make_enum(adt_def, variant_def.variant, fields, id)
     };
 
     self.net.link(ret, out);

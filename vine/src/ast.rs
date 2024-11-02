@@ -8,7 +8,7 @@ use class::Classes;
 use ivy::ast::Net;
 use vine_util::interner::Interned;
 
-use crate::{diag::ErrorGuaranteed, resolve::NodeId};
+use crate::{diag::ErrorGuaranteed, resolve::DefId};
 
 #[derive(Clone)]
 pub struct Item {
@@ -109,7 +109,7 @@ pub struct Path {
   pub span: Span,
   pub segments: Vec<Ident>,
   pub absolute: bool,
-  pub resolved: Option<NodeId>,
+  pub resolved: Option<DefId>,
 }
 
 impl Path {
