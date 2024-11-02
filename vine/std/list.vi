@@ -45,7 +45,6 @@ mod List {
     List(a_len + b_len, a_buf, move ~b_end)
   }
 
-
   fn push_back[T](&list: &List[T], el: T) {
     list ++= [el];
   }

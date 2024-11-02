@@ -10,7 +10,7 @@ use crate::{
   ast::{
     BinaryOp, Block, ComparisonOp, ConstItem, Enum, Expr, ExprKind, FnItem, GenericPath, Ident,
     InlineIvy, Item, ItemKind, LetStmt, LogicalOp, ModItem, ModKind, Pat, PatKind, Path,
-    PatternItem, Span, Stmt, StmtKind, StructItem, Type, TypeItem, TypeKind, UseTree, Variant,
+    PatternItem, Span, Stmt, StmtKind, StructItem, Ty, TyKind, TypeItem, UseTree, Variant,
   },
   diag::Diag,
   lexer::Token,
@@ -536,27 +536,27 @@ impl<'ctx, 'src> VineParser<'ctx, 'src> {
     self.unexpected()
   }
 
-  fn parse_pat_type(&mut self) -> Parse<'src, (Pat, Option<Type>)> {
+  fn parse_pat_type(&mut self) -> Parse<'src, (Pat, Option<Ty>)> {
     let pat = self.parse_pat()?;
     let ty = self.eat(Token::Colon)?.then(|| self.parse_type()).transpose()?;
     Ok((pat, ty))
   }
 
-  fn parse_type(&mut self) -> Parse<'src, Type> {
+  fn parse_type(&mut self) -> Parse<'src, Ty> {
     let span = self.start_span();
     let kind = self._parse_type(span)?;
     let span = self.end_span(span);
-    Ok(Type { span, kind })
+    Ok(Ty { span, kind })
   }
 
-  fn _parse_type(&mut self, span: usize) -> Parse<'src, TypeKind> {
+  fn _parse_type(&mut self, span: usize) -> Parse<'src, TyKind> {
     if self.eat(Token::Hole)? {
-      return Ok(TypeKind::Hole);
+      return Ok(TyKind::Hole);
     }
     if self.eat(Token::Fn)? {
       let args = self.parse_delimited(PAREN_COMMA, Self::parse_type)?;
       let ret = self.eat(Token::ThinArrow)?.then(|| self.parse_type()).transpose()?.map(Box::new);
-      return Ok(TypeKind::Fn(args, ret));
+      return Ok(TyKind::Fn(args, ret));
     }
     if self.check(Token::OpenParen) {
       let mut tuple = false;
@@ -570,22 +570,22 @@ impl<'ctx, 'src> VineParser<'ctx, 'src> {
       if types.len() == 1 && !tuple {
         return Ok(types.pop().unwrap().kind);
       }
-      return Ok(TypeKind::Tuple(types));
+      return Ok(TyKind::Tuple(types));
     }
     if self.eat(Token::And)? {
-      return Ok(TypeKind::Ref(Box::new(self.parse_type()?)));
+      return Ok(TyKind::Ref(Box::new(self.parse_type()?)));
     }
     if self.eat(Token::AndAnd)? {
       let inner = self.parse_type()?;
       let span = self.end_span(span + 1);
-      return Ok(TypeKind::Ref(Box::new(Type { span, kind: TypeKind::Ref(Box::new(inner)) })));
+      return Ok(TyKind::Ref(Box::new(Ty { span, kind: TyKind::Ref(Box::new(inner)) })));
     }
     if self.eat(Token::Tilde)? {
-      return Ok(TypeKind::Inverse(Box::new(self.parse_type()?)));
+      return Ok(TyKind::Inverse(Box::new(self.parse_type()?)));
     }
     if self.check(Token::ColonColon) || self.check(Token::Ident) {
       let path = self.parse_generic_path()?;
-      return Ok(TypeKind::Path(path));
+      return Ok(TyKind::Path(path));
     }
     self.unexpected()
   }

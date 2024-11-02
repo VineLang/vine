@@ -13,7 +13,7 @@ fn main(&io: &IO) {
 }
 
 fn sub_min(&list: &List[u32]) {
-  let min: ~u32;
+  let ~min: u32;
   let min_acc = None[u32];
 
   let it = list.iter();

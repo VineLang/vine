@@ -4,7 +4,7 @@ use crate::{
 };
 
 impl Compiler<'_> {
-  pub(super) fn lower_fn(&mut self, params: &[(Pat, Option<Type>)], body: &Expr) -> Port {
+  pub(super) fn lower_fn(&mut self, params: &[(Pat, Option<Ty>)], body: &Expr) -> Port {
     let func = self.net.new_wire();
     let res = self.apply_combs("fn", func.0, params.iter().map(|x| &x.0), Self::lower_pat_value);
     let result = self.new_local();

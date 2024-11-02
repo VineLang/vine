@@ -1,10 +1,10 @@
 use vine_util::interner::StringInterner;
 
-use crate::{ast::Ident, checker::Ty};
+use crate::{ast::Ident, checker::Type};
 
 use super::{NodeType, Resolver};
 
-const PRIMITIVES: [(&str, Ty); 3] = [("u32", Ty::U32), ("f32", Ty::F32), ("IO", Ty::IO)];
+const PRIMITIVES: [(&str, Type); 3] = [("u32", Type::U32), ("f32", Type::F32), ("IO", Type::IO)];
 
 impl Resolver {
   pub(super) fn build_prelude(&mut self, interner: &StringInterner<'static>) {

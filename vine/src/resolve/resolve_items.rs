@@ -5,7 +5,7 @@ use std::{
 };
 
 use crate::{
-  ast::{Expr, ExprKind, Ident, LogicalOp, Pat, PatKind, Path, Type, TypeKind},
+  ast::{Expr, ExprKind, Ident, LogicalOp, Pat, PatKind, Path, Ty, TyKind},
   diag::Diag,
   visit::{VisitMut, Visitee},
 };
@@ -203,18 +203,18 @@ impl VisitMut<'_> for ResolveVisitor<'_> {
     }
   }
 
-  fn visit_type(&mut self, ty: &mut Type) {
-    if let TypeKind::Path(path) = &mut ty.kind {
+  fn visit_type(&mut self, ty: &mut Ty) {
+    if let TyKind::Path(path) = &mut ty.kind {
       if path.generics.is_none() {
         if let Some(ident) = path.path.as_ident() {
           if let Some((i, _)) = self.generics.iter().enumerate().find(|(_, &g)| g == ident) {
-            ty.kind = TypeKind::Generic(i);
+            ty.kind = TyKind::Generic(i);
             return;
           }
         }
       }
       if let Err(diag) = self.visit_path(&mut path.path) {
-        ty.kind = TypeKind::Error(self.resolver.diags.add(diag));
+        ty.kind = TyKind::Error(self.resolver.diags.add(diag));
       }
     }
     self._visit_type(ty);

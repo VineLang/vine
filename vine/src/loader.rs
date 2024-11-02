@@ -11,7 +11,7 @@ use vine_util::interner::StringInterner;
 use crate::{
   ast::{
     self, ConstItem, Expr, ExprKind, GenericPath, Ident, Item, ItemKind, ModItem, ModKind, Span,
-    Type, TypeKind,
+    Ty, TyKind,
   },
   diag::{Diag, DiagGroup, FileInfo},
   parser::VineParser,
@@ -50,14 +50,14 @@ impl<'ctx> Loader<'ctx> {
       kind: ItemKind::Const(ConstItem {
         name: main,
         generics: Vec::new(),
-        ty: Type {
+        ty: Ty {
           span: Span::NONE,
-          kind: TypeKind::Fn(
-            vec![Type {
+          kind: TyKind::Fn(
+            vec![Ty {
               span: Span::NONE,
-              kind: TypeKind::Ref(Box::new(Type {
+              kind: TyKind::Ref(Box::new(Ty {
                 span: Span::NONE,
-                kind: TypeKind::Path(GenericPath {
+                kind: TyKind::Path(GenericPath {
                   path: ast::Path {
                     span: Span::NONE,
                     segments: vec![io],

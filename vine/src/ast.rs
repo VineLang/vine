@@ -34,8 +34,8 @@ pub enum ItemKind {
 pub struct FnItem {
   pub name: Ident,
   pub generics: Vec<Ident>,
-  pub params: Vec<(Pat, Option<Type>)>,
-  pub ret: Option<Type>,
+  pub params: Vec<(Pat, Option<Ty>)>,
+  pub ret: Option<Ty>,
   pub body: Expr,
 }
 
@@ -43,7 +43,7 @@ pub struct FnItem {
 pub struct ConstItem {
   pub name: Ident,
   pub generics: Vec<Ident>,
-  pub ty: Type,
+  pub ty: Ty,
   pub value: Expr,
 }
 
@@ -51,7 +51,7 @@ pub struct ConstItem {
 pub struct TypeItem {
   pub name: Ident,
   pub generics: Vec<Ident>,
-  pub ty: Type,
+  pub ty: Ty,
 }
 
 #[derive(Debug, Clone)]
@@ -61,7 +61,7 @@ pub struct PatternItem {}
 pub struct StructItem {
   pub name: Ident,
   pub generics: Vec<Ident>,
-  pub fields: Vec<Type>,
+  pub fields: Vec<Ty>,
 }
 
 #[derive(Debug, Clone)]
@@ -74,7 +74,7 @@ pub struct Enum {
 #[derive(Debug, Clone)]
 pub struct Variant {
   pub name: Ident,
-  pub fields: Vec<Type>,
+  pub fields: Vec<Ty>,
 }
 
 #[derive(Debug, Clone)]
@@ -100,7 +100,7 @@ pub struct UseTree {
 pub struct InlineIvy {
   pub name: Ident,
   pub generics: Vec<Ident>,
-  pub ty: Type,
+  pub ty: Ty,
   pub net: Net,
 }
 
@@ -140,7 +140,7 @@ pub enum StmtKind {
 #[derive(Debug, Clone)]
 pub struct LetStmt {
   pub bind: Pat,
-  pub ty: Option<Type>,
+  pub ty: Option<Ty>,
   pub init: Option<Expr>,
 }
 
@@ -174,7 +174,7 @@ pub enum ExprKind {
   #[class(value)]
   For(B<Pat>, B<Expr>, Block),
   #[class(value)]
-  Fn(Vec<(Pat, Option<Type>)>, Option<Option<Type>>, B<Expr>),
+  Fn(Vec<(Pat, Option<Ty>)>, Option<Option<Ty>>, B<Expr>),
   #[class(value)]
   Return(Option<B<Expr>>),
   #[class(value)]
@@ -267,22 +267,22 @@ pub enum PatKind {
 #[derive(Default, Debug, Clone)]
 pub struct GenericPath {
   pub path: Path,
-  pub generics: Option<Vec<Type>>,
+  pub generics: Option<Vec<Ty>>,
 }
 
 #[derive(Clone)]
-pub struct Type {
+pub struct Ty {
   pub span: Span,
-  pub kind: TypeKind,
+  pub kind: TyKind,
 }
 
 #[derive(Debug, Clone)]
-pub enum TypeKind {
+pub enum TyKind {
   Hole,
-  Fn(Vec<Type>, Option<B<Type>>),
-  Tuple(Vec<Type>),
-  Ref(B<Type>),
-  Inverse(B<Type>),
+  Fn(Vec<Ty>, Option<B<Ty>>),
+  Tuple(Vec<Ty>),
+  Ref(B<Ty>),
+  Inverse(B<Ty>),
   Path(GenericPath),
   Generic(usize),
   Error(ErrorGuaranteed),
@@ -411,4 +411,4 @@ macro_rules! debug_kind {
   )*};
 }
 
-debug_kind!(Item, Stmt, Expr, Pat, Type);
+debug_kind!(Item, Stmt, Expr, Pat, Ty);

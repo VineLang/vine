@@ -1,7 +1,7 @@
 use crate::{
   ast::{
-    Block, Expr, ExprKind, GenericPath, Item, ItemKind, ModKind, Pat, PatKind, Stmt, StmtKind,
-    Type, TypeKind,
+    Block, Expr, ExprKind, GenericPath, Item, ItemKind, ModKind, Pat, PatKind, Stmt, StmtKind, Ty,
+    TyKind,
   },
   resolve::{Node, NodeValueKind},
 };
@@ -30,7 +30,7 @@ pub trait VisitMut<'a> {
     self._visit_pat(pat);
   }
 
-  fn visit_type(&mut self, ty: &'a mut Type) {
+  fn visit_type(&mut self, ty: &'a mut Ty) {
     self._visit_type(ty);
   }
 
@@ -178,17 +178,17 @@ pub trait VisitMut<'a> {
     }
   }
 
-  fn _visit_type(&mut self, ty: &'a mut Type) {
+  fn _visit_type(&mut self, ty: &'a mut Ty) {
     match &mut ty.kind {
-      TypeKind::Hole | TypeKind::Generic(_) => {}
-      TypeKind::Ref(t) | TypeKind::Inverse(t) => self.visit_type(t),
-      TypeKind::Path(p) => self.visit_generic_path(p),
-      TypeKind::Tuple(a) => {
+      TyKind::Hole | TyKind::Generic(_) => {}
+      TyKind::Ref(t) | TyKind::Inverse(t) => self.visit_type(t),
+      TyKind::Path(p) => self.visit_generic_path(p),
+      TyKind::Tuple(a) => {
         for t in a {
           self.visit_type(t);
         }
       }
-      TypeKind::Fn(a, r) => {
+      TyKind::Fn(a, r) => {
         for t in a {
           self.visit_type(t);
         }
@@ -196,7 +196,7 @@ pub trait VisitMut<'a> {
           self.visit_type(r);
         }
       }
-      TypeKind::Error(_) => {}
+      TyKind::Error(_) => {}
     }
   }
 
@@ -306,7 +306,7 @@ impl<'t> Visitee<'t> for Pat {
   }
 }
 
-impl<'t> Visitee<'t> for Type {
+impl<'t> Visitee<'t> for Ty {
   fn visit(&'t mut self, visitor: &mut (impl VisitMut<'t> + ?Sized)) {
     visitor.visit_type(self)
   }

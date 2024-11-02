@@ -3,8 +3,8 @@ use std::collections::HashMap;
 use ivy::ast::Net;
 
 use crate::{
-  ast::{Expr, Ident, Path, Type},
-  checker::Ty,
+  ast::{Expr, Ident, Path, Ty},
+  checker::Type,
   diag::DiagGroup,
 };
 
@@ -49,16 +49,16 @@ enum Member {
 #[derive(Debug)]
 pub struct NodeValue {
   pub generics: Vec<Ident>,
-  pub annotation: Option<Type>,
-  pub ty: Option<Ty>,
+  pub annotation: Option<Ty>,
+  pub ty: Option<Type>,
   pub kind: NodeValueKind,
 }
 
 #[derive(Debug)]
 pub struct NodeType {
   pub generics: Vec<Ident>,
-  pub alias: Option<Type>,
-  pub ty: Option<Ty>,
+  pub alias: Option<Ty>,
+  pub ty: Option<Type>,
 }
 
 #[derive(Debug)]
@@ -79,6 +79,6 @@ pub struct Variant {
   pub generics: Vec<Ident>,
   pub adt: NodeId,
   pub variant: usize,
-  pub fields: Vec<Type>,
-  pub field_tys: Option<Vec<Ty>>,
+  pub fields: Vec<Ty>,
+  pub field_tys: Option<Vec<Type>>,
 }
