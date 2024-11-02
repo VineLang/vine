@@ -124,12 +124,17 @@ impl<'n> Checker<'n> {
 
   pub(crate) fn _check_items(&mut self, range: Range<NodeId>) {
     for node in range.clone() {
+      self.resolve_type_alias(node);
+    }
+    for node in range.clone() {
       self.populate_node_tys(node);
     }
+    debug_assert!(self.vars.is_empty());
     for node in range.clone() {}
   }
 
   fn check_node(&mut self, node_id: NodeId) {
+    self.vars.clear();
     let node = &mut self.nodes[node_id];
     if let Some(value) = &mut node.value {
       if let NodeValueKind::Expr(expr) = &mut value.kind {
@@ -677,25 +682,29 @@ impl<'n> Checker<'n> {
   }
 
   fn coerce_expr(&mut self, expr: &mut Expr, from: Form, to: Form) {
-    let span = expr.span;
-    match (from, to) {
-      (_, Form::Error(_)) => unreachable!(),
-      (Form::Error(_), _) => {}
-      (Form::Value, Form::Value) | (Form::Place, Form::Place) | (Form::Space, Form::Space) => {}
-      (Form::Value, Form::Place) => expr.wrap(ExprKind::Temp),
-      (Form::Place, Form::Value) => Self::copy_expr(expr),
-      (Form::Place, Form::Space) => Self::set_expr(expr),
+    // let span = expr.span;
+    // match (from, to) {
+    //   (_, Form::Error(_)) => unreachable!(),
+    //   (Form::Error(_), _) => {}
+    //   (Form::Value, Form::Value) | (Form::Place, Form::Place) | (Form::Space,
+    // Form::Space) => {}   (Form::Value, Form::Place) =>
+    // expr.wrap(ExprKind::Temp),   (Form::Place, Form::Value) =>
+    // Self::copy_expr(expr),   (Form::Place, Form::Space) =>
+    // Self::set_expr(expr),
 
-      (Form::Space, Form::Value) => {
-        expr.kind = ExprKind::Error(self.diags.add(Diag::ExpectedValueFoundSpaceExpr { span }));
-      }
-      (Form::Space, Form::Place) => {
-        expr.kind = ExprKind::Error(self.diags.add(Diag::ExpectedPlaceFoundSpaceExpr { span }))
-      }
-      (Form::Value, Form::Space) => {
-        expr.kind = ExprKind::Error(self.diags.add(Diag::ExpectedSpaceFoundValueExpr { span }));
-      }
-    }
+    //   (Form::Space, Form::Value) => {
+    //     expr.kind =
+    // ExprKind::Error(self.diags.add(Diag::ExpectedValueFoundSpaceExpr { span
+    // }));   }
+    //   (Form::Space, Form::Place) => {
+    //     expr.kind =
+    // ExprKind::Error(self.diags.add(Diag::ExpectedPlaceFoundSpaceExpr { span
+    // }))   }
+    //   (Form::Value, Form::Space) => {
+    //     expr.kind =
+    // ExprKind::Error(self.diags.add(Diag::ExpectedSpaceFoundValueExpr { span
+    // }));   }
+    // }
   }
 
   fn copy_expr(expr: &mut Expr) {
@@ -790,10 +799,15 @@ impl<'n> Checker<'n> {
         let node = &self.nodes[node_id];
         if node.adt.is_some() {
           Ty::Adt(node_id, generics)
-        } else if let Some(ty) = &node.typ.as_ref().unwrap().ty {
-          ty.instantiate(&generics)
         } else {
-          Ty::Error(self.diags.add(Diag::RecursiveTypeAlias { span }))
+          self.resolve_type_alias(node.id);
+          let node = &self.nodes[node_id];
+          if let Some(ty) = &node.typ.as_ref().unwrap().ty {
+            ty.instantiate(&generics)
+          } else {
+            dbg!(&node);
+            Ty::Error(self.diags.add(Diag::RecursiveTypeAlias { span }))
+          }
         }
       }
       TypeKind::Generic(n) => Ty::Opaque(*n),
@@ -829,6 +843,15 @@ impl<'n> Checker<'n> {
     Ok(())
   }
 
+  fn resolve_type_alias(&mut self, node_id: usize) {
+    if let Some(typ) = &mut self.nodes[node_id].typ {
+      if let Some(mut alias) = typ.alias.take() {
+        let ty = self.hydrate_type(&mut alias, false);
+        self.nodes[node_id].typ.as_mut().unwrap().ty = Some(ty);
+      }
+    }
+  }
+
   fn populate_node_tys(&mut self, node_id: usize) {
     if let Some(mut variant) = self.nodes[node_id].variant.take() {
       variant.field_tys =
@@ -854,18 +877,20 @@ impl<'n> Checker<'n> {
             )
           }
           NodeValueKind::Ivy(_) => unreachable!(),
-          NodeValueKind::AdtConstructor => todo!(),
+          NodeValueKind::AdtConstructor => {
+            let variant = self.nodes[node_id].variant.as_ref().unwrap();
+            let params = variant.field_tys.clone().unwrap();
+            let adt = Ty::Adt(variant.adt, (0..variant.generics.len()).map(Ty::Opaque).collect());
+            if params.is_empty() {
+              adt
+            } else {
+              Ty::Fn(params, Box::new(adt))
+            }
+          }
         }
       };
       value.ty = Some(ty);
       self.nodes[node_id].value = Some(value);
     }
-    if let Some(typ) = &mut self.nodes[node_id].typ {
-      if let Some(mut alias) = typ.alias.take() {
-        let ty = self.hydrate_type(&mut alias, false);
-        self.nodes[node_id].typ.as_mut().unwrap().ty = Some(ty);
-      }
-    }
-    debug_assert!(self.vars.is_empty());
   }
 }

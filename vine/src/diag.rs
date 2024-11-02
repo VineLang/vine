@@ -99,15 +99,15 @@ diags! {
   ExpectedTypeFound { expected: String, found: String }
     ["expected type `{expected}`; found `{found}`"]
   PathNoValue { path: Path }
-    ["no value associated with {path}"]
+    ["no value associated with `{path}`"]
   PathNoType { path: Path }
-    ["no type associated with {path}"]
+    ["no type associated with `{path}`"]
   PathNoPat { path: Path }
-    ["no pattern associated with {path}"]
+    ["no pattern associated with `{path}`"]
   BadGenericCount { path: Path, expected: usize, got: usize }
-    ["{path} expects {expected} generics; was passed {got}"]
+    ["`{path}` expects {expected} generics; was passed {got}"]
   BadFieldCount { path: Path, expected: usize, got: usize }
-    ["{path} has {expected} fields; {got} were matched"]
+    ["`{path}` has {expected} fields; {got} were matched"]
   FnItemUntypedParam
     ["fn item parameters must be explicitly typed"]
   ItemTypeHole

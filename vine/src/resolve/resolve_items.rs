@@ -216,8 +216,8 @@ impl VisitMut<'_> for ResolveVisitor<'_> {
       if let Err(diag) = self.visit_path(&mut path.path) {
         ty.kind = TypeKind::Error(self.resolver.diags.add(diag));
       }
-      self._visit_type(ty);
     }
+    self._visit_type(ty);
   }
 }
 

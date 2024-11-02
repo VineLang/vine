@@ -49,7 +49,7 @@ impl Compiler<'_> {
 
   fn lower_expr_value(&mut self, expr: &Expr) -> Port {
     match &expr.kind {
-      ExprKind![sugar || error || !value] => unreachable!(),
+      ExprKind![sugar || error || !value] => unreachable!("{expr:?}"),
 
       ExprKind::U32(num) => Port::U32(*num),
       ExprKind::F32(num) => Port::F32(*num),

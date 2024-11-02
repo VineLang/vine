@@ -104,7 +104,7 @@ pub struct InlineIvy {
   pub net: Net,
 }
 
-#[derive(Default, Clone, PartialEq, Eq)]
+#[derive(Default, Debug, Clone, PartialEq, Eq)]
 pub struct Path {
   pub span: Span,
   pub segments: Vec<Ident>,
@@ -386,11 +386,11 @@ impl Display for Path {
   }
 }
 
-impl Debug for Path {
-  fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-    write!(f, "`{self}`")
-  }
-}
+// impl Debug for Path {
+//   fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+//     write!(f, "`{self}`")
+//   }
+// }
 
 impl Debug for Ident {
   fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {

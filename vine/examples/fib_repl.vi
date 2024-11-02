@@ -11,7 +11,7 @@ fn main(&io: &IO) {
   }
 }
 
-fn fib(n) {
+fn fib(n: u32) -> u32 {
   let a = 0;
   let b = 1;
   while n {

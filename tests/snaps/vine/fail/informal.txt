@@ -1,9 +1,1 @@
-error tests/programs/fail/informal.vi:4:9 - `move` is only valid in a place pattern
-error tests/programs/fail/informal.vi:5:3 - expected a space expression; found a value expression
-error tests/programs/fail/informal.vi:6:3 - expected a space expression; found a value expression
-error tests/programs/fail/informal.vi:6:8 - expected a value expression; found a space expression
-error tests/programs/fail/informal.vi:7:3 - expected a place expression; found a space expression
-error tests/programs/fail/informal.vi:7:8 - expected a value expression; found a space expression
-error tests/programs/fail/informal.vi:8:15 - expected a place expression; found a space expression
-error tests/programs/fail/informal.vi:8:13 - expected a value expression; found a space expression
-error tests/programs/fail/informal.vi:8:8 - `&` is invalid in a space pattern
+error tests/programs/fail/informal.vi:4:9 - fn item parameters must be explicitly typed
