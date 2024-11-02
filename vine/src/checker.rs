@@ -272,7 +272,14 @@ impl<'n> Checker<'n> {
       }
       ExprKind::Error(e) => (Form::Error(*e), Ty::Error(*e)),
       ExprKind::Hole => (Form::Space, self.new_var(span)),
-      ExprKind::Local(l) => (Form::Place, Ty::Var(self.state.locals[l])),
+      ExprKind::Local(l) => (
+        Form::Place,
+        Ty::Var(*self.state.locals.entry(*l).or_insert_with(|| {
+          let v = self.state.vars.len();
+          self.state.vars.push(Err(span));
+          v
+        })),
+      ),
       ExprKind::Deref(_) => todo!(),
       ExprKind::Inverse(expr) => {
         let (form, ty) = self.infer_expr(expr);
