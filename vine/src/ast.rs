@@ -412,3 +412,21 @@ macro_rules! debug_kind {
 }
 
 debug_kind!(Item, Stmt, Expr, Pat, Ty);
+
+impl From<ErrorGuaranteed> for ExprKind {
+  fn from(value: ErrorGuaranteed) -> Self {
+    ExprKind::Error(value)
+  }
+}
+
+impl From<ErrorGuaranteed> for PatKind {
+  fn from(value: ErrorGuaranteed) -> Self {
+    PatKind::Error(value)
+  }
+}
+
+impl From<ErrorGuaranteed> for TyKind {
+  fn from(value: ErrorGuaranteed) -> Self {
+    TyKind::Error(value)
+  }
+}

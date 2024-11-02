@@ -131,7 +131,9 @@ impl VisitMut<'_> for ResolveVisitor<'_> {
       let non_local_err = match self.resolver.resolve_path(self.def, &path.path) {
         Ok(resolved) => {
           if self.resolver.defs[resolved].variant_def.is_some() {
+            let span = path.path.span;
             path.path = self.resolver.defs[resolved].canonical.clone();
+            path.path.span = span;
             debug_assert!(path.path.absolute && path.path.resolved.is_some());
             self._visit_pat(pat);
             return;

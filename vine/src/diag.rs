@@ -228,3 +228,24 @@ impl Display for Pos<'_> {
     write!(f, "{}:{}:{}", self.file, self.line + 1, self.col + 1)
   }
 }
+
+impl<T> From<ErrorGuaranteed> for Result<T, Diag> {
+  fn from(value: ErrorGuaranteed) -> Self {
+    Err(value.into())
+  }
+}
+
+macro_rules! report {
+  ($group:expr $(, $target:expr)*; $result:expr) => {
+    match $result {
+      Ok(value) => value,
+      Err(diag) => {
+        let err = $group.add(diag);
+        $($target = err.into();)*
+        return err.into();
+      }
+    }
+  };
+}
+
+pub(crate) use report;

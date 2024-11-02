@@ -51,7 +51,7 @@ pub fn build(config: Config) -> Result<Nets, String> {
   resolver.diags.report(&loader.files)?;
 
   let mut checker = Checker::new(&mut resolver, &interner);
-  checker.check_items();
+  checker.check_defs();
   checker.diags.report(&loader.files)?;
 
   Desugar.visit(&mut resolver.defs);

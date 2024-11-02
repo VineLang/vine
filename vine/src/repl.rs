@@ -70,7 +70,7 @@ impl<'ctx, 'ivm> Repl<'ctx, 'ivm> {
     let repl_mod = resolver.get_or_insert_child(0, Ident(interner.intern("repl"))).id;
 
     let mut checker = Checker::new(&mut resolver, interner);
-    checker.check_items();
+    checker.check_defs();
     checker.diags.report(&loader.files)?;
 
     Desugar.visit(&mut resolver.defs);
@@ -146,8 +146,8 @@ impl<'ctx, 'ivm> Repl<'ctx, 'ivm> {
     let mut block = Block { span: Span::NONE, stmts };
 
     let mut checker = Checker::new(&mut self.resolver, self.interner);
-    checker._check_items(new_defs.clone());
-    let state = checker._check_block(self.checker_state.clone(), &mut block);
+    checker._check_defs(new_defs.clone());
+    let state = checker._check_custom(self.checker_state.clone(), &mut block);
     checker.diags.report(&self.loader.files)?;
     self.checker_state = state;
 
