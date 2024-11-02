@@ -382,7 +382,7 @@ impl<'ctx, 'src> VineParser<'ctx, 'src> {
     if self.eat(Token::Fn)? {
       let params = self.parse_delimited(PAREN_COMMA, Self::parse_pat_type)?;
       let body = self.parse_expr()?;
-      return Ok(ExprKind::Fn(params, Box::new(body)));
+      return Ok(ExprKind::Fn(params, None, Box::new(body)));
     }
     if self.eat(Token::Match)? {
       let scrutinee = self.parse_expr()?;
@@ -618,7 +618,7 @@ impl<'ctx, 'src> VineParser<'ctx, 'src> {
       .check(Token::OpenBracket)
       .then(|| self.parse_delimited(BRACKET_COMMA, Self::parse_type))
       .transpose()?;
-    Ok(GenericPath { path, args })
+    Ok(GenericPath { path, generics: args })
   }
 
   fn start_span(&self) -> usize {

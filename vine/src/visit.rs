@@ -111,7 +111,7 @@ pub trait VisitMut<'a> {
         self.visit_block(c);
         self.exit_scope();
       }
-      ExprKind::Fn(a, b) => {
+      ExprKind::Fn(a, b, c) => {
         self.enter_scope();
         for (p, t) in a {
           self.visit_pat(p);
@@ -119,7 +119,10 @@ pub trait VisitMut<'a> {
             self.visit_type(t);
           }
         }
-        self.visit_expr(b);
+        if let Some(Some(b)) = b {
+          self.visit_type(b);
+        }
+        self.visit_expr(c);
         self.exit_scope();
       }
       ExprKind::Tuple(a) | ExprKind::List(a) => {
@@ -251,7 +254,7 @@ pub trait VisitMut<'a> {
   }
 
   fn _visit_generic_path(&mut self, path: &'a mut GenericPath) {
-    if let Some(args) = &mut path.args {
+    if let Some(args) = &mut path.generics {
       for t in args {
         self.visit_type(t)
       }

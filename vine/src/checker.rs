@@ -5,9 +5,11 @@ use std::mem::take;
 use slab::Slab;
 
 use crate::{
-  ast::{BinaryOp, Block, Expr, ExprKind, GenericPath, Pat, PatKind, Span, StmtKind, Type},
+  ast::{
+    BinaryOp, Block, Expr, ExprKind, GenericPath, Pat, PatKind, Span, StmtKind, Type, TypeKind,
+  },
   diag::{Diag, DiagGroup, ErrorGuaranteed},
-  resolve::{Node, NodeId},
+  resolve::{Node, NodeId, NodeValueKind},
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -47,6 +49,25 @@ pub enum Ty {
 }
 
 impl Ty {
+  fn instantiate(&self, opaque: &[Ty]) -> Ty {
+    match self {
+      Ty::U32 => Ty::U32,
+      Ty::F32 => Ty::F32,
+      Ty::IO => Ty::IO,
+      Ty::Tuple(tys) => Ty::Tuple(tys.iter().map(|t| t.instantiate(opaque)).collect()),
+      Ty::Fn(tys, ret) => Ty::Fn(
+        tys.iter().map(|t| t.instantiate(opaque)).collect(),
+        Box::new(ret.instantiate(opaque)),
+      ),
+      Ty::Ref(t) => Ty::Ref(Box::new(t.instantiate(opaque))),
+      Ty::Inverse(t) => Ty::Inverse(Box::new(t.instantiate(opaque))),
+      Ty::Adt(node, tys) => Ty::Adt(*node, tys.iter().map(|t| t.instantiate(opaque)).collect()),
+      Ty::Opaque(n) => opaque[*n].clone(),
+      Ty::Error(e) => Ty::Error(*e),
+      Ty::Var(_) => unreachable!(),
+    }
+  }
+
   fn inverse(self) -> Self {
     match self {
       Ty::Inverse(t) => *t,
@@ -170,15 +191,11 @@ impl<'n> Checker<'n> {
     }
   }
 
-  fn infer_path(&mut self, path: &mut GenericPath) -> Ty {
-    todo!()
-  }
-
   fn _infer_expr_value(&mut self, expr: &mut Expr) -> Ty {
     let span = expr.span;
     match &mut expr.kind {
       ExprKind![error || place || space || synthetic] => unreachable!(),
-      ExprKind::Path(path) => self.infer_path(path),
+      ExprKind::Path(path) => self.infer_path_value(path),
       ExprKind::Block(block) => self.infer_block(block),
       ExprKind::Assign(space, value) => {
         let mut ty = self.expect_expr_form(space, Form::Space);
@@ -218,12 +235,18 @@ impl<'n> Checker<'n> {
         self.new_var(span)
       }
       ExprKind::For(..) => todo!(),
-      ExprKind::Fn(args, ret) => Ty::Fn(
+      ExprKind::Fn(args, ret, body) => Ty::Fn(
         args
           .iter_mut()
           .map(|(pat, ty)| self.do_pat(pat, ty.as_mut(), Form::Value, false))
           .collect(),
-        Box::new(self.expect_expr_form(ret, Form::Value)),
+        Box::new(if let Some(ret) = ret {
+          let mut ty = ret.as_mut().map(|t| self.hydrate_type(t, true)).unwrap_or(Ty::UNIT);
+          self.expect_expr_form_ty(body, Form::Value, &mut ty);
+          ty
+        } else {
+          self.expect_expr_form(body, Form::Value)
+        }),
       ),
       ExprKind::Return(e) | ExprKind::Break(e) => {
         // todo: check
@@ -249,7 +272,7 @@ impl<'n> Checker<'n> {
         Ty::Adt(self.list, vec![item])
       }
       ExprKind::Method(receiver, path, args) => {
-        let mut ty = self.infer_path(path);
+        let mut ty = self.infer_path_value(path);
         match &mut ty {
           Ty::Fn(params, ret) => {
             if let Some(Ty::Ref(rec)) = params.first_mut() {
@@ -441,7 +464,10 @@ impl<'n> Checker<'n> {
       Ty::Inverse(ty) => format!("~{}", self.print_ty(ty)),
       Ty::Adt(_, vec) => todo!(),
       Ty::Opaque(n) => format!("T{n}"),
-      Ty::Var(v) => format!("?{v}"),
+      Ty::Var(v) => match &self.vars[*v] {
+        Ok(t) => self.print_ty(t),
+        Err(_) => format!("?{v}"),
+      },
       Ty::Error(_) => format!("??"),
     }
   }
@@ -458,7 +484,14 @@ impl<'n> Checker<'n> {
   }
 
   fn do_pat(&mut self, pat: &mut Pat, ty: Option<&mut Type>, form: Form, refutable: bool) -> Ty {
-    todo!()
+    match ty {
+      Some(ty) => {
+        let mut ty = self.hydrate_type(ty, true);
+        self.expect_pat_form_ty(pat, form, refutable, &mut ty);
+        ty
+      }
+      None => self.expect_pat_form(pat, form, refutable),
+    }
   }
 
   fn expect_expr_form(&mut self, expr: &mut Expr, form: Form) -> Ty {
@@ -484,7 +517,40 @@ impl<'n> Checker<'n> {
       (_, Form::Error(_)) => unreachable!(),
       (PatKind::Error(e), _) => Ty::Error(*e),
 
-      (PatKind::Adt(_, _), _) => todo!(),
+      (PatKind::Adt(path, fields), _) => {
+        let variant_id = path.path.resolved.unwrap();
+        let variant_node = &self.nodes[variant_id];
+        let Some(variant) = &variant_node.variant else {
+          return Ty::Error(
+            self.diags.add(Diag::PathNoPat { span, path: variant_node.canonical.clone() }),
+          );
+        };
+        let adt_id = variant.adt;
+        let adt_node = &self.nodes[adt_id];
+        let adt = adt_node.adt.as_ref().unwrap();
+        let generic_count = adt.generics.len();
+        if let Err(diag) = Self::check_generic_count(span, variant_node, path, generic_count) {
+          return Ty::Error(self.diags.add(diag));
+        }
+        let generics = self.hydrate_generics(path, generic_count);
+        let variant_node = &self.nodes[variant_id];
+        let variant = variant_node.variant.as_ref().unwrap();
+        let field_tys = variant.field_tys.as_ref().unwrap();
+        let fields = fields.get_or_insert(Vec::new());
+        if fields.len() != field_tys.len() {
+          return Ty::Error(self.diags.add(Diag::BadFieldCount {
+            span,
+            path: variant_node.canonical.clone(),
+            expected: field_tys.len(),
+            got: fields.len(),
+          }));
+        }
+        let field_tys = field_tys.iter().map(|t| t.instantiate(&generics)).collect::<Vec<_>>();
+        for (field, mut ty) in fields.iter_mut().zip(field_tys) {
+          self.expect_pat_form_ty(field, form, refutable, &mut ty);
+        }
+        Ty::Adt(adt_id, generics)
+      }
 
       (PatKind::Hole, _) => self.new_var(span),
       (PatKind::Local(l), _) => Ty::Var(*l),
@@ -613,5 +679,121 @@ impl<'n> Checker<'n> {
       }
       _ => expr.wrap(ExprKind::Move),
     }
+  }
+
+  fn infer_path_value(&mut self, path: &mut GenericPath) -> Ty {
+    let span = path.path.span;
+    let node_id = path.path.resolved.unwrap();
+    let node = &self.nodes[node_id];
+    let Some(value) = &node.value else {
+      return Ty::Error(self.diags.add(Diag::PathNoValue { span, path: node.canonical.clone() }));
+    };
+    let generic_count = value.generics.len();
+    if let Err(diag) = Self::check_generic_count(span, node, path, generic_count) {
+      return Ty::Error(self.diags.add(diag));
+    }
+    let generics = self.hydrate_generics(path, generic_count);
+    let node = &self.nodes[node_id];
+    node.value.as_ref().unwrap().ty.as_ref().unwrap().instantiate(&generics)
+  }
+
+  fn hydrate_type(&mut self, ty: &mut Type, inference: bool) -> Ty {
+    let span = ty.span;
+    match &mut ty.kind {
+      TypeKind::Hole if inference => self.new_var(span),
+      TypeKind::Hole => Ty::Error(self.diags.add(Diag::ItemTypeHole { span })),
+      TypeKind::Fn(args, ret) => Ty::Fn(
+        args.iter_mut().map(|arg| self.hydrate_type(arg, inference)).collect(),
+        Box::new(ret.as_mut().map(|ret| self.hydrate_type(ret, inference)).unwrap_or(Ty::UNIT)),
+      ),
+      TypeKind::Tuple(tys) => {
+        Ty::Tuple(tys.iter_mut().map(|arg| self.hydrate_type(arg, inference)).collect())
+      }
+      TypeKind::Ref(t) => Ty::Ref(Box::new(self.hydrate_type(t, inference))),
+      TypeKind::Inverse(t) => Ty::Inverse(Box::new(self.hydrate_type(t, inference))),
+      TypeKind::Path(path) => {
+        let node_id = path.path.resolved.unwrap();
+        let node = &self.nodes[node_id];
+        let Some(adt) = &node.adt else {
+          let err = self.diags.add(Diag::PathNoType { span, path: node.canonical.clone() });
+          ty.kind = TypeKind::Error(err);
+          return Ty::Error(err);
+        };
+        let generic_count = adt.generics.len();
+        if let Err(diag) = Self::check_generic_count(span, node, path, generic_count) {
+          let err = self.diags.add(diag);
+          ty.kind = TypeKind::Error(err);
+          return Ty::Error(err);
+        }
+        if path.generics.is_none() && generic_count != 0 {
+          return Ty::Error(self.diags.add(Diag::ItemTypeHole { span }));
+        }
+        let generics = self.hydrate_generics(path, generic_count);
+        Ty::Adt(node_id, generics)
+      }
+      TypeKind::Generic(n) => Ty::Opaque(*n),
+      TypeKind::Error(e) => Ty::Error(*e),
+    }
+  }
+
+  fn hydrate_generics(&mut self, path: &mut GenericPath, generic_count: usize) -> Vec<Ty> {
+    if let Some(generics) = &mut path.generics {
+      generics.iter_mut().map(|t| self.hydrate_type(t, true)).collect::<Vec<_>>()
+    } else {
+      std::iter::from_fn(|| Some(self.new_var(path.path.span))).take(generic_count).collect()
+    }
+  }
+
+  fn check_generic_count(
+    span: Span,
+    node: &Node,
+    path: &GenericPath,
+    expected: usize,
+  ) -> Result<(), Diag> {
+    path.generics.as_ref().is_some_and(|args| args.len() != expected);
+    if let Some(generics) = &path.generics {
+      if generics.len() != expected {
+        Err(Diag::BadGenericCount {
+          span,
+          path: node.canonical.clone(),
+          expected,
+          got: path.generics.as_ref().unwrap().len(),
+        })?
+      }
+    }
+    Ok(())
+  }
+
+  fn populate_node_tys(&mut self, node_id: usize) {
+    if let Some(mut variant) = self.nodes[node_id].variant.take() {
+      variant.field_tys =
+        Some(variant.fields.iter_mut().map(|ty| self.hydrate_type(ty, false)).collect());
+      self.nodes[node_id].variant = Some(variant);
+    }
+    if let Some(mut value) = self.nodes[node_id].value.take() {
+      let ty = if let Some(ty) = &mut value.annotation {
+        self.hydrate_type(ty, false)
+      } else {
+        match &mut value.kind {
+          NodeValueKind::Expr(e) => {
+            let ExprKind::Fn(args, Some(ret), _) = &mut e.kind else { unreachable!() };
+            Ty::Fn(
+              args
+                .iter_mut()
+                .map(|(pat, ty)| match ty {
+                  Some(ty) => self.hydrate_type(ty, false),
+                  None => Ty::Error(self.diags.add(Diag::FnItemUntypedParam { span: pat.span })),
+                })
+                .collect(),
+              Box::new(ret.as_mut().map(|r| self.hydrate_type(r, false)).unwrap_or(Ty::UNIT)),
+            )
+          }
+          NodeValueKind::Ivy(_) => unreachable!(),
+          NodeValueKind::AdtConstructor => todo!(),
+        }
+      };
+      self.nodes[node_id].value = Some(value);
+    }
+    debug_assert!(self.vars.is_empty());
   }
 }

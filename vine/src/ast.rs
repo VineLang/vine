@@ -166,7 +166,7 @@ pub enum ExprKind {
   #[class(value)]
   For(B<Pat>, B<Expr>, Block),
   #[class(value)]
-  Fn(Vec<(Pat, Option<Type>)>, B<Expr>),
+  Fn(Vec<(Pat, Option<Type>)>, Option<Option<Type>>, B<Expr>),
   #[class(value)]
   Return(Option<B<Expr>>),
   #[class(value)]
@@ -259,7 +259,7 @@ pub enum PatKind {
 #[derive(Default, Debug, Clone)]
 pub struct GenericPath {
   pub path: Path,
-  pub args: Option<Vec<Type>>,
+  pub generics: Option<Vec<Type>>,
 }
 
 #[derive(Clone)]

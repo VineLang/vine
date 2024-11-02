@@ -128,7 +128,7 @@ impl Compiler<'_> {
       },
       ExprKind::Inverse(x) => self.lower_expr_space(x),
 
-      ExprKind::Fn(params, body) => self.lower_fn(params, body),
+      ExprKind::Fn(params, _, body) => self.lower_fn(params, body),
       ExprKind::Loop(body) => self.lower_loop(body),
       ExprKind::While(cond, body) => self.lower_while(cond, body),
       ExprKind::If(cond, then, els) => self.lower_if(cond, then, els),

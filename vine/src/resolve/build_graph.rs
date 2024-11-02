@@ -31,10 +31,11 @@ impl Resolver {
           f.name,
           NodeValue {
             generics: f.generics,
+            annotation: None,
             ty: None,
             kind: NodeValueKind::Expr(Expr {
               span: item.span,
-              kind: ExprKind::Fn(f.params, Box::new(f.body)),
+              kind: ExprKind::Fn(f.params, Some(f.ret), Box::new(f.body)),
             }),
           },
         );
@@ -44,7 +45,12 @@ impl Resolver {
           item.span,
           parent,
           c.name,
-          NodeValue { generics: c.generics, ty: Some(c.ty), kind: NodeValueKind::Expr(c.value) },
+          NodeValue {
+            generics: c.generics,
+            annotation: Some(c.ty),
+            ty: None,
+            kind: NodeValueKind::Expr(c.value),
+          },
         );
       }
       ItemKind::Ivy(i) => {
@@ -52,7 +58,12 @@ impl Resolver {
           item.span,
           parent,
           i.name,
-          NodeValue { generics: i.generics, ty: Some(i.ty), kind: NodeValueKind::Ivy(i.net) },
+          NodeValue {
+            generics: i.generics,
+            annotation: Some(i.ty),
+            ty: None,
+            kind: NodeValueKind::Ivy(i.net),
+          },
         );
       }
       ItemKind::Mod(m) => {
@@ -76,14 +87,14 @@ impl Resolver {
           return;
         }
         child.adt = Some(Adt { generics: s.generics.clone(), variants: vec![child.id] });
-        child.variant = Some(Variant {
-          generics: s.generics.clone(),
-          adt: child.id,
-          variant: 0,
-          fields: s.fields,
+        child.variant =
+          Some(Variant { adt: child.id, variant: 0, fields: s.fields, field_tys: None });
+        child.value = Some(NodeValue {
+          generics: s.generics,
+          annotation: None,
+          ty: None,
+          kind: NodeValueKind::AdtConstructor,
         });
-        child.value =
-          Some(NodeValue { generics: s.generics, ty: None, kind: NodeValueKind::AdtConstructor });
       }
       ItemKind::Enum(e) => {
         let child = self.get_or_insert_child(parent, e.name);
@@ -102,10 +113,10 @@ impl Resolver {
               self.diags.add(Diag::DuplicateItem { span: item.span, name: v.name });
               return None;
             }
-            variant.variant =
-              Some(Variant { generics: e.generics.clone(), adt, variant: i, fields: v.fields });
+            variant.variant = Some(Variant { adt, variant: i, fields: v.fields, field_tys: None });
             variant.value = Some(NodeValue {
               generics: e.generics.clone(),
+              annotation: None,
               ty: None,
               kind: NodeValueKind::AdtConstructor,
             });

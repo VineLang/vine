@@ -88,7 +88,7 @@ diags! {
     ["cannot apply operator `{op:?}` to values of types `{lhs}` and `{rhs}`"]
   MismatchedThenElseTypes { then: String, els: String }
     ["then block has type `{then}` but else block has type `{els}`"]
-  BadArgCount { ty: String,  expected: usize, got: usize }
+  BadArgCount { ty: String, expected: usize, got: usize }
     ["function type `{ty}` expects {expected} arguments; was passed {got}"]
   NonFunctionCall { ty: String }
     ["cannot call non-function type `{ty}`"]
@@ -98,6 +98,20 @@ diags! {
     ["invalid method; function type `{ty}` does not accept reference as first parameter"]
   ExpectedTypeFound { expected: String, found: String }
     ["expected type `{expected}`; found `{found}`"]
+  PathNoValue { path: Path }
+    ["no value associated with {path}"]
+  PathNoType { path: Path }
+    ["no type associated with {path}"]
+  PathNoPat { path: Path }
+    ["no pattern associated with {path}"]
+  BadGenericCount { path: Path, expected: usize, got: usize }
+    ["{path} expects {expected} generics; was passed {got}"]
+  BadFieldCount { path: Path, expected: usize, got: usize }
+    ["{path} has {expected} fields; {got} were matched"]
+  FnItemUntypedParam
+    ["fn item parameters must be explicitly typed"]
+  ItemTypeHole
+    ["types in item signatures cannot be elided"]
 }
 
 #[derive(Default, Debug)]
@@ -156,6 +170,12 @@ impl Diag {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct ErrorGuaranteed(());
+
+impl ErrorGuaranteed {
+  pub fn new_unchecked() -> Self {
+    ErrorGuaranteed(())
+  }
+}
 
 impl From<ErrorGuaranteed> for Diag {
   fn from(value: ErrorGuaranteed) -> Self {

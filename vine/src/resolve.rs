@@ -4,6 +4,7 @@ use ivy::ast::Net;
 
 use crate::{
   ast::{Expr, Ident, Path, Type},
+  checker::Ty,
   diag::DiagGroup,
 };
 
@@ -46,7 +47,8 @@ enum Member {
 #[derive(Debug)]
 pub struct NodeValue {
   pub generics: Vec<Ident>,
-  pub ty: Option<Type>,
+  pub annotation: Option<Type>,
+  pub ty: Option<Ty>,
   pub kind: NodeValueKind,
 }
 
@@ -65,8 +67,8 @@ pub struct Adt {
 
 #[derive(Debug)]
 pub struct Variant {
-  pub generics: Vec<Ident>,
   pub adt: NodeId,
   pub variant: usize,
   pub fields: Vec<Type>,
+  pub field_tys: Option<Vec<Ty>>,
 }

@@ -34,7 +34,7 @@ impl Resolver {
       let mut value = node.value.take();
       if let Some(value) = &mut value {
         visitor.generics = take(&mut value.generics);
-        if let Some(ty) = &mut value.ty {
+        if let Some(ty) = &mut value.annotation {
           visitor.visit_type(ty);
         }
         if let NodeValueKind::Expr(expr) = &mut value.kind {
@@ -183,7 +183,7 @@ impl VisitMut<'_> for ResolveVisitor<'_> {
 
   fn visit_type(&mut self, ty: &mut Type) {
     if let TypeKind::Path(path) = &mut ty.kind {
-      if path.args.is_none() {
+      if path.generics.is_none() {
         if let Some(ident) = path.path.as_ident() {
           if let Some((i, _)) = self.generics.iter().enumerate().find(|(_, &g)| g == ident) {
             ty.kind = TypeKind::Generic(i);
