@@ -1,67 +1,79 @@
+use std::fmt::Write;
+
 use crate::checker::{Checker, Type};
 
 impl Checker<'_> {
   pub(super) fn display_type(&self, ty: &Type) -> String {
+    let mut str = String::new();
+    self._display_type(ty, &mut str);
+    str
+  }
+
+  fn _display_type(&self, ty: &Type, str: &mut String) {
     match ty {
-      Type::U32 => "u32".into(),
-      Type::F32 => "f32".into(),
-      Type::IO => "IO".into(),
+      Type::U32 => *str += "u32",
+      Type::F32 => *str += "f32",
+      Type::IO => *str += "IO",
       Type::Tuple(t) => {
-        let mut string = "(".to_owned();
+        *str += "(";
         let mut first = true;
         for t in t {
           if !first {
-            string += ", ";
+            *str += ", ";
           }
-          string += &self.display_type(t);
+          self._display_type(t, str);
           first = false;
         }
         if t.len() == 1 {
-          string += ",";
+          *str += ",";
         }
-        string + ")"
+        *str += ")"
       }
       Type::Fn(args, ret) => {
-        let mut string = "fn(".to_owned();
+        *str += "fn(";
         let mut first = true;
         for t in args {
           if !first {
-            string += ", ";
+            *str += ", ";
           }
-          string += &self.display_type(t);
+          self._display_type(t, str);
           first = false;
         }
-        string += ")";
+        *str += ")";
         if **ret != Type::UNIT {
-          string += " -> ";
-          string += &self.display_type(ret);
+          *str += " -> ";
+          self._display_type(ret, str);
         }
-        string
       }
-      Type::Ref(ty) => format!("&{}", self.display_type(ty)),
-      Type::Inverse(ty) => format!("~{}", self.display_type(ty)),
+      Type::Ref(ty) => {
+        *str += "&";
+        self._display_type(ty, str)
+      }
+      Type::Inverse(ty) => {
+        *str += "~";
+        self._display_type(ty, str)
+      }
       Type::Adt(n, gens) => {
-        let mut string = self.defs[*n].canonical.to_string();
+        write!(str, "{}", self.defs[*n].canonical).unwrap();
         if !gens.is_empty() {
-          string += "[";
+          *str += "[";
           let mut first = true;
           for t in gens {
             if !first {
-              string += ", ";
+              *str += ", ";
             }
-            string += &self.display_type(t);
+            self._display_type(t, str);
             first = false;
           }
-          string += "]";
+          *str += "]";
         }
-        string
       }
-      Type::Opaque(n) => self.generics[*n].0 .0.into(),
+      Type::Opaque(n) => *str += self.generics[*n].0 .0,
       Type::Var(v) => match &self.state.vars[*v] {
-        Ok(t) => self.display_type(t),
-        _ => format!("?{v}"),
+        Ok(t) => self._display_type(t, str),
+        _ => write!(str, "?{v}").unwrap(),
       },
-      Type::Error(_) => "??".to_string(),
+      Type::Error(_) => *str += "??",
     }
   }
 }
