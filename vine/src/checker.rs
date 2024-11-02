@@ -384,7 +384,7 @@ impl<'n> Checker<'n> {
                   ty: self.print_ty(&ty),
                 }))
               } else {
-                for (ty, arg) in params.into_iter().zip(args) {
+                for (ty, arg) in params.iter_mut().zip(args) {
                   self.expect_expr_form_ty(arg, Form::Value, ty);
                 }
                 take(&mut **ret)
@@ -396,7 +396,7 @@ impl<'n> Checker<'n> {
             }
           },
           Ty::Error(e) => Ty::Error(*e),
-          ty => Ty::Error(self.diags.add(Diag::NonFunctionCall { span, ty: self.print_ty(&ty) })),
+          ty => Ty::Error(self.diags.add(Diag::NonFunctionCall { span, ty: self.print_ty(ty) })),
         }
       }
       ExprKind::Call(func, args) => {
@@ -412,14 +412,14 @@ impl<'n> Checker<'n> {
                 ty: self.print_ty(&ty),
               }))
             } else {
-              for (mut ty, arg) in params.into_iter().zip(args) {
-                self.expect_expr_form_ty(arg, Form::Value, &mut ty);
+              for (ty, arg) in params.iter_mut().zip(args) {
+                self.expect_expr_form_ty(arg, Form::Value, ty);
               }
               take(&mut **ret)
             }
           }
           Ty::Error(e) => Ty::Error(*e),
-          ty => Ty::Error(self.diags.add(Diag::NonFunctionCall { span, ty: self.print_ty(&ty) })),
+          ty => Ty::Error(self.diags.add(Diag::NonFunctionCall { span, ty: self.print_ty(ty) })),
         }
       }
 
@@ -594,7 +594,7 @@ impl<'n> Checker<'n> {
         Ok(t) => self.print_ty(t),
         _ => format!("?{v}"),
       },
-      Ty::Error(_) => format!("??"),
+      Ty::Error(_) => "??".to_string(),
     }
   }
 
