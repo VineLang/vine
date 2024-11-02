@@ -1,7 +1,7 @@
 
-use std::option::Option::{Some, None};
+use std::option::Option::{Option, Some, None};
 
-struct List[T](u32, ListBuf[T], ~ListBuf[T]);
+struct List[T](u32, Buf[T], ~Buf[T]);
 
 struct Buf[T](T, Buf[T]);
 
@@ -77,7 +77,7 @@ mod List {
   }
 
   mod iter {
-    fn next(&Iter(len, buf): Iter[T]) -> Option[T] {
+    fn next[T](&Iter(len, buf): Iter[T]) -> Option[T] {
       if len {
         len -= 1;
         let &Buf(*head, *tail) = buf;
@@ -92,7 +92,7 @@ mod List {
 
   struct IntoIter[T](u32, Buf[T]);
 
-  fn into_iter(&move List(len, buf, _): List[T]) -> IntoIter[T] {
+  fn into_iter[T](&move List(len, buf, _): List[T]) -> IntoIter[T] {
     IntoIter(len, buf)
   }
 

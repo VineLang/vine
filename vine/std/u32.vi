@@ -1,5 +1,5 @@
 
-use std::option::Option::{Some, None};
+use std::{list::String, option::Option::{Option, Some, None}};
 
 type u32 = ::u32;
 

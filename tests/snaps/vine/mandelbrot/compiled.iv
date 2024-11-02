@@ -24,17 +24,17 @@
 }
 
 ::mandelbrot::main {
-  fn(n0 _)
-  ::mandelbrot::main::1 = x(n0 0)
+  fn(ref(n0 n1) _)
+  ::mandelbrot::main::1 = x(n0 x(n1 0))
 }
 
-::mandelbrot::main::1 { x(n0 dup17(@lt(45 ?(_ ::mandelbrot::main::2 x(n0 n1))) n1)) }
+::mandelbrot::main::1 { x(n0 x(n1 dup17(@lt(45 ?(::mandelbrot::main::8 ::mandelbrot::main::2 x(n0 x(n1 n2)))) n2))) }
 
 ::mandelbrot::main::2 {
-  x(n0 dup17(n2 @add(1 n4)))
+  x(n0 x(n4 dup17(n2 @add(1 n5))))
   ::std::io::print_char = fn(ref(n1 n3) fn(10 _))
   ::mandelbrot::main::3 = x(n0 x(n1 x(n2 0)))
-  ::mandelbrot::main::1 = x(n3 n4)
+  ::mandelbrot::main::1 = x(n3 x(n4 n5))
 }
 
 ::mandelbrot::main::3 { x(n0 x(n1 x(n2 dup18(@lt(125 ?(::mandelbrot::main::7 ::mandelbrot::main::4 x(n0 x(n1 x(n2 n3))))) n3)))) }
@@ -51,6 +51,8 @@
 }
 
 ::mandelbrot::main::7 { x(n0 x(n0 _)) }
+
+::mandelbrot::main::8 { x(n0 x(n0 _)) }
 
 ::std::io::print_char { fn(ref(@io_print_char(char io) io) fn(char _)) }
 

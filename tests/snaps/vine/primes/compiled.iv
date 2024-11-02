@@ -2,20 +2,20 @@
 ::main { ::primes::main }
 
 ::primes::main {
-  fn(n0 _)
-  ::primes::main::1 = x(n0 0)
+  fn(ref(n0 n1) _)
+  ::primes::main::1 = x(n0 x(n1 0))
 }
 
-::primes::main::1 { x(n0 dup3(@le(46 ?(_ ::primes::main::2 x(n0 n1))) n1)) }
+::primes::main::1 { x(n0 x(n1 dup3(@le(46 ?(::primes::main::7 ::primes::main::2 x(n0 x(n1 n2)))) n2))) }
 
 ::primes::main::2 {
-  x(n5 dup3(n6 dup3(n7 @add(1 n9))))
+  x(n5 x(n9 dup3(n6 dup3(n7 @add(1 n10)))))
   ::primes::is_prime = fn(n6 enum(::primes::main::3 enum(::primes::main::6 n3)))
   ::std::io::println = fn(ref(n5 n8) fn(n4 _))
   ::std::u32::to_string = fn(n7 n1)
-  ::std::str::concat = fn(n1 fn(tup(2 tup(tup(58 tup(32 n0)) n0)) n2))
-  ::std::str::concat = fn(n2 fn(n3 n4))
-  ::primes::main::1 = x(n8 n9)
+  ::std::list::List::concat = fn(n1 fn(tup(2 tup(tup(58 tup(32 n0)) n0)) n2))
+  ::std::list::List::concat = fn(n2 fn(n3 n4))
+  ::primes::main::1 = x(n8 x(n9 n10))
 }
 
 ::primes::main::3 { enum(?(::primes::main::5 ::primes::main::4 n0) n0) }
@@ -25,6 +25,8 @@
 ::primes::main::5 { tup(9 tup(tup(99 tup(111 tup(109 tup(112 tup(111 tup(115 tup(105 tup(116 tup(101 n0))))))))) n0)) }
 
 ::primes::main::6 { enum(n0 n0) }
+
+::primes::main::7 { x(n0 x(n0 _)) }
 
 ::primes::is_prime { fn(dup14(@le(0 ?(::primes::is_prime::4 ::primes::is_prime::1 x(n1 n0))) n1) n0) }
 
@@ -89,23 +91,23 @@
 
 ::std::io::print_char { fn(ref(@io_print_char(char io) io) fn(char _)) }
 
+::std::list::List::concat { fn(tup(@add(n1 n2) tup(n3 n0)) fn(tup(n1 tup(n0 n4)) tup(n2 tup(n3 n4)))) }
+
 ::std::result::Result::Ok { fn(n0 enum(enum(n0 n1) enum(_ n1))) }
 
 ::std::result::Result::Err { fn(n0 enum(_ enum(enum(n0 n1) n1))) }
 
-::std::str::concat { fn(tup(@add(n1 n2) tup(n3 n0)) fn(tup(n1 tup(n0 n4)) tup(n2 tup(n3 n4)))) }
-
-::std::u32::to_string { fn(dup259(?(::std::u32::to_string::5 ::std::u32::to_string::1 x(n1 n0)) n1) n0) }
+::std::u32::to_string { fn(dup255(?(::std::u32::to_string::5 ::std::u32::to_string::1 x(n1 n0)) n1) n0) }
 
 ::std::u32::to_string::1 {
   x(n1 n2)
   ::std::u32::to_string::2 = x(n1 x(tup(0 tup(n0 n0)) n2))
 }
 
-::std::u32::to_string::2 { x(dup259(?(::std::u32::to_string::4 ::std::u32::to_string::3 x(n2 n0)) n2) n0) }
+::std::u32::to_string::2 { x(dup255(?(::std::u32::to_string::4 ::std::u32::to_string::3 x(n2 n0)) n2) n0) }
 
 ::std::u32::to_string::3 {
-  x(dup259(@rem(10 n1) @div(10 n5)) x(tup(@add(1 n0) tup(n3 n4)) n6))
+  x(dup255(@rem(10 n1) @div(10 n5)) x(tup(@add(1 n0) tup(n3 n4)) n6))
   48 = @add(n1 n2)
   ::std::u32::to_string::2 = x(n5 x(tup(n0 tup(tup(n2 n3) n4)) n6))
 }

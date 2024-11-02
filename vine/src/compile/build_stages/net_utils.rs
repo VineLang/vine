@@ -95,7 +95,12 @@ impl Compiler<'_> {
   pub(super) fn op(&mut self, op: BinaryOp, lhs: Port, rhs: Port) -> Port {
     let f = match op {
       BinaryOp::Concat => {
-        return self.apply_combs("fn", Port::Global("::std::str::concat".into()), [lhs, rhs], id)
+        return self.apply_combs(
+          "fn",
+          Port::Global("::std::list::List::concat".into()),
+          [lhs, rhs],
+          id,
+        )
       }
       BinaryOp::BitOr => ExtFnKind::u32_or,
       BinaryOp::BitXor => ExtFnKind::u32_xor,

@@ -7,12 +7,12 @@
 }
 
 ::mandelbrot_sixel::main {
-  fn(n0 _)
-  ::std::io::print_bytes = fn(ref(n0 n4) fn(tup(3 tup(tup(27 tup(80 tup(113 n1))) n1)) _))
-  ::std::io::print_bytes = fn(ref(n6 n3) fn(tup(2 tup(tup(27 tup(92 n2)) n2)) _))
-  ::std::io::flush = fn(ref(n3 _) _)
-  ::mandelbrot_sixel::main::1 = x(n4 x(n5 0))
-  ::mandelbrot_sixel::main::4 = x(n5 x(n6 x(0 1)))
+  fn(ref(n0 n4) _)
+  ::std::io::print_bytes = fn(ref(n0 n5) fn(tup(3 tup(tup(27 tup(80 tup(113 n1))) n1)) _))
+  ::std::io::print_bytes = fn(ref(n7 n3) fn(tup(2 tup(tup(27 tup(92 n2)) n2)) _))
+  ::std::io::flush = fn(ref(n3 n4) _)
+  ::mandelbrot_sixel::main::1 = x(n5 x(n6 0))
+  ::mandelbrot_sixel::main::4 = x(n6 x(n7 x(0 1)))
 }
 
 ::mandelbrot_sixel::main::1 { x(n0 x(n1 dup7(@le(100 ?(::mandelbrot_sixel::main::3 ::mandelbrot_sixel::main::2 x(n0 x(n1 n2)))) n2))) }
@@ -123,17 +123,17 @@
 
 ::std::io::flush { fn(ref(@io_flush(0 io) io) _) }
 
-::std::u32::to_string { fn(dup270(?(::std::u32::to_string::5 ::std::u32::to_string::1 x(n1 n0)) n1) n0) }
+::std::u32::to_string { fn(dup266(?(::std::u32::to_string::5 ::std::u32::to_string::1 x(n1 n0)) n1) n0) }
 
 ::std::u32::to_string::1 {
   x(n1 n2)
   ::std::u32::to_string::2 = x(n1 x(tup(0 tup(n0 n0)) n2))
 }
 
-::std::u32::to_string::2 { x(dup270(?(::std::u32::to_string::4 ::std::u32::to_string::3 x(n2 n0)) n2) n0) }
+::std::u32::to_string::2 { x(dup266(?(::std::u32::to_string::4 ::std::u32::to_string::3 x(n2 n0)) n2) n0) }
 
 ::std::u32::to_string::3 {
-  x(dup270(@rem(10 n1) @div(10 n5)) x(tup(@add(1 n0) tup(n3 n4)) n6))
+  x(dup266(@rem(10 n1) @div(10 n5)) x(tup(@add(1 n0) tup(n3 n4)) n6))
   48 = @add(n1 n2)
   ::std::u32::to_string::2 = x(n5 x(tup(n0 tup(tup(n2 n3) n4)) n6))
 }
