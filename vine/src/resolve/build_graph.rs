@@ -84,7 +84,7 @@ impl Resolver {
           &mut self.diags,
           tree,
           &mut self.defs[parent],
-          &mut Path { span: Span::NONE, segments: Vec::new(), absolute: false, resolved: None },
+          &mut Path { segments: Vec::new(), absolute: false, resolved: None },
         );
         self.next_use_id += 1;
       }
@@ -223,12 +223,11 @@ impl Resolver {
       }
     } else {
       let name = *path.segments.last().unwrap();
-      let mut path = path.clone();
-      path.span = tree.path.span;
+      let path = path.clone();
       if let Entry::Vacant(e) = def.members.entry(name) {
-        e.insert(Member::UnresolvedImport(Some(path), use_id));
+        e.insert(Member::UnresolvedImport(tree.span, Some(path), use_id));
       } else {
-        diags.add(Diag::DuplicateItem { span: tree.path.span, name });
+        diags.add(Diag::DuplicateItem { span: tree.span, name });
       }
     }
     path.segments.truncate(initial_len);
@@ -263,7 +262,7 @@ impl Resolver {
     for def in &mut self.defs {
       def.members.retain(|_, m| match *m {
         Member::Child(id) => id < old_def_count,
-        Member::ResolvedImport(_, id) | Member::UnresolvedImport(_, id) => id < old_use_count,
+        Member::ResolvedImport(_, id) | Member::UnresolvedImport(_, _, id) => id < old_use_count,
       });
     }
   }

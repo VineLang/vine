@@ -1,18 +1,18 @@
 use crate::{
-  ast::{Ident, Path},
+  ast::{Ident, Path, Span},
   diag::Diag,
 };
 
 use super::{DefId, Member, Resolver};
 
 impl Resolver {
-  pub fn resolve_path(&mut self, base: DefId, path: &Path) -> Result<DefId, Diag> {
+  pub fn resolve_path(&mut self, span: Span, base: DefId, path: &Path) -> Result<DefId, Diag> {
     let base = if path.absolute { 0 } else { base };
     let mut check_parents = true;
     let mut cur = base;
     for &segment in &path.segments {
       cur = self.resolve_one(cur, segment, check_parents).ok_or_else(|| Diag::CannotResolve {
-        span: path.span,
+        span,
         name: segment,
         module: self.defs[cur].canonical.clone(),
       })?;
@@ -32,10 +32,11 @@ impl Resolver {
     if let Some(member) = def.members.get_mut(&segment) {
       return match member {
         Member::Child(result) | Member::ResolvedImport(result, _) => Some(*result),
-        Member::UnresolvedImport(import, id) => {
+        Member::UnresolvedImport(span, import, id) => {
+          let span = *span;
           let path = import.take()?;
           let id = *id;
-          match self.resolve_path(base, &path) {
+          match self.resolve_path(span, base, &path) {
             Ok(resolved) => {
               let def = &mut self.defs[base];
               def.members.insert(segment, Member::ResolvedImport(resolved, id));

@@ -21,7 +21,7 @@ impl VisitMut<'_> for Desugar {
         let mut args = take(args);
         args.insert(0, Expr { span: receiver.span, kind: ExprKind::Ref(Box::new(receiver)) });
         expr.kind =
-          ExprKind::Call(Box::new(Expr { span: path.path.span, kind: ExprKind::Path(path) }), args);
+          ExprKind::Call(Box::new(Expr { span: path.span, kind: ExprKind::Path(path) }), args);
       }
       ExprKind::Field(receiver, path) => {
         let o = take(&mut **receiver);
@@ -29,7 +29,7 @@ impl VisitMut<'_> for Desugar {
         expr.kind = ExprKind::Deref(Box::new(Expr {
           span: expr.span,
           kind: ExprKind::Call(
-            Box::new(Expr { span: path.path.span, kind: ExprKind::Path(path) }),
+            Box::new(Expr { span: path.span, kind: ExprKind::Path(path) }),
             vec![Expr { span: o.span, kind: ExprKind::Ref(Box::new(o)) }],
           ),
         }))

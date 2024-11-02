@@ -37,9 +37,9 @@ impl<'d> Checker<'d> {
     let diags = DiagGroup::default();
     let list = resolver
       .resolve_path(
+        Span::NONE,
         0,
         &Path {
-          span: Span::NONE,
           segments: vec![
             Ident(interner.intern("std")),
             Ident(interner.intern("list")),
@@ -158,7 +158,7 @@ impl<'d> Checker<'d> {
     if let Some(generics) = &mut path.generics {
       generics.iter_mut().map(|t| self.hydrate_type(t, true)).collect::<Vec<_>>()
     } else {
-      iter::from_fn(|| Some(self.new_var(path.path.span))).take(generic_count).collect()
+      iter::from_fn(|| Some(self.new_var(path.span))).take(generic_count).collect()
     }
   }
 

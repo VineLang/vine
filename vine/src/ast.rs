@@ -92,6 +92,7 @@ pub enum ModKind {
 
 #[derive(Debug, Clone)]
 pub struct UseTree {
+  pub span: Span,
   pub path: Path,
   pub children: Option<Vec<UseTree>>,
 }
@@ -106,15 +107,13 @@ pub struct InlineIvy {
 
 #[derive(Default, Debug, Clone, PartialEq, Eq)]
 pub struct Path {
-  pub span: Span,
   pub segments: Vec<Ident>,
   pub absolute: bool,
   pub resolved: Option<DefId>,
 }
 
 impl Path {
-  pub const ROOT: Self =
-    Self { span: Span::NONE, segments: Vec::new(), absolute: true, resolved: Some(0) };
+  pub const ROOT: Self = Self { segments: Vec::new(), absolute: true, resolved: Some(0) };
 }
 
 #[derive(Default, Debug, Clone)]
@@ -266,6 +265,7 @@ pub enum PatKind {
 
 #[derive(Default, Debug, Clone)]
 pub struct GenericPath {
+  pub span: Span,
   pub path: Path,
   pub generics: Option<Vec<Ty>>,
 }
@@ -355,7 +355,6 @@ impl Expr {
 impl Path {
   pub fn extend(&self, ext: &[Ident]) -> Self {
     Path {
-      span: Span::NONE,
       segments: self.segments.iter().chain(ext).copied().collect(),
       absolute: self.absolute,
       resolved: None,

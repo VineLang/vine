@@ -7,7 +7,7 @@ use crate::{
 
 impl Checker<'_> {
   pub(super) fn typeof_value_def(&mut self, path: &mut GenericPath) -> Result<Type, Diag> {
-    let span = path.path.span;
+    let span = path.span;
     let def_id = path.path.resolved.unwrap();
     let def = &self.defs[def_id];
     let Some(value_def) = &def.value_def else {
@@ -25,7 +25,7 @@ impl Checker<'_> {
     path: &mut GenericPath,
     inference: bool,
   ) -> Result<Type, Diag> {
-    let span = path.path.span;
+    let span = path.span;
     let def_id = path.path.resolved.unwrap();
     let def = &self.defs[def_id];
     let Some(type_def) = &def.type_def else {
@@ -56,7 +56,7 @@ impl Checker<'_> {
     path: &mut GenericPath,
     refutable: bool,
   ) -> Result<(Type, Vec<Type>), Diag> {
-    let span = path.path.span;
+    let span = path.span;
     let variant_id = path.path.resolved.unwrap();
     let variant = &self.defs[variant_id];
     let Some(variant_def) = &variant.variant_def else {

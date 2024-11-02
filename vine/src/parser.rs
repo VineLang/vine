@@ -216,16 +216,17 @@ impl<'ctx, 'src> VineParser<'ctx, 'src> {
 
   fn parse_use_tree(&mut self) -> Parse<'src, UseTree> {
     let span = self.start_span();
-    let mut path = Path { span: Span::NONE, segments: Vec::new(), absolute: false, resolved: None };
+    let mut path = Path { segments: Vec::new(), absolute: false, resolved: None };
     while self.check(Token::Ident) {
       path.segments.push(self.parse_ident()?);
-      path.span = self.end_span(span);
       if !self.eat(Token::ColonColon)? {
-        return Ok(UseTree { path, children: None });
+        let span = self.end_span(span);
+        return Ok(UseTree { span, path, children: None });
       }
     }
     let children = self.parse_delimited(BRACE_COMMA, Self::parse_use_tree)?;
-    Ok(UseTree { path, children: Some(children) })
+    let span = self.end_span(span);
+    Ok(UseTree { span, path, children: Some(children) })
   }
 
   fn parse_ivy_item(&mut self) -> Parse<'src, InlineIvy> {
@@ -616,20 +617,20 @@ impl<'ctx, 'src> VineParser<'ctx, 'src> {
   }
 
   fn parse_path(&mut self) -> Parse<'src, Path> {
-    let span = self.start_span();
     let absolute = self.eat(Token::ColonColon)?;
     let segments = self.parse_delimited(PATH, Self::parse_ident)?;
-    let span = self.end_span(span);
-    Ok(Path { span, segments, absolute, resolved: None })
+    Ok(Path { segments, absolute, resolved: None })
   }
 
   fn parse_generic_path(&mut self) -> Parse<'src, GenericPath> {
+    let span = self.start_span();
     let path = self.parse_path()?;
     let args = self
       .check(Token::OpenBracket)
       .then(|| self.parse_delimited(BRACKET_COMMA, Self::parse_type))
       .transpose()?;
-    Ok(GenericPath { path, generics: args })
+    let span = self.end_span(span);
+    Ok(GenericPath { span, path, generics: args })
   }
 
   fn start_span(&self) -> usize {

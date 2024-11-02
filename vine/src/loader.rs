@@ -58,12 +58,8 @@ impl<'ctx> Loader<'ctx> {
               kind: TyKind::Ref(Box::new(Ty {
                 span: Span::NONE,
                 kind: TyKind::Path(GenericPath {
-                  path: ast::Path {
-                    span: Span::NONE,
-                    segments: vec![io],
-                    absolute: true,
-                    resolved: None,
-                  },
+                  span: Span::NONE,
+                  path: ast::Path { segments: vec![io], absolute: true, resolved: None },
                   generics: None,
                 }),
               })),
@@ -74,8 +70,8 @@ impl<'ctx> Loader<'ctx> {
         value: Expr {
           span: Span::NONE,
           kind: ExprKind::Path(ast::GenericPath {
+            span: Span::NONE,
             path: ast::Path {
-              span: Span::NONE,
               segments: vec![self.auto_mod_name(&path), main],
               absolute: true,
               resolved: None,

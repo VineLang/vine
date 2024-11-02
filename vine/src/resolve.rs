@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use ivy::ast::Net;
 
 use crate::{
-  ast::{Expr, Ident, Path, Ty},
+  ast::{Expr, Ident, Path, Span, Ty},
   checker::Type,
   diag::DiagGroup,
 };
@@ -41,7 +41,7 @@ pub struct Def {
 enum Member {
   Child(DefId),
   ResolvedImport(DefId, UseId),
-  UnresolvedImport(Option<Path>, UseId),
+  UnresolvedImport(Span, Option<Path>, UseId),
 }
 
 #[derive(Debug)]
