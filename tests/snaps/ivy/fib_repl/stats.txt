@@ -10,6 +10,6 @@ Interactions
   Branch             1_000_290
 
 Memory
-  Heap                     624 B
-  Allocated        256_075_360 B
-  Freed            256_075_360 B
+  Heap                     464 B
+  Allocated        240_072_560 B
+  Freed            240_072_560 B

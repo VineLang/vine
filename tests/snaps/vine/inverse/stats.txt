@@ -10,6 +10,6 @@ Interactions
   Branch                    89
 
 Memory
-  Heap                   1_856 B
-  Allocated             42_304 B
-  Freed                 42_304 B
+  Heap                   1_904 B
+  Allocated             42_208 B
+  Freed                 42_208 B

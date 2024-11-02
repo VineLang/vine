@@ -10,6 +10,6 @@ Interactions
   Branch                    61
 
 Memory
-  Heap                     816 B
-  Allocated             22_208 B
-  Freed                 22_208 B
+  Heap                     768 B
+  Allocated             22_144 B
+  Freed                 22_144 B

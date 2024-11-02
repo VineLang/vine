@@ -11,5 +11,5 @@ Interactions
 
 Memory
   Heap                     128 B
-  Allocated              1_120 B
-  Freed                  1_120 B
+  Allocated              1_040 B
+  Freed                  1_040 B

@@ -10,6 +10,6 @@ Interactions
   Branch                    19
 
 Memory
-  Heap                     592 B
+  Heap                     560 B
   Allocated              8_096 B
   Freed                  8_096 B

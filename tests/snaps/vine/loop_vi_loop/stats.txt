@@ -10,6 +10,6 @@ Interactions
   Branch                   193
 
 Memory
-  Heap                     720 B
-  Allocated             74_752 B
-  Freed                 74_752 B
+  Heap                     608 B
+  Allocated             74_096 B
+  Freed                 74_096 B

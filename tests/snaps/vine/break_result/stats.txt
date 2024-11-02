@@ -10,6 +10,6 @@ Interactions
   Branch                    12
 
 Memory
-  Heap                     480 B
+  Heap                     448 B
   Allocated              5_184 B
   Freed                  5_184 B

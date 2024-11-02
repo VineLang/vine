@@ -10,6 +10,6 @@ Interactions
   Branch                   435
 
 Memory
-  Heap                   6_592 B
-  Allocated            205_264 B
-  Freed                205_264 B
+  Heap                   6_560 B
+  Allocated            205_008 B
+  Freed                205_008 B

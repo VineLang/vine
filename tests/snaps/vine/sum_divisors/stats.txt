@@ -10,6 +10,6 @@ Interactions
   Branch                 3_100
 
 Memory
-  Heap                   1_120 B
-  Allocated          1_216_192 B
-  Freed              1_216_192 B
+  Heap                     864 B
+  Allocated          1_206_464 B
+  Freed              1_206_464 B

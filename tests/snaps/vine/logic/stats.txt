@@ -10,6 +10,6 @@ Interactions
   Branch                   168
 
 Memory
-  Heap                   2_208 B
+  Heap                   2_176 B
   Allocated             58_752 B
   Freed                 58_752 B

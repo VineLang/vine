@@ -10,6 +10,6 @@ Interactions
   Branch                   118
 
 Memory
-  Heap                   2_000 B
-  Allocated             50_336 B
-  Freed                 50_336 B
+  Heap                   1_984 B
+  Allocated             50_160 B
+  Freed                 50_160 B

@@ -10,6 +10,6 @@ Interactions
   Branch                   287
 
 Memory
-  Heap                     352 B
+  Heap                     272 B
   Allocated            123_344 B
   Freed                123_344 B

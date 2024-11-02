@@ -10,6 +10,6 @@ Interactions
   Branch               275_619
 
 Memory
-  Heap                     896 B
-  Allocated        255_266_032 B
-  Freed            255_266_032 B
+  Heap                     784 B
+  Allocated        242_850_688 B
+  Freed            242_850_688 B
