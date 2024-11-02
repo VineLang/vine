@@ -1,0 +1,26 @@
+
+type Foo[X] = (X, foo, _);
+fn foo(x, y: Foo) {}
+const bar: _ = 0;
+fn main[T, U](io: IO) {
+  let x: u32 = 0.0;
+  let x: f32 = 0;
+  let x: (u32, u32) = (1, 2) + 0.0;
+  let (a, b) = 0;
+  let x; x + 1;
+  1();
+  let x = 3; 2 + ~x;
+  x.main();
+  if 0.0 { 0 } else { "" };
+  main(1, 2, 3);
+  0 < 0.0 < 0 < 0 < 0.0;
+  let Thing(x) = Foo(1);
+  let foo: foo = foo;
+  let x: T = 0;
+  let x: U = x;
+  123
+}
+
+
+struct Thing(u32, u32);
+

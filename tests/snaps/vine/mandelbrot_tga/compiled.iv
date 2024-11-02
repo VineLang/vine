@@ -41,8 +41,7 @@
 
 ::mandelbrot_tga::mandelbrot {
   fn(n1 fn(n2 n0))
-  +0.0 = tup(n3 tup(n4 tup(n5 n6)))
-  ::mandelbrot_tga::mandelbrot::1 = x(n1 x(n2 x(n3 x(n4 x(n5 x(n6 x(0 @mul(256 @div(64 n0)))))))))
+  ::mandelbrot_tga::mandelbrot::1 = x(n1 x(n2 x(+0.0 x(+0.0 x(+0.0 x(+0.0 x(0 @mul(256 @div(64 n0)))))))))
 }
 
 ::mandelbrot_tga::mandelbrot::1 { x(n1 x(n2 x(n3 x(n4 x(dup19(@add(n8 @lt(+4.0 n0)) n7) x(dup20(n8 n9) x(dup21(@lt(64 @u32_and(n0 ?(::mandelbrot_tga::mandelbrot::3 ::mandelbrot_tga::mandelbrot::2 x(n1 x(n2 x(n3 x(n4 x(n7 x(n9 x(n5 n6)))))))))) n5) n6))))))) }
@@ -61,7 +60,7 @@
   ::std::io::print_bytes::1 = x(n0 x(n1 x(n2 n3)))
 }
 
-::std::io::print_bytes::1 { x(n0 x(n1 x(dup41(?(::std::io::print_bytes::3 ::std::io::print_bytes::2 x(n0 x(n1 x(n3 n2)))) n3) n2))) }
+::std::io::print_bytes::1 { x(n0 x(n1 x(dup42(?(::std::io::print_bytes::3 ::std::io::print_bytes::2 x(n0 x(n1 x(n3 n2)))) n3) n2))) }
 
 ::std::io::print_bytes::2 {
   x(n1 x(n3 x(@sub(1 n4) tup(n0 n5))))

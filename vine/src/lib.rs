@@ -16,7 +16,6 @@ use std::path::PathBuf;
 
 use checker::Checker;
 use ivy::ast::Nets;
-use validate::Validate;
 use vine_util::{arena::BytesArena, interner::StringInterner};
 
 use crate::{
@@ -56,9 +55,9 @@ pub fn build(config: Config) -> Result<Nets, String> {
   checker.check_items();
   checker.diags.report(&loader.files)?;
 
-  let mut validate = Validate::default();
-  validate.visit(&mut resolver.nodes);
-  validate.diags.report(&loader.files)?;
+  // let mut validate = Validate::default();
+  // validate.visit(&mut resolver.nodes);
+  // validate.diags.report(&loader.files)?;
 
   Desugar.visit(&mut resolver.nodes);
 

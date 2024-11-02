@@ -1,6 +1,6 @@
 use std::{u32, io::println, rng::Rng::{Rng, gen_u32}};
 
-fn main(io) {
+fn main(&io: &IO) {
   let i = 0;
   let rng = Rng::default;
   while i < 100 {

@@ -72,7 +72,10 @@ fn main(&io: &IO) {
 }
 
 fn mandelbrot(x0: f32, y0: f32) -> u32 {
-  let (x, y, x2, y2) = 0.0;
+  let x = 0.0;
+  let y = 0.0;
+  let x2 = 0.0;
+  let y2 = 0.0;
   let i = 0;
   while (i < max_iter) & (x2 + y2 < 4.0) {
     i += 1;

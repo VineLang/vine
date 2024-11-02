@@ -1,7 +1,7 @@
 
 use std::io::println;
 
-fn main(io) {
+fn main(&io: &IO) {
   io.println("We should see this");
   return;
   io.println("But not this");

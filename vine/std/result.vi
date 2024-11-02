@@ -23,7 +23,7 @@ mod Result {
     match self {
       Ok(Ok(val)) => Ok(val),
       Ok(Err(err)) => Err(err),
-      x => x,
+      Err(err) => Err(err),
     }
   }
 

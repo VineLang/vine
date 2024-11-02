@@ -1,5 +1,5 @@
 
-use std::{list::String, option::Option::{Option, Some, None}};
+use std::{list::{List, Buf, String}, option::Option::{Option, Some, None}};
 
 type u32 = ::u32;
 
@@ -7,8 +7,7 @@ fn to_string(n: u32) -> String {
   if n {
     let str = "";
     while n {
-      let (len, buf, end) = str;
-      str = (len + 1, ('0' + n % 10, buf), end);
+      str = ['0' + n % 10] ++ str;
       n = n / 10;
     }
     str
@@ -18,14 +17,14 @@ fn to_string(n: u32) -> String {
 }
 
 fn parse(str: String) -> Option[u32] {
-  let (len, chars, _) = str;
+  let List(len, chars, _) = str;
   if len == 0 {
     None
   } else {
     let num = 0;
     while len {
-      let char;
-      (char, chars) = chars;
+      let Buf(char, tail) = chars;
+      chars = tail;
       if !('0' <= char <= '9') {
         return None;
       }

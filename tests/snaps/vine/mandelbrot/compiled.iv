@@ -3,8 +3,7 @@
 
 ::mandelbrot {
   fn(n1 fn(n2 n0))
-  +0.0 = tup(n3 tup(n4 tup(n5 n6)))
-  ::mandelbrot::1 = x(n1 x(n2 x(n3 x(n4 x(n5 x(n6 x(128 @eq(0 n0))))))))
+  ::mandelbrot::1 = x(n1 x(n2 x(+0.0 x(+0.0 x(+0.0 x(+0.0 x(128 @eq(0 n0))))))))
 }
 
 ::mandelbrot::1 { x(n1 x(n2 x(n3 x(n4 x(dup5(@add(n8 @lt(+4.0 n0)) n7) x(dup6(n8 n9) x(dup7(@lt$(0 @u32_and(n0 ?(::mandelbrot::3 ::mandelbrot::2 x(n1 x(n2 x(n3 x(n4 x(n7 x(n9 x(n5 n6)))))))))) n5) n6))))))) }

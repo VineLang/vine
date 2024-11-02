@@ -2,9 +2,9 @@
 ::main { ::break_result::main }
 
 ::break_result::main {
-  fn(n0 _)
+  fn(ref(n0 n2) _)
   ::std::io::println = fn(ref(n0 n1) fn(::break_result::main::1 _))
-  ::std::io::println = fn(ref(n1 _) fn(::break_result::main::3 _))
+  ::std::io::println = fn(ref(n1 n2) fn(::break_result::main::3 _))
 }
 
 ::break_result::main::1 { tup(11 tup(tup(108 tup(111 tup(111 tup(112 tup(32 tup(114 tup(101 tup(115 tup(117 tup(108 tup(116 n0))))))))))) n0)) }

@@ -223,8 +223,10 @@ impl VisitMut<'_> for ResolveVisitor<'_> {
 
 impl<'a> ResolveVisitor<'a> {
   fn visit_path(&mut self, path: &mut Path) -> Result<(), Diag> {
+    let span = path.span;
     let resolved = self.resolver.resolve_path(self.node, path)?;
     *path = self.resolver.nodes[resolved].canonical.clone();
+    path.span = span;
     debug_assert!(path.absolute && path.resolved.is_some());
     Ok(())
   }

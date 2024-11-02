@@ -1,5 +1,5 @@
 
-use std::{list::String, option::Option::{Some, None}};
+use std::{list::{List, Buf, String}, option::Option::{Option, Some, None}};
 
 fn println(&io: &IO, str: String) {
   io.print(str);
@@ -7,11 +7,11 @@ fn println(&io: &IO, str: String) {
 }
 
 fn print(&io: &IO, str: String) {
-  let (len, chars, _) = str;
-  let char;
+  let List(len, chars, _) = str;
   while len {
     len = len - 1;
-    (char, chars) = chars;
+    let Buf(char, tail) = chars;
+    chars = tail;
     io.print_char(char);
   }
 }
@@ -21,11 +21,11 @@ inline_ivy! print_char: fn(&IO, u32) {
 }
 
 fn print_bytes(&io: &IO, bytes: String) {
-  let (len, bytes, _) = bytes;
-  let byte;
+  let List(len, bytes, _) = bytes;
   while len {
     len = len - 1;
-    (byte, bytes) = bytes;
+    let Buf(byte, tail) = bytes;
+    bytes = tail;
     io.print_byte(byte);
   }
 }
@@ -38,13 +38,13 @@ inline_ivy! flush: fn(&IO) {
   fn(ref(@io_flush(0 io) io) _)
 }
 
-fn prompt(&io: &IO, msg: String) {
+fn prompt(&io: &IO, msg: String) -> Option[String] {
   io.print(msg);
   io.flush();
   io.read_line()
 }
 
-fn read_line(&io: &IO) -> String {
+fn read_line(&io: &IO) -> Option[String] {
   let byte = io.read_byte(0);
   if byte {
     Some(if byte == '\n' {

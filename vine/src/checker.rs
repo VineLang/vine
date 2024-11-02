@@ -1,8 +1,5 @@
-#![allow(unused)]
-
 use std::{mem::take, ops::Range};
 
-use slab::Slab;
 use vine_util::interner::StringInterner;
 
 use crate::{
@@ -76,6 +73,14 @@ impl Ty {
       _ => Ty::Inverse(Box::new(self)),
     }
   }
+
+  fn invert_if(self, invert: bool) -> Self {
+    if invert {
+      self.inverse()
+    } else {
+      self
+    }
+  }
 }
 
 impl Default for Ty {
@@ -94,11 +99,12 @@ pub struct Checker<'n> {
   vars: Vec<Result<Ty, Span>>,
   list: Option<NodeId>,
   string: Option<Ty>,
+  generics: Vec<Ident>,
 }
 
 impl<'n> Checker<'n> {
   pub fn new(resolver: &'n mut Resolver, interner: &StringInterner<'static>) -> Self {
-    let mut diags = DiagGroup::default();
+    let diags = DiagGroup::default();
     let list = resolver
       .resolve_path(
         0,
@@ -115,7 +121,14 @@ impl<'n> Checker<'n> {
       )
       .ok();
     let string = list.map(|x| Ty::Adt(x, vec![Ty::U32]));
-    Checker { diags, nodes: &mut resolver.nodes, vars: Vec::new(), list, string }
+    Checker {
+      diags,
+      nodes: &mut resolver.nodes,
+      vars: Vec::new(),
+      list,
+      string,
+      generics: Vec::new(),
+    }
   }
 
   pub fn check_items(&mut self) {
@@ -130,7 +143,9 @@ impl<'n> Checker<'n> {
       self.populate_node_tys(node);
     }
     debug_assert!(self.vars.is_empty());
-    for node in range.clone() {}
+    for node in range.clone() {
+      self.check_node(node);
+    }
   }
 
   fn check_node(&mut self, node_id: NodeId) {
@@ -138,11 +153,14 @@ impl<'n> Checker<'n> {
     let node = &mut self.nodes[node_id];
     if let Some(value) = &mut node.value {
       if let NodeValueKind::Expr(expr) = &mut value.kind {
+        self.generics = take(&mut value.generics);
         let mut ty = value.ty.clone().unwrap();
         let mut expr = take(expr);
-        self.vars.resize_with(node.locals, || Err(Span::NONE));
+        self.vars.resize_with(node.locals, || Err(Span { file: 0, start: 0, end: 0 }));
         self.expect_expr_form_ty(&mut expr, Form::Value, &mut ty);
-        self.nodes[node_id].value.as_mut().unwrap().kind = NodeValueKind::Expr(expr);
+        let value = self.nodes[node_id].value.as_mut().unwrap();
+        value.kind = NodeValueKind::Expr(expr);
+        value.generics = take(&mut self.generics);
       }
     }
   }
@@ -163,6 +181,30 @@ impl<'n> Checker<'n> {
       (Ty::Inverse(a), Ty::Inverse(b)) => self._unify(a, b, !i, !j),
       (a, Ty::Inverse(b)) => self._unify(a, b, i, !j),
       (Ty::Inverse(a), b) => self._unify(a, b, !i, j),
+      (Ty::Var(v), Ty::Var(u)) if *v == *u => i == j,
+      (Ty::Var(v), Ty::Var(u)) => {
+        let (v, u) = get2_mut(&mut self.vars, *v, *u);
+        match (&mut *v, &mut *u) {
+          (Ok(v), Ok(u)) => {
+            *a = v.clone();
+            *b = u.clone();
+            self._unify(a, b, i, j)
+          }
+          (Ok(v), Err(_)) => {
+            *a = v.clone();
+            self._unify(a, b, i, j)
+          }
+          (Err(_), Ok(u)) => {
+            *b = u.clone();
+            self._unify(a, b, i, j)
+          }
+          (Err(_), Err(_)) => {
+            *v = Ok(b.clone().invert_if(i != j));
+            *a = b.clone().invert_if(i != j);
+            true
+          }
+        }
+      }
       (&mut ref mut o @ Ty::Var(v), t) | (t, &mut ref mut o @ Ty::Var(v)) => {
         let v = &mut self.vars[v];
         if let Ok(u) = v {
@@ -170,7 +212,7 @@ impl<'n> Checker<'n> {
           self._unify(a, b, i, j)
         } else {
           *o = t.clone();
-          *v = Ok(t.clone());
+          *v = Ok(t.clone().invert_if(i != j));
           true
         }
       }
@@ -280,7 +322,7 @@ impl<'n> Checker<'n> {
       ExprKind::While(cond, block) => {
         self.expect_expr_form_ty(cond, Form::Value, &mut Ty::U32);
         self.infer_block(block);
-        Ty::UNIT
+        self.new_var(span)
       }
       ExprKind::Loop(block) => {
         self.infer_block(block);
@@ -330,8 +372,8 @@ impl<'n> Checker<'n> {
       ExprKind::Method(receiver, path, args) => {
         let mut ty = self.infer_path_value(path);
         match &mut ty {
-          Ty::Fn(params, ret) => {
-            if let Some(Ty::Ref(rec)) = params.first_mut() {
+          Ty::Fn(params, ret) => match params.first_mut() {
+            Some(Ty::Ref(rec)) => {
               self.expect_expr_form_ty(receiver, Form::Place, rec);
               let params = &mut params[1..];
               if params.len() != args.len() {
@@ -347,10 +389,12 @@ impl<'n> Checker<'n> {
                 }
                 take(&mut **ret)
               }
-            } else {
+            }
+            Some(Ty::Error(e)) => Ty::Error(*e),
+            _ => {
               Ty::Error(self.diags.add(Diag::NonMethodFunction { span, ty: self.print_ty(&ty) }))
             }
-          }
+          },
           Ty::Error(e) => Ty::Error(*e),
           ty => Ty::Error(self.diags.add(Diag::NonFunctionCall { span, ty: self.print_ty(&ty) })),
         }
@@ -378,7 +422,8 @@ impl<'n> Checker<'n> {
           ty => Ty::Error(self.diags.add(Diag::NonFunctionCall { span, ty: self.print_ty(&ty) })),
         }
       }
-      ExprKind::Neg(expr) | ExprKind::Not(expr) => {
+
+      ExprKind::Not(expr) => {
         self.expect_expr_form_ty(expr, Form::Value, &mut Ty::U32);
         Ty::U32
       }
@@ -392,15 +437,21 @@ impl<'n> Checker<'n> {
         self.expect_expr_form_ty(b, Form::Value, &mut Ty::U32);
         Ty::U32
       }
+      ExprKind::Neg(expr) => {
+        let ty = self.expect_expr_form(expr, Form::Value);
+        self.bin_op(span, BinaryOp::Sub, Ty::U32, ty)
+      }
       ExprKind::BinaryOp(op, a, b) => {
         let a = self.expect_expr_form(a, Form::Value);
         let b = self.expect_expr_form(b, Form::Value);
         self.bin_op(span, *op, a, b)
       }
       ExprKind::BinaryOpAssign(op, a, b) => {
-        let a = self.expect_expr_form(a, Form::Place);
+        let mut a = self.expect_expr_form(a, Form::Place);
         let b = self.expect_expr_form(b, Form::Value);
-        self.bin_op(span, *op, a, b)
+        let mut o = self.bin_op(span, *op, a.clone(), b);
+        self.unify(&mut a, &mut o);
+        Ty::UNIT
       }
       ExprKind::ComparisonOp(init, cmps) => {
         let mut lhs = self.expect_expr_form(init, Form::Value);
@@ -445,7 +496,7 @@ impl<'n> Checker<'n> {
         }
       }
       _ => {
-        if let Ok(ty) = self._bin_op(op, &mut a, &mut b) {
+        if let Ok(ty) = self._bin_op(op, &mut a, &mut b, false) {
           return ty;
         }
       }
@@ -454,7 +505,7 @@ impl<'n> Checker<'n> {
     Ty::Error(self.diags.add(diag))
   }
 
-  fn _bin_op(&mut self, op: BinaryOp, mut a: &mut Ty, mut b: &mut Ty) -> Result<Ty, ()> {
+  fn _bin_op(&mut self, op: BinaryOp, mut a: &mut Ty, mut b: &mut Ty, i: bool) -> Result<Ty, ()> {
     self.concretize(a);
     self.concretize(b);
     match (op, &mut a, &mut b) {
@@ -462,21 +513,23 @@ impl<'n> Checker<'n> {
       (_, Ty::Tuple(a), Ty::Tuple(b)) if a.len() == b.len() => a
         .iter_mut()
         .zip(b)
-        .map(|(a, b)| self._bin_op(op, a, b))
+        .map(|(a, b)| self._bin_op(op, a, b, i))
         .collect::<Result<_, _>>()
         .map(Ty::Tuple),
       (_, Ty::Tuple(a), b @ (Ty::U32 | Ty::F32)) => {
-        a.iter_mut().map(|a| self._bin_op(op, a, b)).collect::<Result<_, _>>().map(Ty::Tuple)
+        a.iter_mut().map(|a| self._bin_op(op, a, b, i)).collect::<Result<_, _>>().map(Ty::Tuple)
       }
       (_, a @ (Ty::U32 | Ty::F32), Ty::Tuple(b)) => {
-        b.iter_mut().map(|b| self._bin_op(op, a, b)).collect::<Result<_, _>>().map(Ty::Tuple)
+        b.iter_mut().map(|b| self._bin_op(op, a, b, i)).collect::<Result<_, _>>().map(Ty::Tuple)
       }
-      (_, Ty::U32, Ty::U32) => Ok(Ty::U32),
+      (_, Ty::U32, Ty::U32) if !i => Ok(Ty::U32),
       (
         BinaryOp::Add | BinaryOp::Sub | BinaryOp::Mul | BinaryOp::Div | BinaryOp::Rem,
-        Ty::F32,
-        Ty::F32,
-      ) => Ok(Ty::F32),
+        Ty::U32 | Ty::F32,
+        Ty::U32 | Ty::F32,
+      ) if !i => Ok(Ty::F32),
+      (_, Ty::Inverse(a), b) => self._bin_op(op, a, b, !i),
+      (_, a, Ty::Inverse(b)) => self._bin_op(op, a, b, !i),
       _ => Err(()),
     }
   }
@@ -488,7 +541,7 @@ impl<'n> Checker<'n> {
       Ty::IO => "IO".into(),
       Ty::Tuple(t) => {
         let mut string = "(".to_owned();
-        let mut first = false;
+        let mut first = true;
         for t in t {
           if !first {
             string += ", ";
@@ -503,7 +556,7 @@ impl<'n> Checker<'n> {
       }
       Ty::Fn(args, ret) => {
         let mut string = "fn(".to_owned();
-        let mut first = false;
+        let mut first = true;
         for t in args {
           if !first {
             string += ", ";
@@ -514,17 +567,32 @@ impl<'n> Checker<'n> {
         string += ")";
         if **ret != Ty::UNIT {
           string += " -> ";
-          string += &self.print_ty(ty);
+          string += &self.print_ty(ret);
         }
         string
       }
       Ty::Ref(ty) => format!("&{}", self.print_ty(ty)),
       Ty::Inverse(ty) => format!("~{}", self.print_ty(ty)),
-      Ty::Adt(_, vec) => todo!(),
-      Ty::Opaque(n) => format!("T{n}"),
+      Ty::Adt(n, gens) => {
+        let mut string = self.nodes[*n].canonical.to_string();
+        if !gens.is_empty() {
+          string += "[";
+          let mut first = true;
+          for t in gens {
+            if !first {
+              string += ", ";
+            }
+            string += &self.print_ty(t);
+            first = false;
+          }
+          string += "]";
+        }
+        string
+      }
+      Ty::Opaque(n) => self.generics[*n].0 .0.into(),
       Ty::Var(v) => match &self.vars[*v] {
         Ok(t) => self.print_ty(t),
-        Err(_) => format!("?{v}"),
+        _ => format!("?{v}"),
       },
       Ty::Error(_) => format!("??"),
     }
@@ -655,13 +723,16 @@ impl<'n> Checker<'n> {
     for stmt in block.stmts.iter_mut() {
       match &mut stmt.kind {
         StmtKind::Let(l) => {
-          self.do_pat(&mut l.bind, l.ty.as_mut(), Form::Value, true);
+          let mut ty = self.do_pat(&mut l.bind, l.ty.as_mut(), Form::Value, true);
           if let Some(value) = &mut l.init {
             self.expect_expr_form_ty(value, Form::Value, &mut ty);
           }
         }
-        StmtKind::Expr(e, _) => {
+        StmtKind::Expr(e, semi) => {
           ty = self.expect_expr_form(e, Form::Value);
+          if *semi {
+            ty = Ty::UNIT;
+          }
         }
         StmtKind::Item(_) | StmtKind::Empty => ty = Ty::UNIT,
       }
@@ -670,7 +741,7 @@ impl<'n> Checker<'n> {
   }
 
   fn concretize(&mut self, ty: &mut Ty) {
-    if let Ty::Var(v) = *ty {
+    while let Ty::Var(v) = *ty {
       match self.vars[v].clone() {
         Ok(t) => *ty = t,
         Err(span) => {
@@ -682,29 +753,25 @@ impl<'n> Checker<'n> {
   }
 
   fn coerce_expr(&mut self, expr: &mut Expr, from: Form, to: Form) {
-    // let span = expr.span;
-    // match (from, to) {
-    //   (_, Form::Error(_)) => unreachable!(),
-    //   (Form::Error(_), _) => {}
-    //   (Form::Value, Form::Value) | (Form::Place, Form::Place) | (Form::Space,
-    // Form::Space) => {}   (Form::Value, Form::Place) =>
-    // expr.wrap(ExprKind::Temp),   (Form::Place, Form::Value) =>
-    // Self::copy_expr(expr),   (Form::Place, Form::Space) =>
-    // Self::set_expr(expr),
+    let span = expr.span;
+    match (from, to) {
+      (_, Form::Error(_)) => unreachable!(),
+      (Form::Error(_), _) => {}
+      (Form::Value, Form::Value) | (Form::Place, Form::Place) | (Form::Space, Form::Space) => {}
+      (Form::Value, Form::Place) => expr.wrap(ExprKind::Temp),
+      (Form::Place, Form::Value) => Self::copy_expr(expr),
+      (Form::Place, Form::Space) => Self::set_expr(expr),
 
-    //   (Form::Space, Form::Value) => {
-    //     expr.kind =
-    // ExprKind::Error(self.diags.add(Diag::ExpectedValueFoundSpaceExpr { span
-    // }));   }
-    //   (Form::Space, Form::Place) => {
-    //     expr.kind =
-    // ExprKind::Error(self.diags.add(Diag::ExpectedPlaceFoundSpaceExpr { span
-    // }))   }
-    //   (Form::Value, Form::Space) => {
-    //     expr.kind =
-    // ExprKind::Error(self.diags.add(Diag::ExpectedSpaceFoundValueExpr { span
-    // }));   }
-    // }
+      (Form::Space, Form::Value) => {
+        expr.kind = ExprKind::Error(self.diags.add(Diag::ExpectedValueFoundSpaceExpr { span }));
+      }
+      (Form::Space, Form::Place) => {
+        expr.kind = ExprKind::Error(self.diags.add(Diag::ExpectedPlaceFoundSpaceExpr { span }))
+      }
+      (Form::Value, Form::Space) => {
+        expr.kind = ExprKind::Error(self.diags.add(Diag::ExpectedSpaceFoundValueExpr { span }));
+      }
+    }
   }
 
   fn copy_expr(expr: &mut Expr) {
@@ -829,7 +896,6 @@ impl<'n> Checker<'n> {
     path: &GenericPath,
     expected: usize,
   ) -> Result<(), Diag> {
-    path.generics.as_ref().is_some_and(|args| args.len() != expected);
     if let Some(generics) = &path.generics {
       if generics.len() != expected {
         Err(Diag::BadGenericCount {
@@ -892,5 +958,16 @@ impl<'n> Checker<'n> {
       value.ty = Some(ty);
       self.nodes[node_id].value = Some(value);
     }
+  }
+}
+
+fn get2_mut<T>(slice: &mut [T], a: usize, b: usize) -> (&mut T, &mut T) {
+  assert!(a != b);
+  if a < b {
+    let (l, r) = slice.split_at_mut(b);
+    (&mut l[a], &mut r[0])
+  } else {
+    let (l, r) = slice.split_at_mut(a);
+    (&mut r[0], &mut l[b])
   }
 }

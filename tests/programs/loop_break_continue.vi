@@ -3,7 +3,7 @@ use std::{io::println, u32};
 
 const end: u32 = 5;
 
-fn main(io) {
+fn main(&io: &IO) {
   let n = 0;
   loop {
     if n >= end {
