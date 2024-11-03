@@ -1,6 +1,8 @@
 
 use std::{list::{List, Buf, String}, option::Option::{Option, Some, None}};
 
+// make `std::u32` an alias for the builtin type
+// so that it doesn't shadow it if you `use std::u32`
 type u32 = ::u32;
 
 fn to_string(n: u32) -> String {
