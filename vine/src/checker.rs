@@ -85,7 +85,7 @@ impl<'d> Checker<'d> {
     let def = &mut self.defs[def_id];
     if let Some(value_def) = &mut def.value_def {
       if let ValueDefKind::Expr(expr) = &mut value_def.kind {
-        self.generics.clone_from(&mut value_def.generics);
+        self.generics.clone_from(&value_def.generics);
         let mut ty = value_def.ty.clone().unwrap();
         let mut expr = take(expr);
         self.check_expr_form_type(&mut expr, Form::Value, &mut ty);
