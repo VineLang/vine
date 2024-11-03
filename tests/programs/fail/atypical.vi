@@ -30,3 +30,4 @@ fn main[T, U](io: IO) {
 enum Ay { Yay, Nay }
 struct Thing(u32, u32);
 
+fn rec[T](x: T) -> T { rec(x) }
