@@ -4,10 +4,12 @@ use crate::{
 };
 
 impl Checker<'_> {
+  #[must_use]
   pub(super) fn unify(&mut self, a: &mut Type, b: &mut Type) -> bool {
     self._unify(a, b, false, false)
   }
 
+  #[must_use]
   fn _unify(&mut self, a: &mut Type, b: &mut Type, i: bool, j: bool) -> bool {
     match (&mut *a, &mut *b) {
       (Type::Error(_), _) | (_, Type::Error(_)) => true,

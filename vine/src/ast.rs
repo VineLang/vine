@@ -305,6 +305,26 @@ pub enum BinaryOp {
   Rem,
 }
 
+impl Display for BinaryOp {
+  fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    f.write_str(match self {
+      BinaryOp::Range => "..",
+      BinaryOp::RangeTo => "..=",
+      BinaryOp::BitOr => "|",
+      BinaryOp::BitXor => "^",
+      BinaryOp::BitAnd => "&",
+      BinaryOp::Shl => "<<",
+      BinaryOp::Shr => ">>",
+      BinaryOp::Add => "+",
+      BinaryOp::Sub => "-",
+      BinaryOp::Concat => "++",
+      BinaryOp::Mul => "*",
+      BinaryOp::Div => "/",
+      BinaryOp::Rem => "%",
+    })
+  }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum LogicalOp {
   And,

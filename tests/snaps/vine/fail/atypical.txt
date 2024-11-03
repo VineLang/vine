@@ -11,7 +11,7 @@ error tests/programs/fail/atypical.vi:8:23 - expected type `(u32, u32)`; found `
 error tests/programs/fail/atypical.vi:9:16 - expected type `(?4, ?5)`; found `u32`
 error tests/programs/fail/atypical.vi:10:7 - cannot infer type
 error tests/programs/fail/atypical.vi:11:3 - cannot call non-function type `u32`
-error tests/programs/fail/atypical.vi:12:14 - cannot apply operator `Add` to values of types `u32` and `~u32`
+error tests/programs/fail/atypical.vi:12:14 - cannot apply operator `+` to types `u32` and `~u32`
 error tests/programs/fail/atypical.vi:13:3 - invalid method; function type `fn(IO)` does not accept reference as first parameter
 error tests/programs/fail/atypical.vi:14:6 - expected type `u32`; found `f32`
 error tests/programs/fail/atypical.vi:14:3 - then block has type `u32` but else block has type `::std::list::List[u32]`
@@ -26,10 +26,11 @@ error tests/programs/fail/atypical.vi:19:14 - expected type `T`; found `u32`
 error tests/programs/fail/atypical.vi:20:14 - expected type `U`; found `T`
 error tests/programs/fail/atypical.vi:21:7 - expected an irrefutable pattern
 error tests/programs/fail/atypical.vi:21:17 - expected type `::atypical::Ay`; found `u32`
-error tests/programs/fail/atypical.vi:22:3 - cannot apply operator `Add` to values of types `::std::list::List[u32]` and `u32`
+error tests/programs/fail/atypical.vi:22:3 - cannot apply operator `+` to types `::std::list::List[u32]` and `u32`
 error tests/programs/fail/atypical.vi:23:7 - expected type `u32`; found `&?17`
 error tests/programs/fail/atypical.vi:24:3 - no loop to continue
 error tests/programs/fail/atypical.vi:25:3 - no loop to break from
 error tests/programs/fail/atypical.vi:26:10 - expected type `()`; found `f32`
-error tests/programs/fail/atypical.vi:27:14 - cannot apply operator `Add` to values of types `~u32` and `~u32`
+error tests/programs/fail/atypical.vi:27:14 - cannot apply operator `+` to types `~u32` and `~u32`
+error tests/programs/fail/atypical.vi:28:3 - cannot apply operator `+=` to types `u32` and `f32`
 error tests/programs/fail/atypical.vi:5:23 - expected type `()`; found `u32`

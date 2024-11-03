@@ -206,18 +206,17 @@ impl Checker<'_> {
       }
       ExprKind::Neg(expr) => {
         let ty = self.check_expr_form(expr, Form::Value);
-        self.check_bin_op(span, BinaryOp::Sub, Type::U32, ty)
+        self.check_bin_op(span, BinaryOp::Sub, false, Type::U32, ty)
       }
       ExprKind::BinaryOp(op, a, b) => {
         let a = self.check_expr_form(a, Form::Value);
         let b = self.check_expr_form(b, Form::Value);
-        self.check_bin_op(span, *op, a, b)
+        self.check_bin_op(span, *op, false, a, b)
       }
       ExprKind::BinaryOpAssign(op, a, b) => {
-        let mut a = self.check_expr_form(a, Form::Place);
+        let a = self.check_expr_form(a, Form::Place);
         let b = self.check_expr_form(b, Form::Value);
-        let mut o = self.check_bin_op(span, *op, a.clone(), b);
-        self.unify(&mut a, &mut o);
+        self.check_bin_op(span, *op, true, a, b);
         Type::UNIT
       }
       ExprKind::ComparisonOp(init, cmps) => {
@@ -343,7 +342,14 @@ impl Checker<'_> {
     }
   }
 
-  fn check_bin_op(&mut self, span: Span, op: BinaryOp, mut a: Type, mut b: Type) -> Type {
+  fn check_bin_op(
+    &mut self,
+    span: Span,
+    op: BinaryOp,
+    assign: bool,
+    mut a: Type,
+    mut b: Type,
+  ) -> Type {
     match op {
       BinaryOp::Range | BinaryOp::RangeTo => todo!(),
       BinaryOp::Concat => {
@@ -358,18 +364,20 @@ impl Checker<'_> {
         }
       }
       _ => {
-        if let Ok(ty) = self._check_bin_op(op, &mut a, &mut b, false, false) {
+        if let Ok(ty) = self._check_bin_op(op, assign, &mut a, &mut b, false, false) {
           return ty;
         }
       }
     }
-    let diag = Diag::BadBinOp { span, op, lhs: self.display_type(&a), rhs: self.display_type(&b) };
+    let diag =
+      Diag::BadBinOp { span, op, assign, lhs: self.display_type(&a), rhs: self.display_type(&b) };
     Type::Error(self.diags.add(diag))
   }
 
   fn _check_bin_op(
     &mut self,
     op: BinaryOp,
+    assign: bool,
     mut a: &mut Type,
     mut b: &mut Type,
     i: bool,
@@ -382,27 +390,27 @@ impl Checker<'_> {
       (_, Type::Tuple(a), Type::Tuple(b)) if a.len() == b.len() => a
         .iter_mut()
         .zip(b)
-        .map(|(a, b)| self._check_bin_op(op, a, b, i, j))
+        .map(|(a, b)| self._check_bin_op(op, assign, a, b, i, j))
         .collect::<Result<_, _>>()
         .map(Type::Tuple),
       (_, Type::Tuple(a), b @ (Type::U32 | Type::F32)) => a
         .iter_mut()
-        .map(|a| self._check_bin_op(op, a, b, i, j))
+        .map(|a| self._check_bin_op(op, assign, a, b, i, j))
         .collect::<Result<_, _>>()
         .map(Type::Tuple),
-      (_, a @ (Type::U32 | Type::F32), Type::Tuple(b)) => b
+      (_, a @ (Type::U32 | Type::F32), Type::Tuple(b)) if !assign => b
         .iter_mut()
-        .map(|b| self._check_bin_op(op, a, b, i, j))
+        .map(|b| self._check_bin_op(op, assign, a, b, i, j))
         .collect::<Result<_, _>>()
         .map(Type::Tuple),
       (_, Type::U32, Type::U32) if !i && !j => Ok(Type::U32),
       (
         BinaryOp::Add | BinaryOp::Sub | BinaryOp::Mul | BinaryOp::Div | BinaryOp::Rem,
+        a @ (Type::U32 | Type::F32),
         Type::U32 | Type::F32,
-        Type::U32 | Type::F32,
-      ) if !i && !j => Ok(Type::F32),
-      (_, Type::Inverse(a), b) => self._check_bin_op(op, a, b, !i, j),
-      (_, a, Type::Inverse(b)) => self._check_bin_op(op, a, b, i, !j),
+      ) if !i && !j && (!assign || matches!(a, Type::F32)) => Ok(Type::F32),
+      (_, Type::Inverse(a), b) => self._check_bin_op(op, assign, a, b, !i, j),
+      (_, a, Type::Inverse(b)) => self._check_bin_op(op, assign, a, b, i, !j),
       _ => Err(()),
     }
   }
