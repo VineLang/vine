@@ -89,7 +89,7 @@ diags! {
   MismatchedThenElseTypes { then: String, els: String }
     ["then block has type `{then}` but else block has type `{els}`"]
   BadArgCount { ty: String, expected: usize, got: usize }
-    ["function type `{ty}` expects {expected} arguments; was passed {got}"]
+    ["function type `{ty}` expects {expected} argument{}; was passed {got}", plural(*expected, "s", "")]
   NonFunctionCall { ty: String }
     ["cannot call non-function type `{ty}`"]
   CannotCompare { lhs: String, rhs: String}
@@ -105,9 +105,9 @@ diags! {
   PathNoPat { path: Path }
     ["no pattern associated with `{path}`"]
   BadGenericCount { path: Path, expected: usize, got: usize }
-    ["`{path}` expects {expected} generics; was passed {got}"]
+    ["`{path}` expects {expected} generic{}; was passed {got}", plural(*expected, "s", "")]
   BadFieldCount { path: Path, expected: usize, got: usize }
-    ["`{path}` has {expected} fields; {got} were matched"]
+    ["`{path}` has {expected} field{}; {got} {} matched", plural(*expected, "s", ""), plural(*got, "were", "was")]
   FnItemUntypedParam
     ["fn item parameters must be explicitly typed"]
   ItemTypeHole
@@ -126,6 +126,14 @@ diags! {
     ["expected a value of type `{ty}` to return"]
   MissingBreakExpr { ty: String }
     ["expected a value of type `{ty}` to break with"]
+}
+
+fn plural<'a>(n: usize, plural: &'a str, singular: &'a str) -> &'a str {
+  if n == 1 {
+    singular
+  } else {
+    plural
+  }
 }
 
 #[derive(Default, Debug)]
