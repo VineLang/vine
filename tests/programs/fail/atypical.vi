@@ -24,6 +24,7 @@ fn main[T, U](io: IO) {
   continue;
   break;
   return 0.0;
+  let x = 1; ~x + ~x;
   123
 }
 

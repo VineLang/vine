@@ -358,7 +358,7 @@ impl Checker<'_> {
         }
       }
       _ => {
-        if let Ok(ty) = self._check_bin_op(op, &mut a, &mut b, false) {
+        if let Ok(ty) = self._check_bin_op(op, &mut a, &mut b, false, false) {
           return ty;
         }
       }
@@ -373,6 +373,7 @@ impl Checker<'_> {
     mut a: &mut Type,
     mut b: &mut Type,
     i: bool,
+    j: bool,
   ) -> Result<Type, ()> {
     self.concretize(a);
     self.concretize(b);
@@ -381,27 +382,27 @@ impl Checker<'_> {
       (_, Type::Tuple(a), Type::Tuple(b)) if a.len() == b.len() => a
         .iter_mut()
         .zip(b)
-        .map(|(a, b)| self._check_bin_op(op, a, b, i))
+        .map(|(a, b)| self._check_bin_op(op, a, b, i, j))
         .collect::<Result<_, _>>()
         .map(Type::Tuple),
       (_, Type::Tuple(a), b @ (Type::U32 | Type::F32)) => a
         .iter_mut()
-        .map(|a| self._check_bin_op(op, a, b, i))
+        .map(|a| self._check_bin_op(op, a, b, i, j))
         .collect::<Result<_, _>>()
         .map(Type::Tuple),
       (_, a @ (Type::U32 | Type::F32), Type::Tuple(b)) => b
         .iter_mut()
-        .map(|b| self._check_bin_op(op, a, b, i))
+        .map(|b| self._check_bin_op(op, a, b, i, j))
         .collect::<Result<_, _>>()
         .map(Type::Tuple),
-      (_, Type::U32, Type::U32) if !i => Ok(Type::U32),
+      (_, Type::U32, Type::U32) if !i && !j => Ok(Type::U32),
       (
         BinaryOp::Add | BinaryOp::Sub | BinaryOp::Mul | BinaryOp::Div | BinaryOp::Rem,
         Type::U32 | Type::F32,
         Type::U32 | Type::F32,
-      ) if !i => Ok(Type::F32),
-      (_, Type::Inverse(a), b) => self._check_bin_op(op, a, b, !i),
-      (_, a, Type::Inverse(b)) => self._check_bin_op(op, a, b, !i),
+      ) if !i && !j => Ok(Type::F32),
+      (_, Type::Inverse(a), b) => self._check_bin_op(op, a, b, !i, j),
+      (_, a, Type::Inverse(b)) => self._check_bin_op(op, a, b, i, !j),
       _ => Err(()),
     }
   }
