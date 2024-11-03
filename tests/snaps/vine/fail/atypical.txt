@@ -1,36 +1,36 @@
-error tests/programs/fail/atypical.vi:2:19 - no type associated with `::atypical::foo`
-error tests/programs/fail/atypical.vi:2:24 - types in item signatures cannot be elided
-error tests/programs/fail/atypical.vi:3:8 - fn item parameters must be explicitly typed
-error tests/programs/fail/atypical.vi:3:14 - types in item signatures cannot be elided
-error tests/programs/fail/atypical.vi:4:12 - types in item signatures cannot be elided
+error tests/programs/fail/atypical.vi:3:19 - no type associated with `::atypical::foo`
+error tests/programs/fail/atypical.vi:3:24 - types in item signatures cannot be elided
+error tests/programs/fail/atypical.vi:4:8 - fn item parameters must be explicitly typed
+error tests/programs/fail/atypical.vi:4:14 - types in item signatures cannot be elided
+error tests/programs/fail/atypical.vi:5:12 - types in item signatures cannot be elided
 error - expected type `fn(&IO)`; found `fn(IO)`
-error tests/programs/fail/atypical.vi:4:16 - no function to return from
-error tests/programs/fail/atypical.vi:6:16 - expected type `u32`; found `f32`
-error tests/programs/fail/atypical.vi:7:16 - expected type `f32`; found `u32`
-error tests/programs/fail/atypical.vi:8:23 - expected type `(u32, u32)`; found `(f32, f32)`
-error tests/programs/fail/atypical.vi:9:16 - expected type `(?4, ?5)`; found `u32`
-error tests/programs/fail/atypical.vi:10:7 - cannot infer type
-error tests/programs/fail/atypical.vi:11:3 - cannot call non-function type `u32`
-error tests/programs/fail/atypical.vi:12:14 - cannot apply operator `+` to types `u32` and `~u32`
-error tests/programs/fail/atypical.vi:13:3 - invalid method; function type `fn(IO)` does not accept reference as first parameter
-error tests/programs/fail/atypical.vi:14:6 - expected type `u32`; found `f32`
-error tests/programs/fail/atypical.vi:14:3 - then block has type `u32` but else block has type `::std::list::List[u32]`
-error tests/programs/fail/atypical.vi:15:3 - function type `fn(IO)` expects 1 argument; was passed 3
-error tests/programs/fail/atypical.vi:16:3 - cannot compare `u32` and `f32`
-error tests/programs/fail/atypical.vi:16:3 - cannot compare `f32` and `u32`
-error tests/programs/fail/atypical.vi:16:3 - cannot compare `u32` and `f32`
-error tests/programs/fail/atypical.vi:17:7 - `::atypical::Thing` has 2 fields; 1 was matched
-error tests/programs/fail/atypical.vi:17:18 - no value associated with `::atypical::Foo`
-error tests/programs/fail/atypical.vi:18:12 - no type associated with `::atypical::foo`
-error tests/programs/fail/atypical.vi:19:14 - expected type `T`; found `u32`
-error tests/programs/fail/atypical.vi:20:14 - expected type `U`; found `T`
-error tests/programs/fail/atypical.vi:21:7 - expected an irrefutable pattern
-error tests/programs/fail/atypical.vi:21:17 - expected type `::atypical::Ay`; found `u32`
-error tests/programs/fail/atypical.vi:22:3 - cannot apply operator `+` to types `::std::list::List[u32]` and `u32`
-error tests/programs/fail/atypical.vi:23:7 - expected type `u32`; found `&?17`
-error tests/programs/fail/atypical.vi:24:3 - no loop to continue
-error tests/programs/fail/atypical.vi:25:3 - no loop to break from
-error tests/programs/fail/atypical.vi:26:10 - expected type `()`; found `f32`
-error tests/programs/fail/atypical.vi:27:14 - cannot apply operator `+` to types `~u32` and `~u32`
-error tests/programs/fail/atypical.vi:28:3 - cannot apply operator `+=` to types `u32` and `f32`
-error tests/programs/fail/atypical.vi:5:23 - expected type `()`; found `u32`
+error tests/programs/fail/atypical.vi:5:16 - no function to return from
+error tests/programs/fail/atypical.vi:7:16 - expected type `u32`; found `f32`
+error tests/programs/fail/atypical.vi:8:16 - expected type `f32`; found `u32`
+error tests/programs/fail/atypical.vi:9:23 - expected type `(u32, u32)`; found `(f32, f32)`
+error tests/programs/fail/atypical.vi:10:16 - expected type `(?4, ?5)`; found `u32`
+error tests/programs/fail/atypical.vi:11:7 - cannot infer type
+error tests/programs/fail/atypical.vi:12:3 - cannot call non-function type `u32`
+error tests/programs/fail/atypical.vi:13:14 - cannot apply operator `+` to types `u32` and `~u32`
+error tests/programs/fail/atypical.vi:14:3 - invalid method; function type `fn(IO)` does not accept reference as first parameter
+error tests/programs/fail/atypical.vi:15:6 - expected type `u32`; found `f32`
+error tests/programs/fail/atypical.vi:15:3 - then block has type `u32` but else block has type `::std::list::List[u32]`
+error tests/programs/fail/atypical.vi:16:3 - function type `fn(IO)` expects 1 argument; was passed 3
+error tests/programs/fail/atypical.vi:17:3 - cannot compare `u32` and `f32`
+error tests/programs/fail/atypical.vi:17:3 - cannot compare `f32` and `u32`
+error tests/programs/fail/atypical.vi:17:3 - cannot compare `u32` and `f32`
+error tests/programs/fail/atypical.vi:18:7 - `::atypical::Thing` has 2 fields; 1 was matched
+error tests/programs/fail/atypical.vi:18:18 - no value associated with `::atypical::Foo`
+error tests/programs/fail/atypical.vi:19:12 - no type associated with `::atypical::foo`
+error tests/programs/fail/atypical.vi:20:14 - expected type `T`; found `u32`
+error tests/programs/fail/atypical.vi:21:14 - expected type `U`; found `T`
+error tests/programs/fail/atypical.vi:22:7 - expected an irrefutable pattern
+error tests/programs/fail/atypical.vi:22:17 - expected type `::atypical::Ay`; found `u32`
+error tests/programs/fail/atypical.vi:23:3 - cannot apply operator `+` to types `::std::list::List[u32]` and `u32`
+error tests/programs/fail/atypical.vi:24:7 - expected type `u32`; found `&?17`
+error tests/programs/fail/atypical.vi:25:3 - no loop to continue
+error tests/programs/fail/atypical.vi:26:3 - no loop to break from
+error tests/programs/fail/atypical.vi:27:10 - expected type `()`; found `f32`
+error tests/programs/fail/atypical.vi:28:14 - cannot apply operator `+` to types `~u32` and `~u32`
+error tests/programs/fail/atypical.vi:29:3 - cannot apply operator `+=` to types `u32` and `f32`
+error tests/programs/fail/atypical.vi:6:23 - expected type `()`; found `u32`
