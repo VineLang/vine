@@ -13,7 +13,11 @@ fn main(&io: &IO) {
     let i = 0;
     while i < width {
       let (x, y) = center + scale / width * ((i, j) + 0.5 - (width, height) / 2.0) * (1.0, 2.0);
-      io.print_char(if mandelbrot(x, y) { '#' } else { ' ' });
+      io.print_char(if mandelbrot(x, y) {
+        '#'
+      } else {
+        ' '
+      });
       i += 1;
     }
     io.print_char('\n');

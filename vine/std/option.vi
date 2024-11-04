@@ -45,6 +45,8 @@ mod Option {
   }
 
   fn unwrap[T](&move self: &Option[T]) -> T {
-    match self { Some(val) => val }
+    match self {
+      Some(val) => val,
+    }
   }
 }

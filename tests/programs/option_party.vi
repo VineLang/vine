@@ -90,13 +90,17 @@ fn print_u32(&io: &IO, val: u32) {
 }
 
 fn print_bool(&io: &IO, bool: bool) {
-  io.println(if bool { "  true" } else { "  false" })
+  io.println(if bool {
+    "  true"
+  } else {
+    "  false"
+  })
 }
 
 fn increment_option(&option: &Option[u32]) {
   match option.as_ref() {
     Some(&x) => x += 1,
-    None => {}
+    None => {},
   }
 }
 

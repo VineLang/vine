@@ -31,5 +31,9 @@ fn main(&io: &IO) {
 }
 
 fn print_bool(&io: &IO, bool: bool) {
-  io.println(if bool { "true" } else { "false" })
+  io.println(if bool {
+    "true"
+  } else {
+    "false"
+  })
 }

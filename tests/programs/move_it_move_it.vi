@@ -4,5 +4,7 @@ use std::io::println;
 fn main(&it: &IO) {
   let &move it = &move it;
   (move it).println("move it!");
-  if 1 { it.println("move it?"); }
+  if 1 {
+    it.println("move it?");
+  }
 }

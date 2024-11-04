@@ -1,3 +1,4 @@
+
 use std::{u32, io::println, rng::Rng::{Rng, gen_u32}};
 
 fn main(&io: &IO) {
@@ -8,4 +9,3 @@ fn main(&io: &IO) {
     i += 1;
   }
 }
-
