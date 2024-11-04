@@ -13,22 +13,25 @@ use crate::{
 
 pub fn fmt(interner: &StringInterner<'static>, src: &str) -> Result<String, Diag> {
   let ast = VineParser::parse(interner, src, 0)?;
-  let mut fmt = Formatter { source: src };
+  let fmt = Formatter { src };
   let doc = Doc::concat([
     Doc::LINE,
-    Doc::interleave(ast.iter().map(|x| fmt.fmt_item(x)), Doc::concat([Doc::LINE, Doc::LINE])),
+    fmt.get_intermediate(
+      Span { file: 0, start: 0, end: src.len() },
+      ast.iter().map(|x| (x.span, fmt.fmt_item(x))),
+    ),
   ]);
-  let mut writer = WriteDoc { out: String::new(), indent: 0, written: 0 };
+  let mut writer = Writer::default();
   writer.write_doc(&doc, false);
   Ok(writer.out)
 }
 
 struct Formatter<'src> {
-  source: &'src str,
+  src: &'src str,
 }
 
 impl<'src> Formatter<'src> {
-  fn fmt_block(&mut self, block: &Block, force_open: bool) -> Doc<'src> {
+  fn fmt_block(&self, block: &Block, force_open: bool) -> Doc<'src> {
     if block.stmts.is_empty() {
       return Doc::from("{}");
     }
@@ -49,12 +52,64 @@ impl<'src> Formatter<'src> {
     }
     Doc::concat([
       Doc::from("{"),
-      Doc::indent([Doc::interleave(block.stmts.iter().map(|x| self.fmt_stmt(x)), Doc::LINE)]),
+      Doc::indent([
+        self.get_intermediate(block.span, block.stmts.iter().map(|x| (x.span, self.fmt_stmt(x))))
+      ]),
       Doc::from("}"),
     ])
   }
 
-  fn fmt_stmt(&mut self, stmt: &Stmt) -> Doc<'src> {
+  fn get_intermediate(
+    &self,
+    span: Span,
+    elems: impl Iterator<Item = (Span, Doc<'src>)>,
+  ) -> Doc<'src> {
+    let mut docs = Vec::new();
+    let mut cur = span.start;
+    for (i, (span, doc)) in elems.enumerate() {
+      if i != 0 {
+        docs.push(Doc::LINE);
+      }
+      self.get_foo(i != 0, true, cur, span.start, &mut docs);
+      docs.push(doc);
+      cur = span.end;
+    }
+    self.get_foo(true, false, cur, span.end, &mut docs);
+    Doc::from(DocKind::Concat(docs.into_boxed_slice()))
+  }
+
+  fn get_foo(
+    &self,
+    mut start_blank: bool,
+    end_blank: bool,
+    start: usize,
+    end: usize,
+    docs: &mut Vec<Doc<'src>>,
+  ) {
+    let mut str = &self.src[start..end];
+    let mut line_count = 0;
+    while !str.is_empty() {
+      if str.starts_with("//") {
+        if line_count > 1 && start_blank {
+          docs.push(Doc::LINE);
+        }
+        start_blank = true;
+        let end = str.find('\n').unwrap_or(str.len());
+        docs.push(Doc::from(&str[..end]));
+        str = &str[end..]
+      } else {
+        if str.starts_with("\n") {
+          line_count += 1;
+        }
+        str = &str[str.chars().next().unwrap().len_utf8()..];
+      }
+    }
+    if line_count > 1 && start_blank && end_blank {
+      docs.push(Doc::LINE);
+    }
+  }
+
+  fn fmt_stmt(&self, stmt: &Stmt) -> Doc<'src> {
     match &stmt.kind {
       StmtKind::Let(l) => Doc::concat([
         Doc::from("let "),
@@ -76,7 +131,7 @@ impl<'src> Formatter<'src> {
     }
   }
 
-  fn fmt_item(&mut self, item: &Item) -> Doc<'src> {
+  fn fmt_item(&self, item: &Item) -> Doc<'src> {
     match &item.kind {
       ItemKind::Fn(f) => Doc::concat([
         "fn ".into(),
@@ -142,13 +197,14 @@ impl<'src> Formatter<'src> {
         match &m.kind {
           ModKind::Loaded(items) => Doc::concat([
             " {".into(),
-            Doc::indent([Doc::interleave(
-              items.iter().map(|x| self.fmt_item(x)),
-              Doc::concat([Doc::LINE, Doc::LINE]),
-            )]),
+            Doc::indent([
+              self.get_intermediate(item.span, items.iter().map(|x| (x.span, self.fmt_item(x))))
+            ]),
             "}".into(),
           ]),
-          ModKind::Unloaded(span, _) => Doc::concat([" = ".into(), self.fmt_span(*span)]),
+          ModKind::Unloaded(span, _) => {
+            Doc::concat([" = ".into(), self.fmt_span(*span), ";".into()])
+          }
           ModKind::Error(_) => unreachable!(),
         },
       ]),
@@ -159,14 +215,14 @@ impl<'src> Formatter<'src> {
     }
   }
 
-  fn fmt_return_ty(&mut self, r: Option<&Ty>) -> Doc<'src> {
+  fn fmt_return_ty(&self, r: Option<&Ty>) -> Doc<'src> {
     match r {
       Some(t) => Doc::concat([" -> ".into(), self.fmt_ty(t)]),
       None => Doc::EMPTY,
     }
   }
 
-  fn fmt_generics(&mut self, generics: &[Ident]) -> Doc<'src> {
+  fn fmt_generics(&self, generics: &[Ident]) -> Doc<'src> {
     if generics.is_empty() {
       Doc::EMPTY
     } else {
@@ -174,7 +230,7 @@ impl<'src> Formatter<'src> {
     }
   }
 
-  fn fmt_pat(&mut self, pat: &Pat) -> Doc<'src> {
+  fn fmt_pat(&self, pat: &Pat) -> Doc<'src> {
     match &pat.kind {
       PatKind::Local(_) | PatKind::Error(_) => unreachable!(),
       PatKind::Hole => "_".into(),
@@ -190,7 +246,7 @@ impl<'src> Formatter<'src> {
     }
   }
 
-  fn fmt_ty(&mut self, ty: &Ty) -> Doc<'src> {
+  fn fmt_ty(&self, ty: &Ty) -> Doc<'src> {
     match &ty.kind {
       TyKind::Hole => "_".into(),
       TyKind::Fn(a, r) => Doc::concat([
@@ -206,7 +262,7 @@ impl<'src> Formatter<'src> {
     }
   }
 
-  fn fmt_expr(&mut self, expr: &Expr) -> Doc<'src> {
+  fn fmt_expr(&self, expr: &Expr) -> Doc<'src> {
     match &expr.kind {
       ExprKind![synthetic || error] | ExprKind::Local(_) => unreachable!(),
       ExprKind::Hole => "_".into(),
@@ -321,11 +377,11 @@ impl<'src> Formatter<'src> {
     }
   }
 
-  fn fmt_span(&mut self, span: Span) -> Doc<'src> {
-    self.source[span.start..span.end].into()
+  fn fmt_span(&self, span: Span) -> Doc<'src> {
+    self.src[span.start..span.end].into()
   }
 
-  fn fmt_path(&mut self, path: &GenericPath) -> Doc<'src> {
+  fn fmt_path(&self, path: &GenericPath) -> Doc<'src> {
     let mut docs = Vec::<Doc>::new();
     if path.path.absolute {
       docs.push("::".into());
@@ -509,13 +565,14 @@ enum DocKind<'src> {
   Interleave(Box<[Doc<'src>]>, Box<Doc<'src>>),
 }
 
-struct WriteDoc {
+#[derive(Default)]
+struct Writer {
   out: String,
   indent: usize,
   written: usize,
 }
 
-impl WriteDoc {
+impl Writer {
   fn write_doc(&mut self, doc: &Doc, multi: bool) {
     match &doc.kind {
       DocKind::Line => self.newline(),
@@ -605,16 +662,12 @@ impl WriteDoc {
       return;
     }
     if self.written == 0 {
-      self.write_indent();
+      for _ in 0..self.indent {
+        self.out += " ";
+      }
     }
     self.out += str;
     self.written += str.chars().count();
-  }
-
-  fn write_indent(&mut self) {
-    for _ in 0..self.indent {
-      self.out += " ";
-    }
   }
 
   fn remaining(&self) -> usize {
