@@ -3,18 +3,7 @@ use std::{
   io::println,
   u32,
   bool::{bool, true, false},
-  option::Option::{
-    Option,
-    Some,
-    None,
-    map,
-    as_ref,
-    flatten,
-    and_then,
-    or,
-    unwrap_or,
-    unwrap,
-  }
+  option::Option::{Option, Some, None, map, as_ref, flatten, and_then, or, unwrap_or, unwrap},
 };
 
 fn main(&io: &IO) {

@@ -5,7 +5,7 @@ use vine_util::interner::StringInterner;
 use crate::{
   ast::{
     Block, ComparisonOp, Expr, ExprKind, GenericPath, Ident, Item, ItemKind, LogicalOp, ModKind,
-    Pat, PatKind, Span, Stmt, StmtKind, Ty, TyKind,
+    Pat, PatKind, Span, Stmt, StmtKind, Ty, TyKind, UseTree,
   },
   diag::Diag,
   parser::VineParser,
@@ -210,10 +210,22 @@ impl<'src> Formatter<'src> {
           ModKind::Error(_) => unreachable!(),
         },
       ]),
-      ItemKind::Use(_) => self.fmt_span(item.span),
+      ItemKind::Use(u) => Doc::concat(["use ".into(), self.fmt_use_tree(u), ";".into()]),
       ItemKind::Ivy(_) => self.fmt_span(item.span),
       ItemKind::Pattern(_) => todo!(),
       ItemKind::Taken => unreachable!(),
+    }
+  }
+
+  fn fmt_use_tree(&self, use_tree: &UseTree) -> Doc<'src> {
+    if let Some(children) = &use_tree.children {
+      Doc::concat([
+        self.fmt_path(&use_tree.path),
+        Doc::from("::"),
+        Doc::brace_comma(children.iter().map(|x| self.fmt_use_tree(x))),
+      ])
+    } else {
+      self.fmt_path(&use_tree.path)
     }
   }
 
@@ -237,9 +249,9 @@ impl<'src> Formatter<'src> {
       PatKind::Local(_) | PatKind::Error(_) => unreachable!(),
       PatKind::Hole => "_".into(),
       PatKind::Paren(p) => Doc::paren(self.fmt_pat(p)),
-      PatKind::Adt(p, None) => self.fmt_path(p),
+      PatKind::Adt(p, None) => self.fmt_gen_path(p),
       PatKind::Adt(p, Some(x)) => {
-        Doc::concat([self.fmt_path(p), Doc::paren_comma(x.iter().map(|x| self.fmt_pat(x)))])
+        Doc::concat([self.fmt_gen_path(p), Doc::paren_comma(x.iter().map(|x| self.fmt_pat(x)))])
       }
       PatKind::Ref(p) => Doc::concat(["&".into(), self.fmt_pat(p)]),
       PatKind::Deref(p) => Doc::concat(["*".into(), self.fmt_pat(p)]),
@@ -261,7 +273,7 @@ impl<'src> Formatter<'src> {
       TyKind::Tuple(t) => Doc::tuple(t.iter().map(|x| self.fmt_ty(x))),
       TyKind::Ref(t) => Doc::concat(["&".into(), self.fmt_ty(t)]),
       TyKind::Inverse(t) => Doc::concat(["~".into(), self.fmt_ty(t)]),
-      TyKind::Path(p) => self.fmt_path(p),
+      TyKind::Path(p) => self.fmt_gen_path(p),
       TyKind::Generic(_) | TyKind::Error(_) => unreachable!(),
     }
   }
@@ -271,7 +283,7 @@ impl<'src> Formatter<'src> {
       ExprKind![synthetic || error] | ExprKind::Local(_) => unreachable!(),
       ExprKind::Paren(p) => Doc::paren(self.fmt_expr(p)),
       ExprKind::Hole => "_".into(),
-      ExprKind::Path(path) => self.fmt_path(path),
+      ExprKind::Path(path) => self.fmt_gen_path(path),
       ExprKind::Block(block) => self.fmt_block(block, false),
       ExprKind::Assign(s, v) => Doc::concat([self.fmt_expr(s), " = ".into(), self.fmt_expr(v)]),
       ExprKind::Match(expr, arms) => Doc::concat([
@@ -325,11 +337,11 @@ impl<'src> Formatter<'src> {
       ExprKind::Inverse(x) => Doc::concat(["~".into(), self.fmt_expr(x)]),
       ExprKind::Tuple(t) => Doc::tuple(t.iter().map(|x| self.fmt_expr(x))),
       ExprKind::List(l) => Doc::bracket_comma(l.iter().map(|x| self.fmt_expr(x))),
-      ExprKind::Field(e, p) => Doc::concat([self.fmt_expr(e), ".".into(), self.fmt_path(p)]),
+      ExprKind::Field(e, p) => Doc::concat([self.fmt_expr(e), ".".into(), self.fmt_gen_path(p)]),
       ExprKind::Method(e, p, a) => Doc::concat([
         self.fmt_expr(e),
         ".".into(),
-        self.fmt_path(p),
+        self.fmt_gen_path(p),
         Doc::paren_comma(a.iter().map(|x| self.fmt_expr(x))),
       ]),
       ExprKind::Call(f, a) => {
@@ -386,21 +398,29 @@ impl<'src> Formatter<'src> {
     self.src[span.start..span.end].into()
   }
 
-  fn fmt_path(&self, path: &GenericPath) -> Doc<'src> {
+  fn fmt_gen_path(&self, path: &GenericPath) -> Doc<'src> {
+    if let Some(gens) = &path.generics {
+      Doc::concat([
+        self.fmt_path(&path.path),
+        Doc::bracket_comma(gens.iter().map(|x| self.fmt_ty(x))),
+      ])
+    } else {
+      self.fmt_path(&path.path)
+    }
+  }
+
+  fn fmt_path(&self, path: &crate::ast::Path) -> Doc<'src> {
     let mut docs = Vec::<Doc>::new();
-    if path.path.absolute {
+    if path.absolute {
       docs.push("::".into());
     }
     let mut first = true;
-    for &seg in &path.path.segments {
+    for &seg in &path.segments {
       if !first {
         docs.push("::".into());
       }
       docs.push(seg.into());
       first = false;
-    }
-    if let Some(gens) = &path.generics {
-      docs.push(Doc::bracket_comma(gens.iter().map(|x| self.fmt_ty(x))));
     }
     Doc::from(DocKind::Concat(docs.into_boxed_slice()))
   }
@@ -482,6 +502,17 @@ impl<'src> Doc<'src> {
         Doc::from(DocKind::IfMulti(",")),
       ]),
       Doc::from("]"),
+    ])
+  }
+
+  fn brace_comma(docs: impl IntoIterator<Item = Self>) -> Self {
+    Doc::concat([
+      Doc::from("{"),
+      Doc::group([
+        Doc::interleave(docs, Doc::concat([Doc::from(","), Doc::from(DocKind::SoftLine(" "))])),
+        Doc::from(DocKind::IfMulti(",")),
+      ]),
+      Doc::from("}"),
     ])
   }
 
