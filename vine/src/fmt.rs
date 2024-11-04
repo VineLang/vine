@@ -5,7 +5,7 @@ use vine_util::interner::StringInterner;
 use crate::{
   ast::{
     Block, ComparisonOp, Expr, ExprKind, GenericPath, Ident, Item, ItemKind, LogicalOp, ModKind,
-    Pat, PatKind, Span, Stmt, StmtKind, Ty, TyKind, UseTree,
+    Pat, PatKind, Path, Span, Stmt, StmtKind, Ty, TyKind, UseTree,
   },
   diag::Diag,
   parser::VineParser,
@@ -62,11 +62,11 @@ impl<'src> Formatter<'src> {
   fn get_intermediate(
     &self,
     span: Span,
-    elems: impl Iterator<Item = (Span, Doc<'src>)>,
+    els: impl Iterator<Item = (Span, Doc<'src>)>,
   ) -> Doc<'src> {
     let mut docs = Vec::new();
     let mut cur = span.start;
-    for (i, (span, doc)) in elems.enumerate() {
+    for (i, (span, doc)) in els.enumerate() {
       if i != 0 {
         docs.push(Doc::LINE);
       }
@@ -94,7 +94,7 @@ impl<'src> Formatter<'src> {
           docs.push(Doc::LINE);
         }
         start_blank = true;
-        let end = str.find('\n').map(|x| x).unwrap_or(str.len());
+        let end = str.find('\n').unwrap_or(str.len());
         docs.push(Doc::from(&str[..end]));
         docs.push(Doc::LINE);
         str = &str[end..];
@@ -409,7 +409,7 @@ impl<'src> Formatter<'src> {
     }
   }
 
-  fn fmt_path(&self, path: &crate::ast::Path) -> Doc<'src> {
+  fn fmt_path(&self, path: &Path) -> Doc<'src> {
     let mut docs = Vec::<Doc>::new();
     if path.absolute {
       docs.push("::".into());
@@ -616,7 +616,7 @@ impl Writer {
   fn write_doc(&mut self, doc: &Doc, multi: bool) {
     match &doc.kind {
       DocKind::Line => self.newline(),
-      DocKind::String(str) => self.write_str(&str),
+      DocKind::String(str) => self.write_str(str),
       DocKind::Concat(docs) => {
         for doc in docs.iter() {
           self.write_doc(doc, multi);
@@ -675,7 +675,7 @@ impl Writer {
         for (i, doc) in docs.iter().enumerate() {
           self.write_doc(doc, multi);
           if i != n - 1 {
-            self.write_doc(&sep, multi);
+            self.write_doc(sep, multi);
           }
         }
       }

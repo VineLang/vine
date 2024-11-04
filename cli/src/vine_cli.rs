@@ -11,7 +11,7 @@ use clap::{Args, Parser};
 use ivm::{heap::Heap, IVM};
 use ivy::{ast::Nets, host::Host};
 use rustyline::DefaultEditor;
-use vine::repl::Repl;
+use vine::{fmt::fmt, repl::Repl};
 use vine_util::{arena::BytesArena, interner::StringInterner};
 
 use super::{Optimizations, RunArgs};
@@ -170,7 +170,7 @@ impl VineFmtCommand {
     stdin().read_to_string(&mut src)?;
     let arena = &*Box::leak(Box::new(BytesArena::default()));
     let interner = StringInterner::new(arena);
-    println!("{}", vine::fmt::fmt(&interner, &src).unwrap());
+    println!("{}", fmt(&interner, &src).unwrap());
     Ok(())
   }
 }
