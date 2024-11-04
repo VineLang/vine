@@ -11,6 +11,7 @@
       "exts": ["vi"]
     }]
   },
+  "excludes": ["tests/programs/fail"],
   "plugins": [
     "https://plugins.dprint.dev/g-plane/pretty_yaml-v0.5.0.wasm",
     "https://plugins.dprint.dev/json-0.19.3.wasm",
