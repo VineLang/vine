@@ -229,7 +229,7 @@ pub trait VisitMut<'a> {
         if let Some(ty) = &mut f.ret {
           self.visit_type(ty);
         }
-        self.visit_expr(&mut f.body);
+        self.visit_block(&mut f.body);
       }
       ItemKind::Const(c) => {
         self.visit_type(&mut c.ty);

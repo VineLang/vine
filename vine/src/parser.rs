@@ -120,13 +120,7 @@ impl<'ctx, 'src> VineParser<'ctx, 'src> {
     let params = self.parse_delimited(PAREN_COMMA, Self::parse_pat_type)?;
     let ret = self.eat(Token::ThinArrow)?.then(|| self.parse_type()).transpose()?;
     let body = self.parse_block()?;
-    Ok(FnItem {
-      name,
-      generics,
-      params,
-      ret,
-      body: Expr { span: body.span, kind: ExprKind::Block(body) },
-    })
+    Ok(FnItem { name, generics, params, ret, body })
   }
 
   fn parse_const_item(&mut self) -> Parse<'src, ConstItem> {

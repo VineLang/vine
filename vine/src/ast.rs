@@ -36,7 +36,7 @@ pub struct FnItem {
   pub generics: Vec<Ident>,
   pub params: Vec<(Pat, Option<Ty>)>,
   pub ret: Option<Ty>,
-  pub body: Expr,
+  pub body: Block,
 }
 
 #[derive(Debug, Clone)]

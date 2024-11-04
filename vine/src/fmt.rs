@@ -28,21 +28,23 @@ struct Formatter<'src> {
 }
 
 impl<'src> Formatter<'src> {
-  fn fmt_block(&mut self, block: &Block) -> Doc<'src> {
+  fn fmt_block(&mut self, block: &Block, force_open: bool) -> Doc<'src> {
     if block.stmts.is_empty() {
       return Doc::from("{}");
     }
-    if let [stmt] = &*block.stmts {
-      if matches!(stmt.kind, StmtKind::Expr(_, false)) {
-        return Doc::concat([
-          Doc::from("{"),
-          Doc::group([
-            Doc::from(DocKind::IfSingle(" ")),
-            self.fmt_stmt(stmt),
-            Doc::from(DocKind::IfSingle(" ")),
-          ]),
-          Doc::from("}"),
-        ]);
+    if !force_open {
+      if let [stmt] = &*block.stmts {
+        if matches!(stmt.kind, StmtKind::Expr(_, false)) {
+          return Doc::concat([
+            Doc::from("{"),
+            Doc::group([
+              Doc::from(DocKind::IfSingle(" ")),
+              self.fmt_stmt(stmt),
+              Doc::from(DocKind::IfSingle(" ")),
+            ]),
+            Doc::from("}"),
+          ]);
+        }
       }
     }
     Doc::concat([
@@ -86,7 +88,7 @@ impl<'src> Formatter<'src> {
         })),
         self.fmt_return_ty(f.ret.as_ref()),
         " ".into(),
-        self.fmt_expr(&f.body),
+        self.fmt_block(&f.body, true),
       ]),
       ItemKind::Const(c) => Doc::concat([
         "const ".into(),
@@ -109,12 +111,16 @@ impl<'src> Formatter<'src> {
         "enum ".into(),
         e.name.into(),
         self.fmt_generics(&e.generics),
-        "{".into(),
+        " {".into(),
         Doc::indent([Doc::interleave(
           e.variants.iter().map(|v| {
             Doc::concat([
               v.name.into(),
-              Doc::paren_comma(v.fields.iter().map(|x| self.fmt_ty(x))),
+              if v.fields.is_empty() {
+                Doc::EMPTY
+              } else {
+                Doc::paren_comma(v.fields.iter().map(|x| self.fmt_ty(x)))
+              },
               Doc::from(","),
             ])
           }),
@@ -135,11 +141,11 @@ impl<'src> Formatter<'src> {
         m.name.into(),
         match &m.kind {
           ModKind::Loaded(items) => Doc::concat([
-            "{".into(),
-            Doc::interleave(
+            " {".into(),
+            Doc::indent([Doc::interleave(
               items.iter().map(|x| self.fmt_item(x)),
               Doc::concat([Doc::LINE, Doc::LINE]),
-            ),
+            )]),
             "}".into(),
           ]),
           ModKind::Unloaded(span, _) => Doc::concat([" = ".into(), self.fmt_span(*span)]),
@@ -205,12 +211,13 @@ impl<'src> Formatter<'src> {
       ExprKind![synthetic || error] | ExprKind::Local(_) => unreachable!(),
       ExprKind::Hole => "_".into(),
       ExprKind::Path(path) => self.fmt_path(path),
-      ExprKind::Block(block) => self.fmt_block(block),
+      ExprKind::Block(block) => self.fmt_block(block, false),
       ExprKind::Assign(s, v) => Doc::concat([self.fmt_expr(s), " = ".into(), self.fmt_expr(v)]),
       ExprKind::Match(expr, arms) => Doc::concat([
         "match ".into(),
         self.fmt_expr(expr),
-        Doc::brace_comma(
+        " ".into(),
+        Doc::match_arms(
           arms.iter().map(|(p, e)| Doc::concat([self.fmt_pat(p), " => ".into(), self.fmt_expr(e)])),
         ),
       ]),
@@ -218,23 +225,24 @@ impl<'src> Formatter<'src> {
         "if ".into(),
         self.fmt_expr(c),
         " ".into(),
-        self.fmt_block(t),
+        self.fmt_block(t, true),
         match &e.kind {
           ExprKind::Block(b) if b.stmts.is_empty() => Doc::EMPTY,
+          ExprKind::Block(b) => Doc::concat([" else ".into(), self.fmt_block(b, true)]),
           _ => Doc::concat([" else ".into(), self.fmt_expr(e)]),
         },
       ]),
       ExprKind::While(c, b) => {
-        Doc::concat(["while ".into(), self.fmt_expr(c), " ".into(), self.fmt_block(b)])
+        Doc::concat(["while ".into(), self.fmt_expr(c), " ".into(), self.fmt_block(b, true)])
       }
-      ExprKind::Loop(b) => Doc::concat(["loop ".into(), self.fmt_block(b)]),
+      ExprKind::Loop(b) => Doc::concat(["loop ".into(), self.fmt_block(b, true)]),
       ExprKind::For(p, e, b) => Doc::concat([
         "for ".into(),
         self.fmt_pat(p),
         " in ".into(),
         self.fmt_expr(e),
         " ".into(),
-        self.fmt_block(b),
+        self.fmt_block(b, true),
       ]),
       ExprKind::Fn(p, _, b) => Doc::concat([
         "fn".into(),
@@ -246,12 +254,7 @@ impl<'src> Formatter<'src> {
         self.fmt_expr(b),
       ]),
       ExprKind::Return(Some(x)) => Doc::concat(["return ".into(), self.fmt_expr(x)]),
-      ExprKind::Break(Some(x)) => Doc::concat([
-        "break
-"
-        .into(),
-        self.fmt_expr(x),
-      ]),
+      ExprKind::Break(Some(x)) => Doc::concat(["break ".into(), self.fmt_expr(x)]),
       ExprKind::Return(None) => "return".into(),
       ExprKind::Break(None) => "break".into(),
       ExprKind::Continue => "continue".into(),
@@ -391,16 +394,17 @@ impl<'src> Doc<'src> {
     ])
   }
 
-  fn tuple(docs: impl IntoIterator<Item = Self>) -> Self {
+  fn tuple(mut docs: impl ExactSizeIterator<Item = Self>) -> Self {
     Doc::concat([
       Doc::from("("),
-      Doc::group([
-        Doc::from(DocKind::Interleave(
-          docs.into_iter().collect::<Vec<_>>().into_boxed_slice(),
-          Box::new(Doc::concat([Doc::from(","), Doc::from(DocKind::SoftLine(" "))])),
-        )),
-        Doc::from(DocKind::String(",")),
-      ]),
+      if docs.len() == 1 {
+        Doc::lazy_group([docs.next().unwrap(), Doc::from(DocKind::String(","))])
+      } else {
+        Doc::group([
+          Doc::interleave(docs, Doc::concat([Doc::from(","), Doc::from(DocKind::SoftLine(" "))])),
+          Doc::from(DocKind::IfMulti(",")),
+        ])
+      },
       Doc::from(")"),
     ])
   }
@@ -416,12 +420,12 @@ impl<'src> Doc<'src> {
     ])
   }
 
-  fn brace_comma(docs: impl IntoIterator<Item = Self>) -> Self {
+  fn match_arms(docs: impl IntoIterator<Item = Self>) -> Self {
     Doc::concat([
       Doc::from("{"),
-      Doc::group([
-        Doc::interleave(docs, Doc::concat([Doc::from(","), Doc::from(DocKind::SoftLine(" "))])),
-        Doc::from(DocKind::IfMulti(",")),
+      Doc::indent([
+        Doc::interleave(docs, Doc::concat([Doc::from(","), Doc::LINE])),
+        Doc::from(","),
       ]),
       Doc::from("}"),
     ])
