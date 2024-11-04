@@ -94,9 +94,11 @@ impl<'src> Formatter<'src> {
           docs.push(Doc::LINE);
         }
         start_blank = true;
-        let end = str.find('\n').unwrap_or(str.len());
+        let end = str.find('\n').map(|x| x).unwrap_or(str.len());
         docs.push(Doc::from(&str[..end]));
-        str = &str[end..]
+        docs.push(Doc::LINE);
+        str = &str[end..];
+        line_count = 0;
       } else {
         if str.starts_with("\n") {
           line_count += 1;
@@ -234,6 +236,7 @@ impl<'src> Formatter<'src> {
     match &pat.kind {
       PatKind::Local(_) | PatKind::Error(_) => unreachable!(),
       PatKind::Hole => "_".into(),
+      PatKind::Paren(p) => Doc::paren(self.fmt_pat(p)),
       PatKind::Adt(p, None) => self.fmt_path(p),
       PatKind::Adt(p, Some(x)) => {
         Doc::concat([self.fmt_path(p), Doc::paren_comma(x.iter().map(|x| self.fmt_pat(x)))])
@@ -249,6 +252,7 @@ impl<'src> Formatter<'src> {
   fn fmt_ty(&self, ty: &Ty) -> Doc<'src> {
     match &ty.kind {
       TyKind::Hole => "_".into(),
+      TyKind::Paren(p) => Doc::paren(self.fmt_ty(p)),
       TyKind::Fn(a, r) => Doc::concat([
         "fn".into(),
         Doc::paren_comma(a.iter().map(|x| self.fmt_ty(x))),
@@ -265,6 +269,7 @@ impl<'src> Formatter<'src> {
   fn fmt_expr(&self, expr: &Expr) -> Doc<'src> {
     match &expr.kind {
       ExprKind![synthetic || error] | ExprKind::Local(_) => unreachable!(),
+      ExprKind::Paren(p) => Doc::paren(self.fmt_expr(p)),
       ExprKind::Hole => "_".into(),
       ExprKind::Path(path) => self.fmt_path(path),
       ExprKind::Block(block) => self.fmt_block(block, false),
@@ -433,6 +438,10 @@ impl<'src> Doc<'src> {
 
   fn interleave(docs: impl IntoIterator<Item = Self>, sep: Self) -> Self {
     Doc::from(DocKind::Interleave(Self::collect(docs), Box::new(sep)))
+  }
+
+  fn paren(doc: Self) -> Self {
+    Doc::concat([Doc::from("("), Doc::group([doc]), Doc::from(")")])
   }
 
   fn paren_comma(mut docs: impl ExactSizeIterator<Item = Self>) -> Self {

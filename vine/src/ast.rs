@@ -154,6 +154,8 @@ pub enum ExprKind {
   #[default]
   #[class(space)]
   Hole,
+  #[class(value, place, space)]
+  Paren(B<Expr>),
   #[class(value)]
   Path(GenericPath),
   #[class(place)]
@@ -246,6 +248,8 @@ pub enum PatKind {
   #[class(value, place, space)]
   Hole,
   #[class(value, place, space)]
+  Paren(B<Pat>),
+  #[class(value, place, space)]
   Adt(GenericPath, Option<Vec<Pat>>),
   #[class(value, place, space)]
   Local(usize),
@@ -279,6 +283,7 @@ pub struct Ty {
 #[derive(Debug, Clone)]
 pub enum TyKind {
   Hole,
+  Paren(B<Ty>),
   Fn(Vec<Ty>, Option<B<Ty>>),
   Tuple(Vec<Ty>),
   Ref(B<Ty>),

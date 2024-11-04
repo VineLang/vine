@@ -346,7 +346,7 @@ impl<'ctx, 'src> VineParser<'ctx, 'src> {
         Ok(expr)
       })?;
       if exprs.len() == 1 && !tuple {
-        return Ok(exprs.pop().unwrap().kind);
+        return Ok(ExprKind::Paren(Box::new(exprs.pop().unwrap())));
       }
       return Ok(ExprKind::Tuple(exprs));
     }
@@ -526,7 +526,7 @@ impl<'ctx, 'src> VineParser<'ctx, 'src> {
         Ok(expr)
       })?;
       if pats.len() == 1 && !tuple {
-        return Ok(pats.pop().unwrap().kind);
+        return Ok(PatKind::Paren(Box::new(pats.pop().unwrap())));
       }
       return Ok(PatKind::Tuple(pats));
     }
@@ -565,7 +565,7 @@ impl<'ctx, 'src> VineParser<'ctx, 'src> {
         Ok(expr)
       })?;
       if types.len() == 1 && !tuple {
-        return Ok(types.pop().unwrap().kind);
+        return Ok(TyKind::Paren(Box::new(types.pop().unwrap())));
       }
       return Ok(TyKind::Tuple(types));
     }

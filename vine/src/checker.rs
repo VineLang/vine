@@ -135,6 +135,7 @@ impl<'d> Checker<'d> {
     let span = ty.span;
     match &mut ty.kind {
       TyKind::Hole if inference => self.new_var(span),
+      TyKind::Paren(t) => self.hydrate_type(t, inference),
       TyKind::Hole => Type::Error(self.diags.add(Diag::ItemTypeHole { span })),
       TyKind::Fn(args, ret) => Type::Fn(
         args.iter_mut().map(|arg| self.hydrate_type(arg, inference)).collect(),

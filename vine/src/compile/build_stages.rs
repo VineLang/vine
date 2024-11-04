@@ -51,6 +51,7 @@ impl Compiler<'_> {
     match &expr.kind {
       ExprKind![sugar || error || !value] => unreachable!("{expr:?}"),
 
+      ExprKind::Paren(e) => self.lower_expr_value(e),
       ExprKind::U32(num) => Port::U32(*num),
       ExprKind::F32(num) => Port::F32(*num),
       ExprKind::Path(path) => Port::Global(path.path.to_string()),
@@ -181,6 +182,7 @@ impl Compiler<'_> {
   fn lower_expr_place(&mut self, expr: &Expr) -> (Port, Port) {
     match &expr.kind {
       ExprKind![sugar || error || !place] => unreachable!(),
+      ExprKind::Paren(e) => self.lower_expr_place(e),
       ExprKind::Local(l) => (self.get_local(*l), self.set_local(*l)),
       ExprKind::Inverse(e) => {
         let (a, b) = self.lower_expr_place(e);
@@ -202,6 +204,7 @@ impl Compiler<'_> {
   fn lower_expr_space(&mut self, expr: &Expr) -> Port {
     match &expr.kind {
       ExprKind![sugar || error || !space] => unreachable!(),
+      ExprKind::Paren(e) => self.lower_expr_space(e),
       ExprKind::Hole => Port::Erase,
       ExprKind::Set(e) => {
         let (v, s) = self.lower_expr_place(e);
@@ -218,6 +221,7 @@ impl Compiler<'_> {
     match &t.kind {
       PatKind![!value] => unreachable!(),
 
+      PatKind::Paren(e) => self.lower_pat_value(e),
       PatKind::Hole | PatKind::Adt(_, None) => Port::Erase,
       PatKind::Local(local) => {
         self.declare_local(*local);
@@ -236,6 +240,7 @@ impl Compiler<'_> {
     match &t.kind {
       PatKind![!place] => unreachable!(),
 
+      PatKind::Paren(e) => self.lower_pat_place(e),
       PatKind::Hole | PatKind::Adt(_, None) => self.net.new_wire(),
       PatKind::Local(local) => {
         self.declare_local(*local);
@@ -270,6 +275,7 @@ impl Compiler<'_> {
     match &t.kind {
       PatKind![!space] => unreachable!(),
 
+      PatKind::Paren(e) => self.lower_pat_space(e),
       PatKind::Hole | PatKind::Adt(_, None) => Port::Erase,
       PatKind::Local(local) => {
         self.declare_local(*local);

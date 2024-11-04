@@ -64,7 +64,8 @@ pub trait VisitMut<'a> {
       | ExprKind::Return(None)
       | ExprKind::Break(None)
       | ExprKind::SetLocal(_) => {}
-      ExprKind::Ref(a)
+      ExprKind::Paren(a)
+      | ExprKind::Ref(a)
       | ExprKind::Deref(a)
       | ExprKind::Move(a)
       | ExprKind::Field(a, _)
@@ -159,9 +160,11 @@ pub trait VisitMut<'a> {
   fn _visit_pat(&mut self, pat: &'a mut Pat) {
     match &mut pat.kind {
       PatKind::Hole | PatKind::Local(_) | PatKind::Error(_) => {}
-      PatKind::Ref(a) | PatKind::Deref(a) | PatKind::Move(a) | PatKind::Inverse(a) => {
-        self.visit_pat(a)
-      }
+      PatKind::Paren(a)
+      | PatKind::Ref(a)
+      | PatKind::Deref(a)
+      | PatKind::Move(a)
+      | PatKind::Inverse(a) => self.visit_pat(a),
       PatKind::Tuple(a) => {
         for t in a {
           self.visit_pat(t);
@@ -181,7 +184,7 @@ pub trait VisitMut<'a> {
   fn _visit_type(&mut self, ty: &'a mut Ty) {
     match &mut ty.kind {
       TyKind::Hole | TyKind::Generic(_) => {}
-      TyKind::Ref(t) | TyKind::Inverse(t) => self.visit_type(t),
+      TyKind::Paren(t) | TyKind::Ref(t) | TyKind::Inverse(t) => self.visit_type(t),
       TyKind::Path(p) => self.visit_generic_path(p),
       TyKind::Tuple(a) => {
         for t in a {
