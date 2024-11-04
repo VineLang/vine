@@ -1,4 +1,9 @@
-use std::{fs, path::PathBuf, process::exit};
+use std::{
+  fs,
+  io::{stdin, Read},
+  path::PathBuf,
+  process::exit,
+};
 
 use anyhow::Result;
 use clap::{Args, Parser};
@@ -157,14 +162,12 @@ impl VineReplCommand {
 }
 
 #[derive(Debug, Args)]
-pub struct VineFmtCommand {
-  #[arg()]
-  path: PathBuf,
-}
+pub struct VineFmtCommand {}
 
 impl VineFmtCommand {
   pub fn execute(self) -> Result<()> {
-    let src = fs::read_to_string(self.path)?;
+    let mut src = String::new();
+    stdin().read_to_string(&mut src)?;
     let arena = &*Box::leak(Box::new(BytesArena::default()));
     let interner = StringInterner::new(arena);
     println!("{}", vine::fmt::fmt(&interner, &src).unwrap());

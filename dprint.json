@@ -7,7 +7,7 @@
   },
   "exec": {
     "commands": [{
-      "command": "cargo run --bin vine fmt {{file_path}}",
+      "command": "cargo run --bin vine fmt",
       "exts": ["vi"]
     }]
   },
