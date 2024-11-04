@@ -5,13 +5,14 @@ use crate::lexer::{Token, TokenSet};
 pub struct ParserState<'src, T: Token> {
   pub lexer: Lexer<'src, T>,
   pub token: Option<T>,
+  pub last_token_end: usize,
   pub expected: TokenSet<T>,
 }
 
 impl<'src, T: Token> ParserState<'src, T> {
   pub fn new(src: &'src str) -> Self {
     let lexer = Lexer::new(src);
-    ParserState { lexer, token: None, expected: TokenSet::default() }
+    ParserState { lexer, token: None, last_token_end: 0, expected: TokenSet::default() }
   }
 }
 
@@ -26,6 +27,7 @@ pub trait Parser<'src> {
 
   fn bump(&mut self) -> Result<(), Self::Error> {
     self.state().expected.reset();
+    self.state().last_token_end = self.state().lexer.span().end;
     self.state().token = self.state().lexer.next().transpose().map_err(|_| self.lex_error())?;
     Ok(())
   }

@@ -241,7 +241,7 @@ pub trait VisitMut<'a> {
             self.visit_item(item);
           }
         }
-        ModKind::Unloaded(_) | ModKind::Error(_) => {}
+        ModKind::Unloaded(..) | ModKind::Error(_) => {}
       },
       ItemKind::Struct(s) => {
         for ty in &mut s.fields {

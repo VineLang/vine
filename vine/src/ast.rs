@@ -86,7 +86,7 @@ pub struct ModItem {
 #[derive(Debug, Clone)]
 pub enum ModKind {
   Loaded(Vec<Item>),
-  Unloaded(PathBuf),
+  Unloaded(Span, PathBuf),
   Error(ErrorGuaranteed),
 }
 
@@ -307,7 +307,13 @@ pub enum BinaryOp {
 
 impl Display for BinaryOp {
   fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-    f.write_str(match self {
+    f.write_str(self.as_str())
+  }
+}
+
+impl BinaryOp {
+  pub fn as_str(&self) -> &'static str {
+    match self {
       BinaryOp::Range => "..",
       BinaryOp::RangeTo => "..=",
       BinaryOp::BitOr => "|",
@@ -321,7 +327,7 @@ impl Display for BinaryOp {
       BinaryOp::Mul => "*",
       BinaryOp::Div => "/",
       BinaryOp::Rem => "%",
-    })
+    }
   }
 }
 

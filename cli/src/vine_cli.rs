@@ -19,6 +19,7 @@ pub enum VineCommand {
   #[command(about = "Compile a Vine program to Ivy")]
   Build(VineBuildCommand),
 
+  Fmt(VineFmtCommand),
   Repl(VineReplCommand),
 }
 
@@ -28,6 +29,7 @@ impl VineCommand {
       VineCommand::Run(run) => run.execute(),
       VineCommand::Build(build) => build.execute(),
       VineCommand::Repl(repl) => repl.execute(),
+      VineCommand::Fmt(fmt) => fmt.execute(),
     }
   }
 }
@@ -150,6 +152,22 @@ impl VineReplCommand {
         Err(_) => break,
       }
     }
+    Ok(())
+  }
+}
+
+#[derive(Debug, Args)]
+pub struct VineFmtCommand {
+  #[arg()]
+  path: PathBuf,
+}
+
+impl VineFmtCommand {
+  pub fn execute(self) -> Result<()> {
+    let src = fs::read_to_string(self.path)?;
+    let arena = &*Box::leak(Box::new(BytesArena::default()));
+    let interner = StringInterner::new(arena);
+    println!("{}", vine::fmt::fmt(&interner, &src).unwrap());
     Ok(())
   }
 }
