@@ -3,7 +3,7 @@
 
 ::hello_world::main {
   fn(n0 _)
-  ::std::io::println = fn(ref(n0 _) fn(tup(13 tup(tup(72 tup(101 tup(108 tup(108 tup(111 tup(44 tup(32 tup(119 tup(111 tup(114 tup(108 tup(100 tup(33 n1))))))))))))) n1)) _))
+  ::std::io::println = fn(n0 fn(tup(13 tup(tup(72 tup(101 tup(108 tup(108 tup(111 tup(44 tup(32 tup(119 tup(111 tup(114 tup(108 tup(100 tup(33 n2))))))))))))) n2)) _))
 }
 
 ::std::io::println {

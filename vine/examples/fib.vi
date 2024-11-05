@@ -1,9 +1,9 @@
 
 use std::{io::println, u32};
 
-const end = 32;
+const end: u32 = 32;
 
-fn main(io) {
+fn main(&io: &IO) {
   let n = 0;
   let a = 0;
   let b = 1;

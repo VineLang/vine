@@ -1,30 +1,36 @@
 
-use std::option::Option::{Some, None};
+use std::option::Option::{Option, Some, None};
+
+struct List[T](u32, Buf[T], ~Buf[T]);
+
+struct Buf[T](T, Buf[T]);
+
+type String = List[u32];
 
 mod List {
-  fn len(&(len, _, _)) {
+  fn len[T](&List(len, _, _): &List[T]) -> u32 {
     len
   }
 
-  fn map(&move (l, buf, ~_), f) {
+  fn map[T, U](&move List(l, buf, ~_): &List[T], f: fn(T) -> U) -> List[U] {
     let len = l;
     let cur;
     let result = move ~cur;
     while l {
-      let (head, tail) = buf;
+      let Buf(head, tail) = buf;
       buf = tail;
       let next;
-      ~cur = (f(head), move ~next);
+      ~cur = Buf(f(head), move ~next);
       ~next = move ~cur;
       l -= 1;
     };
-    (len, result, move cur)
+    List(len, result, move cur)
   }
 
-  fn pop_front(&(len, buf, _)) {
+  fn pop_front[T](&List(len, buf, _): &List[T]) -> Option[T] {
     if len {
       len -= 1;
-      let (head, tail) = buf;
+      let Buf(head, tail) = buf;
       buf = tail;
       Some(head)
     } else {
@@ -32,15 +38,22 @@ mod List {
     }
   }
 
-  fn push_back(&list, el) {
+  fn concat[T](a: List[T], b: List[T]) -> List[T] {
+    let List(a_len, a_buf, ~a_end) = a;
+    let List(b_len, b_buf, ~b_end) = b;
+    a_end = b_buf;
+    List(a_len + b_len, a_buf, move ~b_end)
+  }
+
+  fn push_back[T](&list: &List[T], el: T) {
     list ++= [el];
   }
 
-  fn push_front(&list, el) {
+  fn push_front[T](&list: &List[T], el: T) {
     list = [el] ++ list;
   }
 
-  fn join(&move list, sep) {
+  fn join(&move list: &List[String], sep: String) -> String {
     let it = list.into_iter();
     if it.into_iter::next() is Some(str) {
       while it.into_iter::next() is Some(val) {
@@ -52,19 +65,21 @@ mod List {
     }
   }
 
-  fn to_string(elem_to_string, list) {
+  fn to_string[T](elem_to_string: fn(T) -> String, list: List[T]) -> String {
     "[" ++ list.map(elem_to_string).join(", ") ++ "]"
   }
 
-  fn iter(&(len, buf, _)) {
-    (len, &buf)
+  struct Iter[T](u32, &Buf[T]);
+
+  fn iter[T](&List(len, buf, _): &List[T]) -> Iter[T] {
+    Iter(len, &buf)
   }
 
   mod iter {
-    fn next(&(len, buf)) {
+    fn next[T](&Iter(len, buf): &Iter[T]) -> Option[&T] {
       if len {
         len -= 1;
-        let &(*head, *tail) = buf;
+        let &Buf(*head, *tail) = buf;
         buf = tail;
         Some(head)
       } else {
@@ -74,15 +89,17 @@ mod List {
     }
   }
 
-  fn into_iter(&move (len, buf, _)) {
-    (len, buf)
+  struct IntoIter[T](u32, Buf[T]);
+
+  fn into_iter[T](&move List(len, buf, _): &List[T]) -> IntoIter[T] {
+    IntoIter(len, buf)
   }
 
   mod into_iter {
-    fn next(&(len, buf)) {
+    fn next[T](&IntoIter(len, buf): &IntoIter[T]) -> Option[T] {
       if len {
         len -= 1;
-        let (head, tail) = buf;
+        let Buf(head, tail) = buf;
         buf = tail;
         Some(head)
       } else {

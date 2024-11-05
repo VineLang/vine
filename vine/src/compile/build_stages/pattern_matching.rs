@@ -2,10 +2,10 @@ use std::{collections::HashMap, ops::Range};
 
 use crate::{
   compile::{Local, StageId},
-  resolve::NodeId,
+  resolve::DefId,
 };
 
-use super::{Compiler, Expr, Node, Pat, PatKind, Step};
+use super::{Compiler, Def, Expr, Pat, PatKind, Step};
 
 impl Compiler<'_> {
   pub(super) fn lower_match<'p, A>(
@@ -100,8 +100,8 @@ impl Compiler<'_> {
         }
         self.lower_decision_tree(arms, *next, f)
       }
-      DecisionTree::Switch(var, adt, cases, fallback) => {
-        let adt = self.nodes[adt].adt.as_ref().unwrap();
+      DecisionTree::Switch(var, def_id, cases, fallback) => {
+        let adt_def = self.defs[def_id].adt_def.as_ref().unwrap();
 
         let fallback_needs_var = fallback.as_ref().is_some_and(|x| x.0);
         let mut fallback = fallback.map(|x| x.1);
@@ -132,7 +132,7 @@ impl Compiler<'_> {
                 end = self_.lower_decision_tree(arms, tree, f);
               }
               if var.is_place || should_fallback && fallback_needs_var {
-                let r = self_.make_enum(adt, v, case.vars.clone(), Self::fin_move_local);
+                let r = self_.make_enum(adt_def, v, case.vars.clone(), Self::fin_move_local);
                 self_.set_local_to(var.local, r);
               }
               self_.cur.header = Some((root.1, inner));
@@ -178,7 +178,7 @@ struct MatchVar {
 enum DecisionTree {
   Leaf(Body),
   Missing,
-  Switch(MatchVar, NodeId, Vec<Case>, Option<(bool, Box<DecisionTree>)>),
+  Switch(MatchVar, DefId, Vec<Case>, Option<(bool, Box<DecisionTree>)>),
   Tuple(MatchVar, Range<Local>, Box<DecisionTree>),
   Deref(MatchVar, MatchVar, Box<DecisionTree>),
 }
@@ -210,7 +210,7 @@ struct Body {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum PatternType {
   Tuple(usize),
-  Adt(NodeId),
+  Adt(DefId),
   Ref,
   Move,
 }
@@ -268,16 +268,16 @@ impl Compiler<'_> {
         self.build_decision_tree(rows, arm_counts)
       }
       PatternType::Adt(adt_id) => {
-        let adt = self.nodes[adt_id].adt.as_ref().unwrap();
+        let adt = self.defs[adt_id].adt_def.as_ref().unwrap();
         let mut variants = vec![vec![]; adt.variants.len()];
         let mut wildcard = vec![];
 
         for mut row in rows.into_iter() {
           let bucket = if let Some(pat) = row.remove_column(var) {
             let PatKind::Adt(v, children) = &pat.kind else { unreachable!() };
-            let v = v.resolved.unwrap();
+            let v = v.path.resolved.unwrap();
             let children = children.as_deref().unwrap_or(&[]);
-            let v = self.nodes[v].variant.as_ref().unwrap();
+            let v = self.defs[v].variant_def.as_ref().unwrap();
             assert_eq!(v.fields.len(), children.len());
             row.cells.extend(children.iter().enumerate().map(|(i, p)| Cell {
               var: MatchVar { local: self.local_count + i, is_place: var.is_place },
@@ -293,7 +293,7 @@ impl Compiler<'_> {
         let max_local_count = adt
           .variants
           .iter()
-          .map(|x| self.nodes[*x].variant.as_ref().unwrap().fields.len())
+          .map(|x| self.defs[*x].variant_def.as_ref().unwrap().fields.len())
           .max()
           .unwrap_or(0);
 
@@ -304,7 +304,7 @@ impl Compiler<'_> {
           .into_iter()
           .enumerate()
           .map(|(v, mut rows)| {
-            let field_count = self.nodes[adt.variants[v]].variant.as_ref().unwrap().fields.len();
+            let field_count = self.defs[adt.variants[v]].variant_def.as_ref().unwrap().fields.len();
             let vars = base..(base + field_count);
             Case {
               vars,
@@ -344,7 +344,7 @@ impl Compiler<'_> {
 
     for row in rows {
       for cell in &row.cells {
-        let ty = cell.pat_type(self.nodes);
+        let ty = cell.pat_type(self.defs);
         let entry = refs.entry(cell.var).or_insert((0, Some(ty)));
         entry.0 += 1;
         if entry.1 != Some(ty) {
@@ -404,10 +404,10 @@ impl<'t> Row<'t> {
 }
 
 impl Cell<'_> {
-  fn pat_type(&self, nodes: &[Node]) -> PatternType {
+  fn pat_type(&self, defs: &[Def]) -> PatternType {
     match &self.pattern.kind {
       PatKind::Adt(p, _) => {
-        PatternType::Adt(nodes[p.resolved.unwrap()].variant.as_ref().unwrap().adt)
+        PatternType::Adt(defs[p.path.resolved.unwrap()].variant_def.as_ref().unwrap().adt)
       }
       PatKind::Tuple(e) => PatternType::Tuple(e.len()),
       PatKind::Ref(_) => PatternType::Ref,

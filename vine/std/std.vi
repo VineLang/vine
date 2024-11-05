@@ -5,6 +5,5 @@ mod list = "./list.vi";
 mod option = "./option.vi";
 mod result = "./result.vi";
 mod rng = "./rng.vi";
-mod str = "./str.vi";
 mod u32 = "./u32.vi";
 mod u64 = "./u64.vi";

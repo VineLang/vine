@@ -2,8 +2,9 @@
 use std::{
   io::println,
   u32,
-  bool::{true, false},
+  bool::{bool, true, false},
   option::Option::{
+    Option,
     Some,
     None,
     map,
@@ -16,11 +17,11 @@ use std::{
   }
 };
 
-fn main(io) {
+fn main(&io: &IO) {
   io.println("map:");
-  io.print_option_u32(None.map(fn(x) x + 1));
-  io.print_option_u32(Some(0).map(fn(x) x + 1));
-  io.print_option_u32(Some(100).map(fn(x) x + 1));
+  io.print_option_u32(None.map(fn(x: u32) x + 1));
+  io.print_option_u32(Some(0).map(fn(x: u32) x + 1));
+  io.print_option_u32(Some(100).map(fn(x: u32) x + 1));
 
   io.println("increment_option:");
   let option = None;
@@ -62,12 +63,12 @@ fn main(io) {
   io.print_bool(Some(()) is None);
 
   io.println("is_some_and:");
-  io.print_bool(None is Some(x) && x > 0);
+  io.print_bool(None[u32] is Some(x) && x > 0);
   io.print_bool(Some(0) is Some(x) && x > 0);
   io.print_bool(Some(1) is Some(x) && x > 0);
 
   io.println("is_some_implies:");
-  io.print_bool(None is Some(x) => x > 0);
+  io.print_bool(None[u32] is Some(x) => x > 0);
   io.print_bool(Some(0) is Some(x) => x > 0);
   io.print_bool(Some(1) is Some(x) => x > 0);
 
@@ -77,28 +78,28 @@ fn main(io) {
   io.println("io will never work again :(");
 }
 
-fn print_option_u32(&io, option) {
+fn print_option_u32(&io: &IO, option: Option[u32]) {
   io.println("  " ++ match option {
     Some(val) => "Some(" ++ u32::to_string(val) ++ ")",
     None => "None",
   })
 }
 
-fn print_u32(&io, val) {
+fn print_u32(&io: &IO, val: u32) {
   io.println("  " ++ u32::to_string(val))
 }
 
-fn print_bool(&io, bool) {
+fn print_bool(&io: &IO, bool: bool) {
   io.println(if bool { "  true" } else { "  false" })
 }
 
-fn increment_option(&option) {
+fn increment_option(&option: &Option[u32]) {
   match option.as_ref() {
     Some(&x) => x += 1,
     None => {}
   }
 }
 
-fn add_options(a, b) {
-  a.and_then(fn(a) b.map(fn(b) a + b))
+fn add_options(a: Option[u32], b: Option[u32]) -> Option[u32] {
+  a.and_then(fn(a: u32) b.map(fn(b: u32) a + b))
 }

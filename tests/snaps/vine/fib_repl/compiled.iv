@@ -1,17 +1,21 @@
 
 ::main { ::fib_repl::main }
 
-::fib_repl::main { fn(::fib_repl::main::1 _) }
+::fib_repl::main {
+  fn(ref(n0 n1) _)
+  ::fib_repl::main::1 = x(n0 n1)
+}
 
 ::fib_repl::main::1 {
-  n0
-  ::std::io::prompt = fn(ref(n0 n2) fn(tup(2 tup(tup(62 tup(32 n1)) n1)) enum(::fib_repl::main::2 enum(_ n2))))
+  x(n1 n3)
+  ::std::io::prompt = fn(ref(n1 n2) fn(tup(2 tup(tup(62 tup(32 n0)) n0)) enum(::fib_repl::main::2 enum(::fib_repl::main::5 x(n2 n3)))))
 }
 
 ::fib_repl::main::2 {
-  enum(n0 n1)
-  ::std::u32::parse = fn(n0 enum(::fib_repl::main::3 enum(::fib_repl::main::4 n2)))
-  ::std::io::println = fn(ref(n1 ::fib_repl::main::1) fn(n2 _))
+  enum(n0 x(n2 n4))
+  ::std::u32::parse = fn(n0 enum(::fib_repl::main::3 enum(::fib_repl::main::4 n1)))
+  ::std::io::println = fn(ref(n2 n3) fn(n1 _))
+  ::fib_repl::main::1 = x(n3 n4)
 }
 
 ::fib_repl::main::3 {
@@ -21,6 +25,8 @@
 }
 
 ::fib_repl::main::4 { tup(14 tup(tup(105 tup(110 tup(118 tup(97 tup(108 tup(105 tup(100 tup(32 tup(110 tup(117 tup(109 tup(98 tup(101 tup(114 n0)))))))))))))) n0)) }
+
+::fib_repl::main::5 { x(n0 n0) }
 
 ::fib_repl::fib {
   fn(n0 n1)
@@ -71,31 +77,29 @@
 
 ::std::io::read_line {
   fn(ref(n0 n2) n3)
-  ::std::io::read_byte = fn(ref(n0 n1) fn(0 dup46(?(::std::io::read_line::9 ::std::io::read_line::1 x(n1 x(n2 x(n4 n3)))) n4)))
+  ::std::io::read_byte = fn(ref(n0 n1) fn(0 dup48(?(::std::io::read_line::9 ::std::io::read_line::1 x(n1 x(n2 x(n4 n3)))) n4)))
 }
 
 ::std::io::read_line::1 {
-  x(n1 x(n2 x(dup46(@eq(10 ?(::std::io::read_line::3 ::std::io::read_line::2 x(n1 x(n2 x(n4 n3))))) n4) n0)))
+  x(n1 x(n2 x(dup48(@eq(10 ?(::std::io::read_line::3 ::std::io::read_line::2 x(n1 x(n2 x(n4 n3))))) n4) n0)))
   ::std::option::Option::Some = fn(n3 n0)
 }
 
 ::std::io::read_line::2 { x(n1 x(n1 x(_ tup(0 tup(n0 n0))))) }
 
 ::std::io::read_line::3 {
-  x(n1 x(n2 x(n0 n4)))
-  ::std::str::single = fn(n0 n3)
-  ::std::io::read_line::4 = x(n1 x(n2 x(n3 n4)))
+  x(n2 x(n3 x(n1 n4)))
+  ::std::io::read_line::4 = x(n2 x(n3 x(tup(1 tup(tup(n1 n0) n0)) n4)))
 }
 
 ::std::io::read_line::4 {
   x(n0 x(n2 n3))
-  ::std::io::read_byte = fn(ref(n0 n1) fn(10 dup46(@ne(10 ?(::std::io::read_line::6 ::std::io::read_line::5 x(n1 x(n2 x(n5 n3))))) n5)))
+  ::std::io::read_byte = fn(ref(n0 n1) fn(10 dup48(@ne(10 ?(::std::io::read_line::6 ::std::io::read_line::5 x(n1 x(n2 x(n5 n3))))) n5)))
 }
 
 ::std::io::read_line::5 {
   x(n3 x(n4 x(n1 x(n2 n6))))
-  ::std::str::single = fn(n1 n0)
-  ::std::str::concat = fn(n2 fn(n0 n5))
+  ::std::list::List::concat = fn(n2 fn(tup(1 tup(tup(n1 n0) n0)) n5))
   ::std::io::read_line::4 = x(n3 x(n4 x(n5 n6)))
 }
 
@@ -105,34 +109,38 @@
 
 ::std::io::read_byte { fn(ref(dup(io0 @io_read_byte(default dup(byte @seq$(io0 io1)))) io1) fn(default byte)) }
 
+::std::list::List { fn(n0 fn(n1 fn(n2 tup(n0 tup(n1 n2))))) }
+
+::std::list::List::concat {
+  fn(tup(@add(n1 n2) tup(n3 n0)) fn(tup(n1 tup(n0 n4)) n5))
+  ::std::list::List = fn(n2 fn(n3 fn(n4 n5)))
+}
+
 ::std::option::Option::Some { fn(n0 enum(enum(n0 n1) enum(_ n1))) }
 
 ::std::option::Option::None { enum(_ enum(n0 n0)) }
 
-::std::str::concat { fn(tup(@add(n1 n2) tup(n3 n0)) fn(tup(n1 tup(n0 n4)) tup(n2 tup(n3 n4)))) }
-
-::std::str::single { fn(n0 tup(1 tup(tup(n0 n1) n1))) }
-
-::std::u32::to_string { fn(dup255(?(::std::u32::to_string::5 ::std::u32::to_string::1 x(n1 n0)) n1) n0) }
+::std::u32::to_string { fn(dup254(?(::std::u32::to_string::5 ::std::u32::to_string::1 x(n1 n0)) n1) n0) }
 
 ::std::u32::to_string::1 {
   x(n1 n2)
   ::std::u32::to_string::2 = x(n1 x(tup(0 tup(n0 n0)) n2))
 }
 
-::std::u32::to_string::2 { x(dup255(?(::std::u32::to_string::4 ::std::u32::to_string::3 x(n2 n0)) n2) n0) }
+::std::u32::to_string::2 { x(dup254(?(::std::u32::to_string::4 ::std::u32::to_string::3 x(n2 n0)) n2) n0) }
 
 ::std::u32::to_string::3 {
-  x(dup255(@rem(10 n1) @div(10 n5)) x(tup(@add(1 n0) tup(n3 n4)) n6))
-  48 = @add(n1 n2)
-  ::std::u32::to_string::2 = x(n5 x(tup(n0 tup(tup(n2 n3) n4)) n6))
+  x(dup254(@rem(10 n0) @div(10 n4)) x(n3 n6))
+  48 = @add(n0 n1)
+  ::std::list::List::concat = fn(tup(1 tup(tup(n1 n2) n2)) fn(n3 n5))
+  ::std::u32::to_string::2 = x(n4 x(n5 n6))
 }
 
 ::std::u32::to_string::4 { x(_ x(n0 n0)) }
 
 ::std::u32::to_string::5 { x(_ tup(1 tup(tup(48 n0) n0))) }
 
-::std::u32::parse { fn(tup(dup265(@eq(0 ?(::std::u32::parse::2 ::std::u32::parse::1 x(n2 x(n0 n1)))) n2) tup(n0 _)) n1) }
+::std::u32::parse { fn(tup(dup261(@eq(0 ?(::std::u32::parse::2 ::std::u32::parse::1 x(n2 x(n0 n1)))) n2) tup(n0 _)) n1) }
 
 ::std::u32::parse::1 {
   x(_ x(_ n0))
@@ -144,10 +152,10 @@
   ::std::u32::parse::3 = x(n0 x(n1 x(0 n2)))
 }
 
-::std::u32::parse::3 { x(dup265(?(::std::u32::parse::9 ::std::u32::parse::4 x(n3 n0)) n3) n0) }
+::std::u32::parse::3 { x(dup261(?(::std::u32::parse::9 ::std::u32::parse::4 x(n3 n0)) n3) n0) }
 
 ::std::u32::parse::4 {
-  x(n2 x(tup(dup268(dup(n0 @le(57 n1)) n6) n3) x(n4 n5)))
+  x(n2 x(tup(dup264(dup(n0 @le(57 n1)) n6) n3) x(n4 n5)))
   48 = @le(n0 @u32_and(n1 ?(::std::u32::parse::6 ::std::u32::parse::8 x(n2 x(n3 x(n4 x(n6 n5)))))))
 }
 

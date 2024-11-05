@@ -7,7 +7,7 @@ use vine_util::bicycle::BicycleState;
 
 use crate::{
   ast::Expr,
-  resolve::{Node, NodeValue},
+  resolve::{Def, ValueDefKind},
 };
 
 mod build_stages;
@@ -18,16 +18,16 @@ mod net_builder;
 
 use net_builder::*;
 
-pub fn compile(nodes: &[Node], items: &[String]) -> Nets {
-  let mut compiler = Compiler::new(nodes);
+pub fn compile(defs: &[Def], items: &[String]) -> Nets {
+  let mut compiler = Compiler::new(defs);
 
   if items.is_empty() {
     compiler.compile_all();
   } else {
-    for node in nodes {
-      let canonical = &node.canonical.to_string()[2..];
+    for def in defs {
+      let canonical = &def.canonical.to_string()[2..];
       if items.iter().any(|x| x == canonical) {
-        compiler.compile_node(node);
+        compiler.compile_def(def);
       }
     }
   }
@@ -36,10 +36,10 @@ pub fn compile(nodes: &[Node], items: &[String]) -> Nets {
 }
 
 #[derive(Debug, Default)]
-pub struct Compiler<'n> {
+pub struct Compiler<'d> {
   pub nets: Nets,
 
-  nodes: &'n [Node],
+  defs: &'d [Def],
 
   name: String,
   interfaces: Vec<Interface>,
@@ -58,11 +58,11 @@ pub struct Compiler<'n> {
   dup_labels: usize,
 }
 
-impl<'n> Compiler<'n> {
-  pub fn new(nodes: &'n [Node]) -> Self {
+impl<'d> Compiler<'d> {
+  pub fn new(defs: &'d [Def]) -> Self {
     Compiler {
       nets: Default::default(),
-      nodes,
+      defs,
       name: Default::default(),
       interfaces: Default::default(),
       stages: Default::default(),
@@ -78,24 +78,24 @@ impl<'n> Compiler<'n> {
   }
 
   pub fn compile_all(&mut self) {
-    for node in self.nodes {
-      self.compile_node(node);
+    for def in self.defs {
+      self.compile_def(def);
     }
   }
 
-  pub fn compile_node(&mut self, node: &Node) {
+  pub fn compile_def(&mut self, def: &Def) {
     self.net = Default::default();
-    let Some(value) = &node.value else { return };
-    match value {
-      NodeValue::Expr(expr) => {
-        self.compile_expr(&mut { node.locals }, node.canonical.to_string(), expr, []);
+    let Some(value_def) = &def.value_def else { return };
+    match &value_def.kind {
+      ValueDefKind::Expr(expr) => {
+        self.compile_expr(&mut { value_def.locals }, def.canonical.to_string(), expr, []);
       }
-      NodeValue::Ivy(net) => {
-        self.nets.insert(node.canonical.to_string(), net.clone());
+      ValueDefKind::Ivy(net) => {
+        self.nets.insert(def.canonical.to_string(), net.clone());
       }
-      NodeValue::AdtConstructor => {
-        let net = self.lower_adt_constructor(node);
-        self.nets.insert(node.canonical.to_string(), net);
+      ValueDefKind::AdtConstructor => {
+        let net = self.lower_adt_constructor(def);
+        self.nets.insert(def.canonical.to_string(), net);
       }
     }
   }

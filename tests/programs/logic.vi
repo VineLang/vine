@@ -1,7 +1,7 @@
 
-use std::{io::println, bool::{true, false}};
+use std::{io::println, bool::{bool, true, false}};
 
-fn main(&io) {
+fn main(&io: &IO) {
   io.print_bool(true);
   io.print_bool(true && true);
   io.print_bool(true || true);
@@ -22,14 +22,14 @@ fn main(&io) {
   io.print_bool(!true);
   io.print_bool(!!false);
 
-  // Test short-circuiting behavior; `()` is an eraser node,
+  // Test short-circuiting behavior; `~_` is an eraser node,
   // so would erase `io` if it was evaluated.
   io.println("---");
-  io.print_bool(true || ());
-  io.print_bool(false => ());
-  io.print_bool(false && ());
+  io.print_bool(true || ~_);
+  io.print_bool(false => ~_);
+  io.print_bool(false && ~_);
 }
 
-fn print_bool(&io, bool) {
+fn print_bool(&io: &IO, bool: bool) {
   io.println(if bool { "true" } else { "false" })
 }

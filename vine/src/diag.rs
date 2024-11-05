@@ -9,7 +9,7 @@ use std::{
 use vine_util::lexer::TokenSet;
 
 use crate::{
-  ast::{Ident, Path, Span},
+  ast::{BinaryOp, Ident, Path, Span},
   lexer::Token,
 };
 
@@ -80,8 +80,60 @@ diags! {
     ["`*` is only valid in a place pattern"]
   RefSpacePat
     ["`&` is invalid in a space pattern"]
-  ExpectedRefutablePat
+  ExpectedIrrefutablePat
     ["expected an irrefutable pattern"]
+  CannotInfer
+    ["cannot infer type"]
+  BadBinOp { op: BinaryOp, assign: bool, lhs: String, rhs: String }
+    ["cannot apply operator `{op}{}` to types `{lhs}` and `{rhs}`", if *assign { "=" } else { "" }]
+  MismatchedThenElseTypes { then: String, els: String }
+    ["then block has type `{then}` but else block has type `{els}`"]
+  BadArgCount { ty: String, expected: usize, got: usize }
+    ["function type `{ty}` expects {expected} argument{}; was passed {got}", plural(*expected, "s", "")]
+  NonFunctionCall { ty: String }
+    ["cannot call non-function type `{ty}`"]
+  CannotCompare { lhs: String, rhs: String}
+    ["cannot compare `{lhs}` and `{rhs}`"]
+  NonMethodFunction { ty: String }
+    ["invalid method; function type `{ty}` does not accept reference as first parameter"]
+  ExpectedTypeFound { expected: String, found: String }
+    ["expected type `{expected}`; found `{found}`"]
+  PathNoValue { path: Path }
+    ["no value associated with `{path}`"]
+  PathNoType { path: Path }
+    ["no type associated with `{path}`"]
+  PathNoPat { path: Path }
+    ["no pattern associated with `{path}`"]
+  BadGenericCount { path: Path, expected: usize, got: usize }
+    ["`{path}` expects {expected} generic{}; was passed {got}", plural(*expected, "s", "")]
+  BadFieldCount { path: Path, expected: usize, got: usize }
+    ["`{path}` has {expected} field{}; {got} {} matched", plural(*expected, "s", ""), plural(*got, "were", "was")]
+  FnItemUntypedParam
+    ["fn item parameters must be explicitly typed"]
+  ItemTypeHole
+    ["types in item signatures cannot be elided"]
+  RecursiveTypeAlias
+    ["type aliases cannot be recursive"]
+  NoList
+    ["cannot find `std::list::List`"]
+  NoReturn
+    ["no function to return from"]
+  NoLoopBreak
+    ["no loop to break from"]
+  NoLoopContinue
+    ["no loop to continue"]
+  MissingReturnExpr { ty: String }
+    ["expected a value of type `{ty}` to return"]
+  MissingBreakExpr { ty: String }
+    ["expected a value of type `{ty}` to break with"]
+}
+
+fn plural<'a>(n: usize, plural: &'a str, singular: &'a str) -> &'a str {
+  if n == 1 {
+    singular
+  } else {
+    plural
+  }
 }
 
 #[derive(Default, Debug)]
@@ -138,8 +190,14 @@ impl Diag {
   }
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct ErrorGuaranteed(());
+
+impl ErrorGuaranteed {
+  pub fn new_unchecked() -> Self {
+    ErrorGuaranteed(())
+  }
+}
 
 impl From<ErrorGuaranteed> for Diag {
   fn from(value: ErrorGuaranteed) -> Self {
@@ -178,3 +236,24 @@ impl Display for Pos<'_> {
     write!(f, "{}:{}:{}", self.file, self.line + 1, self.col + 1)
   }
 }
+
+impl<T> From<ErrorGuaranteed> for Result<T, Diag> {
+  fn from(value: ErrorGuaranteed) -> Self {
+    Err(value.into())
+  }
+}
+
+macro_rules! report {
+  ($group:expr $(, $target:expr)*; $result:expr) => {
+    match $result {
+      Ok(value) => value,
+      Err(diag) => {
+        let err = $group.add(diag);
+        $($target = err.into();)*
+        return err.into();
+      }
+    }
+  };
+}
+
+pub(crate) use report;

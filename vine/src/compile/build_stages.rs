@@ -2,7 +2,7 @@ use std::mem::{swap, take};
 
 use ivm::ext::{ExtFn, ExtFnKind};
 
-use crate::{ast::*, resolve::Node};
+use crate::{ast::*, resolve::Def};
 
 use super::{Compiler, Port, StageId, Step, Usage, WireDir};
 
@@ -49,11 +49,11 @@ impl Compiler<'_> {
 
   fn lower_expr_value(&mut self, expr: &Expr) -> Port {
     match &expr.kind {
-      ExprKind![sugar || error || !value] => unreachable!(),
+      ExprKind![sugar || error || !value] => unreachable!("{expr:?}"),
 
       ExprKind::U32(num) => Port::U32(*num),
       ExprKind::F32(num) => Port::F32(*num),
-      ExprKind::Path(path) => Port::Global(path.to_string()),
+      ExprKind::Path(path) => Port::Global(path.path.to_string()),
       ExprKind::Assign(s, v) => {
         let v = self.lower_expr_value(v);
         let s = self.lower_expr_space(s);
@@ -128,7 +128,7 @@ impl Compiler<'_> {
       },
       ExprKind::Inverse(x) => self.lower_expr_space(x),
 
-      ExprKind::Fn(params, body) => self.lower_fn(params, body),
+      ExprKind::Fn(params, _, body) => self.lower_fn(params, body),
       ExprKind::Loop(body) => self.lower_loop(body),
       ExprKind::While(cond, body) => self.lower_while(cond, body),
       ExprKind::If(cond, then, els) => self.lower_if(cond, then, els),
@@ -216,14 +216,14 @@ impl Compiler<'_> {
 
   fn lower_pat_value(&mut self, t: &Pat) -> Port {
     match &t.kind {
-      PatKind![!value || refutable] => unreachable!(),
+      PatKind![!value] => unreachable!(),
 
-      PatKind::Hole => Port::Erase,
+      PatKind::Hole | PatKind::Adt(_, None) => Port::Erase,
       PatKind::Local(local) => {
         self.declare_local(*local);
         self.set_local(*local)
       }
-      PatKind::Tuple(t) => self.tuple(t, Self::lower_pat_value),
+      PatKind::Tuple(t) | PatKind::Adt(_, Some(t)) => self.tuple(t, Self::lower_pat_value),
       PatKind::Ref(p) => {
         let (a, b) = self.lower_pat_place(p);
         self.new_comb("ref", a, b)
@@ -234,9 +234,9 @@ impl Compiler<'_> {
 
   fn lower_pat_place(&mut self, t: &Pat) -> (Port, Port) {
     match &t.kind {
-      PatKind![!place || refutable] => unreachable!(),
+      PatKind![!place] => unreachable!(),
 
-      PatKind::Hole => self.net.new_wire(),
+      PatKind::Hole | PatKind::Adt(_, None) => self.net.new_wire(),
       PatKind::Local(local) => {
         self.declare_local(*local);
         let x = self.set_local(*local);
@@ -262,15 +262,15 @@ impl Compiler<'_> {
         self.net.link(r, s);
         (x.1, y.1)
       }
-      PatKind::Tuple(t) => self.tuple_pairs(t, Self::lower_pat_place),
+      PatKind::Tuple(t) | PatKind::Adt(_, Some(t)) => self.tuple_pairs(t, Self::lower_pat_place),
     }
   }
 
   fn lower_pat_space(&mut self, t: &Pat) -> Port {
     match &t.kind {
-      PatKind![!space || refutable] => unreachable!(),
+      PatKind![!space] => unreachable!(),
 
-      PatKind::Hole => Port::Erase,
+      PatKind::Hole | PatKind::Adt(_, None) => Port::Erase,
       PatKind::Local(local) => {
         self.declare_local(*local);
         let x = self.net.new_wire();
@@ -278,8 +278,7 @@ impl Compiler<'_> {
         x.1
       }
       PatKind::Inverse(x) => self.lower_pat_value(x),
-
-      PatKind::Tuple(t) => self.tuple(t, Self::lower_pat_space),
+      PatKind::Tuple(t) | PatKind::Adt(_, Some(t)) => self.tuple(t, Self::lower_pat_space),
     }
   }
 

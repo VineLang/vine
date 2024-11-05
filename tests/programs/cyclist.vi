@@ -8,21 +8,19 @@ use std::{
   option::Option::{unwrap, Some},
 };
 
-fn main(io) {
+fn main(&io: &IO) {
   let list = [0];
   while list.len() < 32 {
-    list ++= {list}.map(fn(x) list.len() + x);
+    list ++= {list}.map(fn(x: u32) list.len() + x);
   }
 
   while list.pop_front() is Some(val) {
     cycle(&list, val);
-    io.println(u32::to_string(val) ++ ";\t" ++ show(list));
+    io.println(u32::to_string(val) ++ ";\t" ++ List::to_string(u32::to_string, list));
   }
 }
 
-const show = List::to_string(u32::to_string);
-
-fn cycle(&list, count) {
+fn cycle[T](&list: &List[T], count: u32) {
   let len = list.len();
   if len {
     count = count % len;

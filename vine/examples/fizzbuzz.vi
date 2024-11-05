@@ -1,9 +1,9 @@
 
-use std::{io::println, u32};
+use std::{io::println, u32, list::String};
 
-const end = 100;
+const end: u32 = 100;
 
-fn main(io) {
+fn main(&io: &IO) {
   let n = 1;
   while n <= end {
     io.println(message(n));
@@ -11,7 +11,7 @@ fn main(io) {
   }
 }
 
-fn message(n) {
+fn message(n: u32) -> String {
   let r3 = n % 3;
   let r5 = n % 5;
   if r3 {

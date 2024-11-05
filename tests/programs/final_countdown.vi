@@ -1,7 +1,7 @@
 
 use std::{io::println, u32};
 
-fn main(io) {
+fn main(&io: &IO) {
   let msg = "";
   let msg_ref = &msg;
   let i = 10;

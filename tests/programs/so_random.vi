@@ -1,8 +1,8 @@
-use std::{u32, io::println, rng, rng::gen_u32};
+use std::{u32, io::println, rng::Rng::{Rng, gen_u32}};
 
-fn main(io) {
+fn main(&io: &IO) {
   let i = 0;
-  let rng = rng::default;
+  let rng = Rng::default;
   while i < 100 {
     io.println(u32::to_string(rng.gen_u32()));
     i += 1;

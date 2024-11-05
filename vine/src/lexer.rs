@@ -104,6 +104,8 @@ pub enum Token {
   Struct,
   #[token("enum")]
   Enum,
+  #[token("type")]
+  Type,
   #[token("inline_ivy")]
   InlineIvy,
   #[token("match")]

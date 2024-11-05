@@ -2,17 +2,19 @@
 ::main { ::square_case::main }
 
 ::square_case::main {
-  fn(n0 _)
-  ::square_case::main::1 = x(n0 2)
+  fn(ref(n0 n1) _)
+  ::square_case::main::1 = x(n0 x(n1 2))
 }
 
-::square_case::main::1 { x(n0 dup2(@lt(1000 ?(_ ::square_case::main::2 x(n0 n1))) n1)) }
+::square_case::main::1 { x(n0 x(n1 dup2(@lt(1000 ?(::square_case::main::3 ::square_case::main::2 x(n0 x(n1 n2)))) n2))) }
 
 ::square_case::main::2 {
-  x(n0 dup2(n1 dup2(n2 @mul(n2 n4))))
+  x(n0 x(n4 dup2(n1 dup2(n2 @mul(n2 n5)))))
   ::square_case::dashes = fn(ref(n0 n3) fn(n1 _))
-  ::square_case::main::1 = x(n3 n4)
+  ::square_case::main::1 = x(n3 x(n4 n5))
 }
+
+::square_case::main::3 { x(n0 x(n0 _)) }
 
 ::square_case::dashes {
   fn(ref(n1 n0) fn(n3 _))

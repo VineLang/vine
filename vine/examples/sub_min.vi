@@ -6,15 +6,15 @@ use std::{
   list::{List, List::{iter, iter::next}},
 };
 
-fn main(&io) {
+fn main(&io: &IO) {
   let list = [4, 3, 7, 9];
   sub_min(&list);
   io.println(List::to_string(u32::to_string, list));
 }
 
-fn sub_min(&list) {
-  let min;
-  let min_acc = None;
+fn sub_min(&list: &List[u32]) {
+  let ~min: u32;
+  let min_acc = None[u32];
 
   let it = list.iter();
   while it.next() is Some(&val) {

@@ -1,13 +1,13 @@
 
 use std::io::{print_byte, print_bytes};
 
-const max_iter = 64;
-const width = 1024;
-const height = 1024;
-const scale = 2.6;
-const center = (-0.8, 0.0);
+const max_iter: u32 = 64;
+const width: u32 = 1024;
+const height: u32 = 1024;
+const scale: f32 = 2.6;
+const center: (f32, f32) = (-0.8, 0.0);
 
-fn main(io) {
+fn main(&io: &IO) {
   io.print_bytes([
     0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     width, width >> 8,
@@ -26,8 +26,11 @@ fn main(io) {
   }
 }
 
-fn mandelbrot(x0, y0) {
-  let (x, y, x2, y2) = 0.0;
+fn mandelbrot(x0: f32, y0: f32) -> u32 {
+  let x = 0.0;
+  let y = 0.0;
+  let x2 = 0.0;
+  let y2 = 0.0;
   let i = 0;
   while (i < max_iter) & (x2 + y2 < 4.0) {
     i += 1;

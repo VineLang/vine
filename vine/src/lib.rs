@@ -8,13 +8,13 @@ pub mod repl;
 pub mod resolve;
 pub mod visit;
 
+mod checker;
 mod lexer;
-mod validate;
 
 use std::path::PathBuf;
 
+use checker::Checker;
 use ivy::ast::Nets;
-use validate::Validate;
 use vine_util::{arena::BytesArena, interner::StringInterner};
 
 use crate::{
@@ -44,17 +44,17 @@ pub fn build(config: Config) -> Result<Nets, String> {
   let root = loader.finish();
 
   let mut resolver = Resolver::default();
-  resolver.build_graph(root);
+  resolver.build_graph(&interner, root);
   resolver.resolve_imports();
-  resolver.resolve_exprs();
+  resolver.resolve_defs();
 
   resolver.diags.report(&loader.files)?;
 
-  let mut validate = Validate::default();
-  validate.visit(&mut resolver.nodes);
-  validate.diags.report(&loader.files)?;
+  let mut checker = Checker::new(&mut resolver, &interner);
+  checker.check_defs();
+  checker.diags.report(&loader.files)?;
 
-  Desugar.visit(&mut resolver.nodes);
+  Desugar.visit(&mut resolver.defs);
 
-  Ok(compile(&resolver.nodes, &config.items))
+  Ok(compile(&resolver.defs, &config.items))
 }

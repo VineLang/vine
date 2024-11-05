@@ -56,6 +56,7 @@ fn tests(t: &mut DynTester) {
     test_vi(t, "tests/programs/square_case.vi", b"", ".txt");
 
     t.group("fail", |t| {
+      test_vi_fail(t, "tests/programs/fail/atypical.vi");
       test_vi_fail(t, "tests/programs/fail/hallo_world.vi");
       test_vi_fail(t, "tests/programs/fail/informal.vi");
       test_vi_fail(t, "tests/programs/fail/is_not.vi");
