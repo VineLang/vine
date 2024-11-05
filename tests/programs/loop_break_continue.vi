@@ -1,6 +1,4 @@
 
-use std::{io::println, u32};
-
 const end: u32 = 5;
 
 fn main(&io: &IO) {
@@ -17,6 +15,6 @@ fn main(&io: &IO) {
       continue;
     }
 
-    io.println(u32::to_string(n));
+    io.println(n.to_string());
   }
 }

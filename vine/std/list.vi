@@ -55,8 +55,8 @@ mod List {
 
   fn join(list: List[String], sep: String) -> String {
     let it = list.into_iter();
-    if it.into_iter::next() is Some(str) {
-      while it.into_iter::next() is Some(val) {
+    if it.next() is Some(str) {
+      while it.next() is Some(val) {
         str ++= sep ++ val;
       }
       str
@@ -75,7 +75,7 @@ mod List {
     Iter(len, &buf)
   }
 
-  mod iter {
+  mod Iter {
     fn next[T](&Iter(len, buf): &Iter[T]) -> Option[&T] {
       if len {
         len -= 1;
@@ -95,7 +95,7 @@ mod List {
     IntoIter(len, buf)
   }
 
-  mod into_iter {
+  mod IntoIter {
     fn next[T](&IntoIter(len, buf): &IntoIter[T]) -> Option[T] {
       if len {
         len -= 1;

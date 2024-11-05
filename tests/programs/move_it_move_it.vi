@@ -1,6 +1,4 @@
 
-use std::io::println;
-
 fn main(&it: &IO) {
   let &move it = &move it;
   (move it).println("move it!");

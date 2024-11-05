@@ -1,13 +1,11 @@
 
-use std::{io::println, u32};
-
 fn main(&io: &IO) {
   let msg = "";
   let msg_ref = &msg;
   let i = 10;
   while i > 0 {
     let &&m = &msg_ref;
-    m ++= u32::to_string(i) ++ "...\n"
+    m ++= i.to_string() ++ "...\n"
     i -= 1;
   }
   let &m = msg_ref;

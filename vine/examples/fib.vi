@@ -1,6 +1,4 @@
 
-use std::{io::println, u32};
-
 const end: u32 = 32;
 
 fn main(&io: &IO) {
@@ -8,7 +6,7 @@ fn main(&io: &IO) {
   let a = 0;
   let b = 1;
   while n <= end {
-    io.println("fib(" ++ u32::to_string(n) ++ ") = " ++ u32::to_string(a));
+    io.println("fib(" ++ n.to_string() ++ ") = " ++ a.to_string());
     (a, b) = (b, a + b);
     n += 1;
   }

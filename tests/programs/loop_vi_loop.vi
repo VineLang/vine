@@ -1,6 +1,4 @@
 
-use std::{io::println, u32};
-
 fn main(&io: &IO) {
   let i = 0;
   let n = 0;
@@ -10,7 +8,7 @@ fn main(&io: &IO) {
     while j < 5 {
       j = j + 1;
       n = n + 1;
-      io.println(u32::to_string(n));
+      io.println(n.to_string());
     }
   }
 }

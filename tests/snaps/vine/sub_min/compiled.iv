@@ -10,7 +10,7 @@
 
 ::sub_min::1 {
   x(n1 x(n2 x(n3 x(n4 n0))))
-  ::std::list::List::iter::next = fn(ref(n0 n5) enum(::sub_min::2 enum(::sub_min::8 x(n1 x(n2 x(n3 x(n4 n5)))))))
+  ::std::list::List::Iter::next = fn(ref(n0 n5) enum(::sub_min::2 enum(::sub_min::8 x(n1 x(n2 x(n3 x(n4 n5)))))))
 }
 
 ::sub_min::2 {
@@ -91,7 +91,7 @@
 ::std::list::List::join {
   fn(n0 fn(n2 n4))
   ::std::list::List::into_iter = fn(n0 n1)
-  ::std::list::List::into_iter::next = fn(ref(n1 n3) enum(::std::list::List::join::1 enum(::std::list::List::join::5 x(n2 x(n3 n4)))))
+  ::std::list::List::IntoIter::next = fn(ref(n1 n3) enum(::std::list::List::join::1 enum(::std::list::List::join::5 x(n2 x(n3 n4)))))
 }
 
 ::std::list::List::join::1 {
@@ -101,7 +101,7 @@
 
 ::std::list::List::join::2 {
   x(n1 x(n0 n3))
-  ::std::list::List::into_iter::next = fn(ref(n0 n2) enum(::std::list::List::join::3 enum(::std::list::List::join::4 x(n1 x(n2 n3)))))
+  ::std::list::List::IntoIter::next = fn(ref(n0 n2) enum(::std::list::List::join::3 enum(::std::list::List::join::4 x(n1 x(n2 n3)))))
 }
 
 ::std::list::List::join::3 {
@@ -130,14 +130,14 @@
   ::std::list::List::Iter = fn(n4 fn(ref(n1 n2) n3))
 }
 
-::std::list::List::iter::next { fn(ref(tup(dup118(?(::std::list::List::iter::next::2 ::std::list::List::iter::next::1 x(n0 x(n1 x(n2 x(n3 n4))))) n0) n2) tup(n1 n3)) n4) }
+::std::list::List::Iter::next { fn(ref(tup(dup118(?(::std::list::List::Iter::next::2 ::std::list::List::Iter::next::1 x(n0 x(n1 x(n2 x(n3 n4))))) n0) n2) tup(n1 n3)) n4) }
 
-::std::list::List::iter::next::1 {
+::std::list::List::Iter::next::1 {
   x(@sub(1 n4) x(n4 x(ref(tup(n0 n1) tup(n2 n3)) x(ref(n1 n3) n5))))
   ::std::option::Option::Some = fn(ref(n0 n2) n5)
 }
 
-::std::list::List::iter::next::2 { x(n1 x(n1 x(ref(n0 n0) x(_ ::std::option::Option::None)))) }
+::std::list::List::Iter::next::2 { x(n1 x(n1 x(ref(n0 n0) x(_ ::std::option::Option::None)))) }
 
 ::std::list::List::IntoIter { fn(n0 fn(n1 tup(n0 n1))) }
 
@@ -146,14 +146,14 @@
   ::std::list::List::IntoIter = fn(n0 fn(n1 n2))
 }
 
-::std::list::List::into_iter::next { fn(ref(tup(dup129(?(::std::list::List::into_iter::next::2 ::std::list::List::into_iter::next::1 x(n0 x(n1 x(n2 x(n3 n4))))) n0) n2) tup(n1 n3)) n4) }
+::std::list::List::IntoIter::next { fn(ref(tup(dup129(?(::std::list::List::IntoIter::next::2 ::std::list::List::IntoIter::next::1 x(n0 x(n1 x(n2 x(n3 n4))))) n0) n2) tup(n1 n3)) n4) }
 
-::std::list::List::into_iter::next::1 {
+::std::list::List::IntoIter::next::1 {
   x(@sub(1 n1) x(n1 x(tup(n0 n2) x(n2 n3))))
   ::std::option::Option::Some = fn(n0 n3)
 }
 
-::std::list::List::into_iter::next::2 { x(n0 x(n0 x(n1 x(n1 ::std::option::Option::None)))) }
+::std::list::List::IntoIter::next::2 { x(n0 x(n0 x(n1 x(n1 ::std::option::Option::None)))) }
 
 ::std::option::Option::Some { fn(n0 enum(enum(n0 n1) enum(_ n1))) }
 

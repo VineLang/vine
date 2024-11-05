@@ -1,6 +1,4 @@
 
-use std::{io::{print_byte, print_bytes, flush}, u32};
-
 const max_iter: u32 = 50;
 const width: u32 = 512;
 const height: u32 = 512;
@@ -13,15 +11,15 @@ fn main(&io: &IO) {
   let c = 0;
   while c <= 100 {
     io.print_byte('#');
-    io.print_bytes(u32::to_string(c));
+    io.print_bytes(c.to_string());
     io.print_byte(';');
     io.print_byte('2');
     io.print_byte(';');
-    io.print_bytes(u32::to_string(c));
+    io.print_bytes(c.to_string());
     io.print_byte(';');
-    io.print_bytes(u32::to_string(c));
+    io.print_bytes(c.to_string());
     io.print_byte(';');
-    io.print_bytes(u32::to_string(c));
+    io.print_bytes(c.to_string());
     c += 1;
   }
 
@@ -39,10 +37,10 @@ fn main(&io: &IO) {
 
       if color != last_color {
         io.print_byte('!');
-        io.print_bytes(u32::to_string(count));
+        io.print_bytes(count.to_string());
         io.print_byte(63 + row);
         io.print_byte('#');
-        io.print_bytes(u32::to_string(color));
+        io.print_bytes(color.to_string());
         count = 1;
       } else {
         count += 1;
@@ -53,7 +51,7 @@ fn main(&io: &IO) {
     }
 
     io.print_byte('!');
-    io.print_bytes(u32::to_string(count));
+    io.print_bytes(count.to_string());
     io.print_byte(63 + row);
 
     row *= 2;

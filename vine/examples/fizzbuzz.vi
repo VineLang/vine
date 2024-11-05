@@ -1,5 +1,5 @@
 
-use std::{io::println, u32, list::String};
+use std::list::String;
 
 const end: u32 = 100;
 
@@ -16,7 +16,7 @@ fn message(n: u32) -> String {
   let r5 = n % 5;
   if r3 {
     if r5 {
-      u32::to_string(n)
+      n.to_string()
     } else {
       "Buzz"
     }

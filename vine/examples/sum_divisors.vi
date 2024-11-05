@@ -1,6 +1,4 @@
 
-use std::{io::println, u32};
-
 const end: u32 = 100;
 
 fn main(&io: &IO) {
@@ -14,7 +12,7 @@ fn main(&io: &IO) {
     } else {
       ""
     };
-    io.println(u32::to_string(n) ++ ": " ++ u32::to_string(sum) ++ class);
+    io.println(n.to_string() ++ ": " ++ sum.to_string() ++ class);
     n += 1;
   }
 }

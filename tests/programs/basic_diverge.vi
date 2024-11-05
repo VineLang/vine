@@ -1,12 +1,12 @@
 
-use std::{list::String, io::println};
+use std::list::String;
 
 fn main(&io: &IO) {
   let zero_count = 0;
   io.println(foo(0, &zero_count));
   io.println(foo(1, &zero_count));
   io.println(foo(0, &zero_count));
-  io.println("\nzero_count: " ++ std::u32::to_string(zero_count));
+  io.println("\nzero_count: " ++ zero_count.to_string());
 }
 
 fn foo(value: u32, &zero_count: &u32) -> String {

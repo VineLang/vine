@@ -1,6 +1,4 @@
 
-use std::{io::println, u32};
-
 fn main(&io: &IO) {
   refs(&io);
   io.println("");
@@ -12,11 +10,11 @@ fn main(&io: &IO) {
 fn refs(&io: &IO) {
   let x = 0;
   inc((move x, move ~x));
-  io.println("x = " ++ u32::to_string(x));
+  io.println("x = " ++ x.to_string());
   inc((move x, move ~x));
-  io.println("x = " ++ u32::to_string(x));
+  io.println("x = " ++ x.to_string());
   inc((move x, move ~x));
-  io.println("x = " ++ u32::to_string(x));
+  io.println("x = " ++ x.to_string());
 }
 
 mod refs {
@@ -30,9 +28,9 @@ fn fns(&io: &IO) {
     let n: u32;
     (move ~n, n * n)
   };
-  io.println("f(1) = " ++ u32::to_string(call(f, 1)));
-  io.println("f(2) = " ++ u32::to_string(call(f, 2)));
-  io.println("f(3) = " ++ u32::to_string(call(f, 3)));
+  io.println("f(1) = " ++ call(f, 1).to_string());
+  io.println("f(2) = " ++ call(f, 2).to_string());
+  io.println("f(3) = " ++ call(f, 3).to_string());
 }
 
 mod fns {

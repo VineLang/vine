@@ -1,5 +1,5 @@
 
-use std::{list::String, io::println, u32};
+use std::{list::String};
 
 fn main(&io: &IO) {
   io.println(pretty_div(4, 2));
@@ -15,5 +15,5 @@ fn pretty_div(n: u32, d: u32) -> String {
   } else {
     return "division by zero :O"
   };
-  "|_ " ++ u32::to_string(n) ++ " / " ++ u32::to_string(d) ++ " _| = " ++ u32::to_string(result)
+  "|_ " ++ n.to_string() ++ " / " ++ d.to_string() ++ " _| = " ++ result.to_string()
 }

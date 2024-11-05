@@ -1,15 +1,13 @@
 
-use std::{io::{print, print_char}, u32};
-
 fn main(&io: &IO) {
   let x = 2;
   while x < 1000 {
-    dashes(&io, x);
+    squares(&io, x);
     x *= x;
   }
 }
 
-fn dashes(&io: &IO, len: u32) {
+fn squares(&io: &IO, len: u32) {
   let i = 0;
   while i < len {
     io.print_char('□');
