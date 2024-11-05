@@ -1,13 +1,12 @@
-use std::mem::take;
-
 use crate::{
-  ast::{BinaryOp, Expr, ExprKind, GenericPath, Span},
+  ast::{BinaryOp, Expr, ExprKind, Span},
   checker::{Checker, Form, Type},
   diag::Diag,
 };
 
 use super::report;
 
+mod check_method;
 mod coerce_expr;
 
 impl Checker<'_> {
@@ -251,78 +250,6 @@ impl Checker<'_> {
       ExprKind::F32(_) => Type::F32,
       ExprKind::String(_) => report!(self.diags; self.string.clone().ok_or(Diag::NoList { span })),
       ExprKind::For(..) => todo!(),
-    }
-  }
-
-  fn check_method(
-    &mut self,
-    span: Span,
-    receiver: &mut Box<Expr>,
-    path: &mut GenericPath,
-    args: &mut Vec<Expr>,
-  ) -> (ExprKind, Type) {
-    match self.method_sig(span, path, args.len()) {
-      Ok((form, mut rec, params, ret)) => {
-        self.check_expr_form_type(receiver, form, &mut rec);
-        for (mut ty, arg) in params.into_iter().skip(1).zip(args.iter_mut()) {
-          self.check_expr_form_type(arg, Form::Value, &mut ty);
-        }
-        let mut receiver = take(&mut **receiver);
-        if form == Form::Place {
-          receiver = Expr { span: receiver.span, kind: ExprKind::Ref(Box::new(receiver)) };
-        }
-        let mut args = take(args);
-        args.insert(0, receiver);
-        let path = take(path);
-        let func = Expr { span: path.span, kind: ExprKind::Path(path) };
-        let call = ExprKind::Call(Box::new(func), args);
-        (call, ret)
-      }
-      Err(e) => {
-        self.check_expr_form(receiver, Form::Place);
-        for arg in args {
-          self.check_expr_form(arg, Form::Value);
-        }
-        let err = self.diags.add(e);
-        (ExprKind::Error(err), Type::Error(err))
-      }
-    }
-  }
-
-  fn method_sig(
-    &mut self,
-    span: Span,
-    path: &mut GenericPath,
-    args: usize,
-  ) -> Result<(Form, Type, Vec<Type>, Type), Diag> {
-    let ty = self.typeof_value_def(path)?;
-    match ty {
-      Type::Fn(mut params, ret) => {
-        let (form, receiver) = match params.first_mut() {
-          Some(Type::Error(e)) => return Err((*e).into()),
-          None => {
-            return Err(Diag::NonMethodFunction {
-              span,
-              ty: self.display_type(&Type::Fn(params, ret)),
-            })
-          }
-          Some(Type::Ref(receiver)) => (Form::Place, &mut **receiver),
-          Some(receiver) => (Form::Value, receiver),
-        };
-        let receiver = take(receiver);
-        if params.len() != args + 1 {
-          Err(Diag::BadArgCount {
-            span,
-            expected: params.len(),
-            got: args,
-            ty: self.display_type(&Type::Fn(params, ret)),
-          })
-        } else {
-          Ok((form, receiver, params, *ret))
-        }
-      }
-      Type::Error(e) => Err(e.into()),
-      ty => Err(Diag::NonFunctionCall { span, ty: self.display_type(&ty) }),
     }
   }
 

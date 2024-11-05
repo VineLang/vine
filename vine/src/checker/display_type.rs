@@ -54,7 +54,7 @@ impl Checker<'_> {
         self._display_type(ty, str)
       }
       Type::Adt(n, gens) => {
-        write!(str, "{}", self.defs[*n].canonical).unwrap();
+        write!(str, "{}", self.resolver.defs[*n].canonical).unwrap();
         if !gens.is_empty() {
           *str += "[";
           let mut first = true;

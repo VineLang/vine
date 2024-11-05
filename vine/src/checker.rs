@@ -5,7 +5,7 @@ use vine_util::interner::StringInterner;
 use crate::{
   ast::{Block, ExprKind, GenericPath, Ident, Path, Span, StmtKind, Ty, TyKind},
   diag::{report, Diag, DiagGroup, ErrorGuaranteed},
-  resolve::{Def, DefId, Resolver, ValueDefKind},
+  resolve::{DefId, Resolver, ValueDefKind},
 };
 
 mod check_expr;
@@ -15,15 +15,18 @@ mod typeof_def;
 mod unify;
 
 #[derive(Debug)]
-pub struct Checker<'d> {
+pub struct Checker<'r> {
   pub diags: DiagGroup,
-  defs: &'d mut [Def],
+  resolver: &'r mut Resolver,
   state: CheckerState,
-  list: Option<DefId>,
-  string: Option<Type>,
   generics: Vec<Ident>,
   return_ty: Option<Type>,
   loop_ty: Option<Type>,
+
+  list: Option<DefId>,
+  string: Option<Type>,
+  io: Option<DefId>,
+  u32: Option<DefId>,
 }
 
 #[derive(Default, Debug, Clone)]
@@ -32,8 +35,8 @@ pub(crate) struct CheckerState {
   pub(crate) locals: HashMap<usize, Var>,
 }
 
-impl<'d> Checker<'d> {
-  pub fn new(resolver: &'d mut Resolver, interner: &StringInterner<'static>) -> Self {
+impl<'r> Checker<'r> {
+  pub fn new(resolver: &'r mut Resolver, interner: &StringInterner<'static>) -> Self {
     let diags = DiagGroup::default();
     let list = resolver
       .resolve_path(
@@ -51,20 +54,44 @@ impl<'d> Checker<'d> {
       )
       .ok();
     let string = list.map(|x| Type::Adt(x, vec![Type::U32]));
+    let io = resolver
+      .resolve_path(
+        Span::NONE,
+        0,
+        &Path {
+          segments: vec![Ident(interner.intern("std")), Ident(interner.intern("io"))],
+          absolute: true,
+          resolved: None,
+        },
+      )
+      .ok();
+    let u32 = resolver
+      .resolve_path(
+        Span::NONE,
+        0,
+        &Path {
+          segments: vec![Ident(interner.intern("std")), Ident(interner.intern("u32"))],
+          absolute: true,
+          resolved: None,
+        },
+      )
+      .ok();
     Checker {
       diags,
-      defs: &mut resolver.defs,
+      resolver,
       state: CheckerState::default(),
-      list,
-      string,
       generics: Vec::new(),
       return_ty: None,
       loop_ty: None,
+      list,
+      string,
+      io,
+      u32,
     }
   }
 
   pub fn check_defs(&mut self) {
-    self._check_defs(0..self.defs.len());
+    self._check_defs(0..self.resolver.defs.len());
   }
 
   pub(crate) fn _check_defs(&mut self, range: Range<DefId>) {
@@ -82,14 +109,14 @@ impl<'d> Checker<'d> {
 
   fn check_value_def(&mut self, def_id: DefId) {
     debug_assert!(self.state.vars.is_empty() && self.state.locals.is_empty());
-    let def = &mut self.defs[def_id];
+    let def = &mut self.resolver.defs[def_id];
     if let Some(value_def) = &mut def.value_def {
       if let ValueDefKind::Expr(expr) = &mut value_def.kind {
         self.generics.clone_from(&value_def.generics);
         let mut ty = value_def.ty.clone().unwrap();
         let mut expr = take(expr);
         self.check_expr_form_type(&mut expr, Form::Value, &mut ty);
-        let value_def = self.defs[def_id].value_def.as_mut().unwrap();
+        let value_def = self.resolver.defs[def_id].value_def.as_mut().unwrap();
         value_def.kind = ValueDefKind::Expr(expr);
       }
     }
@@ -163,21 +190,21 @@ impl<'d> Checker<'d> {
   }
 
   fn resolve_type_alias(&mut self, def_id: usize) {
-    if let Some(type_def) = &mut self.defs[def_id].type_def {
+    if let Some(type_def) = &mut self.resolver.defs[def_id].type_def {
       if let Some(mut alias) = type_def.alias.take() {
         let ty = self.hydrate_type(&mut alias, false);
-        self.defs[def_id].type_def.as_mut().unwrap().ty = Some(ty);
+        self.resolver.defs[def_id].type_def.as_mut().unwrap().ty = Some(ty);
       }
     }
   }
 
   fn resolve_def_types(&mut self, def_id: usize) {
-    if let Some(mut variant) = self.defs[def_id].variant_def.take() {
+    if let Some(mut variant) = self.resolver.defs[def_id].variant_def.take() {
       variant.field_types =
         Some(variant.fields.iter_mut().map(|ty| self.hydrate_type(ty, false)).collect());
-      self.defs[def_id].variant_def = Some(variant);
+      self.resolver.defs[def_id].variant_def = Some(variant);
     }
-    if let Some(mut value) = self.defs[def_id].value_def.take() {
+    if let Some(mut value) = self.resolver.defs[def_id].value_def.take() {
       let ty = if let Some(ty) = &mut value.annotation {
         self.hydrate_type(ty, false)
       } else {
@@ -197,7 +224,7 @@ impl<'d> Checker<'d> {
           }
           ValueDefKind::Ivy(_) => unreachable!(),
           ValueDefKind::AdtConstructor => {
-            let variant = self.defs[def_id].variant_def.as_ref().unwrap();
+            let variant = self.resolver.defs[def_id].variant_def.as_ref().unwrap();
             let params = variant.field_types.clone().unwrap();
             let adt =
               Type::Adt(variant.adt, (0..variant.generics.len()).map(Type::Opaque).collect());
@@ -210,7 +237,7 @@ impl<'d> Checker<'d> {
         }
       };
       value.ty = Some(ty);
-      self.defs[def_id].value_def = Some(value);
+      self.resolver.defs[def_id].value_def = Some(value);
     }
   }
 }

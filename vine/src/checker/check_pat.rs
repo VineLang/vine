@@ -103,7 +103,7 @@ impl Checker<'_> {
     if fields.len() != field_tys.len() {
       Err(Diag::BadFieldCount {
         span,
-        path: self.defs[path.path.resolved.unwrap()].canonical.clone(),
+        path: self.resolver.defs[path.path.resolved.unwrap()].canonical.clone(),
         expected: field_tys.len(),
         got: fields.len(),
       })?

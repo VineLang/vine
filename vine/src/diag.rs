@@ -94,7 +94,7 @@ diags! {
     ["cannot call non-function type `{ty}`"]
   CannotCompare { lhs: String, rhs: String}
     ["cannot compare `{lhs}` and `{rhs}`"]
-  NonMethodFunction { ty: String }
+  NilaryMethod { ty: String }
     ["invalid method; function type `{ty}` takes no parameters"]
   ExpectedTypeFound { expected: String, found: String }
     ["expected type `{expected}`; found `{found}`"]
@@ -126,6 +126,10 @@ diags! {
     ["expected a value of type `{ty}` to return"]
   MissingBreakExpr { ty: String }
     ["expected a value of type `{ty}` to break with"]
+  NoMethods { ty: String }
+    ["type `{ty}` has no methods"]
+  BadMethodReceiver { base_path: Path, sub_path: Path }
+    ["`{base_path}::{sub_path}` cannot be used as a method; it does not take `{base_path}` as its first parameter"]
 }
 
 fn plural<'a>(n: usize, plural: &'a str, singular: &'a str) -> &'a str {
