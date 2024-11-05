@@ -389,7 +389,7 @@ impl<'src> Formatter<'src> {
     Doc::concat_vec(docs)
   }
 
-  fn fmt_params(&self, params: &Vec<(Pat, Option<Ty>)>) -> Doc<'src> {
+  fn fmt_params(&self, params: &[(Pat, Option<Ty>)]) -> Doc<'src> {
     Doc::paren_comma(params.iter().map(|(p, t)| match t {
       Some(t) => Doc::concat([self.fmt_pat(p), Doc(": "), self.fmt_ty(t)]),
       None => self.fmt_pat(p),
