@@ -5,7 +5,7 @@ enum Result[T, E] {
 }
 
 mod Result {
-  fn map[T, U, E](&move self: &Result[T, E], f: fn(T) -> U) -> Result[U, E] {
+  fn map[T, U, E](self: Result[T, E], f: fn(T) -> U) -> Result[U, E] {
     match self {
       Ok(val) => Ok(f(val)),
       Err(err) => Err(err),
@@ -19,7 +19,7 @@ mod Result {
     }
   }
 
-  fn flatten[T, E](&move self: &Result[Result[T, E], E]) -> Result[T, E] {
+  fn flatten[T, E](self: Result[Result[T, E], E]) -> Result[T, E] {
     match self {
       Ok(Ok(val)) => Ok(val),
       Ok(Err(err)) => Err(err),
@@ -27,25 +27,25 @@ mod Result {
     }
   }
 
-  fn and_then[T, U, E](&move self: &Result[T, E], f: fn(T) -> Result[U, E]) -> Result[U, E] {
+  fn and_then[T, U, E](self: Result[T, E], f: fn(T) -> Result[U, E]) -> Result[U, E] {
     self.map(f).flatten()
   }
 
-  fn or[T, E](&move self: &Result[T, E], default: Result[T, E]) -> Result[T, E] {
+  fn or[T, E](self: Result[T, E], default: Result[T, E]) -> Result[T, E] {
     match self {
       Err(_) => default,
       x => x,
     }
   }
 
-  fn unwrap_or[T, E](&move self: &Result[T, E], default: T) -> T {
+  fn unwrap_or[T, E](self: Result[T, E], default: T) -> T {
     match self {
       Ok(val) => val,
       Err(_) => default,
     }
   }
 
-  fn unwrap[T, E](&move self: &Result[T, E], default: T) -> T {
+  fn unwrap[T, E](self: Result[T, E], default: T) -> T {
     match self {
       Ok(val) => val,
     }

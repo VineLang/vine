@@ -11,7 +11,7 @@ fn main[T, U](io: IO) {
   let x; x + 1;
   1();
   let x = 3; 2 + ~x;
-  x.main();
+  x.noop();
   if 0.0 { 0 } else { "" };
   main(1, 2, 3);
   0 < 0.0 < 0 < 0 < 0.0;
@@ -34,3 +34,4 @@ fn main[T, U](io: IO) {
 enum Ay { Yay, Nay }
 struct Thing(u32, u32);
 fn rec[T](x: T) -> T { rec(x) }
+fn noop() {}

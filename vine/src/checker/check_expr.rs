@@ -189,7 +189,11 @@ impl Checker<'_> {
           Type::Error(self.diags.add(Diag::NoList { span }))
         }
       }
-      ExprKind::Method(receiver, path, args) => self.check_method(span, receiver, path, args),
+      ExprKind::Method(receiver, path, args) => {
+        let (desugared, ty) = self.check_method(span, receiver, path, args);
+        expr.kind = desugared;
+        ty
+      }
       ExprKind::Call(func, args) => self.check_call(func, args, span),
       ExprKind::Not(expr) => {
         self.check_expr_form_type(expr, Form::Value, &mut Type::U32);
@@ -256,21 +260,31 @@ impl Checker<'_> {
     receiver: &mut Box<Expr>,
     path: &mut GenericPath,
     args: &mut Vec<Expr>,
-  ) -> Type {
+  ) -> (ExprKind, Type) {
     match self.method_sig(span, path, args.len()) {
-      Ok((mut rec, params, ret)) => {
-        self.check_expr_form_type(receiver, Form::Place, &mut rec);
-        for (mut ty, arg) in params.into_iter().skip(1).zip(args) {
+      Ok((form, mut rec, params, ret)) => {
+        self.check_expr_form_type(receiver, form, &mut rec);
+        for (mut ty, arg) in params.into_iter().skip(1).zip(args.iter_mut()) {
           self.check_expr_form_type(arg, Form::Value, &mut ty);
         }
-        ret
+        let mut receiver = take(&mut **receiver);
+        if form == Form::Place {
+          receiver = Expr { span: receiver.span, kind: ExprKind::Ref(Box::new(receiver)) };
+        }
+        let mut args = take(args);
+        args.insert(0, receiver);
+        let path = take(path);
+        let func = Expr { span: path.span, kind: ExprKind::Path(path) };
+        let call = ExprKind::Call(Box::new(func), args);
+        (call, ret)
       }
       Err(e) => {
         self.check_expr_form(receiver, Form::Place);
         for arg in args {
           self.check_expr_form(arg, Form::Value);
         }
-        Type::Error(self.diags.add(e))
+        let err = self.diags.add(e);
+        (ExprKind::Error(err), Type::Error(err))
       }
     }
   }
@@ -280,26 +294,33 @@ impl Checker<'_> {
     span: Span,
     path: &mut GenericPath,
     args: usize,
-  ) -> Result<(Type, Vec<Type>, Type), Diag> {
+  ) -> Result<(Form, Type, Vec<Type>, Type), Diag> {
     let ty = self.typeof_value_def(path)?;
     match ty {
-      Type::Fn(mut params, ret) => match params.first_mut() {
-        Some(Type::Ref(receiver)) => {
-          let receiver = take(&mut **receiver);
-          if params.len() != args + 1 {
-            Err(Diag::BadArgCount {
+      Type::Fn(mut params, ret) => {
+        let (form, receiver) = match params.first_mut() {
+          Some(Type::Error(e)) => return Err((*e).into()),
+          None => {
+            return Err(Diag::NonMethodFunction {
               span,
-              expected: params.len(),
-              got: args,
               ty: self.display_type(&Type::Fn(params, ret)),
             })
-          } else {
-            Ok((receiver, params, *ret))
           }
+          Some(Type::Ref(receiver)) => (Form::Place, &mut **receiver),
+          Some(receiver) => (Form::Value, receiver),
+        };
+        let receiver = take(receiver);
+        if params.len() != args + 1 {
+          Err(Diag::BadArgCount {
+            span,
+            expected: params.len(),
+            got: args,
+            ty: self.display_type(&Type::Fn(params, ret)),
+          })
+        } else {
+          Ok((form, receiver, params, *ret))
         }
-        Some(Type::Error(e)) => Err((*e).into()),
-        _ => Err(Diag::NonMethodFunction { span, ty: self.display_type(&Type::Fn(params, ret)) }),
-      },
+      }
       Type::Error(e) => Err(e.into()),
       ty => Err(Diag::NonFunctionCall { span, ty: self.display_type(&ty) }),
     }

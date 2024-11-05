@@ -14,7 +14,7 @@
 
 ::cyclist::main::2 {
   x(dup2(n4 n5) n7)
-  ::std::list::List::map = fn(ref(n4 _) fn(fn(n0 n1) n3))
+  ::std::list::List::map = fn(n4 fn(fn(n0 n1) n3))
   ::std::list::List::len = fn(ref(n5 n2) @add(n0 n1))
   ::std::list::List::concat = fn(n2 fn(n3 n6))
   ::cyclist::main::1 = x(n6 n7)
@@ -55,7 +55,7 @@
 ::cyclist::cycle::3 {
   x(n3 x(n5 @sub(1 n6)))
   ::std::list::List::pop_front = fn(ref(n3 n1) n0)
-  ::std::option::Option::unwrap = fn(ref(n0 _) n2)
+  ::std::option::Option::unwrap = fn(n0 n2)
   ::std::list::List::push_back = fn(ref(n1 n4) fn(n2 _))
   ::cyclist::cycle::2 = x(n4 x(n5 n6))
 }
@@ -94,7 +94,7 @@
 ::std::list::List::len { fn(ref(tup(dup57(n2 n3) n0) tup(n3 n0)) n2) }
 
 ::std::list::List::map {
-  fn(ref(tup(dup60(n5 n6) tup(n1 _)) _) fn(n2 n0))
+  fn(tup(dup60(n5 n6) tup(n1 _)) fn(n2 n0))
   ::std::list::List = fn(n5 fn(n3 fn(n4 n0)))
   ::std::list::List::map::1 = x(n6 x(n1 x(n2 x(n3 n4))))
 }
@@ -129,8 +129,8 @@
 }
 
 ::std::list::List::join {
-  fn(ref(n0 _) fn(n2 n4))
-  ::std::list::List::into_iter = fn(ref(n0 _) n1)
+  fn(n0 fn(n2 n4))
+  ::std::list::List::into_iter = fn(n0 n1)
   ::std::list::List::into_iter::next = fn(ref(n1 n3) enum(::std::list::List::join::1 enum(::std::list::List::join::5 x(n2 x(n3 n4)))))
 }
 
@@ -157,8 +157,8 @@
 
 ::std::list::List::to_string {
   fn(n2 fn(n1 n8))
-  ::std::list::List::map = fn(ref(n1 _) fn(n2 n3))
-  ::std::list::List::join = fn(ref(n3 _) fn(tup(2 tup(tup(44 tup(32 n4)) n4)) n5))
+  ::std::list::List::map = fn(n1 fn(n2 n3))
+  ::std::list::List::join = fn(n3 fn(tup(2 tup(tup(44 tup(32 n4)) n4)) n5))
   ::std::list::List::concat = fn(tup(1 tup(tup(91 n0) n0)) fn(n5 n7))
   ::std::list::List::concat = fn(n7 fn(tup(1 tup(tup(93 n6) n6)) n8))
 }
@@ -166,7 +166,7 @@
 ::std::list::List::IntoIter { fn(n0 fn(n1 tup(n0 n1))) }
 
 ::std::list::List::into_iter {
-  fn(ref(tup(n0 tup(n1 _)) _) n2)
+  fn(tup(n0 tup(n1 _)) n2)
   ::std::list::List::IntoIter = fn(n0 fn(n1 n2))
 }
 
@@ -183,7 +183,7 @@
 
 ::std::option::Option::None { enum(_ enum(n0 n0)) }
 
-::std::option::Option::unwrap { fn(ref(enum(::std::option::Option::unwrap::1 enum(_ n0)) _) n0) }
+::std::option::Option::unwrap { fn(enum(::std::option::Option::unwrap::1 enum(_ n0)) n0) }
 
 ::std::option::Option::unwrap::1 { enum(n0 n0) }
 

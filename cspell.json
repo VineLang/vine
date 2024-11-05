@@ -10,6 +10,7 @@
     "concat",
     "delims",
     "deque",
+    "desugared",
     "dyntest",
     "fizzbuzz",
     "freelist",

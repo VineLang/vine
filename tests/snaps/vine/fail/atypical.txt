@@ -12,7 +12,7 @@ error tests/programs/fail/atypical.vi:10:16 - expected type `(?4, ?5)`; found `u
 error tests/programs/fail/atypical.vi:11:7 - cannot infer type
 error tests/programs/fail/atypical.vi:12:3 - cannot call non-function type `u32`
 error tests/programs/fail/atypical.vi:13:14 - cannot apply operator `+` to types `u32` and `~u32`
-error tests/programs/fail/atypical.vi:14:3 - invalid method; function type `fn(IO)` does not accept reference as first parameter
+error tests/programs/fail/atypical.vi:14:3 - invalid method; function type `fn()` takes no parameters
 error tests/programs/fail/atypical.vi:15:6 - expected type `u32`; found `f32`
 error tests/programs/fail/atypical.vi:15:3 - then block has type `u32` but else block has type `::std::list::List[u32]`
 error tests/programs/fail/atypical.vi:16:3 - function type `fn(IO)` expects 1 argument; was passed 3
@@ -27,7 +27,7 @@ error tests/programs/fail/atypical.vi:21:14 - expected type `U`; found `T`
 error tests/programs/fail/atypical.vi:22:7 - expected an irrefutable pattern
 error tests/programs/fail/atypical.vi:22:17 - expected type `::atypical::Ay`; found `u32`
 error tests/programs/fail/atypical.vi:23:3 - cannot apply operator `+` to types `::std::list::List[u32]` and `u32`
-error tests/programs/fail/atypical.vi:24:7 - expected type `u32`; found `&?17`
+error tests/programs/fail/atypical.vi:24:7 - expected type `u32`; found `&?15`
 error tests/programs/fail/atypical.vi:25:3 - no loop to continue
 error tests/programs/fail/atypical.vi:26:3 - no loop to break from
 error tests/programs/fail/atypical.vi:27:10 - expected type `()`; found `f32`

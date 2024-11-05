@@ -95,7 +95,7 @@ diags! {
   CannotCompare { lhs: String, rhs: String}
     ["cannot compare `{lhs}` and `{rhs}`"]
   NonMethodFunction { ty: String }
-    ["invalid method; function type `{ty}` does not accept reference as first parameter"]
+    ["invalid method; function type `{ty}` takes no parameters"]
   ExpectedTypeFound { expected: String, found: String }
     ["expected type `{expected}`; found `{found}`"]
   PathNoValue { path: Path }

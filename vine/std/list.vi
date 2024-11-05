@@ -12,7 +12,7 @@ mod List {
     len
   }
 
-  fn map[T, U](&move List(l, buf, ~_): &List[T], f: fn(T) -> U) -> List[U] {
+  fn map[T, U](List(l, buf, ~_): List[T], f: fn(T) -> U) -> List[U] {
     let len = l;
     let cur;
     let result = move ~cur;
@@ -53,7 +53,7 @@ mod List {
     list = [el] ++ list;
   }
 
-  fn join(&move list: &List[String], sep: String) -> String {
+  fn join(list: List[String], sep: String) -> String {
     let it = list.into_iter();
     if it.into_iter::next() is Some(str) {
       while it.into_iter::next() is Some(val) {
@@ -91,7 +91,7 @@ mod List {
 
   struct IntoIter[T](u32, Buf[T]);
 
-  fn into_iter[T](&move List(len, buf, _): &List[T]) -> IntoIter[T] {
+  fn into_iter[T](List(len, buf, _): List[T]) -> IntoIter[T] {
     IntoIter(len, buf)
   }
 
