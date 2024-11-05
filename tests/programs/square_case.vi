@@ -17,4 +17,3 @@ fn dashes(&io: &IO, len: u32) {
   }
   io.print_char('\n');
 }
-

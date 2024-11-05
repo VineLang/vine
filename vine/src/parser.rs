@@ -120,13 +120,7 @@ impl<'ctx, 'src> VineParser<'ctx, 'src> {
     let params = self.parse_delimited(PAREN_COMMA, Self::parse_pat_type)?;
     let ret = self.eat(Token::ThinArrow)?.then(|| self.parse_type()).transpose()?;
     let body = self.parse_block()?;
-    Ok(FnItem {
-      name,
-      generics,
-      params,
-      ret,
-      body: Expr { span: body.span, kind: ExprKind::Block(body) },
-    })
+    Ok(FnItem { name, generics, params, ret, body })
   }
 
   fn parse_const_item(&mut self) -> Parse<'src, ConstItem> {
@@ -198,9 +192,11 @@ impl<'ctx, 'src> VineParser<'ctx, 'src> {
     self.expect(Token::Mod)?;
     let name = self.parse_ident()?;
     if self.eat(Token::Eq)? {
+      let span = self.start_span();
       let path = self.parse_string()?;
+      let span = self.end_span(span);
       self.expect(Token::Semi)?;
-      Ok(ModItem { name, kind: ModKind::Unloaded(PathBuf::from(path)) })
+      Ok(ModItem { name, kind: ModKind::Unloaded(span, PathBuf::from(path)) })
     } else {
       let items = self.parse_delimited(BRACE, Self::parse_item)?;
       Ok(ModItem { name, kind: ModKind::Loaded(items) })
@@ -350,7 +346,7 @@ impl<'ctx, 'src> VineParser<'ctx, 'src> {
         Ok(expr)
       })?;
       if exprs.len() == 1 && !tuple {
-        return Ok(exprs.pop().unwrap().kind);
+        return Ok(ExprKind::Paren(Box::new(exprs.pop().unwrap())));
       }
       return Ok(ExprKind::Tuple(exprs));
     }
@@ -530,7 +526,7 @@ impl<'ctx, 'src> VineParser<'ctx, 'src> {
         Ok(expr)
       })?;
       if pats.len() == 1 && !tuple {
-        return Ok(pats.pop().unwrap().kind);
+        return Ok(PatKind::Paren(Box::new(pats.pop().unwrap())));
       }
       return Ok(PatKind::Tuple(pats));
     }
@@ -569,7 +565,7 @@ impl<'ctx, 'src> VineParser<'ctx, 'src> {
         Ok(expr)
       })?;
       if types.len() == 1 && !tuple {
-        return Ok(types.pop().unwrap().kind);
+        return Ok(TyKind::Paren(Box::new(types.pop().unwrap())));
       }
       return Ok(TyKind::Tuple(types));
     }
@@ -613,6 +609,7 @@ impl<'ctx, 'src> VineParser<'ctx, 'src> {
     let bind = self.parse_pat()?;
     let ty = self.eat(Token::Colon)?.then(|| self.parse_type()).transpose()?;
     let init = self.eat(Token::Eq)?.then(|| self.parse_expr()).transpose()?;
+    self.eat(Token::Semi)?;
     Ok(LetStmt { bind, ty, init })
   }
 
@@ -638,7 +635,7 @@ impl<'ctx, 'src> VineParser<'ctx, 'src> {
   }
 
   fn end_span(&self, span: usize) -> Span {
-    Span { file: self.file, start: span, end: self.state.lexer.span().end }
+    Span { file: self.file, start: span, end: self.state.last_token_end }
   }
 
   fn span(&self) -> Span {

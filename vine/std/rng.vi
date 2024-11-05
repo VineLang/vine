@@ -1,3 +1,4 @@
+
 // A PCG random number generator (XSH RR 64/32 (LCG) variant).
 
 use std::{u32, u64};
@@ -12,10 +13,7 @@ mod Rng {
     Rng(state, increment)
   }
 
-  const default: Rng = new(
-    (0xd15ea5e5, 0xcafef00d),
-    (0xf767814f, 0x14057b7e),
-  );
+  const default: Rng = new((0xd15ea5e5, 0xcafef00d), (0xf767814f, 0x14057b7e));
 
   const multiplier: u64 = (0x4c957f2d, 0x5851f42d);
 

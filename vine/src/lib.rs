@@ -2,6 +2,7 @@ pub mod ast;
 pub mod compile;
 pub mod desugar;
 pub mod diag;
+pub mod fmt;
 pub mod loader;
 pub mod parser;
 pub mod repl;

@@ -10,12 +10,16 @@ use std::{
 const end: u32 = 46;
 
 fn main(&io: &IO) {
-  let n = 0
+  let n = 0;
   while n <= end {
     let primeness = is_prime(n);
 
     io.println(u32::to_string(n) ++ ": " ++ match primeness {
-      Ok(primeness) => if primeness { "prime" } else { "composite" },
+      Ok(primeness) => if primeness {
+        "prime"
+      } else {
+        "composite"
+      },
       Err(msg) => msg,
     });
 

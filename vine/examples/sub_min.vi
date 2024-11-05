@@ -27,4 +27,3 @@ fn sub_min(&list: &List[u32]) {
 
   ~min = min_acc.unwrap();
 }
-

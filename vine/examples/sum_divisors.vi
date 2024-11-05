@@ -7,7 +7,13 @@ fn main(&io: &IO) {
   let n = 1;
   while n <= end {
     let sum = sum_divisors(n);
-    let class = if sum == n + 1 { " (prime)" } else if sum == n * 2 { " (perfect!)" } else { "" };
+    let class = if sum == n + 1 {
+      " (prime)"
+    } else if sum == n * 2 {
+      " (perfect!)"
+    } else {
+      ""
+    };
     io.println(u32::to_string(n) ++ ": " ++ u32::to_string(sum) ++ class);
     n += 1;
   }

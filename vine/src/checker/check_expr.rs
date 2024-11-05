@@ -35,6 +35,7 @@ impl Checker<'_> {
       ExprKind![!error && !space && !place && !synthetic] => {
         (Form::Value, self._check_expr_value(expr))
       }
+      ExprKind::Paren(e) => self.check_expr(e),
       ExprKind::Error(e) => (Form::Error(*e), Type::Error(*e)),
       ExprKind::Hole => (Form::Space, self.new_var(span)),
       ExprKind::Local(l) => (

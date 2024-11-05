@@ -46,6 +46,8 @@ mod Result {
   }
 
   fn unwrap[T, E](&move self: &Result[T, E], default: T) -> T {
-    match self { Ok(val) => val }
+    match self {
+      Ok(val) => val,
+    }
   }
 }

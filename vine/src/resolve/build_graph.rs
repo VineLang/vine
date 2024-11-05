@@ -41,7 +41,11 @@ impl Resolver {
             locals: 0,
             kind: ValueDefKind::Expr(Expr {
               span: item.span,
-              kind: ExprKind::Fn(f.params, Some(f.ret), Box::new(f.body)),
+              kind: ExprKind::Fn(
+                f.params,
+                Some(f.ret),
+                Box::new(Expr { span: f.body.span, kind: ExprKind::Block(f.body) }),
+              ),
             }),
           },
         );

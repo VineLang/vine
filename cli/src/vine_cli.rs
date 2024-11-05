@@ -1,4 +1,9 @@
-use std::{fs, path::PathBuf, process::exit};
+use std::{
+  fs,
+  io::{stdin, Read},
+  path::PathBuf,
+  process::exit,
+};
 
 use anyhow::Result;
 use clap::{Args, Parser};
@@ -6,7 +11,7 @@ use clap::{Args, Parser};
 use ivm::{heap::Heap, IVM};
 use ivy::{ast::Nets, host::Host};
 use rustyline::DefaultEditor;
-use vine::repl::Repl;
+use vine::{fmt::fmt, repl::Repl};
 use vine_util::{arena::BytesArena, interner::StringInterner};
 
 use super::{Optimizations, RunArgs};
@@ -19,6 +24,7 @@ pub enum VineCommand {
   #[command(about = "Compile a Vine program to Ivy")]
   Build(VineBuildCommand),
 
+  Fmt(VineFmtCommand),
   Repl(VineReplCommand),
 }
 
@@ -28,6 +34,7 @@ impl VineCommand {
       VineCommand::Run(run) => run.execute(),
       VineCommand::Build(build) => build.execute(),
       VineCommand::Repl(repl) => repl.execute(),
+      VineCommand::Fmt(fmt) => fmt.execute(),
     }
   }
 }
@@ -150,6 +157,20 @@ impl VineReplCommand {
         Err(_) => break,
       }
     }
+    Ok(())
+  }
+}
+
+#[derive(Debug, Args)]
+pub struct VineFmtCommand {}
+
+impl VineFmtCommand {
+  pub fn execute(self) -> Result<()> {
+    let mut src = String::new();
+    stdin().read_to_string(&mut src)?;
+    let arena = &*Box::leak(Box::new(BytesArena::default()));
+    let interner = StringInterner::new(arena);
+    println!("{}", fmt(&interner, &src).unwrap());
     Ok(())
   }
 }

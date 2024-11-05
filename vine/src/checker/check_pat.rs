@@ -45,6 +45,8 @@ impl Checker<'_> {
       (_, Form::Error(_)) => unreachable!(),
       (PatKind::Error(e), _) => Type::Error(*e),
 
+      (PatKind::Paren(p), _) => self.check_pat(p, form, refutable),
+
       (PatKind::Adt(path, fields), _) => {
         report!(self.diags, pat.kind; self.check_adt_pat(span, path, fields, form, refutable))
       }

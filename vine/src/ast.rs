@@ -36,7 +36,7 @@ pub struct FnItem {
   pub generics: Vec<Ident>,
   pub params: Vec<(Pat, Option<Ty>)>,
   pub ret: Option<Ty>,
-  pub body: Expr,
+  pub body: Block,
 }
 
 #[derive(Debug, Clone)]
@@ -86,7 +86,7 @@ pub struct ModItem {
 #[derive(Debug, Clone)]
 pub enum ModKind {
   Loaded(Vec<Item>),
-  Unloaded(PathBuf),
+  Unloaded(Span, PathBuf),
   Error(ErrorGuaranteed),
 }
 
@@ -154,6 +154,8 @@ pub enum ExprKind {
   #[default]
   #[class(space)]
   Hole,
+  #[class(value, place, space)]
+  Paren(B<Expr>),
   #[class(value)]
   Path(GenericPath),
   #[class(place)]
@@ -246,6 +248,8 @@ pub enum PatKind {
   #[class(value, place, space)]
   Hole,
   #[class(value, place, space)]
+  Paren(B<Pat>),
+  #[class(value, place, space)]
   Adt(GenericPath, Option<Vec<Pat>>),
   #[class(value, place, space)]
   Local(usize),
@@ -279,6 +283,7 @@ pub struct Ty {
 #[derive(Debug, Clone)]
 pub enum TyKind {
   Hole,
+  Paren(B<Ty>),
   Fn(Vec<Ty>, Option<B<Ty>>),
   Tuple(Vec<Ty>),
   Ref(B<Ty>),
@@ -307,7 +312,13 @@ pub enum BinaryOp {
 
 impl Display for BinaryOp {
   fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-    f.write_str(match self {
+    f.write_str(self.as_str())
+  }
+}
+
+impl BinaryOp {
+  pub fn as_str(&self) -> &'static str {
+    match self {
       BinaryOp::Range => "..",
       BinaryOp::RangeTo => "..=",
       BinaryOp::BitOr => "|",
@@ -321,7 +332,7 @@ impl Display for BinaryOp {
       BinaryOp::Mul => "*",
       BinaryOp::Div => "/",
       BinaryOp::Rem => "%",
-    })
+    }
   }
 }
 

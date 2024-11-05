@@ -10,6 +10,10 @@ fn main(&io: &IO) {
 }
 
 fn pretty_div(n: u32, d: u32) -> String {
-  let result = n / if d { d } else { return "division by zero :O" };
+  let result = n / if d {
+    d
+  } else {
+    return "division by zero :O"
+  };
   "|_ " ++ u32::to_string(n) ++ " / " ++ u32::to_string(d) ++ " _| = " ++ u32::to_string(result)
 }

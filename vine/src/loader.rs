@@ -146,7 +146,7 @@ struct LoadDeps<'a, 'ctx> {
 impl VisitMut<'_> for LoadDeps<'_, '_> {
   fn visit_item(&mut self, item: &'_ mut Item) {
     if let ItemKind::Mod(module) = &mut item.kind {
-      if let ModKind::Unloaded(path) = &mut module.kind {
+      if let ModKind::Unloaded(_, path) = &mut module.kind {
         module.kind = self.loader.load_file(self.base.join(path), item.span);
         return;
       }
