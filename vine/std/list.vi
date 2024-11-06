@@ -1,6 +1,7 @@
 
 use std::option::Option::{Option, Some, None};
 
+#[builtin = "List"]
 struct List[T](u32, Buf[T], ~Buf[T]);
 
 struct Buf[T](T, Buf[T]);

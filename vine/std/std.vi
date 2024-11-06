@@ -7,3 +7,8 @@ mod result = "./result.vi";
 mod rng = "./rng.vi";
 mod u32 = "./u32.vi";
 mod u64 = "./u64.vi";
+
+#[builtin = "prelude"]
+mod prelude {
+  use ::std::{u32, f32, io::IO, List, List::String};
+}

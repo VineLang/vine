@@ -1,47 +1,46 @@
 
 use std::{list::{List, Buf, String}, option::Option::{Option, Some, None}};
 
-// make `std::u32` an alias for the builtin type
-// so that it doesn't shadow it if you `use std::u32`
-type u32 = ::u32;
-
-fn to_string(n: u32) -> String {
-  if n {
-    let str = "";
-    while n {
-      str = ['0' + n % 10] ++ str;
-      n = n / 10;
-    }
-    str
-  } else {
-    "0"
-  }
-}
-
-fn parse(str: String) -> Option[u32] {
-  let List(len, chars, _) = str;
-  if len == 0 {
-    None
-  } else {
-    let num = 0;
-    while len {
-      let Buf(char, tail) = chars;
-      chars = tail;
-      if !('0' <= char <= '9') {
-        return None;
+#[builtin = "u32"]
+mod u32 {
+  fn to_string(n: u32) -> String {
+    if n {
+      let str = "";
+      while n {
+        str = ['0' + n % 10] ++ str;
+        n = n / 10;
       }
-      num *= 10;
-      num += char - '0';
-      len -= 1;
+      str
+    } else {
+      "0"
     }
-    Some(num)
   }
-}
 
-inline_ivy! rotate_left: fn(u32, u32) -> u32 {
-  fn(@u32_rotl(x y) fn(x y))
-}
+  fn parse(str: String) -> Option[u32] {
+    let List(len, chars, _) = str;
+    if len == 0 {
+      None
+    } else {
+      let num = 0;
+      while len {
+        let Buf(char, tail) = chars;
+        chars = tail;
+        if !('0' <= char <= '9') {
+          return None;
+        }
+        num *= 10;
+        num += char - '0';
+        len -= 1;
+      }
+      Some(num)
+    }
+  }
 
-inline_ivy! rotate_right: fn(u32, u32) -> u32 {
-  fn(@u32_rotr(x y) fn(x y))
+  inline_ivy! rotate_left: fn(u32, u32) -> u32 {
+    fn(@u32_rotl(x y) fn(x y))
+  }
+
+  inline_ivy! rotate_right: fn(u32, u32) -> u32 {
+    fn(@u32_rotr(x y) fn(x y))
+  }
 }
