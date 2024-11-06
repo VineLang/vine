@@ -1,5 +1,5 @@
 
-use std::{bool::{bool, true, false}, option::Option::{Option, Some, None}};
+use std::option::Option::{Option, Some, None};
 
 fn main(&io: &IO) {
   io.println("map:");

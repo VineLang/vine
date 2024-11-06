@@ -22,7 +22,7 @@
   0 = ?(1 0 n16)
   ::logic::print_bool = fn(ref(n17 n19) fn(n18 _))
   1 = ?(0 1 n18)
-  ::std::io::println = fn(ref(n19 n21) fn(tup(3 tup(tup(45 tup(45 tup(45 n20))) n20)) _))
+  ::std::io::IO::println = fn(ref(n19 n21) fn(tup(3 tup(tup(45 tup(45 tup(45 n20))) n20)) _))
   ::logic::print_bool = fn(ref(n21 n22) fn(0 _))
   ::logic::print_bool = fn(ref(n22 n24) fn(n23 _))
   0 = ?(::logic::main::42 1 n23)
@@ -38,7 +38,7 @@
   1 = ?(1 0 n33)
   ::logic::print_bool = fn(ref(n34 n36) fn(n35 _))
   0 = ?(0 1 n35)
-  ::std::io::println = fn(ref(n36 n38) fn(tup(3 tup(tup(45 tup(45 tup(45 n37))) n37)) _))
+  ::std::io::IO::println = fn(ref(n36 n38) fn(tup(3 tup(tup(45 tup(45 tup(45 n37))) n37)) _))
   ::logic::print_bool = fn(ref(n38 n40) fn(n39 _))
   1 = ?(::logic::main::71 1 n39)
   ::logic::print_bool = fn(ref(n40 n42) fn(n41 _))
@@ -124,33 +124,33 @@
 
 ::logic::print_bool {
   fn(n0 fn(?(::logic::print_bool::2 ::logic::print_bool::1 n2) n3))
-  ::std::io::println = fn(n0 fn(n2 n3))
+  ::std::io::IO::println = fn(n0 fn(n2 n3))
 }
 
 ::logic::print_bool::1 { tup(4 tup(tup(116 tup(114 tup(117 tup(101 n0)))) n0)) }
 
 ::logic::print_bool::2 { tup(5 tup(tup(102 tup(97 tup(108 tup(115 tup(101 n0))))) n0)) }
 
-::std::io::println {
+::std::io::IO::println {
   fn(ref(n0 n3) fn(n1 _))
-  ::std::io::print = fn(ref(n0 n2) fn(n1 _))
-  ::std::io::print_char = fn(ref(n2 n3) fn(10 _))
+  ::std::io::IO::print = fn(ref(n0 n2) fn(n1 _))
+  ::std::io::IO::print_char = fn(ref(n2 n3) fn(10 _))
 }
 
-::std::io::print {
+::std::io::IO::print {
   fn(ref(n0 n1) fn(tup(n2 tup(n3 _)) _))
-  ::std::io::print::1 = x(n0 x(n1 x(n2 n3)))
+  ::std::io::IO::print::1 = x(n0 x(n1 x(n2 n3)))
 }
 
-::std::io::print::1 { x(n0 x(n1 x(dup36(?(::std::io::print::3 ::std::io::print::2 x(n0 x(n1 x(n3 n2)))) n3) n2))) }
+::std::io::IO::print::1 { x(n0 x(n1 x(dup36(?(::std::io::IO::print::3 ::std::io::IO::print::2 x(n0 x(n1 x(n3 n2)))) n3) n2))) }
 
-::std::io::print::2 {
+::std::io::IO::print::2 {
   x(n1 x(n3 x(@sub(1 n4) tup(n0 n5))))
-  ::std::io::print_char = fn(ref(n1 n2) fn(n0 _))
-  ::std::io::print::1 = x(n2 x(n3 x(n4 n5)))
+  ::std::io::IO::print_char = fn(ref(n1 n2) fn(n0 _))
+  ::std::io::IO::print::1 = x(n2 x(n3 x(n4 n5)))
 }
 
-::std::io::print::3 { x(n0 x(n0 _)) }
+::std::io::IO::print::3 { x(n0 x(n0 _)) }
 
-::std::io::print_char { fn(ref(@io_print_char(char io) io) fn(char _)) }
+::std::io::IO::print_char { fn(ref(@io_print_char(char io) io) fn(char _)) }
 

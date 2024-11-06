@@ -1,6 +1,4 @@
 
-use std::bool::{bool, true, false};
-
 fn main(&io: &IO) {
   print_bool(&io, true);
   print_bool(&io, true && true);

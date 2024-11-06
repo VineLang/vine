@@ -24,40 +24,40 @@
 
 ::pretty_div::main {
   fn(ref(n0 n9) _)
-  ::std::io::println = fn(ref(n0 n2) fn(n1 _))
+  ::std::io::IO::println = fn(ref(n0 n2) fn(n1 _))
   ::pretty_div = fn(4 fn(2 n1))
-  ::std::io::println = fn(ref(n2 n4) fn(n3 _))
+  ::std::io::IO::println = fn(ref(n2 n4) fn(n3 _))
   ::pretty_div = fn(5 fn(3 n3))
-  ::std::io::println = fn(ref(n4 n6) fn(n5 _))
+  ::std::io::IO::println = fn(ref(n4 n6) fn(n5 _))
   ::pretty_div = fn(1 fn(1 n5))
-  ::std::io::println = fn(ref(n6 n8) fn(n7 _))
+  ::std::io::IO::println = fn(ref(n6 n8) fn(n7 _))
   ::pretty_div = fn(1 fn(0 n7))
-  ::std::io::println = fn(ref(n8 n9) fn(n10 _))
+  ::std::io::IO::println = fn(ref(n8 n9) fn(n10 _))
   ::pretty_div = fn(10 fn(3 n10))
 }
 
-::std::io::println {
+::std::io::IO::println {
   fn(ref(n0 n3) fn(n1 _))
-  ::std::io::print = fn(ref(n0 n2) fn(n1 _))
-  ::std::io::print_char = fn(ref(n2 n3) fn(10 _))
+  ::std::io::IO::print = fn(ref(n0 n2) fn(n1 _))
+  ::std::io::IO::print_char = fn(ref(n2 n3) fn(10 _))
 }
 
-::std::io::print {
+::std::io::IO::print {
   fn(ref(n0 n1) fn(tup(n2 tup(n3 _)) _))
-  ::std::io::print::1 = x(n0 x(n1 x(n2 n3)))
+  ::std::io::IO::print::1 = x(n0 x(n1 x(n2 n3)))
 }
 
-::std::io::print::1 { x(n0 x(n1 x(dup19(?(::std::io::print::3 ::std::io::print::2 x(n0 x(n1 x(n3 n2)))) n3) n2))) }
+::std::io::IO::print::1 { x(n0 x(n1 x(dup19(?(::std::io::IO::print::3 ::std::io::IO::print::2 x(n0 x(n1 x(n3 n2)))) n3) n2))) }
 
-::std::io::print::2 {
+::std::io::IO::print::2 {
   x(n1 x(n3 x(@sub(1 n4) tup(n0 n5))))
-  ::std::io::print_char = fn(ref(n1 n2) fn(n0 _))
-  ::std::io::print::1 = x(n2 x(n3 x(n4 n5)))
+  ::std::io::IO::print_char = fn(ref(n1 n2) fn(n0 _))
+  ::std::io::IO::print::1 = x(n2 x(n3 x(n4 n5)))
 }
 
-::std::io::print::3 { x(n0 x(n0 _)) }
+::std::io::IO::print::3 { x(n0 x(n0 _)) }
 
-::std::io::print_char { fn(ref(@io_print_char(char io) io) fn(char _)) }
+::std::io::IO::print_char { fn(ref(@io_print_char(char io) io) fn(char _)) }
 
 ::std::list::List { fn(n0 fn(n1 fn(n2 tup(n0 tup(n1 n2))))) }
 

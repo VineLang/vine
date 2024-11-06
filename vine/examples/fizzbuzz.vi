@@ -1,6 +1,4 @@
 
-use std::list::String;
-
 const end: u32 = 100;
 
 fn main(&io: &IO) {

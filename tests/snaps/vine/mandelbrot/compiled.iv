@@ -31,7 +31,7 @@
 
 ::mandelbrot::main::2 {
   x(n0 x(n4 dup17(n2 @add(1 n5))))
-  ::std::io::print_char = fn(ref(n1 n3) fn(10 _))
+  ::std::io::IO::print_char = fn(ref(n1 n3) fn(10 _))
   ::mandelbrot::main::3 = x(n0 x(n1 x(n2 0)))
   ::mandelbrot::main::1 = x(n3 x(n4 n5))
 }
@@ -44,7 +44,7 @@
   tup(n7 n11) = @add(+0.5 @sub(n0 n1))
   tup(125 45) = @div(+2.0 n0)
   ::mandelbrot::center = @add(n2 tup(n3 n4))
-  ::std::io::print_char = fn(ref(n6 n8) fn(n5 _))
+  ::std::io::IO::print_char = fn(ref(n6 n8) fn(n5 _))
   ::mandelbrot = fn(n3 fn(n4 ?(32 35 n5)))
   ::mandelbrot::main::3 = x(n8 x(n9 x(n12 n10)))
 }
@@ -53,5 +53,5 @@
 
 ::mandelbrot::main::8 { x(n0 x(n0 _)) }
 
-::std::io::print_char { fn(ref(@io_print_char(char io) io) fn(char _)) }
+::std::io::IO::print_char { fn(ref(@io_print_char(char io) io) fn(char _)) }
 

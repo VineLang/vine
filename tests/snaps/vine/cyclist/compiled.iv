@@ -30,7 +30,7 @@
 ::cyclist::main::5 {
   enum(dup4(n11 n12) x(n5 x(n8 n6)))
   ::cyclist::cycle = fn(ref(n6 dup2(n9 n10)) fn(n11 _))
-  ::std::io::println = fn(ref(n5 n7) fn(n4 _))
+  ::std::io::IO::println = fn(ref(n5 n7) fn(n4 _))
   ::std::u32::to_string = fn(n12 n1)
   ::std::list::List::concat = fn(n1 fn(tup(2 tup(tup(59 tup(9 n0)) n0)) n2))
   ::std::list::List::to_string = fn(::std::u32::to_string fn(n9 n3))
@@ -64,28 +64,28 @@
 
 ::cyclist::cycle::5 { x(n0 x(n0 _)) }
 
-::std::io::println {
+::std::io::IO::println {
   fn(ref(n0 n3) fn(n1 _))
-  ::std::io::print = fn(ref(n0 n2) fn(n1 _))
-  ::std::io::print_char = fn(ref(n2 n3) fn(10 _))
+  ::std::io::IO::print = fn(ref(n0 n2) fn(n1 _))
+  ::std::io::IO::print_char = fn(ref(n2 n3) fn(10 _))
 }
 
-::std::io::print {
+::std::io::IO::print {
   fn(ref(n0 n1) fn(tup(n2 tup(n3 _)) _))
-  ::std::io::print::1 = x(n0 x(n1 x(n2 n3)))
+  ::std::io::IO::print::1 = x(n0 x(n1 x(n2 n3)))
 }
 
-::std::io::print::1 { x(n0 x(n1 x(dup28(?(::std::io::print::3 ::std::io::print::2 x(n0 x(n1 x(n3 n2)))) n3) n2))) }
+::std::io::IO::print::1 { x(n0 x(n1 x(dup28(?(::std::io::IO::print::3 ::std::io::IO::print::2 x(n0 x(n1 x(n3 n2)))) n3) n2))) }
 
-::std::io::print::2 {
+::std::io::IO::print::2 {
   x(n1 x(n3 x(@sub(1 n4) tup(n0 n5))))
-  ::std::io::print_char = fn(ref(n1 n2) fn(n0 _))
-  ::std::io::print::1 = x(n2 x(n3 x(n4 n5)))
+  ::std::io::IO::print_char = fn(ref(n1 n2) fn(n0 _))
+  ::std::io::IO::print::1 = x(n2 x(n3 x(n4 n5)))
 }
 
-::std::io::print::3 { x(n0 x(n0 _)) }
+::std::io::IO::print::3 { x(n0 x(n0 _)) }
 
-::std::io::print_char { fn(ref(@io_print_char(char io) io) fn(char _)) }
+::std::io::IO::print_char { fn(ref(@io_print_char(char io) io) fn(char _)) }
 
 ::std::list::List { fn(n0 fn(n1 fn(n2 tup(n0 tup(n1 n2))))) }
 

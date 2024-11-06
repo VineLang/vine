@@ -1,6 +1,4 @@
 
-use std::{list::String};
-
 fn main(&io: &IO) {
   io.println(pretty_div(4, 2));
   io.println(pretty_div(5, 3));

@@ -1,6 +1,4 @@
 
-use std::list::String;
-
 fn main(&io: &IO) {
   let zero_count = 0;
   io.println(foo(0, &zero_count));

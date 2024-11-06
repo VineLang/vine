@@ -1,5 +1,5 @@
 
-use std::{u32, option::Option::{Some, None}, list::List};
+use std::option::Option::{Some, None};
 
 fn main(&io: &IO) {
   let list = [4, 3, 7, 9];

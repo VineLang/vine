@@ -1,5 +1,5 @@
 
-use std::{u32, bool::{true, false}, list::List, option::Option::Some};
+use std::option::Option::Some;
 
 fn main(&io: &IO) {
   let list = [0];
