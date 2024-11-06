@@ -33,7 +33,7 @@ impl Checker<'_> {
         }
       }
     } else {
-      match self.check_foo_method(span, receiver, path, args) {
+      match self.check_associated_method(span, receiver, path, args) {
         Ok((form, ret)) => (self.desugar_method(receiver, args, path, form), ret),
         Err(e) => {
           for arg in args {
@@ -46,7 +46,7 @@ impl Checker<'_> {
     }
   }
 
-  fn check_foo_method(
+  fn check_associated_method(
     &mut self,
     span: Span,
     receiver: &mut Box<Expr>,
