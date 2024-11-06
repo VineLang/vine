@@ -45,17 +45,17 @@ pub fn build(config: Config) -> Result<Nets, String> {
   let root = loader.finish();
 
   let mut resolver = Resolver::default();
-  resolver.build_graph(&interner, root);
+  resolver.build_graph(root);
   resolver.resolve_imports();
   resolver.resolve_defs();
 
   resolver.diags.report(&loader.files)?;
 
-  let mut checker = Checker::new(&mut resolver, &interner);
+  let mut checker = Checker::new(&mut resolver);
   checker.check_defs();
   checker.diags.report(&loader.files)?;
 
   Desugar.visit(&mut resolver.defs);
 
-  Ok(compile(&resolver.defs, &config.items))
+  Ok(compile(&resolver, &config.items))
 }

@@ -1,6 +1,4 @@
 
-use std::io::println;
-
 fn main(&io: &IO) {
   let message = "original";
   if 0 {

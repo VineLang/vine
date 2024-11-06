@@ -8,7 +8,7 @@
 
 ::mandelbrot_tga::main {
   fn(ref(n0 n5) _)
-  ::std::io::print_bytes = fn(ref(n0 n4) fn(tup(18 tup(tup(0 tup(0 tup(3 tup(0 tup(0 tup(0 tup(0 tup(0 tup(0 tup(0 tup(0 tup(0 tup(1024 tup(n1 tup(1024 tup(n2 tup(8 tup(32 n3)))))))))))))))))) n3)) _))
+  ::std::io::IO::print_bytes = fn(ref(n0 n4) fn(tup(18 tup(tup(0 tup(0 tup(3 tup(0 tup(0 tup(0 tup(0 tup(0 tup(0 tup(0 tup(0 tup(0 tup(1024 tup(n1 tup(1024 tup(n2 tup(8 tup(32 n3)))))))))))))))))) n3)) _))
   1024 = @u32_shr(8 n1)
   1024 = @u32_shr(8 n2)
   ::mandelbrot_tga::main::1 = x(n4 x(n5 0))
@@ -30,7 +30,7 @@
   tup(n7 n11) = @add(+0.5 @sub(n0 n1))
   tup(1024 1024) = @div(+2.0 n0)
   ::mandelbrot_tga::center = @add(n2 tup(n3 n4))
-  ::std::io::print_byte = fn(ref(n6 n8) fn(n5 _))
+  ::std::io::IO::print_byte = fn(ref(n6 n8) fn(n5 _))
   ::mandelbrot_tga::mandelbrot = fn(n3 fn(n4 n5))
   ::mandelbrot_tga::main::3 = x(n8 x(n9 x(n12 n10)))
 }
@@ -55,20 +55,20 @@
 
 ::mandelbrot_tga::mandelbrot::3 { x(_ x(_ x(_ x(_ x(_ x(_ x(n0 n0))))))) }
 
-::std::io::print_bytes {
+::std::io::IO::print_bytes {
   fn(ref(n0 n1) fn(tup(n2 tup(n3 _)) _))
-  ::std::io::print_bytes::1 = x(n0 x(n1 x(n2 n3)))
+  ::std::io::IO::print_bytes::1 = x(n0 x(n1 x(n2 n3)))
 }
 
-::std::io::print_bytes::1 { x(n0 x(n1 x(dup42(?(::std::io::print_bytes::3 ::std::io::print_bytes::2 x(n0 x(n1 x(n3 n2)))) n3) n2))) }
+::std::io::IO::print_bytes::1 { x(n0 x(n1 x(dup42(?(::std::io::IO::print_bytes::3 ::std::io::IO::print_bytes::2 x(n0 x(n1 x(n3 n2)))) n3) n2))) }
 
-::std::io::print_bytes::2 {
+::std::io::IO::print_bytes::2 {
   x(n1 x(n3 x(@sub(1 n4) tup(n0 n5))))
-  ::std::io::print_byte = fn(ref(n1 n2) fn(n0 _))
-  ::std::io::print_bytes::1 = x(n2 x(n3 x(n4 n5)))
+  ::std::io::IO::print_byte = fn(ref(n1 n2) fn(n0 _))
+  ::std::io::IO::print_bytes::1 = x(n2 x(n3 x(n4 n5)))
 }
 
-::std::io::print_bytes::3 { x(n0 x(n0 _)) }
+::std::io::IO::print_bytes::3 { x(n0 x(n0 _)) }
 
-::std::io::print_byte { fn(ref(@io_print_byte(char io) io) fn(char _)) }
+::std::io::IO::print_byte { fn(ref(@io_print_byte(char io) io) fn(char _)) }
 

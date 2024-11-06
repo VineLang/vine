@@ -4,24 +4,24 @@
 ::inverse::main {
   fn(ref(n0 n7) _)
   ::inverse::refs = fn(ref(n0 n1) _)
-  ::std::io::println = fn(ref(n1 n3) fn(tup(0 tup(n2 n2)) _))
+  ::std::io::IO::println = fn(ref(n1 n3) fn(tup(0 tup(n2 n2)) _))
   ::inverse::fns = fn(ref(n3 n4) _)
-  ::std::io::println = fn(ref(n4 n6) fn(tup(0 tup(n5 n5)) _))
+  ::std::io::IO::println = fn(ref(n4 n6) fn(tup(0 tup(n5 n5)) _))
   ::inverse::rev = fn(ref(n6 n7) _)
 }
 
 ::inverse::refs {
   fn(ref(n0 n9) _)
   ::inverse::refs::inc = fn(tup(0 dup5(n14 n15)) _)
-  ::std::io::println = fn(ref(n0 n4) fn(n3 _))
+  ::std::io::IO::println = fn(ref(n0 n4) fn(n3 _))
   ::std::u32::to_string = fn(n14 n2)
   ::std::list::List::concat = fn(tup(4 tup(tup(120 tup(32 tup(61 tup(32 n1)))) n1)) fn(n2 n3))
   ::inverse::refs::inc = fn(tup(n15 dup5(n16 n17)) _)
-  ::std::io::println = fn(ref(n4 n8) fn(n7 _))
+  ::std::io::IO::println = fn(ref(n4 n8) fn(n7 _))
   ::std::u32::to_string = fn(n16 n6)
   ::std::list::List::concat = fn(tup(4 tup(tup(120 tup(32 tup(61 tup(32 n5)))) n5)) fn(n6 n7))
   ::inverse::refs::inc = fn(tup(n17 n11) _)
-  ::std::io::println = fn(ref(n8 n9) fn(n13 _))
+  ::std::io::IO::println = fn(ref(n8 n9) fn(n13 _))
   ::std::u32::to_string = fn(n11 n12)
   ::std::list::List::concat = fn(tup(4 tup(tup(120 tup(32 tup(61 tup(32 n10)))) n10)) fn(n12 n13))
 }
@@ -30,15 +30,15 @@
 
 ::inverse::fns {
   fn(ref(n1 n12) _)
-  ::std::io::println = fn(ref(n1 n6) fn(n5 _))
+  ::std::io::IO::println = fn(ref(n1 n6) fn(n5 _))
   ::inverse::fns::call = fn(n18 fn(1 n3))
   ::std::u32::to_string = fn(n3 n4)
   ::std::list::List::concat = fn(tup(7 tup(tup(102 tup(40 tup(49 tup(41 tup(32 tup(61 tup(32 n2))))))) n2)) fn(n4 n5))
-  ::std::io::println = fn(ref(n6 n11) fn(n10 _))
+  ::std::io::IO::println = fn(ref(n6 n11) fn(n10 _))
   ::inverse::fns::call = fn(n19 fn(2 n8))
   ::std::u32::to_string = fn(n8 n9)
   ::std::list::List::concat = fn(tup(7 tup(tup(102 tup(40 tup(50 tup(41 tup(32 tup(61 tup(32 n7))))))) n7)) fn(n9 n10))
-  ::std::io::println = fn(ref(n11 n12) fn(n16 _))
+  ::std::io::IO::println = fn(ref(n11 n12) fn(n16 _))
   ::inverse::fns::call = fn(n20 fn(3 n14))
   ::std::u32::to_string = fn(n14 n15)
   ::std::list::List::concat = fn(tup(7 tup(tup(102 tup(40 tup(51 tup(41 tup(32 tup(61 tup(32 n13))))))) n13)) fn(n15 n16))
@@ -50,15 +50,15 @@
 ::inverse::rev {
   fn(ref(n1 n15) _)
   _ = tup(1 tup(tup(48 n0) n0))
-  ::std::io::println = fn(ref(n1 n5) fn(n4 _))
+  ::std::io::IO::println = fn(ref(n1 n5) fn(n4 _))
   ::std::list::List::concat = fn(tup(4 tup(tup(115 tup(32 tup(61 tup(32 n2)))) n2)) fn(n3 n4))
-  ::std::io::println = fn(ref(n5 n10) fn(n8 _))
+  ::std::io::IO::println = fn(ref(n5 n10) fn(n8 _))
   ::std::list::List::concat = fn(tup(4 tup(tup(115 tup(32 tup(61 tup(32 n6)))) n6)) fn(n7 n8))
   dup(n7 dup(n3 _)) = tup(1 tup(tup(49 n9) n9))
-  ::std::io::println = fn(ref(n10 n14) fn(n13 _))
+  ::std::io::IO::println = fn(ref(n10 n14) fn(n13 _))
   ::inverse::rev::get = fn(ref(_ n17) n12)
   ::std::list::List::concat = fn(tup(4 tup(tup(115 tup(32 tup(61 tup(32 n11)))) n11)) fn(n12 n13))
-  ::std::io::println = fn(ref(n14 n15) fn(n19 _))
+  ::std::io::IO::println = fn(ref(n14 n15) fn(n19 _))
   ::inverse::rev::get = fn(ref(n17 n20) n18)
   ::std::list::List::concat = fn(tup(4 tup(tup(115 tup(32 tup(61 tup(32 n16)))) n16)) fn(n18 n19))
   ::inverse::rev::set = fn(ref(n20 _) fn(tup(1 tup(tup(50 n21) n21)) _))
@@ -68,28 +68,28 @@
 
 ::inverse::rev::set { fn(ref(n0 _) fn(n0 _)) }
 
-::std::io::println {
+::std::io::IO::println {
   fn(ref(n0 n3) fn(n1 _))
-  ::std::io::print = fn(ref(n0 n2) fn(n1 _))
-  ::std::io::print_char = fn(ref(n2 n3) fn(10 _))
+  ::std::io::IO::print = fn(ref(n0 n2) fn(n1 _))
+  ::std::io::IO::print_char = fn(ref(n2 n3) fn(10 _))
 }
 
-::std::io::print {
+::std::io::IO::print {
   fn(ref(n0 n1) fn(tup(n2 tup(n3 _)) _))
-  ::std::io::print::1 = x(n0 x(n1 x(n2 n3)))
+  ::std::io::IO::print::1 = x(n0 x(n1 x(n2 n3)))
 }
 
-::std::io::print::1 { x(n0 x(n1 x(dup42(?(::std::io::print::3 ::std::io::print::2 x(n0 x(n1 x(n3 n2)))) n3) n2))) }
+::std::io::IO::print::1 { x(n0 x(n1 x(dup42(?(::std::io::IO::print::3 ::std::io::IO::print::2 x(n0 x(n1 x(n3 n2)))) n3) n2))) }
 
-::std::io::print::2 {
+::std::io::IO::print::2 {
   x(n1 x(n3 x(@sub(1 n4) tup(n0 n5))))
-  ::std::io::print_char = fn(ref(n1 n2) fn(n0 _))
-  ::std::io::print::1 = x(n2 x(n3 x(n4 n5)))
+  ::std::io::IO::print_char = fn(ref(n1 n2) fn(n0 _))
+  ::std::io::IO::print::1 = x(n2 x(n3 x(n4 n5)))
 }
 
-::std::io::print::3 { x(n0 x(n0 _)) }
+::std::io::IO::print::3 { x(n0 x(n0 _)) }
 
-::std::io::print_char { fn(ref(@io_print_char(char io) io) fn(char _)) }
+::std::io::IO::print_char { fn(ref(@io_print_char(char io) io) fn(char _)) }
 
 ::std::list::List { fn(n0 fn(n1 fn(n2 tup(n0 tup(n1 n2))))) }
 

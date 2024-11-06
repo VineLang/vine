@@ -1,6 +1,7 @@
 
 use std::option::Option::{Option, Some, None};
 
+#[builtin = "List"]
 struct List[T](u32, Buf[T], ~Buf[T]);
 
 struct Buf[T](T, Buf[T]);
@@ -12,7 +13,7 @@ mod List {
     len
   }
 
-  fn map[T, U](&move List(l, buf, ~_): &List[T], f: fn(T) -> U) -> List[U] {
+  fn map[T, U](List(l, buf, ~_): List[T], f: fn(T) -> U) -> List[U] {
     let len = l;
     let cur;
     let result = move ~cur;
@@ -38,6 +39,7 @@ mod List {
     }
   }
 
+  #[builtin = "concat"]
   fn concat[T](a: List[T], b: List[T]) -> List[T] {
     let List(a_len, a_buf, ~a_end) = a;
     let List(b_len, b_buf, ~b_end) = b;
@@ -53,10 +55,10 @@ mod List {
     list = [el] ++ list;
   }
 
-  fn join(&move list: &List[String], sep: String) -> String {
+  fn join(list: List[String], sep: String) -> String {
     let it = list.into_iter();
-    if it.into_iter::next() is Some(str) {
-      while it.into_iter::next() is Some(val) {
+    if it.next() is Some(str) {
+      while it.next() is Some(val) {
         str ++= sep ++ val;
       }
       str
@@ -65,7 +67,7 @@ mod List {
     }
   }
 
-  fn to_string[T](elem_to_string: fn(T) -> String, list: List[T]) -> String {
+  fn to_string[T](list: List[T], elem_to_string: fn(T) -> String) -> String {
     "[" ++ list.map(elem_to_string).join(", ") ++ "]"
   }
 
@@ -75,7 +77,7 @@ mod List {
     Iter(len, &buf)
   }
 
-  mod iter {
+  mod Iter {
     fn next[T](&Iter(len, buf): &Iter[T]) -> Option[&T] {
       if len {
         len -= 1;
@@ -91,11 +93,11 @@ mod List {
 
   struct IntoIter[T](u32, Buf[T]);
 
-  fn into_iter[T](&move List(len, buf, _): &List[T]) -> IntoIter[T] {
+  fn into_iter[T](List(len, buf, _): List[T]) -> IntoIter[T] {
     IntoIter(len, buf)
   }
 
-  mod into_iter {
+  mod IntoIter {
     fn next[T](&IntoIter(len, buf): &IntoIter[T]) -> Option[T] {
       if len {
         len -= 1;

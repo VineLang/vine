@@ -3,13 +3,13 @@
 
 ::basic_diverge::main {
   fn(ref(n0 n9) _)
-  ::std::io::println = fn(ref(n0 n2) fn(n1 _))
+  ::std::io::IO::println = fn(ref(n0 n2) fn(n1 _))
   ::basic_diverge::foo = fn(0 fn(ref(0 n3) n1))
-  ::std::io::println = fn(ref(n2 n5) fn(n4 _))
+  ::std::io::IO::println = fn(ref(n2 n5) fn(n4 _))
   ::basic_diverge::foo = fn(1 fn(ref(n3 n6) n4))
-  ::std::io::println = fn(ref(n5 n8) fn(n7 _))
+  ::std::io::IO::println = fn(ref(n5 n8) fn(n7 _))
   ::basic_diverge::foo = fn(0 fn(ref(n6 n11) n7))
-  ::std::io::println = fn(ref(n8 n9) fn(n13 _))
+  ::std::io::IO::println = fn(ref(n8 n9) fn(n13 _))
   ::std::u32::to_string = fn(n11 n12)
   ::std::list::List::concat = fn(tup(13 tup(tup(10 tup(122 tup(101 tup(114 tup(111 tup(95 tup(99 tup(111 tup(117 tup(110 tup(116 tup(58 tup(32 n10))))))))))))) n10)) fn(n12 n13))
 }
@@ -20,28 +20,28 @@
 
 ::basic_diverge::foo::4 { x(@add(1 n1) x(n1 tup(4 tup(tup(122 tup(101 tup(114 tup(111 n0)))) n0)))) }
 
-::std::io::println {
+::std::io::IO::println {
   fn(ref(n0 n3) fn(n1 _))
-  ::std::io::print = fn(ref(n0 n2) fn(n1 _))
-  ::std::io::print_char = fn(ref(n2 n3) fn(10 _))
+  ::std::io::IO::print = fn(ref(n0 n2) fn(n1 _))
+  ::std::io::IO::print_char = fn(ref(n2 n3) fn(10 _))
 }
 
-::std::io::print {
+::std::io::IO::print {
   fn(ref(n0 n1) fn(tup(n2 tup(n3 _)) _))
-  ::std::io::print::1 = x(n0 x(n1 x(n2 n3)))
+  ::std::io::IO::print::1 = x(n0 x(n1 x(n2 n3)))
 }
 
-::std::io::print::1 { x(n0 x(n1 x(dup18(?(::std::io::print::3 ::std::io::print::2 x(n0 x(n1 x(n3 n2)))) n3) n2))) }
+::std::io::IO::print::1 { x(n0 x(n1 x(dup18(?(::std::io::IO::print::3 ::std::io::IO::print::2 x(n0 x(n1 x(n3 n2)))) n3) n2))) }
 
-::std::io::print::2 {
+::std::io::IO::print::2 {
   x(n1 x(n3 x(@sub(1 n4) tup(n0 n5))))
-  ::std::io::print_char = fn(ref(n1 n2) fn(n0 _))
-  ::std::io::print::1 = x(n2 x(n3 x(n4 n5)))
+  ::std::io::IO::print_char = fn(ref(n1 n2) fn(n0 _))
+  ::std::io::IO::print::1 = x(n2 x(n3 x(n4 n5)))
 }
 
-::std::io::print::3 { x(n0 x(n0 _)) }
+::std::io::IO::print::3 { x(n0 x(n0 _)) }
 
-::std::io::print_char { fn(ref(@io_print_char(char io) io) fn(char _)) }
+::std::io::IO::print_char { fn(ref(@io_print_char(char io) io) fn(char _)) }
 
 ::std::list::List { fn(n0 fn(n1 fn(n2 tup(n0 tup(n1 n2))))) }
 

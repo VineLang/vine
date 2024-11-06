@@ -1,11 +1,11 @@
 
-use std::{io::{prompt, println}, u32, option::Option::{Some, None}};
+use std::option::Option::{Some, None};
 
 fn main(&io: &IO) {
   while io.prompt("> ") is Some(line) {
     let num = u32::parse(line);
     io.println(match num {
-      Some(num) => u32::to_string(fib(num)),
+      Some(num) => fib(num).to_string(),
       None => "invalid number",
     });
   }

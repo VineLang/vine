@@ -74,6 +74,7 @@ impl Resolver {
           .filter(|x| matches!(x.1, Member::UnresolvedImport(..)))
           .map(|x| *x.0),
       );
+      unresolved_imports.sort();
       for name in unresolved_imports.drain(..) {
         self.resolve_one(def, name, false);
       }

@@ -1,6 +1,4 @@
 
-use std::io::print_char;
-
 const max_iter: u32 = 128;
 const width: u32 = 125;
 const height: u32 = 45;

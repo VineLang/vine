@@ -1,6 +1,4 @@
 
-use std::io::{print_byte, print_bytes};
-
 const max_iter: u32 = 64;
 const width: u32 = 1024;
 const height: u32 = 1024;

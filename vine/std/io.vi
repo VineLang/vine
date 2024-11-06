@@ -1,71 +1,74 @@
 
-use std::{list::{List, Buf, String}, option::Option::{Option, Some, None}};
+use std::{list::Buf, option::Option::{Option, Some, None}};
 
-fn println(&io: &IO, str: String) {
-  io.print(str);
-  io.print_char('\n');
-}
-
-fn print(&io: &IO, str: String) {
-  let List(len, chars, _) = str;
-  while len {
-    len = len - 1;
-    let Buf(char, tail) = chars;
-    chars = tail;
-    io.print_char(char);
+#[builtin = "IO"]
+mod IO {
+  fn println(&io: &IO, str: String) {
+    io.print(str);
+    io.print_char('\n');
   }
-}
 
-inline_ivy! print_char: fn(&IO, u32) {
-  fn(ref(@io_print_char(char io) io) fn(char _))
-}
-
-fn print_bytes(&io: &IO, bytes: String) {
-  let List(len, bytes, _) = bytes;
-  while len {
-    len = len - 1;
-    let Buf(byte, tail) = bytes;
-    bytes = tail;
-    io.print_byte(byte);
+  fn print(&io: &IO, str: String) {
+    let List(len, chars, _) = str;
+    while len {
+      len = len - 1;
+      let Buf(char, tail) = chars;
+      chars = tail;
+      io.print_char(char);
+    }
   }
-}
 
-inline_ivy! print_byte: fn(&IO, u32) {
-  fn(ref(@io_print_byte(char io) io) fn(char _))
-}
+  inline_ivy! print_char: fn(&IO, u32) {
+    fn(ref(@io_print_char(char io) io) fn(char _))
+  }
 
-inline_ivy! flush: fn(&IO) {
-  fn(ref(@io_flush(0 io) io) _)
-}
+  fn print_bytes(&io: &IO, bytes: String) {
+    let List(len, bytes, _) = bytes;
+    while len {
+      len = len - 1;
+      let Buf(byte, tail) = bytes;
+      bytes = tail;
+      io.print_byte(byte);
+    }
+  }
 
-fn prompt(&io: &IO, msg: String) -> Option[String] {
-  io.print(msg);
-  io.flush();
-  io.read_line()
-}
+  inline_ivy! print_byte: fn(&IO, u32) {
+    fn(ref(@io_print_byte(char io) io) fn(char _))
+  }
 
-fn read_line(&io: &IO) -> Option[String] {
-  let byte = io.read_byte(0);
-  if byte {
-    Some(if byte == '\n' {
-      ""
-    } else {
-      let str = [byte];
-      loop {
-        byte = io.read_byte('\n');
-        if byte != '\n' {
-          str ++= [byte];
-        } else {
-          break;
+  inline_ivy! flush: fn(&IO) {
+    fn(ref(@io_flush(0 io) io) _)
+  }
+
+  fn prompt(&io: &IO, msg: String) -> Option[String] {
+    io.print(msg);
+    io.flush();
+    io.read_line()
+  }
+
+  fn read_line(&io: &IO) -> Option[String] {
+    let byte = io.read_byte(0);
+    if byte {
+      Some(if byte == '\n' {
+        ""
+      } else {
+        let str = [byte];
+        loop {
+          byte = io.read_byte('\n');
+          if byte != '\n' {
+            str ++= [byte];
+          } else {
+            break;
+          }
         }
-      }
-      str
-    })
-  } else {
-    None
+        str
+      })
+    } else {
+      None
+    }
   }
-}
 
-inline_ivy! read_byte: fn(&IO, u32) -> u32 {
-  fn(ref(dup(io0 @io_read_byte(default dup(byte @seq$(io0 io1)))) io1) fn(default byte))
+  inline_ivy! read_byte: fn(&IO, u32) -> u32 {
+    fn(ref(dup(io0 @io_read_byte(default dup(byte @seq$(io0 io1)))) io1) fn(default byte))
+  }
 }

@@ -62,6 +62,10 @@ diags! {
     ["invalid character literal"]
   InvalidIvy
     ["invalid inline ivy"]
+  UnknownAttribute
+    ["unknown attribute"]
+  BadBuiltin
+    ["bad builtin"]
   CannotResolve { name: Ident, module: Path }
     ["cannot find `{name}` in `{module}`"]
   BadPatternPath
@@ -94,8 +98,8 @@ diags! {
     ["cannot call non-function type `{ty}`"]
   CannotCompare { lhs: String, rhs: String}
     ["cannot compare `{lhs}` and `{rhs}`"]
-  NonMethodFunction { ty: String }
-    ["invalid method; function type `{ty}` does not accept reference as first parameter"]
+  NilaryMethod { ty: String }
+    ["invalid method; function type `{ty}` takes no parameters"]
   ExpectedTypeFound { expected: String, found: String }
     ["expected type `{expected}`; found `{found}`"]
   PathNoValue { path: Path }
@@ -114,8 +118,8 @@ diags! {
     ["types in item signatures cannot be elided"]
   RecursiveTypeAlias
     ["type aliases cannot be recursive"]
-  NoList
-    ["cannot find `std::list::List`"]
+  MissingBuiltin { builtin: &'static str }
+    ["cannot find builtin `{builtin}`"]
   NoReturn
     ["no function to return from"]
   NoLoopBreak
@@ -126,6 +130,10 @@ diags! {
     ["expected a value of type `{ty}` to return"]
   MissingBreakExpr { ty: String }
     ["expected a value of type `{ty}` to break with"]
+  NoMethods { ty: String }
+    ["type `{ty}` has no methods"]
+  BadMethodReceiver { base_path: Path, sub_path: Path }
+    ["`{base_path}::{sub_path}` cannot be used as a method; it does not take `{base_path}` as its first parameter"]
 }
 
 fn plural<'a>(n: usize, plural: &'a str, singular: &'a str) -> &'a str {

@@ -1,6 +1,4 @@
 
-use std::{io::println, u32};
-
 fn main(&io: &IO) {
   io.println(loop {
     break "loop result";

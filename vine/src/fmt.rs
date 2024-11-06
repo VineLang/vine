@@ -33,81 +33,89 @@ struct Formatter<'src> {
 
 impl<'src> Formatter<'src> {
   fn fmt_item(&self, item: &Item) -> Doc<'src> {
-    match &item.kind {
-      ItemKind::Fn(f) => {
-        let params = &f.params;
-        Doc::concat([
-          Doc("fn "),
-          Doc(f.name),
-          self.fmt_generics(&f.generics),
-          self.fmt_params(params),
-          self.fmt_return_ty(f.ret.as_ref()),
-          Doc(" "),
-          self.fmt_block(&f.body, true),
-        ])
-      }
-      ItemKind::Const(c) => Doc::concat([
-        Doc("const "),
-        Doc(c.name),
-        self.fmt_generics(&c.generics),
-        Doc(": "),
-        self.fmt_ty(&c.ty),
-        Doc(" = "),
-        self.fmt_expr(&c.value),
-        Doc(";"),
-      ]),
-      ItemKind::Struct(s) => Doc::concat([
-        Doc("struct "),
-        Doc(s.name),
-        self.fmt_generics(&s.generics),
-        Doc::paren_comma(s.fields.iter().map(|x| self.fmt_ty(x))),
-        Doc(";"),
-      ]),
-      ItemKind::Enum(e) => Doc::concat([
-        Doc("enum "),
-        Doc(e.name),
-        self.fmt_generics(&e.generics),
-        Doc(" "),
-        Doc::brace_comma_multiline(e.variants.iter().map(|v| {
+    Doc::concat(item.attrs.iter().flat_map(|x| [self.fmt_verbatim(x.span), Doc::LINE]).chain([
+      match &item.kind {
+        ItemKind::Fn(f) => {
+          let params = &f.params;
           Doc::concat([
-            Doc(v.name),
-            if v.fields.is_empty() {
-              Doc::EMPTY
-            } else {
-              Doc::paren_comma(v.fields.iter().map(|x| self.fmt_ty(x)))
-            },
+            Doc("fn "),
+            Doc(f.name),
+            self.fmt_generics(&f.generics),
+            self.fmt_params(params),
+            self.fmt_return_ty(f.ret.as_ref()),
+            Doc(" "),
+            self.fmt_block(&f.body, true),
           ])
-        })),
-      ]),
-      ItemKind::Type(t) => Doc::concat([
-        Doc("type "),
-        Doc(t.name),
-        self.fmt_generics(&t.generics),
-        Doc(" = "),
-        self.fmt_ty(&t.ty),
-        Doc(";"),
-      ]),
-      ItemKind::Mod(m) => Doc::concat([
-        Doc("mod "),
-        Doc(m.name),
-        match &m.kind {
-          ModKind::Loaded(items) => Doc::concat([
-            Doc(" {"),
-            Doc::indent([self
-              .line_break_separated(item.span, items.iter().map(|x| (x.span, self.fmt_item(x))))]),
-            Doc("}"),
-          ]),
-          ModKind::Unloaded(span, _) => {
-            Doc::concat([Doc(" = "), self.fmt_verbatim(*span), Doc(";")])
-          }
-          ModKind::Error(_) => unreachable!(),
-        },
-      ]),
-      ItemKind::Use(u) => Doc::concat([Doc("use "), self.fmt_use_tree(u), Doc(";")]),
-      ItemKind::Ivy(_) => self.fmt_verbatim(item.span),
-      ItemKind::Pattern(_) => todo!(),
-      ItemKind::Taken => unreachable!(),
-    }
+        }
+        ItemKind::Const(c) => Doc::concat([
+          Doc("const "),
+          Doc(c.name),
+          self.fmt_generics(&c.generics),
+          Doc(": "),
+          self.fmt_ty(&c.ty),
+          Doc(" = "),
+          self.fmt_expr(&c.value),
+          Doc(";"),
+        ]),
+        ItemKind::Struct(s) => Doc::concat([
+          Doc("struct "),
+          Doc(s.name),
+          self.fmt_generics(&s.generics),
+          Doc::paren_comma(s.fields.iter().map(|x| self.fmt_ty(x))),
+          Doc(";"),
+        ]),
+        ItemKind::Enum(e) => Doc::concat([
+          Doc("enum "),
+          Doc(e.name),
+          self.fmt_generics(&e.generics),
+          Doc(" "),
+          Doc::brace_comma_multiline(e.variants.iter().map(|v| {
+            Doc::concat([
+              Doc(v.name),
+              if v.fields.is_empty() {
+                Doc::EMPTY
+              } else {
+                Doc::paren_comma(v.fields.iter().map(|x| self.fmt_ty(x)))
+              },
+            ])
+          })),
+        ]),
+        ItemKind::Type(t) => Doc::concat([
+          Doc("type "),
+          Doc(t.name),
+          self.fmt_generics(&t.generics),
+          Doc(" = "),
+          self.fmt_ty(&t.ty),
+          Doc(";"),
+        ]),
+        ItemKind::Mod(m) => Doc::concat([
+          Doc("mod "),
+          Doc(m.name),
+          match &m.kind {
+            ModKind::Loaded(items) => Doc::concat([
+              Doc(" {"),
+              Doc::indent([self.line_break_separated(
+                item.span,
+                items.iter().map(|x| (x.span, self.fmt_item(x))),
+              )]),
+              Doc("}"),
+            ]),
+            ModKind::Unloaded(span, _) => {
+              Doc::concat([Doc(" = "), self.fmt_verbatim(*span), Doc(";")])
+            }
+            ModKind::Error(_) => unreachable!(),
+          },
+        ]),
+        ItemKind::Use(u) => Doc::concat([
+          Doc(if u.absolute { "use ::" } else { "use " }),
+          self.fmt_use_tree(&u.tree),
+          Doc(";"),
+        ]),
+        ItemKind::Ivy(_) => self.fmt_verbatim(item.span),
+        ItemKind::Pattern(_) => todo!(),
+        ItemKind::Taken => unreachable!(),
+      },
+    ]))
   }
 
   fn line_break_separated(

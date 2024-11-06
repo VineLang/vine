@@ -14,7 +14,7 @@
 
 ::cyclist::main::2 {
   x(dup2(n4 n5) n7)
-  ::std::list::List::map = fn(ref(n4 _) fn(fn(n0 n1) n3))
+  ::std::list::List::map = fn(n4 fn(fn(n0 n1) n3))
   ::std::list::List::len = fn(ref(n5 n2) @add(n0 n1))
   ::std::list::List::concat = fn(n2 fn(n3 n6))
   ::cyclist::main::1 = x(n6 n7)
@@ -30,10 +30,10 @@
 ::cyclist::main::5 {
   enum(dup4(n11 n12) x(n5 x(n8 n6)))
   ::cyclist::cycle = fn(ref(n6 dup2(n9 n10)) fn(n11 _))
-  ::std::io::println = fn(ref(n5 n7) fn(n4 _))
+  ::std::io::IO::println = fn(ref(n5 n7) fn(n4 _))
   ::std::u32::to_string = fn(n12 n1)
   ::std::list::List::concat = fn(n1 fn(tup(2 tup(tup(59 tup(9 n0)) n0)) n2))
-  ::std::list::List::to_string = fn(::std::u32::to_string fn(n9 n3))
+  ::std::list::List::to_string = fn(n9 fn(::std::u32::to_string n3))
   ::std::list::List::concat = fn(n2 fn(n3 n4))
   ::cyclist::main::4 = x(n7 x(n8 n10))
 }
@@ -55,7 +55,7 @@
 ::cyclist::cycle::3 {
   x(n3 x(n5 @sub(1 n6)))
   ::std::list::List::pop_front = fn(ref(n3 n1) n0)
-  ::std::option::Option::unwrap = fn(ref(n0 _) n2)
+  ::std::option::Option::unwrap = fn(n0 n2)
   ::std::list::List::push_back = fn(ref(n1 n4) fn(n2 _))
   ::cyclist::cycle::2 = x(n4 x(n5 n6))
 }
@@ -64,28 +64,28 @@
 
 ::cyclist::cycle::5 { x(n0 x(n0 _)) }
 
-::std::io::println {
+::std::io::IO::println {
   fn(ref(n0 n3) fn(n1 _))
-  ::std::io::print = fn(ref(n0 n2) fn(n1 _))
-  ::std::io::print_char = fn(ref(n2 n3) fn(10 _))
+  ::std::io::IO::print = fn(ref(n0 n2) fn(n1 _))
+  ::std::io::IO::print_char = fn(ref(n2 n3) fn(10 _))
 }
 
-::std::io::print {
+::std::io::IO::print {
   fn(ref(n0 n1) fn(tup(n2 tup(n3 _)) _))
-  ::std::io::print::1 = x(n0 x(n1 x(n2 n3)))
+  ::std::io::IO::print::1 = x(n0 x(n1 x(n2 n3)))
 }
 
-::std::io::print::1 { x(n0 x(n1 x(dup28(?(::std::io::print::3 ::std::io::print::2 x(n0 x(n1 x(n3 n2)))) n3) n2))) }
+::std::io::IO::print::1 { x(n0 x(n1 x(dup28(?(::std::io::IO::print::3 ::std::io::IO::print::2 x(n0 x(n1 x(n3 n2)))) n3) n2))) }
 
-::std::io::print::2 {
+::std::io::IO::print::2 {
   x(n1 x(n3 x(@sub(1 n4) tup(n0 n5))))
-  ::std::io::print_char = fn(ref(n1 n2) fn(n0 _))
-  ::std::io::print::1 = x(n2 x(n3 x(n4 n5)))
+  ::std::io::IO::print_char = fn(ref(n1 n2) fn(n0 _))
+  ::std::io::IO::print::1 = x(n2 x(n3 x(n4 n5)))
 }
 
-::std::io::print::3 { x(n0 x(n0 _)) }
+::std::io::IO::print::3 { x(n0 x(n0 _)) }
 
-::std::io::print_char { fn(ref(@io_print_char(char io) io) fn(char _)) }
+::std::io::IO::print_char { fn(ref(@io_print_char(char io) io) fn(char _)) }
 
 ::std::list::List { fn(n0 fn(n1 fn(n2 tup(n0 tup(n1 n2))))) }
 
@@ -94,7 +94,7 @@
 ::std::list::List::len { fn(ref(tup(dup57(n2 n3) n0) tup(n3 n0)) n2) }
 
 ::std::list::List::map {
-  fn(ref(tup(dup60(n5 n6) tup(n1 _)) _) fn(n2 n0))
+  fn(tup(dup60(n5 n6) tup(n1 _)) fn(n2 n0))
   ::std::list::List = fn(n5 fn(n3 fn(n4 n0)))
   ::std::list::List::map::1 = x(n6 x(n1 x(n2 x(n3 n4))))
 }
@@ -129,9 +129,9 @@
 }
 
 ::std::list::List::join {
-  fn(ref(n0 _) fn(n2 n4))
-  ::std::list::List::into_iter = fn(ref(n0 _) n1)
-  ::std::list::List::into_iter::next = fn(ref(n1 n3) enum(::std::list::List::join::1 enum(::std::list::List::join::5 x(n2 x(n3 n4)))))
+  fn(n0 fn(n2 n4))
+  ::std::list::List::into_iter = fn(n0 n1)
+  ::std::list::List::IntoIter::next = fn(ref(n1 n3) enum(::std::list::List::join::1 enum(::std::list::List::join::5 x(n2 x(n3 n4)))))
 }
 
 ::std::list::List::join::1 {
@@ -141,7 +141,7 @@
 
 ::std::list::List::join::2 {
   x(n1 x(n0 n3))
-  ::std::list::List::into_iter::next = fn(ref(n0 n2) enum(::std::list::List::join::3 enum(::std::list::List::join::4 x(n1 x(n2 n3)))))
+  ::std::list::List::IntoIter::next = fn(ref(n0 n2) enum(::std::list::List::join::3 enum(::std::list::List::join::4 x(n1 x(n2 n3)))))
 }
 
 ::std::list::List::join::3 {
@@ -156,9 +156,9 @@
 ::std::list::List::join::5 { x(_ x(_ tup(0 tup(n0 n0)))) }
 
 ::std::list::List::to_string {
-  fn(n2 fn(n1 n8))
-  ::std::list::List::map = fn(ref(n1 _) fn(n2 n3))
-  ::std::list::List::join = fn(ref(n3 _) fn(tup(2 tup(tup(44 tup(32 n4)) n4)) n5))
+  fn(n1 fn(n2 n8))
+  ::std::list::List::map = fn(n1 fn(n2 n3))
+  ::std::list::List::join = fn(n3 fn(tup(2 tup(tup(44 tup(32 n4)) n4)) n5))
   ::std::list::List::concat = fn(tup(1 tup(tup(91 n0) n0)) fn(n5 n7))
   ::std::list::List::concat = fn(n7 fn(tup(1 tup(tup(93 n6) n6)) n8))
 }
@@ -166,24 +166,24 @@
 ::std::list::List::IntoIter { fn(n0 fn(n1 tup(n0 n1))) }
 
 ::std::list::List::into_iter {
-  fn(ref(tup(n0 tup(n1 _)) _) n2)
+  fn(tup(n0 tup(n1 _)) n2)
   ::std::list::List::IntoIter = fn(n0 fn(n1 n2))
 }
 
-::std::list::List::into_iter::next { fn(ref(tup(dup129(?(::std::list::List::into_iter::next::2 ::std::list::List::into_iter::next::1 x(n0 x(n1 x(n2 x(n3 n4))))) n0) n2) tup(n1 n3)) n4) }
+::std::list::List::IntoIter::next { fn(ref(tup(dup129(?(::std::list::List::IntoIter::next::2 ::std::list::List::IntoIter::next::1 x(n0 x(n1 x(n2 x(n3 n4))))) n0) n2) tup(n1 n3)) n4) }
 
-::std::list::List::into_iter::next::1 {
+::std::list::List::IntoIter::next::1 {
   x(@sub(1 n1) x(n1 x(tup(n0 n2) x(n2 n3))))
   ::std::option::Option::Some = fn(n0 n3)
 }
 
-::std::list::List::into_iter::next::2 { x(n0 x(n0 x(n1 x(n1 ::std::option::Option::None)))) }
+::std::list::List::IntoIter::next::2 { x(n0 x(n0 x(n1 x(n1 ::std::option::Option::None)))) }
 
 ::std::option::Option::Some { fn(n0 enum(enum(n0 n1) enum(_ n1))) }
 
 ::std::option::Option::None { enum(_ enum(n0 n0)) }
 
-::std::option::Option::unwrap { fn(ref(enum(::std::option::Option::unwrap::1 enum(_ n0)) _) n0) }
+::std::option::Option::unwrap { fn(enum(::std::option::Option::unwrap::1 enum(_ n0)) n0) }
 
 ::std::option::Option::unwrap::1 { enum(n0 n0) }
 

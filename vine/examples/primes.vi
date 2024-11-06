@@ -1,11 +1,5 @@
 
-use std::{
-  io::println,
-  bool::{bool, true, false},
-  result::Result::{Result, Ok, Err},
-  list::String,
-  u32,
-};
+use std::result::Result::{Result, Ok, Err};
 
 const end: u32 = 46;
 
@@ -14,7 +8,7 @@ fn main(&io: &IO) {
   while n <= end {
     let primeness = is_prime(n);
 
-    io.println(u32::to_string(n) ++ ": " ++ match primeness {
+    io.println(n.to_string() ++ ": " ++ match primeness {
       Ok(primeness) => if primeness {
         "prime"
       } else {

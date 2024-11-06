@@ -1,22 +1,15 @@
 
-use std::{
-  io::println,
-  u32,
-  bool::{true, false},
-  list::List,
-  list::List::{len, map, join, pop_front, push_front, push_back, iter},
-  option::Option::{unwrap, Some},
-};
+use std::option::Option::Some;
 
 fn main(&io: &IO) {
   let list = [0];
   while list.len() < 32 {
-    list ++= { list }.map(fn(x: u32) list.len() + x);
+    list ++= list.map(fn(x: u32) list.len() + x);
   }
 
   while list.pop_front() is Some(val) {
     cycle(&list, val);
-    io.println(u32::to_string(val) ++ ";\t" ++ List::to_string(u32::to_string, list));
+    io.println(val.to_string() ++ ";\t" ++ list.to_string(u32::to_string));
   }
 }
 
