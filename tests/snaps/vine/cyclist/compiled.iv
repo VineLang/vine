@@ -33,7 +33,7 @@
   ::std::io::IO::println = fn(ref(n5 n7) fn(n4 _))
   ::std::u32::to_string = fn(n12 n1)
   ::std::list::List::concat = fn(n1 fn(tup(2 tup(tup(59 tup(9 n0)) n0)) n2))
-  ::std::list::List::to_string = fn(::std::u32::to_string fn(n9 n3))
+  ::std::list::List::to_string = fn(n9 fn(::std::u32::to_string n3))
   ::std::list::List::concat = fn(n2 fn(n3 n4))
   ::cyclist::main::4 = x(n7 x(n8 n10))
 }
@@ -156,7 +156,7 @@
 ::std::list::List::join::5 { x(_ x(_ tup(0 tup(n0 n0)))) }
 
 ::std::list::List::to_string {
-  fn(n2 fn(n1 n8))
+  fn(n1 fn(n2 n8))
   ::std::list::List::map = fn(n1 fn(n2 n3))
   ::std::list::List::join = fn(n3 fn(tup(2 tup(tup(44 tup(32 n4)) n4)) n5))
   ::std::list::List::concat = fn(tup(1 tup(tup(91 n0) n0)) fn(n5 n7))

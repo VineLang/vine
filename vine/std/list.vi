@@ -67,7 +67,7 @@ mod List {
     }
   }
 
-  fn to_string[T](elem_to_string: fn(T) -> String, list: List[T]) -> String {
+  fn to_string[T](list: List[T], elem_to_string: fn(T) -> String) -> String {
     "[" ++ list.map(elem_to_string).join(", ") ++ "]"
   }
 

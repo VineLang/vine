@@ -37,7 +37,7 @@
   fn(n1 _)
   ::sub_min = fn(ref(tup(4 tup(tup(4 tup(3 tup(7 tup(9 n0)))) n0)) n3) _)
   ::std::io::IO::println = fn(n1 fn(n4 _))
-  ::std::list::List::to_string = fn(::std::u32::to_string fn(n3 n4))
+  ::std::list::List::to_string = fn(n3 fn(::std::u32::to_string n4))
 }
 
 ::std::io::IO::println {
@@ -116,7 +116,7 @@
 ::std::list::List::join::5 { x(_ x(_ tup(0 tup(n0 n0)))) }
 
 ::std::list::List::to_string {
-  fn(n2 fn(n1 n8))
+  fn(n1 fn(n2 n8))
   ::std::list::List::map = fn(n1 fn(n2 n3))
   ::std::list::List::join = fn(n3 fn(tup(2 tup(tup(44 tup(32 n4)) n4)) n5))
   ::std::list::List::concat = fn(tup(1 tup(tup(91 n0) n0)) fn(n5 n7))
