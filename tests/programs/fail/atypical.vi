@@ -27,6 +27,7 @@ fn main[T, U](io: IO) {
   return 0.0;
   let x = 1; ~x + ~x;
   x += 1.0;
+  x.parse();
   123
 }
 
