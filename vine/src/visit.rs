@@ -262,7 +262,7 @@ pub trait VisitMut<'a> {
         self.visit_type(&mut t.ty);
       }
       ItemKind::Pattern(_) => todo!(),
-      ItemKind::Use(_) | ItemKind::Ivy(_) | ItemKind::Taken => {}
+      ItemKind::Use(..) | ItemKind::Ivy(_) | ItemKind::Taken => {}
     }
   }
 

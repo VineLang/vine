@@ -8,9 +8,10 @@ use vine_util::{
 
 use crate::{
   ast::{
-    BinaryOp, Block, ComparisonOp, ConstItem, Enum, Expr, ExprKind, FnItem, GenericPath, Ident,
-    InlineIvy, Item, ItemKind, LetStmt, LogicalOp, ModItem, ModKind, Pat, PatKind, Path,
-    PatternItem, Span, Stmt, StmtKind, StructItem, Ty, TyKind, TypeItem, UseTree, Variant,
+    Attr, AttrKind, BinaryOp, Block, Builtin, ComparisonOp, ConstItem, Enum, Expr, ExprKind,
+    FnItem, GenericPath, Ident, InlineIvy, Item, ItemKind, LetStmt, LogicalOp, ModItem, ModKind,
+    Pat, PatKind, Path, PatternItem, Span, Stmt, StmtKind, StructItem, Ty, TyKind, TypeItem,
+    UseItem, UseTree, Variant,
   },
   diag::Diag,
   lexer::Token,
@@ -66,6 +67,10 @@ impl<'ctx, 'src> VineParser<'ctx, 'src> {
 
   fn maybe_parse_item(&mut self) -> Parse<'src, Option<Item>> {
     let span = self.start_span();
+    let mut attrs = Vec::new();
+    while self.check(Token::Hash) {
+      attrs.push(self.parse_attr()?);
+    }
     let kind = match () {
       _ if self.check(Token::Fn) => ItemKind::Fn(self.parse_fn_item()?),
       _ if self.check(Token::Const) => ItemKind::Const(self.parse_const_item()?),
@@ -79,7 +84,38 @@ impl<'ctx, 'src> VineParser<'ctx, 'src> {
       _ => return Ok(None),
     };
     let span = self.end_span(span);
-    Ok(Some(Item { span, kind }))
+    Ok(Some(Item { span, attrs, kind }))
+  }
+
+  fn parse_attr(&mut self) -> Parse<'src, Attr> {
+    let span = self.start_span();
+    self.expect(Token::Hash)?;
+    self.expect(Token::OpenBracket)?;
+    let ident_span = self.start_span();
+    let ident = self.expect(Token::Ident)?;
+    let ident_span = self.end_span(ident_span);
+    let kind = match ident {
+      "builtin" => {
+        self.expect(Token::Eq)?;
+        let str_span = self.start_span();
+        let str = self.parse_string()?;
+        let str_span = self.end_span(str_span);
+        let builtin = match &*str {
+          "u32" => Builtin::U32,
+          "f32" => Builtin::F32,
+          "IO" => Builtin::IO,
+          "List" => Builtin::List,
+          "concat" => Builtin::Concat,
+          "prelude" => Builtin::Prelude,
+          _ => Err(Diag::BadBuiltin { span: str_span })?,
+        };
+        AttrKind::Builtin(builtin)
+      }
+      _ => Err(Diag::UnknownAttribute { span: ident_span })?,
+    };
+    self.expect(Token::CloseBracket)?;
+    let span = self.end_span(span);
+    Ok(Attr { span, kind })
   }
 
   fn parse_ident(&mut self) -> Parse<'src, Ident> {
@@ -203,11 +239,12 @@ impl<'ctx, 'src> VineParser<'ctx, 'src> {
     }
   }
 
-  fn parse_use_item(&mut self) -> Parse<'src, UseTree> {
+  fn parse_use_item(&mut self) -> Parse<'src, UseItem> {
     self.expect(Token::Use)?;
+    let absolute = self.eat(Token::ColonColon)?;
     let tree = self.parse_use_tree()?;
     self.expect(Token::Semi)?;
-    Ok(tree)
+    Ok(UseItem { absolute, tree })
   }
 
   fn parse_use_tree(&mut self) -> Parse<'src, UseTree> {

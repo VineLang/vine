@@ -185,7 +185,7 @@ impl Checker<'_> {
         if let Some(list) = self.list {
           Type::Adt(list, vec![item])
         } else {
-          Type::Error(self.diags.add(Diag::NoList { span }))
+          Type::Error(self.diags.add(Diag::MissingBuiltin { span, builtin: "List" }))
         }
       }
       ExprKind::Method(receiver, path, args) => {
@@ -248,7 +248,9 @@ impl Checker<'_> {
       }
       ExprKind::U32(_) => Type::U32,
       ExprKind::F32(_) => Type::F32,
-      ExprKind::String(_) => report!(self.diags; self.string.clone().ok_or(Diag::NoList { span })),
+      ExprKind::String(_) => {
+        report!(self.diags; self.string.clone().ok_or(Diag::MissingBuiltin { span, builtin: "List" }))
+      }
       ExprKind::For(..) => todo!(),
     }
   }
@@ -302,6 +304,9 @@ impl Checker<'_> {
     match op {
       BinaryOp::Range | BinaryOp::RangeTo => todo!(),
       BinaryOp::Concat => {
+        if self.concat.is_none() {
+          return Type::Error(self.diags.add(Diag::MissingBuiltin { span, builtin: "concat" }));
+        }
         self.concretize(&mut a);
         self.concretize(&mut b);
         if self.unify(&mut a, &mut b) {

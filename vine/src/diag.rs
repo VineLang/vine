@@ -62,6 +62,10 @@ diags! {
     ["invalid character literal"]
   InvalidIvy
     ["invalid inline ivy"]
+  UnknownAttribute
+    ["unknown attribute"]
+  BadBuiltin
+    ["bad builtin"]
   CannotResolve { name: Ident, module: Path }
     ["cannot find `{name}` in `{module}`"]
   BadPatternPath
@@ -114,8 +118,8 @@ diags! {
     ["types in item signatures cannot be elided"]
   RecursiveTypeAlias
     ["type aliases cannot be recursive"]
-  NoList
-    ["cannot find `std::list::List`"]
+  MissingBuiltin { builtin: &'static str }
+    ["cannot find builtin `{builtin}`"]
   NoReturn
     ["no function to return from"]
   NoLoopBreak

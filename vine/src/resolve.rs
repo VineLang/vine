@@ -3,13 +3,12 @@ use std::collections::HashMap;
 use ivy::ast::Net;
 
 use crate::{
-  ast::{Expr, Ident, Path, Span, Ty},
+  ast::{Builtin, Expr, Ident, Path, Span, Ty},
   checker::Type,
   diag::DiagGroup,
 };
 
 mod build_graph;
-mod prelude;
 mod resolve_defs;
 mod resolve_path;
 
@@ -18,6 +17,7 @@ pub struct Resolver {
   pub defs: Vec<Def>,
   pub diags: DiagGroup,
   pub next_use_id: UseId,
+  pub builtins: HashMap<Builtin, DefId>,
 }
 
 pub type DefId = usize;

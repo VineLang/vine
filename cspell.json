@@ -4,6 +4,7 @@
   "words": [
     "allocs",
     "bitflags",
+    "builtins",
     "cfgs",
     "cmps",
     "combinators",

@@ -47,6 +47,7 @@ impl<'ctx> Loader<'ctx> {
     let io = Ident(self.interner.intern("IO"));
     self.root.push(Item {
       span: Span::NONE,
+      attrs: Vec::new(),
       kind: ItemKind::Const(ConstItem {
         name: main,
         generics: Vec::new(),
@@ -88,6 +89,7 @@ impl<'ctx> Loader<'ctx> {
     let path = path.into();
     let module = Item {
       span: Span::NONE,
+      attrs: Vec::new(),
       kind: ItemKind::Mod(ModItem {
         name: self.auto_mod_name(&path),
         kind: self.load_file(path, Span::NONE),

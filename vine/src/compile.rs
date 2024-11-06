@@ -6,8 +6,8 @@ use ivy::ast::Nets;
 use vine_util::bicycle::BicycleState;
 
 use crate::{
-  ast::Expr,
-  resolve::{Def, ValueDefKind},
+  ast::{Builtin, Expr},
+  resolve::{Def, Resolver, ValueDefKind},
 };
 
 mod build_stages;
@@ -18,13 +18,13 @@ mod net_builder;
 
 use net_builder::*;
 
-pub fn compile(defs: &[Def], items: &[String]) -> Nets {
-  let mut compiler = Compiler::new(defs);
+pub fn compile(resolver: &Resolver, items: &[String]) -> Nets {
+  let mut compiler = Compiler::new(resolver);
 
   if items.is_empty() {
     compiler.compile_all();
   } else {
-    for def in defs {
+    for def in &resolver.defs {
       let canonical = &def.canonical.to_string()[2..];
       if items.iter().any(|x| x == canonical) {
         compiler.compile_def(def);
@@ -56,10 +56,15 @@ pub struct Compiler<'d> {
   loop_target: Option<(Local, ForkId, StageId)>,
 
   dup_labels: usize,
+
+  concat: Option<String>,
 }
 
 impl<'d> Compiler<'d> {
-  pub fn new(defs: &'d [Def]) -> Self {
+  pub fn new(resolver: &'d Resolver) -> Self {
+    let concat =
+      resolver.builtins.get(&Builtin::Concat).map(|&d| resolver.defs[d].canonical.to_string());
+    let defs = &resolver.defs;
     Compiler {
       nets: Default::default(),
       defs,
@@ -74,6 +79,7 @@ impl<'d> Compiler<'d> {
       return_target: Default::default(),
       loop_target: Default::default(),
       dup_labels: Default::default(),
+      concat,
     }
   }
 

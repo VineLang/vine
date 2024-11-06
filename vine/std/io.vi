@@ -1,5 +1,5 @@
 
-use std::{list::{List, Buf, String}, option::Option::{Option, Some, None}};
+use std::{list::Buf, option::Option::{Option, Some, None}};
 
 #[builtin = "IO"]
 mod IO {

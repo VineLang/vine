@@ -1,11 +1,9 @@
 use std::{collections::HashMap, iter, mem::take, ops::Range};
 
-use vine_util::interner::StringInterner;
-
 use crate::{
-  ast::{Block, ExprKind, GenericPath, Ident, Path, Span, StmtKind, Ty, TyKind},
+  ast::{Block, Builtin, ExprKind, GenericPath, Ident, Span, StmtKind, Ty, TyKind},
   diag::{report, Diag, DiagGroup, ErrorGuaranteed},
-  resolve::{DefId, Resolver, ValueDefKind},
+  resolve::{DefId, Resolver, TypeDef, ValueDefKind},
 };
 
 mod check_expr;
@@ -23,10 +21,12 @@ pub struct Checker<'r> {
   return_ty: Option<Type>,
   loop_ty: Option<Type>,
 
+  u32: Option<DefId>,
+  f32: Option<DefId>,
+  io: Option<DefId>,
   list: Option<DefId>,
   string: Option<Type>,
-  io: Option<DefId>,
-  u32: Option<DefId>,
+  concat: Option<DefId>,
 }
 
 #[derive(Default, Debug, Clone)]
@@ -36,46 +36,17 @@ pub(crate) struct CheckerState {
 }
 
 impl<'r> Checker<'r> {
-  pub fn new(resolver: &'r mut Resolver, interner: &StringInterner<'static>) -> Self {
+  pub fn new(resolver: &'r mut Resolver) -> Self {
     let diags = DiagGroup::default();
-    let list = resolver
-      .resolve_path(
-        Span::NONE,
-        0,
-        &Path {
-          segments: vec![
-            Ident(interner.intern("std")),
-            Ident(interner.intern("list")),
-            Ident(interner.intern("List")),
-          ],
-          absolute: true,
-          resolved: None,
-        },
-      )
-      .ok();
+    let u32 = resolver.builtins.get(&Builtin::U32).copied();
+    let f32 = resolver.builtins.get(&Builtin::F32).copied();
+    let io = resolver.builtins.get(&Builtin::IO).copied();
+    define_primitive_type(resolver, u32, Type::U32);
+    define_primitive_type(resolver, f32, Type::F32);
+    define_primitive_type(resolver, io, Type::IO);
+    let list = resolver.builtins.get(&Builtin::List).copied();
     let string = list.map(|x| Type::Adt(x, vec![Type::U32]));
-    let io = resolver
-      .resolve_path(
-        Span::NONE,
-        0,
-        &Path {
-          segments: vec![Ident(interner.intern("std")), Ident(interner.intern("io"))],
-          absolute: true,
-          resolved: None,
-        },
-      )
-      .ok();
-    let u32 = resolver
-      .resolve_path(
-        Span::NONE,
-        0,
-        &Path {
-          segments: vec![Ident(interner.intern("std")), Ident(interner.intern("u32"))],
-          absolute: true,
-          resolved: None,
-        },
-      )
-      .ok();
+    let concat = resolver.builtins.get(&Builtin::Concat).copied();
     Checker {
       diags,
       resolver,
@@ -83,10 +54,12 @@ impl<'r> Checker<'r> {
       generics: Vec::new(),
       return_ty: None,
       loop_ty: None,
+      u32,
+      f32,
+      io,
       list,
       string,
-      io,
-      u32,
+      concat,
     }
   }
 
@@ -239,6 +212,13 @@ impl<'r> Checker<'r> {
       value.ty = Some(ty);
       self.resolver.defs[def_id].value_def = Some(value);
     }
+  }
+}
+
+fn define_primitive_type(resolver: &mut Resolver, def_id: Option<DefId>, ty: Type) {
+  if let Some(def_id) = def_id {
+    resolver.defs[def_id].type_def =
+      Some(TypeDef { generics: Vec::new(), alias: None, ty: Some(ty) });
   }
 }
 

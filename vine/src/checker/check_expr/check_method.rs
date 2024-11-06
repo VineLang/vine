@@ -136,14 +136,10 @@ impl Checker<'_> {
   fn get_ty_mod(&mut self, ty: &Type) -> Result<Option<usize>, Diag> {
     Ok(match ty {
       Type::Adt(mod_id, _) => Some(*mod_id),
-      Type::IO => self.io,
       Type::U32 => self.u32,
-      Type::F32
-      | Type::Tuple(_)
-      | Type::Fn(..)
-      | Type::Ref(_)
-      | Type::Inverse(_)
-      | Type::Opaque(_) => None,
+      Type::F32 => self.f32,
+      Type::IO => self.io,
+      Type::Tuple(_) | Type::Fn(..) | Type::Ref(_) | Type::Inverse(_) | Type::Opaque(_) => None,
       Type::Var(_) => unreachable!(),
       Type::Error(e) => Err(*e)?,
     })

@@ -13,6 +13,7 @@ use crate::{diag::ErrorGuaranteed, resolve::DefId};
 #[derive(Clone)]
 pub struct Item {
   pub span: Span,
+  pub attrs: Vec<Attr>,
   pub kind: ItemKind,
 }
 
@@ -25,7 +26,7 @@ pub enum ItemKind {
   Pattern(PatternItem),
   Type(TypeItem),
   Mod(ModItem),
-  Use(UseTree),
+  Use(UseItem),
   Ivy(InlineIvy),
   Taken,
 }
@@ -91,6 +92,12 @@ pub enum ModKind {
 }
 
 #[derive(Debug, Clone)]
+pub struct UseItem {
+  pub absolute: bool,
+  pub tree: UseTree,
+}
+
+#[derive(Debug, Clone)]
 pub struct UseTree {
   pub span: Span,
   pub path: Path,
@@ -103,6 +110,27 @@ pub struct InlineIvy {
   pub generics: Vec<Ident>,
   pub ty: Ty,
   pub net: Net,
+}
+
+#[derive(Clone)]
+pub struct Attr {
+  pub span: Span,
+  pub kind: AttrKind,
+}
+
+#[derive(Debug, Clone)]
+pub enum AttrKind {
+  Builtin(Builtin),
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub enum Builtin {
+  U32,
+  F32,
+  IO,
+  Prelude,
+  List,
+  Concat,
 }
 
 #[derive(Default, Debug, Clone, PartialEq, Eq)]
@@ -441,7 +469,7 @@ macro_rules! debug_kind {
   )*};
 }
 
-debug_kind!(Item, Stmt, Expr, Pat, Ty);
+debug_kind!(Item, Attr, Stmt, Expr, Pat, Ty);
 
 impl From<ErrorGuaranteed> for ExprKind {
   fn from(value: ErrorGuaranteed) -> Self {

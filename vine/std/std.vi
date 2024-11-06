@@ -6,9 +6,10 @@ mod option = "./option.vi";
 mod result = "./result.vi";
 mod rng = "./rng.vi";
 mod u32 = "./u32.vi";
+mod f32 = "./f32.vi";
 mod u64 = "./u64.vi";
 
 #[builtin = "prelude"]
 mod prelude {
-  use ::std::{u32, f32, io::IO, List, List::String};
+  use ::std::{u32, f32, io::IO, list::{List, String}, bool::{bool, true, false}};
 }

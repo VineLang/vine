@@ -39,6 +39,7 @@ mod List {
     }
   }
 
+  #[builtin = "concat"]
   fn concat[T](a: List[T], b: List[T]) -> List[T] {
     let List(a_len, a_buf, ~a_end) = a;
     let List(b_len, b_buf, ~b_end) = b;

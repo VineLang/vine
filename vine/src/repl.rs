@@ -61,7 +61,7 @@ impl<'ctx, 'ivm> Repl<'ctx, 'ivm> {
     loader.diags.report(&loader.files)?;
 
     let mut resolver = Resolver::default();
-    resolver.build_graph(interner, loader.finish());
+    resolver.build_graph(loader.finish());
     resolver.resolve_imports();
     resolver.resolve_defs();
 
@@ -69,13 +69,13 @@ impl<'ctx, 'ivm> Repl<'ctx, 'ivm> {
 
     let repl_mod = resolver.get_or_insert_child(0, Ident(interner.intern("repl"))).id;
 
-    let mut checker = Checker::new(&mut resolver, interner);
+    let mut checker = Checker::new(&mut resolver);
     checker.check_defs();
     checker.diags.report(&loader.files)?;
 
     Desugar.visit(&mut resolver.defs);
 
-    let mut compiler = Compiler::new(&resolver.defs);
+    let mut compiler = Compiler::new(&resolver);
     compiler.compile_all();
     host.insert_nets(&compiler.nets);
 
@@ -145,7 +145,7 @@ impl<'ctx, 'ivm> Repl<'ctx, 'ivm> {
 
     let mut block = Block { span: Span::NONE, stmts };
 
-    let mut checker = Checker::new(&mut self.resolver, self.interner);
+    let mut checker = Checker::new(&mut self.resolver);
     checker._check_defs(new_defs.clone());
     let state = checker._check_custom(self.checker_state.clone(), &mut block);
     checker.diags.report(&self.loader.files)?;
@@ -154,7 +154,7 @@ impl<'ctx, 'ivm> Repl<'ctx, 'ivm> {
     Desugar.visit(&mut block);
     Desugar.visit(&mut self.resolver.defs[new_defs.clone()]);
 
-    let mut compiler = Compiler::new(&self.resolver.defs);
+    let mut compiler = Compiler::new(&self.resolver);
     for def in &self.resolver.defs[new_defs] {
       compiler.compile_def(def);
     }
