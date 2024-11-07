@@ -5,13 +5,21 @@ use crate::{
 
 impl Compiler<'_> {
   pub(super) fn lower_fn(&mut self, params: &[(Pat, Option<Ty>)], body: &Expr) -> Port {
+    self._lower_fn(params, |self_| self_.lower_expr_value(body))
+  }
+
+  pub(super) fn _lower_fn(
+    &mut self,
+    params: &[(Pat, Option<Ty>)],
+    body: impl FnOnce(&mut Self) -> Port,
+  ) -> Port {
     let func = self.net.new_wire();
     let res = self.apply_combs("fn", func.0, params.iter().map(|x| &x.0), Self::lower_pat_value);
     let result = self.new_local();
     let orig = self.cur_id;
     let old_loop = self.loop_target.take();
     let old_return = self.return_target.replace((result, self.cur_fork()));
-    let body = self.lower_expr_value(body);
+    let body = body(self);
     self.return_target = old_return;
     self.loop_target = old_loop;
     self.set_local_to(result, body);

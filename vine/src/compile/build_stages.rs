@@ -51,6 +51,11 @@ impl Compiler<'_> {
     match &expr.kind {
       ExprKind![sugar || error || !value] => unreachable!("{expr:?}"),
 
+      ExprKind::DynFn(d) => {
+        let (local, stage) = self.dyn_fns[d];
+        self.goto(stage);
+        self.move_local(local)
+      }
       ExprKind::Paren(e) => self.lower_expr_value(e),
       ExprKind::U32(num) => Port::U32(*num),
       ExprKind::F32(num) => Port::F32(*num),
@@ -308,6 +313,19 @@ impl Compiler<'_> {
         let i = l.init.as_ref().map(|x| self.lower_expr_value(x)).unwrap_or(Port::Erase);
         let b = self.lower_pat_value(&l.bind);
         self.net.link(b, i);
+        Port::Erase
+      }
+      StmtKind::DynFn(d) => {
+        let f = self.new_local();
+        self.new_fork(|self_| {
+          let i = self_.new_interface();
+          let s = self_.new_stage(i, |self_, _| {
+            let p = self_._lower_fn(&d.params, |self_| self_.lower_block(&d.body));
+            self_.set_local_to(f, p);
+            true
+          });
+          self_.dyn_fns.insert(d.dyn_id.unwrap(), (f, s));
+        });
         Port::Erase
       }
       StmtKind::Expr(t, semi) => {

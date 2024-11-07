@@ -54,6 +54,7 @@ pub trait VisitMut<'a> {
     match &mut expr.kind {
       ExprKind::Hole
       | ExprKind::Local(_)
+      | ExprKind::DynFn(_)
       | ExprKind::U32(_)
       | ExprKind::F32(_)
       | ExprKind::String(_)
@@ -213,6 +214,20 @@ pub trait VisitMut<'a> {
           self.visit_expr(init);
         }
         self.visit_pat(&mut l.bind);
+      }
+      StmtKind::DynFn(d) => {
+        self.enter_scope();
+        for (p, t) in &mut d.params {
+          self.visit_pat(p);
+          if let Some(t) = t {
+            self.visit_type(t);
+          }
+        }
+        if let Some(t) = &mut d.ret {
+          self.visit_type(t);
+        }
+        self.visit_block(&mut d.body);
+        self.exit_scope();
       }
       StmtKind::Expr(t, _) => self.visit_expr(t),
       StmtKind::Item(i) => self.visit_item(i),

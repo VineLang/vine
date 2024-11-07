@@ -1,4 +1,4 @@
-use std::collections::{BTreeMap, BTreeSet, VecDeque};
+use std::collections::{BTreeMap, BTreeSet, HashMap, VecDeque};
 
 use bitflags::bitflags;
 
@@ -55,6 +55,8 @@ pub struct Compiler<'d> {
   return_target: Option<(Local, ForkId)>,
   loop_target: Option<(Local, ForkId, StageId)>,
 
+  dyn_fns: HashMap<usize, (Local, StageId)>,
+
   dup_labels: usize,
 
   concat: Option<String>,
@@ -78,6 +80,7 @@ impl<'d> Compiler<'d> {
       net: Default::default(),
       return_target: Default::default(),
       loop_target: Default::default(),
+      dyn_fns: Default::default(),
       dup_labels: Default::default(),
       concat,
     }

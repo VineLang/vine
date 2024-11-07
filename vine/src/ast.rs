@@ -159,6 +159,7 @@ pub struct Stmt {
 #[derive(Debug, Clone)]
 pub enum StmtKind {
   Let(LetStmt),
+  DynFn(DynFnStmt),
   Expr(Expr, bool),
   Item(Item),
   Empty,
@@ -169,6 +170,15 @@ pub struct LetStmt {
   pub bind: Pat,
   pub ty: Option<Ty>,
   pub init: Option<Expr>,
+}
+
+#[derive(Debug, Clone)]
+pub struct DynFnStmt {
+  pub name: Ident,
+  pub dyn_id: Option<usize>,
+  pub params: Vec<(Pat, Option<Ty>)>,
+  pub ret: Option<Ty>,
+  pub body: Block,
 }
 
 #[derive(Default, Clone)]
@@ -188,6 +198,8 @@ pub enum ExprKind {
   Path(GenericPath),
   #[class(place)]
   Local(usize),
+  #[class(value)]
+  DynFn(usize),
   #[class(value)]
   Block(Block),
   #[class(value)]

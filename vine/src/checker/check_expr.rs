@@ -79,6 +79,7 @@ impl Checker<'_> {
     let span = expr.span;
     match &mut expr.kind {
       ExprKind![error || place || space || synthetic] => unreachable!(),
+      ExprKind::DynFn(x) => self.state.dyn_fns[x].clone(),
       ExprKind::Path(path) => report!(self.diags, expr.kind; self.typeof_value_def(path)),
       ExprKind::Block(block) => self.check_block(block),
       ExprKind::Assign(space, value) => {

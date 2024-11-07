@@ -33,6 +33,7 @@ pub struct Checker<'r> {
 pub(crate) struct CheckerState {
   pub(crate) vars: Vec<Result<Type, Span>>,
   pub(crate) locals: HashMap<usize, Var>,
+  pub(crate) dyn_fns: HashMap<usize, Type>,
 }
 
 impl<'r> Checker<'r> {
@@ -119,6 +120,21 @@ impl<'r> Checker<'r> {
             self.check_expr_form_type(value, Form::Value, &mut ty);
           }
         }
+        StmtKind::DynFn(d) => {
+          let params = d
+            .params
+            .iter_mut()
+            .map(|(p, a)| self.check_pat_annotation(p, a.as_mut(), Form::Value, false))
+            .collect();
+          let mut ret = d
+            .ret
+            .as_mut()
+            .map(|t| self.hydrate_type(t, true))
+            .unwrap_or_else(|| self.new_var(d.body.span));
+          self.check_block_type(&mut d.body, &mut ret);
+          self.state.dyn_fns.insert(d.dyn_id.unwrap(), Type::Fn(params, Box::new(ret)));
+          ty = Type::UNIT;
+        }
         StmtKind::Expr(e, semi) => {
           ty = self.check_expr_form(e, Form::Value);
           if *semi {
@@ -129,6 +145,17 @@ impl<'r> Checker<'r> {
       }
     }
     ty
+  }
+
+  fn check_block_type(&mut self, block: &mut Block, ty: &mut Type) {
+    let mut found = self.check_block(block);
+    if !self.unify(&mut found, ty) {
+      self.diags.add(Diag::ExpectedTypeFound {
+        span: block.span,
+        expected: self.display_type(ty),
+        found: self.display_type(&found),
+      });
+    }
   }
 
   fn hydrate_type(&mut self, ty: &mut Ty, inference: bool) -> Type {
