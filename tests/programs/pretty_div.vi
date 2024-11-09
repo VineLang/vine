@@ -1,5 +1,5 @@
 
-fn main(&io: &IO) {
+pub fn main(&io: &IO) {
   io.println(pretty_div(4, 2));
   io.println(pretty_div(5, 3));
   io.println(pretty_div(1, 1));

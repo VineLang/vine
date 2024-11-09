@@ -1,5 +1,5 @@
 
-fn main(&io: &IO) {
+pub fn main(&io: &IO) {
   let x = 2;
   while x < 1000 {
     squares(&io, x);

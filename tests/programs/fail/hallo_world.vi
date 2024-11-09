@@ -5,6 +5,6 @@ use std::io::{
   print_ln,
 };
 
-fn main(std::io) {
+pub fn main(std::io) {
   io.println(hallo, world)
 }

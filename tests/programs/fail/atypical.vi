@@ -3,7 +3,7 @@
 type Foo[X] = (X, foo, _);
 fn foo(x, y: Foo) {}
 const bar: _ = return;
-fn main[T, U](io: IO) {
+pub fn main[T, U](io: IO) {
   let x: u32 = 0.0;
   let x: f32 = 0;
   let x: (u32, u32) = (1, 2) + 0.0;

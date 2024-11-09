@@ -1,5 +1,5 @@
 
-fn main(&io: &IO) {
+pub fn main(&io: &IO) {
   let msg = "";
   let msg_ref = &msg;
   let i = 10;

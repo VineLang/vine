@@ -1,7 +1,7 @@
 
 const end: u32 = 100;
 
-fn main(&io: &IO) {
+pub fn main(&io: &IO) {
   let n = 1;
   while n <= end {
     io.println(message(n));

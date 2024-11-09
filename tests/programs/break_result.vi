@@ -1,5 +1,5 @@
 
-fn main(&io: &IO) {
+pub fn main(&io: &IO) {
   io.println(loop {
     break "loop result";
   });

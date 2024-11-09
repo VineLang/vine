@@ -1,4 +1,4 @@
 
-fn main(&io: &IO) {
+pub fn main(&io: &IO) {
   io.println("Hello, world!");
 }

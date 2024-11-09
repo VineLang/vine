@@ -1,7 +1,7 @@
 
 use std::rng::Rng;
 
-fn main(&io: &IO) {
+pub fn main(&io: &IO) {
   let i = 0;
   let rng = Rng::default;
   while i < 100 {

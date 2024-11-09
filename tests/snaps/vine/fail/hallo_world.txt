@@ -1,7 +1,7 @@
 error tests/programs/fail/hallo_world.vi:4:3 - duplicate definition of `println`
 error tests/programs/fail/hallo_world.vi:5:3 - cannot find `print_ln` in `::std::io`
 error tests/programs/fail/hallo_world.vi:3:3 - cannot find `println` in `::std::io`
-error tests/programs/fail/hallo_world.vi:8:9 - invalid pattern; this path is not a struct or enum variant
+error tests/programs/fail/hallo_world.vi:8:13 - invalid pattern; this path is not a struct or enum variant
 error tests/programs/fail/hallo_world.vi:9:3 - cannot find `io` in `::hallo_world::main`
 error tests/programs/fail/hallo_world.vi:9:14 - cannot find `hallo` in `::hallo_world::main`
 error tests/programs/fail/hallo_world.vi:9:21 - cannot find `world` in `::hallo_world::main`
