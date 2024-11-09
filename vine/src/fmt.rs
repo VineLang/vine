@@ -97,12 +97,12 @@ impl<'src> Formatter<'src> {
           Doc("mod "),
           Doc(m.name),
           match &m.kind {
-            ModKind::Loaded(items) => Doc::concat([
+            ModKind::Loaded(_, items) if items.is_empty() => Doc(" {}"),
+            ModKind::Loaded(span, items) => Doc::concat([
               Doc(" {"),
-              Doc::indent([self.line_break_separated(
-                item.span,
-                items.iter().map(|x| (x.span, self.fmt_item(x))),
-              )]),
+              Doc::indent([
+                self.line_break_separated(*span, items.iter().map(|x| (x.span, self.fmt_item(x)))),
+              ]),
               Doc("}"),
             ]),
             ModKind::Unloaded(span, _) => {

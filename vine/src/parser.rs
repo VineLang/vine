@@ -82,7 +82,8 @@ impl<'ctx, 'src> VineParser<'ctx, 'src> {
       _ if self.check(Token::Mod) => ItemKind::Mod(self.parse_mod_item()?),
       _ if self.check(Token::Use) => ItemKind::Use(self.parse_use_item()?),
       _ if self.check(Token::InlineIvy) => ItemKind::Ivy(self.parse_ivy_item()?),
-      _ => return Ok(None),
+      _ if span == self.start_span() => return Ok(None),
+      _ => self.unexpected()?,
     };
     let span = self.end_span(span);
     Ok(Some(Item { vis, span, attrs, kind }))
@@ -251,8 +252,10 @@ impl<'ctx, 'src> VineParser<'ctx, 'src> {
       self.expect(Token::Semi)?;
       Ok(ModItem { name, kind: ModKind::Unloaded(span, PathBuf::from(path)) })
     } else {
+      let span = self.start_span();
       let items = self.parse_delimited(BRACE, Self::parse_item)?;
-      Ok(ModItem { name, kind: ModKind::Loaded(items) })
+      let span = self.end_span(span);
+      Ok(ModItem { name, kind: ModKind::Loaded(span, items) })
     }
   }
 

@@ -88,7 +88,7 @@ pub struct ModItem {
 
 #[derive(Debug, Clone)]
 pub enum ModKind {
-  Loaded(Vec<Item>),
+  Loaded(Span, Vec<Item>),
   Unloaded(Span, PathBuf),
   Error(ErrorGuaranteed),
 }

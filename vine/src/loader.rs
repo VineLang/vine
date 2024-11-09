@@ -38,7 +38,7 @@ impl<'ctx> Loader<'ctx> {
   }
 
   pub fn finish(&mut self) -> ModKind {
-    ModKind::Loaded(take(&mut self.root))
+    ModKind::Loaded(Span::NONE, take(&mut self.root))
   }
 
   pub fn load_main_mod(&mut self, path: impl Into<PathBuf>) {
@@ -114,7 +114,7 @@ impl<'ctx> Loader<'ctx> {
 
   fn load_file(&mut self, path: PathBuf, span: Span) -> ModKind {
     match self._load_file(path, span) {
-      Ok(items) => ModKind::Loaded(items),
+      Ok(items) => ModKind::Loaded(span, items),
       Err(diag) => ModKind::Error(self.diags.add(diag)),
     }
   }

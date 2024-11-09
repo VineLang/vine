@@ -25,7 +25,7 @@ impl Resolver {
   }
 
   pub(crate) fn build_mod(&mut self, vis: DefId, module: ModKind, def: DefId) {
-    let ModKind::Loaded(items) = module else { unreachable!("module not yet loaded") };
+    let ModKind::Loaded(_, items) = module else { unreachable!("module not yet loaded") };
     for item in items {
       self.build_item(vis, item, def);
     }
