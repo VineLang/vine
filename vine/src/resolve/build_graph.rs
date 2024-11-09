@@ -1,4 +1,4 @@
-use std::{collections::hash_map::Entry, mem::replace};
+use std::{collections::hash_map::Entry, mem::take};
 
 use crate::{
   ast::{AttrKind, Builtin, Expr, ExprKind, Ident, Item, ItemKind, ModKind, Path, Span, UseTree},
@@ -300,9 +300,6 @@ struct SubitemVisitor<'a> {
 
 impl VisitMut<'_> for SubitemVisitor<'_> {
   fn visit_item(&mut self, item: &mut Item) {
-    self.resolver.build_item(
-      replace(item, Item { span: Span::NONE, attrs: Vec::new(), kind: ItemKind::Taken }),
-      self.def,
-    );
+    self.resolver.build_item(take(item), self.def);
   }
 }

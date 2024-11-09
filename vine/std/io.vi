@@ -2,13 +2,13 @@
 use std::{list::Buf, option::Option::{Option, Some, None}};
 
 #[builtin = "IO"]
-mod IO {
-  fn println(&io: &IO, str: String) {
+pub mod IO {
+  pub fn println(&io: &IO, str: String) {
     io.print(str);
     io.print_char('\n');
   }
 
-  fn print(&io: &IO, str: String) {
+  pub fn print(&io: &IO, str: String) {
     let List(len, chars, _) = str;
     while len {
       len = len - 1;
@@ -18,11 +18,11 @@ mod IO {
     }
   }
 
-  inline_ivy! print_char: fn(&IO, u32) {
+  pub inline_ivy! print_char: fn(&IO, u32) {
     fn(ref(@io_print_char(char io) io) fn(char _))
   }
 
-  fn print_bytes(&io: &IO, bytes: String) {
+  pub fn print_bytes(&io: &IO, bytes: String) {
     let List(len, bytes, _) = bytes;
     while len {
       len = len - 1;
@@ -32,21 +32,21 @@ mod IO {
     }
   }
 
-  inline_ivy! print_byte: fn(&IO, u32) {
+  pub inline_ivy! print_byte: fn(&IO, u32) {
     fn(ref(@io_print_byte(char io) io) fn(char _))
   }
 
-  inline_ivy! flush: fn(&IO) {
+  pub inline_ivy! flush: fn(&IO) {
     fn(ref(@io_flush(0 io) io) _)
   }
 
-  fn prompt(&io: &IO, msg: String) -> Option[String] {
+  pub fn prompt(&io: &IO, msg: String) -> Option[String] {
     io.print(msg);
     io.flush();
     io.read_line()
   }
 
-  fn read_line(&io: &IO) -> Option[String] {
+  pub fn read_line(&io: &IO) -> Option[String] {
     let byte = io.read_byte(0);
     if byte {
       Some(if byte == '\n' {

@@ -1,5 +1,5 @@
 
-type bool = u32;
+pub type bool = u32;
 
-const true: bool = 1;
-const false: bool = 0;
+pub const true: bool = 1;
+pub const false: bool = 0;

@@ -11,7 +11,7 @@ use crate::{
     Attr, AttrKind, BinaryOp, Block, Builtin, ComparisonOp, ConstItem, DynFnStmt, Enum, Expr,
     ExprKind, FnItem, GenericPath, Ident, InlineIvy, Item, ItemKind, LetStmt, LogicalOp, ModItem,
     ModKind, Pat, PatKind, Path, PatternItem, Span, Stmt, StmtKind, StructItem, Ty, TyKind,
-    TypeItem, UseItem, UseTree, Variant,
+    TypeItem, UseItem, UseTree, Variant, Vis,
   },
   diag::Diag,
   lexer::Token,
@@ -71,6 +71,7 @@ impl<'ctx, 'src> VineParser<'ctx, 'src> {
     while self.check(Token::Hash) {
       attrs.push(self.parse_attr()?);
     }
+    let vis = self.parse_vis()?;
     let kind = match () {
       _ if self.check(Token::Fn) => ItemKind::Fn(self.parse_fn_item()?),
       _ if self.check(Token::Const) => ItemKind::Const(self.parse_const_item()?),
@@ -84,7 +85,21 @@ impl<'ctx, 'src> VineParser<'ctx, 'src> {
       _ => return Ok(None),
     };
     let span = self.end_span(span);
-    Ok(Some(Item { span, attrs, kind }))
+    Ok(Some(Item { vis, span, attrs, kind }))
+  }
+
+  fn parse_vis(&mut self) -> Parse<'src, Vis> {
+    Ok(if self.eat(Token::Pub)? {
+      if self.eat(Token::OpenParen)? {
+        let path = self.parse_path()?;
+        self.expect(Token::CloseParen)?;
+        Vis::PublicTo(path)
+      } else {
+        Vis::Public
+      }
+    } else {
+      Vis::Private
+    })
   }
 
   fn parse_attr(&mut self) -> Parse<'src, Attr> {

@@ -92,6 +92,8 @@ pub enum Token {
   #[token("_")]
   Hole,
 
+  #[token("pub")]
+  Pub,
   #[token("mod")]
   Mod,
   #[token("use")]

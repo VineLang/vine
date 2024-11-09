@@ -11,7 +11,7 @@ use vine_util::interner::StringInterner;
 use crate::{
   ast::{
     self, ConstItem, Expr, ExprKind, GenericPath, Ident, Item, ItemKind, ModItem, ModKind, Span,
-    Ty, TyKind,
+    Ty, TyKind, Vis,
   },
   diag::{Diag, DiagGroup, FileInfo},
   parser::VineParser,
@@ -47,6 +47,7 @@ impl<'ctx> Loader<'ctx> {
     let io = Ident(self.interner.intern("IO"));
     self.root.push(Item {
       span: Span::NONE,
+      vis: Vis::Public,
       attrs: Vec::new(),
       kind: ItemKind::Const(ConstItem {
         name: main,
@@ -89,6 +90,7 @@ impl<'ctx> Loader<'ctx> {
     let path = path.into();
     let module = Item {
       span: Span::NONE,
+      vis: Vis::Public,
       attrs: Vec::new(),
       kind: ItemKind::Mod(ModItem {
         name: self.auto_mod_name(&path),
