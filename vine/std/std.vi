@@ -10,6 +10,6 @@ pub mod f32 = "./f32.vi";
 pub mod u64 = "./u64.vi";
 
 #[builtin = "prelude"]
-mod prelude {
-  use ::std::{u32, f32, io::IO, list::{List, String}, bool::{bool, true, false}};
+pub mod prelude {
+  pub use ::std::{u32, f32, io::IO, list::{List, String}, bool::{bool, true, false}};
 }

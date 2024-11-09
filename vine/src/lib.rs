@@ -15,6 +15,7 @@ mod lexer;
 use std::path::PathBuf;
 
 use checker::Checker;
+use diag::DiagGroup;
 use ivy::ast::Nets;
 use vine_util::{arena::BytesArena, interner::StringInterner};
 
@@ -31,6 +32,7 @@ pub struct Config {
 pub fn build(config: Config) -> Result<Nets, String> {
   let arena = &*Box::leak(Box::new(BytesArena::default()));
   let interner = StringInterner::new(arena);
+  let mut diags = DiagGroup::default();
 
   let mut loader = Loader::new(&interner);
   if let Some(main) = config.main {
@@ -39,8 +41,9 @@ pub fn build(config: Config) -> Result<Nets, String> {
   for lib in config.libs {
     loader.load_mod(lib);
   }
+  diags.add_all(&mut loader.diags);
 
-  loader.diags.report(&loader.files)?;
+  diags.report(&loader.files)?;
 
   let root = loader.finish();
 
@@ -48,12 +51,13 @@ pub fn build(config: Config) -> Result<Nets, String> {
   resolver.build_graph(root);
   resolver.resolve_imports();
   resolver.resolve_defs();
-
-  resolver.diags.report(&loader.files)?;
+  diags.add_all(&mut resolver.diags);
 
   let mut checker = Checker::new(&mut resolver);
   checker.check_defs();
-  checker.diags.report(&loader.files)?;
+  diags.add_all(&mut checker.diags);
+
+  diags.report(&loader.files)?;
 
   Desugar.visit(&mut resolver.defs);
 

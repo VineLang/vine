@@ -119,7 +119,7 @@ pub enum Vis {
   #[default]
   Private,
   Public,
-  PublicTo(Path),
+  PublicTo(Span, Ident),
 }
 
 #[derive(Clone)]

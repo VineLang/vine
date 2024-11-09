@@ -91,9 +91,11 @@ impl<'ctx, 'src> VineParser<'ctx, 'src> {
   fn parse_vis(&mut self) -> Parse<'src, Vis> {
     Ok(if self.eat(Token::Pub)? {
       if self.eat(Token::OpenParen)? {
-        let path = self.parse_path()?;
+        let span = self.start_span();
+        let ancestor = self.parse_ident()?;
+        let span = self.end_span(span);
         self.expect(Token::CloseParen)?;
-        Vis::PublicTo(path)
+        Vis::PublicTo(span, ancestor)
       } else {
         Vis::Public
       }

@@ -14,8 +14,8 @@ mod lib {
   struct y();
 }
 
-// bad: ~1 error per line:
-pub fn main(&io: &IO) {
+// bad: ~1 error per line
+fn main(&io: &IO) {
   io.read_char();
   let lib::x: lib::x = lib::x;
   let lib::y: lib::y = lib::y;
@@ -30,7 +30,7 @@ mod p {
   };
 }
 
-// good:
+// good
 mod q {
   const x: fn() = lib::d;
   pub(visibility) use lib::{
@@ -41,5 +41,3 @@ mod q {
     d::g,
   };
 }
-
-

@@ -13,6 +13,13 @@ impl Checker<'_> {
     let Some(value_def) = &def.value_def else {
       return Err(Diag::PathNoValue { span, path: def.canonical.clone() });
     };
+    if !self.resolver.visible(value_def.vis, self.cur_def) {
+      return Err(Diag::ValueInvisible {
+        span,
+        path: def.canonical.clone(),
+        vis: self.resolver.defs[value_def.vis].canonical.clone(),
+      });
+    }
     let generic_count = value_def.generics.len();
     Self::check_generic_count(span, def, path, generic_count)?;
     let generics = self.hydrate_generics(path, generic_count);
@@ -31,6 +38,13 @@ impl Checker<'_> {
     let Some(type_def) = &def.type_def else {
       Err(Diag::PathNoType { span, path: def.canonical.clone() })?
     };
+    if !self.resolver.visible(type_def.vis, self.cur_def) {
+      return Err(Diag::TypeInvisible {
+        span,
+        path: def.canonical.clone(),
+        vis: self.resolver.defs[type_def.vis].canonical.clone(),
+      });
+    }
     let generic_count = type_def.generics.len();
     Self::check_generic_count(span, def, path, generic_count)?;
     if !inference && path.generics.is_none() && generic_count != 0 {
@@ -62,6 +76,13 @@ impl Checker<'_> {
     let Some(variant_def) = &variant.variant_def else {
       Err(Diag::PathNoPat { span, path: variant.canonical.clone() })?
     };
+    if !self.resolver.visible(variant_def.vis, self.cur_def) {
+      return Err(Diag::PatInvisible {
+        span,
+        path: variant.canonical.clone(),
+        vis: self.resolver.defs[variant_def.vis].canonical.clone(),
+      });
+    }
     let adt_id = variant_def.adt;
     let adt = &self.resolver.defs[adt_id];
     let adt_def = adt.adt_def.as_ref().unwrap();

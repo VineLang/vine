@@ -37,7 +37,7 @@ impl<'src> Formatter<'src> {
       match &item.vis {
         Vis::Private => Doc::EMPTY,
         Vis::Public => Doc("pub "),
-        Vis::PublicTo(path) => Doc::concat([Doc("pub("), self.fmt_path(path), Doc(") ")]),
+        Vis::PublicTo(_, name) => Doc::concat([Doc("pub("), Doc(*name), Doc(") ")]),
       },
       match &item.kind {
         ItemKind::Fn(f) => {

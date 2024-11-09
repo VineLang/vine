@@ -47,7 +47,7 @@ impl<'ctx> Loader<'ctx> {
     let io = Ident(self.interner.intern("IO"));
     self.root.push(Item {
       span: Span::NONE,
-      vis: Vis::Public,
+      vis: Vis::Private,
       attrs: Vec::new(),
       kind: ItemKind::Const(ConstItem {
         name: main,
@@ -61,7 +61,7 @@ impl<'ctx> Loader<'ctx> {
                 span: Span::NONE,
                 kind: TyKind::Path(GenericPath {
                   span: Span::NONE,
-                  path: ast::Path { segments: vec![io], absolute: true, resolved: None },
+                  path: ast::Path { segments: vec![io], absolute: false, resolved: None },
                   generics: None,
                 }),
               })),

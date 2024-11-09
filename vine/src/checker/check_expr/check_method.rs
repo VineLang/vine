@@ -57,7 +57,7 @@ impl Checker<'_> {
     self.concretize(&mut ty);
     let mod_id = self.get_ty_mod(&ty)?;
     let Some(mod_id) = mod_id else { Err(Diag::NoMethods { span, ty: self.display_type(&ty) })? };
-    let fn_id = self.resolver.resolve_path(path.span, mod_id, &path.path)?;
+    let fn_id = self.resolver.resolve_path(path.span, self.cur_def, mod_id, &path.path)?;
     let sub_path = replace(&mut path.path, self.resolver.defs[fn_id].canonical.clone());
     let (form, mut receiver_ty, params, ret) = self.method_sig(span, path, args.len())?;
     if self.get_ty_mod(&receiver_ty)? != Some(mod_id) {
