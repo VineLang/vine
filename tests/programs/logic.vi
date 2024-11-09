@@ -1,37 +1,37 @@
 
 fn main(&io: &IO) {
-  print_bool(&io, true);
-  print_bool(&io, true && true);
-  print_bool(&io, true || true);
-  print_bool(&io, true || false);
-  print_bool(&io, false || true);
-  print_bool(&io, true => true);
-  print_bool(&io, false => true);
-  print_bool(&io, false => false);
-  print_bool(&io, !false);
-  print_bool(&io, !!true);
+  dyn fn print_bool(bool) {
+    io.println(if bool {
+      "true"
+    } else {
+      "false"
+    })
+  }
+
+  print_bool(true);
+  print_bool(true && true);
+  print_bool(true || true);
+  print_bool(true || false);
+  print_bool(false || true);
+  print_bool(true => true);
+  print_bool(false => true);
+  print_bool(false => false);
+  print_bool(!false);
+  print_bool(!!true);
   io.println("---");
-  print_bool(&io, false);
-  print_bool(&io, false || false);
-  print_bool(&io, true && false);
-  print_bool(&io, false && true);
-  print_bool(&io, false && false);
-  print_bool(&io, true => false);
-  print_bool(&io, !true);
-  print_bool(&io, !!false);
+  print_bool(false);
+  print_bool(false || false);
+  print_bool(true && false);
+  print_bool(false && true);
+  print_bool(false && false);
+  print_bool(true => false);
+  print_bool(!true);
+  print_bool(!!false);
 
   // Test short-circuiting behavior; `~_` is an eraser node,
   // so would erase `io` if it was evaluated.
   io.println("---");
-  print_bool(&io, true || ~_);
-  print_bool(&io, false => ~_);
-  print_bool(&io, false && ~_);
-}
-
-fn print_bool(&io: &IO, bool: bool) {
-  io.println(if bool {
-    "true"
-  } else {
-    "false"
-  })
+  print_bool(true || ~_);
+  print_bool(false => ~_);
+  print_bool(false && ~_);
 }

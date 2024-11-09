@@ -83,7 +83,11 @@ impl<'ctx, 'ivm> Repl<'ctx, 'ivm> {
     let vars = HashMap::from([(io, Var { local: 0, value: Port::new_ext_val(ExtVal::IO) })]);
     let locals = BTreeMap::from([(0, io)]);
 
-    let checker_state = CheckerState { vars: vec![Ok(Type::IO)], locals: HashMap::from([(0, 0)]) };
+    let checker_state = CheckerState {
+      vars: vec![Ok(Type::IO)],
+      locals: HashMap::from([(0, 0)]),
+      dyn_fns: HashMap::new(),
+    };
 
     Ok(Repl {
       host,

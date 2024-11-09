@@ -5,7 +5,7 @@ use std::{
 };
 
 use crate::{
-  ast::{Expr, ExprKind, GenericPath, Ident, LogicalOp, Pat, PatKind, Ty, TyKind},
+  ast::{Expr, ExprKind, GenericPath, Ident, LogicalOp, Pat, PatKind, Stmt, StmtKind, Ty, TyKind},
   diag::Diag,
   visit::{VisitMut, Visitee},
 };
@@ -25,6 +25,7 @@ impl Resolver {
       scope: HashMap::new(),
       scope_depth: 0,
       next_local: 0,
+      next_dyn_fn: 0,
     };
 
     for def_id in range {
@@ -85,19 +86,32 @@ impl Resolver {
       resolver: self,
       def,
       generics: Vec::new(),
-      scope: initial.iter().map(|(&l, &i)| (i, vec![ScopeEntry { depth: 0, local: l }])).collect(),
+      scope: initial
+        .iter()
+        .map(|(&l, &i)| (i, vec![ScopeEntry { depth: 0, binding: Binding::Local(l) }]))
+        .collect(),
       scope_depth: 0,
       next_local: *local_count,
+      next_dyn_fn: 0,
     };
     visitor.visit(visitee);
     *local_count = visitor.next_local;
     visitor.scope.into_iter().filter_map(|(k, e)| {
       let entry = e.first()?;
-      (entry.depth == 0).then_some((k, entry.local))
+      if entry.depth == 0 {
+        if let Binding::Local(l) = entry.binding {
+          Some((k, l))
+        } else {
+          None
+        }
+      } else {
+        None
+      }
     })
   }
 }
 
+#[derive(Debug)]
 struct ResolveVisitor<'a> {
   resolver: &'a mut Resolver,
   def: DefId,
@@ -105,11 +119,19 @@ struct ResolveVisitor<'a> {
   scope: HashMap<Ident, Vec<ScopeEntry>>,
   scope_depth: usize,
   next_local: usize,
+  next_dyn_fn: usize,
 }
 
+#[derive(Debug)]
 struct ScopeEntry {
   depth: usize,
-  local: usize,
+  binding: Binding,
+}
+
+#[derive(Debug, Clone, Copy)]
+enum Binding {
+  Local(usize),
+  DynFn(usize),
 }
 
 impl VisitMut<'_> for ResolveVisitor<'_> {
@@ -123,6 +145,16 @@ impl VisitMut<'_> for ResolveVisitor<'_> {
       if stack.last().is_some_and(|x| x.depth > self.scope_depth) {
         stack.pop();
       }
+    }
+  }
+
+  fn visit_stmt(&mut self, stmt: &mut Stmt) {
+    self._visit_stmt(stmt);
+    if let StmtKind::DynFn(d) = &mut stmt.kind {
+      let id = self.next_dyn_fn;
+      self.next_dyn_fn += 1;
+      self.bind(d.name, Binding::DynFn(id));
+      d.dyn_id = Some(id);
     }
   }
 
@@ -148,13 +180,8 @@ impl VisitMut<'_> for ResolveVisitor<'_> {
       };
       let local = self.next_local;
       self.next_local += 1;
-      let stack = self.scope.entry(ident).or_default();
-      let top = stack.last_mut();
-      if top.as_ref().is_some_and(|x| x.depth == self.scope_depth) {
-        top.unwrap().local = local;
-      } else {
-        stack.push(ScopeEntry { depth: self.scope_depth, local })
-      }
+      let binding = Binding::Local(local);
+      self.bind(ident, binding);
       pat.kind = PatKind::Local(local);
     }
     self._visit_pat(pat);
@@ -185,7 +212,7 @@ impl VisitMut<'_> for ResolveVisitor<'_> {
           ExprKind::Path(path) => {
             if let Some(ident) = path.path.as_ident() {
               if let Some(bind) = self.scope.get(&ident).and_then(|x| x.last()) {
-                expr.kind = ExprKind::Local(bind.local);
+                expr.kind = bind.binding.into();
                 return;
               }
             }
@@ -222,6 +249,16 @@ impl VisitMut<'_> for ResolveVisitor<'_> {
 }
 
 impl<'a> ResolveVisitor<'a> {
+  fn bind(&mut self, ident: Ident, binding: Binding) {
+    let stack = self.scope.entry(ident).or_default();
+    let top = stack.last_mut();
+    if top.as_ref().is_some_and(|x| x.depth == self.scope_depth) {
+      top.unwrap().binding = binding;
+    } else {
+      stack.push(ScopeEntry { depth: self.scope_depth, binding })
+    }
+  }
+
   fn visit_path(&mut self, path: &mut GenericPath) -> Result<(), Diag> {
     let resolved = self.resolver.resolve_path(path.span, self.def, &path.path)?;
     path.path = self.resolver.defs[resolved].canonical.clone();
@@ -259,6 +296,15 @@ impl<'a> ResolveVisitor<'a> {
         self.visit_cond(b);
         self.exit_scope();
       }
+    }
+  }
+}
+
+impl From<Binding> for ExprKind {
+  fn from(val: Binding) -> Self {
+    match val {
+      Binding::Local(l) => ExprKind::Local(l),
+      Binding::DynFn(d) => ExprKind::DynFn(d),
     }
   }
 }

@@ -8,10 +8,10 @@ use vine_util::{
 
 use crate::{
   ast::{
-    Attr, AttrKind, BinaryOp, Block, Builtin, ComparisonOp, ConstItem, Enum, Expr, ExprKind,
-    FnItem, GenericPath, Ident, InlineIvy, Item, ItemKind, LetStmt, LogicalOp, ModItem, ModKind,
-    Pat, PatKind, Path, PatternItem, Span, Stmt, StmtKind, StructItem, Ty, TyKind, TypeItem,
-    UseItem, UseTree, Variant,
+    Attr, AttrKind, BinaryOp, Block, Builtin, ComparisonOp, ConstItem, DynFnStmt, Enum, Expr,
+    ExprKind, FnItem, GenericPath, Ident, InlineIvy, Item, ItemKind, LetStmt, LogicalOp, ModItem,
+    ModKind, Pat, PatKind, Path, PatternItem, Span, Stmt, StmtKind, StructItem, Ty, TyKind,
+    TypeItem, UseItem, UseTree, Variant,
   },
   diag::Diag,
   lexer::Token,
@@ -628,6 +628,8 @@ impl<'ctx, 'src> VineParser<'ctx, 'src> {
     let span = self.start_span();
     let kind = if self.check(Token::Let) {
       StmtKind::Let(self.parse_let_stmt()?)
+    } else if self.check(Token::Dyn) {
+      StmtKind::DynFn(self.parse_dyn_fn_stmt()?)
     } else if self.eat(Token::Semi)? {
       StmtKind::Empty
     } else if let Some(item) = self.maybe_parse_item()? {
@@ -648,6 +650,16 @@ impl<'ctx, 'src> VineParser<'ctx, 'src> {
     let init = self.eat(Token::Eq)?.then(|| self.parse_expr()).transpose()?;
     self.eat(Token::Semi)?;
     Ok(LetStmt { bind, ty, init })
+  }
+
+  fn parse_dyn_fn_stmt(&mut self) -> Parse<'src, DynFnStmt> {
+    self.expect(Token::Dyn)?;
+    self.expect(Token::Fn)?;
+    let name = self.parse_ident()?;
+    let params = self.parse_delimited(PAREN_COMMA, Self::parse_pat_type)?;
+    let ret = self.eat(Token::ThinArrow)?.then(|| self.parse_type()).transpose()?;
+    let body = self.parse_block()?;
+    Ok(DynFnStmt { name, dyn_id: None, params, ret, body })
   }
 
   fn parse_path(&mut self) -> Parse<'src, Path> {

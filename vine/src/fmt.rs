@@ -209,6 +209,14 @@ impl<'src> Formatter<'src> {
         },
         Doc(";"),
       ]),
+      StmtKind::DynFn(d) => Doc::concat([
+        Doc("dyn fn "),
+        Doc(d.name),
+        self.fmt_params(&d.params),
+        self.fmt_return_ty(d.ret.as_ref()),
+        Doc(" "),
+        self.fmt_block(&d.body, true),
+      ]),
       StmtKind::Expr(expr, false) => self.fmt_expr(expr),
       StmtKind::Expr(expr, true) => Doc::concat([self.fmt_expr(expr), Doc(";")]),
       StmtKind::Item(item) => self.fmt_item(item),
@@ -238,7 +246,7 @@ impl<'src> Formatter<'src> {
 
   fn fmt_expr(&self, expr: &Expr) -> Doc<'src> {
     match &expr.kind {
-      ExprKind![synthetic || error] | ExprKind::Local(_) => unreachable!(),
+      ExprKind![synthetic || error] | ExprKind::Local(_) | ExprKind::DynFn(_) => unreachable!(),
       ExprKind::Paren(p) => Doc::paren(self.fmt_expr(p)),
       ExprKind::Hole => Doc("_"),
       ExprKind::Path(path) => self.fmt_generic_path(path),

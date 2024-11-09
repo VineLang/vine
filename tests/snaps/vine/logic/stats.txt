@@ -1,7 +1,7 @@
 
 Interactions
-  Total                  2_950
-  Annihilate             1_568
+  Total                  2_971
+  Annihilate             1_589
   Commute                    0
   Copy                     147
   Erase                    384
@@ -10,6 +10,6 @@ Interactions
   Branch                   168
 
 Memory
-  Heap                   2_176 B
-  Allocated             58_752 B
-  Freed                 58_752 B
+  Heap                   1_904 B
+  Allocated             59_424 B
+  Freed                 59_424 B
