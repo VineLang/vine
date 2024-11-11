@@ -8,7 +8,7 @@ use class::Classes;
 use ivy::ast::Net;
 use vine_util::interner::Interned;
 
-use crate::{diag::ErrorGuaranteed, resolve::DefId};
+use crate::{diag::ErrorGuaranteed, resolver::DefId};
 
 #[derive(Clone, Default)]
 pub struct Item {

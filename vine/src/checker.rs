@@ -8,7 +8,7 @@ use std::{
 use crate::{
   ast::{Block, Builtin, ExprKind, GenericPath, Ident, Span, StmtKind, Ty, TyKind},
   diag::{report, Diag, DiagGroup, ErrorGuaranteed},
-  resolve::{DefId, Resolver, TypeDef, ValueDefKind},
+  resolver::{DefId, Resolver, TypeDef, ValueDefKind},
 };
 
 mod check_expr;

@@ -23,7 +23,7 @@ use crate::{
   emitter::Emitter,
   loader::Loader,
   parser::VineParser,
-  resolve::{DefId, Resolver},
+  resolver::{DefId, Resolver},
   visit::VisitMut,
 };
 

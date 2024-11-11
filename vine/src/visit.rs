@@ -3,7 +3,7 @@ use crate::{
     Block, Expr, ExprKind, GenericPath, Item, ItemKind, ModKind, Pat, PatKind, Stmt, StmtKind, Ty,
     TyKind,
   },
-  resolve::{Def, ValueDefKind},
+  resolver::{Def, ValueDefKind},
 };
 
 pub trait VisitMut<'a> {

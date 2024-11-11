@@ -2,7 +2,7 @@ use std::{collections::HashMap, ops::Range};
 
 use crate::{
   emitter::{Local, StageId},
-  resolve::DefId,
+  resolver::DefId,
 };
 
 use super::{Def, Emitter, Expr, Pat, PatKind, Step};

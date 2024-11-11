@@ -2,7 +2,7 @@ use std::mem::take;
 
 use crate::{
   ast::{Expr, ExprKind},
-  resolve::Def,
+  resolver::Def,
   visit::VisitMut,
 };
 

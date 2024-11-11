@@ -2,7 +2,7 @@ use crate::{
   ast::{GenericPath, Span},
   checker::{Checker, Type},
   diag::Diag,
-  resolve::Def,
+  resolver::Def,
 };
 
 impl Checker<'_> {

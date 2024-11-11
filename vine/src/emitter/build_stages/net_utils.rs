@@ -6,7 +6,7 @@ use ivy::ast::Net;
 use crate::{
   ast::*,
   emitter::{stage_name, Agent, Emitter, Local, Port, StageId, Step},
-  resolve::{AdtDef, Def},
+  resolver::{AdtDef, Def},
 };
 
 impl Emitter<'_> {

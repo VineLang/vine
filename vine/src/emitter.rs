@@ -7,7 +7,7 @@ use vine_util::bicycle::BicycleState;
 
 use crate::{
   ast::{Builtin, Expr},
-  resolve::{Def, Resolver, ValueDefKind},
+  resolver::{Def, Resolver, ValueDefKind},
 };
 
 mod build_stages;

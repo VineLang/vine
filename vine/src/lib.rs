@@ -6,7 +6,7 @@ pub mod fmt;
 pub mod loader;
 pub mod parser;
 pub mod repl;
-pub mod resolve;
+pub mod resolver;
 pub mod visit;
 
 mod checker;
@@ -19,7 +19,7 @@ use diag::DiagGroup;
 use ivy::ast::Nets;
 use vine_util::{arena::BytesArena, interner::StringInterner};
 
-use crate::{desugar::Desugar, emitter::emit, loader::Loader, resolve::Resolver, visit::VisitMut};
+use crate::{desugar::Desugar, emitter::emit, loader::Loader, resolver::Resolver, visit::VisitMut};
 
 pub struct Config {
   pub main: Option<PathBuf>,
