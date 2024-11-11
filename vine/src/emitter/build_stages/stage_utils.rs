@@ -1,8 +1,8 @@
 use std::mem::swap;
 
-use crate::compile::{Compiler, Fork, ForkId, Interface, InterfaceId, Stage, StageId, Step};
+use crate::emitter::{Emitter, Fork, ForkId, Interface, InterfaceId, Stage, StageId, Step};
 
-impl Compiler<'_> {
+impl Emitter<'_> {
   pub(super) fn new_interface(&mut self) -> InterfaceId {
     let id = self.interfaces.len();
     self.interfaces.push(Interface::default());

@@ -1,20 +1,20 @@
 use std::{collections::HashMap, ops::Range};
 
 use crate::{
-  compile::{Local, StageId},
+  emitter::{Local, StageId},
   resolve::DefId,
 };
 
-use super::{Compiler, Def, Expr, Pat, PatKind, Step};
+use super::{Def, Emitter, Expr, Pat, PatKind, Step};
 
-impl Compiler<'_> {
-  pub(super) fn lower_match<'p, A>(
+impl Emitter<'_> {
+  pub(super) fn emit_match<'p, A>(
     &mut self,
     value: &Expr,
     arms: impl IntoIterator<Item = (&'p Pat, A)> + Clone,
     mut f: impl FnMut(&mut Self, A) -> bool,
   ) {
-    let value = self.lower_expr_value(value);
+    let value = self.emit_expr_value(value);
     let initial = self.new_match_var(false);
     self.set_local_to(initial.local, value);
     let rows = arms
@@ -42,10 +42,10 @@ impl Compiler<'_> {
       })
       .collect::<Vec<_>>();
 
-    self.lower_decision_tree(&mut arms, tree, &mut f);
+    self.emit_decision_tree(&mut arms, tree, &mut f);
   }
 
-  fn lower_decision_tree<A>(
+  fn emit_decision_tree<A>(
     &mut self,
     arms: &mut [Arm<A>],
     tree: DecisionTree,
@@ -82,7 +82,7 @@ impl Compiler<'_> {
           let a = self.tuple(t, Self::fin_move_local);
           self.set_local_to(v.local, a);
         }
-        self.lower_decision_tree(arms, *next, f)
+        self.emit_decision_tree(arms, *next, f)
       }
       DecisionTree::Deref(r, v, next) => {
         self.declare_local(v.local);
@@ -98,7 +98,7 @@ impl Compiler<'_> {
         } else {
           self.cur.fin.push(Step::Move(v.local, v2.1));
         }
-        self.lower_decision_tree(arms, *next, f)
+        self.emit_decision_tree(arms, *next, f)
       }
       DecisionTree::Switch(var, def_id, cases, fallback) => {
         let adt_def = self.defs[def_id].adt_def.as_ref().unwrap();
@@ -109,7 +109,7 @@ impl Compiler<'_> {
           if fallback.is_some() && cases.iter().filter(|x| x.body.is_none()).count() > 1 {
             fallback.take().map(|tree| {
               let i = self.new_interface();
-              self.new_stage(i, |self_, _| self_.lower_decision_tree(arms, *tree, f))
+              self.new_stage(i, |self_, _| self_.emit_decision_tree(arms, *tree, f))
             })
           } else {
             None
@@ -129,7 +129,7 @@ impl Compiler<'_> {
               let should_fallback = case.body.is_none();
               let mut end = false;
               if let Some(tree) = case.body {
-                end = self_.lower_decision_tree(arms, tree, f);
+                end = self_.emit_decision_tree(arms, tree, f);
               }
               if var.is_place || should_fallback && fallback_needs_var {
                 let r = self_.make_enum(adt_def, v, case.vars.clone(), Self::fin_move_local);
@@ -140,7 +140,7 @@ impl Compiler<'_> {
                 if let Some(stage) = fallback_stage {
                   self_.goto(stage);
                 } else if let Some(tree) = fallback.take() {
-                  end = self_.lower_decision_tree(arms, *tree, f);
+                  end = self_.emit_decision_tree(arms, *tree, f);
                 }
               }
               end
@@ -215,7 +215,7 @@ enum PatternType {
   Move,
 }
 
-impl Compiler<'_> {
+impl Emitter<'_> {
   fn build_decision_tree(&mut self, mut rows: Vec<Row>, arm_counts: &mut [usize]) -> DecisionTree {
     if rows.is_empty() {
       return DecisionTree::Missing;

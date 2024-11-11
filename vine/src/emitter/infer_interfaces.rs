@@ -2,9 +2,9 @@ use std::{collections::BTreeMap, mem::take};
 
 use vine_util::bicycle::{Bicycle, BicycleState};
 
-use super::{Compiler, Interface, InterfaceId, Local, Port, Stage, Step, Usage, WireDir};
+use super::{Emitter, Interface, InterfaceId, Local, Port, Stage, Step, Usage, WireDir};
 
-impl Compiler<'_> {
+impl Emitter<'_> {
   pub(super) fn infer_interfaces(&mut self) {
     let all = 0..self.interfaces.len();
     FlowOut { stages: &self.stages, interfaces: &mut self.interfaces }.visit_all(all.clone());

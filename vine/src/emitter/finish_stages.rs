@@ -4,11 +4,11 @@ use std::{
 };
 
 use super::{
-  stage_name, Agent, Compiler, Interface, InterfaceId, Local, NetBuilder, Port, Stage, StageId,
+  stage_name, Agent, Emitter, Interface, InterfaceId, Local, NetBuilder, Port, Stage, StageId,
   Step, WireDir,
 };
 
-impl Compiler<'_> {
+impl Emitter<'_> {
   pub(super) fn finish_stages(&mut self, init: StageId) {
     self.nets.reserve(self.stages.len());
     for (id, stage) in self.stages.drain(..).enumerate() {

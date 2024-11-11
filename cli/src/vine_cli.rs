@@ -56,7 +56,7 @@ impl CompileArgs {
     if !self.no_std {
       self.libs.push(std_path())
     }
-    match vine::build(vine::Config { main: self.main, libs: self.libs, items: self.items }) {
+    match vine::compile(vine::Config { main: self.main, libs: self.libs, items: self.items }) {
       Ok(nets) => nets,
       Err(err) => {
         eprintln!("{}", err);

@@ -1,7 +1,7 @@
 pub mod ast;
-pub mod compile;
 pub mod desugar;
 pub mod diag;
+pub mod emitter;
 pub mod fmt;
 pub mod loader;
 pub mod parser;
@@ -19,9 +19,7 @@ use diag::DiagGroup;
 use ivy::ast::Nets;
 use vine_util::{arena::BytesArena, interner::StringInterner};
 
-use crate::{
-  compile::compile, desugar::Desugar, loader::Loader, resolve::Resolver, visit::VisitMut,
-};
+use crate::{desugar::Desugar, emitter::emit, loader::Loader, resolve::Resolver, visit::VisitMut};
 
 pub struct Config {
   pub main: Option<PathBuf>,
@@ -29,7 +27,7 @@ pub struct Config {
   pub items: Vec<String>,
 }
 
-pub fn build(config: Config) -> Result<Nets, String> {
+pub fn compile(config: Config) -> Result<Nets, String> {
   let arena = &*Box::leak(Box::new(BytesArena::default()));
   let interner = StringInterner::new(arena);
   let mut diags = DiagGroup::default();
@@ -61,5 +59,5 @@ pub fn build(config: Config) -> Result<Nets, String> {
 
   Desugar.visit(&mut resolver.defs);
 
-  Ok(compile(&resolver, &config.items))
+  Ok(emit(&resolver, &config.items))
 }

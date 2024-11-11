@@ -19,8 +19,8 @@ use vine_util::{
 use crate::{
   ast::{Block, Expr, ExprKind, Ident, Span},
   checker::{Checker, CheckerState, Type},
-  compile::Compiler,
   desugar::Desugar,
+  emitter::Emitter,
   loader::Loader,
   parser::VineParser,
   resolve::{DefId, Resolver},
@@ -75,9 +75,9 @@ impl<'ctx, 'ivm> Repl<'ctx, 'ivm> {
 
     Desugar.visit(&mut resolver.defs);
 
-    let mut compiler = Compiler::new(&resolver);
-    compiler.compile_all();
-    host.insert_nets(&compiler.nets);
+    let mut emitter = Emitter::new(&resolver);
+    emitter.emit_all();
+    host.insert_nets(&emitter.nets);
 
     let io = Ident(interner.intern("io"));
     let vars = HashMap::from([(io, Var { local: 0, value: Port::new_ext_val(ExtVal::IO) })]);
@@ -158,9 +158,9 @@ impl<'ctx, 'ivm> Repl<'ctx, 'ivm> {
     Desugar.visit(&mut block);
     Desugar.visit(&mut self.resolver.defs[new_defs.clone()]);
 
-    let mut compiler = Compiler::new(&self.resolver);
+    let mut emitter = Emitter::new(&self.resolver);
     for def in &self.resolver.defs[new_defs] {
-      compiler.compile_def(def);
+      emitter.emit_def(def);
     }
 
     let line = self.line;
@@ -168,14 +168,14 @@ impl<'ctx, 'ivm> Repl<'ctx, 'ivm> {
 
     let name = format!("::repl::{line}");
 
-    compiler.compile_expr(
+    emitter.emit_root_expr(
       &mut self.local_count,
       name.clone(),
       &Expr { span: Span::NONE, kind: ExprKind::Block(block) },
       self.vars.values().map(|v| v.local),
     );
 
-    self.host.insert_nets(&compiler.nets);
+    self.host.insert_nets(&emitter.nets);
 
     let w = self.ivm.new_wire();
     let root = w.0;

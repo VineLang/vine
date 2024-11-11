@@ -1,8 +1,8 @@
 use std::collections::{hash_map::Entry, HashMap, VecDeque};
 
-use super::{Compiler, Port, Step};
+use super::{Emitter, Port, Step};
 
-impl Compiler<'_> {
+impl Emitter<'_> {
   pub(super) fn fix_interstage_wires(&mut self) {
     let mut wires = HashMap::<usize, usize>::new();
     for i in 0..self.stages.len() {
