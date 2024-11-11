@@ -39,11 +39,7 @@ impl Checker<'_> {
       ExprKind::Hole => (Form::Space, self.new_var(span)),
       ExprKind::Local(l) => (
         Form::Place,
-        Type::Var(*self.state.locals.entry(*l).or_insert_with(|| {
-          let v = self.state.vars.len();
-          self.state.vars.push(Err(span));
-          v
-        })),
+        Type::Var(*self.state.locals.entry(*l).or_insert_with(|| self.state.vars.push(Err(span)))),
       ),
       ExprKind::Deref(_) => todo!(),
       ExprKind::Inverse(expr) => {

@@ -4,7 +4,10 @@ use std::{
   ops::Range,
 };
 
-use vine_util::idx::{IntMap, RangeExt};
+use vine_util::{
+  idx::{IdxVec, IntMap, RangeExt},
+  new_idx,
+};
 
 use crate::{
   ast::{Block, Builtin, DynFnId, ExprKind, GenericPath, Ident, Local, Span, StmtKind, Ty, TyKind},
@@ -38,7 +41,7 @@ pub struct Checker<'r> {
 
 #[derive(Default, Debug, Clone)]
 pub(crate) struct CheckerState {
-  pub(crate) vars: Vec<Result<Type, Span>>,
+  pub(crate) vars: IdxVec<Var, Result<Type, Span>>,
   pub(crate) locals: IntMap<Local, Var>,
   pub(crate) dyn_fns: IntMap<DynFnId, Type>,
 }
@@ -114,9 +117,7 @@ impl<'r> Checker<'r> {
   }
 
   fn new_var(&mut self, span: Span) -> Type {
-    let v = self.state.vars.len();
-    self.state.vars.push(Err(span));
-    Type::Var(v)
+    Type::Var(self.state.vars.push(Err(span)))
   }
 
   fn check_block(&mut self, block: &mut Block) -> Type {
@@ -280,7 +281,7 @@ impl Form {
   }
 }
 
-type Var = usize;
+new_idx!(pub Var);
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Type {

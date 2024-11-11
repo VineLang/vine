@@ -12,14 +12,14 @@ use ivm::{
 };
 use ivy::{ast::Tree, host::Host};
 use vine_util::{
-  idx::{Counter, IntMap, RangeExt},
+  idx::{Counter, IdxVec, IntMap, RangeExt},
   interner::StringInterner,
   parser::{Parser, ParserState},
 };
 
 use crate::{
   ast::{Block, Expr, ExprKind, Ident, Local, Span},
-  checker::{Checker, CheckerState, Type},
+  checker::{self, Checker, CheckerState, Type},
   desugar::Desugar,
   emitter::Emitter,
   loader::Loader,
@@ -86,8 +86,8 @@ impl<'ctx, 'ivm> Repl<'ctx, 'ivm> {
     let locals = BTreeMap::from([(Local(0), io)]);
 
     let checker_state = CheckerState {
-      vars: vec![Ok(Type::IO)],
-      locals: IntMap::from_iter([(Local(0), 0)]),
+      vars: IdxVec::from([Ok(Type::IO)]),
+      locals: IntMap::from_iter([(Local(0), checker::Var(0))]),
       dyn_fns: IntMap::default(),
     };
 

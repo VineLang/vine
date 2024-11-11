@@ -53,7 +53,7 @@ impl Checker<'_> {
 
       (PatKind::Hole, _) => self.new_var(span),
       (PatKind::Local(l), _) => {
-        let old = self.state.locals.insert(*l, self.state.vars.len());
+        let old = self.state.locals.insert(*l, self.state.vars.next_index());
         debug_assert!(old.is_none());
         self.new_var(span)
       }
