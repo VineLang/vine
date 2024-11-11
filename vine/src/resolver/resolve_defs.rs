@@ -4,10 +4,13 @@ use std::{
   ops::Range,
 };
 
-use vine_util::idx::RangeExt;
+use vine_util::idx::{Counter, RangeExt};
 
 use crate::{
-  ast::{Expr, ExprKind, GenericPath, Ident, LogicalOp, Pat, PatKind, Stmt, StmtKind, Ty, TyKind},
+  ast::{
+    DynFnId, Expr, ExprKind, GenericPath, Ident, Local, LogicalOp, Pat, PatKind, Stmt, StmtKind,
+    Ty, TyKind,
+  },
   diag::Diag,
   visit::{VisitMut, Visitee},
 };
@@ -26,8 +29,8 @@ impl Resolver {
       generics: Vec::new(),
       scope: HashMap::new(),
       scope_depth: 0,
-      next_local: 0,
-      next_dyn_fn: 0,
+      locals: Counter::default(),
+      dyn_fns: Counter::default(),
     };
 
     for def_id in range.iter() {
@@ -44,7 +47,7 @@ impl Resolver {
           visitor.visit_expr(expr);
         }
         value_def.generics = take(&mut visitor.generics);
-        value_def.locals = visitor.next_local;
+        value_def.locals = visitor.locals;
       }
 
       let def = &mut visitor.resolver.defs[def_id];
@@ -73,17 +76,17 @@ impl Resolver {
       def.variant_def = variant_def;
 
       visitor.scope.clear();
-      visitor.next_local = 0;
+      visitor.locals = Counter::default();
     }
   }
 
   pub(crate) fn resolve_custom<'t>(
     &mut self,
     def: DefId,
-    initial: &BTreeMap<usize, Ident>,
-    local_count: &mut usize,
+    initial: &BTreeMap<Local, Ident>,
+    local_count: &mut Counter<Local>,
     visitee: impl Visitee<'t>,
-  ) -> impl Iterator<Item = (Ident, usize)> {
+  ) -> impl Iterator<Item = (Ident, Local)> {
     let mut visitor = ResolveVisitor {
       resolver: self,
       def,
@@ -93,11 +96,11 @@ impl Resolver {
         .map(|(&l, &i)| (i, vec![ScopeEntry { depth: 0, binding: Binding::Local(l) }]))
         .collect(),
       scope_depth: 0,
-      next_local: *local_count,
-      next_dyn_fn: 0,
+      locals: *local_count,
+      dyn_fns: Counter::default(),
     };
     visitor.visit(visitee);
-    *local_count = visitor.next_local;
+    *local_count = visitor.locals;
     visitor.scope.into_iter().filter_map(|(k, e)| {
       let entry = e.first()?;
       if entry.depth == 0 {
@@ -120,8 +123,8 @@ struct ResolveVisitor<'a> {
   generics: Vec<Ident>,
   scope: HashMap<Ident, Vec<ScopeEntry>>,
   scope_depth: usize,
-  next_local: usize,
-  next_dyn_fn: usize,
+  locals: Counter<Local>,
+  dyn_fns: Counter<DynFnId>,
 }
 
 #[derive(Debug)]
@@ -132,8 +135,8 @@ struct ScopeEntry {
 
 #[derive(Debug, Clone, Copy)]
 enum Binding {
-  Local(usize),
-  DynFn(usize),
+  Local(Local),
+  DynFn(DynFnId),
 }
 
 impl VisitMut<'_> for ResolveVisitor<'_> {
@@ -153,10 +156,9 @@ impl VisitMut<'_> for ResolveVisitor<'_> {
   fn visit_stmt(&mut self, stmt: &mut Stmt) {
     self._visit_stmt(stmt);
     if let StmtKind::DynFn(d) = &mut stmt.kind {
-      let id = self.next_dyn_fn;
-      self.next_dyn_fn += 1;
+      let id = self.dyn_fns.next();
       self.bind(d.name, Binding::DynFn(id));
-      d.dyn_id = Some(id);
+      d.id = Some(id);
     }
   }
 
@@ -181,8 +183,7 @@ impl VisitMut<'_> for ResolveVisitor<'_> {
         pat.kind = PatKind::Error(self.resolver.diags.add(non_local_err));
         return;
       };
-      let local = self.next_local;
-      self.next_local += 1;
+      let local = self.locals.next();
       let binding = Binding::Local(local);
       self.bind(ident, binding);
       pat.kind = PatKind::Local(local);

@@ -1,5 +1,7 @@
 use std::{collections::hash_map::Entry, mem::take};
 
+use vine_util::idx::Counter;
+
 use crate::{
   ast::{
     AttrKind, Builtin, Expr, ExprKind, Ident, Item, ItemKind, ModKind, Path, Span, UseTree, Vis,
@@ -45,7 +47,7 @@ impl Resolver {
           generics: f.generics,
           annotation: None,
           ty: None,
-          locals: 0,
+          locals: Counter::default(),
           kind: ValueDefKind::Expr(Expr {
             span,
             kind: ExprKind::Fn(
@@ -66,7 +68,7 @@ impl Resolver {
           generics: c.generics,
           annotation: Some(c.ty),
           ty: None,
-          locals: 0,
+          locals: Counter::default(),
           kind: ValueDefKind::Expr(c.value),
         },
         member_vis,
@@ -80,7 +82,7 @@ impl Resolver {
           generics: i.generics,
           annotation: Some(i.ty),
           ty: None,
-          locals: 0,
+          locals: Counter::default(),
           kind: ValueDefKind::Ivy(i.net),
         },
         member_vis,
@@ -126,7 +128,7 @@ impl Resolver {
           generics: s.generics,
           annotation: None,
           ty: None,
-          locals: 0,
+          locals: Counter::default(),
           kind: ValueDefKind::AdtConstructor,
         });
         Some(child.id)
@@ -161,7 +163,7 @@ impl Resolver {
               generics: e.generics.clone(),
               annotation: None,
               ty: None,
-              locals: 0,
+              locals: Counter::default(),
               kind: ValueDefKind::AdtConstructor,
             });
             Some(variant.id)

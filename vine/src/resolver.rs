@@ -7,7 +7,7 @@ use vine_util::{
 };
 
 use crate::{
-  ast::{Builtin, Expr, Ident, Path, Span, Ty},
+  ast::{Builtin, Expr, Ident, Local, Path, Span, Ty},
   checker::Type,
   diag::DiagGroup,
 };
@@ -65,7 +65,7 @@ pub struct ValueDef {
   pub generics: Vec<Ident>,
   pub annotation: Option<Ty>,
   pub ty: Option<Type>,
-  pub locals: usize,
+  pub locals: Counter<Local>,
   pub kind: ValueDefKind,
 }
 

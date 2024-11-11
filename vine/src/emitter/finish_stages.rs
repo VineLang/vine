@@ -23,7 +23,7 @@ impl Emitter<'_> {
       let net = finish.net.finish(root);
       self.nets.insert(name, net);
     }
-    self.dup_labels += self.local_count;
+    self.dup_labels += self.locals.count();
     self.interfaces.clear();
   }
 }
@@ -132,7 +132,7 @@ impl<'a> FinishStage<'a> {
       .reduce(|cur, next| {
         let r = self.net.new_wire();
         let prev = replace(&mut value, r.1);
-        let label = format!("dup{}", self.dup_label_base + local);
+        let label = format!("dup{}", self.dup_label_base + local.0);
         self.net.agents.push(Agent::Comb(label, prev, cur, r.0));
         next
       })

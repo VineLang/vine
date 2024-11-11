@@ -1,6 +1,6 @@
 use std::{collections::HashMap, ops::Range};
 
-use vine_util::idx::IdxVec;
+use vine_util::idx::{IdxVec, RangeExt};
 
 use crate::{
   emitter::{Local, StageId},
@@ -75,13 +75,13 @@ impl Emitter<'_> {
       }
       DecisionTree::Missing => false,
       DecisionTree::Tuple(v, t, next) => {
-        for l in t.clone() {
+        for l in t.iter() {
           self.declare_local(l);
         }
-        let a = self.tuple(t.clone(), Self::set_local);
+        let a = self.tuple(t.iter(), Self::set_local);
         self.cur.steps.push_back(Step::Move(v.local, a));
         if v.is_place {
-          let a = self.tuple(t, Self::fin_move_local);
+          let a = self.tuple(t.iter(), Self::fin_move_local);
           self.set_local_to(v.local, a);
         }
         self.emit_decision_tree(arms, *next, f)
@@ -123,18 +123,18 @@ impl Emitter<'_> {
         let stage =
           self.apply_combs("enum", val.1, cases.into_iter().enumerate(), |self_, (v, case)| {
             let s = self_.new_stage(i, |self_, _| {
-              for s in case.vars.clone() {
+              for s in case.vars.iter() {
                 self_.declare_local(s);
               }
               let root = self_.net.new_wire();
-              let inner = self_.apply_combs("enum", root.0, case.vars.clone(), Self::set_local);
+              let inner = self_.apply_combs("enum", root.0, case.vars.iter(), Self::set_local);
               let should_fallback = case.body.is_none();
               let mut end = false;
               if let Some(tree) = case.body {
                 end = self_.emit_decision_tree(arms, tree, f);
               }
               if var.is_place || should_fallback && fallback_needs_var {
-                let r = self_.make_enum(adt_def, v, case.vars.clone(), Self::fin_move_local);
+                let r = self_.make_enum(adt_def, v, case.vars.iter(), Self::fin_move_local);
                 self_.set_local_to(var.local, r);
               }
               self_.cur.header = Some((root.1, inner));
@@ -158,8 +158,7 @@ impl Emitter<'_> {
   }
 
   fn new_match_var(&mut self, is_place: bool) -> MatchVar {
-    let local = self.local_count;
-    self.local_count += 1;
+    let local = self.locals.next();
     MatchVar { local, is_place }
   }
 }
@@ -237,17 +236,16 @@ impl Emitter<'_> {
 
     match ty {
       PatternType::Tuple(len) => {
+        let range = self.locals.chunk(len);
         for row in &mut rows {
           if let Some(expr) = row.remove_column(var) {
             let PatKind::Tuple(children) = &expr.kind else { unreachable!() };
             row.cells.extend(children.iter().enumerate().map(|(i, p)| Cell {
-              var: MatchVar { local: self.local_count + i, is_place: var.is_place },
+              var: MatchVar { local: range.get(i), is_place: var.is_place },
               pattern: p,
             }))
           }
         }
-        let range = self.local_count..(self.local_count + len);
-        self.local_count += len;
 
         DecisionTree::Tuple(var, range, Box::new(self.build_decision_tree(rows, arm_counts)))
       }
@@ -282,7 +280,7 @@ impl Emitter<'_> {
             let v = self.defs[v].variant_def.as_ref().unwrap();
             assert_eq!(v.fields.len(), children.len());
             row.cells.extend(children.iter().enumerate().map(|(i, p)| Cell {
-              var: MatchVar { local: self.local_count + i, is_place: var.is_place },
+              var: MatchVar { local: Local(self.locals.0 .0 + i), is_place: var.is_place },
               pattern: p,
             }));
             &mut variants[v.variant]
@@ -299,15 +297,15 @@ impl Emitter<'_> {
           .max()
           .unwrap_or(0);
 
-        let base = self.local_count;
-        self.local_count += max_local_count;
+        let base = self.locals.0 .0;
+        self.locals.0 .0 += max_local_count;
 
         let cases = variants
           .into_iter()
           .enumerate()
           .map(|(v, mut rows)| {
             let field_count = self.defs[adt.variants[v]].variant_def.as_ref().unwrap().fields.len();
-            let vars = base..(base + field_count);
+            let vars = Local(base)..Local(base + field_count);
             Case {
               vars,
               body: (!rows.is_empty()).then(|| {
@@ -322,7 +320,7 @@ impl Emitter<'_> {
           return if let Case { vars, body: Some(body) } = { cases }.pop().unwrap() {
             DecisionTree::Tuple(var, vars, Box::new(body))
           } else {
-            self.local_count -= max_local_count;
+            self.locals.0 .0 -= max_local_count;
             self.build_decision_tree(wildcard, arm_counts)
           };
         }

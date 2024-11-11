@@ -6,9 +6,12 @@ use std::{
 
 use class::Classes;
 use ivy::ast::Net;
-use vine_util::interner::Interned;
+use vine_util::{interner::Interned, new_idx};
 
 use crate::{diag::ErrorGuaranteed, resolver::DefId};
+
+new_idx!(pub Local);
+new_idx!(pub DynFnId);
 
 #[derive(Clone, Default)]
 pub struct Item {
@@ -185,7 +188,7 @@ pub struct LetStmt {
 #[derive(Debug, Clone)]
 pub struct DynFnStmt {
   pub name: Ident,
-  pub dyn_id: Option<usize>,
+  pub id: Option<DynFnId>,
   pub params: Vec<(Pat, Option<Ty>)>,
   pub ret: Option<Ty>,
   pub body: Block,
@@ -207,9 +210,9 @@ pub enum ExprKind {
   #[class(value)]
   Path(GenericPath),
   #[class(place)]
-  Local(usize),
+  Local(Local),
   #[class(value)]
-  DynFn(usize),
+  DynFn(DynFnId),
   #[class(value)]
   Block(Block),
   #[class(value)]
@@ -277,11 +280,11 @@ pub enum ExprKind {
   #[class(value, synthetic)]
   Copy(B<Expr>),
   #[class(value, synthetic)]
-  CopyLocal(usize),
+  CopyLocal(Local),
   #[class(value, synthetic)]
-  MoveLocal(usize),
+  MoveLocal(Local),
   #[class(space, synthetic)]
-  SetLocal(usize),
+  SetLocal(Local),
   #[class(error)]
   Error(ErrorGuaranteed),
 }
@@ -302,7 +305,7 @@ pub enum PatKind {
   #[class(value, place, space)]
   Adt(GenericPath, Option<Vec<Pat>>),
   #[class(value, place, space)]
-  Local(usize),
+  Local(Local),
   #[class(value, place)]
   Ref(B<Pat>),
   #[class(place)]

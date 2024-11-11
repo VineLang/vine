@@ -679,7 +679,7 @@ impl<'ctx, 'src> VineParser<'ctx, 'src> {
     let params = self.parse_delimited(PAREN_COMMA, Self::parse_pat_type)?;
     let ret = self.eat(Token::ThinArrow)?.then(|| self.parse_type()).transpose()?;
     let body = self.parse_block()?;
-    Ok(DynFnStmt { name, dyn_id: None, params, ret, body })
+    Ok(DynFnStmt { name, id: None, params, ret, body })
   }
 
   fn parse_path(&mut self) -> Parse<'src, Path> {

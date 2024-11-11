@@ -1,6 +1,7 @@
 use std::mem::{swap, take};
 
 use ivm::ext::{ExtFn, ExtFnKind};
+use vine_util::idx::Counter;
 
 use crate::{ast::*, resolver::Def};
 
@@ -12,8 +13,13 @@ mod pattern_matching;
 mod stage_utils;
 
 impl Emitter<'_> {
-  pub(super) fn build_stages(&mut self, locals: usize, name: String, expr: &Expr) -> StageId {
-    self.local_count = locals;
+  pub(super) fn build_stages(
+    &mut self,
+    locals: Counter<Local>,
+    name: String,
+    expr: &Expr,
+  ) -> StageId {
+    self.locals = locals;
     self.name = name;
 
     let i = self.new_interface();
@@ -324,7 +330,7 @@ impl Emitter<'_> {
             self_.set_local_to(f, p);
             true
           });
-          self_.dyn_fns.insert(d.dyn_id.unwrap(), (f, s));
+          self_.dyn_fns.insert(d.id.unwrap(), (f, s));
         });
         Port::Erase
       }

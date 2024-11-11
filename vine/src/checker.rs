@@ -1,14 +1,13 @@
 use std::{
-  collections::HashMap,
   iter,
   mem::{replace, take},
   ops::Range,
 };
 
-use vine_util::idx::RangeExt;
+use vine_util::idx::{IntMap, RangeExt};
 
 use crate::{
-  ast::{Block, Builtin, ExprKind, GenericPath, Ident, Span, StmtKind, Ty, TyKind},
+  ast::{Block, Builtin, DynFnId, ExprKind, GenericPath, Ident, Local, Span, StmtKind, Ty, TyKind},
   diag::{report, Diag, DiagGroup, ErrorGuaranteed},
   resolver::{DefId, Resolver, TypeDef, ValueDefKind},
 };
@@ -40,8 +39,8 @@ pub struct Checker<'r> {
 #[derive(Default, Debug, Clone)]
 pub(crate) struct CheckerState {
   pub(crate) vars: Vec<Result<Type, Span>>,
-  pub(crate) locals: HashMap<usize, Var>,
-  pub(crate) dyn_fns: HashMap<usize, Type>,
+  pub(crate) locals: IntMap<Local, Var>,
+  pub(crate) dyn_fns: IntMap<DynFnId, Type>,
 }
 
 impl<'r> Checker<'r> {
@@ -142,7 +141,7 @@ impl<'r> Checker<'r> {
             .map(|t| self.hydrate_type(t, true))
             .unwrap_or_else(|| self.new_var(d.body.span));
           self.check_block_type(&mut d.body, &mut ret);
-          self.state.dyn_fns.insert(d.dyn_id.unwrap(), Type::Fn(params, Box::new(ret)));
+          self.state.dyn_fns.insert(d.id.unwrap(), Type::Fn(params, Box::new(ret)));
           ty = Type::UNIT;
         }
         StmtKind::Expr(e, semi) => {

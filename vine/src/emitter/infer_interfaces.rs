@@ -139,7 +139,7 @@ impl Interface {
 }
 
 impl Step {
-  fn usage(&self, interfaces: &[Interface], mut add: impl FnMut(usize, Usage)) {
+  fn usage(&self, interfaces: &[Interface], mut add: impl FnMut(Local, Usage)) {
     match *self {
       Step::Get(l, _) => add(l, Usage::GET),
       Step::Set(l, Port::Erase) => add(l, Usage::ERASE),

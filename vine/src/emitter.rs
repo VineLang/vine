@@ -3,10 +3,13 @@ use std::collections::{BTreeMap, BTreeSet, HashMap, VecDeque};
 use bitflags::bitflags;
 
 use ivy::ast::Nets;
-use vine_util::{bicycle::BicycleState, idx::IdxVec};
+use vine_util::{
+  bicycle::BicycleState,
+  idx::{Counter, IdxVec},
+};
 
 use crate::{
-  ast::{Builtin, Expr},
+  ast::{Builtin, DynFnId, Expr, Local},
   resolver::{Def, DefId, Resolver, ValueDefKind},
 };
 
@@ -46,7 +49,7 @@ pub struct Emitter<'d> {
   stages: Vec<Stage>,
   cur: Stage,
   cur_id: StageId,
-  local_count: usize,
+  locals: Counter<Local>,
 
   forks: Vec<Fork>,
 
@@ -55,7 +58,7 @@ pub struct Emitter<'d> {
   return_target: Option<(Local, ForkId)>,
   loop_target: Option<(Local, ForkId, StageId)>,
 
-  dyn_fns: HashMap<usize, (Local, StageId)>,
+  dyn_fns: HashMap<DynFnId, (Local, StageId)>,
 
   dup_labels: usize,
 
@@ -75,7 +78,7 @@ impl<'d> Emitter<'d> {
       stages: Default::default(),
       cur: Default::default(),
       cur_id: Default::default(),
-      local_count: Default::default(),
+      locals: Default::default(),
       forks: Default::default(),
       net: Default::default(),
       return_target: Default::default(),
@@ -111,7 +114,7 @@ impl<'d> Emitter<'d> {
 
   pub(super) fn emit_root_expr(
     &mut self,
-    local_count: &mut usize,
+    local_count: &mut Counter<Local>,
     name: String,
     expr: &Expr,
     locals: impl IntoIterator<Item = Local>,
@@ -127,17 +130,16 @@ impl<'d> Emitter<'d> {
     self.fix_interstage_wires();
     self.infer_interfaces();
     self.finish_stages(init_stage);
-    *local_count = self.local_count;
+    *local_count = self.locals;
   }
 
-  fn new_local(&mut self) -> usize {
-    let l = self.local_count;
-    self.local_count += 1;
+  fn new_local(&mut self) -> Local {
+    let l = self.locals.next();
     self.declare_local(l);
     l
   }
 
-  fn declare_local(&mut self, local: usize) {
+  fn declare_local(&mut self, local: Local) {
     self.interfaces[self.cur.outer].declarations.insert(local);
   }
 }
@@ -148,7 +150,6 @@ fn stage_name(base_name: &str, stage_id: StageId) -> String {
 
 type InterfaceId = usize;
 type StageId = usize;
-type Local = usize;
 type ForkId = usize;
 
 #[derive(Debug, Default)]

@@ -22,8 +22,7 @@ impl Emitter<'_> {
             Entry::Occupied(e) => {
               let h = e.remove();
               if h != i {
-                let local = self.local_count;
-                self.local_count += 1;
+                let local = self.locals.next();
                 a[h].steps.push_front(Step::Set(local, Port::Wire(w)));
                 new_steps.push_back(Step::Move(local, Port::Wire(w)));
               }

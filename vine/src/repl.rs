@@ -12,13 +12,13 @@ use ivm::{
 };
 use ivy::{ast::Tree, host::Host};
 use vine_util::{
-  idx::RangeExt,
+  idx::{Counter, IntMap, RangeExt},
   interner::StringInterner,
   parser::{Parser, ParserState},
 };
 
 use crate::{
-  ast::{Block, Expr, ExprKind, Ident, Span},
+  ast::{Block, Expr, ExprKind, Ident, Local, Span},
   checker::{Checker, CheckerState, Type},
   desugar::Desugar,
   emitter::Emitter,
@@ -37,13 +37,13 @@ pub struct Repl<'ctx, 'ivm> {
   repl_mod: DefId,
   line: usize,
   vars: HashMap<Ident, Var<'ivm>>,
-  locals: BTreeMap<usize, Ident>,
-  local_count: usize,
+  locals: BTreeMap<Local, Ident>,
+  local_count: Counter<Local>,
   checker_state: CheckerState,
 }
 
 struct Var<'ivm> {
-  local: usize,
+  local: Local,
   value: Port<'ivm>,
 }
 
@@ -82,13 +82,13 @@ impl<'ctx, 'ivm> Repl<'ctx, 'ivm> {
     host.insert_nets(&emitter.nets);
 
     let io = Ident(interner.intern("io"));
-    let vars = HashMap::from([(io, Var { local: 0, value: Port::new_ext_val(ExtVal::IO) })]);
-    let locals = BTreeMap::from([(0, io)]);
+    let vars = HashMap::from([(io, Var { local: Local(0), value: Port::new_ext_val(ExtVal::IO) })]);
+    let locals = BTreeMap::from([(Local(0), io)]);
 
     let checker_state = CheckerState {
       vars: vec![Ok(Type::IO)],
-      locals: HashMap::from([(0, 0)]),
-      dyn_fns: HashMap::new(),
+      locals: IntMap::from_iter([(Local(0), 0)]),
+      dyn_fns: IntMap::default(),
     };
 
     Ok(Repl {
@@ -101,7 +101,7 @@ impl<'ctx, 'ivm> Repl<'ctx, 'ivm> {
       line: 0,
       vars,
       locals,
-      local_count: 1,
+      local_count: Counter(Local(1)),
       checker_state,
     })
   }
@@ -140,7 +140,8 @@ impl<'ctx, 'ivm> Repl<'ctx, 'ivm> {
     }
 
     for (ident, local) in binds {
-      let var = self.vars.entry(ident).or_insert(Var { local: usize::MAX, value: Port::ERASE });
+      let var =
+        self.vars.entry(ident).or_insert(Var { local: Local(usize::MAX), value: Port::ERASE });
       if var.local != local {
         self.locals.remove(&var.local);
         self.locals.insert(local, ident);
