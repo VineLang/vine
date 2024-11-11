@@ -23,6 +23,7 @@
     "interstage",
     "miri",
     "nilary",
+    "nohash",
     "nonoverlapping",
     "primality",
     "readback",
