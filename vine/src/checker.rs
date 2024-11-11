@@ -5,6 +5,8 @@ use std::{
   ops::Range,
 };
 
+use vine_util::idx::RangeExt;
+
 use crate::{
   ast::{Block, Builtin, ExprKind, GenericPath, Ident, Span, StmtKind, Ty, TyKind},
   diag::{report, Diag, DiagGroup, ErrorGuaranteed},
@@ -61,7 +63,7 @@ impl<'r> Checker<'r> {
       generics: Vec::new(),
       return_ty: None,
       loop_ty: None,
-      cur_def: 0,
+      cur_def: DefId::ROOT,
       u32,
       f32,
       io,
@@ -72,18 +74,18 @@ impl<'r> Checker<'r> {
   }
 
   pub fn check_defs(&mut self) {
-    self._check_defs(0..self.resolver.defs.len());
+    self._check_defs(self.resolver.defs.range());
   }
 
   pub(crate) fn _check_defs(&mut self, range: Range<DefId>) {
-    for def in range.clone() {
+    for def in range.iter() {
       self.resolve_type_alias(def);
     }
-    for def in range.clone() {
+    for def in range.iter() {
       self.resolve_def_types(def);
     }
     debug_assert!(self.state.vars.is_empty());
-    for def in range.clone() {
+    for def in range.iter() {
       self.check_value_def(def);
     }
   }
@@ -197,7 +199,7 @@ impl<'r> Checker<'r> {
     }
   }
 
-  fn resolve_type_alias(&mut self, def_id: usize) {
+  fn resolve_type_alias(&mut self, def_id: DefId) {
     let old = replace(&mut self.cur_def, def_id);
     if let Some(type_def) = &mut self.resolver.defs[def_id].type_def {
       if let Some(mut alias) = type_def.alias.take() {
@@ -208,7 +210,7 @@ impl<'r> Checker<'r> {
     self.cur_def = old;
   }
 
-  fn resolve_def_types(&mut self, def_id: usize) {
+  fn resolve_def_types(&mut self, def_id: DefId) {
     self.cur_def = def_id;
     if let Some(mut variant) = self.resolver.defs[def_id].variant_def.take() {
       variant.field_types =
@@ -256,7 +258,7 @@ impl<'r> Checker<'r> {
 fn define_primitive_type(resolver: &mut Resolver, def_id: Option<DefId>, ty: Type) {
   if let Some(def_id) = def_id {
     resolver.defs[def_id].type_def =
-      Some(TypeDef { vis: 0, generics: Vec::new(), alias: None, ty: Some(ty) });
+      Some(TypeDef { vis: DefId::ROOT, generics: Vec::new(), alias: None, ty: Some(ty) });
   }
 }
 

@@ -4,6 +4,8 @@ use std::{
   ops::Range,
 };
 
+use vine_util::idx::RangeExt;
+
 use crate::{
   ast::{Expr, ExprKind, GenericPath, Ident, LogicalOp, Pat, PatKind, Stmt, StmtKind, Ty, TyKind},
   diag::Diag,
@@ -14,13 +16,13 @@ use super::{DefId, Resolver, ValueDefKind};
 
 impl Resolver {
   pub fn resolve_defs(&mut self) {
-    self._resolve_defs(0..self.defs.len());
+    self._resolve_defs(self.defs.range());
   }
 
   pub(crate) fn _resolve_defs(&mut self, range: Range<DefId>) {
     let mut visitor = ResolveVisitor {
       resolver: self,
-      def: 0,
+      def: DefId::ROOT,
       generics: Vec::new(),
       scope: HashMap::new(),
       scope_depth: 0,
@@ -28,7 +30,7 @@ impl Resolver {
       next_dyn_fn: 0,
     };
 
-    for def_id in range {
+    for def_id in range.iter() {
       visitor.def = def_id;
 
       let def = &mut visitor.resolver.defs[def_id];

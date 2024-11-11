@@ -15,12 +15,12 @@ use super::{
 
 impl Resolver {
   pub fn build_graph(&mut self, root: ModKind) {
-    let def = self.new_def(Path::ROOT, None, 0);
-    debug_assert_eq!(def, 0);
-    self.build_mod(0, root, def);
+    let _root_def = self.new_def(Path::ROOT, None, DefId::ROOT);
+    debug_assert_eq!(_root_def, DefId::ROOT);
+    self.build_mod(DefId::ROOT, root, DefId::ROOT);
     if let Some(&prelude) = self.builtins.get(&Builtin::Prelude) {
       self.defs[prelude].parent = None;
-      self.defs[0].parent = Some(prelude);
+      self.defs[DefId::ROOT].parent = Some(prelude);
     }
   }
 
@@ -205,7 +205,7 @@ impl Resolver {
   fn resolve_vis(&mut self, base: DefId, vis: Vis) -> DefId {
     match vis {
       Vis::Private => base,
-      Vis::Public => 0,
+      Vis::Public => DefId::ROOT,
       Vis::PublicTo(span, name) => {
         let ancestors = &self.defs[base].ancestors;
         if let Some(&ancestor) =
@@ -214,7 +214,7 @@ impl Resolver {
           ancestor
         } else {
           self.diags.add(Diag::BadVis { span });
-          0
+          DefId::ROOT
         }
       }
     }
@@ -248,7 +248,7 @@ impl Resolver {
   }
 
   pub(crate) fn get_or_insert_child(&mut self, parent: DefId, name: Ident, vis: DefId) -> &mut Def {
-    let next_child = self.next_def_id();
+    let next_child = self.defs.next_index();
     let parent_def = &mut self.defs[parent];
     let mut new = false;
     let member = parent_def.members.entry(name).or_insert_with(|| {
@@ -296,12 +296,8 @@ impl Resolver {
     path.segments.truncate(initial_len);
   }
 
-  fn next_def_id(&self) -> DefId {
-    self.defs.len()
-  }
-
-  fn new_def(&mut self, mut canonical: Path, parent: Option<usize>, vis: DefId) -> DefId {
-    let id = self.defs.len();
+  fn new_def(&mut self, mut canonical: Path, parent: Option<DefId>, vis: DefId) -> DefId {
+    let id = self.defs.next_index();
     canonical.resolved = Some(id);
     let mut def = Def {
       id,
@@ -324,9 +320,9 @@ impl Resolver {
     id
   }
 
-  pub fn revert(&mut self, old_def_count: usize, old_use_count: usize) {
-    self.defs.truncate(old_def_count);
-    for def in &mut self.defs {
+  pub fn revert(&mut self, old_def_count: DefId, old_use_count: UseId) {
+    self.defs.truncate(old_def_count.0);
+    for def in self.defs.values_mut() {
       def.members.retain(|_, m| match m.kind {
         MemberKind::Child(id) => id < old_def_count,
         MemberKind::ResolvedImport(_, id) | MemberKind::UnresolvedImport(_, _, id) => {

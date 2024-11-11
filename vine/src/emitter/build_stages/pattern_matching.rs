@@ -1,5 +1,7 @@
 use std::{collections::HashMap, ops::Range};
 
+use vine_util::idx::IdxVec;
+
 use crate::{
   emitter::{Local, StageId},
   resolver::DefId,
@@ -404,7 +406,7 @@ impl<'t> Row<'t> {
 }
 
 impl Cell<'_> {
-  fn pat_type(&self, defs: &[Def]) -> PatternType {
+  fn pat_type(&self, defs: &IdxVec<DefId, Def>) -> PatternType {
     match &self.pattern.kind {
       PatKind::Adt(p, _) => {
         PatternType::Adt(defs[p.path.resolved.unwrap()].variant_def.as_ref().unwrap().adt)

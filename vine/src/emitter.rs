@@ -3,11 +3,11 @@ use std::collections::{BTreeMap, BTreeSet, HashMap, VecDeque};
 use bitflags::bitflags;
 
 use ivy::ast::Nets;
-use vine_util::bicycle::BicycleState;
+use vine_util::{bicycle::BicycleState, idx::IdxVec};
 
 use crate::{
   ast::{Builtin, Expr},
-  resolver::{Def, Resolver, ValueDefKind},
+  resolver::{Def, DefId, Resolver, ValueDefKind},
 };
 
 mod build_stages;
@@ -24,7 +24,7 @@ pub fn emit(resolver: &Resolver, items: &[String]) -> Nets {
   if items.is_empty() {
     emitter.emit_all();
   } else {
-    for def in &resolver.defs {
+    for def in resolver.defs.values() {
       let canonical = &def.canonical.to_string()[2..];
       if items.iter().any(|x| x == canonical) {
         emitter.emit_def(def);
@@ -35,11 +35,11 @@ pub fn emit(resolver: &Resolver, items: &[String]) -> Nets {
   emitter.nets
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug)]
 pub struct Emitter<'d> {
   pub nets: Nets,
 
-  defs: &'d [Def],
+  defs: &'d IdxVec<DefId, Def>,
 
   name: String,
   interfaces: Vec<Interface>,
@@ -87,7 +87,7 @@ impl<'d> Emitter<'d> {
   }
 
   pub fn emit_all(&mut self) {
-    for def in self.defs {
+    for def in self.defs.values() {
       self.emit_def(def);
     }
   }

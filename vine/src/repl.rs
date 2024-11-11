@@ -12,6 +12,7 @@ use ivm::{
 };
 use ivy::{ast::Tree, host::Host};
 use vine_util::{
+  idx::RangeExt,
   interner::StringInterner,
   parser::{Parser, ParserState},
 };
@@ -67,13 +68,14 @@ impl<'ctx, 'ivm> Repl<'ctx, 'ivm> {
 
     resolver.diags.report(&loader.files)?;
 
-    let repl_mod = resolver.get_or_insert_child(0, Ident(interner.intern("repl")), 0).id;
+    let repl_mod =
+      resolver.get_or_insert_child(DefId::ROOT, Ident(interner.intern("repl")), DefId::ROOT).id;
 
     let mut checker = Checker::new(&mut resolver);
     checker.check_defs();
     checker.diags.report(&loader.files)?;
 
-    Desugar.visit(&mut resolver.defs);
+    Desugar.visit(resolver.defs.values_mut());
 
     let mut emitter = Emitter::new(&resolver);
     emitter.emit_all();
@@ -120,17 +122,17 @@ impl<'ctx, 'ivm> Repl<'ctx, 'ivm> {
       return Err(e);
     }
 
-    let new_defs = self.resolver.defs.len();
+    let new_defs = self.resolver.defs.next_index();
     let new_uses = self.resolver.next_use_id;
-    self.resolver.build_mod(0, self.loader.finish(), 0);
+    self.resolver.build_mod(DefId::ROOT, self.loader.finish(), DefId::ROOT);
     self.resolver.extract_subitems(self.repl_mod, &mut stmts);
-    let new_defs = new_defs..self.resolver.defs.len();
+    let new_defs = new_defs..self.resolver.defs.next_index();
 
     self.resolver._resolve_defs(new_defs.clone());
     let binds =
       self.resolver.resolve_custom(self.repl_mod, &self.locals, &mut self.local_count, &mut stmts);
 
-    self.resolver._resolve_imports(new_defs.clone().chain([self.repl_mod]));
+    self.resolver._resolve_imports(new_defs.iter().chain([self.repl_mod]));
 
     if let Err(e) = self.resolver.diags.report(&self.loader.files) {
       self.resolver.revert(new_defs.start, new_uses);
@@ -156,10 +158,10 @@ impl<'ctx, 'ivm> Repl<'ctx, 'ivm> {
     self.checker_state = state;
 
     Desugar.visit(&mut block);
-    Desugar.visit(&mut self.resolver.defs[new_defs.clone()]);
+    Desugar.visit(self.resolver.defs.slice_mut(new_defs.clone()));
 
     let mut emitter = Emitter::new(&self.resolver);
-    for def in &self.resolver.defs[new_defs] {
+    for def in self.resolver.defs.slice(new_defs.clone()) {
       emitter.emit_def(def);
     }
 

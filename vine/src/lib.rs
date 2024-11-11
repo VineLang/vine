@@ -57,7 +57,7 @@ pub fn compile(config: Config) -> Result<Nets, String> {
 
   diags.report(&loader.files)?;
 
-  Desugar.visit(&mut resolver.defs);
+  Desugar.visit(resolver.defs.values_mut());
 
   Ok(emit(&resolver, &config.items))
 }

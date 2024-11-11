@@ -151,7 +151,7 @@ pub struct Path {
 }
 
 impl Path {
-  pub const ROOT: Self = Self { segments: Vec::new(), absolute: true, resolved: Some(0) };
+  pub const ROOT: Self = Self { segments: Vec::new(), absolute: true, resolved: Some(DefId::ROOT) };
 }
 
 #[derive(Default, Debug, Clone)]

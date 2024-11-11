@@ -4,6 +4,7 @@ use crate::{
   ast::{Expr, ExprKind, GenericPath, Span},
   checker::{Checker, Form, Type},
   diag::Diag,
+  resolver::DefId,
 };
 
 impl Checker<'_> {
@@ -133,7 +134,7 @@ impl Checker<'_> {
     ExprKind::Call(Box::new(func), args)
   }
 
-  fn get_ty_mod(&mut self, ty: &Type) -> Result<Option<usize>, Diag> {
+  fn get_ty_mod(&mut self, ty: &Type) -> Result<Option<DefId>, Diag> {
     Ok(match ty {
       Type::Adt(mod_id, _) => Some(*mod_id),
       Type::U32 => self.u32,

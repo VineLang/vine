@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
 use ivy::ast::Net;
+use vine_util::{idx::IdxVec, new_idx};
 
 use crate::{
   ast::{Builtin, Expr, Ident, Path, Span, Ty},
@@ -14,13 +15,18 @@ mod resolve_path;
 
 #[derive(Debug, Default)]
 pub struct Resolver {
-  pub defs: Vec<Def>,
+  pub defs: IdxVec<DefId, Def>,
   pub diags: DiagGroup,
   pub next_use_id: UseId,
   pub builtins: HashMap<Builtin, DefId>,
 }
 
-pub type DefId = usize;
+new_idx!(pub DefId);
+
+impl DefId {
+  pub const ROOT: Self = Self(0);
+}
+
 pub type UseId = usize;
 
 #[derive(Debug)]
