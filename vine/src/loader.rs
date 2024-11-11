@@ -18,16 +18,16 @@ use crate::{
   visit::{VisitMut, Visitee},
 };
 
-pub struct Loader<'ctx> {
+pub struct Loader<'core, 'ctx> {
   cwd: PathBuf,
-  interner: &'ctx StringInterner<'static>,
-  root: Vec<Item>,
+  interner: &'ctx StringInterner<'core>,
+  root: Vec<Item<'core>>,
   pub files: Vec<FileInfo>,
-  pub diags: DiagGroup,
+  pub diags: DiagGroup<'core>,
 }
 
-impl<'ctx> Loader<'ctx> {
-  pub fn new(interner: &'ctx StringInterner<'static>) -> Self {
+impl<'core, 'ctx> Loader<'core, 'ctx> {
+  pub fn new(interner: &'ctx StringInterner<'core>) -> Self {
     Self {
       cwd: current_dir().unwrap(),
       interner,
@@ -37,7 +37,7 @@ impl<'ctx> Loader<'ctx> {
     }
   }
 
-  pub fn finish(&mut self) -> ModKind {
+  pub fn finish(&mut self) -> ModKind<'core> {
     ModKind::Loaded(Span::NONE, take(&mut self.root))
   }
 
@@ -100,7 +100,7 @@ impl<'ctx> Loader<'ctx> {
     self.root.push(module);
   }
 
-  fn auto_mod_name(&self, path: &Path) -> Ident {
+  fn auto_mod_name(&self, path: &Path) -> Ident<'core> {
     Ident(
       self.interner.intern(str::from_utf8(path.file_stem().unwrap().as_encoded_bytes()).unwrap()),
     )
@@ -112,14 +112,14 @@ impl<'ctx> Loader<'ctx> {
     file
   }
 
-  fn load_file(&mut self, path: PathBuf, span: Span) -> ModKind {
+  fn load_file(&mut self, path: PathBuf, span: Span) -> ModKind<'core> {
     match self._load_file(path, span) {
       Ok(items) => ModKind::Loaded(span, items),
       Err(diag) => ModKind::Error(self.diags.add(diag)),
     }
   }
 
-  fn _load_file(&mut self, mut path: PathBuf, span: Span) -> Result<Vec<Item>, Diag> {
+  fn _load_file(&mut self, mut path: PathBuf, span: Span) -> Result<Vec<Item<'core>>, Diag<'core>> {
     let fs_err = |err| Diag::FsError {
       span,
       path: path.strip_prefix(&self.cwd).unwrap_or(&path).to_owned(),
@@ -137,18 +137,18 @@ impl<'ctx> Loader<'ctx> {
     Ok(items)
   }
 
-  pub(crate) fn load_deps<'t>(&mut self, base: &Path, visitee: impl Visitee<'t>) {
+  pub(crate) fn load_deps<'t>(&mut self, base: &Path, visitee: impl Visitee<'core, 't>) {
     LoadDeps { loader: self, base }.visit(visitee);
   }
 }
 
-struct LoadDeps<'a, 'ctx> {
-  loader: &'a mut Loader<'ctx>,
+struct LoadDeps<'core, 'a, 'ctx> {
+  loader: &'a mut Loader<'core, 'ctx>,
   base: &'a Path,
 }
 
-impl VisitMut<'_> for LoadDeps<'_, '_> {
-  fn visit_item(&mut self, item: &'_ mut Item) {
+impl<'core> VisitMut<'core, '_> for LoadDeps<'core, '_, '_> {
+  fn visit_item<'a>(&'a mut self, item: &mut Item<'core>) {
     if let ItemKind::Mod(module) = &mut item.kind {
       if let ModKind::Unloaded(_, path) = &mut module.kind {
         module.kind = self.loader.load_file(self.base.join(path), item.span);

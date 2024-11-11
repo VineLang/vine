@@ -7,7 +7,7 @@ use vine_util::{
 
 use super::{Emitter, Interface, InterfaceId, Local, Port, Stage, StageId, Step, Usage, WireDir};
 
-impl Emitter<'_> {
+impl<'core> Emitter<'core, '_> {
   pub(super) fn infer_interfaces(&mut self) {
     let all = self.interfaces.range();
     FlowOut { stages: &self.stages, interfaces: &mut self.interfaces }.visit_all(all.iter());

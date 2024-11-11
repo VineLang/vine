@@ -6,15 +6,15 @@ use crate::{
   resolver::{Def, ValueDefKind},
 };
 
-pub trait VisitMut<'a> {
+pub trait VisitMut<'core, 'a> {
   fn enter_scope(&mut self) {}
   fn exit_scope(&mut self) {}
 
-  fn visit_def(&mut self, def: &'a mut Def) {
+  fn visit_def(&mut self, def: &'a mut Def<'core>) {
     self._visit_def(def)
   }
 
-  fn _visit_def(&mut self, def: &'a mut Def) {
+  fn _visit_def(&mut self, def: &'a mut Def<'core>) {
     if let Some(value_def) = &mut def.value_def {
       if let ValueDefKind::Expr(expr) = &mut value_def.kind {
         self.visit_expr(expr);
@@ -22,35 +22,35 @@ pub trait VisitMut<'a> {
     }
   }
 
-  fn visit_expr(&mut self, expr: &'a mut Expr) {
+  fn visit_expr(&mut self, expr: &'a mut Expr<'core>) {
     self._visit_expr(expr);
   }
 
-  fn visit_pat(&mut self, pat: &'a mut Pat) {
+  fn visit_pat(&mut self, pat: &'a mut Pat<'core>) {
     self._visit_pat(pat);
   }
 
-  fn visit_type(&mut self, ty: &'a mut Ty) {
+  fn visit_type(&mut self, ty: &'a mut Ty<'core>) {
     self._visit_type(ty);
   }
 
-  fn visit_stmt(&mut self, stmt: &'a mut Stmt) {
+  fn visit_stmt(&mut self, stmt: &'a mut Stmt<'core>) {
     self._visit_stmt(stmt)
   }
 
-  fn visit_item(&mut self, item: &'a mut Item) {
+  fn visit_item(&mut self, item: &'a mut Item<'core>) {
     self._visit_item(item);
   }
 
-  fn visit_block(&mut self, block: &'a mut Block) {
+  fn visit_block(&mut self, block: &'a mut Block<'core>) {
     self._visit_block(block);
   }
 
-  fn visit_generic_path(&mut self, path: &'a mut GenericPath) {
+  fn visit_generic_path(&mut self, path: &'a mut GenericPath<'core>) {
     self._visit_generic_path(path)
   }
 
-  fn _visit_expr(&mut self, expr: &'a mut Expr) {
+  fn _visit_expr(&mut self, expr: &'a mut Expr<'core>) {
     match &mut expr.kind {
       ExprKind::Hole
       | ExprKind::Local(_)
@@ -158,7 +158,7 @@ pub trait VisitMut<'a> {
     }
   }
 
-  fn _visit_pat(&mut self, pat: &'a mut Pat) {
+  fn _visit_pat(&mut self, pat: &'a mut Pat<'core>) {
     match &mut pat.kind {
       PatKind::Hole | PatKind::Local(_) | PatKind::Error(_) => {}
       PatKind::Paren(a)
@@ -182,7 +182,7 @@ pub trait VisitMut<'a> {
     }
   }
 
-  fn _visit_type(&mut self, ty: &'a mut Ty) {
+  fn _visit_type(&mut self, ty: &'a mut Ty<'core>) {
     match &mut ty.kind {
       TyKind::Hole | TyKind::Generic(_) => {}
       TyKind::Paren(t) | TyKind::Ref(t) | TyKind::Inverse(t) => self.visit_type(t),
@@ -204,7 +204,7 @@ pub trait VisitMut<'a> {
     }
   }
 
-  fn _visit_stmt(&mut self, stmt: &'a mut Stmt) {
+  fn _visit_stmt(&mut self, stmt: &'a mut Stmt<'core>) {
     match &mut stmt.kind {
       StmtKind::Let(l) => {
         if let Some(ty) = &mut l.ty {
@@ -235,7 +235,7 @@ pub trait VisitMut<'a> {
     }
   }
 
-  fn _visit_item(&mut self, item: &'a mut Item) {
+  fn _visit_item(&mut self, item: &'a mut Item<'core>) {
     match &mut item.kind {
       ItemKind::Fn(f) => {
         for (param, ty) in &mut f.params {
@@ -281,7 +281,7 @@ pub trait VisitMut<'a> {
     }
   }
 
-  fn _visit_block(&mut self, block: &'a mut Block) {
+  fn _visit_block(&mut self, block: &'a mut Block<'core>) {
     self.enter_scope();
     for stmt in &mut block.stmts {
       self.visit_stmt(stmt);
@@ -289,7 +289,7 @@ pub trait VisitMut<'a> {
     self.exit_scope();
   }
 
-  fn _visit_generic_path(&mut self, path: &'a mut GenericPath) {
+  fn _visit_generic_path(&mut self, path: &'a mut GenericPath<'core>) {
     if let Some(args) = &mut path.generics {
       for t in args {
         self.visit_type(t)
@@ -297,65 +297,65 @@ pub trait VisitMut<'a> {
     }
   }
 
-  fn visit(&mut self, visitee: impl Visitee<'a>) {
+  fn visit(&mut self, visitee: impl Visitee<'core, 'a>) {
     visitee.visit(self);
   }
 }
 
-pub trait Visitee<'t>: Sized {
-  fn visit(self, visitor: &mut (impl VisitMut<'t> + ?Sized));
+pub trait Visitee<'core, 't>: Sized {
+  fn visit(self, visitor: &mut (impl VisitMut<'core, 't> + ?Sized));
 }
 
-impl<'t> Visitee<'t> for &'t mut Def {
-  fn visit(self, visitor: &mut (impl VisitMut<'t> + ?Sized)) {
+impl<'core: 't, 't> Visitee<'core, 't> for &'t mut Def<'core> {
+  fn visit(self, visitor: &mut (impl VisitMut<'core, 't> + ?Sized)) {
     visitor.visit_def(self)
   }
 }
 
-impl<'t> Visitee<'t> for &'t mut Expr {
-  fn visit(self, visitor: &mut (impl VisitMut<'t> + ?Sized)) {
+impl<'core: 't, 't> Visitee<'core, 't> for &'t mut Expr<'core> {
+  fn visit(self, visitor: &mut (impl VisitMut<'core, 't> + ?Sized)) {
     visitor.visit_expr(self)
   }
 }
 
-impl<'t> Visitee<'t> for &'t mut Pat {
-  fn visit(self, visitor: &mut (impl VisitMut<'t> + ?Sized)) {
+impl<'core: 't, 't> Visitee<'core, 't> for &'t mut Pat<'core> {
+  fn visit(self, visitor: &mut (impl VisitMut<'core, 't> + ?Sized)) {
     visitor.visit_pat(self)
   }
 }
 
-impl<'t> Visitee<'t> for &'t mut Ty {
-  fn visit(self, visitor: &mut (impl VisitMut<'t> + ?Sized)) {
+impl<'core: 't, 't> Visitee<'core, 't> for &'t mut Ty<'core> {
+  fn visit(self, visitor: &mut (impl VisitMut<'core, 't> + ?Sized)) {
     visitor.visit_type(self)
   }
 }
 
-impl<'t> Visitee<'t> for &'t mut Stmt {
-  fn visit(self, visitor: &mut (impl VisitMut<'t> + ?Sized)) {
+impl<'core: 't, 't> Visitee<'core, 't> for &'t mut Stmt<'core> {
+  fn visit(self, visitor: &mut (impl VisitMut<'core, 't> + ?Sized)) {
     visitor.visit_stmt(self)
   }
 }
 
-impl<'t> Visitee<'t> for &'t mut Item {
-  fn visit(self, visitor: &mut (impl VisitMut<'t> + ?Sized)) {
+impl<'core: 't, 't> Visitee<'core, 't> for &'t mut Item<'core> {
+  fn visit(self, visitor: &mut (impl VisitMut<'core, 't> + ?Sized)) {
     visitor.visit_item(self)
   }
 }
 
-impl<'t> Visitee<'t> for &'t mut Block {
-  fn visit(self, visitor: &mut (impl VisitMut<'t> + ?Sized)) {
+impl<'core: 't, 't> Visitee<'core, 't> for &'t mut Block<'core> {
+  fn visit(self, visitor: &mut (impl VisitMut<'core, 't> + ?Sized)) {
     visitor.visit_block(self)
   }
 }
 
-impl<'t> Visitee<'t> for &'t mut GenericPath {
-  fn visit(self, visitor: &mut (impl VisitMut<'t> + ?Sized)) {
+impl<'core: 't, 't> Visitee<'core, 't> for &'t mut GenericPath<'core> {
+  fn visit(self, visitor: &mut (impl VisitMut<'core, 't> + ?Sized)) {
     visitor.visit_generic_path(self)
   }
 }
 
-impl<'t, I: IntoIterator<Item = T>, T: Visitee<'t>> Visitee<'t> for I {
-  fn visit(self, visitor: &mut (impl VisitMut<'t> + ?Sized)) {
+impl<'core: 't, 't, I: IntoIterator<Item = T>, T: Visitee<'core, 't>> Visitee<'core, 't> for I {
+  fn visit(self, visitor: &mut (impl VisitMut<'core, 't> + ?Sized)) {
     for item in self {
       visitor.visit(item)
     }

@@ -28,16 +28,16 @@ use crate::{
   visit::VisitMut,
 };
 
-pub struct Repl<'ctx, 'ivm> {
+pub struct Repl<'core, 'ctx, 'ivm> {
   host: &'ivm mut Host<'ivm>,
   ivm: &'ctx mut IVM<'ivm>,
-  interner: &'ctx StringInterner<'static>,
-  loader: Loader<'ctx>,
-  resolver: Resolver,
+  interner: &'ctx StringInterner<'core>,
+  loader: Loader<'core, 'ctx>,
+  resolver: Resolver<'core>,
   repl_mod: DefId,
   line: usize,
-  vars: HashMap<Ident, Var<'ivm>>,
-  locals: BTreeMap<Local, Ident>,
+  vars: HashMap<Ident<'core>, Var<'ivm>>,
+  locals: BTreeMap<Local, Ident<'core>>,
   local_count: Counter<Local>,
   checker_state: CheckerState,
 }
@@ -47,11 +47,11 @@ struct Var<'ivm> {
   value: Port<'ivm>,
 }
 
-impl<'ctx, 'ivm> Repl<'ctx, 'ivm> {
+impl<'core, 'ctx, 'ivm> Repl<'core, 'ctx, 'ivm> {
   pub fn new(
     mut host: &'ivm mut Host<'ivm>,
     ivm: &'ctx mut IVM<'ivm>,
-    interner: &'ctx StringInterner<'static>,
+    interner: &'ctx StringInterner<'core>,
     libs: Vec<PathBuf>,
   ) -> Result<Self, String> {
     let mut loader = Loader::new(interner);
@@ -271,7 +271,7 @@ fn show(tree: &Tree) -> String {
   }
 }
 
-impl Display for Repl<'_, '_> {
+impl Display for Repl<'_, '_, '_> {
   fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
     for ident in self.locals.values() {
       let var = &self.vars[ident];

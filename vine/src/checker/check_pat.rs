@@ -4,11 +4,11 @@ use crate::{
   diag::{report, Diag},
 };
 
-impl Checker<'_> {
+impl<'core> Checker<'core, '_> {
   pub(super) fn check_pat_annotation(
     &mut self,
-    pat: &mut Pat,
-    annotation: Option<&mut Ty>,
+    pat: &mut Pat<'core>,
+    annotation: Option<&mut Ty<'core>>,
     form: Form,
     refutable: bool,
   ) -> Type {
@@ -24,7 +24,7 @@ impl Checker<'_> {
 
   pub(super) fn check_pat_type(
     &mut self,
-    pat: &mut Pat,
+    pat: &mut Pat<'core>,
     form: Form,
     refutable: bool,
     ty: &mut Type,
@@ -39,7 +39,7 @@ impl Checker<'_> {
     }
   }
 
-  pub(super) fn check_pat(&mut self, pat: &mut Pat, form: Form, refutable: bool) -> Type {
+  pub(super) fn check_pat(&mut self, pat: &mut Pat<'core>, form: Form, refutable: bool) -> Type {
     let span = pat.span;
     match (&mut pat.kind, form) {
       (_, Form::Error(_)) => unreachable!(),
@@ -93,11 +93,11 @@ impl Checker<'_> {
   fn check_adt_pat(
     &mut self,
     span: Span,
-    path: &mut GenericPath,
-    fields: &mut Option<Vec<Pat>>,
+    path: &mut GenericPath<'core>,
+    fields: &mut Option<Vec<Pat<'core>>>,
     form: Form,
     refutable: bool,
-  ) -> Result<Type, Diag> {
+  ) -> Result<Type, Diag<'core>> {
     let (adt, field_tys) = self.typeof_variant_def(path, refutable)?;
     let fields = fields.get_or_insert(Vec::new());
     if fields.len() != field_tys.len() {

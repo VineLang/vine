@@ -9,7 +9,7 @@ use crate::{
   resolver::{AdtDef, Def},
 };
 
-impl Emitter<'_> {
+impl<'core> Emitter<'core, '_> {
   pub(super) fn new_comb(&mut self, label: impl Into<String>, a: Port, b: Port) -> Port {
     let out = self.net.new_wire();
     self.cur.agents.push(Agent::Comb(label.into(), out.0, a, b));
@@ -145,7 +145,7 @@ impl Emitter<'_> {
     r.1
   }
 
-  pub(in crate::emitter) fn emit_adt_constructor(&mut self, def: &Def) -> Net {
+  pub(in crate::emitter) fn emit_adt_constructor(&mut self, def: &Def<'core>) -> Net {
     let variant_def = def.variant_def.as_ref().unwrap();
     let adt_def = self.defs[variant_def.adt].adt_def.as_ref().unwrap();
     let root = self.net.new_wire();
@@ -198,6 +198,6 @@ impl Emitter<'_> {
   }
 }
 
-fn id(_: &mut Emitter<'_>, port: Port) -> Port {
+fn id(_: &mut Emitter<'_, '_>, port: Port) -> Port {
   port
 }

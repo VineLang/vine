@@ -9,13 +9,15 @@ use crate::{
 
 use super::{Def, Emitter, Expr, Pat, PatKind, Step};
 
-impl Emitter<'_> {
+impl<'core> Emitter<'core, '_> {
   pub(super) fn emit_match<'p, A>(
     &mut self,
-    value: &Expr,
-    arms: impl IntoIterator<Item = (&'p Pat, A)> + Clone,
+    value: &Expr<'core>,
+    arms: impl IntoIterator<Item = (&'p Pat<'core>, A)> + Clone,
     mut f: impl FnMut(&mut Self, A) -> bool,
-  ) {
+  ) where
+    'core: 'p,
+  {
     let value = self.emit_expr_value(value);
     let initial = self.new_match_var(false);
     self.set_local_to(initial.local, value);
@@ -191,15 +193,15 @@ struct Case {
 }
 
 #[derive(Debug, Clone)]
-struct Row<'t> {
-  cells: Vec<Cell<'t>>,
+struct Row<'core: 't, 't> {
+  cells: Vec<Cell<'core, 't>>,
   body: Body,
 }
 
 #[derive(Debug, Clone)]
-struct Cell<'t> {
+struct Cell<'core: 't, 't> {
   var: MatchVar,
-  pattern: &'t Pat,
+  pattern: &'t Pat<'core>,
 }
 
 #[derive(Debug, Clone)]
@@ -216,7 +218,7 @@ enum PatternType {
   Move,
 }
 
-impl Emitter<'_> {
+impl<'core> Emitter<'core, '_> {
   fn build_decision_tree(&mut self, mut rows: Vec<Row>, arm_counts: &mut [usize]) -> DecisionTree {
     if rows.is_empty() {
       return DecisionTree::Missing;
@@ -362,11 +364,11 @@ impl Emitter<'_> {
   }
 }
 
-fn unwrap_pattern_one(
-  rows: &mut Vec<Row<'_>>,
+fn unwrap_pattern_one<'core>(
+  rows: &mut Vec<Row<'core, '_>>,
   var: MatchVar,
   new_var: MatchVar,
-  f: impl Fn(&Pat) -> &Pat,
+  f: impl for<'a> Fn(&'a Pat<'core>) -> &'a Pat<'core>,
 ) {
   for row in rows {
     if let Some(cell) = row.get_column_mut(var) {
@@ -376,7 +378,7 @@ fn unwrap_pattern_one(
   }
 }
 
-impl<'t> Row<'t> {
+impl<'core, 't> Row<'core, 't> {
   fn eliminate_wildcard_cells(&mut self) {
     self.cells.retain(|cell| match cell.pattern.kind {
       PatKind::Local(l) => {
@@ -388,12 +390,12 @@ impl<'t> Row<'t> {
     });
   }
 
-  fn remove_column(&mut self, var: MatchVar) -> Option<&'t Pat> {
+  fn remove_column(&mut self, var: MatchVar) -> Option<&'t Pat<'core>> {
     let i = self.get_column_idx(var)?;
     Some(self.cells.remove(i).pattern)
   }
 
-  fn get_column_mut(&mut self, var: MatchVar) -> Option<&mut Cell<'t>> {
+  fn get_column_mut(&mut self, var: MatchVar) -> Option<&mut Cell<'core, 't>> {
     let i = self.get_column_idx(var)?;
     Some(&mut self.cells[i])
   }
@@ -403,7 +405,7 @@ impl<'t> Row<'t> {
   }
 }
 
-impl Cell<'_> {
+impl Cell<'_, '_> {
   fn pat_type(&self, defs: &IdxVec<DefId, Def>) -> PatternType {
     match &self.pattern.kind {
       PatKind::Adt(p, _) => {

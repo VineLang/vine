@@ -2,7 +2,7 @@ use std::fmt::Write;
 
 use crate::checker::{Checker, Type};
 
-impl Checker<'_> {
+impl<'core> Checker<'core, '_> {
   pub(super) fn display_type(&self, ty: &Type) -> String {
     let mut str = String::new();
     self._display_type(ty, &mut str);

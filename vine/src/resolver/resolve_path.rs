@@ -7,14 +7,14 @@ use crate::{
 
 use super::{DefId, MemberKind, Resolver};
 
-impl Resolver {
+impl<'core> Resolver<'core> {
   pub fn resolve_path(
     &mut self,
     span: Span,
     from: DefId,
     base: DefId,
-    path: &Path,
-  ) -> Result<DefId, Diag> {
+    path: &Path<'core>,
+  ) -> Result<DefId, Diag<'core>> {
     let base = if path.absolute { DefId::ROOT } else { base };
     let mut cur = base;
     for &segment in &path.segments {
@@ -37,7 +37,7 @@ impl Resolver {
   fn resolve_one(
     &mut self,
     base: DefId,
-    segment: Ident,
+    segment: Ident<'core>,
     check_parents: bool,
   ) -> Option<(DefId, DefId, DefId)> {
     let def = &mut self.defs[base];

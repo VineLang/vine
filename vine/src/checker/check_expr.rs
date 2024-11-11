@@ -9,8 +9,8 @@ use super::report;
 mod check_method;
 mod coerce_expr;
 
-impl Checker<'_> {
-  pub(super) fn check_expr_form_type(&mut self, expr: &mut Expr, form: Form, ty: &mut Type) {
+impl<'core> Checker<'core, '_> {
+  pub(super) fn check_expr_form_type(&mut self, expr: &mut Expr<'core>, form: Form, ty: &mut Type) {
     let mut found = self.check_expr_form(expr, form);
     if !self.unify(&mut found, ty) {
       self.diags.add(Diag::ExpectedTypeFound {
@@ -21,13 +21,13 @@ impl Checker<'_> {
     }
   }
 
-  pub(super) fn check_expr_form(&mut self, expr: &mut Expr, form: Form) -> Type {
+  pub(super) fn check_expr_form(&mut self, expr: &mut Expr<'core>, form: Form) -> Type {
     let (found, ty) = self.check_expr(expr);
     self.coerce_expr(expr, found, form);
     ty
   }
 
-  pub(super) fn check_expr(&mut self, expr: &mut Expr) -> (Form, Type) {
+  pub(super) fn check_expr(&mut self, expr: &mut Expr<'core>) -> (Form, Type) {
     let span = expr.span;
     match &mut expr.kind {
       ExprKind![synthetic] => unreachable!(),
@@ -71,7 +71,7 @@ impl Checker<'_> {
     }
   }
 
-  fn _check_expr_value(&mut self, expr: &mut Expr) -> Type {
+  fn _check_expr_value(&mut self, expr: &mut Expr<'core>) -> Type {
     let span = expr.span;
     match &mut expr.kind {
       ExprKind![error || place || space || synthetic] => unreachable!(),
@@ -252,7 +252,12 @@ impl Checker<'_> {
     }
   }
 
-  fn check_call(&mut self, func: &mut Box<Expr>, args: &mut Vec<Expr>, span: Span) -> Type {
+  fn check_call(
+    &mut self,
+    func: &mut Box<Expr<'core>>,
+    args: &mut Vec<Expr<'core>>,
+    span: Span,
+  ) -> Type {
     let ty = self.check_expr_form(func, Form::Value);
     match self.fn_sig(span, ty, args.len()) {
       Ok((params, ret)) => {
@@ -270,7 +275,12 @@ impl Checker<'_> {
     }
   }
 
-  fn fn_sig(&mut self, span: Span, mut ty: Type, args: usize) -> Result<(Vec<Type>, Type), Diag> {
+  fn fn_sig(
+    &mut self,
+    span: Span,
+    mut ty: Type,
+    args: usize,
+  ) -> Result<(Vec<Type>, Type), Diag<'core>> {
     self.concretize(&mut ty);
     match ty {
       Type::Fn(params, ret) => {

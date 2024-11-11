@@ -3,14 +3,18 @@ use crate::{
   emitter::{Agent, Emitter, Port, Step},
 };
 
-impl Emitter<'_> {
-  pub(super) fn emit_fn(&mut self, params: &[(Pat, Option<Ty>)], body: &Expr) -> Port {
+impl<'core> Emitter<'core, '_> {
+  pub(super) fn emit_fn(
+    &mut self,
+    params: &[(Pat<'core>, Option<Ty<'core>>)],
+    body: &Expr<'core>,
+  ) -> Port {
     self._emit_fn(params, |self_| self_.emit_expr_value(body))
   }
 
   pub(super) fn _emit_fn(
     &mut self,
-    params: &[(Pat, Option<Ty>)],
+    params: &[(Pat<'core>, Option<Ty<'core>>)],
     body: impl FnOnce(&mut Self) -> Port,
   ) -> Port {
     let func = self.net.new_wire();
@@ -30,7 +34,7 @@ impl Emitter<'_> {
     func.1
   }
 
-  pub(super) fn emit_return(&mut self, r: Option<&Expr>) -> Port {
+  pub(super) fn emit_return(&mut self, r: Option<&Expr<'core>>) -> Port {
     let ret = self.return_target.unwrap();
     if let Some(r) = r {
       let r = self.emit_expr_value(r);
@@ -41,7 +45,12 @@ impl Emitter<'_> {
     Port::Erase
   }
 
-  pub(super) fn emit_if(&mut self, cond: &Expr, then: &Block, els: &Expr) -> Port {
+  pub(super) fn emit_if(
+    &mut self,
+    cond: &Expr<'core>,
+    then: &Block<'core>,
+    els: &Expr<'core>,
+  ) -> Port {
     let val = self.new_local();
 
     self.new_fork(|self_| {
@@ -63,7 +72,7 @@ impl Emitter<'_> {
     self.get_local(val)
   }
 
-  pub(super) fn emit_loop(&mut self, body: &Block) -> Port {
+  pub(super) fn emit_loop(&mut self, body: &Block<'core>) -> Port {
     let local = self.new_local();
 
     self.new_fork(|self_| {
@@ -82,7 +91,7 @@ impl Emitter<'_> {
     self.get_local(local)
   }
 
-  pub(super) fn emit_while(&mut self, cond: &Expr, body: &Block) -> Port {
+  pub(super) fn emit_while(&mut self, cond: &Expr<'core>, body: &Block<'core>) -> Port {
     let local = self.new_local();
 
     self.new_fork(|self_| {
@@ -109,7 +118,7 @@ impl Emitter<'_> {
     self.get_local(local)
   }
 
-  pub(super) fn emit_break(&mut self, r: Option<&Expr>) -> Port {
+  pub(super) fn emit_break(&mut self, r: Option<&Expr<'core>>) -> Port {
     let (local, fork, _stage) = self.loop_target.unwrap();
     if let Some(r) = r {
       let r = self.emit_expr_value(r);
@@ -128,7 +137,7 @@ impl Emitter<'_> {
 
   pub(super) fn emit_cond(
     &mut self,
-    expr: &Expr,
+    expr: &Expr<'core>,
     yay: &dyn Fn(&mut Self) -> bool,
     nay: &dyn Fn(&mut Self) -> bool,
   ) {

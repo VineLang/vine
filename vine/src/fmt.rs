@@ -12,7 +12,7 @@ use crate::{
   parser::VineParser,
 };
 
-pub fn fmt(interner: &StringInterner<'static>, src: &str) -> Result<String, Diag> {
+pub fn fmt<'core>(interner: &StringInterner<'core>, src: &str) -> Result<String, Diag<'core>> {
   let ast = VineParser::parse(interner, src, 0)?;
   let fmt = Formatter { src };
   let doc = Doc::concat([
@@ -31,8 +31,8 @@ struct Formatter<'src> {
   src: &'src str,
 }
 
-impl<'src> Formatter<'src> {
-  fn fmt_item(&self, item: &Item) -> Doc<'src> {
+impl<'core: 'src, 'src> Formatter<'src> {
+  fn fmt_item(&self, item: &Item<'core>) -> Doc<'src> {
     Doc::concat(item.attrs.iter().flat_map(|x| [self.fmt_verbatim(x.span), Doc::LINE]).chain([
       match &item.vis {
         Vis::Private => Doc::EMPTY,
@@ -175,7 +175,7 @@ impl<'src> Formatter<'src> {
     }
   }
 
-  fn fmt_block(&self, block: &Block, force_open: bool) -> Doc<'src> {
+  fn fmt_block(&self, block: &Block<'core>, force_open: bool) -> Doc<'src> {
     if block.stmts.is_empty() {
       return Doc("{}");
     }
@@ -199,7 +199,7 @@ impl<'src> Formatter<'src> {
     ])
   }
 
-  fn fmt_stmt(&self, stmt: &Stmt) -> Doc<'src> {
+  fn fmt_stmt(&self, stmt: &Stmt<'core>) -> Doc<'src> {
     match &stmt.kind {
       StmtKind::Let(l) => Doc::concat([
         Doc("let "),
@@ -229,7 +229,7 @@ impl<'src> Formatter<'src> {
     }
   }
 
-  fn fmt_use_tree(&self, use_tree: &UseTree) -> Doc<'src> {
+  fn fmt_use_tree(&self, use_tree: &UseTree<'core>) -> Doc<'src> {
     if let Some(children) = &use_tree.children {
       Doc::concat([
         self.fmt_path(&use_tree.path),
@@ -241,7 +241,7 @@ impl<'src> Formatter<'src> {
     }
   }
 
-  fn fmt_generics(&self, generics: &[Ident]) -> Doc<'src> {
+  fn fmt_generics(&self, generics: &[Ident<'core>]) -> Doc<'src> {
     if generics.is_empty() {
       Doc::EMPTY
     } else {
@@ -249,7 +249,7 @@ impl<'src> Formatter<'src> {
     }
   }
 
-  fn fmt_expr(&self, expr: &Expr) -> Doc<'src> {
+  fn fmt_expr(&self, expr: &Expr<'core>) -> Doc<'src> {
     match &expr.kind {
       ExprKind![synthetic || error] | ExprKind::Local(_) | ExprKind::DynFn(_) => unreachable!(),
       ExprKind::Paren(p) => Doc::paren(self.fmt_expr(p)),
@@ -349,7 +349,7 @@ impl<'src> Formatter<'src> {
     }
   }
 
-  fn fmt_pat(&self, pat: &Pat) -> Doc<'src> {
+  fn fmt_pat(&self, pat: &Pat<'core>) -> Doc<'src> {
     match &pat.kind {
       PatKind::Local(_) | PatKind::Error(_) => unreachable!(),
       PatKind::Hole => Doc("_"),
@@ -366,7 +366,7 @@ impl<'src> Formatter<'src> {
     }
   }
 
-  fn fmt_ty(&self, ty: &Ty) -> Doc<'src> {
+  fn fmt_ty(&self, ty: &Ty<'core>) -> Doc<'src> {
     match &ty.kind {
       TyKind::Hole => Doc("_"),
       TyKind::Paren(p) => Doc::paren(self.fmt_ty(p)),
@@ -383,7 +383,7 @@ impl<'src> Formatter<'src> {
     }
   }
 
-  fn fmt_generic_path(&self, path: &GenericPath) -> Doc<'src> {
+  fn fmt_generic_path(&self, path: &GenericPath<'core>) -> Doc<'src> {
     if let Some(gens) = &path.generics {
       Doc::concat([
         self.fmt_path(&path.path),
@@ -394,7 +394,7 @@ impl<'src> Formatter<'src> {
     }
   }
 
-  fn fmt_path(&self, path: &Path) -> Doc<'src> {
+  fn fmt_path(&self, path: &Path<'core>) -> Doc<'src> {
     let mut docs = Vec::<Doc>::new();
     if path.absolute {
       docs.push(Doc("::"));
@@ -410,14 +410,14 @@ impl<'src> Formatter<'src> {
     Doc::concat_vec(docs)
   }
 
-  fn fmt_params(&self, params: &[(Pat, Option<Ty>)]) -> Doc<'src> {
+  fn fmt_params(&self, params: &[(Pat<'core>, Option<Ty<'core>>)]) -> Doc<'src> {
     Doc::paren_comma(params.iter().map(|(p, t)| match t {
       Some(t) => Doc::concat([self.fmt_pat(p), Doc(": "), self.fmt_ty(t)]),
       None => self.fmt_pat(p),
     }))
   }
 
-  fn fmt_return_ty(&self, r: Option<&Ty>) -> Doc<'src> {
+  fn fmt_return_ty(&self, r: Option<&Ty<'core>>) -> Doc<'src> {
     match r {
       Some(t) => Doc::concat([Doc(" -> "), self.fmt_ty(t)]),
       None => Doc::EMPTY,

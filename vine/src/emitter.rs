@@ -40,10 +40,10 @@ pub fn emit(resolver: &Resolver, items: &[String]) -> Nets {
 }
 
 #[derive(Debug)]
-pub struct Emitter<'d> {
+pub struct Emitter<'core, 'd> {
   pub nets: Nets,
 
-  defs: &'d IdxVec<DefId, Def>,
+  defs: &'d IdxVec<DefId, Def<'core>>,
 
   name: String,
   interfaces: IdxVec<InterfaceId, Interface>,
@@ -66,8 +66,8 @@ pub struct Emitter<'d> {
   concat: Option<String>,
 }
 
-impl<'d> Emitter<'d> {
-  pub fn new(resolver: &'d Resolver) -> Self {
+impl<'core, 'd> Emitter<'core, 'd> {
+  pub fn new(resolver: &'d Resolver<'core>) -> Self {
     let concat =
       resolver.builtins.get(&Builtin::Concat).map(|&d| resolver.defs[d].canonical.to_string());
     let defs = &resolver.defs;
@@ -96,7 +96,7 @@ impl<'d> Emitter<'d> {
     }
   }
 
-  pub fn emit_def(&mut self, def: &Def) {
+  pub fn emit_def(&mut self, def: &Def<'core>) {
     self.net = Default::default();
     let Some(value_def) = &def.value_def else { return };
     match &value_def.kind {
@@ -117,7 +117,7 @@ impl<'d> Emitter<'d> {
     &mut self,
     local_count: &mut Counter<Local>,
     name: String,
-    expr: &Expr,
+    expr: &Expr<'core>,
     locals: impl IntoIterator<Item = Local>,
   ) {
     let init_stage = self.build_stages(*local_count, name, expr);

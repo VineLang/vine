@@ -12,12 +12,12 @@ mod net_utils;
 mod pattern_matching;
 mod stage_utils;
 
-impl Emitter<'_> {
+impl<'core> Emitter<'core, '_> {
   pub(super) fn build_stages(
     &mut self,
     locals: Counter<Local>,
     name: String,
-    expr: &Expr,
+    expr: &Expr<'core>,
   ) -> StageId {
     self.locals = locals;
     self.name = name;
@@ -53,7 +53,7 @@ impl Emitter<'_> {
     init
   }
 
-  fn emit_expr_value(&mut self, expr: &Expr) -> Port {
+  fn emit_expr_value(&mut self, expr: &Expr<'core>) -> Port {
     match &expr.kind {
       ExprKind![sugar || error || !value] => unreachable!("{expr:?}"),
 
@@ -190,7 +190,7 @@ impl Emitter<'_> {
     }
   }
 
-  fn emit_expr_place(&mut self, expr: &Expr) -> (Port, Port) {
+  fn emit_expr_place(&mut self, expr: &Expr<'core>) -> (Port, Port) {
     match &expr.kind {
       ExprKind![sugar || error || !place] => unreachable!(),
       ExprKind::Paren(e) => self.emit_expr_place(e),
@@ -212,7 +212,7 @@ impl Emitter<'_> {
     }
   }
 
-  fn emit_expr_space(&mut self, expr: &Expr) -> Port {
+  fn emit_expr_space(&mut self, expr: &Expr<'core>) -> Port {
     match &expr.kind {
       ExprKind![sugar || error || !space] => unreachable!(),
       ExprKind::Paren(e) => self.emit_expr_space(e),
@@ -228,7 +228,7 @@ impl Emitter<'_> {
     }
   }
 
-  fn emit_pat_value(&mut self, t: &Pat) -> Port {
+  fn emit_pat_value(&mut self, t: &Pat<'core>) -> Port {
     match &t.kind {
       PatKind![!value] => unreachable!(),
 
@@ -247,7 +247,7 @@ impl Emitter<'_> {
     }
   }
 
-  fn emit_pat_place(&mut self, t: &Pat) -> (Port, Port) {
+  fn emit_pat_place(&mut self, t: &Pat<'core>) -> (Port, Port) {
     match &t.kind {
       PatKind![!place] => unreachable!(),
 
@@ -282,7 +282,7 @@ impl Emitter<'_> {
     }
   }
 
-  fn emit_pat_space(&mut self, t: &Pat) -> Port {
+  fn emit_pat_space(&mut self, t: &Pat<'core>) -> Port {
     match &t.kind {
       PatKind![!space] => unreachable!(),
 
@@ -299,7 +299,7 @@ impl Emitter<'_> {
     }
   }
 
-  fn emit_block(&mut self, b: &Block) -> Port {
+  fn emit_block(&mut self, b: &Block<'core>) -> Port {
     let mut last = Port::Erase;
     for s in &b.stmts {
       self.erase(last);
@@ -308,12 +308,12 @@ impl Emitter<'_> {
     last
   }
 
-  fn emit_block_erase(&mut self, block: &Block) {
+  fn emit_block_erase(&mut self, block: &Block<'core>) {
     let out = self.emit_block(block);
     self.erase(out);
   }
 
-  fn emit_stmt(&mut self, s: &Stmt) -> Port {
+  fn emit_stmt(&mut self, s: &Stmt<'core>) -> Port {
     match &s.kind {
       StmtKind::Let(l) => {
         let i = l.init.as_ref().map(|x| self.emit_expr_value(x)).unwrap_or(Port::Erase);

@@ -3,7 +3,7 @@ use crate::{
   diag::Diag,
 };
 
-impl Checker<'_> {
+impl<'core> Checker<'core, '_> {
   #[must_use]
   pub(super) fn unify(&mut self, a: &mut Type, b: &mut Type) -> bool {
     self._unify(a, b, false, false)

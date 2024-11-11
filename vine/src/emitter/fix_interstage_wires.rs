@@ -6,7 +6,7 @@ use crate::emitter::StageId;
 
 use super::{Emitter, Port, Step};
 
-impl Emitter<'_> {
+impl<'core> Emitter<'core, '_> {
   pub(super) fn fix_interstage_wires(&mut self) {
     let mut wires = HashMap::<usize, StageId>::new();
     for i in self.stages.range().iter() {

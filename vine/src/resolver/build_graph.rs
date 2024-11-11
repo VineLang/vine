@@ -15,8 +15,8 @@ use super::{
   VariantDef,
 };
 
-impl Resolver {
-  pub fn build_graph(&mut self, root: ModKind) {
+impl<'core> Resolver<'core> {
+  pub fn build_graph(&mut self, root: ModKind<'core>) {
     let _root_def = self.new_def(Path::ROOT, None, DefId::ROOT);
     debug_assert_eq!(_root_def, DefId::ROOT);
     self.build_mod(DefId::ROOT, root, DefId::ROOT);
@@ -26,14 +26,14 @@ impl Resolver {
     }
   }
 
-  pub(crate) fn build_mod(&mut self, vis: DefId, module: ModKind, def: DefId) {
+  pub(crate) fn build_mod(&mut self, vis: DefId, module: ModKind<'core>, def: DefId) {
     let ModKind::Loaded(_, items) = module else { unreachable!("module not yet loaded") };
     for item in items {
       self.build_item(vis, item, def);
     }
   }
 
-  fn build_item(&mut self, member_vis: DefId, item: Item, parent: DefId) {
+  fn build_item(&mut self, member_vis: DefId, item: Item<'core>, parent: DefId) {
     let span = item.span;
     let vis = self.resolve_vis(parent, item.vis);
     let member_vis = vis.max(member_vis);
@@ -225,8 +225,8 @@ impl Resolver {
     &mut self,
     span: Span,
     parent: DefId,
-    name: Ident,
-    mut value: ValueDef,
+    name: Ident<'core>,
+    mut value: ValueDef<'core>,
     vis: DefId,
   ) -> Option<DefId> {
     let child = self.get_or_insert_child(parent, name, vis);
@@ -244,11 +244,16 @@ impl Resolver {
     Some(child.id)
   }
 
-  pub(crate) fn extract_subitems<'t>(&mut self, def: DefId, visitee: impl Visitee<'t>) {
+  pub(crate) fn extract_subitems<'t>(&mut self, def: DefId, visitee: impl Visitee<'core, 't>) {
     SubitemVisitor { resolver: self, def }.visit(visitee);
   }
 
-  pub(crate) fn get_or_insert_child(&mut self, parent: DefId, name: Ident, vis: DefId) -> &mut Def {
+  pub(crate) fn get_or_insert_child(
+    &mut self,
+    parent: DefId,
+    name: Ident<'core>,
+    vis: DefId,
+  ) -> &mut Def<'core> {
     let next_child = self.defs.next_index();
     let parent_def = &mut self.defs[parent];
     let mut new = false;
@@ -273,10 +278,10 @@ impl Resolver {
 
   fn build_imports(
     use_id: UseId,
-    diags: &mut DiagGroup,
-    tree: UseTree,
-    def: &mut Def,
-    path: &mut Path,
+    diags: &mut DiagGroup<'core>,
+    tree: UseTree<'core>,
+    def: &mut Def<'core>,
+    path: &mut Path<'core>,
     vis: DefId,
   ) {
     let initial_len = path.segments.len();
@@ -297,7 +302,7 @@ impl Resolver {
     path.segments.truncate(initial_len);
   }
 
-  fn new_def(&mut self, mut canonical: Path, parent: Option<DefId>, vis: DefId) -> DefId {
+  fn new_def(&mut self, mut canonical: Path<'core>, parent: Option<DefId>, vis: DefId) -> DefId {
     let id = self.defs.next_index();
     canonical.resolved = Some(id);
     let mut def = Def {
@@ -334,13 +339,13 @@ impl Resolver {
   }
 }
 
-struct SubitemVisitor<'a> {
-  resolver: &'a mut Resolver,
+struct SubitemVisitor<'core, 'a> {
+  resolver: &'a mut Resolver<'core>,
   def: DefId,
 }
 
-impl VisitMut<'_> for SubitemVisitor<'_> {
-  fn visit_item(&mut self, item: &mut Item) {
+impl<'core> VisitMut<'core, '_> for SubitemVisitor<'core, '_> {
+  fn visit_item(&mut self, item: &mut Item<'core>) {
     if !matches!(item.vis, Vis::Private) {
       self.resolver.diags.add(Diag::VisibleSubitem { span: item.span });
     }

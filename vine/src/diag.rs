@@ -19,14 +19,14 @@ macro_rules! diags {
       [$($fmt:tt)*]
   )*) => {
     #[derive(Debug)]
-    pub enum Diag {
+    pub enum Diag<'core> {
       $( $name { span: Span, $($($field: $ty),*)? },)*
-      Group(Vec<Diag>),
+      Group(Vec<Diag<'core>>),
       Guaranteed(ErrorGuaranteed),
     }
 
-    impl Diag {
-      fn span(&self) -> Result<Span, &[Diag]> {
+    impl<'core> Diag<'core> {
+      fn span(&self) -> Result<Span, &[Diag<'core>]> {
         match self {
           $( Self::$name { span, .. } => Ok(*span), )*
           Diag::Group(diags) => Err(diags),
@@ -35,7 +35,7 @@ macro_rules! diags {
       }
     }
 
-    impl Display for Diag {
+    impl<'core> Display for Diag<'core> {
       fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
           $( Self::$name { span: _, $($($field),*)? } => write!(f, $($fmt)*),)*
@@ -66,11 +66,11 @@ diags! {
     ["unknown attribute"]
   BadBuiltin
     ["bad builtin"]
-  CannotResolve { name: Ident, module: Path }
+  CannotResolve { name: Ident<'core>, module: Path<'core> }
     ["cannot find `{name}` in `{module}`"]
   BadPatternPath
     ["invalid pattern; this path is not a struct or enum variant"]
-  DuplicateItem { name: Ident }
+  DuplicateItem { name: Ident<'core> }
     ["duplicate definition of `{name}`"]
   ExpectedSpaceFoundValueExpr
     ["expected a space expression; found a value expression"]
@@ -102,15 +102,15 @@ diags! {
     ["invalid method; function type `{ty}` takes no parameters"]
   ExpectedTypeFound { expected: String, found: String }
     ["expected type `{expected}`; found `{found}`"]
-  PathNoValue { path: Path }
+  PathNoValue { path: Path<'core> }
     ["no value associated with `{path}`"]
-  PathNoType { path: Path }
+  PathNoType { path: Path<'core> }
     ["no type associated with `{path}`"]
-  PathNoPat { path: Path }
+  PathNoPat { path: Path<'core> }
     ["no pattern associated with `{path}`"]
-  BadGenericCount { path: Path, expected: usize, got: usize }
+  BadGenericCount { path: Path<'core>, expected: usize, got: usize }
     ["`{path}` expects {expected} generic{}; was passed {got}", plural(*expected, "s", "")]
-  BadFieldCount { path: Path, expected: usize, got: usize }
+  BadFieldCount { path: Path<'core>, expected: usize, got: usize }
     ["`{path}` has {expected} field{}; {got} {} matched", plural(*expected, "s", ""), plural(*got, "were", "was")]
   FnItemUntypedParam
     ["fn item parameters must be explicitly typed"]
@@ -132,17 +132,17 @@ diags! {
     ["expected a value of type `{ty}` to break with"]
   NoMethods { ty: String }
     ["type `{ty}` has no methods"]
-  BadMethodReceiver { base_path: Path, sub_path: Path }
+  BadMethodReceiver { base_path: Path<'core>, sub_path: Path<'core> }
     ["`{base_path}::{sub_path}` cannot be used as a method; it does not take `{base_path}` as its first parameter"]
-  Invisible { path: Path, vis: Path }
+  Invisible { path: Path<'core>, vis: Path<'core> }
     ["`{path}` is only visible within `{vis}`"]
   BadVis
     ["invalid visibility; expected the name of an ancestor module"]
-  ValueInvisible { path: Path, vis: Path }
+  ValueInvisible { path: Path<'core>, vis: Path<'core> }
     ["the value `{path}` is only visible within `{vis}`"]
-  TypeInvisible { path: Path, vis: Path }
+  TypeInvisible { path: Path<'core>, vis: Path<'core> }
     ["the type `{path}` is only visible within `{vis}`"]
-  PatInvisible { path: Path, vis: Path }
+  PatInvisible { path: Path<'core>, vis: Path<'core> }
     ["the pattern `{path}` is only visible within `{vis}`"]
   VisibleSubitem
     ["subitems must be private"]
@@ -157,17 +157,17 @@ fn plural<'a>(n: usize, plural: &'a str, singular: &'a str) -> &'a str {
 }
 
 #[derive(Default, Debug)]
-pub struct DiagGroup {
-  diags: Vec<Diag>,
+pub struct DiagGroup<'core> {
+  diags: Vec<Diag<'core>>,
 }
 
-impl DiagGroup {
-  pub(crate) fn add(&mut self, diag: Diag) -> ErrorGuaranteed {
+impl<'core> DiagGroup<'core> {
+  pub(crate) fn add(&mut self, diag: Diag<'core>) -> ErrorGuaranteed {
     self.diags.push(diag);
     ErrorGuaranteed(())
   }
 
-  pub fn add_all(&mut self, diags: &mut DiagGroup) {
+  pub fn add_all(&mut self, diags: &mut DiagGroup<'core>) {
     self.diags.append(&mut diags.diags);
   }
 
@@ -205,7 +205,7 @@ impl DiagGroup {
   }
 }
 
-impl Diag {
+impl Diag<'_> {
   pub fn report(&self, files: &[FileInfo]) -> String {
     let mut str = String::new();
     DiagGroup::_report(slice::from_ref(self), files, &mut str);
@@ -223,7 +223,7 @@ impl ErrorGuaranteed {
   }
 }
 
-impl From<ErrorGuaranteed> for Diag {
+impl From<ErrorGuaranteed> for Diag<'_> {
   fn from(value: ErrorGuaranteed) -> Self {
     Diag::Guaranteed(value)
   }
@@ -261,7 +261,7 @@ impl Display for Pos<'_> {
   }
 }
 
-impl<T> From<ErrorGuaranteed> for Result<T, Diag> {
+impl<T> From<ErrorGuaranteed> for Result<T, Diag<'_>> {
   fn from(value: ErrorGuaranteed) -> Self {
     Err(value.into())
   }

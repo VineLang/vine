@@ -22,11 +22,11 @@ mod typeof_def;
 mod unify;
 
 #[derive(Debug)]
-pub struct Checker<'r> {
-  pub diags: DiagGroup,
-  resolver: &'r mut Resolver,
+pub struct Checker<'core, 'r> {
+  pub diags: DiagGroup<'core>,
+  resolver: &'r mut Resolver<'core>,
   state: CheckerState,
-  generics: Vec<Ident>,
+  generics: Vec<Ident<'core>>,
   return_ty: Option<Type>,
   loop_ty: Option<Type>,
   cur_def: DefId,
@@ -46,8 +46,8 @@ pub(crate) struct CheckerState {
   pub(crate) dyn_fns: IntMap<DynFnId, Type>,
 }
 
-impl<'r> Checker<'r> {
-  pub fn new(resolver: &'r mut Resolver) -> Self {
+impl<'core, 'r> Checker<'core, 'r> {
+  pub fn new(resolver: &'r mut Resolver<'core>) -> Self {
     let diags = DiagGroup::default();
     let u32 = resolver.builtins.get(&Builtin::U32).copied();
     let f32 = resolver.builtins.get(&Builtin::F32).copied();
@@ -110,7 +110,11 @@ impl<'r> Checker<'r> {
     self.state.locals.clear();
   }
 
-  pub(crate) fn _check_custom(&mut self, state: CheckerState, block: &mut Block) -> CheckerState {
+  pub(crate) fn _check_custom(
+    &mut self,
+    state: CheckerState,
+    block: &mut Block<'core>,
+  ) -> CheckerState {
     self.state = state;
     self.check_block(block);
     take(&mut self.state)
@@ -120,7 +124,7 @@ impl<'r> Checker<'r> {
     Type::Var(self.state.vars.push(Err(span)))
   }
 
-  fn check_block(&mut self, block: &mut Block) -> Type {
+  fn check_block(&mut self, block: &mut Block<'core>) -> Type {
     let mut ty = Type::UNIT;
     for stmt in block.stmts.iter_mut() {
       match &mut stmt.kind {
@@ -157,7 +161,7 @@ impl<'r> Checker<'r> {
     ty
   }
 
-  fn check_block_type(&mut self, block: &mut Block, ty: &mut Type) {
+  fn check_block_type(&mut self, block: &mut Block<'core>, ty: &mut Type) {
     let mut found = self.check_block(block);
     if !self.unify(&mut found, ty) {
       self.diags.add(Diag::ExpectedTypeFound {
@@ -168,7 +172,7 @@ impl<'r> Checker<'r> {
     }
   }
 
-  fn hydrate_type(&mut self, ty: &mut Ty, inference: bool) -> Type {
+  fn hydrate_type(&mut self, ty: &mut Ty<'core>, inference: bool) -> Type {
     let span = ty.span;
     match &mut ty.kind {
       TyKind::Hole if inference => self.new_var(span),
@@ -191,7 +195,7 @@ impl<'r> Checker<'r> {
     }
   }
 
-  fn hydrate_generics(&mut self, path: &mut GenericPath, generic_count: usize) -> Vec<Type> {
+  fn hydrate_generics(&mut self, path: &mut GenericPath<'core>, generic_count: usize) -> Vec<Type> {
     if let Some(generics) = &mut path.generics {
       generics.iter_mut().map(|t| self.hydrate_type(t, true)).collect::<Vec<_>>()
     } else {

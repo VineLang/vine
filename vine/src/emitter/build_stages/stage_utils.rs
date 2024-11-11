@@ -2,7 +2,7 @@ use std::mem::swap;
 
 use crate::emitter::{Emitter, Fork, ForkId, Interface, InterfaceId, Stage, StageId, Step};
 
-impl Emitter<'_> {
+impl<'core> Emitter<'core, '_> {
   pub(super) fn new_interface(&mut self) -> InterfaceId {
     self.interfaces.push(Interface::default())
   }

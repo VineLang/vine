@@ -17,7 +17,7 @@ use crate::{
 
 use super::{DefId, Resolver, ValueDefKind};
 
-impl Resolver {
+impl<'core> Resolver<'core> {
   pub fn resolve_defs(&mut self) {
     self._resolve_defs(self.defs.range());
   }
@@ -83,10 +83,10 @@ impl Resolver {
   pub(crate) fn resolve_custom<'t>(
     &mut self,
     def: DefId,
-    initial: &BTreeMap<Local, Ident>,
+    initial: &BTreeMap<Local, Ident<'core>>,
     local_count: &mut Counter<Local>,
-    visitee: impl Visitee<'t>,
-  ) -> impl Iterator<Item = (Ident, Local)> {
+    visitee: impl Visitee<'core, 't>,
+  ) -> impl Iterator<Item = (Ident<'core>, Local)> {
     let mut visitor = ResolveVisitor {
       resolver: self,
       def,
@@ -117,11 +117,11 @@ impl Resolver {
 }
 
 #[derive(Debug)]
-struct ResolveVisitor<'a> {
-  resolver: &'a mut Resolver,
+struct ResolveVisitor<'core, 'a> {
+  resolver: &'a mut Resolver<'core>,
   def: DefId,
-  generics: Vec<Ident>,
-  scope: HashMap<Ident, Vec<ScopeEntry>>,
+  generics: Vec<Ident<'core>>,
+  scope: HashMap<Ident<'core>, Vec<ScopeEntry>>,
   scope_depth: usize,
   locals: Counter<Local>,
   dyn_fns: Counter<DynFnId>,
@@ -139,7 +139,7 @@ enum Binding {
   DynFn(DynFnId),
 }
 
-impl VisitMut<'_> for ResolveVisitor<'_> {
+impl<'core> VisitMut<'core, '_> for ResolveVisitor<'core, '_> {
   fn enter_scope(&mut self) {
     self.scope_depth += 1;
   }
@@ -153,7 +153,7 @@ impl VisitMut<'_> for ResolveVisitor<'_> {
     }
   }
 
-  fn visit_stmt(&mut self, stmt: &mut Stmt) {
+  fn visit_stmt(&mut self, stmt: &mut Stmt<'core>) {
     self._visit_stmt(stmt);
     if let StmtKind::DynFn(d) = &mut stmt.kind {
       let id = self.dyn_fns.next();
@@ -162,7 +162,7 @@ impl VisitMut<'_> for ResolveVisitor<'_> {
     }
   }
 
-  fn visit_pat(&mut self, pat: &mut Pat) {
+  fn visit_pat(&mut self, pat: &mut Pat<'core>) {
     if let PatKind::Adt(path, children) = &mut pat.kind {
       let non_local_err =
         match self.resolver.resolve_path(path.span, self.def, self.def, &path.path) {
@@ -191,7 +191,7 @@ impl VisitMut<'_> for ResolveVisitor<'_> {
     self._visit_pat(pat);
   }
 
-  fn visit_expr(&mut self, expr: &mut Expr) {
+  fn visit_expr(&mut self, expr: &mut Expr<'core>) {
     match &mut expr.kind {
       ExprKind![cond] => {
         self.enter_scope();
@@ -234,7 +234,7 @@ impl VisitMut<'_> for ResolveVisitor<'_> {
     }
   }
 
-  fn visit_type(&mut self, ty: &mut Ty) {
+  fn visit_type(&mut self, ty: &mut Ty<'core>) {
     if let TyKind::Path(path) = &mut ty.kind {
       if path.generics.is_none() {
         if let Some(ident) = path.path.as_ident() {
@@ -252,8 +252,8 @@ impl VisitMut<'_> for ResolveVisitor<'_> {
   }
 }
 
-impl<'a> ResolveVisitor<'a> {
-  fn bind(&mut self, ident: Ident, binding: Binding) {
+impl<'core> ResolveVisitor<'core, '_> {
+  fn bind(&mut self, ident: Ident<'core>, binding: Binding) {
     let stack = self.scope.entry(ident).or_default();
     let top = stack.last_mut();
     if top.as_ref().is_some_and(|x| x.depth == self.scope_depth) {
@@ -263,14 +263,14 @@ impl<'a> ResolveVisitor<'a> {
     }
   }
 
-  fn visit_path(&mut self, path: &mut GenericPath) -> Result<(), Diag> {
+  fn visit_path(&mut self, path: &mut GenericPath<'core>) -> Result<(), Diag<'core>> {
     let resolved = self.resolver.resolve_path(path.span, self.def, self.def, &path.path)?;
     path.path = self.resolver.defs[resolved].canonical.clone();
     debug_assert!(path.path.absolute && path.path.resolved.is_some());
     Ok(())
   }
 
-  fn visit_cond(&mut self, cond: &mut Expr) {
+  fn visit_cond(&mut self, cond: &mut Expr<'core>) {
     match &mut cond.kind {
       ExprKind![!cond] => self.visit_expr(cond),
       ExprKind::Not(e) => {
@@ -304,7 +304,7 @@ impl<'a> ResolveVisitor<'a> {
   }
 }
 
-impl From<Binding> for ExprKind {
+impl From<Binding> for ExprKind<'_> {
   fn from(val: Binding) -> Self {
     match val {
       Binding::Local(l) => ExprKind::Local(l),

@@ -6,8 +6,8 @@ use crate::{
   diag::Diag,
 };
 
-impl Checker<'_> {
-  pub(super) fn coerce_expr(&mut self, expr: &mut Expr, from: Form, to: Form) {
+impl<'core> Checker<'core, '_> {
+  pub(super) fn coerce_expr(&mut self, expr: &mut Expr<'core>, from: Form, to: Form) {
     let span = expr.span;
     match (from, to) {
       (_, Form::Error(_)) => unreachable!(),
@@ -29,7 +29,7 @@ impl Checker<'_> {
     }
   }
 
-  fn copy_expr(expr: &mut Expr) {
+  fn copy_expr(expr: &mut Expr<'core>) {
     match &mut expr.kind {
       ExprKind::Local(l) => expr.kind = ExprKind::CopyLocal(*l),
       ExprKind::Tuple(t) => {
@@ -44,7 +44,7 @@ impl Checker<'_> {
     }
   }
 
-  fn set_expr(expr: &mut Expr) {
+  fn set_expr(expr: &mut Expr<'core>) {
     match &mut expr.kind {
       ExprKind::Local(l) => expr.kind = ExprKind::SetLocal(*l),
       ExprKind::Inverse(e) => Self::move_expr(e),
@@ -57,7 +57,7 @@ impl Checker<'_> {
     }
   }
 
-  fn move_expr(expr: &mut Expr) {
+  fn move_expr(expr: &mut Expr<'core>) {
     match &mut expr.kind {
       ExprKind::Local(l) => expr.kind = ExprKind::MoveLocal(*l),
       ExprKind::Inverse(e) => Self::set_expr(e),

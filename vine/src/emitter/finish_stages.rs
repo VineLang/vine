@@ -10,7 +10,7 @@ use super::{
   Step, WireDir,
 };
 
-impl Emitter<'_> {
+impl<'core> Emitter<'core, '_> {
   pub(super) fn finish_stages(&mut self, init: StageId) {
     self.nets.reserve(self.stages.len());
     for (id, stage) in self.stages.drain() {
