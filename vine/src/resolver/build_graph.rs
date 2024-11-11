@@ -92,14 +92,13 @@ impl Resolver {
       }
       ItemKind::Use(u) => {
         Self::build_imports(
-          self.next_use_id,
+          self.use_id.next(),
           &mut self.diags,
           u.tree,
           &mut self.defs[parent],
           &mut Path { segments: Vec::new(), absolute: u.absolute, resolved: None },
           member_vis,
         );
-        self.next_use_id += 1;
         None
       }
       ItemKind::Struct(s) => {

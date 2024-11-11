@@ -1,7 +1,10 @@
 use std::collections::HashMap;
 
 use ivy::ast::Net;
-use vine_util::{idx::IdxVec, new_idx};
+use vine_util::{
+  idx::{Counter, IdxVec},
+  new_idx,
+};
 
 use crate::{
   ast::{Builtin, Expr, Ident, Path, Span, Ty},
@@ -17,17 +20,16 @@ mod resolve_path;
 pub struct Resolver {
   pub defs: IdxVec<DefId, Def>,
   pub diags: DiagGroup,
-  pub next_use_id: UseId,
+  pub use_id: Counter<UseId>,
   pub builtins: HashMap<Builtin, DefId>,
 }
 
 new_idx!(pub DefId);
+new_idx!(pub UseId);
 
 impl DefId {
   pub const ROOT: Self = Self(0);
 }
-
-pub type UseId = usize;
 
 #[derive(Debug)]
 pub struct Def {

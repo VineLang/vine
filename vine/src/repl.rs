@@ -123,7 +123,7 @@ impl<'ctx, 'ivm> Repl<'ctx, 'ivm> {
     }
 
     let new_defs = self.resolver.defs.next_index();
-    let new_uses = self.resolver.next_use_id;
+    let new_uses = self.resolver.use_id.peek_next();
     self.resolver.build_mod(DefId::ROOT, self.loader.finish(), DefId::ROOT);
     self.resolver.extract_subitems(self.repl_mod, &mut stmts);
     let new_defs = new_defs..self.resolver.defs.next_index();
