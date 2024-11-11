@@ -243,7 +243,7 @@ impl Resolver {
     Some(child.id)
   }
 
-  pub(crate) fn extract_subitems<'t>(&mut self, def: DefId, visitee: &'t mut impl Visitee<'t>) {
+  pub(crate) fn extract_subitems<'t>(&mut self, def: DefId, visitee: impl Visitee<'t>) {
     SubitemVisitor { resolver: self, def }.visit(visitee);
   }
 

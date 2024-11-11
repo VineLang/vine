@@ -80,7 +80,7 @@ impl Resolver {
     def: DefId,
     initial: &BTreeMap<usize, Ident>,
     local_count: &mut usize,
-    visitee: &'t mut impl Visitee<'t>,
+    visitee: impl Visitee<'t>,
   ) -> impl Iterator<Item = (Ident, usize)> {
     let mut visitor = ResolveVisitor {
       resolver: self,

@@ -137,7 +137,7 @@ impl<'ctx> Loader<'ctx> {
     Ok(items)
   }
 
-  pub(crate) fn load_deps<'t>(&mut self, base: &Path, visitee: &'t mut impl Visitee<'t>) {
+  pub(crate) fn load_deps<'t>(&mut self, base: &Path, visitee: impl Visitee<'t>) {
     LoadDeps { loader: self, base }.visit(visitee);
   }
 }

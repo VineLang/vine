@@ -297,68 +297,65 @@ pub trait VisitMut<'a> {
     }
   }
 
-  fn visit(&mut self, visitee: &'a mut (impl Visitee<'a> + ?Sized)) {
+  fn visit(&mut self, visitee: impl Visitee<'a>) {
     visitee.visit(self);
   }
 }
 
-pub trait Visitee<'t> {
-  fn visit(&'t mut self, visitor: &mut (impl VisitMut<'t> + ?Sized));
+pub trait Visitee<'t>: Sized {
+  fn visit(self, visitor: &mut (impl VisitMut<'t> + ?Sized));
 }
 
-impl<'t> Visitee<'t> for Def {
-  fn visit(&'t mut self, visitor: &mut (impl VisitMut<'t> + ?Sized)) {
+impl<'t> Visitee<'t> for &'t mut Def {
+  fn visit(self, visitor: &mut (impl VisitMut<'t> + ?Sized)) {
     visitor.visit_def(self)
   }
 }
 
-impl<'t> Visitee<'t> for Expr {
-  fn visit(&'t mut self, visitor: &mut (impl VisitMut<'t> + ?Sized)) {
+impl<'t> Visitee<'t> for &'t mut Expr {
+  fn visit(self, visitor: &mut (impl VisitMut<'t> + ?Sized)) {
     visitor.visit_expr(self)
   }
 }
 
-impl<'t> Visitee<'t> for Pat {
-  fn visit(&'t mut self, visitor: &mut (impl VisitMut<'t> + ?Sized)) {
+impl<'t> Visitee<'t> for &'t mut Pat {
+  fn visit(self, visitor: &mut (impl VisitMut<'t> + ?Sized)) {
     visitor.visit_pat(self)
   }
 }
 
-impl<'t> Visitee<'t> for Ty {
-  fn visit(&'t mut self, visitor: &mut (impl VisitMut<'t> + ?Sized)) {
+impl<'t> Visitee<'t> for &'t mut Ty {
+  fn visit(self, visitor: &mut (impl VisitMut<'t> + ?Sized)) {
     visitor.visit_type(self)
   }
 }
 
-impl<'t> Visitee<'t> for Stmt {
-  fn visit(&'t mut self, visitor: &mut (impl VisitMut<'t> + ?Sized)) {
+impl<'t> Visitee<'t> for &'t mut Stmt {
+  fn visit(self, visitor: &mut (impl VisitMut<'t> + ?Sized)) {
     visitor.visit_stmt(self)
   }
 }
 
-impl<'t> Visitee<'t> for Item {
-  fn visit(&'t mut self, visitor: &mut (impl VisitMut<'t> + ?Sized)) {
+impl<'t> Visitee<'t> for &'t mut Item {
+  fn visit(self, visitor: &mut (impl VisitMut<'t> + ?Sized)) {
     visitor.visit_item(self)
   }
 }
 
-impl<'t> Visitee<'t> for Block {
-  fn visit(&'t mut self, visitor: &mut (impl VisitMut<'t> + ?Sized)) {
+impl<'t> Visitee<'t> for &'t mut Block {
+  fn visit(self, visitor: &mut (impl VisitMut<'t> + ?Sized)) {
     visitor.visit_block(self)
   }
 }
 
-impl<'t> Visitee<'t> for GenericPath {
-  fn visit(&'t mut self, visitor: &mut (impl VisitMut<'t> + ?Sized)) {
+impl<'t> Visitee<'t> for &'t mut GenericPath {
+  fn visit(self, visitor: &mut (impl VisitMut<'t> + ?Sized)) {
     visitor.visit_generic_path(self)
   }
 }
 
-impl<'t, I: ?Sized, T: Visitee<'t> + 't + ?Sized> Visitee<'t> for I
-where
-  for<'a> &'a mut I: IntoIterator<Item = &'a mut T>,
-{
-  fn visit(&'t mut self, visitor: &mut (impl VisitMut<'t> + ?Sized)) {
+impl<'t, I: IntoIterator<Item = T>, T: Visitee<'t>> Visitee<'t> for I {
+  fn visit(self, visitor: &mut (impl VisitMut<'t> + ?Sized)) {
     for item in self {
       visitor.visit(item)
     }
