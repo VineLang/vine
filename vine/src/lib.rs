@@ -28,7 +28,7 @@ pub struct Config {
 }
 
 pub fn compile(config: Config) -> Result<Nets, String> {
-  let arena = &*Box::leak(Box::new(BytesArena::default()));
+  let arena = &BytesArena::default();
   let interner = StringInterner::new(arena);
   let mut diags = DiagGroup::default();
 

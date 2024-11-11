@@ -133,7 +133,7 @@ impl VineReplCommand {
     let host = &mut Host::default();
     let heap = Heap::new();
     let mut ivm = IVM::new(&heap);
-    let arena = &*Box::leak(Box::new(BytesArena::default()));
+    let arena = &BytesArena::default();
     let interner = StringInterner::new(arena);
     let mut repl = match Repl::new(host, &mut ivm, &interner, self.libs) {
       Ok(repl) => repl,
@@ -168,7 +168,7 @@ impl VineFmtCommand {
   pub fn execute(self) -> Result<()> {
     let mut src = String::new();
     stdin().read_to_string(&mut src)?;
-    let arena = &*Box::leak(Box::new(BytesArena::default()));
+    let arena = &BytesArena::default();
     let interner = StringInterner::new(arena);
     println!("{}", fmt(&interner, &src).unwrap());
     Ok(())
