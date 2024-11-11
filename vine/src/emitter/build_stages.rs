@@ -37,7 +37,7 @@ impl Emitter<'_> {
 
     swap(&mut self.cur, &mut self.stages[self.cur_id]);
 
-    for (id, stage) in self.stages.iter_mut().enumerate() {
+    for (id, stage) in self.stages.iter_mut() {
       stage.steps.extend(take(&mut stage.fin).into_iter().rev());
 
       let interface_id = stage.outer;

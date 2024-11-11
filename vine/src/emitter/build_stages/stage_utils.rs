@@ -4,9 +4,7 @@ use crate::emitter::{Emitter, Fork, ForkId, Interface, InterfaceId, Stage, Stage
 
 impl Emitter<'_> {
   pub(super) fn new_interface(&mut self) -> InterfaceId {
-    let id = self.interfaces.len();
-    self.interfaces.push(Interface::default());
-    id
+    self.interfaces.push(Interface::default())
   }
 
   pub(super) fn select_stage(&mut self, id: StageId) {
@@ -36,12 +34,11 @@ impl Emitter<'_> {
     id
   }
 
-  fn start_stage(&mut self, interface: InterfaceId) -> usize {
-    let id = self.stages.len();
-    self.stages.push(Stage::default());
+  fn start_stage(&mut self, interface: InterfaceId) -> StageId {
+    let id = self.stages.push(Stage::default());
     self.select_stage(id);
     self.cur.outer = interface;
-    self.cur.divergence = ForkId::MAX;
+    self.cur.divergence = ForkId(usize::MAX);
     id
   }
 
@@ -65,12 +62,11 @@ impl Emitter<'_> {
   }
 
   pub(super) fn new_fork<T>(&mut self, f: impl FnOnce(&mut Self) -> T) -> T {
-    self.forks.push(Fork { ends: Vec::new(), divergence: self.forks.len() });
-    let l = self.forks.len();
+    let l = self.forks.push(Fork { ends: Vec::new(), divergence: self.forks.next_index() });
     let out = f(self);
-    debug_assert!(l == self.forks.len());
     let fork = self.forks.pop().unwrap();
-    if fork.divergence < self.forks.len() {
+    debug_assert!(l == self.forks.next_index());
+    if fork.divergence < l {
       self.diverge(fork.divergence);
       for &c in &fork.ends {
         let port = self.stage_port(self.cur_id);
@@ -88,6 +84,6 @@ impl Emitter<'_> {
   }
 
   pub(super) fn cur_fork(&self) -> ForkId {
-    self.forks.len() - 1
+    ForkId(self.forks.len() - 1)
   }
 }

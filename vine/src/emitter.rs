@@ -6,6 +6,7 @@ use ivy::ast::Nets;
 use vine_util::{
   bicycle::BicycleState,
   idx::{Counter, IdxVec},
+  new_idx,
 };
 
 use crate::{
@@ -45,13 +46,13 @@ pub struct Emitter<'d> {
   defs: &'d IdxVec<DefId, Def>,
 
   name: String,
-  interfaces: Vec<Interface>,
-  stages: Vec<Stage>,
+  interfaces: IdxVec<InterfaceId, Interface>,
+  stages: IdxVec<StageId, Stage>,
   cur: Stage,
   cur_id: StageId,
   locals: Counter<Local>,
 
-  forks: Vec<Fork>,
+  forks: IdxVec<ForkId, Fork>,
 
   net: NetBuilder,
 
@@ -145,12 +146,12 @@ impl<'d> Emitter<'d> {
 }
 
 fn stage_name(base_name: &str, stage_id: StageId) -> String {
-  format!("{base_name}::{stage_id}")
+  format!("{base_name}::{stage_id:?}")
 }
 
-type InterfaceId = usize;
-type StageId = usize;
-type ForkId = usize;
+new_idx!(InterfaceId);
+new_idx!(StageId);
+new_idx!(ForkId);
 
 #[derive(Debug, Default)]
 struct Interface {

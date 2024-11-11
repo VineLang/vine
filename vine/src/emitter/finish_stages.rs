@@ -3,6 +3,8 @@ use std::{
   mem::{replace, take},
 };
 
+use vine_util::idx::IdxVec;
+
 use super::{
   stage_name, Agent, Emitter, Interface, InterfaceId, Local, NetBuilder, Port, Stage, StageId,
   Step, WireDir,
@@ -11,7 +13,7 @@ use super::{
 impl Emitter<'_> {
   pub(super) fn finish_stages(&mut self, init: StageId) {
     self.nets.reserve(self.stages.len());
-    for (id, stage) in self.stages.drain(..).enumerate() {
+    for (id, stage) in self.stages.drain() {
       let name = if id == init { self.name.clone() } else { stage_name(&self.name, id) };
       let mut finish = FinishStage {
         interfaces: &self.interfaces,
@@ -30,7 +32,7 @@ impl Emitter<'_> {
 
 #[derive(Debug)]
 struct FinishStage<'a> {
-  interfaces: &'a [Interface],
+  interfaces: &'a IdxVec<InterfaceId, Interface>,
   net: &'a mut NetBuilder,
   locals: BTreeMap<Local, LocalState>,
   dup_label_base: usize,
