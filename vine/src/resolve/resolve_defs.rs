@@ -160,19 +160,20 @@ impl VisitMut<'_> for ResolveVisitor<'_> {
 
   fn visit_pat(&mut self, pat: &mut Pat) {
     if let PatKind::Adt(path, children) = &mut pat.kind {
-      let non_local_err = match self.resolver.resolve_path(path.span, self.def, &path.path) {
-        Ok(resolved) => {
-          if self.resolver.defs[resolved].variant_def.is_some() {
-            path.path = self.resolver.defs[resolved].canonical.clone();
-            debug_assert!(path.path.absolute && path.path.resolved.is_some());
-            self._visit_pat(pat);
-            return;
-          } else {
-            Diag::BadPatternPath { span: path.span }
+      let non_local_err =
+        match self.resolver.resolve_path(path.span, self.def, self.def, &path.path) {
+          Ok(resolved) => {
+            if self.resolver.defs[resolved].variant_def.is_some() {
+              path.path = self.resolver.defs[resolved].canonical.clone();
+              debug_assert!(path.path.absolute && path.path.resolved.is_some());
+              self._visit_pat(pat);
+              return;
+            } else {
+              Diag::BadPatternPath { span: path.span }
+            }
           }
-        }
-        Err(e) => e,
-      };
+          Err(e) => e,
+        };
 
       let (Some(ident), None) = (path.path.as_ident(), children) else {
         pat.kind = PatKind::Error(self.resolver.diags.add(non_local_err));
@@ -260,7 +261,7 @@ impl<'a> ResolveVisitor<'a> {
   }
 
   fn visit_path(&mut self, path: &mut GenericPath) -> Result<(), Diag> {
-    let resolved = self.resolver.resolve_path(path.span, self.def, &path.path)?;
+    let resolved = self.resolver.resolve_path(path.span, self.def, self.def, &path.path)?;
     path.path = self.resolver.defs[resolved].canonical.clone();
     debug_assert!(path.path.absolute && path.path.resolved.is_some());
     Ok(())

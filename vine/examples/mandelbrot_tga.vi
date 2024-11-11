@@ -5,7 +5,7 @@ const height: u32 = 1024;
 const scale: f32 = 2.6;
 const center: (f32, f32) = (-0.8, 0.0);
 
-fn main(&io: &IO) {
+pub fn main(&io: &IO) {
   io.print_bytes([0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, width, width >> 8, height, height >> 8, 8, 32]);
   let j = 0;
   while j < height {

@@ -1,5 +1,5 @@
 
-fn main(&io: &IO) {
+pub fn main(&io: &IO) {
   let message = "original";
   if 0 {
     message = "gone";

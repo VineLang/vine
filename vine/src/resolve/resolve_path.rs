@@ -3,44 +3,59 @@ use crate::{
   diag::Diag,
 };
 
-use super::{DefId, Member, Resolver};
+use super::{DefId, MemberKind, Resolver};
 
 impl Resolver {
-  pub fn resolve_path(&mut self, span: Span, base: DefId, path: &Path) -> Result<DefId, Diag> {
+  pub fn resolve_path(
+    &mut self,
+    span: Span,
+    from: DefId,
+    base: DefId,
+    path: &Path,
+  ) -> Result<DefId, Diag> {
     let base = if path.absolute { 0 } else { base };
-    let mut check_parents = true;
     let mut cur = base;
     for &segment in &path.segments {
-      cur = self.resolve_one(cur, segment, check_parents).ok_or_else(|| Diag::CannotResolve {
-        span,
-        name: segment,
-        module: self.defs[cur].canonical.clone(),
-      })?;
-      check_parents = false;
+      let (base, vis, resolved) =
+        self.resolve_one(cur, segment, from == base).ok_or_else(|| Diag::CannotResolve {
+          span,
+          name: segment,
+          module: self.defs[cur].canonical.clone(),
+        })?;
+      if !self.visible(vis, from) {
+        let mut path = self.defs[base].canonical.clone();
+        path.segments.push(segment);
+        return Err(Diag::Invisible { span, path, vis: self.defs[vis].canonical.clone() });
+      }
+      cur = resolved;
     }
     Ok(cur)
   }
 
-  pub(super) fn resolve_one(
+  fn resolve_one(
     &mut self,
     base: DefId,
     segment: Ident,
     check_parents: bool,
-  ) -> Option<DefId> {
+  ) -> Option<(DefId, DefId, DefId)> {
     let def = &mut self.defs[base];
 
     if let Some(member) = def.members.get_mut(&segment) {
-      return match member {
-        Member::Child(result) | Member::ResolvedImport(result, _) => Some(*result),
-        Member::UnresolvedImport(span, import, id) => {
+      let vis = member.vis;
+      return match &mut member.kind {
+        MemberKind::Child(result) | MemberKind::ResolvedImport(result, _) => {
+          Some((base, vis, *result))
+        }
+        MemberKind::UnresolvedImport(span, import, id) => {
           let span = *span;
           let path = import.take()?;
           let id = *id;
-          match self.resolve_path(span, base, &path) {
+          match self.resolve_path(span, base, base, &path) {
             Ok(resolved) => {
               let def = &mut self.defs[base];
-              def.members.insert(segment, Member::ResolvedImport(resolved, id));
-              Some(resolved)
+              def.members.get_mut(&segment).unwrap().kind =
+                MemberKind::ResolvedImport(resolved, id);
+              Some((base, vis, resolved))
             }
             Err(diag) => {
               self.diags.add(diag);
@@ -71,7 +86,7 @@ impl Resolver {
         self.defs[def]
           .members
           .iter()
-          .filter(|x| matches!(x.1, Member::UnresolvedImport(..)))
+          .filter(|x| matches!(x.1.kind, MemberKind::UnresolvedImport(..)))
           .map(|x| *x.0),
       );
       unresolved_imports.sort();
@@ -79,5 +94,23 @@ impl Resolver {
         self.resolve_one(def, name, false);
       }
     }
+  }
+
+  pub(crate) fn visible(&self, vis: DefId, from: DefId) -> bool {
+    if vis == from {
+      return true;
+    }
+    if vis > from {
+      return false;
+    }
+    for &ancestor in self.defs[from].ancestors.iter() {
+      if ancestor == vis {
+        return true;
+      }
+      if ancestor > vis {
+        return false;
+      }
+    }
+    false
   }
 }

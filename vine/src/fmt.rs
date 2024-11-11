@@ -6,7 +6,7 @@ use doc::{Doc, Writer};
 use crate::{
   ast::{
     Block, ComparisonOp, Expr, ExprKind, GenericPath, Ident, Item, ItemKind, LogicalOp, ModKind,
-    Pat, PatKind, Path, Span, Stmt, StmtKind, Ty, TyKind, UseTree,
+    Pat, PatKind, Path, Span, Stmt, StmtKind, Ty, TyKind, UseTree, Vis,
   },
   diag::Diag,
   parser::VineParser,
@@ -34,6 +34,11 @@ struct Formatter<'src> {
 impl<'src> Formatter<'src> {
   fn fmt_item(&self, item: &Item) -> Doc<'src> {
     Doc::concat(item.attrs.iter().flat_map(|x| [self.fmt_verbatim(x.span), Doc::LINE]).chain([
+      match &item.vis {
+        Vis::Private => Doc::EMPTY,
+        Vis::Public => Doc("pub "),
+        Vis::PublicTo(_, name) => Doc::concat([Doc("pub("), Doc(*name), Doc(") ")]),
+      },
       match &item.kind {
         ItemKind::Fn(f) => {
           let params = &f.params;
@@ -92,12 +97,12 @@ impl<'src> Formatter<'src> {
           Doc("mod "),
           Doc(m.name),
           match &m.kind {
-            ModKind::Loaded(items) => Doc::concat([
+            ModKind::Loaded(_, items) if items.is_empty() => Doc(" {}"),
+            ModKind::Loaded(span, items) => Doc::concat([
               Doc(" {"),
-              Doc::indent([self.line_break_separated(
-                item.span,
-                items.iter().map(|x| (x.span, self.fmt_item(x))),
-              )]),
+              Doc::indent([
+                self.line_break_separated(*span, items.iter().map(|x| (x.span, self.fmt_item(x)))),
+              ]),
               Doc("}"),
             ]),
             ModKind::Unloaded(span, _) => {
@@ -111,7 +116,7 @@ impl<'src> Formatter<'src> {
           self.fmt_use_tree(&u.tree),
           Doc(";"),
         ]),
-        ItemKind::Ivy(_) => self.fmt_verbatim(item.span),
+        ItemKind::Ivy(_) => return self.fmt_verbatim(item.span),
         ItemKind::Pattern(_) => todo!(),
         ItemKind::Taken => unreachable!(),
       },

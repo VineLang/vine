@@ -1,5 +1,5 @@
 
-fn main(&io: &IO) {
+pub fn main(&io: &IO) {
   let i = 0;
   let n = 0;
   while i < 5 {

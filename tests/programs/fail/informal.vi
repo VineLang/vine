@@ -1,7 +1,7 @@
 
 enum IO { I, O }
 
-fn main(move *io) {
+pub fn main(move *io) {
   1 + 1 = 2;
   ~_ = _;
   _ += ~1;

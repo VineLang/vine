@@ -1,7 +1,7 @@
 
 use std::option::Option::{Option, Some, None};
 
-fn main(&io: &IO) {
+pub fn main(&io: &IO) {
   dyn fn print_option_u32(option: Option[u32]) {
     io.println("  " ++ match option {
       Some(val) => "Some(" ++ val.to_string() ++ ")",

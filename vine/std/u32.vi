@@ -2,8 +2,8 @@
 use std::{list::Buf, option::Option::{Option, Some, None}};
 
 #[builtin = "u32"]
-mod u32 {
-  fn to_string(n: u32) -> String {
+pub mod u32 {
+  pub fn to_string(n: u32) -> String {
     if n {
       let str = "";
       while n {
@@ -16,7 +16,7 @@ mod u32 {
     }
   }
 
-  fn parse(str: String) -> Option[u32] {
+  pub fn parse(str: String) -> Option[u32] {
     let List(len, chars, _) = str;
     if len == 0 {
       None
@@ -36,11 +36,11 @@ mod u32 {
     }
   }
 
-  inline_ivy! rotate_left: fn(u32, u32) -> u32 {
+  pub inline_ivy! rotate_left: fn(u32, u32) -> u32 {
     fn(@u32_rotl(x y) fn(x y))
   }
 
-  inline_ivy! rotate_right: fn(u32, u32) -> u32 {
+  pub inline_ivy! rotate_right: fn(u32, u32) -> u32 {
     fn(@u32_rotr(x y) fn(x y))
   }
 }

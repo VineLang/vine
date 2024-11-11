@@ -134,6 +134,18 @@ diags! {
     ["type `{ty}` has no methods"]
   BadMethodReceiver { base_path: Path, sub_path: Path }
     ["`{base_path}::{sub_path}` cannot be used as a method; it does not take `{base_path}` as its first parameter"]
+  Invisible { path: Path, vis: Path }
+    ["`{path}` is only visible within `{vis}`"]
+  BadVis
+    ["invalid visibility; expected the name of an ancestor module"]
+  ValueInvisible { path: Path, vis: Path }
+    ["the value `{path}` is only visible within `{vis}`"]
+  TypeInvisible { path: Path, vis: Path }
+    ["the type `{path}` is only visible within `{vis}`"]
+  PatInvisible { path: Path, vis: Path }
+    ["the pattern `{path}` is only visible within `{vis}`"]
+  VisibleSubitem
+    ["subitems must be private"]
 }
 
 fn plural<'a>(n: usize, plural: &'a str, singular: &'a str) -> &'a str {
@@ -153,6 +165,10 @@ impl DiagGroup {
   pub(crate) fn add(&mut self, diag: Diag) -> ErrorGuaranteed {
     self.diags.push(diag);
     ErrorGuaranteed(())
+  }
+
+  pub fn add_all(&mut self, diags: &mut DiagGroup) {
+    self.diags.append(&mut diags.diags);
   }
 
   pub fn ok(&mut self) -> Result<(), Diag> {

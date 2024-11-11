@@ -35,10 +35,17 @@ pub struct Def {
 
   members: HashMap<Ident, Member>,
   parent: Option<DefId>,
+  ancestors: Vec<DefId>,
 }
 
 #[derive(Debug)]
-enum Member {
+struct Member {
+  pub vis: DefId,
+  pub kind: MemberKind,
+}
+
+#[derive(Debug)]
+enum MemberKind {
   Child(DefId),
   ResolvedImport(DefId, UseId),
   UnresolvedImport(Span, Option<Path>, UseId),
@@ -46,6 +53,7 @@ enum Member {
 
 #[derive(Debug)]
 pub struct ValueDef {
+  pub vis: DefId,
   pub generics: Vec<Ident>,
   pub annotation: Option<Ty>,
   pub ty: Option<Type>,
@@ -62,6 +70,7 @@ pub enum ValueDefKind {
 
 #[derive(Debug)]
 pub struct TypeDef {
+  pub vis: DefId,
   pub generics: Vec<Ident>,
   pub alias: Option<Ty>,
   pub ty: Option<Type>,
@@ -75,6 +84,7 @@ pub struct AdtDef {
 
 #[derive(Debug)]
 pub struct VariantDef {
+  pub vis: DefId,
   pub generics: Vec<Ident>,
   pub adt: DefId,
   pub variant: usize,

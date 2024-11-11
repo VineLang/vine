@@ -1,4 +1,9 @@
-use std::{collections::HashMap, iter, mem::take, ops::Range};
+use std::{
+  collections::HashMap,
+  iter,
+  mem::{replace, take},
+  ops::Range,
+};
 
 use crate::{
   ast::{Block, Builtin, ExprKind, GenericPath, Ident, Span, StmtKind, Ty, TyKind},
@@ -20,6 +25,7 @@ pub struct Checker<'r> {
   generics: Vec<Ident>,
   return_ty: Option<Type>,
   loop_ty: Option<Type>,
+  cur_def: DefId,
 
   u32: Option<DefId>,
   f32: Option<DefId>,
@@ -55,6 +61,7 @@ impl<'r> Checker<'r> {
       generics: Vec::new(),
       return_ty: None,
       loop_ty: None,
+      cur_def: 0,
       u32,
       f32,
       io,
@@ -82,6 +89,7 @@ impl<'r> Checker<'r> {
   }
 
   fn check_value_def(&mut self, def_id: DefId) {
+    self.cur_def = def_id;
     debug_assert!(self.state.vars.is_empty() && self.state.locals.is_empty());
     let def = &mut self.resolver.defs[def_id];
     if let Some(value_def) = &mut def.value_def {
@@ -190,15 +198,18 @@ impl<'r> Checker<'r> {
   }
 
   fn resolve_type_alias(&mut self, def_id: usize) {
+    let old = replace(&mut self.cur_def, def_id);
     if let Some(type_def) = &mut self.resolver.defs[def_id].type_def {
       if let Some(mut alias) = type_def.alias.take() {
         let ty = self.hydrate_type(&mut alias, false);
         self.resolver.defs[def_id].type_def.as_mut().unwrap().ty = Some(ty);
       }
     }
+    self.cur_def = old;
   }
 
   fn resolve_def_types(&mut self, def_id: usize) {
+    self.cur_def = def_id;
     if let Some(mut variant) = self.resolver.defs[def_id].variant_def.take() {
       variant.field_types =
         Some(variant.fields.iter_mut().map(|ty| self.hydrate_type(ty, false)).collect());
@@ -245,7 +256,7 @@ impl<'r> Checker<'r> {
 fn define_primitive_type(resolver: &mut Resolver, def_id: Option<DefId>, ty: Type) {
   if let Some(def_id) = def_id {
     resolver.defs[def_id].type_def =
-      Some(TypeDef { generics: Vec::new(), alias: None, ty: Some(ty) });
+      Some(TypeDef { vis: 0, generics: Vec::new(), alias: None, ty: Some(ty) });
   }
 }
 

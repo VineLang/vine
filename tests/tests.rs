@@ -61,6 +61,7 @@ fn tests(t: &mut DynTester) {
       test_vi_fail(t, "tests/programs/fail/informal.vi");
       test_vi_fail(t, "tests/programs/fail/is_not.vi");
       test_vi_fail(t, "tests/programs/fail/missing_no.vi");
+      test_vi_fail(t, "tests/programs/fail/visibility.vi");
     });
   });
 }

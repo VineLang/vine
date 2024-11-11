@@ -10,14 +10,15 @@ use vine_util::interner::Interned;
 
 use crate::{diag::ErrorGuaranteed, resolve::DefId};
 
-#[derive(Clone)]
+#[derive(Clone, Default)]
 pub struct Item {
   pub span: Span,
+  pub vis: Vis,
   pub attrs: Vec<Attr>,
   pub kind: ItemKind,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Default, Debug, Clone)]
 pub enum ItemKind {
   Fn(FnItem),
   Const(ConstItem),
@@ -28,6 +29,7 @@ pub enum ItemKind {
   Mod(ModItem),
   Use(UseItem),
   Ivy(InlineIvy),
+  #[default]
   Taken,
 }
 
@@ -86,7 +88,7 @@ pub struct ModItem {
 
 #[derive(Debug, Clone)]
 pub enum ModKind {
-  Loaded(Vec<Item>),
+  Loaded(Span, Vec<Item>),
   Unloaded(Span, PathBuf),
   Error(ErrorGuaranteed),
 }
@@ -110,6 +112,14 @@ pub struct InlineIvy {
   pub generics: Vec<Ident>,
   pub ty: Ty,
   pub net: Net,
+}
+
+#[derive(Default, Debug, Clone)]
+pub enum Vis {
+  #[default]
+  Private,
+  Public,
+  PublicTo(Span, Ident),
 }
 
 #[derive(Clone)]

@@ -1,15 +1,15 @@
 
-mod bool = "./bool.vi";
-mod io = "./io.vi";
-mod list = "./list.vi";
-mod option = "./option.vi";
-mod result = "./result.vi";
-mod rng = "./rng.vi";
-mod u32 = "./u32.vi";
-mod f32 = "./f32.vi";
-mod u64 = "./u64.vi";
+pub mod bool = "./bool.vi";
+pub mod io = "./io.vi";
+pub mod list = "./list.vi";
+pub mod option = "./option.vi";
+pub mod result = "./result.vi";
+pub mod rng = "./rng.vi";
+pub mod u32 = "./u32.vi";
+pub mod f32 = "./f32.vi";
+pub mod u64 = "./u64.vi";
 
 #[builtin = "prelude"]
-mod prelude {
-  use ::std::{u32, f32, io::IO, list::{List, String}, bool::{bool, true, false}};
+pub mod prelude {
+  pub use ::std::{u32, f32, io::IO, list::{List, String}, bool::{bool, true, false}};
 }

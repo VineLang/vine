@@ -1,13 +1,13 @@
 
 use std::option::Option::{Some, None};
 
-fn main(&io: &IO) {
+pub fn main(&io: &IO) {
   let list = [4, 3, 7, 9];
   sub_min(&list);
   io.println(list.to_string(u32::to_string));
 }
 
-fn sub_min(&list: &List[u32]) {
+pub fn sub_min(&list: &List[u32]) {
   let ~min: u32;
   let min_acc = None[u32];
 

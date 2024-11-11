@@ -11,7 +11,7 @@ use vine_util::interner::StringInterner;
 use crate::{
   ast::{
     self, ConstItem, Expr, ExprKind, GenericPath, Ident, Item, ItemKind, ModItem, ModKind, Span,
-    Ty, TyKind,
+    Ty, TyKind, Vis,
   },
   diag::{Diag, DiagGroup, FileInfo},
   parser::VineParser,
@@ -38,7 +38,7 @@ impl<'ctx> Loader<'ctx> {
   }
 
   pub fn finish(&mut self) -> ModKind {
-    ModKind::Loaded(take(&mut self.root))
+    ModKind::Loaded(Span::NONE, take(&mut self.root))
   }
 
   pub fn load_main_mod(&mut self, path: impl Into<PathBuf>) {
@@ -47,6 +47,7 @@ impl<'ctx> Loader<'ctx> {
     let io = Ident(self.interner.intern("IO"));
     self.root.push(Item {
       span: Span::NONE,
+      vis: Vis::Private,
       attrs: Vec::new(),
       kind: ItemKind::Const(ConstItem {
         name: main,
@@ -60,7 +61,7 @@ impl<'ctx> Loader<'ctx> {
                 span: Span::NONE,
                 kind: TyKind::Path(GenericPath {
                   span: Span::NONE,
-                  path: ast::Path { segments: vec![io], absolute: true, resolved: None },
+                  path: ast::Path { segments: vec![io], absolute: false, resolved: None },
                   generics: None,
                 }),
               })),
@@ -89,6 +90,7 @@ impl<'ctx> Loader<'ctx> {
     let path = path.into();
     let module = Item {
       span: Span::NONE,
+      vis: Vis::Public,
       attrs: Vec::new(),
       kind: ItemKind::Mod(ModItem {
         name: self.auto_mod_name(&path),
@@ -112,7 +114,7 @@ impl<'ctx> Loader<'ctx> {
 
   fn load_file(&mut self, path: PathBuf, span: Span) -> ModKind {
     match self._load_file(path, span) {
-      Ok(items) => ModKind::Loaded(items),
+      Ok(items) => ModKind::Loaded(span, items),
       Err(diag) => ModKind::Error(self.diags.add(diag)),
     }
   }

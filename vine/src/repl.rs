@@ -67,7 +67,7 @@ impl<'ctx, 'ivm> Repl<'ctx, 'ivm> {
 
     resolver.diags.report(&loader.files)?;
 
-    let repl_mod = resolver.get_or_insert_child(0, Ident(interner.intern("repl"))).id;
+    let repl_mod = resolver.get_or_insert_child(0, Ident(interner.intern("repl")), 0).id;
 
     let mut checker = Checker::new(&mut resolver);
     checker.check_defs();
@@ -122,7 +122,7 @@ impl<'ctx, 'ivm> Repl<'ctx, 'ivm> {
 
     let new_defs = self.resolver.defs.len();
     let new_uses = self.resolver.next_use_id;
-    self.resolver.build_mod(self.loader.finish(), 0);
+    self.resolver.build_mod(0, self.loader.finish(), 0);
     self.resolver.extract_subitems(self.repl_mod, &mut stmts);
     let new_defs = new_defs..self.resolver.defs.len();
 
