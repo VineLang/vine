@@ -12,14 +12,14 @@ pub fn main(&io: &IO) {
 fn message(n: u32) -> String {
   let r3 = n % 3;
   let r5 = n % 5;
-  if r3 {
-    if r5 {
+  if r3 != 0 {
+    if r5 != 0 {
       n.to_string()
     } else {
       "Buzz"
     }
   } else {
-    if r5 {
+    if r5 != 0 {
       "Fizz"
     } else {
       "FizzBuzz"

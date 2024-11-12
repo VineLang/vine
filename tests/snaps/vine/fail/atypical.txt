@@ -13,7 +13,7 @@ error tests/programs/fail/atypical.vi:11:7 - cannot infer type
 error tests/programs/fail/atypical.vi:12:3 - cannot call non-function type `u32`
 error tests/programs/fail/atypical.vi:13:14 - cannot apply operator `+` to types `u32` and `~u32`
 error tests/programs/fail/atypical.vi:14:5 - cannot find `noop` in `::std::u32`
-error tests/programs/fail/atypical.vi:15:6 - expected type `u32`; found `f32`
+error tests/programs/fail/atypical.vi:15:6 - expected type `bool`; found `f32`
 error tests/programs/fail/atypical.vi:15:3 - then block has type `u32` but else block has type `::std::list::List[u32]`
 error tests/programs/fail/atypical.vi:16:3 - function type `fn(IO)` expects 1 argument; was passed 3
 error tests/programs/fail/atypical.vi:17:3 - cannot compare `u32` and `f32`

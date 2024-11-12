@@ -10,7 +10,7 @@ pub mod IO {
 
   pub fn print(&io: &IO, str: String) {
     let List(len, chars, _) = str;
-    while len {
+    while len != 0 {
       len = len - 1;
       let Buf(char, tail) = chars;
       chars = tail;
@@ -24,7 +24,7 @@ pub mod IO {
 
   pub fn print_bytes(&io: &IO, bytes: String) {
     let List(len, bytes, _) = bytes;
-    while len {
+    while len != 0 {
       len = len - 1;
       let Buf(byte, tail) = bytes;
       bytes = tail;
@@ -48,7 +48,7 @@ pub mod IO {
 
   pub fn read_line(&io: &IO) -> Option[String] {
     let byte = io.read_byte(0);
-    if byte {
+    if byte != 0 {
       Some(if byte == '\n' {
         ""
       } else {

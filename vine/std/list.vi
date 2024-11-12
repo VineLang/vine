@@ -17,7 +17,7 @@ pub mod List {
     let len = l;
     let cur;
     let result = move ~cur;
-    while l {
+    while l != 0 {
       let Buf(head, tail) = buf;
       buf = tail;
       let next;
@@ -29,7 +29,7 @@ pub mod List {
   }
 
   pub fn pop_front[T](&List(len, buf, _): &List[T]) -> Option[T] {
-    if len {
+    if len != 0 {
       len -= 1;
       let Buf(head, tail) = buf;
       buf = tail;
@@ -79,7 +79,7 @@ pub mod List {
 
   pub mod Iter {
     pub fn next[T](&Iter(len, buf): &Iter[T]) -> Option[&T] {
-      if len {
+      if len != 0 {
         len -= 1;
         let &Buf(*head, *tail) = buf;
         buf = tail;
@@ -99,7 +99,7 @@ pub mod List {
 
   pub mod IntoIter {
     pub fn next[T](&IntoIter(len, buf): &IntoIter[T]) -> Option[T] {
-      if len {
+      if len != 0 {
         len -= 1;
         let Buf(head, tail) = buf;
         buf = tail;

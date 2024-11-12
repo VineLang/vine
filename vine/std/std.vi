@@ -11,5 +11,5 @@ pub mod u64 = "./u64.vi";
 
 #[builtin = "prelude"]
 pub mod prelude {
-  pub use ::std::{u32, f32, io::IO, list::{List, String}, bool::{bool, true, false}};
+  pub use ::std::{bool, u32, f32, io::IO, list::{List, String}};
 }

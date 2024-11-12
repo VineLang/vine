@@ -15,9 +15,9 @@ pub fn main(&io: &IO) {
 
 fn cycle[T](&list: &List[T], count: u32) {
   let len = list.len();
-  if len {
+  if len != 0 {
     count = count % len;
-    while count {
+    while count != 0 {
       let el = list.pop_front().unwrap();
       list.push_back(el);
       count -= 1;

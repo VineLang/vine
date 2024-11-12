@@ -60,7 +60,7 @@
   ::std::io::IO::print_bytes::1 = x(n0 x(n1 x(n2 n3)))
 }
 
-::std::io::IO::print_bytes::1 { x(n0 x(n1 x(dup42(?(::std::io::IO::print_bytes::3 ::std::io::IO::print_bytes::2 x(n0 x(n1 x(n3 n2)))) n3) n2))) }
+::std::io::IO::print_bytes::1 { x(n0 x(n1 x(dup40(?(::std::io::IO::print_bytes::3 ::std::io::IO::print_bytes::2 x(n0 x(n1 x(n3 n2)))) n3) n2))) }
 
 ::std::io::IO::print_bytes::2 {
   x(n1 x(n3 x(@sub(1 n4) tup(n0 n5))))

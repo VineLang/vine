@@ -8,10 +8,10 @@ pub fn main(&io: &IO) {
 }
 
 fn pretty_div(n: u32, d: u32) -> String {
-  let result = n / if d {
-    d
-  } else {
+  let result = n / if d == 0 {
     return "division by zero :O"
+  } else {
+    d
   };
   "|_ " ++ n.to_string() ++ " / " ++ d.to_string() ++ " _| = " ++ result.to_string()
 }

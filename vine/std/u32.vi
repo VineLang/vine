@@ -4,9 +4,9 @@ use std::{list::Buf, option::Option::{Option, Some, None}};
 #[builtin = "u32"]
 pub mod u32 {
   pub fn to_string(n: u32) -> String {
-    if n {
+    if n != 0 {
       let str = "";
-      while n {
+      while n != 0 {
         str = ['0' + n % 10] ++ str;
         n = n / 10;
       }
@@ -22,7 +22,7 @@ pub mod u32 {
       None
     } else {
       let num = 0;
-      while len {
+      while len != 0 {
         let Buf(char, tail) = chars;
         chars = tail;
         if !('0' <= char <= '9') {

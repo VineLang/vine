@@ -49,9 +49,9 @@
 
 ::primes::is_prime::9 { x(dup14(n1 n2) x(dup15(@mul(n3 @le(n1 ?(::primes::is_prime::15 ::primes::is_prime::10 x(n2 x(n4 n0))))) dup15(n3 n4)) n0)) }
 
-::primes::is_prime::10 { x(dup14(@rem(n2 @eq(0 ?(::primes::is_prime::14 ::primes::is_prime::11 x(n1 x(n3 n0))))) n1) x(dup15(n2 n3) n0)) }
+::primes::is_prime::10 { x(dup14(@rem(n2 ?(::primes::is_prime::12 ::primes::is_prime::14 x(n1 x(n3 n0)))) n1) x(dup15(n2 n3) n0)) }
 
-::primes::is_prime::11 {
+::primes::is_prime::12 {
   x(_ x(_ n0))
   ::std::result::Result::Ok = fn(0 n0)
 }

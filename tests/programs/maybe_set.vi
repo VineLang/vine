@@ -1,7 +1,7 @@
 
 pub fn main(&io: &IO) {
   let message = "original";
-  if 0 {
+  if 0 != 0 {
     message = "gone";
   }
   io.println(message);
