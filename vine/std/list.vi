@@ -24,7 +24,7 @@ pub mod List {
       ~cur = Buf(f(head), move ~next);
       ~next = move ~cur;
       l -= 1;
-    };
+    }
     List(len, result, move cur)
   }
 

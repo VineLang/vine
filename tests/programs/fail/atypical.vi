@@ -20,7 +20,7 @@ pub fn main[T, U](io: IO) {
   let x: T = 0;
   let x: U = x;
   let Ay::Yay = 0;
-  loop { break "x" } + 1;
+  (loop { break "x" } + 1);
   let &x: u32 = loop {};
   continue;
   break;
