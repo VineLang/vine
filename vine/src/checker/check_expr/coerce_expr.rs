@@ -18,13 +18,13 @@ impl<'core> Checker<'core, '_> {
       (Form::Place, Form::Space) => Self::set_expr(expr),
 
       (Form::Space, Form::Value) => {
-        expr.kind = ExprKind::Error(self.diags.add(Diag::ExpectedValueFoundSpaceExpr { span }));
+        expr.kind = ExprKind::Error(self.core.report(Diag::ExpectedValueFoundSpaceExpr { span }));
       }
       (Form::Space, Form::Place) => {
-        expr.kind = ExprKind::Error(self.diags.add(Diag::ExpectedPlaceFoundSpaceExpr { span }))
+        expr.kind = ExprKind::Error(self.core.report(Diag::ExpectedPlaceFoundSpaceExpr { span }))
       }
       (Form::Value, Form::Space) => {
-        expr.kind = ExprKind::Error(self.diags.add(Diag::ExpectedSpaceFoundValueExpr { span }));
+        expr.kind = ExprKind::Error(self.core.report(Diag::ExpectedSpaceFoundValueExpr { span }));
       }
     }
   }

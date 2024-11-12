@@ -85,7 +85,7 @@ impl<'core> Checker<'core, '_> {
       match self.state.vars[v].clone() {
         Ok(t) => *ty = t,
         Err(span) => {
-          let err = self.diags.add(Diag::CannotInfer { span });
+          let err = self.core.report(Diag::CannotInfer { span });
           *ty = Type::Error(err);
         }
       }

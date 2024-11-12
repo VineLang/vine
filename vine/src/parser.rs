@@ -1,12 +1,9 @@
 use std::{mem::transmute, path::PathBuf};
 
 use ivy::parser::IvyParser;
-use vine_util::{
-  interner::StringInterner,
-  parser::{Parser, ParserState},
-};
+use vine_util::parser::{Parser, ParserState};
 
-use crate::{diag::Diag, lexer::Token};
+use crate::{core::Core, diag::Diag, lexer::Token};
 
 use crate::ast::{
   Attr, AttrKind, BinaryOp, Block, Builtin, ComparisonOp, ConstItem, DynFnStmt, Enum, Expr,
@@ -15,13 +12,13 @@ use crate::ast::{
   UseItem, UseTree, Variant, Vis,
 };
 
-pub struct VineParser<'core, 'ctx, 'src> {
-  pub(crate) interner: &'ctx StringInterner<'core>,
+pub struct VineParser<'core, 'src> {
+  pub(crate) core: &'core Core<'core>,
   pub(crate) state: ParserState<'src, Token>,
   pub(crate) file: usize,
 }
 
-impl<'core, 'ctx, 'src> Parser<'src> for VineParser<'core, 'ctx, 'src> {
+impl<'core, 'src> Parser<'src> for VineParser<'core, 'src> {
   type Token = Token;
   type Error = Diag<'core>;
 
@@ -44,13 +41,13 @@ impl<'core, 'ctx, 'src> Parser<'src> for VineParser<'core, 'ctx, 'src> {
 
 type Parse<'core, T = ()> = Result<T, Diag<'core>>;
 
-impl<'core, 'ctx, 'src> VineParser<'core, 'ctx, 'src> {
+impl<'core, 'src> VineParser<'core, 'src> {
   pub fn parse(
-    interner: &'ctx StringInterner<'core>,
+    core: &'core Core<'core>,
     src: &'src str,
     file: usize,
   ) -> Parse<'core, Vec<Item<'core>>> {
-    let mut parser = VineParser { interner, state: ParserState::new(src), file };
+    let mut parser = VineParser { core, state: ParserState::new(src), file };
     parser.bump()?;
     let mut items = Vec::new();
     while parser.state.token.is_some() {
@@ -136,7 +133,7 @@ impl<'core, 'ctx, 'src> VineParser<'core, 'ctx, 'src> {
 
   fn parse_ident(&mut self) -> Parse<'core, Ident<'core>> {
     let token = self.expect(Token::Ident)?;
-    Ok(Ident(self.interner.intern(token)))
+    Ok(self.core.ident(token))
   }
 
   fn parse_num(&mut self) -> Parse<'core, ExprKind<'core>> {

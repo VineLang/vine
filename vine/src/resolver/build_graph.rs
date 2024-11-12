@@ -6,7 +6,8 @@ use crate::{
   ast::{
     AttrKind, Builtin, Expr, ExprKind, Ident, Item, ItemKind, ModKind, Path, Span, UseTree, Vis,
   },
-  diag::{Diag, DiagGroup},
+  core::Core,
+  diag::Diag,
   visit::{VisitMut, Visitee},
 };
 
@@ -95,7 +96,7 @@ impl<'core> Resolver<'core> {
       ItemKind::Use(u) => {
         Self::build_imports(
           self.use_id.next(),
-          &mut self.diags,
+          self.core,
           u.tree,
           &mut self.defs[parent],
           &mut Path { segments: Vec::new(), absolute: u.absolute, resolved: None },
@@ -110,7 +111,7 @@ impl<'core> Resolver<'core> {
           || child.variant_def.is_some()
           || child.value_def.is_some()
         {
-          self.diags.add(Diag::DuplicateItem { span, name: s.name });
+          self.core.report(Diag::DuplicateItem { span, name: s.name });
           return;
         }
         child.type_def = Some(TypeDef { vis, generics: s.generics.clone(), alias: None, ty: None });
@@ -136,7 +137,7 @@ impl<'core> Resolver<'core> {
       ItemKind::Enum(e) => {
         let child = self.get_or_insert_child(parent, e.name, member_vis);
         if child.type_def.is_some() || child.adt_def.is_some() {
-          self.diags.add(Diag::DuplicateItem { span, name: e.name });
+          self.core.report(Diag::DuplicateItem { span, name: e.name });
           return;
         }
         let adt = child.id;
@@ -147,7 +148,7 @@ impl<'core> Resolver<'core> {
           .filter_map(|(i, v)| {
             let variant = self.get_or_insert_child(adt, v.name, member_vis);
             if variant.variant_def.is_some() || variant.value_def.is_some() {
-              self.diags.add(Diag::DuplicateItem { span, name: v.name });
+              self.core.report(Diag::DuplicateItem { span, name: v.name });
               return None;
             }
             variant.variant_def = Some(VariantDef {
@@ -177,7 +178,7 @@ impl<'core> Resolver<'core> {
       ItemKind::Type(t) => {
         let child = self.get_or_insert_child(parent, t.name, member_vis);
         if child.type_def.is_some() || child.adt_def.is_some() {
-          self.diags.add(Diag::DuplicateItem { span, name: t.name });
+          self.core.report(Diag::DuplicateItem { span, name: t.name });
           return;
         }
         child.type_def =
@@ -191,12 +192,12 @@ impl<'core> Resolver<'core> {
       match attr.kind {
         AttrKind::Builtin(b) => {
           let Some(def_id) = def_id else {
-            self.diags.add(Diag::BadBuiltin { span });
+            self.core.report(Diag::BadBuiltin { span });
             continue;
           };
           let old = self.builtins.insert(b, def_id);
           if old.is_some() {
-            self.diags.add(Diag::BadBuiltin { span });
+            self.core.report(Diag::BadBuiltin { span });
           }
         }
       }
@@ -214,7 +215,7 @@ impl<'core> Resolver<'core> {
         {
           ancestor
         } else {
-          self.diags.add(Diag::BadVis { span });
+          self.core.report(Diag::BadVis { span });
           DefId::ROOT
         }
       }
@@ -231,7 +232,7 @@ impl<'core> Resolver<'core> {
   ) -> Option<DefId> {
     let child = self.get_or_insert_child(parent, name, vis);
     if child.value_def.is_some() {
-      self.diags.add(Diag::DuplicateItem { span, name });
+      self.core.report(Diag::DuplicateItem { span, name });
       return None;
     }
     let child = child.id;
@@ -278,7 +279,7 @@ impl<'core> Resolver<'core> {
 
   fn build_imports(
     use_id: UseId,
-    diags: &mut DiagGroup<'core>,
+    core: &Core<'core>,
     tree: UseTree<'core>,
     def: &mut Def<'core>,
     path: &mut Path<'core>,
@@ -288,7 +289,7 @@ impl<'core> Resolver<'core> {
     path.segments.extend(&tree.path.segments);
     if let Some(children) = tree.children {
       for child in children {
-        Self::build_imports(use_id, diags, child, def, path, vis);
+        Self::build_imports(use_id, core, child, def, path, vis);
       }
     } else {
       let name = *path.segments.last().unwrap();
@@ -296,7 +297,7 @@ impl<'core> Resolver<'core> {
       if let Entry::Vacant(e) = def.members.entry(name) {
         e.insert(Member { vis, kind: MemberKind::UnresolvedImport(tree.span, Some(path), use_id) });
       } else {
-        diags.add(Diag::DuplicateItem { span: tree.span, name });
+        core.report(Diag::DuplicateItem { span: tree.span, name });
       }
     }
     path.segments.truncate(initial_len);
@@ -347,7 +348,7 @@ struct SubitemVisitor<'core, 'a> {
 impl<'core> VisitMut<'core, '_> for SubitemVisitor<'core, '_> {
   fn visit_item(&mut self, item: &mut Item<'core>) {
     if !matches!(item.vis, Vis::Private) {
-      self.resolver.diags.add(Diag::VisibleSubitem { span: item.span });
+      self.resolver.core.report(Diag::VisibleSubitem { span: item.span });
     }
     self.resolver.build_item(self.def, take(item), self.def);
   }

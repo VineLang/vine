@@ -29,7 +29,7 @@ impl<'core> Checker<'core, '_> {
           for arg in args {
             self.check_expr_form(arg, Form::Value);
           }
-          let err = self.diags.add(e);
+          let err = self.core.report(e);
           (ExprKind::Error(err), Type::Error(err))
         }
       }
@@ -40,7 +40,7 @@ impl<'core> Checker<'core, '_> {
           for arg in args {
             self.check_expr_form(arg, Form::Value);
           }
-          let err = self.diags.add(e);
+          let err = self.core.report(e);
           (ExprKind::Error(err), Type::Error(err))
         }
       }

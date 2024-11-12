@@ -90,7 +90,7 @@ impl<'core> Checker<'core, '_> {
     let adt = &self.resolver.defs[adt_id];
     let adt_def = adt.adt_def.as_ref().unwrap();
     if !refutable && adt_def.variants.len() > 1 {
-      self.diags.add(Diag::ExpectedIrrefutablePat { span });
+      self.core.report(Diag::ExpectedIrrefutablePat { span });
     }
     let generic_count = adt_def.generics.len();
     Self::check_generic_count(span, variant, path, generic_count)?;

@@ -13,14 +13,15 @@ use ivm::{
 use ivy::{ast::Tree, host::Host};
 use vine_util::{
   idx::{Counter, IdxVec, IntMap, RangeExt},
-  interner::StringInterner,
   parser::{Parser, ParserState},
 };
 
 use crate::{
-  ast::{Block, Expr, ExprKind, Ident, Local, Span},
+  ast::{Block, Expr, ExprKind, Ident, Local, Span, Stmt},
   checker::{self, Checker, CheckerState, Type},
+  core::Core,
   desugar::Desugar,
+  diag::Diag,
   emitter::Emitter,
   loader::Loader,
   parser::VineParser,
@@ -31,8 +32,8 @@ use crate::{
 pub struct Repl<'core, 'ctx, 'ivm> {
   host: &'ivm mut Host<'ivm>,
   ivm: &'ctx mut IVM<'ivm>,
-  interner: &'ctx StringInterner<'core>,
-  loader: Loader<'core, 'ctx>,
+  core: &'core Core<'core>,
+  loader: Loader<'core>,
   resolver: Resolver<'core>,
   repl_mod: DefId,
   line: usize,
@@ -51,29 +52,27 @@ impl<'core, 'ctx, 'ivm> Repl<'core, 'ctx, 'ivm> {
   pub fn new(
     mut host: &'ivm mut Host<'ivm>,
     ivm: &'ctx mut IVM<'ivm>,
-    interner: &'ctx StringInterner<'core>,
+    core: &'core Core<'core>,
     libs: Vec<PathBuf>,
   ) -> Result<Self, String> {
-    let mut loader = Loader::new(interner);
+    let mut loader = Loader::new(core);
     for lib in libs {
       loader.load_mod(lib);
     }
 
-    loader.diags.report(&loader.files)?;
+    core.bail()?;
 
-    let mut resolver = Resolver::default();
+    let mut resolver = Resolver::new(core);
     resolver.build_graph(loader.finish());
     resolver.resolve_imports();
     resolver.resolve_defs();
 
-    resolver.diags.report(&loader.files)?;
+    let repl_mod = resolver.get_or_insert_child(DefId::ROOT, core.ident("repl"), DefId::ROOT).id;
 
-    let repl_mod =
-      resolver.get_or_insert_child(DefId::ROOT, Ident(interner.intern("repl")), DefId::ROOT).id;
-
-    let mut checker = Checker::new(&mut resolver);
+    let mut checker = Checker::new(core, &mut resolver);
     checker.check_defs();
-    checker.diags.report(&loader.files)?;
+
+    core.bail()?;
 
     Desugar.visit(resolver.defs.values_mut());
 
@@ -81,7 +80,7 @@ impl<'core, 'ctx, 'ivm> Repl<'core, 'ctx, 'ivm> {
     emitter.emit_all();
     host.insert_nets(&emitter.nets);
 
-    let io = Ident(interner.intern("io"));
+    let io = core.ident("io");
     let vars = HashMap::from([(io, Var { local: Local(0), value: Port::new_ext_val(ExtVal::IO) })]);
     let locals = BTreeMap::from([(Local(0), io)]);
 
@@ -94,7 +93,7 @@ impl<'core, 'ctx, 'ivm> Repl<'core, 'ctx, 'ivm> {
     Ok(Repl {
       host,
       ivm,
-      interner,
+      core,
       loader,
       resolver,
       repl_mod,
@@ -107,17 +106,18 @@ impl<'core, 'ctx, 'ivm> Repl<'core, 'ctx, 'ivm> {
   }
 
   pub fn exec(&mut self, line: &str) -> Result<Option<String>, String> {
-    let file = self.loader.add_file("input".to_string(), line);
-    let mut parser = VineParser { interner: self.interner, state: ParserState::new(line), file };
-    parser.bump().map_err(|d| d.report(&self.loader.files))?;
-    let mut stmts = Vec::new();
-    while parser.state.token.is_some() {
-      stmts.push(parser.parse_stmt().map_err(|d| d.report(&self.loader.files))?);
-    }
+    let mut stmts = match self.parse_line(line) {
+      Ok(stmts) => stmts,
+      Err(diag) => {
+        self.core.report(diag);
+        self.core.bail()?;
+        unreachable!()
+      }
+    };
 
     self.loader.load_deps(".".as_ref(), &mut stmts);
 
-    if let Err(e) = self.loader.diags.report(&self.loader.files) {
+    if let Err(e) = self.core.bail() {
       self.loader.finish();
       return Err(e);
     }
@@ -134,7 +134,7 @@ impl<'core, 'ctx, 'ivm> Repl<'core, 'ctx, 'ivm> {
 
     self.resolver._resolve_imports(new_defs.iter().chain([self.repl_mod]));
 
-    if let Err(e) = self.resolver.diags.report(&self.loader.files) {
+    if let Err(e) = self.core.bail() {
       self.resolver.revert(new_defs.start, new_uses);
       return Err(e);
     }
@@ -152,10 +152,10 @@ impl<'core, 'ctx, 'ivm> Repl<'core, 'ctx, 'ivm> {
 
     let mut block = Block { span: Span::NONE, stmts };
 
-    let mut checker = Checker::new(&mut self.resolver);
+    let mut checker = Checker::new(self.core, &mut self.resolver);
     checker._check_defs(new_defs.clone());
     let state = checker._check_custom(self.checker_state.clone(), &mut block);
-    checker.diags.report(&self.loader.files)?;
+    self.core.bail()?;
     self.checker_state = state;
 
     Desugar.visit(&mut block);
@@ -208,6 +208,17 @@ impl<'core, 'ctx, 'ivm> Repl<'core, 'ctx, 'ivm> {
     self.ivm.normalize();
 
     Ok(output)
+  }
+
+  fn parse_line(&mut self, line: &str) -> Result<Vec<Stmt<'core>>, Diag<'core>> {
+    let file = self.loader.add_file("input".to_string(), line);
+    let mut parser = VineParser { core: self.core, state: ParserState::new(line), file };
+    parser.bump()?;
+    let mut stmts = Vec::new();
+    while parser.state.token.is_some() {
+      stmts.push(parser.parse_stmt()?);
+    }
+    Ok(stmts)
   }
 }
 

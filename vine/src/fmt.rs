@@ -1,5 +1,3 @@
-use vine_util::interner::StringInterner;
-
 mod doc;
 use doc::{Doc, Writer};
 
@@ -8,23 +6,26 @@ use crate::{
     Block, ComparisonOp, Expr, ExprKind, GenericPath, Ident, Item, ItemKind, LogicalOp, ModKind,
     Pat, PatKind, Path, Span, Stmt, StmtKind, Ty, TyKind, UseTree, Vis,
   },
+  core::Core,
   diag::Diag,
   parser::VineParser,
 };
 
-pub fn fmt<'core>(interner: &StringInterner<'core>, src: &str) -> Result<String, Diag<'core>> {
-  let ast = VineParser::parse(interner, src, 0)?;
-  let fmt = Formatter { src };
-  let doc = Doc::concat([
-    Doc::LINE,
-    fmt.line_break_separated(
-      Span { file: 0, start: 0, end: src.len() },
-      ast.iter().map(|x| (x.span, fmt.fmt_item(x))),
-    ),
-  ]);
-  let mut writer = Writer::default();
-  writer.write_doc(&doc, false);
-  Ok(writer.out)
+impl<'core> Core<'core> {
+  pub fn fmt(&'core self, src: &str) -> Result<String, Diag<'core>> {
+    let ast = VineParser::parse(self, src, 0)?;
+    let fmt = Formatter { src };
+    let doc = Doc::concat([
+      Doc::LINE,
+      fmt.line_break_separated(
+        Span { file: 0, start: 0, end: src.len() },
+        ast.iter().map(|x| (x.span, fmt.fmt_item(x))),
+      ),
+    ]);
+    let mut writer = Writer::default();
+    writer.write_doc(&doc, false);
+    Ok(writer.out)
+  }
 }
 
 struct Formatter<'src> {

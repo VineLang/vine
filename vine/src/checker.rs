@@ -11,7 +11,8 @@ use vine_util::{
 
 use crate::{
   ast::{Block, Builtin, DynFnId, ExprKind, GenericPath, Ident, Local, Span, StmtKind, Ty, TyKind},
-  diag::{report, Diag, DiagGroup, ErrorGuaranteed},
+  core::Core,
+  diag::{report, Diag, ErrorGuaranteed},
   resolver::{DefId, Resolver, TypeDef, ValueDefKind},
 };
 
@@ -23,7 +24,7 @@ mod unify;
 
 #[derive(Debug)]
 pub struct Checker<'core, 'r> {
-  pub diags: DiagGroup<'core>,
+  core: &'core Core<'core>,
   resolver: &'r mut Resolver<'core>,
   state: CheckerState,
   generics: Vec<Ident<'core>>,
@@ -47,8 +48,7 @@ pub(crate) struct CheckerState {
 }
 
 impl<'core, 'r> Checker<'core, 'r> {
-  pub fn new(resolver: &'r mut Resolver<'core>) -> Self {
-    let diags = DiagGroup::default();
+  pub fn new(core: &'core Core<'core>, resolver: &'r mut Resolver<'core>) -> Self {
     let u32 = resolver.builtins.get(&Builtin::U32).copied();
     let f32 = resolver.builtins.get(&Builtin::F32).copied();
     let io = resolver.builtins.get(&Builtin::IO).copied();
@@ -59,7 +59,7 @@ impl<'core, 'r> Checker<'core, 'r> {
     let string = list.map(|x| Type::Adt(x, vec![Type::U32]));
     let concat = resolver.builtins.get(&Builtin::Concat).copied();
     Checker {
-      diags,
+      core,
       resolver,
       state: CheckerState::default(),
       generics: Vec::new(),
@@ -164,7 +164,7 @@ impl<'core, 'r> Checker<'core, 'r> {
   fn check_block_type(&mut self, block: &mut Block<'core>, ty: &mut Type) {
     let mut found = self.check_block(block);
     if !self.unify(&mut found, ty) {
-      self.diags.add(Diag::ExpectedTypeFound {
+      self.core.report(Diag::ExpectedTypeFound {
         span: block.span,
         expected: self.display_type(ty),
         found: self.display_type(&found),
@@ -177,7 +177,7 @@ impl<'core, 'r> Checker<'core, 'r> {
     match &mut ty.kind {
       TyKind::Hole if inference => self.new_var(span),
       TyKind::Paren(t) => self.hydrate_type(t, inference),
-      TyKind::Hole => Type::Error(self.diags.add(Diag::ItemTypeHole { span })),
+      TyKind::Hole => Type::Error(self.core.report(Diag::ItemTypeHole { span })),
       TyKind::Fn(args, ret) => Type::Fn(
         args.iter_mut().map(|arg| self.hydrate_type(arg, inference)).collect(),
         Box::new(ret.as_mut().map(|ret| self.hydrate_type(ret, inference)).unwrap_or(Type::UNIT)),
@@ -188,7 +188,7 @@ impl<'core, 'r> Checker<'core, 'r> {
       TyKind::Ref(t) => Type::Ref(Box::new(self.hydrate_type(t, inference))),
       TyKind::Inverse(t) => Type::Inverse(Box::new(self.hydrate_type(t, inference))),
       TyKind::Path(path) => {
-        report!(self.diags, ty.kind; self.typeof_type_def(path, inference))
+        report!(self.core, ty.kind; self.typeof_type_def(path, inference))
       }
       TyKind::Generic(n) => Type::Opaque(*n),
       TyKind::Error(e) => Type::Error(*e),
@@ -233,7 +233,9 @@ impl<'core, 'r> Checker<'core, 'r> {
                 .iter_mut()
                 .map(|(pat, ty)| match ty {
                   Some(ty) => self.hydrate_type(ty, false),
-                  None => Type::Error(self.diags.add(Diag::FnItemUntypedParam { span: pat.span })),
+                  None => {
+                    Type::Error(self.core.report(Diag::FnItemUntypedParam { span: pat.span }))
+                  }
                 })
                 .collect(),
               Box::new(ret.as_mut().map(|r| self.hydrate_type(r, false)).unwrap_or(Type::UNIT)),

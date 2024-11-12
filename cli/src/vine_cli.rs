@@ -11,8 +11,10 @@ use clap::{Args, Parser};
 use ivm::{heap::Heap, IVM};
 use ivy::{ast::Nets, host::Host};
 use rustyline::DefaultEditor;
-use vine::{fmt::fmt, repl::Repl};
-use vine_util::{arena::BytesArena, interner::StringInterner};
+use vine::{
+  core::{Core, CoreArenas},
+  repl::Repl,
+};
 
 use super::{Optimizations, RunArgs};
 
@@ -133,9 +135,9 @@ impl VineReplCommand {
     let host = &mut Host::default();
     let heap = Heap::new();
     let mut ivm = IVM::new(&heap);
-    let arena = &BytesArena::default();
-    let interner = StringInterner::new(arena);
-    let mut repl = match Repl::new(host, &mut ivm, &interner, self.libs) {
+    let arenas = CoreArenas::default();
+    let core = &Core::new(&arenas);
+    let mut repl = match Repl::new(host, &mut ivm, core, self.libs) {
       Ok(repl) => repl,
       Err(err) => {
         eprintln!("{err}");
@@ -168,9 +170,9 @@ impl VineFmtCommand {
   pub fn execute(self) -> Result<()> {
     let mut src = String::new();
     stdin().read_to_string(&mut src)?;
-    let arena = &BytesArena::default();
-    let interner = StringInterner::new(arena);
-    println!("{}", fmt(&interner, &src).unwrap());
+    let arenas = CoreArenas::default();
+    let core = &Core::new(&arenas);
+    println!("{}", core.fmt(&src).unwrap());
     Ok(())
   }
 }

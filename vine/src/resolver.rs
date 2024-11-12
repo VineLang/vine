@@ -9,19 +9,30 @@ use vine_util::{
 use crate::{
   ast::{Builtin, Expr, Ident, Local, Path, Span, Ty},
   checker::Type,
-  diag::DiagGroup,
+  core::Core,
 };
 
 mod build_graph;
 mod resolve_defs;
 mod resolve_path;
 
-#[derive(Debug, Default)]
+#[derive(Debug)]
 pub struct Resolver<'core> {
+  pub core: &'core Core<'core>,
   pub defs: IdxVec<DefId, Def<'core>>,
-  pub diags: DiagGroup<'core>,
   pub use_id: Counter<UseId>,
   pub builtins: HashMap<Builtin, DefId>,
+}
+
+impl<'core> Resolver<'core> {
+  pub fn new(core: &'core Core<'core>) -> Self {
+    Resolver {
+      core,
+      defs: Default::default(),
+      use_id: Default::default(),
+      builtins: Default::default(),
+    }
+  }
 }
 
 new_idx!(pub DefId);

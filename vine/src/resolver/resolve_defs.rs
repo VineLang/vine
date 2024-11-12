@@ -180,7 +180,7 @@ impl<'core> VisitMut<'core, '_> for ResolveVisitor<'core, '_> {
         };
 
       let (Some(ident), None) = (path.path.as_ident(), children) else {
-        pat.kind = PatKind::Error(self.resolver.diags.add(non_local_err));
+        pat.kind = PatKind::Error(self.resolver.core.report(non_local_err));
         return;
       };
       let local = self.locals.next();
@@ -228,7 +228,7 @@ impl<'core> VisitMut<'core, '_> for ResolveVisitor<'core, '_> {
         };
         self._visit_expr(expr);
         if let Err(diag) = result {
-          expr.kind = ExprKind::Error(self.resolver.diags.add(diag));
+          expr.kind = ExprKind::Error(self.resolver.core.report(diag));
         }
       }
     }
@@ -245,7 +245,7 @@ impl<'core> VisitMut<'core, '_> for ResolveVisitor<'core, '_> {
         }
       }
       if let Err(diag) = self.visit_path(path) {
-        ty.kind = TyKind::Error(self.resolver.diags.add(diag));
+        ty.kind = TyKind::Error(self.resolver.core.report(diag));
       }
     }
     self._visit_type(ty);

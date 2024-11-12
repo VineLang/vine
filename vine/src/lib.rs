@@ -1,4 +1,5 @@
 pub mod ast;
+pub mod core;
 pub mod desugar;
 pub mod diag;
 pub mod emitter;
@@ -12,12 +13,11 @@ pub mod visit;
 mod checker;
 mod lexer;
 
+use core::{Core, CoreArenas};
 use std::path::PathBuf;
 
 use checker::Checker;
-use diag::DiagGroup;
 use ivy::ast::Nets;
-use vine_util::{arena::BytesArena, interner::StringInterner};
 
 use crate::{desugar::Desugar, emitter::emit, loader::Loader, resolver::Resolver, visit::VisitMut};
 
@@ -28,34 +28,30 @@ pub struct Config {
 }
 
 pub fn compile(config: Config) -> Result<Nets, String> {
-  let arena = &BytesArena::default();
-  let interner = StringInterner::new(arena);
-  let mut diags = DiagGroup::default();
+  let arenas = CoreArenas::default();
+  let core = &Core::new(&arenas);
 
-  let mut loader = Loader::new(&interner);
+  let mut loader = Loader::new(core);
   if let Some(main) = config.main {
     loader.load_main_mod(main);
   }
   for lib in config.libs {
     loader.load_mod(lib);
   }
-  diags.add_all(&mut loader.diags);
 
-  diags.report(&loader.files)?;
+  core.bail()?;
 
   let root = loader.finish();
 
-  let mut resolver = Resolver::default();
+  let mut resolver = Resolver::new(core);
   resolver.build_graph(root);
   resolver.resolve_imports();
   resolver.resolve_defs();
-  diags.add_all(&mut resolver.diags);
 
-  let mut checker = Checker::new(&mut resolver);
+  let mut checker = Checker::new(core, &mut resolver);
   checker.check_defs();
-  diags.add_all(&mut checker.diags);
 
-  diags.report(&loader.files)?;
+  core.bail()?;
 
   Desugar.visit(resolver.defs.values_mut());
 

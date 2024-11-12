@@ -60,7 +60,7 @@ impl<'core> Resolver<'core> {
               Some((base, vis, resolved))
             }
             Err(diag) => {
-              self.diags.add(diag);
+              self.core.report(diag);
               None
             }
           }

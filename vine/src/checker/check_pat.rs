@@ -31,7 +31,7 @@ impl<'core> Checker<'core, '_> {
   ) {
     let mut found = self.check_pat(pat, form, refutable);
     if !self.unify(&mut found, ty) {
-      self.diags.add(Diag::ExpectedTypeFound {
+      self.core.report(Diag::ExpectedTypeFound {
         span: pat.span,
         expected: self.display_type(ty),
         found: self.display_type(&found),
@@ -48,7 +48,7 @@ impl<'core> Checker<'core, '_> {
       (PatKind::Paren(p), _) => self.check_pat(p, form, refutable),
 
       (PatKind::Adt(path, fields), _) => {
-        report!(self.diags, pat.kind; self.check_adt_pat(span, path, fields, form, refutable))
+        report!(self.core, pat.kind; self.check_adt_pat(span, path, fields, form, refutable))
       }
 
       (PatKind::Hole, _) => self.new_var(span),
@@ -73,17 +73,17 @@ impl<'core> Checker<'core, '_> {
       }
 
       (PatKind::Ref(pat), Form::Space) => {
-        let err = self.diags.add(Diag::RefSpacePat { span });
+        let err = self.core.report(Diag::RefSpacePat { span });
         pat.kind = PatKind::Error(err);
         Type::Error(err)
       }
       (PatKind::Deref(pat), _) => {
-        let err = self.diags.add(Diag::DerefNonPlacePat { span });
+        let err = self.core.report(Diag::DerefNonPlacePat { span });
         pat.kind = PatKind::Error(err);
         Type::Error(err)
       }
       (PatKind::Move(_), _) => {
-        let err = self.diags.add(Diag::MoveNonPlacePat { span });
+        let err = self.core.report(Diag::MoveNonPlacePat { span });
         pat.kind = PatKind::Error(err);
         Type::Error(err)
       }

@@ -1,15 +1,14 @@
 use std::{
   fmt::{self, Display, Write},
   io,
-  mem::take,
   path::PathBuf,
-  slice,
 };
 
 use vine_util::lexer::TokenSet;
 
 use crate::{
   ast::{BinaryOp, Ident, Path, Span},
+  core::Core,
   lexer::Token,
 };
 
@@ -21,16 +20,14 @@ macro_rules! diags {
     #[derive(Debug)]
     pub enum Diag<'core> {
       $( $name { span: Span, $($($field: $ty),*)? },)*
-      Group(Vec<Diag<'core>>),
       Guaranteed(ErrorGuaranteed),
     }
 
     impl<'core> Diag<'core> {
-      fn span(&self) -> Result<Span, &[Diag<'core>]> {
+      fn span(&self) -> Option<Span> {
         match self {
-          $( Self::$name { span, .. } => Ok(*span), )*
-          Diag::Group(diags) => Err(diags),
-          Diag::Guaranteed(_) => Err(&[]),
+          $( Self::$name { span, .. } => Some(*span), )*
+          Diag::Guaranteed(_) => None,
         }
       }
     }
@@ -39,7 +36,6 @@ macro_rules! diags {
       fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
           $( Self::$name { span: _, $($($field),*)? } => write!(f, $($fmt)*),)*
-          Diag::Group(_) => unreachable!(),
           Diag::Guaranteed(_) => unreachable!(),
         }
       }
@@ -156,61 +152,33 @@ fn plural<'a>(n: usize, plural: &'a str, singular: &'a str) -> &'a str {
   }
 }
 
-#[derive(Default, Debug)]
-pub struct DiagGroup<'core> {
-  diags: Vec<Diag<'core>>,
-}
-
-impl<'core> DiagGroup<'core> {
-  pub(crate) fn add(&mut self, diag: Diag<'core>) -> ErrorGuaranteed {
-    self.diags.push(diag);
+impl<'core> Core<'core> {
+  pub(crate) fn report(&self, diag: Diag<'core>) -> ErrorGuaranteed {
+    self.diags.borrow_mut().push(diag);
     ErrorGuaranteed(())
   }
 
-  pub fn add_all(&mut self, diags: &mut DiagGroup<'core>) {
-    self.diags.append(&mut diags.diags);
-  }
-
-  pub fn ok(&mut self) -> Result<(), Diag> {
-    if self.diags.is_empty() {
+  pub fn bail(&self) -> Result<(), String> {
+    let mut diags = self.diags.borrow_mut();
+    let files = self.files.borrow();
+    if diags.is_empty() {
       Ok(())
     } else {
-      Err(Diag::Group(take(&mut self.diags)))
-    }
-  }
-
-  pub fn report(&mut self, files: &[FileInfo]) -> Result<(), String> {
-    if self.diags.is_empty() {
-      Ok(())
-    } else {
-      let mut str = String::new();
-      Self::_report(&self.diags, files, &mut str);
-      str.pop();
-      self.diags.clear();
-      Err(str)
-    }
-  }
-
-  fn _report(diags: &[Diag], files: &[FileInfo], err: &mut String) {
-    for diag in diags {
-      match diag.span() {
-        Ok(Span::NONE) => writeln!(err, "error - {}", diag).unwrap(),
-        Ok(span) => {
-          let file = &files[span.file];
-          writeln!(err, "error {} - {}", file.get_pos(span.start), diag).unwrap();
+      let mut err = String::new();
+      for diag in diags.iter() {
+        match diag.span() {
+          Some(Span::NONE) => writeln!(err, "error - {}", diag).unwrap(),
+          Some(span) => {
+            let file = &files[span.file];
+            writeln!(err, "error {} - {}", file.get_pos(span.start), diag).unwrap();
+          }
+          None => {}
         }
-        Err(diags) => Self::_report(diags, files, err),
       }
+      err.pop();
+      diags.clear();
+      Err(err)
     }
-  }
-}
-
-impl Diag<'_> {
-  pub fn report(&self, files: &[FileInfo]) -> String {
-    let mut str = String::new();
-    DiagGroup::_report(slice::from_ref(self), files, &mut str);
-    str.pop();
-    str
   }
 }
 
@@ -272,7 +240,7 @@ macro_rules! report {
     match $result {
       Ok(value) => value,
       Err(diag) => {
-        let err = $group.add(diag);
+        let err = $group.report(diag);
         $($target = err.into();)*
         return err.into();
       }
