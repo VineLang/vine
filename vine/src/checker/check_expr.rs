@@ -9,11 +9,11 @@ use super::report;
 mod check_method;
 mod coerce_expr;
 
-impl Checker<'_> {
-  pub(super) fn check_expr_form_type(&mut self, expr: &mut Expr, form: Form, ty: &mut Type) {
+impl<'core> Checker<'core, '_> {
+  pub(super) fn check_expr_form_type(&mut self, expr: &mut Expr<'core>, form: Form, ty: &mut Type) {
     let mut found = self.check_expr_form(expr, form);
     if !self.unify(&mut found, ty) {
-      self.diags.add(Diag::ExpectedTypeFound {
+      self.core.report(Diag::ExpectedTypeFound {
         span: expr.span,
         expected: self.display_type(ty),
         found: self.display_type(&found),
@@ -21,13 +21,13 @@ impl Checker<'_> {
     }
   }
 
-  pub(super) fn check_expr_form(&mut self, expr: &mut Expr, form: Form) -> Type {
+  pub(super) fn check_expr_form(&mut self, expr: &mut Expr<'core>, form: Form) -> Type {
     let (found, ty) = self.check_expr(expr);
     self.coerce_expr(expr, found, form);
     ty
   }
 
-  pub(super) fn check_expr(&mut self, expr: &mut Expr) -> (Form, Type) {
+  pub(super) fn check_expr(&mut self, expr: &mut Expr<'core>) -> (Form, Type) {
     let span = expr.span;
     match &mut expr.kind {
       ExprKind![synthetic] => unreachable!(),
@@ -39,11 +39,7 @@ impl Checker<'_> {
       ExprKind::Hole => (Form::Space, self.new_var(span)),
       ExprKind::Local(l) => (
         Form::Place,
-        Type::Var(*self.state.locals.entry(*l).or_insert_with(|| {
-          let v = self.state.vars.len();
-          self.state.vars.push(Err(span));
-          v
-        })),
+        Type::Var(*self.state.locals.entry(*l).or_insert_with(|| self.state.vars.push(Err(span)))),
       ),
       ExprKind::Deref(_) => todo!(),
       ExprKind::Inverse(expr) => {
@@ -75,12 +71,12 @@ impl Checker<'_> {
     }
   }
 
-  fn _check_expr_value(&mut self, expr: &mut Expr) -> Type {
+  fn _check_expr_value(&mut self, expr: &mut Expr<'core>) -> Type {
     let span = expr.span;
     match &mut expr.kind {
       ExprKind![error || place || space || synthetic] => unreachable!(),
       ExprKind::DynFn(x) => self.state.dyn_fns[x].clone(),
-      ExprKind::Path(path) => report!(self.diags, expr.kind; self.typeof_value_def(path)),
+      ExprKind::Path(path) => report!(self.core, expr.kind; self.typeof_value_def(path)),
       ExprKind::Block(block) => self.check_block(block),
       ExprKind::Assign(space, value) => {
         let mut ty = self.check_expr_form(space, Form::Space);
@@ -101,7 +97,7 @@ impl Checker<'_> {
         let mut then = self.check_block(then);
         let mut els = self.check_expr_form(els, Form::Value);
         if !self.unify(&mut then, &mut els) {
-          Type::Error(self.diags.add(Diag::MismatchedThenElseTypes {
+          Type::Error(self.core.report(Diag::MismatchedThenElseTypes {
             span,
             then: self.display_type(&then),
             els: self.display_type(&els),
@@ -147,10 +143,10 @@ impl Checker<'_> {
           if let Some(e) = e {
             self.check_expr_form_type(e, Form::Value, &mut ty);
           } else if !self.unify(&mut ty, &mut { Type::UNIT }) {
-            self.diags.add(Diag::MissingBreakExpr { span, ty: self.display_type(&ty) });
+            self.core.report(Diag::MissingBreakExpr { span, ty: self.display_type(&ty) });
           }
         } else {
-          self.diags.add(Diag::NoLoopBreak { span });
+          self.core.report(Diag::NoLoopBreak { span });
         }
         self.new_var(span)
       }
@@ -160,16 +156,16 @@ impl Checker<'_> {
           if let Some(e) = e {
             self.check_expr_form_type(e, Form::Value, &mut ty);
           } else if !self.unify(&mut ty, &mut { Type::UNIT }) {
-            self.diags.add(Diag::MissingReturnExpr { span, ty: self.display_type(&ty) });
+            self.core.report(Diag::MissingReturnExpr { span, ty: self.display_type(&ty) });
           }
         } else {
-          self.diags.add(Diag::NoReturn { span });
+          self.core.report(Diag::NoReturn { span });
         }
         self.new_var(span)
       }
       ExprKind::Continue => {
         if self.loop_ty.is_none() {
-          self.diags.add(Diag::NoLoopContinue { span });
+          self.core.report(Diag::NoLoopContinue { span });
         }
         self.new_var(span)
       }
@@ -186,7 +182,7 @@ impl Checker<'_> {
         if let Some(list) = self.list {
           Type::Adt(list, vec![item])
         } else {
-          Type::Error(self.diags.add(Diag::MissingBuiltin { span, builtin: "List" }))
+          Type::Error(self.core.report(Diag::MissingBuiltin { span, builtin: "List" }))
         }
       }
       ExprKind::Method(receiver, path, args) => {
@@ -237,7 +233,7 @@ impl Checker<'_> {
               | (Type::Error(_), _)
               | (_, Type::Error(_))
           ) {
-            self.diags.add(Diag::CannotCompare {
+            self.core.report(Diag::CannotCompare {
               span,
               lhs: self.display_type(&lhs),
               rhs: self.display_type(&rhs),
@@ -250,13 +246,18 @@ impl Checker<'_> {
       ExprKind::U32(_) => Type::U32,
       ExprKind::F32(_) => Type::F32,
       ExprKind::String(_) => {
-        report!(self.diags; self.string.clone().ok_or(Diag::MissingBuiltin { span, builtin: "List" }))
+        report!(self.core; self.string.clone().ok_or(Diag::MissingBuiltin { span, builtin: "List" }))
       }
       ExprKind::For(..) => todo!(),
     }
   }
 
-  fn check_call(&mut self, func: &mut Box<Expr>, args: &mut Vec<Expr>, span: Span) -> Type {
+  fn check_call(
+    &mut self,
+    func: &mut Box<Expr<'core>>,
+    args: &mut Vec<Expr<'core>>,
+    span: Span,
+  ) -> Type {
     let ty = self.check_expr_form(func, Form::Value);
     match self.fn_sig(span, ty, args.len()) {
       Ok((params, ret)) => {
@@ -269,12 +270,17 @@ impl Checker<'_> {
         for arg in args {
           self.check_expr_form(arg, Form::Value);
         }
-        Type::Error(self.diags.add(e))
+        Type::Error(self.core.report(e))
       }
     }
   }
 
-  fn fn_sig(&mut self, span: Span, mut ty: Type, args: usize) -> Result<(Vec<Type>, Type), Diag> {
+  fn fn_sig(
+    &mut self,
+    span: Span,
+    mut ty: Type,
+    args: usize,
+  ) -> Result<(Vec<Type>, Type), Diag<'core>> {
     self.concretize(&mut ty);
     match ty {
       Type::Fn(params, ret) => {
@@ -306,7 +312,7 @@ impl Checker<'_> {
       BinaryOp::Range | BinaryOp::RangeTo => todo!(),
       BinaryOp::Concat => {
         if self.concat.is_none() {
-          return Type::Error(self.diags.add(Diag::MissingBuiltin { span, builtin: "concat" }));
+          return Type::Error(self.core.report(Diag::MissingBuiltin { span, builtin: "concat" }));
         }
         self.concretize(&mut a);
         self.concretize(&mut b);
@@ -326,7 +332,7 @@ impl Checker<'_> {
     }
     let diag =
       Diag::BadBinOp { span, op, assign, lhs: self.display_type(&a), rhs: self.display_type(&b) };
-    Type::Error(self.diags.add(diag))
+    Type::Error(self.core.report(diag))
   }
 
   fn _check_bin_op(

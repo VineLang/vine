@@ -3,11 +3,15 @@ use std::collections::{BTreeMap, BTreeSet, HashMap, VecDeque};
 use bitflags::bitflags;
 
 use ivy::ast::Nets;
-use vine_util::bicycle::BicycleState;
+use vine_util::{
+  bicycle::BicycleState,
+  idx::{Counter, IdxVec},
+  new_idx,
+};
 
 use crate::{
-  ast::{Builtin, Expr},
-  resolve::{Def, Resolver, ValueDefKind},
+  ast::{Builtin, DynFnId, Expr, Local},
+  resolver::{Def, DefId, Resolver, ValueDefKind},
 };
 
 mod build_stages;
@@ -18,56 +22,56 @@ mod net_builder;
 
 use net_builder::*;
 
-pub fn compile(resolver: &Resolver, items: &[String]) -> Nets {
-  let mut compiler = Compiler::new(resolver);
+pub fn emit(resolver: &Resolver, items: &[String]) -> Nets {
+  let mut emitter = Emitter::new(resolver);
 
   if items.is_empty() {
-    compiler.compile_all();
+    emitter.emit_all();
   } else {
-    for def in &resolver.defs {
+    for def in resolver.defs.values() {
       let canonical = &def.canonical.to_string()[2..];
       if items.iter().any(|x| x == canonical) {
-        compiler.compile_def(def);
+        emitter.emit_def(def);
       }
     }
   }
 
-  compiler.nets
+  emitter.nets
 }
 
-#[derive(Debug, Default)]
-pub struct Compiler<'d> {
+#[derive(Debug)]
+pub struct Emitter<'core, 'd> {
   pub nets: Nets,
 
-  defs: &'d [Def],
+  defs: &'d IdxVec<DefId, Def<'core>>,
 
   name: String,
-  interfaces: Vec<Interface>,
-  stages: Vec<Stage>,
+  interfaces: IdxVec<InterfaceId, Interface>,
+  stages: IdxVec<StageId, Stage>,
   cur: Stage,
   cur_id: StageId,
-  local_count: usize,
+  locals: Counter<Local>,
 
-  forks: Vec<Fork>,
+  forks: IdxVec<ForkId, Fork>,
 
   net: NetBuilder,
 
   return_target: Option<(Local, ForkId)>,
   loop_target: Option<(Local, ForkId, StageId)>,
 
-  dyn_fns: HashMap<usize, (Local, StageId)>,
+  dyn_fns: HashMap<DynFnId, (Local, StageId)>,
 
   dup_labels: usize,
 
   concat: Option<String>,
 }
 
-impl<'d> Compiler<'d> {
-  pub fn new(resolver: &'d Resolver) -> Self {
+impl<'core, 'd> Emitter<'core, 'd> {
+  pub fn new(resolver: &'d Resolver<'core>) -> Self {
     let concat =
       resolver.builtins.get(&Builtin::Concat).map(|&d| resolver.defs[d].canonical.to_string());
     let defs = &resolver.defs;
-    Compiler {
+    Emitter {
       nets: Default::default(),
       defs,
       name: Default::default(),
@@ -75,7 +79,7 @@ impl<'d> Compiler<'d> {
       stages: Default::default(),
       cur: Default::default(),
       cur_id: Default::default(),
-      local_count: Default::default(),
+      locals: Default::default(),
       forks: Default::default(),
       net: Default::default(),
       return_target: Default::default(),
@@ -86,34 +90,34 @@ impl<'d> Compiler<'d> {
     }
   }
 
-  pub fn compile_all(&mut self) {
-    for def in self.defs {
-      self.compile_def(def);
+  pub fn emit_all(&mut self) {
+    for def in self.defs.values() {
+      self.emit_def(def);
     }
   }
 
-  pub fn compile_def(&mut self, def: &Def) {
+  pub fn emit_def(&mut self, def: &Def<'core>) {
     self.net = Default::default();
     let Some(value_def) = &def.value_def else { return };
     match &value_def.kind {
       ValueDefKind::Expr(expr) => {
-        self.compile_expr(&mut { value_def.locals }, def.canonical.to_string(), expr, []);
+        self.emit_root_expr(&mut { value_def.locals }, def.canonical.to_string(), expr, []);
       }
       ValueDefKind::Ivy(net) => {
         self.nets.insert(def.canonical.to_string(), net.clone());
       }
       ValueDefKind::AdtConstructor => {
-        let net = self.lower_adt_constructor(def);
+        let net = self.emit_adt_constructor(def);
         self.nets.insert(def.canonical.to_string(), net);
       }
     }
   }
 
-  pub(super) fn compile_expr(
+  pub(super) fn emit_root_expr(
     &mut self,
-    local_count: &mut usize,
+    local_count: &mut Counter<Local>,
     name: String,
-    expr: &Expr,
+    expr: &Expr<'core>,
     locals: impl IntoIterator<Item = Local>,
   ) {
     let init_stage = self.build_stages(*local_count, name, expr);
@@ -127,29 +131,27 @@ impl<'d> Compiler<'d> {
     self.fix_interstage_wires();
     self.infer_interfaces();
     self.finish_stages(init_stage);
-    *local_count = self.local_count;
+    *local_count = self.locals;
   }
 
-  fn new_local(&mut self) -> usize {
-    let l = self.local_count;
-    self.local_count += 1;
+  fn new_local(&mut self) -> Local {
+    let l = self.locals.next();
     self.declare_local(l);
     l
   }
 
-  fn declare_local(&mut self, local: usize) {
+  fn declare_local(&mut self, local: Local) {
     self.interfaces[self.cur.outer].declarations.insert(local);
   }
 }
 
 fn stage_name(base_name: &str, stage_id: StageId) -> String {
-  format!("{base_name}::{stage_id}")
+  format!("{base_name}::{stage_id:?}")
 }
 
-type InterfaceId = usize;
-type StageId = usize;
-type Local = usize;
-type ForkId = usize;
+new_idx!(InterfaceId);
+new_idx!(StageId);
+new_idx!(ForkId);
 
 #[derive(Debug, Default)]
 struct Interface {

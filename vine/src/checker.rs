@@ -1,14 +1,19 @@
 use std::{
-  collections::HashMap,
   iter,
   mem::{replace, take},
   ops::Range,
 };
 
+use vine_util::{
+  idx::{IdxVec, IntMap, RangeExt},
+  new_idx,
+};
+
 use crate::{
-  ast::{Block, Builtin, ExprKind, GenericPath, Ident, Span, StmtKind, Ty, TyKind},
-  diag::{report, Diag, DiagGroup, ErrorGuaranteed},
-  resolve::{DefId, Resolver, TypeDef, ValueDefKind},
+  ast::{Block, Builtin, DynFnId, ExprKind, GenericPath, Ident, Local, Span, StmtKind, Ty, TyKind},
+  core::Core,
+  diag::{report, Diag, ErrorGuaranteed},
+  resolver::{DefId, Resolver, TypeDef, ValueDefKind},
 };
 
 mod check_expr;
@@ -18,11 +23,11 @@ mod typeof_def;
 mod unify;
 
 #[derive(Debug)]
-pub struct Checker<'r> {
-  pub diags: DiagGroup,
-  resolver: &'r mut Resolver,
+pub struct Checker<'core, 'r> {
+  core: &'core Core<'core>,
+  resolver: &'r mut Resolver<'core>,
   state: CheckerState,
-  generics: Vec<Ident>,
+  generics: Vec<Ident<'core>>,
   return_ty: Option<Type>,
   loop_ty: Option<Type>,
   cur_def: DefId,
@@ -37,14 +42,13 @@ pub struct Checker<'r> {
 
 #[derive(Default, Debug, Clone)]
 pub(crate) struct CheckerState {
-  pub(crate) vars: Vec<Result<Type, Span>>,
-  pub(crate) locals: HashMap<usize, Var>,
-  pub(crate) dyn_fns: HashMap<usize, Type>,
+  pub(crate) vars: IdxVec<Var, Result<Type, Span>>,
+  pub(crate) locals: IntMap<Local, Var>,
+  pub(crate) dyn_fns: IntMap<DynFnId, Type>,
 }
 
-impl<'r> Checker<'r> {
-  pub fn new(resolver: &'r mut Resolver) -> Self {
-    let diags = DiagGroup::default();
+impl<'core, 'r> Checker<'core, 'r> {
+  pub fn new(core: &'core Core<'core>, resolver: &'r mut Resolver<'core>) -> Self {
     let u32 = resolver.builtins.get(&Builtin::U32).copied();
     let f32 = resolver.builtins.get(&Builtin::F32).copied();
     let io = resolver.builtins.get(&Builtin::IO).copied();
@@ -55,13 +59,13 @@ impl<'r> Checker<'r> {
     let string = list.map(|x| Type::Adt(x, vec![Type::U32]));
     let concat = resolver.builtins.get(&Builtin::Concat).copied();
     Checker {
-      diags,
+      core,
       resolver,
       state: CheckerState::default(),
       generics: Vec::new(),
       return_ty: None,
       loop_ty: None,
-      cur_def: 0,
+      cur_def: DefId::ROOT,
       u32,
       f32,
       io,
@@ -72,18 +76,18 @@ impl<'r> Checker<'r> {
   }
 
   pub fn check_defs(&mut self) {
-    self._check_defs(0..self.resolver.defs.len());
+    self._check_defs(self.resolver.defs.range());
   }
 
   pub(crate) fn _check_defs(&mut self, range: Range<DefId>) {
-    for def in range.clone() {
+    for def in range.iter() {
       self.resolve_type_alias(def);
     }
-    for def in range.clone() {
+    for def in range.iter() {
       self.resolve_def_types(def);
     }
     debug_assert!(self.state.vars.is_empty());
-    for def in range.clone() {
+    for def in range.iter() {
       self.check_value_def(def);
     }
   }
@@ -106,19 +110,21 @@ impl<'r> Checker<'r> {
     self.state.locals.clear();
   }
 
-  pub(crate) fn _check_custom(&mut self, state: CheckerState, block: &mut Block) -> CheckerState {
+  pub(crate) fn _check_custom(
+    &mut self,
+    state: CheckerState,
+    block: &mut Block<'core>,
+  ) -> CheckerState {
     self.state = state;
     self.check_block(block);
     take(&mut self.state)
   }
 
   fn new_var(&mut self, span: Span) -> Type {
-    let v = self.state.vars.len();
-    self.state.vars.push(Err(span));
-    Type::Var(v)
+    Type::Var(self.state.vars.push(Err(span)))
   }
 
-  fn check_block(&mut self, block: &mut Block) -> Type {
+  fn check_block(&mut self, block: &mut Block<'core>) -> Type {
     let mut ty = Type::UNIT;
     for stmt in block.stmts.iter_mut() {
       match &mut stmt.kind {
@@ -140,7 +146,7 @@ impl<'r> Checker<'r> {
             .map(|t| self.hydrate_type(t, true))
             .unwrap_or_else(|| self.new_var(d.body.span));
           self.check_block_type(&mut d.body, &mut ret);
-          self.state.dyn_fns.insert(d.dyn_id.unwrap(), Type::Fn(params, Box::new(ret)));
+          self.state.dyn_fns.insert(d.id.unwrap(), Type::Fn(params, Box::new(ret)));
           ty = Type::UNIT;
         }
         StmtKind::Expr(e, semi) => {
@@ -155,10 +161,10 @@ impl<'r> Checker<'r> {
     ty
   }
 
-  fn check_block_type(&mut self, block: &mut Block, ty: &mut Type) {
+  fn check_block_type(&mut self, block: &mut Block<'core>, ty: &mut Type) {
     let mut found = self.check_block(block);
     if !self.unify(&mut found, ty) {
-      self.diags.add(Diag::ExpectedTypeFound {
+      self.core.report(Diag::ExpectedTypeFound {
         span: block.span,
         expected: self.display_type(ty),
         found: self.display_type(&found),
@@ -166,12 +172,12 @@ impl<'r> Checker<'r> {
     }
   }
 
-  fn hydrate_type(&mut self, ty: &mut Ty, inference: bool) -> Type {
+  fn hydrate_type(&mut self, ty: &mut Ty<'core>, inference: bool) -> Type {
     let span = ty.span;
     match &mut ty.kind {
       TyKind::Hole if inference => self.new_var(span),
       TyKind::Paren(t) => self.hydrate_type(t, inference),
-      TyKind::Hole => Type::Error(self.diags.add(Diag::ItemTypeHole { span })),
+      TyKind::Hole => Type::Error(self.core.report(Diag::ItemTypeHole { span })),
       TyKind::Fn(args, ret) => Type::Fn(
         args.iter_mut().map(|arg| self.hydrate_type(arg, inference)).collect(),
         Box::new(ret.as_mut().map(|ret| self.hydrate_type(ret, inference)).unwrap_or(Type::UNIT)),
@@ -182,14 +188,14 @@ impl<'r> Checker<'r> {
       TyKind::Ref(t) => Type::Ref(Box::new(self.hydrate_type(t, inference))),
       TyKind::Inverse(t) => Type::Inverse(Box::new(self.hydrate_type(t, inference))),
       TyKind::Path(path) => {
-        report!(self.diags, ty.kind; self.typeof_type_def(path, inference))
+        report!(self.core, ty.kind; self.typeof_type_def(path, inference))
       }
       TyKind::Generic(n) => Type::Opaque(*n),
       TyKind::Error(e) => Type::Error(*e),
     }
   }
 
-  fn hydrate_generics(&mut self, path: &mut GenericPath, generic_count: usize) -> Vec<Type> {
+  fn hydrate_generics(&mut self, path: &mut GenericPath<'core>, generic_count: usize) -> Vec<Type> {
     if let Some(generics) = &mut path.generics {
       generics.iter_mut().map(|t| self.hydrate_type(t, true)).collect::<Vec<_>>()
     } else {
@@ -197,7 +203,7 @@ impl<'r> Checker<'r> {
     }
   }
 
-  fn resolve_type_alias(&mut self, def_id: usize) {
+  fn resolve_type_alias(&mut self, def_id: DefId) {
     let old = replace(&mut self.cur_def, def_id);
     if let Some(type_def) = &mut self.resolver.defs[def_id].type_def {
       if let Some(mut alias) = type_def.alias.take() {
@@ -208,7 +214,7 @@ impl<'r> Checker<'r> {
     self.cur_def = old;
   }
 
-  fn resolve_def_types(&mut self, def_id: usize) {
+  fn resolve_def_types(&mut self, def_id: DefId) {
     self.cur_def = def_id;
     if let Some(mut variant) = self.resolver.defs[def_id].variant_def.take() {
       variant.field_types =
@@ -227,7 +233,9 @@ impl<'r> Checker<'r> {
                 .iter_mut()
                 .map(|(pat, ty)| match ty {
                   Some(ty) => self.hydrate_type(ty, false),
-                  None => Type::Error(self.diags.add(Diag::FnItemUntypedParam { span: pat.span })),
+                  None => {
+                    Type::Error(self.core.report(Diag::FnItemUntypedParam { span: pat.span }))
+                  }
                 })
                 .collect(),
               Box::new(ret.as_mut().map(|r| self.hydrate_type(r, false)).unwrap_or(Type::UNIT)),
@@ -256,7 +264,7 @@ impl<'r> Checker<'r> {
 fn define_primitive_type(resolver: &mut Resolver, def_id: Option<DefId>, ty: Type) {
   if let Some(def_id) = def_id {
     resolver.defs[def_id].type_def =
-      Some(TypeDef { vis: 0, generics: Vec::new(), alias: None, ty: Some(ty) });
+      Some(TypeDef { vis: DefId::ROOT, generics: Vec::new(), alias: None, ty: Some(ty) });
   }
 }
 
@@ -279,7 +287,7 @@ impl Form {
   }
 }
 
-type Var = usize;
+new_idx!(pub Var);
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Type {

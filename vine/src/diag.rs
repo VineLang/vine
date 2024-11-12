@@ -1,15 +1,14 @@
 use std::{
   fmt::{self, Display, Write},
   io,
-  mem::take,
   path::PathBuf,
-  slice,
 };
 
 use vine_util::lexer::TokenSet;
 
 use crate::{
   ast::{BinaryOp, Ident, Path, Span},
+  core::Core,
   lexer::Token,
 };
 
@@ -19,27 +18,24 @@ macro_rules! diags {
       [$($fmt:tt)*]
   )*) => {
     #[derive(Debug)]
-    pub enum Diag {
+    pub enum Diag<'core> {
       $( $name { span: Span, $($($field: $ty),*)? },)*
-      Group(Vec<Diag>),
       Guaranteed(ErrorGuaranteed),
     }
 
-    impl Diag {
-      fn span(&self) -> Result<Span, &[Diag]> {
+    impl<'core> Diag<'core> {
+      fn span(&self) -> Option<Span> {
         match self {
-          $( Self::$name { span, .. } => Ok(*span), )*
-          Diag::Group(diags) => Err(diags),
-          Diag::Guaranteed(_) => Err(&[]),
+          $( Self::$name { span, .. } => Some(*span), )*
+          Diag::Guaranteed(_) => None,
         }
       }
     }
 
-    impl Display for Diag {
+    impl<'core> Display for Diag<'core> {
       fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
           $( Self::$name { span: _, $($($field),*)? } => write!(f, $($fmt)*),)*
-          Diag::Group(_) => unreachable!(),
           Diag::Guaranteed(_) => unreachable!(),
         }
       }
@@ -66,11 +62,11 @@ diags! {
     ["unknown attribute"]
   BadBuiltin
     ["bad builtin"]
-  CannotResolve { name: Ident, module: Path }
+  CannotResolve { name: Ident<'core>, module: Path<'core> }
     ["cannot find `{name}` in `{module}`"]
   BadPatternPath
     ["invalid pattern; this path is not a struct or enum variant"]
-  DuplicateItem { name: Ident }
+  DuplicateItem { name: Ident<'core> }
     ["duplicate definition of `{name}`"]
   ExpectedSpaceFoundValueExpr
     ["expected a space expression; found a value expression"]
@@ -102,15 +98,15 @@ diags! {
     ["invalid method; function type `{ty}` takes no parameters"]
   ExpectedTypeFound { expected: String, found: String }
     ["expected type `{expected}`; found `{found}`"]
-  PathNoValue { path: Path }
+  PathNoValue { path: Path<'core> }
     ["no value associated with `{path}`"]
-  PathNoType { path: Path }
+  PathNoType { path: Path<'core> }
     ["no type associated with `{path}`"]
-  PathNoPat { path: Path }
+  PathNoPat { path: Path<'core> }
     ["no pattern associated with `{path}`"]
-  BadGenericCount { path: Path, expected: usize, got: usize }
+  BadGenericCount { path: Path<'core>, expected: usize, got: usize }
     ["`{path}` expects {expected} generic{}; was passed {got}", plural(*expected, "s", "")]
-  BadFieldCount { path: Path, expected: usize, got: usize }
+  BadFieldCount { path: Path<'core>, expected: usize, got: usize }
     ["`{path}` has {expected} field{}; {got} {} matched", plural(*expected, "s", ""), plural(*got, "were", "was")]
   FnItemUntypedParam
     ["fn item parameters must be explicitly typed"]
@@ -132,17 +128,17 @@ diags! {
     ["expected a value of type `{ty}` to break with"]
   NoMethods { ty: String }
     ["type `{ty}` has no methods"]
-  BadMethodReceiver { base_path: Path, sub_path: Path }
+  BadMethodReceiver { base_path: Path<'core>, sub_path: Path<'core> }
     ["`{base_path}::{sub_path}` cannot be used as a method; it does not take `{base_path}` as its first parameter"]
-  Invisible { path: Path, vis: Path }
+  Invisible { path: Path<'core>, vis: Path<'core> }
     ["`{path}` is only visible within `{vis}`"]
   BadVis
     ["invalid visibility; expected the name of an ancestor module"]
-  ValueInvisible { path: Path, vis: Path }
+  ValueInvisible { path: Path<'core>, vis: Path<'core> }
     ["the value `{path}` is only visible within `{vis}`"]
-  TypeInvisible { path: Path, vis: Path }
+  TypeInvisible { path: Path<'core>, vis: Path<'core> }
     ["the type `{path}` is only visible within `{vis}`"]
-  PatInvisible { path: Path, vis: Path }
+  PatInvisible { path: Path<'core>, vis: Path<'core> }
     ["the pattern `{path}` is only visible within `{vis}`"]
   VisibleSubitem
     ["subitems must be private"]
@@ -156,61 +152,33 @@ fn plural<'a>(n: usize, plural: &'a str, singular: &'a str) -> &'a str {
   }
 }
 
-#[derive(Default, Debug)]
-pub struct DiagGroup {
-  diags: Vec<Diag>,
-}
-
-impl DiagGroup {
-  pub(crate) fn add(&mut self, diag: Diag) -> ErrorGuaranteed {
-    self.diags.push(diag);
+impl<'core> Core<'core> {
+  pub(crate) fn report(&self, diag: Diag<'core>) -> ErrorGuaranteed {
+    self.diags.borrow_mut().push(diag);
     ErrorGuaranteed(())
   }
 
-  pub fn add_all(&mut self, diags: &mut DiagGroup) {
-    self.diags.append(&mut diags.diags);
-  }
-
-  pub fn ok(&mut self) -> Result<(), Diag> {
-    if self.diags.is_empty() {
+  pub fn bail(&self) -> Result<(), String> {
+    let mut diags = self.diags.borrow_mut();
+    let files = self.files.borrow();
+    if diags.is_empty() {
       Ok(())
     } else {
-      Err(Diag::Group(take(&mut self.diags)))
-    }
-  }
-
-  pub fn report(&mut self, files: &[FileInfo]) -> Result<(), String> {
-    if self.diags.is_empty() {
-      Ok(())
-    } else {
-      let mut str = String::new();
-      Self::_report(&self.diags, files, &mut str);
-      str.pop();
-      self.diags.clear();
-      Err(str)
-    }
-  }
-
-  fn _report(diags: &[Diag], files: &[FileInfo], err: &mut String) {
-    for diag in diags {
-      match diag.span() {
-        Ok(Span::NONE) => writeln!(err, "error - {}", diag).unwrap(),
-        Ok(span) => {
-          let file = &files[span.file];
-          writeln!(err, "error {} - {}", file.get_pos(span.start), diag).unwrap();
+      let mut err = String::new();
+      for diag in diags.iter() {
+        match diag.span() {
+          Some(Span::NONE) => writeln!(err, "error - {}", diag).unwrap(),
+          Some(span) => {
+            let file = &files[span.file];
+            writeln!(err, "error {} - {}", file.get_pos(span.start), diag).unwrap();
+          }
+          None => {}
         }
-        Err(diags) => Self::_report(diags, files, err),
       }
+      err.pop();
+      diags.clear();
+      Err(err)
     }
-  }
-}
-
-impl Diag {
-  pub fn report(&self, files: &[FileInfo]) -> String {
-    let mut str = String::new();
-    DiagGroup::_report(slice::from_ref(self), files, &mut str);
-    str.pop();
-    str
   }
 }
 
@@ -223,7 +191,7 @@ impl ErrorGuaranteed {
   }
 }
 
-impl From<ErrorGuaranteed> for Diag {
+impl From<ErrorGuaranteed> for Diag<'_> {
   fn from(value: ErrorGuaranteed) -> Self {
     Diag::Guaranteed(value)
   }
@@ -261,7 +229,7 @@ impl Display for Pos<'_> {
   }
 }
 
-impl<T> From<ErrorGuaranteed> for Result<T, Diag> {
+impl<T> From<ErrorGuaranteed> for Result<T, Diag<'_>> {
   fn from(value: ErrorGuaranteed) -> Self {
     Err(value.into())
   }
@@ -272,7 +240,7 @@ macro_rules! report {
     match $result {
       Ok(value) => value,
       Err(diag) => {
-        let err = $group.add(diag);
+        let err = $group.report(diag);
         $($target = err.into();)*
         return err.into();
       }

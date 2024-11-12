@@ -1,20 +1,24 @@
 use std::{collections::HashMap, ops::Range};
 
+use vine_util::idx::{IdxVec, RangeExt};
+
 use crate::{
-  compile::{Local, StageId},
-  resolve::DefId,
+  emitter::{Local, StageId},
+  resolver::DefId,
 };
 
-use super::{Compiler, Def, Expr, Pat, PatKind, Step};
+use super::{Def, Emitter, Expr, Pat, PatKind, Step};
 
-impl Compiler<'_> {
-  pub(super) fn lower_match<'p, A>(
+impl<'core> Emitter<'core, '_> {
+  pub(super) fn emit_match<'p, A>(
     &mut self,
-    value: &Expr,
-    arms: impl IntoIterator<Item = (&'p Pat, A)> + Clone,
+    value: &Expr<'core>,
+    arms: impl IntoIterator<Item = (&'p Pat<'core>, A)> + Clone,
     mut f: impl FnMut(&mut Self, A) -> bool,
-  ) {
-    let value = self.lower_expr_value(value);
+  ) where
+    'core: 'p,
+  {
+    let value = self.emit_expr_value(value);
     let initial = self.new_match_var(false);
     self.set_local_to(initial.local, value);
     let rows = arms
@@ -42,10 +46,10 @@ impl Compiler<'_> {
       })
       .collect::<Vec<_>>();
 
-    self.lower_decision_tree(&mut arms, tree, &mut f);
+    self.emit_decision_tree(&mut arms, tree, &mut f);
   }
 
-  fn lower_decision_tree<A>(
+  fn emit_decision_tree<A>(
     &mut self,
     arms: &mut [Arm<A>],
     tree: DecisionTree,
@@ -73,16 +77,16 @@ impl Compiler<'_> {
       }
       DecisionTree::Missing => false,
       DecisionTree::Tuple(v, t, next) => {
-        for l in t.clone() {
+        for l in t.iter() {
           self.declare_local(l);
         }
-        let a = self.tuple(t.clone(), Self::set_local);
+        let a = self.tuple(t.iter(), Self::set_local);
         self.cur.steps.push_back(Step::Move(v.local, a));
         if v.is_place {
-          let a = self.tuple(t, Self::fin_move_local);
+          let a = self.tuple(t.iter(), Self::fin_move_local);
           self.set_local_to(v.local, a);
         }
-        self.lower_decision_tree(arms, *next, f)
+        self.emit_decision_tree(arms, *next, f)
       }
       DecisionTree::Deref(r, v, next) => {
         self.declare_local(v.local);
@@ -98,7 +102,7 @@ impl Compiler<'_> {
         } else {
           self.cur.fin.push(Step::Move(v.local, v2.1));
         }
-        self.lower_decision_tree(arms, *next, f)
+        self.emit_decision_tree(arms, *next, f)
       }
       DecisionTree::Switch(var, def_id, cases, fallback) => {
         let adt_def = self.defs[def_id].adt_def.as_ref().unwrap();
@@ -109,7 +113,7 @@ impl Compiler<'_> {
           if fallback.is_some() && cases.iter().filter(|x| x.body.is_none()).count() > 1 {
             fallback.take().map(|tree| {
               let i = self.new_interface();
-              self.new_stage(i, |self_, _| self_.lower_decision_tree(arms, *tree, f))
+              self.new_stage(i, |self_, _| self_.emit_decision_tree(arms, *tree, f))
             })
           } else {
             None
@@ -121,18 +125,18 @@ impl Compiler<'_> {
         let stage =
           self.apply_combs("enum", val.1, cases.into_iter().enumerate(), |self_, (v, case)| {
             let s = self_.new_stage(i, |self_, _| {
-              for s in case.vars.clone() {
+              for s in case.vars.iter() {
                 self_.declare_local(s);
               }
               let root = self_.net.new_wire();
-              let inner = self_.apply_combs("enum", root.0, case.vars.clone(), Self::set_local);
+              let inner = self_.apply_combs("enum", root.0, case.vars.iter(), Self::set_local);
               let should_fallback = case.body.is_none();
               let mut end = false;
               if let Some(tree) = case.body {
-                end = self_.lower_decision_tree(arms, tree, f);
+                end = self_.emit_decision_tree(arms, tree, f);
               }
               if var.is_place || should_fallback && fallback_needs_var {
-                let r = self_.make_enum(adt_def, v, case.vars.clone(), Self::fin_move_local);
+                let r = self_.make_enum(adt_def, v, case.vars.iter(), Self::fin_move_local);
                 self_.set_local_to(var.local, r);
               }
               self_.cur.header = Some((root.1, inner));
@@ -140,7 +144,7 @@ impl Compiler<'_> {
                 if let Some(stage) = fallback_stage {
                   self_.goto(stage);
                 } else if let Some(tree) = fallback.take() {
-                  end = self_.lower_decision_tree(arms, *tree, f);
+                  end = self_.emit_decision_tree(arms, *tree, f);
                 }
               }
               end
@@ -156,8 +160,7 @@ impl Compiler<'_> {
   }
 
   fn new_match_var(&mut self, is_place: bool) -> MatchVar {
-    let local = self.local_count;
-    self.local_count += 1;
+    let local = self.locals.next();
     MatchVar { local, is_place }
   }
 }
@@ -190,15 +193,15 @@ struct Case {
 }
 
 #[derive(Debug, Clone)]
-struct Row<'t> {
-  cells: Vec<Cell<'t>>,
+struct Row<'core: 't, 't> {
+  cells: Vec<Cell<'core, 't>>,
   body: Body,
 }
 
 #[derive(Debug, Clone)]
-struct Cell<'t> {
+struct Cell<'core: 't, 't> {
   var: MatchVar,
-  pattern: &'t Pat,
+  pattern: &'t Pat<'core>,
 }
 
 #[derive(Debug, Clone)]
@@ -215,7 +218,7 @@ enum PatternType {
   Move,
 }
 
-impl Compiler<'_> {
+impl<'core> Emitter<'core, '_> {
   fn build_decision_tree(&mut self, mut rows: Vec<Row>, arm_counts: &mut [usize]) -> DecisionTree {
     if rows.is_empty() {
       return DecisionTree::Missing;
@@ -235,17 +238,16 @@ impl Compiler<'_> {
 
     match ty {
       PatternType::Tuple(len) => {
+        let range = self.locals.chunk(len);
         for row in &mut rows {
           if let Some(expr) = row.remove_column(var) {
             let PatKind::Tuple(children) = &expr.kind else { unreachable!() };
             row.cells.extend(children.iter().enumerate().map(|(i, p)| Cell {
-              var: MatchVar { local: self.local_count + i, is_place: var.is_place },
+              var: MatchVar { local: range.get(i), is_place: var.is_place },
               pattern: p,
             }))
           }
         }
-        let range = self.local_count..(self.local_count + len);
-        self.local_count += len;
 
         DecisionTree::Tuple(var, range, Box::new(self.build_decision_tree(rows, arm_counts)))
       }
@@ -280,7 +282,7 @@ impl Compiler<'_> {
             let v = self.defs[v].variant_def.as_ref().unwrap();
             assert_eq!(v.fields.len(), children.len());
             row.cells.extend(children.iter().enumerate().map(|(i, p)| Cell {
-              var: MatchVar { local: self.local_count + i, is_place: var.is_place },
+              var: MatchVar { local: Local(self.locals.0 .0 + i), is_place: var.is_place },
               pattern: p,
             }));
             &mut variants[v.variant]
@@ -297,15 +299,15 @@ impl Compiler<'_> {
           .max()
           .unwrap_or(0);
 
-        let base = self.local_count;
-        self.local_count += max_local_count;
+        let base = self.locals.0 .0;
+        self.locals.0 .0 += max_local_count;
 
         let cases = variants
           .into_iter()
           .enumerate()
           .map(|(v, mut rows)| {
             let field_count = self.defs[adt.variants[v]].variant_def.as_ref().unwrap().fields.len();
-            let vars = base..(base + field_count);
+            let vars = Local(base)..Local(base + field_count);
             Case {
               vars,
               body: (!rows.is_empty()).then(|| {
@@ -320,7 +322,7 @@ impl Compiler<'_> {
           return if let Case { vars, body: Some(body) } = { cases }.pop().unwrap() {
             DecisionTree::Tuple(var, vars, Box::new(body))
           } else {
-            self.local_count -= max_local_count;
+            self.locals.0 .0 -= max_local_count;
             self.build_decision_tree(wildcard, arm_counts)
           };
         }
@@ -362,11 +364,11 @@ impl Compiler<'_> {
   }
 }
 
-fn unwrap_pattern_one(
-  rows: &mut Vec<Row<'_>>,
+fn unwrap_pattern_one<'core>(
+  rows: &mut Vec<Row<'core, '_>>,
   var: MatchVar,
   new_var: MatchVar,
-  f: impl Fn(&Pat) -> &Pat,
+  f: impl for<'a> Fn(&'a Pat<'core>) -> &'a Pat<'core>,
 ) {
   for row in rows {
     if let Some(cell) = row.get_column_mut(var) {
@@ -376,7 +378,7 @@ fn unwrap_pattern_one(
   }
 }
 
-impl<'t> Row<'t> {
+impl<'core, 't> Row<'core, 't> {
   fn eliminate_wildcard_cells(&mut self) {
     self.cells.retain(|cell| match cell.pattern.kind {
       PatKind::Local(l) => {
@@ -388,12 +390,12 @@ impl<'t> Row<'t> {
     });
   }
 
-  fn remove_column(&mut self, var: MatchVar) -> Option<&'t Pat> {
+  fn remove_column(&mut self, var: MatchVar) -> Option<&'t Pat<'core>> {
     let i = self.get_column_idx(var)?;
     Some(self.cells.remove(i).pattern)
   }
 
-  fn get_column_mut(&mut self, var: MatchVar) -> Option<&mut Cell<'t>> {
+  fn get_column_mut(&mut self, var: MatchVar) -> Option<&mut Cell<'core, 't>> {
     let i = self.get_column_idx(var)?;
     Some(&mut self.cells[i])
   }
@@ -403,8 +405,8 @@ impl<'t> Row<'t> {
   }
 }
 
-impl Cell<'_> {
-  fn pat_type(&self, defs: &[Def]) -> PatternType {
+impl Cell<'_, '_> {
+  fn pat_type(&self, defs: &IdxVec<DefId, Def>) -> PatternType {
     match &self.pattern.kind {
       PatKind::Adt(p, _) => {
         PatternType::Adt(defs[p.path.resolved.unwrap()].variant_def.as_ref().unwrap().adt)

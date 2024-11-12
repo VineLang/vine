@@ -2,7 +2,7 @@ use std::fmt::Write;
 
 use crate::checker::{Checker, Type};
 
-impl Checker<'_> {
+impl<'core> Checker<'core, '_> {
   pub(super) fn display_type(&self, ty: &Type) -> String {
     let mut str = String::new();
     self._display_type(ty, &mut str);
@@ -71,7 +71,7 @@ impl Checker<'_> {
       Type::Opaque(n) => *str += self.generics[*n].0 .0,
       Type::Var(v) => match &self.state.vars[*v] {
         Ok(t) => self._display_type(t, str),
-        _ => write!(str, "?{v}").unwrap(),
+        _ => write!(str, "?{v:?}").unwrap(),
       },
       Type::Error(_) => *str += "??",
     }

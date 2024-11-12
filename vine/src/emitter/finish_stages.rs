@@ -3,15 +3,17 @@ use std::{
   mem::{replace, take},
 };
 
+use vine_util::idx::IdxVec;
+
 use super::{
-  stage_name, Agent, Compiler, Interface, InterfaceId, Local, NetBuilder, Port, Stage, StageId,
+  stage_name, Agent, Emitter, Interface, InterfaceId, Local, NetBuilder, Port, Stage, StageId,
   Step, WireDir,
 };
 
-impl Compiler<'_> {
+impl<'core> Emitter<'core, '_> {
   pub(super) fn finish_stages(&mut self, init: StageId) {
     self.nets.reserve(self.stages.len());
-    for (id, stage) in self.stages.drain(..).enumerate() {
+    for (id, stage) in self.stages.drain() {
       let name = if id == init { self.name.clone() } else { stage_name(&self.name, id) };
       let mut finish = FinishStage {
         interfaces: &self.interfaces,
@@ -23,14 +25,14 @@ impl Compiler<'_> {
       let net = finish.net.finish(root);
       self.nets.insert(name, net);
     }
-    self.dup_labels += self.local_count;
+    self.dup_labels += self.locals.count();
     self.interfaces.clear();
   }
 }
 
 #[derive(Debug)]
 struct FinishStage<'a> {
-  interfaces: &'a [Interface],
+  interfaces: &'a IdxVec<InterfaceId, Interface>,
   net: &'a mut NetBuilder,
   locals: BTreeMap<Local, LocalState>,
   dup_label_base: usize,
@@ -132,7 +134,7 @@ impl<'a> FinishStage<'a> {
       .reduce(|cur, next| {
         let r = self.net.new_wire();
         let prev = replace(&mut value, r.1);
-        let label = format!("dup{}", self.dup_label_base + local);
+        let label = format!("dup{}", self.dup_label_base + local.0);
         self.net.agents.push(Agent::Comb(label, prev, cur, r.0));
         next
       })

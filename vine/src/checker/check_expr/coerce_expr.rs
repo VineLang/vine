@@ -6,8 +6,8 @@ use crate::{
   diag::Diag,
 };
 
-impl Checker<'_> {
-  pub(super) fn coerce_expr(&mut self, expr: &mut Expr, from: Form, to: Form) {
+impl<'core> Checker<'core, '_> {
+  pub(super) fn coerce_expr(&mut self, expr: &mut Expr<'core>, from: Form, to: Form) {
     let span = expr.span;
     match (from, to) {
       (_, Form::Error(_)) => unreachable!(),
@@ -18,18 +18,18 @@ impl Checker<'_> {
       (Form::Place, Form::Space) => Self::set_expr(expr),
 
       (Form::Space, Form::Value) => {
-        expr.kind = ExprKind::Error(self.diags.add(Diag::ExpectedValueFoundSpaceExpr { span }));
+        expr.kind = ExprKind::Error(self.core.report(Diag::ExpectedValueFoundSpaceExpr { span }));
       }
       (Form::Space, Form::Place) => {
-        expr.kind = ExprKind::Error(self.diags.add(Diag::ExpectedPlaceFoundSpaceExpr { span }))
+        expr.kind = ExprKind::Error(self.core.report(Diag::ExpectedPlaceFoundSpaceExpr { span }))
       }
       (Form::Value, Form::Space) => {
-        expr.kind = ExprKind::Error(self.diags.add(Diag::ExpectedSpaceFoundValueExpr { span }));
+        expr.kind = ExprKind::Error(self.core.report(Diag::ExpectedSpaceFoundValueExpr { span }));
       }
     }
   }
 
-  fn copy_expr(expr: &mut Expr) {
+  fn copy_expr(expr: &mut Expr<'core>) {
     match &mut expr.kind {
       ExprKind::Local(l) => expr.kind = ExprKind::CopyLocal(*l),
       ExprKind::Tuple(t) => {
@@ -44,7 +44,7 @@ impl Checker<'_> {
     }
   }
 
-  fn set_expr(expr: &mut Expr) {
+  fn set_expr(expr: &mut Expr<'core>) {
     match &mut expr.kind {
       ExprKind::Local(l) => expr.kind = ExprKind::SetLocal(*l),
       ExprKind::Inverse(e) => Self::move_expr(e),
@@ -57,7 +57,7 @@ impl Checker<'_> {
     }
   }
 
-  fn move_expr(expr: &mut Expr) {
+  fn move_expr(expr: &mut Expr<'core>) {
     match &mut expr.kind {
       ExprKind::Local(l) => expr.kind = ExprKind::MoveLocal(*l),
       ExprKind::Inverse(e) => Self::set_expr(e),

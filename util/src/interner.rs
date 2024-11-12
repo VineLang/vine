@@ -13,7 +13,7 @@ use crate::arena::BytesArena;
 
 pub struct StringInterner<'a> {
   arena: &'a BytesArena,
-  strs: UnsafeCell<HashMap<&'a str, ()>>,
+  strs: UnsafeCell<HashMap<&'static str, ()>>,
 }
 
 impl<'a> StringInterner<'a> {
@@ -22,7 +22,7 @@ impl<'a> StringInterner<'a> {
   }
 
   pub fn intern(&self, str: &str) -> Interned<'a, str> {
-    let strs = unsafe { &mut *self.strs.get() };
+    let strs = unsafe { &mut *self.strs.get().cast::<HashMap<&'a str, ()>>() };
     Interned(
       strs.raw_entry_mut().from_key(str).or_insert_with(|| (self.arena.alloc_str(str), ())).0,
       (),

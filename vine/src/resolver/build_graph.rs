@@ -1,10 +1,13 @@
 use std::{collections::hash_map::Entry, mem::take};
 
+use vine_util::idx::Counter;
+
 use crate::{
   ast::{
     AttrKind, Builtin, Expr, ExprKind, Ident, Item, ItemKind, ModKind, Path, Span, UseTree, Vis,
   },
-  diag::{Diag, DiagGroup},
+  core::Core,
+  diag::Diag,
   visit::{VisitMut, Visitee},
 };
 
@@ -13,25 +16,25 @@ use super::{
   VariantDef,
 };
 
-impl Resolver {
-  pub fn build_graph(&mut self, root: ModKind) {
-    let def = self.new_def(Path::ROOT, None, 0);
-    debug_assert_eq!(def, 0);
-    self.build_mod(0, root, def);
+impl<'core> Resolver<'core> {
+  pub fn build_graph(&mut self, root: ModKind<'core>) {
+    let _root_def = self.new_def(Path::ROOT, None, DefId::ROOT);
+    debug_assert_eq!(_root_def, DefId::ROOT);
+    self.build_mod(DefId::ROOT, root, DefId::ROOT);
     if let Some(&prelude) = self.builtins.get(&Builtin::Prelude) {
       self.defs[prelude].parent = None;
-      self.defs[0].parent = Some(prelude);
+      self.defs[DefId::ROOT].parent = Some(prelude);
     }
   }
 
-  pub(crate) fn build_mod(&mut self, vis: DefId, module: ModKind, def: DefId) {
+  pub(crate) fn build_mod(&mut self, vis: DefId, module: ModKind<'core>, def: DefId) {
     let ModKind::Loaded(_, items) = module else { unreachable!("module not yet loaded") };
     for item in items {
       self.build_item(vis, item, def);
     }
   }
 
-  fn build_item(&mut self, member_vis: DefId, item: Item, parent: DefId) {
+  fn build_item(&mut self, member_vis: DefId, item: Item<'core>, parent: DefId) {
     let span = item.span;
     let vis = self.resolve_vis(parent, item.vis);
     let member_vis = vis.max(member_vis);
@@ -45,7 +48,7 @@ impl Resolver {
           generics: f.generics,
           annotation: None,
           ty: None,
-          locals: 0,
+          locals: Counter::default(),
           kind: ValueDefKind::Expr(Expr {
             span,
             kind: ExprKind::Fn(
@@ -66,7 +69,7 @@ impl Resolver {
           generics: c.generics,
           annotation: Some(c.ty),
           ty: None,
-          locals: 0,
+          locals: Counter::default(),
           kind: ValueDefKind::Expr(c.value),
         },
         member_vis,
@@ -80,7 +83,7 @@ impl Resolver {
           generics: i.generics,
           annotation: Some(i.ty),
           ty: None,
-          locals: 0,
+          locals: Counter::default(),
           kind: ValueDefKind::Ivy(i.net),
         },
         member_vis,
@@ -92,14 +95,13 @@ impl Resolver {
       }
       ItemKind::Use(u) => {
         Self::build_imports(
-          self.next_use_id,
-          &mut self.diags,
+          self.use_id.next(),
+          self.core,
           u.tree,
           &mut self.defs[parent],
           &mut Path { segments: Vec::new(), absolute: u.absolute, resolved: None },
           member_vis,
         );
-        self.next_use_id += 1;
         None
       }
       ItemKind::Struct(s) => {
@@ -109,7 +111,7 @@ impl Resolver {
           || child.variant_def.is_some()
           || child.value_def.is_some()
         {
-          self.diags.add(Diag::DuplicateItem { span, name: s.name });
+          self.core.report(Diag::DuplicateItem { span, name: s.name });
           return;
         }
         child.type_def = Some(TypeDef { vis, generics: s.generics.clone(), alias: None, ty: None });
@@ -127,7 +129,7 @@ impl Resolver {
           generics: s.generics,
           annotation: None,
           ty: None,
-          locals: 0,
+          locals: Counter::default(),
           kind: ValueDefKind::AdtConstructor,
         });
         Some(child.id)
@@ -135,7 +137,7 @@ impl Resolver {
       ItemKind::Enum(e) => {
         let child = self.get_or_insert_child(parent, e.name, member_vis);
         if child.type_def.is_some() || child.adt_def.is_some() {
-          self.diags.add(Diag::DuplicateItem { span, name: e.name });
+          self.core.report(Diag::DuplicateItem { span, name: e.name });
           return;
         }
         let adt = child.id;
@@ -146,7 +148,7 @@ impl Resolver {
           .filter_map(|(i, v)| {
             let variant = self.get_or_insert_child(adt, v.name, member_vis);
             if variant.variant_def.is_some() || variant.value_def.is_some() {
-              self.diags.add(Diag::DuplicateItem { span, name: v.name });
+              self.core.report(Diag::DuplicateItem { span, name: v.name });
               return None;
             }
             variant.variant_def = Some(VariantDef {
@@ -162,7 +164,7 @@ impl Resolver {
               generics: e.generics.clone(),
               annotation: None,
               ty: None,
-              locals: 0,
+              locals: Counter::default(),
               kind: ValueDefKind::AdtConstructor,
             });
             Some(variant.id)
@@ -176,7 +178,7 @@ impl Resolver {
       ItemKind::Type(t) => {
         let child = self.get_or_insert_child(parent, t.name, member_vis);
         if child.type_def.is_some() || child.adt_def.is_some() {
-          self.diags.add(Diag::DuplicateItem { span, name: t.name });
+          self.core.report(Diag::DuplicateItem { span, name: t.name });
           return;
         }
         child.type_def =
@@ -190,12 +192,12 @@ impl Resolver {
       match attr.kind {
         AttrKind::Builtin(b) => {
           let Some(def_id) = def_id else {
-            self.diags.add(Diag::BadBuiltin { span });
+            self.core.report(Diag::BadBuiltin { span });
             continue;
           };
           let old = self.builtins.insert(b, def_id);
           if old.is_some() {
-            self.diags.add(Diag::BadBuiltin { span });
+            self.core.report(Diag::BadBuiltin { span });
           }
         }
       }
@@ -205,7 +207,7 @@ impl Resolver {
   fn resolve_vis(&mut self, base: DefId, vis: Vis) -> DefId {
     match vis {
       Vis::Private => base,
-      Vis::Public => 0,
+      Vis::Public => DefId::ROOT,
       Vis::PublicTo(span, name) => {
         let ancestors = &self.defs[base].ancestors;
         if let Some(&ancestor) =
@@ -213,8 +215,8 @@ impl Resolver {
         {
           ancestor
         } else {
-          self.diags.add(Diag::BadVis { span });
-          0
+          self.core.report(Diag::BadVis { span });
+          DefId::ROOT
         }
       }
     }
@@ -224,13 +226,13 @@ impl Resolver {
     &mut self,
     span: Span,
     parent: DefId,
-    name: Ident,
-    mut value: ValueDef,
+    name: Ident<'core>,
+    mut value: ValueDef<'core>,
     vis: DefId,
   ) -> Option<DefId> {
     let child = self.get_or_insert_child(parent, name, vis);
     if child.value_def.is_some() {
-      self.diags.add(Diag::DuplicateItem { span, name });
+      self.core.report(Diag::DuplicateItem { span, name });
       return None;
     }
     let child = child.id;
@@ -243,12 +245,17 @@ impl Resolver {
     Some(child.id)
   }
 
-  pub(crate) fn extract_subitems<'t>(&mut self, def: DefId, visitee: &'t mut impl Visitee<'t>) {
+  pub(crate) fn extract_subitems<'t>(&mut self, def: DefId, visitee: impl Visitee<'core, 't>) {
     SubitemVisitor { resolver: self, def }.visit(visitee);
   }
 
-  pub(crate) fn get_or_insert_child(&mut self, parent: DefId, name: Ident, vis: DefId) -> &mut Def {
-    let next_child = self.next_def_id();
+  pub(crate) fn get_or_insert_child(
+    &mut self,
+    parent: DefId,
+    name: Ident<'core>,
+    vis: DefId,
+  ) -> &mut Def<'core> {
+    let next_child = self.defs.next_index();
     let parent_def = &mut self.defs[parent];
     let mut new = false;
     let member = parent_def.members.entry(name).or_insert_with(|| {
@@ -272,17 +279,17 @@ impl Resolver {
 
   fn build_imports(
     use_id: UseId,
-    diags: &mut DiagGroup,
-    tree: UseTree,
-    def: &mut Def,
-    path: &mut Path,
+    core: &Core<'core>,
+    tree: UseTree<'core>,
+    def: &mut Def<'core>,
+    path: &mut Path<'core>,
     vis: DefId,
   ) {
     let initial_len = path.segments.len();
     path.segments.extend(&tree.path.segments);
     if let Some(children) = tree.children {
       for child in children {
-        Self::build_imports(use_id, diags, child, def, path, vis);
+        Self::build_imports(use_id, core, child, def, path, vis);
       }
     } else {
       let name = *path.segments.last().unwrap();
@@ -290,18 +297,14 @@ impl Resolver {
       if let Entry::Vacant(e) = def.members.entry(name) {
         e.insert(Member { vis, kind: MemberKind::UnresolvedImport(tree.span, Some(path), use_id) });
       } else {
-        diags.add(Diag::DuplicateItem { span: tree.span, name });
+        core.report(Diag::DuplicateItem { span: tree.span, name });
       }
     }
     path.segments.truncate(initial_len);
   }
 
-  fn next_def_id(&self) -> DefId {
-    self.defs.len()
-  }
-
-  fn new_def(&mut self, mut canonical: Path, parent: Option<usize>, vis: DefId) -> DefId {
-    let id = self.defs.len();
+  fn new_def(&mut self, mut canonical: Path<'core>, parent: Option<DefId>, vis: DefId) -> DefId {
+    let id = self.defs.next_index();
     canonical.resolved = Some(id);
     let mut def = Def {
       id,
@@ -324,9 +327,9 @@ impl Resolver {
     id
   }
 
-  pub fn revert(&mut self, old_def_count: usize, old_use_count: usize) {
-    self.defs.truncate(old_def_count);
-    for def in &mut self.defs {
+  pub fn revert(&mut self, old_def_count: DefId, old_use_count: UseId) {
+    self.defs.truncate(old_def_count.0);
+    for def in self.defs.values_mut() {
       def.members.retain(|_, m| match m.kind {
         MemberKind::Child(id) => id < old_def_count,
         MemberKind::ResolvedImport(_, id) | MemberKind::UnresolvedImport(_, _, id) => {
@@ -337,15 +340,15 @@ impl Resolver {
   }
 }
 
-struct SubitemVisitor<'a> {
-  resolver: &'a mut Resolver,
+struct SubitemVisitor<'core, 'a> {
+  resolver: &'a mut Resolver<'core>,
   def: DefId,
 }
 
-impl VisitMut<'_> for SubitemVisitor<'_> {
-  fn visit_item(&mut self, item: &mut Item) {
+impl<'core> VisitMut<'core, '_> for SubitemVisitor<'core, '_> {
+  fn visit_item(&mut self, item: &mut Item<'core>) {
     if !matches!(item.vis, Vis::Private) {
-      self.resolver.diags.add(Diag::VisibleSubitem { span: item.span });
+      self.resolver.core.report(Diag::VisibleSubitem { span: item.span });
     }
     self.resolver.build_item(self.def, take(item), self.def);
   }

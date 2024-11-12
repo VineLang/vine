@@ -6,45 +6,36 @@ use std::{
   str,
 };
 
-use vine_util::interner::StringInterner;
-
 use crate::{
   ast::{
     self, ConstItem, Expr, ExprKind, GenericPath, Ident, Item, ItemKind, ModItem, ModKind, Span,
     Ty, TyKind, Vis,
   },
-  diag::{Diag, DiagGroup, FileInfo},
+  core::Core,
+  diag::{Diag, FileInfo},
   parser::VineParser,
   visit::{VisitMut, Visitee},
 };
 
-pub struct Loader<'ctx> {
+pub struct Loader<'core> {
+  core: &'core Core<'core>,
   cwd: PathBuf,
-  interner: &'ctx StringInterner<'static>,
-  root: Vec<Item>,
-  pub files: Vec<FileInfo>,
-  pub diags: DiagGroup,
+  root: Vec<Item<'core>>,
 }
 
-impl<'ctx> Loader<'ctx> {
-  pub fn new(interner: &'ctx StringInterner<'static>) -> Self {
-    Self {
-      cwd: current_dir().unwrap(),
-      interner,
-      root: Vec::new(),
-      files: Vec::new(),
-      diags: DiagGroup::default(),
-    }
+impl<'core> Loader<'core> {
+  pub fn new(core: &'core Core<'core>) -> Self {
+    Self { core, cwd: current_dir().unwrap(), root: Vec::new() }
   }
 
-  pub fn finish(&mut self) -> ModKind {
+  pub fn finish(&mut self) -> ModKind<'core> {
     ModKind::Loaded(Span::NONE, take(&mut self.root))
   }
 
   pub fn load_main_mod(&mut self, path: impl Into<PathBuf>) {
     let path = path.into();
-    let main = Ident(self.interner.intern("main"));
-    let io = Ident(self.interner.intern("IO"));
+    let main = self.core.ident("main");
+    let io = self.core.ident("IO");
     self.root.push(Item {
       span: Span::NONE,
       vis: Vis::Private,
@@ -100,26 +91,25 @@ impl<'ctx> Loader<'ctx> {
     self.root.push(module);
   }
 
-  fn auto_mod_name(&self, path: &Path) -> Ident {
-    Ident(
-      self.interner.intern(str::from_utf8(path.file_stem().unwrap().as_encoded_bytes()).unwrap()),
-    )
+  fn auto_mod_name(&self, path: &Path) -> Ident<'core> {
+    self.core.ident(str::from_utf8(path.file_stem().unwrap().as_encoded_bytes()).unwrap())
   }
 
   pub(crate) fn add_file(&mut self, name: String, src: &str) -> usize {
-    let file = self.files.len();
-    self.files.push(FileInfo::new(name, src));
+    let mut files = self.core.files.borrow_mut();
+    let file = files.len();
+    files.push(FileInfo::new(name, src));
     file
   }
 
-  fn load_file(&mut self, path: PathBuf, span: Span) -> ModKind {
+  fn load_file(&mut self, path: PathBuf, span: Span) -> ModKind<'core> {
     match self._load_file(path, span) {
       Ok(items) => ModKind::Loaded(span, items),
-      Err(diag) => ModKind::Error(self.diags.add(diag)),
+      Err(diag) => ModKind::Error(self.core.report(diag)),
     }
   }
 
-  fn _load_file(&mut self, mut path: PathBuf, span: Span) -> Result<Vec<Item>, Diag> {
+  fn _load_file(&mut self, mut path: PathBuf, span: Span) -> Result<Vec<Item<'core>>, Diag<'core>> {
     let fs_err = |err| Diag::FsError {
       span,
       path: path.strip_prefix(&self.cwd).unwrap_or(&path).to_owned(),
@@ -129,7 +119,7 @@ impl<'ctx> Loader<'ctx> {
     path = path.canonicalize().map_err(fs_err)?;
     let name = path.strip_prefix(&self.cwd).unwrap_or(&path).display().to_string();
     let file = self.add_file(name, &src);
-    let mut items = VineParser::parse(self.interner, &src, file)?;
+    let mut items = VineParser::parse(self.core, &src, file)?;
     path.pop();
     for item in &mut items {
       self.load_deps(&path, item);
@@ -137,18 +127,18 @@ impl<'ctx> Loader<'ctx> {
     Ok(items)
   }
 
-  pub(crate) fn load_deps<'t>(&mut self, base: &Path, visitee: &'t mut impl Visitee<'t>) {
+  pub(crate) fn load_deps<'t>(&mut self, base: &Path, visitee: impl Visitee<'core, 't>) {
     LoadDeps { loader: self, base }.visit(visitee);
   }
 }
 
-struct LoadDeps<'a, 'ctx> {
-  loader: &'a mut Loader<'ctx>,
+struct LoadDeps<'core, 'a> {
+  loader: &'a mut Loader<'core>,
   base: &'a Path,
 }
 
-impl VisitMut<'_> for LoadDeps<'_, '_> {
-  fn visit_item(&mut self, item: &'_ mut Item) {
+impl<'core> VisitMut<'core, '_> for LoadDeps<'core, '_> {
+  fn visit_item<'a>(&'a mut self, item: &mut Item<'core>) {
     if let ItemKind::Mod(module) = &mut item.kind {
       if let ModKind::Unloaded(_, path) = &mut module.kind {
         module.kind = self.loader.load_file(self.base.join(path), item.span);

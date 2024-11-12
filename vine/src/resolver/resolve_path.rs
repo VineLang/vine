@@ -1,3 +1,5 @@
+use vine_util::idx::RangeExt;
+
 use crate::{
   ast::{Ident, Path, Span},
   diag::Diag,
@@ -5,15 +7,15 @@ use crate::{
 
 use super::{DefId, MemberKind, Resolver};
 
-impl Resolver {
+impl<'core> Resolver<'core> {
   pub fn resolve_path(
     &mut self,
     span: Span,
     from: DefId,
     base: DefId,
-    path: &Path,
-  ) -> Result<DefId, Diag> {
-    let base = if path.absolute { 0 } else { base };
+    path: &Path<'core>,
+  ) -> Result<DefId, Diag<'core>> {
+    let base = if path.absolute { DefId::ROOT } else { base };
     let mut cur = base;
     for &segment in &path.segments {
       let (base, vis, resolved) =
@@ -35,7 +37,7 @@ impl Resolver {
   fn resolve_one(
     &mut self,
     base: DefId,
-    segment: Ident,
+    segment: Ident<'core>,
     check_parents: bool,
   ) -> Option<(DefId, DefId, DefId)> {
     let def = &mut self.defs[base];
@@ -58,7 +60,7 @@ impl Resolver {
               Some((base, vis, resolved))
             }
             Err(diag) => {
-              self.diags.add(diag);
+              self.core.report(diag);
               None
             }
           }
@@ -76,7 +78,7 @@ impl Resolver {
   }
 
   pub fn resolve_imports(&mut self) {
-    self._resolve_imports(0..self.defs.len());
+    self._resolve_imports(self.defs.range().iter());
   }
 
   pub(crate) fn _resolve_imports(&mut self, defs: impl IntoIterator<Item = DefId>) {

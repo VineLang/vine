@@ -4,16 +4,17 @@ use crate::{
   ast::{Expr, ExprKind, GenericPath, Span},
   checker::{Checker, Form, Type},
   diag::Diag,
+  resolver::DefId,
 };
 
-impl Checker<'_> {
+impl<'core> Checker<'core, '_> {
   pub(super) fn check_method(
     &mut self,
     span: Span,
-    receiver: &mut Box<Expr>,
-    path: &mut GenericPath,
-    args: &mut Vec<Expr>,
-  ) -> (ExprKind, Type) {
+    receiver: &mut Box<Expr<'core>>,
+    path: &mut GenericPath<'core>,
+    args: &mut Vec<Expr<'core>>,
+  ) -> (ExprKind<'core>, Type) {
     if path.path.resolved.is_some() {
       match self.method_sig(span, path, args.len()) {
         Ok((form, mut rec, params, ret)) => {
@@ -28,7 +29,7 @@ impl Checker<'_> {
           for arg in args {
             self.check_expr_form(arg, Form::Value);
           }
-          let err = self.diags.add(e);
+          let err = self.core.report(e);
           (ExprKind::Error(err), Type::Error(err))
         }
       }
@@ -39,7 +40,7 @@ impl Checker<'_> {
           for arg in args {
             self.check_expr_form(arg, Form::Value);
           }
-          let err = self.diags.add(e);
+          let err = self.core.report(e);
           (ExprKind::Error(err), Type::Error(err))
         }
       }
@@ -49,10 +50,10 @@ impl Checker<'_> {
   fn check_associated_method(
     &mut self,
     span: Span,
-    receiver: &mut Box<Expr>,
-    path: &mut GenericPath,
-    args: &mut [Expr],
-  ) -> Result<(Form, Type), Diag> {
+    receiver: &mut Box<Expr<'core>>,
+    path: &mut GenericPath<'core>,
+    args: &mut [Expr<'core>],
+  ) -> Result<(Form, Type), Diag<'core>> {
     let (receiver_form, mut ty) = self.check_expr(receiver);
     self.concretize(&mut ty);
     let mod_id = self.get_ty_mod(&ty)?;
@@ -84,9 +85,9 @@ impl Checker<'_> {
   fn method_sig(
     &mut self,
     span: Span,
-    path: &mut GenericPath,
+    path: &mut GenericPath<'core>,
     args: usize,
-  ) -> Result<(Form, Type, Vec<Type>, Type), Diag> {
+  ) -> Result<(Form, Type, Vec<Type>, Type), Diag<'core>> {
     let ty = self.typeof_value_def(path)?;
     match ty {
       Type::Fn(mut params, ret) => {
@@ -117,11 +118,11 @@ impl Checker<'_> {
 
   fn desugar_method(
     &mut self,
-    receiver: &mut Box<Expr>,
-    args: &mut Vec<Expr>,
-    path: &mut GenericPath,
+    receiver: &mut Box<Expr<'core>>,
+    args: &mut Vec<Expr<'core>>,
+    path: &mut GenericPath<'core>,
     form: Form,
-  ) -> ExprKind {
+  ) -> ExprKind<'core> {
     let mut receiver = take(&mut **receiver);
     if form == Form::Place {
       receiver = Expr { span: receiver.span, kind: ExprKind::Ref(Box::new(receiver)) };
@@ -133,7 +134,7 @@ impl Checker<'_> {
     ExprKind::Call(Box::new(func), args)
   }
 
-  fn get_ty_mod(&mut self, ty: &Type) -> Result<Option<usize>, Diag> {
+  fn get_ty_mod(&mut self, ty: &Type) -> Result<Option<DefId>, Diag<'core>> {
     Ok(match ty {
       Type::Adt(mod_id, _) => Some(*mod_id),
       Type::U32 => self.u32,

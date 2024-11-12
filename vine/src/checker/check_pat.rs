@@ -4,11 +4,11 @@ use crate::{
   diag::{report, Diag},
 };
 
-impl Checker<'_> {
+impl<'core> Checker<'core, '_> {
   pub(super) fn check_pat_annotation(
     &mut self,
-    pat: &mut Pat,
-    annotation: Option<&mut Ty>,
+    pat: &mut Pat<'core>,
+    annotation: Option<&mut Ty<'core>>,
     form: Form,
     refutable: bool,
   ) -> Type {
@@ -24,14 +24,14 @@ impl Checker<'_> {
 
   pub(super) fn check_pat_type(
     &mut self,
-    pat: &mut Pat,
+    pat: &mut Pat<'core>,
     form: Form,
     refutable: bool,
     ty: &mut Type,
   ) {
     let mut found = self.check_pat(pat, form, refutable);
     if !self.unify(&mut found, ty) {
-      self.diags.add(Diag::ExpectedTypeFound {
+      self.core.report(Diag::ExpectedTypeFound {
         span: pat.span,
         expected: self.display_type(ty),
         found: self.display_type(&found),
@@ -39,7 +39,7 @@ impl Checker<'_> {
     }
   }
 
-  pub(super) fn check_pat(&mut self, pat: &mut Pat, form: Form, refutable: bool) -> Type {
+  pub(super) fn check_pat(&mut self, pat: &mut Pat<'core>, form: Form, refutable: bool) -> Type {
     let span = pat.span;
     match (&mut pat.kind, form) {
       (_, Form::Error(_)) => unreachable!(),
@@ -48,12 +48,12 @@ impl Checker<'_> {
       (PatKind::Paren(p), _) => self.check_pat(p, form, refutable),
 
       (PatKind::Adt(path, fields), _) => {
-        report!(self.diags, pat.kind; self.check_adt_pat(span, path, fields, form, refutable))
+        report!(self.core, pat.kind; self.check_adt_pat(span, path, fields, form, refutable))
       }
 
       (PatKind::Hole, _) => self.new_var(span),
       (PatKind::Local(l), _) => {
-        let old = self.state.locals.insert(*l, self.state.vars.len());
+        let old = self.state.locals.insert(*l, self.state.vars.next_index());
         debug_assert!(old.is_none());
         self.new_var(span)
       }
@@ -73,17 +73,17 @@ impl Checker<'_> {
       }
 
       (PatKind::Ref(pat), Form::Space) => {
-        let err = self.diags.add(Diag::RefSpacePat { span });
+        let err = self.core.report(Diag::RefSpacePat { span });
         pat.kind = PatKind::Error(err);
         Type::Error(err)
       }
       (PatKind::Deref(pat), _) => {
-        let err = self.diags.add(Diag::DerefNonPlacePat { span });
+        let err = self.core.report(Diag::DerefNonPlacePat { span });
         pat.kind = PatKind::Error(err);
         Type::Error(err)
       }
       (PatKind::Move(_), _) => {
-        let err = self.diags.add(Diag::MoveNonPlacePat { span });
+        let err = self.core.report(Diag::MoveNonPlacePat { span });
         pat.kind = PatKind::Error(err);
         Type::Error(err)
       }
@@ -93,11 +93,11 @@ impl Checker<'_> {
   fn check_adt_pat(
     &mut self,
     span: Span,
-    path: &mut GenericPath,
-    fields: &mut Option<Vec<Pat>>,
+    path: &mut GenericPath<'core>,
+    fields: &mut Option<Vec<Pat<'core>>>,
     form: Form,
     refutable: bool,
-  ) -> Result<Type, Diag> {
+  ) -> Result<Type, Diag<'core>> {
     let (adt, field_tys) = self.typeof_variant_def(path, refutable)?;
     let fields = fields.get_or_insert(Vec::new());
     if fields.len() != field_tys.len() {

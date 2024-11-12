@@ -1,23 +1,26 @@
 use std::{collections::BTreeMap, mem::take};
 
-use vine_util::bicycle::{Bicycle, BicycleState};
+use vine_util::{
+  bicycle::{Bicycle, BicycleState},
+  idx::{IdxVec, RangeExt},
+};
 
-use super::{Compiler, Interface, InterfaceId, Local, Port, Stage, Step, Usage, WireDir};
+use super::{Emitter, Interface, InterfaceId, Local, Port, Stage, StageId, Step, Usage, WireDir};
 
-impl Compiler<'_> {
+impl<'core> Emitter<'core, '_> {
   pub(super) fn infer_interfaces(&mut self) {
-    let all = 0..self.interfaces.len();
-    FlowOut { stages: &self.stages, interfaces: &mut self.interfaces }.visit_all(all.clone());
-    FlowIn { stages: &self.stages, interfaces: &mut self.interfaces }.visit_all(all.clone());
-    for i in all {
+    let all = self.interfaces.range();
+    FlowOut { stages: &self.stages, interfaces: &mut self.interfaces }.visit_all(all.iter());
+    FlowIn { stages: &self.stages, interfaces: &mut self.interfaces }.visit_all(all.iter());
+    for i in all.iter() {
       self.interfaces[i].calc_wires();
     }
   }
 }
 
 struct FlowOut<'a> {
-  stages: &'a Vec<Stage>,
-  interfaces: &'a mut Vec<Interface>,
+  stages: &'a IdxVec<StageId, Stage>,
+  interfaces: &'a mut IdxVec<InterfaceId, Interface>,
 }
 
 impl<'a> Bicycle for FlowOut<'a> {
@@ -63,8 +66,8 @@ impl<'a> Bicycle for FlowOut<'a> {
 }
 
 struct FlowIn<'a> {
-  stages: &'a Vec<Stage>,
-  interfaces: &'a mut Vec<Interface>,
+  stages: &'a IdxVec<StageId, Stage>,
+  interfaces: &'a mut IdxVec<InterfaceId, Interface>,
 }
 
 impl<'a> Bicycle for FlowIn<'a> {
@@ -139,7 +142,7 @@ impl Interface {
 }
 
 impl Step {
-  fn usage(&self, interfaces: &[Interface], mut add: impl FnMut(usize, Usage)) {
+  fn usage(&self, interfaces: &IdxVec<InterfaceId, Interface>, mut add: impl FnMut(Local, Usage)) {
     match *self {
       Step::Get(l, _) => add(l, Usage::GET),
       Step::Set(l, Port::Erase) => add(l, Usage::ERASE),

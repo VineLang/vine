@@ -2,11 +2,14 @@ use crate::{
   ast::{GenericPath, Span},
   checker::{Checker, Type},
   diag::Diag,
-  resolve::Def,
+  resolver::Def,
 };
 
-impl Checker<'_> {
-  pub(super) fn typeof_value_def(&mut self, path: &mut GenericPath) -> Result<Type, Diag> {
+impl<'core> Checker<'core, '_> {
+  pub(super) fn typeof_value_def(
+    &mut self,
+    path: &mut GenericPath<'core>,
+  ) -> Result<Type, Diag<'core>> {
     let span = path.span;
     let def_id = path.path.resolved.unwrap();
     let def = &self.resolver.defs[def_id];
@@ -29,9 +32,9 @@ impl Checker<'_> {
 
   pub(super) fn typeof_type_def(
     &mut self,
-    path: &mut GenericPath,
+    path: &mut GenericPath<'core>,
     inference: bool,
-  ) -> Result<Type, Diag> {
+  ) -> Result<Type, Diag<'core>> {
     let span = path.span;
     let def_id = path.path.resolved.unwrap();
     let def = &self.resolver.defs[def_id];
@@ -67,9 +70,9 @@ impl Checker<'_> {
 
   pub(super) fn typeof_variant_def(
     &mut self,
-    path: &mut GenericPath,
+    path: &mut GenericPath<'core>,
     refutable: bool,
-  ) -> Result<(Type, Vec<Type>), Diag> {
+  ) -> Result<(Type, Vec<Type>), Diag<'core>> {
     let span = path.span;
     let variant_id = path.path.resolved.unwrap();
     let variant = &self.resolver.defs[variant_id];
@@ -87,7 +90,7 @@ impl Checker<'_> {
     let adt = &self.resolver.defs[adt_id];
     let adt_def = adt.adt_def.as_ref().unwrap();
     if !refutable && adt_def.variants.len() > 1 {
-      self.diags.add(Diag::ExpectedIrrefutablePat { span });
+      self.core.report(Diag::ExpectedIrrefutablePat { span });
     }
     let generic_count = adt_def.generics.len();
     Self::check_generic_count(span, variant, path, generic_count)?;
@@ -102,10 +105,10 @@ impl Checker<'_> {
 
   fn check_generic_count(
     span: Span,
-    def: &Def,
-    path: &GenericPath,
+    def: &Def<'core>,
+    path: &GenericPath<'core>,
     expected: usize,
-  ) -> Result<(), Diag> {
+  ) -> Result<(), Diag<'core>> {
     if let Some(generics) = &path.generics {
       if generics.len() != expected {
         Err(Diag::BadGenericCount {

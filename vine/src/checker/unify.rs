@@ -3,7 +3,7 @@ use crate::{
   diag::Diag,
 };
 
-impl Checker<'_> {
+impl<'core> Checker<'core, '_> {
   #[must_use]
   pub(super) fn unify(&mut self, a: &mut Type, b: &mut Type) -> bool {
     self._unify(a, b, false, false)
@@ -18,7 +18,7 @@ impl Checker<'_> {
       (Type::Inverse(a), b) => self._unify(a, b, !i, j),
       (Type::Var(v), Type::Var(u)) if *v == *u => i == j,
       (Type::Var(v), Type::Var(u)) => {
-        let (v, u) = get2_mut(&mut self.state.vars, *v, *u);
+        let (v, u) = self.state.vars.get2_mut(*v, *u).unwrap();
         match (&mut *v, &mut *u) {
           (Ok(v), Ok(u)) => {
             *a = v.clone();
@@ -85,21 +85,10 @@ impl Checker<'_> {
       match self.state.vars[v].clone() {
         Ok(t) => *ty = t,
         Err(span) => {
-          let err = self.diags.add(Diag::CannotInfer { span });
+          let err = self.core.report(Diag::CannotInfer { span });
           *ty = Type::Error(err);
         }
       }
     }
-  }
-}
-
-fn get2_mut<T>(slice: &mut [T], a: usize, b: usize) -> (&mut T, &mut T) {
-  assert!(a != b);
-  if a < b {
-    let (l, r) = slice.split_at_mut(b);
-    (&mut l[a], &mut r[0])
-  } else {
-    let (l, r) = slice.split_at_mut(a);
-    (&mut r[0], &mut l[b])
   }
 }
