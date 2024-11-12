@@ -11,6 +11,7 @@ impl<'core> Checker<'core, '_> {
 
   fn _display_type(&self, ty: &Type, str: &mut String) {
     match ty {
+      Type::Bool => *str += "bool",
       Type::U32 => *str += "u32",
       Type::F32 => *str += "f32",
       Type::IO => *str += "IO",

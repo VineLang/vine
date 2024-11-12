@@ -114,6 +114,7 @@ impl<'core, 'src> VineParser<'core, 'src> {
         let str = self.parse_string()?;
         let str_span = self.end_span(str_span);
         let builtin = match &*str {
+          "bool" => Builtin::Bool,
           "u32" => Builtin::U32,
           "f32" => Builtin::F32,
           "IO" => Builtin::IO,
@@ -384,6 +385,12 @@ impl<'core, 'src> VineParser<'core, 'src> {
     }
     if self.check(Token::String) {
       return Ok(ExprKind::String(self.parse_string()?));
+    }
+    if self.eat(Token::True)? {
+      return Ok(ExprKind::Bool(true));
+    }
+    if self.eat(Token::False)? {
+      return Ok(ExprKind::Bool(false));
     }
     if self.check(Token::Ident) || self.check(Token::ColonColon) {
       return Ok(ExprKind::Path(self.parse_generic_path()?));

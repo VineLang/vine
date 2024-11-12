@@ -93,7 +93,7 @@ impl<'core> Checker<'core, '_> {
         result
       }
       ExprKind::If(cond, then, els) => {
-        self.check_expr_form_type(cond, Form::Value, &mut Type::U32);
+        self.check_expr_form_type(cond, Form::Value, &mut Type::Bool);
         let mut then = self.check_block(then);
         let mut els = self.check_expr_form(els, Form::Value);
         if !self.unify(&mut then, &mut els) {
@@ -108,7 +108,7 @@ impl<'core> Checker<'core, '_> {
       }
       ExprKind::While(cond, block) => {
         let old = self.loop_ty.replace(Type::UNIT);
-        self.check_expr_form_type(cond, Form::Value, &mut Type::U32);
+        self.check_expr_form_type(cond, Form::Value, &mut Type::Bool);
         self.check_block(block);
         self.loop_ty = old;
         Type::UNIT
@@ -191,19 +191,20 @@ impl<'core> Checker<'core, '_> {
         ty
       }
       ExprKind::Call(func, args) => self.check_call(func, args, span),
+      ExprKind::Bool(_) => Type::Bool,
       ExprKind::Not(expr) => {
-        self.check_expr_form_type(expr, Form::Value, &mut Type::U32);
-        Type::U32
+        self.check_expr_form_type(expr, Form::Value, &mut Type::Bool);
+        Type::Bool
       }
       ExprKind::Is(expr, pat) => {
         let mut ty = self.check_expr_form(expr, Form::Value);
         self.check_pat_type(pat, Form::Value, true, &mut ty);
-        Type::U32
+        Type::Bool
       }
       ExprKind::LogicalOp(_, a, b) => {
-        self.check_expr_form_type(a, Form::Value, &mut Type::U32);
-        self.check_expr_form_type(b, Form::Value, &mut Type::U32);
-        Type::U32
+        self.check_expr_form_type(a, Form::Value, &mut Type::Bool);
+        self.check_expr_form_type(b, Form::Value, &mut Type::Bool);
+        Type::Bool
       }
       ExprKind::Neg(expr) => {
         let ty = self.check_expr_form(expr, Form::Value);
@@ -230,6 +231,7 @@ impl<'core> Checker<'core, '_> {
             (&lhs, &rhs),
             (Type::U32, Type::U32)
               | (Type::F32, Type::F32)
+              | (Type::Bool, Type::Bool)
               | (Type::Error(_), _)
               | (_, Type::Error(_))
           ) {
@@ -241,7 +243,7 @@ impl<'core> Checker<'core, '_> {
           }
           lhs = rhs;
         }
-        Type::U32
+        Type::Bool
       }
       ExprKind::U32(_) => Type::U32,
       ExprKind::F32(_) => Type::F32,
@@ -365,6 +367,11 @@ impl<'core> Checker<'core, '_> {
         .collect::<Result<_, _>>()
         .map(Type::Tuple),
       (_, Type::U32, Type::U32) if !i && !j => Ok(Type::U32),
+      (BinaryOp::BitAnd | BinaryOp::BitOr | BinaryOp::BitXor, Type::Bool, Type::Bool)
+        if !i && !j =>
+      {
+        Ok(Type::Bool)
+      }
       (
         BinaryOp::Add | BinaryOp::Sub | BinaryOp::Mul | BinaryOp::Div | BinaryOp::Rem,
         a @ (Type::U32 | Type::F32),

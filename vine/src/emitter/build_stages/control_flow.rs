@@ -141,6 +141,17 @@ impl<'core> Emitter<'core, '_> {
     yay: &dyn Fn(&mut Self) -> bool,
     nay: &dyn Fn(&mut Self) -> bool,
   ) {
+    if let ExprKind::ComparisonOp(lhs, c) = &expr.kind {
+      if let [(op, rhs)] = &**c {
+        if matches!(rhs.kind, ExprKind::U32(0)) {
+          if *op == ComparisonOp::Ne {
+            return self.emit_cond(lhs, yay, nay);
+          } else if *op == ComparisonOp::Eq {
+            return self.emit_cond(lhs, nay, yay);
+          }
+        }
+      }
+    }
     match &expr.kind {
       ExprKind![!cond] => {
         let bool = self.emit_expr_value(expr);
@@ -150,6 +161,12 @@ impl<'core> Emitter<'core, '_> {
         let r = self.net.new_wire();
         self.cur.agents.push(Agent::Branch(bool, self.stage_port(nay), self.stage_port(yay), r.0));
         self.cur.steps.push_back(Step::Call(i, r.1));
+      }
+      ExprKind::Bool(true) => {
+        yay(self);
+      }
+      ExprKind::Bool(false) => {
+        nay(self);
       }
       ExprKind::Is(expr, pat) => {
         self.emit_match(

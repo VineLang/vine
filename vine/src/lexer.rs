@@ -144,6 +144,10 @@ pub enum Token {
   If,
   #[token("else")]
   Else,
+  #[token("true")]
+  True,
+  #[token("false")]
+  False,
 
   #[regex(r"\p{ID_Start}\p{ID_Continue}*")]
   Ident,

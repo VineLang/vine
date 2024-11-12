@@ -314,6 +314,7 @@ impl<'core: 'src, 'src> Formatter<'src> {
         Doc::concat([self.fmt_expr(f), Doc::paren_comma(a.iter().map(|x| self.fmt_expr(x)))])
       }
       ExprKind::Neg(x) => Doc::concat([Doc("-"), self.fmt_expr(x)]),
+      ExprKind::Bool(b) => Doc(if *b { "true" } else { "false" }),
       ExprKind::Not(x) => Doc::concat([Doc("!"), self.fmt_expr(x)]),
       ExprKind::Is(e, p) => Doc::concat([self.fmt_expr(e), Doc(" is "), self.fmt_pat(p)]),
       ExprKind::LogicalOp(op, a, b) => Doc::concat([
