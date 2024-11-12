@@ -1,0 +1,19 @@
+
+pub fn main(&io: &IO) {
+  let state = (io, 0);
+  loop {
+    let (io, i) = state;
+    io.print_char('*');
+    io.flush();
+    i += 1;
+    state = if i == 5 {
+      // We need to test a bug with the compilation of infinite loops, but we
+      // don't want to have the test loop indefinitely. So, when `i == 5`, we
+      // erase all of the loop's state. This causes the loop stop at runtime,
+      // even though at compile time the loop seems to run indefinitely.
+      ~_
+    } else {
+      (io, i)
+    };
+  }
+}
