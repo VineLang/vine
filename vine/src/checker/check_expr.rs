@@ -231,6 +231,7 @@ impl<'core> Checker<'core, '_> {
             (&lhs, &rhs),
             (Type::U32, Type::U32)
               | (Type::F32, Type::F32)
+              | (Type::Char, Type::Char)
               | (Type::Bool, Type::Bool)
               | (Type::Error(_), _)
               | (_, Type::Error(_))
@@ -246,6 +247,7 @@ impl<'core> Checker<'core, '_> {
         Type::Bool
       }
       ExprKind::U32(_) => Type::U32,
+      ExprKind::Char(_) => Type::Char,
       ExprKind::F32(_) => Type::F32,
       ExprKind::String(_) => {
         report!(self.core; self.string.clone().ok_or(Diag::MissingBuiltin { span, builtin: "List" }))
@@ -372,6 +374,8 @@ impl<'core> Checker<'core, '_> {
       {
         Ok(Type::Bool)
       }
+      (BinaryOp::Add | BinaryOp::Sub, Type::Char, Type::U32) if !i && !j => Ok(Type::Char),
+      (BinaryOp::Sub, Type::Char, Type::Char) if !i && !j => Ok(Type::U32),
       (
         BinaryOp::Add | BinaryOp::Sub | BinaryOp::Mul | BinaryOp::Div | BinaryOp::Rem,
         a @ (Type::U32 | Type::F32),

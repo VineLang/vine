@@ -117,6 +117,7 @@ impl<'core, 'src> VineParser<'core, 'src> {
           "bool" => Builtin::Bool,
           "u32" => Builtin::U32,
           "f32" => Builtin::F32,
+          "char" => Builtin::Char,
           "IO" => Builtin::IO,
           "List" => Builtin::List,
           "concat" => Builtin::Concat,
@@ -381,7 +382,7 @@ impl<'core, 'src> VineParser<'core, 'src> {
       return self.parse_num();
     }
     if self.check(Token::Char) {
-      return Ok(ExprKind::U32(self.parse_char()? as u32));
+      return Ok(ExprKind::Char(self.parse_char()?));
     }
     if self.check(Token::String) {
       return Ok(ExprKind::String(self.parse_string()?));

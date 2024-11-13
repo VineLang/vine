@@ -58,6 +58,7 @@ pub trait VisitMut<'core, 'a> {
       | ExprKind::Bool(_)
       | ExprKind::U32(_)
       | ExprKind::F32(_)
+      | ExprKind::Char(_)
       | ExprKind::String(_)
       | ExprKind::Continue
       | ExprKind::Error(_)

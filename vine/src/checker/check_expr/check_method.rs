@@ -140,6 +140,7 @@ impl<'core> Checker<'core, '_> {
       Type::Bool => self.bool,
       Type::U32 => self.u32,
       Type::F32 => self.f32,
+      Type::Char => self.char,
       Type::IO => self.io,
       Type::Tuple(_) | Type::Fn(..) | Type::Ref(_) | Type::Inverse(_) | Type::Opaque(_) => None,
       Type::Var(_) => unreachable!(),

@@ -141,6 +141,7 @@ pub enum Builtin {
   Bool,
   U32,
   F32,
+  Char,
   IO,
   Prelude,
   List,
@@ -274,6 +275,8 @@ pub enum ExprKind<'core> {
   U32(u32),
   #[class(value)]
   F32(f32),
+  #[class(value)]
+  Char(char),
   #[class(value)]
   String(String),
   #[class(place, synthetic)]

@@ -14,6 +14,7 @@ impl<'core> Checker<'core, '_> {
       Type::Bool => *str += "bool",
       Type::U32 => *str += "u32",
       Type::F32 => *str += "f32",
+      Type::Char => *str += "char",
       Type::IO => *str += "IO",
       Type::Tuple(t) => {
         *str += "(";

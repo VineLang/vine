@@ -65,6 +65,7 @@ impl<'core> Emitter<'core, '_> {
       ExprKind::Paren(e) => self.emit_expr_value(e),
       ExprKind::U32(num) => Port::U32(*num),
       ExprKind::F32(num) => Port::F32(*num),
+      ExprKind::Char(char) => Port::U32(*char as u32),
       ExprKind::Path(path) => Port::Global(path.path.to_string()),
       ExprKind::Assign(s, v) => {
         let v = self.emit_expr_value(v);

@@ -54,6 +54,7 @@ impl<'core> Checker<'core, '_> {
       (Type::Bool, Type::Bool)
       | (Type::U32, Type::U32)
       | (Type::F32, Type::F32)
+      | (Type::Char, Type::Char)
       | (Type::IO, Type::IO)
         if i == j =>
       {

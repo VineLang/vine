@@ -347,7 +347,9 @@ impl<'core: 'src, 'src> Formatter<'src> {
       ExprKind::BinaryOpAssign(op, a, b) => {
         Doc::concat([self.fmt_expr(a), Doc(" "), Doc(op.as_str()), Doc("= "), self.fmt_expr(b)])
       }
-      ExprKind::U32(_) | ExprKind::F32(_) | ExprKind::String(_) => self.fmt_verbatim(expr.span),
+      ExprKind::U32(_) | ExprKind::F32(_) | ExprKind::Char(_) | ExprKind::String(_) => {
+        self.fmt_verbatim(expr.span)
+      }
     }
   }
 
