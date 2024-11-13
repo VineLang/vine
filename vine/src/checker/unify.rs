@@ -3,6 +3,8 @@ use crate::{
   diag::Diag,
 };
 
+use super::CheckerState;
+
 impl<'core> Checker<'core, '_> {
   #[must_use]
   pub(super) fn unify(&mut self, a: &mut Type, b: &mut Type) -> bool {
@@ -96,6 +98,18 @@ impl<'core> Checker<'core, '_> {
           let err = self.core.report(Diag::CannotInfer { span });
           *ty = Type::Error(err);
         }
+      }
+    }
+  }
+}
+
+impl CheckerState {
+  pub(crate) fn try_concretize(&self, ty: &mut Type) {
+    while let Type::Var(v) = *ty {
+      if let Ok(t) = self.vars[v].clone() {
+        *ty = t
+      } else {
+        break;
       }
     }
   }
