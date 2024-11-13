@@ -1,0 +1,9 @@
+let x = 0
+while x < 1000 { x = x * 3 + 7 }
+mod fib_repl = "vine/examples/fib_repl.vi";
+use fib_repl::fib;
+x = 8
+x = fib(x)
+x = fib(x)
+x = fib(x)
+io.println("Hello, world!")

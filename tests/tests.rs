@@ -64,6 +64,12 @@ fn tests(t: &mut DynTester) {
       test_vi_fail(t, "tests/programs/fail/missing_no.vi");
       test_vi_fail(t, "tests/programs/fail/visibility.vi");
     });
+
+    t.group("fail", |t| {
+      test_vi_repl(t, "tests/programs/repl/advanced_repl.vi");
+      test_vi_repl(t, "tests/programs/repl/basic_repl.vi");
+      test_vi_repl(t, "tests/programs/repl/randomness.vi");
+    });
   });
 }
 
@@ -93,6 +99,16 @@ fn test_vi_fail(t: &mut DynTester, path: &'static str) {
   t.test(name, move || {
     let (_, stderr) = exec(VINE, &["build", path], &[], false);
     test_snapshot(&["vine", "fail", &format!("{name}.txt")], &stderr);
+  });
+}
+
+fn test_vi_repl(t: &mut DynTester, path: &'static str) {
+  let name = Path::file_stem(path.as_ref()).unwrap().to_str().unwrap();
+  t.test(name, move || {
+    let input = fs::read_to_string(path).unwrap();
+    let (stdout, stderr) = exec(VINE, &["repl", "--echo"], input.as_bytes(), true);
+    assert!(stderr.is_empty());
+    test_snapshot(&["vine", "repl", &format!("{name}.repl.vi")], &stdout);
   });
 }
 

@@ -124,6 +124,8 @@ pub struct VineReplCommand {
   libs: Vec<PathBuf>,
   #[arg(long)]
   no_std: bool,
+  #[arg(long)]
+  echo: bool,
 }
 
 impl VineReplCommand {
@@ -149,11 +151,14 @@ impl VineReplCommand {
       print!("\n{repl}");
       match rl.readline("> ") {
         Ok(line) => {
+          if self.echo {
+            println!("> {}", line);
+          }
           _ = rl.add_history_entry(&line);
           match repl.exec(&line) {
             Ok(Some(result)) => println!("{result}"),
             Ok(None) => {}
-            Err(err) => eprintln!("{err}"),
+            Err(err) => println!("{err}"),
           }
         }
         Err(_) => break,

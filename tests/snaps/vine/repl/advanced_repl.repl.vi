@@ -1,0 +1,52 @@
+
+io = #io
+> struct Foo(N32, F32, Char, String);
+
+io = #io
+> Foo(1, 1.1, '1', "11")
+::repl::Foo(1, 1.1, '1', "11")
+
+io = #io
+> struct Bar; Bar
+::repl::Bar
+
+io = #io
+> use std::option::Option;
+
+io = #io
+> Option::Some([Option::None, Option::Some((1, 2))])
+::std::option::Option::Some([::std::option::Option::None, ::std::option::Option::Some((1, 2))])
+
+io = #io
+> (1, (2, 3, (4, 5, 6, (7, 8, 9, 10))))
+(1, (2, 3, (4, 5, 6, (7, 8, 9, 10))))
+
+io = #io
+> (((),()),((),()))
+(((), ()), ((), ()))
+
+io = #io
+> ([],"")
+([], "")
+
+io = #io
+> let x = [];
+
+io = #io
+x = []
+> x ++ ""
+""
+
+io = #io
+x = ""
+> move x
+""
+
+io = #io
+> use std::result::Result::{Ok, Err};
+
+io = #io
+> [Ok(1234), Err("oh no")]
+[::std::result::Result::Ok(1234), ::std::result::Result::Err("oh no")]
+
+io = #io

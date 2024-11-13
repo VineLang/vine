@@ -1,0 +1,39 @@
+
+io = #io
+> let x = 0
+
+io = #io
+x = 0
+> while x < 1000 { x = x * 3 + 7 }
+
+io = #io
+x = 2548
+> mod fib_repl = "vine/examples/fib_repl.vi";
+
+io = #io
+x = 2548
+> use fib_repl::fib;
+
+io = #io
+x = 2548
+> x = 8
+
+io = #io
+x = 8
+> x = fib(x)
+
+io = #io
+x = 21
+> x = fib(x)
+
+io = #io
+x = 10946
+> x = fib(x)
+
+io = #io
+x = 2326745473
+> io.println("Hello, world!")
+Hello, world!
+
+io = #io
+x = 2326745473
