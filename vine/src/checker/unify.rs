@@ -46,7 +46,7 @@ impl<'core> Checker<'core, '_> {
           *o = u.clone();
           self._unify(a, b, i, j)
         } else {
-          *o = t.clone();
+          *o = t.clone().invert_if(i != j);
           *v = Ok(t.clone().invert_if(i != j));
           true
         }

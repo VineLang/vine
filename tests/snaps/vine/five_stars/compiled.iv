@@ -1,0 +1,20 @@
+
+::main { ::five_stars::main }
+
+::five_stars::main {
+  fn(ref(dup1(n0 n1) n1) _)
+  ::five_stars::main::1 = tup(n0 0)
+}
+
+::five_stars::main::1 {
+  tup(n0 @add(1 dup4(@eq(5 ?(::five_stars::main::3 _ x(n2 x(n3 ::five_stars::main::1)))) n3)))
+  ::std::io::IO::print_char = fn(ref(n0 n1) fn(42 _))
+  ::std::io::IO::flush = fn(ref(n1 n2) _)
+}
+
+::five_stars::main::3 { x(n0 x(n1 tup(n0 n1))) }
+
+::std::io::IO::print_char { fn(ref(@io_print_char(char io) io) fn(char _)) }
+
+::std::io::IO::flush { fn(ref(@io_flush(0 io) io) _) }
+

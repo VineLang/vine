@@ -78,7 +78,7 @@ impl<'core> Emitter<'core, '_> {
   }
 
   pub(super) fn goto(&mut self, stage: StageId) {
-    let interface = self.stages[stage].outer;
+    let interface = if stage == self.cur_id { self.cur.outer } else { self.stages[stage].outer };
     let stage = self.stage_port(stage);
     self.cur.steps.push_back(Step::Call(interface, stage));
   }

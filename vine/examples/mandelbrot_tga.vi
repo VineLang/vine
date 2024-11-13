@@ -30,6 +30,6 @@ fn mandelbrot(x0: f32, y0: f32) -> u32 {
     (x, y) = (x2 - y2 + x0, 2.0 * x * y + y0);
     x2 = x * x;
     y2 = y * y;
-  };
+  }
   i * 256 / max_iter
 }

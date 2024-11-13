@@ -653,6 +653,16 @@ impl<'core, 'src> VineParser<'core, 'src> {
       StmtKind::Empty
     } else if let Some(item) = self.maybe_parse_item()? {
       StmtKind::Item(item)
+    } else if self.check(Token::If)
+      || self.check(Token::Match)
+      || self.check(Token::Loop)
+      || self.check(Token::While)
+      || self.check(Token::For)
+      || self.check(Token::OpenBrace)
+    {
+      let expr = self.parse_expr_prefix()?;
+      let semi = self.eat(Token::Semi)?;
+      StmtKind::Expr(expr, semi)
     } else {
       let expr = self.parse_expr()?;
       let semi = self.eat(Token::Semi)?;
