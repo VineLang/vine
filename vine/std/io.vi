@@ -18,11 +18,11 @@ pub mod IO {
     }
   }
 
-  pub inline_ivy! print_char: fn(&IO, char) {
+  pub inline_ivy! print_char: fn(&IO, Char) {
     fn(ref(@io_print_char(char io) io) fn(char _))
   }
 
-  pub fn print_bytes(&io: &IO, bytes: List[u32]) {
+  pub fn print_bytes(&io: &IO, bytes: List[N32]) {
     let List(len, bytes, _) = bytes;
     while len != 0 {
       len = len - 1;
@@ -32,7 +32,7 @@ pub mod IO {
     }
   }
 
-  pub inline_ivy! print_byte: fn(&IO, u32) {
+  pub inline_ivy! print_byte: fn(&IO, N32) {
     fn(ref(@io_print_byte(char io) io) fn(char _))
   }
 
@@ -68,7 +68,7 @@ pub mod IO {
     }
   }
 
-  inline_ivy! read_byte: fn(&IO, char) -> char {
+  inline_ivy! read_byte: fn(&IO, Char) -> Char {
     fn(ref(dup(io0 @io_read_byte(default dup(byte @seq$(io0 io1)))) io1) fn(default byte))
   }
 }

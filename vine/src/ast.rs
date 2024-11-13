@@ -139,7 +139,7 @@ pub enum AttrKind {
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum Builtin {
   Bool,
-  U32,
+  N32,
   F32,
   Char,
   IO,
@@ -272,7 +272,7 @@ pub enum ExprKind<'core> {
   #[class(value)]
   BinaryOpAssign(BinaryOp, B<Expr<'core>>, B<Expr<'core>>),
   #[class(value)]
-  U32(u32),
+  N32(u32),
   #[class(value)]
   F32(f32),
   #[class(value)]

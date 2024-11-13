@@ -10,7 +10,7 @@
   ::std::io::IO::println = fn(ref(n5 n8) fn(n7 _))
   ::basic_diverge::foo = fn(0 fn(ref(n6 n11) n7))
   ::std::io::IO::println = fn(ref(n8 n9) fn(n13 _))
-  ::std::u32::to_string = fn(n11 n12)
+  ::std::n32::N32::to_string = fn(n11 n12)
   ::std::list::List::concat = fn(tup(13 tup(tup(10 tup(122 tup(101 tup(114 tup(111 tup(95 tup(99 tup(111 tup(117 tup(110 tup(116 tup(58 tup(32 n10))))))))))))) n10)) fn(n12 n13))
 }
 
@@ -50,23 +50,23 @@
   ::std::list::List = fn(n2 fn(n3 fn(n4 n5)))
 }
 
-::std::u32::to_string { fn(dup243(?(::std::u32::to_string::5 ::std::u32::to_string::1 x(n1 n0)) n1) n0) }
+::std::n32::N32::to_string { fn(dup124(?(::std::n32::N32::to_string::5 ::std::n32::N32::to_string::1 x(n1 n0)) n1) n0) }
 
-::std::u32::to_string::1 {
+::std::n32::N32::to_string::1 {
   x(n1 n2)
-  ::std::u32::to_string::2 = x(n1 x(tup(0 tup(n0 n0)) n2))
+  ::std::n32::N32::to_string::2 = x(n1 x(tup(0 tup(n0 n0)) n2))
 }
 
-::std::u32::to_string::2 { x(dup243(?(::std::u32::to_string::4 ::std::u32::to_string::3 x(n2 n0)) n2) n0) }
+::std::n32::N32::to_string::2 { x(dup124(?(::std::n32::N32::to_string::4 ::std::n32::N32::to_string::3 x(n2 n0)) n2) n0) }
 
-::std::u32::to_string::3 {
-  x(dup243(@rem(10 n0) @div(10 n4)) x(n3 n6))
+::std::n32::N32::to_string::3 {
+  x(dup124(@rem(10 n0) @div(10 n4)) x(n3 n6))
   48 = @add(n0 n1)
   ::std::list::List::concat = fn(tup(1 tup(tup(n1 n2) n2)) fn(n3 n5))
-  ::std::u32::to_string::2 = x(n4 x(n5 n6))
+  ::std::n32::N32::to_string::2 = x(n4 x(n5 n6))
 }
 
-::std::u32::to_string::4 { x(_ x(n0 n0)) }
+::std::n32::N32::to_string::4 { x(_ x(n0 n0)) }
 
-::std::u32::to_string::5 { x(_ tup(1 tup(tup(48 n0) n0))) }
+::std::n32::N32::to_string::5 { x(_ tup(1 tup(tup(48 n0) n0))) }
 

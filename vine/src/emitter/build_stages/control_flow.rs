@@ -143,7 +143,7 @@ impl<'core> Emitter<'core, '_> {
   ) {
     if let ExprKind::ComparisonOp(lhs, c) = &expr.kind {
       if let [(op, rhs)] = &**c {
-        if matches!(rhs.kind, ExprKind::U32(0)) {
+        if matches!(rhs.kind, ExprKind::N32(0)) {
           if *op == ComparisonOp::Ne {
             return self.emit_cond(lhs, yay, nay);
           } else if *op == ComparisonOp::Eq {

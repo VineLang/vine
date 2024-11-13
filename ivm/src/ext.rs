@@ -46,16 +46,16 @@ impl ExtVal {
     Self(payload as (u64) << 32 | ty as (u64) << 16 | Tag::ExtVal as u64)
   }
 
-  /// Creates a new `u32` with the given numeric value.
+  /// Creates a new `N32` with the given numeric value.
   #[inline(always)]
-  pub fn new_u32(value: u32) -> Self {
-    Self::new(ExtTy::u32, value)
+  pub fn new_n32(value: u32) -> Self {
+    Self::new(ExtTy::N32, value)
   }
 
-  /// Creates a new `f32` with the given numeric value.
+  /// Creates a new `F32` with the given numeric value.
   #[inline(always)]
   pub fn new_f32(value: f32) -> Self {
-    Self::new(ExtTy::f32, value.to_bits())
+    Self::new(ExtTy::F32, value.to_bits())
   }
 
   /// Accesses the type of this value.
@@ -73,8 +73,8 @@ impl ExtVal {
   /// Asserts that the type of this value is `u32`, and returns the numeric
   /// value.
   #[inline(always)]
-  pub fn as_u32(self) -> u32 {
-    assert_eq!(self.ty(), ExtTy::u32);
+  pub fn as_n32(self) -> u32 {
+    assert_eq!(self.ty(), ExtTy::N32);
     self.payload()
   }
 
@@ -82,7 +82,7 @@ impl ExtVal {
   /// value.
   #[inline(always)]
   pub fn as_f32(self) -> f32 {
-    assert_eq!(self.ty(), ExtTy::f32);
+    assert_eq!(self.ty(), ExtTy::F32);
     f32::from_bits(self.payload())
   }
 
@@ -98,9 +98,9 @@ impl ExtVal {
 #[repr(u16)]
 pub enum ExtTy {
   /// A 32-bit unsigned integer; the payload is simply the numeric value.
-  u32,
+  N32,
   /// A 32-bit float; the payload is simply the bits of the float.
-  f32,
+  F32,
   /// An IO handle, denoting the ability to do IO; the payload is always zero.
   IO,
 }
@@ -186,17 +186,17 @@ ext_fns! {
   lt,
   le,
 
-  u32_shl,
-  u32_shr,
-  u32_rotl,
-  u32_rotr,
+  n32_shl,
+  n32_shr,
+  n32_rotl,
+  n32_rotr,
 
-  u32_and,
-  u32_or,
-  u32_xor,
+  n32_and,
+  n32_or,
+  n32_xor,
 
-  u32_add_high,
-  u32_mul_high,
+  n32_add_high,
+  n32_mul_high,
 
   io_print_char,
   io_print_byte,
@@ -222,26 +222,26 @@ impl ExtFnKind {
       lt => comparison(a, b, |a, b| a < b, |a, b| a < b),
       le => comparison(a, b, |a, b| a <= b, |a, b| a <= b),
 
-      u32_shl => ExtVal::new_u32(a.as_u32().wrapping_shl(b.as_u32())),
-      u32_shr => ExtVal::new_u32(a.as_u32().wrapping_shr(b.as_u32())),
-      u32_rotl => ExtVal::new_u32(a.as_u32().rotate_left(b.as_u32())),
-      u32_rotr => ExtVal::new_u32(a.as_u32().rotate_right(b.as_u32())),
+      n32_shl => ExtVal::new_n32(a.as_n32().wrapping_shl(b.as_n32())),
+      n32_shr => ExtVal::new_n32(a.as_n32().wrapping_shr(b.as_n32())),
+      n32_rotl => ExtVal::new_n32(a.as_n32().rotate_left(b.as_n32())),
+      n32_rotr => ExtVal::new_n32(a.as_n32().rotate_right(b.as_n32())),
 
-      u32_and => ExtVal::new_u32(a.as_u32() & b.as_u32()),
-      u32_or => ExtVal::new_u32(a.as_u32() | b.as_u32()),
-      u32_xor => ExtVal::new_u32(a.as_u32() ^ b.as_u32()),
+      n32_and => ExtVal::new_n32(a.as_n32() & b.as_n32()),
+      n32_or => ExtVal::new_n32(a.as_n32() | b.as_n32()),
+      n32_xor => ExtVal::new_n32(a.as_n32() ^ b.as_n32()),
 
-      u32_add_high => ExtVal::new_u32((((a.as_u32() as u64) + (b.as_u32() as u64)) >> 32) as u32),
-      u32_mul_high => ExtVal::new_u32((((a.as_u32() as u64) * (b.as_u32() as u64)) >> 32) as u32),
+      n32_add_high => ExtVal::new_n32((((a.as_n32() as u64) + (b.as_n32() as u64)) >> 32) as u32),
+      n32_mul_high => ExtVal::new_n32((((a.as_n32() as u64) * (b.as_n32() as u64)) >> 32) as u32),
 
       io_print_char => {
         a.as_io();
-        print!("{}", char::try_from(b.as_u32()).unwrap());
+        print!("{}", char::try_from(b.as_n32()).unwrap());
         ExtVal::IO
       }
       io_print_byte => {
         a.as_io();
-        io::stdout().write_all(&[b.as_u32() as u8]).unwrap();
+        io::stdout().write_all(&[b.as_n32() as u8]).unwrap();
         ExtVal::IO
       }
       io_flush => {
@@ -251,10 +251,10 @@ impl ExtFnKind {
       }
       io_read_byte => {
         a.as_io();
-        let default = b.as_u32() as u8;
+        let default = b.as_n32() as u8;
         let mut buf = [default];
         _ = io::stdin().read(&mut buf).unwrap();
-        ExtVal::new_u32(buf[0] as u32)
+        ExtVal::new_n32(buf[0] as u32)
       }
     }
   }
@@ -263,14 +263,14 @@ impl ExtFnKind {
 fn numeric_op(
   a: ExtVal,
   b: ExtVal,
-  f_u32: fn(u32, u32) -> u32,
+  f_n32: fn(u32, u32) -> u32,
   f_f32: fn(f32, f32) -> f32,
 ) -> ExtVal {
   match (a.ty(), b.ty()) {
-    (ExtTy::u32, ExtTy::u32) => ExtVal::new_u32(f_u32(a.as_u32(), b.as_u32())),
-    (ExtTy::f32, ExtTy::f32) => ExtVal::new_f32(f_f32(a.as_f32(), b.as_f32())),
-    (ExtTy::u32, ExtTy::f32) => ExtVal::new_f32(f_f32(a.as_u32() as f32, b.as_f32())),
-    (ExtTy::f32, ExtTy::u32) => ExtVal::new_f32(f_f32(a.as_f32(), b.as_u32() as f32)),
+    (ExtTy::N32, ExtTy::N32) => ExtVal::new_n32(f_n32(a.as_n32(), b.as_n32())),
+    (ExtTy::F32, ExtTy::F32) => ExtVal::new_f32(f_f32(a.as_f32(), b.as_f32())),
+    (ExtTy::N32, ExtTy::F32) => ExtVal::new_f32(f_f32(a.as_n32() as f32, b.as_f32())),
+    (ExtTy::F32, ExtTy::N32) => ExtVal::new_f32(f_f32(a.as_f32(), b.as_n32() as f32)),
     _ => unimplemented!(),
   }
 }
@@ -281,11 +281,11 @@ fn comparison(
   f_u32: fn(u32, u32) -> bool,
   f_f32: fn(f32, f32) -> bool,
 ) -> ExtVal {
-  ExtVal::new_u32(u32::from(match (a.ty(), b.ty()) {
-    (ExtTy::u32, ExtTy::u32) => f_u32(a.as_u32(), b.as_u32()),
-    (ExtTy::f32, ExtTy::f32) => f_f32(a.as_f32(), b.as_f32()),
-    (ExtTy::u32, ExtTy::f32) => f_f32(a.as_u32() as f32, b.as_f32()),
-    (ExtTy::f32, ExtTy::u32) => f_f32(a.as_f32(), b.as_u32() as f32),
+  ExtVal::new_n32(u32::from(match (a.ty(), b.ty()) {
+    (ExtTy::N32, ExtTy::N32) => f_u32(a.as_n32(), b.as_n32()),
+    (ExtTy::F32, ExtTy::F32) => f_f32(a.as_f32(), b.as_f32()),
+    (ExtTy::N32, ExtTy::F32) => f_f32(a.as_n32() as f32, b.as_f32()),
+    (ExtTy::F32, ExtTy::N32) => f_f32(a.as_f32(), b.as_n32() as f32),
     _ => unimplemented!(),
   }))
 }
@@ -293,8 +293,8 @@ fn comparison(
 impl Debug for ExtVal {
   fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
     match self.ty() {
-      ExtTy::u32 => write!(f, "u32({})", self.payload()),
-      ExtTy::f32 => write!(f, "f32({:?})", self.as_f32()),
+      ExtTy::N32 => write!(f, "N32({})", self.payload()),
+      ExtTy::F32 => write!(f, "F32({:?})", self.as_f32()),
       ExtTy::IO => write!(f, "IO"),
     }
   }

@@ -48,8 +48,8 @@ impl<'ctx, 'ivm> Reader<'ctx, 'ivm> {
       Tag::ExtVal => {
         let val = unsafe { p.as_ext_val() };
         match val.ty() {
-          ExtTy::u32 => Tree::U32(val.as_u32()),
-          ExtTy::f32 => Tree::F32(val.as_f32()),
+          ExtTy::N32 => Tree::N32(val.as_n32()),
+          ExtTy::F32 => Tree::F32(val.as_f32()),
           ExtTy::IO => Tree::Var("#io".into()),
         }
       }

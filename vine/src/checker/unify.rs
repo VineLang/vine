@@ -52,7 +52,7 @@ impl<'core> Checker<'core, '_> {
         }
       }
       (Type::Bool, Type::Bool)
-      | (Type::U32, Type::U32)
+      | (Type::N32, Type::N32)
       | (Type::F32, Type::F32)
       | (Type::Char, Type::Char)
       | (Type::IO, Type::IO)

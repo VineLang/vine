@@ -33,7 +33,7 @@ pub struct Checker<'core, 'r> {
   cur_def: DefId,
 
   bool: Option<DefId>,
-  u32: Option<DefId>,
+  n32: Option<DefId>,
   f32: Option<DefId>,
   char: Option<DefId>,
   io: Option<DefId>,
@@ -52,12 +52,12 @@ pub(crate) struct CheckerState {
 impl<'core, 'r> Checker<'core, 'r> {
   pub fn new(core: &'core Core<'core>, resolver: &'r mut Resolver<'core>) -> Self {
     let bool = resolver.builtins.get(&Builtin::Bool).copied();
-    let u32 = resolver.builtins.get(&Builtin::U32).copied();
+    let n32 = resolver.builtins.get(&Builtin::N32).copied();
     let f32 = resolver.builtins.get(&Builtin::F32).copied();
     let char = resolver.builtins.get(&Builtin::Char).copied();
     let io = resolver.builtins.get(&Builtin::IO).copied();
     define_primitive_type(resolver, bool, Type::Bool);
-    define_primitive_type(resolver, u32, Type::U32);
+    define_primitive_type(resolver, n32, Type::N32);
     define_primitive_type(resolver, f32, Type::F32);
     define_primitive_type(resolver, char, Type::Char);
     define_primitive_type(resolver, io, Type::IO);
@@ -73,7 +73,7 @@ impl<'core, 'r> Checker<'core, 'r> {
       loop_ty: None,
       cur_def: DefId::ROOT,
       bool,
-      u32,
+      n32,
       f32,
       char,
       io,
@@ -300,7 +300,7 @@ new_idx!(pub Var);
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Type {
   Bool,
-  U32,
+  N32,
   F32,
   Char,
   IO,
@@ -320,7 +320,7 @@ impl Type {
   fn instantiate(&self, opaque: &[Type]) -> Type {
     match self {
       Type::Bool => Type::Bool,
-      Type::U32 => Type::U32,
+      Type::N32 => Type::N32,
       Type::F32 => Type::F32,
       Type::Char => Type::Char,
       Type::IO => Type::IO,

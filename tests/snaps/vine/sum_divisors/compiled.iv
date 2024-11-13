@@ -47,9 +47,9 @@
   x(n7 x(n13 dup13(n9 dup13(@add(1 n0) dup13(n10 dup13(n11 @add(1 n14)))))))
   ::sum_divisors = fn(n9 dup14(@eq(n0 ?(::sum_divisors::main::4 ::sum_divisors::main::3 x(n10 x(n15 n8)))) dup14(n15 n16)))
   ::std::io::IO::println = fn(ref(n7 n12) fn(n6 _))
-  ::std::u32::to_string = fn(n11 n2)
+  ::std::n32::N32::to_string = fn(n11 n2)
   ::std::list::List::concat = fn(n2 fn(tup(2 tup(tup(58 tup(32 n1)) n1)) n3))
-  ::std::u32::to_string = fn(n16 n4)
+  ::std::n32::N32::to_string = fn(n16 n4)
   ::std::list::List::concat = fn(n3 fn(n4 n5))
   ::std::list::List::concat = fn(n5 fn(n8 n6))
   ::sum_divisors::main::1 = x(n12 x(n13 n14))
@@ -95,23 +95,23 @@
   ::std::list::List = fn(n2 fn(n3 fn(n4 n5)))
 }
 
-::std::u32::to_string { fn(dup254(?(::std::u32::to_string::5 ::std::u32::to_string::1 x(n1 n0)) n1) n0) }
+::std::n32::N32::to_string { fn(dup135(?(::std::n32::N32::to_string::5 ::std::n32::N32::to_string::1 x(n1 n0)) n1) n0) }
 
-::std::u32::to_string::1 {
+::std::n32::N32::to_string::1 {
   x(n1 n2)
-  ::std::u32::to_string::2 = x(n1 x(tup(0 tup(n0 n0)) n2))
+  ::std::n32::N32::to_string::2 = x(n1 x(tup(0 tup(n0 n0)) n2))
 }
 
-::std::u32::to_string::2 { x(dup254(?(::std::u32::to_string::4 ::std::u32::to_string::3 x(n2 n0)) n2) n0) }
+::std::n32::N32::to_string::2 { x(dup135(?(::std::n32::N32::to_string::4 ::std::n32::N32::to_string::3 x(n2 n0)) n2) n0) }
 
-::std::u32::to_string::3 {
-  x(dup254(@rem(10 n0) @div(10 n4)) x(n3 n6))
+::std::n32::N32::to_string::3 {
+  x(dup135(@rem(10 n0) @div(10 n4)) x(n3 n6))
   48 = @add(n0 n1)
   ::std::list::List::concat = fn(tup(1 tup(tup(n1 n2) n2)) fn(n3 n5))
-  ::std::u32::to_string::2 = x(n4 x(n5 n6))
+  ::std::n32::N32::to_string::2 = x(n4 x(n5 n6))
 }
 
-::std::u32::to_string::4 { x(_ x(n0 n0)) }
+::std::n32::N32::to_string::4 { x(_ x(n0 n0)) }
 
-::std::u32::to_string::5 { x(_ tup(1 tup(tup(48 n0) n0))) }
+::std::n32::N32::to_string::5 { x(_ tup(1 tup(tup(48 n0) n0))) }
 

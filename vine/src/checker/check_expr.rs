@@ -208,7 +208,7 @@ impl<'core> Checker<'core, '_> {
       }
       ExprKind::Neg(expr) => {
         let ty = self.check_expr_form(expr, Form::Value);
-        self.check_bin_op(span, BinaryOp::Sub, false, Type::U32, ty)
+        self.check_bin_op(span, BinaryOp::Sub, false, Type::N32, ty)
       }
       ExprKind::BinaryOp(op, a, b) => {
         let a = self.check_expr_form(a, Form::Value);
@@ -229,7 +229,7 @@ impl<'core> Checker<'core, '_> {
           self.concretize(&mut rhs);
           if !matches!(
             (&lhs, &rhs),
-            (Type::U32, Type::U32)
+            (Type::N32, Type::N32)
               | (Type::F32, Type::F32)
               | (Type::Char, Type::Char)
               | (Type::Bool, Type::Bool)
@@ -246,7 +246,7 @@ impl<'core> Checker<'core, '_> {
         }
         Type::Bool
       }
-      ExprKind::U32(_) => Type::U32,
+      ExprKind::N32(_) => Type::N32,
       ExprKind::Char(_) => Type::Char,
       ExprKind::F32(_) => Type::F32,
       ExprKind::String(_) => {
@@ -358,28 +358,28 @@ impl<'core> Checker<'core, '_> {
         .map(|(a, b)| self._check_bin_op(op, assign, a, b, i, j))
         .collect::<Result<_, _>>()
         .map(Type::Tuple),
-      (_, Type::Tuple(a), b @ (Type::U32 | Type::F32)) => a
+      (_, Type::Tuple(a), b @ (Type::N32 | Type::F32)) => a
         .iter_mut()
         .map(|a| self._check_bin_op(op, assign, a, b, i, j))
         .collect::<Result<_, _>>()
         .map(Type::Tuple),
-      (_, a @ (Type::U32 | Type::F32), Type::Tuple(b)) if !assign => b
+      (_, a @ (Type::N32 | Type::F32), Type::Tuple(b)) if !assign => b
         .iter_mut()
         .map(|b| self._check_bin_op(op, assign, a, b, i, j))
         .collect::<Result<_, _>>()
         .map(Type::Tuple),
-      (_, Type::U32, Type::U32) if !i && !j => Ok(Type::U32),
+      (_, Type::N32, Type::N32) if !i && !j => Ok(Type::N32),
       (BinaryOp::BitAnd | BinaryOp::BitOr | BinaryOp::BitXor, Type::Bool, Type::Bool)
         if !i && !j =>
       {
         Ok(Type::Bool)
       }
-      (BinaryOp::Add | BinaryOp::Sub, Type::Char, Type::U32) if !i && !j => Ok(Type::Char),
-      (BinaryOp::Sub, Type::Char, Type::Char) if !i && !j => Ok(Type::U32),
+      (BinaryOp::Add | BinaryOp::Sub, Type::Char, Type::N32) if !i && !j => Ok(Type::Char),
+      (BinaryOp::Sub, Type::Char, Type::Char) if !i && !j => Ok(Type::N32),
       (
         BinaryOp::Add | BinaryOp::Sub | BinaryOp::Mul | BinaryOp::Div | BinaryOp::Rem,
-        a @ (Type::U32 | Type::F32),
-        Type::U32 | Type::F32,
+        a @ (Type::N32 | Type::F32),
+        Type::N32 | Type::F32,
       ) if !i && !j && (!assign || matches!(a, Type::F32)) => Ok(Type::F32),
       (_, Type::Inverse(a), b) => self._check_bin_op(op, assign, a, b, !i, j),
       (_, a, Type::Inverse(b)) => self._check_bin_op(op, assign, a, b, i, !j),

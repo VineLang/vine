@@ -1,6 +1,6 @@
 
-#[builtin = "char"]
-pub mod char {
-  pub inline_ivy! from_u32: fn(u32) -> char { fn(x x) }
-  pub inline_ivy! as_u32: fn(char) -> u32 { fn(x x) }
+#[builtin = "Char"]
+pub mod Char {
+  pub inline_ivy! from_n32: fn(N32) -> Char { fn(x x) }
+  pub inline_ivy! as_n32: fn(Char) -> N32 { fn(x x) }
 }

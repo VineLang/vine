@@ -68,7 +68,7 @@ impl NetBuilder {
 pub enum Port {
   #[default]
   Erase,
-  U32(u32),
+  N32(u32),
   F32(f32),
   Global(String),
   Wire(usize),
@@ -83,7 +83,7 @@ impl Port {
   }
 
   pub fn can_copy(&self) -> bool {
-    matches!(self, Port::Erase | Port::U32(_) | Port::F32(_))
+    matches!(self, Port::Erase | Port::N32(_) | Port::F32(_))
   }
 
   pub fn is_erase(&self) -> bool {
@@ -185,7 +185,7 @@ impl<'a> FinishNet<'a> {
     let port = self.net.follow(port);
     let other = match port {
       Port::Erase => Tree::Erase,
-      Port::U32(n) => Tree::U32(n),
+      Port::N32(n) => Tree::N32(n),
       Port::F32(n) => Tree::F32(n),
       Port::Global(g) => Tree::Global(g),
       Port::Wire(w) => return self.link_wire(w, tree),

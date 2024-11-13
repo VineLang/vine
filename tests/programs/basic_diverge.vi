@@ -7,7 +7,7 @@ pub fn main(&io: &IO) {
   io.println("\nzero_count: " ++ zero_count.to_string());
 }
 
-fn foo(value: u32, &zero_count: &u32) -> String {
+fn foo(value: N32, &zero_count: &N32) -> String {
   if value != 0 {
     return "non-zero!";
   }

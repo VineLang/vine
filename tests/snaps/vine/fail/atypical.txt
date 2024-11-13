@@ -12,7 +12,7 @@ error tests/programs/fail/atypical.vi:10:16 - expected type `(?4, ?5)`; found `u
 error tests/programs/fail/atypical.vi:11:7 - cannot infer type
 error tests/programs/fail/atypical.vi:12:3 - cannot call non-function type `u32`
 error tests/programs/fail/atypical.vi:13:14 - cannot apply operator `+` to types `u32` and `~u32`
-error tests/programs/fail/atypical.vi:14:5 - cannot find `noop` in `::std::u32`
+error tests/programs/fail/atypical.vi:14:5 - cannot find `noop` in `::std::n32::N32`
 error tests/programs/fail/atypical.vi:15:6 - expected type `bool`; found `f32`
 error tests/programs/fail/atypical.vi:15:3 - then block has type `u32` but else block has type `::std::list::List[char]`
 error tests/programs/fail/atypical.vi:16:3 - function type `fn(IO)` expects 1 argument; was passed 3
@@ -33,5 +33,5 @@ error tests/programs/fail/atypical.vi:26:3 - no loop to break from
 error tests/programs/fail/atypical.vi:27:10 - expected type `()`; found `f32`
 error tests/programs/fail/atypical.vi:28:14 - cannot apply operator `+` to types `~u32` and `~u32`
 error tests/programs/fail/atypical.vi:29:3 - cannot apply operator `+=` to types `u32` and `f32`
-error tests/programs/fail/atypical.vi:30:5 - `::std::u32::parse` cannot be used as a method; it does not take `::std::u32` as its first parameter
+error tests/programs/fail/atypical.vi:30:5 - `::std::n32::N32::parse` cannot be used as a method; it does not take `::std::n32::N32` as its first parameter
 error tests/programs/fail/atypical.vi:6:27 - expected type `()`; found `u32`

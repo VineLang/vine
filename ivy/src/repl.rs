@@ -67,7 +67,7 @@ impl<'host, 'ctx, 'ivm> Repl<'host, 'ctx, 'ivm> {
   fn inject(&mut self, tree: Tree) -> Port<'ivm> {
     match tree {
       Tree::Erase => Port::ERASE,
-      Tree::U32(value) => Port::new_ext_val(ExtVal::new_u32(value)),
+      Tree::N32(value) => Port::new_ext_val(ExtVal::new_n32(value)),
       Tree::F32(value) => Port::new_ext_val(ExtVal::new_f32(value)),
       Tree::Global(name) => Port::new_global(self.host.get(&name).unwrap()),
       Tree::Comb(label, a, b) => {

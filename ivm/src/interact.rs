@@ -162,7 +162,7 @@ impl<'ivm> IVM<'ivm> {
 
   fn branch(&mut self, b: Port<'ivm>, v: Port<'ivm>) {
     self.stats.branch += 1;
-    let val = unsafe { v.as_ext_val() }.as_u32();
+    let val = unsafe { v.as_ext_val() }.as_n32();
     let (a, o) = unsafe { b.aux() };
     let (b, z, p) = unsafe { self.new_node(Tag::Branch, 0) };
     self.link_wire(a, b);

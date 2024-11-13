@@ -1,3 +1,3 @@
 
-#[builtin = "bool"]
-pub mod bool {}
+#[builtin = "Bool"]
+pub mod Bool {}

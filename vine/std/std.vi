@@ -3,14 +3,14 @@ pub mod bool = "./bool.vi";
 pub mod char = "./char.vi";
 pub mod io = "./io.vi";
 pub mod list = "./list.vi";
+pub mod n32 = "./N32.vi";
+pub mod n64 = "./N64.vi";
 pub mod option = "./option.vi";
 pub mod result = "./result.vi";
 pub mod rng = "./rng.vi";
-pub mod u32 = "./u32.vi";
 pub mod f32 = "./f32.vi";
-pub mod u64 = "./u64.vi";
 
 #[builtin = "prelude"]
 pub mod prelude {
-  pub use ::std::{bool, u32, f32, char, io::IO, list::{List, String}};
+  pub use ::std::{bool::Bool, n32::N32, f32::F32, char::Char, io::IO, list::{List, String}};
 }

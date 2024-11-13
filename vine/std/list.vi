@@ -2,14 +2,14 @@
 use std::option::Option::{Option, Some, None};
 
 #[builtin = "List"]
-pub struct List[T](u32, Buf[T], ~Buf[T]);
+pub struct List[T](N32, Buf[T], ~Buf[T]);
 
 pub(std) struct Buf[T](T, Buf[T]);
 
-pub type String = List[char];
+pub type String = List[Char];
 
 pub mod List {
-  pub fn len[T](&List(len, _, _): &List[T]) -> u32 {
+  pub fn len[T](&List(len, _, _): &List[T]) -> N32 {
     len
   }
 
@@ -71,7 +71,7 @@ pub mod List {
     "[" ++ list.map(elem_to_string).join(", ") ++ "]"
   }
 
-  pub struct Iter[T](u32, &Buf[T]);
+  pub struct Iter[T](N32, &Buf[T]);
 
   pub fn iter[T](&List(len, buf, _): &List[T]) -> Iter[T] {
     Iter(len, &buf)
@@ -91,7 +91,7 @@ pub mod List {
     }
   }
 
-  pub struct IntoIter[T](u32, Buf[T]);
+  pub struct IntoIter[T](N32, Buf[T]);
 
   pub fn into_iter[T](List(len, buf, _): List[T]) -> IntoIter[T] {
     IntoIter(len, buf)

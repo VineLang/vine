@@ -226,7 +226,7 @@ fn show(tree: &Tree) -> String {
   if let Tree::Comb(c, l, r) = tree {
     if c == "tup" {
       'list: {
-        let Tree::U32(len) = **l else { break 'list };
+        let Tree::N32(len) = **l else { break 'list };
         let Tree::Comb(c, l, r) = &**r else { break 'list };
         let "tup" = &**c else { break 'list };
         let mut cur = &**l;
@@ -241,13 +241,13 @@ fn show(tree: &Tree) -> String {
           break 'list;
         }
         let is_str = children.iter().all(
-          |x| matches!(***x, Tree::U32(n) if char::from_u32(n).is_some_and(|x| x == '\n' || !x.is_control())),
+          |x| matches!(***x, Tree::N32(n) if char::from_u32(n).is_some_and(|x| x == '\n' || !x.is_control())),
         );
         if is_str {
           let str = children
             .into_iter()
             .map(|x| {
-              let Tree::U32(n) = **x else { unreachable!() };
+              let Tree::N32(n) = **x else { unreachable!() };
               char::from_u32(n).unwrap()
             })
             .collect::<String>();
@@ -274,7 +274,7 @@ fn show(tree: &Tree) -> String {
   }
   match tree {
     Tree::Erase => "()".into(),
-    Tree::U32(n) => format!("{n}"),
+    Tree::N32(n) => format!("{n}"),
     Tree::F32(n) => format!("{n:?}"),
     Tree::Var(v) if v == "#io" => "#io".into(),
     Tree::Global(p) => p.clone(),

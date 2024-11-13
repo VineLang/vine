@@ -18,14 +18,14 @@ fn refs(&io: &IO) {
 }
 
 mod refs {
-  fn inc((init, ~fin): (u32, ~u32)) {
+  fn inc((init, ~fin): (N32, ~N32)) {
     fin = init + 1;
   }
 }
 
 fn fns(&io: &IO) {
   let f = {
-    let n: u32;
+    let n: N32;
     (move ~n, n * n)
   };
   io.println("f(1) = " ++ call(f, 1).to_string());
@@ -34,7 +34,7 @@ fn fns(&io: &IO) {
 }
 
 mod fns {
-  fn call(f: (~u32, u32), a: u32) -> u32 {
+  fn call(f: (~N32, N32), a: N32) -> N32 {
     let (~i, o) = f;
     i = a;
     o

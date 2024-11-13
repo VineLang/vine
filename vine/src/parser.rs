@@ -114,10 +114,10 @@ impl<'core, 'src> VineParser<'core, 'src> {
         let str = self.parse_string()?;
         let str_span = self.end_span(str_span);
         let builtin = match &*str {
-          "bool" => Builtin::Bool,
-          "u32" => Builtin::U32,
-          "f32" => Builtin::F32,
-          "char" => Builtin::Char,
+          "Bool" => Builtin::Bool,
+          "N32" => Builtin::N32,
+          "F32" => Builtin::F32,
+          "Char" => Builtin::Char,
           "IO" => Builtin::IO,
           "List" => Builtin::List,
           "concat" => Builtin::Concat,
@@ -144,7 +144,7 @@ impl<'core, 'src> VineParser<'core, 'src> {
     if token.contains('.') {
       Ok(ExprKind::F32(self.parse_f32_like(token, |_| Diag::InvalidNum { span })?))
     } else {
-      Ok(ExprKind::U32(self.parse_u32_like(token, |_| Diag::InvalidNum { span })?))
+      Ok(ExprKind::N32(self.parse_u32_like(token, |_| Diag::InvalidNum { span })?))
     }
   }
 

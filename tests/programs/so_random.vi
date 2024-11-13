@@ -5,7 +5,7 @@ pub fn main(&io: &IO) {
   let i = 0;
   let rng = Rng::default;
   while i < 100 {
-    io.println(rng.gen_u32().to_string());
+    io.println(rng.gen_n32().to_string());
     i += 1;
   }
 }

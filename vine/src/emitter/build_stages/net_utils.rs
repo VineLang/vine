@@ -89,7 +89,7 @@ impl<'core> Emitter<'core, '_> {
     let buf = self.net.new_wire();
     let end = self.apply_combs("tup", buf.0, items, f);
     let pair = self.new_comb("tup", buf.1, end);
-    self.new_comb("tup", Port::U32(len as u32), pair)
+    self.new_comb("tup", Port::N32(len as u32), pair)
   }
 
   pub(super) fn op(&mut self, op: BinaryOp, lhs: Port, rhs: Port) -> Port {
@@ -97,11 +97,11 @@ impl<'core> Emitter<'core, '_> {
       BinaryOp::Concat => {
         return self.apply_combs("fn", Port::Global(self.concat.clone().unwrap()), [lhs, rhs], id)
       }
-      BinaryOp::BitOr => ExtFnKind::u32_or,
-      BinaryOp::BitXor => ExtFnKind::u32_xor,
-      BinaryOp::BitAnd => ExtFnKind::u32_and,
-      BinaryOp::Shl => ExtFnKind::u32_shl,
-      BinaryOp::Shr => ExtFnKind::u32_shr,
+      BinaryOp::BitOr => ExtFnKind::n32_or,
+      BinaryOp::BitXor => ExtFnKind::n32_xor,
+      BinaryOp::BitAnd => ExtFnKind::n32_and,
+      BinaryOp::Shl => ExtFnKind::n32_shl,
+      BinaryOp::Shr => ExtFnKind::n32_shr,
       BinaryOp::Add => ExtFnKind::add,
       BinaryOp::Sub => ExtFnKind::sub,
       BinaryOp::Mul => ExtFnKind::mul,

@@ -3,7 +3,7 @@ use std::option::Option::{Some, None};
 
 pub fn main(&io: &IO) {
   while io.prompt("> ") is Some(line) {
-    let num = u32::parse(line);
+    let num = N32::parse(line);
     io.println(match num {
       Some(num) => fib(num).to_string(),
       None => "invalid number",
@@ -11,7 +11,7 @@ pub fn main(&io: &IO) {
   }
 }
 
-pub fn fib(n: u32) -> u32 {
+pub fn fib(n: N32) -> N32 {
   let a = 0;
   let b = 1;
   while n != 0 {

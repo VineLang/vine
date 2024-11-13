@@ -176,8 +176,8 @@ impl<'l, 'ast, 'ivm> Serializer<'l, 'ast, 'ivm> {
   fn serialize_tree_to(&mut self, tree: &'ast Tree, to: Register) {
     match tree {
       Tree::Erase => self.push(Instruction::Nilary(to, Port::ERASE)),
-      Tree::U32(num) => {
-        self.push(Instruction::Nilary(to, Port::new_ext_val(ExtVal::new_u32(*num))))
+      Tree::N32(num) => {
+        self.push(Instruction::Nilary(to, Port::new_ext_val(ExtVal::new_n32(*num))))
       }
       Tree::F32(num) => {
         self.push(Instruction::Nilary(to, Port::new_ext_val(ExtVal::new_f32(*num))))

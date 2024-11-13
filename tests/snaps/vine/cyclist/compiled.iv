@@ -31,9 +31,9 @@
   enum(dup4(n11 n12) x(n5 x(n8 n6)))
   ::cyclist::cycle = fn(ref(n6 dup2(n9 n10)) fn(n11 _))
   ::std::io::IO::println = fn(ref(n5 n7) fn(n4 _))
-  ::std::u32::to_string = fn(n12 n1)
+  ::std::n32::N32::to_string = fn(n12 n1)
   ::std::list::List::concat = fn(n1 fn(tup(2 tup(tup(59 tup(9 n0)) n0)) n2))
-  ::std::list::List::to_string = fn(n9 fn(::std::u32::to_string n3))
+  ::std::list::List::to_string = fn(n9 fn(::std::n32::N32::to_string n3))
   ::std::list::List::concat = fn(n2 fn(n3 n4))
   ::cyclist::main::4 = x(n7 x(n8 n10))
 }
@@ -179,6 +179,26 @@
 
 ::std::list::List::IntoIter::next::2 { x(n0 x(n0 x(n1 x(n1 ::std::option::Option::None)))) }
 
+::std::n32::N32::to_string { fn(dup134(?(::std::n32::N32::to_string::5 ::std::n32::N32::to_string::1 x(n1 n0)) n1) n0) }
+
+::std::n32::N32::to_string::1 {
+  x(n1 n2)
+  ::std::n32::N32::to_string::2 = x(n1 x(tup(0 tup(n0 n0)) n2))
+}
+
+::std::n32::N32::to_string::2 { x(dup134(?(::std::n32::N32::to_string::4 ::std::n32::N32::to_string::3 x(n2 n0)) n2) n0) }
+
+::std::n32::N32::to_string::3 {
+  x(dup134(@rem(10 n0) @div(10 n4)) x(n3 n6))
+  48 = @add(n0 n1)
+  ::std::list::List::concat = fn(tup(1 tup(tup(n1 n2) n2)) fn(n3 n5))
+  ::std::n32::N32::to_string::2 = x(n4 x(n5 n6))
+}
+
+::std::n32::N32::to_string::4 { x(_ x(n0 n0)) }
+
+::std::n32::N32::to_string::5 { x(_ tup(1 tup(tup(48 n0) n0))) }
+
 ::std::option::Option::Some { fn(n0 enum(enum(n0 n1) enum(_ n1))) }
 
 ::std::option::Option::None { enum(_ enum(n0 n0)) }
@@ -186,24 +206,4 @@
 ::std::option::Option::unwrap { fn(enum(::std::option::Option::unwrap::1 enum(_ n0)) n0) }
 
 ::std::option::Option::unwrap::1 { enum(n0 n0) }
-
-::std::u32::to_string { fn(dup253(?(::std::u32::to_string::5 ::std::u32::to_string::1 x(n1 n0)) n1) n0) }
-
-::std::u32::to_string::1 {
-  x(n1 n2)
-  ::std::u32::to_string::2 = x(n1 x(tup(0 tup(n0 n0)) n2))
-}
-
-::std::u32::to_string::2 { x(dup253(?(::std::u32::to_string::4 ::std::u32::to_string::3 x(n2 n0)) n2) n0) }
-
-::std::u32::to_string::3 {
-  x(dup253(@rem(10 n0) @div(10 n4)) x(n3 n6))
-  48 = @add(n0 n1)
-  ::std::list::List::concat = fn(tup(1 tup(tup(n1 n2) n2)) fn(n3 n5))
-  ::std::u32::to_string::2 = x(n4 x(n5 n6))
-}
-
-::std::u32::to_string::4 { x(_ x(n0 n0)) }
-
-::std::u32::to_string::5 { x(_ tup(1 tup(tup(48 n0) n0))) }
 
