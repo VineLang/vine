@@ -6,20 +6,20 @@ const scale: f32 = 2.6;
 const center: (f32, f32) = (-0.8, 0.0);
 
 pub fn main(&io: &IO) {
-  io.print_bytes([27, 'P', 'q']);
+  io.print_bytes([27, 80, 113]);
 
   let c = 0;
   while c <= 100 {
-    io.print_byte('#');
-    io.print_bytes(c.to_string());
-    io.print_byte(';');
-    io.print_byte('2');
-    io.print_byte(';');
-    io.print_bytes(c.to_string());
-    io.print_byte(';');
-    io.print_bytes(c.to_string());
-    io.print_byte(';');
-    io.print_bytes(c.to_string());
+    io.print_char('#');
+    io.print(c.to_string());
+    io.print_char(';');
+    io.print_char('2');
+    io.print_char(';');
+    io.print(c.to_string());
+    io.print_char(';');
+    io.print(c.to_string());
+    io.print_char(';');
+    io.print(c.to_string());
     c += 1;
   }
 
@@ -28,7 +28,7 @@ pub fn main(&io: &IO) {
   while j < height {
     let last_color = 0;
     let count = 0;
-    io.print_bytes("#0");
+    io.print("#0");
 
     let i = 0;
     while i < width {
@@ -36,11 +36,11 @@ pub fn main(&io: &IO) {
       let color = mandelbrot(x, y);
 
       if color != last_color {
-        io.print_byte('!');
-        io.print_bytes(count.to_string());
+        io.print_char('!');
+        io.print(count.to_string());
         io.print_byte(63 + row);
-        io.print_byte('#');
-        io.print_bytes(color.to_string());
+        io.print_char('#');
+        io.print(color.to_string());
         count = 1;
       } else {
         count += 1;
@@ -50,12 +50,12 @@ pub fn main(&io: &IO) {
       i += 1;
     }
 
-    io.print_byte('!');
-    io.print_bytes(count.to_string());
+    io.print_char('!');
+    io.print(count.to_string());
     io.print_byte(63 + row);
 
     row *= 2;
-    io.print_byte(if row > 32 {
+    io.print_char(if row > 32 {
       row = 1;
       '-'
     } else {
@@ -65,7 +65,7 @@ pub fn main(&io: &IO) {
 
     j += 1;
   }
-  io.print_bytes([27, '\\']);
+  io.print_bytes([27, 92]);
   io.flush();
 }
 

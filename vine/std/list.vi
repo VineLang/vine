@@ -6,7 +6,7 @@ pub struct List[T](u32, Buf[T], ~Buf[T]);
 
 pub(std) struct Buf[T](T, Buf[T]);
 
-pub type String = List[u32];
+pub type String = List[char];
 
 pub mod List {
   pub fn len[T](&List(len, _, _): &List[T]) -> u32 {

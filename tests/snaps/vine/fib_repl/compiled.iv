@@ -77,7 +77,7 @@
 
 ::std::io::IO::read_line {
   fn(ref(n0 n2) n3)
-  ::std::io::IO::read_byte = fn(ref(n0 n1) fn(0 dup46(?(::std::io::IO::read_line::9 ::std::io::IO::read_line::1 x(n1 x(n2 x(n4 n3)))) n4)))
+  ::std::io::IO::read_byte = fn(ref(n0 n1) fn(0 dup46(@ne(0 ?(::std::io::IO::read_line::9 ::std::io::IO::read_line::1 x(n1 x(n2 x(n4 n3))))) n4)))
 }
 
 ::std::io::IO::read_line::1 {
