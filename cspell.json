@@ -25,6 +25,7 @@
     "nilary",
     "nohash",
     "nonoverlapping",
+    "nums",
     "primality",
     "readback",
     "readline",
@@ -46,6 +47,7 @@
     "**/*.vi",
     "**/*.iv"
   ],
+  "ignorePaths": ["tests/snaps"],
   "ignoreRegExpList": [
     "HexValues"
   ],
