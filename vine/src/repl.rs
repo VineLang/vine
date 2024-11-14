@@ -291,9 +291,9 @@ impl<'core, 'ctx, 'ivm> Repl<'core, 'ctx, 'ivm> {
             .iter()
             .map(|x| x.instantiate(args))
             .collect::<Vec<_>>();
-          let name = variant.canonical.to_string();
+          let name = *variant.canonical.segments.last().unwrap();
           if fields.is_empty() {
-            name
+            name.to_string()
           } else {
             format!("{name}({})", self.read_tuple(&mut fields, tree)?.join(", "))
           }
@@ -320,7 +320,7 @@ impl<'core, 'ctx, 'ivm> Repl<'core, 'ctx, 'ivm> {
           let variant = adt_def.variants[variant_i];
           let variant = &self.resolver.defs[variant];
           let variant_def = variant.variant_def.as_ref().unwrap();
-          let name = variant.canonical.to_string();
+          let name = *variant.canonical.segments.last().unwrap();
           let field_types = variant_def
             .field_types
             .as_ref()
@@ -339,7 +339,7 @@ impl<'core, 'ctx, 'ivm> Repl<'core, 'ctx, 'ivm> {
             None?
           }
           if fields.is_empty() {
-            name
+            name.to_string()
           } else {
             format!("{name}({})", fields.join(", "))
           }
