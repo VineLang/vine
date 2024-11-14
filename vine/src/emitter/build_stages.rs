@@ -63,8 +63,9 @@ impl<'core> Emitter<'core, '_> {
         self.move_local(local)
       }
       ExprKind::Paren(e) => self.emit_expr_value(e),
-      ExprKind::U32(num) => Port::U32(*num),
+      ExprKind::N32(num) => Port::N32(*num),
       ExprKind::F32(num) => Port::F32(*num),
+      ExprKind::Char(char) => Port::N32(*char as u32),
       ExprKind::Path(path) => Port::Global(path.path.to_string()),
       ExprKind::Assign(s, v) => {
         let v = self.emit_expr_value(v);
@@ -79,7 +80,7 @@ impl<'core> Emitter<'core, '_> {
       }
       ExprKind::Neg(rhs) => {
         let rhs = self.emit_expr_value(rhs);
-        self.ext_fn(ExtFnKind::sub.into(), Port::U32(0), rhs)
+        self.ext_fn(ExtFnKind::sub.into(), Port::N32(0), rhs)
       }
       ExprKind::BinaryOp(op, lhs, rhs) => {
         let lhs = self.emit_expr_value(lhs);
@@ -94,7 +95,7 @@ impl<'core> Emitter<'core, '_> {
         Port::Erase
       }
       ExprKind::ComparisonOp(init, cmps) => {
-        let mut last_result = Port::U32(1);
+        let mut last_result = Port::N32(1);
         let mut lhs = self.emit_expr_value(init);
         for (i, (op, rhs)) in cmps.iter().enumerate() {
           let f = match op {
@@ -114,13 +115,13 @@ impl<'core> Emitter<'core, '_> {
           last_result = if first {
             result
           } else {
-            self.ext_fn(ExtFnKind::u32_and.into(), last_result, result)
+            self.ext_fn(ExtFnKind::n32_and.into(), last_result, result)
           };
         }
         last_result
       }
       ExprKind::Tuple(t) => self.tuple(t, Self::emit_expr_value),
-      ExprKind::String(s) => self.list(s.chars().count(), s.chars(), |_, c| Port::U32(c as u32)),
+      ExprKind::String(s) => self.list(s.chars().count(), s.chars(), |_, c| Port::N32(c as u32)),
       ExprKind::Ref(p) => {
         let (t, u) = self.emit_expr_place(p);
         self.new_comb("ref", t, u)
@@ -175,11 +176,11 @@ impl<'core> Emitter<'core, '_> {
         self.emit_cond(
           expr,
           &|self_| {
-            self_.set_local_to(result, Port::U32(1));
+            self_.set_local_to(result, Port::N32(1));
             true
           },
           &|self_| {
-            self_.set_local_to(result, Port::U32(0));
+            self_.set_local_to(result, Port::N32(0));
             true
           },
         );

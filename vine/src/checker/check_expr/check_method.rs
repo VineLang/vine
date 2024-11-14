@@ -137,8 +137,10 @@ impl<'core> Checker<'core, '_> {
   fn get_ty_mod(&mut self, ty: &Type) -> Result<Option<DefId>, Diag<'core>> {
     Ok(match ty {
       Type::Adt(mod_id, _) => Some(*mod_id),
-      Type::U32 => self.u32,
+      Type::Bool => self.bool,
+      Type::N32 => self.n32,
       Type::F32 => self.f32,
+      Type::Char => self.char,
       Type::IO => self.io,
       Type::Tuple(_) | Type::Fn(..) | Type::Ref(_) | Type::Inverse(_) | Type::Opaque(_) => None,
       Type::Var(_) => unreachable!(),

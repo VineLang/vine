@@ -32,8 +32,10 @@ pub struct Checker<'core, 'r> {
   loop_ty: Option<Type>,
   cur_def: DefId,
 
-  u32: Option<DefId>,
+  bool: Option<DefId>,
+  n32: Option<DefId>,
   f32: Option<DefId>,
+  char: Option<DefId>,
   io: Option<DefId>,
   list: Option<DefId>,
   string: Option<Type>,
@@ -49,14 +51,18 @@ pub(crate) struct CheckerState {
 
 impl<'core, 'r> Checker<'core, 'r> {
   pub fn new(core: &'core Core<'core>, resolver: &'r mut Resolver<'core>) -> Self {
-    let u32 = resolver.builtins.get(&Builtin::U32).copied();
+    let bool = resolver.builtins.get(&Builtin::Bool).copied();
+    let n32 = resolver.builtins.get(&Builtin::N32).copied();
     let f32 = resolver.builtins.get(&Builtin::F32).copied();
+    let char = resolver.builtins.get(&Builtin::Char).copied();
     let io = resolver.builtins.get(&Builtin::IO).copied();
-    define_primitive_type(resolver, u32, Type::U32);
+    define_primitive_type(resolver, bool, Type::Bool);
+    define_primitive_type(resolver, n32, Type::N32);
     define_primitive_type(resolver, f32, Type::F32);
+    define_primitive_type(resolver, char, Type::Char);
     define_primitive_type(resolver, io, Type::IO);
     let list = resolver.builtins.get(&Builtin::List).copied();
-    let string = list.map(|x| Type::Adt(x, vec![Type::U32]));
+    let string = list.map(|x| Type::Adt(x, vec![Type::Char]));
     let concat = resolver.builtins.get(&Builtin::Concat).copied();
     Checker {
       core,
@@ -66,8 +72,10 @@ impl<'core, 'r> Checker<'core, 'r> {
       return_ty: None,
       loop_ty: None,
       cur_def: DefId::ROOT,
-      u32,
+      bool,
+      n32,
       f32,
+      char,
       io,
       list,
       string,
@@ -291,8 +299,10 @@ new_idx!(pub Var);
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Type {
-  U32,
+  Bool,
+  N32,
   F32,
+  Char,
   IO,
   Tuple(Vec<Type>),
   Fn(Vec<Type>, Box<Type>),
@@ -309,8 +319,10 @@ impl Type {
 
   fn instantiate(&self, opaque: &[Type]) -> Type {
     match self {
-      Type::U32 => Type::U32,
+      Type::Bool => Type::Bool,
+      Type::N32 => Type::N32,
       Type::F32 => Type::F32,
+      Type::Char => Type::Char,
       Type::IO => Type::IO,
       Type::Tuple(tys) => Type::Tuple(tys.iter().map(|t| t.instantiate(opaque)).collect()),
       Type::Fn(tys, ret) => Type::Fn(

@@ -114,8 +114,10 @@ impl<'core, 'src> VineParser<'core, 'src> {
         let str = self.parse_string()?;
         let str_span = self.end_span(str_span);
         let builtin = match &*str {
-          "u32" => Builtin::U32,
-          "f32" => Builtin::F32,
+          "Bool" => Builtin::Bool,
+          "N32" => Builtin::N32,
+          "F32" => Builtin::F32,
+          "Char" => Builtin::Char,
           "IO" => Builtin::IO,
           "List" => Builtin::List,
           "concat" => Builtin::Concat,
@@ -142,7 +144,7 @@ impl<'core, 'src> VineParser<'core, 'src> {
     if token.contains('.') {
       Ok(ExprKind::F32(self.parse_f32_like(token, |_| Diag::InvalidNum { span })?))
     } else {
-      Ok(ExprKind::U32(self.parse_u32_like(token, |_| Diag::InvalidNum { span })?))
+      Ok(ExprKind::N32(self.parse_u32_like(token, |_| Diag::InvalidNum { span })?))
     }
   }
 
@@ -380,10 +382,16 @@ impl<'core, 'src> VineParser<'core, 'src> {
       return self.parse_num();
     }
     if self.check(Token::Char) {
-      return Ok(ExprKind::U32(self.parse_char()? as u32));
+      return Ok(ExprKind::Char(self.parse_char()?));
     }
     if self.check(Token::String) {
       return Ok(ExprKind::String(self.parse_string()?));
+    }
+    if self.eat(Token::True)? {
+      return Ok(ExprKind::Bool(true));
+    }
+    if self.eat(Token::False)? {
+      return Ok(ExprKind::Bool(false));
     }
     if self.check(Token::Ident) || self.check(Token::ColonColon) {
       return Ok(ExprKind::Path(self.parse_generic_path()?));

@@ -4,9 +4,9 @@ type Foo[X] = (X, foo, _);
 fn foo(x, y: Foo) {}
 const bar: _ = return;
 pub fn main[T, U](io: IO) {
-  let x: u32 = 0.0;
-  let x: f32 = 0;
-  let x: (u32, u32) = (1, 2) + 0.0;
+  let x: N32 = 0.0;
+  let x: F32 = 0;
+  let x: (N32, N32) = (1, 2) + 0.0;
   let (a, b) = 0;
   let x; x + 1;
   1();
@@ -21,7 +21,7 @@ pub fn main[T, U](io: IO) {
   let x: U = x;
   let Ay::Yay = 0;
   (loop { break "x" } + 1);
-  let &x: u32 = loop {};
+  let &x: N32 = loop {};
   continue;
   break;
   return 0.0;
@@ -33,6 +33,6 @@ pub fn main[T, U](io: IO) {
 
 // correct utilities
 enum Ay { Yay, Nay }
-struct Thing(u32, u32);
+struct Thing(N32, N32);
 fn rec[T](x: T) -> T { rec(x) }
 fn noop() {}

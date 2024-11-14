@@ -1,5 +1,5 @@
 
-const end: u32 = 100;
+const end: N32 = 100;
 
 pub fn main(&io: &IO) {
   let n = 1;
@@ -17,7 +17,7 @@ pub fn main(&io: &IO) {
   }
 }
 
-pub fn sum_divisors(n: u32) -> u32 {
+pub fn sum_divisors(n: N32) -> N32 {
   let sum = 1;
   let d = 2;
   while d * d <= n {

@@ -7,7 +7,7 @@ pub fn main(&io: &IO) {
   }
 }
 
-fn squares(&io: &IO, len: u32) {
+fn squares(&io: &IO, len: N32) {
   let i = 0;
   while i < len {
     io.print_char('□');

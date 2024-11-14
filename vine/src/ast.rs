@@ -138,8 +138,10 @@ pub enum AttrKind {
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum Builtin {
-  U32,
+  Bool,
+  N32,
   F32,
+  Char,
   IO,
   Prelude,
   List,
@@ -258,6 +260,8 @@ pub enum ExprKind<'core> {
   #[class(value)]
   BinaryOp(BinaryOp, B<Expr<'core>>, B<Expr<'core>>),
   #[class(value, cond)]
+  Bool(bool),
+  #[class(value, cond)]
   Not(B<Expr<'core>>),
   #[class(value, cond)]
   Is(B<Expr<'core>>, B<Pat<'core>>),
@@ -268,9 +272,11 @@ pub enum ExprKind<'core> {
   #[class(value)]
   BinaryOpAssign(BinaryOp, B<Expr<'core>>, B<Expr<'core>>),
   #[class(value)]
-  U32(u32),
+  N32(u32),
   #[class(value)]
   F32(f32),
+  #[class(value)]
+  Char(char),
   #[class(value)]
   String(String),
   #[class(place, synthetic)]

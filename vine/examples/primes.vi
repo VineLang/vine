@@ -1,7 +1,7 @@
 
 use std::result::Result::{Result, Ok, Err};
 
-const end: u32 = 46;
+const end: N32 = 46;
 
 pub fn main(&io: &IO) {
   let n = 0;
@@ -21,7 +21,7 @@ pub fn main(&io: &IO) {
   }
 }
 
-pub fn is_prime(n: u32) -> Result[bool, String] {
+pub fn is_prime(n: N32) -> Result[Bool, String] {
   if n <= 0 {
     return Err("primes have to be positive!");
   }

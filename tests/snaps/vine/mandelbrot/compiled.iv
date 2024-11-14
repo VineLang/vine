@@ -6,7 +6,7 @@
   ::mandelbrot::1 = x(n1 x(n2 x(+0.0 x(+0.0 x(+0.0 x(+0.0 x(128 @eq(0 n0))))))))
 }
 
-::mandelbrot::1 { x(n1 x(n2 x(n3 x(n4 x(dup5(@add(n8 @lt(+4.0 n0)) n7) x(dup6(n8 n9) x(dup7(@lt$(0 @u32_and(n0 ?(::mandelbrot::3 ::mandelbrot::2 x(n1 x(n2 x(n3 x(n4 x(n7 x(n9 x(n5 n6)))))))))) n5) n6))))))) }
+::mandelbrot::1 { x(n1 x(n2 x(n3 x(n4 x(dup5(@add(n8 @lt(+4.0 n0)) n7) x(dup6(n8 n9) x(dup7(@lt$(0 @n32_and(n0 ?(::mandelbrot::3 ::mandelbrot::2 x(n1 x(n2 x(n3 x(n4 x(n7 x(n9 x(n5 n6)))))))))) n5) n6))))))) }
 
 ::mandelbrot::2 {
   x(dup1(n9 n10) x(dup2(n11 n12) x(n2 x(n3 x(@sub(n4 @add(n9 n0)) x(n4 x(@sub(1 n7) n8)))))))

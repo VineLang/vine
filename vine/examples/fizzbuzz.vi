@@ -1,5 +1,5 @@
 
-const end: u32 = 100;
+const end: N32 = 100;
 
 pub fn main(&io: &IO) {
   let n = 1;
@@ -9,17 +9,17 @@ pub fn main(&io: &IO) {
   }
 }
 
-fn message(n: u32) -> String {
+fn message(n: N32) -> String {
   let r3 = n % 3;
   let r5 = n % 5;
-  if r3 {
-    if r5 {
+  if r3 != 0 {
+    if r5 != 0 {
       n.to_string()
     } else {
       "Buzz"
     }
   } else {
-    if r5 {
+    if r5 != 0 {
       "Fizz"
     } else {
       "FizzBuzz"

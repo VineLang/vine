@@ -1,9 +1,9 @@
 
-const max_iter: u32 = 128;
-const width: u32 = 125;
-const height: u32 = 45;
-const scale: f32 = 2.6;
-const center: (f32, f32) = (-0.8, 0.0);
+const max_iter: N32 = 128;
+const width: N32 = 125;
+const height: N32 = 45;
+const scale: F32 = 2.6;
+const center: (F32, F32) = (-0.8, 0.0);
 
 pub fn main(&io: &IO) {
   let j = 0;
@@ -23,7 +23,7 @@ pub fn main(&io: &IO) {
   }
 }
 
-fn mandelbrot(x0: f32, y0: f32) -> u32 {
+fn mandelbrot(x0: F32, y0: F32) -> Bool {
   let x = 0.0;
   let y = 0.0;
   let x2 = 0.0;

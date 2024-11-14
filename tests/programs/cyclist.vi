@@ -4,20 +4,20 @@ use std::option::Option::Some;
 pub fn main(&io: &IO) {
   let list = [0];
   while list.len() < 32 {
-    list ++= list.map(fn(x: u32) list.len() + x);
+    list ++= list.map(fn(x: N32) list.len() + x);
   }
 
   while list.pop_front() is Some(val) {
     cycle(&list, val);
-    io.println(val.to_string() ++ ";\t" ++ list.to_string(u32::to_string));
+    io.println(val.to_string() ++ ";\t" ++ list.to_string(N32::to_string));
   }
 }
 
-fn cycle[T](&list: &List[T], count: u32) {
+fn cycle[T](&list: &List[T], count: N32) {
   let len = list.len();
-  if len {
+  if len != 0 {
     count = count % len;
-    while count {
+    while count != 0 {
       let el = list.pop_front().unwrap();
       list.push_back(el);
       count -= 1;

@@ -1,12 +1,12 @@
 
 use std::{list::Buf, option::Option::{Option, Some, None}};
 
-#[builtin = "u32"]
-pub mod u32 {
-  pub fn to_string(n: u32) -> String {
-    if n {
+#[builtin = "N32"]
+pub mod N32 {
+  pub fn to_string(n: N32) -> String {
+    if n != 0 {
       let str = "";
-      while n {
+      while n != 0 {
         str = ['0' + n % 10] ++ str;
         n = n / 10;
       }
@@ -16,13 +16,13 @@ pub mod u32 {
     }
   }
 
-  pub fn parse(str: String) -> Option[u32] {
+  pub fn parse(str: String) -> Option[N32] {
     let List(len, chars, _) = str;
     if len == 0 {
       None
     } else {
       let num = 0;
-      while len {
+      while len != 0 {
         let Buf(char, tail) = chars;
         chars = tail;
         if !('0' <= char <= '9') {
@@ -36,11 +36,11 @@ pub mod u32 {
     }
   }
 
-  pub inline_ivy! rotate_left: fn(u32, u32) -> u32 {
-    fn(@u32_rotl(x y) fn(x y))
+  pub inline_ivy! rotate_left: fn(N32, N32) -> N32 {
+    fn(@n32_rotl(x y) fn(x y))
   }
 
-  pub inline_ivy! rotate_right: fn(u32, u32) -> u32 {
-    fn(@u32_rotr(x y) fn(x y))
+  pub inline_ivy! rotate_right: fn(N32, N32) -> N32 {
+    fn(@n32_rotr(x y) fn(x y))
   }
 }

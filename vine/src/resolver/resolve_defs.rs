@@ -273,6 +273,7 @@ impl<'core> ResolveVisitor<'core, '_> {
   fn visit_cond(&mut self, cond: &mut Expr<'core>) {
     match &mut cond.kind {
       ExprKind![!cond] => self.visit_expr(cond),
+      ExprKind::Bool(_) => {}
       ExprKind::Not(e) => {
         self.enter_scope();
         self.visit_cond(e);

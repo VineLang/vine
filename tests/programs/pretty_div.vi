@@ -7,11 +7,11 @@ pub fn main(&io: &IO) {
   io.println(pretty_div(10, 3));
 }
 
-fn pretty_div(n: u32, d: u32) -> String {
-  let result = n / if d {
-    d
-  } else {
+fn pretty_div(n: N32, d: N32) -> String {
+  let result = n / if d == 0 {
     return "division by zero :O"
+  } else {
+    d
   };
   "|_ " ++ n.to_string() ++ " / " ++ d.to_string() ++ " _| = " ++ result.to_string()
 }

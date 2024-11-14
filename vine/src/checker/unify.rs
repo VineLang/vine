@@ -51,7 +51,15 @@ impl<'core> Checker<'core, '_> {
           true
         }
       }
-      (Type::U32, Type::U32) | (Type::F32, Type::F32) | (Type::IO, Type::IO) if i == j => true,
+      (Type::Bool, Type::Bool)
+      | (Type::N32, Type::N32)
+      | (Type::F32, Type::F32)
+      | (Type::Char, Type::Char)
+      | (Type::IO, Type::IO)
+        if i == j =>
+      {
+        true
+      }
       (Type::Opaque(a), Type::Opaque(b)) if a == b && i == j => true,
       (Type::Tuple(a), Type::Tuple(b)) if a.len() == b.len() => {
         let mut success = true;

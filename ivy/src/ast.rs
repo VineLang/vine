@@ -17,7 +17,7 @@ pub enum Tree {
   Comb(String, Box<Tree>, Box<Tree>),
   ExtFn(ExtFn, Box<Tree>, Box<Tree>),
   Branch(Box<Tree>, Box<Tree>, Box<Tree>),
-  U32(u32),
+  N32(u32),
   F32(f32),
   Var(String),
   Global(String),
@@ -52,7 +52,7 @@ impl Display for Tree {
       Tree::Comb(n, a, b) => write!(f, "{n}({a} {b})"),
       Tree::ExtFn(e, a, b) => write!(f, "@{e:?}({a} {b})"),
       Tree::Branch(a, b, c) => write!(f, "?({a} {b} {c})"),
-      Tree::U32(n) => write!(f, "{n}"),
+      Tree::N32(n) => write!(f, "{n}"),
       Tree::F32(n) if n.is_nan() => write!(f, "+NaN"),
       Tree::F32(n) => write!(f, "{n:+?}"),
       Tree::Var(v) => write!(f, "{v}"),
@@ -115,7 +115,7 @@ impl Tree {
   pub fn children(&self) -> impl DoubleEndedIterator + ExactSizeIterator<Item = &Self> + Clone {
     multi_iter!(Children { Zero, Two, Three });
     match self {
-      Tree::Erase | Tree::U32(_) | Tree::F32(_) | Tree::Var(_) | Tree::Global(_) => {
+      Tree::Erase | Tree::N32(_) | Tree::F32(_) | Tree::Var(_) | Tree::Global(_) => {
         Children::Zero([])
       }
       Tree::Comb(_, a, b) | Tree::ExtFn(_, a, b) => Children::Two([&**a, b]),
@@ -126,7 +126,7 @@ impl Tree {
   pub fn children_mut(&mut self) -> impl DoubleEndedIterator + ExactSizeIterator<Item = &mut Self> {
     multi_iter!(Children { Zero, Two, Three });
     match self {
-      Tree::Erase | Tree::U32(_) | Tree::F32(_) | Tree::Var(_) | Tree::Global(_) => {
+      Tree::Erase | Tree::N32(_) | Tree::F32(_) | Tree::Var(_) | Tree::Global(_) => {
         Children::Zero([])
       }
       Tree::Comb(_, a, b) | Tree::ExtFn(_, a, b) => Children::Two([&mut **a, b]),

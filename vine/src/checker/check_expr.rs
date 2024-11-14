@@ -93,7 +93,7 @@ impl<'core> Checker<'core, '_> {
         result
       }
       ExprKind::If(cond, then, els) => {
-        self.check_expr_form_type(cond, Form::Value, &mut Type::U32);
+        self.check_expr_form_type(cond, Form::Value, &mut Type::Bool);
         let mut then = self.check_block(then);
         let mut els = self.check_expr_form(els, Form::Value);
         if !self.unify(&mut then, &mut els) {
@@ -108,7 +108,7 @@ impl<'core> Checker<'core, '_> {
       }
       ExprKind::While(cond, block) => {
         let old = self.loop_ty.replace(Type::UNIT);
-        self.check_expr_form_type(cond, Form::Value, &mut Type::U32);
+        self.check_expr_form_type(cond, Form::Value, &mut Type::Bool);
         self.check_block(block);
         self.loop_ty = old;
         Type::UNIT
@@ -191,23 +191,24 @@ impl<'core> Checker<'core, '_> {
         ty
       }
       ExprKind::Call(func, args) => self.check_call(func, args, span),
+      ExprKind::Bool(_) => Type::Bool,
       ExprKind::Not(expr) => {
-        self.check_expr_form_type(expr, Form::Value, &mut Type::U32);
-        Type::U32
+        self.check_expr_form_type(expr, Form::Value, &mut Type::Bool);
+        Type::Bool
       }
       ExprKind::Is(expr, pat) => {
         let mut ty = self.check_expr_form(expr, Form::Value);
         self.check_pat_type(pat, Form::Value, true, &mut ty);
-        Type::U32
+        Type::Bool
       }
       ExprKind::LogicalOp(_, a, b) => {
-        self.check_expr_form_type(a, Form::Value, &mut Type::U32);
-        self.check_expr_form_type(b, Form::Value, &mut Type::U32);
-        Type::U32
+        self.check_expr_form_type(a, Form::Value, &mut Type::Bool);
+        self.check_expr_form_type(b, Form::Value, &mut Type::Bool);
+        Type::Bool
       }
       ExprKind::Neg(expr) => {
         let ty = self.check_expr_form(expr, Form::Value);
-        self.check_bin_op(span, BinaryOp::Sub, false, Type::U32, ty)
+        self.check_bin_op(span, BinaryOp::Sub, false, Type::N32, ty)
       }
       ExprKind::BinaryOp(op, a, b) => {
         let a = self.check_expr_form(a, Form::Value);
@@ -228,8 +229,10 @@ impl<'core> Checker<'core, '_> {
           self.concretize(&mut rhs);
           if !matches!(
             (&lhs, &rhs),
-            (Type::U32, Type::U32)
+            (Type::N32, Type::N32)
               | (Type::F32, Type::F32)
+              | (Type::Char, Type::Char)
+              | (Type::Bool, Type::Bool)
               | (Type::Error(_), _)
               | (_, Type::Error(_))
           ) {
@@ -241,9 +244,10 @@ impl<'core> Checker<'core, '_> {
           }
           lhs = rhs;
         }
-        Type::U32
+        Type::Bool
       }
-      ExprKind::U32(_) => Type::U32,
+      ExprKind::N32(_) => Type::N32,
+      ExprKind::Char(_) => Type::Char,
       ExprKind::F32(_) => Type::F32,
       ExprKind::String(_) => {
         report!(self.core; self.string.clone().ok_or(Diag::MissingBuiltin { span, builtin: "List" }))
@@ -354,21 +358,28 @@ impl<'core> Checker<'core, '_> {
         .map(|(a, b)| self._check_bin_op(op, assign, a, b, i, j))
         .collect::<Result<_, _>>()
         .map(Type::Tuple),
-      (_, Type::Tuple(a), b @ (Type::U32 | Type::F32)) => a
+      (_, Type::Tuple(a), b @ (Type::N32 | Type::F32)) => a
         .iter_mut()
         .map(|a| self._check_bin_op(op, assign, a, b, i, j))
         .collect::<Result<_, _>>()
         .map(Type::Tuple),
-      (_, a @ (Type::U32 | Type::F32), Type::Tuple(b)) if !assign => b
+      (_, a @ (Type::N32 | Type::F32), Type::Tuple(b)) if !assign => b
         .iter_mut()
         .map(|b| self._check_bin_op(op, assign, a, b, i, j))
         .collect::<Result<_, _>>()
         .map(Type::Tuple),
-      (_, Type::U32, Type::U32) if !i && !j => Ok(Type::U32),
+      (_, Type::N32, Type::N32) if !i && !j => Ok(Type::N32),
+      (BinaryOp::BitAnd | BinaryOp::BitOr | BinaryOp::BitXor, Type::Bool, Type::Bool)
+        if !i && !j =>
+      {
+        Ok(Type::Bool)
+      }
+      (BinaryOp::Add | BinaryOp::Sub, Type::Char, Type::N32) if !i && !j => Ok(Type::Char),
+      (BinaryOp::Sub, Type::Char, Type::Char) if !i && !j => Ok(Type::N32),
       (
         BinaryOp::Add | BinaryOp::Sub | BinaryOp::Mul | BinaryOp::Div | BinaryOp::Rem,
-        a @ (Type::U32 | Type::F32),
-        Type::U32 | Type::F32,
+        a @ (Type::N32 | Type::F32),
+        Type::N32 | Type::F32,
       ) if !i && !j && (!assign || matches!(a, Type::F32)) => Ok(Type::F32),
       (_, Type::Inverse(a), b) => self._check_bin_op(op, assign, a, b, !i, j),
       (_, a, Type::Inverse(b)) => self._check_bin_op(op, assign, a, b, i, !j),

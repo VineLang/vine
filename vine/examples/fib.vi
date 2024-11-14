@@ -1,5 +1,5 @@
 
-const end: u32 = 32;
+const end: N32 = 32;
 
 pub fn main(&io: &IO) {
   let n = 0;

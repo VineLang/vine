@@ -10,7 +10,7 @@ pub mod IO {
 
   pub fn print(&io: &IO, str: String) {
     let List(len, chars, _) = str;
-    while len {
+    while len != 0 {
       len = len - 1;
       let Buf(char, tail) = chars;
       chars = tail;
@@ -18,13 +18,13 @@ pub mod IO {
     }
   }
 
-  pub inline_ivy! print_char: fn(&IO, u32) {
+  pub inline_ivy! print_char: fn(&IO, Char) {
     fn(ref(@io_print_char(char io) io) fn(char _))
   }
 
-  pub fn print_bytes(&io: &IO, bytes: String) {
+  pub fn print_bytes(&io: &IO, bytes: List[N32]) {
     let List(len, bytes, _) = bytes;
-    while len {
+    while len != 0 {
       len = len - 1;
       let Buf(byte, tail) = bytes;
       bytes = tail;
@@ -32,7 +32,7 @@ pub mod IO {
     }
   }
 
-  pub inline_ivy! print_byte: fn(&IO, u32) {
+  pub inline_ivy! print_byte: fn(&IO, N32) {
     fn(ref(@io_print_byte(char io) io) fn(char _))
   }
 
@@ -47,8 +47,8 @@ pub mod IO {
   }
 
   pub fn read_line(&io: &IO) -> Option[String] {
-    let byte = io.read_byte(0);
-    if byte {
+    let byte = io.read_byte('\0');
+    if byte != '\0' {
       Some(if byte == '\n' {
         ""
       } else {
@@ -68,7 +68,7 @@ pub mod IO {
     }
   }
 
-  inline_ivy! read_byte: fn(&IO, u32) -> u32 {
+  inline_ivy! read_byte: fn(&IO, Char) -> Char {
     fn(ref(dup(io0 @io_read_byte(default dup(byte @seq$(io0 io1)))) io1) fn(default byte))
   }
 }

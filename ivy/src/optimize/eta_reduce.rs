@@ -25,7 +25,7 @@ impl Net {
 enum NodeKind {
   Comb(String),
   Var(isize),
-  U32(u32),
+  N32(u32),
   F32(f32),
   Erase,
   Other,
@@ -42,7 +42,7 @@ impl<'a> WalkTrees<'a> {
   fn walk_tree(&mut self, tree: &'a Tree) {
     let kind = match tree {
       Tree::Erase => NodeKind::Erase,
-      Tree::U32(n) => NodeKind::U32(*n),
+      Tree::N32(n) => NodeKind::N32(*n),
       Tree::F32(n) => NodeKind::F32(*n),
       Tree::Var(v) => match self.vars.entry(v) {
         Entry::Occupied(e) => {
@@ -83,7 +83,7 @@ impl<'a> ReduceTrees<'a> {
       if ak == bk {
         let reducible = match ak {
           NodeKind::Var(delta) => &self.nodes[index.wrapping_add_signed(*delta)] == kind,
-          NodeKind::Erase | NodeKind::U32(_) | NodeKind::F32(_) => true,
+          NodeKind::Erase | NodeKind::N32(_) | NodeKind::F32(_) => true,
           _ => false,
         };
         if reducible {
