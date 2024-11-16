@@ -1,0 +1,13 @@
+struct Foo(N32, F32, Char, String);
+Foo(1, 1.1, '1', "11")
+struct Bar; Bar
+use std::option::Option::{Some,None};
+Some([None, Some((1, 2))])
+(1, (2, 3, (4, 5, 6, (7, 8, 9, 10))))
+(((),()),((),()))
+([],"")
+let x = [];
+x ++ ""
+move x
+use std::result::Result::{Ok, Err};
+[Ok(1234), Err("oh no")]

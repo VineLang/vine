@@ -120,12 +120,14 @@ impl<'core, 'r> Checker<'core, 'r> {
 
   pub(crate) fn _check_custom(
     &mut self,
+    def_id: DefId,
     state: CheckerState,
     block: &mut Block<'core>,
-  ) -> CheckerState {
+  ) -> (Type, CheckerState) {
+    self.cur_def = def_id;
     self.state = state;
-    self.check_block(block);
-    take(&mut self.state)
+    let ty = self.check_block(block);
+    (ty, take(&mut self.state))
   }
 
   fn new_var(&mut self, span: Span) -> Type {
@@ -317,7 +319,7 @@ pub enum Type {
 impl Type {
   const UNIT: Type = Type::Tuple(Vec::new());
 
-  fn instantiate(&self, opaque: &[Type]) -> Type {
+  pub(crate) fn instantiate(&self, opaque: &[Type]) -> Type {
     match self {
       Type::Bool => Type::Bool,
       Type::N32 => Type::N32,

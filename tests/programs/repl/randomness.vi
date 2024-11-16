@@ -1,0 +1,8 @@
+use std::rng::Rng;
+let rng = Rng::default
+let nums = []
+let len = 20
+while len != 0 { len -= 1; nums ++= [rng.gen_n32() % 100] }
+let str = ""
+let len = 100
+while len != 0 { len -= 1; str ++= [' ' + rng.gen_n32() % 95] }

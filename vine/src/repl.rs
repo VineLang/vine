@@ -17,7 +17,7 @@ use vine_util::{
 };
 
 use crate::{
-  ast::{Block, Expr, ExprKind, Ident, Local, Span, Stmt},
+  ast::{Block, Builtin, Expr, ExprKind, Ident, Local, Span, Stmt},
   checker::{self, Checker, CheckerState, Type},
   core::Core,
   desugar::Desugar,
@@ -154,7 +154,8 @@ impl<'core, 'ctx, 'ivm> Repl<'core, 'ctx, 'ivm> {
 
     let mut checker = Checker::new(self.core, &mut self.resolver);
     checker._check_defs(new_defs.clone());
-    let state = checker._check_custom(self.checker_state.clone(), &mut block);
+    let (mut ty, state) =
+      checker._check_custom(self.repl_mod, self.checker_state.clone(), &mut block);
     self.core.bail()?;
     self.checker_state = state;
 
@@ -203,7 +204,7 @@ impl<'core, 'ctx, 'ivm> Repl<'core, 'ctx, 'ivm> {
     self.ivm.normalize();
 
     let tree = self.host.read(self.ivm, &PortRef::new_wire(&out));
-    let output = (tree != Tree::Erase).then(|| show(&tree));
+    let output = (tree != Tree::Erase).then(|| self.show(&mut ty, &tree));
     self.ivm.link_wire(out, Port::ERASE);
     self.ivm.normalize();
 
@@ -220,75 +221,162 @@ impl<'core, 'ctx, 'ivm> Repl<'core, 'ctx, 'ivm> {
     }
     Ok(stmts)
   }
-}
 
-fn show(tree: &Tree) -> String {
-  if let Tree::Comb(c, l, r) = tree {
-    if c == "tup" {
-      'list: {
-        let Tree::N32(len) = **l else { break 'list };
-        let Tree::Comb(c, l, r) = &**r else { break 'list };
-        let "tup" = &**c else { break 'list };
+  fn show(&self, ty: &mut Type, tree: &Tree) -> String {
+    self._show(ty, tree).unwrap_or_else(|| format!("#ivy({})", tree))
+  }
+
+  fn _show(&self, ty: &mut Type, tree: &Tree) -> Option<String> {
+    self.checker_state.try_concretize(ty);
+    Some(match (ty, tree) {
+      (_, Tree::Global(g)) => g.clone(),
+      (Type::Bool, Tree::N32(0)) => "false".into(),
+      (Type::Bool, Tree::N32(1)) => "true".into(),
+      (Type::N32, Tree::N32(n)) => format!("{n}"),
+      (Type::F32, Tree::F32(n)) => format!("{n:?}"),
+      (Type::Char, Tree::N32(n)) => format!("{:?}", char::try_from(*n).ok()?),
+      (Type::IO, Tree::Var(v)) if v == "#io" => "#io".into(),
+      (Type::Tuple(tys), _) if tys.is_empty() => "()".into(),
+      (Type::Tuple(tys), _) if tys.len() == 1 => format!("({},)", self.show(&mut tys[0], tree)),
+      (Type::Tuple(tys), _) if !tys.is_empty() => {
+        format!("({})", self.read_tuple(tys, tree)?.join(", "))
+      }
+      (Type::Adt(def, args), tree) if self.resolver.builtins.get(&Builtin::List) == Some(def) => {
+        let [arg] = &mut **args else { None? };
+        let Tree::Comb(c, l, r) = tree else { None? };
+        let "tup" = &**c else { None? };
+        let Tree::N32(len) = **l else { None? };
+        let Tree::Comb(c, l, r) = &**r else { None? };
+        let "tup" = &**c else { None? };
         let mut cur = &**l;
         let mut children = vec![];
         for _ in 0..len {
-          let Tree::Comb(c, l, r) = cur else { break 'list };
-          let "tup" = &**c else { break 'list };
+          let Tree::Comb(c, l, r) = cur else { None? };
+          let "tup" = &**c else { None? };
           children.push(l);
           cur = r;
         }
         if &**r != cur || !matches!(cur, Tree::Var(_)) {
-          break 'list;
+          None?
         }
-        let is_str = children.iter().all(
-          |x| matches!(***x, Tree::N32(n) if char::from_u32(n).is_some_and(|x| x == '\n' || !x.is_control())),
-        );
-        if is_str {
+        self.checker_state.try_concretize(arg);
+        if *arg == Type::Char {
           let str = children
             .into_iter()
             .map(|x| {
-              let Tree::N32(n) = **x else { unreachable!() };
-              char::from_u32(n).unwrap()
+              let Tree::N32(n) = **x else { Err(())? };
+              char::from_u32(n).ok_or(())
             })
-            .collect::<String>();
-          return format!("{str:?}");
+            .collect::<Result<String, ()>>()
+            .ok()?;
+          format!("{str:?}")
         } else {
-          return format!(
+          format!(
             "[{}]",
-            children.into_iter().map(|x| show(x)).collect::<Vec<_>>().join(", ")
-          );
+            children.into_iter().map(|x| self.show(arg, x)).collect::<Vec<_>>().join(", ")
+          )
         }
       }
-      let mut children = vec![&**l];
-      let mut cur = &**r;
-      while let Tree::Comb(c, l, r) = cur {
-        if c != "tup" {
-          break;
+      (Type::Adt(def, args), tree) => {
+        let adt = &self.resolver.defs[*def];
+        let adt_def = adt.adt_def.as_ref().unwrap();
+        if adt_def.variants.len() == 1 {
+          let variant = adt_def.variants[0];
+          let variant = &self.resolver.defs[variant];
+          let variant_def = variant.variant_def.as_ref().unwrap();
+          let mut fields = variant_def
+            .field_types
+            .as_ref()
+            .unwrap()
+            .iter()
+            .map(|x| x.instantiate(args))
+            .collect::<Vec<_>>();
+          let name = *variant.canonical.segments.last().unwrap();
+          if fields.is_empty() {
+            name.to_string()
+          } else {
+            format!("{name}({})", self.read_tuple(&mut fields, tree)?.join(", "))
+          }
+        } else {
+          let variant_count = adt_def.variants.len();
+          let mut active_variant = None;
+          let mut tree = tree;
+          for i in 0..variant_count {
+            let Tree::Comb(c, l, r) = tree else { None? };
+            let "enum" = &**c else { None? };
+            if **l != Tree::Erase {
+              if active_variant.is_some() {
+                None?
+              }
+              active_variant = Some((i, &**l));
+            }
+            tree = r;
+          }
+          let end = tree;
+          if !matches!(end, Tree::Var(_)) {
+            None?
+          }
+          let (variant_i, mut tree) = active_variant?;
+          let variant = adt_def.variants[variant_i];
+          let variant = &self.resolver.defs[variant];
+          let variant_def = variant.variant_def.as_ref().unwrap();
+          let name = *variant.canonical.segments.last().unwrap();
+          let field_types = variant_def
+            .field_types
+            .as_ref()
+            .unwrap()
+            .iter()
+            .map(|x| x.instantiate(args))
+            .collect::<Vec<_>>();
+          let mut fields = Vec::new();
+          for mut field in field_types {
+            let Tree::Comb(c, l, r) = tree else { None? };
+            let "enum" = &**c else { None? };
+            fields.push(self.show(&mut field, l));
+            tree = r;
+          }
+          if tree != end {
+            None?
+          }
+          if fields.is_empty() {
+            name.to_string()
+          } else {
+            format!("{name}({})", fields.join(", "))
+          }
         }
-        children.push(l);
-        cur = r;
       }
-      children.push(cur);
-      return format!("({})", children.into_iter().map(show).collect::<Vec<_>>().join(", "));
-    }
+      (_, Tree::Erase) => "~_".into(),
+      _ => None?,
+    })
   }
-  match tree {
-    Tree::Erase => "()".into(),
-    Tree::N32(n) => format!("{n}"),
-    Tree::F32(n) => format!("{n:?}"),
-    Tree::Var(v) if v == "#io" => "#io".into(),
-    Tree::Global(p) => p.clone(),
-    tree => format!("#ivy({tree})"),
+
+  fn read_tuple(&self, tys: &mut [Type], tree: &Tree) -> Option<Vec<String>> {
+    let mut tup = Vec::new();
+    let mut tree = tree;
+    let i = tys.len() - 1;
+    for ty in &mut tys[..i] {
+      let Tree::Comb(l, a, b) = tree else { None? };
+      let "tup" = &**l else { None? };
+      tup.push(self.show(ty, a));
+      tree = b;
+    }
+    tup.push(self.show(tys.last_mut().unwrap(), tree));
+    Some(tup)
   }
 }
 
 impl Display for Repl<'_, '_, '_> {
   fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-    for ident in self.locals.values() {
+    for (local, ident) in &self.locals {
       let var = &self.vars[ident];
       let value = self.host.read(self.ivm, &var.value);
       if value != Tree::Erase {
-        writeln!(f, "{} = {}", ident.0 .0, show(&value))?;
+        writeln!(
+          f,
+          "{} = {}",
+          ident.0 .0,
+          self.show(&mut Type::Var(self.checker_state.locals[local]), &value)
+        )?;
       }
     }
     Ok(())
