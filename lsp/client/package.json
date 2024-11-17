@@ -1,0 +1,46 @@
+{
+  "name": "vine-lsp-client",
+  "version": "0.1.0",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.9.0",
+    "@types/vscode": "^1.95.0",
+    "typescript": "^5.6.3"
+  },
+  "dependencies": {
+    "vscode-languageclient": "^9.0.1"
+  },
+  "activationEvents": [
+    "onLanguage:vine"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "languages": [
+      {
+        "id": "vine",
+        "extensions": [
+          ".vi"
+        ]
+      }
+    ],
+    "commands": [
+      {
+        "command": "vine.restartServer",
+        "title": "Vine: Restart Server"
+      }
+    ],
+    "configuration": {
+      "title": "Vine",
+      "properties": {
+        "vine.entrypoints": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

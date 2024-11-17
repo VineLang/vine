@@ -17,6 +17,11 @@
   "[yaml]": {
     "editor.defaultFormatter": "dprint.dprint"
   },
+  "vine.entrypoints": [
+    "vine/examples/*.vi",
+    "tests/programs/*.vi",
+    "vine/std/std.vi"
+  ],
   "rust-analyzer.check.command": "clippy",
   "editor.formatOnSave": true,
   "editor.tabSize": 2

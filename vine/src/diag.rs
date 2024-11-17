@@ -1,6 +1,8 @@
 use std::{
+  cell::Ref,
   fmt::{self, Display, Write},
   io,
+  mem::take,
   path::PathBuf,
 };
 
@@ -24,7 +26,7 @@ macro_rules! diags {
     }
 
     impl<'core> Diag<'core> {
-      fn span(&self) -> Option<Span> {
+      pub fn span(&self) -> Option<Span> {
         match self {
           $( Self::$name { span, .. } => Some(*span), )*
           Diag::Guaranteed(_) => None,
@@ -158,6 +160,18 @@ impl<'core> Core<'core> {
     ErrorGuaranteed(())
   }
 
+  pub fn files(&self) -> Ref<Vec<FileInfo>> {
+    self.files.borrow()
+  }
+
+  pub fn has_diags(&self) -> bool {
+    !self.diags.borrow().is_empty()
+  }
+
+  pub fn take_diags(&self) -> Vec<Diag> {
+    take(&mut *self.diags.borrow_mut())
+  }
+
   pub fn bail(&self) -> Result<(), String> {
     let mut diags = self.diags.borrow_mut();
     let files = self.files.borrow();
@@ -198,29 +212,30 @@ impl From<ErrorGuaranteed> for Diag<'_> {
 }
 
 pub struct FileInfo {
-  name: String,
+  pub path: Option<PathBuf>,
+  pub name: String,
   line_starts: Vec<usize>,
 }
 
 impl FileInfo {
-  pub fn new(name: String, src: &str) -> Self {
+  pub fn new(path: Option<PathBuf>, name: String, src: &str) -> Self {
     let line_starts = src.lines().map(|x| x.as_ptr() as usize - src.as_ptr() as usize).collect();
-    FileInfo { name, line_starts }
+    FileInfo { path, name, line_starts }
   }
 }
 
 impl FileInfo {
-  fn get_pos(&self, byte: usize) -> Pos<'_> {
+  pub fn get_pos(&self, byte: usize) -> Pos<'_> {
     let line = self.line_starts.partition_point(|&x| x <= byte) - 1;
     let col = byte - self.line_starts[line];
     Pos { file: &self.name, line, col }
   }
 }
 
-struct Pos<'f> {
-  file: &'f str,
-  line: usize,
-  col: usize,
+pub struct Pos<'f> {
+  pub file: &'f str,
+  pub line: usize,
+  pub col: usize,
 }
 
 impl Display for Pos<'_> {
