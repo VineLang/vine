@@ -1,5 +1,5 @@
 {
-  "name": "vine-lsp-client",
+  "name": "vine-vscode",
   "version": "0.1.0",
   "engines": {
     "vscode": "^1.85.0"
@@ -12,17 +12,42 @@
   "dependencies": {
     "vscode-languageclient": "^9.0.1"
   },
-  "activationEvents": [
-    "onLanguage:vine"
-  ],
-  "main": "./dist/extension.js",
+  "main": "src/extension.js",
   "contributes": {
     "languages": [
       {
         "id": "vine",
         "extensions": [
           ".vi"
-        ]
+        ],
+        "configuration": "src/vine-config.json",
+        "icon": {
+          "dark": "assets/vine.png",
+          "light": "assets/vine.png"
+        }
+      },
+      {
+        "id": "ivy",
+        "extensions": [
+          ".iv"
+        ],
+        "configuration": "src/ivy-config.json",
+        "icon": {
+          "dark": "assets/ivy.png",
+          "light": "assets/ivy.png"
+        }
+      }
+    ],
+    "grammars": [
+      {
+        "language": "vine",
+        "scopeName": "source.vine",
+        "path": "src/vine-grammar.json"
+      },
+      {
+        "language": "ivy",
+        "scopeName": "source.ivy",
+        "path": "src/ivy-grammar.json"
       }
     ],
     "commands": [

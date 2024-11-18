@@ -1,0 +1,9 @@
+{
+  "name": "rustdoc",
+  "patterns": [
+    {
+      "include": "source.rust"
+    }
+  ],
+  "scopeName": "source.vine"
+}
