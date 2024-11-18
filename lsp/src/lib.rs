@@ -1,4 +1,4 @@
-use std::{env::args, future::Future};
+use std::future::Future;
 
 use futures::{stream::FuturesUnordered, StreamExt};
 use tower_lsp::{jsonrpc::Result, lsp_types::*, Client, LanguageServer, LspService, Server};
@@ -121,9 +121,7 @@ impl LanguageServer for Backend {
 
 #[allow(clippy::absolute_paths)]
 #[tokio::main]
-async fn main() {
-  let entrypoints = args().skip(1).collect();
-
+pub async fn lsp(entrypoints: Vec<String>) {
   let stdin = tokio::io::stdin();
   let stdout = tokio::io::stdout();
 

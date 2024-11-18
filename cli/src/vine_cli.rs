@@ -15,6 +15,7 @@ use vine::{
   core::{Core, CoreArenas},
   repl::Repl,
 };
+use vine_lsp::lsp;
 
 use super::{Optimizations, RunArgs};
 
@@ -28,6 +29,7 @@ pub enum VineCommand {
 
   Fmt(VineFmtCommand),
   Repl(VineReplCommand),
+  Lsp(VineLspCommand),
 }
 
 impl VineCommand {
@@ -37,6 +39,7 @@ impl VineCommand {
       VineCommand::Build(build) => build.execute(),
       VineCommand::Repl(repl) => repl.execute(),
       VineCommand::Fmt(fmt) => fmt.execute(),
+      VineCommand::Lsp(lsp) => lsp.execute(),
     }
   }
 }
@@ -178,6 +181,23 @@ impl VineFmtCommand {
     let arenas = CoreArenas::default();
     let core = &Core::new(&arenas);
     println!("{}", core.fmt(&src).unwrap());
+    Ok(())
+  }
+}
+
+#[derive(Debug, Args)]
+pub struct VineLspCommand {
+  entrypoints: Vec<String>,
+  #[arg(long)]
+  no_std: bool,
+}
+
+impl VineLspCommand {
+  pub fn execute(mut self) -> Result<()> {
+    if !self.no_std {
+      self.entrypoints.push(std_path().display().to_string());
+    }
+    lsp(self.entrypoints);
     Ok(())
   }
 }

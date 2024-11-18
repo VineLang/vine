@@ -1389,6 +1389,7 @@ dependencies = [
  "ivy",
  "rustyline",
  "vine",
+ "vine-lsp",
  "vine-util",
 ]
 

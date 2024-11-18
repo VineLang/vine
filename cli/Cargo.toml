@@ -11,6 +11,7 @@ rustyline = "14.0.0"
 ivm = { path = "../ivm" }
 ivy = { path = "../ivy" }
 vine = { path = "../vine" }
+vine-lsp = { path = "../lsp" }
 vine-util = { path = "../util" }
 
 [lints]

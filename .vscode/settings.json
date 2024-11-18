@@ -17,7 +17,8 @@
   "[yaml]": {
     "editor.defaultFormatter": "dprint.dprint"
   },
-  "vine.lspCommand": ["cargo", "run", "--bin", "vine-lsp", "--"],
+  "vine.cli": ["cargo", "run", "--bin", "vine", "--release", "--"],
+  "vine.lspOptions": ["--no-std"],
   "vine.entrypoints": [
     "vine/examples/*.vi",
     "tests/programs/*.vi",
