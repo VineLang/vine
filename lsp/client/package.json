@@ -59,6 +59,13 @@
     "configuration": {
       "title": "Vine",
       "properties": {
+        "vine.lspCommand": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": ["vine-lsp"]
+        },
         "vine.entrypoints": {
           "type": "array",
           "items": {

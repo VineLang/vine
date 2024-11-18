@@ -14,12 +14,13 @@ async function activate(context) {
   const config = vscode.workspace.getConfiguration("vine");
 
   const entrypoints = config.get("entrypoints");
+  const lspCommand = config.get("lspCommand");
 
   const outputChannel = vscode.window.createOutputChannel("Vine LSP");
 
   const run = {
-    command: "cargo",
-    args: ["run", "--bin", "vine-lsp", "--", ...entrypoints],
+    command: lspCommand[0],
+    args: [...lspCommand.slice(1), ...entrypoints],
     options: {},
   };
 
