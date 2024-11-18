@@ -26,6 +26,7 @@
     "nohash",
     "nonoverlapping",
     "nums",
+    "peekable",
     "primality",
     "readback",
     "readline",
