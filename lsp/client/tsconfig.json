@@ -4,8 +4,7 @@
     "target": "es2023",
     "lib": ["es2023"],
     "outDir": "dist",
-    "rootDir": "src",
-    "checkJs": true
+    "rootDir": "src"
   },
   "include": ["src"]
 }

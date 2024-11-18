@@ -12,7 +12,10 @@
   "dependencies": {
     "vscode-languageclient": "^9.0.1"
   },
-  "main": "src/extension.js",
+  "scripts": {
+    "postinstall": "tsc"
+  },
+  "main": "dist/extension.js",
   "contributes": {
     "languages": [
       {

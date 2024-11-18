@@ -1,21 +1,19 @@
 
-const vscode = require("vscode")
-const { LanguageClient } = require("vscode-languageclient/node")
+import * as vscode from "vscode"
+import { LanguageClient } from "vscode-languageclient/node"
 
-/** @type {LanguageClient} */
-let client;
+let client: LanguageClient;
 
 module.exports = { activate, deactivate }
 
-/** @param {vscode.ExtensionContext} context */
-async function activate(context) {
+async function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(vscode.commands.registerCommand("vine.restartServer", restartServer))
 
   const config = vscode.workspace.getConfiguration("vine");
 
-  const entrypoints = config.get("entrypoints");
-  const cli = config.get("cli");
-  const lspOptions = config.get("lspOptions");
+  const entrypoints = config.get("entrypoints") as string[];
+  const cli = config.get("cli") as string[];
+  const lspOptions = config.get("lspOptions") as string[];
 
   const outputChannel = vscode.window.createOutputChannel("Vine LSP");
 
