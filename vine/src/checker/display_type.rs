@@ -11,10 +11,10 @@ impl<'core> Checker<'core, '_> {
 
   fn _display_type(&self, ty: &Type, str: &mut String) {
     match ty {
-      Type::Bool => *str += "bool",
-      Type::N32 => *str += "u32",
-      Type::F32 => *str += "f32",
-      Type::Char => *str += "char",
+      Type::Bool => *str += "Bool",
+      Type::N32 => *str += "N32",
+      Type::F32 => *str += "F32",
+      Type::Char => *str += "Char",
       Type::IO => *str += "IO",
       Type::Tuple(t) => {
         *str += "(";
