@@ -725,7 +725,8 @@ impl<'core, 'src> VineParser<'core, 'src> {
   }
 
   fn span(&self) -> Span {
-    self.end_span(self.start_span())
+    let span = self.state.lexer.span();
+    Span { file: self.file, start: span.start, end: span.end }
   }
 }
 

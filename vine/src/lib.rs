@@ -1,17 +1,16 @@
 pub mod ast;
+pub mod checker;
 pub mod core;
 pub mod desugar;
 pub mod diag;
 pub mod emitter;
 pub mod fmt;
+pub mod lexer;
 pub mod loader;
 pub mod parser;
 pub mod repl;
 pub mod resolver;
 pub mod visit;
-
-mod checker;
-mod lexer;
 
 use core::{Core, CoreArenas};
 use std::path::PathBuf;

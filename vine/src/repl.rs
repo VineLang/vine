@@ -212,7 +212,7 @@ impl<'core, 'ctx, 'ivm> Repl<'core, 'ctx, 'ivm> {
   }
 
   fn parse_line(&mut self, line: &str) -> Result<Vec<Stmt<'core>>, Diag<'core>> {
-    let file = self.loader.add_file("input".to_string(), line);
+    let file = self.loader.add_file(None, "input".into(), line);
     let mut parser = VineParser { core: self.core, state: ParserState::new(line), file };
     parser.bump()?;
     let mut stmts = Vec::new();

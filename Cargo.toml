@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = ["cli", "ivm", "ivy", "tests", "util", "vine"]
+members = ["cli", "ivm", "ivy", "lsp", "tests", "util", "vine"]
 
 [workspace.lints.clippy]
 absolute_paths = "warn"

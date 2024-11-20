@@ -95,10 +95,10 @@ impl<'core> Loader<'core> {
     self.core.ident(str::from_utf8(path.file_stem().unwrap().as_encoded_bytes()).unwrap())
   }
 
-  pub(crate) fn add_file(&mut self, name: String, src: &str) -> usize {
+  pub(crate) fn add_file(&mut self, path: Option<PathBuf>, name: String, src: &str) -> usize {
     let mut files = self.core.files.borrow_mut();
     let file = files.len();
-    files.push(FileInfo::new(name, src));
+    files.push(FileInfo::new(path, name, src));
     file
   }
 
@@ -118,7 +118,7 @@ impl<'core> Loader<'core> {
     let src = fs::read_to_string(&path).map_err(fs_err)?;
     path = path.canonicalize().map_err(fs_err)?;
     let name = path.strip_prefix(&self.cwd).unwrap_or(&path).display().to_string();
-    let file = self.add_file(name, &src);
+    let file = self.add_file(Some(path.clone()), name, &src);
     let mut items = VineParser::parse(self.core, &src, file)?;
     path.pop();
     for item in &mut items {

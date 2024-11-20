@@ -1,0 +1,88 @@
+{
+  "name": "vine-vscode",
+  "version": "0.1.0",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.9.0",
+    "@types/vscode": "^1.95.0",
+    "typescript": "^5.6.3"
+  },
+  "dependencies": {
+    "vscode-languageclient": "^9.0.1"
+  },
+  "scripts": {
+    "postinstall": "tsc"
+  },
+  "main": "dist/extension.js",
+  "contributes": {
+    "languages": [
+      {
+        "id": "vine",
+        "extensions": [
+          ".vi"
+        ],
+        "configuration": "src/vine-config.json",
+        "icon": {
+          "dark": "assets/vine.png",
+          "light": "assets/vine.png"
+        }
+      },
+      {
+        "id": "ivy",
+        "extensions": [
+          ".iv"
+        ],
+        "configuration": "src/ivy-config.json",
+        "icon": {
+          "dark": "assets/ivy.png",
+          "light": "assets/ivy.png"
+        }
+      }
+    ],
+    "grammars": [
+      {
+        "language": "vine",
+        "scopeName": "source.vine",
+        "path": "src/vine-grammar.json"
+      },
+      {
+        "language": "ivy",
+        "scopeName": "source.ivy",
+        "path": "src/ivy-grammar.json"
+      }
+    ],
+    "commands": [
+      {
+        "command": "vine.restartServer",
+        "title": "Vine: Restart Server"
+      }
+    ],
+    "configuration": {
+      "title": "Vine",
+      "properties": {
+        "vine.lspOptions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": []
+        },
+        "vine.cli": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": ["vine"]
+        },
+        "vine.entrypoints": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

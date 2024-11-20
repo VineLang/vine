@@ -1,0 +1,63 @@
+{
+  "name": "ivy",
+  "patterns": [
+    { "include": "#single-comment" },
+    { "include": "#multi-comment" },
+    { "include": "#global" },
+    { "include": "#comb" },
+    { "include": "#var" },
+    { "include": "#num" },
+    { "include": "#ext-fn" }
+  ],
+  "scopeName": "source.ivy",
+  "repository": {
+    "single-comment": {
+      "match": "//.*",
+      "name": "comment.line.double-slash.ivy"
+    },
+    "multi-comment": {
+      "begin": "/\\*",
+      "end": "\\*/",
+      "name": "comment.block.ivy",
+      "patterns": [{ "include": "#multi-comment" }]
+    },
+    "num": {
+      "match": "\\d[\\d\\w]*|[+-][\\d\\w.+\\-]+",
+      "name": "constant.numeric.ivy"
+    },
+    "tag": {
+      "match": "(?:[0-9]+|0[bB][01]+|0[xX][0-9a-fA-F]*)",
+      "name": "entity.name.tag.ivy"
+    },
+    "operator": {
+      "match": "<([+*/%~&|^-]|<[<=]?|>[>=]?|[=!]=)",
+      "captures": {
+        "1": {
+          "name": "keyword.operator.ivy"
+        }
+      }
+    },
+    "global": {
+      "match": "(?:::\\p{ID_Continue}+)+",
+      "name": "entity.name.function.ivy"
+    },
+    "comb": {
+      "match": "\\p{ID_Start}\\p{ID_Continue}*(?=\\s*\\()",
+      "name": "keyword.language.ivy"
+    },
+    "var": {
+      "match": "\\p{ID_Start}\\p{ID_Continue}*",
+      "name": "variable.ivy"
+    },
+    "ext-fn": {
+      "match": "@\\p{ID_Start}\\p{ID_Continue}*\\$?|\\?",
+      "name": "variable.language.ext-fn.ivy"
+    },
+    "punctuation": {
+      "patterns": [
+        { "match": "[=&~]", "name": "keyword.operator.assignment.ivy" },
+        { "match": "\\*", "name": "variable.language.ivy" }
+      ]
+    }
+  }
+}
