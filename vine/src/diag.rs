@@ -124,6 +124,10 @@ diags! {
     ["no loop to break from"]
   NoLoopContinue
     ["no loop to continue"]
+  UnboundLabel { label: Ident<'core> }
+    ["cannot find label `{label}`"]
+  NoContinueLabel { label: Ident<'core> }
+    ["cannot continue label `{label}`"]
   MissingReturnExpr { ty: String }
     ["expected a value of type `{ty}` to return"]
   MissingBreakExpr { ty: String }

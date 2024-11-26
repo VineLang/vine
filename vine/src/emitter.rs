@@ -10,7 +10,7 @@ use vine_util::{
 };
 
 use crate::{
-  ast::{Builtin, DynFnId, Expr, Local},
+  ast::{Builtin, DynFnId, Expr, LabelId, Local},
   resolver::{Def, DefId, Resolver, ValueDefKind},
 };
 
@@ -57,7 +57,7 @@ pub struct Emitter<'core, 'd> {
   net: NetBuilder,
 
   return_target: Option<(Local, ForkId)>,
-  loop_target: Option<(Local, ForkId, StageId)>,
+  labels: IdxVec<LabelId, Option<(Local, ForkId, Option<StageId>)>>,
 
   dyn_fns: HashMap<DynFnId, (Local, StageId)>,
 
@@ -83,7 +83,7 @@ impl<'core, 'd> Emitter<'core, 'd> {
       forks: Default::default(),
       net: Default::default(),
       return_target: Default::default(),
-      loop_target: Default::default(),
+      labels: Default::default(),
       dyn_fns: Default::default(),
       dup_labels: Default::default(),
       concat,

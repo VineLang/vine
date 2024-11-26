@@ -8,8 +8,8 @@ use vine_util::idx::{Counter, RangeExt};
 
 use crate::{
   ast::{
-    DynFnId, Expr, ExprKind, GenericPath, Ident, Local, LogicalOp, Pat, PatKind, Stmt, StmtKind,
-    Ty, TyKind,
+    DynFnId, Expr, ExprKind, GenericPath, Ident, Label, LabelId, Local, LogicalOp, Pat, PatKind,
+    Stmt, StmtKind, Ty, TyKind,
   },
   diag::Diag,
   visit::{VisitMut, Visitee},
@@ -31,6 +31,9 @@ impl<'core> Resolver<'core> {
       scope_depth: 0,
       locals: Counter::default(),
       dyn_fns: Counter::default(),
+      labels: Default::default(),
+      loops: Default::default(),
+      label_id: Default::default(),
     };
 
     for def_id in range.iter() {
@@ -98,6 +101,9 @@ impl<'core> Resolver<'core> {
       scope_depth: 0,
       locals: *local_count,
       dyn_fns: Counter::default(),
+      labels: Default::default(),
+      loops: Default::default(),
+      label_id: Default::default(),
     };
     visitor.visit(visitee);
     *local_count = visitor.locals;
@@ -125,6 +131,9 @@ struct ResolveVisitor<'core, 'a> {
   scope_depth: usize,
   locals: Counter<Local>,
   dyn_fns: Counter<DynFnId>,
+  labels: HashMap<Ident<'core>, (LabelId, bool)>,
+  loops: Vec<LabelId>,
+  label_id: Counter<LabelId>,
 }
 
 #[derive(Debug)]
@@ -192,6 +201,7 @@ impl<'core> VisitMut<'core, '_> for ResolveVisitor<'core, '_> {
   }
 
   fn visit_expr(&mut self, expr: &mut Expr<'core>) {
+    let span = expr.span;
     match &mut expr.kind {
       ExprKind![cond] => {
         self.enter_scope();
@@ -205,11 +215,67 @@ impl<'core> VisitMut<'core, '_> for ResolveVisitor<'core, '_> {
         self.exit_scope();
         self.visit_expr(els);
       }
-      ExprKind::While(cond, block) => {
-        self.enter_scope();
-        self.visit_cond(cond);
-        self.visit_block(block);
-        self.exit_scope();
+      ExprKind::While(label, cond, block) => {
+        self.bind_label(label, true, |self_| {
+          self_.enter_scope();
+          self_.visit_cond(cond);
+          self_.visit_block(block);
+          self_.exit_scope();
+        });
+      }
+      ExprKind::Loop(label, block) => {
+        self.bind_label(label, true, |self_| {
+          self_.visit_block(block);
+        });
+      }
+      ExprKind::Do(label, block) => {
+        self.bind_label(label, false, |self_| {
+          self_.visit_block(block);
+        });
+      }
+      ExprKind::Break(label, value) => {
+        let id = if let Label::Ident(Some(label)) = *label {
+          self.labels.get(&label).map(|x| x.0).ok_or(Diag::UnboundLabel { span, label })
+        } else {
+          self.loops.last().copied().ok_or(Diag::NoLoopBreak { span })
+        };
+        match id {
+          Ok(id) => {
+            *label = Label::Resolved(id);
+          }
+          Err(d) => {
+            *label = Label::Error(self.resolver.core.report(d));
+          }
+        }
+        if let Some(value) = value {
+          self.visit_expr(value);
+        }
+      }
+      ExprKind::Continue(label) => {
+        let id = if let Label::Ident(Some(label)) = *label {
+          self
+            .labels
+            .get(&label)
+            .map(|x| if x.1 { Ok(x.0) } else { Err(Diag::NoContinueLabel { span, label }) })
+            .ok_or(Diag::UnboundLabel { span, label })
+        } else {
+          self.loops.last().copied().map(Ok).ok_or(Diag::NoLoopBreak { span })
+        };
+        match id {
+          Ok(Ok(id)) => {
+            *label = Label::Resolved(id);
+          }
+          Ok(Err(d)) | Err(d) => {
+            *label = Label::Error(self.resolver.core.report(d));
+          }
+        }
+      }
+      ExprKind::Fn(..) => {
+        let labels = take(&mut self.labels);
+        let loops = take(&mut self.loops);
+        self._visit_expr(expr);
+        self.labels = labels;
+        self.loops = loops;
       }
       _ => {
         let result = match &mut expr.kind {
@@ -302,6 +368,28 @@ impl<'core> ResolveVisitor<'core, '_> {
         self.exit_scope();
       }
     }
+  }
+
+  fn bind_label(&mut self, label: &mut Label<'core>, cont: bool, f: impl FnOnce(&mut Self)) {
+    let id = self.label_id.next();
+    if cont {
+      self.loops.push(id);
+    }
+    if let Label::Ident(Some(label)) = label {
+      let old = self.labels.insert(*label, (id, cont));
+      f(self);
+      if let Some(old) = old {
+        self.labels.insert(*label, old);
+      } else {
+        self.labels.remove(label);
+      }
+    } else {
+      f(self);
+    }
+    if cont {
+      self.loops.pop();
+    }
+    *label = Label::Resolved(id);
   }
 }
 

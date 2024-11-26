@@ -10,7 +10,10 @@ use vine_util::{
 };
 
 use crate::{
-  ast::{Block, Builtin, DynFnId, ExprKind, GenericPath, Ident, Local, Span, StmtKind, Ty, TyKind},
+  ast::{
+    Block, Builtin, DynFnId, ExprKind, GenericPath, Ident, LabelId, Local, Span, StmtKind, Ty,
+    TyKind,
+  },
   core::Core,
   diag::{report, Diag, ErrorGuaranteed},
   resolver::{DefId, Resolver, TypeDef, ValueDefKind},
@@ -29,7 +32,7 @@ pub struct Checker<'core, 'r> {
   state: CheckerState,
   generics: Vec<Ident<'core>>,
   return_ty: Option<Type>,
-  loop_ty: Option<Type>,
+  labels: IdxVec<LabelId, Option<Type>>,
   cur_def: DefId,
 
   bool: Option<DefId>,
@@ -70,7 +73,7 @@ impl<'core, 'r> Checker<'core, 'r> {
       state: CheckerState::default(),
       generics: Vec::new(),
       return_ty: None,
-      loop_ty: None,
+      labels: Default::default(),
       cur_def: DefId::ROOT,
       bool,
       n32,
