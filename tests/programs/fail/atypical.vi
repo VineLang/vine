@@ -28,6 +28,8 @@ pub fn main[T, U](io: IO) {
   let x = 1; ~x + ~x;
   x += 1.0;
   x.parse();
+  break.stuff;
+  do.stuff { continue.stuff };
   123
 }
 

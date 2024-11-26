@@ -1,3 +1,7 @@
+error tests/programs/fail/atypical.vi:25:3 - no loop to break from
+error tests/programs/fail/atypical.vi:26:3 - no loop to break from
+error tests/programs/fail/atypical.vi:31:3 - cannot find label `stuff`
+error tests/programs/fail/atypical.vi:32:14 - cannot continue label `stuff`
 error tests/programs/fail/atypical.vi:3:19 - no type associated with `::atypical::foo`
 error tests/programs/fail/atypical.vi:3:24 - types in item signatures cannot be elided
 error tests/programs/fail/atypical.vi:4:8 - fn item parameters must be explicitly typed
@@ -28,8 +32,6 @@ error tests/programs/fail/atypical.vi:22:7 - expected an irrefutable pattern
 error tests/programs/fail/atypical.vi:22:17 - expected type `::atypical::Ay`; found `N32`
 error tests/programs/fail/atypical.vi:23:4 - cannot apply operator `+` to types `::std::list::List[Char]` and `N32`
 error tests/programs/fail/atypical.vi:24:7 - expected type `N32`; found `&?15`
-error tests/programs/fail/atypical.vi:25:3 - no loop to continue
-error tests/programs/fail/atypical.vi:26:3 - no loop to break from
 error tests/programs/fail/atypical.vi:27:10 - expected type `()`; found `F32`
 error tests/programs/fail/atypical.vi:28:14 - cannot apply operator `+` to types `~N32` and `~N32`
 error tests/programs/fail/atypical.vi:29:3 - cannot apply operator `+=` to types `N32` and `F32`
