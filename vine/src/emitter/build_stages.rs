@@ -142,12 +142,13 @@ impl<'core> Emitter<'core, '_> {
       ExprKind::Inverse(x) => self.emit_expr_space(x),
 
       ExprKind::Fn(params, _, body) => self.emit_fn(params, body),
-      ExprKind::Loop(body) => self.emit_loop(body),
-      ExprKind::While(cond, body) => self.emit_while(cond, body),
+      ExprKind::Do(label, block) => self.emit_do(label.as_id(), block),
+      ExprKind::Loop(label, body) => self.emit_loop(label.as_id(), body),
+      ExprKind::While(label, cond, body) => self.emit_while(label.as_id(), cond, body),
       ExprKind::If(cond, then, els) => self.emit_if(cond, then, els),
       ExprKind::Return(r) => self.emit_return(r.as_deref()),
-      ExprKind::Break(r) => self.emit_break(r.as_deref()),
-      ExprKind::Continue => self.emit_continue(),
+      ExprKind::Break(label, r) => self.emit_break(label.as_id(), r.as_deref()),
+      ExprKind::Continue(label) => self.emit_continue(label.as_id()),
 
       ExprKind::Match(value, arms) => {
         let result = self.new_local();

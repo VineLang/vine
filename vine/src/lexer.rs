@@ -130,6 +130,8 @@ pub enum Token {
   Return,
   #[token("yield")]
   Yield,
+  #[token("do")]
+  Do,
   #[token("loop")]
   Loop,
   #[token("while")]

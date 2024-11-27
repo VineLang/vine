@@ -7,9 +7,9 @@ use crate::{core::Core, diag::Diag, lexer::Token};
 
 use crate::ast::{
   Attr, AttrKind, BinaryOp, Block, Builtin, ComparisonOp, ConstItem, DynFnStmt, Enum, Expr,
-  ExprKind, FnItem, GenericPath, Ident, InlineIvy, Item, ItemKind, LetStmt, LogicalOp, ModItem,
-  ModKind, Pat, PatKind, Path, PatternItem, Span, Stmt, StmtKind, StructItem, Ty, TyKind, TypeItem,
-  UseItem, UseTree, Variant, Vis,
+  ExprKind, FnItem, GenericPath, Ident, InlineIvy, Item, ItemKind, Label, LetStmt, LogicalOp,
+  ModItem, ModKind, Pat, PatKind, Path, PatternItem, Span, Stmt, StmtKind, StructItem, Ty, TyKind,
+  TypeItem, UseItem, UseTree, Variant, Vis,
 };
 
 pub struct VineParser<'core, 'src> {
@@ -346,14 +346,16 @@ impl<'core, 'src> VineParser<'core, 'src> {
       return Ok(ExprKind::Return(Some(Box::new(self.parse_expr_bp(BP::ControlFlow)?))));
     }
     if self.eat(Token::Break)? {
+      let label = self.parse_label()?;
+
       if self.check(Token::Semi) {
-        return Ok(ExprKind::Break(None));
+        return Ok(ExprKind::Break(label, None));
       }
 
-      return Ok(ExprKind::Break(Some(Box::new(self.parse_expr_bp(BP::ControlFlow)?))));
+      return Ok(ExprKind::Break(label, Some(Box::new(self.parse_expr_bp(BP::ControlFlow)?))));
     }
     if self.eat(Token::Continue)? {
-      return Ok(ExprKind::Continue);
+      return Ok(ExprKind::Continue(self.parse_label()?));
     }
     if self.eat(Token::And)? {
       return Ok(ExprKind::Ref(Box::new(self.parse_expr_bp(BP::Prefix)?)));
@@ -417,6 +419,9 @@ impl<'core, 'src> VineParser<'core, 'src> {
     if self.check(Token::OpenBrace) {
       return Ok(ExprKind::Block(self.parse_block()?));
     }
+    if self.eat(Token::Do)? {
+      return Ok(ExprKind::Do(self.parse_label()?, self.parse_block()?));
+    }
     if self.eat(Token::If)? {
       let cond = self.parse_expr()?;
       let then = self.parse_block()?;
@@ -432,13 +437,15 @@ impl<'core, 'src> VineParser<'core, 'src> {
       return Ok(ExprKind::If(Box::new(cond), then, Box::new(else_)));
     }
     if self.eat(Token::While)? {
+      let label = self.parse_label()?;
       let cond = self.parse_expr()?;
       let body = self.parse_block()?;
-      return Ok(ExprKind::While(Box::new(cond), body));
+      return Ok(ExprKind::While(label, Box::new(cond), body));
     }
     if self.eat(Token::Loop)? {
+      let label = self.parse_label()?;
       let body = self.parse_block()?;
-      return Ok(ExprKind::Loop(body));
+      return Ok(ExprKind::Loop(label, body));
     }
     if self.eat(Token::For)? {
       let pat = self.parse_pat()?;
@@ -545,6 +552,10 @@ impl<'core, 'src> VineParser<'core, 'src> {
     }
 
     Ok(Err(lhs))
+  }
+
+  fn parse_label(&mut self) -> Parse<'core, Label<'core>> {
+    Ok(Label::Ident(self.eat(Token::Dot)?.then(|| self.parse_ident()).transpose()?))
   }
 
   fn parse_pat(&mut self) -> Parse<'core, Pat<'core>> {

@@ -21,11 +21,9 @@ impl<'core> Emitter<'core, '_> {
     let res = self.apply_combs("fn", func.0, params.iter().map(|x| &x.0), Self::emit_pat_value);
     let result = self.new_local();
     let orig = self.cur_id;
-    let old_loop = self.loop_target.take();
     let old_return = self.return_target.replace((result, self.cur_fork()));
     let body = body(self);
     self.return_target = old_return;
-    self.loop_target = old_loop;
     self.set_local_to(result, body);
     if self.cur_id != orig {
       self.select_stage(orig);
@@ -43,6 +41,20 @@ impl<'core> Emitter<'core, '_> {
 
     self.diverge(ret.1);
     Port::Erase
+  }
+
+  pub(super) fn emit_do(&mut self, label: LabelId, body: &Block<'core>) -> Port {
+    let result = self.new_local();
+
+    let orig = self.cur_id;
+    *self.labels.get_or_extend(label) = Some((result, self.cur_fork(), None));
+    let body = self.emit_block(body);
+    self.set_local_to(result, body);
+    if self.cur_id != orig {
+      self.select_stage(orig);
+    }
+
+    self.get_local(result)
   }
 
   pub(super) fn emit_if(
@@ -72,15 +84,14 @@ impl<'core> Emitter<'core, '_> {
     self.get_local(val)
   }
 
-  pub(super) fn emit_loop(&mut self, body: &Block<'core>) -> Port {
+  pub(super) fn emit_loop(&mut self, label: LabelId, body: &Block<'core>) -> Port {
     let local = self.new_local();
 
     self.new_fork(|self_| {
       let i = self_.new_interface();
       let s = self_.new_stage(i, move |self_, s| {
-        let old_loop = self_.loop_target.replace((local, self_.cur_fork(), s));
+        *self_.labels.get_or_extend(label) = Some((local, self_.cur_fork(), Some(s)));
         self_.emit_block_erase(body);
-        self_.loop_target = old_loop;
         self_.goto(s);
         false
       });
@@ -91,7 +102,12 @@ impl<'core> Emitter<'core, '_> {
     self.get_local(local)
   }
 
-  pub(super) fn emit_while(&mut self, cond: &Expr<'core>, body: &Block<'core>) -> Port {
+  pub(super) fn emit_while(
+    &mut self,
+    label: LabelId,
+    cond: &Expr<'core>,
+    body: &Block<'core>,
+  ) -> Port {
     let local = self.new_local();
 
     self.new_fork(|self_| {
@@ -100,10 +116,9 @@ impl<'core> Emitter<'core, '_> {
         self_.emit_cond(
           cond,
           &|self_| {
-            let old_loop = self_.loop_target.replace((local, self_.cur_fork(), start));
+            *self_.labels.get_or_extend(label) = Some((local, self_.cur_fork(), Some(start)));
             self_.emit_block_erase(body);
             self_.goto(start);
-            self_.loop_target = old_loop;
             false
           },
           &|_| true,
@@ -118,8 +133,8 @@ impl<'core> Emitter<'core, '_> {
     self.get_local(local)
   }
 
-  pub(super) fn emit_break(&mut self, r: Option<&Expr<'core>>) -> Port {
-    let (local, fork, _stage) = self.loop_target.unwrap();
+  pub(super) fn emit_break(&mut self, label: LabelId, r: Option<&Expr<'core>>) -> Port {
+    let (local, fork, _stage) = self.labels[label].unwrap();
     if let Some(r) = r {
       let r = self.emit_expr_value(r);
       self.set_local_to(local, r);
@@ -129,9 +144,9 @@ impl<'core> Emitter<'core, '_> {
     Port::Erase
   }
 
-  pub(super) fn emit_continue(&mut self) -> Port {
-    let (_local, fork, stage) = self.loop_target.unwrap();
-    self.diverge_to(fork, stage);
+  pub(super) fn emit_continue(&mut self, label: LabelId) -> Port {
+    let (_local, fork, stage) = self.labels[label].unwrap();
+    self.diverge_to(fork, stage.unwrap());
     Port::Erase
   }
 

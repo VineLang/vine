@@ -216,6 +216,8 @@ pub enum ExprKind<'core> {
   #[class(value)]
   DynFn(DynFnId),
   #[class(value)]
+  Do(Label<'core>, Block<'core>),
+  #[class(value)]
   Block(Block<'core>),
   #[class(value)]
   Assign(B<Expr<'core>>, B<Expr<'core>>),
@@ -224,9 +226,9 @@ pub enum ExprKind<'core> {
   #[class(value)]
   If(B<Expr<'core>>, Block<'core>, B<Expr<'core>>),
   #[class(value)]
-  While(B<Expr<'core>>, Block<'core>),
+  While(Label<'core>, B<Expr<'core>>, Block<'core>),
   #[class(value)]
-  Loop(Block<'core>),
+  Loop(Label<'core>, Block<'core>),
   #[class(value)]
   For(B<Pat<'core>>, B<Expr<'core>>, Block<'core>),
   #[class(value)]
@@ -234,9 +236,9 @@ pub enum ExprKind<'core> {
   #[class(value)]
   Return(Option<B<Expr<'core>>>),
   #[class(value)]
-  Break(Option<B<Expr<'core>>>),
+  Break(Label<'core>, Option<B<Expr<'core>>>),
   #[class(value)]
-  Continue,
+  Continue(Label<'core>),
   #[class(value)]
   Ref(B<Expr<'core>>),
   #[class(place)]
@@ -294,6 +296,24 @@ pub enum ExprKind<'core> {
   #[class(error)]
   Error(ErrorGuaranteed),
 }
+
+#[derive(Debug, Clone, Copy)]
+pub enum Label<'core> {
+  Ident(Option<Ident<'core>>),
+  Resolved(LabelId),
+  Error(ErrorGuaranteed),
+}
+
+impl<'core> Label<'core> {
+  pub fn as_id(self) -> LabelId {
+    match self {
+      Label::Resolved(id) => id,
+      _ => unreachable!(),
+    }
+  }
+}
+
+new_idx!(pub LabelId);
 
 #[derive(Default, Clone)]
 pub struct Pat<'core> {

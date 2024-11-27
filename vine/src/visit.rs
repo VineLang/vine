@@ -60,12 +60,12 @@ pub trait VisitMut<'core, 'a> {
       | ExprKind::F32(_)
       | ExprKind::Char(_)
       | ExprKind::String(_)
-      | ExprKind::Continue
+      | ExprKind::Continue(_)
       | ExprKind::Error(_)
       | ExprKind::CopyLocal(_)
       | ExprKind::MoveLocal(_)
       | ExprKind::Return(None)
-      | ExprKind::Break(None)
+      | ExprKind::Break(_, None)
       | ExprKind::SetLocal(_) => {}
       ExprKind::Paren(a)
       | ExprKind::Ref(a)
@@ -74,7 +74,7 @@ pub trait VisitMut<'core, 'a> {
       | ExprKind::Field(a, _)
       | ExprKind::Neg(a)
       | ExprKind::Not(a)
-      | ExprKind::Break(Some(a))
+      | ExprKind::Break(_, Some(a))
       | ExprKind::Return(Some(a))
       | ExprKind::Inverse(a)
       | ExprKind::Copy(a)
@@ -89,7 +89,7 @@ pub trait VisitMut<'core, 'a> {
       }
 
       ExprKind::Path(p) => self.visit_generic_path(p),
-      ExprKind::Block(b) | ExprKind::Loop(b) => self.visit_block(b),
+      ExprKind::Block(b) | ExprKind::Do(_, b) | ExprKind::Loop(_, b) => self.visit_block(b),
       ExprKind::Match(a, b) => {
         self.visit_expr(a);
         for (t, u) in b {
@@ -104,7 +104,7 @@ pub trait VisitMut<'core, 'a> {
         self.visit_block(b);
         self.visit_expr(c);
       }
-      ExprKind::While(a, b) => {
+      ExprKind::While(_, a, b) => {
         self.visit_expr(a);
         self.visit_block(b);
       }

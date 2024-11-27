@@ -1,10 +1,11 @@
 mod doc;
+
 use doc::{Doc, Writer};
 
 use crate::{
   ast::{
-    Block, ComparisonOp, Expr, ExprKind, GenericPath, Ident, Item, ItemKind, LogicalOp, ModKind,
-    Pat, PatKind, Path, Span, Stmt, StmtKind, Ty, TyKind, UseTree, Vis,
+    Block, ComparisonOp, Expr, ExprKind, GenericPath, Ident, Item, ItemKind, Label, LogicalOp,
+    ModKind, Pat, PatKind, Path, Span, Stmt, StmtKind, Ty, TyKind, UseTree, Vis,
   },
   core::Core,
   diag::Diag,
@@ -257,6 +258,9 @@ impl<'core: 'src, 'src> Formatter<'src> {
       ExprKind::Hole => Doc("_"),
       ExprKind::Path(path) => self.fmt_generic_path(path),
       ExprKind::Block(block) => self.fmt_block(block, false),
+      ExprKind::Do(label, block) => {
+        Doc::concat([Doc("do"), self.fmt_label(label), Doc(" "), self.fmt_block(block, false)])
+      }
       ExprKind::Assign(s, v) => Doc::concat([self.fmt_expr(s), Doc(" = "), self.fmt_expr(v)]),
       ExprKind::Match(expr, arms) => Doc::concat([
         Doc("match "),
@@ -277,10 +281,17 @@ impl<'core: 'src, 'src> Formatter<'src> {
           _ => Doc::concat([Doc(" else "), self.fmt_expr(e)]),
         },
       ]),
-      ExprKind::While(c, b) => {
-        Doc::concat([Doc("while "), self.fmt_expr(c), Doc(" "), self.fmt_block(b, true)])
+      ExprKind::While(l, c, b) => Doc::concat([
+        Doc("while"),
+        self.fmt_label(l),
+        Doc(" "),
+        self.fmt_expr(c),
+        Doc(" "),
+        self.fmt_block(b, true),
+      ]),
+      ExprKind::Loop(l, b) => {
+        Doc::concat([Doc("loop"), self.fmt_label(l), Doc(" "), self.fmt_block(b, true)])
       }
-      ExprKind::Loop(b) => Doc::concat([Doc("loop "), self.fmt_block(b, true)]),
       ExprKind::For(p, e, b) => Doc::concat([
         Doc("for "),
         self.fmt_pat(p),
@@ -293,10 +304,12 @@ impl<'core: 'src, 'src> Formatter<'src> {
         Doc::concat([Doc("fn"), self.fmt_params(p), Doc(" "), self.fmt_expr(b)])
       }
       ExprKind::Return(Some(x)) => Doc::concat([Doc("return "), self.fmt_expr(x)]),
-      ExprKind::Break(Some(x)) => Doc::concat([Doc("break "), self.fmt_expr(x)]),
+      ExprKind::Break(label, Some(x)) => {
+        Doc::concat([Doc("break"), self.fmt_label(label), Doc(" "), self.fmt_expr(x)])
+      }
       ExprKind::Return(None) => Doc("return"),
-      ExprKind::Break(None) => Doc("break"),
-      ExprKind::Continue => Doc("continue"),
+      ExprKind::Break(label, None) => Doc::concat([Doc("break"), self.fmt_label(label)]),
+      ExprKind::Continue(label) => Doc::concat([Doc("continue"), self.fmt_label(label)]),
       ExprKind::Ref(x) => Doc::concat([Doc("&"), self.fmt_expr(x)]),
       ExprKind::Deref(x) => Doc::concat([Doc("*"), self.fmt_expr(x)]),
       ExprKind::Move(x) => Doc::concat([Doc("move "), self.fmt_expr(x)]),
@@ -350,6 +363,15 @@ impl<'core: 'src, 'src> Formatter<'src> {
       ExprKind::N32(_) | ExprKind::F32(_) | ExprKind::Char(_) | ExprKind::String(_) => {
         self.fmt_verbatim(expr.span)
       }
+    }
+  }
+
+  fn fmt_label(&self, label: &Label<'core>) -> Doc<'src> {
+    let Label::Ident(label) = label else { unreachable!() };
+    if let Some(label) = label {
+      Doc::concat([Doc("."), Doc(*label)])
+    } else {
+      Doc("")
     }
   }
 

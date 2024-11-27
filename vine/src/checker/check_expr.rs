@@ -1,5 +1,5 @@
 use crate::{
-  ast::{BinaryOp, Expr, ExprKind, Span},
+  ast::{BinaryOp, Expr, ExprKind, Label, Span},
   checker::{Checker, Form, Type},
   diag::Diag,
 };
@@ -77,6 +77,19 @@ impl<'core> Checker<'core, '_> {
       ExprKind![error || place || space || synthetic] => unreachable!(),
       ExprKind::DynFn(x) => self.state.dyn_fns[x].clone(),
       ExprKind::Path(path) => report!(self.core, expr.kind; self.typeof_value_def(path)),
+      ExprKind::Do(label, block) => {
+        let mut ty = self.new_var(span);
+        *self.labels.get_or_extend(label.as_id()) = Some(ty.clone());
+        let mut got = self.check_block(block);
+        if !self.unify(&mut ty, &mut got) {
+          self.core.report(Diag::ExpectedTypeFound {
+            span: block.span,
+            expected: self.display_type(&ty),
+            found: self.display_type(&got),
+          });
+        }
+        ty
+      }
       ExprKind::Block(block) => self.check_block(block),
       ExprKind::Assign(space, value) => {
         let mut ty = self.check_expr_form(space, Form::Space);
@@ -106,18 +119,16 @@ impl<'core> Checker<'core, '_> {
           then
         }
       }
-      ExprKind::While(cond, block) => {
-        let old = self.loop_ty.replace(Type::UNIT);
+      ExprKind::While(label, cond, block) => {
+        *self.labels.get_or_extend(label.as_id()) = Some(Type::UNIT);
         self.check_expr_form_type(cond, Form::Value, &mut Type::Bool);
         self.check_block(block);
-        self.loop_ty = old;
         Type::UNIT
       }
-      ExprKind::Loop(block) => {
+      ExprKind::Loop(label, block) => {
         let result = self.new_var(span);
-        let old = self.loop_ty.replace(result.clone());
+        *self.labels.get_or_extend(label.as_id()) = Some(result.clone());
         self.check_block(block);
-        self.loop_ty = old;
         result
       }
       ExprKind::Fn(args, ret, body) => Type::Fn(
@@ -137,16 +148,18 @@ impl<'core> Checker<'core, '_> {
           ret
         }),
       ),
-      ExprKind::Break(e) => {
-        if let Some(ty) = &self.loop_ty {
-          let mut ty = ty.clone();
+      ExprKind::Break(label, e) => {
+        if let Label::Error(_) = label {
+          if let Some(e) = e {
+            self.check_expr_form(e, Form::Value);
+          }
+        } else {
+          let mut ty = self.labels[label.as_id()].clone().unwrap();
           if let Some(e) = e {
             self.check_expr_form_type(e, Form::Value, &mut ty);
           } else if !self.unify(&mut ty, &mut { Type::UNIT }) {
             self.core.report(Diag::MissingBreakExpr { span, ty: self.display_type(&ty) });
           }
-        } else {
-          self.core.report(Diag::NoLoopBreak { span });
         }
         self.new_var(span)
       }
@@ -163,12 +176,7 @@ impl<'core> Checker<'core, '_> {
         }
         self.new_var(span)
       }
-      ExprKind::Continue => {
-        if self.loop_ty.is_none() {
-          self.core.report(Diag::NoLoopContinue { span });
-        }
-        self.new_var(span)
-      }
+      ExprKind::Continue(_) => self.new_var(span),
       ExprKind::Ref(expr) => {
         let ty = self.check_expr_form(expr, Form::Place);
         Type::Ref(Box::new(ty))

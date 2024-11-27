@@ -1,0 +1,20 @@
+
+const max_div: N32 = 100;
+
+pub fn main(&io: &IO) {
+  let n = 1;
+  loop.search {
+    n += 1;
+    let d = 2;
+    while d * d <= n {
+      if d >= max_div {
+        break.search;
+      }
+      if n % d == 0 {
+        continue.search;
+      }
+      d += 1;
+    }
+    io.println(n.to_string());
+  }
+}

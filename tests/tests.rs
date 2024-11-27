@@ -41,8 +41,10 @@ fn tests(t: &mut DynTester) {
 
     test_vi(t, "tests/programs/basic_diverge.vi", b"", ".txt");
     test_vi(t, "tests/programs/break_result.vi", b"", ".txt");
+    test_vi(t, "tests/programs/classify_primes.vi", b"", ".txt");
     test_vi(t, "tests/programs/cyclist.vi", b"", ".txt");
     test_vi(t, "tests/programs/final_countdown.vi", b"", ".txt");
+    test_vi(t, "tests/programs/find_primes.vi", b"", ".txt");
     test_vi(t, "tests/programs/five_stars.vi", b"", ".txt");
     test_vi(t, "tests/programs/inverse.vi", b"", ".txt");
     test_vi(t, "tests/programs/logic.vi", b"", ".txt");
