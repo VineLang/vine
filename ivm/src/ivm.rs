@@ -59,7 +59,7 @@ impl<'ivm> IVM<'ivm> {
         break;
       }
     }
-    self.stats.time_total += start.elapsed();
+    self.stats.time_clock += start.elapsed();
   }
 
   pub(crate) fn do_fast(&mut self) {

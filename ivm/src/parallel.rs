@@ -2,6 +2,7 @@ use core::{mem, ptr};
 use std::{
   sync::{Condvar, Mutex, OnceLock},
   thread::{self, Thread},
+  time::Instant,
 };
 
 use crate::{ivm::IVM, port::Port};
@@ -11,6 +12,7 @@ impl<'ivm> IVM<'ivm> {
     self.do_fast();
 
     let shared = Vec::from_iter((0..threads).map(|_| Shared::default()));
+    let start = Instant::now();
     thread::scope(|s| {
       let workers = Vec::from_iter((0..threads).map(|i| {
         let dispatch = thread::current();
@@ -25,10 +27,20 @@ impl<'ivm> IVM<'ivm> {
       }));
       Dispatch { working: workers, waiting: vec![] }.execute();
     });
+    self.stats.time_clock += start.elapsed();
+    if self.stats.worker_min == 0 {
+      self.stats.worker_min = u64::MAX;
+    }
     for mut shared in shared {
       let ivm = shared.ivm_return.take().unwrap();
-      self.alloc_pool.push(ivm.alloc);
-      self.stats += ivm.stats;
+      self.stats.workers_spawned += 1;
+      if ivm.stats.interactions() != 0 {
+        self.alloc_pool.push(ivm.alloc);
+        self.stats.workers_used += 1;
+        self.stats.worker_max = self.stats.worker_max.max(ivm.stats.interactions());
+        self.stats.worker_min = self.stats.worker_min.min(ivm.stats.interactions());
+        self.stats += ivm.stats;
+      }
     }
   }
 }
@@ -69,6 +81,7 @@ impl<'w, 'ivm> Worker<'w, 'ivm> {
 
   fn work(&mut self) {
     let mut watermark = self.ivm.active_slow.len();
+    let start = Instant::now();
     for _ in 0..ERA_LENGTH {
       self.ivm.do_fast();
       if let Some((a, b)) = self.ivm.active_slow.pop() {
@@ -78,6 +91,7 @@ impl<'w, 'ivm> Worker<'w, 'ivm> {
         return self.starve();
       }
     }
+    self.ivm.stats.time_total += start.elapsed();
     self.pause(watermark)
   }
 
@@ -103,17 +117,18 @@ impl<'w, 'ivm> Worker<'w, 'ivm> {
       let mut msg = self.shared.msg.lock().unwrap();
       if msg.0 == Msg::None {
         debug_assert!(msg.1.is_empty());
-        let share_count = self.ivm.active_slow.len() - watermark;
-        debug_assert!(share_count != 0);
-        msg.1.reserve(share_count);
+        let move_count = self.ivm.active_slow.len() - watermark;
+        self.ivm.stats.work_move += move_count as u64;
+        debug_assert!(move_count != 0);
+        msg.1.reserve(move_count);
         unsafe {
           ptr::copy_nonoverlapping(
             self.ivm.active_slow.as_mut_ptr().add(watermark),
             msg.1.as_mut_ptr(),
-            share_count,
+            move_count,
           );
           self.ivm.active_slow.set_len(watermark);
-          msg.1.set_len(share_count);
+          msg.1.set_len(move_count);
         }
         debug_assert!(!msg.1.is_empty());
         mem::swap(&mut msg.1, &mut self.ivm.active_slow);

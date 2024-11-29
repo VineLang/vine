@@ -27,8 +27,13 @@ pub struct Stats {
 
   /// The total time spent in `IVM::normalize`.
   pub time_total: Duration,
-  /// The total time spent in `ExtVal::call`.
-  pub time_io: Duration,
+  pub time_clock: Duration,
+
+  pub workers_used: u64,
+  pub workers_spawned: u64,
+  pub worker_min: u64,
+  pub worker_max: u64,
+  pub work_move: u64,
 }
 
 impl Stats {
@@ -37,14 +42,14 @@ impl Stats {
     self.annihilate + self.commute + self.copy + self.erase + self.expand + self.call + self.branch
   }
 
-  /// The time spent processing interactions.
-  pub fn time_interactions(&self) -> Duration {
-    self.time_total.saturating_sub(self.time_io)
+  /// The speed of the interactions, in interactions per second.
+  pub fn speed(&self) -> u64 {
+    (self.interactions() as f64 / self.time_total.as_secs_f64()) as u64
   }
 
   /// The speed of the interactions, in interactions per second.
-  pub fn speed(&self) -> u64 {
-    (self.interactions() as f64 / self.time_interactions().as_secs_f64()) as u64
+  pub fn clock_speed(&self) -> u64 {
+    (self.interactions() as f64 / self.time_clock.as_secs_f64()) as u64
   }
 }
 
@@ -64,20 +69,40 @@ impl Display for Stats {
       ("  Call", Some((self.call, ""))),
       ("  Branch", Some((self.branch, ""))),
       ("", None),
+    ]
+    .into_iter()
+    .chain((self.workers_used != 0).then_some(()).into_iter().flat_map(|_| {
+      [
+        ("Workload", None),
+        ("  Workers", Some((self.workers_spawned, ""))),
+        ("  Active", Some((self.workers_used, ""))),
+        ("  Minimum", Some((self.worker_min, ""))),
+        ("  Average", Some((((self.interactions() as f64) / self.workers_used as f64) as u64, ""))),
+        ("  Maximum", Some((self.worker_max, ""))),
+        ("  Moved", Some((self.work_move, ""))),
+        ("", None),
+      ]
+    }))
+    .chain([
       ("Memory", None),
       ("  Heap", Some((self.mem_heap * 8, "B"))),
       ("  Allocated", Some((self.mem_alloc * 8, "B"))),
       ("  Freed", Some((self.mem_free * 8, "B"))),
       ("", None),
-      ("Time", None),
-      ("  Total", Some((self.time_total.as_millis() as u64, "ms"))),
-      ("  I/O", Some((self.time_io.as_millis() as u64, "ms"))),
-      ("  Interactions", Some((self.time_interactions().as_millis() as u64, "ms"))),
-      ("  Speed", Some((self.speed(), "IPS"))),
-    ];
+      ("Performance", None),
+      ("  Time", Some((self.time_clock.as_millis() as u64, "ms"))),
+      ("  Speed", Some((self.clock_speed(), "IPS"))),
+    ])
+    .chain((self.workers_used != 0).then_some(()).into_iter().flat_map(|_| {
+      [
+        ("  Working", Some((self.time_total.as_millis() as u64, "ms"))),
+        ("  Rate", Some((self.speed(), "IPS"))),
+      ]
+    }));
 
-    let max_label_width = lines.iter().map(|x| x.0.len()).max().unwrap() + 1;
-    let max_value = lines.iter().filter_map(|x| x.1).map(|x| x.0).max().unwrap().max(1_000_000_000);
+    let max_label_width = lines.clone().map(|x| x.0.len()).max().unwrap() + 1;
+    let max_value =
+      lines.clone().filter_map(|x| x.1).map(|x| x.0).max().unwrap().max(1_000_000_000);
     let max_value_width = measure_int(max_value);
 
     for (label, value) in lines {
@@ -138,6 +163,6 @@ impl AddAssign<Stats> for Stats {
     self.mem_alloc += rhs.mem_alloc;
     self.mem_free += rhs.mem_free;
     self.time_total += rhs.time_total;
-    self.time_io += rhs.time_io;
+    self.work_move += rhs.work_move;
   }
 }
