@@ -10,7 +10,6 @@ impl<'ivm> IVM<'ivm> {
   pub fn normalize_parallel(&mut self, threads: usize) {
     self.do_fast();
 
-    // dbg!(threads);
     let shared = Vec::from_iter((0..threads).map(|_| Shared::default()));
     thread::scope(|s| {
       let workers = Vec::from_iter((0..threads).map(|i| {
@@ -21,8 +20,8 @@ impl<'ivm> IVM<'ivm> {
         if i == 0 {
           ivm.active_slow = mem::take(&mut self.active_slow);
         }
-        s.spawn(move || Worker { i, ivm, shared, dispatch }.execute());
-        WorkerHandle { i, shared }
+        s.spawn(move || Worker { ivm, shared, dispatch }.execute());
+        WorkerHandle { shared }
       }));
       Dispatch { working: workers, waiting: vec![] }.execute();
     });
@@ -55,7 +54,6 @@ enum Msg {
 }
 
 struct Worker<'w, 'ivm> {
-  i: usize,
   ivm: IVM<'ivm>,
   shared: &'w Shared<'ivm>,
   dispatch: Thread,
@@ -85,14 +83,10 @@ impl<'w, 'ivm> Worker<'w, 'ivm> {
 
   fn starve(&mut self) {
     {
-      // eprintln!("starve {}", self.i);
       let mut msg = self.shared.msg.lock().unwrap();
-      // dbg!(msg.0, msg.1.len());
       while msg.1.is_empty() {
         msg.0 = Msg::WorkerStarve;
-        // eprintln!("wake up!");
         self.dispatch.unpark();
-        // eprintln!("nap time {}", self.i);
         msg = self.shared.condvar.wait(msg).unwrap();
         if msg.0 == Msg::Fin {
           return;
@@ -100,18 +94,15 @@ impl<'w, 'ivm> Worker<'w, 'ivm> {
       }
       msg.0 = Msg::None;
       mem::swap(&mut self.ivm.active_slow, &mut msg.1);
-      // eprintln!("work {}", self.i);
     }
     self.work()
   }
 
   fn pause(&mut self, watermark: usize) {
     if watermark != 0 && watermark != self.ivm.active_slow.len() {
-      // eprintln!("pause {}", self.i);
       let mut msg = self.shared.msg.lock().unwrap();
       if msg.0 == Msg::Dispatch {
         debug_assert!(msg.1.is_empty());
-        // dbg!(watermark, self.ivm.active_slow.len());
         let share_count = self.ivm.active_slow.len() - watermark;
         debug_assert!(share_count != 0);
         msg.1.reserve(share_count);
@@ -134,8 +125,6 @@ impl<'w, 'ivm> Worker<'w, 'ivm> {
 }
 
 struct WorkerHandle<'w, 'ivm> {
-  #[allow(unused)] // todo
-  i: usize,
   shared: &'w Shared<'ivm>,
 }
 
@@ -147,27 +136,21 @@ struct Dispatch<'w, 'ivm> {
 impl<'w, 'ivm> Dispatch<'w, 'ivm> {
   fn execute(mut self) {
     loop {
-      // dbg!("yawn");
       let mut i = 0;
       let mut request_count = 0;
       let mut ready_count = 0;
       while i < self.working.len() {
         let worker = &self.working[i];
-        // eprintln!("check {}", worker.i);
         let mut msg = worker.shared.msg.lock().unwrap();
-        // eprintln!("x");
         if msg.0 == Msg::WorkerStarve {
           debug_assert!(msg.1.is_empty());
           drop(msg);
-          // eprintln!("waiting {}", worker.i);
           self.waiting.push(self.working.remove(i));
           continue;
         } else if msg.0 == Msg::Worker {
           debug_assert!(!msg.1.is_empty());
           let waiting = self.waiting.pop().unwrap();
-          // eprintln!("gift {}", waiting.i);
           let mut wmsg = waiting.shared.msg.lock().unwrap();
-          // eprintln!("x");
           debug_assert!(wmsg.0 == Msg::WorkerStarve && wmsg.1.is_empty());
           wmsg.0 = Msg::Dispatch;
           mem::swap(&mut msg.1, &mut wmsg.1);
@@ -202,12 +185,8 @@ impl<'w, 'ivm> Dispatch<'w, 'ivm> {
         }
       }
 
-      // dbg!("zzz");
-
       thread::park()
     }
-
-    // dbg!("all done");
 
     for thread in self.waiting {
       thread.shared.msg.lock().unwrap().0 = Msg::Fin;
