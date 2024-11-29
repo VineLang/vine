@@ -1,5 +1,3 @@
-use std::thread;
-
 use clap::Args;
 
 use ivm::{heap::Heap, IVM};
@@ -23,8 +21,8 @@ impl Optimizations {
 pub struct RunArgs {
   #[arg(long)]
   no_stats: bool,
-  #[arg(long, short)]
-  parallel: bool,
+  #[arg(long, short, default_value = "0")]
+  workers: usize,
 }
 
 impl RunArgs {
@@ -35,8 +33,8 @@ impl RunArgs {
     let heap = Heap::new();
     let mut ivm = IVM::new(&heap);
     ivm.boot(main);
-    if self.parallel {
-      ivm.normalize_parallel(thread::available_parallelism().unwrap().get())
+    if self.workers > 0 {
+      ivm.normalize_parallel(self.workers)
     } else {
       ivm.normalize();
     }
