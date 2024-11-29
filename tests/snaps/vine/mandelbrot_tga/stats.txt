@@ -1,15 +1,15 @@
 
 Interactions
-  Total             897_265_079
-  Annihilate        347_646_006
-  Commute             5_242_880
-  Copy              187_291_005
-  Erase              29_202_402
-  Expand             46_866_345
-  Call              259_156_143
-  Branch             21_860_298
+  Total           897_265_079
+  Annihilate      347_646_006
+  Commute           5_242_880
+  Copy            187_291_005
+  Erase            29_202_402
+  Expand           46_866_345
+  Call            259_156_143
+  Branch           21_860_298
 
 Memory
-  Heap                      752 B
-  Allocated      19_602_267_360 B
-  Freed          19_602_267_360 B
+  Heap                    752 B
+  Allocated    19_602_267_360 B
+  Freed        19_602_267_360 B

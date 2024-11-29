@@ -1,15 +1,15 @@
 
 Interactions
-  Total             11_106_946
-  Annihilate         4_319_083
-  Commute               33_750
-  Copy               2_378_685
-  Erase                315_132
-  Expand               556_910
-  Call               3_227_767
-  Branch               275_619
+  Total           11_106_946
+  Annihilate       4_319_083
+  Commute             33_750
+  Copy             2_378_685
+  Erase              315_132
+  Expand             556_910
+  Call             3_227_767
+  Branch             275_619
 
 Memory
-  Heap                     784 B
-  Allocated        242_850_688 B
-  Freed            242_850_688 B
+  Heap                   784 B
+  Allocated      242_850_688 B
+  Freed          242_850_688 B

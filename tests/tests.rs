@@ -125,7 +125,7 @@ fn run_iv(group: &str, name: &str, path: &str, input: &[u8], output_ext: &str) {
   let (stdout, stderr) = exec(IVY, &["run", path], input, true);
   test_snapshot(&[group, name, &format!("output{output_ext}")], &stdout);
   let full_stats = String::from_utf8(stderr).unwrap();
-  let stats = full_stats.split_once("\nTime").unwrap().0;
+  let stats = full_stats.split_once("\nPerformance").unwrap().0;
   test_snapshot(&[group, name, "stats.txt"], stats.as_bytes());
   fs::write(get_snapshot_path(&[group, name, "timing.txt"]), full_stats[stats.len()..].as_bytes())
     .unwrap();

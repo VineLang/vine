@@ -1,15 +1,15 @@
 
 Interactions
-  Total                 17_112
-  Annihilate             9_239
-  Commute                    0
-  Copy                   1_112
-  Erase                  1_478
-  Expand                 2_688
-  Call                   1_790
-  Branch                   805
+  Total               17_112
+  Annihilate           9_239
+  Commute                  0
+  Copy                 1_112
+  Erase                1_478
+  Expand               2_688
+  Call                 1_790
+  Branch                 805
 
 Memory
-  Heap                     864 B
-  Allocated            354_960 B
-  Freed                354_960 B
+  Heap                   864 B
+  Allocated          354_960 B
+  Freed              354_960 B
