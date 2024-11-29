@@ -71,7 +71,7 @@ struct Worker<'w, 'ivm> {
   dispatch: Thread,
 }
 
-const ERA_LENGTH: u32 = 1024;
+const ERA_LENGTH: u32 = 512;
 
 impl<'w, 'ivm> Worker<'w, 'ivm> {
   fn execute(mut self) {
