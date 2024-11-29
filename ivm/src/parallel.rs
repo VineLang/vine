@@ -45,8 +45,8 @@ type Pairs<'ivm> = Vec<(Port<'ivm>, Port<'ivm>)>;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 enum Msg {
-  None,
   #[default]
+  None,
   Dispatch,
   Worker,
   WorkerStarve,
@@ -101,7 +101,7 @@ impl<'w, 'ivm> Worker<'w, 'ivm> {
   fn pause(&mut self, watermark: usize) {
     if watermark != 0 && watermark != self.ivm.active_slow.len() {
       let mut msg = self.shared.msg.lock().unwrap();
-      if msg.0 == Msg::Dispatch {
+      if msg.0 == Msg::None {
         debug_assert!(msg.1.is_empty());
         let share_count = self.ivm.active_slow.len() - watermark;
         debug_assert!(share_count != 0);
@@ -116,6 +116,7 @@ impl<'w, 'ivm> Worker<'w, 'ivm> {
           msg.1.set_len(share_count);
         }
         debug_assert!(!msg.1.is_empty());
+        mem::swap(&mut msg.1, &mut self.ivm.active_slow);
         msg.0 = Msg::Worker;
         self.dispatch.unpark();
       }
@@ -137,8 +138,6 @@ impl<'w, 'ivm> Dispatch<'w, 'ivm> {
   fn execute(mut self) {
     loop {
       let mut i = 0;
-      let mut request_count = 0;
-      let mut ready_count = 0;
       while i < self.working.len() {
         let worker = &self.working[i];
         let mut msg = worker.shared.msg.lock().unwrap();
@@ -147,7 +146,7 @@ impl<'w, 'ivm> Dispatch<'w, 'ivm> {
           drop(msg);
           self.waiting.push(self.working.remove(i));
           continue;
-        } else if msg.0 == Msg::Worker {
+        } else if msg.0 == Msg::Worker && !self.waiting.is_empty() {
           debug_assert!(!msg.1.is_empty());
           let waiting = self.waiting.pop().unwrap();
           let mut wmsg = waiting.shared.msg.lock().unwrap();
@@ -157,32 +156,12 @@ impl<'w, 'ivm> Dispatch<'w, 'ivm> {
           waiting.shared.condvar.notify_one();
           msg.0 = Msg::None;
           self.working.insert(i + 1, waiting);
-          ready_count += 1;
-        } else if msg.0 == Msg::Dispatch && msg.1.is_empty() {
-          request_count += 1;
-        } else if msg.0 == Msg::None {
-          ready_count += 1;
         }
         i += 1;
       }
 
       if self.working.is_empty() {
         break;
-      }
-
-      if request_count < self.waiting.len() && ready_count != 0 {
-        request_count -= self.waiting.len();
-        for worker in &self.working {
-          let mut msg = worker.shared.msg.lock().unwrap();
-          if msg.0 == Msg::None {
-            debug_assert!(msg.1.is_empty());
-            msg.0 = Msg::Dispatch;
-            request_count -= 1;
-            if request_count == 0 {
-              break;
-            }
-          }
-        }
       }
 
       thread::park()
