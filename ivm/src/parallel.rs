@@ -80,63 +80,58 @@ impl<'w, 'ivm> Worker<'w, 'ivm> {
   }
 
   fn work(&mut self) {
-    let mut watermark = self.ivm.active_slow.len();
-    let start = Instant::now();
-    for _ in 0..ERA_LENGTH {
-      self.ivm.do_fast();
-      if let Some((a, b)) = self.ivm.active_slow.pop() {
-        watermark = watermark.min(self.ivm.active_slow.len());
-        self.ivm.interact(a, b);
-      } else {
-        return self.starve();
-      }
-    }
-    self.ivm.stats.time_total += start.elapsed();
-    self.pause(watermark)
-  }
+    'work: loop {
+      let mut watermark = self.ivm.active_slow.len();
+      let start = Instant::now();
+      for _ in 0..ERA_LENGTH {
+        self.ivm.do_fast();
+        if let Some((a, b)) = self.ivm.active_slow.pop() {
+          watermark = watermark.min(self.ivm.active_slow.len());
+          self.ivm.interact(a, b);
+        } else {
+          self.ivm.stats.time_total += start.elapsed();
 
-  fn starve(&mut self) {
-    {
-      let mut msg = self.shared.msg.lock().unwrap();
-      while msg.1.is_empty() {
-        msg.0 = Msg::WorkerStarve;
-        self.dispatch.unpark();
-        msg = self.shared.condvar.wait(msg).unwrap();
-        if msg.0 == Msg::Fin {
-          return;
+          let mut msg = self.shared.msg.lock().unwrap();
+          while msg.1.is_empty() {
+            msg.0 = Msg::WorkerStarve;
+            self.dispatch.unpark();
+            msg = self.shared.condvar.wait(msg).unwrap();
+            if msg.0 == Msg::Fin {
+              return;
+            }
+          }
+          msg.0 = Msg::None;
+          mem::swap(&mut self.ivm.active_slow, &mut msg.1);
+
+          continue 'work;
         }
       }
-      msg.0 = Msg::None;
-      mem::swap(&mut self.ivm.active_slow, &mut msg.1);
-    }
-    self.work()
-  }
+      self.ivm.stats.time_total += start.elapsed();
 
-  fn pause(&mut self, watermark: usize) {
-    if watermark != 0 && watermark != self.ivm.active_slow.len() {
-      let mut msg = self.shared.msg.lock().unwrap();
-      if msg.0 == Msg::None {
-        debug_assert!(msg.1.is_empty());
-        let move_count = self.ivm.active_slow.len() - watermark;
-        self.ivm.stats.work_move += move_count as u64;
-        debug_assert!(move_count != 0);
-        msg.1.reserve(move_count);
-        unsafe {
-          ptr::copy_nonoverlapping(
-            self.ivm.active_slow.as_mut_ptr().add(watermark),
-            msg.1.as_mut_ptr(),
-            move_count,
-          );
-          self.ivm.active_slow.set_len(watermark);
-          msg.1.set_len(move_count);
+      if watermark != 0 && watermark != self.ivm.active_slow.len() {
+        let mut msg = self.shared.msg.lock().unwrap();
+        if msg.0 == Msg::None {
+          debug_assert!(msg.1.is_empty());
+          let move_count = self.ivm.active_slow.len() - watermark;
+          self.ivm.stats.work_move += move_count as u64;
+          debug_assert!(move_count != 0);
+          msg.1.reserve(move_count);
+          unsafe {
+            ptr::copy_nonoverlapping(
+              self.ivm.active_slow.as_mut_ptr().add(watermark),
+              msg.1.as_mut_ptr(),
+              move_count,
+            );
+            self.ivm.active_slow.set_len(watermark);
+            msg.1.set_len(move_count);
+          }
+          debug_assert!(!msg.1.is_empty());
+          mem::swap(&mut msg.1, &mut self.ivm.active_slow);
+          msg.0 = Msg::Worker;
+          self.dispatch.unpark();
         }
-        debug_assert!(!msg.1.is_empty());
-        mem::swap(&mut msg.1, &mut self.ivm.active_slow);
-        msg.0 = Msg::Worker;
-        self.dispatch.unpark();
       }
     }
-    self.work()
   }
 }
 
