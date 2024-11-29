@@ -1,0 +1,21 @@
+
+const end: N32 = 10_000;
+
+pub fn main(&io: &IO) {
+  let n = 1;
+  while n < end {
+    n += 1;
+    let d = 2;
+    let prime = true;
+    while d < n {
+      if n % d == 0 {
+        prime = false;
+        break;
+      }
+      d += 1;
+    }
+    if prime {
+      io.println(n.to_string());
+    }
+  }
+}

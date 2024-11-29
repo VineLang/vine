@@ -6,7 +6,7 @@ const end: N32 = 46;
 pub fn main(&io: &IO) {
   let n = 0;
   while n <= end {
-    let primeness = is_prime(n);
+    let primeness = primeness(n);
 
     io.println(n.to_string() ++ ": " ++ match primeness {
       Ok(primeness) => if primeness {
@@ -21,7 +21,7 @@ pub fn main(&io: &IO) {
   }
 }
 
-pub fn is_prime(n: N32) -> Result[Bool, String] {
+pub fn primeness(n: N32) -> Result[Bool, String] {
   if n <= 0 {
     return Err("primes have to be positive!");
   }

@@ -1,72 +1,72 @@
 
-::main { ::primes::main }
+::main { ::primeness::main }
 
-::primes::main {
-  fn(ref(n0 n1) _)
-  ::primes::main::1 = x(n0 x(n1 0))
-}
+::primeness { fn(dup1(@le(0 ?(::primeness::4 ::primeness::1 x(n1 n0))) n1) n0) }
 
-::primes::main::1 { x(n0 x(n1 dup3(@le(46 ?(::primes::main::7 ::primes::main::2 x(n0 x(n1 n2)))) n2))) }
-
-::primes::main::2 {
-  x(n5 x(n9 dup3(n6 dup3(n7 @add(1 n10)))))
-  ::primes::is_prime = fn(n6 enum(::primes::main::3 enum(::primes::main::6 n3)))
-  ::std::io::IO::println = fn(ref(n5 n8) fn(n4 _))
-  ::std::n32::N32::to_string = fn(n7 n1)
-  ::std::list::List::concat = fn(n1 fn(tup(2 tup(tup(58 tup(32 n0)) n0)) n2))
-  ::std::list::List::concat = fn(n2 fn(n3 n4))
-  ::primes::main::1 = x(n8 x(n9 n10))
-}
-
-::primes::main::3 { enum(?(::primes::main::5 ::primes::main::4 n0) n0) }
-
-::primes::main::4 { tup(5 tup(tup(112 tup(114 tup(105 tup(109 tup(101 n0))))) n0)) }
-
-::primes::main::5 { tup(9 tup(tup(99 tup(111 tup(109 tup(112 tup(111 tup(115 tup(105 tup(116 tup(101 n0))))))))) n0)) }
-
-::primes::main::6 { enum(n0 n0) }
-
-::primes::main::7 { x(n0 x(n0 _)) }
-
-::primes::is_prime { fn(dup14(@le(0 ?(::primes::is_prime::4 ::primes::is_prime::1 x(n1 n0))) n1) n0) }
-
-::primes::is_prime::1 {
+::primeness::1 {
   x(_ n1)
   ::std::result::Result::Err = fn(tup(27 tup(tup(112 tup(114 tup(105 tup(109 tup(101 tup(115 tup(32 tup(104 tup(97 tup(118 tup(101 tup(32 tup(116 tup(111 tup(32 tup(98 tup(101 tup(32 tup(112 tup(111 tup(115 tup(105 tup(116 tup(105 tup(118 tup(101 tup(33 n0))))))))))))))))))))))))))) n0)) n1)
 }
 
-::primes::is_prime::4 { x(dup14(@eq(1 ?(::primes::is_prime::8 ::primes::is_prime::5 x(n1 n0))) n1) n0) }
+::primeness::4 { x(dup1(@eq(1 ?(::primeness::8 ::primeness::5 x(n1 n0))) n1) n0) }
 
-::primes::is_prime::5 {
+::primeness::5 {
   x(_ n1)
   ::std::result::Result::Err = fn(tup(20 tup(tup(100 tup(101 tup(112 tup(101 tup(110 tup(100 tup(115 tup(32 tup(119 tup(104 tup(111 tup(39 tup(115 tup(32 tup(97 tup(115 tup(107 tup(105 tup(110 tup(103 n0)))))))))))))))))))) n0)) n1)
 }
 
-::primes::is_prime::8 {
+::primeness::8 {
   x(n0 n1)
-  ::primes::is_prime::9 = x(n0 x(2 n1))
+  ::primeness::9 = x(n0 x(2 n1))
 }
 
-::primes::is_prime::9 { x(dup14(n1 n2) x(dup15(@mul(n3 @le(n1 ?(::primes::is_prime::15 ::primes::is_prime::10 x(n2 x(n4 n0))))) dup15(n3 n4)) n0)) }
+::primeness::9 { x(dup1(n1 n2) x(dup2(@mul(n3 @le(n1 ?(::primeness::15 ::primeness::10 x(n2 x(n4 n0))))) dup2(n3 n4)) n0)) }
 
-::primes::is_prime::10 { x(dup14(@rem(n2 ?(::primes::is_prime::12 ::primes::is_prime::14 x(n1 x(n3 n0)))) n1) x(dup15(n2 n3) n0)) }
+::primeness::10 { x(dup1(@rem(n2 ?(::primeness::12 ::primeness::14 x(n1 x(n3 n0)))) n1) x(dup2(n2 n3) n0)) }
 
-::primes::is_prime::12 {
+::primeness::12 {
   x(_ x(_ n0))
   ::std::result::Result::Ok = fn(0 n0)
 }
 
-::primes::is_prime::14 {
+::primeness::14 {
   x(n0 x(@add(1 n1) n2))
-  ::primes::is_prime::9 = x(n0 x(n1 n2))
+  ::primeness::9 = x(n0 x(n1 n2))
 }
 
-::primes::is_prime::15 { x(_ x(_ ::primes::is_prime::16)) }
+::primeness::15 { x(_ x(_ ::primeness::16)) }
 
-::primes::is_prime::16 {
+::primeness::16 {
   n0
   ::std::result::Result::Ok = fn(1 n0)
 }
+
+::primeness::main {
+  fn(ref(n0 n1) _)
+  ::primeness::main::1 = x(n0 x(n1 0))
+}
+
+::primeness::main::1 { x(n0 x(n1 dup13(@le(46 ?(::primeness::main::7 ::primeness::main::2 x(n0 x(n1 n2)))) n2))) }
+
+::primeness::main::2 {
+  x(n5 x(n9 dup13(n6 dup13(n7 @add(1 n10)))))
+  ::primeness = fn(n6 enum(::primeness::main::3 enum(::primeness::main::6 n3)))
+  ::std::io::IO::println = fn(ref(n5 n8) fn(n4 _))
+  ::std::n32::N32::to_string = fn(n7 n1)
+  ::std::list::List::concat = fn(n1 fn(tup(2 tup(tup(58 tup(32 n0)) n0)) n2))
+  ::std::list::List::concat = fn(n2 fn(n3 n4))
+  ::primeness::main::1 = x(n8 x(n9 n10))
+}
+
+::primeness::main::3 { enum(?(::primeness::main::5 ::primeness::main::4 n0) n0) }
+
+::primeness::main::4 { tup(5 tup(tup(112 tup(114 tup(105 tup(109 tup(101 n0))))) n0)) }
+
+::primeness::main::5 { tup(9 tup(tup(99 tup(111 tup(109 tup(112 tup(111 tup(115 tup(105 tup(116 tup(101 n0))))))))) n0)) }
+
+::primeness::main::6 { enum(n0 n0) }
+
+::primeness::main::7 { x(n0 x(n0 _)) }
 
 ::std::io::IO::println {
   fn(ref(n0 n3) fn(n1 _))
