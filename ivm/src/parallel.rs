@@ -25,8 +25,9 @@ impl<'ivm> IVM<'ivm> {
         s.spawn(move || Worker { ivm, shared, dispatch }.execute());
         WorkerHandle { shared }
       }));
-      Dispatch { working: workers, waiting: vec![] }.execute();
+      Dispatch { active: workers, idle: vec![] }.execute();
     });
+
     self.stats.time_clock += start.elapsed();
     if self.stats.worker_min == 0 {
       self.stats.worker_min = u64::MAX;
@@ -46,23 +47,29 @@ impl<'ivm> IVM<'ivm> {
 }
 
 #[derive(Default)]
+struct Msg<'ivm> {
+  kind: MsgKind,
+  pairs: Pairs<'ivm>,
+}
+
+#[derive(Default)]
 #[repr(align(256))]
 struct Shared<'ivm> {
   ivm_return: OnceLock<IVM<'ivm>>,
-  msg: Mutex<(Msg, Pairs<'ivm>)>,
+  msg: Mutex<Msg<'ivm>>,
   condvar: Condvar,
 }
 
 type Pairs<'ivm> = Vec<(Port<'ivm>, Port<'ivm>)>;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
-enum Msg {
+enum MsgKind {
   #[default]
   None,
   Dispatch,
-  Worker,
-  WorkerStarve,
-  Fin,
+  WorkerShare,
+  WorkerIdle,
+  Exit,
 }
 
 struct Worker<'w, 'ivm> {
@@ -92,16 +99,16 @@ impl<'w, 'ivm> Worker<'w, 'ivm> {
           self.ivm.stats.time_total += start.elapsed();
 
           let mut msg = self.shared.msg.lock().unwrap();
-          while msg.1.is_empty() {
-            msg.0 = Msg::WorkerStarve;
+          while msg.pairs.is_empty() {
+            msg.kind = MsgKind::WorkerIdle;
             self.dispatch.unpark();
             msg = self.shared.condvar.wait(msg).unwrap();
-            if msg.0 == Msg::Fin {
+            if msg.kind == MsgKind::Exit {
               return;
             }
           }
-          msg.0 = Msg::None;
-          mem::swap(&mut self.ivm.active_slow, &mut msg.1);
+          msg.kind = MsgKind::None;
+          mem::swap(&mut self.ivm.active_slow, &mut msg.pairs);
 
           continue 'work;
         }
@@ -110,24 +117,24 @@ impl<'w, 'ivm> Worker<'w, 'ivm> {
 
       if watermark != 0 && watermark != self.ivm.active_slow.len() {
         let mut msg = self.shared.msg.lock().unwrap();
-        if msg.0 == Msg::None {
-          debug_assert!(msg.1.is_empty());
+        if msg.kind == MsgKind::None {
+          debug_assert!(msg.pairs.is_empty());
           let move_count = self.ivm.active_slow.len() - watermark;
           self.ivm.stats.work_move += move_count as u64;
           debug_assert!(move_count != 0);
-          msg.1.reserve(move_count);
+          msg.pairs.reserve(move_count);
           unsafe {
             ptr::copy_nonoverlapping(
               self.ivm.active_slow.as_mut_ptr().add(watermark),
-              msg.1.as_mut_ptr(),
+              msg.pairs.as_mut_ptr(),
               move_count,
             );
             self.ivm.active_slow.set_len(watermark);
-            msg.1.set_len(move_count);
+            msg.pairs.set_len(move_count);
           }
-          debug_assert!(!msg.1.is_empty());
-          mem::swap(&mut msg.1, &mut self.ivm.active_slow);
-          msg.0 = Msg::Worker;
+          debug_assert!(!msg.pairs.is_empty());
+          mem::swap(&mut msg.pairs, &mut self.ivm.active_slow);
+          msg.kind = MsgKind::WorkerShare;
           self.dispatch.unpark();
         }
       }
@@ -140,45 +147,45 @@ struct WorkerHandle<'w, 'ivm> {
 }
 
 struct Dispatch<'w, 'ivm> {
-  working: Vec<WorkerHandle<'w, 'ivm>>,
-  waiting: Vec<WorkerHandle<'w, 'ivm>>,
+  active: Vec<WorkerHandle<'w, 'ivm>>,
+  idle: Vec<WorkerHandle<'w, 'ivm>>,
 }
 
 impl<'w, 'ivm> Dispatch<'w, 'ivm> {
   fn execute(mut self) {
     loop {
       let mut i = 0;
-      while i < self.working.len() {
-        let worker = &self.working[i];
+      while i < self.active.len() {
+        let worker = &self.active[i];
         let mut msg = worker.shared.msg.lock().unwrap();
-        if msg.0 == Msg::WorkerStarve {
-          debug_assert!(msg.1.is_empty());
+        if msg.kind == MsgKind::WorkerIdle {
+          debug_assert!(msg.pairs.is_empty());
           drop(msg);
-          self.waiting.push(self.working.remove(i));
+          self.idle.push(self.active.remove(i));
           continue;
-        } else if msg.0 == Msg::Worker && !self.waiting.is_empty() {
-          debug_assert!(!msg.1.is_empty());
-          let waiting = self.waiting.pop().unwrap();
-          let mut wmsg = waiting.shared.msg.lock().unwrap();
-          debug_assert!(wmsg.0 == Msg::WorkerStarve && wmsg.1.is_empty());
-          wmsg.0 = Msg::Dispatch;
-          mem::swap(&mut msg.1, &mut wmsg.1);
+        } else if msg.kind == MsgKind::WorkerShare && !self.idle.is_empty() {
+          debug_assert!(!msg.pairs.is_empty());
+          let waiting = self.idle.pop().unwrap();
+          let mut idle_msg = waiting.shared.msg.lock().unwrap();
+          debug_assert!(idle_msg.kind == MsgKind::WorkerIdle && idle_msg.pairs.is_empty());
+          idle_msg.kind = MsgKind::Dispatch;
+          mem::swap(&mut msg.pairs, &mut idle_msg.pairs);
           waiting.shared.condvar.notify_one();
-          msg.0 = Msg::None;
-          self.working.insert(i + 1, waiting);
+          msg.kind = MsgKind::None;
+          self.active.insert(i + 1, waiting);
         }
         i += 1;
       }
 
-      if self.working.is_empty() {
+      if self.active.is_empty() {
         break;
       }
 
       thread::park()
     }
 
-    for thread in self.waiting {
-      thread.shared.msg.lock().unwrap().0 = Msg::Fin;
+    for thread in self.idle {
+      thread.shared.msg.lock().unwrap().kind = MsgKind::Exit;
       thread.shared.condvar.notify_one();
     }
   }
