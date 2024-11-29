@@ -155,6 +155,7 @@ impl<'w, 'ivm> Dispatch<'w, 'ivm> {
   fn execute(mut self) {
     loop {
       let mut i = 0;
+      let mut share_ready = false;
       while i < self.active.len() {
         let worker = &self.active[i];
         let mut msg = worker.shared.msg.lock().unwrap();
@@ -163,22 +164,31 @@ impl<'w, 'ivm> Dispatch<'w, 'ivm> {
           drop(msg);
           self.idle.push(self.active.remove(i));
           continue;
-        } else if msg.kind == MsgKind::WorkerShare && !self.idle.is_empty() {
-          debug_assert!(!msg.pairs.is_empty());
-          let waiting = self.idle.pop().unwrap();
-          let mut idle_msg = waiting.shared.msg.lock().unwrap();
-          debug_assert!(idle_msg.kind == MsgKind::WorkerIdle && idle_msg.pairs.is_empty());
-          idle_msg.kind = MsgKind::Dispatch;
-          mem::swap(&mut msg.pairs, &mut idle_msg.pairs);
-          waiting.shared.condvar.notify_one();
-          msg.kind = MsgKind::None;
-          self.active.insert(i + 1, waiting);
+        } else if msg.kind == MsgKind::WorkerShare {
+          if self.idle.is_empty() {
+            share_ready = true;
+          } else {
+            debug_assert!(!msg.pairs.is_empty());
+            let waiting = self.idle.pop().unwrap();
+            let mut idle_msg = waiting.shared.msg.lock().unwrap();
+            debug_assert!(idle_msg.kind == MsgKind::WorkerIdle && idle_msg.pairs.is_empty());
+            idle_msg.kind = MsgKind::Dispatch;
+            mem::swap(&mut msg.pairs, &mut idle_msg.pairs);
+            waiting.shared.condvar.notify_one();
+            msg.kind = MsgKind::None;
+            self.active.insert(i + 1, waiting);
+            i += 1;
+          }
         }
         i += 1;
       }
 
       if self.active.is_empty() {
         break;
+      }
+
+      if !self.idle.is_empty() && share_ready {
+        continue;
       }
 
       thread::park()
