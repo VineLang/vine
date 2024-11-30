@@ -13,6 +13,16 @@ pub mod List {
     len
   }
 
+  pub fn get[T](&List(len, *buf, _): &List[T], i: N32) -> &T {
+    while i != 0 {
+      let &Buf(_, *tail) = buf;
+      buf = tail;
+      i -= 1;
+    }
+    let &Buf(*head, _) = buf;
+    head
+  }
+
   pub fn map[T, U](List(l, buf, ~_): List[T], f: fn(T) -> U) -> List[U] {
     let len = l;
     let cur;
