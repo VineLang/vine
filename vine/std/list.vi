@@ -89,6 +89,8 @@ pub mod List {
         None
       }
     }
+
+    pub fn drop[T](&Iter(_, move &_): &Iter[T]) {}
   }
 
   pub struct IntoIter[T](N32, Buf[T]);
@@ -108,5 +110,65 @@ pub mod List {
         None
       }
     }
+  }
+
+  pub fn split(self: String, sep: String) -> List[String] {
+    let list = [];
+    loop {
+      let (found, remaining) = self.split_once(sep);
+      list ++= [found];
+      if remaining is Some(remaining) {
+        self = remaining;
+      } else {
+        return list;
+      }
+    }
+  }
+
+  pub fn split_trim(self: String, sep: String) -> List[String] {
+    let list = [];
+    let start = true;
+    let ~end = true;
+    loop {
+      let (found, remaining) = self.split_once(sep);
+      let empty = found.len() == 0;
+      start = empty && start;
+      if !start && !~end {
+        list ++= [found];
+      }
+      ~end ~= empty && ~end;
+      if remaining is Some(remaining) {
+        self = remaining;
+      } else {
+        return list;
+      }
+    }
+  }
+
+  pub fn split_once(self: String, sep: String) -> (String, Option[String]) {
+    let prefix = "";
+    let suffix = self;
+    while suffix.len() >= sep.len() {
+      let iter_a = sep.iter();
+      let iter_b = suffix.iter();
+      do.check {
+        while iter_a.next() is Some(&a) && iter_b.next() is Some(&b) {
+          if a != b {
+            break.check;
+          }
+        }
+        let Iter(len, &buf) = move iter_b;
+        let List(_, _, end) = suffix;
+        return (prefix, Some(List(len, move buf, end)));
+      }
+      iter_a.drop();
+      iter_b.drop();
+      if suffix.pop_front() is Some(char) {
+        prefix ++= [char];
+      } else {
+        break;
+      }
+    }
+    (prefix, None)
   }
 }
