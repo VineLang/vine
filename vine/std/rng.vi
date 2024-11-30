@@ -1,7 +1,7 @@
 
 // A PCG random number generator (XSH RR 64/32 (LCG) variant).
 
-use std::n64::N64;
+use std::{n64::N64, option::Option::Some};
 
 pub struct Rng(N64, N64);
 
@@ -21,5 +21,19 @@ pub mod Rng {
     let (lo, hi) = state;
     state = N64::add(N64::mul(state, multiplier), increment);
     N32::rotate_right((hi >> 13) ^ (hi << 5) ^ (lo >> 27), hi >> 27)
+  }
+
+  pub fn mix(&Rng(state, increment): &Rng, n: N32) {
+    state ^= (0, n);
+    state = N64::add(N64::mul(state, multiplier), increment);
+  }
+
+  pub fn seeded(seed: String) -> Rng {
+    let rng = Rng::default;
+    let iter = seed.into_iter();
+    while iter.next() is Some(char) {
+      rng.mix(char.as_n32());
+    }
+    rng
   }
 }
