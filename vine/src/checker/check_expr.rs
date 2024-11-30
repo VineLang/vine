@@ -91,7 +91,7 @@ impl<'core> Checker<'core, '_> {
         ty
       }
       ExprKind::Block(block) => self.check_block(block),
-      ExprKind::Assign(space, value) => {
+      ExprKind::Assign(_, space, value) => {
         let mut ty = self.check_expr_form(space, Form::Space);
         self.check_expr_form_type(value, Form::Value, &mut ty);
         Type::UNIT

@@ -261,7 +261,9 @@ impl<'core: 'src, 'src> Formatter<'src> {
       ExprKind::Do(label, block) => {
         Doc::concat([Doc("do"), self.fmt_label(label), Doc(" "), self.fmt_block(block, false)])
       }
-      ExprKind::Assign(s, v) => Doc::concat([self.fmt_expr(s), Doc(" = "), self.fmt_expr(v)]),
+      ExprKind::Assign(i, s, v) => {
+        Doc::concat([self.fmt_expr(s), Doc(if *i { " ~= " } else { " = " }), self.fmt_expr(v)])
+      }
       ExprKind::Match(expr, arms) => Doc::concat([
         Doc("match "),
         self.fmt_expr(expr),

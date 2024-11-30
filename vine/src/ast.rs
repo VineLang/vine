@@ -220,7 +220,7 @@ pub enum ExprKind<'core> {
   #[class(value)]
   Block(Block<'core>),
   #[class(value)]
-  Assign(B<Expr<'core>>, B<Expr<'core>>),
+  Assign(bool, B<Expr<'core>>, B<Expr<'core>>),
   #[class(value)]
   Match(B<Expr<'core>>, Vec<(Pat<'core>, Expr<'core>)>),
   #[class(value)]
