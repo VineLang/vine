@@ -43,4 +43,12 @@ pub mod N32 {
   pub inline_ivy! rotate_right: fn(N32, N32) -> N32 {
     fn(@n32_rotr(x y) fn(x y))
   }
+
+  pub fn ascending(&a: &N32, &b: &N32) -> Bool {
+    a < b
+  }
+
+  pub fn descending(&a: &N32, &b: &N32) -> Bool {
+    b < a
+  }
 }
