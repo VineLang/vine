@@ -68,6 +68,18 @@ pub mod IO {
     }
   }
 
+  pub fn full_input(&io: &IO) -> String {
+    let str = "";
+    loop {
+      let byte = io.read_byte('\0');
+      if byte != '\0' {
+        str ++= [byte];
+      } else {
+        return str;
+      }
+    }
+  }
+
   inline_ivy! read_byte: fn(&IO, Char) -> Char {
     fn(ref(dup(io0 @io_read_byte(default dup(byte @seq$(io0 io1)))) io1) fn(default byte))
   }
