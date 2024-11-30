@@ -65,6 +65,17 @@ pub mod List {
     list = [el] ++ list;
   }
 
+  pub fn insert[T](&List(len, *buf, _): &List[T], i: N32, el: T) {
+    len += 1;
+    while i != 0 {
+      let &Buf(_, *tail) = buf;
+      buf = tail;
+      i -= 1;
+    }
+    let &buf = buf;
+    buf = Buf(el, buf);
+  }
+
   pub fn join(list: List[String], sep: String) -> String {
     let it = list.into_iter();
     if it.next() is Some(str) {
