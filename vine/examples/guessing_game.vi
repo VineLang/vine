@@ -1,0 +1,40 @@
+
+use std::{rng::Rng, option::Option::Some};
+
+pub fn main(&io: &IO) {
+  let seed = io.prompt("Enter a seed: ").unwrap();
+  let rng = Rng::seeded(seed);
+
+  dyn fn prompt_num(msg: String) -> N32 {
+    loop {
+      if io.prompt(msg) is Some(input) && N32::parse(input) is Some(n) {
+        return n;
+      }
+    }
+  }
+
+  let guesses = 0;
+  let max = prompt_num("Enter a maximum number: ");
+  let num = 1 + rng.gen_n32() % max;
+
+  io.println("I'm thinking of a number between 1 and " ++ max.to_string() ++ ".");
+
+  loop {
+    guesses += 1;
+    let guess = prompt_num("Enter your guess: ");
+    if guess < num {
+      io.println("Too low.");
+    } else if guess > num {
+      io.println("Too high.");
+    } else {
+      io.println("You got it " ++ if guesses == 1 {
+        "immediately?!"
+      } else {
+        "in " ++ guesses.to_string() ++ " guesses!"
+      });
+      break;
+    }
+  }
+}
+
+inline_ivy! transmute[T, U]: fn(T) -> U { fn(x x) }
