@@ -41,7 +41,11 @@ impl<'core> Checker<'core, '_> {
         Form::Place,
         Type::Var(*self.state.locals.entry(*l).or_insert_with(|| self.state.vars.push(Err(span)))),
       ),
-      ExprKind::Deref(_) => todo!(),
+      ExprKind::Deref(e) => {
+        let v = self.new_var(span);
+        self.check_expr_form_type(e, Form::Value, &mut Type::Ref(Box::new(v.clone())));
+        (Form::Place, v)
+      }
       ExprKind::Inverse(expr) => {
         let (form, ty) = self.check_expr(expr);
         (form.inverse(), ty.inverse())
