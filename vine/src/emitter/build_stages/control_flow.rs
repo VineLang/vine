@@ -44,17 +44,21 @@ impl<'core> Emitter<'core, '_> {
   }
 
   pub(super) fn emit_do(&mut self, label: LabelId, body: &Block<'core>) -> Port {
-    let result = self.new_local();
+    let local = self.new_local();
 
-    let orig = self.cur_id;
-    *self.labels.get_or_extend(label) = Some((result, self.cur_fork(), None));
-    let body = self.emit_block(body);
-    self.set_local_to(result, body);
-    if self.cur_id != orig {
-      self.select_stage(orig);
-    }
+    self.new_fork(|self_| {
+      let i = self_.new_interface();
+      let s = self_.new_stage(i, move |self_, _| {
+        *self_.labels.get_or_extend(label) = Some((local, self_.cur_fork(), None));
+        let body = self_.emit_block(body);
+        self_.set_local_to(local, body);
+        true
+      });
 
-    self.get_local(result)
+      self_.goto(s);
+    });
+
+    self.get_local(local)
   }
 
   pub(super) fn emit_if(

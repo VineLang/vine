@@ -158,7 +158,9 @@ impl<'core, 'r> Checker<'core, 'r> {
             .as_mut()
             .map(|t| self.hydrate_type(t, true))
             .unwrap_or_else(|| self.new_var(d.body.span));
+          let old = self.return_ty.replace(ret.clone());
           self.check_block_type(&mut d.body, &mut ret);
+          self.return_ty = old;
           self.state.dyn_fns.insert(d.id.unwrap(), Type::Fn(params, Box::new(ret)));
           ty = Type::UNIT;
         }
