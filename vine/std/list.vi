@@ -207,7 +207,7 @@ pub mod List {
         break;
       }
     }
-    (prefix, None)
+    (prefix ++ suffix, None)
   }
 
   pub fn eq(&self: &String, &other: &String) -> Bool {
