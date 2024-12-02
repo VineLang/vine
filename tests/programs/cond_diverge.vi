@@ -1,0 +1,12 @@
+
+use std::option::Option::Some;
+
+pub fn main(&io: &IO) {
+  let x = "abcd";
+  loop {
+    if x.pop_front() is Some(c) && (c == 'a' || c == 'b') {} else {
+      break;
+    }
+  }
+  io.println(x);
+}

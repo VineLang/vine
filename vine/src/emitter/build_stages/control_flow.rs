@@ -171,6 +171,9 @@ impl<'core> Emitter<'core, '_> {
         }
       }
     }
+    if let ExprKind::Paren(c) = &expr.kind {
+      return self.emit_cond(c, yay, nay);
+    }
     match &expr.kind {
       ExprKind![!cond] => {
         let bool = self.emit_expr_value(expr);

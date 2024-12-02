@@ -184,11 +184,11 @@ impl<'core> Emitter<'core, '_> {
           expr,
           &|self_| {
             self_.set_local_to(result, Port::N32(1));
-            true
+            false
           },
           &|self_| {
             self_.set_local_to(result, Port::N32(0));
-            true
+            false
           },
         );
         self.move_local(result)
