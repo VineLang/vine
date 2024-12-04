@@ -1,3 +1,5 @@
+use std::mem::take;
+
 use crate::{
   checker::{Checker, Type},
   diag::Diag,
@@ -98,6 +100,12 @@ impl<'core> Checker<'core, '_> {
           let err = self.core.report(Diag::CannotInfer { span });
           *ty = Type::Error(err);
         }
+      }
+    }
+    if let Type::Inverse(t) = ty {
+      self.concretize(t);
+      if let Type::Inverse(t) = &mut **t {
+        *ty = take(&mut **t);
       }
     }
   }
