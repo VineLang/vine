@@ -1,0 +1,72 @@
+
+use std::{map::Map, option::Option::Some, rng::Rng};
+
+const iterations: N32 = 4600;
+const seed: String = "dubiously charged umbrella";
+
+pub fn main(&io: &IO) {
+  let map = Map::new(N32::cmp);
+
+  let rng = Rng::seeded(seed);
+  let n = iterations;
+  while n > 0 {
+    n -= 1;
+    let num = rng.gen_n32();
+    map.insert(num, num * num)
+  }
+
+  dyn fn integrity_check(expected_length: N32) {
+    let iter = map.iter();
+    let last = 0;
+    let count = 0;
+    while iter.next() is Some(&(k, v)) {
+      count += 1;
+      if last > k {
+        io.println("out of order");
+      }
+    }
+    if !(count == map.len() == expected_length) {
+      io.println("bad length");
+    }
+    if !balanced(&map) {
+      io.println("imbalanced");
+    }
+  }
+
+  integrity_check(iterations);
+
+  let rng = Rng::seeded(seed);
+  let n = iterations;
+  while n > 0 {
+    n -= 1;
+    let num = rng.gen_n32();
+    if map.get(&num) is Some(&n) => n != num * num {
+      io.println("missing " ++ num.to_string());
+    }
+  }
+
+  let rng = Rng::seeded(seed);
+  let n = iterations;
+  while n > 0 {
+    n -= 1;
+    let num = rng.gen_n32();
+    if map.remove(&num) is Some(n) => n != num * num {
+      io.println("missing " ++ num.to_string());
+    }
+    if n % 100 == 0 {
+      integrity_check(n);
+    }
+  }
+
+  io.println("done");
+}
+
+inline_ivy! balanced[K, V]: fn(&Map[K, V]) -> Bool {
+  fn(ref(tup(len data0) tup(len data1)) bool)
+  ::std::map::Node::balanced = fn(ref(data0 data1) bool)
+}
+
+pub fn rand(&seed: &N32) -> N32 {
+  seed = seed * 49081047 + 93120830;
+  seed
+}

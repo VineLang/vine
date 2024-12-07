@@ -233,6 +233,16 @@ mod Node {
       left.to_list() ++ [entry] ++ right.to_list()
     }
   }
+
+  pub fn balanced[K, V](&Node(len, data): &Node[K, V]) -> Bool {
+    if len == 0 {
+      true
+    } else {
+      let &(left, _, right) = &data;
+      let x = is_balanced(&left, &right) && is_balanced(&right, &left);
+      x && left.balanced() && right.balanced()
+    }
+  }
 }
 
 fn balance_left[K, V](&data: &NodeData[K, V]) {
