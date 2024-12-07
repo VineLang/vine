@@ -1,4 +1,5 @@
 
+pub mod array = "./array.vi";
 pub mod bool = "./bool.vi";
 pub mod char = "./char.vi";
 pub mod io = "./io.vi";
