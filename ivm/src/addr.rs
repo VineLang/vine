@@ -13,6 +13,9 @@ use crate::{
 #[repr(transparent)]
 pub struct Addr(pub *const ());
 
+unsafe impl Send for Addr {}
+unsafe impl Sync for Addr {}
+
 impl Addr {
   pub const NULL: Addr = Addr(ptr::null());
 

@@ -9,6 +9,7 @@
     "cmps",
     "combinators",
     "concat",
+    "condvar",
     "delims",
     "deque",
     "desugared",
@@ -36,6 +37,7 @@
     "scrutinee",
     "sixel",
     "strs",
+    "unpark",
     "vecs",
     "visitee"
   ],

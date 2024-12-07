@@ -1,15 +1,15 @@
 
 Interactions
-  Total                 15_971
-  Annihilate             7_899
-  Commute                    0
-  Copy                   1_224
-  Erase                  1_837
-  Expand                 2_559
-  Call                   1_531
-  Branch                   921
+  Total               15_971
+  Annihilate           7_899
+  Commute                  0
+  Copy                 1_224
+  Erase                1_837
+  Expand               2_559
+  Call                 1_531
+  Branch                 921
 
 Memory
-  Heap                     528 B
-  Allocated            311_584 B
-  Freed                311_584 B
+  Heap                   528 B
+  Allocated          311_584 B
+  Freed              311_584 B

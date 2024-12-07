@@ -1,15 +1,15 @@
 
 Interactions
-  Total                 10_035
-  Annihilate             5_503
-  Commute                    3
-  Copy                     542
-  Erase                  1_130
-  Expand                 1_617
-  Call                     805
-  Branch                   435
+  Total               10_035
+  Annihilate           5_503
+  Commute                  3
+  Copy                   542
+  Erase                1_130
+  Expand               1_617
+  Call                   805
+  Branch                 435
 
 Memory
-  Heap                   7_216 B
-  Allocated            204_880 B
-  Freed                204_880 B
+  Heap                 7_216 B
+  Allocated          204_880 B
+  Freed              204_880 B

@@ -21,6 +21,8 @@ impl Optimizations {
 pub struct RunArgs {
   #[arg(long)]
   no_stats: bool,
+  #[arg(long, short, default_value = "0")]
+  workers: usize,
 }
 
 impl RunArgs {
@@ -31,7 +33,11 @@ impl RunArgs {
     let heap = Heap::new();
     let mut ivm = IVM::new(&heap);
     ivm.boot(main);
-    ivm.normalize();
+    if self.workers > 0 {
+      ivm.normalize_parallel(self.workers)
+    } else {
+      ivm.normalize();
+    }
     if !self.no_stats {
       eprintln!("{}", ivm.stats);
     }

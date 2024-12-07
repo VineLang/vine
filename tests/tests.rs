@@ -35,7 +35,8 @@ fn tests(t: &mut DynTester) {
     test_vi(t, "vine/examples/mandelbrot_sixel.vi", b"", ".sixel");
     test_vi(t, "vine/examples/mandelbrot_tga.vi", b"", ".tga");
     test_vi(t, "vine/examples/mandelbrot.vi", b"", ".txt");
-    test_vi(t, "vine/examples/primes.vi", b"", ".txt");
+    test_vi(t, "vine/examples/primeness.vi", b"", ".txt");
+    test_vi(t, "vine/examples/stream_primes.vi", b"", ".txt");
     test_vi(t, "vine/examples/sub_min.vi", b"", ".txt");
     test_vi(t, "vine/examples/sum_divisors.vi", b"", ".txt");
 
@@ -125,7 +126,7 @@ fn run_iv(group: &str, name: &str, path: &str, input: &[u8], output_ext: &str) {
   let (stdout, stderr) = exec(IVY, &["run", path], input, true);
   test_snapshot(&[group, name, &format!("output{output_ext}")], &stdout);
   let full_stats = String::from_utf8(stderr).unwrap();
-  let stats = full_stats.split_once("\nTime").unwrap().0;
+  let stats = full_stats.split_once("\nPerformance").unwrap().0;
   test_snapshot(&[group, name, "stats.txt"], stats.as_bytes());
   fs::write(get_snapshot_path(&[group, name, "timing.txt"]), full_stats[stats.len()..].as_bytes())
     .unwrap();

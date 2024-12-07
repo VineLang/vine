@@ -1,5 +1,3 @@
-use std::time::Instant;
-
 use crate::{
   ivm::IVM,
   port::{Port, PortRef, Tag},
@@ -147,9 +145,7 @@ impl<'ivm> IVM<'ivm> {
       if rhs.tag() == Tag::ExtVal {
         self.stats.call += 1;
         self.free_wire(rhs_wire);
-        let wait_start = Instant::now();
         let result = unsafe { ext_fn.call(lhs.as_ext_val(), rhs.as_ext_val()) };
-        self.stats.time_io += wait_start.elapsed();
         self.link_wire(out, Port::new_ext_val(result));
         return;
       }
