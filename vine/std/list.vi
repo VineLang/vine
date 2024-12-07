@@ -1,5 +1,5 @@
 
-use std::option::Option::{Option, Some, None};
+use std::{option::Option::{Option, Some, None}, map::{Cmp, Ord}};
 
 #[builtin = "List"]
 pub struct List[T](N32, Buf[T], ~Buf[T]);
@@ -225,4 +225,32 @@ pub mod List {
     }
     true
   }
+
+  pub fn cmp[T](cmp_el: Cmp[T]) -> Cmp[List[T]] {
+    (
+      fn(&a: &List[T], &b: &List[T]) {
+        let a = a.iter();
+        let b = b.iter();
+        let ord = loop {
+          match (a.next(), b.next()) {
+            (None, None) => break Ord::Eq,
+            (None, Some(_)) => break Ord::Lt,
+            (Some(_), None) => break Ord::Gt,
+            (Some(a), Some(b)) => match cmp_el(a, b) {
+              Ord::Lt => break Ord::Lt,
+              Ord::Eq => {},
+              Ord::Gt => break Ord::Gt,
+            },
+          }
+        };
+        a.drop();
+        b.drop();
+        ord
+      }
+    )
+  }
+}
+
+pub mod String {
+  pub const cmp: Cmp[String] = List::cmp(Char::cmp);
 }

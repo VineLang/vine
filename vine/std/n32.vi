@@ -1,5 +1,5 @@
 
-use std::{list::Buf, option::Option::{Option, Some, None}};
+use std::{list::Buf, option::Option::{Option, Some, None}, map::Ord};
 
 #[builtin = "N32"]
 pub mod N32 {
@@ -52,5 +52,15 @@ pub mod N32 {
 
   pub fn descending(&a: &N32, &b: &N32) -> Bool {
     b < a
+  }
+
+  pub fn cmp(&a: &N32, &b: &N32) -> Ord {
+    if a < b {
+      Ord::Lt
+    } else if a > b {
+      Ord::Gt
+    } else {
+      Ord::Eq
+    }
   }
 }

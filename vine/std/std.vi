@@ -4,6 +4,7 @@ pub mod bool = "./bool.vi";
 pub mod char = "./char.vi";
 pub mod io = "./io.vi";
 pub mod list = "./list.vi";
+pub mod map = "./map.vi";
 pub mod n32 = "./n32.vi";
 pub mod n64 = "./n64.vi";
 pub mod option = "./option.vi";
