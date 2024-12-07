@@ -7,24 +7,24 @@ pub struct Rng(N64, N64);
 
 pub mod Rng {
   pub fn new(state: N64, increment: N64) -> Rng {
-    increment |= N64::from_n32(1);
-    state = N64::add(state, increment);
-    state = N64::add(N64::mul(state, multiplier), increment);
+    increment = increment.or(N64::from_n32(1));
+    state = state.add(increment);
+    state = state.mul(multiplier).add(increment);
     Rng(state, increment)
   }
 
-  pub const default: Rng = new((0xd15ea5e5, 0xcafef00d), (0xf767814f, 0x14057b7e));
+  pub const default: Rng = new(N64(0xd15ea5e5, 0xcafef00d), N64(0xf767814f, 0x14057b7e));
 
-  const multiplier: N64 = (0x4c957f2d, 0x5851f42d);
+  const multiplier: N64 = N64(0x4c957f2d, 0x5851f42d);
 
   pub fn gen_n32(&Rng(state, increment): &Rng) -> N32 {
-    let (lo, hi) = state;
+    let N64(lo, hi) = state;
     state = N64::add(N64::mul(state, multiplier), increment);
     N32::rotate_right((hi >> 13) ^ (hi << 5) ^ (lo >> 27), hi >> 27)
   }
 
   pub fn mix(&Rng(state, increment): &Rng, n: N32) {
-    state ^= (0, n);
+    state = state.xor(N64(0, n));
     state = N64::add(N64::mul(state, multiplier), increment);
   }
 

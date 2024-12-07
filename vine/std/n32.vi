@@ -3,6 +3,8 @@ use std::{list::Buf, option::Option::{Option, Some, None}};
 
 #[builtin = "N32"]
 pub mod N32 {
+  pub const max: N32 = 0xffffffff;
+
   pub fn to_string(n: N32) -> String {
     if n != 0 {
       let str = "";

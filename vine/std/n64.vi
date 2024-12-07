@@ -1,12 +1,18 @@
 
-pub type N64 = (N32, N32);
+use std::{list::Buf, option::Option::{Option, Some, None}};
+
+pub struct N64(N32, N32);
 
 pub mod N64 {
+  const zero: N64 = N64(0, 0);
+  const one: N64 = N64(1, 0);
+  const max: N64 = N64(N32::max, N32::max);
+
   pub fn from_n32(val: N32) -> N64 {
-    (val, 0)
+    N64(val, 0)
   }
 
-  pub fn to_n32((lo, hi): N64) -> N32 {
+  pub fn to_n32(N64(lo, hi): N64) -> N32 {
     lo
   }
 
@@ -17,6 +23,13 @@ pub mod N64 {
     ah = @add(bh @add(c h))
   }
 
+  pub inline_ivy! sub: fn(N64, N64) -> N64 {
+    fn(tup(dup(al0 al1) ah) fn(tup(dup(bl0 bl1) bh) tup(l h)))
+    al0 = @sub(bl0 l)
+    al1 = @lt(bl1 c)
+    ah = @sub(bh @sub(c h))
+  }
+
   pub inline_ivy! mul: fn(N64, N64) -> N64 {
     fn(tup(dup(al0 dup(al1 al2)) ah) fn(tup(dup(bl0 dup(bl1 bl2)) bh) tup(l h)))
     al0 = @mul(bl0 l)
@@ -24,5 +37,113 @@ pub mod N64 {
     al2 = @mul(bh lh)
     bl2 = @mul(ah hl)
     lh = @add(hl @add(ll h))
+  }
+
+  pub inline_ivy! mul_n32_n32: fn(N32, N32) -> N64 {
+    fn(dup(a0 a1) fn(dup(b0 b1) tup(l h)))
+    a0 = @mul(b0 l)
+    a1 = @n32_mul_high(b1 h)
+  }
+
+  pub fn div_rem_n32(N64(al, ah): N64, d: N32) -> (N64, N32) {
+    let qh = ah / d;
+    ah %= d;
+    if ah > d {
+      qh = ah / d;
+      ah %= d;
+    }
+    let ql = 0;
+    while ah != 0 {
+      let m = (N32::max / d) * ah;
+      ql += m;
+      let N64(l, h) = N64(al, ah).sub(N64::mul_n32_n32(m, d));
+      al = l;
+      ah = h;
+    }
+    ql += al / d;
+    al %= d;
+    (N64(ql, qh), al)
+  }
+
+  pub fn or(N64(al, ah): N64, N64(bl, bh): N64) -> N64 {
+    N64(al | bl, ah | bh)
+  }
+
+  pub fn xor(N64(al, ah): N64, N64(bl, bh): N64) -> N64 {
+    N64(al ^ bl, ah ^ bh)
+  }
+
+  pub fn and(N64(al, ah): N64, N64(bl, bh): N64) -> N64 {
+    N64(al & bl, ah & bh)
+  }
+
+  pub fn shl(N64(al, ah): N64, bits: N32) -> N64 {
+    if bits & 32 != 0 {
+      N64(0, al << bits)
+    } else {
+      N64(al << bits, ah << bits | al >> -bits)
+    }
+  }
+
+  pub fn shr(N64(al, ah): N64, bits: N32) -> N64 {
+    if bits & 32 != 0 {
+      N64(ah >> bits, 0)
+    } else {
+      N64(al >> bits | ah << -bits, ah >> bits)
+    }
+  }
+
+  pub fn eq(N64(al, ah): N64, N64(bl, bh): N64) -> Bool {
+    al == bl && ah == bh
+  }
+
+  pub fn lt(N64(al, ah): N64, N64(bl, bh): N64) -> Bool {
+    ah < bh || ah == bh && al < bl
+  }
+
+  pub fn le(N64(al, ah): N64, N64(bl, bh): N64) -> Bool {
+    ah < bh || ah == bh && al <= bl
+  }
+
+  pub fn gt(N64(al, ah): N64, N64(bl, bh): N64) -> Bool {
+    ah > bh || ah == bh && al > bl
+  }
+
+  pub fn ge(N64(al, ah): N64, N64(bl, bh): N64) -> Bool {
+    ah > bh || ah == bh && al >= bl
+  }
+
+  pub fn parse(str: String) -> Option[N64] {
+    let List(len, chars, _) = str;
+    if len == 0 {
+      None
+    } else {
+      let num = N64::from_n32(0);
+      while len != 0 {
+        let Buf(char, tail) = chars;
+        chars = tail;
+        if !('0' <= char <= '9') {
+          return None;
+        }
+        num = num.mul(N64::from_n32(10));
+        num = num.add(N64::from_n32(char - '0'));
+        len -= 1;
+      }
+      Some(num)
+    }
+  }
+
+  pub fn to_string(n: N64) -> String {
+    if !n.eq(N64::zero) {
+      let str = "";
+      while !n.eq(N64::zero) {
+        let (q, r) = N64::div_rem_n32(n, 10);
+        str = ['0' + r] ++ str;
+        n = q;
+      }
+      str
+    } else {
+      "0"
+    }
   }
 }
