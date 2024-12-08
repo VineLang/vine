@@ -3,7 +3,7 @@ use std::{list::Buf, option::Option::{Option, Some, None}, map::Ord};
 
 #[builtin = "N32"]
 pub mod N32 {
-  pub const max: N32 = 0xffffffff;
+  pub const maximum: N32 = 0xffffffff;
 
   pub fn to_string(n: N32) -> String {
     if n != 0 {
@@ -64,6 +64,22 @@ pub mod N32 {
     }
   }
 
+  pub fn min(a: N32, b: N32) -> N32 {
+    if a < b {
+      a
+    } else {
+      b
+    }
+  }
+
+  pub fn max(a: N32, b: N32) -> N32 {
+    if a > b {
+      a
+    } else {
+      b
+    }
+  }
+
   pub fn diff(a: N32, b: N32) -> N32 {
     if a > b {
       a - b
@@ -77,5 +93,18 @@ pub mod N32 {
       (a, b) = (b % a, a)
     }
     b
+  }
+
+  pub fn sqrt(n: N32) -> N32 {
+    let r = 0x8000;
+    let s = 0;
+    while r != 0 {
+      let m = s + r;
+      if m * m <= n {
+        s = m;
+      }
+      r >>= 1;
+    }
+    s
   }
 }
