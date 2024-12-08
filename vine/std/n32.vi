@@ -63,4 +63,19 @@ pub mod N32 {
       Ord::Eq
     }
   }
+
+  pub fn diff(a: N32, b: N32) -> N32 {
+    if a > b {
+      a - b
+    } else {
+      b - a
+    }
+  }
+
+  pub fn gcd(a: N32, b: N32) -> N32 {
+    while a != 0 {
+      (a, b) = (b % a, a)
+    }
+    b
+  }
 }
