@@ -10,6 +10,10 @@ pub mod Array {
     Array(1, Node::leaf(value))
   }
 
+  pub fn new[T](len: N32, value: T) -> Array[T] {
+    Array(len, Node::new(len, value))
+  }
+
   pub fn from_list[T](list: List[T]) -> Array[T] {
     let array = Array::empty;
     while list.pop_front() is Some(value) {
@@ -139,6 +143,14 @@ mod Node {
   pub inline_ivy! to_leaf[T]: fn(Node[T]) -> T { fn(x x) }
   pub inline_ivy! as_leaf[T]: fn(&Node[T]) -> &T { fn(x x) }
   pub inline_ivy! leaf[T]: fn(T) -> Node[T] { fn(x x) }
+
+  pub fn new[T](len: N32, value: T) -> Node[T] {
+    if len == 1 {
+      Node::leaf(value)
+    } else {
+      Node(Node::new((len + 1) / 2, value), Node::new(len / 2, value))
+    }
+  }
 
   pub fn half[T](&Node(l, r): &Node[T], len: N32, x: N32) -> (&Node[T], N32) {
     if x == 0 {
