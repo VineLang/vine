@@ -1,0 +1,314 @@
+
+use std::{option::Option::{Option, Some, None}};
+
+pub type Cmp[K] = fn(&K, &K) -> Ord;
+
+pub enum Ord {
+  Lt,
+  Eq,
+  Gt,
+}
+
+pub struct Map[K, V](Cmp[K], Node[K, V]);
+
+pub mod Map {
+  pub fn new[K, V](cmp: Cmp[K]) -> Map[K, V] {
+    Map(cmp, Node::leaf)
+  }
+
+  pub fn from_list[K, V](cmp: Cmp[K], entries: List[(K, V)]) -> Map[K, V] {
+    let map = Map::new(cmp);
+    while entries.pop_front() is Some((key, value)) {
+      map.insert(key, value);
+    }
+    map
+  }
+
+  pub fn clear[K, V](&Map(_, node): &Map[K, V]) {
+    node = Node::leaf;
+  }
+
+  pub fn len[K, V](&Map(_, Node(len, _)): &Map[K, V]) -> N32 {
+    len
+  }
+
+  pub fn insert[K, V](&Map(cmp, node): &Map[K, V], key: K, value: V) -> Option[V] {
+    node.insert(cmp, key, value)
+  }
+
+  pub fn get_or_insert[K, V](&Map(cmp, node): &Map[K, V], key: K, value: V) -> &V {
+    let ~insert;
+    let old = node.insert(cmp, key, ~insert);
+    let value = old.unwrap_or(value);
+    let ref = &value;
+    ~insert = value;
+    ref
+  }
+
+  pub fn get[K, V](&Map(cmp, node): &Map[K, V], &key: &K) -> Option[&V] {
+    node.get(cmp, &key)
+  }
+
+  pub fn remove[K, V](&Map(cmp, node): &Map[K, V], &key: &K) -> Option[V] {
+    node.remove(cmp, &key)
+  }
+
+  pub fn remove_min[K, V](&Map(cmp, node): &Map[K, V]) -> Option[(K, V)] {
+    if node.size() == 0 {
+      None
+    } else {
+      Some(node.remove_min(cmp))
+    }
+  }
+
+  pub fn remove_max[K, V](&Map(cmp, node): &Map[K, V]) -> Option[(K, V)] {
+    if node.size() == 0 {
+      None
+    } else {
+      Some(node.remove_max(cmp))
+    }
+  }
+
+  pub fn iter[K, V](&Map(_, node): &Map[K, V]) -> Iter[K, V] {
+    Iter(&node, [])
+  }
+
+  pub struct Iter[K, V](&Node[K, V], List[&((K, V), Node[K, V])]);
+
+  pub mod Iter {
+    pub fn next[K, V](&Iter(node, stack): &Iter[K, V]) -> Option[&(K, V)] {
+      loop {
+        let &Node(len, data) = move node;
+        if len == 0 {
+          break;
+        }
+        let &(left, entry, right) = &data;
+        stack.push_front(&(entry, right));
+        node = &left;
+      }
+      if stack.pop_front() is Some(el) {
+        let &(*entry, *new_node) = el;
+        node = new_node;
+        Some(entry)
+      } else {
+        None
+      }
+    }
+
+    pub fn drop[K, V](&move Iter(&_, stack): &Iter[K, V]) {
+      while stack.pop_front() is Some(&_) {}
+    }
+  }
+
+  pub fn to_list[K, V](Map(_, node): Map[K, V]) -> List[(K, V)] {
+    node.to_list()
+  }
+
+  pub fn to_string[K, V](&map: &Map[K, V], show_key: fn(K) -> String, show_value: fn(V) -> String) -> String {
+    let string = "";
+    let iter = map.iter();
+    let first = true;
+    while iter.next() is Some(&(key, value)) {
+      if !first {
+        string ++= ", ";
+      }
+      first = false
+      string ++= show_key(key) ++ ": " ++ show_value(value);
+    }
+    if first {
+      "{}"
+    } else {
+      "{ " ++ string ++ " }"
+    }
+  }
+}
+
+struct Node[K, V](N32, NodeData[K, V]);
+
+type NodeData[K, V] = (Node[K, V], (K, V), Node[K, V]);
+
+mod Node {
+  pub const leaf[K, V]: Node[K, V] = Node(0, ~_);
+
+  pub fn size[K, V](&Node(size, _): &Node[K, V]) -> N32 {
+    size
+  }
+
+  pub fn new[K, V](left: Node[K, V], entry: (K, V), right: Node[K, V]) -> Node[K, V] {
+    Node(left.size() + right.size() + 1, (left, entry, right))
+  }
+
+  pub fn insert[K, V](&Node(len, data): &Node[K, V], cmp: Cmp[K], key: K, value: V) -> Option[V] {
+    if len == 0 {
+      len = 1;
+      data = (leaf, (key, value), leaf);
+      None
+    } else {
+      let &(left, (cur_key, cur_value), right) = &data;
+      let old;
+      match cmp(&key, &cur_key) {
+        Ord::Lt => {
+          old = left.insert(cmp, key, value);
+          len = map::size(&data);
+          balance_right(&data);
+        },
+        Ord::Eq => {
+          old = Some(cur_value);
+          cur_key = key;
+          cur_value = value;
+        },
+        Ord::Gt => {
+          old = right.insert(cmp, key, value);
+          len = map::size(&data);
+          balance_left(&data);
+        },
+      }
+      old
+    }
+  }
+
+  pub fn get[K, V](&Node(len, data): &Node[K, V], cmp: Cmp[K], &key: &K) -> Option[&V] {
+    if len == 0 {
+      None
+    } else {
+      let &(left, (cur_key, cur_value), right) = &data;
+      match cmp(&key, &cur_key) {
+        Ord::Lt => left.get(cmp, &key),
+        Ord::Eq => Some(&cur_value),
+        Ord::Gt => right.get(cmp, &key),
+      }
+    }
+  }
+
+  pub fn remove[K, V](&Node(len, data): &Node[K, V], cmp: Cmp[K], &key: &K) -> Option[V] {
+    if len == 0 {
+      None
+    } else {
+      let &(left, (cur_key, cur_value), right) = &data;
+      let old;
+      match cmp(&key, &cur_key) {
+        Ord::Lt => {
+          old = left.remove(cmp, &key);
+          len = map::size(&data);
+          balance_left(&data);
+        },
+        Ord::Eq => {
+          old = Some(cur_value);
+          len -= 1;
+          data = merge_balanced(cmp, move left, move right);
+        },
+        Ord::Gt => {
+          old = right.remove(cmp, &key);
+          len = map::size(&data);
+          balance_right(&data);
+        },
+      }
+      old
+    }
+  }
+
+  pub fn remove_min[K, V](&Node(len, data): &Node[K, V], cmp: Cmp[K]) -> (K, V) {
+    len -= 1;
+    let &(left, entry, right) = &data;
+    if left.size() == 0 {
+      let Node(_, right) = right;
+      data = move right;
+      move entry
+    } else {
+      let max = left.remove_min(cmp);
+      balance_left(&data);
+      max
+    }
+  }
+
+  pub fn remove_max[K, V](&Node(len, data): &Node[K, V], cmp: Cmp[K]) -> (K, V) {
+    len -= 1;
+    let &(left, entry, right) = &data;
+    if right.size() == 0 {
+      let Node(_, left) = left;
+      data = move left;
+      move entry
+    } else {
+      let max = right.remove_max(cmp);
+      balance_right(&data);
+      max
+    }
+  }
+
+  pub fn to_list[K, V](Node(len, data): Node[K, V]) -> List[(K, V)] {
+    if len == 0 {
+      []
+    } else {
+      let (left, entry, right) = data;
+      left.to_list() ++ [entry] ++ right.to_list()
+    }
+  }
+
+  pub fn balanced[K, V](&Node(len, data): &Node[K, V]) -> Bool {
+    if len == 0 {
+      true
+    } else {
+      let &(left, _, right) = &data;
+      let x = is_balanced(&left, &right) && is_balanced(&right, &left);
+      x && left.balanced() && right.balanced()
+    }
+  }
+}
+
+fn balance_left[K, V](&data: &NodeData[K, V]) {
+  let (l, e, r) = data;
+  data = if is_balanced(&l, &r) {
+    (l, e, r)
+  } else {
+    let Node(_, (rl, re, rr)) = r;
+    if is_single(&rl, &rr) {
+      (Node::new(l, e, rl), re, rr)
+    } else {
+      let Node(_, (rll, rle, rlr)) = rl;
+      (Node::new(l, e, rll), rle, Node::new(rlr, re, rr))
+    }
+  }
+}
+
+fn balance_right[K, V](&data: &NodeData[K, V]) {
+  let (l, e, r) = data;
+  data = if is_balanced(&r, &l) {
+    (l, e, r)
+  } else {
+    let Node(_, (ll, le, lr)) = l;
+    if is_single(&lr, &ll) {
+      (ll, le, Node::new(lr, e, r))
+    } else {
+      let Node(_, (lrl, lre, lrr)) = lr;
+      (Node::new(ll, le, lrl), lre, Node::new(lrr, e, r))
+    }
+  }
+}
+
+fn merge_balanced[K, V](cmp: Cmp[K], left: Node[K, V], right: Node[K, V]) -> NodeData[K, V] {
+  if left.size() == 0 {
+    let Node(_, data) = right;
+    data
+  } else if right.size() == 0 {
+    let Node(_, data) = left;
+    data
+  } else if left.size() > right.size() {
+    let entry = left.remove_max(cmp);
+    (left, entry, right)
+  } else {
+    let entry = right.remove_min(cmp);
+    (left, entry, right)
+  }
+}
+
+fn is_balanced[K, V](&Node(a, _): &Node[K, V], &Node(b, _): &Node[K, V]) -> Bool {
+  3 * a + 2 >= b
+}
+
+fn is_single[K, V](&Node(a, _): &Node[K, V], &Node(b, _): &Node[K, V]) -> Bool {
+  a <= 2 * b
+}
+
+fn size[K, V](&(Node(l, _), _, Node(r, _)): &NodeData[K, V]) -> N32 {
+  l + r + 1
+}

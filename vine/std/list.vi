@@ -1,5 +1,5 @@
 
-use std::option::Option::{Option, Some, None};
+use std::{option::Option::{Option, Some, None}, map::{Cmp, Ord}};
 
 #[builtin = "List"]
 pub struct List[T](N32, Buf[T], ~Buf[T]);
@@ -11,6 +11,16 @@ pub type String = List[Char];
 pub mod List {
   pub fn len[T](&List(len, _, _): &List[T]) -> N32 {
     len
+  }
+
+  pub fn get[T](&List(len, *buf, _): &List[T], i: N32) -> &T {
+    while i != 0 {
+      let &Buf(_, *tail) = buf;
+      buf = tail;
+      i -= 1;
+    }
+    let &Buf(*head, _) = buf;
+    head
   }
 
   pub fn map[T, U](List(l, buf, ~_): List[T], f: fn(T) -> U) -> List[U] {
@@ -55,6 +65,17 @@ pub mod List {
     list = [el] ++ list;
   }
 
+  pub fn insert[T](&List(len, *buf, _): &List[T], i: N32, el: T) {
+    len += 1;
+    while i != 0 {
+      let &Buf(_, *tail) = buf;
+      buf = tail;
+      i -= 1;
+    }
+    let &buf = buf;
+    buf = Buf(el, buf);
+  }
+
   pub fn join(list: List[String], sep: String) -> String {
     let it = list.into_iter();
     if it.next() is Some(str) {
@@ -69,6 +90,23 @@ pub mod List {
 
   pub fn to_string[T](list: List[T], elem_to_string: fn(T) -> String) -> String {
     "[" ++ list.map(elem_to_string).join(", ") ++ "]"
+  }
+
+  pub fn sort_by[T](&self: &List[T], cmp: fn(&T, &T) -> Bool) {
+    let output = [];
+    while self.pop_front() is Some(a) {
+      let left = [];
+      while output.pop_front() is Some(b) {
+        if cmp(&a, &b) {
+          output.push_front(b);
+          break;
+        } else {
+          left.push_back(b);
+        }
+      }
+      output = left ++ [a] ++ output;
+    }
+    self = output;
   }
 
   pub struct Iter[T](N32, &Buf[T]);
@@ -89,6 +127,8 @@ pub mod List {
         None
       }
     }
+
+    pub fn drop[T](&move Iter(_, &_): &Iter[T]) {}
   }
 
   pub struct IntoIter[T](N32, Buf[T]);
@@ -109,4 +149,108 @@ pub mod List {
       }
     }
   }
+
+  pub fn split(self: String, sep: String) -> List[String] {
+    let list = [];
+    loop {
+      let (found, remaining) = self.split_once(sep);
+      list ++= [found];
+      if remaining is Some(remaining) {
+        self = remaining;
+      } else {
+        return list;
+      }
+    }
+  }
+
+  pub fn split_trim(self: String, sep: String) -> List[String] {
+    let list = [];
+    let start = true;
+    let ~end = true;
+    loop {
+      let (found, remaining) = self.split_once(sep);
+      let empty = found.len() == 0;
+      start = empty && start;
+      if !start && !~end {
+        list ++= [found];
+      }
+      ~end ~= empty && ~end;
+      if remaining is Some(remaining) {
+        self = remaining;
+      } else {
+        return list;
+      }
+    }
+  }
+
+  pub fn split_once(self: String, sep: String) -> (String, Option[String]) {
+    let prefix = "";
+    let suffix = self;
+    while suffix.len() >= sep.len() {
+      let iter_a = sep.iter();
+      let iter_b = suffix.iter();
+      do.check {
+        while iter_a.next() is Some(&a) && iter_b.next() is Some(&b) {
+          // #112
+          let &_ = &sep;
+          if a != b {
+            break.check;
+          }
+        }
+        let Iter(len, &buf) = move iter_b;
+        let List(_, _, end) = suffix;
+        return (prefix, Some(List(len, move buf, end)));
+      }
+      iter_a.drop();
+      iter_b.drop();
+      if suffix.pop_front() is Some(char) {
+        prefix ++= [char];
+      } else {
+        break;
+      }
+    }
+    (prefix ++ suffix, None)
+  }
+
+  pub fn eq(&self: &String, &other: &String) -> Bool {
+    if self.len() != other.len() {
+      return false;
+    }
+    let iter_a = self.iter();
+    let iter_b = other.iter();
+    while iter_a.next() is Some(&a) && iter_b.next() is Some(&b) {
+      if a != b {
+        return false;
+      }
+    }
+    true
+  }
+
+  pub fn cmp[T](cmp_el: Cmp[T]) -> Cmp[List[T]] {
+    (
+      fn(&a: &List[T], &b: &List[T]) {
+        let a = a.iter();
+        let b = b.iter();
+        let ord = loop {
+          match (a.next(), b.next()) {
+            (None, None) => break Ord::Eq,
+            (None, Some(_)) => break Ord::Lt,
+            (Some(_), None) => break Ord::Gt,
+            (Some(a), Some(b)) => match cmp_el(a, b) {
+              Ord::Lt => break Ord::Lt,
+              Ord::Eq => {},
+              Ord::Gt => break Ord::Gt,
+            },
+          }
+        };
+        a.drop();
+        b.drop();
+        ord
+      }
+    )
+  }
+}
+
+pub mod String {
+  pub const cmp: Cmp[String] = List::cmp(Char::cmp);
 }

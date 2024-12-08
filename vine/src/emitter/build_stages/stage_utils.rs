@@ -67,7 +67,11 @@ impl<'core> Emitter<'core, '_> {
     let fork = self.forks.pop().unwrap();
     debug_assert!(l == self.forks.next_index());
     if fork.divergence < l {
-      self.diverge(fork.divergence);
+      let divergence = self.cur.divergence.min(fork.divergence);
+      self.cur.divergence = divergence;
+      let i = self.new_interface();
+      self.start_stage(i);
+      self.cur.divergence = divergence;
       for &c in &fork.ends {
         let port = self.stage_port(self.cur_id);
         let i = self.cur.outer;

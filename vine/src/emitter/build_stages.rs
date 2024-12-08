@@ -67,10 +67,16 @@ impl<'core> Emitter<'core, '_> {
       ExprKind::F32(num) => Port::F32(*num),
       ExprKind::Char(char) => Port::N32(*char as u32),
       ExprKind::Path(path) => Port::Global(path.path.to_string()),
-      ExprKind::Assign(s, v) => {
-        let v = self.emit_expr_value(v);
-        let s = self.emit_expr_space(s);
-        self.net.link(v, s);
+      ExprKind::Assign(i, s, v) => {
+        if *i {
+          let s = self.emit_expr_space(s);
+          let v = self.emit_expr_value(v);
+          self.net.link(v, s);
+        } else {
+          let v = self.emit_expr_value(v);
+          let s = self.emit_expr_space(s);
+          self.net.link(v, s);
+        }
         Port::Erase
       }
       ExprKind::Block(block) => self.emit_block(block),
@@ -178,11 +184,11 @@ impl<'core> Emitter<'core, '_> {
           expr,
           &|self_| {
             self_.set_local_to(result, Port::N32(1));
-            true
+            false
           },
           &|self_| {
             self_.set_local_to(result, Port::N32(0));
-            true
+            false
           },
         );
         self.move_local(result)

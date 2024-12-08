@@ -130,6 +130,7 @@ impl<'core> Emitter<'core, '_> {
               }
               let root = self_.net.new_wire();
               let inner = self_.apply_combs("enum", root.0, case.vars.iter(), Self::set_local);
+              self_.cur.header = Some((root.1, inner));
               let should_fallback = case.body.is_none();
               let mut end = false;
               if let Some(tree) = case.body {
@@ -139,7 +140,6 @@ impl<'core> Emitter<'core, '_> {
                 let r = self_.make_enum(adt_def, v, case.vars.iter(), Self::fin_move_local);
                 self_.set_local_to(var.local, r);
               }
-              self_.cur.header = Some((root.1, inner));
               if should_fallback {
                 if let Some(stage) = fallback_stage {
                   self_.goto(stage);

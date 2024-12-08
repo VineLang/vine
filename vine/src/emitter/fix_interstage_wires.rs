@@ -28,7 +28,9 @@ impl<'core> Emitter<'core, '_> {
               if h != i {
                 let local = self.locals.next();
                 a[h.0].steps.push_front(Step::Set(local, Port::Wire(w)));
-                new_steps.push_back(Step::Move(local, Port::Wire(w)));
+                let w = self.net.new_wire();
+                new_steps.push_back(Step::Move(local, w.0));
+                *p = w.1;
               }
             }
             Entry::Vacant(e) => {

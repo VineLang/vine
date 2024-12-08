@@ -1,0 +1,179 @@
+
+use std::option::Option::{Option, Some, None};
+
+pub struct Array[T](N32, Node[T]);
+
+pub mod Array {
+  pub const empty[T]: Array[T] = Array(0, ~_);
+
+  pub fn single[T](value: T) -> Array[T] {
+    Array(1, Node::leaf(value))
+  }
+
+  pub fn new[T](len: N32, value: T) -> Array[T] {
+    Array(len, Node::new(len, value))
+  }
+
+  pub fn from_list[T](list: List[T]) -> Array[T] {
+    let array = Array::empty;
+    while list.pop_front() is Some(value) {
+      array.push_back(value);
+    }
+    array
+  }
+
+  pub fn to_list[T](array: Array[T]) -> List[T] {
+    let list = [];
+    while array.pop_front() is Some(value) {
+      list.push_back(value);
+    }
+    list
+  }
+
+  pub fn len[T](&Array(len, _): &Array[T]) -> N32 {
+    len
+  }
+
+  pub fn get[T](&Array(len, *node): &Array[T], i: N32) -> &T {
+    let size = len;
+    while size > 1 {
+      (node, size) = Node::half(node, size, i % 2);
+      i /= 2;
+    }
+    (*node).as_leaf()
+  }
+
+  pub fn push_back[T](&Array(len, *node): &Array[T], value: T) {
+    if len == 0 {
+      let &node = node;
+      node = Node::leaf(value)
+    } else {
+      let size = len;
+      while size > 1 {
+        (node, size) = Node::half(node, size, size % 2);
+      }
+      let &node = node;
+      node = Node(node, Node::leaf(value));
+    }
+    len += 1;
+  }
+
+  pub fn push_front[T](&Array(len, *node): &Array[T], value: T) {
+    if len == 0 {
+      let &node = node;
+      node = Node::leaf(value)
+    } else {
+      let size = len;
+      while size > 1 {
+        let &Node(left, right) = node;
+        (left, right) = (right, left);
+        node = &left;
+        size = size / 2;
+      }
+      let &node = node;
+      node = Node(Node::leaf(value), node);
+    }
+    len += 1;
+  }
+
+  pub fn pop_back[T](&Array(len, *node): &Array[T]) -> Option[T] {
+    if len == 0 {
+      None
+    } else if len == 1 {
+      len = 0;
+      Some((move *node).to_leaf())
+    } else {
+      let size = len;
+      len -= 1;
+      loop {
+        let parity = (size - 1) % 2;
+        let &parent = node;
+        (node, size) = Node::half(&parent, size, parity);
+        if size == 1 {
+          let value = (move *node).to_leaf();
+          let Node(left, right) = parent;
+          parent = if parity == 0 {
+            right
+          } else {
+            left
+          };
+          return Some(value)
+        }
+      }
+    }
+  }
+
+  pub fn pop_front[T](&Array(len, *node): &Array[T]) -> Option[T] {
+    if len == 0 {
+      None
+    } else if len == 1 {
+      len = 0;
+      Some((move *node).to_leaf())
+    } else {
+      let size = len;
+      len -= 1;
+      loop {
+        let &parent = node;
+        let &Node(left, right) = &parent;
+        (left, right) = (right, left);
+        node = &right;
+        size = (size + 1) / 2;
+        if size == 1 {
+          let value = (move *node).to_leaf();
+          parent = move left;
+          return Some(value)
+        }
+      }
+    }
+  }
+
+  pub fn reverse[T](&Array(len, node): &Array[T]) {
+    node.reverse(len)
+  }
+
+  pub fn reversed[T](self: Array[T]) -> Array[T] {
+    self.reverse();
+    self
+  }
+}
+
+struct Node[T](Node[T], Node[T]);
+
+mod Node {
+  pub inline_ivy! to_leaf[T]: fn(Node[T]) -> T { fn(x x) }
+  pub inline_ivy! as_leaf[T]: fn(&Node[T]) -> &T { fn(x x) }
+  pub inline_ivy! leaf[T]: fn(T) -> Node[T] { fn(x x) }
+
+  pub fn new[T](len: N32, value: T) -> Node[T] {
+    if len == 1 {
+      Node::leaf(value)
+    } else {
+      Node(Node::new((len + 1) / 2, value), Node::new(len / 2, value))
+    }
+  }
+
+  pub fn half[T](&Node(l, r): &Node[T], len: N32, x: N32) -> (&Node[T], N32) {
+    if x == 0 {
+      (&l, (len + 1) / 2)
+    } else {
+      (&r, len / 2)
+    }
+  }
+
+  pub fn swap[T](&Node(l, r): &Node[T], x: N32) {
+    if x == 0 {
+      (l, r) = (r, l);
+    }
+  }
+
+  pub fn reverse[T](&self: &Node[T], len: N32) {
+    if len > 1 {
+      let &Node(left, right) = &self;
+      if len % 2 == 0 {
+        (left, right) = (right, left);
+      }
+      left.reverse((len + 1) / 2);
+      right.reverse(len / 2);
+    }
+  }
+}

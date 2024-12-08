@@ -533,7 +533,13 @@ impl<'core, 'src> VineParser<'core, 'src> {
 
     if bp.permits(BP::Assignment) && self.eat(Token::Eq)? {
       let rhs = self.parse_expr_bp(BP::Assignment)?;
-      return Ok(Ok(ExprKind::Assign(Box::new(lhs), Box::new(rhs))));
+      return Ok(Ok(ExprKind::Assign(false, Box::new(lhs), Box::new(rhs))));
+    }
+
+    if bp.permits(BP::Assignment) && self.eat(Token::Tilde)? {
+      self.expect(Token::Eq)?;
+      let rhs = self.parse_expr_bp(BP::Assignment)?;
+      return Ok(Ok(ExprKind::Assign(true, Box::new(lhs), Box::new(rhs))));
     }
 
     if self.eat(Token::Dot)? {

@@ -1,8 +1,10 @@
 
-use std::{list::Buf, option::Option::{Option, Some, None}};
+use std::{list::Buf, option::Option::{Option, Some, None}, map::Ord};
 
 #[builtin = "N32"]
 pub mod N32 {
+  pub const maximum: N32 = 0xffffffff;
+
   pub fn to_string(n: N32) -> String {
     if n != 0 {
       let str = "";
@@ -42,5 +44,67 @@ pub mod N32 {
 
   pub inline_ivy! rotate_right: fn(N32, N32) -> N32 {
     fn(@n32_rotr(x y) fn(x y))
+  }
+
+  pub fn ascending(&a: &N32, &b: &N32) -> Bool {
+    a < b
+  }
+
+  pub fn descending(&a: &N32, &b: &N32) -> Bool {
+    b < a
+  }
+
+  pub fn cmp(&a: &N32, &b: &N32) -> Ord {
+    if a < b {
+      Ord::Lt
+    } else if a > b {
+      Ord::Gt
+    } else {
+      Ord::Eq
+    }
+  }
+
+  pub fn min(a: N32, b: N32) -> N32 {
+    if a < b {
+      a
+    } else {
+      b
+    }
+  }
+
+  pub fn max(a: N32, b: N32) -> N32 {
+    if a > b {
+      a
+    } else {
+      b
+    }
+  }
+
+  pub fn diff(a: N32, b: N32) -> N32 {
+    if a > b {
+      a - b
+    } else {
+      b - a
+    }
+  }
+
+  pub fn gcd(a: N32, b: N32) -> N32 {
+    while a != 0 {
+      (a, b) = (b % a, a)
+    }
+    b
+  }
+
+  pub fn sqrt(n: N32) -> N32 {
+    let r = 0x8000;
+    let s = 0;
+    while r != 0 {
+      let m = s + r;
+      if m * m <= n {
+        s = m;
+      }
+      r >>= 1;
+    }
+    s
   }
 }

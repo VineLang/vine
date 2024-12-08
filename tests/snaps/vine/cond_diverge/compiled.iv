@@ -1,0 +1,63 @@
+
+::main { ::cond_diverge::main }
+
+::cond_diverge::main {
+  fn(n1 _)
+  ::std::io::IO::println = fn(n1 fn(n3 _))
+  ::cond_diverge::main::1 = x(tup(4 tup(tup(97 tup(98 tup(99 tup(100 n0)))) n0)) n3)
+}
+
+::cond_diverge::main::1 {
+  x(n0 n2)
+  ::std::list::List::pop_front = fn(ref(n0 n1) enum(::cond_diverge::main::4 enum(::cond_diverge::main::10 x(n1 n2))))
+}
+
+::cond_diverge::main::4 { enum(dup3(@eq(97 ?(::cond_diverge::main::7 ::cond_diverge::main::6 x(n0 x(n1 n2)))) n2) x(n0 n1)) }
+
+::cond_diverge::main::6 {
+  x(n0 x(n1 _))
+  ::cond_diverge::main::1 = x(n0 n1)
+}
+
+::cond_diverge::main::7 { x(n0 x(n1 @eq(98 ?(::cond_diverge::main::9 ::cond_diverge::main::1 x(n0 n1))))) }
+
+::cond_diverge::main::9 { x(n0 n0) }
+
+::cond_diverge::main::10 { x(n0 n0) }
+
+::std::io::IO::println {
+  fn(ref(n0 n3) fn(n1 _))
+  ::std::io::IO::print = fn(ref(n0 n2) fn(n1 _))
+  ::std::io::IO::print_char = fn(ref(n2 n3) fn(10 _))
+}
+
+::std::io::IO::print {
+  fn(ref(n0 n1) fn(tup(n2 tup(n3 _)) _))
+  ::std::io::IO::print::1 = x(n0 x(n1 x(n2 n3)))
+}
+
+::std::io::IO::print::1 { x(n0 x(n1 x(dup139(?(::std::io::IO::print::3 ::std::io::IO::print::2 x(n0 x(n1 x(n3 n2)))) n3) n2))) }
+
+::std::io::IO::print::2 {
+  x(n1 x(n3 x(@sub(1 n4) tup(n0 n5))))
+  ::std::io::IO::print_char = fn(ref(n1 n2) fn(n0 _))
+  ::std::io::IO::print::1 = x(n2 x(n3 x(n4 n5)))
+}
+
+::std::io::IO::print::3 { x(n0 x(n0 _)) }
+
+::std::io::IO::print_char { fn(ref(@io_print_char(char io) io) fn(char _)) }
+
+::std::list::List::pop_front { fn(ref(tup(dup198(?(::std::list::List::pop_front::2 ::std::list::List::pop_front::1 x(n1 x(n2 x(n3 x(n4 n5))))) n1) tup(n3 n0)) tup(n2 tup(n4 n0))) n5) }
+
+::std::list::List::pop_front::1 {
+  x(@sub(1 n1) x(n1 x(tup(n0 n2) x(n2 n3))))
+  ::std::option::Option::Some = fn(n0 n3)
+}
+
+::std::list::List::pop_front::2 { x(n0 x(n0 x(n1 x(n1 ::std::option::Option::None)))) }
+
+::std::option::Option::Some { fn(n0 enum(enum(n0 n1) enum(_ n1))) }
+
+::std::option::Option::None { enum(_ enum(n0 n0)) }
+
