@@ -1,0 +1,44 @@
+
+use std::{array::Array, option::Option::Some};
+
+const max: N32 = 1_000_000;
+
+pub fn main(&io: &IO) {
+  let sqrt = max.sqrt();
+  let array = Array::new(sqrt - 2, true);
+  let offset = 2;
+  let primes = [];
+  while array.pop_front() is Some(prime) {
+    let n = offset;
+    offset += 1;
+    if prime {
+      io.println(n.to_string());
+      primes.push_back(n);
+      let i = n * n;
+      while i < sqrt {
+        *array.get(i - offset) = false;
+        i += n;
+      }
+    }
+  }
+  while offset < max {
+    let top = N32::min(offset + sqrt, max);
+    let array = Array::new(top - offset, true);
+    let iter = primes.into_iter();
+    while iter.next() is Some(prime) {
+      let i = N32::max(prime * prime, ((offset - 1) / prime + 1) * prime);
+      while i < top {
+        *array.get(i - offset) = false;
+        i += prime;
+      }
+    }
+    let n = offset;
+    while array.pop_front() is Some(prime) {
+      if prime {
+        io.println(n.to_string());
+      }
+      n += 1;
+    }
+    offset += sqrt;
+  }
+}
