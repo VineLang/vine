@@ -1,0 +1,21 @@
+
+use std::{array::Array, option::Option::Some};
+
+const max: N32 = 100_000;
+
+pub fn main(&io: &IO) {
+  let array = Array::new(max - 2, true);
+  let offset = 2;
+  while array.pop_front() is Some(prime) {
+    let n = offset;
+    offset += 1;
+    if prime {
+      io.println(n.to_string());
+      let i = n * n;
+      while i < max {
+        *array.get(i - offset) = false;
+        i += n;
+      }
+    }
+  }
+}
