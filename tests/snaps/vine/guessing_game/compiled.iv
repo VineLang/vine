@@ -1,0 +1,316 @@
+
+::main { ::guessing_game::main }
+
+::guessing_game::main {
+  fn(ref(n0 n15) _)
+  ::std::io::IO::prompt = fn(ref(n0 n12) fn(tup(14 tup(tup(69 tup(110 tup(116 tup(101 tup(114 tup(32 tup(97 tup(32 tup(115 tup(101 tup(101 tup(100 tup(58 tup(32 n1)))))))))))))) n1)) n2))
+  ::std::option::Option::unwrap = fn(n2 n3)
+  ::std::rng::Rng::seeded = fn(n3 n5)
+  ::std::rng::Rng::gen_n32 = fn(ref(n5 _) @rem(n17 n6))
+  1 = @add(n6 n16)
+  ::std::io::IO::println = fn(ref(n13 n14) fn(n11 _))
+  ::std::n32::N32::to_string = fn(n18 n8)
+  ::std::list::List::concat = fn(tup(39 tup(tup(73 tup(39 tup(109 tup(32 tup(116 tup(104 tup(105 tup(110 tup(107 tup(105 tup(110 tup(103 tup(32 tup(111 tup(102 tup(32 tup(97 tup(32 tup(110 tup(117 tup(109 tup(98 tup(101 tup(114 tup(32 tup(98 tup(101 tup(116 tup(119 tup(101 tup(101 tup(110 tup(32 tup(49 tup(32 tup(97 tup(110 tup(100 tup(32 n7))))))))))))))))))))))))))))))))))))))) n7)) fn(n8 n10))
+  ::std::list::List::concat = fn(n10 fn(tup(1 tup(tup(46 n9) n9)) n11))
+  ::guessing_game::main::1 = x(n12 x(n13 fn(tup(24 tup(tup(69 tup(110 tup(116 tup(101 tup(114 tup(32 tup(97 tup(32 tup(109 tup(97 tup(120 tup(105 tup(109 tup(117 tup(109 tup(32 tup(110 tup(117 tup(109 tup(98 tup(101 tup(114 tup(58 tup(32 n4)))))))))))))))))))))))) n4)) dup8(n17 n18))))
+  ::guessing_game::main::11 = x(n14 x(n15 x(0 n16)))
+}
+
+::guessing_game::main::1 {
+  x(n0 x(n1 fn(n2 n3)))
+  ::guessing_game::main::2 = x(n0 x(n1 x(n2 n3)))
+}
+
+::guessing_game::main::2 {
+  x(n0 x(n2 x(dup4(n4 n5) n3)))
+  ::std::io::IO::prompt = fn(ref(n0 n1) fn(n4 enum(::guessing_game::main::4 enum(::guessing_game::main::2 x(n1 x(n2 x(n5 n3)))))))
+}
+
+::guessing_game::main::4 {
+  enum(n0 n1)
+  ::std::n32::N32::parse = fn(n0 enum(::guessing_game::main::5 enum(::guessing_game::main::2 n1)))
+}
+
+::guessing_game::main::5 { enum(n1 x(n0 x(n0 x(_ n1)))) }
+
+::guessing_game::main::11 {
+  x(n1 x(n3 x(@add(1 n4) dup9(n5 n6))))
+  ::guessing_game::main::1 = x(n1 x(n2 fn(tup(18 tup(tup(69 tup(110 tup(116 tup(101 tup(114 tup(32 tup(121 tup(111 tup(117 tup(114 tup(32 tup(103 tup(117 tup(101 tup(115 tup(115 tup(58 tup(32 n0)))))))))))))))))) n0)) dup10(@lt(n5 ?(::guessing_game::main::13 ::guessing_game::main::12 x(n2 x(n3 x(n4 x(n6 n7)))))) n7))))
+}
+
+::guessing_game::main::12 {
+  x(n1 x(n3 x(n4 x(n5 _))))
+  ::std::io::IO::println = fn(ref(n1 n2) fn(tup(8 tup(tup(84 tup(111 tup(111 tup(32 tup(108 tup(111 tup(119 tup(46 n0)))))))) n0)) _))
+  ::guessing_game::main::20 = x(n2 x(n3 x(n4 x(n5 _))))
+}
+
+::guessing_game::main::13 { x(n0 x(n1 x(n2 x(dup9(n3 n4) @lt$(n3 ?(::guessing_game::main::15 ::guessing_game::main::14 x(n0 x(n1 x(n2 n4))))))))) }
+
+::guessing_game::main::14 {
+  x(n1 n3)
+  ::std::io::IO::println = fn(ref(n1 n2) fn(tup(9 tup(tup(84 tup(111 tup(111 tup(32 tup(104 tup(105 tup(103 tup(104 tup(46 n0))))))))) n0)) _))
+  ::guessing_game::main::19 = x(n2 n3)
+}
+
+::guessing_game::main::15 {
+  x(n2 x(n3 x(dup7(@eq(1 ?(::guessing_game::main::17 ::guessing_game::main::16 x(n5 n4))) n5) _)))
+  ::std::io::IO::println = fn(ref(n2 n3) fn(n1 _))
+  ::std::list::List::concat = fn(tup(11 tup(tup(89 tup(111 tup(117 tup(32 tup(103 tup(111 tup(116 tup(32 tup(105 tup(116 tup(32 n0))))))))))) n0)) fn(n4 n1))
+}
+
+::guessing_game::main::16 { x(_ tup(13 tup(tup(105 tup(109 tup(109 tup(101 tup(100 tup(105 tup(97 tup(116 tup(101 tup(108 tup(121 tup(63 tup(33 n0))))))))))))) n0))) }
+
+::guessing_game::main::17 {
+  x(n4 n5)
+  ::std::n32::N32::to_string = fn(n4 n1)
+  ::std::list::List::concat = fn(tup(3 tup(tup(105 tup(110 tup(32 n0))) n0)) fn(n1 n3))
+  ::std::list::List::concat = fn(n3 fn(tup(9 tup(tup(32 tup(103 tup(117 tup(101 tup(115 tup(115 tup(101 tup(115 tup(33 n2))))))))) n2)) n5))
+}
+
+::guessing_game::main::19 {
+  x(n0 x(n1 x(n2 n3)))
+  ::guessing_game::main::20 = x(n0 x(n1 x(n2 x(n3 _))))
+}
+
+::guessing_game::main::20 {
+  x(n0 x(n1 x(n2 x(n3 _))))
+  ::guessing_game::main::11 = x(n0 x(n1 x(n2 n3)))
+}
+
+::std::char::Char::as_n32 { fn(x x) }
+
+::std::io::IO::println {
+  fn(ref(n0 n3) fn(n1 _))
+  ::std::io::IO::print = fn(ref(n0 n2) fn(n1 _))
+  ::std::io::IO::print_char = fn(ref(n2 n3) fn(10 _))
+}
+
+::std::io::IO::print {
+  fn(ref(n0 n1) fn(tup(n2 tup(n3 _)) _))
+  ::std::io::IO::print::1 = x(n0 x(n1 x(n2 n3)))
+}
+
+::std::io::IO::print::1 { x(n0 x(n1 x(dup154(?(::std::io::IO::print::3 ::std::io::IO::print::2 x(n0 x(n1 x(n3 n2)))) n3) n2))) }
+
+::std::io::IO::print::2 {
+  x(n1 x(n3 x(@sub(1 n4) tup(n0 n5))))
+  ::std::io::IO::print_char = fn(ref(n1 n2) fn(n0 _))
+  ::std::io::IO::print::1 = x(n2 x(n3 x(n4 n5)))
+}
+
+::std::io::IO::print::3 { x(n0 x(n0 _)) }
+
+::std::io::IO::print_char { fn(ref(@io_print_char(char io) io) fn(char _)) }
+
+::std::io::IO::flush { fn(ref(@io_flush(0 io) io) _) }
+
+::std::io::IO::prompt {
+  fn(ref(n0 n4) fn(n1 n5))
+  ::std::io::IO::print = fn(ref(n0 n2) fn(n1 _))
+  ::std::io::IO::flush = fn(ref(n2 n3) _)
+  ::std::io::IO::read_line = fn(ref(n3 n4) n5)
+}
+
+::std::io::IO::read_line {
+  fn(ref(n0 n2) n3)
+  ::std::io::IO::read_byte = fn(ref(n0 n1) fn(0 dup175(@ne(0 ?(::std::io::IO::read_line::9 ::std::io::IO::read_line::1 x(n1 x(n2 x(n4 n3))))) n4)))
+}
+
+::std::io::IO::read_line::1 {
+  x(n1 x(n2 x(dup175(@eq(10 ?(::std::io::IO::read_line::3 ::std::io::IO::read_line::2 x(n1 x(n2 x(n4 n3))))) n4) n0)))
+  ::std::option::Option::Some = fn(n3 n0)
+}
+
+::std::io::IO::read_line::2 { x(n1 x(n1 x(_ tup(0 tup(n0 n0))))) }
+
+::std::io::IO::read_line::3 {
+  x(n2 x(n3 x(n1 n4)))
+  ::std::io::IO::read_line::4 = x(n2 x(n3 x(tup(1 tup(tup(n1 n0) n0)) n4)))
+}
+
+::std::io::IO::read_line::4 {
+  x(n0 x(n2 n3))
+  ::std::io::IO::read_byte = fn(ref(n0 n1) fn(10 dup175(@ne(10 ?(::std::io::IO::read_line::6 ::std::io::IO::read_line::5 x(n1 x(n2 x(n5 n3))))) n5)))
+}
+
+::std::io::IO::read_line::5 {
+  x(n3 x(n4 x(n1 x(n2 n6))))
+  ::std::list::List::concat = fn(n2 fn(tup(1 tup(tup(n1 n0) n0)) n5))
+  ::std::io::IO::read_line::4 = x(n3 x(n4 x(n5 n6)))
+}
+
+::std::io::IO::read_line::6 { x(n0 x(n0 x(_ x(n1 n1)))) }
+
+::std::io::IO::read_line::9 { x(n0 x(n0 x(_ ::std::option::Option::None))) }
+
+::std::io::IO::read_byte { fn(ref(dup(io0 @io_read_byte(default dup(byte @seq$(io0 io1)))) io1) fn(default byte)) }
+
+::std::list::List { fn(n0 fn(n1 fn(n2 tup(n0 tup(n1 n2))))) }
+
+::std::list::List::concat {
+  fn(tup(@add(n1 n2) tup(n3 n0)) fn(tup(n1 tup(n0 n4)) n5))
+  ::std::list::List = fn(n2 fn(n3 fn(n4 n5)))
+}
+
+::std::list::List::IntoIter { fn(n0 fn(n1 tup(n0 n1))) }
+
+::std::list::List::into_iter {
+  fn(tup(n0 tup(n1 _)) n2)
+  ::std::list::List::IntoIter = fn(n0 fn(n1 n2))
+}
+
+::std::list::List::IntoIter::next { fn(ref(tup(dup296(?(::std::list::List::IntoIter::next::2 ::std::list::List::IntoIter::next::1 x(n0 x(n1 x(n2 x(n3 n4))))) n0) n2) tup(n1 n3)) n4) }
+
+::std::list::List::IntoIter::next::1 {
+  x(@sub(1 n1) x(n1 x(tup(n0 n2) x(n2 n3))))
+  ::std::option::Option::Some = fn(n0 n3)
+}
+
+::std::list::List::IntoIter::next::2 { x(n0 x(n0 x(n1 x(n1 ::std::option::Option::None)))) }
+
+::std::n32::N32::to_string { fn(dup656(?(::std::n32::N32::to_string::5 ::std::n32::N32::to_string::1 x(n1 n0)) n1) n0) }
+
+::std::n32::N32::to_string::1 {
+  x(n1 n2)
+  ::std::n32::N32::to_string::2 = x(n1 x(tup(0 tup(n0 n0)) n2))
+}
+
+::std::n32::N32::to_string::2 { x(dup656(?(::std::n32::N32::to_string::4 ::std::n32::N32::to_string::3 x(n2 n0)) n2) n0) }
+
+::std::n32::N32::to_string::3 {
+  x(dup656(@rem(10 n0) @div(10 n4)) x(n3 n6))
+  48 = @add(n0 n1)
+  ::std::list::List::concat = fn(tup(1 tup(tup(n1 n2) n2)) fn(n3 n5))
+  ::std::n32::N32::to_string::2 = x(n4 x(n5 n6))
+}
+
+::std::n32::N32::to_string::4 { x(_ x(n0 n0)) }
+
+::std::n32::N32::to_string::5 { x(_ tup(1 tup(tup(48 n0) n0))) }
+
+::std::n32::N32::parse { fn(tup(dup663(?(::std::n32::N32::parse::10 ::std::n32::N32::parse::1 x(n2 x(n0 n1))) n2) tup(n0 _)) n1) }
+
+::std::n32::N32::parse::1 {
+  x(n0 x(n1 n2))
+  ::std::n32::N32::parse::2 = x(n0 x(n1 x(0 n2)))
+}
+
+::std::n32::N32::parse::2 { x(dup663(?(::std::n32::N32::parse::8 ::std::n32::N32::parse::3 x(n3 n0)) n3) n0) }
+
+::std::n32::N32::parse::3 {
+  x(n2 x(tup(dup666(dup(n0 @le(57 n1)) n6) n3) x(n4 n5)))
+  48 = @le(n0 @n32_and(n1 ?(::std::n32::N32::parse::5 ::std::n32::N32::parse::7 x(n2 x(n3 x(n4 x(n6 n5)))))))
+}
+
+::std::n32::N32::parse::5 { x(_ x(_ x(_ x(_ ::std::option::Option::None)))) }
+
+::std::n32::N32::parse::7 {
+  x(@sub(1 n1) x(n2 x(@mul(10 @add(n0 n3)) x(@sub(48 n0) n4))))
+  ::std::n32::N32::parse::2 = x(n1 x(n2 x(n3 n4)))
+}
+
+::std::n32::N32::parse::8 { x(_ x(_ ::std::n32::N32::parse::9)) }
+
+::std::n32::N32::parse::9 {
+  x(n0 n1)
+  ::std::option::Option::Some = fn(n0 n2)
+  ::std::n32::N32::parse::11 = x(n1 n2)
+}
+
+::std::n32::N32::parse::10 {
+  x(_ x(_ n0))
+  ::std::n32::N32::parse::11 = x(n0 ::std::option::Option::None)
+}
+
+::std::n32::N32::parse::11 { x(n0 n0) }
+
+::std::n32::N32::rotate_right { fn(@n32_rotr(x y) fn(x y)) }
+
+::std::n64::N64 { fn(n0 fn(n1 tup(n0 n1))) }
+
+::std::n64::N64::from_n32 {
+  fn(n0 n1)
+  ::std::n64::N64 = fn(n0 fn(0 n1))
+}
+
+::std::n64::N64::add { fn(tup(dup(@add(bl0 l) @n32_add_high(bl1 c)) @add(bh @add(c h))) fn(tup(dup(bl0 bl1) bh) tup(l h))) }
+
+::std::n64::N64::mul { fn(tup(dup(@mul(bl0 l) dup(@n32_mul_high(bl1 ll) @mul(bh @add(hl @add(ll h))))) ah) fn(tup(dup(bl0 dup(bl1 @mul(ah hl))) bh) tup(l h))) }
+
+::std::n64::N64::or {
+  fn(tup(@n32_or(n0 n1) @n32_or(n2 n3)) fn(tup(n0 n2) n4))
+  ::std::n64::N64 = fn(n1 fn(n3 n4))
+}
+
+::std::n64::N64::xor {
+  fn(tup(@n32_xor(n0 n1) @n32_xor(n2 n3)) fn(tup(n0 n2) n4))
+  ::std::n64::N64 = fn(n1 fn(n3 n4))
+}
+
+::std::option::Option::Some { fn(n0 enum(enum(n0 n1) enum(_ n1))) }
+
+::std::option::Option::None { enum(_ enum(n0 n0)) }
+
+::std::option::Option::unwrap { fn(enum(::std::option::Option::unwrap::1 enum(_ n0)) n0) }
+
+::std::option::Option::unwrap::1 { enum(n0 n0) }
+
+::std::rng::Rng { fn(n0 fn(n1 tup(n0 n1))) }
+
+::std::rng::Rng::new {
+  fn(n2 fn(n0 n6))
+  ::std::n64::N64::or = fn(n0 fn(n1 dup929(n7 dup929(n8 n9))))
+  ::std::n64::N64::from_n32 = fn(1 n1)
+  ::std::n64::N64::add = fn(n2 fn(n7 n3))
+  ::std::n64::N64::mul = fn(n3 fn(::std::rng::Rng::multiplier n4))
+  ::std::n64::N64::add = fn(n4 fn(n8 n5))
+  ::std::rng::Rng = fn(n5 fn(n9 n6))
+}
+
+::std::rng::Rng::default {
+  n2
+  ::std::n64::N64 = fn(3512640997 fn(3405705229 n0))
+  ::std::rng::Rng::new = fn(n0 fn(n1 n2))
+  ::std::n64::N64 = fn(4150755663 fn(335903614 n1))
+}
+
+::std::rng::Rng::multiplier {
+  n0
+  ::std::n64::N64 = fn(1284865837 fn(1481765933 n0))
+}
+
+::std::rng::Rng::gen_n32 {
+  fn(ref(tup(dup934(tup(@n32_shr(27 n3) dup937(@n32_shr(13 @n32_xor(n2 @n32_xor(n3 n4))) dup937(@n32_shl(5 n2) @n32_shr(27 n5)))) n7) dup935(n8 n9)) tup(n1 n9)) n6)
+  ::std::n64::N64::mul = fn(n7 fn(::std::rng::Rng::multiplier n0))
+  ::std::n64::N64::add = fn(n0 fn(n8 n1))
+  ::std::n32::N32::rotate_right = fn(n4 fn(n5 n6))
+}
+
+::std::rng::Rng::mix {
+  fn(ref(tup(n0 dup941(n6 n7)) tup(n5 n7)) fn(n1 _))
+  ::std::n64::N64::xor = fn(n0 fn(n2 n3))
+  ::std::n64::N64 = fn(0 fn(n1 n2))
+  ::std::n64::N64::mul = fn(n3 fn(::std::rng::Rng::multiplier n4))
+  ::std::n64::N64::add = fn(n4 fn(n6 n5))
+}
+
+::std::rng::Rng::seeded {
+  fn(n0 n1)
+  ::std::list::List::into_iter = fn(n0 n2)
+  ::std::rng::Rng::seeded::1 = x(::std::rng::Rng::default x(n1 n2))
+}
+
+::std::rng::Rng::seeded::1 {
+  x(n1 x(n2 n0))
+  ::std::list::List::IntoIter::next = fn(ref(n0 n3) enum(::std::rng::Rng::seeded::2 enum(::std::rng::Rng::seeded::3 x(n1 x(n2 n3)))))
+}
+
+::std::rng::Rng::seeded::2 {
+  enum(n0 x(n2 n4))
+  ::std::rng::Rng::mix = fn(ref(n2 n3) fn(n1 _))
+  ::std::char::Char::as_n32 = fn(n0 n1)
+  ::std::rng::Rng::seeded::1 = x(n3 n4)
+}
+
+::std::rng::Rng::seeded::3 { x(n0 x(n0 _)) }
+

@@ -1,0 +1,8 @@
+Enter a seed: Enter a maximum number: Enter a maximum number: I'm thinking of a number between 1 and 100.
+Enter your guess: Too low.
+Enter your guess: Too high.
+Enter your guess: Too high.
+Enter your guess: Too low.
+Enter your guess: Too high.
+Enter your guess: Too high.
+Enter your guess: You got it in 7 guesses!

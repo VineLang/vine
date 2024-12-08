@@ -19,6 +19,7 @@ fn tests(t: &mut DynTester) {
 
   let fib_repl_input_iv = b"1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n21\n100\n999999\n";
   let fib_repl_input_vi = b"1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n21\n100\n999999\n\nabc\n";
+  let guessing_game_input = b"a seed\na maximum number\n100\n50\n75\n63\n56\n60\n58\n57";
 
   t.group("ivy", |t| {
     test_iv(t, "ivy/examples/cat.iv", b"meow\n", ".txt");
@@ -31,6 +32,7 @@ fn tests(t: &mut DynTester) {
     test_vi(t, "vine/examples/fib_repl.vi", fib_repl_input_vi, ".txt");
     test_vi(t, "vine/examples/fib.vi", b"", ".txt");
     test_vi(t, "vine/examples/fizzbuzz.vi", b"", ".txt");
+    test_vi(t, "vine/examples/guessing_game.vi", guessing_game_input, ".txt");
     test_vi(t, "vine/examples/hello_world.vi", b"", ".txt");
     test_vi(t, "vine/examples/mandelbrot_sixel.vi", b"", ".sixel");
     test_vi(t, "vine/examples/mandelbrot_tga.vi", b"", ".tga");
@@ -43,6 +45,7 @@ fn tests(t: &mut DynTester) {
     test_vi(t, "tests/programs/basic_diverge.vi", b"", ".txt");
     test_vi(t, "tests/programs/break_result.vi", b"", ".txt");
     test_vi(t, "tests/programs/classify_primes.vi", b"", ".txt");
+    test_vi(t, "tests/programs/cond_diverge.vi", b"", ".txt");
     test_vi(t, "tests/programs/cyclist.vi", b"", ".txt");
     test_vi(t, "tests/programs/final_countdown.vi", b"", ".txt");
     test_vi(t, "tests/programs/find_primes.vi", b"", ".txt");
@@ -51,11 +54,14 @@ fn tests(t: &mut DynTester) {
     test_vi(t, "tests/programs/logic.vi", b"", ".txt");
     test_vi(t, "tests/programs/loop_break_continue.vi", b"", ".txt");
     test_vi(t, "tests/programs/loop_vi_loop.vi", b"", ".txt");
+    test_vi(t, "tests/programs/map_test.vi", b"", ".txt");
     test_vi(t, "tests/programs/maybe_set.vi", b"", ".txt");
     test_vi(t, "tests/programs/move_it_move_it.vi", b"", ".txt");
     test_vi(t, "tests/programs/no_return.vi", b"", ".txt");
     test_vi(t, "tests/programs/option_party.vi", b"", ".txt");
     test_vi(t, "tests/programs/pretty_div.vi", b"", ".txt");
+    test_vi(t, "tests/programs/segmented_sieve.vi", b"", ".txt");
+    test_vi(t, "tests/programs/sieve.vi", b"", ".txt");
     test_vi(t, "tests/programs/so_random.vi", b"", ".txt");
     test_vi(t, "tests/programs/square_case.vi", b"", ".txt");
 
