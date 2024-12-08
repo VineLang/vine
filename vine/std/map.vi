@@ -135,12 +135,12 @@ mod Node {
       data = (leaf, (key, value), leaf);
       None
     } else {
-      len += 1;
       let &(left, (cur_key, cur_value), right) = &data;
       let old;
       match cmp(&key, &cur_key) {
         Ord::Lt => {
           old = left.insert(cmp, key, value);
+          len = map::size(&data);
           balance_right(&data);
         },
         Ord::Eq => {
@@ -150,6 +150,7 @@ mod Node {
         },
         Ord::Gt => {
           old = right.insert(cmp, key, value);
+          len = map::size(&data);
           balance_left(&data);
         },
       }
