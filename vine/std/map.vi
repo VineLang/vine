@@ -36,6 +36,15 @@ pub mod Map {
     node.insert(cmp, key, value)
   }
 
+  pub fn get_or_insert[K, V](&Map(cmp, node): &Map[K, V], key: K, value: V) -> &V {
+    let ~insert;
+    let old = node.insert(cmp, key, ~insert);
+    let value = old.unwrap_or(value);
+    let ref = &value;
+    ~insert = value;
+    ref
+  }
+
   pub fn get[K, V](&Map(cmp, node): &Map[K, V], &key: &K) -> Option[&V] {
     node.get(cmp, &key)
   }
