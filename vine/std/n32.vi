@@ -107,4 +107,36 @@ pub mod N32 {
     }
     s
   }
+
+  pub fn pow(b: N32, e: N32) -> N32 {
+    let n = 1;
+    while e != 0 {
+      if e % 2 != 0 {
+        n *= b;
+      }
+      b *= b;
+      e /= 2;
+    }
+    n
+  }
+
+  pub fn log(n: N32, b: N32) -> N32 {
+    let ~s = 0;
+    let r = ~s;
+    let e = 1;
+    let ~m = n;
+    while b < n {
+      let &m = &~m;
+      if b <= m {
+        ~s += e;
+        m /= b;
+      }
+      if b >= 65536 {
+        break;
+      }
+      b *= b;
+      e *= 2;
+    }
+    r
+  }
 }
