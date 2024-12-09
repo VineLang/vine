@@ -49,6 +49,14 @@ pub mod Map {
     node.get(cmp, &key)
   }
 
+  pub fn get_le[K, V](&Map(cmp, node): &Map[K, V], &key: &K) -> Option[&(K, V)] {
+    node.get_le(cmp, &key)
+  }
+
+  pub fn get_ge[K, V](&Map(cmp, node): &Map[K, V], &key: &K) -> Option[&(K, V)] {
+    node.get_ge(cmp, &key)
+  }
+
   pub fn remove[K, V](&Map(cmp, node): &Map[K, V], &key: &K) -> Option[V] {
     node.remove(cmp, &key)
   }
@@ -176,6 +184,40 @@ mod Node {
         Ord::Lt => left.get(cmp, &key),
         Ord::Eq => Some(&cur_value),
         Ord::Gt => right.get(cmp, &key),
+      }
+    }
+  }
+
+  pub fn get_le[K, V](&Node(len, data): &Node[K, V], cmp: Cmp[K], &key: &K) -> Option[&(K, V)] {
+    if len == 0 {
+      None
+    } else {
+      let &(left, (cur_key, cur_value), right) = &data;
+      match cmp(&key, &cur_key) {
+        Ord::Lt => left.get_ge(cmp, &key),
+        Ord::Eq => Some(&(cur_key, cur_value)),
+        Ord::Gt => if right.get_ge(cmp, &key) is Some(entry) {
+          Some(entry)
+        } else {
+          Some(&(cur_key, cur_value))
+        },
+      }
+    }
+  }
+
+  pub fn get_ge[K, V](&Node(len, data): &Node[K, V], cmp: Cmp[K], &key: &K) -> Option[&(K, V)] {
+    if len == 0 {
+      None
+    } else {
+      let &(left, (cur_key, cur_value), right) = &data;
+      match cmp(&key, &cur_key) {
+        Ord::Lt => if left.get_ge(cmp, &key) is Some(entry) {
+          Some(entry)
+        } else {
+          Some(&(cur_key, cur_value))
+        },
+        Ord::Eq => Some(&(cur_key, cur_value)),
+        Ord::Gt => right.get_ge(cmp, &key),
       }
     }
   }
