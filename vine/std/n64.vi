@@ -4,9 +4,9 @@ use std::{list::Buf, option::Option::{Option, Some, None}};
 pub struct N64(N32, N32);
 
 pub mod N64 {
-  const zero: N64 = N64(0, 0);
-  const one: N64 = N64(1, 0);
-  const maximum: N64 = N64(N32::maximum, N32::maximum);
+  pub const zero: N64 = N64(0, 0);
+  pub const one: N64 = N64(1, 0);
+  pub const maximum: N64 = N64(N32::maximum, N32::maximum);
 
   pub fn from_n32(val: N32) -> N64 {
     N64(val, 0)
