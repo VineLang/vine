@@ -13,6 +13,15 @@ pub mod List {
     len
   }
 
+  pub fn new[T](len: N32, value: T) -> List[T] {
+    let list = [];
+    while len > 0 {
+      list.push_back(value);
+      len -= 1;
+    }
+    list
+  }
+
   pub fn get[T](&List(len, *buf, _): &List[T], i: N32) -> &T {
     while i != 0 {
       let &Buf(_, *tail) = buf;
