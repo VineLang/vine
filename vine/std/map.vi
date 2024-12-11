@@ -108,6 +108,32 @@ pub mod Map {
     }
   }
 
+  pub fn into_iter[K, V](Map(_, node): Map[K, V]) -> IntoIter[K, V] {
+    IntoIter(node, [])
+  }
+
+  pub struct IntoIter[K, V](Node[K, V], List[((K, V), Node[K, V])]);
+
+  pub mod IntoIter {
+    pub fn next[K, V](&IntoIter(node, stack): &IntoIter[K, V]) -> Option[(K, V)] {
+      loop {
+        let Node(len, data) = move node;
+        if len == 0 {
+          break;
+        }
+        let (left, entry, right) = data;
+        stack.push_front((entry, right));
+        node = left;
+      }
+      if stack.pop_front() is Some((entry, new_node)) {
+        node = new_node;
+        Some(entry)
+      } else {
+        None
+      }
+    }
+  }
+
   pub fn to_list[K, V](Map(_, node): Map[K, V]) -> List[(K, V)] {
     node.to_list()
   }
