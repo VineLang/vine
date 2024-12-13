@@ -178,4 +178,12 @@ pub mod N64 {
     }
     l
   }
+
+  pub fn diff(a: N64, b: N64) -> N64 {
+    if a.ge(b) {
+      a.sub(b)
+    } else {
+      b.sub(a)
+    }
+  }
 }
