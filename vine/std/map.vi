@@ -279,8 +279,8 @@ mod Node {
     len -= 1;
     let &(left, entry, right) = &data;
     if left.size() == 0 {
-      let Node(_, right) = right;
-      data = move right;
+      let Node(_, right) = move right;
+      data = right;
       move entry
     } else {
       let max = left.remove_min(cmp);
@@ -293,8 +293,8 @@ mod Node {
     len -= 1;
     let &(left, entry, right) = &data;
     if right.size() == 0 {
-      let Node(_, left) = left;
-      data = move left;
+      let Node(_, left) = move left;
+      data = left;
       move entry
     } else {
       let max = right.remove_max(cmp);
