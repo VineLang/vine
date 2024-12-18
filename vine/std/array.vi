@@ -30,6 +30,59 @@ pub mod Array {
     list
   }
 
+  pub fn from_fn[T, S](len: N32, &state: &S, f: fn(&S) -> T) -> Array[T] {
+    if len == 0 {
+      Array::empty
+    } else {
+      let ~ins;
+      let (node, outs) = Node::unzip_with(len, move ~ins, fn(s) (f(&s), s));
+      let outs = Array(len, outs);
+      let end = outs.pop_back().unwrap();
+      outs.push_front(state);
+      let Array(_, outs) = outs;
+      ~ins = outs;
+      Array(len, node)
+    }
+  }
+
+  pub fn for_each[T, S](self: Array[T], &state: &S, f: fn(&S, T)) {
+    state = self.fold_front(
+      state,
+      fn(state, value) {
+        f(&state, value);
+        state
+      },
+    )
+  }
+
+  pub fn fold_front[T, U](Array(len, node): Array[T], initial: U, f: fn(U, T) -> U) -> U {
+    if len == 0 {
+      initial
+    } else {
+      let ~ins;
+      let zipped = Array(len, Node::zip_with(len, move ~ins, node, f));
+      let out = zipped.pop_back().unwrap();
+      zipped.push_front(initial);
+      let Array(_, node) = zipped;
+      ~ins = node;
+      out
+    }
+  }
+
+  pub fn fold_back[T, U](Array(len, node): Array[T], initial: U, f: fn(U, T) -> U) -> U {
+    if len == 0 {
+      initial
+    } else {
+      let ~ins;
+      let zipped = Array(len, Node::zip_with(len, move ~ins, node, f));
+      let out = zipped.pop_front().unwrap();
+      zipped.push_back(initial);
+      let Array(_, node) = zipped;
+      ~ins = node;
+      out
+    }
+  }
+
   pub fn len[T](&Array(len, _): &Array[T]) -> N32 {
     len
   }
@@ -174,6 +227,28 @@ mod Node {
       }
       left.reverse((len + 1) / 2);
       right.reverse(len / 2);
+    }
+  }
+
+  pub fn zip_with[T, U, V](len: N32, x: Node[T], y: Node[U], f: fn(T, U) -> V) -> Node[V] {
+    if len == 1 {
+      Node::leaf(f(x.to_leaf(), y.to_leaf()))
+    } else {
+      let Node(xl, xr) = x;
+      let Node(yl, yr) = y;
+      Node(zip_with((len + 1) / 2, xl, yl, f), zip_with(len / 2, xr, yr, f))
+    }
+  }
+
+  pub fn unzip_with[T, U, V](len: N32, x: Node[T], f: fn(T) -> (U, V)) -> (Node[U], Node[V]) {
+    if len == 1 {
+      let (u, v) = f(x.to_leaf());
+      (Node::leaf(u), Node::leaf(v))
+    } else {
+      let Node(l, r) = x;
+      let (lx, ly) = unzip_with((len + 1) / 2, l, f);
+      let (rx, ry) = unzip_with(len / 2, r, f);
+      (Node(lx, rx), Node(ly, ry))
     }
   }
 }
