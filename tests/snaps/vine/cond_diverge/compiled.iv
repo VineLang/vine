@@ -36,7 +36,7 @@
   ::std::io::IO::print::1 = x(n0 x(n1 x(n2 n3)))
 }
 
-::std::io::IO::print::1 { x(n0 x(n1 x(dup208(?(::std::io::IO::print::3 ::std::io::IO::print::2 x(n0 x(n1 x(n3 n2)))) n3) n2))) }
+::std::io::IO::print::1 { x(n0 x(n1 x(dup207(?(::std::io::IO::print::3 ::std::io::IO::print::2 x(n0 x(n1 x(n3 n2)))) n3) n2))) }
 
 ::std::io::IO::print::2 {
   x(n1 x(n3 x(@sub(1 n4) tup(n0 n5))))
@@ -48,7 +48,7 @@
 
 ::std::io::IO::print_char { fn(ref(@io_print_char(char io) io) fn(char _)) }
 
-::std::list::List::pop_front { fn(ref(tup(dup273(?(::std::list::List::pop_front::2 ::std::list::List::pop_front::1 x(n1 x(n2 x(n3 x(n4 n5))))) n1) tup(n3 n0)) tup(n2 tup(n4 n0))) n5) }
+::std::list::List::pop_front { fn(ref(tup(dup272(?(::std::list::List::pop_front::2 ::std::list::List::pop_front::1 x(n1 x(n2 x(n3 x(n4 n5))))) n1) tup(n3 n0)) tup(n2 tup(n4 n0))) n5) }
 
 ::std::list::List::pop_front::1 {
   x(@sub(1 n1) x(n1 x(tup(n0 n2) x(n2 n3))))
