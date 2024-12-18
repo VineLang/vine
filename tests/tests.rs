@@ -43,6 +43,7 @@ fn tests(t: &mut DynTester) {
     test_vi(t, "vine/examples/sum_divisors.vi", b"", ".txt");
 
     test_vi(t, "tests/programs/array_from_list.vi", b"", ".txt");
+    test_vi(t, "tests/programs/array_order.vi", b"", ".txt");
     test_vi(t, "tests/programs/array_to_list.vi", b"", ".txt");
     test_vi(t, "tests/programs/basic_diverge.vi", b"", ".txt");
     test_vi(t, "tests/programs/break_result.vi", b"", ".txt");
