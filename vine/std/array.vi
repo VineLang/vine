@@ -1,5 +1,5 @@
 
-use std::option::Option::{Option, Some, None};
+use std::{option::Option::{Option, Some, None}, list::Buf};
 
 pub struct Array[T](N32, Node[T]);
 
@@ -14,20 +14,21 @@ pub mod Array {
     Array(len, Node::new(len, value))
   }
 
-  pub fn from_list[T](list: List[T]) -> Array[T] {
-    let array = Array::empty;
-    while list.pop_front() is Some(value) {
-      array.push_back(value);
-    }
-    array
+  pub fn from_list[T](List(len, buf, _): List[T]) -> Array[T] {
+    Array::from_fn(
+      len,
+      &buf,
+      fn(&buf) {
+        let Buf(head, tail) = buf;
+        buf = tail;
+        head
+      },
+    )
   }
 
-  pub fn to_list[T](array: Array[T]) -> List[T] {
-    let list = [];
-    while array.pop_front() is Some(value) {
-      list.push_back(value);
-    }
-    list
+  pub fn to_list[T](self: Array[T]) -> List[T] {
+    let end;
+    List(self.len(), self.fold_back(move ~end, fn(a, b) Buf(b, a)), end)
   }
 
   pub fn from_fn[T, S](len: N32, &state: &S, f: fn(&S) -> T) -> Array[T] {
