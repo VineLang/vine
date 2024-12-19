@@ -42,9 +42,11 @@ impl<'core> Emitter<'core, '_> {
     if t.can_copy() {
       (t.clone(), t)
     } else {
+      let label = self.dup_labels;
+      self.dup_labels += 1;
       let a = self.net.new_wire();
       let b = self.net.new_wire();
-      self.cur.agents.push(Agent::Comb("dup".into(), t, a.0, b.0));
+      self.cur.agents.push(Agent::Comb(format!("dup{label}"), t, a.0, b.0));
       (a.1, b.1)
     }
   }
