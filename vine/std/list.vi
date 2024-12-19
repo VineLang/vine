@@ -1,5 +1,5 @@
 
-use std::{option::Option::{Option, Some, None}, map::{Cmp, Ord}};
+use std::{option::Option::{Option, Some, None}, map::{Cmp, Ord}, result::Result::{Result, Ok, Err}};
 
 #[builtin = "List"]
 pub struct List[T](N32, Buf[T], ~Buf[T]);
@@ -231,6 +231,25 @@ pub mod List {
       }
     }
     (prefix ++ suffix, None)
+  }
+
+  pub fn strip_prefix(self: String, &prefix: &String) -> Result[String, String] {
+    if self.len() < prefix.len() {
+      return Err(prefix);
+    }
+    let self_iter = self.iter();
+    let prefix_iter = prefix.iter();
+    while prefix_iter.next() is Some(&a) {
+      let &b = self_iter.next().unwrap();
+      if a != b {
+        self_iter.drop()
+        prefix_iter.drop()
+        return Err(self)
+      }
+    }
+    let Iter(len, &buf) = move self_iter;
+    let List(_, _, end) = self;
+    Ok(List(len, move buf, end))
   }
 
   pub fn eq(&self: &String, &other: &String) -> Bool {
