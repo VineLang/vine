@@ -63,67 +63,48 @@ impl<'src> Doc<'src> {
     Doc::concat([Doc("("), Doc::group([doc]), Doc(")")])
   }
 
-  pub fn paren_comma(mut docs: impl ExactSizeIterator<Item = Self>) -> Self {
-    Doc::concat([
-      Doc("("),
-      if docs.len() == 1 {
-        Doc::lazy_group([docs.next().unwrap(), Doc::if_multi(",")])
+  pub fn delimited(
+    empty: &'src str,
+    open: &'src str,
+    close: &'src str,
+    force_multi: bool,
+    force_trailing: bool,
+    lazy_single: bool,
+    mut docs: impl ExactSizeIterator<Item = Self>,
+  ) -> Self {
+    if docs.len() == 0 {
+      Doc(empty)
+    } else {
+      let trailing = if force_multi || force_trailing { Doc(",") } else { Doc::if_multi(",") };
+      let sep = Doc::concat([Doc(","), if force_multi { Doc::LINE } else { Doc::soft_line(" ") }]);
+      let inner = [if lazy_single && docs.len() == 1 {
+        Doc::lazy_group([docs.next().unwrap(), trailing])
       } else {
-        Doc::group([
-          Doc::interleave(docs, Doc::concat([Doc(","), Doc::soft_line(" ")])),
-          Doc::if_multi(","),
-        ])
-      },
-      Doc(")"),
-    ])
+        Doc::group([Doc::interleave(docs, sep), trailing])
+      }];
+      let inner = if force_multi { Doc::indent(inner) } else { Doc::group(inner) };
+      Doc::concat([Doc(open), inner, Doc(close)])
+    }
   }
 
-  pub fn tuple(mut docs: impl ExactSizeIterator<Item = Self>) -> Self {
-    Doc::concat([
-      Doc("("),
-      if docs.len() == 1 {
-        Doc::lazy_group([docs.next().unwrap(), Doc(",")])
-      } else {
-        Doc::group([
-          Doc::interleave(docs, Doc::concat([Doc(","), Doc::soft_line(" ")])),
-          Doc::if_multi(","),
-        ])
-      },
-      Doc(")"),
-    ])
+  pub fn paren_comma(docs: impl ExactSizeIterator<Item = Self>) -> Self {
+    Self::delimited("()", "(", ")", false, false, true, docs)
   }
 
-  pub fn bracket_comma(docs: impl IntoIterator<Item = Self>) -> Self {
-    Doc::concat([
-      Doc("["),
-      Doc::group([
-        Doc::interleave(docs, Doc::concat([Doc(","), Doc::soft_line(" ")])),
-        Doc::if_multi(","),
-      ]),
-      Doc("]"),
-    ])
+  pub fn tuple(docs: impl ExactSizeIterator<Item = Self>) -> Self {
+    Self::delimited("()", "(", ")", false, docs.len() == 1, false, docs)
   }
 
-  pub fn brace_comma(docs: impl IntoIterator<Item = Self>) -> Self {
-    Doc::concat([
-      Doc("{"),
-      Doc::group([
-        Doc::interleave(docs, Doc::concat([Doc(","), Doc::soft_line(" ")])),
-        Doc::if_multi(","),
-      ]),
-      Doc("}"),
-    ])
+  pub fn bracket_comma(docs: impl ExactSizeIterator<Item = Self>) -> Self {
+    Self::delimited("[]", "[", "]", false, false, false, docs)
   }
 
-  pub fn brace_comma_multiline(docs: impl IntoIterator<Item = Self>) -> Self {
-    Doc::concat([
-      Doc("{"),
-      Doc::indent([Doc::interleave(
-        docs.into_iter().map(|x| Doc::concat([x, Doc(",")])),
-        Doc::LINE,
-      )]),
-      Doc("}"),
-    ])
+  pub fn brace_comma(docs: impl ExactSizeIterator<Item = Self>) -> Self {
+    Self::delimited("{}", "{", "}", false, false, false, docs)
+  }
+
+  pub fn brace_comma_multiline(docs: impl ExactSizeIterator<Item = Self>) -> Self {
+    Self::delimited("{}", "{", "}", true, false, false, docs)
   }
 }
 
