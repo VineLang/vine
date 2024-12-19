@@ -398,18 +398,32 @@ impl<'core, 'src> VineParser<'core, 'src> {
     if self.check(Token::Ident) || self.check(Token::ColonColon) {
       return Ok(ExprKind::Path(self.parse_generic_path()?));
     }
-    if self.check(Token::OpenParen) {
-      let mut tuple = false;
-      let mut exprs = self.parse_delimited(PAREN_COMMA, |self_| {
-        let expr = self_.parse_expr()?;
-        if self_.check(Token::Comma) {
-          tuple = true;
-        }
-        Ok(expr)
-      })?;
-      if exprs.len() == 1 && !tuple {
-        return Ok(ExprKind::Paren(Box::new(exprs.pop().unwrap())));
+    if self.eat(Token::OpenParen)? {
+      if self.eat(Token::CloseParen)? {
+        return Ok(ExprKind::Tuple(vec![]));
       }
+      let expr = self.parse_expr()?;
+      if self.eat(Token::Semi)? {
+        let value = expr;
+        let space = self.parse_expr()?;
+        self.expect(Token::CloseParen)?;
+        return Ok(ExprKind::Place(Box::new(value), Box::new(space)));
+      }
+      if self.eat(Token::CloseParen)? {
+        return Ok(ExprKind::Paren(Box::new(expr)));
+      }
+      self.expect(Token::Comma)?;
+      let mut exprs = vec![expr];
+      loop {
+        if self.check(Token::CloseParen) {
+          break;
+        }
+        exprs.push(self.parse_expr()?);
+        if !self.eat(Token::Comma)? {
+          break;
+        }
+      }
+      self.expect(Token::CloseParen)?;
       return Ok(ExprKind::Tuple(exprs));
     }
     if self.check(Token::OpenBracket) {

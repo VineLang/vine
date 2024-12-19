@@ -90,6 +90,8 @@ diags! {
     ["cannot apply operator `{op}{}` to types `{lhs}` and `{rhs}`", if *assign { "=" } else { "" }]
   MismatchedThenElseTypes { then: String, els: String }
     ["then block has type `{then}` but else block has type `{els}`"]
+  MismatchedValueSpaceTypes { value: String, space: String }
+    ["value has type `{value}` but space has type `{space}`"]
   BadArgCount { ty: String, expected: usize, got: usize }
     ["function type `{ty}` expects {expected} argument{}; was passed {got}", plural(*expected, "s", "")]
   NonFunctionCall { ty: String }

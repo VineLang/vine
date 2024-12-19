@@ -247,6 +247,8 @@ pub enum ExprKind<'core> {
   Move(B<Expr<'core>>),
   #[class(value, place, space)]
   Inverse(B<Expr<'core>>),
+  #[class(place)]
+  Place(B<Expr<'core>>, B<Expr<'core>>),
   #[class(value, place, space)]
   Tuple(Vec<Expr<'core>>),
   #[class(value)]

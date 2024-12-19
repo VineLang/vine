@@ -81,6 +81,7 @@ pub trait VisitMut<'core, 'a> {
       | ExprKind::Set(a)
       | ExprKind::Temp(a) => self.visit_expr(a),
       ExprKind::Assign(_, a, b)
+      | ExprKind::Place(a, b)
       | ExprKind::BinaryOp(_, a, b)
       | ExprKind::BinaryOpAssign(_, a, b)
       | ExprKind::LogicalOp(_, a, b) => {

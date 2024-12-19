@@ -50,6 +50,20 @@ impl<'core> Checker<'core, '_> {
         let (form, ty) = self.check_expr(expr);
         (form.inverse(), ty.inverse())
       }
+      ExprKind::Place(v, s) => {
+        let mut v = self.check_expr_form(v, Form::Value);
+        let mut s = self.check_expr_form(s, Form::Value);
+        let ty = if !self.unify(&mut v, &mut s) {
+          Type::Error(self.core.report(Diag::MismatchedValueSpaceTypes {
+            span,
+            value: self.display_type(&v),
+            space: self.display_type(&s),
+          }))
+        } else {
+          v
+        };
+        (Form::Place, ty)
+      }
       ExprKind::Tuple(v) => {
         if v.is_empty() {
           (Form::Place, Type::UNIT)

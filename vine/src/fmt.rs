@@ -316,6 +316,9 @@ impl<'core: 'src, 'src> Formatter<'src> {
       ExprKind::Deref(x) => Doc::concat([Doc("*"), self.fmt_expr(x)]),
       ExprKind::Move(x) => Doc::concat([Doc("move "), self.fmt_expr(x)]),
       ExprKind::Inverse(x) => Doc::concat([Doc("~"), self.fmt_expr(x)]),
+      ExprKind::Place(v, s) => {
+        Doc::concat([Doc("("), self.fmt_expr(v), Doc("; "), self.fmt_expr(s)])
+      }
       ExprKind::Tuple(t) => Doc::tuple(t.iter().map(|x| self.fmt_expr(x))),
       ExprKind::List(l) => Doc::bracket_comma(l.iter().map(|x| self.fmt_expr(x))),
       ExprKind::Field(e, p) => Doc::concat([self.fmt_expr(e), Doc("."), self.fmt_generic_path(p)]),
