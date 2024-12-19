@@ -288,7 +288,6 @@ impl<'core> VisitMut<'core, '_> for ResolveVisitor<'core, '_> {
             }
             self.visit_path(path)
           }
-          ExprKind::Field(_, p) => self.visit_path(p),
           ExprKind::Method(_, p, _) if p.path.as_ident().is_none() => self.visit_path(p),
           _ => Ok(()),
         };

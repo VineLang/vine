@@ -558,12 +558,8 @@ impl<'core, 'src> VineParser<'core, 'src> {
 
     if self.eat(Token::Dot)? {
       let path = self.parse_generic_path()?;
-      if self.check(Token::OpenParen) {
-        let args = self.parse_expr_list()?;
-        return Ok(Ok(ExprKind::Method(Box::new(lhs), path, args)));
-      } else {
-        return Ok(Ok(ExprKind::Field(Box::new(lhs), path)));
-      }
+      let args = self.parse_expr_list()?;
+      return Ok(Ok(ExprKind::Method(Box::new(lhs), path, args)));
     }
 
     if self.check(Token::OpenParen) {

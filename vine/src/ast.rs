@@ -253,8 +253,6 @@ pub enum ExprKind<'core> {
   Tuple(Vec<Expr<'core>>),
   #[class(value)]
   List(Vec<Expr<'core>>),
-  #[class(place, sugar)]
-  Field(B<Expr<'core>>, GenericPath<'core>),
   #[class(value, sugar)]
   Method(B<Expr<'core>>, GenericPath<'core>, Vec<Expr<'core>>),
   #[class(value)]

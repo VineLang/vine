@@ -87,7 +87,6 @@ impl<'core> Checker<'core, '_> {
           (form, Type::Tuple(types))
         }
       }
-      ExprKind::Field(..) => todo!(),
     }
   }
 
