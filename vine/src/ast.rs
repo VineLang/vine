@@ -374,8 +374,6 @@ pub enum TyKind<'core> {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum BinaryOp {
-  Range,
-  RangeTo,
   BitOr,
   BitXor,
   BitAnd,
@@ -398,8 +396,6 @@ impl Display for BinaryOp {
 impl BinaryOp {
   pub fn as_str(&self) -> &'static str {
     match self {
-      BinaryOp::Range => "..",
-      BinaryOp::RangeTo => "..=",
       BinaryOp::BitOr => "|",
       BinaryOp::BitXor => "^",
       BinaryOp::BitAnd => "&",

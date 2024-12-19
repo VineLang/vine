@@ -109,7 +109,6 @@ impl<'core> Emitter<'core, '_> {
       BinaryOp::Mul => ExtFnKind::mul,
       BinaryOp::Div => ExtFnKind::div,
       BinaryOp::Rem => ExtFnKind::rem,
-      _ => todo!(),
     };
     self.ext_fn(f.into(), lhs, rhs)
   }

@@ -786,14 +786,12 @@ const BRACKET_COMMA: Delimiters = Delimiters {
 
 const PATH: Delimiters = Delimiters { open: None, close: None, separator: Some(Token::ColonColon) };
 
-#[allow(dead_code)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 #[repr(u8)]
 enum BP {
   Min,
   ControlFlow,
   Assignment,
-  Range,
   LogicalImplies,
   LogicalOr,
   LogicalAnd,
@@ -806,7 +804,6 @@ enum BP {
   Additive,
   Multiplicative,
   Prefix,
-  Question,
   Max,
 }
 
@@ -826,8 +823,6 @@ impl BP {
 
 #[rustfmt::skip]
 const BINARY_OP_TABLE: &[(BP, Token, BinaryOp)] = &[
-  (BP::Range,          Token::DotDot,   BinaryOp::Range),
-  (BP::Range,          Token::DotDotEq, BinaryOp::RangeTo),
   (BP::BitOr,          Token::Or,       BinaryOp::BitOr),
   (BP::BitXor,         Token::Caret,    BinaryOp::BitXor),
   (BP::BitAnd,         Token::And,      BinaryOp::BitAnd),

@@ -410,7 +410,6 @@ impl<'core> Checker<'core, '_> {
     mut b: Type,
   ) -> Type {
     match op {
-      BinaryOp::Range | BinaryOp::RangeTo => todo!(),
       BinaryOp::Concat => {
         if self.concat.is_none() {
           return Type::Error(self.core.report(Diag::MissingBuiltin { span, builtin: "concat" }));
