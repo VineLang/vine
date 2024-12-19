@@ -74,8 +74,12 @@ diags! {
     ["expected a space expression; found a value expression"]
   ExpectedValueFoundSpaceExpr
     ["expected a value expression; found a space expression"]
+  ExpectedPlaceFoundValueExpr
+    ["expected a place expression; found a value expression"]
   ExpectedPlaceFoundSpaceExpr
     ["expected a place expression; found a space expression"]
+  InconsistentTupleForm
+    ["tuple members have inconsistent forms"]
   MoveNonPlacePat
     ["`move` is only valid in a place pattern"]
   DerefNonPlacePat

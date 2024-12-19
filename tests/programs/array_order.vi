@@ -4,7 +4,7 @@ use std::array::Array;
 pub fn main(&io: &IO) {
   let a = Array::from_fn(
     100,
-    &0,
+    &(0; _),
     fn(&i: &N32) {
       let n = i;
       i += 1;

@@ -13,10 +13,13 @@ impl<'core> Checker<'core, '_> {
       (_, Form::Error(_)) => unreachable!(),
       (Form::Error(_), _) => {}
       (Form::Value, Form::Value) | (Form::Place, Form::Place) | (Form::Space, Form::Space) => {}
-      (Form::Value, Form::Place) => expr.wrap(ExprKind::Temp),
+      // (Form::Value, Form::Place) => expr.wrap(ExprKind::Temp),
       (Form::Place, Form::Value) => Self::copy_expr(expr),
       (Form::Place, Form::Space) => Self::set_expr(expr),
 
+      (Form::Value, Form::Place) => {
+        expr.kind = ExprKind::Error(self.core.report(Diag::ExpectedPlaceFoundValueExpr { span }));
+      }
       (Form::Space, Form::Value) => {
         expr.kind = ExprKind::Error(self.core.report(Diag::ExpectedValueFoundSpaceExpr { span }));
       }

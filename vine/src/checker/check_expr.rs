@@ -52,7 +52,7 @@ impl<'core> Checker<'core, '_> {
       }
       ExprKind::Place(v, s) => {
         let mut v = self.check_expr_form(v, Form::Value);
-        let mut s = self.check_expr_form(s, Form::Value);
+        let mut s = self.check_expr_form(s, Form::Space);
         let ty = if !self.unify(&mut v, &mut s) {
           Type::Error(self.core.report(Diag::MismatchedValueSpaceTypes {
             span,
@@ -70,18 +70,20 @@ impl<'core> Checker<'core, '_> {
         } else {
           let (forms, types) =
             v.iter_mut().map(|x| self.check_expr(x)).collect::<(Vec<_>, Vec<_>)>();
-          let form = if let Some(&one_form) = forms.iter().find(|x| !matches!(x, Form::Error(_))) {
-            if forms.iter().all(|&x| matches!(x, Form::Error(_)) || x == one_form) {
-              one_form
-            } else {
-              for (form, e) in forms.into_iter().zip(v) {
-                self.coerce_expr(e, form, Form::Place);
-              }
-              Form::Place
-            }
+          let space = forms.iter().any(|&x| x == Form::Space);
+          let value = forms.iter().any(|&x| x == Form::Value);
+          let form = if !space && !value {
+            Form::Place
+          } else if space && !value {
+            Form::Space
+          } else if value && !space {
+            Form::Value
           } else {
-            forms[0]
+            Form::Error(self.core.report(Diag::InconsistentTupleForm { span }))
           };
+          for (f, e) in forms.into_iter().zip(v) {
+            self.coerce_expr(e, f, form);
+          }
           (form, Type::Tuple(types))
         }
       }
