@@ -140,7 +140,9 @@ impl<'core: 'src, 'src> Formatter<'src> {
       docs.push(doc);
       cur = span.end;
     }
+    docs.push(Doc::LINE);
     self.get_line_break(true, false, cur, span.end, &mut docs);
+    docs.pop();
     Doc::concat_vec(docs)
   }
 
