@@ -159,6 +159,18 @@ pub mod List {
     }
   }
 
+  pub fn reversed[T](self: List[T]) -> List[T] {
+    let reversed = [];
+    while self.pop_front() is Some(value) {
+      reversed.push_front(value);
+    }
+    reversed
+  }
+
+  pub fn reverse[T](&self: &List[T]) {
+    self = self.reversed();
+  }
+
   pub fn split(self: String, sep: String) -> List[String] {
     let list = [];
     loop {
