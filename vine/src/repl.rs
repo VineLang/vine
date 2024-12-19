@@ -20,13 +20,11 @@ use crate::{
   ast::{Block, Builtin, Expr, ExprKind, Ident, Local, Span, Stmt},
   checker::{self, Checker, CheckerState, Type},
   core::Core,
-  desugar::Desugar,
   diag::Diag,
   emitter::Emitter,
   loader::Loader,
   parser::VineParser,
   resolver::{DefId, Resolver},
-  visit::VisitMut,
 };
 
 pub struct Repl<'core, 'ctx, 'ivm> {
@@ -73,8 +71,6 @@ impl<'core, 'ctx, 'ivm> Repl<'core, 'ctx, 'ivm> {
     checker.check_defs();
 
     core.bail()?;
-
-    Desugar.visit(resolver.defs.values_mut());
 
     let mut emitter = Emitter::new(&resolver);
     emitter.emit_all();
@@ -158,9 +154,6 @@ impl<'core, 'ctx, 'ivm> Repl<'core, 'ctx, 'ivm> {
       checker._check_custom(self.repl_mod, self.checker_state.clone(), &mut block);
     self.core.bail()?;
     self.checker_state = state;
-
-    Desugar.visit(&mut block);
-    Desugar.visit(self.resolver.defs.slice_mut(new_defs.clone()));
 
     let mut emitter = Emitter::new(&self.resolver);
     for def in self.resolver.defs.slice(new_defs.clone()) {
