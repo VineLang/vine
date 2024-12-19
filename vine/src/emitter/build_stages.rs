@@ -1,4 +1,4 @@
-use std::mem::{swap, take};
+use std::mem::{replace, swap, take};
 
 use ivm::ext::{ExtFn, ExtFnKind};
 use vine_util::idx::Counter;
@@ -127,6 +127,21 @@ impl<'core> Emitter<'core, '_> {
         last_result
       }
       ExprKind::Tuple(t) => self.tuple(t, Self::emit_expr_value),
+      ExprKind::TupleField(t, i, l) => {
+        let t = self.emit_expr_value(t);
+        let mut f = Port::Erase;
+        let u = self.tuple(0..l.unwrap(), |self_, j| {
+          if *i == j {
+            let w = self_.net.new_wire();
+            f = w.0;
+            w.1
+          } else {
+            Port::Erase
+          }
+        });
+        self.net.link(t, u);
+        f
+      }
       ExprKind::String(s) => self.list(s.chars().count(), s.chars(), |_, c| Port::N32(c as u32)),
       ExprKind::Ref(p) => {
         let (t, u) = self.emit_expr_place(p);
@@ -218,6 +233,22 @@ impl<'core> Emitter<'core, '_> {
         (x.1, y.1)
       }
       ExprKind::Tuple(t) => self.tuple_pairs(t, Self::emit_expr_place),
+      ExprKind::TupleField(t, i, l) => {
+        let (tv, ts) = self.emit_expr_place(t);
+        let mut x = Vec::new();
+        let uv = self.tuple(0..l.unwrap(), |self_, _| {
+          let w = self_.net.new_wire();
+          x.push(w.0);
+          w.1
+        });
+        let w = self.net.new_wire();
+        let v = replace(&mut x[*i], w.0);
+        let s = w.1;
+        let us = self.tuple(x, |_, p| p);
+        self.net.link(tv, uv);
+        self.net.link(ts, us);
+        (v, s)
+      }
     }
   }
 

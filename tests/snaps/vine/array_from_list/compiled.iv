@@ -36,7 +36,7 @@
 
 ::std::array::Array::from_fn::2 { x(_ x(_ x(_ ::std::array::Array::empty))) }
 
-::std::array::Array::len { fn(ref(tup(dup73(n1 n2) n0) tup(n2 n0)) n1) }
+::std::array::Array::len { fn(ref(tup(dup(n1 n2) n0) tup(n2 n0)) n1) }
 
 ::std::array::Array::push_front { fn(ref(tup(dup93(?(::std::array::Array::push_front::5 ::std::array::Array::push_front::1 x(n4 x(ref(n0 n1) n3))) dup93(n4 @add(1 n2))) n0) tup(n2 n1)) fn(n3 _)) }
 

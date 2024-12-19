@@ -64,6 +64,43 @@ impl<'core> Checker<'core, '_> {
         };
         (Form::Place, ty)
       }
+      ExprKind::TupleField(e, i, l) => {
+        let (form, mut ty) = self.check_expr(e);
+
+        if form == Form::Space {
+          let e = self.core.report(Diag::SpaceField { span });
+          return (Form::Error(e), Type::Error(e));
+        }
+
+        self.concretize(&mut ty);
+        let field_ty = match &ty {
+          Type::Tuple(t) => {
+            *l = Some(t.len());
+            t.get(*i).cloned()
+          }
+          Type::Adt(adt, gens) => {
+            self.resolver.defs[*adt].variant_def.as_ref().and_then(|variant| {
+              if variant.adt == *adt && *i < variant.fields.len() {
+                *l = Some(variant.fields.len());
+                Some(variant.field_types.as_ref().unwrap()[*i].instantiate(gens))
+              } else {
+                None
+              }
+            })
+          }
+          _ => None,
+        };
+
+        let field_ty = field_ty.unwrap_or_else(|| {
+          Type::Error(self.core.report(Diag::MissingTupleField {
+            span,
+            ty: self.display_type(&ty),
+            i: *i,
+          }))
+        });
+
+        (form, field_ty)
+      }
       ExprKind::Tuple(v) => {
         if v.is_empty() {
           (Form::Place, Type::UNIT)

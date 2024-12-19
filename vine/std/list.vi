@@ -9,8 +9,8 @@ pub(std) struct Buf[T](T, Buf[T]);
 pub type String = List[Char];
 
 pub mod List {
-  pub fn len[T](&List(len, _, _): &List[T]) -> N32 {
-    len
+  pub fn len[T](&self: &List[T]) -> N32 {
+    self.0
   }
 
   pub fn new[T](len: N32, value: T) -> List[T] {

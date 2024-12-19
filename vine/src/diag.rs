@@ -116,6 +116,10 @@ diags! {
     ["`{path}` expects {expected} generic{}; was passed {got}", plural(*expected, "s", "")]
   BadFieldCount { path: Path<'core>, expected: usize, got: usize }
     ["`{path}` has {expected} field{}; {got} {} matched", plural(*expected, "s", ""), plural(*got, "were", "was")]
+  MissingTupleField { ty: String, i: usize }
+    ["type `{ty}` has no field `{i}`"]
+  SpaceField
+    ["cannot access a field of a space expression"]
   FnItemUntypedParam
     ["fn item parameters must be explicitly typed"]
   ItemTypeHole

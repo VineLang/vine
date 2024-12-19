@@ -1,4 +1,4 @@
-use std::ops::Add;
+use std::{borrow::Cow, ops::Add};
 
 use crate::ast::Ident;
 
@@ -16,7 +16,7 @@ pub fn Doc<'src>(doc: impl Into<Doc<'src>>) -> Doc<'src> {
 }
 
 impl<'src> Doc<'src> {
-  pub const EMPTY: Self = Doc { measure: Measure::EMPTY, kind: DocKind::String("") };
+  pub const EMPTY: Self = Doc { measure: Measure::EMPTY, kind: DocKind::String(Cow::Borrowed("")) };
   pub const LINE: Self = Doc { measure: Measure::LINE, kind: DocKind::Line };
 
   fn collect(docs: impl IntoIterator<Item = Self>) -> Box<[Self]> {
@@ -135,7 +135,13 @@ impl<'src> From<DocKind<'src>> for Doc<'src> {
 
 impl<'src> From<&'src str> for Doc<'src> {
   fn from(str: &'src str) -> Self {
-    Doc { measure: Measure::string(str), kind: DocKind::String(str) }
+    Doc { measure: Measure::string(str), kind: DocKind::String(str.into()) }
+  }
+}
+
+impl<'src> From<String> for Doc<'src> {
+  fn from(str: String) -> Self {
+    Doc { measure: Measure::string(&str), kind: DocKind::String(str.into()) }
   }
 }
 
@@ -148,7 +154,7 @@ impl<'core: 'src, 'src> From<Ident<'core>> for Doc<'src> {
 #[derive(Debug)]
 enum DocKind<'src> {
   Line,
-  String(&'src str),
+  String(Cow<'src, str>),
   Concat(Box<[Doc<'src>]>),
   Group(Box<[Doc<'src>]>),
   LazyGroup(Box<[Doc<'src>]>),
@@ -163,7 +169,8 @@ impl<'src> DocKind<'src> {
   fn measure(&self) -> Measure {
     match self {
       DocKind::Line | DocKind::Indent(_) => Measure::LINE,
-      DocKind::String(s) | DocKind::SoftLine(s) | DocKind::IfSingle(s) => Measure::string(s),
+      DocKind::String(s) => Measure::string(s),
+      DocKind::SoftLine(s) | DocKind::IfSingle(s) => Measure::string(s),
       DocKind::IfMulti(_) => Measure::EMPTY,
       DocKind::Concat(x) | DocKind::Group(x) | DocKind::LazyGroup(x) => {
         x.iter().fold(Measure::EMPTY, |a, b| a + b.measure)

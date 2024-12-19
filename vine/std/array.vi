@@ -84,8 +84,8 @@ pub mod Array {
     }
   }
 
-  pub fn len[T](&Array(len, _): &Array[T]) -> N32 {
-    len
+  pub fn len[T](&self: &Array[T]) -> N32 {
+    self.0
   }
 
   pub fn get[T](&Array(len, *node): &Array[T], i: N32) -> &T {

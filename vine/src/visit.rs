@@ -75,6 +75,7 @@ pub trait VisitMut<'core, 'a> {
       | ExprKind::Not(a)
       | ExprKind::Break(_, Some(a))
       | ExprKind::Return(Some(a))
+      | ExprKind::TupleField(a, _, _)
       | ExprKind::Inverse(a)
       | ExprKind::Copy(a)
       | ExprKind::Set(a)

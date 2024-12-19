@@ -557,9 +557,17 @@ impl<'core, 'src> VineParser<'core, 'src> {
     }
 
     if self.eat(Token::Dot)? {
-      let path = self.parse_generic_path()?;
-      let args = self.parse_expr_list()?;
-      return Ok(Ok(ExprKind::Method(Box::new(lhs), path, args)));
+      if self.check(Token::Num) {
+        let span = self.start_span();
+        let num = self.expect(Token::Num)?;
+        let span = self.end_span(span);
+        let i = self.parse_u32_like(num, |_| Diag::InvalidNum { span })? as usize;
+        return Ok(Ok(ExprKind::TupleField(Box::new(lhs), i, None)));
+      } else {
+        let path = self.parse_generic_path()?;
+        let args = self.parse_expr_list()?;
+        return Ok(Ok(ExprKind::Method(Box::new(lhs), path, args)));
+      }
     }
 
     if self.check(Token::OpenParen) {

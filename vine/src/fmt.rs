@@ -321,6 +321,9 @@ impl<'core: 'src, 'src> Formatter<'src> {
       }
       ExprKind::Tuple(t) => Doc::tuple(t.iter().map(|x| self.fmt_expr(x))),
       ExprKind::List(l) => Doc::bracket_comma(l.iter().map(|x| self.fmt_expr(x))),
+      ExprKind::TupleField(e, i, _) => {
+        Doc::concat([self.fmt_expr(e), Doc("."), Doc(format!("{i}"))])
+      }
       ExprKind::Method(e, p, a) => Doc::concat([
         self.fmt_expr(e),
         Doc("."),

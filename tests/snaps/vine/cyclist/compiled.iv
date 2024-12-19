@@ -91,7 +91,7 @@
 
 ::std::list::Buf { fn(n0 fn(n1 tup(n0 n1))) }
 
-::std::list::List::len { fn(ref(tup(dup253(n2 n3) n0) tup(n3 n0)) n2) }
+::std::list::List::len { fn(ref(tup(dup(n2 n3) n0) tup(n3 n0)) n2) }
 
 ::std::list::List::map {
   fn(tup(dup270(n5 n6) tup(n1 _)) fn(n2 n0))
