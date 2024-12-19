@@ -242,17 +242,17 @@
 
 ::std::list::List::IntoIter::next::2 { x(n0 x(n0 x(n1 x(n1 ::std::option::Option::None)))) }
 
-::std::n32::N32::to_string { fn(dup807(?(::std::n32::N32::to_string::5 ::std::n32::N32::to_string::1 x(n1 n0)) n1) n0) }
+::std::n32::N32::to_string { fn(dup818(?(::std::n32::N32::to_string::5 ::std::n32::N32::to_string::1 x(n1 n0)) n1) n0) }
 
 ::std::n32::N32::to_string::1 {
   x(n1 n2)
   ::std::n32::N32::to_string::2 = x(n1 x(tup(0 tup(n0 n0)) n2))
 }
 
-::std::n32::N32::to_string::2 { x(dup807(?(::std::n32::N32::to_string::4 ::std::n32::N32::to_string::3 x(n2 n0)) n2) n0) }
+::std::n32::N32::to_string::2 { x(dup818(?(::std::n32::N32::to_string::4 ::std::n32::N32::to_string::3 x(n2 n0)) n2) n0) }
 
 ::std::n32::N32::to_string::3 {
-  x(dup807(@rem(10 n0) @div(10 n4)) x(n3 n6))
+  x(dup818(@rem(10 n0) @div(10 n4)) x(n3 n6))
   48 = @add(n0 n1)
   ::std::list::List::concat = fn(tup(1 tup(tup(n1 n2) n2)) fn(n3 n5))
   ::std::n32::N32::to_string::2 = x(n4 x(n5 n6))
@@ -262,13 +262,13 @@
 
 ::std::n32::N32::to_string::5 { x(_ tup(1 tup(tup(48 n0) n0))) }
 
-::std::n32::N32::min { fn(dup838(@lt(n2 ?(::std::n32::N32::min::2 ::std::n32::N32::min::1 x(n1 x(n3 n0)))) n1) fn(dup839(n2 n3) n0)) }
+::std::n32::N32::min { fn(dup849(@lt(n2 ?(::std::n32::N32::min::2 ::std::n32::N32::min::1 x(n1 x(n3 n0)))) n1) fn(dup850(n2 n3) n0)) }
 
 ::std::n32::N32::min::1 { x(n0 x(_ n0)) }
 
 ::std::n32::N32::min::2 { x(_ x(n0 n0)) }
 
-::std::n32::N32::max { fn(dup843(@lt$(n2 ?(::std::n32::N32::max::2 ::std::n32::N32::max::1 x(n1 x(n3 n0)))) n1) fn(dup844(n2 n3) n0)) }
+::std::n32::N32::max { fn(dup854(@lt$(n2 ?(::std::n32::N32::max::2 ::std::n32::N32::max::1 x(n1 x(n3 n0)))) n1) fn(dup855(n2 n3) n0)) }
 
 ::std::n32::N32::max::1 { x(n0 x(_ n0)) }
 
@@ -279,10 +279,10 @@
   ::std::n32::N32::sqrt::1 = x(n0 x(32768 x(0 n1)))
 }
 
-::std::n32::N32::sqrt::1 { x(n0 x(dup859(?(::std::n32::N32::sqrt::5 ::std::n32::N32::sqrt::2 x(n0 x(n3 n1))) n3) n1)) }
+::std::n32::N32::sqrt::1 { x(n0 x(dup870(?(::std::n32::N32::sqrt::5 ::std::n32::N32::sqrt::2 x(n0 x(n3 n1))) n3) n1)) }
 
 ::std::n32::N32::sqrt::2 {
-  x(dup858(n5 n6) x(dup859(n1 @n32_shr(1 n2)) x(dup860(@add(n1 dup861(@mul(n7 @le(n5 ?(::std::n32::N32::sqrt::4 ::std::n32::N32::sqrt::3 x(n0 x(n3 n8))))) dup861(n7 n8))) n0) n4)))
+  x(dup869(n5 n6) x(dup870(n1 @n32_shr(1 n2)) x(dup871(@add(n1 dup872(@mul(n7 @le(n5 ?(::std::n32::N32::sqrt::4 ::std::n32::N32::sqrt::3 x(n0 x(n3 n8))))) dup872(n7 n8))) n0) n4)))
   ::std::n32::N32::sqrt::1 = x(n6 x(n2 x(n3 n4)))
 }
 
