@@ -226,8 +226,6 @@ pub enum ExprKind<'core> {
   #[class(value)]
   Loop(Label<'core>, Block<'core>),
   #[class(value)]
-  For(B<Pat<'core>>, B<Expr<'core>>, Block<'core>),
-  #[class(value)]
   Fn(Vec<(Pat<'core>, Option<Ty<'core>>)>, Option<Option<Ty<'core>>>, B<Expr<'core>>),
   #[class(value)]
   Return(Option<B<Expr<'core>>>),

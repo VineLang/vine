@@ -209,8 +209,6 @@ impl<'core> Emitter<'core, '_> {
         );
         self.move_local(result)
       }
-
-      ExprKind::For(..) => todo!(),
     }
   }
 

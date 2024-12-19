@@ -302,14 +302,6 @@ impl<'core: 'src, 'src> Formatter<'src> {
       ExprKind::Loop(l, b) => {
         Doc::concat([Doc("loop"), self.fmt_label(l), Doc(" "), self.fmt_block(b, true)])
       }
-      ExprKind::For(p, e, b) => Doc::concat([
-        Doc("for "),
-        self.fmt_pat(p),
-        Doc(" in "),
-        self.fmt_expr(e),
-        Doc(" "),
-        self.fmt_block(b, true),
-      ]),
       ExprKind::Fn(p, _, b) => {
         Doc::concat([Doc("fn"), self.fmt_params(p), Doc(" "), self.fmt_expr(b)])
       }

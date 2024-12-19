@@ -349,7 +349,6 @@ impl<'core> Checker<'core, '_> {
       ExprKind::String(_) => {
         report!(self.core; self.string.clone().ok_or(Diag::MissingBuiltin { span, builtin: "List" }))
       }
-      ExprKind::For(..) => todo!(),
     }
   }
 

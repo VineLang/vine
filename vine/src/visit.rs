@@ -109,13 +109,6 @@ pub trait VisitMut<'core, 'a> {
         self.visit_expr(a);
         self.visit_block(b);
       }
-      ExprKind::For(a, b, c) => {
-        self.enter_scope();
-        self.visit_expr(b);
-        self.visit_pat(a);
-        self.visit_block(c);
-        self.exit_scope();
-      }
       ExprKind::Fn(a, b, c) => {
         self.enter_scope();
         for (p, t) in a {

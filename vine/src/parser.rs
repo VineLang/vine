@@ -456,13 +456,6 @@ impl<'core, 'src> VineParser<'core, 'src> {
       let body = self.parse_block()?;
       return Ok(ExprKind::Loop(label, body));
     }
-    if self.eat(Token::For)? {
-      let pat = self.parse_pat()?;
-      self.expect(Token::In)?;
-      let iter = self.parse_expr()?;
-      let body = self.parse_block()?;
-      return Ok(ExprKind::For(Box::new(pat), Box::new(iter), body));
-    }
     if self.eat(Token::Fn)? {
       let params = self.parse_delimited(PAREN_COMMA, Self::parse_pat_type)?;
       let body = self.parse_expr()?;
