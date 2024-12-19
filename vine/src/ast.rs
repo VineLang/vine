@@ -27,7 +27,6 @@ pub enum ItemKind<'core> {
   Const(ConstItem<'core>),
   Struct(StructItem<'core>),
   Enum(Enum<'core>),
-  Pattern(PatternItem),
   Type(TypeItem<'core>),
   Mod(ModItem<'core>),
   Use(UseItem<'core>),
@@ -59,9 +58,6 @@ pub struct TypeItem<'core> {
   pub generics: Vec<Ident<'core>>,
   pub ty: Ty<'core>,
 }
-
-#[derive(Debug, Clone)]
-pub struct PatternItem {}
 
 #[derive(Debug, Clone)]
 pub struct StructItem<'core> {

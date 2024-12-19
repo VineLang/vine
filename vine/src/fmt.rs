@@ -115,7 +115,6 @@ impl<'core: 'src, 'src> Formatter<'src> {
           Doc(";"),
         ]),
         ItemKind::Ivy(_) => return self.fmt_verbatim(item.span),
-        ItemKind::Pattern(_) => todo!(),
         ItemKind::Taken => unreachable!(),
       },
     ]))

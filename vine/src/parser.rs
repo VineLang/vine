@@ -8,8 +8,8 @@ use crate::{core::Core, diag::Diag, lexer::Token};
 use crate::ast::{
   Attr, AttrKind, BinaryOp, Block, Builtin, ComparisonOp, ConstItem, DynFnStmt, Enum, Expr,
   ExprKind, FnItem, GenericPath, Ident, InlineIvy, Item, ItemKind, Label, LetStmt, LogicalOp,
-  ModItem, ModKind, Pat, PatKind, Path, PatternItem, Span, Stmt, StmtKind, StructItem, Ty, TyKind,
-  TypeItem, UseItem, UseTree, Variant, Vis,
+  ModItem, ModKind, Pat, PatKind, Path, Span, Stmt, StmtKind, StructItem, Ty, TyKind, TypeItem,
+  UseItem, UseTree, Variant, Vis,
 };
 
 pub struct VineParser<'core, 'src> {
@@ -73,7 +73,6 @@ impl<'core, 'src> VineParser<'core, 'src> {
       _ if self.check(Token::Struct) => ItemKind::Struct(self.parse_struct_item()?),
       _ if self.check(Token::Enum) => ItemKind::Enum(self.parse_enum_item()?),
       _ if self.check(Token::Type) => ItemKind::Type(self.parse_type_item()?),
-      _ if self.check(Token::Pattern) => ItemKind::Pattern(self.parse_pattern_item()?),
       _ if self.check(Token::Mod) => ItemKind::Mod(self.parse_mod_item()?),
       _ if self.check(Token::Use) => ItemKind::Use(self.parse_use_item()?),
       _ if self.check(Token::InlineIvy) => ItemKind::Ivy(self.parse_ivy_item()?),
@@ -233,10 +232,6 @@ impl<'core, 'src> VineParser<'core, 'src> {
     } else {
       Ok(Vec::new())
     }
-  }
-
-  fn parse_pattern_item(&mut self) -> Parse<'core, PatternItem> {
-    todo!()
   }
 
   fn parse_mod_item(&mut self) -> Parse<'core, ModItem<'core>> {

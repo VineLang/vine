@@ -185,7 +185,6 @@ impl<'core> Resolver<'core> {
           Some(TypeDef { vis, generics: t.generics.clone(), alias: Some(t.ty), ty: None });
         Some(child.id)
       }
-      ItemKind::Pattern(_) => todo!(),
       ItemKind::Taken => None,
     };
     for attr in item.attrs {
