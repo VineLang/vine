@@ -99,12 +99,9 @@
 
 ::segmented_sieve::main::22 { x(n0 x(n0 _)) }
 
-::std::array::Array { fn(n0 fn(n1 tup(n0 n1))) }
-
 ::std::array::Array::new {
-  fn(dup41(n3 n4) fn(n0 n2))
-  ::std::array::Array = fn(n3 fn(n1 n2))
-  ::std::array::Node::new = fn(n4 fn(n0 n1))
+  fn(dup41(n2 n3) fn(n0 tup(n2 n1)))
+  ::std::array::Node::new = fn(n3 fn(n0 n1))
 }
 
 ::std::array::Array::get {
@@ -163,8 +160,6 @@
 
 ::std::array::Array::pop_front::12 { x(n0 n0) }
 
-::std::array::Node { fn(n0 fn(n1 tup(n0 n1))) }
-
 ::std::array::Node::to_leaf { fn(x x) }
 
 ::std::array::Node::as_leaf { fn(x x) }
@@ -179,10 +174,9 @@
 }
 
 ::std::array::Node::new::2 {
-  x(dup172(@add(1 @div(2 n0)) @div(2 n2)) x(dup173(n5 n6) n4))
-  ::std::array::Node::new = fn(n0 fn(n5 n1))
-  ::std::array::Node = fn(n1 fn(n3 n4))
-  ::std::array::Node::new = fn(n2 fn(n6 n3))
+  x(dup172(@add(1 @div(2 n0)) @div(2 n2)) x(dup173(n4 n5) tup(n1 n3)))
+  ::std::array::Node::new = fn(n0 fn(n4 n1))
+  ::std::array::Node::new = fn(n2 fn(n5 n3))
 }
 
 ::std::array::Node::half { fn(ref(tup(n0 n2) tup(n1 n3)) fn(n4 fn(?(::std::array::Node::half::2 ::std::array::Node::half::1 x(n0 x(n1 x(n2 x(n3 x(n4 n5)))))) n5))) }
@@ -214,24 +208,14 @@
 
 ::std::io::IO::print_char { fn(ref(@io_print_char(char io) io) fn(char _)) }
 
-::std::list::List { fn(n0 fn(n1 fn(n2 tup(n0 tup(n1 n2))))) }
-
-::std::list::List::concat {
-  fn(tup(@add(n1 n2) tup(n3 n0)) fn(tup(n1 tup(n0 n4)) n5))
-  ::std::list::List = fn(n2 fn(n3 fn(n4 n5)))
-}
+::std::list::List::concat { fn(tup(@add(n1 n2) tup(n3 n0)) fn(tup(n1 tup(n0 n4)) tup(n2 tup(n3 n4)))) }
 
 ::std::list::List::push_back {
   fn(ref(n2 n3) fn(n0 _))
   ::std::list::List::concat = fn(n2 fn(tup(1 tup(tup(n0 n1) n1)) n3))
 }
 
-::std::list::List::IntoIter { fn(n0 fn(n1 tup(n0 n1))) }
-
-::std::list::List::into_iter {
-  fn(tup(n0 tup(n1 _)) n2)
-  ::std::list::List::IntoIter = fn(n0 fn(n1 n2))
-}
+::std::list::List::into_iter { fn(tup(n0 tup(n1 _)) tup(n0 n1)) }
 
 ::std::list::List::IntoIter::next { fn(ref(tup(dup384(?(::std::list::List::IntoIter::next::2 ::std::list::List::IntoIter::next::1 x(n0 x(n1 x(n2 x(n3 n4))))) n0) n2) tup(n1 n3)) n4) }
 

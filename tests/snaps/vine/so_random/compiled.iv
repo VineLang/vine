@@ -41,12 +41,7 @@
 
 ::std::io::IO::print_char { fn(ref(@io_print_char(char io) io) fn(char _)) }
 
-::std::list::List { fn(n0 fn(n1 fn(n2 tup(n0 tup(n1 n2))))) }
-
-::std::list::List::concat {
-  fn(tup(@add(n1 n2) tup(n3 n0)) fn(tup(n1 tup(n0 n4)) n5))
-  ::std::list::List = fn(n2 fn(n3 fn(n4 n5)))
-}
+::std::list::List::concat { fn(tup(@add(n1 n2) tup(n3 n0)) fn(tup(n1 tup(n0 n4)) tup(n2 tup(n3 n4)))) }
 
 ::std::n32::N32::to_string { fn(dup810(?(::std::n32::N32::to_string::5 ::std::n32::N32::to_string::1 x(n1 n0)) n1) n0) }
 
@@ -70,45 +65,29 @@
 
 ::std::n32::N32::rotate_right { fn(@n32_rotr(x y) fn(x y)) }
 
-::std::n64::N64 { fn(n0 fn(n1 tup(n0 n1))) }
-
-::std::n64::N64::from_n32 {
-  fn(n0 n1)
-  ::std::n64::N64 = fn(n0 fn(0 n1))
-}
+::std::n64::N64::from_n32 { fn(n0 tup(n0 0)) }
 
 ::std::n64::N64::add { fn(tup(dup(@add(bl0 l) @n32_add_high(bl1 c)) @add(bh @add(c h))) fn(tup(dup(bl0 bl1) bh) tup(l h))) }
 
 ::std::n64::N64::mul { fn(tup(dup(@mul(bl0 l) dup(@n32_mul_high(bl1 ll) @mul(bh @add(hl @add(ll h))))) ah) fn(tup(dup(bl0 dup(bl1 @mul(ah hl))) bh) tup(l h))) }
 
-::std::n64::N64::or {
-  fn(tup(@n32_or(n0 n1) @n32_or(n2 n3)) fn(tup(n0 n2) n4))
-  ::std::n64::N64 = fn(n1 fn(n3 n4))
-}
-
-::std::rng::Rng { fn(n0 fn(n1 tup(n0 n1))) }
+::std::n64::N64::or { fn(tup(@n32_or(n0 n1) @n32_or(n2 n3)) fn(tup(n0 n2) tup(n1 n3))) }
 
 ::std::rng::Rng::new {
-  fn(n2 fn(n0 n6))
-  ::std::n64::N64::or = fn(n0 fn(n1 dup1132(n7 dup1132(n8 n9))))
+  fn(n2 fn(n0 tup(n5 n8)))
+  ::std::n64::N64::or = fn(n0 fn(n1 dup1132(n6 dup1132(n7 n8))))
   ::std::n64::N64::from_n32 = fn(1 n1)
-  ::std::n64::N64::add = fn(n2 fn(n7 n3))
+  ::std::n64::N64::add = fn(n2 fn(n6 n3))
   ::std::n64::N64::mul = fn(n3 fn(::std::rng::Rng::multiplier n4))
-  ::std::n64::N64::add = fn(n4 fn(n8 n5))
-  ::std::rng::Rng = fn(n5 fn(n9 n6))
+  ::std::n64::N64::add = fn(n4 fn(n7 n5))
 }
 
 ::std::rng::Rng::default {
-  n2
-  ::std::n64::N64 = fn(3512640997 fn(3405705229 n0))
-  ::std::rng::Rng::new = fn(n0 fn(n1 n2))
-  ::std::n64::N64 = fn(4150755663 fn(335903614 n1))
+  n0
+  ::std::rng::Rng::new = fn(tup(3512640997 3405705229) fn(tup(4150755663 335903614) n0))
 }
 
-::std::rng::Rng::multiplier {
-  n0
-  ::std::n64::N64 = fn(1284865837 fn(1481765933 n0))
-}
+::std::rng::Rng::multiplier { tup(1284865837 1481765933) }
 
 ::std::rng::Rng::gen_n32 {
   fn(ref(tup(dup1137(tup(@n32_shr(27 n3) dup1140(@n32_shr(13 @n32_xor(n2 @n32_xor(n3 n4))) dup1140(@n32_shl(5 n2) @n32_shr(27 n5)))) n7) dup1138(n8 n9)) tup(n1 n9)) n6)
