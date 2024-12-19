@@ -130,7 +130,7 @@ pub trait VisitMut<'core, 'a> {
         self.visit_expr(c);
         self.exit_scope();
       }
-      ExprKind::Tuple(a) | ExprKind::List(a) => {
+      ExprKind::Tuple(a) | ExprKind::List(a) | ExprKind::Adt(_, a) => {
         for t in a {
           self.visit_expr(t);
         }

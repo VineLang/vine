@@ -107,23 +107,56 @@ impl<'core> Checker<'core, '_> {
         } else {
           let (forms, types) =
             v.iter_mut().map(|x| self.check_expr(x)).collect::<(Vec<_>, Vec<_>)>();
-          let space = forms.iter().any(|&x| x == Form::Space);
-          let value = forms.iter().any(|&x| x == Form::Value);
-          let form = if !space && !value {
-            Form::Place
-          } else if space && !value {
-            Form::Space
-          } else if value && !space {
-            Form::Value
-          } else {
-            Form::Error(self.core.report(Diag::InconsistentTupleForm { span }))
-          };
+          let form = self.tuple_form(span, &forms);
           for (f, e) in forms.into_iter().zip(v) {
             self.coerce_expr(e, f, form);
           }
           (form, Type::Tuple(types))
         }
       }
+      ExprKind::Adt(path, fields) => {
+        let variant_id = path.path.resolved.unwrap();
+        let (forms, types) =
+          fields.iter_mut().map(|x| self.check_expr(x)).collect::<(Vec<_>, Vec<_>)>();
+        let variant = self.resolver.defs[variant_id].variant_def.as_ref().unwrap();
+        let adt_id = variant.adt;
+        let generics = variant.generics.len();
+        let form = if adt_id == variant_id { self.tuple_form(span, &forms) } else { Form::Value };
+        let generics = self.hydrate_generics(path, generics);
+        let variant = self.resolver.defs[variant_id].variant_def.as_ref().unwrap();
+        let field_types = variant
+          .field_types
+          .as_ref()
+          .unwrap()
+          .iter()
+          .map(|t| t.instantiate(&generics))
+          .collect::<Vec<_>>();
+        for (((f, e), mut t), mut ft) in forms.into_iter().zip(fields).zip(types).zip(field_types) {
+          self.coerce_expr(e, f, form);
+          if !self.unify(&mut t, &mut ft) {
+            self.core.report(Diag::ExpectedTypeFound {
+              span: e.span,
+              expected: self.display_type(&ft),
+              found: self.display_type(&t),
+            });
+          }
+        }
+        (form, Type::Adt(adt_id, generics))
+      }
+    }
+  }
+
+  fn tuple_form(&mut self, span: Span, forms: &[Form]) -> Form {
+    let space = forms.iter().any(|&x| x == Form::Space);
+    let value = forms.iter().any(|&x| x == Form::Value);
+    if !space && !value {
+      Form::Place
+    } else if space && !value {
+      Form::Space
+    } else if value && !space {
+      Form::Value
+    } else {
+      Form::Error(self.core.report(Diag::InconsistentTupleForm { span }))
     }
   }
 

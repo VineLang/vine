@@ -211,9 +211,9 @@ pub enum ExprKind<'core> {
   Paren(B<Expr<'core>>),
   #[class(value)]
   Path(GenericPath<'core>),
-  #[class(place)]
+  #[class(place, resolved)]
   Local(Local),
-  #[class(value)]
+  #[class(value, resolved)]
   DynFn(DynFnId),
   #[class(value)]
   Do(Label<'core>, Block<'core>),
@@ -259,6 +259,8 @@ pub enum ExprKind<'core> {
   Method(B<Expr<'core>>, GenericPath<'core>, Vec<Expr<'core>>),
   #[class(value)]
   Call(B<Expr<'core>>, Vec<Expr<'core>>),
+  #[class(value, place, space, resolved)]
+  Adt(GenericPath<'core>, Vec<Expr<'core>>),
   #[class(value)]
   Neg(B<Expr<'core>>),
   #[class(value)]

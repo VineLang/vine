@@ -126,6 +126,7 @@ impl<'core> Emitter<'core, '_> {
         }
         last_result
       }
+      ExprKind::Adt(p, a) => self.make_adt(p.path.resolved.unwrap(), a, Self::emit_expr_value),
       ExprKind::Tuple(t) => self.tuple(t, Self::emit_expr_value),
       ExprKind::TupleField(t, i, l) => {
         let t = self.emit_expr_value(t);
@@ -232,7 +233,7 @@ impl<'core> Emitter<'core, '_> {
         self.net.link(r, s);
         (x.1, y.1)
       }
-      ExprKind::Tuple(t) => self.tuple_pairs(t, Self::emit_expr_place),
+      ExprKind::Adt(_, t) | ExprKind::Tuple(t) => self.tuple_pairs(t, Self::emit_expr_place),
       ExprKind::TupleField(t, i, l) => {
         let (tv, ts) = self.emit_expr_place(t);
         let mut x = Vec::new();
@@ -263,7 +264,7 @@ impl<'core> Emitter<'core, '_> {
         s
       }
       ExprKind::Inverse(e) => self.emit_expr_value(e),
-      ExprKind::Tuple(t) => self.tuple(t, Self::emit_expr_space),
+      ExprKind::Adt(_, t) | ExprKind::Tuple(t) => self.tuple(t, Self::emit_expr_space),
       ExprKind::SetLocal(l) => self.set_local(*l),
     }
   }

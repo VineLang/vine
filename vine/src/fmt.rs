@@ -253,7 +253,7 @@ impl<'core: 'src, 'src> Formatter<'src> {
 
   fn fmt_expr(&self, expr: &Expr<'core>) -> Doc<'src> {
     match &expr.kind {
-      ExprKind![synthetic || error] | ExprKind::Local(_) | ExprKind::DynFn(_) => unreachable!(),
+      ExprKind![synthetic || resolved || error] => unreachable!(),
       ExprKind::Paren(p) => Doc::paren(self.fmt_expr(p)),
       ExprKind::Hole => Doc("_"),
       ExprKind::Path(path) => self.fmt_generic_path(path),

@@ -277,6 +277,15 @@ impl<'core> VisitMut<'core, '_> for ResolveVisitor<'core, '_> {
         self.labels = labels;
         self.loops = loops;
       }
+      ExprKind::Call(f, a) => {
+        self.visit_expr(f);
+        self.visit(&mut *a);
+        if let ExprKind::Path(p) = &mut f.kind {
+          if self.resolver.defs[p.path.resolved.unwrap()].adt_def.is_some() {
+            expr.kind = ExprKind::Adt(take(p), take(a));
+          }
+        }
+      }
       _ => {
         let result = match &mut expr.kind {
           ExprKind::Path(path) => {
