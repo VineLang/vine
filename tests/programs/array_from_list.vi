@@ -1,0 +1,8 @@
+
+use std::array::Array;
+
+pub fn main(&io: &IO) {
+  let l = List::new(1000000, 0);
+  let a = Array::from_list(l);
+  io.println(a.len().to_string());
+}

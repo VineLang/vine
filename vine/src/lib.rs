@@ -1,7 +1,6 @@
 pub mod ast;
 pub mod checker;
 pub mod core;
-pub mod desugar;
 pub mod diag;
 pub mod emitter;
 pub mod fmt;
@@ -18,7 +17,7 @@ use std::path::PathBuf;
 use checker::Checker;
 use ivy::ast::Nets;
 
-use crate::{desugar::Desugar, emitter::emit, loader::Loader, resolver::Resolver, visit::VisitMut};
+use crate::{emitter::emit, loader::Loader, resolver::Resolver};
 
 pub struct Config {
   pub main: Option<PathBuf>,
@@ -51,8 +50,6 @@ pub fn compile(config: Config) -> Result<Nets, String> {
   checker.check_defs();
 
   core.bail()?;
-
-  Desugar.visit(resolver.defs.values_mut());
 
   Ok(emit(&resolver, &config.items))
 }

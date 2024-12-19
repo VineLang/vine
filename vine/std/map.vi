@@ -49,6 +49,14 @@ pub mod Map {
     node.get(cmp, &key)
   }
 
+  pub fn get_le[K, V](&Map(cmp, node): &Map[K, V], &key: &K) -> Option[&(K, V)] {
+    node.get_le(cmp, &key)
+  }
+
+  pub fn get_ge[K, V](&Map(cmp, node): &Map[K, V], &key: &K) -> Option[&(K, V)] {
+    node.get_ge(cmp, &key)
+  }
+
   pub fn remove[K, V](&Map(cmp, node): &Map[K, V], &key: &K) -> Option[V] {
     node.remove(cmp, &key)
   }
@@ -97,6 +105,32 @@ pub mod Map {
 
     pub fn drop[K, V](&move Iter(&_, stack): &Iter[K, V]) {
       while stack.pop_front() is Some(&_) {}
+    }
+  }
+
+  pub fn into_iter[K, V](Map(_, node): Map[K, V]) -> IntoIter[K, V] {
+    IntoIter(node, [])
+  }
+
+  pub struct IntoIter[K, V](Node[K, V], List[((K, V), Node[K, V])]);
+
+  pub mod IntoIter {
+    pub fn next[K, V](&IntoIter(node, stack): &IntoIter[K, V]) -> Option[(K, V)] {
+      loop {
+        let Node(len, data) = move node;
+        if len == 0 {
+          break;
+        }
+        let (left, entry, right) = data;
+        stack.push_front((entry, right));
+        node = left;
+      }
+      if stack.pop_front() is Some((entry, new_node)) {
+        node = new_node;
+        Some(entry)
+      } else {
+        None
+      }
     }
   }
 
@@ -180,6 +214,40 @@ mod Node {
     }
   }
 
+  pub fn get_le[K, V](&Node(len, data): &Node[K, V], cmp: Cmp[K], &key: &K) -> Option[&(K, V)] {
+    if len == 0 {
+      None
+    } else {
+      let &(left, (cur_key, cur_value), right) = &data;
+      match cmp(&key, &cur_key) {
+        Ord::Lt => left.get_ge(cmp, &key),
+        Ord::Eq => Some(&(cur_key, cur_value)),
+        Ord::Gt => if right.get_ge(cmp, &key) is Some(entry) {
+          Some(entry)
+        } else {
+          Some(&(cur_key, cur_value))
+        },
+      }
+    }
+  }
+
+  pub fn get_ge[K, V](&Node(len, data): &Node[K, V], cmp: Cmp[K], &key: &K) -> Option[&(K, V)] {
+    if len == 0 {
+      None
+    } else {
+      let &(left, (cur_key, cur_value), right) = &data;
+      match cmp(&key, &cur_key) {
+        Ord::Lt => if left.get_ge(cmp, &key) is Some(entry) {
+          Some(entry)
+        } else {
+          Some(&(cur_key, cur_value))
+        },
+        Ord::Eq => Some(&(cur_key, cur_value)),
+        Ord::Gt => right.get_ge(cmp, &key),
+      }
+    }
+  }
+
   pub fn remove[K, V](&Node(len, data): &Node[K, V], cmp: Cmp[K], &key: &K) -> Option[V] {
     if len == 0 {
       None
@@ -211,8 +279,8 @@ mod Node {
     len -= 1;
     let &(left, entry, right) = &data;
     if left.size() == 0 {
-      let Node(_, right) = right;
-      data = move right;
+      let Node(_, right) = move right;
+      data = right;
       move entry
     } else {
       let max = left.remove_min(cmp);
@@ -225,8 +293,8 @@ mod Node {
     len -= 1;
     let &(left, entry, right) = &data;
     if right.size() == 0 {
-      let Node(_, left) = left;
-      data = move left;
+      let Node(_, left) = move left;
+      data = left;
       move entry
     } else {
       let max = right.remove_max(cmp);

@@ -74,8 +74,12 @@ diags! {
     ["expected a space expression; found a value expression"]
   ExpectedValueFoundSpaceExpr
     ["expected a value expression; found a space expression"]
+  ExpectedPlaceFoundValueExpr
+    ["expected a place expression; found a value expression"]
   ExpectedPlaceFoundSpaceExpr
     ["expected a place expression; found a space expression"]
+  InconsistentTupleForm
+    ["tuple members have inconsistent forms"]
   MoveNonPlacePat
     ["`move` is only valid in a place pattern"]
   DerefNonPlacePat
@@ -90,6 +94,8 @@ diags! {
     ["cannot apply operator `{op}{}` to types `{lhs}` and `{rhs}`", if *assign { "=" } else { "" }]
   MismatchedThenElseTypes { then: String, els: String }
     ["then block has type `{then}` but else block has type `{els}`"]
+  MismatchedValueSpaceTypes { value: String, space: String }
+    ["value has type `{value}` but space has type `{space}`"]
   BadArgCount { ty: String, expected: usize, got: usize }
     ["function type `{ty}` expects {expected} argument{}; was passed {got}", plural(*expected, "s", "")]
   NonFunctionCall { ty: String }
@@ -110,6 +116,10 @@ diags! {
     ["`{path}` expects {expected} generic{}; was passed {got}", plural(*expected, "s", "")]
   BadFieldCount { path: Path<'core>, expected: usize, got: usize }
     ["`{path}` has {expected} field{}; {got} {} matched", plural(*expected, "s", ""), plural(*got, "were", "was")]
+  MissingTupleField { ty: String, i: usize }
+    ["type `{ty}` has no field `{i}`"]
+  SpaceField
+    ["cannot access a field of a space expression"]
   FnItemUntypedParam
     ["fn item parameters must be explicitly typed"]
   ItemTypeHole
