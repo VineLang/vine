@@ -35,6 +35,10 @@ impl<'src> Doc<'src> {
     Doc(DocKind::Indent(Self::collect(docs)))
   }
 
+  pub fn indent_vec(docs: Vec<Self>) -> Self {
+    Doc(DocKind::Indent(docs.into_boxed_slice()))
+  }
+
   pub fn group(docs: impl IntoIterator<Item = Self>) -> Self {
     Doc(DocKind::Group(Self::collect(docs)))
   }
