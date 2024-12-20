@@ -1,0 +1,95 @@
+
+/* Globals */
+
+:root {
+    --sidebar-width: 300px;
+    --sidebar-resize-indicator-width: 0px;
+    --sidebar-resize-indicator-space: 0px;
+    --page-padding: 0px;
+    --content-max-width: 750px;
+    --menu-bar-height: 50px;
+    --mono-font: "Source Code Pro", Consolas, "Ubuntu Mono", Menlo, "DejaVu Sans Mono", monospace, monospace;
+    --code-font-size: 0.875em;
+
+    --black: #151820;
+    --darkgrey: #252830;
+    --darkergrey: color-mix(in srgb, var(--black), var(--darkgrey) 50%);
+    --grey: #454850;
+    --lightgrey: #656870;
+    --lightergrey: color-mix(in srgb, var(--white), var(--lightgrey) 50%);
+    --white: #bdc3c7;
+    --red: #c0392b;
+    --orange: #d35400;
+    --yellow: #f1c40f;
+    --green: #2ecc71;
+    --blue: #0984e3;
+    --purple: #8e44ad;
+
+    --vine: #46c676;
+}
+
+:root {
+    --bg: var(--darkgrey);
+    --fg: var(--white);
+
+    --sidebar-bg: var(--black);
+    --sidebar-fg: var(--white);
+    --sidebar-non-existant: var(--grey);
+    --sidebar-active: var(--vine);
+    --sidebar-spacer: var(--grey);
+
+    --scrollbar: var(--sidebar-fg);
+
+    --icons: #737480;
+    --icons-hover: #b7b9cc;
+
+    --links: var(--vine);
+
+    --inline-code-color: var(--darkergrey);
+
+    --theme-popup-bg: #161923;
+    --theme-popup-border: #737480;
+    --theme-hover: color-mix(in srgb, var(--black), var(--vine) 20%);
+
+    --quote-bg: hsl(226, 15%, 17%);
+    --quote-border: hsl(226, 15%, 22%);
+
+    --warning-border: #ff8e00;
+
+    --table-border-color: hsl(226, 23%, 16%);
+    --table-header-bg: hsl(226, 23%, 31%);
+    --table-alternate-bg: hsl(226, 23%, 14%);
+
+    --searchbar-border-color: #aaa;
+    --searchbar-bg: #aeaec6;
+    --searchbar-fg: #000;
+    --searchbar-shadow-color: #aaa;
+    --searchresults-header-fg: #5f5f71;
+    --searchresults-border-color: #5c5c68;
+    --searchresults-li-bg: #242430;
+    --search-mark-bg: #a2cff5;
+
+    --color-scheme: dark;
+
+    /* Same as `--icons` */
+    --copy-button-filter: invert(51%) sepia(10%) saturate(393%) hue-rotate(198deg) brightness(86%) contrast(87%);
+    /* Same as `--sidebar-active` */
+    --copy-button-filter-hover: invert(46%) sepia(20%) saturate(1537%) hue-rotate(156deg) brightness(85%) contrast(90%);
+}
+
+#menu-bar {
+    background-color: var(--sidebar-bg) !important;
+}
+
+.sidebar-scrollbox::before {
+    content: "";
+    display: inline-block;
+    background-image: url("/logo.png");
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
+    width: 100%;
+    height: 120px;
+    margin-top: -6px;
+    margin-bottom: -12px;
+}

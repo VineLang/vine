@@ -1,0 +1,32 @@
+# Hello, World!
+
+```rs
+// Hello, world!
+fn main(&io: &IO) {
+  let x = 5;
+  io.println("Hello, world!");
+}
+
+
+use std::option::Option::{Some, None};
+
+pub fn main(&io: &IO) {
+  while io.prompt("> ") is Some(line) {
+    let num = N32::parse(line);
+    io.println(match num {
+      Some(num) => fib(num).to_string(),
+      None => "invalid number",
+    });
+  }
+}
+
+pub fn fib(n: N32) -> N32 {
+  let a = 0;
+  let b = 1;
+  while n != 0 {
+    n -= 1;
+    (a, b) = (b, a + b);
+  }
+  a
+}
+```
