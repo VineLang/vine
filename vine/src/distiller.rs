@@ -4,16 +4,31 @@ use ivm::ext::{ExtFn, ExtFnKind};
 use vine_util::idx::{Counter, IdxVec};
 
 use crate::{
-  ast::{Block, Expr, ExprKind, Local},
+  ast::{Block, Expr, ExprKind, LabelId, Local},
   vir::{
     Interface, InterfaceId, Layer, LayerId, LocalUse, Port, Stage, StageId, Step, Transfer, WireId,
   },
 };
 
+#[derive(Default)]
 pub struct Distiller {
   layers: IdxVec<LayerId, Option<Layer>>,
   interfaces: IdxVec<InterfaceId, Option<Interface>>,
   stages: IdxVec<StageId, Option<Stage>>,
+
+  labels: IdxVec<LabelId, Option<Label>>,
+  returns: Vec<Return>,
+}
+
+struct Label {
+  layer: LayerId,
+  continue_transfer: Option<InterfaceId>,
+  break_value: Option<Local>,
+}
+
+struct Return {
+  layer: LayerId,
+  local: Local,
 }
 
 impl Distiller {
@@ -48,11 +63,11 @@ impl Distiller {
     todo!()
   }
 
-  fn distill_expr_value(&mut self, stage: &mut Stage, expr: &Expr) -> Port {
+  pub fn distill_expr_value(&mut self, stage: &mut Stage, expr: &Expr) -> Port {
     match &expr.kind {
       ExprKind![sugar || error || !value] => unreachable!("{expr:?}"),
 
-      ExprKind![cond] => self.distill_cond_bool(stage, expr),
+      ExprKind![cond] => self.distill_cond_bool(stage, expr, false),
 
       ExprKind::Paren(inner) => self.distill_expr_value(stage, inner),
       ExprKind::Char(c) => Port::N32(*c as u32),
@@ -153,8 +168,6 @@ impl Distiller {
         wire.1
       }
 
-      ExprKind::Match(expr, vec) => todo!(),
-
       ExprKind::If(cond, then_branch, else_branch) => {
         let local = self.new_local();
         let (mut layer, mut cond_stage) = self.child_layer(stage);
@@ -178,6 +191,13 @@ impl Distiller {
 
       ExprKind::While(label, cond, block) => {
         let (mut layer, mut cond_stage) = self.child_layer(stage);
+
+        *self.labels.get_or_extend(label.as_id()) = Some(Label {
+          layer: layer.id,
+          continue_transfer: Some(cond_stage.interface),
+          break_value: None,
+        });
+
         let (mut then_stage, else_stage) = self.distill_cond(&mut layer, &mut cond_stage, cond);
 
         let result = self.distill_block(&mut then_stage, block);
@@ -193,21 +213,62 @@ impl Distiller {
       }
 
       ExprKind::Loop(label, block) => {
-        let (layer, mut stage) = self.child_layer(stage);
-        let result = self.distill_block(&mut stage, block);
-        stage.erase(result);
-        stage.transfer = Some(Transfer { interface: stage.interface, data: None });
+        let local = self.new_local();
+        let (layer, mut body_stage) = self.child_layer(stage);
 
-        self.finish_stage(stage);
+        *self.labels.get_or_extend(label.as_id()) = Some(Label {
+          layer: layer.id,
+          continue_transfer: Some(body_stage.interface),
+          break_value: Some(local),
+        });
+
+        let result = self.distill_block(&mut body_stage, block);
+        body_stage.erase(result);
+        body_stage.transfer = Some(Transfer { interface: body_stage.interface, data: None });
+
+        self.finish_stage(body_stage);
         self.finish_layer(layer);
+
+        let wire = stage.new_wire();
+        stage.steps.push(Step::Local(local, LocalUse::Take(wire.0)));
+        wire.1
+      }
+
+      ExprKind::Match(expr, vec) => todo!(),
+      ExprKind::Fn(vec, ty, expr) => todo!(),
+      ExprKind::Return(value) => {
+        let value =
+          value.as_ref().map(|v| self.distill_expr_value(stage, v)).unwrap_or(Port::Erase);
+        let return_ = self.returns.last().unwrap();
+
+        stage.steps.push(Step::Local(return_.local, LocalUse::Set(value)));
+        stage.steps.push(Step::Diverge(return_.layer, None));
 
         Port::Erase
       }
 
-      ExprKind::Fn(vec, ty, expr) => todo!(),
-      ExprKind::Return(expr) => todo!(),
-      ExprKind::Break(label, expr) => todo!(),
-      ExprKind::Continue(label) => todo!(),
+      ExprKind::Break(label, value) => {
+        let value =
+          value.as_ref().map(|v| self.distill_expr_value(stage, v)).unwrap_or(Port::Erase);
+
+        let label = self.labels[label.as_id()].as_ref().unwrap();
+        if let Some(local) = label.break_value {
+          stage.steps.push(Step::Local(local, LocalUse::Set(value)));
+        } else {
+          stage.erase(value);
+        }
+
+        stage.steps.push(Step::Diverge(label.layer, None));
+
+        Port::Erase
+      }
+
+      ExprKind::Continue(label) => {
+        let label = self.labels[label.as_id()].as_ref().unwrap();
+        let transfer = Transfer { interface: label.continue_transfer.unwrap(), data: None };
+        stage.steps.push(Step::Diverge(label.layer, Some(transfer)));
+        Port::Erase
+      }
     }
   }
 
@@ -301,8 +362,23 @@ impl Distiller {
     }
   }
 
-  fn distill_cond_bool(&mut self, stage: &mut Stage, cond: &Expr) -> Port {
-    todo!()
+  fn distill_cond_bool(&mut self, stage: &mut Stage, cond: &Expr, negate: bool) -> Port {
+    match &cond.kind {
+      ExprKind![!cond] => {
+        let value = self.distill_expr_value(stage, cond);
+        if negate {
+          let wire = stage.new_wire();
+          stage.steps.push(Step::ExtFn(ExtFnKind::eq.into(), wire.0, value, Port::N32(0)));
+          wire.1
+        } else {
+          value
+        }
+      }
+      ExprKind::Bool(b) => Port::N32(*b as u32),
+      ExprKind::Not(inner) => self.distill_cond_bool(stage, inner, !negate),
+      ExprKind::Is(expr, pat) => todo!(),
+      ExprKind::LogicalOp(logical_op, expr, expr1) => todo!(),
+    }
   }
 
   fn distill_cond(&mut self, layer: &mut Layer, stage: &mut Stage, cond: &Expr) -> (Stage, Stage) {

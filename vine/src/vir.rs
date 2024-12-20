@@ -87,7 +87,9 @@ impl Stage {
     (Port::Wire(w), Port::Wire(w))
   }
 
-  pub fn erase(&self, port: Port) {
-    todo!()
+  pub fn erase(&mut self, port: Port) {
+    if matches!(port, Port::Wire(_)) {
+      self.steps.push(Step::Link(port, Port::Erase));
+    }
   }
 }
