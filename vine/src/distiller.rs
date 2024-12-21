@@ -4,7 +4,7 @@ use ivm::ext::{ExtFn, ExtFnKind};
 use vine_util::idx::{Counter, IdxVec};
 
 use crate::{
-  ast::{Block, Expr, ExprKind, LabelId, Local},
+  ast::{Block, Expr, ExprKind, LabelId, Local, Pat, PatKind},
   vir::{
     Interface, InterfaceId, Layer, LayerId, LocalUse, Port, Stage, StageId, Step, Transfer, WireId,
   },
@@ -358,7 +358,62 @@ impl Distiller {
         stage.steps.push(Step::Tuple(tuple.1, spaces));
         (value, space)
       }
-      ExprKind::Temp(expr) => todo!(),
+    }
+  }
+
+  fn distill_pat_value(&mut self, stage: &mut Stage, pat: &Pat) -> Port {
+    match &pat.kind {
+      PatKind![!value] => unreachable!(),
+      PatKind::Hole => Port::Erase,
+      PatKind::Paren(inner) => self.distill_pat_value(stage, inner),
+      PatKind::Inverse(inner) => self.distill_pat_space(stage, inner),
+      PatKind::Local(local) => {
+        let wire = stage.new_wire();
+        stage.steps.push(Step::Local(*local, LocalUse::Set(wire.0)));
+        wire.1
+      }
+      PatKind::Adt(generic_path, vec) => todo!(),
+      PatKind::Ref(pat) => todo!(),
+      PatKind::Tuple(vec) => todo!(),
+    }
+  }
+
+  fn distill_pat_space(&mut self, stage: &mut Stage, pat: &Pat) -> Port {
+    match &pat.kind {
+      PatKind![!space] => unreachable!(),
+      PatKind::Hole => Port::Erase,
+      PatKind::Paren(inner) => self.distill_pat_space(stage, inner),
+      PatKind::Inverse(inner) => self.distill_pat_value(stage, inner),
+      PatKind::Local(local) => {
+        let wire = stage.new_wire();
+        stage.steps.push(Step::Local(*local, LocalUse::Take(wire.0)));
+        wire.1
+      }
+      PatKind::Adt(generic_path, vec) => todo!(),
+      PatKind::Tuple(vec) => todo!(),
+    }
+  }
+
+  fn distill_pat_place(&mut self, stage: &mut Stage, pat: &Pat) -> (Port, Port) {
+    match &pat.kind {
+      PatKind![!place] => unreachable!(),
+      PatKind::Hole => stage.new_wire(),
+      PatKind::Paren(inner) => self.distill_pat_place(stage, inner),
+      PatKind::Inverse(inner) => {
+        let (value, space) = self.distill_pat_place(stage, inner);
+        (space, value)
+      }
+      PatKind::Local(local) => {
+        let value = stage.new_wire();
+        let space = stage.new_wire();
+        stage.steps.push(Step::Local(*local, LocalUse::Mut(space.0, value.0)));
+        (value.1, space.1)
+      }
+      PatKind::Adt(generic_path, vec) => todo!(),
+      PatKind::Ref(pat) => todo!(),
+      PatKind::Deref(pat) => todo!(),
+      PatKind::Move(pat) => todo!(),
+      PatKind::Tuple(vec) => todo!(),
     }
   }
 

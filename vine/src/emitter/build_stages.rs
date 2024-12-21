@@ -222,7 +222,6 @@ impl<'core> Emitter<'core, '_> {
         (b, a)
       }
       ExprKind::Place(v, s) => (self.emit_expr_value(v), self.emit_expr_space(s)),
-      ExprKind::Temp(e) => (self.emit_expr_value(e), Port::Erase),
       ExprKind::Deref(p, _) => {
         let r = self.emit_expr_value(p);
         let x = self.net.new_wire();

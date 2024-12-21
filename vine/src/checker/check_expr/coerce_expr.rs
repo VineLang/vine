@@ -1,5 +1,3 @@
-use std::mem::take;
-
 use crate::{
   ast::{Expr, ExprKind},
   checker::{Checker, Form},
@@ -38,9 +36,6 @@ impl<'core> Checker<'core, '_> {
         for e in t {
           Self::copy_expr(e);
         }
-      }
-      ExprKind::Temp(t) => {
-        expr.kind = take(&mut t.kind);
       }
       _ => expr.wrap(ExprKind::Copy),
     }

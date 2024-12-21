@@ -78,8 +78,7 @@ pub trait VisitMut<'core, 'a> {
       | ExprKind::TupleField(a, _, _)
       | ExprKind::Inverse(a, _)
       | ExprKind::Copy(a)
-      | ExprKind::Set(a)
-      | ExprKind::Temp(a) => self.visit_expr(a),
+      | ExprKind::Set(a) => self.visit_expr(a),
       ExprKind::Assign(_, a, b)
       | ExprKind::Place(a, b)
       | ExprKind::BinaryOp(_, a, b)

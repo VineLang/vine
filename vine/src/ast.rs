@@ -279,8 +279,6 @@ pub enum ExprKind<'core> {
   Char(char),
   #[class(value)]
   String(String),
-  #[class(place, synthetic)]
-  Temp(B<Expr<'core>>),
   #[class(space, synthetic)]
   Set(B<Expr<'core>>),
   #[class(value, synthetic)]
