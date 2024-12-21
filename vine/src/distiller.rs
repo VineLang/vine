@@ -1,13 +1,11 @@
 use std::mem::replace;
 
-use ivm::ext::{ExtFn, ExtFnKind};
+use ivm::ext::ExtFnKind;
 use vine_util::idx::{Counter, IdxVec};
 
 use crate::{
-  ast::{Block, Expr, ExprKind, LabelId, Local, Pat, PatKind},
-  vir::{
-    Interface, InterfaceId, Layer, LayerId, LocalUse, Port, Stage, StageId, Step, Transfer, WireId,
-  },
+  ast::{Block, Expr, ExprKind, GenericPath, LabelId, Local, Pat, PatKind},
+  vir::{Interface, InterfaceId, Layer, LayerId, LocalUse, Port, Stage, StageId, Step, Transfer},
 };
 
 #[derive(Default)]
@@ -108,18 +106,9 @@ impl Distiller {
         wire.1
       }
       ExprKind::Inverse(inner) => self.distill_expr_space(stage, inner),
-      ExprKind::Tuple(values) => {
-        let values = values.iter().map(|v| self.distill_expr_value(stage, v)).collect::<Vec<_>>();
-        let wire = stage.new_wire();
-        stage.steps.push(Step::Tuple(wire.0, values));
-        wire.1
-      }
-      ExprKind::List(values) => {
-        let values = values.iter().map(|v| self.distill_expr_value(stage, v)).collect::<Vec<_>>();
-        let wire = stage.new_wire();
-        stage.steps.push(Step::List(wire.0, values));
-        wire.1
-      }
+      ExprKind::Tuple(tuple) => self.list(stage, tuple, Self::distill_expr_value, Step::Tuple),
+      ExprKind::Adt(path, args) => self.list(stage, args, Self::distill_expr_value, adt(path)),
+      ExprKind::List(list) => self.list(stage, list, Self::distill_expr_value, Step::List),
       ExprKind::TupleField(tuple, idx, len) => {
         let tuple = self.distill_expr_value(stage, tuple);
         let len = len.unwrap();
@@ -136,22 +125,12 @@ impl Distiller {
         stage.steps.push(Step::Fn(func, args, wire.0));
         wire.1
       }
-      ExprKind::Adt(path, values) => {
-        let adt = path.path.resolved.unwrap();
-        let values = values.iter().map(|s| self.distill_expr_value(stage, s)).collect::<Vec<_>>();
-        let wire = stage.new_wire();
-        stage.steps.push(Step::Adt(adt, wire.0, values));
-        wire.1
-      }
       ExprKind::Neg(value) => {
         let value = self.distill_expr_value(stage, value);
         let wire = stage.new_wire();
         stage.steps.push(Step::ExtFn(ExtFnKind::sub.into(), wire.0, Port::N32(0), value));
         wire.1
       }
-      ExprKind::BinaryOp(binary_op, expr, expr1) => todo!(),
-      ExprKind::ComparisonOp(expr, vec) => todo!(),
-      ExprKind::BinaryOpAssign(binary_op, expr, expr1) => todo!(),
       ExprKind::String(s) => {
         let wire = stage.new_wire();
         stage.steps.push(Step::String(wire.0, s.clone()));
@@ -167,6 +146,10 @@ impl Distiller {
         stage.steps.push(Step::Local(*local, LocalUse::Take(wire.0)));
         wire.1
       }
+
+      ExprKind::BinaryOp(binary_op, expr, expr1) => todo!(),
+      ExprKind::ComparisonOp(expr, vec) => todo!(),
+      ExprKind::BinaryOpAssign(binary_op, expr, expr1) => todo!(),
 
       ExprKind::If(cond, then_branch, else_branch) => {
         let local = self.new_local();
@@ -234,8 +217,6 @@ impl Distiller {
         wire.1
       }
 
-      ExprKind::Match(expr, vec) => todo!(),
-      ExprKind::Fn(vec, ty, expr) => todo!(),
       ExprKind::Return(value) => {
         let value =
           value.as_ref().map(|v| self.distill_expr_value(stage, v)).unwrap_or(Port::Erase);
@@ -269,6 +250,9 @@ impl Distiller {
         stage.steps.push(Step::Diverge(label.layer, Some(transfer)));
         Port::Erase
       }
+
+      ExprKind::Match(expr, vec) => todo!(),
+      ExprKind::Fn(vec, ty, expr) => todo!(),
     }
   }
 
@@ -278,19 +262,8 @@ impl Distiller {
       ExprKind::Paren(inner) => self.distill_expr_space(stage, inner),
       ExprKind::Hole => Port::Erase,
       ExprKind::Inverse(inner) => self.distill_expr_value(stage, inner),
-      ExprKind::Tuple(spaces) => {
-        let spaces = spaces.iter().map(|s| self.distill_expr_space(stage, s)).collect::<Vec<_>>();
-        let wire = stage.new_wire();
-        stage.steps.push(Step::Tuple(wire.0, spaces));
-        wire.1
-      }
-      ExprKind::Adt(path, spaces) => {
-        let adt = path.path.resolved.unwrap();
-        let spaces = spaces.iter().map(|s| self.distill_expr_space(stage, s)).collect::<Vec<_>>();
-        let wire = stage.new_wire();
-        stage.steps.push(Step::Adt(adt, wire.0, spaces));
-        wire.1
-      }
+      ExprKind::Tuple(tuple) => self.list(stage, tuple, Self::distill_expr_space, Step::Tuple),
+      ExprKind::Adt(path, args) => self.list(stage, args, Self::distill_expr_space, adt(path)),
       ExprKind::Set(place) => {
         let (value, space) = self.distill_expr_place(stage, place);
         stage.erase(value);
@@ -328,25 +301,8 @@ impl Distiller {
       ExprKind::Place(value, space) => {
         (self.distill_expr_value(stage, value), self.distill_expr_space(stage, space))
       }
-      ExprKind::Tuple(places) => {
-        let (values, spaces) =
-          places.iter().map(|s| self.distill_expr_place(stage, s)).collect::<(Vec<_>, Vec<_>)>();
-        let value = stage.new_wire();
-        let space = stage.new_wire();
-        stage.steps.push(Step::Tuple(value.0, values));
-        stage.steps.push(Step::Tuple(space.0, spaces));
-        (value.1, space.1)
-      }
-      ExprKind::Adt(path, places) => {
-        let adt = path.path.resolved.unwrap();
-        let (values, spaces) =
-          places.iter().map(|s| self.distill_expr_place(stage, s)).collect::<(Vec<_>, Vec<_>)>();
-        let value = stage.new_wire();
-        let space = stage.new_wire();
-        stage.steps.push(Step::Adt(adt, value.0, values));
-        stage.steps.push(Step::Adt(adt, space.0, spaces));
-        (value.1, space.1)
-      }
+      ExprKind::Tuple(tuple) => self.list_pair(stage, tuple, Self::distill_expr_place, Step::Tuple),
+      ExprKind::Adt(path, args) => self.list_pair(stage, args, Self::distill_expr_place, adt(path)),
       ExprKind::TupleField(tuple, idx, len) => {
         let tuple = self.distill_expr_place(stage, tuple);
         let len = len.unwrap();
@@ -361,7 +317,7 @@ impl Distiller {
     }
   }
 
-  fn distill_pat_value(&mut self, stage: &mut Stage, pat: &Pat) -> Port {
+  pub fn distill_pat_value(&mut self, stage: &mut Stage, pat: &Pat) -> Port {
     match &pat.kind {
       PatKind![!value] => unreachable!(),
       PatKind::Hole => Port::Erase,
@@ -372,9 +328,16 @@ impl Distiller {
         stage.steps.push(Step::Local(*local, LocalUse::Set(wire.0)));
         wire.1
       }
-      PatKind::Adt(generic_path, vec) => todo!(),
-      PatKind::Ref(pat) => todo!(),
-      PatKind::Tuple(vec) => todo!(),
+      PatKind::Tuple(tuple) => self.list(stage, tuple, Self::distill_pat_value, Step::Tuple),
+      PatKind::Adt(path, args) => {
+        self.list(stage, args.as_deref().unwrap_or(&[]), Self::distill_pat_value, adt(path))
+      }
+      PatKind::Ref(place) => {
+        let (value, space) = self.distill_pat_place(stage, place);
+        let wire = stage.new_wire();
+        stage.steps.push(Step::Ref(wire.0, value, space));
+        wire.1
+      }
     }
   }
 
@@ -389,8 +352,10 @@ impl Distiller {
         stage.steps.push(Step::Local(*local, LocalUse::Take(wire.0)));
         wire.1
       }
-      PatKind::Adt(generic_path, vec) => todo!(),
-      PatKind::Tuple(vec) => todo!(),
+      PatKind::Tuple(tuple) => self.list(stage, tuple, Self::distill_pat_space, Step::Tuple),
+      PatKind::Adt(path, args) => {
+        self.list(stage, args.as_deref().unwrap_or(&[]), Self::distill_pat_space, adt(path))
+      }
     }
   }
 
@@ -409,11 +374,30 @@ impl Distiller {
         stage.steps.push(Step::Local(*local, LocalUse::Mut(space.0, value.0)));
         (value.1, space.1)
       }
-      PatKind::Adt(generic_path, vec) => todo!(),
-      PatKind::Ref(pat) => todo!(),
-      PatKind::Deref(pat) => todo!(),
-      PatKind::Move(pat) => todo!(),
-      PatKind::Tuple(vec) => todo!(),
+      PatKind::Tuple(tuple) => self.list_pair(stage, tuple, Self::distill_pat_place, Step::Tuple),
+      PatKind::Adt(path, args) => {
+        self.list_pair(stage, args.as_deref().unwrap_or(&[]), Self::distill_pat_place, adt(path))
+      }
+      PatKind::Ref(place) => {
+        let (value_0, value_1) = self.distill_pat_place(stage, place);
+        let ref_in = stage.new_wire();
+        let ref_out = stage.new_wire();
+        let value_2 = stage.new_wire();
+        stage.steps.push(Step::Ref(ref_in.0, value_0, value_2.0));
+        stage.steps.push(Step::Ref(ref_out.0, value_1, value_2.1));
+        (ref_in.1, ref_out.1)
+      }
+      PatKind::Deref(reference) => {
+        let reference = self.distill_pat_value(stage, reference);
+        let value = stage.new_wire();
+        let space = stage.new_wire();
+        stage.steps.push(Step::Ref(reference, value.0, space.0));
+        (value.1, space.1)
+      }
+      PatKind::Move(value) => {
+        let value = self.distill_pat_value(stage, value);
+        (value, Port::Erase)
+      }
     }
   }
 
@@ -439,4 +423,37 @@ impl Distiller {
   fn distill_cond(&mut self, layer: &mut Layer, stage: &mut Stage, cond: &Expr) -> (Stage, Stage) {
     todo!()
   }
+
+  fn list<T>(
+    &mut self,
+    stage: &mut Stage,
+    tuple: &[T],
+    mut f: impl FnMut(&mut Self, &mut Stage, &T) -> Port,
+    s: impl Fn(Port, Vec<Port>) -> Step,
+  ) -> Port {
+    let ports = tuple.iter().map(|x| f(self, stage, x)).collect::<Vec<_>>();
+    let wire = stage.new_wire();
+    stage.steps.push(s(wire.0, ports));
+    wire.1
+  }
+
+  fn list_pair<T>(
+    &mut self,
+    stage: &mut Stage,
+    tuple: &[T],
+    mut f: impl FnMut(&mut Self, &mut Stage, &T) -> (Port, Port),
+    s: impl Fn(Port, Vec<Port>) -> Step,
+  ) -> (Port, Port) {
+    let (lefts, rights) = tuple.iter().map(|x| f(self, stage, x)).collect::<(Vec<_>, Vec<_>)>();
+    let left = stage.new_wire();
+    let right = stage.new_wire();
+    stage.steps.push(s(left.0, lefts));
+    stage.steps.push(s(right.0, rights));
+    (left.1, right.1)
+  }
+}
+
+fn adt(path: &GenericPath) -> impl Fn(Port, Vec<Port>) -> Step {
+  let adt = path.path.resolved.unwrap();
+  move |x, y| Step::Adt(adt, x, y)
 }
