@@ -37,6 +37,7 @@ pub enum InterfaceKind {
 pub struct Stage {
   pub id: StageId,
   pub interface: InterfaceId,
+  pub layer: LayerId,
   pub steps: Vec<Step>,
   pub transfer: Option<Transfer>,
   pub wire: Counter<WireId>,
@@ -91,5 +92,59 @@ impl Stage {
     if matches!(port, Port::Wire(_)) {
       self.steps.push(Step::Link(port, Port::Erase));
     }
+  }
+
+  pub fn get_local_to(&mut self, local: Local, to: Port) {
+    self.steps.push(Step::Local(local, LocalUse::Get(to)));
+  }
+
+  pub fn take_local_to(&mut self, local: Local, to: Port) {
+    self.steps.push(Step::Local(local, LocalUse::Take(to)));
+  }
+
+  pub fn set_local_to(&mut self, local: Local, to: Port) {
+    self.steps.push(Step::Local(local, LocalUse::Set(to)));
+  }
+
+  pub fn mut_local_to(&mut self, local: Local, o: Port, i: Port) {
+    self.steps.push(Step::Local(local, LocalUse::Mut(o, i)));
+  }
+
+  pub fn get_local(&mut self, local: Local) -> Port {
+    let wire = self.new_wire();
+    self.get_local_to(local, wire.0);
+    wire.1
+  }
+
+  pub fn take_local(&mut self, local: Local) -> Port {
+    let wire = self.new_wire();
+    self.take_local_to(local, wire.0);
+    wire.1
+  }
+
+  pub fn set_local(&mut self, local: Local) -> Port {
+    let wire = self.new_wire();
+    self.set_local_to(local, wire.0);
+    wire.1
+  }
+
+  pub fn mut_local(&mut self, local: Local) -> (Port, Port) {
+    let o = self.new_wire();
+    let i = self.new_wire();
+    self.mut_local_to(local, o.0, i.0);
+    (o.1, i.1)
+  }
+
+  pub fn dup(&mut self, p: Port) -> (Port, Port) {
+    let a = self.new_wire();
+    let b = self.new_wire();
+    self.steps.push(Step::Dup(p, a.0, b.0));
+    (a.1, b.1)
+  }
+
+  pub fn ext_fn(&mut self, ext_fn: ExtFn, lhs: Port, rhs: Port) -> Port {
+    let out = self.new_wire();
+    self.steps.push(Step::ExtFn(ext_fn, lhs, rhs, out.0));
+    out.1
   }
 }
