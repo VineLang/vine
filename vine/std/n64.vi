@@ -1,12 +1,12 @@
 
-use std::{list::Buf, option::Option::{Option, Some, None}};
+use std::{list::Buf, option::Option::{Option, Some, None}, map::Ord};
 
 pub struct N64(N32, N32);
 
 pub mod N64 {
-  const zero: N64 = N64(0, 0);
-  const one: N64 = N64(1, 0);
-  const maximum: N64 = N64(N32::maximum, N32::maximum);
+  pub const zero: N64 = N64(0, 0);
+  pub const one: N64 = N64(1, 0);
+  pub const maximum: N64 = N64(N32::maximum, N32::maximum);
 
   pub fn from_n32(val: N32) -> N64 {
     N64(val, 0)
@@ -113,6 +113,16 @@ pub mod N64 {
     ah > bh || ah == bh && al >= bl
   }
 
+  pub fn cmp(&N64(al, ah): &N64, &N64(bl, bh): &N64) -> Ord {
+    if ah < bh {
+      Ord::Lt
+    } else if ah > bh {
+      Ord::Gt
+    } else {
+      al.cmp(&bl)
+    }
+  }
+
   pub fn parse(str: String) -> Option[N64] {
     let List(len, chars, _) = str;
     if len == 0 {
@@ -144,6 +154,36 @@ pub mod N64 {
       str
     } else {
       "0"
+    }
+  }
+
+  pub fn pow_n32(b: N64, e: N32) -> N64 {
+    let n = N64::one;
+    while e != 0 {
+      if e % 2 != 0 {
+        n = n.mul(b);
+      }
+      b = b.mul(b);
+      e /= 2;
+    }
+    n
+  }
+
+  pub fn log_n32(n: N64, b: N32) -> N32 {
+    let l = 0;
+    while N64::from_n32(b).le(n) {
+      l += 1;
+      let (d, _) = n.div_rem_n32(b);
+      n = d;
+    }
+    l
+  }
+
+  pub fn diff(a: N64, b: N64) -> N64 {
+    if a.ge(b) {
+      a.sub(b)
+    } else {
+      b.sub(a)
     }
   }
 }

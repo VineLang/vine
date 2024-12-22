@@ -1,4 +1,4 @@
-use std::ops::Add;
+use std::{borrow::Cow, ops::Add};
 
 use crate::ast::Ident;
 
@@ -16,7 +16,7 @@ pub fn Doc<'src>(doc: impl Into<Doc<'src>>) -> Doc<'src> {
 }
 
 impl<'src> Doc<'src> {
-  pub const EMPTY: Self = Doc { measure: Measure::EMPTY, kind: DocKind::String("") };
+  pub const EMPTY: Self = Doc { measure: Measure::EMPTY, kind: DocKind::String(Cow::Borrowed("")) };
   pub const LINE: Self = Doc { measure: Measure::LINE, kind: DocKind::Line };
 
   fn collect(docs: impl IntoIterator<Item = Self>) -> Box<[Self]> {
@@ -33,6 +33,10 @@ impl<'src> Doc<'src> {
 
   pub fn indent(docs: impl IntoIterator<Item = Self>) -> Self {
     Doc(DocKind::Indent(Self::collect(docs)))
+  }
+
+  pub fn indent_vec(docs: Vec<Self>) -> Self {
+    Doc(DocKind::Indent(docs.into_boxed_slice()))
   }
 
   pub fn group(docs: impl IntoIterator<Item = Self>) -> Self {
@@ -63,67 +67,48 @@ impl<'src> Doc<'src> {
     Doc::concat([Doc("("), Doc::group([doc]), Doc(")")])
   }
 
-  pub fn paren_comma(mut docs: impl ExactSizeIterator<Item = Self>) -> Self {
-    Doc::concat([
-      Doc("("),
-      if docs.len() == 1 {
-        Doc::lazy_group([docs.next().unwrap(), Doc::if_multi(",")])
+  pub fn delimited(
+    empty: &'src str,
+    open: &'src str,
+    close: &'src str,
+    force_multi: bool,
+    force_trailing: bool,
+    lazy_single: bool,
+    mut docs: impl ExactSizeIterator<Item = Self>,
+  ) -> Self {
+    if docs.len() == 0 {
+      Doc(empty)
+    } else {
+      let trailing = if force_multi || force_trailing { Doc(",") } else { Doc::if_multi(",") };
+      let sep = Doc::concat([Doc(","), if force_multi { Doc::LINE } else { Doc::soft_line(" ") }]);
+      let inner = [if lazy_single && docs.len() == 1 {
+        Doc::lazy_group([docs.next().unwrap(), trailing])
       } else {
-        Doc::group([
-          Doc::interleave(docs, Doc::concat([Doc(","), Doc::soft_line(" ")])),
-          Doc::if_multi(","),
-        ])
-      },
-      Doc(")"),
-    ])
+        Doc::group([Doc::interleave(docs, sep), trailing])
+      }];
+      let inner = if force_multi { Doc::indent(inner) } else { Doc::group(inner) };
+      Doc::concat([Doc(open), inner, Doc(close)])
+    }
   }
 
-  pub fn tuple(mut docs: impl ExactSizeIterator<Item = Self>) -> Self {
-    Doc::concat([
-      Doc("("),
-      if docs.len() == 1 {
-        Doc::lazy_group([docs.next().unwrap(), Doc(",")])
-      } else {
-        Doc::group([
-          Doc::interleave(docs, Doc::concat([Doc(","), Doc::soft_line(" ")])),
-          Doc::if_multi(","),
-        ])
-      },
-      Doc(")"),
-    ])
+  pub fn paren_comma(docs: impl ExactSizeIterator<Item = Self>) -> Self {
+    Self::delimited("()", "(", ")", false, false, true, docs)
   }
 
-  pub fn bracket_comma(docs: impl IntoIterator<Item = Self>) -> Self {
-    Doc::concat([
-      Doc("["),
-      Doc::group([
-        Doc::interleave(docs, Doc::concat([Doc(","), Doc::soft_line(" ")])),
-        Doc::if_multi(","),
-      ]),
-      Doc("]"),
-    ])
+  pub fn tuple(docs: impl ExactSizeIterator<Item = Self>) -> Self {
+    Self::delimited("()", "(", ")", false, docs.len() == 1, false, docs)
   }
 
-  pub fn brace_comma(docs: impl IntoIterator<Item = Self>) -> Self {
-    Doc::concat([
-      Doc("{"),
-      Doc::group([
-        Doc::interleave(docs, Doc::concat([Doc(","), Doc::soft_line(" ")])),
-        Doc::if_multi(","),
-      ]),
-      Doc("}"),
-    ])
+  pub fn bracket_comma(docs: impl ExactSizeIterator<Item = Self>) -> Self {
+    Self::delimited("[]", "[", "]", false, false, false, docs)
   }
 
-  pub fn brace_comma_multiline(docs: impl IntoIterator<Item = Self>) -> Self {
-    Doc::concat([
-      Doc("{"),
-      Doc::indent([Doc::interleave(
-        docs.into_iter().map(|x| Doc::concat([x, Doc(",")])),
-        Doc::LINE,
-      )]),
-      Doc("}"),
-    ])
+  pub fn brace_comma(docs: impl ExactSizeIterator<Item = Self>) -> Self {
+    Self::delimited("{}", "{", "}", false, false, false, docs)
+  }
+
+  pub fn brace_comma_multiline(docs: impl ExactSizeIterator<Item = Self>) -> Self {
+    Self::delimited("{}", "{", "}", true, false, false, docs)
   }
 }
 
@@ -135,7 +120,13 @@ impl<'src> From<DocKind<'src>> for Doc<'src> {
 
 impl<'src> From<&'src str> for Doc<'src> {
   fn from(str: &'src str) -> Self {
-    Doc { measure: Measure::string(str), kind: DocKind::String(str) }
+    Doc { measure: Measure::string(str), kind: DocKind::String(str.into()) }
+  }
+}
+
+impl<'src> From<String> for Doc<'src> {
+  fn from(str: String) -> Self {
+    Doc { measure: Measure::string(&str), kind: DocKind::String(str.into()) }
   }
 }
 
@@ -148,7 +139,7 @@ impl<'core: 'src, 'src> From<Ident<'core>> for Doc<'src> {
 #[derive(Debug)]
 enum DocKind<'src> {
   Line,
-  String(&'src str),
+  String(Cow<'src, str>),
   Concat(Box<[Doc<'src>]>),
   Group(Box<[Doc<'src>]>),
   LazyGroup(Box<[Doc<'src>]>),
@@ -163,7 +154,8 @@ impl<'src> DocKind<'src> {
   fn measure(&self) -> Measure {
     match self {
       DocKind::Line | DocKind::Indent(_) => Measure::LINE,
-      DocKind::String(s) | DocKind::SoftLine(s) | DocKind::IfSingle(s) => Measure::string(s),
+      DocKind::String(s) => Measure::string(s),
+      DocKind::SoftLine(s) | DocKind::IfSingle(s) => Measure::string(s),
       DocKind::IfMulti(_) => Measure::EMPTY,
       DocKind::Concat(x) | DocKind::Group(x) | DocKind::LazyGroup(x) => {
         x.iter().fold(Measure::EMPTY, |a, b| a + b.measure)

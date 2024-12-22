@@ -27,7 +27,6 @@ pub enum ItemKind<'core> {
   Const(ConstItem<'core>),
   Struct(StructItem<'core>),
   Enum(Enum<'core>),
-  Pattern(PatternItem),
   Type(TypeItem<'core>),
   Mod(ModItem<'core>),
   Use(UseItem<'core>),
@@ -59,9 +58,6 @@ pub struct TypeItem<'core> {
   pub generics: Vec<Ident<'core>>,
   pub ty: Ty<'core>,
 }
-
-#[derive(Debug, Clone)]
-pub struct PatternItem {}
 
 #[derive(Debug, Clone)]
 pub struct StructItem<'core> {
@@ -211,9 +207,9 @@ pub enum ExprKind<'core> {
   Paren(B<Expr<'core>>),
   #[class(value)]
   Path(GenericPath<'core>),
-  #[class(place)]
+  #[class(place, resolved)]
   Local(Local),
-  #[class(value)]
+  #[class(value, resolved)]
   DynFn(DynFnId),
   #[class(value)]
   Do(Label<'core>, Block<'core>),
@@ -230,8 +226,6 @@ pub enum ExprKind<'core> {
   #[class(value)]
   Loop(Label<'core>, Block<'core>),
   #[class(value)]
-  For(B<Pat<'core>>, B<Expr<'core>>, Block<'core>),
-  #[class(value)]
   Fn(Vec<(Pat<'core>, Option<Ty<'core>>)>, Option<Option<Ty<'core>>>, B<Expr<'core>>),
   #[class(value)]
   Return(Option<B<Expr<'core>>>),
@@ -247,16 +241,20 @@ pub enum ExprKind<'core> {
   Move(B<Expr<'core>>),
   #[class(value, place, space)]
   Inverse(B<Expr<'core>>),
+  #[class(place)]
+  Place(B<Expr<'core>>, B<Expr<'core>>),
   #[class(value, place, space)]
   Tuple(Vec<Expr<'core>>),
   #[class(value)]
   List(Vec<Expr<'core>>),
-  #[class(place, sugar)]
-  Field(B<Expr<'core>>, GenericPath<'core>),
+  #[class(value, place)]
+  TupleField(B<Expr<'core>>, usize, Option<usize>),
   #[class(value, sugar)]
   Method(B<Expr<'core>>, GenericPath<'core>, Vec<Expr<'core>>),
   #[class(value)]
   Call(B<Expr<'core>>, Vec<Expr<'core>>),
+  #[class(value, place, space, resolved)]
+  Adt(GenericPath<'core>, Vec<Expr<'core>>),
   #[class(value)]
   Neg(B<Expr<'core>>),
   #[class(value)]
@@ -374,8 +372,6 @@ pub enum TyKind<'core> {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum BinaryOp {
-  Range,
-  RangeTo,
   BitOr,
   BitXor,
   BitAnd,
@@ -398,8 +394,6 @@ impl Display for BinaryOp {
 impl BinaryOp {
   pub fn as_str(&self) -> &'static str {
     match self {
-      BinaryOp::Range => "..",
-      BinaryOp::RangeTo => "..=",
       BinaryOp::BitOr => "|",
       BinaryOp::BitXor => "^",
       BinaryOp::BitAnd => "&",

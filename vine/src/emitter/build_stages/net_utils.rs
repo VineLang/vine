@@ -6,7 +6,7 @@ use ivy::ast::Net;
 use crate::{
   ast::*,
   emitter::{stage_name, Agent, Emitter, Local, Port, StageId, Step},
-  resolver::{AdtDef, Def},
+  resolver::{AdtDef, Def, DefId},
 };
 
 impl<'core> Emitter<'core, '_> {
@@ -42,9 +42,11 @@ impl<'core> Emitter<'core, '_> {
     if t.can_copy() {
       (t.clone(), t)
     } else {
+      let label = self.dup_labels;
+      self.dup_labels += 1;
       let a = self.net.new_wire();
       let b = self.net.new_wire();
-      self.cur.agents.push(Agent::Comb("dup".into(), t, a.0, b.0));
+      self.cur.agents.push(Agent::Comb(format!("dup{label}"), t, a.0, b.0));
       (a.1, b.1)
     }
   }
@@ -107,7 +109,6 @@ impl<'core> Emitter<'core, '_> {
       BinaryOp::Mul => ExtFnKind::mul,
       BinaryOp::Div => ExtFnKind::div,
       BinaryOp::Rem => ExtFnKind::rem,
-      _ => todo!(),
     };
     self.ext_fn(f.into(), lhs, rhs)
   }
@@ -145,19 +146,30 @@ impl<'core> Emitter<'core, '_> {
     r.1
   }
 
-  pub(in crate::emitter) fn emit_adt_constructor(&mut self, def: &Def<'core>) -> Net {
+  pub(super) fn make_adt<T>(
+    &mut self,
+    variant: DefId,
+    fields: impl IntoIterator<Item = T>,
+    f: impl FnMut(&mut Self, T) -> Port,
+  ) -> Port {
+    let def = &self.defs[variant];
     let variant_def = def.variant_def.as_ref().unwrap();
     let adt_def = self.defs[variant_def.adt].adt_def.as_ref().unwrap();
+    if adt_def.variants.len() == 1 {
+      self.tuple(fields, f)
+    } else {
+      self.make_enum(adt_def, variant_def.variant, fields, f)
+    }
+  }
+
+  pub(in crate::emitter) fn emit_adt_constructor(&mut self, def: &Def<'core>) -> Net {
+    let variant_def = def.variant_def.as_ref().unwrap();
     let root = self.net.new_wire();
 
     let fields = variant_def.fields.iter().map(|_| self.net.new_wire().0).collect::<Vec<_>>();
     let ret = self.apply_combs("fn", root.0, fields.iter().cloned(), id);
 
-    let out = if adt_def.variants.len() == 1 {
-      self.tuple(fields, id)
-    } else {
-      self.make_enum(adt_def, variant_def.variant, fields, id)
-    };
+    let out = self.make_adt(def.id, fields, id);
 
     self.net.link(ret, out);
     let stage = take(&mut self.cur);

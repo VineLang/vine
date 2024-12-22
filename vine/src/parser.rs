@@ -8,8 +8,8 @@ use crate::{core::Core, diag::Diag, lexer::Token};
 use crate::ast::{
   Attr, AttrKind, BinaryOp, Block, Builtin, ComparisonOp, ConstItem, DynFnStmt, Enum, Expr,
   ExprKind, FnItem, GenericPath, Ident, InlineIvy, Item, ItemKind, Label, LetStmt, LogicalOp,
-  ModItem, ModKind, Pat, PatKind, Path, PatternItem, Span, Stmt, StmtKind, StructItem, Ty, TyKind,
-  TypeItem, UseItem, UseTree, Variant, Vis,
+  ModItem, ModKind, Pat, PatKind, Path, Span, Stmt, StmtKind, StructItem, Ty, TyKind, TypeItem,
+  UseItem, UseTree, Variant, Vis,
 };
 
 pub struct VineParser<'core, 'src> {
@@ -73,7 +73,6 @@ impl<'core, 'src> VineParser<'core, 'src> {
       _ if self.check(Token::Struct) => ItemKind::Struct(self.parse_struct_item()?),
       _ if self.check(Token::Enum) => ItemKind::Enum(self.parse_enum_item()?),
       _ if self.check(Token::Type) => ItemKind::Type(self.parse_type_item()?),
-      _ if self.check(Token::Pattern) => ItemKind::Pattern(self.parse_pattern_item()?),
       _ if self.check(Token::Mod) => ItemKind::Mod(self.parse_mod_item()?),
       _ if self.check(Token::Use) => ItemKind::Use(self.parse_use_item()?),
       _ if self.check(Token::InlineIvy) => ItemKind::Ivy(self.parse_ivy_item()?),
@@ -235,10 +234,6 @@ impl<'core, 'src> VineParser<'core, 'src> {
     }
   }
 
-  fn parse_pattern_item(&mut self) -> Parse<'core, PatternItem> {
-    todo!()
-  }
-
   fn parse_mod_item(&mut self) -> Parse<'core, ModItem<'core>> {
     self.expect(Token::Mod)?;
     let name = self.parse_ident()?;
@@ -398,18 +393,32 @@ impl<'core, 'src> VineParser<'core, 'src> {
     if self.check(Token::Ident) || self.check(Token::ColonColon) {
       return Ok(ExprKind::Path(self.parse_generic_path()?));
     }
-    if self.check(Token::OpenParen) {
-      let mut tuple = false;
-      let mut exprs = self.parse_delimited(PAREN_COMMA, |self_| {
-        let expr = self_.parse_expr()?;
-        if self_.check(Token::Comma) {
-          tuple = true;
-        }
-        Ok(expr)
-      })?;
-      if exprs.len() == 1 && !tuple {
-        return Ok(ExprKind::Paren(Box::new(exprs.pop().unwrap())));
+    if self.eat(Token::OpenParen)? {
+      if self.eat(Token::CloseParen)? {
+        return Ok(ExprKind::Tuple(vec![]));
       }
+      let expr = self.parse_expr()?;
+      if self.eat(Token::Semi)? {
+        let value = expr;
+        let space = self.parse_expr()?;
+        self.expect(Token::CloseParen)?;
+        return Ok(ExprKind::Place(Box::new(value), Box::new(space)));
+      }
+      if self.eat(Token::CloseParen)? {
+        return Ok(ExprKind::Paren(Box::new(expr)));
+      }
+      self.expect(Token::Comma)?;
+      let mut exprs = vec![expr];
+      loop {
+        if self.check(Token::CloseParen) {
+          break;
+        }
+        exprs.push(self.parse_expr()?);
+        if !self.eat(Token::Comma)? {
+          break;
+        }
+      }
+      self.expect(Token::CloseParen)?;
       return Ok(ExprKind::Tuple(exprs));
     }
     if self.check(Token::OpenBracket) {
@@ -446,13 +455,6 @@ impl<'core, 'src> VineParser<'core, 'src> {
       let label = self.parse_label()?;
       let body = self.parse_block()?;
       return Ok(ExprKind::Loop(label, body));
-    }
-    if self.eat(Token::For)? {
-      let pat = self.parse_pat()?;
-      self.expect(Token::In)?;
-      let iter = self.parse_expr()?;
-      let body = self.parse_block()?;
-      return Ok(ExprKind::For(Box::new(pat), Box::new(iter), body));
     }
     if self.eat(Token::Fn)? {
       let params = self.parse_delimited(PAREN_COMMA, Self::parse_pat_type)?;
@@ -543,12 +545,16 @@ impl<'core, 'src> VineParser<'core, 'src> {
     }
 
     if self.eat(Token::Dot)? {
-      let path = self.parse_generic_path()?;
-      if self.check(Token::OpenParen) {
+      if self.check(Token::Num) {
+        let span = self.start_span();
+        let num = self.expect(Token::Num)?;
+        let span = self.end_span(span);
+        let i = self.parse_u32_like(num, |_| Diag::InvalidNum { span })? as usize;
+        return Ok(Ok(ExprKind::TupleField(Box::new(lhs), i, None)));
+      } else {
+        let path = self.parse_generic_path()?;
         let args = self.parse_expr_list()?;
         return Ok(Ok(ExprKind::Method(Box::new(lhs), path, args)));
-      } else {
-        return Ok(Ok(ExprKind::Field(Box::new(lhs), path)));
       }
     }
 
@@ -773,14 +779,12 @@ const BRACKET_COMMA: Delimiters = Delimiters {
 
 const PATH: Delimiters = Delimiters { open: None, close: None, separator: Some(Token::ColonColon) };
 
-#[allow(dead_code)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 #[repr(u8)]
 enum BP {
   Min,
   ControlFlow,
   Assignment,
-  Range,
   LogicalImplies,
   LogicalOr,
   LogicalAnd,
@@ -793,7 +797,6 @@ enum BP {
   Additive,
   Multiplicative,
   Prefix,
-  Question,
   Max,
 }
 
@@ -813,8 +816,6 @@ impl BP {
 
 #[rustfmt::skip]
 const BINARY_OP_TABLE: &[(BP, Token, BinaryOp)] = &[
-  (BP::Range,          Token::DotDot,   BinaryOp::Range),
-  (BP::Range,          Token::DotDotEq, BinaryOp::RangeTo),
   (BP::BitOr,          Token::Or,       BinaryOp::BitOr),
   (BP::BitXor,         Token::Caret,    BinaryOp::BitXor),
   (BP::BitAnd,         Token::And,      BinaryOp::BitAnd),

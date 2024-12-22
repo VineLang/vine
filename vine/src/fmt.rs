@@ -18,10 +18,10 @@ impl<'core> Core<'core> {
     let fmt = Formatter { src };
     let doc = Doc::concat([
       Doc::LINE,
-      fmt.line_break_separated(
+      Doc::concat_vec(fmt.line_break_separated(
         Span { file: 0, start: 0, end: src.len() },
         ast.iter().map(|x| (x.span, fmt.fmt_item(x))),
-      ),
+      )),
     ]);
     let mut writer = Writer::default();
     writer.write_doc(&doc, false);
@@ -99,13 +99,9 @@ impl<'core: 'src, 'src> Formatter<'src> {
           Doc("mod "),
           Doc(m.name),
           match &m.kind {
-            ModKind::Loaded(_, items) if items.is_empty() => Doc(" {}"),
             ModKind::Loaded(span, items) => Doc::concat([
-              Doc(" {"),
-              Doc::indent([
-                self.line_break_separated(*span, items.iter().map(|x| (x.span, self.fmt_item(x)))),
-              ]),
-              Doc("}"),
+              Doc(" "),
+              self.fmt_block_like(*span, items.iter().map(|x| (x.span, self.fmt_item(x)))),
             ]),
             ModKind::Unloaded(span, _) => {
               Doc::concat([Doc(" = "), self.fmt_verbatim(*span), Doc(";")])
@@ -119,17 +115,35 @@ impl<'core: 'src, 'src> Formatter<'src> {
           Doc(";"),
         ]),
         ItemKind::Ivy(_) => return self.fmt_verbatim(item.span),
-        ItemKind::Pattern(_) => todo!(),
         ItemKind::Taken => unreachable!(),
       },
     ]))
+  }
+
+  fn fmt_block_like(
+    &self,
+    span: Span,
+    els: impl ExactSizeIterator<Item = (Span, Doc<'src>)>,
+  ) -> Doc<'src> {
+    if els.len() == 0 {
+      let mut inner = vec![];
+      self.get_line_break(false, false, span.start, span.end, &mut inner);
+      inner.pop();
+      if inner.is_empty() {
+        Doc("{}")
+      } else {
+        Doc::concat([Doc("{"), Doc::indent_vec(inner), Doc("}")])
+      }
+    } else {
+      Doc::concat([Doc("{"), Doc::indent(self.line_break_separated(span, els)), Doc("}")])
+    }
   }
 
   fn line_break_separated(
     &self,
     span: Span,
     els: impl Iterator<Item = (Span, Doc<'src>)>,
-  ) -> Doc<'src> {
+  ) -> Vec<Doc<'src>> {
     let mut docs = Vec::new();
     let mut cur = span.start;
     for (i, (span, doc)) in els.enumerate() {
@@ -140,8 +154,10 @@ impl<'core: 'src, 'src> Formatter<'src> {
       docs.push(doc);
       cur = span.end;
     }
+    docs.push(Doc::LINE);
     self.get_line_break(true, false, cur, span.end, &mut docs);
-    Doc::concat_vec(docs)
+    docs.pop();
+    docs
   }
 
   fn get_line_break(
@@ -178,9 +194,6 @@ impl<'core: 'src, 'src> Formatter<'src> {
   }
 
   fn fmt_block(&self, block: &Block<'core>, force_open: bool) -> Doc<'src> {
-    if block.stmts.is_empty() {
-      return Doc("{}");
-    }
     if !force_open {
       if let [stmt] = &*block.stmts {
         if matches!(stmt.kind, StmtKind::Expr(_, false)) {
@@ -193,12 +206,7 @@ impl<'core: 'src, 'src> Formatter<'src> {
         }
       }
     }
-    Doc::concat([
-      Doc("{"),
-      Doc::indent([self
-        .line_break_separated(block.span, block.stmts.iter().map(|x| (x.span, self.fmt_stmt(x))))]),
-      Doc("}"),
-    ])
+    self.fmt_block_like(block.span, block.stmts.iter().map(|x| (x.span, self.fmt_stmt(x))))
   }
 
   fn fmt_stmt(&self, stmt: &Stmt<'core>) -> Doc<'src> {
@@ -253,7 +261,7 @@ impl<'core: 'src, 'src> Formatter<'src> {
 
   fn fmt_expr(&self, expr: &Expr<'core>) -> Doc<'src> {
     match &expr.kind {
-      ExprKind![synthetic || error] | ExprKind::Local(_) | ExprKind::DynFn(_) => unreachable!(),
+      ExprKind![synthetic || resolved || error] => unreachable!(),
       ExprKind::Paren(p) => Doc::paren(self.fmt_expr(p)),
       ExprKind::Hole => Doc("_"),
       ExprKind::Path(path) => self.fmt_generic_path(path),
@@ -294,14 +302,6 @@ impl<'core: 'src, 'src> Formatter<'src> {
       ExprKind::Loop(l, b) => {
         Doc::concat([Doc("loop"), self.fmt_label(l), Doc(" "), self.fmt_block(b, true)])
       }
-      ExprKind::For(p, e, b) => Doc::concat([
-        Doc("for "),
-        self.fmt_pat(p),
-        Doc(" in "),
-        self.fmt_expr(e),
-        Doc(" "),
-        self.fmt_block(b, true),
-      ]),
       ExprKind::Fn(p, _, b) => {
         Doc::concat([Doc("fn"), self.fmt_params(p), Doc(" "), self.fmt_expr(b)])
       }
@@ -316,9 +316,14 @@ impl<'core: 'src, 'src> Formatter<'src> {
       ExprKind::Deref(x) => Doc::concat([Doc("*"), self.fmt_expr(x)]),
       ExprKind::Move(x) => Doc::concat([Doc("move "), self.fmt_expr(x)]),
       ExprKind::Inverse(x) => Doc::concat([Doc("~"), self.fmt_expr(x)]),
+      ExprKind::Place(v, s) => {
+        Doc::concat([Doc("("), self.fmt_expr(v), Doc("; "), self.fmt_expr(s), Doc(")")])
+      }
       ExprKind::Tuple(t) => Doc::tuple(t.iter().map(|x| self.fmt_expr(x))),
       ExprKind::List(l) => Doc::bracket_comma(l.iter().map(|x| self.fmt_expr(x))),
-      ExprKind::Field(e, p) => Doc::concat([self.fmt_expr(e), Doc("."), self.fmt_generic_path(p)]),
+      ExprKind::TupleField(e, i, _) => {
+        Doc::concat([self.fmt_expr(e), Doc("."), Doc(format!("{i}"))])
+      }
       ExprKind::Method(e, p, a) => Doc::concat([
         self.fmt_expr(e),
         Doc("."),

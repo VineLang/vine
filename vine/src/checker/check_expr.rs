@@ -50,28 +50,113 @@ impl<'core> Checker<'core, '_> {
         let (form, ty) = self.check_expr(expr);
         (form.inverse(), ty.inverse())
       }
+      ExprKind::Place(v, s) => {
+        let mut v = self.check_expr_form(v, Form::Value);
+        let mut s = self.check_expr_form(s, Form::Space);
+        let ty = if !self.unify(&mut v, &mut s) {
+          Type::Error(self.core.report(Diag::MismatchedValueSpaceTypes {
+            span,
+            value: self.display_type(&v),
+            space: self.display_type(&s),
+          }))
+        } else {
+          v
+        };
+        (Form::Place, ty)
+      }
+      ExprKind::TupleField(e, i, l) => {
+        let (form, mut ty) = self.check_expr(e);
+
+        if form == Form::Space {
+          let e = self.core.report(Diag::SpaceField { span });
+          return (Form::Error(e), Type::Error(e));
+        }
+
+        self.concretize(&mut ty);
+        let field_ty = match &ty {
+          Type::Tuple(t) => {
+            *l = Some(t.len());
+            t.get(*i).cloned()
+          }
+          Type::Adt(adt, gens) => {
+            self.resolver.defs[*adt].variant_def.as_ref().and_then(|variant| {
+              if variant.adt == *adt && *i < variant.fields.len() {
+                *l = Some(variant.fields.len());
+                Some(variant.field_types.as_ref().unwrap()[*i].instantiate(gens))
+              } else {
+                None
+              }
+            })
+          }
+          _ => None,
+        };
+
+        let field_ty = field_ty.unwrap_or_else(|| {
+          Type::Error(self.core.report(Diag::MissingTupleField {
+            span,
+            ty: self.display_type(&ty),
+            i: *i,
+          }))
+        });
+
+        (form, field_ty)
+      }
       ExprKind::Tuple(v) => {
         if v.is_empty() {
           (Form::Place, Type::UNIT)
         } else {
           let (forms, types) =
             v.iter_mut().map(|x| self.check_expr(x)).collect::<(Vec<_>, Vec<_>)>();
-          let form = if let Some(&one_form) = forms.iter().find(|x| !matches!(x, Form::Error(_))) {
-            if forms.iter().all(|&x| matches!(x, Form::Error(_)) || x == one_form) {
-              one_form
-            } else {
-              for (form, e) in forms.into_iter().zip(v) {
-                self.coerce_expr(e, form, Form::Place);
-              }
-              Form::Place
-            }
-          } else {
-            forms[0]
-          };
+          let form = self.tuple_form(span, &forms);
+          for (f, e) in forms.into_iter().zip(v) {
+            self.coerce_expr(e, f, form);
+          }
           (form, Type::Tuple(types))
         }
       }
-      ExprKind::Field(..) => todo!(),
+      ExprKind::Adt(path, fields) => {
+        let variant_id = path.path.resolved.unwrap();
+        let (forms, types) =
+          fields.iter_mut().map(|x| self.check_expr(x)).collect::<(Vec<_>, Vec<_>)>();
+        let variant = self.resolver.defs[variant_id].variant_def.as_ref().unwrap();
+        let adt_id = variant.adt;
+        let generics = variant.generics.len();
+        let form = if adt_id == variant_id { self.tuple_form(span, &forms) } else { Form::Value };
+        let generics = self.hydrate_generics(path, generics);
+        let variant = self.resolver.defs[variant_id].variant_def.as_ref().unwrap();
+        let field_types = variant
+          .field_types
+          .as_ref()
+          .unwrap()
+          .iter()
+          .map(|t| t.instantiate(&generics))
+          .collect::<Vec<_>>();
+        for (((f, e), mut t), mut ft) in forms.into_iter().zip(fields).zip(types).zip(field_types) {
+          self.coerce_expr(e, f, form);
+          if !self.unify(&mut t, &mut ft) {
+            self.core.report(Diag::ExpectedTypeFound {
+              span: e.span,
+              expected: self.display_type(&ft),
+              found: self.display_type(&t),
+            });
+          }
+        }
+        (form, Type::Adt(adt_id, generics))
+      }
+    }
+  }
+
+  fn tuple_form(&mut self, span: Span, forms: &[Form]) -> Form {
+    let space = forms.iter().any(|&x| x == Form::Space);
+    let value = forms.iter().any(|&x| x == Form::Value);
+    if !space && !value {
+      Form::Place
+    } else if space && !value {
+      Form::Space
+    } else if value && !space {
+      Form::Value
+    } else {
+      Form::Error(self.core.report(Diag::InconsistentTupleForm { span }))
     }
   }
 
@@ -264,7 +349,6 @@ impl<'core> Checker<'core, '_> {
       ExprKind::String(_) => {
         report!(self.core; self.string.clone().ok_or(Diag::MissingBuiltin { span, builtin: "List" }))
       }
-      ExprKind::For(..) => todo!(),
     }
   }
 
@@ -325,7 +409,6 @@ impl<'core> Checker<'core, '_> {
     mut b: Type,
   ) -> Type {
     match op {
-      BinaryOp::Range | BinaryOp::RangeTo => todo!(),
       BinaryOp::Concat => {
         if self.concat.is_none() {
           return Type::Error(self.core.report(Diag::MissingBuiltin { span, builtin: "concat" }));

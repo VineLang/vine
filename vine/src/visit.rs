@@ -71,16 +71,17 @@ pub trait VisitMut<'core, 'a> {
       | ExprKind::Ref(a)
       | ExprKind::Deref(a)
       | ExprKind::Move(a)
-      | ExprKind::Field(a, _)
       | ExprKind::Neg(a)
       | ExprKind::Not(a)
       | ExprKind::Break(_, Some(a))
       | ExprKind::Return(Some(a))
+      | ExprKind::TupleField(a, _, _)
       | ExprKind::Inverse(a)
       | ExprKind::Copy(a)
       | ExprKind::Set(a)
       | ExprKind::Temp(a) => self.visit_expr(a),
       ExprKind::Assign(_, a, b)
+      | ExprKind::Place(a, b)
       | ExprKind::BinaryOp(_, a, b)
       | ExprKind::BinaryOpAssign(_, a, b)
       | ExprKind::LogicalOp(_, a, b) => {
@@ -108,13 +109,6 @@ pub trait VisitMut<'core, 'a> {
         self.visit_expr(a);
         self.visit_block(b);
       }
-      ExprKind::For(a, b, c) => {
-        self.enter_scope();
-        self.visit_expr(b);
-        self.visit_pat(a);
-        self.visit_block(c);
-        self.exit_scope();
-      }
       ExprKind::Fn(a, b, c) => {
         self.enter_scope();
         for (p, t) in a {
@@ -129,7 +123,7 @@ pub trait VisitMut<'core, 'a> {
         self.visit_expr(c);
         self.exit_scope();
       }
-      ExprKind::Tuple(a) | ExprKind::List(a) => {
+      ExprKind::Tuple(a) | ExprKind::List(a) | ExprKind::Adt(_, a) => {
         for t in a {
           self.visit_expr(t);
         }
@@ -278,7 +272,6 @@ pub trait VisitMut<'core, 'a> {
       ItemKind::Type(t) => {
         self.visit_type(&mut t.ty);
       }
-      ItemKind::Pattern(_) => todo!(),
       ItemKind::Use(..) | ItemKind::Ivy(_) | ItemKind::Taken => {}
     }
   }
