@@ -149,7 +149,7 @@ impl Distiller {
       ExprKind::Path(path) => Port::Const(path.path.resolved.unwrap()),
       ExprKind::DynFn(dyn_fn) => {
         let dyn_fn = self.dyn_fns[*dyn_fn].as_ref().unwrap();
-        stage.steps.push(Step::Transfer(Transfer { interface: dyn_fn.interface, data: None }));
+        stage.steps.push(Step::Transfer(Transfer::unconditional(dyn_fn.interface)));
         stage.get_local(dyn_fn.local)
       }
       ExprKind::Block(block) => self.distill_block(stage, block),

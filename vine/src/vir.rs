@@ -45,6 +45,7 @@ pub struct Stage {
   pub wire: Counter<WireId>,
 }
 
+#[derive(Clone)]
 pub enum Step {
   Local(Local, LocalUse),
   Transfer(Transfer),
@@ -63,7 +64,7 @@ pub enum Step {
 }
 
 impl Step {
-  fn ports(&self) -> impl Iterator<Item = &Port> {
+  pub fn ports(&self) -> impl Iterator<Item = &Port> {
     multi_iter!(Ports { Zero, One, Two, Three, LocalUse, Transfer, Tuple, Fn });
     match self {
       Step::Local(_, local_use) => Ports::LocalUse(local_use.ports()),
@@ -82,6 +83,7 @@ impl Step {
   }
 }
 
+#[derive(Clone)]
 pub enum LocalUse {
   Erase,
   Get(Port),
@@ -104,6 +106,7 @@ impl LocalUse {
   }
 }
 
+#[derive(Clone)]
 pub enum Port {
   Erase,
   Const(DefId),
@@ -112,9 +115,16 @@ pub enum Port {
   Wire(WireId),
 }
 
+#[derive(Clone)]
 pub struct Transfer {
   pub interface: InterfaceId,
   pub data: Option<Port>,
+}
+
+impl Transfer {
+  pub fn unconditional(interface: InterfaceId) -> Transfer {
+    Transfer { interface, data: None }
+  }
 }
 
 impl Stage {
