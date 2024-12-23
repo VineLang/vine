@@ -1,44 +1,68 @@
 use std::collections::{btree_map::Entry, BTreeMap};
 
-use vine_util::idx::IdxVec;
+use vine_util::{
+  idx::{Counter, IdxVec},
+  unwrap_idx_vec,
+};
 
 use crate::{
   ast::Local,
-  vir::{Layer, LayerId, Port, Stage, StageId, Step, Transfer, WireId, VIR},
+  vir::{
+    Interface, InterfaceId, InterfaceKind, Layer, LayerId, Port, Stage, StageId, Step, Transfer,
+    WireId, VIR,
+  },
 };
 
-pub struct Normalizer<'a> {
-  vir: &'a VIR,
-  out_stages: IdxVec<StageId, Option<Stage>>,
-  divergence: IdxVec<LayerId, Option<LayerId>>,
-  ends: IdxVec<LayerId, Option<Transfer>>,
+pub fn normalize(source: &VIR) -> VIR {
+  let mut normalizer = Normalizer {
+    source,
+    locals: source.locals,
+    interfaces: source.interfaces.clone(),
+    stages: IdxVec::from(vec![None; source.stages.len()]),
+    layer_divergence: IdxVec::from(vec![None; source.layers.len()]),
+    final_transfers: IdxVec::from(vec![None; source.layers.len()]),
+  };
+
+  for layer in source.layers.values() {
+    if layer.parent.is_none() {
+      normalizer.normalize_layer(layer);
+    }
+  }
+
+  VIR {
+    locals: normalizer.locals,
+    layers: IdxVec::new(),
+    interfaces: normalizer.interfaces,
+    stages: unwrap_idx_vec(normalizer.stages),
+  }
 }
 
-const CONVERGENT: LayerId = LayerId(usize::MAX);
+struct Normalizer<'a> {
+  source: &'a VIR,
+
+  locals: Counter<Local>,
+  interfaces: IdxVec<InterfaceId, Interface>,
+  stages: IdxVec<StageId, Option<Stage>>,
+
+  layer_divergence: IdxVec<LayerId, Option<LayerId>>,
+  final_transfers: IdxVec<LayerId, Option<Transfer>>,
+}
 
 impl<'a> Normalizer<'a> {
-  pub fn new(vir: &'a VIR) -> Self {
-    todo!()
-  }
-
-  fn new_local(&mut self) -> Local {
-    todo!()
-  }
-
-  pub fn normalize_layer(&mut self, layer: &Layer) {
+  fn normalize_layer(&mut self, layer: &Layer) {
     for &stage in &layer.stages {
-      let stage = &self.vir.stages[stage];
+      let source = &self.source.stages[stage];
       let mut wire_counts = BTreeMap::<WireId, ()>::new();
-      let mut out_stage = Stage {
-        id: stage.id,
-        interface: stage.interface,
-        layer: stage.layer,
-        declarations: stage.declarations.clone(),
+      let mut stage = Stage {
+        id: source.id,
+        interface: source.interface,
+        layer: source.layer,
+        declarations: source.declarations.clone(),
         steps: Vec::new(),
         transfer: None,
-        wire: stage.wire,
+        wires: source.wires,
       };
-      for step in &stage.steps {
+      for step in &source.steps {
         for port in step.ports() {
           if let Port::Wire(wire) = port {
             match wire_counts.entry(*wire) {
@@ -48,71 +72,77 @@ impl<'a> Normalizer<'a> {
           }
         }
         if self.step_divergence(step) <= layer.id {
-          let id = self.out_stages.push(None);
+          let new_stage = self.stages.push(None);
+          let interface = self.interfaces.push(Interface {
+            id: self.interfaces.next_index(),
+            layer: LayerId::NONE,
+            kind: InterfaceKind::Unconditional(new_stage),
+          });
           let mut new_stage: Stage = Stage {
-            id,
-            interface: todo(),
-            layer: todo(),
+            id: new_stage,
+            interface,
+            layer: LayerId::NONE,
             declarations: Vec::new(),
             steps: Vec::new(),
             transfer: None,
-            wire: stage.wire,
+            wires: source.wires,
           };
           for &wire in wire_counts.keys() {
-            let local = self.new_local();
-            out_stage.declarations.push(local);
-            out_stage.set_local_to(local, Port::Wire(wire));
+            let local = self.locals.next();
+            stage.declarations.push(local);
+            stage.set_local_to(local, Port::Wire(wire));
             new_stage.take_local_to(local, Port::Wire(wire));
           }
           match step {
             Step::Transfer(transfer) => {
-              let interface = &self.vir.interfaces[transfer.interface];
-              let sub_layer = &self.vir.layers[interface.layer];
-              self.ends[sub_layer.id] = Some(Transfer::unconditional(new_stage.interface));
+              let interface = &self.source.interfaces[transfer.interface];
+              let sub_layer = &self.source.layers[interface.layer];
+              self.final_transfers[sub_layer.id] =
+                Some(Transfer::unconditional(new_stage.interface));
               self.normalize_layer(sub_layer);
-              out_stage.steps.push(Step::Transfer(transfer.clone()));
+              stage.steps.push(Step::Transfer(transfer.clone()));
             }
             Step::Diverge(super_layer, transfer) => {
-              let transfer = transfer.clone().or(self.ends[*super_layer].clone());
+              let transfer = transfer.clone().or(self.final_transfers[*super_layer].clone());
               if let Some(transfer) = transfer {
-                out_stage.steps.push(Step::Transfer(transfer));
+                stage.steps.push(Step::Transfer(transfer));
               }
             }
             _ => unreachable!(),
           }
-          let id = out_stage.id;
-          self.out_stages[id] = Some(out_stage);
-          out_stage = new_stage;
+          let id = stage.id;
+          self.stages[id] = Some(stage);
+          stage = new_stage;
         } else {
           if let Step::Transfer(transfer) = step {
-            let interface = &self.vir.interfaces[transfer.interface];
-            let sub_layer = &self.vir.layers[interface.layer];
+            let interface = &self.source.interfaces[transfer.interface];
+            let sub_layer = &self.source.layers[interface.layer];
             self.normalize_layer(sub_layer);
           }
-          out_stage.steps.push(step.clone());
+          stage.steps.push(step.clone());
         }
       }
-      let transfer = stage.transfer.clone().or(self.ends[layer.id].clone());
+      let transfer = source.transfer.clone().or(self.final_transfers[layer.id].clone());
       if let Some(transfer) = transfer {
-        out_stage.steps.push(Step::Transfer(transfer));
+        stage.steps.push(Step::Transfer(transfer));
       }
-      let id = out_stage.id;
-      self.out_stages[id] = Some(out_stage);
+      let id = stage.id;
+      self.stages[id] = Some(stage);
     }
   }
 
   fn layer_divergence(&mut self, layer: &Layer) -> LayerId {
-    if let Some(divergence) = self.divergence[layer.id] {
+    if let Some(divergence) = self.layer_divergence[layer.id] {
       return divergence;
     }
     let mut divergence = layer.id;
     for &stage in &layer.stages {
-      let stage = &self.vir.stages[stage];
+      let stage = &self.source.stages[stage];
       for step in &stage.steps {
         divergence = divergence.min(self.step_divergence(step));
       }
     }
-    self.divergence[layer.id] = Some(divergence);
+    self.layer_divergence[layer.id] = Some(divergence);
     divergence
   }
 
@@ -120,19 +150,15 @@ impl<'a> Normalizer<'a> {
     match step {
       Step::Diverge(divergence, _) => *divergence,
       Step::Transfer(transfer) => {
-        let interface = &self.vir.interfaces[transfer.interface];
-        let sub_layer = &self.vir.layers[interface.layer];
+        let interface = &self.source.interfaces[transfer.interface];
+        let sub_layer = &self.source.layers[interface.layer];
         if sub_layer.parent.is_some() {
           self.layer_divergence(sub_layer)
         } else {
-          CONVERGENT
+          LayerId::NONE
         }
       }
-      _ => CONVERGENT,
+      _ => LayerId::NONE,
     }
   }
-}
-
-fn todo<T>() -> T {
-  todo!()
 }

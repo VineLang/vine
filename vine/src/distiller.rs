@@ -54,7 +54,7 @@ impl Distiller {
       declarations: Vec::new(),
       steps: Vec::new(),
       transfer: None,
-      wire: Counter::default(),
+      wires: Counter::default(),
     }
   }
 
@@ -312,7 +312,7 @@ impl Distiller {
 
         let result = self.distill_block(&mut then_stage, block);
         then_stage.erase(result);
-        then_stage.transfer = Some(Transfer { interface: cond_stage.interface, data: None });
+        then_stage.transfer = Some(Transfer::unconditional(cond_stage.interface));
 
         self.finish_stage(cond_stage);
         self.finish_stage(then_stage);
@@ -334,7 +334,7 @@ impl Distiller {
 
         let result = self.distill_block(&mut body_stage, block);
         body_stage.erase(result);
-        body_stage.transfer = Some(Transfer { interface: body_stage.interface, data: None });
+        body_stage.transfer = Some(Transfer::unconditional(body_stage.interface));
 
         self.finish_stage(body_stage);
         self.finish_layer(layer);
@@ -371,7 +371,7 @@ impl Distiller {
 
       ExprKind::Continue(label) => {
         let label = self.labels[label.as_id()].as_ref().unwrap();
-        let transfer = Transfer { interface: label.continue_transfer.unwrap(), data: None };
+        let transfer = Transfer::unconditional(label.continue_transfer.unwrap());
         stage.steps.push(Step::Diverge(label.layer, Some(transfer)));
         Port::Erase
       }

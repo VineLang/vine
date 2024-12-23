@@ -2,7 +2,7 @@ use core::ptr;
 
 use crate::idx::{Idx, IdxVec};
 
-pub fn vec_mandate<T>(vec: Vec<Option<T>>) -> Vec<T> {
+pub fn unwrap_vec<T>(vec: Vec<Option<T>>) -> Vec<T> {
   const { assert!(size_of::<T>() == size_of::<Option<T>>()) };
   for el in &vec {
     assert!(el.is_some());
@@ -12,6 +12,6 @@ pub fn vec_mandate<T>(vec: Vec<Option<T>>) -> Vec<T> {
   unsafe { Vec::from(Box::from_raw(slice)) }
 }
 
-pub fn idx_vec_mandate<I: Idx, T>(vec: IdxVec<I, Option<T>>) -> IdxVec<I, T> {
-  vec_mandate(vec.into()).into()
+pub fn unwrap_idx_vec<I: Idx, T>(vec: IdxVec<I, Option<T>>) -> IdxVec<I, T> {
+  unwrap_vec(vec.into()).into()
 }

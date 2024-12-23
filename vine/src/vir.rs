@@ -1,3 +1,5 @@
+use std::usize;
+
 use ivm::ext::ExtFn;
 use vine_util::{
   idx::{Counter, IdxVec},
@@ -11,30 +13,40 @@ new_idx!(pub StageId);
 new_idx!(pub InterfaceId);
 new_idx!(pub WireId);
 
+impl LayerId {
+  pub const NONE: LayerId = LayerId(usize::MAX);
+}
+
+#[derive(Debug, Clone)]
 pub struct VIR {
+  pub locals: Counter<Local>,
   pub layers: IdxVec<LayerId, Layer>,
   pub interfaces: IdxVec<InterfaceId, Interface>,
   pub stages: IdxVec<StageId, Stage>,
 }
 
+#[derive(Debug, Clone)]
 pub struct Layer {
   pub id: LayerId,
   pub parent: Option<LayerId>,
   pub stages: Vec<StageId>,
 }
 
+#[derive(Debug, Clone)]
 pub struct Interface {
   pub id: InterfaceId,
   pub layer: LayerId,
   pub kind: InterfaceKind,
 }
 
+#[derive(Debug, Clone)]
 pub enum InterfaceKind {
   Unconditional(StageId),
   Branch(StageId, StageId),
   Match(DefId, Vec<StageId>),
 }
 
+#[derive(Debug, Clone)]
 pub struct Stage {
   pub id: StageId,
   pub interface: InterfaceId,
@@ -42,10 +54,10 @@ pub struct Stage {
   pub declarations: Vec<Local>,
   pub steps: Vec<Step>,
   pub transfer: Option<Transfer>,
-  pub wire: Counter<WireId>,
+  pub wires: Counter<WireId>,
 }
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub enum Step {
   Local(Local, LocalUse),
   Transfer(Transfer),
@@ -83,7 +95,7 @@ impl Step {
   }
 }
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub enum LocalUse {
   Erase,
   Get(Port),
@@ -106,7 +118,7 @@ impl LocalUse {
   }
 }
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub enum Port {
   Erase,
   Const(DefId),
@@ -115,7 +127,7 @@ pub enum Port {
   Wire(WireId),
 }
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct Transfer {
   pub interface: InterfaceId,
   pub data: Option<Port>,
@@ -129,7 +141,7 @@ impl Transfer {
 
 impl Stage {
   pub fn new_wire(&mut self) -> (Port, Port) {
-    let w = self.wire.next();
+    let w = self.wires.next();
     (Port::Wire(w), Port::Wire(w))
   }
 
