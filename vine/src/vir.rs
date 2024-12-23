@@ -1,7 +1,7 @@
 use ivm::ext::ExtFn;
 use vine_util::{
   idx::{Counter, IdxVec},
-  new_idx,
+  multi_iter, new_idx,
 };
 
 use crate::{ast::Local, resolver::DefId};
@@ -12,9 +12,9 @@ new_idx!(pub InterfaceId);
 new_idx!(pub WireId);
 
 pub struct VIR {
-  pub layers: IdxVec<LayerId, Option<Layer>>,
-  pub interfaces: IdxVec<InterfaceId, Option<Interface>>,
-  pub stages: IdxVec<StageId, Option<Stage>>,
+  pub layers: IdxVec<LayerId, Layer>,
+  pub interfaces: IdxVec<InterfaceId, Interface>,
+  pub stages: IdxVec<StageId, Stage>,
 }
 
 pub struct Layer {
@@ -25,6 +25,7 @@ pub struct Layer {
 
 pub struct Interface {
   pub id: InterfaceId,
+  pub layer: LayerId,
   pub kind: InterfaceKind,
 }
 
@@ -38,6 +39,7 @@ pub struct Stage {
   pub id: StageId,
   pub interface: InterfaceId,
   pub layer: LayerId,
+  pub declarations: Vec<Local>,
   pub steps: Vec<Step>,
   pub transfer: Option<Transfer>,
   pub wire: Counter<WireId>,
@@ -60,6 +62,26 @@ pub enum Step {
   String(Port, String),
 }
 
+impl Step {
+  fn ports(&self) -> impl Iterator<Item = &Port> {
+    multi_iter!(Ports { Zero, One, Two, Three, LocalUse, Transfer, Tuple, Fn });
+    match self {
+      Step::Local(_, local_use) => Ports::LocalUse(local_use.ports()),
+      Step::Transfer(transfer) | Step::Diverge(_, Some(transfer)) => {
+        Ports::Transfer(transfer.data.as_ref())
+      }
+      Step::Diverge(_, None) => Ports::Zero([]),
+      Step::Link(a, b) => Ports::Two([a, b]),
+      Step::Fn(f, a, r) => Ports::Fn([f].into_iter().chain(a).chain([r])),
+      Step::Tuple(port, ports) | Step::List(port, ports) | Step::Adt(_, port, ports) => {
+        Ports::Tuple([port].into_iter().chain(ports))
+      }
+      Step::Ref(a, b, c) | Step::ExtFn(_, a, b, c) | Step::Dup(a, b, c) => Ports::Three([a, b, c]),
+      Step::String(port, _) => Ports::One([port]),
+    }
+  }
+}
+
 pub enum LocalUse {
   Erase,
   Get(Port),
@@ -67,6 +89,19 @@ pub enum LocalUse {
   Take(Port),
   Set(Port),
   Mut(Port, Port),
+}
+
+impl LocalUse {
+  fn ports(&self) -> impl Iterator<Item = &Port> {
+    multi_iter!(Ports { Zero, One, Two });
+    match self {
+      LocalUse::Erase => Ports::Zero([]),
+      LocalUse::Get(a) | LocalUse::Hedge(a) | LocalUse::Take(a) | LocalUse::Set(a) => {
+        Ports::One([a])
+      }
+      LocalUse::Mut(a, b) => Ports::Two([a, b]),
+    }
+  }
 }
 
 pub enum Port {

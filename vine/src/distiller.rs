@@ -51,6 +51,7 @@ impl Distiller {
       id,
       layer: layer.id,
       interface,
+      declarations: Vec::new(),
       steps: Vec::new(),
       transfer: None,
       wire: Counter::default(),
@@ -88,48 +89,50 @@ impl Distiller {
   fn new_unconditional_stage(&mut self, layer: &mut Layer) -> Stage {
     let interface = self.interfaces.push(None);
     let stage = self.new_stage(layer, interface);
-    self.interfaces[interface] =
-      Some(Interface { id: interface, kind: InterfaceKind::Unconditional(stage.id) });
+    self.interfaces[interface] = Some(Interface {
+      id: interface,
+      kind: InterfaceKind::Unconditional(stage.id),
+      layer: layer.id,
+    });
     stage
   }
 
-  fn new_local(&mut self) -> Local {
+  fn new_local(&mut self, stage: &mut Stage) -> Local {
     todo!()
   }
 
   fn distill_block(&mut self, stage: &mut Stage, block: &Block) -> Port {
-    let mut last = Port::Erase;
+    let mut result = Port::Erase;
     for stmt in &block.stmts {
-      stage.erase(last);
+      stage.erase(result);
+      result = Port::Erase;
       match &stmt.kind {
         StmtKind::Let(let_) => {
           let pat = self.distill_pat_value(stage, &let_.bind);
           let value =
             let_.init.as_ref().map(|v| self.distill_expr_value(stage, v)).unwrap_or(Port::Erase);
           stage.steps.push(Step::Link(pat, value));
-          last = Port::Erase;
         }
         StmtKind::DynFn(dyn_fn) => {
-          let local = self.new_local();
+          let local = self.new_local(stage);
           let (layer, mut stage) = self.root_layer();
           *self.dyn_fns.get_or_extend(dyn_fn.id.unwrap()) =
             Some(DynFn { interface: stage.interface, local });
           self._distill_fn(&mut stage, local, &dyn_fn.params, &dyn_fn.body, Self::distill_block);
           self.finish_stage(stage);
           self.finish_layer(layer);
-          last = Port::Erase;
         }
         StmtKind::Expr(expr, semi) => {
-          last = self.distill_expr_value(stage, expr);
+          result = self.distill_expr_value(stage, expr);
           if *semi {
-            stage.erase(last);
-            last = Port::Erase;
+            stage.erase(result);
+            result = Port::Erase;
           }
         }
-        StmtKind::Item(_) | StmtKind::Empty => last = Port::Erase,
+        StmtKind::Item(_) | StmtKind::Empty => {}
       }
     }
-    last
+    result
   }
 
   pub fn distill_expr_value(&mut self, stage: &mut Stage, expr: &Expr) -> Port {
@@ -262,7 +265,7 @@ impl Distiller {
       }
 
       ExprKind::Do(label, block) => {
-        let local = self.new_local();
+        let local = self.new_local(stage);
         let (layer, mut body_stage) = self.child_layer(stage);
 
         *self.labels.get_or_extend(label.as_id()) =
@@ -278,7 +281,7 @@ impl Distiller {
       }
 
       ExprKind::If(cond, then_branch, else_branch) => {
-        let local = self.new_local();
+        let local = self.new_local(stage);
         let (mut layer, mut cond_stage) = self.child_layer(stage);
         let (mut then_stage, mut else_stage) = self.distill_cond(&mut layer, &mut cond_stage, cond);
 
@@ -320,7 +323,7 @@ impl Distiller {
       }
 
       ExprKind::Loop(label, block) => {
-        let local = self.new_local();
+        let local = self.new_local(stage);
         let (layer, mut body_stage) = self.child_layer(stage);
 
         *self.labels.get_or_extend(label.as_id()) = Some(Label {
@@ -374,7 +377,7 @@ impl Distiller {
       }
 
       ExprKind::Fn(params, _, body) => {
-        let fn_local = self.new_local();
+        let fn_local = self.new_local(stage);
         let (layer, mut body_stage) = self.child_layer(stage);
 
         self._distill_fn(&mut body_stage, fn_local, params, &**body, Self::distill_expr_value);
@@ -579,7 +582,7 @@ impl Distiller {
     body: &B,
     distill_body: impl Fn(&mut Self, &mut Stage, &B) -> Port,
   ) {
-    let return_local = self.new_local();
+    let return_local = self.new_local(stage);
 
     let params = params.iter().map(|(p, _)| self.distill_pat_value(stage, p)).collect::<Vec<_>>();
 

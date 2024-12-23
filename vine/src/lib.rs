@@ -7,6 +7,7 @@ pub mod emitter;
 pub mod fmt;
 pub mod lexer;
 pub mod loader;
+pub mod normalizer;
 pub mod parser;
 pub mod repl;
 pub mod resolver;
