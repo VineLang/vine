@@ -1,4 +1,5 @@
-use std::usize;
+use core::slice;
+use std::{collections::HashMap, usize};
 
 use ivm::ext::ExtFn;
 use vine_util::{
@@ -6,7 +7,11 @@ use vine_util::{
   multi_iter, new_idx,
 };
 
-use crate::{ast::Local, resolver::DefId};
+use crate::{
+  analyzer::{usage::Usage, Usages},
+  ast::Local,
+  resolver::DefId,
+};
 
 new_idx!(pub LayerId);
 new_idx!(pub StageId);
@@ -37,13 +42,46 @@ pub struct Interface {
   pub id: InterfaceId,
   pub layer: LayerId,
   pub kind: InterfaceKind,
+
+  pub reachable: bool,
+  pub parents: Vec<InterfaceId>,
+  pub exterior_canonicity: usize,
+  pub exterior: Usages,
+  pub interior_canonicity: usize,
+  pub interior: Usages,
+}
+
+impl Interface {
+  pub fn new(id: InterfaceId, layer: LayerId, kind: InterfaceKind) -> Self {
+    Interface {
+      id,
+      layer,
+      kind,
+      reachable: false,
+      parents: Vec::new(),
+      exterior_canonicity: 0,
+      exterior: Usages::default(),
+      interior_canonicity: 0,
+      interior: Usages::default(),
+    }
+  }
 }
 
 #[derive(Debug, Clone)]
 pub enum InterfaceKind {
   Unconditional(StageId),
-  Branch(StageId, StageId),
+  Branch([StageId; 2]),
   Match(DefId, Vec<StageId>),
+}
+
+impl InterfaceKind {
+  pub fn stages(&self) -> &[StageId] {
+    match self {
+      InterfaceKind::Unconditional(s) => slice::from_ref(s),
+      InterfaceKind::Branch(s) => s,
+      InterfaceKind::Match(_, s) => s,
+    }
+  }
 }
 
 #[derive(Debug, Clone)]

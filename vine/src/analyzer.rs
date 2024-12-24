@@ -1,0 +1,226 @@
+use std::{collections::HashMap, mem::take};
+
+use usage::Usage;
+use vine_util::idx::IdxVec;
+
+use crate::{
+  ast::Local,
+  vir::{Interface, InterfaceId, LocalUse, Stage, StageId, Step},
+};
+
+pub mod usage;
+
+pub struct Analyzer<'a> {
+  pub stages: &'a IdxVec<StageId, Stage>,
+  pub interfaces: &'a mut IdxVec<InterfaceId, Interface>,
+}
+
+impl Analyzer<'_> {
+  pub fn analyze(&mut self) {
+    self.sweep(InterfaceId(0));
+    for i in self.interfaces.keys() {
+      if self.interfaces[i].reachable {
+        self.update_exterior(i, 0, 1);
+      }
+    }
+    for i in self.interfaces.keys() {
+      if self.interfaces[i].reachable {
+        self.update_interior(i, 0, 1);
+      }
+    }
+  }
+
+  fn sweep(&mut self, interface_id: InterfaceId) {
+    let interface = &mut self.interfaces[interface_id];
+    if interface.reachable {
+      return;
+    }
+    interface.reachable = true;
+    for i in 0..interface.kind.stages().len() {
+      let stage = &self.stages[self.interfaces[interface_id].kind.stages()[i]];
+      for step in &stage.steps {
+        if let Step::Transfer(transfer) = step {
+          self.interfaces[transfer.interface].parents.push(interface_id);
+          self.sweep(transfer.interface);
+        }
+      }
+    }
+  }
+
+  fn update_exterior(
+    &mut self,
+    interface_id: InterfaceId,
+    invalidated: usize,
+    depth: usize,
+  ) -> usize {
+    let interface = &mut self.interfaces[interface_id];
+    if interface.exterior_canonicity > invalidated {
+      return interface.exterior_canonicity;
+    }
+    interface.exterior_canonicity = depth;
+
+    let mut working = take(&mut interface.exterior);
+    let mut staging = Usages::default();
+    let mut canonicity = usize::MAX;
+    for i in 0..interface.kind.stages().len() {
+      let stage = &self.stages[self.interfaces[interface_id].kind.stages()[i]];
+      for step in &stage.steps {
+        if let Step::Local(local, local_use) = step {
+          staging.join_back(*local, local_use.usage());
+        }
+        if let Step::Transfer(transfer) = step {
+          canonicity =
+            canonicity.min(self.update_exterior(transfer.interface, invalidated, depth + 1));
+          staging.join_back_all(&self.interfaces[transfer.interface].exterior);
+        }
+      }
+      for &local in &stage.declarations {
+        staging.0.remove(&local);
+      }
+      working.union_all(&staging);
+      staging.0.clear();
+    }
+
+    if canonicity == depth {
+      canonicity = usize::MAX;
+      let interface = &mut self.interfaces[interface_id];
+      for i in 0..interface.kind.stages().len() {
+        let stage = &self.stages[self.interfaces[interface_id].kind.stages()[i]];
+        for step in &stage.steps {
+          if let Step::Transfer(transfer) = step {
+            let _canonicity = self.update_exterior(transfer.interface, depth, depth + 1);
+            assert_eq!(_canonicity, usize::MAX);
+          }
+        }
+      }
+    }
+
+    let interface = &mut self.interfaces[interface_id];
+    interface.exterior_canonicity = canonicity;
+    canonicity
+  }
+
+  fn update_interior(
+    &mut self,
+    interface_id: InterfaceId,
+    invalidated: usize,
+    depth: usize,
+  ) -> usize {
+    let interface = &mut self.interfaces[interface_id];
+    if interface.interior_canonicity > invalidated {
+      return interface.interior_canonicity;
+    }
+
+    interface.interior_canonicity = depth;
+    let mut canonicity = usize::MAX;
+    for i in 0..interface.parents.len() {
+      let parent = self.interfaces[interface_id].parents[i];
+      canonicity = canonicity.min(self.update_interior(parent, invalidated, depth + 1));
+    }
+
+    let interface = &mut self.interfaces[interface_id];
+    for i in 0..interface.kind.stages().len() {
+      let stage = &self.stages[self.interfaces[interface_id].kind.stages()[i]];
+      let mut reverse = Vec::new();
+      let mut staging = Usages::default();
+      for step in stage.steps.iter().rev() {
+        if let Step::Local(local, local_use) = step {
+          staging.join_front(*local, local_use.usage());
+        }
+        if let Step::Transfer(transfer) = step {
+          reverse.push(staging.clone());
+          staging.join_front_all(&self.interfaces[transfer.interface].exterior);
+        }
+      }
+      let interface = &mut self.interfaces[interface_id];
+      staging.clone_from(&interface.interior);
+      for &local in &stage.declarations {
+        staging.0.remove(&local);
+      }
+      for step in &stage.steps {
+        if let Step::Local(local, local_use) = step {
+          staging.join_back(*local, local_use.usage());
+        }
+        if let Step::Transfer(transfer) = step {
+          let target = &mut self.interfaces[transfer.interface];
+          let mut reverse = reverse.pop().unwrap();
+          for (local, forward_usage) in staging.iter() {
+            let reverse_usage = reverse.0.remove(&local).unwrap_or(Usage::None);
+            target.interior.union(local, reverse_usage.join(forward_usage));
+          }
+          target.interior.union_all(&reverse);
+          staging.join_back_all(&target.exterior);
+        }
+      }
+    }
+
+    if canonicity == depth {
+      canonicity = usize::MAX;
+      let interface = &mut self.interfaces[interface_id];
+      for i in 0..interface.parents.len() {
+        let parent = self.interfaces[interface_id].parents[i];
+        let _canonicity = self.update_interior(parent, depth, depth + 1);
+        assert_eq!(_canonicity, usize::MAX);
+      }
+    }
+
+    let interface = &mut self.interfaces[interface_id];
+    interface.interior_canonicity = canonicity;
+    canonicity
+  }
+}
+
+impl LocalUse {
+  fn usage(&self) -> Usage {
+    match self {
+      LocalUse::Erase => Usage::Erase,
+      LocalUse::Get(_) => Usage::Get,
+      LocalUse::Hedge(_) => Usage::Hedge,
+      LocalUse::Take(_) => Usage::Take,
+      LocalUse::Set(_) => Usage::Set,
+      LocalUse::Mut(..) => Usage::Mut,
+    }
+  }
+}
+
+#[derive(Debug, Default, Clone)]
+pub struct Usages(HashMap<Local, Usage>);
+
+impl Usages {
+  pub fn iter(&self) -> impl Iterator<Item = (Local, Usage)> + use<'_> {
+    self.0.iter().map(|(&l, &u)| (l, u))
+  }
+
+  pub fn join_back_all(&mut self, usages: &Usages) {
+    for (local, usage) in usages.iter() {
+      self.join_back(local, usage);
+    }
+  }
+
+  pub fn join_front_all(&mut self, usages: &Usages) {
+    for (local, usage) in usages.iter() {
+      self.join_front(local, usage);
+    }
+  }
+
+  pub fn union_all(&mut self, usages: &Usages) {
+    for (local, usage) in usages.iter() {
+      self.union(local, usage);
+    }
+  }
+
+  pub fn join_back(&mut self, local: Local, usage: Usage) {
+    let entry = self.0.entry(local).or_insert(Usage::None);
+    *entry = entry.join(usage);
+  }
+
+  pub fn join_front(&mut self, local: Local, usage: Usage) {
+    let entry = self.0.entry(local).or_insert(Usage::None);
+    *entry = usage.join(*entry);
+  }
+
+  pub fn union(&mut self, local: Local, usage: Usage) {
+    let entry = self.0.entry(local).or_insert(usage);
+    *entry = entry.union(usage);
+  }
+}

@@ -89,11 +89,8 @@ impl Distiller {
   fn new_unconditional_stage(&mut self, layer: &mut Layer) -> Stage {
     let interface = self.interfaces.push(None);
     let stage = self.new_stage(layer, interface);
-    self.interfaces[interface] = Some(Interface {
-      id: interface,
-      kind: InterfaceKind::Unconditional(stage.id),
-      layer: layer.id,
-    });
+    self.interfaces[interface] =
+      Some(Interface::new(interface, layer.id, InterfaceKind::Unconditional(stage.id)));
     stage
   }
 

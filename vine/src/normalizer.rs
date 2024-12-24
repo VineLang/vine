@@ -73,11 +73,11 @@ impl<'a> Normalizer<'a> {
         }
         if self.step_divergence(step) <= layer.id {
           let new_stage = self.stages.push(None);
-          let interface = self.interfaces.push(Interface {
-            id: self.interfaces.next_index(),
-            layer: LayerId::NONE,
-            kind: InterfaceKind::Unconditional(new_stage),
-          });
+          let interface = self.interfaces.push(Interface::new(
+            self.interfaces.next_index(),
+            LayerId::NONE,
+            InterfaceKind::Unconditional(new_stage),
+          ));
           let mut new_stage: Stage = Stage {
             id: new_stage,
             interface,
