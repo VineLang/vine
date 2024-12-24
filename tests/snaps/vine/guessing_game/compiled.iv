@@ -236,7 +236,7 @@
 
 ::std::rng::Rng::new {
   fn(n2 fn(n0 tup(n5 n8)))
-  ::std::n64::N64::or = fn(n0 fn(n1 dup1150(n6 dup1150(n7 n8))))
+  ::std::n64::N64::or = fn(n0 fn(n1 dup1160(n6 dup1160(n7 n8))))
   ::std::n64::N64::from_n32 = fn(1 n1)
   ::std::n64::N64::add = fn(n2 fn(n6 n3))
   ::std::n64::N64::mul = fn(n3 fn(::std::rng::Rng::multiplier n4))
@@ -251,14 +251,14 @@
 ::std::rng::Rng::multiplier { tup(1284865837 1481765933) }
 
 ::std::rng::Rng::gen_n32 {
-  fn(ref(tup(dup1155(tup(@n32_shr(27 n3) dup1158(@n32_shr(13 @n32_xor(n2 @n32_xor(n3 n4))) dup1158(@n32_shl(5 n2) @n32_shr(27 n5)))) n7) dup1156(n8 n9)) tup(n1 n9)) n6)
+  fn(ref(tup(dup1165(tup(@n32_shr(27 n3) dup1168(@n32_shr(13 @n32_xor(n2 @n32_xor(n3 n4))) dup1168(@n32_shl(5 n2) @n32_shr(27 n5)))) n7) dup1166(n8 n9)) tup(n1 n9)) n6)
   ::std::n64::N64::mul = fn(n7 fn(::std::rng::Rng::multiplier n0))
   ::std::n64::N64::add = fn(n0 fn(n8 n1))
   ::std::n32::N32::rotate_right = fn(n4 fn(n5 n6))
 }
 
 ::std::rng::Rng::mix {
-  fn(ref(tup(n0 dup1162(n5 n6)) tup(n4 n6)) fn(n1 _))
+  fn(ref(tup(n0 dup1172(n5 n6)) tup(n4 n6)) fn(n1 _))
   ::std::n64::N64::xor = fn(n0 fn(tup(0 n1) n2))
   ::std::n64::N64::mul = fn(n2 fn(::std::rng::Rng::multiplier n3))
   ::std::n64::N64::add = fn(n3 fn(n5 n4))

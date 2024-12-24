@@ -1,14 +1,18 @@
+pub mod analyzer;
 pub mod ast;
 pub mod checker;
 pub mod core;
 pub mod diag;
+pub mod distiller;
 pub mod emitter;
 pub mod fmt;
 pub mod lexer;
 pub mod loader;
+pub mod normalizer;
 pub mod parser;
 pub mod repl;
 pub mod resolver;
+pub mod vir;
 pub mod visit;
 
 use core::{Core, CoreArenas};

@@ -44,7 +44,7 @@ impl Backend {
     let mut checker = Checker::new(core, &mut resolver);
     checker.check_defs();
 
-    return self.report(core, core.take_diags());
+    self.report(core, core.take_diags())
   }
 
   fn report(
