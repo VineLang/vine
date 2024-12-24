@@ -32,6 +32,19 @@ pub mod List {
     head
   }
 
+  pub fn slice[T](List(len, buf, end): List[T], i: N32) -> List[T] {
+    if i >= len {
+      []
+    } else {
+      len -= i;
+      while i != 0 {
+        Buf(_, buf) = buf;
+        i -= 1;
+      }
+      List(len, buf, end)
+    }
+  }
+
   pub fn map[T, U](List(l, buf, ~_): List[T], f: fn(T) -> U) -> List[U] {
     let len = l;
     let cur;
