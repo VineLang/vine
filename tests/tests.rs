@@ -77,9 +77,10 @@ fn tests(t: &mut DynTester) {
       test_vi_fail(t, "tests/programs/fail/visibility.vi");
     });
 
-    t.group("fail", |t| {
+    t.group("repl", |t| {
       test_vi_repl(t, "tests/programs/repl/advanced_repl.vi");
       test_vi_repl(t, "tests/programs/repl/basic_repl.vi");
+      test_vi_repl(t, "tests/programs/repl/misc.vi");
       test_vi_repl(t, "tests/programs/repl/randomness.vi");
     });
   });
