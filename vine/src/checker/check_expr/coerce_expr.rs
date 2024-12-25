@@ -10,8 +10,7 @@ impl<'core> Checker<'core, '_> {
   pub(super) fn coerce_expr(&mut self, expr: &mut Expr<'core>, from: Form, to: Form) {
     let span = expr.span;
     match (from, to) {
-      (_, Form::Error(_)) => unreachable!(),
-      (Form::Error(_), _) => {}
+      (_, Form::Error(_)) | (Form::Error(_), _) => {}
       (Form::Value, Form::Value) | (Form::Place, Form::Place) | (Form::Space, Form::Space) => {}
       // (Form::Value, Form::Place) => expr.wrap(ExprKind::Temp),
       (Form::Place, Form::Value) => Self::copy_expr(expr),
