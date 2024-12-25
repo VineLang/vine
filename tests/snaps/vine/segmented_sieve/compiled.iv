@@ -196,7 +196,7 @@
   ::std::io::IO::print::1 = x(n0 x(n1 x(n2 n3)))
 }
 
-::std::io::IO::print::1 { x(n0 x(n1 x(dup235(?(::std::io::IO::print::3 ::std::io::IO::print::2 x(n0 x(n1 x(n3 n2)))) n3) n2))) }
+::std::io::IO::print::1 { x(n0 x(n1 x(dup239(?(::std::io::IO::print::3 ::std::io::IO::print::2 x(n0 x(n1 x(n3 n2)))) n3) n2))) }
 
 ::std::io::IO::print::2 {
   x(n1 x(n3 x(@sub(1 n4) tup(n0 n5))))
@@ -217,7 +217,7 @@
 
 ::std::list::List::into_iter { fn(tup(n0 tup(n1 _)) tup(n0 n1)) }
 
-::std::list::List::IntoIter::next { fn(ref(tup(dup384(?(::std::list::List::IntoIter::next::2 ::std::list::List::IntoIter::next::1 x(n0 x(n1 x(n2 x(n3 n4))))) n0) n2) tup(n1 n3)) n4) }
+::std::list::List::IntoIter::next { fn(ref(tup(dup396(?(::std::list::List::IntoIter::next::2 ::std::list::List::IntoIter::next::1 x(n0 x(n1 x(n2 x(n3 n4))))) n0) n2) tup(n1 n3)) n4) }
 
 ::std::list::List::IntoIter::next::1 {
   x(@sub(1 n1) x(n1 x(tup(n0 n2) x(n2 n3))))
@@ -226,17 +226,17 @@
 
 ::std::list::List::IntoIter::next::2 { x(n0 x(n0 x(n1 x(n1 ::std::option::Option::None)))) }
 
-::std::n32::N32::to_string { fn(dup840(?(::std::n32::N32::to_string::5 ::std::n32::N32::to_string::1 x(n1 n0)) n1) n0) }
+::std::n32::N32::to_string { fn(dup852(?(::std::n32::N32::to_string::5 ::std::n32::N32::to_string::1 x(n1 n0)) n1) n0) }
 
 ::std::n32::N32::to_string::1 {
   x(n1 n2)
   ::std::n32::N32::to_string::2 = x(n1 x(tup(0 tup(n0 n0)) n2))
 }
 
-::std::n32::N32::to_string::2 { x(dup840(?(::std::n32::N32::to_string::4 ::std::n32::N32::to_string::3 x(n2 n0)) n2) n0) }
+::std::n32::N32::to_string::2 { x(dup852(?(::std::n32::N32::to_string::4 ::std::n32::N32::to_string::3 x(n2 n0)) n2) n0) }
 
 ::std::n32::N32::to_string::3 {
-  x(dup840(@rem(10 n0) @div(10 n4)) x(n3 n6))
+  x(dup852(@rem(10 n0) @div(10 n4)) x(n3 n6))
   48 = @add(n0 n1)
   ::std::list::List::concat = fn(tup(1 tup(tup(n1 n2) n2)) fn(n3 n5))
   ::std::n32::N32::to_string::2 = x(n4 x(n5 n6))
@@ -246,13 +246,13 @@
 
 ::std::n32::N32::to_string::5 { x(_ tup(1 tup(tup(48 n0) n0))) }
 
-::std::n32::N32::min { fn(dup872(@lt(n2 ?(::std::n32::N32::min::2 ::std::n32::N32::min::1 x(n1 x(n3 n0)))) n1) fn(dup873(n2 n3) n0)) }
+::std::n32::N32::min { fn(dup884(@lt(n2 ?(::std::n32::N32::min::2 ::std::n32::N32::min::1 x(n1 x(n3 n0)))) n1) fn(dup885(n2 n3) n0)) }
 
 ::std::n32::N32::min::1 { x(n0 x(_ n0)) }
 
 ::std::n32::N32::min::2 { x(_ x(n0 n0)) }
 
-::std::n32::N32::max { fn(dup877(@lt$(n2 ?(::std::n32::N32::max::2 ::std::n32::N32::max::1 x(n1 x(n3 n0)))) n1) fn(dup878(n2 n3) n0)) }
+::std::n32::N32::max { fn(dup889(@lt$(n2 ?(::std::n32::N32::max::2 ::std::n32::N32::max::1 x(n1 x(n3 n0)))) n1) fn(dup890(n2 n3) n0)) }
 
 ::std::n32::N32::max::1 { x(n0 x(_ n0)) }
 
@@ -263,10 +263,10 @@
   ::std::n32::N32::sqrt::1 = x(n0 x(32768 x(0 n1)))
 }
 
-::std::n32::N32::sqrt::1 { x(n0 x(dup893(?(::std::n32::N32::sqrt::5 ::std::n32::N32::sqrt::2 x(n0 x(n3 n1))) n3) n1)) }
+::std::n32::N32::sqrt::1 { x(n0 x(dup905(?(::std::n32::N32::sqrt::5 ::std::n32::N32::sqrt::2 x(n0 x(n3 n1))) n3) n1)) }
 
 ::std::n32::N32::sqrt::2 {
-  x(dup892(n5 n6) x(dup893(n1 @n32_shr(1 n2)) x(dup894(@add(n1 dup895(@mul(n7 @le(n5 ?(::std::n32::N32::sqrt::4 ::std::n32::N32::sqrt::3 x(n0 x(n3 n8))))) dup895(n7 n8))) n0) n4)))
+  x(dup904(n5 n6) x(dup905(n1 @n32_shr(1 n2)) x(dup906(@add(n1 dup907(@mul(n7 @le(n5 ?(::std::n32::N32::sqrt::4 ::std::n32::N32::sqrt::3 x(n0 x(n3 n8))))) dup907(n7 n8))) n0) n4)))
   ::std::n32::N32::sqrt::1 = x(n6 x(n2 x(n3 n4)))
 }
 

@@ -75,7 +75,7 @@
   ::std::io::IO::print::1 = x(n0 x(n1 x(n2 n3)))
 }
 
-::std::io::IO::print::1 { x(n0 x(n1 x(dup218(?(::std::io::IO::print::3 ::std::io::IO::print::2 x(n0 x(n1 x(n3 n2)))) n3) n2))) }
+::std::io::IO::print::1 { x(n0 x(n1 x(dup222(?(::std::io::IO::print::3 ::std::io::IO::print::2 x(n0 x(n1 x(n3 n2)))) n3) n2))) }
 
 ::std::io::IO::print::2 {
   x(n1 x(n3 x(@sub(1 n4) tup(n0 n5))))
@@ -87,23 +87,23 @@
 
 ::std::io::IO::print_char { fn(ref(@io_print_char(char io) io) fn(char _)) }
 
-::std::list::List::len { fn(ref(tup(dup254(n2 n3) n0) tup(n3 n0)) n2) }
+::std::list::List::len { fn(ref(tup(dup258(n2 n3) n0) tup(n3 n0)) n2) }
 
 ::std::list::List::map {
-  fn(tup(dup272(n4 n5) tup(n0 _)) fn(n1 tup(n4 tup(n2 n3))))
+  fn(tup(dup284(n4 n5) tup(n0 _)) fn(n1 tup(n4 tup(n2 n3))))
   ::std::list::List::map::1 = x(n5 x(n0 x(n1 x(n2 n3))))
 }
 
-::std::list::List::map::1 { x(dup272(?(::std::list::List::map::3 ::std::list::List::map::2 x(n4 n0)) n4) n0) }
+::std::list::List::map::1 { x(dup284(?(::std::list::List::map::3 ::std::list::List::map::2 x(n4 n0)) n4) n0) }
 
 ::std::list::List::map::2 {
-  x(@sub(1 n2) x(tup(n0 n3) x(dup274(fn(n0 n1) n6) x(tup(n1 n4) n5))))
+  x(@sub(1 n2) x(tup(n0 n3) x(dup286(fn(n0 n1) n6) x(tup(n1 n4) n5))))
   ::std::list::List::map::1 = x(n2 x(n3 x(n6 x(n4 n5))))
 }
 
 ::std::list::List::map::3 { x(_ x(_ x(_ x(n0 n0)))) }
 
-::std::list::List::pop_front { fn(ref(tup(dup284(?(::std::list::List::pop_front::2 ::std::list::List::pop_front::1 x(n1 x(n2 x(n3 x(n4 n5))))) n1) tup(n3 n0)) tup(n2 tup(n4 n0))) n5) }
+::std::list::List::pop_front { fn(ref(tup(dup296(?(::std::list::List::pop_front::2 ::std::list::List::pop_front::1 x(n1 x(n2 x(n3 x(n4 n5))))) n1) tup(n3 n0)) tup(n2 tup(n4 n0))) n5) }
 
 ::std::list::List::pop_front::1 {
   x(@sub(1 n1) x(n1 x(tup(n0 n2) x(n2 n3))))
@@ -136,7 +136,7 @@
 }
 
 ::std::list::List::join::3 {
-  enum(n0 x(dup319(n6 n7) x(n3 x(n2 n5))))
+  enum(n0 x(dup331(n6 n7) x(n3 x(n2 n5))))
   ::std::list::List::concat = fn(n6 fn(n0 n1))
   ::std::list::List::concat = fn(n2 fn(n1 n4))
   ::std::list::List::join::2 = x(n7 x(n3 x(n4 n5)))
@@ -156,7 +156,7 @@
 
 ::std::list::List::into_iter { fn(tup(n0 tup(n1 _)) tup(n0 n1)) }
 
-::std::list::List::IntoIter::next { fn(ref(tup(dup367(?(::std::list::List::IntoIter::next::2 ::std::list::List::IntoIter::next::1 x(n0 x(n1 x(n2 x(n3 n4))))) n0) n2) tup(n1 n3)) n4) }
+::std::list::List::IntoIter::next { fn(ref(tup(dup379(?(::std::list::List::IntoIter::next::2 ::std::list::List::IntoIter::next::1 x(n0 x(n1 x(n2 x(n3 n4))))) n0) n2) tup(n1 n3)) n4) }
 
 ::std::list::List::IntoIter::next::1 {
   x(@sub(1 n1) x(n1 x(tup(n0 n2) x(n2 n3))))
@@ -165,17 +165,17 @@
 
 ::std::list::List::IntoIter::next::2 { x(n0 x(n0 x(n1 x(n1 ::std::option::Option::None)))) }
 
-::std::n32::N32::to_string { fn(dup823(?(::std::n32::N32::to_string::5 ::std::n32::N32::to_string::1 x(n1 n0)) n1) n0) }
+::std::n32::N32::to_string { fn(dup835(?(::std::n32::N32::to_string::5 ::std::n32::N32::to_string::1 x(n1 n0)) n1) n0) }
 
 ::std::n32::N32::to_string::1 {
   x(n1 n2)
   ::std::n32::N32::to_string::2 = x(n1 x(tup(0 tup(n0 n0)) n2))
 }
 
-::std::n32::N32::to_string::2 { x(dup823(?(::std::n32::N32::to_string::4 ::std::n32::N32::to_string::3 x(n2 n0)) n2) n0) }
+::std::n32::N32::to_string::2 { x(dup835(?(::std::n32::N32::to_string::4 ::std::n32::N32::to_string::3 x(n2 n0)) n2) n0) }
 
 ::std::n32::N32::to_string::3 {
-  x(dup823(@rem(10 n0) @div(10 n4)) x(n3 n6))
+  x(dup835(@rem(10 n0) @div(10 n4)) x(n3 n6))
   48 = @add(n0 n1)
   ::std::list::List::concat = fn(tup(1 tup(tup(n1 n2) n2)) fn(n3 n5))
   ::std::n32::N32::to_string::2 = x(n4 x(n5 n6))

@@ -90,7 +90,7 @@
   ::std::io::IO::print::1 = x(n0 x(n1 x(n2 n3)))
 }
 
-::std::io::IO::print::1 { x(n0 x(n1 x(dup223(?(::std::io::IO::print::3 ::std::io::IO::print::2 x(n0 x(n1 x(n3 n2)))) n3) n2))) }
+::std::io::IO::print::1 { x(n0 x(n1 x(dup227(?(::std::io::IO::print::3 ::std::io::IO::print::2 x(n0 x(n1 x(n3 n2)))) n3) n2))) }
 
 ::std::io::IO::print::2 {
   x(n1 x(n3 x(@sub(1 n4) tup(n0 n5))))
@@ -113,11 +113,11 @@
 
 ::std::io::IO::read_line {
   fn(ref(n0 n2) n3)
-  ::std::io::IO::read_byte = fn(ref(n0 n1) fn(0 dup244(@ne(0 ?(::std::io::IO::read_line::9 ::std::io::IO::read_line::1 x(n1 x(n2 x(n4 n3))))) n4)))
+  ::std::io::IO::read_byte = fn(ref(n0 n1) fn(0 dup248(@ne(0 ?(::std::io::IO::read_line::9 ::std::io::IO::read_line::1 x(n1 x(n2 x(n4 n3))))) n4)))
 }
 
 ::std::io::IO::read_line::1 {
-  x(n1 x(n2 x(dup244(@eq(10 ?(::std::io::IO::read_line::3 ::std::io::IO::read_line::2 x(n1 x(n2 x(n4 n3))))) n4) n0)))
+  x(n1 x(n2 x(dup248(@eq(10 ?(::std::io::IO::read_line::3 ::std::io::IO::read_line::2 x(n1 x(n2 x(n4 n3))))) n4) n0)))
   ::std::option::Option::Some = fn(n3 n0)
 }
 
@@ -130,7 +130,7 @@
 
 ::std::io::IO::read_line::4 {
   x(n0 x(n2 n3))
-  ::std::io::IO::read_byte = fn(ref(n0 n1) fn(10 dup244(@ne(10 ?(::std::io::IO::read_line::6 ::std::io::IO::read_line::5 x(n1 x(n2 x(n5 n3))))) n5)))
+  ::std::io::IO::read_byte = fn(ref(n0 n1) fn(10 dup248(@ne(10 ?(::std::io::IO::read_line::6 ::std::io::IO::read_line::5 x(n1 x(n2 x(n5 n3))))) n5)))
 }
 
 ::std::io::IO::read_line::5 {
@@ -149,7 +149,7 @@
 
 ::std::list::List::into_iter { fn(tup(n0 tup(n1 _)) tup(n0 n1)) }
 
-::std::list::List::IntoIter::next { fn(ref(tup(dup372(?(::std::list::List::IntoIter::next::2 ::std::list::List::IntoIter::next::1 x(n0 x(n1 x(n2 x(n3 n4))))) n0) n2) tup(n1 n3)) n4) }
+::std::list::List::IntoIter::next { fn(ref(tup(dup384(?(::std::list::List::IntoIter::next::2 ::std::list::List::IntoIter::next::1 x(n0 x(n1 x(n2 x(n3 n4))))) n0) n2) tup(n1 n3)) n4) }
 
 ::std::list::List::IntoIter::next::1 {
   x(@sub(1 n1) x(n1 x(tup(n0 n2) x(n2 n3))))
@@ -158,17 +158,17 @@
 
 ::std::list::List::IntoIter::next::2 { x(n0 x(n0 x(n1 x(n1 ::std::option::Option::None)))) }
 
-::std::n32::N32::to_string { fn(dup828(?(::std::n32::N32::to_string::5 ::std::n32::N32::to_string::1 x(n1 n0)) n1) n0) }
+::std::n32::N32::to_string { fn(dup840(?(::std::n32::N32::to_string::5 ::std::n32::N32::to_string::1 x(n1 n0)) n1) n0) }
 
 ::std::n32::N32::to_string::1 {
   x(n1 n2)
   ::std::n32::N32::to_string::2 = x(n1 x(tup(0 tup(n0 n0)) n2))
 }
 
-::std::n32::N32::to_string::2 { x(dup828(?(::std::n32::N32::to_string::4 ::std::n32::N32::to_string::3 x(n2 n0)) n2) n0) }
+::std::n32::N32::to_string::2 { x(dup840(?(::std::n32::N32::to_string::4 ::std::n32::N32::to_string::3 x(n2 n0)) n2) n0) }
 
 ::std::n32::N32::to_string::3 {
-  x(dup828(@rem(10 n0) @div(10 n4)) x(n3 n6))
+  x(dup840(@rem(10 n0) @div(10 n4)) x(n3 n6))
   48 = @add(n0 n1)
   ::std::list::List::concat = fn(tup(1 tup(tup(n1 n2) n2)) fn(n3 n5))
   ::std::n32::N32::to_string::2 = x(n4 x(n5 n6))
@@ -178,17 +178,17 @@
 
 ::std::n32::N32::to_string::5 { x(_ tup(1 tup(tup(48 n0) n0))) }
 
-::std::n32::N32::parse { fn(tup(dup836(?(::std::n32::N32::parse::10 ::std::n32::N32::parse::1 x(n2 x(n0 n1))) n2) tup(n0 _)) n1) }
+::std::n32::N32::parse { fn(tup(dup848(?(::std::n32::N32::parse::10 ::std::n32::N32::parse::1 x(n2 x(n0 n1))) n2) tup(n0 _)) n1) }
 
 ::std::n32::N32::parse::1 {
   x(n0 x(n1 n2))
   ::std::n32::N32::parse::2 = x(n0 x(n1 x(0 n2)))
 }
 
-::std::n32::N32::parse::2 { x(dup836(?(::std::n32::N32::parse::8 ::std::n32::N32::parse::3 x(n3 n0)) n3) n0) }
+::std::n32::N32::parse::2 { x(dup848(?(::std::n32::N32::parse::8 ::std::n32::N32::parse::3 x(n3 n0)) n3) n0) }
 
 ::std::n32::N32::parse::3 {
-  x(n2 x(tup(dup839(dup834(n0 @le(57 n1)) n6) n3) x(n4 n5)))
+  x(n2 x(tup(dup851(dup846(n0 @le(57 n1)) n6) n3) x(n4 n5)))
   48 = @le(n0 @n32_and(n1 ?(::std::n32::N32::parse::5 ::std::n32::N32::parse::7 x(n2 x(n3 x(n4 x(n6 n5)))))))
 }
 
@@ -236,7 +236,7 @@
 
 ::std::rng::Rng::new {
   fn(n2 fn(n0 tup(n5 n8)))
-  ::std::n64::N64::or = fn(n0 fn(n1 dup1160(n6 dup1160(n7 n8))))
+  ::std::n64::N64::or = fn(n0 fn(n1 dup1172(n6 dup1172(n7 n8))))
   ::std::n64::N64::from_n32 = fn(1 n1)
   ::std::n64::N64::add = fn(n2 fn(n6 n3))
   ::std::n64::N64::mul = fn(n3 fn(::std::rng::Rng::multiplier n4))
@@ -251,14 +251,14 @@
 ::std::rng::Rng::multiplier { tup(1284865837 1481765933) }
 
 ::std::rng::Rng::gen_n32 {
-  fn(ref(tup(dup1165(tup(@n32_shr(27 n3) dup1168(@n32_shr(13 @n32_xor(n2 @n32_xor(n3 n4))) dup1168(@n32_shl(5 n2) @n32_shr(27 n5)))) n7) dup1166(n8 n9)) tup(n1 n9)) n6)
+  fn(ref(tup(dup1177(tup(@n32_shr(27 n3) dup1180(@n32_shr(13 @n32_xor(n2 @n32_xor(n3 n4))) dup1180(@n32_shl(5 n2) @n32_shr(27 n5)))) n7) dup1178(n8 n9)) tup(n1 n9)) n6)
   ::std::n64::N64::mul = fn(n7 fn(::std::rng::Rng::multiplier n0))
   ::std::n64::N64::add = fn(n0 fn(n8 n1))
   ::std::n32::N32::rotate_right = fn(n4 fn(n5 n6))
 }
 
 ::std::rng::Rng::mix {
-  fn(ref(tup(n0 dup1172(n5 n6)) tup(n4 n6)) fn(n1 _))
+  fn(ref(tup(n0 dup1184(n5 n6)) tup(n4 n6)) fn(n1 _))
   ::std::n64::N64::xor = fn(n0 fn(tup(0 n1) n2))
   ::std::n64::N64::mul = fn(n2 fn(::std::rng::Rng::multiplier n3))
   ::std::n64::N64::add = fn(n3 fn(n5 n4))
