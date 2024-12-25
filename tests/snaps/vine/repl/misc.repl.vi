@@ -173,3 +173,7 @@ io = #io
 ("1,2", Some("3,4, 5,6"))
 
 io = #io
+> 123.to_string(2)
+error input:1:1 - function type `fn(N32) -> List[Char]` expects 1 argument; was passed 2
+
+io = #io

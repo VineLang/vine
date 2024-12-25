@@ -91,6 +91,14 @@ impl<'core> Checker<'core, '_> {
     let ty = self.typeof_value_def(path)?;
     match ty {
       Type::Fn(mut params, ret) => {
+        if params.len() != args + 1 {
+          return Err(Diag::BadArgCount {
+            span,
+            expected: params.len(),
+            got: args + 1,
+            ty: self.display_type(&Type::Fn(params, ret)),
+          });
+        }
         let (form, receiver) = match params.first_mut() {
           Some(Type::Error(e)) => return Err((*e).into()),
           None => {
@@ -100,16 +108,7 @@ impl<'core> Checker<'core, '_> {
           Some(receiver) => (Form::Value, receiver),
         };
         let receiver = take(receiver);
-        if params.len() != args + 1 {
-          Err(Diag::BadArgCount {
-            span,
-            expected: params.len(),
-            got: args,
-            ty: self.display_type(&Type::Fn(params, ret)),
-          })
-        } else {
-          Ok((form, receiver, params, *ret))
-        }
+        Ok((form, receiver, params, *ret))
       }
       Type::Error(e) => Err(e.into()),
       ty => Err(Diag::NonFunctionCall { span, ty: self.display_type(&ty) }),
