@@ -49,7 +49,7 @@ impl<'core> Checker<'core, '_> {
   fn set_expr(expr: &mut Expr<'core>) {
     match &mut expr.kind {
       ExprKind::Local(l) => expr.kind = ExprKind::SetLocal(*l),
-      ExprKind::Inverse(e) => Self::move_expr(e),
+      ExprKind::Inverse(e, _) => Self::move_expr(e),
       ExprKind::Adt(_, t) | ExprKind::Tuple(t) => {
         for e in t {
           Self::set_expr(e);
@@ -62,13 +62,13 @@ impl<'core> Checker<'core, '_> {
   fn move_expr(expr: &mut Expr<'core>) {
     match &mut expr.kind {
       ExprKind::Local(l) => expr.kind = ExprKind::MoveLocal(*l),
-      ExprKind::Inverse(e) => Self::set_expr(e),
+      ExprKind::Inverse(e, _) => Self::set_expr(e),
       ExprKind::Adt(_, t) | ExprKind::Tuple(t) => {
         for e in t {
           Self::move_expr(e);
         }
       }
-      _ => expr.wrap(ExprKind::Move),
+      _ => expr.wrap(|x| ExprKind::Move(x, false)),
     }
   }
 }

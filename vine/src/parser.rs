@@ -353,21 +353,24 @@ impl<'core, 'src> VineParser<'core, 'src> {
       return Ok(ExprKind::Continue(self.parse_label()?));
     }
     if self.eat(Token::And)? {
-      return Ok(ExprKind::Ref(Box::new(self.parse_expr_bp(BP::Prefix)?)));
+      return Ok(ExprKind::Ref(Box::new(self.parse_expr_bp(BP::Prefix)?), false));
     }
     if self.eat(Token::AndAnd)? {
       let inner = self.parse_expr_bp(BP::Prefix)?;
       let span = self.end_span(span + 1);
-      return Ok(ExprKind::Ref(Box::new(Expr { span, kind: ExprKind::Ref(Box::new(inner)) })));
+      return Ok(ExprKind::Ref(
+        Box::new(Expr { span, kind: ExprKind::Ref(Box::new(inner), false) }),
+        false,
+      ));
     }
     if self.eat(Token::Star)? {
-      return Ok(ExprKind::Deref(Box::new(self.parse_expr_bp(BP::Prefix)?)));
+      return Ok(ExprKind::Deref(Box::new(self.parse_expr_bp(BP::Prefix)?), false));
     }
     if self.eat(Token::Move)? {
-      return Ok(ExprKind::Move(Box::new(self.parse_expr_bp(BP::Prefix)?)));
+      return Ok(ExprKind::Move(Box::new(self.parse_expr_bp(BP::Prefix)?), false));
     }
     if self.eat(Token::Tilde)? {
-      return Ok(ExprKind::Inverse(Box::new(self.parse_expr_bp(BP::Prefix)?)));
+      return Ok(ExprKind::Inverse(Box::new(self.parse_expr_bp(BP::Prefix)?), false));
     }
     if self.eat(Token::Minus)? {
       return Ok(ExprKind::Neg(Box::new(self.parse_expr_bp(BP::Prefix)?)));
@@ -545,6 +548,18 @@ impl<'core, 'src> VineParser<'core, 'src> {
     }
 
     if self.eat(Token::Dot)? {
+      if self.eat(Token::And)? {
+        return Ok(Ok(ExprKind::Ref(Box::new(lhs), true)));
+      }
+      if self.eat(Token::Star)? {
+        return Ok(Ok(ExprKind::Deref(Box::new(lhs), true)));
+      }
+      if self.eat(Token::Move)? {
+        return Ok(Ok(ExprKind::Move(Box::new(lhs), true)));
+      }
+      if self.eat(Token::Tilde)? {
+        return Ok(Ok(ExprKind::Inverse(Box::new(lhs), true)));
+      }
       if self.check(Token::Num) {
         let token_span = self.start_span();
         let num = self.expect(Token::Num)?;

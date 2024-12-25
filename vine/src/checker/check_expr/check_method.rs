@@ -124,7 +124,7 @@ impl<'core> Checker<'core, '_> {
   ) -> ExprKind<'core> {
     let mut receiver = take(&mut **receiver);
     if form == Form::Place {
-      receiver = Expr { span: receiver.span, kind: ExprKind::Ref(Box::new(receiver)) };
+      receiver = Expr { span: receiver.span, kind: ExprKind::Ref(Box::new(receiver), false) };
     }
     let mut args = take(args);
     args.insert(0, receiver);

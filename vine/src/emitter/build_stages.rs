@@ -144,12 +144,12 @@ impl<'core> Emitter<'core, '_> {
         f
       }
       ExprKind::String(s) => self.list(s.chars().count(), s.chars(), |_, c| Port::N32(c as u32)),
-      ExprKind::Ref(p) => {
+      ExprKind::Ref(p, _) => {
         let (t, u) = self.emit_expr_place(p);
         self.new_comb("ref", t, u)
       }
       ExprKind::List(l) => self.list(l.len(), l, Self::emit_expr_value),
-      ExprKind::Move(t) => match t.kind {
+      ExprKind::Move(t, _) => match t.kind {
         ExprKind::Local(l) => {
           let v = self.net.new_wire();
           self.cur.steps.push_back(Step::Move(l, v.0));
@@ -161,7 +161,7 @@ impl<'core> Emitter<'core, '_> {
           a
         }
       },
-      ExprKind::Inverse(x) => self.emit_expr_space(x),
+      ExprKind::Inverse(x, _) => self.emit_expr_space(x),
 
       ExprKind::Fn(params, _, body) => self.emit_fn(params, body),
       ExprKind::Do(label, block) => self.emit_do(label.as_id(), block),
@@ -217,13 +217,13 @@ impl<'core> Emitter<'core, '_> {
       ExprKind![sugar || error || !place] => unreachable!(),
       ExprKind::Paren(e) => self.emit_expr_place(e),
       ExprKind::Local(l) => (self.get_local(*l), self.set_local(*l)),
-      ExprKind::Inverse(e) => {
+      ExprKind::Inverse(e, _) => {
         let (a, b) = self.emit_expr_place(e);
         (b, a)
       }
       ExprKind::Place(v, s) => (self.emit_expr_value(v), self.emit_expr_space(s)),
       ExprKind::Temp(e) => (self.emit_expr_value(e), Port::Erase),
-      ExprKind::Deref(p) => {
+      ExprKind::Deref(p, _) => {
         let r = self.emit_expr_value(p);
         let x = self.net.new_wire();
         let y = self.net.new_wire();
@@ -261,7 +261,7 @@ impl<'core> Emitter<'core, '_> {
         self.erase(v);
         s
       }
-      ExprKind::Inverse(e) => self.emit_expr_value(e),
+      ExprKind::Inverse(e, _) => self.emit_expr_value(e),
       ExprKind::Adt(_, t) | ExprKind::Tuple(t) => self.tuple(t, Self::emit_expr_space),
       ExprKind::SetLocal(l) => self.set_local(*l),
     }

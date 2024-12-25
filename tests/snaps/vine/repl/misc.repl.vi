@@ -177,3 +177,25 @@ io = #io
 error input:1:1 - function type `fn(N32) -> List[Char]` expects 1 argument; was passed 2
 
 io = #io
+> let x = [[1]];
+
+io = #io
+x = [[1]]
+> x.get(0).*.get(0).*
+1
+
+io = #io
+x = [[1]]
+> x.get(0).*.get(0).* = 2
+
+io = #io
+x = [[2]]
+> ~x.get(0).*.get(0).*.~
+2
+
+io = #io
+x = [[2]]
+> move x
+[[2]]
+
+io = #io
