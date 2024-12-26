@@ -1,3 +1,5 @@
+mod pattern_matching;
+
 use std::mem::replace;
 
 use ivm::ext::{ExtFn, ExtFnKind};
