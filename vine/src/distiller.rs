@@ -162,13 +162,13 @@ impl Distiller {
         }
         Port::Erase
       }
-      ExprKind::Ref(place) => {
+      ExprKind::Ref(place, _) => {
         let (value, space) = self.distill_expr_place(stage, place);
         let wire = stage.new_wire();
         stage.steps.push(Step::Ref(wire.0, value, space));
         wire.1
       }
-      ExprKind::Move(place) => {
+      ExprKind::Move(place, _) => {
         let (value, space) = self.distill_expr_place(stage, place);
         stage.erase(space);
         value
@@ -179,7 +179,7 @@ impl Distiller {
         stage.steps.push(Step::Dup(value, wire.0, space));
         wire.1
       }
-      ExprKind::Inverse(inner) => self.distill_expr_space(stage, inner),
+      ExprKind::Inverse(inner, _) => self.distill_expr_space(stage, inner),
       ExprKind::Tuple(tuple) => {
         self.distill_vec(stage, tuple, Self::distill_expr_value, Step::Tuple)
       }
@@ -394,7 +394,7 @@ impl Distiller {
       ExprKind![sugar || error || !space] => unreachable!("{expr:?}"),
       ExprKind::Paren(inner) => self.distill_expr_space(stage, inner),
       ExprKind::Hole => Port::Erase,
-      ExprKind::Inverse(inner) => self.distill_expr_value(stage, inner),
+      ExprKind::Inverse(inner, _) => self.distill_expr_value(stage, inner),
       ExprKind::Tuple(tuple) => {
         self.distill_vec(stage, tuple, Self::distill_expr_space, Step::Tuple)
       }
@@ -415,14 +415,14 @@ impl Distiller {
       ExprKind![sugar || error || !place] => unreachable!("{expr:?}"),
       ExprKind::Paren(inner) => self.distill_expr_place(stage, inner),
       ExprKind::Local(local) => stage.mut_local(*local),
-      ExprKind::Deref(reference) => {
+      ExprKind::Deref(reference, _) => {
         let reference = self.distill_expr_value(stage, reference);
         let value = stage.new_wire();
         let space = stage.new_wire();
         stage.steps.push(Step::Ref(reference, value.0, space.0));
         (value.1, space.1)
       }
-      ExprKind::Inverse(inner) => {
+      ExprKind::Inverse(inner, _) => {
         let (value, space) = self.distill_expr_place(stage, inner);
         (space, value)
       }
