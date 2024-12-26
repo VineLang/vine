@@ -1,8 +1,0 @@
-
-pub fn main(&it: &IO) {
-  let &move it = &(move it; _);
-  (move it; _).println("move it!");
-  if 1 != 0 {
-    it.println("move it?");
-  }
-}

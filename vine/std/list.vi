@@ -150,7 +150,9 @@ pub mod List {
       }
     }
 
-    pub fn drop[T](&move Iter(_, &_): &Iter[T]) {}
+    pub fn drop[T](&iter: &Iter[T]) {
+      let Iter(_, &_) = move iter;
+    }
   }
 
   pub struct IntoIter[T](N32, Buf[T]);

@@ -332,8 +332,6 @@ pub enum PatKind<'core> {
   Ref(B<Pat<'core>>),
   #[class(place)]
   Deref(B<Pat<'core>>),
-  #[class(place)]
-  Move(B<Pat<'core>>),
   #[class(value, place, space)]
   Inverse(B<Pat<'core>>),
   #[class(value, place, space)]

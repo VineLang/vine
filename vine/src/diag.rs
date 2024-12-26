@@ -80,8 +80,6 @@ diags! {
     ["expected a place expression; found a space expression"]
   InconsistentTupleForm
     ["tuple members have inconsistent forms"]
-  MoveNonPlacePat
-    ["`move` is only valid in a place pattern"]
   DerefNonPlacePat
     ["`*` is only valid in a place pattern"]
   RefSpacePat

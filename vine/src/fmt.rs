@@ -397,7 +397,6 @@ impl<'core: 'src, 'src> Formatter<'src> {
       }
       PatKind::Ref(p) => Doc::concat([Doc("&"), self.fmt_pat(p)]),
       PatKind::Deref(p) => Doc::concat([Doc("*"), self.fmt_pat(p)]),
-      PatKind::Move(p) => Doc::concat([Doc("move "), self.fmt_pat(p)]),
       PatKind::Inverse(p) => Doc::concat([Doc("~"), self.fmt_pat(p)]),
       PatKind::Tuple(t) => Doc::tuple(t.iter().map(|x| self.fmt_pat(x))),
     }

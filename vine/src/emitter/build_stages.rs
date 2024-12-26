@@ -298,7 +298,6 @@ impl<'core> Emitter<'core, '_> {
         self.cur.fin.push(Step::Move(*local, y.0));
         (x, y.1)
       }
-      PatKind::Move(t) => (self.emit_pat_value(t), Port::Erase),
       PatKind::Inverse(x) => {
         let (a, b) = self.emit_pat_place(x);
         (b, a)

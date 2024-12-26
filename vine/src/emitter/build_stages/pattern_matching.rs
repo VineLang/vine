@@ -215,7 +215,6 @@ enum PatternType {
   Tuple(usize),
   Adt(DefId),
   Ref,
-  Move,
 }
 
 impl<'core> Emitter<'core, '_> {
@@ -259,15 +258,6 @@ impl<'core> Emitter<'core, '_> {
         });
 
         DecisionTree::Deref(var, new_var, Box::new(self.build_decision_tree(rows, arm_counts)))
-      }
-      PatternType::Move => {
-        let new_var = MatchVar { local: var.local, is_place: false };
-        unwrap_pattern_one(&mut rows, var, new_var, |t| match &t.kind {
-          PatKind::Move(x) => x,
-          _ => unreachable!(),
-        });
-
-        self.build_decision_tree(rows, arm_counts)
       }
       PatternType::Adt(adt_id) => {
         let adt = self.defs[adt_id].adt_def.as_ref().unwrap();
@@ -413,7 +403,6 @@ impl Cell<'_, '_> {
       }
       PatKind::Tuple(e) => PatternType::Tuple(e.len()),
       PatKind::Ref(_) => PatternType::Ref,
-      PatKind::Move(_) => PatternType::Move,
       _ => unreachable!(),
     }
   }

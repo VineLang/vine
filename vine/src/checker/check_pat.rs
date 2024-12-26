@@ -61,7 +61,6 @@ impl<'core> Checker<'core, '_> {
       (PatKind::Tuple(t), _) => {
         Type::Tuple(t.iter_mut().map(|p| self.check_pat(p, form, refutable)).collect())
       }
-      (PatKind::Move(p), Form::Place) => self.check_pat(p, Form::Value, refutable),
       (PatKind::Deref(p), Form::Place) => {
         let ty = self.new_var(span);
         self.check_pat_type(p, Form::Value, refutable, &mut Type::Ref(Box::new(ty.clone())));
@@ -79,11 +78,6 @@ impl<'core> Checker<'core, '_> {
       }
       (PatKind::Deref(pat), _) => {
         let err = self.core.report(Diag::DerefNonPlacePat { span });
-        pat.kind = PatKind::Error(err);
-        Type::Error(err)
-      }
-      (PatKind::Move(_), _) => {
-        let err = self.core.report(Diag::MoveNonPlacePat { span });
         pat.kind = PatKind::Error(err);
         Type::Error(err)
       }

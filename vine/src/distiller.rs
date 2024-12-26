@@ -521,10 +521,6 @@ impl Distiller {
         stage.steps.push(Step::Ref(reference, value.0, space.0));
         (value.1, space.1)
       }
-      PatKind::Move(value) => {
-        let value = self.distill_pat_value(stage, value);
-        (value, Port::Erase)
-      }
     }
   }
 

@@ -156,11 +156,9 @@ pub trait VisitMut<'core, 'a> {
   fn _visit_pat(&mut self, pat: &'a mut Pat<'core>) {
     match &mut pat.kind {
       PatKind::Hole | PatKind::Local(_) | PatKind::Error(_) => {}
-      PatKind::Paren(a)
-      | PatKind::Ref(a)
-      | PatKind::Deref(a)
-      | PatKind::Move(a)
-      | PatKind::Inverse(a) => self.visit_pat(a),
+      PatKind::Paren(a) | PatKind::Ref(a) | PatKind::Deref(a) | PatKind::Inverse(a) => {
+        self.visit_pat(a)
+      }
       PatKind::Tuple(a) => {
         for t in a {
           self.visit_pat(t);
