@@ -9,6 +9,7 @@
 - [Vine Language Features]()
   - [The Usual](./features/usual.md)
     - [Methods]()
+  - [Types]()
   - [IO](./features/io.md)
   - [Patterns]()
   - [References]()
