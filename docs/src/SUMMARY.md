@@ -4,7 +4,7 @@
 
 - [Getting Started]()
   - [Installation](./starting/installation.md)
-  - [Hello, world!]()
+  - [Hello, world!](./starting/hello-world.md)
 
 - [Vine Language Features]()
   - [The Usual](./features/usual.md)
@@ -21,11 +21,12 @@
   - [Mutation in Interaction Nets]()
 
 - [The Vine Compiler]()
-  - [Architecture]()
+  - [Architecture](./compiler/architecture.md)
   - [Variables as Places]()
   - [Stacked Flow Graphs]()
 
 - [Ivy and the IVM]()
+  - [Statistics]()
   - [Extrinsics]()
 
 ---
