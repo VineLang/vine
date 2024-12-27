@@ -3,7 +3,8 @@
   "lineWidth": 100,
   "markdown": {
     "textWrap": "always",
-    "lineWidth": 80
+    "lineWidth": 80,
+    "emphasisKind": "asterisks"
   },
   "exec": {
     "commands": [{

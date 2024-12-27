@@ -11,7 +11,7 @@
   - [Types]()
   - [Methods]()
   - [IO](./features/io.md)
-  - [Patterns]()
+  - [Patterns](./features/patterns.md)
   - [References]()
   - [Conditions](./features/conditions.md)
   - [Values, Spaces, and Places](./features/values-spaces-places.md)
