@@ -97,3 +97,7 @@
 :root h2, :root h3 {
     margin-block-start: 1.5em;
 }
+
+p {
+    text-align: justify;
+}

@@ -13,7 +13,7 @@
   - [Patterns](./features/patterns.md)
   - [References](./features/references.md)
   - [The `is` Operator](./features/is.md)
-  - [Values, Places, and Spaces](./features/values-places-spaces.md)
+  - [Values, Spaces, and Places](./features/values-spaces-places.md)
   - [The Inverse Operator](./features/inverse.md)
 
 - [Vine Concepts]()
