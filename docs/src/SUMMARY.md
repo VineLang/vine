@@ -12,8 +12,8 @@
   - [Methods]()
   - [IO](./features/io.md)
   - [Patterns](./features/patterns.md)
-  - [References]()
   - [Conditions](./features/conditions.md)
+  - [References]()
   - [Values, Spaces, and Places](./features/values-spaces-places.md)
   - [The Inverse Operator]()
 
@@ -27,7 +27,7 @@
   - [Stacked Flow Graphs]()
 
 - [Ivy and the IVM]()
-  - [IVM's Interaction System]()
+  - [Ivy's Interaction System](./ivy/interaction-system.md)
   - [Statistics](./ivy/statistics.md)
   - [Extrinsics]()
 

@@ -19,7 +19,7 @@ Interactions
   Branch             275_619
 ```
 
-`Total` shows the total number of interactions done in the execution of the
+`Total` shows the total number of interactions performed in the execution of the
 program. This measures how much "work" was done, in a deterministic and
 universal way; the same program will always have the exact same interaction
 count, no matter what machine it is run on.
@@ -87,7 +87,7 @@ Workload
 `Active` is the number of worker threads that were used.
 
 `Minimum`, `Average`, and `Maximum` describe the statistics of the number of
-interactions done by each active worker.
+interactions performed by each active worker.
 
 `Moved` is the number of active pairs that were moved between workers.
 

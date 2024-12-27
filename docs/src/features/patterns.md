@@ -78,4 +78,4 @@ display(None) // "no score"
 ```
 
 Incomplete patterns can also be used with the
-[`is` operator](./conditions.html#the-is-operator).
+[`is` operator](./conditions.md#the-is-operator).
