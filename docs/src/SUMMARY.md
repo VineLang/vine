@@ -8,12 +8,12 @@
 
 - [Vine Language Features]()
   - [The Usual](./features/usual.md)
-    - [Methods]()
   - [Types]()
+  - [Methods]()
   - [IO](./features/io.md)
   - [Patterns]()
   - [References]()
-  - [The `is` Operator]()
+  - [Conditions](./features/conditions.md)
   - [Values, Spaces, and Places](./features/values-spaces-places.md)
   - [The Inverse Operator]()
 
