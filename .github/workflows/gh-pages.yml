@@ -1,0 +1,39 @@
+name: Publish GitHub Pages
+
+on:
+  push:
+    branches:
+      - main
+      - docs
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v3
+      - uses: dsherret/rust-toolchain-file@v1
+      - uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-mdbook
+
+      - run: cargo install mdbook
+      - run: mdbook build
+        working-directory: docs
+
+      - uses: actions/configure-pages@v3
+      - uses: actions/upload-pages-artifact@v2
+        with:
+          path: "docs/static"
+
+      - id: deployment
+        uses: actions/deploy-pages@v1
