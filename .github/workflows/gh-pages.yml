@@ -18,13 +18,6 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: dsherret/rust-toolchain-file@v1
-      - uses: actions/cache@v2
-        with:
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-            ~/.cargo/bin
-          key: ${{ runner.os }}-mdbook
 
       - run: cargo install mdbook
       - run: mdbook build
