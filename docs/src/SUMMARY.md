@@ -2,13 +2,32 @@
 
 [Introduction](./README.md)
 
-- [Getting Started](./getting-started/index.md)
-  - [Installation](./getting-started/installation.md)
-  - [Hello, World!](./getting-started/hello-world.md)
-- [Common Programming Concepts](./common-concepts/index.md)
-  - [Variables](./common-concepts/variables.md)
-  - [Data Types](./common-concepts/data-types.md)
-  - [Functions](./common-concepts/functions.md)
-  - [Control Flow](./common-concepts/control-flow.md)
+- [Getting Started](./starting/index.md)
+  - [Installation](./starting/installation.md)
+  - [Hello, world!](./starting/hello-world.md)
+
+- [Vine Language Features](./features/index.md)
+  - [The Usual](./features/usual.md)
+    - [Methods](./features/methods.md)
+  - [IO](./features/io.md)
+  - [Patterns](./features/patterns.md)
+  - [References](./features/references.md)
+  - [The `is` Operator](./features/is.md)
+  - [Values, Places, and Spaces](./features/values-places-spaces.md)
+  - [The Inverse Operator](./features/inverse.md)
+
+- [Vine Concepts]()
+
+- [The Vine Compiler](./compiler/index.md)
+  - [Architecture](./compiler/architecture.md)
+  - [Variables as Places](./compiler/variables.md)
+  - [Stacked Flow Graphs](./compiler/sfg.md)
+
+- [Ivy and the IVM](./ivy/index.md)
+  - [Extrinsics](./ivy/extrinsics.md)
 
 ---
+
+[Notes](./notes.md)
+
+[Scratch](./scratch.md)

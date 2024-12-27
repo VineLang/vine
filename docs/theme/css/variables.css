@@ -16,7 +16,7 @@
     --darkergrey: color-mix(in srgb, var(--black), var(--darkgrey) 50%);
     --grey: #454850;
     --lightgrey: #656870;
-    --lightergrey: color-mix(in srgb, var(--white), var(--lightgrey) 50%);
+    --lightergrey: color-mix(in srgb, var(--white), var(--lightgrey) 60%);
     --white: #bdc3c7;
     --red: #c0392b;
     --orange: #d35400;
@@ -34,7 +34,7 @@
 
     --sidebar-bg: var(--black);
     --sidebar-fg: var(--white);
-    --sidebar-non-existant: var(--grey);
+    --sidebar-non-existant: var(--lightgrey);
     --sidebar-active: var(--vine);
     --sidebar-spacer: var(--grey);
 
@@ -45,7 +45,7 @@
 
     --links: var(--vine);
 
-    --inline-code-color: var(--darkergrey);
+    --inline-code-color: var(--white);
 
     --theme-popup-bg: #161923;
     --theme-popup-border: #737480;
@@ -92,4 +92,8 @@
     height: 120px;
     margin-top: -6px;
     margin-bottom: -12px;
+}
+
+:root h2, :root h3 {
+    margin-block-start: 1.5em;
 }
