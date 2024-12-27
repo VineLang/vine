@@ -23,7 +23,7 @@ jobs:
           path: |
             ~/.cargo/registry
             ~/.cargo/git
-            target
+            ~/.cargo/bin
           key: ${{ runner.os }}-mdbook
 
       - run: cargo install mdbook
