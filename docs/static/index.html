@@ -116,7 +116,7 @@
         font-family: "Roboto", sans-serif;
       }
       #logo {
-        height: 384px;
+        width: 512px;
         max-height: 100%;
         max-width: 100%;
         object-fit: contain;
@@ -125,8 +125,9 @@
       h1 {
         font-family: "Roboto", sans-serif;
         font-weight: 400;
-        font-size: 2.5rem;
-        height: 3rem;
+        --size: calc(min(6svw, 2.5rem));
+        font-size: var(--size);
+        height: calc(var(--size) * 1.2);
         margin-top: 0;
         color: var(--white);
         animation: title 1.5s cubic-bezier(0.17, 0.84, 0.44, 1) 4.2s 1 normal
