@@ -108,3 +108,7 @@ p {
 ::selection {
   background-color: var(--grey);
 }
+
+html {
+  background-color: var(--black);
+}
