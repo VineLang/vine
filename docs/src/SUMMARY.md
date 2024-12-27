@@ -27,7 +27,8 @@
   - [Stacked Flow Graphs]()
 
 - [Ivy and the IVM]()
-  - [Statistics]()
+  - [IVM's Interaction System]()
+  - [Statistics](./ivy/statistics.md)
   - [Extrinsics]()
 
 ---
