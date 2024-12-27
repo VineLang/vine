@@ -2,29 +2,31 @@
 
 [Introduction](./README.md)
 
-- [Getting Started](./starting/index.md)
+- [Getting Started]()
   - [Installation](./starting/installation.md)
-  - [Hello, world!](./starting/hello-world.md)
+  - [Hello, world!]()
 
-- [Vine Language Features](./features/index.md)
+- [Vine Language Features]()
   - [The Usual](./features/usual.md)
-    - [Methods](./features/methods.md)
+    - [Methods]()
   - [IO](./features/io.md)
-  - [Patterns](./features/patterns.md)
-  - [References](./features/references.md)
-  - [The `is` Operator](./features/is.md)
+  - [Patterns]()
+  - [References]()
+  - [The `is` Operator]()
   - [Values, Spaces, and Places](./features/values-spaces-places.md)
-  - [The Inverse Operator](./features/inverse.md)
+  - [The Inverse Operator]()
 
-- [Vine Concepts]()
+- [The Theory]()
+  - [Polarity and the Inverse]()
+  - [Mutation in Interaction Nets]()
 
-- [The Vine Compiler](./compiler/index.md)
-  - [Architecture](./compiler/architecture.md)
-  - [Variables as Places](./compiler/variables.md)
-  - [Stacked Flow Graphs](./compiler/sfg.md)
+- [The Vine Compiler]()
+  - [Architecture]()
+  - [Variables as Places]()
+  - [Stacked Flow Graphs]()
 
-- [Ivy and the IVM](./ivy/index.md)
-  - [Extrinsics](./ivy/extrinsics.md)
+- [Ivy and the IVM]()
+  - [Extrinsics]()
 
 ---
 
