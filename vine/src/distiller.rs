@@ -10,23 +10,24 @@ use crate::{
     BinaryOp, Block, ComparisonOp, DynFnId, Expr, ExprKind, GenericPath, LabelId, Local, Pat,
     PatKind, StmtKind, Ty,
   },
-  resolver::DefId,
+  resolver::{DefId, Resolver},
   vir::{
     Interface, InterfaceId, InterfaceKind, Layer, LayerId, Port, Stage, StageId, Step, Transfer,
   },
 };
 
-#[derive(Default)]
-pub struct Distiller {
-  layers: IdxVec<LayerId, Option<Layer>>,
-  interfaces: IdxVec<InterfaceId, Option<Interface>>,
-  stages: IdxVec<StageId, Option<Stage>>,
+pub struct Distiller<'core, 'r> {
+  pub resolver: &'r Resolver<'core>,
 
-  labels: IdxVec<LabelId, Option<Label>>,
-  returns: Vec<Return>,
-  dyn_fns: IdxVec<DynFnId, Option<DynFn>>,
+  pub layers: IdxVec<LayerId, Option<Layer>>,
+  pub interfaces: IdxVec<InterfaceId, Option<Interface>>,
+  pub stages: IdxVec<StageId, Option<Stage>>,
 
-  concat: DefId,
+  pub labels: IdxVec<LabelId, Option<Label>>,
+  pub returns: Vec<Return>,
+  pub dyn_fns: IdxVec<DynFnId, Option<DynFn>>,
+
+  pub concat: DefId,
 }
 
 struct Label {
@@ -45,7 +46,7 @@ struct DynFn {
   local: Local,
 }
 
-impl Distiller {
+impl<'core, 'r> Distiller<'core, 'r> {
   fn new_stage(&mut self, layer: &mut Layer, interface: InterfaceId) -> Stage {
     let id = self.stages.push(None);
     layer.stages.push(id);
