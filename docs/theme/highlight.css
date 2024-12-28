@@ -46,14 +46,30 @@
   color: var(--red);
 }
 
+pre > code {
+  border-radius: 7.5px;
+}
+
+:root pre .buttons {
+  padding: 0;
+  top: 0;
+}
+
 :root pre .buttons > button.clip-button {
   padding: 0;
+  margin: 4px;
   width: 30px;
   height: 30px;
   display: flex;
   align-items: center;
   justify-content: center;
   border: none;
+  transition: scale .2s, color .2s, background-color .2s;
+  border-radius: 4.5px;
+}
+
+:root pre .buttons > button.clip-button:hover {
+  scale: 1.1;
 }
 
 :root pre .buttons > button.clip-button::before {
@@ -61,14 +77,32 @@
   content: "content_copy";
   filter: none;
   font-size: 18px;
+  position: absolute;
+  margin-left: 1px;
+  transition: opacity .1s .1s ease-out, scale .1s .1s ease-out;
 }
 
-:root pre .buttons > button.clip-button.tooltipped::before {
+:root pre .buttons > button.clip-button::after {
   font-family: 'Material Symbols Outlined';
   content: "check";
   filter: none;
   font-size: 18px;
+  opacity: 0;
+  scale: .9;
+  transition: opacity .1s 0s ease-in, scale .1s 0s ease-in;
 }
+
+:root pre .buttons > button.clip-button.tooltipped::before {
+  opacity: 0;
+  scale: .9;
+  transition: opacity .1s 0s ease-in, scale .1s 0s ease-in;
+}
+
+:root pre .buttons > button.clip-button.tooltipped::after {
+  opacity: 1;
+  transition: opacity .1s .1s ease-out, scale .1s .1s ease-out;
+}
+
 
 :root pre .buttons > button.clip-button .tooltiptext {
   display: none;
