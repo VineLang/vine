@@ -41,9 +41,9 @@
         <meta name="msapplication-wide310x150logo" content="/mstile-310x150.png" />
         <meta name="msapplication-square310x310logo" content="/mstile-310x310.png" />
 
-        <link rel="stylesheet" href="{{ path_to_root }}css/variables.css">
         <link rel="stylesheet" href="{{ path_to_root }}css/general.css">
         <link rel="stylesheet" href="{{ path_to_root }}css/chrome.css">
+        <link rel="stylesheet" href="{{ path_to_root }}css/variables.css">
         {{#if print_enable}}
         <link rel="stylesheet" href="{{ path_to_root }}css/print.css" media="print">
         {{/if}}
@@ -156,25 +156,20 @@
                         {{/if}}
                     </div>
 
-                    <h1 class="menu-title">{{ book_title }}</h1>
+                    <span style="flex: 1"></span>
+                    <a class="menu-title menu-title-short" href="/">Vine</a>
+                    <a class="menu-title menu-title-long" href="/">{{ book_title }}</a>
+                    <span style="flex: 1"></span>
 
                     <div class="right-buttons">
+                        <a href="https://github.com/VineLang/vine" class="icon-button" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa {{git_repository_icon}}"></i>
+                        </a>
                         {{#if print_enable}}
-                        <a href="{{ path_to_root }}print.html" title="Print this book" aria-label="Print this book">
+                        <a href="{{ path_to_root }}print.html" class="icon-button" title="Print this book" aria-label="Print this book">
                             <i id="print-button" class="fa fa-print"></i>
                         </a>
                         {{/if}}
-                        {{#if git_repository_url}}
-                        <a href="{{git_repository_url}}" title="Git repository" aria-label="Git repository">
-                            <i id="git-repository-button" class="fa {{git_repository_icon}}"></i>
-                        </a>
-                        {{/if}}
-                        {{#if git_repository_edit_url}}
-                        <a href="{{git_repository_edit_url}}" title="Suggest an edit" aria-label="Suggest an edit">
-                            <i id="git-edit-button" class="fa fa-edit"></i>
-                        </a>
-                        {{/if}}
-
                     </div>
                 </div>
 
