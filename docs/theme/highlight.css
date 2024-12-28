@@ -45,3 +45,31 @@
 .hljs-deletion {
   color: var(--red);
 }
+
+:root pre .buttons > button.clip-button {
+  padding: 0;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+}
+
+:root pre .buttons > button.clip-button::before {
+  font-family: 'Material Symbols Outlined';
+  content: "content_copy";
+  filter: none;
+  font-size: 18px;
+}
+
+:root pre .buttons > button.clip-button.tooltipped::before {
+  font-family: 'Material Symbols Outlined';
+  content: "check";
+  filter: none;
+  font-size: 18px;
+}
+
+:root pre .buttons > button.clip-button .tooltiptext {
+  display: none;
+}
