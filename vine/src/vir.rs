@@ -1,5 +1,4 @@
 use core::slice;
-use std::{collections::HashMap, usize};
 
 use ivm::ext::ExtFn;
 use vine_util::{
@@ -7,11 +6,7 @@ use vine_util::{
   multi_iter, new_idx,
 };
 
-use crate::{
-  analyzer::{usage::Usage, Usages},
-  ast::Local,
-  resolver::DefId,
-};
+use crate::{analyzer::Usages, ast::Local, resolver::DefId};
 
 new_idx!(pub LayerId);
 new_idx!(pub StageId);
@@ -89,6 +84,7 @@ pub struct Stage {
   pub id: StageId,
   pub interface: InterfaceId,
   pub layer: LayerId,
+  pub header: Vec<Port>,
   pub declarations: Vec<Local>,
   pub steps: Vec<Step>,
   pub transfer: Option<Transfer>,

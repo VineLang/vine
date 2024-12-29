@@ -57,18 +57,21 @@ impl<'a> Normalizer<'a> {
         id: source.id,
         interface: source.interface,
         layer: source.layer,
+        header: source.header.clone(),
         declarations: source.declarations.clone(),
         steps: Vec::new(),
         transfer: None,
         wires: source.wires,
       };
+      for port in &stage.header {
+        if let Port::Wire(wire) = port {
+          toggle(&mut wire_counts, *wire);
+        }
+      }
       for step in &source.steps {
         for port in step.ports() {
           if let Port::Wire(wire) = port {
-            match wire_counts.entry(*wire) {
-              Entry::Vacant(e) => *e.insert(()),
-              Entry::Occupied(e) => e.remove(),
-            }
+            toggle(&mut wire_counts, *wire);
           }
         }
         if self.step_divergence(step) <= layer.id {
@@ -82,6 +85,7 @@ impl<'a> Normalizer<'a> {
             id: new_stage,
             interface,
             layer: LayerId::NONE,
+            header: Vec::new(),
             declarations: Vec::new(),
             steps: Vec::new(),
             transfer: None,
@@ -160,5 +164,12 @@ impl<'a> Normalizer<'a> {
       }
       _ => LayerId::NONE,
     }
+  }
+}
+
+fn toggle<T: Ord>(wire_counts: &mut BTreeMap<T, ()>, key: T) {
+  match wire_counts.entry(key) {
+    Entry::Vacant(e) => *e.insert(()),
+    Entry::Occupied(e) => e.remove(),
   }
 }
