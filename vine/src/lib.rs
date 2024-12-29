@@ -4,7 +4,7 @@ pub mod checker;
 pub mod core;
 pub mod diag;
 pub mod distiller;
-pub mod emitter;
+pub mod emitter_old;
 pub mod fmt;
 pub mod lexer;
 pub mod loader;
@@ -21,7 +21,7 @@ use std::path::PathBuf;
 use checker::Checker;
 use ivy::ast::Nets;
 
-use crate::{emitter::emit, loader::Loader, resolver::Resolver};
+use crate::{emitter_old::emit, loader::Loader, resolver::Resolver};
 
 pub struct Config {
   pub main: Option<PathBuf>,

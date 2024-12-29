@@ -2,7 +2,7 @@ use std::collections::{hash_map::Entry, HashMap, VecDeque};
 
 use vine_util::idx::RangeExt;
 
-use crate::emitter::StageId;
+use crate::emitter_old::StageId;
 
 use super::{Emitter, Port, Step};
 

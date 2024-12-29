@@ -1,6 +1,6 @@
 use std::mem::swap;
 
-use crate::emitter::{Emitter, Fork, ForkId, Interface, InterfaceId, Stage, StageId, Step};
+use crate::emitter_old::{Emitter, Fork, ForkId, Interface, InterfaceId, Stage, StageId, Step};
 
 impl<'core> Emitter<'core, '_> {
   pub(super) fn new_interface(&mut self) -> InterfaceId {

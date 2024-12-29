@@ -5,7 +5,7 @@ use ivy::ast::Net;
 
 use crate::{
   ast::*,
-  emitter::{stage_name, Agent, Emitter, Local, Port, StageId, Step},
+  emitter_old::{stage_name, Agent, Emitter, Local, Port, StageId, Step},
   resolver::{AdtDef, Def, DefId},
 };
 
@@ -162,7 +162,7 @@ impl<'core> Emitter<'core, '_> {
     }
   }
 
-  pub(in crate::emitter) fn emit_adt_constructor(&mut self, def: &Def<'core>) -> Net {
+  pub(in crate::emitter_old) fn emit_adt_constructor(&mut self, def: &Def<'core>) -> Net {
     let variant_def = def.variant_def.as_ref().unwrap();
     let root = self.net.new_wire();
 

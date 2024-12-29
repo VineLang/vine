@@ -21,7 +21,7 @@ use crate::{
   checker::{self, Checker, CheckerState, Type},
   core::Core,
   diag::Diag,
-  emitter::Emitter,
+  emitter_old::Emitter,
   loader::Loader,
   parser::VineParser,
   resolver::{DefId, Resolver},

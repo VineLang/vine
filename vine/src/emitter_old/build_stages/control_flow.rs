@@ -1,6 +1,6 @@
 use crate::{
   ast::*,
-  emitter::{Agent, Emitter, Port, Step},
+  emitter_old::{Agent, Emitter, Port, Step},
 };
 
 impl<'core> Emitter<'core, '_> {

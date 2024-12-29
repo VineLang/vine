@@ -3,7 +3,7 @@ use std::{collections::HashMap, ops::Range};
 use vine_util::idx::{IdxVec, RangeExt};
 
 use crate::{
-  emitter::{Local, StageId},
+  emitter_old::{Local, StageId},
   resolver::DefId,
 };
 
