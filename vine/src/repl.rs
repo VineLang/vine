@@ -179,7 +179,7 @@ impl<'core, 'ctx, 'ivm> Repl<'core, 'ctx, 'ivm> {
 
     let mut distiller = Distiller::new(&self.resolver);
     let mut emitter = Emitter::new(&self.resolver);
-    for (_, def) in &self.resolver.defs {
+    for def in self.resolver.defs.slice(new_defs.clone()) {
       if let Some(vir) = distiller.distill(def) {
         let mut vir = normalize(&vir);
         analyze(&mut vir);

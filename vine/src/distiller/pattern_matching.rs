@@ -178,7 +178,7 @@ impl<'core, 'd, 'r> Matcher<'core, 'd, 'r> {
             }
             Form::Place => {
               let (value, space) = stage.mut_local(local);
-              let (spaces, values) =
+              let (values, spaces) =
                 new_locals.iter().map(|l| stage.mut_local(l)).collect::<(Vec<_>, Vec<_>)>();
               stage.steps.push(Step::Tuple(value, spaces));
               stage.steps.push(Step::Tuple(space, values));
