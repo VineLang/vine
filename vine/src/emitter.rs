@@ -5,7 +5,7 @@ use vine_util::idx::{Counter, IdxVec};
 
 use crate::{
   analyzer::usage::Usage,
-  ast::{Local, Path},
+  ast::Local,
   resolver::{AdtDef, Def, Resolver, ValueDefKind, VariantDef},
   vir::{
     Interface, InterfaceId, InterfaceKind, Invocation, Port, Stage, StageId, Step, Transfer, VIR,
@@ -23,7 +23,7 @@ impl<'core, 'a> Emitter<'core, 'a> {
     Emitter { nets: Nets::default(), resolver, dup_labels: Counter::default() }
   }
 
-  pub fn emit_vir(&mut self, path: &Path<'core>, vir: &VIR) {
+  pub fn emit_vir(&mut self, path: String, vir: &VIR) {
     let mut emitter = SubEmitter {
       resolver: self.resolver,
       path,
@@ -53,7 +53,11 @@ impl<'core, 'a> Emitter<'core, 'a> {
         }
         let net = Net { root, pairs: take(&mut emitter.pairs) };
         self.nets.insert(
-          if stage.id.0 == 0 { path.to_string() } else { format!("{}::{}", path, stage.id.0) },
+          if stage.id.0 == 0 {
+            emitter.path.clone()
+          } else {
+            format!("{}::{}", emitter.path, stage.id.0)
+          },
           net,
         );
       }
@@ -91,7 +95,7 @@ impl<'core, 'a> Emitter<'core, 'a> {
 
 struct SubEmitter<'core, 'a> {
   resolver: &'a Resolver<'core>,
-  path: &'a Path<'core>,
+  path: String,
   stages: &'a IdxVec<StageId, Stage>,
   interfaces: &'a IdxVec<InterfaceId, Interface>,
   locals: BTreeMap<Local, LocalState>,

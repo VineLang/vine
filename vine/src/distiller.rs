@@ -77,7 +77,11 @@ impl<'core, 'r> Distiller<'core, 'r> {
   pub fn distill(&mut self, def: &Def<'core>) -> Option<VIR> {
     let value_def = def.value_def.as_ref()?;
     let ValueDefKind::Expr(expr) = &value_def.kind else { None? };
-    self.locals = value_def.locals;
+    Some(self.distill_expr(value_def.locals, expr))
+  }
+
+  pub fn distill_expr(&mut self, locals: Counter<Local>, expr: &Expr<'core>) -> VIR {
+    self.locals = locals;
     let (layer, mut stage) = self.root_layer();
     let local = self.locals.next();
     let result = self.distill_expr_value(&mut stage, expr);
@@ -89,12 +93,12 @@ impl<'core, 'r> Distiller<'core, 'r> {
     self.labels.clear();
     debug_assert!(self.returns.is_empty());
     self.dyn_fns.clear();
-    Some(VIR {
+    VIR {
       layers: unwrap_idx_vec(take(&mut self.layers)),
       interfaces: unwrap_idx_vec(take(&mut self.interfaces)),
       stages: unwrap_idx_vec(take(&mut self.stages)),
       locals: self.locals,
-    })
+    }
   }
 
   fn new_stage(&mut self, layer: &mut Layer, interface: InterfaceId) -> Stage {
