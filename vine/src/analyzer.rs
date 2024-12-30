@@ -5,7 +5,7 @@ use vine_util::idx::IdxVec;
 
 use crate::{
   ast::Local,
-  vir::{Interface, InterfaceId, LocalUse, Stage, StageId, Step},
+  vir::{Interface, InterfaceId, Invocation, Stage, StageId, Step},
 };
 
 pub mod usage;
@@ -19,23 +19,34 @@ impl Analyzer<'_> {
   pub fn analyze(&mut self) {
     self.sweep(InterfaceId(0));
     for i in self.interfaces.keys() {
-      if self.interfaces[i].reachable {
+      if self.interfaces[i].incoming != 0 {
         self.update_exterior(i, 0, 1);
       }
     }
     for i in self.interfaces.keys() {
-      if self.interfaces[i].reachable {
+      if self.interfaces[i].incoming != 0 {
         self.update_interior(i, 0, 1);
+      }
+    }
+    for i in self.interfaces.keys() {
+      let interface = &mut self.interfaces[i];
+      if interface.incoming != 0 {
+        for (local, interior) in interface.interior.iter() {
+          if let Some(&exterior) = interface.exterior.0.get(&local) {
+            interface.wires.insert(local, (exterior.effect(interior), interior.effect(exterior)));
+          }
+        }
       }
     }
   }
 
   fn sweep(&mut self, interface_id: InterfaceId) {
     let interface = &mut self.interfaces[interface_id];
-    if interface.reachable {
+    if interface.incoming != 0 {
+      interface.incoming += 1;
       return;
     }
-    interface.reachable = true;
+    interface.incoming = 1;
     for i in 0..interface.kind.stages().len() {
       let stage = &self.stages[self.interfaces[interface_id].kind.stages()[i]];
       for step in &stage.steps {
@@ -65,8 +76,8 @@ impl Analyzer<'_> {
     for i in 0..interface.kind.stages().len() {
       let stage = &self.stages[self.interfaces[interface_id].kind.stages()[i]];
       for step in &stage.steps {
-        if let Step::Local(local, local_use) = step {
-          staging.join_back(*local, local_use.usage());
+        if let Step::Invoke(local, invocation) = step {
+          staging.join_back(*local, invocation.usage());
         }
         if let Step::Transfer(transfer) = step {
           canonicity =
@@ -124,8 +135,8 @@ impl Analyzer<'_> {
       let mut reverse = Vec::new();
       let mut staging = Usages::default();
       for step in stage.steps.iter().rev() {
-        if let Step::Local(local, local_use) = step {
-          staging.join_front(*local, local_use.usage());
+        if let Step::Invoke(local, invocation) = step {
+          staging.join_front(*local, invocation.usage());
         }
         if let Step::Transfer(transfer) = step {
           reverse.push(staging.clone());
@@ -138,8 +149,8 @@ impl Analyzer<'_> {
         staging.0.remove(&local);
       }
       for step in &stage.steps {
-        if let Step::Local(local, local_use) = step {
-          staging.join_back(*local, local_use.usage());
+        if let Step::Invoke(local, invocation) = step {
+          staging.join_back(*local, invocation.usage());
         }
         if let Step::Transfer(transfer) = step {
           let target = &mut self.interfaces[transfer.interface];
@@ -170,15 +181,15 @@ impl Analyzer<'_> {
   }
 }
 
-impl LocalUse {
+impl Invocation {
   fn usage(&self) -> Usage {
     match self {
-      LocalUse::Erase => Usage::Erase,
-      LocalUse::Get(_) => Usage::Get,
-      LocalUse::Hedge(_) => Usage::Hedge,
-      LocalUse::Take(_) => Usage::Take,
-      LocalUse::Set(_) => Usage::Set,
-      LocalUse::Mut(..) => Usage::Mut,
+      Invocation::Erase => Usage::Erase,
+      Invocation::Get(_) => Usage::Get,
+      Invocation::Hedge(_) => Usage::Hedge,
+      Invocation::Take(_) => Usage::Take,
+      Invocation::Set(_) => Usage::Set,
+      Invocation::Mut(..) => Usage::Mut,
     }
   }
 }

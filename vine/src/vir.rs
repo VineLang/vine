@@ -1,4 +1,5 @@
 use core::slice;
+use std::collections::BTreeMap;
 
 use ivm::ext::ExtFn;
 use vine_util::{
@@ -6,7 +7,11 @@ use vine_util::{
   multi_iter, new_idx,
 };
 
-use crate::{analyzer::Usages, ast::Local, resolver::DefId};
+use crate::{
+  analyzer::{usage::Usage, Usages},
+  ast::Local,
+  resolver::DefId,
+};
 
 new_idx!(pub LayerId);
 new_idx!(pub StageId);
@@ -38,12 +43,19 @@ pub struct Interface {
   pub layer: LayerId,
   pub kind: InterfaceKind,
 
-  pub reachable: bool,
+  pub incoming: usize,
   pub parents: Vec<InterfaceId>,
   pub exterior_canonicity: usize,
   pub exterior: Usages,
   pub interior_canonicity: usize,
   pub interior: Usages,
+  pub wires: BTreeMap<Local, (Usage, Usage)>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+pub enum WireDir {
+  Input,
+  Output,
 }
 
 impl Interface {
@@ -52,13 +64,20 @@ impl Interface {
       id,
       layer,
       kind,
-      reachable: false,
+      incoming: 0,
       parents: Vec::new(),
       exterior_canonicity: 0,
       exterior: Usages::default(),
       interior_canonicity: 0,
       interior: Usages::default(),
+      wires: BTreeMap::default(),
     }
+  }
+
+  pub fn inline(&self) -> bool {
+    self.id != InterfaceId(0)
+      && self.incoming == 1
+      && matches!(self.kind, InterfaceKind::Unconditional(_))
   }
 }
 
@@ -93,7 +112,7 @@ pub struct Stage {
 
 #[derive(Debug, Clone)]
 pub enum Step {
-  Local(Local, LocalUse),
+  Invoke(Local, Invocation),
   Transfer(Transfer),
   Diverge(LayerId, Option<Transfer>),
 
@@ -111,9 +130,9 @@ pub enum Step {
 
 impl Step {
   pub fn ports(&self) -> impl Iterator<Item = &Port> {
-    multi_iter!(Ports { Zero, One, Two, Three, LocalUse, Transfer, Tuple, Fn });
+    multi_iter!(Ports { Zero, One, Two, Three, Invoke, Transfer, Tuple, Fn });
     match self {
-      Step::Local(_, local_use) => Ports::LocalUse(local_use.ports()),
+      Step::Invoke(_, invocation) => Ports::Invoke(invocation.ports()),
       Step::Transfer(transfer) | Step::Diverge(_, Some(transfer)) => {
         Ports::Transfer(transfer.data.as_ref())
       }
@@ -130,7 +149,7 @@ impl Step {
 }
 
 #[derive(Debug, Clone)]
-pub enum LocalUse {
+pub enum Invocation {
   Erase,
   Get(Port),
   Hedge(Port),
@@ -139,15 +158,15 @@ pub enum LocalUse {
   Mut(Port, Port),
 }
 
-impl LocalUse {
+impl Invocation {
   fn ports(&self) -> impl Iterator<Item = &Port> {
     multi_iter!(Ports { Zero, One, Two });
     match self {
-      LocalUse::Erase => Ports::Zero([]),
-      LocalUse::Get(a) | LocalUse::Hedge(a) | LocalUse::Take(a) | LocalUse::Set(a) => {
+      Invocation::Erase => Ports::Zero([]),
+      Invocation::Get(a) | Invocation::Hedge(a) | Invocation::Take(a) | Invocation::Set(a) => {
         Ports::One([a])
       }
-      LocalUse::Mut(a, b) => Ports::Two([a, b]),
+      Invocation::Mut(a, b) => Ports::Two([a, b]),
     }
   }
 }
@@ -186,19 +205,19 @@ impl Stage {
   }
 
   pub fn get_local_to(&mut self, local: Local, to: Port) {
-    self.steps.push(Step::Local(local, LocalUse::Get(to)));
+    self.steps.push(Step::Invoke(local, Invocation::Get(to)));
   }
 
   pub fn take_local_to(&mut self, local: Local, to: Port) {
-    self.steps.push(Step::Local(local, LocalUse::Take(to)));
+    self.steps.push(Step::Invoke(local, Invocation::Take(to)));
   }
 
   pub fn set_local_to(&mut self, local: Local, to: Port) {
-    self.steps.push(Step::Local(local, LocalUse::Set(to)));
+    self.steps.push(Step::Invoke(local, Invocation::Set(to)));
   }
 
   pub fn mut_local_to(&mut self, local: Local, o: Port, i: Port) {
-    self.steps.push(Step::Local(local, LocalUse::Mut(o, i)));
+    self.steps.push(Step::Invoke(local, Invocation::Mut(o, i)));
   }
 
   pub fn get_local(&mut self, local: Local) -> Port {

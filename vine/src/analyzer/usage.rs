@@ -57,6 +57,19 @@ const INVERSE: [Usage; 10] = [N, E, M, T, S, H, G, W, R, P];
 const TOP: [Usage; 10] = [N, E, G, E, G, G, N, W, W, G];
 const BOT: [Usage; 10] = [N, E, H, H, E, N, H, W, H, W];
 
+const EFFECT: [[Usage; 10]; 10] = [
+  [N, N, N, N, N, N, N, N, N, N],
+  [N, E, E, E, E, E, E, E, E, E],
+  [N, E, M, S, T, G, H, M, M, M],
+  [N, E, T, E, T, T, E, E, E, T],
+  [N, E, S, S, E, E, S, E, S, E],
+  [N, E, S, S, E, N, N, N, N, N],
+  [N, E, T, E, T, N, N, N, N, N],
+  [N, E, M, E, E, N, N, N, N, N],
+  [N, E, M, E, T, N, N, N, N, N],
+  [N, E, M, S, E, N, N, N, N, N],
+];
+
 impl Usage {
   pub fn union(self: Usage, other: Usage) -> Usage {
     UNION[self as usize][other as usize]
@@ -76,6 +89,10 @@ impl Usage {
 
   pub fn bot(self: Usage) -> Usage {
     BOT[self as usize]
+  }
+
+  pub fn effect(self: Usage, other: Usage) -> Usage {
+    EFFECT[self as usize][other as usize]
   }
 }
 
@@ -237,6 +254,18 @@ mod tests {
             assert_eq!(f(N), f(f(N)));
           }
         }
+      }
+    }
+  }
+
+  #[test]
+  fn circle() {
+    for a in usage() {
+      for b in usage() {
+        let ab = EFFECT[a as usize][b as usize];
+        let ba = EFFECT[b as usize][a as usize];
+        assert!((ab.top() == G) == (ba.bot() == H));
+        assert!(ab.inverse() == EFFECT[a.inverse() as usize][b.inverse() as usize]);
       }
     }
   }

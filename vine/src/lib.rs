@@ -4,6 +4,7 @@ pub mod checker;
 pub mod core;
 pub mod diag;
 pub mod distiller;
+pub mod emitter;
 pub mod emitter_old;
 pub mod fmt;
 pub mod lexer;
