@@ -19,10 +19,12 @@ pub mod visit;
 use core::{Core, CoreArenas};
 use std::path::PathBuf;
 
-use checker::Checker;
 use ivy::ast::Nets;
 
-use crate::{emitter_old::emit, loader::Loader, resolver::Resolver};
+use crate::{
+  analyzer::analyze, ast::Path, checker::Checker, distiller::Distiller, emitter::Emitter,
+  loader::Loader, normalizer::normalize, resolver::Resolver,
+};
 
 pub struct Config {
   pub main: Option<PathBuf>,
@@ -56,5 +58,27 @@ pub fn compile(config: Config) -> Result<Nets, String> {
 
   core.bail()?;
 
-  Ok(emit(&resolver, &config.items))
+  let mut distiller = Distiller::new(&resolver);
+  let mut emitter = Emitter::new(&resolver);
+  for (_, def) in &resolver.defs {
+    if matches_filter(&def.canonical, &config.items) {
+      if let Some(vir) = distiller.distill(def) {
+        let mut vir = normalize(&vir);
+        analyze(&mut vir);
+        emitter.emit_vir(&def.canonical, &vir);
+      } else {
+        emitter.emit_ivy(def);
+      }
+    }
+  }
+
+  Ok(emitter.nets)
+}
+
+fn matches_filter(path: &Path, items: &[String]) -> bool {
+  if items.is_empty() {
+    return true;
+  }
+  let canonical = &path.to_string()[2..];
+  items.iter().any(|x| x == canonical)
 }

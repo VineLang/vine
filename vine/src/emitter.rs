@@ -1,16 +1,92 @@
 use std::{collections::BTreeMap, mem::take};
 
-use ivy::ast::Tree;
+use ivy::ast::{Net, Nets, Tree};
 use vine_util::idx::{Counter, IdxVec};
 
 use crate::{
   analyzer::usage::Usage,
   ast::{Local, Path},
-  resolver::Resolver,
-  vir::{Interface, InterfaceId, InterfaceKind, Invocation, Port, Stage, StageId, Step, Transfer},
+  resolver::{AdtDef, Def, Resolver, ValueDefKind, VariantDef},
+  vir::{
+    Interface, InterfaceId, InterfaceKind, Invocation, Port, Stage, StageId, Step, Transfer, VIR,
+  },
 };
 
 pub struct Emitter<'core, 'a> {
+  pub nets: Nets,
+  resolver: &'a Resolver<'core>,
+  dup_labels: Counter<usize>,
+}
+
+impl<'core, 'a> Emitter<'core, 'a> {
+  pub fn new(resolver: &'a Resolver<'core>) -> Self {
+    Emitter { nets: Nets::default(), resolver, dup_labels: Counter::default() }
+  }
+
+  pub fn emit_vir(&mut self, path: &Path<'core>, vir: &VIR) {
+    let mut emitter = SubEmitter {
+      resolver: self.resolver,
+      path,
+      stages: &vir.stages,
+      interfaces: &vir.interfaces,
+      locals: BTreeMap::new(),
+      pairs: Vec::new(),
+      wire_offset: 0,
+      wires: Counter::default(),
+      dup_labels: self.dup_labels,
+    };
+
+    for stage in vir.stages.values() {
+      let interface = &vir.interfaces[stage.interface];
+      if interface.incoming != 0 && !interface.inline() {
+        let root = emitter.emit_interface(interface, true);
+        let root = SubEmitter::emit_n_ary(
+          "enum",
+          stage.header.iter().map(|p| emitter.emit_port(p)).chain([root]),
+        );
+        emitter._emit_stage(stage);
+        for (_, local) in take(&mut emitter.locals) {
+          emitter.finish_local(local);
+        }
+        let net = Net { root, pairs: take(&mut emitter.pairs) };
+        self.nets.insert(
+          if stage.id.0 == 0 { path.to_string() } else { format!("{}::{}", path, stage.id.0) },
+          net,
+        );
+      }
+    }
+
+    self.dup_labels = emitter.dup_labels;
+  }
+
+  pub fn emit_ivy(&mut self, def: &Def<'core>) {
+    if let Some(value_def) = &def.value_def {
+      match &value_def.kind {
+        ValueDefKind::Expr(_) => {}
+        ValueDefKind::Ivy(net) => {
+          self.nets.insert(def.canonical.to_string(), net.clone());
+        }
+        ValueDefKind::AdtConstructor => {
+          let variant = def.variant_def.as_ref().unwrap();
+          let adt = self.resolver.defs[variant.adt].adt_def.as_ref().unwrap();
+          let fields = (0..variant.fields.len()).map(|i| Tree::Var(format!("f{i}")));
+          let root = SubEmitter::emit_n_ary(
+            "fn",
+            fields.clone().chain([make_adt(
+              variant,
+              adt,
+              || (Tree::Var("r".into()), Tree::Var("r".into())),
+              fields,
+            )]),
+          );
+          self.nets.insert(def.canonical.to_string(), Net { root, pairs: Vec::new() });
+        }
+      }
+    }
+  }
+}
+
+struct SubEmitter<'core, 'a> {
   resolver: &'a Resolver<'core>,
   path: &'a Path<'core>,
   stages: &'a IdxVec<StageId, Stage>,
@@ -22,7 +98,7 @@ pub struct Emitter<'core, 'a> {
   dup_labels: Counter<usize>,
 }
 
-impl<'core, 'a> Emitter<'core, 'a> {
+impl<'core, 'a> SubEmitter<'core, 'a> {
   fn dup_label(&mut self) -> String {
     format!("dup{}", self.dup_labels.next())
   }
@@ -168,18 +244,8 @@ impl<'core, 'a> Emitter<'core, 'a> {
       Step::Adt(variant, port, fields) => {
         let variant = self.resolver.defs[*variant].variant_def.as_ref().unwrap();
         let adt = self.resolver.defs[variant.adt].adt_def.as_ref().unwrap();
-        let adt = if adt.variants.len() == 1 {
-          Self::emit_n_ary("tup", fields.iter().map(emit_port))
-        } else {
-          let wire = self.new_wire();
-          let mut fields = Self::emit_n_ary("tup", fields.iter().map(emit_port).chain([wire.0]));
-          Self::emit_n_ary(
-            "enum",
-            (0..adt.variants.len())
-              .map(|i| if variant.variant == i { take(&mut fields) } else { Tree::Erase })
-              .chain([wire.1]),
-          )
-        };
+        let fields = fields.iter().map(emit_port);
+        let adt = make_adt(variant, adt, || self.new_wire(), fields);
         self.pairs.push((emit_port(port), adt));
       }
       Step::Ref(reference, value, space) => self.pairs.push((
@@ -284,5 +350,25 @@ impl LocalState {
     if self.past.is_empty() || !self.spaces.is_empty() || !self.values.is_empty() {
       self.past.push((take(&mut self.spaces), take(&mut self.values)));
     }
+  }
+}
+
+fn make_adt(
+  variant: &VariantDef,
+  adt: &AdtDef,
+  mut new_wire: impl FnMut() -> (Tree, Tree),
+  fields: impl DoubleEndedIterator<Item = Tree>,
+) -> Tree {
+  if adt.variants.len() == 1 {
+    SubEmitter::emit_n_ary("tup", fields)
+  } else {
+    let wire = new_wire();
+    let mut fields = SubEmitter::emit_n_ary("tup", fields.chain([wire.0]));
+    SubEmitter::emit_n_ary(
+      "enum",
+      (0..adt.variants.len())
+        .map(|i| if variant.variant == i { take(&mut fields) } else { Tree::Erase })
+        .chain([wire.1]),
+    )
   }
 }

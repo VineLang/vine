@@ -1,19 +1,24 @@
 mod pattern_matching;
 
-use std::mem::replace;
+use std::mem::{replace, take};
 
 use ivm::ext::{ExtFn, ExtFnKind};
 use pattern_matching::Row;
-use vine_util::idx::{Counter, IdxVec};
+use vine_util::{
+  idx::{Counter, IdxVec},
+  unwrap_idx_vec,
+};
 
 use crate::{
+  analyzer::usage::Usage,
   ast::{
-    BinaryOp, Block, ComparisonOp, DynFnId, Expr, ExprKind, GenericPath, LabelId, Local, LogicalOp,
-    Pat, PatKind, Span, StmtKind, Ty,
+    BinaryOp, Block, Builtin, ComparisonOp, DynFnId, Expr, ExprKind, GenericPath, LabelId, Local,
+    LogicalOp, Pat, PatKind, Span, StmtKind, Ty,
   },
-  resolver::{DefId, Resolver},
+  resolver::{Def, DefId, Resolver, ValueDefKind},
   vir::{
     Interface, InterfaceId, InterfaceKind, Layer, LayerId, Port, Stage, StageId, Step, Transfer,
+    VIR,
   },
 };
 
@@ -29,7 +34,7 @@ pub struct Distiller<'core, 'r> {
   returns: Vec<Return>,
   dyn_fns: IdxVec<DynFnId, Option<DynFn>>,
 
-  concat: DefId,
+  concat: Option<DefId>,
 
   locals: Counter<Local>,
 }
@@ -54,6 +59,44 @@ struct DynFn {
 }
 
 impl<'core, 'r> Distiller<'core, 'r> {
+  pub fn new(resolver: &'r Resolver<'core>) -> Self {
+    let concat = resolver.builtins.get(&Builtin::Concat).copied();
+    Distiller {
+      resolver,
+      concat,
+      layers: Default::default(),
+      interfaces: Default::default(),
+      stages: Default::default(),
+      labels: Default::default(),
+      returns: Default::default(),
+      dyn_fns: Default::default(),
+      locals: Default::default(),
+    }
+  }
+
+  pub fn distill(&mut self, def: &Def<'core>) -> Option<VIR> {
+    let value_def = def.value_def.as_ref()?;
+    let ValueDefKind::Expr(expr) = &value_def.kind else { None? };
+    self.locals = value_def.locals;
+    let (layer, mut stage) = self.root_layer();
+    let local = self.new_local(&mut stage);
+    let result = self.distill_expr_value(&mut stage, expr);
+    stage.set_local_to(local, result);
+    self.finish_stage(stage);
+    self.finish_layer(layer);
+    let interface = self.interfaces[InterfaceId(0)].as_mut().unwrap();
+    interface.interior.join_back(local, Usage::Take);
+    self.labels.clear();
+    debug_assert!(self.returns.is_empty());
+    self.dyn_fns.clear();
+    Some(VIR {
+      layers: unwrap_idx_vec(take(&mut self.layers)),
+      interfaces: unwrap_idx_vec(take(&mut self.interfaces)),
+      stages: unwrap_idx_vec(take(&mut self.stages)),
+      locals: self.locals,
+    })
+  }
+
   fn new_stage(&mut self, layer: &mut Layer, interface: InterfaceId) -> Stage {
     let id = self.stages.push(None);
     layer.stages.push(id);
@@ -145,7 +188,7 @@ impl<'core, 'r> Distiller<'core, 'r> {
     result
   }
 
-  pub fn distill_expr_value(&mut self, stage: &mut Stage, expr: &Expr<'core>) -> Port {
+  fn distill_expr_value(&mut self, stage: &mut Stage, expr: &Expr<'core>) -> Port {
     match &expr.kind {
       ExprKind![sugar || error || !value] => unreachable!("{expr:?}"),
 
@@ -481,7 +524,7 @@ impl<'core, 'r> Distiller<'core, 'r> {
     }
   }
 
-  pub fn distill_pat_value(&mut self, stage: &mut Stage, pat: &Pat<'core>) -> Port {
+  fn distill_pat_value(&mut self, stage: &mut Stage, pat: &Pat<'core>) -> Port {
     match &pat.kind {
       PatKind![!value] => unreachable!(),
       PatKind::Hole => Port::Erase,
@@ -559,7 +602,7 @@ impl<'core, 'r> Distiller<'core, 'r> {
   fn distill_bin_op(&mut self, stage: &mut Stage, op: BinaryOp, lhs: Port, rhs: Port, out: Port) {
     let ext_fn = match op {
       BinaryOp::Concat => {
-        stage.steps.push(Step::Fn(Port::Const(self.concat), vec![lhs, rhs], out));
+        stage.steps.push(Step::Fn(Port::Const(self.concat.unwrap()), vec![lhs, rhs], out));
         return;
       }
       BinaryOp::BitOr => ExtFnKind::n32_or,

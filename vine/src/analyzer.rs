@@ -5,18 +5,22 @@ use vine_util::idx::IdxVec;
 
 use crate::{
   ast::Local,
-  vir::{Interface, InterfaceId, Invocation, Stage, StageId, Step},
+  vir::{Interface, InterfaceId, Invocation, Stage, StageId, Step, VIR},
 };
 
 pub mod usage;
 
-pub struct Analyzer<'a> {
+pub fn analyze(vir: &mut VIR) {
+  Analyzer { stages: &vir.stages, interfaces: &mut vir.interfaces }.analyze();
+}
+
+struct Analyzer<'a> {
   pub stages: &'a IdxVec<StageId, Stage>,
   pub interfaces: &'a mut IdxVec<InterfaceId, Interface>,
 }
 
 impl Analyzer<'_> {
-  pub fn analyze(&mut self) {
+  fn analyze(&mut self) {
     self.sweep(InterfaceId(0));
     for i in self.interfaces.keys() {
       if self.interfaces[i].incoming != 0 {
