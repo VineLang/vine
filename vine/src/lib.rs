@@ -64,9 +64,9 @@ pub fn compile(config: Config) -> Result<Nets, String> {
     if matches_filter(&def.canonical, &config.items) {
       // println!("distill");
       if let Some(vir) = distiller.distill(def) {
+        // dbg!(&vir);
         // println!("normalize");
         let mut vir = normalize(&vir);
-        // dbg!(&vir);
         // println!("analyze");
         analyze(&mut vir);
         // dbg!(&vir);

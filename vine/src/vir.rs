@@ -75,10 +75,9 @@ impl Interface {
   }
 
   pub fn inline(&self) -> bool {
-    false
-    // self.id != InterfaceId(0)
-    //   && self.incoming == 1
-    //   && matches!(self.kind, InterfaceKind::Unconditional(_))
+    self.id != InterfaceId(0)
+      && self.incoming == 1
+      && matches!(self.kind, InterfaceKind::Unconditional(_))
   }
 }
 

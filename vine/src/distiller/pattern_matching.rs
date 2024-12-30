@@ -203,16 +203,6 @@ impl<'core, 'd, 'r> Matcher<'core, 'd, 'r> {
               let (new_vars, new_locals) =
                 self.new_var_range(&mut stage, form, variant.fields.len());
 
-              if form == Form::Value {
-                stage.header = new_locals.iter().map(|l| stage.set_local(l)).collect();
-              } else {
-                let (result, header) = new_locals.iter().map(|l| stage.mut_local(l)).collect();
-                stage.header = header;
-                let adt = stage.new_wire();
-                stage.steps.push(Step::Adt(variant_id, adt.0, result));
-                stage.set_local_to(local, adt.1);
-              }
-
               let mut rows = rows
                 .iter()
                 .filter(|r| {
@@ -225,6 +215,18 @@ impl<'core, 'd, 'r> Matcher<'core, 'd, 'r> {
                 })
                 .cloned()
                 .collect::<Vec<_>>();
+
+              if form == Form::Place
+                || rows.iter().any(|x| x.bindings.iter().any(|&(v, _)| v == var))
+              {
+                let (result, header) = new_locals.iter().map(|l| stage.mut_local(l)).collect();
+                stage.header = header;
+                let adt = stage.new_wire();
+                stage.steps.push(Step::Adt(variant_id, adt.0, result));
+                stage.set_local_to(local, adt.1);
+              } else {
+                stage.header = new_locals.iter().map(|l| stage.set_local(l)).collect();
+              }
 
               self.eliminate_col(&mut rows, var, |p| match &p.kind {
                 PatKind::Adt(_, fields) => new_vars.iter().zip(fields.iter().flatten()),

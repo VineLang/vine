@@ -96,6 +96,14 @@ impl Analyzer<'_> {
       for &local in &stage.declarations {
         staging.0.remove(&local);
       }
+      for &l in working.0.keys() {
+        staging.0.entry(l).or_insert(Usage::None);
+      }
+      if i != 0 {
+        for &l in staging.0.keys() {
+          working.0.entry(l).or_insert(Usage::None);
+        }
+      }
       working.union_all(&staging);
       staging.0.clear();
     }

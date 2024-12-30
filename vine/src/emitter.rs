@@ -405,7 +405,7 @@ fn make_adt(
     SubEmitter::emit_n_ary("tup", fields)
   } else {
     let wire = new_wire();
-    let mut fields = SubEmitter::emit_n_ary("tup", fields.chain([wire.0]));
+    let mut fields = SubEmitter::emit_n_ary("enum", fields.chain([wire.0]));
     SubEmitter::emit_n_ary(
       "enum",
       (0..adt.variants.len())

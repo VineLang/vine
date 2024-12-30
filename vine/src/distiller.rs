@@ -289,8 +289,8 @@ impl<'core, 'r> Distiller<'core, 'r> {
         out.1
       }
       ExprKind::BinaryOpAssign(op, lhs, rhs) => {
-        let (lhs, out) = self.distill_expr_place(stage, lhs);
         let rhs = self.distill_expr_value(stage, rhs);
+        let (lhs, out) = self.distill_expr_place(stage, lhs);
         self.distill_bin_op(stage, *op, lhs, rhs, out);
         Port::Erase
       }
@@ -446,8 +446,8 @@ impl<'core, 'r> Distiller<'core, 'r> {
       }
 
       ExprKind::Match(value, arms) => {
+        let local = self.new_local(stage);
         let (mut layer, mut init_stage) = self.child_layer(stage);
-        let local = self.new_local(&mut init_stage);
         let value = self.distill_expr_value(&mut init_stage, value);
         let rows = arms
           .iter()
