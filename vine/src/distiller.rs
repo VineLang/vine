@@ -1,9 +1,6 @@
 mod pattern_matching;
 
-use std::{
-  backtrace::Backtrace,
-  mem::{replace, take},
-};
+use std::mem::{replace, take};
 
 use ivm::ext::{ExtFn, ExtFnKind};
 use pattern_matching::Row;
@@ -648,7 +645,7 @@ impl<'core, 'r> Distiller<'core, 'r> {
           value
         }
       }
-      ExprKind::Bool(b) => Port::N32(*b as u32),
+      ExprKind::Bool(b) => Port::N32((*b ^ negate) as u32),
       ExprKind::Not(inner) => self.distill_cond_bool(stage, inner, !negate),
       _ => {
         let local = self.new_local(stage);
