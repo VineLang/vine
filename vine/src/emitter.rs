@@ -37,8 +37,11 @@ impl<'core, 'a> Emitter<'core, 'a> {
     };
 
     for stage in vir.stages.values() {
+      // println!("\n--- {:?}", stage.id);
       let interface = &vir.interfaces[stage.interface];
       if interface.incoming != 0 && !interface.inline() {
+        emitter.wire_offset = 0;
+        emitter.wires.0 = stage.wires.0 .0;
         let root = emitter.emit_interface(interface, true);
         let root = SubEmitter::emit_n_ary(
           "enum",
@@ -107,7 +110,7 @@ impl<'core, 'a> SubEmitter<'core, 'a> {
     let interface = &self.interfaces[transfer.interface];
     if interface.inline() {
       let InterfaceKind::Unconditional(stage) = interface.kind else { unreachable!() };
-      return self._emit_stage(&self.stages[stage]);
+      return self.inline_stage(&self.stages[stage]);
     }
 
     let target = self.emit_interface(interface, false);
@@ -130,6 +133,10 @@ impl<'core, 'a> SubEmitter<'core, 'a> {
   }
 
   fn finish_local(&mut self, mut local: LocalState) {
+    self.pairs.push((Tree::Erase, Tree::Erase));
+    if local.past.is_empty() {
+      local.past.push((Vec::new(), Vec::new()));
+    }
     let first = &mut local.past[0];
     first.0.append(&mut local.spaces);
     first.1.append(&mut local.values);
@@ -154,9 +161,10 @@ impl<'core, 'a> SubEmitter<'core, 'a> {
     }
   }
 
-  fn _emit_stage(&mut self, stage: &Stage) {
+  fn inline_stage(&mut self, stage: &Stage) {
     let prev_wire_offset = self.wire_offset;
     self.wire_offset = self.wires.peek_next();
+    // dbg!(self.wire_offset);
     self.wires.0 += stage.wires.0 .0;
     for local in &stage.declarations {
       if let Some(local) = self.locals.remove(local) {
@@ -167,6 +175,17 @@ impl<'core, 'a> SubEmitter<'core, 'a> {
       self.emit_step(step);
     }
     self.wire_offset = prev_wire_offset;
+  }
+
+  fn _emit_stage(&mut self, stage: &Stage) {
+    for local in &stage.declarations {
+      if let Some(local) = self.locals.remove(local) {
+        self.finish_local(local);
+      }
+    }
+    for step in &stage.steps {
+      self.emit_step(step);
+    }
   }
 
   fn emit_interface(&mut self, interface: &Interface, side: bool) -> Tree {
@@ -183,7 +202,11 @@ impl<'core, 'a> SubEmitter<'core, 'a> {
             let a = self.new_wire();
             let b = self.new_wire();
             self.local(local).mutate(a.0, b.0);
-            Some(Tree::Comb("x".into(), Box::new(a.1), Box::new(b.1)))
+            if side {
+              Some(Tree::Comb("x".into(), Box::new(b.1), Box::new(a.1)))
+            } else {
+              Some(Tree::Comb("x".into(), Box::new(a.1), Box::new(b.1)))
+            }
           }
           Usage::Set => {
             let w = self.new_wire();
@@ -216,7 +239,7 @@ impl<'core, 'a> SubEmitter<'core, 'a> {
   }
 
   fn local(&mut self, local: Local) -> &mut LocalState {
-    self.locals.entry(local).or_default()
+    self.locals.entry(local).or_insert(LocalState { id: local.0, ..Default::default() })
   }
 
   fn emit_step(&mut self, step: &Step) {
@@ -282,7 +305,7 @@ impl<'core, 'a> SubEmitter<'core, 'a> {
       Port::Erase => Tree::Erase,
       Port::N32(n) => Tree::N32(*n),
       Port::F32(f) => Tree::F32(*f),
-      Port::Wire(w) => Tree::Var(format!("w{}", wire_offset + w.0)),
+      Port::Wire(w, _) => Tree::Var(format!("w{}", wire_offset + w.0)),
       Port::Const(def) => Tree::Global(resolver.defs[*def].canonical.to_string()),
     }
   }
@@ -316,6 +339,7 @@ impl<'core, 'a> SubEmitter<'core, 'a> {
 
 #[derive(Default)]
 struct LocalState {
+  id: usize,
   past: Vec<(Vec<Tree>, Vec<Tree>)>,
   spaces: Vec<Tree>,
   values: Vec<Tree>,
@@ -323,30 +347,48 @@ struct LocalState {
 
 impl LocalState {
   fn mutate(&mut self, a: Tree, b: Tree) {
+    if self.id == 7 {
+      // println!("mutate {a:?} {b:?}")
+    }
     self.get(a);
     self.erase();
     self.hedge(b);
   }
 
   fn get(&mut self, port: Tree) {
+    if self.id == 7 {
+      // println!("get {port:?}")
+    }
     self.spaces.push(port);
   }
 
   fn take(&mut self, port: Tree) {
+    if self.id == 7 {
+      // println!("take {port:?}")
+    }
     self.get(port);
     self.erase();
   }
 
   fn hedge(&mut self, port: Tree) {
+    if self.id == 7 {
+      // println!("hedge {port:?}")
+    }
     self.values.push(port);
   }
 
   fn set(&mut self, port: Tree) {
+    if self.id == 7 {
+      // println!("set {port:?}")
+    }
     self.erase();
     self.hedge(port);
   }
 
   fn erase(&mut self) {
+    if self.id == 7 {
+      // println!("erase")
+    }
     if self.past.is_empty() || !self.spaces.is_empty() || !self.values.is_empty() {
       self.past.push((take(&mut self.spaces), take(&mut self.values)));
     }

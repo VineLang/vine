@@ -21,15 +21,18 @@ struct Analyzer<'a> {
 
 impl Analyzer<'_> {
   fn analyze(&mut self) {
+    // println!("sweep");
     self.sweep(InterfaceId(0));
-    for i in self.interfaces.keys() {
-      if self.interfaces[i].incoming != 0 {
-        self.update_exterior(i, 0, 1);
-      }
-    }
+    // println!("update_interior");
     for i in self.interfaces.keys() {
       if self.interfaces[i].incoming != 0 {
         self.update_interior(i, 0, 1);
+      }
+    }
+    // println!("update_exterior");
+    for i in self.interfaces.keys() {
+      if self.interfaces[i].incoming != 0 {
+        self.update_exterior(i, 0, 1);
       }
     }
     for i in self.interfaces.keys() {
@@ -62,19 +65,20 @@ impl Analyzer<'_> {
     }
   }
 
-  fn update_exterior(
+  fn update_interior(
     &mut self,
     interface_id: InterfaceId,
     invalidated: usize,
     depth: usize,
   ) -> usize {
+    // println!("{:?} {} {}", interface_id, invalidated, depth);
     let interface = &mut self.interfaces[interface_id];
-    if interface.exterior_canonicity > invalidated {
-      return interface.exterior_canonicity;
+    if interface.interior_canonicity > invalidated {
+      return interface.interior_canonicity;
     }
-    interface.exterior_canonicity = depth;
+    interface.interior_canonicity = depth;
 
-    let mut working = take(&mut interface.exterior);
+    let mut working = take(&mut interface.interior);
     let mut staging = Usages::default();
     let mut canonicity = usize::MAX;
     for i in 0..interface.kind.stages().len() {
@@ -85,8 +89,8 @@ impl Analyzer<'_> {
         }
         if let Step::Transfer(transfer) = step {
           canonicity =
-            canonicity.min(self.update_exterior(transfer.interface, invalidated, depth + 1));
-          staging.join_back_all(&self.interfaces[transfer.interface].exterior);
+            canonicity.min(self.update_interior(transfer.interface, invalidated, depth + 1));
+          staging.join_back_all(&self.interfaces[transfer.interface].interior);
         }
       }
       for &local in &stage.declarations {
@@ -96,14 +100,17 @@ impl Analyzer<'_> {
       staging.0.clear();
     }
 
+    let interface = &mut self.interfaces[interface_id];
+    interface.interior = working;
+
     if canonicity == depth {
+      interface.interior_canonicity = usize::MAX;
       canonicity = usize::MAX;
-      let interface = &mut self.interfaces[interface_id];
       for i in 0..interface.kind.stages().len() {
         let stage = &self.stages[self.interfaces[interface_id].kind.stages()[i]];
         for step in &stage.steps {
           if let Step::Transfer(transfer) = step {
-            let _canonicity = self.update_exterior(transfer.interface, depth, depth + 1);
+            let _canonicity = self.update_interior(transfer.interface, depth, depth + 1);
             assert_eq!(_canonicity, usize::MAX);
           }
         }
@@ -111,26 +118,26 @@ impl Analyzer<'_> {
     }
 
     let interface = &mut self.interfaces[interface_id];
-    interface.exterior_canonicity = canonicity;
+    interface.interior_canonicity = canonicity;
     canonicity
   }
 
-  fn update_interior(
+  fn update_exterior(
     &mut self,
     interface_id: InterfaceId,
     invalidated: usize,
     depth: usize,
   ) -> usize {
     let interface = &mut self.interfaces[interface_id];
-    if interface.interior_canonicity > invalidated {
-      return interface.interior_canonicity;
+    if interface.exterior_canonicity > invalidated {
+      return interface.exterior_canonicity;
     }
 
-    interface.interior_canonicity = depth;
+    interface.exterior_canonicity = depth;
     let mut canonicity = usize::MAX;
     for i in 0..interface.parents.len() {
       let parent = self.interfaces[interface_id].parents[i];
-      canonicity = canonicity.min(self.update_interior(parent, invalidated, depth + 1));
+      canonicity = canonicity.min(self.update_exterior(parent, invalidated, depth + 1));
     }
 
     let interface = &mut self.interfaces[interface_id];
@@ -144,15 +151,17 @@ impl Analyzer<'_> {
         }
         if let Step::Transfer(transfer) = step {
           reverse.push(staging.clone());
-          staging.join_front_all(&self.interfaces[transfer.interface].exterior);
+          staging.join_front_all(&self.interfaces[transfer.interface].interior);
         }
       }
       let interface = &mut self.interfaces[interface_id];
-      staging.clone_from(&interface.interior);
+      staging.clone_from(&interface.exterior);
       for &local in &stage.declarations {
         staging.0.remove(&local);
       }
+      // dbg!(&staging);
       for step in &stage.steps {
+        // dbg!(&step);
         if let Step::Invoke(local, invocation) = step {
           staging.join_back(*local, invocation.usage());
         }
@@ -161,26 +170,36 @@ impl Analyzer<'_> {
           let mut reverse = reverse.pop().unwrap();
           for (local, forward_usage) in staging.iter() {
             let reverse_usage = reverse.0.remove(&local).unwrap_or(Usage::None);
-            target.interior.union(local, reverse_usage.join(forward_usage));
+            // println!(
+            //   "exterior {:?} -> {:?}: {:?} {:?} ({:?} ; {:?})",
+            //   interface_id,
+            //   transfer.interface,
+            //   local,
+            //   reverse_usage.join(forward_usage),
+            //   reverse_usage,
+            //   forward_usage,
+            // );
+            target.exterior.union(local, reverse_usage.join(forward_usage));
           }
-          target.interior.union_all(&reverse);
-          staging.join_back_all(&target.exterior);
+          target.exterior.union_all(&reverse);
+          staging.join_back_all(&target.interior);
         }
       }
     }
 
     if canonicity == depth {
-      canonicity = usize::MAX;
       let interface = &mut self.interfaces[interface_id];
+      interface.exterior_canonicity = usize::MAX;
+      canonicity = usize::MAX;
       for i in 0..interface.parents.len() {
         let parent = self.interfaces[interface_id].parents[i];
-        let _canonicity = self.update_interior(parent, depth, depth + 1);
+        let _canonicity = self.update_exterior(parent, depth, depth + 1);
         assert_eq!(_canonicity, usize::MAX);
       }
     }
 
     let interface = &mut self.interfaces[interface_id];
-    interface.interior_canonicity = canonicity;
+    interface.exterior_canonicity = canonicity;
     canonicity
   }
 }

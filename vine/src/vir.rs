@@ -45,10 +45,10 @@ pub struct Interface {
 
   pub incoming: usize,
   pub parents: Vec<InterfaceId>,
-  pub exterior_canonicity: usize,
-  pub exterior: Usages,
   pub interior_canonicity: usize,
   pub interior: Usages,
+  pub exterior_canonicity: usize,
+  pub exterior: Usages,
   pub wires: BTreeMap<Local, (Usage, Usage)>,
 }
 
@@ -75,9 +75,10 @@ impl Interface {
   }
 
   pub fn inline(&self) -> bool {
-    self.id != InterfaceId(0)
-      && self.incoming == 1
-      && matches!(self.kind, InterfaceKind::Unconditional(_))
+    false
+    // self.id != InterfaceId(0)
+    //   && self.incoming == 1
+    //   && matches!(self.kind, InterfaceKind::Unconditional(_))
   }
 }
 
@@ -177,7 +178,7 @@ pub enum Port {
   Const(DefId),
   N32(u32),
   F32(f32),
-  Wire(WireId),
+  Wire(WireId, StageId),
 }
 
 #[derive(Debug, Clone)]
@@ -195,11 +196,11 @@ impl Transfer {
 impl Stage {
   pub fn new_wire(&mut self) -> (Port, Port) {
     let w = self.wires.next();
-    (Port::Wire(w), Port::Wire(w))
+    (Port::Wire(w, self.id), Port::Wire(w, self.id))
   }
 
   pub fn erase(&mut self, port: Port) {
-    if matches!(port, Port::Wire(_)) {
+    if matches!(port, Port::Wire(..)) {
       self.steps.push(Step::Link(port, Port::Erase));
     }
   }

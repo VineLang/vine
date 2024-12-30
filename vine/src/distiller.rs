@@ -1,6 +1,9 @@
 mod pattern_matching;
 
-use std::mem::{replace, take};
+use std::{
+  backtrace::Backtrace,
+  mem::{replace, take},
+};
 
 use ivm::ext::{ExtFn, ExtFnKind};
 use pattern_matching::Row;
@@ -79,13 +82,13 @@ impl<'core, 'r> Distiller<'core, 'r> {
     let ValueDefKind::Expr(expr) = &value_def.kind else { None? };
     self.locals = value_def.locals;
     let (layer, mut stage) = self.root_layer();
-    let local = self.new_local(&mut stage);
+    let local = self.locals.next();
     let result = self.distill_expr_value(&mut stage, expr);
     stage.set_local_to(local, result);
     self.finish_stage(stage);
     self.finish_layer(layer);
     let interface = self.interfaces[InterfaceId(0)].as_mut().unwrap();
-    interface.interior.join_back(local, Usage::Take);
+    interface.exterior.join_back(local, Usage::Take);
     self.labels.clear();
     debug_assert!(self.returns.is_empty());
     self.dyn_fns.clear();
@@ -99,6 +102,9 @@ impl<'core, 'r> Distiller<'core, 'r> {
 
   fn new_stage(&mut self, layer: &mut Layer, interface: InterfaceId) -> Stage {
     let id = self.stages.push(None);
+    if id.0 == 3 || id.0 == 4 {
+      // println!("{}", Backtrace::capture());
+    }
     layer.stages.push(id);
     Stage {
       id,
@@ -121,6 +127,7 @@ impl<'core, 'r> Distiller<'core, 'r> {
     let mut layer = self.new_layer();
     layer.parent = Some(parent_stage.layer);
     let stage = self.new_unconditional_stage(&mut layer);
+    parent_stage.steps.push(Step::Transfer(Transfer::unconditional(stage.interface)));
     (layer, stage)
   }
 
@@ -203,16 +210,16 @@ impl<'core, 'r> Distiller<'core, 'r> {
       ExprKind::DynFn(dyn_fn) => {
         let dyn_fn = self.dyn_fns[*dyn_fn].as_ref().unwrap();
         stage.steps.push(Step::Transfer(Transfer::unconditional(dyn_fn.interface)));
-        stage.get_local(dyn_fn.local)
+        stage.take_local(dyn_fn.local)
       }
       ExprKind::Block(block) => self.distill_block(stage, block),
       ExprKind::Assign(inverse, space, value) => {
         if *inverse {
           let space = self.distill_expr_space(stage, space);
-          let value = self.distill_expr_space(stage, value);
+          let value = self.distill_expr_value(stage, value);
           stage.steps.push(Step::Link(space, value));
         } else {
-          let value = self.distill_expr_space(stage, value);
+          let value = self.distill_expr_value(stage, value);
           let space = self.distill_expr_space(stage, space);
           stage.steps.push(Step::Link(space, value));
         }
@@ -438,13 +445,13 @@ impl<'core, 'r> Distiller<'core, 'r> {
         self.finish_stage(body_stage);
         self.finish_layer(layer);
 
-        stage.get_local(fn_local)
+        stage.take_local(fn_local)
       }
 
       ExprKind::Match(value, arms) => {
-        let local = self.new_local(stage);
-        let value = self.distill_expr_value(stage, value);
         let (mut layer, mut init_stage) = self.child_layer(stage);
+        let local = self.new_local(&mut init_stage);
+        let value = self.distill_expr_value(&mut init_stage, value);
         let rows = arms
           .iter()
           .map(|(pat, expr)| {
@@ -530,7 +537,10 @@ impl<'core, 'r> Distiller<'core, 'r> {
       PatKind::Hole => Port::Erase,
       PatKind::Paren(inner) => self.distill_pat_value(stage, inner),
       PatKind::Inverse(inner) => self.distill_pat_space(stage, inner),
-      PatKind::Local(local) => stage.set_local(*local),
+      PatKind::Local(local) => {
+        stage.declarations.push(*local);
+        stage.set_local(*local)
+      }
       PatKind::Tuple(tuple) => self.distill_vec(stage, tuple, Self::distill_pat_value, Step::Tuple),
       PatKind::Adt(path, args) => {
         self.distill_vec(stage, args.as_deref().unwrap_or(&[]), Self::distill_pat_value, adt(path))
@@ -550,7 +560,10 @@ impl<'core, 'r> Distiller<'core, 'r> {
       PatKind::Hole => Port::Erase,
       PatKind::Paren(inner) => self.distill_pat_space(stage, inner),
       PatKind::Inverse(inner) => self.distill_pat_value(stage, inner),
-      PatKind::Local(local) => stage.take_local(*local),
+      PatKind::Local(local) => {
+        stage.declarations.push(*local);
+        stage.take_local(*local)
+      }
       PatKind::Tuple(tuple) => self.distill_vec(stage, tuple, Self::distill_pat_space, Step::Tuple),
       PatKind::Adt(path, args) => {
         self.distill_vec(stage, args.as_deref().unwrap_or(&[]), Self::distill_pat_space, adt(path))
@@ -568,6 +581,7 @@ impl<'core, 'r> Distiller<'core, 'r> {
         (space, value)
       }
       PatKind::Local(local) => {
+        stage.declarations.push(*local);
         let (a, b) = stage.mut_local(*local);
         (b, a)
       }
@@ -665,9 +679,9 @@ impl<'core, 'r> Distiller<'core, 'r> {
       if let [(op, rhs)] = &**cmps {
         if matches!(rhs.kind, ExprKind::N32(0)) {
           if *op == ComparisonOp::Ne {
-            return swap(self.distill_cond(layer, stage, lhs));
-          } else if *op == ComparisonOp::Eq {
             return self.distill_cond(layer, stage, lhs);
+          } else if *op == ComparisonOp::Eq {
+            return swap(self.distill_cond(layer, stage, lhs));
           }
         }
       }

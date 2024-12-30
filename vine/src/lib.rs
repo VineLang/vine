@@ -62,9 +62,15 @@ pub fn compile(config: Config) -> Result<Nets, String> {
   let mut emitter = Emitter::new(&resolver);
   for (_, def) in &resolver.defs {
     if matches_filter(&def.canonical, &config.items) {
+      // println!("distill");
       if let Some(vir) = distiller.distill(def) {
+        // println!("normalize");
         let mut vir = normalize(&vir);
+        // dbg!(&vir);
+        // println!("analyze");
         analyze(&mut vir);
+        // dbg!(&vir);
+        // println!("emit");
         emitter.emit_vir(&def.canonical, &vir);
       } else {
         emitter.emit_ivy(def);

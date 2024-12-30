@@ -37,6 +37,7 @@ pub fn normalize(source: &VIR) -> VIR {
   }
 }
 
+#[derive(Debug)]
 struct Normalizer<'a> {
   source: &'a VIR,
 
@@ -64,13 +65,13 @@ impl<'a> Normalizer<'a> {
         wires: source.wires,
       };
       for port in &stage.header {
-        if let Port::Wire(wire) = port {
+        if let Port::Wire(wire, _) = port {
           toggle(&mut wire_counts, *wire);
         }
       }
       for step in &source.steps {
         for port in step.ports() {
-          if let Port::Wire(wire) = port {
+          if let Port::Wire(wire, _) = port {
             toggle(&mut wire_counts, *wire);
           }
         }
@@ -94,8 +95,8 @@ impl<'a> Normalizer<'a> {
           for &wire in wire_counts.keys() {
             let local = self.locals.next();
             stage.declarations.push(local);
-            stage.set_local_to(local, Port::Wire(wire));
-            new_stage.take_local_to(local, Port::Wire(wire));
+            stage.set_local_to(local, Port::Wire(wire, StageId(42)));
+            new_stage.take_local_to(local, Port::Wire(wire, StageId(42)));
           }
           match step {
             Step::Transfer(transfer) => {
