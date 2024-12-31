@@ -24,10 +24,12 @@ pub fn analyze(vir: &mut VIR) {
     segments: Vec::new(),
     dirty: BTreeSet::new(),
     locals: Vec::new(),
+    disconnects: Vec::new(),
   }
   .analyze();
 }
 
+#[derive(Debug)]
 struct Analyzer<'a> {
   globals: &'a Vec<(Local, Usage)>,
   stages: &'a IdxVec<StageId, Stage>,
@@ -38,11 +40,12 @@ struct Analyzer<'a> {
   relations: IdxVec<RelationId, (UsageVar, UsageVar, UsageVar, UsageVar)>,
   segments: Vec<(UsageVar, HashMap<Local, Usage>)>,
   dirty: BTreeSet<UsageVar>,
-  locals: Vec<Local>,
+  locals: Vec<(Local, StageId)>,
+  disconnects: Vec<(StageId, UsageVar, UsageVar)>,
 }
 
-new_idx!(pub UsageVar);
-new_idx!(pub RelationId);
+new_idx!(pub UsageVar; n => ["u{n}"]);
+new_idx!(pub RelationId; n => ["R{n}"]);
 
 impl UsageVar {
   pub const NONE: Self = UsageVar(0);
@@ -52,15 +55,17 @@ impl Analyzer<'_> {
   fn analyze(&mut self) {
     self.sweep(InterfaceId(0));
 
-    self.locals.extend(self.globals.iter().map(|&(g, _)| g));
+    self.locals.extend(self.globals.iter().map(|&(g, _)| (g, StageId(usize::MAX))));
     let root_segment =
       (self.get_transfer(InterfaceId(0)).1, self.globals.iter().copied().collect());
     self.segments.push(root_segment);
 
     self.build();
+    // dbg!(&self);
 
-    for local in take(&mut self.locals) {
-      self.process_local(local);
+    // dbg!(&self.locals);
+    for (local, stage) in take(&mut self.locals) {
+      self.process_local(local, stage);
     }
 
     for &(global, usage) in self.globals {
@@ -89,19 +94,35 @@ impl Analyzer<'_> {
     let mut segments = Vec::new();
     let mut transfers = Vec::new();
     let mut forwards = Vec::new();
+    let mut backwards = Vec::new();
 
     for stage in self.stages.values() {
       if self.interfaces[stage.interface].incoming == 0 {
         continue;
       }
+      // dbg!(stage.id);
 
       segments.clear();
       transfers.clear();
       forwards.clear();
-      self.locals.extend_from_slice(&stage.declarations);
+      backwards.clear();
+      self.locals.extend(stage.declarations.iter().map(|&l| (l, stage.id)));
 
       let incoming = self.get_transfer(stage.interface);
-      transfers.push((incoming.1, incoming.0));
+      if stage.declarations.is_empty() {
+        transfers.push((incoming.1, incoming.0));
+      } else {
+        let connected = self.new_var();
+        let disconnected = self.new_var();
+        let inner = (self.new_var(), self.new_var());
+        self.new_relation(incoming.1, connected, UsageVar::NONE, inner.0);
+        self.new_relation(inner.1, connected, UsageVar::NONE, incoming.0);
+        self.new_relation(disconnected, UsageVar::NONE, UsageVar::NONE, inner.0);
+        self.new_relation(disconnected, UsageVar::NONE, UsageVar::NONE, incoming.0);
+        self.disconnects.push((stage.id, connected, disconnected));
+        transfers.push(inner);
+      }
+
       let mut current_segment = HashMap::new();
 
       for step in &stage.steps {
@@ -133,7 +154,7 @@ impl Analyzer<'_> {
       let n = segments.len();
 
       let mut forward = UsageVar::NONE;
-      forwards.reserve(n - 1);
+      forwards.reserve(n);
       forwards.push(forward);
       for i in 0..(n - 1) {
         let var = self.new_var();
@@ -143,23 +164,38 @@ impl Analyzer<'_> {
       }
 
       let mut backward = segments[n - 1];
+      backwards.reserve(n);
+      backwards.push(backward);
       for i in (0..(n - 1)).rev() {
         let var = self.new_var();
         self.new_relation(segments[i], transfers[i + 1].0, backward, var);
         backward = var;
-        let forward = forwards[i];
-        self.new_relation(backward, UsageVar::NONE, forward, transfers[i].1);
+        backwards.push(backward);
+      }
+
+      // dbg!(&stage.id, &forwards, &transfers, &backwards);
+
+      for ((&forward, &transfer), &backward) in
+        forwards.iter().zip(transfers.iter()).zip(backwards.iter().rev())
+      {
+        self.new_relation(backward, UsageVar::NONE, forward, transfer.1);
       }
     }
   }
 
-  fn process_local(&mut self, local: Local) {
+  fn process_local(&mut self, local: Local, declared: StageId) {
     self.usage.fill(Usage::Zero);
     self.usage[UsageVar::NONE] = Usage::None;
+    self.dirty.insert(UsageVar::NONE);
     for (var, usage) in &mut self.segments {
       let usage = usage.remove(&local).unwrap_or(Usage::None);
       self.usage[*var] = usage;
       self.dirty.insert(*var);
+    }
+    for &(stage, connected, disconnected) in &self.disconnects {
+      let var = if stage == declared { disconnected } else { connected };
+      self.usage[var] = Usage::None;
+      self.dirty.insert(var);
     }
     while let Some(var) = self.dirty.pop_first() {
       for &relation in &self.effects[var] {
@@ -167,21 +203,26 @@ impl Analyzer<'_> {
         let abc = self.usage[a].join(self.usage[b]).join(self.usage[c]);
         let old = self.usage[out];
         let new = old.union(abc);
-        if old != new {
-          self.usage[var] = new;
-          self.dirty.insert(var);
+        if new != old {
+          self.usage[out] = new;
+          self.dirty.insert(out);
         }
       }
+    }
+    if local == Local(1) {
+      // dbg!(&self);
     }
     for interface in self.interfaces.values_mut() {
       if interface.incoming != 0 {
         let interior = self.usage[interface.interior.unwrap()];
         let exterior = self.usage[interface.exterior.unwrap()];
-        if interior != Usage::None
-          && interior != Usage::Zero
-          && exterior != Usage::None
-          && exterior != Usage::Zero
-        {
+        // println!("{:?} {:?} {:?} {:?}", local, interface.id, interior, exterior);
+        if interior == Usage::Zero || exterior == Usage::Zero {
+          panic!("infinite loop")
+        }
+        if interior != Usage::None && exterior != Usage::None {
+          // dbg!(interior, exterior, interior.effect(exterior),
+          // exterior.effect(interior));
           interface.wires.insert(local, (exterior.effect(interior), interior.effect(exterior)));
         }
       }

@@ -4,10 +4,12 @@ use crate::ast::{Net, Nets, Tree};
 
 /// Prune unused global nets.
 pub fn prune(nets: &mut Nets) {
-  let mut prune = Prune { nets, keep: HashSet::new() };
-  prune.visit_global("::main");
-  let keep = prune.keep;
-  nets.retain(|name, _| keep.contains(name));
+  if nets.contains_key("::main") {
+    let mut prune = Prune { nets, keep: HashSet::new() };
+    prune.visit_global("::main");
+    let keep = prune.keep;
+    nets.retain(|name, _| keep.contains(name));
+  }
 }
 
 struct Prune<'a> {

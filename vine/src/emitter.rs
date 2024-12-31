@@ -37,7 +37,7 @@ impl<'core, 'a> Emitter<'core, 'a> {
     };
 
     for stage in vir.stages.values() {
-      // println!("\n--- {:?}", stage.id);
+      // // println!("\n--- {:?}", stage.id);
       let interface = &vir.interfaces[stage.interface];
       if interface.incoming != 0 && !interface.inline() {
         emitter.wire_offset = 0;
@@ -168,7 +168,7 @@ impl<'core, 'a> SubEmitter<'core, 'a> {
   fn inline_stage(&mut self, stage: &Stage) {
     let prev_wire_offset = self.wire_offset;
     self.wire_offset = self.wires.peek_next();
-    // dbg!(self.wire_offset);
+    // // dbg!(self.wire_offset);
     self.wires.0 += stage.wires.0 .0;
     for local in &stage.declarations {
       if let Some(local) = self.locals.remove(local) {
@@ -232,7 +232,7 @@ impl<'core, 'a> SubEmitter<'core, 'a> {
             self.local(local).hedge(w.0);
             Some(w.1)
           }
-          _ => unreachable!(),
+          u => unreachable!("{u:?}"),
         }
       }),
     )
@@ -352,7 +352,7 @@ struct LocalState {
 impl LocalState {
   fn mutate(&mut self, a: Tree, b: Tree) {
     if self.id == 7 {
-      // println!("mutate {a:?} {b:?}")
+      // // println!("mutate {a:?} {b:?}")
     }
     self.get(a);
     self.erase();
@@ -361,14 +361,14 @@ impl LocalState {
 
   fn get(&mut self, port: Tree) {
     if self.id == 7 {
-      // println!("get {port:?}")
+      // // println!("get {port:?}")
     }
     self.spaces.push(port);
   }
 
   fn take(&mut self, port: Tree) {
     if self.id == 7 {
-      // println!("take {port:?}")
+      // // println!("take {port:?}")
     }
     self.get(port);
     self.erase();
@@ -376,14 +376,14 @@ impl LocalState {
 
   fn hedge(&mut self, port: Tree) {
     if self.id == 7 {
-      // println!("hedge {port:?}")
+      // // println!("hedge {port:?}")
     }
     self.values.push(port);
   }
 
   fn set(&mut self, port: Tree) {
     if self.id == 7 {
-      // println!("set {port:?}")
+      // // println!("set {port:?}")
     }
     self.erase();
     self.hedge(port);
@@ -391,7 +391,7 @@ impl LocalState {
 
   fn erase(&mut self) {
     if self.id == 7 {
-      // println!("erase")
+      // // println!("erase")
     }
     if self.past.is_empty() || !self.spaces.is_empty() || !self.values.is_empty() {
       self.past.push((take(&mut self.spaces), take(&mut self.values)));

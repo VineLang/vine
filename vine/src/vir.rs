@@ -13,10 +13,10 @@ use crate::{
   resolver::DefId,
 };
 
-new_idx!(pub LayerId);
-new_idx!(pub StageId);
-new_idx!(pub InterfaceId);
-new_idx!(pub WireId);
+new_idx!(pub LayerId; n => ["L{n}"]);
+new_idx!(pub StageId; n => ["s{n}"]);
+new_idx!(pub InterfaceId; n => ["i{n}"]);
+new_idx!(pub WireId; n => ["w{n}"]);
 
 impl LayerId {
   pub const NONE: LayerId = LayerId(usize::MAX);
