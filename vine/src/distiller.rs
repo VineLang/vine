@@ -88,8 +88,6 @@ impl<'core, 'r> Distiller<'core, 'r> {
     stage.set_local_to(local, result);
     self.finish_stage(stage);
     self.finish_layer(layer);
-    let interface = self.interfaces[InterfaceId(0)].as_mut().unwrap();
-    interface.exterior.join_back(local, Usage::Take);
     self.labels.clear();
     debug_assert!(self.returns.is_empty());
     self.dyn_fns.clear();
@@ -98,6 +96,7 @@ impl<'core, 'r> Distiller<'core, 'r> {
       interfaces: unwrap_idx_vec(take(&mut self.interfaces)),
       stages: unwrap_idx_vec(take(&mut self.stages)),
       locals: self.locals,
+      globals: vec![(local, Usage::Take)],
     }
   }
 

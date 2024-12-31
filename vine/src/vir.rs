@@ -8,7 +8,7 @@ use vine_util::{
 };
 
 use crate::{
-  analyzer::{usage::Usage, Usages},
+  analyzer::{usage::Usage, UsageVar},
   ast::Local,
   resolver::DefId,
 };
@@ -28,6 +28,7 @@ pub struct VIR {
   pub layers: IdxVec<LayerId, Layer>,
   pub interfaces: IdxVec<InterfaceId, Interface>,
   pub stages: IdxVec<StageId, Stage>,
+  pub globals: Vec<(Local, Usage)>,
 }
 
 #[derive(Debug, Clone)]
@@ -44,11 +45,8 @@ pub struct Interface {
   pub kind: InterfaceKind,
 
   pub incoming: usize,
-  pub parents: Vec<InterfaceId>,
-  pub interior_canonicity: usize,
-  pub interior: Usages,
-  pub exterior_canonicity: usize,
-  pub exterior: Usages,
+  pub interior: Option<UsageVar>,
+  pub exterior: Option<UsageVar>,
   pub wires: BTreeMap<Local, (Usage, Usage)>,
 }
 
@@ -65,11 +63,8 @@ impl Interface {
       layer,
       kind,
       incoming: 0,
-      parents: Vec::new(),
-      exterior_canonicity: 0,
-      exterior: Usages::default(),
-      interior_canonicity: 0,
-      interior: Usages::default(),
+      interior: None,
+      exterior: None,
       wires: BTreeMap::default(),
     }
   }

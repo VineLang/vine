@@ -196,10 +196,8 @@ impl<'core, 'ctx, 'ivm> Repl<'core, 'ctx, 'ivm> {
 
     let expr = Expr { span: Span::NONE, kind: ExprKind::Block(block) };
     let mut vir = distiller.distill_expr(self.local_count, &expr);
-    vir.stages[StageId(0)].declarations.clear();
-    for var in self.vars.values() {
-      vir.interfaces[InterfaceId(0)].exterior.join_back(var.local, Usage::Mut);
-    }
+    vir.stages[StageId(0)].declarations.retain(|l| !self.locals.contains_key(l));
+    vir.globals.extend(self.vars.values().map(|v| (v.local, Usage::Mut)));
     let mut vir = normalize(&vir);
     analyze(&mut vir);
     for var in self.vars.values() {

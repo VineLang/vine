@@ -10,6 +10,7 @@ pub enum Usage {
   Wipe,
   Put,
   Req,
+  Zero,
 }
 
 #[rustfmt::skip]
@@ -24,35 +25,38 @@ use Usage::{
   Wipe  as W,
   Put   as P,
   Req   as R,
+  Zero  as Z,
 };
 
-const UNION: [[Usage; 10]; 10] = [
-  [N, W, M, P, R, G, H, W, P, R],
-  [W, E, M, S, T, R, P, W, P, R],
-  [M, M, M, M, M, M, M, M, M, M],
-  [P, S, M, S, M, M, P, P, P, M],
-  [R, T, M, M, T, R, M, R, M, R],
-  [G, R, M, M, R, G, M, R, M, R],
-  [H, P, M, P, M, M, H, P, P, M],
-  [W, W, M, P, R, R, P, W, P, R],
-  [P, P, M, P, M, M, P, P, P, M],
-  [R, R, M, M, R, R, M, R, M, R],
+const UNION: [[Usage; 11]; 11] = [
+  [N, W, M, P, R, G, H, W, P, R, N],
+  [W, E, M, S, T, R, P, W, P, R, E],
+  [M, M, M, M, M, M, M, M, M, M, M],
+  [P, S, M, S, M, M, P, P, P, M, S],
+  [R, T, M, M, T, R, M, R, M, R, T],
+  [G, R, M, M, R, G, M, R, M, R, G],
+  [H, P, M, P, M, M, H, P, P, M, H],
+  [W, W, M, P, R, R, P, W, P, R, W],
+  [P, P, M, P, M, M, P, P, P, M, P],
+  [R, R, M, M, R, R, M, R, M, R, R],
+  [N, E, M, S, T, G, H, W, P, R, Z],
 ];
 
-const JOIN: [[Usage; 10]; 10] = [
-  [N, E, M, S, T, G, H, W, P, R],
-  [E, E, S, S, E, E, S, E, S, E],
-  [M, T, M, M, T, M, M, M, M, M],
-  [S, E, S, S, E, S, S, S, S, S],
-  [T, T, M, M, T, T, M, T, M, T],
-  [G, T, M, M, T, G, M, R, M, R],
-  [H, E, M, S, T, M, H, P, P, M],
-  [W, E, M, S, T, R, P, W, P, R],
-  [P, E, M, S, T, M, P, P, P, M],
-  [R, T, M, M, T, R, M, R, M, R],
+const JOIN: [[Usage; 11]; 11] = [
+  [N, E, M, S, T, G, H, W, P, R, Z],
+  [E, E, S, S, E, E, S, E, S, E, Z],
+  [M, T, M, M, T, M, M, M, M, M, Z],
+  [S, E, S, S, E, S, S, S, S, S, Z],
+  [T, T, M, M, T, T, M, T, M, T, Z],
+  [G, T, M, M, T, G, M, R, M, R, Z],
+  [H, E, M, S, T, M, H, P, P, M, Z],
+  [W, E, M, S, T, R, P, W, P, R, Z],
+  [P, E, M, S, T, M, P, P, P, M, Z],
+  [R, T, M, M, T, R, M, R, M, R, Z],
+  [Z, Z, Z, Z, Z, Z, Z, Z, Z, Z, Z],
 ];
 
-const INVERSE: [Usage; 10] = [N, E, M, T, S, H, G, W, R, P];
+const INVERSE: [Usage; 11] = [N, E, M, T, S, H, G, W, R, P, Z];
 
 const TOP: [Usage; 10] = [N, E, G, E, G, G, N, W, W, G];
 const BOT: [Usage; 10] = [N, E, H, H, E, N, H, W, H, W];
