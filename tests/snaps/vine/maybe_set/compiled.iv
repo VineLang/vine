@@ -2,35 +2,35 @@
 ::main { ::maybe_set::main }
 
 ::maybe_set::main {
-  fn(n1 _)
-  0 = ?(::maybe_set::main::2 ::maybe_set::main::1 x(tup(8 tup(tup(111 tup(114 tup(105 tup(103 tup(105 tup(110 tup(97 tup(108 n0)))))))) n0)) n3))
-  ::std::io::IO::println = fn(n1 fn(n3 _))
+  fn(w3 _)
+  0 = ?(::maybe_set::main::4 ::maybe_set::main::3 x(x(tup(8 tup(tup(111 tup(114 tup(105 tup(103 tup(105 tup(110 tup(97 tup(108 w15)))))))) w15)) w18) _))
+  ::std::io::IO::println = fn(w3 fn(w18 _))
 }
 
-::maybe_set::main::1 { x(_ tup(4 tup(tup(103 tup(111 tup(110 tup(101 n0)))) n0))) }
+::maybe_set::main::3 { x(x(_ tup(4 tup(tup(103 tup(111 tup(110 tup(101 w5)))) w5))) _) }
 
-::maybe_set::main::2 { x(n0 n0) }
+::maybe_set::main::4 { x(x(w2 w2) _) }
 
 ::std::io::IO::println {
-  fn(ref(n0 n3) fn(n1 _))
-  ::std::io::IO::print = fn(ref(n0 n2) fn(n1 _))
-  ::std::io::IO::print_char = fn(ref(n2 n3) fn(10 _))
+  fn(ref(w3 w14) fn(w5 _))
+  ::std::io::IO::print = fn(ref(w3 w9) fn(w5 _))
+  ::std::io::IO::print_char = fn(ref(w9 w14) fn(10 _))
 }
 
 ::std::io::IO::print {
-  fn(ref(n0 n1) fn(tup(n2 tup(n3 _)) _))
-  ::std::io::IO::print::1 = x(n0 x(n1 x(n2 n3)))
+  fn(ref(w3 w15) fn(tup(w8 tup(w9 _)) _))
+  ::std::io::IO::print::2 = x(x(w3 w15) x(w8 w9))
 }
 
-::std::io::IO::print::1 { x(n0 x(n1 x(dup208(?(::std::io::IO::print::3 ::std::io::IO::print::2 x(n0 x(n1 x(n3 n2)))) n3) n2))) }
+::std::io::IO::print::2 { x(w4 x(dup481(?(::std::io::IO::print::4 ::std::io::IO::print::3 x(w4 x(w6 w1))) w6) w1)) }
 
-::std::io::IO::print::2 {
-  x(n1 x(n3 x(@sub(1 n4) tup(n0 n5))))
-  ::std::io::IO::print_char = fn(ref(n1 n2) fn(n0 _))
-  ::std::io::IO::print::1 = x(n2 x(n3 x(n4 n5)))
+::std::io::IO::print::3 {
+  x(x(w17 w21) x(@sub(1 w1) tup(w3 w4)))
+  ::std::io::IO::print_char = fn(ref(w17 w10) fn(w3 _))
+  ::std::io::IO::print::2 = x(x(w10 w21) x(w1 w4))
 }
 
-::std::io::IO::print::3 { x(n0 x(n0 _)) }
+::std::io::IO::print::4 { x(x(w3 w3) _) }
 
 ::std::io::IO::print_char { fn(ref(@io_print_char(char io) io) fn(char _)) }
 

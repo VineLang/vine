@@ -2,97 +2,97 @@
 ::main { ::so_random::main }
 
 ::so_random::main {
-  fn(ref(n0 n1) _)
-  ::so_random::main::1 = x(n0 x(n1 x(0 ::std::rng::Rng::default)))
+  fn(ref(w3 w12) _)
+  ::so_random::main::2 = x(x(w3 w12) x(0 ::std::rng::Rng::default))
 }
 
-::so_random::main::1 { x(n0 x(n1 x(dup2(@lt(100 ?(::so_random::main::3 ::so_random::main::2 x(n0 x(n1 x(n3 n2))))) n3) n2))) }
+::so_random::main::2 { x(w5 x(dup10(@lt(100 ?(::so_random::main::4 ::so_random::main::3 x(w5 x(w7 w2)))) w7) w2)) }
 
-::so_random::main::2 {
-  x(n2 x(n5 x(@add(1 n6) n3)))
-  ::std::io::IO::println = fn(ref(n2 n4) fn(n1 _))
-  ::std::rng::Rng::gen_n32 = fn(ref(n3 n7) n0)
-  ::std::n32::N32::to_string = fn(n0 n1)
-  ::so_random::main::1 = x(n4 x(n5 x(n6 n7)))
+::so_random::main::3 {
+  x(x(w14 w18) x(@add(1 w10) w11))
+  ::std::rng::Rng::gen_n32 = fn(ref(w11 w4) w6)
+  ::std::n32::N32::to_string = fn(w6 w7)
+  ::std::io::IO::println = fn(ref(w14 w1) fn(w7 _))
+  ::so_random::main::2 = x(x(w1 w18) x(w10 w4))
 }
 
-::so_random::main::3 { x(n0 x(n0 _)) }
+::so_random::main::4 { x(x(w3 w3) _) }
 
 ::std::io::IO::println {
-  fn(ref(n0 n3) fn(n1 _))
-  ::std::io::IO::print = fn(ref(n0 n2) fn(n1 _))
-  ::std::io::IO::print_char = fn(ref(n2 n3) fn(10 _))
+  fn(ref(w3 w14) fn(w5 _))
+  ::std::io::IO::print = fn(ref(w3 w9) fn(w5 _))
+  ::std::io::IO::print_char = fn(ref(w9 w14) fn(10 _))
 }
 
 ::std::io::IO::print {
-  fn(ref(n0 n1) fn(tup(n2 tup(n3 _)) _))
-  ::std::io::IO::print::1 = x(n0 x(n1 x(n2 n3)))
+  fn(ref(w3 w15) fn(tup(w8 tup(w9 _)) _))
+  ::std::io::IO::print::2 = x(x(w3 w15) x(w8 w9))
 }
 
-::std::io::IO::print::1 { x(n0 x(n1 x(dup209(?(::std::io::IO::print::3 ::std::io::IO::print::2 x(n0 x(n1 x(n3 n2)))) n3) n2))) }
+::std::io::IO::print::2 { x(w4 x(dup488(?(::std::io::IO::print::4 ::std::io::IO::print::3 x(w4 x(w6 w1))) w6) w1)) }
 
-::std::io::IO::print::2 {
-  x(n1 x(n3 x(@sub(1 n4) tup(n0 n5))))
-  ::std::io::IO::print_char = fn(ref(n1 n2) fn(n0 _))
-  ::std::io::IO::print::1 = x(n2 x(n3 x(n4 n5)))
+::std::io::IO::print::3 {
+  x(x(w17 w21) x(@sub(1 w1) tup(w3 w4)))
+  ::std::io::IO::print_char = fn(ref(w17 w10) fn(w3 _))
+  ::std::io::IO::print::2 = x(x(w10 w21) x(w1 w4))
 }
 
-::std::io::IO::print::3 { x(n0 x(n0 _)) }
+::std::io::IO::print::4 { x(x(w3 w3) _) }
 
 ::std::io::IO::print_char { fn(ref(@io_print_char(char io) io) fn(char _)) }
 
-::std::list::List::concat { fn(tup(@add(n1 n2) tup(n3 n0)) fn(tup(n1 tup(n0 n4)) tup(n2 tup(n3 n4)))) }
+::std::list::List::concat { fn(tup(@add(w11 w20) tup(w7 w12)) fn(tup(w11 tup(w12 w23)) tup(w20 tup(w7 w23)))) }
 
-::std::n32::N32::to_string { fn(dup822(?(::std::n32::N32::to_string::5 ::std::n32::N32::to_string::1 x(n1 n0)) n1) n0) }
-
-::std::n32::N32::to_string::1 {
-  x(n1 n2)
-  ::std::n32::N32::to_string::2 = x(n1 x(tup(0 tup(n0 n0)) n2))
-}
-
-::std::n32::N32::to_string::2 { x(dup822(?(::std::n32::N32::to_string::4 ::std::n32::N32::to_string::3 x(n2 n0)) n2) n0) }
+::std::n32::N32::to_string { fn(dup2188(?(::std::n32::N32::to_string::4 ::std::n32::N32::to_string::3 x(w8 w7)) w8) w7) }
 
 ::std::n32::N32::to_string::3 {
-  x(dup822(@rem(10 n0) @div(10 n4)) x(n3 n6))
-  48 = @add(n0 n1)
-  ::std::list::List::concat = fn(tup(1 tup(tup(n1 n2) n2)) fn(n3 n5))
-  ::std::n32::N32::to_string::2 = x(n4 x(n5 n6))
+  x(w4 w7)
+  ::std::n32::N32::to_string::5 = x(w4 x(tup(0 tup(w5 w5)) w7))
 }
 
-::std::n32::N32::to_string::4 { x(_ x(n0 n0)) }
+::std::n32::N32::to_string::4 { x(_ tup(1 tup(tup(48 w3) w3))) }
 
-::std::n32::N32::to_string::5 { x(_ tup(1 tup(tup(48 n0) n0))) }
+::std::n32::N32::to_string::5 { x(dup2198(?(::std::n32::N32::to_string::7 ::std::n32::N32::to_string::6 x(w6 w2)) w6) w2) }
+
+::std::n32::N32::to_string::6 {
+  x(dup2201(@rem(10 w1) @div(10 w8)) x(w11 w15))
+  48 = @add(w1 w2)
+  ::std::list::List::concat = fn(tup(1 tup(tup(w2 w13) w13)) fn(w11 w5))
+  ::std::n32::N32::to_string::5 = x(w8 x(w5 w15))
+}
+
+::std::n32::N32::to_string::7 { x(_ x(w1 w1)) }
 
 ::std::n32::N32::rotate_right { fn(@n32_rotr(x y) fn(x y)) }
 
-::std::n64::N64::from_n32 { fn(n0 tup(n0 0)) }
+::std::n64::N64::from_n32 { fn(w2 tup(w2 0)) }
 
 ::std::n64::N64::add { fn(tup(dup(@add(bl0 l) @n32_add_high(bl1 c)) @add(bh @add(c h))) fn(tup(dup(bl0 bl1) bh) tup(l h))) }
 
 ::std::n64::N64::mul { fn(tup(dup(@mul(bl0 l) dup(@n32_mul_high(bl1 ll) @mul(bh @add(hl @add(ll h))))) ah) fn(tup(dup(bl0 dup(bl1 @mul(ah hl))) bh) tup(l h))) }
 
-::std::n64::N64::or { fn(tup(@n32_or(n0 n1) @n32_or(n2 n3)) fn(tup(n0 n2) tup(n1 n3))) }
+::std::n64::N64::or { fn(tup(@n32_or(w5 w12) @n32_or(w6 w15)) fn(tup(w5 w6) tup(w12 w15))) }
 
 ::std::rng::Rng::new {
-  fn(n2 fn(n0 tup(n5 n8)))
-  ::std::n64::N64::or = fn(n0 fn(n1 dup1154(n6 dup1154(n7 n8))))
-  ::std::n64::N64::from_n32 = fn(1 n1)
-  ::std::n64::N64::add = fn(n2 fn(n6 n3))
-  ::std::n64::N64::mul = fn(n3 fn(::std::rng::Rng::multiplier n4))
-  ::std::n64::N64::add = fn(n4 fn(n7 n5))
+  fn(w2 fn(w3 tup(w17 w20)))
+  ::std::n64::N64::from_n32 = fn(1 w7)
+  ::std::n64::N64::or = fn(w3 fn(w7 dup2972(w11 dup2972(w16 w20))))
+  ::std::n64::N64::add = fn(w2 fn(w11 w12))
+  ::std::n64::N64::mul = fn(w12 fn(::std::rng::Rng::multiplier w15))
+  ::std::n64::N64::add = fn(w15 fn(w16 w17))
 }
 
 ::std::rng::Rng::default {
-  n0
-  ::std::rng::Rng::new = fn(tup(3512640997 3405705229) fn(tup(4150755663 335903614) n0))
+  w2
+  ::std::rng::Rng::new = fn(tup(3512640997 3405705229) fn(tup(4150755663 335903614) w2))
 }
 
 ::std::rng::Rng::multiplier { tup(1284865837 1481765933) }
 
 ::std::rng::Rng::gen_n32 {
-  fn(ref(tup(dup1159(tup(@n32_shr(27 n3) dup1162(@n32_shr(13 @n32_xor(n2 @n32_xor(n3 n4))) dup1162(@n32_shl(5 n2) @n32_shr(27 n5)))) n7) dup1160(n8 n9)) tup(n1 n9)) n6)
-  ::std::n64::N64::mul = fn(n7 fn(::std::rng::Rng::multiplier n0))
-  ::std::n64::N64::add = fn(n0 fn(n8 n1))
-  ::std::n32::N32::rotate_right = fn(n4 fn(n5 n6))
+  fn(ref(tup(dup2980(tup(@n32_shr(27 w26) dup2983(@n32_shr(13 @n32_xor(w23 @n32_xor(w26 w27))) dup2983(@n32_shl(5 w23) @n32_shr(27 w29)))) w15) dup2981(w4 w17)) tup(w18 w4)) w30)
+  ::std::n64::N64::mul = fn(w15 fn(::std::rng::Rng::multiplier w16))
+  ::std::n64::N64::add = fn(w16 fn(w17 w18))
+  ::std::n32::N32::rotate_right = fn(w27 fn(w29 w30))
 }
 
