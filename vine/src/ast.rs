@@ -283,8 +283,12 @@ pub enum ExprKind<'core> {
   Set(B<Expr<'core>>),
   #[class(value, synthetic)]
   Copy(B<Expr<'core>>),
+  #[class(space, synthetic)]
+  Hedge(B<Expr<'core>>),
   #[class(value, synthetic)]
   CopyLocal(Local),
+  #[class(space, synthetic)]
+  HedgeLocal(Local),
   #[class(value, synthetic)]
   MoveLocal(Local),
   #[class(space, synthetic)]

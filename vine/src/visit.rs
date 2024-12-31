@@ -66,7 +66,8 @@ pub trait VisitMut<'core, 'a> {
       | ExprKind::MoveLocal(_)
       | ExprKind::Return(None)
       | ExprKind::Break(_, None)
-      | ExprKind::SetLocal(_) => {}
+      | ExprKind::SetLocal(_)
+      | ExprKind::HedgeLocal(_) => {}
       ExprKind::Paren(a)
       | ExprKind::Ref(a, _)
       | ExprKind::Deref(a, _)
@@ -78,6 +79,7 @@ pub trait VisitMut<'core, 'a> {
       | ExprKind::TupleField(a, _, _)
       | ExprKind::Inverse(a, _)
       | ExprKind::Copy(a)
+      | ExprKind::Hedge(a)
       | ExprKind::Set(a) => self.visit_expr(a),
       ExprKind::Assign(_, a, b)
       | ExprKind::Place(a, b)

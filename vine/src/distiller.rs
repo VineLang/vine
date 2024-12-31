@@ -485,7 +485,14 @@ impl<'core, 'r> Distiller<'core, 'r> {
         stage.erase(value);
         space
       }
+      ExprKind::Hedge(place) => {
+        let (value, space) = self.distill_expr_place(stage, place);
+        let wire = stage.new_wire();
+        stage.steps.push(Step::Dup(space, wire.0, value));
+        wire.1
+      }
       ExprKind::SetLocal(local) => stage.set_local(*local),
+      ExprKind::HedgeLocal(local) => stage.hedge_local(*local),
     }
   }
 

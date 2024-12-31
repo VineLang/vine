@@ -197,6 +197,10 @@ impl Stage {
     self.steps.push(Step::Invoke(local, Invocation::Get(to)));
   }
 
+  pub fn hedge_local_to(&mut self, local: Local, to: Port) {
+    self.steps.push(Step::Invoke(local, Invocation::Hedge(to)));
+  }
+
   pub fn take_local_to(&mut self, local: Local, to: Port) {
     self.steps.push(Step::Invoke(local, Invocation::Take(to)));
   }
@@ -212,6 +216,12 @@ impl Stage {
   pub fn get_local(&mut self, local: Local) -> Port {
     let wire = self.new_wire();
     self.get_local_to(local, wire.0);
+    wire.1
+  }
+
+  pub fn hedge_local(&mut self, local: Local) -> Port {
+    let wire = self.new_wire();
+    self.hedge_local_to(local, wire.0);
     wire.1
   }
 

@@ -165,7 +165,7 @@
 
 ::std::list::List::IntoIter::next::4 { x(x(w4 w4) x(x(w2 w2) ::std::option::Option::None)) }
 
-::std::n32::N32::to_string { fn(dup2227(?(::std::n32::N32::to_string::4 ::std::n32::N32::to_string::3 x(w8 w7)) w8) w7) }
+::std::n32::N32::to_string { fn(dup2221(?(::std::n32::N32::to_string::4 ::std::n32::N32::to_string::3 x(w8 w7)) w8) w7) }
 
 ::std::n32::N32::to_string::3 {
   x(w4 w7)
@@ -174,10 +174,10 @@
 
 ::std::n32::N32::to_string::4 { x(_ tup(1 tup(tup(48 w3) w3))) }
 
-::std::n32::N32::to_string::5 { x(dup2237(?(::std::n32::N32::to_string::7 ::std::n32::N32::to_string::6 x(w6 w2)) w6) w2) }
+::std::n32::N32::to_string::5 { x(dup2231(?(::std::n32::N32::to_string::7 ::std::n32::N32::to_string::6 x(w6 w2)) w6) w2) }
 
 ::std::n32::N32::to_string::6 {
-  x(dup2240(@rem(10 w1) @div(10 w8)) x(w11 w15))
+  x(dup2234(@rem(10 w1) @div(10 w8)) x(w11 w15))
   48 = @add(w1 w2)
   ::std::list::List::concat = fn(tup(1 tup(tup(w2 w13) w13)) fn(w11 w5))
   ::std::n32::N32::to_string::5 = x(w8 x(w5 w15))
