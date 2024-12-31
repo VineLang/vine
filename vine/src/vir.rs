@@ -50,12 +50,6 @@ pub struct Interface {
   pub wires: BTreeMap<Local, (Usage, Usage)>,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
-pub enum WireDir {
-  Input,
-  Output,
-}
-
 impl Interface {
   pub fn new(id: InterfaceId, layer: LayerId, kind: InterfaceKind) -> Self {
     Interface {
@@ -172,7 +166,7 @@ pub enum Port {
   Const(DefId),
   N32(u32),
   F32(f32),
-  Wire(WireId, StageId),
+  Wire(WireId),
 }
 
 #[derive(Debug, Clone)]
@@ -190,7 +184,7 @@ impl Transfer {
 impl Stage {
   pub fn new_wire(&mut self) -> (Port, Port) {
     let w = self.wires.next();
-    (Port::Wire(w, self.id), Port::Wire(w, self.id))
+    (Port::Wire(w), Port::Wire(w))
   }
 
   pub fn erase(&mut self, port: Port) {

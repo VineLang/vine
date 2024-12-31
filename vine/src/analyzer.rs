@@ -61,9 +61,7 @@ impl Analyzer<'_> {
     self.segments.push(root_segment);
 
     self.build();
-    // dbg!(&self);
 
-    // dbg!(&self.locals);
     for (local, stage) in take(&mut self.locals) {
       self.process_local(local, stage);
     }
@@ -100,7 +98,6 @@ impl Analyzer<'_> {
       if self.interfaces[stage.interface].incoming == 0 {
         continue;
       }
-      // dbg!(stage.id);
 
       segments.clear();
       transfers.clear();
@@ -173,8 +170,6 @@ impl Analyzer<'_> {
         backwards.push(backward);
       }
 
-      // dbg!(&stage.id, &forwards, &transfers, &backwards);
-
       for ((&forward, &transfer), &backward) in
         forwards.iter().zip(transfers.iter()).zip(backwards.iter().rev())
       {
@@ -209,20 +204,14 @@ impl Analyzer<'_> {
         }
       }
     }
-    if local == Local(1) {
-      // dbg!(&self);
-    }
     for interface in self.interfaces.values_mut() {
       if interface.incoming != 0 {
         let interior = self.usage[interface.interior.unwrap()];
         let exterior = self.usage[interface.exterior.unwrap()];
-        // println!("{:?} {:?} {:?} {:?}", local, interface.id, interior, exterior);
         if interior == Usage::Zero || exterior == Usage::Zero {
           panic!("infinite loop")
         }
         if interior != Usage::None && exterior != Usage::None {
-          // dbg!(interior, exterior, interior.effect(exterior),
-          // exterior.effect(interior));
           interface.wires.insert(local, (exterior.effect(interior), interior.effect(exterior)));
         }
       }

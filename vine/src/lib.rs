@@ -64,7 +64,6 @@ pub fn compile(config: Config) -> Result<Nets, String> {
       if let Some(vir) = distiller.distill(def) {
         let mut vir = normalize(&vir);
         analyze(&mut vir);
-        // dbg!(&vir);
         emitter.emit_vir(def.canonical.to_string(), &vir);
       } else {
         emitter.emit_ivy(def);

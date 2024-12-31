@@ -102,9 +102,6 @@ impl<'core, 'r> Distiller<'core, 'r> {
 
   fn new_stage(&mut self, layer: &mut Layer, interface: InterfaceId) -> Stage {
     let id = self.stages.push(None);
-    if id.0 == 3 || id.0 == 4 {
-      // // println!("{}", Backtrace::capture());
-    }
     layer.stages.push(id);
     Stage {
       id,
