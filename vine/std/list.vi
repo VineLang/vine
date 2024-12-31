@@ -227,8 +227,6 @@ pub mod List {
       let iter_b = suffix.iter();
       do.check {
         while iter_a.next() is Some(&a) && iter_b.next() is Some(&b) {
-          // #112
-          let &_ = &sep;
           if a != b {
             break.check;
           }
