@@ -113,6 +113,22 @@ pub mod N64 {
     ah > bh || ah == bh && al >= bl
   }
 
+  pub fn min(a: N64, b: N64) -> N64 {
+    if a.le(b) {
+      a
+    } else {
+      b
+    }
+  }
+
+  pub fn max(a: N64, b: N64) -> N64 {
+    if a.ge(b) {
+      a
+    } else {
+      b
+    }
+  }
+
   pub fn cmp(&N64(al, ah): &N64, &N64(bl, bh): &N64) -> Ord {
     if ah < bh {
       Ord::Lt

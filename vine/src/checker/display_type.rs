@@ -56,7 +56,7 @@ impl<'core> Checker<'core, '_> {
         self._display_type(ty, str)
       }
       Type::Adt(n, gens) => {
-        write!(str, "{}", self.resolver.defs[*n].canonical).unwrap();
+        write!(str, "{}", self.resolver.defs[*n].canonical.segments.last().unwrap()).unwrap();
         if !gens.is_empty() {
           *str += "[";
           let mut first = true;

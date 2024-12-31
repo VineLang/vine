@@ -234,13 +234,13 @@ pub enum ExprKind<'core> {
   #[class(value)]
   Continue(Label<'core>),
   #[class(value)]
-  Ref(B<Expr<'core>>),
+  Ref(B<Expr<'core>>, bool),
   #[class(place)]
-  Deref(B<Expr<'core>>),
+  Deref(B<Expr<'core>>, bool),
   #[class(value)]
-  Move(B<Expr<'core>>),
+  Move(B<Expr<'core>>, bool),
   #[class(value, place, space)]
-  Inverse(B<Expr<'core>>),
+  Inverse(B<Expr<'core>>, bool),
   #[class(place)]
   Place(B<Expr<'core>>, B<Expr<'core>>),
   #[class(value, place, space)]

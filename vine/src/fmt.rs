@@ -312,10 +312,14 @@ impl<'core: 'src, 'src> Formatter<'src> {
       ExprKind::Return(None) => Doc("return"),
       ExprKind::Break(label, None) => Doc::concat([Doc("break"), self.fmt_label(label)]),
       ExprKind::Continue(label) => Doc::concat([Doc("continue"), self.fmt_label(label)]),
-      ExprKind::Ref(x) => Doc::concat([Doc("&"), self.fmt_expr(x)]),
-      ExprKind::Deref(x) => Doc::concat([Doc("*"), self.fmt_expr(x)]),
-      ExprKind::Move(x) => Doc::concat([Doc("move "), self.fmt_expr(x)]),
-      ExprKind::Inverse(x) => Doc::concat([Doc("~"), self.fmt_expr(x)]),
+      ExprKind::Ref(x, false) => Doc::concat([Doc("&"), self.fmt_expr(x)]),
+      ExprKind::Deref(x, false) => Doc::concat([Doc("*"), self.fmt_expr(x)]),
+      ExprKind::Move(x, false) => Doc::concat([Doc("move "), self.fmt_expr(x)]),
+      ExprKind::Inverse(x, false) => Doc::concat([Doc("~"), self.fmt_expr(x)]),
+      ExprKind::Ref(x, true) => Doc::concat([self.fmt_expr(x), Doc(".&")]),
+      ExprKind::Deref(x, true) => Doc::concat([self.fmt_expr(x), Doc(".*")]),
+      ExprKind::Move(x, true) => Doc::concat([self.fmt_expr(x), Doc(".move")]),
+      ExprKind::Inverse(x, true) => Doc::concat([self.fmt_expr(x), Doc(".~")]),
       ExprKind::Place(v, s) => {
         Doc::concat([Doc("("), self.fmt_expr(v), Doc("; "), self.fmt_expr(s), Doc(")")])
       }

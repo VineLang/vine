@@ -353,21 +353,24 @@ impl<'core, 'src> VineParser<'core, 'src> {
       return Ok(ExprKind::Continue(self.parse_label()?));
     }
     if self.eat(Token::And)? {
-      return Ok(ExprKind::Ref(Box::new(self.parse_expr_bp(BP::Prefix)?)));
+      return Ok(ExprKind::Ref(Box::new(self.parse_expr_bp(BP::Prefix)?), false));
     }
     if self.eat(Token::AndAnd)? {
       let inner = self.parse_expr_bp(BP::Prefix)?;
       let span = self.end_span(span + 1);
-      return Ok(ExprKind::Ref(Box::new(Expr { span, kind: ExprKind::Ref(Box::new(inner)) })));
+      return Ok(ExprKind::Ref(
+        Box::new(Expr { span, kind: ExprKind::Ref(Box::new(inner), false) }),
+        false,
+      ));
     }
     if self.eat(Token::Star)? {
-      return Ok(ExprKind::Deref(Box::new(self.parse_expr_bp(BP::Prefix)?)));
+      return Ok(ExprKind::Deref(Box::new(self.parse_expr_bp(BP::Prefix)?), false));
     }
     if self.eat(Token::Move)? {
-      return Ok(ExprKind::Move(Box::new(self.parse_expr_bp(BP::Prefix)?)));
+      return Ok(ExprKind::Move(Box::new(self.parse_expr_bp(BP::Prefix)?), false));
     }
     if self.eat(Token::Tilde)? {
-      return Ok(ExprKind::Inverse(Box::new(self.parse_expr_bp(BP::Prefix)?)));
+      return Ok(ExprKind::Inverse(Box::new(self.parse_expr_bp(BP::Prefix)?), false));
     }
     if self.eat(Token::Minus)? {
       return Ok(ExprKind::Neg(Box::new(self.parse_expr_bp(BP::Prefix)?)));
@@ -545,12 +548,41 @@ impl<'core, 'src> VineParser<'core, 'src> {
     }
 
     if self.eat(Token::Dot)? {
+      if self.eat(Token::And)? {
+        return Ok(Ok(ExprKind::Ref(Box::new(lhs), true)));
+      }
+      if self.eat(Token::Star)? {
+        return Ok(Ok(ExprKind::Deref(Box::new(lhs), true)));
+      }
+      if self.eat(Token::Move)? {
+        return Ok(Ok(ExprKind::Move(Box::new(lhs), true)));
+      }
+      if self.eat(Token::Tilde)? {
+        return Ok(Ok(ExprKind::Inverse(Box::new(lhs), true)));
+      }
       if self.check(Token::Num) {
-        let span = self.start_span();
+        let token_span = self.start_span();
         let num = self.expect(Token::Num)?;
-        let span = self.end_span(span);
-        let i = self.parse_u32_like(num, |_| Diag::InvalidNum { span })? as usize;
-        return Ok(Ok(ExprKind::TupleField(Box::new(lhs), i, None)));
+        let token_span = self.end_span(token_span);
+        if let Some((i, j)) = num.split_once(".") {
+          let i_span =
+            Span { file: self.file, start: token_span.start, end: token_span.start + i.len() };
+          let j_span =
+            Span { file: self.file, start: token_span.end - j.len(), end: token_span.end };
+          let i = self.parse_u32_like(i, |_| Diag::InvalidNum { span: i_span })? as usize;
+          let j = self.parse_u32_like(j, |_| Diag::InvalidNum { span: j_span })? as usize;
+          return Ok(Ok(ExprKind::TupleField(
+            Box::new(Expr {
+              span: Span { file: self.file, start: lhs.span.start, end: i_span.end },
+              kind: ExprKind::TupleField(Box::new(lhs), i, None),
+            }),
+            j,
+            None,
+          )));
+        } else {
+          let i = self.parse_u32_like(num, |_| Diag::InvalidNum { span: token_span })? as usize;
+          return Ok(Ok(ExprKind::TupleField(Box::new(lhs), i, None)));
+        }
       } else {
         let path = self.parse_generic_path()?;
         let args = self.parse_expr_list()?;

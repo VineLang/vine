@@ -81,12 +81,13 @@ impl<'src> Doc<'src> {
     } else {
       let trailing = if force_multi || force_trailing { Doc(",") } else { Doc::if_multi(",") };
       let sep = Doc::concat([Doc(","), if force_multi { Doc::LINE } else { Doc::soft_line(" ") }]);
-      let inner = [if lazy_single && docs.len() == 1 {
+      let inner = if force_multi {
+        Doc::indent([Doc::interleave(docs, sep), trailing])
+      } else if lazy_single && docs.len() == 1 {
         Doc::lazy_group([docs.next().unwrap(), trailing])
       } else {
         Doc::group([Doc::interleave(docs, sep), trailing])
-      }];
-      let inner = if force_multi { Doc::indent(inner) } else { Doc::group(inner) };
+      };
       Doc::concat([Doc(open), inner, Doc(close)])
     }
   }

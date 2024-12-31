@@ -77,9 +77,10 @@ fn tests(t: &mut DynTester) {
       test_vi_fail(t, "tests/programs/fail/visibility.vi");
     });
 
-    t.group("fail", |t| {
+    t.group("repl", |t| {
       test_vi_repl(t, "tests/programs/repl/advanced_repl.vi");
       test_vi_repl(t, "tests/programs/repl/basic_repl.vi");
+      test_vi_repl(t, "tests/programs/repl/misc.vi");
       test_vi_repl(t, "tests/programs/repl/randomness.vi");
     });
   });
@@ -171,7 +172,7 @@ fn exec(bin: &[&str], args: &[&str], input: &[u8], success: bool) -> (Vec<u8>, V
 fn test_snapshot(components: &[&str], contents: &[u8]) -> PathBuf {
   let path = get_snapshot_path(components);
   let existing = fs::read(&path).ok();
-  if !existing.is_some_and(|x| x == contents) {
+  if existing.is_none_or(|x| x != contents) {
     if should_write_snapshot() {
       println!("updating snapshot {:?}", path);
       fs::write(&path, contents).unwrap();
