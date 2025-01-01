@@ -24,7 +24,7 @@ impl<'core, 'a> Emitter<'core, 'a> {
   }
 
   pub fn emit_vir(&mut self, path: String, vir: &VIR) {
-    let mut emitter = SubEmitter {
+    let mut emitter = VirEmitter {
       resolver: self.resolver,
       path,
       stages: &vir.stages,
@@ -42,10 +42,8 @@ impl<'core, 'a> Emitter<'core, 'a> {
         emitter.wire_offset = 0;
         emitter.wires.0 = stage.wires.0 .0;
         let root = emitter.emit_interface(interface, true);
-        let root = SubEmitter::emit_n_ary(
-          "enum",
-          stage.header.iter().map(|p| emitter.emit_port(p)).chain([root]),
-        );
+        let root =
+          Tree::n_ary("enum", stage.header.iter().map(|p| emitter.emit_port(p)).chain([root]));
         emitter._emit_stage(stage);
         for (_, local) in take(&mut emitter.locals) {
           emitter.finish_local(local);
@@ -76,7 +74,7 @@ impl<'core, 'a> Emitter<'core, 'a> {
           let variant = def.variant_def.as_ref().unwrap();
           let adt = self.resolver.defs[variant.adt].adt_def.as_ref().unwrap();
           let fields = (0..variant.fields.len()).map(|i| Tree::Var(format!("f{i}")));
-          let root = SubEmitter::emit_n_ary(
+          let root = Tree::n_ary(
             "fn",
             fields.clone().chain([make_adt(
               variant,
@@ -92,7 +90,7 @@ impl<'core, 'a> Emitter<'core, 'a> {
   }
 }
 
-struct SubEmitter<'core, 'a> {
+struct VirEmitter<'core, 'a> {
   resolver: &'a Resolver<'core>,
   path: String,
   stages: &'a IdxVec<StageId, Stage>,
@@ -104,7 +102,7 @@ struct SubEmitter<'core, 'a> {
   dup_labels: Counter<usize>,
 }
 
-impl<'core, 'a> SubEmitter<'core, 'a> {
+impl<'core, 'a> VirEmitter<'core, 'a> {
   fn dup_label(&mut self) -> String {
     format!("dup{}", self.dup_labels.next())
   }
@@ -130,7 +128,7 @@ impl<'core, 'a> SubEmitter<'core, 'a> {
       ),
       InterfaceKind::Match(_, stages) => (
         self.emit_port(transfer.data.as_ref().unwrap()),
-        Self::emit_n_ary("enum", stages.iter().map(|&s| self.emit_stage_node(s)).chain([target])),
+        Tree::n_ary("enum", stages.iter().map(|&s| self.emit_stage_node(s)).chain([target])),
       ),
     });
   }
@@ -153,10 +151,10 @@ impl<'core, 'a> SubEmitter<'core, 'a> {
         }
       } else if values.len() == 1 {
         let label = self.dup_label();
-        self.pairs.push((Self::emit_n_ary(&label, spaces), values.pop().unwrap()));
+        self.pairs.push((Tree::n_ary(&label, spaces), values.pop().unwrap()));
       } else if spaces.len() == 1 {
         let label = self.dup_label();
-        self.pairs.push((spaces.pop().unwrap(), Self::emit_n_ary(&label, values)));
+        self.pairs.push((spaces.pop().unwrap(), Tree::n_ary(&label, values)));
       } else {
         unreachable!()
       }
@@ -190,7 +188,7 @@ impl<'core, 'a> SubEmitter<'core, 'a> {
   }
 
   fn emit_interface(&mut self, interface: &Interface, side: bool) -> Tree {
-    Self::emit_n_ary(
+    Tree::n_ary(
       "x",
       interface.wires.iter().filter_map(|(&local, usage)| {
         let usage = if side { usage.1 } else { usage.0 };
@@ -261,9 +259,9 @@ impl<'core, 'a> SubEmitter<'core, 'a> {
       Step::Link(a, b) => self.pairs.push((emit_port(a), emit_port(b))),
       Step::Fn(func, args, ret) => self
         .pairs
-        .push((emit_port(func), Self::emit_n_ary("fn", args.iter().chain([ret]).map(emit_port)))),
+        .push((emit_port(func), Tree::n_ary("fn", args.iter().chain([ret]).map(emit_port)))),
       Step::Tuple(port, tuple) => {
-        self.pairs.push((emit_port(port), Self::emit_n_ary("tup", tuple.iter().map(emit_port))))
+        self.pairs.push((emit_port(port), Tree::n_ary("tup", tuple.iter().map(emit_port))))
       }
       Step::Adt(variant, port, fields) => {
         let variant = self.resolver.defs[*variant].variant_def.as_ref().unwrap();
@@ -317,19 +315,8 @@ impl<'core, 'a> SubEmitter<'core, 'a> {
   ) -> Tree {
     let end = self.new_wire();
     let mut len = 0;
-    let buf = Self::emit_n_ary("tup", ports.into_iter().inspect(|_| len += 1).chain([end.0]));
-    Self::emit_n_ary("tup", [Tree::N32(len), buf, end.1])
-  }
-
-  fn emit_n_ary(
-    label: &str,
-    ports: impl IntoIterator<IntoIter: DoubleEndedIterator<Item = Tree>>,
-  ) -> Tree {
-    ports
-      .into_iter()
-      .rev()
-      .reduce(|b, a| Tree::Comb(label.into(), Box::new(a), Box::new(b)))
-      .unwrap_or(Tree::Erase)
+    let buf = Tree::n_ary("tup", ports.into_iter().inspect(|_| len += 1).chain([end.0]));
+    Tree::n_ary("tup", [Tree::N32(len), buf, end.1])
   }
 
   fn new_wire(&mut self) -> (Tree, Tree) {
@@ -384,11 +371,11 @@ fn make_adt(
   fields: impl DoubleEndedIterator<Item = Tree>,
 ) -> Tree {
   if adt.variants.len() == 1 {
-    SubEmitter::emit_n_ary("tup", fields)
+    Tree::n_ary("tup", fields)
   } else {
     let wire = new_wire();
-    let mut fields = SubEmitter::emit_n_ary("enum", fields.chain([wire.0]));
-    SubEmitter::emit_n_ary(
+    let mut fields = Tree::n_ary("enum", fields.chain([wire.0]));
+    Tree::n_ary(
       "enum",
       (0..adt.variants.len())
         .map(|i| if variant.variant == i { take(&mut fields) } else { Tree::Erase })

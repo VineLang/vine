@@ -17,7 +17,7 @@ use crate::{
 use super::Distiller;
 
 impl<'core, 'r> Distiller<'core, 'r> {
-  pub fn distill_match(
+  pub fn distill_pattern_match(
     &mut self,
     layer: &mut Layer,
     stage: &mut Stage,

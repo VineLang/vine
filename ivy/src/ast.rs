@@ -1,7 +1,6 @@
 use std::{
   fmt::{self, Display},
   iter,
-  mem::replace,
   ops::{Deref, DerefMut},
 };
 
@@ -95,21 +94,15 @@ impl Net {
 }
 
 impl Tree {
-  pub fn n_ary(label: &str, children: impl IntoIterator<Item = Self>) -> Self {
-    let mut children = children.into_iter();
-    let Some(initial) = children.next() else { return Tree::Erase };
-
-    let mut tree = initial;
-    let mut cur = &mut tree;
-
-    for child in children {
-      let prev = replace(cur, Tree::Comb(label.to_owned(), Box::new(Tree::Erase), Box::new(child)));
-      let Tree::Comb(_, l, r) = cur else { unreachable!() };
-      **l = prev;
-      cur = r;
-    }
-
-    tree
+  pub fn n_ary(
+    label: &str,
+    ports: impl IntoIterator<IntoIter: DoubleEndedIterator<Item = Tree>>,
+  ) -> Self {
+    ports
+      .into_iter()
+      .rev()
+      .reduce(|b, a| Tree::Comb(label.into(), Box::new(a), Box::new(b)))
+      .unwrap_or(Tree::Erase)
   }
 
   pub fn children(&self) -> impl DoubleEndedIterator + ExactSizeIterator<Item = &Self> + Clone {

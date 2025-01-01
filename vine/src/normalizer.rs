@@ -58,7 +58,7 @@ impl<'a> Normalizer<'a> {
       let mut stage = Stage {
         id: source.id,
         interface: source.interface,
-        layer: source.layer,
+        layer: LayerId::NONE,
         header: source.header.clone(),
         declarations: source.declarations.clone(),
         steps: Vec::new(),
