@@ -212,6 +212,7 @@ impl Analyzer<'_> {
           panic!("infinite loop")
         }
         if interior != Usage::None && exterior != Usage::None {
+          assert!(matches!(exterior, Usage::Mut | Usage::Erase | Usage::Set | Usage::Take));
           interface.wires.insert(local, (exterior.effect(interior), interior.effect(exterior)));
         }
       }

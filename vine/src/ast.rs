@@ -10,8 +10,8 @@ use vine_util::{interner::Interned, new_idx};
 
 use crate::{diag::ErrorGuaranteed, resolver::DefId};
 
-new_idx!(pub Local);
-new_idx!(pub DynFnId);
+new_idx!(pub Local; n => ["l{n}"]);
+new_idx!(pub DynFnId; n => ["f{n}"]);
 
 #[derive(Clone, Default)]
 pub struct Item<'core> {

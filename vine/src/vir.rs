@@ -244,6 +244,10 @@ impl Stage {
     (o.1, i.1)
   }
 
+  pub fn erase_local(&mut self, local: Local) {
+    self.steps.push(Step::Invoke(local, Invocation::Erase));
+  }
+
   pub fn dup(&mut self, p: Port) -> (Port, Port) {
     let a = self.new_wire();
     let b = self.new_wire();

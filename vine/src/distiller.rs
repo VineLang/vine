@@ -172,6 +172,7 @@ impl<'core, 'r> Distiller<'core, 'r> {
         }
         StmtKind::DynFn(dyn_fn) => {
           let local = self.new_local(stage);
+          stage.erase_local(local);
           let (layer, mut stage) = self.root_layer();
           *self.dyn_fns.get_or_extend(dyn_fn.id.unwrap()) =
             Some(DynFn { interface: stage.interface, local });
