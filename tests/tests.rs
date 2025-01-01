@@ -29,6 +29,7 @@ fn tests(t: &mut DynTester) {
   });
 
   t.group("vine", |t| {
+    test_vi(t, "vine/examples/cat.vi", include_bytes!("../vine/examples/cat.vi"), ".txt");
     test_vi(t, "vine/examples/fib_repl.vi", fib_repl_input_vi, ".txt");
     test_vi(t, "vine/examples/fib.vi", b"", ".txt");
     test_vi(t, "vine/examples/fizzbuzz.vi", b"", ".txt");

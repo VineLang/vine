@@ -1,0 +1,8 @@
+
+use std::option::Option::Some;
+
+pub fn main(&io: &IO) {
+  while io.read_line() is Some(line) {
+    io.println(line);
+  }
+}

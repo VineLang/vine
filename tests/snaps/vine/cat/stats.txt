@@ -1,0 +1,15 @@
+
+Interactions
+  Total                6_121
+  Annihilate           3_265
+  Commute                  0
+  Copy                   517
+  Erase                  439
+  Expand                 910
+  Call                   733
+  Branch                 257
+
+Memory
+  Heap                 1_072 B
+  Allocated          128_592 B
+  Freed              128_592 B
