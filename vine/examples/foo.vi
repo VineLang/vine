@@ -1,9 +1,0 @@
-
-const end: N32 = 32;
-
-pub fn main(&io: &IO) {
-  let n = 0;
-  while n <= end {
-    n += 1;
-  }
-}
