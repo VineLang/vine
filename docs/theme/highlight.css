@@ -8,6 +8,30 @@
   color: var(--lightergrey);
 }
 
+pre > code.hljs {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  counter-reset: line;
+}
+
+pre > code.hljs span {
+  display: contents;
+}
+
+pre > code.hljs .line::before {
+  counter-increment: line;
+  content: counter(line);
+  margin-left: .3em;
+  margin-right: 1.2em;
+  min-width: 1.2em;
+  color: var(--lightgrey);
+  grid-column: 1;
+  width: auto;
+  flex: 0;
+  justify-self: flex-end;
+  text-align: right;
+}
+
 .hljs-number,
 .hljs-preprocessor,
 .hljs-pragma,
@@ -31,11 +55,14 @@
   color: color-mix(in srgb, var(--vine), var(--black) 15%);
 }
 
-.hljs {
-  display: block;
-  overflow-x: auto;
+code {
   background: var(--darkergrey);
   color: var(--white);
+}
+
+pre > code {
+  display: block;
+  overflow-x: auto;
 }
 
 .hljs-addition {
@@ -44,6 +71,11 @@
 
 .hljs-deletion {
   color: var(--red);
+}
+
+:not(pre) > code {
+  padding: 0.1em 0.3em;
+  border-radius: 3px;
 }
 
 pre > code {
@@ -102,7 +134,6 @@ pre > code {
   opacity: 1;
   transition: opacity .1s .1s ease-out, scale .1s .1s ease-out;
 }
-
 
 :root pre .buttons > button.clip-button .tooltiptext {
   display: none;

@@ -77,6 +77,7 @@
         </script>
         <!-- Start loading toc.js asap -->
         <script src="{{ path_to_root }}toc.js"></script>
+        
     </head>
     <body>
     <div id="body-container">
@@ -331,5 +332,8 @@
         {{/if}}
 
     </div>
+        <script>
+            document.querySelectorAll("pre > code").forEach(code => code.innerHTML = code.innerHTML.replace(/(^|\n(?!$))/g, `$1<span class="line"></span>`))
+        </script>
     </body>
 </html>
