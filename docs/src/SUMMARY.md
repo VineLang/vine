@@ -2,13 +2,17 @@
 
 [Introduction](./README.md)
 
-- [Getting Started]()
+- [Getting Started](./starting/index.md)
   - [Installation](./starting/installation.md)
   - [Hello, world!](./starting/hello-world.md)
 
 - [Vine Language Features]()
   - [The Usual](./features/usual.md)
-  - [Types]()
+  - [Types](./features/types/index.md)
+    - [Primitive Types](./features/types/primitives.md)
+    - [Standard Types]()
+    - [Structs]()
+    - [Enums]()
   - [Methods]()
   - [IO](./features/io.md)
   - [Patterns](./features/patterns.md)
@@ -30,9 +34,3 @@
   - [Ivy's Interaction System](./ivy/interaction-system.md)
   - [Statistics](./ivy/statistics.md)
   - [Extrinsics]()
-
----
-
-[Notes](./notes.md)
-
-[Scratch](./scratch.md)
