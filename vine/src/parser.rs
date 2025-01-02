@@ -629,9 +629,6 @@ impl<'core, 'src> VineParser<'core, 'src> {
     if self.eat(Token::Star)? {
       return Ok(PatKind::Deref(Box::new(self.parse_pat()?)));
     }
-    if self.eat(Token::Move)? {
-      return Ok(PatKind::Move(Box::new(self.parse_pat()?)));
-    }
     if self.eat(Token::Tilde)? {
       return Ok(PatKind::Inverse(Box::new(self.parse_pat()?)));
     }

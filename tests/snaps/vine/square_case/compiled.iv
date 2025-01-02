@@ -2,35 +2,35 @@
 ::main { ::square_case::main }
 
 ::square_case::main {
-  fn(ref(n0 n1) _)
-  ::square_case::main::1 = x(n0 x(n1 2))
+  fn(ref(w3 w10) _)
+  ::square_case::main::2 = x(x(w3 w10) 2)
 }
 
-::square_case::main::1 { x(n0 x(n1 dup2(@lt(1000 ?(::square_case::main::3 ::square_case::main::2 x(n0 x(n1 n2)))) n2))) }
+::square_case::main::2 { x(w4 dup9(@lt(1000 ?(::square_case::main::4 ::square_case::main::3 x(w4 w5))) w5)) }
 
-::square_case::main::2 {
-  x(n0 x(n4 dup2(n1 dup2(n2 @mul(n2 n5)))))
-  ::square_case::squares = fn(ref(n0 n3) fn(n1 _))
-  ::square_case::main::1 = x(n3 x(n4 n5))
+::square_case::main::3 {
+  x(x(w10 w13) dup13(w3 dup13(w5 @mul(w5 w7))))
+  ::square_case::squares = fn(ref(w10 w1) fn(w3 _))
+  ::square_case::main::2 = x(x(w1 w13) w7)
 }
 
-::square_case::main::3 { x(n0 x(n0 _)) }
+::square_case::main::4 { x(x(w2 w2) _) }
 
 ::square_case::squares {
-  fn(ref(n1 n0) fn(n3 _))
-  ::std::io::IO::print_char = fn(ref(n2 n0) fn(10 _))
-  ::square_case::squares::1 = x(n1 x(n2 x(n3 0)))
+  fn(ref(w3 w10) fn(w5 _))
+  ::square_case::squares::2 = x(x(w3 w16) x(w5 0))
+  ::std::io::IO::print_char = fn(ref(w16 w10) fn(10 _))
 }
 
-::square_case::squares::1 { x(n0 x(n1 x(dup7(n2 n3) dup8(@lt(n2 ?(::square_case::squares::3 ::square_case::squares::2 x(n0 x(n1 x(n3 n4))))) n4)))) }
+::square_case::squares::2 { x(w6 x(dup26(w1 w8) dup27(@lt(w1 ?(::square_case::squares::4 ::square_case::squares::3 x(w6 x(w8 w7)))) w7))) }
 
-::square_case::squares::2 {
-  x(n0 x(n2 x(n3 @add(1 n4))))
-  ::std::io::IO::print_char = fn(ref(n0 n1) fn(9633 _))
-  ::square_case::squares::1 = x(n1 x(n2 x(n3 n4)))
+::square_case::squares::3 {
+  x(x(w9 w13) x(w7 @add(1 w5)))
+  ::std::io::IO::print_char = fn(ref(w9 w1) fn(9633 _))
+  ::square_case::squares::2 = x(x(w1 w13) x(w7 w5))
 }
 
-::square_case::squares::3 { x(n0 x(n0 _)) }
+::square_case::squares::4 { x(x(w3 w3) _) }
 
 ::std::io::IO::print_char { fn(ref(@io_print_char(char io) io) fn(char _)) }
 

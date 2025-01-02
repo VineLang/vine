@@ -10,8 +10,8 @@ use vine_util::{interner::Interned, new_idx};
 
 use crate::{diag::ErrorGuaranteed, resolver::DefId};
 
-new_idx!(pub Local);
-new_idx!(pub DynFnId);
+new_idx!(pub Local; n => ["l{n}"]);
+new_idx!(pub DynFnId; n => ["f{n}"]);
 
 #[derive(Clone, Default)]
 pub struct Item<'core> {
@@ -279,14 +279,16 @@ pub enum ExprKind<'core> {
   Char(char),
   #[class(value)]
   String(String),
-  #[class(place, synthetic)]
-  Temp(B<Expr<'core>>),
   #[class(space, synthetic)]
   Set(B<Expr<'core>>),
   #[class(value, synthetic)]
   Copy(B<Expr<'core>>),
+  #[class(space, synthetic)]
+  Hedge(B<Expr<'core>>),
   #[class(value, synthetic)]
   CopyLocal(Local),
+  #[class(space, synthetic)]
+  HedgeLocal(Local),
   #[class(value, synthetic)]
   MoveLocal(Local),
   #[class(space, synthetic)]
@@ -334,8 +336,6 @@ pub enum PatKind<'core> {
   Ref(B<Pat<'core>>),
   #[class(place)]
   Deref(B<Pat<'core>>),
-  #[class(place)]
-  Move(B<Pat<'core>>),
   #[class(value, place, space)]
   Inverse(B<Pat<'core>>),
   #[class(value, place, space)]

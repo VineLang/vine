@@ -1,5 +1,3 @@
-use std::mem::take;
-
 use crate::{
   ast::{Expr, ExprKind},
   checker::{Checker, Form},
@@ -34,15 +32,26 @@ impl<'core> Checker<'core, '_> {
   fn copy_expr(expr: &mut Expr<'core>) {
     match &mut expr.kind {
       ExprKind::Local(l) => expr.kind = ExprKind::CopyLocal(*l),
+      ExprKind::Inverse(e, _) => Self::hedge_expr(e),
       ExprKind::Adt(_, t) | ExprKind::Tuple(t) => {
         for e in t {
           Self::copy_expr(e);
         }
       }
-      ExprKind::Temp(t) => {
-        expr.kind = take(&mut t.kind);
-      }
       _ => expr.wrap(ExprKind::Copy),
+    }
+  }
+
+  fn hedge_expr(expr: &mut Expr<'core>) {
+    match &mut expr.kind {
+      ExprKind::Local(l) => expr.kind = ExprKind::HedgeLocal(*l),
+      ExprKind::Inverse(e, _) => Self::copy_expr(e),
+      ExprKind::Adt(_, t) | ExprKind::Tuple(t) => {
+        for e in t {
+          Self::hedge_expr(e);
+        }
+      }
+      _ => expr.wrap(ExprKind::Hedge),
     }
   }
 

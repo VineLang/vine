@@ -103,7 +103,8 @@ pub mod Map {
       }
     }
 
-    pub fn drop[K, V](&move Iter(&_, stack): &Iter[K, V]) {
+    pub fn drop[K, V](&iter: &Iter[K, V]) {
+      let Iter(&_, stack) = move iter;
       while stack.pop_front() is Some(&_) {}
     }
   }

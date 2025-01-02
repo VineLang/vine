@@ -142,8 +142,11 @@ impl<'l, 'ast, 'ivm> Serializer<'l, 'ast, 'ivm> {
       }
     }
 
-    if let Tree::Var(v) = &net.root {
-      self.registers.insert(v, Register::ROOT);
+    if let Tree::Var(a) = &net.root {
+      self.registers.insert(a, Register::ROOT);
+      if let Some(b) = self.equivalences.get(&**a) {
+        self.registers.insert(b, Register::ROOT);
+      }
     }
     for (a, b) in net.pairs.iter().rev() {
       self.serialize_pair(a, b);

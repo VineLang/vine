@@ -1,310 +1,385 @@
-use std::collections::{BTreeMap, BTreeSet, HashMap, VecDeque};
+use std::{collections::BTreeMap, mem::take};
 
-use bitflags::bitflags;
-
-use ivy::ast::Nets;
-use vine_util::{
-  bicycle::BicycleState,
-  idx::{Counter, IdxVec},
-  new_idx,
-};
+use ivy::ast::{Net, Nets, Tree};
+use vine_util::idx::{Counter, IdxVec};
 
 use crate::{
-  ast::{Builtin, DynFnId, Expr, LabelId, Local},
-  resolver::{Def, DefId, Resolver, ValueDefKind},
+  analyzer::usage::Usage,
+  ast::Local,
+  resolver::{AdtDef, Def, Resolver, ValueDefKind, VariantDef},
+  vir::{
+    Interface, InterfaceId, InterfaceKind, Invocation, Port, Stage, StageId, Step, Transfer, VIR,
+  },
 };
 
-mod build_stages;
-mod finish_stages;
-mod fix_interstage_wires;
-mod infer_interfaces;
-mod net_builder;
-
-use net_builder::*;
-
-pub fn emit(resolver: &Resolver, items: &[String]) -> Nets {
-  let mut emitter = Emitter::new(resolver);
-
-  if items.is_empty() {
-    emitter.emit_all();
-  } else {
-    for def in resolver.defs.values() {
-      let canonical = &def.canonical.to_string()[2..];
-      if items.iter().any(|x| x == canonical) {
-        emitter.emit_def(def);
-      }
-    }
-  }
-
-  emitter.nets
-}
-
-#[derive(Debug)]
-pub struct Emitter<'core, 'd> {
+pub struct Emitter<'core, 'a> {
   pub nets: Nets,
-
-  defs: &'d IdxVec<DefId, Def<'core>>,
-
-  name: String,
-  interfaces: IdxVec<InterfaceId, Interface>,
-  stages: IdxVec<StageId, Stage>,
-  cur: Stage,
-  cur_id: StageId,
-  locals: Counter<Local>,
-
-  forks: IdxVec<ForkId, Fork>,
-
-  net: NetBuilder,
-
-  return_target: Option<(Local, ForkId)>,
-  labels: IdxVec<LabelId, Option<(Local, ForkId, Option<StageId>)>>,
-
-  dyn_fns: HashMap<DynFnId, (Local, StageId)>,
-
-  dup_labels: usize,
-
-  concat: Option<String>,
+  resolver: &'a Resolver<'core>,
+  dup_labels: Counter<usize>,
 }
 
-impl<'core, 'd> Emitter<'core, 'd> {
-  pub fn new(resolver: &'d Resolver<'core>) -> Self {
-    let concat =
-      resolver.builtins.get(&Builtin::Concat).map(|&d| resolver.defs[d].canonical.to_string());
-    let defs = &resolver.defs;
-    Emitter {
-      nets: Default::default(),
-      defs,
-      name: Default::default(),
-      interfaces: Default::default(),
-      stages: Default::default(),
-      cur: Default::default(),
-      cur_id: Default::default(),
-      locals: Default::default(),
-      forks: Default::default(),
-      net: Default::default(),
-      return_target: Default::default(),
-      labels: Default::default(),
-      dyn_fns: Default::default(),
-      dup_labels: Default::default(),
-      concat,
+impl<'core, 'a> Emitter<'core, 'a> {
+  pub fn new(resolver: &'a Resolver<'core>) -> Self {
+    Emitter { nets: Nets::default(), resolver, dup_labels: Counter::default() }
+  }
+
+  pub fn emit_vir(&mut self, path: String, vir: &VIR) {
+    let mut emitter = VirEmitter {
+      resolver: self.resolver,
+      path,
+      stages: &vir.stages,
+      interfaces: &vir.interfaces,
+      locals: BTreeMap::new(),
+      pairs: Vec::new(),
+      wire_offset: 0,
+      wires: Counter::default(),
+      dup_labels: self.dup_labels,
+    };
+
+    for stage in vir.stages.values() {
+      let interface = &vir.interfaces[stage.interface];
+      if interface.incoming != 0 && !interface.inline() {
+        emitter.wire_offset = 0;
+        emitter.wires.0 = stage.wires.0 .0;
+        let root = emitter.emit_interface(interface, true);
+        let root =
+          Tree::n_ary("enum", stage.header.iter().map(|p| emitter.emit_port(p)).chain([root]));
+        emitter._emit_stage(stage);
+        for (_, local) in take(&mut emitter.locals) {
+          emitter.finish_local(local);
+        }
+        let net = Net { root, pairs: take(&mut emitter.pairs) };
+        self.nets.insert(
+          if stage.id.0 == 0 {
+            emitter.path.clone()
+          } else {
+            format!("{}::{}", emitter.path, stage.id.0)
+          },
+          net,
+        );
+      }
+    }
+
+    self.dup_labels = emitter.dup_labels;
+  }
+
+  pub fn emit_ivy(&mut self, def: &Def<'core>) {
+    if let Some(value_def) = &def.value_def {
+      match &value_def.kind {
+        ValueDefKind::Expr(_) => {}
+        ValueDefKind::Ivy(net) => {
+          self.nets.insert(def.canonical.to_string(), net.clone());
+        }
+        ValueDefKind::AdtConstructor => {
+          let variant = def.variant_def.as_ref().unwrap();
+          let adt = self.resolver.defs[variant.adt].adt_def.as_ref().unwrap();
+          let fields = (0..variant.fields.len()).map(|i| Tree::Var(format!("f{i}")));
+          let root = Tree::n_ary(
+            "fn",
+            fields.clone().chain([make_adt(
+              variant,
+              adt,
+              || (Tree::Var("r".into()), Tree::Var("r".into())),
+              fields,
+            )]),
+          );
+          self.nets.insert(def.canonical.to_string(), Net { root, pairs: Vec::new() });
+        }
+      }
+    }
+  }
+}
+
+struct VirEmitter<'core, 'a> {
+  resolver: &'a Resolver<'core>,
+  path: String,
+  stages: &'a IdxVec<StageId, Stage>,
+  interfaces: &'a IdxVec<InterfaceId, Interface>,
+  locals: BTreeMap<Local, LocalState>,
+  pairs: Vec<(Tree, Tree)>,
+  wire_offset: usize,
+  wires: Counter<usize>,
+  dup_labels: Counter<usize>,
+}
+
+impl<'core, 'a> VirEmitter<'core, 'a> {
+  fn dup_label(&mut self) -> String {
+    format!("dup{}", self.dup_labels.next())
+  }
+
+  pub fn emit_transfer(&mut self, transfer: &Transfer) {
+    let interface = &self.interfaces[transfer.interface];
+    if interface.inline() {
+      let InterfaceKind::Unconditional(stage) = interface.kind else { unreachable!() };
+      return self.inline_stage(&self.stages[stage]);
+    }
+
+    let target = self.emit_interface(interface, false);
+
+    self.pairs.push(match &interface.kind {
+      InterfaceKind::Unconditional(stage) => (self.emit_stage_node(*stage), target),
+      InterfaceKind::Branch([zero, non_zero]) => (
+        self.emit_port(transfer.data.as_ref().unwrap()),
+        Tree::Branch(
+          Box::new(self.emit_stage_node(*zero)),
+          Box::new(self.emit_stage_node(*non_zero)),
+          Box::new(target),
+        ),
+      ),
+      InterfaceKind::Match(_, stages) => (
+        self.emit_port(transfer.data.as_ref().unwrap()),
+        Tree::n_ary("enum", stages.iter().map(|&s| self.emit_stage_node(s)).chain([target])),
+      ),
+    });
+  }
+
+  fn finish_local(&mut self, mut local: LocalState) {
+    if local.past.is_empty() {
+      local.past.push((Vec::new(), Vec::new()));
+    }
+    let first = &mut local.past[0];
+    first.0.append(&mut local.spaces);
+    first.1.append(&mut local.values);
+    for (mut spaces, mut values) in local.past.into_iter() {
+      if spaces.is_empty() {
+        for value in values {
+          self.pairs.push((Tree::Erase, value));
+        }
+      } else if values.is_empty() {
+        for space in spaces {
+          self.pairs.push((space, Tree::Erase));
+        }
+      } else if values.len() == 1 {
+        let label = self.dup_label();
+        self.pairs.push((Tree::n_ary(&label, spaces), values.pop().unwrap()));
+      } else if spaces.len() == 1 {
+        let label = self.dup_label();
+        self.pairs.push((spaces.pop().unwrap(), Tree::n_ary(&label, values)));
+      } else {
+        unreachable!()
+      }
     }
   }
 
-  pub fn emit_all(&mut self) {
-    for def in self.defs.values() {
-      self.emit_def(def);
+  fn inline_stage(&mut self, stage: &Stage) {
+    let prev_wire_offset = self.wire_offset;
+    self.wire_offset = self.wires.peek_next();
+    self.wires.0 += stage.wires.0 .0;
+    for local in &stage.declarations {
+      if let Some(local) = self.locals.remove(local) {
+        self.finish_local(local);
+      }
+    }
+    for step in &stage.steps {
+      self.emit_step(step);
+    }
+    self.wire_offset = prev_wire_offset;
+  }
+
+  fn _emit_stage(&mut self, stage: &Stage) {
+    for local in &stage.declarations {
+      if let Some(local) = self.locals.remove(local) {
+        self.finish_local(local);
+      }
+    }
+    for step in &stage.steps {
+      self.emit_step(step);
     }
   }
 
-  pub fn emit_def(&mut self, def: &Def<'core>) {
-    self.net = Default::default();
-    let Some(value_def) = &def.value_def else { return };
-    match &value_def.kind {
-      ValueDefKind::Expr(expr) => {
-        self.emit_root_expr(&mut { value_def.locals }, def.canonical.to_string(), expr, []);
+  fn emit_interface(&mut self, interface: &Interface, side: bool) -> Tree {
+    Tree::n_ary(
+      "x",
+      interface.wires.iter().filter_map(|(&local, usage)| {
+        let usage = if side { usage.1 } else { usage.0 };
+        match usage {
+          Usage::Erase => {
+            self.local(local).erase();
+            None
+          }
+          Usage::Mut => {
+            let a = self.new_wire();
+            let b = self.new_wire();
+            self.local(local).mutate(a.0, b.0);
+            if side {
+              Some(Tree::Comb("x".into(), Box::new(b.1), Box::new(a.1)))
+            } else {
+              Some(Tree::Comb("x".into(), Box::new(a.1), Box::new(b.1)))
+            }
+          }
+          Usage::Set => {
+            let w = self.new_wire();
+            self.local(local).set(w.0);
+            Some(w.1)
+          }
+          Usage::Take => {
+            let w = self.new_wire();
+            self.local(local).take(w.0);
+            Some(w.1)
+          }
+          Usage::Get => {
+            let w = self.new_wire();
+            self.local(local).get(w.0);
+            Some(w.1)
+          }
+          Usage::Hedge => {
+            let w = self.new_wire();
+            self.local(local).hedge(w.0);
+            Some(w.1)
+          }
+          u => unreachable!("{u:?}"),
+        }
+      }),
+    )
+  }
+
+  fn emit_stage_node(&self, stage: StageId) -> Tree {
+    Tree::Global(format!("{}::{}", self.path, stage.0))
+  }
+
+  fn local(&mut self, local: Local) -> &mut LocalState {
+    self.locals.entry(local).or_default()
+  }
+
+  fn emit_step(&mut self, step: &Step) {
+    let wire_offset = self.wire_offset;
+    let emit_port = |p| Self::_emit_port(wire_offset, self.resolver, p);
+    match step {
+      Step::Invoke(local, invocation) => match invocation {
+        Invocation::Erase => self.local(*local).erase(),
+        Invocation::Get(port) => self.local(*local).get(emit_port(port)),
+        Invocation::Hedge(port) => self.local(*local).hedge(emit_port(port)),
+        Invocation::Take(port) => self.local(*local).take(emit_port(port)),
+        Invocation::Set(port) => self.local(*local).set(emit_port(port)),
+        Invocation::Mut(a, b) => self.local(*local).mutate(emit_port(a), emit_port(b)),
+      },
+      Step::Transfer(transfer) => self.emit_transfer(transfer),
+      Step::Diverge(..) => unreachable!(),
+
+      Step::Link(a, b) => self.pairs.push((emit_port(a), emit_port(b))),
+      Step::Fn(func, args, ret) => self
+        .pairs
+        .push((emit_port(func), Tree::n_ary("fn", args.iter().chain([ret]).map(emit_port)))),
+      Step::Tuple(port, tuple) => {
+        self.pairs.push((emit_port(port), Tree::n_ary("tup", tuple.iter().map(emit_port))))
       }
-      ValueDefKind::Ivy(net) => {
-        self.nets.insert(def.canonical.to_string(), net.clone());
+      Step::Adt(variant, port, fields) => {
+        let variant = self.resolver.defs[*variant].variant_def.as_ref().unwrap();
+        let adt = self.resolver.defs[variant.adt].adt_def.as_ref().unwrap();
+        let fields = fields.iter().map(emit_port);
+        let adt = make_adt(variant, adt, || self.new_wire(), fields);
+        self.pairs.push((emit_port(port), adt));
       }
-      ValueDefKind::AdtConstructor => {
-        let net = self.emit_adt_constructor(def);
-        self.nets.insert(def.canonical.to_string(), net);
+      Step::Ref(reference, value, space) => self.pairs.push((
+        emit_port(reference),
+        Tree::Comb("ref".into(), Box::new(emit_port(value)), Box::new(emit_port(space))),
+      )),
+      Step::ExtFn(ext_fn, lhs, rhs, out) => self.pairs.push((
+        emit_port(lhs),
+        Tree::ExtFn(*ext_fn, Box::new(emit_port(rhs)), Box::new(emit_port(out))),
+      )),
+      Step::Dup(a, b, c) => {
+        let label = self.dup_label();
+        self
+          .pairs
+          .push((emit_port(a), Tree::Comb(label, Box::new(emit_port(b)), Box::new(emit_port(c)))))
+      }
+      Step::List(port, list) => {
+        let str = self.emit_list(list.iter().map(emit_port));
+        self.pairs.push((emit_port(port), str))
+      }
+      Step::String(port, str) => {
+        let str = self.emit_list(str.chars().map(|c| Tree::N32(c as u32)));
+        self.pairs.push((emit_port(port), str))
       }
     }
   }
 
-  pub(super) fn emit_root_expr(
+  fn emit_port(&self, port: &Port) -> Tree {
+    Self::_emit_port(self.wire_offset, self.resolver, port)
+  }
+
+  fn _emit_port(wire_offset: usize, resolver: &Resolver, port: &Port) -> Tree {
+    match port {
+      Port::Erase => Tree::Erase,
+      Port::N32(n) => Tree::N32(*n),
+      Port::F32(f) => Tree::F32(*f),
+      Port::Wire(w) => Tree::Var(format!("w{}", wire_offset + w.0)),
+      Port::Const(def) => Tree::Global(resolver.defs[*def].canonical.to_string()),
+    }
+  }
+
+  fn emit_list(
     &mut self,
-    local_count: &mut Counter<Local>,
-    name: String,
-    expr: &Expr<'core>,
-    locals: impl IntoIterator<Item = Local>,
-  ) {
-    let init_stage = self.build_stages(*local_count, name, expr);
-    let init_interface = &mut self.interfaces[self.stages[init_stage].outer];
-    for local in locals {
-      let usage = Usage::GET.union(Usage::SET);
-      init_interface.inward.entry(local).or_insert(usage).union_with(usage);
-      init_interface.wires.insert((local, WireDir::Input));
-      init_interface.wires.insert((local, WireDir::Output));
-    }
-    self.fix_interstage_wires();
-    self.infer_interfaces();
-    self.finish_stages(init_stage);
-    *local_count = self.locals;
+    ports: impl IntoIterator<IntoIter: DoubleEndedIterator<Item = Tree>>,
+  ) -> Tree {
+    let end = self.new_wire();
+    let mut len = 0;
+    let buf = Tree::n_ary("tup", ports.into_iter().inspect(|_| len += 1).chain([end.0]));
+    Tree::n_ary("tup", [Tree::N32(len), buf, end.1])
   }
 
-  fn new_local(&mut self) -> Local {
-    let l = self.locals.next();
-    self.declare_local(l);
-    l
-  }
-
-  fn declare_local(&mut self, local: Local) {
-    self.interfaces[self.cur.outer].declarations.insert(local);
+  fn new_wire(&mut self) -> (Tree, Tree) {
+    let label = format!("w{}", self.wires.next());
+    (Tree::Var(label.clone()), Tree::Var(label))
   }
 }
 
-fn stage_name(base_name: &str, stage_id: StageId) -> String {
-  format!("{base_name}::{stage_id:?}")
+#[derive(Default)]
+struct LocalState {
+  past: Vec<(Vec<Tree>, Vec<Tree>)>,
+  spaces: Vec<Tree>,
+  values: Vec<Tree>,
 }
 
-new_idx!(InterfaceId);
-new_idx!(StageId);
-new_idx!(ForkId);
+impl LocalState {
+  fn mutate(&mut self, a: Tree, b: Tree) {
+    self.get(a);
+    self.erase();
+    self.hedge(b);
+  }
 
-#[derive(Debug, Default)]
-struct Interface {
-  outward: BTreeMap<Local, Usage>,
-  inward: BTreeMap<Local, Usage>,
-  wires: BTreeSet<(Local, WireDir)>,
-  declarations: BTreeSet<Local>,
-  stages: Vec<StageId>,
-  parents: BTreeSet<InterfaceId>,
-  state: BicycleState,
-}
+  fn get(&mut self, port: Tree) {
+    self.spaces.push(port);
+  }
 
-#[derive(Debug, Default)]
-struct Stage {
-  outer: InterfaceId,
-  agents: Vec<Agent>,
-  steps: VecDeque<Step>,
-  fin: Vec<Step>,
-  divergence: ForkId,
-  header: Option<(Port, Port)>,
-}
+  fn take(&mut self, port: Tree) {
+    self.get(port);
+    self.erase();
+  }
 
-#[derive(Debug)]
-struct Fork {
-  ends: Vec<StageId>,
-  divergence: ForkId,
-}
+  fn hedge(&mut self, port: Tree) {
+    self.values.push(port);
+  }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
-enum WireDir {
-  Input,
-  Output,
-}
+  fn set(&mut self, port: Tree) {
+    self.erase();
+    self.hedge(port);
+  }
 
-#[derive(Debug)]
-enum Step {
-  Get(Local, Port),
-  Set(Local, Port),
-  Move(Local, Port),
-  Call(InterfaceId, Port),
-}
-
-impl Step {
-  fn port_mut(&mut self) -> &mut Port {
-    match self {
-      Step::Get(_, p) | Step::Set(_, p) | Step::Move(_, p) | Step::Call(_, p) => p,
+  fn erase(&mut self) {
+    if self.past.is_empty() || !self.spaces.is_empty() || !self.values.is_empty() {
+      self.past.push((take(&mut self.spaces), take(&mut self.values)));
     }
   }
 }
 
-bitflags! {
-  #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-  struct Usage: u8 {
-    const MAY_GET = 1;
-    const MAY_SET = 2;
-    const MAY_NOT_SET = 4;
-    const MAY_SET_SOME = 8;
-  }
-}
-
-impl Usage {
-  const NONE: Usage = Usage::MAY_NOT_SET;
-  const GET: Usage = Usage::MAY_GET.union(Usage::MAY_NOT_SET);
-  const SET: Usage = Usage::MAY_SET.union(Usage::MAY_SET_SOME);
-  const MOVE: Usage = Usage::MAY_GET.union(Usage::MAY_SET);
-  const ERASE: Usage = Usage::MAY_SET;
-
-  fn may_get(&self) -> bool {
-    self.contains(Usage::MAY_GET)
-  }
-
-  fn may_set(&self) -> bool {
-    self.contains(Usage::MAY_SET)
-  }
-
-  fn may_not_set(&self) -> bool {
-    self.contains(Usage::MAY_NOT_SET)
-  }
-
-  fn may_set_some(&self) -> bool {
-    self.contains(Usage::MAY_SET_SOME)
-  }
-
-  fn new(f: impl FnOnce(&mut Self)) -> Self {
-    let mut x = Self::empty();
-    f(&mut x);
-    x
-  }
-
-  fn join(a: Self, b: Self) -> Self {
-    Usage::new(|u| {
-      u.set(Usage::MAY_GET, a.may_get() | (a.may_not_set() & b.may_get()));
-      u.set(Usage::MAY_SET, a.may_set() | b.may_set());
-      u.set(Usage::MAY_NOT_SET, a.may_not_set() & b.may_not_set());
-      u.set(Usage::MAY_SET_SOME, b.may_set_some() | (b.may_not_set() & a.may_set_some()));
-    })
-  }
-
-  fn forward(self) -> Self {
-    self & (Usage::MAY_SET | Usage::MAY_SET_SOME)
-  }
-
-  fn backward(self) -> Self {
-    self & Usage::GET
-  }
-
-  fn append(&mut self, with: Usage) {
-    *self = Usage::join(*self, with)
-  }
-
-  fn prepend(&mut self, with: Usage) {
-    *self = Usage::join(with, *self)
-  }
-
-  fn union_with(&mut self, with: Usage) {
-    *self = Usage::union(*self, with)
-  }
-}
-
-#[test]
-fn usage_axioms() {
-  for a in all() {
-    assert_eq!(Usage::join(a, Usage::NONE), a);
-    assert_eq!(Usage::join(Usage::NONE, a), a);
-
-    assert_eq!(Usage::union(a, a), a);
-    assert_eq!(Usage::join(a, a), a);
-
-    for b in all() {
-      assert_eq!(Usage::union(a, b), Usage::union(b, a));
-
-      for c in all() {
-        assert_eq!(Usage::union(Usage::union(a, b), c), Usage::union(a, Usage::union(b, c)),);
-        assert_eq!(Usage::join(Usage::join(a, b), c), Usage::join(a, Usage::join(b, c)));
-
-        assert_eq!(
-          Usage::join(a, Usage::union(b, c)),
-          Usage::union(Usage::join(a, b), Usage::join(a, c))
-        );
-        assert_eq!(
-          Usage::join(Usage::union(a, b), c),
-          Usage::union(Usage::join(a, c), Usage::join(b, c))
-        );
-
-        assert_eq!(
-          [a, b, a, c, a].into_iter().reduce(Usage::join),
-          [a, b, c, a].into_iter().reduce(Usage::join),
-        );
-      }
-    }
-  }
-
-  fn all() -> impl Iterator<Item = Usage> {
-    (0..16).map(Usage::from_bits_truncate)
+fn make_adt(
+  variant: &VariantDef,
+  adt: &AdtDef,
+  mut new_wire: impl FnMut() -> (Tree, Tree),
+  fields: impl DoubleEndedIterator<Item = Tree>,
+) -> Tree {
+  if adt.variants.len() == 1 {
+    Tree::n_ary("tup", fields)
+  } else {
+    let wire = new_wire();
+    let mut fields = Tree::n_ary("enum", fields.chain([wire.0]));
+    Tree::n_ary(
+      "enum",
+      (0..adt.variants.len())
+        .map(|i| if variant.variant == i { take(&mut fields) } else { Tree::Erase })
+        .chain([wire.1]),
+    )
   }
 }

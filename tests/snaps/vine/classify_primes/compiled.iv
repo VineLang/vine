@@ -2,81 +2,79 @@
 ::main { ::classify_primes::main }
 
 ::classify_primes::main {
-  fn(ref(n0 n1) _)
-  ::classify_primes::main::1 = x(n0 x(n1 2))
+  fn(ref(w3 w10) _)
+  ::classify_primes::main::2 = x(x(w3 w10) 2)
 }
 
-::classify_primes::main::1 { x(n0 x(n1 dup3(@lt(1000 ?(::classify_primes::main::12 ::classify_primes::main::2 x(n0 x(n1 n2)))) n2))) }
+::classify_primes::main::2 { x(w4 dup10(@lt(1000 ?(::classify_primes::main::4 ::classify_primes::main::3 x(w4 w5))) w5)) }
 
-::classify_primes::main::2 {
-  x(n4 x(n9 dup3(n6 dup3(n7 @add(1 n10)))))
-  ::std::io::IO::println = fn(ref(n4 n8) fn(n3 _))
-  ::std::n32::N32::to_string = fn(n7 n1)
-  ::std::list::List::concat = fn(n1 fn(tup(2 tup(tup(58 tup(32 n0)) n0)) n2))
-  ::std::list::List::concat = fn(n2 fn(n5 n3))
-  ::classify_primes::main::4 = x(n6 x(2 x(_ n5)))
-  ::classify_primes::main::1 = x(n8 x(n9 n10))
+::classify_primes::main::3 {
+  x(x(w17 w25) dup14(w21 dup14(w6 @add(1 w14))))
+  ::classify_primes::main::6 = x(w21 x(2 w19))
+  ::std::n32::N32::to_string = fn(w6 w7)
+  ::std::list::List::concat = fn(w7 fn(tup(2 tup(tup(58 tup(32 w22)) w22)) w9))
+  ::std::list::List::concat = fn(w9 fn(w19 w11))
+  ::std::io::IO::println = fn(ref(w17 w4) fn(w11 _))
+  ::classify_primes::main::2 = x(x(w4 w25) w14)
 }
 
-::classify_primes::main::4 { x(dup3(n2 n3) x(dup4(@mul(n4 @le(n2 ?(::classify_primes::main::10 ::classify_primes::main::5 x(n3 x(n5 n0))))) dup4(n4 n5)) n0)) }
+::classify_primes::main::4 { x(x(w2 w2) _) }
 
-::classify_primes::main::5 { x(dup3(@rem(n3 ?(::classify_primes::main::7 ::classify_primes::main::9 x(n2 x(n4 n0)))) n2) x(dup4(n3 n4) n0)) }
+::classify_primes::main::6 { x(dup20(w3 w10) x(dup21(@mul(w1 @le(w3 ?(::classify_primes::main::8 ::classify_primes::main::7 x(w10 x(w9 w8))))) dup21(w1 w9)) w8)) }
 
-::classify_primes::main::7 { x(_ x(_ x(_ tup(9 tup(tup(99 tup(111 tup(109 tup(112 tup(111 tup(115 tup(105 tup(116 tup(101 n0))))))))) n0))))) }
+::classify_primes::main::7 { x(dup23(@rem(w7 ?(::classify_primes::main::11 ::classify_primes::main::10 x(w11 x(w10 w9)))) w11) x(dup24(w7 w10) w9)) }
 
-::classify_primes::main::9 {
-  x(n0 x(@add(1 n1) n2))
-  ::classify_primes::main::4 = x(n0 x(n1 n2))
+::classify_primes::main::8 { x(_ x(_ tup(5 tup(tup(112 tup(114 tup(105 tup(109 tup(101 w4))))) w4)))) }
+
+::classify_primes::main::10 {
+  x(w2 x(@add(1 w5) w6))
+  ::classify_primes::main::6 = x(w2 x(w5 w6))
 }
 
-::classify_primes::main::10 { x(_ x(_ x(_ ::classify_primes::main::11))) }
-
-::classify_primes::main::11 { tup(5 tup(tup(112 tup(114 tup(105 tup(109 tup(101 n0))))) n0)) }
-
-::classify_primes::main::12 { x(n0 x(n0 _)) }
+::classify_primes::main::11 { x(_ x(_ tup(9 tup(tup(99 tup(111 tup(109 tup(112 tup(111 tup(115 tup(105 tup(116 tup(101 w4))))))))) w4)))) }
 
 ::std::io::IO::println {
-  fn(ref(n0 n3) fn(n1 _))
-  ::std::io::IO::print = fn(ref(n0 n2) fn(n1 _))
-  ::std::io::IO::print_char = fn(ref(n2 n3) fn(10 _))
+  fn(ref(w3 w14) fn(w5 _))
+  ::std::io::IO::print = fn(ref(w3 w9) fn(w5 _))
+  ::std::io::IO::print_char = fn(ref(w9 w14) fn(10 _))
 }
 
 ::std::io::IO::print {
-  fn(ref(n0 n1) fn(tup(n2 tup(n3 _)) _))
-  ::std::io::IO::print::1 = x(n0 x(n1 x(n2 n3)))
+  fn(ref(w3 w15) fn(tup(w8 tup(w9 _)) _))
+  ::std::io::IO::print::2 = x(x(w3 w15) x(w8 w9))
 }
 
-::std::io::IO::print::1 { x(n0 x(n1 x(dup214(?(::std::io::IO::print::3 ::std::io::IO::print::2 x(n0 x(n1 x(n3 n2)))) n3) n2))) }
+::std::io::IO::print::2 { x(w4 x(dup501(?(::std::io::IO::print::4 ::std::io::IO::print::3 x(w4 x(w6 w1))) w6) w1)) }
 
-::std::io::IO::print::2 {
-  x(n1 x(n3 x(@sub(1 n4) tup(n0 n5))))
-  ::std::io::IO::print_char = fn(ref(n1 n2) fn(n0 _))
-  ::std::io::IO::print::1 = x(n2 x(n3 x(n4 n5)))
+::std::io::IO::print::3 {
+  x(x(w17 w21) x(@sub(1 w1) tup(w3 w4)))
+  ::std::io::IO::print_char = fn(ref(w17 w10) fn(w3 _))
+  ::std::io::IO::print::2 = x(x(w10 w21) x(w1 w4))
 }
 
-::std::io::IO::print::3 { x(n0 x(n0 _)) }
+::std::io::IO::print::4 { x(x(w3 w3) _) }
 
 ::std::io::IO::print_char { fn(ref(@io_print_char(char io) io) fn(char _)) }
 
-::std::list::List::concat { fn(tup(@add(n1 n2) tup(n3 n0)) fn(tup(n1 tup(n0 n4)) tup(n2 tup(n3 n4)))) }
+::std::list::List::concat { fn(tup(@add(w11 w20) tup(w7 w12)) fn(tup(w11 tup(w12 w23)) tup(w20 tup(w7 w23)))) }
 
-::std::n32::N32::to_string { fn(dup827(?(::std::n32::N32::to_string::5 ::std::n32::N32::to_string::1 x(n1 n0)) n1) n0) }
-
-::std::n32::N32::to_string::1 {
-  x(n1 n2)
-  ::std::n32::N32::to_string::2 = x(n1 x(tup(0 tup(n0 n0)) n2))
-}
-
-::std::n32::N32::to_string::2 { x(dup827(?(::std::n32::N32::to_string::4 ::std::n32::N32::to_string::3 x(n2 n0)) n2) n0) }
+::std::n32::N32::to_string { fn(dup2194(?(::std::n32::N32::to_string::4 ::std::n32::N32::to_string::3 x(w8 w7)) w8) w7) }
 
 ::std::n32::N32::to_string::3 {
-  x(dup827(@rem(10 n0) @div(10 n4)) x(n3 n6))
-  48 = @add(n0 n1)
-  ::std::list::List::concat = fn(tup(1 tup(tup(n1 n2) n2)) fn(n3 n5))
-  ::std::n32::N32::to_string::2 = x(n4 x(n5 n6))
+  x(w4 w7)
+  ::std::n32::N32::to_string::5 = x(w4 x(tup(0 tup(w5 w5)) w7))
 }
 
-::std::n32::N32::to_string::4 { x(_ x(n0 n0)) }
+::std::n32::N32::to_string::4 { x(_ tup(1 tup(tup(48 w3) w3))) }
 
-::std::n32::N32::to_string::5 { x(_ tup(1 tup(tup(48 n0) n0))) }
+::std::n32::N32::to_string::5 { x(dup2204(?(::std::n32::N32::to_string::7 ::std::n32::N32::to_string::6 x(w6 w2)) w6) w2) }
+
+::std::n32::N32::to_string::6 {
+  x(dup2207(@rem(10 w1) @div(10 w8)) x(w11 w15))
+  48 = @add(w1 w2)
+  ::std::list::List::concat = fn(tup(1 tup(tup(w2 w13) w13)) fn(w11 w5))
+  ::std::n32::N32::to_string::5 = x(w8 x(w5 w15))
+}
+
+::std::n32::N32::to_string::7 { x(_ x(w1 w1)) }
 

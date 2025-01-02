@@ -1,5 +1,5 @@
 error tests/programs/fail/informal.vi:4:13 - fn item parameters must be explicitly typed
-error tests/programs/fail/informal.vi:4:13 - `move` is only valid in a place pattern
+error tests/programs/fail/informal.vi:4:13 - `*` is only valid in a place pattern
 error tests/programs/fail/informal.vi:5:3 - expected a space expression; found a value expression
 error tests/programs/fail/informal.vi:6:3 - expected a space expression; found a value expression
 error tests/programs/fail/informal.vi:6:8 - expected a value expression; found a space expression

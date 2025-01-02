@@ -29,6 +29,7 @@ fn tests(t: &mut DynTester) {
   });
 
   t.group("vine", |t| {
+    test_vi(t, "vine/examples/cat.vi", include_bytes!("../vine/examples/cat.vi"), ".txt");
     test_vi(t, "vine/examples/fib_repl.vi", fib_repl_input_vi, ".txt");
     test_vi(t, "vine/examples/fib.vi", b"", ".txt");
     test_vi(t, "vine/examples/fizzbuzz.vi", b"", ".txt");
@@ -52,14 +53,12 @@ fn tests(t: &mut DynTester) {
     test_vi(t, "tests/programs/cyclist.vi", b"", ".txt");
     test_vi(t, "tests/programs/final_countdown.vi", b"", ".txt");
     test_vi(t, "tests/programs/find_primes.vi", b"", ".txt");
-    test_vi(t, "tests/programs/five_stars.vi", b"", ".txt");
     test_vi(t, "tests/programs/inverse.vi", b"", ".txt");
     test_vi(t, "tests/programs/logic.vi", b"", ".txt");
     test_vi(t, "tests/programs/loop_break_continue.vi", b"", ".txt");
     test_vi(t, "tests/programs/loop_vi_loop.vi", b"", ".txt");
     test_vi(t, "tests/programs/map_test.vi", b"", ".txt");
     test_vi(t, "tests/programs/maybe_set.vi", b"", ".txt");
-    test_vi(t, "tests/programs/move_it_move_it.vi", b"", ".txt");
     test_vi(t, "tests/programs/no_return.vi", b"", ".txt");
     test_vi(t, "tests/programs/option_party.vi", b"", ".txt");
     test_vi(t, "tests/programs/pretty_div.vi", b"", ".txt");

@@ -17,14 +17,18 @@ use vine_util::{
 };
 
 use crate::{
+  analyzer::{analyze, usage::Usage},
   ast::{Block, Builtin, Expr, ExprKind, Ident, Local, Span, Stmt},
   checker::{self, Checker, CheckerState, Type},
   core::Core,
   diag::Diag,
+  distiller::Distiller,
   emitter::Emitter,
   loader::Loader,
+  normalizer::normalize,
   parser::VineParser,
   resolver::{DefId, Resolver},
+  vir::{InterfaceId, StageId},
 };
 
 pub struct Repl<'core, 'ctx, 'ivm> {
@@ -41,9 +45,11 @@ pub struct Repl<'core, 'ctx, 'ivm> {
   checker_state: CheckerState,
 }
 
+#[derive(Debug)]
 struct Var<'ivm> {
   local: Local,
   value: Port<'ivm>,
+  space: Port<'ivm>,
 }
 
 impl<'core, 'ctx, 'ivm> Repl<'core, 'ctx, 'ivm> {
@@ -72,12 +78,24 @@ impl<'core, 'ctx, 'ivm> Repl<'core, 'ctx, 'ivm> {
 
     core.bail()?;
 
+    let mut distiller = Distiller::new(&resolver);
     let mut emitter = Emitter::new(&resolver);
-    emitter.emit_all();
+    for (_, def) in &resolver.defs {
+      if let Some(vir) = distiller.distill(def) {
+        let mut vir = normalize(&vir);
+        analyze(&mut vir);
+        emitter.emit_vir(def.canonical.to_string(), &vir);
+      } else {
+        emitter.emit_ivy(def);
+      }
+    }
     host.insert_nets(&emitter.nets);
 
     let io = core.ident("io");
-    let vars = HashMap::from([(io, Var { local: Local(0), value: Port::new_ext_val(ExtVal::IO) })]);
+    let vars = HashMap::from([(
+      io,
+      Var { local: Local(0), value: Port::new_ext_val(ExtVal::IO), space: Port::ERASE },
+    )]);
     let locals = BTreeMap::from([(Local(0), io)]);
 
     let checker_state = CheckerState {
@@ -136,13 +154,17 @@ impl<'core, 'ctx, 'ivm> Repl<'core, 'ctx, 'ivm> {
     }
 
     for (ident, local) in binds {
-      let var =
-        self.vars.entry(ident).or_insert(Var { local: Local(usize::MAX), value: Port::ERASE });
-      if var.local != local {
-        self.locals.remove(&var.local);
+      if self.vars.get(&ident).is_none_or(|v| v.local != local) {
+        let wire = self.ivm.new_wire();
+        let old = self.vars.insert(
+          ident,
+          Var { local, value: Port::new_wire(wire.0), space: Port::new_wire(wire.1) },
+        );
         self.locals.insert(local, ident);
-        var.local = local;
-        self.ivm.link(replace(&mut var.value, Port::ERASE), Port::ERASE);
+        if let Some(old) = old {
+          self.locals.remove(&old.local);
+          self.ivm.link(old.value, old.space);
+        }
       }
     }
 
@@ -155,9 +177,16 @@ impl<'core, 'ctx, 'ivm> Repl<'core, 'ctx, 'ivm> {
     self.core.bail()?;
     self.checker_state = state;
 
+    let mut distiller = Distiller::new(&self.resolver);
     let mut emitter = Emitter::new(&self.resolver);
     for def in self.resolver.defs.slice(new_defs.clone()) {
-      emitter.emit_def(def);
+      if let Some(vir) = distiller.distill(def) {
+        let mut vir = normalize(&vir);
+        analyze(&mut vir);
+        emitter.emit_vir(def.canonical.to_string(), &vir);
+      } else {
+        emitter.emit_ivy(def);
+      }
     }
 
     let line = self.line;
@@ -165,12 +194,16 @@ impl<'core, 'ctx, 'ivm> Repl<'core, 'ctx, 'ivm> {
 
     let name = format!("::repl::{line}");
 
-    emitter.emit_root_expr(
-      &mut self.local_count,
-      name.clone(),
-      &Expr { span: Span::NONE, kind: ExprKind::Block(block) },
-      self.vars.values().map(|v| v.local),
-    );
+    let expr = Expr { span: Span::NONE, kind: ExprKind::Block(block) };
+    let mut vir = distiller.distill_expr(self.local_count, &expr);
+    vir.stages[StageId(0)].declarations.retain(|l| !self.locals.contains_key(l));
+    vir.globals.extend(self.vars.values().map(|v| (v.local, Usage::Mut)));
+    let mut vir = normalize(&vir);
+    analyze(&mut vir);
+    for var in self.vars.values() {
+      vir.interfaces[InterfaceId(0)].wires.insert(var.local, (Usage::Mut, Usage::Mut));
+    }
+    emitter.emit_vir(name.clone(), &vir);
 
     self.host.insert_nets(&emitter.nets);
 
@@ -185,10 +218,10 @@ impl<'core, 'ctx, 'ivm> Repl<'core, 'ctx, 'ivm> {
       let n = unsafe { self.ivm.new_node(Tag::Comb, label) };
       let m = unsafe { self.ivm.new_node(Tag::Comb, label) };
       self.ivm.link_wire(cur, n.0);
-      self.ivm.link_wire(n.2, m.0);
-      let value = replace(&mut var.value, Port::new_wire(m.1));
-      self.ivm.link_wire(n.1, value);
-      cur = m.2;
+      self.ivm.link_wire(n.1, m.0);
+      let value = replace(&mut var.value, Port::new_wire(m.2));
+      self.ivm.link_wire(m.1, value);
+      cur = n.2;
     }
 
     let out = cur;
@@ -369,6 +402,18 @@ impl Display for Repl<'_, '_, '_> {
           "{} = {}",
           ident.0 .0,
           self.show(&mut Type::Var(self.checker_state.locals[local]), &value)
+        )?;
+      }
+      let space = self.host.read(self.ivm, &var.space);
+      if space != Tree::Erase {
+        writeln!(
+          f,
+          "~{} = {}",
+          ident.0 .0,
+          self.show(
+            &mut Type::Inverse(Box::new(Type::Var(self.checker_state.locals[local]))),
+            &space
+          )
         )?;
       }
     }

@@ -192,6 +192,13 @@ impl<I: Idx, T> IdxVec<I, T> {
   pub fn drain(&mut self) -> Map<Enumerate<vec::Drain<T>>, MapEntry<I, T>> {
     self.vec.drain(..).enumerate().map(map_entry)
   }
+
+  pub fn fill(&mut self, value: T)
+  where
+    T: Clone,
+  {
+    self.vec.fill(value);
+  }
 }
 
 impl<I: Idx, T> Index<I> for IdxVec<I, T> {
