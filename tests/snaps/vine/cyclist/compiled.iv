@@ -42,7 +42,7 @@
 
 ::cyclist::cycle {
   fn(ref(w3 w19) fn(w5 w15))
-  ::std::list::List::len = fn(ref(w3 w10) dup36(?(::cyclist::cycle::4 ::cyclist::cycle::3 x(x(w10 w19) x(w5 x(w16 w15)))) w16))
+  ::std::list::List::len = fn(ref(w3 w9) dup36(?(::cyclist::cycle::4 ::cyclist::cycle::3 x(x(w9 w19) x(w5 x(w16 w15)))) w16))
 }
 
 ::cyclist::cycle::3 {
@@ -56,9 +56,9 @@
 
 ::cyclist::cycle::6 {
   x(x(w15 w18) @sub(1 w12))
-  ::std::list::List::pop_front = fn(ref(w15 w2) w4)
-  ::std::option::Option::unwrap = fn(w4 w5)
-  ::std::list::List::push_back = fn(ref(w2 w7) fn(w5 _))
+  ::std::list::List::pop_front = fn(ref(w15 w1) w3)
+  ::std::option::Option::unwrap = fn(w3 w4)
+  ::std::list::List::push_back = fn(ref(w1 w7) fn(w4 _))
   ::cyclist::cycle::5 = x(x(w7 w18) w12)
 }
 
@@ -71,16 +71,16 @@
 }
 
 ::std::io::IO::print {
-  fn(ref(w3 w15) fn(tup(w8 tup(w9 _)) _))
-  ::std::io::IO::print::2 = x(x(w3 w15) x(w8 w9))
+  fn(ref(w3 w15) fn(tup(w9 tup(w10 _)) _))
+  ::std::io::IO::print::2 = x(x(w3 w15) x(w9 w10))
 }
 
 ::std::io::IO::print::2 { x(w4 x(dup528(?(::std::io::IO::print::4 ::std::io::IO::print::3 x(w4 x(w6 w1))) w6) w1)) }
 
 ::std::io::IO::print::3 {
-  x(x(w17 w21) x(@sub(1 w1) tup(w3 w4)))
-  ::std::io::IO::print_char = fn(ref(w17 w10) fn(w3 _))
-  ::std::io::IO::print::2 = x(x(w10 w21) x(w1 w4))
+  x(x(w17 w21) x(@sub(1 w1) tup(w4 w5)))
+  ::std::io::IO::print_char = fn(ref(w17 w10) fn(w4 _))
+  ::std::io::IO::print::2 = x(x(w10 w21) x(w1 w5))
 }
 
 ::std::io::IO::print::4 { x(x(w3 w3) _) }
@@ -90,15 +90,15 @@
 ::std::list::List::len { fn(ref(tup(dup634(w13 w9) w10) tup(w9 w10)) w13) }
 
 ::std::list::List::map {
-  fn(tup(dup701(w9 w23) tup(w3 _)) fn(w5 tup(w9 tup(w13 w20))))
-  ::std::list::List::map::2 = x(w23 x(w3 x(w5 x(w13 w20))))
+  fn(tup(dup701(w8 w23) tup(w3 _)) fn(w5 tup(w8 tup(w12 w20))))
+  ::std::list::List::map::2 = x(w23 x(w3 x(w5 x(w12 w20))))
 }
 
 ::std::list::List::map::2 { x(dup712(?(::std::list::List::map::4 ::std::list::List::map::3 x(w10 w4)) w10) w4) }
 
 ::std::list::List::map::3 {
-  x(@sub(1 w18) x(tup(w0 w1) x(dup721(fn(w0 w9) w26) x(tup(w9 w11) w25))))
-  ::std::list::List::map::2 = x(w18 x(w1 x(w26 x(w11 w25))))
+  x(@sub(1 w18) x(tup(w1 w2) x(dup721(fn(w1 w9) w26) x(tup(w9 w11) w25))))
+  ::std::list::List::map::2 = x(w18 x(w2 x(w26 x(w11 w25))))
 }
 
 ::std::list::List::map::4 { x(_ x(_ x(_ x(w1 w1)))) }
@@ -106,13 +106,13 @@
 ::std::list::List::pop_front { fn(ref(tup(dup731(?(::std::list::List::pop_front::4 ::std::list::List::pop_front::3 x(x(w17 w18) x(x(w5 w16) w14))) w17) tup(w5 w6)) tup(w18 tup(w16 w6))) w14) }
 
 ::std::list::List::pop_front::3 {
-  x(x(@sub(1 w1) w1) x(x(tup(w2 w3) w3) w9))
-  ::std::option::Option::Some = fn(w2 w9)
+  x(x(@sub(1 w1) w1) x(x(tup(w3 w4) w4) w9))
+  ::std::option::Option::Some = fn(w3 w9)
 }
 
 ::std::list::List::pop_front::4 { x(x(w4 w4) x(x(w2 w2) ::std::option::Option::None)) }
 
-::std::list::List::concat { fn(tup(@add(w11 w20) tup(w7 w12)) fn(tup(w11 tup(w12 w23)) tup(w20 tup(w7 w23)))) }
+::std::list::List::concat { fn(tup(@add(w12 w20) tup(w8 w13)) fn(tup(w12 tup(w13 w23)) tup(w20 tup(w8 w23)))) }
 
 ::std::list::List::push_back {
   fn(ref(w3 w11) fn(w5 _))
@@ -121,8 +121,8 @@
 
 ::std::list::List::join {
   fn(w2 fn(w3 w15))
-  ::std::list::List::into_iter = fn(w2 w8)
-  ::std::list::List::IntoIter::next = fn(ref(w8 w11) enum(::std::list::List::join::5 enum(::std::list::List::join::6 x(w3 x(w11 w15)))))
+  ::std::list::List::into_iter = fn(w2 w7)
+  ::std::list::List::IntoIter::next = fn(ref(w7 w11) enum(::std::list::List::join::5 enum(::std::list::List::join::6 x(w3 x(w11 w15)))))
 }
 
 ::std::list::List::join::5 {
@@ -159,8 +159,8 @@
 ::std::list::List::IntoIter::next { fn(ref(tup(dup927(?(::std::list::List::IntoIter::next::4 ::std::list::List::IntoIter::next::3 x(x(w16 w17) x(x(w5 w15) w13))) w16) w5) tup(w17 w15)) w13) }
 
 ::std::list::List::IntoIter::next::3 {
-  x(x(@sub(1 w1) w1) x(x(tup(w2 w3) w3) w9))
-  ::std::option::Option::Some = fn(w2 w9)
+  x(x(@sub(1 w1) w1) x(x(tup(w3 w4) w4) w9))
+  ::std::option::Option::Some = fn(w3 w9)
 }
 
 ::std::list::List::IntoIter::next::4 { x(x(w4 w4) x(x(w2 w2) ::std::option::Option::None)) }
