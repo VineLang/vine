@@ -140,11 +140,17 @@ impl<'core, 'r> Checker<'core, 'r> {
   fn check_block(&mut self, block: &mut Block<'core>) -> Type {
     let mut ty = Type::UNIT;
     for stmt in block.stmts.iter_mut() {
+      ty = Type::UNIT;
       match &mut stmt.kind {
         StmtKind::Let(l) => {
-          let mut ty = self.check_pat_annotation(&mut l.bind, l.ty.as_mut(), Form::Value, false);
+          let refutable = l.else_block.is_some();
+          let mut let_ty =
+            self.check_pat_annotation(&mut l.bind, l.ty.as_mut(), Form::Value, refutable);
           if let Some(value) = &mut l.init {
-            self.check_expr_form_type(value, Form::Value, &mut ty);
+            self.check_expr_form_type(value, Form::Value, &mut let_ty);
+          }
+          if let Some(block) = &mut l.else_block {
+            self.check_block_type(block, &mut Type::Never);
           }
         }
         StmtKind::DynFn(d) => {
@@ -162,7 +168,6 @@ impl<'core, 'r> Checker<'core, 'r> {
           self.check_block_type(&mut d.body, &mut ret);
           self.return_ty = old;
           self.state.dyn_fns.insert(d.id.unwrap(), Type::Fn(params, Box::new(ret)));
-          ty = Type::UNIT;
         }
         StmtKind::Expr(e, semi) => {
           ty = self.check_expr_form(e, Form::Value);
@@ -170,7 +175,7 @@ impl<'core, 'r> Checker<'core, 'r> {
             ty = Type::UNIT;
           }
         }
-        StmtKind::Item(_) | StmtKind::Empty => ty = Type::UNIT,
+        StmtKind::Item(_) | StmtKind::Empty => {}
       }
     }
     ty
@@ -318,6 +323,7 @@ pub enum Type {
   Adt(DefId, Vec<Type>),
   Opaque(usize),
   Var(Var),
+  Never,
   Error(ErrorGuaranteed),
 }
 
@@ -341,6 +347,7 @@ impl Type {
       Type::Adt(def, tys) => Type::Adt(*def, tys.iter().map(|t| t.instantiate(opaque)).collect()),
       Type::Opaque(n) => opaque[*n].clone(),
       Type::Error(e) => Type::Error(*e),
+      Type::Never => Type::Never,
       Type::Var(_) => unreachable!(),
     }
   }

@@ -737,8 +737,9 @@ impl<'core, 'src> VineParser<'core, 'src> {
     let bind = self.parse_pat()?;
     let ty = self.eat(Token::Colon)?.then(|| self.parse_type()).transpose()?;
     let init = self.eat(Token::Eq)?.then(|| self.parse_expr()).transpose()?;
+    let else_block = self.eat(Token::Else)?.then(|| self.parse_block()).transpose()?;
     self.eat(Token::Semi)?;
-    Ok(LetStmt { bind, ty, init })
+    Ok(LetStmt { bind, ty, init, else_block })
   }
 
   fn parse_dyn_fn_stmt(&mut self) -> Parse<'core, DynFnStmt<'core>> {

@@ -75,6 +75,7 @@ impl<'core> Checker<'core, '_> {
         Ok(t) => self._display_type(t, str),
         _ => write!(str, "?{v:?}").unwrap(),
       },
+      Type::Never => *str += "!",
       Type::Error(_) => *str += "??",
     }
   }

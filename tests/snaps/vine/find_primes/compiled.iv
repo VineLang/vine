@@ -43,23 +43,23 @@
 }
 
 ::std::io::IO::print {
-  fn(ref(w3 w15) fn(tup(w8 tup(w9 _)) _))
-  ::std::io::IO::print::2 = x(x(w3 w15) x(w8 w9))
+  fn(ref(w3 w15) fn(tup(w9 tup(w10 _)) _))
+  ::std::io::IO::print::2 = x(x(w3 w15) x(w9 w10))
 }
 
 ::std::io::IO::print::2 { x(w4 x(dup517(?(::std::io::IO::print::4 ::std::io::IO::print::3 x(w4 x(w6 w1))) w6) w1)) }
 
 ::std::io::IO::print::3 {
-  x(x(w17 w21) x(@sub(1 w1) tup(w3 w4)))
-  ::std::io::IO::print_char = fn(ref(w17 w10) fn(w3 _))
-  ::std::io::IO::print::2 = x(x(w10 w21) x(w1 w4))
+  x(x(w17 w21) x(@sub(1 w1) tup(w4 w5)))
+  ::std::io::IO::print_char = fn(ref(w17 w10) fn(w4 _))
+  ::std::io::IO::print::2 = x(x(w10 w21) x(w1 w5))
 }
 
 ::std::io::IO::print::4 { x(x(w3 w3) _) }
 
 ::std::io::IO::print_char { fn(ref(@io_print_char(char io) io) fn(char _)) }
 
-::std::list::List::concat { fn(tup(@add(w11 w20) tup(w7 w12)) fn(tup(w11 tup(w12 w23)) tup(w20 tup(w7 w23)))) }
+::std::list::List::concat { fn(tup(@add(w12 w20) tup(w8 w13)) fn(tup(w12 tup(w13 w23)) tup(w20 tup(w8 w23)))) }
 
 ::std::n32::N32::to_string { fn(dup2210(?(::std::n32::N32::to_string::4 ::std::n32::N32::to_string::3 x(w8 w7)) w8) w7) }
 

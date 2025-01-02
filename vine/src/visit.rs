@@ -208,6 +208,9 @@ pub trait VisitMut<'core, 'a> {
         if let Some(init) = &mut l.init {
           self.visit_expr(init);
         }
+        if let Some(block) = &mut l.else_block {
+          self.visit_block(block);
+        }
         self.visit_pat(&mut l.bind);
       }
       StmtKind::DynFn(d) => {

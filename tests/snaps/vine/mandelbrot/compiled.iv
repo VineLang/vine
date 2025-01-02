@@ -41,12 +41,12 @@
 ::mandelbrot::main::5 { x(w5 x(w3 dup59(@lt(125 ?(::mandelbrot::main::7 ::mandelbrot::main::6 x(w5 x(w3 w6)))) w6))) }
 
 ::mandelbrot::main::6 {
-  x(x(w25 w33) x(dup63(w5 w31) dup64(w4 @add(1 w21))))
-  +2.6 = @div(125 @mul(w10 @mul(tup(+1.0 +2.0) w13)))
-  tup(w4 w5) = @add(+0.5 @sub(w9 w10))
-  tup(125 45) = @div(+2.0 w9)
-  ::mandelbrot::center = @add(w13 tup(w0 w1))
-  ::mandelbrot = fn(w0 fn(w1 ?(32 35 w29)))
+  x(x(w25 w33) x(dup63(w2 w31) dup64(w1 @add(1 w21))))
+  +2.6 = @div(125 @mul(w7 @mul(tup(+1.0 +2.0) w10)))
+  tup(w1 w2) = @add(+0.5 @sub(w6 w7))
+  tup(125 45) = @div(+2.0 w6)
+  ::mandelbrot::center = @add(w10 tup(w12 w13))
+  ::mandelbrot = fn(w12 fn(w13 ?(32 35 w29)))
   ::std::io::IO::print_char = fn(ref(w25 w16) fn(w29 _))
   ::mandelbrot::main::5 = x(x(w16 w33) x(w31 w21))
 }

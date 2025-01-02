@@ -32,16 +32,16 @@
 }
 
 ::std::io::IO::print {
-  fn(ref(w3 w15) fn(tup(w8 tup(w9 _)) _))
-  ::std::io::IO::print::2 = x(x(w3 w15) x(w8 w9))
+  fn(ref(w3 w15) fn(tup(w9 tup(w10 _)) _))
+  ::std::io::IO::print::2 = x(x(w3 w15) x(w9 w10))
 }
 
 ::std::io::IO::print::2 { x(w4 x(dup506(?(::std::io::IO::print::4 ::std::io::IO::print::3 x(w4 x(w6 w1))) w6) w1)) }
 
 ::std::io::IO::print::3 {
-  x(x(w17 w21) x(@sub(1 w1) tup(w3 w4)))
-  ::std::io::IO::print_char = fn(ref(w17 w10) fn(w3 _))
-  ::std::io::IO::print::2 = x(x(w10 w21) x(w1 w4))
+  x(x(w17 w21) x(@sub(1 w1) tup(w4 w5)))
+  ::std::io::IO::print_char = fn(ref(w17 w10) fn(w4 _))
+  ::std::io::IO::print::2 = x(x(w10 w21) x(w1 w5))
 }
 
 ::std::io::IO::print::4 { x(x(w3 w3) _) }
@@ -51,8 +51,8 @@
 ::std::list::List::pop_front { fn(ref(tup(dup709(?(::std::list::List::pop_front::4 ::std::list::List::pop_front::3 x(x(w17 w18) x(x(w5 w16) w14))) w17) tup(w5 w6)) tup(w18 tup(w16 w6))) w14) }
 
 ::std::list::List::pop_front::3 {
-  x(x(@sub(1 w1) w1) x(x(tup(w2 w3) w3) w9))
-  ::std::option::Option::Some = fn(w2 w9)
+  x(x(@sub(1 w1) w1) x(x(tup(w3 w4) w4) w9))
+  ::std::option::Option::Some = fn(w3 w9)
 }
 
 ::std::list::List::pop_front::4 { x(x(w4 w4) x(x(w2 w2) ::std::option::Option::None)) }

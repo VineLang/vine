@@ -1,13 +1,83 @@
 use ivm::ext::ExtFnKind;
 
 use crate::{
-  ast::{Block, ComparisonOp, Expr, ExprKind, LabelId, Local, LogicalOp, Pat, PatKind, Span, Ty},
+  ast::{Block, ComparisonOp, Expr, ExprKind, LabelId, Local, LogicalOp, Pat, Stmt, StmtKind, Ty},
   vir::{Interface, InterfaceKind, Layer, Port, Stage, Step, Transfer},
 };
 
-use super::{pattern_matching::Row, Distiller, Label, Return};
+use super::{pattern_matching::Row, Distiller, DynFn, Label, Return};
 
 impl<'core, 'r> Distiller<'core, 'r> {
+  pub(super) fn distill_block(&mut self, stage: &mut Stage, block: &Block<'core>) -> Port {
+    self.distill_stmts(stage, &block.stmts)
+  }
+
+  fn distill_stmts(&mut self, stage: &mut Stage, stmts: &[Stmt<'core>]) -> Port {
+    let mut result = Port::Erase;
+    for (i, stmt) in stmts.iter().enumerate() {
+      stage.erase(result);
+      result = Port::Erase;
+      match &stmt.kind {
+        StmtKind::Let(let_) => {
+          if let Some(else_block) = &let_.else_block {
+            let local = self.new_local(stage);
+            stage.erase_local(local);
+            let (mut layer, mut init_stage) = self.child_layer(stage);
+            let value = let_
+              .init
+              .as_ref()
+              .map(|v| self.distill_expr_value(&mut init_stage, v))
+              .unwrap_or(Port::Erase);
+            let mut then_stage = self.new_unconditional_stage(&mut layer);
+            let mut else_stage = self.new_unconditional_stage(&mut layer);
+            self.distill_pattern_match(
+              &mut layer,
+              &mut init_stage,
+              value,
+              vec![
+                Row::new(&let_.bind, then_stage.interface),
+                Row::new(&Pat::HOLE, else_stage.interface),
+              ],
+            );
+            let result = self.distill_stmts(&mut then_stage, &stmts[i + 1..]);
+            then_stage.set_local_to(local, result);
+            let result = self.distill_block(&mut else_stage, else_block);
+            else_stage.erase(result);
+            self.finish_stage(init_stage);
+            self.finish_stage(then_stage);
+            self.finish_stage(else_stage);
+            self.finish_layer(layer);
+            return stage.take_local(local);
+          } else {
+            let value =
+              let_.init.as_ref().map(|v| self.distill_expr_value(stage, v)).unwrap_or(Port::Erase);
+            let pat = self.distill_pat_value(stage, &let_.bind);
+            stage.steps.push(Step::Link(pat, value));
+          }
+        }
+        StmtKind::DynFn(dyn_fn) => {
+          let local = self.new_local(stage);
+          stage.erase_local(local);
+          let (layer, mut stage) = self.root_layer();
+          *self.dyn_fns.get_or_extend(dyn_fn.id.unwrap()) =
+            Some(DynFn { interface: stage.interface, local });
+          self._distill_fn(&mut stage, local, &dyn_fn.params, &dyn_fn.body, Self::distill_block);
+          self.finish_stage(stage);
+          self.finish_layer(layer);
+        }
+        StmtKind::Expr(expr, semi) => {
+          result = self.distill_expr_value(stage, expr);
+          if *semi {
+            stage.erase(result);
+            result = Port::Erase;
+          }
+        }
+        StmtKind::Item(_) | StmtKind::Empty => {}
+      }
+    }
+    result
+  }
+
   pub(super) fn distill_match(
     &mut self,
     stage: &mut Stage,
@@ -308,10 +378,7 @@ impl<'core, 'r> Distiller<'core, 'r> {
           layer,
           stage,
           value,
-          vec![
-            Row::new(pat, true_stage.interface),
-            Row::new(&Pat { span: Span::NONE, kind: PatKind::Hole }, false_stage.interface),
-          ],
+          vec![Row::new(pat, true_stage.interface), Row::new(&Pat::HOLE, false_stage.interface)],
         );
         (true_stage, false_stage)
       }

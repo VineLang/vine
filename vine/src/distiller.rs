@@ -9,8 +9,8 @@ use vine_util::{
 use crate::{
   analyzer::usage::Usage,
   ast::{
-    BinaryOp, Block, Builtin, ComparisonOp, DynFnId, Expr, ExprKind, GenericPath, LabelId, Local,
-    Pat, PatKind, StmtKind,
+    BinaryOp, Builtin, ComparisonOp, DynFnId, Expr, ExprKind, GenericPath, LabelId, Local, Pat,
+    PatKind,
   },
   resolver::{Def, DefId, Resolver, ValueDefKind},
   vir::{
@@ -98,41 +98,6 @@ impl<'core, 'r> Distiller<'core, 'r> {
       locals: self.locals,
       globals: vec![(local, Usage::Take)],
     }
-  }
-
-  fn distill_block(&mut self, stage: &mut Stage, block: &Block<'core>) -> Port {
-    let mut result = Port::Erase;
-    for stmt in &block.stmts {
-      stage.erase(result);
-      result = Port::Erase;
-      match &stmt.kind {
-        StmtKind::Let(let_) => {
-          let pat = self.distill_pat_value(stage, &let_.bind);
-          let value =
-            let_.init.as_ref().map(|v| self.distill_expr_value(stage, v)).unwrap_or(Port::Erase);
-          stage.steps.push(Step::Link(pat, value));
-        }
-        StmtKind::DynFn(dyn_fn) => {
-          let local = self.new_local(stage);
-          stage.erase_local(local);
-          let (layer, mut stage) = self.root_layer();
-          *self.dyn_fns.get_or_extend(dyn_fn.id.unwrap()) =
-            Some(DynFn { interface: stage.interface, local });
-          self._distill_fn(&mut stage, local, &dyn_fn.params, &dyn_fn.body, Self::distill_block);
-          self.finish_stage(stage);
-          self.finish_layer(layer);
-        }
-        StmtKind::Expr(expr, semi) => {
-          result = self.distill_expr_value(stage, expr);
-          if *semi {
-            stage.erase(result);
-            result = Port::Erase;
-          }
-        }
-        StmtKind::Item(_) | StmtKind::Empty => {}
-      }
-    }
-    result
   }
 
   fn distill_expr_value(&mut self, stage: &mut Stage, expr: &Expr<'core>) -> Port {
