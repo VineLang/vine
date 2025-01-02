@@ -50,7 +50,7 @@
     "**/*.vi",
     "**/*.iv"
   ],
-  "ignorePaths": ["tests/snaps"],
+  "ignorePaths": ["tests/snaps", "tests/programs/aoc_2024"],
   "ignoreRegExpList": [
     "HexValues"
   ],
