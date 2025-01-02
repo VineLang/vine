@@ -1,0 +1,48 @@
+
+use std::{option::Option::{Option, Some, None}, result::Result::{Result, Ok, Err}, n64::N64};
+
+pub fn main(&io: &IO) {
+  let part1 = N64::from_n32(0);
+  let part2 = N64::from_n32(0);
+  while io.read_line() is Some(line) {
+    let (goal, rest) = line.split_once(": ");
+    let goal = N64::parse(goal).unwrap();
+    let nums = rest.unwrap().split(" ");
+    let results = [N64::from_n32(N32::parse(nums.pop_front().unwrap()).unwrap())];
+    let results2 = [];
+    while nums.pop_front() is Some(num) {
+      let len = num.len();
+      let num = N64::from_n32(N32::parse(num).unwrap());
+      let add = results.map(fn(x: N64) x.add(num));
+      let mul = results.map(fn(x: N64) x.mul(num));
+      let pow = 1;
+      while len > 0 {
+        pow *= 10;
+        len -= 1;
+      }
+      let add2 = results2.map(fn(x: N64) x.add(num));
+      let mul2 = results2.map(fn(x: N64) x.mul(num));
+      let concat = (results ++ results2).map(fn(x: N64) x.mul(N64::from_n32(pow)).add(num));
+      results = add ++ mul;
+      results2 = add2 ++ mul2 ++ concat;
+    }
+    do.search {
+      while results.pop_front() is Some(num) {
+        if N64::eq(num, goal) {
+          part1 = N64::add(part1, goal);
+          part2 = N64::add(part2, goal);
+          break.search;
+        }
+      }
+      while results2.pop_front() is Some(num) {
+        if N64::eq(num, goal) {
+          part2 = N64::add(part2, goal);
+          break.search;
+        }
+      }
+    }
+  }
+
+  io.println("Part 1: " ++ part1.to_string());
+  io.println("Part 2: " ++ part2.to_string());
+}

@@ -1,0 +1,54 @@
+
+use std::{option::Option::Some, map::{Map, Cmp, Ord}, tuple::Pair};
+
+pub fn main(&io: &IO) {
+  let input = io.full_input();
+
+  let antennas = Map::new[_, List[(N32, N32)]](Char::cmp);
+  let antinodes1 = Map::new(Pair::cmp(N32::cmp, N32::cmp));
+  let antinodes2 = Map::new(Pair::cmp(N32::cmp, N32::cmp));
+
+  let grid = input.split_trim("\n");
+
+  let width = (*grid.get(0)).len();
+  let height = grid.len();
+
+  dyn fn check_antinode((x, y): (N32, N32)) {
+    if x < width && y < height {
+      antinodes1.insert((x, y), ());
+    }
+  }
+
+  dyn fn check_dir((x, y): (N32, N32), dir: (N32, N32)) {
+    while x < width && y < height {
+      antinodes2.insert((x, y), ());
+      (x, y) += dir;
+    }
+  }
+
+  let y = 0;
+  while grid.pop_front() is Some(row) {
+    let x = 0;
+    while row.pop_front() is Some(frequency) {
+      if frequency != '.' {
+        let &antennas = antennas.get_or_insert(frequency, []);
+        let pos = (x, y);
+        let iter = antennas.into_iter();
+        while iter.next() is Some(other_pos) {
+          check_antinode(pos + pos - other_pos);
+          check_antinode(other_pos + other_pos - pos);
+          let (X, Y) = other_pos;
+          let dir = (pos - other_pos) / N32::gcd(x.diff(X), y.diff(Y));
+          check_dir(pos, dir);
+          check_dir(pos - dir, -dir);
+        }
+        antennas.push_back(pos);
+      }
+      x += 1;
+    }
+    y += 1;
+  }
+
+  io.println("Part 1: " ++ antinodes1.len().to_string());
+  io.println("Part 2: " ++ antinodes2.len().to_string());
+}

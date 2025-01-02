@@ -1,0 +1,75 @@
+
+use std::{option::Option::{Option, Some, None}, array::Array, map::Map, n64::N64};
+
+pub fn main(&io: &IO) {
+  let map = Map::new(String::cmp);
+
+  while io.read_line() is Some(line) && line.len() != 0 {
+    let (name, value) = line.split_once(": ");
+    let value = *(value.unwrap(); _).get(0) == '1';
+    map.insert(name, Wire::input(value));
+  }
+
+  dyn fn get_wire(wire) {
+    map.get_or_insert(wire, Wire::new())
+  }
+
+  while io.read_line() is Some(line) {
+    let pieces = line.split(" ");
+    let wire_a = move *pieces.get(0);
+    let wire_b = move *pieces.get(2);
+    let wire_out = move *pieces.get(4);
+    let a = (*get_wire(wire_a)).get();
+    let b = (*get_wire(wire_b)).get();
+    let op = *(*pieces.get(1)).get(0);
+    let out = if op == 'A' {
+      a & b
+    } else if op == 'O' {
+      a | b
+    } else {
+      a ^ b
+    };
+    (*get_wire(wire_out)).set(out);
+  }
+
+  let part1 = N64::zero;
+  let &~n = &part1;
+  let i = 0;
+  loop {
+    let wire = ['z', '0' + i / 10, '0' + i % 10];
+    if map.get(&wire) is Some(&wire) {
+      let bit = if wire.get() {
+        N64::one
+      } else {
+        N64::zero
+      };
+      ~n ~= (~n).shl(1).or(bit);
+      i += 1;
+    } else {
+      break;
+    }
+  }
+
+  io.println("Part 1: " ++ part1.to_string());
+}
+
+struct Wire(~Bool, Bool);
+
+mod Wire {
+  pub fn new() -> Wire {
+    let x;
+    Wire(move ~x, x)
+  }
+
+  pub fn input(value: Bool) -> Wire {
+    Wire(~_, value)
+  }
+
+  pub fn get(&Wire(_, value): &Wire) -> Bool {
+    value
+  }
+
+  pub fn set(&Wire(~out, _): &Wire, value: Bool) {
+    out = value;
+  }
+}

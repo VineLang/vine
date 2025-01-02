@@ -1,0 +1,61 @@
+
+use std::{
+  option::Option::{Option, Some, None},
+  result::Result::{Result, Ok, Err},
+  map::Map,
+  n64::N64,
+};
+
+const max: N32 = 75;
+
+pub fn main(&io: &IO) {
+  let input = io.read_line().unwrap();
+
+  let stones = Map::new(N64::cmp);
+  let input = input.split(" ");
+  while input.pop_front() is Some(stone) {
+    let stone = N64::from_n32(N32::parse(stone).unwrap());
+    stones.insert(stone, N64::one);
+  }
+
+  let i = 0;
+  while i < max {
+    stones = blink(&io, stones);
+    i += 1;
+    io.println(i.to_string() ++ ": " ++ count(&stones).to_string());
+  }
+}
+
+fn blink(&io: &IO, old: Map[N64, N64]) -> Map[N64, N64] {
+  let new = Map::new(N64::cmp);
+  let iter = old.into_iter();
+  dyn fn add_stones(number: N64, count: N64) {
+    let &c = new.get_or_insert(number, N64::zero);
+    c = c.add(count);
+  }
+  while iter.next() is Some((number, count)) {
+    if number.eq(N64::zero) {
+      add_stones(N64::one, count);
+    } else {
+      let digits = number.log_n32(10) + 1;
+      if digits % 2 == 0 {
+        let d = (10).pow(digits / 2);
+        let (a, b) = number.div_rem_n32(d);
+        add_stones(a, count);
+        add_stones(N64::from_n32(b), count);
+      } else {
+        add_stones(number.mul(N64::from_n32(2024)), count);
+      }
+    }
+  }
+  new
+}
+
+fn count(&stones: &Map[N64, N64]) -> N64 {
+  let n = N64::zero;
+  let iter = stones.iter();
+  while iter.next() is Some(&(_, count)) {
+    n = n.add(count);
+  }
+  n
+}

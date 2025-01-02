@@ -1,0 +1,36 @@
+
+use std::{option::Option::{Option, Some, None}, result::Result::{Result, Ok, Err}};
+
+pub fn main(&io: &IO) {
+  let input = io.full_input();
+
+  let part1 = get_muls(input);
+
+  io.println("Part 1: " ++ part1.to_string());
+
+  let part2 = get_muls(input.split("do()").map(fn(x: String) {
+    let (a, _) = x.split_once("don't()");
+    a
+  }).join(""));
+
+  io.println("Part 2: " ++ part2.to_string());
+}
+
+fn get_muls(input: String) -> N32 {
+  let segments = input.split("mul(");
+  segments.pop_front();
+
+  let sum = 0;
+  while segments.pop_front() is Some(segment) {
+    if segment.split_once(")") is (args, Some(_)) {
+      if args.split_once(",") is (first, Some(second)) {
+        if N32::parse(first) is Some(a) {
+          if N32::parse(second) is Some(b) {
+            sum += a * b;
+          }
+        }
+      }
+    }
+  }
+  sum
+}

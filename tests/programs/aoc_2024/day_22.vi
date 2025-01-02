@@ -1,0 +1,56 @@
+
+use std::{
+  option::Option::{Option, Some, None},
+  result::Result::{Result, Ok, Err},
+  n64::N64,
+  map::Map,
+  tuple::Pair,
+};
+
+pub fn main(&io: &IO) {
+  let map = Map::new(N32::cmp);
+
+  let part1 = N64::zero;
+
+  let buyer = 0;
+  while io.read_line() is Some(secret) {
+    let (a, b, c, d) = (0, 0, 0, 0);
+    let secret = N32::parse(secret).unwrap();
+    let i = 0;
+    let last_price = 0;
+    while i < 2000 {
+      evolve(&secret);
+      let price = secret % 10;
+      (a, b, c, d) = (b, c, d, price - last_price);
+      last_price = price;
+      if i >= 4 {
+        let &(bananas, last_changed) = map.get_or_insert(((a * 20 + b) * 20 + c) * 20 + d, (0, -1));
+        if last_changed != buyer {
+          bananas += price;
+          last_changed = buyer;
+        }
+      }
+      i += 1;
+    }
+    part1 = part1.add(N64::from_n32(secret));
+    buyer += 1;
+  }
+
+  io.println("Part 1: " ++ part1.to_string());
+
+  io.println(map.len().to_string());
+
+  let part2 = 0;
+  let iter = map.into_iter();
+  while iter.next() is Some((_, (bananas, _))) {
+    part2 = part2.max(bananas);
+  }
+
+  io.println("Part 2: " ++ part2.to_string());
+}
+
+fn evolve(&secret: &N32) {
+  secret = (secret ^ secret << 6) & 16777215;
+  secret = (secret ^ secret >> 5) & 16777215;
+  secret = (secret ^ secret << 11) & 16777215;
+}

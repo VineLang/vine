@@ -1,0 +1,108 @@
+
+use std::{
+  option::Option::{Option, Some, None},
+  result::Result::{Result, Ok, Err},
+  array::Array,
+  map::Map,
+};
+
+pub fn main(&io: &IO) {
+  let grid = [];
+  let start;
+  let end;
+  while io.read_line() is Some(line) {
+    let row = [];
+    while line.pop_front() is Some(char) {
+      if char == 'S' {
+        start = (row.len(), grid.len());
+      } else if char == 'E' {
+        end = (row.len(), grid.len());
+      }
+      row.push_back((char != '#', [(-1, ~_), (-1, ~_), (-1, ~_), (-1, ~_)], false));
+    }
+    grid.push_back(Array::from_list(row));
+  }
+  let grid = Array::from_list(grid);
+
+  let pq = Map::new(N32::cmp);
+  pq.insert(0, [(start, 0)]);
+
+  dyn fn try_insert(dist: N32, pos: (N32, N32), dir) {
+    let (x, y) = pos;
+    let &(passable, dirs, _) = (*grid.get(y)).get(x);
+    if passable {
+      let &(min_dist, used) = dirs.get(dir);
+      if dist < min_dist {
+        ~used = false;
+        min_dist = dist;
+        (*pq.get_or_insert(dist, [])).push_back((pos, dir))
+      }
+      if dist == min_dist {
+        ~used
+      } else {
+        false
+      }
+    } else {
+      false
+    }
+  }
+
+  let part1 = 0;
+  let part2 = 0;
+  let done = false;
+  while !done && pq.remove_min() is Some((dist, heads)) {
+    while heads.pop_front() is Some((pos, dir)) {
+      let (px, py) = pos;
+      let &(_, dirs, counted) = (*grid.get(py)).get(px);
+      let &(min_dist, ~used) = dirs.get(dir);
+      if dist <= min_dist {
+        min_dist = dist;
+        let (ex, ey) = end;
+        if px == ex && py == ey {
+          used = true;
+          done = true;
+          part1 = dist;
+        }
+        if !done {
+          let dir_l = (dir + 3) % 4;
+          let dir_r = (dir + 1) % 4;
+          used |= try_insert(dist + 1, pos + delta(dir), dir);
+          used |= try_insert(dist + 1000, pos, dir_l);
+          used |= try_insert(dist + 1000, pos, dir_r);
+        }
+        if used && !counted {
+          part2 += 1;
+          counted = true;
+        }
+      }
+    }
+  }
+
+  let grid = grid.to_list();
+  while grid.pop_front() is Some(row) {
+    let row = row.to_list();
+    while row.pop_front() is Some((_, dirs, _)) {
+      while dirs.pop_front() is Some(x) {
+        let (_, ~used) = x;
+        used = false;
+      }
+    }
+  }
+
+  io.println("Part 1: " ++ part1.to_string());
+
+  io.println("Part 2: " ++ part2.to_string());
+}
+
+fn delta(dir: N32) -> (N32, N32) {
+  let x = if dir & 2 == 0 {
+    1
+  } else {
+    -1
+  };
+  if dir & 1 == 0 {
+    (x, 0)
+  } else {
+    (0, x)
+  }
+}

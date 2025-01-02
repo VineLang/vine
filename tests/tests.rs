@@ -68,6 +68,12 @@ fn tests(t: &mut DynTester) {
     test_vi(t, "tests/programs/square_case.vi", b"", ".txt");
     test_vi(t, "tests/programs/verbose_add.vi", b"", ".txt");
 
+    for (name, _) in t.glob_in("programs/aoc_2024/", "*.vi") {
+      let name: String = name.into();
+      let input = fs::read(format!("tests/programs/aoc_2024/input/{name}")).unwrap();
+      test_vi(t, leak(format!("tests/programs/aoc_2024/{name}.vi")), leak(input), ".txt");
+    }
+
     t.group("fail", |t| {
       test_vi_fail(t, "tests/programs/fail/atypical.vi");
       test_vi_fail(t, "tests/programs/fail/hallo_world.vi");
@@ -90,8 +96,10 @@ const VINE: &[&str] = &["vine"];
 const IVY: &[&str] = &["ivy", "--release"];
 
 fn test_vi(t: &mut DynTester, path: &'static str, input: &'static [u8], output_ext: &'static str) {
-  let name = Path::file_stem(path.as_ref()).unwrap().to_str().unwrap();
-  t.group(name, |t| {
+  let name =
+    path.strip_prefix("tests/programs/").or(path.strip_prefix("vine/examples/")).unwrap_or(path);
+  let name = name.strip_suffix(".vi").unwrap_or(name);
+  t.group(AsRef::<Path>::as_ref(name), |t| {
     let (sender, receiver) = channel();
     t.test("compile", move || {
       let (stdout, stderr) = exec(VINE, &["build", path], &[], true);
@@ -200,4 +208,8 @@ fn parallel_read(mut read: impl Read + Send + 'static) -> JoinHandle<Vec<u8>> {
     read.read_to_end(&mut buf).unwrap();
     buf
   })
+}
+
+fn leak<T: AsRef<U> + 'static, U: ?Sized>(value: T) -> &'static U {
+  (*Box::leak(Box::new(value))).as_ref()
 }

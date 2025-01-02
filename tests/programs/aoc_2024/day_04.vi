@@ -1,0 +1,174 @@
+
+use std::{option::Option::{Option, Some, None}, result::Result::{Result, Ok, Err}};
+
+pub fn main(&io: &IO) {
+  let lines = [];
+  while io.read_line() is Some(line) {
+    lines ++= [line];
+  }
+
+  let matches = diamond(
+    lines,
+    fn(char: Char, Neighbors(nw, n, ne, w, e, sw, s, se): Neighbors[Char], &matches: &N32) {
+      if char == 'X' {
+        nw.send('X');
+        n.send('X');
+        ne.send('X');
+        w.send('X');
+        e.send('X');
+        sw.send('X');
+        s.send('X');
+        se.send('X');
+      } else if char == 'M' || char == 'A' {
+        let recv = if char == 'M' {
+          'X'
+        } else {
+          'M'
+        };
+        relay(nw, se, recv, char);
+        relay(n, s, recv, char);
+        relay(ne, sw, recv, char);
+        relay(w, e, recv, char);
+      } else if char == 'S' {
+        matches += check(nw, 'A') + check(ne, 'A') + check(sw, 'A') + check(se, 'A');
+        let x = check(n, 'A') + check(s, 'A') + check(w, 'A') + check(e, 'A');
+        matches += x;
+      }
+    },
+    '.',
+    0,
+  );
+
+  io.println("XMAS: " ++ matches.to_string());
+
+  let matches = diamond(
+    lines,
+    fn(char: Char, Neighbors(nw, _, ne, _, _, sw, _, se): Neighbors[Char], &matches: &N32) {
+      if char == 'A' {
+        let nw = nw.send('A');
+        let ne = ne.send('A');
+        let sw = sw.send('A');
+        let se = se.send('A');
+        if ((nw == 'M' && se == 'S') || (nw == 'S' && se == 'M')) && (
+          (sw == 'M' && ne == 'S') || (sw == 'S' && ne == 'M')
+        ) {
+          matches += 1;
+        }
+      } else {
+        nw.send(char);
+        ne.send(char);
+        sw.send(char);
+        se.send(char);
+      }
+    },
+    '.',
+    0,
+  );
+
+  io.println("X-MAS: " ++ matches.to_string());
+}
+
+struct Channel[M](M, ~M);
+
+mod Channel {
+  pub fn send[M](Channel(got, ~out): Channel[M], value: M) -> M {
+    out = value;
+    got
+  }
+
+  pub fn get[M](&Channel(i, _): &Channel[M]) -> M {
+    i
+  }
+}
+
+fn relay(Channel(ai, ~ao): Channel[Char], Channel(bi, ~bo): Channel[Char], recv: Char, send: Char) {
+  bo = if ai == recv {
+    send
+  } else {
+    '_'
+  };
+  ao = if bi == recv {
+    send
+  } else {
+    '_'
+  };
+}
+
+fn check(Channel(i, ~o): Channel[Char], recv: Char) -> N32 {
+  o = '_';
+  if i == recv {
+    1
+  } else {
+    0
+  }
+}
+
+struct Neighbors[M](
+  Channel[M],
+  Channel[M],
+  Channel[M],
+  Channel[M],
+  Channel[M],
+  Channel[M],
+  Channel[M],
+  Channel[M],
+);
+
+fn diamond[T, M, X](grid: List[List[T]], f: fn(T, Neighbors[M], &X), d: M, state: X) -> X {
+  let width = (*grid.get(0)).len();
+  let north = List::new(width, neglect_channel(d));
+  let north_west = List::new(width, neglect_channel(d));
+  let north_east = List::new(width, neglect_channel(d));
+  while grid.pop_front() is Some(row) {
+    let west = neglect_channel(d);
+    {
+      let north = north.iter();
+      let north_west = north_west.iter();
+      let ~north_east = north_east.iter();
+      (~north_east).drop()
+      while row.pop_front() is Some(cell) {
+        let (w, e) = foo_channel(&west);
+        let (n, s) = foo_channel(north.next().unwrap());
+        let (nw, se) = foo_channel(north_west.next().unwrap());
+        let (ne, sw) = foo_channel((~north_east).next().unwrap());
+        f(cell, Neighbors(nw, n, ne, w, e, sw, s, se), &state);
+      }
+      north.drop()
+      north_west.drop()
+    }
+    west.send(d);
+    north_west.pop_front().unwrap().send(d);
+    north_west ++= [neglect_channel(d)];
+    north_east.pop_front().unwrap().send(d);
+    north_east ++= [neglect_channel(d)];
+  }
+  drop_all(north, d);
+  drop_all(north_west, d);
+  drop_all(north_east, d);
+  state
+}
+
+fn drop_all[M](c: List[Channel[M]], d: M) {
+  while c.pop_front() is Some(c) {
+    c.send(d);
+  }
+}
+
+fn foo_channel[M](&c: &Channel[M]) -> (Channel[M], Channel[M]) {
+  let x = c;
+  let (a, b) = new_channel();
+  c = a;
+  (x, b)
+}
+
+fn new_channel[M]() -> (Channel[M], Channel[M]) {
+  let a;
+  let b;
+  let x = ~a;
+  let y = ~b;
+  (Channel(a, y), Channel(b, x))
+}
+
+fn neglect_channel[M](d: M) -> Channel[M] {
+  Channel(d, ~_)
+}

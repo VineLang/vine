@@ -1,0 +1,100 @@
+
+use std::{
+  option::Option::{Option, Some, None},
+  result::Result::{Result, Ok, Err},
+  n64::N64,
+  tuple::Pair,
+};
+
+pub fn main(&io: &IO) {
+  let input = io.read_line().unwrap();
+
+  io.println("Part 1: " ++ part1(input).to_string());
+  io.println("Part 2: " ++ part2(input).to_string());
+}
+
+fn part1(input: String) -> N64 {
+  let forward = [];
+  let backward = [];
+  let used = 0;
+
+  let id = 0;
+  while input.pop_front() is Some(char) {
+    let file = char - '0';
+    let empty = input.pop_front().unwrap_or('0') - '0';
+    forward.push_back((id, file, empty));
+    backward.push_front((id, file));
+    used += file;
+    id += 1;
+  }
+
+  let sum = N64::zero;
+  let pos = 0;
+  let remaining = used;
+
+  dyn fn push_block(id: N32, len: N32) {
+    let end = pos + len;
+    sum = sum.add(N64::mul_n32_n32(id, ((end - 1) * end - (pos - 1) * pos) / 2));
+    pos = end;
+  }
+
+  while remaining != 0 {
+    let (id, file, empty) = forward.pop_front().unwrap();
+    let truncated = file.min(remaining);
+    push_block(id, truncated);
+    remaining -= truncated;
+    let empty = empty.min(remaining);
+    remaining -= empty;
+    while empty != 0 {
+      let &(id, file) = backward.get(0);
+      let truncated = file.min(empty);
+      file -= truncated;
+      if file == 0 {
+        backward.pop_front();
+      }
+      push_block(id, truncated);
+      empty -= truncated;
+    }
+  }
+
+  sum
+}
+
+fn part2(input: String) -> N64 {
+  let spaces = [];
+  let files = [];
+
+  let pos = 0;
+  let id = 0;
+  while input.pop_front() is Some(char) {
+    let file = char - '0';
+    let empty = input.pop_front().unwrap_or('0') - '0';
+    files.push_front((id, file, pos));
+    let file_end = pos + file;
+    spaces.push_back((file_end, empty));
+    pos = file_end + empty;
+    id += 1;
+  }
+
+  let sum = N64::zero;
+  while files.pop_front() is Some((id, len, orig_pos)) {
+    let iter = spaces.iter();
+    let pos = orig_pos;
+    while iter.next() is Some(&(start, empty)) {
+      if start > orig_pos {
+        break;
+      }
+      if len <= empty {
+        pos = start;
+        empty -= len;
+        start += len;
+        break;
+      }
+    }
+    iter.drop();
+    let end = pos + len;
+    sum = sum.add(N64::mul_n32_n32(id, ((end - 1) * end - (pos - 1) * pos) / 2));
+  }
+
+  sum
+}

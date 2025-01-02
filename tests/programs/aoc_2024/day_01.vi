@@ -1,0 +1,47 @@
+
+use std::option::Option::Some;
+
+pub fn main(&io: &IO) {
+  let input = io.full_input();
+
+  let lines = input.split_trim("\n").map(fn(line: String) {
+    let parts = line.split("   ");
+    let left = N32::parse(parts.pop_front().unwrap()).unwrap();
+    let right = N32::parse(parts.pop_front().unwrap()).unwrap();
+    (left, right)
+  });
+
+  let left = lines.map(fn((left, _)) left);
+  let right = lines.map(fn((_, right)) right);
+
+  left.sort_by(N32::ascending);
+  right.sort_by(N32::ascending);
+
+  let total_dist = 0;
+  let iter_a = left.into_iter();
+  let iter_b = right.into_iter();
+  while iter_a.next() is Some(a) && iter_b.next() is Some(b) {
+    total_dist += if a > b {
+      a - b
+    } else {
+      b - a
+    };
+  }
+
+  io.println("Total Distance: " ++ total_dist.to_string());
+
+  let similarity = 0;
+  let iter_a = left.into_iter();
+  while iter_a.next() is Some(a) {
+    let count = 0;
+    let iter_b = right.into_iter();
+    while iter_b.next() is Some(b) {
+      if a == b {
+        count += 1;
+      }
+    }
+    similarity += a * count;
+  }
+
+  io.println("Similarity Score: " ++ similarity.to_string());
+}

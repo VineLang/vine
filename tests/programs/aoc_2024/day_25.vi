@@ -1,0 +1,50 @@
+
+use std::{option::Option::{Option, Some, None}, result::Result::{Result, Ok, Err}};
+
+pub fn main(&io: &IO) {
+  let locks = [];
+  let keys = [];
+
+  while io.read_line() is Some(line) {
+    let on = line.get(0).*;
+    let is_lock = on == '#';
+    let heights = List::new(5, 1);
+    while io.read_line() is Some(line) && line.len() != 0 {
+      let i = 0;
+      while line.pop_front() is Some(char) {
+        if char == on {
+          heights.get(i).* += 1;
+        }
+        i += 1;
+      }
+    }
+    if is_lock {
+      locks.push_back(heights);
+    } else {
+      keys.push_back(heights);
+    }
+  }
+
+  let sum = 0;
+  while keys.pop_front() is Some(key) {
+    let n = 0;
+    let iter = locks.into_iter();
+    while iter.next() is Some(lock) {
+      if fits(lock, key) {
+        n += 1;
+      }
+    }
+    sum += n;
+  }
+
+  io.println("Part 1: " ++ sum.to_string());
+}
+
+fn fits(lock: List[N32], key: List[N32]) -> Bool {
+  while lock.pop_front() is Some(a) && key.pop_front() is Some(b) {
+    if a > b {
+      return false;
+    }
+  }
+  true
+}

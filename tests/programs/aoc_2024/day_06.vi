@@ -1,0 +1,99 @@
+
+use std::{option::Option::{Option, Some, None}, result::Result::{Result, Ok, Err}, array::Array};
+
+pub fn main(&io: &IO) {
+  let input = io.full_input();
+
+  let grid = input.split_trim("\n");
+
+  let guard_pos;
+
+  let y = 0;
+  let iter = grid.iter();
+  while iter.next() is Some(&row) {
+    let x = 0;
+    let iter = row.iter();
+    while iter.next() is Some(&cell) {
+      if cell == '^' {
+        guard_pos = (x, y);
+        cell = 'X';
+      }
+      x += 1;
+    }
+    y += 1;
+  }
+
+  let grid = Array::from_list(grid.map(Array::from_list));
+
+  let (_, length) = walk(&grid, guard_pos);
+
+  io.println("Part 1: " ++ length.to_string());
+
+  let spaces = [];
+  clear(&grid, &spaces);
+
+  let i = 0;
+  let loops = 0;
+  while spaces.pop_front() is Some((x, y)) {
+    let grid = grid;
+    *(*grid.get(y)).get(x) = '#';
+    let (looped, _) = walk(&grid, guard_pos);
+    if looped {
+      loops += 1;
+    }
+    i += 1;
+    io.println(i.to_string() ++ " " ++ loops.to_string());
+  }
+
+  io.println("Part 2: " ++ loops.to_string());
+}
+
+fn clear(&grid: &Array[Array[Char]], &spaces: &List[(N32, N32)]) {
+  let height = grid.len();
+  let width = (*grid.get(0)).len();
+  let y = 0;
+  while y < height {
+    let &row = grid.get(y);
+    let x = 0;
+    while x < width {
+      let &cell = row.get(x);
+      if cell == 'X' {
+        spaces ++= [(x, y)];
+        cell = '.';
+      }
+      x += 1;
+    }
+    y += 1;
+  }
+}
+
+fn walk(&grid: &Array[Array[Char]], pos: (N32, N32)) -> (Bool, N32) {
+  let height = grid.len();
+  let width = (*grid.get(0)).len();
+  let dir = (0, -1);
+  let distinct = 1;
+  let repeat = 0;
+
+  while repeat < 3 * distinct {
+    let new_pos = pos + dir;
+    let (x, y) = new_pos;
+    if x >= width || y >= height {
+      return (false, distinct);
+    }
+    let &cell = (*grid.get(y)).get(x);
+    if cell == '#' {
+      let (x, y) = dir;
+      dir = (-y, x);
+      continue;
+    }
+    if cell == 'X' {
+      repeat += 1;
+    } else {
+      distinct += 1;
+    }
+    cell = 'X';
+    pos = new_pos;
+  }
+
+  (true, distinct)
+}

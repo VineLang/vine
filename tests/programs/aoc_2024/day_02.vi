@@ -1,0 +1,61 @@
+
+use std::{option::Option::{Option, Some, None}, result::Result::{Result, Ok, Err}};
+
+pub fn main(&io: &IO) {
+  let input = io.full_input();
+
+  let lines = input.split_trim("\n");
+
+  let safe_count = 0;
+  let dampened_safe_count = 0;
+
+  let iter = lines.into_iter();
+  while iter.next() is Some(line) {
+    let report = line.split(" ").map(fn(x) N32::parse(x).unwrap());
+    if is_safe(report) {
+      safe_count += 1;
+      dampened_safe_count += 1;
+    } else if problem_dampener(report) {
+      dampened_safe_count += 1;
+    }
+  }
+
+  io.println("Safe Count: " ++ safe_count.to_string());
+  io.println("Dampened Safe Count: " ++ dampened_safe_count.to_string());
+}
+
+fn is_safe(report: List[N32]) -> Bool {
+  let last = None[N32];
+  let order = None[Bool];
+  let iter = report.into_iter();
+  while iter.next() is Some(level) {
+    if last is Some(last) {
+      let diff = if last > level {
+        last - level
+      } else {
+        level - last
+      };
+      if !(1 <= diff <= 3) {
+        return false;
+      }
+      if order is Some(order) && order != (last > level) {
+        return false;
+      }
+      order = Some((last > level));
+    }
+    last = Some(level);
+  }
+  true
+}
+
+fn problem_dampener(report: List[N32]) -> Bool {
+  let prefix = [];
+  let suffix = report;
+  while suffix.pop_front() is Some(level) {
+    if is_safe(prefix ++ suffix) {
+      return true;
+    }
+    prefix ++= [level];
+  }
+  false
+}

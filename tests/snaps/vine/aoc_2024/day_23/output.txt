@@ -1,0 +1,3 @@
+Triangles: 12
+Part 1: 7
+Part 2: co,de,ka,ta

@@ -1,0 +1,97 @@
+
+use std::{option::Option::{Option, Some, None}, result::Result::{Result, Ok, Err}, array::Array};
+
+const cutoff: N32 = 50;
+
+pub fn main(&io: &IO) {
+  let grid = [];
+
+  let start;
+  let end;
+
+  while io.read_line() is Some(line) {
+    let row = [];
+    while line.pop_front() is Some(char) {
+      if char == 'S' {
+        start = (row.len(), grid.len())
+      } else if char == 'E' {
+        end = (row.len(), grid.len())
+      }
+      row.push_back(char != '#');
+    }
+    grid.push_back(Array::from_list(row));
+  }
+
+  let grid = Array::from_list(grid);
+
+  // io.println(
+  //   grid.to_list().map(
+  //     fn(x: Array[Bool]) x.fold_front(
+
+  //         "",
+  //         fn(a: String, x) a ++ if x {
+  //           "."
+  //         } else {
+  //           "#"
+  //         },
+
+  //     )
+  //   ).join("\n")
+  // )
+
+  let path = [start];
+  let cur = start;
+  let prev = (-1, -1);
+
+  while !eq(cur, end) {
+    let next;
+    dyn fn check(pos) {
+      if !eq(prev, pos) && *(*grid.get(pos.1)).get(pos.0) {
+        next = pos;
+      }
+    }
+    check(cur + (1, 0));
+    check(cur + (-1, 0));
+    check(cur + (0, 1));
+    check(cur + (0, -1));
+    path.push_back(next);
+    prev = cur;
+    cur = next;
+  }
+
+  let time = path.len() - 1;
+
+  let part1 = 0;
+  let part2 = 0;
+
+  let i = 0;
+  while path.pop_front() is Some(p) {
+    let j = i + 1;
+    let iter = path.into_iter();
+    while iter.next() is Some(q) {
+      let dist = dist(p, q);
+      let saved = j - i - dist;
+      if saved >= cutoff {
+        if dist == 2 {
+          part1 += 1;
+        }
+        if dist <= 20 {
+          part2 += 1;
+        }
+      }
+      j += 1;
+    }
+    i += 1;
+  }
+
+  io.println("Part 1: " ++ part1.to_string());
+  io.println("Part 2: " ++ part2.to_string());
+}
+
+fn eq((ax, ay): (N32, N32), (bx, by): (N32, N32)) -> Bool {
+  ax == bx && ay == by
+}
+
+fn dist((ax, ay): (N32, N32), (bx, by): (N32, N32)) -> N32 {
+  N32::diff(ax, bx) + N32::diff(ay, by)
+}

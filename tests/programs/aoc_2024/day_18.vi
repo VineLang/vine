@@ -1,0 +1,179 @@
+
+use std::{option::Option::{Option, Some, None}, array::Array};
+
+const config: (N32, N32) = (7, 12);
+// const config: (N32, N32) = (71, 1024);
+
+pub fn main(&io: &IO) {
+  let (size, iters) = config;
+
+  let grid = Array::new(size, Array::new(size, -1));
+  let data = [];
+
+  let i = 0;
+  while io.read_line() is Some(line) {
+    let (x, y) = line.split_once(",");
+    let x = N32::parse(x).unwrap();
+    let y = N32::parse(y.unwrap()).unwrap();
+    *(*grid.get(y)).get(x) = i;
+    data ++= [(x, y)];
+    i += 1;
+  }
+
+  let bytes = i;
+
+  dyn fn show_grid(c: N32) {
+    io.println(grid.to_list().map(fn(row: Array[N32]) {
+      row.fold_front(
+        "",
+        fn(s: String, n: N32) {
+          s ++ if n < c {
+            "#"
+          } else {
+            "."
+          }
+        },
+      )
+    }).join("\n"))
+  }
+
+  // show_grid(iters);
+
+  show_grid(-1);
+
+  let part1 = pathfind(grid, size, iters);
+
+  io.println("Part 1: " ++ part1.to_string());
+
+  let set = DisjointSet::new(size * size);
+
+  dyn fn coord(x: N32, y: N32) {
+    y * size + x
+  }
+
+  let blocked = Array::new(size, Array::new(size, true));
+
+  dyn fn remove_data(x: N32, y: N32) {
+    dyn fn connect(dx: N32, dy: N32) {
+      let X = x + dx;
+      let Y = y + dy;
+      if X < size && Y < size && !*(*blocked.get(Y)).get(X) {
+        set.union(coord(x, y), coord(X, Y));
+      }
+    }
+    connect(1, 0);
+    connect(-1, 0);
+    connect(0, 1);
+    connect(0, -1);
+    *(*blocked.get(y)).get(x) = false;
+  }
+
+  let i = 0;
+  let y = 0;
+  while y < size {
+    let x = 0;
+    while x < size {
+      if *(*grid.get(y)).get(x) == -1 {
+        i += 1;
+        remove_data(x, y);
+      }
+      x += 1;
+    }
+    y += 1;
+  }
+
+  let data_rev = data.reversed();
+
+  let i = bytes;
+  while set.find(0) != set.find(size * size - 1) && data_rev.pop_front() is Some((x, y)) {
+    remove_data(x, y);
+    i -= 1;
+  }
+
+  let (x, y) = *data.get(i);
+
+  io.println("Part 2: " ++ x.to_string() ++ "," ++ y.to_string());
+}
+
+struct DisjointSet(Array[Node]);
+
+enum Node {
+  Root(N32),
+  Child(N32),
+}
+
+mod DisjointSet {
+  pub fn new(len: N32) -> DisjointSet {
+    DisjointSet(Array::new(len, Node::Root(1)))
+  }
+
+  pub fn find(&DisjointSet(array): &DisjointSet, i: N32) -> N32 {
+    let ~root;
+    while array.get(i) is &Node::Child(parent) {
+      i = parent;
+      parent = ~root;
+    }
+    ~root = i;
+    i
+  }
+
+  pub fn union(&self: &DisjointSet, a: N32, b: N32) -> N32 {
+    let a = self.find(a);
+    let b = self.find(b);
+    if a == b {
+      return a;
+    }
+    let &DisjointSet(array) = &self;
+    let &a_node = array.get(a);
+    let &b_node = array.get(b);
+    match (&a_node, &b_node) {
+      (&Node::Root(a_size), &Node::Root(b_size)) => {
+        if a_size < b_size {
+          a_node = Node::Child(b);
+          b_size += a_size;
+          b
+        } else {
+          b_node = Node::Child(a);
+          a_size += b_size;
+          a
+        }
+      },
+    }
+  }
+}
+
+fn pathfind(grid: Array[Array[N32]], size: N32, iters: N32) -> N32 {
+  let cur = [(0, 0)];
+
+  let result = 0;
+
+  let i = 0;
+  while cur.len() != 0 {
+    let next = [];
+    while cur.pop_front() is Some(pos) {
+      let (x, y) = pos;
+      if x == size - 1 && y == size - 1 {
+        result = i;
+        next = [];
+        break;
+      }
+      let &cell = (*grid.get(y)).get(x);
+      if cell >= iters {
+        cell = 0;
+        dyn fn visit((x, y): (N32, N32)) {
+          if x < size && y < size && *(*grid.get(y)).get(x) >= iters {
+            next ++= [(x, y)];
+          }
+        }
+        visit(pos + (1, 0));
+        visit(pos + (0, 1));
+        visit(pos + (-1, 0));
+        visit(pos + (0, -1));
+      }
+    }
+    cur = next;
+    i += 1;
+  }
+
+  result
+}
