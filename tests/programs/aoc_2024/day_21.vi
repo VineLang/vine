@@ -1,0 +1,202 @@
+
+use std::{
+  option::Option::{Option, Some, None}, result::Result::{Result, Ok, Err}, array::Array, n64::N64
+};
+
+pub fn main(&io: &IO) {
+  let lines = io.full_input().split_trim("\n");
+
+  let sum = 0;
+  let iter = lines.into_iter();
+  while iter.next() is Some(line) {
+    dyn fn test_seed(seed: N32) {
+      let line = control_string('A', line, seed, control_numeric);
+      let line = control_string('A', line, 0, control_directional);
+      let line = control_string('A', line, 0, control_directional);
+      line.len()
+    }
+    let len = test_seed(0).min(test_seed(1)).min(test_seed(2)).min(test_seed(3));
+    let (num, _) = line.split_once("A");
+    let num = N32::parse(num).unwrap();
+    sum += num * len;
+  }
+
+  io.println("Part 1: " ++ sum.to_string());
+
+  let c = base_cost_func();
+  let i = 0;
+  while i < 25 {
+    c = cost_func(c, 6, 1);
+    i += 1;
+  }
+  c = cost_func(c, 12, 0);
+
+  let sum = N64::zero;
+  let iter = lines.into_iter();
+  while iter.next() is Some(line) {
+    let orig = line;
+    let cost = N64::zero;
+    let last = 2;
+    while line.pop_front() is Some(char) {
+      dyn fn pos(x: Char) {
+        if x == '0' {
+          1
+        } else if x == 'A' {
+          2
+        } else {
+          (x - '1') + 3
+        }
+      }
+      let to = pos(char);
+      cost = cost.add(*(*c.get(last)).get(to));
+      last = to;
+    }
+    let (num, _) = orig.split_once("A");
+    let num = N32::parse(num).unwrap();
+    sum = sum.add(cost.mul(N64::from_n32(num)));
+  }
+
+  io.println("Part 2: " ++ sum.to_string());
+}
+
+fn control_string(cur: Char, string: String, seed: N32, f: fn(Char, Char, Bool) -> String) -> String {
+  let out = "";
+  while string.pop_front() is Some(next) {
+    out ++= f(cur, next, seed & 1 != 0);
+    cur = next;
+    seed /= 2;
+  }
+  out
+}
+
+fn control_numeric(from: Char, to: Char, horiz: Bool) -> String {
+  dyn fn pos(x: Char) {
+    if x == '0' {
+      1
+    } else if x == 'A' {
+      2
+    } else {
+      (x - '1') + 3
+    }
+  }
+  let str = "";
+  let from = pos(from);
+  let to = pos(to);
+  let fx = from % 3;
+  let fy = from / 3;
+  let tx = to % 3;
+  let ty = to / 3;
+  horiz = (horiz || (fx == 0 && ty == 0)) && !(fy == 0 && tx == 0);
+  let str = "";
+  if horiz {
+    str ++= List::new(pos_diff(tx, fx), '>');
+    str ++= List::new(pos_diff(fx, tx), '<');
+  }
+  str ++= List::new(pos_diff(fy, ty), 'v');
+  str ++= List::new(pos_diff(ty, fy), '^');
+  if !horiz {
+    str ++= List::new(pos_diff(tx, fx), '>');
+    str ++= List::new(pos_diff(fx, tx), '<');
+  }
+  str ++ "A"
+}
+
+fn control_directional(from: Char, to: Char, _: Bool) -> String {
+  dyn fn pos(x: Char) {
+    if x == '<' {
+      0
+    } else if x == 'v' {
+      1
+    } else if x == '>' {
+      2
+    } else if x == '^' {
+      4
+    } else {
+      5
+    }
+  }
+  let str = "";
+  let from = pos(from);
+  let to = pos(to);
+  let fx = from % 3;
+  let fy = from / 3;
+  let tx = to % 3;
+  let ty = to / 3;
+  let str = "";
+  str ++= List::new(pos_diff(fy, ty), 'v');
+  str ++= List::new(pos_diff(fx, tx), '<');
+  str ++= List::new(pos_diff(tx, fx), '>');
+  str ++= List::new(pos_diff(ty, fy), '^');
+  str ++ "A"
+}
+
+fn pos_diff(a: N32, b: N32) -> N32 {
+  if b > a {
+    0
+  } else {
+    a - b
+  }
+}
+
+type CostFunc = Array[Array[N64]];
+
+fn base_cost_func() -> CostFunc {
+  Array::new(6, Array::new(6, N64::one))
+}
+
+fn cost_func(c: CostFunc, size: N32, dead_row: N32) -> CostFunc {
+  let o = Array::new(size, Array::new(size, ~_));
+  let from = 0;
+  while from < size {
+    let to = 0;
+    while to < size {
+      dyn fn test(horiz: Bool) {
+        let cost = N64::zero;
+        let fx = from % 3;
+        let fy = from / 3;
+        let tx = to % 3;
+        let ty = to / 3;
+        let last = 5;
+        dyn fn press(button: N32) {
+          cost = cost.add(*(*c.get(last)).get(button));
+          last = button;
+        }
+        dyn fn do_horiz() {
+          while fx < tx {
+            press(2)
+            fx += 1;
+          }
+          while fx > tx {
+            press(0)
+            fx -= 1;
+          }
+        }
+        dyn fn do_vert() {
+          while fy < ty {
+            press(4)
+            fy += 1;
+          }
+          while fy > ty {
+            press(1)
+            fy -= 1;
+          }
+        }
+        let horiz = (horiz || fx == 0 && ty == dead_row) && !(fy == dead_row && tx == 0);
+        if horiz {
+          do_horiz();
+          do_vert();
+        } else {
+          do_vert();
+          do_horiz();
+        }
+        press(5);
+        cost
+      }
+      let cost = test(true).min(test(false));
+      *(*o.get(from)).get(to) = cost;
+      to += 1;
+    }
+    from += 1;
+  }
+  o
+}

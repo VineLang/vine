@@ -1,0 +1,64 @@
+
+use std::{option::Option::{Option, Some, None}, result::Result::{Result, Ok, Err}, array::Array};
+
+pub fn main(&io: &IO) {
+  let input = io.full_input();
+
+  dyn fn read_value() {
+    let (_, rest) = input.split_once(": ");
+    let (value, rest) = rest.unwrap().split_once("\n");
+    input = rest.unwrap();
+    value
+  }
+
+  let a = N32::parse(read_value()).unwrap();
+  let b = N32::parse(read_value()).unwrap();
+  let c = N32::parse(read_value()).unwrap();
+
+  let program = read_value().split(",").map(fn(x) N32::parse(x).unwrap());
+  let program = Array::from_list(program);
+
+  let output = [];
+
+  let ip = 0;
+  let steps = 100;
+  while ip < program.len() && steps != 0 {
+    steps -= 1;
+    let opcode = *program.get(ip);
+    let operand = *program.get(ip + 1);
+    dyn fn combo() {
+      if operand == 4 {
+        a
+      } else if operand == 5 {
+        b
+      } else if operand == 6 {
+        c
+      } else {
+        operand
+      }
+    }
+    if opcode == 0 {
+      a >>= combo();
+    } else if opcode == 1 {
+      b ^= operand;
+    } else if opcode == 2 {
+      b = combo() & 7;
+    } else if opcode == 3 {
+      if a != 0 {
+        ip = operand - 2;
+      }
+    } else if opcode == 4 {
+      b ^= c;
+    } else if opcode == 5 {
+      let n = combo() & 7;
+      output ++= [n];
+    } else if opcode == 6 {
+      b = a >> combo();
+    } else if opcode == 7 {
+      c = a >> combo();
+    }
+    ip += 2;
+  }
+
+  io.println("Part 1: " ++ output.map(N32::to_string).join(","));
+}

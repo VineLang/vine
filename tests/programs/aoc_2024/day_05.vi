@@ -1,0 +1,112 @@
+
+use std::{option::Option::{Option, Some, None}, result::Result::{Result, Ok, Err}};
+
+pub fn main(&io: &IO) {
+  let masks = List::new(100, ((0, 0), (0, 0)));
+
+  while io.read_line() is Some(line) && line.len() != 0 {
+    let (left, right) = line.split_once("|");
+    let a = N32::parse(left).unwrap();
+    let b = N32::parse(right.unwrap()).unwrap();
+    set_bit(masks.get(b), a, true);
+  }
+
+  let part1 = 0;
+  let part2 = 0;
+  while io.read_line() is Some(line) {
+    let nums = line.split(",").map(fn(x) { N32::parse(x).unwrap() });
+    let good = true;
+    let middle = *nums.get(nums.len() / 2);
+    let mask = ((0, 0), (0, 0));
+    let iter = nums.iter();
+    while iter.next() is Some(&num) {
+      good &= !get_bit(mask, num);
+      mask |= *masks.get(num);
+    }
+    iter.drop();
+    if good {
+      part1 += middle;
+    } else {
+      let nums_mask = ((0, 0), (0, 0));
+      let iter = nums.iter();
+      while iter.next() is Some(&num) {
+        set_bit(&nums_mask, num, true);
+      }
+      let out = [];
+      let pending = [];
+      while nums.pop_front() is Some(num) {
+        let mask = *masks.get(num) & nums_mask;
+        if is_empty(mask) {
+          process(num, &(out, pending, nums_mask));
+        } else {
+          pending ++= [(num, mask)];
+        }
+      }
+      part2 += *out.get(out.len() / 2);
+
+      fn process(num: N32, &(out, pending, nums_mask): &(List[N32], List[(N32, Mask)], Mask)) {
+        out ++= [num];
+        set_bit(&nums_mask, num, false);
+        let ~future;
+        let &future_state = move ~future;
+        let iter = pending.into_iter();
+        pending = [];
+        while iter.next() is Some((n, mask)) {
+          set_bit(&mask, num, false);
+          if is_empty(mask) {
+            process(n, &future_state);
+          } else {
+            pending ++= [(n, mask)];
+          }
+        }
+        // the future is now
+        ~future = &(out, pending, nums_mask);
+      }
+    }
+  }
+
+  io.println("Part 1: " ++ part1.to_string());
+  io.println("Part 2: " ++ part2.to_string());
+}
+
+type Mask = ((N32, N32), (N32, N32));
+
+fn get_bit(mask: Mask, n: N32) -> Bool {
+  let (a, b) = mask;
+  let half = if n & 64 == 0 {
+    a
+  } else {
+    b
+  };
+  let (a, b) = half;
+  let word = if n & 32 == 0 {
+    a
+  } else {
+    b
+  };
+  word & (1 << n) != 0
+}
+
+fn set_bit(&mask: &Mask, n: N32, bit: Bool) {
+  let &(a, b) = &mask;
+  let half = if n & 64 == 0 {
+    &a
+  } else {
+    &b
+  };
+  let &(a, b) = half;
+  let &word = if n & 32 == 0 {
+    &a
+  } else {
+    &b
+  };
+  if bit {
+    word |= (1 << n);
+  } else {
+    word &= -1 ^ (1 << n);
+  }
+}
+
+fn is_empty(((a, b), (c, d)): Mask) -> Bool {
+  (a | b | c | d) == 0
+}

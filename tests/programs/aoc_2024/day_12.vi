@@ -1,0 +1,155 @@
+
+use std::{option::Option::{Option, Some, None}, result::Result::{Result, Ok, Err}, array::Array};
+
+pub fn main(&io: &IO) {
+  let regions = Regions(Array::empty);
+
+  let grid = [];
+  let north: List[(Char, N32)] = [];
+  let height = 0;
+  while io.read_line() is Some(line) {
+    height += 1;
+    grid ++= [line];
+    let cur = [];
+    let west = ('#', 0);
+    while line.pop_front() is Some(char) {
+      let i = regions.new();
+      if west is (c, j) && c == char {
+        let j = regions.find(j);
+        i = regions.union_found(i, j);
+      }
+      if north.pop_front() is Some((c, j)) && c == char {
+        let j = regions.find(j);
+        i = regions.union_found(i, j);
+      }
+      west = (char, i);
+      cur ++= [(char, i)];
+    }
+    north = cur;
+  }
+
+  let price = 0;
+  let i = 0;
+  let &Regions(array) = &regions;
+  while i < array.len() {
+    match *array.get(i) {
+      Region::Root(a, p) => {
+        price += a * (a * 4 - p * 2);
+      },
+      _ => {},
+    }
+    i += 1;
+  }
+
+  io.println("Part 1: " ++ price.to_string());
+
+  let width = array.len() / height;
+
+  let bulk = 0;
+  let y = 0;
+  let north = [];
+  while y <= height {
+    let south = grid.pop_front().unwrap_or([]);
+    let s = south;
+    let x = 0;
+    let nw = '#';
+    let sw = '#';
+    while x <= width {
+      let ne = north.pop_front().unwrap_or('#');
+      let se = s.pop_front().unwrap_or('#');
+      dyn fn check_corner(x: N32, y: N32, a: Char, b: Char, c: Char, d: Char) {
+        if a != '#' && (b != a != d || a == b == d != c) {
+          let i = x + y * width;
+          let a = regions.get_area(i);
+          bulk += a;
+        }
+      }
+      check_corner(x - 1, y - 1, nw, ne, se, sw);
+      check_corner(x, y - 1, ne, se, sw, nw);
+      check_corner(x, y, se, sw, nw, ne);
+      check_corner(x - 1, y, sw, nw, ne, se);
+      nw = ne;
+      sw = se;
+      x += 1;
+    }
+    north = south;
+    y += 1;
+  }
+
+  io.println("Part 2: " ++ bulk.to_string());
+}
+
+struct Regions(Array[Region]);
+
+enum Region {
+  Root(N32, N32),
+  Child(N32),
+}
+
+mod Region {
+  pub fn to_string(self: Region) -> String {
+    match self {
+      Region::Root(a, p) => "Root(" ++ a.to_string() ++ ", " ++ p.to_string() ++ ")",
+      Region::Child(n) => "Child(" ++ n.to_string() ++ ")",
+    }
+  }
+}
+
+mod Regions {
+  pub fn to_string(Regions(array): Regions) -> String {
+    array.to_list().to_string(Region::to_string)
+  }
+
+  pub fn new(&Regions(array): &Regions) -> N32 {
+    let i = array.len();
+    array.push_back(Region::Root(1, 0));
+    i
+  }
+
+  pub fn find(&Regions(array): &Regions, i: N32) -> N32 {
+    let ~root;
+    while array.get(i) is &Region::Child(p) {
+      i = p;
+      p = ~root;
+    }
+    ~root = i;
+    i
+  }
+
+  pub fn get_area(&self: &Regions, i: N32) -> N32 {
+    let i = self.find(i);
+    let &Regions(array) = &self;
+    match *array.get(i) {
+      Region::Root(a, _) => a,
+    }
+  }
+
+  pub fn union_found(&Regions(array): &Regions, i: N32, j: N32) -> N32 {
+    if i == j {
+      match array.get(i) {
+        &Region::Root(_, p) => {
+          p += 1;
+        },
+      }
+      i
+    } else {
+      let &r = array.get(i);
+      let &s = array.get(j);
+      match (r, s) {
+        (Region::Root(ra, rp), Region::Root(sa, sp)) => {
+          let a = ra + sa;
+          let p = rp + sp + 1;
+          if ra < sa {
+            s = Region::Root(a, p);
+            r = Region::Child(j);
+            j
+          } else {
+            r = Region::Root(a, p);
+            s = Region::Child(i);
+            i
+          }
+        },
+      }
+    }
+  }
+}

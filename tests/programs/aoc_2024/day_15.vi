@@ -1,0 +1,205 @@
+
+use std::{
+  option::Option::{Option, Some, None},
+  result::Result::{Result, Ok, Err},
+  array::Array,
+  tuple::Pair,
+};
+
+pub fn main(&io: &IO) {
+  let grid = Array::empty;
+  let y = 0;
+  let initial;
+  while io.read_line() is Some(line) && line.len() != 0 {
+    let x = 0;
+    let iter = line.iter();
+    while iter.next() is Some(&char) {
+      if char == '@' {
+        initial = (x, y);
+        char = '.';
+        break;
+      };
+      x += 1;
+    }
+    iter.drop();
+    grid.push_back(Array::from_list(line));
+    y += 1;
+  }
+
+  let initial_grid = grid;
+
+  dyn fn get((x, y)) {
+    (*grid.get(y)).get(x)
+  }
+
+  dyn fn show_grid() {
+    io.println(grid.to_list().map(Array::to_list).join("\n"));
+  }
+
+  let instructions = [];
+  let robot = initial;
+  while io.read_line() is Some(line) {
+    while line.pop_front() is Some(char) {
+      instructions ++= [char];
+      let dir = if char == '<' {
+        (-1, 0)
+      } else if char == '>' {
+        (1, 0)
+      } else if char == '^' {
+        (0, -1)
+      } else {
+        (0, 1)
+      };
+      let target_pos = robot + dir;
+      while *get(target_pos) == 'O' {
+        target_pos += dir;
+      }
+      let &target = get(target_pos);
+      if target == '.' {
+        target = 'O';
+        robot += dir;
+        *get(robot) = '.';
+      }
+    }
+  }
+
+  let part1 = 0;
+  let rows = grid.to_list();
+  let y = 0;
+  while rows.pop_front() is Some(row) {
+    let row = row.to_list();
+    let x = 0;
+    while row.pop_front() is Some(char) {
+      if char == 'O' {
+        part1 += y * 100 + x;
+      }
+      x += 1;
+    }
+    y += 1;
+  }
+
+  show_grid();
+
+  io.println("Part 1: " ++ part1.to_string());
+
+  grid = Array::from_list(initial_grid.to_list().map(fn(row: Array[Char]) {
+    let new_row = [];
+    let row = row.to_list();
+    while row.pop_front() is Some(char) {
+      if char == 'O' {
+        new_row ++= "[]";
+      } else {
+        new_row ++= [char, char];
+      }
+    }
+    Array::from_list(new_row)
+  }));
+
+  let robot = initial * (2, 1);
+
+  while instructions.pop_front() is Some(char) {
+    if char == '<' || char == '>' {
+      let dir = if char == '<' {
+        (-1, 0)
+      } else {
+        (1, 0)
+      };
+      let ~success;
+      let pos = robot;
+      if ~success {
+        robot += dir;
+      }
+      let carry = '.';
+      loop {
+        pos += dir;
+        let &char = get(pos);
+        if char == '#' {
+          ~success = false;
+          break;
+        }
+        if char == '.' {
+          char = carry;
+          ~success = true;
+          break;
+        }
+        let old = char;
+        if ~success {
+          char = carry;
+        }
+        carry = old;
+      }
+    } else {
+      let dir_y = if char == '^' {
+        -1
+      } else {
+        1
+      };
+      let (robot_x, robot_y) = robot;
+      let front = [(robot_x, '.')];
+      let pos_y = robot_y;
+      let ~success = true;
+      if ~success {
+        robot += (0, dir_y);
+      }
+      while.outer front.len() != 0 {
+        pos_y += dir_y;
+        let new_front = [];
+        while front.pop_front() is Some((pos_x, carry)) {
+          let &char = get((pos_x, pos_y));
+          if char == '#' {
+            ~success = false;
+            new_front = [];
+            break;
+          }
+          if char == '[' {
+            new_front.push_back((pos_x, '['));
+            new_front.push_back((pos_x + 1, ']'));
+            let carry = '.';
+            if front.len() != 0 && front.get(0) is &(p, c) && p == pos_x + 1 {
+              front.pop_front();
+              carry = c;
+            }
+            let &char = get((pos_x + 1, pos_y));
+            if ~success {
+              char = carry;
+            }
+          } else if char == ']' {
+            new_front.push_back((pos_x - 1, '['));
+            new_front.push_back((pos_x, ']'));
+            let &char = get((pos_x - 1, pos_y));
+            if ~success {
+              char = '.';
+            }
+          }
+
+          if ~success {
+            char = carry;
+          }
+        }
+        front = new_front;
+      }
+    }
+  }
+
+  let width = (*grid.get(0)).len();
+  let height = grid.len();
+
+  let part2 = 0;
+  let rows = grid.to_list();
+  let y = 0;
+  while rows.pop_front() is Some(row) {
+    let row = row.to_list();
+    let x = 0;
+    while row.pop_front() is Some(char) {
+      if char == '[' {
+        part2 += y * 100 + x;
+      }
+      x += 1;
+    }
+    y += 1;
+  }
+
+  show_grid();
+
+  io.println("Part 2: " ++ part2.to_string());
+}

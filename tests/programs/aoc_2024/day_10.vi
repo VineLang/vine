@@ -1,0 +1,180 @@
+
+use std::{option::Option::{Option, Some, None}, result::Result::{Result, Ok, Err}};
+
+pub fn main(&io: &IO) {
+  let input = io.full_input();
+
+  let id = 0;
+  let scores = 0;
+  let ratings = 0;
+  cross(
+    input.split_trim("\n"),
+    fn(char: Char, Neighbors(n, s, e, w), &(io, id, scores, ratings): &(IO, N32, N32, N32)) {
+      let Channel((nit, nis), ~(not, nos)) = n;
+      let Channel((sit, sis), ~(sot, sos)) = s;
+      let Channel((eit, eis), ~(eot, eos)) = e;
+      let Channel((wit, wis), ~(wot, wos)) = w;
+      not = char;
+      sot = char;
+      eot = char;
+      wot = char;
+      let x = if char == '0' {
+        let i = id;
+        id += 1;
+        (set(i), 1)
+      } else {
+        let prev = char - 1;
+        let in_s = zero_set;
+        let in_n = 0;
+        dyn fn recv(t: Char, (s, n): (Set, N32)) {
+          if t == prev {
+            in_s |= s;
+            in_n += n;
+          }
+        }
+        recv(nit, nis);
+        recv(sit, sis);
+        recv(eit, eis);
+        recv(wit, wis);
+        if char == '9' {
+          scores += count(in_s);
+          ratings += in_n;
+          ~_
+        } else {
+          (in_s, in_n)
+        }
+      };
+      nos = x;
+      sos = x;
+      eos = x;
+      wos = x;
+    },
+    ('.', (zero_set, 0)),
+    &(io, id, scores, ratings),
+  );
+
+  io.println("Scores: " ++ scores.to_string());
+  io.println("Ratings: " ++ ratings.to_string());
+}
+
+type Set32 = N32;
+type Set64 = (Set32, Set32);
+type Set128 = (Set64, Set64);
+type Set = (Set128, Set128);
+
+const zero_set: Set = (((0, 0), (0, 0)), ((0, 0), (0, 0)));
+
+fn set(n: N32) -> Set {
+  let x = 1 << n;
+  fn f[T](b: N32, x: T, z: T) -> (T, T) {
+    if b == 0 {
+      (x, z)
+    } else {
+      (z, x)
+    }
+  }
+  let x = f(n & 32, x, 0);
+  let x = f(n & 64, x, (0, 0));
+  let x = f(n & 128, x, ((0, 0), (0, 0)));
+  x
+}
+
+fn count(s: Set) -> N32 {
+  dyn fn c32(x: N32) {
+    let n = 0;
+    while x != 0 {
+      n += x & 1;
+      x >>= 1;
+    }
+    n
+  }
+  dyn fn c64((a, b)) {
+    c32(a) + c32(b)
+  }
+  dyn fn c128((a, b)) {
+    c64(a) + c64(b)
+  }
+  let (x, y) = s;
+  c128(x) + c128(y)
+}
+
+struct Channel[M](M, ~M);
+
+mod Channel {
+  pub fn send[M](Channel(got, ~out): Channel[M], value: M) -> M {
+    out = value;
+    got
+  }
+
+  pub fn get[M](&Channel(i, _): &Channel[M]) -> M {
+    i
+  }
+}
+
+fn relay(Channel(ai, ~ao): Channel[Char], Channel(bi, ~bo): Channel[Char], recv: Char, send: Char) {
+  bo = if ai == recv {
+    send
+  } else {
+    '_'
+  };
+  ao = if bi == recv {
+    send
+  } else {
+    '_'
+  };
+}
+
+fn check(Channel(i, ~o): Channel[Char], recv: Char) -> N32 {
+  o = '_';
+  if i == recv {
+    1
+  } else {
+    0
+  }
+}
+
+struct Neighbors[M](Channel[M], Channel[M], Channel[M], Channel[M]);
+
+fn cross[T, M, X](grid: List[List[T]], f: fn(T, Neighbors[M], &X), d: M, &state: &X) {
+  let width = (*grid.get(0)).len();
+  let north = List::new(width, neglect_channel(d));
+  while grid.pop_front() is Some(row) {
+    let west = neglect_channel(d);
+    {
+      let north = north.iter();
+      while row.pop_front() is Some(cell) {
+        let (w, e) = foo_channel(&west);
+        let (n, s) = foo_channel(north.next().unwrap());
+        f(cell, Neighbors(n, s, e, w), &state);
+      }
+      north.drop()
+    }
+    west.send(d);
+  }
+  drop_all(north, d);
+}
+
+fn drop_all[M](c: List[Channel[M]], d: M) {
+  while c.pop_front() is Some(c) {
+    c.send(d);
+  }
+}
+
+fn foo_channel[M](&c: &Channel[M]) -> (Channel[M], Channel[M]) {
+  let x = c;
+  let (a, b) = new_channel();
+  c = a;
+  (x, b)
+}
+
+fn new_channel[M]() -> (Channel[M], Channel[M]) {
+  let a;
+  let b;
+  let x = ~a;
+  let y = ~b;
+  (Channel(a, y), Channel(b, x))
+}
+
+fn neglect_channel[M](d: M) -> Channel[M] {
+  Channel(d, ~_)
+}

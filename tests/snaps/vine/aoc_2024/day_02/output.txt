@@ -1,0 +1,2 @@
+Safe Count: 2
+Dampened Safe Count: 4

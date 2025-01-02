@@ -1,0 +1,52 @@
+
+use std::{option::Option::{Option, Some, None}, result::Result::{Result, Ok, Err}, n64::N64};
+
+pub fn main(&io: &IO) {
+  let input = io.full_input();
+
+  let machines = input.split("\n\n");
+
+  let offset = N64::from_n32(10).pow_n32(13);
+
+  let part1 = 0;
+  let part2 = N64::zero;
+  while machines.pop_front() is Some(machine) {
+    let (_, r) = machine.split_once("+");
+    let (ax, r) = r.unwrap().split_once(", Y+");
+    let (ay, r) = r.unwrap().split_once("\nButton B: X+");
+    let (bx, r) = r.unwrap().split_once(", Y+");
+    let (by, r) = r.unwrap().split_once("\nPrize: X=");
+    let (px, r) = r.unwrap().split_once(", Y=");
+    let (py, _) = r.unwrap().split_once("\n");
+    let ax = N32::parse(ax).unwrap();
+    let ay = N32::parse(ay).unwrap();
+    let bx = N32::parse(bx).unwrap();
+    let by = N32::parse(by).unwrap();
+    let px = N32::parse(px).unwrap();
+    let py = N32::parse(py).unwrap();
+
+    let det = N32::diff(ax * by, ay * bx);
+    let a = N32::diff(by * px, bx * py) / det;
+    let b = N32::diff(ax * py, ay * px) / det;
+    let x = ax * a + bx * b;
+    let y = ay * a + by * b;
+    if x == px && y == py {
+      part1 += a * 3 + b;
+    }
+
+    let px = offset.add(n64(px));
+    let py = offset.add(n64(py));
+    let (a, _) = N64::diff(n64(by).mul(px), n64(bx).mul(py)).div_rem_n32(det);
+    let (b, _) = N64::diff(n64(ax).mul(py), n64(ay).mul(px)).div_rem_n32(det);
+    let x = a.mul(n64(ax)).add(b.mul(n64(bx)));
+    let y = a.mul(n64(ay)).add(b.mul(n64(by)));
+    if x.eq(px) && y.eq(py) {
+      part2 = part2.add(a.mul(n64(3)).add(b));
+    }
+  }
+
+  io.println("Part 1: " ++ part1.to_string());
+  io.println("Part 2: " ++ part2.to_string());
+}
+
+const n64: fn(N32) -> N64 = N64::from_n32;
