@@ -1,0 +1,15 @@
+
+use std::option::Option::{Option, Some, None};
+
+pub fn main(&io: &IO) {
+  io.println(verbose_add(Some(1), Some(2)));
+  io.println(verbose_add(None, Some(2)));
+  io.println(verbose_add(Some(1), None));
+  io.println(verbose_add(None, None));
+}
+
+fn verbose_add(a: Option[N32], b: Option[N32]) -> String {
+  let Some(a) = a else { return "a was none" };
+  let Some(b) = b else { return "b was none" };
+  a.to_string() ++ " + " ++ b.to_string() ++ " = " ++ (a + b).to_string()
+}
