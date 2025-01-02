@@ -24,7 +24,7 @@
 - [The Vine Compiler]()
   - [Architecture](./compiler/architecture.md)
   - [Variables as Places]()
-  - [Stacked Flow Graphs]()
+  - [Stacked Flow Graphs](./compiler/sfg.md)
 
 - [Ivy and the IVM]()
   - [Ivy's Interaction System](./ivy/interaction-system.md)
