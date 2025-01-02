@@ -222,6 +222,10 @@ impl<'core: 'src, 'src> Formatter<'src> {
           Some(e) => Doc::concat([Doc(" = "), self.fmt_expr(e)]),
           None => Doc::EMPTY,
         },
+        match &l.else_block {
+          Some(b) => Doc::concat([Doc(" else "), self.fmt_block(b, false)]),
+          None => Doc::EMPTY,
+        },
         Doc(";"),
       ]),
       StmtKind::DynFn(d) => Doc::concat([

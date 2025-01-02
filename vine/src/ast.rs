@@ -181,6 +181,7 @@ pub struct LetStmt<'core> {
   pub bind: Pat<'core>,
   pub ty: Option<Ty<'core>>,
   pub init: Option<Expr<'core>>,
+  pub else_block: Option<Block<'core>>,
 }
 
 #[derive(Debug, Clone)]
@@ -454,6 +455,10 @@ impl<'core> Expr<'core> {
     let kind = f(Box::new(take(self)));
     *self = Expr { span, kind };
   }
+}
+
+impl<'core> Pat<'core> {
+  pub const HOLE: Self = Pat { span: Span::NONE, kind: PatKind::Hole };
 }
 
 impl<'core> Path<'core> {

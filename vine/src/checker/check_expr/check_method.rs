@@ -141,7 +141,12 @@ impl<'core> Checker<'core, '_> {
       Type::F32 => self.f32,
       Type::Char => self.char,
       Type::IO => self.io,
-      Type::Tuple(_) | Type::Fn(..) | Type::Ref(_) | Type::Inverse(_) | Type::Opaque(_) => None,
+      Type::Tuple(_)
+      | Type::Fn(..)
+      | Type::Ref(_)
+      | Type::Inverse(_)
+      | Type::Opaque(_)
+      | Type::Never => None,
       Type::Var(_) => unreachable!(),
       Type::Error(e) => Err(*e)?,
     })
