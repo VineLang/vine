@@ -7,7 +7,7 @@ use crate::{core::Core, diag::Diag, lexer::Token};
 
 use crate::ast::{
   Attr, AttrKind, BinaryOp, Block, Builtin, ComparisonOp, ConstItem, DynFnStmt, Enum, Expr,
-  ExprKind, FnItem, GenericPath, Ident, InlineIvy, Item, ItemKind, Label, LetStmt, LogicalOp,
+  ExprKind, FnItem, GenericPath, Ident, InlineIvy, Item, ItemKind, Key, Label, LetStmt, LogicalOp,
   ModItem, ModKind, Pat, PatKind, Path, Span, Stmt, StmtKind, StructItem, Ty, TyKind, TypeItem,
   UseItem, UseTree, Variant, Vis,
 };
@@ -135,6 +135,13 @@ impl<'core, 'src> VineParser<'core, 'src> {
   fn parse_ident(&mut self) -> Parse<'core, Ident<'core>> {
     let token = self.expect(Token::Ident)?;
     Ok(self.core.ident(token))
+  }
+
+  fn parse_key(&mut self) -> Parse<'core, Key<'core>> {
+    let span = self.start_span();
+    let ident = self.parse_ident()?;
+    let span = self.end_span(span);
+    Ok(Key { span, ident })
   }
 
   fn parse_num(&mut self) -> Parse<'core, ExprKind<'core>> {
@@ -424,6 +431,17 @@ impl<'core, 'src> VineParser<'core, 'src> {
       self.expect(Token::CloseParen)?;
       return Ok(ExprKind::Tuple(exprs));
     }
+    if self.check(Token::OpenBrace) {
+      return Ok(ExprKind::Object(self.parse_delimited(BRACE_COMMA, |self_| {
+        let key = self_.parse_key()?;
+        let value = if self_.eat(Token::Colon)? {
+          self_.parse_expr()?
+        } else {
+          Expr { span: key.span, kind: ExprKind::Path(key.into()) }
+        };
+        Ok((key, value))
+      })?));
+    }
     if self.check(Token::OpenBracket) {
       let exprs = self.parse_delimited(BRACKET_COMMA, Self::parse_expr)?;
       return Ok(ExprKind::List(exprs));
@@ -661,6 +679,30 @@ impl<'core, 'src> VineParser<'core, 'src> {
       }
       return Ok(PatKind::Tuple(pats));
     }
+    if self.check(Token::OpenBrace) {
+      return Ok(PatKind::Object(self.parse_delimited(BRACE_COMMA, |self_| {
+        let span = self_.start_span();
+        let key = self_.parse_key()?;
+        let (pat, ty) = if self_.eat(Token::Colon)? {
+          if self_.eat(Token::Colon)? {
+            (None, Some(self_.parse_type()?))
+          } else {
+            (Some(self_.parse_pat()?), None)
+          }
+        } else if self_.eat(Token::ColonColon)? {
+          (None, Some(self_.parse_type()?))
+        } else {
+          (None, None)
+        };
+        let span = self_.end_span(span);
+        let mut pat =
+          pat.unwrap_or_else(|| Pat { span: key.span, kind: PatKind::Adt(key.into(), None) });
+        if let Some(ty) = ty {
+          pat = Pat { span, kind: PatKind::Annotation(Box::new(pat), Box::new(ty)) };
+        }
+        Ok((key, pat))
+      })?));
+    }
     self.unexpected()
   }
 
@@ -705,6 +747,14 @@ impl<'core, 'src> VineParser<'core, 'src> {
         return Ok(TyKind::Paren(Box::new(types.pop().unwrap())));
       }
       return Ok(TyKind::Tuple(types));
+    }
+    if self.check(Token::OpenBrace) {
+      return Ok(TyKind::Object(self.parse_delimited(BRACE_COMMA, |self_| {
+        let key = self_.parse_key()?;
+        self_.expect(Token::Colon)?;
+        let value = self_.parse_type()?;
+        Ok((key, value))
+      })?));
     }
     if self.eat(Token::And)? {
       return Ok(TyKind::Ref(Box::new(self.parse_type()?)));

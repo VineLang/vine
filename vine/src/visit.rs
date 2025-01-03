@@ -155,6 +155,11 @@ pub trait VisitMut<'core, 'a> {
         self.visit_expr(e);
         self.visit_pat(p);
       }
+      ExprKind::Object(o) => {
+        for (_, v) in o {
+          self.visit_expr(v);
+        }
+      }
     }
   }
 
@@ -181,6 +186,11 @@ pub trait VisitMut<'core, 'a> {
         self.visit_pat(p);
         self.visit_type(t);
       }
+      PatKind::Object(o) => {
+        for (_, v) in o {
+          self.visit_pat(v);
+        }
+      }
     }
   }
 
@@ -200,6 +210,11 @@ pub trait VisitMut<'core, 'a> {
         }
         if let Some(r) = r {
           self.visit_type(r);
+        }
+      }
+      TyKind::Object(o) => {
+        for (_, v) in o {
+          self.visit_type(v);
         }
       }
       TyKind::Error(_) => {}

@@ -243,6 +243,8 @@ pub enum ExprKind<'core> {
   Place(B<Expr<'core>>, B<Expr<'core>>),
   #[class(value, place, space)]
   Tuple(Vec<Expr<'core>>),
+  #[class(value, place, space)]
+  Object(Vec<(Key<'core>, Expr<'core>)>),
   #[class(value)]
   List(Vec<Expr<'core>>),
   #[class(value, place)]
@@ -340,6 +342,8 @@ pub enum PatKind<'core> {
   Inverse(B<Pat<'core>>),
   #[class(value, place, space)]
   Tuple(Vec<Pat<'core>>),
+  #[class(value, place, space)]
+  Object(Vec<(Key<'core>, Pat<'core>)>),
   #[class(error)]
   Error(ErrorGuaranteed),
 }
@@ -363,6 +367,7 @@ pub enum TyKind<'core> {
   Paren(B<Ty<'core>>),
   Fn(Vec<Ty<'core>>, Option<B<Ty<'core>>>),
   Tuple(Vec<Ty<'core>>),
+  Object(Vec<(Key<'core>, Ty<'core>)>),
   Ref(B<Ty<'core>>),
   Inverse(B<Ty<'core>>),
   Path(GenericPath<'core>),
@@ -429,6 +434,12 @@ pub enum ComparisonOp {
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Ident<'core>(pub Interned<'core, str>);
 
+#[derive(Debug, Clone, Copy)]
+pub struct Key<'core> {
+  pub span: Span,
+  pub ident: Ident<'core>,
+}
+
 impl Display for Ident<'_> {
   fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
     write!(f, "{}", self.0 .0)
@@ -493,11 +504,15 @@ impl Display for Path<'_> {
   }
 }
 
-// impl Debug for Path {
-//   fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-//     write!(f, "`{self}`")
-//   }
-// }
+impl<'core> From<Key<'core>> for GenericPath<'core> {
+  fn from(key: Key<'core>) -> Self {
+    GenericPath {
+      span: key.span,
+      path: Path { segments: vec![key.ident], absolute: false, resolved: None },
+      generics: None,
+    }
+  }
+}
 
 impl Debug for Ident<'_> {
   fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {

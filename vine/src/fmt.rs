@@ -326,6 +326,16 @@ impl<'core: 'src, 'src> Formatter<'src> {
         Doc::concat([Doc("("), self.fmt_expr(v), Doc("; "), self.fmt_expr(s), Doc(")")])
       }
       ExprKind::Tuple(t) => Doc::tuple(t.iter().map(|x| self.fmt_expr(x))),
+      ExprKind::Object(o) => Doc::brace_comma(o.iter().map(|(k, v)| {
+        if let ExprKind::Path(p) = &v.kind {
+          if let Some(i) = p.path.as_ident() {
+            if k.ident == i {
+              return Doc(k.ident);
+            }
+          }
+        }
+        Doc::concat([Doc(k.ident), Doc(": "), self.fmt_expr(v)])
+      })),
       ExprKind::List(l) => Doc::bracket_comma(l.iter().map(|x| self.fmt_expr(x))),
       ExprKind::TupleField(e, i, _) => {
         Doc::concat([self.fmt_expr(e), Doc("."), Doc(format!("{i}"))])
@@ -401,6 +411,33 @@ impl<'core: 'src, 'src> Formatter<'src> {
       PatKind::Deref(p) => Doc::concat([Doc("*"), self.fmt_pat(p)]),
       PatKind::Inverse(p) => Doc::concat([Doc("~"), self.fmt_pat(p)]),
       PatKind::Annotation(p, t) => Doc::concat([self.fmt_pat(p), Doc(": "), self.fmt_ty(t)]),
+      PatKind::Object(o) => Doc::brace_comma(o.iter().map(|(key, pat)| {
+        let (pat, ty) = match &pat.kind {
+          PatKind::Annotation(p, t) => (&**p, Some(t)),
+          _ => (pat, None),
+        };
+        let pat = if let PatKind::Adt(p, None) = &pat.kind {
+          if let Some(i) = p.path.as_ident() {
+            if key.ident == i {
+              None
+            } else {
+              Some(pat)
+            }
+          } else {
+            Some(pat)
+          }
+        } else {
+          Some(pat)
+        };
+        match (pat, ty) {
+          (None, None) => Doc(key.ident),
+          (Some(pat), None) => Doc::concat([Doc(key.ident), Doc(": "), self.fmt_pat(pat)]),
+          (None, Some(ty)) => Doc::concat([Doc(key.ident), Doc(":: "), self.fmt_ty(ty)]),
+          (Some(pat), Some(ty)) => {
+            Doc::concat([Doc(key.ident), Doc(": "), self.fmt_pat(pat), Doc(": "), self.fmt_ty(ty)])
+          }
+        }
+      })),
       PatKind::Tuple(t) => Doc::tuple(t.iter().map(|x| self.fmt_pat(x))),
     }
   }
@@ -418,6 +455,9 @@ impl<'core: 'src, 'src> Formatter<'src> {
       TyKind::Ref(t) => Doc::concat([Doc("&"), self.fmt_ty(t)]),
       TyKind::Inverse(t) => Doc::concat([Doc("~"), self.fmt_ty(t)]),
       TyKind::Path(p) => self.fmt_generic_path(p),
+      TyKind::Object(o) => Doc::brace_comma(
+        o.iter().map(|(k, t)| Doc::concat([Doc(k.ident), Doc(": "), self.fmt_ty(t)])),
+      ),
       TyKind::Generic(_) | TyKind::Error(_) => unreachable!(),
     }
   }
