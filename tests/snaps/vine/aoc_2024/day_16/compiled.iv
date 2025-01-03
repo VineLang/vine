@@ -92,10 +92,7 @@
 
 ::day_16::main::28 { x(w9 x(w8 x(w6 x(w5 x(w3 dup168(?(::day_16::main::30 ::day_16::main::29 x(w9 x(w8 x(w6 x(w5 x(w3 w10)))))) w10)))))) }
 
-::day_16::main::29 {
-  x(_ x(x(w7 w7) x(_ x(x(w4 w4) x(x(w2 w2) _)))))
-  _ = _
-}
+::day_16::main::29 { x(_ x(x(w7 w7) x(_ x(x(w4 w4) x(x(w2 w2) _))))) }
 
 ::day_16::main::30 {
   x(w13 x(w12 x(w10 w9)))
@@ -108,10 +105,7 @@
   ::day_16::main::28 = x(w36 x(x(w26 w35) x(w24 x(x(w22 w32) x(x(w20 w30) w18)))))
 }
 
-::day_16::main::34 {
-  x(_ x(x(w7 w7) x(_ x(x(w4 w4) x(x(w2 w2) _)))))
-  _ = _
-}
+::day_16::main::34 { x(_ x(x(w7 w7) x(_ x(x(w4 w4) x(x(w2 w2) _))))) }
 
 ::day_16::main::36 {
   x(w17 x(w16 x(w14 x(w12 x(w10 x(w8 x(w6 w5)))))))
@@ -134,7 +128,7 @@
 
 ::day_16::main::45 { x(w12 x(w10 x(w8 x(@eq(w4 ?(::day_16::main::48 ::day_16::main::47 x(w12 x(w10 x(w8 x(w6 w13)))))) x(w6 x(w4 w13)))))) }
 
-::day_16::main::46 { x(x(w9 w9) x(x(w7 w7) x(_ x(_ x(x(w3 w3) x(_ _)))))) }
+::day_16::main::46 { x(x(w9 w9) x(x(w7 w7) x(_ x(_ x(x(w3 w3) _))))) }
 
 ::day_16::main::47 { x(x(_ w7) x(x(_ 1) x(w7 x(x(_ 1) _)))) }
 

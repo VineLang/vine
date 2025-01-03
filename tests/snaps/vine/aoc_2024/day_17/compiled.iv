@@ -41,10 +41,7 @@
 
 ::day_17::main::5 { x(w8 x(w7 x(w6 x(w5 x(w4 x(w2 dup50(?(::day_17::main::8 ::day_17::main::7 x(w8 x(w7 x(w6 x(w5 x(w4 x(w2 w9))))))) w9))))))) }
 
-::day_17::main::6 {
-  x(_ x(_ x(_ x(_ x(x(w3 w3) _)))))
-  _ = _
-}
+::day_17::main::6 { x(_ x(_ x(_ x(_ x(x(w3 w3) _))))) }
 
 ::day_17::main::7 {
   x(w31 x(w30 x(w29 x(w28 x(x(w27 w49) x(dup66(w5 dup66(@add(1 w15) w36)) @sub(1 w1)))))))
@@ -53,10 +50,7 @@
   ::day_17::main::4 = x(w45 x(w43 x(w41 x(w12 x(x(w39 w49) x(w23 w1))))))
 }
 
-::day_17::main::8 {
-  x(_ x(_ x(_ x(_ x(x(w3 w3) _)))))
-  _ = _
-}
+::day_17::main::8 { x(_ x(_ x(_ x(_ x(x(w3 w3) _))))) }
 
 ::day_17::main::10 { x(w7 x(w6 x(w5 x(dup78(@eq(4 ?(::day_17::main::13 ::day_17::main::12 x(w7 x(w6 x(w5 x(w11 w10)))))) w11) w10)))) }
 

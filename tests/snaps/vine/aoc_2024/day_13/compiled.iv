@@ -85,18 +85,18 @@
 
 ::day_13::main::8 { x(w9 x(w7 x(w6 x(w5 x(@eq(w7 ?(::day_13::main::11 ::day_13::main::10 x(w9 x(w6 x(w5 w10))))) w10))))) }
 
-::day_13::main::9 { x(x(w6 w6) x(_ x(_ x(_ x(_ _))))) }
+::day_13::main::9 { x(x(w6 w6) _) }
 
 ::day_13::main::10 { x(x(@add(w3 w5) w5) x(@mul(3 @add(w7 w3)) x(w7 _))) }
 
-::day_13::main::11 { x(x(w4 w4) x(_ x(_ _))) }
+::day_13::main::11 { x(x(w4 w4) _) }
 
 ::day_13::main::14 {
   x(w9 x(w7 x(w6 x(w5 x(w4 w10)))))
   ::std::n64::N64::eq = fn(w4 fn(w7 ?(::day_13::main::17 ::day_13::main::16 x(w9 x(w6 x(w5 w10))))))
 }
 
-::day_13::main::15 { x(x(w6 w6) x(_ x(_ x(_ x(_ _))))) }
+::day_13::main::15 { x(x(w6 w6) _) }
 
 ::day_13::main::16 {
   x(x(w12 w6) x(w10 x(w9 _)))
@@ -106,7 +106,7 @@
   ::std::n64::N64::add = fn(w12 fn(w5 w6))
 }
 
-::day_13::main::17 { x(x(w4 w4) x(_ x(_ _))) }
+::day_13::main::17 { x(x(w4 w4) _) }
 
 ::std::io::IO::println {
   fn(ref(w3 w14) fn(w5 _))

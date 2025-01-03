@@ -30,7 +30,7 @@
   x(x(w25 w29) x(dup30(w2 w27) dup31(w1 @add(1 w21))))
   +2.6 = @div(1024 @mul(w7 w8))
   tup(w1 w2) = @add(+0.5 @sub(w6 w7))
-  tup(1024 1024) = @div(+2.0 w6)
+  1024 = @div(+2.0 w6)
   ::mandelbrot_tga::center = @add(w8 tup(w10 w11))
   ::mandelbrot_tga::mandelbrot = fn(w10 fn(w11 w18))
   ::std::io::IO::print_byte = fn(ref(w25 w14) fn(w18 _))

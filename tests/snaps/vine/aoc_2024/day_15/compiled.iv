@@ -39,10 +39,7 @@
   ::std::list::List::len = fn(ref(w0 w10) ?(::day_15::main::8 ::day_15::main::7 x(w8 x(w6 x(w4 x(w3 w10))))))
 }
 
-::day_15::main::6 {
-  x(x(w6 w6) x(x(w4 w4) x(_ x(w1 w1))))
-  _ = _
-}
+::day_15::main::6 { x(x(w6 w6) x(x(w4 w4) x(_ x(w1 w1)))) }
 
 ::day_15::main::7 {
   x(w25 x(x(w23 w36) x(dup69(w31 @add(1 w17)) x(x(w20 w33) w18))))
@@ -54,10 +51,7 @@
   ::day_15::main::2 = x(w25 x(x(w11 w36) x(w17 x(w30 w33))))
 }
 
-::day_15::main::8 {
-  x(x(w7 w7) x(x(w5 w5) x(_ x(x(w2 w2) _))))
-  _ = _
-}
+::day_15::main::8 { x(x(w7 w7) x(x(w5 w5) x(_ x(x(w2 w2) _)))) }
 
 ::day_15::main::10 {
   x(w10 x(w9 x(w7 x(w6 w12))))
@@ -324,7 +318,7 @@
   ::std::list::List::pop_front = fn(ref(w11 w1) _)
 }
 
-::day_15::main::120 { x(x(w5 w5) x(x(w3 w3) x(_ _))) }
+::day_15::main::120 { x(x(w5 w5) x(x(w3 w3) _)) }
 
 ::day_15::main::124 { x(w5 x(x(_ w5) _)) }
 

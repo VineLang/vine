@@ -104,9 +104,9 @@
 
 ::day_04::main::33 { x(w7 x(w5 x(w4 x(@eq(77 ?(::day_04::main::36 ::day_04::main::38 x(w7 x(w5 x(w4 w8))))) w8)))) }
 
-::day_04::main::34 { x(x(w5 w5) x(_ x(_ x(_ _)))) }
+::day_04::main::34 { x(x(w5 w5) _) }
 
-::day_04::main::36 { x(x(w4 w4) x(_ x(_ _))) }
+::day_04::main::36 { x(x(w4 w4) _) }
 
 ::day_04::main::38 { x(w6 x(w4 x(dup221(@eq(77 ?(::day_04::main::43 ::day_04::main::39 x(w6 x(w4 x(w8 w7))))) w8) w7))) }
 
@@ -121,7 +121,7 @@
 
 ::day_04::main::44 { x(w5 x(@eq(77 ?(::day_04::main::47 ::day_04::main::49 x(w5 w6))) w6)) }
 
-::day_04::main::45 { x(x(w3 w3) x(_ _)) }
+::day_04::main::45 { x(x(w3 w3) _) }
 
 ::day_04::main::47 { x(x(w2 w2) _) }
 

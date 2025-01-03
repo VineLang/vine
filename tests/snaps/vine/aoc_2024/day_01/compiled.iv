@@ -42,20 +42,14 @@
   ::std::list::List::IntoIter::next = fn(ref(w2 w7) enum(::day_01::main::12 enum(::day_01::main::13 x(w5 x(w3 x(w7 w0))))))
 }
 
-::day_01::main::9 {
-  x(x(w3 w3) _)
-  _ = _
-}
+::day_01::main::9 { x(x(w3 w3) _) }
 
 ::day_01::main::12 {
   enum(dup55(w11 w14) x(x(@add(w13 w9) w19) x(w4 x(w3 dup54(@lt$(w11 ?(::day_01::main::17 ::day_01::main::16 x(w15 x(w14 w13)))) w15)))))
   ::day_01::main::5 = x(x(w9 w19) x(w4 w3))
 }
 
-::day_01::main::13 {
-  x(x(w4 w4) _)
-  _ = _
-}
+::day_01::main::13 { x(x(w4 w4) _) }
 
 ::day_01::main::16 { x(@sub(w4 w2) x(w4 w2)) }
 
@@ -268,11 +262,11 @@
 
 ::std::list::List::split_trim::5 { x(_ 0) }
 
-::std::list::List::split_trim::10 { x(x(w4 w4) x(_ x(_ _))) }
+::std::list::List::split_trim::10 { x(x(w4 w4) _) }
 
 ::std::list::List::split_trim::11 { x(w5 x(?(::std::list::List::split_trim::13 ::std::list::List::split_trim::12 x(w5 w2)) w2)) }
 
-::std::list::List::split_trim::12 { x(x(w3 w3) x(_ _)) }
+::std::list::List::split_trim::12 { x(x(w3 w3) _) }
 
 ::std::list::List::split_trim::13 {
   x(x(w7 w3) x(w5 _))

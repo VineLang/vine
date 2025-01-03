@@ -5,7 +5,7 @@
   fn(ref(w3 w42) _)
   ::std::io::IO::full_input = fn(ref(w3 w8) w10)
   ::std::list::List::split_trim = fn(w10 fn(tup(1 tup(tup(10 w49) w49)) w17))
-  ::day_10::cross = fn(w17 fn(fn(dup12(w101 dup12(w103 dup12(w105 dup12(w107 dup12(@eq(48 ?(::day_10::main::5 ::day_10::main::4 x(w136 x(x(w59 w135) x(x(w61 w133) x(x(w63 w131) x(w70 x(w71 x(w78 x(w79 x(w86 x(w87 x(w94 x(w95 dup40(w111 dup40(w113 dup40(w115 w117))))))))))))))))) w136))))) fn(tup(tup(tup(w70 w71) tup(w101 w111)) tup(tup(tup(w78 w79) tup(w103 w113)) tup(tup(tup(w86 w87) tup(w105 w115)) tup(tup(w94 w95) tup(w107 w117))))) fn(ref(tup(w57 tup(w59 tup(w61 w63))) tup(w57 tup(w135 tup(w133 w131)))) _))) fn(tup(46 tup(0 0)) fn(ref(tup(w8 0) tup(w22 tup(_ tup(w26 w28)))) _))))
+  ::day_10::cross = fn(w17 fn(fn(dup12(w101 dup12(w103 dup12(w105 dup12(w107 dup12(@eq(48 ?(::day_10::main::5 ::day_10::main::4 x(w136 x(x(w59 w135) x(x(w61 w133) x(x(w63 w131) x(w70 x(w71 x(w78 x(w79 x(w86 x(w87 x(w94 x(w95 dup40(w111 dup40(w113 dup40(w115 w117))))))))))))))))) w136))))) fn(tup(tup(tup(w70 w71) tup(w101 w111)) tup(tup(tup(w78 w79) tup(w103 w113)) tup(tup(tup(w86 w87) tup(w105 w115)) tup(tup(w94 w95) tup(w107 w117))))) fn(ref(tup(w57 tup(w59 tup(w61 w63))) tup(w57 tup(w135 tup(w133 w131)))) _))) fn(tup(46 0) fn(ref(tup(w8 0) tup(w22 tup(_ tup(w26 w28)))) _))))
   ::std::n32::N32::to_string = fn(w26 w38)
   ::std::list::List::concat = fn(tup(8 tup(tup(83 tup(99 tup(111 tup(114 tup(101 tup(115 tup(58 tup(32 w137)))))))) w137)) fn(w38 w39))
   ::std::io::IO::println = fn(ref(w22 w34) fn(w39 _))
@@ -274,11 +274,11 @@
 
 ::std::list::List::split_trim::5 { x(_ 0) }
 
-::std::list::List::split_trim::10 { x(x(w4 w4) x(_ x(_ _))) }
+::std::list::List::split_trim::10 { x(x(w4 w4) _) }
 
 ::std::list::List::split_trim::11 { x(w5 x(?(::std::list::List::split_trim::13 ::std::list::List::split_trim::12 x(w5 w2)) w2)) }
 
-::std::list::List::split_trim::12 { x(x(w3 w3) x(_ _)) }
+::std::list::List::split_trim::12 { x(x(w3 w3) _) }
 
 ::std::list::List::split_trim::13 {
   x(x(w7 w3) x(w5 _))

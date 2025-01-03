@@ -28,14 +28,14 @@
 
 ::day_08::main::4 { x(w8 x(w6 x(w5 x(dup33(@lt(w6 ?(::day_08::main::7 ::day_08::main::6 x(w8 x(w5 x(w10 w9))))) w10) w9)))) }
 
-::day_08::main::5 { x(x(w5 w5) x(_ x(_ x(_ _)))) }
+::day_08::main::5 { x(x(w5 w5) _) }
 
 ::day_08::main::6 {
   x(x(w12 w1) x(w10 x(w9 _)))
   ::std::map::Map::insert = fn(ref(w12 w1) fn(tup(w10 w9) _))
 }
 
-::day_08::main::7 { x(x(w4 w4) x(_ x(_ _))) }
+::day_08::main::7 { x(x(w4 w4) _) }
 
 ::day_08::main::9 {
   x(w10 x(w8 x(w7 fn(tup(w0 w1) fn(w3 _)))))
@@ -46,10 +46,7 @@
 
 ::day_08::main::11 { x(w9 x(w7 x(dup64(w1 w13) x(w5 x(dup66(@lt(w1 ?(::day_08::main::14 ::day_08::main::13 x(w9 x(w7 x(w13 x(w5 x(w11 w3))))))) w11) w3))))) }
 
-::day_08::main::12 {
-  x(x(w6 w6) _)
-  _ = _
-}
+::day_08::main::12 { x(x(w6 w6) _) }
 
 ::day_08::main::13 {
   x(x(w21 w28) x(w19 x(w18 x(dup74(w3 w9) x(dup76(w4 w11) dup78(w8 w22))))))
@@ -58,10 +55,7 @@
   ::day_08::main::10 = x(x(w1 w28) x(w19 x(w18 x(w10 x(w12 w22)))))
 }
 
-::day_08::main::14 {
-  x(x(w6 w6) _)
-  _ = _
-}
+::day_08::main::14 { x(x(w6 w6) _) }
 
 ::day_08::main::16 {
   x(w13 x(w12 x(w10 x(w8 w7))))
@@ -238,11 +232,11 @@
 
 ::std::list::List::split_trim::5 { x(_ 0) }
 
-::std::list::List::split_trim::10 { x(x(w4 w4) x(_ x(_ _))) }
+::std::list::List::split_trim::10 { x(x(w4 w4) _) }
 
 ::std::list::List::split_trim::11 { x(w5 x(?(::std::list::List::split_trim::13 ::std::list::List::split_trim::12 x(w5 w2)) w2)) }
 
-::std::list::List::split_trim::12 { x(x(w3 w3) x(_ _)) }
+::std::list::List::split_trim::12 { x(x(w3 w3) _) }
 
 ::std::list::List::split_trim::13 {
   x(x(w7 w3) x(w5 _))

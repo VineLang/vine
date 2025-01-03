@@ -25,10 +25,7 @@
   ::std::list::List::len = fn(ref(w0 w7) ?(::day_14::main::8 ::day_14::main::7 x(w5 x(w3 w7))))
 }
 
-::day_14::main::6 {
-  x(x(w3 w3) x(w1 w1))
-  _ = _
-}
+::day_14::main::6 { x(x(w3 w3) x(w1 w1)) }
 
 ::day_14::main::7 {
   x(w58 x(x(w56 w66) w54))
@@ -50,10 +47,7 @@
   ::day_14::main::10 = fn(w27 fn(7 w43))
 }
 
-::day_14::main::8 {
-  x(x(w4 w4) x(x(w2 w2) _))
-  _ = _
-}
+::day_14::main::8 { x(x(w4 w4) x(x(w2 w2) _)) }
 
 ::day_14::main::10 {
   fn(w0 fn(w1 w14))

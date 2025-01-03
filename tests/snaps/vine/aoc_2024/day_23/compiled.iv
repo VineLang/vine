@@ -195,14 +195,14 @@
   ::std::map::Map::get = fn(w2 fn(ref(w5 w12) enum(::day_23::main::extend_clique::25 enum(::day_23::main::extend_clique::26 x(w7 x(w12 w16))))))
 }
 
-::day_23::main::extend_clique::22 { x(x(w3 w3) x(_ _)) }
+::day_23::main::extend_clique::22 { x(x(w3 w3) _) }
 
 ::day_23::main::extend_clique::25 {
   enum(ref(w1 w1) x(x(w6 w10) x(w4 _)))
   ::std::list::List::concat = fn(w6 fn(tup(1 tup(tup(w4 w11) w11)) w10))
 }
 
-::day_23::main::extend_clique::26 { x(x(w3 w3) x(_ _)) }
+::day_23::main::extend_clique::26 { x(x(w3 w3) _) }
 
 ::std::io::IO::println {
   fn(ref(w3 w14) fn(w5 _))

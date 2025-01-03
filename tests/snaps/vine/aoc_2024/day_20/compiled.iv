@@ -86,7 +86,7 @@
   ::day_20::eq = fn(w7 fn(w11 ?(::day_20::main::24 ::day_20::main::23 x(w9 x(w6 x(w14 w13))))))
 }
 
-::day_20::main::23 { x(x(w5 w5) x(x(w3 w3) x(_ _))) }
+::day_20::main::23 { x(x(w5 w5) x(x(w3 w3) _)) }
 
 ::day_20::main::24 {
   x(x(w28 w1) x(w26 x(tup(w5 dup156(w8 w6)) w29)))
@@ -97,7 +97,7 @@
 
 ::day_20::main::25 { x(x(_ w3) x(w3 _)) }
 
-::day_20::main::26 { x(x(w3 w3) x(_ _)) }
+::day_20::main::26 { x(x(w3 w3) _) }
 
 ::day_20::main::28 {
   x(w10 w9)
