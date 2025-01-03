@@ -13,6 +13,7 @@
     - [Standard Types]()
     - [Structs]()
     - [Enums]()
+  - [Variables](./features/variables.md)
   - [Methods]()
   - [IO](./features/io.md)
   - [Patterns](./features/patterns.md)
