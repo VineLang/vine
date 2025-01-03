@@ -18,7 +18,7 @@ use vine_util::{
 
 use crate::{
   analyzer::{analyze, usage::Usage},
-  ast::{Block, Builtin, Expr, ExprKind, Ident, Local, Span, Stmt},
+  ast::{Block, Builtin, Ident, Local, Span, Stmt},
   checker::{self, Checker, CheckerState, Type},
   core::Core,
   diag::Diag,
@@ -194,8 +194,7 @@ impl<'core, 'ctx, 'ivm> Repl<'core, 'ctx, 'ivm> {
 
     let name = format!("::repl::{line}");
 
-    let expr = Expr { span: Span::NONE, kind: ExprKind::Block(block) };
-    let mut vir = distiller.distill_expr(self.local_count, &expr);
+    let mut vir = distiller.distill_root(self.local_count, &block, Distiller::distill_block);
     vir.stages[StageId(0)].declarations.retain(|l| !self.locals.contains_key(l));
     vir.globals.extend(self.vars.values().map(|v| (v.local, Usage::Mut)));
     let mut vir = normalize(&vir);

@@ -214,11 +214,9 @@ pub enum ExprKind<'core> {
   #[class(value)]
   Do(Label<'core>, Block<'core>),
   #[class(value)]
-  Block(Block<'core>),
-  #[class(value)]
   Assign(bool, B<Expr<'core>>, B<Expr<'core>>),
   #[class(value)]
-  Match(B<Expr<'core>>, Vec<(Pat<'core>, Expr<'core>)>),
+  Match(B<Expr<'core>>, Vec<(Pat<'core>, Block<'core>)>),
   #[class(value)]
   If(Vec<(Expr<'core>, Block<'core>)>, Option<Block<'core>>),
   #[class(value)]
@@ -226,7 +224,7 @@ pub enum ExprKind<'core> {
   #[class(value)]
   Loop(Label<'core>, Block<'core>),
   #[class(value)]
-  Fn(Vec<Pat<'core>>, Option<Option<Ty<'core>>>, B<Expr<'core>>),
+  Fn(Vec<Pat<'core>>, Option<Option<Ty<'core>>>, Block<'core>),
   #[class(value)]
   Return(Option<B<Expr<'core>>>),
   #[class(value)]

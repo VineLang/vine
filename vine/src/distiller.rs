@@ -77,14 +77,19 @@ impl<'core, 'r> Distiller<'core, 'r> {
   pub fn distill(&mut self, def: &Def<'core>) -> Option<VIR> {
     let value_def = def.value_def.as_ref()?;
     let ValueDefKind::Expr(expr) = &value_def.kind else { None? };
-    Some(self.distill_expr(value_def.locals, expr))
+    Some(self.distill_root(value_def.locals, expr, Self::distill_expr_value))
   }
 
-  pub fn distill_expr(&mut self, locals: Counter<Local>, expr: &Expr<'core>) -> VIR {
+  pub fn distill_root<T>(
+    &mut self,
+    locals: Counter<Local>,
+    root: &T,
+    distill_root: fn(&mut Self, &mut Stage, &T) -> Port,
+  ) -> VIR {
     self.locals = locals;
     let (layer, mut stage) = self.root_layer();
     let local = self.locals.next();
-    let result = self.distill_expr_value(&mut stage, expr);
+    let result = distill_root(self, &mut stage, root);
     stage.set_local_to(local, result);
     self.finish_stage(stage);
     self.finish_layer(layer);
@@ -126,7 +131,6 @@ impl<'core, 'r> Distiller<'core, 'r> {
         stage.steps.push(Step::Transfer(Transfer::unconditional(dyn_fn.interface)));
         stage.take_local(dyn_fn.local)
       }
-      ExprKind::Block(block) => self.distill_block(stage, block),
       ExprKind::Assign(inverse, space, value) => {
         if *inverse {
           let space = self.distill_expr_space(stage, space);

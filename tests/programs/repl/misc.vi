@@ -13,8 +13,8 @@ fn _foo() {}
 [1,2,3,4].reversed()
 let a = Array::from_fn(5, &(0; _), fn(&x: &N32) { let n = x; x += 1; n });
 a.for_each(&io, fn(&io: &IO, v: N32) { io.println(v.to_string() )})
--a.fold_front(0, fn(a: N32, b: N32) a - b)
--a.fold_back(5, fn(a: N32, b: N32) a - b)
+-a.fold_front(0, fn(a: N32, b: N32) { a - b })
+-a.fold_back(5, fn(a: N32, b: N32) { a - b })
 move a
 Array::from_list([1,2,3,4,5,6,7,8,9]).reversed().to_list()
 List::new(100, "")

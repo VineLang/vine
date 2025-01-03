@@ -8,7 +8,7 @@ use crate::{
 use super::{pattern_matching::Row, Distiller, DynFn, Label, Return};
 
 impl<'core, 'r> Distiller<'core, 'r> {
-  pub(super) fn distill_block(&mut self, stage: &mut Stage, block: &Block<'core>) -> Port {
+  pub fn distill_block(&mut self, stage: &mut Stage, block: &Block<'core>) -> Port {
     self.distill_stmts(stage, &block.stmts)
   }
 
@@ -61,7 +61,7 @@ impl<'core, 'r> Distiller<'core, 'r> {
           let (layer, mut stage) = self.root_layer();
           *self.dyn_fns.get_or_extend(dyn_fn.id.unwrap()) =
             Some(DynFn { interface: stage.interface, local });
-          self._distill_fn(&mut stage, local, &dyn_fn.params, &dyn_fn.body, Self::distill_block);
+          self._distill_fn(&mut stage, local, &dyn_fn.params, &dyn_fn.body);
           self.finish_stage(stage);
           self.finish_layer(layer);
         }
@@ -82,7 +82,7 @@ impl<'core, 'r> Distiller<'core, 'r> {
     &mut self,
     stage: &mut Stage,
     value: &Expr<'core>,
-    arms: &Vec<(Pat<'core>, Expr<'core>)>,
+    arms: &Vec<(Pat<'core>, Block<'core>)>,
   ) -> Port {
     let local = self.new_local(stage);
     let (mut layer, mut init_stage) = self.child_layer(stage);
@@ -91,7 +91,7 @@ impl<'core, 'r> Distiller<'core, 'r> {
       .iter()
       .map(|(pat, expr)| {
         let mut stage = self.new_unconditional_stage(&mut layer);
-        let result = self.distill_expr_value(&mut stage, expr);
+        let result = self.distill_block(&mut stage, expr);
         stage.set_local_to(local, result);
         let interface = stage.interface;
         self.finish_stage(stage);
@@ -108,12 +108,12 @@ impl<'core, 'r> Distiller<'core, 'r> {
     &mut self,
     stage: &mut Stage,
     params: &[Pat<'core>],
-    body: &Expr<'core>,
+    body: &Block<'core>,
   ) -> Port {
     let fn_local = self.new_local(stage);
     let (layer, mut body_stage) = self.child_layer(stage);
 
-    self._distill_fn(&mut body_stage, fn_local, params, body, Self::distill_expr_value);
+    self._distill_fn(&mut body_stage, fn_local, params, body);
 
     self.finish_stage(body_stage);
     self.finish_layer(layer);
@@ -121,13 +121,12 @@ impl<'core, 'r> Distiller<'core, 'r> {
     stage.take_local(fn_local)
   }
 
-  pub(super) fn _distill_fn<B>(
+  pub(super) fn _distill_fn(
     &mut self,
     stage: &mut Stage,
     fn_local: Local,
     params: &[Pat<'core>],
-    body: &B,
-    distill_body: impl Fn(&mut Self, &mut Stage, &B) -> Port,
+    body: &Block<'core>,
   ) {
     let return_local = self.new_local(stage);
 
@@ -140,7 +139,7 @@ impl<'core, 'r> Distiller<'core, 'r> {
 
     self.returns.push(Return { layer: stage.layer, local: return_local });
 
-    let result = distill_body(self, stage, body);
+    let result = self.distill_block(stage, body);
     stage.set_local_to(return_local, result);
 
     self.returns.pop();

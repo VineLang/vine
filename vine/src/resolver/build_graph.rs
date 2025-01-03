@@ -51,11 +51,7 @@ impl<'core> Resolver<'core> {
           locals: Counter::default(),
           kind: ValueDefKind::Expr(Expr {
             span,
-            kind: ExprKind::Fn(
-              f.params,
-              Some(f.ret),
-              Box::new(Expr { span: f.body.span, kind: ExprKind::Block(f.body) }),
-            ),
+            kind: ExprKind::Fn(f.params, Some(f.ret), f.body),
           }),
         },
         member_vis,

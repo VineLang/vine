@@ -91,13 +91,13 @@ pub trait VisitMut<'core, 'a> {
       }
 
       ExprKind::Path(p) => self.visit_generic_path(p),
-      ExprKind::Block(b) | ExprKind::Do(_, b) | ExprKind::Loop(_, b) => self.visit_block(b),
+      ExprKind::Do(_, b) | ExprKind::Loop(_, b) => self.visit_block(b),
       ExprKind::Match(a, b) => {
         self.visit_expr(a);
-        for (t, u) in b {
+        for (p, b) in b {
           self.enter_scope();
-          self.visit_pat(t);
-          self.visit_expr(u);
+          self.visit_pat(p);
+          self.visit_block(b);
           self.exit_scope();
         }
       }
@@ -124,7 +124,7 @@ pub trait VisitMut<'core, 'a> {
         if let Some(Some(b)) = b {
           self.visit_type(b);
         }
-        self.visit_expr(c);
+        self.visit_block(c);
         self.exit_scope();
       }
       ExprKind::Tuple(a) | ExprKind::List(a) | ExprKind::Adt(_, a) => {

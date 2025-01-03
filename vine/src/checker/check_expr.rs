@@ -179,7 +179,6 @@ impl<'core> Checker<'core, '_> {
         }
         ty
       }
-      ExprKind::Block(block) => self.check_block(block),
       ExprKind::Assign(_, space, value) => {
         let mut ty = self.check_expr_form(space, Form::Space);
         self.check_expr_form_type(value, Form::Value, &mut ty);
@@ -188,9 +187,9 @@ impl<'core> Checker<'core, '_> {
       ExprKind::Match(scrutinee, arms) => {
         let mut scrutinee = self.check_expr_form(scrutinee, Form::Value);
         let mut result = self.new_var(span);
-        for (pat, expr) in arms {
+        for (pat, block) in arms {
           self.check_pat_type(pat, Form::Value, true, &mut scrutinee);
-          self.check_expr_form_type(expr, Form::Value, &mut result);
+          self.check_block_type(block, &mut result);
         }
         result
       }
@@ -226,7 +225,7 @@ impl<'core> Checker<'core, '_> {
             None => self.new_var(span),
           };
           let old = self.return_ty.replace(ret.clone());
-          self.check_expr_form_type(body, Form::Value, &mut ret);
+          self.check_block_type(body, &mut ret);
           self.return_ty = old;
           ret
         }),

@@ -428,9 +428,6 @@ impl<'core, 'src> VineParser<'core, 'src> {
       let exprs = self.parse_delimited(BRACKET_COMMA, Self::parse_expr)?;
       return Ok(ExprKind::List(exprs));
     }
-    if self.check(Token::OpenBrace) {
-      return Ok(ExprKind::Block(self.parse_block()?));
-    }
     if self.eat(Token::Do)? {
       return Ok(ExprKind::Do(self.parse_label()?, self.parse_block()?));
     }
@@ -465,15 +462,14 @@ impl<'core, 'src> VineParser<'core, 'src> {
     }
     if self.eat(Token::Fn)? {
       let params = self.parse_delimited(PAREN_COMMA, Self::parse_pat)?;
-      let body = self.parse_expr()?;
-      return Ok(ExprKind::Fn(params, None, Box::new(body)));
+      let body = self.parse_block()?;
+      return Ok(ExprKind::Fn(params, None, body));
     }
     if self.eat(Token::Match)? {
       let scrutinee = self.parse_expr()?;
-      let arms = self.parse_delimited(BRACE_COMMA, |self_| {
+      let arms = self.parse_delimited(BRACE, |self_| {
         let pat = self_.parse_pat()?;
-        self_.expect(Token::ThickArrow)?;
-        let value = self_.parse_expr()?;
+        let value = self_.parse_block()?;
         Ok((pat, value))
       })?;
       return Ok(ExprKind::Match(Box::new(scrutinee), arms));
@@ -743,7 +739,6 @@ impl<'core, 'src> VineParser<'core, 'src> {
       || self.check(Token::Loop)
       || self.check(Token::While)
       || self.check(Token::For)
-      || self.check(Token::OpenBrace)
     {
       let expr = self.parse_expr_prefix()?;
       let semi = self.eat(Token::Semi)?;
