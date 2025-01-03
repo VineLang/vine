@@ -1,4 +1,5 @@
 use std::{
+  collections::BTreeMap,
   iter,
   mem::{replace, take},
   ops::Range,
@@ -11,7 +12,7 @@ use vine_util::{
 
 use crate::{
   ast::{
-    Block, Builtin, DynFnId, ExprKind, GenericPath, Ident, LabelId, Local, Pat, PatKind, Span,
+    Block, Builtin, DynFnId, ExprKind, GenericPath, Ident, Key, LabelId, Local, Pat, PatKind, Span,
     StmtKind, Ty, TyKind,
   },
   core::Core,
@@ -29,10 +30,10 @@ mod unify;
 pub struct Checker<'core, 'r> {
   core: &'core Core<'core>,
   resolver: &'r mut Resolver<'core>,
-  state: CheckerState,
+  state: CheckerState<'core>,
   generics: Vec<Ident<'core>>,
-  return_ty: Option<Type>,
-  labels: IdxVec<LabelId, Option<Type>>,
+  return_ty: Option<Type<'core>>,
+  labels: IdxVec<LabelId, Option<Type<'core>>>,
   cur_def: DefId,
 
   bool: Option<DefId>,
@@ -41,15 +42,15 @@ pub struct Checker<'core, 'r> {
   char: Option<DefId>,
   io: Option<DefId>,
   list: Option<DefId>,
-  string: Option<Type>,
+  string: Option<Type<'core>>,
   concat: Option<DefId>,
 }
 
 #[derive(Default, Debug, Clone)]
-pub(crate) struct CheckerState {
-  pub(crate) vars: IdxVec<Var, Result<Type, Span>>,
+pub(crate) struct CheckerState<'core> {
+  pub(crate) vars: IdxVec<Var, Result<Type<'core>, Span>>,
   pub(crate) locals: IntMap<Local, Var>,
-  pub(crate) dyn_fns: IntMap<DynFnId, Type>,
+  pub(crate) dyn_fns: IntMap<DynFnId, Type<'core>>,
 }
 
 impl<'core, 'r> Checker<'core, 'r> {
@@ -124,20 +125,20 @@ impl<'core, 'r> Checker<'core, 'r> {
   pub(crate) fn _check_custom(
     &mut self,
     def_id: DefId,
-    state: CheckerState,
+    state: CheckerState<'core>,
     block: &mut Block<'core>,
-  ) -> (Type, CheckerState) {
+  ) -> (Type<'core>, CheckerState<'core>) {
     self.cur_def = def_id;
     self.state = state;
     let ty = self.check_block(block);
     (ty, take(&mut self.state))
   }
 
-  fn new_var(&mut self, span: Span) -> Type {
+  fn new_var(&mut self, span: Span) -> Type<'core> {
     Type::Var(self.state.vars.push(Err(span)))
   }
 
-  fn check_block(&mut self, block: &mut Block<'core>) -> Type {
+  fn check_block(&mut self, block: &mut Block<'core>) -> Type<'core> {
     let mut ty = Type::UNIT;
     for stmt in block.stmts.iter_mut() {
       ty = Type::UNIT;
@@ -176,7 +177,7 @@ impl<'core, 'r> Checker<'core, 'r> {
     ty
   }
 
-  fn check_block_type(&mut self, block: &mut Block<'core>, ty: &mut Type) {
+  fn check_block_type(&mut self, block: &mut Block<'core>, ty: &mut Type<'core>) {
     let mut found = self.check_block(block);
     if !self.unify(&mut found, ty) {
       self.core.report(Diag::ExpectedTypeFound {
@@ -187,7 +188,7 @@ impl<'core, 'r> Checker<'core, 'r> {
     }
   }
 
-  fn hydrate_type(&mut self, ty: &mut Ty<'core>, inference: bool) -> Type {
+  fn hydrate_type(&mut self, ty: &mut Ty<'core>, inference: bool) -> Type<'core> {
     let span = ty.span;
     match &mut ty.kind {
       TyKind::Hole if inference => self.new_var(span),
@@ -200,6 +201,9 @@ impl<'core, 'r> Checker<'core, 'r> {
       TyKind::Tuple(tys) => {
         Type::Tuple(tys.iter_mut().map(|arg| self.hydrate_type(arg, inference)).collect())
       }
+      TyKind::Object(entries) => {
+        report!(self.core, ty.kind; self.build_object_type(entries, |self_, t| self_.hydrate_type(t, inference)))
+      }
       TyKind::Ref(t) => Type::Ref(Box::new(self.hydrate_type(t, inference))),
       TyKind::Inverse(t) => Type::Inverse(Box::new(self.hydrate_type(t, inference))),
       TyKind::Path(path) => {
@@ -210,7 +214,7 @@ impl<'core, 'r> Checker<'core, 'r> {
     }
   }
 
-  fn hydrate_param(&mut self, pat: &mut Pat<'core>) -> Type {
+  fn hydrate_param(&mut self, pat: &mut Pat<'core>) -> Type<'core> {
     let span = pat.span;
     match &mut pat.kind {
       PatKind::Paren(inner) => self.hydrate_param(inner),
@@ -221,6 +225,9 @@ impl<'core, 'r> Checker<'core, 'r> {
       PatKind::Ref(p) => Type::Ref(Box::new(self.hydrate_param(p))),
       PatKind::Inverse(p) => Type::Inverse(Box::new(self.hydrate_param(p))),
       PatKind::Tuple(t) => Type::Tuple(t.iter_mut().map(|p| self.hydrate_param(p)).collect()),
+      PatKind::Object(entries) => {
+        report!(self.core, pat.kind; self.build_object_type(entries, Self::hydrate_param))
+      }
       PatKind::Hole | PatKind::Local(_) | PatKind::Deref(_) => {
         Type::Error(self.core.report(Diag::ItemTypeHole { span }))
       }
@@ -233,7 +240,7 @@ impl<'core, 'r> Checker<'core, 'r> {
     path: &mut GenericPath<'core>,
     generic_count: usize,
     inference: bool,
-  ) -> Vec<Type> {
+  ) -> Vec<Type<'core>> {
     if let Some(generics) = &mut path.generics {
       generics.iter_mut().map(|t| self.hydrate_type(t, inference)).collect::<Vec<_>>()
     } else {
@@ -289,9 +296,30 @@ impl<'core, 'r> Checker<'core, 'r> {
       self.resolver.defs[def_id].value_def = Some(value);
     }
   }
+
+  fn build_object_type<T>(
+    &mut self,
+    entries: &mut Vec<(Key<'core>, T)>,
+    mut f: impl FnMut(&mut Self, &mut T) -> Type<'core>,
+  ) -> Result<Type<'core>, Diag<'core>> {
+    let mut fields = BTreeMap::new();
+    let mut duplicate = Ok(());
+    for (key, value) in entries {
+      let old = fields.insert(key.ident, f(self, value));
+      if old.is_some() {
+        duplicate = Err(self.core.report(Diag::DuplicateKey { span: key.span }));
+      }
+    }
+    duplicate?;
+    Ok(Type::Object(fields))
+  }
 }
 
-fn define_primitive_type(resolver: &mut Resolver, def_id: Option<DefId>, ty: Type) {
+fn define_primitive_type<'core>(
+  resolver: &mut Resolver<'core>,
+  def_id: Option<DefId>,
+  ty: Type<'core>,
+) {
   if let Some(def_id) = def_id {
     resolver.defs[def_id].type_def =
       Some(TypeDef { vis: DefId::ROOT, generics: Vec::new(), alias: None, ty: Some(ty) });
@@ -320,27 +348,28 @@ impl Form {
 new_idx!(pub Var);
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub enum Type {
+pub enum Type<'core> {
   Bool,
   N32,
   F32,
   Char,
   IO,
-  Tuple(Vec<Type>),
-  Fn(Vec<Type>, Box<Type>),
-  Ref(Box<Type>),
-  Inverse(Box<Type>),
-  Adt(DefId, Vec<Type>),
+  Tuple(Vec<Type<'core>>),
+  Object(BTreeMap<Ident<'core>, Type<'core>>),
+  Fn(Vec<Type<'core>>, Box<Type<'core>>),
+  Ref(Box<Type<'core>>),
+  Inverse(Box<Type<'core>>),
+  Adt(DefId, Vec<Type<'core>>),
   Opaque(usize),
   Var(Var),
   Never,
   Error(ErrorGuaranteed),
 }
 
-impl Type {
-  const UNIT: Type = Type::Tuple(Vec::new());
+impl<'core> Type<'core> {
+  const UNIT: Type<'static> = Type::Tuple(Vec::new());
 
-  pub(crate) fn instantiate(&self, opaque: &[Type]) -> Type {
+  pub(crate) fn instantiate(&self, opaque: &[Type<'core>]) -> Type<'core> {
     match self {
       Type::Bool => Type::Bool,
       Type::N32 => Type::N32,
@@ -348,6 +377,9 @@ impl Type {
       Type::Char => Type::Char,
       Type::IO => Type::IO,
       Type::Tuple(tys) => Type::Tuple(tys.iter().map(|t| t.instantiate(opaque)).collect()),
+      Type::Object(entries) => {
+        Type::Object(entries.iter().map(|(&k, t)| (k, t.instantiate(opaque))).collect())
+      }
       Type::Fn(tys, ret) => Type::Fn(
         tys.iter().map(|t| t.instantiate(opaque)).collect(),
         Box::new(ret.instantiate(opaque)),
@@ -378,13 +410,13 @@ impl Type {
   }
 }
 
-impl Default for Type {
+impl Default for Type<'_> {
   fn default() -> Self {
     Self::UNIT
   }
 }
 
-impl From<ErrorGuaranteed> for Type {
+impl From<ErrorGuaranteed> for Type<'_> {
   fn from(value: ErrorGuaranteed) -> Self {
     Type::Error(value)
   }

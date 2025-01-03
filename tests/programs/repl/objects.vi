@@ -1,0 +1,14 @@
+let x = { a: 1, c: 3, b: 2 }
+(x.a, x.b, x.c)
+(x.c, x.b, x.a)
+let y = { x }
+let z = { y }
+z.y.x.a
+z.y.x.a += y.x.b
+let { y: { x: o } } = z
+let { c, b, a } = o
+a + b + c
+x.p
+do { let { p } = x }
+z = { Y: y }
+z = { y: 1 }

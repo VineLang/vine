@@ -127,7 +127,7 @@ mod DisjointSet {
     let &a_node = array.get(a);
     let &b_node = array.get(b);
     match (&a_node, &b_node) {
-      (&Node::Root(a_size), &Node::Root(b_size)) => {
+      (&Node::Root(a_size), &Node::Root(b_size)) {
         if a_size < b_size {
           a_node = Node::Child(b);
           b_size += a_size;
@@ -137,7 +137,7 @@ mod DisjointSet {
           a_size += b_size;
           a
         }
-      },
+      }
     }
   }
 }

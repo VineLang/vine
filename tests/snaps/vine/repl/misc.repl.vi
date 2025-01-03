@@ -63,12 +63,12 @@ a = Array(5, Node(Node(Node(#ivy(0), #ivy(4)), #ivy(2)), Node(#ivy(1), #ivy(3)))
 
 io = #io
 a = Array(5, Node(Node(Node(#ivy(0), #ivy(4)), #ivy(2)), Node(#ivy(1), #ivy(3))))
-> -a.fold_front(0, fn(a: N32, b: N32) a - b)
+> -a.fold_front(0, fn(a: N32, b: N32) { a - b })
 10
 
 io = #io
 a = Array(5, Node(Node(Node(#ivy(0), #ivy(4)), #ivy(2)), Node(#ivy(1), #ivy(3))))
-> -a.fold_back(5, fn(a: N32, b: N32) a - b)
+> -a.fold_back(5, fn(a: N32, b: N32) { a - b })
 5
 
 io = #io

@@ -8,15 +8,15 @@ pub mod Pair {
     (
       fn(&(a0: A, b0: B), &(a1: A, b1: B)) {
         match f(&a0, &a1) {
-          Ord::Lt => Ord::Lt,
-          Ord::Gt => Ord::Gt,
-          Ord::Eq => g(&b0, &b1),
+          Ord::Lt { Ord::Lt }
+          Ord::Gt { Ord::Gt }
+          Ord::Eq { g(&b0, &b1) }
         }
       }
     )
   }
 
   pub fn to_string[A, B](show_a: fn(A) -> String, show_b: fn(B) -> String) -> fn((A, B)) -> String {
-    (fn((a: A, b: B)) "(" ++ show_a(a) ++ ", " ++ show_b(b) ++ ")")
+    (fn((a: A, b: B)) { "(" ++ show_a(a) ++ ", " ++ show_b(b) ++ ")" })
   }
 }

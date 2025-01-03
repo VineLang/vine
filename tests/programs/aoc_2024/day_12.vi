@@ -33,10 +33,10 @@ pub fn main(&io: &IO) {
   let &Regions(array) = &regions;
   while i < array.len() {
     match *array.get(i) {
-      Region::Root(a, p) => {
+      Region::Root(a, p) {
         price += a * (a * 4 - p * 2);
-      },
-      _ => {},
+      }
+      _ {}
     }
     i += 1;
   }
@@ -89,8 +89,8 @@ enum Region {
 mod Region {
   pub fn to_string(self: Region) -> String {
     match self {
-      Region::Root(a, p) => "Root(" ++ a.to_string() ++ ", " ++ p.to_string() ++ ")",
-      Region::Child(n) => "Child(" ++ n.to_string() ++ ")",
+      Region::Root(a, p) { "Root(" ++ a.to_string() ++ ", " ++ p.to_string() ++ ")" }
+      Region::Child(n) { "Child(" ++ n.to_string() ++ ")" }
     }
   }
 }
@@ -120,23 +120,23 @@ mod Regions {
     let i = self.find(i);
     let &Regions(array) = &self;
     match *array.get(i) {
-      Region::Root(a, _) => a,
+      Region::Root(a, _) { a }
     }
   }
 
   pub fn union_found(&Regions(array), i: N32, j: N32) -> N32 {
     if i == j {
       match array.get(i) {
-        &Region::Root(_, p) => {
+        &Region::Root(_, p) {
           p += 1;
-        },
+        }
       }
       i
     } else {
       let &r = array.get(i);
       let &s = array.get(j);
       match (r, s) {
-        (Region::Root(ra, rp), Region::Root(sa, sp)) => {
+        (Region::Root(ra, rp), Region::Root(sa, sp)) {
           let a = ra + sa;
           let p = rp + sp + 1;
           if ra < sa {
@@ -148,7 +148,7 @@ mod Regions {
             s = Region::Child(i);
             i
           }
-        },
+        }
       }
     }
   }

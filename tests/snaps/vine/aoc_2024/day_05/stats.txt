@@ -1,10 +1,10 @@
 
 Interactions
-  Total               82_519
+  Total               82_518
   Annihilate          43_819
   Commute                675
   Copy                 7_182
-  Erase                7_240
+  Erase                7_239
   Expand              12_384
   Call                 6_488
   Branch               4_731

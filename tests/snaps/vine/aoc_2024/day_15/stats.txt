@@ -1,10 +1,10 @@
 
 Interactions
-  Total            1_271_661
+  Total            1_271_660
   Annihilate         680_656
   Commute             11_203
   Copy               104_600
-  Erase              102_488
+  Erase              102_487
   Expand             164_907
   Call               138_372
   Branch              69_435

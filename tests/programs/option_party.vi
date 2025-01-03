@@ -4,8 +4,8 @@ use std::option::Option::{Option, Some, None};
 pub fn main(&io: &IO) {
   dyn fn print_option_n32(option: Option[N32]) {
     io.println("  " ++ match option {
-      Some(val) => "Some(" ++ val.to_string() ++ ")",
-      None => "None",
+      Some(val) { "Some(" ++ val.to_string() ++ ")" }
+      None { "None" }
     })
   }
 
@@ -22,9 +22,9 @@ pub fn main(&io: &IO) {
   }
 
   io.println("map:");
-  print_option_n32(None.map(fn(x: N32) x + 1));
-  print_option_n32(Some(0).map(fn(x: N32) x + 1));
-  print_option_n32(Some(100).map(fn(x: N32) x + 1));
+  print_option_n32(None.map(fn(x: N32) { x + 1 }));
+  print_option_n32(Some(0).map(fn(x: N32) { x + 1 }));
+  print_option_n32(Some(100).map(fn(x: N32) { x + 1 }));
 
   io.println("increment_option:");
   let option = None;
@@ -83,11 +83,11 @@ pub fn main(&io: &IO) {
 
 fn increment_option(&option: &Option[N32]) {
   match option.as_ref() {
-    Some(&x) => x += 1,
-    None => {},
+    Some(&x) { x += 1 }
+    None {}
   }
 }
 
 fn add_options(a: Option[N32], b: Option[N32]) -> Option[N32] {
-  a.and_then(fn(a: N32) b.map(fn(b: N32) a + b))
+  a.and_then(fn(a: N32) { b.map(fn(b: N32) { a + b }) })
 }

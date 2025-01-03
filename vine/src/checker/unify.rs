@@ -9,12 +9,12 @@ use super::CheckerState;
 
 impl<'core> Checker<'core, '_> {
   #[must_use]
-  pub(super) fn unify(&mut self, a: &mut Type, b: &mut Type) -> bool {
+  pub(super) fn unify(&mut self, a: &mut Type<'core>, b: &mut Type<'core>) -> bool {
     self._unify(a, b, false, false)
   }
 
   #[must_use]
-  fn _unify(&mut self, a: &mut Type, b: &mut Type, i: bool, j: bool) -> bool {
+  fn _unify(&mut self, a: &mut Type<'core>, b: &mut Type<'core>, i: bool, j: bool) -> bool {
     match (&mut *a, &mut *b) {
       (Type::Error(_), _) | (_, Type::Error(_)) => true,
       (Type::Inverse(a), Type::Inverse(b)) => self._unify(a, b, !i, !j),
@@ -72,6 +72,17 @@ impl<'core> Checker<'core, '_> {
         }
         success
       }
+      (Type::Object(a), Type::Object(b)) => {
+        let mut success = true;
+        for (k, a) in a {
+          if let Some(b) = b.get_mut(k) {
+            success &= self._unify(a, b, i, j);
+          } else {
+            success = false;
+          }
+        }
+        success
+      }
       (Type::Ref(a), Type::Ref(b)) if i == j => self._unify(a, b, i, j),
       (Type::Fn(x, a), Type::Fn(y, b)) if i == j => {
         let mut success = true;
@@ -92,7 +103,7 @@ impl<'core> Checker<'core, '_> {
     }
   }
 
-  pub(super) fn concretize(&mut self, ty: &mut Type) {
+  pub(super) fn concretize(&mut self, ty: &mut Type<'core>) {
     while let Type::Var(v) = *ty {
       match self.state.vars[v].clone() {
         Ok(t) => *ty = t,
@@ -111,8 +122,8 @@ impl<'core> Checker<'core, '_> {
   }
 }
 
-impl CheckerState {
-  pub(crate) fn try_concretize(&self, ty: &mut Type) {
+impl<'core> CheckerState<'core> {
+  pub(crate) fn try_concretize(&self, ty: &mut Type<'core>) {
     while let Type::Var(v) = *ty {
       if let Ok(t) = self.vars[v].clone() {
         *ty = t

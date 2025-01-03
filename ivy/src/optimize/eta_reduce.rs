@@ -8,16 +8,17 @@ use crate::ast::{Net, Tree};
 impl Net {
   /// Apply eta-reduction rules to every net; replacing `(_ _)` with `_` and
   /// `(a b) ... (a b)` with `x ... x`.
-  pub fn eta_reduce(&mut self) {
+  pub fn eta_reduce(&mut self) -> bool {
     let mut walker = WalkTrees::default();
     for tree in self.trees() {
       walker.walk_tree(tree);
     }
     let nodes = { walker }.nodes;
-    let mut reducer = ReduceTrees { nodes: &nodes, index: 0 };
+    let mut reducer = ReduceTrees { nodes: &nodes, index: 0, reduced: false };
     for tree in self.trees_mut() {
       reducer.reduce_tree(tree);
     }
+    reducer.reduced
   }
 }
 
@@ -70,6 +71,7 @@ impl<'a> WalkTrees<'a> {
 struct ReduceTrees<'a> {
   nodes: &'a [NodeKind],
   index: usize,
+  reduced: bool,
 }
 
 impl<'a> ReduceTrees<'a> {
@@ -87,6 +89,7 @@ impl<'a> ReduceTrees<'a> {
           _ => false,
         };
         if reducible {
+          self.reduced = true;
           *tree = take(a);
           return ak;
         }

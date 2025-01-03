@@ -28,7 +28,7 @@ pub mod Array {
 
   pub fn to_list[T](self: Array[T]) -> List[T] {
     let end;
-    List(self.len(), self.fold_back(move ~end, fn(a, b) Buf(b, a)), end)
+    List(self.len(), self.fold_back(move ~end, fn(a, b) { Buf(b, a) }), end)
   }
 
   pub fn from_fn[T, S](len: N32, &state: &S, f: fn(&S) -> T) -> Array[T] {
@@ -36,7 +36,7 @@ pub mod Array {
       Array::empty
     } else {
       let ~ins;
-      let (node, outs) = Node::unzip_with(len, move ~ins, fn(s) (f(&s), s));
+      let (node, outs) = Node::unzip_with(len, move ~ins, fn(s) { (f(&s), s) });
       let outs = Array(len, outs);
       let end = outs.pop_back().unwrap();
       outs.push_front(state);

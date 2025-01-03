@@ -87,6 +87,7 @@ fn tests(t: &mut DynTester) {
       test_vi_repl(t, "tests/programs/repl/advanced_repl.vi");
       test_vi_repl(t, "tests/programs/repl/basic_repl.vi");
       test_vi_repl(t, "tests/programs/repl/misc.vi");
+      test_vi_repl(t, "tests/programs/repl/objects.vi");
       test_vi_repl(t, "tests/programs/repl/randomness.vi");
     });
   });

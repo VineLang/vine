@@ -9,7 +9,7 @@ impl<'core> Checker<'core, '_> {
   pub(super) fn typeof_value_def(
     &mut self,
     path: &mut GenericPath<'core>,
-  ) -> Result<Type, Diag<'core>> {
+  ) -> Result<Type<'core>, Diag<'core>> {
     let span = path.span;
     let def_id = path.path.resolved.unwrap();
     let def = &self.resolver.defs[def_id];
@@ -34,7 +34,7 @@ impl<'core> Checker<'core, '_> {
     &mut self,
     path: &mut GenericPath<'core>,
     inference: bool,
-  ) -> Result<Type, Diag<'core>> {
+  ) -> Result<Type<'core>, Diag<'core>> {
     let span = path.span;
     let def_id = path.path.resolved.unwrap();
     let def = &self.resolver.defs[def_id];
@@ -73,7 +73,7 @@ impl<'core> Checker<'core, '_> {
     path: &mut GenericPath<'core>,
     refutable: bool,
     inference: bool,
-  ) -> Result<(Type, Option<Vec<Type>>), Diag<'core>> {
+  ) -> Result<(Type<'core>, Option<Vec<Type<'core>>>), Diag<'core>> {
     let span = path.span;
     let variant_id = path.path.resolved.unwrap();
     let variant = &self.resolver.defs[variant_id];

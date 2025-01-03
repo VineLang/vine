@@ -14,7 +14,7 @@ pub fn main(&io: &IO) {
     (*graph.get_or_insert(a, Map::new(N32::cmp))).insert(b, ());
   }
 
-  {
+  do {
     let graph = graph;
     let triangles = 0;
     let t_triangles = 0;
@@ -65,8 +65,8 @@ pub fn main(&io: &IO) {
   let best = [];
 
   while graph.remove_min() is Some((a, tips)) {
-    extend_clique(&graph, &best, [a], tips.to_list().map(fn((x, _)) x));
+    extend_clique(&graph, &best, [a], tips.to_list().map(fn((x, _)) { x }));
   }
 
-  io.println("Part 2: " ++ best.map(fn(x: N32) ['a' + x / 26, 'a' + x % 26]).join(","));
+  io.println("Part 2: " ++ best.map(fn(x: N32) { ['a' + x / 26, 'a' + x % 26] }).join(","));
 }

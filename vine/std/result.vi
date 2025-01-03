@@ -7,23 +7,23 @@ pub enum Result[T, E] {
 pub mod Result {
   pub fn map[T, U, E](self: Result[T, E], f: fn(T) -> U) -> Result[U, E] {
     match self {
-      Ok(val) => Ok(f(val)),
-      Err(err) => Err(err),
+      Ok(val) { Ok(f(val)) }
+      Err(err) { Err(err) }
     }
   }
 
   pub fn as_ref[T, E](&self: &Result[T, E]) -> Result[&T, &E] {
     match &self {
-      &Ok(val) => Ok(&val),
-      &Err(err) => Err(&err),
+      &Ok(val) { Ok(&val) }
+      &Err(err) { Err(&err) }
     }
   }
 
   pub fn flatten[T, E](self: Result[Result[T, E], E]) -> Result[T, E] {
     match self {
-      Ok(Ok(val)) => Ok(val),
-      Ok(Err(err)) => Err(err),
-      Err(err) => Err(err),
+      Ok(Ok(val)) { Ok(val) }
+      Ok(Err(err)) { Err(err) }
+      Err(err) { Err(err) }
     }
   }
 
@@ -33,21 +33,21 @@ pub mod Result {
 
   pub fn or[T, E](self: Result[T, E], default: Result[T, E]) -> Result[T, E] {
     match self {
-      Err(_) => default,
-      x => x,
+      Err(_) { default }
+      x { x }
     }
   }
 
   pub fn unwrap_or[T, E](self: Result[T, E], default: T) -> T {
     match self {
-      Ok(val) => val,
-      Err(_) => default,
+      Ok(val) { val }
+      Err(_) { default }
     }
   }
 
   pub fn unwrap[T, E](self: Result[T, E], default: T) -> T {
     match self {
-      Ok(val) => val,
+      Ok(val) { val }
     }
   }
 }

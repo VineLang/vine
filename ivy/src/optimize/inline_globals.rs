@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use crate::ast::{Net, Nets, Tree};
 
 /// Inline any globals defined to be single-node nets.
-pub fn inline_globals(nets: &mut Nets) {
+pub fn inline_globals(nets: &mut Nets) -> bool {
   let mut inliner = Inliner::default();
   inliner.populate_candidates(nets);
   for (_, net) in nets.iter_mut() {
@@ -11,11 +11,13 @@ pub fn inline_globals(nets: &mut Nets) {
       inliner.process(tree);
     }
   }
+  inliner.inlined
 }
 
 #[derive(Debug, Default)]
 struct Inliner {
   candidates: HashMap<String, Tree>,
+  inlined: bool,
 }
 
 impl Inliner {
@@ -35,10 +37,11 @@ impl Inliner {
     }
   }
 
-  fn process(&self, tree: &mut Tree) {
+  fn process(&mut self, tree: &mut Tree) {
     if let Tree::Global(name) = tree {
       if let Some(inlined) = self.candidates.get(name) {
         *tree = inlined.clone();
+        self.inlined = true;
       }
     } else {
       for t in tree.children_mut() {

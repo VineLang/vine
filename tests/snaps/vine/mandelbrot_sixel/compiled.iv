@@ -61,7 +61,7 @@
   x(x(w29 w47) x(dup70(w2 w45) x(dup71(w37 w44) x(w25 x(x(w24 w42) dup77(w1 @add(1 w21)))))))
   +2.6 = @div(512 @mul(w7 w8))
   tup(w1 w2) = @add(+0.5 @sub(w6 w7))
-  tup(512 512) = @div(+2.0 w6)
+  512 = @div(+2.0 w6)
   ::mandelbrot_sixel::center = @add(w8 tup(w10 w11))
   ::mandelbrot_sixel::mandelbrot = fn(w10 fn(w11 dup81(@ne(w25 ?(::mandelbrot_sixel::main::13 ::mandelbrot_sixel::main::12 x(x(w29 w39) x(w37 x(x(w24 w36) x(w34 _)))))) dup81(w34 w18))))
   ::mandelbrot_sixel::main::8 = x(x(w39 w47) x(w45 x(w44 x(w18 x(x(w36 w42) w21)))))
@@ -108,7 +108,7 @@
   ::std::io::IO::print::2 = x(x(w3 w15) x(w9 w10))
 }
 
-::std::io::IO::print::2 { x(w4 x(dup606(?(::std::io::IO::print::4 ::std::io::IO::print::3 x(w4 x(w6 w1))) w6) w1)) }
+::std::io::IO::print::2 { x(w4 x(dup598(?(::std::io::IO::print::4 ::std::io::IO::print::3 x(w4 x(w6 w1))) w6) w1)) }
 
 ::std::io::IO::print::3 {
   x(x(w17 w21) x(@sub(1 w1) tup(w4 w5)))
@@ -125,7 +125,7 @@
   ::std::io::IO::print_bytes::2 = x(x(w3 w15) x(w9 w10))
 }
 
-::std::io::IO::print_bytes::2 { x(w4 x(dup628(?(::std::io::IO::print_bytes::4 ::std::io::IO::print_bytes::3 x(w4 x(w6 w1))) w6) w1)) }
+::std::io::IO::print_bytes::2 { x(w4 x(dup620(?(::std::io::IO::print_bytes::4 ::std::io::IO::print_bytes::3 x(w4 x(w6 w1))) w6) w1)) }
 
 ::std::io::IO::print_bytes::3 {
   x(x(w17 w21) x(@sub(1 w1) tup(w4 w5)))
@@ -141,7 +141,7 @@
 
 ::std::list::List::concat { fn(tup(@add(w12 w20) tup(w8 w13)) fn(tup(w12 tup(w13 w23)) tup(w20 tup(w8 w23)))) }
 
-::std::n32::N32::to_string { fn(dup2299(?(::std::n32::N32::to_string::4 ::std::n32::N32::to_string::3 x(w8 w7)) w8) w7) }
+::std::n32::N32::to_string { fn(dup2278(?(::std::n32::N32::to_string::4 ::std::n32::N32::to_string::3 x(w8 w7)) w8) w7) }
 
 ::std::n32::N32::to_string::3 {
   x(w4 w7)
@@ -150,10 +150,10 @@
 
 ::std::n32::N32::to_string::4 { x(_ tup(1 tup(tup(48 w3) w3))) }
 
-::std::n32::N32::to_string::5 { x(dup2309(?(::std::n32::N32::to_string::7 ::std::n32::N32::to_string::6 x(w6 w2)) w6) w2) }
+::std::n32::N32::to_string::5 { x(dup2288(?(::std::n32::N32::to_string::7 ::std::n32::N32::to_string::6 x(w6 w2)) w6) w2) }
 
 ::std::n32::N32::to_string::6 {
-  x(dup2312(@rem(10 w1) @div(10 w8)) x(w11 w15))
+  x(dup2291(@rem(10 w1) @div(10 w8)) x(w11 w15))
   48 = @add(w1 w2)
   ::std::list::List::concat = fn(tup(1 tup(tup(w2 w13) w13)) fn(w11 w5))
   ::std::n32::N32::to_string::5 = x(w8 x(w5 w15))
