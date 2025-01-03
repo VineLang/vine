@@ -42,7 +42,7 @@ pub struct Repl<'core, 'ctx, 'ivm> {
   vars: HashMap<Ident<'core>, Var<'ivm>>,
   locals: BTreeMap<Local, Ident<'core>>,
   local_count: Counter<Local>,
-  checker_state: CheckerState,
+  checker_state: CheckerState<'core>,
 }
 
 #[derive(Debug)]
@@ -247,11 +247,11 @@ impl<'core, 'ctx, 'ivm> Repl<'core, 'ctx, 'ivm> {
     Ok(stmts)
   }
 
-  fn show(&self, ty: &mut Type, tree: &Tree) -> String {
+  fn show(&self, ty: &mut Type<'core>, tree: &Tree) -> String {
     self._show(ty, tree).unwrap_or_else(|| format!("#ivy({})", tree))
   }
 
-  fn _show(&self, ty: &mut Type, tree: &Tree) -> Option<String> {
+  fn _show(&self, ty: &mut Type<'core>, tree: &Tree) -> Option<String> {
     self.checker_state.try_concretize(ty);
     Some(match (ty, tree) {
       (_, Tree::Global(g)) => g.clone(),
@@ -375,7 +375,7 @@ impl<'core, 'ctx, 'ivm> Repl<'core, 'ctx, 'ivm> {
     })
   }
 
-  fn read_tuple(&self, tys: &mut [Type], tree: &Tree) -> Option<Vec<String>> {
+  fn read_tuple(&self, tys: &mut [Type<'core>], tree: &Tree) -> Option<Vec<String>> {
     let mut tup = Vec::new();
     let mut tree = tree;
     let i = tys.len() - 1;

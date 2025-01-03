@@ -14,7 +14,7 @@ impl<'core> Checker<'core, '_> {
     receiver: &mut Box<Expr<'core>>,
     path: &mut GenericPath<'core>,
     args: &mut Vec<Expr<'core>>,
-  ) -> (ExprKind<'core>, Type) {
+  ) -> (ExprKind<'core>, Type<'core>) {
     if path.path.resolved.is_some() {
       match self.method_sig(span, path, args.len()) {
         Ok((form, mut rec, params, ret)) => {
@@ -53,7 +53,7 @@ impl<'core> Checker<'core, '_> {
     receiver: &mut Box<Expr<'core>>,
     path: &mut GenericPath<'core>,
     args: &mut [Expr<'core>],
-  ) -> Result<(Form, Type), Diag<'core>> {
+  ) -> Result<(Form, Type<'core>), Diag<'core>> {
     let (receiver_form, mut ty) = self.check_expr(receiver);
     self.concretize(&mut ty);
     let mod_id = self.get_ty_mod(&ty)?;
@@ -87,7 +87,7 @@ impl<'core> Checker<'core, '_> {
     span: Span,
     path: &mut GenericPath<'core>,
     args: usize,
-  ) -> Result<(Form, Type, Vec<Type>, Type), Diag<'core>> {
+  ) -> Result<(Form, Type<'core>, Vec<Type<'core>>, Type<'core>), Diag<'core>> {
     let ty = self.typeof_value_def(path)?;
     match ty {
       Type::Fn(mut params, ret) => {
@@ -133,7 +133,7 @@ impl<'core> Checker<'core, '_> {
     ExprKind::Call(Box::new(func), args)
   }
 
-  fn get_ty_mod(&mut self, ty: &Type) -> Result<Option<DefId>, Diag<'core>> {
+  fn get_ty_mod(&mut self, ty: &Type<'core>) -> Result<Option<DefId>, Diag<'core>> {
     Ok(match ty {
       Type::Adt(mod_id, _) => Some(*mod_id),
       Type::Bool => self.bool,
@@ -142,6 +142,7 @@ impl<'core> Checker<'core, '_> {
       Type::Char => self.char,
       Type::IO => self.io,
       Type::Tuple(_)
+      | Type::Object(_)
       | Type::Fn(..)
       | Type::Ref(_)
       | Type::Inverse(_)

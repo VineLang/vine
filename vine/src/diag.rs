@@ -114,6 +114,8 @@ diags! {
     ["`{path}` has {expected} field{}; {got} {} matched", plural(*expected, "s", ""), plural(*got, "were", "was")]
   MissingTupleField { ty: String, i: usize }
     ["type `{ty}` has no field `{i}`"]
+  MissingObjectField { ty: String, key: Ident<'core> }
+    ["type `{ty}` has no field `{key}`"]
   SpaceField
     ["cannot access a field of a space expression"]
   FnItemUntypedParam
@@ -154,6 +156,8 @@ diags! {
     ["the pattern `{path}` is only visible within `{vis}`"]
   VisibleSubitem
     ["subitems must be private"]
+  DuplicateKey
+    ["duplicate object key"]
 }
 
 fn plural<'a>(n: usize, plural: &'a str, singular: &'a str) -> &'a str {

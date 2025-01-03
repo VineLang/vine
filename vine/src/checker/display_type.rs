@@ -3,13 +3,13 @@ use std::fmt::Write;
 use crate::checker::{Checker, Type};
 
 impl<'core> Checker<'core, '_> {
-  pub(super) fn display_type(&self, ty: &Type) -> String {
+  pub(super) fn display_type(&self, ty: &Type<'core>) -> String {
     let mut str = String::new();
     self._display_type(ty, &mut str);
     str
   }
 
-  fn _display_type(&self, ty: &Type, str: &mut String) {
+  fn _display_type(&self, ty: &Type<'core>, str: &mut String) {
     match ty {
       Type::Bool => *str += "Bool",
       Type::N32 => *str += "N32",
@@ -30,6 +30,24 @@ impl<'core> Checker<'core, '_> {
           *str += ",";
         }
         *str += ")"
+      }
+      Type::Object(e) => {
+        if e.is_empty() {
+          *str += "{}"
+        } else {
+          *str += "{ ";
+          let mut first = true;
+          for (v, t) in e {
+            if !first {
+              *str += ", ";
+            }
+            *str += v.0 .0;
+            *str += ": ";
+            self._display_type(t, str);
+            first = false;
+          }
+          *str += " }";
+        }
       }
       Type::Fn(args, ret) => {
         *str += "fn(";

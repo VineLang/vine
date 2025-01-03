@@ -10,7 +10,7 @@ impl<'core> Checker<'core, '_> {
     pat: &mut Pat<'core>,
     form: Form,
     refutable: bool,
-    ty: &mut Type,
+    ty: &mut Type<'core>,
   ) {
     let mut found = self.check_pat(pat, form, refutable);
     if !self.unify(&mut found, ty) {
@@ -22,7 +22,12 @@ impl<'core> Checker<'core, '_> {
     }
   }
 
-  pub(super) fn check_pat(&mut self, pat: &mut Pat<'core>, form: Form, refutable: bool) -> Type {
+  pub(super) fn check_pat(
+    &mut self,
+    pat: &mut Pat<'core>,
+    form: Form,
+    refutable: bool,
+  ) -> Type<'core> {
     let span = pat.span;
     match (&mut pat.kind, form) {
       (_, Form::Error(_)) => unreachable!(),
@@ -49,6 +54,9 @@ impl<'core> Checker<'core, '_> {
       (PatKind::Inverse(p), _) => self.check_pat(p, form.inverse(), refutable).inverse(),
       (PatKind::Tuple(t), _) => {
         Type::Tuple(t.iter_mut().map(|p| self.check_pat(p, form, refutable)).collect())
+      }
+      (PatKind::Object(e), _) => {
+        report!(self.core, pat.kind; self.build_object_type(e, |self_, p| self_.check_pat(p, form, refutable)))
       }
       (PatKind::Deref(p), Form::Place) => {
         let ty = self.new_var(span);
@@ -80,7 +88,7 @@ impl<'core> Checker<'core, '_> {
     fields: &mut Option<Vec<Pat<'core>>>,
     form: Form,
     refutable: bool,
-  ) -> Result<Type, Diag<'core>> {
+  ) -> Result<Type<'core>, Diag<'core>> {
     let (adt, field_tys) = self.typeof_variant_def(path, refutable, true)?;
     let field_tys = field_tys.unwrap();
     let fields = fields.get_or_insert(Vec::new());
