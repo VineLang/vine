@@ -1,0 +1,112 @@
+
+io = #io
+> let x = { a: 1, c: 3, b: 2 }
+
+io = #io
+x = { a: 1, b: 2, c: 3 }
+> (x.a, x.b, x.c)
+(1, 2, 3)
+
+io = #io
+x = { a: 1, b: 2, c: 3 }
+> (x.c, x.b, x.a)
+(3, 2, 1)
+
+io = #io
+x = { a: 1, b: 2, c: 3 }
+> let y = { x }
+
+io = #io
+x = { a: 1, b: 2, c: 3 }
+y = { x: { a: 1, b: 2, c: 3 } }
+> let z = { y }
+
+io = #io
+x = { a: 1, b: 2, c: 3 }
+y = { x: { a: 1, b: 2, c: 3 } }
+z = { y: { x: { a: 1, b: 2, c: 3 } } }
+> z.y.x.a
+1
+
+io = #io
+x = { a: 1, b: 2, c: 3 }
+y = { x: { a: 1, b: 2, c: 3 } }
+z = { y: { x: { a: 1, b: 2, c: 3 } } }
+> z.y.x.a += y.x.b
+
+io = #io
+x = { a: 1, b: 2, c: 3 }
+y = { x: { a: 1, b: 2, c: 3 } }
+z = { y: { x: { a: 3, b: 2, c: 3 } } }
+> let { y: { x: o } } = z
+
+io = #io
+x = { a: 1, b: 2, c: 3 }
+y = { x: { a: 1, b: 2, c: 3 } }
+z = { y: { x: { a: 3, b: 2, c: 3 } } }
+o = { a: 3, b: 2, c: 3 }
+> let { c, b, a } = o
+
+io = #io
+x = { a: 1, b: 2, c: 3 }
+y = { x: { a: 1, b: 2, c: 3 } }
+z = { y: { x: { a: 3, b: 2, c: 3 } } }
+o = { a: 3, b: 2, c: 3 }
+c = 3
+b = 2
+a = 3
+> a + b + c
+8
+
+io = #io
+x = { a: 1, b: 2, c: 3 }
+y = { x: { a: 1, b: 2, c: 3 } }
+z = { y: { x: { a: 3, b: 2, c: 3 } } }
+o = { a: 3, b: 2, c: 3 }
+c = 3
+b = 2
+a = 3
+> x.p
+error input:1:3 - type `{ a: N32, b: N32, c: N32 }` has no field `p`
+
+io = #io
+x = { a: 1, b: 2, c: 3 }
+y = { x: { a: 1, b: 2, c: 3 } }
+z = { y: { x: { a: 3, b: 2, c: 3 } } }
+o = { a: 3, b: 2, c: 3 }
+c = 3
+b = 2
+a = 3
+> do { let { p } = x }
+error input:1:18 - expected type `{ p: ?9 }`; found `{ a: N32, b: N32, c: N32 }`
+
+io = #io
+x = { a: 1, b: 2, c: 3 }
+y = { x: { a: 1, b: 2, c: 3 } }
+z = { y: { x: { a: 3, b: 2, c: 3 } } }
+o = { a: 3, b: 2, c: 3 }
+c = 3
+b = 2
+a = 3
+> z = { Y: y }
+error input:1:5 - expected type `{ y: { x: { a: N32, b: N32, c: N32 } } }`; found `{ Y: { x: { a: N32, b: N32, c: N32 } } }`
+
+io = #io
+x = { a: 1, b: 2, c: 3 }
+y = { x: { a: 1, b: 2, c: 3 } }
+z = { y: { x: { a: 3, b: 2, c: 3 } } }
+o = { a: 3, b: 2, c: 3 }
+c = 3
+b = 2
+a = 3
+> z = { y: 1 }
+error input:1:5 - expected type `{ y: { x: { a: N32, b: N32, c: N32 } } }`; found `{ y: N32 }`
+
+io = #io
+x = { a: 1, b: 2, c: 3 }
+y = { x: { a: 1, b: 2, c: 3 } }
+z = { y: { x: { a: 3, b: 2, c: 3 } } }
+o = { a: 3, b: 2, c: 3 }
+c = 3
+b = 2
+a = 3
