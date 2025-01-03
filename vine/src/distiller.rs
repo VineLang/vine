@@ -106,9 +106,7 @@ impl<'core, 'r> Distiller<'core, 'r> {
 
       ExprKind![cond] => self.distill_cond_bool(stage, expr, false),
       ExprKind::Do(label, block) => self.distill_do(stage, label.as_id(), block),
-      ExprKind::If(cond, then_branch, else_branch) => {
-        self.distill_if(stage, cond, then_branch, else_branch)
-      }
+      ExprKind::If(arms, leg) => self.distill_if(stage, arms, leg),
       ExprKind::While(label, cond, block) => self.distill_while(stage, label.as_id(), cond, block),
       ExprKind::Loop(label, block) => self.distill_loop(stage, label.as_id(), block),
       ExprKind::Return(value) => self.distill_return(stage, value),

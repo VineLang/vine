@@ -220,7 +220,7 @@ pub enum ExprKind<'core> {
   #[class(value)]
   Match(B<Expr<'core>>, Vec<(Pat<'core>, Expr<'core>)>),
   #[class(value)]
-  If(B<Expr<'core>>, Block<'core>, B<Expr<'core>>),
+  If(Vec<(Expr<'core>, Block<'core>)>, Option<Block<'core>>),
   #[class(value)]
   While(Label<'core>, B<Expr<'core>>, Block<'core>),
   #[class(value)]

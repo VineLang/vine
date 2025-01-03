@@ -208,12 +208,16 @@ impl<'core> VisitMut<'core, '_> for ResolveVisitor<'core, '_> {
         self.visit_cond(expr);
         self.exit_scope();
       }
-      ExprKind::If(cond, block, els) => {
-        self.enter_scope();
-        self.visit_cond(cond);
-        self.visit_block(block);
-        self.exit_scope();
-        self.visit_expr(els);
+      ExprKind::If(arms, leg) => {
+        for (cond, block) in arms {
+          self.enter_scope();
+          self.visit_cond(cond);
+          self.visit_block(block);
+          self.exit_scope();
+        }
+        if let Some(leg) = leg {
+          self.visit_block(leg);
+        }
       }
       ExprKind::While(label, cond, block) => {
         self.bind_label(label, true, |self_| {

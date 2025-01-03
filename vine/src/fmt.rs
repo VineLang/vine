@@ -280,17 +280,15 @@ impl<'core: 'src, 'src> Formatter<'src> {
           arms.iter().map(|(p, e)| Doc::concat([self.fmt_pat(p), Doc(" => "), self.fmt_expr(e)])),
         ),
       ]),
-      ExprKind::If(c, t, e) => Doc::concat([
-        Doc("if "),
-        self.fmt_expr(c),
-        Doc(" "),
-        self.fmt_block(t, true),
-        match &e.kind {
-          ExprKind::Block(b) if b.stmts.is_empty() => Doc::EMPTY,
-          ExprKind::Block(b) => Doc::concat([Doc(" else "), self.fmt_block(b, true)]),
-          _ => Doc::concat([Doc(" else "), self.fmt_expr(e)]),
-        },
-      ]),
+      ExprKind::If(arms, leg) => Doc::interleave(
+        arms
+          .iter()
+          .map(|(cond, block)| {
+            Doc::concat([Doc("if "), self.fmt_expr(cond), Doc(" "), self.fmt_block(block, true)])
+          })
+          .chain(leg.iter().map(|block| self.fmt_block(block, true))),
+        Doc(" else "),
+      ),
       ExprKind::While(l, c, b) => Doc::concat([
         Doc("while"),
         self.fmt_label(l),

@@ -435,18 +435,22 @@ impl<'core, 'src> VineParser<'core, 'src> {
       return Ok(ExprKind::Do(self.parse_label()?, self.parse_block()?));
     }
     if self.eat(Token::If)? {
-      let cond = self.parse_expr()?;
-      let then = self.parse_block()?;
-      let else_ = if self.eat(Token::Else)? {
-        if self.check(Token::If) || self.check(Token::OpenBrace) {
-          self.parse_expr()?
+      let mut arms = Vec::new();
+      loop {
+        let cond = self.parse_expr()?;
+        let then = self.parse_block()?;
+        arms.push((cond, then));
+        if self.eat(Token::Else)? {
+          if self.eat(Token::If)? {
+            continue;
+          } else {
+            let leg = self.parse_block()?;
+            return Ok(ExprKind::If(arms, Some(leg)));
+          }
         } else {
-          self.unexpected()?
+          return Ok(ExprKind::If(arms, None));
         }
-      } else {
-        Expr { span: Span::NONE, kind: ExprKind::Block(Block::default()) }
-      };
-      return Ok(ExprKind::If(Box::new(cond), then, Box::new(else_)));
+      }
     }
     if self.eat(Token::While)? {
       let label = self.parse_label()?;

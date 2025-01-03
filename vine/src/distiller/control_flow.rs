@@ -244,23 +244,29 @@ impl<'core, 'r> Distiller<'core, 'r> {
   pub(super) fn distill_if(
     &mut self,
     stage: &mut Stage,
-    cond: &Expr<'core>,
-    then_branch: &Block<'core>,
-    else_branch: &Expr<'core>,
+    arms: &[(Expr<'core>, Block<'core>)],
+    leg: &Option<Block<'core>>,
   ) -> Port {
     let local = self.new_local(stage);
-    let (mut layer, mut cond_stage) = self.child_layer(stage);
-    let (mut then_stage, mut else_stage) = self.distill_cond(&mut layer, &mut cond_stage, cond);
+    let (mut layer, mut cur_stage) = self.child_layer(stage);
 
-    let result = self.distill_block(&mut then_stage, then_branch);
-    then_stage.set_local_to(local, result);
+    for (cond, block) in arms {
+      let (mut then_stage, else_stage) = self.distill_cond(&mut layer, &mut cur_stage, cond);
+      let result = self.distill_block(&mut then_stage, block);
+      then_stage.set_local_to(local, result);
+      self.finish_stage(cur_stage);
+      self.finish_stage(then_stage);
+      cur_stage = else_stage;
+    }
 
-    let result = self.distill_expr_value(&mut else_stage, else_branch);
-    else_stage.set_local_to(local, result);
+    if let Some(leg) = leg {
+      let result = self.distill_block(&mut cur_stage, leg);
+      cur_stage.set_local_to(local, result);
+    } else {
+      cur_stage.erase_local(local);
+    }
 
-    self.finish_stage(cond_stage);
-    self.finish_stage(then_stage);
-    self.finish_stage(else_stage);
+    self.finish_stage(cur_stage);
     self.finish_layer(layer);
 
     stage.take_local(local)

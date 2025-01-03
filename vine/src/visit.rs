@@ -101,10 +101,16 @@ pub trait VisitMut<'core, 'a> {
           self.exit_scope();
         }
       }
-      ExprKind::If(a, b, c) => {
-        self.visit_expr(a);
-        self.visit_block(b);
-        self.visit_expr(c);
+      ExprKind::If(arms, leg) => {
+        for (cond, block) in arms {
+          self.enter_scope();
+          self.visit_expr(cond);
+          self.visit_block(block);
+          self.exit_scope();
+        }
+        if let Some(leg) = leg {
+          self.visit_block(leg);
+        }
       }
       ExprKind::While(_, a, b) => {
         self.visit_expr(a);

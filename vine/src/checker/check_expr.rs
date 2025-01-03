@@ -194,19 +194,16 @@ impl<'core> Checker<'core, '_> {
         }
         result
       }
-      ExprKind::If(cond, then, els) => {
-        self.check_expr_form_type(cond, Form::Value, &mut Type::Bool);
-        let mut then = self.check_block(then);
-        let mut els = self.check_expr_form(els, Form::Value);
-        if !self.unify(&mut then, &mut els) {
-          Type::Error(self.core.report(Diag::MismatchedThenElseTypes {
-            span,
-            then: self.display_type(&then),
-            els: self.display_type(&els),
-          }))
-        } else {
-          then
+      ExprKind::If(arms, leg) => {
+        let mut result = if leg.is_some() { self.new_var(span) } else { Type::UNIT };
+        for (cond, block) in arms {
+          self.check_expr_form_type(cond, Form::Value, &mut Type::Bool);
+          self.check_block_type(block, &mut result);
         }
+        if let Some(leg) = leg {
+          self.check_block_type(leg, &mut result);
+        }
+        result
       }
       ExprKind::While(label, cond, block) => {
         *self.labels.get_or_extend(label.as_id()) = Some(Type::UNIT);
