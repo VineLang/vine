@@ -259,13 +259,20 @@ impl<'core: 'src, 'src> Formatter<'src> {
     }
   }
 
+  fn fmt_expr_block(&self, expr: &Expr<'core>) -> Doc<'src> {
+    match &expr.kind {
+      ExprKind::Block(b) => self.fmt_block(b, false),
+      _ => Doc::concat([Doc("{ "), self.fmt_expr(expr), Doc(" }")]),
+    }
+  }
+
   fn fmt_expr(&self, expr: &Expr<'core>) -> Doc<'src> {
     match &expr.kind {
       ExprKind![synthetic || resolved || error] => unreachable!(),
       ExprKind::Paren(p) => Doc::paren(self.fmt_expr(p)),
       ExprKind::Hole => Doc("_"),
       ExprKind::Path(path) => self.fmt_generic_path(path),
-      ExprKind::Block(block) => self.fmt_block(block, false),
+      ExprKind::Block(block) => Doc::concat([Doc("do "), self.fmt_block(block, false)]),
       ExprKind::Do(label, block) => {
         Doc::concat([Doc("do"), self.fmt_label(label), Doc(" "), self.fmt_block(block, false)])
       }
@@ -276,8 +283,10 @@ impl<'core: 'src, 'src> Formatter<'src> {
         Doc("match "),
         self.fmt_expr(expr),
         Doc(" "),
-        Doc::brace_comma_multiline(
-          arms.iter().map(|(p, e)| Doc::concat([self.fmt_pat(p), Doc(" => "), self.fmt_expr(e)])),
+        Doc::brace_multiline(
+          arms
+            .iter()
+            .map(|(p, e)| Doc::concat([self.fmt_pat(p), Doc(" "), self.fmt_expr_block(e)])),
         ),
       ]),
       ExprKind::If(arms, leg) => Doc::interleave(
@@ -304,7 +313,7 @@ impl<'core: 'src, 'src> Formatter<'src> {
         Doc("fn"),
         Doc::paren_comma(p.iter().map(|p| self.fmt_pat(p))),
         Doc(" "),
-        self.fmt_expr(b),
+        self.fmt_expr_block(b),
       ]),
       ExprKind::Return(Some(x)) => Doc::concat([Doc("return "), self.fmt_expr(x)]),
       ExprKind::Break(label, Some(x)) => {

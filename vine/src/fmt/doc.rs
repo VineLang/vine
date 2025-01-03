@@ -111,6 +111,14 @@ impl<'src> Doc<'src> {
   pub fn brace_comma_multiline(docs: impl ExactSizeIterator<Item = Self>) -> Self {
     Self::delimited("{}", "{", "}", true, false, false, docs)
   }
+
+  pub fn brace_multiline(docs: impl ExactSizeIterator<Item = Self>) -> Self {
+    if docs.len() == 0 {
+      Doc("{}")
+    } else {
+      Doc::concat([Doc("{"), Doc::indent([Doc::interleave(docs, Doc::LINE)]), Doc("}")])
+    }
+  }
 }
 
 impl<'src> From<DocKind<'src>> for Doc<'src> {
