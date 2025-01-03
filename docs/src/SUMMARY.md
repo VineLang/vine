@@ -20,6 +20,8 @@
   - [References]()
   - [Values, Spaces, and Places](./features/values-spaces-places.md)
   - [The Inverse Operator]()
+  - [Module System]()
+  - [Inline Ivy]()
 
 - [The Theory]()
   - [Polarity and the Inverse]()
@@ -34,3 +36,9 @@
   - [Ivy's Interaction System](./ivy/interaction-system.md)
   - [Statistics](./ivy/statistics.md)
   - [Extrinsics]()
+
+---
+
+[Notes](./notes.md)
+
+[Scratch](./scratch.md)
