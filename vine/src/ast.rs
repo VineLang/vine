@@ -249,6 +249,8 @@ pub enum ExprKind<'core> {
   List(Vec<Expr<'core>>),
   #[class(value, place)]
   TupleField(B<Expr<'core>>, usize, Option<usize>),
+  #[class(value, place)]
+  ObjectField(B<Expr<'core>>, Key<'core>),
   #[class(value, sugar)]
   Method(B<Expr<'core>>, GenericPath<'core>, Vec<Expr<'core>>),
   #[class(value)]

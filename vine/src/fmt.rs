@@ -340,6 +340,7 @@ impl<'core: 'src, 'src> Formatter<'src> {
       ExprKind::TupleField(e, i, _) => {
         Doc::concat([self.fmt_expr(e), Doc("."), Doc(format!("{i}"))])
       }
+      ExprKind::ObjectField(e, k) => Doc::concat([self.fmt_expr(e), Doc("."), Doc(k.ident)]),
       ExprKind::Method(e, p, a) => Doc::concat([
         self.fmt_expr(e),
         Doc("."),
