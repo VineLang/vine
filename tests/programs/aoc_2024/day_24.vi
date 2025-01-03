@@ -65,11 +65,11 @@ mod Wire {
     Wire(~_, value)
   }
 
-  pub fn get(&Wire(_, value): &Wire) -> Bool {
+  pub fn get(&Wire(_, value)) -> Bool {
     value
   }
 
-  pub fn set(&Wire(~out, _): &Wire, value: Bool) {
+  pub fn set(&Wire(~out, _), value: Bool) {
     out = value;
   }
 }

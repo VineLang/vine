@@ -1,27 +1,10 @@
 use crate::{
-  ast::{GenericPath, Pat, PatKind, Span, Ty},
+  ast::{GenericPath, Pat, PatKind, Span},
   checker::{Checker, Form, Type},
   diag::{report, Diag},
 };
 
 impl<'core> Checker<'core, '_> {
-  pub(super) fn check_pat_annotation(
-    &mut self,
-    pat: &mut Pat<'core>,
-    annotation: Option<&mut Ty<'core>>,
-    form: Form,
-    refutable: bool,
-  ) -> Type {
-    match annotation {
-      Some(ty) => {
-        let mut ty = self.hydrate_type(ty, true);
-        self.check_pat_type(pat, form, refutable, &mut ty);
-        ty
-      }
-      None => self.check_pat(pat, form, refutable),
-    }
-  }
-
   pub(super) fn check_pat_type(
     &mut self,
     pat: &mut Pat<'core>,
@@ -46,6 +29,12 @@ impl<'core> Checker<'core, '_> {
       (PatKind::Error(e), _) => Type::Error(*e),
 
       (PatKind::Paren(p), _) => self.check_pat(p, form, refutable),
+
+      (PatKind::Annotation(pat, ty), _) => {
+        let mut ty = self.hydrate_type(ty, true);
+        self.check_pat_type(pat, form, refutable, &mut ty);
+        ty
+      }
 
       (PatKind::Adt(path, fields), _) => {
         report!(self.core, pat.kind; self.check_adt_pat(span, path, fields, form, refutable))
@@ -92,7 +81,8 @@ impl<'core> Checker<'core, '_> {
     form: Form,
     refutable: bool,
   ) -> Result<Type, Diag<'core>> {
-    let (adt, field_tys) = self.typeof_variant_def(path, refutable)?;
+    let (adt, field_tys) = self.typeof_variant_def(path, refutable, true)?;
+    let field_tys = field_tys.unwrap();
     let fields = fields.get_or_insert(Vec::new());
     if fields.len() != field_tys.len() {
       Err(Diag::BadFieldCount {

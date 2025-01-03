@@ -13,13 +13,13 @@ pub fn main(&io: &IO) {
   let width = (*grid.get(0)).len();
   let height = grid.len();
 
-  dyn fn check_antinode((x, y): (N32, N32)) {
+  dyn fn check_antinode((x: N32, y: N32)) {
     if x < width && y < height {
       antinodes1.insert((x, y), ());
     }
   }
 
-  dyn fn check_dir((x, y): (N32, N32), dir: (N32, N32)) {
+  dyn fn check_dir((x: N32, y: N32), dir: (N32, N32)) {
     while x < width && y < height {
       antinodes2.insert((x, y), ());
       (x, y) += dir;

@@ -122,7 +122,7 @@ impl<'core> Checker<'core, '_> {
         let adt_id = variant.adt;
         let generics = variant.generics.len();
         let form = if adt_id == variant_id { self.tuple_form(span, &forms) } else { Form::Value };
-        let generics = self.hydrate_generics(path, generics);
+        let generics = self.hydrate_generics(path, generics, true);
         let variant = self.resolver.defs[variant_id].variant_def.as_ref().unwrap();
         let field_types = variant
           .field_types
@@ -221,10 +221,7 @@ impl<'core> Checker<'core, '_> {
         result
       }
       ExprKind::Fn(args, ret, body) => Type::Fn(
-        args
-          .iter_mut()
-          .map(|(pat, ty)| self.check_pat_annotation(pat, ty.as_mut(), Form::Value, false))
-          .collect(),
+        args.iter_mut().map(|pat| self.check_pat(pat, Form::Value, false)).collect(),
         Box::new({
           let mut ret = match ret {
             Some(Some(t)) => self.hydrate_type(t, true),

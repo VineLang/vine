@@ -12,7 +12,7 @@ pub mod N64 {
     N64(val, 0)
   }
 
-  pub fn to_n32(N64(lo, hi): N64) -> N32 {
+  pub fn to_n32(N64(lo, hi)) -> N32 {
     lo
   }
 
@@ -45,7 +45,7 @@ pub mod N64 {
     a1 = @n32_mul_high(b1 h)
   }
 
-  pub fn div_rem_n32(N64(al, ah): N64, d: N32) -> (N64, N32) {
+  pub fn div_rem_n32(N64(al, ah), d: N32) -> (N64, N32) {
     let qh = ah / d;
     ah %= d;
     if ah > d {
@@ -65,19 +65,19 @@ pub mod N64 {
     (N64(ql, qh), al)
   }
 
-  pub fn or(N64(al, ah): N64, N64(bl, bh): N64) -> N64 {
+  pub fn or(N64(al, ah), N64(bl, bh)) -> N64 {
     N64(al | bl, ah | bh)
   }
 
-  pub fn xor(N64(al, ah): N64, N64(bl, bh): N64) -> N64 {
+  pub fn xor(N64(al, ah), N64(bl, bh)) -> N64 {
     N64(al ^ bl, ah ^ bh)
   }
 
-  pub fn and(N64(al, ah): N64, N64(bl, bh): N64) -> N64 {
+  pub fn and(N64(al, ah), N64(bl, bh)) -> N64 {
     N64(al & bl, ah & bh)
   }
 
-  pub fn shl(N64(al, ah): N64, bits: N32) -> N64 {
+  pub fn shl(N64(al, ah), bits: N32) -> N64 {
     if bits & 32 != 0 {
       N64(0, al << bits)
     } else {
@@ -85,7 +85,7 @@ pub mod N64 {
     }
   }
 
-  pub fn shr(N64(al, ah): N64, bits: N32) -> N64 {
+  pub fn shr(N64(al, ah), bits: N32) -> N64 {
     if bits & 32 != 0 {
       N64(ah >> bits, 0)
     } else {
@@ -93,23 +93,23 @@ pub mod N64 {
     }
   }
 
-  pub fn eq(N64(al, ah): N64, N64(bl, bh): N64) -> Bool {
+  pub fn eq(N64(al, ah), N64(bl, bh)) -> Bool {
     al == bl && ah == bh
   }
 
-  pub fn lt(N64(al, ah): N64, N64(bl, bh): N64) -> Bool {
+  pub fn lt(N64(al, ah), N64(bl, bh)) -> Bool {
     ah < bh || ah == bh && al < bl
   }
 
-  pub fn le(N64(al, ah): N64, N64(bl, bh): N64) -> Bool {
+  pub fn le(N64(al, ah), N64(bl, bh)) -> Bool {
     ah < bh || ah == bh && al <= bl
   }
 
-  pub fn gt(N64(al, ah): N64, N64(bl, bh): N64) -> Bool {
+  pub fn gt(N64(al, ah), N64(bl, bh)) -> Bool {
     ah > bh || ah == bh && al > bl
   }
 
-  pub fn ge(N64(al, ah): N64, N64(bl, bh): N64) -> Bool {
+  pub fn ge(N64(al, ah), N64(bl, bh)) -> Bool {
     ah > bh || ah == bh && al >= bl
   }
 
@@ -129,7 +129,7 @@ pub mod N64 {
     }
   }
 
-  pub fn cmp(&N64(al, ah): &N64, &N64(bl, bh): &N64) -> Ord {
+  pub fn cmp(&N64(al, ah), &N64(bl, bh)) -> Ord {
     if ah < bh {
       Ord::Lt
     } else if ah > bh {

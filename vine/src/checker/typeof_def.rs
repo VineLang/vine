@@ -25,7 +25,7 @@ impl<'core> Checker<'core, '_> {
     }
     let generic_count = value_def.generics.len();
     Self::check_generic_count(span, def, path, generic_count)?;
-    let generics = self.hydrate_generics(path, generic_count);
+    let generics = self.hydrate_generics(path, generic_count, true);
     let def = &self.resolver.defs[def_id];
     Ok(def.value_def.as_ref().unwrap().ty.as_ref().unwrap().instantiate(&generics))
   }
@@ -53,7 +53,7 @@ impl<'core> Checker<'core, '_> {
     if !inference && path.generics.is_none() && generic_count != 0 {
       Err(Diag::ItemTypeHole { span })?
     }
-    let generics = self.hydrate_generics(path, generic_count);
+    let generics = self.hydrate_generics(path, generic_count, inference);
     let def = &self.resolver.defs[def_id];
     if def.adt_def.is_some() {
       Ok(Type::Adt(def_id, generics))
@@ -72,7 +72,8 @@ impl<'core> Checker<'core, '_> {
     &mut self,
     path: &mut GenericPath<'core>,
     refutable: bool,
-  ) -> Result<(Type, Vec<Type>), Diag<'core>> {
+    inference: bool,
+  ) -> Result<(Type, Option<Vec<Type>>), Diag<'core>> {
     let span = path.span;
     let variant_id = path.path.resolved.unwrap();
     let variant = &self.resolver.defs[variant_id];
@@ -94,11 +95,19 @@ impl<'core> Checker<'core, '_> {
     }
     let generic_count = adt_def.generics.len();
     Self::check_generic_count(span, variant, path, generic_count)?;
-    let generics = self.hydrate_generics(path, generic_count);
-    let variant = &self.resolver.defs[variant_id];
-    let variant_def = variant.variant_def.as_ref().unwrap();
-    let field_tys = variant_def.field_types.as_ref().unwrap();
-    let field_tys = field_tys.iter().map(|t| t.instantiate(&generics)).collect::<Vec<_>>();
+    if !inference && path.generics.is_none() && generic_count != 0 {
+      Err(Diag::ItemTypeHole { span })?
+    }
+    let generics = self.hydrate_generics(path, generic_count, inference);
+    let field_tys = if inference {
+      let variant = &self.resolver.defs[variant_id];
+      let variant_def = variant.variant_def.as_ref().unwrap();
+      let field_tys = variant_def.field_types.as_ref().unwrap();
+      let field_tys = field_tys.iter().map(|t| t.instantiate(&generics)).collect::<Vec<_>>();
+      Some(field_tys)
+    } else {
+      None
+    };
     let adt = Type::Adt(adt_id, generics);
     Ok((adt, field_tys))
   }

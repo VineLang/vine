@@ -96,17 +96,17 @@ mod Region {
 }
 
 mod Regions {
-  pub fn to_string(Regions(array): Regions) -> String {
+  pub fn to_string(Regions(array)) -> String {
     array.to_list().to_string(Region::to_string)
   }
 
-  pub fn new(&Regions(array): &Regions) -> N32 {
+  pub fn new(&Regions(array)) -> N32 {
     let i = array.len();
     array.push_back(Region::Root(1, 0));
     i
   }
 
-  pub fn find(&Regions(array): &Regions, i: N32) -> N32 {
+  pub fn find(&Regions(array), i: N32) -> N32 {
     let ~root;
     while array.get(i) is &Region::Child(p) {
       i = p;
@@ -124,7 +124,7 @@ mod Regions {
     }
   }
 
-  pub fn union_found(&Regions(array): &Regions, i: N32, j: N32) -> N32 {
+  pub fn union_found(&Regions(array), i: N32, j: N32) -> N32 {
     if i == j {
       match array.get(i) {
         &Region::Root(_, p) => {

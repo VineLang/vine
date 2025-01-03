@@ -167,7 +167,7 @@ impl<'core, 'src> VineParser<'core, 'src> {
     self.expect(Token::Fn)?;
     let name = self.parse_ident()?;
     let generics = self.parse_generics()?;
-    let params = self.parse_delimited(PAREN_COMMA, Self::parse_pat_type)?;
+    let params = self.parse_delimited(PAREN_COMMA, Self::parse_pat)?;
     let ret = self.eat(Token::ThinArrow)?.then(|| self.parse_type()).transpose()?;
     let body = self.parse_block()?;
     Ok(FnItem { name, generics, params, ret, body })
@@ -460,7 +460,7 @@ impl<'core, 'src> VineParser<'core, 'src> {
       return Ok(ExprKind::Loop(label, body));
     }
     if self.eat(Token::Fn)? {
-      let params = self.parse_delimited(PAREN_COMMA, Self::parse_pat_type)?;
+      let params = self.parse_delimited(PAREN_COMMA, Self::parse_pat)?;
       let body = self.parse_expr()?;
       return Ok(ExprKind::Fn(params, None, Box::new(body)));
     }
@@ -603,13 +603,28 @@ impl<'core, 'src> VineParser<'core, 'src> {
   }
 
   fn parse_pat(&mut self) -> Parse<'core, Pat<'core>> {
+    self.parse_pat_bp(BP::Min)
+  }
+
+  fn parse_pat_bp(&mut self, bp: BP) -> Parse<'core, Pat<'core>> {
     let span = self.start_span();
-    let kind = self._parse_pat(span)?;
+    let mut pat = self.parse_pat_prefix()?;
+    loop {
+      pat = match self.parse_pat_postfix(pat, bp)? {
+        Ok(kind) => Pat { span: self.end_span(span), kind },
+        Err(pat) => return Ok(pat),
+      }
+    }
+  }
+
+  fn parse_pat_prefix(&mut self) -> Parse<'core, Pat<'core>> {
+    let span = self.start_span();
+    let kind = self._parse_pat_prefix(span)?;
     let span = self.end_span(span);
     Ok(Pat { span, kind })
   }
 
-  fn _parse_pat(&mut self, span: usize) -> Parse<'core, PatKind<'core>> {
+  fn _parse_pat_prefix(&mut self, span: usize) -> Parse<'core, PatKind<'core>> {
     if self.eat(Token::Hole)? {
       return Ok(PatKind::Hole);
     }
@@ -619,18 +634,18 @@ impl<'core, 'src> VineParser<'core, 'src> {
       return Ok(PatKind::Adt(path, args));
     }
     if self.eat(Token::And)? {
-      return Ok(PatKind::Ref(Box::new(self.parse_pat()?)));
+      return Ok(PatKind::Ref(Box::new(self.parse_pat_bp(BP::Prefix)?)));
     }
     if self.eat(Token::AndAnd)? {
-      let inner = self.parse_pat()?;
+      let inner = self.parse_pat_bp(BP::Prefix)?;
       let span = self.end_span(span + 1);
       return Ok(PatKind::Ref(Box::new(Pat { span, kind: PatKind::Ref(Box::new(inner)) })));
     }
     if self.eat(Token::Star)? {
-      return Ok(PatKind::Deref(Box::new(self.parse_pat()?)));
+      return Ok(PatKind::Deref(Box::new(self.parse_pat_bp(BP::Prefix)?)));
     }
     if self.eat(Token::Tilde)? {
-      return Ok(PatKind::Inverse(Box::new(self.parse_pat()?)));
+      return Ok(PatKind::Inverse(Box::new(self.parse_pat_bp(BP::Prefix)?)));
     }
     if self.check(Token::OpenParen) {
       let mut tuple = false;
@@ -649,10 +664,16 @@ impl<'core, 'src> VineParser<'core, 'src> {
     self.unexpected()
   }
 
-  fn parse_pat_type(&mut self) -> Parse<'core, (Pat<'core>, Option<Ty<'core>>)> {
-    let pat = self.parse_pat()?;
-    let ty = self.eat(Token::Colon)?.then(|| self.parse_type()).transpose()?;
-    Ok((pat, ty))
+  fn parse_pat_postfix(
+    &mut self,
+    lhs: Pat<'core>,
+    bp: BP,
+  ) -> Parse<'core, Result<PatKind<'core>, Pat<'core>>> {
+    if bp.permits(BP::Annotation) && self.eat(Token::Colon)? {
+      let ty = self.parse_type()?;
+      return Ok(Ok(PatKind::Annotation(Box::new(lhs), Box::new(ty))));
+    }
+    Ok(Err(lhs))
   }
 
   fn parse_type(&mut self) -> Parse<'core, Ty<'core>> {
@@ -735,18 +756,17 @@ impl<'core, 'src> VineParser<'core, 'src> {
   fn parse_let_stmt(&mut self) -> Parse<'core, LetStmt<'core>> {
     self.expect(Token::Let)?;
     let bind = self.parse_pat()?;
-    let ty = self.eat(Token::Colon)?.then(|| self.parse_type()).transpose()?;
     let init = self.eat(Token::Eq)?.then(|| self.parse_expr()).transpose()?;
     let else_block = self.eat(Token::Else)?.then(|| self.parse_block()).transpose()?;
     self.eat(Token::Semi)?;
-    Ok(LetStmt { bind, ty, init, else_block })
+    Ok(LetStmt { bind, init, else_block })
   }
 
   fn parse_dyn_fn_stmt(&mut self) -> Parse<'core, DynFnStmt<'core>> {
     self.expect(Token::Dyn)?;
     self.expect(Token::Fn)?;
     let name = self.parse_ident()?;
-    let params = self.parse_delimited(PAREN_COMMA, Self::parse_pat_type)?;
+    let params = self.parse_delimited(PAREN_COMMA, Self::parse_pat)?;
     let ret = self.eat(Token::ThinArrow)?.then(|| self.parse_type()).transpose()?;
     let body = self.parse_block()?;
     Ok(DynFnStmt { name, id: None, params, ret, body })
@@ -826,6 +846,7 @@ enum BP {
   BitShift,
   Additive,
   Multiplicative,
+  Annotation,
   Prefix,
   Max,
 }

@@ -44,7 +44,7 @@ pub fn main(&io: &IO) {
       }
       part2 += *out.get(out.len() / 2);
 
-      fn process(num: N32, &(out, pending, nums_mask): &(List[N32], List[(N32, Mask)], Mask)) {
+      fn process(num: N32, &(out: List[N32], pending: List[(N32, Mask)], nums_mask: Mask)) {
         out ++= [num];
         set_bit(&nums_mask, num, false);
         let ~future;
