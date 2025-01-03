@@ -9,7 +9,7 @@ pub fn main(&io: &IO) {
   let ratings = 0;
   cross(
     input.split_trim("\n"),
-    fn(char: Char, Neighbors(n, s, e, w), &(io, id, scores, ratings): &(IO, N32, N32, N32)) {
+    fn(char: Char, Neighbors(n, s, e, w), &(io: IO, id: N32, scores: N32, ratings: N32)) {
       let Channel((nit, nis), ~(not, nos)) = n;
       let Channel((sit, sis), ~(sot, sos)) = s;
       let Channel((eit, eis), ~(eot, eos)) = e;
@@ -26,7 +26,7 @@ pub fn main(&io: &IO) {
         let prev = char - 1;
         let in_s = zero_set;
         let in_n = 0;
-        dyn fn recv(t: Char, (s, n): (Set, N32)) {
+        dyn fn recv(t: Char, (s: Set, n: N32)) {
           if t == prev {
             in_s |= s;
             in_n += n;
@@ -101,17 +101,17 @@ fn count(s: Set) -> N32 {
 struct Channel[M](M, ~M);
 
 mod Channel {
-  pub fn send[M](Channel(got, ~out): Channel[M], value: M) -> M {
+  pub fn send[M](Channel[M](got, ~out), value: M) -> M {
     out = value;
     got
   }
 
-  pub fn get[M](&Channel(i, _): &Channel[M]) -> M {
+  pub fn get[M](&Channel[M](i, _)) -> M {
     i
   }
 }
 
-fn relay(Channel(ai, ~ao): Channel[Char], Channel(bi, ~bo): Channel[Char], recv: Char, send: Char) {
+fn relay(Channel[Char](ai, ~ao), Channel[Char](bi, ~bo), recv: Char, send: Char) {
   bo = if ai == recv {
     send
   } else {
@@ -124,7 +124,7 @@ fn relay(Channel(ai, ~ao): Channel[Char], Channel(bi, ~bo): Channel[Char], recv:
   };
 }
 
-fn check(Channel(i, ~o): Channel[Char], recv: Char) -> N32 {
+fn check(Channel[Char](i, ~o), recv: Char) -> N32 {
   o = '_';
   if i == recv {
     1

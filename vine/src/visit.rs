@@ -112,11 +112,8 @@ pub trait VisitMut<'core, 'a> {
       }
       ExprKind::Fn(a, b, c) => {
         self.enter_scope();
-        for (p, t) in a {
+        for p in a {
           self.visit_pat(p);
-          if let Some(t) = t {
-            self.visit_type(t);
-          }
         }
         if let Some(Some(b)) = b {
           self.visit_type(b);
@@ -174,6 +171,10 @@ pub trait VisitMut<'core, 'a> {
           }
         }
       }
+      PatKind::Annotation(p, t) => {
+        self.visit_pat(p);
+        self.visit_type(t);
+      }
     }
   }
 
@@ -202,9 +203,6 @@ pub trait VisitMut<'core, 'a> {
   fn _visit_stmt(&mut self, stmt: &'a mut Stmt<'core>) {
     match &mut stmt.kind {
       StmtKind::Let(l) => {
-        if let Some(ty) = &mut l.ty {
-          self.visit_type(ty);
-        }
         if let Some(init) = &mut l.init {
           self.visit_expr(init);
         }
@@ -215,11 +213,8 @@ pub trait VisitMut<'core, 'a> {
       }
       StmtKind::DynFn(d) => {
         self.enter_scope();
-        for (p, t) in &mut d.params {
+        for p in &mut d.params {
           self.visit_pat(p);
-          if let Some(t) = t {
-            self.visit_type(t);
-          }
         }
         if let Some(t) = &mut d.ret {
           self.visit_type(t);
@@ -236,11 +231,8 @@ pub trait VisitMut<'core, 'a> {
   fn _visit_item(&mut self, item: &'a mut Item<'core>) {
     match &mut item.kind {
       ItemKind::Fn(f) => {
-        for (param, ty) in &mut f.params {
-          self.visit_pat(param);
-          if let Some(ty) = ty {
-            self.visit_type(ty);
-          }
+        for p in &mut f.params {
+          self.visit_pat(p);
         }
         if let Some(ty) = &mut f.ret {
           self.visit_type(ty);

@@ -9,7 +9,7 @@ pub fn main(&io: &IO) {
 
   let matches = diamond(
     lines,
-    fn(char: Char, Neighbors(nw, n, ne, w, e, sw, s, se): Neighbors[Char], &matches: &N32) {
+    fn(char: Char, Neighbors[Char](nw, n, ne, w, e, sw, s, se), &matches: &N32) {
       if char == 'X' {
         nw.send('X');
         n.send('X');
@@ -43,7 +43,7 @@ pub fn main(&io: &IO) {
 
   let matches = diamond(
     lines,
-    fn(char: Char, Neighbors(nw, _, ne, _, _, sw, _, se): Neighbors[Char], &matches: &N32) {
+    fn(char: Char, Neighbors[Char](nw, _, ne, _, _, sw, _, se), &matches: &N32) {
       if char == 'A' {
         let nw = nw.send('A');
         let ne = ne.send('A');
@@ -71,17 +71,17 @@ pub fn main(&io: &IO) {
 struct Channel[M](M, ~M);
 
 mod Channel {
-  pub fn send[M](Channel(got, ~out): Channel[M], value: M) -> M {
+  pub fn send[M](Channel[M](got, ~out), value: M) -> M {
     out = value;
     got
   }
 
-  pub fn get[M](&Channel(i, _): &Channel[M]) -> M {
+  pub fn get[M](&Channel[M](i, _)) -> M {
     i
   }
 }
 
-fn relay(Channel(ai, ~ao): Channel[Char], Channel(bi, ~bo): Channel[Char], recv: Char, send: Char) {
+fn relay(Channel[Char](ai, ~ao), Channel[Char](bi, ~bo), recv: Char, send: Char) {
   bo = if ai == recv {
     send
   } else {
@@ -94,7 +94,7 @@ fn relay(Channel(ai, ~ao): Channel[Char], Channel(bi, ~bo): Channel[Char], recv:
   };
 }
 
-fn check(Channel(i, ~o): Channel[Char], recv: Char) -> N32 {
+fn check(Channel[Char](i, ~o), recv: Char) -> N32 {
   o = '_';
   if i == recv {
     1

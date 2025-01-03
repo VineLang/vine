@@ -313,7 +313,7 @@ impl<'core, 'r> Distiller<'core, 'r> {
     match &pat.kind {
       PatKind![!value] => unreachable!(),
       PatKind::Hole => Port::Erase,
-      PatKind::Paren(inner) => self.distill_pat_value(stage, inner),
+      PatKind::Paren(inner) | PatKind::Annotation(inner, _) => self.distill_pat_value(stage, inner),
       PatKind::Inverse(inner) => self.distill_pat_space(stage, inner),
       PatKind::Local(local) => {
         stage.declarations.push(*local);
@@ -336,7 +336,7 @@ impl<'core, 'r> Distiller<'core, 'r> {
     match &pat.kind {
       PatKind![!space] => unreachable!(),
       PatKind::Hole => Port::Erase,
-      PatKind::Paren(inner) => self.distill_pat_space(stage, inner),
+      PatKind::Paren(inner) | PatKind::Annotation(inner, _) => self.distill_pat_space(stage, inner),
       PatKind::Inverse(inner) => self.distill_pat_value(stage, inner),
       PatKind::Local(local) => {
         stage.declarations.push(*local);
@@ -353,7 +353,7 @@ impl<'core, 'r> Distiller<'core, 'r> {
     match &pat.kind {
       PatKind![!place] => unreachable!(),
       PatKind::Hole => stage.new_wire(),
-      PatKind::Paren(inner) => self.distill_pat_place(stage, inner),
+      PatKind::Paren(inner) | PatKind::Annotation(inner, _) => self.distill_pat_place(stage, inner),
       PatKind::Inverse(inner) => {
         let (value, space) = self.distill_pat_place(stage, inner);
         (space, value)

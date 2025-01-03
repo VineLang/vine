@@ -14,7 +14,7 @@ pub mod Array {
     Array(len, Node::new(len, value))
   }
 
-  pub fn from_list[T](List(len, buf, _): List[T]) -> Array[T] {
+  pub fn from_list[T](List[T](len, buf, _)) -> Array[T] {
     Array::from_fn(
       len,
       &buf,
@@ -56,7 +56,7 @@ pub mod Array {
     )
   }
 
-  pub fn fold_front[T, U](Array(len, node): Array[T], initial: U, f: fn(U, T) -> U) -> U {
+  pub fn fold_front[T, U](Array[T](len, node), initial: U, f: fn(U, T) -> U) -> U {
     if len == 0 {
       initial
     } else {
@@ -70,7 +70,7 @@ pub mod Array {
     }
   }
 
-  pub fn fold_back[T, U](Array(len, node): Array[T], initial: U, f: fn(U, T) -> U) -> U {
+  pub fn fold_back[T, U](Array[T](len, node), initial: U, f: fn(U, T) -> U) -> U {
     if len == 0 {
       initial
     } else {
@@ -88,7 +88,7 @@ pub mod Array {
     self.0
   }
 
-  pub fn get[T](&Array(len, *node): &Array[T], i: N32) -> &T {
+  pub fn get[T](&Array[T](len, *node), i: N32) -> &T {
     let size = len;
     while size > 1 {
       (node, size) = Node::half(node, size, i % 2);
@@ -97,7 +97,7 @@ pub mod Array {
     (*node).as_leaf()
   }
 
-  pub fn push_back[T](&Array(len, *node): &Array[T], value: T) {
+  pub fn push_back[T](&Array[T](len, *node), value: T) {
     if len == 0 {
       let &node = node;
       node = Node::leaf(value)
@@ -112,7 +112,7 @@ pub mod Array {
     len += 1;
   }
 
-  pub fn push_front[T](&Array(len, *node): &Array[T], value: T) {
+  pub fn push_front[T](&Array[T](len, *node), value: T) {
     if len == 0 {
       let &node = node;
       node = Node::leaf(value)
@@ -130,7 +130,7 @@ pub mod Array {
     len += 1;
   }
 
-  pub fn pop_back[T](&Array(len, *node): &Array[T]) -> Option[T] {
+  pub fn pop_back[T](&Array[T](len, *node)) -> Option[T] {
     if len == 0 {
       None
     } else if len == 1 {
@@ -157,7 +157,7 @@ pub mod Array {
     }
   }
 
-  pub fn pop_front[T](&Array(len, *node): &Array[T]) -> Option[T] {
+  pub fn pop_front[T](&Array[T](len, *node)) -> Option[T] {
     if len == 0 {
       None
     } else if len == 1 {
@@ -181,7 +181,7 @@ pub mod Array {
     }
   }
 
-  pub fn reverse[T](&Array(len, node): &Array[T]) {
+  pub fn reverse[T](&Array[T](len, node)) {
     node.reverse(len)
   }
 

@@ -107,7 +107,7 @@ mod DisjointSet {
     DisjointSet(Array::new(len, Node::Root(1)))
   }
 
-  pub fn find(&DisjointSet(array): &DisjointSet, i: N32) -> N32 {
+  pub fn find(&DisjointSet(array), i: N32) -> N32 {
     let ~root;
     while array.get(i) is &Node::Child(parent) {
       i = parent;
@@ -160,7 +160,7 @@ fn pathfind(grid: Array[Array[N32]], size: N32, iters: N32) -> N32 {
       let &cell = (*grid.get(y)).get(x);
       if cell >= iters {
         cell = 0;
-        dyn fn visit((x, y): (N32, N32)) {
+        dyn fn visit((x: N32, y: N32)) {
           if x < size && y < size && *(*grid.get(y)).get(x) >= iters {
             next ++= [(x, y)];
           }

@@ -4,7 +4,7 @@ error tests/programs/fail/atypical.vi:31:3 - cannot find label `stuff`
 error tests/programs/fail/atypical.vi:32:14 - cannot continue label `stuff`
 error tests/programs/fail/atypical.vi:3:19 - no type associated with `::atypical::foo`
 error tests/programs/fail/atypical.vi:3:24 - types in item signatures cannot be elided
-error tests/programs/fail/atypical.vi:4:8 - fn item parameters must be explicitly typed
+error tests/programs/fail/atypical.vi:4:8 - types in item signatures cannot be elided
 error tests/programs/fail/atypical.vi:4:14 - types in item signatures cannot be elided
 error tests/programs/fail/atypical.vi:5:12 - types in item signatures cannot be elided
 error - expected type `fn(&IO)`; found `fn(IO)`

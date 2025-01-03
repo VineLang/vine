@@ -304,7 +304,7 @@ impl<'core, 'd, 'r> Matcher<'core, 'd, 'r> {
       return match &pat.kind {
         PatKind::Error(_) => unreachable!(),
         PatKind::Hole | PatKind::Local(_) => None,
-        PatKind::Paren(p) => {
+        PatKind::Paren(p) | PatKind::Annotation(p, _) => {
           *pat = p;
           continue;
         }

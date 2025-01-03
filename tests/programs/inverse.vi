@@ -18,7 +18,7 @@ fn refs(&io: &IO) {
 }
 
 mod refs {
-  fn inc((init, ~fin): (N32, ~N32)) {
+  fn inc((init: N32, ~fin: ~N32)) {
     fin = init + 1;
   }
 }

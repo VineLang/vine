@@ -48,7 +48,7 @@ impl<'core: 'src, 'src> Formatter<'src> {
             Doc("fn "),
             Doc(f.name),
             self.fmt_generics(&f.generics),
-            self.fmt_params(params),
+            Doc::paren_comma(params.iter().map(|p| self.fmt_pat(p))),
             self.fmt_return_ty(f.ret.as_ref()),
             Doc(" "),
             self.fmt_block(&f.body, true),
@@ -214,10 +214,6 @@ impl<'core: 'src, 'src> Formatter<'src> {
       StmtKind::Let(l) => Doc::concat([
         Doc("let "),
         self.fmt_pat(&l.bind),
-        match &l.ty {
-          Some(t) => Doc::concat([Doc(": "), self.fmt_ty(t)]),
-          None => Doc::EMPTY,
-        },
         match &l.init {
           Some(e) => Doc::concat([Doc(" = "), self.fmt_expr(e)]),
           None => Doc::EMPTY,
@@ -231,7 +227,7 @@ impl<'core: 'src, 'src> Formatter<'src> {
       StmtKind::DynFn(d) => Doc::concat([
         Doc("dyn fn "),
         Doc(d.name),
-        self.fmt_params(&d.params),
+        Doc::paren_comma(d.params.iter().map(|p| self.fmt_pat(p))),
         self.fmt_return_ty(d.ret.as_ref()),
         Doc(" "),
         self.fmt_block(&d.body, true),
@@ -306,9 +302,12 @@ impl<'core: 'src, 'src> Formatter<'src> {
       ExprKind::Loop(l, b) => {
         Doc::concat([Doc("loop"), self.fmt_label(l), Doc(" "), self.fmt_block(b, true)])
       }
-      ExprKind::Fn(p, _, b) => {
-        Doc::concat([Doc("fn"), self.fmt_params(p), Doc(" "), self.fmt_expr(b)])
-      }
+      ExprKind::Fn(p, _, b) => Doc::concat([
+        Doc("fn"),
+        Doc::paren_comma(p.iter().map(|p| self.fmt_pat(p))),
+        Doc(" "),
+        self.fmt_expr(b),
+      ]),
       ExprKind::Return(Some(x)) => Doc::concat([Doc("return "), self.fmt_expr(x)]),
       ExprKind::Break(label, Some(x)) => {
         Doc::concat([Doc("break"), self.fmt_label(label), Doc(" "), self.fmt_expr(x)])
@@ -402,6 +401,7 @@ impl<'core: 'src, 'src> Formatter<'src> {
       PatKind::Ref(p) => Doc::concat([Doc("&"), self.fmt_pat(p)]),
       PatKind::Deref(p) => Doc::concat([Doc("*"), self.fmt_pat(p)]),
       PatKind::Inverse(p) => Doc::concat([Doc("~"), self.fmt_pat(p)]),
+      PatKind::Annotation(p, t) => Doc::concat([self.fmt_pat(p), Doc(": "), self.fmt_ty(t)]),
       PatKind::Tuple(t) => Doc::tuple(t.iter().map(|x| self.fmt_pat(x))),
     }
   }
@@ -448,13 +448,6 @@ impl<'core: 'src, 'src> Formatter<'src> {
       first = false;
     }
     Doc::concat_vec(docs)
-  }
-
-  fn fmt_params(&self, params: &[(Pat<'core>, Option<Ty<'core>>)]) -> Doc<'src> {
-    Doc::paren_comma(params.iter().map(|(p, t)| match t {
-      Some(t) => Doc::concat([self.fmt_pat(p), Doc(": "), self.fmt_ty(t)]),
-      None => self.fmt_pat(p),
-    }))
   }
 
   fn fmt_return_ty(&self, r: Option<&Ty<'core>>) -> Doc<'src> {

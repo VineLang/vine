@@ -1,7 +1,7 @@
 use ivm::ext::ExtFnKind;
 
 use crate::{
-  ast::{Block, ComparisonOp, Expr, ExprKind, LabelId, Local, LogicalOp, Pat, Stmt, StmtKind, Ty},
+  ast::{Block, ComparisonOp, Expr, ExprKind, LabelId, Local, LogicalOp, Pat, Stmt, StmtKind},
   vir::{Interface, InterfaceKind, Layer, Port, Stage, Step, Transfer},
 };
 
@@ -107,7 +107,7 @@ impl<'core, 'r> Distiller<'core, 'r> {
   pub(super) fn distill_fn(
     &mut self,
     stage: &mut Stage,
-    params: &Vec<(Pat<'core>, Option<Ty<'core>>)>,
+    params: &[Pat<'core>],
     body: &Expr<'core>,
   ) -> Port {
     let fn_local = self.new_local(stage);
@@ -125,13 +125,13 @@ impl<'core, 'r> Distiller<'core, 'r> {
     &mut self,
     stage: &mut Stage,
     fn_local: Local,
-    params: &[(Pat<'core>, Option<Ty<'core>>)],
+    params: &[Pat<'core>],
     body: &B,
     distill_body: impl Fn(&mut Self, &mut Stage, &B) -> Port,
   ) {
     let return_local = self.new_local(stage);
 
-    let params = params.iter().map(|(p, _)| self.distill_pat_value(stage, p)).collect::<Vec<_>>();
+    let params = params.iter().map(|p| self.distill_pat_value(stage, p)).collect::<Vec<_>>();
 
     let result = stage.take_local(return_local);
     let wire = stage.new_wire();

@@ -39,7 +39,7 @@ pub enum ItemKind<'core> {
 pub struct FnItem<'core> {
   pub name: Ident<'core>,
   pub generics: Vec<Ident<'core>>,
-  pub params: Vec<(Pat<'core>, Option<Ty<'core>>)>,
+  pub params: Vec<Pat<'core>>,
   pub ret: Option<Ty<'core>>,
   pub body: Block<'core>,
 }
@@ -179,7 +179,6 @@ pub enum StmtKind<'core> {
 #[derive(Debug, Clone)]
 pub struct LetStmt<'core> {
   pub bind: Pat<'core>,
-  pub ty: Option<Ty<'core>>,
   pub init: Option<Expr<'core>>,
   pub else_block: Option<Block<'core>>,
 }
@@ -188,7 +187,7 @@ pub struct LetStmt<'core> {
 pub struct DynFnStmt<'core> {
   pub name: Ident<'core>,
   pub id: Option<DynFnId>,
-  pub params: Vec<(Pat<'core>, Option<Ty<'core>>)>,
+  pub params: Vec<Pat<'core>>,
   pub ret: Option<Ty<'core>>,
   pub body: Block<'core>,
 }
@@ -227,7 +226,7 @@ pub enum ExprKind<'core> {
   #[class(value)]
   Loop(Label<'core>, Block<'core>),
   #[class(value)]
-  Fn(Vec<(Pat<'core>, Option<Ty<'core>>)>, Option<Option<Ty<'core>>>, B<Expr<'core>>),
+  Fn(Vec<Pat<'core>>, Option<Option<Ty<'core>>>, B<Expr<'core>>),
   #[class(value)]
   Return(Option<B<Expr<'core>>>),
   #[class(value)]
@@ -329,6 +328,8 @@ pub enum PatKind<'core> {
   Hole,
   #[class(value, place, space)]
   Paren(B<Pat<'core>>),
+  #[class(value, place, space)]
+  Annotation(B<Pat<'core>>, B<Ty<'core>>),
   #[class(value, place, space)]
   Adt(GenericPath<'core>, Option<Vec<Pat<'core>>>),
   #[class(value, place, space)]

@@ -22,7 +22,7 @@ pub mod List {
     list
   }
 
-  pub fn get[T](&List(len, *buf, _): &List[T], i: N32) -> &T {
+  pub fn get[T](&List[T](len, *buf, _), i: N32) -> &T {
     while i != 0 {
       let &Buf(_, *tail) = buf;
       buf = tail;
@@ -32,7 +32,7 @@ pub mod List {
     head
   }
 
-  pub fn slice[T](List(len, buf, end): List[T], i: N32) -> List[T] {
+  pub fn slice[T](List[T](len, buf, end), i: N32) -> List[T] {
     if i >= len {
       []
     } else {
@@ -45,7 +45,7 @@ pub mod List {
     }
   }
 
-  pub fn map[T, U](List(l, buf, ~_): List[T], f: fn(T) -> U) -> List[U] {
+  pub fn map[T, U](List[T](l, buf, ~_), f: fn(T) -> U) -> List[U] {
     let len = l;
     let cur;
     let result = move ~cur;
@@ -60,7 +60,7 @@ pub mod List {
     List(len, result, move cur)
   }
 
-  pub fn pop_front[T](&List(len, buf, _): &List[T]) -> Option[T] {
+  pub fn pop_front[T](&List[T](len, buf, _)) -> Option[T] {
     if len != 0 {
       len -= 1;
       let Buf(head, tail) = buf;
@@ -87,7 +87,7 @@ pub mod List {
     list = [el] ++ list;
   }
 
-  pub fn insert[T](&List(len, *buf, _): &List[T], i: N32, el: T) {
+  pub fn insert[T](&List[T](len, *buf, _), i: N32, el: T) {
     len += 1;
     while i != 0 {
       let &Buf(_, *tail) = buf;
@@ -133,12 +133,12 @@ pub mod List {
 
   pub struct Iter[T](N32, &Buf[T]);
 
-  pub fn iter[T](&List(len, buf, _): &List[T]) -> Iter[T] {
+  pub fn iter[T](&List[T](len, buf, _)) -> Iter[T] {
     Iter(len, &buf)
   }
 
   pub mod Iter {
-    pub fn next[T](&Iter(len, buf): &Iter[T]) -> Option[&T] {
+    pub fn next[T](&Iter[T](len, buf)) -> Option[&T] {
       if len != 0 {
         len -= 1;
         let &Buf(*head, *tail) = buf;
@@ -157,12 +157,12 @@ pub mod List {
 
   pub struct IntoIter[T](N32, Buf[T]);
 
-  pub fn into_iter[T](List(len, buf, _): List[T]) -> IntoIter[T] {
+  pub fn into_iter[T](List[T](len, buf, _)) -> IntoIter[T] {
     IntoIter(len, buf)
   }
 
   pub mod IntoIter {
-    pub fn next[T](&IntoIter(len, buf): &IntoIter[T]) -> Option[T] {
+    pub fn next[T](&IntoIter[T](len, buf)) -> Option[T] {
       if len != 0 {
         len -= 1;
         let Buf(head, tail) = buf;

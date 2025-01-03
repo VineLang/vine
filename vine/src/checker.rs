@@ -11,8 +11,8 @@ use vine_util::{
 
 use crate::{
   ast::{
-    Block, Builtin, DynFnId, ExprKind, GenericPath, Ident, LabelId, Local, Span, StmtKind, Ty,
-    TyKind,
+    Block, Builtin, DynFnId, ExprKind, GenericPath, Ident, LabelId, Local, Pat, PatKind, Span,
+    StmtKind, Ty, TyKind,
   },
   core::Core,
   diag::{report, Diag, ErrorGuaranteed},
@@ -144,8 +144,7 @@ impl<'core, 'r> Checker<'core, 'r> {
       match &mut stmt.kind {
         StmtKind::Let(l) => {
           let refutable = l.else_block.is_some();
-          let mut let_ty =
-            self.check_pat_annotation(&mut l.bind, l.ty.as_mut(), Form::Value, refutable);
+          let mut let_ty = self.check_pat(&mut l.bind, Form::Value, refutable);
           if let Some(value) = &mut l.init {
             self.check_expr_form_type(value, Form::Value, &mut let_ty);
           }
@@ -154,11 +153,7 @@ impl<'core, 'r> Checker<'core, 'r> {
           }
         }
         StmtKind::DynFn(d) => {
-          let params = d
-            .params
-            .iter_mut()
-            .map(|(p, a)| self.check_pat_annotation(p, a.as_mut(), Form::Value, false))
-            .collect();
+          let params = d.params.iter_mut().map(|p| self.check_pat(p, Form::Value, false)).collect();
           let mut ret = d
             .ret
             .as_mut()
@@ -215,9 +210,32 @@ impl<'core, 'r> Checker<'core, 'r> {
     }
   }
 
-  fn hydrate_generics(&mut self, path: &mut GenericPath<'core>, generic_count: usize) -> Vec<Type> {
+  fn hydrate_param(&mut self, pat: &mut Pat<'core>) -> Type {
+    let span = pat.span;
+    match &mut pat.kind {
+      PatKind::Paren(inner) => self.hydrate_param(inner),
+      PatKind::Annotation(_, ty) => self.hydrate_type(ty, false),
+      PatKind::Adt(path, _) => {
+        report!(self.core, pat.kind; self.typeof_variant_def(path, false, false)).0
+      }
+      PatKind::Ref(p) => Type::Ref(Box::new(self.hydrate_param(p))),
+      PatKind::Inverse(p) => Type::Inverse(Box::new(self.hydrate_param(p))),
+      PatKind::Tuple(t) => Type::Tuple(t.iter_mut().map(|p| self.hydrate_param(p)).collect()),
+      PatKind::Hole | PatKind::Local(_) | PatKind::Deref(_) => {
+        Type::Error(self.core.report(Diag::ItemTypeHole { span }))
+      }
+      PatKind::Error(e) => Type::Error(*e),
+    }
+  }
+
+  fn hydrate_generics(
+    &mut self,
+    path: &mut GenericPath<'core>,
+    generic_count: usize,
+    inference: bool,
+  ) -> Vec<Type> {
     if let Some(generics) = &mut path.generics {
-      generics.iter_mut().map(|t| self.hydrate_type(t, true)).collect::<Vec<_>>()
+      generics.iter_mut().map(|t| self.hydrate_type(t, inference)).collect::<Vec<_>>()
     } else {
       iter::from_fn(|| Some(self.new_var(path.span))).take(generic_count).collect()
     }
@@ -249,15 +267,7 @@ impl<'core, 'r> Checker<'core, 'r> {
           ValueDefKind::Expr(e) => {
             let ExprKind::Fn(args, Some(ret), _) = &mut e.kind else { unreachable!() };
             Type::Fn(
-              args
-                .iter_mut()
-                .map(|(pat, ty)| match ty {
-                  Some(ty) => self.hydrate_type(ty, false),
-                  None => {
-                    Type::Error(self.core.report(Diag::FnItemUntypedParam { span: pat.span }))
-                  }
-                })
-                .collect(),
+              args.iter_mut().map(|pat| self.hydrate_param(pat)).collect(),
               Box::new(ret.as_mut().map(|r| self.hydrate_type(r, false)).unwrap_or(Type::UNIT)),
             )
           }
