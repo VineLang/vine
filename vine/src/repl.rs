@@ -266,6 +266,14 @@ impl<'core, 'ctx, 'ivm> Repl<'core, 'ctx, 'ivm> {
       (Type::Tuple(tys), _) if !tys.is_empty() => {
         format!("({})", self.read_tuple(tys, tree)?.join(", "))
       }
+      (Type::Object(tys), _) if tys.is_empty() => "{}".into(),
+      (Type::Object(tys), _) => {
+        let values = self.read_tuple(tys.values_mut(), tree)?;
+        format!(
+          "{{ {} }}",
+          tys.keys().zip(values).map(|(k, v)| format!("{k}: {v}")).collect::<Vec<_>>().join(", ")
+        )
+      }
       (Type::Adt(def, args), tree) if self.resolver.builtins.get(&Builtin::List) == Some(def) => {
         let [arg] = &mut **args else { None? };
         let Tree::Comb(c, l, r) = tree else { None? };
@@ -375,17 +383,25 @@ impl<'core, 'ctx, 'ivm> Repl<'core, 'ctx, 'ivm> {
     })
   }
 
-  fn read_tuple(&self, tys: &mut [Type<'core>], tree: &Tree) -> Option<Vec<String>> {
+  fn read_tuple<'a>(
+    &self,
+    tys: impl IntoIterator<Item = &'a mut Type<'core>, IntoIter: DoubleEndedIterator>,
+    tree: &Tree,
+  ) -> Option<Vec<String>>
+  where
+    'core: 'a,
+  {
+    let mut tys = tys.into_iter();
     let mut tup = Vec::new();
     let mut tree = tree;
-    let i = tys.len() - 1;
-    for ty in &mut tys[..i] {
+    let last = tys.next_back().unwrap();
+    for ty in tys {
       let Tree::Comb(l, a, b) = tree else { None? };
       let "tup" = &**l else { None? };
       tup.push(self.show(ty, a));
       tree = b;
     }
-    tup.push(self.show(tys.last_mut().unwrap(), tree));
+    tup.push(self.show(last, tree));
     Some(tup)
   }
 }
