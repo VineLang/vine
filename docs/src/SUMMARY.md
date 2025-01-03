@@ -33,3 +33,9 @@
   - [IVM Overview](./ivy-ivm/ivm.md)
   - [Extrinsics](./ivy-ivm/extrinsics.md)
   - [Statistics](./ivy-ivm/statistics.md)
+
+---
+
+[Notes](./notes.md)
+
+[Scratch](./scratch.md)
