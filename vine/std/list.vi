@@ -289,11 +289,13 @@ pub mod List {
             (None, None) { break Ord::Eq }
             (None, Some(_)) { break Ord::Lt }
             (Some(_), None) { break Ord::Gt }
-            (Some(a), Some(b)) { match cmp_el(a, b) {
-              Ord::Lt { break Ord::Lt }
-              Ord::Eq {}
-              Ord::Gt { break Ord::Gt }
-            } }
+            (Some(a), Some(b)) {
+              match cmp_el(a, b) {
+                Ord::Lt { break Ord::Lt }
+                Ord::Eq {}
+                Ord::Gt { break Ord::Gt }
+              }
+            }
           }
         };
         a.drop();

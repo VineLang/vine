@@ -223,11 +223,13 @@ mod Node {
       match cmp(&key, &cur_key) {
         Ord::Lt { left.get_ge(cmp, &key) }
         Ord::Eq { Some(&(cur_key, cur_value)) }
-        Ord::Gt { if right.get_ge(cmp, &key) is Some(entry) {
-          Some(entry)
-        } else {
-          Some(&(cur_key, cur_value))
-        } }
+        Ord::Gt {
+          if right.get_ge(cmp, &key) is Some(entry) {
+            Some(entry)
+          } else {
+            Some(&(cur_key, cur_value))
+          }
+        }
       }
     }
   }
@@ -238,11 +240,13 @@ mod Node {
     } else {
       let &(left, (cur_key, cur_value), right) = &data;
       match cmp(&key, &cur_key) {
-        Ord::Lt { if left.get_ge(cmp, &key) is Some(entry) {
-          Some(entry)
-        } else {
-          Some(&(cur_key, cur_value))
-        } }
+        Ord::Lt {
+          if left.get_ge(cmp, &key) is Some(entry) {
+            Some(entry)
+          } else {
+            Some(&(cur_key, cur_value))
+          }
+        }
         Ord::Eq { Some(&(cur_key, cur_value)) }
         Ord::Gt { right.get_ge(cmp, &key) }
       }
