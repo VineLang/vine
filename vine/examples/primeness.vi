@@ -9,12 +9,12 @@ pub fn main(&io: &IO) {
     let primeness = primeness(n);
 
     io.println(n.to_string() ++ ": " ++ match primeness {
-      Ok(primeness) => if primeness {
+      Ok(primeness) { if primeness {
         "prime"
       } else {
         "composite"
-      },
-      Err(msg) => msg,
+      } }
+      Err(msg) { msg }
     });
 
     n += 1;

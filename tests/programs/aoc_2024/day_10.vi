@@ -140,7 +140,7 @@ fn cross[T, M, X](grid: List[List[T]], f: fn(T, Neighbors[M], &X), d: M, &state:
   let north = List::new(width, neglect_channel(d));
   while grid.pop_front() is Some(row) {
     let west = neglect_channel(d);
-    {
+    do {
       let north = north.iter();
       while row.pop_front() is Some(cell) {
         let (w, e) = foo_channel(&west);

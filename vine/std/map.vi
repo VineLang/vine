@@ -182,21 +182,21 @@ mod Node {
       let &(left, (cur_key, cur_value), right) = &data;
       let old;
       match cmp(&key, &cur_key) {
-        Ord::Lt => {
+        Ord::Lt {
           old = left.insert(cmp, key, value);
           len = map::size(&data);
           balance_right(&data);
-        },
-        Ord::Eq => {
+        }
+        Ord::Eq {
           old = Some(cur_value);
           cur_key = key;
           cur_value = value;
-        },
-        Ord::Gt => {
+        }
+        Ord::Gt {
           old = right.insert(cmp, key, value);
           len = map::size(&data);
           balance_left(&data);
-        },
+        }
       }
       old
     }
@@ -208,9 +208,9 @@ mod Node {
     } else {
       let &(left, (cur_key, cur_value), right) = &data;
       match cmp(&key, &cur_key) {
-        Ord::Lt => left.get(cmp, &key),
-        Ord::Eq => Some(&cur_value),
-        Ord::Gt => right.get(cmp, &key),
+        Ord::Lt { left.get(cmp, &key) }
+        Ord::Eq { Some(&cur_value) }
+        Ord::Gt { right.get(cmp, &key) }
       }
     }
   }
@@ -221,13 +221,13 @@ mod Node {
     } else {
       let &(left, (cur_key, cur_value), right) = &data;
       match cmp(&key, &cur_key) {
-        Ord::Lt => left.get_ge(cmp, &key),
-        Ord::Eq => Some(&(cur_key, cur_value)),
-        Ord::Gt => if right.get_ge(cmp, &key) is Some(entry) {
+        Ord::Lt { left.get_ge(cmp, &key) }
+        Ord::Eq { Some(&(cur_key, cur_value)) }
+        Ord::Gt { if right.get_ge(cmp, &key) is Some(entry) {
           Some(entry)
         } else {
           Some(&(cur_key, cur_value))
-        },
+        } }
       }
     }
   }
@@ -238,13 +238,13 @@ mod Node {
     } else {
       let &(left, (cur_key, cur_value), right) = &data;
       match cmp(&key, &cur_key) {
-        Ord::Lt => if left.get_ge(cmp, &key) is Some(entry) {
+        Ord::Lt { if left.get_ge(cmp, &key) is Some(entry) {
           Some(entry)
         } else {
           Some(&(cur_key, cur_value))
-        },
-        Ord::Eq => Some(&(cur_key, cur_value)),
-        Ord::Gt => right.get_ge(cmp, &key),
+        } }
+        Ord::Eq { Some(&(cur_key, cur_value)) }
+        Ord::Gt { right.get_ge(cmp, &key) }
       }
     }
   }
@@ -256,21 +256,21 @@ mod Node {
       let &(left, (cur_key, cur_value), right) = &data;
       let old;
       match cmp(&key, &cur_key) {
-        Ord::Lt => {
+        Ord::Lt {
           old = left.remove(cmp, &key);
           len = map::size(&data);
           balance_left(&data);
-        },
-        Ord::Eq => {
+        }
+        Ord::Eq {
           old = Some(cur_value);
           len -= 1;
           data = merge_balanced(cmp, move left, move right);
-        },
-        Ord::Gt => {
+        }
+        Ord::Gt {
           old = right.remove(cmp, &key);
           len = map::size(&data);
           balance_right(&data);
-        },
+        }
       }
       old
     }

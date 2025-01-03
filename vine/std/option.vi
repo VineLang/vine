@@ -7,22 +7,22 @@ pub enum Option[T] {
 pub mod Option {
   pub fn map[T, U](self: Option[T], f: fn(T) -> U) -> Option[U] {
     match self {
-      Some(val) => Some(f(val)),
-      None => None,
+      Some(val) { Some(f(val)) }
+      None { None }
     }
   }
 
   pub fn as_ref[T](&self: &Option[T]) -> Option[&T] {
     match &self {
-      &Some(val) => Some(&val),
-      &None => None,
+      &Some(val) { Some(&val) }
+      &None { None }
     }
   }
 
   pub fn flatten[T](self: Option[Option[T]]) -> Option[T] {
     match self {
-      Some(Some(val)) => Some(val),
-      _ => None,
+      Some(Some(val)) { Some(val) }
+      _ { None }
     }
   }
 
@@ -32,21 +32,21 @@ pub mod Option {
 
   pub fn or[T](self: Option[T], default: Option[T]) -> Option[T] {
     match self {
-      None => default,
-      x => x,
+      None { default }
+      x { x }
     }
   }
 
   pub fn unwrap_or[T](self: Option[T], default: T) -> T {
     match self {
-      Some(val) => val,
-      None => default,
+      Some(val) { val }
+      None { default }
     }
   }
 
   pub fn unwrap[T](self: Option[T]) -> T {
     match self {
-      Some(val) => val,
+      Some(val) { val }
     }
   }
 }

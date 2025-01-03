@@ -4,7 +4,7 @@ use std::option::Option::Some;
 pub fn main(&io: &IO) {
   let list = [0];
   while list.len() < 32 {
-    list ++= list.map(fn(x: N32) list.len() + x);
+    list ++= list.map(fn(x: N32) { list.len() + x });
   }
 
   while list.pop_front() is Some(val) {

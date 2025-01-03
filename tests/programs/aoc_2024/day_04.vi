@@ -121,7 +121,7 @@ fn diamond[T, M, X](grid: List[List[T]], f: fn(T, Neighbors[M], &X), d: M, state
   let north_east = List::new(width, neglect_channel(d));
   while grid.pop_front() is Some(row) {
     let west = neglect_channel(d);
-    {
+    do {
       let north = north.iter();
       let north_west = north_west.iter();
       let ~north_east = north_east.iter();
