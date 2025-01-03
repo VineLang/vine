@@ -68,7 +68,11 @@ impl<'core: 'src, 'src> Formatter<'src> {
           Doc("struct "),
           Doc(s.name),
           self.fmt_generics(&s.generics),
-          Doc::paren_comma(s.fields.iter().map(|x| self.fmt_ty(x))),
+          if s.object {
+            Doc::concat([Doc(" "), self.fmt_ty(&s.fields[0])])
+          } else {
+            Doc::paren_comma(s.fields.iter().map(|x| self.fmt_ty(x)))
+          },
           Doc(";"),
         ]),
         ItemKind::Enum(e) => Doc::concat([

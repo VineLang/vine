@@ -64,6 +64,7 @@ pub struct StructItem<'core> {
   pub name: Ident<'core>,
   pub generics: Vec<Ident<'core>>,
   pub fields: Vec<Ty<'core>>,
+  pub object: bool,
 }
 
 #[derive(Debug, Clone)]

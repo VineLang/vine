@@ -87,7 +87,7 @@ impl<'core> Checker<'core, '_> {
           }
           Type::Adt(adt, gens) => {
             self.resolver.defs[*adt].variant_def.as_ref().and_then(|variant| {
-              if variant.adt == *adt && *i < variant.fields.len() {
+              if !variant.object && variant.adt == *adt && *i < variant.fields.len() {
                 *l = Some(variant.fields.len());
                 Some(variant.field_types.as_ref().unwrap()[*i].instantiate(gens))
               } else {
@@ -123,6 +123,20 @@ impl<'core> Checker<'core, '_> {
             .enumerate()
             .find(|&(_, (&n, _))| k.ident == n)
             .map(|(i, (_, t))| (t.clone(), i, e.len())),
+          Type::Adt(adt, gens) => {
+            self.resolver.defs[*adt].variant_def.as_ref().and_then(|variant| {
+              if variant.object && variant.adt == *adt {
+                let Some([Type::Object(e)]) = variant.field_types.as_deref() else {
+                  unreachable!()
+                };
+                if let Some((i, (_, ty))) = e.iter().enumerate().find(|&(_, (&n, _))| k.ident == n)
+                {
+                  return Some((ty.instantiate(gens), i, e.len()));
+                }
+              }
+              None
+            })
+          }
           _ => None,
         };
 

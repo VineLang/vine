@@ -118,6 +118,7 @@ impl<'core> Resolver<'core> {
           adt: child.id,
           variant: 0,
           fields: s.fields,
+          object: s.object,
           field_types: None,
         });
         child.value_def = Some(ValueDef {
@@ -153,6 +154,7 @@ impl<'core> Resolver<'core> {
               adt,
               variant: i,
               fields: v.fields,
+              object: false,
               field_types: None,
             });
             variant.value_def = Some(ValueDef {

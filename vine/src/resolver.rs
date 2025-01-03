@@ -108,5 +108,6 @@ pub struct VariantDef<'core> {
   pub adt: DefId,
   pub variant: usize,
   pub fields: Vec<Ty<'core>>,
+  pub object: bool,
   pub field_types: Option<Vec<Type<'core>>>,
 }

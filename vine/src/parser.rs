@@ -196,13 +196,15 @@ impl<'core, 'src> VineParser<'core, 'src> {
     self.expect(Token::Struct)?;
     let name = self.parse_ident()?;
     let generics = self.parse_generics()?;
-    let fields = if self.check(Token::OpenParen) {
-      self.parse_delimited(PAREN_COMMA, Self::parse_type)?
+    let (fields, object) = if self.check(Token::OpenParen) {
+      (self.parse_delimited(PAREN_COMMA, Self::parse_type)?, false)
+    } else if self.check(Token::OpenBrace) {
+      (vec![self.parse_type()?], true)
     } else {
-      Vec::new()
+      (Vec::new(), false)
     };
-    self.expect(Token::Semi)?;
-    Ok(StructItem { name, generics, fields })
+    self.eat(Token::Semi)?;
+    Ok(StructItem { name, generics, fields, object })
   }
 
   fn parse_enum_item(&mut self) -> Parse<'core, Enum<'core>> {
@@ -227,6 +229,8 @@ impl<'core, 'src> VineParser<'core, 'src> {
     let name = self.parse_ident()?;
     let fields = if self.check(Token::OpenParen) {
       self.parse_delimited(PAREN_COMMA, Self::parse_type)?
+    } else if self.check(Token::OpenBrace) {
+      vec![self.parse_type()?]
     } else {
       Vec::new()
     };
