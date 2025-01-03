@@ -30,7 +30,7 @@
   ::std::io::IO::print::2 = x(x(w3 w15) x(w9 w10))
 }
 
-::std::io::IO::print::2 { x(w4 x(dup484(?(::std::io::IO::print::4 ::std::io::IO::print::3 x(w4 x(w6 w1))) w6) w1)) }
+::std::io::IO::print::2 { x(w4 x(dup476(?(::std::io::IO::print::4 ::std::io::IO::print::3 x(w4 x(w6 w1))) w6) w1)) }
 
 ::std::io::IO::print::3 {
   x(x(w17 w21) x(@sub(1 w1) tup(w4 w5)))
@@ -44,11 +44,11 @@
 
 ::std::io::IO::read_line {
   fn(ref(w3 w18) w15)
-  ::std::io::IO::read_byte = fn(ref(w3 w8) fn(0 dup529(@ne(0 ?(::std::io::IO::read_line::4 ::std::io::IO::read_line::3 x(x(w8 w18) x(w16 w15)))) w16)))
+  ::std::io::IO::read_byte = fn(ref(w3 w8) fn(0 dup521(@ne(0 ?(::std::io::IO::read_line::4 ::std::io::IO::read_line::3 x(x(w8 w18) x(w16 w15)))) w16)))
 }
 
 ::std::io::IO::read_line::3 {
-  x(w5 x(dup536(@eq(10 ?(::std::io::IO::read_line::7 ::std::io::IO::read_line::6 x(w5 x(w9 w8)))) w9) w1))
+  x(w5 x(dup528(@eq(10 ?(::std::io::IO::read_line::7 ::std::io::IO::read_line::6 x(w5 x(w9 w8)))) w9) w1))
   ::std::option::Option::Some = fn(w8 w1)
 }
 
@@ -63,7 +63,7 @@
 
 ::std::io::IO::read_line::8 {
   x(x(w10 w18) w8)
-  ::std::io::IO::read_byte = fn(ref(w10 w1) fn(10 dup553(@ne(10 ?(::std::io::IO::read_line::11 ::std::io::IO::read_line::10 x(x(w1 w18) x(w16 w8)))) w16)))
+  ::std::io::IO::read_byte = fn(ref(w10 w1) fn(10 dup545(@ne(10 ?(::std::io::IO::read_line::11 ::std::io::IO::read_line::10 x(x(w1 w18) x(w16 w8)))) w16)))
 }
 
 ::std::io::IO::read_line::10 {
