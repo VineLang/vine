@@ -1,4 +1,7 @@
-use std::mem::{replace, take};
+use std::{
+  collections::BTreeMap,
+  mem::{replace, take},
+};
 
 use ivm::ext::{ExtFn, ExtFnKind};
 use vine_util::{
@@ -9,8 +12,8 @@ use vine_util::{
 use crate::{
   analyzer::usage::Usage,
   ast::{
-    BinaryOp, Builtin, ComparisonOp, DynFnId, Expr, ExprKind, GenericPath, LabelId, Local, Pat,
-    PatKind,
+    BinaryOp, Builtin, ComparisonOp, DynFnId, Expr, ExprKind, GenericPath, Key, LabelId, Local,
+    Pat, PatKind,
   },
   resolver::{Def, DefId, Resolver, ValueDefKind},
   vir::{
@@ -164,6 +167,7 @@ impl<'core, 'r> Distiller<'core, 'r> {
       ExprKind::Tuple(tuple) => {
         self.distill_vec(stage, tuple, Self::distill_expr_value, Step::Tuple)
       }
+      ExprKind::Object(fields) => self.distill_object(stage, fields, Self::distill_expr_value),
       ExprKind::Adt(path, args) => {
         self.distill_vec(stage, args, Self::distill_expr_value, adt(path))
       }
@@ -253,6 +257,7 @@ impl<'core, 'r> Distiller<'core, 'r> {
       ExprKind::Tuple(tuple) => {
         self.distill_vec(stage, tuple, Self::distill_expr_space, Step::Tuple)
       }
+      ExprKind::Object(fields) => self.distill_object(stage, fields, Self::distill_expr_space),
       ExprKind::Adt(path, args) => {
         self.distill_vec(stage, args, Self::distill_expr_space, adt(path))
       }
@@ -294,6 +299,7 @@ impl<'core, 'r> Distiller<'core, 'r> {
       ExprKind::Tuple(tuple) => {
         self.distill_vec_pair(stage, tuple, Self::distill_expr_place, Step::Tuple)
       }
+      ExprKind::Object(fields) => self.distill_object_pair(stage, fields, Self::distill_expr_place),
       ExprKind::Adt(path, args) => {
         self.distill_vec_pair(stage, args, Self::distill_expr_place, adt(path))
       }
@@ -322,6 +328,7 @@ impl<'core, 'r> Distiller<'core, 'r> {
         stage.set_local(*local)
       }
       PatKind::Tuple(tuple) => self.distill_vec(stage, tuple, Self::distill_pat_value, Step::Tuple),
+      PatKind::Object(fields) => self.distill_object(stage, fields, Self::distill_pat_value),
       PatKind::Adt(path, args) => {
         self.distill_vec(stage, args.as_deref().unwrap_or(&[]), Self::distill_pat_value, adt(path))
       }
@@ -345,6 +352,7 @@ impl<'core, 'r> Distiller<'core, 'r> {
         stage.take_local(*local)
       }
       PatKind::Tuple(tuple) => self.distill_vec(stage, tuple, Self::distill_pat_space, Step::Tuple),
+      PatKind::Object(fields) => self.distill_object(stage, fields, Self::distill_pat_space),
       PatKind::Adt(path, args) => {
         self.distill_vec(stage, args.as_deref().unwrap_or(&[]), Self::distill_pat_space, adt(path))
       }
@@ -368,6 +376,7 @@ impl<'core, 'r> Distiller<'core, 'r> {
       PatKind::Tuple(tuple) => {
         self.distill_vec_pair(stage, tuple, Self::distill_pat_place, Step::Tuple)
       }
+      PatKind::Object(fields) => self.distill_object_pair(stage, fields, Self::distill_pat_place),
       PatKind::Adt(path, args) => self.distill_vec_pair(
         stage,
         args.as_deref().unwrap_or(&[]),
@@ -496,6 +505,42 @@ impl<'core, 'r> Distiller<'core, 'r> {
     let right = stage.new_wire();
     stage.steps.push(s(left.0, lefts));
     stage.steps.push(s(right.0, rights));
+    (left.1, right.1)
+  }
+
+  fn distill_object<T>(
+    &mut self,
+    stage: &mut Stage,
+    fields: &Vec<(Key<'core>, T)>,
+    mut f: impl FnMut(&mut Self, &mut Stage, &T) -> Port,
+  ) -> Port {
+    let ports = fields
+      .iter()
+      .map(|(k, v)| (k.ident, f(self, stage, v)))
+      .collect::<BTreeMap<_, _>>()
+      .into_values()
+      .collect::<Vec<_>>();
+    let wire = stage.new_wire();
+    stage.steps.push(Step::Tuple(wire.0, ports));
+    wire.1
+  }
+
+  fn distill_object_pair<T>(
+    &mut self,
+    stage: &mut Stage,
+    fields: &Vec<(Key<'core>, T)>,
+    mut f: impl FnMut(&mut Self, &mut Stage, &T) -> (Port, Port),
+  ) -> (Port, Port) {
+    let (lefts, rights) = fields
+      .iter()
+      .map(|(k, v)| (k.ident, f(self, stage, v)))
+      .collect::<BTreeMap<_, _>>()
+      .into_values()
+      .collect::<(Vec<_>, Vec<_>)>();
+    let left = stage.new_wire();
+    let right = stage.new_wire();
+    stage.steps.push(Step::Tuple(left.0, lefts));
+    stage.steps.push(Step::Tuple(right.0, rights));
     (left.1, right.1)
   }
 }
