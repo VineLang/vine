@@ -92,6 +92,7 @@ impl<'core> Resolver<'core> {
       ItemKind::Use(u) => {
         Self::build_imports(
           self.use_id.next(),
+          item.span,
           self.core,
           u.tree,
           &mut self.defs[parent],
@@ -276,28 +277,26 @@ impl<'core> Resolver<'core> {
 
   fn build_imports(
     use_id: UseId,
+    span: Span,
     core: &Core<'core>,
     tree: UseTree<'core>,
     def: &mut Def<'core>,
     path: &mut Path<'core>,
     vis: DefId,
   ) {
-    let initial_len = path.segments.len();
-    path.segments.extend(&tree.path.segments);
-    if let Some(children) = tree.children {
-      for child in children {
-        Self::build_imports(use_id, core, child, def, path, vis);
-      }
-    } else {
-      let name = *path.segments.last().unwrap();
-      let path = path.clone();
+    for name in tree.aliases {
       if let Entry::Vacant(e) = def.members.entry(name) {
-        e.insert(Member { vis, kind: MemberKind::UnresolvedImport(tree.span, Some(path), use_id) });
+        let path = path.clone();
+        e.insert(Member { vis, kind: MemberKind::UnresolvedImport(span, Some(path), use_id) });
       } else {
-        core.report(Diag::DuplicateItem { span: tree.span, name });
+        core.report(Diag::DuplicateItem { span, name });
       }
     }
-    path.segments.truncate(initial_len);
+    for (ident, child) in tree.children {
+      path.segments.push(ident);
+      Self::build_imports(use_id, span, core, child, def, path, vis);
+      path.segments.pop();
+    }
   }
 
   fn new_def(&mut self, mut canonical: Path<'core>, parent: Option<DefId>) -> DefId {

@@ -120,7 +120,7 @@ impl<'core: 'src, 'src> Formatter<'src> {
         ]),
         ItemKind::Use(u) => Doc::concat([
           Doc(if u.absolute { "use ::" } else { "use " }),
-          self.fmt_use_tree(&u.tree),
+          Self::fmt_use_tree(None, &u.tree),
           Doc(";"),
         ]),
         ItemKind::Ivy(_) => return self.fmt_verbatim(item.span),
@@ -248,15 +248,27 @@ impl<'core: 'src, 'src> Formatter<'src> {
     }
   }
 
-  fn fmt_use_tree(&self, use_tree: &UseTree<'core>) -> Doc<'src> {
-    if let Some(children) = &use_tree.children {
-      Doc::concat([
-        self.fmt_path(&use_tree.path),
-        Doc("::"),
-        Doc::brace_comma(children.iter().map(|x| self.fmt_use_tree(x))),
-      ])
+  fn fmt_use_tree(name: Option<Ident<'core>>, tree: &UseTree<'core>) -> Doc<'src> {
+    let prefix = name.iter().map(|&name| Doc::concat([Doc(name), Doc("::")]));
+    let aliases = tree.aliases.iter().map(|&alias| {
+      if Some(alias) == name {
+        Doc(alias)
+      } else {
+        Doc::concat([Doc(name.unwrap()), Doc(" as "), Doc(alias)])
+      }
+    });
+    let children = tree.children.iter().map(|(&name, child)| Self::fmt_use_tree(Some(name), child));
+    let len = aliases.len() + children.len();
+    if len == 1 {
+      if aliases.len() == 1 {
+        Doc::concat(aliases)
+      } else {
+        Doc::concat(prefix.chain(children))
+      }
     } else {
-      self.fmt_path(&use_tree.path)
+      Doc::concat(
+        prefix.chain([Doc::brace_comma(aliases.chain(children).collect::<Vec<_>>().into_iter())]),
+      )
     }
   }
 

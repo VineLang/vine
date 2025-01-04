@@ -98,6 +98,8 @@ pub enum Token {
   Mod,
   #[token("use")]
   Use,
+  #[token("as")]
+  As,
   #[token("fn")]
   Fn,
   #[token("pattern")]
