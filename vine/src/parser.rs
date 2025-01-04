@@ -266,7 +266,12 @@ impl<'core, 'src> VineParser<'core, 'src> {
     self.expect(Token::Use)?;
     let absolute = self.eat(Token::ColonColon)?;
     let mut tree = UseTree::default();
-    self.parse_use_tree(None, &mut tree)?;
+    loop {
+      self.parse_use_tree(None, &mut tree)?;
+      if !self.eat(Token::Comma)? {
+        break;
+      }
+    }
     tree.prune();
     self.eat(Token::Semi)?;
     Ok(UseItem { absolute, tree })
