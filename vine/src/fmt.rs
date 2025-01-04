@@ -69,11 +69,16 @@ impl<'core: 'src, 'src> Formatter<'src> {
           Doc(s.name),
           self.fmt_generics(&s.generics),
           if s.object {
-            Doc::concat([Doc(" "), self.fmt_ty(&s.fields[0])])
+            let TyKind::Object(e) = &s.fields[0].kind else { unreachable!() };
+            Doc::concat([
+              Doc(" "),
+              Doc::brace_comma_multiline(
+                e.iter().map(|(k, v)| Doc::concat([Doc(k.ident), Doc(": "), self.fmt_ty(v)])),
+              ),
+            ])
           } else {
-            Doc::paren_comma(s.fields.iter().map(|x| self.fmt_ty(x)))
+            Doc::concat([Doc::paren_comma(s.fields.iter().map(|x| self.fmt_ty(x))), Doc(";")])
           },
-          Doc(";"),
         ]),
         ItemKind::Enum(e) => Doc::concat([
           Doc("enum "),
@@ -330,7 +335,7 @@ impl<'core: 'src, 'src> Formatter<'src> {
         Doc::concat([Doc("("), self.fmt_expr(v), Doc("; "), self.fmt_expr(s), Doc(")")])
       }
       ExprKind::Tuple(t) => Doc::tuple(t.iter().map(|x| self.fmt_expr(x))),
-      ExprKind::Object(o) => Doc::brace_comma(o.iter().map(|(k, v)| {
+      ExprKind::Object(o) => Doc::brace_comma_space(o.iter().map(|(k, v)| {
         if let ExprKind::Path(p) = &v.kind {
           if let Some(i) = p.path.as_ident() {
             if k.ident == i {
@@ -416,7 +421,7 @@ impl<'core: 'src, 'src> Formatter<'src> {
       PatKind::Deref(p) => Doc::concat([Doc("*"), self.fmt_pat(p)]),
       PatKind::Inverse(p) => Doc::concat([Doc("~"), self.fmt_pat(p)]),
       PatKind::Annotation(p, t) => Doc::concat([self.fmt_pat(p), Doc(": "), self.fmt_ty(t)]),
-      PatKind::Object(o) => Doc::brace_comma(o.iter().map(|(key, pat)| {
+      PatKind::Object(o) => Doc::brace_comma_space(o.iter().map(|(key, pat)| {
         let (pat, ty) = match &pat.kind {
           PatKind::Annotation(p, t) => (&**p, Some(t)),
           _ => (pat, None),
@@ -460,7 +465,7 @@ impl<'core: 'src, 'src> Formatter<'src> {
       TyKind::Ref(t) => Doc::concat([Doc("&"), self.fmt_ty(t)]),
       TyKind::Inverse(t) => Doc::concat([Doc("~"), self.fmt_ty(t)]),
       TyKind::Path(p) => self.fmt_generic_path(p),
-      TyKind::Object(o) => Doc::brace_comma(
+      TyKind::Object(o) => Doc::brace_comma_space(
         o.iter().map(|(k, t)| Doc::concat([Doc(k.ident), Doc(": "), self.fmt_ty(t)])),
       ),
       TyKind::Generic(_) | TyKind::Error(_) => unreachable!(),
