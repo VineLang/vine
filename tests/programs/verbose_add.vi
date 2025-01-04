@@ -1,5 +1,5 @@
 
-use std::option::Option::{Option, Some, None};
+use std::option::Option::{Option, None, Some};
 
 pub fn main(&io: &IO) {
   io.println(verbose_add(Some(1), Some(2)));

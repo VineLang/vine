@@ -1,9 +1,9 @@
 
 use std::{
-  option::Option::{Option, Some, None},
-  result::Result::{Result, Ok, Err},
-  n64::N64,
   map::Map,
+  n64::N64,
+  option::Option::{Option, None, Some},
+  result::Result::{Result, Err, Ok},
   tuple::Pair,
 };
 

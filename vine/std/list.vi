@@ -1,5 +1,5 @@
 
-use std::{option::Option::{Option, Some, None}, map::{Cmp, Ord}, result::Result::{Result, Ok, Err}};
+use std::{map::{Cmp, Ord}, option::Option::{Option, None, Some}, result::Result::{Result, Err, Ok}};
 
 #[builtin = "List"]
 pub struct List[T](N32, Buf[T], ~Buf[T]);

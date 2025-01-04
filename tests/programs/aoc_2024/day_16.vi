@@ -1,9 +1,9 @@
 
 use std::{
-  option::Option::{Option, Some, None},
-  result::Result::{Result, Ok, Err},
   array::Array,
   map::Map,
+  option::Option::{Option, None, Some},
+  result::Result::{Result, Err, Ok},
 };
 
 pub fn main(&io: &IO) {

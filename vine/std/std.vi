@@ -15,5 +15,5 @@ pub mod tuple = "./tuple.vi";
 
 #[builtin = "prelude"]
 pub mod prelude {
-  pub use ::std::{bool::Bool, n32::N32, f32::F32, char::Char, io::IO, list::{List, String}};
+  pub use ::std::{bool::Bool, char::Char, f32::F32, io::IO, list::{List, String}, n32::N32};
 }

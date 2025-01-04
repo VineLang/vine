@@ -1,5 +1,5 @@
 
-use std::{rng::Rng, option::Option::Some};
+use std::{option::Option::Some, rng::Rng};
 
 pub fn main(&io: &IO) {
   let seed = io.prompt("Enter a seed: ").unwrap();

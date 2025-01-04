@@ -1,5 +1,5 @@
 
-use std::{option::Option::{Option, Some, None}, array::Array};
+use std::{array::Array, option::Option::{Option, None, Some}};
 
 const config: (N32, N32) = (7, 12);
 // const config: (N32, N32) = (71, 1024);

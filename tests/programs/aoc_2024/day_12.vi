@@ -1,5 +1,5 @@
 
-use std::{option::Option::{Option, Some, None}, result::Result::{Result, Ok, Err}, array::Array};
+use std::{array::Array, option::Option::{Option, None, Some}, result::Result::{Result, Err, Ok}};
 
 pub fn main(&io: &IO) {
   let regions = Regions(Array::empty);

@@ -1,5 +1,5 @@
 
-use std::{option::Option::Some, map::{Map, Cmp, Ord}, tuple::Pair};
+use std::{map::{Cmp, Map, Ord}, option::Option::Some, tuple::Pair};
 
 pub fn main(&io: &IO) {
   let input = io.full_input();
