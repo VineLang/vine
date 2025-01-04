@@ -38,6 +38,11 @@ impl<'core> Checker<'core, '_> {
           Self::copy_expr(e);
         }
       }
+      ExprKind::Object(e) => {
+        for (_, v) in e {
+          Self::copy_expr(v);
+        }
+      }
       _ => expr.wrap(ExprKind::Copy),
     }
   }
@@ -49,6 +54,11 @@ impl<'core> Checker<'core, '_> {
       ExprKind::Adt(_, t) | ExprKind::Tuple(t) => {
         for e in t {
           Self::hedge_expr(e);
+        }
+      }
+      ExprKind::Object(e) => {
+        for (_, v) in e {
+          Self::hedge_expr(v);
         }
       }
       _ => expr.wrap(ExprKind::Hedge),
@@ -64,6 +74,11 @@ impl<'core> Checker<'core, '_> {
           Self::set_expr(e);
         }
       }
+      ExprKind::Object(e) => {
+        for (_, v) in e {
+          Self::set_expr(v);
+        }
+      }
       _ => expr.wrap(ExprKind::Set),
     }
   }
@@ -75,6 +90,11 @@ impl<'core> Checker<'core, '_> {
       ExprKind::Adt(_, t) | ExprKind::Tuple(t) => {
         for e in t {
           Self::move_expr(e);
+        }
+      }
+      ExprKind::Object(e) => {
+        for (_, v) in e {
+          Self::move_expr(v);
         }
       }
       _ => expr.wrap(|x| ExprKind::Move(x, false)),
