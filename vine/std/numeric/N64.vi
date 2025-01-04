@@ -1,5 +1,5 @@
 
-use std::{list::Buf, map::Ord, option::Option::{Option, None, Some}};
+use data::Map::Ord;
 
 pub struct N64(N32, N32);
 
@@ -140,13 +140,13 @@ pub mod N64 {
   }
 
   pub fn parse(str: String) -> Option[N64] {
-    let List(len, chars, _) = str;
+    let String({ chars: List(len, chars, _) }) = str;
     if len == 0 {
       None
     } else {
       let num = N64::from_n32(0);
       while len != 0 {
-        let Buf(char, tail) = chars;
+        let List::Buf(char, tail) = chars;
         chars = tail;
         if !('0' <= char <= '9') {
           return None;
@@ -164,7 +164,7 @@ pub mod N64 {
       let str = "";
       while !n.eq(N64::zero) {
         let (q, r) = N64::div_rem_n32(n, 10);
-        str = ['0' + r] ++ str;
+        str = String({ chars: ['0' + r] }) ++ str;
         n = q;
       }
       str

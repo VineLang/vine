@@ -1,5 +1,5 @@
 
-use std::map::Ord;
+use data::Map::Ord;
 
 #[builtin = "Char"]
 pub mod Char {

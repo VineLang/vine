@@ -1,0 +1,119 @@
+
+use data::Map::Ord;
+
+#[builtin = "String"]
+pub struct String {
+  chars: List[Char],
+}
+
+pub mod String {
+  pub fn len(&String({ chars: List(len, _, _) })) -> N32 {
+    len
+  }
+
+  pub fn split(self: String, sep: String) -> List[String] {
+    let list = [];
+    loop {
+      let (found, remaining) = self.split_once(sep);
+      list ++= [found];
+      if remaining is Some(remaining) {
+        self = remaining;
+      } else {
+        return list;
+      }
+    }
+  }
+
+  pub fn split_trim(self: String, sep: String) -> List[String] {
+    let list = [];
+    let start = true;
+    let ~end = true;
+    loop {
+      let (found, remaining) = self.split_once(sep);
+      let empty = found.len() == 0;
+      start = empty && start;
+      if !start && !~end {
+        list ++= [found];
+      }
+      ~end ~= empty && ~end;
+      if remaining is Some(remaining) {
+        self = remaining;
+      } else {
+        return list;
+      }
+    }
+  }
+
+  pub fn split_once(self: String, sep: String) -> (String, Option[String]) {
+    let prefix = "";
+    let suffix = self;
+    while suffix.len() >= sep.len() {
+      let iter_a = sep.chars.iter();
+      let iter_b = suffix.chars.iter();
+      do.check {
+        while iter_a.next() is Some(&a) && iter_b.next() is Some(&b) {
+          if a != b {
+            break.check;
+          }
+        }
+        let List::Iter(len, &buf) = move iter_b;
+        let String({ chars: List(_, _, end) }) = suffix;
+        return (prefix, Some(String({ chars: List(len, move buf, end) })));
+      }
+      iter_a.drop();
+      iter_b.drop();
+      if suffix.chars.pop_front() is Some(char) {
+        prefix ++= String({ chars: [char] });
+      } else {
+        break;
+      }
+    }
+    (prefix ++ suffix, None)
+  }
+
+  pub fn strip_prefix(self: String, &prefix: &String) -> Result[String, String] {
+    if self.len() < prefix.len() {
+      return Err(prefix);
+    }
+    let self_iter = self.chars.iter();
+    let prefix_iter = prefix.chars.iter();
+    while prefix_iter.next() is Some(&a) {
+      let &b = self_iter.next().unwrap();
+      if a != b {
+        self_iter.drop()
+        prefix_iter.drop()
+        return Err(self)
+      }
+    }
+    let List::Iter(len, &buf) = move self_iter;
+    let String({ chars: List(_, _, end) }) = self;
+    Ok(String({ chars: List(len, move buf, end) }))
+  }
+
+  pub fn eq(&self: &String, &other: &String) -> Bool {
+    if self.len() != other.len() {
+      return false;
+    }
+    let iter_a = self.chars.iter();
+    let iter_b = other.chars.iter();
+    while iter_a.next() is Some(&a) && iter_b.next() is Some(&b) {
+      if a != b {
+        return false;
+      }
+    }
+    true
+  }
+
+  pub fn cmp(&String({ chars: a }), &String({ chars: b })) -> Ord {
+    List::cmp(Char::cmp)(&a, &b)
+  }
+
+  pub fn repeat(self: String, count: N32) -> String {
+    let out = "";
+    while count != 0 {
+      out ++= self;
+      count -= 1;
+    }
+    out
+  }
+}

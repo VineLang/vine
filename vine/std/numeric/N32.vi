@@ -1,5 +1,5 @@
 
-use std::{list::Buf, map::Ord, option::Option::{Option, None, Some}};
+use data::Map::Ord;
 
 #[builtin = "N32"]
 pub mod N32 {
@@ -7,25 +7,25 @@ pub mod N32 {
 
   pub fn to_string(n: N32) -> String {
     if n != 0 {
-      let str = "";
+      let chars = [];
       while n != 0 {
-        str = ['0' + n % 10] ++ str;
+        chars = ['0' + n % 10] ++ chars;
         n = n / 10;
       }
-      str
+      String({ chars })
     } else {
       "0"
     }
   }
 
   pub fn parse(str: String) -> Option[N32] {
-    let List(len, chars, _) = str;
+    let String({ chars: List(len, chars, _) }) = str;
     if len == 0 {
       None
     } else {
       let num = 0;
       while len != 0 {
-        let Buf(char, tail) = chars;
+        let List::Buf(char, tail) = chars;
         chars = tail;
         if !('0' <= char <= '9') {
           return None;

@@ -1,6 +1,4 @@
 
-use std::option::Option::{Option, None, Some};
-
 pub type Cmp[K] = fn(&K, &K) -> Ord;
 
 pub enum Ord {
@@ -184,7 +182,7 @@ mod Node {
       match cmp(&key, &cur_key) {
         Ord::Lt {
           old = left.insert(cmp, key, value);
-          len = map::size(&data);
+          len = Map::size(&data);
           balance_right(&data);
         }
         Ord::Eq {
@@ -194,7 +192,7 @@ mod Node {
         }
         Ord::Gt {
           old = right.insert(cmp, key, value);
-          len = map::size(&data);
+          len = Map::size(&data);
           balance_left(&data);
         }
       }
@@ -262,7 +260,7 @@ mod Node {
       match cmp(&key, &cur_key) {
         Ord::Lt {
           old = left.remove(cmp, &key);
-          len = map::size(&data);
+          len = Map::size(&data);
           balance_left(&data);
         }
         Ord::Eq {
@@ -272,7 +270,7 @@ mod Node {
         }
         Ord::Gt {
           old = right.remove(cmp, &key);
-          len = map::size(&data);
+          len = Map::size(&data);
           balance_right(&data);
         }
       }
