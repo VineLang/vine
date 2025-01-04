@@ -142,9 +142,12 @@ fn test_vi_fmt(t: &mut DynTester, path: &'static str) {
   let name = Path::file_stem(path.as_ref()).unwrap().to_str().unwrap();
   t.test(name, move || {
     let input = fs::read_to_string(path).unwrap();
+    let (formatted, stderr) = exec(VINE, &["fmt"], input.as_bytes(), true);
+    assert!(stderr.is_empty());
+    test_snapshot(&["vine", "fmt", &format!("{name}.fmt.vi")], &formatted);
     let (stdout, stderr) = exec(VINE, &["fmt"], input.as_bytes(), true);
     assert!(stderr.is_empty());
-    test_snapshot(&["vine", "fmt", &format!("{name}.fmt.vi")], &stdout);
+    assert_eq!(stdout, formatted);
   });
 }
 
