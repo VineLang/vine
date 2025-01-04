@@ -15,15 +15,11 @@ impl<'core> Resolver<'core> {
     base: DefId,
     path: &Path<'core>,
   ) -> Result<DefId, Diag<'core>> {
-    let base = if path.absolute { DefId::ROOT } else { base };
-    let mut cur = base;
+    let mut cur = if path.absolute { DefId::ROOT } else { base };
     for &segment in &path.segments {
-      let (base, vis, resolved) =
-        self.resolve_one(cur, segment, from == base).ok_or_else(|| Diag::CannotResolve {
-          span,
-          name: segment,
-          module: self.defs[cur].canonical.clone(),
-        })?;
+      let (base, vis, resolved) = self.resolve_one(cur, segment, from == cur).ok_or_else(|| {
+        Diag::CannotResolve { span, name: segment, module: self.defs[cur].canonical.clone() }
+      })?;
       if !self.visible(vis, from) {
         let mut path = self.defs[base].canonical.clone();
         path.segments.push(segment);
