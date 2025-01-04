@@ -18,7 +18,7 @@ use super::{
 
 impl<'core> Resolver<'core> {
   pub fn build_graph(&mut self, root: ModKind<'core>) {
-    let _root_def = self.new_def(Path::ROOT, None, DefId::ROOT);
+    let _root_def = self.new_def(Path::ROOT, None);
     debug_assert_eq!(_root_def, DefId::ROOT);
     self.build_mod(DefId::ROOT, root, DefId::ROOT);
     if let Some(&prelude) = self.builtins.get(&Builtin::Prelude) {
@@ -269,7 +269,7 @@ impl<'core> Resolver<'core> {
     member.vis = member.vis.min(vis);
     if new {
       let path = parent_def.canonical.extend(&[name]);
-      self.new_def(path, Some(parent), vis);
+      self.new_def(path, Some(parent));
     }
     &mut self.defs[child]
   }
@@ -300,7 +300,7 @@ impl<'core> Resolver<'core> {
     path.segments.truncate(initial_len);
   }
 
-  fn new_def(&mut self, mut canonical: Path<'core>, parent: Option<DefId>, vis: DefId) -> DefId {
+  fn new_def(&mut self, mut canonical: Path<'core>, parent: Option<DefId>) -> DefId {
     let id = self.defs.next_index();
     canonical.resolved = Some(id);
     let mut def = Def {
@@ -316,9 +316,6 @@ impl<'core> Resolver<'core> {
     };
     if let Some(parent) = parent {
       def.ancestors = self.defs[parent].ancestors.iter().copied().chain([parent]).collect();
-    }
-    if let Some(&name) = def.canonical.segments.last() {
-      def.members.insert(name, Member { vis, kind: MemberKind::Child(id) });
     }
     self.defs.push(def);
     id
