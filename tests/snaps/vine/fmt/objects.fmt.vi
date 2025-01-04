@@ -1,0 +1,11 @@
+
+struct Foo {
+  a: N32,
+  b: String,
+  c: F32,
+  d: { p: List[N32], q: &Char },
+}
+
+fn foo(Foo({ a:: N32, b: x: String, c:: F32, d })) {
+  Foo({ a, b: x, c, d: { p: d.p, q: d.q } })
+}
