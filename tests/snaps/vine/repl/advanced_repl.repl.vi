@@ -12,10 +12,12 @@ io = #io
 
 io = #io
 > use std::option::Option::{Some,None};
+error input:1:1 - cannot find `option` in `::std`
+error input:1:1 - cannot find `option` in `::std`
 
 io = #io
 > Some([None, Some((1, 2))])
-Some([::std::option::Option::None, Some((1, 2))])
+Some([::std::logical::Option::None, Some((1, 2))])
 
 io = #io
 > (1, (2, 3, (4, 5, 6, (7, 8, 9, 10))))
@@ -35,15 +37,17 @@ io = #io
 io = #io
 x = []
 > x ++ ""
-""
+error input:1:1 - cannot apply operator `++` to types `List[?7]` and `String`
 
 io = #io
-x = ""
+x = []
 > move x
-""
+[]
 
 io = #io
 > use std::result::Result::{Ok, Err};
+error input:1:1 - cannot find `result` in `::std`
+error input:1:1 - cannot find `result` in `::std`
 
 io = #io
 > [Ok(1234), Err("oh no")]

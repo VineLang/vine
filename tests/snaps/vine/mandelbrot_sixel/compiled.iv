@@ -8,31 +8,31 @@
 
 ::mandelbrot_sixel::main {
   fn(ref(w3 w21) _)
-  ::std::io::IO::print_bytes = fn(ref(w3 w8) fn(tup(3 tup(tup(27 tup(80 tup(113 w24))) w24)) _))
+  ::std::IO::print_bytes = fn(ref(w3 w8) fn(tup(3 tup(tup(27 tup(80 tup(113 w24))) w24)) _))
   ::mandelbrot_sixel::main::2 = x(x(w8 w27) 0)
   ::mandelbrot_sixel::main::5 = x(x(w27 w31) x(0 1))
-  ::std::io::IO::print_bytes = fn(ref(w31 w16) fn(tup(2 tup(tup(27 tup(92 w32)) w32)) _))
-  ::std::io::IO::flush = fn(ref(w16 w21) _)
+  ::std::IO::print_bytes = fn(ref(w31 w16) fn(tup(2 tup(tup(27 tup(92 w32)) w32)) _))
+  ::std::IO::flush = fn(ref(w16 w21) _)
 }
 
 ::mandelbrot_sixel::main::2 { x(w4 dup20(@le(100 ?(::mandelbrot_sixel::main::4 ::mandelbrot_sixel::main::3 x(w4 w5))) w5)) }
 
 ::mandelbrot_sixel::main::3 {
   x(x(w52 w55) dup33(w7 dup33(w25 dup33(w35 dup33(w45 @add(1 w49))))))
-  ::std::io::IO::print_char = fn(ref(w52 w1) fn(35 _))
-  ::std::n32::N32::to_string = fn(w7 w8)
-  ::std::io::IO::print = fn(ref(w1 w5) fn(w8 _))
-  ::std::io::IO::print_char = fn(ref(w5 w11) fn(59 _))
-  ::std::io::IO::print_char = fn(ref(w11 w15) fn(50 _))
-  ::std::io::IO::print_char = fn(ref(w15 w19) fn(59 _))
-  ::std::n32::N32::to_string = fn(w25 w26)
-  ::std::io::IO::print = fn(ref(w19 w23) fn(w26 _))
-  ::std::io::IO::print_char = fn(ref(w23 w29) fn(59 _))
-  ::std::n32::N32::to_string = fn(w35 w36)
-  ::std::io::IO::print = fn(ref(w29 w33) fn(w36 _))
-  ::std::io::IO::print_char = fn(ref(w33 w39) fn(59 _))
-  ::std::n32::N32::to_string = fn(w45 w46)
-  ::std::io::IO::print = fn(ref(w39 w43) fn(w46 _))
+  ::std::IO::print_char = fn(ref(w52 w1) fn(35 _))
+  ::std::numeric::N32::to_string = fn(w7 w8)
+  ::std::IO::print = fn(ref(w1 w5) fn(w8 _))
+  ::std::IO::print_char = fn(ref(w5 w11) fn(59 _))
+  ::std::IO::print_char = fn(ref(w11 w15) fn(50 _))
+  ::std::IO::print_char = fn(ref(w15 w19) fn(59 _))
+  ::std::numeric::N32::to_string = fn(w25 w26)
+  ::std::IO::print = fn(ref(w19 w23) fn(w26 _))
+  ::std::IO::print_char = fn(ref(w23 w29) fn(59 _))
+  ::std::numeric::N32::to_string = fn(w35 w36)
+  ::std::IO::print = fn(ref(w29 w33) fn(w36 _))
+  ::std::IO::print_char = fn(ref(w33 w39) fn(59 _))
+  ::std::numeric::N32::to_string = fn(w45 w46)
+  ::std::IO::print = fn(ref(w39 w43) fn(w46 _))
   ::mandelbrot_sixel::main::2 = x(x(w43 w55) w49)
 }
 
@@ -42,14 +42,14 @@
 
 ::mandelbrot_sixel::main::6 {
   x(x(w36 w54) x(dup48(w43 @add(1 w32)) dup50(w42 dup50(w21 @mul(2 dup51(@lt$(32 ?(::mandelbrot_sixel::main::16 ::mandelbrot_sixel::main::15 x(x(w49 w50) w48))) w49))))))
-  ::std::io::IO::print = fn(ref(w36 w3) fn(tup(2 tup(tup(35 tup(48 w37)) w37)) _))
+  ::std::IO::print = fn(ref(w36 w3) fn(tup(2 tup(tup(35 tup(48 w37)) w37)) _))
   ::mandelbrot_sixel::main::8 = x(x(w3 w45) x(w43 x(w42 x(0 x(x(0 w40) 0)))))
-  ::std::io::IO::print_char = fn(ref(w45 w9) fn(33 _))
-  ::std::n32::N32::to_string = fn(w40 w16)
-  ::std::io::IO::print = fn(ref(w9 w13) fn(w16 _))
+  ::std::IO::print_char = fn(ref(w45 w9) fn(33 _))
+  ::std::numeric::N32::to_string = fn(w40 w16)
+  ::std::IO::print = fn(ref(w9 w13) fn(w16 _))
   63 = @add(w21 w22)
-  ::std::io::IO::print_byte = fn(ref(w13 w19) fn(w22 _))
-  ::std::io::IO::print_char = fn(ref(w19 w27) fn(w48 _))
+  ::std::IO::print_byte = fn(ref(w13 w19) fn(w22 _))
+  ::std::IO::print_char = fn(ref(w19 w27) fn(w48 _))
   ::mandelbrot_sixel::main::5 = x(x(w27 w54) x(w32 w50))
 }
 
@@ -71,14 +71,14 @@
 
 ::mandelbrot_sixel::main::12 {
   x(x(w33 w21) x(w31 x(x(w30 1) x(w28 _))))
-  ::std::io::IO::print_char = fn(ref(w33 w1) fn(33 _))
-  ::std::n32::N32::to_string = fn(w30 w8)
-  ::std::io::IO::print = fn(ref(w1 w5) fn(w8 _))
+  ::std::IO::print_char = fn(ref(w33 w1) fn(33 _))
+  ::std::numeric::N32::to_string = fn(w30 w8)
+  ::std::IO::print = fn(ref(w1 w5) fn(w8 _))
   63 = @add(w31 w14)
-  ::std::io::IO::print_byte = fn(ref(w5 w11) fn(w14 _))
-  ::std::io::IO::print_char = fn(ref(w11 w17) fn(35 _))
-  ::std::n32::N32::to_string = fn(w28 w24)
-  ::std::io::IO::print = fn(ref(w17 w21) fn(w24 _))
+  ::std::IO::print_byte = fn(ref(w5 w11) fn(w14 _))
+  ::std::IO::print_char = fn(ref(w11 w17) fn(35 _))
+  ::std::numeric::N32::to_string = fn(w28 w24)
+  ::std::IO::print = fn(ref(w17 w21) fn(w24 _))
 }
 
 ::mandelbrot_sixel::main::13 { x(x(w8 w8) x(_ x(x(@add(1 w1) w1) _))) }
@@ -103,61 +103,61 @@
 
 ::mandelbrot_sixel::mandelbrot::4 { x(_ x(_ x(_ x(_ x(_ x(_ x(w1 w1))))))) }
 
-::std::io::IO::print {
-  fn(ref(w3 w15) fn(tup(w9 tup(w10 _)) _))
-  ::std::io::IO::print::2 = x(x(w3 w15) x(w9 w10))
+::std::data::List::concat { fn(tup(@add(w12 w20) tup(w8 w13)) fn(tup(w12 tup(w13 w23)) tup(w20 tup(w8 w23)))) }
+
+::std::numeric::N32::to_string { fn(dup2046(?(::std::numeric::N32::to_string::4 ::std::numeric::N32::to_string::3 x(w8 w7)) w8) w7) }
+
+::std::numeric::N32::to_string::3 {
+  x(w6 w9)
+  ::std::numeric::N32::to_string::5 = x(w6 x(tup(0 tup(w7 w7)) w9))
 }
 
-::std::io::IO::print::2 { x(w4 x(dup598(?(::std::io::IO::print::4 ::std::io::IO::print::3 x(w4 x(w6 w1))) w6) w1)) }
+::std::numeric::N32::to_string::4 { x(_ tup(1 tup(tup(48 w3) w3))) }
 
-::std::io::IO::print::3 {
-  x(x(w17 w21) x(@sub(1 w1) tup(w4 w5)))
-  ::std::io::IO::print_char = fn(ref(w17 w10) fn(w4 _))
-  ::std::io::IO::print::2 = x(x(w10 w21) x(w1 w5))
-}
+::std::numeric::N32::to_string::5 { x(dup2056(?(::std::numeric::N32::to_string::7 ::std::numeric::N32::to_string::6 x(w6 w2)) w6) w2) }
 
-::std::io::IO::print::4 { x(x(w3 w3) _) }
-
-::std::io::IO::print_char { fn(ref(@io_print_char(char io) io) fn(char _)) }
-
-::std::io::IO::print_bytes {
-  fn(ref(w3 w15) fn(tup(w9 tup(w10 _)) _))
-  ::std::io::IO::print_bytes::2 = x(x(w3 w15) x(w9 w10))
-}
-
-::std::io::IO::print_bytes::2 { x(w4 x(dup620(?(::std::io::IO::print_bytes::4 ::std::io::IO::print_bytes::3 x(w4 x(w6 w1))) w6) w1)) }
-
-::std::io::IO::print_bytes::3 {
-  x(x(w17 w21) x(@sub(1 w1) tup(w4 w5)))
-  ::std::io::IO::print_byte = fn(ref(w17 w10) fn(w4 _))
-  ::std::io::IO::print_bytes::2 = x(x(w10 w21) x(w1 w5))
-}
-
-::std::io::IO::print_bytes::4 { x(x(w3 w3) _) }
-
-::std::io::IO::print_byte { fn(ref(@io_print_byte(char io) io) fn(char _)) }
-
-::std::io::IO::flush { fn(ref(@io_flush(0 io) io) _) }
-
-::std::list::List::concat { fn(tup(@add(w12 w20) tup(w8 w13)) fn(tup(w12 tup(w13 w23)) tup(w20 tup(w8 w23)))) }
-
-::std::n32::N32::to_string { fn(dup2278(?(::std::n32::N32::to_string::4 ::std::n32::N32::to_string::3 x(w8 w7)) w8) w7) }
-
-::std::n32::N32::to_string::3 {
-  x(w4 w7)
-  ::std::n32::N32::to_string::5 = x(w4 x(tup(0 tup(w5 w5)) w7))
-}
-
-::std::n32::N32::to_string::4 { x(_ tup(1 tup(tup(48 w3) w3))) }
-
-::std::n32::N32::to_string::5 { x(dup2288(?(::std::n32::N32::to_string::7 ::std::n32::N32::to_string::6 x(w6 w2)) w6) w2) }
-
-::std::n32::N32::to_string::6 {
-  x(dup2291(@rem(10 w1) @div(10 w8)) x(w11 w15))
+::std::numeric::N32::to_string::6 {
+  x(dup2059(@rem(10 w1) @div(10 w8)) x(w11 w15))
   48 = @add(w1 w2)
-  ::std::list::List::concat = fn(tup(1 tup(tup(w2 w13) w13)) fn(w11 w5))
-  ::std::n32::N32::to_string::5 = x(w8 x(w5 w15))
+  ::std::data::List::concat = fn(tup(1 tup(tup(w2 w13) w13)) fn(w11 w5))
+  ::std::numeric::N32::to_string::5 = x(w8 x(w5 w15))
 }
 
-::std::n32::N32::to_string::7 { x(_ x(w1 w1)) }
+::std::numeric::N32::to_string::7 { x(_ x(w1 w1)) }
+
+::std::IO::print {
+  fn(ref(w3 w17) fn(tup(w9 tup(w10 _)) _))
+  ::std::IO::print::2 = x(x(w3 w17) x(w9 w10))
+}
+
+::std::IO::print::2 { x(w4 x(dup3016(?(::std::IO::print::4 ::std::IO::print::3 x(w4 x(w6 w1))) w6) w1)) }
+
+::std::IO::print::3 {
+  x(x(w17 w21) x(@sub(1 w1) tup(w4 w5)))
+  ::std::IO::print_char = fn(ref(w17 w10) fn(w4 _))
+  ::std::IO::print::2 = x(x(w10 w21) x(w1 w5))
+}
+
+::std::IO::print::4 { x(x(w3 w3) _) }
+
+::std::IO::print_char { fn(ref(@io_print_char(char io) io) fn(char _)) }
+
+::std::IO::print_bytes {
+  fn(ref(w3 w15) fn(tup(w9 tup(w10 _)) _))
+  ::std::IO::print_bytes::2 = x(x(w3 w15) x(w9 w10))
+}
+
+::std::IO::print_bytes::2 { x(w4 x(dup3038(?(::std::IO::print_bytes::4 ::std::IO::print_bytes::3 x(w4 x(w6 w1))) w6) w1)) }
+
+::std::IO::print_bytes::3 {
+  x(x(w17 w21) x(@sub(1 w1) tup(w4 w5)))
+  ::std::IO::print_byte = fn(ref(w17 w10) fn(w4 _))
+  ::std::IO::print_bytes::2 = x(x(w10 w21) x(w1 w5))
+}
+
+::std::IO::print_bytes::4 { x(x(w3 w3) _) }
+
+::std::IO::print_byte { fn(ref(@io_print_byte(char io) io) fn(char _)) }
+
+::std::IO::flush { fn(ref(@io_flush(0 io) io) _) }
 

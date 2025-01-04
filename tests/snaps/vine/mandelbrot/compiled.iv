@@ -32,7 +32,7 @@
 ::mandelbrot::main::3 {
   x(x(w9 w16) dup52(w11 @add(1 w6)))
   ::mandelbrot::main::5 = x(x(w9 w13) x(w11 0))
-  ::std::io::IO::print_char = fn(ref(w13 w2) fn(10 _))
+  ::std::IO::print_char = fn(ref(w13 w2) fn(10 _))
   ::mandelbrot::main::2 = x(x(w2 w16) w6)
 }
 
@@ -47,11 +47,11 @@
   tup(125 45) = @div(+2.0 w6)
   ::mandelbrot::center = @add(w10 tup(w12 w13))
   ::mandelbrot = fn(w12 fn(w13 ?(32 35 w29)))
-  ::std::io::IO::print_char = fn(ref(w25 w16) fn(w29 _))
+  ::std::IO::print_char = fn(ref(w25 w16) fn(w29 _))
   ::mandelbrot::main::5 = x(x(w16 w33) x(w31 w21))
 }
 
 ::mandelbrot::main::7 { x(x(w3 w3) _) }
 
-::std::io::IO::print_char { fn(ref(@io_print_char(char io) io) fn(char _)) }
+::std::IO::print_char { fn(ref(@io_print_char(char io) io) fn(char _)) }
 

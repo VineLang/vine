@@ -1,47 +1,44 @@
 
 io = #io
 > use std::rng::Rng;
+error input:1:1 - cannot find `Rng` in `::std::rng`
 
 io = #io
 > let rng = Rng::default
+error input:1:11 - cannot find `Rng` in `::repl`
 
 io = #io
-rng = ::std::rng::Rng::default
 > let nums = []
 
 io = #io
-rng = ::std::rng::Rng::default
 nums = []
 > let len = 20
 
 io = #io
-rng = ::std::rng::Rng::default
 nums = []
 len = 20
 > while len != 0 { len -= 1; nums ++= [rng.gen_n32() % 100] }
+error input:1:38 - cannot find `rng` in `::repl`
 
 io = #io
-rng = Rng(N64(949325415, 3618180105), N64(4150755663, 335903614))
-nums = [22, 33, 78, 11, 79, 27, 26, 64, 57, 3, 76, 88, 72, 42, 10, 4, 35, 61, 36, 41]
-len = 0
+nums = []
+len = 20
 > let str = ""
 
 io = #io
-rng = Rng(N64(949325415, 3618180105), N64(4150755663, 335903614))
-nums = [22, 33, 78, 11, 79, 27, 26, 64, 57, 3, 76, 88, 72, 42, 10, 4, 35, 61, 36, 41]
-len = 0
+nums = []
+len = 20
 str = ""
 > let len = 100
 
 io = #io
-rng = Rng(N64(949325415, 3618180105), N64(4150755663, 335903614))
-nums = [22, 33, 78, 11, 79, 27, 26, 64, 57, 3, 76, 88, 72, 42, 10, 4, 35, 61, 36, 41]
+nums = []
 str = ""
 len = 100
 > while len != 0 { len -= 1; str ++= [' ' + rng.gen_n32() % 95] }
+error input:1:43 - cannot find `rng` in `::repl`
 
 io = #io
-rng = Rng(N64(1981671147, 2381229249), N64(4150755663, 335903614))
-nums = [22, 33, 78, 11, 79, 27, 26, 64, 57, 3, 76, 88, 72, 42, 10, 4, 35, 61, 36, 41]
-str = "u}tKkAHK#AWfD!UIY_s38*8Hgwj1j90EU 1]ej]:5HzmE|%Lq/LfyIfEL+>WqijTm8+?7@&2Bo`E(gMVa_cHj(cL~J3'-n.EsA<f"
-len = 0
+nums = []
+str = ""
+len = 100
