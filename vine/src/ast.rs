@@ -64,6 +64,7 @@ pub struct StructItem<'core> {
   pub name: Ident<'core>,
   pub generics: Vec<Ident<'core>>,
   pub fields: Vec<Ty<'core>>,
+  pub object: bool,
 }
 
 #[derive(Debug, Clone)]
@@ -214,19 +215,17 @@ pub enum ExprKind<'core> {
   #[class(value)]
   Do(Label<'core>, Block<'core>),
   #[class(value)]
-  Block(Block<'core>),
-  #[class(value)]
   Assign(bool, B<Expr<'core>>, B<Expr<'core>>),
   #[class(value)]
-  Match(B<Expr<'core>>, Vec<(Pat<'core>, Expr<'core>)>),
+  Match(B<Expr<'core>>, Vec<(Pat<'core>, Block<'core>)>),
   #[class(value)]
-  If(B<Expr<'core>>, Block<'core>, B<Expr<'core>>),
+  If(Vec<(Expr<'core>, Block<'core>)>, Option<Block<'core>>),
   #[class(value)]
   While(Label<'core>, B<Expr<'core>>, Block<'core>),
   #[class(value)]
   Loop(Label<'core>, Block<'core>),
   #[class(value)]
-  Fn(Vec<Pat<'core>>, Option<Option<Ty<'core>>>, B<Expr<'core>>),
+  Fn(Vec<Pat<'core>>, Option<Option<Ty<'core>>>, Block<'core>),
   #[class(value)]
   Return(Option<B<Expr<'core>>>),
   #[class(value)]
@@ -245,10 +244,14 @@ pub enum ExprKind<'core> {
   Place(B<Expr<'core>>, B<Expr<'core>>),
   #[class(value, place, space)]
   Tuple(Vec<Expr<'core>>),
+  #[class(value, place, space)]
+  Object(Vec<(Key<'core>, Expr<'core>)>),
   #[class(value)]
   List(Vec<Expr<'core>>),
   #[class(value, place)]
   TupleField(B<Expr<'core>>, usize, Option<usize>),
+  #[class(value, place, sugar)]
+  ObjectField(B<Expr<'core>>, Key<'core>),
   #[class(value, sugar)]
   Method(B<Expr<'core>>, GenericPath<'core>, Vec<Expr<'core>>),
   #[class(value)]
@@ -342,6 +345,8 @@ pub enum PatKind<'core> {
   Inverse(B<Pat<'core>>),
   #[class(value, place, space)]
   Tuple(Vec<Pat<'core>>),
+  #[class(value, place, space)]
+  Object(Vec<(Key<'core>, Pat<'core>)>),
   #[class(error)]
   Error(ErrorGuaranteed),
 }
@@ -365,6 +370,7 @@ pub enum TyKind<'core> {
   Paren(B<Ty<'core>>),
   Fn(Vec<Ty<'core>>, Option<B<Ty<'core>>>),
   Tuple(Vec<Ty<'core>>),
+  Object(Vec<(Key<'core>, Ty<'core>)>),
   Ref(B<Ty<'core>>),
   Inverse(B<Ty<'core>>),
   Path(GenericPath<'core>),
@@ -431,6 +437,12 @@ pub enum ComparisonOp {
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Ident<'core>(pub Interned<'core, str>);
 
+#[derive(Debug, Clone, Copy)]
+pub struct Key<'core> {
+  pub span: Span,
+  pub ident: Ident<'core>,
+}
+
 impl Display for Ident<'_> {
   fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
     write!(f, "{}", self.0 .0)
@@ -495,11 +507,15 @@ impl Display for Path<'_> {
   }
 }
 
-// impl Debug for Path {
-//   fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-//     write!(f, "`{self}`")
-//   }
-// }
+impl<'core> From<Key<'core>> for GenericPath<'core> {
+  fn from(key: Key<'core>) -> Self {
+    GenericPath {
+      span: key.span,
+      path: Path { segments: vec![key.ident], absolute: false, resolved: None },
+      generics: None,
+    }
+  }
+}
 
 impl Debug for Ident<'_> {
   fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {

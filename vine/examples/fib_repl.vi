@@ -5,8 +5,8 @@ pub fn main(&io: &IO) {
   while io.prompt("> ") is Some(line) {
     let num = N32::parse(line);
     io.println(match num {
-      Some(num) => fib(num).to_string(),
-      None => "invalid number",
+      Some(num) { fib(num).to_string() }
+      None { "invalid number" }
     });
   }
 }

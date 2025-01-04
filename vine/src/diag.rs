@@ -90,8 +90,6 @@ diags! {
     ["cannot infer type"]
   BadBinOp { op: BinaryOp, assign: bool, lhs: String, rhs: String }
     ["cannot apply operator `{op}{}` to types `{lhs}` and `{rhs}`", if *assign { "=" } else { "" }]
-  MismatchedThenElseTypes { then: String, els: String }
-    ["then block has type `{then}` but else block has type `{els}`"]
   MismatchedValueSpaceTypes { value: String, space: String }
     ["value has type `{value}` but space has type `{space}`"]
   BadArgCount { ty: String, expected: usize, got: usize }
@@ -116,6 +114,8 @@ diags! {
     ["`{path}` has {expected} field{}; {got} {} matched", plural(*expected, "s", ""), plural(*got, "were", "was")]
   MissingTupleField { ty: String, i: usize }
     ["type `{ty}` has no field `{i}`"]
+  MissingObjectField { ty: String, key: Ident<'core> }
+    ["type `{ty}` has no field `{key}`"]
   SpaceField
     ["cannot access a field of a space expression"]
   FnItemUntypedParam
@@ -156,6 +156,8 @@ diags! {
     ["the pattern `{path}` is only visible within `{vis}`"]
   VisibleSubitem
     ["subitems must be private"]
+  DuplicateKey
+    ["duplicate object key"]
 }
 
 fn plural<'a>(n: usize, plural: &'a str, singular: &'a str) -> &'a str {

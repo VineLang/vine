@@ -77,6 +77,7 @@ pub trait VisitMut<'core, 'a> {
       | ExprKind::Break(_, Some(a))
       | ExprKind::Return(Some(a))
       | ExprKind::TupleField(a, _, _)
+      | ExprKind::ObjectField(a, _)
       | ExprKind::Inverse(a, _)
       | ExprKind::Copy(a)
       | ExprKind::Hedge(a)
@@ -91,20 +92,26 @@ pub trait VisitMut<'core, 'a> {
       }
 
       ExprKind::Path(p) => self.visit_generic_path(p),
-      ExprKind::Block(b) | ExprKind::Do(_, b) | ExprKind::Loop(_, b) => self.visit_block(b),
+      ExprKind::Do(_, b) | ExprKind::Loop(_, b) => self.visit_block(b),
       ExprKind::Match(a, b) => {
         self.visit_expr(a);
-        for (t, u) in b {
+        for (p, b) in b {
           self.enter_scope();
-          self.visit_pat(t);
-          self.visit_expr(u);
+          self.visit_pat(p);
+          self.visit_block(b);
           self.exit_scope();
         }
       }
-      ExprKind::If(a, b, c) => {
-        self.visit_expr(a);
-        self.visit_block(b);
-        self.visit_expr(c);
+      ExprKind::If(arms, leg) => {
+        for (cond, block) in arms {
+          self.enter_scope();
+          self.visit_expr(cond);
+          self.visit_block(block);
+          self.exit_scope();
+        }
+        if let Some(leg) = leg {
+          self.visit_block(leg);
+        }
       }
       ExprKind::While(_, a, b) => {
         self.visit_expr(a);
@@ -118,7 +125,7 @@ pub trait VisitMut<'core, 'a> {
         if let Some(Some(b)) = b {
           self.visit_type(b);
         }
-        self.visit_expr(c);
+        self.visit_block(c);
         self.exit_scope();
       }
       ExprKind::Tuple(a) | ExprKind::List(a) | ExprKind::Adt(_, a) => {
@@ -149,6 +156,11 @@ pub trait VisitMut<'core, 'a> {
         self.visit_expr(e);
         self.visit_pat(p);
       }
+      ExprKind::Object(o) => {
+        for (_, v) in o {
+          self.visit_expr(v);
+        }
+      }
     }
   }
 
@@ -175,6 +187,11 @@ pub trait VisitMut<'core, 'a> {
         self.visit_pat(p);
         self.visit_type(t);
       }
+      PatKind::Object(o) => {
+        for (_, v) in o {
+          self.visit_pat(v);
+        }
+      }
     }
   }
 
@@ -194,6 +211,11 @@ pub trait VisitMut<'core, 'a> {
         }
         if let Some(r) = r {
           self.visit_type(r);
+        }
+      }
+      TyKind::Object(o) => {
+        for (_, v) in o {
+          self.visit_type(v);
         }
       }
       TyKind::Error(_) => {}

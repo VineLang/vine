@@ -18,7 +18,7 @@ use vine_util::{
 
 use crate::{
   analyzer::{analyze, usage::Usage},
-  ast::{Block, Builtin, Expr, ExprKind, Ident, Local, Span, Stmt},
+  ast::{Block, Builtin, Ident, Local, Span, Stmt},
   checker::{self, Checker, CheckerState, Type},
   core::Core,
   diag::Diag,
@@ -42,7 +42,7 @@ pub struct Repl<'core, 'ctx, 'ivm> {
   vars: HashMap<Ident<'core>, Var<'ivm>>,
   locals: BTreeMap<Local, Ident<'core>>,
   local_count: Counter<Local>,
-  checker_state: CheckerState,
+  checker_state: CheckerState<'core>,
 }
 
 #[derive(Debug)]
@@ -194,8 +194,7 @@ impl<'core, 'ctx, 'ivm> Repl<'core, 'ctx, 'ivm> {
 
     let name = format!("::repl::{line}");
 
-    let expr = Expr { span: Span::NONE, kind: ExprKind::Block(block) };
-    let mut vir = distiller.distill_expr(self.local_count, &expr);
+    let mut vir = distiller.distill_root(self.local_count, &block, Distiller::distill_block);
     vir.stages[StageId(0)].declarations.retain(|l| !self.locals.contains_key(l));
     vir.globals.extend(self.vars.values().map(|v| (v.local, Usage::Mut)));
     let mut vir = normalize(&vir);
@@ -248,11 +247,11 @@ impl<'core, 'ctx, 'ivm> Repl<'core, 'ctx, 'ivm> {
     Ok(stmts)
   }
 
-  fn show(&self, ty: &mut Type, tree: &Tree) -> String {
+  fn show(&self, ty: &mut Type<'core>, tree: &Tree) -> String {
     self._show(ty, tree).unwrap_or_else(|| format!("#ivy({})", tree))
   }
 
-  fn _show(&self, ty: &mut Type, tree: &Tree) -> Option<String> {
+  fn _show(&self, ty: &mut Type<'core>, tree: &Tree) -> Option<String> {
     self.checker_state.try_concretize(ty);
     Some(match (ty, tree) {
       (_, Tree::Global(g)) => g.clone(),
@@ -266,6 +265,14 @@ impl<'core, 'ctx, 'ivm> Repl<'core, 'ctx, 'ivm> {
       (Type::Tuple(tys), _) if tys.len() == 1 => format!("({},)", self.show(&mut tys[0], tree)),
       (Type::Tuple(tys), _) if !tys.is_empty() => {
         format!("({})", self.read_tuple(tys, tree)?.join(", "))
+      }
+      (Type::Object(tys), _) if tys.is_empty() => "{}".into(),
+      (Type::Object(tys), _) => {
+        let values = self.read_tuple(tys.values_mut(), tree)?;
+        format!(
+          "{{ {} }}",
+          tys.keys().zip(values).map(|(k, v)| format!("{k}: {v}")).collect::<Vec<_>>().join(", ")
+        )
       }
       (Type::Adt(def, args), tree) if self.resolver.builtins.get(&Builtin::List) == Some(def) => {
         let [arg] = &mut **args else { None? };
@@ -376,17 +383,25 @@ impl<'core, 'ctx, 'ivm> Repl<'core, 'ctx, 'ivm> {
     })
   }
 
-  fn read_tuple(&self, tys: &mut [Type], tree: &Tree) -> Option<Vec<String>> {
+  fn read_tuple<'a>(
+    &self,
+    tys: impl IntoIterator<Item = &'a mut Type<'core>, IntoIter: DoubleEndedIterator>,
+    tree: &Tree,
+  ) -> Option<Vec<String>>
+  where
+    'core: 'a,
+  {
+    let mut tys = tys.into_iter();
     let mut tup = Vec::new();
     let mut tree = tree;
-    let i = tys.len() - 1;
-    for ty in &mut tys[..i] {
+    let last = tys.next_back().unwrap();
+    for ty in tys {
       let Tree::Comb(l, a, b) = tree else { None? };
       let "tup" = &**l else { None? };
       tup.push(self.show(ty, a));
       tree = b;
     }
-    tup.push(self.show(tys.last_mut().unwrap(), tree));
+    tup.push(self.show(last, tree));
     Some(tup)
   }
 }

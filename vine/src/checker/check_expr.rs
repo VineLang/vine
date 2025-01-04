@@ -1,3 +1,5 @@
+use std::{collections::BTreeMap, mem::take};
+
 use crate::{
   ast::{BinaryOp, Expr, ExprKind, Label, Span},
   checker::{Checker, Form, Type},
@@ -10,7 +12,12 @@ mod check_method;
 mod coerce_expr;
 
 impl<'core> Checker<'core, '_> {
-  pub(super) fn check_expr_form_type(&mut self, expr: &mut Expr<'core>, form: Form, ty: &mut Type) {
+  pub(super) fn check_expr_form_type(
+    &mut self,
+    expr: &mut Expr<'core>,
+    form: Form,
+    ty: &mut Type<'core>,
+  ) {
     let mut found = self.check_expr_form(expr, form);
     if !self.unify(&mut found, ty) {
       self.core.report(Diag::ExpectedTypeFound {
@@ -21,13 +28,13 @@ impl<'core> Checker<'core, '_> {
     }
   }
 
-  pub(super) fn check_expr_form(&mut self, expr: &mut Expr<'core>, form: Form) -> Type {
+  pub(super) fn check_expr_form(&mut self, expr: &mut Expr<'core>, form: Form) -> Type<'core> {
     let (found, ty) = self.check_expr(expr);
     self.coerce_expr(expr, found, form);
     ty
   }
 
-  pub(super) fn check_expr(&mut self, expr: &mut Expr<'core>) -> (Form, Type) {
+  pub(super) fn check_expr(&mut self, expr: &mut Expr<'core>) -> (Form, Type<'core>) {
     let span = expr.span;
     match &mut expr.kind {
       ExprKind![synthetic] => unreachable!(),
@@ -80,7 +87,7 @@ impl<'core> Checker<'core, '_> {
           }
           Type::Adt(adt, gens) => {
             self.resolver.defs[*adt].variant_def.as_ref().and_then(|variant| {
-              if variant.adt == *adt && *i < variant.fields.len() {
+              if !variant.object && variant.adt == *adt && *i < variant.fields.len() {
                 *l = Some(variant.fields.len());
                 Some(variant.field_types.as_ref().unwrap()[*i].instantiate(gens))
               } else {
@@ -101,6 +108,54 @@ impl<'core> Checker<'core, '_> {
 
         (form, field_ty)
       }
+      ExprKind::ObjectField(e, k) => {
+        let (form, mut ty) = self.check_expr(e);
+
+        if form == Form::Space {
+          let e = self.core.report(Diag::SpaceField { span });
+          return (Form::Error(e), Type::Error(e));
+        }
+
+        self.concretize(&mut ty);
+        let field = match &ty {
+          Type::Object(e) => e
+            .iter()
+            .enumerate()
+            .find(|&(_, (&n, _))| k.ident == n)
+            .map(|(i, (_, t))| (t.clone(), i, e.len())),
+          Type::Adt(adt, gens) => {
+            self.resolver.defs[*adt].variant_def.as_ref().and_then(|variant| {
+              if variant.object && variant.adt == *adt {
+                let Some([Type::Object(e)]) = variant.field_types.as_deref() else {
+                  unreachable!()
+                };
+                if let Some((i, (_, ty))) = e.iter().enumerate().find(|&(_, (&n, _))| k.ident == n)
+                {
+                  return Some((ty.instantiate(gens), i, e.len()));
+                }
+              }
+              None
+            })
+          }
+          _ => None,
+        };
+
+        let (field_ty, i, len) = field.unwrap_or_else(|| {
+          (
+            Type::Error(self.core.report(Diag::MissingObjectField {
+              span: k.span,
+              ty: self.display_type(&ty),
+              key: k.ident,
+            })),
+            0,
+            0,
+          )
+        });
+
+        expr.kind = ExprKind::TupleField(take(e), i, Some(len));
+
+        (form, field_ty)
+      }
       ExprKind::Tuple(v) => {
         if v.is_empty() {
           (Form::Place, Type::UNIT)
@@ -112,6 +167,29 @@ impl<'core> Checker<'core, '_> {
             self.coerce_expr(e, f, form);
           }
           (form, Type::Tuple(types))
+        }
+      }
+      ExprKind::Object(entries) => {
+        if entries.is_empty() {
+          (Form::Place, Type::Object(BTreeMap::new()))
+        } else {
+          let mut forms = Vec::new();
+          let ty = self.build_object_type(entries, |self_, e| {
+            let (form, ty) = self_.check_expr(e);
+            forms.push(form);
+            ty
+          });
+          let form = self.tuple_form(span, &forms);
+          for (f, (_, v)) in forms.into_iter().zip(entries) {
+            self.coerce_expr(v, f, form);
+          }
+          (
+            form,
+            match ty {
+              Ok(ty) => ty,
+              Err(diag) => Type::Error(self.core.report(diag)),
+            },
+          )
         }
       }
       ExprKind::Adt(path, fields) => {
@@ -160,7 +238,7 @@ impl<'core> Checker<'core, '_> {
     }
   }
 
-  fn _check_expr_value(&mut self, expr: &mut Expr<'core>) -> Type {
+  fn _check_expr_value(&mut self, expr: &mut Expr<'core>) -> Type<'core> {
     let span = expr.span;
     match &mut expr.kind {
       ExprKind![error || place || space || synthetic] => unreachable!(),
@@ -179,7 +257,6 @@ impl<'core> Checker<'core, '_> {
         }
         ty
       }
-      ExprKind::Block(block) => self.check_block(block),
       ExprKind::Assign(_, space, value) => {
         let mut ty = self.check_expr_form(space, Form::Space);
         self.check_expr_form_type(value, Form::Value, &mut ty);
@@ -188,25 +265,22 @@ impl<'core> Checker<'core, '_> {
       ExprKind::Match(scrutinee, arms) => {
         let mut scrutinee = self.check_expr_form(scrutinee, Form::Value);
         let mut result = self.new_var(span);
-        for (pat, expr) in arms {
+        for (pat, block) in arms {
           self.check_pat_type(pat, Form::Value, true, &mut scrutinee);
-          self.check_expr_form_type(expr, Form::Value, &mut result);
+          self.check_block_type(block, &mut result);
         }
         result
       }
-      ExprKind::If(cond, then, els) => {
-        self.check_expr_form_type(cond, Form::Value, &mut Type::Bool);
-        let mut then = self.check_block(then);
-        let mut els = self.check_expr_form(els, Form::Value);
-        if !self.unify(&mut then, &mut els) {
-          Type::Error(self.core.report(Diag::MismatchedThenElseTypes {
-            span,
-            then: self.display_type(&then),
-            els: self.display_type(&els),
-          }))
-        } else {
-          then
+      ExprKind::If(arms, leg) => {
+        let mut result = if leg.is_some() { self.new_var(span) } else { Type::UNIT };
+        for (cond, block) in arms {
+          self.check_expr_form_type(cond, Form::Value, &mut Type::Bool);
+          self.check_block_type(block, &mut result);
         }
+        if let Some(leg) = leg {
+          self.check_block_type(leg, &mut result);
+        }
+        result
       }
       ExprKind::While(label, cond, block) => {
         *self.labels.get_or_extend(label.as_id()) = Some(Type::UNIT);
@@ -229,7 +303,7 @@ impl<'core> Checker<'core, '_> {
             None => self.new_var(span),
           };
           let old = self.return_ty.replace(ret.clone());
-          self.check_expr_form_type(body, Form::Value, &mut ret);
+          self.check_block_type(body, &mut ret);
           self.return_ty = old;
           ret
         }),
@@ -354,7 +428,7 @@ impl<'core> Checker<'core, '_> {
     func: &mut Box<Expr<'core>>,
     args: &mut Vec<Expr<'core>>,
     span: Span,
-  ) -> Type {
+  ) -> Type<'core> {
     let ty = self.check_expr_form(func, Form::Value);
     match self.fn_sig(span, ty, args.len()) {
       Ok((params, ret)) => {
@@ -375,9 +449,9 @@ impl<'core> Checker<'core, '_> {
   fn fn_sig(
     &mut self,
     span: Span,
-    mut ty: Type,
+    mut ty: Type<'core>,
     args: usize,
-  ) -> Result<(Vec<Type>, Type), Diag<'core>> {
+  ) -> Result<(Vec<Type<'core>>, Type<'core>), Diag<'core>> {
     self.concretize(&mut ty);
     match ty {
       Type::Fn(params, ret) => {
@@ -402,9 +476,9 @@ impl<'core> Checker<'core, '_> {
     span: Span,
     op: BinaryOp,
     assign: bool,
-    mut a: Type,
-    mut b: Type,
-  ) -> Type {
+    mut a: Type<'core>,
+    mut b: Type<'core>,
+  ) -> Type<'core> {
     match op {
       BinaryOp::Concat => {
         if self.concat.is_none() {
@@ -435,11 +509,11 @@ impl<'core> Checker<'core, '_> {
     &mut self,
     op: BinaryOp,
     assign: bool,
-    mut a: &mut Type,
-    mut b: &mut Type,
+    mut a: &mut Type<'core>,
+    mut b: &mut Type<'core>,
     i: bool,
     j: bool,
-  ) -> Result<Type, ()> {
+  ) -> Result<Type<'core>, ()> {
     self.concretize(a);
     self.concretize(b);
     match (op, &mut a, &mut b) {

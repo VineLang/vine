@@ -75,7 +75,7 @@ pub struct ValueDef<'core> {
   pub vis: DefId,
   pub generics: Vec<Ident<'core>>,
   pub annotation: Option<Ty<'core>>,
-  pub ty: Option<Type>,
+  pub ty: Option<Type<'core>>,
   pub locals: Counter<Local>,
   pub kind: ValueDefKind<'core>,
 }
@@ -92,7 +92,7 @@ pub struct TypeDef<'core> {
   pub vis: DefId,
   pub generics: Vec<Ident<'core>>,
   pub alias: Option<Ty<'core>>,
-  pub ty: Option<Type>,
+  pub ty: Option<Type<'core>>,
 }
 
 #[derive(Debug)]
@@ -108,5 +108,6 @@ pub struct VariantDef<'core> {
   pub adt: DefId,
   pub variant: usize,
   pub fields: Vec<Ty<'core>>,
-  pub field_types: Option<Vec<Type>>,
+  pub object: bool,
+  pub field_types: Option<Vec<Type<'core>>>,
 }

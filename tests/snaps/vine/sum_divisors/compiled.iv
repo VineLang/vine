@@ -23,12 +23,12 @@
   ::sum_divisors::2 = x(x(w21 w26) x(x(w14 w24) w16))
 }
 
-::sum_divisors::8 { x(x(dup41(@rem(w1 ?(::sum_divisors::10 ::sum_divisors::9 x(x(w11 w12) x(w10 w4)))) w11) w12) x(dup42(w1 w10) w4)) }
+::sum_divisors::8 { x(x(dup40(@rem(w1 ?(::sum_divisors::10 ::sum_divisors::9 x(x(w11 w12) x(w10 w4)))) w11) w12) x(dup41(w1 w10) w4)) }
 
 ::sum_divisors::9 { x(x(w4 w4) x(_ x(w1 w1))) }
 
 ::sum_divisors::10 {
-  x(x(@div(w3 w5) w15) x(dup50(w0 dup50(w3 w13)) x(@mul(w0 w2) w12)))
+  x(x(@div(w3 w5) w15) x(dup49(w0 dup49(w3 w13)) x(@mul(w0 w2) w12)))
   ::sum_divisors::8 = x(x(w5 w15) x(w13 x(w2 w12)))
 }
 
@@ -41,11 +41,11 @@
   ::sum_divisors::main::2 = x(x(w3 w10) 1)
 }
 
-::sum_divisors::main::2 { x(w4 dup69(@le(100 ?(::sum_divisors::main::4 ::sum_divisors::main::3 x(w4 w5))) w5)) }
+::sum_divisors::main::2 { x(w4 dup67(@le(100 ?(::sum_divisors::main::4 ::sum_divisors::main::3 x(w4 w5))) w5)) }
 
 ::sum_divisors::main::3 {
-  x(x(w22 w33) dup73(w0 dup73(@add(1 w25) dup73(w29 dup73(w8 @add(1 w19))))))
-  ::sum_divisors = fn(w0 dup75(@eq(w25 ?(::sum_divisors::main::7 ::sum_divisors::main::6 x(w29 x(w28 w27)))) dup75(w28 w12)))
+  x(x(w22 w33) dup71(w0 dup71(@add(1 w25) dup71(w29 dup71(w8 @add(1 w19))))))
+  ::sum_divisors = fn(w0 dup73(@eq(w25 ?(::sum_divisors::main::7 ::sum_divisors::main::6 x(w29 x(w28 w27)))) dup73(w28 w12)))
   ::std::n32::N32::to_string = fn(w8 w9)
   ::std::list::List::concat = fn(w9 fn(tup(2 tup(tup(58 tup(32 w30)) w30)) w11))
   ::std::n32::N32::to_string = fn(w12 w13)
@@ -59,11 +59,11 @@
 
 ::sum_divisors::main::6 { x(_ x(_ tup(8 tup(tup(32 tup(40 tup(112 tup(114 tup(105 tup(109 tup(101 tup(41 w4)))))))) w4)))) }
 
-::sum_divisors::main::7 { x(@mul(2 w6) x(@eq(w6 ?(::sum_divisors::main::10 ::sum_divisors::main::9 w8)) w8)) }
+::sum_divisors::main::7 { x(@mul(2 w2) x(@eq(w2 ?(::sum_divisors::main::9 ::sum_divisors::main::8 w7)) w7)) }
 
-::sum_divisors::main::9 { tup(11 tup(tup(32 tup(40 tup(112 tup(101 tup(114 tup(102 tup(101 tup(99 tup(116 tup(33 tup(41 w2))))))))))) w2)) }
+::sum_divisors::main::8 { tup(11 tup(tup(32 tup(40 tup(112 tup(101 tup(114 tup(102 tup(101 tup(99 tup(116 tup(33 tup(41 w2))))))))))) w2)) }
 
-::sum_divisors::main::10 { tup(0 tup(w2 w2)) }
+::sum_divisors::main::9 { tup(0 tup(w2 w2)) }
 
 ::std::io::IO::println {
   fn(ref(w3 w14) fn(w5 _))
@@ -76,7 +76,7 @@
   ::std::io::IO::print::2 = x(x(w3 w15) x(w9 w10))
 }
 
-::std::io::IO::print::2 { x(w4 x(dup554(?(::std::io::IO::print::4 ::std::io::IO::print::3 x(w4 x(w6 w1))) w6) w1)) }
+::std::io::IO::print::2 { x(w4 x(dup543(?(::std::io::IO::print::4 ::std::io::IO::print::3 x(w4 x(w6 w1))) w6) w1)) }
 
 ::std::io::IO::print::3 {
   x(x(w17 w21) x(@sub(1 w1) tup(w4 w5)))
@@ -90,7 +90,7 @@
 
 ::std::list::List::concat { fn(tup(@add(w12 w20) tup(w8 w13)) fn(tup(w12 tup(w13 w23)) tup(w20 tup(w8 w23)))) }
 
-::std::n32::N32::to_string { fn(dup2247(?(::std::n32::N32::to_string::4 ::std::n32::N32::to_string::3 x(w8 w7)) w8) w7) }
+::std::n32::N32::to_string { fn(dup2223(?(::std::n32::N32::to_string::4 ::std::n32::N32::to_string::3 x(w8 w7)) w8) w7) }
 
 ::std::n32::N32::to_string::3 {
   x(w4 w7)
@@ -99,10 +99,10 @@
 
 ::std::n32::N32::to_string::4 { x(_ tup(1 tup(tup(48 w3) w3))) }
 
-::std::n32::N32::to_string::5 { x(dup2257(?(::std::n32::N32::to_string::7 ::std::n32::N32::to_string::6 x(w6 w2)) w6) w2) }
+::std::n32::N32::to_string::5 { x(dup2233(?(::std::n32::N32::to_string::7 ::std::n32::N32::to_string::6 x(w6 w2)) w6) w2) }
 
 ::std::n32::N32::to_string::6 {
-  x(dup2260(@rem(10 w1) @div(10 w8)) x(w11 w15))
+  x(dup2236(@rem(10 w1) @div(10 w8)) x(w11 w15))
   48 = @add(w1 w2)
   ::std::list::List::concat = fn(tup(1 tup(tup(w2 w13) w13)) fn(w11 w5))
   ::std::n32::N32::to_string::5 = x(w8 x(w5 w15))

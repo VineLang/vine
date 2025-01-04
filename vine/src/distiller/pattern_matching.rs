@@ -74,6 +74,7 @@ enum MatchKind {
   Ref,
   Inverse,
   Tuple(usize),
+  Object(usize),
   Adt(DefId),
 }
 
@@ -187,6 +188,36 @@ impl<'core, 'd, 'r> Matcher<'core, 'd, 'r> {
 
           self.eliminate_col(&mut rows, var, |p| match &p.kind {
             PatKind::Tuple(tuple) => new_vars.iter().zip(tuple),
+            _ => unreachable!(),
+          });
+        }
+
+        MatchKind::Object(len) => {
+          let (new_vars, new_locals) = self.new_var_range(stage, form, len);
+          match form {
+            Form::Value => {
+              let value = stage.take_local(local);
+              let spaces = new_locals.iter().map(|l| stage.set_local(l)).collect::<Vec<_>>();
+              stage.steps.push(Step::Tuple(value, spaces));
+            }
+            Form::Space => {
+              let space = stage.set_local(local);
+              let values = new_locals.iter().map(|l| stage.take_local(l)).collect::<Vec<_>>();
+              stage.steps.push(Step::Tuple(space, values));
+            }
+            Form::Place => {
+              let (value, space) = stage.mut_local(local);
+              let (values, spaces) =
+                new_locals.iter().map(|l| stage.mut_local(l)).collect::<(Vec<_>, Vec<_>)>();
+              stage.steps.push(Step::Tuple(value, spaces));
+              stage.steps.push(Step::Tuple(space, values));
+            }
+          }
+
+          self.eliminate_col(&mut rows, var, |p| match &p.kind {
+            PatKind::Object(fields) => new_vars.iter().zip(
+              fields.iter().map(|(k, v)| (k.ident, v)).collect::<BTreeMap<_, _>>().into_values(),
+            ),
             _ => unreachable!(),
           });
         }
@@ -335,6 +366,7 @@ impl<'core, 'd, 'r> Matcher<'core, 'd, 'r> {
           self.match_kind(&mut &**p).map(|_| MatchKind::Inverse)
         }
         PatKind::Tuple(t) => Some(MatchKind::Tuple(t.len())),
+        PatKind::Object(e) => Some(MatchKind::Object(e.len())),
       };
     }
   }

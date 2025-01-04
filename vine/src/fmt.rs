@@ -68,8 +68,17 @@ impl<'core: 'src, 'src> Formatter<'src> {
           Doc("struct "),
           Doc(s.name),
           self.fmt_generics(&s.generics),
-          Doc::paren_comma(s.fields.iter().map(|x| self.fmt_ty(x))),
-          Doc(";"),
+          if s.object {
+            let TyKind::Object(e) = &s.fields[0].kind else { unreachable!() };
+            Doc::concat([
+              Doc(" "),
+              Doc::brace_comma_multiline(
+                e.iter().map(|(k, v)| Doc::concat([Doc(k.ident), Doc(": "), self.fmt_ty(v)])),
+              ),
+            ])
+          } else {
+            Doc::concat([Doc::paren_comma(s.fields.iter().map(|x| self.fmt_ty(x))), Doc(";")])
+          },
         ]),
         ItemKind::Enum(e) => Doc::concat([
           Doc("enum "),
@@ -265,7 +274,6 @@ impl<'core: 'src, 'src> Formatter<'src> {
       ExprKind::Paren(p) => Doc::paren(self.fmt_expr(p)),
       ExprKind::Hole => Doc("_"),
       ExprKind::Path(path) => self.fmt_generic_path(path),
-      ExprKind::Block(block) => self.fmt_block(block, false),
       ExprKind::Do(label, block) => {
         Doc::concat([Doc("do"), self.fmt_label(label), Doc(" "), self.fmt_block(block, false)])
       }
@@ -276,21 +284,21 @@ impl<'core: 'src, 'src> Formatter<'src> {
         Doc("match "),
         self.fmt_expr(expr),
         Doc(" "),
-        Doc::brace_comma_multiline(
-          arms.iter().map(|(p, e)| Doc::concat([self.fmt_pat(p), Doc(" => "), self.fmt_expr(e)])),
+        Doc::brace_multiline(
+          arms
+            .iter()
+            .map(|(p, e)| Doc::concat([self.fmt_pat(p), Doc(" "), self.fmt_block(e, false)])),
         ),
       ]),
-      ExprKind::If(c, t, e) => Doc::concat([
-        Doc("if "),
-        self.fmt_expr(c),
-        Doc(" "),
-        self.fmt_block(t, true),
-        match &e.kind {
-          ExprKind::Block(b) if b.stmts.is_empty() => Doc::EMPTY,
-          ExprKind::Block(b) => Doc::concat([Doc(" else "), self.fmt_block(b, true)]),
-          _ => Doc::concat([Doc(" else "), self.fmt_expr(e)]),
-        },
-      ]),
+      ExprKind::If(arms, leg) => Doc::interleave(
+        arms
+          .iter()
+          .map(|(cond, block)| {
+            Doc::concat([Doc("if "), self.fmt_expr(cond), Doc(" "), self.fmt_block(block, true)])
+          })
+          .chain(leg.iter().map(|block| self.fmt_block(block, true))),
+        Doc(" else "),
+      ),
       ExprKind::While(l, c, b) => Doc::concat([
         Doc("while"),
         self.fmt_label(l),
@@ -306,7 +314,7 @@ impl<'core: 'src, 'src> Formatter<'src> {
         Doc("fn"),
         Doc::paren_comma(p.iter().map(|p| self.fmt_pat(p))),
         Doc(" "),
-        self.fmt_expr(b),
+        self.fmt_block(b, false),
       ]),
       ExprKind::Return(Some(x)) => Doc::concat([Doc("return "), self.fmt_expr(x)]),
       ExprKind::Break(label, Some(x)) => {
@@ -327,10 +335,21 @@ impl<'core: 'src, 'src> Formatter<'src> {
         Doc::concat([Doc("("), self.fmt_expr(v), Doc("; "), self.fmt_expr(s), Doc(")")])
       }
       ExprKind::Tuple(t) => Doc::tuple(t.iter().map(|x| self.fmt_expr(x))),
+      ExprKind::Object(o) => Doc::brace_comma_space(o.iter().map(|(k, v)| {
+        if let ExprKind::Path(p) = &v.kind {
+          if let Some(i) = p.path.as_ident() {
+            if k.ident == i {
+              return Doc(k.ident);
+            }
+          }
+        }
+        Doc::concat([Doc(k.ident), Doc(": "), self.fmt_expr(v)])
+      })),
       ExprKind::List(l) => Doc::bracket_comma(l.iter().map(|x| self.fmt_expr(x))),
       ExprKind::TupleField(e, i, _) => {
         Doc::concat([self.fmt_expr(e), Doc("."), Doc(format!("{i}"))])
       }
+      ExprKind::ObjectField(e, k) => Doc::concat([self.fmt_expr(e), Doc("."), Doc(k.ident)]),
       ExprKind::Method(e, p, a) => Doc::concat([
         self.fmt_expr(e),
         Doc("."),
@@ -402,6 +421,33 @@ impl<'core: 'src, 'src> Formatter<'src> {
       PatKind::Deref(p) => Doc::concat([Doc("*"), self.fmt_pat(p)]),
       PatKind::Inverse(p) => Doc::concat([Doc("~"), self.fmt_pat(p)]),
       PatKind::Annotation(p, t) => Doc::concat([self.fmt_pat(p), Doc(": "), self.fmt_ty(t)]),
+      PatKind::Object(o) => Doc::brace_comma_space(o.iter().map(|(key, pat)| {
+        let (pat, ty) = match &pat.kind {
+          PatKind::Annotation(p, t) => (&**p, Some(t)),
+          _ => (pat, None),
+        };
+        let pat = if let PatKind::Adt(p, None) = &pat.kind {
+          if let Some(i) = p.path.as_ident() {
+            if key.ident == i {
+              None
+            } else {
+              Some(pat)
+            }
+          } else {
+            Some(pat)
+          }
+        } else {
+          Some(pat)
+        };
+        match (pat, ty) {
+          (None, None) => Doc(key.ident),
+          (Some(pat), None) => Doc::concat([Doc(key.ident), Doc(": "), self.fmt_pat(pat)]),
+          (None, Some(ty)) => Doc::concat([Doc(key.ident), Doc(":: "), self.fmt_ty(ty)]),
+          (Some(pat), Some(ty)) => {
+            Doc::concat([Doc(key.ident), Doc(": "), self.fmt_pat(pat), Doc(": "), self.fmt_ty(ty)])
+          }
+        }
+      })),
       PatKind::Tuple(t) => Doc::tuple(t.iter().map(|x| self.fmt_pat(x))),
     }
   }
@@ -419,6 +465,9 @@ impl<'core: 'src, 'src> Formatter<'src> {
       TyKind::Ref(t) => Doc::concat([Doc("&"), self.fmt_ty(t)]),
       TyKind::Inverse(t) => Doc::concat([Doc("~"), self.fmt_ty(t)]),
       TyKind::Path(p) => self.fmt_generic_path(p),
+      TyKind::Object(o) => Doc::brace_comma_space(
+        o.iter().map(|(k, t)| Doc::concat([Doc(k.ident), Doc(": "), self.fmt_ty(t)])),
+      ),
       TyKind::Generic(_) | TyKind::Error(_) => unreachable!(),
     }
   }

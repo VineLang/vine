@@ -74,6 +74,10 @@ fn tests(t: &mut DynTester) {
       test_vi(t, leak(format!("tests/programs/aoc_2024/{name}.vi")), leak(input), ".txt");
     }
 
+    t.group("fmt", |t| {
+      test_vi_fmt(t, "tests/programs/fmt/objects.vi");
+    });
+
     t.group("fail", |t| {
       test_vi_fail(t, "tests/programs/fail/atypical.vi");
       test_vi_fail(t, "tests/programs/fail/hallo_world.vi");
@@ -87,6 +91,7 @@ fn tests(t: &mut DynTester) {
       test_vi_repl(t, "tests/programs/repl/advanced_repl.vi");
       test_vi_repl(t, "tests/programs/repl/basic_repl.vi");
       test_vi_repl(t, "tests/programs/repl/misc.vi");
+      test_vi_repl(t, "tests/programs/repl/objects.vi");
       test_vi_repl(t, "tests/programs/repl/randomness.vi");
     });
   });
@@ -130,6 +135,19 @@ fn test_vi_repl(t: &mut DynTester, path: &'static str) {
     let (stdout, stderr) = exec(VINE, &["repl", "--echo"], input.as_bytes(), true);
     assert!(stderr.is_empty());
     test_snapshot(&["vine", "repl", &format!("{name}.repl.vi")], &stdout);
+  });
+}
+
+fn test_vi_fmt(t: &mut DynTester, path: &'static str) {
+  let name = Path::file_stem(path.as_ref()).unwrap().to_str().unwrap();
+  t.test(name, move || {
+    let input = fs::read_to_string(path).unwrap();
+    let (formatted, stderr) = exec(VINE, &["fmt"], input.as_bytes(), true);
+    assert!(stderr.is_empty());
+    test_snapshot(&["vine", "fmt", &format!("{name}.fmt.vi")], &formatted);
+    let (stdout, stderr) = exec(VINE, &["fmt"], input.as_bytes(), true);
+    assert!(stderr.is_empty());
+    assert_eq!(stdout, formatted);
   });
 }
 

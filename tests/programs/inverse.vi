@@ -24,7 +24,7 @@ mod refs {
 }
 
 fn fns(&io: &IO) {
-  let f = {
+  let f = do {
     let n: N32;
     (move ~n, n * n)
   };
