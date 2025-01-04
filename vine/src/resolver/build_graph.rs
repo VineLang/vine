@@ -255,6 +255,9 @@ impl<'core> Resolver<'core> {
   ) -> &mut Def<'core> {
     let next_child = self.defs.next_index();
     let parent_def = &mut self.defs[parent];
+    if parent_def.canonical.segments.last() == Some(&name) {
+      return &mut self.defs[parent];
+    }
     let mut new = false;
     let member = parent_def.members.entry(name).or_insert_with(|| {
       new = true;
