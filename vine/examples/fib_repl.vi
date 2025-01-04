@@ -1,5 +1,5 @@
 
-use std::option::Option::{Some, None};
+use std::option::Option::{None, Some};
 
 pub fn main(&io: &IO) {
   while io.prompt("> ") is Some(line) {

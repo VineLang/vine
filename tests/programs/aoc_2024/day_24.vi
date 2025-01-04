@@ -1,5 +1,5 @@
 
-use std::{option::Option::{Option, Some, None}, array::Array, map::Map, n64::N64};
+use std::{array::Array, map::Map, n64::N64, option::Option::{Option, None, Some}};
 
 pub fn main(&io: &IO) {
   let map = Map::new(String::cmp);

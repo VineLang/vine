@@ -1,4 +1,5 @@
 use std::{
+  collections::BTreeMap,
   fmt::{self, Debug, Display, Write},
   mem::take,
   path::PathBuf,
@@ -99,11 +100,17 @@ pub struct UseItem<'core> {
   pub tree: UseTree<'core>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct UseTree<'core> {
-  pub span: Span,
-  pub path: Path<'core>,
-  pub children: Option<Vec<UseTree<'core>>>,
+  pub aliases: Vec<Ident<'core>>,
+  pub children: BTreeMap<Ident<'core>, UseTree<'core>>,
+}
+
+impl<'core> UseTree<'core> {
+  pub fn prune(&mut self) -> bool {
+    self.children.retain(|_, tree| tree.prune());
+    !self.aliases.is_empty() || !self.children.is_empty()
+  }
 }
 
 #[derive(Debug, Clone)]

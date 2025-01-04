@@ -1,5 +1,5 @@
 
-use std::{list::Buf, option::Option::{Option, Some, None}, map::Ord};
+use std::{list::Buf, map::Ord, option::Option::{Option, None, Some}};
 
 #[builtin = "N32"]
 pub mod N32 {

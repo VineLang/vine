@@ -1,5 +1,5 @@
 
-use std::option::Option::{Option, Some, None};
+use std::option::Option::{Option, None, Some};
 
 pub fn main(&io: &IO) {
   dyn fn print_option_n32(option: Option[N32]) {

@@ -1,5 +1,5 @@
 
-use std::{option::Option::{Option, Some, None}};
+use std::option::Option::{Option, None, Some};
 
 pub type Cmp[K] = fn(&K, &K) -> Ord;
 

@@ -1,5 +1,5 @@
 
-use std::result::Result::{Result, Ok, Err};
+use std::result::Result::{Result, Err, Ok};
 
 const end: N32 = 46;
 

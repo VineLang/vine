@@ -1,9 +1,9 @@
 
 use std::{
-  option::Option::{Option, Some, None},
-  result::Result::{Result, Ok, Err},
   map::Map,
   n64::N64,
+  option::Option::{Option, None, Some},
+  result::Result::{Result, Err, Ok},
 };
 
 const max: N32 = 75;

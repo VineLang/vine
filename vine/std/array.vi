@@ -1,5 +1,5 @@
 
-use std::{option::Option::{Option, Some, None}, list::Buf};
+use std::{list::Buf, option::Option::{Option, None, Some}};
 
 pub struct Array[T](N32, Node[T]);
 

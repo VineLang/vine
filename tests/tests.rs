@@ -76,6 +76,7 @@ fn tests(t: &mut DynTester) {
 
     t.group("fmt", |t| {
       test_vi_fmt(t, "tests/programs/fmt/objects.vi");
+      test_vi_fmt(t, "tests/programs/fmt/uses.vi");
     });
 
     t.group("fail", |t| {

@@ -265,24 +265,48 @@ impl<'core, 'src> VineParser<'core, 'src> {
   fn parse_use_item(&mut self) -> Parse<'core, UseItem<'core>> {
     self.expect(Token::Use)?;
     let absolute = self.eat(Token::ColonColon)?;
-    let tree = self.parse_use_tree()?;
-    self.expect(Token::Semi)?;
+    let mut tree = UseTree::default();
+    loop {
+      self.parse_use_tree(None, &mut tree)?;
+      if !self.eat(Token::Comma)? {
+        break;
+      }
+    }
+    tree.prune();
+    self.eat(Token::Semi)?;
     Ok(UseItem { absolute, tree })
   }
 
-  fn parse_use_tree(&mut self) -> Parse<'core, UseTree<'core>> {
-    let span = self.start_span();
-    let mut path = Path { segments: Vec::new(), absolute: false, resolved: None };
-    while self.check(Token::Ident) {
-      path.segments.push(self.parse_ident()?);
-      if !self.eat(Token::ColonColon)? {
-        let span = self.end_span(span);
-        return Ok(UseTree { span, path, children: None });
+  fn parse_use_tree(
+    &mut self,
+    cur_name: Option<Ident<'core>>,
+    tree: &mut UseTree<'core>,
+  ) -> Parse<'core> {
+    if self.check(Token::Ident) {
+      let ident = self.parse_ident()?;
+      if cur_name == Some(ident) {
+        if self.eat(Token::As)? {
+          let alias = self.parse_ident()?;
+          tree.aliases.push(alias);
+        } else {
+          tree.aliases.push(ident);
+        }
+      } else {
+        let child = tree.children.entry(ident).or_default();
+        if self.eat(Token::ColonColon)? {
+          let is_group = self.check(Token::OpenBrace);
+          self.parse_use_tree(is_group.then_some(ident), child)?;
+        } else if self.eat(Token::As)? {
+          let alias = self.parse_ident()?;
+          child.aliases.push(alias);
+        } else {
+          child.aliases.push(ident);
+        }
       }
+    } else {
+      self.parse_delimited(BRACE_COMMA, |self_| self_.parse_use_tree(cur_name, tree))?;
     }
-    let children = self.parse_delimited(BRACE_COMMA, Self::parse_use_tree)?;
-    let span = self.end_span(span);
-    Ok(UseTree { span, path, children: Some(children) })
+    Ok(())
   }
 
   fn parse_ivy_item(&mut self) -> Parse<'core, InlineIvy<'core>> {
