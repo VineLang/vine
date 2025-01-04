@@ -1,10 +1,5 @@
 
-use std::{
-  n64::N64,
-  option::Option::{Option, None, Some},
-  result::Result::{Result, Err, Ok},
-  tuple::Pair,
-};
+use std::{numeric::N64, tuple::Pair};
 
 pub fn main(&io: &IO) {
   let input = io.read_line().unwrap();
@@ -19,9 +14,9 @@ fn part1(input: String) -> N64 {
   let used = 0;
 
   let id = 0;
-  while input.pop_front() is Some(char) {
+  while input.chars.pop_front() is Some(char) {
     let file = char - '0';
-    let empty = input.pop_front().unwrap_or('0') - '0';
+    let empty = input.chars.pop_front().unwrap_or('0') - '0';
     forward.push_back((id, file, empty));
     backward.push_front((id, file));
     used += file;
@@ -66,9 +61,9 @@ fn part2(input: String) -> N64 {
 
   let pos = 0;
   let id = 0;
-  while input.pop_front() is Some(char) {
+  while input.chars.pop_front() is Some(char) {
     let file = char - '0';
-    let empty = input.pop_front().unwrap_or('0') - '0';
+    let empty = input.chars.pop_front().unwrap_or('0') - '0';
     files.push_front((id, file, pos));
     let file_end = pos + file;
     spaces.push_back((file_end, empty));

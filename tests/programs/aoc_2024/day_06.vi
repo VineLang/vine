@@ -1,5 +1,5 @@
 
-use std::{array::Array, option::Option::{Option, None, Some}, result::Result::{Result, Err, Ok}};
+use std::data::Array;
 
 pub fn main(&io: &IO) {
   let input = io.full_input();
@@ -12,7 +12,7 @@ pub fn main(&io: &IO) {
   let iter = grid.iter();
   while iter.next() is Some(&row) {
     let x = 0;
-    let iter = row.iter();
+    let iter = row.chars.iter();
     while iter.next() is Some(&cell) {
       if cell == '^' {
         guard_pos = (x, y);
@@ -23,7 +23,7 @@ pub fn main(&io: &IO) {
     y += 1;
   }
 
-  let grid = Array::from_list(grid.map(Array::from_list));
+  let grid = Array::from_list(grid.map(fn(String({ chars })) { Array::from_list(chars) }));
 
   let (_, length) = walk(&grid, guard_pos);
 

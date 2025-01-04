@@ -149,6 +149,7 @@ pub enum Builtin {
   IO,
   Prelude,
   List,
+  String,
   Concat,
 }
 

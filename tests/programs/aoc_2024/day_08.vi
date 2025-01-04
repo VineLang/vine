@@ -1,5 +1,5 @@
 
-use std::{map::{Cmp, Map, Ord}, option::Option::Some, tuple::Pair};
+use std::{data::Map::{Map, Cmp, Ord}, tuple::Pair};
 
 pub fn main(&io: &IO) {
   let input = io.full_input();
@@ -29,7 +29,7 @@ pub fn main(&io: &IO) {
   let y = 0;
   while grid.pop_front() is Some(row) {
     let x = 0;
-    while row.pop_front() is Some(frequency) {
+    while row.chars.pop_front() is Some(frequency) {
       if frequency != '.' {
         let &antennas = antennas.get_or_insert(frequency, []);
         let pos = (x, y);

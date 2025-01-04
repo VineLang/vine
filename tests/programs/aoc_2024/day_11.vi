@@ -1,10 +1,5 @@
 
-use std::{
-  map::Map,
-  n64::N64,
-  option::Option::{Option, None, Some},
-  result::Result::{Result, Err, Ok},
-};
+use std::{data::Map, numeric::N64};
 
 const max: N32 = 75;
 

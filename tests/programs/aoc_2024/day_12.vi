@@ -1,5 +1,5 @@
 
-use std::{array::Array, option::Option::{Option, None, Some}, result::Result::{Result, Err, Ok}};
+use std::data::Array;
 
 pub fn main(&io: &IO) {
   let regions = Regions(Array::empty);
@@ -12,7 +12,7 @@ pub fn main(&io: &IO) {
     grid ++= [line];
     let cur = [];
     let west = ('#', 0);
-    while line.pop_front() is Some(char) {
+    while line.chars.pop_front() is Some(char) {
       let i = regions.new();
       if west is (c, j) && c == char {
         let j = regions.find(j);
@@ -49,7 +49,7 @@ pub fn main(&io: &IO) {
   let y = 0;
   let north = [];
   while y <= height {
-    let south = grid.pop_front().unwrap_or([]);
+    let south = grid.pop_front().unwrap_or("").chars;
     let s = south;
     let x = 0;
     let nw = '#';

@@ -119,6 +119,7 @@ impl<'core, 'src> VineParser<'core, 'src> {
           "Char" => Builtin::Char,
           "IO" => Builtin::IO,
           "List" => Builtin::List,
+          "String" => Builtin::String,
           "concat" => Builtin::Concat,
           "prelude" => Builtin::Prelude,
           _ => Err(Diag::BadBuiltin { span: str_span })?,

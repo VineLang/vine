@@ -1,6 +1,4 @@
 
-use std::option::Option::{None, Some};
-
 pub fn main(&io: &IO) {
   while io.prompt("> ") is Some(line) {
     let num = N32::parse(line);
