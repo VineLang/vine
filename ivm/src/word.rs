@@ -133,3 +133,8 @@ impl NonZeroWord {
     Word(self.0.as_ptr())
   }
 }
+
+unsafe impl Send for Word {}
+unsafe impl Sync for Word {}
+unsafe impl Send for NonZeroWord {}
+unsafe impl Sync for NonZeroWord {}
