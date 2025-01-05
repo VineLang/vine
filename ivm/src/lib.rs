@@ -2,7 +2,7 @@
 //!
 //! The [`IVM`] struct is the root of the API of this crate
 
-#![cfg_attr(miri, feature(strict_provenance))]
+#![cfg_attr(miri, feature(strict_provenance_lints))]
 #![cfg_attr(miri, deny(fuzzy_provenance_casts, lossy_provenance_casts))]
 #![warn(clippy::std_instead_of_core)]
 
