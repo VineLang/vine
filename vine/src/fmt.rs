@@ -50,8 +50,10 @@ impl<'core: 'src, 'src> Formatter<'src> {
             self.fmt_generics(&f.generics),
             Doc::paren_comma(params.iter().map(|p| self.fmt_pat(p))),
             self.fmt_return_ty(f.ret.as_ref()),
-            Doc(" "),
-            self.fmt_block(&f.body, true),
+            match &f.body {
+              Some(b) => Doc::concat([Doc(" "), self.fmt_block(b, true)]),
+              None => Doc(";"),
+            },
           ])
         }
         ItemKind::Const(c) => Doc::concat([
@@ -60,8 +62,10 @@ impl<'core: 'src, 'src> Formatter<'src> {
           self.fmt_generics(&c.generics),
           Doc(": "),
           self.fmt_ty(&c.ty),
-          Doc(" = "),
-          self.fmt_expr(&c.value),
+          match &c.value {
+            Some(v) => Doc::concat([Doc(" = "), self.fmt_expr(v)]),
+            None => Doc(""),
+          },
           Doc(";"),
         ]),
         ItemKind::Struct(s) => Doc::concat([
@@ -117,6 +121,23 @@ impl<'core: 'src, 'src> Formatter<'src> {
             }
             ModKind::Error(_) => unreachable!(),
           },
+        ]),
+        ItemKind::Trait(t) => Doc::concat([
+          Doc("trait "),
+          Doc(t.name),
+          self.fmt_generics(&t.generics),
+          Doc(" "),
+          self.fmt_block_like(item.span, t.items.iter().map(|i| (i.span, self.fmt_item(i)))),
+        ]),
+        ItemKind::Impl(i) => Doc::concat([
+          Doc("impl "),
+          Doc(i.name),
+          self.fmt_generics(&i.generics),
+          Doc(": "),
+          self.fmt_path(&i.trait_.path),
+          Doc::bracket_comma(i.trait_.args.iter().map(|a| self.fmt_ty(a))),
+          Doc(" "),
+          self.fmt_block_like(item.span, i.items.iter().map(|i| (i.span, self.fmt_item(i)))),
         ]),
         ItemKind::Use(u) => Doc::concat([
           Doc(if u.absolute { "use ::" } else { "use " }),

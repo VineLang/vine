@@ -7,9 +7,9 @@ use crate::{core::Core, diag::Diag, lexer::Token};
 
 use crate::ast::{
   Attr, AttrKind, BinaryOp, Block, Builtin, ComparisonOp, ConstItem, DynFnStmt, Enum, Expr,
-  ExprKind, FnItem, GenericPath, Ident, InlineIvy, Item, ItemKind, Key, Label, LetStmt, LogicalOp,
-  ModItem, ModKind, Pat, PatKind, Path, Span, Stmt, StmtKind, StructItem, Ty, TyKind, TypeItem,
-  UseItem, UseTree, Variant, Vis,
+  ExprKind, FnItem, GenericPath, Ident, ImplItem, InlineIvy, Item, ItemKind, Key, Label, LetStmt,
+  LogicalOp, ModItem, ModKind, Pat, PatKind, Path, Span, Stmt, StmtKind, StructItem, Trait,
+  TraitItem, Ty, TyKind, TypeItem, UseItem, UseTree, Variant, Vis,
 };
 
 pub struct VineParser<'core, 'src> {
@@ -74,6 +74,8 @@ impl<'core, 'src> VineParser<'core, 'src> {
       _ if self.check(Token::Enum) => ItemKind::Enum(self.parse_enum_item()?),
       _ if self.check(Token::Type) => ItemKind::Type(self.parse_type_item()?),
       _ if self.check(Token::Mod) => ItemKind::Mod(self.parse_mod_item()?),
+      _ if self.check(Token::Trait) => ItemKind::Trait(self.parse_trait_item()?),
+      _ if self.check(Token::Impl) => ItemKind::Impl(self.parse_impl_item()?),
       _ if self.check(Token::Use) => ItemKind::Use(self.parse_use_item()?),
       _ if self.check(Token::InlineIvy) => ItemKind::Ivy(self.parse_ivy_item()?),
       _ if span == self.start_span() => return Ok(None),
@@ -177,7 +179,7 @@ impl<'core, 'src> VineParser<'core, 'src> {
     let generics = self.parse_generics()?;
     let params = self.parse_delimited(PAREN_COMMA, Self::parse_pat)?;
     let ret = self.eat(Token::ThinArrow)?.then(|| self.parse_type()).transpose()?;
-    let body = self.parse_block()?;
+    let body = (!self.eat(Token::Semi)?).then(|| self.parse_block()).transpose()?;
     Ok(FnItem { name, generics, params, ret, body })
   }
 
@@ -187,8 +189,7 @@ impl<'core, 'src> VineParser<'core, 'src> {
     let generics = self.parse_generics()?;
     self.expect(Token::Colon)?;
     let ty = self.parse_type()?;
-    self.expect(Token::Eq)?;
-    let value = self.parse_expr()?;
+    let value = self.eat(Token::Eq)?.then(|| self.parse_expr()).transpose()?;
     self.expect(Token::Semi)?;
     Ok(ConstItem { name, generics, ty, value })
   }
@@ -261,6 +262,32 @@ impl<'core, 'src> VineParser<'core, 'src> {
       let span = self.end_span(span);
       Ok(ModItem { name, kind: ModKind::Loaded(span, items) })
     }
+  }
+
+  fn parse_trait_item(&mut self) -> Parse<'core, TraitItem<'core>> {
+    self.expect(Token::Trait)?;
+    let name = self.parse_ident()?;
+    let generics = self.parse_generics()?;
+    let items = self.parse_delimited(BRACE, Self::parse_item)?;
+    Ok(TraitItem { name, generics, items })
+  }
+
+  fn parse_impl_item(&mut self) -> Parse<'core, ImplItem<'core>> {
+    self.expect(Token::Impl)?;
+    let name = self.parse_ident()?;
+    let generics = self.parse_generics()?;
+    self.expect(Token::Colon)?;
+    let trait_ = self.parse_trait()?;
+    let items = self.parse_delimited(BRACE, Self::parse_item)?;
+    Ok(ImplItem { name, generics, trait_, items })
+  }
+
+  fn parse_trait(&mut self) -> Parse<'core, Trait<'core>> {
+    let span = self.start_span();
+    let path = self.parse_path()?;
+    let args = self.parse_delimited(BRACKET_COMMA, Self::parse_type)?;
+    let span = self.end_span(span);
+    Ok(Trait { span, path, args })
   }
 
   fn parse_use_item(&mut self) -> Parse<'core, UseItem<'core>> {

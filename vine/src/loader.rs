@@ -60,7 +60,7 @@ impl<'core> Loader<'core> {
             None,
           ),
         },
-        value: Expr {
+        value: Some(Expr {
           span: Span::NONE,
           kind: ExprKind::Path(ast::GenericPath {
             span: Span::NONE,
@@ -71,7 +71,7 @@ impl<'core> Loader<'core> {
             },
             generics: None,
           }),
-        },
+        }),
       }),
     });
     self.load_mod(path)

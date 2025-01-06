@@ -4,7 +4,8 @@ use vine_util::idx::Counter;
 
 use crate::{
   ast::{
-    AttrKind, Builtin, Expr, ExprKind, Ident, Item, ItemKind, ModKind, Path, Span, UseTree, Vis,
+    AttrKind, Block, Builtin, Expr, ExprKind, Ident, Item, ItemKind, ModKind, Path, Span, Stmt,
+    StmtKind, UseTree, Vis,
   },
   core::Core,
   diag::Diag,
@@ -51,7 +52,23 @@ impl<'core> Resolver<'core> {
           locals: Counter::default(),
           kind: ValueDefKind::Expr(Expr {
             span,
-            kind: ExprKind::Fn(f.params, Some(f.ret), f.body),
+            kind: ExprKind::Fn(
+              f.params,
+              Some(f.ret),
+              f.body.unwrap_or_else(|| Block {
+                span,
+                stmts: vec![Stmt {
+                  span,
+                  kind: StmtKind::Expr(
+                    Expr {
+                      span,
+                      kind: ExprKind::Error(self.core.report(Diag::MissingImplementation { span })),
+                    },
+                    false,
+                  ),
+                }],
+              }),
+            ),
           }),
         },
         member_vis,
@@ -66,7 +83,10 @@ impl<'core> Resolver<'core> {
           annotation: Some(c.ty),
           ty: None,
           locals: Counter::default(),
-          kind: ValueDefKind::Expr(c.value),
+          kind: ValueDefKind::Expr(c.value.unwrap_or_else(|| Expr {
+            span,
+            kind: ExprKind::Error(self.core.report(Diag::MissingImplementation { span })),
+          })),
         },
         member_vis,
       ),
@@ -184,6 +204,8 @@ impl<'core> Resolver<'core> {
           Some(TypeDef { vis, generics: t.generics.clone(), alias: Some(t.ty), ty: None });
         Some(child.id)
       }
+      ItemKind::Trait(_) => todo!(),
+      ItemKind::Impl(_) => todo!(),
       ItemKind::Taken => None,
     };
     for attr in item.attrs {
