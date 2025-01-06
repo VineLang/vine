@@ -158,6 +158,8 @@ diags! {
     ["subitems must be private"]
   DuplicateKey
     ["duplicate object key"]
+  MissingImplementation
+    ["missing implementation"]
 }
 
 fn plural<'a>(n: usize, plural: &'a str, singular: &'a str) -> &'a str {

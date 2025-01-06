@@ -259,11 +259,11 @@ pub trait VisitMut<'core, 'a> {
         if let Some(ty) = &mut f.ret {
           self.visit_type(ty);
         }
-        self.visit_block(&mut f.body);
+        self.visit(&mut f.body);
       }
       ItemKind::Const(c) => {
         self.visit_type(&mut c.ty);
-        self.visit_expr(&mut c.value);
+        self.visit(&mut c.value);
       }
       ItemKind::Mod(m) => match &mut m.kind {
         ModKind::Loaded(_, items) => {
@@ -288,6 +288,8 @@ pub trait VisitMut<'core, 'a> {
       ItemKind::Type(t) => {
         self.visit_type(&mut t.ty);
       }
+      ItemKind::Trait(_) => todo!(),
+      ItemKind::Impl(_) => todo!(),
       ItemKind::Use(..) | ItemKind::Ivy(_) | ItemKind::Taken => {}
     }
   }

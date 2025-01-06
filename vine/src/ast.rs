@@ -30,6 +30,8 @@ pub enum ItemKind<'core> {
   Enum(Enum<'core>),
   Type(TypeItem<'core>),
   Mod(ModItem<'core>),
+  Trait(TraitItem<'core>),
+  Impl(ImplItem<'core>),
   Use(UseItem<'core>),
   Ivy(InlineIvy<'core>),
   #[default]
@@ -42,7 +44,7 @@ pub struct FnItem<'core> {
   pub generics: Vec<Ident<'core>>,
   pub params: Vec<Pat<'core>>,
   pub ret: Option<Ty<'core>>,
-  pub body: Block<'core>,
+  pub body: Option<Block<'core>>,
 }
 
 #[derive(Debug, Clone)]
@@ -50,7 +52,7 @@ pub struct ConstItem<'core> {
   pub name: Ident<'core>,
   pub generics: Vec<Ident<'core>>,
   pub ty: Ty<'core>,
-  pub value: Expr<'core>,
+  pub value: Option<Expr<'core>>,
 }
 
 #[derive(Debug, Clone)]
@@ -92,6 +94,28 @@ pub enum ModKind<'core> {
   Loaded(Span, Vec<Item<'core>>),
   Unloaded(Span, PathBuf),
   Error(ErrorGuaranteed),
+}
+
+#[derive(Debug, Clone)]
+pub struct TraitItem<'core> {
+  pub name: Ident<'core>,
+  pub generics: Vec<Ident<'core>>,
+  pub items: Vec<Item<'core>>,
+}
+
+#[derive(Debug, Clone)]
+pub struct ImplItem<'core> {
+  pub name: Ident<'core>,
+  pub generics: Vec<Ident<'core>>,
+  pub trait_: Trait<'core>,
+  pub items: Vec<Item<'core>>,
+}
+
+#[derive(Debug, Clone)]
+pub struct Trait<'core> {
+  pub span: Span,
+  pub path: Path<'core>,
+  pub args: Vec<Ty<'core>>,
 }
 
 #[derive(Debug, Clone)]
