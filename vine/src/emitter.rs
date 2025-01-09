@@ -85,6 +85,7 @@ impl<'core, 'a> Emitter<'core, 'a> {
           );
           self.nets.insert(def.canonical.to_string(), Net { root, pairs: Vec::new() });
         }
+        ValueDefKind::TraitSubitem(..) => todo!(),
       }
     }
   }

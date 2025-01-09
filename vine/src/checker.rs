@@ -17,7 +17,7 @@ use crate::{
   },
   core::Core,
   diag::{report, Diag, ErrorGuaranteed},
-  resolver::{DefId, Resolver, TypeDef, ValueDefKind},
+  resolver::{DefId, Resolver, TraitSubitem, TypeDef, ValueDefKind},
 };
 
 mod check_expr;
@@ -34,6 +34,7 @@ pub struct Checker<'core, 'r> {
   generics: Vec<Ident<'core>>,
   return_ty: Option<Type<'core>>,
   labels: IdxVec<LabelId, Option<Type<'core>>>,
+  impl_params: Vec<Type<'core>>,
   cur_def: DefId,
 
   bool: Option<DefId>,
@@ -73,6 +74,7 @@ impl<'core, 'r> Checker<'core, 'r> {
       resolver,
       state: CheckerState::default(),
       generics: Vec::new(),
+      impl_params: Vec::new(),
       return_ty: None,
       labels: Default::default(),
       cur_def: DefId::ROOT,
@@ -96,7 +98,13 @@ impl<'core, 'r> Checker<'core, 'r> {
       self.resolve_type_alias(def);
     }
     for def in range.iter() {
+      self.resolve_trait_types(def);
+    }
+    for def in range.iter() {
       self.resolve_def_types(def);
+    }
+    for def in range.iter() {
+      self.check_impl_def(def);
     }
     debug_assert!(self.state.vars.is_empty());
     for def in range.iter() {
@@ -110,6 +118,7 @@ impl<'core, 'r> Checker<'core, 'r> {
     let def = &mut self.resolver.defs[def_id];
     if let Some(value_def) = &mut def.value_def {
       if let ValueDefKind::Expr(expr) = &mut value_def.kind {
+        self.impl_params.clone_from(value_def.impl_param_tys.as_ref().unwrap());
         self.generics.clone_from(&value_def.type_params);
         let mut ty = value_def.ty.clone().unwrap();
         let mut expr = take(expr);
@@ -242,10 +251,15 @@ impl<'core, 'r> Checker<'core, 'r> {
     inference: bool,
   ) -> Vec<Type<'core>> {
     if let Some(generics) = &mut path.generics {
-      generics.iter_mut().map(|t| self.hydrate_type(t, inference)).collect::<Vec<_>>()
-    } else {
-      iter::from_fn(|| Some(self.new_var(path.span))).take(generic_count).collect()
+      if !generics.types.is_empty() {
+        return generics
+          .types
+          .iter_mut()
+          .map(|t| self.hydrate_type(t, inference))
+          .collect::<Vec<_>>();
+      }
     }
+    iter::from_fn(|| Some(self.new_var(path.span))).take(generic_count).collect()
   }
 
   fn resolve_type_alias(&mut self, def_id: DefId) {
@@ -259,6 +273,24 @@ impl<'core, 'r> Checker<'core, 'r> {
     self.cur_def = old;
   }
 
+  fn resolve_trait_types(&mut self, def_id: DefId) {
+    self.cur_def = def_id;
+    if let Some(mut trait_def) = self.resolver.defs[def_id].trait_def.take() {
+      for (_, sub_id, subitem, ty_out) in trait_def.subitems.iter_mut() {
+        let ty = match subitem {
+          TraitSubitem::Fn(pats, ret) => Type::Fn(
+            pats.iter_mut().map(|pat| self.hydrate_param(pat)).collect(),
+            Box::new(ret.as_mut().map(|r| self.hydrate_type(r, false)).unwrap_or(Type::UNIT)),
+          ),
+          TraitSubitem::Const(ty) => self.hydrate_type(ty, false),
+        };
+        *ty_out = Some(ty.clone());
+        self.resolver.defs[*sub_id].value_def.as_mut().unwrap().ty = Some(ty);
+      }
+      self.resolver.defs[def_id].trait_def = Some(trait_def);
+    }
+  }
+
   fn resolve_def_types(&mut self, def_id: DefId) {
     self.cur_def = def_id;
     if let Some(mut variant) = self.resolver.defs[def_id].variant_def.take() {
@@ -267,7 +299,29 @@ impl<'core, 'r> Checker<'core, 'r> {
       self.resolver.defs[def_id].variant_def = Some(variant);
     }
     if let Some(mut value) = self.resolver.defs[def_id].value_def.take() {
-      let ty = if let Some(ty) = &mut value.annotation {
+      if value.impl_param_tys.is_none() {
+        value.impl_param_tys = Some(
+          value
+            .impl_params
+            .iter_mut()
+            .map(|(_, trait_)| {
+              trait_
+                .path
+                .resolved
+                .map(|trait_id| {
+                  let trait_def = self.resolver.defs[trait_id].trait_def.take().unwrap();
+                  let trait_args = self.hydrate_generics(trait_, trait_def.generics, false);
+                  self.resolver.defs[trait_id].trait_def = Some(trait_def);
+                  Type::Adt(trait_id, trait_args)
+                })
+                .unwrap_or(Type::Error(ErrorGuaranteed::new_unchecked()))
+            })
+            .collect(),
+        );
+      }
+      let ty = if let Some(ty) = value.ty.take() {
+        ty
+      } else if let Some(ty) = &mut value.annotation {
         self.hydrate_type(ty, false)
       } else {
         match &mut value.kind {
@@ -290,10 +344,65 @@ impl<'core, 'r> Checker<'core, 'r> {
               Type::Fn(params, Box::new(adt))
             }
           }
+          ValueDefKind::TraitSubitem(..) => unreachable!(),
         }
       };
       value.ty = Some(ty);
       self.resolver.defs[def_id].value_def = Some(value);
+    }
+    if let Some(mut impl_def) = self.resolver.defs[def_id].impl_def.take() {
+      impl_def.impl_param_tys = Some(
+        impl_def
+          .impl_params
+          .iter_mut()
+          .map(|(_, trait_)| {
+            trait_
+              .path
+              .resolved
+              .map(|trait_id| {
+                let trait_def = self.resolver.defs[trait_id].trait_def.take().unwrap();
+                let trait_args = self.hydrate_generics(trait_, trait_def.generics, false);
+                self.resolver.defs[trait_id].trait_def = Some(trait_def);
+                Type::Adt(trait_id, trait_args)
+              })
+              .unwrap_or(Type::Error(ErrorGuaranteed::new_unchecked()))
+          })
+          .collect(),
+      );
+      if let Some(trait_id) = impl_def.trait_.path.resolved {
+        let trait_def = self.resolver.defs[trait_id].trait_def.take().unwrap();
+        let trait_args = self.hydrate_generics(&mut impl_def.trait_, trait_def.generics, false);
+        impl_def.trait_ty = Some((trait_id, trait_args));
+        self.resolver.defs[trait_id].trait_def = Some(trait_def);
+      }
+      self.resolver.defs[def_id].impl_def = Some(impl_def);
+    }
+  }
+
+  fn check_impl_def(&mut self, def_id: DefId) {
+    if let Some(impl_def) = self.resolver.defs[def_id].impl_def.take() {
+      if let Some((trait_id, trait_args)) = &impl_def.trait_ty {
+        let trait_def = self.resolver.defs[*trait_id].trait_def.take().unwrap();
+        for &(span, name, sub_id) in &impl_def.subitems {
+          if let Some(subitem) = trait_def.subitems.iter().find(|x| x.0 == name) {
+            let mut value_def = self.resolver.defs[sub_id].value_def.take().unwrap();
+            let ty = value_def.ty.as_mut().unwrap();
+            let mut expected = subitem.3.as_ref().unwrap().instantiate(trait_args);
+            if !self.unify(ty, &mut expected) {
+              self.core.report(Diag::ExpectedTypeFound {
+                span,
+                expected: self.display_type(&expected),
+                found: self.display_type(ty),
+              });
+            }
+            self.resolver.defs[sub_id].value_def = Some(value_def);
+          } else {
+            self.core.report(Diag::ExtraneousImplItem { span, name });
+          }
+        }
+        self.resolver.defs[*trait_id].trait_def = Some(trait_def);
+      }
+      self.resolver.defs[def_id].impl_def = Some(impl_def);
     }
   }
 

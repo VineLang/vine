@@ -232,7 +232,7 @@ impl<'core> Resolver<'core> {
               if !f.generics.impls.is_empty() || !f.generics.types.is_empty() {
                 self.core.report(Diag::TraitItemGen { span: item.span });
               }
-              (f.name, TraitSubitem::Fn(f.params, f.ret, None))
+              (f.name, TraitSubitem::Fn(f.params, f.ret))
             }
             ItemKind::Const(c) => {
               if c.value.is_some() {
@@ -241,15 +241,15 @@ impl<'core> Resolver<'core> {
               if !c.generics.impls.is_empty() || !c.generics.types.is_empty() {
                 self.core.report(Diag::TraitItemGen { span: item.span });
               }
-              (c.name, TraitSubitem::Const(c.ty, None))
+              (c.name, TraitSubitem::Const(c.ty))
             }
             _ => {
               self.core.report(Diag::InvalidTraitItem { span: item.span });
               continue;
             }
           };
-          subitems.push((name, subitem));
           let child = self.get_or_insert_child(def, name, vis);
+          subitems.push((name, child.id, subitem, None));
           if child.value_def.is_some() {
             self.core.report(Diag::DuplicateItem { span: item.span, name });
             continue;
@@ -258,21 +258,22 @@ impl<'core> Resolver<'core> {
             vis,
             type_params: generics.clone(),
             impl_params: Vec::new(),
-            impl_param_tys: Some(vec![(
+            impl_param_tys: Some(vec![Type::Adt(
               def,
-              (0..generics.len()).map(|i| Type::Opaque(i)).collect(),
+              (0..generics.len()).map(Type::Opaque).collect(),
             )]),
             annotation: None,
             ty: None,
             locals: Counter::default(),
-            kind: ValueDefKind::TraitSubitem(def),
+            kind: ValueDefKind::TraitSubitem(def, name),
           });
         }
         let def = &mut self.defs[def];
         if def.trait_def.is_some() {
           self.core.report(Diag::DuplicateItem { span, name: t.name });
         }
-        def.trait_def = Some(TraitDef { vis, type_params: generics, subitems });
+        def.trait_def =
+          Some(TraitDef { vis, generics: generics.len(), type_params: generics, subitems });
         Some(def.id)
       }
       ItemKind::Impl(i) => {
@@ -295,8 +296,9 @@ impl<'core> Resolver<'core> {
             self.core.report(Diag::ImplItemGen { span: item.span });
           }
           *generics = i.generics.clone();
+          let span = item.span;
           let child = self.build_item(vis, item, def).unwrap();
-          subitems.push((name, child));
+          subitems.push((span, name, child));
         }
         let def = &mut self.defs[def];
         if def.impl_def.is_some() {
@@ -307,6 +309,8 @@ impl<'core> Resolver<'core> {
           type_params: i.generics.types,
           impl_params: i.generics.impls,
           impl_param_tys: None,
+          trait_: i.trait_,
+          trait_ty: None,
           subitems,
         });
         Some(def.id)
