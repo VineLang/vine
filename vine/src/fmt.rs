@@ -4,8 +4,9 @@ use doc::{Doc, Writer};
 
 use crate::{
   ast::{
-    Block, ComparisonOp, Expr, ExprKind, GenericPath, Ident, Item, ItemKind, Label, LogicalOp,
-    ModKind, Pat, PatKind, Path, Span, Stmt, StmtKind, Ty, TyKind, UseTree, Vis,
+    Block, ComparisonOp, Expr, ExprKind, GenericArgs, GenericParams, GenericPath, Generics, Ident,
+    Item, ItemKind, Label, LogicalOp, ModKind, Pat, PatKind, Path, Span, Stmt, StmtKind, Ty,
+    TyKind, UseTree, Vis,
   },
   core::Core,
   diag::Diag,
@@ -47,7 +48,7 @@ impl<'core: 'src, 'src> Formatter<'src> {
           Doc::concat([
             Doc("fn "),
             Doc(f.name),
-            self.fmt_generics(&f.generics),
+            self.fmt_generic_params(&f.generics),
             Doc::paren_comma(params.iter().map(|p| self.fmt_pat(p))),
             self.fmt_return_ty(f.ret.as_ref()),
             match &f.body {
@@ -59,7 +60,7 @@ impl<'core: 'src, 'src> Formatter<'src> {
         ItemKind::Const(c) => Doc::concat([
           Doc("const "),
           Doc(c.name),
-          self.fmt_generics(&c.generics),
+          self.fmt_generic_params(&c.generics),
           Doc(": "),
           self.fmt_ty(&c.ty),
           match &c.value {
@@ -71,7 +72,7 @@ impl<'core: 'src, 'src> Formatter<'src> {
         ItemKind::Struct(s) => Doc::concat([
           Doc("struct "),
           Doc(s.name),
-          self.fmt_generics(&s.generics),
+          self.fmt_generic_params(&s.generics),
           if s.object {
             let TyKind::Object(e) = &s.fields[0].kind else { unreachable!() };
             Doc::concat([
@@ -87,7 +88,7 @@ impl<'core: 'src, 'src> Formatter<'src> {
         ItemKind::Enum(e) => Doc::concat([
           Doc("enum "),
           Doc(e.name),
-          self.fmt_generics(&e.generics),
+          self.fmt_generic_params(&e.generics),
           Doc(" "),
           Doc::brace_comma_multiline(e.variants.iter().map(|v| {
             Doc::concat([
@@ -103,7 +104,7 @@ impl<'core: 'src, 'src> Formatter<'src> {
         ItemKind::Type(t) => Doc::concat([
           Doc("type "),
           Doc(t.name),
-          self.fmt_generics(&t.generics),
+          self.fmt_generic_params(&t.generics),
           Doc(" = "),
           self.fmt_ty(&t.ty),
           Doc(";"),
@@ -125,17 +126,16 @@ impl<'core: 'src, 'src> Formatter<'src> {
         ItemKind::Trait(t) => Doc::concat([
           Doc("trait "),
           Doc(t.name),
-          self.fmt_generics(&t.generics),
+          self.fmt_generic_params(&t.generics),
           Doc(" "),
           self.fmt_block_like(item.span, t.items.iter().map(|i| (i.span, self.fmt_item(i)))),
         ]),
         ItemKind::Impl(i) => Doc::concat([
           Doc("impl "),
           Doc(i.name),
-          self.fmt_generics(&i.generics),
+          self.fmt_generic_params(&i.generics),
           Doc(": "),
-          self.fmt_path(&i.trait_.path),
-          Doc::bracket_comma(i.trait_.args.iter().map(|a| self.fmt_ty(a))),
+          self.fmt_generic_path(&i.trait_),
           Doc(" "),
           self.fmt_block_like(item.span, i.items.iter().map(|i| (i.span, self.fmt_item(i)))),
         ]),
@@ -293,11 +293,38 @@ impl<'core: 'src, 'src> Formatter<'src> {
     }
   }
 
-  fn fmt_generics(&self, generics: &[Ident<'core>]) -> Doc<'src> {
-    if generics.is_empty() {
-      Doc::EMPTY
+  fn fmt_generic_params(&self, generics: &GenericParams<'core>) -> Doc<'src> {
+    self.fmt_generics(
+      generics,
+      |i| Doc(*i),
+      |(i, t)| Doc::concat([Doc(*i), Doc(": "), self.fmt_generic_path(&t)]),
+    )
+  }
+
+  fn fmt_generic_args(&self, generics: &GenericArgs<'core>) -> Doc<'src> {
+    self.fmt_generics(
+      generics,
+      |t| self.fmt_ty(t),
+      |p| p.as_ref().map(|p| self.fmt_generic_path(p)).unwrap_or(Doc("_")),
+    )
+  }
+
+  fn fmt_generics<T, I>(
+    &self,
+    generics: &Generics<T, I>,
+    fmt_t: impl Fn(&T) -> Doc<'src>,
+    fmt_i: impl Fn(&I) -> Doc<'src>,
+  ) -> Doc<'src> {
+    if generics.impls.is_empty() {
+      if generics.types.is_empty() {
+        Doc::EMPTY
+      } else {
+        Doc::bracket_comma(generics.types.iter().map(fmt_t))
+      }
+    } else if generics.types.is_empty() {
+      Doc::delimited("", "[;", "]", false, false, false, false, generics.impls.iter().map(fmt_i))
     } else {
-      Doc::bracket_comma(generics.iter().map(|x| Doc(*x)))
+      todo!()
     }
   }
 
@@ -506,14 +533,10 @@ impl<'core: 'src, 'src> Formatter<'src> {
   }
 
   fn fmt_generic_path(&self, path: &GenericPath<'core>) -> Doc<'src> {
-    if let Some(gens) = &path.generics {
-      Doc::concat([
-        self.fmt_path(&path.path),
-        Doc::bracket_comma(gens.iter().map(|x| self.fmt_ty(x))),
-      ])
-    } else {
-      self.fmt_path(&path.path)
-    }
+    Doc::concat([
+      self.fmt_path(&path.path),
+      path.generics.as_ref().map(|g| self.fmt_generic_args(g)).unwrap_or(Doc("")),
+    ])
   }
 
   fn fmt_path(&self, path: &Path<'core>) -> Doc<'src> {

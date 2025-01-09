@@ -304,7 +304,7 @@ pub trait VisitMut<'core, 'a> {
 
   fn _visit_generic_path(&mut self, path: &'a mut GenericPath<'core>) {
     if let Some(args) = &mut path.generics {
-      for t in args {
+      for t in &mut args.types {
         self.visit_type(t)
       }
     }

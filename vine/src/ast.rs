@@ -41,7 +41,7 @@ pub enum ItemKind<'core> {
 #[derive(Debug, Clone)]
 pub struct FnItem<'core> {
   pub name: Ident<'core>,
-  pub generics: Vec<Ident<'core>>,
+  pub generics: GenericParams<'core>,
   pub params: Vec<Pat<'core>>,
   pub ret: Option<Ty<'core>>,
   pub body: Option<Block<'core>>,
@@ -50,7 +50,7 @@ pub struct FnItem<'core> {
 #[derive(Debug, Clone)]
 pub struct ConstItem<'core> {
   pub name: Ident<'core>,
-  pub generics: Vec<Ident<'core>>,
+  pub generics: GenericParams<'core>,
   pub ty: Ty<'core>,
   pub value: Option<Expr<'core>>,
 }
@@ -58,14 +58,14 @@ pub struct ConstItem<'core> {
 #[derive(Debug, Clone)]
 pub struct TypeItem<'core> {
   pub name: Ident<'core>,
-  pub generics: Vec<Ident<'core>>,
+  pub generics: GenericParams<'core>,
   pub ty: Ty<'core>,
 }
 
 #[derive(Debug, Clone)]
 pub struct StructItem<'core> {
   pub name: Ident<'core>,
-  pub generics: Vec<Ident<'core>>,
+  pub generics: GenericParams<'core>,
   pub fields: Vec<Ty<'core>>,
   pub object: bool,
 }
@@ -73,7 +73,7 @@ pub struct StructItem<'core> {
 #[derive(Debug, Clone)]
 pub struct Enum<'core> {
   pub name: Ident<'core>,
-  pub generics: Vec<Ident<'core>>,
+  pub generics: GenericParams<'core>,
   pub variants: Vec<Variant<'core>>,
 }
 
@@ -99,23 +99,16 @@ pub enum ModKind<'core> {
 #[derive(Debug, Clone)]
 pub struct TraitItem<'core> {
   pub name: Ident<'core>,
-  pub generics: Vec<Ident<'core>>,
+  pub generics: GenericParams<'core>,
   pub items: Vec<Item<'core>>,
 }
 
 #[derive(Debug, Clone)]
 pub struct ImplItem<'core> {
   pub name: Ident<'core>,
-  pub generics: Vec<Ident<'core>>,
-  pub trait_: Trait<'core>,
+  pub generics: GenericParams<'core>,
+  pub trait_: GenericPath<'core>,
   pub items: Vec<Item<'core>>,
-}
-
-#[derive(Debug, Clone)]
-pub struct Trait<'core> {
-  pub span: Span,
-  pub path: Path<'core>,
-  pub args: Vec<Ty<'core>>,
 }
 
 #[derive(Debug, Clone)]
@@ -140,7 +133,7 @@ impl<'core> UseTree<'core> {
 #[derive(Debug, Clone)]
 pub struct InlineIvy<'core> {
   pub name: Ident<'core>,
-  pub generics: Vec<Ident<'core>>,
+  pub generics: GenericParams<'core>,
   pub ty: Ty<'core>,
   pub net: Net,
 }
@@ -175,6 +168,21 @@ pub enum Builtin {
   List,
   String,
   Concat,
+}
+
+pub type GenericParams<'core> = Generics<Ident<'core>, (Ident<'core>, GenericPath<'core>)>;
+pub type GenericArgs<'core> = Generics<Ty<'core>, Option<GenericPath<'core>>>;
+
+#[derive(Debug, Clone)]
+pub struct Generics<T, I> {
+  pub types: Vec<T>,
+  pub impls: Vec<I>,
+}
+
+impl<T, I> Default for Generics<T, I> {
+  fn default() -> Self {
+    Self { types: Default::default(), impls: Default::default() }
+  }
 }
 
 #[derive(Default, Debug, Clone, PartialEq, Eq)]
@@ -387,7 +395,7 @@ pub enum PatKind<'core> {
 pub struct GenericPath<'core> {
   pub span: Span,
   pub path: Path<'core>,
-  pub generics: Option<Vec<Ty<'core>>>,
+  pub generics: Option<GenericArgs<'core>>,
 }
 
 #[derive(Clone)]
