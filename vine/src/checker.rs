@@ -209,7 +209,7 @@ impl<'core, 'r> Checker<'core, 'r> {
       TyKind::Path(path) => {
         report!(self.core, ty.kind; self.typeof_type_def(path, inference))
       }
-      TyKind::Generic(n) => Type::Opaque(*n),
+      TyKind::Param(n) => Type::Opaque(*n),
       TyKind::Error(e) => Type::Error(*e),
     }
   }

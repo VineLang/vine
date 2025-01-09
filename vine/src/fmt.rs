@@ -308,8 +308,8 @@ impl<'core: 'src, 'src> Formatter<'src> {
   fn fmt_impl(&self, impl_: &Impl<'core>) -> Doc<'src> {
     match &impl_.kind {
       ImplKind::Hole => Doc("_"),
-      ImplKind::Param(_) => unreachable!(),
       ImplKind::Path(path) => self.fmt_generic_path(path),
+      ImplKind::Error(_) | ImplKind::Param(_) => unreachable!(),
     }
   }
 
@@ -532,7 +532,7 @@ impl<'core: 'src, 'src> Formatter<'src> {
       TyKind::Object(o) => Doc::brace_comma_space(
         o.iter().map(|(k, t)| Doc::concat([Doc(k.ident), Doc(": "), self.fmt_ty(t)])),
       ),
-      TyKind::Generic(_) | TyKind::Error(_) => unreachable!(),
+      TyKind::Param(_) | TyKind::Error(_) => unreachable!(),
     }
   }
 

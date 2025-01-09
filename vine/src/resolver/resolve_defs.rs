@@ -8,14 +8,14 @@ use vine_util::idx::{Counter, RangeExt};
 
 use crate::{
   ast::{
-    DynFnId, Expr, ExprKind, GenericPath, Ident, Label, LabelId, Local, LogicalOp, Pat, PatKind,
-    Stmt, StmtKind, Ty, TyKind,
+    DynFnId, Expr, ExprKind, GenericPath, Ident, Impl, ImplKind, Label, LabelId, Local, LogicalOp,
+    Pat, PatKind, Stmt, StmtKind, Ty, TyKind,
   },
   diag::Diag,
   visit::{VisitMut, Visitee},
 };
 
-use super::{DefId, Resolver, ValueDefKind};
+use super::{DefId, Resolver, TraitSubitem, ValueDefKind};
 
 impl<'core> Resolver<'core> {
   pub fn resolve_defs(&mut self) {
@@ -26,7 +26,8 @@ impl<'core> Resolver<'core> {
     let mut visitor = ResolveVisitor {
       resolver: self,
       def: DefId::ROOT,
-      generics: Vec::new(),
+      type_params: Vec::new(),
+      impl_params: Vec::new(),
       scope: HashMap::new(),
       scope_depth: 0,
       locals: Counter::default(),
@@ -42,15 +43,20 @@ impl<'core> Resolver<'core> {
       let def = &mut visitor.resolver.defs[def_id];
       let mut value_def = def.value_def.take();
       if let Some(value_def) = &mut value_def {
-        visitor.generics = take(&mut value_def.type_params);
+        visitor.type_params = take(&mut value_def.type_params);
+        visitor.visit_impl_params(&mut value_def.impl_params);
+        visitor.impl_params = take(&mut value_def.impl_params);
         if let Some(ty) = &mut value_def.annotation {
           visitor.visit_type(ty);
         }
         if let ValueDefKind::Expr(expr) = &mut value_def.kind {
           visitor.visit_expr(expr);
         }
-        value_def.type_params = take(&mut visitor.generics);
+        value_def.type_params = take(&mut visitor.type_params);
+        value_def.impl_params = take(&mut visitor.impl_params);
         value_def.locals = visitor.locals;
+        visitor.scope.clear();
+        visitor.locals = Counter::default();
       }
 
       let def = &mut visitor.resolver.defs[def_id];
@@ -59,9 +65,9 @@ impl<'core> Resolver<'core> {
       let mut type_def = def.type_def.take();
       if let Some(type_def) = &mut type_def {
         if let Some(alias) = &mut type_def.alias {
-          visitor.generics = take(&mut type_def.type_params);
+          visitor.type_params = take(&mut type_def.type_params);
           visitor.visit_type(alias);
-          type_def.type_params = take(&mut visitor.generics);
+          type_def.type_params = take(&mut visitor.type_params);
         }
       }
 
@@ -70,16 +76,43 @@ impl<'core> Resolver<'core> {
 
       let mut variant_def = def.variant_def.take();
       if let Some(variant_def) = &mut variant_def {
-        visitor.generics = take(&mut variant_def.type_params);
+        visitor.type_params = take(&mut variant_def.type_params);
         visitor.visit(&mut variant_def.fields);
-        variant_def.type_params = take(&mut visitor.generics);
+        variant_def.type_params = take(&mut visitor.type_params);
       }
 
       let def = &mut visitor.resolver.defs[def_id];
       def.variant_def = variant_def;
 
-      visitor.scope.clear();
-      visitor.locals = Counter::default();
+      let mut trait_def = def.trait_def.take();
+      if let Some(trait_def) = &mut trait_def {
+        visitor.type_params = take(&mut trait_def.type_params);
+        for (_, subitem) in &mut trait_def.subitems {
+          match subitem {
+            TraitSubitem::Fn(pats, ty, _) => {
+              visitor.visit(pats);
+              visitor.visit(ty);
+            }
+            TraitSubitem::Const(ty, _) => visitor.visit_type(ty),
+          }
+        }
+        trait_def.type_params = take(&mut visitor.type_params);
+        visitor.scope.clear();
+        visitor.locals = Counter::default();
+      }
+
+      let def = &mut visitor.resolver.defs[def_id];
+      def.trait_def = trait_def;
+
+      let mut impl_def = def.impl_def.take();
+      if let Some(impl_def) = &mut impl_def {
+        visitor.type_params = take(&mut impl_def.type_params);
+        visitor.visit_impl_params(&mut impl_def.impl_params);
+        impl_def.type_params = take(&mut visitor.type_params);
+      }
+
+      let def = &mut visitor.resolver.defs[def_id];
+      def.impl_def = impl_def;
     }
   }
 
@@ -93,7 +126,8 @@ impl<'core> Resolver<'core> {
     let mut visitor = ResolveVisitor {
       resolver: self,
       def,
-      generics: Vec::new(),
+      type_params: Vec::new(),
+      impl_params: Vec::new(),
       scope: initial
         .iter()
         .map(|(&l, &i)| (i, vec![ScopeEntry { depth: 0, binding: Binding::Local(l) }]))
@@ -126,7 +160,8 @@ impl<'core> Resolver<'core> {
 struct ResolveVisitor<'core, 'a> {
   resolver: &'a mut Resolver<'core>,
   def: DefId,
-  generics: Vec<Ident<'core>>,
+  type_params: Vec<Ident<'core>>,
+  impl_params: Vec<(Ident<'core>, GenericPath<'core>)>,
   scope: HashMap<Ident<'core>, Vec<ScopeEntry>>,
   scope_depth: usize,
   locals: Counter<Local>,
@@ -316,8 +351,8 @@ impl<'core> VisitMut<'core, '_> for ResolveVisitor<'core, '_> {
     if let TyKind::Path(path) = &mut ty.kind {
       if path.generics.is_none() {
         if let Some(ident) = path.path.as_ident() {
-          if let Some((i, _)) = self.generics.iter().enumerate().find(|(_, &g)| g == ident) {
-            ty.kind = TyKind::Generic(i);
+          if let Some((i, _)) = self.type_params.iter().enumerate().find(|(_, &g)| g == ident) {
+            ty.kind = TyKind::Param(i);
             return;
           }
         }
@@ -327,6 +362,22 @@ impl<'core> VisitMut<'core, '_> for ResolveVisitor<'core, '_> {
       }
     }
     self._visit_type(ty);
+  }
+
+  fn _visit_impl(&mut self, impl_: &mut Impl<'core>) {
+    if let ImplKind::Path(path) = &mut impl_.kind {
+      if path.generics.is_none() {
+        if let Some(ident) = path.path.as_ident() {
+          if let Some((i, _)) = self.type_params.iter().enumerate().find(|(_, &g)| g == ident) {
+            impl_.kind = ImplKind::Param(i);
+            return;
+          }
+        }
+      }
+      if let Err(diag) = self.visit_path(path) {
+        impl_.kind = ImplKind::Error(self.resolver.core.report(diag));
+      }
+    }
   }
 }
 
@@ -379,6 +430,15 @@ impl<'core> ResolveVisitor<'core, '_> {
         self.visit_cond(b);
         self.exit_scope();
       }
+    }
+  }
+
+  fn visit_impl_params(&mut self, impl_params: &mut [(Ident<'core>, GenericPath<'core>)]) {
+    for (_, path) in impl_params {
+      if let Err(diag) = self.visit_path(path) {
+        self.resolver.core.report(diag);
+      }
+      self.visit_generic_path(path);
     }
   }
 

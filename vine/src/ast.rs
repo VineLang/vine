@@ -414,7 +414,7 @@ pub enum TyKind<'core> {
   Ref(B<Ty<'core>>),
   Inverse(B<Ty<'core>>),
   Path(GenericPath<'core>),
-  Generic(usize),
+  Param(usize),
   Error(ErrorGuaranteed),
 }
 
@@ -429,6 +429,7 @@ pub enum ImplKind<'core> {
   Hole,
   Param(usize),
   Path(GenericPath<'core>),
+  Error(ErrorGuaranteed),
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
