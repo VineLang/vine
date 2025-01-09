@@ -110,7 +110,7 @@ impl<'core, 'r> Checker<'core, 'r> {
     let def = &mut self.resolver.defs[def_id];
     if let Some(value_def) = &mut def.value_def {
       if let ValueDefKind::Expr(expr) = &mut value_def.kind {
-        self.generics.clone_from(&value_def.generics);
+        self.generics.clone_from(&value_def.type_params);
         let mut ty = value_def.ty.clone().unwrap();
         let mut expr = take(expr);
         self.check_expr_form_type(&mut expr, Form::Value, &mut ty);
@@ -283,7 +283,7 @@ impl<'core, 'r> Checker<'core, 'r> {
             let variant = self.resolver.defs[def_id].variant_def.as_ref().unwrap();
             let params = variant.field_types.clone().unwrap();
             let adt =
-              Type::Adt(variant.adt, (0..variant.generics.len()).map(Type::Opaque).collect());
+              Type::Adt(variant.adt, (0..variant.type_params.len()).map(Type::Opaque).collect());
             if params.is_empty() {
               adt
             } else {
@@ -322,7 +322,7 @@ fn define_primitive_type<'core>(
 ) {
   if let Some(def_id) = def_id {
     resolver.defs[def_id].type_def =
-      Some(TypeDef { vis: DefId::ROOT, generics: Vec::new(), alias: None, ty: Some(ty) });
+      Some(TypeDef { vis: DefId::ROOT, type_params: Vec::new(), alias: None, ty: Some(ty) });
   }
 }
 

@@ -160,6 +160,22 @@ diags! {
     ["duplicate object key"]
   MissingImplementation
     ["missing implementation"]
+  UnexpectedImplParam { kind: &'static str }
+    ["{kind} items cannot have impl parameters"]
+  InvalidTraitItem
+    ["invalid trait item"]
+  InvalidImplItem
+    ["invalid impl item"]
+  TraitItemVis
+    ["trait items cannot have visibility"]
+  ImplItemVis
+    ["impl items cannot have visibility"]
+  TraitItemGen
+    ["trait items cannot have generics"]
+  ImplItemGen
+    ["impl items cannot have generics"]
+  ImplementedTraitItem
+    ["trait items cannot have implementations"]
 }
 
 fn plural<'a>(n: usize, plural: &'a str, singular: &'a str) -> &'a str {

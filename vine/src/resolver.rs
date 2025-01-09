@@ -7,7 +7,7 @@ use vine_util::{
 };
 
 use crate::{
-  ast::{Builtin, Expr, Ident, Local, Path, Span, Ty},
+  ast::{Builtin, Expr, GenericPath, Ident, Local, Pat, Path, Span, Ty},
   checker::Type,
   core::Core,
 };
@@ -51,6 +51,8 @@ pub struct Def<'core> {
   pub type_def: Option<TypeDef<'core>>,
   pub adt_def: Option<AdtDef<'core>>,
   pub variant_def: Option<VariantDef<'core>>,
+  pub trait_def: Option<TraitDef<'core>>,
+  pub impl_def: Option<ImplDef<'core>>,
 
   members: HashMap<Ident<'core>, Member<'core>>,
   parent: Option<DefId>,
@@ -73,7 +75,9 @@ enum MemberKind<'core> {
 #[derive(Debug)]
 pub struct ValueDef<'core> {
   pub vis: DefId,
-  pub generics: Vec<Ident<'core>>,
+  pub type_params: Vec<Ident<'core>>,
+  pub impl_params: Vec<(Ident<'core>, GenericPath<'core>)>,
+  pub impl_param_tys: Option<Vec<(DefId, Vec<Type<'core>>)>>,
   pub annotation: Option<Ty<'core>>,
   pub ty: Option<Type<'core>>,
   pub locals: Counter<Local>,
@@ -85,29 +89,52 @@ pub enum ValueDefKind<'core> {
   Expr(Expr<'core>),
   Ivy(Net),
   AdtConstructor,
+  TraitSubitem(DefId),
 }
 
 #[derive(Debug)]
 pub struct TypeDef<'core> {
   pub vis: DefId,
-  pub generics: Vec<Ident<'core>>,
+  pub type_params: Vec<Ident<'core>>,
   pub alias: Option<Ty<'core>>,
   pub ty: Option<Type<'core>>,
 }
 
 #[derive(Debug)]
 pub struct AdtDef<'core> {
-  pub generics: Vec<Ident<'core>>,
+  pub type_params: Vec<Ident<'core>>,
   pub variants: Vec<DefId>,
 }
 
 #[derive(Debug)]
 pub struct VariantDef<'core> {
   pub vis: DefId,
-  pub generics: Vec<Ident<'core>>,
+  pub type_params: Vec<Ident<'core>>,
   pub adt: DefId,
   pub variant: usize,
   pub fields: Vec<Ty<'core>>,
   pub object: bool,
   pub field_types: Option<Vec<Type<'core>>>,
+}
+
+#[derive(Debug)]
+pub struct TraitDef<'core> {
+  pub vis: DefId,
+  pub type_params: Vec<Ident<'core>>,
+  pub subitems: Vec<(Ident<'core>, TraitSubitem<'core>)>,
+}
+
+#[derive(Debug)]
+pub enum TraitSubitem<'core> {
+  Fn(Vec<Pat<'core>>, Option<Ty<'core>>, Option<Type<'core>>),
+  Const(Ty<'core>, Option<Type<'core>>),
+}
+
+#[derive(Debug)]
+pub struct ImplDef<'core> {
+  pub vis: DefId,
+  pub type_params: Vec<Ident<'core>>,
+  pub impl_params: Vec<(Ident<'core>, GenericPath<'core>)>,
+  pub impl_param_tys: Option<Vec<(DefId, Vec<Type<'core>>)>>,
+  pub subitems: Vec<(Ident<'core>, DefId)>,
 }
