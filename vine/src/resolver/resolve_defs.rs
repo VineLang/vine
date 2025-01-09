@@ -42,14 +42,14 @@ impl<'core> Resolver<'core> {
       let def = &mut visitor.resolver.defs[def_id];
       let mut value_def = def.value_def.take();
       if let Some(value_def) = &mut value_def {
-        visitor.generics = take(&mut value_def.generics);
+        visitor.generics = take(&mut value_def.type_params);
         if let Some(ty) = &mut value_def.annotation {
           visitor.visit_type(ty);
         }
         if let ValueDefKind::Expr(expr) = &mut value_def.kind {
           visitor.visit_expr(expr);
         }
-        value_def.generics = take(&mut visitor.generics);
+        value_def.type_params = take(&mut visitor.generics);
         value_def.locals = visitor.locals;
       }
 
@@ -59,9 +59,9 @@ impl<'core> Resolver<'core> {
       let mut type_def = def.type_def.take();
       if let Some(type_def) = &mut type_def {
         if let Some(alias) = &mut type_def.alias {
-          visitor.generics = take(&mut type_def.generics);
+          visitor.generics = take(&mut type_def.type_params);
           visitor.visit_type(alias);
-          type_def.generics = take(&mut visitor.generics);
+          type_def.type_params = take(&mut visitor.generics);
         }
       }
 
@@ -70,9 +70,9 @@ impl<'core> Resolver<'core> {
 
       let mut variant_def = def.variant_def.take();
       if let Some(variant_def) = &mut variant_def {
-        visitor.generics = take(&mut variant_def.generics);
+        visitor.generics = take(&mut variant_def.type_params);
         visitor.visit(&mut variant_def.fields);
-        variant_def.generics = take(&mut visitor.generics);
+        variant_def.type_params = take(&mut visitor.generics);
       }
 
       let def = &mut visitor.resolver.defs[def_id];

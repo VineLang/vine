@@ -23,7 +23,7 @@ impl<'core> Checker<'core, '_> {
         vis: self.resolver.defs[value_def.vis].canonical.clone(),
       });
     }
-    let generic_count = value_def.generics.len();
+    let generic_count = value_def.type_params.len();
     Self::check_generic_count(span, def, path, generic_count)?;
     let generics = self.hydrate_generics(path, generic_count, true);
     let def = &self.resolver.defs[def_id];
@@ -48,7 +48,7 @@ impl<'core> Checker<'core, '_> {
         vis: self.resolver.defs[type_def.vis].canonical.clone(),
       });
     }
-    let generic_count = type_def.generics.len();
+    let generic_count = type_def.type_params.len();
     Self::check_generic_count(span, def, path, generic_count)?;
     if !inference && path.generics.is_none() && generic_count != 0 {
       Err(Diag::ItemTypeHole { span })?
@@ -93,7 +93,7 @@ impl<'core> Checker<'core, '_> {
     if !refutable && adt_def.variants.len() > 1 {
       self.core.report(Diag::ExpectedIrrefutablePat { span });
     }
-    let generic_count = adt_def.generics.len();
+    let generic_count = adt_def.type_params.len();
     Self::check_generic_count(span, variant, path, generic_count)?;
     if !inference && path.generics.is_none() && generic_count != 0 {
       Err(Diag::ItemTypeHole { span })?
