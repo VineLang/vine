@@ -297,7 +297,7 @@ impl<'core: 'src, 'src> Formatter<'src> {
     self.fmt_generics(
       generics,
       |i| Doc(*i),
-      |(i, t)| Doc::concat([Doc(*i), Doc(": "), self.fmt_generic_path(&t)]),
+      |(i, t)| Doc::concat([Doc(*i), Doc(": "), self.fmt_generic_path(t)]),
     )
   }
 

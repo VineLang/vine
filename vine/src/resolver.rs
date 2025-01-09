@@ -77,7 +77,7 @@ pub struct ValueDef<'core> {
   pub vis: DefId,
   pub type_params: Vec<Ident<'core>>,
   pub impl_params: Vec<(Ident<'core>, GenericPath<'core>)>,
-  pub impl_param_tys: Option<Vec<(DefId, Vec<Type<'core>>)>>,
+  pub impl_param_tys: Option<Vec<Type<'core>>>,
   pub annotation: Option<Ty<'core>>,
   pub ty: Option<Type<'core>>,
   pub locals: Counter<Local>,
@@ -89,7 +89,7 @@ pub enum ValueDefKind<'core> {
   Expr(Expr<'core>),
   Ivy(Net),
   AdtConstructor,
-  TraitSubitem(DefId),
+  TraitSubitem(DefId, Ident<'core>),
 }
 
 #[derive(Debug)]
@@ -120,14 +120,15 @@ pub struct VariantDef<'core> {
 #[derive(Debug)]
 pub struct TraitDef<'core> {
   pub vis: DefId,
+  pub generics: usize,
   pub type_params: Vec<Ident<'core>>,
-  pub subitems: Vec<(Ident<'core>, TraitSubitem<'core>)>,
+  pub subitems: Vec<(Ident<'core>, DefId, TraitSubitem<'core>, Option<Type<'core>>)>,
 }
 
 #[derive(Debug)]
 pub enum TraitSubitem<'core> {
-  Fn(Vec<Pat<'core>>, Option<Ty<'core>>, Option<Type<'core>>),
-  Const(Ty<'core>, Option<Type<'core>>),
+  Fn(Vec<Pat<'core>>, Option<Ty<'core>>),
+  Const(Ty<'core>),
 }
 
 #[derive(Debug)]
@@ -135,6 +136,8 @@ pub struct ImplDef<'core> {
   pub vis: DefId,
   pub type_params: Vec<Ident<'core>>,
   pub impl_params: Vec<(Ident<'core>, GenericPath<'core>)>,
-  pub impl_param_tys: Option<Vec<(DefId, Vec<Type<'core>>)>>,
-  pub subitems: Vec<(Ident<'core>, DefId)>,
+  pub impl_param_tys: Option<Vec<Type<'core>>>,
+  pub trait_: GenericPath<'core>,
+  pub trait_ty: Option<(DefId, Vec<Type<'core>>)>,
+  pub subitems: Vec<(Span, Ident<'core>, DefId)>,
 }

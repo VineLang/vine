@@ -108,8 +108,10 @@ diags! {
     ["no type associated with `{path}`"]
   PathNoPat { path: Path<'core> }
     ["no pattern associated with `{path}`"]
-  BadGenericCount { path: Path<'core>, expected: usize, got: usize }
-    ["`{path}` expects {expected} generic{}; was passed {got}", plural(*expected, "s", "")]
+  PathNoImpl { path: Path<'core> }
+    ["no impl associated with `{path}`"]
+  BadGenericCount { path: Path<'core>, expected: usize, got: usize, kind: &'static str }
+    ["`{path}` expects {expected} {kind} parameter{}; was passed {got}", plural(*expected, "s", "")]
   BadFieldCount { path: Path<'core>, expected: usize, got: usize }
     ["`{path}` has {expected} field{}; {got} {} matched", plural(*expected, "s", ""), plural(*got, "were", "was")]
   MissingTupleField { ty: String, i: usize }
@@ -154,6 +156,8 @@ diags! {
     ["the type `{path}` is only visible within `{vis}`"]
   PatInvisible { path: Path<'core>, vis: Path<'core> }
     ["the pattern `{path}` is only visible within `{vis}`"]
+  ImplInvisible { path: Path<'core>, vis: Path<'core> }
+    ["the impl `{path}` is only visible within `{vis}`"]
   VisibleSubitem
     ["subitems must be private"]
   DuplicateKey
@@ -176,6 +180,12 @@ diags! {
     ["impl items cannot have generics"]
   ImplementedTraitItem
     ["trait items cannot have implementations"]
+  UnexpectedImplArgs
+    ["impl arguments are not allowed in types or patterns"]
+  ExtraneousImplItem { name: Ident<'core> }
+    ["no item `{name}` exists in trait"]
+  UnspecifiedImpl
+    ["impl parameters must be explicitly specified"]
 }
 
 fn plural<'a>(n: usize, plural: &'a str, singular: &'a str) -> &'a str {

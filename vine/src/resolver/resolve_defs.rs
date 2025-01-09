@@ -87,13 +87,13 @@ impl<'core> Resolver<'core> {
       let mut trait_def = def.trait_def.take();
       if let Some(trait_def) = &mut trait_def {
         visitor.type_params = take(&mut trait_def.type_params);
-        for (_, subitem) in &mut trait_def.subitems {
+        for (_, _, subitem, _) in &mut trait_def.subitems {
           match subitem {
-            TraitSubitem::Fn(pats, ty, _) => {
+            TraitSubitem::Fn(pats, ty) => {
               visitor.visit(pats);
               visitor.visit(ty);
             }
-            TraitSubitem::Const(ty, _) => visitor.visit_type(ty),
+            TraitSubitem::Const(ty) => visitor.visit_type(ty),
           }
         }
         trait_def.type_params = take(&mut visitor.type_params);
@@ -106,6 +106,9 @@ impl<'core> Resolver<'core> {
 
       let mut impl_def = def.impl_def.take();
       if let Some(impl_def) = &mut impl_def {
+        if let Err(diag) = visitor.visit_path(&mut impl_def.trait_) {
+          visitor.resolver.core.report(diag);
+        }
         visitor.type_params = take(&mut impl_def.type_params);
         visitor.visit_impl_params(&mut impl_def.impl_params);
         impl_def.type_params = take(&mut visitor.type_params);
