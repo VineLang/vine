@@ -5,8 +5,8 @@ use doc::{Doc, Writer};
 use crate::{
   ast::{
     Block, ComparisonOp, Expr, ExprKind, GenericArgs, GenericParams, GenericPath, Generics, Ident,
-    Item, ItemKind, Label, LogicalOp, ModKind, Pat, PatKind, Path, Span, Stmt, StmtKind, Ty,
-    TyKind, UseTree, Vis,
+    Impl, ImplKind, Item, ItemKind, Label, LogicalOp, ModKind, Pat, PatKind, Path, Span, Stmt,
+    StmtKind, Ty, TyKind, UseTree, Vis,
   },
   core::Core,
   diag::Diag,
@@ -302,11 +302,15 @@ impl<'core: 'src, 'src> Formatter<'src> {
   }
 
   fn fmt_generic_args(&self, generics: &GenericArgs<'core>) -> Doc<'src> {
-    self.fmt_generics(
-      generics,
-      |t| self.fmt_ty(t),
-      |p| p.as_ref().map(|p| self.fmt_generic_path(p)).unwrap_or(Doc("_")),
-    )
+    self.fmt_generics(generics, |t| self.fmt_ty(t), |p| self.fmt_impl(p))
+  }
+
+  fn fmt_impl(&self, impl_: &Impl<'core>) -> Doc<'src> {
+    match &impl_.kind {
+      ImplKind::Hole => Doc("_"),
+      ImplKind::Param(_) => unreachable!(),
+      ImplKind::Path(path) => self.fmt_generic_path(path),
+    }
   }
 
   fn fmt_generics<T, I>(

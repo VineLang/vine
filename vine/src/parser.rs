@@ -7,9 +7,10 @@ use crate::{core::Core, diag::Diag, lexer::Token};
 
 use crate::ast::{
   Attr, AttrKind, BinaryOp, Block, Builtin, ComparisonOp, ConstItem, DynFnStmt, Enum, Expr,
-  ExprKind, FnItem, GenericArgs, GenericParams, GenericPath, Generics, Ident, ImplItem, InlineIvy,
-  Item, ItemKind, Key, Label, LetStmt, LogicalOp, ModItem, ModKind, Pat, PatKind, Path, Span, Stmt,
-  StmtKind, StructItem, TraitItem, Ty, TyKind, TypeItem, UseItem, UseTree, Variant, Vis,
+  ExprKind, FnItem, GenericArgs, GenericParams, GenericPath, Generics, Ident, Impl, ImplItem,
+  ImplKind, InlineIvy, Item, ItemKind, Key, Label, LetStmt, LogicalOp, ModItem, ModKind, Pat,
+  PatKind, Path, Span, Stmt, StmtKind, StructItem, TraitItem, Ty, TyKind, TypeItem, UseItem,
+  UseTree, Variant, Vis,
 };
 
 pub struct VineParser<'core, 'src> {
@@ -249,9 +250,7 @@ impl<'core, 'src> VineParser<'core, 'src> {
   }
 
   fn parse_generic_args(&mut self) -> Parse<'core, GenericArgs<'core>> {
-    self.parse_generics(Self::parse_type, |self_| {
-      (!self_.eat(Token::Hole)?).then(|| self_.parse_generic_path()).transpose()
-    })
+    self.parse_generics(Self::parse_type, Self::parse_impl)
   }
 
   fn parse_generics<T, I>(
@@ -869,6 +868,17 @@ impl<'core, 'src> VineParser<'core, 'src> {
       return Ok(TyKind::Path(path));
     }
     self.unexpected()
+  }
+
+  fn parse_impl(&mut self) -> Parse<'core, Impl<'core>> {
+    let span = self.start_span();
+    let kind = if self.eat(Token::Hole)? {
+      ImplKind::Hole
+    } else {
+      ImplKind::Path(self.parse_generic_path()?)
+    };
+    let span = self.end_span(span);
+    Ok(Impl { span, kind })
   }
 
   pub(crate) fn parse_stmt(&mut self) -> Parse<'core, Stmt<'core>> {

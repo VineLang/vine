@@ -171,7 +171,7 @@ pub enum Builtin {
 }
 
 pub type GenericParams<'core> = Generics<Ident<'core>, (Ident<'core>, GenericPath<'core>)>;
-pub type GenericArgs<'core> = Generics<Ty<'core>, Option<GenericPath<'core>>>;
+pub type GenericArgs<'core> = Generics<Ty<'core>, Impl<'core>>;
 
 #[derive(Debug, Clone)]
 pub struct Generics<T, I> {
@@ -418,6 +418,19 @@ pub enum TyKind<'core> {
   Error(ErrorGuaranteed),
 }
 
+#[derive(Clone)]
+pub struct Impl<'core> {
+  pub span: Span,
+  pub kind: ImplKind<'core>,
+}
+
+#[derive(Debug, Clone)]
+pub enum ImplKind<'core> {
+  Hole,
+  Param(usize),
+  Path(GenericPath<'core>),
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum BinaryOp {
   BitOr,
@@ -576,7 +589,7 @@ macro_rules! debug_kind {
   )*};
 }
 
-debug_kind!(Item<'_>, Attr, Stmt<'_>, Expr<'_>, Pat<'_>, Ty<'_>);
+debug_kind!(Item<'_>, Attr, Stmt<'_>, Expr<'_>, Pat<'_>, Ty<'_>, Impl<'_>);
 
 impl From<ErrorGuaranteed> for ExprKind<'_> {
   fn from(value: ErrorGuaranteed) -> Self {
