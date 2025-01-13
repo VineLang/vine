@@ -1,19 +1,19 @@
 
-pub mod array = "./array.vi";
-pub mod bool = "./bool.vi";
-pub mod char = "./char.vi";
-pub mod io = "./io.vi";
-pub mod list = "./list.vi";
-pub mod map = "./map.vi";
-pub mod n32 = "./n32.vi";
-pub mod n64 = "./n64.vi";
-pub mod option = "./option.vi";
-pub mod result = "./result.vi";
-pub mod rng = "./rng.vi";
-pub mod f32 = "./f32.vi";
+pub mod data = "./data/data.vi";
+pub mod logical = "./logical/logical.vi";
+pub mod numeric = "./numeric/numeric.vi";
+pub mod rng = "./rng/rng.vi";
+pub mod unicode = "./unicode/unicode.vi";
+pub mod IO = "./IO.vi";
 pub mod tuple = "./tuple.vi";
 
 #[builtin = "prelude"]
 pub mod prelude {
-  pub use ::std::{bool::Bool, char::Char, f32::F32, io::IO, list::{List, String}, n32::N32};
+  pub use ::std::{
+    IO,
+    data::List,
+    logical::{Bool, Option::{Option, None, Some}, Result::{Result, Err, Ok}},
+    numeric::{F32, N32},
+    unicode::{Char, String},
+  };
 }

@@ -1,11 +1,5 @@
 
-use std::{
-  map::Map,
-  n64::N64,
-  option::Option::{Option, None, Some},
-  result::Result::{Result, Err, Ok},
-  tuple::Pair,
-};
+use std::{data::Map, numeric::N64, tuple::Pair};
 
 pub fn main(&io: &IO) {
   let map = Map::new(N32::cmp);

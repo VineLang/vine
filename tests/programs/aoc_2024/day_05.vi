@@ -1,6 +1,4 @@
 
-use std::{option::Option::{Option, None, Some}, result::Result::{Result, Err, Ok}};
-
 pub fn main(&io: &IO) {
   let masks = List::new(100, ((0, 0), (0, 0)));
 

@@ -1,6 +1,4 @@
 
-use std::result::Result::{Result, Err, Ok};
-
 const end: N32 = 46;
 
 pub fn main(&io: &IO) {

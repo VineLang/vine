@@ -1,6 +1,4 @@
 
-use std::{list::Buf, option::Option::{Option, None, Some}};
-
 pub struct Array[T](N32, Node[T]);
 
 pub mod Array {
@@ -19,7 +17,7 @@ pub mod Array {
       len,
       &buf,
       fn(&buf) {
-        let Buf(head, tail) = buf;
+        let List::Buf(head, tail) = buf;
         buf = tail;
         head
       },
@@ -28,7 +26,7 @@ pub mod Array {
 
   pub fn to_list[T](self: Array[T]) -> List[T] {
     let end;
-    List(self.len(), self.fold_back(move ~end, fn(a, b) { Buf(b, a) }), end)
+    List(self.len(), self.fold_back(move ~end, fn(a, b) { List::Buf(b, a) }), end)
   }
 
   pub fn from_fn[T, S](len: N32, &state: &S, f: fn(&S) -> T) -> Array[T] {

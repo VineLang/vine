@@ -1,6 +1,4 @@
 
-use std::option::Option::{None, Some};
-
 pub fn main(&io: &IO) {
   let list = [4, 3, 7, 9];
   sub_min(&list);

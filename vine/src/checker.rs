@@ -42,7 +42,7 @@ pub struct Checker<'core, 'r> {
   char: Option<DefId>,
   io: Option<DefId>,
   list: Option<DefId>,
-  string: Option<Type<'core>>,
+  string: Option<DefId>,
   concat: Option<DefId>,
 }
 
@@ -66,7 +66,7 @@ impl<'core, 'r> Checker<'core, 'r> {
     define_primitive_type(resolver, char, Type::Char);
     define_primitive_type(resolver, io, Type::IO);
     let list = resolver.builtins.get(&Builtin::List).copied();
-    let string = list.map(|x| Type::Adt(x, vec![Type::Char]));
+    let string = resolver.builtins.get(&Builtin::String).copied();
     let concat = resolver.builtins.get(&Builtin::Concat).copied();
     Checker {
       core,

@@ -16,9 +16,9 @@ error tests/programs/fail/atypical.vi:10:16 - expected type `(?4, ?5)`; found `N
 error tests/programs/fail/atypical.vi:11:7 - cannot infer type
 error tests/programs/fail/atypical.vi:12:3 - cannot call non-function type `N32`
 error tests/programs/fail/atypical.vi:13:14 - cannot apply operator `+` to types `N32` and `~N32`
-error tests/programs/fail/atypical.vi:14:5 - cannot find `noop` in `::std::n32::N32`
+error tests/programs/fail/atypical.vi:14:5 - cannot find `noop` in `::std::numeric::N32`
 error tests/programs/fail/atypical.vi:15:6 - expected type `Bool`; found `F32`
-error tests/programs/fail/atypical.vi:15:21 - expected type `N32`; found `List[Char]`
+error tests/programs/fail/atypical.vi:15:21 - expected type `N32`; found `String`
 error tests/programs/fail/atypical.vi:16:3 - function type `fn(IO)` expects 1 argument; was passed 3
 error tests/programs/fail/atypical.vi:17:3 - cannot compare `N32` and `F32`
 error tests/programs/fail/atypical.vi:17:3 - cannot compare `F32` and `N32`
@@ -30,10 +30,10 @@ error tests/programs/fail/atypical.vi:20:14 - expected type `T`; found `N32`
 error tests/programs/fail/atypical.vi:21:14 - expected type `U`; found `T`
 error tests/programs/fail/atypical.vi:22:7 - expected an irrefutable pattern
 error tests/programs/fail/atypical.vi:22:17 - expected type `Ay`; found `N32`
-error tests/programs/fail/atypical.vi:23:4 - cannot apply operator `+` to types `List[Char]` and `N32`
+error tests/programs/fail/atypical.vi:23:4 - cannot apply operator `+` to types `String` and `N32`
 error tests/programs/fail/atypical.vi:24:7 - expected type `N32`; found `&?16`
 error tests/programs/fail/atypical.vi:27:10 - expected type `()`; found `F32`
 error tests/programs/fail/atypical.vi:28:14 - cannot apply operator `+` to types `~N32` and `~N32`
 error tests/programs/fail/atypical.vi:29:3 - cannot apply operator `+=` to types `N32` and `F32`
-error tests/programs/fail/atypical.vi:30:5 - `::std::n32::N32::parse` cannot be used as a method; it does not take `::std::n32::N32` as its first parameter
+error tests/programs/fail/atypical.vi:30:5 - `::std::numeric::N32::parse` cannot be used as a method; it does not take `::std::numeric::N32` as its first parameter
 error tests/programs/fail/atypical.vi:6:27 - expected type `()`; found `N32`

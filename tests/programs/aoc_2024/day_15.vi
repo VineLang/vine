@@ -1,10 +1,5 @@
 
-use std::{
-  array::Array,
-  option::Option::{Option, None, Some},
-  result::Result::{Result, Err, Ok},
-  tuple::Pair,
-};
+use std::{data::Array, tuple::Pair};
 
 pub fn main(&io: &IO) {
   let grid = Array::empty;
@@ -12,7 +7,7 @@ pub fn main(&io: &IO) {
   let initial;
   while io.read_line() is Some(line) && line.len() != 0 {
     let x = 0;
-    let iter = line.iter();
+    let iter = line.chars.iter();
     while iter.next() is Some(&char) {
       if char == '@' {
         initial = (x, y);
@@ -22,7 +17,7 @@ pub fn main(&io: &IO) {
       x += 1;
     }
     iter.drop();
-    grid.push_back(Array::from_list(line));
+    grid.push_back(Array::from_list(line.chars));
     y += 1;
   }
 
@@ -33,13 +28,13 @@ pub fn main(&io: &IO) {
   }
 
   dyn fn show_grid() {
-    io.println(grid.to_list().map(Array::to_list).join("\n"));
+    io.println(grid.to_list().map(fn(array: Array) { String({ chars: array.to_list() }) }).join("\n"));
   }
 
   let instructions = [];
   let robot = initial;
   while io.read_line() is Some(line) {
-    while line.pop_front() is Some(char) {
+    while line.chars.pop_front() is Some(char) {
       instructions ++= [char];
       let dir = if char == '<' {
         (-1, 0)
@@ -87,7 +82,7 @@ pub fn main(&io: &IO) {
     let row = row.to_list();
     while row.pop_front() is Some(char) {
       if char == 'O' {
-        new_row ++= "[]";
+        new_row ++= "[]".chars;
       } else {
         new_row ++= [char, char];
       }

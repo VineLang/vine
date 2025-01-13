@@ -1,6 +1,4 @@
 
-use std::{option::Option::{Option, None, Some}, result::Result::{Result, Err, Ok}};
-
 pub fn main(&io: &IO) {
   let input = io.full_input();
 
@@ -8,7 +6,7 @@ pub fn main(&io: &IO) {
   let scores = 0;
   let ratings = 0;
   cross(
-    input.split_trim("\n"),
+    input.split_trim("\n").map(fn(String({ chars })) { chars }),
     fn(char: Char, Neighbors(n, s, e, w), &(io: IO, id: N32, scores: N32, ratings: N32)) {
       let Channel((nit, nis), ~(not, nos)) = n;
       let Channel((sit, sis), ~(sot, sos)) = s;

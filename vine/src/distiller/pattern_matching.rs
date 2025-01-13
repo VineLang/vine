@@ -5,7 +5,7 @@ use std::{
 
 use vine_util::{
   idx::{IdxVec, RangeExt},
-  new_idx,
+  multi_iter, new_idx,
 };
 
 use crate::{
@@ -186,8 +186,10 @@ impl<'core, 'd, 'r> Matcher<'core, 'd, 'r> {
             }
           }
 
+          multi_iter!(Iter { Tuple, Adt });
           self.eliminate_col(&mut rows, var, |p| match &p.kind {
-            PatKind::Tuple(tuple) => new_vars.iter().zip(tuple),
+            PatKind::Tuple(tuple) => Iter::Tuple(new_vars.iter().zip(tuple)),
+            PatKind::Adt(_, fields) => Iter::Adt(new_vars.iter().zip(fields.iter().flatten())),
             _ => unreachable!(),
           });
         }
@@ -339,13 +341,18 @@ impl<'core, 'd, 'r> Matcher<'core, 'd, 'r> {
           *pat = p;
           continue;
         }
-        PatKind::Adt(variant, _) => Some(MatchKind::Adt(
-          self.distiller.resolver.defs[variant.path.resolved.unwrap()]
+        PatKind::Adt(variant, _) => {
+          let variant_def = self.distiller.resolver.defs[variant.path.resolved.unwrap()]
             .variant_def
             .as_ref()
-            .unwrap()
-            .adt,
-        )),
+            .unwrap();
+          let adt_def = self.distiller.resolver.defs[variant_def.adt].adt_def.as_ref().unwrap();
+          if adt_def.variants.len() == 1 {
+            Some(MatchKind::Tuple(variant_def.fields.len()))
+          } else {
+            Some(MatchKind::Adt(variant_def.adt))
+          }
+        }
         PatKind::Ref(p) => self.match_kind(&mut &**p).map(|_| MatchKind::Ref),
         PatKind::Deref(p) => {
           if let PatKind::Ref(p) = &p.kind {

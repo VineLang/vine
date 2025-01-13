@@ -1,9 +1,9 @@
 
-use std::{option::Option::Some, rng::Rng};
+use std::rng::Pcg32;
 
 pub fn main(&io: &IO) {
   let seed = io.prompt("Enter a seed: ").unwrap();
-  let rng = Rng::seeded(seed);
+  let rng = Pcg32::seeded(seed);
 
   dyn fn prompt_num(msg: String) -> N32 {
     loop {

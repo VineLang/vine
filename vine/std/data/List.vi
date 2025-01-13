@@ -1,12 +1,10 @@
 
-use std::{map::{Cmp, Ord}, option::Option::{Option, None, Some}, result::Result::{Result, Err, Ok}};
+use Map::{Cmp, Ord};
 
 #[builtin = "List"]
 pub struct List[T](N32, Buf[T], ~Buf[T]);
 
 pub(std) struct Buf[T](T, Buf[T]);
-
-pub type String = List[Char];
 
 pub mod List {
   pub fn len[T](&self: &List[T]) -> N32 {
@@ -186,99 +184,6 @@ pub mod List {
     self = self.reversed();
   }
 
-  pub fn split(self: String, sep: String) -> List[String] {
-    let list = [];
-    loop {
-      let (found, remaining) = self.split_once(sep);
-      list ++= [found];
-      if remaining is Some(remaining) {
-        self = remaining;
-      } else {
-        return list;
-      }
-    }
-  }
-
-  pub fn split_trim(self: String, sep: String) -> List[String] {
-    let list = [];
-    let start = true;
-    let ~end = true;
-    loop {
-      let (found, remaining) = self.split_once(sep);
-      let empty = found.len() == 0;
-      start = empty && start;
-      if !start && !~end {
-        list ++= [found];
-      }
-      ~end ~= empty && ~end;
-      if remaining is Some(remaining) {
-        self = remaining;
-      } else {
-        return list;
-      }
-    }
-  }
-
-  pub fn split_once(self: String, sep: String) -> (String, Option[String]) {
-    let prefix = "";
-    let suffix = self;
-    while suffix.len() >= sep.len() {
-      let iter_a = sep.iter();
-      let iter_b = suffix.iter();
-      do.check {
-        while iter_a.next() is Some(&a) && iter_b.next() is Some(&b) {
-          if a != b {
-            break.check;
-          }
-        }
-        let Iter(len, &buf) = move iter_b;
-        let List(_, _, end) = suffix;
-        return (prefix, Some(List(len, move buf, end)));
-      }
-      iter_a.drop();
-      iter_b.drop();
-      if suffix.pop_front() is Some(char) {
-        prefix ++= [char];
-      } else {
-        break;
-      }
-    }
-    (prefix ++ suffix, None)
-  }
-
-  pub fn strip_prefix(self: String, &prefix: &String) -> Result[String, String] {
-    if self.len() < prefix.len() {
-      return Err(prefix);
-    }
-    let self_iter = self.iter();
-    let prefix_iter = prefix.iter();
-    while prefix_iter.next() is Some(&a) {
-      let &b = self_iter.next().unwrap();
-      if a != b {
-        self_iter.drop()
-        prefix_iter.drop()
-        return Err(self)
-      }
-    }
-    let Iter(len, &buf) = move self_iter;
-    let List(_, _, end) = self;
-    Ok(List(len, move buf, end))
-  }
-
-  pub fn eq(&self: &String, &other: &String) -> Bool {
-    if self.len() != other.len() {
-      return false;
-    }
-    let iter_a = self.iter();
-    let iter_b = other.iter();
-    while iter_a.next() is Some(&a) && iter_b.next() is Some(&b) {
-      if a != b {
-        return false;
-      }
-    }
-    true
-  }
-
   pub fn cmp[T](cmp_el: Cmp[T]) -> Cmp[List[T]] {
     (
       fn(&a: &List[T], &b: &List[T]) {
@@ -304,8 +209,4 @@ pub mod List {
       }
     )
   }
-}
-
-pub mod String {
-  pub const cmp: Cmp[String] = List::cmp(Char::cmp);
 }

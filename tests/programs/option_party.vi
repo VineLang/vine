@@ -1,6 +1,4 @@
 
-use std::option::Option::{Option, None, Some};
-
 pub fn main(&io: &IO) {
   dyn fn print_option_n32(option: Option[N32]) {
     io.println("  " ++ match option {

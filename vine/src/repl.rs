@@ -274,8 +274,10 @@ impl<'core, 'ctx, 'ivm> Repl<'core, 'ctx, 'ivm> {
           tys.keys().zip(values).map(|(k, v)| format!("{k}: {v}")).collect::<Vec<_>>().join(", ")
         )
       }
-      (Type::Adt(def, args), tree) if self.resolver.builtins.get(&Builtin::List) == Some(def) => {
-        let [arg] = &mut **args else { None? };
+      (Type::Adt(def, args), tree)
+        if self.resolver.builtins.get(&Builtin::List) == Some(def)
+          || self.resolver.builtins.get(&Builtin::String) == Some(def) =>
+      {
         let Tree::Comb(c, l, r) = tree else { None? };
         let "tup" = &**c else { None? };
         let Tree::N32(len) = **l else { None? };
@@ -292,8 +294,7 @@ impl<'core, 'ctx, 'ivm> Repl<'core, 'ctx, 'ivm> {
         if &**r != cur || !matches!(cur, Tree::Var(_)) {
           None?
         }
-        self.checker_state.try_concretize(arg);
-        if *arg == Type::Char {
+        if self.resolver.builtins.get(&Builtin::String) == Some(def) {
           let str = children
             .into_iter()
             .map(|x| {
@@ -304,6 +305,8 @@ impl<'core, 'ctx, 'ivm> Repl<'core, 'ctx, 'ivm> {
             .ok()?;
           format!("{str:?}")
         } else {
+          let [arg] = &mut **args else { None? };
+          self.checker_state.try_concretize(arg);
           format!(
             "[{}]",
             children.into_iter().map(|x| self.show(arg, x)).collect::<Vec<_>>().join(", ")

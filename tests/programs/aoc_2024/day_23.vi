@@ -1,13 +1,14 @@
 
-use std::{map::Map, option::Option::{Option, None, Some}, result::Result::{Result, Err, Ok}};
+use std::data::Map;
 
 pub fn main(&io: &IO) {
   let graph = Map::new(N32::cmp);
 
   while io.read_line() is Some(line) {
-    let a = (line.pop_front().unwrap() - 'a') * 26 + (line.pop_front().unwrap() - 'a');
-    line.pop_front();
-    let b = (line.pop_front().unwrap() - 'a') * 26 + (line.pop_front().unwrap() - 'a');
+    let String({ chars }) = line;
+    let a = (chars.pop_front().unwrap() - 'a') * 26 + (chars.pop_front().unwrap() - 'a');
+    chars.pop_front();
+    let b = (chars.pop_front().unwrap() - 'a') * 26 + (chars.pop_front().unwrap() - 'a');
     if a > b {
       (b, a) = (a, b)
     }
@@ -68,5 +69,8 @@ pub fn main(&io: &IO) {
     extend_clique(&graph, &best, [a], tips.to_list().map(fn((x, _)) { x }));
   }
 
-  io.println("Part 2: " ++ best.map(fn(x: N32) { ['a' + x / 26, 'a' + x % 26] }).join(","));
+  io.println("Part 2: " ++ best.map(fn(x: N32) {
+    let chars = ['a' + x / 26, 'a' + x % 26];
+    String({ chars })
+  }).join(","));
 }

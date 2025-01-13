@@ -1,5 +1,5 @@
 
-use std::map::{Cmp, Ord};
+use data::Map::{Cmp, Ord};
 
 pub type Pair[A, B] = (A, B);
 

@@ -1,5 +1,5 @@
 
-use std::{array::Array, option::Option::{Option, None, Some}, result::Result::{Result, Err, Ok}};
+use std::data::Array;
 
 const width: N32 = 11;
 const height: N32 = 7;
@@ -17,8 +17,8 @@ pub fn main(&io: &IO) {
     let px = N32::parse(px).unwrap();
     let py = N32::parse(py).unwrap();
     dyn fn parse_signed(x: String, m: N32) {
-      if *x.get(0) == '-' {
-        x.pop_front();
+      if *x.chars.get(0) == '-' {
+        x.chars.pop_front();
         m - N32::parse(x).unwrap()
       } else {
         N32::parse(x).unwrap()
@@ -62,7 +62,7 @@ pub fn main(&io: &IO) {
     if N32::parse(line) is Some(n) {
       i = n;
     }
-    let esc = [Char::from_n32(27)];
+    let esc = String({ chars: [Char::from_n32(27)] });
     io.println(esc ++ "[2J" ++ esc ++ "[H");
     let grid = Array::new(height, Array::new(width, '.'));
     let iter = robots.into_iter();
@@ -73,7 +73,7 @@ pub fn main(&io: &IO) {
     }
     let lines = grid.to_list();
     while lines.pop_front() is Some(line) {
-      io.println(line.to_list());
+      io.println(String({ chars: line.to_list() }));
     }
     io.println(i.to_string());
     i += 1;

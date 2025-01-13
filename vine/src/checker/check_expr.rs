@@ -418,7 +418,7 @@ impl<'core> Checker<'core, '_> {
       ExprKind::Char(_) => Type::Char,
       ExprKind::F32(_) => Type::F32,
       ExprKind::String(_) => {
-        report!(self.core; self.string.clone().ok_or(Diag::MissingBuiltin { span, builtin: "List" }))
+        report!(self.core; self.string.map(|d| Type::Adt(d, Vec::new())).ok_or(Diag::MissingBuiltin { span, builtin: "List" }))
       }
     }
   }
@@ -488,7 +488,7 @@ impl<'core> Checker<'core, '_> {
         self.concretize(&mut b);
         if self.unify(&mut a, &mut b) {
           if let Type::Adt(n, _) = a {
-            if Some(n) == self.list {
+            if Some(n) == self.list || Some(n) == self.string {
               return a;
             }
           }
