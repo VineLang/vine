@@ -1,5 +1,6 @@
 
 use data::Map::{Cmp, Ord};
+use unicode::ToString;
 
 pub type Pair[A, B] = (A, B);
 
@@ -16,7 +17,9 @@ pub mod Pair {
     )
   }
 
-  pub fn to_string[A, B](show_a: fn(A) -> String, show_b: fn(B) -> String) -> fn((A, B)) -> String {
-    (fn((a: A, b: B)) { "(" ++ show_a(a) ++ ", " ++ show_b(b) ++ ")" })
+  pub impl to_string[A, B; a_to_string: ToString[A], b_to_string: ToString[B]]: ToString[Pair[A, B]] {
+    fn to_string((a: A, b: B)) -> String {
+      "(" ++ ToString::to_string[; a_to_string](a) ++ ", " ++ ToString::to_string[; b_to_string](b) ++ ")"
+    }
   }
 }

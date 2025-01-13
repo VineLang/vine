@@ -1,5 +1,6 @@
 
 use data::Map::Ord;
+use unicode::ToString;
 
 pub struct N64(N32, N32);
 
@@ -159,17 +160,19 @@ pub mod N64 {
     }
   }
 
-  pub fn to_string(n: N64) -> String {
-    if !n.eq(N64::zero) {
-      let str = "";
-      while !n.eq(N64::zero) {
-        let (q, r) = N64::div_rem_n32(n, 10);
-        str = String({ chars: ['0' + r] }) ++ str;
-        n = q;
+  pub impl to_string: ToString[N64] {
+    fn to_string(n: N64) -> String {
+      if !n.eq(N64::zero) {
+        let str = "";
+        while !n.eq(N64::zero) {
+          let (q, r) = N64::div_rem_n32(n, 10);
+          str = String({ chars: ['0' + r] }) ++ str;
+          n = q;
+        }
+        str
+      } else {
+        "0"
       }
-      str
-    } else {
-      "0"
     }
   }
 

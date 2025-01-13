@@ -1,0 +1,4 @@
+
+pub trait ToString[T] {
+  fn to_string(self: T) -> String;
+}

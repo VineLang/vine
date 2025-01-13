@@ -1,20 +1,23 @@
 
 use data::Map::Ord;
+use unicode::ToString;
 
 #[builtin = "N32"]
 pub mod N32 {
   pub const maximum: N32 = 0xffffffff;
 
-  pub fn to_string(n: N32) -> String {
-    if n != 0 {
-      let chars = [];
-      while n != 0 {
-        chars = ['0' + n % 10] ++ chars;
-        n = n / 10;
+  pub impl to_string: ToString[N32] {
+    fn to_string(n: N32) -> String {
+      if n != 0 {
+        let chars = [];
+        while n != 0 {
+          chars = ['0' + n % 10] ++ chars;
+          n = n / 10;
+        }
+        String({ chars })
+      } else {
+        "0"
       }
-      String({ chars })
-    } else {
-      "0"
     }
   }
 
