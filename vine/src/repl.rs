@@ -186,7 +186,6 @@ impl<'core, 'ctx, 'ivm> Repl<'core, 'ctx, 'ivm> {
         let mut vir = normalize(&vir);
         analyze(&mut vir);
         // emitter.emit_vir(def.canonical.to_string(), &vir);
-        todo!()
       } else {
         emitter.emit_ivy(def);
       }
@@ -206,7 +205,6 @@ impl<'core, 'ctx, 'ivm> Repl<'core, 'ctx, 'ivm> {
       vir.interfaces[InterfaceId(0)].wires.insert(var.local, (Usage::Mut, Usage::Mut));
     }
     // emitter.emit_vir(name.clone(), &vir);
-    todo!();
 
     self.host.insert_nets(&emitter.nets);
 
