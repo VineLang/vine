@@ -1,4 +1,6 @@
 
+use unicode::ToString;
+
 pub type Cmp[K] = fn(&K, &K) -> Ord;
 
 pub enum Ord {
@@ -137,21 +139,25 @@ pub mod Map {
     node.to_list()
   }
 
-  pub fn to_string[K, V](&map: &Map[K, V], show_key: fn(K) -> String, show_value: fn(V) -> String) -> String {
-    let string = "";
-    let iter = map.iter();
-    let first = true;
-    while iter.next() is Some(&(key, value)) {
-      if !first {
-        string ++= ", ";
+  pub impl to_string[K, V; k_to_string: ToString[K], v_to_string: ToString[V]]: ToString[Map[K, V]] {
+    fn to_string(map: Map[K, V]) -> String {
+      let string = "";
+      let iter = map.into_iter();
+      let first = true;
+      while iter.next() is Some((key, value)) {
+        if !first {
+          string ++= ", ";
+        }
+        first = false;
+        let key = ToString::to_string[; k_to_string](key);
+        let value = ToString::to_string[; v_to_string](value);
+        string ++= key ++ ": " ++ value;
       }
-      first = false
-      string ++= show_key(key) ++ ": " ++ show_value(value);
-    }
-    if first {
-      "{}"
-    } else {
-      "{ " ++ string ++ " }"
+      if first {
+        "{}"
+      } else {
+        "{ " ++ string ++ " }"
+      }
     }
   }
 }

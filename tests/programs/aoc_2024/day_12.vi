@@ -1,5 +1,6 @@
 
 use std::data::Array;
+use std::unicode::ToString;
 
 pub fn main(&io: &IO) {
   let regions = Regions(Array::empty);
@@ -87,17 +88,21 @@ enum Region {
 }
 
 mod Region {
-  pub fn to_string(self: Region) -> String {
-    match self {
-      Region::Root(a, p) { "Root(" ++ a.to_string() ++ ", " ++ p.to_string() ++ ")" }
-      Region::Child(n) { "Child(" ++ n.to_string() ++ ")" }
+  pub impl to_string: ToString[Region] {
+    fn to_string(self: Region) -> String {
+      match self {
+        Region::Root(a, p) { "Root(" ++ a.to_string() ++ ", " ++ p.to_string() ++ ")" }
+        Region::Child(n) { "Child(" ++ n.to_string() ++ ")" }
+      }
     }
   }
 }
 
 mod Regions {
-  pub fn to_string(Regions(array)) -> String {
-    array.to_list().to_string(Region::to_string)
+  pub impl to_string: ToString[Regions] {
+    fn to_string(Regions(array)) -> String {
+      array.to_list().to_string[;Region::to_string]()
+    }
   }
 
   pub fn new(&Regions(array)) -> N32 {
