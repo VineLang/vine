@@ -9,7 +9,7 @@ use class::Classes;
 use ivy::ast::Net;
 use vine_util::{interner::Interned, new_idx};
 
-use crate::{diag::ErrorGuaranteed, resolver::DefId};
+use crate::{diag::ErrorGuaranteed, resolver::DefId, specializer::RelId};
 
 new_idx!(pub Local; n => ["l{n}"]);
 new_idx!(pub DynFnId; n => ["f{n}"]);
@@ -248,6 +248,8 @@ pub enum ExprKind<'core> {
   Paren(B<Expr<'core>>),
   #[class(value)]
   Path(GenericPath<'core>),
+  #[class(value, synthetic)]
+  Rel(RelId),
   #[class(place, resolved)]
   Local(Local),
   #[class(value, resolved)]

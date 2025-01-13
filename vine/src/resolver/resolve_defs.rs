@@ -368,7 +368,7 @@ impl<'core> VisitMut<'core, '_> for ResolveVisitor<'core, '_> {
     self._visit_type(ty);
   }
 
-  fn _visit_impl(&mut self, impl_: &mut Impl<'core>) {
+  fn visit_impl(&mut self, impl_: &mut Impl<'core>) {
     if let ImplKind::Path(path) = &mut impl_.kind {
       if path.generics.is_none() {
         if let Some(ident) = path.path.as_ident() {
@@ -383,6 +383,7 @@ impl<'core> VisitMut<'core, '_> for ResolveVisitor<'core, '_> {
         impl_.kind = ImplKind::Error(self.resolver.core.report(diag));
       }
     }
+    self._visit_impl(impl_);
   }
 }
 
