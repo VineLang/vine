@@ -15,7 +15,6 @@ pub mod Char {
       Ord::Eq
     }
   }
-<<<<<<< HEAD
 
   pub fn is_whitespace(char: Char) -> Bool {
     (char == ' ') | (char == '\t') | (char == '\n')
@@ -24,13 +23,10 @@ pub mod Char {
   pub fn is_alphanumeric(char: Char) -> Bool {
     ('a' <= char <= 'z') | ('A' <= char <= 'Z') | ('0' <= char <= '9')
   }
-||||||| parent of af9ff0f (ToString)
-=======
 
   pub impl to_string: ToString[Char] {
     fn to_string(self: Char) -> String {
       String({ chars: [self] })
     }
   }
->>>>>>> af9ff0f (ToString)
 }
