@@ -20,7 +20,7 @@
 
 ::std::data::List::concat { fn(tup(@add(w12 w20) tup(w8 w13)) fn(tup(w12 tup(w13 w23)) tup(w20 tup(w8 w23)))) }
 
-::std::numeric::N32::to_string { fn(dup1928(?(::std::numeric::N32::to_string::4 ::std::numeric::N32::to_string::3 x(w8 w7)) w8) w7) }
+::std::numeric::N32::to_string { fn(dup1872(?(::std::numeric::N32::to_string::4 ::std::numeric::N32::to_string::3 x(w8 w7)) w8) w7) }
 
 ::std::numeric::N32::to_string::3 {
   x(w6 w9)
@@ -29,10 +29,10 @@
 
 ::std::numeric::N32::to_string::4 { x(_ tup(1 tup(tup(48 w3) w3))) }
 
-::std::numeric::N32::to_string::5 { x(dup1938(?(::std::numeric::N32::to_string::7 ::std::numeric::N32::to_string::6 x(w6 w2)) w6) w2) }
+::std::numeric::N32::to_string::5 { x(dup1882(?(::std::numeric::N32::to_string::7 ::std::numeric::N32::to_string::6 x(w6 w2)) w6) w2) }
 
 ::std::numeric::N32::to_string::6 {
-  x(dup1941(@rem(10 w1) @div(10 w8)) x(w11 w15))
+  x(dup1885(@rem(10 w1) @div(10 w8)) x(w11 w15))
   48 = @add(w1 w2)
   ::std::data::List::concat = fn(tup(1 tup(tup(w2 w13) w13)) fn(w11 w5))
   ::std::numeric::N32::to_string::5 = x(w8 x(w5 w15))
@@ -53,7 +53,7 @@
 ::std::rng::Pcg32::new {
   fn(w2 fn(w3 tup(w17 w20)))
   ::std::numeric::N64::from_n32 = fn(1 w7)
-  ::std::numeric::N64::or = fn(w3 fn(w7 dup2526(w11 dup2526(w16 w20))))
+  ::std::numeric::N64::or = fn(w3 fn(w7 dup2470(w11 dup2470(w16 w20))))
   ::std::numeric::N64::add = fn(w2 fn(w11 w12))
   ::std::numeric::N64::mul = fn(w12 fn(::std::rng::Pcg32::multiplier w15))
   ::std::numeric::N64::add = fn(w15 fn(w16 w17))
@@ -67,7 +67,7 @@
 ::std::rng::Pcg32::multiplier { tup(1284865837 1481765933) }
 
 ::std::rng::Pcg32::gen_n32 {
-  fn(ref(tup(dup2534(tup(@n32_shr(27 w26) dup2537(@n32_shr(13 @n32_xor(w23 @n32_xor(w26 w27))) dup2537(@n32_shl(5 w23) @n32_shr(27 w29)))) w15) dup2535(w4 w17)) tup(w18 w4)) w30)
+  fn(ref(tup(dup2478(tup(@n32_shr(27 w26) dup2481(@n32_shr(13 @n32_xor(w23 @n32_xor(w26 w27))) dup2481(@n32_shl(5 w23) @n32_shr(27 w29)))) w15) dup2479(w4 w17)) tup(w18 w4)) w30)
   ::std::numeric::N64::mul = fn(w15 fn(::std::rng::Pcg32::multiplier w16))
   ::std::numeric::N64::add = fn(w16 fn(w17 w18))
   ::std::numeric::N32::rotate_right = fn(w27 fn(w29 w30))
@@ -84,7 +84,7 @@
   ::std::IO::print::2 = x(x(w3 w17) x(w9 w10))
 }
 
-::std::IO::print::2 { x(w4 x(dup2909(?(::std::IO::print::4 ::std::IO::print::3 x(w4 x(w6 w1))) w6) w1)) }
+::std::IO::print::2 { x(w4 x(dup2861(?(::std::IO::print::4 ::std::IO::print::3 x(w4 x(w6 w1))) w6) w1)) }
 
 ::std::IO::print::3 {
   x(x(w17 w21) x(@sub(1 w1) tup(w4 w5)))

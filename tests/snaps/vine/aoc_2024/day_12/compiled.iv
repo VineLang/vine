@@ -218,25 +218,25 @@
 
 ::std::data::Array::empty { tup(0 _) }
 
-::std::data::Array::len { fn(ref(tup(dup968(w12 w9) w10) tup(w9 w10)) w12) }
+::std::data::Array::len { fn(ref(tup(dup967(w12 w9) w10) tup(w9 w10)) w12) }
 
 ::std::data::Array::get {
-  fn(ref(tup(dup974(w2 w13) w5) tup(w2 w6)) fn(w10 w19))
+  fn(ref(tup(dup973(w2 w13) w5) tup(w2 w6)) fn(w10 w19))
   ::std::data::Array::get::2 = x(x(ref(w5 w6) w16) x(w10 w13))
   ::std::data::Array::Node::as_leaf = fn(w16 w19)
 }
 
-::std::data::Array::get::2 { x(w5 x(w3 dup985(@lt$(1 ?(::std::data::Array::get::4 ::std::data::Array::get::3 x(w5 x(w3 w6)))) w6))) }
+::std::data::Array::get::2 { x(w5 x(w3 dup984(@lt$(1 ?(::std::data::Array::get::4 ::std::data::Array::get::3 x(w5 x(w3 w6)))) w6))) }
 
 ::std::data::Array::get::3 {
-  x(x(w13 w17) x(dup989(@rem(2 w3) @div(2 w9)) w10))
+  x(x(w13 w17) x(dup988(@rem(2 w3) @div(2 w9)) w10))
   ::std::data::Array::Node::half = fn(w13 fn(w10 fn(w3 tup(w5 w6))))
   ::std::data::Array::get::2 = x(x(w5 w17) x(w9 w6))
 }
 
 ::std::data::Array::get::4 { x(x(w3 w3) _) }
 
-::std::data::Array::push_back { fn(ref(tup(dup995(?(::std::data::Array::push_back::4 ::std::data::Array::push_back::3 x(w20 x(ref(w5 w6) x(w10 _)))) dup995(w20 @add(1 w15))) w5) tup(w15 w6)) fn(w10 _)) }
+::std::data::Array::push_back { fn(ref(tup(dup994(?(::std::data::Array::push_back::4 ::std::data::Array::push_back::3 x(w20 x(ref(w5 w6) x(w10 _)))) dup994(w20 @add(1 w15))) w5) tup(w15 w6)) fn(w10 _)) }
 
 ::std::data::Array::push_back::3 {
   x(w14 x(w13 x(w12 _)))
@@ -249,10 +249,10 @@
   ::std::data::Array::Node::leaf = fn(w8 w5)
 }
 
-::std::data::Array::push_back::5 { x(w4 dup1016(@lt$(1 ?(::std::data::Array::push_back::7 ::std::data::Array::push_back::6 x(w4 w5))) w5)) }
+::std::data::Array::push_back::5 { x(w4 dup1015(@lt$(1 ?(::std::data::Array::push_back::7 ::std::data::Array::push_back::6 x(w4 w5))) w5)) }
 
 ::std::data::Array::push_back::6 {
-  x(x(w10 w13) dup1020(w1 @rem(2 w3)))
+  x(x(w10 w13) dup1019(w1 @rem(2 w3)))
   ::std::data::Array::Node::half = fn(w10 fn(w1 fn(w3 tup(w5 w6))))
   ::std::data::Array::push_back::5 = x(x(w5 w13) w6)
 }
@@ -279,7 +279,7 @@
 
 ::std::logical::Option::unwrap_or::6 { x(w1 w1) }
 
-::std::numeric::N32::to_string { fn(dup2363(?(::std::numeric::N32::to_string::4 ::std::numeric::N32::to_string::3 x(w8 w7)) w8) w7) }
+::std::numeric::N32::to_string { fn(dup2311(?(::std::numeric::N32::to_string::4 ::std::numeric::N32::to_string::3 x(w8 w7)) w8) w7) }
 
 ::std::numeric::N32::to_string::3 {
   x(w6 w9)
@@ -288,10 +288,10 @@
 
 ::std::numeric::N32::to_string::4 { x(_ tup(1 tup(tup(48 w3) w3))) }
 
-::std::numeric::N32::to_string::5 { x(dup2373(?(::std::numeric::N32::to_string::7 ::std::numeric::N32::to_string::6 x(w6 w2)) w6) w2) }
+::std::numeric::N32::to_string::5 { x(dup2321(?(::std::numeric::N32::to_string::7 ::std::numeric::N32::to_string::6 x(w6 w2)) w6) w2) }
 
 ::std::numeric::N32::to_string::6 {
-  x(dup2376(@rem(10 w1) @div(10 w8)) x(w11 w15))
+  x(dup2324(@rem(10 w1) @div(10 w8)) x(w11 w15))
   48 = @add(w1 w2)
   ::std::data::List::concat = fn(tup(1 tup(tup(w2 w13) w13)) fn(w11 w5))
   ::std::numeric::N32::to_string::5 = x(w8 x(w5 w15))
@@ -310,7 +310,7 @@
   ::std::IO::print::2 = x(x(w3 w17) x(w9 w10))
 }
 
-::std::IO::print::2 { x(w4 x(dup3344(?(::std::IO::print::4 ::std::IO::print::3 x(w4 x(w6 w1))) w6) w1)) }
+::std::IO::print::2 { x(w4 x(dup3300(?(::std::IO::print::4 ::std::IO::print::3 x(w4 x(w6 w1))) w6) w1)) }
 
 ::std::IO::print::3 {
   x(x(w17 w21) x(@sub(1 w1) tup(w4 w5)))
@@ -324,11 +324,11 @@
 
 ::std::IO::read_line {
   fn(ref(w3 w18) w15)
-  ::std::IO::read_byte = fn(ref(w3 w8) fn(0 dup3389(@ne(0 ?(::std::IO::read_line::4 ::std::IO::read_line::3 x(x(w8 w18) x(w16 w15)))) w16)))
+  ::std::IO::read_byte = fn(ref(w3 w8) fn(0 dup3345(@ne(0 ?(::std::IO::read_line::4 ::std::IO::read_line::3 x(x(w8 w18) x(w16 w15)))) w16)))
 }
 
 ::std::IO::read_line::3 {
-  x(w5 x(dup3396(@eq(10 ?(::std::IO::read_line::7 ::std::IO::read_line::6 x(w5 x(w9 w8)))) w9) w1))
+  x(w5 x(dup3352(@eq(10 ?(::std::IO::read_line::7 ::std::IO::read_line::6 x(w5 x(w9 w8)))) w9) w1))
   ::std::logical::Option::Some = fn(w8 w1)
 }
 
@@ -343,7 +343,7 @@
 
 ::std::IO::read_line::8 {
   x(x(w10 w18) w8)
-  ::std::IO::read_byte = fn(ref(w10 w1) fn(10 dup3413(@ne(10 ?(::std::IO::read_line::11 ::std::IO::read_line::10 x(x(w1 w18) x(w16 w8)))) w16)))
+  ::std::IO::read_byte = fn(ref(w10 w1) fn(10 dup3369(@ne(10 ?(::std::IO::read_line::11 ::std::IO::read_line::10 x(x(w1 w18) x(w16 w8)))) w16)))
 }
 
 ::std::IO::read_line::10 {

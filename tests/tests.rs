@@ -67,6 +67,7 @@ fn tests(t: &mut DynTester) {
     test_vi(t, "tests/programs/segmented_sieve.vi", b"", ".txt");
     test_vi(t, "tests/programs/sieve.vi", b"", ".txt");
     test_vi(t, "tests/programs/so_random.vi", b"", ".txt");
+    test_vi(t, "tests/programs/specializations.vi", b"", ".txt");
     test_vi(t, "tests/programs/square_case.vi", b"", ".txt");
     test_vi(t, "tests/programs/verbose_add.vi", b"", ".txt");
 

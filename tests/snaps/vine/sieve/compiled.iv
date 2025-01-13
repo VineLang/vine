@@ -42,29 +42,29 @@
 ::std::data::List::concat { fn(tup(@add(w12 w20) tup(w8 w13)) fn(tup(w12 tup(w13 w23)) tup(w20 tup(w8 w23)))) }
 
 ::std::data::Array::new {
-  fn(dup459(w6 w7) fn(w3 tup(w6 w9)))
+  fn(dup454(w6 w7) fn(w3 tup(w6 w9)))
   ::std::data::Array::Node::new = fn(w7 fn(w3 w9))
 }
 
 ::std::data::Array::get {
-  fn(ref(tup(dup569(w2 w13) w5) tup(w2 w6)) fn(w10 w19))
+  fn(ref(tup(dup564(w2 w13) w5) tup(w2 w6)) fn(w10 w19))
   ::std::data::Array::get::2 = x(x(ref(w5 w6) w16) x(w10 w13))
   ::std::data::Array::Node::as_leaf = fn(w16 w19)
 }
 
-::std::data::Array::get::2 { x(w5 x(w3 dup580(@lt$(1 ?(::std::data::Array::get::4 ::std::data::Array::get::3 x(w5 x(w3 w6)))) w6))) }
+::std::data::Array::get::2 { x(w5 x(w3 dup575(@lt$(1 ?(::std::data::Array::get::4 ::std::data::Array::get::3 x(w5 x(w3 w6)))) w6))) }
 
 ::std::data::Array::get::3 {
-  x(x(w13 w17) x(dup584(@rem(2 w3) @div(2 w9)) w10))
+  x(x(w13 w17) x(dup579(@rem(2 w3) @div(2 w9)) w10))
   ::std::data::Array::Node::half = fn(w13 fn(w10 fn(w3 tup(w5 w6))))
   ::std::data::Array::get::2 = x(x(w5 w17) x(w9 w6))
 }
 
 ::std::data::Array::get::4 { x(x(w3 w3) _) }
 
-::std::data::Array::pop_front { fn(ref(tup(dup703(?(::std::data::Array::pop_front::4 ::std::data::Array::pop_front::3 x(x(w16 w17) x(ref(w5 w6) w14))) w16) w5) tup(w17 w6)) w14) }
+::std::data::Array::pop_front { fn(ref(tup(dup698(?(::std::data::Array::pop_front::4 ::std::data::Array::pop_front::3 x(x(w16 w17) x(ref(w5 w6) w14))) w16) w5) tup(w17 w6)) w14) }
 
-::std::data::Array::pop_front::3 { x(x(dup709(@eq(1 ?(::std::data::Array::pop_front::6 ::std::data::Array::pop_front::5 x(x(w8 w9) w3))) w8) w9) w3) }
+::std::data::Array::pop_front::3 { x(x(dup704(@eq(1 ?(::std::data::Array::pop_front::6 ::std::data::Array::pop_front::5 x(x(w8 w9) w3))) w8) w9) w3) }
 
 ::std::data::Array::pop_front::4 {
   x(x(w3 w3) x(_ w5))
@@ -79,12 +79,12 @@
 }
 
 ::std::data::Array::pop_front::6 {
-  x(x(dup720(w0 @sub(1 w3)) w3) x(w6 w9))
+  x(x(dup715(w0 @sub(1 w3)) w3) x(w6 w9))
   ::std::data::Array::pop_front::7 = x(w6 x(w0 w9))
 }
 
 ::std::data::Array::pop_front::7 {
-  x(ref(w2 w38) x(@add(1 @div(2 dup727(@eq(1 ?(::std::data::Array::pop_front::10 ::std::data::Array::pop_front::9 x(ref(w18 w21) x(w39 x(x(w5 w38) x(x(w17 w36) w34)))))) w39))) w34))
+  x(ref(w2 w38) x(@add(1 @div(2 dup722(@eq(1 ?(::std::data::Array::pop_front::10 ::std::data::Array::pop_front::9 x(ref(w18 w21) x(w39 x(x(w5 w38) x(x(w17 w36) w34)))))) w39))) w34))
   ref(w2 w5) = ref(tup(w8 w10) tup(w36 w21))
   tup(w10 w8) = tup(w17 w18)
 }
@@ -108,7 +108,7 @@
 
 ::std::data::Array::Node::leaf { fn(x x) }
 
-::std::data::Array::Node::new { fn(dup762(@eq(1 ?(::std::data::Array::Node::new::4 ::std::data::Array::Node::new::3 x(w11 x(w3 w9)))) w11) fn(w3 w9)) }
+::std::data::Array::Node::new { fn(dup757(@eq(1 ?(::std::data::Array::Node::new::4 ::std::data::Array::Node::new::3 x(w11 x(w3 w9)))) w11) fn(w3 w9)) }
 
 ::std::data::Array::Node::new::3 {
   x(_ x(w3 w1))
@@ -116,7 +116,7 @@
 }
 
 ::std::data::Array::Node::new::4 {
-  x(dup770(@add(1 @div(2 w2)) @div(2 w6)) x(dup771(w3 w7) tup(w4 w8)))
+  x(dup765(@add(1 @div(2 w2)) @div(2 w6)) x(dup766(w3 w7) tup(w4 w8)))
   ::std::data::Array::Node::new = fn(w2 fn(w3 w4))
   ::std::data::Array::Node::new = fn(w6 fn(w7 w8))
 }
@@ -131,7 +131,7 @@
 
 ::std::logical::Option::None { enum(_ enum(r r)) }
 
-::std::numeric::N32::to_string { fn(dup1958(?(::std::numeric::N32::to_string::4 ::std::numeric::N32::to_string::3 x(w8 w7)) w8) w7) }
+::std::numeric::N32::to_string { fn(dup1902(?(::std::numeric::N32::to_string::4 ::std::numeric::N32::to_string::3 x(w8 w7)) w8) w7) }
 
 ::std::numeric::N32::to_string::3 {
   x(w6 w9)
@@ -140,10 +140,10 @@
 
 ::std::numeric::N32::to_string::4 { x(_ tup(1 tup(tup(48 w3) w3))) }
 
-::std::numeric::N32::to_string::5 { x(dup1968(?(::std::numeric::N32::to_string::7 ::std::numeric::N32::to_string::6 x(w6 w2)) w6) w2) }
+::std::numeric::N32::to_string::5 { x(dup1912(?(::std::numeric::N32::to_string::7 ::std::numeric::N32::to_string::6 x(w6 w2)) w6) w2) }
 
 ::std::numeric::N32::to_string::6 {
-  x(dup1971(@rem(10 w1) @div(10 w8)) x(w11 w15))
+  x(dup1915(@rem(10 w1) @div(10 w8)) x(w11 w15))
   48 = @add(w1 w2)
   ::std::data::List::concat = fn(tup(1 tup(tup(w2 w13) w13)) fn(w11 w5))
   ::std::numeric::N32::to_string::5 = x(w8 x(w5 w15))
@@ -162,7 +162,7 @@
   ::std::IO::print::2 = x(x(w3 w17) x(w9 w10))
 }
 
-::std::IO::print::2 { x(w4 x(dup2939(?(::std::IO::print::4 ::std::IO::print::3 x(w4 x(w6 w1))) w6) w1)) }
+::std::IO::print::2 { x(w4 x(dup2891(?(::std::IO::print::4 ::std::IO::print::3 x(w4 x(w6 w1))) w6) w1)) }
 
 ::std::IO::print::3 {
   x(x(w17 w21) x(@sub(1 w1) tup(w4 w5)))
