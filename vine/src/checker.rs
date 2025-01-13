@@ -381,6 +381,7 @@ impl<'core, 'r> Checker<'core, 'r> {
 
   fn check_impl_def(&mut self, def_id: DefId) {
     if let Some(impl_def) = self.resolver.defs[def_id].impl_def.take() {
+      self.generics.clone_from(&impl_def.type_params);
       if let Some((trait_id, trait_args)) = &impl_def.trait_ty {
         let trait_def = self.resolver.defs[*trait_id].trait_def.take().unwrap();
         for &(span, name, sub_id) in &impl_def.subitems {
@@ -399,6 +400,9 @@ impl<'core, 'r> Checker<'core, 'r> {
           } else {
             self.core.report(Diag::ExtraneousImplItem { span, name });
           }
+        }
+        if trait_def.subitems.len() > impl_def.subitems.len() {
+          self.core.report(Diag::IncompleteImpl { span: impl_def.span });
         }
         self.resolver.defs[*trait_id].trait_def = Some(trait_def);
       }

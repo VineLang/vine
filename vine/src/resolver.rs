@@ -134,6 +134,7 @@ pub enum TraitSubitem<'core> {
 #[derive(Debug)]
 pub struct ImplDef<'core> {
   pub vis: DefId,
+  pub span: Span,
   pub type_params: Vec<Ident<'core>>,
   pub impl_params: Vec<(Ident<'core>, GenericPath<'core>)>,
   pub impl_param_tys: Option<Vec<Type<'core>>>,

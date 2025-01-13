@@ -186,6 +186,8 @@ diags! {
     ["no item `{name}` exists in trait"]
   UnspecifiedImpl
     ["impl parameters must be explicitly specified"]
+  IncompleteImpl
+    ["not all trait items implemented"]
 }
 
 fn plural<'a>(n: usize, plural: &'a str, singular: &'a str) -> &'a str {

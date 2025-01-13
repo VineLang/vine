@@ -319,16 +319,32 @@ impl<'core: 'src, 'src> Formatter<'src> {
     fmt_t: impl Fn(&T) -> Doc<'src>,
     fmt_i: impl Fn(&I) -> Doc<'src>,
   ) -> Doc<'src> {
-    if generics.impls.is_empty() {
-      if generics.types.is_empty() {
-        Doc::EMPTY
-      } else {
-        Doc::bracket_comma(generics.types.iter().map(fmt_t))
-      }
-    } else if generics.types.is_empty() {
-      Doc::delimited("", "[;", "]", false, false, false, false, generics.impls.iter().map(fmt_i))
+    if generics.impls.is_empty() && generics.types.is_empty() {
+      Doc::EMPTY
     } else {
-      todo!()
+      let trailing = || Doc::if_multi(",");
+      let sep = || Doc::concat([Doc(","), Doc::soft_line(" ")]);
+      Doc::concat([
+        Doc("["),
+        if generics.types.is_empty() {
+          Doc::EMPTY
+        } else {
+          Doc::group([Doc::interleave(generics.types.iter().map(fmt_t), sep()), trailing()])
+        },
+        if generics.impls.is_empty() {
+          Doc::EMPTY
+        } else {
+          Doc::concat([
+            Doc(";"),
+            Doc::group([
+              Doc::if_single(" "),
+              Doc::interleave(generics.impls.iter().map(fmt_i), sep()),
+              trailing(),
+            ]),
+          ])
+        },
+        Doc("]"),
+      ])
     }
   }
 
