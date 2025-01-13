@@ -28,6 +28,7 @@ use crate::{
   normalizer::normalize,
   parser::VineParser,
   resolver::{DefId, Resolver},
+  specializer::specialize,
   vir::{InterfaceId, StageId},
 };
 
@@ -78,13 +79,14 @@ impl<'core, 'ctx, 'ivm> Repl<'core, 'ctx, 'ivm> {
 
     core.bail()?;
 
+    let specializations = specialize(&mut resolver);
     let mut distiller = Distiller::new(&resolver);
     let mut emitter = Emitter::new(&resolver);
-    for (_, def) in &resolver.defs {
+    for (def_id, def) in &resolver.defs {
       if let Some(vir) = distiller.distill(def) {
         let mut vir = normalize(&vir);
         analyze(&mut vir);
-        emitter.emit_vir(def.canonical.to_string(), &vir);
+        emitter.emit_vir(def.canonical.to_string(), &vir, &specializations[def_id]);
       } else {
         emitter.emit_ivy(def);
       }
@@ -183,7 +185,8 @@ impl<'core, 'ctx, 'ivm> Repl<'core, 'ctx, 'ivm> {
       if let Some(vir) = distiller.distill(def) {
         let mut vir = normalize(&vir);
         analyze(&mut vir);
-        emitter.emit_vir(def.canonical.to_string(), &vir);
+        // emitter.emit_vir(def.canonical.to_string(), &vir);
+        todo!()
       } else {
         emitter.emit_ivy(def);
       }
@@ -202,7 +205,8 @@ impl<'core, 'ctx, 'ivm> Repl<'core, 'ctx, 'ivm> {
     for var in self.vars.values() {
       vir.interfaces[InterfaceId(0)].wires.insert(var.local, (Usage::Mut, Usage::Mut));
     }
-    emitter.emit_vir(name.clone(), &vir);
+    // emitter.emit_vir(name.clone(), &vir);
+    todo!();
 
     self.host.insert_nets(&emitter.nets);
 

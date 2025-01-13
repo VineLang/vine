@@ -71,7 +71,8 @@ pub trait VisitMut<'core, 'a> {
       | ExprKind::Return(None)
       | ExprKind::Break(_, None)
       | ExprKind::SetLocal(_)
-      | ExprKind::HedgeLocal(_) => {}
+      | ExprKind::HedgeLocal(_)
+      | ExprKind::Rel(..) => {}
       ExprKind::Paren(a)
       | ExprKind::Ref(a, _)
       | ExprKind::Deref(a, _)

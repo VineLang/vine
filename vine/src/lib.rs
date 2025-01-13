@@ -12,6 +12,7 @@ pub mod normalizer;
 pub mod parser;
 pub mod repl;
 pub mod resolver;
+pub mod specializer;
 pub mod vir;
 pub mod visit;
 
@@ -19,6 +20,7 @@ use core::{Core, CoreArenas};
 use std::path::PathBuf;
 
 use ivy::ast::Nets;
+use specializer::specialize;
 
 use crate::{
   analyzer::analyze, ast::Path, checker::Checker, distiller::Distiller, emitter::Emitter,
@@ -57,14 +59,15 @@ pub fn compile(config: Config) -> Result<Nets, String> {
 
   core.bail()?;
 
+  let specializations = specialize(&mut resolver);
   let mut distiller = Distiller::new(&resolver);
   let mut emitter = Emitter::new(&resolver);
-  for (_, def) in &resolver.defs {
+  for (def_id, def) in &resolver.defs {
     if matches_filter(&def.canonical, &config.items) {
       if let Some(vir) = distiller.distill(def) {
         let mut vir = normalize(&vir);
         analyze(&mut vir);
-        emitter.emit_vir(def.canonical.to_string(), &vir);
+        emitter.emit_vir(def.canonical.to_string(), &vir, &specializations[def_id]);
       } else {
         emitter.emit_ivy(def);
       }

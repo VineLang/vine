@@ -1,4 +1,4 @@
-use std::{collections::BTreeMap, mem::take};
+use std::{collections::BTreeMap, fmt::Write, mem::take};
 
 use ivy::ast::{Net, Nets, Tree};
 use vine_util::idx::{Counter, IdxVec};
@@ -7,6 +7,7 @@ use crate::{
   analyzer::usage::Usage,
   ast::Local,
   resolver::{AdtDef, Def, Resolver, ValueDefKind, VariantDef},
+  specializer::{Spec, SpecId},
   vir::{
     Interface, InterfaceId, InterfaceKind, Invocation, Port, Stage, StageId, Step, Transfer, VIR,
   },
@@ -23,12 +24,14 @@ impl<'core, 'a> Emitter<'core, 'a> {
     Emitter { nets: Nets::default(), resolver, dup_labels: Counter::default() }
   }
 
-  pub fn emit_vir(&mut self, path: String, vir: &VIR) {
+  pub fn emit_vir(&mut self, path: String, vir: &VIR, specs: &IdxVec<SpecId, Spec>) {
     let mut emitter = VirEmitter {
       resolver: self.resolver,
       path,
       stages: &vir.stages,
       interfaces: &vir.interfaces,
+      specs,
+      spec_id: SpecId::default(),
       locals: BTreeMap::new(),
       pairs: Vec::new(),
       wire_offset: 0,
@@ -36,27 +39,23 @@ impl<'core, 'a> Emitter<'core, 'a> {
       dup_labels: self.dup_labels,
     };
 
-    for stage in vir.stages.values() {
-      let interface = &vir.interfaces[stage.interface];
-      if interface.incoming != 0 && !interface.inline() {
-        emitter.wire_offset = 0;
-        emitter.wires.0 = stage.wires.0 .0;
-        let root = emitter.emit_interface(interface, true);
-        let root =
-          Tree::n_ary("enum", stage.header.iter().map(|p| emitter.emit_port(p)).chain([root]));
-        emitter._emit_stage(stage);
-        for (_, local) in take(&mut emitter.locals) {
-          emitter.finish_local(local);
+    for spec_id in specs.keys() {
+      emitter.spec_id = spec_id;
+      for stage in vir.stages.values() {
+        let interface = &vir.interfaces[stage.interface];
+        if interface.incoming != 0 && !interface.inline() {
+          emitter.wire_offset = 0;
+          emitter.wires.0 = stage.wires.0 .0;
+          let root = emitter.emit_interface(interface, true);
+          let root =
+            Tree::n_ary("enum", stage.header.iter().map(|p| emitter.emit_port(p)).chain([root]));
+          emitter._emit_stage(stage);
+          for (_, local) in take(&mut emitter.locals) {
+            emitter.finish_local(local);
+          }
+          let net = Net { root, pairs: take(&mut emitter.pairs) };
+          self.nets.insert(emitter.stage_name(stage.id), net);
         }
-        let net = Net { root, pairs: take(&mut emitter.pairs) };
-        self.nets.insert(
-          if stage.id.0 == 0 {
-            emitter.path.clone()
-          } else {
-            format!("{}::{}", emitter.path, stage.id.0)
-          },
-          net,
-        );
       }
     }
 
@@ -66,7 +65,7 @@ impl<'core, 'a> Emitter<'core, 'a> {
   pub fn emit_ivy(&mut self, def: &Def<'core>) {
     if let Some(value_def) = &def.value_def {
       match &value_def.kind {
-        ValueDefKind::Expr(_) => {}
+        ValueDefKind::Expr(_) | ValueDefKind::TraitSubitem(..) => {}
         ValueDefKind::Ivy(net) => {
           self.nets.insert(def.canonical.to_string(), net.clone());
         }
@@ -85,7 +84,6 @@ impl<'core, 'a> Emitter<'core, 'a> {
           );
           self.nets.insert(def.canonical.to_string(), Net { root, pairs: Vec::new() });
         }
-        ValueDefKind::TraitSubitem(..) => todo!(),
       }
     }
   }
@@ -96,6 +94,8 @@ struct VirEmitter<'core, 'a> {
   path: String,
   stages: &'a IdxVec<StageId, Stage>,
   interfaces: &'a IdxVec<InterfaceId, Interface>,
+  specs: &'a IdxVec<SpecId, Spec>,
+  spec_id: SpecId,
   locals: BTreeMap<Local, LocalState>,
   pairs: Vec<(Tree, Tree)>,
   wire_offset: usize,
@@ -234,8 +234,8 @@ impl<'core, 'a> VirEmitter<'core, 'a> {
     )
   }
 
-  fn emit_stage_node(&self, stage: StageId) -> Tree {
-    Tree::Global(format!("{}::{}", self.path, stage.0))
+  fn emit_stage_node(&self, stage_id: StageId) -> Tree {
+    Tree::Global(self.stage_name(stage_id))
   }
 
   fn local(&mut self, local: Local) -> &mut LocalState {
@@ -244,7 +244,8 @@ impl<'core, 'a> VirEmitter<'core, 'a> {
 
   fn emit_step(&mut self, step: &Step) {
     let wire_offset = self.wire_offset;
-    let emit_port = |p| Self::_emit_port(wire_offset, self.resolver, p);
+    let spec_id = self.spec_id;
+    let emit_port = |p| Self::_emit_port(wire_offset, self.resolver, &self.specs[spec_id], p);
     match step {
       Step::Invoke(local, invocation) => match invocation {
         Invocation::Erase => self.local(*local).erase(),
@@ -297,16 +298,21 @@ impl<'core, 'a> VirEmitter<'core, 'a> {
   }
 
   fn emit_port(&self, port: &Port) -> Tree {
-    Self::_emit_port(self.wire_offset, self.resolver, port)
+    Self::_emit_port(self.wire_offset, self.resolver, &self.specs[self.spec_id], port)
   }
 
-  fn _emit_port(wire_offset: usize, resolver: &Resolver, port: &Port) -> Tree {
+  fn _emit_port(wire_offset: usize, resolver: &Resolver, spec: &Spec, port: &Port) -> Tree {
     match port {
       Port::Erase => Tree::Erase,
       Port::N32(n) => Tree::N32(*n),
       Port::F32(f) => Tree::F32(*f),
       Port::Wire(w) => Tree::Var(format!("w{}", wire_offset + w.0)),
       Port::Const(def) => Tree::Global(resolver.defs[*def].canonical.to_string()),
+      Port::Rel(rel) => {
+        let (def, spec, singular) = spec.rels[*rel];
+        let path = &resolver.defs[def].canonical;
+        Tree::Global(if singular { path.to_string() } else { format!("{}::{}", path, spec.0) })
+      }
     }
   }
 
@@ -323,6 +329,17 @@ impl<'core, 'a> VirEmitter<'core, 'a> {
   fn new_wire(&mut self) -> (Tree, Tree) {
     let label = format!("w{}", self.wires.next());
     (Tree::Var(label.clone()), Tree::Var(label))
+  }
+
+  fn stage_name(&self, stage_id: StageId) -> String {
+    let mut name = self.path.clone();
+    if !self.specs[self.spec_id].singular {
+      write!(name, "::{}", self.spec_id.0).unwrap();
+    }
+    if stage_id.0 != 0 {
+      write!(name, "::{}", stage_id.0).unwrap();
+    }
+    name
   }
 }
 

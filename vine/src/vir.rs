@@ -11,6 +11,7 @@ use crate::{
   analyzer::{usage::Usage, UsageVar},
   ast::Local,
   resolver::DefId,
+  specializer::RelId,
 };
 
 new_idx!(pub LayerId; n => ["L{n}"]);
@@ -164,6 +165,7 @@ impl Invocation {
 pub enum Port {
   Erase,
   Const(DefId),
+  Rel(RelId),
   N32(u32),
   F32(f32),
   Wire(WireId),
