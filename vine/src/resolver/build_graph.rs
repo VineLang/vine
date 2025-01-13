@@ -258,7 +258,7 @@ impl<'core> Resolver<'core> {
             vis,
             type_params: generics.clone(),
             impl_params: Vec::new(),
-            impl_param_tys: Some(vec![Type::Adt(
+            impl_param_tys: Some(vec![Type::Trait(
               def,
               (0..generics.len()).map(Type::Opaque).collect(),
             )]),

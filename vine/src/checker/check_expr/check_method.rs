@@ -148,7 +148,7 @@ impl<'core> Checker<'core, '_> {
       | Type::Inverse(_)
       | Type::Opaque(_)
       | Type::Never => None,
-      Type::Var(_) => unreachable!(),
+      Type::Var(_) | Type::Trait(..) => unreachable!(),
       Type::Error(e) => Err(*e)?,
     })
   }

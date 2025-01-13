@@ -73,20 +73,13 @@ impl<'core> Checker<'core, '_> {
         *str += "~";
         self._display_type(ty, str)
       }
-      Type::Adt(n, gens) => {
+      Type::Adt(n, params) => {
         write!(str, "{}", self.resolver.defs[*n].canonical.segments.last().unwrap()).unwrap();
-        if !gens.is_empty() {
-          *str += "[";
-          let mut first = true;
-          for t in gens {
-            if !first {
-              *str += ", ";
-            }
-            self._display_type(t, str);
-            first = false;
-          }
-          *str += "]";
-        }
+        self._display_type_params(str, params);
+      }
+      Type::Trait(n, params) => {
+        write!(str, "{}", self.resolver.defs[*n].canonical.segments.last().unwrap()).unwrap();
+        self._display_type_params(str, params);
       }
       Type::Opaque(n) => *str += self.generics[*n].0 .0,
       Type::Var(v) => match &self.state.vars[*v] {
@@ -95,6 +88,21 @@ impl<'core> Checker<'core, '_> {
       },
       Type::Never => *str += "!",
       Type::Error(_) => *str += "??",
+    }
+  }
+
+  fn _display_type_params(&self, str: &mut String, params: &[Type<'core>]) {
+    if !params.is_empty() {
+      *str += "[";
+      let mut first = true;
+      for t in params {
+        if !first {
+          *str += ", ";
+        }
+        self._display_type(t, str);
+        first = false;
+      }
+      *str += "]";
     }
   }
 }

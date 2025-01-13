@@ -116,7 +116,7 @@ impl<'core> Checker<'core, '_> {
     let ty = impl_def
       .trait_ty
       .clone()
-      .map(|(a, b)| Type::Adt(a, b))
+      .map(|(a, b)| Type::Trait(a, b))
       .unwrap_or(Type::Error(ErrorGuaranteed::new_unchecked()))
       .instantiate(&type_params);
     Ok(ty)

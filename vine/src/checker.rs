@@ -312,7 +312,7 @@ impl<'core, 'r> Checker<'core, 'r> {
                   let trait_def = self.resolver.defs[trait_id].trait_def.take().unwrap();
                   let trait_args = self.hydrate_generics(trait_, trait_def.generics, false);
                   self.resolver.defs[trait_id].trait_def = Some(trait_def);
-                  Type::Adt(trait_id, trait_args)
+                  Type::Trait(trait_id, trait_args)
                 })
                 .unwrap_or(Type::Error(ErrorGuaranteed::new_unchecked()))
             })
@@ -363,7 +363,7 @@ impl<'core, 'r> Checker<'core, 'r> {
                 let trait_def = self.resolver.defs[trait_id].trait_def.take().unwrap();
                 let trait_args = self.hydrate_generics(trait_, trait_def.generics, false);
                 self.resolver.defs[trait_id].trait_def = Some(trait_def);
-                Type::Adt(trait_id, trait_args)
+                Type::Trait(trait_id, trait_args)
               })
               .unwrap_or(Type::Error(ErrorGuaranteed::new_unchecked()))
           })
@@ -473,6 +473,7 @@ pub enum Type<'core> {
   Ref(Box<Type<'core>>),
   Inverse(Box<Type<'core>>),
   Adt(DefId, Vec<Type<'core>>),
+  Trait(DefId, Vec<Type<'core>>),
   Opaque(usize),
   Var(Var),
   Never,
@@ -500,6 +501,9 @@ impl<'core> Type<'core> {
       Type::Ref(t) => Type::Ref(Box::new(t.instantiate(opaque))),
       Type::Inverse(t) => Type::Inverse(Box::new(t.instantiate(opaque))),
       Type::Adt(def, tys) => Type::Adt(*def, tys.iter().map(|t| t.instantiate(opaque)).collect()),
+      Type::Trait(def, tys) => {
+        Type::Trait(*def, tys.iter().map(|t| t.instantiate(opaque)).collect())
+      }
       Type::Opaque(n) => opaque[*n].clone(),
       Type::Error(e) => Type::Error(*e),
       Type::Never => Type::Never,

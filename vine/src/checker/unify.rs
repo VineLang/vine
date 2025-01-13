@@ -93,7 +93,9 @@ impl<'core> Checker<'core, '_> {
         success &= self._unify(a, b, i, j);
         success
       }
-      (Type::Adt(n, a), Type::Adt(m, b)) if n == m && i == j => {
+      (Type::Adt(n, a), Type::Adt(m, b)) | (Type::Trait(n, a), Type::Trait(m, b))
+        if n == m && i == j =>
+      {
         let mut success = true;
         for (a, b) in a.iter_mut().zip(b) {
           success &= self._unify(a, b, i, j);
