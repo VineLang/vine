@@ -141,6 +141,7 @@ impl<'core> Checker<'core, '_> {
     if path.generics.as_ref().is_some_and(|g| !g.impls.is_empty()) {
       self.core.report(Diag::UnexpectedImplArgs { span });
     }
+    // dbg!(&path);
     let def_id = path.path.resolved.unwrap();
     let def = &self.resolver.defs[def_id];
     let Some(type_def) = &def.type_def else {

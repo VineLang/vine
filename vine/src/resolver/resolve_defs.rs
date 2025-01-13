@@ -111,6 +111,7 @@ impl<'core> Resolver<'core> {
         }
         visitor.type_params = take(&mut impl_def.type_params);
         visitor.visit_impl_params(&mut impl_def.impl_params);
+        visitor.visit_trait(&mut impl_def.trait_);
         impl_def.type_params = take(&mut visitor.type_params);
       }
 
@@ -371,7 +372,8 @@ impl<'core> VisitMut<'core, '_> for ResolveVisitor<'core, '_> {
     if let ImplKind::Path(path) = &mut impl_.kind {
       if path.generics.is_none() {
         if let Some(ident) = path.path.as_ident() {
-          if let Some((i, _)) = self.type_params.iter().enumerate().find(|(_, &g)| g == ident) {
+          if let Some((i, _)) = self.impl_params.iter().enumerate().find(|(_, &(g, _))| g == ident)
+          {
             impl_.kind = ImplKind::Param(i);
             return;
           }
@@ -438,11 +440,15 @@ impl<'core> ResolveVisitor<'core, '_> {
 
   fn visit_impl_params(&mut self, impl_params: &mut [(Ident<'core>, GenericPath<'core>)]) {
     for (_, path) in impl_params {
-      if let Err(diag) = self.visit_path(path) {
-        self.resolver.core.report(diag);
-      }
-      self.visit_generic_path(path);
+      self.visit_trait(path);
     }
+  }
+
+  fn visit_trait(&mut self, path: &mut GenericPath<'core>) {
+    if let Err(diag) = self.visit_path(path) {
+      self.resolver.core.report(diag);
+    }
+    self.visit_generic_path(path);
   }
 
   fn bind_label(&mut self, label: &mut Label<'core>, cont: bool, f: impl FnOnce(&mut Self)) {

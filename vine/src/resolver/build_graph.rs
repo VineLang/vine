@@ -306,6 +306,7 @@ impl<'core> Resolver<'core> {
         }
         def.impl_def = Some(ImplDef {
           vis,
+          span,
           type_params: i.generics.types,
           impl_params: i.generics.impls,
           impl_param_tys: None,
