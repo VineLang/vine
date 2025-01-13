@@ -116,4 +116,10 @@ pub mod String {
     }
     out
   }
+
+  pub impl to_string: ToString[String] {
+    fn to_string(self: String) -> String {
+      self
+    }
+  }
 }

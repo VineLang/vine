@@ -9,7 +9,7 @@ use class::Classes;
 use ivy::ast::Net;
 use vine_util::{interner::Interned, new_idx};
 
-use crate::{diag::ErrorGuaranteed, resolver::DefId};
+use crate::{diag::ErrorGuaranteed, resolver::DefId, specializer::RelId};
 
 new_idx!(pub Local; n => ["l{n}"]);
 new_idx!(pub DynFnId; n => ["f{n}"]);
@@ -30,6 +30,8 @@ pub enum ItemKind<'core> {
   Enum(Enum<'core>),
   Type(TypeItem<'core>),
   Mod(ModItem<'core>),
+  Trait(TraitItem<'core>),
+  Impl(ImplItem<'core>),
   Use(UseItem<'core>),
   Ivy(InlineIvy<'core>),
   #[default]
@@ -39,31 +41,31 @@ pub enum ItemKind<'core> {
 #[derive(Debug, Clone)]
 pub struct FnItem<'core> {
   pub name: Ident<'core>,
-  pub generics: Vec<Ident<'core>>,
+  pub generics: GenericParams<'core>,
   pub params: Vec<Pat<'core>>,
   pub ret: Option<Ty<'core>>,
-  pub body: Block<'core>,
+  pub body: Option<Block<'core>>,
 }
 
 #[derive(Debug, Clone)]
 pub struct ConstItem<'core> {
   pub name: Ident<'core>,
-  pub generics: Vec<Ident<'core>>,
+  pub generics: GenericParams<'core>,
   pub ty: Ty<'core>,
-  pub value: Expr<'core>,
+  pub value: Option<Expr<'core>>,
 }
 
 #[derive(Debug, Clone)]
 pub struct TypeItem<'core> {
   pub name: Ident<'core>,
-  pub generics: Vec<Ident<'core>>,
+  pub generics: GenericParams<'core>,
   pub ty: Ty<'core>,
 }
 
 #[derive(Debug, Clone)]
 pub struct StructItem<'core> {
   pub name: Ident<'core>,
-  pub generics: Vec<Ident<'core>>,
+  pub generics: GenericParams<'core>,
   pub fields: Vec<Ty<'core>>,
   pub object: bool,
 }
@@ -71,7 +73,7 @@ pub struct StructItem<'core> {
 #[derive(Debug, Clone)]
 pub struct Enum<'core> {
   pub name: Ident<'core>,
-  pub generics: Vec<Ident<'core>>,
+  pub generics: GenericParams<'core>,
   pub variants: Vec<Variant<'core>>,
 }
 
@@ -92,6 +94,21 @@ pub enum ModKind<'core> {
   Loaded(Span, Vec<Item<'core>>),
   Unloaded(Span, PathBuf),
   Error(ErrorGuaranteed),
+}
+
+#[derive(Debug, Clone)]
+pub struct TraitItem<'core> {
+  pub name: Ident<'core>,
+  pub generics: GenericParams<'core>,
+  pub items: Vec<Item<'core>>,
+}
+
+#[derive(Debug, Clone)]
+pub struct ImplItem<'core> {
+  pub name: Ident<'core>,
+  pub generics: GenericParams<'core>,
+  pub trait_: GenericPath<'core>,
+  pub items: Vec<Item<'core>>,
 }
 
 #[derive(Debug, Clone)]
@@ -116,7 +133,7 @@ impl<'core> UseTree<'core> {
 #[derive(Debug, Clone)]
 pub struct InlineIvy<'core> {
   pub name: Ident<'core>,
-  pub generics: Vec<Ident<'core>>,
+  pub generics: GenericParams<'core>,
   pub ty: Ty<'core>,
   pub net: Net,
 }
@@ -151,6 +168,21 @@ pub enum Builtin {
   List,
   String,
   Concat,
+}
+
+pub type GenericParams<'core> = Generics<Ident<'core>, (Ident<'core>, GenericPath<'core>)>;
+pub type GenericArgs<'core> = Generics<Ty<'core>, Impl<'core>>;
+
+#[derive(Debug, Clone)]
+pub struct Generics<T, I> {
+  pub types: Vec<T>,
+  pub impls: Vec<I>,
+}
+
+impl<T, I> Default for Generics<T, I> {
+  fn default() -> Self {
+    Self { types: Default::default(), impls: Default::default() }
+  }
 }
 
 #[derive(Default, Debug, Clone, PartialEq, Eq)]
@@ -216,6 +248,8 @@ pub enum ExprKind<'core> {
   Paren(B<Expr<'core>>),
   #[class(value)]
   Path(GenericPath<'core>),
+  #[class(value, synthetic)]
+  Rel(RelId),
   #[class(place, resolved)]
   Local(Local),
   #[class(value, resolved)]
@@ -363,7 +397,7 @@ pub enum PatKind<'core> {
 pub struct GenericPath<'core> {
   pub span: Span,
   pub path: Path<'core>,
-  pub generics: Option<Vec<Ty<'core>>>,
+  pub generics: Option<GenericArgs<'core>>,
 }
 
 #[derive(Clone)]
@@ -382,7 +416,21 @@ pub enum TyKind<'core> {
   Ref(B<Ty<'core>>),
   Inverse(B<Ty<'core>>),
   Path(GenericPath<'core>),
-  Generic(usize),
+  Param(usize),
+  Error(ErrorGuaranteed),
+}
+
+#[derive(Clone)]
+pub struct Impl<'core> {
+  pub span: Span,
+  pub kind: ImplKind<'core>,
+}
+
+#[derive(Debug, Clone)]
+pub enum ImplKind<'core> {
+  Hole,
+  Param(usize),
+  Path(GenericPath<'core>),
   Error(ErrorGuaranteed),
 }
 
@@ -544,7 +592,7 @@ macro_rules! debug_kind {
   )*};
 }
 
-debug_kind!(Item<'_>, Attr, Stmt<'_>, Expr<'_>, Pat<'_>, Ty<'_>);
+debug_kind!(Item<'_>, Attr, Stmt<'_>, Expr<'_>, Pat<'_>, Ty<'_>, Impl<'_>);
 
 impl From<ErrorGuaranteed> for ExprKind<'_> {
   fn from(value: ErrorGuaranteed) -> Self {

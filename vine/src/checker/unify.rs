@@ -86,6 +86,7 @@ impl<'core> Checker<'core, '_> {
       (Type::Ref(a), Type::Ref(b)) if i == j => self._unify(a, b, i, j),
       (Type::Fn(x, a), Type::Fn(y, b)) if i == j => {
         let mut success = true;
+        success &= x.len() == y.len();
         for (x, y) in x.iter_mut().zip(y) {
           success &= self._unify(x, y, i, j);
         }

@@ -112,6 +112,10 @@ pub enum Token {
   Type,
   #[token("inline_ivy")]
   InlineIvy,
+  #[token("trait")]
+  Trait,
+  #[token("impl")]
+  Impl,
   #[token("match")]
   Match,
   #[token("move")]

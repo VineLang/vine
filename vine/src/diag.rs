@@ -108,8 +108,10 @@ diags! {
     ["no type associated with `{path}`"]
   PathNoPat { path: Path<'core> }
     ["no pattern associated with `{path}`"]
-  BadGenericCount { path: Path<'core>, expected: usize, got: usize }
-    ["`{path}` expects {expected} generic{}; was passed {got}", plural(*expected, "s", "")]
+  PathNoImpl { path: Path<'core> }
+    ["no impl associated with `{path}`"]
+  BadGenericCount { path: Path<'core>, expected: usize, got: usize, kind: &'static str }
+    ["`{path}` expects {expected} {kind} parameter{}; was passed {got}", plural(*expected, "s", "")]
   BadFieldCount { path: Path<'core>, expected: usize, got: usize }
     ["`{path}` has {expected} field{}; {got} {} matched", plural(*expected, "s", ""), plural(*got, "were", "was")]
   MissingTupleField { ty: String, i: usize }
@@ -154,10 +156,38 @@ diags! {
     ["the type `{path}` is only visible within `{vis}`"]
   PatInvisible { path: Path<'core>, vis: Path<'core> }
     ["the pattern `{path}` is only visible within `{vis}`"]
+  ImplInvisible { path: Path<'core>, vis: Path<'core> }
+    ["the impl `{path}` is only visible within `{vis}`"]
   VisibleSubitem
     ["subitems must be private"]
   DuplicateKey
     ["duplicate object key"]
+  MissingImplementation
+    ["missing implementation"]
+  UnexpectedImplParam { kind: &'static str }
+    ["{kind} items cannot have impl parameters"]
+  InvalidTraitItem
+    ["invalid trait item"]
+  InvalidImplItem
+    ["invalid impl item"]
+  TraitItemVis
+    ["trait items cannot have visibility"]
+  ImplItemVis
+    ["impl items cannot have visibility"]
+  TraitItemGen
+    ["trait items cannot have generics"]
+  ImplItemGen
+    ["impl items cannot have generics"]
+  ImplementedTraitItem
+    ["trait items cannot have implementations"]
+  UnexpectedImplArgs
+    ["impl arguments are not allowed in types or patterns"]
+  ExtraneousImplItem { name: Ident<'core> }
+    ["no item `{name}` exists in trait"]
+  UnspecifiedImpl
+    ["impl parameters must be explicitly specified"]
+  IncompleteImpl
+    ["not all trait items implemented"]
 }
 
 fn plural<'a>(n: usize, plural: &'a str, singular: &'a str) -> &'a str {

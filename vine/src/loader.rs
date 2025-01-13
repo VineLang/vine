@@ -8,8 +8,8 @@ use std::{
 
 use crate::{
   ast::{
-    self, ConstItem, Expr, ExprKind, GenericPath, Ident, Item, ItemKind, ModItem, ModKind, Span,
-    Ty, TyKind, Vis,
+    self, ConstItem, Expr, ExprKind, GenericParams, GenericPath, Ident, Item, ItemKind, ModItem,
+    ModKind, Span, Ty, TyKind, Vis,
   },
   core::Core,
   diag::{Diag, FileInfo},
@@ -42,7 +42,7 @@ impl<'core> Loader<'core> {
       attrs: Vec::new(),
       kind: ItemKind::Const(ConstItem {
         name: main,
-        generics: Vec::new(),
+        generics: GenericParams::default(),
         ty: Ty {
           span: Span::NONE,
           kind: TyKind::Fn(
@@ -60,7 +60,7 @@ impl<'core> Loader<'core> {
             None,
           ),
         },
-        value: Expr {
+        value: Some(Expr {
           span: Span::NONE,
           kind: ExprKind::Path(ast::GenericPath {
             span: Span::NONE,
@@ -71,7 +71,7 @@ impl<'core> Loader<'core> {
             },
             generics: None,
           }),
-        },
+        }),
       }),
     });
     self.load_mod(path)

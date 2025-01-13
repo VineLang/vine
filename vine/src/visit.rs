@@ -1,7 +1,7 @@
 use crate::{
   ast::{
-    Block, Expr, ExprKind, GenericPath, Item, ItemKind, ModKind, Pat, PatKind, Stmt, StmtKind, Ty,
-    TyKind,
+    Block, Expr, ExprKind, GenericPath, Impl, ImplKind, Item, ItemKind, ModKind, Pat, PatKind,
+    Stmt, StmtKind, Ty, TyKind,
   },
   resolver::{Def, ValueDefKind},
 };
@@ -32,6 +32,10 @@ pub trait VisitMut<'core, 'a> {
 
   fn visit_type(&mut self, ty: &'a mut Ty<'core>) {
     self._visit_type(ty);
+  }
+
+  fn visit_impl(&mut self, ty: &'a mut Impl<'core>) {
+    self._visit_impl(ty);
   }
 
   fn visit_stmt(&mut self, stmt: &'a mut Stmt<'core>) {
@@ -67,7 +71,8 @@ pub trait VisitMut<'core, 'a> {
       | ExprKind::Return(None)
       | ExprKind::Break(_, None)
       | ExprKind::SetLocal(_)
-      | ExprKind::HedgeLocal(_) => {}
+      | ExprKind::HedgeLocal(_)
+      | ExprKind::Rel(..) => {}
       ExprKind::Paren(a)
       | ExprKind::Ref(a, _)
       | ExprKind::Deref(a, _)
@@ -197,7 +202,7 @@ pub trait VisitMut<'core, 'a> {
 
   fn _visit_type(&mut self, ty: &'a mut Ty<'core>) {
     match &mut ty.kind {
-      TyKind::Hole | TyKind::Generic(_) => {}
+      TyKind::Hole | TyKind::Param(_) => {}
       TyKind::Paren(t) | TyKind::Ref(t) | TyKind::Inverse(t) => self.visit_type(t),
       TyKind::Path(p) => self.visit_generic_path(p),
       TyKind::Tuple(a) => {
@@ -219,6 +224,13 @@ pub trait VisitMut<'core, 'a> {
         }
       }
       TyKind::Error(_) => {}
+    }
+  }
+
+  fn _visit_impl(&mut self, impl_: &'a mut Impl<'core>) {
+    match &mut impl_.kind {
+      ImplKind::Hole | ImplKind::Param(_) | ImplKind::Error(_) => {}
+      ImplKind::Path(p) => self.visit_generic_path(p),
     }
   }
 
@@ -259,11 +271,11 @@ pub trait VisitMut<'core, 'a> {
         if let Some(ty) = &mut f.ret {
           self.visit_type(ty);
         }
-        self.visit_block(&mut f.body);
+        self.visit(&mut f.body);
       }
       ItemKind::Const(c) => {
         self.visit_type(&mut c.ty);
-        self.visit_expr(&mut c.value);
+        self.visit(&mut c.value);
       }
       ItemKind::Mod(m) => match &mut m.kind {
         ModKind::Loaded(_, items) => {
@@ -288,6 +300,12 @@ pub trait VisitMut<'core, 'a> {
       ItemKind::Type(t) => {
         self.visit_type(&mut t.ty);
       }
+      ItemKind::Trait(t) => {
+        self.visit(&mut t.items);
+      }
+      ItemKind::Impl(t) => {
+        self.visit(&mut t.items);
+      }
       ItemKind::Use(..) | ItemKind::Ivy(_) | ItemKind::Taken => {}
     }
   }
@@ -302,8 +320,11 @@ pub trait VisitMut<'core, 'a> {
 
   fn _visit_generic_path(&mut self, path: &'a mut GenericPath<'core>) {
     if let Some(args) = &mut path.generics {
-      for t in args {
+      for t in &mut args.types {
         self.visit_type(t)
+      }
+      for i in &mut args.impls {
+        self.visit_impl(i)
       }
     }
   }
@@ -338,6 +359,12 @@ impl<'core: 't, 't> Visitee<'core, 't> for &'t mut Pat<'core> {
 impl<'core: 't, 't> Visitee<'core, 't> for &'t mut Ty<'core> {
   fn visit(self, visitor: &mut (impl VisitMut<'core, 't> + ?Sized)) {
     visitor.visit_type(self)
+  }
+}
+
+impl<'core: 't, 't> Visitee<'core, 't> for &'t mut Impl<'core> {
+  fn visit(self, visitor: &mut (impl VisitMut<'core, 't> + ?Sized)) {
+    visitor.visit_impl(self)
   }
 }
 

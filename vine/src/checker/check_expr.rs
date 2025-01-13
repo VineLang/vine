@@ -198,7 +198,7 @@ impl<'core> Checker<'core, '_> {
           fields.iter_mut().map(|x| self.check_expr(x)).collect::<(Vec<_>, Vec<_>)>();
         let variant = self.resolver.defs[variant_id].variant_def.as_ref().unwrap();
         let adt_id = variant.adt;
-        let generics = variant.generics.len();
+        let generics = variant.type_params.len();
         let form = if adt_id == variant_id { self.tuple_form(span, &forms) } else { Form::Value };
         let generics = self.hydrate_generics(path, generics, true);
         let variant = self.resolver.defs[variant_id].variant_def.as_ref().unwrap();

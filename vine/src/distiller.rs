@@ -129,6 +129,8 @@ impl<'core, 'r> Distiller<'core, 'r> {
       ExprKind::F32(f) => Port::F32(*f),
 
       ExprKind::Path(path) => Port::Const(path.path.resolved.unwrap()),
+      ExprKind::Rel(rel_id) => Port::Rel(*rel_id),
+
       ExprKind::DynFn(dyn_fn) => {
         let dyn_fn = self.dyn_fns[*dyn_fn].as_ref().unwrap();
         stage.steps.push(Step::Transfer(Transfer::unconditional(dyn_fn.interface)));

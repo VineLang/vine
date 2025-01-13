@@ -15,4 +15,10 @@ pub mod Char {
       Ord::Eq
     }
   }
+
+  pub impl to_string: ToString[Char] {
+    fn to_string(self: Char) -> String {
+      String({ chars: [self] })
+    }
+  }
 }

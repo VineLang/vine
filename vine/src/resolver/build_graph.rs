@@ -4,10 +4,13 @@ use vine_util::idx::Counter;
 
 use crate::{
   ast::{
-    AttrKind, Builtin, Expr, ExprKind, Ident, Item, ItemKind, ModKind, Path, Span, UseTree, Vis,
+    AttrKind, Block, Builtin, Expr, ExprKind, GenericParams, Ident, Item, ItemKind, ModKind, Path,
+    Span, Stmt, StmtKind, UseTree, Vis,
   },
+  checker::Type,
   core::Core,
   diag::Diag,
+  resolver::{ImplDef, TraitDef, TraitSubitem},
   visit::{VisitMut, Visitee},
 };
 
@@ -34,7 +37,7 @@ impl<'core> Resolver<'core> {
     }
   }
 
-  fn build_item(&mut self, member_vis: DefId, item: Item<'core>, parent: DefId) {
+  fn build_item(&mut self, member_vis: DefId, item: Item<'core>, parent: DefId) -> Option<DefId> {
     let span = item.span;
     let vis = self.resolve_vis(parent, item.vis);
     let member_vis = vis.max(member_vis);
@@ -45,13 +48,31 @@ impl<'core> Resolver<'core> {
         f.name,
         ValueDef {
           vis,
-          generics: f.generics,
+          type_params: f.generics.types,
+          impl_params: f.generics.impls,
+          impl_param_tys: None,
           annotation: None,
           ty: None,
           locals: Counter::default(),
           kind: ValueDefKind::Expr(Expr {
             span,
-            kind: ExprKind::Fn(f.params, Some(f.ret), f.body),
+            kind: ExprKind::Fn(
+              f.params,
+              Some(f.ret),
+              f.body.unwrap_or_else(|| Block {
+                span,
+                stmts: vec![Stmt {
+                  span,
+                  kind: StmtKind::Expr(
+                    Expr {
+                      span,
+                      kind: ExprKind::Error(self.core.report(Diag::MissingImplementation { span })),
+                    },
+                    false,
+                  ),
+                }],
+              }),
+            ),
           }),
         },
         member_vis,
@@ -62,11 +83,16 @@ impl<'core> Resolver<'core> {
         c.name,
         ValueDef {
           vis,
-          generics: c.generics,
+          type_params: c.generics.types,
+          impl_params: c.generics.impls,
+          impl_param_tys: None,
           annotation: Some(c.ty),
           ty: None,
           locals: Counter::default(),
-          kind: ValueDefKind::Expr(c.value),
+          kind: ValueDefKind::Expr(c.value.unwrap_or_else(|| Expr {
+            span,
+            kind: ExprKind::Error(self.core.report(Diag::MissingImplementation { span })),
+          })),
         },
         member_vis,
       ),
@@ -76,7 +102,9 @@ impl<'core> Resolver<'core> {
         i.name,
         ValueDef {
           vis,
-          generics: i.generics,
+          type_params: self.type_only_generics(i.generics, span, "inline ivy"),
+          impl_params: Vec::new(),
+          impl_param_tys: None,
           annotation: Some(i.ty),
           ty: None,
           locals: Counter::default(),
@@ -102,6 +130,7 @@ impl<'core> Resolver<'core> {
         None
       }
       ItemKind::Struct(s) => {
+        let generics = self.type_only_generics(s.generics, span, "struct");
         let child = self.get_or_insert_child(parent, s.name, member_vis);
         if child.type_def.is_some()
           || child.adt_def.is_some()
@@ -109,13 +138,14 @@ impl<'core> Resolver<'core> {
           || child.value_def.is_some()
         {
           self.core.report(Diag::DuplicateItem { span, name: s.name });
-          return;
+          return None;
         }
-        child.type_def = Some(TypeDef { vis, generics: s.generics.clone(), alias: None, ty: None });
-        child.adt_def = Some(AdtDef { generics: s.generics.clone(), variants: vec![child.id] });
+        child.type_def =
+          Some(TypeDef { vis, type_params: generics.clone(), alias: None, ty: None });
+        child.adt_def = Some(AdtDef { type_params: generics.clone(), variants: vec![child.id] });
         child.variant_def = Some(VariantDef {
           vis,
-          generics: s.generics.clone(),
+          type_params: generics.clone(),
           adt: child.id,
           variant: 0,
           fields: s.fields,
@@ -124,7 +154,9 @@ impl<'core> Resolver<'core> {
         });
         child.value_def = Some(ValueDef {
           vis,
-          generics: s.generics,
+          type_params: generics,
+          impl_params: Vec::new(),
+          impl_param_tys: None,
           annotation: None,
           ty: None,
           locals: Counter::default(),
@@ -136,9 +168,10 @@ impl<'core> Resolver<'core> {
         let child = self.get_or_insert_child(parent, e.name, member_vis);
         if child.type_def.is_some() || child.adt_def.is_some() {
           self.core.report(Diag::DuplicateItem { span, name: e.name });
-          return;
+          return None;
         }
         let adt = child.id;
+        let generics = self.type_only_generics(e.generics, span, "struct");
         let variants = e
           .variants
           .into_iter()
@@ -151,7 +184,7 @@ impl<'core> Resolver<'core> {
             }
             variant.variant_def = Some(VariantDef {
               vis,
-              generics: e.generics.clone(),
+              type_params: generics.clone(),
               adt,
               variant: i,
               fields: v.fields,
@@ -160,7 +193,9 @@ impl<'core> Resolver<'core> {
             });
             variant.value_def = Some(ValueDef {
               vis,
-              generics: e.generics.clone(),
+              type_params: generics.clone(),
+              impl_params: Vec::new(),
+              impl_param_tys: None,
               annotation: None,
               ty: None,
               locals: Counter::default(),
@@ -170,19 +205,116 @@ impl<'core> Resolver<'core> {
           })
           .collect();
         self.defs[adt].type_def =
-          Some(TypeDef { vis, generics: e.generics.clone(), alias: None, ty: None });
-        self.defs[adt].adt_def = Some(AdtDef { generics: e.generics, variants });
+          Some(TypeDef { vis, type_params: generics.clone(), alias: None, ty: None });
+        self.defs[adt].adt_def = Some(AdtDef { type_params: generics, variants });
         Some(adt)
       }
       ItemKind::Type(t) => {
+        let type_params = self.type_only_generics(t.generics, span, "type");
         let child = self.get_or_insert_child(parent, t.name, member_vis);
         if child.type_def.is_some() || child.adt_def.is_some() {
           self.core.report(Diag::DuplicateItem { span, name: t.name });
-          return;
+          return None;
         }
-        child.type_def =
-          Some(TypeDef { vis, generics: t.generics.clone(), alias: Some(t.ty), ty: None });
+        child.type_def = Some(TypeDef { vis, type_params, alias: Some(t.ty), ty: None });
         Some(child.id)
+      }
+      ItemKind::Trait(t) => {
+        let generics = self.type_only_generics(t.generics, span, "trait");
+        let def = self.get_or_insert_child(parent, t.name, member_vis).id;
+        let mut subitems = Vec::new();
+        for item in t.items {
+          let (name, subitem) = match item.kind {
+            ItemKind::Fn(f) => {
+              if f.body.is_some() {
+                self.core.report(Diag::ImplementedTraitItem { span: item.span });
+              }
+              if !f.generics.impls.is_empty() || !f.generics.types.is_empty() {
+                self.core.report(Diag::TraitItemGen { span: item.span });
+              }
+              (f.name, TraitSubitem::Fn(f.params, f.ret))
+            }
+            ItemKind::Const(c) => {
+              if c.value.is_some() {
+                self.core.report(Diag::ImplementedTraitItem { span: item.span });
+              }
+              if !c.generics.impls.is_empty() || !c.generics.types.is_empty() {
+                self.core.report(Diag::TraitItemGen { span: item.span });
+              }
+              (c.name, TraitSubitem::Const(c.ty))
+            }
+            _ => {
+              self.core.report(Diag::InvalidTraitItem { span: item.span });
+              continue;
+            }
+          };
+          let child = self.get_or_insert_child(def, name, vis);
+          subitems.push((name, child.id, subitem, None));
+          if child.value_def.is_some() {
+            self.core.report(Diag::DuplicateItem { span: item.span, name });
+            continue;
+          }
+          child.value_def = Some(ValueDef {
+            vis,
+            type_params: generics.clone(),
+            impl_params: Vec::new(),
+            impl_param_tys: Some(vec![Type::Adt(
+              def,
+              (0..generics.len()).map(Type::Opaque).collect(),
+            )]),
+            annotation: None,
+            ty: None,
+            locals: Counter::default(),
+            kind: ValueDefKind::TraitSubitem(def, name),
+          });
+        }
+        let def = &mut self.defs[def];
+        if def.trait_def.is_some() {
+          self.core.report(Diag::DuplicateItem { span, name: t.name });
+        }
+        def.trait_def =
+          Some(TraitDef { vis, generics: generics.len(), type_params: generics, subitems });
+        Some(def.id)
+      }
+      ItemKind::Impl(i) => {
+        let def = self.get_or_insert_child(parent, i.name, member_vis).id;
+        let mut subitems = Vec::new();
+        for mut item in i.items {
+          if !matches!(item.vis, Vis::Private) {
+            self.core.report(Diag::ImplItemVis { span: item.span });
+          }
+          item.vis = Vis::Public;
+          let (name, generics) = match &mut item.kind {
+            ItemKind::Fn(f) => (f.name, &mut f.generics),
+            ItemKind::Const(c) => (c.name, &mut c.generics),
+            _ => {
+              self.core.report(Diag::InvalidImplItem { span: item.span });
+              continue;
+            }
+          };
+          if !generics.types.is_empty() || !generics.impls.is_empty() {
+            self.core.report(Diag::ImplItemGen { span: item.span });
+          }
+          *generics = i.generics.clone();
+          let span = item.span;
+          let child = self.build_item(vis, item, def).unwrap();
+          subitems.push((span, name, child));
+        }
+        let def = &mut self.defs[def];
+        if def.impl_def.is_some() {
+          self.core.report(Diag::DuplicateItem { span, name: i.name });
+        }
+        def.impl_def = Some(ImplDef {
+          vis,
+          span,
+          type_params: i.generics.types,
+          impl_params: i.generics.impls,
+          impl_param_tys: None,
+          trait_: i.trait_,
+          trait_ty: None,
+          subitems,
+        });
+        Some(def.id)
       }
       ItemKind::Taken => None,
     };
@@ -200,6 +332,7 @@ impl<'core> Resolver<'core> {
         }
       }
     }
+    def_id
   }
 
   fn resolve_vis(&mut self, base: DefId, vis: Vis) -> DefId {
@@ -218,6 +351,18 @@ impl<'core> Resolver<'core> {
         }
       }
     }
+  }
+
+  fn type_only_generics(
+    &self,
+    generics: GenericParams<'core>,
+    span: Span,
+    kind: &'static str,
+  ) -> Vec<Ident<'core>> {
+    if !generics.impls.is_empty() {
+      self.core.report(Diag::UnexpectedImplParam { span, kind });
+    }
+    generics.types
   }
 
   fn define_value(
@@ -315,6 +460,8 @@ impl<'core> Resolver<'core> {
       type_def: None,
       adt_def: None,
       variant_def: None,
+      trait_def: None,
+      impl_def: None,
     };
     if let Some(parent) = parent {
       def.ancestors = self.defs[parent].ancestors.iter().copied().chain([parent]).collect();
