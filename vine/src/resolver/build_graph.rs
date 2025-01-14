@@ -357,10 +357,10 @@ impl<'core> Resolver<'core> {
     &self,
     generics: GenericParams<'core>,
     span: Span,
-    kind: &'static str,
+    _: &'static str,
   ) -> Vec<Ident<'core>> {
     if !generics.impls.is_empty() {
-      self.core.report(Diag::UnexpectedImplParam { span, kind });
+      self.core.report(Diag::UnexpectedImplParam { span });
     }
     generics.types
   }

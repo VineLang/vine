@@ -27,7 +27,7 @@ pub enum ItemKind<'core> {
   Fn(FnItem<'core>),
   Const(ConstItem<'core>),
   Struct(StructItem<'core>),
-  Enum(Enum<'core>),
+  Enum(EnumItem<'core>),
   Type(TypeItem<'core>),
   Mod(ModItem<'core>),
   Trait(TraitItem<'core>),
@@ -71,7 +71,7 @@ pub struct StructItem<'core> {
 }
 
 #[derive(Debug, Clone)]
-pub struct Enum<'core> {
+pub struct EnumItem<'core> {
   pub name: Ident<'core>,
   pub generics: GenericParams<'core>,
   pub variants: Vec<Variant<'core>>,
@@ -119,6 +119,7 @@ pub struct UseItem<'core> {
 
 #[derive(Debug, Clone, Default)]
 pub struct UseTree<'core> {
+  pub span: Span,
   pub aliases: Vec<Ident<'core>>,
   pub children: BTreeMap<Ident<'core>, UseTree<'core>>,
 }
@@ -175,13 +176,14 @@ pub type GenericArgs<'core> = Generics<Ty<'core>, Impl<'core>>;
 
 #[derive(Debug, Clone)]
 pub struct Generics<T, I> {
+  pub span: Span,
   pub types: Vec<T>,
   pub impls: Vec<I>,
 }
 
 impl<T, I> Default for Generics<T, I> {
   fn default() -> Self {
-    Self { types: Default::default(), impls: Default::default() }
+    Self { span: Span::default(), types: Default::default(), impls: Default::default() }
   }
 }
 
@@ -505,7 +507,7 @@ impl Display for Ident<'_> {
   }
 }
 
-#[derive(Default, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Span {
   pub file: usize,
   pub start: usize,
@@ -514,6 +516,12 @@ pub struct Span {
 
 impl Span {
   pub const NONE: Span = Span { file: usize::MAX, start: 0, end: 0 };
+}
+
+impl Default for Span {
+  fn default() -> Self {
+    Span::NONE
+  }
 }
 
 pub type B<T> = Box<T>;
@@ -595,19 +603,37 @@ macro_rules! debug_kind {
 debug_kind!(Item<'_>, Attr, Stmt<'_>, Expr<'_>, Pat<'_>, Ty<'_>, Impl<'_>);
 
 impl From<ErrorGuaranteed> for ExprKind<'_> {
-  fn from(value: ErrorGuaranteed) -> Self {
-    ExprKind::Error(value)
+  fn from(err: ErrorGuaranteed) -> Self {
+    ExprKind::Error(err)
   }
 }
 
 impl From<ErrorGuaranteed> for PatKind<'_> {
-  fn from(value: ErrorGuaranteed) -> Self {
-    PatKind::Error(value)
+  fn from(err: ErrorGuaranteed) -> Self {
+    PatKind::Error(err)
   }
 }
 
 impl From<ErrorGuaranteed> for TyKind<'_> {
-  fn from(value: ErrorGuaranteed) -> Self {
-    TyKind::Error(value)
+  fn from(err: ErrorGuaranteed) -> Self {
+    TyKind::Error(err)
+  }
+}
+
+impl From<ErrorGuaranteed> for Expr<'_> {
+  fn from(err: ErrorGuaranteed) -> Self {
+    Expr { span: Span::NONE, kind: err.into() }
+  }
+}
+
+impl From<ErrorGuaranteed> for Stmt<'_> {
+  fn from(err: ErrorGuaranteed) -> Self {
+    Stmt { span: Span::NONE, kind: StmtKind::Expr(err.into(), false) }
+  }
+}
+
+impl From<ErrorGuaranteed> for Block<'_> {
+  fn from(err: ErrorGuaranteed) -> Self {
+    Block { span: Span::NONE, stmts: Vec::from([err.into()]) }
   }
 }

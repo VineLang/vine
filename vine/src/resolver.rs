@@ -37,6 +37,11 @@ impl<'core> Resolver<'core> {
 
 new_idx!(pub DefId);
 new_idx!(pub UseId);
+new_idx!(pub ValueDefId);
+new_idx!(pub TypeDefId);
+new_idx!(pub AdtDefId);
+new_idx!(pub TraitDefId);
+new_idx!(pub ImplDefId);
 
 impl DefId {
   pub const ROOT: Self = Self(0);

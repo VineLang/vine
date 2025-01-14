@@ -6,7 +6,7 @@ use vine_util::parser::{Parser, ParserState};
 use crate::{core::Core, diag::Diag, lexer::Token};
 
 use crate::ast::{
-  Attr, AttrKind, BinaryOp, Block, Builtin, ComparisonOp, ConstItem, DynFnStmt, Enum, Expr,
+  Attr, AttrKind, BinaryOp, Block, Builtin, ComparisonOp, ConstItem, DynFnStmt, EnumItem, Expr,
   ExprKind, FnItem, GenericArgs, GenericParams, GenericPath, Generics, Ident, Impl, ImplItem,
   ImplKind, InlineIvy, Item, ItemKind, Key, Label, LetStmt, LogicalOp, ModItem, ModKind, Pat,
   PatKind, Path, Span, Stmt, StmtKind, StructItem, TraitItem, Ty, TyKind, TypeItem, UseItem,
@@ -210,12 +210,12 @@ impl<'core, 'src> VineParser<'core, 'src> {
     Ok(StructItem { name, generics, fields, object })
   }
 
-  fn parse_enum_item(&mut self) -> Parse<'core, Enum<'core>> {
+  fn parse_enum_item(&mut self) -> Parse<'core, EnumItem<'core>> {
     self.expect(Token::Enum)?;
     let name = self.parse_ident()?;
     let generics = self.parse_generic_params()?;
     let variants = self.parse_delimited(BRACE_COMMA, Self::parse_variant)?;
-    Ok(Enum { name, generics, variants })
+    Ok(EnumItem { name, generics, variants })
   }
 
   fn parse_type_item(&mut self) -> Parse<'core, TypeItem<'core>> {
@@ -258,15 +258,16 @@ impl<'core, 'src> VineParser<'core, 'src> {
     mut parse_t: impl FnMut(&mut Self) -> Parse<'core, T>,
     mut parse_i: impl FnMut(&mut Self) -> Parse<'core, I>,
   ) -> Parse<'core, Generics<T, I>> {
+    let span = self.start_span();
     if !self.eat(Token::OpenBracket)? {
       return Ok(Generics::default());
     }
-    let mut params = Generics::default();
+    let mut generics = Generics::default();
     loop {
       if self.eat(Token::Semi)? || self.check(Token::CloseBracket) {
         break;
       }
-      params.types.push(parse_t(self)?);
+      generics.types.push(parse_t(self)?);
       if self.eat(Token::Comma)? {
         continue;
       }
@@ -281,14 +282,16 @@ impl<'core, 'src> VineParser<'core, 'src> {
       if self.eat(Token::CloseBracket)? {
         break;
       }
-      params.impls.push(parse_i(self)?);
+      generics.impls.push(parse_i(self)?);
       if self.eat(Token::Comma)? {
         continue;
       }
       self.expect(Token::CloseBracket)?;
       break;
     }
-    Ok(params)
+    let span = self.end_span(span);
+    generics.span = span;
+    Ok(generics)
   }
 
   fn parse_mod_item(&mut self) -> Parse<'core, ModItem<'core>> {
@@ -347,6 +350,7 @@ impl<'core, 'src> VineParser<'core, 'src> {
     tree: &mut UseTree<'core>,
   ) -> Parse<'core> {
     if self.check(Token::Ident) {
+      let span = self.span();
       let ident = self.parse_ident()?;
       if cur_name == Some(ident) {
         if self.eat(Token::As)? {
@@ -356,7 +360,7 @@ impl<'core, 'src> VineParser<'core, 'src> {
           tree.aliases.push(ident);
         }
       } else {
-        let child = tree.children.entry(ident).or_default();
+        let child = tree.children.entry(ident).or_insert(UseTree { span, ..Default::default() });
         if self.eat(Token::ColonColon)? {
           let is_group = self.check(Token::OpenBrace);
           self.parse_use_tree(is_group.then_some(ident), child)?;

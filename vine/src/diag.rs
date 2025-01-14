@@ -164,8 +164,8 @@ diags! {
     ["duplicate object key"]
   MissingImplementation
     ["missing implementation"]
-  UnexpectedImplParam { kind: &'static str }
-    ["{kind} items cannot have impl parameters"]
+  UnexpectedImplParam
+    ["impl parameters are not allowed here"]
   InvalidTraitItem
     ["invalid trait item"]
   InvalidImplItem
