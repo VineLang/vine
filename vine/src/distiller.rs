@@ -12,7 +12,7 @@ use vine_util::{
 use crate::{
   analyzer::usage::Usage,
   ast::{
-    BinaryOp, Builtin, ComparisonOp, DynFnId, Expr, ExprKind, GenericPath, Key, LabelId, Local,
+    BinaryOp, Builtin, ComparisonOp, DynFnId, Expr, ExprKind, Path, Key, LabelId, Local,
     Pat, PatKind,
   },
   resolver::{Def, DefId, Resolver, ValueDefKind},
@@ -547,7 +547,7 @@ impl<'core, 'r> Distiller<'core, 'r> {
   }
 }
 
-fn adt(path: &GenericPath) -> impl Fn(Port, Vec<Port>) -> Step {
+fn adt(path: &Path) -> impl Fn(Port, Vec<Port>) -> Step {
   let adt = path.path.resolved.unwrap();
   move |x, y| Step::Adt(adt, x, y)
 }

@@ -1,5 +1,5 @@
 use crate::{
-  ast::{GenericPath, Impl, ImplKind, Span},
+  ast::{Path, Impl, ImplKind, Span},
   checker::{Checker, Type},
   diag::{Diag, ErrorGuaranteed},
   resolver::Def,
@@ -10,7 +10,7 @@ use super::report;
 impl<'core> Checker<'core, '_> {
   pub(super) fn typeof_value_def(
     &mut self,
-    path: &mut GenericPath<'core>,
+    path: &mut Path<'core>,
   ) -> Result<Type<'core>, Diag<'core>> {
     let span = path.span;
     let def_id = path.path.resolved.unwrap();
@@ -64,7 +64,7 @@ impl<'core> Checker<'core, '_> {
 
   pub(super) fn typeof_impl_def(
     &mut self,
-    path: &mut GenericPath<'core>,
+    path: &mut Path<'core>,
   ) -> Result<Type<'core>, Diag<'core>> {
     let span = path.span;
     let def_id = path.path.resolved.unwrap();
@@ -134,7 +134,7 @@ impl<'core> Checker<'core, '_> {
 
   pub(super) fn typeof_type_def(
     &mut self,
-    path: &mut GenericPath<'core>,
+    path: &mut Path<'core>,
     inference: bool,
   ) -> Result<Type<'core>, Diag<'core>> {
     let span = path.span;
@@ -175,7 +175,7 @@ impl<'core> Checker<'core, '_> {
 
   pub(super) fn typeof_variant_def(
     &mut self,
-    path: &mut GenericPath<'core>,
+    path: &mut Path<'core>,
     refutable: bool,
     inference: bool,
   ) -> Result<(Type<'core>, Option<Vec<Type<'core>>>), Diag<'core>> {
@@ -223,7 +223,7 @@ impl<'core> Checker<'core, '_> {
   fn check_type_param_count(
     span: Span,
     def: &Def<'core>,
-    path: &GenericPath<'core>,
+    path: &Path<'core>,
     expected: usize,
   ) -> Result<(), Diag<'core>> {
     if let Some(generics) = &path.generics {

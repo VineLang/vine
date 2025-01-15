@@ -9,7 +9,7 @@ use std::{
 use vine_util::lexer::TokenSet;
 
 use crate::{
-  ast::{BinaryOp, Ident, Path, Span},
+  ast::{BinaryOp, Ident, Span},
   core::Core,
   lexer::Token,
 };
@@ -64,8 +64,8 @@ diags! {
     ["unknown attribute"]
   BadBuiltin
     ["bad builtin"]
-  CannotResolve { name: Ident<'core>, module: Path<'core> }
-    ["cannot find `{name}` in `{module}`"]
+  CannotResolve { ident: Ident<'core>, module: &'core str }
+    ["cannot find `{ident}` in `{module}`"]
   BadPatternPath
     ["invalid pattern; this path is not a struct or enum variant"]
   DuplicateItem { name: Ident<'core> }
@@ -102,17 +102,11 @@ diags! {
     ["invalid method; function type `{ty}` takes no parameters"]
   ExpectedTypeFound { expected: String, found: String }
     ["expected type `{expected}`; found `{found}`"]
-  PathNoValue { path: Path<'core> }
-    ["no value associated with `{path}`"]
-  PathNoType { path: Path<'core> }
-    ["no type associated with `{path}`"]
-  PathNoPat { path: Path<'core> }
-    ["no pattern associated with `{path}`"]
-  PathNoImpl { path: Path<'core> }
-    ["no impl associated with `{path}`"]
-  BadGenericCount { path: Path<'core>, expected: usize, got: usize, kind: &'static str }
+  PathNoAssociated { kind: &'static str, path: &'core str }
+    ["no {kind} associated with `{path}`"]
+  BadGenericCount { path: &'core str, expected: usize, got: usize, kind: &'static str }
     ["`{path}` expects {expected} {kind} parameter{}; was passed {got}", plural(*expected, "s", "")]
-  BadFieldCount { path: Path<'core>, expected: usize, got: usize }
+  BadFieldCount { path: &'core str, expected: usize, got: usize }
     ["`{path}` has {expected} field{}; {got} {} matched", plural(*expected, "s", ""), plural(*got, "were", "was")]
   MissingTupleField { ty: String, i: usize }
     ["type `{ty}` has no field `{i}`"]
@@ -144,19 +138,19 @@ diags! {
     ["expected a value of type `{ty}` to break with"]
   NoMethods { ty: String }
     ["type `{ty}` has no methods"]
-  BadMethodReceiver { base_path: Path<'core>, sub_path: Path<'core> }
+  BadMethodReceiver { base_path: &'core str, sub_path: &'core str }
     ["`{base_path}::{sub_path}` cannot be used as a method; it does not take `{base_path}` as its first parameter"]
-  Invisible { path: Path<'core>, vis: Path<'core> }
-    ["`{path}` is only visible within `{vis}`"]
+  Invisible { module: &'core str, ident: Ident<'core>, vis: &'core str }
+    ["`{module}::{ident}` is only visible within `{vis}`"]
   BadVis
     ["invalid visibility; expected the name of an ancestor module"]
-  ValueInvisible { path: Path<'core>, vis: Path<'core> }
+  ValueInvisible { path: &'core str, vis: &'core str }
     ["the value `{path}` is only visible within `{vis}`"]
-  TypeInvisible { path: Path<'core>, vis: Path<'core> }
+  TypeInvisible { path: &'core str, vis: &'core str }
     ["the type `{path}` is only visible within `{vis}`"]
-  PatInvisible { path: Path<'core>, vis: Path<'core> }
+  PatInvisible { path: &'core str, vis: &'core str }
     ["the pattern `{path}` is only visible within `{vis}`"]
-  ImplInvisible { path: Path<'core>, vis: Path<'core> }
+  ImplInvisible { path: &'core str, vis: &'core str }
     ["the impl `{path}` is only visible within `{vis}`"]
   VisibleSubitem
     ["subitems must be private"]
@@ -188,6 +182,10 @@ diags! {
     ["impl parameters must be explicitly specified"]
   IncompleteImpl
     ["not all trait items implemented"]
+  DuplicateTypeParam
+    ["duplicate type param"]
+  DuplicateImplParam
+    ["duplicate impl param"]
 }
 
 fn plural<'a>(n: usize, plural: &'a str, singular: &'a str) -> &'a str {

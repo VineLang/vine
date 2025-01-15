@@ -10,7 +10,7 @@ use vine_util::{
 use crate::{
   analyzer::{usage::Usage, UsageVar},
   ast::Local,
-  resolver::DefId,
+  chart::{AdtId, ValueDefId},
   specializer::RelId,
 };
 
@@ -75,7 +75,7 @@ impl Interface {
 pub enum InterfaceKind {
   Unconditional(StageId),
   Branch([StageId; 2]),
-  Match(DefId, Vec<StageId>),
+  Match(AdtId, Vec<StageId>),
 }
 
 impl InterfaceKind {
@@ -110,7 +110,7 @@ pub enum Step {
 
   Fn(Port, Vec<Port>, Port),
   Tuple(Port, Vec<Port>),
-  Adt(DefId, Port, Vec<Port>),
+  Adt(AdtId, Port, Vec<Port>),
   Ref(Port, Port, Port),
   ExtFn(ExtFn, Port, Port, Port),
   Dup(Port, Port, Port),
@@ -164,7 +164,7 @@ impl Invocation {
 #[derive(Debug, Clone)]
 pub enum Port {
   Erase,
-  Const(DefId),
+  Const(ValueDefId),
   Rel(RelId),
   N32(u32),
   F32(f32),

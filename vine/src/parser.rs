@@ -7,9 +7,9 @@ use crate::{core::Core, diag::Diag, lexer::Token};
 
 use crate::ast::{
   Attr, AttrKind, BinaryOp, Block, Builtin, ComparisonOp, ConstItem, DynFnStmt, EnumItem, Expr,
-  ExprKind, FnItem, GenericArgs, GenericParams, GenericPath, Generics, Ident, Impl, ImplItem,
-  ImplKind, InlineIvy, Item, ItemKind, Key, Label, LetStmt, LogicalOp, ModItem, ModKind, Pat,
-  PatKind, Path, Span, Stmt, StmtKind, StructItem, TraitItem, Ty, TyKind, TypeItem, UseItem,
+  ExprKind, FnItem, GenericArgs, GenericParams, Generics, Ident, Impl, ImplItem, ImplKind,
+  InlineIvy, Item, ItemKind, Key, Label, LetStmt, LogicalOp, ModItem, ModKind, Pat, PatKind, Path,
+  Span, Stmt, StmtKind, StructItem, Trait, TraitItem, TraitKind, Ty, TyKind, TypeItem, UseItem,
   UseTree, Variant, Vis,
 };
 
@@ -244,7 +244,7 @@ impl<'core, 'src> VineParser<'core, 'src> {
     self.parse_generics(Self::parse_ident, |self_| {
       let name = self_.parse_ident()?;
       self_.expect(Token::Colon)?;
-      let trait_ = self_.parse_generic_path()?;
+      let trait_ = self_.parse_trait()?;
       Ok((name, trait_))
     })
   }
@@ -324,7 +324,7 @@ impl<'core, 'src> VineParser<'core, 'src> {
     let name = self.parse_ident()?;
     let generics = self.parse_generic_params()?;
     self.expect(Token::Colon)?;
-    let trait_ = self.parse_generic_path()?;
+    let trait_ = self.parse_trait()?;
     let items = self.parse_delimited(BRACE, Self::parse_item)?;
     Ok(ImplItem { name, generics, trait_, items })
   }
@@ -497,7 +497,7 @@ impl<'core, 'src> VineParser<'core, 'src> {
       return Ok(ExprKind::Bool(false));
     }
     if self.check(Token::Ident) || self.check(Token::ColonColon) {
-      return Ok(ExprKind::Path(self.parse_generic_path()?));
+      return Ok(ExprKind::Path(self.parse_path()?));
     }
     if self.eat(Token::OpenParen)? {
       if self.eat(Token::CloseParen)? {
@@ -698,12 +698,12 @@ impl<'core, 'src> VineParser<'core, 'src> {
           return Ok(Ok(ExprKind::TupleField(Box::new(lhs), i, None)));
         }
       }
-      let path = self.parse_generic_path()?;
-      if path.path.as_ident().is_none() || path.generics.is_some() || self.check(Token::OpenParen) {
+      let key = self.parse_key()?;
+      if self.check(Token::OpenBracket) || self.check(Token::OpenParen) {
+        let generics = self.parse_generic_args()?;
         let args = self.parse_expr_list()?;
-        return Ok(Ok(ExprKind::Method(Box::new(lhs), path, args)));
+        return Ok(Ok(ExprKind::Method(Box::new(lhs), key.ident, generics, args)));
       } else {
-        let key = Key { span: path.span, ident: path.path.as_ident().unwrap() };
         return Ok(Ok(ExprKind::ObjectField(Box::new(lhs), key)));
       }
     }
@@ -747,9 +747,9 @@ impl<'core, 'src> VineParser<'core, 'src> {
       return Ok(PatKind::Hole);
     }
     if self.check(Token::Ident) || self.check(Token::ColonColon) {
-      let path = self.parse_generic_path()?;
+      let path = self.parse_path()?;
       let args = self.check(Token::OpenParen).then(|| self.parse_pat_list()).transpose()?;
-      return Ok(PatKind::Adt(path, args));
+      return Ok(PatKind::PathCall(path, args));
     }
     if self.eat(Token::And)? {
       return Ok(PatKind::Ref(Box::new(self.parse_pat_bp(BP::Prefix)?)));
@@ -796,7 +796,7 @@ impl<'core, 'src> VineParser<'core, 'src> {
         };
         let span = self_.end_span(span);
         let mut pat =
-          pat.unwrap_or_else(|| Pat { span: key.span, kind: PatKind::Adt(key.into(), None) });
+          pat.unwrap_or_else(|| Pat { span: key.span, kind: PatKind::PathCall(key.into(), None) });
         if let Some(ty) = ty {
           pat = Pat { span, kind: PatKind::Annotation(Box::new(pat), Box::new(ty)) };
         }
@@ -868,7 +868,7 @@ impl<'core, 'src> VineParser<'core, 'src> {
       return Ok(TyKind::Inverse(Box::new(self.parse_type()?)));
     }
     if self.check(Token::ColonColon) || self.check(Token::Ident) {
-      let path = self.parse_generic_path()?;
+      let path = self.parse_path()?;
       return Ok(TyKind::Path(path));
     }
     self.unexpected()
@@ -876,13 +876,17 @@ impl<'core, 'src> VineParser<'core, 'src> {
 
   fn parse_impl(&mut self) -> Parse<'core, Impl<'core>> {
     let span = self.start_span();
-    let kind = if self.eat(Token::Hole)? {
-      ImplKind::Hole
-    } else {
-      ImplKind::Path(self.parse_generic_path()?)
-    };
+    let kind =
+      if self.eat(Token::Hole)? { ImplKind::Hole } else { ImplKind::Path(self.parse_path()?) };
     let span = self.end_span(span);
     Ok(Impl { span, kind })
+  }
+
+  fn parse_trait(&mut self) -> Parse<'core, Trait<'core>> {
+    let span = self.start_span();
+    let kind = TraitKind::Path(self.parse_path()?);
+    let span = self.end_span(span);
+    Ok(Trait { span, kind })
   }
 
   pub(crate) fn parse_stmt(&mut self) -> Parse<'core, Stmt<'core>> {
@@ -933,17 +937,12 @@ impl<'core, 'src> VineParser<'core, 'src> {
   }
 
   fn parse_path(&mut self) -> Parse<'core, Path<'core>> {
+    let span = self.start_span();
     let absolute = self.eat(Token::ColonColon)?;
     let segments = self.parse_delimited(PATH, Self::parse_ident)?;
-    Ok(Path { segments, absolute, resolved: None })
-  }
-
-  fn parse_generic_path(&mut self) -> Parse<'core, GenericPath<'core>> {
-    let span = self.start_span();
-    let path = self.parse_path()?;
     let generics = self.check(Token::OpenBracket).then(|| self.parse_generic_args()).transpose()?;
     let span = self.end_span(span);
-    Ok(GenericPath { span, path, generics })
+    Ok(Path { span, absolute, segments, generics })
   }
 
   fn start_span(&self) -> usize {

@@ -4,9 +4,9 @@ use doc::{Doc, Writer};
 
 use crate::{
   ast::{
-    Block, ComparisonOp, Expr, ExprKind, GenericArgs, GenericParams, GenericPath, Generics, Ident,
-    Impl, ImplKind, Item, ItemKind, Label, LogicalOp, ModKind, Pat, PatKind, Path, Span, Stmt,
-    StmtKind, Ty, TyKind, UseTree, Vis,
+    Block, ComparisonOp, Expr, ExprKind, GenericArgs, GenericParams, Generics, Ident, Impl,
+    ImplKind, Item, ItemKind, Label, LogicalOp, ModKind, Pat, PatKind, Path, Span, Stmt, StmtKind,
+    Trait, TraitKind, Ty, TyKind, UseTree, Vis,
   },
   core::Core,
   diag::Diag,
@@ -135,7 +135,7 @@ impl<'core: 'src, 'src> Formatter<'src> {
           Doc(i.name),
           self.fmt_generic_params(&i.generics),
           Doc(": "),
-          self.fmt_generic_path(&i.trait_),
+          self.fmt_trait(&i.trait_),
           Doc(" "),
           self.fmt_block_like(item.span, i.items.iter().map(|i| (i.span, self.fmt_item(i)))),
         ]),
@@ -297,7 +297,7 @@ impl<'core: 'src, 'src> Formatter<'src> {
     self.fmt_generics(
       generics,
       |i| Doc(*i),
-      |(i, t)| Doc::concat([Doc(*i), Doc(": "), self.fmt_generic_path(t)]),
+      |(i, t)| Doc::concat([Doc(*i), Doc(": "), self.fmt_trait(t)]),
     )
   }
 
@@ -307,9 +307,16 @@ impl<'core: 'src, 'src> Formatter<'src> {
 
   fn fmt_impl(&self, impl_: &Impl<'core>) -> Doc<'src> {
     match &impl_.kind {
+      ImplKind::Error(_) | ImplKind::Param(_) | ImplKind::Def(..) => unreachable!(),
       ImplKind::Hole => Doc("_"),
-      ImplKind::Path(path) => self.fmt_generic_path(path),
-      ImplKind::Error(_) | ImplKind::Param(_) => unreachable!(),
+      ImplKind::Path(path) => self.fmt_path(path),
+    }
+  }
+
+  fn fmt_trait(&self, trait_: &Trait<'core>) -> Doc<'src> {
+    match &trait_.kind {
+      TraitKind::Error(_) | TraitKind::Def(..) => unreachable!(),
+      TraitKind::Path(path) => self.fmt_path(path),
     }
   }
 
@@ -353,7 +360,7 @@ impl<'core: 'src, 'src> Formatter<'src> {
       ExprKind![synthetic || resolved || error] => unreachable!(),
       ExprKind::Paren(p) => Doc::paren(self.fmt_expr(p)),
       ExprKind::Hole => Doc("_"),
-      ExprKind::Path(path) => self.fmt_generic_path(path),
+      ExprKind::Path(path) => self.fmt_path(path),
       ExprKind::Do(label, block) => {
         Doc::concat([Doc("do"), self.fmt_label(label), Doc(" "), self.fmt_block(block, false)])
       }
@@ -416,8 +423,8 @@ impl<'core: 'src, 'src> Formatter<'src> {
       }
       ExprKind::Tuple(t) => Doc::tuple(t.iter().map(|x| self.fmt_expr(x))),
       ExprKind::Object(o) => Doc::brace_comma_space(o.iter().map(|(k, v)| {
-        if let ExprKind::Path(p) = &v.kind {
-          if let Some(i) = p.path.as_ident() {
+        if let ExprKind::Path(path) = &v.kind {
+          if let Some(i) = path.as_ident() {
             if k.ident == i {
               return Doc(k.ident);
             }
@@ -430,10 +437,11 @@ impl<'core: 'src, 'src> Formatter<'src> {
         Doc::concat([self.fmt_expr(e), Doc("."), Doc(format!("{i}"))])
       }
       ExprKind::ObjectField(e, k) => Doc::concat([self.fmt_expr(e), Doc("."), Doc(k.ident)]),
-      ExprKind::Method(e, p, a) => Doc::concat([
+      ExprKind::Method(e, i, g, a) => Doc::concat([
         self.fmt_expr(e),
         Doc("."),
-        self.fmt_generic_path(p),
+        Doc(*i),
+        self.fmt_generic_args(g),
         Doc::paren_comma(a.iter().map(|x| self.fmt_expr(x))),
       ]),
       ExprKind::Call(f, a) => {
@@ -490,12 +498,12 @@ impl<'core: 'src, 'src> Formatter<'src> {
 
   fn fmt_pat(&self, pat: &Pat<'core>) -> Doc<'src> {
     match &pat.kind {
-      PatKind::Local(_) | PatKind::Error(_) => unreachable!(),
+      PatKind::Local(_) | PatKind::Adt(..) | PatKind::Error(_) => unreachable!(),
       PatKind::Hole => Doc("_"),
       PatKind::Paren(p) => Doc::paren(self.fmt_pat(p)),
-      PatKind::Adt(p, None) => self.fmt_generic_path(p),
-      PatKind::Adt(p, Some(x)) => {
-        Doc::concat([self.fmt_generic_path(p), Doc::paren_comma(x.iter().map(|x| self.fmt_pat(x)))])
+      PatKind::PathCall(p, None) => self.fmt_path(p),
+      PatKind::PathCall(p, Some(x)) => {
+        Doc::concat([self.fmt_path(p), Doc::paren_comma(x.iter().map(|x| self.fmt_pat(x)))])
       }
       PatKind::Ref(p) => Doc::concat([Doc("&"), self.fmt_pat(p)]),
       PatKind::Deref(p) => Doc::concat([Doc("*"), self.fmt_pat(p)]),
@@ -506,8 +514,8 @@ impl<'core: 'src, 'src> Formatter<'src> {
           PatKind::Annotation(p, t) => (&**p, Some(t)),
           _ => (pat, None),
         };
-        let pat = if let PatKind::Adt(p, None) = &pat.kind {
-          if let Some(i) = p.path.as_ident() {
+        let pat = if let PatKind::PathCall(path, None) = &pat.kind {
+          if let Some(i) = path.as_ident() {
             if key.ident == i {
               None
             } else {
@@ -544,19 +552,12 @@ impl<'core: 'src, 'src> Formatter<'src> {
       TyKind::Tuple(t) => Doc::tuple(t.iter().map(|x| self.fmt_ty(x))),
       TyKind::Ref(t) => Doc::concat([Doc("&"), self.fmt_ty(t)]),
       TyKind::Inverse(t) => Doc::concat([Doc("~"), self.fmt_ty(t)]),
-      TyKind::Path(p) => self.fmt_generic_path(p),
+      TyKind::Path(p) => self.fmt_path(p),
       TyKind::Object(o) => Doc::brace_comma_space(
         o.iter().map(|(k, t)| Doc::concat([Doc(k.ident), Doc(": "), self.fmt_ty(t)])),
       ),
-      TyKind::Param(_) | TyKind::Error(_) => unreachable!(),
+      TyKind::Param(_) | TyKind::Def(..) | TyKind::Error(_) => unreachable!(),
     }
-  }
-
-  fn fmt_generic_path(&self, path: &GenericPath<'core>) -> Doc<'src> {
-    Doc::concat([
-      self.fmt_path(&path.path),
-      path.generics.as_ref().map(|g| self.fmt_generic_args(g)).unwrap_or(Doc("")),
-    ])
   }
 
   fn fmt_path(&self, path: &Path<'core>) -> Doc<'src> {
@@ -571,6 +572,9 @@ impl<'core: 'src, 'src> Formatter<'src> {
       }
       docs.push(Doc(seg));
       first = false;
+    }
+    if let Some(generics) = &path.generics {
+      docs.push(self.fmt_generic_args(generics));
     }
     Doc::concat_vec(docs)
   }

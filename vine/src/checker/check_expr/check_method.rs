@@ -1,7 +1,7 @@
 use std::mem::{replace, take};
 
 use crate::{
-  ast::{Expr, ExprKind, GenericPath, Span},
+  ast::{Expr, ExprKind, Path, Span},
   checker::{Checker, Form, Type},
   diag::Diag,
   resolver::DefId,
@@ -12,7 +12,7 @@ impl<'core> Checker<'core, '_> {
     &mut self,
     span: Span,
     receiver: &mut Box<Expr<'core>>,
-    path: &mut GenericPath<'core>,
+    path: &mut Path<'core>,
     args: &mut Vec<Expr<'core>>,
   ) -> (ExprKind<'core>, Type<'core>) {
     if path.path.resolved.is_some() {
@@ -51,7 +51,7 @@ impl<'core> Checker<'core, '_> {
     &mut self,
     span: Span,
     receiver: &mut Box<Expr<'core>>,
-    path: &mut GenericPath<'core>,
+    path: &mut Path<'core>,
     args: &mut [Expr<'core>],
   ) -> Result<(Form, Type<'core>), Diag<'core>> {
     let (receiver_form, mut ty) = self.check_expr(receiver);
@@ -85,7 +85,7 @@ impl<'core> Checker<'core, '_> {
   fn method_sig(
     &mut self,
     span: Span,
-    path: &mut GenericPath<'core>,
+    path: &mut Path<'core>,
     args: usize,
   ) -> Result<(Form, Type<'core>, Vec<Type<'core>>, Type<'core>), Diag<'core>> {
     let ty = self.typeof_value_def(path)?;
@@ -119,7 +119,7 @@ impl<'core> Checker<'core, '_> {
     &mut self,
     receiver: &mut Box<Expr<'core>>,
     args: &mut Vec<Expr<'core>>,
-    path: &mut GenericPath<'core>,
+    path: &mut Path<'core>,
     form: Form,
   ) -> ExprKind<'core> {
     let mut receiver = take(&mut **receiver);

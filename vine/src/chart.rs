@@ -7,7 +7,7 @@ use vine_util::{
 };
 
 use crate::{
-  ast::{Block, Expr, GenericPath, Ident, Pat, Path, Span, Ty},
+  ast::{Block, Expr, Ident, Pat, Span, Trait, Ty},
   checker::Type,
   diag::ErrorGuaranteed,
 };
@@ -64,7 +64,8 @@ impl GenericsId {
 
 #[derive(Debug)]
 pub struct Def<'core> {
-  pub canonical: Path<'core>,
+  pub name: Ident<'core>,
+  pub path: &'core str,
 
   pub members: HashMap<Ident<'core>, Member>,
   pub parent: Option<DefId>,
@@ -86,10 +87,10 @@ pub struct Member {
 #[derive(Debug)]
 pub enum MemberKind {
   Child(DefId),
-  Import(ImportId, Option<DefId>),
+  Import(ImportId),
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub struct Import<'core> {
   pub span: Span,
   pub def: DefId,
@@ -113,11 +114,23 @@ pub struct ValueDef<'core> {
   pub kind: ValueDefKind<'core>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub enum ValueDefKind<'core> {
-  Const { ty: Ty<'core>, value: Expr<'core> },
-  Fn { params: Vec<Pat<'core>>, ret: Option<Ty<'core>>, body: Block<'core> },
-  Ivy { ty: Ty<'core>, net: Net },
+  #[default]
+  Taken,
+  Const {
+    ty: Ty<'core>,
+    value: Expr<'core>,
+  },
+  Fn {
+    params: Vec<Pat<'core>>,
+    ret: Option<Ty<'core>>,
+    body: Block<'core>,
+  },
+  Ivy {
+    ty: Ty<'core>,
+    net: Net,
+  },
   Adt(AdtId, VariantId),
   TraitSubitem(TraitDefId, SubitemId),
 }
@@ -131,8 +144,10 @@ pub struct TypeDef<'core> {
   pub kind: TypeDefKind<'core>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub enum TypeDefKind<'core> {
+  #[default]
+  Taken,
   Alias(Ty<'core>),
   Adt(AdtId),
   Builtin(Type<'core>),
@@ -161,9 +176,13 @@ pub struct TraitDef<'core> {
   pub kind: TraitDefKind<'core>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub enum TraitDefKind<'core> {
-  Trait { subitems: Vec<TraitSubitem<'core>> },
+  #[default]
+  Taken,
+  Trait {
+    subitems: IdxVec<SubitemId, TraitSubitem<'core>>,
+  },
 }
 
 #[derive(Debug)]
@@ -187,9 +206,14 @@ pub struct ImplDef<'core> {
   pub kind: ImplDefKind<'core>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub enum ImplDefKind<'core> {
-  Impl { trait_: GenericPath<'core>, subitems: IdxVec<SubitemId, ImplSubitem<'core>> },
+  #[default]
+  Taken,
+  Impl {
+    trait_: Trait<'core>,
+    subitems: IdxVec<SubitemId, ImplSubitem<'core>>,
+  },
 }
 
 #[derive(Debug)]
@@ -199,11 +223,12 @@ pub struct ImplSubitem<'core> {
   pub value: ValueDefId,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct GenericsDef<'core> {
+  pub span: Span,
   pub def: DefId,
   pub type_params: Vec<Ident<'core>>,
-  pub impl_params: Vec<(Ident<'core>, GenericPath<'core>)>,
+  pub impl_params: Vec<(Ident<'core>, Trait<'core>)>,
 }
 
 #[derive(Debug)]
@@ -273,7 +298,7 @@ impl<'core> Def<'core> {
   fn revert(&mut self, checkpoint: &Checkpoint) {
     self.members.retain(|_, member| match member.kind {
       MemberKind::Child(id) => id < checkpoint.defs,
-      MemberKind::Import(id, _) => id < checkpoint.imports,
+      MemberKind::Import(id) => id < checkpoint.imports,
     });
     revert_option(&mut self.value_def, checkpoint.values);
     revert_option(&mut self.type_def, checkpoint.types);

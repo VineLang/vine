@@ -12,7 +12,7 @@ use vine_util::{
 
 use crate::{
   ast::{
-    Block, Builtin, DynFnId, ExprKind, GenericPath, Ident, Key, LabelId, Local, Pat, PatKind, Span,
+    Block, Builtin, DynFnId, ExprKind, Ident, Key, LabelId, Local, Pat, PatKind, Path, Span,
     StmtKind, Ty, TyKind,
   },
   core::Core,
@@ -246,7 +246,7 @@ impl<'core, 'r> Checker<'core, 'r> {
 
   fn hydrate_generics(
     &mut self,
-    path: &mut GenericPath<'core>,
+    path: &mut Path<'core>,
     generic_count: usize,
     inference: bool,
   ) -> Vec<Type<'core>> {

@@ -3,9 +3,7 @@ use std::{collections::hash_map::Entry, mem::take};
 use vine_util::idx::{Counter, IdxVec};
 
 use crate::{
-  ast::{
-    AttrKind, Builtin, GenericParams, Ident, Item, ItemKind, ModKind, Path, Span, UseTree, Vis,
-  },
+  ast::{AttrKind, Builtin, GenericParams, Ident, Item, ItemKind, ModKind, Span, UseTree, Vis},
   chart::{Chart, TraitSubitem},
   checker::Type,
   core::Core,
@@ -22,16 +20,17 @@ pub struct Charter<'core, 'a> {
 
 impl<'core> Charter<'core, '_> {
   pub fn chart_root(&mut self, root: ModKind<'core>) {
-    let _root_def = self.new_def(Path::ROOT, None);
+    // todo: establish generics none
+    let _root_def = self.new_def(self.core.ident("::"), "", None);
     debug_assert_eq!(_root_def, DefId::ROOT);
     self.chart_mod(DefId::ROOT, root, DefId::ROOT);
   }
 
-  fn new_def(&mut self, canonical: Path<'core>, parent: Option<DefId>) -> DefId {
+  fn new_def(&mut self, name: Ident<'core>, path: &'core str, parent: Option<DefId>) -> DefId {
     let id = self.chart.defs.next_index();
-    // canonical.resolved = Some(id);
     let mut def = Def {
-      canonical,
+      name,
+      path,
       members: Default::default(),
       parent,
       ancestors: Vec::new(),
@@ -150,6 +149,7 @@ impl<'core> Charter<'core, '_> {
             if !matches!(subitem.vis, Vis::Private) {
               self.core.report(Diag::TraitItemVis { span });
             }
+            // todo: extend subitem generics
             match subitem.kind {
               ItemKind::Fn(fn_item) => {
                 if !fn_item.generics.impls.is_empty() || !fn_item.generics.types.is_empty() {
@@ -189,7 +189,8 @@ impl<'core> Charter<'core, '_> {
               }
             }
           })
-          .collect();
+          .collect::<Vec<_>>()
+          .into();
         self.define_trait(span, def, vis, generics, TraitDefKind::Trait { subitems });
         Some(def)
       }
@@ -336,6 +337,7 @@ impl<'core> Charter<'core, '_> {
       generics.impls.clear();
     }
     self.chart.generics.push(GenericsDef {
+      span: generics.span,
       def,
       type_params: generics.types,
       impl_params: generics.impls,
@@ -356,7 +358,7 @@ impl<'core> Charter<'core, '_> {
     let def = &mut self.chart.defs[def_id];
     for name in use_tree.aliases {
       if let Entry::Vacant(e) = def.members.entry(name) {
-        e.insert(Member { vis, kind: MemberKind::Import(import, None) });
+        e.insert(Member { vis, kind: MemberKind::Import(import) });
       } else {
         self.core.report(Diag::DuplicateItem { span, name });
       }
@@ -367,9 +369,10 @@ impl<'core> Charter<'core, '_> {
   }
 
   pub(crate) fn chart_child(&mut self, parent: DefId, name: Ident<'core>, vis: DefId) -> DefId {
+    // todo: error on shadow import
     let next_def_id = self.chart.defs.next_index();
     let parent_def = &mut self.chart.defs[parent];
-    if parent_def.canonical.segments.last() == Some(&name) {
+    if parent_def.name == name {
       return parent;
     }
     let mut new = false;
@@ -386,8 +389,9 @@ impl<'core> Charter<'core, '_> {
     };
     member.vis = member.vis.min(vis);
     if new {
-      let path = parent_def.canonical.extend(&[name]);
-      self.new_def(path, Some(parent));
+      let path = format!("{}::{}", parent_def.path, name);
+      let path = self.core.alloc_str(&path);
+      self.new_def(name, path, Some(parent));
     }
     child
   }
@@ -398,10 +402,7 @@ impl<'core> Charter<'core, '_> {
       Vis::Public => DefId::ROOT,
       Vis::PublicTo(span, name) => {
         let ancestors = &self.chart.defs[base].ancestors;
-        if let Some(&ancestor) = ancestors
-          .iter()
-          .rev()
-          .find(|&&a| self.chart.defs[a].canonical.segments.last() == Some(&name))
+        if let Some(&ancestor) = ancestors.iter().rev().find(|&&a| self.chart.defs[a].name == name)
         {
           ancestor
         } else {
@@ -435,7 +436,7 @@ macro_rules! define_define {
         } else {
           self
             .core
-            .report(Diag::DuplicateItem { span, name: *def.canonical.segments.last().unwrap() });
+            .report(Diag::DuplicateItem { span, name: def.name });
         }
         id
       })*

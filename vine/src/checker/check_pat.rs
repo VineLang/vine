@@ -1,5 +1,5 @@
 use crate::{
-  ast::{GenericPath, Pat, PatKind, Span},
+  ast::{Path, Pat, PatKind, Span},
   checker::{Checker, Form, Type},
   diag::{report, Diag},
 };
@@ -84,7 +84,7 @@ impl<'core> Checker<'core, '_> {
   fn check_adt_pat(
     &mut self,
     span: Span,
-    path: &mut GenericPath<'core>,
+    path: &mut Path<'core>,
     fields: &mut Option<Vec<Pat<'core>>>,
     form: Form,
     refutable: bool,
