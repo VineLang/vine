@@ -1,0 +1,7 @@
+[book]
+authors = ["tjjfvi"]
+language = "en"
+multilingual = false
+src = "src"
+title = "The Vine Programming Language"
+create-missing = false
