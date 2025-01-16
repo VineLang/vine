@@ -39,7 +39,8 @@
     "strs",
     "unpark",
     "vecs",
-    "visitee"
+    "visitee",
+    "whnf"
   ],
   "dictionaries": [
     "rust"
