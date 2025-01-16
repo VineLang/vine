@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <title>The Vine Programming Language</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="darkreader-lock" />
+    <link
+      rel="apple-touch-icon-precomposed"
+      sizes="57x57"
+      href="/apple-touch-icon-57x57.png"
+    />
+    <link
+      rel="apple-touch-icon-precomposed"
+      sizes="114x114"
+      href="/apple-touch-icon-114x114.png"
+    />
+    <link
+      rel="apple-touch-icon-precomposed"
+      sizes="72x72"
+      href="/apple-touch-icon-72x72.png"
+    />
+    <link
+      rel="apple-touch-icon-precomposed"
+      sizes="144x144"
+      href="/apple-touch-icon-144x144.png"
+    />
+    <link
+      rel="apple-touch-icon-precomposed"
+      sizes="60x60"
+      href="/apple-touch-icon-60x60.png"
+    />
+    <link
+      rel="apple-touch-icon-precomposed"
+      sizes="120x120"
+      href="/apple-touch-icon-120x120.png"
+    />
+    <link
+      rel="apple-touch-icon-precomposed"
+      sizes="76x76"
+      href="/apple-touch-icon-76x76.png"
+    />
+    <link
+      rel="apple-touch-icon-precomposed"
+      sizes="152x152"
+      href="/apple-touch-icon-152x152.png"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      href="/favicon-196x196.png"
+      sizes="196x196"
+    />
+    <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96" />
+    <link rel="icon" type="image/png" href="/favicon-32x32.png" sizes="32x32" />
+    <link rel="icon" type="image/png" href="/favicon-16x16.png" sizes="16x16" />
+    <link rel="icon" type="image/png" href="/favicon-128.png" sizes="128x128" />
+    <meta name="application-name" content="Vine" />
+    <meta name="msapplication-TileColor" content="#151820" />
+    <meta name="msapplication-TileImage" content="/mstile-144x144.png" />
+    <meta name="msapplication-square70x70logo" content="/mstile-70x70.png" />
+    <meta
+      name="msapplication-square150x150logo"
+      content="/mstile-150x150.png"
+    />
+    <meta name="msapplication-wide310x150logo" content="/mstile-310x150.png" />
+    <meta
+      name="msapplication-square310x310logo"
+      content="/mstile-310x310.png"
+    />
+    <link
+      href="https://fonts.googleapis.com/icon?family=Material+Icons&display=block"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+
+      :root {
+        --black: #151820;
+        --darkgrey: #252830;
+        --darkergrey: color-mix(in srgb, var(--black), var(--darkgrey) 50%);
+        --grey: #454850;
+        --lightgrey: #656870;
+        --lightergrey: color-mix(in srgb, var(--white), var(--lightgrey) 60%);
+        --white: #bdc3c7;
+        --red: #c0392b;
+        --orange: #d35400;
+        --yellow: #f1c40f;
+        --green: #2ecc71;
+        --blue: #0984e3;
+        --purple: #8e44ad;
+
+        --vine: #46c676;
+      }
+
+      body,
+      html {
+        margin: 0;
+        padding: 0;
+        background: var(--black);
+        width: 100svw;
+        height: 100svh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        font-family: "Roboto", sans-serif;
+      }
+      #logo {
+        width: 512px;
+        max-height: 100%;
+        max-width: 100%;
+        object-fit: contain;
+      }
+
+      h1 {
+        font-family: "Roboto", sans-serif;
+        font-weight: 400;
+        --size: calc(min(6svw, 2.5rem));
+        font-size: var(--size);
+        height: calc(var(--size) * 1.2);
+        margin: 0;
+        color: var(--white);
+        animation: title 1.5s cubic-bezier(0.17, 0.84, 0.44, 1) 4.2s 1 normal
+          backwards;
+      }
+
+      @keyframes title {
+        from {
+          opacity: 0;
+          scale: 0.9;
+        }
+      }
+
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        user-select: none;
+      }
+
+      .contact {
+        background: #252830;
+        max-width: calc(100% - 2em);
+        width: 20em;
+        height: 4em;
+        padding: 0.75em;
+        margin: 0.5em;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        transition: scale 0.2s, color 0.2s;
+        border-radius: 100px;
+      }
+
+      .contact:hover {
+        scale: 1.05;
+        color: var(--vine);
+      }
+
+      .title {
+        font-size: 5em;
+        padding: 0.1em;
+      }
+
+      span.icon {
+        font-size: 2.5em;
+        aspect-ratio: 1;
+        height: 100%;
+        max-height: 100%;
+        margin-right: -1.25rem;
+      }
+
+      span.icon > svg {
+        max-height: 100%;
+      }
+
+      div.value {
+        flex: 1 0;
+        font-size: 1.5em;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: center;
+      }
+
+      span.mail {
+        font-size: 0.75em;
+      }
+
+      a {
+        color: var(--white);
+        text-decoration: none;
+      }
+    </style>
+  </head>
+  <body>
+    <script>"FF FOUC workaround"</script>
+    <h1>The Vine Programming Language</h1>
+    <svg id="logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 25 200 150"> <defs> <style id="style"> .cls-1, .cls-2, .cls-3 { fill: none; } .cls-1, .cls-4, .cls-5 { stroke-width: 0px; } .cls-2 { stroke: #151820; stroke-width: 2.75px; } .cls-2, .cls-3 { stroke-miterlimit: 10; stroke-linecap: round; } .cls-3 { stroke: #46c676; stroke-width: 4.75px; } .cls-4 { fill: #46c676; } .cls-5 { fill: #151820; } #pos_0 { stroke-dashoffset: -5; } #pos_1 { stroke-dashoffset: -1; } #pos_4 { stroke-linecap: butt; } #neg_0 { animation: 0.8998383680979409s linear 1.2818991458257045s neg_0 forwards; stroke-dasharray: 0 10000; opacity: 0; } @keyframes neg_0 { from { stroke-dasharray: 0 10000; opacity: 1; } to { stroke-dasharray: 43.19224166870117 10000; opacity: 1; } } #pos_0 { animation: 0.6915050347646077s linear 1.3860658124923713s pos_0 forwards; stroke-dasharray: 0 10000; opacity: 0; } @keyframes pos_0 { from { stroke-dasharray: 0 10000; opacity: 1; } to { stroke-dasharray: 33.19224166870117 10000; opacity: 1; } } #neg_1 { animation: 3.0746395111083986s linear 0.1s neg_1 forwards; stroke-dasharray: 0 10000; opacity: 0; } @keyframes neg_1 { from { stroke-dasharray: 0 10000; opacity: 1; } to { stroke-dasharray: 122.98558044433594 10000; opacity: 1; } } #pos_1 { animation: 2.136530876159668s linear 0.730703983688355s pos_1 forwards; stroke-dasharray: 0 10000; opacity: 0; } @keyframes pos_1 { from { stroke-dasharray: 0 10000; opacity: 1; } to { stroke-dasharray: 85.46123504638672 10000; opacity: 1; } } #neg_2 { animation: 1.7106326421101887s linear 1.105703983688355s neg_2 forwards; stroke-dasharray: 0 10000; opacity: 0; } @keyframes neg_2 { from { stroke-dasharray: 0 10000; opacity: 1; } to { stroke-dasharray: 82.11036682128906 10000; opacity: 1; } } #neg_3 { animation: 2.3276596069335938s linear 1.230703983688355s neg_3 forwards; stroke-dasharray: 0 10000; opacity: 0; } @keyframes neg_3 { from { stroke-dasharray: 0 10000; opacity: 1; } to { stroke-dasharray: 83.79574584960938 10000; opacity: 1; } } #neg_4 { animation: 1.5556712680392795s linear 0.85s neg_4 forwards; stroke-dasharray: 0 10000; opacity: 0; } @keyframes neg_4 { from { stroke-dasharray: 0 10000; opacity: 1; } to { stroke-dasharray: 56.00416564941406 10000; opacity: 1; } } #neg_5 { animation: 1.3248911770907315s linear 2.4056712680392796s neg_5 forwards; stroke-dasharray: 0 10000; opacity: 0; } @keyframes neg_5 { from { stroke-dasharray: 0 10000; opacity: 1; } to { stroke-dasharray: 58.29521179199219 10000; opacity: 1; } } #pos_5 { animation: 1.1202253861860796s linear 2.4056712680392796s pos_5 forwards; stroke-dasharray: 0 10000; opacity: 0; } @keyframes pos_5 { from { stroke-dasharray: 0 10000; opacity: 1; } to { stroke-dasharray: 49.2899169921875 10000; opacity: 1; } } #neg_6 { animation: 0.8560756047566733s linear 2.4056712680392796s neg_6 forwards; stroke-dasharray: 0 10000; opacity: 0; } @keyframes neg_6 { from { stroke-dasharray: 0 10000; opacity: 1; } to { stroke-dasharray: 30.818721771240234 10000; opacity: 1; } } #leaf { animation: 1s cubic-bezier(.17,.84,.44,1) 2.7693831800210353s leaf forwards; transform: translate(138.02999877929688px, 96.05999755859375px) scale(0%) translate(-138.02999877929688px, -96.05999755859375px); } @keyframes leaf { from { transform: translate(138.02999877929688px, 96.05999755859375px) scale(0%) translate(-138.02999877929688px, -96.05999755859375px); } to { transform: translate(138.02999877929688px, 96.05999755859375px) scale(100%) translate(-138.02999877929688px, -96.05999755859375px); } }#leaf-2 { animation: 1s cubic-bezier(.17,.84,.44,1) 3.590815709817289s leaf-2 forwards; transform: translate(143.02999877929688px, 70.12000274658203px) scale(0%) translate(-143.02999877929688px, -70.12000274658203px); } @keyframes leaf-2 { from { transform: translate(143.02999877929688px, 70.12000274658203px) scale(0%) translate(-143.02999877929688px, -70.12000274658203px); } to { transform: translate(143.02999877929688px, 70.12000274658203px) scale(100%) translate(-143.02999877929688px, -70.12000274658203px); } }#leaf-3 { animation: 1s cubic-bezier(.17,.84,.44,1) 1.6834027608235678s leaf-3 forwards; transform: translate(137.11000061035156px, 112.83999633789062px) scale(0%) translate(-137.11000061035156px, -112.83999633789062px); } @keyframes leaf-3 { from { transform: translate(137.11000061035156px, 112.83999633789062px) scale(0%) translate(-137.11000061035156px, -112.83999633789062px); } to { transform: translate(137.11000061035156px, 112.83999633789062px) scale(100%) translate(-137.11000061035156px, -112.83999633789062px); } }#leaf-4 { animation: 1s cubic-bezier(.17,.84,.44,1) 1.3722685072157117s leaf-4 forwards; transform: translate(141.2899932861328px, 127.77999877929688px) scale(0%) translate(-141.2899932861328px, -127.77999877929688px); } @keyframes leaf-4 { from { transform: translate(141.2899932861328px, 127.77999877929688px) scale(0%) translate(-141.2899932861328px, -127.77999877929688px); } to { transform: translate(141.2899932861328px, 127.77999877929688px) scale(100%) translate(-141.2899932861328px, -127.77999877929688px); } }#leaf-5 { animation: 1s cubic-bezier(.17,.84,.44,1) 2.5272997478485113s leaf-5 forwards; transform: translate(98.6500015258789px, 88.69000244140625px) scale(0%) translate(-98.6500015258789px, -88.69000244140625px); } @keyframes leaf-5 { from { transform: translate(98.6500015258789px, 88.69000244140625px) scale(0%) translate(-98.6500015258789px, -88.69000244140625px); } to { transform: translate(98.6500015258789px, 88.69000244140625px) scale(100%) translate(-98.6500015258789px, -88.69000244140625px); } }#leaf-6 { animation: 1s cubic-bezier(.17,.84,.44,1) 2.0617678264617925s leaf-6 forwards; transform: translate(94.58000183105469px, 104.9000015258789px) scale(0%) translate(-94.58000183105469px, -104.9000015258789px); } @keyframes leaf-6 { from { transform: translate(94.58000183105469px, 104.9000015258789px) scale(0%) translate(-94.58000183105469px, -104.9000015258789px); } to { transform: translate(94.58000183105469px, 104.9000015258789px) scale(100%) translate(-94.58000183105469px, -104.9000015258789px); } }#leaf-7 { animation: 1s cubic-bezier(.17,.84,.44,1) 1.844783706665039s leaf-7 forwards; transform: translate(63.66999816894531px, 104.44000244140625px) scale(0%) translate(-63.66999816894531px, -104.44000244140625px); } @keyframes leaf-7 { from { transform: translate(63.66999816894531px, 104.44000244140625px) scale(0%) translate(-63.66999816894531px, -104.44000244140625px); } to { transform: translate(63.66999816894531px, 104.44000244140625px) scale(100%) translate(-63.66999816894531px, -104.44000244140625px); } }#leaf-8 { animation: 1s cubic-bezier(.17,.84,.44,1) 1.5962359050750738s leaf-8 forwards; transform: translate(85.31999969482422px, 121.45999908447266px) scale(0%) translate(-85.31999969482422px, -121.45999908447266px); } @keyframes leaf-8 { from { transform: translate(85.31999969482422px, 121.45999908447266px) scale(0%) translate(-85.31999969482422px, -121.45999908447266px); } to { transform: translate(85.31999969482422px, 121.45999908447266px) scale(100%) translate(-85.31999969482422px, -121.45999908447266px); } }#leaf-9 { animation: 1s cubic-bezier(.17,.84,.44,1) 2.99283166923523s leaf-9 forwards; transform: translate(101.62999725341797px, 71.94999694824219px) scale(0%) translate(-101.62999725341797px, -71.94999694824219px); } @keyframes leaf-9 { from { transform: translate(101.62999725341797px, 71.94999694824219px) scale(0%) translate(-101.62999725341797px, -71.94999694824219px); } to { transform: translate(101.62999725341797px, 71.94999694824219px) scale(100%) translate(-101.62999725341797px, -71.94999694824219px); } }#leaf-10 { animation: 1s cubic-bezier(.17,.84,.44,1) 2.545273361587525s leaf-10 forwards; transform: translate(58.54999923706055px, 70.1500015258789px) scale(0%) translate(-58.54999923706055px, -70.1500015258789px); } @keyframes leaf-10 { from { transform: translate(58.54999923706055px, 70.1500015258789px) scale(0%) translate(-58.54999923706055px, -70.1500015258789px); } to { transform: translate(58.54999923706055px, 70.1500015258789px) scale(100%) translate(-58.54999923706055px, -70.1500015258789px); } }#leaf-11 { animation: 1s cubic-bezier(.17,.84,.44,1) 1.3478305121103928s leaf-11 forwards; transform: translate(68.13999938964844px, 124.54000091552734px) scale(0%) translate(-68.13999938964844px, -124.54000091552734px); } @keyframes leaf-11 { from { transform: translate(68.13999938964844px, 124.54000091552734px) scale(0%) translate(-68.13999938964844px, -124.54000091552734px); } to { transform: translate(68.13999938964844px, 124.54000091552734px) scale(100%) translate(-68.13999938964844px, -124.54000091552734px); } }</style> </defs> <rect id="bg_square" data-name="bg square" class="cls-5" y="0" width="200" height="200"></rect> <path id="VI" class="cls-4" d="m77.91,109.3l-13.56-37.25h0c-.2-.56-.32-1.16-.32-1.8,0-2.9,2.35-5.26,5.26-5.26h0c1.38,0,2.5-1.12,2.5-2.5s-1.12-2.5-2.5-2.5h-35c-1.38,0-2.5,1.12-2.5,2.5s1.12,2.5,2.5,2.5h0c4.63,0,8.57,2.94,10.07,7.05h0s20.97,57.61,20.97,57.61h0c.15.42.24.88.24,1.36,0,2.2-1.78,3.98-3.98,3.98-1.38,0-2.5,1.12-2.5,2.5s1.12,2.5,2.5,2.5h35c1.38,0,2.5-1.12,2.5-2.5s-1.12-2.5-2.5-2.5c-2.2,0-3.98-1.78-3.98-3.98,0-.48.08-.94.24-1.36h0s20.97-57.61,20.97-57.61h0c1.5-4.11,5.44-7.05,10.07-7.05h0s0,0,0,0c4.14,0,7.5,3.36,7.5,7.5v55c0,4.14-3.36,7.5-7.5,7.5-1.38,0-2.5,1.12-2.5,2.5s1.12,2.5,2.5,2.5h35c1.38,0,2.5-1.12,2.5-2.5s-1.12-2.5-2.5-2.5c-4.14,0-7.5-3.36-7.5-7.5v-55c0-4.14,3.36-7.5,7.5-7.5,1.38,0,2.5-1.12,2.5-2.5s-1.12-2.5-2.5-2.5h-35s-35,0-35,0c-1.38,0-2.5,1.12-2.5,2.5s1.12,2.5,2.5,2.5h0c2.9,0,5.26,2.35,5.26,5.25,0,.63-.11,1.24-.32,1.8h0s-13.56,37.25-13.56,37.25h0c-.17.48-.63.82-1.17.82s-1-.34-1.17-.82h0Z"></path> <g id="vines"> <g id="I-2" data-name="I"> <path id="neg_6" data-name="neg 6" class="cls-2" d="m148.61,91.65c.35-11.85-11.74-19-19.78-20.37"></path> <path id="pos_5" data-name="pos 5" class="cls-3" d="m141.83,107.86c-4.33-8.42-11.63-12.97-1.05-26.8,4.74-6.19,5.31-13.11,4.73-18.41"></path> <path id="neg_5" data-name="neg 5" class="cls-2" d="m141.83,107.86c-4.33-8.42-11.63-12.97-1.05-26.8,9.29-12.15,2.55-27.12,2.55-27.12"></path> <path id="pos_4" data-name="pos 4" class="cls-3" d="m145.67,137.64c-19.46-18.78,2.58-33.34,2.95-45.99"></path> <path id="neg_4" data-name="neg 4" class="cls-2" d="m149.7,141.12c-26.26-20.47-1.48-36.05-1.09-49.47"></path> </g> <g id="V"> <path id="neg_3" data-name="neg 3" class="cls-2" d="m80.87,126.32c4.74-15.67,12.32-13.37,16.22-21.07,5.48-10.82-17.56-35.33,27.61-34.27"></path> <path id="neg_2" data-name="neg 2" class="cls-2" d="m80.87,136.26c-16.03-6.51-8.31-18.84-10.94-34.13-1.96-11.38-11.43-24.92-30.5-25.57"></path> <path id="pos_1" data-name="pos 1" class="cls-3" d="m80.11,138.31c8.35-19.7-20.29-22.88-21.37-41.23-.77-13.09,7.31-20.28-.95-34.82"></path> <path id="neg_1" data-name="neg 1" class="cls-2" d="m65.28,157.29c39.7-38.06-5.17-37.15-6.53-60.21-.94-15.93,11.23-23.12-8.88-45.45"></path> <path id="pos_0" data-name="pos 0" class="cls-3" d="m73.81,131.66c-6.29-6.98-1.78-17.31-3.88-29.53-.67-3.88-2.21-8.02-4.71-11.81"></path> <path id="neg_0" data-name="neg 0" class="cls-2" d="m73.81,131.66c-6.29-6.98-1.78-17.31-3.88-29.53-.67-3.88-2.21-8.02-4.71-11.81"></path> </g> </g> <g id="vine_leaves" data-name="vine leaves"> <path id="leaf" class="cls-5" d="m138.03,96.06c.99-6.16,1.83-3.49,5.59-7.36-.5,5.18-.87,6.59-5.59,7.36Z"></path> <path id="leaf-2" data-name="leaf" class="cls-5" d="m143.03,70.12c-.7-6.74-1.77-3.9-5.61-8.34.22,5.65.53,7.2,5.61,8.34Z"></path> <path id="leaf-3" data-name="leaf" class="cls-5" d="m137.11,112.84c.06-5.82-1.13-3.5-3.97-7.66-.36,4.84-.24,6.2,3.97,7.66Z"></path> <path id="leaf-4" data-name="leaf" class="cls-5" d="m141.29,127.78c.03-6.55,1.34-3.91,4.61-8.54.32,5.45.16,6.98-4.61,8.54Z"></path> <path id="leaf-5" data-name="leaf" class="cls-5" d="m98.65,88.69c1.24-6.98,2.15-3.93,6.49-8.28-.66,5.88-1.1,7.48-6.49,8.28Z"></path> <path id="leaf-6" data-name="leaf" class="cls-5" d="m94.58,104.9c-.08-7.76-1.61-4.63-5.51-10.1-.35,6.46-.16,8.27,5.51,10.1Z"></path> <path id="leaf-7" data-name="leaf" class="cls-5" d="m63.67,104.44c-1.85-4.71-.16-3.19.85-7.45,1.79,3.82,2.12,4.96-.85,7.45Z"></path> <path id="leaf-8" data-name="leaf" class="cls-5" d="m85.32,121.46c3.59-4.87,3.13-2.19,8.1-3.87-2.73,4.25-3.68,5.3-8.1,3.87Z"></path> <path id="leaf-9" data-name="leaf" class="cls-5" d="m101.63,71.95c6.12-3.09,3.04-3.08,5.85-8.3-5.26,2.24-6.61,3.1-5.85,8.3Z"></path> <path id="leaf-10" data-name="leaf" class="cls-5" d="m58.55,70.15c-3.67-6.83-3.57-3.35-9.57-6.38,2.69,5.88,3.7,7.39,9.57,6.38Z"></path> <path id="leaf-11" data-name="leaf" class="cls-5" d="m68.14,124.54c-.39-5.35-1.31-3.13-4.24-6.74.04,4.48.25,5.72,4.24,6.74Z"></path> </g> </svg>
+    <a class="contact" href="./docs/" draggable="false">
+      <span class="icon material-icons">description</span>
+      <div class="value">Docs</div>
+    </a>
+    <a
+      class="contact"
+      href="https://github.com/VineLang/vine"
+      draggable="false"
+    >
+      <span class="icon" style="padding: 0.125rem; display: flex">
+        <svg viewBox="0 0 98 96" xmlns="http://www.w3.org/2000/svg">
+          <path
+            fill-rule="evenodd"
+            clip-rule="evenodd"
+            d="M48.854 0C21.839 0 0 22 0 49.217c0 21.756 13.993 40.172 33.405 46.69 2.427.49 3.316-1.059 3.316-2.362 0-1.141-.08-5.052-.08-9.127-13.59 2.934-16.42-5.867-16.42-5.867-2.184-5.704-5.42-7.17-5.42-7.17-4.448-3.015.324-3.015.324-3.015 4.934.326 7.523 5.052 7.523 5.052 4.367 7.496 11.404 5.378 14.235 4.074.404-3.178 1.699-5.378 3.074-6.6-10.839-1.141-22.243-5.378-22.243-24.283 0-5.378 1.94-9.778 5.014-13.2-.485-1.222-2.184-6.275.486-13.038 0 0 4.125-1.304 13.426 5.052a46.97 46.97 0 0 1 12.214-1.63c4.125 0 8.33.571 12.213 1.63 9.302-6.356 13.427-5.052 13.427-5.052 2.67 6.763.97 11.816.485 13.038 3.155 3.422 5.015 7.822 5.015 13.2 0 18.905-11.404 23.06-22.324 24.283 1.78 1.548 3.316 4.481 3.316 9.126 0 6.6-.08 11.897-.08 13.526 0 1.304.89 2.853 3.316 2.364 19.412-6.52 33.405-24.935 33.405-46.691C97.707 22 75.788 0 48.854 0z"
+            fill="currentcolor"
+          />
+        </svg>
+      </span>
+      <div class="value">GitHub</div>
+    </a>
+    <a class="contact" href="https://discord.gg/bgUPV8KjDv" draggable="false">
+      <span class="icon" style="padding: 0.125rem; display: flex">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 127.14 96.36">
+          <path
+            fill="currentcolor"
+            d="M107.7,8.07A105.15,105.15,0,0,0,81.47,0a72.06,72.06,0,0,0-3.36,6.83A97.68,97.68,0,0,0,49,6.83,72.37,72.37,0,0,0,45.64,0,105.89,105.89,0,0,0,19.39,8.09C2.79,32.65-1.71,56.6.54,80.21h0A105.73,105.73,0,0,0,32.71,96.36,77.7,77.7,0,0,0,39.6,85.25a68.42,68.42,0,0,1-10.85-5.18c.91-.66,1.8-1.34,2.66-2a75.57,75.57,0,0,0,64.32,0c.87.71,1.76,1.39,2.66,2a68.68,68.68,0,0,1-10.87,5.19,77,77,0,0,0,6.89,11.1A105.25,105.25,0,0,0,126.6,80.22h0C129.24,52.84,122.09,29.11,107.7,8.07ZM42.45,65.69C36.18,65.69,31,60,31,53s5-12.74,11.43-12.74S54,46,53.89,53,48.84,65.69,42.45,65.69Zm42.24,0C78.41,65.69,73.25,60,73.25,53s5-12.74,11.44-12.74S96.23,46,96.12,53,91.08,65.69,84.69,65.69Z"
+          />
+        </svg>
+      </span>
+      <div class="value">Discord</div>
+    </a>
+  </body>
+</html>

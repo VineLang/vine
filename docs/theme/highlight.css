@@ -1,0 +1,140 @@
+/* Tomorrow Night Theme */
+/* https://github.com/jmblog/color-themes-for-highlightjs */
+/* Original theme - https://github.com/chriskempson/tomorrow-theme */
+/* https://github.com/jmblog/color-themes-for-highlightjs */
+
+/* Tomorrow Comment */
+.hljs-comment {
+  color: var(--lightergrey);
+}
+
+pre > code.hljs {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  counter-reset: line;
+}
+
+pre > code.hljs span {
+  display: contents;
+}
+
+pre > code.hljs .line::before {
+  counter-increment: line;
+  content: counter(line);
+  margin-left: .3em;
+  margin-right: 1.2em;
+  min-width: 1.2em;
+  color: var(--lightgrey);
+  grid-column: 1;
+  width: auto;
+  flex: 0;
+  justify-self: flex-end;
+  text-align: right;
+}
+
+.hljs-number,
+.hljs-preprocessor,
+.hljs-pragma,
+.hljs-built_in,
+.hljs-literal,
+.hljs-params,
+.hljs-constant,
+.hljs-string,
+.hljs-value,
+.hljs-inheritance,
+.hljs-header,
+.hljs-name {
+  color: color-mix(in srgb, color-mix(in srgb, var(--vine) 70%, var(--blue) 10%), var(--white) 20%);
+}
+
+.hljs-function {
+  color: color-mix(in srgb, var(--white), var(--vine) 30%);
+}
+
+.hljs-keyword {
+  color: color-mix(in srgb, var(--vine), var(--black) 15%);
+}
+
+code {
+  background: var(--darkergrey);
+  color: var(--white);
+}
+
+pre > code {
+  display: block;
+  overflow-x: auto;
+}
+
+.hljs-addition {
+  color: var(--green);
+}
+
+.hljs-deletion {
+  color: var(--red);
+}
+
+:not(pre) > code {
+  padding: 0.1em 0.3em;
+  border-radius: 3px;
+}
+
+pre > code {
+  border-radius: 7.5px;
+}
+
+:root pre .buttons {
+  padding: 0;
+  top: 0;
+}
+
+:root pre .buttons > button.clip-button {
+  padding: 0;
+  margin: 4px;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  transition: scale .2s, color .2s, background-color .2s;
+  border-radius: 4.5px;
+}
+
+:root pre .buttons > button.clip-button:hover {
+  scale: 1.1;
+}
+
+:root pre .buttons > button.clip-button::before {
+  font-family: 'Material Symbols Outlined';
+  content: "content_copy";
+  filter: none;
+  font-size: 18px;
+  position: absolute;
+  margin-left: 1px;
+  transition: opacity .1s .1s ease-out, scale .1s .1s ease-out;
+}
+
+:root pre .buttons > button.clip-button::after {
+  font-family: 'Material Symbols Outlined';
+  content: "check";
+  filter: none;
+  font-size: 18px;
+  opacity: 0;
+  scale: .9;
+  transition: opacity .1s 0s ease-in, scale .1s 0s ease-in;
+}
+
+:root pre .buttons > button.clip-button.tooltipped::before {
+  opacity: 0;
+  scale: .9;
+  transition: opacity .1s 0s ease-in, scale .1s 0s ease-in;
+}
+
+:root pre .buttons > button.clip-button.tooltipped::after {
+  opacity: 1;
+  transition: opacity .1s .1s ease-out, scale .1s .1s ease-out;
+}
+
+:root pre .buttons > button.clip-button .tooltiptext {
+  display: none;
+}

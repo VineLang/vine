@@ -2,7 +2,9 @@
   "indentWidth": 2,
   "lineWidth": 100,
   "markdown": {
-    "textWrap": "always"
+    "textWrap": "always",
+    "lineWidth": 80,
+    "emphasisKind": "asterisks"
   },
   "exec": {
     "commands": [{
