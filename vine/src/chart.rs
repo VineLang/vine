@@ -12,7 +12,7 @@ use crate::{
   diag::ErrorGuaranteed,
 };
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct Chart<'core> {
   pub defs: IdxVec<DefId, Def<'core>>,
   pub values: IdxVec<ValueDefId, ValueDef<'core>>,
@@ -26,7 +26,7 @@ pub struct Chart<'core> {
   pub builtins: Builtins,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct Builtins {
   pub prelude: Option<DefId>,
 
@@ -223,7 +223,7 @@ pub struct ImplSubitem<'core> {
   pub value: ValueDefId,
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Clone)]
 pub struct GenericsDef<'core> {
   pub span: Span,
   pub def: DefId,

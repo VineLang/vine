@@ -20,7 +20,7 @@ pub struct Charter<'core, 'a> {
 
 impl<'core> Charter<'core, '_> {
   pub fn chart_root(&mut self, root: ModKind<'core>) {
-    // todo: establish generics none
+    self.chart.generics.push(GenericsDef::default());
     let _root_def = self.new_def(self.core.ident("::"), "", None);
     debug_assert_eq!(_root_def, DefId::ROOT);
     self.chart_mod(DefId::ROOT, root, DefId::ROOT);
@@ -149,7 +149,6 @@ impl<'core> Charter<'core, '_> {
             if !matches!(subitem.vis, Vis::Private) {
               self.core.report(Diag::TraitItemVis { span });
             }
-            // todo: extend subitem generics
             match subitem.kind {
               ItemKind::Fn(fn_item) => {
                 if !fn_item.generics.impls.is_empty() || !fn_item.generics.types.is_empty() {
@@ -369,7 +368,6 @@ impl<'core> Charter<'core, '_> {
   }
 
   pub(crate) fn chart_child(&mut self, parent: DefId, name: Ident<'core>, vis: DefId) -> DefId {
-    // todo: error on shadow import
     let next_def_id = self.chart.defs.next_index();
     let parent_def = &mut self.chart.defs[parent];
     if parent_def.name == name {
@@ -382,7 +380,8 @@ impl<'core> Charter<'core, '_> {
     });
     let child = match member.kind {
       MemberKind::Child(child) => child,
-      _ => {
+      MemberKind::Import(i) => {
+        self.core.report(Diag::DuplicateItem { span: self.chart.imports[i].span, name });
         new = true;
         next_def_id
       }

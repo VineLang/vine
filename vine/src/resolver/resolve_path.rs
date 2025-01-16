@@ -103,7 +103,7 @@ impl<'core> Resolver<'core, '_> {
     }
   }
 
-  fn resolve_import(&mut self, import_id: ImportId) -> Result<DefId, ErrorGuaranteed> {
+  pub(super) fn resolve_import(&mut self, import_id: ImportId) -> Result<DefId, ErrorGuaranteed> {
     let import = &mut self.chart.imports[import_id];
     if let Some(resolved) = import.resolved {
       return resolved;

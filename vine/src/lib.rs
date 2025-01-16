@@ -37,11 +37,14 @@ mod specializer {
 use std::path::PathBuf;
 
 use ivy::ast::Nets;
+use resolver::Resolver;
 
-// use crate::{
-//   analyzer::analyze, ast::Path, checker::Checker, distiller::Distiller,
-// emitter::Emitter,   loader::Loader, normalizer::normalize,
-// resolver::Resolver, specializer::specialize, };
+use crate::{
+  chart::Chart,
+  charter::Charter,
+  core::{Core, CoreArenas},
+  loader::Loader,
+};
 
 pub struct Config {
   pub main: Option<PathBuf>,
@@ -50,26 +53,24 @@ pub struct Config {
 }
 
 pub fn compile(config: Config) -> Result<Nets, String> {
-  todo!()
-  // let arenas = CoreArenas::default();
-  // let core = &Core::new(&arenas);
+  let arenas = CoreArenas::default();
+  let core = &Core::new(&arenas);
 
-  // let mut loader = Loader::new(core);
-  // if let Some(main) = config.main {
-  //   loader.load_main_mod(main);
-  // }
-  // for lib in config.libs {
-  //   loader.load_mod(lib);
-  // }
+  let mut loader = Loader::new(core);
+  if let Some(main) = config.main {
+    loader.load_main_mod(main);
+  }
+  for lib in config.libs {
+    loader.load_mod(lib);
+  }
 
-  // core.bail()?;
+  core.bail()?;
 
-  // let root = loader.finish();
+  let root = loader.finish();
 
-  // let mut resolver = Resolver::new(core);
-  // resolver.build_graph(root);
-  // resolver.resolve_imports();
-  // resolver.resolve_defs();
+  let chart = &mut Chart::default();
+  Charter { core, chart }.chart_root(root);
+  Resolver { core, chart }.resolve_all();
 
   // let mut checker = Checker::new(core, &mut resolver);
   // checker.check_defs();
@@ -92,6 +93,8 @@ pub fn compile(config: Config) -> Result<Nets, String> {
   // }
 
   // Ok(emitter.nets)
+
+  todo!()
 }
 
 // fn matches_filter(path: &Path, items: &[String]) -> bool {

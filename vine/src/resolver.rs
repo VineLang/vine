@@ -164,6 +164,10 @@ impl<'core> ResolveVisitor<'core, '_, '_> {
       self.visit(generics.impl_params.iter_mut().map(|(_, t)| t));
       self.resolver.chart.generics[id] = generics;
     }
+
+    for id in self.resolver.chart.imports.keys_from(checkpoint.imports) {
+      self.resolver.resolve_import(id);
+    }
   }
 
   fn initialize(&mut self, def: DefId, generics: GenericsId) {
