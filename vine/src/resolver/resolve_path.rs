@@ -62,7 +62,7 @@ impl<'core> Resolver<'core, '_> {
     }
   }
 
-  fn resolve_ident(
+  pub fn resolve_ident(
     &mut self,
     span: Span,
     source: DefId,

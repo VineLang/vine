@@ -138,8 +138,8 @@ diags! {
     ["expected a value of type `{ty}` to break with"]
   NoMethods { ty: String }
     ["type `{ty}` has no methods"]
-  BadMethodReceiver { base_path: &'core str, sub_path: &'core str }
-    ["`{base_path}::{sub_path}` cannot be used as a method; it does not take `{base_path}` as its first parameter"]
+  BadMethodReceiver { base_path: &'core str, ident: Ident<'core> }
+    ["`{base_path}::{ident}` cannot be used as a method; it does not take `{base_path}` as its first parameter"]
   Invisible { module: &'core str, ident: Ident<'core>, vis: &'core str }
     ["`{module}::{ident}` is only visible within `{vis}`"]
   BadVis

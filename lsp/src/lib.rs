@@ -42,7 +42,7 @@ impl Backend {
     resolver.resolve_defs();
 
     let mut checker = Checker::new(core, &mut resolver);
-    checker.check_defs();
+    checker.check_all();
 
     self.report(core, core.take_diags())
   }

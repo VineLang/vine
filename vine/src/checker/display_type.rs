@@ -60,7 +60,7 @@ impl<'core> Checker<'core, '_> {
           first = false;
         }
         *str += ")";
-        if **ret != Type::UNIT {
+        if **ret != Type::NIL {
           *str += " -> ";
           self._display_type(ret, str);
         }
@@ -73,12 +73,12 @@ impl<'core> Checker<'core, '_> {
         *str += "~";
         self._display_type(ty, str)
       }
-      Type::Adt(n, params) => {
-        write!(str, "{}", self.resolver.defs[*n].canonical.segments.last().unwrap()).unwrap();
+      Type::Adt(adt_id, params) => {
+        *str += self.chart.adts[*adt_id].name.0 .0;
         self._display_type_params(str, params);
       }
-      Type::Trait(n, params) => {
-        write!(str, "{}", self.resolver.defs[*n].canonical.segments.last().unwrap()).unwrap();
+      Type::Trait(trait_id, params) => {
+        *str += self.chart.defs[self.chart.traits[*trait_id].def].name.0 .0;
         self._display_type_params(str, params);
       }
       Type::Opaque(n) => *str += self.generics[*n].0 .0,

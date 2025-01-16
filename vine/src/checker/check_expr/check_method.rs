@@ -1,10 +1,11 @@
-use std::mem::{replace, take};
+use std::mem::take;
 
 use crate::{
-  ast::{Expr, ExprKind, Path, Span},
+  ast::{Expr, ExprKind, GenericArgs, Ident, Span},
+  chart::{DefId, ValueDefId},
   checker::{Checker, Form, Type},
   diag::Diag,
-  resolver::DefId,
+  resolver::Resolver,
 };
 
 impl<'core> Checker<'core, '_> {
@@ -12,61 +13,48 @@ impl<'core> Checker<'core, '_> {
     &mut self,
     span: Span,
     receiver: &mut Box<Expr<'core>>,
-    path: &mut Path<'core>,
+    name: Ident<'core>,
+    generics: &mut GenericArgs<'core>,
     args: &mut Vec<Expr<'core>>,
   ) -> (ExprKind<'core>, Type<'core>) {
-    if path.path.resolved.is_some() {
-      match self.method_sig(span, path, args.len()) {
-        Ok((form, mut rec, params, ret)) => {
-          self.check_expr_form_type(receiver, form, &mut rec);
-          for (mut ty, arg) in params.into_iter().skip(1).zip(args.iter_mut()) {
-            self.check_expr_form_type(arg, Form::Value, &mut ty);
-          }
-          (self.desugar_method(receiver, args, path, form), ret)
+    match self._check_method(span, receiver, name, generics, args) {
+      Ok((form, id, ret)) => (self.desugar_method(span, receiver, args, id, generics, form), ret),
+      Err(e) => {
+        for arg in args {
+          self.check_expr_form(arg, Form::Value);
         }
-        Err(e) => {
-          self.check_expr_form(receiver, Form::Place);
-          for arg in args {
-            self.check_expr_form(arg, Form::Value);
-          }
-          let err = self.core.report(e);
-          (ExprKind::Error(err), Type::Error(err))
-        }
-      }
-    } else {
-      match self.check_associated_method(span, receiver, path, args) {
-        Ok((form, ret)) => (self.desugar_method(receiver, args, path, form), ret),
-        Err(e) => {
-          for arg in args {
-            self.check_expr_form(arg, Form::Value);
-          }
-          let err = self.core.report(e);
-          (ExprKind::Error(err), Type::Error(err))
-        }
+        let err = self.core.report(e);
+        (ExprKind::Error(err), Type::Error(err))
       }
     }
   }
 
-  fn check_associated_method(
+  fn _check_method(
     &mut self,
     span: Span,
     receiver: &mut Box<Expr<'core>>,
-    path: &mut Path<'core>,
+    ident: Ident<'core>,
+    generics: &mut GenericArgs<'core>,
     args: &mut [Expr<'core>],
-  ) -> Result<(Form, Type<'core>), Diag<'core>> {
+  ) -> Result<(Form, ValueDefId, Type<'core>), Diag<'core>> {
     let (receiver_form, mut ty) = self.check_expr(receiver);
     self.concretize(&mut ty);
     let mod_id = self.get_ty_mod(&ty)?;
     let Some(mod_id) = mod_id else { Err(Diag::NoMethods { span, ty: self.display_type(&ty) })? };
-    let fn_id = self.resolver.resolve_path(path.span, self.cur_def, mod_id, &path.path)?;
-    let sub_path = replace(&mut path.path, self.resolver.defs[fn_id].canonical.clone());
-    let (form, mut receiver_ty, params, ret) = self.method_sig(span, path, args.len())?;
+    let id = Resolver { core: self.core, chart: self.chart }.resolve_ident(
+      span,
+      self.cur_def,
+      mod_id,
+      ident,
+    )?;
+    let id = self.chart.defs[id].value_def.ok_or(Diag::PathNoAssociated {
+      span,
+      kind: "value",
+      path: self.chart.defs[id].path,
+    })?;
+    let (form, mut receiver_ty, params, ret) = self.method_sig(span, id, generics, args.len())?;
     if self.get_ty_mod(&receiver_ty)? != Some(mod_id) {
-      Err(Diag::BadMethodReceiver {
-        span: path.span,
-        base_path: self.resolver.defs[mod_id].canonical.clone(),
-        sub_path,
-      })?
+      Err(Diag::BadMethodReceiver { span, base_path: self.chart.defs[mod_id].path, ident })?
     }
     self.coerce_expr(receiver, receiver_form, form);
     if !self.unify(&mut ty, &mut receiver_ty) {
@@ -79,16 +67,18 @@ impl<'core> Checker<'core, '_> {
     for (mut ty, arg) in params.into_iter().skip(1).zip(args.iter_mut()) {
       self.check_expr_form_type(arg, Form::Value, &mut ty);
     }
-    Ok((form, ret))
+    Ok((form, id, ret))
   }
 
   fn method_sig(
     &mut self,
     span: Span,
-    path: &mut Path<'core>,
+    id: ValueDefId,
+    generics: &mut GenericArgs<'core>,
     args: usize,
   ) -> Result<(Form, Type<'core>, Vec<Type<'core>>, Type<'core>), Diag<'core>> {
-    let ty = self.typeof_value_def(path)?;
+    let type_params = self.check_generics(generics, self.chart.values[id].generics, true);
+    let ty = self.value_types[id].instantiate(&type_params);
     match ty {
       Type::Fn(mut params, ret) => {
         if params.len() != args + 1 {
@@ -117,9 +107,11 @@ impl<'core> Checker<'core, '_> {
 
   fn desugar_method(
     &mut self,
+    span: Span,
     receiver: &mut Box<Expr<'core>>,
     args: &mut Vec<Expr<'core>>,
-    path: &mut Path<'core>,
+    id: ValueDefId,
+    generics: &mut GenericArgs<'core>,
     form: Form,
   ) -> ExprKind<'core> {
     let mut receiver = take(&mut **receiver);
@@ -128,19 +120,18 @@ impl<'core> Checker<'core, '_> {
     }
     let mut args = take(args);
     args.insert(0, receiver);
-    let path = take(path);
-    let func = Expr { span: path.span, kind: ExprKind::Path(path) };
+    let func = Expr { span, kind: ExprKind::Def(id, take(generics)) };
     ExprKind::Call(Box::new(func), args)
   }
 
   fn get_ty_mod(&mut self, ty: &Type<'core>) -> Result<Option<DefId>, Diag<'core>> {
     Ok(match ty {
-      Type::Adt(mod_id, _) => Some(*mod_id),
-      Type::Bool => self.bool,
-      Type::N32 => self.n32,
-      Type::F32 => self.f32,
-      Type::Char => self.char,
-      Type::IO => self.io,
+      Type::Adt(adt_id, _) => Some(self.chart.adts[*adt_id].def),
+      Type::Bool => self.chart.builtins.bool,
+      Type::N32 => self.chart.builtins.n32,
+      Type::F32 => self.chart.builtins.f32,
+      Type::Char => self.chart.builtins.char,
+      Type::IO => self.chart.builtins.io,
       Type::Tuple(_)
       | Type::Object(_)
       | Type::Fn(..)

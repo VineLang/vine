@@ -243,7 +243,7 @@ pub enum ExprKind<'core> {
   Paren(B<Expr<'core>>),
   #[class(value)]
   Path(Path<'core>),
-  #[class(place, resolved)]
+  #[class(value, resolved)]
   Def(ValueDefId, GenericArgs<'core>),
   #[class(value, synthetic)]
   Rel(RelId),

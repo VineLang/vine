@@ -1,6 +1,7 @@
 use std::mem::take;
 
 use crate::{
+  chart::{AdtId, TraitDefId},
   checker::{Checker, Type},
   diag::Diag,
 };
@@ -93,7 +94,8 @@ impl<'core> Checker<'core, '_> {
         success &= self._unify(a, b, i, j);
         success
       }
-      (Type::Adt(n, a), Type::Adt(m, b)) | (Type::Trait(n, a), Type::Trait(m, b))
+      (Type::Adt(AdtId(n), a), Type::Adt(AdtId(m), b))
+      | (Type::Trait(TraitDefId(n), a), Type::Trait(TraitDefId(m), b))
         if n == m && i == j =>
       {
         let mut success = true;

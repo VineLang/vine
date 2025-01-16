@@ -1,5 +1,6 @@
 use crate::{
-  ast::{Path, Pat, PatKind, Span},
+  ast::{GenericArgs, Pat, PatKind, Span},
+  chart::{AdtId, VariantId},
   checker::{Checker, Form, Type},
   diag::{report, Diag},
 };
@@ -31,6 +32,7 @@ impl<'core> Checker<'core, '_> {
     let span = pat.span;
     match (&mut pat.kind, form) {
       (_, Form::Error(_)) => unreachable!(),
+      (PatKind::PathCall(..), _) => unreachable!(),
       (PatKind::Error(e), _) => Type::Error(*e),
 
       (PatKind::Paren(p), _) => self.check_pat(p, form, refutable),
@@ -41,8 +43,8 @@ impl<'core> Checker<'core, '_> {
         ty
       }
 
-      (PatKind::Adt(path, fields), _) => {
-        report!(self.core, pat.kind; self.check_adt_pat(span, path, fields, form, refutable))
+      (PatKind::Adt(adt, variant, generics, fields), _) => {
+        report!(self.core, pat.kind; self.check_adt_pat(span, *adt, *variant, generics, fields, form, refutable))
       }
 
       (PatKind::Hole, _) => self.new_var(span),
@@ -81,21 +83,24 @@ impl<'core> Checker<'core, '_> {
     }
   }
 
+  #[allow(clippy::too_many_arguments)]
   fn check_adt_pat(
     &mut self,
     span: Span,
-    path: &mut Path<'core>,
-    fields: &mut Option<Vec<Pat<'core>>>,
+    adt: AdtId,
+    variant: VariantId,
+    generics: &mut GenericArgs<'core>,
+    fields: &mut [Pat<'core>],
     form: Form,
     refutable: bool,
   ) -> Result<Type<'core>, Diag<'core>> {
-    let (adt, field_tys) = self.typeof_variant_def(path, refutable, true)?;
-    let field_tys = field_tys.unwrap();
-    let fields = fields.get_or_insert(Vec::new());
+    let type_params = self.check_generics(generics, self.chart.adts[adt].generics, true);
+    let field_tys =
+      self.adt_types[adt][variant].iter().map(|t| t.instantiate(&type_params)).collect::<Vec<_>>();
     if fields.len() != field_tys.len() {
       Err(Diag::BadFieldCount {
         span,
-        path: self.resolver.defs[path.path.resolved.unwrap()].canonical.clone(),
+        path: self.chart.defs[self.chart.adts[adt].def].path,
         expected: field_tys.len(),
         got: fields.len(),
       })?
@@ -103,6 +108,6 @@ impl<'core> Checker<'core, '_> {
     for (field, mut ty) in fields.iter_mut().zip(field_tys) {
       self.check_pat_type(field, form, refutable, &mut ty);
     }
-    Ok(adt)
+    Ok(Type::Adt(adt, type_params))
   }
 }

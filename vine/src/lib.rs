@@ -2,7 +2,7 @@ pub mod analyzer;
 pub mod ast;
 pub mod chart;
 pub mod charter;
-// pub mod checker;
+pub mod checker;
 pub mod core;
 pub mod diag;
 // pub mod distiller;
@@ -17,18 +17,6 @@ pub mod parser;
 pub mod resolver;
 pub mod vir;
 pub mod visit;
-
-mod checker {
-  #[derive(Debug)]
-  pub enum Type<'core> {
-    __(&'core ()),
-    N32,
-    F32,
-    Bool,
-    Char,
-    IO,
-  }
-}
 
 mod specializer {
   vine_util::new_idx!(pub RelId);

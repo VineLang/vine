@@ -237,6 +237,7 @@ pub struct AdtDef<'core> {
   pub generics: GenericsId,
   pub name: Ident<'core>,
   pub variants: IdxVec<VariantId, AdtVariant<'core>>,
+  pub is_struct: bool,
 }
 
 #[derive(Debug)]

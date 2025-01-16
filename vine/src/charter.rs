@@ -3,7 +3,10 @@ use std::{collections::hash_map::Entry, mem::take};
 use vine_util::idx::{Counter, IdxVec};
 
 use crate::{
-  ast::{AttrKind, Builtin, GenericParams, Ident, Item, ItemKind, ModKind, Span, UseTree, Vis},
+  ast::{
+    AttrKind, Builtin, GenericParams, Generics, Ident, Item, ItemKind, ModKind, Span, Trait,
+    TraitKind, Ty, TyKind, UseTree, Vis,
+  },
   chart::{Chart, TraitSubitem},
   checker::Type,
   core::Core,
@@ -93,6 +96,7 @@ impl<'core> Charter<'core, '_> {
             fields: struct_item.fields,
             object: struct_item.object,
           }]),
+          is_struct: true,
         });
         let variant = VariantId(0);
         self.define_value(span, def, vis, generics, ValueDefKind::Adt(adt, variant));
@@ -118,7 +122,13 @@ impl<'core> Charter<'core, '_> {
           })
           .collect::<Vec<_>>()
           .into();
-        self.chart.adts.push(AdtDef { def, name: enum_item.name, generics, variants });
+        self.chart.adts.push(AdtDef {
+          def,
+          name: enum_item.name,
+          generics,
+          variants,
+          is_struct: false,
+        });
         self.define_type(span, def, vis, generics, TypeDefKind::Adt(adt));
         Some(def)
       }
@@ -141,6 +151,30 @@ impl<'core> Charter<'core, '_> {
         let generics = self.chart_generics(def, trait_item.generics, false);
         let mut sub_id = Counter::<SubitemId>::default();
         let trait_id = self.chart.traits.next_index();
+        let sub_generics = {
+          let generics = &self.chart.generics[generics];
+          self.chart.generics.push(GenericsDef {
+            span: generics.span,
+            def,
+            type_params: generics.type_params.clone(),
+            impl_params: vec![(
+              self.core.ident("_"),
+              Trait {
+                span: Span::NONE,
+                kind: TraitKind::Def(
+                  trait_id,
+                  Generics {
+                    span: Span::NONE,
+                    types: (0..generics.type_params.len())
+                      .map(|i| Ty { span: Span::NONE, kind: TyKind::Param(i) })
+                      .collect(),
+                    impls: Vec::new(),
+                  },
+                ),
+              },
+            )],
+          })
+        };
         let subitems = trait_item
           .items
           .into_iter()
@@ -160,7 +194,7 @@ impl<'core> Charter<'core, '_> {
                 let def = self.chart_child(def, fn_item.name, vis);
                 let sub_id = sub_id.next();
                 let kind = ValueDefKind::TraitSubitem(trait_id, sub_id);
-                self.define_value(span, def, vis, generics, kind);
+                self.define_value(span, def, vis, sub_generics, kind);
                 Some(TraitSubitem {
                   name: fn_item.name,
                   kind: TraitSubitemKind::Fn(fn_item.params, fn_item.ret),
@@ -176,7 +210,7 @@ impl<'core> Charter<'core, '_> {
                 let def = self.chart_child(def, const_item.name, vis);
                 let sub_id = sub_id.next();
                 let kind = ValueDefKind::TraitSubitem(trait_id, sub_id);
-                self.define_value(span, def, vis, generics, kind);
+                self.define_value(span, def, vis, sub_generics, kind);
                 Some(TraitSubitem {
                   name: const_item.name,
                   kind: TraitSubitemKind::Const(const_item.ty),
