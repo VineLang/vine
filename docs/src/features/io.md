@@ -29,7 +29,7 @@ fn greet(&io: &IO, name: String) {
 }
 ```
 
-Any function that does not get passed a reference to an IO handle is _pure_
+Any function that does not get passed a reference to an IO handle is *pure*
 (i.e. does not interact with the outside world).
 
 IO calls are asynchronous and do not block the execution of the rest of the

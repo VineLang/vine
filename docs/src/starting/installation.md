@@ -24,17 +24,19 @@ Head over to the next page to learn more about what just happened.
 
 ## Optional: Vine VSCode Extension
 
-Make sure you have [Node.js](https://nodejs.org/en/download/package-manager) installed.
+Make sure you have [Node.js](https://nodejs.org/en/download/package-manager)
+installed.
 
 ```sh
 cd lsp/client
 npm i
 ```
 
-Then, run "Developer: Install Extension from Location..." and select the `lsp/client` directory.
+Then, run "Developer: Install Extension from Location..." and select the
+`lsp/client` directory.
 
-You can check that it's working by opening one of the example files and making a syntax error. When
-you save, you should see an error appear.
+You can check that it's working by opening one of the example files and making a
+syntax error. When you save, you should see an error appear.
 
 ## Optional: Vine Workspace Configuration
 

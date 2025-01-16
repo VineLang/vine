@@ -43,7 +43,7 @@ Performance
 
 At the top, notice that it successfully printed `Hello, world!`.
 
-At the bottom, you'll also see several [_statistics_](../ivy/statistics) printed
+At the bottom, you'll also see several [*statistics*](../ivy/statistics) printed
 out. You don't need to worry about them for now. If you want to disable them,
 you can use `--no-stats`.
 

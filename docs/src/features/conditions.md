@@ -52,7 +52,7 @@ option is Some(_); // true
 option is None; // false
 ```
 
-Any variables bound by the patterns are in scope in subsequent _true-paths_
+Any variables bound by the patterns are in scope in subsequent *true-paths*
 including `&&` chains, then-blocks of an `if`, and the body of a `while`.
 
 ```rs
