@@ -20,6 +20,7 @@ fn tests(t: &mut DynTester) {
   let fib_repl_input_iv = b"1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n21\n100\n999999\n";
   let fib_repl_input_vi = b"1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n21\n100\n999999\n\nabc\n";
   let guessing_game_input = b"a seed\na maximum number\n100\n50\n75\n63\n56\n60\n58\n57";
+  let lambda_input = b"(\\2.((2 2) 2))(\\f.\\x.(f(f x)))\n(\\a.\\b.b)((\\x.(x x))(\\x.(x x)))";
 
   t.group("ivy", |t| {
     test_iv(t, "ivy/examples/cat.iv", b"meow\n", ".txt");
@@ -54,6 +55,7 @@ fn tests(t: &mut DynTester) {
     test_vi(t, "tests/programs/final_countdown.vi", b"", ".txt");
     test_vi(t, "tests/programs/find_primes.vi", b"", ".txt");
     test_vi(t, "tests/programs/inverse.vi", b"", ".txt");
+    test_vi(t, "tests/programs/lambda.vi", lambda_input, ".txt");
     test_vi(t, "tests/programs/logic.vi", b"", ".txt");
     test_vi(t, "tests/programs/loop_break_continue.vi", b"", ".txt");
     test_vi(t, "tests/programs/loop_vi_loop.vi", b"", ".txt");

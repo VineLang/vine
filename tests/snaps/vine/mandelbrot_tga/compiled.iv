@@ -60,7 +60,7 @@
   ::std::IO::print_bytes::2 = x(x(w3 w15) x(w9 w10))
 }
 
-::std::IO::print_bytes::2 { x(w4 x(dup2969(?(::std::IO::print_bytes::4 ::std::IO::print_bytes::3 x(w4 x(w6 w1))) w6) w1)) }
+::std::IO::print_bytes::2 { x(w4 x(dup2980(?(::std::IO::print_bytes::4 ::std::IO::print_bytes::3 x(w4 x(w6 w1))) w6) w1)) }
 
 ::std::IO::print_bytes::3 {
   x(x(w17 w21) x(@sub(1 w1) tup(w4 w5)))
