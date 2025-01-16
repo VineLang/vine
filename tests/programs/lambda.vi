@@ -1,0 +1,172 @@
+
+use std::data::Map;
+
+pub fn main(&io: &IO) {
+  while io.prompt("> ") is Some(line) {
+    match Term::parse(~_, line) {
+      Ok(term) { io.println(term.print_normal(0)) }
+      Err(err) { io.println("error: " ++ err) }
+    }
+  }
+}
+
+pub enum Term {
+  Lambda(List[~Term], Term),
+  Apply(Term, Term),
+  Spine(String, List[Term]),
+}
+
+pub mod Term {
+  fn whnf(term: Term) -> Term {
+    match term {
+      Term::Apply(fun, arg) {
+        fun = fun.whnf();
+        match fun {
+          Term::Lambda(param, body) {
+            bind(param, arg);
+            body.whnf()
+          }
+          Term::Spine(var, args) { Term::Spine(var, args ++ [arg]) }
+        }
+      }
+      term { term }
+    }
+  }
+
+  pub fn print_normal(term: Term, depth: N32) -> String {
+    match term.whnf() {
+      Term::Lambda(param, body) {
+        let var = new_var(depth);
+        bind(param, Term::Spine(var, []));
+        "\\" ++ var ++ ". " ++ body.print_normal(depth + 1)
+      }
+      Term::Spine(var, args) {
+        if args.len() == 0 {
+          var
+        } else {
+          let out = "(" ++ var;
+          let iter = args.into_iter();
+          while iter.next() is Some(arg) {
+            out ++= " " ++ arg.print_normal(depth);
+          }
+          out ++ ")"
+        }
+      }
+    }
+  }
+
+  fn bind(uses: List[~Term], term: Term) {
+    let iter = uses.into_iter();
+    while iter.next() is Some(out) {
+      ~out = term;
+    }
+  }
+
+  pub fn parse(io: IO, source: String) -> Result[Term, String] {
+    let err;
+    let parser = Parser({ io, scope: Map::new(String::cmp), chars: source.chars, error: move ~err });
+    let term = parser.parse_term();
+    ~parser.error = None;
+    if err is Some(error) {
+      Err(error)
+    } else {
+      Ok(term)
+    }
+  }
+}
+
+struct Parser {
+  io: IO,
+  scope: Map[String, List[List[~Term]]],
+  chars: List[Char],
+  error: ~Option[String],
+}
+
+mod Parser {
+  pub fn parse_term(&self: &Parser) -> Term {
+    let term = self.parse_atom();
+    self.skip_ws();
+    while self.chars.len() != 0 && self.chars.get(0).* != ')' {
+      term = Term::Apply(term, self.parse_atom());
+      self.skip_ws();
+    }
+    term
+  }
+
+  fn parse_atom(&self: &Parser) -> Term {
+    self.skip_ws();
+    if self.chars.len() == 0 {
+      self.error("expected term");
+    }
+    let char = self.chars.get(0).*;
+    self.io.println(String({ chars: [char] }));
+    if char == '\\' {
+      self.io.println("lambda");
+      self.chars.pop_front();
+      self.skip_ws();
+      let var = self.parse_var();
+      self.io.println(var);
+      self.expect_char('.');
+      self.scope.get_or_insert(var, []).*.push_front([]);
+      let body = self.parse_atom();
+      let uses = self.scope.get(&var).unwrap().*.pop_front().unwrap();
+      Term::Lambda(uses, body)
+    } else if char == '(' {
+      self.chars.pop_front();
+      let term = self.parse_term();
+      self.expect_char(')');
+      term
+    } else {
+      let var = self.parse_var();
+      if self.scope.get(&var) is Some(&binds) && binds.len() != 0 {
+        let term;
+        binds.get(0).*.push_back(move ~term);
+        term
+      } else {
+        self.error("unbound variable `" ++ var ++ "`")
+      }
+    }
+  }
+
+  fn parse_var(&self: &Parser) -> String {
+    let chars = [];
+    while self.chars.len() != 0 && self.chars.get(0).* is char && char.is_alphanumeric() {
+      self.chars.pop_front();
+      chars.push_back(char);
+    }
+    if chars.len() == 0 {
+      self.error("expected variable");
+    }
+    String({ chars })
+  }
+
+  fn expect_char(&self: &Parser, char: Char) {
+    self.skip_ws();
+    if !(self.chars.pop_front() is Some(c) && c == char) {
+      self.error("expected `" ++ String({ chars: [char] }) ++ "`");
+    }
+  }
+
+  fn skip_ws(&self: &Parser) {
+    while self.chars.len() != 0 && self.chars.get(0).*.is_whitespace() {
+      self.chars.pop_front();
+    }
+  }
+
+  fn error[T](&self: &Parser, error: String) -> T {
+    ~self.error = Some(error);
+    move self;
+    ~_
+  }
+}
+
+fn new_var(n: N32) -> String {
+  let chars = [];
+  n += 1;
+  while n > 0 {
+    n -= 1;
+    chars.push_front('a' + (n % 26));
+    n /= 26;
+  }
+  String({ chars })
+}

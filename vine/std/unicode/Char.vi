@@ -15,4 +15,12 @@ pub mod Char {
       Ord::Eq
     }
   }
+
+  pub fn is_whitespace(char: Char) -> Bool {
+    (char == ' ') | (char == '\t') | (char == '\n')
+  }
+
+  pub fn is_alphanumeric(char: Char) -> Bool {
+    ('a' <= char <= 'z') | ('A' <= char <= 'Z') | ('0' <= char <= '9')
+  }
 }
