@@ -13,14 +13,10 @@ pub mod loader;
 pub mod normalizer;
 pub mod parser;
 // pub mod repl;
-// pub mod specializer;
 pub mod resolver;
+pub mod specializer;
 pub mod vir;
 pub mod visit;
-
-mod specializer {
-  vine_util::new_idx!(pub RelId);
-}
 
 use std::path::PathBuf;
 
