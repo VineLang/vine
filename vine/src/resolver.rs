@@ -166,7 +166,7 @@ impl<'core> ResolveVisitor<'core, '_, '_> {
     }
 
     for id in self.resolver.chart.imports.keys_from(checkpoint.imports) {
-      self.resolver.resolve_import(id);
+      _ = self.resolver.resolve_import(id);
     }
   }
 
