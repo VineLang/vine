@@ -2,61 +2,61 @@
 ::main { ::logic::main }
 
 ::logic::main {
-  fn(ref(w3 w138) _)
-  ::logic::main::2 = x(x(w3 w76) fn(1 _))
-  ::logic::main::2 = x(x(w76 w79) fn(1 _))
-  ::logic::main::2 = x(x(w79 w82) fn(1 _))
-  ::logic::main::2 = x(x(w82 w85) fn(1 _))
-  ::logic::main::2 = x(x(w85 w88) fn(1 _))
-  ::logic::main::2 = x(x(w88 w91) fn(1 _))
-  ::logic::main::2 = x(x(w91 w94) fn(1 _))
-  ::logic::main::2 = x(x(w94 w97) fn(1 _))
-  ::logic::main::2 = x(x(w97 w100) fn(1 _))
-  ::logic::main::2 = x(x(w100 w103) fn(1 _))
-  ::std::IO::println = fn(ref(w103 w35) fn(tup(3 tup(tup(45 tup(45 tup(45 w104))) w104)) _))
-  ::logic::main::2 = x(x(w35 w107) fn(0 _))
-  ::logic::main::2 = x(x(w107 w110) fn(0 _))
-  ::logic::main::2 = x(x(w110 w113) fn(0 _))
-  ::logic::main::2 = x(x(w113 w116) fn(0 _))
-  ::logic::main::2 = x(x(w116 w119) fn(0 _))
-  ::logic::main::2 = x(x(w119 w122) fn(0 _))
-  ::logic::main::2 = x(x(w122 w125) fn(0 _))
-  ::logic::main::2 = x(x(w125 w128) fn(0 _))
-  ::std::IO::println = fn(ref(w128 w61) fn(tup(3 tup(tup(45 tup(45 tup(45 w129))) w129)) _))
-  ::logic::main::2 = x(x(w61 w132) fn(1 _))
-  ::logic::main::2 = x(x(w132 w135) fn(1 _))
-  ::logic::main::2 = x(x(w135 w138) fn(0 _))
+  fn(ref(w1 w137) _)
+  ::logic::main::1 = x(x(w1 w75) fn(1 _))
+  ::logic::main::1 = x(x(w75 w78) fn(1 _))
+  ::logic::main::1 = x(x(w78 w81) fn(1 _))
+  ::logic::main::1 = x(x(w81 w84) fn(1 _))
+  ::logic::main::1 = x(x(w84 w87) fn(1 _))
+  ::logic::main::1 = x(x(w87 w90) fn(1 _))
+  ::logic::main::1 = x(x(w90 w93) fn(1 _))
+  ::logic::main::1 = x(x(w93 w96) fn(1 _))
+  ::logic::main::1 = x(x(w96 w99) fn(1 _))
+  ::logic::main::1 = x(x(w99 w102) fn(1 _))
+  ::std::IO::println = fn(ref(w102 w33) fn(tup(3 tup(tup(45 tup(45 tup(45 w103))) w103)) _))
+  ::logic::main::1 = x(x(w33 w106) fn(0 _))
+  ::logic::main::1 = x(x(w106 w109) fn(0 _))
+  ::logic::main::1 = x(x(w109 w112) fn(0 _))
+  ::logic::main::1 = x(x(w112 w115) fn(0 _))
+  ::logic::main::1 = x(x(w115 w118) fn(0 _))
+  ::logic::main::1 = x(x(w118 w121) fn(0 _))
+  ::logic::main::1 = x(x(w121 w124) fn(0 _))
+  ::logic::main::1 = x(x(w124 w127) fn(0 _))
+  ::std::IO::println = fn(ref(w127 w59) fn(tup(3 tup(tup(45 tup(45 tup(45 w128))) w128)) _))
+  ::logic::main::1 = x(x(w59 w131) fn(1 _))
+  ::logic::main::1 = x(x(w131 w134) fn(1 _))
+  ::logic::main::1 = x(x(w134 w137) fn(0 _))
 }
 
-::logic::main::2 {
-  x(x(w10 w4) fn(?(::logic::main::5 ::logic::main::4 w12) w7))
+::logic::main::1 {
+  x(x(w10 w4) fn(?(::logic::main::4 ::logic::main::3 w12) w7))
   ::std::IO::println = fn(ref(w10 w4) fn(w12 w7))
 }
 
-::logic::main::4 { tup(4 tup(tup(116 tup(114 tup(117 tup(101 w2)))) w2)) }
+::logic::main::3 { tup(4 tup(tup(116 tup(114 tup(117 tup(101 w2)))) w2)) }
 
-::logic::main::5 { tup(5 tup(tup(102 tup(97 tup(108 tup(115 tup(101 w2))))) w2)) }
+::logic::main::4 { tup(5 tup(tup(102 tup(97 tup(108 tup(115 tup(101 w2))))) w2)) }
 
 ::std::IO::println {
-  fn(ref(w3 w14) fn(w5 _))
-  ::std::IO::print = fn(ref(w3 w9) fn(w5 _))
-  ::std::IO::print_char = fn(ref(w9 w14) fn(10 _))
+  fn(ref(w1 w12) fn(w3 _))
+  ::std::IO::print = fn(ref(w1 w7) fn(w3 _))
+  ::std::IO::print_char = fn(ref(w7 w12) fn(10 _))
 }
 
 ::std::IO::print {
-  fn(ref(w3 w17) fn(tup(w9 tup(w10 _)) _))
-  ::std::IO::print::2 = x(x(w3 w17) x(w9 w10))
+  fn(ref(w1 w16) fn(tup(w7 tup(w8 _)) _))
+  ::std::IO::print::1 = x(x(w1 w16) x(w7 w8))
 }
 
-::std::IO::print::2 { x(w4 x(dup2913(?(::std::IO::print::4 ::std::IO::print::3 x(w4 x(w6 w1))) w6) w1)) }
+::std::IO::print::1 { x(w4 x(dup2768(?(::std::IO::print::3 ::std::IO::print::2 x(w4 x(w6 w1))) w6) w1)) }
 
-::std::IO::print::3 {
+::std::IO::print::2 {
   x(x(w17 w21) x(@sub(1 w1) tup(w4 w5)))
   ::std::IO::print_char = fn(ref(w17 w10) fn(w4 _))
-  ::std::IO::print::2 = x(x(w10 w21) x(w1 w5))
+  ::std::IO::print::1 = x(x(w10 w21) x(w1 w5))
 }
 
-::std::IO::print::4 { x(x(w3 w3) _) }
+::std::IO::print::3 { x(x(w3 w3) _) }
 
 ::std::IO::print_char { fn(ref(@io_print_char(char io) io) fn(char _)) }
 

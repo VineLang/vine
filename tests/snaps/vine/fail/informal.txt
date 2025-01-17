@@ -9,4 +9,3 @@ error tests/programs/fail/informal.vi:7:3 - cannot infer type
 error tests/programs/fail/informal.vi:8:8 - `&` is invalid in a space pattern
 error tests/programs/fail/informal.vi:8:15 - expected a place expression; found a space expression
 error tests/programs/fail/informal.vi:8:13 - expected a value expression; found a space expression
-error tests/programs/fail/informal.vi:9:7 - expected an irrefutable pattern

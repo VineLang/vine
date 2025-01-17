@@ -2,80 +2,80 @@
 ::main { ::fizzbuzz::main }
 
 ::fizzbuzz::main {
-  fn(ref(w3 w10) _)
-  ::fizzbuzz::main::2 = x(x(w3 w10) 1)
+  fn(ref(w1 w9) _)
+  ::fizzbuzz::main::1 = x(x(w1 w9) 1)
 }
 
-::fizzbuzz::main::2 { x(w4 dup10(@le(100 ?(::fizzbuzz::main::4 ::fizzbuzz::main::3 x(w4 w5))) w5)) }
+::fizzbuzz::main::1 { x(w4 dup9(@le(100 ?(::fizzbuzz::main::3 ::fizzbuzz::main::2 x(w4 w5))) w5)) }
 
-::fizzbuzz::main::3 {
-  x(x(w10 w13) dup14(w3 @add(1 w7)))
+::fizzbuzz::main::2 {
+  x(x(w10 w13) dup13(w3 @add(1 w7)))
   ::fizzbuzz::message = fn(w3 w4)
   ::std::IO::println = fn(ref(w10 w1) fn(w4 _))
-  ::fizzbuzz::main::2 = x(x(w1 w13) w7)
+  ::fizzbuzz::main::1 = x(x(w1 w13) w7)
 }
 
-::fizzbuzz::main::4 { x(x(w2 w2) _) }
+::fizzbuzz::main::3 { x(x(w2 w2) _) }
 
-::fizzbuzz::message { fn(dup17(@rem(3 ?(::fizzbuzz::message::4 ::fizzbuzz::message::3 x(w15 x(w9 w13)))) dup17(@rem(5 w9) w15)) w13) }
+::fizzbuzz::message { fn(dup16(@rem(3 ?(::fizzbuzz::message::3 ::fizzbuzz::message::2 x(w14 x(w7 w12)))) dup16(@rem(5 w7) w14)) w12) }
 
-::fizzbuzz::message::3 { x(w3 x(?(::fizzbuzz::message::7 ::fizzbuzz::message::6 x(w3 w5)) w5)) }
+::fizzbuzz::message::2 { x(w3 x(?(::fizzbuzz::message::6 ::fizzbuzz::message::5 x(w3 w5)) w5)) }
 
-::fizzbuzz::message::4 { x(_ x(?(::fizzbuzz::message::10 ::fizzbuzz::message::9 w5) w5)) }
+::fizzbuzz::message::3 { x(_ x(?(::fizzbuzz::message::9 ::fizzbuzz::message::8 w5) w5)) }
 
-::fizzbuzz::message::6 {
+::fizzbuzz::message::5 {
   x(w3 w1)
   ::std::numeric::N32::to_string = fn(w3 w1)
 }
 
-::fizzbuzz::message::7 { x(_ tup(4 tup(tup(66 tup(117 tup(122 tup(122 w3)))) w3))) }
+::fizzbuzz::message::6 { x(_ tup(4 tup(tup(66 tup(117 tup(122 tup(122 w3)))) w3))) }
 
-::fizzbuzz::message::9 { tup(4 tup(tup(70 tup(105 tup(122 tup(122 w2)))) w2)) }
+::fizzbuzz::message::8 { tup(4 tup(tup(70 tup(105 tup(122 tup(122 w2)))) w2)) }
 
-::fizzbuzz::message::10 { tup(8 tup(tup(70 tup(105 tup(122 tup(122 tup(66 tup(117 tup(122 tup(122 w2)))))))) w2)) }
+::fizzbuzz::message::9 { tup(8 tup(tup(70 tup(105 tup(122 tup(122 tup(66 tup(117 tup(122 tup(122 w2)))))))) w2)) }
 
-::std::data::List::concat { fn(tup(@add(w12 w20) tup(w8 w13)) fn(tup(w12 tup(w13 w23)) tup(w20 tup(w8 w23)))) }
+::std::data::List::concat { fn(tup(@add(w10 w18) tup(w6 w11)) fn(tup(w10 tup(w11 w21)) tup(w18 tup(w6 w21)))) }
 
-::std::numeric::N32::to_string { fn(dup1888(?(::std::numeric::N32::to_string::4 ::std::numeric::N32::to_string::3 x(w8 w7)) w8) w7) }
+::std::numeric::N32::to_string { fn(dup1794(?(::std::numeric::N32::to_string::3 ::std::numeric::N32::to_string::2 x(w7 w6)) w7) w6) }
 
-::std::numeric::N32::to_string::3 {
+::std::numeric::N32::to_string::2 {
   x(w6 w9)
-  ::std::numeric::N32::to_string::5 = x(w6 x(tup(0 tup(w7 w7)) w9))
+  ::std::numeric::N32::to_string::4 = x(w6 x(tup(0 tup(w7 w7)) w9))
 }
 
-::std::numeric::N32::to_string::4 { x(_ tup(1 tup(tup(48 w3) w3))) }
+::std::numeric::N32::to_string::3 { x(_ tup(1 tup(tup(48 w3) w3))) }
 
-::std::numeric::N32::to_string::5 { x(dup1898(?(::std::numeric::N32::to_string::7 ::std::numeric::N32::to_string::6 x(w6 w2)) w6) w2) }
+::std::numeric::N32::to_string::4 { x(dup1803(?(::std::numeric::N32::to_string::6 ::std::numeric::N32::to_string::5 x(w6 w2)) w6) w2) }
 
-::std::numeric::N32::to_string::6 {
-  x(dup1901(@rem(10 w1) @div(10 w8)) x(w11 w15))
+::std::numeric::N32::to_string::5 {
+  x(dup1806(@rem(10 w1) @div(10 w8)) x(w11 w15))
   48 = @add(w1 w2)
   ::std::data::List::concat = fn(tup(1 tup(tup(w2 w13) w13)) fn(w11 w5))
-  ::std::numeric::N32::to_string::5 = x(w8 x(w5 w15))
+  ::std::numeric::N32::to_string::4 = x(w8 x(w5 w15))
 }
 
-::std::numeric::N32::to_string::7 { x(_ x(w1 w1)) }
+::std::numeric::N32::to_string::6 { x(_ x(w1 w1)) }
 
 ::std::IO::println {
-  fn(ref(w3 w14) fn(w5 _))
-  ::std::IO::print = fn(ref(w3 w9) fn(w5 _))
-  ::std::IO::print_char = fn(ref(w9 w14) fn(10 _))
+  fn(ref(w1 w12) fn(w3 _))
+  ::std::IO::print = fn(ref(w1 w7) fn(w3 _))
+  ::std::IO::print_char = fn(ref(w7 w12) fn(10 _))
 }
 
 ::std::IO::print {
-  fn(ref(w3 w17) fn(tup(w9 tup(w10 _)) _))
-  ::std::IO::print::2 = x(x(w3 w17) x(w9 w10))
+  fn(ref(w1 w16) fn(tup(w7 tup(w8 _)) _))
+  ::std::IO::print::1 = x(x(w1 w16) x(w7 w8))
 }
 
-::std::IO::print::2 { x(w4 x(dup2877(?(::std::IO::print::4 ::std::IO::print::3 x(w4 x(w6 w1))) w6) w1)) }
+::std::IO::print::1 { x(w4 x(dup2731(?(::std::IO::print::3 ::std::IO::print::2 x(w4 x(w6 w1))) w6) w1)) }
 
-::std::IO::print::3 {
+::std::IO::print::2 {
   x(x(w17 w21) x(@sub(1 w1) tup(w4 w5)))
   ::std::IO::print_char = fn(ref(w17 w10) fn(w4 _))
-  ::std::IO::print::2 = x(x(w10 w21) x(w1 w5))
+  ::std::IO::print::1 = x(x(w10 w21) x(w1 w5))
 }
 
-::std::IO::print::4 { x(x(w3 w3) _) }
+::std::IO::print::3 { x(x(w3 w3) _) }
 
 ::std::IO::print_char { fn(ref(@io_print_char(char io) io) fn(char _)) }
 
