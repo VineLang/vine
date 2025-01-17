@@ -333,7 +333,11 @@
 
     </div>
         <script>
-            document.querySelectorAll("pre > code").forEach(code => code.innerHTML = code.innerHTML.replace(/(^|\n(?!$))/g, `$1<span class="line"></span>`))
+            document.querySelectorAll("pre > code").forEach(code =>
+                code.innerHTML = code.innerHTM
+                    .replace(/(^|\n) /g, "$1&nbsp;")
+                    .replace(/(^|\n(?!$))/g, `$1<span class="line"></span>`)
+            )
         </script>
     </body>
 </html>
