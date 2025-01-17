@@ -11,11 +11,8 @@ use vine_util::{
 
 use crate::{
   analyzer::usage::Usage,
-  ast::{
-    BinaryOp, Builtin, ComparisonOp, DynFnId, Expr, ExprKind, Path, Key, LabelId, Local,
-    Pat, PatKind,
-  },
-  resolver::{Def, DefId, Resolver, ValueDefKind},
+  ast::{BinaryOp, ComparisonOp, DynFnId, Expr, ExprKind, Key, LabelId, Local, Pat, PatKind},
+  chart::{AdtId, Chart, ValueDef, ValueDefKind, VariantId},
   vir::{
     Interface, InterfaceId, InterfaceKind, Layer, LayerId, Port, Stage, StageId, Step, Transfer,
     VIR,
@@ -27,7 +24,7 @@ mod pattern_matching;
 
 #[derive(Debug)]
 pub struct Distiller<'core, 'r> {
-  resolver: &'r Resolver<'core>,
+  chart: &'r Chart<'core>,
 
   layers: IdxVec<LayerId, Option<Layer>>,
   interfaces: IdxVec<InterfaceId, Option<Interface>>,
@@ -36,8 +33,6 @@ pub struct Distiller<'core, 'r> {
   labels: IdxVec<LabelId, Option<Label>>,
   returns: Vec<Return>,
   dyn_fns: IdxVec<DynFnId, Option<DynFn>>,
-
-  concat: Option<DefId>,
 
   locals: Counter<Local>,
 }
@@ -62,11 +57,9 @@ struct DynFn {
 }
 
 impl<'core, 'r> Distiller<'core, 'r> {
-  pub fn new(resolver: &'r Resolver<'core>) -> Self {
-    let concat = resolver.builtins.get(&Builtin::Concat).copied();
+  pub fn new(chart: &'r Chart<'core>) -> Self {
     Distiller {
-      resolver,
-      concat,
+      chart,
       layers: Default::default(),
       interfaces: Default::default(),
       stages: Default::default(),
@@ -77,23 +70,36 @@ impl<'core, 'r> Distiller<'core, 'r> {
     }
   }
 
-  pub fn distill(&mut self, def: &Def<'core>) -> Option<VIR> {
-    let value_def = def.value_def.as_ref()?;
-    let ValueDefKind::Expr(expr) = &value_def.kind else { None? };
-    Some(self.distill_root(value_def.locals, expr, Self::distill_expr_value))
+  pub fn distill(&mut self, value_def: &ValueDef<'core>) -> Option<VIR> {
+    match &value_def.kind {
+      ValueDefKind::Taken => unreachable!(),
+      ValueDefKind::Const { value, .. } => {
+        Some(self.distill_root(value_def.locals, |self_, stage, local| {
+          let result = self_.distill_expr_value(stage, value);
+          stage.set_local_to(local, result);
+        }))
+      }
+      ValueDefKind::Fn { params, body, .. } => {
+        Some(self.distill_root(value_def.locals, |self_, stage, local| {
+          self_._distill_fn(stage, local, params, body);
+        }))
+      }
+      ValueDefKind::Ivy { .. } | ValueDefKind::Adt(..) | ValueDefKind::TraitSubitem(..) => None,
+    }
+    // let value_def = value_def.value_def.as_ref()?;
+    // let ValueDefKind::Expr(expr) = &value_def.kind else { None? };
+    // Some(self.distill_root(value_def.locals, expr, Self::distill_expr_value))
   }
 
-  pub fn distill_root<T>(
+  pub fn distill_root(
     &mut self,
     locals: Counter<Local>,
-    root: &T,
-    distill_root: fn(&mut Self, &mut Stage, &T) -> Port,
+    f: impl FnOnce(&mut Self, &mut Stage, Local),
   ) -> VIR {
     self.locals = locals;
     let (layer, mut stage) = self.root_layer();
     let local = self.locals.next();
-    let result = distill_root(self, &mut stage, root);
-    stage.set_local_to(local, result);
+    f(self, &mut stage, local);
     self.finish_stage(stage);
     self.finish_layer(layer);
     self.labels.clear();
@@ -128,8 +134,9 @@ impl<'core, 'r> Distiller<'core, 'r> {
       ExprKind::N32(n) => Port::N32(*n),
       ExprKind::F32(f) => Port::F32(*f),
 
-      ExprKind::Path(path) => Port::Const(path.path.resolved.unwrap()),
-      ExprKind::Rel(rel_id) => Port::Rel(*rel_id),
+      ExprKind::Path(_) => unreachable!(),
+      ExprKind::Def(id, _) => Port::Def(*id),
+      ExprKind::Rel(id) => Port::Rel(*id),
 
       ExprKind::DynFn(dyn_fn) => {
         let dyn_fn = self.dyn_fns[*dyn_fn].as_ref().unwrap();
@@ -170,8 +177,8 @@ impl<'core, 'r> Distiller<'core, 'r> {
         self.distill_vec(stage, tuple, Self::distill_expr_value, Step::Tuple)
       }
       ExprKind::Object(fields) => self.distill_object(stage, fields, Self::distill_expr_value),
-      ExprKind::Adt(path, args) => {
-        self.distill_vec(stage, args, Self::distill_expr_value, adt(path))
+      ExprKind::Adt(adt_id, variant_id, _, args) => {
+        self.distill_vec(stage, args, Self::distill_expr_value, adt(adt_id, variant_id))
       }
       ExprKind::List(list) => self.distill_vec(stage, list, Self::distill_expr_value, Step::List),
       ExprKind::TupleField(tuple, idx, len) => {
@@ -260,8 +267,8 @@ impl<'core, 'r> Distiller<'core, 'r> {
         self.distill_vec(stage, tuple, Self::distill_expr_space, Step::Tuple)
       }
       ExprKind::Object(fields) => self.distill_object(stage, fields, Self::distill_expr_space),
-      ExprKind::Adt(path, args) => {
-        self.distill_vec(stage, args, Self::distill_expr_space, adt(path))
+      ExprKind::Adt(adt_id, variant_id, _, args) => {
+        self.distill_vec(stage, args, Self::distill_expr_space, adt(adt_id, variant_id))
       }
       ExprKind::Set(place) => {
         let (value, space) = self.distill_expr_place(stage, place);
@@ -302,8 +309,8 @@ impl<'core, 'r> Distiller<'core, 'r> {
         self.distill_vec_pair(stage, tuple, Self::distill_expr_place, Step::Tuple)
       }
       ExprKind::Object(fields) => self.distill_object_pair(stage, fields, Self::distill_expr_place),
-      ExprKind::Adt(path, args) => {
-        self.distill_vec_pair(stage, args, Self::distill_expr_place, adt(path))
+      ExprKind::Adt(adt_id, variant_id, _, args) => {
+        self.distill_vec_pair(stage, args, Self::distill_expr_place, adt(adt_id, variant_id))
       }
       ExprKind::TupleField(tuple, idx, len) => {
         let tuple = self.distill_expr_place(stage, tuple);
@@ -321,7 +328,7 @@ impl<'core, 'r> Distiller<'core, 'r> {
 
   fn distill_pat_value(&mut self, stage: &mut Stage, pat: &Pat<'core>) -> Port {
     match &pat.kind {
-      PatKind![!value] => unreachable!(),
+      PatKind![!value] | PatKind::PathCall(..) => unreachable!(),
       PatKind::Hole => Port::Erase,
       PatKind::Paren(inner) | PatKind::Annotation(inner, _) => self.distill_pat_value(stage, inner),
       PatKind::Inverse(inner) => self.distill_pat_space(stage, inner),
@@ -331,8 +338,8 @@ impl<'core, 'r> Distiller<'core, 'r> {
       }
       PatKind::Tuple(tuple) => self.distill_vec(stage, tuple, Self::distill_pat_value, Step::Tuple),
       PatKind::Object(fields) => self.distill_object(stage, fields, Self::distill_pat_value),
-      PatKind::Adt(path, args) => {
-        self.distill_vec(stage, args.as_deref().unwrap_or(&[]), Self::distill_pat_value, adt(path))
+      PatKind::Adt(adt_id, variant_id, _, args) => {
+        self.distill_vec(stage, args, Self::distill_pat_value, adt(adt_id, variant_id))
       }
       PatKind::Ref(place) => {
         let (value, space) = self.distill_pat_place(stage, place);
@@ -345,7 +352,7 @@ impl<'core, 'r> Distiller<'core, 'r> {
 
   fn distill_pat_space(&mut self, stage: &mut Stage, pat: &Pat<'core>) -> Port {
     match &pat.kind {
-      PatKind![!space] => unreachable!(),
+      PatKind![!space] | PatKind::PathCall(..) => unreachable!(),
       PatKind::Hole => Port::Erase,
       PatKind::Paren(inner) | PatKind::Annotation(inner, _) => self.distill_pat_space(stage, inner),
       PatKind::Inverse(inner) => self.distill_pat_value(stage, inner),
@@ -355,15 +362,15 @@ impl<'core, 'r> Distiller<'core, 'r> {
       }
       PatKind::Tuple(tuple) => self.distill_vec(stage, tuple, Self::distill_pat_space, Step::Tuple),
       PatKind::Object(fields) => self.distill_object(stage, fields, Self::distill_pat_space),
-      PatKind::Adt(path, args) => {
-        self.distill_vec(stage, args.as_deref().unwrap_or(&[]), Self::distill_pat_space, adt(path))
+      PatKind::Adt(adt_id, variant_id, _, args) => {
+        self.distill_vec(stage, args, Self::distill_pat_space, adt(adt_id, variant_id))
       }
     }
   }
 
   fn distill_pat_place(&mut self, stage: &mut Stage, pat: &Pat<'core>) -> (Port, Port) {
     match &pat.kind {
-      PatKind![!place] => unreachable!(),
+      PatKind![!place] | PatKind::PathCall(..) => unreachable!(),
       PatKind::Hole => stage.new_wire(),
       PatKind::Paren(inner) | PatKind::Annotation(inner, _) => self.distill_pat_place(stage, inner),
       PatKind::Inverse(inner) => {
@@ -379,12 +386,9 @@ impl<'core, 'r> Distiller<'core, 'r> {
         self.distill_vec_pair(stage, tuple, Self::distill_pat_place, Step::Tuple)
       }
       PatKind::Object(fields) => self.distill_object_pair(stage, fields, Self::distill_pat_place),
-      PatKind::Adt(path, args) => self.distill_vec_pair(
-        stage,
-        args.as_deref().unwrap_or(&[]),
-        Self::distill_pat_place,
-        adt(path),
-      ),
+      PatKind::Adt(adt_id, variant_id, _, args) => {
+        self.distill_vec_pair(stage, args, Self::distill_pat_place, adt(adt_id, variant_id))
+      }
       PatKind::Ref(place) => {
         let (value_0, value_1) = self.distill_pat_place(stage, place);
         let ref_in = stage.new_wire();
@@ -465,7 +469,11 @@ impl<'core, 'r> Distiller<'core, 'r> {
   fn distill_bin_op(&mut self, stage: &mut Stage, op: BinaryOp, lhs: Port, rhs: Port, out: Port) {
     let ext_fn = match op {
       BinaryOp::Concat => {
-        stage.steps.push(Step::Fn(Port::Const(self.concat.unwrap()), vec![lhs, rhs], out));
+        stage.steps.push(Step::Fn(
+          Port::Def(self.chart.builtins.concat.unwrap()),
+          vec![lhs, rhs],
+          out,
+        ));
         return;
       }
       BinaryOp::BitOr => ExtFnKind::n32_or,
@@ -547,7 +555,6 @@ impl<'core, 'r> Distiller<'core, 'r> {
   }
 }
 
-fn adt(path: &Path) -> impl Fn(Port, Vec<Port>) -> Step {
-  let adt = path.path.resolved.unwrap();
-  move |x, y| Step::Adt(adt, x, y)
+fn adt(&adt: &AdtId, &variant: &VariantId) -> impl Fn(Port, Vec<Port>) -> Step {
+  move |x, y| Step::Adt(adt, variant, x, y)
 }

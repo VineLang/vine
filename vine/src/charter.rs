@@ -452,7 +452,7 @@ impl<'core> Charter<'core, '_> {
 }
 
 macro_rules! define_define {
-  ($($define_thing:ident, $thing_def:ident, $things:ident, $ThingDefId:ident, $ThingDef:ident, $ThingDefKind:ty);* $(;)?) => {
+  ($($define_thing:ident, $thing_def:ident, $things:ident, $ThingDefId:ident, $ThingDefKind:ty, $ThingDef:ident $({ $($field:tt)* })?);* $(;)?) => {
     impl<'core> Charter<'core, '_> {
       $(fn $define_thing(
         &mut self,
@@ -462,7 +462,7 @@ macro_rules! define_define {
         generics: GenericsId,
         kind: $ThingDefKind,
       ) -> $ThingDefId {
-        let id = self.chart.$things.push($ThingDef { span, def, vis, generics, kind });
+        let id = self.chart.$things.push($ThingDef { span, def, vis, generics, kind, $($($field)*)? });
         let def = &mut self.chart.defs[def];
         if def.$thing_def.is_none() {
           def.$thing_def = Some(id);
@@ -478,11 +478,11 @@ macro_rules! define_define {
 }
 
 define_define!(
-  define_value,   value_def,   values,   ValueDefId,   ValueDef,   ValueDefKind<'core>;
-  define_type,    type_def,    types,    TypeDefId,    TypeDef,    TypeDefKind<'core>;
-  define_pattern, pattern_def, patterns, PatternDefId, PatternDef, PatternDefKind;
-  define_trait,   trait_def,   traits,   TraitDefId,   TraitDef,   TraitDefKind<'core>;
-  define_impl,    impl_def,    impls,    ImplDefId,    ImplDef,    ImplDefKind<'core>;
+  define_value,   value_def,   values,   ValueDefId,   ValueDefKind<'core>, ValueDef { locals: Counter::default() };
+  define_type,    type_def,    types,    TypeDefId,    TypeDefKind<'core>,  TypeDef;
+  define_pattern, pattern_def, patterns, PatternDefId, PatternDefKind,      PatternDef;
+  define_trait,   trait_def,   traits,   TraitDefId,   TraitDefKind<'core>, TraitDef;
+  define_impl,    impl_def,    impls,    ImplDefId,    ImplDefKind<'core>,  ImplDef;
 );
 
 fn extract_subitems<'core>(item: &mut Item<'core>) -> Vec<Item<'core>> {

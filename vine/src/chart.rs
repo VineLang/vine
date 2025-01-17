@@ -2,12 +2,12 @@ use std::collections::HashMap;
 
 use ivy::ast::Net;
 use vine_util::{
-  idx::{Idx, IdxVec},
+  idx::{Counter, Idx, IdxVec},
   new_idx,
 };
 
 use crate::{
-  ast::{Block, Expr, Ident, Pat, Span, Trait, Ty},
+  ast::{Block, Expr, Ident, Local, Pat, Span, Trait, Ty},
   checker::Type,
   diag::ErrorGuaranteed,
 };
@@ -111,6 +111,7 @@ pub struct ValueDef<'core> {
   pub def: DefId,
   pub vis: DefId,
   pub generics: GenericsId,
+  pub locals: Counter<Local>,
   pub kind: ValueDefKind<'core>,
 }
 

@@ -10,7 +10,7 @@ use vine_util::{
 use crate::{
   analyzer::{usage::Usage, UsageVar},
   ast::Local,
-  chart::{AdtId, ValueDefId},
+  chart::{AdtId, ValueDefId, VariantId},
   specializer::RelId,
 };
 
@@ -110,7 +110,7 @@ pub enum Step {
 
   Fn(Port, Vec<Port>, Port),
   Tuple(Port, Vec<Port>),
-  Adt(AdtId, Port, Vec<Port>),
+  Adt(AdtId, VariantId, Port, Vec<Port>),
   Ref(Port, Port, Port),
   ExtFn(ExtFn, Port, Port, Port),
   Dup(Port, Port, Port),
@@ -129,7 +129,7 @@ impl Step {
       Step::Diverge(_, None) => Ports::Zero([]),
       Step::Link(a, b) => Ports::Two([a, b]),
       Step::Fn(f, a, r) => Ports::Fn([f].into_iter().chain(a).chain([r])),
-      Step::Tuple(port, ports) | Step::List(port, ports) | Step::Adt(_, port, ports) => {
+      Step::Tuple(port, ports) | Step::List(port, ports) | Step::Adt(_, _, port, ports) => {
         Ports::Tuple([port].into_iter().chain(ports))
       }
       Step::Ref(a, b, c) | Step::ExtFn(_, a, b, c) | Step::Dup(a, b, c) => Ports::Three([a, b, c]),
@@ -164,7 +164,7 @@ impl Invocation {
 #[derive(Debug, Clone)]
 pub enum Port {
   Erase,
-  Const(ValueDefId),
+  Def(ValueDefId),
   Rel(RelId),
   N32(u32),
   F32(f32),
