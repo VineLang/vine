@@ -54,12 +54,18 @@ impl<'core> Resolver<'core, '_> {
       if let Some(resolved) = self._resolve_ident(span, base, cur, ident)? {
         return Ok(resolved);
       }
-      if let Some(parent) = self.chart.defs[base].parent {
+      if let Some(parent) = self.chart.defs[cur].parent {
         cur = parent;
       } else {
-        return Err(Diag::CannotResolve { span, module: self.chart.defs[base].path, ident });
+        break;
       }
     }
+    if let Some(prelude) = self.chart.builtins.prelude {
+      if let Some(resolved) = self._resolve_ident(span, base, prelude, ident)? {
+        return Ok(resolved);
+      }
+    }
+    Err(Diag::CannotResolve { span, module: self.chart.defs[base].path, ident })
   }
 
   pub fn resolve_ident(
@@ -116,11 +122,15 @@ impl<'core> Resolver<'core, '_> {
 
   fn _resolve_import(&mut self, import: Import<'core>) -> Result<DefId, ErrorGuaranteed> {
     let Import { span, def, parent, ident, .. } = import;
-    let parent = match parent {
-      ImportParent::Def(parent) => parent,
-      ImportParent::Import(parent) => self.resolve_import(parent)?,
-    };
-    self.resolve_ident(span, def, parent, ident).map_err(|diag| self.core.report(diag))
+    match parent {
+      ImportParent::Root => self.resolve_ident(span, def, DefId::ROOT, ident),
+      ImportParent::Scope => self.resolve_initial(span, def, ident),
+      ImportParent::Import(parent) => {
+        let parent = self.resolve_import(parent)?;
+        self.resolve_ident(span, def, parent, ident)
+      }
+    }
+    .map_err(|diag| self.core.report(diag))
   }
 
   fn visible(&self, vis: DefId, from: DefId) -> bool {

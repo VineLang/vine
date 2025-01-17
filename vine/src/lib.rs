@@ -20,8 +20,14 @@ pub mod visit;
 
 use std::path::PathBuf;
 
+use analyzer::analyze;
+use checker::Checker;
+use distiller::Distiller;
+use emitter::Emitter;
 use ivy::ast::Nets;
+use normalizer::normalize;
 use resolver::Resolver;
+use specializer::specialize;
 
 use crate::{
   chart::Chart,
@@ -53,38 +59,35 @@ pub fn compile(config: Config) -> Result<Nets, String> {
   let root = loader.finish();
 
   let chart = &mut Chart::default();
+
   Charter { core, chart }.chart_root(root);
   Resolver { core, chart }.resolve_all();
+  Checker::new(core, chart).check_all();
 
-  // let mut checker = Checker::new(core, &mut resolver);
-  // checker.check_defs();
+  core.bail()?;
 
-  // core.bail()?;
+  let specializations = specialize(chart);
+  let mut distiller = Distiller::new(chart);
+  let mut emitter = Emitter::new(chart);
+  for (value_id, value_def) in &chart.values {
+    let path = chart.defs[value_def.def].path;
+    if matches_filter(path, &config.items) {
+      if let Some(vir) = distiller.distill(value_def) {
+        let mut vir = normalize(&vir);
+        analyze(&mut vir);
+        emitter.emit_vir(path, &vir, &specializations[value_id]);
+      } else {
+        emitter.emit_ivy(value_def);
+      }
+    }
+  }
 
-  // let specializations = specialize(&mut resolver);
-  // let mut distiller = Distiller::new(&resolver);
-  // let mut emitter = Emitter::new(&resolver);
-  // for (def_id, def) in &resolver.defs {
-  //   if matches_filter(&def.canonical, &config.items) {
-  //     if let Some(vir) = distiller.distill(def) {
-  //       let mut vir = normalize(&vir);
-  //       analyze(&mut vir);
-  //       emitter.emit_vir(def.canonical.to_string(), &vir,
-  // &specializations[def_id]);     } else {
-  //       emitter.emit_ivy(def);
-  //     }
-  //   }
-  // }
-
-  // Ok(emitter.nets)
-
-  todo!()
+  Ok(emitter.nets)
 }
 
-// fn matches_filter(path: &Path, items: &[String]) -> bool {
-//   if items.is_empty() {
-//     return true;
-//   }
-//   let canonical = &path.to_string()[2..];
-//   items.iter().any(|x| x == canonical)
-// }
+fn matches_filter(path: &str, items: &[String]) -> bool {
+  if items.is_empty() {
+    return true;
+  }
+  items.iter().any(|x| x == &path[2..])
+}

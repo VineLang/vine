@@ -8,12 +8,15 @@ use std::{
 use anyhow::Result;
 use clap::{Args, Parser};
 
-use ivm::{heap::Heap, IVM};
-use ivy::{ast::Nets, host::Host};
-use rustyline::DefaultEditor;
+// use ivm::{heap::Heap, IVM};
+use ivy::{
+  ast::Nets,
+  // host::Host
+};
+// use rustyline::DefaultEditor;
 use vine::{
   core::{Core, CoreArenas},
-  repl::Repl,
+  // repl::Repl,
 };
 use vine_lsp::lsp;
 
@@ -132,41 +135,41 @@ pub struct VineReplCommand {
 }
 
 impl VineReplCommand {
-  pub fn execute(mut self) -> Result<()> {
-    if !self.no_std {
-      self.libs.push(std_path())
-    }
-
-    let host = &mut Host::default();
-    let heap = Heap::new();
-    let mut ivm = IVM::new(&heap);
-    let arenas = CoreArenas::default();
-    let core = &Core::new(&arenas);
-    let mut repl = match Repl::new(host, &mut ivm, core, self.libs) {
-      Ok(repl) => repl,
-      Err(err) => {
-        eprintln!("{err}");
-        exit(1);
-      }
-    };
-    let mut rl = DefaultEditor::new()?;
-    loop {
-      print!("\n{repl}");
-      match rl.readline("> ") {
-        Ok(line) => {
-          if self.echo {
-            println!("> {}", line);
-          }
-          _ = rl.add_history_entry(&line);
-          match repl.exec(&line) {
-            Ok(Some(result)) => println!("{result}"),
-            Ok(None) => {}
-            Err(err) => println!("{err}"),
-          }
-        }
-        Err(_) => break,
-      }
-    }
+  pub fn execute(self) -> Result<()> {
+    // if !self.no_std {
+    //   self.libs.push(std_path())
+    // }
+    //
+    // let host = &mut Host::default();
+    // let heap = Heap::new();
+    // let mut ivm = IVM::new(&heap);
+    // let arenas = CoreArenas::default();
+    // let core = &Core::new(&arenas);
+    // let mut repl = match Repl::new(host, &mut ivm, core, self.libs) {
+    //   Ok(repl) => repl,
+    //   Err(err) => {
+    //     eprintln!("{err}");
+    //     exit(1);
+    //   }
+    // };
+    // let mut rl = DefaultEditor::new()?;
+    // loop {
+    //   print!("\n{repl}");
+    //   match rl.readline("> ") {
+    //     Ok(line) => {
+    //       if self.echo {
+    //         println!("> {}", line);
+    //       }
+    //       _ = rl.add_history_entry(&line);
+    //       match repl.exec(&line) {
+    //         Ok(Some(result)) => println!("{result}"),
+    //         Ok(None) => {}
+    //         Err(err) => println!("{err}"),
+    //       }
+    //     }
+    //     Err(_) => break,
+    //   }
+    // }
     Ok(())
   }
 }

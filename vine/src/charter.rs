@@ -279,7 +279,8 @@ impl<'core> Charter<'core, '_> {
       }
 
       ItemKind::Use(use_item) => {
-        let import_parent = ImportParent::Def(if use_item.absolute { DefId::ROOT } else { parent });
+        let import_parent =
+          if use_item.absolute { ImportParent::Root } else { ImportParent::Scope };
         for (ident, use_tree) in use_item.tree.children {
           self.chart_use_tree(parent, vis, import_parent, ident, use_tree);
         }

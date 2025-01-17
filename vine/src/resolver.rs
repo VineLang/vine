@@ -94,7 +94,9 @@ impl<'core> ResolveVisitor<'core, '_, '_> {
         ValueDefKind::Ivy { ty, .. } => self.visit(ty),
         ValueDefKind::Adt(..) | ValueDefKind::TraitSubitem(..) => {}
       }
-      self.resolver.chart.values[id].kind = kind;
+      let value_def = &mut self.resolver.chart.values[id];
+      value_def.kind = kind;
+      value_def.locals = self.locals;
     }
 
     for id in self.resolver.chart.types.keys_from(checkpoint.types) {

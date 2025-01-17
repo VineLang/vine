@@ -128,6 +128,7 @@ impl<'core> Checker<'core, '_> {
 }
 
 impl<'core> CheckerState<'core> {
+  #[allow(unused)]
   pub(crate) fn try_concretize(&self, ty: &mut Type<'core>) {
     while let Type::Var(v) = *ty {
       if let Ok(t) = self.vars[v].clone() {

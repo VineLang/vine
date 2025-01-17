@@ -24,7 +24,7 @@ impl<'core, 'a> Emitter<'core, 'a> {
     Emitter { nets: Nets::default(), chart: resolver, dup_labels: Counter::default() }
   }
 
-  pub fn emit_vir(&mut self, path: String, vir: &VIR, specs: &IdxVec<SpecId, Spec>) {
+  pub fn emit_vir(&mut self, path: &str, vir: &VIR, specs: &IdxVec<SpecId, Spec>) {
     let mut emitter = VirEmitter {
       chart: self.chart,
       path,
@@ -91,7 +91,7 @@ impl<'core, 'a> Emitter<'core, 'a> {
 
 struct VirEmitter<'core, 'a> {
   chart: &'a Chart<'core>,
-  path: String,
+  path: &'a str,
   stages: &'a IdxVec<StageId, Stage>,
   interfaces: &'a IdxVec<InterfaceId, Interface>,
   specs: &'a IdxVec<SpecId, Spec>,
@@ -331,7 +331,7 @@ impl<'core, 'a> VirEmitter<'core, 'a> {
   }
 
   fn stage_name(&self, stage_id: StageId) -> String {
-    let mut name = self.path.clone();
+    let mut name = self.path.to_owned();
     if !self.specs[self.spec_id].singular {
       write!(name, "::{}", self.spec_id.0).unwrap();
     }

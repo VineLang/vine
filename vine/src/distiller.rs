@@ -86,9 +86,6 @@ impl<'core, 'r> Distiller<'core, 'r> {
       }
       ValueDefKind::Ivy { .. } | ValueDefKind::Adt(..) | ValueDefKind::TraitSubitem(..) => None,
     }
-    // let value_def = value_def.value_def.as_ref()?;
-    // let ValueDefKind::Expr(expr) = &value_def.kind else { None? };
-    // Some(self.distill_root(value_def.locals, expr, Self::distill_expr_value))
   }
 
   pub fn distill_root(

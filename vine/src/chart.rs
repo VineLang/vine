@@ -101,7 +101,8 @@ pub struct Import<'core> {
 
 #[derive(Debug, Clone, Copy)]
 pub enum ImportParent {
-  Def(DefId),
+  Root,
+  Scope,
   Import(ImportId),
 }
 

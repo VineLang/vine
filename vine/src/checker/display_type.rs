@@ -81,7 +81,7 @@ impl<'core> Checker<'core, '_> {
         *str += self.chart.defs[self.chart.traits[*trait_id].def].name.0 .0;
         self._display_type_params(str, params);
       }
-      Type::Opaque(n) => *str += self.generics[*n].0 .0,
+      Type::Opaque(n) => *str += self.chart.generics[self.cur_generics].type_params[*n].0 .0,
       Type::Var(v) => match &self.state.vars[*v] {
         Ok(t) => self._display_type(t, str),
         _ => write!(str, "?{v:?}").unwrap(),
