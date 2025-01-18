@@ -158,7 +158,7 @@ impl<'core> Charter<'core, '_> {
             def,
             type_params: generics.type_params.clone(),
             impl_params: vec![(
-              self.core.ident("_"),
+              None,
               Trait {
                 span: Span::NONE,
                 kind: TraitKind::Def(
@@ -353,6 +353,7 @@ impl<'core> Charter<'core, '_> {
       Builtin::F32 => set(primitive(self, Type::F32), &mut self.chart.builtins.f32),
       Builtin::Char => set(primitive(self, Type::Char), &mut self.chart.builtins.char),
       Builtin::IO => set(primitive(self, Type::IO), &mut self.chart.builtins.io),
+      Builtin::Pair => set(Some(def_id), &mut self.chart.builtins.pair),
       Builtin::Prelude => set(Some(def_id), &mut self.chart.builtins.prelude),
       Builtin::List => set(adt(), &mut self.chart.builtins.list),
       Builtin::String => set(adt(), &mut self.chart.builtins.string),

@@ -13,8 +13,10 @@ pub mod loader;
 pub mod normalizer;
 pub mod parser;
 // pub mod repl;
+pub mod finder;
 pub mod resolver;
 pub mod specializer;
+pub mod unifier;
 pub mod vir;
 pub mod visit;
 

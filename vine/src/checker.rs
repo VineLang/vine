@@ -5,7 +5,7 @@ use std::{
 
 use vine_util::{
   idx::{IdxVec, IntMap, RangeExt},
-  new_idx,
+  multi_iter, new_idx,
 };
 
 use crate::{
@@ -20,17 +20,19 @@ use crate::{
   },
   core::Core,
   diag::{report, Diag, ErrorGuaranteed},
+  finder::Finder,
+  unifier::Unifier,
 };
 
 mod check_expr;
 mod check_pat;
 mod display_type;
-mod unify;
 
 #[derive(Debug)]
 pub struct Checker<'core, 'a> {
   core: &'core Core<'core>,
   chart: &'a mut Chart<'core>,
+  unifier: Unifier<'core>,
   state: CheckerState<'core>,
   return_ty: Option<Type<'core>>,
   labels: IdxVec<LabelId, Option<Type<'core>>>,
@@ -42,7 +44,7 @@ pub struct Checker<'core, 'a> {
   trait_types: IdxVec<TraitDefId, TraitInfo<'core>>,
   impl_param_types: IdxVec<GenericsId, Vec<Type<'core>>>,
   value_types: IdxVec<ValueDefId, Type<'core>>,
-  impl_types: IdxVec<ImplDefId, Type<'core>>,
+  impl_def_types: IdxVec<ImplDefId, Type<'core>>,
 }
 
 #[derive(Debug)]
@@ -53,7 +55,6 @@ struct TraitInfo<'core> {
 
 #[derive(Default, Debug, Clone)]
 pub(crate) struct CheckerState<'core> {
-  pub(crate) vars: IdxVec<Var, Result<Type<'core>, Span>>,
   pub(crate) locals: IntMap<Local, Var>,
   pub(crate) dyn_fns: IntMap<DynFnId, Type<'core>>,
 }
@@ -63,6 +64,7 @@ impl<'core, 'r> Checker<'core, 'r> {
     Checker {
       core,
       chart,
+      unifier: Unifier::new(core),
       state: CheckerState::default(),
       return_ty: None,
       labels: Default::default(),
@@ -74,7 +76,7 @@ impl<'core, 'r> Checker<'core, 'r> {
       trait_types: IdxVec::new(),
       value_types: IdxVec::new(),
       impl_param_types: IdxVec::new(),
-      impl_types: IdxVec::new(),
+      impl_def_types: IdxVec::new(),
     }
   }
 
@@ -112,7 +114,7 @@ impl<'core, 'r> Checker<'core, 'r> {
   fn initialize(&mut self, def_id: DefId, generics_id: GenericsId) {
     assert!(self.return_ty.is_none());
     self.labels.clear();
-    self.state.vars.clear();
+    self.unifier.reset();
     self.state.locals.clear();
     self.state.dyn_fns.clear();
 
@@ -183,10 +185,6 @@ impl<'core, 'r> Checker<'core, 'r> {
     (ty, take(&mut self.state))
   }
 
-  fn new_var(&mut self, span: Span) -> Type<'core> {
-    Type::Var(self.state.vars.push(Err(span)))
-  }
-
   fn check_block(&mut self, block: &mut Block<'core>) -> Type<'core> {
     let mut ty = Type::NIL;
     for stmt in block.stmts.iter_mut() {
@@ -208,7 +206,7 @@ impl<'core, 'r> Checker<'core, 'r> {
             .ret
             .as_mut()
             .map(|t| self.hydrate_type(t, true))
-            .unwrap_or_else(|| self.new_var(d.body.span));
+            .unwrap_or_else(|| self.unifier.new_var(d.body.span));
           let old = self.return_ty.replace(ret.clone());
           self.check_block_type(&mut d.body, &mut ret);
           self.return_ty = old;
@@ -228,7 +226,7 @@ impl<'core, 'r> Checker<'core, 'r> {
 
   fn check_block_type(&mut self, block: &mut Block<'core>, ty: &mut Type<'core>) {
     let mut found = self.check_block(block);
-    if !self.unify(&mut found, ty) {
+    if !self.unifier.unify(&mut found, ty) {
       self.core.report(Diag::ExpectedTypeFound {
         span: block.span,
         expected: self.display_type(ty),
@@ -240,7 +238,7 @@ impl<'core, 'r> Checker<'core, 'r> {
   fn hydrate_type(&mut self, ty: &mut Ty<'core>, inference: bool) -> Type<'core> {
     let span = ty.span;
     match &mut ty.kind {
-      TyKind::Hole if inference => self.new_var(span),
+      TyKind::Hole if inference => self.unifier.new_var(span),
       TyKind::Paren(t) => self.hydrate_type(t, inference),
       TyKind::Hole => Type::Error(self.core.report(Diag::ItemTypeHole { span })),
       TyKind::Fn(args, ret) => Type::Fn(
@@ -295,7 +293,7 @@ impl<'core, 'r> Checker<'core, 'r> {
     match &mut kind {
       ImplDefKind::Taken => unreachable!(),
       ImplDefKind::Impl { subitems, .. } => {
-        let ty = self.impl_types[impl_id].clone();
+        let ty = self.impl_def_types[impl_id].clone();
         if let Type::Trait(trait_id, trait_type_params) = ty {
           let trait_subitems = &self.trait_types[trait_id];
           subitems.vec.sort_by_key(|s| trait_subitems.lookup.get(&s.name));
@@ -308,7 +306,7 @@ impl<'core, 'r> Checker<'core, 'r> {
               let mut trait_ty =
                 trait_subitems.subitem_types[subitem_id].instantiate(&trait_type_params);
               let mut ty = self.value_types[subitem.value].clone();
-              if !self.unify(&mut ty, &mut trait_ty) {
+              if !self.unifier.unify(&mut ty, &mut trait_ty) {
                 self.core.report(Diag::ExpectedTypeFound {
                   span: subitem.span,
                   expected: self.display_type(&trait_ty),
@@ -419,7 +417,7 @@ impl<'core, 'r> Checker<'core, 'r> {
   }
 
   fn assess_impl_type(&mut self, impl_id: ImplDefId) {
-    assert_eq!(self.impl_types.next_index(), impl_id);
+    assert_eq!(self.impl_def_types.next_index(), impl_id);
     let ImplDef { def, generics, ref mut kind, .. } = self.chart.impls[impl_id];
     let mut kind = take(kind);
     self.initialize(def, generics);
@@ -427,7 +425,7 @@ impl<'core, 'r> Checker<'core, 'r> {
       ImplDefKind::Taken => unreachable!(),
       ImplDefKind::Impl { trait_, .. } => self.assess_trait(trait_),
     };
-    self.impl_types.push(ty);
+    self.impl_def_types.push(ty);
     self.chart.impls[impl_id].kind = kind;
   }
 
@@ -453,6 +451,25 @@ impl<'core, 'r> Checker<'core, 'r> {
     }
   }
 
+  fn check_impl_type(&mut self, impl_: &mut Impl<'core>, ty: &mut Type<'core>) {
+    let span = impl_.span;
+    match &mut impl_.kind {
+      ImplKind::Hole => {
+        *impl_ = self.find_impl(span, ty);
+      }
+      _ => {
+        let mut found = self.check_impl(impl_);
+        if !self.unifier.unify(&mut found, ty) {
+          self.core.report(Diag::ExpectedTypeFound {
+            span: impl_.span,
+            expected: self.display_type(ty),
+            found: self.display_type(&found),
+          });
+        }
+      }
+    }
+  }
+
   fn check_impl(&mut self, impl_: &mut Impl<'core>) -> Type<'core> {
     let span = impl_.span;
     match &mut impl_.kind {
@@ -461,7 +478,7 @@ impl<'core, 'r> Checker<'core, 'r> {
       ImplKind::Param(n) => self.impl_param_types[self.cur_generics][*n].clone(),
       ImplKind::Def(id, generics) => {
         let type_params = self.check_generics(generics, self.chart.impls[*id].generics, true);
-        self.impl_types[*id].instantiate(&type_params)
+        self.impl_def_types[*id].instantiate(&type_params)
       }
       ImplKind::Error(e) => Type::Error(*e),
     }
@@ -488,7 +505,9 @@ impl<'core, 'r> Checker<'core, 'r> {
     if !inference || !args.types.is_empty() {
       check_count(args.types.len(), params.type_params.len(), "type");
     }
-    check_count(args.impls.len(), params.impl_params.len(), "impl");
+    if !args.impls.is_empty() {
+      check_count(args.impls.len(), params.impl_params.len(), "impl");
+    }
     let has_impl_params = !params.impl_params.is_empty();
     let type_params = (0..params.type_params.len())
       .iter()
@@ -497,7 +516,7 @@ impl<'core, 'r> Checker<'core, 'r> {
           .types
           .get_mut(i)
           .map(|t| self.hydrate_type(t, inference))
-          .unwrap_or_else(|| self.new_var(args.span))
+          .unwrap_or_else(|| self.unifier.new_var(args.span))
       })
       .collect::<Vec<_>>();
     if has_impl_params {
@@ -505,18 +524,43 @@ impl<'core, 'r> Checker<'core, 'r> {
         .iter()
         .map(|t| t.instantiate(&type_params))
         .collect::<Vec<_>>();
-      for (impl_, mut param_type) in args.impls.iter_mut().zip(impl_params_types.into_iter()) {
-        let mut ty = self.check_impl(impl_);
-        if !self.unify(&mut ty, &mut param_type) {
-          self.core.report(Diag::ExpectedTypeFound {
-            span: impl_.span,
-            expected: self.display_type(&param_type),
-            found: self.display_type(&ty),
-          });
+      if args.impls.is_empty() {
+        args.impls =
+          impl_params_types.into_iter().map(|ty| self.find_impl(args.span, &ty)).collect();
+      } else {
+        for (impl_, mut param_type) in args.impls.iter_mut().zip(impl_params_types.into_iter()) {
+          self.check_impl_type(impl_, &mut param_type);
         }
       }
     }
     type_params
+  }
+
+  fn finder(&mut self, span: Span) -> Finder<'core, '_> {
+    Finder {
+      chart: self.chart,
+      unifier: &mut self.unifier,
+      impl_def_types: &self.impl_def_types,
+      impl_param_types: &self.impl_param_types,
+      span,
+      source: self.cur_def,
+      generics: self.cur_generics,
+      steps: 0,
+    }
+  }
+
+  fn find_impl(&mut self, span: Span, ty: &Type<'core>) -> Impl<'core> {
+    let mut results = self.finder(span).find_impl(ty);
+    if results.len() == 1 {
+      results.pop().unwrap().0
+    } else {
+      let diag = if results.is_empty() {
+        Diag::CannotFindImpl { span, ty: self.display_type(ty) }
+      } else {
+        Diag::AmbiguousImpl { span, ty: self.display_type(ty) }
+      };
+      Impl { span, kind: ImplKind::Error(self.core.report(diag)) }
+    }
   }
 }
 
@@ -557,6 +601,7 @@ pub enum Type<'core> {
   Trait(TraitDefId, Vec<Type<'core>>),
   Opaque(usize),
   Var(Var),
+  Fresh(Var),
   Never,
   Error(ErrorGuaranteed),
 }
@@ -588,7 +633,27 @@ impl<'core> Type<'core> {
       Type::Opaque(n) => opaque[*n].clone(),
       Type::Error(e) => Type::Error(*e),
       Type::Never => Type::Never,
-      Type::Var(_) => unreachable!(),
+      Type::Var(_) | Type::Fresh(_) => unreachable!(),
+    }
+  }
+
+  pub(crate) fn children_mut(&mut self) -> impl Iterator<Item = &mut Type<'core>> {
+    multi_iter! { Iter { Zero, One, Vec, Object, Fn } }
+    match self {
+      Type::Bool
+      | Type::N32
+      | Type::F32
+      | Type::Char
+      | Type::IO
+      | Type::Opaque(_)
+      | Type::Var(_)
+      | Type::Fresh(_)
+      | Type::Never
+      | Type::Error(_) => Iter::Zero([]),
+      Type::Ref(inner) | Type::Inverse(inner) => Iter::One([&mut **inner]),
+      Type::Tuple(items) | Type::Adt(_, items) | Type::Trait(_, items) => Iter::Vec(items),
+      Type::Object(fields) => Iter::Object(fields.values_mut()),
+      Type::Fn(params, ret) => Iter::Fn(params.iter_mut().chain([&mut **ret])),
     }
   }
 
@@ -599,12 +664,34 @@ impl<'core> Type<'core> {
     }
   }
 
-  fn invert_if(self, invert: bool) -> Self {
+  pub fn invert_if(self, invert: bool) -> Self {
     if invert {
       self.inverse()
     } else {
       self
     }
+  }
+
+  pub fn get_mod(&self, chart: &Chart) -> Result<Option<DefId>, ErrorGuaranteed> {
+    Ok(match self {
+      Type::Adt(adt_id, _) => Some(chart.adts[*adt_id].def),
+      Type::Trait(trait_id, _) => Some(chart.traits[*trait_id].def),
+      Type::Bool => chart.builtins.bool,
+      Type::N32 => chart.builtins.n32,
+      Type::F32 => chart.builtins.f32,
+      Type::Char => chart.builtins.char,
+      Type::IO => chart.builtins.io,
+      Type::Tuple(x) if x.len() == 2 => chart.builtins.pair,
+      Type::Tuple(_)
+      | Type::Object(_)
+      | Type::Fn(..)
+      | Type::Ref(_)
+      | Type::Inverse(_)
+      | Type::Opaque(_)
+      | Type::Never => None,
+      Type::Error(e) => Err(*e)?,
+      Type::Var(_) | Type::Fresh(_) => None,
+    })
   }
 }
 

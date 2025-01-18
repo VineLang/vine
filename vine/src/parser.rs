@@ -125,6 +125,7 @@ impl<'core, 'src> VineParser<'core, 'src> {
           "String" => Builtin::String,
           "concat" => Builtin::Concat,
           "prelude" => Builtin::Prelude,
+          "Pair" => Builtin::Pair,
           _ => Err(Diag::BadBuiltin { span: str_span })?,
         };
         AttrKind::Builtin(builtin)
@@ -242,10 +243,17 @@ impl<'core, 'src> VineParser<'core, 'src> {
 
   fn parse_generic_params(&mut self) -> Parse<'core, GenericParams<'core>> {
     self.parse_generics(Self::parse_ident, |self_| {
-      let name = self_.parse_ident()?;
-      self_.expect(Token::Colon)?;
-      let trait_ = self_.parse_trait()?;
-      Ok((name, trait_))
+      if self_.check(Token::Ident) {
+        let path = self_.parse_path()?;
+        if path.as_ident().is_some() && self_.eat(Token::Colon)? {
+          let trait_ = self_.parse_trait()?;
+          Ok((path.as_ident(), trait_))
+        } else {
+          Ok((None, Trait { span: path.span, kind: TraitKind::Path(path) }))
+        }
+      } else {
+        Ok((None, self_.parse_trait()?))
+      }
     })
   }
 
@@ -259,35 +267,34 @@ impl<'core, 'src> VineParser<'core, 'src> {
     mut parse_i: impl FnMut(&mut Self) -> Parse<'core, I>,
   ) -> Parse<'core, Generics<T, I>> {
     let span = self.start_span();
-    if !self.eat(Token::OpenBracket)? {
-      return Ok(Generics::default());
-    }
     let mut generics = Generics::default();
-    loop {
-      if self.eat(Token::Semi)? || self.check(Token::CloseBracket) {
+    if self.eat(Token::OpenBracket)? {
+      loop {
+        if self.eat(Token::Semi)? || self.check(Token::CloseBracket) {
+          break;
+        }
+        generics.types.push(parse_t(self)?);
+        if self.eat(Token::Comma)? {
+          continue;
+        }
+        if self.eat(Token::Semi)? {
+          break;
+        }
+        if !self.check(Token::CloseBracket) {
+          self.unexpected()?;
+        }
+      }
+      loop {
+        if self.eat(Token::CloseBracket)? {
+          break;
+        }
+        generics.impls.push(parse_i(self)?);
+        if self.eat(Token::Comma)? {
+          continue;
+        }
+        self.expect(Token::CloseBracket)?;
         break;
       }
-      generics.types.push(parse_t(self)?);
-      if self.eat(Token::Comma)? {
-        continue;
-      }
-      if self.eat(Token::Semi)? {
-        break;
-      }
-      if !self.check(Token::CloseBracket) {
-        self.unexpected()?;
-      }
-    }
-    loop {
-      if self.eat(Token::CloseBracket)? {
-        break;
-      }
-      generics.impls.push(parse_i(self)?);
-      if self.eat(Token::Comma)? {
-        continue;
-      }
-      self.expect(Token::CloseBracket)?;
-      break;
     }
     let span = self.end_span(span);
     generics.span = span;

@@ -7,7 +7,7 @@ pub fn main(&io: &IO) {
 
   while list.pop_front() is Some(val) {
     cycle(&list, val);
-    io.println(val.to_string() ++ ";\t" ++ list.to_string[; N32::to_string]());
+    io.println(val.to_string() ++ ";\t" ++ list.to_string[N32]());
   }
 }
 

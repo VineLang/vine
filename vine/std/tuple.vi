@@ -4,6 +4,7 @@ use unicode::ToString;
 
 pub type Pair[A, B] = (A, B);
 
+#[builtin = "Pair"]
 pub mod Pair {
   pub fn cmp[A, B](f: Cmp[A], g: Cmp[B]) -> Cmp[(A, B)] {
     (
@@ -17,9 +18,9 @@ pub mod Pair {
     )
   }
 
-  pub impl to_string[A, B; a_to_string: ToString[A], b_to_string: ToString[B]]: ToString[Pair[A, B]] {
+  pub impl to_string[A, B; ToString[A], ToString[B]]: ToString[Pair[A, B]] {
     fn to_string((a: A, b: B)) -> String {
-      "(" ++ ToString::to_string[; a_to_string](a) ++ ", " ++ ToString::to_string[; b_to_string](b) ++ ")"
+      "(" ++ ToString::to_string[A](a) ++ ", " ++ ToString::to_string[B](b) ++ ")"
     }
   }
 }

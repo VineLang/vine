@@ -2,7 +2,7 @@
 pub fn main(&io: &IO) {
   let list = [4, 3, 7, 9];
   sub_min(&list);
-  io.println(list.to_string[; N32::to_string]());
+  io.println(list.to_string[N32]());
 }
 
 pub fn sub_min(&list: &List[N32]) {

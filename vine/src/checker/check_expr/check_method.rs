@@ -2,7 +2,7 @@ use std::mem::take;
 
 use crate::{
   ast::{Expr, ExprKind, GenericArgs, Ident, Span},
-  chart::{DefId, ValueDefId},
+  chart::ValueDefId,
   checker::{Checker, Form, Type},
   diag::Diag,
   resolver::Resolver,
@@ -38,8 +38,8 @@ impl<'core> Checker<'core, '_> {
     args: &mut [Expr<'core>],
   ) -> Result<(Form, ValueDefId, Type<'core>), Diag<'core>> {
     let (receiver_form, mut ty) = self.check_expr(receiver);
-    self.concretize(&mut ty);
-    let mod_id = self.get_ty_mod(&ty)?;
+    self.unifier.concretize(&mut ty);
+    let mod_id = ty.get_mod(self.chart)?;
     let Some(mod_id) = mod_id else { Err(Diag::NoMethods { span, ty: self.display_type(&ty) })? };
     let id = Resolver { core: self.core, chart: self.chart }.resolve_ident(
       span,
@@ -53,11 +53,11 @@ impl<'core> Checker<'core, '_> {
       path: self.chart.defs[id].path,
     })?;
     let (form, mut receiver_ty, params, ret) = self.method_sig(span, id, generics, args.len())?;
-    if self.get_ty_mod(&receiver_ty)? != Some(mod_id) {
+    if receiver_ty.get_mod(self.chart)? != Some(mod_id) {
       Err(Diag::BadMethodReceiver { span, base_path: self.chart.defs[mod_id].path, ident })?
     }
     self.coerce_expr(receiver, receiver_form, form);
-    if !self.unify(&mut ty, &mut receiver_ty) {
+    if !self.unifier.unify(&mut ty, &mut receiver_ty) {
       Err(Diag::ExpectedTypeFound {
         span: receiver.span,
         expected: self.display_type(&receiver_ty),
@@ -122,25 +122,5 @@ impl<'core> Checker<'core, '_> {
     args.insert(0, receiver);
     let func = Expr { span, kind: ExprKind::Def(id, take(generics)) };
     ExprKind::Call(Box::new(func), args)
-  }
-
-  fn get_ty_mod(&mut self, ty: &Type<'core>) -> Result<Option<DefId>, Diag<'core>> {
-    Ok(match ty {
-      Type::Adt(adt_id, _) => Some(self.chart.adts[*adt_id].def),
-      Type::Bool => self.chart.builtins.bool,
-      Type::N32 => self.chart.builtins.n32,
-      Type::F32 => self.chart.builtins.f32,
-      Type::Char => self.chart.builtins.char,
-      Type::IO => self.chart.builtins.io,
-      Type::Tuple(_)
-      | Type::Object(_)
-      | Type::Fn(..)
-      | Type::Ref(_)
-      | Type::Inverse(_)
-      | Type::Opaque(_)
-      | Type::Never => None,
-      Type::Var(_) | Type::Trait(..) => unreachable!(),
-      Type::Error(e) => Err(*e)?,
-    })
   }
 }

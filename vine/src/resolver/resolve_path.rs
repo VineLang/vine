@@ -94,7 +94,7 @@ impl<'core> Resolver<'core, '_> {
         MemberKind::Child(result) => result,
         MemberKind::Import(import) => self.resolve_import(import)?,
       };
-      if self.visible(vis, source) {
+      if self.chart.visible(vis, source) {
         Ok(Some(result))
       } else {
         Err(Diag::Invisible {
@@ -131,9 +131,5 @@ impl<'core> Resolver<'core, '_> {
       }
     }
     .map_err(|diag| self.core.report(diag))
-  }
-
-  fn visible(&self, vis: DefId, from: DefId) -> bool {
-    vis == from || vis < from && self.chart.defs[from].ancestors.binary_search(&vis).is_ok()
   }
 }

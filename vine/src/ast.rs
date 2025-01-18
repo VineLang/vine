@@ -173,9 +173,10 @@ pub enum Builtin {
   List,
   String,
   Concat,
+  Pair,
 }
 
-pub type GenericParams<'core> = Generics<Ident<'core>, (Ident<'core>, Trait<'core>)>;
+pub type GenericParams<'core> = Generics<Ident<'core>, (Option<Ident<'core>>, Trait<'core>)>;
 pub type GenericArgs<'core> = Generics<Ty<'core>, Impl<'core>>;
 
 #[derive(Debug, Clone)]

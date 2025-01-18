@@ -14,7 +14,7 @@ impl<'core> Checker<'core, '_> {
     ty: &mut Type<'core>,
   ) {
     let mut found = self.check_pat(pat, form, refutable);
-    if !self.unify(&mut found, ty) {
+    if !self.unifier.unify(&mut found, ty) {
       self.core.report(Diag::ExpectedTypeFound {
         span: pat.span,
         expected: self.display_type(ty),
@@ -47,11 +47,12 @@ impl<'core> Checker<'core, '_> {
         report!(self.core, pat.kind; self.check_adt_pat(span, *adt, *variant, generics, fields, form, refutable))
       }
 
-      (PatKind::Hole, _) => self.new_var(span),
+      (PatKind::Hole, _) => self.unifier.new_var(span),
       (PatKind::Local(l), _) => {
-        let old = self.state.locals.insert(*l, self.state.vars.next_index());
+        let var = self.unifier._new_var(span);
+        let old = self.state.locals.insert(*l, var);
         debug_assert!(old.is_none());
-        self.new_var(span)
+        Type::Var(var)
       }
       (PatKind::Inverse(p), _) => self.check_pat(p, form.inverse(), refutable).inverse(),
       (PatKind::Tuple(t), _) => {
@@ -61,7 +62,7 @@ impl<'core> Checker<'core, '_> {
         report!(self.core, pat.kind; self.build_object_type(e, |self_, p| self_.check_pat(p, form, refutable)))
       }
       (PatKind::Deref(p), Form::Place) => {
-        let ty = self.new_var(span);
+        let ty = self.unifier.new_var(span);
         self.check_pat_type(p, Form::Value, refutable, &mut Type::Ref(Box::new(ty.clone())));
         ty
       }

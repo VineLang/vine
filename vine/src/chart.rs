@@ -36,6 +36,8 @@ pub struct Builtins {
   pub char: Option<DefId>,
   pub io: Option<DefId>,
 
+  pub pair: Option<DefId>,
+
   pub list: Option<AdtId>,
   pub string: Option<AdtId>,
 
@@ -230,7 +232,7 @@ pub struct GenericsDef<'core> {
   pub span: Span,
   pub def: DefId,
   pub type_params: Vec<Ident<'core>>,
-  pub impl_params: Vec<(Ident<'core>, Trait<'core>)>,
+  pub impl_params: Vec<(Option<Ident<'core>>, Trait<'core>)>,
 }
 
 #[derive(Debug)]
@@ -337,5 +339,11 @@ impl<'core> TypeDefKind<'core> {
     } else {
       None
     }
+  }
+}
+
+impl<'core> Chart<'core> {
+  pub fn visible(&self, vis: DefId, from: DefId) -> bool {
+    vis == from || vis < from && self.defs[from].ancestors.binary_search(&vis).is_ok()
   }
 }

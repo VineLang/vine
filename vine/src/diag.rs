@@ -186,6 +186,10 @@ diags! {
     ["duplicate type param"]
   DuplicateImplParam
     ["duplicate impl param"]
+  CannotFindImpl { ty: String }
+    ["cannot find impl of trait `{ty}`"]
+  AmbiguousImpl { ty: String }
+    ["found several impls of trait `{ty}`"]
 }
 
 fn plural<'a>(n: usize, plural: &'a str, singular: &'a str) -> &'a str {

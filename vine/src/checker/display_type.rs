@@ -82,12 +82,13 @@ impl<'core> Checker<'core, '_> {
         self._display_type_params(str, params);
       }
       Type::Opaque(n) => *str += self.chart.generics[self.cur_generics].type_params[*n].0 .0,
-      Type::Var(v) => match &self.state.vars[*v] {
-        Ok(t) => self._display_type(t, str),
+      Type::Var(v) => match &self.unifier.vars[*v].bound {
+        Some((_, t)) => self._display_type(t, str),
         _ => write!(str, "?{v:?}").unwrap(),
       },
       Type::Never => *str += "!",
       Type::Error(_) => *str += "??",
+      Type::Fresh(_) => unreachable!(),
     }
   }
 
