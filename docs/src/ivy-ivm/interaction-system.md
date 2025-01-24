@@ -72,12 +72,13 @@ when:
 
 ### Erase
 
-When two nilary agents interact, they are erased.
+When two nilary agents interact, they are erased, unless one is an extrinsic
+value and the other is a global agent.
 
 ### Expand
 
-When a global agent interacts with a non-nilary agent, it is expanded (unless
-the Copy rule above applies). The global agent is simply replaced with the
+When a global agent interacts with another agent, it is expanded (unless the
+Copy or Erase rules above apply). The global agent is simply replaced with the
 corresponding global net (and the other agent is untouched).
 
 ### Call

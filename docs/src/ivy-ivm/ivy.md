@@ -1,12 +1,4 @@
-# Ivy and the IVM
-
-Vine compiles to [Ivy](https://github.com/VineLang/vine/tree/main/ivy), a
-low-level interaction-combinator programming language.
-
-Ivy code runs on the [IVM](https://github.com/VineLang/vine/tree/main/ivm), a
-performant interaction combinator runtime.
-
-## Ivy Overview
+# Ivy Overview
 
 An Ivy program consists of a series of named global nets. The name of a global
 net must start with `::`, and may contain arbitrary identifier characters or
@@ -35,4 +27,4 @@ pairs of trees; and a wiring specified by pairs of variables.
 //           ^^-- external value node
 ```
 
-See [Ivy's Interaction System](./interaction-system.md).
+Ivy programs run on the [IVM](./ivm.md).
