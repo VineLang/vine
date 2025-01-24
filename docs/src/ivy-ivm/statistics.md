@@ -25,7 +25,7 @@ universal way; the same program will always have the exact same interaction
 count, no matter what machine it is run on.
 
 The other numbers break down the
-[various types of interactions](./ivy/ivm-system.md).
+[various types of interactions](./interaction-system.md).
 
 ### Memory
 

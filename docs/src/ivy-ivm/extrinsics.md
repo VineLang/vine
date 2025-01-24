@@ -17,7 +17,7 @@ branches. Extrinsic branches are the only way for the interaction net to inspect
 extrinsic values.
 
 Currently, there is a fixed set of extrinsics built-in to IVM. In the future,
-they will be extensible ([#54](https://github.com/VineLang/vine/issues/54)).
+this will be extensible ([#54](https://github.com/VineLang/vine/issues/54)).
 
 ## Extrinsic Value Types
 

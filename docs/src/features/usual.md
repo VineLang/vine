@@ -3,14 +3,14 @@
 Vine has the usual complement of standard programming language features,
 including:
 
-- integer literals and operations: `1 + 2 * 3`
-- float literals and operations: `1.0 + 2.0 * 3.0`
-- booleans and boolean operators (including short-circuiting):
+- [integers](./types/primitives.md#n32): `1 + 2 * 3`
+- [floats](./types/primitives.md#f32): `1.0 + 2.0 * 3.0`
+- [booleans](./conditions.md) (including short-circuiting):
   `true && !(false || 1 == 2)`
-- character, string, and list literals and operations:
-  `"abc" ++ "def" ++ ['g', 'h', 'i']`
-- tuples: `(1, 1.0, "abc")`, `(1, 2).0`
-- variables: `let x = 5; x += 1`
+- [lists](./types/standard.md#list): `[1, 2, 3] ++ [4, 5, 6]`
+- [strings](./types//standard.md#string): `"abc" ++ "def"`
+- [tuples](./types/structs.md): `(1, 1.0, "abc")`, `(1, 2).0`
+- [variables](./variables.md): `let x = 5; x += 1`
 - basic control flow:
   - `if condition { ... } else { ... }`
   - `while condition { ... }`
