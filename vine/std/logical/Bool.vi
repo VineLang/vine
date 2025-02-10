@@ -4,7 +4,7 @@ use unicode::ToString;
 #[builtin = "Bool"]
 pub mod Bool {
   pub impl to_string: ToString[Bool] {
-    fn to_string(self: Bool) -> String {
+    fn .to_string(self: Bool) -> String {
       if self {
         "true"
       } else {

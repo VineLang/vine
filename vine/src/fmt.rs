@@ -47,6 +47,7 @@ impl<'core: 'src, 'src> Formatter<'src> {
           let params = &f.params;
           Doc::concat([
             Doc("fn "),
+            Doc(if f.method { "." } else { "" }),
             Doc(f.name),
             self.fmt_generic_params(&f.generics),
             Doc::paren_comma(params.iter().map(|p| self.fmt_pat(p))),

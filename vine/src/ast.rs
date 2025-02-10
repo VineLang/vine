@@ -44,6 +44,7 @@ pub enum ItemKind<'core> {
 
 #[derive(Debug, Clone)]
 pub struct FnItem<'core> {
+  pub method: bool,
   pub name: Ident<'core>,
   pub generics: GenericParams<'core>,
   pub params: Vec<Pat<'core>>,
@@ -137,6 +138,7 @@ impl<'core> UseTree<'core> {
 
 #[derive(Debug, Clone)]
 pub struct InlineIvy<'core> {
+  pub method: bool,
   pub name: Ident<'core>,
   pub generics: GenericParams<'core>,
   pub ty: Ty<'core>,

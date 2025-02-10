@@ -490,6 +490,16 @@ impl<'core, 'r> Checker<'core, 'r> {
     params_id: GenericsId,
     inference: bool,
   ) -> Vec<Type<'core>> {
+    self._check_generics(args, params_id, inference, None)
+  }
+
+  fn _check_generics(
+    &mut self,
+    args: &mut GenericArgs<'core>,
+    params_id: GenericsId,
+    inference: bool,
+    pre_type_params: Option<Vec<Type<'core>>>,
+  ) -> Vec<Type<'core>> {
     let params = &self.chart.generics[params_id];
     let check_count = |got, expected, kind| {
       if got != expected {
@@ -509,7 +519,7 @@ impl<'core, 'r> Checker<'core, 'r> {
       check_count(args.impls.len(), params.impl_params.len(), "impl");
     }
     let has_impl_params = !params.impl_params.is_empty();
-    let type_params = (0..params.type_params.len())
+    let mut type_params = (0..params.type_params.len())
       .iter()
       .map(|i| {
         args
@@ -519,6 +529,12 @@ impl<'core, 'r> Checker<'core, 'r> {
           .unwrap_or_else(|| self.unifier.new_var(args.span))
       })
       .collect::<Vec<_>>();
+    if let Some(mut type_param_hints) = pre_type_params {
+      self.unifier.import(args.span, &mut type_param_hints);
+      for (mut hint, ty) in type_param_hints.into_iter().zip(type_params.iter_mut()) {
+        _ = self.unifier.unify(&mut hint, ty);
+      }
+    }
     if has_impl_params {
       let impl_params_types = self.impl_param_types[params_id]
         .iter()
@@ -541,6 +557,7 @@ impl<'core, 'r> Checker<'core, 'r> {
       chart: self.chart,
       initial_checkpoint: self.unifier.checkpoint(),
       unifier: &mut self.unifier,
+      value_types: &self.value_types,
       impl_def_types: &self.impl_def_types,
       impl_param_types: &self.impl_param_types,
       span,
@@ -695,6 +712,16 @@ impl<'core> Type<'core> {
       Type::Error(e) => Err(*e)?,
       Type::Var(_) | Type::Fresh(_) => None,
     })
+  }
+
+  pub(crate) fn receiver(&self) -> Option<&Type<'core>> {
+    match self {
+      Type::Fn(args, _) => args.first().map(|t| match t {
+        Type::Ref(t) => t,
+        _ => t,
+      }),
+      _ => None,
+    }
   }
 }
 

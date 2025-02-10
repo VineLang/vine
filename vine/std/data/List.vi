@@ -8,7 +8,7 @@ pub struct List[T](N32, Buf[T], ~Buf[T]);
 pub(std) struct Buf[T](T, Buf[T]);
 
 pub mod List {
-  pub fn len[T](&self: &List[T]) -> N32 {
+  pub fn .len[T](&self: &List[T]) -> N32 {
     self.0
   }
 
@@ -21,7 +21,7 @@ pub mod List {
     list
   }
 
-  pub fn get[T](&List[T](len, *buf, _), i: N32) -> &T {
+  pub fn .get[T](&List[T](len, *buf, _), i: N32) -> &T {
     while i != 0 {
       let &Buf(_, *tail) = buf;
       buf = tail;
@@ -31,7 +31,7 @@ pub mod List {
     head
   }
 
-  pub fn slice[T](List[T](len, buf, end), i: N32) -> List[T] {
+  pub fn .slice[T](List[T](len, buf, end), i: N32) -> List[T] {
     if i >= len {
       []
     } else {
@@ -44,7 +44,7 @@ pub mod List {
     }
   }
 
-  pub fn map[T, U](List[T](l, buf, ~_), f: fn(T) -> U) -> List[U] {
+  pub fn .map[T, U](List[T](l, buf, ~_), f: fn(T) -> U) -> List[U] {
     let len = l;
     let cur;
     let result = move ~cur;
@@ -59,7 +59,7 @@ pub mod List {
     List(len, result, move cur)
   }
 
-  pub fn pop_front[T](&List[T](len, buf, _)) -> Option[T] {
+  pub fn .pop_front[T](&List[T](len, buf, _)) -> Option[T] {
     if len != 0 {
       len -= 1;
       let Buf(head, tail) = buf;
@@ -71,22 +71,22 @@ pub mod List {
   }
 
   #[builtin = "concat"]
-  pub fn concat[T](a: List[T], b: List[T]) -> List[T] {
+  pub fn .concat[T](a: List[T], b: List[T]) -> List[T] {
     let List(a_len, a_buf, ~a_end) = a;
     let List(b_len, b_buf, ~b_end) = b;
     a_end = b_buf;
     List(a_len + b_len, a_buf, move ~b_end)
   }
 
-  pub fn push_back[T](&list: &List[T], el: T) {
+  pub fn .push_back[T](&list: &List[T], el: T) {
     list ++= [el];
   }
 
-  pub fn push_front[T](&list: &List[T], el: T) {
+  pub fn .push_front[T](&list: &List[T], el: T) {
     list = [el] ++ list;
   }
 
-  pub fn insert[T](&List[T](len, *buf, _), i: N32, el: T) {
+  pub fn .insert[T](&List[T](len, *buf, _), i: N32, el: T) {
     len += 1;
     while i != 0 {
       let &Buf(_, *tail) = buf;
@@ -97,7 +97,7 @@ pub mod List {
     buf = Buf(el, buf);
   }
 
-  pub fn join(list: List[String], sep: String) -> String {
+  pub fn .join(list: List[String], sep: String) -> String {
     let it = list.into_iter();
     if it.next() is Some(str) {
       while it.next() is Some(val) {
@@ -110,12 +110,12 @@ pub mod List {
   }
 
   pub impl to_string[T; ToString[T]]: ToString[List[T]] {
-    fn to_string(list: List[T]) -> String {
+    fn .to_string(list: List[T]) -> String {
       "[" ++ list.map(ToString::to_string[T]).join(", ") ++ "]"
     }
   }
 
-  pub fn sort_by[T](&self: &List[T], cmp: fn(&T, &T) -> Bool) {
+  pub fn .sort_by[T](&self: &List[T], cmp: fn(&T, &T) -> Bool) {
     let output = [];
     while self.pop_front() is Some(a) {
       let left = [];
@@ -134,12 +134,12 @@ pub mod List {
 
   pub struct Iter[T](N32, &Buf[T]);
 
-  pub fn iter[T](&List[T](len, buf, _)) -> Iter[T] {
+  pub fn .iter[T](&List[T](len, buf, _)) -> Iter[T] {
     Iter(len, &buf)
   }
 
   pub mod Iter {
-    pub fn next[T](&Iter[T](len, buf)) -> Option[&T] {
+    pub fn .next[T](&Iter[T](len, buf)) -> Option[&T] {
       if len != 0 {
         len -= 1;
         let &Buf(*head, *tail) = buf;
@@ -151,19 +151,19 @@ pub mod List {
       }
     }
 
-    pub fn drop[T](&iter: &Iter[T]) {
+    pub fn .drop[T](&iter: &Iter[T]) {
       let Iter(_, &_) = move iter;
     }
   }
 
   pub struct IntoIter[T](N32, Buf[T]);
 
-  pub fn into_iter[T](List[T](len, buf, _)) -> IntoIter[T] {
+  pub fn .into_iter[T](List[T](len, buf, _)) -> IntoIter[T] {
     IntoIter(len, buf)
   }
 
   pub mod IntoIter {
-    pub fn next[T](&IntoIter[T](len, buf)) -> Option[T] {
+    pub fn .next[T](&IntoIter[T](len, buf)) -> Option[T] {
       if len != 0 {
         len -= 1;
         let Buf(head, tail) = buf;
@@ -175,7 +175,7 @@ pub mod List {
     }
   }
 
-  pub fn reversed[T](self: List[T]) -> List[T] {
+  pub fn .reversed[T](self: List[T]) -> List[T] {
     let reversed = [];
     while self.pop_front() is Some(value) {
       reversed.push_front(value);
@@ -183,7 +183,7 @@ pub mod List {
     reversed
   }
 
-  pub fn reverse[T](&self: &List[T]) {
+  pub fn .reverse[T](&self: &List[T]) {
     self = self.reversed();
   }
 

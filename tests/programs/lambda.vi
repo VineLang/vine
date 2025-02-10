@@ -17,7 +17,7 @@ pub enum Term {
 }
 
 pub mod Term {
-  fn whnf(term: Term) -> Term {
+  fn .whnf(term: Term) -> Term {
     match term {
       Term::Apply(fun, arg) {
         fun = fun.whnf();
@@ -33,7 +33,7 @@ pub mod Term {
     }
   }
 
-  pub fn print_normal(term: Term, depth: N32) -> String {
+  pub fn .print_normal(term: Term, depth: N32) -> String {
     match term.whnf() {
       Term::Lambda(param, body) {
         let var = new_var(depth);
@@ -83,7 +83,7 @@ struct Parser {
 }
 
 mod Parser {
-  pub fn parse_term(&self: &Parser) -> Term {
+  pub fn .parse_term(&self: &Parser) -> Term {
     let term = self.parse_atom();
     self.skip_ws();
     while self.chars.len() != 0 && self.chars.get(0).* != ')' {
@@ -93,7 +93,7 @@ mod Parser {
     term
   }
 
-  fn parse_atom(&self: &Parser) -> Term {
+  fn .parse_atom(&self: &Parser) -> Term {
     self.skip_ws();
     if self.chars.len() == 0 {
       self.error("expected term");
@@ -128,7 +128,7 @@ mod Parser {
     }
   }
 
-  fn parse_var(&self: &Parser) -> String {
+  fn .parse_var(&self: &Parser) -> String {
     let chars = [];
     while self.chars.len() != 0 && self.chars.get(0).* is char && char.is_alphanumeric() {
       self.chars.pop_front();
@@ -140,20 +140,20 @@ mod Parser {
     String({ chars })
   }
 
-  fn expect_char(&self: &Parser, char: Char) {
+  fn .expect_char(&self: &Parser, char: Char) {
     self.skip_ws();
     if !(self.chars.pop_front() is Some(c) && c == char) {
       self.error("expected `" ++ String({ chars: [char] }) ++ "`");
     }
   }
 
-  fn skip_ws(&self: &Parser) {
+  fn .skip_ws(&self: &Parser) {
     while self.chars.len() != 0 && self.chars.get(0).*.is_whitespace() {
       self.chars.pop_front();
     }
   }
 
-  fn error[T](&self: &Parser, error: String) -> T {
+  fn .error[T](&self: &Parser, error: String) -> T {
     ~self.error = Some(error);
     move self;
     ~_

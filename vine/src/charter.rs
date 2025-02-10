@@ -66,7 +66,7 @@ impl<'core> Charter<'core, '_> {
 
     let def = match item.kind {
       ItemKind::Fn(fn_item) => {
-        let def = self.chart_child(parent, fn_item.name, member_vis);
+        let def = self.chart_child(parent, fn_item.name, member_vis, true);
         let generics = self.chart_generics(def, fn_item.generics, true);
         let body = self.ensure_implemented(span, fn_item.body);
         let kind = ValueDefKind::Fn { params: fn_item.params, ret: fn_item.ret, body };
@@ -75,7 +75,7 @@ impl<'core> Charter<'core, '_> {
       }
 
       ItemKind::Const(const_item) => {
-        let def = self.chart_child(parent, const_item.name, member_vis);
+        let def = self.chart_child(parent, const_item.name, member_vis, true);
         let generics = self.chart_generics(def, const_item.generics, true);
         let value = self.ensure_implemented(span, const_item.value);
         let kind = ValueDefKind::Const { ty: const_item.ty, value };
@@ -84,7 +84,7 @@ impl<'core> Charter<'core, '_> {
       }
 
       ItemKind::Struct(struct_item) => {
-        let def = self.chart_child(parent, struct_item.name, member_vis);
+        let def = self.chart_child(parent, struct_item.name, member_vis, true);
         let generics = self.chart_generics(def, struct_item.generics, false);
         let adt = self.chart.adts.push(AdtDef {
           def,
@@ -106,7 +106,7 @@ impl<'core> Charter<'core, '_> {
       }
 
       ItemKind::Enum(enum_item) => {
-        let def = self.chart_child(parent, enum_item.name, member_vis);
+        let def = self.chart_child(parent, enum_item.name, member_vis, true);
         let generics = self.chart_generics(def, enum_item.generics, false);
         let adt = self.chart.adts.next_index();
         let variants = enum_item
@@ -115,7 +115,7 @@ impl<'core> Charter<'core, '_> {
           .enumerate()
           .map(|(id, variant)| {
             let id = VariantId(id);
-            let def = self.chart_child(def, variant.name, vis);
+            let def = self.chart_child(def, variant.name, vis, true);
             self.define_value(span, def, vis, generics, ValueDefKind::Adt(adt, id), false);
             self.define_pattern(span, def, vis, generics, PatternDefKind::Adt(adt, id));
             AdtVariant { def, name: variant.name, fields: variant.fields, object: false }
@@ -134,20 +134,20 @@ impl<'core> Charter<'core, '_> {
       }
 
       ItemKind::Type(type_item) => {
-        let def = self.chart_child(parent, type_item.name, member_vis);
+        let def = self.chart_child(parent, type_item.name, member_vis, true);
         let generics = self.chart_generics(def, type_item.generics, false);
         self.define_type(span, def, vis, generics, TypeDefKind::Alias(type_item.ty));
         Some(def)
       }
 
       ItemKind::Mod(mod_item) => {
-        let def = self.chart_child(parent, mod_item.name, member_vis);
+        let def = self.chart_child(parent, mod_item.name, member_vis, true);
         self.chart_mod(vis, mod_item.kind, def);
         Some(def)
       }
 
       ItemKind::Trait(trait_item) => {
-        let def = self.chart_child(parent, trait_item.name, member_vis);
+        let def = self.chart_child(parent, trait_item.name, member_vis, true);
         let generics = self.chart_generics(def, trait_item.generics, false);
         let mut sub_id = Counter::<SubitemId>::default();
         let trait_id = self.chart.traits.next_index();
@@ -191,7 +191,7 @@ impl<'core> Charter<'core, '_> {
                 if fn_item.body.is_some() {
                   self.core.report(Diag::ImplementedTraitItem { span });
                 }
-                let def = self.chart_child(def, fn_item.name, vis);
+                let def = self.chart_child(def, fn_item.name, vis, true);
                 let sub_id = sub_id.next();
                 let kind = ValueDefKind::TraitSubitem(trait_id, sub_id);
                 self.define_value(span, def, vis, sub_generics, kind, fn_item.method);
@@ -207,7 +207,7 @@ impl<'core> Charter<'core, '_> {
                 if const_item.value.is_some() {
                   self.core.report(Diag::ImplementedTraitItem { span });
                 }
-                let def = self.chart_child(def, const_item.name, vis);
+                let def = self.chart_child(def, const_item.name, vis, true);
                 let sub_id = sub_id.next();
                 let kind = ValueDefKind::TraitSubitem(trait_id, sub_id);
                 self.define_value(span, def, vis, sub_generics, kind, false);
@@ -229,7 +229,7 @@ impl<'core> Charter<'core, '_> {
       }
 
       ItemKind::Impl(impl_item) => {
-        let def = self.chart_child(parent, impl_item.name, member_vis);
+        let def = self.chart_child(parent, impl_item.name, member_vis, true);
         let generics = self.chart_generics(def, impl_item.generics, true);
         let subitems = impl_item
           .items
@@ -244,7 +244,7 @@ impl<'core> Charter<'core, '_> {
                 if !fn_item.generics.impls.is_empty() || !fn_item.generics.types.is_empty() {
                   self.core.report(Diag::ImplItemGen { span });
                 }
-                let def = self.chart_child(def, fn_item.name, vis);
+                let def = self.chart_child(def, fn_item.name, vis, false);
                 let body = self.ensure_implemented(span, fn_item.body);
                 let kind = ValueDefKind::Fn { params: fn_item.params, ret: fn_item.ret, body };
                 let value = self.define_value(span, def, vis, generics, kind, fn_item.method);
@@ -254,7 +254,7 @@ impl<'core> Charter<'core, '_> {
                 if !const_item.generics.impls.is_empty() || !const_item.generics.types.is_empty() {
                   self.core.report(Diag::ImplItemGen { span });
                 }
-                let def = self.chart_child(def, const_item.name, vis);
+                let def = self.chart_child(def, const_item.name, vis, false);
                 let value = self.ensure_implemented(span, const_item.value);
                 let kind = ValueDefKind::Const { ty: const_item.ty, value };
                 let value = self.define_value(span, def, vis, generics, kind, false);
@@ -288,7 +288,7 @@ impl<'core> Charter<'core, '_> {
       }
 
       ItemKind::Ivy(ivy_item) => {
-        let def = self.chart_child(parent, ivy_item.name, vis);
+        let def = self.chart_child(parent, ivy_item.name, vis, true);
         let generics = self.chart_generics(def, ivy_item.generics, false);
         self.define_value(
           span,
@@ -404,10 +404,16 @@ impl<'core> Charter<'core, '_> {
     }
   }
 
-  pub(crate) fn chart_child(&mut self, parent: DefId, name: Ident<'core>, vis: DefId) -> DefId {
+  pub(crate) fn chart_child(
+    &mut self,
+    parent: DefId,
+    name: Ident<'core>,
+    vis: DefId,
+    collapse: bool,
+  ) -> DefId {
     let next_def_id = self.chart.defs.next_index();
     let parent_def = &mut self.chart.defs[parent];
-    if parent_def.name == name {
+    if collapse && parent_def.name == name {
       return parent;
     }
     let mut new = false;

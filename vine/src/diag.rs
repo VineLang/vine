@@ -192,6 +192,10 @@ diags! {
     ["found several impls of trait `{ty}`"]
   SearchLimit { ty: String }
     ["search limit reached when finding impl of trait `{ty}`"]
+  NoMethod { ty: String, name: Ident<'core> }
+    ["type `{ty}` has no method `{name}`"]
+  AmbiguousMethod { ty: String, name: Ident<'core> }
+    ["multiple methods named `{name}` for `{ty}`"]
 }
 
 fn plural<'a>(n: usize, plural: &'a str, singular: &'a str) -> &'a str {

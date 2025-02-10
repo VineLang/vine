@@ -24,19 +24,19 @@ pub mod Map {
     map
   }
 
-  pub fn clear[K, V](&Map[K, V](_, node)) {
+  pub fn .clear[K, V](&Map[K, V](_, node)) {
     node = Node::leaf;
   }
 
-  pub fn len[K, V](&Map[K, V](_, Node(len, _))) -> N32 {
+  pub fn .len[K, V](&Map[K, V](_, Node(len, _))) -> N32 {
     len
   }
 
-  pub fn insert[K, V](&Map[K, V](cmp, node), key: K, value: V) -> Option[V] {
+  pub fn .insert[K, V](&Map[K, V](cmp, node), key: K, value: V) -> Option[V] {
     node.insert(cmp, key, value)
   }
 
-  pub fn get_or_insert[K, V](&Map[K, V](cmp, node), key: K, value: V) -> &V {
+  pub fn .get_or_insert[K, V](&Map[K, V](cmp, node), key: K, value: V) -> &V {
     let ~insert;
     let old = node.insert(cmp, key, ~insert);
     let value = old.unwrap_or(value);
@@ -45,23 +45,23 @@ pub mod Map {
     ref
   }
 
-  pub fn get[K, V](&Map[K, V](cmp, node), &key: &K) -> Option[&V] {
+  pub fn .get[K, V](&Map[K, V](cmp, node), &key: &K) -> Option[&V] {
     node.get(cmp, &key)
   }
 
-  pub fn get_le[K, V](&Map[K, V](cmp, node), &key: &K) -> Option[&(K, V)] {
+  pub fn .get_le[K, V](&Map[K, V](cmp, node), &key: &K) -> Option[&(K, V)] {
     node.get_le(cmp, &key)
   }
 
-  pub fn get_ge[K, V](&Map[K, V](cmp, node), &key: &K) -> Option[&(K, V)] {
+  pub fn .get_ge[K, V](&Map[K, V](cmp, node), &key: &K) -> Option[&(K, V)] {
     node.get_ge(cmp, &key)
   }
 
-  pub fn remove[K, V](&Map[K, V](cmp, node), &key: &K) -> Option[V] {
+  pub fn .remove[K, V](&Map[K, V](cmp, node), &key: &K) -> Option[V] {
     node.remove(cmp, &key)
   }
 
-  pub fn remove_min[K, V](&Map[K, V](cmp, node)) -> Option[(K, V)] {
+  pub fn .remove_min[K, V](&Map[K, V](cmp, node)) -> Option[(K, V)] {
     if node.size() == 0 {
       None
     } else {
@@ -69,7 +69,7 @@ pub mod Map {
     }
   }
 
-  pub fn remove_max[K, V](&Map[K, V](cmp, node)) -> Option[(K, V)] {
+  pub fn .remove_max[K, V](&Map[K, V](cmp, node)) -> Option[(K, V)] {
     if node.size() == 0 {
       None
     } else {
@@ -77,14 +77,14 @@ pub mod Map {
     }
   }
 
-  pub fn iter[K, V](&Map[K, V](_, node)) -> Iter[K, V] {
+  pub fn .iter[K, V](&Map[K, V](_, node)) -> Iter[K, V] {
     Iter(&node, [])
   }
 
   pub struct Iter[K, V](&Node[K, V], List[&((K, V), Node[K, V])]);
 
   pub mod Iter {
-    pub fn next[K, V](&Iter[K, V](node, stack)) -> Option[&(K, V)] {
+    pub fn .next[K, V](&Iter[K, V](node, stack)) -> Option[&(K, V)] {
       loop {
         let &Node(len, data) = move node;
         if len == 0 {
@@ -103,20 +103,20 @@ pub mod Map {
       }
     }
 
-    pub fn drop[K, V](&iter: &Iter[K, V]) {
+    pub fn .drop[K, V](&iter: &Iter[K, V]) {
       let Iter(&_, stack) = move iter;
       while stack.pop_front() is Some(&_) {}
     }
   }
 
-  pub fn into_iter[K, V](Map[K, V](_, node)) -> IntoIter[K, V] {
+  pub fn .into_iter[K, V](Map[K, V](_, node)) -> IntoIter[K, V] {
     IntoIter(node, [])
   }
 
   pub struct IntoIter[K, V](Node[K, V], List[((K, V), Node[K, V])]);
 
   pub mod IntoIter {
-    pub fn next[K, V](&IntoIter[K, V](node, stack)) -> Option[(K, V)] {
+    pub fn .next[K, V](&IntoIter[K, V](node, stack)) -> Option[(K, V)] {
       loop {
         let Node(len, data) = move node;
         if len == 0 {
@@ -135,12 +135,12 @@ pub mod Map {
     }
   }
 
-  pub fn to_list[K, V](Map[K, V](_, node)) -> List[(K, V)] {
+  pub fn .to_list[K, V](Map[K, V](_, node)) -> List[(K, V)] {
     node.to_list()
   }
 
   pub impl to_string[K, V; ToString[K], ToString[V]]: ToString[Map[K, V]] {
-    fn to_string(map: Map[K, V]) -> String {
+    fn .to_string(map: Map[K, V]) -> String {
       let string = "";
       let iter = map.into_iter();
       let first = true;
@@ -169,7 +169,7 @@ type NodeData[K, V] = (Node[K, V], (K, V), Node[K, V]);
 mod Node {
   pub const leaf[K, V]: Node[K, V] = Node(0, ~_);
 
-  pub fn size[K, V](&Node[K, V](size, _)) -> N32 {
+  pub fn .size[K, V](&Node[K, V](size, _)) -> N32 {
     size
   }
 
@@ -177,7 +177,7 @@ mod Node {
     Node(left.size() + right.size() + 1, (left, entry, right))
   }
 
-  pub fn insert[K, V](&Node[K, V](len, data), cmp: Cmp[K], key: K, value: V) -> Option[V] {
+  pub fn .insert[K, V](&Node[K, V](len, data), cmp: Cmp[K], key: K, value: V) -> Option[V] {
     if len == 0 {
       len = 1;
       data = (leaf, (key, value), leaf);
@@ -206,7 +206,7 @@ mod Node {
     }
   }
 
-  pub fn get[K, V](&Node[K, V](len, data), cmp: Cmp[K], &key: &K) -> Option[&V] {
+  pub fn .get[K, V](&Node[K, V](len, data), cmp: Cmp[K], &key: &K) -> Option[&V] {
     if len == 0 {
       None
     } else {
@@ -219,7 +219,7 @@ mod Node {
     }
   }
 
-  pub fn get_le[K, V](&Node[K, V](len, data), cmp: Cmp[K], &key: &K) -> Option[&(K, V)] {
+  pub fn .get_le[K, V](&Node[K, V](len, data), cmp: Cmp[K], &key: &K) -> Option[&(K, V)] {
     if len == 0 {
       None
     } else {
@@ -238,7 +238,7 @@ mod Node {
     }
   }
 
-  pub fn get_ge[K, V](&Node[K, V](len, data), cmp: Cmp[K], &key: &K) -> Option[&(K, V)] {
+  pub fn .get_ge[K, V](&Node[K, V](len, data), cmp: Cmp[K], &key: &K) -> Option[&(K, V)] {
     if len == 0 {
       None
     } else {
@@ -257,7 +257,7 @@ mod Node {
     }
   }
 
-  pub fn remove[K, V](&Node[K, V](len, data), cmp: Cmp[K], &key: &K) -> Option[V] {
+  pub fn .remove[K, V](&Node[K, V](len, data), cmp: Cmp[K], &key: &K) -> Option[V] {
     if len == 0 {
       None
     } else {
@@ -284,7 +284,7 @@ mod Node {
     }
   }
 
-  pub fn remove_min[K, V](&Node[K, V](len, data), cmp: Cmp[K]) -> (K, V) {
+  pub fn .remove_min[K, V](&Node[K, V](len, data), cmp: Cmp[K]) -> (K, V) {
     len -= 1;
     let &(left, entry, right) = &data;
     if left.size() == 0 {
@@ -298,7 +298,7 @@ mod Node {
     }
   }
 
-  pub fn remove_max[K, V](&Node[K, V](len, data), cmp: Cmp[K]) -> (K, V) {
+  pub fn .remove_max[K, V](&Node[K, V](len, data), cmp: Cmp[K]) -> (K, V) {
     len -= 1;
     let &(left, entry, right) = &data;
     if right.size() == 0 {
@@ -312,7 +312,7 @@ mod Node {
     }
   }
 
-  pub fn to_list[K, V](Node[K, V](len, data)) -> List[(K, V)] {
+  pub fn .to_list[K, V](Node[K, V](len, data)) -> List[(K, V)] {
     if len == 0 {
       []
     } else {
@@ -321,7 +321,7 @@ mod Node {
     }
   }
 
-  pub fn balanced[K, V](&Node[K, V](len, data)) -> Bool {
+  pub fn .balanced[K, V](&Node[K, V](len, data)) -> Bool {
     if len == 0 {
       true
     } else {

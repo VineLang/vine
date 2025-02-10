@@ -7,7 +7,7 @@ pub mod N32 {
   pub const maximum: N32 = 0xffffffff;
 
   pub impl to_string: ToString[N32] {
-    fn to_string(n: N32) -> String {
+    fn .to_string(n: N32) -> String {
       if n != 0 {
         let chars = [];
         while n != 0 {
@@ -41,11 +41,11 @@ pub mod N32 {
     }
   }
 
-  pub inline_ivy! rotate_left: fn(N32, N32) -> N32 {
+  pub inline_ivy! .rotate_left: fn(N32, N32) -> N32 {
     fn(@n32_rotl(x y) fn(x y))
   }
 
-  pub inline_ivy! rotate_right: fn(N32, N32) -> N32 {
+  pub inline_ivy! .rotate_right: fn(N32, N32) -> N32 {
     fn(@n32_rotr(x y) fn(x y))
   }
 
@@ -57,7 +57,7 @@ pub mod N32 {
     b < a
   }
 
-  pub fn cmp(&a: &N32, &b: &N32) -> Ord {
+  pub fn .cmp(&a: &N32, &b: &N32) -> Ord {
     if a < b {
       Ord::Lt
     } else if a > b {
@@ -67,7 +67,7 @@ pub mod N32 {
     }
   }
 
-  pub fn min(a: N32, b: N32) -> N32 {
+  pub fn .min(a: N32, b: N32) -> N32 {
     if a < b {
       a
     } else {
@@ -75,7 +75,7 @@ pub mod N32 {
     }
   }
 
-  pub fn max(a: N32, b: N32) -> N32 {
+  pub fn .max(a: N32, b: N32) -> N32 {
     if a > b {
       a
     } else {
@@ -83,7 +83,7 @@ pub mod N32 {
     }
   }
 
-  pub fn diff(a: N32, b: N32) -> N32 {
+  pub fn .diff(a: N32, b: N32) -> N32 {
     if a > b {
       a - b
     } else {
@@ -98,7 +98,7 @@ pub mod N32 {
     b
   }
 
-  pub fn sqrt(n: N32) -> N32 {
+  pub fn .sqrt(n: N32) -> N32 {
     let r = 0x8000;
     let s = 0;
     while r != 0 {
@@ -111,7 +111,7 @@ pub mod N32 {
     s
   }
 
-  pub fn pow(b: N32, e: N32) -> N32 {
+  pub fn .pow(b: N32, e: N32) -> N32 {
     let n = 1;
     while e != 0 {
       if e % 2 != 0 {
@@ -123,7 +123,7 @@ pub mod N32 {
     n
   }
 
-  pub fn log(n: N32, b: N32) -> N32 {
+  pub fn .log(n: N32, b: N32) -> N32 {
     let ~s = 0;
     let r = ~s;
     let e = 1;

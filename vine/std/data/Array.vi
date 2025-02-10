@@ -24,7 +24,7 @@ pub mod Array {
     )
   }
 
-  pub fn to_list[T](self: Array[T]) -> List[T] {
+  pub fn .to_list[T](self: Array[T]) -> List[T] {
     let end;
     List(self.len(), self.fold_back(move ~end, fn(a, b) { List::Buf(b, a) }), end)
   }
@@ -44,7 +44,7 @@ pub mod Array {
     }
   }
 
-  pub fn for_each[T, S](self: Array[T], &state: &S, f: fn(&S, T)) {
+  pub fn .for_each[T, S](self: Array[T], &state: &S, f: fn(&S, T)) {
     state = self.fold_front(
       state,
       fn(state, value) {
@@ -54,7 +54,7 @@ pub mod Array {
     )
   }
 
-  pub fn fold_front[T, U](Array[T](len, node), initial: U, f: fn(U, T) -> U) -> U {
+  pub fn .fold_front[T, U](Array[T](len, node), initial: U, f: fn(U, T) -> U) -> U {
     if len == 0 {
       initial
     } else {
@@ -68,7 +68,7 @@ pub mod Array {
     }
   }
 
-  pub fn fold_back[T, U](Array[T](len, node), initial: U, f: fn(U, T) -> U) -> U {
+  pub fn .fold_back[T, U](Array[T](len, node), initial: U, f: fn(U, T) -> U) -> U {
     if len == 0 {
       initial
     } else {
@@ -82,11 +82,11 @@ pub mod Array {
     }
   }
 
-  pub fn len[T](&self: &Array[T]) -> N32 {
+  pub fn .len[T](&self: &Array[T]) -> N32 {
     self.0
   }
 
-  pub fn get[T](&Array[T](len, *node), i: N32) -> &T {
+  pub fn .get[T](&Array[T](len, *node), i: N32) -> &T {
     let size = len;
     while size > 1 {
       (node, size) = Node::half(node, size, i % 2);
@@ -95,7 +95,7 @@ pub mod Array {
     (*node).as_leaf()
   }
 
-  pub fn push_back[T](&Array[T](len, *node), value: T) {
+  pub fn .push_back[T](&Array[T](len, *node), value: T) {
     if len == 0 {
       let &node = node;
       node = Node::leaf(value)
@@ -110,7 +110,7 @@ pub mod Array {
     len += 1;
   }
 
-  pub fn push_front[T](&Array[T](len, *node), value: T) {
+  pub fn .push_front[T](&Array[T](len, *node), value: T) {
     if len == 0 {
       let &node = node;
       node = Node::leaf(value)
@@ -128,7 +128,7 @@ pub mod Array {
     len += 1;
   }
 
-  pub fn pop_back[T](&Array[T](len, *node)) -> Option[T] {
+  pub fn .pop_back[T](&Array[T](len, *node)) -> Option[T] {
     if len == 0 {
       None
     } else if len == 1 {
@@ -155,7 +155,7 @@ pub mod Array {
     }
   }
 
-  pub fn pop_front[T](&Array[T](len, *node)) -> Option[T] {
+  pub fn .pop_front[T](&Array[T](len, *node)) -> Option[T] {
     if len == 0 {
       None
     } else if len == 1 {
@@ -179,11 +179,11 @@ pub mod Array {
     }
   }
 
-  pub fn reverse[T](&Array[T](len, node)) {
+  pub fn .reverse[T](&Array[T](len, node)) {
     node.reverse(len)
   }
 
-  pub fn reversed[T](self: Array[T]) -> Array[T] {
+  pub fn .reversed[T](self: Array[T]) -> Array[T] {
     self.reverse();
     self
   }
@@ -192,8 +192,8 @@ pub mod Array {
 struct Node[T](Node[T], Node[T]);
 
 mod Node {
-  pub inline_ivy! to_leaf[T]: fn(Node[T]) -> T { fn(x x) }
-  pub inline_ivy! as_leaf[T]: fn(&Node[T]) -> &T { fn(x x) }
+  pub inline_ivy! .to_leaf[T]: fn(Node[T]) -> T { fn(x x) }
+  pub inline_ivy! .as_leaf[T]: fn(&Node[T]) -> &T { fn(x x) }
   pub inline_ivy! leaf[T]: fn(T) -> Node[T] { fn(x x) }
 
   pub fn new[T](len: N32, value: T) -> Node[T] {
@@ -204,7 +204,7 @@ mod Node {
     }
   }
 
-  pub fn half[T](&Node(l, r): &Node[T], len: N32, x: N32) -> (&Node[T], N32) {
+  pub fn .half[T](&Node(l, r): &Node[T], len: N32, x: N32) -> (&Node[T], N32) {
     if x == 0 {
       (&l, (len + 1) / 2)
     } else {
@@ -212,13 +212,13 @@ mod Node {
     }
   }
 
-  pub fn swap[T](&Node(l, r): &Node[T], x: N32) {
+  pub fn .swap[T](&Node(l, r): &Node[T], x: N32) {
     if x == 0 {
       (l, r) = (r, l);
     }
   }
 
-  pub fn reverse[T](&self: &Node[T], len: N32) {
+  pub fn .reverse[T](&self: &Node[T], len: N32) {
     if len > 1 {
       let &Node(left, right) = &self;
       if len % 2 == 0 {

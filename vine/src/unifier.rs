@@ -203,8 +203,15 @@ impl<'core> Unifier<'core> {
     }
   }
 
-  pub fn import(&mut self, span: Span, ty: &mut Type) {
-    self._import(span, &mut HashMap::new(), ty);
+  pub fn import<'a, 'b: 'a>(
+    &mut self,
+    span: Span,
+    tys: impl IntoIterator<Item = &'a mut Type<'b>>,
+  ) {
+    let mut fresh = HashMap::new();
+    for ty in tys {
+      self._import(span, &mut fresh, ty);
+    }
   }
 
   fn _import(&mut self, span: Span, fresh: &mut HashMap<Var, Var>, ty: &mut Type) {

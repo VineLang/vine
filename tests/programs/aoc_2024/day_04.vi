@@ -69,12 +69,12 @@ pub fn main(&io: &IO) {
 struct Channel[M](M, ~M);
 
 mod Channel {
-  pub fn send[M](Channel[M](got, ~out), value: M) -> M {
+  pub fn .send[M](Channel[M](got, ~out), value: M) -> M {
     out = value;
     got
   }
 
-  pub fn get[M](&Channel[M](i, _)) -> M {
+  pub fn .get[M](&Channel[M](i, _)) -> M {
     i
   }
 }

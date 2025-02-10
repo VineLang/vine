@@ -3,8 +3,8 @@ use std::collections::{BTreeSet, HashSet};
 use vine_util::idx::IdxVec;
 
 use crate::{
-  ast::{Generics, Impl, ImplKind, Span},
-  chart::{Chart, Def, DefId, GenericsId, ImplDefId, MemberKind},
+  ast::{Generics, Ident, Impl, ImplKind, Span},
+  chart::{Chart, Def, DefId, GenericsId, ImplDefId, MemberKind, ValueDefId},
   checker::Type,
   unifier::{Unifier, UnifierCheckpoint},
 };
@@ -13,6 +13,7 @@ pub struct Finder<'core, 'a> {
   pub(crate) chart: &'a Chart<'core>,
   pub(crate) initial_checkpoint: UnifierCheckpoint,
   pub(crate) unifier: &'a mut Unifier<'core>,
+  pub(crate) value_types: &'a IdxVec<ValueDefId, Type<'core>>,
   pub(crate) impl_def_types: &'a IdxVec<ImplDefId, Type<'core>>,
   pub(crate) impl_param_types: &'a IdxVec<GenericsId, Vec<Type<'core>>>,
   pub(crate) span: Span,
@@ -32,15 +33,68 @@ const STEPS_LIMIT: u32 = 1_000;
 pub struct Timeout;
 
 impl<'core> Finder<'core, '_> {
+  pub fn find_method(
+    &mut self,
+    receiver: &Type<'core>,
+    name: Ident,
+  ) -> Vec<(ValueDefId, Vec<Type<'core>>)> {
+    let mut found = Vec::new();
+
+    for candidate in self.find_method_candidates(receiver, name) {
+      let checkpoint = self.unifier.checkpoint();
+      let generics = self.chart.values[candidate].generics;
+      let mut type_params = (0..self.chart.generics[generics].type_params.len())
+        .map(|_| self.unifier.new_var(self.span))
+        .collect::<Vec<_>>();
+      if let Some(ty) = self.value_types[candidate].receiver() {
+        let mut ty = ty.instantiate(&type_params);
+        if self.unifier.unify(&mut ty, &mut receiver.clone()) {
+          type_params.iter_mut().for_each(|t| self.unifier.export(&checkpoint, t));
+          found.push((candidate, type_params));
+        }
+      }
+      self.unifier.revert(&checkpoint);
+    }
+
+    found
+  }
+
+  fn find_method_candidates(
+    &mut self,
+    receiver: &Type<'core>,
+    name: Ident,
+  ) -> BTreeSet<ValueDefId> {
+    let mut candidates = BTreeSet::new();
+    let search = &mut CandidateSearch {
+      modules: HashSet::new(),
+      consider_candidate: |def: &Def| {
+        if def.name == name {
+          if let Some(value_id) = def.value_def {
+            let value = &self.chart.values[value_id];
+            if value.method {
+              candidates.insert(value_id);
+            }
+          }
+        }
+      },
+    };
+
+    for &ancestor in &self.chart.defs[self.source].ancestors {
+      self.find_candidates_within(ancestor, search);
+    }
+
+    if let Ok(Some(def_id)) = receiver.get_mod(self.chart) {
+      self.find_candidates_within(def_id, search);
+    }
+
+    candidates
+  }
+
   pub fn find_impl(
     &mut self,
     query: &Type<'core>,
   ) -> Result<Vec<(Impl<'core>, Type<'core>)>, Timeout> {
-    self.steps += 1;
-    if self.steps > STEPS_LIMIT {
-      self.unifier.revert(&self.initial_checkpoint);
-      return Err(Timeout);
-    }
+    self.step()?;
 
     let mut found = Vec::new();
 
@@ -104,7 +158,7 @@ impl<'core> Finder<'core, '_> {
     let impls = self.find_impl(query)?;
     for (impl_, mut ty) in impls {
       let checkpoint = self.unifier.checkpoint();
-      self.unifier.import(self.span, &mut ty);
+      self.unifier.import(self.span, [&mut ty]);
       let result = self.unifier.unify(&mut ty, &mut query.clone());
       assert!(result);
       let rest = self._find_impls(root_checkpoint, root_ty, rest_queries)?;
@@ -198,6 +252,16 @@ impl<'core> Finder<'core, '_> {
           }
         }
       }
+    }
+  }
+
+  fn step(&mut self) -> Result<(), Timeout> {
+    self.steps += 1;
+    if self.steps > STEPS_LIMIT {
+      self.unifier.revert(&self.initial_checkpoint);
+      Err(Timeout)
+    } else {
+      Ok(())
     }
   }
 }

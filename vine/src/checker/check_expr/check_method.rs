@@ -4,8 +4,7 @@ use crate::{
   ast::{Expr, ExprKind, GenericArgs, Ident, Span},
   chart::ValueDefId,
   checker::{Checker, Form, Type},
-  diag::Diag,
-  resolver::Resolver,
+  diag::{Diag, ErrorGuaranteed},
 };
 
 impl<'core> Checker<'core, '_> {
@@ -39,23 +38,9 @@ impl<'core> Checker<'core, '_> {
   ) -> Result<(Form, ValueDefId, Type<'core>), Diag<'core>> {
     let (receiver_form, mut ty) = self.check_expr(receiver);
     self.unifier.concretize(&mut ty);
-    let mod_id = ty.get_mod(self.chart)?;
-    let Some(mod_id) = mod_id else { Err(Diag::NoMethods { span, ty: self.display_type(&ty) })? };
-    let id = Resolver { core: self.core, chart: self.chart }.resolve_ident(
-      span,
-      self.cur_def,
-      mod_id,
-      ident,
-    )?;
-    let id = self.chart.defs[id].value_def.ok_or(Diag::PathNoAssociated {
-      span,
-      kind: "value",
-      path: self.chart.defs[id].path,
-    })?;
-    let (form, mut receiver_ty, params, ret) = self.method_sig(span, id, generics, args.len())?;
-    if receiver_ty.get_mod(self.chart)? != Some(mod_id) {
-      Err(Diag::BadMethodReceiver { span, base_path: self.chart.defs[mod_id].path, ident })?
-    }
+    let (id, type_params) = self.find_method(span, &ty, ident)?;
+    let (form, mut receiver_ty, params, ret) =
+      self.method_sig(span, id, generics, type_params, args.len())?;
     self.coerce_expr(receiver, receiver_form, form);
     if !self.unifier.unify(&mut ty, &mut receiver_ty) {
       Err(Diag::ExpectedTypeFound {
@@ -75,9 +60,11 @@ impl<'core> Checker<'core, '_> {
     span: Span,
     id: ValueDefId,
     generics: &mut GenericArgs<'core>,
+    type_params: Vec<Type<'core>>,
     args: usize,
   ) -> Result<(Form, Type<'core>, Vec<Type<'core>>, Type<'core>), Diag<'core>> {
-    let type_params = self.check_generics(generics, self.chart.values[id].generics, true);
+    let type_params =
+      self._check_generics(generics, self.chart.values[id].generics, true, Some(type_params));
     let ty = self.value_types[id].instantiate(&type_params);
     match ty {
       Type::Fn(mut params, ret) => {
@@ -122,5 +109,23 @@ impl<'core> Checker<'core, '_> {
     args.insert(0, receiver);
     let func = Expr { span, kind: ExprKind::Def(id, take(generics)) };
     ExprKind::Call(Box::new(func), args)
+  }
+
+  fn find_method(
+    &mut self,
+    span: Span,
+    receiver: &Type<'core>,
+    name: Ident<'core>,
+  ) -> Result<(ValueDefId, Vec<Type<'core>>), ErrorGuaranteed> {
+    let mut results = self.finder(span).find_method(receiver, name);
+    if results.len() == 1 {
+      Ok(results.pop().unwrap())
+    } else {
+      Err(self.core.report(if results.is_empty() {
+        Diag::NoMethod { span, ty: self.display_type(receiver), name }
+      } else {
+        Diag::AmbiguousMethod { span, ty: self.display_type(receiver), name }
+      }))
+    }
   }
 }

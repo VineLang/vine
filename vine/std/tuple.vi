@@ -19,7 +19,7 @@ pub mod Pair {
   }
 
   pub impl to_string[A, B; ToString[A], ToString[B]]: ToString[Pair[A, B]] {
-    fn to_string((a: A, b: B)) -> String {
+    fn .to_string((a: A, b: B)) -> String {
       "(" ++ ToString::to_string[A](a) ++ ", " ++ ToString::to_string[B](b) ++ ")"
     }
   }

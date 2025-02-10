@@ -13,25 +13,25 @@ pub mod N64 {
     N64(val, 0)
   }
 
-  pub fn to_n32(N64(lo, hi)) -> N32 {
+  pub fn .to_n32(N64(lo, hi)) -> N32 {
     lo
   }
 
-  pub inline_ivy! add: fn(N64, N64) -> N64 {
+  pub inline_ivy! .add: fn(N64, N64) -> N64 {
     fn(tup(dup(al0 al1) ah) fn(tup(dup(bl0 bl1) bh) tup(l h)))
     al0 = @add(bl0 l)
     al1 = @n32_add_high(bl1 c)
     ah = @add(bh @add(c h))
   }
 
-  pub inline_ivy! sub: fn(N64, N64) -> N64 {
+  pub inline_ivy! .sub: fn(N64, N64) -> N64 {
     fn(tup(dup(al0 al1) ah) fn(tup(dup(bl0 bl1) bh) tup(l h)))
     al0 = @sub(bl0 l)
     al1 = @lt(bl1 c)
     ah = @sub(bh @sub(c h))
   }
 
-  pub inline_ivy! mul: fn(N64, N64) -> N64 {
+  pub inline_ivy! .mul: fn(N64, N64) -> N64 {
     fn(tup(dup(al0 dup(al1 al2)) ah) fn(tup(dup(bl0 dup(bl1 bl2)) bh) tup(l h)))
     al0 = @mul(bl0 l)
     al1 = @n32_mul_high(bl1 ll)
@@ -46,7 +46,7 @@ pub mod N64 {
     a1 = @n32_mul_high(b1 h)
   }
 
-  pub fn div_rem_n32(N64(al, ah), d: N32) -> (N64, N32) {
+  pub fn .div_rem_n32(N64(al, ah), d: N32) -> (N64, N32) {
     let qh = ah / d;
     ah %= d;
     if ah > d {
@@ -66,19 +66,19 @@ pub mod N64 {
     (N64(ql, qh), al)
   }
 
-  pub fn or(N64(al, ah), N64(bl, bh)) -> N64 {
+  pub fn .or(N64(al, ah), N64(bl, bh)) -> N64 {
     N64(al | bl, ah | bh)
   }
 
-  pub fn xor(N64(al, ah), N64(bl, bh)) -> N64 {
+  pub fn .xor(N64(al, ah), N64(bl, bh)) -> N64 {
     N64(al ^ bl, ah ^ bh)
   }
 
-  pub fn and(N64(al, ah), N64(bl, bh)) -> N64 {
+  pub fn .and(N64(al, ah), N64(bl, bh)) -> N64 {
     N64(al & bl, ah & bh)
   }
 
-  pub fn shl(N64(al, ah), bits: N32) -> N64 {
+  pub fn .shl(N64(al, ah), bits: N32) -> N64 {
     if bits & 32 != 0 {
       N64(0, al << bits)
     } else {
@@ -86,7 +86,7 @@ pub mod N64 {
     }
   }
 
-  pub fn shr(N64(al, ah), bits: N32) -> N64 {
+  pub fn .shr(N64(al, ah), bits: N32) -> N64 {
     if bits & 32 != 0 {
       N64(ah >> bits, 0)
     } else {
@@ -94,27 +94,27 @@ pub mod N64 {
     }
   }
 
-  pub fn eq(N64(al, ah), N64(bl, bh)) -> Bool {
+  pub fn .eq(N64(al, ah), N64(bl, bh)) -> Bool {
     al == bl && ah == bh
   }
 
-  pub fn lt(N64(al, ah), N64(bl, bh)) -> Bool {
+  pub fn .lt(N64(al, ah), N64(bl, bh)) -> Bool {
     ah < bh || ah == bh && al < bl
   }
 
-  pub fn le(N64(al, ah), N64(bl, bh)) -> Bool {
+  pub fn .le(N64(al, ah), N64(bl, bh)) -> Bool {
     ah < bh || ah == bh && al <= bl
   }
 
-  pub fn gt(N64(al, ah), N64(bl, bh)) -> Bool {
+  pub fn .gt(N64(al, ah), N64(bl, bh)) -> Bool {
     ah > bh || ah == bh && al > bl
   }
 
-  pub fn ge(N64(al, ah), N64(bl, bh)) -> Bool {
+  pub fn .ge(N64(al, ah), N64(bl, bh)) -> Bool {
     ah > bh || ah == bh && al >= bl
   }
 
-  pub fn min(a: N64, b: N64) -> N64 {
+  pub fn .min(a: N64, b: N64) -> N64 {
     if a.le(b) {
       a
     } else {
@@ -122,7 +122,7 @@ pub mod N64 {
     }
   }
 
-  pub fn max(a: N64, b: N64) -> N64 {
+  pub fn .max(a: N64, b: N64) -> N64 {
     if a.ge(b) {
       a
     } else {
@@ -130,7 +130,7 @@ pub mod N64 {
     }
   }
 
-  pub fn cmp(&N64(al, ah), &N64(bl, bh)) -> Ord {
+  pub fn .cmp(&N64(al, ah), &N64(bl, bh)) -> Ord {
     if ah < bh {
       Ord::Lt
     } else if ah > bh {
@@ -161,7 +161,7 @@ pub mod N64 {
   }
 
   pub impl to_string: ToString[N64] {
-    fn to_string(n: N64) -> String {
+    fn .to_string(n: N64) -> String {
       if !n.eq(N64::zero) {
         let str = "";
         while !n.eq(N64::zero) {
@@ -176,7 +176,7 @@ pub mod N64 {
     }
   }
 
-  pub fn pow_n32(b: N64, e: N32) -> N64 {
+  pub fn .pow_n32(b: N64, e: N32) -> N64 {
     let n = N64::one;
     while e != 0 {
       if e % 2 != 0 {
@@ -188,7 +188,7 @@ pub mod N64 {
     n
   }
 
-  pub fn log_n32(n: N64, b: N32) -> N32 {
+  pub fn .log_n32(n: N64, b: N32) -> N32 {
     let l = 0;
     while N64::from_n32(b).le(n) {
       l += 1;

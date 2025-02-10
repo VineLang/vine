@@ -177,12 +177,13 @@ impl<'core, 'src> VineParser<'core, 'src> {
 
   fn parse_fn_item(&mut self) -> Parse<'core, FnItem<'core>> {
     self.expect(Token::Fn)?;
+    let method = self.eat(Token::Dot)?;
     let name = self.parse_ident()?;
     let generics = self.parse_generic_params()?;
     let params = self.parse_delimited(PAREN_COMMA, Self::parse_pat)?;
     let ret = self.eat(Token::ThinArrow)?.then(|| self.parse_type()).transpose()?;
     let body = (!self.eat(Token::Semi)?).then(|| self.parse_block()).transpose()?;
-    Ok(FnItem { name, generics, params, ret, body })
+    Ok(FnItem { method, name, generics, params, ret, body })
   }
 
   fn parse_const_item(&mut self) -> Parse<'core, ConstItem<'core>> {
@@ -388,6 +389,7 @@ impl<'core, 'src> VineParser<'core, 'src> {
     let span = self.span();
     self.expect(Token::InlineIvy)?;
     self.expect(Token::Bang)?;
+    let method = self.eat(Token::Dot)?;
     let name = self.parse_ident()?;
     let generics = self.parse_generic_params()?;
     self.expect(Token::Colon)?;
@@ -402,7 +404,7 @@ impl<'core, 'src> VineParser<'core, 'src> {
     let net = ivy_parser.parse_net_inner().map_err(|_| Diag::InvalidIvy { span })?;
     vine_lexer.bump(ivy_parser.state.lexer.span().end - vine_lexer.span().end);
     self.bump()?;
-    Ok(InlineIvy { name, generics, ty, net })
+    Ok(InlineIvy { method, name, generics, ty, net })
   }
 
   fn parse_expr_list(&mut self) -> Parse<'core, Vec<Expr<'core>>> {

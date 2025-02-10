@@ -60,5 +60,5 @@ pub fn main(&io: &IO) {
     ip += 2;
   }
 
-  io.println("Part 1: " ++ output.map(N32::to_string).join(","));
+  io.println("Part 1: " ++ output.map(fn(x: N32) { x.to_string() }).join(","));
 }

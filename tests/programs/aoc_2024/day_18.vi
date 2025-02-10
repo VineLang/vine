@@ -107,7 +107,7 @@ mod DisjointSet {
     DisjointSet(Array::new(len, Node::Root(1)))
   }
 
-  pub fn find(&DisjointSet(array), i: N32) -> N32 {
+  pub fn .find(&DisjointSet(array), i: N32) -> N32 {
     let ~root;
     while array.get(i) is &Node::Child(parent) {
       i = parent;
@@ -117,7 +117,7 @@ mod DisjointSet {
     i
   }
 
-  pub fn union(&self: &DisjointSet, a: N32, b: N32) -> N32 {
+  pub fn .union(&self: &DisjointSet, a: N32, b: N32) -> N32 {
     let a = self.find(a);
     let b = self.find(b);
     if a == b {
