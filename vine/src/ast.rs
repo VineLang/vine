@@ -410,6 +410,14 @@ impl<'core> Path<'core> {
     }
     None
   }
+
+  pub fn take_generics(&mut self) -> GenericArgs<'core> {
+    self.generics.take().unwrap_or(Generics {
+      span: self.span,
+      types: Vec::new(),
+      impls: Vec::new(),
+    })
+  }
 }
 
 #[derive(Clone)]

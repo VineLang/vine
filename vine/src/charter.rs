@@ -70,7 +70,7 @@ impl<'core> Charter<'core, '_> {
         let generics = self.chart_generics(def, fn_item.generics, true);
         let body = self.ensure_implemented(span, fn_item.body);
         let kind = ValueDefKind::Fn { params: fn_item.params, ret: fn_item.ret, body };
-        self.define_value(span, def, vis, generics, kind);
+        self.define_value(span, def, vis, generics, kind, fn_item.method);
         Some(def)
       }
 
@@ -79,7 +79,7 @@ impl<'core> Charter<'core, '_> {
         let generics = self.chart_generics(def, const_item.generics, true);
         let value = self.ensure_implemented(span, const_item.value);
         let kind = ValueDefKind::Const { ty: const_item.ty, value };
-        self.define_value(span, def, vis, generics, kind);
+        self.define_value(span, def, vis, generics, kind, false);
         Some(def)
       }
 
@@ -99,7 +99,7 @@ impl<'core> Charter<'core, '_> {
           is_struct: true,
         });
         let variant = VariantId(0);
-        self.define_value(span, def, vis, generics, ValueDefKind::Adt(adt, variant));
+        self.define_value(span, def, vis, generics, ValueDefKind::Adt(adt, variant), false);
         self.define_pattern(span, def, vis, generics, PatternDefKind::Adt(adt, variant));
         self.define_type(span, def, vis, generics, TypeDefKind::Adt(adt));
         Some(def)
@@ -116,7 +116,7 @@ impl<'core> Charter<'core, '_> {
           .map(|(id, variant)| {
             let id = VariantId(id);
             let def = self.chart_child(def, variant.name, vis);
-            self.define_value(span, def, vis, generics, ValueDefKind::Adt(adt, id));
+            self.define_value(span, def, vis, generics, ValueDefKind::Adt(adt, id), false);
             self.define_pattern(span, def, vis, generics, PatternDefKind::Adt(adt, id));
             AdtVariant { def, name: variant.name, fields: variant.fields, object: false }
           })
@@ -194,7 +194,7 @@ impl<'core> Charter<'core, '_> {
                 let def = self.chart_child(def, fn_item.name, vis);
                 let sub_id = sub_id.next();
                 let kind = ValueDefKind::TraitSubitem(trait_id, sub_id);
-                self.define_value(span, def, vis, sub_generics, kind);
+                self.define_value(span, def, vis, sub_generics, kind, fn_item.method);
                 Some(TraitSubitem {
                   name: fn_item.name,
                   kind: TraitSubitemKind::Fn(fn_item.params, fn_item.ret),
@@ -210,7 +210,7 @@ impl<'core> Charter<'core, '_> {
                 let def = self.chart_child(def, const_item.name, vis);
                 let sub_id = sub_id.next();
                 let kind = ValueDefKind::TraitSubitem(trait_id, sub_id);
-                self.define_value(span, def, vis, sub_generics, kind);
+                self.define_value(span, def, vis, sub_generics, kind, false);
                 Some(TraitSubitem {
                   name: const_item.name,
                   kind: TraitSubitemKind::Const(const_item.ty),
@@ -247,7 +247,7 @@ impl<'core> Charter<'core, '_> {
                 let def = self.chart_child(def, fn_item.name, vis);
                 let body = self.ensure_implemented(span, fn_item.body);
                 let kind = ValueDefKind::Fn { params: fn_item.params, ret: fn_item.ret, body };
-                let value = self.define_value(span, def, vis, generics, kind);
+                let value = self.define_value(span, def, vis, generics, kind, fn_item.method);
                 Some(ImplSubitem { span, name: fn_item.name, value })
               }
               ItemKind::Const(const_item) => {
@@ -257,7 +257,7 @@ impl<'core> Charter<'core, '_> {
                 let def = self.chart_child(def, const_item.name, vis);
                 let value = self.ensure_implemented(span, const_item.value);
                 let kind = ValueDefKind::Const { ty: const_item.ty, value };
-                let value = self.define_value(span, def, vis, generics, kind);
+                let value = self.define_value(span, def, vis, generics, kind, false);
                 Some(ImplSubitem { span, name: const_item.name, value })
               }
               _ => {
@@ -296,6 +296,7 @@ impl<'core> Charter<'core, '_> {
           vis,
           generics,
           ValueDefKind::Ivy { ty: ivy_item.ty, net: ivy_item.net },
+          ivy_item.method,
         );
         Some(def)
       }
@@ -454,7 +455,15 @@ impl<'core> Charter<'core, '_> {
 }
 
 macro_rules! define_define {
-  ($($define_thing:ident, $thing_def:ident, $things:ident, $ThingDefId:ident, $ThingDefKind:ty, $ThingDef:ident $({ $($field:tt)* })?);* $(;)?) => {
+  ($(
+    $define_thing:ident,
+    $thing_def:ident,
+    $things:ident,
+    $ThingDefId:ident,
+    $ThingDefKind:ty,
+    $ThingDef:ident
+    $(($($param:tt)*))? $({ $($field:tt)* })?
+  );* $(;)?) => {
     impl<'core> Charter<'core, '_> {
       $(fn $define_thing(
         &mut self,
@@ -463,6 +472,7 @@ macro_rules! define_define {
         vis: DefId,
         generics: GenericsId,
         kind: $ThingDefKind,
+        $($($param)*)?
       ) -> $ThingDefId {
         let id = self.chart.$things.push($ThingDef { span, def, vis, generics, kind, $($($field)*)? });
         let def = &mut self.chart.defs[def];
@@ -480,7 +490,7 @@ macro_rules! define_define {
 }
 
 define_define!(
-  define_value,   value_def,   values,   ValueDefId,   ValueDefKind<'core>, ValueDef { locals: Counter::default() };
+  define_value,   value_def,   values,   ValueDefId,   ValueDefKind<'core>, ValueDef (method: bool) { locals: Counter::default(), method };
   define_type,    type_def,    types,    TypeDefId,    TypeDefKind<'core>,  TypeDef;
   define_pattern, pattern_def, patterns, PatternDefId, PatternDefKind,      PatternDef;
   define_trait,   trait_def,   traits,   TraitDefId,   TraitDefKind<'core>, TraitDef;

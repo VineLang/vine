@@ -190,6 +190,8 @@ diags! {
     ["cannot find impl of trait `{ty}`"]
   AmbiguousImpl { ty: String }
     ["found several impls of trait `{ty}`"]
+  SearchLimit { ty: String }
+    ["search limit reached when finding impl of trait `{ty}`"]
 }
 
 fn plural<'a>(n: usize, plural: &'a str, singular: &'a str) -> &'a str {

@@ -222,12 +222,7 @@ impl<'core> VisitMut<'core, '_> for ResolveVisitor<'core, '_, '_> {
       pat.kind = match resolved {
         Ok(id) => {
           let PatternDefKind::Adt(adt, variant) = self.resolver.chart.patterns[id].kind;
-          PatKind::Adt(
-            adt,
-            variant,
-            path.generics.take().unwrap_or_default(),
-            args.take().unwrap_or_default(),
-          )
+          PatKind::Adt(adt, variant, path.take_generics(), args.take().unwrap_or_default())
         }
         Err(diag) => {
           if let (Some(ident), None) = (path.as_ident(), args) {
@@ -342,7 +337,7 @@ impl<'core> VisitMut<'core, '_> for ResolveVisitor<'core, '_, '_> {
           }
         }
         expr.kind = match self.resolver.resolve_path_to(self.def, path, "value", |d| d.value_def) {
-          Ok(id) => ExprKind::Def(id, path.generics.take().unwrap_or_default()),
+          Ok(id) => ExprKind::Def(id, path.take_generics()),
           Err(diag) => ExprKind::Error(self.resolver.core.report(diag)),
         };
       }
@@ -360,7 +355,7 @@ impl<'core> VisitMut<'core, '_> for ResolveVisitor<'core, '_, '_> {
         }
       }
       ty.kind = match self.resolver.resolve_path_to(self.def, path, "type", |d| d.type_def) {
-        Ok(id) => TyKind::Def(id, path.generics.take().unwrap_or_default()),
+        Ok(id) => TyKind::Def(id, path.take_generics()),
         Err(diag) => TyKind::Error(self.resolver.core.report(diag)),
       };
     }
@@ -376,7 +371,7 @@ impl<'core> VisitMut<'core, '_> for ResolveVisitor<'core, '_, '_> {
         }
       }
       impl_.kind = match self.resolver.resolve_path_to(self.def, path, "impl", |d| d.impl_def) {
-        Ok(id) => ImplKind::Def(id, path.generics.take().unwrap_or_default()),
+        Ok(id) => ImplKind::Def(id, path.take_generics()),
         Err(diag) => ImplKind::Error(self.resolver.core.report(diag)),
       };
     }
@@ -386,7 +381,7 @@ impl<'core> VisitMut<'core, '_> for ResolveVisitor<'core, '_, '_> {
     self._visit_trait(trait_);
     if let TraitKind::Path(path) = &mut trait_.kind {
       trait_.kind = match self.resolver.resolve_path_to(self.def, path, "trait", |d| d.trait_def) {
-        Ok(id) => TraitKind::Def(id, path.generics.take().unwrap_or_default()),
+        Ok(id) => TraitKind::Def(id, path.take_generics()),
         Err(diag) => TraitKind::Error(self.resolver.core.report(diag)),
       };
     }

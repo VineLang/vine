@@ -11,6 +11,7 @@ use crate::{
 
 pub struct Finder<'core, 'a> {
   pub(crate) chart: &'a Chart<'core>,
+  pub(crate) initial_checkpoint: UnifierCheckpoint,
   pub(crate) unifier: &'a mut Unifier<'core>,
   pub(crate) impl_def_types: &'a IdxVec<ImplDefId, Type<'core>>,
   pub(crate) impl_param_types: &'a IdxVec<GenericsId, Vec<Type<'core>>>,
@@ -27,11 +28,18 @@ struct CandidateSearch<F> {
 
 const STEPS_LIMIT: u32 = 1_000;
 
+#[derive(Debug, Default, Clone, Copy)]
+pub struct Timeout;
+
 impl<'core> Finder<'core, '_> {
-  pub fn find_impl(&mut self, query: &Type<'core>) -> Vec<(Impl<'core>, Type<'core>)> {
+  pub fn find_impl(
+    &mut self,
+    query: &Type<'core>,
+  ) -> Result<Vec<(Impl<'core>, Type<'core>)>, Timeout> {
     self.steps += 1;
     if self.steps > STEPS_LIMIT {
-      return Vec::new();
+      self.unifier.revert(&self.initial_checkpoint);
+      return Err(Timeout);
     }
 
     let mut found = Vec::new();
@@ -43,7 +51,7 @@ impl<'core> Finder<'core, '_> {
         self.unifier.export(&checkpoint, &mut ty);
         found.push((Impl { span: self.span, kind: ImplKind::Param(i) }, ty));
       }
-      self.unifier.revert(checkpoint);
+      self.unifier.revert(&checkpoint);
     }
 
     for candidate in self.find_impl_candidates(query) {
@@ -58,7 +66,7 @@ impl<'core> Finder<'core, '_> {
           .iter()
           .map(|t| t.instantiate(&type_params))
           .collect::<Vec<_>>();
-        let results = self._find_impls(&checkpoint, &ty, &queries);
+        let results = self._find_impls(&checkpoint, &ty, &queries)?;
         for (mut subimpls, ty) in results {
           subimpls.reverse();
           found.push((
@@ -73,10 +81,10 @@ impl<'core> Finder<'core, '_> {
           ));
         }
       }
-      self.unifier.revert(checkpoint);
+      self.unifier.revert(&checkpoint);
     }
 
-    found
+    Ok(found)
   }
 
   fn _find_impls(
@@ -84,30 +92,30 @@ impl<'core> Finder<'core, '_> {
     root_checkpoint: &UnifierCheckpoint,
     root_ty: &Type<'core>,
     queries: &[Type<'core>],
-  ) -> Vec<(Vec<Impl<'core>>, Type<'core>)> {
+  ) -> Result<Vec<(Vec<Impl<'core>>, Type<'core>)>, Timeout> {
     let [query, rest_queries @ ..] = queries else {
       let mut root_ty = root_ty.clone();
       self.unifier.export(root_checkpoint, &mut root_ty);
-      return vec![(vec![], root_ty)];
+      return Ok(vec![(vec![], root_ty)]);
     };
 
     let mut found = Vec::new();
 
-    let impls = self.find_impl(query);
+    let impls = self.find_impl(query)?;
     for (impl_, mut ty) in impls {
       let checkpoint = self.unifier.checkpoint();
       self.unifier.import(self.span, &mut ty);
       let result = self.unifier.unify(&mut ty, &mut query.clone());
       assert!(result);
-      let rest = self._find_impls(root_checkpoint, root_ty, rest_queries);
+      let rest = self._find_impls(root_checkpoint, root_ty, rest_queries)?;
       found.extend(rest.into_iter().map(|(mut impls, ty)| {
         impls.push(impl_.clone());
         (impls, ty)
       }));
-      self.unifier.revert(checkpoint);
+      self.unifier.revert(&checkpoint);
     }
 
-    found
+    Ok(found)
   }
 
   fn find_impl_candidates(&mut self, query: &Type<'core>) -> BTreeSet<ImplDefId> {

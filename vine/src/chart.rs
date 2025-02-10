@@ -116,6 +116,7 @@ pub struct ValueDef<'core> {
   pub generics: GenericsId,
   pub locals: Counter<Local>,
   pub kind: ValueDefKind<'core>,
+  pub method: bool,
 }
 
 #[derive(Debug, Default)]

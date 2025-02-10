@@ -539,6 +539,7 @@ impl<'core, 'r> Checker<'core, 'r> {
   fn finder(&mut self, span: Span) -> Finder<'core, '_> {
     Finder {
       chart: self.chart,
+      initial_checkpoint: self.unifier.checkpoint(),
       unifier: &mut self.unifier,
       impl_def_types: &self.impl_def_types,
       impl_param_types: &self.impl_param_types,
@@ -550,17 +551,19 @@ impl<'core, 'r> Checker<'core, 'r> {
   }
 
   fn find_impl(&mut self, span: Span, ty: &Type<'core>) -> Impl<'core> {
-    let mut results = self.finder(span).find_impl(ty);
-    if results.len() == 1 {
-      results.pop().unwrap().0
-    } else {
-      let diag = if results.is_empty() {
+    let results = self.finder(span).find_impl(ty);
+    let diag = if let Ok(mut results) = results {
+      if results.len() == 1 {
+        return results.pop().unwrap().0;
+      } else if results.is_empty() {
         Diag::CannotFindImpl { span, ty: self.display_type(ty) }
       } else {
         Diag::AmbiguousImpl { span, ty: self.display_type(ty) }
-      };
-      Impl { span, kind: ImplKind::Error(self.core.report(diag)) }
-    }
+      }
+    } else {
+      Diag::SearchLimit { span, ty: self.display_type(ty) }
+    };
+    Impl { span, kind: ImplKind::Error(self.core.report(diag)) }
   }
 }
 

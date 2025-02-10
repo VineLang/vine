@@ -169,7 +169,8 @@ impl<'core> Unifier<'core> {
     self.vars.clear();
     self.version = Version(0);
   }
-  pub fn revert(&mut self, checkpoint: UnifierCheckpoint) {
+
+  pub fn revert(&mut self, checkpoint: &UnifierCheckpoint) {
     self.vars.truncate(checkpoint.vars.0);
     for var_info in self.vars.values_mut() {
       if let Some((version, _)) = var_info.bound {
