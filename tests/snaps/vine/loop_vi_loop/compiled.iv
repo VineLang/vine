@@ -20,7 +20,7 @@
 
 ::loop_vi_loop::main::5 {
   x(x(w16 w21) x(x(@add(1 dup30(w9 w18)) w19) @add(1 w1)))
-  ::std::numeric::N32::to_string = fn(w9 w10)
+  ::std::numeric::N32::to_string::to_string = fn(w9 w10)
   ::std::IO::println = fn(ref(w16 w7) fn(w10 _))
   ::loop_vi_loop::main::4 = x(x(w7 w21) x(x(w18 w19) w1))
 }
@@ -29,25 +29,25 @@
 
 ::std::data::List::concat { fn(tup(@add(w10 w18) tup(w6 w11)) fn(tup(w10 tup(w11 w21)) tup(w18 tup(w6 w21)))) }
 
-::std::numeric::N32::to_string { fn(dup1795(?(::std::numeric::N32::to_string::3 ::std::numeric::N32::to_string::2 x(w7 w6)) w7) w6) }
+::std::numeric::N32::to_string::to_string { fn(dup1795(?(::std::numeric::N32::to_string::to_string::3 ::std::numeric::N32::to_string::to_string::2 x(w7 w6)) w7) w6) }
 
-::std::numeric::N32::to_string::2 {
+::std::numeric::N32::to_string::to_string::2 {
   x(w6 w9)
-  ::std::numeric::N32::to_string::4 = x(w6 x(tup(0 tup(w7 w7)) w9))
+  ::std::numeric::N32::to_string::to_string::4 = x(w6 x(tup(0 tup(w7 w7)) w9))
 }
 
-::std::numeric::N32::to_string::3 { x(_ tup(1 tup(tup(48 w3) w3))) }
+::std::numeric::N32::to_string::to_string::3 { x(_ tup(1 tup(tup(48 w3) w3))) }
 
-::std::numeric::N32::to_string::4 { x(dup1804(?(::std::numeric::N32::to_string::6 ::std::numeric::N32::to_string::5 x(w6 w2)) w6) w2) }
+::std::numeric::N32::to_string::to_string::4 { x(dup1804(?(::std::numeric::N32::to_string::to_string::6 ::std::numeric::N32::to_string::to_string::5 x(w6 w2)) w6) w2) }
 
-::std::numeric::N32::to_string::5 {
+::std::numeric::N32::to_string::to_string::5 {
   x(dup1807(@rem(10 w1) @div(10 w8)) x(w11 w15))
   48 = @add(w1 w2)
   ::std::data::List::concat = fn(tup(1 tup(tup(w2 w13) w13)) fn(w11 w5))
-  ::std::numeric::N32::to_string::4 = x(w8 x(w5 w15))
+  ::std::numeric::N32::to_string::to_string::4 = x(w8 x(w5 w15))
 }
 
-::std::numeric::N32::to_string::6 { x(_ x(w1 w1)) }
+::std::numeric::N32::to_string::to_string::6 { x(_ x(w1 w1)) }
 
 ::std::IO::println {
   fn(ref(w1 w12) fn(w3 _))

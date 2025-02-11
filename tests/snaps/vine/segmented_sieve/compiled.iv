@@ -23,7 +23,7 @@
 
 ::segmented_sieve::main::7 {
   x(x(w24 w1) x(w22 x(w21 x(w19 x(x(w18 w7) x(dup50(w3 dup50(w9 dup50(@mul(w12 w13) dup50(w12 w26)))) _))))))
-  ::std::numeric::N32::to_string = fn(w3 w4)
+  ::std::numeric::N32::to_string::to_string = fn(w3 w4)
   ::std::IO::println = fn(ref(w24 w1) fn(w4 _))
   ::std::data::List::push_back = fn(ref(w18 w7) fn(w9 _))
   ::segmented_sieve::main::9 = x(w22 x(w21 x(w19 x(w26 w13))))
@@ -93,7 +93,7 @@
 
 ::segmented_sieve::main::29 {
   x(x(w9 w1) x(w7 _))
-  ::std::numeric::N32::to_string = fn(w7 w4)
+  ::std::numeric::N32::to_string::to_string = fn(w7 w4)
   ::std::IO::println = fn(ref(w9 w1) fn(w4 _))
 }
 
@@ -200,25 +200,25 @@
 
 ::std::logical::Option::None { enum(_ enum(r r)) }
 
-::std::numeric::N32::to_string { fn(dup1902(?(::std::numeric::N32::to_string::3 ::std::numeric::N32::to_string::2 x(w7 w6)) w7) w6) }
+::std::numeric::N32::to_string::to_string { fn(dup1902(?(::std::numeric::N32::to_string::to_string::3 ::std::numeric::N32::to_string::to_string::2 x(w7 w6)) w7) w6) }
 
-::std::numeric::N32::to_string::2 {
+::std::numeric::N32::to_string::to_string::2 {
   x(w6 w9)
-  ::std::numeric::N32::to_string::4 = x(w6 x(tup(0 tup(w7 w7)) w9))
+  ::std::numeric::N32::to_string::to_string::4 = x(w6 x(tup(0 tup(w7 w7)) w9))
 }
 
-::std::numeric::N32::to_string::3 { x(_ tup(1 tup(tup(48 w3) w3))) }
+::std::numeric::N32::to_string::to_string::3 { x(_ tup(1 tup(tup(48 w3) w3))) }
 
-::std::numeric::N32::to_string::4 { x(dup1911(?(::std::numeric::N32::to_string::6 ::std::numeric::N32::to_string::5 x(w6 w2)) w6) w2) }
+::std::numeric::N32::to_string::to_string::4 { x(dup1911(?(::std::numeric::N32::to_string::to_string::6 ::std::numeric::N32::to_string::to_string::5 x(w6 w2)) w6) w2) }
 
-::std::numeric::N32::to_string::5 {
+::std::numeric::N32::to_string::to_string::5 {
   x(dup1914(@rem(10 w1) @div(10 w8)) x(w11 w15))
   48 = @add(w1 w2)
   ::std::data::List::concat = fn(tup(1 tup(tup(w2 w13) w13)) fn(w11 w5))
-  ::std::numeric::N32::to_string::4 = x(w8 x(w5 w15))
+  ::std::numeric::N32::to_string::to_string::4 = x(w8 x(w5 w15))
 }
 
-::std::numeric::N32::to_string::6 { x(_ x(w1 w1)) }
+::std::numeric::N32::to_string::to_string::6 { x(_ x(w1 w1)) }
 
 ::std::numeric::N32::min { fn(dup1976(@lt(w7 ?(::std::numeric::N32::min::3 ::std::numeric::N32::min::2 x(w11 x(w10 w9)))) w11) fn(dup1977(w7 w10) w9)) }
 

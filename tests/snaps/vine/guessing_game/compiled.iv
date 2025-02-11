@@ -9,7 +9,7 @@
   ::guessing_game::main::1 = x(x(w6 w43) fn(tup(24 tup(tup(69 tup(110 tup(116 tup(101 tup(114 tup(32 tup(97 tup(32 tup(109 tup(97 tup(120 tup(105 tup(109 tup(117 tup(109 tup(32 tup(110 tup(117 tup(109 tup(98 tup(101 tup(114 tup(58 tup(32 w44)))))))))))))))))))))))) w44)) dup9(w24 w32)))
   ::std::rng::Pcg32::gen_n32 = fn(ref(w13 _) @rem(w24 w25))
   1 = @add(w25 w26)
-  ::std::numeric::N32::to_string = fn(w32 w33)
+  ::std::numeric::N32::to_string::to_string = fn(w32 w33)
   ::std::data::List::concat = fn(tup(39 tup(tup(73 tup(39 tup(109 tup(32 tup(116 tup(104 tup(105 tup(110 tup(107 tup(105 tup(110 tup(103 tup(32 tup(111 tup(102 tup(32 tup(97 tup(32 tup(110 tup(117 tup(109 tup(98 tup(101 tup(114 tup(32 tup(98 tup(101 tup(116 tup(119 tup(101 tup(101 tup(110 tup(32 tup(49 tup(32 tup(97 tup(110 tup(100 tup(32 w45))))))))))))))))))))))))))))))))))))))) w45)) fn(w33 w34))
   ::std::data::List::concat = fn(w34 fn(tup(1 tup(tup(46 w46) w46)) w36))
   ::std::IO::println = fn(ref(w43 w29) fn(w36 _))
@@ -62,7 +62,7 @@
 
 ::guessing_game::main::21 {
   x(w7 w5)
-  ::std::numeric::N32::to_string = fn(w7 w2)
+  ::std::numeric::N32::to_string::to_string = fn(w7 w2)
   ::std::data::List::concat = fn(tup(3 tup(tup(105 tup(110 tup(32 w8))) w8)) fn(w2 w3))
   ::std::data::List::concat = fn(w3 fn(tup(9 tup(tup(32 tup(103 tup(117 tup(101 tup(115 tup(115 tup(101 tup(115 tup(33 w9))))))))) w9)) w5))
 }
@@ -88,25 +88,25 @@
 
 ::std::logical::Option::unwrap::3 { enum(w0 w0) }
 
-::std::numeric::N32::to_string { fn(dup1852(?(::std::numeric::N32::to_string::3 ::std::numeric::N32::to_string::2 x(w7 w6)) w7) w6) }
+::std::numeric::N32::to_string::to_string { fn(dup1852(?(::std::numeric::N32::to_string::to_string::3 ::std::numeric::N32::to_string::to_string::2 x(w7 w6)) w7) w6) }
 
-::std::numeric::N32::to_string::2 {
+::std::numeric::N32::to_string::to_string::2 {
   x(w6 w9)
-  ::std::numeric::N32::to_string::4 = x(w6 x(tup(0 tup(w7 w7)) w9))
+  ::std::numeric::N32::to_string::to_string::4 = x(w6 x(tup(0 tup(w7 w7)) w9))
 }
 
-::std::numeric::N32::to_string::3 { x(_ tup(1 tup(tup(48 w3) w3))) }
+::std::numeric::N32::to_string::to_string::3 { x(_ tup(1 tup(tup(48 w3) w3))) }
 
-::std::numeric::N32::to_string::4 { x(dup1861(?(::std::numeric::N32::to_string::6 ::std::numeric::N32::to_string::5 x(w6 w2)) w6) w2) }
+::std::numeric::N32::to_string::to_string::4 { x(dup1861(?(::std::numeric::N32::to_string::to_string::6 ::std::numeric::N32::to_string::to_string::5 x(w6 w2)) w6) w2) }
 
-::std::numeric::N32::to_string::5 {
+::std::numeric::N32::to_string::to_string::5 {
   x(dup1864(@rem(10 w1) @div(10 w8)) x(w11 w15))
   48 = @add(w1 w2)
   ::std::data::List::concat = fn(tup(1 tup(tup(w2 w13) w13)) fn(w11 w5))
-  ::std::numeric::N32::to_string::4 = x(w8 x(w5 w15))
+  ::std::numeric::N32::to_string::to_string::4 = x(w8 x(w5 w15))
 }
 
-::std::numeric::N32::to_string::6 { x(_ x(w1 w1)) }
+::std::numeric::N32::to_string::to_string::6 { x(_ x(w1 w1)) }
 
 ::std::numeric::N32::parse { fn(tup(dup1871(?(::std::numeric::N32::parse::3 ::std::numeric::N32::parse::2 x(w14 x(w5 w12))) w14) tup(w5 _)) w12) }
 

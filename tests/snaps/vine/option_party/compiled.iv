@@ -87,7 +87,7 @@
 
 ::option_party::main::5 {
   enum(w0 w8)
-  ::std::numeric::N32::to_string = fn(w0 w5)
+  ::std::numeric::N32::to_string::to_string = fn(w0 w5)
   ::std::data::List::concat = fn(tup(5 tup(tup(83 tup(111 tup(109 tup(101 tup(40 w9))))) w9)) fn(w5 w6))
   ::std::data::List::concat = fn(w6 fn(tup(1 tup(tup(41 w10) w10)) w8))
 }
@@ -96,7 +96,7 @@
 
 ::option_party::main::7 {
   x(x(w13 w4) fn(w0 w10))
-  ::std::numeric::N32::to_string = fn(w0 w8)
+  ::std::numeric::N32::to_string::to_string = fn(w0 w8)
   ::std::data::List::concat = fn(tup(2 tup(tup(32 tup(32 w14)) w14)) fn(w8 w9))
   ::std::IO::println = fn(ref(w13 w4) fn(w9 w10))
 }
@@ -190,25 +190,25 @@
 
 ::std::logical::Option::unwrap::3 { enum(w0 w0) }
 
-::std::numeric::N32::to_string { fn(dup1969(?(::std::numeric::N32::to_string::3 ::std::numeric::N32::to_string::2 x(w7 w6)) w7) w6) }
+::std::numeric::N32::to_string::to_string { fn(dup1969(?(::std::numeric::N32::to_string::to_string::3 ::std::numeric::N32::to_string::to_string::2 x(w7 w6)) w7) w6) }
 
-::std::numeric::N32::to_string::2 {
+::std::numeric::N32::to_string::to_string::2 {
   x(w6 w9)
-  ::std::numeric::N32::to_string::4 = x(w6 x(tup(0 tup(w7 w7)) w9))
+  ::std::numeric::N32::to_string::to_string::4 = x(w6 x(tup(0 tup(w7 w7)) w9))
 }
 
-::std::numeric::N32::to_string::3 { x(_ tup(1 tup(tup(48 w3) w3))) }
+::std::numeric::N32::to_string::to_string::3 { x(_ tup(1 tup(tup(48 w3) w3))) }
 
-::std::numeric::N32::to_string::4 { x(dup1978(?(::std::numeric::N32::to_string::6 ::std::numeric::N32::to_string::5 x(w6 w2)) w6) w2) }
+::std::numeric::N32::to_string::to_string::4 { x(dup1978(?(::std::numeric::N32::to_string::to_string::6 ::std::numeric::N32::to_string::to_string::5 x(w6 w2)) w6) w2) }
 
-::std::numeric::N32::to_string::5 {
+::std::numeric::N32::to_string::to_string::5 {
   x(dup1981(@rem(10 w1) @div(10 w8)) x(w11 w15))
   48 = @add(w1 w2)
   ::std::data::List::concat = fn(tup(1 tup(tup(w2 w13) w13)) fn(w11 w5))
-  ::std::numeric::N32::to_string::4 = x(w8 x(w5 w15))
+  ::std::numeric::N32::to_string::to_string::4 = x(w8 x(w5 w15))
 }
 
-::std::numeric::N32::to_string::6 { x(_ x(w1 w1)) }
+::std::numeric::N32::to_string::to_string::6 { x(_ x(w1 w1)) }
 
 ::std::IO::println {
   fn(ref(w1 w12) fn(w3 _))

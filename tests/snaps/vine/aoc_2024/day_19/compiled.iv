@@ -8,10 +8,10 @@
   ::std::unicode::String::split = fn(w9 fn(tup(2 tup(tup(44 tup(32 w36)) w36)) w11))
   ::std::IO::read_line = fn(ref(w6 w14) _)
   ::day_19::main::1 = x(x(w14 w43) x(w11 x(x(0 w40) x(0 w38))))
-  ::std::numeric::N32::to_string = fn(w40 w24)
+  ::std::numeric::N32::to_string::to_string = fn(w40 w24)
   ::std::data::List::concat = fn(tup(8 tup(tup(80 tup(97 tup(114 tup(116 tup(32 tup(49 tup(58 tup(32 w44)))))))) w44)) fn(w24 w25))
   ::std::IO::println = fn(ref(w43 w20) fn(w25 _))
-  ::std::numeric::N64::to_string = fn(w38 w32)
+  ::std::numeric::N64::to_string::to_string = fn(w38 w32)
   ::std::data::List::concat = fn(tup(8 tup(tup(80 tup(97 tup(114 tup(116 tup(32 tup(50 tup(58 tup(32 w45)))))))) w45)) fn(w32 w33))
   ::std::IO::println = fn(ref(w20 w28) fn(w33 _))
 }
@@ -200,25 +200,25 @@
 
 ::std::logical::Option::unwrap::3 { enum(w0 w0) }
 
-::std::numeric::N32::to_string { fn(dup1856(?(::std::numeric::N32::to_string::3 ::std::numeric::N32::to_string::2 x(w7 w6)) w7) w6) }
+::std::numeric::N32::to_string::to_string { fn(dup1856(?(::std::numeric::N32::to_string::to_string::3 ::std::numeric::N32::to_string::to_string::2 x(w7 w6)) w7) w6) }
 
-::std::numeric::N32::to_string::2 {
+::std::numeric::N32::to_string::to_string::2 {
   x(w6 w9)
-  ::std::numeric::N32::to_string::4 = x(w6 x(tup(0 tup(w7 w7)) w9))
+  ::std::numeric::N32::to_string::to_string::4 = x(w6 x(tup(0 tup(w7 w7)) w9))
 }
 
-::std::numeric::N32::to_string::3 { x(_ tup(1 tup(tup(48 w3) w3))) }
+::std::numeric::N32::to_string::to_string::3 { x(_ tup(1 tup(tup(48 w3) w3))) }
 
-::std::numeric::N32::to_string::4 { x(dup1865(?(::std::numeric::N32::to_string::6 ::std::numeric::N32::to_string::5 x(w6 w2)) w6) w2) }
+::std::numeric::N32::to_string::to_string::4 { x(dup1865(?(::std::numeric::N32::to_string::to_string::6 ::std::numeric::N32::to_string::to_string::5 x(w6 w2)) w6) w2) }
 
-::std::numeric::N32::to_string::5 {
+::std::numeric::N32::to_string::to_string::5 {
   x(dup1868(@rem(10 w1) @div(10 w8)) x(w11 w15))
   48 = @add(w1 w2)
   ::std::data::List::concat = fn(tup(1 tup(tup(w2 w13) w13)) fn(w11 w5))
-  ::std::numeric::N32::to_string::4 = x(w8 x(w5 w15))
+  ::std::numeric::N32::to_string::to_string::4 = x(w8 x(w5 w15))
 }
 
-::std::numeric::N32::to_string::6 { x(_ x(w1 w1)) }
+::std::numeric::N32::to_string::to_string::6 { x(_ x(w1 w1)) }
 
 ::std::numeric::N64::one { tup(1 0) }
 
@@ -255,31 +255,31 @@
 
 ::std::numeric::N64::eq::3 { x(_ x(_ 0)) }
 
-::std::numeric::N64::to_string {
+::std::numeric::N64::to_string::to_string {
   fn(dup2345(w5 w8) w7)
-  ::std::numeric::N64::eq = fn(w5 fn(0 ?(::std::numeric::N64::to_string::3 ::std::numeric::N64::to_string::2 x(w8 w7))))
+  ::std::numeric::N64::eq = fn(w5 fn(0 ?(::std::numeric::N64::to_string::to_string::3 ::std::numeric::N64::to_string::to_string::2 x(w8 w7))))
 }
 
-::std::numeric::N64::to_string::2 { x(_ tup(1 tup(tup(48 w3) w3))) }
+::std::numeric::N64::to_string::to_string::2 { x(_ tup(1 tup(tup(48 w3) w3))) }
 
-::std::numeric::N64::to_string::3 {
+::std::numeric::N64::to_string::to_string::3 {
   x(w4 w7)
-  ::std::numeric::N64::to_string::4 = x(w4 x(tup(0 tup(w5 w5)) w7))
+  ::std::numeric::N64::to_string::to_string::4 = x(w4 x(tup(0 tup(w5 w5)) w7))
 }
 
-::std::numeric::N64::to_string::4 {
+::std::numeric::N64::to_string::to_string::4 {
   x(dup2354(w0 w7) w3)
-  ::std::numeric::N64::eq = fn(w0 fn(0 ?(::std::numeric::N64::to_string::6 ::std::numeric::N64::to_string::5 x(w7 w3))))
+  ::std::numeric::N64::eq = fn(w0 fn(0 ?(::std::numeric::N64::to_string::to_string::6 ::std::numeric::N64::to_string::to_string::5 x(w7 w3))))
 }
 
-::std::numeric::N64::to_string::5 { x(_ x(w1 w1)) }
+::std::numeric::N64::to_string::to_string::5 { x(_ x(w1 w1)) }
 
-::std::numeric::N64::to_string::6 {
+::std::numeric::N64::to_string::to_string::6 {
   x(w17 x(w16 w20))
   ::std::numeric::N64::div_rem_n32 = fn(w17 fn(10 tup(w2 w3)))
   48 = @add(w3 w6)
   ::std::data::List::concat = fn(tup(1 tup(tup(w6 w18) w18)) fn(w16 w11))
-  ::std::numeric::N64::to_string::4 = x(w2 x(w11 w20))
+  ::std::numeric::N64::to_string::to_string::4 = x(w2 x(w11 w20))
 }
 
 ::std::unicode::String::len { fn(ref(tup(dup2483(w0 w13) w2) tup(w0 w2)) w13) }

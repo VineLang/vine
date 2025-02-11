@@ -5,11 +5,11 @@
   fn(ref(w1 w24) _)
   ::day_04::main::1 = x(x(w1 w36) x(tup(0 tup(w32 w32)) dup5(w7 w19)))
   ::day_04::diamond = fn(w7 fn(fn(dup7(@eq(88 ?(::day_04::main::9 ::day_04::main::8 x(w66 x(w38 x(w39 x(w40 x(w41 x(w42 x(w43 x(w44 x(w45 x(x(w48 w57) w55)))))))))))) w66) fn(tup(w38 tup(w39 tup(w40 tup(w41 tup(w42 tup(w43 tup(w44 w45))))))) fn(ref(w48 w57) w55))) fn(46 fn(0 w9))))
-  ::std::numeric::N32::to_string = fn(w9 w16)
+  ::std::numeric::N32::to_string::to_string = fn(w9 w16)
   ::std::data::List::concat = fn(tup(6 tup(tup(88 tup(77 tup(65 tup(83 tup(58 tup(32 w67)))))) w67)) fn(w16 w17))
   ::std::IO::println = fn(ref(w36 w12) fn(w17 _))
   ::day_04::diamond = fn(w19 fn(fn(dup19(@eq(65 ?(::day_04::main::23 ::day_04::main::22 x(w89 x(w69 x(w70 x(w71 x(w72 x(x(w75 w84) w82)))))))) w89) fn(tup(w69 tup(_ tup(w70 tup(_ tup(_ tup(w71 tup(_ w72))))))) fn(ref(w75 w84) w82))) fn(46 fn(0 w21))))
-  ::std::numeric::N32::to_string = fn(w21 w28)
+  ::std::numeric::N32::to_string::to_string = fn(w21 w28)
   ::std::data::List::concat = fn(tup(7 tup(tup(88 tup(45 tup(77 tup(65 tup(83 tup(58 tup(32 w90))))))) w90)) fn(w28 w29))
   ::std::IO::println = fn(ref(w12 w24) fn(w29 _))
 }
@@ -295,25 +295,25 @@
 
 ::std::logical::Option::unwrap::3 { enum(w0 w0) }
 
-::std::numeric::N32::to_string { fn(dup2181(?(::std::numeric::N32::to_string::3 ::std::numeric::N32::to_string::2 x(w7 w6)) w7) w6) }
+::std::numeric::N32::to_string::to_string { fn(dup2181(?(::std::numeric::N32::to_string::to_string::3 ::std::numeric::N32::to_string::to_string::2 x(w7 w6)) w7) w6) }
 
-::std::numeric::N32::to_string::2 {
+::std::numeric::N32::to_string::to_string::2 {
   x(w6 w9)
-  ::std::numeric::N32::to_string::4 = x(w6 x(tup(0 tup(w7 w7)) w9))
+  ::std::numeric::N32::to_string::to_string::4 = x(w6 x(tup(0 tup(w7 w7)) w9))
 }
 
-::std::numeric::N32::to_string::3 { x(_ tup(1 tup(tup(48 w3) w3))) }
+::std::numeric::N32::to_string::to_string::3 { x(_ tup(1 tup(tup(48 w3) w3))) }
 
-::std::numeric::N32::to_string::4 { x(dup2190(?(::std::numeric::N32::to_string::6 ::std::numeric::N32::to_string::5 x(w6 w2)) w6) w2) }
+::std::numeric::N32::to_string::to_string::4 { x(dup2190(?(::std::numeric::N32::to_string::to_string::6 ::std::numeric::N32::to_string::to_string::5 x(w6 w2)) w6) w2) }
 
-::std::numeric::N32::to_string::5 {
+::std::numeric::N32::to_string::to_string::5 {
   x(dup2193(@rem(10 w1) @div(10 w8)) x(w11 w15))
   48 = @add(w1 w2)
   ::std::data::List::concat = fn(tup(1 tup(tup(w2 w13) w13)) fn(w11 w5))
-  ::std::numeric::N32::to_string::4 = x(w8 x(w5 w15))
+  ::std::numeric::N32::to_string::to_string::4 = x(w8 x(w5 w15))
 }
 
-::std::numeric::N32::to_string::6 { x(_ x(w1 w1)) }
+::std::numeric::N32::to_string::to_string::6 { x(_ x(w1 w1)) }
 
 ::std::IO::println {
   fn(ref(w1 w12) fn(w3 _))
