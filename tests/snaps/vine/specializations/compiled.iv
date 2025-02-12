@@ -83,13 +83,13 @@
 
 ::std::data::List::to_string::to_string::5 {
   fn(w0 w10)
-  ::std::data::List::map = fn(w0 fn(::std::tuple::Pair::to_string::to_string::1 w5))
+  ::std::data::List::map = fn(w0 fn(::std::unicode::ToString::pair::to_string::1 w5))
   ::std::data::List::join = fn(w5 fn(tup(2 tup(tup(44 tup(32 w13)) w13)) w7))
   ::std::data::List::concat = fn(tup(1 tup(tup(91 w12) w12)) fn(w7 w8))
   ::std::data::List::concat = fn(w8 fn(tup(1 tup(tup(93 w14) w14)) w10))
 }
 
-::std::tuple::Pair::to_string::to_string::1 {
+::std::unicode::ToString::pair::to_string::1 {
   fn(tup(w0 w1) w15)
   ::std::numeric::N32::to_string::to_string = fn(w0 w7)
   ::std::data::List::concat = fn(tup(1 tup(tup(40 w17) w17)) fn(w7 w8))
@@ -161,7 +161,7 @@
   ::std::IO::print::1 = x(x(w1 w16) x(w7 w8))
 }
 
-::std::IO::print::1 { x(w4 x(dup2198(?(::std::IO::print::3 ::std::IO::print::2 x(w4 x(w6 w1))) w6) w1)) }
+::std::IO::print::1 { x(w4 x(dup2202(?(::std::IO::print::3 ::std::IO::print::2 x(w4 x(w6 w1))) w6) w1)) }
 
 ::std::IO::print::2 {
   x(x(w17 w21) x(@sub(1 w1) tup(w4 w5)))

@@ -222,13 +222,13 @@
 
 ::std::data::Array::Node::half::3 { x(x(w12 w1) x(x(w10 w10) x(@add(1 @div(2 w5)) tup(ref(w12 w1) w5)))) }
 
-::std::numeric::N32::min { fn(dup1386(@lt(w7 ?(::std::numeric::N32::min::3 ::std::numeric::N32::min::2 x(w11 x(w10 w9)))) w11) fn(dup1387(w7 w10) w9)) }
+::std::numeric::N32::min { fn(dup1390(@lt(w7 ?(::std::numeric::N32::min::3 ::std::numeric::N32::min::2 x(w11 x(w10 w9)))) w11) fn(dup1391(w7 w10) w9)) }
 
 ::std::numeric::N32::min::2 { x(w3 x(_ w3)) }
 
 ::std::numeric::N32::min::3 { x(_ x(w2 w2)) }
 
-::std::numeric::N32::max { fn(dup1395(@lt$(w7 ?(::std::numeric::N32::max::3 ::std::numeric::N32::max::2 x(w11 x(w10 w9)))) w11) fn(dup1396(w7 w10) w9)) }
+::std::numeric::N32::max { fn(dup1399(@lt$(w7 ?(::std::numeric::N32::max::3 ::std::numeric::N32::max::2 x(w11 x(w10 w9)))) w11) fn(dup1400(w7 w10) w9)) }
 
 ::std::numeric::N32::max::2 { x(w3 x(_ w3)) }
 
@@ -239,10 +239,10 @@
   ::std::numeric::N32::sqrt::1 = x(w0 x(32768 x(0 w8)))
 }
 
-::std::numeric::N32::sqrt::1 { x(w4 x(dup1436(?(::std::numeric::N32::sqrt::3 ::std::numeric::N32::sqrt::2 x(w4 x(w7 w2))) w7) w2)) }
+::std::numeric::N32::sqrt::1 { x(w4 x(dup1440(?(::std::numeric::N32::sqrt::3 ::std::numeric::N32::sqrt::2 x(w4 x(w7 w2))) w7) w2)) }
 
 ::std::numeric::N32::sqrt::2 {
-  x(dup1439(w14 w23) x(dup1440(w1 @n32_shr(1 w6)) x(dup1443(@add(w1 dup1445(@mul(w12 @le(w14 ?(::std::numeric::N32::sqrt::6 ::std::numeric::N32::sqrt::5 x(x(w18 w19) x(w17 _))))) dup1445(w12 w17))) w18) w21)))
+  x(dup1443(w14 w23) x(dup1444(w1 @n32_shr(1 w6)) x(dup1447(@add(w1 dup1449(@mul(w12 @le(w14 ?(::std::numeric::N32::sqrt::6 ::std::numeric::N32::sqrt::5 x(x(w18 w19) x(w17 _))))) dup1449(w12 w17))) w18) w21)))
   ::std::numeric::N32::sqrt::1 = x(w23 x(w6 x(w19 w21)))
 }
 
@@ -263,7 +263,7 @@
   ::std::IO::print::1 = x(x(w1 w16) x(w7 w8))
 }
 
-::std::IO::print::1 { x(w4 x(dup2312(?(::std::IO::print::3 ::std::IO::print::2 x(w4 x(w6 w1))) w6) w1)) }
+::std::IO::print::1 { x(w4 x(dup2316(?(::std::IO::print::3 ::std::IO::print::2 x(w4 x(w6 w1))) w6) w1)) }
 
 ::std::IO::print::2 {
   x(x(w17 w21) x(@sub(1 w1) tup(w4 w5)))

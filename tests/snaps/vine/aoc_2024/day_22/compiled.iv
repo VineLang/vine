@@ -108,7 +108,7 @@
 ::std::data::Map::insert::1::8 {
   x(x(_ w26) x(x(w13 w29) x(w11 x(w10 x(x(w9 w17) x(x(w7 w7) x(x(w5 w5) x(x(w3 w3) x(w21 _)))))))))
   ::std::data::Map::insert::1 = fn(ref(w9 w17) fn(w11 fn(w10 w21)))
-  ::std::data::Map::size::1 = fn(ref(w13 w24) w26)
+  ::std::data::Map::size = fn(ref(w13 w24) w26)
   ::std::data::Map::balance_right = fn(ref(w24 w29) _)
 }
 
@@ -117,7 +117,7 @@
 ::std::data::Map::insert::1::10 {
   x(x(_ w26) x(x(w13 w29) x(w11 x(w10 x(x(w9 w9) x(x(w7 w7) x(x(w5 w5) x(x(w3 w17) x(w21 _)))))))))
   ::std::data::Map::insert::1 = fn(ref(w3 w17) fn(w11 fn(w10 w21)))
-  ::std::data::Map::size::1 = fn(ref(w13 w24) w26)
+  ::std::data::Map::size = fn(ref(w13 w24) w26)
   ::std::data::Map::balance_left = fn(ref(w24 w29) _)
 }
 
@@ -127,10 +127,8 @@
 
 ::std::numeric::N32::ord::cmp::3 { x(@lt$(w4 ?(::std::ops::Ord::Eq ::std::ops::Ord::Gt w6)) x(w4 w6)) }
 
-::std::data::Map::size::1 { fn(ref(tup(tup(dup213(w0 @add(w17 @add(1 w19))) w2) tup(w5 tup(dup214(w6 w17) w8))) tup(tup(w0 w2) tup(w5 tup(w6 w8)))) w19) }
-
 ::std::numeric::N64::to_string::to_string {
-  fn(dup217(w5 w8) w7)
+  fn(dup213(w5 w8) w7)
   ::std::numeric::N64::eq = fn(w5 fn(0 ?(::std::numeric::N64::to_string::to_string::3 ::std::numeric::N64::to_string::to_string::2 x(w8 w7))))
 }
 
@@ -142,7 +140,7 @@
 }
 
 ::std::numeric::N64::to_string::to_string::4 {
-  x(dup226(w0 w7) w3)
+  x(dup222(w0 w7) w3)
   ::std::numeric::N64::eq = fn(w0 fn(0 ?(::std::numeric::N64::to_string::to_string::6 ::std::numeric::N64::to_string::to_string::5 x(w7 w3))))
 }
 
@@ -156,7 +154,7 @@
   ::std::numeric::N64::to_string::to_string::4 = x(w2 x(w11 w20))
 }
 
-::std::numeric::N32::to_string::to_string { fn(dup237(?(::std::numeric::N32::to_string::to_string::3 ::std::numeric::N32::to_string::to_string::2 x(w7 w6)) w7) w6) }
+::std::numeric::N32::to_string::to_string { fn(dup233(?(::std::numeric::N32::to_string::to_string::3 ::std::numeric::N32::to_string::to_string::2 x(w7 w6)) w7) w6) }
 
 ::std::numeric::N32::to_string::to_string::2 {
   x(w6 w9)
@@ -165,10 +163,10 @@
 
 ::std::numeric::N32::to_string::to_string::3 { x(_ tup(1 tup(tup(48 w3) w3))) }
 
-::std::numeric::N32::to_string::to_string::4 { x(dup246(?(::std::numeric::N32::to_string::to_string::6 ::std::numeric::N32::to_string::to_string::5 x(w6 w2)) w6) w2) }
+::std::numeric::N32::to_string::to_string::4 { x(dup242(?(::std::numeric::N32::to_string::to_string::6 ::std::numeric::N32::to_string::to_string::5 x(w6 w2)) w6) w2) }
 
 ::std::numeric::N32::to_string::to_string::5 {
-  x(dup249(@rem(10 w1) @div(10 w8)) x(w11 w15))
+  x(dup245(@rem(10 w1) @div(10 w8)) x(w11 w15))
   48 = @add(w1 w2)
   ::std::data::List::concat = fn(tup(1 tup(tup(w2 w13) w13)) fn(w11 w5))
   ::std::numeric::N32::to_string::to_string::4 = x(w8 x(w5 w15))
@@ -176,9 +174,9 @@
 
 ::std::numeric::N32::to_string::to_string::6 { x(_ x(w1 w1)) }
 
-::day_22::evolve { fn(ref(dup256(@n32_xor(w7 @n32_and(16777215 dup257(@n32_xor(w13 @n32_and(16777215 dup258(@n32_xor(w19 @n32_and(16777215 w21)) @n32_shl(11 w19)))) @n32_shr(5 w13)))) @n32_shl(6 w7)) w21) _) }
+::day_22::evolve { fn(ref(dup252(@n32_xor(w7 @n32_and(16777215 dup253(@n32_xor(w13 @n32_and(16777215 dup254(@n32_xor(w19 @n32_and(16777215 w21)) @n32_shl(11 w19)))) @n32_shr(5 w13)))) @n32_shl(6 w7)) w21) _) }
 
-::std::data::List::pop_front { fn(ref(tup(dup353(?(::std::data::List::pop_front::3 ::std::data::List::pop_front::2 x(x(w16 w17) x(x(w3 w15) w13))) w16) tup(w3 w4)) tup(w17 tup(w15 w4))) w13) }
+::std::data::List::pop_front { fn(ref(tup(dup349(?(::std::data::List::pop_front::3 ::std::data::List::pop_front::2 x(x(w16 w17) x(x(w3 w15) w13))) w16) tup(w3 w4)) tup(w17 tup(w15 w4))) w13) }
 
 ::std::data::List::pop_front::2 { x(x(@sub(1 w1) w1) x(x(tup(w3 w4) w4) enum(enum(w3 w15) enum(_ w15)))) }
 
@@ -199,7 +197,7 @@
   ::std::data::Map::len = fn(ref(w2 w10) w12)
 }
 
-::std::data::Map::len { fn(ref(tup(dup983(w0 w8) w2) tup(w0 w2)) w8) }
+::std::data::Map::len { fn(ref(tup(dup979(w0 w8) w2) tup(w0 w2)) w8) }
 
 ::std::data::Map::into_iter { fn(w0 tup(w0 tup(0 tup(w7 w7)))) }
 
@@ -270,14 +268,16 @@
 }
 
 ::std::data::Map::is_balanced {
-  fn(ref(tup(dup1255(w0 w14) w2) tup(w0 w2)) fn(ref(tup(dup1256(w6 w17) w8) tup(w6 w8)) w18))
+  fn(ref(tup(dup1251(w0 w14) w2) tup(w0 w2)) fn(ref(tup(dup1252(w6 w17) w8) tup(w6 w8)) w18))
   3 = @mul(w14 @add(2 @le$(w17 w18)))
 }
 
 ::std::data::Map::is_single {
-  fn(ref(tup(dup1259(w0 @le(w16 w17)) w2) tup(w0 w2)) fn(ref(tup(dup1260(w6 w15) w8) tup(w6 w8)) w17))
+  fn(ref(tup(dup1255(w0 @le(w16 w17)) w2) tup(w0 w2)) fn(ref(tup(dup1256(w6 w15) w8) tup(w6 w8)) w17))
   2 = @mul(w15 w16)
 }
+
+::std::data::Map::size { fn(ref(tup(tup(dup1259(w0 @add(w17 @add(1 w19))) w2) tup(w5 tup(dup1260(w6 w17) w8))) tup(tup(w0 w2) tup(w5 tup(w6 w8)))) w19) }
 
 ::std::logical::Option::unwrap_or { fn(enum(::std::logical::Option::unwrap_or::4 enum(::std::logical::Option::unwrap_or::5 x(w1 w8))) fn(w1 w8)) }
 
