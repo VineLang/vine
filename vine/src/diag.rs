@@ -11,7 +11,7 @@ use vine_util::lexer::TokenSet;
 use crate::{
   ast::{BinaryOp, Ident, Span},
   core::Core,
-  lexer::Token,
+  lexer::{StrToken, Token},
 };
 
 macro_rules! diags {
@@ -52,12 +52,14 @@ diags! {
     ["lexing error"]
   UnexpectedToken { expected: TokenSet<Token>, found: Option<Token> }
     ["expected one of {expected:?}; found {found:?}"]
+  UnexpectedStringToken { found: Option<StrToken> }
+    ["unexpected token {found:?} inside string"]
+  UnexpectedInterpolation
+    ["unexpected interpolation"]
   InvalidNum
     ["invalid numeric literal"]
-  InvalidStr
-    ["invalid string literal"]
-  InvalidChar
-    ["invalid character literal"]
+  InvalidUnicode
+    ["invalid unicode escape"]
   InvalidIvy
     ["invalid inline ivy"]
   UnknownAttribute

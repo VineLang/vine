@@ -7,8 +7,6 @@ use crate::{
   diag::Diag,
 };
 
-use super::report;
-
 mod check_method;
 mod coerce_expr;
 
@@ -421,9 +419,15 @@ impl<'core> Checker<'core, '_> {
       ExprKind::N32(_) => Type::N32,
       ExprKind::Char(_) => Type::Char,
       ExprKind::F32(_) => Type::F32,
-      ExprKind::String(_) => {
-        let ty = self.chart.builtins.string.map(|d| Type::Adt(d, Vec::new()));
-        report!(self.core; ty.ok_or(Diag::MissingBuiltin { span, builtin: "List" }))
+      ExprKind::String(_, rest) => {
+        let mut string_ty =
+          self.chart.builtins.string.map(|d| Type::Adt(d, Vec::new())).unwrap_or_else(|| {
+            Type::Error(self.core.report(Diag::MissingBuiltin { span, builtin: "String" }))
+          });
+        for (expr, _) in rest {
+          self.check_expr_form_type(expr, Form::Value, &mut string_ty);
+        }
+        string_ty
       }
     }
   }

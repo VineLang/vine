@@ -119,30 +119,20 @@ pub trait Parser<'src> {
     token.parse::<f32>().map_err(|_| err(token))
   }
 
-  fn parse_string_like(
+  fn switch<'a, P: Parser<'src> + 'a, T>(
     &mut self,
-    kind: Self::Token,
-    err: impl Fn(&'src str) -> Self::Error,
-  ) -> Result<String, Self::Error> {
-    let token = self.expect(kind)?;
-    let inner = &token[1..token.len() - 1];
-    let mut str = String::new();
-    let mut chars = inner.chars();
-    while let Some(char) = chars.next() {
-      if char != '\\' {
-        str.push(char);
-        continue;
-      }
-      match chars.next() {
-        Some(c @ ('\'' | '"' | '\\')) => str.push(c),
-        Some('n') => str.push('\n'),
-        Some('r') => str.push('\r'),
-        Some('t') => str.push('\t'),
-        Some('0') => str.push('\0'),
-        _ => Err(err(token))?,
-      }
-    }
-    Ok(str)
+    new: impl FnOnce(ParserState<'src, P::Token>) -> P,
+    parse: impl FnOnce(&mut P) -> Result<T, P::Error>,
+    map_err: impl Fn(P::Error) -> Self::Error,
+  ) -> Result<T, Self::Error> {
+    let mut parser = new(ParserState::new(self.state().lexer.source()));
+    let start = self.state().lexer.span().end;
+    parser.state().lexer.bump(start);
+    parser.bump().map_err(&map_err)?;
+    let value = parse(&mut parser).map_err(&map_err)?;
+    self.state().lexer.bump(parser.state().lexer.span().end - start);
+    self.bump()?;
+    Ok(value)
   }
 }
 

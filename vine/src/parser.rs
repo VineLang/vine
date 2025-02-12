@@ -1,3 +1,5 @@
+mod parse_string;
+
 use std::{mem::transmute, path::PathBuf};
 
 use ivy::parser::IvyParser;
@@ -156,22 +158,6 @@ impl<'core, 'src> VineParser<'core, 'src> {
     } else {
       Ok(ExprKind::N32(self.parse_u32_like(token, |_| Diag::InvalidNum { span })?))
     }
-  }
-
-  fn parse_string(&mut self) -> Parse<'core, String> {
-    let span = self.span();
-    self.parse_string_like(Token::String, |_| Diag::InvalidStr { span })
-  }
-
-  fn parse_char(&mut self) -> Parse<'core, char> {
-    let span = self.span();
-    let str = self.parse_string_like(Token::Char, |_| Diag::InvalidChar { span })?;
-    let mut chars = str.chars();
-    let char = chars.next().ok_or(Diag::InvalidChar { span })?;
-    if chars.next().is_some() {
-      Err(Diag::InvalidChar { span })?
-    }
-    Ok(char)
   }
 
   fn parse_fn_item(&mut self) -> Parse<'core, FnItem<'core>> {
@@ -396,13 +382,11 @@ impl<'core, 'src> VineParser<'core, 'src> {
     if !self.check(Token::OpenBrace) {
       self.unexpected()?;
     }
-    let vine_lexer = &mut self.state.lexer;
-    let mut ivy_parser = IvyParser { state: ParserState::new(vine_lexer.source()) };
-    ivy_parser.state.lexer.bump(vine_lexer.span().end);
-    ivy_parser.bump().map_err(|_| Diag::InvalidIvy { span })?;
-    let net = ivy_parser.parse_net_inner().map_err(|_| Diag::InvalidIvy { span })?;
-    vine_lexer.bump(ivy_parser.state.lexer.span().end - vine_lexer.span().end);
-    self.bump()?;
+    let net = self.switch(
+      |state| IvyParser { state },
+      IvyParser::parse_net_inner,
+      |_| Diag::InvalidIvy { span },
+    )?;
     Ok(InlineIvy { method, name, generics, ty, net })
   }
 
@@ -492,11 +476,11 @@ impl<'core, 'src> VineParser<'core, 'src> {
     if self.check(Token::Num) {
       return self.parse_num();
     }
-    if self.check(Token::Char) {
-      return Ok(ExprKind::Char(self.parse_char()?));
+    if self.check(Token::SingleQuote) {
+      return self.parse_char_expr();
     }
-    if self.check(Token::String) {
-      return Ok(ExprKind::String(self.parse_string()?));
+    if self.check(Token::DoubleQuote) {
+      return self.parse_string_expr();
     }
     if self.eat(Token::True)? {
       return Ok(ExprKind::Bool(true));

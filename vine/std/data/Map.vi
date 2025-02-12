@@ -271,9 +271,9 @@ pub mod Map {
         string ++= key ++ ": " ++ value;
       }
       if first {
-        "{}"
+        "\{}"
       } else {
-        "{ " ++ string ++ " }"
+        "\{ " ++ string ++ " }"
       }
     }
   }
