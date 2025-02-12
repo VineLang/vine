@@ -1,0 +1,20 @@
+
+pub trait Ord[T] {
+  fn .cmp(a: &T, b: &T) -> Ord;
+}
+
+pub enum Ord {
+  Lt,
+  Eq,
+  Gt,
+}
+
+pub impl pair[A, B; Ord[A], Ord[B]]: Ord[(A, B)] {
+  fn cmp(&(a0: A, b0: B), &(a1: A, b1: B)) -> Ord {
+    match a0.cmp(&a1) {
+      Ord::Lt { Ord::Lt }
+      Ord::Gt { Ord::Gt }
+      Ord::Eq { b0.cmp(&b1) }
+    }
+  }
+}

@@ -1,0 +1,5 @@
+[1, 2, 3, 4]
+[abc, def, ghi]
+[x, y, z]
+[true, false]
+[(1, a), (2, b)]

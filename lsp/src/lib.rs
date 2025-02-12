@@ -4,7 +4,9 @@ use futures::{stream::FuturesUnordered, StreamExt};
 use tower_lsp::{jsonrpc::Result, lsp_types::*, Client, LanguageServer, LspService, Server};
 
 use vine::{
-  checker::Checker,
+  chart::Chart,
+  charter::Charter,
+  checker::{ChartTypes, Checker},
   core::{Core, CoreArenas},
   diag::Diag,
   loader::Loader,
@@ -36,13 +38,10 @@ impl Backend {
 
     let root = loader.finish();
 
-    let mut resolver = Resolver::new(core);
-    resolver.build_graph(root);
-    resolver.resolve_imports();
-    resolver.resolve_defs();
-
-    let mut checker = Checker::new(core, &mut resolver);
-    checker.check_defs();
+    let chart = &mut Chart::default();
+    Charter { core, chart }.chart_root(root);
+    Resolver { core, chart }.resolve_all();
+    Checker::new(core, chart, &mut ChartTypes::default()).check_all();
 
     self.report(core, core.take_diags())
   }

@@ -63,10 +63,12 @@ fn tests(t: &mut DynTester) {
     test_vi(t, "tests/programs/maybe_set.vi", b"", ".txt");
     test_vi(t, "tests/programs/no_return.vi", b"", ".txt");
     test_vi(t, "tests/programs/option_party.vi", b"", ".txt");
+    test_vi(t, "tests/programs/par.vi", b"", ".txt");
     test_vi(t, "tests/programs/pretty_div.vi", b"", ".txt");
     test_vi(t, "tests/programs/segmented_sieve.vi", b"", ".txt");
     test_vi(t, "tests/programs/sieve.vi", b"", ".txt");
     test_vi(t, "tests/programs/so_random.vi", b"", ".txt");
+    test_vi(t, "tests/programs/specializations.vi", b"", ".txt");
     test_vi(t, "tests/programs/square_case.vi", b"", ".txt");
     test_vi(t, "tests/programs/verbose_add.vi", b"", ".txt");
 

@@ -1,0 +1,36 @@
+Down Up Up
+Alice wins!
+
+Down Up Down
+Bob wins!
+
+Down Down Up
+Charlie wins!
+
+Down Down Down
+Draw...
+Up Down Down
+Alice wins!
+
+Down Down Down
+Draw...
+Down Down Up
+Charlie wins!
+
+Up Up Down
+Charlie wins!
+
+Down Up Down
+Bob wins!
+
+Down Up Down
+Bob wins!
+
+Up Up Up
+Draw...
+Down Down Up
+Charlie wins!
+
+Down Down Up
+Charlie wins!
+

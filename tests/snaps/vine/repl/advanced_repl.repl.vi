@@ -12,8 +12,7 @@ io = #io
 
 io = #io
 > use std::option::Option::{Some,None};
-error input:1:1 - cannot find `option` in `::std`
-error input:1:1 - cannot find `option` in `::std`
+error input:1:10 - cannot find `option` in `::std`
 
 io = #io
 > Some([None, Some((1, 2))])
@@ -46,8 +45,7 @@ x = []
 
 io = #io
 > use std::result::Result::{Ok, Err};
-error input:1:1 - cannot find `result` in `::std`
-error input:1:1 - cannot find `result` in `::std`
+error input:1:10 - cannot find `result` in `::std`
 
 io = #io
 > [Ok(1234), Err("oh no")]

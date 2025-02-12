@@ -1,8 +1,6 @@
 
 io = #io
-> use std::{array::Array, n64::N64};
-error input:1:1 - cannot find `array` in `::std`
-error input:1:1 - cannot find `n64` in `::std`
+> use std::{data::Array, numeric::N64};
 
 io = #io
 > (1, _)
@@ -17,7 +15,7 @@ io = #io
 
 io = #io
 > 1.0.to_string()
-error input:1:5 - cannot find `to_string` in `::std::numeric::F32`
+error input:1:1 - type `F32` has no method `to_string`
 
 io = #io
 > ((1,2),(3,4)).0
@@ -40,7 +38,7 @@ io = #io
 error input:1:1 - cannot apply operator `++` to types `String` and `N32`
 
 io = #io
-> [true, false].to_string(Bool::to_string)
+> [true, false].to_string()
 "[true, false]"
 
 io = #io
@@ -53,27 +51,34 @@ io = #io
 
 io = #io
 > let a = Array::from_fn(5, &(0; _), fn(&x: &N32) { let n = x; x += 1; n });
-error input:1:9 - cannot find `Array` in `::repl`
 
 io = #io
+a = Array(5, Node(Node(Node(#ivy(0), #ivy(4)), #ivy(2)), Node(#ivy(1), #ivy(3))))
 > a.for_each(&io, fn(&io: &IO, v: N32) { io.println(v.to_string() )})
-error input:1:1 - cannot find `a` in `::repl`
+0
+1
+2
+3
+4
 
 io = #io
+a = Array(5, Node(Node(Node(#ivy(0), #ivy(4)), #ivy(2)), Node(#ivy(1), #ivy(3))))
 > -a.fold_front(0, fn(a: N32, b: N32) { a - b })
-error input:1:2 - cannot find `a` in `::repl`
+10
 
 io = #io
+a = Array(5, Node(Node(Node(#ivy(0), #ivy(4)), #ivy(2)), Node(#ivy(1), #ivy(3))))
 > -a.fold_back(5, fn(a: N32, b: N32) { a - b })
-error input:1:2 - cannot find `a` in `::repl`
+5
 
 io = #io
+a = Array(5, Node(Node(Node(#ivy(0), #ivy(4)), #ivy(2)), Node(#ivy(1), #ivy(3))))
 > move a
-error input:1:6 - cannot find `a` in `::repl`
+Array(5, Node(Node(Node(#ivy(0), #ivy(4)), #ivy(2)), Node(#ivy(1), #ivy(3))))
 
 io = #io
 > Array::from_list([1,2,3,4,5,6,7,8,9]).reversed().to_list()
-error input:1:1 - cannot find `Array` in `::repl`
+[9, 8, 7, 6, 5, 4, 3, 2, 1]
 
 io = #io
 > List::new(100, "")
@@ -125,38 +130,35 @@ io = #io
 
 io = #io
 > N64::parse("1234567890123456789000").unwrap().add(N64::parse("46").unwrap()).to_string()
-error input:1:1 - cannot find `N64` in `::repl`
-error input:1:51 - cannot find `N64` in `::repl`
+"17082781258626382390"
 
 io = #io
 > N64::parse("")
-error input:1:1 - cannot find `N64` in `::repl`
+::std::logical::Option::None
 
 io = #io
 > N64::parse("one")
-error input:1:1 - cannot find `N64` in `::repl`
+::std::logical::Option::None
 
 io = #io
 > N64::parse("1.0")
-error input:1:1 - cannot find `N64` in `::repl`
+::std::logical::Option::None
 
 io = #io
 > N64::from_n32(3).pow_n32(33).to_string()
-error input:1:1 - cannot find `N64` in `::repl`
+"5559060566555523"
 
 io = #io
 > N64::from_n32(3).pow_n32(33).log_n32(3)
-error input:1:1 - cannot find `N64` in `::repl`
+33
 
 io = #io
 > N64::from_n32(3).pow_n32(33).sub(N64::from_n32(1)).log_n32(3)
-error input:1:1 - cannot find `N64` in `::repl`
-error input:1:34 - cannot find `N64` in `::repl`
+32
 
 io = #io
 > N64::from_n32(3).pow_n32(33).add(N64::from_n32(1)).log_n32(3)
-error input:1:1 - cannot find `N64` in `::repl`
-error input:1:34 - cannot find `N64` in `::repl`
+33
 
 io = #io
 > "1,2,3,4".split(",")

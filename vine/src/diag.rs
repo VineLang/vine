@@ -9,7 +9,7 @@ use std::{
 use vine_util::lexer::TokenSet;
 
 use crate::{
-  ast::{BinaryOp, Ident, Path, Span},
+  ast::{BinaryOp, Ident, Span},
   core::Core,
   lexer::Token,
 };
@@ -64,8 +64,8 @@ diags! {
     ["unknown attribute"]
   BadBuiltin
     ["bad builtin"]
-  CannotResolve { name: Ident<'core>, module: Path<'core> }
-    ["cannot find `{name}` in `{module}`"]
+  CannotResolve { ident: Ident<'core>, module: &'core str }
+    ["cannot find `{ident}` in `{module}`"]
   BadPatternPath
     ["invalid pattern; this path is not a struct or enum variant"]
   DuplicateItem { name: Ident<'core> }
@@ -84,8 +84,8 @@ diags! {
     ["`*` is only valid in a place pattern"]
   RefSpacePat
     ["`&` is invalid in a space pattern"]
-  ExpectedIrrefutablePat
-    ["expected an irrefutable pattern"]
+  ExpectedCompletePat
+    ["expected a complete pattern"]
   CannotInfer
     ["cannot infer type"]
   BadBinOp { op: BinaryOp, assign: bool, lhs: String, rhs: String }
@@ -102,15 +102,11 @@ diags! {
     ["invalid method; function type `{ty}` takes no parameters"]
   ExpectedTypeFound { expected: String, found: String }
     ["expected type `{expected}`; found `{found}`"]
-  PathNoValue { path: Path<'core> }
-    ["no value associated with `{path}`"]
-  PathNoType { path: Path<'core> }
-    ["no type associated with `{path}`"]
-  PathNoPat { path: Path<'core> }
-    ["no pattern associated with `{path}`"]
-  BadGenericCount { path: Path<'core>, expected: usize, got: usize }
-    ["`{path}` expects {expected} generic{}; was passed {got}", plural(*expected, "s", "")]
-  BadFieldCount { path: Path<'core>, expected: usize, got: usize }
+  PathNoAssociated { kind: &'static str, path: &'core str }
+    ["no {kind} associated with `{path}`"]
+  BadGenericCount { path: &'core str, expected: usize, got: usize, kind: &'static str }
+    ["`{path}` expects {expected} {kind} parameter{}; was passed {got}", plural(*expected, "s", "")]
+  BadFieldCount { path: &'core str, expected: usize, got: usize }
     ["`{path}` has {expected} field{}; {got} {} matched", plural(*expected, "s", ""), plural(*got, "were", "was")]
   MissingTupleField { ty: String, i: usize }
     ["type `{ty}` has no field `{i}`"]
@@ -142,22 +138,64 @@ diags! {
     ["expected a value of type `{ty}` to break with"]
   NoMethods { ty: String }
     ["type `{ty}` has no methods"]
-  BadMethodReceiver { base_path: Path<'core>, sub_path: Path<'core> }
-    ["`{base_path}::{sub_path}` cannot be used as a method; it does not take `{base_path}` as its first parameter"]
-  Invisible { path: Path<'core>, vis: Path<'core> }
-    ["`{path}` is only visible within `{vis}`"]
+  BadMethodReceiver { base_path: &'core str, ident: Ident<'core> }
+    ["`{base_path}::{ident}` cannot be used as a method; it does not take `{base_path}` as its first parameter"]
+  Invisible { module: &'core str, ident: Ident<'core>, vis: &'core str }
+    ["`{module}::{ident}` is only visible within `{vis}`"]
   BadVis
     ["invalid visibility; expected the name of an ancestor module"]
-  ValueInvisible { path: Path<'core>, vis: Path<'core> }
+  ValueInvisible { path: &'core str, vis: &'core str }
     ["the value `{path}` is only visible within `{vis}`"]
-  TypeInvisible { path: Path<'core>, vis: Path<'core> }
+  TypeInvisible { path: &'core str, vis: &'core str }
     ["the type `{path}` is only visible within `{vis}`"]
-  PatInvisible { path: Path<'core>, vis: Path<'core> }
+  PatInvisible { path: &'core str, vis: &'core str }
     ["the pattern `{path}` is only visible within `{vis}`"]
+  ImplInvisible { path: &'core str, vis: &'core str }
+    ["the impl `{path}` is only visible within `{vis}`"]
   VisibleSubitem
     ["subitems must be private"]
   DuplicateKey
     ["duplicate object key"]
+  MissingImplementation
+    ["missing implementation"]
+  UnexpectedImplParam
+    ["impl parameters are not allowed here"]
+  InvalidTraitItem
+    ["invalid trait item"]
+  InvalidImplItem
+    ["invalid impl item"]
+  TraitItemVis
+    ["trait items cannot have visibility"]
+  ImplItemVis
+    ["impl items cannot have visibility"]
+  TraitItemGen
+    ["trait items cannot have generics"]
+  ImplItemGen
+    ["impl items cannot have generics"]
+  ImplementedTraitItem
+    ["trait items cannot have implementations"]
+  UnexpectedImplArgs
+    ["impl arguments are not allowed in types or patterns"]
+  ExtraneousImplItem { name: Ident<'core> }
+    ["no item `{name}` exists in trait"]
+  UnspecifiedImpl
+    ["impl parameters must be explicitly specified"]
+  IncompleteImpl
+    ["not all trait items implemented"]
+  DuplicateTypeParam
+    ["duplicate type param"]
+  DuplicateImplParam
+    ["duplicate impl param"]
+  CannotFindImpl { ty: String }
+    ["cannot find impl of trait `{ty}`"]
+  AmbiguousImpl { ty: String }
+    ["found several impls of trait `{ty}`"]
+  SearchLimit { ty: String }
+    ["search limit reached when finding impl of trait `{ty}`"]
+  NoMethod { ty: String, name: Ident<'core> }
+    ["type `{ty}` has no method `{name}`"]
+  AmbiguousMethod { ty: String, name: Ident<'core> }
+    ["multiple methods named `{name}` for `{ty}`"]
 }
 
 fn plural<'a>(n: usize, plural: &'a str, singular: &'a str) -> &'a str {

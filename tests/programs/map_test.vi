@@ -5,7 +5,7 @@ const iterations: N32 = 4600;
 const seed: String = "dubiously charged umbrella";
 
 pub fn main(&io: &IO) {
-  let map = Map::new(N32::cmp);
+  let map = Map::empty[N32, _];
 
   let rng = Pcg32::seeded(seed);
   let n = iterations;
@@ -62,8 +62,7 @@ pub fn main(&io: &IO) {
 }
 
 inline_ivy! balanced[K, V]: fn(&Map[K, V]) -> Bool {
-  fn(ref(tup(len data0) tup(len data1)) bool)
-  ::std::data::Map::Node::balanced = fn(ref(data0 data1) bool)
+  ::std::data::Map::balanced
 }
 
 pub fn rand(&seed: &N32) -> N32 {

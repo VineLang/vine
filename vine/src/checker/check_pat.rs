@@ -1,5 +1,6 @@
 use crate::{
-  ast::{GenericPath, Pat, PatKind, Span},
+  ast::{GenericArgs, Pat, PatKind, Span},
+  chart::{AdtId, VariantId},
   checker::{Checker, Form, Type},
   diag::{report, Diag},
 };
@@ -13,7 +14,7 @@ impl<'core> Checker<'core, '_> {
     ty: &mut Type<'core>,
   ) {
     let mut found = self.check_pat(pat, form, refutable);
-    if !self.unify(&mut found, ty) {
+    if !self.unifier.unify(&mut found, ty) {
       self.core.report(Diag::ExpectedTypeFound {
         span: pat.span,
         expected: self.display_type(ty),
@@ -31,6 +32,7 @@ impl<'core> Checker<'core, '_> {
     let span = pat.span;
     match (&mut pat.kind, form) {
       (_, Form::Error(_)) => unreachable!(),
+      (PatKind::PathCall(..), _) => unreachable!(),
       (PatKind::Error(e), _) => Type::Error(*e),
 
       (PatKind::Paren(p), _) => self.check_pat(p, form, refutable),
@@ -41,15 +43,16 @@ impl<'core> Checker<'core, '_> {
         ty
       }
 
-      (PatKind::Adt(path, fields), _) => {
-        report!(self.core, pat.kind; self.check_adt_pat(span, path, fields, form, refutable))
+      (PatKind::Adt(adt, variant, generics, fields), _) => {
+        report!(self.core, pat.kind; self.check_adt_pat(span, *adt, *variant, generics, fields, form, refutable))
       }
 
-      (PatKind::Hole, _) => self.new_var(span),
+      (PatKind::Hole, _) => self.unifier.new_var(span),
       (PatKind::Local(l), _) => {
-        let old = self.state.locals.insert(*l, self.state.vars.next_index());
+        let var = self.unifier._new_var(span);
+        let old = self.locals.insert(*l, var);
         debug_assert!(old.is_none());
-        self.new_var(span)
+        Type::Var(var)
       }
       (PatKind::Inverse(p), _) => self.check_pat(p, form.inverse(), refutable).inverse(),
       (PatKind::Tuple(t), _) => {
@@ -59,7 +62,7 @@ impl<'core> Checker<'core, '_> {
         report!(self.core, pat.kind; self.build_object_type(e, |self_, p| self_.check_pat(p, form, refutable)))
       }
       (PatKind::Deref(p), Form::Place) => {
-        let ty = self.new_var(span);
+        let ty = self.unifier.new_var(span);
         self.check_pat_type(p, Form::Value, refutable, &mut Type::Ref(Box::new(ty.clone())));
         ty
       }
@@ -81,21 +84,26 @@ impl<'core> Checker<'core, '_> {
     }
   }
 
+  #[allow(clippy::too_many_arguments)]
   fn check_adt_pat(
     &mut self,
     span: Span,
-    path: &mut GenericPath<'core>,
-    fields: &mut Option<Vec<Pat<'core>>>,
+    adt: AdtId,
+    variant: VariantId,
+    generics: &mut GenericArgs<'core>,
+    fields: &mut [Pat<'core>],
     form: Form,
     refutable: bool,
   ) -> Result<Type<'core>, Diag<'core>> {
-    let (adt, field_tys) = self.typeof_variant_def(path, refutable, true)?;
-    let field_tys = field_tys.unwrap();
-    let fields = fields.get_or_insert(Vec::new());
+    let type_params = self.check_generics(generics, self.chart.adts[adt].generics, true);
+    let field_tys = self.types.adt_types[adt][variant]
+      .iter()
+      .map(|t| t.instantiate(&type_params))
+      .collect::<Vec<_>>();
     if fields.len() != field_tys.len() {
       Err(Diag::BadFieldCount {
         span,
-        path: self.resolver.defs[path.path.resolved.unwrap()].canonical.clone(),
+        path: self.chart.defs[self.chart.adts[adt].def].path,
         expected: field_tys.len(),
         got: fields.len(),
       })?
@@ -103,6 +111,9 @@ impl<'core> Checker<'core, '_> {
     for (field, mut ty) in fields.iter_mut().zip(field_tys) {
       self.check_pat_type(field, form, refutable, &mut ty);
     }
-    Ok(adt)
+    if !refutable && self.chart.adts[adt].variants.len() != 1 {
+      return Err(Diag::ExpectedCompletePat { span });
+    }
+    Ok(Type::Adt(adt, type_params))
   }
 }

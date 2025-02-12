@@ -1,114 +1,135 @@
-use vine_util::idx::RangeExt;
-
 use crate::{
   ast::{Ident, Path, Span},
-  diag::Diag,
+  chart::{Def, DefId, Import, ImportId, ImportParent, MemberKind},
+  diag::{Diag, ErrorGuaranteed},
 };
 
-use super::{DefId, MemberKind, Resolver};
+use super::Resolver;
 
-impl<'core> Resolver<'core> {
-  pub fn resolve_path(
+impl<'core> Resolver<'core, '_> {
+  pub fn resolve_path_to<T>(
     &mut self,
-    span: Span,
-    from: DefId,
     base: DefId,
     path: &Path<'core>,
+    kind: &'static str,
+    f: impl FnOnce(&Def) -> Option<T>,
+  ) -> Result<T, Diag<'core>> {
+    let def = self.resolve_path(base, path)?;
+    let def = &self.chart.defs[def];
+    f(def).ok_or(Diag::PathNoAssociated { span: path.span, kind, path: def.path })
+  }
+
+  pub fn resolve_path(&mut self, base: DefId, path: &Path<'core>) -> Result<DefId, Diag<'core>> {
+    if path.absolute {
+      self._resolve_path(path.span, base, DefId::ROOT, &path.segments)
+    } else {
+      let initial = *path.segments.first().unwrap();
+      let initial = self.resolve_initial(path.span, base, initial)?;
+      self._resolve_path(path.span, base, initial, &path.segments[1..])
+    }
+  }
+
+  fn _resolve_path(
+    &mut self,
+    span: Span,
+    source: DefId,
+    base: DefId,
+    segments: &[Ident<'core>],
   ) -> Result<DefId, Diag<'core>> {
-    let mut cur = if path.absolute { DefId::ROOT } else { base };
-    for &segment in &path.segments {
-      let (base, vis, resolved) = self.resolve_one(cur, segment, from == cur).ok_or_else(|| {
-        Diag::CannotResolve { span, name: segment, module: self.defs[cur].canonical.clone() }
-      })?;
-      if !self.visible(vis, from) {
-        let mut path = self.defs[base].canonical.clone();
-        path.segments.push(segment);
-        return Err(Diag::Invisible { span, path, vis: self.defs[vis].canonical.clone() });
-      }
-      cur = resolved;
+    let mut cur = base;
+    for &ident in segments {
+      cur = self.resolve_ident(span, source, cur, ident)?;
     }
     Ok(cur)
   }
 
-  fn resolve_one(
+  fn resolve_initial(
     &mut self,
+    span: Span,
     base: DefId,
-    segment: Ident<'core>,
-    check_parents: bool,
-  ) -> Option<(DefId, DefId, DefId)> {
-    let def = &mut self.defs[base];
+    ident: Ident<'core>,
+  ) -> Result<DefId, Diag<'core>> {
+    let mut cur = base;
+    loop {
+      if let Some(resolved) = self._resolve_ident(span, base, cur, ident)? {
+        return Ok(resolved);
+      }
+      if let Some(parent) = self.chart.defs[cur].parent {
+        cur = parent;
+      } else {
+        break;
+      }
+    }
+    if let Some(prelude) = self.chart.builtins.prelude {
+      if let Some(resolved) = self._resolve_ident(span, base, prelude, ident)? {
+        return Ok(resolved);
+      }
+    }
+    Err(Diag::CannotResolve { span, module: self.chart.defs[base].path, ident })
+  }
 
-    if let Some(member) = def.members.get_mut(&segment) {
+  pub fn resolve_ident(
+    &mut self,
+    span: Span,
+    source: DefId,
+    base: DefId,
+    ident: Ident<'core>,
+  ) -> Result<DefId, Diag<'core>> {
+    let resolved = self._resolve_ident(span, source, base, ident)?;
+    resolved.ok_or(Diag::CannotResolve { span, module: self.chart.defs[base].path, ident })
+  }
+
+  fn _resolve_ident(
+    &mut self,
+    span: Span,
+    source: DefId,
+    base: DefId,
+    ident: Ident<'core>,
+  ) -> Result<Option<DefId>, Diag<'core>> {
+    let def = &mut self.chart.defs[base];
+
+    if let Some(member) = def.members.get(&ident) {
       let vis = member.vis;
-      return match &mut member.kind {
-        MemberKind::Child(result) | MemberKind::ResolvedImport(result, _) => {
-          Some((base, vis, *result))
-        }
-        MemberKind::UnresolvedImport(span, import, id) => {
-          let span = *span;
-          let path = import.take()?;
-          let id = *id;
-          match self.resolve_path(span, base, base, &path) {
-            Ok(resolved) => {
-              let def = &mut self.defs[base];
-              def.members.get_mut(&segment).unwrap().kind =
-                MemberKind::ResolvedImport(resolved, id);
-              Some((base, vis, resolved))
-            }
-            Err(diag) => {
-              self.core.report(diag);
-              None
-            }
-          }
-        }
+      let result = match member.kind {
+        MemberKind::Child(result) => result,
+        MemberKind::Import(import) => self.resolve_import(import)?,
       };
-    }
-
-    if check_parents {
-      if let Some(parent) = def.parent {
-        return self.resolve_one(parent, segment, true);
+      if self.chart.visible(vis, source) {
+        Ok(Some(result))
+      } else {
+        Err(Diag::Invisible {
+          span,
+          module: self.chart.defs[base].path,
+          ident,
+          vis: self.chart.defs[vis].path,
+        })
       }
-    }
-
-    None
-  }
-
-  pub fn resolve_imports(&mut self) {
-    self._resolve_imports(self.defs.range().iter());
-  }
-
-  pub(crate) fn _resolve_imports(&mut self, defs: impl IntoIterator<Item = DefId>) {
-    let mut unresolved_imports = Vec::new();
-    for def in defs {
-      unresolved_imports.extend(
-        self.defs[def]
-          .members
-          .iter()
-          .filter(|x| matches!(x.1.kind, MemberKind::UnresolvedImport(..)))
-          .map(|x| *x.0),
-      );
-      unresolved_imports.sort();
-      for name in unresolved_imports.drain(..) {
-        self.resolve_one(def, name, false);
-      }
+    } else {
+      Ok(None)
     }
   }
 
-  pub(crate) fn visible(&self, vis: DefId, from: DefId) -> bool {
-    if vis == from {
-      return true;
+  pub(super) fn resolve_import(&mut self, import_id: ImportId) -> Result<DefId, ErrorGuaranteed> {
+    let import = &mut self.chart.imports[import_id];
+    if let Some(resolved) = import.resolved {
+      return resolved;
     }
-    if vis > from {
-      return false;
-    }
-    for &ancestor in self.defs[from].ancestors.iter() {
-      if ancestor == vis {
-        return true;
+    let import = *import;
+    let resolved = self._resolve_import(import);
+    self.chart.imports[import_id].resolved = Some(resolved);
+    resolved
+  }
+
+  fn _resolve_import(&mut self, import: Import<'core>) -> Result<DefId, ErrorGuaranteed> {
+    let Import { span, def, parent, ident, .. } = import;
+    match parent {
+      ImportParent::Root => self.resolve_ident(span, def, DefId::ROOT, ident),
+      ImportParent::Scope => self.resolve_initial(span, def, ident),
+      ImportParent::Import(parent) => {
+        let parent = self.resolve_import(parent)?;
+        self.resolve_ident(span, def, parent, ident)
       }
-      if ancestor > vis {
-        return false;
-      }
     }
-    false
+    .map_err(|diag| self.core.report(diag))
   }
 }

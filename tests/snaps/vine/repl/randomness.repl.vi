@@ -1,44 +1,48 @@
 
 io = #io
-> use std::rng::Rng;
-error input:1:1 - cannot find `Rng` in `::std::rng`
+> use std::rng::Pcg32;
 
 io = #io
-> let rng = Rng::default
-error input:1:11 - cannot find `Rng` in `::repl`
+> let rng = Pcg32::default
 
 io = #io
+rng = ::std::rng::Pcg32::default
 > let nums = []
 
 io = #io
+rng = ::std::rng::Pcg32::default
 nums = []
 > let len = 20
 
 io = #io
+rng = ::std::rng::Pcg32::default
 nums = []
 len = 20
 > while len != 0 { len -= 1; nums ++= [rng.gen_n32() % 100] }
-error input:1:38 - cannot find `rng` in `::repl`
 
 io = #io
-nums = []
-len = 20
+rng = Pcg32(N64(949325415, 3618180105), N64(4150755663, 335903614))
+nums = [22, 33, 78, 11, 79, 27, 26, 64, 57, 3, 76, 88, 72, 42, 10, 4, 35, 61, 36, 41]
+len = 0
 > let str = ""
 
 io = #io
-nums = []
-len = 20
+rng = Pcg32(N64(949325415, 3618180105), N64(4150755663, 335903614))
+nums = [22, 33, 78, 11, 79, 27, 26, 64, 57, 3, 76, 88, 72, 42, 10, 4, 35, 61, 36, 41]
+len = 0
 str = ""
 > let len = 100
 
 io = #io
-nums = []
+rng = Pcg32(N64(949325415, 3618180105), N64(4150755663, 335903614))
+nums = [22, 33, 78, 11, 79, 27, 26, 64, 57, 3, 76, 88, 72, 42, 10, 4, 35, 61, 36, 41]
 str = ""
 len = 100
 > while len != 0 { len -= 1; str ++= [' ' + rng.gen_n32() % 95] }
-error input:1:43 - cannot find `rng` in `::repl`
+error input:1:28 - cannot apply operator `++=` to types `String` and `List[Char]`
 
 io = #io
-nums = []
+rng = Pcg32(N64(949325415, 3618180105), N64(4150755663, 335903614))
+nums = [22, 33, 78, 11, 79, 27, 26, 64, 57, 3, 76, 88, 72, 42, 10, 4, 35, 61, 36, 41]
 str = ""
 len = 100

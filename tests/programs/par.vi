@@ -1,0 +1,175 @@
+
+use std::rng::Pcg32;
+
+trait Session[A, B] {
+  fn fork(f: fn(A)) -> B;
+}
+
+impl nil_session: Session[(), ()] {
+  fn fork(f: fn(())) -> () {
+    f(())
+  }
+}
+
+struct Channel[T, S](T, S);
+
+type Recv[T, S] = Channel[T, S];
+type Send[T, S] = Channel[~T, S];
+
+mod Channel {
+  pub use channel_session::fork;
+
+  pub fn .recv[T, S](Channel[T, S](t, s)) -> (T, S) {
+    (t, s)
+  }
+
+  pub fn .recv1[T](Channel[T, ()](t, ())) -> T {
+    t
+  }
+
+  pub fn .send[T, S](Channel[~T, S](~out, s), value: T) -> S {
+    out = value;
+    s
+  }
+
+  pub fn .send1[T](Channel[~T, ()](~out, ()), value: T) {
+    out = value;
+  }
+
+  pub fn .choose[T, P, Q; Session[P, Q]](Channel[~T, ()](~out, ()), choice: fn(P) -> T) -> Q {
+    Session::fork[P, Q](fn(p: P) {
+      out = choice(p);
+    })
+  }
+}
+
+impl channel_session[T, P, Q; Session[P, Q]]: Session[Recv[T, P], Send[T, Q]] {
+  fn fork(f: fn(Recv[T, P])) -> Send[T, Q] {
+    let value: T;
+    Channel(move ~value, Session::fork[P, Q](fn(s) { f(Channel(value, s)) }))
+  }
+}
+
+enum Move {
+  Up,
+  Down,
+}
+
+mod Move {
+  pub fn .to_string(self: Move) -> String {
+    match self {
+      Up { "Up" }
+      Down { "Down" }
+    }
+  }
+}
+
+enum Outcome {
+  Win,
+  Loss,
+  Draw(Round),
+}
+
+type Round = Send[Move, Recv[Outcome, ()]];
+type Player = Recv[Move, Send[Outcome, ()]];
+
+enum Winner {
+  First,
+  Second,
+  Third,
+}
+
+type Game = Send[(Player, Player, Player), Recv[Winner, ()]];
+type GameDual = Recv[(Player, Player, Player), Send[Winner, ()]];
+
+fn start_playing(&io: &IO) -> Game {
+  use Move::{Down, Up};
+  use Outcome::{Draw, Loss, Win};
+  use Winner::{First, Second, Third};
+
+  Session::fork[_, Game](fn(game: GameDual) {
+    let ((player1, player2, player3), winner) = game.recv();
+
+    loop {
+      let (move1, outcome1) = player1.recv();
+      let (move2, outcome2) = player2.recv();
+      let (move3, outcome3) = player3.recv();
+
+      io.println(move1.to_string() ++ " " ++ move2.to_string() ++ " " ++ move3.to_string());
+
+      dyn fn win1() {
+        outcome1.send1(Win);
+        outcome2.send1(Loss);
+        outcome3.send1(Loss);
+        winner.send1(First);
+      }
+
+      dyn fn win2() {
+        outcome1.send1(Loss);
+        outcome2.send1(Win);
+        outcome3.send1(Loss);
+        winner.send1(Second);
+      }
+
+      dyn fn win3() {
+        outcome1.send1(Loss);
+        outcome2.send1(Loss);
+        outcome3.send1(Win);
+        winner.send1(Third);
+      }
+
+      dyn fn draw() {
+        player1 = outcome1.choose[_, _, Player](Draw);
+        player2 = outcome2.choose[_, _, Player](Draw);
+        player3 = outcome3.choose[_, _, Player](Draw);
+        io.println("Draw...");
+      }
+
+      match (move1, move2, move3) {
+        (Up, Down, Down) { break win1() }
+        (Down, Up, Up) { break win1() }
+        (Down, Up, Down) { break win2() }
+        (Up, Down, Up) { break win2() }
+        (Down, Down, Up) { break win3() }
+        (Up, Up, Down) { break win3() }
+        (Up, Up, Up) { draw() }
+        (Down, Down, Down) { draw() }
+      }
+    }
+  })
+}
+
+fn random_player(&rng: &Pcg32) -> Player {
+  dyn fn random_move() {
+    if rng.gen_n32() & 1 == 0 {
+      Move::Up
+    } else {
+      Move::Down
+    }
+  }
+  Session::fork[Round, _](fn(round: Round) {
+    while round.send(random_move()).recv1() is Outcome::Draw(next_round) {
+      round = next_round;
+    }
+  })
+}
+
+pub fn main(&io: &IO) {
+  let p1 = Pcg32::seeded("Alice");
+  let p2 = Pcg32::seeded("Bob");
+  let p3 = Pcg32::seeded("Charlie");
+  let i = 0;
+  while i < 10 {
+    let winner = start_playing(&io).send((
+      random_player(&p1),
+      random_player(&p2),
+      random_player(&p3),
+    )).recv1();
+    io.println(match winner {
+      Winner::First { "Alice wins!\n" }
+      Winner::Second { "Bob wins!\n" }
+      Winner::Third { "Charlie wins!\n" }
+    });
+    i += 1;
+  }
+}

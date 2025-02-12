@@ -17,13 +17,13 @@ pub mod Pcg32 {
 
   const multiplier: N64 = N64(0x4c957f2d, 0x5851f42d);
 
-  pub fn gen_n32(&Pcg32(state, increment)) -> N32 {
+  pub fn .gen_n32(&Pcg32(state, increment)) -> N32 {
     let N64(lo, hi) = state;
     state = N64::add(N64::mul(state, multiplier), increment);
     N32::rotate_right((hi >> 13) ^ (hi << 5) ^ (lo >> 27), hi >> 27)
   }
 
-  pub fn mix(&Pcg32(state, increment), n: N32) {
+  pub fn .mix(&Pcg32(state, increment), n: N32) {
     state = state.xor(N64(0, n));
     state = N64::add(N64::mul(state, multiplier), increment);
   }

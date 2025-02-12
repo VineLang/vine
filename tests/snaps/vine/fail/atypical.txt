@@ -1,3 +1,5 @@
+error tests/programs/fail/atypical.vi:18:18 - no value associated with `::atypical::Foo`
+error tests/programs/fail/atypical.vi:19:12 - no type associated with `::atypical::foo`
 error tests/programs/fail/atypical.vi:25:3 - no loop to break from
 error tests/programs/fail/atypical.vi:26:3 - no loop to break from
 error tests/programs/fail/atypical.vi:31:3 - cannot find label `stuff`
@@ -5,7 +7,7 @@ error tests/programs/fail/atypical.vi:32:14 - cannot continue label `stuff`
 error tests/programs/fail/atypical.vi:3:19 - no type associated with `::atypical::foo`
 error tests/programs/fail/atypical.vi:3:24 - types in item signatures cannot be elided
 error tests/programs/fail/atypical.vi:4:8 - types in item signatures cannot be elided
-error tests/programs/fail/atypical.vi:4:14 - types in item signatures cannot be elided
+error tests/programs/fail/atypical.vi:4:14 - `::atypical::Foo` expects 1 type parameter; was passed 0
 error tests/programs/fail/atypical.vi:5:12 - types in item signatures cannot be elided
 error - expected type `fn(&IO)`; found `fn(IO)`
 error tests/programs/fail/atypical.vi:5:16 - no function to return from
@@ -16,7 +18,7 @@ error tests/programs/fail/atypical.vi:10:16 - expected type `(?4, ?5)`; found `N
 error tests/programs/fail/atypical.vi:11:7 - cannot infer type
 error tests/programs/fail/atypical.vi:12:3 - cannot call non-function type `N32`
 error tests/programs/fail/atypical.vi:13:14 - cannot apply operator `+` to types `N32` and `~N32`
-error tests/programs/fail/atypical.vi:14:5 - cannot find `noop` in `::std::numeric::N32`
+error tests/programs/fail/atypical.vi:14:3 - type `N32` has no method `noop`
 error tests/programs/fail/atypical.vi:15:6 - expected type `Bool`; found `F32`
 error tests/programs/fail/atypical.vi:15:21 - expected type `N32`; found `String`
 error tests/programs/fail/atypical.vi:16:3 - function type `fn(IO)` expects 1 argument; was passed 3
@@ -24,16 +26,13 @@ error tests/programs/fail/atypical.vi:17:3 - cannot compare `N32` and `F32`
 error tests/programs/fail/atypical.vi:17:3 - cannot compare `F32` and `N32`
 error tests/programs/fail/atypical.vi:17:3 - cannot compare `N32` and `F32`
 error tests/programs/fail/atypical.vi:18:7 - `::atypical::Thing` has 2 fields; 1 was matched
-error tests/programs/fail/atypical.vi:18:18 - no value associated with `::atypical::Foo`
-error tests/programs/fail/atypical.vi:19:12 - no type associated with `::atypical::foo`
 error tests/programs/fail/atypical.vi:20:14 - expected type `T`; found `N32`
 error tests/programs/fail/atypical.vi:21:14 - expected type `U`; found `T`
-error tests/programs/fail/atypical.vi:22:7 - expected an irrefutable pattern
-error tests/programs/fail/atypical.vi:22:17 - expected type `Ay`; found `N32`
+error tests/programs/fail/atypical.vi:22:7 - expected a complete pattern
 error tests/programs/fail/atypical.vi:23:4 - cannot apply operator `+` to types `String` and `N32`
 error tests/programs/fail/atypical.vi:24:7 - expected type `N32`; found `&?16`
 error tests/programs/fail/atypical.vi:27:10 - expected type `()`; found `F32`
 error tests/programs/fail/atypical.vi:28:14 - cannot apply operator `+` to types `~N32` and `~N32`
 error tests/programs/fail/atypical.vi:29:3 - cannot apply operator `+=` to types `N32` and `F32`
-error tests/programs/fail/atypical.vi:30:5 - `::std::numeric::N32::parse` cannot be used as a method; it does not take `::std::numeric::N32` as its first parameter
+error tests/programs/fail/atypical.vi:30:3 - type `N32` has no method `parse`
 error tests/programs/fail/atypical.vi:6:27 - expected type `()`; found `N32`

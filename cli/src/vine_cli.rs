@@ -12,6 +12,7 @@ use ivm::{heap::Heap, IVM};
 use ivy::{ast::Nets, host::Host};
 use rustyline::DefaultEditor;
 use vine::{
+  compiler::Compiler,
   core::{Core, CoreArenas},
   repl::Repl,
 };
@@ -50,8 +51,6 @@ pub struct CompileArgs {
   main: Option<PathBuf>,
   #[arg(long = "lib")]
   libs: Vec<PathBuf>,
-  #[arg(long = "item")]
-  items: Vec<String>,
   #[arg(long)]
   no_std: bool,
 }
@@ -61,7 +60,19 @@ impl CompileArgs {
     if !self.no_std {
       self.libs.push(std_path())
     }
-    match vine::compile(vine::Config { main: self.main, libs: self.libs, items: self.items }) {
+
+    let arenas = CoreArenas::default();
+    let core = &Core::new(&arenas);
+    let mut compiler = Compiler::new(core);
+
+    if let Some(main) = self.main {
+      compiler.loader.load_main_mod(main);
+    }
+    for lib in self.libs {
+      compiler.loader.load_mod(lib);
+    }
+
+    match compiler.compile(()) {
       Ok(nets) => nets,
       Err(err) => {
         eprintln!("{}", err);

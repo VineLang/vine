@@ -1,26 +1,34 @@
 
-use data::Map::Ord;
+use ops::Ord;
 
 #[builtin = "Char"]
 pub mod Char {
   pub inline_ivy! from_n32: fn(N32) -> Char { fn(x x) }
-  pub inline_ivy! as_n32: fn(Char) -> N32 { fn(x x) }
+  pub inline_ivy! .as_n32: fn(Char) -> N32 { fn(x x) }
 
-  pub fn cmp(&a: &Char, &b: &Char) -> Ord {
-    if a < b {
-      Ord::Lt
-    } else if a > b {
-      Ord::Gt
-    } else {
-      Ord::Eq
+  pub impl ord: Ord[Char] {
+    fn .cmp(&a: &Char, &b: &Char) -> Ord {
+      if a < b {
+        Ord::Lt
+      } else if a > b {
+        Ord::Gt
+      } else {
+        Ord::Eq
+      }
     }
   }
 
-  pub fn is_whitespace(char: Char) -> Bool {
+  pub fn .is_whitespace(char: Char) -> Bool {
     (char == ' ') | (char == '\t') | (char == '\n')
   }
 
-  pub fn is_alphanumeric(char: Char) -> Bool {
+  pub fn .is_alphanumeric(char: Char) -> Bool {
     ('a' <= char <= 'z') | ('A' <= char <= 'Z') | ('0' <= char <= '9')
+  }
+
+  pub impl to_string: ToString[Char] {
+    fn .to_string(self: Char) -> String {
+      String({ chars: [self] })
+    }
   }
 }

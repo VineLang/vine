@@ -2,7 +2,7 @@
 use std::data::Map;
 
 pub fn main(&io: &IO) {
-  let graph = Map::new(N32::cmp);
+  let graph = Map::empty[N32, Map[N32, _]];
 
   while io.read_line() is Some(line) {
     let String({ chars }) = line;
@@ -12,7 +12,7 @@ pub fn main(&io: &IO) {
     if a > b {
       (b, a) = (a, b)
     }
-    (*graph.get_or_insert(a, Map::new(N32::cmp))).insert(b, ());
+    (*graph.get_or_insert(a, Map::empty)).insert(b, ());
   }
 
   do {

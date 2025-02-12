@@ -1,115 +1,115 @@
 
+::std::IO::print_char { fn(ref(@io_print_char(char io) io) fn(char _)) }
+
 ::main { ::inverse::main }
 
 ::inverse::main {
-  fn(ref(w3 w26) _)
-  ::inverse::refs = fn(ref(w3 w8) _)
-  ::std::IO::println = fn(ref(w8 w12) fn(tup(0 tup(w29 w29)) _))
-  ::inverse::fns = fn(ref(w12 w17) _)
-  ::std::IO::println = fn(ref(w17 w21) fn(tup(0 tup(w30 w30)) _))
-  ::inverse::rev = fn(ref(w21 w26) _)
+  fn(ref(w1 w24) _)
+  ::inverse::refs = fn(ref(w1 w6) _)
+  ::std::IO::println = fn(ref(w6 w10) fn(tup(0 tup(w28 w28)) _))
+  ::inverse::fns = fn(ref(w10 w15) _)
+  ::std::IO::println = fn(ref(w15 w19) fn(tup(0 tup(w29 w29)) _))
+  ::inverse::rev = fn(ref(w19 w24) _)
 }
 
 ::inverse::refs {
-  fn(ref(w3 w43) _)
-  ::inverse::refs::inc = fn(tup(0 dup17(w18 w22)) _)
-  ::std::numeric::N32::to_string = fn(w18 w19)
-  ::std::data::List::concat = fn(tup(4 tup(tup(120 tup(32 tup(61 tup(32 w50)))) w50)) fn(w19 w20))
-  ::std::IO::println = fn(ref(w3 w15) fn(w20 _))
-  ::inverse::refs::inc = fn(tup(w22 dup19(w32 w36)) _)
-  ::std::numeric::N32::to_string = fn(w32 w33)
-  ::std::data::List::concat = fn(tup(4 tup(tup(120 tup(32 tup(61 tup(32 w51)))) w51)) fn(w33 w34))
-  ::std::IO::println = fn(ref(w15 w29) fn(w34 _))
-  ::inverse::refs::inc = fn(tup(w36 w39) _)
-  ::std::numeric::N32::to_string = fn(w39 w47)
-  ::std::data::List::concat = fn(tup(4 tup(tup(120 tup(32 tup(61 tup(32 w52)))) w52)) fn(w47 w48))
-  ::std::IO::println = fn(ref(w29 w43) fn(w48 _))
+  fn(ref(w1 w41) _)
+  ::inverse::refs::inc = fn(tup(0 dup16(w16 w20)) _)
+  ::std::numeric::N32::to_string::to_string = fn(w16 w17)
+  ::std::data::List::concat = fn(tup(4 tup(tup(120 tup(32 tup(61 tup(32 w49)))) w49)) fn(w17 w18))
+  ::std::IO::println = fn(ref(w1 w13) fn(w18 _))
+  ::inverse::refs::inc = fn(tup(w20 dup18(w30 w34)) _)
+  ::std::numeric::N32::to_string::to_string = fn(w30 w31)
+  ::std::data::List::concat = fn(tup(4 tup(tup(120 tup(32 tup(61 tup(32 w50)))) w50)) fn(w31 w32))
+  ::std::IO::println = fn(ref(w13 w27) fn(w32 _))
+  ::inverse::refs::inc = fn(tup(w34 w37) _)
+  ::std::numeric::N32::to_string::to_string = fn(w37 w45)
+  ::std::data::List::concat = fn(tup(4 tup(tup(120 tup(32 tup(61 tup(32 w51)))) w51)) fn(w45 w46))
+  ::std::IO::println = fn(ref(w27 w41) fn(w46 _))
 }
 
-::inverse::refs::inc { fn(tup(@add(1 w8) w8) _) }
+::std::numeric::N32::to_string::to_string { fn(dup22(?(::std::numeric::N32::to_string::to_string::3 ::std::numeric::N32::to_string::to_string::2 x(w7 w6)) w7) w6) }
 
-::inverse::fns {
-  fn(ref(w3 w28) _)
-  ::inverse::fns::call = fn(w13 fn(1 w14))
-  ::std::numeric::N32::to_string = fn(w14 w15)
-  ::std::data::List::concat = fn(tup(7 tup(tup(102 tup(40 tup(49 tup(41 tup(32 tup(61 tup(32 w43))))))) w43)) fn(w15 w16))
-  ::std::IO::println = fn(ref(w3 w10) fn(w16 _))
-  ::inverse::fns::call = fn(w22 fn(2 w23))
-  ::std::numeric::N32::to_string = fn(w23 w24)
-  ::std::data::List::concat = fn(tup(7 tup(tup(102 tup(40 tup(50 tup(41 tup(32 tup(61 tup(32 w44))))))) w44)) fn(w24 w25))
-  ::std::IO::println = fn(ref(w10 w19) fn(w25 _))
-  ::inverse::fns::call = fn(w31 fn(3 w32))
-  ::std::numeric::N32::to_string = fn(w32 w33)
-  ::std::data::List::concat = fn(tup(7 tup(tup(102 tup(40 tup(51 tup(41 tup(32 tup(61 tup(32 w45))))))) w45)) fn(w33 w34))
-  ::std::IO::println = fn(ref(w19 w28) fn(w34 _))
-  tup(dup33(@mul(w40 w41) w40) w41) = dup35(w13 dup35(w22 w31))
-}
-
-::inverse::fns::call { fn(tup(w3 w8) fn(w3 w8)) }
-
-::inverse::rev {
-  fn(ref(w3 w37) _)
-  ::std::data::List::concat = fn(tup(4 tup(tup(115 tup(32 tup(61 tup(32 w52)))) w52)) fn(w14 w15))
-  ::std::IO::println = fn(ref(w3 w11) fn(w15 _))
-  ::std::data::List::concat = fn(tup(4 tup(tup(115 tup(32 tup(61 tup(32 w53)))) w53)) fn(w21 w22))
-  ::std::IO::println = fn(ref(w11 w18) fn(w22 _))
-  ::inverse::rev::get = fn(ref(_ w31) w33)
-  ::std::data::List::concat = fn(tup(4 tup(tup(115 tup(32 tup(61 tup(32 w55)))) w55)) fn(w33 w34))
-  ::std::IO::println = fn(ref(w18 w27) fn(w34 _))
-  ::inverse::rev::get = fn(ref(w31 w41) w43)
-  ::std::data::List::concat = fn(tup(4 tup(tup(115 tup(32 tup(61 tup(32 w56)))) w56)) fn(w43 w44))
-  ::std::IO::println = fn(ref(w27 w37) fn(w44 _))
-  ::inverse::rev::set = fn(ref(w41 _) fn(tup(1 tup(tup(50 w57) w57)) _))
-  _ = tup(1 tup(tup(48 w51) w51))
-  tup(1 tup(tup(49 w54) w54)) = dup53(w14 w21)
-}
-
-::inverse::rev::get { fn(ref(w3 dup59(w3 w7)) w7) }
-
-::inverse::rev::set { fn(ref(w5 _) fn(w5 _)) }
-
-::std::data::List::concat { fn(tup(@add(w12 w20) tup(w8 w13)) fn(tup(w12 tup(w13 w23)) tup(w20 tup(w8 w23)))) }
-
-::std::numeric::N32::to_string { fn(dup1976(?(::std::numeric::N32::to_string::4 ::std::numeric::N32::to_string::3 x(w8 w7)) w8) w7) }
-
-::std::numeric::N32::to_string::3 {
+::std::numeric::N32::to_string::to_string::2 {
   x(w6 w9)
-  ::std::numeric::N32::to_string::5 = x(w6 x(tup(0 tup(w7 w7)) w9))
+  ::std::numeric::N32::to_string::to_string::4 = x(w6 x(tup(0 tup(w7 w7)) w9))
 }
 
-::std::numeric::N32::to_string::4 { x(_ tup(1 tup(tup(48 w3) w3))) }
+::std::numeric::N32::to_string::to_string::3 { x(_ tup(1 tup(tup(48 w3) w3))) }
 
-::std::numeric::N32::to_string::5 { x(dup1986(?(::std::numeric::N32::to_string::7 ::std::numeric::N32::to_string::6 x(w6 w2)) w6) w2) }
+::std::numeric::N32::to_string::to_string::4 { x(dup31(?(::std::numeric::N32::to_string::to_string::6 ::std::numeric::N32::to_string::to_string::5 x(w6 w2)) w6) w2) }
 
-::std::numeric::N32::to_string::6 {
-  x(dup1989(@rem(10 w1) @div(10 w8)) x(w11 w15))
+::std::numeric::N32::to_string::to_string::5 {
+  x(dup34(@rem(10 w1) @div(10 w8)) x(w11 w15))
   48 = @add(w1 w2)
   ::std::data::List::concat = fn(tup(1 tup(tup(w2 w13) w13)) fn(w11 w5))
-  ::std::numeric::N32::to_string::5 = x(w8 x(w5 w15))
+  ::std::numeric::N32::to_string::to_string::4 = x(w8 x(w5 w15))
 }
 
-::std::numeric::N32::to_string::7 { x(_ x(w1 w1)) }
+::std::numeric::N32::to_string::to_string::6 { x(_ x(w1 w1)) }
+
+::inverse::refs::inc { fn(tup(@add(1 w6) w6) _) }
+
+::inverse::fns {
+  fn(ref(w1 w26) _)
+  ::inverse::fns::call = fn(w11 fn(1 w12))
+  ::std::numeric::N32::to_string::to_string = fn(w12 w13)
+  ::std::data::List::concat = fn(tup(7 tup(tup(102 tup(40 tup(49 tup(41 tup(32 tup(61 tup(32 w42))))))) w42)) fn(w13 w14))
+  ::std::IO::println = fn(ref(w1 w8) fn(w14 _))
+  ::inverse::fns::call = fn(w20 fn(2 w21))
+  ::std::numeric::N32::to_string::to_string = fn(w21 w22)
+  ::std::data::List::concat = fn(tup(7 tup(tup(102 tup(40 tup(50 tup(41 tup(32 tup(61 tup(32 w43))))))) w43)) fn(w22 w23))
+  ::std::IO::println = fn(ref(w8 w17) fn(w23 _))
+  ::inverse::fns::call = fn(w29 fn(3 w30))
+  ::std::numeric::N32::to_string::to_string = fn(w30 w31)
+  ::std::data::List::concat = fn(tup(7 tup(tup(102 tup(40 tup(51 tup(41 tup(32 tup(61 tup(32 w44))))))) w44)) fn(w31 w32))
+  ::std::IO::println = fn(ref(w17 w26) fn(w32 _))
+  tup(dup48(@mul(w39 w40) w39) w40) = dup50(w11 dup50(w20 w29))
+}
+
+::inverse::fns::call { fn(tup(w1 w6) fn(w1 w6)) }
+
+::inverse::rev {
+  fn(ref(w1 w35) _)
+  ::std::data::List::concat = fn(tup(4 tup(tup(115 tup(32 tup(61 tup(32 w51)))) w51)) fn(w12 w13))
+  ::std::IO::println = fn(ref(w1 w9) fn(w13 _))
+  ::std::data::List::concat = fn(tup(4 tup(tup(115 tup(32 tup(61 tup(32 w52)))) w52)) fn(w19 w20))
+  ::std::IO::println = fn(ref(w9 w16) fn(w20 _))
+  ::inverse::rev::get = fn(ref(_ w29) w31)
+  ::std::data::List::concat = fn(tup(4 tup(tup(115 tup(32 tup(61 tup(32 w54)))) w54)) fn(w31 w32))
+  ::std::IO::println = fn(ref(w16 w25) fn(w32 _))
+  ::inverse::rev::get = fn(ref(w29 w39) w41)
+  ::std::data::List::concat = fn(tup(4 tup(tup(115 tup(32 tup(61 tup(32 w55)))) w55)) fn(w41 w42))
+  ::std::IO::println = fn(ref(w25 w35) fn(w42 _))
+  ::inverse::rev::set = fn(ref(w39 _) fn(tup(1 tup(tup(50 w56) w56)) _))
+  _ = tup(1 tup(tup(48 w50) w50))
+  tup(1 tup(tup(49 w53) w53)) = dup66(w12 w19)
+}
+
+::inverse::rev::get { fn(ref(w1 dup71(w1 w5)) w5) }
+
+::inverse::rev::set { fn(ref(w3 _) fn(w3 _)) }
+
+::std::data::List::concat { fn(tup(@add(w10 w18) tup(w6 w11)) fn(tup(w10 tup(w11 w21)) tup(w18 tup(w6 w21)))) }
 
 ::std::IO::println {
-  fn(ref(w3 w14) fn(w5 _))
-  ::std::IO::print = fn(ref(w3 w9) fn(w5 _))
-  ::std::IO::print_char = fn(ref(w9 w14) fn(10 _))
+  fn(ref(w1 w12) fn(w3 _))
+  ::std::IO::print = fn(ref(w1 w7) fn(w3 _))
+  ::std::IO::print_char = fn(ref(w7 w12) fn(10 _))
 }
 
 ::std::IO::print {
-  fn(ref(w3 w17) fn(tup(w9 tup(w10 _)) _))
-  ::std::IO::print::2 = x(x(w3 w17) x(w9 w10))
+  fn(ref(w1 w16) fn(tup(w7 tup(w8 _)) _))
+  ::std::IO::print::1 = x(x(w1 w16) x(w7 w8))
 }
 
-::std::IO::print::2 { x(w4 x(dup2957(?(::std::IO::print::4 ::std::IO::print::3 x(w4 x(w6 w1))) w6) w1)) }
+::std::IO::print::1 { x(w4 x(dup2234(?(::std::IO::print::3 ::std::IO::print::2 x(w4 x(w6 w1))) w6) w1)) }
 
-::std::IO::print::3 {
+::std::IO::print::2 {
   x(x(w17 w21) x(@sub(1 w1) tup(w4 w5)))
   ::std::IO::print_char = fn(ref(w17 w10) fn(w4 _))
-  ::std::IO::print::2 = x(x(w10 w21) x(w1 w5))
+  ::std::IO::print::1 = x(x(w10 w21) x(w1 w5))
 }
 
-::std::IO::print::4 { x(x(w3 w3) _) }
-
-::std::IO::print_char { fn(ref(@io_print_char(char io) io) fn(char _)) }
+::std::IO::print::3 { x(x(w3 w3) _) }
 

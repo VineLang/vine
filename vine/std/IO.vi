@@ -1,12 +1,12 @@
 
 #[builtin = "IO"]
 pub mod IO {
-  pub fn println(&io: &IO, str: String) {
+  pub fn .println(&io: &IO, str: String) {
     io.print(str);
     io.print_char('\n');
   }
 
-  pub fn print(&io: &IO, str: String) {
+  pub fn .print(&io: &IO, str: String) {
     let String({ chars: List(len, chars, _) }) = str;
     while len != 0 {
       len = len - 1;
@@ -16,11 +16,11 @@ pub mod IO {
     }
   }
 
-  pub inline_ivy! print_char: fn(&IO, Char) {
+  pub inline_ivy! .print_char: fn(&IO, Char) {
     fn(ref(@io_print_char(char io) io) fn(char _))
   }
 
-  pub fn print_bytes(&io: &IO, bytes: List[N32]) {
+  pub fn .print_bytes(&io: &IO, bytes: List[N32]) {
     let List(len, bytes, _) = bytes;
     while len != 0 {
       len = len - 1;
@@ -30,21 +30,21 @@ pub mod IO {
     }
   }
 
-  pub inline_ivy! print_byte: fn(&IO, N32) {
+  pub inline_ivy! .print_byte: fn(&IO, N32) {
     fn(ref(@io_print_byte(char io) io) fn(char _))
   }
 
-  pub inline_ivy! flush: fn(&IO) {
+  pub inline_ivy! .flush: fn(&IO) {
     fn(ref(@io_flush(0 io) io) _)
   }
 
-  pub fn prompt(&io: &IO, msg: String) -> Option[String] {
+  pub fn .prompt(&io: &IO, msg: String) -> Option[String] {
     io.print(msg);
     io.flush();
     io.read_line()
   }
 
-  pub fn read_line(&io: &IO) -> Option[String] {
+  pub fn .read_line(&io: &IO) -> Option[String] {
     let byte = io.read_byte('\0');
     if byte != '\0' {
       Some(if byte == '\n' {
@@ -66,7 +66,7 @@ pub mod IO {
     }
   }
 
-  pub fn full_input(&io: &IO) -> String {
+  pub fn .full_input(&io: &IO) -> String {
     let chars = [];
     loop {
       let byte = io.read_byte('\0');
@@ -78,7 +78,7 @@ pub mod IO {
     }
   }
 
-  inline_ivy! read_byte: fn(&IO, Char) -> Char {
+  inline_ivy! .read_byte: fn(&IO, Char) -> Char {
     fn(ref(dup(io0 @io_read_byte(default dup(byte @seq$(io0 io1)))) io1) fn(default byte))
   }
 }

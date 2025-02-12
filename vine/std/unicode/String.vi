@@ -1,5 +1,5 @@
 
-use data::Map::Ord;
+use ops::Ord;
 
 #[builtin = "String"]
 pub struct String {
@@ -7,11 +7,11 @@ pub struct String {
 }
 
 pub mod String {
-  pub fn len(&String({ chars: List(len, _, _) })) -> N32 {
+  pub fn .len(&String({ chars: List(len, _, _) })) -> N32 {
     len
   }
 
-  pub fn split(self: String, sep: String) -> List[String] {
+  pub fn .split(self: String, sep: String) -> List[String] {
     let list = [];
     loop {
       let (found, remaining) = self.split_once(sep);
@@ -24,7 +24,7 @@ pub mod String {
     }
   }
 
-  pub fn split_trim(self: String, sep: String) -> List[String] {
+  pub fn .split_trim(self: String, sep: String) -> List[String] {
     let list = [];
     let start = true;
     let ~end = true;
@@ -44,7 +44,7 @@ pub mod String {
     }
   }
 
-  pub fn split_once(self: String, sep: String) -> (String, Option[String]) {
+  pub fn .split_once(self: String, sep: String) -> (String, Option[String]) {
     let prefix = "";
     let suffix = self;
     while suffix.len() >= sep.len() {
@@ -71,7 +71,7 @@ pub mod String {
     (prefix ++ suffix, None)
   }
 
-  pub fn strip_prefix(self: String, &prefix: &String) -> Result[String, String] {
+  pub fn .strip_prefix(self: String, &prefix: &String) -> Result[String, String] {
     if self.len() < prefix.len() {
       return Err(prefix);
     }
@@ -90,7 +90,7 @@ pub mod String {
     Ok(String({ chars: List(len, move buf, end) }))
   }
 
-  pub fn eq(&self: &String, &other: &String) -> Bool {
+  pub fn .eq(&self: &String, &other: &String) -> Bool {
     if self.len() != other.len() {
       return false;
     }
@@ -104,16 +104,24 @@ pub mod String {
     true
   }
 
-  pub fn cmp(&String({ chars: a }), &String({ chars: b })) -> Ord {
-    List::cmp(Char::cmp)(&a, &b)
+  pub impl ord: Ord[String] {
+    fn cmp(&String({ chars: a }), &String({ chars: b })) -> Ord {
+      a.cmp(&b)
+    }
   }
 
-  pub fn repeat(self: String, count: N32) -> String {
+  pub fn .repeat(self: String, count: N32) -> String {
     let out = "";
     while count != 0 {
       out ++= self;
       count -= 1;
     }
     out
+  }
+
+  pub impl to_string: ToString[String] {
+    fn .to_string(self: String) -> String {
+      self
+    }
   }
 }

@@ -5,12 +5,12 @@ use std::{
 
 use vine_util::{
   idx::{IdxVec, RangeExt},
-  multi_iter, new_idx,
+  new_idx,
 };
 
 use crate::{
   ast::{Local, Pat, PatKind},
-  resolver::DefId,
+  chart::{AdtId, VariantId},
   vir::{Interface, InterfaceId, InterfaceKind, Layer, Port, Stage, Step, Transfer},
 };
 
@@ -75,7 +75,7 @@ enum MatchKind {
   Inverse,
   Tuple(usize),
   Object(usize),
-  Adt(DefId),
+  Adt(AdtId),
 }
 
 impl<'core, 'd, 'r> Matcher<'core, 'd, 'r> {
@@ -186,10 +186,8 @@ impl<'core, 'd, 'r> Matcher<'core, 'd, 'r> {
             }
           }
 
-          multi_iter!(Iter { Tuple, Adt });
           self.eliminate_col(&mut rows, var, |p| match &p.kind {
-            PatKind::Tuple(tuple) => Iter::Tuple(new_vars.iter().zip(tuple)),
-            PatKind::Adt(_, fields) => Iter::Adt(new_vars.iter().zip(fields.iter().flatten())),
+            PatKind::Tuple(tuple) | PatKind::Adt(.., tuple) => new_vars.iter().zip(tuple),
             _ => unreachable!(),
           });
         }
@@ -225,13 +223,12 @@ impl<'core, 'd, 'r> Matcher<'core, 'd, 'r> {
         }
 
         MatchKind::Adt(adt_id) => {
-          let adt = self.distiller.resolver.defs[adt_id].adt_def.as_ref().unwrap();
+          let adt = &self.distiller.chart.adts[adt_id];
           let interface = self.distiller.interfaces.push(None);
           let stages = adt
             .variants
             .iter()
-            .map(|&variant_id| {
-              let variant = self.distiller.resolver.defs[variant_id].variant_def.as_ref().unwrap();
+            .map(|(variant_id, variant)| {
               let mut stage = self.distiller.new_stage(layer, interface);
               let (new_vars, new_locals) =
                 self.new_var_range(&mut stage, form, variant.fields.len());
@@ -239,12 +236,9 @@ impl<'core, 'd, 'r> Matcher<'core, 'd, 'r> {
               let mut rows = rows
                 .iter()
                 .filter(|r| {
-                  r.cells.get(&var).is_none_or(|p| {
-                    matches!(
-                      &p.kind,
-                      PatKind::Adt(v, _) if v.path.resolved.unwrap() == variant_id
-                    )
-                  })
+                  r.cells
+                    .get(&var)
+                    .is_none_or(|p| matches!(&p.kind, PatKind::Adt(_, i, ..) if *i == variant_id))
                 })
                 .cloned()
                 .collect::<Vec<_>>();
@@ -255,14 +249,14 @@ impl<'core, 'd, 'r> Matcher<'core, 'd, 'r> {
                 let (result, header) = new_locals.iter().map(|l| stage.mut_local(l)).collect();
                 stage.header = header;
                 let adt = stage.new_wire();
-                stage.steps.push(Step::Adt(variant_id, adt.0, result));
+                stage.steps.push(Step::Adt(adt_id, variant_id, adt.0, result));
                 stage.set_local_to(local, adt.1);
               } else {
                 stage.header = new_locals.iter().map(|l| stage.set_local(l)).collect();
               }
 
               self.eliminate_col(&mut rows, var, |p| match &p.kind {
-                PatKind::Adt(_, fields) => new_vars.iter().zip(fields.iter().flatten()),
+                PatKind::Adt(.., fields) => new_vars.iter().zip(fields),
                 _ => unreachable!(),
               });
 
@@ -335,22 +329,18 @@ impl<'core, 'd, 'r> Matcher<'core, 'd, 'r> {
   fn match_kind(&self, pat: &mut &Pat) -> Option<MatchKind> {
     loop {
       return match &pat.kind {
-        PatKind::Error(_) => unreachable!(),
+        PatKind::Error(_) | PatKind::PathCall(..) => unreachable!(),
         PatKind::Hole | PatKind::Local(_) => None,
         PatKind::Paren(p) | PatKind::Annotation(p, _) => {
           *pat = p;
           continue;
         }
-        PatKind::Adt(variant, _) => {
-          let variant_def = self.distiller.resolver.defs[variant.path.resolved.unwrap()]
-            .variant_def
-            .as_ref()
-            .unwrap();
-          let adt_def = self.distiller.resolver.defs[variant_def.adt].adt_def.as_ref().unwrap();
+        PatKind::Adt(adt_id, _, _, _) => {
+          let adt_def = &self.distiller.chart.adts[*adt_id];
           if adt_def.variants.len() == 1 {
-            Some(MatchKind::Tuple(variant_def.fields.len()))
+            Some(MatchKind::Tuple(adt_def.variants[VariantId(0)].fields.len()))
           } else {
-            Some(MatchKind::Adt(variant_def.adt))
+            Some(MatchKind::Adt(*adt_id))
           }
         }
         PatKind::Ref(p) => self.match_kind(&mut &**p).map(|_| MatchKind::Ref),

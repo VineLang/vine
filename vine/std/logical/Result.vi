@@ -5,21 +5,21 @@ pub enum Result[T, E] {
 }
 
 pub mod Result {
-  pub fn map[T, U, E](self: Result[T, E], f: fn(T) -> U) -> Result[U, E] {
+  pub fn .map[T, U, E](self: Result[T, E], f: fn(T) -> U) -> Result[U, E] {
     match self {
       Ok(val) { Ok(f(val)) }
       Err(err) { Err(err) }
     }
   }
 
-  pub fn as_ref[T, E](&self: &Result[T, E]) -> Result[&T, &E] {
+  pub fn .as_ref[T, E](&self: &Result[T, E]) -> Result[&T, &E] {
     match &self {
       &Ok(val) { Ok(&val) }
       &Err(err) { Err(&err) }
     }
   }
 
-  pub fn flatten[T, E](self: Result[Result[T, E], E]) -> Result[T, E] {
+  pub fn .flatten[T, E](self: Result[Result[T, E], E]) -> Result[T, E] {
     match self {
       Ok(Ok(val)) { Ok(val) }
       Ok(Err(err)) { Err(err) }
@@ -27,25 +27,25 @@ pub mod Result {
     }
   }
 
-  pub fn and_then[T, U, E](self: Result[T, E], f: fn(T) -> Result[U, E]) -> Result[U, E] {
+  pub fn .and_then[T, U, E](self: Result[T, E], f: fn(T) -> Result[U, E]) -> Result[U, E] {
     self.map(f).flatten()
   }
 
-  pub fn or[T, E](self: Result[T, E], default: Result[T, E]) -> Result[T, E] {
+  pub fn .or[T, E](self: Result[T, E], default: Result[T, E]) -> Result[T, E] {
     match self {
       Err(_) { default }
       x { x }
     }
   }
 
-  pub fn unwrap_or[T, E](self: Result[T, E], default: T) -> T {
+  pub fn .unwrap_or[T, E](self: Result[T, E], default: T) -> T {
     match self {
       Ok(val) { val }
       Err(_) { default }
     }
   }
 
-  pub fn unwrap[T, E](self: Result[T, E], default: T) -> T {
+  pub fn .unwrap[T, E](self: Result[T, E], default: T) -> T {
     match self {
       Ok(val) { val }
     }

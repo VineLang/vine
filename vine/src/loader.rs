@@ -8,7 +8,7 @@ use std::{
 
 use crate::{
   ast::{
-    self, ConstItem, Expr, ExprKind, GenericPath, Ident, Item, ItemKind, ModItem, ModKind, Span,
+    self, ConstItem, Expr, ExprKind, GenericParams, Ident, Item, ItemKind, ModItem, ModKind, Span,
     Ty, TyKind, Vis,
   },
   core::Core,
@@ -42,7 +42,7 @@ impl<'core> Loader<'core> {
       attrs: Vec::new(),
       kind: ItemKind::Const(ConstItem {
         name: main,
-        generics: Vec::new(),
+        generics: GenericParams::default(),
         ty: Ty {
           span: Span::NONE,
           kind: TyKind::Fn(
@@ -50,9 +50,10 @@ impl<'core> Loader<'core> {
               span: Span::NONE,
               kind: TyKind::Ref(Box::new(Ty {
                 span: Span::NONE,
-                kind: TyKind::Path(GenericPath {
+                kind: TyKind::Path(ast::Path {
                   span: Span::NONE,
-                  path: ast::Path { segments: vec![io], absolute: false, resolved: None },
+                  absolute: false,
+                  segments: vec![io],
                   generics: None,
                 }),
               })),
@@ -60,18 +61,15 @@ impl<'core> Loader<'core> {
             None,
           ),
         },
-        value: Expr {
+        value: Some(Expr {
           span: Span::NONE,
-          kind: ExprKind::Path(ast::GenericPath {
+          kind: ExprKind::Path(ast::Path {
             span: Span::NONE,
-            path: ast::Path {
-              segments: vec![self.auto_mod_name(&path), main],
-              absolute: true,
-              resolved: None,
-            },
+            absolute: true,
+            segments: vec![self.auto_mod_name(&path), main],
             generics: None,
           }),
-        },
+        }),
       }),
     });
     self.load_mod(path)

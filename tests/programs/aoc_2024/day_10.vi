@@ -99,7 +99,7 @@ fn count(s: Set) -> N32 {
 struct Channel[M](M, ~M);
 
 mod Channel {
-  pub fn send[M](Channel[M](got, ~out), value: M) -> M {
+  pub fn .send[M](Channel[M](got, ~out), value: M) -> M {
     out = value;
     got
   }

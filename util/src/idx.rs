@@ -13,13 +13,16 @@ pub use nohash_hasher::IsEnabled;
 
 pub use nohash_hasher::{IntMap, IntSet};
 
-pub trait Idx: Copy + Eq + Ord + Hash + IsEnabled + From<usize> + Into<usize> + Debug {}
+pub trait Idx:
+  Copy + Eq + Ord + Hash + Default + IsEnabled + From<usize> + Into<usize> + Debug
+{
+}
 impl Idx for usize {}
 
 #[macro_export]
 macro_rules! new_idx {
   ($vis:vis $Ty:ident) => {
-    new_idx!($vis $Ty; n => ["{n}"]);
+    $crate::new_idx!($vis $Ty; n => ["{n}"]);
   };
   ($vis:vis $Ty:ident; $n:ident => [$($fmt:tt)*]) => {
     #[derive(Default, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -149,6 +152,11 @@ impl<I: Idx, T> IdxVec<I, T> {
   #[inline(always)]
   pub fn keys(&self) -> impl Iterator<Item = I> + Clone {
     (0..self.vec.len()).map(I::from)
+  }
+
+  #[inline(always)]
+  pub fn keys_from(&self, index: I) -> impl Iterator<Item = I> + Clone {
+    (index..I::from(self.vec.len())).iter()
   }
 
   #[inline(always)]
@@ -323,5 +331,9 @@ impl<I: Idx> Counter<I> {
 
   pub fn count(&self) -> usize {
     self.0.into()
+  }
+
+  pub fn reset(&mut self) {
+    self.0 = I::default();
   }
 }

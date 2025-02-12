@@ -1,4 +1,4 @@
-use std::{array::Array, n64::N64};
+use std::{data::Array, numeric::N64};
 (1, _)
 fn _foo() {}
 1.to_string()
@@ -8,7 +8,7 @@ fn _foo() {}
 ((1,2),(3,4)).0.0.to_string()
 ((1,2),(3,4)).1.1.to_string()
 "abc" ++ 123
-[true, false].to_string(Bool::to_string)
+[true, false].to_string()
 [1,2,3,4].slice(2)
 [1,2,3,4].reversed()
 let a = Array::from_fn(5, &(0; _), fn(&x: &N32) { let n = x; x += 1; n });

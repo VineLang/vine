@@ -16,6 +16,7 @@ pub struct CoreArenas {
 }
 
 pub struct Core<'core> {
+  arenas: &'core CoreArenas,
   interner: StringInterner<'core>,
   pub(crate) diags: RefCell<Vec<Diag<'core>>>,
   pub(crate) files: RefCell<Vec<FileInfo>>,
@@ -24,6 +25,7 @@ pub struct Core<'core> {
 impl<'core> Core<'core> {
   pub fn new(arenas: &'core CoreArenas) -> Self {
     Core {
+      arenas,
       interner: StringInterner::new(&arenas.bytes),
       diags: Default::default(),
       files: Default::default(),
@@ -32,6 +34,10 @@ impl<'core> Core<'core> {
 
   pub fn ident(&self, str: &str) -> Ident<'core> {
     Ident(self.interner.intern(str))
+  }
+
+  pub fn alloc_str(&self, str: &str) -> &'core str {
+    self.arenas.bytes.alloc_str(str)
   }
 }
 

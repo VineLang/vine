@@ -1,84 +1,84 @@
 
+::std::IO::print_char { fn(ref(@io_print_char(char io) io) fn(char _)) }
+
 ::main { ::stream_primes::main }
 
 ::stream_primes::main {
-  fn(ref(w3 w10) _)
-  ::stream_primes::main::2 = x(x(w3 w10) 1)
+  fn(ref(w1 w9) _)
+  ::stream_primes::main::1 = x(x(w1 w9) 1)
 }
 
-::stream_primes::main::2 { x(w4 dup10(@lt(10000 ?(::stream_primes::main::4 ::stream_primes::main::3 x(w4 w5))) w5)) }
+::stream_primes::main::1 { x(w4 dup9(@lt(10000 ?(::stream_primes::main::3 ::stream_primes::main::2 x(w4 w5))) w5)) }
 
-::stream_primes::main::3 {
-  x(x(w7 w19) @add(1 dup15(w11 dup15(w14 w17))))
-  ::stream_primes::main::5 = x(w11 x(2 x(1 ?(::stream_primes::main::13 ::stream_primes::main::12 x(x(w7 w16) x(w14 _))))))
-  ::stream_primes::main::2 = x(x(w16 w19) w17)
+::stream_primes::main::2 {
+  x(x(w7 w19) @add(1 dup14(w11 dup14(w14 w17))))
+  ::stream_primes::main::4 = x(w11 x(2 x(1 ?(::stream_primes::main::12 ::stream_primes::main::11 x(x(w7 w16) x(w14 _))))))
+  ::stream_primes::main::1 = x(x(w16 w19) w17)
 }
 
-::stream_primes::main::4 { x(x(w2 w2) _) }
+::stream_primes::main::3 { x(x(w2 w2) _) }
 
-::stream_primes::main::5 { x(dup21(w1 w10) x(dup22(@lt(w1 ?(::stream_primes::main::7 ::stream_primes::main::6 x(w10 x(w9 w4)))) w9) w4)) }
+::stream_primes::main::4 { x(dup20(w1 w10) x(dup21(@lt(w1 ?(::stream_primes::main::6 ::stream_primes::main::5 x(w10 x(w9 w4)))) w9) w4)) }
 
-::stream_primes::main::6 { x(dup25(@rem(w8 ?(::stream_primes::main::10 ::stream_primes::main::9 x(w13 x(w12 w4)))) w13) x(dup26(w8 w12) w4)) }
+::stream_primes::main::5 { x(dup24(@rem(w8 ?(::stream_primes::main::9 ::stream_primes::main::8 x(w13 x(w12 w4)))) w13) x(dup25(w8 w12) w4)) }
 
-::stream_primes::main::7 { x(_ x(_ x(w1 w1))) }
+::stream_primes::main::6 { x(_ x(_ x(w1 w1))) }
 
-::stream_primes::main::9 {
+::stream_primes::main::8 {
   x(w3 x(@add(1 w6) w1))
-  ::stream_primes::main::5 = x(w3 x(w6 w1))
+  ::stream_primes::main::4 = x(w3 x(w6 w1))
 }
 
-::stream_primes::main::10 { x(_ x(_ x(_ 0))) }
+::stream_primes::main::9 { x(_ x(_ x(_ 0))) }
 
-::stream_primes::main::12 {
+::stream_primes::main::11 {
   x(x(w9 w1) x(w7 _))
-  ::std::numeric::N32::to_string = fn(w7 w4)
+  ::std::numeric::N32::to_string::to_string = fn(w7 w4)
   ::std::IO::println = fn(ref(w9 w1) fn(w4 _))
 }
 
-::stream_primes::main::13 { x(x(w3 w3) _) }
+::stream_primes::main::12 { x(x(w3 w3) _) }
 
-::std::data::List::concat { fn(tup(@add(w12 w20) tup(w8 w13)) fn(tup(w12 tup(w13 w23)) tup(w20 tup(w8 w23)))) }
+::std::numeric::N32::to_string::to_string { fn(dup40(?(::std::numeric::N32::to_string::to_string::3 ::std::numeric::N32::to_string::to_string::2 x(w7 w6)) w7) w6) }
 
-::std::numeric::N32::to_string { fn(dup1949(?(::std::numeric::N32::to_string::4 ::std::numeric::N32::to_string::3 x(w8 w7)) w8) w7) }
-
-::std::numeric::N32::to_string::3 {
+::std::numeric::N32::to_string::to_string::2 {
   x(w6 w9)
-  ::std::numeric::N32::to_string::5 = x(w6 x(tup(0 tup(w7 w7)) w9))
+  ::std::numeric::N32::to_string::to_string::4 = x(w6 x(tup(0 tup(w7 w7)) w9))
 }
 
-::std::numeric::N32::to_string::4 { x(_ tup(1 tup(tup(48 w3) w3))) }
+::std::numeric::N32::to_string::to_string::3 { x(_ tup(1 tup(tup(48 w3) w3))) }
 
-::std::numeric::N32::to_string::5 { x(dup1959(?(::std::numeric::N32::to_string::7 ::std::numeric::N32::to_string::6 x(w6 w2)) w6) w2) }
+::std::numeric::N32::to_string::to_string::4 { x(dup49(?(::std::numeric::N32::to_string::to_string::6 ::std::numeric::N32::to_string::to_string::5 x(w6 w2)) w6) w2) }
 
-::std::numeric::N32::to_string::6 {
-  x(dup1962(@rem(10 w1) @div(10 w8)) x(w11 w15))
+::std::numeric::N32::to_string::to_string::5 {
+  x(dup52(@rem(10 w1) @div(10 w8)) x(w11 w15))
   48 = @add(w1 w2)
   ::std::data::List::concat = fn(tup(1 tup(tup(w2 w13) w13)) fn(w11 w5))
-  ::std::numeric::N32::to_string::5 = x(w8 x(w5 w15))
+  ::std::numeric::N32::to_string::to_string::4 = x(w8 x(w5 w15))
 }
 
-::std::numeric::N32::to_string::7 { x(_ x(w1 w1)) }
+::std::numeric::N32::to_string::to_string::6 { x(_ x(w1 w1)) }
+
+::std::data::List::concat { fn(tup(@add(w10 w18) tup(w6 w11)) fn(tup(w10 tup(w11 w21)) tup(w18 tup(w6 w21)))) }
 
 ::std::IO::println {
-  fn(ref(w3 w14) fn(w5 _))
-  ::std::IO::print = fn(ref(w3 w9) fn(w5 _))
-  ::std::IO::print_char = fn(ref(w9 w14) fn(10 _))
+  fn(ref(w1 w12) fn(w3 _))
+  ::std::IO::print = fn(ref(w1 w7) fn(w3 _))
+  ::std::IO::print_char = fn(ref(w7 w12) fn(10 _))
 }
 
 ::std::IO::print {
-  fn(ref(w3 w17) fn(tup(w9 tup(w10 _)) _))
-  ::std::IO::print::2 = x(x(w3 w17) x(w9 w10))
+  fn(ref(w1 w16) fn(tup(w7 tup(w8 _)) _))
+  ::std::IO::print::1 = x(x(w1 w16) x(w7 w8))
 }
 
-::std::IO::print::2 { x(w4 x(dup2930(?(::std::IO::print::4 ::std::IO::print::3 x(w4 x(w6 w1))) w6) w1)) }
+::std::IO::print::1 { x(w4 x(dup2214(?(::std::IO::print::3 ::std::IO::print::2 x(w4 x(w6 w1))) w6) w1)) }
 
-::std::IO::print::3 {
+::std::IO::print::2 {
   x(x(w17 w21) x(@sub(1 w1) tup(w4 w5)))
   ::std::IO::print_char = fn(ref(w17 w10) fn(w4 _))
-  ::std::IO::print::2 = x(x(w10 w21) x(w1 w5))
+  ::std::IO::print::1 = x(x(w10 w21) x(w1 w5))
 }
 
-::std::IO::print::4 { x(x(w3 w3) _) }
-
-::std::IO::print_char { fn(ref(@io_print_char(char io) io) fn(char _)) }
+::std::IO::print::3 { x(x(w3 w3) _) }
 

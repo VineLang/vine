@@ -60,7 +60,7 @@ impl<'core> Checker<'core, '_> {
           first = false;
         }
         *str += ")";
-        if **ret != Type::UNIT {
+        if **ret != Type::NIL {
           *str += " -> ";
           self._display_type(ret, str);
         }
@@ -73,28 +73,37 @@ impl<'core> Checker<'core, '_> {
         *str += "~";
         self._display_type(ty, str)
       }
-      Type::Adt(n, gens) => {
-        write!(str, "{}", self.resolver.defs[*n].canonical.segments.last().unwrap()).unwrap();
-        if !gens.is_empty() {
-          *str += "[";
-          let mut first = true;
-          for t in gens {
-            if !first {
-              *str += ", ";
-            }
-            self._display_type(t, str);
-            first = false;
-          }
-          *str += "]";
-        }
+      Type::Adt(adt_id, params) => {
+        *str += self.chart.adts[*adt_id].name.0 .0;
+        self._display_type_params(str, params);
       }
-      Type::Opaque(n) => *str += self.generics[*n].0 .0,
-      Type::Var(v) => match &self.state.vars[*v] {
-        Ok(t) => self._display_type(t, str),
+      Type::Trait(trait_id, params) => {
+        *str += self.chart.defs[self.chart.traits[*trait_id].def].name.0 .0;
+        self._display_type_params(str, params);
+      }
+      Type::Opaque(n) => *str += self.chart.generics[self.cur_generics].type_params[*n].0 .0,
+      Type::Var(v) => match &self.unifier.vars[*v].bound {
+        Some((_, t)) => self._display_type(t, str),
         _ => write!(str, "?{v:?}").unwrap(),
       },
       Type::Never => *str += "!",
       Type::Error(_) => *str += "??",
+      Type::Fresh(_) => unreachable!(),
+    }
+  }
+
+  fn _display_type_params(&self, str: &mut String, params: &[Type<'core>]) {
+    if !params.is_empty() {
+      *str += "[";
+      let mut first = true;
+      for t in params {
+        if !first {
+          *str += ", ";
+        }
+        self._display_type(t, str);
+        first = false;
+      }
+      *str += "]";
     }
   }
 }

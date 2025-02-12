@@ -1,0 +1,8 @@
+
+pub fn main(&io: &IO) {
+  io.println([1, 2, 3, 4].to_string());
+  io.println(["abc", "def", "ghi"].to_string());
+  io.println(['x', 'y', 'z'].to_string());
+  io.println([true, false].to_string());
+  io.println([(1, 'a'), (2, 'b')].to_string());
+}
