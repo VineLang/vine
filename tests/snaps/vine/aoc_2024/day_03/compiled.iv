@@ -8,20 +8,18 @@
 ::main { ::day_03::main }
 
 ::day_03::main {
-  fn(ref(w1 w31) _)
-  ::std::IO::full_input = fn(ref(w1 w6) dup5(w10 w21))
+  fn(ref(w1 w30) _)
+  ::std::IO::full_input = fn(ref(w1 w6) dup5(w10 w20))
   ::day_03::get_muls = fn(w10 w11)
-  ::std::numeric::N32::to_string::to_string = fn(w11 w18)
-  ::std::data::List::concat = fn(tup(8 tup(tup(80 tup(97 tup(114 tup(116 tup(32 tup(49 tup(58 tup(32 w39)))))))) w39)) fn(w18 w19))
-  ::std::IO::println = fn(ref(w6 w14) fn(w19 _))
-  ::std::unicode::String::split = fn(w21 fn(tup(4 tup(tup(100 tup(111 tup(40 tup(41 w40)))) w40)) w23))
-  ::std::unicode::String::split_once = fn(w41 fn(tup(7 tup(tup(100 tup(111 tup(110 tup(39 tup(116 tup(40 tup(41 w50))))))) w50)) tup(w47 _)))
-  ::std::data::List::map = fn(w23 fn(fn(w41 w47) w25))
-  ::std::data::List::join = fn(w25 fn(tup(0 tup(w51 w51)) w27))
-  ::day_03::get_muls = fn(w27 w28)
-  ::std::numeric::N32::to_string::to_string = fn(w28 w35)
-  ::std::data::List::concat = fn(tup(8 tup(tup(80 tup(97 tup(114 tup(116 tup(32 tup(50 tup(58 tup(32 w52)))))))) w52)) fn(w35 w36))
-  ::std::IO::println = fn(ref(w14 w31) fn(w36 _))
+  ::std::numeric::N32::to_string::to_string = fn(w11 tup(@add(8 w37) tup(w38 w39)))
+  ::std::IO::println = fn(ref(w6 w14) fn(tup(w37 tup(tup(80 tup(97 tup(114 tup(116 tup(32 tup(49 tup(58 tup(32 w38)))))))) w39)) _))
+  ::std::unicode::String::split = fn(w20 fn(tup(4 tup(tup(100 tup(111 tup(40 tup(41 w44)))) w44)) w22))
+  ::std::unicode::String::split_once = fn(w45 fn(tup(7 tup(tup(100 tup(111 tup(110 tup(39 tup(116 tup(40 tup(41 w56))))))) w56)) tup(w51 _)))
+  ::std::data::List::map = fn(w22 fn(fn(w45 w51) w24))
+  ::std::data::List::join = fn(w24 fn(tup(0 tup(w59 w59)) w26))
+  ::day_03::get_muls = fn(w26 w27)
+  ::std::numeric::N32::to_string::to_string = fn(w27 tup(@add(8 w60) tup(w61 w62)))
+  ::std::IO::println = fn(ref(w14 w30) fn(tup(w60 tup(tup(80 tup(97 tup(114 tup(116 tup(32 tup(50 tup(58 tup(32 w61)))))))) w62)) _))
 }
 
 ::std::numeric::N32::to_string::to_string { fn(dup14(?(::std::numeric::N32::to_string::to_string::3 ::std::numeric::N32::to_string::to_string::2 x(w7 w6)) w7) w6) }
@@ -31,7 +29,7 @@
   ::std::numeric::N32::to_string::to_string::4 = x(w6 x(tup(0 tup(w7 w7)) w9))
 }
 
-::std::numeric::N32::to_string::to_string::3 { x(_ tup(1 tup(tup(48 w3) w3))) }
+::std::numeric::N32::to_string::to_string::3 { x(_ tup(1 tup(tup(48 w5) w5))) }
 
 ::std::numeric::N32::to_string::to_string::4 { x(dup23(?(::std::numeric::N32::to_string::to_string::6 ::std::numeric::N32::to_string::to_string::5 x(w6 w2)) w6) w2) }
 
@@ -45,10 +43,10 @@
 ::std::numeric::N32::to_string::to_string::6 { x(_ x(w1 w1)) }
 
 ::day_03::get_muls {
-  fn(w0 w16)
-  ::std::unicode::String::split = fn(w0 fn(tup(4 tup(tup(109 tup(117 tup(108 tup(40 w14)))) w14)) w5))
+  fn(w0 w18)
+  ::std::unicode::String::split = fn(w0 fn(tup(4 tup(tup(109 tup(117 tup(108 tup(40 w16)))) w16)) w5))
   ::std::data::List::pop_front = fn(ref(w5 w8) _)
-  ::day_03::get_muls::1 = x(w8 x(0 w16))
+  ::day_03::get_muls::1 = x(w8 x(0 w18))
 }
 
 ::day_03::get_muls::1 {
@@ -57,16 +55,16 @@
 }
 
 ::day_03::get_muls::4 {
-  enum(w0 x(w4 x(w3 w19)))
-  ::std::unicode::String::split_once = fn(w0 fn(tup(1 tup(tup(41 w13) w13)) tup(w10 enum(::day_03::get_muls::9 enum(::day_03::get_muls::10 x(x(w3 w17) x(_ w10)))))))
-  ::day_03::get_muls::1 = x(w4 x(w17 w19))
+  enum(w0 x(w4 x(w3 w21)))
+  ::std::unicode::String::split_once = fn(w0 fn(tup(1 tup(tup(41 w15) w15)) tup(w10 enum(::day_03::get_muls::9 enum(::day_03::get_muls::10 x(x(w3 w19) x(_ w10)))))))
+  ::day_03::get_muls::1 = x(w4 x(w19 w21))
 }
 
 ::day_03::get_muls::5 { x(_ x(w1 w1)) }
 
 ::day_03::get_muls::9 {
-  enum(_ x(w5 x(w16 w2)))
-  ::std::unicode::String::split_once = fn(w2 fn(tup(1 tup(tup(44 w14) w14)) tup(w11 enum(::day_03::get_muls::14 enum(::day_03::get_muls::15 x(w5 x(w16 w11)))))))
+  enum(_ x(w5 x(w18 w2)))
+  ::std::unicode::String::split_once = fn(w2 fn(tup(1 tup(tup(44 w16) w16)) tup(w11 enum(::day_03::get_muls::14 enum(::day_03::get_muls::15 x(w5 x(w18 w11)))))))
 }
 
 ::day_03::get_muls::10 { x(x(w3 w3) _) }
@@ -122,7 +120,7 @@
   ::std::data::List::join::6 = x(w4 x(w3 x(w0 w7)))
 }
 
-::std::data::List::join::5 { x(_ x(_ tup(0 tup(w4 w4)))) }
+::std::data::List::join::5 { x(_ x(_ tup(0 tup(w6 w6)))) }
 
 ::std::data::List::join::6 {
   x(w8 x(w7 w6))
@@ -210,8 +208,8 @@
 ::std::unicode::String::split::6 { x(_ x(w1 w1)) }
 
 ::std::unicode::String::split_once {
-  fn(w0 fn(w1 w14))
-  ::std::unicode::String::split_once::1 = x(w1 x(tup(0 tup(w13 w13)) x(w0 w14)))
+  fn(w0 fn(w1 w16))
+  ::std::unicode::String::split_once::1 = x(w1 x(tup(0 tup(w15 w15)) x(w0 w16)))
 }
 
 ::std::unicode::String::split_once::1 {

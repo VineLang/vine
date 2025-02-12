@@ -39,11 +39,11 @@
 
 ::par::Channel::send1 { fn(tup(w3 _) fn(w3 _)) }
 
-::par::Move::to_string { fn(enum(::par::Move::to_string::4 enum(::par::Move::to_string::5 w7)) w7) }
+::par::Move::to_string::to_string { fn(enum(::par::Move::to_string::to_string::4 enum(::par::Move::to_string::to_string::5 w7)) w7) }
 
-::par::Move::to_string::4 { tup(2 tup(tup(85 tup(112 w2)) w2)) }
+::par::Move::to_string::to_string::4 { tup(2 tup(tup(85 tup(112 w4)) w4)) }
 
-::par::Move::to_string::5 { tup(4 tup(tup(68 tup(111 tup(119 tup(110 w2)))) w2)) }
+::par::Move::to_string::to_string::5 { tup(4 tup(tup(68 tup(111 tup(119 tup(110 w4)))) w4)) }
 
 ::par::start_playing {
   fn(ref(w1 w26) w6)
@@ -53,19 +53,15 @@
 }
 
 ::par::start_playing::2 {
-  x(x(w38 w58) x(w36 x(w35 x(w34 x(w33 w52)))))
-  ::par::Channel::recv = fn(w36 tup(dup46(w18 w41) w3))
-  ::par::Channel::recv = fn(w35 tup(dup48(w22 w42) w8))
-  ::par::Channel::recv = fn(w34 tup(dup50(w27 w43) w13))
-  ::par::Move::to_string = fn(w18 w19)
-  ::std::data::List::concat = fn(w19 fn(tup(1 tup(tup(32 w39) w39)) w21))
-  ::par::Move::to_string = fn(w22 w23)
-  ::std::data::List::concat = fn(w21 fn(w23 w24))
-  ::std::data::List::concat = fn(w24 fn(tup(1 tup(tup(32 w40) w40)) w26))
-  ::par::Move::to_string = fn(w27 w28)
-  ::std::data::List::concat = fn(w26 fn(w28 w29))
-  ::std::IO::println = fn(ref(w38 w16) fn(w29 _))
-  tup(w41 tup(w42 w43)) = tup(w46 tup(w47 enum(::par::start_playing::16 enum(::par::start_playing::23 x(x(w16 w58) x(w33 x(w3 x(w8 x(w13 x(w52 x(w46 w47)))))))))))
+  x(x(w33 w60) x(w31 x(w30 x(w29 x(w28 w54)))))
+  ::par::Channel::recv = fn(w31 tup(dup46(w19 w43) w3))
+  ::par::Channel::recv = fn(w30 tup(dup48(w21 w44) w8))
+  ::par::Channel::recv = fn(w29 tup(dup50(w23 w45) w13))
+  ::par::Move::to_string::to_string = fn(w19 tup(@add(2 w37) tup(w35 tup(32 w38))))
+  ::par::Move::to_string::to_string = fn(w21 tup(@add(w37 w39) tup(w38 tup(32 w40))))
+  ::par::Move::to_string::to_string = fn(w23 tup(@add(w39 w34) tup(w40 w36)))
+  ::std::IO::println = fn(ref(w33 w16) fn(tup(w34 tup(w35 w36)) _))
+  tup(w43 tup(w44 w45)) = tup(w48 tup(w49 enum(::par::start_playing::16 enum(::par::start_playing::23 x(x(w16 w60) x(w28 x(w3 x(w8 x(w13 x(w54 x(w48 w49)))))))))))
 }
 
 ::par::start_playing::3 {
@@ -97,7 +93,7 @@
   ::par::Channel::choose::1 = fn(w19 fn(::par::Outcome::Draw w3))
   ::par::Channel::choose::1 = fn(w18 fn(::par::Outcome::Draw w6))
   ::par::Channel::choose::1 = fn(w17 fn(::par::Outcome::Draw w9))
-  ::std::IO::println = fn(ref(w24 w12) fn(tup(7 tup(tup(68 tup(114 tup(97 tup(119 tup(46 tup(46 tup(46 w25))))))) w25)) _))
+  ::std::IO::println = fn(ref(w24 w12) fn(tup(7 tup(tup(68 tup(114 tup(97 tup(119 tup(46 tup(46 tup(46 w27))))))) w27)) _))
 }
 
 ::par::start_playing::16 { x(w9 x(w7 x(w6 x(w5 x(w4 x(w11 x(w2 enum(::par::start_playing::17 enum(::par::start_playing::20 x(w9 x(w7 x(w6 x(w5 x(w4 x(w11 w2))))))))))))))) }
@@ -129,8 +125,8 @@
 }
 
 ::par::start_playing::30 {
-  x(w39 x(w37 x(w36 x(w35 x(w34 x(w40 _))))))
-  ::par::start_playing::2 = x(w39 x(w37 x(w36 x(w35 x(w34 w40)))))
+  x(w34 x(w32 x(w31 x(w30 x(w29 x(w35 _))))))
+  ::par::start_playing::2 = x(w34 x(w32 x(w31 x(w30 x(w29 w35)))))
 }
 
 ::par::channel_session::fork::1 {
@@ -171,11 +167,11 @@
 }
 
 ::par::main {
-  fn(ref(w1 w24) _)
-  ::std::rng::Pcg32::seeded = fn(tup(5 tup(tup(65 tup(108 tup(105 tup(99 tup(101 w16))))) w16)) w6)
-  ::std::rng::Pcg32::seeded = fn(tup(3 tup(tup(66 tup(111 tup(98 w17))) w17)) w9)
-  ::std::rng::Pcg32::seeded = fn(tup(7 tup(tup(67 tup(104 tup(97 tup(114 tup(108 tup(105 tup(101 w18))))))) w18)) w12)
-  ::par::main::1 = x(x(w1 w24) x(w6 x(w9 x(w12 0))))
+  fn(ref(w1 w30) _)
+  ::std::rng::Pcg32::seeded = fn(tup(5 tup(tup(65 tup(108 tup(105 tup(99 tup(101 w18))))) w18)) w6)
+  ::std::rng::Pcg32::seeded = fn(tup(3 tup(tup(66 tup(111 tup(98 w21))) w21)) w9)
+  ::std::rng::Pcg32::seeded = fn(tup(7 tup(tup(67 tup(104 tup(97 tup(114 tup(108 tup(105 tup(101 w24))))))) w24)) w12)
+  ::par::main::1 = x(x(w1 w30) x(w6 x(w9 x(w12 0))))
 }
 
 ::par::main::1 { x(w7 x(w5 x(w4 x(w3 dup265(@lt(10 ?(::par::main::3 ::par::main::2 x(w7 x(w5 x(w4 x(w3 w8)))))) w8))))) }
@@ -194,13 +190,11 @@
 
 ::par::main::3 { x(x(w5 w5) _) }
 
-::par::main::8 { tup(12 tup(tup(65 tup(108 tup(105 tup(99 tup(101 tup(32 tup(119 tup(105 tup(110 tup(115 tup(33 tup(10 w2)))))))))))) w2)) }
+::par::main::8 { tup(12 tup(tup(65 tup(108 tup(105 tup(99 tup(101 tup(32 tup(119 tup(105 tup(110 tup(115 tup(33 tup(10 w4)))))))))))) w4)) }
 
-::par::main::9 { tup(10 tup(tup(66 tup(111 tup(98 tup(32 tup(119 tup(105 tup(110 tup(115 tup(33 tup(10 w2)))))))))) w2)) }
+::par::main::9 { tup(10 tup(tup(66 tup(111 tup(98 tup(32 tup(119 tup(105 tup(110 tup(115 tup(33 tup(10 w4)))))))))) w4)) }
 
-::par::main::10 { tup(14 tup(tup(67 tup(104 tup(97 tup(114 tup(108 tup(105 tup(101 tup(32 tup(119 tup(105 tup(110 tup(115 tup(33 tup(10 w2)))))))))))))) w2)) }
-
-::std::data::List::concat { fn(tup(@add(w10 w18) tup(w6 w11)) fn(tup(w10 tup(w11 w21)) tup(w18 tup(w6 w21)))) }
+::par::main::10 { tup(14 tup(tup(67 tup(104 tup(97 tup(114 tup(108 tup(105 tup(101 tup(32 tup(119 tup(105 tup(110 tup(115 tup(33 tup(10 w4)))))))))))))) w4)) }
 
 ::std::data::List::into_iter { fn(tup(w0 tup(w1 _)) tup(w0 w1)) }
 

@@ -8,17 +8,15 @@
 ::main { ::day_10::main }
 
 ::day_10::main {
-  fn(ref(w1 w42) _)
+  fn(ref(w1 w41) _)
   ::std::IO::full_input = fn(ref(w1 w6) w8)
   ::std::unicode::String::split_trim = fn(w8 fn(tup(1 tup(tup(10 w50) w50)) w15))
   ::std::data::List::map = fn(w15 fn(fn(w51 w51) w17))
   ::day_10::cross = fn(w17 fn(fn(dup13(w108 dup13(w110 dup13(w112 dup13(w114 dup13(@eq(48 ?(::day_10::main::5 ::day_10::main::4 x(w143 x(x(w66 w142) x(x(w68 w140) x(x(w70 w138) x(w77 x(w78 x(w85 x(w86 x(w93 x(w94 x(w101 x(w102 dup41(w118 dup41(w120 dup41(w122 w124))))))))))))))))) w143))))) fn(tup(tup(tup(w77 w78) tup(w108 w118)) tup(tup(tup(w85 w86) tup(w110 w120)) tup(tup(tup(w93 w94) tup(w112 w122)) tup(tup(w101 w102) tup(w114 w124))))) fn(ref(tup(w64 tup(w66 tup(w68 w70))) tup(w64 tup(w142 tup(w140 w138)))) _))) fn(tup(46 0) fn(ref(tup(w6 0) tup(w22 tup(_ tup(w26 w28)))) _))))
-  ::std::numeric::N32::to_string::to_string = fn(w26 w38)
-  ::std::data::List::concat = fn(tup(8 tup(tup(83 tup(99 tup(111 tup(114 tup(101 tup(115 tup(58 tup(32 w144)))))))) w144)) fn(w38 w39))
-  ::std::IO::println = fn(ref(w22 w34) fn(w39 _))
-  ::std::numeric::N32::to_string::to_string = fn(w28 w46)
-  ::std::data::List::concat = fn(tup(9 tup(tup(82 tup(97 tup(116 tup(105 tup(110 tup(103 tup(115 tup(58 tup(32 w145))))))))) w145)) fn(w46 w47))
-  ::std::IO::println = fn(ref(w34 w42) fn(w47 _))
+  ::std::numeric::N32::to_string::to_string = fn(w26 tup(@add(8 w144) tup(w145 w146)))
+  ::std::IO::println = fn(ref(w22 w34) fn(tup(w144 tup(tup(83 tup(99 tup(111 tup(114 tup(101 tup(115 tup(58 tup(32 w145)))))))) w146)) _))
+  ::std::numeric::N32::to_string::to_string = fn(w28 tup(@add(9 w149) tup(w150 w151)))
+  ::std::IO::println = fn(ref(w34 w41) fn(tup(w149 tup(tup(82 tup(97 tup(116 tup(105 tup(110 tup(103 tup(115 tup(58 tup(32 w150))))))))) w151)) _))
 }
 
 ::day_10::main::4 {
@@ -54,7 +52,7 @@
   ::std::numeric::N32::to_string::to_string::4 = x(w6 x(tup(0 tup(w7 w7)) w9))
 }
 
-::std::numeric::N32::to_string::to_string::3 { x(_ tup(1 tup(tup(48 w3) w3))) }
+::std::numeric::N32::to_string::to_string::3 { x(_ tup(1 tup(tup(48 w5) w5))) }
 
 ::std::numeric::N32::to_string::to_string::4 { x(dup127(?(::std::numeric::N32::to_string::to_string::6 ::std::numeric::N32::to_string::to_string::5 x(w6 w2)) w6) w2) }
 
@@ -295,8 +293,8 @@
 ::std::unicode::String::split_trim::24 { x(_ x(w4 x(_ x(x(w2 w2) w4)))) }
 
 ::std::unicode::String::split_once {
-  fn(w0 fn(w1 w14))
-  ::std::unicode::String::split_once::1 = x(w1 x(tup(0 tup(w13 w13)) x(w0 w14)))
+  fn(w0 fn(w1 w16))
+  ::std::unicode::String::split_once::1 = x(w1 x(tup(0 tup(w15 w15)) x(w0 w16)))
 }
 
 ::std::unicode::String::split_once::1 {

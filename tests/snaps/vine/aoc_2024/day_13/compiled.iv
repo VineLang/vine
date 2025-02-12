@@ -16,18 +16,16 @@
 ::main { ::day_13::main }
 
 ::day_13::main {
-  fn(ref(w1 w28) _)
+  fn(ref(w1 w27) _)
   ::std::IO::full_input = fn(ref(w1 w6) w8)
   ::std::unicode::String::split = fn(w8 fn(tup(2 tup(tup(10 tup(10 w36)) w36)) w12))
   ::std::numeric::N64::from_n32 = fn(10 w14)
   ::std::numeric::N64::pow_n32 = fn(w14 fn(13 w15))
   ::day_13::main::1 = x(w12 x(w15 x(x(0 w40) x(0 w38))))
-  ::std::numeric::N32::to_string::to_string = fn(w40 w24)
-  ::std::data::List::concat = fn(tup(8 tup(tup(80 tup(97 tup(114 tup(116 tup(32 tup(49 tup(58 tup(32 w43)))))))) w43)) fn(w24 w25))
-  ::std::IO::println = fn(ref(w6 w20) fn(w25 _))
-  ::std::numeric::N64::to_string::to_string = fn(w38 w32)
-  ::std::data::List::concat = fn(tup(8 tup(tup(80 tup(97 tup(114 tup(116 tup(32 tup(50 tup(58 tup(32 w44)))))))) w44)) fn(w32 w33))
-  ::std::IO::println = fn(ref(w20 w28) fn(w33 _))
+  ::std::numeric::N32::to_string::to_string = fn(w40 tup(@add(8 w43) tup(w44 w45)))
+  ::std::IO::println = fn(ref(w6 w20) fn(tup(w43 tup(tup(80 tup(97 tup(114 tup(116 tup(32 tup(49 tup(58 tup(32 w44)))))))) w45)) _))
+  ::std::numeric::N64::to_string::to_string = fn(w38 tup(@add(8 w48) tup(w49 w50)))
+  ::std::IO::println = fn(ref(w20 w27) fn(tup(w48 tup(tup(80 tup(97 tup(114 tup(116 tup(32 tup(50 tup(58 tup(32 w49)))))))) w50)) _))
 }
 
 ::day_13::main::1 {
@@ -36,22 +34,22 @@
 }
 
 ::day_13::main::4 {
-  enum(w0 x(w7 x(dup23(w123 dup23(w128 w211)) x(x(w5 w210) x(w3 w208)))))
-  ::std::unicode::String::split_once = fn(w0 fn(tup(1 tup(tup(43 w180) w180)) tup(_ w11)))
+  enum(w0 x(w7 x(dup23(w123 dup23(w128 w225)) x(x(w5 w224) x(w3 w222)))))
+  ::std::unicode::String::split_once = fn(w0 fn(tup(1 tup(tup(43 w182) w182)) tup(_ w11)))
   ::std::logical::Option::unwrap = fn(w11 w14)
-  ::std::unicode::String::split_once = fn(w14 fn(tup(4 tup(tup(44 tup(32 tup(89 tup(43 w181)))) w181)) tup(w17 w18)))
+  ::std::unicode::String::split_once = fn(w14 fn(tup(4 tup(tup(44 tup(32 tup(89 tup(43 w185)))) w185)) tup(w17 w18)))
   ::std::logical::Option::unwrap = fn(w18 w21)
-  ::std::unicode::String::split_once = fn(w21 fn(tup(13 tup(tup(10 tup(66 tup(117 tup(116 tup(116 tup(111 tup(110 tup(32 tup(66 tup(58 tup(32 tup(88 tup(43 w182))))))))))))) w182)) tup(w24 w25)))
+  ::std::unicode::String::split_once = fn(w21 fn(tup(13 tup(tup(10 tup(66 tup(117 tup(116 tup(116 tup(111 tup(110 tup(32 tup(66 tup(58 tup(32 tup(88 tup(43 w188))))))))))))) w188)) tup(w24 w25)))
   ::std::logical::Option::unwrap = fn(w25 w28)
-  ::std::unicode::String::split_once = fn(w28 fn(tup(4 tup(tup(44 tup(32 tup(89 tup(43 w183)))) w183)) tup(w31 w32)))
+  ::std::unicode::String::split_once = fn(w28 fn(tup(4 tup(tup(44 tup(32 tup(89 tup(43 w191)))) w191)) tup(w31 w32)))
   ::std::logical::Option::unwrap = fn(w32 w35)
-  ::std::unicode::String::split_once = fn(w35 fn(tup(10 tup(tup(10 tup(80 tup(114 tup(105 tup(122 tup(101 tup(58 tup(32 tup(88 tup(61 w184)))))))))) w184)) tup(w38 w39)))
+  ::std::unicode::String::split_once = fn(w35 fn(tup(10 tup(tup(10 tup(80 tup(114 tup(105 tup(122 tup(101 tup(58 tup(32 tup(88 tup(61 w194)))))))))) w194)) tup(w38 w39)))
   ::std::logical::Option::unwrap = fn(w39 w42)
-  ::std::unicode::String::split_once = fn(w42 fn(tup(4 tup(tup(44 tup(32 tup(89 tup(61 w185)))) w185)) tup(w45 w46)))
+  ::std::unicode::String::split_once = fn(w42 fn(tup(4 tup(tup(44 tup(32 tup(89 tup(61 w197)))) w197)) tup(w45 w46)))
   ::std::logical::Option::unwrap = fn(w46 w49)
-  ::std::unicode::String::split_once = fn(w49 fn(tup(1 tup(tup(10 w186) w186)) tup(w52 _)))
+  ::std::unicode::String::split_once = fn(w49 fn(tup(1 tup(tup(10 w200) w200)) tup(w52 _)))
   ::std::numeric::N32::parse = fn(w17 w55)
-  ::std::logical::Option::unwrap = fn(w55 dup43(@mul(w79 w80) dup43(@mul(w97 w98) dup43(@mul(w107 @add(w111 @eq(w188 ?(::day_13::main::8 ::day_13::main::7 x(x(w5 w196) x(w194 x(w193 x(w192 x(w120 _))))))))) dup43(w146 w160)))))
+  ::std::logical::Option::unwrap = fn(w55 dup43(@mul(w79 w80) dup43(@mul(w97 w98) dup43(@mul(w107 @add(w111 @eq(w202 ?(::day_13::main::8 ::day_13::main::7 x(x(w5 w210) x(w208 x(w207 x(w206 x(w120 _))))))))) dup43(w146 w160)))))
   ::std::numeric::N32::parse = fn(w24 w59)
   ::std::logical::Option::unwrap = fn(w59 dup44(@mul(w82 w83) dup44(@mul(w100 w101) dup44(@mul(w115 @add(w119 w120)) dup44(w150 w170)))))
   ::std::numeric::N32::parse = fn(w31 w63)
@@ -59,28 +57,28 @@
   ::std::numeric::N32::parse = fn(w38 w67)
   ::std::logical::Option::unwrap = fn(w67 dup46(w79 dup46(@mul(w87 w88) dup46(@mul(w118 w119) dup46(w133 w174)))))
   ::std::numeric::N32::parse = fn(w45 w71)
-  ::std::logical::Option::unwrap = fn(w71 dup47(w87 dup47(w100 dup47(w188 w124))))
+  ::std::logical::Option::unwrap = fn(w71 dup47(w87 dup47(w100 dup47(w202 w124))))
   ::std::numeric::N32::parse = fn(w52 w75)
-  ::std::logical::Option::unwrap = fn(w75 dup48(w90 dup48(w97 dup48(w194 w129))))
+  ::std::logical::Option::unwrap = fn(w75 dup48(w90 dup48(w97 dup48(w208 w129))))
   ::std::numeric::N32::diff = fn(w80 fn(w83 dup49(w93 dup49(w103 dup49(w142 w155)))))
-  ::std::numeric::N32::diff = fn(w88 fn(w91 @div(w93 dup50(w107 dup50(w115 w193)))))
-  ::std::numeric::N32::diff = fn(w98 fn(w101 @div(w103 dup51(w110 dup51(w118 w192)))))
+  ::std::numeric::N32::diff = fn(w88 fn(w91 @div(w93 dup50(w107 dup50(w115 w207)))))
+  ::std::numeric::N32::diff = fn(w98 fn(w101 @div(w103 dup51(w110 dup51(w118 w206)))))
   ::std::numeric::N64::from_n32 = fn(w124 w125)
-  ::std::numeric::N64::add = fn(w123 fn(w125 dup54(w135 dup54(w152 w198))))
+  ::std::numeric::N64::add = fn(w123 fn(w125 dup54(w135 dup54(w152 w212))))
   ::std::numeric::N64::from_n32 = fn(w129 w130)
-  ::std::numeric::N64::add = fn(w128 fn(w130 dup55(w139 dup55(w148 w204))))
+  ::std::numeric::N64::add = fn(w128 fn(w130 dup55(w139 dup55(w148 w218))))
   ::std::numeric::N64::from_n32 = fn(w133 w134)
   ::std::numeric::N64::mul = fn(w134 fn(w135 w136))
   ::std::numeric::N64::from_n32 = fn(w137 w138)
   ::std::numeric::N64::mul = fn(w138 fn(w139 w140))
   ::std::numeric::N64::diff = fn(w136 fn(w140 w141))
-  ::std::numeric::N64::div_rem_n32 = fn(w141 fn(w142 tup(dup56(w159 dup56(w169 w203)) _)))
+  ::std::numeric::N64::div_rem_n32 = fn(w141 fn(w142 tup(dup56(w159 dup56(w169 w217)) _)))
   ::std::numeric::N64::from_n32 = fn(w146 w147)
   ::std::numeric::N64::mul = fn(w147 fn(w148 w149))
   ::std::numeric::N64::from_n32 = fn(w150 w151)
   ::std::numeric::N64::mul = fn(w151 fn(w152 w153))
   ::std::numeric::N64::diff = fn(w149 fn(w153 w154))
-  ::std::numeric::N64::div_rem_n32 = fn(w154 fn(w155 tup(dup57(w163 dup57(w173 w202)) _)))
+  ::std::numeric::N64::div_rem_n32 = fn(w154 fn(w155 tup(dup57(w163 dup57(w173 w216)) _)))
   ::std::numeric::N64::from_n32 = fn(w160 w161)
   ::std::numeric::N64::mul = fn(w159 fn(w161 w162))
   ::std::numeric::N64::from_n32 = fn(w164 w165)
@@ -91,8 +89,8 @@
   ::std::numeric::N64::from_n32 = fn(w174 w175)
   ::std::numeric::N64::mul = fn(w173 fn(w175 w176))
   ::std::numeric::N64::add = fn(w172 fn(w176 w177))
-  ::std::numeric::N64::eq = fn(w167 fn(w198 ?(::day_13::main::14 ::day_13::main::13 x(x(w3 w206) x(w204 x(w203 x(w202 x(w177 _))))))))
-  ::day_13::main::1 = x(w7 x(w211 x(x(w196 w210) x(w206 w208))))
+  ::std::numeric::N64::eq = fn(w167 fn(w212 ?(::day_13::main::14 ::day_13::main::13 x(x(w3 w220) x(w218 x(w217 x(w216 x(w177 _))))))))
+  ::day_13::main::1 = x(w7 x(w225 x(x(w210 w224) x(w220 w222))))
 }
 
 ::day_13::main::5 { x(_ x(_ x(x(w3 w3) x(w1 w1)))) }
@@ -129,7 +127,7 @@
   ::std::numeric::N32::to_string::to_string::4 = x(w6 x(tup(0 tup(w7 w7)) w9))
 }
 
-::std::numeric::N32::to_string::to_string::3 { x(_ tup(1 tup(tup(48 w3) w3))) }
+::std::numeric::N32::to_string::to_string::3 { x(_ tup(1 tup(tup(48 w5) w5))) }
 
 ::std::numeric::N32::to_string::to_string::4 { x(dup102(?(::std::numeric::N32::to_string::to_string::6 ::std::numeric::N32::to_string::to_string::5 x(w6 w2)) w6) w2) }
 
@@ -147,11 +145,11 @@
   ::std::numeric::N64::eq = fn(w5 fn(0 ?(::std::numeric::N64::to_string::to_string::3 ::std::numeric::N64::to_string::to_string::2 x(w8 w7))))
 }
 
-::std::numeric::N64::to_string::to_string::2 { x(_ tup(1 tup(tup(48 w3) w3))) }
+::std::numeric::N64::to_string::to_string::2 { x(_ tup(1 tup(tup(48 w5) w5))) }
 
 ::std::numeric::N64::to_string::to_string::3 {
-  x(w4 w7)
-  ::std::numeric::N64::to_string::to_string::4 = x(w4 x(tup(0 tup(w5 w5)) w7))
+  x(w4 w9)
+  ::std::numeric::N64::to_string::to_string::4 = x(w4 x(tup(0 tup(w7 w7)) w9))
 }
 
 ::std::numeric::N64::to_string::to_string::4 {
@@ -329,8 +327,8 @@
 ::std::unicode::String::split::6 { x(_ x(w1 w1)) }
 
 ::std::unicode::String::split_once {
-  fn(w0 fn(w1 w14))
-  ::std::unicode::String::split_once::1 = x(w1 x(tup(0 tup(w13 w13)) x(w0 w14)))
+  fn(w0 fn(w1 w16))
+  ::std::unicode::String::split_once::1 = x(w1 x(tup(0 tup(w15 w15)) x(w0 w16)))
 }
 
 ::std::unicode::String::split_once::1 {

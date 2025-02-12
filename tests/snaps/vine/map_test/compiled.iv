@@ -19,7 +19,7 @@
 
 ::main { ::map_test::main }
 
-::map_test::seed { tup(26 tup(tup(100 tup(117 tup(98 tup(105 tup(111 tup(117 tup(115 tup(108 tup(121 tup(32 tup(99 tup(104 tup(97 tup(114 tup(103 tup(101 tup(100 tup(32 tup(117 tup(109 tup(98 tup(114 tup(101 tup(108 tup(108 tup(97 w2)))))))))))))))))))))))))) w2)) }
+::map_test::seed { tup(26 tup(tup(100 tup(117 tup(98 tup(105 tup(111 tup(117 tup(115 tup(108 tup(121 tup(32 tup(99 tup(104 tup(97 tup(114 tup(103 tup(101 tup(100 tup(32 tup(117 tup(109 tup(98 tup(114 tup(101 tup(108 tup(108 tup(97 w4)))))))))))))))))))))))))) w4)) }
 
 ::map_test::main {
   fn(ref(w1 w18) _)
@@ -30,7 +30,7 @@
   ::map_test::main::19 = x(x(w31 w37) x(x(w29 w35) x(w11 4600)))
   ::std::rng::Pcg32::seeded = fn(::map_test::seed w14)
   ::map_test::main::30 = x(x(w37 w42) x(w35 x(w14 4600)))
-  ::std::IO::println = fn(ref(w42 w18) fn(tup(4 tup(tup(100 tup(111 tup(110 tup(101 w43)))) w43)) _))
+  ::std::IO::println = fn(ref(w42 w18) fn(tup(4 tup(tup(100 tup(111 tup(110 tup(101 w45)))) w45)) _))
 }
 
 ::map_test::main::1 { x(w5 x(w3 dup24(@lt$(0 ?(::map_test::main::3 ::map_test::main::2 x(w5 x(w3 w6)))) w6))) }
@@ -66,7 +66,7 @@
 
 ::map_test::main::11 {
   x(x(w7 w1) _)
-  ::std::IO::println = fn(ref(w7 w1) fn(tup(12 tup(tup(111 tup(117 tup(116 tup(32 tup(111 tup(102 tup(32 tup(111 tup(114 tup(100 tup(101 tup(114 w8)))))))))))) w8)) _))
+  ::std::IO::println = fn(ref(w7 w1) fn(tup(12 tup(tup(111 tup(117 tup(116 tup(32 tup(111 tup(102 tup(32 tup(111 tup(114 tup(100 tup(101 tup(114 w10)))))))))))) w10)) _))
 }
 
 ::map_test::main::12 { x(x(w2 w2) _) }
@@ -75,14 +75,14 @@
 
 ::map_test::main::15 {
   x(x(w7 w1) _)
-  ::std::IO::println = fn(ref(w7 w1) fn(tup(10 tup(tup(98 tup(97 tup(100 tup(32 tup(108 tup(101 tup(110 tup(103 tup(116 tup(104 w8)))))))))) w8)) _))
+  ::std::IO::println = fn(ref(w7 w1) fn(tup(10 tup(tup(98 tup(97 tup(100 tup(32 tup(108 tup(101 tup(110 tup(103 tup(116 tup(104 w10)))))))))) w10)) _))
 }
 
 ::map_test::main::17 { x(x(w2 w2) _) }
 
 ::map_test::main::18 {
   x(x(w7 w1) _)
-  ::std::IO::println = fn(ref(w7 w1) fn(tup(10 tup(tup(105 tup(109 tup(98 tup(97 tup(108 tup(97 tup(110 tup(99 tup(101 tup(100 w8)))))))))) w8)) _))
+  ::std::IO::println = fn(ref(w7 w1) fn(tup(10 tup(tup(105 tup(109 tup(98 tup(97 tup(108 tup(97 tup(110 tup(99 tup(101 tup(100 w10)))))))))) w10)) _))
 }
 
 ::map_test::main::19 { x(w7 x(w5 x(w3 dup97(@lt$(0 ?(::map_test::main::21 ::map_test::main::20 x(w7 x(w5 x(w3 w8))))) w8)))) }
@@ -101,10 +101,9 @@
 ::map_test::main::28 { x(x(w3 w3) _) }
 
 ::map_test::main::29 {
-  x(x(w11 w1) x(w9 _))
-  ::std::numeric::N32::to_string::to_string = fn(w9 w5)
-  ::std::data::List::concat = fn(tup(8 tup(tup(109 tup(105 tup(115 tup(115 tup(105 tup(110 tup(103 tup(32 w12)))))))) w12)) fn(w5 w6))
-  ::std::IO::println = fn(ref(w11 w1) fn(w6 _))
+  x(x(w10 w1) x(w8 _))
+  ::std::numeric::N32::to_string::to_string = fn(w8 tup(@add(8 w11) tup(w12 w13)))
+  ::std::IO::println = fn(ref(w10 w1) fn(tup(w11 tup(tup(109 tup(105 tup(115 tup(115 tup(105 tup(110 tup(103 tup(32 w12)))))))) w13)) _))
 }
 
 ::map_test::main::30 { x(w6 x(w4 x(w3 dup137(@lt$(0 ?(::map_test::main::32 ::map_test::main::31 x(w6 x(w4 x(w3 w7))))) w7)))) }
@@ -123,10 +122,9 @@
 ::map_test::main::39 { x(x(w3 w3) _) }
 
 ::map_test::main::40 {
-  x(x(w11 w1) x(w9 _))
-  ::std::numeric::N32::to_string::to_string = fn(w9 w5)
-  ::std::data::List::concat = fn(tup(8 tup(tup(109 tup(105 tup(115 tup(115 tup(105 tup(110 tup(103 tup(32 w12)))))))) w12)) fn(w5 w6))
-  ::std::IO::println = fn(ref(w11 w1) fn(w6 _))
+  x(x(w10 w1) x(w8 _))
+  ::std::numeric::N32::to_string::to_string = fn(w8 tup(@add(8 w11) tup(w12 w13)))
+  ::std::IO::println = fn(ref(w10 w1) fn(tup(w11 tup(tup(109 tup(105 tup(115 tup(115 tup(105 tup(110 tup(103 tup(32 w12)))))))) w13)) _))
 }
 
 ::map_test::main::42 { x(x(w5 w5) x(x(w3 w3) _)) }
@@ -218,7 +216,7 @@
   ::std::numeric::N32::to_string::to_string::4 = x(w6 x(tup(0 tup(w7 w7)) w9))
 }
 
-::std::numeric::N32::to_string::to_string::3 { x(_ tup(1 tup(tup(48 w3) w3))) }
+::std::numeric::N32::to_string::to_string::3 { x(_ tup(1 tup(tup(48 w5) w5))) }
 
 ::std::numeric::N32::to_string::to_string::4 { x(dup368(?(::std::numeric::N32::to_string::to_string::6 ::std::numeric::N32::to_string::to_string::5 x(w6 w2)) w6) w2) }
 
