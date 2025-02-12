@@ -84,8 +84,8 @@ diags! {
     ["`*` is only valid in a place pattern"]
   RefSpacePat
     ["`&` is invalid in a space pattern"]
-  ExpectedIrrefutablePat
-    ["expected an irrefutable pattern"]
+  ExpectedCompletePat
+    ["expected a complete pattern"]
   CannotInfer
     ["cannot infer type"]
   BadBinOp { op: BinaryOp, assign: bool, lhs: String, rhs: String }

@@ -111,6 +111,9 @@ impl<'core> Checker<'core, '_> {
     for (field, mut ty) in fields.iter_mut().zip(field_tys) {
       self.check_pat_type(field, form, refutable, &mut ty);
     }
+    if !refutable && self.chart.adts[adt].variants.len() != 1 {
+      return Err(Diag::ExpectedCompletePat { span });
+    }
     Ok(Type::Adt(adt, type_params))
   }
 }
