@@ -50,7 +50,7 @@ impl<'core> Checker<'core, '_> {
       (PatKind::Hole, _) => self.unifier.new_var(span),
       (PatKind::Local(l), _) => {
         let var = self.unifier._new_var(span);
-        let old = self.state.locals.insert(*l, var);
+        let old = self.locals.insert(*l, var);
         debug_assert!(old.is_none());
         Type::Var(var)
       }
@@ -96,8 +96,10 @@ impl<'core> Checker<'core, '_> {
     refutable: bool,
   ) -> Result<Type<'core>, Diag<'core>> {
     let type_params = self.check_generics(generics, self.chart.adts[adt].generics, true);
-    let field_tys =
-      self.adt_types[adt][variant].iter().map(|t| t.instantiate(&type_params)).collect::<Vec<_>>();
+    let field_tys = self.types.adt_types[adt][variant]
+      .iter()
+      .map(|t| t.instantiate(&type_params))
+      .collect::<Vec<_>>();
     if fields.len() != field_tys.len() {
       Err(Diag::BadFieldCount {
         span,

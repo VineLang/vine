@@ -1,6 +1,6 @@
 use std::{
   collections::{BTreeMap, HashMap},
-  mem::{replace, take},
+  mem::{replace, swap, take},
 };
 
 use vine_util::{
@@ -14,7 +14,7 @@ use crate::{
     StmtKind, Trait, TraitKind, Ty, TyKind,
   },
   chart::{
-    AdtDef, AdtId, Chart, Checkpoint, DefId, GenericsDef, GenericsId, ImplDef, ImplDefId,
+    AdtDef, AdtId, Chart, ChartCheckpoint, DefId, GenericsDef, GenericsId, ImplDef, ImplDefId,
     ImplDefKind, SubitemId, TraitDef, TraitDefId, TraitDefKind, TraitSubitemKind, TypeDefId,
     TypeDefKind, ValueDef, ValueDefId, ValueDefKind, VariantId,
   },
@@ -32,59 +32,57 @@ mod display_type;
 pub struct Checker<'core, 'a> {
   core: &'core Core<'core>,
   chart: &'a mut Chart<'core>,
+  types: &'a mut ChartTypes<'core>,
   unifier: Unifier<'core>,
-  state: CheckerState<'core>,
+  locals: IntMap<Local, Var>,
+  dyn_fns: IntMap<DynFnId, Type<'core>>,
   return_ty: Option<Type<'core>>,
   labels: IdxVec<LabelId, Option<Type<'core>>>,
   cur_def: DefId,
   cur_generics: GenericsId,
+}
 
-  type_defs: IdxVec<TypeDefId, Option<Type<'core>>>,
-  adt_types: IdxVec<AdtId, IdxVec<VariantId, Vec<Type<'core>>>>,
-  trait_types: IdxVec<TraitDefId, TraitInfo<'core>>,
-  impl_param_types: IdxVec<GenericsId, Vec<Type<'core>>>,
-  value_types: IdxVec<ValueDefId, Type<'core>>,
-  impl_def_types: IdxVec<ImplDefId, Type<'core>>,
+#[derive(Debug, Default)]
+pub struct ChartTypes<'core> {
+  pub type_defs: IdxVec<TypeDefId, Option<Type<'core>>>,
+  pub adt_types: IdxVec<AdtId, IdxVec<VariantId, Vec<Type<'core>>>>,
+  pub trait_types: IdxVec<TraitDefId, TraitInfo<'core>>,
+  pub impl_param_types: IdxVec<GenericsId, Vec<Type<'core>>>,
+  pub value_types: IdxVec<ValueDefId, Type<'core>>,
+  pub impl_def_types: IdxVec<ImplDefId, Type<'core>>,
 }
 
 #[derive(Debug)]
-struct TraitInfo<'core> {
+pub struct TraitInfo<'core> {
   lookup: HashMap<Ident<'core>, SubitemId>,
   subitem_types: IdxVec<SubitemId, Type<'core>>,
 }
 
-#[derive(Default, Debug, Clone)]
-pub(crate) struct CheckerState<'core> {
-  pub(crate) locals: IntMap<Local, Var>,
-  pub(crate) dyn_fns: IntMap<DynFnId, Type<'core>>,
-}
-
-impl<'core, 'r> Checker<'core, 'r> {
-  pub fn new(core: &'core Core<'core>, chart: &'r mut Chart<'core>) -> Self {
+impl<'core, 'a> Checker<'core, 'a> {
+  pub fn new(
+    core: &'core Core<'core>,
+    chart: &'a mut Chart<'core>,
+    types: &'a mut ChartTypes<'core>,
+  ) -> Self {
     Checker {
       core,
       chart,
+      types,
       unifier: Unifier::new(core),
-      state: CheckerState::default(),
+      locals: Default::default(),
+      dyn_fns: Default::default(),
       return_ty: None,
       labels: Default::default(),
       cur_def: DefId::ROOT,
       cur_generics: GenericsId::NONE,
-
-      type_defs: IdxVec::new(),
-      adt_types: IdxVec::new(),
-      trait_types: IdxVec::new(),
-      value_types: IdxVec::new(),
-      impl_param_types: IdxVec::new(),
-      impl_def_types: IdxVec::new(),
     }
   }
 
   pub fn check_all(&mut self) {
-    self.check_since(&Checkpoint::default());
+    self.check_since(&ChartCheckpoint::default());
   }
 
-  pub(crate) fn check_since(&mut self, checkpoint: &Checkpoint) {
+  pub(crate) fn check_since(&mut self, checkpoint: &ChartCheckpoint) {
     for id in self.chart.types.keys_from(checkpoint.types) {
       self.assess_type_def(id);
     }
@@ -115,16 +113,16 @@ impl<'core, 'r> Checker<'core, 'r> {
     assert!(self.return_ty.is_none());
     self.labels.clear();
     self.unifier.reset();
-    self.state.locals.clear();
-    self.state.dyn_fns.clear();
+    self.locals.clear();
+    self.dyn_fns.clear();
 
     self.cur_def = def_id;
     self.cur_generics = generics_id;
   }
 
   fn assess_type_def(&mut self, type_id: TypeDefId) -> &Type<'core> {
-    if let Some(Some(_)) = self.type_defs.get(type_id) {
-      return self.type_defs[type_id].as_ref().unwrap();
+    if let Some(Some(_)) = self.types.type_defs.get(type_id) {
+      return self.types.type_defs[type_id].as_ref().unwrap();
     }
     let type_def = &mut self.chart.types[type_id];
     let prev_def = replace(&mut self.cur_def, type_def.def);
@@ -141,7 +139,7 @@ impl<'core, 'r> Checker<'core, 'r> {
       TypeDefKind::Builtin(ty) => ty.clone(),
     };
     self.chart.types[type_id].kind = kind;
-    let slot = self.type_defs.get_or_extend(type_id);
+    let slot = self.types.type_defs.get_or_extend(type_id);
     if slot.is_none() {
       *slot = Some(ty);
     }
@@ -156,13 +154,17 @@ impl<'core, 'r> Checker<'core, 'r> {
     match &mut kind {
       ValueDefKind::Taken => unreachable!(),
       ValueDefKind::Const { value, .. } => {
-        self.check_expr_form_type(value, Form::Value, &mut self.value_types[value_id].clone());
+        self.check_expr_form_type(
+          value,
+          Form::Value,
+          &mut self.types.value_types[value_id].clone(),
+        );
       }
       ValueDefKind::Fn { params, body, .. } => {
         for pat in params {
           self.check_pat(pat, Form::Value, false);
         }
-        let Type::Fn(_, ret) = &self.value_types[value_id] else { unreachable!() };
+        let Type::Fn(_, ret) = &self.types.value_types[value_id] else { unreachable!() };
         let mut ret = (**ret).clone();
         let old = self.return_ty.replace(ret.clone());
         self.check_block_type(body, &mut ret);
@@ -176,13 +178,17 @@ impl<'core, 'r> Checker<'core, 'r> {
   pub(crate) fn _check_custom(
     &mut self,
     def_id: DefId,
-    state: CheckerState<'core>,
+    unifier: &mut Unifier<'core>,
+    locals: &mut IntMap<Local, Var>,
     block: &mut Block<'core>,
-  ) -> (Type<'core>, CheckerState<'core>) {
+  ) -> Type<'core> {
     self.cur_def = def_id;
-    self.state = state;
+    swap(unifier, &mut self.unifier);
+    swap(locals, &mut self.locals);
     let ty = self.check_block(block);
-    (ty, take(&mut self.state))
+    swap(unifier, &mut self.unifier);
+    swap(locals, &mut self.locals);
+    ty
   }
 
   fn check_block(&mut self, block: &mut Block<'core>) -> Type<'core> {
@@ -210,7 +216,7 @@ impl<'core, 'r> Checker<'core, 'r> {
           let old = self.return_ty.replace(ret.clone());
           self.check_block_type(&mut d.body, &mut ret);
           self.return_ty = old;
-          self.state.dyn_fns.insert(d.id.unwrap(), Type::Fn(params, Box::new(ret)));
+          self.dyn_fns.insert(d.id.unwrap(), Type::Fn(params, Box::new(ret)));
         }
         StmtKind::Expr(e, semi) => {
           ty = self.check_expr_form(e, Form::Value);
@@ -293,19 +299,19 @@ impl<'core, 'r> Checker<'core, 'r> {
     match &mut kind {
       ImplDefKind::Taken => unreachable!(),
       ImplDefKind::Impl { subitems, .. } => {
-        let ty = self.impl_def_types[impl_id].clone();
+        let ty = self.types.impl_def_types[impl_id].clone();
         if let Type::Trait(trait_id, trait_type_params) = ty {
-          let trait_subitems = &self.trait_types[trait_id];
+          let trait_subitems = &self.types.trait_types[trait_id];
           subitems.vec.sort_by_key(|s| trait_subitems.lookup.get(&s.name));
           if trait_subitems.lookup.len() > subitems.len() {
             self.core.report(Diag::IncompleteImpl { span });
           }
           for subitem in subitems.values_mut() {
-            let trait_subitems = &self.trait_types[trait_id];
+            let trait_subitems = &self.types.trait_types[trait_id];
             if let Some(&subitem_id) = trait_subitems.lookup.get(&subitem.name) {
               let mut trait_ty =
                 trait_subitems.subitem_types[subitem_id].instantiate(&trait_type_params);
-              let mut ty = self.value_types[subitem.value].clone();
+              let mut ty = self.types.value_types[subitem.value].clone();
               if !self.unifier.unify(&mut ty, &mut trait_ty) {
                 self.core.report(Diag::ExpectedTypeFound {
                   span: subitem.span,
@@ -341,7 +347,7 @@ impl<'core, 'r> Checker<'core, 'r> {
   }
 
   fn assess_adt_type(&mut self, adt_id: AdtId) {
-    assert_eq!(self.adt_types.next_index(), adt_id);
+    assert_eq!(self.types.adt_types.next_index(), adt_id);
     let AdtDef { def, generics, ref mut variants, .. } = self.chart.adts[adt_id];
     let mut variants = take(variants);
     self.initialize(def, generics);
@@ -350,12 +356,12 @@ impl<'core, 'r> Checker<'core, 'r> {
       .map(|variant| variant.fields.iter_mut().map(|ty| self.hydrate_type(ty, false)).collect())
       .collect::<Vec<_>>()
       .into();
-    self.adt_types.push(tys);
+    self.types.adt_types.push(tys);
     self.chart.adts[adt_id].variants = variants;
   }
 
   fn assess_trait_type(&mut self, trait_id: TraitDefId) {
-    assert_eq!(self.trait_types.next_index(), trait_id);
+    assert_eq!(self.types.trait_types.next_index(), trait_id);
     let TraitDef { def, generics, ref mut kind, .. } = self.chart.traits[trait_id];
     let mut kind = take(kind);
     self.initialize(def, generics);
@@ -373,22 +379,22 @@ impl<'core, 'r> Checker<'core, 'r> {
           .into(),
       },
     };
-    self.trait_types.push(tys);
+    self.types.trait_types.push(tys);
     self.chart.traits[trait_id].kind = kind;
   }
 
   fn assess_impl_params(&mut self, generics_id: GenericsId) {
-    assert_eq!(self.impl_param_types.next_index(), generics_id);
+    assert_eq!(self.types.impl_param_types.next_index(), generics_id);
     let GenericsDef { def, ref mut impl_params, .. } = self.chart.generics[generics_id];
     let mut impl_params = take(impl_params);
     self.initialize(def, generics_id);
     let impl_param_types = impl_params.iter_mut().map(|(_, t)| self.assess_trait(t)).collect();
-    self.impl_param_types.push(impl_param_types);
+    self.types.impl_param_types.push(impl_param_types);
     self.chart.generics[generics_id].impl_params = impl_params;
   }
 
   fn assess_value_type(&mut self, value_id: ValueDefId) {
-    assert_eq!(self.value_types.next_index(), value_id);
+    assert_eq!(self.types.value_types.next_index(), value_id);
     let ValueDef { def, generics, ref mut kind, .. } = self.chart.values[value_id];
     let mut kind = take(kind);
     self.initialize(def, generics);
@@ -400,7 +406,7 @@ impl<'core, 'r> Checker<'core, 'r> {
       ValueDefKind::Adt(adt_id, variant_id) => {
         let adt = &self.chart.adts[*adt_id];
         let generics = &self.chart.generics[adt.generics];
-        let fields = &self.adt_types[*adt_id][*variant_id];
+        let fields = &self.types.adt_types[*adt_id][*variant_id];
         let adt = Type::Adt(*adt_id, (0..generics.type_params.len()).map(Type::Opaque).collect());
         if fields.is_empty() {
           adt
@@ -409,15 +415,15 @@ impl<'core, 'r> Checker<'core, 'r> {
         }
       }
       ValueDefKind::TraitSubitem(trait_def_id, subitem_id) => {
-        self.trait_types[*trait_def_id].subitem_types[*subitem_id].clone()
+        self.types.trait_types[*trait_def_id].subitem_types[*subitem_id].clone()
       }
     };
-    self.value_types.push(ty);
+    self.types.value_types.push(ty);
     self.chart.values[value_id].kind = kind;
   }
 
   fn assess_impl_type(&mut self, impl_id: ImplDefId) {
-    assert_eq!(self.impl_def_types.next_index(), impl_id);
+    assert_eq!(self.types.impl_def_types.next_index(), impl_id);
     let ImplDef { def, generics, ref mut kind, .. } = self.chart.impls[impl_id];
     let mut kind = take(kind);
     self.initialize(def, generics);
@@ -425,7 +431,7 @@ impl<'core, 'r> Checker<'core, 'r> {
       ImplDefKind::Taken => unreachable!(),
       ImplDefKind::Impl { trait_, .. } => self.assess_trait(trait_),
     };
-    self.impl_def_types.push(ty);
+    self.types.impl_def_types.push(ty);
     self.chart.impls[impl_id].kind = kind;
   }
 
@@ -475,10 +481,10 @@ impl<'core, 'r> Checker<'core, 'r> {
     match &mut impl_.kind {
       ImplKind::Path(_) => unreachable!(),
       ImplKind::Hole => Type::Error(self.core.report(Diag::UnspecifiedImpl { span })),
-      ImplKind::Param(n) => self.impl_param_types[self.cur_generics][*n].clone(),
+      ImplKind::Param(n) => self.types.impl_param_types[self.cur_generics][*n].clone(),
       ImplKind::Def(id, generics) => {
         let type_params = self.check_generics(generics, self.chart.impls[*id].generics, true);
-        self.impl_def_types[*id].instantiate(&type_params)
+        self.types.impl_def_types[*id].instantiate(&type_params)
       }
       ImplKind::Error(e) => Type::Error(*e),
     }
@@ -522,11 +528,13 @@ impl<'core, 'r> Checker<'core, 'r> {
     let mut type_params = (0..params.type_params.len())
       .iter()
       .map(|i| {
-        args
-          .types
-          .get_mut(i)
-          .map(|t| self.hydrate_type(t, inference))
-          .unwrap_or_else(|| self.unifier.new_var(args.span))
+        args.types.get_mut(i).map(|t| self.hydrate_type(t, inference)).unwrap_or_else(|| {
+          if inference {
+            self.unifier.new_var(args.span)
+          } else {
+            Type::Error(ErrorGuaranteed::new_unchecked())
+          }
+        })
       })
       .collect::<Vec<_>>();
     if let Some(mut type_param_hints) = pre_type_params {
@@ -536,7 +544,7 @@ impl<'core, 'r> Checker<'core, 'r> {
       }
     }
     if has_impl_params {
-      let impl_params_types = self.impl_param_types[params_id]
+      let impl_params_types = self.types.impl_param_types[params_id]
         .iter()
         .map(|t| t.instantiate(&type_params))
         .collect::<Vec<_>>();
@@ -557,9 +565,7 @@ impl<'core, 'r> Checker<'core, 'r> {
       chart: self.chart,
       initial_checkpoint: self.unifier.checkpoint(),
       unifier: &mut self.unifier,
-      value_types: &self.value_types,
-      impl_def_types: &self.impl_def_types,
-      impl_param_types: &self.impl_param_types,
+      types: self.types,
       span,
       source: self.cur_def,
       generics: self.cur_generics,
@@ -627,7 +633,7 @@ pub enum Type<'core> {
 }
 
 impl<'core> Type<'core> {
-  const NIL: Type<'static> = Type::Tuple(Vec::new());
+  pub const NIL: Type<'static> = Type::Tuple(Vec::new());
 
   pub(crate) fn instantiate(&self, opaque: &[Type<'core>]) -> Type<'core> {
     match self {
@@ -734,5 +740,16 @@ impl Default for Type<'_> {
 impl From<ErrorGuaranteed> for Type<'_> {
   fn from(value: ErrorGuaranteed) -> Self {
     Type::Error(value)
+  }
+}
+
+impl<'core> ChartTypes<'core> {
+  pub fn revert(&mut self, chart: &ChartCheckpoint) {
+    self.type_defs.truncate(chart.types.0);
+    self.adt_types.truncate(chart.adts.0);
+    self.trait_types.truncate(chart.traits.0);
+    self.impl_param_types.truncate(chart.generics.0);
+    self.value_types.truncate(chart.values.0);
+    self.impl_def_types.truncate(chart.impls.0);
   }
 }

@@ -47,7 +47,7 @@ impl<'core> Checker<'core, '_> {
       ExprKind::Hole => (Form::Space, self.unifier.new_var(span)),
       ExprKind::Local(l) => (
         Form::Place,
-        Type::Var(*self.state.locals.entry(*l).or_insert_with(|| self.unifier._new_var(span))),
+        Type::Var(*self.locals.entry(*l).or_insert_with(|| self.unifier._new_var(span))),
       ),
       ExprKind::Deref(e, _) => {
         let v = self.unifier.new_var(span);
@@ -92,7 +92,7 @@ impl<'core> Checker<'core, '_> {
               let variant = &adt.variants[VariantId(0)];
               if !variant.object && *i < variant.fields.len() {
                 *l = Some(variant.fields.len());
-                Some(self.adt_types[*adt_id][VariantId(0)][*i].instantiate(type_params))
+                Some(self.types.adt_types[*adt_id][VariantId(0)][*i].instantiate(type_params))
               } else {
                 None
               }
@@ -131,7 +131,7 @@ impl<'core> Checker<'core, '_> {
           Type::Adt(adt_id, type_params) => {
             let adt = &self.chart.adts[*adt_id];
             if adt.is_struct && adt.variants[VariantId(0)].object {
-              let [Type::Object(fields)] = &*self.adt_types[*adt_id][VariantId(0)] else {
+              let [Type::Object(fields)] = &*self.types.adt_types[*adt_id][VariantId(0)] else {
                 unreachable!()
               };
               fields
@@ -203,7 +203,7 @@ impl<'core> Checker<'core, '_> {
         let (forms, types) =
           fields.iter_mut().map(|x| self.check_expr(x)).collect::<(Vec<_>, Vec<_>)>();
         let adt = &self.chart.adts[*adt_id];
-        let field_types = self.adt_types[*adt_id][*variant_id]
+        let field_types = self.types.adt_types[*adt_id][*variant_id]
           .iter()
           .map(|t| t.instantiate(&type_params))
           .collect::<Vec<_>>();
@@ -243,10 +243,10 @@ impl<'core> Checker<'core, '_> {
     let span = expr.span;
     match &mut expr.kind {
       ExprKind![error || place || space || synthetic] | ExprKind::Path(_) => unreachable!(),
-      ExprKind::DynFn(x) => self.state.dyn_fns[x].clone(),
+      ExprKind::DynFn(x) => self.dyn_fns[x].clone(),
       ExprKind::Def(id, args) => {
         let type_params = self.check_generics(args, self.chart.values[*id].generics, true);
-        self.value_types[*id].instantiate(&type_params)
+        self.types.value_types[*id].instantiate(&type_params)
       }
       ExprKind::Do(label, block) => {
         let mut ty = self.unifier.new_var(span);

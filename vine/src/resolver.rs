@@ -1,6 +1,9 @@
 mod resolve_path;
 
-use std::{collections::HashMap, mem::take};
+use std::{
+  collections::{BTreeMap, HashMap},
+  mem::take,
+};
 
 use vine_util::idx::Counter;
 
@@ -10,12 +13,12 @@ use crate::{
     Stmt, StmtKind, Trait, TraitKind, Ty, TyKind,
   },
   chart::{
-    AdtDef, Chart, Checkpoint, DefId, GenericsId, ImplDef, ImplDefKind, PatternDefKind, TraitDef,
-    TraitDefKind, TraitSubitemKind, TypeDef, TypeDefKind, ValueDef, ValueDefKind,
+    AdtDef, Chart, ChartCheckpoint, DefId, GenericsId, ImplDef, ImplDefKind, PatternDefKind,
+    TraitDef, TraitDefKind, TraitSubitemKind, TypeDef, TypeDefKind, ValueDef, ValueDefKind,
   },
   core::Core,
   diag::Diag,
-  visit::VisitMut,
+  visit::{VisitMut, Visitee},
 };
 
 #[derive(Debug)]
@@ -26,10 +29,10 @@ pub struct Resolver<'core, 'a> {
 
 impl<'core> Resolver<'core, '_> {
   pub fn resolve_all(&mut self) {
-    self.resolve_since(&Checkpoint::default());
+    self.resolve_since(&ChartCheckpoint::default());
   }
 
-  pub fn resolve_since(&mut self, checkpoint: &Checkpoint) {
+  pub fn resolve_since(&mut self, checkpoint: &ChartCheckpoint) {
     ResolveVisitor {
       resolver: self,
       def: Default::default(),
@@ -44,6 +47,45 @@ impl<'core> Resolver<'core, '_> {
       label_id: Default::default(),
     }
     .resolve_since(checkpoint);
+  }
+
+  pub(crate) fn resolve_custom<'t>(
+    &mut self,
+    def: DefId,
+    initial: &BTreeMap<Local, Ident<'core>>,
+    local_count: &mut Counter<Local>,
+    visitee: impl Visitee<'core, 't>,
+  ) -> impl Iterator<Item = (Ident<'core>, Local)> {
+    let mut visitor = ResolveVisitor {
+      resolver: self,
+      def,
+      type_params: HashMap::new(),
+      impl_params: HashMap::new(),
+      scope: initial
+        .iter()
+        .map(|(&l, &i)| (i, vec![ScopeEntry { depth: 0, binding: Binding::Local(l) }]))
+        .collect(),
+      scope_depth: 0,
+      locals: *local_count,
+      dyn_fns: Counter::default(),
+      labels: Default::default(),
+      loops: Default::default(),
+      label_id: Default::default(),
+    };
+    visitor.visit(visitee);
+    *local_count = visitor.locals;
+    visitor.scope.into_iter().filter_map(|(k, e)| {
+      let entry = e.first()?;
+      if entry.depth == 0 {
+        if let Binding::Local(l) = entry.binding {
+          Some((k, l))
+        } else {
+          None
+        }
+      } else {
+        None
+      }
+    })
   }
 }
 
@@ -75,7 +117,7 @@ enum Binding {
 }
 
 impl<'core> ResolveVisitor<'core, '_, '_> {
-  fn resolve_since(&mut self, checkpoint: &Checkpoint) {
+  fn resolve_since(&mut self, checkpoint: &ChartCheckpoint) {
     for id in self.resolver.chart.values.keys_from(checkpoint.values) {
       let ValueDef { def, generics, ref mut kind, .. } = self.resolver.chart.values[id];
       let mut kind = take(kind);

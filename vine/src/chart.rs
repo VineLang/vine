@@ -254,7 +254,7 @@ pub struct AdtVariant<'core> {
 }
 
 #[derive(Default, Debug)]
-pub struct Checkpoint {
+pub struct ChartCheckpoint {
   pub defs: DefId,
   pub values: ValueDefId,
   pub types: TypeDefId,
@@ -267,8 +267,8 @@ pub struct Checkpoint {
 }
 
 impl<'core> Chart<'core> {
-  pub fn checkpoint(&self) -> Checkpoint {
-    Checkpoint {
+  pub fn checkpoint(&self) -> ChartCheckpoint {
+    ChartCheckpoint {
       defs: self.defs.next_index(),
       values: self.values.next_index(),
       types: self.types.next_index(),
@@ -281,7 +281,7 @@ impl<'core> Chart<'core> {
     }
   }
 
-  pub fn revert(&mut self, checkpoint: &Checkpoint) {
+  pub fn revert(&mut self, checkpoint: &ChartCheckpoint) {
     self.defs.truncate(checkpoint.defs.0);
     self.values.truncate(checkpoint.values.0);
     self.types.truncate(checkpoint.types.0);
@@ -301,7 +301,7 @@ impl<'core> Chart<'core> {
 }
 
 impl<'core> Def<'core> {
-  fn revert(&mut self, checkpoint: &Checkpoint) {
+  fn revert(&mut self, checkpoint: &ChartCheckpoint) {
     self.members.retain(|_, member| match member.kind {
       MemberKind::Child(id) => id < checkpoint.defs,
       MemberKind::Import(id) => id < checkpoint.imports,
@@ -315,7 +315,7 @@ impl<'core> Def<'core> {
 }
 
 impl Builtins {
-  fn revert(&mut self, checkpoint: &Checkpoint) {
+  fn revert(&mut self, checkpoint: &ChartCheckpoint) {
     revert_option(&mut self.prelude, checkpoint.defs);
     revert_option(&mut self.n32, checkpoint.defs);
     revert_option(&mut self.f32, checkpoint.defs);
@@ -328,7 +328,7 @@ impl Builtins {
 }
 
 fn revert_option<T: Idx>(option: &mut Option<T>, checkpoint: T) {
-  if option.is_some_and(|id| id < checkpoint) {
+  if option.is_some_and(|id| id >= checkpoint) {
     *option = None;
   }
 }

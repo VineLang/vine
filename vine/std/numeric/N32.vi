@@ -91,7 +91,7 @@ pub mod N32 {
     }
   }
 
-  pub fn gcd(a: N32, b: N32) -> N32 {
+  pub fn .gcd(a: N32, b: N32) -> N32 {
     while a != 0 {
       (a, b) = (b % a, a)
     }

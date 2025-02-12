@@ -23,9 +23,12 @@ pub struct Charter<'core, 'a> {
 
 impl<'core> Charter<'core, '_> {
   pub fn chart_root(&mut self, root: ModKind<'core>) {
-    self.chart.generics.push(GenericsDef::default());
-    let _root_def = self.new_def(self.core.ident("::"), "", None);
-    debug_assert_eq!(_root_def, DefId::ROOT);
+    if self.chart.generics.is_empty() {
+      self.chart.generics.push(GenericsDef::default());
+    }
+    if self.chart.defs.is_empty() {
+      self.new_def(self.core.ident("::"), "", None);
+    }
     self.chart_mod(DefId::ROOT, root, DefId::ROOT);
   }
 
@@ -57,7 +60,7 @@ impl<'core> Charter<'core, '_> {
     }
   }
 
-  fn chart_item(&mut self, member_vis: DefId, mut item: Item<'core>, parent: DefId) {
+  pub fn chart_item(&mut self, member_vis: DefId, mut item: Item<'core>, parent: DefId) {
     let subitems = extract_subitems(&mut item);
 
     let span = item.span;
@@ -508,16 +511,16 @@ fn extract_subitems<'core>(item: &mut Item<'core>) -> Vec<Item<'core>> {
   if !matches!(item.kind, ItemKind::Mod(_) | ItemKind::Trait(_) | ItemKind::Impl(_)) {
     visitor._visit_item(item);
   }
-  visitor.subitems
+  visitor.items
 }
 
 #[derive(Default)]
 pub struct ExtractItems<'core> {
-  subitems: Vec<Item<'core>>,
+  pub items: Vec<Item<'core>>,
 }
 
 impl<'core> VisitMut<'core, '_> for ExtractItems<'core> {
   fn visit_item(&mut self, item: &mut Item<'core>) {
-    self.subitems.push(take(item));
+    self.items.push(take(item));
   }
 }

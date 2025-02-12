@@ -1,11 +1,9 @@
 use std::collections::{BTreeSet, HashSet};
 
-use vine_util::idx::IdxVec;
-
 use crate::{
   ast::{Generics, Ident, Impl, ImplKind, Span},
   chart::{Chart, Def, DefId, GenericsId, ImplDefId, MemberKind, ValueDefId},
-  checker::Type,
+  checker::{ChartTypes, Type},
   unifier::{Unifier, UnifierCheckpoint},
 };
 
@@ -13,9 +11,7 @@ pub struct Finder<'core, 'a> {
   pub(crate) chart: &'a Chart<'core>,
   pub(crate) initial_checkpoint: UnifierCheckpoint,
   pub(crate) unifier: &'a mut Unifier<'core>,
-  pub(crate) value_types: &'a IdxVec<ValueDefId, Type<'core>>,
-  pub(crate) impl_def_types: &'a IdxVec<ImplDefId, Type<'core>>,
-  pub(crate) impl_param_types: &'a IdxVec<GenericsId, Vec<Type<'core>>>,
+  pub(crate) types: &'a ChartTypes<'core>,
   pub(crate) span: Span,
   pub(crate) source: DefId,
   pub(crate) generics: GenericsId,
@@ -46,7 +42,7 @@ impl<'core> Finder<'core, '_> {
       let mut type_params = (0..self.chart.generics[generics].type_params.len())
         .map(|_| self.unifier.new_var(self.span))
         .collect::<Vec<_>>();
-      if let Some(ty) = self.value_types[candidate].receiver() {
+      if let Some(ty) = self.types.value_types[candidate].receiver() {
         let mut ty = ty.instantiate(&type_params);
         if self.unifier.unify(&mut ty, &mut receiver.clone()) {
           type_params.iter_mut().for_each(|t| self.unifier.export(&checkpoint, t));
@@ -98,7 +94,7 @@ impl<'core> Finder<'core, '_> {
 
     let mut found = Vec::new();
 
-    for (i, ty) in self.impl_param_types[self.generics].iter().enumerate() {
+    for (i, ty) in self.types.impl_param_types[self.generics].iter().enumerate() {
       let checkpoint = self.unifier.checkpoint();
       let mut ty = ty.clone();
       if self.unifier.unify(&mut ty, &mut query.clone()) {
@@ -114,9 +110,9 @@ impl<'core> Finder<'core, '_> {
       let type_params = (0..self.chart.generics[generics].type_params.len())
         .map(|_| self.unifier.new_var(self.span))
         .collect::<Vec<_>>();
-      let mut ty = self.impl_def_types[candidate].instantiate(&type_params);
+      let mut ty = self.types.impl_def_types[candidate].instantiate(&type_params);
       if self.unifier.unify(&mut ty, &mut query.clone()) {
-        let queries = self.impl_param_types[generics]
+        let queries = self.types.impl_param_types[generics]
           .iter()
           .map(|t| t.instantiate(&type_params))
           .collect::<Vec<_>>();
@@ -179,7 +175,7 @@ impl<'core> Finder<'core, '_> {
       modules: HashSet::new(),
       consider_candidate: |def: &Def| {
         if let Some(impl_id) = def.impl_def {
-          let ty = &self.impl_def_types[impl_id];
+          let ty = &self.types.impl_def_types[impl_id];
           if let Type::Trait(trait_id, _) = ty {
             if trait_id == goal_trait_id {
               candidates.insert(impl_id);
@@ -243,7 +239,7 @@ impl<'core> Finder<'core, '_> {
       if let Some(impl_id) = def.impl_def {
         let impl_def = &self.chart.impls[impl_id];
         if self.chart.visible(impl_def.vis, self.source) {
-          let ty = &self.impl_def_types[impl_id];
+          let ty = &self.types.impl_def_types[impl_id];
           if let Type::Trait(trait_id, _) = ty {
             let trait_def = &self.chart.traits[*trait_id];
             if self.chart.visible(trait_def.vis, self.source) {

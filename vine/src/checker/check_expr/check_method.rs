@@ -65,7 +65,7 @@ impl<'core> Checker<'core, '_> {
   ) -> Result<(Form, Type<'core>, Vec<Type<'core>>, Type<'core>), Diag<'core>> {
     let type_params =
       self._check_generics(generics, self.chart.values[id].generics, true, Some(type_params));
-    let ty = self.value_types[id].instantiate(&type_params);
+    let ty = self.types.value_types[id].instantiate(&type_params);
     match ty {
       Type::Fn(mut params, ret) => {
         if params.len() != args + 1 {

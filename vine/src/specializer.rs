@@ -3,30 +3,34 @@ use std::{
   mem::take,
 };
 
-use vine_util::{idx::IdxVec, new_idx, unwrap_idx_vec};
+use vine_util::{idx::IdxVec, new_idx};
 
 use crate::{
   ast::{Expr, ExprKind, Impl, ImplKind},
-  chart::{Chart, ImplDefId, ImplDefKind, SubitemId, ValueDefId, ValueDefKind},
-  visit::VisitMut,
+  chart::{Chart, ChartCheckpoint, ImplDefId, ImplDefKind, SubitemId, ValueDefId, ValueDefKind},
+  visit::{VisitMut, Visitee},
 };
 
-pub fn specialize(chart: &mut Chart) -> IdxVec<ValueDefId, IdxVec<SpecId, Spec>> {
-  let mut specializer = Specializer { defs: IdxVec::new(), chart };
-  specializer.initialize();
-  specializer.specialize_roots();
-  specializer.defs.into_iter().map(|d| unwrap_idx_vec(d.1.specs)).collect::<Vec<_>>().into()
+#[derive(Debug)]
+pub struct Specializer<'core, 'a> {
+  pub specs: &'a mut Specializations<'core>,
+  pub chart: &'a mut Chart<'core>,
 }
 
-#[derive(Debug)]
-struct Specializer<'core, 'a> {
+#[derive(Debug, Default)]
+pub struct Specializations<'core> {
   defs: IdxVec<ValueDefId, ValueDefInfo<'core>>,
-  chart: &'a mut Chart<'core>,
+  pub specs: IdxVec<SpecId, Option<Spec>>,
 }
 
 impl<'core, 'a> Specializer<'core, 'a> {
-  fn initialize(&mut self) {
-    for value_id in self.chart.values.keys() {
+  pub fn specialize_since(&mut self, checkpoint: &ChartCheckpoint) {
+    self.initialize(checkpoint);
+    self.specialize_roots(checkpoint);
+  }
+
+  fn initialize(&mut self, checkpoint: &ChartCheckpoint) {
+    for value_id in self.chart.values.keys_from(checkpoint.values) {
       let value_def = &mut self.chart.values[value_id];
       let def_info = {
         let impl_params = self.chart.generics[value_def.generics].impl_params.len();
@@ -40,52 +44,79 @@ impl<'core, 'a> Specializer<'core, 'a> {
         };
         let rels = extractor.rels;
         self.chart.values[value_id].kind = kind;
-        ValueDefInfo { impl_params, rels, specs_lookup: HashMap::new(), specs: IdxVec::new() }
+        ValueDefInfo { impl_params, rels, specs: HashMap::new() }
       };
-      self.defs.push(def_info);
+      self.specs.defs.push(def_info);
     }
   }
 
-  fn specialize_roots(&mut self) {
-    for def_id in self.defs.keys() {
-      if self.defs[def_id].impl_params == 0 {
-        self.specialize(def_id, Vec::new());
-        self.defs[def_id].specs[SpecId(0)].as_mut().unwrap().singular = true;
+  fn specialize_roots(&mut self, checkpoint: &ChartCheckpoint) {
+    for def_id in self.specs.defs.keys_from(checkpoint.values) {
+      if self.specs.defs[def_id].impl_params == 0 {
+        let id = self.specialize(def_id, Vec::new());
+        self.specs.specs[id].as_mut().unwrap().singular = true;
       }
     }
   }
 
   fn specialize(&mut self, def_id: ValueDefId, impl_args: Vec<ImplTree>) -> SpecId {
-    let def = &mut self.defs[def_id];
-    let entry = match def.specs_lookup.entry(impl_args) {
+    let def = &mut self.specs.defs[def_id];
+    let entry = match def.specs.entry(impl_args) {
       Entry::Occupied(e) => return *e.get(),
       Entry::Vacant(e) => e,
     };
-    let spec_id = def.specs.push(None);
+    let spec_id = self.specs.specs.push(None);
     let impl_args = entry.key().clone();
     entry.insert(spec_id);
-    let mut spec = Spec::default();
-    for rel_id in def.rels.keys() {
-      let rel = &self.defs[def_id].rels[rel_id];
-      let (rel_def_id, rel_impl_args) = match rel {
-        Rel::Def(rel_def_id, impls) => {
-          (*rel_def_id, impls.iter().map(|x| instantiate(x, &impl_args)).collect())
-        }
-        Rel::Subitem(impl_, subitem_id) => {
-          let impl_ = instantiate(impl_, &impl_args);
-          let value = match &self.chart.impls[impl_.0].kind {
-            ImplDefKind::Taken => unreachable!(),
-            ImplDefKind::Impl { subitems, .. } => subitems[*subitem_id].value,
-          };
-          (value, impl_.1)
-        }
-      };
-      let singular = rel_impl_args.is_empty();
-      let rel_spec_id = self.specialize(rel_def_id, rel_impl_args);
-      spec.rels.push((rel_def_id, rel_spec_id, singular));
+    let index = def.specs.len();
+    let rels = &def.rels;
+    let mut spec_rels = IdxVec::new();
+    for rel_id in rels.keys() {
+      let rel = &self.specs.defs[def_id].rels[rel_id];
+      let (rel_def_id, rel_impl_args) = self.instantiate_rel(rel, &impl_args);
+      let specialized = self.specialize(rel_def_id, rel_impl_args);
+      spec_rels.push(specialized);
     }
-    self.defs[def_id].specs[spec_id] = Some(spec);
+    let spec = Spec { value: def_id, index, singular: false, rels: spec_rels };
+    self.specs.specs[spec_id] = Some(spec);
     spec_id
+  }
+
+  fn instantiate_rel(
+    &self,
+    rel: &Rel<'core>,
+    impl_args: &[ImplTree],
+  ) -> (ValueDefId, Vec<ImplTree>) {
+    match rel {
+      Rel::Def(rel_def_id, impls) => {
+        (*rel_def_id, impls.iter().map(|x| instantiate(x, impl_args)).collect())
+      }
+      Rel::Subitem(impl_, subitem_id) => {
+        let impl_ = instantiate(impl_, impl_args);
+        let value = match &self.chart.impls[impl_.0].kind {
+          ImplDefKind::Taken => unreachable!(),
+          ImplDefKind::Impl { subitems, .. } => subitems[*subitem_id].value,
+        };
+        (value, impl_.1)
+      }
+    }
+  }
+
+  pub(crate) fn _specialize_custom<'t>(
+    &mut self,
+    visitee: impl Visitee<'core, 't>,
+  ) -> IdxVec<RelId, SpecId> {
+    let mut extractor = RelExtractor { rels: IdxVec::new(), chart: self.chart };
+    extractor.visit(visitee);
+    extractor
+      .rels
+      .into_values()
+      .map(|rel| {
+        let (rel_def_id, rel_impl_args) = self.instantiate_rel(&rel, &Vec::new());
+        self.specialize(rel_def_id, rel_impl_args)
+      })
+      .collect::<Vec<_>>()
+      .into()
   }
 }
 
@@ -116,18 +147,19 @@ impl<'core> VisitMut<'core, '_> for RelExtractor<'core, '_> {
 struct ValueDefInfo<'core> {
   impl_params: usize,
   rels: IdxVec<RelId, Rel<'core>>,
-  specs_lookup: HashMap<Vec<ImplTree>, SpecId>,
-  specs: IdxVec<SpecId, Option<Spec>>,
+  specs: HashMap<Vec<ImplTree>, SpecId>,
 }
 
 new_idx!(pub RelId);
 new_idx!(pub SpecId);
 new_idx!(pub ImplId);
 
-#[derive(Debug, Default)]
+#[derive(Debug)]
 pub struct Spec {
+  pub value: ValueDefId,
+  pub index: usize,
   pub singular: bool,
-  pub rels: IdxVec<RelId, (ValueDefId, SpecId, bool)>,
+  pub rels: IdxVec<RelId, SpecId>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -146,5 +178,13 @@ fn instantiate<'core>(impl_: &Impl<'core>, params: &[ImplTree]) -> ImplTree {
     ImplKind::Def(id, generics) => {
       ImplTree(*id, generics.impls.iter().map(|i| instantiate(i, params)).collect())
     }
+  }
+}
+
+impl<'core> Specializations<'core> {
+  pub fn revert(&mut self, checkpoint: &ChartCheckpoint, specs: SpecId) {
+    self.specs.truncate(specs.0);
+    self.defs.truncate(checkpoint.values.0);
+    self.defs.values_mut().for_each(|info| info.specs.retain(|_, s| *s < specs));
   }
 }

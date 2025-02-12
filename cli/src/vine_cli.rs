@@ -8,15 +8,13 @@ use std::{
 use anyhow::Result;
 use clap::{Args, Parser};
 
-// use ivm::{heap::Heap, IVM};
-use ivy::{
-  ast::Nets,
-  // host::Host
-};
-// use rustyline::DefaultEditor;
+use ivm::{heap::Heap, IVM};
+use ivy::{ast::Nets, host::Host};
+use rustyline::DefaultEditor;
 use vine::{
+  compiler::Compiler,
   core::{Core, CoreArenas},
-  // repl::Repl,
+  repl::Repl,
 };
 use vine_lsp::lsp;
 
@@ -53,8 +51,6 @@ pub struct CompileArgs {
   main: Option<PathBuf>,
   #[arg(long = "lib")]
   libs: Vec<PathBuf>,
-  #[arg(long = "item")]
-  items: Vec<String>,
   #[arg(long)]
   no_std: bool,
 }
@@ -64,7 +60,19 @@ impl CompileArgs {
     if !self.no_std {
       self.libs.push(std_path())
     }
-    match vine::compile(vine::Config { main: self.main, libs: self.libs, items: self.items }) {
+
+    let arenas = CoreArenas::default();
+    let core = &Core::new(&arenas);
+    let mut compiler = Compiler::new(core);
+
+    if let Some(main) = self.main {
+      compiler.loader.load_main_mod(main);
+    }
+    for lib in self.libs {
+      compiler.loader.load_mod(lib);
+    }
+
+    match compiler.compile(()) {
       Ok(nets) => nets,
       Err(err) => {
         eprintln!("{}", err);
@@ -135,41 +143,41 @@ pub struct VineReplCommand {
 }
 
 impl VineReplCommand {
-  pub fn execute(self) -> Result<()> {
-    // if !self.no_std {
-    //   self.libs.push(std_path())
-    // }
-    //
-    // let host = &mut Host::default();
-    // let heap = Heap::new();
-    // let mut ivm = IVM::new(&heap);
-    // let arenas = CoreArenas::default();
-    // let core = &Core::new(&arenas);
-    // let mut repl = match Repl::new(host, &mut ivm, core, self.libs) {
-    //   Ok(repl) => repl,
-    //   Err(err) => {
-    //     eprintln!("{err}");
-    //     exit(1);
-    //   }
-    // };
-    // let mut rl = DefaultEditor::new()?;
-    // loop {
-    //   print!("\n{repl}");
-    //   match rl.readline("> ") {
-    //     Ok(line) => {
-    //       if self.echo {
-    //         println!("> {}", line);
-    //       }
-    //       _ = rl.add_history_entry(&line);
-    //       match repl.exec(&line) {
-    //         Ok(Some(result)) => println!("{result}"),
-    //         Ok(None) => {}
-    //         Err(err) => println!("{err}"),
-    //       }
-    //     }
-    //     Err(_) => break,
-    //   }
-    // }
+  pub fn execute(mut self) -> Result<()> {
+    if !self.no_std {
+      self.libs.push(std_path())
+    }
+
+    let host = &mut Host::default();
+    let heap = Heap::new();
+    let mut ivm = IVM::new(&heap);
+    let arenas = CoreArenas::default();
+    let core = &Core::new(&arenas);
+    let mut repl = match Repl::new(host, &mut ivm, core, self.libs) {
+      Ok(repl) => repl,
+      Err(err) => {
+        eprintln!("{err}");
+        exit(1);
+      }
+    };
+    let mut rl = DefaultEditor::new()?;
+    loop {
+      print!("\n{repl}");
+      match rl.readline("> ") {
+        Ok(line) => {
+          if self.echo {
+            println!("> {}", line);
+          }
+          _ = rl.add_history_entry(&line);
+          match repl.exec(&line) {
+            Ok(Some(result)) => println!("{result}"),
+            Ok(None) => {}
+            Err(err) => println!("{err}"),
+          }
+        }
+        Err(_) => break,
+      }
+    }
     Ok(())
   }
 }
