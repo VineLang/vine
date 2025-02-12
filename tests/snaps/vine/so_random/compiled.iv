@@ -55,7 +55,7 @@
 ::std::rng::Pcg32::new {
   fn(w0 fn(w1 tup(w15 w18)))
   ::std::numeric::N64::from_n32 = fn(1 w5)
-  ::std::numeric::N64::or = fn(w1 fn(w5 dup2344(w9 dup2344(w14 w18))))
+  ::std::numeric::N64::or = fn(w1 fn(w5 dup1754(w9 dup1754(w14 w18))))
   ::std::numeric::N64::add = fn(w0 fn(w9 w10))
   ::std::numeric::N64::mul = fn(w10 fn(::std::rng::Pcg32::multiplier w13))
   ::std::numeric::N64::add = fn(w13 fn(w14 w15))
@@ -69,7 +69,7 @@
 ::std::rng::Pcg32::multiplier { tup(1284865837 1481765933) }
 
 ::std::rng::Pcg32::gen_n32 {
-  fn(ref(tup(dup2351(tup(@n32_shr(27 w24) dup2354(@n32_shr(13 @n32_xor(w21 @n32_xor(w24 w25))) dup2354(@n32_shl(5 w21) @n32_shr(27 w27)))) w13) dup2352(w2 w15)) tup(w16 w2)) w28)
+  fn(ref(tup(dup1761(tup(@n32_shr(27 w24) dup1764(@n32_shr(13 @n32_xor(w21 @n32_xor(w24 w25))) dup1764(@n32_shl(5 w21) @n32_shr(27 w27)))) w13) dup1762(w2 w15)) tup(w16 w2)) w28)
   ::std::numeric::N64::mul = fn(w13 fn(::std::rng::Pcg32::multiplier w14))
   ::std::numeric::N64::add = fn(w14 fn(w15 w16))
   ::std::numeric::N32::rotate_right = fn(w25 fn(w27 w28))
@@ -86,7 +86,7 @@
   ::std::IO::print::1 = x(x(w1 w16) x(w7 w8))
 }
 
-::std::IO::print::1 { x(w4 x(dup2716(?(::std::IO::print::3 ::std::IO::print::2 x(w4 x(w6 w1))) w6) w1)) }
+::std::IO::print::1 { x(w4 x(dup2189(?(::std::IO::print::3 ::std::IO::print::2 x(w4 x(w6 w1))) w6) w1)) }
 
 ::std::IO::print::2 {
   x(x(w17 w21) x(@sub(1 w1) tup(w4 w5)))
