@@ -1,5 +1,5 @@
 
-use std::{data::Array, tuple::Pair};
+use std::data::Array;
 
 pub fn main(&io: &IO) {
   let grid = Array::empty;

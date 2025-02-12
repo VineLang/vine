@@ -36,8 +36,6 @@ pub struct Builtins {
   pub char: Option<DefId>,
   pub io: Option<DefId>,
 
-  pub pair: Option<DefId>,
-
   pub list: Option<AdtId>,
   pub string: Option<AdtId>,
 

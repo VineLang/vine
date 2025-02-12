@@ -14,7 +14,7 @@ pub mod Map {
   }
 
   pub fn from_list[K, V; Ord[K]](entries: List[(K, V)]) -> Map[K, V] {
-    let map = Map::empty;
+    let map = Map::empty[K, V];
     while entries.pop_front() is Some((key, value)) {
       map.insert(key, value);
     }
@@ -40,7 +40,7 @@ pub mod Map {
       match key.cmp(&cur_key) {
         Ord::Lt {
           old = left.insert(key, value);
-          len = Map::size(&data);
+          len = size(&data);
           balance_right(&data);
         }
         Ord::Eq {
@@ -50,7 +50,7 @@ pub mod Map {
         }
         Ord::Gt {
           old = right.insert(key, value);
-          len = Map::size(&data);
+          len = size(&data);
           balance_left(&data);
         }
       }
@@ -343,6 +343,6 @@ fn is_single[K, V](&Map[K, V](a, _), &Map[K, V](b, _)) -> Bool {
   a <= 2 * b
 }
 
-fn size[K, V; Ord[K]](&(Map(l, _), _, Map(r, _)): &MapData[K, V]) -> N32 {
+fn size[K, V](&(Map(l, _), _, Map(r, _)): &MapData[K, V]) -> N32 {
   l + r + 1
 }

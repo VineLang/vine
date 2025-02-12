@@ -707,7 +707,6 @@ impl<'core> Type<'core> {
       Type::F32 => chart.builtins.f32,
       Type::Char => chart.builtins.char,
       Type::IO => chart.builtins.io,
-      Type::Tuple(x) if x.len() == 2 => chart.builtins.pair,
       Type::Tuple(_)
       | Type::Object(_)
       | Type::Fn(..)

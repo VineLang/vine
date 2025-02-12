@@ -1,5 +1,5 @@
 
-use std::{data::Map, numeric::N64, tuple::Pair};
+use std::{data::Map, numeric::N64};
 
 pub fn main(&io: &IO) {
   let map = Map::empty[N32, _];
