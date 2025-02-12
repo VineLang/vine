@@ -1,5 +1,5 @@
-use std::rng::Rng;
-let rng = Rng::default
+use std::rng::Pcg32;
+let rng = Pcg32::default
 let nums = []
 let len = 20
 while len != 0 { len -= 1; nums ++= [rng.gen_n32() % 100] }

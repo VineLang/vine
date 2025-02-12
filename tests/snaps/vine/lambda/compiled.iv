@@ -1,4 +1,18 @@
 
+::std::data::Map::Ord::Lt { enum(r enum(_ enum(_ r))) }
+
+::std::data::Map::Ord::Eq { enum(_ enum(r enum(_ r))) }
+
+::std::data::Map::Ord::Gt { enum(_ enum(_ enum(r r))) }
+
+::std::logical::Option::None { enum(_ enum(r r)) }
+
+::std::IO::print_char { fn(ref(@io_print_char(char io) io) fn(char _)) }
+
+::std::IO::flush { fn(ref(@io_flush(0 io) io) _) }
+
+::std::IO::read_byte { fn(ref(dup(io0 @io_read_byte(default dup(byte @seq$(io0 io1)))) io1) fn(default byte)) }
+
 ::main { ::lambda::main }
 
 ::lambda::main {
@@ -415,12 +429,6 @@
 
 ::std::data::List::cmp::19 { enum(_ ::std::data::Map::Ord::Gt) }
 
-::std::data::Map::Ord::Lt { enum(r enum(_ enum(_ r))) }
-
-::std::data::Map::Ord::Eq { enum(_ enum(r enum(_ r))) }
-
-::std::data::Map::Ord::Gt { enum(_ enum(_ enum(r r))) }
-
 ::std::data::Map::new { fn(w0 tup(w0 ::std::data::Map::Node::leaf)) }
 
 ::std::data::Map::get_or_insert {
@@ -548,8 +556,6 @@
 
 ::std::data::Map::size { fn(ref(tup(tup(dup1936(w0 @add(w17 @add(1 w19))) w2) tup(w5 tup(dup1937(w6 w17) w8))) tup(tup(w0 w2) tup(w5 tup(w6 w8)))) w19) }
 
-::std::logical::Option::None { enum(_ enum(r r)) }
-
 ::std::logical::Option::unwrap_or { fn(enum(::std::logical::Option::unwrap_or::4 enum(::std::logical::Option::unwrap_or::5 x(w1 w8))) fn(w1 w8)) }
 
 ::std::logical::Option::unwrap_or::4 { enum(w0 x(_ w0)) }
@@ -601,10 +607,6 @@
 
 ::std::IO::print::3 { x(x(w3 w3) _) }
 
-::std::IO::print_char { fn(ref(@io_print_char(char io) io) fn(char _)) }
-
-::std::IO::flush { fn(ref(@io_flush(0 io) io) _) }
-
 ::std::IO::prompt {
   fn(ref(w1 w16) fn(w3 w18))
   ::std::IO::print = fn(ref(w1 w7) fn(w3 _))
@@ -640,6 +642,4 @@
 }
 
 ::std::IO::read_line::10 { x(x(w5 w5) x(_ x(x(w2 w2) _))) }
-
-::std::IO::read_byte { fn(ref(dup(io0 @io_read_byte(default dup(byte @seq$(io0 io1)))) io1) fn(default byte)) }
 

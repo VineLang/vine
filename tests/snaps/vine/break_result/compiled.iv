@@ -1,4 +1,6 @@
 
+::std::IO::print_char { fn(ref(@io_print_char(char io) io) fn(char _)) }
+
 ::main { ::break_result::main }
 
 ::break_result::main {
@@ -26,6 +28,4 @@
 }
 
 ::std::IO::print::3 { x(x(w3 w3) _) }
-
-::std::IO::print_char { fn(ref(@io_print_char(char io) io) fn(char _)) }
 

@@ -1,4 +1,6 @@
 
+::std::IO::print_char { fn(ref(@io_print_char(char io) io) fn(char _)) }
+
 ::main { ::basic_diverge::main }
 
 ::basic_diverge::main {
@@ -14,15 +16,7 @@
   ::std::IO::println = fn(ref(w23 w31) fn(w36 _))
 }
 
-::basic_diverge::foo { fn(?(::basic_diverge::foo::3 ::basic_diverge::foo::2 x(x(w2 w14) w12)) fn(ref(w2 w14) w12)) }
-
-::basic_diverge::foo::2 { x(x(w3 w3) tup(9 tup(tup(110 tup(111 tup(110 tup(45 tup(122 tup(101 tup(114 tup(111 tup(33 w4))))))))) w4))) }
-
-::basic_diverge::foo::3 { x(x(@add(1 w11) w11) tup(4 tup(tup(122 tup(101 tup(114 tup(111 w13)))) w13))) }
-
-::std::data::List::concat { fn(tup(@add(w10 w18) tup(w6 w11)) fn(tup(w10 tup(w11 w21)) tup(w18 tup(w6 w21)))) }
-
-::std::numeric::N32::to_string::to_string { fn(dup1782(?(::std::numeric::N32::to_string::to_string::3 ::std::numeric::N32::to_string::to_string::2 x(w7 w6)) w7) w6) }
+::std::numeric::N32::to_string::to_string { fn(dup12(?(::std::numeric::N32::to_string::to_string::3 ::std::numeric::N32::to_string::to_string::2 x(w7 w6)) w7) w6) }
 
 ::std::numeric::N32::to_string::to_string::2 {
   x(w6 w9)
@@ -31,16 +25,24 @@
 
 ::std::numeric::N32::to_string::to_string::3 { x(_ tup(1 tup(tup(48 w3) w3))) }
 
-::std::numeric::N32::to_string::to_string::4 { x(dup1791(?(::std::numeric::N32::to_string::to_string::6 ::std::numeric::N32::to_string::to_string::5 x(w6 w2)) w6) w2) }
+::std::numeric::N32::to_string::to_string::4 { x(dup21(?(::std::numeric::N32::to_string::to_string::6 ::std::numeric::N32::to_string::to_string::5 x(w6 w2)) w6) w2) }
 
 ::std::numeric::N32::to_string::to_string::5 {
-  x(dup1794(@rem(10 w1) @div(10 w8)) x(w11 w15))
+  x(dup24(@rem(10 w1) @div(10 w8)) x(w11 w15))
   48 = @add(w1 w2)
   ::std::data::List::concat = fn(tup(1 tup(tup(w2 w13) w13)) fn(w11 w5))
   ::std::numeric::N32::to_string::to_string::4 = x(w8 x(w5 w15))
 }
 
 ::std::numeric::N32::to_string::to_string::6 { x(_ x(w1 w1)) }
+
+::basic_diverge::foo { fn(?(::basic_diverge::foo::3 ::basic_diverge::foo::2 x(x(w2 w14) w12)) fn(ref(w2 w14) w12)) }
+
+::basic_diverge::foo::2 { x(x(w3 w3) tup(9 tup(tup(110 tup(111 tup(110 tup(45 tup(122 tup(101 tup(114 tup(111 tup(33 w4))))))))) w4))) }
+
+::basic_diverge::foo::3 { x(x(@add(1 w11) w11) tup(4 tup(tup(122 tup(101 tup(114 tup(111 w13)))) w13))) }
+
+::std::data::List::concat { fn(tup(@add(w10 w18) tup(w6 w11)) fn(tup(w10 tup(w11 w21)) tup(w18 tup(w6 w21)))) }
 
 ::std::IO::println {
   fn(ref(w1 w12) fn(w3 _))
@@ -62,6 +64,4 @@
 }
 
 ::std::IO::print::3 { x(x(w3 w3) _) }
-
-::std::IO::print_char { fn(ref(@io_print_char(char io) io) fn(char _)) }
 

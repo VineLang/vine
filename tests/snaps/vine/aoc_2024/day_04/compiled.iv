@@ -1,4 +1,10 @@
 
+::std::logical::Option::None { enum(_ enum(r r)) }
+
+::std::IO::print_char { fn(ref(@io_print_char(char io) io) fn(char _)) }
+
+::std::IO::read_byte { fn(ref(dup(io0 @io_read_byte(default dup(byte @seq$(io0 io1)))) io1) fn(default byte)) }
+
 ::main { ::day_04::main }
 
 ::day_04::main {
@@ -127,9 +133,29 @@
 
 ::day_04::main::46 { x(x(@add(1 w1) w1) _) }
 
+::std::numeric::N32::to_string::to_string { fn(dup253(?(::std::numeric::N32::to_string::to_string::3 ::std::numeric::N32::to_string::to_string::2 x(w7 w6)) w7) w6) }
+
+::std::numeric::N32::to_string::to_string::2 {
+  x(w6 w9)
+  ::std::numeric::N32::to_string::to_string::4 = x(w6 x(tup(0 tup(w7 w7)) w9))
+}
+
+::std::numeric::N32::to_string::to_string::3 { x(_ tup(1 tup(tup(48 w3) w3))) }
+
+::std::numeric::N32::to_string::to_string::4 { x(dup262(?(::std::numeric::N32::to_string::to_string::6 ::std::numeric::N32::to_string::to_string::5 x(w6 w2)) w6) w2) }
+
+::std::numeric::N32::to_string::to_string::5 {
+  x(dup265(@rem(10 w1) @div(10 w8)) x(w11 w15))
+  48 = @add(w1 w2)
+  ::std::data::List::concat = fn(tup(1 tup(tup(w2 w13) w13)) fn(w11 w5))
+  ::std::numeric::N32::to_string::to_string::4 = x(w8 x(w5 w15))
+}
+
+::std::numeric::N32::to_string::to_string::6 { x(_ x(w1 w1)) }
+
 ::day_04::Channel::send { fn(tup(w0 w3) fn(w3 w0)) }
 
-::day_04::relay { fn(tup(@eq(w16 ?(::day_04::relay::3 ::day_04::relay::2 x(w19 w18))) w23) fn(tup(@eq(w21 ?(::day_04::relay::6 ::day_04::relay::5 x(w24 w23))) w18) fn(dup265(w16 w21) fn(dup266(w19 w24) _)))) }
+::day_04::relay { fn(tup(@eq(w16 ?(::day_04::relay::3 ::day_04::relay::2 x(w19 w18))) w23) fn(tup(@eq(w21 ?(::day_04::relay::6 ::day_04::relay::5 x(w24 w23))) w18) fn(dup283(w16 w21) fn(dup284(w19 w24) _)))) }
 
 ::day_04::relay::2 { x(w2 w2) }
 
@@ -142,9 +168,9 @@
 ::day_04::check { fn(tup(@eq(w3 ?(0 1 w12)) 95) fn(w3 w12)) }
 
 ::day_04::diamond {
-  fn(w0 fn(w1 fn(dup288(w16 dup288(w21 dup288(w26 dup288(w49 dup288(w31 dup288(w34 w37)))))) fn(w3 w48))))
+  fn(w0 fn(w1 fn(dup306(w16 dup306(w21 dup306(w26 dup306(w49 dup306(w31 dup306(w34 w37)))))) fn(w3 w48))))
   ::std::data::List::get = fn(ref(w0 w7) fn(0 w10))
-  ::std::data::List::len = fn(w10 dup291(w15 dup291(w20 w25)))
+  ::std::data::List::len = fn(w10 dup309(w15 dup309(w20 w25)))
   ::day_04::neglect_channel = fn(w16 w17)
   ::std::data::List::new = fn(w15 fn(w17 w18))
   ::day_04::neglect_channel = fn(w21 w22)
@@ -163,7 +189,7 @@
 }
 
 ::day_04::diamond::4 {
-  enum(w0 x(w12 x(dup314(w82 w94) x(dup315(w13 dup315(w18 dup315(w25 dup315(w27 dup315(w37 dup315(w39 w93)))))) x(x(w9 w92) x(x(w7 w90) x(x(w5 w88) x(w3 w86))))))))
+  enum(w0 x(w12 x(dup332(w82 w94) x(dup333(w13 dup333(w18 dup333(w25 dup333(w27 dup333(w37 dup333(w39 w93)))))) x(x(w9 w92) x(x(w7 w90) x(x(w5 w88) x(w3 w86))))))))
   ::day_04::neglect_channel = fn(w13 w14)
   ::std::data::List::iter = fn(ref(w7 w45) w47)
   ::std::data::List::iter = fn(ref(w5 w50) w52)
@@ -194,7 +220,7 @@
 }
 
 ::day_04::diamond::10 {
-  enum(w0 x(dup361(fn(w0 fn(tup(w36 tup(w27 tup(w45 tup(w18 tup(w19 tup(w46 tup(w28 w37))))))) fn(ref(w12 w60) _))) w74) x(x(w12 w73) x(w10 x(x(w9 w70) x(x(w7 w68) x(x(w5 w66) x(w3 w64))))))))
+  enum(w0 x(dup379(fn(w0 fn(tup(w36 tup(w27 tup(w45 tup(w18 tup(w19 tup(w46 tup(w28 w37))))))) fn(ref(w12 w60) _))) w74) x(x(w12 w73) x(w10 x(x(w9 w70) x(x(w7 w68) x(x(w5 w66) x(w3 w64))))))))
   ::day_04::foo_channel = fn(ref(w9 w15) tup(w18 w19))
   ::std::data::List::Iter::next = fn(ref(w7 w22) w24)
   ::std::logical::Option::unwrap = fn(w24 w25)
@@ -221,7 +247,7 @@
 }
 
 ::day_04::drop_all::4 {
-  enum(w0 x(w3 dup402(w5 w7)))
+  enum(w0 x(w3 dup420(w5 w7)))
   ::day_04::Channel::send = fn(w0 fn(w5 _))
   ::day_04::drop_all::1 = x(w3 w7)
 }
@@ -231,21 +257,21 @@
   ::day_04::new_channel = tup(w8 w9)
 }
 
-::day_04::new_channel { tup(tup(dup412(_ w4) w6) tup(dup413(_ w6) w4)) }
+::day_04::new_channel { tup(tup(dup430(_ w4) w6) tup(dup431(_ w6) w4)) }
 
 ::day_04::neglect_channel { fn(w0 tup(w0 _)) }
 
-::std::data::List::len { fn(ref(tup(dup421(w11 w7) w8) tup(w7 w8)) w11) }
+::std::data::List::len { fn(ref(tup(dup439(w11 w7) w8) tup(w7 w8)) w11) }
 
 ::std::data::List::new {
   fn(w0 fn(w1 w10))
   ::std::data::List::new::1 = x(w0 x(w1 x(tup(0 tup(w8 w8)) w10)))
 }
 
-::std::data::List::new::1 { x(dup432(@lt$(0 ?(::std::data::List::new::3 ::std::data::List::new::2 x(w9 w4))) w9) w4) }
+::std::data::List::new::1 { x(dup450(@lt$(0 ?(::std::data::List::new::3 ::std::data::List::new::2 x(w9 w4))) w9) w4) }
 
 ::std::data::List::new::2 {
-  x(@sub(1 w6) x(dup438(w3 w13) x(w8 w12)))
+  x(@sub(1 w6) x(dup456(w3 w13) x(w8 w12)))
   ::std::data::List::push_back = fn(ref(w8 w1) fn(w3 _))
   ::std::data::List::new::1 = x(w6 x(w13 x(w1 w12)))
 }
@@ -257,7 +283,7 @@
   ::std::data::List::get::1 = x(x(ref(w3 w4) ref(tup(w14 w16) tup(w15 w16))) w9)
 }
 
-::std::data::List::get::1 { x(w3 dup452(?(::std::data::List::get::3 ::std::data::List::get::2 x(w3 w4)) w4)) }
+::std::data::List::get::1 { x(w3 dup470(?(::std::data::List::get::3 ::std::data::List::get::2 x(w3 w4)) w4)) }
 
 ::std::data::List::get::2 {
   x(x(ref(tup(w1 w3) tup(w1 w4)) w17) @sub(1 w11))
@@ -266,7 +292,7 @@
 
 ::std::data::List::get::3 { x(x(w2 w2) _) }
 
-::std::data::List::pop_front { fn(ref(tup(dup513(?(::std::data::List::pop_front::3 ::std::data::List::pop_front::2 x(x(w16 w17) x(x(w3 w15) w13))) w16) tup(w3 w4)) tup(w17 tup(w15 w4))) w13) }
+::std::data::List::pop_front { fn(ref(tup(dup531(?(::std::data::List::pop_front::3 ::std::data::List::pop_front::2 x(x(w16 w17) x(x(w3 w15) w13))) w16) tup(w3 w4)) tup(w17 tup(w15 w4))) w13) }
 
 ::std::data::List::pop_front::2 { x(x(@sub(1 w1) w1) x(x(tup(w3 w4) w4) enum(enum(w3 w15) enum(_ w15)))) }
 
@@ -279,9 +305,9 @@
   ::std::data::List::concat = fn(w1 fn(tup(1 tup(tup(w3 w11) w11)) w9))
 }
 
-::std::data::List::iter { fn(ref(tup(dup661(w0 w10) tup(w3 w4)) tup(w0 tup(w12 w4))) tup(w10 ref(w3 w12))) }
+::std::data::List::iter { fn(ref(tup(dup679(w0 w10) tup(w3 w4)) tup(w0 tup(w12 w4))) tup(w10 ref(w3 w12))) }
 
-::std::data::List::Iter::next { fn(ref(tup(dup667(?(::std::data::List::Iter::next::3 ::std::data::List::Iter::next::2 x(x(w15 w16) x(x(w3 w14) w12))) w15) w3) tup(w16 w14)) w12) }
+::std::data::List::Iter::next { fn(ref(tup(dup685(?(::std::data::List::Iter::next::3 ::std::data::List::Iter::next::2 x(x(w15 w16) x(x(w3 w14) w12))) w15) w3) tup(w16 w14)) w12) }
 
 ::std::data::List::Iter::next::2 { x(x(@sub(1 w1) w1) x(x(ref(tup(w4 w7) tup(w5 w8)) ref(w7 w8)) enum(enum(ref(w4 w5) w21) enum(_ w21)))) }
 
@@ -289,31 +315,9 @@
 
 ::std::data::List::Iter::drop { fn(ref(tup(_ ref(w7 w7)) _) _) }
 
-::std::logical::Option::None { enum(_ enum(r r)) }
-
 ::std::logical::Option::unwrap { fn(enum(::std::logical::Option::unwrap::3 enum(_ w7)) w7) }
 
 ::std::logical::Option::unwrap::3 { enum(w0 w0) }
-
-::std::numeric::N32::to_string::to_string { fn(dup2181(?(::std::numeric::N32::to_string::to_string::3 ::std::numeric::N32::to_string::to_string::2 x(w7 w6)) w7) w6) }
-
-::std::numeric::N32::to_string::to_string::2 {
-  x(w6 w9)
-  ::std::numeric::N32::to_string::to_string::4 = x(w6 x(tup(0 tup(w7 w7)) w9))
-}
-
-::std::numeric::N32::to_string::to_string::3 { x(_ tup(1 tup(tup(48 w3) w3))) }
-
-::std::numeric::N32::to_string::to_string::4 { x(dup2190(?(::std::numeric::N32::to_string::to_string::6 ::std::numeric::N32::to_string::to_string::5 x(w6 w2)) w6) w2) }
-
-::std::numeric::N32::to_string::to_string::5 {
-  x(dup2193(@rem(10 w1) @div(10 w8)) x(w11 w15))
-  48 = @add(w1 w2)
-  ::std::data::List::concat = fn(tup(1 tup(tup(w2 w13) w13)) fn(w11 w5))
-  ::std::numeric::N32::to_string::to_string::4 = x(w8 x(w5 w15))
-}
-
-::std::numeric::N32::to_string::to_string::6 { x(_ x(w1 w1)) }
 
 ::std::IO::println {
   fn(ref(w1 w12) fn(w3 _))
@@ -335,8 +339,6 @@
 }
 
 ::std::IO::print::3 { x(x(w3 w3) _) }
-
-::std::IO::print_char { fn(ref(@io_print_char(char io) io) fn(char _)) }
 
 ::std::IO::read_line {
   fn(ref(w1 w17) w14)
@@ -366,6 +368,4 @@
 }
 
 ::std::IO::read_line::10 { x(x(w5 w5) x(_ x(x(w2 w2) _))) }
-
-::std::IO::read_byte { fn(ref(dup(io0 @io_read_byte(default dup(byte @seq$(io0 io1)))) io1) fn(default byte)) }
 

@@ -1,4 +1,8 @@
 
+::std::logical::Option::None { enum(_ enum(r r)) }
+
+::std::IO::print_char { fn(ref(@io_print_char(char io) io) fn(char _)) }
+
 ::main { ::cond_diverge::main }
 
 ::cond_diverge::main {
@@ -31,8 +35,6 @@
 
 ::std::data::List::pop_front::3 { x(x(w4 w4) x(x(w2 w2) ::std::logical::Option::None)) }
 
-::std::logical::Option::None { enum(_ enum(r r)) }
-
 ::std::IO::println {
   fn(ref(w1 w12) fn(w3 _))
   ::std::IO::print = fn(ref(w1 w7) fn(w3 _))
@@ -53,6 +55,4 @@
 }
 
 ::std::IO::print::3 { x(x(w3 w3) _) }
-
-::std::IO::print_char { fn(ref(@io_print_char(char io) io) fn(char _)) }
 

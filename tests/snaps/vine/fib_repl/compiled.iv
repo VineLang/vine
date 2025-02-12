@@ -1,4 +1,12 @@
 
+::std::logical::Option::None { enum(_ enum(r r)) }
+
+::std::IO::print_char { fn(ref(@io_print_char(char io) io) fn(char _)) }
+
+::std::IO::flush { fn(ref(@io_flush(0 io) io) _) }
+
+::std::IO::read_byte { fn(ref(dup(io0 @io_read_byte(default dup(byte @seq$(io0 io1)))) io1) fn(default byte)) }
+
 ::main { ::fib_repl::main }
 
 ::fib_repl::main {
@@ -28,26 +36,7 @@
 
 ::fib_repl::main::10 { tup(14 tup(tup(105 tup(110 tup(118 tup(97 tup(108 tup(105 tup(100 tup(32 tup(110 tup(117 tup(109 tup(98 tup(101 tup(114 w2)))))))))))))) w2)) }
 
-::fib_repl::fib {
-  fn(w0 w9)
-  ::fib_repl::fib::1 = x(w0 x(x(0 w9) 1))
-}
-
-::fib_repl::fib::1 { x(dup28(?(::fib_repl::fib::3 ::fib_repl::fib::2 x(w8 w3)) w8) w3) }
-
-::fib_repl::fib::2 {
-  x(@sub(1 w1) x(x(@add(w4 w5) w16) dup37(w2 w4)))
-  tup(w2 w5) = tup(w7 w8)
-  ::fib_repl::fib::1 = x(w1 x(x(w7 w16) w8))
-}
-
-::fib_repl::fib::3 { x(_ x(x(w2 w2) _)) }
-
-::std::data::List::concat { fn(tup(@add(w10 w18) tup(w6 w11)) fn(tup(w10 tup(w11 w21)) tup(w18 tup(w6 w21)))) }
-
-::std::logical::Option::None { enum(_ enum(r r)) }
-
-::std::numeric::N32::to_string::to_string { fn(dup1800(?(::std::numeric::N32::to_string::to_string::3 ::std::numeric::N32::to_string::to_string::2 x(w7 w6)) w7) w6) }
+::std::numeric::N32::to_string::to_string { fn(dup22(?(::std::numeric::N32::to_string::to_string::3 ::std::numeric::N32::to_string::to_string::2 x(w7 w6)) w7) w6) }
 
 ::std::numeric::N32::to_string::to_string::2 {
   x(w6 w9)
@@ -56,16 +45,33 @@
 
 ::std::numeric::N32::to_string::to_string::3 { x(_ tup(1 tup(tup(48 w3) w3))) }
 
-::std::numeric::N32::to_string::to_string::4 { x(dup1809(?(::std::numeric::N32::to_string::to_string::6 ::std::numeric::N32::to_string::to_string::5 x(w6 w2)) w6) w2) }
+::std::numeric::N32::to_string::to_string::4 { x(dup31(?(::std::numeric::N32::to_string::to_string::6 ::std::numeric::N32::to_string::to_string::5 x(w6 w2)) w6) w2) }
 
 ::std::numeric::N32::to_string::to_string::5 {
-  x(dup1812(@rem(10 w1) @div(10 w8)) x(w11 w15))
+  x(dup34(@rem(10 w1) @div(10 w8)) x(w11 w15))
   48 = @add(w1 w2)
   ::std::data::List::concat = fn(tup(1 tup(tup(w2 w13) w13)) fn(w11 w5))
   ::std::numeric::N32::to_string::to_string::4 = x(w8 x(w5 w15))
 }
 
 ::std::numeric::N32::to_string::to_string::6 { x(_ x(w1 w1)) }
+
+::fib_repl::fib {
+  fn(w0 w9)
+  ::fib_repl::fib::1 = x(w0 x(x(0 w9) 1))
+}
+
+::fib_repl::fib::1 { x(dup46(?(::fib_repl::fib::3 ::fib_repl::fib::2 x(w8 w3)) w8) w3) }
+
+::fib_repl::fib::2 {
+  x(@sub(1 w1) x(x(@add(w4 w5) w16) dup55(w2 w4)))
+  tup(w2 w5) = tup(w7 w8)
+  ::fib_repl::fib::1 = x(w1 x(x(w7 w16) w8))
+}
+
+::fib_repl::fib::3 { x(_ x(x(w2 w2) _)) }
+
+::std::data::List::concat { fn(tup(@add(w10 w18) tup(w6 w11)) fn(tup(w10 tup(w11 w21)) tup(w18 tup(w6 w21)))) }
 
 ::std::numeric::N32::parse { fn(tup(dup1819(?(::std::numeric::N32::parse::3 ::std::numeric::N32::parse::2 x(w14 x(w5 w12))) w14) tup(w5 _)) w12) }
 
@@ -121,10 +127,6 @@
 
 ::std::IO::print::3 { x(x(w3 w3) _) }
 
-::std::IO::print_char { fn(ref(@io_print_char(char io) io) fn(char _)) }
-
-::std::IO::flush { fn(ref(@io_flush(0 io) io) _) }
-
 ::std::IO::prompt {
   fn(ref(w1 w16) fn(w3 w18))
   ::std::IO::print = fn(ref(w1 w7) fn(w3 _))
@@ -160,6 +162,4 @@
 }
 
 ::std::IO::read_line::10 { x(x(w5 w5) x(_ x(x(w2 w2) _))) }
-
-::std::IO::read_byte { fn(ref(dup(io0 @io_read_byte(default dup(byte @seq$(io0 io1)))) io1) fn(default byte)) }
 

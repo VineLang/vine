@@ -1,4 +1,6 @@
 
+::std::IO::print_byte { fn(ref(@io_print_byte(char io) io) fn(char _)) }
+
 ::main { ::mandelbrot_tga::main }
 
 ::mandelbrot_tga::center {
@@ -69,6 +71,4 @@
 }
 
 ::std::IO::print_bytes::3 { x(x(w3 w3) _) }
-
-::std::IO::print_byte { fn(ref(@io_print_byte(char io) io) fn(char _)) }
 
