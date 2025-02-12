@@ -1,0 +1,10 @@
+
+pub trait Ord[T] {
+  fn .cmp(a: &T, b: &T) -> Ord;
+}
+
+pub enum Ord {
+  Lt,
+  Eq,
+  Gt,
+}

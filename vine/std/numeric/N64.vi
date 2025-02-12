@@ -1,5 +1,5 @@
 
-use data::Map::Ord;
+use ops::Ord;
 use unicode::ToString;
 
 pub struct N64(N32, N32);
@@ -130,13 +130,15 @@ pub mod N64 {
     }
   }
 
-  pub fn .cmp(&N64(al, ah), &N64(bl, bh)) -> Ord {
-    if ah < bh {
-      Ord::Lt
-    } else if ah > bh {
-      Ord::Gt
-    } else {
-      al.cmp(&bl)
+  pub impl ord: Ord[N64] {
+    fn .cmp(&N64(al, ah), &N64(bl, bh)) -> Ord {
+      if ah < bh {
+        Ord::Lt
+      } else if ah > bh {
+        Ord::Gt
+      } else {
+        al.cmp(&bl)
+      }
     }
   }
 

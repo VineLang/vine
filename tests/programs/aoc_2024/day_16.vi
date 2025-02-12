@@ -19,7 +19,7 @@ pub fn main(&io: &IO) {
   }
   let grid = Array::from_list(grid);
 
-  let pq = Map::new(N32::cmp);
+  let pq = Map::empty[N32, _];
   pq.insert(0, [(start, 0)]);
 
   dyn fn try_insert(dist: N32, pos: (N32, N32), dir) {

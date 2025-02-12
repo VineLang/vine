@@ -2,7 +2,7 @@
 use std::{data::Map, numeric::N64, tuple::Pair};
 
 pub fn main(&io: &IO) {
-  let map = Map::new(N32::cmp);
+  let map = Map::empty[N32, _];
 
   let part1 = N64::zero;
 

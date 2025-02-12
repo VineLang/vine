@@ -1,12 +1,12 @@
 
-use std::{data::Map::{Map, Cmp, Ord}, tuple::Pair};
+use std::{data::Map, tuple::Pair};
 
 pub fn main(&io: &IO) {
   let input = io.full_input();
 
-  let antennas = Map::new[_, List[(N32, N32)]](Char::cmp);
-  let antinodes1 = Map::new(Pair::cmp(N32::cmp, N32::cmp));
-  let antinodes2 = Map::new(Pair::cmp(N32::cmp, N32::cmp));
+  let antennas = Map::empty[Char, List[(N32, N32)]];
+  let antinodes1 = Map::empty[(N32, N32), _];
+  let antinodes2 = Map::empty[(N32, N32), _];
 
   let grid = input.split_trim("\n");
 

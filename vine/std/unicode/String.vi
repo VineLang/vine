@@ -1,5 +1,5 @@
 
-use data::Map::Ord;
+use ops::Ord;
 
 #[builtin = "String"]
 pub struct String {
@@ -104,8 +104,10 @@ pub mod String {
     true
   }
 
-  pub fn cmp(&String({ chars: a }), &String({ chars: b })) -> Ord {
-    List::cmp(Char::cmp)(&a, &b)
+  pub impl ord: Ord[String] {
+    fn cmp(&String({ chars: a }), &String({ chars: b })) -> Ord {
+      a.cmp(&b)
+    }
   }
 
   pub fn .repeat(self: String, count: N32) -> String {

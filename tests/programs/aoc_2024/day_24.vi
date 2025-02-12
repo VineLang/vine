@@ -2,7 +2,7 @@
 use std::{data::{Array, Map}, numeric::N64};
 
 pub fn main(&io: &IO) {
-  let map = Map::new(String::cmp);
+  let map = Map::empty[String, _];
 
   while io.read_line() is Some(line) && line.len() != 0 {
     let (name, value) = line.split_once(": ");

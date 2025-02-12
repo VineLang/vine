@@ -1,21 +1,19 @@
 
-use data::Map::{Cmp, Ord};
+use ops::Ord;
 use unicode::ToString;
 
 pub type Pair[A, B] = (A, B);
 
 #[builtin = "Pair"]
 pub mod Pair {
-  pub fn cmp[A, B](f: Cmp[A], g: Cmp[B]) -> Cmp[(A, B)] {
-    (
-      fn(&(a0: A, b0: B), &(a1: A, b1: B)) {
-        match f(&a0, &a1) {
-          Ord::Lt { Ord::Lt }
-          Ord::Gt { Ord::Gt }
-          Ord::Eq { g(&b0, &b1) }
-        }
+  pub impl ord[A, B; Ord[A], Ord[B]]: Ord[(A, B)] {
+    fn cmp(&(a0: A, b0: B), &(a1: A, b1: B)) -> Ord {
+      match a0.cmp(&a1) {
+        Ord::Lt { Ord::Lt }
+        Ord::Gt { Ord::Gt }
+        Ord::Eq { b0.cmp(&b1) }
       }
-    )
+    }
   }
 
   pub impl to_string[A, B; ToString[A], ToString[B]]: ToString[Pair[A, B]] {
