@@ -15,21 +15,19 @@
 
 ::day_23::main {
   fn(ref(w1 w10) _)
-  ::day_23::main::1 = x(x(w1 w24) x(::std::data::Map::empty dup7(w25 w55)))
-  ::day_23::main::10 = x(w25 x(x(0 w48) x(0 w46)))
-  ::std::numeric::N32::to_string::to_string = fn(w48 w34)
-  ::std::data::List::concat = fn(tup(11 tup(tup(84 tup(114 tup(105 tup(97 tup(110 tup(103 tup(108 tup(101 tup(115 tup(58 tup(32 w50))))))))))) w50)) fn(w34 w35))
-  ::std::IO::println = fn(ref(w24 w30) fn(w35 _))
-  ::std::numeric::N32::to_string::to_string = fn(w46 w42)
-  ::std::data::List::concat = fn(tup(8 tup(tup(80 tup(97 tup(114 tup(116 tup(32 tup(49 tup(58 tup(32 w51)))))))) w51)) fn(w42 w43))
-  ::std::IO::println = fn(ref(w30 w38) fn(w43 _))
-  ::day_23::main::47 = x(w55 x(tup(0 tup(w52 w52)) w54))
-  97 = @add(w61 w62)
-  97 = @add(w64 w65)
-  ::std::data::List::map = fn(w54 fn(fn(dup15(@div(26 w61) @rem(26 w64)) tup(2 tup(tup(w62 tup(w65 w71)) w71))) w15))
-  ::std::data::List::join = fn(w15 fn(tup(1 tup(tup(44 w72) w72)) w17))
-  ::std::data::List::concat = fn(tup(8 tup(tup(80 tup(97 tup(114 tup(116 tup(32 tup(50 tup(58 tup(32 w56)))))))) w56)) fn(w17 w18))
-  ::std::IO::println = fn(ref(w38 w10) fn(w18 _))
+  ::day_23::main::1 = x(x(w1 w24) x(::std::data::Map::empty dup7(w25 w61)))
+  ::day_23::main::10 = x(w25 x(x(0 w46) x(0 w44)))
+  ::std::numeric::N32::to_string::to_string = fn(w46 tup(@add(11 w48) tup(w49 w50)))
+  ::std::IO::println = fn(ref(w24 w30) fn(tup(w48 tup(tup(84 tup(114 tup(105 tup(97 tup(110 tup(103 tup(108 tup(101 tup(115 tup(58 tup(32 w49))))))))))) w50)) _))
+  ::std::numeric::N32::to_string::to_string = fn(w44 tup(@add(8 w53) tup(w54 w55)))
+  ::std::IO::println = fn(ref(w30 w37) fn(tup(w53 tup(tup(80 tup(97 tup(114 tup(116 tup(32 tup(49 tup(58 tup(32 w54)))))))) w55)) _))
+  ::day_23::main::47 = x(w61 x(tup(0 tup(w58 w58)) w60))
+  97 = @add(w69 w70)
+  97 = @add(w72 w73)
+  ::std::data::List::map = fn(w60 fn(fn(dup15(@div(26 w69) @rem(26 w72)) tup(2 tup(tup(w70 tup(w73 w79)) w79))) w15))
+  ::std::data::List::join = fn(w15 fn(tup(1 tup(tup(44 w82) w82)) w17))
+  ::std::data::List::concat = fn(tup(8 tup(tup(80 tup(97 tup(114 tup(116 tup(32 tup(50 tup(58 tup(32 w64)))))))) w64)) fn(w17 w18))
+  ::std::IO::println = fn(ref(w37 w10) fn(w18 _))
 }
 
 ::day_23::main::1 {
@@ -229,7 +227,7 @@
   ::std::numeric::N32::to_string::to_string::4 = x(w6 x(tup(0 tup(w7 w7)) w9))
 }
 
-::std::numeric::N32::to_string::to_string::3 { x(_ tup(1 tup(tup(48 w3) w3))) }
+::std::numeric::N32::to_string::to_string::3 { x(_ tup(1 tup(tup(48 w5) w5))) }
 
 ::std::numeric::N32::to_string::to_string::4 { x(dup377(?(::std::numeric::N32::to_string::to_string::6 ::std::numeric::N32::to_string::to_string::5 x(w6 w2)) w6) w2) }
 
@@ -367,7 +365,7 @@
   ::std::data::List::join::6 = x(w4 x(w3 x(w0 w7)))
 }
 
-::std::data::List::join::5 { x(_ x(_ tup(0 tup(w4 w4)))) }
+::std::data::List::join::5 { x(_ x(_ tup(0 tup(w6 w6)))) }
 
 ::std::data::List::join::6 {
   x(w8 x(w7 w6))
@@ -513,7 +511,7 @@
 
 ::std::IO::read_line::3 { x(x(w3 w3) x(_ ::std::logical::Option::None)) }
 
-::std::IO::read_line::5 { x(x(w4 w4) x(_ tup(0 tup(w5 w5)))) }
+::std::IO::read_line::5 { x(x(w4 w4) x(_ tup(0 tup(w7 w7)))) }
 
 ::std::IO::read_line::6 {
   x(w10 x(w8 w14))

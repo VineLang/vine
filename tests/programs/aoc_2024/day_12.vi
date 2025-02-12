@@ -42,7 +42,7 @@ pub fn main(&io: &IO) {
     i += 1;
   }
 
-  io.println("Part 1: " ++ price.to_string());
+  io.println("Part 1: {price}");
 
   let width = array.len() / height;
 
@@ -77,7 +77,7 @@ pub fn main(&io: &IO) {
     y += 1;
   }
 
-  io.println("Part 2: " ++ bulk.to_string());
+  io.println("Part 2: {bulk}");
 }
 
 struct Regions(Array[Region]);
@@ -91,8 +91,8 @@ mod Region {
   pub impl to_string: ToString[Region] {
     fn to_string(self: Region) -> String {
       match self {
-        Region::Root(a, p) { "Root(" ++ a.to_string() ++ ", " ++ p.to_string() ++ ")" }
-        Region::Child(n) { "Child(" ++ n.to_string() ++ ")" }
+        Region::Root(a, p) { "Root({a}, {p})" }
+        Region::Child(n) { "Child({n})" }
       }
     }
   }

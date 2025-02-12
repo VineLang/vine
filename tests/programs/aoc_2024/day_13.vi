@@ -45,8 +45,8 @@ pub fn main(&io: &IO) {
     }
   }
 
-  io.println("Part 1: " ++ part1.to_string());
-  io.println("Part 2: " ++ part2.to_string());
+  io.println("Part 1: {part1}");
+  io.println("Part 2: {part2}");
 }
 
 const n64: fn(N32) -> N64 = N64::from_n32;

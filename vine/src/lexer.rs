@@ -161,10 +161,10 @@ pub enum Token {
   Ident,
   #[regex(r"\d[\d\w]*(\.\d+[\d\w]*)?")]
   Num,
-  #[regex(r#""([^\\"]|\\.)*""#)]
-  String,
-  #[regex(r#"'([^\\']|\\.)+'"#)]
-  Char,
+  #[token(r#"""#)]
+  DoubleQuote,
+  #[token(r#"'"#)]
+  SingleQuote,
 
   #[regex("//.*", logos::skip)]
   #[token("/*", lex_block_comment)]
@@ -178,5 +178,42 @@ impl TokenTrait for Token {
 
   unsafe fn from_u8(value: u8) -> Self {
     unsafe { transmute::<u8, Token>(value) }
+  }
+}
+
+#[derive(Logos, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[repr(u8)]
+pub enum StrToken {
+  #[token(r#"""#)]
+  DoubleQuote,
+  #[token("'")]
+  SingleQuote,
+  #[regex(r#"\\["'\\{]"#)]
+  Literal,
+  #[token(r#"\n"#)]
+  Newline,
+  #[token(r#"\t"#)]
+  Tab,
+  #[token(r#"\r"#)]
+  CarriageReturn,
+  #[token(r#"\0"#)]
+  Null,
+  #[regex(r#"\\x[0-7][0-9a-fA-F]"#)]
+  Ascii,
+  #[regex(r#"\\u\{[0-9a-fA-F]{1,6}\}"#)]
+  Unicode,
+  #[token("{")]
+  OpenBrace,
+  #[regex(r#"[^"'\\{]"#)]
+  Char,
+}
+
+impl TokenTrait for StrToken {
+  fn into_u8(self) -> u8 {
+    self as u8
+  }
+
+  unsafe fn from_u8(value: u8) -> Self {
+    transmute(value)
   }
 }

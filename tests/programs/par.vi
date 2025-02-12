@@ -1,5 +1,5 @@
 
-use std::rng::Pcg32;
+use std::{rng::Pcg32, unicode::ToString};
 
 trait Session[A, B] {
   fn fork(f: fn(A)) -> B;
@@ -56,10 +56,12 @@ enum Move {
 }
 
 mod Move {
-  pub fn .to_string(self: Move) -> String {
-    match self {
-      Up { "Up" }
-      Down { "Down" }
+  pub impl to_string: ToString[Move] {
+    fn .to_string(self: Move) -> String {
+      match self {
+        Up { "Up" }
+        Down { "Down" }
+      }
     }
   }
 }
@@ -95,7 +97,7 @@ fn start_playing(&io: &IO) -> Game {
       let (move2, outcome2) = player2.recv();
       let (move3, outcome3) = player3.recv();
 
-      io.println(move1.to_string() ++ " " ++ move2.to_string() ++ " " ++ move3.to_string());
+      io.println("{move1} {move2} {move3}");
 
       dyn fn win1() {
         outcome1.send1(Win);

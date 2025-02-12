@@ -36,8 +36,8 @@ pub fn main(&io: &IO) {
       }
     }
 
-    io.println("Triangles: " ++ triangles.to_string());
-    io.println("Part 1: " ++ t_triangles.to_string());
+    io.println("Triangles: {triangles}");
+    io.println("Part 1: {t_triangles}");
   }
 
   fn extend_clique(

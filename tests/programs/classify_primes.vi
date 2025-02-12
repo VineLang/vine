@@ -14,7 +14,7 @@ pub fn main(&io: &IO) {
       }
       "prime"
     };
-    io.println(n.to_string() ++ ": " ++ class);
+    io.println("{n}: {class}");
     n += 1;
   }
 }

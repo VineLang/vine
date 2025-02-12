@@ -8,17 +8,15 @@
 ::main { ::day_02::main }
 
 ::day_02::main {
-  fn(ref(w1 w28) _)
+  fn(ref(w1 w27) _)
   ::std::IO::full_input = fn(ref(w1 w6) w8)
   ::std::unicode::String::split_trim = fn(w8 fn(tup(1 tup(tup(10 w36) w36)) w12))
   ::std::data::List::into_iter = fn(w12 w17)
   ::day_02::main::1 = x(x(0 w41) x(x(0 w39) w17))
-  ::std::numeric::N32::to_string::to_string = fn(w41 w24)
-  ::std::data::List::concat = fn(tup(12 tup(tup(83 tup(97 tup(102 tup(101 tup(32 tup(67 tup(111 tup(117 tup(110 tup(116 tup(58 tup(32 w42)))))))))))) w42)) fn(w24 w25))
-  ::std::IO::println = fn(ref(w6 w20) fn(w25 _))
-  ::std::numeric::N32::to_string::to_string = fn(w39 w32)
-  ::std::data::List::concat = fn(tup(21 tup(tup(68 tup(97 tup(109 tup(112 tup(101 tup(110 tup(101 tup(100 tup(32 tup(83 tup(97 tup(102 tup(101 tup(32 tup(67 tup(111 tup(117 tup(110 tup(116 tup(58 tup(32 w43))))))))))))))))))))) w43)) fn(w32 w33))
-  ::std::IO::println = fn(ref(w20 w28) fn(w33 _))
+  ::std::numeric::N32::to_string::to_string = fn(w41 tup(@add(12 w42) tup(w43 w44)))
+  ::std::IO::println = fn(ref(w6 w20) fn(tup(w42 tup(tup(83 tup(97 tup(102 tup(101 tup(32 tup(67 tup(111 tup(117 tup(110 tup(116 tup(58 tup(32 w43)))))))))))) w44)) _))
+  ::std::numeric::N32::to_string::to_string = fn(w39 tup(@add(21 w47) tup(w48 w49)))
+  ::std::IO::println = fn(ref(w20 w27) fn(tup(w47 tup(tup(68 tup(97 tup(109 tup(112 tup(101 tup(110 tup(101 tup(100 tup(32 tup(83 tup(97 tup(102 tup(101 tup(32 tup(67 tup(111 tup(117 tup(110 tup(116 tup(58 tup(32 w48))))))))))))))))))))) w49)) _))
 }
 
 ::day_02::main::1 {
@@ -27,13 +25,13 @@
 }
 
 ::day_02::main::4 {
-  enum(w0 x(x(w6 w33) x(x(w4 w31) w2)))
-  ::std::unicode::String::split = fn(w0 fn(tup(1 tup(tup(32 w14) w14)) w9))
-  ::std::numeric::N32::parse = fn(w15 w19)
-  ::std::logical::Option::unwrap = fn(w19 w20)
-  ::std::data::List::map = fn(w9 fn(fn(w15 w20) dup30(w21 w24)))
-  ::day_02::is_safe = fn(w21 ?(::day_02::main::9 ::day_02::main::8 x(x(w6 w28) x(x(w4 w26) x(w24 _)))))
-  ::day_02::main::1 = x(x(w28 w33) x(x(w26 w31) w2))
+  enum(w0 x(x(w6 w35) x(x(w4 w33) w2)))
+  ::std::unicode::String::split = fn(w0 fn(tup(1 tup(tup(32 w16) w16)) w9))
+  ::std::numeric::N32::parse = fn(w17 w21)
+  ::std::logical::Option::unwrap = fn(w21 w22)
+  ::std::data::List::map = fn(w9 fn(fn(w17 w22) dup30(w23 w26)))
+  ::day_02::is_safe = fn(w23 ?(::day_02::main::9 ::day_02::main::8 x(x(w6 w30) x(x(w4 w28) x(w26 _)))))
+  ::day_02::main::1 = x(x(w30 w35) x(x(w28 w33) w2))
 }
 
 ::day_02::main::5 { x(x(w4 w4) x(x(w2 w2) _)) }
@@ -56,7 +54,7 @@
   ::std::numeric::N32::to_string::to_string::4 = x(w6 x(tup(0 tup(w7 w7)) w9))
 }
 
-::std::numeric::N32::to_string::to_string::3 { x(_ tup(1 tup(tup(48 w3) w3))) }
+::std::numeric::N32::to_string::to_string::3 { x(_ tup(1 tup(tup(48 w5) w5))) }
 
 ::std::numeric::N32::to_string::to_string::4 { x(dup60(?(::std::numeric::N32::to_string::to_string::6 ::std::numeric::N32::to_string::to_string::5 x(w6 w2)) w6) w2) }
 
@@ -277,8 +275,8 @@
 ::std::unicode::String::split_trim::24 { x(_ x(w4 x(_ x(x(w2 w2) w4)))) }
 
 ::std::unicode::String::split_once {
-  fn(w0 fn(w1 w14))
-  ::std::unicode::String::split_once::1 = x(w1 x(tup(0 tup(w13 w13)) x(w0 w14)))
+  fn(w0 fn(w1 w16))
+  ::std::unicode::String::split_once::1 = x(w1 x(tup(0 tup(w15 w15)) x(w0 w16)))
 }
 
 ::std::unicode::String::split_once::1 {

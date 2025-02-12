@@ -5,7 +5,7 @@
 
 ::break_result::main {
   fn(w1 _)
-  ::std::IO::println = fn(w1 fn(tup(11 tup(tup(108 tup(111 tup(111 tup(112 tup(32 tup(114 tup(101 tup(115 tup(117 tup(108 tup(116 w12))))))))))) w12)) _))
+  ::std::IO::println = fn(w1 fn(tup(11 tup(tup(108 tup(111 tup(111 tup(112 tup(32 tup(114 tup(101 tup(115 tup(117 tup(108 tup(116 w14))))))))))) w14)) _))
 }
 
 ::std::IO::println {

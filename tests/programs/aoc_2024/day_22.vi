@@ -30,7 +30,7 @@ pub fn main(&io: &IO) {
     buyer += 1;
   }
 
-  io.println("Part 1: " ++ part1.to_string());
+  io.println("Part 1: {part1}");
 
   io.println(map.len().to_string());
 
@@ -40,7 +40,7 @@ pub fn main(&io: &IO) {
     part2 = part2.max(bananas);
   }
 
-  io.println("Part 2: " ++ part2.to_string());
+  io.println("Part 2: {part2}");
 }
 
 fn evolve(&secret: &N32) {

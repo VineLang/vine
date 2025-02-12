@@ -26,7 +26,7 @@ pub fn main(&io: &IO) {
     };
   }
 
-  io.println("Total Distance: " ++ total_dist.to_string());
+  io.println("Total Distance: {total_dist}");
 
   let similarity = 0;
   let iter_a = left.into_iter();
@@ -41,5 +41,5 @@ pub fn main(&io: &IO) {
     similarity += a * count;
   }
 
-  io.println("Similarity Score: " ++ similarity.to_string());
+  io.println("Similarity Score: {similarity}");
 }

@@ -55,15 +55,14 @@ pub fn main(&io: &IO) {
 
   let part1 = a * b * c * d;
 
-  io.println("Part 1: " ++ part1.to_string());
+  io.println("Part 1: {part1}");
 
   let i = 0;
   while io.read_line() is Some(line) {
     if N32::parse(line) is Some(n) {
       i = n;
     }
-    let esc = String({ chars: [Char::from_n32(27)] });
-    io.println(esc ++ "[2J" ++ esc ++ "[H");
+    io.println("\x1b[2J\x1b[H");
     let grid = Array::new(height, Array::new(width, '.'));
     let iter = robots.into_iter();
     while iter.next() is Some((px, py, vx, vy)) {
@@ -81,5 +80,5 @@ pub fn main(&io: &IO) {
 
   let part2 = 0;
 
-  io.println("Part 2: " ++ part2.to_string());
+  io.println("Part 2: {part2}");
 }

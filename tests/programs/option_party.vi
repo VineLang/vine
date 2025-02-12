@@ -2,13 +2,13 @@
 pub fn main(&io: &IO) {
   dyn fn print_option_n32(option: Option[N32]) {
     io.println("  " ++ match option {
-      Some(val) { "Some(" ++ val.to_string() ++ ")" }
+      Some(val) { "Some({val})" }
       None { "None" }
     })
   }
 
   dyn fn print_n32(val: N32) {
-    io.println("  " ++ val.to_string())
+    io.println("  {val}")
   }
 
   dyn fn print_bool(bool: Bool) {

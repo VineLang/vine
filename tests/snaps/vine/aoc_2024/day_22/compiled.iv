@@ -20,19 +20,17 @@
 ::main { ::day_22::main }
 
 ::day_22::main {
-  fn(ref(w1 w30) _)
-  ::day_22::main::1 = x(x(w1 w44) x(x(::std::data::Map::empty w42) x(x(0 w40) 0)))
-  ::std::numeric::N64::to_string::to_string = fn(w40 w13)
-  ::std::data::List::concat = fn(tup(8 tup(tup(80 tup(97 tup(114 tup(116 tup(32 tup(49 tup(58 tup(32 w45)))))))) w45)) fn(w13 w14))
-  ::std::IO::println = fn(ref(w44 w9) fn(w14 _))
-  ::std::data::Map::len = fn(ref(w42 w20) w22)
-  ::std::numeric::N32::to_string::to_string = fn(w22 w23)
-  ::std::IO::println = fn(ref(w9 w17) fn(w23 _))
-  ::std::data::Map::into_iter = fn(w20 w27)
-  ::day_22::main::15 = x(x(0 w48) w27)
-  ::std::numeric::N32::to_string::to_string = fn(w48 w34)
-  ::std::data::List::concat = fn(tup(8 tup(tup(80 tup(97 tup(114 tup(116 tup(32 tup(50 tup(58 tup(32 w49)))))))) w49)) fn(w34 w35))
-  ::std::IO::println = fn(ref(w17 w30) fn(w35 _))
+  fn(ref(w1 w29) _)
+  ::day_22::main::1 = x(x(w1 w42) x(x(::std::data::Map::empty w40) x(x(0 w38) 0)))
+  ::std::numeric::N64::to_string::to_string = fn(w38 tup(@add(8 w43) tup(w44 w45)))
+  ::std::IO::println = fn(ref(w42 w9) fn(tup(w43 tup(tup(80 tup(97 tup(114 tup(116 tup(32 tup(49 tup(58 tup(32 w44)))))))) w45)) _))
+  ::std::data::Map::len = fn(ref(w40 w19) w21)
+  ::std::numeric::N32::to_string::to_string = fn(w21 w22)
+  ::std::IO::println = fn(ref(w9 w16) fn(w22 _))
+  ::std::data::Map::into_iter = fn(w19 w26)
+  ::day_22::main::15 = x(x(0 w50) w26)
+  ::std::numeric::N32::to_string::to_string = fn(w50 tup(@add(8 w51) tup(w52 w53)))
+  ::std::IO::println = fn(ref(w16 w29) fn(tup(w51 tup(tup(80 tup(97 tup(114 tup(116 tup(32 tup(50 tup(58 tup(32 w52)))))))) w53)) _))
 }
 
 ::day_22::main::1 {
@@ -132,11 +130,11 @@
   ::std::numeric::N64::eq = fn(w5 fn(0 ?(::std::numeric::N64::to_string::to_string::3 ::std::numeric::N64::to_string::to_string::2 x(w8 w7))))
 }
 
-::std::numeric::N64::to_string::to_string::2 { x(_ tup(1 tup(tup(48 w3) w3))) }
+::std::numeric::N64::to_string::to_string::2 { x(_ tup(1 tup(tup(48 w5) w5))) }
 
 ::std::numeric::N64::to_string::to_string::3 {
-  x(w4 w7)
-  ::std::numeric::N64::to_string::to_string::4 = x(w4 x(tup(0 tup(w5 w5)) w7))
+  x(w4 w9)
+  ::std::numeric::N64::to_string::to_string::4 = x(w4 x(tup(0 tup(w7 w7)) w9))
 }
 
 ::std::numeric::N64::to_string::to_string::4 {
@@ -161,7 +159,7 @@
   ::std::numeric::N32::to_string::to_string::4 = x(w6 x(tup(0 tup(w7 w7)) w9))
 }
 
-::std::numeric::N32::to_string::to_string::3 { x(_ tup(1 tup(tup(48 w3) w3))) }
+::std::numeric::N32::to_string::to_string::3 { x(_ tup(1 tup(tup(48 w5) w5))) }
 
 ::std::numeric::N32::to_string::to_string::4 { x(dup242(?(::std::numeric::N32::to_string::to_string::6 ::std::numeric::N32::to_string::to_string::5 x(w6 w2)) w6) w2) }
 
@@ -387,7 +385,7 @@
 
 ::std::IO::read_line::3 { x(x(w3 w3) x(_ ::std::logical::Option::None)) }
 
-::std::IO::read_line::5 { x(x(w4 w4) x(_ tup(0 tup(w5 w5)))) }
+::std::IO::read_line::5 { x(x(w4 w4) x(_ tup(0 tup(w7 w7)))) }
 
 ::std::IO::read_line::6 {
   x(w10 x(w8 w14))

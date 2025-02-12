@@ -1,5 +1,6 @@
 use std::{collections::BTreeMap, fmt::Write, mem::take};
 
+use ivm::ext::ExtFnKind;
 use ivy::ast::{Net, Nets, Tree};
 use vine_util::idx::{Counter, IdxVec};
 
@@ -295,9 +296,44 @@ impl<'core, 'a> VirEmitter<'core, 'a> {
         let str = self.emit_list(list.iter().map(emit_port));
         self.pairs.push((emit_port(port), str))
       }
-      Step::String(port, str) => {
-        let str = self.emit_list(str.chars().map(|c| Tree::N32(c as u32)));
-        self.pairs.push((emit_port(port), str))
+      Step::String(port, init, rest) => {
+        let const_len =
+          init.chars().count() + rest.iter().map(|x| x.1.chars().count()).sum::<usize>();
+        let len = self.new_wire();
+        let start = self.new_wire();
+        let end = self.new_wire();
+        self.pairs.push((
+          emit_port(port),
+          Tree::n_ary(
+            "tup",
+            [
+              len.0,
+              Tree::n_ary("tup", init.chars().map(|c| Tree::N32(c as u32)).chain([start.0])),
+              end.0,
+            ],
+          ),
+        ));
+        let mut cur_len = Tree::N32(const_len as u32);
+        let mut cur_buf = start.1;
+        for (port, seg) in rest {
+          let next_len = self.new_wire();
+          let next_buf = self.new_wire();
+          self.pairs.push((
+            emit_port(port),
+            Tree::n_ary(
+              "tup",
+              [
+                Tree::ExtFn(ExtFnKind::add.into(), Box::new(cur_len), Box::new(next_len.0)),
+                cur_buf,
+                Tree::n_ary("tup", seg.chars().map(|c| Tree::N32(c as u32)).chain([next_buf.0])),
+              ],
+            ),
+          ));
+          cur_len = next_len.1;
+          cur_buf = next_buf.1;
+        }
+        self.pairs.push((cur_len, len.1));
+        self.pairs.push((cur_buf, end.1));
       }
     }
   }

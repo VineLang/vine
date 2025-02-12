@@ -5,7 +5,7 @@ pub fn main(&io: &IO) {
   while io.prompt("> ") is Some(line) {
     match Term::parse(~_, line) {
       Ok(term) { io.println(term.print_normal(0)) }
-      Err(err) { io.println("error: " ++ err) }
+      Err(err) { io.println("error: {err}") }
     }
   }
 }
@@ -38,13 +38,13 @@ pub mod Term {
       Term::Lambda(param, body) {
         let var = new_var(depth);
         bind(param, Term::Spine(var, []));
-        "\\" ++ var ++ ". " ++ body.print_normal(depth + 1)
+        "\\{var}. {body.print_normal(depth + 1)}"
       }
       Term::Spine(var, args) {
         if args.len() == 0 {
           var
         } else {
-          let out = "(" ++ var;
+          let out = "({var}";
           let iter = args.into_iter();
           while iter.next() is Some(arg) {
             out ++= " " ++ arg.print_normal(depth);
@@ -123,7 +123,7 @@ mod Parser {
         binds.get(0).*.push_back(move ~term);
         term
       } else {
-        self.error("unbound variable `" ++ var ++ "`")
+        self.error("unbound variable `{var}`")
       }
     }
   }
@@ -143,7 +143,7 @@ mod Parser {
   fn .expect_char(&self: &Parser, char: Char) {
     self.skip_ws();
     if !(self.chars.pop_front() is Some(c) && c == char) {
-      self.error("expected `" ++ String({ chars: [char] }) ++ "`");
+      self.error("expected `{String({ chars: [char] })}`");
     }
   }
 

@@ -14,17 +14,15 @@
 ::main { ::day_09::main }
 
 ::day_09::main {
-  fn(ref(w1 w21) _)
+  fn(ref(w1 w20) _)
   ::std::IO::read_line = fn(ref(w1 w6) w8)
-  ::std::logical::Option::unwrap = fn(w8 dup5(w15 w24))
+  ::std::logical::Option::unwrap = fn(w8 dup5(w15 w23))
   ::day_09::part1 = fn(w15 w16)
-  ::std::numeric::N64::to_string::to_string = fn(w16 w17)
-  ::std::data::List::concat = fn(tup(8 tup(tup(80 tup(97 tup(114 tup(116 tup(32 tup(49 tup(58 tup(32 w30)))))))) w30)) fn(w17 w18))
-  ::std::IO::println = fn(ref(w6 w12) fn(w18 _))
-  ::day_09::part2 = fn(w24 w25)
-  ::std::numeric::N64::to_string::to_string = fn(w25 w26)
-  ::std::data::List::concat = fn(tup(8 tup(tup(80 tup(97 tup(114 tup(116 tup(32 tup(50 tup(58 tup(32 w31)))))))) w31)) fn(w26 w27))
-  ::std::IO::println = fn(ref(w12 w21) fn(w27 _))
+  ::std::numeric::N64::to_string::to_string = fn(w16 tup(@add(8 w28) tup(w29 w30)))
+  ::std::IO::println = fn(ref(w6 w12) fn(tup(w28 tup(tup(80 tup(97 tup(114 tup(116 tup(32 tup(49 tup(58 tup(32 w29)))))))) w30)) _))
+  ::day_09::part2 = fn(w23 w24)
+  ::std::numeric::N64::to_string::to_string = fn(w24 tup(@add(8 w33) tup(w34 w35)))
+  ::std::IO::println = fn(ref(w12 w20) fn(tup(w33 tup(tup(80 tup(97 tup(114 tup(116 tup(32 tup(50 tup(58 tup(32 w34)))))))) w35)) _))
 }
 
 ::std::numeric::N64::to_string::to_string {
@@ -32,11 +30,11 @@
   ::std::numeric::N64::eq = fn(w5 fn(0 ?(::std::numeric::N64::to_string::to_string::3 ::std::numeric::N64::to_string::to_string::2 x(w8 w7))))
 }
 
-::std::numeric::N64::to_string::to_string::2 { x(_ tup(1 tup(tup(48 w3) w3))) }
+::std::numeric::N64::to_string::to_string::2 { x(_ tup(1 tup(tup(48 w5) w5))) }
 
 ::std::numeric::N64::to_string::to_string::3 {
-  x(w4 w7)
-  ::std::numeric::N64::to_string::to_string::4 = x(w4 x(tup(0 tup(w5 w5)) w7))
+  x(w4 w9)
+  ::std::numeric::N64::to_string::to_string::4 = x(w4 x(tup(0 tup(w7 w7)) w9))
 }
 
 ::std::numeric::N64::to_string::to_string::4 {
@@ -290,7 +288,7 @@
 
 ::std::IO::read_line::3 { x(x(w3 w3) x(_ ::std::logical::Option::None)) }
 
-::std::IO::read_line::5 { x(x(w4 w4) x(_ tup(0 tup(w5 w5)))) }
+::std::IO::read_line::5 { x(x(w4 w4) x(_ tup(0 tup(w7 w7)))) }
 
 ::std::IO::read_line::6 {
   x(w10 x(w8 w14))

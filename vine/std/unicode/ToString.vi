@@ -1,10 +1,12 @@
 
+#[builtin = "ToString"]
 pub trait ToString[T] {
+  #[builtin = "to_string"]
   fn .to_string(self: T) -> String;
 }
 
 pub impl pair[A, B; ToString[A], ToString[B]]: ToString[(A, B)] {
   fn .to_string((a: A, b: B)) -> String {
-    "(" ++ a.to_string() ++ ", " ++ b.to_string() ++ ")"
+    "({a}, {b})"
   }
 }

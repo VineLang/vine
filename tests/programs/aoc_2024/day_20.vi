@@ -84,8 +84,8 @@ pub fn main(&io: &IO) {
     i += 1;
   }
 
-  io.println("Part 1: " ++ part1.to_string());
-  io.println("Part 2: " ++ part2.to_string());
+  io.println("Part 1: {part1}");
+  io.println("Part 2: {part2}");
 }
 
 fn eq((ax, ay): (N32, N32), (bx, by): (N32, N32)) -> Bool {

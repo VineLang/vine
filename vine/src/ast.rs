@@ -175,6 +175,8 @@ pub enum Builtin {
   List,
   String,
   Concat,
+  ToStringTrait,
+  ToStringFn,
 }
 
 pub type GenericParams<'core> = Generics<Ident<'core>, (Option<Ident<'core>>, Trait<'core>)>;
@@ -322,7 +324,7 @@ pub enum ExprKind<'core> {
   #[class(value)]
   Char(char),
   #[class(value)]
-  String(String),
+  String(StringSegment, Vec<(Expr<'core>, StringSegment)>),
   #[class(space, synthetic)]
   Set(B<Expr<'core>>),
   #[class(value, synthetic)]
@@ -339,6 +341,12 @@ pub enum ExprKind<'core> {
   SetLocal(Local),
   #[class(error)]
   Error(ErrorGuaranteed),
+}
+
+#[derive(Default, Debug, Clone)]
+pub struct StringSegment {
+  pub content: String,
+  pub span: Span,
 }
 
 #[derive(Debug, Clone, Copy)]

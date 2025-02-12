@@ -19,13 +19,12 @@
 
 ::day_24::main {
   fn(ref(w1 w16) _)
-  ::day_24::main::1 = x(x(w1 w27) x(::std::data::Map::empty w25))
-  ::day_24::main::10 = x(x(w27 w31) x(w25 w29))
-  ref(0 w8) = ref(w35 w11)
-  ::day_24::main::20 = x(w29 x(x(w11 w35) x(0 _)))
-  ::std::numeric::N64::to_string::to_string = fn(w8 w20)
-  ::std::data::List::concat = fn(tup(8 tup(tup(80 tup(97 tup(114 tup(116 tup(32 tup(49 tup(58 tup(32 w37)))))))) w37)) fn(w20 w21))
-  ::std::IO::println = fn(ref(w31 w16) fn(w21 _))
+  ::day_24::main::1 = x(x(w1 w26) x(::std::data::Map::empty w24))
+  ::day_24::main::10 = x(x(w26 w30) x(w24 w28))
+  ref(0 w8) = ref(w34 w11)
+  ::day_24::main::20 = x(w28 x(x(w11 w34) x(0 _)))
+  ::std::numeric::N64::to_string::to_string = fn(w8 tup(@add(8 w36) tup(w37 w38)))
+  ::std::IO::println = fn(ref(w30 w16) fn(tup(w36 tup(tup(80 tup(97 tup(114 tup(116 tup(32 tup(49 tup(58 tup(32 w37)))))))) w38)) _))
 }
 
 ::day_24::main::1 {
@@ -41,13 +40,13 @@
 ::day_24::main::5 { x(x(w3 w3) x(w1 w1)) }
 
 ::day_24::main::6 {
-  x(w28 x(x(w26 w31) w24))
-  ::std::unicode::String::split_once = fn(w24 fn(tup(2 tup(tup(58 tup(32 w29)) w29)) tup(w3 w4)))
+  x(w28 x(x(w26 w33) w24))
+  ::std::unicode::String::split_once = fn(w24 fn(tup(2 tup(tup(58 tup(32 w31)) w31)) tup(w3 w4)))
   ::std::logical::Option::unwrap = fn(w4 w9)
   ::std::data::List::get = fn(ref(w9 _) fn(0 ref(dup31(@eq(49 w15) w13) w13)))
   ::day_24::Wire::input = fn(w15 w22)
   ::std::data::Map::insert::1 = fn(ref(w26 w18) fn(w3 fn(w22 _)))
-  ::day_24::main::1 = x(w28 x(w18 w31))
+  ::day_24::main::1 = x(w28 x(w18 w33))
 }
 
 ::day_24::main::7 { x(x(w4 w4) x(x(w2 w2) _)) }
@@ -63,20 +62,20 @@
 }
 
 ::day_24::main::13 {
-  enum(w0 x(w5 x(w3 w88)))
-  ::std::unicode::String::split = fn(w0 fn(tup(1 tup(tup(32 w71) w71)) w8))
+  enum(w0 x(w5 x(w3 w90)))
+  ::std::unicode::String::split = fn(w0 fn(tup(1 tup(tup(32 w73) w73)) w8))
   ::std::data::List::get = fn(ref(w8 w11) fn(0 ref(w14 _)))
   ::std::data::List::get = fn(ref(w11 w18) fn(2 ref(w21 _)))
   ::std::data::List::get = fn(ref(w18 w25) fn(4 ref(w28 _)))
-  ::day_24::main::9 = x(x(w3 w74) fn(w14 w34))
+  ::day_24::main::9 = x(x(w3 w76) fn(w14 w34))
   ::day_24::Wire::get = fn(w34 w37)
-  ::day_24::main::9 = x(x(w74 w77) fn(w21 w42))
+  ::day_24::main::9 = x(x(w76 w79) fn(w21 w42))
   ::day_24::Wire::get = fn(w42 w45)
   ::std::data::List::get = fn(ref(w25 _) fn(1 w54))
-  ::std::data::List::get = fn(w54 fn(0 ref(dup54(dup72(@eq(65 ?(::day_24::main::17 ::day_24::main::16 x(w37 x(w45 x(w81 w80))))) w81) w58) w58)))
-  ::day_24::main::9 = x(x(w77 w86) fn(w28 w66))
-  ::day_24::Wire::set = fn(w66 fn(w80 _))
-  ::day_24::main::10 = x(w5 x(w86 w88))
+  ::std::data::List::get = fn(w54 fn(0 ref(dup54(dup72(@eq(65 ?(::day_24::main::17 ::day_24::main::16 x(w37 x(w45 x(w83 w82))))) w83) w58) w58)))
+  ::day_24::main::9 = x(x(w79 w88) fn(w28 w66))
+  ::day_24::Wire::set = fn(w66 fn(w82 _))
+  ::day_24::main::10 = x(w5 x(w88 w90))
 }
 
 ::day_24::main::14 { x(x(w3 w3) x(w1 w1)) }
@@ -204,11 +203,11 @@
   ::std::numeric::N64::eq = fn(w5 fn(0 ?(::std::numeric::N64::to_string::to_string::3 ::std::numeric::N64::to_string::to_string::2 x(w8 w7))))
 }
 
-::std::numeric::N64::to_string::to_string::2 { x(_ tup(1 tup(tup(48 w3) w3))) }
+::std::numeric::N64::to_string::to_string::2 { x(_ tup(1 tup(tup(48 w5) w5))) }
 
 ::std::numeric::N64::to_string::to_string::3 {
-  x(w4 w7)
-  ::std::numeric::N64::to_string::to_string::4 = x(w4 x(tup(0 tup(w5 w5)) w7))
+  x(w4 w9)
+  ::std::numeric::N64::to_string::to_string::4 = x(w4 x(tup(0 tup(w7 w7)) w9))
 }
 
 ::std::numeric::N64::to_string::to_string::4 {
@@ -402,8 +401,8 @@
 ::std::unicode::String::split::6 { x(_ x(w1 w1)) }
 
 ::std::unicode::String::split_once {
-  fn(w0 fn(w1 w14))
-  ::std::unicode::String::split_once::1 = x(w1 x(tup(0 tup(w13 w13)) x(w0 w14)))
+  fn(w0 fn(w1 w16))
+  ::std::unicode::String::split_once::1 = x(w1 x(tup(0 tup(w15 w15)) x(w0 w16)))
 }
 
 ::std::unicode::String::split_once::1 {
@@ -495,7 +494,7 @@
 
 ::std::IO::read_line::3 { x(x(w3 w3) x(_ ::std::logical::Option::None)) }
 
-::std::IO::read_line::5 { x(x(w4 w4) x(_ tup(0 tup(w5 w5)))) }
+::std::IO::read_line::5 { x(x(w4 w4) x(_ tup(0 tup(w7 w7)))) }
 
 ::std::IO::read_line::6 {
   x(w10 x(w8 w14))

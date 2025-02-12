@@ -18,18 +18,16 @@
 ::main { ::guessing_game::main }
 
 ::guessing_game::main {
-  fn(ref(w1 w51) w47)
-  ::std::IO::prompt = fn(ref(w1 w6) fn(tup(14 tup(tup(69 tup(110 tup(116 tup(101 tup(114 tup(32 tup(97 tup(32 tup(115 tup(101 tup(101 tup(100 tup(58 tup(32 w40)))))))))))))) w40)) w9))
+  fn(ref(w1 w55) w51)
+  ::std::IO::prompt = fn(ref(w1 w6) fn(tup(14 tup(tup(69 tup(110 tup(116 tup(101 tup(114 tup(32 tup(97 tup(32 tup(115 tup(101 tup(101 tup(100 tup(58 tup(32 w39)))))))))))))) w39)) w9))
   ::std::logical::Option::unwrap = fn(w9 w10)
   ::std::rng::Pcg32::seeded = fn(w10 w13)
-  ::guessing_game::main::1 = x(x(w6 w43) fn(tup(24 tup(tup(69 tup(110 tup(116 tup(101 tup(114 tup(32 tup(97 tup(32 tup(109 tup(97 tup(120 tup(105 tup(109 tup(117 tup(109 tup(32 tup(110 tup(117 tup(109 tup(98 tup(101 tup(114 tup(58 tup(32 w44)))))))))))))))))))))))) w44)) dup9(w24 w32)))
+  ::guessing_game::main::1 = x(x(w6 w42) fn(tup(24 tup(tup(69 tup(110 tup(116 tup(101 tup(114 tup(32 tup(97 tup(32 tup(109 tup(97 tup(120 tup(105 tup(109 tup(117 tup(109 tup(32 tup(110 tup(117 tup(109 tup(98 tup(101 tup(114 tup(58 tup(32 w45)))))))))))))))))))))))) w45)) dup9(w24 w32)))
   ::std::rng::Pcg32::gen_n32 = fn(ref(w13 _) @rem(w24 w25))
   1 = @add(w25 w26)
-  ::std::numeric::N32::to_string::to_string = fn(w32 w33)
-  ::std::data::List::concat = fn(tup(39 tup(tup(73 tup(39 tup(109 tup(32 tup(116 tup(104 tup(105 tup(110 tup(107 tup(105 tup(110 tup(103 tup(32 tup(111 tup(102 tup(32 tup(97 tup(32 tup(110 tup(117 tup(109 tup(98 tup(101 tup(114 tup(32 tup(98 tup(101 tup(116 tup(119 tup(101 tup(101 tup(110 tup(32 tup(49 tup(32 tup(97 tup(110 tup(100 tup(32 w45))))))))))))))))))))))))))))))))))))))) w45)) fn(w33 w34))
-  ::std::data::List::concat = fn(w34 fn(tup(1 tup(tup(46 w46) w46)) w36))
-  ::std::IO::println = fn(ref(w43 w29) fn(w36 _))
-  ::guessing_game::main::13 = x(x(w29 w51) x(0 x(w26 w47)))
+  ::std::numeric::N32::to_string::to_string = fn(w32 tup(@add(40 w46) tup(w47 tup(46 w48))))
+  ::std::IO::println = fn(ref(w42 w29) fn(tup(w46 tup(tup(73 tup(39 tup(109 tup(32 tup(116 tup(104 tup(105 tup(110 tup(107 tup(105 tup(110 tup(103 tup(32 tup(111 tup(102 tup(32 tup(97 tup(32 tup(110 tup(117 tup(109 tup(98 tup(101 tup(114 tup(32 tup(98 tup(101 tup(116 tup(119 tup(101 tup(101 tup(110 tup(32 tup(49 tup(32 tup(97 tup(110 tup(100 tup(32 w47))))))))))))))))))))))))))))))))))))))) w48)) _))
+  ::guessing_game::main::13 = x(x(w29 w55) x(0 x(w26 w51)))
 }
 
 ::guessing_game::main::1 {
@@ -50,37 +48,35 @@
 ::guessing_game::main::10 { enum(w0 x(x(w5 w5) x(_ w0))) }
 
 ::guessing_game::main::13 {
-  x(x(w11 w24) x(@add(1 w1) x(dup54(w17 w21) w19)))
-  ::guessing_game::main::1 = x(x(w11 w14) fn(tup(18 tup(tup(69 tup(110 tup(116 tup(101 tup(114 tup(32 tup(121 tup(111 tup(117 tup(114 tup(32 tup(103 tup(117 tup(101 tup(115 tup(115 tup(58 tup(32 w15)))))))))))))))))) w15)) dup55(@lt(w17 ?(::guessing_game::main::16 ::guessing_game::main::15 x(x(w14 w24) x(w1 x(w21 x(w20 w19)))))) w20)))
+  x(x(w11 w26) x(@add(1 w1) x(dup54(w19 w23) w21)))
+  ::guessing_game::main::1 = x(x(w11 w14) fn(tup(18 tup(tup(69 tup(110 tup(116 tup(101 tup(114 tup(32 tup(121 tup(111 tup(117 tup(114 tup(32 tup(103 tup(117 tup(101 tup(115 tup(115 tup(58 tup(32 w17)))))))))))))))))) w17)) dup55(@lt(w19 ?(::guessing_game::main::16 ::guessing_game::main::15 x(x(w14 w26) x(w1 x(w23 x(w22 w21)))))) w22)))
 }
 
 ::guessing_game::main::15 {
-  x(x(w10 w17) x(w8 x(w7 x(_ w13))))
-  ::std::IO::println = fn(ref(w10 w1) fn(tup(8 tup(tup(84 tup(111 tup(111 tup(32 tup(108 tup(111 tup(119 tup(46 w11)))))))) w11)) _))
-  ::guessing_game::main::28 = x(x(w1 w17) x(w8 x(w7 x(w13 _))))
+  x(x(w10 w19) x(w8 x(w7 x(_ w15))))
+  ::std::IO::println = fn(ref(w10 w1) fn(tup(8 tup(tup(84 tup(111 tup(111 tup(32 tup(108 tup(111 tup(119 tup(46 w13)))))))) w13)) _))
+  ::guessing_game::main::28 = x(x(w1 w19) x(w8 x(w7 x(w15 _))))
 }
 
 ::guessing_game::main::16 { x(w8 x(w6 x(dup68(w1 w10) x(@lt$(w1 ?(::guessing_game::main::18 ::guessing_game::main::17 x(w8 x(w6 x(w10 w9))))) w9)))) }
 
 ::guessing_game::main::17 {
-  x(x(w9 w16) x(w7 x(w6 w12)))
-  ::std::IO::println = fn(ref(w9 w1) fn(tup(9 tup(tup(84 tup(111 tup(111 tup(32 tup(104 tup(105 tup(103 tup(104 tup(46 w10))))))))) w10)) _))
-  ::guessing_game::main::28 = x(x(w1 w16) x(w7 x(w6 x(w12 _))))
+  x(x(w9 w18) x(w7 x(w6 w14)))
+  ::std::IO::println = fn(ref(w9 w1) fn(tup(9 tup(tup(84 tup(111 tup(111 tup(32 tup(104 tup(105 tup(103 tup(104 tup(46 w12))))))))) w12)) _))
+  ::guessing_game::main::28 = x(x(w1 w18) x(w7 x(w6 x(w14 _))))
 }
 
 ::guessing_game::main::18 {
-  x(x(w11 w1) x(dup80(@eq(1 ?(::guessing_game::main::21 ::guessing_game::main::20 x(w16 w15))) w16) _))
-  ::std::data::List::concat = fn(tup(11 tup(tup(89 tup(111 tup(117 tup(32 tup(103 tup(111 tup(116 tup(32 tup(105 tup(116 tup(32 w12))))))))))) w12)) fn(w15 w5))
+  x(x(w11 w1) x(dup80(@eq(1 ?(::guessing_game::main::21 ::guessing_game::main::20 x(w18 w17))) w18) _))
+  ::std::data::List::concat = fn(tup(11 tup(tup(89 tup(111 tup(117 tup(32 tup(103 tup(111 tup(116 tup(32 tup(105 tup(116 tup(32 w14))))))))))) w14)) fn(w17 w5))
   ::std::IO::println = fn(ref(w11 w1) fn(w5 _))
 }
 
-::guessing_game::main::20 { x(_ tup(13 tup(tup(105 tup(109 tup(109 tup(101 tup(100 tup(105 tup(97 tup(116 tup(101 tup(108 tup(121 tup(63 tup(33 w3))))))))))))) w3))) }
+::guessing_game::main::20 { x(_ tup(13 tup(tup(105 tup(109 tup(109 tup(101 tup(100 tup(105 tup(97 tup(116 tup(101 tup(108 tup(121 tup(63 tup(33 w5))))))))))))) w5))) }
 
 ::guessing_game::main::21 {
-  x(w7 w5)
-  ::std::numeric::N32::to_string::to_string = fn(w7 w2)
-  ::std::data::List::concat = fn(tup(3 tup(tup(105 tup(110 tup(32 w8))) w8)) fn(w2 w3))
-  ::std::data::List::concat = fn(w3 fn(tup(9 tup(tup(32 tup(103 tup(117 tup(101 tup(115 tup(115 tup(101 tup(115 tup(33 w9))))))))) w9)) w5))
+  x(w4 tup(w5 tup(tup(105 tup(110 tup(32 w6))) w7)))
+  ::std::numeric::N32::to_string::to_string = fn(w4 tup(@add(12 w5) tup(w6 tup(32 tup(103 tup(117 tup(101 tup(115 tup(115 tup(101 tup(115 tup(33 w7))))))))))))
 }
 
 ::guessing_game::main::28 {
@@ -95,7 +91,7 @@
   ::std::numeric::N32::to_string::to_string::4 = x(w6 x(tup(0 tup(w7 w7)) w9))
 }
 
-::std::numeric::N32::to_string::to_string::3 { x(_ tup(1 tup(tup(48 w3) w3))) }
+::std::numeric::N32::to_string::to_string::3 { x(_ tup(1 tup(tup(48 w5) w5))) }
 
 ::std::numeric::N32::to_string::to_string::4 { x(dup101(?(::std::numeric::N32::to_string::to_string::6 ::std::numeric::N32::to_string::to_string::5 x(w6 w2)) w6) w2) }
 
@@ -248,7 +244,7 @@
 
 ::std::IO::read_line::3 { x(x(w3 w3) x(_ ::std::logical::Option::None)) }
 
-::std::IO::read_line::5 { x(x(w4 w4) x(_ tup(0 tup(w5 w5)))) }
+::std::IO::read_line::5 { x(x(w4 w4) x(_ tup(0 tup(w7 w7)))) }
 
 ::std::IO::read_line::6 {
   x(w10 x(w8 w14))

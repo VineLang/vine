@@ -1,13 +1,11 @@
 use std::{collections::BTreeMap, mem::take};
 
 use crate::{
-  ast::{BinaryOp, Expr, ExprKind, Label, Span},
+  ast::{BinaryOp, Expr, ExprKind, Generics, Label, Span},
   chart::VariantId,
   checker::{Checker, Form, Type},
   diag::Diag,
 };
-
-use super::report;
 
 mod check_method;
 mod coerce_expr;
@@ -421,9 +419,38 @@ impl<'core> Checker<'core, '_> {
       ExprKind::N32(_) => Type::N32,
       ExprKind::Char(_) => Type::Char,
       ExprKind::F32(_) => Type::F32,
-      ExprKind::String(_) => {
-        let ty = self.chart.builtins.string.map(|d| Type::Adt(d, Vec::new()));
-        report!(self.core; ty.ok_or(Diag::MissingBuiltin { span, builtin: "List" }))
+      ExprKind::String(_, rest) => {
+        let mut string_ty =
+          self.chart.builtins.string.map(|d| Type::Adt(d, Vec::new())).unwrap_or_else(|| {
+            Type::Error(self.core.report(Diag::MissingBuiltin { span, builtin: "String" }))
+          });
+        if let (Some(to_string_trait), Some(to_string_fn)) =
+          (self.chart.builtins.to_string_trait, self.chart.builtins.to_string_fn)
+        {
+          for (expr, _) in rest {
+            let span = expr.span;
+            let ty = self.check_expr_form(expr, Form::Value);
+            let impl_ = self.find_impl(span, &Type::Trait(to_string_trait, vec![ty]));
+            *expr = Expr {
+              span,
+              kind: ExprKind::Call(
+                Box::new(Expr {
+                  span,
+                  kind: ExprKind::Def(
+                    to_string_fn,
+                    Generics { span, types: vec![], impls: vec![impl_] },
+                  ),
+                }),
+                vec![take(expr)],
+              ),
+            }
+          }
+        } else {
+          for (expr, _) in rest {
+            self.check_expr_form_type(expr, Form::Value, &mut string_ty);
+          }
+        }
+        string_ty
       }
     }
   }

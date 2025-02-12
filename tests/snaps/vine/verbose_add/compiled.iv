@@ -21,20 +21,16 @@
 
 ::verbose_add::4 { enum(w0 x(enum(::verbose_add::9 enum(::verbose_add::10 x(w0 w7))) w7)) }
 
-::verbose_add::5 { x(_ tup(10 tup(tup(97 tup(32 tup(119 tup(97 tup(115 tup(32 tup(110 tup(111 tup(110 tup(101 w3)))))))))) w3))) }
+::verbose_add::5 { x(_ tup(10 tup(tup(97 tup(32 tup(119 tup(97 tup(115 tup(32 tup(110 tup(111 tup(110 tup(101 w5)))))))))) w5))) }
 
 ::verbose_add::9 {
-  enum(dup20(w8 w14) x(dup19(w4 @add(w14 w15)) w17))
-  ::std::numeric::N32::to_string::to_string = fn(w4 w5)
-  ::std::data::List::concat = fn(w5 fn(tup(3 tup(tup(32 tup(43 tup(32 w18))) w18)) w7))
-  ::std::numeric::N32::to_string::to_string = fn(w8 w9)
-  ::std::data::List::concat = fn(w7 fn(w9 w10))
-  ::std::data::List::concat = fn(w10 fn(tup(3 tup(tup(32 tup(61 tup(32 w19))) w19)) w12))
-  ::std::numeric::N32::to_string::to_string = fn(w15 w16)
-  ::std::data::List::concat = fn(w12 fn(w16 w17))
+  enum(dup20(w7 w10) x(dup19(w5 @add(w10 w11)) tup(w13 tup(w14 w15))))
+  ::std::numeric::N32::to_string::to_string = fn(w5 tup(@add(6 w16) tup(w14 tup(32 tup(43 tup(32 w17))))))
+  ::std::numeric::N32::to_string::to_string = fn(w7 tup(@add(w16 w18) tup(w17 tup(32 tup(61 tup(32 w19))))))
+  ::std::numeric::N32::to_string::to_string = fn(w11 tup(@add(w18 w13) tup(w19 w15)))
 }
 
-::verbose_add::10 { x(_ tup(10 tup(tup(98 tup(32 tup(119 tup(97 tup(115 tup(32 tup(110 tup(111 tup(110 tup(101 w3)))))))))) w3))) }
+::verbose_add::10 { x(_ tup(10 tup(tup(98 tup(32 tup(119 tup(97 tup(115 tup(32 tup(110 tup(111 tup(110 tup(101 w5)))))))))) w5))) }
 
 ::std::numeric::N32::to_string::to_string { fn(dup26(?(::std::numeric::N32::to_string::to_string::3 ::std::numeric::N32::to_string::to_string::2 x(w7 w6)) w7) w6) }
 
@@ -43,7 +39,7 @@
   ::std::numeric::N32::to_string::to_string::4 = x(w6 x(tup(0 tup(w7 w7)) w9))
 }
 
-::std::numeric::N32::to_string::to_string::3 { x(_ tup(1 tup(tup(48 w3) w3))) }
+::std::numeric::N32::to_string::to_string::3 { x(_ tup(1 tup(tup(48 w5) w5))) }
 
 ::std::numeric::N32::to_string::to_string::4 { x(dup35(?(::std::numeric::N32::to_string::to_string::6 ::std::numeric::N32::to_string::to_string::5 x(w6 w2)) w6) w2) }
 

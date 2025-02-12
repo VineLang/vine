@@ -4,7 +4,7 @@ use vine_util::idx::{Counter, IdxVec};
 
 use crate::{
   ast::{
-    AttrKind, Builtin, GenericParams, Generics, Ident, Item, ItemKind, ModKind, Span, Trait,
+    Attr, AttrKind, Builtin, GenericParams, Generics, Ident, Item, ItemKind, ModKind, Span, Trait,
     TraitKind, Ty, TyKind, UseTree, Vis,
   },
   chart::{Chart, TraitSubitem},
@@ -198,6 +198,7 @@ impl<'core> Charter<'core, '_> {
                 let sub_id = sub_id.next();
                 let kind = ValueDefKind::TraitSubitem(trait_id, sub_id);
                 self.define_value(span, def, vis, sub_generics, kind, fn_item.method);
+                self.chart_attrs(span, vis, Some(def), subitem.attrs);
                 Some(TraitSubitem {
                   name: fn_item.name,
                   kind: TraitSubitemKind::Fn(fn_item.params, fn_item.ret),
@@ -214,6 +215,7 @@ impl<'core> Charter<'core, '_> {
                 let sub_id = sub_id.next();
                 let kind = ValueDefKind::TraitSubitem(trait_id, sub_id);
                 self.define_value(span, def, vis, sub_generics, kind, false);
+                self.chart_attrs(span, vis, Some(def), subitem.attrs);
                 Some(TraitSubitem {
                   name: const_item.name,
                   kind: TraitSubitemKind::Const(const_item.ty),
@@ -251,6 +253,7 @@ impl<'core> Charter<'core, '_> {
                 let body = self.ensure_implemented(span, fn_item.body);
                 let kind = ValueDefKind::Fn { params: fn_item.params, ret: fn_item.ret, body };
                 let value = self.define_value(span, def, vis, generics, kind, fn_item.method);
+                self.chart_attrs(span, vis, Some(def), subitem.attrs);
                 Some(ImplSubitem { span, name: fn_item.name, value })
               }
               ItemKind::Const(const_item) => {
@@ -261,6 +264,7 @@ impl<'core> Charter<'core, '_> {
                 let value = self.ensure_implemented(span, const_item.value);
                 let kind = ValueDefKind::Const { ty: const_item.ty, value };
                 let value = self.define_value(span, def, vis, generics, kind, false);
+                self.chart_attrs(span, vis, Some(def), subitem.attrs);
                 Some(ImplSubitem { span, name: const_item.name, value })
               }
               _ => {
@@ -316,7 +320,11 @@ impl<'core> Charter<'core, '_> {
       }
     }
 
-    for attr in item.attrs {
+    self.chart_attrs(span, vis, def, item.attrs);
+  }
+
+  fn chart_attrs(&mut self, span: Span, vis: DefId, def: Option<DefId>, attrs: Vec<Attr>) {
+    for attr in attrs {
       match attr.kind {
         AttrKind::Builtin(builtin) => {
           if !self.chart_builtin(span, def, vis, builtin) {
@@ -361,6 +369,8 @@ impl<'core> Charter<'core, '_> {
       Builtin::List => set(adt(), &mut self.chart.builtins.list),
       Builtin::String => set(adt(), &mut self.chart.builtins.string),
       Builtin::Concat => set(def.value_def, &mut self.chart.builtins.concat),
+      Builtin::ToStringTrait => set(def.trait_def, &mut self.chart.builtins.to_string_trait),
+      Builtin::ToStringFn => set(def.value_def, &mut self.chart.builtins.to_string_fn),
     }
   }
 

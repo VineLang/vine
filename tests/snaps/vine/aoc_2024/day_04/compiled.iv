@@ -8,16 +8,14 @@
 ::main { ::day_04::main }
 
 ::day_04::main {
-  fn(ref(w1 w24) _)
-  ::day_04::main::1 = x(x(w1 w36) x(tup(0 tup(w32 w32)) dup5(w7 w19)))
-  ::day_04::diamond = fn(w7 fn(fn(dup7(@eq(88 ?(::day_04::main::9 ::day_04::main::8 x(w66 x(w38 x(w39 x(w40 x(w41 x(w42 x(w43 x(w44 x(w45 x(x(w48 w57) w55)))))))))))) w66) fn(tup(w38 tup(w39 tup(w40 tup(w41 tup(w42 tup(w43 tup(w44 w45))))))) fn(ref(w48 w57) w55))) fn(46 fn(0 w9))))
-  ::std::numeric::N32::to_string::to_string = fn(w9 w16)
-  ::std::data::List::concat = fn(tup(6 tup(tup(88 tup(77 tup(65 tup(83 tup(58 tup(32 w67)))))) w67)) fn(w16 w17))
-  ::std::IO::println = fn(ref(w36 w12) fn(w17 _))
-  ::day_04::diamond = fn(w19 fn(fn(dup19(@eq(65 ?(::day_04::main::23 ::day_04::main::22 x(w89 x(w69 x(w70 x(w71 x(w72 x(x(w75 w84) w82)))))))) w89) fn(tup(w69 tup(_ tup(w70 tup(_ tup(_ tup(w71 tup(_ w72))))))) fn(ref(w75 w84) w82))) fn(46 fn(0 w21))))
-  ::std::numeric::N32::to_string::to_string = fn(w21 w28)
-  ::std::data::List::concat = fn(tup(7 tup(tup(88 tup(45 tup(77 tup(65 tup(83 tup(58 tup(32 w90))))))) w90)) fn(w28 w29))
-  ::std::IO::println = fn(ref(w12 w24) fn(w29 _))
+  fn(ref(w1 w23) _)
+  ::day_04::main::1 = x(x(w1 w34) x(tup(0 tup(w30 w30)) dup5(w7 w18)))
+  ::day_04::diamond = fn(w7 fn(fn(dup7(@eq(88 ?(::day_04::main::9 ::day_04::main::8 x(w64 x(w36 x(w37 x(w38 x(w39 x(w40 x(w41 x(w42 x(w43 x(x(w46 w55) w53)))))))))))) w64) fn(tup(w36 tup(w37 tup(w38 tup(w39 tup(w40 tup(w41 tup(w42 w43))))))) fn(ref(w46 w55) w53))) fn(46 fn(0 w9))))
+  ::std::numeric::N32::to_string::to_string = fn(w9 tup(@add(6 w65) tup(w66 w67)))
+  ::std::IO::println = fn(ref(w34 w12) fn(tup(w65 tup(tup(88 tup(77 tup(65 tup(83 tup(58 tup(32 w66)))))) w67)) _))
+  ::day_04::diamond = fn(w18 fn(fn(dup19(@eq(65 ?(::day_04::main::23 ::day_04::main::22 x(w91 x(w71 x(w72 x(w73 x(w74 x(x(w77 w86) w84)))))))) w91) fn(tup(w71 tup(_ tup(w72 tup(_ tup(_ tup(w73 tup(_ w74))))))) fn(ref(w77 w86) w84))) fn(46 fn(0 w20))))
+  ::std::numeric::N32::to_string::to_string = fn(w20 tup(@add(7 w92) tup(w93 w94)))
+  ::std::IO::println = fn(ref(w12 w23) fn(tup(w92 tup(tup(88 tup(45 tup(77 tup(65 tup(83 tup(58 tup(32 w93))))))) w94)) _))
 }
 
 ::day_04::main::1 {
@@ -140,7 +138,7 @@
   ::std::numeric::N32::to_string::to_string::4 = x(w6 x(tup(0 tup(w7 w7)) w9))
 }
 
-::std::numeric::N32::to_string::to_string::3 { x(_ tup(1 tup(tup(48 w3) w3))) }
+::std::numeric::N32::to_string::to_string::3 { x(_ tup(1 tup(tup(48 w5) w5))) }
 
 ::std::numeric::N32::to_string::to_string::4 { x(dup262(?(::std::numeric::N32::to_string::to_string::6 ::std::numeric::N32::to_string::to_string::5 x(w6 w2)) w6) w2) }
 
@@ -349,7 +347,7 @@
 
 ::std::IO::read_line::3 { x(x(w3 w3) x(_ ::std::logical::Option::None)) }
 
-::std::IO::read_line::5 { x(x(w4 w4) x(_ tup(0 tup(w5 w5)))) }
+::std::IO::read_line::5 { x(x(w4 w4) x(_ tup(0 tup(w7 w7)))) }
 
 ::std::IO::read_line::6 {
   x(w10 x(w8 w14))

@@ -51,8 +51,8 @@ pub fn main(&io: &IO) {
     &(io, id, scores, ratings),
   );
 
-  io.println("Scores: " ++ scores.to_string());
-  io.println("Ratings: " ++ ratings.to_string());
+  io.println("Scores: {scores}");
+  io.println("Ratings: {ratings}");
 }
 
 type Set32 = N32;

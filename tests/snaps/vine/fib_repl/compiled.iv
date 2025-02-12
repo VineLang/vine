@@ -15,8 +15,8 @@
 }
 
 ::fib_repl::main::1 {
-  x(w7 w10)
-  ::std::IO::prompt = fn(ref(w7 w1) fn(tup(2 tup(tup(62 tup(32 w8)) w8)) enum(::fib_repl::main::4 enum(::fib_repl::main::5 x(w1 w10)))))
+  x(w7 w12)
+  ::std::IO::prompt = fn(ref(w7 w1) fn(tup(2 tup(tup(62 tup(32 w10)) w10)) enum(::fib_repl::main::4 enum(::fib_repl::main::5 x(w1 w12)))))
 }
 
 ::fib_repl::main::4 {
@@ -34,7 +34,7 @@
   ::std::numeric::N32::to_string::to_string = fn(w4 w5)
 }
 
-::fib_repl::main::10 { tup(14 tup(tup(105 tup(110 tup(118 tup(97 tup(108 tup(105 tup(100 tup(32 tup(110 tup(117 tup(109 tup(98 tup(101 tup(114 w2)))))))))))))) w2)) }
+::fib_repl::main::10 { tup(14 tup(tup(105 tup(110 tup(118 tup(97 tup(108 tup(105 tup(100 tup(32 tup(110 tup(117 tup(109 tup(98 tup(101 tup(114 w4)))))))))))))) w4)) }
 
 ::std::numeric::N32::to_string::to_string { fn(dup22(?(::std::numeric::N32::to_string::to_string::3 ::std::numeric::N32::to_string::to_string::2 x(w7 w6)) w7) w6) }
 
@@ -43,7 +43,7 @@
   ::std::numeric::N32::to_string::to_string::4 = x(w6 x(tup(0 tup(w7 w7)) w9))
 }
 
-::std::numeric::N32::to_string::to_string::3 { x(_ tup(1 tup(tup(48 w3) w3))) }
+::std::numeric::N32::to_string::to_string::3 { x(_ tup(1 tup(tup(48 w5) w5))) }
 
 ::std::numeric::N32::to_string::to_string::4 { x(dup31(?(::std::numeric::N32::to_string::to_string::6 ::std::numeric::N32::to_string::to_string::5 x(w6 w2)) w6) w2) }
 
@@ -143,7 +143,7 @@
 
 ::std::IO::read_line::3 { x(x(w3 w3) x(_ ::std::logical::Option::None)) }
 
-::std::IO::read_line::5 { x(x(w4 w4) x(_ tup(0 tup(w5 w5)))) }
+::std::IO::read_line::5 { x(x(w4 w4) x(_ tup(0 tup(w7 w7)))) }
 
 ::std::IO::read_line::6 {
   x(w10 x(w8 w14))

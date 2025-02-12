@@ -4,14 +4,14 @@ pub fn main(&io: &IO) {
 
   let part1 = get_muls(input);
 
-  io.println("Part 1: " ++ part1.to_string());
+  io.println("Part 1: {part1}");
 
   let part2 = get_muls(input.split("do()").map(fn(x: String) {
     let (a, _) = x.split_once("don't()");
     a
   }).join(""));
 
-  io.println("Part 2: " ++ part2.to_string());
+  io.println("Part 2: {part2}");
 }
 
 fn get_muls(input: String) -> N32 {

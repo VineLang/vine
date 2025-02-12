@@ -205,9 +205,13 @@ impl<'core, 'r> Distiller<'core, 'r> {
         ));
         wire.1
       }
-      ExprKind::String(s) => {
+      ExprKind::String(init, rest) => {
         let wire = stage.new_wire();
-        stage.steps.push(Step::String(wire.0, s.clone()));
+        let rest = rest
+          .iter()
+          .map(|(expr, seg)| (self.distill_expr_value(stage, expr), seg.content.clone()))
+          .collect();
+        stage.steps.push(Step::String(wire.0, init.content.clone(), rest));
         wire.1
       }
       ExprKind::CopyLocal(local) => stage.get_local(*local),

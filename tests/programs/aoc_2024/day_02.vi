@@ -18,8 +18,8 @@ pub fn main(&io: &IO) {
     }
   }
 
-  io.println("Safe Count: " ++ safe_count.to_string());
-  io.println("Dampened Safe Count: " ++ dampened_safe_count.to_string());
+  io.println("Safe Count: {safe_count}");
+  io.println("Dampened Safe Count: {dampened_safe_count}");
 }
 
 fn is_safe(report: List[N32]) -> Bool {

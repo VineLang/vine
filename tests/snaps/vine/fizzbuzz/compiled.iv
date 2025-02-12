@@ -30,11 +30,11 @@
   ::std::numeric::N32::to_string::to_string = fn(w3 w1)
 }
 
-::fizzbuzz::message::6 { x(_ tup(4 tup(tup(66 tup(117 tup(122 tup(122 w3)))) w3))) }
+::fizzbuzz::message::6 { x(_ tup(4 tup(tup(66 tup(117 tup(122 tup(122 w5)))) w5))) }
 
-::fizzbuzz::message::8 { tup(4 tup(tup(70 tup(105 tup(122 tup(122 w2)))) w2)) }
+::fizzbuzz::message::8 { tup(4 tup(tup(70 tup(105 tup(122 tup(122 w4)))) w4)) }
 
-::fizzbuzz::message::9 { tup(8 tup(tup(70 tup(105 tup(122 tup(122 tup(66 tup(117 tup(122 tup(122 w2)))))))) w2)) }
+::fizzbuzz::message::9 { tup(8 tup(tup(70 tup(105 tup(122 tup(122 tup(66 tup(117 tup(122 tup(122 w4)))))))) w4)) }
 
 ::std::numeric::N32::to_string::to_string { fn(dup34(?(::std::numeric::N32::to_string::to_string::3 ::std::numeric::N32::to_string::to_string::2 x(w7 w6)) w7) w6) }
 
@@ -43,7 +43,7 @@
   ::std::numeric::N32::to_string::to_string::4 = x(w6 x(tup(0 tup(w7 w7)) w9))
 }
 
-::std::numeric::N32::to_string::to_string::3 { x(_ tup(1 tup(tup(48 w3) w3))) }
+::std::numeric::N32::to_string::to_string::3 { x(_ tup(1 tup(tup(48 w5) w5))) }
 
 ::std::numeric::N32::to_string::to_string::4 { x(dup43(?(::std::numeric::N32::to_string::to_string::6 ::std::numeric::N32::to_string::to_string::5 x(w6 w2)) w6) w2) }
 

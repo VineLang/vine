@@ -12,7 +12,7 @@ pub fn main(&io: &IO) {
     } else {
       ""
     };
-    io.println(n.to_string() ++ ": " ++ sum.to_string() ++ class);
+    io.println("{n}: {sum}{class}");
     n += 1;
   }
 }

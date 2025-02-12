@@ -115,12 +115,12 @@ pub enum Step {
   ExtFn(ExtFn, Port, Port, Port),
   Dup(Port, Port, Port),
   List(Port, Vec<Port>),
-  String(Port, String),
+  String(Port, String, Vec<(Port, String)>),
 }
 
 impl Step {
   pub fn ports(&self) -> impl Iterator<Item = &Port> {
-    multi_iter!(Ports { Zero, One, Two, Three, Invoke, Transfer, Tuple, Fn });
+    multi_iter!(Ports { Zero, Two, Three, Invoke, Transfer, Tuple, Fn, String });
     match self {
       Step::Invoke(_, invocation) => Ports::Invoke(invocation.ports()),
       Step::Transfer(transfer) | Step::Diverge(_, Some(transfer)) => {
@@ -133,7 +133,7 @@ impl Step {
         Ports::Tuple([port].into_iter().chain(ports))
       }
       Step::Ref(a, b, c) | Step::ExtFn(_, a, b, c) | Step::Dup(a, b, c) => Ports::Three([a, b, c]),
-      Step::String(port, _) => Ports::One([port]),
+      Step::String(a, _, b) => Ports::String([a].into_iter().chain(b.iter().map(|x| &x.0))),
     }
   }
 }

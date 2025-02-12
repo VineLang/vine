@@ -56,7 +56,6 @@ pub trait VisitMut<'core, 'a> {
       | ExprKind::N32(_)
       | ExprKind::F32(_)
       | ExprKind::Char(_)
-      | ExprKind::String(_)
       | ExprKind::Continue(_)
       | ExprKind::Error(_)
       | ExprKind::CopyLocal(_)
@@ -149,6 +148,9 @@ pub trait VisitMut<'core, 'a> {
       }
       ExprKind::Object(o) => {
         self.visit(o.iter_mut().map(|(_, v)| v));
+      }
+      ExprKind::String(_, i) => {
+        self.visit(i.iter_mut().map(|x| &mut x.0));
       }
     }
   }

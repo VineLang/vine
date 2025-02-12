@@ -11,9 +11,8 @@
   ::std::IO::println = fn(ref(w7 w15) fn(w20 _))
   ::basic_diverge::foo = fn(0 fn(ref(w18 w26) w28))
   ::std::IO::println = fn(ref(w15 w23) fn(w28 _))
-  ::std::numeric::N32::to_string::to_string = fn(w26 w35)
-  ::std::data::List::concat = fn(tup(13 tup(tup(10 tup(122 tup(101 tup(114 tup(111 tup(95 tup(99 tup(111 tup(117 tup(110 tup(116 tup(58 tup(32 w39))))))))))))) w39)) fn(w35 w36))
-  ::std::IO::println = fn(ref(w23 w31) fn(w36 _))
+  ::std::numeric::N32::to_string::to_string = fn(w26 tup(@add(13 w38) tup(w39 w40)))
+  ::std::IO::println = fn(ref(w23 w31) fn(tup(w38 tup(tup(10 tup(122 tup(101 tup(114 tup(111 tup(95 tup(99 tup(111 tup(117 tup(110 tup(116 tup(58 tup(32 w39))))))))))))) w40)) _))
 }
 
 ::std::numeric::N32::to_string::to_string { fn(dup12(?(::std::numeric::N32::to_string::to_string::3 ::std::numeric::N32::to_string::to_string::2 x(w7 w6)) w7) w6) }
@@ -23,7 +22,7 @@
   ::std::numeric::N32::to_string::to_string::4 = x(w6 x(tup(0 tup(w7 w7)) w9))
 }
 
-::std::numeric::N32::to_string::to_string::3 { x(_ tup(1 tup(tup(48 w3) w3))) }
+::std::numeric::N32::to_string::to_string::3 { x(_ tup(1 tup(tup(48 w5) w5))) }
 
 ::std::numeric::N32::to_string::to_string::4 { x(dup21(?(::std::numeric::N32::to_string::to_string::6 ::std::numeric::N32::to_string::to_string::5 x(w6 w2)) w6) w2) }
 
@@ -38,9 +37,9 @@
 
 ::basic_diverge::foo { fn(?(::basic_diverge::foo::3 ::basic_diverge::foo::2 x(x(w2 w14) w12)) fn(ref(w2 w14) w12)) }
 
-::basic_diverge::foo::2 { x(x(w3 w3) tup(9 tup(tup(110 tup(111 tup(110 tup(45 tup(122 tup(101 tup(114 tup(111 tup(33 w4))))))))) w4))) }
+::basic_diverge::foo::2 { x(x(w3 w3) tup(9 tup(tup(110 tup(111 tup(110 tup(45 tup(122 tup(101 tup(114 tup(111 tup(33 w6))))))))) w6))) }
 
-::basic_diverge::foo::3 { x(x(@add(1 w11) w11) tup(4 tup(tup(122 tup(101 tup(114 tup(111 w13)))) w13))) }
+::basic_diverge::foo::3 { x(x(@add(1 w11) w11) tup(4 tup(tup(122 tup(101 tup(114 tup(111 w15)))) w15))) }
 
 ::std::data::List::concat { fn(tup(@add(w10 w18) tup(w6 w11)) fn(tup(w10 tup(w11 w21)) tup(w18 tup(w6 w21)))) }
 

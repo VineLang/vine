@@ -16,8 +16,8 @@ pub fn main(&io: &IO) {
     }
   }
 
-  io.println("Part 1: " ++ possible.to_string());
-  io.println("Part 2: " ++ ways.to_string());
+  io.println("Part 1: {possible}");
+  io.println("Part 2: {ways}");
 }
 
 fn match_counts(design: String, patterns: List[String]) -> Array[N64] {

@@ -40,6 +40,9 @@ pub struct Builtins {
   pub string: Option<AdtId>,
 
   pub concat: Option<ValueDefId>,
+
+  pub to_string_trait: Option<TraitDefId>,
+  pub to_string_fn: Option<ValueDefId>,
 }
 
 new_idx!(pub DefId);

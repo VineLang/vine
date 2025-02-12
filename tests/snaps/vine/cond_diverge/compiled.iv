@@ -7,8 +7,8 @@
 
 ::cond_diverge::main {
   fn(w1 _)
-  ::cond_diverge::main::1 = x(x(tup(4 tup(tup(97 tup(98 tup(99 tup(100 w14)))) w14)) w17) _)
-  ::std::IO::println = fn(w1 fn(w17 _))
+  ::cond_diverge::main::1 = x(x(tup(4 tup(tup(97 tup(98 tup(99 tup(100 w16)))) w16)) w19) _)
+  ::std::IO::println = fn(w1 fn(w19 _))
 }
 
 ::cond_diverge::main::1 {

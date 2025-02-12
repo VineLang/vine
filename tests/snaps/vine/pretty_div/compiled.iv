@@ -17,21 +17,16 @@
   ::std::IO::println = fn(ref(w21 w26) fn(w28 _))
 }
 
-::pretty_div { fn(dup9(w4 w27) fn(dup10(?(::pretty_div::3 ::pretty_div::2 x(w27 x(w26 x(w25 w4)))) w26) w25)) }
+::pretty_div { fn(dup9(w4 w20) fn(dup10(?(::pretty_div::3 ::pretty_div::2 x(w20 x(w19 x(w18 w4)))) w19) w18)) }
 
 ::pretty_div::2 {
-  x(w4 x(dup15(w0 w19) x(w26 @div(w0 w11))))
-  ::std::numeric::N32::to_string::to_string = fn(w4 w15)
-  ::std::data::List::concat = fn(tup(3 tup(tup(124 tup(95 tup(32 w27))) w27)) fn(w15 w16))
-  ::std::data::List::concat = fn(w16 fn(tup(3 tup(tup(32 tup(47 tup(32 w28))) w28)) w18))
-  ::std::numeric::N32::to_string::to_string = fn(w19 w20)
-  ::std::data::List::concat = fn(w18 fn(w20 w21))
-  ::std::data::List::concat = fn(w21 fn(tup(6 tup(tup(32 tup(95 tup(124 tup(32 tup(61 tup(32 w29)))))) w29)) w23))
-  ::std::numeric::N32::to_string::to_string = fn(w11 w25)
-  ::std::data::List::concat = fn(w23 fn(w25 w26))
+  x(w4 x(dup15(w0 w16) x(tup(w20 tup(tup(124 tup(95 tup(32 w21))) w22)) @div(w0 w11))))
+  ::std::numeric::N32::to_string::to_string = fn(w4 tup(@add(13 w23) tup(w21 tup(32 tup(47 tup(32 w24))))))
+  ::std::numeric::N32::to_string::to_string = fn(w16 tup(@add(w23 w25) tup(w24 tup(32 tup(32 tup(95 tup(124 tup(32 tup(61 tup(32 w26))))))))))
+  ::std::numeric::N32::to_string::to_string = fn(w11 tup(@add(w25 w20) tup(w26 w22)))
 }
 
-::pretty_div::3 { x(_ x(_ x(tup(19 tup(tup(100 tup(105 tup(118 tup(105 tup(115 tup(105 tup(111 tup(110 tup(32 tup(98 tup(121 tup(32 tup(122 tup(101 tup(114 tup(111 tup(32 tup(58 tup(79 w5))))))))))))))))))) w5)) _))) }
+::pretty_div::3 { x(_ x(_ x(tup(19 tup(tup(100 tup(105 tup(118 tup(105 tup(115 tup(105 tup(111 tup(110 tup(32 tup(98 tup(121 tup(32 tup(122 tup(101 tup(114 tup(111 tup(32 tup(58 tup(79 w7))))))))))))))))))) w7)) _))) }
 
 ::std::numeric::N32::to_string::to_string { fn(dup21(?(::std::numeric::N32::to_string::to_string::3 ::std::numeric::N32::to_string::to_string::2 x(w7 w6)) w7) w6) }
 
@@ -40,7 +35,7 @@
   ::std::numeric::N32::to_string::to_string::4 = x(w6 x(tup(0 tup(w7 w7)) w9))
 }
 
-::std::numeric::N32::to_string::to_string::3 { x(_ tup(1 tup(tup(48 w3) w3))) }
+::std::numeric::N32::to_string::to_string::3 { x(_ tup(1 tup(tup(48 w5) w5))) }
 
 ::std::numeric::N32::to_string::to_string::4 { x(dup30(?(::std::numeric::N32::to_string::to_string::6 ::std::numeric::N32::to_string::to_string::5 x(w6 w2)) w6) w2) }
 

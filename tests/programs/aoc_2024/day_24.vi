@@ -50,7 +50,7 @@ pub fn main(&io: &IO) {
     }
   }
 
-  io.println("Part 1: " ++ part1.to_string());
+  io.println("Part 1: {part1}");
 }
 
 struct Wire(~Bool, Bool);

@@ -75,7 +75,7 @@ pub fn main(&io: &IO) {
 
   show_grid();
 
-  io.println("Part 1: " ++ part1.to_string());
+  io.println("Part 1: {part1}");
 
   grid = Array::from_list(initial_grid.to_list().map(fn(row: Array[Char]) {
     let new_row = [];
@@ -196,5 +196,5 @@ pub fn main(&io: &IO) {
 
   show_grid();
 
-  io.println("Part 2: " ++ part2.to_string());
+  io.println("Part 2: {part2}");
 }
