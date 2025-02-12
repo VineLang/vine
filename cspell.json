@@ -46,6 +46,7 @@
     "strs",
     "structs",
     "subexpressions",
+    "subimpls",
     "subpatterns",
     "unpark",
     "vecs",
