@@ -13,5 +13,5 @@ fn pretty_div(n: N32, d: N32) -> String {
   } else {
     d
   };
-  "|_ " ++ n.to_string() ++ " / " ++ d.to_string() ++ " _| = " ++ result.to_string()
+  "|_ {n} / {d}  _| = {result}"
 }

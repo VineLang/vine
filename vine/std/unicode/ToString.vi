@@ -7,6 +7,6 @@ pub trait ToString[T] {
 
 pub impl pair[A, B; ToString[A], ToString[B]]: ToString[(A, B)] {
   fn .to_string((a: A, b: B)) -> String {
-    "(" ++ a.to_string() ++ ", " ++ b.to_string() ++ ")"
+    "({a}, {b})"
   }
 }

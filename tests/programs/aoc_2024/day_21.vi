@@ -19,7 +19,7 @@ pub fn main(&io: &IO) {
     sum += num * len;
   }
 
-  io.println("Part 1: " ++ sum.to_string());
+  io.println("Part 1: {sum}");
 
   let c = base_cost_func();
   let i = 0;
@@ -54,7 +54,7 @@ pub fn main(&io: &IO) {
     sum = sum.add(cost.mul(N64::from_n32(num)));
   }
 
-  io.println("Part 2: " ++ sum.to_string());
+  io.println("Part 2: {sum}");
 }
 
 fn control_string(cur: Char, string: String, seed: N32, f: fn(Char, Char, Bool) -> String) -> String {

@@ -9,5 +9,5 @@ pub fn main(&io: &IO) {
 fn verbose_add(a: Option[N32], b: Option[N32]) -> String {
   let Some(a) = a else { return "a was none" };
   let Some(b) = b else { return "b was none" };
-  a.to_string() ++ " + " ++ b.to_string() ++ " = " ++ (a + b).to_string()
+  "{a} + {b} = {(a + b)}"
 }

@@ -17,7 +17,7 @@ pub fn main(&io: &IO) {
   while i < max {
     stones = blink(&io, stones);
     i += 1;
-    io.println(i.to_string() ++ ": " ++ count(&stones).to_string());
+    io.println("{i}: {count(&stones)}");
   }
 }
 

@@ -6,7 +6,7 @@ pub fn main(&io: &IO) {
   while n <= end {
     let primeness = primeness(n);
 
-    io.println(n.to_string() ++ ": " ++ match primeness {
+    io.println("{n}: " ++ match primeness {
       Ok(primeness) {
         if primeness {
           "prime"

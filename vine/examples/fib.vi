@@ -6,7 +6,7 @@ pub fn main(&io: &IO) {
   let a = 0;
   let b = 1;
   while n <= end {
-    io.println("fib(" ++ n.to_string() ++ ") = " ++ a.to_string());
+    io.println("fib({n}) = {a}");
     (a, b) = (b, a + b);
     n += 1;
   }

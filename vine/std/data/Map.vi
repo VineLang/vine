@@ -268,12 +268,12 @@ pub mod Map {
         first = false;
         let key = ToString::to_string[K](key);
         let value = ToString::to_string[V](value);
-        string ++= key ++ ": " ++ value;
+        string ++= "{key}: {value}";
       }
       if first {
         "\{}"
       } else {
-        "\{ " ++ string ++ " }"
+        "\{ {string} }"
       }
     }
   }

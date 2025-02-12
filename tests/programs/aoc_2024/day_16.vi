@@ -84,9 +84,9 @@ pub fn main(&io: &IO) {
     }
   }
 
-  io.println("Part 1: " ++ part1.to_string());
+  io.println("Part 1: {part1}");
 
-  io.println("Part 2: " ++ part2.to_string());
+  io.println("Part 2: {part2}");
 }
 
 fn delta(dir: N32) -> (N32, N32) {

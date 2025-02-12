@@ -35,7 +35,7 @@ pub fn main(&io: &IO) {
     sum += n;
   }
 
-  io.println("Part 1: " ++ sum.to_string());
+  io.println("Part 1: {sum}");
 }
 
 fn fits(lock: List[N32], key: List[N32]) -> Bool {

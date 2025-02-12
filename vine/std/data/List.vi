@@ -111,7 +111,7 @@ pub mod List {
 
   pub impl to_string[T; ToString[T]]: ToString[List[T]] {
     fn .to_string(list: List[T]) -> String {
-      "[" ++ list.map(ToString::to_string[T]).join(", ") ++ "]"
+      "[{list.map(ToString::to_string[T]).join(", ")}]"
     }
   }
 

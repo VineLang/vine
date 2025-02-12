@@ -27,7 +27,7 @@ pub fn main(&io: &IO) {
 
   let (_, length) = walk(&grid, guard_pos);
 
-  io.println("Part 1: " ++ length.to_string());
+  io.println("Part 1: {length}");
 
   let spaces = [];
   clear(&grid, &spaces);
@@ -42,10 +42,10 @@ pub fn main(&io: &IO) {
       loops += 1;
     }
     i += 1;
-    io.println(i.to_string() ++ " " ++ loops.to_string());
+    io.println("{i} {loops}");
   }
 
-  io.println("Part 2: " ++ loops.to_string());
+  io.println("Part 2: {loops}");
 }
 
 fn clear(&grid: &Array[Array[Char]], &spaces: &List[(N32, N32)]) {

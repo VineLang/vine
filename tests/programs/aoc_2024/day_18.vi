@@ -43,7 +43,7 @@ pub fn main(&io: &IO) {
 
   let part1 = pathfind(grid, size, iters);
 
-  io.println("Part 1: " ++ part1.to_string());
+  io.println("Part 1: {part1}");
 
   let set = DisjointSet::new(size * size);
 
@@ -92,7 +92,7 @@ pub fn main(&io: &IO) {
 
   let (x, y) = *data.get(i);
 
-  io.println("Part 2: " ++ x.to_string() ++ "," ++ y.to_string());
+  io.println("Part 2: {x},{y}");
 }
 
 struct DisjointSet(Array[Node]);

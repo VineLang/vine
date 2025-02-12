@@ -17,7 +17,7 @@ pub fn main(&io: &IO) {
   let max = prompt_num("Enter a maximum number: ");
   let num = 1 + rng.gen_n32() % max;
 
-  io.println("I'm thinking of a number between 1 and " ++ max.to_string() ++ ".");
+  io.println("I'm thinking of a number between 1 and {max}.");
 
   loop {
     guesses += 1;
@@ -30,7 +30,7 @@ pub fn main(&io: &IO) {
       io.println("You got it " ++ if guesses == 1 {
         "immediately?!"
       } else {
-        "in " ++ guesses.to_string() ++ " guesses!"
+        "in {guesses} guesses!"
       });
       break;
     }

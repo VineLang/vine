@@ -49,6 +49,6 @@ pub fn main(&io: &IO) {
     y += 1;
   }
 
-  io.println("Part 1: " ++ antinodes1.len().to_string());
-  io.println("Part 2: " ++ antinodes2.len().to_string());
+  io.println("Part 1: {antinodes1.len()}");
+  io.println("Part 2: {antinodes2.len()}");
 }

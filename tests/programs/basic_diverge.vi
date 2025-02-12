@@ -4,7 +4,7 @@ pub fn main(&io: &IO) {
   io.println(foo(0, &zero_count));
   io.println(foo(1, &zero_count));
   io.println(foo(0, &zero_count));
-  io.println("\nzero_count: " ++ zero_count.to_string());
+  io.println("\nzero_count: {zero_count}");
 }
 
 fn foo(value: N32, &zero_count: &N32) -> String {
