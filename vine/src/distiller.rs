@@ -3,7 +3,7 @@ use std::{
   mem::{replace, take},
 };
 
-use ivm::ext::{ExtFn, ExtFnKind};
+use ivm::ext::ExtFn;
 use vine_util::{
   idx::{Counter, IdxVec},
   unwrap_idx_vec,

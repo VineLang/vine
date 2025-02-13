@@ -1,11 +1,16 @@
 use std::time::Instant;
 
 use crate::{
-  allocator::Allocator, ext::ExtVal, global::Global, heap::Heap, port::Port, stats::Stats,
+  allocator::Allocator,
+  ext::{ExtTy, ExtVal, Extrinsics},
+  global::Global,
+  heap::Heap,
+  port::Port,
+  stats::Stats,
 };
 
 /// An Interaction Virtual Machine.
-pub struct IVM<'ivm> {
+pub struct IVM<'ext, 'ivm> {
   /// Execution statistics of this IVM.
   pub stats: Stats,
 
@@ -21,15 +26,20 @@ pub struct IVM<'ivm> {
 
   /// Used by [`IVM::execute`].
   pub(crate) registers: Vec<Option<Port<'ivm>>>,
+
+  pub(crate) extrinsics: &'ext Extrinsics<'ivm>,
 }
 
-impl<'ivm> IVM<'ivm> {
+impl<'ivm, 'ext> IVM<'ext, 'ivm> {
   /// Creates a new IVM with a given heap.
-  pub fn new(heap: &'ivm Heap) -> Self {
-    Self::new_from_allocator(Allocator::new(heap))
+  pub fn new(heap: &'ivm Heap, extrinsics: &'ext Extrinsics<'ivm>) -> Self {
+    Self::new_from_allocator(Allocator::new(heap), extrinsics)
   }
 
-  pub(crate) fn new_from_allocator(alloc: Allocator<'ivm>) -> Self {
+  pub(crate) fn new_from_allocator(
+    alloc: Allocator<'ivm>,
+    extrinsics: &'ext Extrinsics<'ivm>,
+  ) -> Self {
     Self {
       alloc,
       alloc_pool: Vec::new(),
@@ -37,6 +47,7 @@ impl<'ivm> IVM<'ivm> {
       active_fast: Vec::new(),
       active_slow: Vec::new(),
       stats: Stats::default(),
+      extrinsics,
     }
   }
 
@@ -45,7 +56,8 @@ impl<'ivm> IVM<'ivm> {
   /// This does not start any processing; [`IVM::normalize`] must be called to
   /// do that.
   pub fn boot(&mut self, main: &'ivm Global<'ivm>) {
-    self.link(Port::new_global(main), Port::new_ext_val(ExtVal::IO));
+    todo!()
+    //self.link(Port::new_global(main), Port::new_ext_val(ExtVal::IO));
   }
 
   /// Normalize all nets in this IVM.

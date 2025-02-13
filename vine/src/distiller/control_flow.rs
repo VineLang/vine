@@ -1,5 +1,3 @@
-use ivm::ext::ExtFnKind;
-
 use crate::{
   ast::{Block, ComparisonOp, Expr, ExprKind, LabelId, Local, LogicalOp, Pat, Stmt, StmtKind},
   vir::{Interface, InterfaceKind, Layer, Port, Stage, Step, Transfer},

@@ -106,7 +106,7 @@ impl Debug for Register {
   }
 }
 
-impl<'ivm> IVM<'ivm> {
+impl<'ext, 'ivm> IVM<'ext, 'ivm> {
   /// Links the given `port` to the given `register`.
   ///
   /// ## Safety

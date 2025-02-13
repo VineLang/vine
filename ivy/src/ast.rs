@@ -14,7 +14,7 @@ pub enum Tree {
   #[default]
   Erase,
   Comb(String, Box<Tree>, Box<Tree>),
-  ExtFn(ExtFn, Box<Tree>, Box<Tree>),
+  ExtFn(String, bool, Box<Tree>, Box<Tree>),
   Branch(Box<Tree>, Box<Tree>, Box<Tree>),
   N32(u32),
   F32(f32),
@@ -49,7 +49,7 @@ impl Display for Tree {
     match self {
       Tree::Erase => write!(f, "_"),
       Tree::Comb(n, a, b) => write!(f, "{n}({a} {b})"),
-      Tree::ExtFn(e, a, b) => write!(f, "@{e:?}({a} {b})"),
+      Tree::ExtFn(e, swap, a, b) => write!(f, "@{e:?}{}({a} {b})", if *swap { "$" } else { "" }),
       Tree::Branch(a, b, c) => write!(f, "?({a} {b} {c})"),
       Tree::N32(n) => write!(f, "{n}"),
       Tree::F32(n) if n.is_nan() => write!(f, "+NaN"),
@@ -111,7 +111,7 @@ impl Tree {
       Tree::Erase | Tree::N32(_) | Tree::F32(_) | Tree::Var(_) | Tree::Global(_) => {
         Children::Zero([])
       }
-      Tree::Comb(_, a, b) | Tree::ExtFn(_, a, b) => Children::Two([&**a, b]),
+      Tree::Comb(_, a, b) | Tree::ExtFn(_, _, a, b) => Children::Two([&**a, b]),
       Tree::Branch(a, b, c) => Children::Three([&**a, b, c]),
     }
   }
@@ -122,7 +122,7 @@ impl Tree {
       Tree::Erase | Tree::N32(_) | Tree::F32(_) | Tree::Var(_) | Tree::Global(_) => {
         Children::Zero([])
       }
-      Tree::Comb(_, a, b) | Tree::ExtFn(_, a, b) => Children::Two([&mut **a, b]),
+      Tree::Comb(_, a, b) | Tree::ExtFn(_, _, a, b) => Children::Two([&mut **a, b]),
       Tree::Branch(a, b, c) => Children::Three([&mut **a, b, c]),
     }
   }

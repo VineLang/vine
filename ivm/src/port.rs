@@ -165,7 +165,7 @@ impl<'ivm> Port<'ivm> {
   /// ## Safety
   /// This port must be [`Tag::ExtFn`].
   #[inline(always)]
-  pub unsafe fn as_ext_fn(&self) -> ExtFn {
+  pub unsafe fn as_ext_fn(&self) -> ExtFn<'ivm> {
     debug_assert_eq!(self.tag(), Tag::ExtFn);
     transmute::<u16, ExtFn>(self.label())
   }
@@ -185,7 +185,7 @@ impl<'ivm> Port<'ivm> {
   /// ## Safety
   /// This port must be [`Tag::ExtVal`].
   #[inline(always)]
-  pub unsafe fn as_ext_val(&self) -> ExtVal {
+  pub unsafe fn as_ext_val(&self) -> ExtVal<'ivm> {
     debug_assert_eq!(self.tag(), Tag::ExtVal);
     unsafe { ExtVal::from_bits(self.0.get().bits()) }
   }

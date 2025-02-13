@@ -5,7 +5,10 @@ use indexmap::{
   IndexMap,
 };
 
-use ivm::global::Global;
+use ivm::{
+  ext::{ExtFn, ExtTy, ExtVal, Extrinsics},
+  global::Global,
+};
 
 mod readback;
 mod serialize;
@@ -22,12 +25,29 @@ pub struct Host<'ivm> {
   /// temporarily be `&UnsafeCell<Global<'ivm>>`s.
   globals: HashMap<String, *const Global<'ivm>>,
 
+  ext_fns: HashMap<String, ExtFn<'ivm>>,
+  reverse_ext_fns: HashMap<ExtFn<'ivm>, String>,
+
+  ext_tys: HashMap<String, ExtTy<'ivm>>,
+  reverse_ext_tys: HashMap<ExtTy<'ivm>, String>,
+
   /// This is an `IndexMap` instead of an `IndexSet` so that the raw entry API
   /// can be used.
   labels: IndexMap<String, ()>,
 }
 
 impl<'ivm> Host<'ivm> {
+  pub fn register_default_extrinsics(&mut self, extrinsics: &mut Extrinsics<'ivm>) {
+    let (fns, tys) = extrinsics.register_builtin_extrinsics();
+    for (k, v) in tys {
+      self.ext_tys.insert(k.clone(), v.clone());
+      self.reverse_ext_tys.insert(v, k);
+    }
+    for (k, v) in fns {
+      self.ext_fns.insert(k.clone(), v.clone());
+      self.reverse_ext_fns.insert(v, k);
+    }
+  }
   pub fn get(&self, name: &str) -> Option<&'ivm Global<'ivm>> {
     Some(unsafe { &**self.globals.get(name)? })
   }
@@ -49,5 +69,25 @@ impl<'ivm> Host<'ivm> {
 
   pub fn label_from_u16(&self, label: u16) -> &str {
     self.labels.get_index(label as usize).unwrap().0
+  }
+
+  pub fn new_f32(&self, payload: f32) -> ExtVal<'ivm> {
+    let ty = self.ext_tys.get("F32").unwrap();
+    ExtVal::new(*ty, payload.to_bits())
+  }
+  pub fn new_n32(&self, payload: u32) -> ExtVal<'ivm> {
+    let ty = self.ext_tys.get("N32").unwrap();
+    ExtVal::new(*ty, payload)
+  }
+  pub fn new_io(&self) -> ExtVal<'ivm> {
+    let ty = self.ext_tys.get("IO").unwrap();
+    ExtVal::new(*ty, 0)
+  }
+  pub fn instantiate_ext_fn(&self, ext_fn_name: &str, swap: bool) -> ExtFn<'ivm> {
+    let mut ext_fn = self.ext_fns.get(ext_fn_name).unwrap().clone();
+    if swap {
+      ext_fn = ext_fn.swap()
+    }
+    ext_fn
   }
 }

@@ -7,7 +7,7 @@ use std::{
 
 use crate::{ivm::IVM, port::Port};
 
-impl<'ivm> IVM<'ivm> {
+impl<'ext: 'ivm, 'ivm> IVM<'ext, 'ivm> {
   pub fn normalize_parallel(&mut self, threads: usize) {
     self.do_fast();
 
@@ -18,7 +18,7 @@ impl<'ivm> IVM<'ivm> {
         let dispatch = thread::current();
         let alloc = self.alloc_pool.pop().unwrap_or(self.alloc.fork(i, threads));
         let shared = &shared[i];
-        let mut ivm = IVM::new_from_allocator(alloc);
+        let mut ivm = IVM::new_from_allocator(alloc, self.extrinsics);
         if i == 0 {
           ivm.active_slow = mem::take(&mut self.active_slow);
         }
@@ -54,8 +54,8 @@ struct Msg<'ivm> {
 
 #[derive(Default)]
 #[repr(align(256))]
-struct Shared<'ivm> {
-  ivm_return: OnceLock<IVM<'ivm>>,
+struct Shared<'ext, 'ivm> {
+  ivm_return: OnceLock<IVM<'ext, 'ivm>>,
   msg: Mutex<Msg<'ivm>>,
   condvar: Condvar,
 }
@@ -72,15 +72,15 @@ enum MsgKind {
   Exit,
 }
 
-struct Worker<'w, 'ivm> {
-  ivm: IVM<'ivm>,
-  shared: &'w Shared<'ivm>,
+struct Worker<'w, 'ext, 'ivm> {
+  ivm: IVM<'ext, 'ivm>,
+  shared: &'w Shared<'ext, 'ivm>,
   dispatch: Thread,
 }
 
 const ERA_LENGTH: u32 = 512;
 
-impl<'w, 'ivm> Worker<'w, 'ivm> {
+impl<'w, 'ext: 'ivm, 'ivm> Worker<'w, 'ext, 'ivm> {
   fn execute(mut self) {
     self.work();
     self.shared.ivm_return.set(self.ivm).ok().unwrap();
@@ -142,16 +142,16 @@ impl<'w, 'ivm> Worker<'w, 'ivm> {
   }
 }
 
-struct WorkerHandle<'w, 'ivm> {
-  shared: &'w Shared<'ivm>,
+struct WorkerHandle<'w, 'ext, 'ivm> {
+  shared: &'w Shared<'ext, 'ivm>,
 }
 
-struct Dispatch<'w, 'ivm> {
-  active: Vec<WorkerHandle<'w, 'ivm>>,
-  idle: Vec<WorkerHandle<'w, 'ivm>>,
+struct Dispatch<'w, 'ext, 'ivm> {
+  active: Vec<WorkerHandle<'w, 'ext, 'ivm>>,
+  idle: Vec<WorkerHandle<'w, 'ext, 'ivm>>,
 }
 
-impl<'w, 'ivm> Dispatch<'w, 'ivm> {
+impl<'w, 'ext, 'ivm> Dispatch<'w, 'ext, 'ivm> {
   fn execute(mut self) {
     loop {
       let mut i = 0;

@@ -180,10 +180,10 @@ impl<'l, 'ast, 'ivm> Serializer<'l, 'ast, 'ivm> {
     match tree {
       Tree::Erase => self.push(Instruction::Nilary(to, Port::ERASE)),
       Tree::N32(num) => {
-        self.push(Instruction::Nilary(to, Port::new_ext_val(ExtVal::new_n32(*num))))
+        self.push(Instruction::Nilary(to, Port::new_ext_val(self.host.new_n32(*num))))
       }
       Tree::F32(num) => {
-        self.push(Instruction::Nilary(to, Port::new_ext_val(ExtVal::new_f32(*num))))
+        self.push(Instruction::Nilary(to, Port::new_ext_val(self.host.new_f32(*num))))
       }
       Tree::Comb(label, a, b) => {
         let label = self.host.label_to_u16(label);
@@ -191,10 +191,11 @@ impl<'l, 'ast, 'ivm> Serializer<'l, 'ast, 'ivm> {
         let b = self.serialize_tree(b);
         self.push(Instruction::Binary(Tag::Comb, label, to, a, b));
       }
-      Tree::ExtFn(f, a, b) => {
+      Tree::ExtFn(f, swap, a, b) => {
         let a = self.serialize_tree(a);
         let b = self.serialize_tree(b);
-        self.push(Instruction::Binary(Tag::ExtFn, f.bits(), to, a, b));
+        let mut ext_fn = self.host.instantiate_ext_fn(f, *swap);
+        self.push(Instruction::Binary(Tag::ExtFn, ext_fn.bits(), to, a, b));
       }
       Tree::Global(name) => {
         let global = self.host.get_raw(name).expect("undefined global");

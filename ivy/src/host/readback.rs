@@ -11,20 +11,20 @@ use ivm::{
 use crate::{ast::Tree, host::Host};
 
 impl<'ivm> Host<'ivm> {
-  pub fn read(&self, ivm: &IVM<'ivm>, port: &Port<'ivm>) -> Tree {
+  pub fn read<'ext>(&self, ivm: &IVM<'ext, 'ivm>, port: &Port<'ivm>) -> Tree {
     Reader::new(ivm, self).read_port(port)
   }
 }
 
-struct Reader<'ctx, 'ivm> {
-  ivm: &'ctx IVM<'ivm>,
+struct Reader<'ctx, 'ext, 'ivm> {
+  ivm: &'ctx IVM<'ext, 'ivm>,
   host: &'ctx Host<'ivm>,
   vars: HashMap<Addr, usize>,
   next_var: usize,
 }
 
-impl<'ctx, 'ivm> Reader<'ctx, 'ivm> {
-  fn new(ivm: &'ctx IVM<'ivm>, host: &'ctx Host<'ivm>) -> Self {
+impl<'ctx, 'ext, 'ivm> Reader<'ctx, 'ext, 'ivm> {
+  fn new(ivm: &'ctx IVM<'ext, 'ivm>, host: &'ctx Host<'ivm>) -> Self {
     Reader { ivm, host, vars: HashMap::new(), next_var: 0 }
   }
 
@@ -47,10 +47,12 @@ impl<'ctx, 'ivm> Reader<'ctx, 'ivm> {
       Tag::Erase => Tree::Erase,
       Tag::ExtVal => {
         let val = unsafe { p.as_ext_val() };
-        match val.ty() {
-          ExtTy::N32 => Tree::N32(val.as_n32()),
-          ExtTy::F32 => Tree::F32(val.as_f32()),
-          ExtTy::IO => Tree::Var("#io".into()),
+        let ext_ty_name = self.host.reverse_ext_tys.get(&val.ty()).unwrap();
+        match ext_ty_name.as_str() {
+          "N32" => Tree::N32(val.payload()),
+          "F32" => Tree::F32(f32::from_bits(val.payload())),
+          "IO" => Tree::Var("#io".into()),
+          name => Tree::Var(format!("#{}", name)),
         }
       }
       Tag::Comb => {
@@ -63,9 +65,15 @@ impl<'ctx, 'ivm> Reader<'ctx, 'ivm> {
         )
       }
       Tag::ExtFn => {
-        let f = unsafe { p.as_ext_fn() };
+        let mut f = unsafe { p.as_ext_fn() };
+        let mut swapped = false;
+        if f.is_swapped() {
+          swapped = true;
+          f = f.swap();
+        }
+        let f_name = self.host.reverse_ext_fns.get(&f).unwrap();
         let (p1, p2) = unsafe { p.aux_ref() };
-        Tree::ExtFn(f, self.read_wire(&p1), self.read_wire(&p2))
+        Tree::ExtFn(f_name.clone(), swapped, self.read_wire(&p1), self.read_wire(&p2))
       }
       Tag::Branch => {
         let (p1, p2) = unsafe { p.aux_ref() };

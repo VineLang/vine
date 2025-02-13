@@ -13,7 +13,7 @@ macro_rules! sym {
   };
 }
 
-impl<'ivm> IVM<'ivm> {
+impl<'ext, 'ivm> IVM<'ext, 'ivm> {
   /// Link two ports.
   pub fn link(&mut self, a: Port<'ivm>, b: Port<'ivm>) {
     use Tag::*;
@@ -145,7 +145,7 @@ impl<'ivm> IVM<'ivm> {
       if rhs.tag() == Tag::ExtVal {
         self.stats.call += 1;
         self.free_wire(rhs_wire);
-        let result = unsafe { ext_fn.call(lhs.as_ext_val(), rhs.as_ext_val()) };
+        let result = unsafe { self.extrinsics.call(ext_fn, lhs.as_ext_val(), rhs.as_ext_val()) };
         self.link_wire(out, Port::new_ext_val(result));
         return;
       }
@@ -158,7 +158,7 @@ impl<'ivm> IVM<'ivm> {
 
   fn branch(&mut self, b: Port<'ivm>, v: Port<'ivm>) {
     self.stats.branch += 1;
-    let val = unsafe { v.as_ext_val() }.as_n32();
+    let val = self.extrinsics.ext_val_as_n32(unsafe { v.as_ext_val() });
     let (a, o) = unsafe { b.aux() };
     let (b, z, p) = unsafe { self.new_node(Tag::Branch, 0) };
     self.link_wire(a, b);

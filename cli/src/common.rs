@@ -1,6 +1,6 @@
 use clap::Args;
 
-use ivm::{heap::Heap, IVM};
+use ivm::{ext::Extrinsics, heap::Heap, IVM};
 use ivy::{ast::Nets, host::Host, optimize::Optimizer};
 
 #[derive(Debug, Default, Args)]
@@ -27,19 +27,25 @@ pub struct RunArgs {
 
 impl RunArgs {
   pub fn run(self, nets: Nets) {
-    let mut host = &mut Host::default();
-    host.insert_nets(&nets);
-    let main = host.get("::main").expect("missing main");
-    let heap = Heap::new();
-    let mut ivm = IVM::new(&heap);
-    ivm.boot(main);
-    if self.workers > 0 {
-      ivm.normalize_parallel(self.workers)
-    } else {
-      ivm.normalize();
-    }
-    if !self.no_stats {
-      eprintln!("{}", ivm.stats);
+    {
+      let mut host = &mut Host::default();
+      let mut extrinsics = Extrinsics::default();
+
+      //host.register_default_extrinsics(&mut extrinsics);
+      let eref = &extrinsics;
+      let heap = Heap::new();
+      host.insert_nets(&nets);
+      let main = host.get("::main").expect("missing main");
+      let mut ivm = IVM::new(&heap, eref);
+      ivm.boot(main);
+      if self.workers > 0 {
+        ivm.normalize_parallel(self.workers)
+      } else {
+        ivm.normalize();
+      }
+      if !self.no_stats {
+        eprintln!("{}", ivm.stats);
+      }
     }
   }
 }

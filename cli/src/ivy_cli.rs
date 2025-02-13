@@ -4,7 +4,7 @@ use anyhow::Result;
 use clap::{Args, Parser};
 use rustyline::DefaultEditor;
 
-use ivm::{heap::Heap, IVM};
+use ivm::{ext::Extrinsics, heap::Heap, IVM};
 use ivy::{host::Host, parser::IvyParser, repl::Repl};
 
 use crate::{Optimizations, RunArgs};
@@ -72,12 +72,16 @@ pub struct IvyReplCommand {
 
 impl IvyReplCommand {
   pub fn execute(self) -> Result<()> {
+    /*
     let src = self.src.map(fs::read_to_string).unwrap_or(Ok(String::new()))?;
     let nets = IvyParser::parse(&src).unwrap();
-    let mut host = &mut Host::default();
-    host.insert_nets(&nets);
+    let mut extrinsics = Extrinsics::default();
     let heap = Heap::new();
-    let mut ivm = IVM::new(&heap);
+    let mut binding = Host::default();
+    let mut host = &mut binding;
+    host.register_default_extrinsics(&mut extrinsics);
+    host.insert_nets(&nets);
+    let mut ivm = IVM::new(&heap, &extrinsics);
     let mut repl = Repl::new(host, &mut ivm);
     let mut rl = DefaultEditor::new()?;
     loop {
@@ -91,7 +95,7 @@ impl IvyReplCommand {
         }
         Err(_) => break,
       }
-    }
+    }*/
     Ok(())
   }
 }
