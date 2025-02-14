@@ -6,7 +6,6 @@ use std::{
 
 use indexmap::IndexMap;
 
-use ivm::ext::ExtFn;
 use vine_util::multi_iter;
 
 #[derive(Default, Debug, Clone, PartialEq)]
@@ -49,7 +48,7 @@ impl Display for Tree {
     match self {
       Tree::Erase => write!(f, "_"),
       Tree::Comb(n, a, b) => write!(f, "{n}({a} {b})"),
-      Tree::ExtFn(e, swap, a, b) => write!(f, "@{e:?}{}({a} {b})", if *swap { "$" } else { "" }),
+      Tree::ExtFn(e, swap, a, b) => write!(f, "@{e}{}({a} {b})", if *swap { "$" } else { "" }),
       Tree::Branch(a, b, c) => write!(f, "?({a} {b} {c})"),
       Tree::N32(n) => write!(f, "{n}"),
       Tree::F32(n) if n.is_nan() => write!(f, "+NaN"),

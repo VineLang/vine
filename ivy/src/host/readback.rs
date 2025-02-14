@@ -2,7 +2,6 @@ use std::collections::{hash_map::Entry, HashMap};
 
 use ivm::{
   addr::Addr,
-  ext::ExtTy,
   port::{Port, PortRef, Tag},
   wire::Wire,
   IVM,

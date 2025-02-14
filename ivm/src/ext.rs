@@ -5,13 +5,12 @@
 
 use core::{
   fmt::{self, Debug},
-  mem::transmute,
+  marker::PhantomData,
   ops::{Add, Div, Mul, Sub},
 };
 use std::{
   collections::HashMap,
   io::{self, Read, Write},
-  marker::PhantomData,
 };
 
 use crate::port::Tag;
@@ -23,11 +22,9 @@ macro_rules! define_ext_fns {
 }
 #[derive(Default)]
 pub struct Extrinsics<'ivm> {
-  ext_fns: Vec<Box<dyn Fn([ExtVal<'ivm>; 2]) -> [ExtVal<'ivm>; 1] + Sync + 'ivm>>,
+  ext_fns: Vec<Box<dyn Fn(ExtVal<'ivm>, ExtVal<'ivm>) -> ExtVal<'ivm> + Sync + 'ivm>>,
   // amount of registered light exttys
   light_ext_ty: u16,
-  // This is a list of drop-functions.
-  rc_ext_ty: Vec<fn(u32)>,
 
   n32_ext_ty: Option<ExtTy<'ivm>>,
   io_ext_ty: Option<ExtTy<'ivm>>,
@@ -45,20 +42,20 @@ impl<'ivm> Extrinsics<'ivm> {
     f: impl Fn([ExtVal<'ivm>; 2]) -> [ExtVal<'ivm>; 1] + Sync + 'ivm,
   ) -> Option<ExtFn<'ivm>> {
     if self.ext_fns.len() >= Self::MAX_EXT_FN_KIND_COUNT {
-      return None;
+      None
     } else {
       let ext_fn = ExtFn(self.ext_fns.len() as u16, PhantomData);
-      self.ext_fns.push(Box::new(f));
-      return Some(ext_fn);
+      self.ext_fns.push(Box::new(move |a, b| f([a, b])[0]));
+      Some(ext_fn)
     }
   }
   pub fn register_light_ext_ty(&mut self) -> Option<ExtTy<'ivm>> {
     if self.light_ext_ty as usize >= Self::MAX_LIGHT_EXT_TY_COUNT {
-      return None;
+      None
     } else {
       let ext_ty = ExtTy::from_id_and_rc(self.light_ext_ty, false);
       self.light_ext_ty += 1;
-      return Some(ext_ty);
+      Some(ext_ty)
     }
   }
   /// Some extrinsics are built-in with IVM
@@ -157,7 +154,7 @@ impl<'ivm> Extrinsics<'ivm> {
       )
     }
     define_ext_fns!(ext_fn_map, self,
-      "seq" => |a, b| a,
+      "seq" => |a, _b| a,
 
       "add" => |a, b| numeric_op(n32_ext_ty, f32_ext_ty, a, b, u32::wrapping_add, f32::add),
       "sub" => |a, b| numeric_op(n32_ext_ty, f32_ext_ty, a, b, u32::wrapping_sub, f32::sub),
@@ -192,7 +189,7 @@ impl<'ivm> Extrinsics<'ivm> {
         io::stdout().write_all(&[b.as_ty(&n32_ext_ty) as u8]).unwrap();
         ExtVal::new(io_ext_ty, 0)
       },
-      "io_flush" => |a, b| {
+      "io_flush" => |a, _b| {
         a.as_ty(&io_ext_ty);
         io::stdout().flush().unwrap();
         ExtVal::new(io_ext_ty, 0)
@@ -218,7 +215,7 @@ impl<'ivm> Extrinsics<'ivm> {
     if ext_fn.is_swapped() {
       (arg0, arg1) = (arg1, arg0)
     };
-    (closure)([arg0, arg1])[0]
+    (closure)(arg0, arg1)
   }
 
   pub fn ext_val_as_n32(&self, val: ExtVal<'ivm>) -> u32 {
@@ -289,9 +286,6 @@ impl<'ivm> Debug for ExtVal<'ivm> {
 pub struct ExtTy<'ivm>(u16, PhantomData<fn(&'ivm ()) -> &'ivm ()>);
 
 impl<'ivm> ExtTy<'ivm> {
-  fn from_id(n: u16) -> Self {
-    Self(n, PhantomData)
-  }
   fn from_id_and_rc(n: u16, rc: bool) -> Self {
     Self(n | if rc { 0x8000 } else { 0 }, PhantomData)
   }

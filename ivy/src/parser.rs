@@ -8,8 +8,6 @@ use crate::{
   lexer::Token,
 };
 
-use ivm::ext::ExtFn;
-
 pub struct IvyParser<'src> {
   pub state: ParserState<'src, Token>,
 }
@@ -117,8 +115,8 @@ impl<'src> IvyParser<'src> {
 
     if self.eat(Token::At)? {
       let name = self.expect(Token::Ident)?;
-      let mut ext_fn = name.to_string();
-      let mut flipped = self.eat(Token::Dollar)?;
+      let ext_fn = name.to_string();
+      let flipped = self.eat(Token::Dollar)?;
       self.expect(Token::OpenParen)?;
       let a = self.parse_tree()?;
       let b = self.parse_tree()?;

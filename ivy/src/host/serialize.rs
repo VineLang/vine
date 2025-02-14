@@ -49,7 +49,6 @@ use std::{
 
 use ivm::{
   addr::Addr,
-  ext::ExtVal,
   global::{Global, LabelSet},
   instruction::{Instruction, Instructions, Register},
   port::{Port, Tag},
@@ -194,7 +193,7 @@ impl<'l, 'ast, 'ivm> Serializer<'l, 'ast, 'ivm> {
       Tree::ExtFn(f, swap, a, b) => {
         let a = self.serialize_tree(a);
         let b = self.serialize_tree(b);
-        let mut ext_fn = self.host.instantiate_ext_fn(f, *swap);
+        let ext_fn = self.host.instantiate_ext_fn(f, *swap);
         self.push(Instruction::Binary(Tag::ExtFn, ext_fn.bits(), to, a, b));
       }
       Tree::Global(name) => {

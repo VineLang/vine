@@ -6,7 +6,6 @@ use std::{
 };
 
 use ivm::{
-  ext::ExtVal,
   port::{Port, PortRef, Tag},
   IVM,
 };
@@ -82,7 +81,7 @@ impl<'core, 'ctx, 'ext, 'ivm> Repl<'core, 'ctx, 'ext, 'ivm> {
     let io = core.ident("io");
     let vars = HashMap::from([(
       io,
-      Var { local: Local(0), value: Port::new_ext_val(ExtVal::IO), space: Port::ERASE },
+      Var { local: Local(0), value: Port::new_ext_val(host.new_io()), space: Port::ERASE },
     )]);
     let locals = BTreeMap::from([(Local(0), io)]);
     let mut unifier = Unifier::new(core);
@@ -136,10 +135,10 @@ impl<'core, 'ctx, 'ext, 'ivm> Repl<'core, 'ctx, 'ext, 'ivm> {
       name: &mut name,
     })?;
 
-    struct ExecHooks<'core, 'ivm, 'a> {
+    struct ExecHooks<'core, 'ext, 'ivm, 'a> {
       repl_mod: DefId,
       vars: &'a mut HashMap<Ident<'core>, Var<'ivm>>,
-      ivm: &'a mut IVM<'ivm>,
+      ivm: &'a mut IVM<'ext, 'ivm>,
       locals: &'a mut BTreeMap<Local, Ident<'core>>,
       block: &'a mut Block<'core>,
       unifier: &'a mut Unifier<'core>,
@@ -151,7 +150,7 @@ impl<'core, 'ctx, 'ext, 'ivm> Repl<'core, 'ctx, 'ext, 'ivm> {
       name: &'a mut String,
     }
 
-    impl<'core> Hooks<'core> for ExecHooks<'core, '_, '_> {
+    impl<'core> Hooks<'core> for ExecHooks<'core, '_, '_, '_> {
       fn chart(&mut self, charter: &mut Charter<'core, '_>) {
         let mut extractor = ExtractItems::default();
         extractor.visit(&mut *self.block);

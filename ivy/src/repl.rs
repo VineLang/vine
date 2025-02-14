@@ -2,7 +2,6 @@ use std::fmt::{self, Display};
 
 use indexmap::{map::Entry, IndexMap};
 use ivm::{
-  ext::ExtVal,
   port::{Port, Tag},
   wire::Wire,
   IVM,

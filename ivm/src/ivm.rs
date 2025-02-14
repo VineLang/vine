@@ -2,7 +2,7 @@ use std::time::Instant;
 
 use crate::{
   allocator::Allocator,
-  ext::{ExtTy, ExtVal, Extrinsics},
+  ext::{ExtVal, Extrinsics},
   global::Global,
   heap::Heap,
   port::Port,

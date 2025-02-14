@@ -40,11 +40,11 @@ impl<'ivm> Host<'ivm> {
   pub fn register_default_extrinsics(&mut self, extrinsics: &mut Extrinsics<'ivm>) {
     let (fns, tys) = extrinsics.register_builtin_extrinsics();
     for (k, v) in tys {
-      self.ext_tys.insert(k.clone(), v.clone());
+      self.ext_tys.insert(k.clone(), v);
       self.reverse_ext_tys.insert(v, k);
     }
     for (k, v) in fns {
-      self.ext_fns.insert(k.clone(), v.clone());
+      self.ext_fns.insert(k.clone(), v);
       self.reverse_ext_fns.insert(v, k);
     }
   }
@@ -84,7 +84,8 @@ impl<'ivm> Host<'ivm> {
     ExtVal::new(*ty, 0)
   }
   pub fn instantiate_ext_fn(&self, ext_fn_name: &str, swap: bool) -> ExtFn<'ivm> {
-    let mut ext_fn = self.ext_fns.get(ext_fn_name).unwrap().clone();
+    let mut ext_fn =
+      *self.ext_fns.get(ext_fn_name).unwrap_or_else(|| panic!("Unknown ext fn '{}'", ext_fn_name));
     if swap {
       ext_fn = ext_fn.swap()
     }

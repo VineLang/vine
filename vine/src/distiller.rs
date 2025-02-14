@@ -3,7 +3,6 @@ use std::{
   mem::{replace, take},
 };
 
-use ivm::ext::ExtFn;
 use vine_util::{
   idx::{Counter, IdxVec},
   unwrap_idx_vec,
@@ -20,7 +19,10 @@ use crate::{
 };
 
 mod control_flow;
+mod ext;
 mod pattern_matching;
+
+pub use ext::ExtFnKind;
 
 #[derive(Debug)]
 pub struct Distiller<'core, 'r> {
@@ -197,12 +199,7 @@ impl<'core, 'r> Distiller<'core, 'r> {
       ExprKind::Neg(value) => {
         let value = self.distill_expr_value(stage, value);
         let wire = stage.new_wire();
-        stage.steps.push(Step::ExtFn(
-          ExtFn::from(ExtFnKind::sub).swap(),
-          value,
-          Port::N32(0),
-          wire.0,
-        ));
+        stage.steps.push(Step::ExtFn(ExtFnKind::sub, true, value, Port::N32(0), wire.0));
         wire.1
       }
       ExprKind::String(init, rest) => {
@@ -233,23 +230,23 @@ impl<'core, 'r> Distiller<'core, 'r> {
         let mut last_result = Port::Erase;
         let mut lhs = self.distill_expr_value(stage, init);
         for (i, (op, rhs)) in cmps.iter().enumerate() {
-          let ext_fn = match op {
-            ComparisonOp::Eq => ExtFn::from(ExtFnKind::eq),
-            ComparisonOp::Ne => ExtFn::from(ExtFnKind::ne),
-            ComparisonOp::Lt => ExtFn::from(ExtFnKind::lt),
-            ComparisonOp::Gt => ExtFn::from(ExtFnKind::lt).swap(),
-            ComparisonOp::Le => ExtFn::from(ExtFnKind::le),
-            ComparisonOp::Ge => ExtFn::from(ExtFnKind::le).swap(),
+          let (ext_fn, swap) = match op {
+            ComparisonOp::Eq => (ExtFnKind::eq, false),
+            ComparisonOp::Ne => (ExtFnKind::ne, false),
+            ComparisonOp::Lt => (ExtFnKind::lt, false),
+            ComparisonOp::Gt => (ExtFnKind::lt, true),
+            ComparisonOp::Le => (ExtFnKind::le, false),
+            ComparisonOp::Ge => (ExtFnKind::le, true),
           };
           let first = i == 0;
           let last = i == cmps.len() - 1;
           let rhs = self.distill_expr_value(stage, rhs);
           let (rhs, next_lhs) = if last { (rhs, Port::Erase) } else { stage.dup(rhs) };
-          let result = stage.ext_fn(ext_fn, lhs, rhs);
+          let result = stage.ext_fn(ext_fn, swap, lhs, rhs);
           last_result = if first {
             result
           } else {
-            stage.ext_fn(ExtFnKind::n32_and.into(), last_result, result)
+            stage.ext_fn(ExtFnKind::n32_and, false, last_result, result)
           };
           lhs = next_lhs;
         }
@@ -488,7 +485,7 @@ impl<'core, 'r> Distiller<'core, 'r> {
       BinaryOp::Div => ExtFnKind::div,
       BinaryOp::Rem => ExtFnKind::rem,
     };
-    stage.steps.push(Step::ExtFn(ext_fn.into(), lhs, rhs, out));
+    stage.steps.push(Step::ExtFn(ext_fn, false, lhs, rhs, out));
   }
 
   fn distill_vec<T>(
