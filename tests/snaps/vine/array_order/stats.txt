@@ -10,6 +10,6 @@ Interactions
   Branch               1_148
 
 Memory
-  Heap                22_304 B
+  Heap                19_136 B
   Allocated          510_096 B
   Freed              510_096 B

@@ -9,7 +9,10 @@
   ::std::IO::println = fn(w1 fn(w19 _))
 }
 
-::maybe_set::main::2 { x(x(_ tup(4 tup(tup(103 tup(111 tup(110 tup(101 w7)))) w7))) _) }
+::maybe_set::main::2 {
+  x(x(_ w1) _)
+  w1 = tup(4 tup(tup(103 tup(111 tup(110 tup(101 w7)))) w7))
+}
 
 ::maybe_set::main::3 { x(x(w2 w2) _) }
 
@@ -20,14 +23,20 @@
 }
 
 ::std::IO::print {
-  fn(ref(w1 w16) fn(tup(w7 tup(w8 _)) _))
+  fn(ref(w1 w16) fn(w3 _))
+  tup(w7 tup(w8 _)) = w3
   ::std::IO::print::1 = x(x(w1 w16) x(w7 w8))
 }
 
-::std::IO::print::1 { x(w4 x(dup2185(?(::std::IO::print::3 ::std::IO::print::2 x(w4 x(w6 w1))) w6) w1)) }
+::std::IO::print::1 {
+  x(w4 x(dup2185(w0 w6) w1))
+  w0 = ?(::std::IO::print::3 ::std::IO::print::2 x(w4 x(w6 w1)))
+}
 
 ::std::IO::print::2 {
-  x(x(w17 w21) x(@sub(1 w1) tup(w4 w5)))
+  x(x(w17 w21) x(w15 w14))
+  w15 = @sub(1 w1)
+  tup(w4 w5) = w14
   ::std::IO::print_char = fn(ref(w17 w10) fn(w4 _))
   ::std::IO::print::1 = x(x(w10 w21) x(w1 w5))
 }

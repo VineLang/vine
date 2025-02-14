@@ -13,80 +13,128 @@
 }
 
 ::inverse::refs {
-  fn(ref(w1 w39) _)
+  r
+  _ = _
+  _ = _
+  _ = _
+  r = fn(ref(w1 w39) _)
   ::inverse::refs::inc = fn(tup(0 dup16(w16 w19)) _)
-  ::std::numeric::N32::to_string::to_string = fn(w16 tup(@add(4 w46) tup(w47 w48)))
-  ::std::IO::println = fn(ref(w1 w13) fn(tup(w46 tup(tup(120 tup(32 tup(61 tup(32 w47)))) w48)) _))
+  ::std::numeric::N32::to_string::to_string = fn(w16 w17)
+  w17 = tup(@add(4 w49) tup(w47 w50))
+  ::std::IO::println = fn(ref(w1 w13) fn(tup(w49 tup(tup(120 tup(32 tup(61 tup(32 w47)))) w50)) _))
   ::inverse::refs::inc = fn(tup(w19 dup18(w29 w32)) _)
-  ::std::numeric::N32::to_string::to_string = fn(w29 tup(@add(4 w51) tup(w52 w53)))
-  ::std::IO::println = fn(ref(w13 w26) fn(tup(w51 tup(tup(120 tup(32 tup(61 tup(32 w52)))) w53)) _))
+  ::std::numeric::N32::to_string::to_string = fn(w29 w30)
+  w30 = tup(@add(4 w54) tup(w52 w55))
+  ::std::IO::println = fn(ref(w13 w26) fn(tup(w54 tup(tup(120 tup(32 tup(61 tup(32 w52)))) w55)) _))
   ::inverse::refs::inc = fn(tup(w32 w35) _)
-  ::std::numeric::N32::to_string::to_string = fn(w35 tup(@add(4 w56) tup(w57 w58)))
-  ::std::IO::println = fn(ref(w26 w39) fn(tup(w56 tup(tup(120 tup(32 tup(61 tup(32 w57)))) w58)) _))
+  ::std::numeric::N32::to_string::to_string = fn(w35 w43)
+  w43 = tup(@add(4 w59) tup(w57 w60))
+  ::std::IO::println = fn(ref(w26 w39) fn(tup(w59 tup(tup(120 tup(32 tup(61 tup(32 w57)))) w60)) _))
 }
 
-::std::numeric::N32::to_string::to_string { fn(dup22(?(::std::numeric::N32::to_string::to_string::3 ::std::numeric::N32::to_string::to_string::2 x(w7 w6)) w7) w6) }
+::std::numeric::N32::to_string::to_string {
+  fn(dup22(w5 w7) w6)
+  w5 = ?(::std::numeric::N32::to_string::to_string::3 ::std::numeric::N32::to_string::to_string::2 x(w7 w6))
+}
 
 ::std::numeric::N32::to_string::to_string::2 {
-  x(w6 w9)
+  x(w6 w4)
   ::std::numeric::N32::to_string::to_string::4 = x(w6 x(tup(0 tup(w7 w7)) w9))
+  w4 = w9
 }
 
-::std::numeric::N32::to_string::to_string::3 { x(_ tup(1 tup(tup(48 w5) w5))) }
+::std::numeric::N32::to_string::to_string::3 {
+  x(_ w0)
+  w0 = tup(w3 tup(tup(48 w4) w5))
+  1 = w3
+  w4 = w5
+}
 
-::std::numeric::N32::to_string::to_string::4 { x(dup31(?(::std::numeric::N32::to_string::to_string::6 ::std::numeric::N32::to_string::to_string::5 x(w6 w2)) w6) w2) }
+::std::numeric::N32::to_string::to_string::4 {
+  x(dup31(w0 w6) w2)
+  w0 = ?(::std::numeric::N32::to_string::to_string::6 ::std::numeric::N32::to_string::to_string::5 x(w6 w2))
+}
 
 ::std::numeric::N32::to_string::to_string::5 {
-  x(dup34(@rem(10 w1) @div(10 w8)) x(w11 w15))
+  x(dup34(w0 w7) x(w11 w15))
+  w0 = @rem(10 w1)
   48 = @add(w1 w2)
   ::std::data::List::concat = fn(tup(1 tup(tup(w2 w13) w13)) fn(w11 w5))
+  w7 = @div(10 w8)
   ::std::numeric::N32::to_string::to_string::4 = x(w8 x(w5 w15))
 }
 
 ::std::numeric::N32::to_string::to_string::6 { x(_ x(w1 w1)) }
 
-::inverse::refs::inc { fn(tup(@add(1 w6) w6) _) }
-
-::inverse::fns {
-  fn(ref(w1 w24) _)
-  ::inverse::fns::call = fn(w11 fn(1 w12))
-  ::std::numeric::N32::to_string::to_string = fn(w12 tup(@add(7 w39) tup(w40 w41)))
-  ::std::IO::println = fn(ref(w1 w8) fn(tup(w39 tup(tup(102 tup(40 tup(49 tup(41 tup(32 tup(61 tup(32 w40))))))) w41)) _))
-  ::inverse::fns::call = fn(w19 fn(2 w20))
-  ::std::numeric::N32::to_string::to_string = fn(w20 tup(@add(7 w44) tup(w45 w46)))
-  ::std::IO::println = fn(ref(w8 w16) fn(tup(w44 tup(tup(102 tup(40 tup(50 tup(41 tup(32 tup(61 tup(32 w45))))))) w46)) _))
-  ::inverse::fns::call = fn(w27 fn(3 w28))
-  ::std::numeric::N32::to_string::to_string = fn(w28 tup(@add(7 w49) tup(w50 w51)))
-  ::std::IO::println = fn(ref(w16 w24) fn(tup(w49 tup(tup(102 tup(40 tup(51 tup(41 tup(32 tup(61 tup(32 w50))))))) w51)) _))
-  tup(dup48(@mul(w36 w37) w36) w37) = dup50(w11 dup50(w19 w27))
+::inverse::refs::inc {
+  fn(tup(w0 w7) _)
+  w0 = @add(1 w6)
+  w7 = w6
 }
 
-::inverse::fns::call { fn(tup(w1 w6) fn(w1 w6)) }
+::inverse::fns {
+  r
+  _ = _
+  r = fn(ref(w1 w24) _)
+  dup50(w11 dup50(w19 w27)) = tup(dup48(@mul(w36 w37) w36) w37)
+  ::inverse::fns::call = fn(w11 fn(1 w12))
+  ::std::numeric::N32::to_string::to_string = fn(w12 w13)
+  w13 = tup(@add(7 w42) tup(w40 w43))
+  ::std::IO::println = fn(ref(w1 w8) fn(tup(w42 tup(tup(102 tup(40 tup(49 tup(41 tup(32 tup(61 tup(32 w40))))))) w43)) _))
+  ::inverse::fns::call = fn(w19 fn(2 w20))
+  ::std::numeric::N32::to_string::to_string = fn(w20 w21)
+  w21 = tup(@add(7 w47) tup(w45 w48))
+  ::std::IO::println = fn(ref(w8 w16) fn(tup(w47 tup(tup(102 tup(40 tup(50 tup(41 tup(32 tup(61 tup(32 w45))))))) w48)) _))
+  ::inverse::fns::call = fn(w27 fn(3 w28))
+  ::std::numeric::N32::to_string::to_string = fn(w28 w29)
+  w29 = tup(@add(7 w52) tup(w50 w53))
+  ::std::IO::println = fn(ref(w16 w24) fn(tup(w52 tup(tup(102 tup(40 tup(51 tup(41 tup(32 tup(61 tup(32 w50))))))) w53)) _))
+}
+
+::inverse::fns::call {
+  fn(w0 fn(w1 w6))
+  tup(w9 w6) = w0
+  w9 = w1
+}
 
 ::inverse::rev {
   fn(ref(w1 w35) _)
-  ::std::unicode::String::to_string::to_string = fn(w12 tup(@add(4 w53) tup(w54 w55)))
-  ::std::IO::println = fn(ref(w1 w9) fn(tup(w53 tup(tup(115 tup(32 tup(61 tup(32 w54)))) w55)) _))
-  ::std::unicode::String::to_string::to_string = fn(w19 tup(@add(4 w58) tup(w59 w60)))
-  ::std::IO::println = fn(ref(w9 w16) fn(tup(w58 tup(tup(115 tup(32 tup(61 tup(32 w59)))) w60)) _))
-  ::inverse::rev::get = fn(ref(_ w29) w31)
-  ::std::unicode::String::to_string::to_string = fn(w31 tup(@add(4 w66) tup(w67 w68)))
-  ::std::IO::println = fn(ref(w16 w25) fn(tup(w66 tup(tup(115 tup(32 tup(61 tup(32 w67)))) w68)) _))
-  ::inverse::rev::get = fn(ref(w29 w39) w41)
-  ::std::unicode::String::to_string::to_string = fn(w41 tup(@add(4 w71) tup(w72 w73)))
-  ::std::IO::println = fn(ref(w25 w35) fn(tup(w71 tup(tup(115 tup(32 tup(61 tup(32 w72)))) w73)) _))
-  ::inverse::rev::set = fn(ref(w39 _) fn(tup(1 tup(tup(50 w78) w78)) _))
   _ = tup(1 tup(tup(48 w52) w52))
-  tup(1 tup(tup(49 w65) w65)) = dup66(w12 w19)
+  ::std::unicode::String::to_string::to_string = fn(w12 w13)
+  w13 = tup(@add(4 w56) tup(w54 w57))
+  ::std::IO::println = fn(ref(w1 w9) fn(tup(w56 tup(tup(115 tup(32 tup(61 tup(32 w54)))) w57)) _))
+  ::std::unicode::String::to_string::to_string = fn(w19 w20)
+  w20 = tup(@add(4 w61) tup(w59 w62))
+  ::std::IO::println = fn(ref(w9 w16) fn(tup(w61 tup(tup(115 tup(32 tup(61 tup(32 w59)))) w62)) _))
+  dup66(w12 w19) = tup(1 tup(tup(49 w65) w65))
+  ::inverse::rev::get = fn(ref(_ w29) w31)
+  ::std::unicode::String::to_string::to_string = fn(w31 w32)
+  w32 = tup(@add(4 w69) tup(w67 w70))
+  ::std::IO::println = fn(ref(w16 w25) fn(tup(w69 tup(tup(115 tup(32 tup(61 tup(32 w67)))) w70)) _))
+  ::inverse::rev::get = fn(ref(w29 w39) w41)
+  ::std::unicode::String::to_string::to_string = fn(w41 w42)
+  w42 = tup(@add(4 w74) tup(w72 w75))
+  ::std::IO::println = fn(ref(w25 w35) fn(tup(w74 tup(tup(115 tup(32 tup(61 tup(32 w72)))) w75)) _))
+  ::inverse::rev::set = fn(ref(w39 _) fn(tup(1 tup(tup(50 w78) w78)) _))
 }
 
 ::std::unicode::String::to_string::to_string { fn(w0 w0) }
 
 ::inverse::rev::get { fn(ref(w1 dup74(w1 w5)) w5) }
 
-::inverse::rev::set { fn(ref(w3 _) fn(w3 _)) }
+::inverse::rev::set {
+  fn(ref(w1 _) fn(w3 _))
+  w1 = w3
+}
 
-::std::data::List::concat { fn(tup(@add(w10 w18) tup(w6 w11)) fn(tup(w10 tup(w11 w21)) tup(w18 tup(w6 w21)))) }
+::std::data::List::concat {
+  fn(w0 fn(w1 w22))
+  tup(w5 tup(w6 w15)) = w0
+  tup(w10 tup(w11 w21)) = w1
+  w15 = w11
+  w5 = @add(w10 w18)
+  w22 = tup(w18 tup(w6 w21))
+}
 
 ::std::IO::println {
   fn(ref(w1 w12) fn(w3 _))
@@ -95,14 +143,20 @@
 }
 
 ::std::IO::print {
-  fn(ref(w1 w16) fn(tup(w7 tup(w8 _)) _))
+  fn(ref(w1 w16) fn(w3 _))
+  tup(w7 tup(w8 _)) = w3
   ::std::IO::print::1 = x(x(w1 w16) x(w7 w8))
 }
 
-::std::IO::print::1 { x(w4 x(dup2234(?(::std::IO::print::3 ::std::IO::print::2 x(w4 x(w6 w1))) w6) w1)) }
+::std::IO::print::1 {
+  x(w4 x(dup2234(w0 w6) w1))
+  w0 = ?(::std::IO::print::3 ::std::IO::print::2 x(w4 x(w6 w1)))
+}
 
 ::std::IO::print::2 {
-  x(x(w17 w21) x(@sub(1 w1) tup(w4 w5)))
+  x(x(w17 w21) x(w15 w14))
+  w15 = @sub(1 w1)
+  tup(w4 w5) = w14
   ::std::IO::print_char = fn(ref(w17 w10) fn(w4 _))
   ::std::IO::print::1 = x(x(w10 w21) x(w1 w5))
 }

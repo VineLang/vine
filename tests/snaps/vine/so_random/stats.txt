@@ -10,6 +10,6 @@ Interactions
   Branch               2_351
 
 Memory
-  Heap                   800 B
+  Heap                   816 B
   Allocated        1_013_088 B
   Freed            1_013_088 B

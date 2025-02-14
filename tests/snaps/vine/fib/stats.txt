@@ -10,6 +10,6 @@ Interactions
   Branch                 805
 
 Memory
-  Heap                   816 B
+  Heap                   768 B
   Allocated          297_600 B
   Freed              297_600 B

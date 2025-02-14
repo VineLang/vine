@@ -10,6 +10,6 @@ Interactions
   Branch           62_221_841
 
 Memory
-  Heap              1_382_000 B
-  Allocated    23_686_750_464 B
-  Freed        23_686_750_464 B
+  Heap              1_684_704 B
+  Allocated    23_681_379_840 B
+  Freed        23_681_379_840 B

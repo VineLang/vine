@@ -8,108 +8,161 @@
 ::option_party::main {
   fn(ref(w1 w187) _)
   ::std::IO::println = fn(ref(w1 w6) fn(tup(4 tup(tup(109 tup(97 tup(112 tup(58 w194)))) w194)) _))
-  ::option_party::main::1 = x(x(w6 w197) fn(w12 _))
+  ::option_party::main::1 = x(x(w6 w197) w195)
   ::std::logical::Option::map = fn(::std::logical::Option::None fn(fn(@add(1 w202) w202) w12))
-  ::option_party::main::1 = x(x(w197 w205) fn(w17 _))
+  w195 = fn(w12 _)
+  ::option_party::main::1 = x(x(w197 w205) w203)
   ::std::logical::Option::map = fn(enum(enum(0 w206) enum(_ w206)) fn(fn(@add(1 w211) w211) w17))
-  ::option_party::main::1 = x(x(w205 w214) fn(w22 _))
+  w203 = fn(w17 _)
+  ::option_party::main::1 = x(x(w205 w214) w212)
   ::std::logical::Option::map = fn(enum(enum(100 w215) enum(_ w215)) fn(fn(@add(1 w220) w220) w22))
+  w212 = fn(w22 _)
   ::std::IO::println = fn(ref(w214 w25) fn(tup(17 tup(tup(105 tup(110 tup(99 tup(114 tup(101 tup(109 tup(101 tup(110 tup(116 tup(95 tup(111 tup(112 tup(116 tup(105 tup(111 tup(110 tup(58 w223))))))))))))))))) w223)) _))
   ::option_party::increment_option = fn(ref(::std::logical::Option::None w31) _)
-  ::option_party::main::1 = x(x(w25 w226) fn(w31 _))
+  ::option_party::main::1 = x(x(w25 w226) w224)
+  w224 = fn(w31 _)
   ::option_party::increment_option = fn(ref(enum(enum(0 w227) enum(_ w227)) dup52(w44 w46)) _)
-  ::option_party::main::1 = x(x(w226 w230) fn(w44 _))
+  ::option_party::main::1 = x(x(w226 w230) w228)
+  w228 = fn(w44 _)
   ::option_party::increment_option = fn(ref(w46 w47) _)
-  ::option_party::main::1 = x(x(w230 w233) fn(w47 _))
+  ::option_party::main::1 = x(x(w230 w233) w231)
+  w231 = fn(w47 _)
   ::std::IO::println = fn(ref(w233 w54) fn(tup(8 tup(tup(102 tup(108 tup(97 tup(116 tup(116 tup(101 tup(110 tup(58 w236)))))))) w236)) _))
-  ::option_party::main::1 = x(x(w54 w239) fn(w59 _))
+  ::option_party::main::1 = x(x(w54 w239) w237)
   ::std::logical::Option::flatten = fn(::std::logical::Option::None w59)
-  ::option_party::main::1 = x(x(w239 w242) fn(w63 _))
+  w237 = fn(w59 _)
+  ::option_party::main::1 = x(x(w239 w242) w240)
   ::std::logical::Option::flatten = fn(enum(enum(::std::logical::Option::None w243) enum(_ w243)) w63)
-  ::option_party::main::1 = x(x(w242 w246) fn(w68 _))
+  w240 = fn(w63 _)
+  ::option_party::main::1 = x(x(w242 w246) w244)
   ::std::logical::Option::flatten = fn(enum(enum(enum(enum(123 w247) enum(_ w247)) w248) enum(_ w248)) w68)
+  w244 = fn(w68 _)
   ::std::IO::println = fn(ref(w246 w71) fn(tup(12 tup(tup(97 tup(100 tup(100 tup(95 tup(111 tup(112 tup(116 tup(105 tup(111 tup(110 tup(115 tup(58 w251)))))))))))) w251)) _))
-  ::option_party::main::1 = x(x(w71 w254) fn(w76 _))
+  ::option_party::main::1 = x(x(w71 w254) w252)
   ::option_party::add_options = fn(::std::logical::Option::None fn(::std::logical::Option::None w76))
-  ::option_party::main::1 = x(x(w254 w257) fn(w80 _))
+  w252 = fn(w76 _)
+  ::option_party::main::1 = x(x(w254 w257) w255)
   ::option_party::add_options = fn(enum(enum(1 w258) enum(_ w258)) fn(::std::logical::Option::None w80))
-  ::option_party::main::1 = x(x(w257 w261) fn(w84 _))
+  w255 = fn(w80 _)
+  ::option_party::main::1 = x(x(w257 w261) w259)
   ::option_party::add_options = fn(::std::logical::Option::None fn(enum(enum(2 w262) enum(_ w262)) w84))
-  ::option_party::main::1 = x(x(w261 w265) fn(w89 _))
+  w259 = fn(w84 _)
+  ::option_party::main::1 = x(x(w261 w265) w263)
   ::option_party::add_options = fn(enum(enum(1 w266) enum(_ w266)) fn(enum(enum(2 w267) enum(_ w267)) w89))
+  w263 = fn(w89 _)
   ::std::IO::println = fn(ref(w265 w92) fn(tup(3 tup(tup(111 tup(114 tup(58 w270))) w270)) _))
-  ::option_party::main::1 = x(x(w92 w273) fn(w97 _))
+  ::option_party::main::1 = x(x(w92 w273) w271)
   ::std::logical::Option::or = fn(::std::logical::Option::None fn(::std::logical::Option::None w97))
-  ::option_party::main::1 = x(x(w273 w276) fn(w101 _))
+  w271 = fn(w97 _)
+  ::option_party::main::1 = x(x(w273 w276) w274)
   ::std::logical::Option::or = fn(enum(enum(1 w277) enum(_ w277)) fn(::std::logical::Option::None w101))
-  ::option_party::main::1 = x(x(w276 w280) fn(w105 _))
+  w274 = fn(w101 _)
+  ::option_party::main::1 = x(x(w276 w280) w278)
   ::std::logical::Option::or = fn(::std::logical::Option::None fn(enum(enum(2 w281) enum(_ w281)) w105))
-  ::option_party::main::1 = x(x(w280 w284) fn(w110 _))
+  w278 = fn(w105 _)
+  ::option_party::main::1 = x(x(w280 w284) w282)
   ::std::logical::Option::or = fn(enum(enum(1 w285) enum(_ w285)) fn(enum(enum(2 w286) enum(_ w286)) w110))
+  w282 = fn(w110 _)
   ::std::IO::println = fn(ref(w284 w113) fn(tup(10 tup(tup(117 tup(110 tup(119 tup(114 tup(97 tup(112 tup(95 tup(111 tup(114 tup(58 w289)))))))))) w289)) _))
-  ::option_party::main::7 = x(x(w113 w292) fn(w118 _))
+  ::option_party::main::7 = x(x(w113 w292) w290)
   ::std::logical::Option::unwrap_or = fn(::std::logical::Option::None fn(0 w118))
-  ::option_party::main::7 = x(x(w292 w295) fn(w122 _))
+  w290 = fn(w118 _)
+  ::option_party::main::7 = x(x(w292 w295) w293)
   ::std::logical::Option::unwrap_or = fn(enum(enum(1 w296) enum(_ w296)) fn(0 w122))
+  w293 = fn(w122 _)
   ::std::IO::println = fn(ref(w295 w125) fn(tup(8 tup(tup(105 tup(115 tup(95 tup(115 tup(111 tup(109 tup(101 tup(58 w299)))))))) w299)) _))
-  ::option_party::main::8 = x(x(w125 w302) fn(w304 _))
-  ::option_party::main::8 = x(x(w302 w307) fn(w312 _))
-  ::std::IO::println = fn(ref(w307 w136) fn(tup(8 tup(tup(105 tup(115 tup(95 tup(110 tup(111 tup(110 tup(101 tup(58 w315)))))))) w315)) _))
-  ::option_party::main::8 = x(x(w136 w318) fn(w320 _))
-  ::option_party::main::8 = x(x(w318 w323) fn(w328 _))
-  ::std::IO::println = fn(ref(w323 w147) fn(tup(12 tup(tup(105 tup(115 tup(95 tup(115 tup(111 tup(109 tup(101 tup(95 tup(97 tup(110 tup(100 tup(58 w331)))))))))))) w331)) _))
-  ::option_party::main::8 = x(x(w147 w334) fn(w336 _))
-  ::option_party::main::8 = x(x(w334 w339) fn(w343 _))
-  ::option_party::main::8 = x(x(w339 w346) fn(w350 _))
-  ::std::IO::println = fn(ref(w346 w161) fn(tup(16 tup(tup(105 tup(115 tup(95 tup(115 tup(111 tup(109 tup(101 tup(95 tup(105 tup(109 tup(112 tup(108 tup(105 tup(101 tup(115 tup(58 w353)))))))))))))))) w353)) _))
-  ::option_party::main::8 = x(x(w161 w356) fn(w358 _))
-  ::option_party::main::8 = x(x(w356 w361) fn(w365 _))
-  ::option_party::main::8 = x(x(w361 w368) fn(w372 _))
-  ::std::IO::println = fn(ref(w368 w175) fn(tup(7 tup(tup(117 tup(110 tup(119 tup(114 tup(97 tup(112 tup(58 w375))))))) w375)) _))
-  ::option_party::main::7 = x(x(w175 w378) fn(w181 _))
-  ::std::logical::Option::unwrap = fn(enum(enum(42 w379) enum(_ w379)) w181)
-  ::option_party::main::7 = x(x(w378 w382) fn(w184 _))
-  ::std::logical::Option::unwrap = fn(::std::logical::Option::None w184)
-  ::std::IO::println = fn(ref(w382 w187) fn(tup(27 tup(tup(105 tup(111 tup(32 tup(119 tup(105 tup(108 tup(108 tup(32 tup(110 tup(101 tup(118 tup(101 tup(114 tup(32 tup(119 tup(111 tup(114 tup(107 tup(32 tup(97 tup(103 tup(97 tup(105 tup(110 tup(32 tup(58 tup(40 w385))))))))))))))))))))))))))) w385)) _))
-  enum(::option_party::main::18 enum(0 w304)) = ::std::logical::Option::None
+  ::option_party::main::8 = x(x(w125 w302) w300)
+  ::std::logical::Option::None = enum(::option_party::main::18 enum(0 w304))
+  w300 = fn(w304 _)
+  ::option_party::main::8 = x(x(w302 w307) w305)
   enum(enum(_ w311) enum(_ w311)) = enum(::option_party::main::23 enum(0 w312))
-  enum(::option_party::main::28 enum(1 w320)) = ::std::logical::Option::None
+  w305 = fn(w312 _)
+  ::std::IO::println = fn(ref(w307 w136) fn(tup(8 tup(tup(105 tup(115 tup(95 tup(110 tup(111 tup(110 tup(101 tup(58 w315)))))))) w315)) _))
+  ::option_party::main::8 = x(x(w136 w318) w316)
+  ::std::logical::Option::None = enum(::option_party::main::28 enum(1 w320))
+  w316 = fn(w320 _)
+  ::option_party::main::8 = x(x(w318 w323) w321)
   enum(enum(_ w327) enum(_ w327)) = enum(::option_party::main::33 enum(1 w328))
-  enum(::option_party::main::38 enum(0 w336)) = ::std::logical::Option::None
-  enum(enum(0 w342) enum(_ w342)) = enum(::option_party::main::46 enum(0 w343))
-  enum(enum(1 w349) enum(_ w349)) = enum(::option_party::main::54 enum(0 w350))
-  enum(::option_party::main::62 enum(1 w358)) = ::std::logical::Option::None
-  enum(enum(0 w364) enum(_ w364)) = enum(::option_party::main::70 enum(1 w365))
-  enum(enum(1 w371) enum(_ w371)) = enum(::option_party::main::78 enum(1 w372))
+  w321 = fn(w328 _)
+  ::std::IO::println = fn(ref(w323 w147) fn(tup(12 tup(tup(105 tup(115 tup(95 tup(115 tup(111 tup(109 tup(101 tup(95 tup(97 tup(110 tup(100 tup(58 w331)))))))))))) w331)) _))
+  ::option_party::main::8 = x(x(w147 w334) w332)
+  ::std::logical::Option::None = enum(::option_party::main::38 enum(::option_party::main::39 w336))
+  w332 = fn(w336 _)
+  ::option_party::main::8 = x(x(w334 w339) w337)
+  enum(enum(0 w342) enum(_ w342)) = enum(::option_party::main::46 enum(::option_party::main::47 w343))
+  w337 = fn(w343 _)
+  ::option_party::main::8 = x(x(w339 w346) w344)
+  enum(enum(1 w349) enum(_ w349)) = enum(::option_party::main::54 enum(::option_party::main::55 w350))
+  w344 = fn(w350 _)
+  ::std::IO::println = fn(ref(w346 w161) fn(tup(16 tup(tup(105 tup(115 tup(95 tup(115 tup(111 tup(109 tup(101 tup(95 tup(105 tup(109 tup(112 tup(108 tup(105 tup(101 tup(115 tup(58 w353)))))))))))))))) w353)) _))
+  ::option_party::main::8 = x(x(w161 w356) w354)
+  ::std::logical::Option::None = enum(::option_party::main::62 enum(::option_party::main::63 w358))
+  w354 = fn(w358 _)
+  ::option_party::main::8 = x(x(w356 w361) w359)
+  enum(enum(0 w364) enum(_ w364)) = enum(::option_party::main::70 enum(::option_party::main::71 w365))
+  w359 = fn(w365 _)
+  ::option_party::main::8 = x(x(w361 w368) w366)
+  enum(enum(1 w371) enum(_ w371)) = enum(::option_party::main::78 enum(::option_party::main::79 w372))
+  w366 = fn(w372 _)
+  ::std::IO::println = fn(ref(w368 w175) fn(tup(7 tup(tup(117 tup(110 tup(119 tup(114 tup(97 tup(112 tup(58 w375))))))) w375)) _))
+  ::option_party::main::7 = x(x(w175 w378) w376)
+  ::std::logical::Option::unwrap = fn(enum(enum(42 w379) enum(_ w379)) w181)
+  w376 = fn(w181 _)
+  ::option_party::main::7 = x(x(w378 w382) w380)
+  ::std::logical::Option::unwrap = fn(::std::logical::Option::None w184)
+  w380 = fn(w184 _)
+  ::std::IO::println = fn(ref(w382 w187) fn(tup(27 tup(tup(105 tup(111 tup(32 tup(119 tup(105 tup(108 tup(108 tup(32 tup(110 tup(101 tup(118 tup(101 tup(114 tup(32 tup(119 tup(111 tup(114 tup(107 tup(32 tup(97 tup(103 tup(97 tup(105 tup(110 tup(32 tup(58 tup(40 w385))))))))))))))))))))))))))) w385)) _))
 }
 
 ::option_party::main::1 {
-  x(x(w12 w4) fn(enum(::option_party::main::5 enum(::option_party::main::6 w18)) w9))
+  x(x(w12 w4) w2)
+  w2 = fn(w0 w9)
+  w0 = enum(::option_party::main::5 enum(::option_party::main::6 w18))
   ::std::data::List::concat = fn(tup(2 tup(tup(32 tup(32 w15)) w15)) fn(w18 w8))
   ::std::IO::println = fn(ref(w12 w4) fn(w8 w9))
 }
 
 ::option_party::main::5 {
-  enum(w0 tup(w6 tup(tup(83 tup(111 tup(109 tup(101 tup(40 w7))))) w8)))
-  ::std::numeric::N32::to_string::to_string = fn(w0 tup(@add(6 w6) tup(w7 tup(41 w8))))
+  enum(w0 w3)
+  ::std::numeric::N32::to_string::to_string = fn(w0 w5)
+  w3 = tup(w6 tup(tup(83 tup(111 tup(109 tup(101 tup(40 w7))))) w8))
+  w5 = tup(@add(6 w9) tup(w7 tup(41 w10)))
+  w9 = w6
+  w10 = w8
 }
 
-::option_party::main::6 { tup(4 tup(tup(78 tup(111 tup(110 tup(101 w4)))) w4)) }
+::option_party::main::6 {
+  tup(w2 tup(tup(78 tup(111 tup(110 tup(101 w3)))) w4))
+  4 = w2
+  w3 = w4
+}
 
 ::option_party::main::7 {
-  x(x(w12 w4) fn(w0 w9))
-  ::std::numeric::N32::to_string::to_string = fn(w0 tup(@add(2 w13) tup(w14 w15)))
-  ::std::IO::println = fn(ref(w12 w4) fn(tup(w13 tup(tup(32 tup(32 w14)) w15)) w9))
+  x(x(w12 w4) w2)
+  w2 = fn(w0 w9)
+  ::std::numeric::N32::to_string::to_string = fn(w0 w8)
+  w8 = tup(@add(2 w16) tup(w14 w17))
+  ::std::IO::println = fn(ref(w12 w4) fn(tup(w16 tup(tup(32 tup(32 w14)) w17)) w9))
 }
 
 ::option_party::main::8 {
-  x(x(w10 w4) fn(?(::option_party::main::11 ::option_party::main::10 w12) w7))
+  x(x(w10 w4) w2)
+  w2 = fn(w0 w7)
+  w0 = ?(::option_party::main::11 ::option_party::main::10 w12)
   ::std::IO::println = fn(ref(w10 w4) fn(w12 w7))
 }
 
-::option_party::main::10 { tup(6 tup(tup(32 tup(32 tup(116 tup(114 tup(117 tup(101 w4)))))) w4)) }
+::option_party::main::10 {
+  tup(w2 tup(tup(32 tup(32 tup(116 tup(114 tup(117 tup(101 w3)))))) w4))
+  6 = w2
+  w3 = w4
+}
 
-::option_party::main::11 { tup(7 tup(tup(32 tup(32 tup(102 tup(97 tup(108 tup(115 tup(101 w4))))))) w4)) }
+::option_party::main::11 {
+  tup(w2 tup(tup(32 tup(32 tup(102 tup(97 tup(108 tup(115 tup(101 w3))))))) w4))
+  7 = w2
+  w3 = w4
+}
 
 ::option_party::main::18 { enum(_ 1) }
 
@@ -119,33 +172,131 @@
 
 ::option_party::main::33 { enum(_ 0) }
 
-::option_party::main::38 { enum(@lt$(0 ?(0 1 w5)) w5) }
-
-::option_party::main::46 { enum(@lt$(0 ?(0 1 w5)) w5) }
-
-::option_party::main::54 { enum(@lt$(0 ?(0 1 w5)) w5) }
-
-::option_party::main::62 { enum(@lt$(0 ?(0 1 w5)) w5) }
-
-::option_party::main::70 { enum(@lt$(0 ?(0 1 w5)) w5) }
-
-::option_party::main::78 { enum(@lt$(0 ?(0 1 w5)) w5) }
-
-::std::numeric::N32::to_string::to_string { fn(dup188(?(::std::numeric::N32::to_string::to_string::3 ::std::numeric::N32::to_string::to_string::2 x(w7 w6)) w7) w6) }
-
-::std::numeric::N32::to_string::to_string::2 {
-  x(w6 w9)
-  ::std::numeric::N32::to_string::to_string::4 = x(w6 x(tup(0 tup(w7 w7)) w9))
+::option_party::main::38 {
+  enum(w0 w5)
+  w0 = @lt$(0 w4)
+  w4 = ?(::option_party::main::41 1 w5)
 }
 
-::std::numeric::N32::to_string::to_string::3 { x(_ tup(1 tup(tup(48 w5) w5))) }
+::option_party::main::39 {
+  r
+  0 = r
+}
 
-::std::numeric::N32::to_string::to_string::4 { x(dup197(?(::std::numeric::N32::to_string::to_string::6 ::std::numeric::N32::to_string::to_string::5 x(w6 w2)) w6) w2) }
+::option_party::main::41 {
+  r
+  0 = r
+}
+
+::option_party::main::46 {
+  enum(w0 w5)
+  w0 = @lt$(0 w4)
+  w4 = ?(::option_party::main::49 1 w5)
+}
+
+::option_party::main::47 {
+  r
+  0 = r
+}
+
+::option_party::main::49 {
+  r
+  0 = r
+}
+
+::option_party::main::54 {
+  enum(w0 w5)
+  w0 = @lt$(0 w4)
+  w4 = ?(::option_party::main::57 1 w5)
+}
+
+::option_party::main::55 {
+  r
+  0 = r
+}
+
+::option_party::main::57 {
+  r
+  0 = r
+}
+
+::option_party::main::62 {
+  enum(w0 w5)
+  w0 = @lt$(0 w4)
+  w4 = ?(0 ::option_party::main::64 w5)
+}
+
+::option_party::main::63 {
+  r
+  1 = r
+}
+
+::option_party::main::64 {
+  r
+  1 = r
+}
+
+::option_party::main::70 {
+  enum(w0 w5)
+  w0 = @lt$(0 w4)
+  w4 = ?(0 ::option_party::main::72 w5)
+}
+
+::option_party::main::71 {
+  r
+  1 = r
+}
+
+::option_party::main::72 {
+  r
+  1 = r
+}
+
+::option_party::main::78 {
+  enum(w0 w5)
+  w0 = @lt$(0 w4)
+  w4 = ?(0 ::option_party::main::80 w5)
+}
+
+::option_party::main::79 {
+  r
+  1 = r
+}
+
+::option_party::main::80 {
+  r
+  1 = r
+}
+
+::std::numeric::N32::to_string::to_string {
+  fn(dup188(w5 w7) w6)
+  w5 = ?(::std::numeric::N32::to_string::to_string::3 ::std::numeric::N32::to_string::to_string::2 x(w7 w6))
+}
+
+::std::numeric::N32::to_string::to_string::2 {
+  x(w6 w4)
+  ::std::numeric::N32::to_string::to_string::4 = x(w6 x(tup(0 tup(w7 w7)) w9))
+  w4 = w9
+}
+
+::std::numeric::N32::to_string::to_string::3 {
+  x(_ w0)
+  w0 = tup(w3 tup(tup(48 w4) w5))
+  1 = w3
+  w4 = w5
+}
+
+::std::numeric::N32::to_string::to_string::4 {
+  x(dup197(w0 w6) w2)
+  w0 = ?(::std::numeric::N32::to_string::to_string::6 ::std::numeric::N32::to_string::to_string::5 x(w6 w2))
+}
 
 ::std::numeric::N32::to_string::to_string::5 {
-  x(dup200(@rem(10 w1) @div(10 w8)) x(w11 w15))
+  x(dup200(w0 w7) x(w11 w15))
+  w0 = @rem(10 w1)
   48 = @add(w1 w2)
   ::std::data::List::concat = fn(tup(1 tup(tup(w2 w13) w13)) fn(w11 w5))
+  w7 = @div(10 w8)
   ::std::numeric::N32::to_string::to_string::4 = x(w8 x(w5 w15))
 }
 
@@ -153,10 +304,15 @@
 
 ::option_party::increment_option {
   fn(w1 w12)
-  ::std::logical::Option::as_ref = fn(w1 enum(::option_party::increment_option::4 enum(_ w12)))
+  ::std::logical::Option::as_ref = fn(w1 w10)
+  w10 = enum(::option_party::increment_option::4 enum(_ w12))
 }
 
-::option_party::increment_option::4 { enum(ref(@add(1 w6) w6) _) }
+::option_party::increment_option::4 {
+  enum(w0 _)
+  w0 = ref(w2 w6)
+  w2 = @add(1 w6)
+}
 
 ::option_party::add_options {
   fn(w0 fn(w1 w6))
@@ -164,25 +320,69 @@
   ::std::logical::Option::and_then = fn(w0 fn(fn(@add(w14 w19) w13) w6))
 }
 
-::std::data::List::concat { fn(tup(@add(w10 w18) tup(w6 w11)) fn(tup(w10 tup(w11 w21)) tup(w18 tup(w6 w21)))) }
+::std::data::List::concat {
+  fn(w0 fn(w1 w22))
+  tup(w5 tup(w6 w15)) = w0
+  tup(w10 tup(w11 w21)) = w1
+  w15 = w11
+  w5 = @add(w10 w18)
+  w22 = tup(w18 tup(w6 w21))
+}
 
-::std::logical::Option::map { fn(enum(::std::logical::Option::map::4 enum(::std::logical::Option::map::5 x(w1 w8))) fn(w1 w8)) }
+::std::logical::Option::map {
+  fn(w0 fn(w1 w8))
+  w0 = enum(::std::logical::Option::map::4 enum(::std::logical::Option::map::5 x(w1 w8)))
+}
 
-::std::logical::Option::map::4 { enum(w0 x(fn(w0 w6) enum(enum(w6 w8) enum(_ w8)))) }
+::std::logical::Option::map::4 {
+  enum(w0 x(w3 w7))
+  w3 = fn(w0 w6)
+  w7 = enum(enum(w6 w8) enum(_ w8))
+}
 
 ::std::logical::Option::map::5 { x(_ ::std::logical::Option::None) }
 
-::std::logical::Option::as_ref { fn(ref(enum(::std::logical::Option::as_ref::4 enum(::std::logical::Option::as_ref::5 x(w15 w14))) w14) w15) }
+::std::logical::Option::as_ref {
+  fn(w1 w15)
+  w1 = ref(w11 w14)
+  w11 = enum(::std::logical::Option::as_ref::4 enum(::std::logical::Option::as_ref::5 x(w15 w14)))
+}
 
-::std::logical::Option::as_ref::4 { enum(w1 x(enum(enum(ref(w1 w9) w12) enum(_ w12)) enum(enum(w9 w7) enum(_ w7)))) }
+::std::logical::Option::as_ref::4 {
+  enum(w1 x(w11 w2))
+  w2 = enum(enum(w9 w7) enum(_ w7))
+  w11 = enum(enum(ref(w1 w9) w12) enum(_ w12))
+}
 
-::std::logical::Option::as_ref::5 { x(::std::logical::Option::None enum(_ enum(w3 w3))) }
+::std::logical::Option::as_ref::5 {
+  x(::std::logical::Option::None w0)
+  w0 = enum(_ enum(w3 w3))
+}
 
-::std::logical::Option::flatten { fn(enum(::std::logical::Option::flatten::4 enum(::std::logical::Option::None w7)) w7) }
+::std::logical::Option::flatten {
+  fn(w0 w7)
+  w0 = enum(::std::logical::Option::flatten::4 enum(::std::logical::Option::flatten::7 w7))
+}
 
-::std::logical::Option::flatten::4 { enum(enum(::std::logical::Option::flatten::5 enum(::std::logical::Option::None w3)) w3) }
+::std::logical::Option::flatten::4 {
+  enum(w0 w3)
+  w0 = enum(::std::logical::Option::flatten::5 enum(::std::logical::Option::flatten::6 w3))
+}
 
-::std::logical::Option::flatten::5 { enum(w0 enum(enum(w0 w5) enum(_ w5))) }
+::std::logical::Option::flatten::5 {
+  enum(w0 w4)
+  w4 = enum(enum(w0 w5) enum(_ w5))
+}
+
+::std::logical::Option::flatten::6 {
+  r
+  ::std::logical::Option::None = r
+}
+
+::std::logical::Option::flatten::7 {
+  r
+  ::std::logical::Option::None = r
+}
 
 ::std::logical::Option::and_then {
   fn(w0 fn(w1 w7))
@@ -190,22 +390,34 @@
   ::std::logical::Option::flatten = fn(w6 w7)
 }
 
-::std::logical::Option::or { fn(enum(::std::logical::Option::or::4 enum(::std::logical::Option::or::5 x(w1 w8))) fn(w1 w8)) }
+::std::logical::Option::or {
+  fn(w0 fn(w1 w8))
+  w0 = enum(::std::logical::Option::or::4 enum(::std::logical::Option::or::5 x(w1 w8)))
+}
 
-::std::logical::Option::or::4 { enum(w1 x(_ enum(enum(w1 w6) enum(_ w6)))) }
+::std::logical::Option::or::4 {
+  enum(w1 x(_ w2))
+  w2 = enum(enum(w1 w6) enum(_ w6))
+}
 
 ::std::logical::Option::or::5 {
   x(w2 w2)
-  enum(_ enum(w3 w3)) = _
+  _ = enum(_ enum(w3 w3))
 }
 
-::std::logical::Option::unwrap_or { fn(enum(::std::logical::Option::unwrap_or::4 enum(::std::logical::Option::unwrap_or::5 x(w1 w8))) fn(w1 w8)) }
+::std::logical::Option::unwrap_or {
+  fn(w0 fn(w1 w8))
+  w0 = enum(::std::logical::Option::unwrap_or::4 enum(::std::logical::Option::unwrap_or::5 x(w1 w8)))
+}
 
 ::std::logical::Option::unwrap_or::4 { enum(w0 x(_ w0)) }
 
 ::std::logical::Option::unwrap_or::5 { x(w1 w1) }
 
-::std::logical::Option::unwrap { fn(enum(::std::logical::Option::unwrap::3 enum(_ w7)) w7) }
+::std::logical::Option::unwrap {
+  fn(w0 w7)
+  w0 = enum(::std::logical::Option::unwrap::3 enum(_ w7))
+}
 
 ::std::logical::Option::unwrap::3 { enum(w0 w0) }
 
@@ -216,14 +428,20 @@
 }
 
 ::std::IO::print {
-  fn(ref(w1 w16) fn(tup(w7 tup(w8 _)) _))
+  fn(ref(w1 w16) fn(w3 _))
+  tup(w7 tup(w8 _)) = w3
   ::std::IO::print::1 = x(x(w1 w16) x(w7 w8))
 }
 
-::std::IO::print::1 { x(w4 x(dup2383(?(::std::IO::print::3 ::std::IO::print::2 x(w4 x(w6 w1))) w6) w1)) }
+::std::IO::print::1 {
+  x(w4 x(dup2383(w0 w6) w1))
+  w0 = ?(::std::IO::print::3 ::std::IO::print::2 x(w4 x(w6 w1)))
+}
 
 ::std::IO::print::2 {
-  x(x(w17 w21) x(@sub(1 w1) tup(w4 w5)))
+  x(x(w17 w21) x(w15 w14))
+  w15 = @sub(1 w1)
+  tup(w4 w5) = w14
   ::std::IO::print_char = fn(ref(w17 w10) fn(w4 _))
   ::std::IO::print::1 = x(x(w10 w21) x(w1 w5))
 }

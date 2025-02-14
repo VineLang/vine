@@ -10,6 +10,6 @@ Interactions
   Branch               5_648
 
 Memory
-  Heap                66_480 B
+  Heap                65_344 B
   Allocated        2_424_768 B
   Freed            2_424_768 B

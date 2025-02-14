@@ -10,6 +10,6 @@ Interactions
   Branch                 191
 
 Memory
-  Heap                 1_760 B
+  Heap                 1_712 B
   Allocated           95_264 B
   Freed               95_264 B

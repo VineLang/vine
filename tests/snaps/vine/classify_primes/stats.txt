@@ -10,6 +10,6 @@ Interactions
   Branch              30_817
 
 Memory
-  Heap                   800 B
+  Heap                   752 B
   Allocated        9_992_752 B
   Freed            9_992_752 B

@@ -10,6 +10,6 @@ Interactions
   Branch           3_000_082
 
 Memory
-  Heap           192_780_224 B
+  Heap           160_780_832 B
   Allocated    1_680_030_176 B
   Freed        1_680_030_176 B

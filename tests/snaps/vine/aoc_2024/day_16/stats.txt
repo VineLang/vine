@@ -10,6 +10,6 @@ Interactions
   Branch              61_331
 
 Memory
-  Heap               334_640 B
-  Allocated       26_903_984 B
-  Freed           26_903_984 B
+  Heap               344_464 B
+  Allocated       26_885_856 B
+  Freed           26_885_856 B

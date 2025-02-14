@@ -10,6 +10,6 @@ Interactions
   Branch                 193
 
 Memory
-  Heap                   528 B
+  Heap                   480 B
   Allocated           65_936 B
   Freed               65_936 B

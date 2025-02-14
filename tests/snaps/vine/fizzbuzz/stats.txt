@@ -10,6 +10,6 @@ Interactions
   Branch                 921
 
 Memory
-  Heap                   448 B
+  Heap                   432 B
   Allocated          285_440 B
   Freed              285_440 B

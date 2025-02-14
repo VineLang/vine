@@ -10,6 +10,6 @@ Interactions
   Branch             392_243
 
 Memory
-  Heap             2_893_152 B
+  Heap             3_000_176 B
   Allocated      250_218_064 B
   Freed          250_218_064 B

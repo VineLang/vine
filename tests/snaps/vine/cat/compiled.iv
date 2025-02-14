@@ -14,7 +14,8 @@
 
 ::cat::main::1 {
   x(w6 w8)
-  ::std::IO::read_line = fn(ref(w6 w1) enum(::cat::main::4 enum(::cat::main::5 x(w1 w8))))
+  ::std::IO::read_line = fn(ref(w6 w1) w3)
+  w3 = enum(::cat::main::4 enum(::cat::main::5 x(w1 w8)))
 }
 
 ::cat::main::4 {
@@ -25,7 +26,14 @@
 
 ::cat::main::5 { x(w1 w1) }
 
-::std::data::List::concat { fn(tup(@add(w10 w18) tup(w6 w11)) fn(tup(w10 tup(w11 w21)) tup(w18 tup(w6 w21)))) }
+::std::data::List::concat {
+  fn(w0 fn(w1 w22))
+  tup(w5 tup(w6 w15)) = w0
+  tup(w10 tup(w11 w21)) = w1
+  w15 = w11
+  w5 = @add(w10 w18)
+  w22 = tup(w18 tup(w6 w21))
+}
 
 ::std::IO::println {
   fn(ref(w1 w12) fn(w3 _))
@@ -34,14 +42,20 @@
 }
 
 ::std::IO::print {
-  fn(ref(w1 w16) fn(tup(w7 tup(w8 _)) _))
+  fn(ref(w1 w16) fn(w3 _))
+  tup(w7 tup(w8 _)) = w3
   ::std::IO::print::1 = x(x(w1 w16) x(w7 w8))
 }
 
-::std::IO::print::1 { x(w4 x(dup2189(?(::std::IO::print::3 ::std::IO::print::2 x(w4 x(w6 w1))) w6) w1)) }
+::std::IO::print::1 {
+  x(w4 x(dup2189(w0 w6) w1))
+  w0 = ?(::std::IO::print::3 ::std::IO::print::2 x(w4 x(w6 w1)))
+}
 
 ::std::IO::print::2 {
-  x(x(w17 w21) x(@sub(1 w1) tup(w4 w5)))
+  x(x(w17 w21) x(w15 w14))
+  w15 = @sub(1 w1)
+  tup(w4 w5) = w14
   ::std::IO::print_char = fn(ref(w17 w10) fn(w4 _))
   ::std::IO::print::1 = x(x(w10 w21) x(w1 w5))
 }
@@ -50,23 +64,40 @@
 
 ::std::IO::read_line {
   fn(ref(w1 w17) w14)
-  ::std::IO::read_byte = fn(ref(w1 w6) fn(0 dup2232(@ne(0 ?(::std::IO::read_line::3 ::std::IO::read_line::2 x(x(w6 w17) x(w15 w14)))) w15)))
+  ::std::IO::read_byte = fn(ref(w1 w6) fn(0 w8))
+  dup2232(w12 w15) = w8
+  w12 = @ne(0 w13)
+  w13 = ?(::std::IO::read_line::3 ::std::IO::read_line::2 x(x(w6 w17) x(w15 w14)))
 }
 
-::std::IO::read_line::2 { x(w5 x(dup2238(@eq(10 ?(::std::IO::read_line::6 ::std::IO::read_line::5 x(w5 x(w9 w8)))) w9) enum(enum(w8 w12) enum(_ w12)))) }
+::std::IO::read_line::2 {
+  x(w5 x(dup2238(w6 w9) w1))
+  w6 = @eq(10 w7)
+  w7 = ?(::std::IO::read_line::6 ::std::IO::read_line::5 x(w5 x(w9 w8)))
+  w1 = enum(enum(w8 w12) enum(_ w12))
+}
 
 ::std::IO::read_line::3 { x(x(w3 w3) x(_ ::std::logical::Option::None)) }
 
-::std::IO::read_line::5 { x(x(w4 w4) x(_ tup(0 tup(w7 w7)))) }
+::std::IO::read_line::5 {
+  x(x(w4 w4) x(_ w0))
+  w0 = tup(w5 tup(w6 w7))
+  0 = w5
+  w6 = w7
+}
 
 ::std::IO::read_line::6 {
-  x(w10 x(w8 w14))
+  x(w10 x(w8 w6))
   ::std::IO::read_line::7 = x(w10 x(x(tup(1 tup(tup(w8 w11) w11)) w14) _))
+  w6 = w14
 }
 
 ::std::IO::read_line::7 {
   x(x(w10 w18) w8)
-  ::std::IO::read_byte = fn(ref(w10 w1) fn(10 dup2255(@ne(10 ?(::std::IO::read_line::10 ::std::IO::read_line::9 x(x(w1 w18) x(w16 w8)))) w16)))
+  ::std::IO::read_byte = fn(ref(w10 w1) fn(10 w3))
+  dup2255(w11 w16) = w3
+  w11 = @ne(10 w12)
+  w12 = ?(::std::IO::read_line::10 ::std::IO::read_line::9 x(x(w1 w18) x(w16 w8)))
 }
 
 ::std::IO::read_line::9 {

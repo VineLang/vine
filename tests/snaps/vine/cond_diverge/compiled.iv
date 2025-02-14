@@ -13,25 +13,53 @@
 
 ::cond_diverge::main::1 {
   x(x(w3 w13) w11)
-  ::std::data::List::pop_front = fn(ref(w3 w6) enum(::cond_diverge::main::5 enum(::cond_diverge::main::6 x(x(w6 w13) w11))))
+  ::std::data::List::pop_front = fn(ref(w3 w6) w9)
+  w9 = enum(::cond_diverge::main::5 enum(::cond_diverge::main::6 x(x(w6 w13) w11)))
 }
 
-::cond_diverge::main::5 { enum(dup15(@eq(97 ?(::cond_diverge::main::8 ::cond_diverge::main::7 x(w4 x(w8 w7)))) w8) x(w4 w7)) }
+::cond_diverge::main::5 {
+  enum(dup15(w5 w8) x(w4 w7))
+  w5 = @eq(97 w6)
+  w6 = ?(::cond_diverge::main::8 ::cond_diverge::main::7 x(w4 x(w8 w7)))
+}
 
 ::cond_diverge::main::6 { x(x(w2 w2) _) }
 
 ::cond_diverge::main::7 {
   x(w3 x(_ w4))
-  ::cond_diverge::main::1 = x(w3 w4)
+  ::cond_diverge::main::11 = x(w3 w4)
 }
 
-::cond_diverge::main::8 { x(w5 x(@eq(98 ?(::cond_diverge::main::10 ::cond_diverge::main::1 x(w5 w6))) w6)) }
+::cond_diverge::main::8 {
+  x(w5 x(w3 w6))
+  w3 = @eq(98 w1)
+  w1 = ?(::cond_diverge::main::10 ::cond_diverge::main::9 x(w5 w6))
+}
+
+::cond_diverge::main::9 {
+  w2
+  ::cond_diverge::main::11 = w2
+}
 
 ::cond_diverge::main::10 { x(x(w2 w2) _) }
 
-::std::data::List::pop_front { fn(ref(tup(dup129(?(::std::data::List::pop_front::3 ::std::data::List::pop_front::2 x(x(w16 w17) x(x(w3 w15) w13))) w16) tup(w3 w4)) tup(w17 tup(w15 w4))) w13) }
+::cond_diverge::main::11 {
+  w2
+  ::cond_diverge::main::1 = w2
+}
 
-::std::data::List::pop_front::2 { x(x(@sub(1 w1) w1) x(x(tup(w3 w4) w4) enum(enum(w3 w15) enum(_ w15)))) }
+::std::data::List::pop_front {
+  fn(ref(tup(dup129(w12 w16) tup(w3 w4)) tup(w17 tup(w15 w4))) w13)
+  w12 = ?(::std::data::List::pop_front::3 ::std::data::List::pop_front::2 x(x(w16 w17) x(x(w3 w15) w13)))
+}
+
+::std::data::List::pop_front::2 {
+  x(x(w14 w1) x(x(w12 w7) w9))
+  w14 = @sub(1 w1)
+  tup(w3 w4) = w12
+  w7 = w4
+  w9 = enum(enum(w3 w15) enum(_ w15))
+}
 
 ::std::data::List::pop_front::3 { x(x(w4 w4) x(x(w2 w2) ::std::logical::Option::None)) }
 
@@ -42,14 +70,20 @@
 }
 
 ::std::IO::print {
-  fn(ref(w1 w16) fn(tup(w7 tup(w8 _)) _))
+  fn(ref(w1 w16) fn(w3 _))
+  tup(w7 tup(w8 _)) = w3
   ::std::IO::print::1 = x(x(w1 w16) x(w7 w8))
 }
 
-::std::IO::print::1 { x(w4 x(dup2211(?(::std::IO::print::3 ::std::IO::print::2 x(w4 x(w6 w1))) w6) w1)) }
+::std::IO::print::1 {
+  x(w4 x(dup2211(w0 w6) w1))
+  w0 = ?(::std::IO::print::3 ::std::IO::print::2 x(w4 x(w6 w1)))
+}
 
 ::std::IO::print::2 {
-  x(x(w17 w21) x(@sub(1 w1) tup(w4 w5)))
+  x(x(w17 w21) x(w15 w14))
+  w15 = @sub(1 w1)
+  tup(w4 w5) = w14
   ::std::IO::print_char = fn(ref(w17 w10) fn(w4 _))
   ::std::IO::print::1 = x(x(w10 w21) x(w1 w5))
 }

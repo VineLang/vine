@@ -10,6 +10,6 @@ Interactions
   Branch             367_480
 
 Memory
-  Heap                   480 B
+  Heap                   432 B
   Allocated       90_794_864 B
   Freed           90_794_864 B

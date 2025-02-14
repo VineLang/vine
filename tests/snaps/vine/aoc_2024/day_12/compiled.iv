@@ -14,23 +14,28 @@
 ::day_12::main {
   fn(ref(w1 w41) _)
   ::day_12::main::1 = x(x(w1 w58) x(x(::std::data::Array::empty w56) x(x(tup(0 tup(w48 w48)) w54) x(tup(0 tup(w49 w49)) x(0 dup12(w33 w75))))))
-  ref(w56 w15) = ref(w18 w30)
+  ref(w18 w30) = ref(w56 w15)
   ::day_12::main::25 = x(x(0 w63) x(0 x(w18 w60)))
-  ::std::numeric::N32::to_string::to_string = fn(w63 tup(@add(8 w64) tup(w65 w66)))
-  ::std::IO::println = fn(ref(w58 w23) fn(tup(w64 tup(tup(80 tup(97 tup(114 tup(116 tup(32 tup(49 tup(58 tup(32 w65)))))))) w66)) _))
-  ::std::data::Array::len = fn(ref(w60 w30) @div(w33 w34))
+  ::std::numeric::N32::to_string::to_string = fn(w63 w27)
+  w27 = tup(@add(8 w67) tup(w65 w68))
+  ::std::IO::println = fn(ref(w58 w23) fn(tup(w67 tup(tup(80 tup(97 tup(114 tup(116 tup(32 tup(49 tup(58 tup(32 w65)))))))) w68)) _))
+  ::std::data::Array::len = fn(ref(w60 w30) w32)
+  w32 = @div(w33 w34)
   ::day_12::main::33 = x(w15 x(w54 x(w75 x(w34 x(x(0 w73) x(0 tup(0 tup(w69 w69))))))))
-  ::std::numeric::N32::to_string::to_string = fn(w73 tup(@add(8 w78) tup(w79 w80)))
-  ::std::IO::println = fn(ref(w23 w41) fn(tup(w78 tup(tup(80 tup(97 tup(114 tup(116 tup(32 tup(50 tup(58 tup(32 w79)))))))) w80)) _))
+  ::std::numeric::N32::to_string::to_string = fn(w73 w45)
+  w45 = tup(@add(8 w81) tup(w79 w82))
+  ::std::IO::println = fn(ref(w23 w41) fn(tup(w81 tup(tup(80 tup(97 tup(114 tup(116 tup(32 tup(50 tup(58 tup(32 w79)))))))) w82)) _))
 }
 
 ::day_12::main::1 {
   x(x(w13 w22) w11)
-  ::std::IO::read_line = fn(ref(w13 w1) enum(::day_12::main::4 enum(::day_12::main::5 x(x(w1 w22) w11))))
+  ::std::IO::read_line = fn(ref(w13 w1) w3)
+  w3 = enum(::day_12::main::4 enum(::day_12::main::5 x(x(w1 w22) w11)))
 }
 
 ::day_12::main::4 {
-  enum(dup50(w13 w28) x(w10 x(x(w8 w38) x(x(w6 w36) x(w4 x(@add(1 w12) w33))))))
+  enum(dup50(w13 w28) x(w10 x(x(w8 w38) x(x(w6 w36) x(w4 x(w3 w33))))))
+  w3 = @add(1 w12)
   ::std::data::List::concat = fn(w6 fn(tup(1 tup(tup(w13 w23) w23)) w16))
   ::day_12::main::6 = x(x(w8 w31) x(w4 x(w28 x(x(tup(0 tup(w24 w24)) w27) tup(35 0)))))
   ::day_12::main::1 = x(w10 x(x(w31 w38) x(x(w16 w36) x(w27 x(w12 w33)))))
@@ -40,13 +45,18 @@
 
 ::day_12::main::6 {
   x(w13 x(w11 x(w10 w9)))
-  ::std::data::List::pop_front = fn(ref(w10 w2) enum(::day_12::main::9 enum(::day_12::main::10 x(w13 x(w11 x(w2 w9))))))
+  ::std::data::List::pop_front = fn(ref(w10 w2) w5)
+  w5 = enum(::day_12::main::9 enum(::day_12::main::10 x(w13 x(w11 x(w2 w9)))))
 }
 
 ::day_12::main::9 {
-  enum(dup81(w33 dup81(w49 dup81(w16 w20))) x(x(w8 w59) x(w6 x(w5 x(x(w4 w55) tup(@eq(w33 ?(::day_12::main::15 ::day_12::main::14 x(x(w10 w40) x(x(w12 w38) x(w29 _))))) w29))))))
+  enum(dup81(w33 dup81(w49 dup81(w16 w20))) x(x(w8 w59) x(w6 x(w5 x(x(w4 w55) w2)))))
   ::day_12::Regions::new = fn(ref(w8 w10) w12)
-  ::std::data::List::pop_front = fn(ref(w6 w42) enum(::day_12::main::20 enum(::day_12::main::21 x(x(w40 w51) x(w49 x(x(w38 dup82(w17 w21)) _))))))
+  w2 = tup(w28 w29)
+  w28 = @eq(w33 w34)
+  w34 = ?(::day_12::main::15 ::day_12::main::14 x(x(w10 w40) x(x(w12 w38) x(w29 _))))
+  ::std::data::List::pop_front = fn(ref(w6 w42) w44)
+  w44 = enum(::day_12::main::20 enum(::day_12::main::21 x(x(w40 w51) x(w49 x(x(w38 dup82(w17 w21)) _)))))
   ::std::data::List::concat = fn(w4 fn(tup(1 tup(tup(tup(w20 w21) w52) w52)) w25))
   ::day_12::main::6 = x(x(w51 w59) x(w42 x(w5 x(x(w25 w55) tup(w16 w17)))))
 }
@@ -54,74 +64,127 @@
 ::day_12::main::10 { x(x(w6 w6) x(_ x(_ x(x(w2 w2) _)))) }
 
 ::day_12::main::14 {
-  x(x(w18 w7) x(x(w16 w11) x(w14 _)))
+  x(x(w18 w7) x(x(w16 w12) x(w14 _)))
   ::day_12::Regions::find = fn(ref(w18 w1) fn(w14 w4))
   ::day_12::Regions::union_found = fn(ref(w1 w7) fn(w16 fn(w4 w11)))
+  w12 = w11
 }
 
 ::day_12::main::15 { x(x(w5 w5) x(x(w3 w3) _)) }
 
-::day_12::main::20 { enum(tup(@eq(w9 ?(::day_12::main::23 ::day_12::main::22 x(w11 x(w8 x(w3 w15))))) w3) x(w11 x(w9 x(w8 w15)))) }
+::day_12::main::20 {
+  enum(w0 x(w11 x(w9 x(w8 w15))))
+  w0 = tup(w2 w3)
+  w2 = @eq(w9 w14)
+  w14 = ?(::day_12::main::23 ::day_12::main::22 x(w11 x(w8 x(w3 w15))))
+}
 
 ::day_12::main::21 { x(x(w5 w5) x(_ x(x(w2 w2) _))) }
 
 ::day_12::main::22 {
-  x(x(w18 w7) x(x(w16 w11) x(w14 _)))
+  x(x(w18 w7) x(x(w16 w12) x(w14 _)))
   ::day_12::Regions::find = fn(ref(w18 w1) fn(w14 w4))
   ::day_12::Regions::union_found = fn(ref(w1 w7) fn(w16 fn(w4 w11)))
+  w12 = w11
 }
 
 ::day_12::main::23 { x(x(w5 w5) x(x(w3 w3) _)) }
 
 ::day_12::main::25 {
-  x(w10 x(dup131(@lt(w4 ?(::day_12::main::27 ::day_12::main::26 x(w10 x(w13 x(w2 w12))))) w13) x(w7 w12)))
+  x(w10 x(dup131(w0 w13) x(w7 w12)))
   ::std::data::Array::len = fn(ref(w7 w2) w4)
+  w0 = @lt(w4 w5)
+  w5 = ?(::day_12::main::27 ::day_12::main::26 x(w10 x(w13 x(w2 w12))))
 }
 
 ::day_12::main::26 {
-  x(x(w7 w24) x(dup139(w11 @add(1 w2)) x(w4 w21)))
-  ::std::data::Array::get = fn(ref(w4 w9) fn(w11 ref(dup135(enum(::day_12::main::31 enum(::day_12::main::32 x(x(w7 w19) _))) w14) w14)))
+  x(x(w7 w24) x(dup139(w11 w1) x(w4 w21)))
+  ::std::data::Array::get = fn(ref(w4 w9) fn(w11 w12))
+  w12 = ref(w13 w14)
+  w13 = dup135(w15 w14)
+  w15 = enum(::day_12::main::31 enum(::day_12::main::32 x(x(w7 w19) _)))
+  w1 = @add(1 w2)
   ::day_12::main::25 = x(x(w19 w24) x(w2 x(w9 w21)))
 }
 
 ::day_12::main::27 { x(x(w4 w4) x(_ x(w1 w1))) }
 
-::day_12::main::31 { enum(dup150(@mul(w12 w13) @mul(4 @sub(w11 w12))) enum(@mul(2 w11) x(x(@add(w13 w15) w15) _))) }
+::day_12::main::31 {
+  enum(dup150(w7 w8) enum(w1 x(x(w6 w15) _)))
+  w8 = @mul(4 w9)
+  w1 = @mul(2 w11)
+  w9 = @sub(w11 w12)
+  w7 = @mul(w12 w13)
+  w6 = @add(w13 w15)
+}
 
 ::day_12::main::32 { enum(_ x(x(w3 w3) _)) }
 
-::day_12::main::33 { x(w10 x(w9 x(dup159(w1 w16) x(w7 x(w6 x(dup163(@le(w1 ?(::day_12::main::35 ::day_12::main::34 x(w10 x(w9 x(w16 x(w7 x(w6 x(w12 w3)))))))) w12) w3)))))) }
+::day_12::main::33 {
+  x(w10 x(w9 x(dup159(w1 w16) x(w7 x(w6 x(dup163(w0 w12) w3))))))
+  w0 = @le(w1 w2)
+  w2 = ?(::day_12::main::35 ::day_12::main::34 x(w10 x(w9 x(w16 x(w7 x(w6 x(w12 w3)))))))
+}
 
 ::day_12::main::34 {
-  x(w24 x(w23 x(w22 x(dup170(w36 w43) x(x(w20 w42) x(dup174(w33 @add(1 w16)) w17))))))
+  x(w24 x(w23 x(w22 x(dup170(w36 w43) x(x(w20 w42) x(dup174(w33 w15) w17))))))
   ::std::data::List::pop_front = fn(ref(w23 w1) w3)
-  ::std::logical::Option::unwrap_or = fn(w3 fn(tup(0 tup(w27 w27)) dup178(w8 w13)))
+  ::std::logical::Option::unwrap_or = fn(w3 fn(tup(0 tup(w27 w27)) w5))
+  dup178(w8 w13) = w5
   ::day_12::main::36 = x(x(w24 w38) x(w36 x(x(w20 w35) x(w33 x(w17 x(w8 x(0 35)))))))
+  w15 = @add(1 w16)
   ::day_12::main::33 = x(w38 x(w1 x(w22 x(w43 x(x(w35 w42) x(w16 w13))))))
 }
 
 ::day_12::main::35 { x(_ x(_ x(_ x(_ x(x(w3 w3) _))))) }
 
-::day_12::main::36 { x(w13 x(dup186(w1 w22) x(w10 x(w8 x(w7 x(w6 x(dup192(@le(w1 ?(::day_12::main::38 ::day_12::main::37 x(w13 x(w22 x(w10 x(w8 x(w7 x(w6 x(w16 w4))))))))) w16) w4))))))) }
+::day_12::main::36 {
+  x(w13 x(dup186(w1 w22) x(w10 x(w8 x(w7 x(w6 x(dup192(w0 w16) w4)))))))
+  w0 = @le(w1 w2)
+  w2 = ?(::day_12::main::38 ::day_12::main::37 x(w13 x(w22 x(w10 x(w8 x(w7 x(w6 x(w16 w4))))))))
+}
 
 ::day_12::main::37 {
-  x(x(w64 w99) x(dup201(w68 dup201(w74 dup201(w80 dup201(w86 w97)))) x(x(w61 w96) x(dup208(@sub(1 w16) dup208(@sub(1 w25) dup208(w33 dup208(w42 w94)))) x(w58 x(w57 x(dup213(@sub(1 w14) dup213(w23 dup213(w32 dup213(@sub(1 w41) @add(1 w53))))) x(dup215(w17 dup215(w29 dup215(w36 w44))) dup217(w20 dup217(w28 dup217(w35 w43)))))))))))
+  x(x(w64 w99) x(dup201(w68 dup201(w74 dup201(w80 dup201(w86 w97)))) x(x(w61 w96) x(dup208(w15 dup208(w24 dup208(w33 dup208(w42 w94)))) x(w58 x(w57 x(dup213(w13 dup213(w23 dup213(w32 dup213(w40 w52)))) x(dup215(w17 dup215(w29 dup215(w36 w44))) dup217(w20 dup217(w28 dup217(w35 w43)))))))))))
   ::std::data::List::pop_front = fn(ref(w58 w1) w3)
-  ::std::logical::Option::unwrap_or = fn(w3 fn(35 dup219(w18 dup219(w26 dup219(w37 dup219(w45 w48))))))
+  ::std::logical::Option::unwrap_or = fn(w3 fn(35 w4))
+  dup219(w18 dup219(w26 dup219(w37 dup219(w45 w48)))) = w4
   ::std::data::List::pop_front = fn(ref(w57 w7) w9)
-  ::std::logical::Option::unwrap_or = fn(w9 fn(35 dup220(w19 dup220(w27 dup220(w34 dup220(w46 w50))))))
-  ::day_12::main::39 = x(x(w64 w70) x(w68 x(x(w61 w67) fn(w14 fn(w16 fn(w17 fn(w18 fn(w19 fn(w20 _)))))))))
-  ::day_12::main::39 = x(x(w70 w76) x(w74 x(x(w67 w73) fn(w23 fn(w25 fn(w26 fn(w27 fn(w28 fn(w29 _)))))))))
-  ::day_12::main::39 = x(x(w76 w82) x(w80 x(x(w73 w79) fn(w32 fn(w33 fn(w34 fn(w35 fn(w36 fn(w37 _)))))))))
-  ::day_12::main::39 = x(x(w82 w88) x(w86 x(x(w79 w85) fn(w41 fn(w42 fn(w43 fn(w44 fn(w45 fn(w46 _)))))))))
+  ::std::logical::Option::unwrap_or = fn(w9 fn(35 w10))
+  dup220(w19 dup220(w27 dup220(w34 dup220(w46 w50)))) = w10
+  ::day_12::main::39 = x(x(w64 w70) x(w68 x(x(w61 w67) w65)))
+  w13 = @sub(1 w14)
+  w15 = @sub(1 w16)
+  w65 = fn(w14 fn(w16 fn(w17 fn(w18 fn(w19 fn(w20 _))))))
+  ::day_12::main::39 = x(x(w70 w76) x(w74 x(x(w67 w73) w71)))
+  w24 = @sub(1 w25)
+  w71 = fn(w23 fn(w25 fn(w26 fn(w27 fn(w28 fn(w29 _))))))
+  ::day_12::main::39 = x(x(w76 w82) x(w80 x(x(w73 w79) w77)))
+  w77 = fn(w32 fn(w33 fn(w34 fn(w35 fn(w36 fn(w37 _))))))
+  ::day_12::main::39 = x(x(w82 w88) x(w86 x(x(w79 w85) w83)))
+  w40 = @sub(1 w41)
+  w83 = fn(w41 fn(w42 fn(w43 fn(w44 fn(w45 fn(w46 _))))))
+  w52 = @add(1 w53)
   ::day_12::main::36 = x(x(w88 w99) x(w97 x(x(w85 w96) x(w94 x(w1 x(w7 x(w53 x(w48 w50))))))))
 }
 
 ::day_12::main::38 { x(x(w10 w10) x(_ x(x(w7 w7) _))) }
 
-::day_12::main::39 { x(w14 x(w12 x(w11 fn(w0 fn(w1 fn(dup234(@ne(35 ?(::day_12::main::42 ::day_12::main::41 x(w14 x(w12 x(w11 x(w0 x(w1 x(w21 x(w3 x(w4 x(w5 w17))))))))))) w21) fn(w3 fn(w4 fn(w5 w17))))))))) }
+::day_12::main::39 {
+  x(w14 x(w12 x(w11 w7)))
+  w7 = fn(w0 fn(w1 fn(dup234(w15 w21) fn(w3 fn(w4 fn(w5 w17))))))
+  w15 = @ne(35 w16)
+  w16 = ?(::day_12::main::42 ::day_12::main::41 x(w14 x(w12 x(w11 x(w0 x(w1 x(w21 x(w3 x(w4 x(w5 w17))))))))))
+}
 
-::day_12::main::41 { x(w19 x(w17 x(w16 x(w14 x(w13 x(dup249(dup241(w2 @ne(w5 w6)) w24) x(dup250(@ne(w2 @n32_and(w6 ?(::day_12::main::44 ::day_12::main::43 x(w19 x(w17 x(w16 x(w14 x(w13 x(w24 x(w23 x(w10 x(w21 w20)))))))))))) w23) x(w10 x(dup252(w5 w21) w20))))))))) }
+::day_12::main::41 {
+  x(w19 x(w17 x(w16 x(w14 x(w13 x(dup249(w1 w24) x(dup250(w0 w23) x(w10 x(dup252(w5 w21) w20)))))))))
+  w1 = dup241(w2 w3)
+  w0 = @ne(w2 w4)
+  w3 = @ne(w5 w6)
+  w4 = @n32_and(w6 w7)
+  w7 = ?(::day_12::main::44 ::day_12::main::43 x(w19 x(w17 x(w16 x(w14 x(w13 x(w24 x(w23 x(w10 x(w21 w20))))))))))
+}
 
 ::day_12::main::42 { x(x(w11 w11) x(_ x(x(w8 w8) _))) }
 
@@ -130,154 +193,289 @@
   ::day_12::main::47 = x(w11 x(w9 x(w8 x(w6 x(w5 w12)))))
 }
 
-::day_12::main::44 { x(w24 x(w22 x(w21 x(w19 x(w18 x(@eq(w2 @n32_and(w8 @n32_and(w11 ?(::day_12::main::46 ::day_12::main::47 x(w24 x(w22 x(w21 x(w19 x(w18 w25))))))))) x(dup264(w2 @eq(w6 w8)) x(w15 x(dup265(w6 @ne(w15 w11)) w25))))))))) }
+::day_12::main::44 {
+  x(w24 x(w22 x(w21 x(w19 x(w18 x(w17 x(w16 x(w15 x(w14 w25)))))))))
+  w16 = dup264(w2 w3)
+  w17 = @eq(w2 w4)
+  w14 = dup265(w6 w7)
+  w3 = @eq(w6 w8)
+  w4 = @n32_and(w8 w9)
+  w7 = @ne(w15 w11)
+  w9 = @n32_and(w11 w12)
+  w12 = ?(::day_12::main::46 ::day_12::main::45 x(w24 x(w22 x(w21 x(w19 x(w18 w25))))))
+}
+
+::day_12::main::45 {
+  w7
+  ::day_12::main::47 = w7
+}
 
 ::day_12::main::46 { x(x(w7 w7) x(_ x(x(w4 w4) _))) }
 
 ::day_12::main::47 {
-  x(x(w22 w7) x(w20 x(x(@add(w10 w14) w14) x(@add(w3 w4) x(@mul(w20 w3) _)))))
+  x(x(w22 w7) x(w20 x(x(w19 w14) x(w17 x(w16 _)))))
+  w16 = @mul(w20 w3)
+  w17 = @add(w3 w4)
   ::day_12::Regions::get_area = fn(ref(w22 w7) fn(w4 w10))
+  w19 = @add(w10 w14)
 }
 
-::std::numeric::N32::to_string::to_string { fn(dup298(?(::std::numeric::N32::to_string::to_string::3 ::std::numeric::N32::to_string::to_string::2 x(w7 w6)) w7) w6) }
+::std::numeric::N32::to_string::to_string {
+  fn(dup298(w5 w7) w6)
+  w5 = ?(::std::numeric::N32::to_string::to_string::3 ::std::numeric::N32::to_string::to_string::2 x(w7 w6))
+}
 
 ::std::numeric::N32::to_string::to_string::2 {
-  x(w6 w9)
+  x(w6 w4)
   ::std::numeric::N32::to_string::to_string::4 = x(w6 x(tup(0 tup(w7 w7)) w9))
+  w4 = w9
 }
 
-::std::numeric::N32::to_string::to_string::3 { x(_ tup(1 tup(tup(48 w5) w5))) }
+::std::numeric::N32::to_string::to_string::3 {
+  x(_ w0)
+  w0 = tup(w3 tup(tup(48 w4) w5))
+  1 = w3
+  w4 = w5
+}
 
-::std::numeric::N32::to_string::to_string::4 { x(dup307(?(::std::numeric::N32::to_string::to_string::6 ::std::numeric::N32::to_string::to_string::5 x(w6 w2)) w6) w2) }
+::std::numeric::N32::to_string::to_string::4 {
+  x(dup307(w0 w6) w2)
+  w0 = ?(::std::numeric::N32::to_string::to_string::6 ::std::numeric::N32::to_string::to_string::5 x(w6 w2))
+}
 
 ::std::numeric::N32::to_string::to_string::5 {
-  x(dup310(@rem(10 w1) @div(10 w8)) x(w11 w15))
+  x(dup310(w0 w7) x(w11 w15))
+  w0 = @rem(10 w1)
   48 = @add(w1 w2)
   ::std::data::List::concat = fn(tup(1 tup(tup(w2 w13) w13)) fn(w11 w5))
+  w7 = @div(10 w8)
   ::std::numeric::N32::to_string::to_string::4 = x(w8 x(w5 w15))
 }
 
 ::std::numeric::N32::to_string::to_string::6 { x(_ x(w1 w1)) }
 
 ::day_12::Regions::new {
-  fn(ref(w1 w13) w10)
+  fn(ref(w1 w13) w11)
   ::std::data::Array::len = fn(ref(w1 w8) w10)
+  w11 = w10
   ::std::data::Array::push_back = fn(ref(w8 w13) fn(enum(enum(1 enum(0 w19)) enum(_ w19)) _))
 }
 
 ::day_12::Regions::find {
   fn(ref(w1 w17) fn(w5 w11))
-  ::day_12::Regions::find::1 = x(x(w1 w17) x(x(w5 dup346(w13 w11)) w13))
+  ::day_12::Regions::find::1 = x(x(w1 w17) x(x(w5 dup346(w9 w11)) w13))
+  w13 = w9
 }
 
 ::day_12::Regions::find::1 {
   x(x(w13 w19) x(x(dup355(w3 w16) w17) w15))
-  ::std::data::Array::get = fn(ref(w13 w1) fn(w3 ref(enum(::day_12::Regions::find::4 enum(::day_12::Regions::find::5 x(x(w1 w19) x(x(w16 w17) x(w15 w14))))) w14)))
+  ::std::data::Array::get = fn(ref(w13 w1) fn(w3 w4))
+  w4 = ref(w6 w14)
+  w6 = enum(::day_12::Regions::find::4 enum(::day_12::Regions::find::5 x(x(w1 w19) x(x(w16 w17) x(w15 w14)))))
 }
 
-::day_12::Regions::find::4 { enum(w1 enum(w3 x(x(w10 w10) x(x(w8 w8) x(_ enum(enum(w1 enum(w3 w11)) enum(_ w11))))))) }
+::day_12::Regions::find::4 {
+  enum(w1 enum(w3 x(x(w10 w10) x(x(w8 w8) x(_ w4)))))
+  w4 = enum(enum(w1 enum(w3 w11)) enum(_ w11))
+}
 
 ::day_12::Regions::find::5 {
-  enum(w1 x(w10 x(x(_ w18) x(dup369(w14 w16) enum(_ enum(enum(w14 w11) w11))))))
+  enum(w1 x(w10 x(x(_ w18) x(dup369(w14 w16) w2))))
+  w2 = enum(_ enum(enum(w15 w11) w11))
+  w15 = w14
   ::day_12::Regions::find::1 = x(w10 x(x(w1 w18) w16))
 }
 
 ::day_12::Regions::get_area {
   fn(ref(w1 w13) fn(w3 w31))
   ::day_12::Regions::find = fn(ref(w1 w7) fn(w3 w10))
-  ::std::data::Array::get = fn(ref(w7 w13) fn(w10 ref(dup375(enum(::day_12::Regions::get_area::3 enum(_ w31)) w28) w28)))
+  ::std::data::Array::get = fn(ref(w7 w13) fn(w10 w26))
+  w26 = ref(w27 w28)
+  w27 = dup375(w29 w28)
+  w29 = enum(::day_12::Regions::get_area::3 enum(_ w31))
 }
 
 ::day_12::Regions::get_area::3 { enum(w0 enum(_ w0)) }
 
-::day_12::Regions::union_found { fn(ref(w1 w18) fn(dup393(@eq(w12 ?(::day_12::Regions::union_found::3 ::day_12::Regions::union_found::2 x(x(w1 w18) x(w16 x(w15 w14))))) w16) fn(dup394(w12 w15) w14))) }
+::day_12::Regions::union_found {
+  fn(ref(w1 w18) fn(dup393(w11 w16) fn(dup394(w12 w15) w14)))
+  w11 = @eq(w12 w13)
+  w13 = ?(::day_12::Regions::union_found::3 ::day_12::Regions::union_found::2 x(x(w1 w18) x(w16 x(w15 w14))))
+}
 
 ::day_12::Regions::union_found::2 {
   x(x(w6 w8) x(dup400(w10 w1) x(_ w1)))
-  ::std::data::Array::get = fn(ref(w6 w8) fn(w10 ref(enum(::day_12::Regions::union_found::6 enum(::day_12::Regions::union_found::7 x(_ w16))) w16)))
+  ::std::data::Array::get = fn(ref(w6 w8) fn(w10 w11))
+  w11 = ref(w13 w16)
+  w13 = enum(::day_12::Regions::union_found::6 enum(::day_12::Regions::union_found::7 x(_ w16)))
 }
 
 ::day_12::Regions::union_found::3 {
   x(x(w21 w9) x(dup409(w3 w36) x(dup410(w11 w35) w30)))
-  ::std::data::Array::get = fn(ref(w21 w1) fn(w3 ref(dup412(w22 w33) w34)))
-  ::std::data::Array::get = fn(ref(w1 w9) fn(w11 ref(dup414(w23 w31) w32)))
-  tup(w22 w23) = tup(w26 enum(::day_12::Regions::union_found::13 enum(::day_12::Regions::union_found::16 x(w36 x(w35 x(x(w33 w34) x(x(w31 w32) x(w30 w26))))))))
+  ::std::data::Array::get = fn(ref(w21 w1) fn(w3 w4))
+  ref(dup412(w22 w33) w34) = w4
+  ::std::data::Array::get = fn(ref(w1 w9) fn(w11 w12))
+  ref(dup414(w23 w31) w32) = w12
+  tup(w22 w23) = tup(w26 w27)
+  w27 = enum(::day_12::Regions::union_found::13 enum(::day_12::Regions::union_found::16 x(w36 x(w35 x(x(w33 w34) x(x(w31 w32) x(w30 w26)))))))
 }
 
-::day_12::Regions::union_found::6 { enum(w1 enum(@add(1 w12) x(_ enum(enum(w1 enum(w12 w10)) enum(_ w10))))) }
+::day_12::Regions::union_found::6 {
+  enum(w1 enum(w3 x(_ w4)))
+  w4 = enum(enum(w1 enum(w12 w10)) enum(_ w10))
+  w3 = @add(1 w12)
+}
 
-::day_12::Regions::union_found::7 { enum(w1 x(_ enum(_ enum(enum(w1 w5) w5)))) }
+::day_12::Regions::union_found::7 {
+  enum(w1 x(_ w2))
+  w2 = enum(_ enum(enum(w1 w5) w5))
+}
 
-::day_12::Regions::union_found::11 { x(_ x(dup430(w4 w7) x(enum(_ enum(enum(w4 w16) w16)) x(enum(enum(w10 enum(w9 w15)) enum(_ w15)) x(w10 x(w9 w7)))))) }
+::day_12::Regions::union_found::11 {
+  x(_ x(dup430(w4 w7) x(w6 x(w3 x(w10 x(w9 w7))))))
+  w3 = enum(enum(w10 enum(w9 w15)) enum(_ w15))
+  w6 = enum(_ enum(enum(w4 w16) w16))
+}
 
-::day_12::Regions::union_found::12 { x(dup436(w4 w7) x(_ x(enum(enum(w10 enum(w9 w15)) enum(_ w15)) x(enum(_ enum(enum(w4 w16) w16)) x(w10 x(w9 w7)))))) }
+::day_12::Regions::union_found::12 {
+  x(dup436(w4 w7) x(_ x(w3 x(w6 x(w10 x(w9 w7))))))
+  w3 = enum(enum(w10 enum(w9 w15)) enum(_ w15))
+  w6 = enum(_ enum(enum(w4 w16) w16))
+}
 
-::day_12::Regions::union_found::13 { enum(w0 enum(w1 x(w10 x(w9 x(w8 x(w6 x(w13 enum(::day_12::Regions::union_found::14 enum(::day_12::Regions::union_found::15 x(w10 x(w9 x(w8 x(w6 x(w13 x(w0 w1))))))))))))))) }
+::day_12::Regions::union_found::13 {
+  enum(w0 enum(w1 x(w10 x(w9 x(w8 x(w6 x(w13 w3)))))))
+  w3 = enum(::day_12::Regions::union_found::14 enum(::day_12::Regions::union_found::15 x(w10 x(w9 x(w8 x(w6 x(w13 x(w0 w1))))))))
+}
 
-::day_12::Regions::union_found::14 { enum(dup456(@add(w16 w17) @lt(w26 ?(::day_12::Regions::union_found::12 ::day_12::Regions::union_found::11 x(w14 x(w13 x(w32 x(w31 x(w17 x(w22 w28))))))))) enum(@add(w6 @add(1 w22)) x(w14 x(w13 x(x(_ w32) x(x(_ w31) x(w28 x(dup458(w16 w26) w6)))))))) }
+::day_12::Regions::union_found::14 {
+  enum(dup456(w15 w25) enum(w1 x(w14 x(w13 x(x(_ w32) x(x(_ w31) x(w28 x(dup458(w16 w26) w6))))))))
+  w15 = @add(w16 w17)
+  w1 = @add(w6 w21)
+  w21 = @add(1 w22)
+  w25 = @lt(w26 w27)
+  w27 = ?(::day_12::Regions::union_found::12 ::day_12::Regions::union_found::11 x(w14 x(w13 x(w32 x(w31 x(w17 x(w22 w28)))))))
+}
 
 ::day_12::Regions::union_found::15 { enum(_ x(_ x(_ x(x(w7 w7) x(x(w5 w5) _))))) }
 
 ::day_12::Regions::union_found::16 { enum(_ x(_ x(_ x(x(w6 w6) x(x(w4 w4) _))))) }
 
-::std::data::List::pop_front { fn(ref(tup(dup564(?(::std::data::List::pop_front::3 ::std::data::List::pop_front::2 x(x(w16 w17) x(x(w3 w15) w13))) w16) tup(w3 w4)) tup(w17 tup(w15 w4))) w13) }
+::std::data::List::pop_front {
+  fn(ref(tup(dup564(w12 w16) tup(w3 w4)) tup(w17 tup(w15 w4))) w13)
+  w12 = ?(::std::data::List::pop_front::3 ::std::data::List::pop_front::2 x(x(w16 w17) x(x(w3 w15) w13)))
+}
 
-::std::data::List::pop_front::2 { x(x(@sub(1 w1) w1) x(x(tup(w3 w4) w4) enum(enum(w3 w15) enum(_ w15)))) }
+::std::data::List::pop_front::2 {
+  x(x(w14 w1) x(x(w12 w7) w9))
+  w14 = @sub(1 w1)
+  tup(w3 w4) = w12
+  w7 = w4
+  w9 = enum(enum(w3 w15) enum(_ w15))
+}
 
 ::std::data::List::pop_front::3 { x(x(w4 w4) x(x(w2 w2) ::std::logical::Option::None)) }
 
-::std::data::List::concat { fn(tup(@add(w10 w18) tup(w6 w11)) fn(tup(w10 tup(w11 w21)) tup(w18 tup(w6 w21)))) }
+::std::data::List::concat {
+  fn(w0 fn(w1 w22))
+  tup(w5 tup(w6 w15)) = w0
+  tup(w10 tup(w11 w21)) = w1
+  w15 = w11
+  w5 = @add(w10 w18)
+  w22 = tup(w18 tup(w6 w21))
+}
 
 ::std::data::Array::empty { tup(0 _) }
 
-::std::data::Array::len { fn(ref(tup(dup882(w10 w7) w8) tup(w7 w8)) w10) }
+::std::data::Array::len {
+  fn(ref(w1 w6) w10)
+  w1 = tup(w9 w8)
+  w6 = tup(w7 w8)
+  w9 = dup882(w10 w7)
+}
 
 ::std::data::Array::get {
   fn(ref(tup(dup887(w0 w11) w3) tup(w0 w4)) fn(w8 w17))
-  ::std::data::Array::get::1 = x(x(ref(w3 w4) w14) x(w8 w11))
-  ::std::data::Array::Node::as_leaf = fn(w14 w17)
+  ::std::data::Array::get::1 = x(x(ref(w3 w4) w22) x(w8 w11))
+  ::std::data::Array::Node::as_leaf = fn(w22 w17)
 }
 
-::std::data::Array::get::1 { x(w5 x(w3 dup897(@lt$(1 ?(::std::data::Array::get::3 ::std::data::Array::get::2 x(w5 x(w3 w6)))) w6))) }
+::std::data::Array::get::1 {
+  x(w5 x(w3 dup897(w0 w6)))
+  w0 = @lt$(1 w1)
+  w1 = ?(::std::data::Array::get::3 ::std::data::Array::get::2 x(w5 x(w3 w6)))
+}
 
 ::std::data::Array::get::2 {
-  x(x(w13 w17) x(dup901(@rem(2 w3) @div(2 w9)) w10))
-  ::std::data::Array::Node::half = fn(w13 fn(w10 fn(w3 tup(w5 w6))))
+  x(x(w13 w17) x(dup901(w2 w8) w10))
+  w2 = @rem(2 w3)
+  ::std::data::Array::Node::half = fn(w13 fn(w10 fn(w3 w4)))
+  tup(w5 w6) = w4
+  w8 = @div(2 w9)
   ::std::data::Array::get::1 = x(x(w5 w17) x(w9 w6))
 }
 
 ::std::data::Array::get::3 { x(x(w3 w3) _) }
 
-::std::data::Array::push_back { fn(ref(tup(dup907(?(::std::data::Array::push_back::3 ::std::data::Array::push_back::2 x(w19 x(ref(w3 w4) x(w8 _)))) dup907(w19 @add(1 w13))) w3) tup(w13 w4)) fn(w8 _)) }
+::std::data::Array::push_back {
+  fn(ref(tup(dup907(w15 dup907(w19 w12)) w3) tup(w13 w4)) fn(w8 _))
+  w15 = ?(::std::data::Array::push_back::3 ::std::data::Array::push_back::2 x(w19 x(ref(w3 w4) x(w8 _))))
+  w12 = @add(1 w13)
+}
 
 ::std::data::Array::push_back::2 {
   x(w14 x(w13 x(w12 _)))
-  ::std::data::Array::push_back::4 = x(x(w13 ref(w4 tup(w4 w8))) w14)
+  ::std::data::Array::push_back::4 = x(x(w13 w17) w14)
+  ref(w4 w10) = w17
   ::std::data::Array::Node::leaf = fn(w12 w8)
+  w10 = tup(w4 w8)
 }
 
 ::std::data::Array::push_back::3 {
-  x(_ x(ref(_ w5) x(w8 _)))
+  x(_ x(w9 x(w8 _)))
+  ref(_ w6) = w9
   ::std::data::Array::Node::leaf = fn(w8 w5)
+  w6 = w5
 }
 
-::std::data::Array::push_back::4 { x(w4 dup927(@lt$(1 ?(::std::data::Array::push_back::6 ::std::data::Array::push_back::5 x(w4 w5))) w5)) }
+::std::data::Array::push_back::4 {
+  x(w4 dup927(w0 w5))
+  w0 = @lt$(1 w1)
+  w1 = ?(::std::data::Array::push_back::6 ::std::data::Array::push_back::5 x(w4 w5))
+}
 
 ::std::data::Array::push_back::5 {
-  x(x(w10 w13) dup931(w1 @rem(2 w3)))
-  ::std::data::Array::Node::half = fn(w10 fn(w1 fn(w3 tup(w5 w6))))
+  x(x(w10 w13) dup931(w1 w2))
+  w2 = @rem(2 w3)
+  ::std::data::Array::Node::half = fn(w10 fn(w1 fn(w3 w4)))
+  tup(w5 w6) = w4
   ::std::data::Array::push_back::4 = x(x(w5 w13) w6)
 }
 
 ::std::data::Array::push_back::6 { x(x(w2 w2) _) }
 
-::std::data::Array::Node::half { fn(ref(tup(w1 w3) tup(w19 w17)) fn(w7 fn(?(::std::data::Array::Node::half::3 ::std::data::Array::Node::half::2 x(x(w1 w19) x(x(w3 w17) x(w7 w14)))) w14))) }
+::std::data::Array::Node::half {
+  fn(ref(tup(w1 w3) tup(w19 w17)) fn(w7 fn(w8 w14)))
+  w8 = ?(::std::data::Array::Node::half::3 ::std::data::Array::Node::half::2 x(x(w1 w19) x(x(w3 w17) x(w7 w14))))
+}
 
-::std::data::Array::Node::half::2 { x(x(w11 w11) x(x(w9 w1) x(@div(2 w4) tup(ref(w9 w1) w4)))) }
+::std::data::Array::Node::half::2 {
+  x(x(w11 w11) x(x(w9 w1) x(w7 w5)))
+  w7 = @div(2 w4)
+  w5 = tup(ref(w9 w1) w4)
+}
 
-::std::data::Array::Node::half::3 { x(x(w12 w1) x(x(w10 w10) x(@add(1 @div(2 w5)) tup(ref(w12 w1) w5)))) }
+::std::data::Array::Node::half::3 {
+  x(x(w12 w1) x(x(w10 w10) x(w8 w6)))
+  w8 = @add(1 w4)
+  w4 = @div(2 w5)
+  w6 = tup(ref(w12 w1) w5)
+}
 
-::std::logical::Option::unwrap_or { fn(enum(::std::logical::Option::unwrap_or::4 enum(::std::logical::Option::unwrap_or::5 x(w1 w8))) fn(w1 w8)) }
+::std::logical::Option::unwrap_or {
+  fn(w0 fn(w1 w8))
+  w0 = enum(::std::logical::Option::unwrap_or::4 enum(::std::logical::Option::unwrap_or::5 x(w1 w8)))
+}
 
 ::std::logical::Option::unwrap_or::4 { enum(w0 x(_ w0)) }
 
@@ -290,14 +488,20 @@
 }
 
 ::std::IO::print {
-  fn(ref(w1 w16) fn(tup(w7 tup(w8 _)) _))
+  fn(ref(w1 w16) fn(w3 _))
+  tup(w7 tup(w8 _)) = w3
   ::std::IO::print::1 = x(x(w1 w16) x(w7 w8))
 }
 
-::std::IO::print::1 { x(w4 x(dup2625(?(::std::IO::print::3 ::std::IO::print::2 x(w4 x(w6 w1))) w6) w1)) }
+::std::IO::print::1 {
+  x(w4 x(dup2625(w0 w6) w1))
+  w0 = ?(::std::IO::print::3 ::std::IO::print::2 x(w4 x(w6 w1)))
+}
 
 ::std::IO::print::2 {
-  x(x(w17 w21) x(@sub(1 w1) tup(w4 w5)))
+  x(x(w17 w21) x(w15 w14))
+  w15 = @sub(1 w1)
+  tup(w4 w5) = w14
   ::std::IO::print_char = fn(ref(w17 w10) fn(w4 _))
   ::std::IO::print::1 = x(x(w10 w21) x(w1 w5))
 }
@@ -306,23 +510,40 @@
 
 ::std::IO::read_line {
   fn(ref(w1 w17) w14)
-  ::std::IO::read_byte = fn(ref(w1 w6) fn(0 dup2668(@ne(0 ?(::std::IO::read_line::3 ::std::IO::read_line::2 x(x(w6 w17) x(w15 w14)))) w15)))
+  ::std::IO::read_byte = fn(ref(w1 w6) fn(0 w8))
+  dup2668(w12 w15) = w8
+  w12 = @ne(0 w13)
+  w13 = ?(::std::IO::read_line::3 ::std::IO::read_line::2 x(x(w6 w17) x(w15 w14)))
 }
 
-::std::IO::read_line::2 { x(w5 x(dup2674(@eq(10 ?(::std::IO::read_line::6 ::std::IO::read_line::5 x(w5 x(w9 w8)))) w9) enum(enum(w8 w12) enum(_ w12)))) }
+::std::IO::read_line::2 {
+  x(w5 x(dup2674(w6 w9) w1))
+  w6 = @eq(10 w7)
+  w7 = ?(::std::IO::read_line::6 ::std::IO::read_line::5 x(w5 x(w9 w8)))
+  w1 = enum(enum(w8 w12) enum(_ w12))
+}
 
 ::std::IO::read_line::3 { x(x(w3 w3) x(_ ::std::logical::Option::None)) }
 
-::std::IO::read_line::5 { x(x(w4 w4) x(_ tup(0 tup(w7 w7)))) }
+::std::IO::read_line::5 {
+  x(x(w4 w4) x(_ w0))
+  w0 = tup(w5 tup(w6 w7))
+  0 = w5
+  w6 = w7
+}
 
 ::std::IO::read_line::6 {
-  x(w10 x(w8 w14))
+  x(w10 x(w8 w6))
   ::std::IO::read_line::7 = x(w10 x(x(tup(1 tup(tup(w8 w11) w11)) w14) _))
+  w6 = w14
 }
 
 ::std::IO::read_line::7 {
   x(x(w10 w18) w8)
-  ::std::IO::read_byte = fn(ref(w10 w1) fn(10 dup2691(@ne(10 ?(::std::IO::read_line::10 ::std::IO::read_line::9 x(x(w1 w18) x(w16 w8)))) w16)))
+  ::std::IO::read_byte = fn(ref(w10 w1) fn(10 w3))
+  dup2691(w11 w16) = w3
+  w11 = @ne(10 w12)
+  w12 = ?(::std::IO::read_line::10 ::std::IO::read_line::9 x(x(w1 w18) x(w16 w8)))
 }
 
 ::std::IO::read_line::9 {

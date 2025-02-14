@@ -4,8 +4,9 @@
 ::main { ::mandelbrot_tga::main }
 
 ::mandelbrot_tga::center {
-  tup(w0 +0.0)
+  r
   +0.8 = @sub$(0 w0)
+  r = tup(w0 +0.0)
 }
 
 ::mandelbrot_tga::main {
@@ -16,26 +17,39 @@
   ::mandelbrot_tga::main::1 = x(x(w6 w17) 0)
 }
 
-::mandelbrot_tga::main::1 { x(w4 dup14(@lt(1024 ?(::mandelbrot_tga::main::3 ::mandelbrot_tga::main::2 x(w4 w5))) w5)) }
+::mandelbrot_tga::main::1 {
+  x(w4 dup14(w0 w5))
+  w0 = @lt(1024 w1)
+  w1 = ?(::mandelbrot_tga::main::3 ::mandelbrot_tga::main::2 x(w4 w5))
+}
 
 ::mandelbrot_tga::main::2 {
-  x(x(w5 w12) dup18(w7 @add(1 w2)))
+  x(x(w5 w12) dup18(w7 w1))
   ::mandelbrot_tga::main::4 = x(x(w5 w9) x(w7 0))
+  w1 = @add(1 w2)
   ::mandelbrot_tga::main::1 = x(x(w9 w12) w2)
 }
 
 ::mandelbrot_tga::main::3 { x(x(w2 w2) _) }
 
-::mandelbrot_tga::main::4 { x(w5 x(w3 dup25(@lt(1024 ?(::mandelbrot_tga::main::6 ::mandelbrot_tga::main::5 x(w5 x(w3 w6)))) w6))) }
+::mandelbrot_tga::main::4 {
+  x(w5 x(w3 dup25(w0 w6)))
+  w0 = @lt(1024 w1)
+  w1 = ?(::mandelbrot_tga::main::6 ::mandelbrot_tga::main::5 x(w5 x(w3 w6)))
+}
 
 ::mandelbrot_tga::main::5 {
-  x(x(w25 w29) x(dup29(w2 w27) dup30(w1 @add(1 w21))))
-  +2.6 = @div(1024 @mul(w7 w8))
-  tup(w1 w2) = @add(+0.5 @sub(w6 w7))
+  x(x(w25 w29) x(dup29(w2 w27) dup30(w1 w20)))
+  +2.6 = @div(1024 w0)
+  tup(w1 w2) = @add(+0.5 w4)
   1024 = @div(+2.0 w6)
-  ::mandelbrot_tga::center = @add(w8 tup(w10 w11))
+  w4 = @sub(w6 w7)
+  w0 = @mul(w7 w8)
+  ::mandelbrot_tga::center = @add(w8 w9)
+  tup(w10 w11) = w9
   ::mandelbrot_tga::mandelbrot = fn(w10 fn(w11 w18))
   ::std::IO::print_byte = fn(ref(w25 w14) fn(w18 _))
+  w20 = @add(1 w21)
   ::mandelbrot_tga::main::4 = x(x(w14 w29) x(w27 w21))
 }
 
@@ -43,29 +57,51 @@
 
 ::mandelbrot_tga::mandelbrot {
   fn(w0 fn(w1 w11))
-  ::mandelbrot_tga::mandelbrot::1 = x(w0 x(w1 x(+0.0 x(+0.0 x(+0.0 x(+0.0 x(0 @mul(256 @div(64 w11)))))))))
+  ::mandelbrot_tga::mandelbrot::1 = x(w0 x(w1 x(+0.0 x(+0.0 x(+0.0 x(+0.0 x(0 w14)))))))
+  w14 = @mul(256 w10)
+  w10 = @div(64 w11)
 }
 
-::mandelbrot_tga::mandelbrot::1 { x(w14 x(w13 x(w12 x(w11 x(dup49(@add(w3 @lt(+4.0 w5)) w18) x(dup50(w3 w17) x(dup52(@lt(64 @n32_and(w5 ?(::mandelbrot_tga::mandelbrot::3 ::mandelbrot_tga::mandelbrot::2 x(w14 x(w13 x(w12 x(w11 x(w18 x(w17 x(w15 w16)))))))))) w15) w16))))))) }
+::mandelbrot_tga::mandelbrot::1 {
+  x(w14 x(w13 x(w12 x(w11 x(dup49(w2 w18) x(dup50(w3 w17) x(dup52(w0 w15) w16)))))))
+  w0 = @lt(64 w1)
+  w2 = @add(w3 w4)
+  w4 = @lt(+4.0 w5)
+  w1 = @n32_and(w5 w6)
+  w6 = ?(::mandelbrot_tga::mandelbrot::3 ::mandelbrot_tga::mandelbrot::2 x(w14 x(w13 x(w12 x(w11 x(w18 x(w17 x(w15 w16))))))))
+}
 
 ::mandelbrot_tga::mandelbrot::2 {
-  x(dup53(w5 w40) x(dup54(w11 w39) x(w30 x(w29 x(@sub(w27 @add(w5 w6)) x(w27 x(@add(1 w1) w34)))))))
-  +2.0 = @mul(w30 @mul(w29 @add(w11 w12)))
-  tup(w6 w12) = tup(dup56(@mul(w18 w19) dup56(w18 w38)) dup58(@mul(w22 w23) dup58(w22 w37)))
+  x(dup53(w5 w40) x(dup54(w11 w39) x(w30 x(w29 x(w28 x(w27 x(w26 w34)))))))
+  w26 = @add(1 w1)
+  w28 = @sub(w27 w4)
+  w4 = @add(w5 w6)
+  +2.0 = @mul(w30 w8)
+  w8 = @mul(w29 w10)
+  w10 = @add(w11 w12)
+  tup(dup56(w17 dup56(w18 w38)) dup58(w21 dup58(w22 w37))) = tup(w6 w12)
+  w17 = @mul(w18 w19)
+  w21 = @mul(w22 w23)
   ::mandelbrot_tga::mandelbrot::1 = x(w40 x(w39 x(w38 x(w37 x(w19 x(w23 x(w1 w34)))))))
 }
 
 ::mandelbrot_tga::mandelbrot::3 { x(_ x(_ x(_ x(_ x(_ x(_ x(w1 w1))))))) }
 
 ::std::IO::print_bytes {
-  fn(ref(w1 w14) fn(tup(w7 tup(w8 _)) _))
+  fn(ref(w1 w14) fn(w3 _))
+  tup(w7 tup(w8 _)) = w3
   ::std::IO::print_bytes::1 = x(x(w1 w14) x(w7 w8))
 }
 
-::std::IO::print_bytes::1 { x(w4 x(dup2262(?(::std::IO::print_bytes::3 ::std::IO::print_bytes::2 x(w4 x(w6 w1))) w6) w1)) }
+::std::IO::print_bytes::1 {
+  x(w4 x(dup2262(w0 w6) w1))
+  w0 = ?(::std::IO::print_bytes::3 ::std::IO::print_bytes::2 x(w4 x(w6 w1)))
+}
 
 ::std::IO::print_bytes::2 {
-  x(x(w17 w21) x(@sub(1 w1) tup(w4 w5)))
+  x(x(w17 w21) x(w15 w14))
+  w15 = @sub(1 w1)
+  tup(w4 w5) = w14
   ::std::IO::print_byte = fn(ref(w17 w10) fn(w4 _))
   ::std::IO::print_bytes::1 = x(x(w10 w21) x(w1 w5))
 }
