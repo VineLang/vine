@@ -10,6 +10,6 @@ Interactions
   Branch                 311
 
 Memory
-  Heap                 3_344 B
-  Allocated          179_296 B
-  Freed              179_296 B
+  Heap                 3_424 B
+  Allocated          179_824 B
+  Freed              179_824 B

@@ -10,6 +10,6 @@ Interactions
   Branch               1_085
 
 Memory
-  Heap                 7_920 B
+  Heap                 4_736 B
   Allocated          603_536 B
   Freed              603_536 B

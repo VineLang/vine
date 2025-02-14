@@ -10,6 +10,6 @@ Interactions
   Branch               1_104
 
 Memory
-  Heap                 5_008 B
-  Allocated          678_208 B
-  Freed              678_208 B
+  Heap                 9_264 B
+  Allocated          679_232 B
+  Freed              679_232 B

@@ -10,6 +10,6 @@ Interactions
   Branch              69_435
 
 Memory
-  Heap                29_936 B
-  Allocated       27_153_584 B
-  Freed           27_153_584 B
+  Heap                28_176 B
+  Allocated       27_154_160 B
+  Freed           27_154_160 B

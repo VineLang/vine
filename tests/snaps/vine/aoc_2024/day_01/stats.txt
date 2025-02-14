@@ -10,6 +10,6 @@ Interactions
   Branch                 650
 
 Memory
-  Heap                 7_520 B
-  Allocated          393_536 B
-  Freed              393_536 B
+  Heap                 8_304 B
+  Allocated          394_560 B
+  Freed              394_560 B

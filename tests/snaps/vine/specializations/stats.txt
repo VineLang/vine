@@ -10,6 +10,6 @@ Interactions
   Branch                 128
 
 Memory
-  Heap                 2_080 B
-  Allocated           56_848 B
-  Freed               56_848 B
+  Heap                 2_288 B
+  Allocated           57_152 B
+  Freed               57_152 B

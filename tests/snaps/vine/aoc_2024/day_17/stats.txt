@@ -10,6 +10,6 @@ Interactions
   Branch               1_196
 
 Memory
-  Heap                 2_928 B
-  Allocated          590_608 B
-  Freed              590_608 B
+  Heap                 4_400 B
+  Allocated          590_896 B
+  Freed              590_896 B

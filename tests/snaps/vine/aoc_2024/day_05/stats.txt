@@ -10,6 +10,6 @@ Interactions
   Branch               4_731
 
 Memory
-  Heap                 8_720 B
-  Allocated        1_708_816 B
-  Freed            1_708_816 B
+  Heap                14_480 B
+  Allocated        1_710_800 B
+  Freed            1_710_800 B

@@ -10,6 +10,6 @@ Interactions
   Branch                 131
 
 Memory
-  Heap                 1_072 B
-  Allocated           46_592 B
-  Freed               46_592 B
+  Heap                 1_168 B
+  Allocated           46_656 B
+  Freed               46_656 B

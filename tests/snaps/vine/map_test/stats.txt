@@ -10,6 +10,6 @@ Interactions
   Branch           1_721_138
 
 Memory
-  Heap             1_031_776 B
-  Allocated      748_658_432 B
-  Freed          748_658_432 B
+  Heap             1_105_216 B
+  Allocated      749_602_384 B
+  Freed          749_602_384 B

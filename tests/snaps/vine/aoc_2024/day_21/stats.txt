@@ -10,6 +10,6 @@ Interactions
   Branch             123_774
 
 Memory
-  Heap                11_936 B
-  Allocated       50_198_784 B
-  Freed           50_198_784 B
+  Heap                14_192 B
+  Allocated       50_354_496 B
+  Freed           50_354_496 B

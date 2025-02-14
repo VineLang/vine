@@ -10,6 +10,6 @@ Interactions
   Branch                  10
 
 Memory
-  Heap                   464 B
+  Heap                   496 B
   Allocated            3_264 B
   Freed                3_264 B

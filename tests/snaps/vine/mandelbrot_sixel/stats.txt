@@ -10,6 +10,6 @@ Interactions
   Branch           5_155_274
 
 Memory
-  Heap                 1_360 B
+  Heap                 1_376 B
   Allocated    4_301_268_512 B
   Freed        4_301_268_512 B

@@ -10,6 +10,6 @@ Interactions
   Branch               2_309
 
 Memory
-  Heap                37_536 B
-  Allocated        1_956_272 B
-  Freed            1_956_272 B
+  Heap                37_600 B
+  Allocated        1_959_936 B
+  Freed            1_959_936 B

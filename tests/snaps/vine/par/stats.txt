@@ -10,6 +10,6 @@ Interactions
   Branch                 391
 
 Memory
-  Heap                 2_640 B
-  Allocated          268_192 B
-  Freed              268_192 B
+  Heap                 2_688 B
+  Allocated          265_344 B
+  Freed              265_344 B

@@ -10,6 +10,6 @@ Interactions
   Branch               1_156
 
 Memory
-  Heap                55_216 B
-  Allocated        1_707_712 B
-  Freed            1_707_712 B
+  Heap                76_496 B
+  Allocated        1_708_144 B
+  Freed            1_708_144 B

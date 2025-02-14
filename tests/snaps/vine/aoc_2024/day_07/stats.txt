@@ -10,6 +10,6 @@ Interactions
   Branch               1_558
 
 Memory
-  Heap                 6_256 B
-  Allocated        1_001_872 B
-  Freed            1_001_872 B
+  Heap                14_880 B
+  Allocated        1_000_000 B
+  Freed            1_000_000 B

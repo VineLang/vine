@@ -10,6 +10,6 @@ Interactions
   Branch                 465
 
 Memory
-  Heap                 3_040 B
-  Allocated          206_144 B
-  Freed              206_144 B
+  Heap                 3_744 B
+  Allocated          205_808 B
+  Freed              205_808 B

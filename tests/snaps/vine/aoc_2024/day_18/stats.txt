@@ -10,6 +10,6 @@ Interactions
   Branch               8_634
 
 Memory
-  Heap                14_880 B
-  Allocated        3_506_192 B
-  Freed            3_506_192 B
+  Heap                26_432 B
+  Allocated        3_507_312 B
+  Freed            3_507_312 B

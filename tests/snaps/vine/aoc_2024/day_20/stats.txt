@@ -10,6 +10,6 @@ Interactions
   Branch              22_459
 
 Memory
-  Heap                18_032 B
-  Allocated       10_213_104 B
-  Freed           10_213_104 B
+  Heap               372_384 B
+  Allocated       10_329_456 B
+  Freed           10_329_456 B

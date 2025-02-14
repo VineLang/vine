@@ -10,6 +10,6 @@ Interactions
   Branch               1_002
 
 Memory
-  Heap                 3_136 B
-  Allocated          439_056 B
-  Freed              439_056 B
+  Heap                 3_920 B
+  Allocated          439_424 B
+  Freed              439_424 B

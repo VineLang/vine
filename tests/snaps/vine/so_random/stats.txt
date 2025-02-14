@@ -11,5 +11,5 @@ Interactions
 
 Memory
   Heap                   800 B
-  Allocated        1_019_552 B
-  Freed            1_019_552 B
+  Allocated        1_013_088 B
+  Freed            1_013_088 B

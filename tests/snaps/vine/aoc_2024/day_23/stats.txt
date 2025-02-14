@@ -10,6 +10,6 @@ Interactions
   Branch               2_357
 
 Memory
-  Heap                25_840 B
-  Allocated        1_332_656 B
-  Freed            1_332_656 B
+  Heap                23_504 B
+  Allocated        1_332_448 B
+  Freed            1_332_448 B

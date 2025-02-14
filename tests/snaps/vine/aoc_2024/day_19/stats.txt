@@ -10,6 +10,6 @@ Interactions
   Branch               2_390
 
 Memory
-  Heap                17_248 B
-  Allocated        1_639_440 B
-  Freed            1_639_440 B
+  Heap                17_744 B
+  Allocated        1_640_656 B
+  Freed            1_640_656 B

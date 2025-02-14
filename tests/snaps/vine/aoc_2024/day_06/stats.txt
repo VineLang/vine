@@ -10,6 +10,6 @@ Interactions
   Branch              46_008
 
 Memory
-  Heap                10_496 B
-  Allocated       18_776_672 B
-  Freed           18_776_672 B
+  Heap                14_544 B
+  Allocated       18_777_328 B
+  Freed           18_777_328 B

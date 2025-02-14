@@ -10,6 +10,6 @@ Interactions
   Branch               9_988
 
 Memory
-  Heap                24_400 B
-  Allocated        6_662_864 B
-  Freed            6_662_864 B
+  Heap                30_224 B
+  Allocated        6_665_792 B
+  Freed            6_665_792 B

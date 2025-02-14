@@ -10,6 +10,6 @@ Interactions
   Branch              13_544
 
 Memory
-  Heap                25_280 B
-  Allocated        5_706_800 B
-  Freed            5_706_800 B
+  Heap                25_568 B
+  Allocated        5_712_320 B
+  Freed            5_712_320 B

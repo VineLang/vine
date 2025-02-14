@@ -10,6 +10,6 @@ Interactions
   Branch               3_010
 
 Memory
-  Heap                 9_264 B
-  Allocated        1_927_936 B
-  Freed            1_927_936 B
+  Heap                23_744 B
+  Allocated        1_929_472 B
+  Freed            1_929_472 B

@@ -10,6 +10,6 @@ Interactions
   Branch             292_449
 
 Memory
-  Heap                16_240 B
-  Allocated      138_439_008 B
-  Freed          138_439_008 B
+  Heap                16_608 B
+  Allocated      138_742_704 B
+  Freed          138_742_704 B
