@@ -7,7 +7,7 @@ use std::{
 
 use crate::{ivm::IVM, port::Port};
 
-impl<'ext: 'ivm, 'ivm> IVM<'ext, 'ivm> {
+impl<'ext, 'ivm> IVM<'ext, 'ivm> {
   pub fn normalize_parallel(&mut self, threads: usize) {
     self.do_fast();
 
@@ -80,7 +80,7 @@ struct Worker<'w, 'ext, 'ivm> {
 
 const ERA_LENGTH: u32 = 512;
 
-impl<'w, 'ext: 'ivm, 'ivm> Worker<'w, 'ext, 'ivm> {
+impl<'w, 'ext, 'ivm> Worker<'w, 'ext, 'ivm> {
   fn execute(mut self) {
     self.work();
     self.shared.ivm_return.set(self.ivm).ok().unwrap();

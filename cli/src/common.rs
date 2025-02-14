@@ -29,15 +29,14 @@ impl RunArgs {
   pub fn run(self, nets: Nets) {
     {
       let mut host = &mut Host::default();
+      let heap = Heap::new();
       let mut extrinsics = Extrinsics::default();
 
-      //host.register_default_extrinsics(&mut extrinsics);
-      let eref = &extrinsics;
-      let heap = Heap::new();
+      host.register_default_extrinsics(&mut extrinsics);
       host.insert_nets(&nets);
       let main = host.get("::main").expect("missing main");
-      let mut ivm = IVM::new(&heap, eref);
-      ivm.boot(main);
+      let mut ivm = IVM::new(&heap, &extrinsics);
+      ivm.boot(main, host.new_io());
       if self.workers > 0 {
         ivm.normalize_parallel(self.workers)
       } else {

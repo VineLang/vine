@@ -55,9 +55,8 @@ impl<'ivm, 'ext> IVM<'ext, 'ivm> {
   ///
   /// This does not start any processing; [`IVM::normalize`] must be called to
   /// do that.
-  pub fn boot(&mut self, main: &'ivm Global<'ivm>) {
-    todo!()
-    //self.link(Port::new_global(main), Port::new_ext_val(ExtVal::IO));
+  pub fn boot(&mut self, main: &'ivm Global<'ivm>, root: ExtVal<'ivm>) {
+    self.link(Port::new_global(main), Port::new_ext_val(root));
   }
 
   /// Normalize all nets in this IVM.

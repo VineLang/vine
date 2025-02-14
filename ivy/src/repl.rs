@@ -21,7 +21,7 @@ pub struct Repl<'host, 'ctx, 'ext, 'ivm> {
   pub vars: IndexMap<String, Port<'ivm>>,
 }
 
-impl<'host, 'ctx, 'ext: 'host + 'ivm, 'ivm> Repl<'host, 'ctx, 'ext, 'ivm> {
+impl<'host, 'ctx, 'ext, 'ivm> Repl<'host, 'ctx, 'ext, 'ivm> {
   pub fn new(host: &'host mut Host<'ivm>, ivm: &'ctx mut IVM<'ext, 'ivm>) -> Self {
     let vars = [("io".to_owned(), Port::new_ext_val(host.new_io()))].into_iter().collect();
     Self { host, ivm, vars }

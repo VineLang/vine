@@ -112,7 +112,7 @@ pub enum Step {
   Tuple(Port, Vec<Port>),
   Adt(AdtId, VariantId, Port, Vec<Port>),
   Ref(Port, Port, Port),
-  ExtFn(ExtFn, Port, Port, Port),
+  ExtFn(String, Port, Port, Port),
   Dup(Port, Port, Port),
   List(Port, Vec<Port>),
   String(Port, String, Vec<(Port, String)>),

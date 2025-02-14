@@ -36,9 +36,9 @@ use crate::{
   visit::VisitMut,
 };
 
-pub struct Repl<'core, 'ctx, 'ivm> {
+pub struct Repl<'core, 'ctx, 'ext, 'ivm> {
   host: &'ivm mut Host<'ivm>,
-  ivm: &'ctx mut IVM<'ivm>,
+  ivm: &'ctx mut IVM<'ext, 'ivm>,
   core: &'core Core<'core>,
   compiler: Compiler<'core>,
   repl_mod: DefId,
@@ -57,10 +57,10 @@ struct Var<'ivm> {
   space: Port<'ivm>,
 }
 
-impl<'core, 'ctx, 'ivm> Repl<'core, 'ctx, 'ivm> {
+impl<'core, 'ctx, 'ext, 'ivm> Repl<'core, 'ctx, 'ext, 'ivm> {
   pub fn new(
     mut host: &'ivm mut Host<'ivm>,
-    ivm: &'ctx mut IVM<'ivm>,
+    ivm: &'ctx mut IVM<'ext, 'ivm>,
     core: &'core Core<'core>,
     libs: Vec<PathBuf>,
   ) -> Result<Self, String> {
@@ -409,7 +409,7 @@ impl<'core, 'ctx, 'ivm> Repl<'core, 'ctx, 'ivm> {
   }
 }
 
-impl Display for Repl<'_, '_, '_> {
+impl Display for Repl<'_, '_, '_, '_> {
   fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
     for (local, ident) in &self.locals {
       let var = &self.vars[ident];

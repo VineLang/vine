@@ -70,6 +70,11 @@ impl<'ivm> Extrinsics<'ivm> {
     let n32_ext_ty = self.register_light_ext_ty().expect("reached maximum amount of extrinsics!");
     let f32_ext_ty = self.register_light_ext_ty().expect("reached maximum amount of extrinsics!");
     let io_ext_ty = self.register_light_ext_ty().expect("reached maximum amount of extrinsics!");
+    ext_ty_map.insert("N32".into(), n32_ext_ty);
+    ext_ty_map.insert("F32".into(), f32_ext_ty);
+    ext_ty_map.insert("IO".into(), io_ext_ty);
+    self.n32_ext_ty = Some(n32_ext_ty);
+    self.io_ext_ty = Some(io_ext_ty);
     enum NumericType {
       F32,
       N32,
