@@ -12,12 +12,7 @@ pub struct IVM<'ivm> {
   pub(crate) alloc: Allocator<'ivm>,
   pub(crate) alloc_pool: Vec<Allocator<'ivm>>,
 
-  /// Active pairs that should be "fast" to process (generally, those which do
-  /// not allocate memory).
-  pub(crate) active_fast: Vec<(Port<'ivm>, Port<'ivm>)>,
-  /// Active pairs that may be "slow" to process (generally, those which may
-  /// allocate memory).
-  pub(crate) active_slow: Vec<(Port<'ivm>, Port<'ivm>)>,
+  pub(crate) active: Vec<(Port<'ivm>, Port<'ivm>)>,
 
   /// Used by [`IVM::execute`].
   pub(crate) registers: Vec<Option<Port<'ivm>>>,
@@ -34,8 +29,7 @@ impl<'ivm> IVM<'ivm> {
       alloc,
       alloc_pool: Vec::new(),
       registers: Vec::new(),
-      active_fast: Vec::new(),
-      active_slow: Vec::new(),
+      active: Vec::new(),
       stats: Stats::default(),
     }
   }
@@ -51,20 +45,9 @@ impl<'ivm> IVM<'ivm> {
   /// Normalize all nets in this IVM.
   pub fn normalize(&mut self) {
     let start = Instant::now();
-    loop {
-      self.do_fast();
-      if let Some((a, b)) = self.active_slow.pop() {
-        self.interact(a, b)
-      } else {
-        break;
-      }
-    }
-    self.stats.time_clock += start.elapsed();
-  }
-
-  pub(crate) fn do_fast(&mut self) {
-    while let Some((a, b)) = self.active_fast.pop() {
+    while let Some((a, b)) = self.active.pop() {
       self.interact(a, b)
     }
+    self.stats.time_clock += start.elapsed();
   }
 }

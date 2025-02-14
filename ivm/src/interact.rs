@@ -21,9 +21,9 @@ impl<'ivm> IVM<'ivm> {
       (Wire, _) => self.link_wire(unsafe { a.as_wire() }, b),
       (_, Wire) => self.link_wire(unsafe { b.as_wire() }, a),
       sym!(Global | Erase) | sym!(ExtVal | Erase) => self.stats.erase += 1,
-      sym!(Comb) | sym!(ExtFn) if a.label() == b.label() => self.active_fast.push((a, b)),
-      sym!(Global, _) | sym!(Comb | ExtFn | Branch) => self.active_slow.push((a, b)),
-      sym!(Erase, _) | sym!(ExtVal, _) => self.active_fast.push((a, b)),
+      sym!(Comb) | sym!(ExtFn) if a.label() == b.label() => self.active.push((a, b)),
+      sym!(Global, _) | sym!(Comb | ExtFn | Branch) => self.active.push((a, b)),
+      sym!(Erase, _) | sym!(ExtVal, _) => self.active.push((a, b)),
     }
   }
 

@@ -9,8 +9,6 @@ use crate::{ivm::IVM, port::Port};
 
 impl<'ivm> IVM<'ivm> {
   pub fn normalize_parallel(&mut self, threads: usize) {
-    self.do_fast();
-
     let shared = Vec::from_iter((0..threads).map(|_| Shared::default()));
     let start = Instant::now();
     thread::scope(|s| {
@@ -20,7 +18,7 @@ impl<'ivm> IVM<'ivm> {
         let shared = &shared[i];
         let mut ivm = IVM::new_from_allocator(alloc);
         if i == 0 {
-          ivm.active_slow = mem::take(&mut self.active_slow);
+          ivm.active = mem::take(&mut self.active);
         }
         s.spawn(move || Worker { ivm, shared, dispatch }.execute());
         WorkerHandle { shared }
@@ -78,7 +76,7 @@ struct Worker<'w, 'ivm> {
   dispatch: Thread,
 }
 
-const ERA_LENGTH: u32 = 512;
+const ERA_LENGTH: u32 = 2048;
 
 impl<'w, 'ivm> Worker<'w, 'ivm> {
   fn execute(mut self) {
@@ -88,12 +86,11 @@ impl<'w, 'ivm> Worker<'w, 'ivm> {
 
   fn work(&mut self) {
     'work: loop {
-      let mut watermark = self.ivm.active_slow.len();
+      let mut watermark = self.ivm.active.len();
       let start = Instant::now();
       for _ in 0..ERA_LENGTH {
-        self.ivm.do_fast();
-        if let Some((a, b)) = self.ivm.active_slow.pop() {
-          watermark = watermark.min(self.ivm.active_slow.len());
+        if let Some((a, b)) = self.ivm.active.pop() {
+          watermark = watermark.min(self.ivm.active.len());
           self.ivm.interact(a, b);
         } else {
           self.ivm.stats.time_total += start.elapsed();
@@ -108,32 +105,32 @@ impl<'w, 'ivm> Worker<'w, 'ivm> {
             }
           }
           msg.kind = MsgKind::None;
-          mem::swap(&mut self.ivm.active_slow, &mut msg.pairs);
+          mem::swap(&mut self.ivm.active, &mut msg.pairs);
 
           continue 'work;
         }
       }
       self.ivm.stats.time_total += start.elapsed();
 
-      if watermark != 0 && watermark != self.ivm.active_slow.len() {
+      if watermark != 0 && watermark != self.ivm.active.len() {
         let mut msg = self.shared.msg.lock().unwrap();
         if msg.kind == MsgKind::None {
           debug_assert!(msg.pairs.is_empty());
-          let move_count = self.ivm.active_slow.len() - watermark;
+          let move_count = self.ivm.active.len() - watermark;
           self.ivm.stats.work_move += move_count as u64;
           debug_assert!(move_count != 0);
           msg.pairs.reserve(move_count);
           unsafe {
             ptr::copy_nonoverlapping(
-              self.ivm.active_slow.as_mut_ptr().add(watermark),
+              self.ivm.active.as_mut_ptr().add(watermark),
               msg.pairs.as_mut_ptr(),
               move_count,
             );
-            self.ivm.active_slow.set_len(watermark);
+            self.ivm.active.set_len(watermark);
             msg.pairs.set_len(move_count);
           }
           debug_assert!(!msg.pairs.is_empty());
-          mem::swap(&mut msg.pairs, &mut self.ivm.active_slow);
+          mem::swap(&mut msg.pairs, &mut self.ivm.active);
           msg.kind = MsgKind::WorkerShare;
           self.dispatch.unpark();
         }
