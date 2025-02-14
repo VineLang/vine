@@ -58,11 +58,14 @@ impl<'core, 'a> Emitter<'core, 'a> {
         let root = emitter.emit_interface(interface, true);
         let root =
           Tree::n_ary("enum", stage.header.iter().map(|p| emitter.emit_port(p)).chain([root]));
+        emitter.pairs.push((Tree::Var("r".into()), root));
         emitter._emit_stage(stage);
+        emitter.pairs.reverse();
         for (_, local) in take(&mut emitter.locals) {
           emitter.finish_local(local);
         }
-        let net = Net { root, pairs: take(&mut emitter.pairs) };
+        emitter.pairs.reverse();
+        let net = Net { root: Tree::Var("r".into()), pairs: take(&mut emitter.pairs) };
         self.nets.insert(emitter.stage_name(stage.id), net);
       }
     }
@@ -174,14 +177,7 @@ impl<'core, 'a> VirEmitter<'core, 'a> {
     let prev_wire_offset = self.wire_offset;
     self.wire_offset = self.wires.peek_next();
     self.wires.0 += stage.wires.0 .0;
-    for local in &stage.declarations {
-      if let Some(local) = self.locals.remove(local) {
-        self.finish_local(local);
-      }
-    }
-    for step in &stage.steps {
-      self.emit_step(step);
-    }
+    self._emit_stage(stage);
     self.wire_offset = prev_wire_offset;
   }
 
