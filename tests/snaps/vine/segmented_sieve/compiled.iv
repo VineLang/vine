@@ -13,7 +13,7 @@
 
 ::segmented_sieve::main {
   fn(ref(w1 w28) _)
-  ::std::numeric::N32::sqrt = fn(1000000 dup5(@sub(2 w8) dup5(w21 w26)))
+  ::std::numeric::N32::sqrt = fn(1000000 dup5(@sub(1 w8) dup5(w21 w26)))
   ::std::data::Array::new = fn(w8 fn(1 w9))
   ::segmented_sieve::main::1 = x(x(w1 w23) x(w21 x(w9 x(x(2 w19) x(tup(0 tup(w15 w15)) w17)))))
   ::segmented_sieve::main::12 = x(x(w23 w28) x(w26 x(w19 w17)))
@@ -41,7 +41,7 @@
 
 ::segmented_sieve::main::8 { x(x(w9 w9) x(_ x(x(w6 w6) x(_ x(x(w3 w3) _))))) }
 
-::segmented_sieve::main::9 { x(dup56(w1 w14) x(w7 x(w5 x(w4 dup61(@lt(w1 ?(::segmented_sieve::main::11 ::segmented_sieve::main::10 x(w14 x(w7 x(w5 x(w4 w9)))))) w9))))) }
+::segmented_sieve::main::9 { x(dup56(w1 w14) x(w7 x(w5 x(w4 dup61(@le(w1 ?(::segmented_sieve::main::11 ::segmented_sieve::main::10 x(w14 x(w7 x(w5 x(w4 w9)))))) w9))))) }
 
 ::segmented_sieve::main::10 {
   x(w17 x(x(w16 w22) x(dup66(w4 w20) x(dup67(w9 w19) dup68(@sub(w4 w5) @add(w9 w11))))))
