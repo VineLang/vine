@@ -20,4 +20,4 @@ pub mod wire;
 
 mod allocator;
 mod interact;
-mod word;
+pub mod word;

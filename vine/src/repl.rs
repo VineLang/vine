@@ -237,7 +237,7 @@ impl<'core, 'ctx, 'ivm> Repl<'core, 'ctx, 'ivm> {
 
     let out = cur;
 
-    self.ivm.execute(&self.host.get(&name).unwrap().instructions, Port::new_wire(root));
+    self.ivm.instantiate(Port::new_wire(root), self.host.get(&name).unwrap());
     self.ivm.normalize();
 
     let tree = self.host.read(self.ivm, &PortRef::new_wire(&out));

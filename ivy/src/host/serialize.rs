@@ -39,14 +39,20 @@
 //! one of the globals we're currently creating, rather than the usual
 //! `&Global`.
 
-use std::{cell::UnsafeCell, collections::HashMap, mem::take, ops::Range, ptr};
+use std::{
+  cell::UnsafeCell,
+  collections::{hash_map::Entry, HashMap},
+  mem::take,
+  ops::Range,
+  ptr,
+};
 
 use ivm::{
   addr::Addr,
   ext::ExtVal,
   global::{Global, LabelSet},
-  instruction::{Instruction, Instructions, Register},
   port::{Port, Tag},
+  word::Word,
 };
 use vine_util::bicycle::{Bicycle, BicycleState};
 
@@ -62,7 +68,8 @@ impl<'ivm> Host<'ivm> {
     let mut globals_vec = Vec::from_iter(nets.keys().map(|name| Global {
       name: name.clone(),
       labels: LabelSet::NONE,
-      instructions: Instructions::default(),
+      nodes: Vec::new(),
+      pairs: Vec::new(),
       flag: 0,
     }));
 
@@ -82,19 +89,15 @@ impl<'ivm> Host<'ivm> {
       (name.clone(), global as *const UnsafeCell<Global<'ivm>> as *const Global<'ivm>)
     }));
 
-    let mut serializer = Serializer {
-      host: self,
-      current: Default::default(),
-      vars: Default::default(),
-      pairs: Default::default(),
-    };
+    let mut serializer =
+      Serializer { host: self, nodes: Vec::new(), pairs: Vec::new(), vars: Default::default() };
 
     for (i, net) in nets.values().enumerate() {
       // Safety: essentially a `Cell::take`.
-      serializer.current = take(unsafe { &mut *globals[i].get() });
       serializer.serialize_net(net);
       // Safety: essentially a `Cell::set`.
-      unsafe { *globals[i].get() = take(&mut serializer.current) };
+      unsafe { (*globals[i].get()).nodes = take(&mut serializer.nodes) };
+      unsafe { (*globals[i].get()).pairs = take(&mut serializer.pairs) };
     }
 
     // Finally, we end the interior mutability, "freezing" the structure.
@@ -107,84 +110,102 @@ impl<'ivm> Host<'ivm> {
 struct Serializer<'host, 'ast, 'ivm> {
   host: &'host mut Host<'ivm>,
   nodes: Vec<[Option<Port<'ivm>>; 2]>,
-  pairs: Vec<[Port<'ivm>; 2]>,
-  vars: HashMap<&'ast str, Port<'ivm>>,
+  pairs: Vec<[Option<Port<'ivm>>; 2]>,
+  vars: HashMap<&'ast str, Option<Port<'ivm>>>,
 }
 
 impl<'l, 'ast, 'ivm> Serializer<'l, 'ast, 'ivm> {
   fn serialize_net(&mut self, net: &'ast Net) {
     self.vars.clear();
 
-    if let Tree::Var(a) = &net.root {
-      self.vars.insert(a, Register::ROOT);
-    }
-    let root = self.serialize_tree(&net.root);
+    if let Tree::Var(v) = &net.root {
+      self.vars.insert(&**v, None);
+    } else {
+      let r = self.bar(&net.root);
+      self.pairs.push([None, r]);
+    };
+
     for (a, b) in net.pairs.iter() {
       self.serialize_pair(a, b);
     }
-    if !matches!(net.root, Tree::Var(_)) {
-      self.pairs.push(Instruction::Pair(x, Register::ROOT));
-    }
+    self.pairs.reverse();
   }
 
   fn serialize_pair(&mut self, a: &'ast Tree, b: &'ast Tree) {
-    let a = self.serialize_tree(a);
-    let b = self.serialize_tree(b);
-    self.pairs.push(Instruction::Pair(a, b));
+    let a = self.bar(a);
+    let b = self.bar(b);
+    self.pairs.push([a, b]);
   }
 
-  fn serialize_tree(&mut self, tree: &'ast Tree) -> Register {
-    if let Tree::Var(var) = tree {
-      *self.vars.entry(var).or_insert_with(|| self.current.instructions.new_register())
+  fn foo(&mut self, tree: &'ast Tree, idx: usize, p: usize) {
+    let port = unsafe {
+      Port::from_bits(Word::from_bits((Tag::Wire as u64) | (idx << 4) as u64 | (p << 3) as u64))
+    };
+    if let Tree::Var(v) = tree {
+      match self.vars.entry(v) {
+        Entry::Occupied(e) => {
+          if let Some(x) = e.remove() {
+            self.nodes[idx][p] = Some(x);
+          } else {
+            self.pairs.push([None, Some(port)]);
+          }
+        }
+        Entry::Vacant(e) => {
+          e.insert(Some(port));
+        }
+      }
     } else {
-      let r = self.current.instructions.new_register();
-      self.serialize_tree_to(tree, r);
-      r
+      self.nodes[idx][p] = Some(self.bar(tree).unwrap());
     }
   }
 
-  fn serialize_tree_to(&mut self, tree: &'ast Tree, to: Register) {
-    match tree {
-      Tree::Erase => self.push(Instruction::Nilary(to, Port::ERASE)),
-      Tree::N32(num) => {
-        self.push(Instruction::Nilary(to, Port::new_ext_val(ExtVal::new_n32(*num))))
-      }
-      Tree::F32(num) => {
-        self.push(Instruction::Nilary(to, Port::new_ext_val(ExtVal::new_f32(*num))))
-      }
+  fn new_node(&mut self) -> usize {
+    let i = self.nodes.len();
+    self.nodes.push([None, None]);
+    i
+  }
+
+  fn pri(tag: Tag, label: u16, idx: usize) -> Port<'ivm> {
+    unsafe {
+      Port::from_bits(Word::from_bits((tag as u64) | ((label as u64) << 48) | ((idx as u64) << 4)))
+    }
+  }
+
+  fn bar(&mut self, tree: &'ast Tree) -> Option<Port<'ivm>> {
+    Some(match tree {
+      Tree::Erase => Port::ERASE,
+      Tree::N32(num) => Port::new_ext_val(ExtVal::new_n32(*num)),
+      Tree::F32(num) => Port::new_ext_val(ExtVal::new_f32(*num)),
       Tree::Comb(label, a, b) => {
+        let node = self.new_node();
+        self.foo(a, node, 0);
+        self.foo(b, node, 1);
         let label = self.host.label_to_u16(label);
-        let a = self.serialize_tree(a);
-        let b = self.serialize_tree(b);
-        self.push(Instruction::Binary(Tag::Comb, label, to, a, b));
+        Self::pri(Tag::Comb, label, node)
       }
       Tree::ExtFn(f, a, b) => {
-        let a = self.serialize_tree(a);
-        let b = self.serialize_tree(b);
-        self.push(Instruction::Binary(Tag::ExtFn, f.bits(), to, a, b));
+        let node = self.new_node();
+        self.foo(a, node, 0);
+        self.foo(b, node, 1);
+        Self::pri(Tag::ExtFn, f.bits(), node)
       }
       Tree::Global(name) => {
         let global = self.host.get_raw(name).expect("undefined global");
         // Safety: upholds the requirements of `Tag::Global`, and preserves the interior
         // mutability.
-        let port = unsafe {
-          Port::new(Tag::Global, 0, Addr(global as *const UnsafeCell<Global> as *const ()))
-        };
-        self.push(Instruction::Nilary(to, port));
+        unsafe { Port::new(Tag::Global, 0, Addr(global as *const UnsafeCell<Global> as *const ())) }
       }
       Tree::Branch(z, p, o) => {
-        let a = self.current.instructions.new_register();
-        let z = self.serialize_tree(z);
-        let p = self.serialize_tree(p);
-        self.push(Instruction::Binary(Tag::Branch, 0, a, z, p));
-        let o = self.serialize_tree(o);
-        self.push(Instruction::Binary(Tag::Branch, 0, to, a, o));
+        let x = self.new_node();
+        self.foo(z, x, 0);
+        self.foo(p, x, 1);
+        let y = self.new_node();
+        self.nodes[y][0] = Some(Self::pri(Tag::Branch, 0, x));
+        self.foo(o, y, 1);
+        Self::pri(Tag::Branch, 0, y)
       }
-      Tree::Var(v) => {
-        let old = self.vars.insert(v, to);
-        debug_assert!(old.is_none());
-      }
-    }
+      Tree::Var(v) => self.vars.remove(&**v).unwrap()?,
+    })
   }
 }
 
@@ -203,11 +224,14 @@ impl<'ivm> Bicycle for PropagateLabels<'ivm> {
     // Safety: once we get to `PropagateLabels`, we are no longer mutating thw
     // `instructions`, only the `labels`, so it is safe to create an
     // `&Instructions` that's held for the entirety of this function.
-    let instructions = unsafe { (*cur.get()).instructions.instructions() };
+    let nodes = unsafe { &(*cur.get()).nodes };
+    let pairs = unsafe { &(*cur.get()).pairs };
 
-    for i in instructions {
-      match i {
-        Instruction::Nilary(_, p) if p.tag() == Tag::Global => {
+    let ports = [nodes, pairs].into_iter().flatten().flatten().flatten();
+
+    for p in ports {
+      match p.tag() {
+        Tag::Global => {
           let child = p.addr().0.cast::<Global>();
           if !ptr::addr_eq(child, cur) {
             if self.mutable.contains(&child.cast::<_>()) {
@@ -221,7 +245,7 @@ impl<'ivm> Bicycle for PropagateLabels<'ivm> {
             unsafe { (*cur.get()).labels.union(&(*child).labels) }
           }
         }
-        Instruction::Binary(Tag::Comb, label, ..) => unsafe { (*cur.get()).labels.add(*label) },
+        Tag::Comb => unsafe { (*cur.get()).labels.add(p.label()) },
         _ => {}
       }
     }

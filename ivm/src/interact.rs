@@ -99,8 +99,7 @@ impl<'ivm> IVM<'ivm> {
 
   fn expand(&mut self, g: Port<'ivm>, p: Port<'ivm>) {
     self.stats.expand += 1;
-    let g = self.instantiate(unsafe { g.as_global() });
-    self.link(g, p);
+    self.instantiate(p, unsafe { g.as_global() });
   }
 
   fn annihilate(&mut self, a: Port<'ivm>, b: Port<'ivm>) {

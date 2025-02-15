@@ -79,7 +79,7 @@ impl<'ivm> Port<'ivm> {
   /// ## Safety
   /// The bits of `word` must comply with the restrictions of a `Port`.
   #[inline(always)]
-  pub(crate) const unsafe fn from_bits(word: Word) -> Self {
+  pub const unsafe fn from_bits(word: Word) -> Self {
     Self(NonZeroWord::new_unchecked(word), PhantomData)
   }
 
