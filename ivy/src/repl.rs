@@ -52,7 +52,7 @@ impl<'host, 'ctx, 'ivm> Repl<'host, 'ctx, 'ivm> {
       match self.vars.entry(v) {
         Entry::Occupied(e) => {
           let p = e.shift_remove();
-          self.ivm.link_wire(to, p);
+          self.ivm.foo(to, p);
         }
         Entry::Vacant(e) => {
           e.insert(Port::new_wire(to));
@@ -60,7 +60,7 @@ impl<'host, 'ctx, 'ivm> Repl<'host, 'ctx, 'ivm> {
       }
     } else {
       let p = self.inject(tree);
-      self.ivm.link_wire(to, p);
+      self.ivm.foo(to, p);
     }
   }
 
@@ -86,7 +86,7 @@ impl<'host, 'ctx, 'ivm> Repl<'host, 'ctx, 'ivm> {
       Tree::Branch(z, p, o) => {
         let n = unsafe { self.ivm.new_node(Tag::Branch, 0) };
         let m = unsafe { self.ivm.new_node(Tag::Branch, 0) };
-        self.ivm.link_wire(n.1, m.0);
+        self.ivm.foo(n.1, m.0);
         self.inject_to(*z, m.1);
         self.inject_to(*p, m.2);
         self.inject_to(*o, n.2);

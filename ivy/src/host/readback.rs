@@ -7,41 +7,48 @@ use ivm::{
   wire::Wire,
   IVM,
 };
+use vine_util::idx::Counter;
 
 use crate::{ast::Tree, host::Host};
 
 impl<'ivm> Host<'ivm> {
   pub fn read(&self, ivm: &IVM<'ivm>, port: &Port<'ivm>) -> Tree {
-    Reader::new(ivm, self).read_port(port)
+    Reader::default().read(self, ivm, port)
   }
 }
 
-struct Reader<'ctx, 'ivm> {
-  ivm: &'ctx IVM<'ivm>,
+#[derive(Default)]
+pub struct Reader {
+  pub(crate) vars: HashMap<Addr, usize>,
+  var_ids: Counter<usize>,
+}
+
+impl Reader {
+  pub fn read<'ivm>(&mut self, host: &Host<'ivm>, ivm: &IVM<'ivm>, port: &Port<'ivm>) -> Tree {
+    ActiveReader { host, ivm, reader: self }.read_port(port)
+  }
+}
+
+struct ActiveReader<'ctx, 'ivm> {
   host: &'ctx Host<'ivm>,
-  vars: HashMap<Addr, usize>,
-  next_var: usize,
+  ivm: &'ctx IVM<'ivm>,
+  reader: &'ctx mut Reader,
 }
 
-impl<'ctx, 'ivm> Reader<'ctx, 'ivm> {
-  fn new(ivm: &'ctx IVM<'ivm>, host: &'ctx Host<'ivm>) -> Self {
-    Reader { ivm, host, vars: HashMap::new(), next_var: 0 }
-  }
-
+impl<'ctx, 'ivm> ActiveReader<'ctx, 'ivm> {
   fn read_port(&mut self, p: &Port<'ivm>) -> Tree {
     let p = self.ivm.follow_ref(p);
     match p.tag() {
       Tag::Wire => {
-        let n = match self.vars.entry(p.addr()) {
+        let id = match self.reader.vars.entry(p.addr()) {
           Entry::Occupied(e) => e.remove(),
           Entry::Vacant(e) => {
-            let n = self.next_var;
-            self.next_var += 1;
-            e.insert(n);
-            n
+            let id = self.reader.var_ids.next();
+            e.insert(id);
+            id
           }
         };
-        Tree::Var(format!("n{n}"))
+        Tree::Var(format!("n{id}"))
       }
       Tag::Global => Tree::Global(unsafe { p.as_global() }.name.clone()),
       Tag::Erase => Tree::Erase,

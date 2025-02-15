@@ -13,7 +13,7 @@ pub struct IVM<'ivm> {
   pub(crate) alloc: Allocator<'ivm>,
   pub(crate) alloc_pool: Vec<Allocator<'ivm>>,
 
-  pub(crate) active: Vec<(Port<'ivm>, Port<'ivm>)>,
+  pub active: Vec<(Port<'ivm>, Port<'ivm>)>,
 
   /// Used by [`IVM::execute`].
   pub(crate) mapping: Vec<Addr>,

@@ -1,0 +1,37 @@
+
+::std::IO::print_char { fn(ref(@io_print_char(char io) io) fn(char _)) }
+
+::main { ::hello_world::main }
+
+::hello_world::main {
+  fn(w1 _)
+  ::std::IO::println = fn(w1 fn(tup(3 tup(tup(72 tup(105 tup(33 w13))) w13)) _))
+}
+
+::std::IO::println {
+  fn(ref(w1 w12) fn(w3 _))
+  ::std::IO::print = fn(ref(w1 w7) fn(w3 _))
+  ::std::IO::print_char = fn(ref(w7 w12) fn(10 _))
+}
+
+::std::IO::print {
+  fn(ref(w1 w16) fn(w3 _))
+  tup(w7 tup(w8 _)) = w3
+  ::std::IO::print::1 = x(x(w1 w16) x(w7 w8))
+}
+
+::std::IO::print::1 {
+  x(w4 x(dup2179(w0 w6) w1))
+  w0 = ?(::std::IO::print::3 ::std::IO::print::2 x(w4 x(w6 w1)))
+}
+
+::std::IO::print::2 {
+  x(x(w17 w21) x(w15 w14))
+  w15 = @sub(1 w1)
+  tup(w4 w5) = w14
+  ::std::IO::print_char = fn(ref(w17 w10) fn(w4 _))
+  ::std::IO::print::1 = x(x(w10 w21) x(w1 w5))
+}
+
+::std::IO::print::3 { x(x(w3 w3) _) }
+

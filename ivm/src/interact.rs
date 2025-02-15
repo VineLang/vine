@@ -21,10 +21,12 @@ impl<'ivm> IVM<'ivm> {
       (Wire, _) => self.link_wire(unsafe { a.as_wire() }, b),
       (_, Wire) => self.link_wire(unsafe { b.as_wire() }, a),
       sym!(Global | Erase) | sym!(ExtVal | Erase) => self.stats.erase += 1,
-      sym!(Comb) | sym!(ExtFn) if a.label() == b.label() => self.active.push((a, b)),
-      sym!(Global, _) | sym!(Comb | ExtFn | Branch) => self.active.push((a, b)),
-      sym!(Erase, _) | sym!(ExtVal, _) => self.active.push((a, b)),
+      _ => self.active.push((a, b)),
     }
+  }
+
+  pub fn foo(&mut self, a: Wire<'ivm>, b: Port<'ivm>) {
+    self.active.push((Port::new_wire(a), b));
   }
 
   /// Link a wire and a port.
@@ -32,7 +34,7 @@ impl<'ivm> IVM<'ivm> {
     let b = self.follow(b);
     if let Some(s) = a.swap_target(Some(unsafe { b.clone() })) {
       self.free_wire(a);
-      self.link(s, b);
+      self.active.push((s, b));
     }
   }
 
@@ -72,7 +74,7 @@ impl<'ivm> IVM<'ivm> {
   }
 
   /// Execute an interaction between two principal ports.
-  pub(crate) fn interact(&mut self, a: Port<'ivm>, b: Port<'ivm>) {
+  pub fn interact(&mut self, a: Port<'ivm>, b: Port<'ivm>) {
     use Tag::*;
     match ((a.tag(), a), (b.tag(), b)) {
       sym!((Wire, w), (_, p)) => self.link_wire(unsafe { w.as_wire() }, p),
@@ -113,8 +115,8 @@ impl<'ivm> IVM<'ivm> {
   fn copy(&mut self, n: Port<'ivm>, b: Port<'ivm>) {
     self.stats.copy += 1;
     let (x, y) = unsafe { b.aux() };
-    self.link_wire(x, unsafe { n.clone() });
-    self.link_wire(y, n);
+    self.foo(x, unsafe { n.clone() });
+    self.foo(y, n);
   }
 
   fn commute(&mut self, a: Port<'ivm>, b: Port<'ivm>) {
@@ -132,10 +134,10 @@ impl<'ivm> IVM<'ivm> {
     self.link_wire_wire(a_2.1, b_1.2);
     self.link_wire_wire(a_2.2, b_2.2);
 
-    self.link_wire(a_0_1, b_1.0);
-    self.link_wire(a_0_2, b_2.0);
-    self.link_wire(b_0_1, a_1.0);
-    self.link_wire(b_0_2, a_2.0);
+    self.foo(a_0_1, b_1.0);
+    self.foo(a_0_2, b_2.0);
+    self.foo(b_0_1, a_1.0);
+    self.foo(b_0_2, a_2.0);
   }
 
   fn call(&mut self, f: Port<'ivm>, lhs: Port<'ivm>) {
@@ -146,13 +148,13 @@ impl<'ivm> IVM<'ivm> {
         self.stats.call += 1;
         self.free_wire(rhs_wire);
         let result = unsafe { ext_fn.call(lhs.as_ext_val(), rhs.as_ext_val()) };
-        self.link_wire(out, Port::new_ext_val(result));
+        self.foo(out, Port::new_ext_val(result));
         return;
       }
     }
     let new_fn = unsafe { self.new_node(Tag::ExtFn, ext_fn.swap().bits()) };
-    self.link_wire(rhs_wire, new_fn.0);
-    self.link_wire(new_fn.1, lhs);
+    self.foo(rhs_wire, new_fn.0);
+    self.foo(new_fn.1, lhs);
     self.link_wire_wire(new_fn.2, out);
   }
 
@@ -161,9 +163,9 @@ impl<'ivm> IVM<'ivm> {
     let val = unsafe { v.as_ext_val() }.as_n32();
     let (a, o) = unsafe { b.aux() };
     let (b, z, p) = unsafe { self.new_node(Tag::Branch, 0) };
-    self.link_wire(a, b);
+    self.foo(a, b);
     let (y, n) = if val == 0 { (z, p) } else { (p, z) };
-    self.link_wire(n, Port::ERASE);
+    self.foo(n, Port::ERASE);
     self.link_wire_wire(o, y);
   }
 }

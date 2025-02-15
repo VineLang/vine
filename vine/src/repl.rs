@@ -228,10 +228,10 @@ impl<'core, 'ctx, 'ivm> Repl<'core, 'ctx, 'ivm> {
       let var = self.vars.get_mut(var).unwrap();
       let n = unsafe { self.ivm.new_node(Tag::Comb, label) };
       let m = unsafe { self.ivm.new_node(Tag::Comb, label) };
-      self.ivm.link_wire(cur, n.0);
-      self.ivm.link_wire(n.1, m.0);
+      self.ivm.foo(cur, n.0);
+      self.ivm.foo(n.1, m.0);
       let value = replace(&mut var.value, Port::new_wire(m.2));
-      self.ivm.link_wire(m.1, value);
+      self.ivm.foo(m.1, value);
       cur = n.2;
     }
 
@@ -242,7 +242,7 @@ impl<'core, 'ctx, 'ivm> Repl<'core, 'ctx, 'ivm> {
 
     let tree = self.host.read(self.ivm, &PortRef::new_wire(&out));
     let output = (tree != Tree::Erase).then(|| self.show(&mut ty, &tree));
-    self.ivm.link_wire(out, Port::ERASE);
+    self.ivm.foo(out, Port::ERASE);
     self.ivm.normalize();
 
     Ok(output)

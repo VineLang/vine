@@ -7,7 +7,7 @@ use indexmap::{
 
 use ivm::global::Global;
 
-mod readback;
+pub mod readback;
 mod serialize;
 
 #[derive(Default)]
