@@ -19,10 +19,7 @@ use crate::{
 };
 
 mod control_flow;
-mod ext;
 mod pattern_matching;
-
-pub use ext::ExtFnKind;
 
 #[derive(Debug)]
 pub struct Distiller<'core, 'r> {
@@ -199,7 +196,7 @@ impl<'core, 'r> Distiller<'core, 'r> {
       ExprKind::Neg(value) => {
         let value = self.distill_expr_value(stage, value);
         let wire = stage.new_wire();
-        stage.steps.push(Step::ExtFn(ExtFnKind::sub, true, value, Port::N32(0), wire.0));
+        stage.steps.push(Step::ExtFn("sub", true, value, Port::N32(0), wire.0));
         wire.1
       }
       ExprKind::String(init, rest) => {
@@ -231,23 +228,20 @@ impl<'core, 'r> Distiller<'core, 'r> {
         let mut lhs = self.distill_expr_value(stage, init);
         for (i, (op, rhs)) in cmps.iter().enumerate() {
           let (ext_fn, swap) = match op {
-            ComparisonOp::Eq => (ExtFnKind::eq, false),
-            ComparisonOp::Ne => (ExtFnKind::ne, false),
-            ComparisonOp::Lt => (ExtFnKind::lt, false),
-            ComparisonOp::Gt => (ExtFnKind::lt, true),
-            ComparisonOp::Le => (ExtFnKind::le, false),
-            ComparisonOp::Ge => (ExtFnKind::le, true),
+            ComparisonOp::Eq => ("eq", false),
+            ComparisonOp::Ne => ("ne", false),
+            ComparisonOp::Lt => ("lt", false),
+            ComparisonOp::Gt => ("lt", true),
+            ComparisonOp::Le => ("le", false),
+            ComparisonOp::Ge => ("le", true),
           };
           let first = i == 0;
           let last = i == cmps.len() - 1;
           let rhs = self.distill_expr_value(stage, rhs);
           let (rhs, next_lhs) = if last { (rhs, Port::Erase) } else { stage.dup(rhs) };
           let result = stage.ext_fn(ext_fn, swap, lhs, rhs);
-          last_result = if first {
-            result
-          } else {
-            stage.ext_fn(ExtFnKind::n32_and, false, last_result, result)
-          };
+          last_result =
+            if first { result } else { stage.ext_fn("n32_and", false, last_result, result) };
           lhs = next_lhs;
         }
         last_result
@@ -474,16 +468,16 @@ impl<'core, 'r> Distiller<'core, 'r> {
         ));
         return;
       }
-      BinaryOp::BitOr => ExtFnKind::n32_or,
-      BinaryOp::BitXor => ExtFnKind::n32_xor,
-      BinaryOp::BitAnd => ExtFnKind::n32_and,
-      BinaryOp::Shl => ExtFnKind::n32_shl,
-      BinaryOp::Shr => ExtFnKind::n32_shr,
-      BinaryOp::Add => ExtFnKind::add,
-      BinaryOp::Sub => ExtFnKind::sub,
-      BinaryOp::Mul => ExtFnKind::mul,
-      BinaryOp::Div => ExtFnKind::div,
-      BinaryOp::Rem => ExtFnKind::rem,
+      BinaryOp::BitOr => "n32_or",
+      BinaryOp::BitXor => "n32_xor",
+      BinaryOp::BitAnd => "n32_and",
+      BinaryOp::Shl => "n32_shl",
+      BinaryOp::Shr => "n32_shr",
+      BinaryOp::Add => "add",
+      BinaryOp::Sub => "sub",
+      BinaryOp::Mul => "mul",
+      BinaryOp::Div => "div",
+      BinaryOp::Rem => "rem",
     };
     stage.steps.push(Step::ExtFn(ext_fn, false, lhs, rhs, out));
   }

@@ -10,7 +10,6 @@ use crate::{
   analyzer::{usage::Usage, UsageVar},
   ast::Local,
   chart::{AdtId, ValueDefId, VariantId},
-  distiller::ExtFnKind,
   specializer::RelId,
 };
 
@@ -112,7 +111,7 @@ pub enum Step {
   Tuple(Port, Vec<Port>),
   Adt(AdtId, VariantId, Port, Vec<Port>),
   Ref(Port, Port, Port),
-  ExtFn(ExtFnKind, bool, Port, Port, Port),
+  ExtFn(&'static str, bool, Port, Port, Port),
   Dup(Port, Port, Port),
   List(Port, Vec<Port>),
   String(Port, String, Vec<(Port, String)>),
@@ -259,7 +258,7 @@ impl Stage {
     (a.1, b.1)
   }
 
-  pub fn ext_fn(&mut self, ext_fn: ExtFnKind, swap: bool, lhs: Port, rhs: Port) -> Port {
+  pub fn ext_fn(&mut self, ext_fn: &'static str, swap: bool, lhs: Port, rhs: Port) -> Port {
     let out = self.new_wire();
     self.steps.push(Step::ExtFn(ext_fn, swap, lhs, rhs, out.0));
     out.1
