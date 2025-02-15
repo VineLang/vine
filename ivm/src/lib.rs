@@ -14,7 +14,6 @@ pub mod addr;
 pub mod ext;
 pub mod global;
 pub mod heap;
-pub mod instruction;
 pub mod port;
 pub mod stats;
 pub mod wire;

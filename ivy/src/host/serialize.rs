@@ -85,7 +85,7 @@ impl<'ivm> Host<'ivm> {
     let mut serializer = Serializer {
       host: self,
       current: Default::default(),
-      registers: Default::default(),
+      vars: Default::default(),
       pairs: Default::default(),
     };
 
@@ -106,31 +106,24 @@ impl<'ivm> Host<'ivm> {
 
 struct Serializer<'host, 'ast, 'ivm> {
   host: &'host mut Host<'ivm>,
-  current: Global<'ivm>,
-  registers: HashMap<&'ast str, Register>,
-  pairs: Vec<Instruction<'ivm>>,
+  nodes: Vec<[Option<Port<'ivm>>; 2]>,
+  pairs: Vec<[Port<'ivm>; 2]>,
+  vars: HashMap<&'ast str, Port<'ivm>>,
 }
 
 impl<'l, 'ast, 'ivm> Serializer<'l, 'ast, 'ivm> {
-  fn push(&mut self, instruction: Instruction<'ivm>) {
-    unsafe { self.current.instructions.push(instruction) }
-  }
-
   fn serialize_net(&mut self, net: &'ast Net) {
-    self.registers.clear();
+    self.vars.clear();
 
     if let Tree::Var(a) = &net.root {
-      self.registers.insert(a, Register::ROOT);
+      self.vars.insert(a, Register::ROOT);
     }
-    for (a, b) in net.pairs.iter().rev() {
+    let root = self.serialize_tree(&net.root);
+    for (a, b) in net.pairs.iter() {
       self.serialize_pair(a, b);
     }
     if !matches!(net.root, Tree::Var(_)) {
-      let x = self.serialize_tree(&net.root);
       self.pairs.push(Instruction::Pair(x, Register::ROOT));
-    }
-    for p in self.pairs.drain(..) {
-      unsafe { self.current.instructions.push(p) };
     }
   }
 
@@ -142,7 +135,7 @@ impl<'l, 'ast, 'ivm> Serializer<'l, 'ast, 'ivm> {
 
   fn serialize_tree(&mut self, tree: &'ast Tree) -> Register {
     if let Tree::Var(var) = tree {
-      *self.registers.entry(var).or_insert_with(|| self.current.instructions.new_register())
+      *self.vars.entry(var).or_insert_with(|| self.current.instructions.new_register())
     } else {
       let r = self.current.instructions.new_register();
       self.serialize_tree_to(tree, r);
@@ -188,7 +181,7 @@ impl<'l, 'ast, 'ivm> Serializer<'l, 'ast, 'ivm> {
         self.push(Instruction::Binary(Tag::Branch, 0, to, a, o));
       }
       Tree::Var(v) => {
-        let old = self.registers.insert(v, to);
+        let old = self.vars.insert(v, to);
         debug_assert!(old.is_none());
       }
     }

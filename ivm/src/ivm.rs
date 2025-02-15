@@ -1,7 +1,8 @@
 use std::time::Instant;
 
 use crate::{
-  allocator::Allocator, ext::ExtVal, global::Global, heap::Heap, port::Port, stats::Stats,
+  addr::Addr, allocator::Allocator, ext::ExtVal, global::Global, heap::Heap, port::Port,
+  stats::Stats,
 };
 
 /// An Interaction Virtual Machine.
@@ -15,7 +16,7 @@ pub struct IVM<'ivm> {
   pub(crate) active: Vec<(Port<'ivm>, Port<'ivm>)>,
 
   /// Used by [`IVM::execute`].
-  pub(crate) registers: Vec<Option<Port<'ivm>>>,
+  pub(crate) mapping: Vec<Addr>,
 }
 
 impl<'ivm> IVM<'ivm> {
@@ -28,9 +29,9 @@ impl<'ivm> IVM<'ivm> {
     Self {
       alloc,
       alloc_pool: Vec::new(),
-      registers: Vec::new(),
       active: Vec::new(),
       stats: Stats::default(),
+      mapping: Vec::new(),
     }
   }
 

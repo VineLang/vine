@@ -97,10 +97,10 @@ impl<'ivm> IVM<'ivm> {
   // require the ports they are passed to have certain tags. They are not marked
   // as `unsafe` to reduce noise, and as such must be kept private.
 
-  fn expand(&mut self, c: Port<'ivm>, p: Port<'ivm>) {
+  fn expand(&mut self, g: Port<'ivm>, p: Port<'ivm>) {
     self.stats.expand += 1;
-    let global = unsafe { c.as_global() };
-    self.execute(&global.instructions, p);
+    let g = self.instantiate(unsafe { g.as_global() });
+    self.link(g, p);
   }
 
   fn annihilate(&mut self, a: Port<'ivm>, b: Port<'ivm>) {

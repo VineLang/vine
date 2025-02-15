@@ -44,23 +44,23 @@ pub enum Tag {
   /// `&'ivm`[`Global`].
   Global = 2,
 
-  /// This port is the principal port of an eraser node. Its address and label
-  /// are both zero.
-  Erase = 3,
-
-  /// This port is a wrapper around an [`ExtVal`]. Its address and label are
-  /// semantically irrelevant; `ExtVal` uses all the non-tag bits
-  /// indiscriminantly.
-  ExtVal = 4,
-
   /// This port is the principal port of a binary combinator. Its address points
   /// to a node in the heap, and its label is the label of the combinator.
-  Comb = 5,
+  Comb = 3,
+
+  /// This port is the principal port of an eraser node. Its address and label
+  /// are both zero.
+  Erase = 4,
 
   /// This port is the principal port of a binary external function node. Its
   /// address points to a node in the heap, and its label is the [`ExtFn`] of
   /// this node.
-  ExtFn = 6,
+  ExtFn = 5,
+
+  /// This port is a wrapper around an [`ExtVal`]. Its address and label are
+  /// semantically irrelevant; `ExtVal` uses all the non-tag bits
+  /// indiscriminantly.
+  ExtVal = 6,
 
   /// This port is the principal port of a binary branch node. Its address
   /// points to a node in the heap, and its label is zero.
@@ -81,6 +81,10 @@ impl<'ivm> Port<'ivm> {
   #[inline(always)]
   pub(crate) const unsafe fn from_bits(word: Word) -> Self {
     Self(NonZeroWord::new_unchecked(word), PhantomData)
+  }
+
+  pub(crate) fn to_bits(&self) -> Word {
+    self.0.get()
   }
 
   /// Constructs a port from its bit representation, if its tag is valid.
