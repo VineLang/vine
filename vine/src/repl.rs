@@ -35,9 +35,9 @@ use crate::{
   visit::VisitMut,
 };
 
-pub struct Repl<'core, 'ctx, 'ext, 'ivm> {
+pub struct Repl<'core, 'ctx, 'ivm, 'ext> {
   host: &'ivm mut Host<'ivm>,
-  ivm: &'ctx mut IVM<'ext, 'ivm>,
+  ivm: &'ctx mut IVM<'ivm, 'ext>,
   core: &'core Core<'core>,
   compiler: Compiler<'core>,
   repl_mod: DefId,
@@ -56,10 +56,10 @@ struct Var<'ivm> {
   space: Port<'ivm>,
 }
 
-impl<'core, 'ctx, 'ext, 'ivm> Repl<'core, 'ctx, 'ext, 'ivm> {
+impl<'core, 'ctx, 'ivm, 'ext> Repl<'core, 'ctx, 'ivm, 'ext> {
   pub fn new(
     mut host: &'ivm mut Host<'ivm>,
-    ivm: &'ctx mut IVM<'ext, 'ivm>,
+    ivm: &'ctx mut IVM<'ivm, 'ext>,
     core: &'core Core<'core>,
     libs: Vec<PathBuf>,
   ) -> Result<Self, String> {
@@ -135,10 +135,10 @@ impl<'core, 'ctx, 'ext, 'ivm> Repl<'core, 'ctx, 'ext, 'ivm> {
       name: &mut name,
     })?;
 
-    struct ExecHooks<'core, 'ext, 'ivm, 'a> {
+    struct ExecHooks<'core, 'ivm, 'ext, 'a> {
       repl_mod: DefId,
       vars: &'a mut HashMap<Ident<'core>, Var<'ivm>>,
-      ivm: &'a mut IVM<'ext, 'ivm>,
+      ivm: &'a mut IVM<'ivm, 'ext>,
       locals: &'a mut BTreeMap<Local, Ident<'core>>,
       block: &'a mut Block<'core>,
       unifier: &'a mut Unifier<'core>,

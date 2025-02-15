@@ -6,203 +6,50 @@
 use core::{
   fmt::{self, Debug},
   marker::PhantomData,
-  ops::{Add, Div, Mul, Sub},
-};
-use std::{
-  collections::HashMap,
-  io::{self, Read, Write},
 };
 
 use crate::port::Tag;
 
-macro_rules! define_ext_fns {
-  ($map:ident,$self:ident, $($name:expr => |$a:ident, $b: ident| $body:expr ),*) => {
-    $($map.insert($name.to_string(), $self.register_ext_fn(move |[$a, $b]| [$body]).unwrap());)*
-  };
-}
 #[derive(Default)]
 pub struct Extrinsics<'ivm> {
   ext_fns: Vec<Box<dyn Fn(ExtVal<'ivm>, ExtVal<'ivm>) -> ExtVal<'ivm> + Sync + 'ivm>>,
-  // amount of registered light exttys
+  // amount of registered light (unboxed) ext types
   light_ext_ty: u16,
 
   n32_ext_ty: Option<ExtTy<'ivm>>,
-  io_ext_ty: Option<ExtTy<'ivm>>,
 
   phantom: PhantomData<fn(&'ivm ()) -> &'ivm ()>,
 }
 
 impl<'ivm> Extrinsics<'ivm> {
-  pub const MAX_EXT_FN_KIND_COUNT: usize = 0x8FFF;
-  pub const MAX_LIGHT_EXT_TY_COUNT: usize = 0x8FFF;
-  pub const MAX_RC_EX_TTY_COUNT: usize = 0x8FFF;
+  pub const MAX_EXT_FN_KIND_COUNT: usize = 0x7FFF;
+  pub const MAX_LIGHT_EXT_TY_COUNT: usize = 0x7FFF;
 
   pub fn register_ext_fn(
     &mut self,
     f: impl Fn([ExtVal<'ivm>; 2]) -> [ExtVal<'ivm>; 1] + Sync + 'ivm,
-  ) -> Option<ExtFn<'ivm>> {
+  ) -> ExtFn<'ivm> {
     if self.ext_fns.len() >= Self::MAX_EXT_FN_KIND_COUNT {
-      None
+      panic!("IVM reached maximum amount of registered extrinsic functions.");
     } else {
       let ext_fn = ExtFn(self.ext_fns.len() as u16, PhantomData);
       self.ext_fns.push(Box::new(move |a, b| f([a, b])[0]));
-      Some(ext_fn)
+      ext_fn
     }
   }
-  pub fn register_light_ext_ty(&mut self) -> Option<ExtTy<'ivm>> {
+  pub fn register_light_ext_ty(&mut self) -> ExtTy<'ivm> {
     if self.light_ext_ty as usize >= Self::MAX_LIGHT_EXT_TY_COUNT {
-      None
+      panic!("IVM reached maximum amount of registered extrinsic unboxed types.");
     } else {
       let ext_ty = ExtTy::from_id_and_rc(self.light_ext_ty, false);
       self.light_ext_ty += 1;
-      Some(ext_ty)
+      ext_ty
     }
   }
-  /// Some extrinsics are built-in with IVM
-  pub fn register_builtin_extrinsics(
-    &mut self,
-  ) -> (HashMap<String, ExtFn<'ivm>>, HashMap<String, ExtTy<'ivm>>) {
-    let mut ext_fn_map = HashMap::new();
-    let mut ext_ty_map = HashMap::new();
-    let n32_ext_ty = self.register_light_ext_ty().expect("reached maximum amount of extrinsics!");
-    let f32_ext_ty = self.register_light_ext_ty().expect("reached maximum amount of extrinsics!");
-    let io_ext_ty = self.register_light_ext_ty().expect("reached maximum amount of extrinsics!");
-    ext_ty_map.insert("N32".into(), n32_ext_ty);
-    ext_ty_map.insert("F32".into(), f32_ext_ty);
-    ext_ty_map.insert("IO".into(), io_ext_ty);
-    self.n32_ext_ty = Some(n32_ext_ty);
-    self.io_ext_ty = Some(io_ext_ty);
-    enum NumericType {
-      F32,
-      N32,
-    }
-    fn ty_to_numeric_type<'ivm>(
-      a: ExtVal<'ivm>,
-      n32_ext_ty: ExtTy<'ivm>,
-      f32_ext_ty: ExtTy<'ivm>,
-    ) -> Option<NumericType> {
-      if a.ty() == n32_ext_ty {
-        Some(NumericType::N32)
-      } else if a.ty() == f32_ext_ty {
-        Some(NumericType::F32)
-      } else {
-        None
-      }
-    }
-    fn numeric_op<'ivm>(
-      n32_ext_ty: ExtTy<'ivm>,
-      f32_ext_ty: ExtTy<'ivm>,
-      a: ExtVal<'ivm>,
-      b: ExtVal<'ivm>,
-      f_n32: fn(u32, u32) -> u32,
-      f_f32: fn(f32, f32) -> f32,
-    ) -> ExtVal<'ivm> {
-      match (
-        ty_to_numeric_type(a, n32_ext_ty, f32_ext_ty),
-        ty_to_numeric_type(b, n32_ext_ty, f32_ext_ty),
-      ) {
-        (Some(NumericType::N32), Some(NumericType::N32)) => {
-          ExtVal::new(n32_ext_ty, f_n32(a.as_ty(&n32_ext_ty), b.as_ty(&n32_ext_ty)))
-        }
-        (Some(NumericType::F32), Some(NumericType::F32)) => ExtVal::new(
-          f32_ext_ty,
-          f_f32(f32::from_bits(a.as_ty(&f32_ext_ty)), f32::from_bits(b.as_ty(&f32_ext_ty)))
-            .to_bits(),
-        ),
-        (Some(NumericType::N32), Some(NumericType::F32)) => ExtVal::new(
-          f32_ext_ty,
-          f_f32(a.as_ty(&n32_ext_ty) as f32, f32::from_bits(b.as_ty(&f32_ext_ty))).to_bits(),
-        ),
-        (Some(NumericType::F32), Some(NumericType::N32)) => ExtVal::new(
-          f32_ext_ty,
-          f_f32(f32::from_bits(a.as_ty(&f32_ext_ty)), b.as_ty(&n32_ext_ty) as f32).to_bits(),
-        ),
-        _ => unimplemented!(),
-      }
-    }
-
-    fn comparison<'ivm>(
-      n32_ext_ty: ExtTy<'ivm>,
-      f32_ext_ty: ExtTy<'ivm>,
-      a: ExtVal<'ivm>,
-      b: ExtVal<'ivm>,
-      f_u32: fn(u32, u32) -> bool,
-      f_f32: fn(f32, f32) -> bool,
-    ) -> ExtVal<'ivm> {
-      ExtVal::new(
-        n32_ext_ty,
-        u32::from(
-          match (
-            ty_to_numeric_type(a, n32_ext_ty, f32_ext_ty),
-            ty_to_numeric_type(b, n32_ext_ty, f32_ext_ty),
-          ) {
-            (Some(NumericType::N32), Some(NumericType::N32)) => {
-              f_u32(a.as_ty(&n32_ext_ty), b.as_ty(&n32_ext_ty))
-            }
-            (Some(NumericType::F32), Some(NumericType::F32)) => {
-              f_f32(f32::from_bits(a.as_ty(&f32_ext_ty)), f32::from_bits(b.as_ty(&f32_ext_ty)))
-            }
-            (Some(NumericType::N32), Some(NumericType::F32)) => {
-              f_f32(a.as_ty(&n32_ext_ty) as f32, f32::from_bits(b.as_ty(&f32_ext_ty)))
-            }
-            (Some(NumericType::F32), Some(NumericType::N32)) => {
-              f_f32(f32::from_bits(a.as_ty(&f32_ext_ty)), b.as_ty(&n32_ext_ty) as f32)
-            }
-            _ => unimplemented!(),
-          },
-        ),
-      )
-    }
-    define_ext_fns!(ext_fn_map, self,
-      "seq" => |a, _b| a,
-
-      "add" => |a, b| numeric_op(n32_ext_ty, f32_ext_ty, a, b, u32::wrapping_add, f32::add),
-      "sub" => |a, b| numeric_op(n32_ext_ty, f32_ext_ty, a, b, u32::wrapping_sub, f32::sub),
-      "mul" => |a, b| numeric_op(n32_ext_ty, f32_ext_ty, a, b, u32::wrapping_mul, f32::mul),
-      "div" => |a, b| numeric_op(n32_ext_ty, f32_ext_ty, a, b, u32::wrapping_div, f32::div),
-      "rem" => |a, b| numeric_op(n32_ext_ty, f32_ext_ty, a, b, u32::wrapping_rem, f32::rem_euclid),
-
-      "eq" => |a, b| comparison(n32_ext_ty, f32_ext_ty, a, b, |a, b| a == b, |a, b| a == b),
-      "ne" => |a, b| comparison(n32_ext_ty, f32_ext_ty, a, b, |a, b| a != b, |a, b| a != b),
-      "lt" => |a, b| comparison(n32_ext_ty, f32_ext_ty, a, b, |a, b| a < b, |a, b| a < b),
-      "le" => |a, b| comparison(n32_ext_ty, f32_ext_ty, a, b, |a, b| a <= b, |a, b| a <= b),
-
-      "n32_shl" => |a, b| ExtVal::new(n32_ext_ty, a.as_ty(&n32_ext_ty).wrapping_shl(b.as_ty(&n32_ext_ty))),
-      "n32_shr" => |a, b| ExtVal::new(n32_ext_ty, a.as_ty(&n32_ext_ty).wrapping_shr(b.as_ty(&n32_ext_ty))),
-      "n32_rotl" => |a, b| ExtVal::new(n32_ext_ty, a.as_ty(&n32_ext_ty).rotate_left(b.as_ty(&n32_ext_ty))),
-      "n32_rotr" => |a, b| ExtVal::new(n32_ext_ty, a.as_ty(&n32_ext_ty).rotate_right(b.as_ty(&n32_ext_ty))),
-
-      "n32_and" => |a, b| ExtVal::new(n32_ext_ty, a.as_ty(&n32_ext_ty) & b.as_ty(&n32_ext_ty)),
-      "n32_or" => |a, b| ExtVal::new(n32_ext_ty, a.as_ty(&n32_ext_ty) | b.as_ty(&n32_ext_ty)),
-      "n32_xor" => |a, b| ExtVal::new(n32_ext_ty, a.as_ty(&n32_ext_ty) ^ b.as_ty(&n32_ext_ty)),
-
-      "n32_add_high" => |a, b| ExtVal::new(n32_ext_ty, (((a.as_ty(&n32_ext_ty) as u64) + (b.as_ty(&n32_ext_ty) as u64)) >> 32) as u32),
-      "n32_mul_high" => |a, b| ExtVal::new(n32_ext_ty, (((a.as_ty(&n32_ext_ty) as u64) * (b.as_ty(&n32_ext_ty) as u64)) >> 32) as u32),
-
-      "io_print_char" => |a, b| {
-        a.as_ty(&io_ext_ty);
-        print!("{}", char::try_from(b.as_ty(&n32_ext_ty)).unwrap());
-        ExtVal::new(io_ext_ty, 0)
-      },
-      "io_print_byte" => |a, b| {
-        a.as_ty(&io_ext_ty);
-        io::stdout().write_all(&[b.as_ty(&n32_ext_ty) as u8]).unwrap();
-        ExtVal::new(io_ext_ty, 0)
-      },
-      "io_flush" => |a, _b| {
-        a.as_ty(&io_ext_ty);
-        io::stdout().flush().unwrap();
-        ExtVal::new(io_ext_ty, 0)
-      },
-      "io_read_byte" => |a, b| {
-        a.as_ty(&io_ext_ty);
-        let default = b.as_ty(&n32_ext_ty) as u8;
-        let mut buf = [default];
-        _ = io::stdin().read(&mut buf).unwrap();
-        ExtVal::new(n32_ext_ty, buf[0] as u32)
-      }
-    );
-    (ext_fn_map, ext_ty_map)
+  pub fn register_n32_ext_ty(&mut self) -> ExtTy<'ivm> {
+    let n32_ext_ty = self.register_light_ext_ty();
+    assert!(self.n32_ext_ty.replace(n32_ext_ty).is_none());
+    n32_ext_ty
   }
   pub fn call(
     &self,

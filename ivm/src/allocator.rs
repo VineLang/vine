@@ -36,7 +36,7 @@ impl<'ivm> Allocator<'ivm> {
   }
 }
 
-impl<'ext, 'ivm> IVM<'ext, 'ivm> {
+impl<'ivm, 'ext> IVM<'ivm, 'ext> {
   /// Allocates a new binary node with a given `tag` and `label`.
   ///
   /// ## Safety

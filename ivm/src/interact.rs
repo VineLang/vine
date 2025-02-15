@@ -13,7 +13,7 @@ macro_rules! sym {
   };
 }
 
-impl<'ext, 'ivm> IVM<'ext, 'ivm> {
+impl<'ivm, 'ext> IVM<'ivm, 'ext> {
   /// Link two ports.
   pub fn link(&mut self, a: Port<'ivm>, b: Port<'ivm>) {
     use Tag::*;

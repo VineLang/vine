@@ -7,7 +7,7 @@ use std::{
 
 use crate::{ivm::IVM, port::Port};
 
-impl<'ext, 'ivm> IVM<'ext, 'ivm> {
+impl<'ivm, 'ext> IVM<'ivm, 'ext> {
   pub fn normalize_parallel(&mut self, threads: usize) {
     self.do_fast();
 
@@ -54,8 +54,8 @@ struct Msg<'ivm> {
 
 #[derive(Default)]
 #[repr(align(256))]
-struct Shared<'ext, 'ivm> {
-  ivm_return: OnceLock<IVM<'ext, 'ivm>>,
+struct Shared<'ivm, 'ext> {
+  ivm_return: OnceLock<IVM<'ivm, 'ext>>,
   msg: Mutex<Msg<'ivm>>,
   condvar: Condvar,
 }
@@ -72,15 +72,15 @@ enum MsgKind {
   Exit,
 }
 
-struct Worker<'w, 'ext, 'ivm> {
-  ivm: IVM<'ext, 'ivm>,
-  shared: &'w Shared<'ext, 'ivm>,
+struct Worker<'w, 'ivm, 'ext> {
+  ivm: IVM<'ivm, 'ext>,
+  shared: &'w Shared<'ivm, 'ext>,
   dispatch: Thread,
 }
 
 const ERA_LENGTH: u32 = 512;
 
-impl<'w, 'ext, 'ivm> Worker<'w, 'ext, 'ivm> {
+impl<'w, 'ivm, 'ext> Worker<'w, 'ivm, 'ext> {
   fn execute(mut self) {
     self.work();
     self.shared.ivm_return.set(self.ivm).ok().unwrap();
@@ -142,16 +142,16 @@ impl<'w, 'ext, 'ivm> Worker<'w, 'ext, 'ivm> {
   }
 }
 
-struct WorkerHandle<'w, 'ext, 'ivm> {
-  shared: &'w Shared<'ext, 'ivm>,
+struct WorkerHandle<'w, 'ivm, 'ext> {
+  shared: &'w Shared<'ivm, 'ext>,
 }
 
-struct Dispatch<'w, 'ext, 'ivm> {
-  active: Vec<WorkerHandle<'w, 'ext, 'ivm>>,
-  idle: Vec<WorkerHandle<'w, 'ext, 'ivm>>,
+struct Dispatch<'w, 'ivm, 'ext> {
+  active: Vec<WorkerHandle<'w, 'ivm, 'ext>>,
+  idle: Vec<WorkerHandle<'w, 'ivm, 'ext>>,
 }
 
-impl<'w, 'ext, 'ivm> Dispatch<'w, 'ext, 'ivm> {
+impl<'w, 'ivm, 'ext> Dispatch<'w, 'ivm, 'ext> {
   fn execute(mut self) {
     loop {
       let mut i = 0;

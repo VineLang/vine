@@ -20,3 +20,7 @@ workspace = true
 [features]
 vine = ["dep:vine", "dep:vine-lsp"]
 default = ["vine"]
+
+[[bin]]
+name = "vine"
+required-features = ["vine"]

@@ -10,20 +10,20 @@ use ivm::{
 use crate::{ast::Tree, host::Host};
 
 impl<'ivm> Host<'ivm> {
-  pub fn read<'ext>(&self, ivm: &IVM<'ext, 'ivm>, port: &Port<'ivm>) -> Tree {
+  pub fn read<'ext>(&self, ivm: &IVM<'ivm, 'ext>, port: &Port<'ivm>) -> Tree {
     Reader::new(ivm, self).read_port(port)
   }
 }
 
-struct Reader<'ctx, 'ext, 'ivm> {
-  ivm: &'ctx IVM<'ext, 'ivm>,
+struct Reader<'ctx, 'ivm, 'ext> {
+  ivm: &'ctx IVM<'ivm, 'ext>,
   host: &'ctx Host<'ivm>,
   vars: HashMap<Addr, usize>,
   next_var: usize,
 }
 
-impl<'ctx, 'ext, 'ivm> Reader<'ctx, 'ext, 'ivm> {
-  fn new(ivm: &'ctx IVM<'ext, 'ivm>, host: &'ctx Host<'ivm>) -> Self {
+impl<'ctx, 'ivm, 'ext> Reader<'ctx, 'ivm, 'ext> {
+  fn new(ivm: &'ctx IVM<'ivm, 'ext>, host: &'ctx Host<'ivm>) -> Self {
     Reader { ivm, host, vars: HashMap::new(), next_var: 0 }
   }
 

@@ -10,7 +10,7 @@ use crate::{
 };
 
 /// An Interaction Virtual Machine.
-pub struct IVM<'ext, 'ivm> {
+pub struct IVM<'ivm, 'ext> {
   /// Execution statistics of this IVM.
   pub stats: Stats,
 
@@ -30,7 +30,7 @@ pub struct IVM<'ext, 'ivm> {
   pub(crate) extrinsics: &'ext Extrinsics<'ivm>,
 }
 
-impl<'ivm, 'ext> IVM<'ext, 'ivm> {
+impl<'ivm, 'ext> IVM<'ivm, 'ext> {
   /// Creates a new IVM with a given heap.
   pub fn new(heap: &'ivm Heap, extrinsics: &'ext Extrinsics<'ivm>) -> Self {
     Self::new_from_allocator(Allocator::new(heap), extrinsics)

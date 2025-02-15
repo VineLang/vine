@@ -6,10 +6,11 @@ use indexmap::{
 };
 
 use ivm::{
-  ext::{ExtFn, ExtTy, ExtVal, Extrinsics},
+  ext::{ExtFn, ExtTy, ExtVal},
   global::Global,
 };
 
+mod ext;
 mod readback;
 mod serialize;
 
@@ -37,17 +38,6 @@ pub struct Host<'ivm> {
 }
 
 impl<'ivm> Host<'ivm> {
-  pub fn register_default_extrinsics(&mut self, extrinsics: &mut Extrinsics<'ivm>) {
-    let (fns, tys) = extrinsics.register_builtin_extrinsics();
-    for (k, v) in tys {
-      self.ext_tys.insert(k.clone(), v);
-      self.reverse_ext_tys.insert(v, k);
-    }
-    for (k, v) in fns {
-      self.ext_fns.insert(k.clone(), v);
-      self.reverse_ext_fns.insert(v, k);
-    }
-  }
   pub fn get(&self, name: &str) -> Option<&'ivm Global<'ivm>> {
     Some(unsafe { &**self.globals.get(name)? })
   }
