@@ -39,13 +39,7 @@
 //! one of the globals we're currently creating, rather than the usual
 //! `&Global`.
 
-use std::{
-  cell::UnsafeCell,
-  collections::{BTreeMap, HashMap},
-  mem::take,
-  ops::Range,
-  ptr,
-};
+use std::{cell::UnsafeCell, collections::HashMap, mem::take, ops::Range, ptr};
 
 use ivm::{
   addr::Addr,
@@ -91,8 +85,8 @@ impl<'ivm> Host<'ivm> {
     let mut serializer = Serializer {
       host: self,
       current: Default::default(),
-      equivalences: Default::default(),
       registers: Default::default(),
+      pairs: Default::default(),
     };
 
     for (i, net) in nets.values().enumerate() {
@@ -113,8 +107,8 @@ impl<'ivm> Host<'ivm> {
 struct Serializer<'host, 'ast, 'ivm> {
   host: &'host mut Host<'ivm>,
   current: Global<'ivm>,
-  equivalences: BTreeMap<&'ast str, &'ast str>,
   registers: HashMap<&'ast str, Register>,
+  pairs: Vec<Instruction<'ivm>>,
 }
 
 impl<'l, 'ast, 'ivm> Serializer<'l, 'ast, 'ivm> {
@@ -123,47 +117,27 @@ impl<'l, 'ast, 'ivm> Serializer<'l, 'ast, 'ivm> {
   }
 
   fn serialize_net(&mut self, net: &'ast Net) {
-    self.equivalences.clear();
     self.registers.clear();
-
-    for (a, b) in &net.pairs {
-      let (Tree::Var(a), Tree::Var(b)) = (a, b) else { continue };
-      let a = self.equivalences.remove(&**a).unwrap_or(a);
-      let b = self.equivalences.remove(&**b).unwrap_or(b);
-      self.equivalences.insert(a, b);
-      self.equivalences.insert(b, a);
-    }
-
-    for (a, b) in &self.equivalences {
-      if a < b {
-        let r = self.current.instructions.new_register();
-        self.registers.insert(a, r);
-        self.registers.insert(b, r);
-      }
-    }
 
     if let Tree::Var(a) = &net.root {
       self.registers.insert(a, Register::ROOT);
-      if let Some(b) = self.equivalences.get(&**a) {
-        self.registers.insert(b, Register::ROOT);
-      }
     }
     for (a, b) in net.pairs.iter().rev() {
       self.serialize_pair(a, b);
     }
     if !matches!(net.root, Tree::Var(_)) {
-      self.serialize_tree_to(&net.root, Register::ROOT);
+      let x = self.serialize_tree(&net.root);
+      self.pairs.push(Instruction::Pair(x, Register::ROOT));
+    }
+    for p in self.pairs.drain(..) {
+      unsafe { self.current.instructions.push(p) };
     }
   }
 
   fn serialize_pair(&mut self, a: &'ast Tree, b: &'ast Tree) {
-    let (a, b) = match (a, b) {
-      (Tree::Var(_), Tree::Var(_)) => return,
-      (a, b @ Tree::Var(_)) => (b, a),
-      (a, b) => (a, b),
-    };
-    let to = self.serialize_tree(a);
-    self.serialize_tree_to(b, to);
+    let a = self.serialize_tree(a);
+    let b = self.serialize_tree(b);
+    self.pairs.push(Instruction::Pair(a, b));
   }
 
   fn serialize_tree(&mut self, tree: &'ast Tree) -> Register {

@@ -66,6 +66,8 @@ pub enum Instruction<'ivm> {
   /// be that of a binary node, and its label must comply with the tag's
   /// requirements.
   Binary(Tag, u16, Register, Register, Register),
+
+  Pair(Register, Register),
 }
 
 /// A "register" of an [`Instruction`], used to identify pairs of ports to link.
@@ -123,6 +125,13 @@ impl<'ivm> IVM<'ivm> {
     }
   }
 
+  #[inline]
+  unsafe fn take_register(&mut self, register: Register) -> Port<'ivm> {
+    let register = &mut *(&mut *self.registers as *mut [_] as *mut Option<Port<'ivm>>)
+      .byte_offset(register.byte_offset as isize);
+    unsafe { register.take().unwrap_unchecked() }
+  }
+
   /// Execute [`Instructions`], linking the net's root to `port`.
   pub fn execute(&mut self, instructions: &Instructions<'ivm>, port: Port<'ivm>) {
     let needed_registers = instructions.next_register.index().max(1);
@@ -141,6 +150,10 @@ impl<'ivm> IVM<'ivm> {
             self.link_register(p0, node.0);
             self.link_register(p1, Port::new_wire(node.1));
             self.link_register(p2, Port::new_wire(node.2));
+          }
+          Instruction::Pair(a, b) => {
+            let pair = (self.take_register(a), self.take_register(b));
+            self.active.push(pair);
           }
         }
       }

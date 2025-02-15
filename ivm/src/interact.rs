@@ -75,7 +75,8 @@ impl<'ivm> IVM<'ivm> {
   pub(crate) fn interact(&mut self, a: Port<'ivm>, b: Port<'ivm>) {
     use Tag::*;
     match ((a.tag(), a), (b.tag(), b)) {
-      sym!((Wire, _), _) | sym!((Erase | ExtVal, _)) => unreachable!(),
+      sym!((Wire, w), (_, p)) => self.link_wire(unsafe { w.as_wire() }, p),
+      sym!((Erase | ExtVal, _)) => self.stats.erase += 1,
       sym!((Global, c), (Comb, d)) if !unsafe { c.as_global() }.labels.has(d.label()) => {
         self.copy(c, d)
       }
