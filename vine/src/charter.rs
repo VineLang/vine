@@ -401,8 +401,13 @@ impl<'core> Charter<'core, '_> {
     use_tree: UseTree<'core>,
   ) {
     let span = use_tree.span;
-    let import =
-      self.chart.imports.push(Import { span, def: def_id, parent, ident, resolved: None });
+    let import = self.chart.imports.push(Import {
+      span,
+      def: def_id,
+      parent,
+      ident,
+      state: ImportState::Unresolved,
+    });
     let def = &mut self.chart.defs[def_id];
     for name in use_tree.aliases {
       if let Entry::Vacant(e) = def.members.entry(name) {

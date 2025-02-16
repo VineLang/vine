@@ -30,6 +30,8 @@ mod p {
   };
 }
 
+use visibility::circular;
+
 // good
 mod q {
   const x: fn() = lib::d;

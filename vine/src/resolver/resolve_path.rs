@@ -1,6 +1,6 @@
 use crate::{
   ast::{Ident, Path, Span},
-  chart::{Def, DefId, Import, ImportId, ImportParent, MemberKind},
+  chart::{Def, DefId, Import, ImportId, ImportParent, ImportState, MemberKind},
   diag::{Diag, ErrorGuaranteed},
 };
 
@@ -111,13 +111,17 @@ impl<'core> Resolver<'core, '_> {
 
   pub(super) fn resolve_import(&mut self, import_id: ImportId) -> Result<DefId, ErrorGuaranteed> {
     let import = &mut self.chart.imports[import_id];
-    if let Some(resolved) = import.resolved {
-      return resolved;
+    match import.state {
+      ImportState::Resolved(resolved) => resolved,
+      ImportState::Resolving => Err(self.core.report(Diag::CircularImport { span: import.span })),
+      ImportState::Unresolved => {
+        import.state = ImportState::Resolving;
+        let import = *import;
+        let resolved = self._resolve_import(import);
+        self.chart.imports[import_id].state = ImportState::Resolved(resolved);
+        resolved
+      }
     }
-    let import = *import;
-    let resolved = self._resolve_import(import);
-    self.chart.imports[import_id].resolved = Some(resolved);
-    resolved
   }
 
   fn _resolve_import(&mut self, import: Import<'core>) -> Result<DefId, ErrorGuaranteed> {

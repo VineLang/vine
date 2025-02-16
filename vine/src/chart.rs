@@ -99,7 +99,7 @@ pub struct Import<'core> {
   pub def: DefId,
   pub parent: ImportParent,
   pub ident: Ident<'core>,
-  pub resolved: Option<Result<DefId, ErrorGuaranteed>>,
+  pub state: ImportState,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -107,6 +107,13 @@ pub enum ImportParent {
   Root,
   Scope,
   Import(ImportId),
+}
+
+#[derive(Debug, Clone, Copy)]
+pub enum ImportState {
+  Unresolved,
+  Resolved(Result<DefId, ErrorGuaranteed>),
+  Resolving,
 }
 
 #[derive(Debug)]
@@ -347,5 +354,15 @@ impl<'core> TypeDefKind<'core> {
 impl<'core> Chart<'core> {
   pub fn visible(&self, vis: DefId, from: DefId) -> bool {
     vis == from || vis < from && self.defs[from].ancestors.binary_search(&vis).is_ok()
+  }
+}
+
+impl<'core> Import<'core> {
+  pub fn resolved(&self) -> Option<DefId> {
+    if let ImportState::Resolved(Ok(def_id)) = self.state {
+      Some(def_id)
+    } else {
+      None
+    }
   }
 }
