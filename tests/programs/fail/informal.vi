@@ -1,8 +1,5 @@
 
-enum IO {
-  I,
-  O,
-}
+enum IO { I, O }
 
 pub fn main(*io) {
   1 + 1 = 2;

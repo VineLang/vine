@@ -1,21 +1,12 @@
 
 mod lib {
-  fn a() {
-    fn b() {}
-  }
-  pub mod a {
-    pub fn c() {}
-  }
+  fn a() { fn b() {} }
+  pub mod a { pub fn c() {} }
   use a::c;
 
   pub fn d() {}
-  mod d {
-    pub fn e() {}
-  }
-  pub mod d {
-    pub fn f() {}
-    pub fn g() {}
-  }
+  mod d { pub fn e() {} }
+  pub mod d { pub fn f() {} pub fn g() {} }
   pub use d::{e, f};
 
   struct x();
@@ -32,11 +23,21 @@ fn main(&io: &IO) {
 }
 
 mod p {
-  pub(main) use lib::{a::b, c, d::e};
+  pub(main) use lib::{
+    a::b,
+    c,
+    d::e,
+  };
 }
 
 // good
 mod q {
   const x: fn() = lib::d;
-  pub(visibility) use lib::{a::c, d::{d, g}, e, f};
+  pub(visibility) use lib::{
+    a::c,
+    d,
+    e,
+    f,
+    d::g,
+  };
 }

@@ -1,5 +1,9 @@
 
-use std::io::{print_ln, println::{println, println}};
+use std::io::{
+  println,
+  println,
+  print_ln,
+};
 
 pub fn main(std::io) {
   io.println(hallo, world)
