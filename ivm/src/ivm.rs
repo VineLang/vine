@@ -51,7 +51,8 @@ impl<'ivm, 'ext> IVM<'ivm, 'ext> {
     }
   }
 
-  /// Boots this IVM from the `main` global, connecting it to an IO handle.
+  /// Boots this IVM from the `main` global, connecting it to `root` (usually an
+  /// IO handle).
   ///
   /// This does not start any processing; [`IVM::normalize`] must be called to
   /// do that.

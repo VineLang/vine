@@ -116,12 +116,12 @@ impl<'src> IvyParser<'src> {
     if self.eat(Token::At)? {
       let name = self.expect(Token::Ident)?;
       let ext_fn = name.to_string();
-      let flipped = self.eat(Token::Dollar)?;
+      let swapped = self.eat(Token::Dollar)?;
       self.expect(Token::OpenParen)?;
       let a = self.parse_tree()?;
       let b = self.parse_tree()?;
       self.expect(Token::CloseParen)?;
-      return Ok(Tree::ExtFn(ext_fn, flipped, Box::new(a), Box::new(b)));
+      return Ok(Tree::ExtFn(ext_fn, swapped, Box::new(a), Box::new(b)));
     }
 
     if self.eat(Token::Question)? {

@@ -65,9 +65,8 @@ impl<'ctx, 'ivm, 'ext> Reader<'ctx, 'ivm, 'ext> {
       }
       Tag::ExtFn => {
         let mut f = unsafe { p.as_ext_fn() };
-        let mut swapped = false;
-        if f.is_swapped() {
-          swapped = true;
+        let swapped = f.is_swapped();
+        if swapped {
           f = f.swap();
         }
         let f_name = self.host.reverse_ext_fns.get(&f).unwrap();

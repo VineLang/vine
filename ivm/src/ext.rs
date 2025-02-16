@@ -13,7 +13,8 @@ use crate::port::Tag;
 #[derive(Default)]
 pub struct Extrinsics<'ivm> {
   ext_fns: Vec<Box<dyn Fn(ExtVal<'ivm>, ExtVal<'ivm>) -> ExtVal<'ivm> + Sync + 'ivm>>,
-  // amount of registered light (unboxed) ext types
+
+  /// Number of registered light (unboxed) ext types
   light_ext_ty: u16,
 
   n32_ext_ty: Option<ExtTy<'ivm>>,
@@ -37,6 +38,7 @@ impl<'ivm> Extrinsics<'ivm> {
       ext_fn
     }
   }
+
   pub fn register_light_ext_ty(&mut self) -> ExtTy<'ivm> {
     if self.light_ext_ty as usize >= Self::MAX_LIGHT_EXT_TY_COUNT {
       panic!("IVM reached maximum amount of registered extrinsic unboxed types.");
@@ -46,11 +48,13 @@ impl<'ivm> Extrinsics<'ivm> {
       ext_ty
     }
   }
+
   pub fn register_n32_ext_ty(&mut self) -> ExtTy<'ivm> {
     let n32_ext_ty = self.register_light_ext_ty();
     assert!(self.n32_ext_ty.replace(n32_ext_ty).is_none());
     n32_ext_ty
   }
+
   pub fn call(
     &self,
     ext_fn: ExtFn<'ivm>,
@@ -136,6 +140,7 @@ impl<'ivm> ExtTy<'ivm> {
   fn from_id_and_rc(n: u16, rc: bool) -> Self {
     Self(n | if rc { 0x8000 } else { 0 }, PhantomData)
   }
+
   const fn id(self) -> u16 {
     self.0
   }
