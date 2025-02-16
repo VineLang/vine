@@ -1,0 +1,65 @@
+
+::std::IO::print_char {
+  v0
+  v0 = fn(ref(@io_print_char(v1 v2) v2) fn(v1 _))
+}
+
+::main {
+  v0
+  v0 = ::hello_world::main
+}
+
+::hello_world::main {
+  v0
+  v0 = fn(v1 _)
+  v1 = ref(v2 v3)
+  v2 = @io_print_char(v4 v5)
+  v4 = 104
+  v5 = @io_print_char(v6 v7)
+  v6 = 105
+  v7 = @io_print_char(v8 v9)
+  v3 = v9
+  v8 = 10
+}
+
+::std::IO::println {
+  v0
+  v0 = fn(ref(v1 v2) fn(v3 _))
+  v3 = tup(v4 tup(v5 _))
+  v4 = dup2179(v6 v7)
+  v6 = ?(::std::IO::print::3 ::std::IO::print::2 x(x(v1 v8) x(v7 v5)))
+  v8 = @io_print_char(v9 v10)
+  v2 = v10
+  v9 = 10
+}
+
+::std::IO::print {
+  v0
+  v0 = fn(ref(v1 v2) fn(v3 _))
+  v3 = tup(v4 tup(v5 _))
+  v4 = dup2179(v6 v7)
+  v6 = ?(::std::IO::print::3 ::std::IO::print::2 x(x(v1 v2) x(v7 v5)))
+}
+
+::std::IO::print::1 {
+  v0
+  v0 = x(v1 x(dup2179(v2 v3) v4))
+  v2 = ?(::std::IO::print::3 ::std::IO::print::2 x(v1 x(v3 v4)))
+}
+
+::std::IO::print::2 {
+  v0
+  v0 = x(x(v1 v2) x(v3 v4))
+  v3 = @sub(1 v5)
+  v4 = tup(v6 v7)
+  v1 = @io_print_char(v8 v9)
+  v6 = v8
+  v5 = dup2179(v10 v11)
+  v10 = ?(::std::IO::print::3 ::std::IO::print::2 x(x(v9 v2) x(v11 v7)))
+}
+
+::std::IO::print::3 {
+  v0
+  v0 = x(x(v1 v1) _)
+}
+

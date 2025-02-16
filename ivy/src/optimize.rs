@@ -3,10 +3,12 @@ use crate::ast::Nets;
 mod eta_reduce;
 mod inline_globals;
 mod inline_vars;
+mod pre_reduce;
 mod prune;
 
 use inline_globals::inline_globals;
 use inline_vars::InlineVars;
+use pre_reduce::pre_reduce;
 use prune::prune;
 
 #[derive(Default)]
@@ -33,5 +35,6 @@ impl Optimizer {
       }
     }
     prune(nets);
+    pre_reduce(nets);
   }
 }
