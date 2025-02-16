@@ -1,4 +1,4 @@
-use crate::ast::Nets;
+use crate::{ast::Nets, host::Host};
 
 mod eta_reduce;
 mod inline_globals;
@@ -7,6 +7,7 @@ mod prune;
 
 use inline_globals::inline_globals;
 use inline_vars::InlineVars;
+use ivm::{heap::Heap, port::Port, IVM};
 use prune::prune;
 
 #[derive(Default)]
@@ -33,5 +34,21 @@ impl Optimizer {
       }
     }
     prune(nets);
+
+    let heap = &Heap::new();
+    let mut host = &mut Host::default();
+    host.insert_nets(nets);
+
+    for (name, net) in nets.iter_mut() {
+      if name.ends_with("::main") {
+        continue;
+      }
+      let ivm = &mut IVM::new(heap);
+      let r = ivm.new_wire();
+      ivm.execute(&host.get(name).unwrap().instructions, Port::new_wire(r.0));
+      ivm.normalize();
+      net.root = host.read(ivm, &Port::new_wire(r.1));
+      net.pairs.clear();
+    }
   }
 }
