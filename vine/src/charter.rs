@@ -34,23 +34,22 @@ impl<'core> Charter<'core, '_> {
 
   fn new_def(&mut self, name: Ident<'core>, path: &'core str, parent: Option<DefId>) -> DefId {
     let id = self.chart.defs.next_index();
-    let mut def = Def {
+    self.chart.defs.push(Def {
       name,
       path,
       members: Default::default(),
       parent,
-      ancestors: Vec::new(),
+      ancestors: parent
+        .iter()
+        .flat_map(|&p| self.chart.defs[p].ancestors.iter().copied())
+        .chain([id])
+        .collect(),
       value_def: None,
       type_def: None,
       pattern_def: None,
       trait_def: None,
       impl_def: None,
-    };
-    if let Some(parent) = parent {
-      def.ancestors = self.chart.defs[parent].ancestors.iter().copied().chain([parent]).collect();
-    }
-    self.chart.defs.push(def);
-    id
+    })
   }
 
   pub(crate) fn chart_mod(&mut self, vis: DefId, module: ModKind<'core>, def: DefId) {
