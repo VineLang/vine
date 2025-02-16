@@ -3,7 +3,6 @@ use std::{
   mem::{replace, take},
 };
 
-use ivm::ext::{ExtFn, ExtFnKind};
 use vine_util::{
   idx::{Counter, IdxVec},
   unwrap_idx_vec,
@@ -197,12 +196,7 @@ impl<'core, 'r> Distiller<'core, 'r> {
       ExprKind::Neg(value) => {
         let value = self.distill_expr_value(stage, value);
         let wire = stage.new_wire();
-        stage.steps.push(Step::ExtFn(
-          ExtFn::from(ExtFnKind::sub).swap(),
-          value,
-          Port::N32(0),
-          wire.0,
-        ));
+        stage.steps.push(Step::ExtFn("sub", true, value, Port::N32(0), wire.0));
         wire.1
       }
       ExprKind::String(init, rest) => {
@@ -233,24 +227,21 @@ impl<'core, 'r> Distiller<'core, 'r> {
         let mut last_result = Port::Erase;
         let mut lhs = self.distill_expr_value(stage, init);
         for (i, (op, rhs)) in cmps.iter().enumerate() {
-          let ext_fn = match op {
-            ComparisonOp::Eq => ExtFn::from(ExtFnKind::eq),
-            ComparisonOp::Ne => ExtFn::from(ExtFnKind::ne),
-            ComparisonOp::Lt => ExtFn::from(ExtFnKind::lt),
-            ComparisonOp::Gt => ExtFn::from(ExtFnKind::lt).swap(),
-            ComparisonOp::Le => ExtFn::from(ExtFnKind::le),
-            ComparisonOp::Ge => ExtFn::from(ExtFnKind::le).swap(),
+          let (ext_fn, swap) = match op {
+            ComparisonOp::Eq => ("eq", false),
+            ComparisonOp::Ne => ("ne", false),
+            ComparisonOp::Lt => ("lt", false),
+            ComparisonOp::Gt => ("lt", true),
+            ComparisonOp::Le => ("le", false),
+            ComparisonOp::Ge => ("le", true),
           };
           let first = i == 0;
           let last = i == cmps.len() - 1;
           let rhs = self.distill_expr_value(stage, rhs);
           let (rhs, next_lhs) = if last { (rhs, Port::Erase) } else { stage.dup(rhs) };
-          let result = stage.ext_fn(ext_fn, lhs, rhs);
-          last_result = if first {
-            result
-          } else {
-            stage.ext_fn(ExtFnKind::n32_and.into(), last_result, result)
-          };
+          let result = stage.ext_fn(ext_fn, swap, lhs, rhs);
+          last_result =
+            if first { result } else { stage.ext_fn("n32_and", false, last_result, result) };
           lhs = next_lhs;
         }
         last_result
@@ -477,18 +468,18 @@ impl<'core, 'r> Distiller<'core, 'r> {
         ));
         return;
       }
-      BinaryOp::BitOr => ExtFnKind::n32_or,
-      BinaryOp::BitXor => ExtFnKind::n32_xor,
-      BinaryOp::BitAnd => ExtFnKind::n32_and,
-      BinaryOp::Shl => ExtFnKind::n32_shl,
-      BinaryOp::Shr => ExtFnKind::n32_shr,
-      BinaryOp::Add => ExtFnKind::add,
-      BinaryOp::Sub => ExtFnKind::sub,
-      BinaryOp::Mul => ExtFnKind::mul,
-      BinaryOp::Div => ExtFnKind::div,
-      BinaryOp::Rem => ExtFnKind::rem,
+      BinaryOp::BitOr => "n32_or",
+      BinaryOp::BitXor => "n32_xor",
+      BinaryOp::BitAnd => "n32_and",
+      BinaryOp::Shl => "n32_shl",
+      BinaryOp::Shr => "n32_shr",
+      BinaryOp::Add => "add",
+      BinaryOp::Sub => "sub",
+      BinaryOp::Mul => "mul",
+      BinaryOp::Div => "div",
+      BinaryOp::Rem => "rem",
     };
-    stage.steps.push(Step::ExtFn(ext_fn.into(), lhs, rhs, out));
+    stage.steps.push(Step::ExtFn(ext_fn, false, lhs, rhs, out));
   }
 
   fn distill_vec<T>(

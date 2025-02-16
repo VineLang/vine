@@ -10,9 +10,17 @@ rustyline = "14.0.0"
 
 ivm = { path = "../ivm" }
 ivy = { path = "../ivy" }
-vine = { path = "../vine" }
-vine-lsp = { path = "../lsp" }
+vine = { path = "../vine", optional = true }
+vine-lsp = { path = "../lsp", optional = true }
 vine-util = { path = "../util" }
 
 [lints]
 workspace = true
+
+[features]
+vine = ["dep:vine", "dep:vine-lsp"]
+default = ["vine"]
+
+[[bin]]
+name = "vine"
+required-features = ["vine"]

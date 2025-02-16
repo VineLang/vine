@@ -1,5 +1,3 @@
-use ivm::ext::ExtFnKind;
-
 use crate::{
   ast::{Block, ComparisonOp, Expr, ExprKind, LabelId, Local, LogicalOp, Pat, Stmt, StmtKind},
   vir::{Interface, InterfaceKind, Layer, Port, Stage, Step, Transfer},
@@ -306,7 +304,7 @@ impl<'core, 'r> Distiller<'core, 'r> {
         let value = self.distill_expr_value(stage, cond);
         if negate {
           let wire = stage.new_wire();
-          stage.steps.push(Step::ExtFn(ExtFnKind::eq.into(), value, Port::N32(0), wire.0));
+          stage.steps.push(Step::ExtFn("eq", false, value, Port::N32(0), wire.0));
           wire.1
         } else {
           value

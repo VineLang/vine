@@ -1,6 +1,5 @@
 use std::{collections::BTreeMap, fmt::Write, mem::take};
 
-use ivm::ext::ExtFnKind;
 use ivy::ast::{Net, Nets, Tree};
 use vine_util::idx::{Counter, IdxVec};
 
@@ -282,9 +281,9 @@ impl<'core, 'a> VirEmitter<'core, 'a> {
         emit_port(reference),
         Tree::Comb("ref".into(), Box::new(emit_port(value)), Box::new(emit_port(space))),
       )),
-      Step::ExtFn(ext_fn, lhs, rhs, out) => self.pairs.push((
+      Step::ExtFn(ext_fn, swap, lhs, rhs, out) => self.pairs.push((
         emit_port(lhs),
-        Tree::ExtFn(*ext_fn, Box::new(emit_port(rhs)), Box::new(emit_port(out))),
+        Tree::ExtFn(ext_fn.to_string(), *swap, Box::new(emit_port(rhs)), Box::new(emit_port(out))),
       )),
       Step::Dup(a, b, c) => {
         let label = self.dup_label();
@@ -323,7 +322,7 @@ impl<'core, 'a> VirEmitter<'core, 'a> {
             Tree::n_ary(
               "tup",
               [
-                Tree::ExtFn(ExtFnKind::add.into(), Box::new(cur_len), Box::new(next_len.0)),
+                Tree::ExtFn("add".into(), false, Box::new(cur_len), Box::new(next_len.0)),
                 cur_buf,
                 Tree::n_ary("tup", seg.chars().map(|c| Tree::N32(c as u32)).chain([next_buf.0])),
               ],

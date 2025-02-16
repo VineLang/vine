@@ -5,8 +5,12 @@ use indexmap::{
   IndexMap,
 };
 
-use ivm::global::Global;
+use ivm::{
+  ext::{ExtFn, ExtTy, ExtVal},
+  global::Global,
+};
 
+mod ext;
 mod readback;
 mod serialize;
 
@@ -21,6 +25,12 @@ pub struct Host<'ivm> {
   /// except that in [`serialize`], we need a few of those pointers to
   /// temporarily be `&UnsafeCell<Global<'ivm>>`s.
   globals: HashMap<String, *const Global<'ivm>>,
+
+  ext_fns: HashMap<String, ExtFn<'ivm>>,
+  reverse_ext_fns: HashMap<ExtFn<'ivm>, String>,
+
+  ext_tys: HashMap<String, ExtTy<'ivm>>,
+  reverse_ext_tys: HashMap<ExtTy<'ivm>, String>,
 
   /// This is an `IndexMap` instead of an `IndexSet` so that the raw entry API
   /// can be used.
@@ -49,5 +59,26 @@ impl<'ivm> Host<'ivm> {
 
   pub fn label_from_u16(&self, label: u16) -> &str {
     self.labels.get_index(label as usize).unwrap().0
+  }
+
+  pub fn new_f32(&self, payload: f32) -> ExtVal<'ivm> {
+    ExtVal::new(self.ext_tys["F32"], payload.to_bits())
+  }
+
+  pub fn new_n32(&self, payload: u32) -> ExtVal<'ivm> {
+    ExtVal::new(self.ext_tys["N32"], payload)
+  }
+
+  pub fn new_io(&self) -> ExtVal<'ivm> {
+    ExtVal::new(self.ext_tys["IO"], 0)
+  }
+
+  pub fn instantiate_ext_fn(&self, ext_fn_name: &str, swap: bool) -> ExtFn<'ivm> {
+    let mut ext_fn =
+      *self.ext_fns.get(ext_fn_name).unwrap_or_else(|| panic!("Unknown ext fn '{}'", ext_fn_name));
+    if swap {
+      ext_fn = ext_fn.swap()
+    }
+    ext_fn
   }
 }

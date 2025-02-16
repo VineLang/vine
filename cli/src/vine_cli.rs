@@ -8,7 +8,7 @@ use std::{
 use anyhow::Result;
 use clap::{Args, Parser};
 
-use ivm::{heap::Heap, IVM};
+use ivm::{ext::Extrinsics, heap::Heap, IVM};
 use ivy::{ast::Nets, host::Host};
 use rustyline::DefaultEditor;
 use vine::{
@@ -150,7 +150,10 @@ impl VineReplCommand {
 
     let host = &mut Host::default();
     let heap = Heap::new();
-    let mut ivm = IVM::new(&heap);
+    let mut extrinsics = Extrinsics::default();
+    host.register_default_extrinsics(&mut extrinsics);
+
+    let mut ivm = IVM::new(&heap, &extrinsics);
     let arenas = CoreArenas::default();
     let core = &Core::new(&arenas);
     let mut repl = match Repl::new(host, &mut ivm, core, self.libs) {

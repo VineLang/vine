@@ -6,7 +6,6 @@ use std::{
 };
 
 use ivm::{
-  ext::ExtVal,
   port::{Port, PortRef, Tag},
   IVM,
 };
@@ -36,9 +35,9 @@ use crate::{
   visit::VisitMut,
 };
 
-pub struct Repl<'core, 'ctx, 'ivm> {
+pub struct Repl<'core, 'ctx, 'ivm, 'ext> {
   host: &'ivm mut Host<'ivm>,
-  ivm: &'ctx mut IVM<'ivm>,
+  ivm: &'ctx mut IVM<'ivm, 'ext>,
   core: &'core Core<'core>,
   compiler: Compiler<'core>,
   repl_mod: DefId,
@@ -57,10 +56,10 @@ struct Var<'ivm> {
   space: Port<'ivm>,
 }
 
-impl<'core, 'ctx, 'ivm> Repl<'core, 'ctx, 'ivm> {
+impl<'core, 'ctx, 'ivm, 'ext> Repl<'core, 'ctx, 'ivm, 'ext> {
   pub fn new(
     mut host: &'ivm mut Host<'ivm>,
-    ivm: &'ctx mut IVM<'ivm>,
+    ivm: &'ctx mut IVM<'ivm, 'ext>,
     core: &'core Core<'core>,
     libs: Vec<PathBuf>,
   ) -> Result<Self, String> {
@@ -82,7 +81,7 @@ impl<'core, 'ctx, 'ivm> Repl<'core, 'ctx, 'ivm> {
     let io = core.ident("io");
     let vars = HashMap::from([(
       io,
-      Var { local: Local(0), value: Port::new_ext_val(ExtVal::IO), space: Port::ERASE },
+      Var { local: Local(0), value: Port::new_ext_val(host.new_io()), space: Port::ERASE },
     )]);
     let locals = BTreeMap::from([(Local(0), io)]);
     let mut unifier = Unifier::new(core);
@@ -136,10 +135,10 @@ impl<'core, 'ctx, 'ivm> Repl<'core, 'ctx, 'ivm> {
       name: &mut name,
     })?;
 
-    struct ExecHooks<'core, 'ivm, 'a> {
+    struct ExecHooks<'core, 'ivm, 'ext, 'a> {
       repl_mod: DefId,
       vars: &'a mut HashMap<Ident<'core>, Var<'ivm>>,
-      ivm: &'a mut IVM<'ivm>,
+      ivm: &'a mut IVM<'ivm, 'ext>,
       locals: &'a mut BTreeMap<Local, Ident<'core>>,
       block: &'a mut Block<'core>,
       unifier: &'a mut Unifier<'core>,
@@ -151,7 +150,7 @@ impl<'core, 'ctx, 'ivm> Repl<'core, 'ctx, 'ivm> {
       name: &'a mut String,
     }
 
-    impl<'core> Hooks<'core> for ExecHooks<'core, '_, '_> {
+    impl<'core> Hooks<'core> for ExecHooks<'core, '_, '_, '_> {
       fn chart(&mut self, charter: &mut Charter<'core, '_>) {
         let mut extractor = ExtractItems::default();
         extractor.visit(&mut *self.block);
@@ -409,7 +408,7 @@ impl<'core, 'ctx, 'ivm> Repl<'core, 'ctx, 'ivm> {
   }
 }
 
-impl Display for Repl<'_, '_, '_> {
+impl Display for Repl<'_, '_, '_, '_> {
   fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
     for (local, ident) in &self.locals {
       let var = &self.vars[ident];
