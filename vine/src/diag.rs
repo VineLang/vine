@@ -198,6 +198,8 @@ diags! {
     ["type `{ty}` has no method `{name}`"]
   AmbiguousMethod { ty: String, name: Ident<'core> }
     ["multiple methods named `{name}` for `{ty}`"]
+  CircularImport
+    ["circular import"]
 }
 
 fn plural<'a>(n: usize, plural: &'a str, singular: &'a str) -> &'a str {

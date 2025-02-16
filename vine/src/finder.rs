@@ -219,9 +219,7 @@ impl<'core> Finder<'core, '_> {
 
       let def_id = match member.kind {
         MemberKind::Child(def_id) => Some(def_id),
-        MemberKind::Import(import_id) => {
-          self.chart.imports[import_id].resolved.transpose().ok().flatten()
-        }
+        MemberKind::Import(import_id) => self.chart.imports[import_id].resolved(),
       };
       let Some(def_id) = def_id else { continue };
 
