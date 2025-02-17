@@ -1,12 +1,9 @@
 
-::std::IO::print_char { fn(ref(@io_print_char(char io) io) fn(char _)) }
+::std::IO::print_char { fn(ref(@io_print_char(n0 n1) n1) fn(n0 _)) }
 
 ::main { ::mandelbrot::main }
 
-::mandelbrot::center {
-  tup(w0 +0.0)
-  +0.8 = @sub$(0 w0)
-}
+::mandelbrot::center { tup(-0.8 +0.0) }
 
 ::mandelbrot::main {
   fn(ref(w1 w9) _)
@@ -39,19 +36,11 @@
 
 ::mandelbrot::main::6 { x(x(w3 w3) _) }
 
-::mandelbrot {
-  fn(w0 fn(w1 w10))
-  ::mandelbrot::1 = x(w0 x(w1 x(+0.0 x(+0.0 x(+0.0 x(+0.0 x(128 @eq(0 w10))))))))
-}
+::mandelbrot { fn(dup56(@add$(+0.0 dup59(@mul(n0 dup52(@add(n1 @lt(+4.0 @n32_and$(1 ?(::mandelbrot::3 ::mandelbrot::2 x(n2 x(n3 x(n4 x(n5 x(n6 x(n7 x(127 @eq(0 n8)))))))))))) n6)) dup59(n0 n4))) n2) fn(dup57(@add$(+0.0 dup61(@mul(n9 dup53(n1 n7)) dup61(n9 n5))) n3) n8)) }
 
-::mandelbrot::1 { x(w14 x(w13 x(w12 x(w11 x(dup52(@add(w3 @lt(+4.0 w5)) w18) x(dup53(w3 w17) x(dup55(@lt$(0 @n32_and(w5 ?(::mandelbrot::3 ::mandelbrot::2 x(w14 x(w13 x(w12 x(w11 x(w18 x(w17 x(w15 w16)))))))))) w15) w16))))))) }
+::mandelbrot::1 { x(n0 x(n1 x(n2 x(n3 x(dup52(@add(n4 @lt(+4.0 n5)) n6) x(dup53(n4 n7) x(dup55(@lt$(0 @n32_and(n5 ?(::mandelbrot::3 ::mandelbrot::2 x(n0 x(n1 x(n2 x(n3 x(n6 x(n7 x(n8 n9)))))))))) n8) n9))))))) }
 
-::mandelbrot::2 {
-  x(dup56(w5 w40) x(dup57(w11 w39) x(w30 x(w29 x(@sub(w27 @add(w5 w6)) x(w27 x(@sub(1 w1) w34)))))))
-  +2.0 = @mul(w30 @mul(w29 @add(w11 w12)))
-  tup(w6 w12) = tup(dup59(@mul(w18 w19) dup59(w18 w38)) dup61(@mul(w22 w23) dup61(w22 w37)))
-  ::mandelbrot::1 = x(w40 x(w39 x(w38 x(w37 x(w19 x(w23 x(w1 w34)))))))
-}
+::mandelbrot::2 { x(dup56(n0 n1) x(dup57(n2 n3) x(@mul$(+2.0 @mul(n4 @add(n2 dup61(@mul(n5 dup53(n6 n7)) dup61(n5 n8))))) x(n4 x(@sub(n9 @add(n0 dup59(@mul(n10 dup52(@add(n6 @lt(+4.0 n11)) n12)) dup59(n10 n13)))) x(n9 x(@sub(1 dup55(@lt$(0 @n32_and(n11 ?(::mandelbrot::3 ::mandelbrot::2 x(n1 x(n3 x(n13 x(n8 x(n12 x(n7 x(n14 n15)))))))))) n14)) n15))))))) }
 
-::mandelbrot::3 { x(_ x(_ x(_ x(_ x(_ x(_ x(w1 w1))))))) }
+::mandelbrot::3 { x(_ x(_ x(_ x(_ x(_ x(_ x(n0 n0))))))) }
 

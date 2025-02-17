@@ -1,15 +1,15 @@
 
-::std::data::Array::Node::to_leaf { fn(x x) }
+::std::data::Array::Node::to_leaf { fn(n0 n0) }
 
-::std::data::Array::Node::as_leaf { fn(x x) }
+::std::data::Array::Node::as_leaf { fn(n0 n0) }
 
-::std::data::Array::Node::leaf { fn(x x) }
+::std::data::Array::Node::leaf { fn(n0 n0) }
 
-::std::logical::Option::None { enum(_ enum(r r)) }
+::std::logical::Option::None { enum(_ enum(n0 n0)) }
 
-::std::IO::print_char { fn(ref(@io_print_char(char io) io) fn(char _)) }
+::std::IO::print_char { fn(ref(@io_print_char(n0 n1) n1) fn(n0 _)) }
 
-::std::IO::read_byte { fn(ref(dup(io0 @io_read_byte(default dup(byte @seq$(io0 io1)))) io1) fn(default byte)) }
+::std::IO::read_byte { fn(ref(dup(n0 @io_read_byte(n1 dup(n2 @seq$(n0 n3)))) n3) fn(n1 n2)) }
 
 ::main { ::day_14::main }
 
@@ -183,357 +183,197 @@
 
 ::day_14::main::52 { x(x(w2 w2) _) }
 
-::std::numeric::N32::to_string::to_string { fn(dup231(?(::std::numeric::N32::to_string::to_string::3 ::std::numeric::N32::to_string::to_string::2 x(w7 w6)) w7) w6) }
+::std::numeric::N32::to_string::to_string { fn(dup231(?(::std::numeric::N32::to_string::to_string::3 ::std::numeric::N32::to_string::to_string::2 x(n0 n1)) n0) n1) }
 
-::std::numeric::N32::to_string::to_string::2 {
-  x(w6 w9)
-  ::std::numeric::N32::to_string::to_string::4 = x(w6 x(tup(0 tup(w7 w7)) w9))
-}
+::std::numeric::N32::to_string::to_string::2 { x(dup240(?(::std::numeric::N32::to_string::to_string::6 ::std::numeric::N32::to_string::to_string::5 x(n0 x(tup(0 tup(n1 n1)) n2))) n0) n2) }
 
-::std::numeric::N32::to_string::to_string::3 { x(_ tup(1 tup(tup(48 w5) w5))) }
+::std::numeric::N32::to_string::to_string::3 { x(_ tup(1 tup(tup(48 n0) n0))) }
 
-::std::numeric::N32::to_string::to_string::4 { x(dup240(?(::std::numeric::N32::to_string::to_string::6 ::std::numeric::N32::to_string::to_string::5 x(w6 w2)) w6) w2) }
+::std::numeric::N32::to_string::to_string::4 { x(dup240(?(::std::numeric::N32::to_string::to_string::6 ::std::numeric::N32::to_string::to_string::5 x(n0 n1)) n0) n1) }
 
-::std::numeric::N32::to_string::to_string::5 {
-  x(dup243(@rem(10 w1) @div(10 w8)) x(w11 w15))
-  48 = @add(w1 w2)
-  ::std::data::List::concat = fn(tup(1 tup(tup(w2 w13) w13)) fn(w11 w5))
-  ::std::numeric::N32::to_string::to_string::4 = x(w8 x(w5 w15))
-}
+::std::numeric::N32::to_string::to_string::5 { x(dup243(@rem(10 @add$(48 n0)) @div(10 dup240(?(::std::numeric::N32::to_string::to_string::6 ::std::numeric::N32::to_string::to_string::5 x(n1 x(tup(n2 tup(tup(n0 n3) n4)) n5))) n1))) x(tup(@add$(1 n2) tup(n3 n4)) n5)) }
 
-::std::numeric::N32::to_string::to_string::6 { x(_ x(w1 w1)) }
+::std::numeric::N32::to_string::to_string::6 { x(_ x(n0 n0)) }
 
-::std::data::List::get {
-  fn(ref(tup(w1 tup(w3 w5)) tup(w1 tup(w4 w5))) fn(w9 ref(w14 w15)))
-  ::std::data::List::get::1 = x(x(ref(w3 w4) ref(tup(w14 w16) tup(w15 w16))) w9)
-}
+::std::data::List::get { fn(ref(tup(n0 tup(n1 n2)) tup(n0 tup(n3 n2))) fn(dup280(?(::std::data::List::get::3 ::std::data::List::get::2 x(x(ref(n1 n3) ref(tup(n4 n5) tup(n6 n5))) n7)) n7) ref(n4 n6))) }
 
-::std::data::List::get::1 { x(w3 dup280(?(::std::data::List::get::3 ::std::data::List::get::2 x(w3 w4)) w4)) }
+::std::data::List::get::1 { x(n0 dup280(?(::std::data::List::get::3 ::std::data::List::get::2 x(n0 n1)) n1)) }
 
-::std::data::List::get::2 {
-  x(x(ref(tup(w1 w3) tup(w1 w4)) w17) @sub(1 w11))
-  ::std::data::List::get::1 = x(x(ref(w3 w4) w17) w11)
-}
+::std::data::List::get::2 { x(x(ref(tup(n0 n1) tup(n0 n2)) n3) @sub(1 dup280(?(::std::data::List::get::3 ::std::data::List::get::2 x(x(ref(n1 n2) n3) n4)) n4))) }
 
-::std::data::List::get::3 { x(x(w2 w2) _) }
+::std::data::List::get::3 { x(x(n0 n0) _) }
 
-::std::data::List::pop_front { fn(ref(tup(dup341(?(::std::data::List::pop_front::3 ::std::data::List::pop_front::2 x(x(w16 w17) x(x(w3 w15) w13))) w16) tup(w3 w4)) tup(w17 tup(w15 w4))) w13) }
+::std::data::List::pop_front { fn(ref(tup(dup341(?(::std::data::List::pop_front::3 ::std::data::List::pop_front::2 x(x(n0 n1) x(x(n2 n3) n4))) n0) tup(n2 n5)) tup(n1 tup(n3 n5))) n4) }
 
-::std::data::List::pop_front::2 { x(x(@sub(1 w1) w1) x(x(tup(w3 w4) w4) enum(enum(w3 w15) enum(_ w15)))) }
+::std::data::List::pop_front::2 { x(x(@sub(1 n0) n0) x(x(tup(n1 n2) n2) enum(enum(n1 n3) enum(_ n3)))) }
 
-::std::data::List::pop_front::3 { x(x(w4 w4) x(x(w2 w2) ::std::logical::Option::None)) }
+::std::data::List::pop_front::3 { x(x(n0 n0) x(x(n1 n1) ::std::logical::Option::None)) }
 
-::std::data::List::concat { fn(tup(@add(w10 w18) tup(w6 w11)) fn(tup(w10 tup(w11 w21)) tup(w18 tup(w6 w21)))) }
+::std::data::List::concat { fn(tup(@add(n0 n1) tup(n2 n3)) fn(tup(n0 tup(n3 n4)) tup(n1 tup(n2 n4)))) }
 
-::std::data::List::push_back {
-  fn(ref(w1 w9) fn(w3 _))
-  ::std::data::List::concat = fn(w1 fn(tup(1 tup(tup(w3 w11) w11)) w9))
-}
+::std::data::List::push_back { fn(ref(tup(@add(1 n0) tup(n1 tup(n2 n3))) tup(n0 tup(n1 n3))) fn(n2 _)) }
 
-::std::data::List::iter { fn(ref(tup(dup489(w0 w10) tup(w3 w4)) tup(w0 tup(w12 w4))) tup(w10 ref(w3 w12))) }
+::std::data::List::iter { fn(ref(tup(dup489(n0 n1) tup(n2 n3)) tup(n0 tup(n4 n3))) tup(n1 ref(n2 n4))) }
 
-::std::data::List::Iter::next { fn(ref(tup(dup495(?(::std::data::List::Iter::next::3 ::std::data::List::Iter::next::2 x(x(w15 w16) x(x(w3 w14) w12))) w15) w3) tup(w16 w14)) w12) }
+::std::data::List::Iter::next { fn(ref(tup(dup495(?(::std::data::List::Iter::next::3 ::std::data::List::Iter::next::2 x(x(n0 n1) x(x(n2 n3) n4))) n0) n2) tup(n1 n3)) n4) }
 
-::std::data::List::Iter::next::2 { x(x(@sub(1 w1) w1) x(x(ref(tup(w4 w7) tup(w5 w8)) ref(w7 w8)) enum(enum(ref(w4 w5) w21) enum(_ w21)))) }
+::std::data::List::Iter::next::2 { x(x(@sub(1 n0) n0) x(x(ref(tup(n1 n2) tup(n3 n4)) ref(n2 n4)) enum(enum(ref(n1 n3) n5) enum(_ n5)))) }
 
-::std::data::List::Iter::next::3 { x(x(w8 w8) x(x(ref(w2 w2) _) ::std::logical::Option::None)) }
+::std::data::List::Iter::next::3 { x(x(n0 n0) x(x(ref(n1 n1) _) ::std::logical::Option::None)) }
 
-::std::data::List::Iter::drop { fn(ref(tup(_ ref(w7 w7)) _) _) }
+::std::data::List::Iter::drop { fn(ref(tup(_ ref(n0 n0)) _) _) }
 
-::std::data::List::into_iter { fn(tup(w0 tup(w1 _)) tup(w0 w1)) }
+::std::data::List::into_iter { fn(tup(n0 tup(n1 _)) tup(n0 n1)) }
 
-::std::data::List::IntoIter::next { fn(ref(tup(dup521(?(::std::data::List::IntoIter::next::3 ::std::data::List::IntoIter::next::2 x(x(w15 w16) x(x(w3 w14) w12))) w15) w3) tup(w16 w14)) w12) }
+::std::data::List::IntoIter::next { fn(ref(tup(dup521(?(::std::data::List::IntoIter::next::3 ::std::data::List::IntoIter::next::2 x(x(n0 n1) x(x(n2 n3) n4))) n0) n2) tup(n1 n3)) n4) }
 
-::std::data::List::IntoIter::next::2 { x(x(@sub(1 w1) w1) x(x(tup(w3 w4) w4) enum(enum(w3 w15) enum(_ w15)))) }
+::std::data::List::IntoIter::next::2 { x(x(@sub(1 n0) n0) x(x(tup(n1 n2) n2) enum(enum(n1 n3) enum(_ n3)))) }
 
-::std::data::List::IntoIter::next::3 { x(x(w4 w4) x(x(w2 w2) ::std::logical::Option::None)) }
+::std::data::List::IntoIter::next::3 { x(x(n0 n0) x(x(n1 n1) ::std::logical::Option::None)) }
 
-::std::data::Array::new {
-  fn(dup562(w4 w5) fn(w1 tup(w4 w7)))
-  ::std::data::Array::Node::new = fn(w5 fn(w1 w7))
-}
+::std::data::Array::new { fn(dup562(n0 dup850(@eq(1 ?(::std::data::Array::Node::new::3 ::std::data::Array::Node::new::2 x(n1 x(n2 n3)))) n1)) fn(n2 tup(n0 n3))) }
 
-::std::data::Array::to_list {
-  fn(w0 tup(w7 tup(w12 w10)))
-  ::std::data::Array::len = fn(ref(w0 w5) w7)
-  ::std::data::Array::fold_back = fn(w5 fn(w10 fn(fn(w16 fn(w17 tup(w17 w16))) w12)))
-}
+::std::data::Array::to_list { fn(tup(dup659(n0 dup639(?(::std::data::Array::fold_back::3 ::std::data::Array::fold_back::2 x(n1 x(n2 x(n3 x(fn(n4 fn(n5 tup(n5 n4))) n6))))) n1)) n2) tup(n0 tup(n6 n3))) }
 
-::std::data::Array::fold_back { fn(tup(dup639(?(::std::data::Array::fold_back::3 ::std::data::Array::fold_back::2 x(w14 x(w1 x(w3 x(w4 w10))))) w14) w1) fn(w3 fn(w4 w10))) }
+::std::data::Array::fold_back { fn(tup(dup639(?(::std::data::Array::fold_back::3 ::std::data::Array::fold_back::2 x(n0 x(n1 x(n2 x(n3 n4))))) n0) n1) fn(n2 fn(n3 n4))) }
 
-::std::data::Array::fold_back::2 {
-  x(dup646(w1 w2) x(w30 x(w29 x(w28 w14))))
-  ::std::data::Array::Node::zip_with = fn(w2 fn(w22 fn(w30 fn(w28 w7))))
-  ::std::data::Array::pop_front = fn(ref(tup(w1 w7) w11) w13)
-  ::std::logical::Option::unwrap = fn(w13 w14)
-  ::std::data::Array::push_back = fn(ref(w11 tup(_ w22)) fn(w29 _))
-}
+::std::data::Array::fold_back::2 { x(dup646(dup794(?(::std::data::Array::pop_front::3 ::std::data::Array::pop_front::2 x(x(n0 dup684(?(::std::data::Array::push_back::3 ::std::data::Array::push_back::2 x(n1 x(ref(n2 n3) x(n4 _)))) dup684(n1 @add(1 _)))) x(ref(n5 n2) enum(::std::logical::Option::unwrap::3 enum(_ n6))))) n0) dup919(@eq(1 ?(::std::data::Array::Node::zip_with::3 ::std::data::Array::Node::zip_with::2 x(n7 x(n3 x(n8 x(n9 n5)))))) n7)) x(n8 x(n4 x(n9 n6)))) }
 
-::std::data::Array::fold_back::3 { x(_ x(_ x(w3 x(_ w3)))) }
+::std::data::Array::fold_back::3 { x(_ x(_ x(n0 x(_ n0)))) }
 
-::std::data::Array::len { fn(ref(tup(dup659(w10 w7) w8) tup(w7 w8)) w10) }
+::std::data::Array::len { fn(ref(tup(dup659(n0 n1) n2) tup(n1 n2)) n0) }
 
-::std::data::Array::get {
-  fn(ref(tup(dup664(w0 w11) w3) tup(w0 w4)) fn(w8 w17))
-  ::std::data::Array::get::1 = x(x(ref(w3 w4) w14) x(w8 w11))
-  ::std::data::Array::Node::as_leaf = fn(w14 w17)
-}
+::std::data::Array::get { fn(ref(tup(dup664(n0 dup674(@lt$(1 ?(::std::data::Array::get::3 ::std::data::Array::get::2 x(x(ref(n1 n2) n3) x(n4 n5)))) n5)) n1) tup(n0 n2)) fn(n4 n3)) }
 
-::std::data::Array::get::1 { x(w5 x(w3 dup674(@lt$(1 ?(::std::data::Array::get::3 ::std::data::Array::get::2 x(w5 x(w3 w6)))) w6))) }
+::std::data::Array::get::1 { x(n0 x(n1 dup674(@lt$(1 ?(::std::data::Array::get::3 ::std::data::Array::get::2 x(n0 x(n1 n2)))) n2))) }
 
-::std::data::Array::get::2 {
-  x(x(w13 w17) x(dup678(@rem(2 w3) @div(2 w9)) w10))
-  ::std::data::Array::Node::half = fn(w13 fn(w10 fn(w3 tup(w5 w6))))
-  ::std::data::Array::get::1 = x(x(w5 w17) x(w9 w6))
-}
+::std::data::Array::get::2 { x(x(ref(tup(n0 n1) tup(n2 n3)) n4) x(dup678(@rem(2 ?(::std::data::Array::Node::half::3 ::std::data::Array::Node::half::2 x(x(n0 n2) x(x(n1 n3) x(n5 tup(n6 dup674(@lt$(1 ?(::std::data::Array::get::3 ::std::data::Array::get::2 x(x(n6 n4) x(n7 n8)))) n8))))))) @div(2 n7)) n5)) }
 
-::std::data::Array::get::3 { x(x(w3 w3) _) }
+::std::data::Array::get::3 { x(x(n0 n0) _) }
 
-::std::data::Array::push_back { fn(ref(tup(dup684(?(::std::data::Array::push_back::3 ::std::data::Array::push_back::2 x(w19 x(ref(w3 w4) x(w8 _)))) dup684(w19 @add(1 w13))) w3) tup(w13 w4)) fn(w8 _)) }
+::std::data::Array::push_back { fn(ref(tup(dup684(?(::std::data::Array::push_back::3 ::std::data::Array::push_back::2 x(n0 x(ref(n1 n2) x(n3 _)))) dup684(n0 @add(1 n4))) n1) tup(n4 n2)) fn(n3 _)) }
 
-::std::data::Array::push_back::2 {
-  x(w14 x(w13 x(w12 _)))
-  ::std::data::Array::push_back::4 = x(x(w13 ref(w4 tup(w4 w8))) w14)
-  ::std::data::Array::Node::leaf = fn(w12 w8)
-}
+::std::data::Array::push_back::2 { x(dup704(@lt$(1 ?(::std::data::Array::push_back::6 ::std::data::Array::push_back::5 x(x(n0 ref(n1 tup(n1 n2))) n3))) n3) x(n0 x(n2 _))) }
 
-::std::data::Array::push_back::3 {
-  x(_ x(ref(_ w5) x(w8 _)))
-  ::std::data::Array::Node::leaf = fn(w8 w5)
-}
+::std::data::Array::push_back::3 { x(_ x(ref(_ n0) x(n0 _))) }
 
-::std::data::Array::push_back::4 { x(w4 dup704(@lt$(1 ?(::std::data::Array::push_back::6 ::std::data::Array::push_back::5 x(w4 w5))) w5)) }
+::std::data::Array::push_back::4 { x(n0 dup704(@lt$(1 ?(::std::data::Array::push_back::6 ::std::data::Array::push_back::5 x(n0 n1))) n1)) }
 
-::std::data::Array::push_back::5 {
-  x(x(w10 w13) dup708(w1 @rem(2 w3)))
-  ::std::data::Array::Node::half = fn(w10 fn(w1 fn(w3 tup(w5 w6))))
-  ::std::data::Array::push_back::4 = x(x(w5 w13) w6)
-}
+::std::data::Array::push_back::5 { x(x(ref(tup(n0 n1) tup(n2 n3)) n4) dup708(n5 @rem(2 ?(::std::data::Array::Node::half::3 ::std::data::Array::Node::half::2 x(x(n0 n2) x(x(n1 n3) x(n5 tup(n6 dup704(@lt$(1 ?(::std::data::Array::push_back::6 ::std::data::Array::push_back::5 x(x(n6 n4) n7))) n7))))))))) }
 
-::std::data::Array::push_back::6 { x(x(w2 w2) _) }
+::std::data::Array::push_back::6 { x(x(n0 n0) _) }
 
-::std::data::Array::pop_front { fn(ref(tup(dup794(?(::std::data::Array::pop_front::3 ::std::data::Array::pop_front::2 x(x(w15 w16) x(ref(w3 w4) w13))) w15) w3) tup(w16 w4)) w13) }
+::std::data::Array::pop_front { fn(ref(tup(dup794(?(::std::data::Array::pop_front::3 ::std::data::Array::pop_front::2 x(x(n0 n1) x(ref(n2 n3) n4))) n0) n2) tup(n1 n3)) n4) }
 
-::std::data::Array::pop_front::2 { x(x(dup799(@eq(1 ?(::std::data::Array::pop_front::5 ::std::data::Array::pop_front::4 x(x(w8 w9) w3))) w8) w9) w3) }
+::std::data::Array::pop_front::2 { x(x(dup799(@eq(1 ?(::std::data::Array::pop_front::5 ::std::data::Array::pop_front::4 x(x(n0 n1) n2))) n0) n1) n2) }
 
-::std::data::Array::pop_front::3 {
-  x(x(w3 w3) x(_ w5))
-  ::std::data::Array::pop_front::10 = x(w5 ::std::logical::Option::None)
-}
+::std::data::Array::pop_front::3 { x(x(n0 n0) x(_ ::std::logical::Option::None)) }
 
-::std::data::Array::pop_front::4 {
-  x(x(_ 0) x(ref(w2 _) w12))
-  ::std::data::Array::Node::to_leaf = fn(w2 w4)
-  ::std::data::Array::pop_front::10 = x(w12 enum(enum(w4 w10) enum(_ w10)))
-}
+::std::data::Array::pop_front::4 { x(x(_ 0) x(ref(n0 _) enum(enum(n0 n1) enum(_ n1)))) }
 
-::std::data::Array::pop_front::5 {
-  x(x(dup810(w0 @sub(1 w3)) w3) x(w6 w9))
-  ::std::data::Array::pop_front::6 = x(w6 x(w0 w9))
-}
+::std::data::Array::pop_front::5 { x(x(dup810(@add(1 @div(2 dup817(@eq(1 ?(::std::data::Array::pop_front::9 ::std::data::Array::pop_front::8 x(ref(n0 n1) x(n2 x(x(tup(n3 n1) n4) x(x(n5 n3) n6)))))) n2))) @sub(1 n7)) n7) x(ref(tup(n0 n5) n4) n6)) }
 
-::std::data::Array::pop_front::6 {
-  x(ref(w2 w38) x(@add(1 @div(2 dup817(@eq(1 ?(::std::data::Array::pop_front::9 ::std::data::Array::pop_front::8 x(ref(w18 w21) x(w39 x(x(w5 w38) x(x(w17 w36) w34)))))) w39))) w34))
-  ref(w2 w5) = ref(tup(w8 w10) tup(w36 w21))
-  tup(w10 w8) = tup(w17 w18)
-}
+::std::data::Array::pop_front::6 { x(ref(tup(n0 n1) n2) x(@add(1 @div(2 dup817(@eq(1 ?(::std::data::Array::pop_front::9 ::std::data::Array::pop_front::8 x(ref(n0 n3) x(n4 x(x(tup(n5 n3) n2) x(x(n1 n5) n6)))))) n4))) n6)) }
 
-::std::data::Array::pop_front::8 {
-  x(ref(w1 _) x(_ x(x(_ w12) x(x(w12 _) enum(enum(w3 w17) enum(_ w17))))))
-  ::std::data::Array::Node::to_leaf = fn(w1 w3)
-}
+::std::data::Array::pop_front::8 { x(ref(n0 _) x(_ x(x(_ n1) x(x(n1 _) enum(enum(n0 n2) enum(_ n2)))))) }
 
-::std::data::Array::pop_front::9 {
-  x(w6 x(w5 x(x(w4 w4) x(x(w2 w2) w36))))
-  ::std::data::Array::pop_front::6 = x(w6 x(w5 w36))
-}
+::std::data::Array::pop_front::9 { x(ref(tup(n0 n1) n2) x(@add(1 @div(2 dup817(@eq(1 ?(::std::data::Array::pop_front::9 ::std::data::Array::pop_front::8 x(ref(n0 n3) x(n4 x(x(tup(n5 n3) n2) x(x(n1 n5) n6)))))) n4))) x(x(n7 n7) x(x(n8 n8) n6)))) }
 
-::std::data::Array::pop_front::10 { x(w11 w11) }
+::std::data::Array::pop_front::10 { x(n0 n0) }
 
-::std::data::Array::Node::new { fn(dup850(@eq(1 ?(::std::data::Array::Node::new::3 ::std::data::Array::Node::new::2 x(w10 x(w1 w8)))) w10) fn(w1 w8)) }
+::std::data::Array::Node::new { fn(dup850(@eq(1 ?(::std::data::Array::Node::new::3 ::std::data::Array::Node::new::2 x(n0 x(n1 n2)))) n0) fn(n1 n2)) }
 
-::std::data::Array::Node::new::2 {
-  x(_ x(w3 w1))
-  ::std::data::Array::Node::leaf = fn(w3 w1)
-}
+::std::data::Array::Node::new::2 { x(_ x(n0 n0)) }
 
-::std::data::Array::Node::new::3 {
-  x(dup857(@add(1 @div(2 w2)) @div(2 w6)) x(dup858(w3 w7) tup(w4 w8)))
-  ::std::data::Array::Node::new = fn(w2 fn(w3 w4))
-  ::std::data::Array::Node::new = fn(w6 fn(w7 w8))
-}
+::std::data::Array::Node::new::3 { x(dup857(@add(1 @div(2 dup850(@eq(1 ?(::std::data::Array::Node::new::3 ::std::data::Array::Node::new::2 x(n0 x(n1 n2)))) n0))) @div(2 dup850(@eq(1 ?(::std::data::Array::Node::new::3 ::std::data::Array::Node::new::2 x(n3 x(n4 n5)))) n3))) x(dup858(n1 n4) tup(n2 n5))) }
 
-::std::data::Array::Node::half { fn(ref(tup(w1 w3) tup(w19 w17)) fn(w7 fn(?(::std::data::Array::Node::half::3 ::std::data::Array::Node::half::2 x(x(w1 w19) x(x(w3 w17) x(w7 w14)))) w14))) }
+::std::data::Array::Node::half { fn(ref(tup(n0 n1) tup(n2 n3)) fn(n4 fn(?(::std::data::Array::Node::half::3 ::std::data::Array::Node::half::2 x(x(n0 n2) x(x(n1 n3) x(n4 n5)))) n5))) }
 
-::std::data::Array::Node::half::2 { x(x(w11 w11) x(x(w9 w1) x(@div(2 w4) tup(ref(w9 w1) w4)))) }
+::std::data::Array::Node::half::2 { x(x(n0 n0) x(x(n1 n2) x(@div(2 n3) tup(ref(n1 n2) n3)))) }
 
-::std::data::Array::Node::half::3 { x(x(w12 w1) x(x(w10 w10) x(@add(1 @div(2 w5)) tup(ref(w12 w1) w5)))) }
+::std::data::Array::Node::half::3 { x(x(n0 n1) x(x(n2 n2) x(@add(1 @div(2 n3)) tup(ref(n0 n1) n3)))) }
 
-::std::data::Array::Node::zip_with { fn(dup919(@eq(1 ?(::std::data::Array::Node::zip_with::3 ::std::data::Array::Node::zip_with::2 x(w14 x(w1 x(w2 x(w3 w10)))))) w14) fn(w1 fn(w2 fn(w3 w10)))) }
+::std::data::Array::Node::zip_with { fn(dup919(@eq(1 ?(::std::data::Array::Node::zip_with::3 ::std::data::Array::Node::zip_with::2 x(n0 x(n1 x(n2 x(n3 n4)))))) n0) fn(n1 fn(n2 fn(n3 n4)))) }
 
-::std::data::Array::Node::zip_with::2 {
-  x(_ x(w10 x(w9 x(fn(w2 fn(w4 w5)) w6))))
-  ::std::data::Array::Node::to_leaf = fn(w10 w2)
-  ::std::data::Array::Node::to_leaf = fn(w9 w4)
-  ::std::data::Array::Node::leaf = fn(w5 w6)
-}
+::std::data::Array::Node::zip_with::2 { x(_ x(n0 x(n1 x(fn(n0 fn(n1 n2)) n2)))) }
 
-::std::data::Array::Node::zip_with::3 {
-  x(dup930(@add(1 @div(2 w10)) @div(2 w16)) x(tup(w1 w2) x(tup(w5 w6) x(dup933(w13 w19) tup(w14 w20)))))
-  ::std::data::Array::Node::zip_with = fn(w10 fn(w1 fn(w5 fn(w13 w14))))
-  ::std::data::Array::Node::zip_with = fn(w16 fn(w2 fn(w6 fn(w19 w20))))
-}
+::std::data::Array::Node::zip_with::3 { x(dup930(@add(1 @div(2 dup919(@eq(1 ?(::std::data::Array::Node::zip_with::3 ::std::data::Array::Node::zip_with::2 x(n0 x(n1 x(n2 x(n3 n4)))))) n0))) @div(2 dup919(@eq(1 ?(::std::data::Array::Node::zip_with::3 ::std::data::Array::Node::zip_with::2 x(n5 x(n6 x(n7 x(n8 n9)))))) n5))) x(tup(n1 n6) x(tup(n2 n7) x(dup933(n3 n8) tup(n4 n9))))) }
 
-::std::logical::Option::unwrap { fn(enum(::std::logical::Option::unwrap::3 enum(_ w7)) w7) }
+::std::logical::Option::unwrap { fn(enum(::std::logical::Option::unwrap::3 enum(_ n0)) n0) }
 
-::std::logical::Option::unwrap::3 { enum(w0 w0) }
+::std::logical::Option::unwrap::3 { enum(n0 n0) }
 
-::std::numeric::N32::parse { fn(tup(dup1424(?(::std::numeric::N32::parse::3 ::std::numeric::N32::parse::2 x(w14 x(w5 w12))) w14) tup(w5 _)) w12) }
+::std::numeric::N32::parse { fn(tup(dup1424(?(::std::numeric::N32::parse::3 ::std::numeric::N32::parse::2 x(n0 x(n1 n2))) n0) tup(n1 _)) n2) }
 
-::std::numeric::N32::parse::2 {
-  x(w5 x(w4 w6))
-  ::std::numeric::N32::parse::4 = x(w5 x(w4 x(0 w6)))
-}
+::std::numeric::N32::parse::2 { x(dup1434(?(::std::numeric::N32::parse::6 ::std::numeric::N32::parse::5 x(n0 x(n1 x(0 n2)))) n0) x(n1 n2)) }
 
-::std::numeric::N32::parse::3 {
-  x(_ x(_ w4))
-  ::std::numeric::N32::parse::10 = x(w4 ::std::logical::Option::None)
-}
+::std::numeric::N32::parse::3 { x(_ x(_ ::std::logical::Option::None)) }
 
-::std::numeric::N32::parse::4 { x(dup1434(?(::std::numeric::N32::parse::6 ::std::numeric::N32::parse::5 x(w8 w3)) w8) w3) }
+::std::numeric::N32::parse::4 { x(dup1434(?(::std::numeric::N32::parse::6 ::std::numeric::N32::parse::5 x(n0 n1)) n0) n1) }
 
-::std::numeric::N32::parse::5 {
-  x(w18 x(tup(dup1443(dup1438(w20 @le(57 w23)) w26) w2) x(w16 w25)))
-  48 = @le(w20 @n32_and(w23 ?(::std::numeric::N32::parse::9 ::std::numeric::N32::parse::8 x(w18 x(w2 x(w16 x(w26 w25)))))))
-}
+::std::numeric::N32::parse::5 { x(n0 x(tup(dup1443(dup1438(@le$(48 @n32_and(n1 ?(::std::numeric::N32::parse::9 ::std::numeric::N32::parse::8 x(n0 x(n2 x(n3 x(n4 n5))))))) @le(57 n1)) n4) n2) x(n3 n5))) }
 
-::std::numeric::N32::parse::6 {
-  x(_ x(_ x(w1 w9)))
-  ::std::numeric::N32::parse::10 = x(w9 enum(enum(w1 w7) enum(_ w7)))
-}
+::std::numeric::N32::parse::6 { x(_ x(_ x(n0 enum(enum(n0 n1) enum(_ n1))))) }
 
-::std::numeric::N32::parse::8 {
-  x(@sub(1 w19) x(w3 x(@mul(10 @add(w15 w17)) x(@sub(48 w15) w20))))
-  ::std::numeric::N32::parse::4 = x(w19 x(w3 x(w17 w20)))
-}
+::std::numeric::N32::parse::8 { x(@sub(1 dup1434(?(::std::numeric::N32::parse::6 ::std::numeric::N32::parse::5 x(n0 x(n1 x(n2 n3)))) n0)) x(n1 x(@mul(10 @add(n4 n2)) x(@sub(48 n4) n3)))) }
 
 ::std::numeric::N32::parse::9 { x(_ x(_ x(_ x(_ ::std::logical::Option::None)))) }
 
-::std::numeric::N32::parse::10 { x(w10 w10) }
+::std::numeric::N32::parse::10 { x(n0 n0) }
 
-::std::unicode::String::len { fn(ref(tup(dup2032(w0 w13) w2) tup(w0 w2)) w13) }
+::std::unicode::String::len { fn(ref(tup(dup2032(n0 n1) n2) tup(n0 n2)) n1) }
 
-::std::unicode::String::split_once {
-  fn(w0 fn(w1 w16))
-  ::std::unicode::String::split_once::1 = x(w1 x(tup(0 tup(w15 w15)) x(w0 w16)))
-}
+::std::unicode::String::split_once { fn(tup(dup2032(n0 @le$(n1 ?(::std::unicode::String::split_once::3 ::std::unicode::String::split_once::2 x(tup(n2 n3) x(tup(0 tup(n4 n4)) x(tup(n0 n5) n6)))))) n5) fn(tup(dup2032(n2 n1) n3) n6)) }
 
-::std::unicode::String::split_once::1 {
-  x(w12 x(w11 x(w10 w13)))
-  ::std::unicode::String::len = fn(ref(w10 w1) @le$(w7 ?(::std::unicode::String::split_once::3 ::std::unicode::String::split_once::2 x(w5 x(w11 x(w1 w13))))))
-  ::std::unicode::String::len = fn(ref(w12 w5) w7)
-}
+::std::unicode::String::split_once::1 { x(tup(dup2032(n0 n1) n2) x(n3 x(tup(dup2032(n4 @le$(n1 ?(::std::unicode::String::split_once::3 ::std::unicode::String::split_once::2 x(tup(n0 n2) x(n3 x(tup(n4 n5) n6)))))) n5) n6))) }
 
-::std::unicode::String::split_once::2 {
-  x(w27 x(w26 x(w25 w50)))
-  ::std::data::List::iter = fn(ref(w27 w2) w5)
-  ::std::data::List::iter = fn(ref(w25 w9) w12)
-  ::std::unicode::String::split_once::5 = x(w2 x(w26 x(w9 x(w5 x(w12 w50)))))
-}
+::std::unicode::String::split_once::2 { x(tup(dup489(n0 dup495(?(::std::data::List::Iter::next::3 ::std::data::List::Iter::next::2 x(x(n1 n2) x(x(ref(n3 n4) n5) enum(::std::unicode::String::split_once::8 enum(::std::unicode::String::split_once::9 x(tup(n0 tup(n4 n6)) x(n7 x(tup(n8 tup(n9 n10)) x(tup(n2 n5) x(tup(n11 ref(n12 n9)) n13)))))))))) n1)) tup(n3 n6)) x(n7 x(tup(dup489(n8 n11) tup(n12 n10)) n13))) }
 
 ::std::unicode::String::split_once::3 { x(_ ::std::unicode::String::split_once::23) }
 
-::std::unicode::String::split_once::5 {
-  x(w10 x(w9 x(w8 x(w7 w6))))
-  ::std::data::List::Iter::next = fn(ref(w7 w1) enum(::std::unicode::String::split_once::8 enum(::std::unicode::String::split_once::9 x(w10 x(w9 x(w8 x(w1 w6)))))))
-}
+::std::unicode::String::split_once::5 { x(n0 x(n1 x(n2 x(tup(dup495(?(::std::data::List::Iter::next::3 ::std::data::List::Iter::next::2 x(x(n3 n4) x(x(n5 n6) enum(::std::unicode::String::split_once::8 enum(::std::unicode::String::split_once::9 x(n0 x(n1 x(n2 x(tup(n4 n6) n7))))))))) n3) n5) n7)))) }
 
-::std::unicode::String::split_once::8 {
-  enum(ref(dup2155(w1 w16) w1) x(w9 x(w8 x(w7 x(w6 x(w5 w15))))))
-  ::std::data::List::Iter::next = fn(ref(w5 w11) enum(::std::unicode::String::split_once::12 enum(::std::unicode::String::split_once::13 x(w9 x(w8 x(w7 x(w6 x(w11 x(w16 w15)))))))))
-}
+::std::unicode::String::split_once::8 { enum(ref(dup2155(n0 n1) n0) x(n2 x(n3 x(n4 x(n5 x(tup(dup495(?(::std::data::List::Iter::next::3 ::std::data::List::Iter::next::2 x(x(n6 n7) x(x(n8 n9) enum(::std::unicode::String::split_once::12 enum(::std::unicode::String::split_once::13 x(n2 x(n3 x(n4 x(n5 x(tup(n7 n9) x(n1 n10))))))))))) n6) n8) n10)))))) }
 
-::std::unicode::String::split_once::9 {
-  x(_ x(w4 x(w3 x(_ w1))))
-  ::std::unicode::String::split_once::14 = x(w4 x(w3 w1))
-}
+::std::unicode::String::split_once::9 { x(_ x(n0 x(tup(_ tup(_ n1)) x(_ x(tup(n2 ref(n3 _)) tup(n0 enum(enum(tup(n2 tup(n3 n1)) n4) enum(_ n4)))))))) }
 
-::std::unicode::String::split_once::12 { enum(ref(dup2169(w1 w13) w1) x(w10 x(w9 x(w8 x(w7 x(w6 x(@ne(w13 ?(::std::unicode::String::split_once::5 ::std::unicode::String::split_once::16 x(w10 x(w9 x(w8 x(w7 x(w6 w15))))))) w15))))))) }
+::std::unicode::String::split_once::12 { enum(ref(dup2169(n0 n1) n0) x(n2 x(n3 x(n4 x(n5 x(n6 x(@ne(n1 ?(::std::unicode::String::split_once::5 ::std::unicode::String::split_once::16 x(n2 x(n3 x(n4 x(n5 x(n6 n7))))))) n7))))))) }
 
-::std::unicode::String::split_once::13 {
-  x(_ x(w5 x(w4 x(_ x(w2 x(_ w7))))))
-  ::std::unicode::String::split_once::14 = x(w5 x(w4 x(w2 w7)))
-}
+::std::unicode::String::split_once::13 { x(_ x(n0 x(tup(_ tup(_ n1)) x(_ x(tup(n2 ref(n3 _)) x(_ tup(n0 enum(enum(tup(n2 tup(n3 n1)) n4) enum(_ n4))))))))) }
 
-::std::unicode::String::split_once::14 { x(w3 x(tup(_ tup(_ w12)) x(tup(w6 ref(w8 _)) tup(w3 enum(enum(tup(w6 tup(w8 w12)) w26) enum(_ w26)))))) }
+::std::unicode::String::split_once::14 { x(n0 x(tup(_ tup(_ n1)) x(tup(n2 ref(n3 _)) tup(n0 enum(enum(tup(n2 tup(n3 n1)) n4) enum(_ n4)))))) }
 
-::std::unicode::String::split_once::16 {
-  x(w5 x(w4 x(w3 x(w2 x(w1 w37)))))
-  ::std::data::List::Iter::drop = fn(ref(w2 _) _)
-  ::std::data::List::Iter::drop = fn(ref(w1 _) _)
-  ::std::data::List::pop_front = fn(ref(w3 w32) enum(::std::unicode::String::split_once::21 enum(::std::unicode::String::split_once::22 x(w5 x(w4 x(w32 w37))))))
-}
+::std::unicode::String::split_once::16 { x(n0 x(n1 x(tup(dup341(?(::std::data::List::pop_front::3 ::std::data::List::pop_front::2 x(x(n2 n3) x(x(n4 n5) enum(::std::unicode::String::split_once::21 enum(::std::unicode::String::split_once::22 x(n0 x(n1 x(tup(n3 tup(n5 n6)) n7)))))))) n2) tup(n4 n6)) x(tup(_ ref(n8 n8)) x(tup(_ ref(n9 n9)) n7))))) }
 
-::std::unicode::String::split_once::21 {
-  enum(w0 x(w5 x(w4 w3)))
-  ::std::data::List::concat = fn(w4 fn(tup(1 tup(tup(w0 w12) w12)) w11))
-  ::std::unicode::String::split_once::1 = x(w5 x(w11 w3))
-}
+::std::unicode::String::split_once::21 { enum(n0 x(tup(dup2032(n1 n2) n3) x(tup(@add(1 n4) tup(n5 tup(n0 n6))) x(tup(dup2032(n7 @le$(n2 ?(::std::unicode::String::split_once::3 ::std::unicode::String::split_once::2 x(tup(n1 n3) x(tup(n4 tup(n5 n6)) x(tup(n7 n8) n9)))))) n8) n9)))) }
 
 ::std::unicode::String::split_once::22 { x(_ ::std::unicode::String::split_once::23) }
 
-::std::unicode::String::split_once::23 {
-  x(w14 x(w13 tup(w10 ::std::logical::Option::None)))
-  ::std::data::List::concat = fn(w14 fn(w13 w10))
-}
+::std::unicode::String::split_once::23 { x(tup(@add(n0 n1) tup(n2 n3)) x(tup(n0 tup(n3 n4)) tup(tup(n1 tup(n2 n4)) ::std::logical::Option::None))) }
 
-::std::IO::println {
-  fn(ref(w1 w12) fn(w3 _))
-  ::std::IO::print = fn(ref(w1 w7) fn(w3 _))
-  ::std::IO::print_char = fn(ref(w7 w12) fn(10 _))
-}
+::std::IO::println { fn(ref(n0 n1) fn(tup(dup2405(?(::std::IO::print::3 ::std::IO::print::2 x(x(n0 @io_print_char(10 n1)) x(n2 n3))) n2) tup(n3 _)) _)) }
 
-::std::IO::print {
-  fn(ref(w1 w16) fn(tup(w7 tup(w8 _)) _))
-  ::std::IO::print::1 = x(x(w1 w16) x(w7 w8))
-}
+::std::IO::print { fn(ref(n0 n1) fn(tup(dup2405(?(::std::IO::print::3 ::std::IO::print::2 x(x(n0 n1) x(n2 n3))) n2) tup(n3 _)) _)) }
 
-::std::IO::print::1 { x(w4 x(dup2405(?(::std::IO::print::3 ::std::IO::print::2 x(w4 x(w6 w1))) w6) w1)) }
+::std::IO::print::1 { x(n0 x(dup2405(?(::std::IO::print::3 ::std::IO::print::2 x(n0 x(n1 n2))) n1) n2)) }
 
-::std::IO::print::2 {
-  x(x(w17 w21) x(@sub(1 w1) tup(w4 w5)))
-  ::std::IO::print_char = fn(ref(w17 w10) fn(w4 _))
-  ::std::IO::print::1 = x(x(w10 w21) x(w1 w5))
-}
+::std::IO::print::2 { x(x(@io_print_char(n0 n1) n2) x(@sub(1 dup2405(?(::std::IO::print::3 ::std::IO::print::2 x(x(n1 n2) x(n3 n4))) n3)) tup(n0 n4))) }
 
-::std::IO::print::3 { x(x(w3 w3) _) }
+::std::IO::print::3 { x(x(n0 n0) _) }
 
-::std::IO::read_line {
-  fn(ref(w1 w17) w14)
-  ::std::IO::read_byte = fn(ref(w1 w6) fn(0 dup2448(@ne(0 ?(::std::IO::read_line::3 ::std::IO::read_line::2 x(x(w6 w17) x(w15 w14)))) w15)))
-}
+::std::IO::read_line { fn(ref(dup(n0 @io_read_byte(0 dup(dup2448(@ne(0 ?(::std::IO::read_line::3 ::std::IO::read_line::2 x(x(n1 n2) x(n3 n4)))) n3) @seq$(n0 n1)))) n2) n4) }
 
-::std::IO::read_line::2 { x(w5 x(dup2454(@eq(10 ?(::std::IO::read_line::6 ::std::IO::read_line::5 x(w5 x(w9 w8)))) w9) enum(enum(w8 w12) enum(_ w12)))) }
+::std::IO::read_line::2 { x(n0 x(dup2454(@eq(10 ?(::std::IO::read_line::6 ::std::IO::read_line::5 x(n0 x(n1 n2)))) n1) enum(enum(n2 n3) enum(_ n3)))) }
 
-::std::IO::read_line::3 { x(x(w3 w3) x(_ ::std::logical::Option::None)) }
+::std::IO::read_line::3 { x(x(n0 n0) x(_ ::std::logical::Option::None)) }
 
-::std::IO::read_line::5 { x(x(w4 w4) x(_ tup(0 tup(w7 w7)))) }
+::std::IO::read_line::5 { x(x(n0 n0) x(_ tup(0 tup(n1 n1)))) }
 
-::std::IO::read_line::6 {
-  x(w10 x(w8 w14))
-  ::std::IO::read_line::7 = x(w10 x(x(tup(1 tup(tup(w8 w11) w11)) w14) _))
-}
+::std::IO::read_line::6 { x(x(dup(n0 @io_read_byte(10 dup(dup2471(@ne(10 ?(::std::IO::read_line::10 ::std::IO::read_line::9 x(x(n1 n2) x(n3 x(x(tup(1 tup(tup(n4 n5) n5)) n6) _))))) n3) @seq$(n0 n1)))) n2) x(n4 n6)) }
 
-::std::IO::read_line::7 {
-  x(x(w10 w18) w8)
-  ::std::IO::read_byte = fn(ref(w10 w1) fn(10 dup2471(@ne(10 ?(::std::IO::read_line::10 ::std::IO::read_line::9 x(x(w1 w18) x(w16 w8)))) w16)))
-}
+::std::IO::read_line::7 { x(x(dup(n0 @io_read_byte(10 dup(dup2471(@ne(10 ?(::std::IO::read_line::10 ::std::IO::read_line::9 x(x(n1 n2) x(n3 n4)))) n3) @seq$(n0 n1)))) n2) n4) }
 
-::std::IO::read_line::9 {
-  x(w9 x(w7 x(x(w6 w19) w17)))
-  ::std::data::List::concat = fn(w6 fn(tup(1 tup(tup(w7 w10) w10)) w3))
-  ::std::IO::read_line::7 = x(w9 x(x(w3 w19) w17))
-}
+::std::IO::read_line::9 { x(x(dup(n0 @io_read_byte(10 dup(dup2471(@ne(10 ?(::std::IO::read_line::10 ::std::IO::read_line::9 x(x(n1 n2) x(n3 x(x(tup(n4 tup(n5 n6)) n7) n8))))) n3) @seq$(n0 n1)))) n2) x(n9 x(x(tup(@add(1 n4) tup(n5 tup(n9 n6))) n7) n8))) }
 
-::std::IO::read_line::10 { x(x(w5 w5) x(_ x(x(w2 w2) _))) }
+::std::IO::read_line::10 { x(x(n0 n0) x(_ x(x(n1 n1) _))) }
 

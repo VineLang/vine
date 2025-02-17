@@ -1,11 +1,11 @@
 
-::std::numeric::N32::rotate_right { fn(@n32_rotr(x y) fn(x y)) }
+::std::numeric::N32::rotate_right { fn(@n32_rotr(n0 n1) fn(n0 n1)) }
 
-::std::numeric::N64::add { fn(tup(dup(@add(bl0 l) @n32_add_high(bl1 c)) @add(bh @add(c h))) fn(tup(dup(bl0 bl1) bh) tup(l h))) }
+::std::numeric::N64::add { fn(tup(dup(@add(n0 n1) @n32_add_high(n2 n3)) @add(n4 @add(n3 n5))) fn(tup(dup(n0 n2) n4) tup(n1 n5))) }
 
-::std::numeric::N64::mul { fn(tup(dup(@mul(bl0 l) dup(@n32_mul_high(bl1 ll) @mul(bh @add(hl @add(ll h))))) ah) fn(tup(dup(bl0 dup(bl1 @mul(ah hl))) bh) tup(l h))) }
+::std::numeric::N64::mul { fn(tup(dup(@mul(n0 n1) dup(@n32_mul_high(n2 n3) @mul(n4 @add(n5 @add(n3 n6))))) n7) fn(tup(dup(n0 dup(n2 @mul(n7 n5))) n4) tup(n1 n6))) }
 
-::std::IO::print_char { fn(ref(@io_print_char(char io) io) fn(char _)) }
+::std::IO::print_char { fn(ref(@io_print_char(n0 n1) n1) fn(n0 _)) }
 
 ::main { ::so_random::main }
 
@@ -26,73 +26,39 @@
 
 ::so_random::main::3 { x(x(w3 w3) _) }
 
-::std::numeric::N32::to_string::to_string { fn(dup19(?(::std::numeric::N32::to_string::to_string::3 ::std::numeric::N32::to_string::to_string::2 x(w7 w6)) w7) w6) }
+::std::numeric::N32::to_string::to_string { fn(dup19(?(::std::numeric::N32::to_string::to_string::3 ::std::numeric::N32::to_string::to_string::2 x(n0 n1)) n0) n1) }
 
-::std::numeric::N32::to_string::to_string::2 {
-  x(w6 w9)
-  ::std::numeric::N32::to_string::to_string::4 = x(w6 x(tup(0 tup(w7 w7)) w9))
-}
+::std::numeric::N32::to_string::to_string::2 { x(dup28(?(::std::numeric::N32::to_string::to_string::6 ::std::numeric::N32::to_string::to_string::5 x(n0 x(tup(0 tup(n1 n1)) n2))) n0) n2) }
 
-::std::numeric::N32::to_string::to_string::3 { x(_ tup(1 tup(tup(48 w5) w5))) }
+::std::numeric::N32::to_string::to_string::3 { x(_ tup(1 tup(tup(48 n0) n0))) }
 
-::std::numeric::N32::to_string::to_string::4 { x(dup28(?(::std::numeric::N32::to_string::to_string::6 ::std::numeric::N32::to_string::to_string::5 x(w6 w2)) w6) w2) }
+::std::numeric::N32::to_string::to_string::4 { x(dup28(?(::std::numeric::N32::to_string::to_string::6 ::std::numeric::N32::to_string::to_string::5 x(n0 n1)) n0) n1) }
 
-::std::numeric::N32::to_string::to_string::5 {
-  x(dup31(@rem(10 w1) @div(10 w8)) x(w11 w15))
-  48 = @add(w1 w2)
-  ::std::data::List::concat = fn(tup(1 tup(tup(w2 w13) w13)) fn(w11 w5))
-  ::std::numeric::N32::to_string::to_string::4 = x(w8 x(w5 w15))
-}
+::std::numeric::N32::to_string::to_string::5 { x(dup31(@rem(10 @add$(48 n0)) @div(10 dup28(?(::std::numeric::N32::to_string::to_string::6 ::std::numeric::N32::to_string::to_string::5 x(n1 x(tup(n2 tup(tup(n0 n3) n4)) n5))) n1))) x(tup(@add$(1 n2) tup(n3 n4)) n5)) }
 
-::std::numeric::N32::to_string::to_string::6 { x(_ x(w1 w1)) }
+::std::numeric::N32::to_string::to_string::6 { x(_ x(n0 n0)) }
 
-::std::data::List::concat { fn(tup(@add(w10 w18) tup(w6 w11)) fn(tup(w10 tup(w11 w21)) tup(w18 tup(w6 w21)))) }
+::std::data::List::concat { fn(tup(@add(n0 n1) tup(n2 n3)) fn(tup(n0 tup(n3 n4)) tup(n1 tup(n2 n4)))) }
 
-::std::numeric::N64::from_n32 { fn(w0 tup(w0 0)) }
+::std::numeric::N64::from_n32 { fn(n0 tup(n0 0)) }
 
-::std::numeric::N64::or { fn(tup(@n32_or(w3 w10) @n32_or(w4 w13)) fn(tup(w3 w4) tup(w10 w13))) }
+::std::numeric::N64::or { fn(tup(@n32_or(n0 n1) @n32_or(n2 n3)) fn(tup(n0 n2) tup(n1 n3))) }
 
-::std::rng::Pcg32::new {
-  fn(w0 fn(w1 tup(w15 w18)))
-  ::std::numeric::N64::from_n32 = fn(1 w5)
-  ::std::numeric::N64::or = fn(w1 fn(w5 dup1758(w9 dup1758(w14 w18))))
-  ::std::numeric::N64::add = fn(w0 fn(w9 w10))
-  ::std::numeric::N64::mul = fn(w10 fn(::std::rng::Pcg32::multiplier w13))
-  ::std::numeric::N64::add = fn(w13 fn(w14 w15))
-}
+::std::rng::Pcg32::new { fn(tup(dup(@add(n0 dup(@mul(1284865837 dup(@add(n1 n2) @n32_add_high(n3 n4))) dup(@n32_mul_high(1284865837 n5) @mul(1481765933 @add(n6 @add(n5 @add(n7 @add(n4 n8)))))))) @n32_add_high(n9 n10)) @add(n11 @add(n10 @mul$(1284865837 n6)))) fn(tup(@n32_or(1 dup1758(dup(n0 n9) dup1758(dup(n1 n3) n12))) @n32_or(0 dup1758(n11 dup1758(n7 n13)))) tup(tup(n2 n8) tup(n12 n13)))) }
 
-::std::rng::Pcg32::default {
-  w2
-  ::std::rng::Pcg32::new = fn(tup(3512640997 3405705229) fn(tup(4150755663 335903614) w2))
-}
+::std::rng::Pcg32::default { tup(tup(3505598835 1297702388) tup(4150755663 335903614)) }
 
 ::std::rng::Pcg32::multiplier { tup(1284865837 1481765933) }
 
-::std::rng::Pcg32::gen_n32 {
-  fn(ref(tup(dup1765(tup(@n32_shr(27 w24) dup1768(@n32_shr(13 @n32_xor(w21 @n32_xor(w24 w25))) dup1768(@n32_shl(5 w21) @n32_shr(27 w27)))) w13) dup1766(w2 w15)) tup(w16 w2)) w28)
-  ::std::numeric::N64::mul = fn(w13 fn(::std::rng::Pcg32::multiplier w14))
-  ::std::numeric::N64::add = fn(w14 fn(w15 w16))
-  ::std::numeric::N32::rotate_right = fn(w25 fn(w27 w28))
-}
+::std::rng::Pcg32::gen_n32 { fn(ref(tup(dup1765(tup(@n32_shr(27 n0) dup1768(@n32_shr(13 @n32_xor(n1 @n32_xor(n0 @n32_rotr(n2 n3)))) dup1768(@n32_shl(5 n1) @n32_shr(27 n2)))) tup(dup(@mul(1284865837 dup(@add(n4 n5) @n32_add_high(n6 n7))) dup(@n32_mul_high(1284865837 n8) @mul(1481765933 @add(n9 @add(n8 @add(n10 @add(n7 n11))))))) @mul$(1284865837 n9))) dup1766(n12 tup(dup(n4 n6) n10))) tup(tup(n5 n11) n12)) n3) }
 
-::std::IO::println {
-  fn(ref(w1 w12) fn(w3 _))
-  ::std::IO::print = fn(ref(w1 w7) fn(w3 _))
-  ::std::IO::print_char = fn(ref(w7 w12) fn(10 _))
-}
+::std::IO::println { fn(ref(n0 n1) fn(tup(dup2193(?(::std::IO::print::3 ::std::IO::print::2 x(x(n0 @io_print_char(10 n1)) x(n2 n3))) n2) tup(n3 _)) _)) }
 
-::std::IO::print {
-  fn(ref(w1 w16) fn(tup(w7 tup(w8 _)) _))
-  ::std::IO::print::1 = x(x(w1 w16) x(w7 w8))
-}
+::std::IO::print { fn(ref(n0 n1) fn(tup(dup2193(?(::std::IO::print::3 ::std::IO::print::2 x(x(n0 n1) x(n2 n3))) n2) tup(n3 _)) _)) }
 
-::std::IO::print::1 { x(w4 x(dup2193(?(::std::IO::print::3 ::std::IO::print::2 x(w4 x(w6 w1))) w6) w1)) }
+::std::IO::print::1 { x(n0 x(dup2193(?(::std::IO::print::3 ::std::IO::print::2 x(n0 x(n1 n2))) n1) n2)) }
 
-::std::IO::print::2 {
-  x(x(w17 w21) x(@sub(1 w1) tup(w4 w5)))
-  ::std::IO::print_char = fn(ref(w17 w10) fn(w4 _))
-  ::std::IO::print::1 = x(x(w10 w21) x(w1 w5))
-}
+::std::IO::print::2 { x(x(@io_print_char(n0 n1) n2) x(@sub(1 dup2193(?(::std::IO::print::3 ::std::IO::print::2 x(x(n1 n2) x(n3 n4))) n3)) tup(n0 n4))) }
 
-::std::IO::print::3 { x(x(w3 w3) _) }
+::std::IO::print::3 { x(x(n0 n0) _) }
 

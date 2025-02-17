@@ -1,170 +1,99 @@
 
-::par::Move::Up { enum(r enum(_ r)) }
+::par::Move::Up { enum(n0 enum(_ n0)) }
 
-::par::Move::Down { enum(_ enum(r r)) }
+::par::Move::Down { enum(_ enum(n0 n0)) }
 
-::par::Outcome::Win { enum(r enum(_ enum(_ r))) }
+::par::Outcome::Win { enum(n0 enum(_ enum(_ n0))) }
 
-::par::Outcome::Loss { enum(_ enum(r enum(_ r))) }
+::par::Outcome::Loss { enum(_ enum(n0 enum(_ n0))) }
 
-::par::Outcome::Draw { fn(f0 enum(_ enum(_ enum(enum(f0 r) r)))) }
+::par::Outcome::Draw { fn(n0 enum(_ enum(_ enum(enum(n0 n1) n1)))) }
 
-::par::Winner::First { enum(r enum(_ enum(_ r))) }
+::par::Winner::First { enum(n0 enum(_ enum(_ n0))) }
 
-::par::Winner::Second { enum(_ enum(r enum(_ r))) }
+::par::Winner::Second { enum(_ enum(n0 enum(_ n0))) }
 
-::par::Winner::Third { enum(_ enum(_ enum(r r))) }
+::par::Winner::Third { enum(_ enum(_ enum(n0 n0))) }
 
-::std::logical::Option::None { enum(_ enum(r r)) }
+::std::logical::Option::None { enum(_ enum(n0 n0)) }
 
-::std::numeric::N32::rotate_right { fn(@n32_rotr(x y) fn(x y)) }
+::std::numeric::N32::rotate_right { fn(@n32_rotr(n0 n1) fn(n0 n1)) }
 
-::std::numeric::N64::add { fn(tup(dup(@add(bl0 l) @n32_add_high(bl1 c)) @add(bh @add(c h))) fn(tup(dup(bl0 bl1) bh) tup(l h))) }
+::std::numeric::N64::add { fn(tup(dup(@add(n0 n1) @n32_add_high(n2 n3)) @add(n4 @add(n3 n5))) fn(tup(dup(n0 n2) n4) tup(n1 n5))) }
 
-::std::numeric::N64::mul { fn(tup(dup(@mul(bl0 l) dup(@n32_mul_high(bl1 ll) @mul(bh @add(hl @add(ll h))))) ah) fn(tup(dup(bl0 dup(bl1 @mul(ah hl))) bh) tup(l h))) }
+::std::numeric::N64::mul { fn(tup(dup(@mul(n0 n1) dup(@n32_mul_high(n2 n3) @mul(n4 @add(n5 @add(n3 n6))))) n7) fn(tup(dup(n0 dup(n2 @mul(n7 n5))) n4) tup(n1 n6))) }
 
-::std::unicode::Char::as_n32 { fn(x x) }
+::std::unicode::Char::as_n32 { fn(n0 n0) }
 
-::std::IO::print_char { fn(ref(@io_print_char(char io) io) fn(char _)) }
+::std::IO::print_char { fn(ref(@io_print_char(n0 n1) n1) fn(n0 _)) }
 
 ::main { ::par::main }
 
-::par::nil_session::fork { fn(fn(_ w5) w5) }
+::par::nil_session::fork { fn(fn(_ n0) n0) }
 
-::par::Channel::recv { fn(w0 w0) }
+::par::Channel::recv { fn(n0 n0) }
 
-::par::Channel::recv1 { fn(tup(w0 _) w0) }
+::par::Channel::recv1 { fn(tup(n0 _) n0) }
 
-::par::Channel::send { fn(tup(w3 w1) fn(w3 w1)) }
+::par::Channel::send { fn(tup(n0 n1) fn(n0 n1)) }
 
-::par::Channel::send1 { fn(tup(w3 _) fn(w3 _)) }
+::par::Channel::send1 { fn(tup(n0 _) fn(n0 _)) }
 
-::par::Move::to_string::to_string { fn(enum(::par::Move::to_string::to_string::4 enum(::par::Move::to_string::to_string::5 w7)) w7) }
+::par::Move::to_string::to_string { fn(enum(::par::Move::to_string::to_string::4 enum(::par::Move::to_string::to_string::5 n0)) n0) }
 
-::par::Move::to_string::to_string::4 { tup(2 tup(tup(85 tup(112 w4)) w4)) }
+::par::Move::to_string::to_string::4 { tup(2 tup(tup(85 tup(112 n0)) n0)) }
 
-::par::Move::to_string::to_string::5 { tup(4 tup(tup(68 tup(111 tup(119 tup(110 w4)))) w4)) }
+::par::Move::to_string::to_string::5 { tup(4 tup(tup(68 tup(111 tup(119 tup(110 n0)))) n0)) }
 
-::par::start_playing {
-  fn(ref(w1 w26) w6)
-  ::par::Channel::recv = fn(w8 tup(tup(w13 tup(w14 w15)) w17))
-  ::par::start_playing::2 = x(x(w1 w26) x(w13 x(w14 x(w15 x(w17 w20)))))
-  ::par::channel_session::fork::1 = fn(fn(w8 w20) w6)
-}
+::par::start_playing { fn(ref(n0 n1) tup(tup(tup(dup46(enum(::par::Move::to_string::to_string::4 enum(::par::Move::to_string::to_string::5 tup(@add(2 n2) tup(n3 tup(32 n4))))) n5) n6) tup(tup(dup48(enum(::par::Move::to_string::to_string::4 enum(::par::Move::to_string::to_string::5 tup(@add(n2 n7) tup(n4 tup(32 n8))))) n9) n10) tup(dup50(enum(::par::Move::to_string::to_string::4 enum(::par::Move::to_string::to_string::5 tup(@add(n7 dup2459(?(::std::IO::print::3 ::std::IO::print::2 x(x(n0 @io_print_char(10 n11)) x(n12 n3))) n12)) tup(n8 _)))) enum(::par::start_playing::16 enum(::par::start_playing::23 x(x(n11 n1) x(tup(n13 _) x(n6 x(n10 x(n14 x(n15 x(n5 n9)))))))))) n14))) tup(n13 n15))) }
 
-::par::start_playing::2 {
-  x(x(w33 w60) x(w31 x(w30 x(w29 x(w28 w54)))))
-  ::par::Channel::recv = fn(w31 tup(dup46(w19 w43) w3))
-  ::par::Channel::recv = fn(w30 tup(dup48(w21 w44) w8))
-  ::par::Channel::recv = fn(w29 tup(dup50(w23 w45) w13))
-  ::par::Move::to_string::to_string = fn(w19 tup(@add(2 w37) tup(w35 tup(32 w38))))
-  ::par::Move::to_string::to_string = fn(w21 tup(@add(w37 w39) tup(w38 tup(32 w40))))
-  ::par::Move::to_string::to_string = fn(w23 tup(@add(w39 w34) tup(w40 w36)))
-  ::std::IO::println = fn(ref(w33 w16) fn(tup(w34 tup(w35 w36)) _))
-  tup(w43 tup(w44 w45)) = tup(w48 tup(w49 enum(::par::start_playing::16 enum(::par::start_playing::23 x(x(w16 w60) x(w28 x(w3 x(w8 x(w13 x(w54 x(w48 w49)))))))))))
-}
+::par::start_playing::2 { x(x(n0 n1) x(tup(dup46(enum(::par::Move::to_string::to_string::4 enum(::par::Move::to_string::to_string::5 tup(@add(2 n2) tup(n3 tup(32 n4))))) n5) n6) x(tup(dup48(enum(::par::Move::to_string::to_string::4 enum(::par::Move::to_string::to_string::5 tup(@add(n2 n7) tup(n4 tup(32 n8))))) n9) n10) x(tup(dup50(enum(::par::Move::to_string::to_string::4 enum(::par::Move::to_string::to_string::5 tup(@add(n7 dup2459(?(::std::IO::print::3 ::std::IO::print::2 x(x(n0 @io_print_char(10 n11)) x(n12 n3))) n12)) tup(n8 _)))) enum(::par::start_playing::16 enum(::par::start_playing::23 x(x(n11 n1) x(n13 x(n6 x(n10 x(n14 x(n15 x(n5 n9)))))))))) n14) x(n13 n15))))) }
 
-::par::start_playing::3 {
-  x(w14 x(w13 x(w12 x(w11 _))))
-  ::par::Channel::send1 = fn(w13 fn(::par::Outcome::Win _))
-  ::par::Channel::send1 = fn(w12 fn(::par::Outcome::Loss _))
-  ::par::Channel::send1 = fn(w11 fn(::par::Outcome::Loss _))
-  ::par::Channel::send1 = fn(w14 fn(::par::Winner::First _))
-}
+::par::start_playing::3 { x(tup(::par::Winner::First _) x(tup(::par::Outcome::Win _) x(tup(::par::Outcome::Loss _) x(tup(::par::Outcome::Loss _) _)))) }
 
-::par::start_playing::4 {
-  x(w14 x(w13 x(w12 x(w11 _))))
-  ::par::Channel::send1 = fn(w13 fn(::par::Outcome::Loss _))
-  ::par::Channel::send1 = fn(w12 fn(::par::Outcome::Win _))
-  ::par::Channel::send1 = fn(w11 fn(::par::Outcome::Loss _))
-  ::par::Channel::send1 = fn(w14 fn(::par::Winner::Second _))
-}
+::par::start_playing::4 { x(tup(::par::Winner::Second _) x(tup(::par::Outcome::Loss _) x(tup(::par::Outcome::Win _) x(tup(::par::Outcome::Loss _) _)))) }
 
-::par::start_playing::5 {
-  x(w14 x(w13 x(w12 x(w11 _))))
-  ::par::Channel::send1 = fn(w13 fn(::par::Outcome::Loss _))
-  ::par::Channel::send1 = fn(w12 fn(::par::Outcome::Loss _))
-  ::par::Channel::send1 = fn(w11 fn(::par::Outcome::Win _))
-  ::par::Channel::send1 = fn(w14 fn(::par::Winner::Third _))
-}
+::par::start_playing::5 { x(tup(::par::Winner::Third _) x(tup(::par::Outcome::Loss _) x(tup(::par::Outcome::Loss _) x(tup(::par::Outcome::Win _) _)))) }
 
-::par::start_playing::6 {
-  x(x(w24 w12) x(w3 x(w6 x(w9 x(w19 x(w18 x(w17 _)))))))
-  ::par::Channel::choose::1 = fn(w19 fn(::par::Outcome::Draw w3))
-  ::par::Channel::choose::1 = fn(w18 fn(::par::Outcome::Draw w6))
-  ::par::Channel::choose::1 = fn(w17 fn(::par::Outcome::Draw w9))
-  ::std::IO::println = fn(ref(w24 w12) fn(tup(7 tup(tup(68 tup(114 tup(97 tup(119 tup(46 tup(46 tup(46 w27))))))) w27)) _))
-}
+::par::start_playing::6 { x(x(@io_print_char(68 @io_print_char(114 @io_print_char(97 @io_print_char(119 @io_print_char(46 @io_print_char(46 @io_print_char(46 @io_print_char(10 n0)))))))) n0) x(tup(n1 tup(n2 _)) x(tup(n3 tup(n4 _)) x(tup(n5 tup(n6 _)) x(tup(enum(_ enum(_ enum(enum(tup(n1 tup(n2 _)) n7) n7))) _) x(tup(enum(_ enum(_ enum(enum(tup(n3 tup(n4 _)) n8) n8))) _) x(tup(enum(_ enum(_ enum(enum(tup(n5 tup(n6 _)) n9) n9))) _) _))))))) }
 
-::par::start_playing::16 { x(w9 x(w7 x(w6 x(w5 x(w4 x(w11 x(w2 enum(::par::start_playing::17 enum(::par::start_playing::20 x(w9 x(w7 x(w6 x(w5 x(w4 x(w11 w2))))))))))))))) }
+::par::start_playing::16 { x(n0 x(n1 x(n2 x(n3 x(n4 x(n5 x(n6 enum(::par::start_playing::17 enum(::par::start_playing::20 x(n0 x(n1 x(n2 x(n3 x(n4 x(n5 n6))))))))))))))) }
 
-::par::start_playing::17 { x(w8 x(w6 x(w5 x(w4 x(w3 x(w9 enum(::par::start_playing::18 enum(::par::start_playing::19 x(w8 x(w6 x(w5 x(w4 x(w3 w9))))))))))))) }
+::par::start_playing::17 { x(n0 x(n1 x(n2 x(n3 x(n4 x(n5 enum(::par::start_playing::18 enum(::par::start_playing::19 x(n0 x(n1 x(n2 x(n3 x(n4 n5))))))))))))) }
 
-::par::start_playing::18 {
-  x(x(w6 w25) x(w4 x(w3 x(w2 x(w1 w19)))))
-  ::par::start_playing::6 = x(x(w6 w17) x(w15 x(w14 x(w13 x(w3 x(w2 x(w1 w9)))))))
-  ::par::start_playing::30 = x(x(w17 w25) x(w15 x(w14 x(w13 x(w4 x(w19 w9))))))
-}
+::par::start_playing::18 { x(x(@io_print_char(68 @io_print_char(114 @io_print_char(97 @io_print_char(119 @io_print_char(46 @io_print_char(46 @io_print_char(46 @io_print_char(10 n0)))))))) n1) x(n2 x(tup(enum(_ enum(_ enum(enum(tup(dup46(enum(::par::Move::to_string::to_string::4 enum(::par::Move::to_string::to_string::5 tup(@add(2 n3) tup(n4 tup(32 n5))))) n6) tup(n7 _)) n8) n8))) _) x(tup(enum(_ enum(_ enum(enum(tup(dup48(enum(::par::Move::to_string::to_string::4 enum(::par::Move::to_string::to_string::5 tup(@add(n3 n9) tup(n5 tup(32 n10))))) n11) tup(n12 _)) n13) n13))) _) x(tup(enum(_ enum(_ enum(enum(tup(dup50(enum(::par::Move::to_string::to_string::4 enum(::par::Move::to_string::to_string::5 tup(@add(n9 dup2459(?(::std::IO::print::3 ::std::IO::print::2 x(x(n0 @io_print_char(10 n14)) x(n15 n4))) n15)) tup(n10 _)))) enum(::par::start_playing::16 enum(::par::start_playing::23 x(x(n14 n1) x(n2 x(tup(n7 _) x(tup(n12 _) x(tup(n16 _) x(n17 x(n6 n11)))))))))) tup(n16 _)) n18) n18))) _) n17))))) }
 
-::par::start_playing::19 { x(x(w6 w6) ::par::start_playing::3) }
+::par::start_playing::19 { x(x(n0 n0) ::par::start_playing::3) }
 
-::par::start_playing::20 { x(x(w8 w8) x(w6 x(w5 x(w4 x(w3 x(w9 enum(::par::start_playing::4 enum(::par::start_playing::5 x(w6 x(w5 x(w4 x(w3 w9)))))))))))) }
+::par::start_playing::20 { x(x(n0 n0) x(n1 x(n2 x(n3 x(n4 x(n5 enum(::par::start_playing::4 enum(::par::start_playing::5 x(n1 x(n2 x(n3 x(n4 n5)))))))))))) }
 
-::par::start_playing::23 { x(w9 x(w7 x(w6 x(w5 x(w4 x(w11 x(w2 enum(::par::start_playing::24 enum(::par::start_playing::27 x(w9 x(w7 x(w6 x(w5 x(w4 x(w11 w2))))))))))))))) }
+::par::start_playing::23 { x(n0 x(n1 x(n2 x(n3 x(n4 x(n5 x(n6 enum(::par::start_playing::24 enum(::par::start_playing::27 x(n0 x(n1 x(n2 x(n3 x(n4 x(n5 n6))))))))))))))) }
 
-::par::start_playing::24 { x(x(w8 w8) x(w6 x(w5 x(w4 x(w3 x(w9 enum(::par::start_playing::5 enum(::par::start_playing::4 x(w6 x(w5 x(w4 x(w3 w9)))))))))))) }
+::par::start_playing::24 { x(x(n0 n0) x(n1 x(n2 x(n3 x(n4 x(n5 enum(::par::start_playing::5 enum(::par::start_playing::4 x(n1 x(n2 x(n3 x(n4 n5)))))))))))) }
 
-::par::start_playing::27 { x(w8 x(w6 x(w5 x(w4 x(w3 x(w9 enum(::par::start_playing::28 enum(::par::start_playing::29 x(w8 x(w6 x(w5 x(w4 x(w3 w9))))))))))))) }
+::par::start_playing::27 { x(n0 x(n1 x(n2 x(n3 x(n4 x(n5 enum(::par::start_playing::28 enum(::par::start_playing::29 x(n0 x(n1 x(n2 x(n3 x(n4 n5))))))))))))) }
 
-::par::start_playing::28 { x(x(w6 w6) ::par::start_playing::3) }
+::par::start_playing::28 { x(x(n0 n0) ::par::start_playing::3) }
 
-::par::start_playing::29 {
-  x(x(w6 w25) x(w4 x(w3 x(w2 x(w1 w19)))))
-  ::par::start_playing::6 = x(x(w6 w17) x(w15 x(w14 x(w13 x(w3 x(w2 x(w1 w9)))))))
-  ::par::start_playing::30 = x(x(w17 w25) x(w15 x(w14 x(w13 x(w4 x(w19 w9))))))
-}
+::par::start_playing::29 { x(x(@io_print_char(68 @io_print_char(114 @io_print_char(97 @io_print_char(119 @io_print_char(46 @io_print_char(46 @io_print_char(46 @io_print_char(10 n0)))))))) n1) x(n2 x(tup(enum(_ enum(_ enum(enum(tup(dup46(enum(::par::Move::to_string::to_string::4 enum(::par::Move::to_string::to_string::5 tup(@add(2 n3) tup(n4 tup(32 n5))))) n6) tup(n7 _)) n8) n8))) _) x(tup(enum(_ enum(_ enum(enum(tup(dup48(enum(::par::Move::to_string::to_string::4 enum(::par::Move::to_string::to_string::5 tup(@add(n3 n9) tup(n5 tup(32 n10))))) n11) tup(n12 _)) n13) n13))) _) x(tup(enum(_ enum(_ enum(enum(tup(dup50(enum(::par::Move::to_string::to_string::4 enum(::par::Move::to_string::to_string::5 tup(@add(n9 dup2459(?(::std::IO::print::3 ::std::IO::print::2 x(x(n0 @io_print_char(10 n14)) x(n15 n4))) n15)) tup(n10 _)))) enum(::par::start_playing::16 enum(::par::start_playing::23 x(x(n14 n1) x(n2 x(tup(n7 _) x(tup(n12 _) x(tup(n16 _) x(n17 x(n6 n11)))))))))) tup(n16 _)) n18) n18))) _) n17))))) }
 
-::par::start_playing::30 {
-  x(w34 x(w32 x(w31 x(w30 x(w29 x(w35 _))))))
-  ::par::start_playing::2 = x(w34 x(w32 x(w31 x(w30 x(w29 w35)))))
-}
+::par::start_playing::30 { x(x(n0 n1) x(tup(dup46(enum(::par::Move::to_string::to_string::4 enum(::par::Move::to_string::to_string::5 tup(@add(2 n2) tup(n3 tup(32 n4))))) n5) n6) x(tup(dup48(enum(::par::Move::to_string::to_string::4 enum(::par::Move::to_string::to_string::5 tup(@add(n2 n7) tup(n4 tup(32 n8))))) n9) n10) x(tup(dup50(enum(::par::Move::to_string::to_string::4 enum(::par::Move::to_string::to_string::5 tup(@add(n7 dup2459(?(::std::IO::print::3 ::std::IO::print::2 x(x(n0 @io_print_char(10 n11)) x(n12 n3))) n12)) tup(n8 _)))) enum(::par::start_playing::16 enum(::par::start_playing::23 x(x(n11 n1) x(n13 x(n6 x(n10 x(n14 x(n15 x(n5 n9)))))))))) n14) x(n13 x(n15 _)))))) }
 
-::par::channel_session::fork::1 {
-  fn(fn(tup(w5 w10) w17) tup(w5 w7))
-  ::par::channel_session::fork::2 = fn(fn(w10 w17) w7)
-}
+::par::channel_session::fork::1 { fn(fn(tup(n0 tup(n1 _)) n2) tup(n0 tup(n1 n2))) }
 
-::par::channel_session::fork::2 {
-  fn(fn(tup(w5 w10) w17) tup(w5 w7))
-  ::par::nil_session::fork = fn(fn(w10 w17) w7)
-}
+::par::channel_session::fork::2 { fn(fn(tup(n0 _) n1) tup(n0 n1)) }
 
-::par::Channel::choose::1 {
-  fn(tup(w14 _) fn(fn(w9 w14) w7))
-  ::par::channel_session::fork::1 = fn(fn(w9 _) w7)
-}
+::par::Channel::choose::1 { fn(tup(n0 _) fn(fn(tup(n1 tup(n2 _)) n0) tup(n1 tup(n2 _)))) }
 
-::par::random_player {
-  fn(ref(w1 w13) w6)
-  ::par::random_player::6 = x(x(w1 w13) w8)
-  ::par::channel_session::fork::1 = fn(fn(w8 _) w6)
-}
+::par::random_player { fn(ref(tup(dup2031(tup(@n32_shr(27 n0) dup2034(@n32_shr(13 @n32_xor(n1 @n32_xor(n0 @n32_rotr(n2 @n32_and(1 ?(::par::Move::Up ::par::Move::Down n3)))))) dup2034(@n32_shl(5 n1) @n32_shr(27 n2)))) tup(dup(@mul(1284865837 dup(@add(n4 n5) @n32_add_high(n6 n7))) dup(@n32_mul_high(1284865837 n8) @mul(1481765933 @add(n9 @add(n8 @add(n10 @add(n7 n11))))))) @mul$(1284865837 n9))) dup2032(n12 tup(dup(n4 n6) n10))) n13) tup(n3 tup(enum(::par::random_player::9 enum(::par::random_player::10 enum(::par::random_player::11 x(tup(tup(n5 n11) n12) n13)))) _))) }
 
-::par::random_player::6 {
-  x(x(w8 w19) w6)
-  ::std::rng::Pcg32::gen_n32 = fn(ref(w8 w13) @n32_and(1 ?(::par::Move::Up ::par::Move::Down w17)))
-  ::par::Channel::send = fn(w6 fn(w17 w3))
-  ::par::Channel::recv1 = fn(w3 enum(::par::random_player::9 enum(::par::random_player::10 enum(::par::random_player::11 x(w13 w19)))))
-}
+::par::random_player::6 { x(x(tup(dup2031(tup(@n32_shr(27 n0) dup2034(@n32_shr(13 @n32_xor(n1 @n32_xor(n0 @n32_rotr(n2 @n32_and(1 ?(::par::Move::Up ::par::Move::Down n3)))))) dup2034(@n32_shl(5 n1) @n32_shr(27 n2)))) tup(dup(@mul(1284865837 dup(@add(n4 n5) @n32_add_high(n6 n7))) dup(@n32_mul_high(1284865837 n8) @mul(1481765933 @add(n9 @add(n8 @add(n10 @add(n7 n11))))))) @mul$(1284865837 n9))) dup2032(n12 tup(dup(n4 n6) n10))) n13) tup(n3 tup(enum(::par::random_player::9 enum(::par::random_player::10 enum(::par::random_player::11 x(tup(tup(n5 n11) n12) n13)))) _))) }
 
-::par::random_player::9 { x(w1 w1) }
+::par::random_player::9 { x(n0 n0) }
 
-::par::random_player::10 { x(w1 w1) }
+::par::random_player::10 { x(n0 n0) }
 
-::par::random_player::11 {
-  enum(w0 w3)
-  ::par::random_player::6 = x(w3 w0)
-}
+::par::random_player::11 { enum(tup(n0 tup(enum(::par::random_player::9 enum(::par::random_player::10 enum(::par::random_player::11 x(tup(tup(n1 n2) n3) n4)))) _)) x(tup(dup2031(tup(@n32_shr(27 n5) dup2034(@n32_shr(13 @n32_xor(n6 @n32_xor(n5 @n32_rotr(n7 @n32_and(1 ?(::par::Move::Up ::par::Move::Down n0)))))) dup2034(@n32_shl(5 n6) @n32_shr(27 n7)))) tup(dup(@mul(1284865837 dup(@add(n8 n1) @n32_add_high(n9 n10))) dup(@n32_mul_high(1284865837 n11) @mul(1481765933 @add(n12 @add(n11 @add(n13 @add(n10 n2))))))) @mul$(1284865837 n12))) dup2032(n3 tup(dup(n8 n9) n13))) n4)) }
 
 ::par::main {
   fn(ref(w1 w30) _)
@@ -196,88 +125,45 @@
 
 ::par::main::10 { tup(14 tup(tup(67 tup(104 tup(97 tup(114 tup(108 tup(105 tup(101 tup(32 tup(119 tup(105 tup(110 tup(115 tup(33 tup(10 w4)))))))))))))) w4)) }
 
-::std::data::List::into_iter { fn(tup(w0 tup(w1 _)) tup(w0 w1)) }
+::std::data::List::into_iter { fn(tup(n0 tup(n1 _)) tup(n0 n1)) }
 
-::std::data::List::IntoIter::next { fn(ref(tup(dup557(?(::std::data::List::IntoIter::next::3 ::std::data::List::IntoIter::next::2 x(x(w15 w16) x(x(w3 w14) w12))) w15) w3) tup(w16 w14)) w12) }
+::std::data::List::IntoIter::next { fn(ref(tup(dup557(?(::std::data::List::IntoIter::next::3 ::std::data::List::IntoIter::next::2 x(x(n0 n1) x(x(n2 n3) n4))) n0) n2) tup(n1 n3)) n4) }
 
-::std::data::List::IntoIter::next::2 { x(x(@sub(1 w1) w1) x(x(tup(w3 w4) w4) enum(enum(w3 w15) enum(_ w15)))) }
+::std::data::List::IntoIter::next::2 { x(x(@sub(1 n0) n0) x(x(tup(n1 n2) n2) enum(enum(n1 n3) enum(_ n3)))) }
 
-::std::data::List::IntoIter::next::3 { x(x(w4 w4) x(x(w2 w2) ::std::logical::Option::None)) }
+::std::data::List::IntoIter::next::3 { x(x(n0 n0) x(x(n1 n1) ::std::logical::Option::None)) }
 
-::std::numeric::N64::from_n32 { fn(w0 tup(w0 0)) }
+::std::numeric::N64::from_n32 { fn(n0 tup(n0 0)) }
 
-::std::numeric::N64::or { fn(tup(@n32_or(w3 w10) @n32_or(w4 w13)) fn(tup(w3 w4) tup(w10 w13))) }
+::std::numeric::N64::or { fn(tup(@n32_or(n0 n1) @n32_or(n2 n3)) fn(tup(n0 n2) tup(n1 n3))) }
 
-::std::numeric::N64::xor { fn(tup(@n32_xor(w3 w10) @n32_xor(w4 w13)) fn(tup(w3 w4) tup(w10 w13))) }
+::std::numeric::N64::xor { fn(tup(@n32_xor(n0 n1) @n32_xor(n2 n3)) fn(tup(n0 n2) tup(n1 n3))) }
 
-::std::rng::Pcg32::new {
-  fn(w0 fn(w1 tup(w15 w18)))
-  ::std::numeric::N64::from_n32 = fn(1 w5)
-  ::std::numeric::N64::or = fn(w1 fn(w5 dup2024(w9 dup2024(w14 w18))))
-  ::std::numeric::N64::add = fn(w0 fn(w9 w10))
-  ::std::numeric::N64::mul = fn(w10 fn(::std::rng::Pcg32::multiplier w13))
-  ::std::numeric::N64::add = fn(w13 fn(w14 w15))
-}
+::std::rng::Pcg32::new { fn(tup(dup(@add(n0 dup(@mul(1284865837 dup(@add(n1 n2) @n32_add_high(n3 n4))) dup(@n32_mul_high(1284865837 n5) @mul(1481765933 @add(n6 @add(n5 @add(n7 @add(n4 n8)))))))) @n32_add_high(n9 n10)) @add(n11 @add(n10 @mul$(1284865837 n6)))) fn(tup(@n32_or(1 dup2024(dup(n0 n9) dup2024(dup(n1 n3) n12))) @n32_or(0 dup2024(n11 dup2024(n7 n13)))) tup(tup(n2 n8) tup(n12 n13)))) }
 
-::std::rng::Pcg32::default {
-  w2
-  ::std::rng::Pcg32::new = fn(tup(3512640997 3405705229) fn(tup(4150755663 335903614) w2))
-}
+::std::rng::Pcg32::default { tup(tup(3505598835 1297702388) tup(4150755663 335903614)) }
 
 ::std::rng::Pcg32::multiplier { tup(1284865837 1481765933) }
 
-::std::rng::Pcg32::gen_n32 {
-  fn(ref(tup(dup2031(tup(@n32_shr(27 w24) dup2034(@n32_shr(13 @n32_xor(w21 @n32_xor(w24 w25))) dup2034(@n32_shl(5 w21) @n32_shr(27 w27)))) w13) dup2032(w2 w15)) tup(w16 w2)) w28)
-  ::std::numeric::N64::mul = fn(w13 fn(::std::rng::Pcg32::multiplier w14))
-  ::std::numeric::N64::add = fn(w14 fn(w15 w16))
-  ::std::numeric::N32::rotate_right = fn(w25 fn(w27 w28))
-}
+::std::rng::Pcg32::gen_n32 { fn(ref(tup(dup2031(tup(@n32_shr(27 n0) dup2034(@n32_shr(13 @n32_xor(n1 @n32_xor(n0 @n32_rotr(n2 n3)))) dup2034(@n32_shl(5 n1) @n32_shr(27 n2)))) tup(dup(@mul(1284865837 dup(@add(n4 n5) @n32_add_high(n6 n7))) dup(@n32_mul_high(1284865837 n8) @mul(1481765933 @add(n9 @add(n8 @add(n10 @add(n7 n11))))))) @mul$(1284865837 n9))) dup2032(n12 tup(dup(n4 n6) n10))) tup(tup(n5 n11) n12)) n3) }
 
-::std::rng::Pcg32::mix {
-  fn(ref(tup(w1 dup2040(w2 w17)) tup(w18 w2)) fn(w7 _))
-  ::std::numeric::N64::xor = fn(w1 fn(tup(0 w7) w13))
-  ::std::numeric::N64::mul = fn(w13 fn(::std::rng::Pcg32::multiplier w16))
-  ::std::numeric::N64::add = fn(w16 fn(w17 w18))
-}
+::std::rng::Pcg32::mix { fn(ref(tup(tup(@n32_xor(0 dup(@mul(1284865837 dup(@add(n0 n1) @n32_add_high(n2 n3))) dup(@n32_mul_high(1284865837 n4) @mul(1481765933 @add(n5 @add(n4 @add(n6 @add(n3 n7)))))))) @n32_xor(n8 @mul$(1284865837 n5))) dup2040(n9 tup(dup(n0 n2) n6))) tup(tup(n1 n7) n9)) fn(n8 _)) }
 
-::std::rng::Pcg32::seeded {
-  fn(dup2044(w8 _) w15)
-  ::std::data::List::into_iter = fn(w8 w9)
-  ::std::rng::Pcg32::seeded::1 = x(x(::std::rng::Pcg32::default w15) w9)
-}
+::std::rng::Pcg32::seeded { fn(dup2044(tup(dup557(?(::std::data::List::IntoIter::next::3 ::std::data::List::IntoIter::next::2 x(x(n0 n1) x(x(n2 n3) enum(::std::rng::Pcg32::seeded::4 enum(::std::rng::Pcg32::seeded::5 x(x(::std::rng::Pcg32::default n4) tup(n1 n3))))))) n0) tup(n2 _)) _) n4) }
 
-::std::rng::Pcg32::seeded::1 {
-  x(w7 w5)
-  ::std::data::List::IntoIter::next = fn(ref(w5 w1) enum(::std::rng::Pcg32::seeded::4 enum(::std::rng::Pcg32::seeded::5 x(w7 w1))))
-}
+::std::rng::Pcg32::seeded::1 { x(n0 tup(dup557(?(::std::data::List::IntoIter::next::3 ::std::data::List::IntoIter::next::2 x(x(n1 n2) x(x(n3 n4) enum(::std::rng::Pcg32::seeded::4 enum(::std::rng::Pcg32::seeded::5 x(n0 tup(n2 n4))))))) n1) n3)) }
 
-::std::rng::Pcg32::seeded::4 {
-  enum(w0 x(x(w4 w13) w2))
-  ::std::unicode::Char::as_n32 = fn(w0 w9)
-  ::std::rng::Pcg32::mix = fn(ref(w4 w6) fn(w9 _))
-  ::std::rng::Pcg32::seeded::1 = x(x(w6 w13) w2)
-}
+::std::rng::Pcg32::seeded::4 { enum(n0 x(x(tup(tup(@n32_xor(0 dup(@mul(1284865837 dup(@add(n1 n2) @n32_add_high(n3 n4))) dup(@n32_mul_high(1284865837 n5) @mul(1481765933 @add(n6 @add(n5 @add(n7 @add(n4 n8)))))))) @n32_xor(n0 @mul$(1284865837 n6))) dup2040(n9 tup(dup(n1 n3) n7))) n10) tup(dup557(?(::std::data::List::IntoIter::next::3 ::std::data::List::IntoIter::next::2 x(x(n11 n12) x(x(n13 n14) enum(::std::rng::Pcg32::seeded::4 enum(::std::rng::Pcg32::seeded::5 x(x(tup(tup(n2 n8) n9) n10) tup(n12 n14))))))) n11) n13))) }
 
-::std::rng::Pcg32::seeded::5 { x(x(w2 w2) _) }
+::std::rng::Pcg32::seeded::5 { x(x(n0 n0) _) }
 
-::std::IO::println {
-  fn(ref(w1 w12) fn(w3 _))
-  ::std::IO::print = fn(ref(w1 w7) fn(w3 _))
-  ::std::IO::print_char = fn(ref(w7 w12) fn(10 _))
-}
+::std::IO::println { fn(ref(n0 n1) fn(tup(dup2459(?(::std::IO::print::3 ::std::IO::print::2 x(x(n0 @io_print_char(10 n1)) x(n2 n3))) n2) tup(n3 _)) _)) }
 
-::std::IO::print {
-  fn(ref(w1 w16) fn(tup(w7 tup(w8 _)) _))
-  ::std::IO::print::1 = x(x(w1 w16) x(w7 w8))
-}
+::std::IO::print { fn(ref(n0 n1) fn(tup(dup2459(?(::std::IO::print::3 ::std::IO::print::2 x(x(n0 n1) x(n2 n3))) n2) tup(n3 _)) _)) }
 
-::std::IO::print::1 { x(w4 x(dup2459(?(::std::IO::print::3 ::std::IO::print::2 x(w4 x(w6 w1))) w6) w1)) }
+::std::IO::print::1 { x(n0 x(dup2459(?(::std::IO::print::3 ::std::IO::print::2 x(n0 x(n1 n2))) n1) n2)) }
 
-::std::IO::print::2 {
-  x(x(w17 w21) x(@sub(1 w1) tup(w4 w5)))
-  ::std::IO::print_char = fn(ref(w17 w10) fn(w4 _))
-  ::std::IO::print::1 = x(x(w10 w21) x(w1 w5))
-}
+::std::IO::print::2 { x(x(@io_print_char(n0 n1) n2) x(@sub(1 dup2459(?(::std::IO::print::3 ::std::IO::print::2 x(x(n1 n2) x(n3 n4))) n3)) tup(n0 n4))) }
 
-::std::IO::print::3 { x(x(w3 w3) _) }
+::std::IO::print::3 { x(x(n0 n0) _) }
 

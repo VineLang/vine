@@ -40,7 +40,7 @@ impl Optimizer {
     host.insert_nets(nets);
 
     for (name, net) in nets.iter_mut() {
-      if name.ends_with("::main") {
+      if name.contains("::main") {
         continue;
       }
       let ivm = &mut IVM::new(heap);
