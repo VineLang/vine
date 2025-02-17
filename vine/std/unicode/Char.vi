@@ -3,8 +3,13 @@ use ops::Ord;
 
 #[builtin = "Char"]
 pub mod Char {
-  pub inline_ivy! from_n32: fn(N32) -> Char { fn(x x) }
-  pub inline_ivy! .as_n32: fn(Char) -> N32 { fn(x x) }
+  pub fn from_n32(n: N32) -> Char {
+    inline_ivy! (n <- n) -> Char { n }
+  }
+
+  pub fn .as_n32(c: Char) -> N32 {
+    inline_ivy! (c <- c) -> N32 { c }
+  }
 
   pub impl ord: Ord[Char] {
     fn .cmp(&a: &Char, &b: &Char) -> Ord {

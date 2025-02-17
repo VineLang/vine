@@ -41,12 +41,12 @@ pub mod N32 {
     }
   }
 
-  pub inline_ivy! .rotate_left: fn(N32, N32) -> N32 {
-    fn(@n32_rotl(x y) fn(x y))
+  pub fn .rotate_left(a: N32, b: N32) -> N32 {
+    inline_ivy! (a <- a, b <- b) -> N32 { out a = @n32_rotl(b out) }
   }
 
-  pub inline_ivy! .rotate_right: fn(N32, N32) -> N32 {
-    fn(@n32_rotr(x y) fn(x y))
+  pub fn .rotate_right(a: N32, b: N32) -> N32 {
+    inline_ivy! (a <- a, b <- b) -> N32 { out a = @n32_rotr(b out) }
   }
 
   pub fn ascending(&a: &N32, &b: &N32) -> Bool {

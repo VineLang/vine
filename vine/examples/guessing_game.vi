@@ -36,5 +36,3 @@ pub fn main(&io: &IO) {
     }
   }
 }
-
-inline_ivy! transmute[T, U]: fn(T) -> U { fn(x x) }

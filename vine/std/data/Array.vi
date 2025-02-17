@@ -192,9 +192,17 @@ pub mod Array {
 struct Node[T](Node[T], Node[T]);
 
 mod Node {
-  pub inline_ivy! .to_leaf[T]: fn(Node[T]) -> T { fn(x x) }
-  pub inline_ivy! .as_leaf[T]: fn(&Node[T]) -> &T { fn(x x) }
-  pub inline_ivy! leaf[T]: fn(T) -> Node[T] { fn(x x) }
+  pub fn .to_leaf[T](node: Node[T]) -> T {
+    inline_ivy! (x <- node) -> T { x }
+  }
+
+  pub fn .as_leaf[T](node: &Node[T]) -> &T {
+    inline_ivy! (x <- node) -> &T { x }
+  }
+
+  pub fn leaf[T](value: T) -> Node[T] {
+    inline_ivy! (x <- value) -> Node[T] { x }
+  }
 
   pub fn new[T](len: N32, value: T) -> Node[T] {
     if len == 1 {

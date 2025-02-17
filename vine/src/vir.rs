@@ -1,6 +1,7 @@
 use core::slice;
 use std::collections::BTreeMap;
 
+use ivy::ast::Net;
 use vine_util::{
   idx::{Counter, IdxVec},
   multi_iter, new_idx,
@@ -115,11 +116,12 @@ pub enum Step {
   Dup(Port, Port, Port),
   List(Port, Vec<Port>),
   String(Port, String, Vec<(Port, String)>),
+  InlineIvy(Vec<(String, Port)>, Port, Net),
 }
 
 impl Step {
   pub fn ports(&self) -> impl Iterator<Item = &Port> {
-    multi_iter!(Ports { Zero, Two, Three, Invoke, Transfer, Tuple, Fn, String });
+    multi_iter!(Ports { Zero, Two, Three, Invoke, Transfer, Tuple, Fn, String, Ivy });
     match self {
       Step::Invoke(_, invocation) => Ports::Invoke(invocation.ports()),
       Step::Transfer(transfer) | Step::Diverge(_, Some(transfer)) => {
@@ -135,6 +137,7 @@ impl Step {
         Ports::Three([a, b, c])
       }
       Step::String(a, _, b) => Ports::String([a].into_iter().chain(b.iter().map(|x| &x.0))),
+      Step::InlineIvy(binds, root, _) => Ports::Ivy(binds.iter().map(|x| &x.1).chain([root])),
     }
   }
 }

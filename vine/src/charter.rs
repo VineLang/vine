@@ -293,20 +293,6 @@ impl<'core> Charter<'core, '_> {
         None
       }
 
-      ItemKind::Ivy(ivy_item) => {
-        let def = self.chart_child(parent, ivy_item.name, vis, true);
-        let generics = self.chart_generics(def, ivy_item.generics, false);
-        self.define_value(
-          span,
-          def,
-          vis,
-          generics,
-          ValueDefKind::Ivy { ty: ivy_item.ty, net: ivy_item.net },
-          ivy_item.method,
-        );
-        Some(def)
-      }
-
       ItemKind::Taken => None,
     };
 

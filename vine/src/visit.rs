@@ -152,6 +152,12 @@ pub trait VisitMut<'core, 'a> {
       ExprKind::String(_, i) => {
         self.visit(i.iter_mut().map(|x| &mut x.0));
       }
+      ExprKind::InlineIvy(binds, ty, _, _) => {
+        for (_, _, expr) in binds {
+          self.visit_expr(expr);
+        }
+        self.visit_type(ty);
+      }
     }
   }
 
@@ -302,7 +308,7 @@ pub trait VisitMut<'core, 'a> {
       ItemKind::Impl(t) => {
         self.visit(&mut t.items);
       }
-      ItemKind::Use(..) | ItemKind::Ivy(_) | ItemKind::Taken => {}
+      ItemKind::Use(..) | ItemKind::Taken => {}
     }
   }
 

@@ -246,6 +246,25 @@ impl<'core, 'r> Distiller<'core, 'r> {
         }
         last_result
       }
+
+      ExprKind::InlineIvy(binds, _, _, net) => {
+        let out = stage.new_wire();
+        let binds = binds
+          .iter()
+          .map(|(var, value, expr)| {
+            (
+              var.0 .0.into(),
+              if *value {
+                self.distill_expr_value(stage, expr)
+              } else {
+                self.distill_expr_space(stage, expr)
+              },
+            )
+          })
+          .collect();
+        stage.steps.push(Step::InlineIvy(binds, out.0, net.clone()));
+        out.1
+      }
     }
   }
 

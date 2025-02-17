@@ -452,6 +452,12 @@ impl<'core> Checker<'core, '_> {
         }
         string_ty
       }
+      ExprKind::InlineIvy(binds, ty, _, _) => {
+        for (_, value, expr) in binds {
+          self.check_expr_form(expr, if *value { Form::Value } else { Form::Space });
+        }
+        self.hydrate_type(ty, true)
+      }
     }
   }
 

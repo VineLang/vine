@@ -37,7 +37,6 @@ pub enum ItemKind<'core> {
   Trait(TraitItem<'core>),
   Impl(ImplItem<'core>),
   Use(UseItem<'core>),
-  Ivy(InlineIvy<'core>),
   #[default]
   Taken,
 }
@@ -134,15 +133,6 @@ impl<'core> UseTree<'core> {
     self.children.retain(|_, tree| tree.prune());
     !self.aliases.is_empty() || !self.children.is_empty()
   }
-}
-
-#[derive(Debug, Clone)]
-pub struct InlineIvy<'core> {
-  pub method: bool,
-  pub name: Ident<'core>,
-  pub generics: GenericParams<'core>,
-  pub ty: Ty<'core>,
-  pub net: Net,
 }
 
 #[derive(Default, Debug, Clone)]
@@ -339,6 +329,8 @@ pub enum ExprKind<'core> {
   MoveLocal(Local),
   #[class(space, synthetic)]
   SetLocal(Local),
+  #[class(value)]
+  InlineIvy(Vec<(Ident<'core>, bool, Expr<'core>)>, Ty<'core>, Span, Net),
   #[class(error)]
   Error(ErrorGuaranteed),
 }

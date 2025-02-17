@@ -17,33 +17,49 @@ pub mod N64 {
     lo
   }
 
-  pub inline_ivy! .add: fn(N64, N64) -> N64 {
-    fn(tup(dup(al0 al1) ah) fn(tup(dup(bl0 bl1) bh) tup(l h)))
-    al0 = @add(bl0 l)
-    al1 = @n32_add_high(bl1 c)
-    ah = @add(bh @add(c h))
+  pub fn .add(a: N64, b: N64) -> N64 {
+    inline_ivy! (a <- a, b <- b) -> N64 {
+      tup(l h)
+      a = tup(dup(al0 al1) ah)
+      b = tup(dup(bl0 bl1) bh)
+      al0 = @add(bl0 l)
+      al1 = @n32_add_high(bl1 c)
+      ah = @add(bh @add(c h))
+    }
   }
 
-  pub inline_ivy! .sub: fn(N64, N64) -> N64 {
-    fn(tup(dup(al0 al1) ah) fn(tup(dup(bl0 bl1) bh) tup(l h)))
-    al0 = @sub(bl0 l)
-    al1 = @lt(bl1 c)
-    ah = @sub(bh @sub(c h))
+  pub fn .sub(a: N64, b: N64) -> N64 {
+    inline_ivy! (a <- a, b <- b) -> N64 {
+      tup(l h)
+      a = tup(dup(al0 al1) ah)
+      b = tup(dup(bl0 bl1) bh)
+      al0 = @sub(bl0 l)
+      al1 = @lt(bl1 c)
+      ah = @sub(bh @sub(c h))
+    }
   }
 
-  pub inline_ivy! .mul: fn(N64, N64) -> N64 {
-    fn(tup(dup(al0 dup(al1 al2)) ah) fn(tup(dup(bl0 dup(bl1 bl2)) bh) tup(l h)))
-    al0 = @mul(bl0 l)
-    al1 = @n32_mul_high(bl1 ll)
-    al2 = @mul(bh lh)
-    bl2 = @mul(ah hl)
-    lh = @add(hl @add(ll h))
+  pub fn .mul(a: N64, b: N64) -> N64 {
+    inline_ivy! (a <- a, b <- b) -> N64 {
+      tup(l h)
+      a = tup(dup(al0 dup(al1 al2)) ah)
+      b = tup(dup(bl0 dup(bl1 bl2)) bh)
+      al0 = @mul(bl0 l)
+      al1 = @n32_mul_high(bl1 ll)
+      al2 = @mul(bh lh)
+      bl2 = @mul(ah hl)
+      lh = @add(hl @add(ll h))
+    }
   }
 
-  pub inline_ivy! mul_n32_n32: fn(N32, N32) -> N64 {
-    fn(dup(a0 a1) fn(dup(b0 b1) tup(l h)))
-    a0 = @mul(b0 l)
-    a1 = @n32_mul_high(b1 h)
+  pub fn .mul_n32_n32(a: N32, b: N32) -> N64 {
+    inline_ivy! (a <- a, b <- b) -> N64 {
+      tup(l h)
+      a = dup(a0 a1)
+      b = dup(b0 b1)
+      a0 = @mul(b0 l)
+      a1 = @n32_mul_high(b1 h)
+    }
   }
 
   pub fn .div_rem_n32(N64(al, ah), d: N32) -> (N64, N32) {

@@ -334,6 +334,13 @@ impl<'core, 'a> VirEmitter<'core, 'a> {
         self.pairs.push((cur_len, len.1));
         self.pairs.push((cur_buf, end.1));
       }
+      Step::InlineIvy(binds, out, net) => {
+        for (var, port) in binds {
+          self.pairs.push((Tree::Var(var.clone()), emit_port(port)));
+        }
+        self.pairs.push((emit_port(out), net.root.clone()));
+        self.pairs.extend_from_slice(&net.pairs);
+      }
     }
   }
 

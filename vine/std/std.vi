@@ -17,7 +17,7 @@ pub mod prelude {
     unicode::{Char, String},
   };
 
-  pub inline_ivy! black_box[T]: fn(T) -> T {
-    fn(x #[x])
+  pub fn black_box[T](value: T) -> T {
+    inline_ivy! (value <- value) -> T { #[value] }
   }
 }

@@ -16,8 +16,10 @@ pub mod IO {
     }
   }
 
-  pub inline_ivy! .print_char: fn(&IO, Char) {
-    fn(ref(@io_print_char(char io) io) fn(char _))
+  pub fn .print_char(&io: &IO, char: Char) {
+    inline_ivy! (io0 <- io, io1 -> io, char <- char) -> () { _
+      io0 = @io_print_char(char io1) 
+    }
   }
 
   pub fn .print_bytes(&io: &IO, bytes: List[N32]) {
@@ -30,12 +32,16 @@ pub mod IO {
     }
   }
 
-  pub inline_ivy! .print_byte: fn(&IO, N32) {
-    fn(ref(@io_print_byte(char io) io) fn(char _))
+  pub fn .print_byte(&io: &IO, byte: N32) {
+    inline_ivy! (io0 <- io, io1 -> io, byte <- byte) -> () { _
+      io0 = @io_print_byte(byte io1) 
+    }
   }
 
-  pub inline_ivy! .flush: fn(&IO) {
-    fn(ref(@io_flush(0 io) io) _)
+  pub fn .flush(&io: &IO) {
+    inline_ivy! (io0 <- io, io1 -> io) -> () { _
+      io0 = @io_flush(0 io1) 
+    }
   }
 
   pub fn .prompt(&io: &IO, msg: String) -> Option[String] {
@@ -78,7 +84,11 @@ pub mod IO {
     }
   }
 
-  inline_ivy! .read_byte: fn(&IO, Char) -> Char {
-    fn(ref(dup(io0 @io_read_byte(default dup(byte @seq$(io0 io1)))) io1) fn(default byte))
+  pub fn .read_byte(&io: &IO, default: Char) -> Char {
+    inline_ivy! (io0 <- io, io3 -> io, default <- default) -> Char {
+      byte
+      io0 = dup(io1 io2)
+      io1 = @io_read_byte(default dup(byte @seq$(io2 io3))) 
+    }
   }
 }
