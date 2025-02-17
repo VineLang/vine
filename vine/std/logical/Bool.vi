@@ -1,8 +1,33 @@
 
+use ops::bitwise::{And, Not, Or, Xor};
 use unicode::ToString;
 
 #[builtin = "Bool"]
 pub mod Bool {
+  pub impl and: And[Bool, Bool, Bool] {
+    fn .and(a: Bool, b: Bool) -> Bool {
+      inline_ivy! (a <- a, b <- b) -> Bool { out a = @n32_and(b out) }
+    }
+  }
+
+  pub impl or: Or[Bool, Bool, Bool] {
+    fn .or(a: Bool, b: Bool) -> Bool {
+      inline_ivy! (a <- a, b <- b) -> Bool { out a = @n32_or(b out) }
+    }
+  }
+
+  pub impl xor: Xor[Bool, Bool, Bool] {
+    fn .xor(a: Bool, b: Bool) -> Bool {
+      inline_ivy! (a <- a, b <- b) -> Bool { out a = @n32_xor(b out) }
+    }
+  }
+
+  pub impl not: Not[Bool, Bool] {
+    fn .not(a: Bool) -> Bool {
+      inline_ivy! (a <- a) -> Bool { out a = @ne(0 out) }
+    }
+  }
+
   pub impl to_string: ToString[Bool] {
     fn .to_string(self: Bool) -> String {
       if self {

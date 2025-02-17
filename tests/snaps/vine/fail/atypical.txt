@@ -36,3 +36,4 @@ error tests/programs/fail/atypical.vi:28:14 - cannot apply operator `+` to types
 error tests/programs/fail/atypical.vi:29:3 - cannot apply operator `+=` to types `N32` and `F32`
 error tests/programs/fail/atypical.vi:30:3 - type `N32` has no method `parse`
 error tests/programs/fail/atypical.vi:6:27 - expected type `()`; found `N32`
+error vine/std/rng/Pcg32.vi:12:21 - expected type `String`; found `N64`

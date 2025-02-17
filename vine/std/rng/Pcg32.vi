@@ -19,13 +19,13 @@ pub mod Pcg32 {
 
   pub fn .gen_n32(&Pcg32(state, increment)) -> N32 {
     let N64(lo, hi) = state;
-    state = N64::add(N64::mul(state, multiplier), increment);
+    state = state.mul(multiplier).add(increment);
     N32::rotate_right((hi >> 13) ^ (hi << 5) ^ (lo >> 27), hi >> 27)
   }
 
   pub fn .mix(&Pcg32(state, increment), n: N32) {
     state = state.xor(N64(0, n));
-    state = N64::add(N64::mul(state, multiplier), increment);
+    state = state.mul(multiplier).add(increment);
   }
 
   pub fn seeded(seed: String) -> Pcg32 {

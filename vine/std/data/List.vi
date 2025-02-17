@@ -1,5 +1,5 @@
 
-use ops::Ord;
+use ops::comparison::Ord;
 use unicode::ToString;
 
 #[builtin = "List"]
@@ -209,5 +209,8 @@ pub mod List {
       b.drop();
       ord
     }
+
+    const lt: fn(&List[T], &List[T]) -> Bool = Ord::lt_from_cmp[List[T]];
+    const le: fn(&List[T], &List[T]) -> Bool = Ord::le_from_cmp[List[T]];
   }
 }

@@ -1,5 +1,5 @@
 
-use ops::Ord;
+use ops::{arithmetic::{Add, Sub}, comparison::Ord};
 
 #[builtin = "Char"]
 pub mod Char {
@@ -12,15 +12,15 @@ pub mod Char {
   }
 
   pub impl ord: Ord[Char] {
-    fn .cmp(&a: &Char, &b: &Char) -> Ord {
-      if a < b {
-        Ord::Lt
-      } else if a > b {
-        Ord::Gt
-      } else {
-        Ord::Eq
-      }
+    fn .lt(&a: &Char, &b: &Char) -> Bool {
+      inline_ivy! (a <- a, b <- b) -> Bool { out a = @lt(b out) }
     }
+
+    fn .le(&a: &Char, &b: &Char) -> Bool {
+      inline_ivy! (a <- a, b <- b) -> Bool { out a = @lt(b out) }
+    }
+
+    const cmp: fn(&Char, &Char) -> Ord = Ord::cmp_from_lt[Char];
   }
 
   pub fn .is_whitespace(char: Char) -> Bool {
@@ -34,6 +34,24 @@ pub mod Char {
   pub impl to_string: ToString[Char] {
     fn .to_string(self: Char) -> String {
       String({ chars: [self] })
+    }
+  }
+
+  pub impl add_n32: Add[Char, N32, Char] {
+    fn .add(a: Char, b: N32) -> Char {
+      inline_ivy! (a <- a, b <- b) -> Char { out a = @add(b out) }
+    }
+  }
+
+  pub impl sub_n32: Sub[Char, N32, Char] {
+    fn .sub(a: Char, b: N32) -> Char {
+      inline_ivy! (a <- a, b <- b) -> Char { out a = @add(b out) }
+    }
+  }
+
+  pub impl sub_char: Sub[Char, Char, N32] {
+    fn .sub(a: Char, b: Char) -> N32 {
+      inline_ivy! (a <- a, b <- b) -> N32 { out a = @add(b out) }
     }
   }
 }

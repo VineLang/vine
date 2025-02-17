@@ -430,7 +430,7 @@ impl<'core> Checker<'core, '_> {
           for (expr, _) in rest {
             let span = expr.span;
             let ty = self.check_expr_form(expr, Form::Value);
-            let impl_ = self.find_impl(span, &Type::Trait(to_string_trait, vec![ty]));
+            let impl_ = self.find_impl(span, &mut Type::Trait(to_string_trait, vec![ty]));
             *expr = Expr {
               span,
               kind: ExprKind::Call(

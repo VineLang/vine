@@ -1,5 +1,5 @@
 
-use ops::Ord;
+use ops::comparison::Ord;
 use unicode::ToString;
 
 pub struct Map[K, V](N32, MapData[K, V]);

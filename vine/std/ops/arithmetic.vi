@@ -1,0 +1,24 @@
+
+pub trait Add[A, B, O] {
+  fn .add(a: A, b: B) -> O;
+}
+
+pub trait Sub[A, B, O] {
+  fn .sub(a: A, b: B) -> O;
+}
+
+pub trait Mul[A, B, O] {
+  fn .mul(a: A, b: B) -> O;
+}
+
+pub trait Div[A, B, O] {
+  fn .div(a: A, b: B) -> O;
+}
+
+pub trait Rem[A, B, O] {
+  fn .rem(a: A, b: B) -> O;
+}
+
+pub trait Neg[A, O] {
+  fn .neg(a: A) -> O;
+}

@@ -1,10 +1,86 @@
 
-use ops::Ord;
+use ops::{
+  arithmetic::{Add, Div, Mul, Neg, Rem, Sub},
+  bitwise::{And, Not, Or, Shl, Shr, Xor},
+  comparison::{Eq, Ord},
+};
 use unicode::ToString;
 
 #[builtin = "N32"]
 pub mod N32 {
   pub const maximum: N32 = 0xffffffff;
+
+  pub impl add: Add[N32, N32, N32] {
+    fn .add(a: N32, b: N32) -> N32 {
+      inline_ivy! (a <- a, b <- b) -> N32 { out a = @add(b out) }
+    }
+  }
+
+  pub impl sub: Sub[N32, N32, N32] {
+    fn .sub(a: N32, b: N32) -> N32 {
+      inline_ivy! (a <- a, b <- b) -> N32 { out a = @sub(b out) }
+    }
+  }
+
+  pub impl mul: Mul[N32, N32, N32] {
+    fn .mul(a: N32, b: N32) -> N32 {
+      inline_ivy! (a <- a, b <- b) -> N32 { out a = @mul(b out) }
+    }
+  }
+
+  pub impl div: Div[N32, N32, N32] {
+    fn .div(a: N32, b: N32) -> N32 {
+      inline_ivy! (a <- a, b <- b) -> N32 { out a = @div(b out) }
+    }
+  }
+
+  pub impl rem: Rem[N32, N32, N32] {
+    fn .rem(a: N32, b: N32) -> N32 {
+      inline_ivy! (a <- a, b <- b) -> N32 { out a = @rem(b out) }
+    }
+  }
+
+  pub impl neg: Neg[N32, N32] {
+    fn .neg(a: N32) -> N32 {
+      inline_ivy! (a <- a) -> N32 { out a = @sub$(0 out) }
+    }
+  }
+
+  pub impl and: And[N32, N32, N32] {
+    fn .and(a: N32, b: N32) -> N32 {
+      inline_ivy! (a <- a, b <- b) -> N32 { out a = @n32_and(b out) }
+    }
+  }
+
+  pub impl or: Or[N32, N32, N32] {
+    fn .or(a: N32, b: N32) -> N32 {
+      inline_ivy! (a <- a, b <- b) -> N32 { out a = @n32_or(b out) }
+    }
+  }
+
+  pub impl xor: Xor[N32, N32, N32] {
+    fn .xor(a: N32, b: N32) -> N32 {
+      inline_ivy! (a <- a, b <- b) -> N32 { out a = @n32_xor(b out) }
+    }
+  }
+
+  pub impl shl: Shl[N32, N32, N32] {
+    fn .shl(a: N32, b: N32) -> N32 {
+      inline_ivy! (a <- a, b <- b) -> N32 { out a = @n32_shl(b out) }
+    }
+  }
+
+  pub impl shr: Shr[N32, N32, N32] {
+    fn .shr(a: N32, b: N32) -> N32 {
+      inline_ivy! (a <- a, b <- b) -> N32 { out a = @n32_shr(b out) }
+    }
+  }
+
+  pub impl not: Not[N32, N32] {
+    fn .not(a: N32) -> N32 {
+      inline_ivy! (a <- a) -> N32 { out a = @n32_xor(0xffffffff out) }
+    }
+  }
 
   pub impl to_string: ToString[N32] {
     fn .to_string(n: N32) -> String {
@@ -58,14 +134,20 @@ pub mod N32 {
   }
 
   pub impl ord: Ord[N32] {
-    fn .cmp(&a: &N32, &b: &N32) -> Ord {
-      if a < b {
-        Ord::Lt
-      } else if a > b {
-        Ord::Gt
-      } else {
-        Ord::Eq
-      }
+    fn .lt(&a: &N32, &b: &N32) -> Bool {
+      inline_ivy! (a <- a, b <- b) -> Bool { out a = @lt(b out) }
+    }
+
+    fn .le(&a: &N32, &b: &N32) -> Bool {
+      inline_ivy! (a <- a, b <- b) -> Bool { out a = @lt(b out) }
+    }
+
+    const cmp: fn(&N32, &N32) -> Ord = Ord::cmp_from_lt[N32];
+  }
+
+  pub impl eq: Eq[N32] {
+    fn .eq(&a: &N32, &b: &N32) -> Bool {
+      inline_ivy! (a <- a, b <- b) -> Bool { out a = @eq(b out) }
     }
   }
 

@@ -1,3 +1,35 @@
 
+use ops::arithmetic::{Add, Div, Mul, Rem, Sub};
+
 #[builtin = "F32"]
-pub mod F32 {}
+pub mod F32 {
+  pub impl add: Add[F32, F32, F32] {
+    fn .add(a: F32, b: F32) -> F32 {
+      inline_ivy! (a <- a, b <- b) -> F32 { out a = @add(b out) }
+    }
+  }
+
+  pub impl sub: Sub[F32, F32, F32] {
+    fn .sub(a: F32, b: F32) -> F32 {
+      inline_ivy! (a <- a, b <- b) -> F32 { out a = @sub(b out) }
+    }
+  }
+
+  pub impl mul: Mul[F32, F32, F32] {
+    fn .mul(a: F32, b: F32) -> F32 {
+      inline_ivy! (a <- a, b <- b) -> F32 { out a = @mul(b out) }
+    }
+  }
+
+  pub impl div: Div[F32, F32, F32] {
+    fn .div(a: F32, b: F32) -> F32 {
+      inline_ivy! (a <- a, b <- b) -> F32 { out a = @div(b out) }
+    }
+  }
+
+  pub impl rem: Rem[F32, F32, F32] {
+    fn .rem(a: F32, b: F32) -> F32 {
+      inline_ivy! (a <- a, b <- b) -> F32 { out a = @rem(b out) }
+    }
+  }
+}
