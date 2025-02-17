@@ -16,7 +16,7 @@
 
 ::sieve::main::5 { x(x(n0 n0) _) }
 
-::sieve::main::7 { x(x(n0 n1) x(n2 x(n3 x(dup31(dup49(?(::std::numeric::N32::to_string::to_string::3 ::std::numeric::N32::to_string::to_string::2 x(n4 tup(dup2223(?(::std::IO::print::3 ::std::IO::print::2 x(x(n0 @io_print_char(10 n1)) x(n5 n6))) n5) tup(n6 _)))) n4) dup31(@mul(n7 dup40(@lt(100000 ?(::sieve::main::11 ::sieve::main::10 x(n2 x(n3 x(n8 n9))))) n9)) dup31(n7 n8))) _)))) }
+::sieve::main::7 { x(x(n0 n1) x(n2 x(n3 x(dup31(dup49(?(::std::numeric::N32::to_string::to_string::3 ::std::numeric::N32::to_string::to_string::2 x(n4 tup(dup2262(?(::std::IO::print::3 ::std::IO::print::2 x(x(n0 @io_print_char(10 n1)) x(n5 n6))) n5) tup(n6 _)))) n4) dup31(@mul(n7 dup40(@lt(100000 ?(::sieve::main::11 ::sieve::main::10 x(n2 x(n3 x(n8 n9))))) n9)) dup31(n7 n8))) _)))) }
 
 ::sieve::main::8 { x(x(n0 n0) x(x(n1 n1) _)) }
 
@@ -53,17 +53,17 @@
 
 ::std::data::Array::pop_front::9 { x(ref(tup(n0 n1) n2) x(@add(1 @div(2 dup635(@eq(1 ?(::std::data::Array::pop_front::9 ::std::data::Array::pop_front::8 x(ref(n0 n3) x(n4 x(x(tup(n5 n3) n2) x(x(n1 n5) n6)))))) n4))) x(x(n7 n7) x(x(n8 n8) n6)))) }
 
-::std::data::Array::Node::new { fn(dup668(@eq(1 ?(::std::data::Array::Node::new::3 ::std::data::Array::Node::new::2 x(n0 x(n1 n2)))) n0) fn(n1 n2)) }
+::std::data::Array::Node::new { fn(dup677(@eq(1 ?(::std::data::Array::Node::new::3 ::std::data::Array::Node::new::2 x(n0 x(n1 n2)))) n0) fn(n1 n2)) }
 
 ::std::data::Array::Node::new::2 { x(_ x(n0 n0)) }
 
-::std::data::Array::Node::new::3 { x(dup675(@add(1 @div(2 dup668(@eq(1 ?(::std::data::Array::Node::new::3 ::std::data::Array::Node::new::2 x(n0 x(n1 n2)))) n0))) @div(2 dup668(@eq(1 ?(::std::data::Array::Node::new::3 ::std::data::Array::Node::new::2 x(n3 x(n4 n5)))) n3))) x(dup676(n1 n4) tup(n2 n5))) }
+::std::data::Array::Node::new::3 { x(dup684(@add(1 @div(2 dup677(@eq(1 ?(::std::data::Array::Node::new::3 ::std::data::Array::Node::new::2 x(n0 x(n1 n2)))) n0))) @div(2 dup677(@eq(1 ?(::std::data::Array::Node::new::3 ::std::data::Array::Node::new::2 x(n3 x(n4 n5)))) n3))) x(dup685(n1 n4) tup(n2 n5))) }
 
 ::std::data::Array::Node::half::2 { x(x(n0 n0) x(x(n1 n2) x(@div(2 n3) tup(ref(n1 n2) n3)))) }
 
 ::std::data::Array::Node::half::3 { x(x(n0 n1) x(x(n2 n2) x(@add(1 @div(2 n3)) tup(ref(n0 n1) n3)))) }
 
-::std::IO::print::2 { x(x(@io_print_char(n0 n1) n2) x(@sub(1 dup2223(?(::std::IO::print::3 ::std::IO::print::2 x(x(n1 n2) x(n3 n4))) n3)) tup(n0 n4))) }
+::std::IO::print::2 { x(x(@io_print_char(n0 n1) n2) x(@sub(1 dup2262(?(::std::IO::print::3 ::std::IO::print::2 x(x(n1 n2) x(n3 n4))) n3)) tup(n0 n4))) }
 
 ::std::IO::print::3 { x(x(n0 n0) _) }
 

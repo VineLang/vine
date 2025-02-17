@@ -36,9 +36,9 @@
   ::std::IO::print_bytes::1 = x(x(w1 w14) x(w7 w8))
 }
 
-::std::IO::print_bytes::1 { x(n0 x(dup2262(?(::std::IO::print_bytes::3 ::std::IO::print_bytes::2 x(n0 x(n1 n2))) n1) n2)) }
+::std::IO::print_bytes::1 { x(n0 x(dup2306(?(::std::IO::print_bytes::3 ::std::IO::print_bytes::2 x(n0 x(n1 n2))) n1) n2)) }
 
-::std::IO::print_bytes::2 { x(x(@io_print_byte(n0 n1) n2) x(@sub(1 dup2262(?(::std::IO::print_bytes::3 ::std::IO::print_bytes::2 x(x(n1 n2) x(n3 n4))) n3)) tup(n0 n4))) }
+::std::IO::print_bytes::2 { x(x(@io_print_byte(n0 n1) n2) x(@sub(1 dup2306(?(::std::IO::print_bytes::3 ::std::IO::print_bytes::2 x(x(n1 n2) x(n3 n4))) n3)) tup(n0 n4))) }
 
 ::std::IO::print_bytes::3 { x(x(n0 n0) _) }
 

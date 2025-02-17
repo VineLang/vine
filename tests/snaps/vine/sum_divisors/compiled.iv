@@ -8,7 +8,7 @@
 
 ::sum_divisors::main::1 { x(n0 dup9(@le(100 ?(::sum_divisors::main::3 ::sum_divisors::main::2 x(n0 n1))) n1)) }
 
-::sum_divisors::main::2 { x(x(n0 n1) dup13(dup56(@le$(4 ?(::sum_divisors::3 ::sum_divisors::2 x(x(n2 dup47(@ne(1 ?(::sum_divisors::12 ::sum_divisors::11 x(n3 x(x(n4 dup15(@eq(n5 ?(::sum_divisors::main::6 ::sum_divisors::main::5 x(n6 x(n7 tup(@add(n8 dup2255(?(::std::IO::print::3 ::std::IO::print::2 x(x(n0 @io_print_char(10 n9)) x(n10 n11))) n10)) tup(n12 _)))))) dup15(n7 dup25(?(::std::numeric::N32::to_string::to_string::3 ::std::numeric::N32::to_string::to_string::2 x(n13 tup(@add(n14 n8) tup(n15 n12)))) n13)))) _)))) n3)) x(x(1 n4) 2)))) n2) dup13(@add(1 n5) dup13(n6 dup13(dup25(?(::std::numeric::N32::to_string::to_string::3 ::std::numeric::N32::to_string::to_string::2 x(n16 tup(@add(2 n14) tup(n11 tup(58 tup(32 n15)))))) n16) @add(1 dup9(@le(100 ?(::sum_divisors::main::3 ::sum_divisors::main::2 x(x(n9 n1) n17))) n17))))))) }
+::sum_divisors::main::2 { x(x(n0 n1) dup13(dup56(@le$(4 ?(::sum_divisors::3 ::sum_divisors::2 x(x(n2 dup47(@ne(1 ?(::sum_divisors::12 ::sum_divisors::11 x(n3 x(x(n4 dup15(@eq(n5 ?(::sum_divisors::main::6 ::sum_divisors::main::5 x(n6 x(n7 tup(@add(n8 dup2294(?(::std::IO::print::3 ::std::IO::print::2 x(x(n0 @io_print_char(10 n9)) x(n10 n11))) n10)) tup(n12 _)))))) dup15(n7 dup25(?(::std::numeric::N32::to_string::to_string::3 ::std::numeric::N32::to_string::to_string::2 x(n13 tup(@add(n14 n8) tup(n15 n12)))) n13)))) _)))) n3)) x(x(1 n4) 2)))) n2) dup13(@add(1 n5) dup13(n6 dup13(dup25(?(::std::numeric::N32::to_string::to_string::3 ::std::numeric::N32::to_string::to_string::2 x(n16 tup(@add(2 n14) tup(n11 tup(58 tup(32 n15)))))) n16) @add(1 dup9(@le(100 ?(::sum_divisors::main::3 ::sum_divisors::main::2 x(x(n9 n1) n17))) n17))))))) }
 
 ::sum_divisors::main::3 { x(x(n0 n0) _) }
 
@@ -44,7 +44,7 @@
 
 ::sum_divisors::12 { x(_ x(x(n0 n0) _)) }
 
-::std::IO::print::2 { x(x(@io_print_char(n0 n1) n2) x(@sub(1 dup2255(?(::std::IO::print::3 ::std::IO::print::2 x(x(n1 n2) x(n3 n4))) n3)) tup(n0 n4))) }
+::std::IO::print::2 { x(x(@io_print_char(n0 n1) n2) x(@sub(1 dup2294(?(::std::IO::print::3 ::std::IO::print::2 x(x(n1 n2) x(n3 n4))) n3)) tup(n0 n4))) }
 
 ::std::IO::print::3 { x(x(n0 n0) _) }
 

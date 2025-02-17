@@ -17,7 +17,7 @@
 
 ::cyclist::main::5 { x(n0 tup(dup173(?(::std::data::List::pop_front::3 ::std::data::List::pop_front::2 x(x(n1 n2) x(x(n3 n4) enum(::cyclist::main::8 enum(::cyclist::main::9 x(n0 tup(n2 tup(n4 n5)))))))) n1) tup(n3 n5))) }
 
-::cyclist::main::8 { enum(dup28(n0 dup31(?(::std::numeric::N32::to_string::to_string::3 ::std::numeric::N32::to_string::to_string::2 x(n1 tup(@add(2 n2) tup(n3 tup(59 tup(9 tup(91 n4))))))) n1)) x(x(n5 n6) tup(dup81(dup59(?(::cyclist::cycle::3 ::cyclist::cycle::2 x(x(tup(n7 n8) dup27(tup(dup144(dup353(?(::std::data::List::IntoIter::next::3 ::std::data::List::IntoIter::next::2 x(x(n9 n10) x(x(n11 n12) enum(::std::data::List::join::4 enum(::std::data::List::join::5 x(tup(2 tup(tup(44 tup(32 n13)) n13)) x(tup(n10 n12) tup(@add(2 @add(n2 dup2234(?(::std::IO::print::3 ::std::IO::print::2 x(x(n5 @io_print_char(10 n14)) x(n15 n3))) n15))) tup(n4 tup(93 _)))))))))) n9) dup154(?(::std::data::List::map::3 ::std::data::List::map::2 x(n16 x(n17 x(::std::numeric::N32::to_string::to_string x(n11 _))))) n16)) tup(n17 _)) tup(dup173(?(::std::data::List::pop_front::3 ::std::data::List::pop_front::2 x(x(n18 n19) x(x(n20 n21) enum(::cyclist::main::8 enum(::cyclist::main::9 x(x(n14 n6) tup(n19 tup(n21 n22)))))))) n18) tup(n20 n22)))) x(n0 x(n23 _)))) n23) n7) n8))) }
+::cyclist::main::8 { enum(dup28(n0 dup31(?(::std::numeric::N32::to_string::to_string::3 ::std::numeric::N32::to_string::to_string::2 x(n1 tup(@add(2 n2) tup(n3 tup(59 tup(9 tup(91 n4))))))) n1)) x(x(n5 n6) tup(dup81(dup59(?(::cyclist::cycle::3 ::cyclist::cycle::2 x(x(tup(n7 n8) dup27(tup(dup144(dup353(?(::std::data::List::IntoIter::next::3 ::std::data::List::IntoIter::next::2 x(x(n9 n10) x(x(n11 n12) enum(::std::data::List::join::4 enum(::std::data::List::join::5 x(tup(2 tup(tup(44 tup(32 n13)) n13)) x(tup(n10 n12) tup(@add(2 @add(n2 dup2273(?(::std::IO::print::3 ::std::IO::print::2 x(x(n5 @io_print_char(10 n14)) x(n15 n3))) n15))) tup(n4 tup(93 _)))))))))) n9) dup154(?(::std::data::List::map::3 ::std::data::List::map::2 x(n16 x(n17 x(::std::numeric::N32::to_string::to_string x(n11 _))))) n16)) tup(n17 _)) tup(dup173(?(::std::data::List::pop_front::3 ::std::data::List::pop_front::2 x(x(n18 n19) x(x(n20 n21) enum(::cyclist::main::8 enum(::cyclist::main::9 x(x(n14 n6) tup(n19 tup(n21 n22)))))))) n18) tup(n20 n22)))) x(n0 x(n23 _)))) n23) n7) n8))) }
 
 ::cyclist::main::9 { x(x(n0 n0) _) }
 
@@ -61,7 +61,7 @@
 
 ::std::logical::Option::unwrap::3 { enum(n0 n0) }
 
-::std::IO::print::2 { x(x(@io_print_char(n0 n1) n2) x(@sub(1 dup2234(?(::std::IO::print::3 ::std::IO::print::2 x(x(n1 n2) x(n3 n4))) n3)) tup(n0 n4))) }
+::std::IO::print::2 { x(x(@io_print_char(n0 n1) n2) x(@sub(1 dup2273(?(::std::IO::print::3 ::std::IO::print::2 x(x(n1 n2) x(n3 n4))) n3)) tup(n0 n4))) }
 
 ::std::IO::print::3 { x(x(n0 n0) _) }
 

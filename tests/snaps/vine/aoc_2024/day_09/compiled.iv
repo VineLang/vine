@@ -1,8 +1,6 @@
 
 ::std::logical::Option::None { enum(_ enum(n0 n0)) }
 
-::std::IO::read_byte { fn(ref(dup(n0 @io_read_byte(n1 dup(n2 @seq$(n0 n3)))) n3) fn(n1 n2)) }
-
 ::main { ::day_09::main }
 
 ::day_09::main {
@@ -25,7 +23,7 @@
 
 ::std::numeric::N64::to_string::to_string::5 { x(_ x(n0 n0)) }
 
-::std::numeric::N64::to_string::to_string::6 { x(tup(n0 dup1660(@div(10 n1) @rem(10 dup1661(@lt$(10 ?(::std::numeric::N64::div_rem_n32::3 ::std::numeric::N64::div_rem_n32::2 x(x(n2 dup1681(?(::std::numeric::N64::div_rem_n32::6 ::std::numeric::N64::div_rem_n32::5 x(x(n0 dup1659(@div(10 n3) @rem(10 @add$(48 n4)))) x(n5 x(10 x(0 @add(n3 dup17(@eq(0 ?(::std::numeric::N64::eq::3 ::std::numeric::N64::eq::2 x(n6 x(0 ?(::std::numeric::N64::to_string::to_string::6 ::std::numeric::N64::to_string::to_string::5 x(tup(n7 n8) x(tup(n9 tup(tup(n4 n10) n11)) n12))))))) n7))))))) n5)) x(10 x(x(n1 dup17(n6 n8)) _))))) n2)))) x(tup(@add$(1 n9) tup(n10 n11)) n12)) }
+::std::numeric::N64::to_string::to_string::6 { x(tup(n0 dup1693(@div(10 n1) @rem(10 dup1694(@lt$(10 ?(::std::numeric::N64::div_rem_n32::3 ::std::numeric::N64::div_rem_n32::2 x(x(n2 dup1714(?(::std::numeric::N64::div_rem_n32::6 ::std::numeric::N64::div_rem_n32::5 x(x(n0 dup1692(@div(10 n3) @rem(10 @add$(48 n4)))) x(n5 x(10 x(0 @add(n3 dup17(@eq(0 ?(::std::numeric::N64::eq::3 ::std::numeric::N64::eq::2 x(n6 x(0 ?(::std::numeric::N64::to_string::to_string::6 ::std::numeric::N64::to_string::to_string::5 x(tup(n7 n8) x(tup(n9 tup(tup(n4 n10) n11)) n12))))))) n7))))))) n5)) x(10 x(x(n1 dup17(n6 n8)) _))))) n2)))) x(tup(@add$(1 n9) tup(n10 n11)) n12)) }
 
 ::day_09::part1 {
   fn(w0 w28)
@@ -41,11 +39,11 @@
 
 ::day_09::part1::7 { x(n0 x(n1 x(n2 x(n3 dup86(?(::day_09::part1::9 ::day_09::part1::8 x(n0 x(n1 x(n2 x(n3 n4))))) n4))))) }
 
-::day_09::part1::8 { x(tup(dup352(?(::std::data::List::pop_front::3 ::std::data::List::pop_front::2 x(x(n0 n1) x(x(n2 n3) enum(::std::logical::Option::unwrap::3 enum(_ tup(dup(@mul(n4 dup(n5 n6)) @n32_mul_high(n7 n8)) tup(dup1508(@lt(n9 ?(::std::numeric::N32::min::3 ::std::numeric::N32::min::2 x(n10 x(n11 dup104(n12 n13))))) n10) dup1508(@lt(n14 ?(::std::numeric::N32::min::3 ::std::numeric::N32::min::2 x(n15 x(n16 dup105(n17 dup114(?(::day_09::part1::12 ::day_09::part1::11 x(x(n18 n19) x(x(tup(n20 n21) n22) x(x(n23 n24) n25)))) n25)))))) n15)))))))) n0) tup(n2 n26)) x(n18 x(x(tup(dup(@add(n5 n20) @n32_add_high(n6 n27)) @add(n8 @add(n27 n21))) n28) x(dup75(@add(n12 dup78(@sub(1 @mul(n29 @sub(n30 @div(2 dup(n4 n7))))) dup78(n29 n23))) dup75(@sub(1 @mul(n31 n30)) n31)) dup98(dup1509(n9 n11) @sub(n13 dup99(dup1509(n14 n16) @sub(n17 dup86(?(::day_09::part1::9 ::day_09::part1::8 x(tup(n1 tup(n3 n26)) x(n19 x(x(n22 n28) x(n24 n32))))) n32))))))))) }
+::day_09::part1::8 { x(tup(dup352(?(::std::data::List::pop_front::3 ::std::data::List::pop_front::2 x(x(n0 n1) x(x(n2 n3) enum(::std::logical::Option::unwrap::3 enum(_ tup(dup(@mul(n4 dup(n5 n6)) @n32_mul_high(n7 n8)) tup(dup1525(@lt(n9 ?(::std::numeric::N32::min::3 ::std::numeric::N32::min::2 x(n10 x(n11 dup104(n12 n13))))) n10) dup1525(@lt(n14 ?(::std::numeric::N32::min::3 ::std::numeric::N32::min::2 x(n15 x(n16 dup105(n17 dup114(?(::day_09::part1::12 ::day_09::part1::11 x(x(n18 n19) x(x(tup(n20 n21) n22) x(x(n23 n24) n25)))) n25)))))) n15)))))))) n0) tup(n2 n26)) x(n18 x(x(tup(dup(@add(n5 n20) @n32_add_high(n6 n27)) @add(n8 @add(n27 n21))) n28) x(dup75(@add(n12 dup78(@sub(1 @mul(n29 @sub(n30 @div(2 dup(n4 n7))))) dup78(n29 n23))) dup75(@sub(1 @mul(n31 n30)) n31)) dup98(dup1526(n9 n11) @sub(n13 dup99(dup1526(n14 n16) @sub(n17 dup86(?(::day_09::part1::9 ::day_09::part1::8 x(tup(n1 tup(n3 n26)) x(n19 x(x(n22 n28) x(n24 n32))))) n32))))))))) }
 
 ::day_09::part1::9 { x(_ x(_ x(x(n0 n0) _))) }
 
-::day_09::part1::11 { x(x(tup(n0 tup(tup(tup(dup127(n1 dup(@mul(n2 dup(n3 n4)) @n32_mul_high(n5 n6))) dup129(dup1508(@lt(n7 ?(::std::numeric::N32::min::3 ::std::numeric::N32::min::2 x(n8 x(n9 dup130(n10 dup130(n11 n12)))))) n8) @sub(n10 dup128(n13 ?(::day_09::part1::15 ::day_09::part1::14 x(x(tup(n0 tup(tup(tup(n1 n13) n14) n15)) n16) _)))))) n14) n15)) n17) x(x(tup(dup(@add(n3 n18) @n32_add_high(n4 n19)) @add(n6 @add(n19 n20))) n21) x(x(dup75(@add(n11 dup78(@sub(1 @mul(n22 @sub(n23 @div(2 dup(n2 n5))))) dup78(n22 n24))) dup75(@sub(1 @mul(n25 n23)) n25)) n26) dup125(dup1509(n7 n9) @sub(n12 dup114(?(::day_09::part1::12 ::day_09::part1::11 x(x(n16 n17) x(x(tup(n18 n20) n21) x(x(n24 n26) n27)))) n27)))))) }
+::day_09::part1::11 { x(x(tup(n0 tup(tup(tup(dup127(n1 dup(@mul(n2 dup(n3 n4)) @n32_mul_high(n5 n6))) dup129(dup1525(@lt(n7 ?(::std::numeric::N32::min::3 ::std::numeric::N32::min::2 x(n8 x(n9 dup130(n10 dup130(n11 n12)))))) n8) @sub(n10 dup128(n13 ?(::day_09::part1::15 ::day_09::part1::14 x(x(tup(n0 tup(tup(tup(n1 n13) n14) n15)) n16) _)))))) n14) n15)) n17) x(x(tup(dup(@add(n3 n18) @n32_add_high(n4 n19)) @add(n6 @add(n19 n20))) n21) x(x(dup75(@add(n11 dup78(@sub(1 @mul(n22 @sub(n23 @div(2 dup(n2 n5))))) dup78(n22 n24))) dup75(@sub(1 @mul(n25 n23)) n25)) n26) dup125(dup1526(n7 n9) @sub(n12 dup114(?(::day_09::part1::12 ::day_09::part1::11 x(x(n16 n17) x(x(tup(n18 n20) n21) x(x(n24 n26) n27)))) n27)))))) }
 
 ::day_09::part1::12 { x(x(n0 n0) x(x(n1 n1) x(x(n2 n2) _))) }
 
@@ -103,11 +101,11 @@
 
 ::std::numeric::N32::min::3 { x(_ x(n0 n0)) }
 
-::std::numeric::N64::div_rem_n32::2 { x(x(dup1673(@div(n0 n1) @rem(n2 n3)) n3) x(dup1674(n0 n2) x(x(_ n1) _))) }
+::std::numeric::N64::div_rem_n32::2 { x(x(dup1706(@div(n0 n1) @rem(n2 n3)) n3) x(dup1707(n0 n2) x(x(_ n1) _))) }
 
 ::std::numeric::N64::div_rem_n32::3 { x(x(n0 n0) x(_ x(x(n1 n1) _))) }
 
-::std::numeric::N64::div_rem_n32::5 { x(x(dup(@sub(n0 n1) @lt(n2 n3)) n4) x(dup1688(n5 @sub(n6 @sub(n3 dup1681(?(::std::numeric::N64::div_rem_n32::6 ::std::numeric::N64::div_rem_n32::5 x(x(n1 n4) x(n7 x(n8 x(n9 n10))))) n7)))) x(dup1690(@div$(4294967295 @mul(n5 dup1694(n11 dup(@mul(n12 dup(n0 n2)) @n32_mul_high(n13 n6))))) dup1690(dup(n12 n13) n8)) x(@add(n11 n9) n10)))) }
+::std::numeric::N64::div_rem_n32::5 { x(x(dup(@sub(n0 n1) @lt(n2 n3)) n4) x(dup1721(n5 @sub(n6 @sub(n3 dup1714(?(::std::numeric::N64::div_rem_n32::6 ::std::numeric::N64::div_rem_n32::5 x(x(n1 n4) x(n7 x(n8 x(n9 n10))))) n7)))) x(dup1723(@div$(4294967295 @mul(n5 dup1727(n11 dup(@mul(n12 dup(n0 n2)) @n32_mul_high(n13 n6))))) dup1723(dup(n12 n13) n8)) x(@add(n11 n9) n10)))) }
 
 ::std::numeric::N64::div_rem_n32::6 { x(x(n0 n0) x(_ x(_ x(n1 n1)))) }
 
@@ -115,18 +113,18 @@
 
 ::std::numeric::N64::eq::3 { x(_ x(_ 0)) }
 
-::std::IO::println { fn(ref(n0 n1) fn(tup(dup2414(?(::std::IO::print::3 ::std::IO::print::2 x(x(n0 @io_print_char(10 n1)) x(n2 n3))) n2) tup(n3 _)) _)) }
+::std::IO::println { fn(ref(n0 n1) fn(tup(dup2453(?(::std::IO::print::3 ::std::IO::print::2 x(x(n0 @io_print_char(10 n1)) x(n2 n3))) n2) tup(n3 _)) _)) }
 
-::std::IO::print::2 { x(x(@io_print_char(n0 n1) n2) x(@sub(1 dup2414(?(::std::IO::print::3 ::std::IO::print::2 x(x(n1 n2) x(n3 n4))) n3)) tup(n0 n4))) }
+::std::IO::print::2 { x(x(@io_print_char(n0 n1) n2) x(@sub(1 dup2453(?(::std::IO::print::3 ::std::IO::print::2 x(x(n1 n2) x(n3 n4))) n3)) tup(n0 n4))) }
 
 ::std::IO::print::3 { x(x(n0 n0) _) }
 
 ::std::IO::read_line {
   fn(ref(w1 w17) w14)
-  ::std::IO::read_byte = fn(ref(w1 w6) fn(0 dup2457(@ne(0 ?(::std::IO::read_line::3 ::std::IO::read_line::2 x(x(w6 w17) x(w15 w14)))) w15)))
+  ::std::IO::read_byte = fn(ref(w1 w6) fn(0 dup2510(@ne(0 ?(::std::IO::read_line::3 ::std::IO::read_line::2 x(x(w6 w17) x(w15 w14)))) w15)))
 }
 
-::std::IO::read_line::2 { x(w5 x(dup2463(@eq(10 ?(::std::IO::read_line::6 ::std::IO::read_line::5 x(w5 x(w9 w8)))) w9) enum(enum(w8 w12) enum(_ w12)))) }
+::std::IO::read_line::2 { x(w5 x(dup2516(@eq(10 ?(::std::IO::read_line::6 ::std::IO::read_line::5 x(w5 x(w9 w8)))) w9) enum(enum(w8 w12) enum(_ w12)))) }
 
 ::std::IO::read_line::3 { x(x(w3 w3) x(_ ::std::logical::Option::None)) }
 
@@ -137,9 +135,11 @@
   ::std::IO::read_line::7 = x(w10 x(x(tup(1 tup(tup(w8 w11) w11)) w14) _))
 }
 
-::std::IO::read_line::7 { x(x(dup(n0 @io_read_byte(10 dup(dup2480(@ne(10 ?(::std::IO::read_line::10 ::std::IO::read_line::9 x(x(n1 n2) x(n3 n4)))) n3) @seq$(n0 n1)))) n2) n4) }
+::std::IO::read_line::7 { x(x(dup(@io_read_byte(10 dup(dup2533(@ne(10 ?(::std::IO::read_line::10 ::std::IO::read_line::9 x(x(n0 n1) x(n2 n3)))) n2) @seq$(n4 n0))) n4) n1) n3) }
 
-::std::IO::read_line::9 { x(x(dup(n0 @io_read_byte(10 dup(dup2480(@ne(10 ?(::std::IO::read_line::10 ::std::IO::read_line::9 x(x(n1 n2) x(n3 x(x(tup(n4 tup(n5 n6)) n7) n8))))) n3) @seq$(n0 n1)))) n2) x(n9 x(x(tup(@add(1 n4) tup(n5 tup(n9 n6))) n7) n8))) }
+::std::IO::read_line::9 { x(x(dup(@io_read_byte(10 dup(dup2533(@ne(10 ?(::std::IO::read_line::10 ::std::IO::read_line::9 x(x(n0 n1) x(n2 x(x(tup(n3 tup(n4 n5)) n6) n7))))) n2) @seq$(n8 n0))) n8) n1) x(n9 x(x(tup(@add(1 n3) tup(n4 tup(n9 n5))) n6) n7))) }
 
 ::std::IO::read_line::10 { x(x(n0 n0) x(_ x(x(n1 n1) _))) }
+
+::std::IO::read_byte { fn(ref(dup(@io_read_byte(n0 dup(n1 @seq$(n2 n3))) n2) n3) fn(n0 n1)) }
 

@@ -8,7 +8,7 @@
 
 ::loop_vi_loop::main::1 { x(n0 x(dup9(@lt(5 ?(::loop_vi_loop::main::3 ::loop_vi_loop::main::2 x(n0 x(n1 n2)))) n1) n2)) }
 
-::loop_vi_loop::main::2 { x(x(n0 n1) x(@add(1 dup9(@lt(5 ?(::loop_vi_loop::main::3 ::loop_vi_loop::main::2 x(x(n2 n1) x(n3 n4)))) n3)) @add(1 dup30(dup35(?(::std::numeric::N32::to_string::to_string::3 ::std::numeric::N32::to_string::to_string::2 x(n5 tup(dup2209(?(::std::IO::print::3 ::std::IO::print::2 x(x(n0 @io_print_char(10 n6)) x(n7 n8))) n7) tup(n8 _)))) n5) @add(1 dup30(dup35(?(::std::numeric::N32::to_string::to_string::3 ::std::numeric::N32::to_string::to_string::2 x(n9 tup(dup2209(?(::std::IO::print::3 ::std::IO::print::2 x(x(n6 @io_print_char(10 n10)) x(n11 n12))) n11) tup(n12 _)))) n9) @add(1 dup30(dup35(?(::std::numeric::N32::to_string::to_string::3 ::std::numeric::N32::to_string::to_string::2 x(n13 tup(dup2209(?(::std::IO::print::3 ::std::IO::print::2 x(x(n10 @io_print_char(10 n14)) x(n15 n16))) n15) tup(n16 _)))) n13) @add(1 dup30(dup35(?(::std::numeric::N32::to_string::to_string::3 ::std::numeric::N32::to_string::to_string::2 x(n17 tup(dup2209(?(::std::IO::print::3 ::std::IO::print::2 x(x(n14 @io_print_char(10 n18)) x(n19 n20))) n19) tup(n20 _)))) n17) @add(1 dup30(dup35(?(::std::numeric::N32::to_string::to_string::3 ::std::numeric::N32::to_string::to_string::2 x(n21 tup(dup2209(?(::std::IO::print::3 ::std::IO::print::2 x(x(n18 @io_print_char(10 n2)) x(n22 n23))) n22) tup(n23 _)))) n21) n4)))))))))))) }
+::loop_vi_loop::main::2 { x(x(n0 n1) x(@add(1 dup9(@lt(5 ?(::loop_vi_loop::main::3 ::loop_vi_loop::main::2 x(x(n2 n1) x(n3 n4)))) n3)) @add(1 dup30(dup35(?(::std::numeric::N32::to_string::to_string::3 ::std::numeric::N32::to_string::to_string::2 x(n5 tup(dup2248(?(::std::IO::print::3 ::std::IO::print::2 x(x(n0 @io_print_char(10 n6)) x(n7 n8))) n7) tup(n8 _)))) n5) @add(1 dup30(dup35(?(::std::numeric::N32::to_string::to_string::3 ::std::numeric::N32::to_string::to_string::2 x(n9 tup(dup2248(?(::std::IO::print::3 ::std::IO::print::2 x(x(n6 @io_print_char(10 n10)) x(n11 n12))) n11) tup(n12 _)))) n9) @add(1 dup30(dup35(?(::std::numeric::N32::to_string::to_string::3 ::std::numeric::N32::to_string::to_string::2 x(n13 tup(dup2248(?(::std::IO::print::3 ::std::IO::print::2 x(x(n10 @io_print_char(10 n14)) x(n15 n16))) n15) tup(n16 _)))) n13) @add(1 dup30(dup35(?(::std::numeric::N32::to_string::to_string::3 ::std::numeric::N32::to_string::to_string::2 x(n17 tup(dup2248(?(::std::IO::print::3 ::std::IO::print::2 x(x(n14 @io_print_char(10 n18)) x(n19 n20))) n19) tup(n20 _)))) n17) @add(1 dup30(dup35(?(::std::numeric::N32::to_string::to_string::3 ::std::numeric::N32::to_string::to_string::2 x(n21 tup(dup2248(?(::std::IO::print::3 ::std::IO::print::2 x(x(n18 @io_print_char(10 n2)) x(n22 n23))) n22) tup(n23 _)))) n21) n4)))))))))))) }
 
 ::loop_vi_loop::main::3 { x(x(n0 n0) _) }
 
@@ -20,7 +20,7 @@
 
 ::std::numeric::N32::to_string::to_string::6 { x(_ x(n0 n0)) }
 
-::std::IO::print::2 { x(x(@io_print_char(n0 n1) n2) x(@sub(1 dup2209(?(::std::IO::print::3 ::std::IO::print::2 x(x(n1 n2) x(n3 n4))) n3)) tup(n0 n4))) }
+::std::IO::print::2 { x(x(@io_print_char(n0 n1) n2) x(@sub(1 dup2248(?(::std::IO::print::3 ::std::IO::print::2 x(x(n1 n2) x(n3 n4))) n3)) tup(n0 n4))) }
 
 ::std::IO::print::3 { x(x(n0 n0) _) }
 

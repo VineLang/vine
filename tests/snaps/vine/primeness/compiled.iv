@@ -8,7 +8,7 @@
 
 ::primeness::main::1 { x(n0 dup9(@le(46 ?(::primeness::main::3 ::primeness::main::2 x(n0 n1))) n1)) }
 
-::primeness::main::2 { x(x(n0 n1) dup13(dup46(@le(0 ?(::primeness::3 ::primeness::2 x(n2 enum(::primeness::main::10 enum(::primeness::main::11 tup(n3 tup(n4 _))))))) n2) dup13(dup28(?(::std::numeric::N32::to_string::to_string::3 ::std::numeric::N32::to_string::to_string::2 x(n5 tup(@add(2 @add(n3 dup2224(?(::std::IO::print::3 ::std::IO::print::2 x(x(n0 @io_print_char(10 n6)) x(n7 n8))) n7))) tup(n8 tup(58 tup(32 n4)))))) n5) @add(1 dup9(@le(46 ?(::primeness::main::3 ::primeness::main::2 x(x(n6 n1) n9))) n9))))) }
+::primeness::main::2 { x(x(n0 n1) dup13(dup46(@le(0 ?(::primeness::3 ::primeness::2 x(n2 enum(::primeness::main::10 enum(::primeness::main::11 tup(n3 tup(n4 _))))))) n2) dup13(dup28(?(::std::numeric::N32::to_string::to_string::3 ::std::numeric::N32::to_string::to_string::2 x(n5 tup(@add(2 @add(n3 dup2263(?(::std::IO::print::3 ::std::IO::print::2 x(x(n0 @io_print_char(10 n6)) x(n7 n8))) n7))) tup(n8 tup(58 tup(32 n4)))))) n5) @add(1 dup9(@le(46 ?(::primeness::main::3 ::primeness::main::2 x(x(n6 n1) n9))) n9))))) }
 
 ::primeness::main::3 { x(x(n0 n0) _) }
 
@@ -44,7 +44,7 @@
 
 ::primeness::12 { x(_ x(_ enum(enum(0 n0) enum(_ n0)))) }
 
-::std::IO::print::2 { x(x(@io_print_char(n0 n1) n2) x(@sub(1 dup2224(?(::std::IO::print::3 ::std::IO::print::2 x(x(n1 n2) x(n3 n4))) n3)) tup(n0 n4))) }
+::std::IO::print::2 { x(x(@io_print_char(n0 n1) n2) x(@sub(1 dup2263(?(::std::IO::print::3 ::std::IO::print::2 x(x(n1 n2) x(n3 n4))) n3)) tup(n0 n4))) }
 
 ::std::IO::print::3 { x(x(n0 n0) _) }
 

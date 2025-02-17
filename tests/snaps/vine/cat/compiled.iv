@@ -8,25 +8,25 @@
   ::cat::main::1 = x(w1 w7)
 }
 
-::cat::main::1 { x(dup(n0 @io_read_byte(0 dup(dup2232(@ne(0 ?(::std::IO::read_line::3 ::std::IO::read_line::2 x(x(n1 n2) x(n3 enum(::cat::main::4 enum(::cat::main::5 x(n2 n4))))))) n3) @seq$(n0 n1)))) n4) }
+::cat::main::1 { x(dup(@io_read_byte(0 dup(dup2285(@ne(0 ?(::std::IO::read_line::3 ::std::IO::read_line::2 x(x(n0 n1) x(n2 enum(::cat::main::4 enum(::cat::main::5 x(n1 n3))))))) n2) @seq$(n4 n0))) n4) n3) }
 
-::cat::main::4 { enum(tup(dup2189(?(::std::IO::print::3 ::std::IO::print::2 x(x(n0 @io_print_char(10 dup(n1 @io_read_byte(0 dup(dup2232(@ne(0 ?(::std::IO::read_line::3 ::std::IO::read_line::2 x(x(n2 n3) x(n4 enum(::cat::main::4 enum(::cat::main::5 x(n3 n5))))))) n4) @seq$(n1 n2)))))) x(n6 n7))) n6) tup(n7 _)) x(n0 n5)) }
+::cat::main::4 { enum(tup(dup2228(?(::std::IO::print::3 ::std::IO::print::2 x(x(n0 @io_print_char(10 dup(@io_read_byte(0 dup(dup2285(@ne(0 ?(::std::IO::read_line::3 ::std::IO::read_line::2 x(x(n1 n2) x(n3 enum(::cat::main::4 enum(::cat::main::5 x(n2 n4))))))) n3) @seq$(n5 n1))) n5))) x(n6 n7))) n6) tup(n7 _)) x(n0 n4)) }
 
 ::cat::main::5 { x(n0 n0) }
 
-::std::IO::print::2 { x(x(@io_print_char(n0 n1) n2) x(@sub(1 dup2189(?(::std::IO::print::3 ::std::IO::print::2 x(x(n1 n2) x(n3 n4))) n3)) tup(n0 n4))) }
+::std::IO::print::2 { x(x(@io_print_char(n0 n1) n2) x(@sub(1 dup2228(?(::std::IO::print::3 ::std::IO::print::2 x(x(n1 n2) x(n3 n4))) n3)) tup(n0 n4))) }
 
 ::std::IO::print::3 { x(x(n0 n0) _) }
 
-::std::IO::read_line::2 { x(n0 x(dup2238(@eq(10 ?(::std::IO::read_line::6 ::std::IO::read_line::5 x(n0 x(n1 n2)))) n1) enum(enum(n2 n3) enum(_ n3)))) }
+::std::IO::read_line::2 { x(n0 x(dup2291(@eq(10 ?(::std::IO::read_line::6 ::std::IO::read_line::5 x(n0 x(n1 n2)))) n1) enum(enum(n2 n3) enum(_ n3)))) }
 
 ::std::IO::read_line::3 { x(x(n0 n0) x(_ ::std::logical::Option::None)) }
 
 ::std::IO::read_line::5 { x(x(n0 n0) x(_ tup(0 tup(n1 n1)))) }
 
-::std::IO::read_line::6 { x(x(dup(n0 @io_read_byte(10 dup(dup2255(@ne(10 ?(::std::IO::read_line::10 ::std::IO::read_line::9 x(x(n1 n2) x(n3 x(x(tup(1 tup(tup(n4 n5) n5)) n6) _))))) n3) @seq$(n0 n1)))) n2) x(n4 n6)) }
+::std::IO::read_line::6 { x(x(dup(@io_read_byte(10 dup(dup2308(@ne(10 ?(::std::IO::read_line::10 ::std::IO::read_line::9 x(x(n0 n1) x(n2 x(x(tup(1 tup(tup(n3 n4) n4)) n5) _))))) n2) @seq$(n6 n0))) n6) n1) x(n3 n5)) }
 
-::std::IO::read_line::9 { x(x(dup(n0 @io_read_byte(10 dup(dup2255(@ne(10 ?(::std::IO::read_line::10 ::std::IO::read_line::9 x(x(n1 n2) x(n3 x(x(tup(n4 tup(n5 n6)) n7) n8))))) n3) @seq$(n0 n1)))) n2) x(n9 x(x(tup(@add(1 n4) tup(n5 tup(n9 n6))) n7) n8))) }
+::std::IO::read_line::9 { x(x(dup(@io_read_byte(10 dup(dup2308(@ne(10 ?(::std::IO::read_line::10 ::std::IO::read_line::9 x(x(n0 n1) x(n2 x(x(tup(n3 tup(n4 n5)) n6) n7))))) n2) @seq$(n8 n0))) n8) n1) x(n9 x(x(tup(@add(1 n3) tup(n4 tup(n9 n5))) n6) n7))) }
 
 ::std::IO::read_line::10 { x(x(n0 n0) x(_ x(x(n1 n1) _))) }
 

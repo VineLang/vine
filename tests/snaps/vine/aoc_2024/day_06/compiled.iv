@@ -36,7 +36,7 @@
 
 ::day_06::main::15 { x(n0 x(n1 x(n2 x(tup(dup387(?(::std::data::List::pop_front::3 ::std::data::List::pop_front::2 x(x(n3 n4) x(x(n5 n6) enum(::day_06::main::18 enum(::day_06::main::19 x(n0 x(n1 x(n2 x(tup(n4 tup(n6 n7)) n8))))))))) n3) tup(n5 n7)) n8)))) }
 
-::day_06::main::18 { enum(tup(n0 n1) x(x(n2 n3) x(dup84(dup211(@add(tup(0 4294967295) dup217(tup(dup218(@le$(n4 ?(::day_06::walk::6 ::day_06::walk::5 x(x(tup(n5 n6) _) x(n7 x(n8 x(n9 x(tup(0 4294967295) x(1 x(0 x(n10 x(n11 x(n12 tup(?(::day_06::main::22 ::day_06::main::21 x(x(n13 dup91(dup107(?(::std::numeric::N32::to_string::to_string::3 ::std::numeric::N32::to_string::to_string::2 x(n14 tup(@add(n15 dup2451(?(::std::IO::print::3 ::std::IO::print::2 x(x(n2 @io_print_char(10 n16)) x(n17 n18))) n17)) tup(n19 _)))) n14) n20)) _)) _))))))))))))) n11) n12) n10)) n7) n21) x(dup85(tup(dup710(dup705(n8 dup710(n5 dup720(@lt$(1 ?(::std::data::Array::get::3 ::std::data::Array::get::2 x(x(ref(n22 n6) ref(tup(dup705(dup213(n4 n9) n23) n24) tup(n23 n24))) x(0 n25)))) n25))) dup720(@lt$(1 ?(::std::data::Array::get::3 ::std::data::Array::get::2 x(x(ref(n26 n22) ref(tup(dup710(n27 dup720(@lt$(1 ?(::std::data::Array::get::3 ::std::data::Array::get::2 x(x(ref(n28 n29) ref(_ 35)) x(n0 n30)))) n30)) n28) tup(n27 n29))) x(n1 n31)))) n31)) n26) n32) x(tup(dup387(?(::std::data::List::pop_front::3 ::std::data::List::pop_front::2 x(x(n33 n34) x(x(n35 n36) enum(::day_06::main::18 enum(::day_06::main::19 x(x(n16 n3) x(n21 x(n32 x(tup(n34 tup(n36 n37)) x(n38 x(n20 n39))))))))))) n33) tup(n35 n37)) x(@add(1 dup88(dup107(?(::std::numeric::N32::to_string::to_string::3 ::std::numeric::N32::to_string::to_string::2 x(n40 tup(@add(1 n15) tup(n18 tup(32 n19))))) n40) n38)) x(n13 n39))))))) }
+::day_06::main::18 { enum(tup(n0 n1) x(x(n2 n3) x(dup84(dup211(@add(tup(0 4294967295) dup217(tup(dup218(@le$(n4 ?(::day_06::walk::6 ::day_06::walk::5 x(x(tup(n5 n6) _) x(n7 x(n8 x(n9 x(tup(0 4294967295) x(1 x(0 x(n10 x(n11 x(n12 tup(?(::day_06::main::22 ::day_06::main::21 x(x(n13 dup91(dup107(?(::std::numeric::N32::to_string::to_string::3 ::std::numeric::N32::to_string::to_string::2 x(n14 tup(@add(n15 dup2490(?(::std::IO::print::3 ::std::IO::print::2 x(x(n2 @io_print_char(10 n16)) x(n17 n18))) n17)) tup(n19 _)))) n14) n20)) _)) _))))))))))))) n11) n12) n10)) n7) n21) x(dup85(tup(dup710(dup705(n8 dup710(n5 dup720(@lt$(1 ?(::std::data::Array::get::3 ::std::data::Array::get::2 x(x(ref(n22 n6) ref(tup(dup705(dup213(n4 n9) n23) n24) tup(n23 n24))) x(0 n25)))) n25))) dup720(@lt$(1 ?(::std::data::Array::get::3 ::std::data::Array::get::2 x(x(ref(n26 n22) ref(tup(dup710(n27 dup720(@lt$(1 ?(::std::data::Array::get::3 ::std::data::Array::get::2 x(x(ref(n28 n29) ref(_ 35)) x(n0 n30)))) n30)) n28) tup(n27 n29))) x(n1 n31)))) n31)) n26) n32) x(tup(dup387(?(::std::data::List::pop_front::3 ::std::data::List::pop_front::2 x(x(n33 n34) x(x(n35 n36) enum(::day_06::main::18 enum(::day_06::main::19 x(x(n16 n3) x(n21 x(n32 x(tup(n34 tup(n36 n37)) x(n38 x(n20 n39))))))))))) n33) tup(n35 n37)) x(@add(1 dup88(dup107(?(::std::numeric::N32::to_string::to_string::3 ::std::numeric::N32::to_string::to_string::2 x(n40 tup(@add(1 n15) tup(n18 tup(32 n19))))) n40) n38)) x(n13 n39))))))) }
 
 ::day_06::main::19 { x(x(n0 n0) x(_ x(_ x(_ x(_ x(n1 n1)))))) }
 
@@ -123,7 +123,7 @@
 
 ::std::data::Array::from_list { fn(tup(dup632(?(::std::data::Array::from_fn::3 ::std::data::Array::from_fn::2 x(n0 x(n1 x(fn(ref(tup(n2 n3) n3) n2) n4)))) n0) tup(dup633(_ n1) _)) n4) }
 
-::std::data::Array::from_fn::2 { x(dup638(dup985(@eq(1 ?(::std::data::Array::Node::unzip_with::3 ::std::data::Array::Node::unzip_with::2 x(n0 x(n1 x(fn(n2 tup(n3 n4)) tup(n5 n6)))))) n0) dup638(dup791(?(::std::data::Array::pop_back::3 ::std::data::Array::pop_back::2 x(x(n7 dup758(?(::std::data::Array::push_front::3 ::std::data::Array::push_front::2 x(n8 x(ref(n9 n1) x(n10 _)))) dup758(n8 @add(1 _)))) x(ref(n6 n9) enum(::std::logical::Option::unwrap::3 _)))) n7) n11)) x(n10 x(fn(ref(n2 n4) n3) tup(n11 n5)))) }
+::std::data::Array::from_fn::2 { x(dup638(dup994(@eq(1 ?(::std::data::Array::Node::unzip_with::3 ::std::data::Array::Node::unzip_with::2 x(n0 x(n1 x(fn(n2 tup(n3 n4)) tup(n5 n6)))))) n0) dup638(dup791(?(::std::data::Array::pop_back::3 ::std::data::Array::pop_back::2 x(x(n7 dup758(?(::std::data::Array::push_front::3 ::std::data::Array::push_front::2 x(n8 x(ref(n9 n1) x(n10 _)))) dup758(n8 @add(1 _)))) x(ref(n6 n9) enum(::std::logical::Option::unwrap::3 _)))) n7) n11)) x(n10 x(fn(ref(n2 n4) n3) tup(n11 n5)))) }
 
 ::std::data::Array::from_fn::3 { x(_ x(_ x(_ ::std::data::Array::empty))) }
 
@@ -165,7 +165,7 @@
 
 ::std::data::Array::Node::unzip_with::2 { x(_ x(n0 x(fn(n0 n1) n1))) }
 
-::std::data::Array::Node::unzip_with::3 { x(dup996(@add(1 @div(2 dup985(@eq(1 ?(::std::data::Array::Node::unzip_with::3 ::std::data::Array::Node::unzip_with::2 x(n0 x(n1 x(n2 tup(n3 n4)))))) n0))) @div(2 dup985(@eq(1 ?(::std::data::Array::Node::unzip_with::3 ::std::data::Array::Node::unzip_with::2 x(n5 x(n6 x(n7 tup(n8 n9)))))) n5))) x(tup(n1 n6) x(dup998(n2 n7) tup(tup(n3 n8) tup(n4 n9))))) }
+::std::data::Array::Node::unzip_with::3 { x(dup1005(@add(1 @div(2 dup994(@eq(1 ?(::std::data::Array::Node::unzip_with::3 ::std::data::Array::Node::unzip_with::2 x(n0 x(n1 x(n2 tup(n3 n4)))))) n0))) @div(2 dup994(@eq(1 ?(::std::data::Array::Node::unzip_with::3 ::std::data::Array::Node::unzip_with::2 x(n5 x(n6 x(n7 tup(n8 n9)))))) n5))) x(tup(n1 n6) x(dup1007(n2 n7) tup(tup(n3 n8) tup(n4 n9))))) }
 
 ::std::logical::Option::unwrap::3 { enum(n0 n0) }
 
@@ -174,7 +174,7 @@
   ::std::unicode::String::split_trim::1 = x(w0 x(w1 x(tup(0 tup(w10 w10)) x(1 x(x(_ 1) w11)))))
 }
 
-::std::unicode::String::split_trim::1 { x(tup(dup2078(n0 @le$(n1 ?(::std::unicode::String::split_once::3 ::std::unicode::String::split_once::2 x(tup(n2 n3) x(tup(0 tup(n4 n4)) x(tup(n0 n5) tup(tup(dup2078(n6 @eq(0 dup2122(?(::std::unicode::String::split_trim::4 ::std::unicode::String::split_trim::3 x(n7 dup2115(?(::std::unicode::String::split_trim::10 ::std::unicode::String::split_trim::9 x(x(n8 n9) x(n10 x(tup(n6 n11) _)))) n12))) ?(::std::unicode::String::split_trim::16 ::std::unicode::String::split_trim::15 x(n13 dup2117(n14 n10)))))) n11) enum(::std::unicode::String::split_trim::23 enum(::std::unicode::String::split_trim::24 x(n15 x(n9 x(n12 x(x(n13 n16) n17))))))))))))) n5) x(dup2111(tup(dup2078(n2 n1) n3) n15) x(n8 x(n7 x(x(n14 n16) n17))))) }
+::std::unicode::String::split_trim::1 { x(tup(dup2117(n0 @le$(n1 ?(::std::unicode::String::split_once::3 ::std::unicode::String::split_once::2 x(tup(n2 n3) x(tup(0 tup(n4 n4)) x(tup(n0 n5) tup(tup(dup2117(n6 @eq(0 dup2161(?(::std::unicode::String::split_trim::4 ::std::unicode::String::split_trim::3 x(n7 dup2154(?(::std::unicode::String::split_trim::10 ::std::unicode::String::split_trim::9 x(x(n8 n9) x(n10 x(tup(n6 n11) _)))) n12))) ?(::std::unicode::String::split_trim::16 ::std::unicode::String::split_trim::15 x(n13 dup2156(n14 n10)))))) n11) enum(::std::unicode::String::split_trim::23 enum(::std::unicode::String::split_trim::24 x(n15 x(n9 x(n12 x(x(n13 n16) n17))))))))))))) n5) x(dup2150(tup(dup2117(n2 n1) n3) n15) x(n8 x(n7 x(x(n14 n16) n17))))) }
 
 ::std::unicode::String::split_trim::3 { x(?(0 1 n0) n0) }
 
@@ -192,7 +192,7 @@
 
 ::std::unicode::String::split_trim::16 { x(_ 0) }
 
-::std::unicode::String::split_trim::23 { enum(tup(dup2078(n0 @le$(n1 ?(::std::unicode::String::split_once::3 ::std::unicode::String::split_once::2 x(tup(n2 n3) x(tup(0 tup(n4 n4)) x(tup(n0 n5) tup(tup(dup2078(n6 @eq(0 dup2122(?(::std::unicode::String::split_trim::4 ::std::unicode::String::split_trim::3 x(n7 dup2115(?(::std::unicode::String::split_trim::10 ::std::unicode::String::split_trim::9 x(x(n8 n9) x(n10 x(tup(n6 n11) _)))) n12))) ?(::std::unicode::String::split_trim::16 ::std::unicode::String::split_trim::15 x(n13 dup2117(n14 n10)))))) n11) enum(::std::unicode::String::split_trim::23 enum(::std::unicode::String::split_trim::24 x(n15 x(n9 x(n12 x(x(n13 n16) n17))))))))))))) n5) x(dup2111(tup(dup2078(n2 n1) n3) n15) x(n8 x(n7 x(x(n14 n16) n17))))) }
+::std::unicode::String::split_trim::23 { enum(tup(dup2117(n0 @le$(n1 ?(::std::unicode::String::split_once::3 ::std::unicode::String::split_once::2 x(tup(n2 n3) x(tup(0 tup(n4 n4)) x(tup(n0 n5) tup(tup(dup2117(n6 @eq(0 dup2161(?(::std::unicode::String::split_trim::4 ::std::unicode::String::split_trim::3 x(n7 dup2154(?(::std::unicode::String::split_trim::10 ::std::unicode::String::split_trim::9 x(x(n8 n9) x(n10 x(tup(n6 n11) _)))) n12))) ?(::std::unicode::String::split_trim::16 ::std::unicode::String::split_trim::15 x(n13 dup2156(n14 n10)))))) n11) enum(::std::unicode::String::split_trim::23 enum(::std::unicode::String::split_trim::24 x(n15 x(n9 x(n12 x(x(n13 n16) n17))))))))))))) n5) x(dup2150(tup(dup2117(n2 n1) n3) n15) x(n8 x(n7 x(x(n14 n16) n17))))) }
 
 ::std::unicode::String::split_trim::24 { x(_ x(n0 x(_ x(x(n1 n1) n0)))) }
 
@@ -202,25 +202,25 @@
 
 ::std::unicode::String::split_once::5 { x(n0 x(n1 x(n2 x(tup(dup541(?(::std::data::List::Iter::next::3 ::std::data::List::Iter::next::2 x(x(n3 n4) x(x(n5 n6) enum(::std::unicode::String::split_once::8 enum(::std::unicode::String::split_once::9 x(n0 x(n1 x(n2 x(tup(n4 n6) n7))))))))) n3) n5) n7)))) }
 
-::std::unicode::String::split_once::8 { enum(ref(dup2201(n0 n1) n0) x(n2 x(n3 x(n4 x(n5 x(tup(dup541(?(::std::data::List::Iter::next::3 ::std::data::List::Iter::next::2 x(x(n6 n7) x(x(n8 n9) enum(::std::unicode::String::split_once::12 enum(::std::unicode::String::split_once::13 x(n2 x(n3 x(n4 x(n5 x(tup(n7 n9) x(n1 n10))))))))))) n6) n8) n10)))))) }
+::std::unicode::String::split_once::8 { enum(ref(dup2240(n0 n1) n0) x(n2 x(n3 x(n4 x(n5 x(tup(dup541(?(::std::data::List::Iter::next::3 ::std::data::List::Iter::next::2 x(x(n6 n7) x(x(n8 n9) enum(::std::unicode::String::split_once::12 enum(::std::unicode::String::split_once::13 x(n2 x(n3 x(n4 x(n5 x(tup(n7 n9) x(n1 n10))))))))))) n6) n8) n10)))))) }
 
 ::std::unicode::String::split_once::9 { x(_ x(n0 x(tup(_ tup(_ n1)) x(_ x(tup(n2 ref(n3 _)) tup(n0 enum(enum(tup(n2 tup(n3 n1)) n4) enum(_ n4)))))))) }
 
-::std::unicode::String::split_once::12 { enum(ref(dup2215(n0 n1) n0) x(n2 x(n3 x(n4 x(n5 x(n6 x(@ne(n1 ?(::std::unicode::String::split_once::5 ::std::unicode::String::split_once::16 x(n2 x(n3 x(n4 x(n5 x(n6 n7))))))) n7))))))) }
+::std::unicode::String::split_once::12 { enum(ref(dup2254(n0 n1) n0) x(n2 x(n3 x(n4 x(n5 x(n6 x(@ne(n1 ?(::std::unicode::String::split_once::5 ::std::unicode::String::split_once::16 x(n2 x(n3 x(n4 x(n5 x(n6 n7))))))) n7))))))) }
 
 ::std::unicode::String::split_once::13 { x(_ x(n0 x(tup(_ tup(_ n1)) x(_ x(tup(n2 ref(n3 _)) x(_ tup(n0 enum(enum(tup(n2 tup(n3 n1)) n4) enum(_ n4))))))))) }
 
 ::std::unicode::String::split_once::16 { x(n0 x(n1 x(tup(dup387(?(::std::data::List::pop_front::3 ::std::data::List::pop_front::2 x(x(n2 n3) x(x(n4 n5) enum(::std::unicode::String::split_once::21 enum(::std::unicode::String::split_once::22 x(n0 x(n1 x(tup(n3 tup(n5 n6)) n7)))))))) n2) tup(n4 n6)) x(tup(_ ref(n8 n8)) x(tup(_ ref(n9 n9)) n7))))) }
 
-::std::unicode::String::split_once::21 { enum(n0 x(tup(dup2078(n1 n2) n3) x(tup(@add(1 n4) tup(n5 tup(n0 n6))) x(tup(dup2078(n7 @le$(n2 ?(::std::unicode::String::split_once::3 ::std::unicode::String::split_once::2 x(tup(n1 n3) x(tup(n4 tup(n5 n6)) x(tup(n7 n8) n9)))))) n8) n9)))) }
+::std::unicode::String::split_once::21 { enum(n0 x(tup(dup2117(n1 n2) n3) x(tup(@add(1 n4) tup(n5 tup(n0 n6))) x(tup(dup2117(n7 @le$(n2 ?(::std::unicode::String::split_once::3 ::std::unicode::String::split_once::2 x(tup(n1 n3) x(tup(n4 tup(n5 n6)) x(tup(n7 n8) n9)))))) n8) n9)))) }
 
 ::std::unicode::String::split_once::22 { x(_ ::std::unicode::String::split_once::23) }
 
 ::std::unicode::String::split_once::23 { x(tup(@add(n0 n1) tup(n2 n3)) x(tup(n0 tup(n3 n4)) tup(tup(n1 tup(n2 n4)) ::std::logical::Option::None))) }
 
-::std::IO::println { fn(ref(n0 n1) fn(tup(dup2451(?(::std::IO::print::3 ::std::IO::print::2 x(x(n0 @io_print_char(10 n1)) x(n2 n3))) n2) tup(n3 _)) _)) }
+::std::IO::println { fn(ref(n0 n1) fn(tup(dup2490(?(::std::IO::print::3 ::std::IO::print::2 x(x(n0 @io_print_char(10 n1)) x(n2 n3))) n2) tup(n3 _)) _)) }
 
-::std::IO::print::2 { x(x(@io_print_char(n0 n1) n2) x(@sub(1 dup2451(?(::std::IO::print::3 ::std::IO::print::2 x(x(n1 n2) x(n3 n4))) n3)) tup(n0 n4))) }
+::std::IO::print::2 { x(x(@io_print_char(n0 n1) n2) x(@sub(1 dup2490(?(::std::IO::print::3 ::std::IO::print::2 x(x(n1 n2) x(n3 n4))) n3)) tup(n0 n4))) }
 
 ::std::IO::print::3 { x(x(n0 n0) _) }
 
@@ -229,9 +229,9 @@
   ::std::IO::full_input::1 = x(x(w1 w13) x(tup(0 tup(w9 w9)) w10))
 }
 
-::std::IO::full_input::1 { x(x(dup(n0 @io_read_byte(0 dup(dup2541(@ne(0 ?(::std::IO::full_input::4 ::std::IO::full_input::3 x(x(n1 n2) x(n3 x(n4 n5))))) n4) @seq$(n0 n1)))) n2) x(n3 n5)) }
+::std::IO::full_input::1 { x(x(dup(@io_read_byte(0 dup(dup2594(@ne(0 ?(::std::IO::full_input::4 ::std::IO::full_input::3 x(x(n0 n1) x(n2 x(n3 n4))))) n3) @seq$(n5 n0))) n5) n1) x(n2 n4)) }
 
-::std::IO::full_input::3 { x(x(dup(n0 @io_read_byte(0 dup(dup2541(@ne(0 ?(::std::IO::full_input::4 ::std::IO::full_input::3 x(x(n1 n2) x(tup(n3 tup(n4 n5)) x(n6 n7))))) n6) @seq$(n0 n1)))) n2) x(tup(@add(1 n3) tup(n4 tup(n8 n5))) x(n8 n7))) }
+::std::IO::full_input::3 { x(x(dup(@io_read_byte(0 dup(dup2594(@ne(0 ?(::std::IO::full_input::4 ::std::IO::full_input::3 x(x(n0 n1) x(tup(n2 tup(n3 n4)) x(n5 n6))))) n5) @seq$(n7 n0))) n7) n1) x(tup(@add(1 n2) tup(n3 tup(n8 n4))) x(n8 n6))) }
 
 ::std::IO::full_input::4 { x(x(n0 n0) x(n1 x(_ n1))) }
 
