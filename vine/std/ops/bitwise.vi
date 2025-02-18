@@ -25,5 +25,6 @@ pub trait Shr[A, B, O] {
 }
 
 pub trait Not[A, O] {
+  #[builtin = "not"]
   fn .not(a: A) -> O;
 }

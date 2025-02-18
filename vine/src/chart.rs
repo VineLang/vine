@@ -42,6 +42,8 @@ pub struct Builtins {
   pub to_string: Option<ValueDefId>,
   pub binary_ops: IdxVec<BinaryOp, Option<ValueDefId>>,
   pub neg: Option<ValueDefId>,
+  pub not: Option<ValueDefId>,
+  pub bool_not: Option<ImplDefId>,
 }
 
 new_idx!(pub DefId);
@@ -332,6 +334,9 @@ impl Builtins {
     revert_option(&mut self.string, checkpoint.adts);
     revert_option(&mut self.to_string, checkpoint.values);
     self.binary_ops.values_mut().for_each(|op| revert_option(op, checkpoint.values));
+    revert_option(&mut self.neg, checkpoint.values);
+    revert_option(&mut self.not, checkpoint.values);
+    revert_option(&mut self.bool_not, checkpoint.impls);
   }
 }
 

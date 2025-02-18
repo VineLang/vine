@@ -138,6 +138,8 @@ impl<'core, 'src> VineParser<'core, 'src> {
           "shr" => Builtin::BinaryOp(BinaryOp::Shr),
           "concat" => Builtin::BinaryOp(BinaryOp::Concat),
           "neg" => Builtin::Neg,
+          "not" => Builtin::Not,
+          "bool_not" => Builtin::BoolNot,
           _ => Err(Diag::BadBuiltin { span: str_span })?,
         };
         AttrKind::Builtin(builtin)

@@ -171,6 +171,8 @@ pub enum Builtin {
   ToString,
   BinaryOp(BinaryOp),
   Neg,
+  Not,
+  BoolNot,
 }
 
 pub type GenericParams<'core> = Generics<Ident<'core>, (Option<Ident<'core>>, Trait<'core>)>;

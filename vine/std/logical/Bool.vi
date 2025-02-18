@@ -22,9 +22,10 @@ pub mod Bool {
     }
   }
 
+  #[builtin = "bool_not"]
   pub impl not: Not[Bool, Bool] {
     fn .not(a: Bool) -> Bool {
-      inline_ivy! (a <- a) -> Bool { out a = @ne(0 out) }
+      inline_ivy! (a <- a) -> Bool { out a = @eq(0 out) }
     }
   }
 

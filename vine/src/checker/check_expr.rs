@@ -1,7 +1,7 @@
 use std::{collections::BTreeMap, mem::take};
 
 use crate::{
-  ast::{Expr, ExprKind, Generics, Label, Span},
+  ast::{Expr, ExprKind, Generics, ImplKind, Label, Span},
   chart::VariantId,
   checker::{Checker, Form, Type},
   diag::Diag,
@@ -362,9 +362,32 @@ impl<'core> Checker<'core, '_> {
       }
       ExprKind::Call(func, args) => self.check_call(func, args, span),
       ExprKind::Bool(_) => Type::Bool,
-      ExprKind::Not(expr) => {
-        self.check_expr_form_type(expr, Form::Value, &mut Type::Bool);
-        Type::Bool
+      ExprKind::Not(inner) => {
+        let ty = self.check_expr_form(inner, Form::Value);
+        let Some(op_fn) = self.chart.builtins.not else {
+          return Type::Error(self.core.report(Diag::MissingOperatorBuiltin { span }));
+        };
+        let return_ty = self.unifier.new_var(span);
+        let mut generics = Generics { span, ..Default::default() };
+        self._check_generics(
+          &mut generics,
+          self.chart.values[op_fn].generics,
+          true,
+          Some(vec![ty, return_ty.clone()]),
+        );
+        if let ImplKind::Def(id, _) = generics.impls[0].kind {
+          if self.chart.builtins.bool_not == Some(id) {
+            return return_ty;
+          }
+        }
+        *expr = Expr {
+          span,
+          kind: ExprKind::Call(
+            Box::new(Expr { span, kind: ExprKind::Def(op_fn, generics) }),
+            vec![take(inner)],
+          ),
+        };
+        return_ty
       }
       ExprKind::Is(expr, pat) => {
         let mut ty = self.check_expr_form(expr, Form::Value);

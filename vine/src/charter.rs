@@ -356,6 +356,8 @@ impl<'core> Charter<'core, '_> {
       Builtin::ToString => set(def.value_def, &mut self.chart.builtins.to_string),
       Builtin::BinaryOp(op) => set(def.value_def, self.chart.builtins.binary_ops.get_or_extend(op)),
       Builtin::Neg => set(def.value_def, &mut self.chart.builtins.neg),
+      Builtin::Not => set(def.value_def, &mut self.chart.builtins.not),
+      Builtin::BoolNot => set(def.impl_def, &mut self.chart.builtins.bool_not),
     }
   }
 
