@@ -126,8 +126,7 @@ impl<'core, 'src> VineParser<'core, 'src> {
           "String" => Builtin::String,
           "concat" => Builtin::Concat,
           "prelude" => Builtin::Prelude,
-          "ToString" => Builtin::ToStringTrait,
-          "to_string" => Builtin::ToStringFn,
+          "to_string" => Builtin::ToString,
           _ => Err(Diag::BadBuiltin { span: str_span })?,
         };
         AttrKind::Builtin(builtin)

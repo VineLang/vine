@@ -424,23 +424,21 @@ impl<'core> Checker<'core, '_> {
           self.chart.builtins.string.map(|d| Type::Adt(d, Vec::new())).unwrap_or_else(|| {
             Type::Error(self.core.report(Diag::MissingBuiltin { span, builtin: "String" }))
           });
-        if let (Some(to_string_trait), Some(to_string_fn)) =
-          (self.chart.builtins.to_string_trait, self.chart.builtins.to_string_fn)
-        {
+        if let Some(to_string) = self.chart.builtins.to_string {
           for (expr, _) in rest {
             let span = expr.span;
             let ty = self.check_expr_form(expr, Form::Value);
-            let impl_ = self.find_impl(span, &mut Type::Trait(to_string_trait, vec![ty]));
+            let mut generics = Generics { span, ..Default::default() };
+            self._check_generics(
+              &mut generics,
+              self.chart.values[to_string].generics,
+              true,
+              Some(vec![ty]),
+            );
             *expr = Expr {
               span,
               kind: ExprKind::Call(
-                Box::new(Expr {
-                  span,
-                  kind: ExprKind::Def(
-                    to_string_fn,
-                    Generics { span, types: vec![], impls: vec![impl_] },
-                  ),
-                }),
+                Box::new(Expr { span, kind: ExprKind::Def(to_string, generics) }),
                 vec![take(expr)],
               ),
             }

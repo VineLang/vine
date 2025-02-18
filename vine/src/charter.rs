@@ -354,8 +354,7 @@ impl<'core> Charter<'core, '_> {
       Builtin::List => set(adt(), &mut self.chart.builtins.list),
       Builtin::String => set(adt(), &mut self.chart.builtins.string),
       Builtin::Concat => set(def.value_def, &mut self.chart.builtins.concat),
-      Builtin::ToStringTrait => set(def.trait_def, &mut self.chart.builtins.to_string_trait),
-      Builtin::ToStringFn => set(def.value_def, &mut self.chart.builtins.to_string_fn),
+      Builtin::ToString => set(def.value_def, &mut self.chart.builtins.to_string),
     }
   }
 
