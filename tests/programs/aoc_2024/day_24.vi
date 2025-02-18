@@ -43,7 +43,7 @@ pub fn main(&io: &IO) {
       } else {
         N64::zero
       };
-      ~n ~= (~n).shl(1).or(bit);
+      ~n ~= (~n << 1) | bit;
       i += 1;
     } else {
       break;

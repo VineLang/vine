@@ -1,4 +1,6 @@
 
+use std::ops::vectorized::{add, div_scalar, mul_scalar, sub};
+
 const max_iter: N32 = 128;
 const width: N32 = black_box(125);
 const height: N32 = black_box(45);
@@ -10,7 +12,8 @@ pub fn main(&io: &IO) {
   while j < height {
     let i = 0;
     while i < width {
-      let (x, y) = center + scale / width * ((i, j) + 0.5 - (width, height) / 2.0) * (1.0, 2.0);
+      let pos = (i.to_f32() + 0.5, j.to_f32() + 0.5) - (width.to_f32(), height.to_f32()) / 2.0;
+      let (x, y) = center + pos * scale / width.to_f32();
       io.print_char(if mandelbrot(x, y) {
         '#'
       } else {

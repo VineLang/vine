@@ -1,5 +1,5 @@
 
-use ops::comparison::Ord;
+use ops::{Concat, comparison::Ord};
 use unicode::ToString;
 
 #[builtin = "List"]
@@ -70,12 +70,13 @@ pub mod List {
     }
   }
 
-  #[builtin = "concat"]
-  pub fn .concat[T](a: List[T], b: List[T]) -> List[T] {
-    let List(a_len, a_buf, ~a_end) = a;
-    let List(b_len, b_buf, ~b_end) = b;
-    a_end = b_buf;
-    List(a_len + b_len, a_buf, move ~b_end)
+  pub impl concat[T]: Concat[List[T], List[T], List[T]] {
+    fn .concat(a: List[T], b: List[T]) -> List[T] {
+      let List(a_len, a_buf, ~a_end) = a;
+      let List(b_len, b_buf, ~b_end) = b;
+      a_end = b_buf;
+      List(a_len + b_len, a_buf, move ~b_end)
+    }
   }
 
   pub fn .push_back[T](&list: &List[T], el: T) {

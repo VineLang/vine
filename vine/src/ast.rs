@@ -1,13 +1,17 @@
 use std::{
   collections::BTreeMap,
   fmt::{self, Debug, Display, Write},
-  mem::take,
+  mem::{take, transmute},
   path::PathBuf,
 };
 
 use class::Classes;
 use ivy::ast::Net;
-use vine_util::{interner::Interned, new_idx};
+use vine_util::{
+  idx::{self, Idx},
+  interner::Interned,
+  new_idx,
+};
 
 use crate::{
   chart::{AdtId, ImplDefId, TraitDefId, TypeDefId, ValueDefId, VariantId},
@@ -164,8 +168,9 @@ pub enum Builtin {
   Prelude,
   List,
   String,
-  Concat,
   ToString,
+  BinaryOp(BinaryOp),
+  Neg,
 }
 
 pub type GenericParams<'core> = Generics<Ident<'core>, (Option<Ident<'core>>, Trait<'core>)>;
@@ -292,7 +297,7 @@ pub enum ExprKind<'core> {
   Adt(AdtId, VariantId, GenericArgs<'core>, Vec<Expr<'core>>),
   #[class(value)]
   Neg(B<Expr<'core>>),
-  #[class(value)]
+  #[class(value, sugar)]
   BinaryOp(BinaryOp, B<Expr<'core>>, B<Expr<'core>>),
   #[class(value, cond)]
   Bool(bool),
@@ -304,7 +309,7 @@ pub enum ExprKind<'core> {
   LogicalOp(LogicalOp, B<Expr<'core>>, B<Expr<'core>>),
   #[class(value)]
   ComparisonOp(B<Expr<'core>>, Vec<(ComparisonOp, Expr<'core>)>),
-  #[class(value)]
+  #[class(value, sugar)]
   BinaryOpAssign(BinaryOp, B<Expr<'core>>, B<Expr<'core>>),
   #[class(value)]
   N32(u32),
@@ -330,6 +335,8 @@ pub enum ExprKind<'core> {
   SetLocal(Local),
   #[class(value)]
   InlineIvy(Vec<(Ident<'core>, bool, Expr<'core>)>, Ty<'core>, Span, Net),
+  #[class(value, synthetic)]
+  CallAssign(B<Expr<'core>>, B<Expr<'core>>, B<Expr<'core>>),
   #[class(error)]
   Error(ErrorGuaranteed),
 }
@@ -469,7 +476,7 @@ pub enum TraitKind<'core> {
   Error(ErrorGuaranteed),
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum BinaryOp {
   BitOr,
   BitXor,
@@ -478,10 +485,10 @@ pub enum BinaryOp {
   Shr,
   Add,
   Sub,
-  Concat,
   Mul,
   Div,
   Rem,
+  Concat, //
 }
 
 impl Display for BinaryOp {
@@ -505,6 +512,23 @@ impl BinaryOp {
       BinaryOp::Div => "/",
       BinaryOp::Rem => "%",
     }
+  }
+}
+
+impl Idx for BinaryOp {}
+
+impl idx::IsEnabled for BinaryOp {}
+
+impl From<usize> for BinaryOp {
+  fn from(value: usize) -> Self {
+    assert!(value <= BinaryOp::Concat as usize);
+    unsafe { transmute(value as u8) }
+  }
+}
+
+impl From<BinaryOp> for usize {
+  fn from(val: BinaryOp) -> Self {
+    val as usize
   }
 }
 

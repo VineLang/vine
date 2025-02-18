@@ -1,5 +1,5 @@
 
-use ops::comparison::Ord;
+use ops::{Concat, comparison::Ord};
 
 #[builtin = "String"]
 pub struct String {
@@ -111,6 +111,12 @@ pub mod String {
 
     const lt: fn(&String, &String) -> Bool = Ord::lt_from_cmp[String];
     const le: fn(&String, &String) -> Bool = Ord::le_from_cmp[String];
+  }
+
+  pub impl concat: Concat[String, String, String] {
+    fn .concat(String({ chars: a }), String({ chars: b })) -> String {
+      String({ chars: a ++ b })
+    }
   }
 
   pub fn .repeat(self: String, count: N32) -> String {

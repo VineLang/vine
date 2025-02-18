@@ -1,5 +1,5 @@
 
-use ops::arithmetic::{Add, Div, Mul, Rem, Sub};
+use ops::arithmetic::{Add, Div, Mul, Neg, Rem, Sub};
 
 #[builtin = "F32"]
 pub mod F32 {
@@ -30,6 +30,12 @@ pub mod F32 {
   pub impl rem: Rem[F32, F32, F32] {
     fn .rem(a: F32, b: F32) -> F32 {
       inline_ivy! (a <- a, b <- b) -> F32 { out a = @rem(b out) }
+    }
+  }
+
+  pub impl neg: Neg[F32, F32] {
+    fn .neg(a: F32) -> F32 {
+      inline_ivy! (a <- a) -> F32 { out a = @sub$(0 out) }
     }
   }
 }

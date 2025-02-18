@@ -158,6 +158,11 @@ pub trait VisitMut<'core, 'a> {
         }
         self.visit_type(ty);
       }
+      ExprKind::CallAssign(a, b, c) => {
+        self.visit_expr(a);
+        self.visit_expr(b);
+        self.visit_expr(c);
+      }
     }
   }
 

@@ -10,7 +10,7 @@ use vine_util::{
 
 use crate::{
   analyzer::usage::Usage,
-  ast::{BinaryOp, ComparisonOp, DynFnId, Expr, ExprKind, Key, LabelId, Local, Pat, PatKind},
+  ast::{ComparisonOp, DynFnId, Expr, ExprKind, Key, LabelId, Local, Pat, PatKind},
   chart::{AdtId, Chart, ValueDef, ValueDefKind, VariantId},
   vir::{
     Interface, InterfaceId, InterfaceKind, Layer, LayerId, Port, Stage, StageId, Step, Transfer,
@@ -210,17 +210,11 @@ impl<'core, 'r> Distiller<'core, 'r> {
       }
       ExprKind::CopyLocal(local) => stage.get_local(*local),
       ExprKind::MoveLocal(local) => stage.take_local(*local),
-      ExprKind::BinaryOp(op, lhs, rhs) => {
-        let lhs = self.distill_expr_value(stage, lhs);
-        let rhs = self.distill_expr_value(stage, rhs);
-        let out = stage.new_wire();
-        self.distill_bin_op(stage, *op, lhs, rhs, out.0);
-        out.1
-      }
-      ExprKind::BinaryOpAssign(op, lhs, rhs) => {
+      ExprKind::CallAssign(func, lhs, rhs) => {
+        let func = self.distill_expr_value(stage, func);
         let rhs = self.distill_expr_value(stage, rhs);
         let (lhs, out) = self.distill_expr_place(stage, lhs);
-        self.distill_bin_op(stage, *op, lhs, rhs, out);
+        stage.steps.push(Step::Fn(func, vec![lhs, rhs], out));
         Port::Erase
       }
       ExprKind::ComparisonOp(init, cmps) => {
@@ -475,30 +469,6 @@ impl<'core, 'r> Distiller<'core, 'r> {
     let local = self.locals.next();
     stage.declarations.push(local);
     local
-  }
-
-  fn distill_bin_op(&mut self, stage: &mut Stage, op: BinaryOp, lhs: Port, rhs: Port, out: Port) {
-    let ext_fn = match op {
-      BinaryOp::Concat => {
-        stage.steps.push(Step::Fn(
-          Port::Def(self.chart.builtins.concat.unwrap()),
-          vec![lhs, rhs],
-          out,
-        ));
-        return;
-      }
-      BinaryOp::BitOr => "n32_or",
-      BinaryOp::BitXor => "n32_xor",
-      BinaryOp::BitAnd => "n32_and",
-      BinaryOp::Shl => "n32_shl",
-      BinaryOp::Shr => "n32_shr",
-      BinaryOp::Add => "add",
-      BinaryOp::Sub => "sub",
-      BinaryOp::Mul => "mul",
-      BinaryOp::Div => "div",
-      BinaryOp::Rem => "rem",
-    };
-    stage.steps.push(Step::ExtFn(ext_fn, false, lhs, rhs, out));
   }
 
   fn distill_vec<T>(

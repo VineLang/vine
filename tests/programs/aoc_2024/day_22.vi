@@ -26,7 +26,7 @@ pub fn main(&io: &IO) {
       }
       i += 1;
     }
-    part1 = part1.add(N64::from_n32(secret));
+    part1 += N64::from_n32(secret);
     buyer += 1;
   }
 

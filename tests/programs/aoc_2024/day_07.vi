@@ -13,30 +13,30 @@ pub fn main(&io: &IO) {
     while nums.pop_front() is Some(num) {
       let len = num.len();
       let num = N64::from_n32(N32::parse(num).unwrap());
-      let add = results.map(fn(x: N64) { x.add(num) });
-      let mul = results.map(fn(x: N64) { x.mul(num) });
+      let add = results.map(fn(x: N64) { x + num });
+      let mul = results.map(fn(x: N64) { x * num });
       let pow = 1;
       while len > 0 {
         pow *= 10;
         len -= 1;
       }
-      let add2 = results2.map(fn(x: N64) { x.add(num) });
-      let mul2 = results2.map(fn(x: N64) { x.mul(num) });
-      let concat = (results ++ results2).map(fn(x: N64) { x.mul(N64::from_n32(pow)).add(num) });
+      let add2 = results2.map(fn(x: N64) { x + num });
+      let mul2 = results2.map(fn(x: N64) { x * num });
+      let concat = (results ++ results2).map(fn(x: N64) { x * N64::from_n32(pow) + num });
       results = add ++ mul;
       results2 = add2 ++ mul2 ++ concat;
     }
     do.search {
       while results.pop_front() is Some(num) {
-        if N64::eq(num, goal) {
-          part1 = N64::add(part1, goal);
-          part2 = N64::add(part2, goal);
+        if num.eq(&goal) {
+          part1 += goal;
+          part2 += goal;
           break.search;
         }
       }
       while results2.pop_front() is Some(num) {
-        if N64::eq(num, goal) {
-          part2 = N64::add(part2, goal);
+        if num.eq(&goal) {
+          part2 += goal;
           break.search;
         }
       }

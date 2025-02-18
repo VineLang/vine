@@ -7,9 +7,10 @@ pub struct Pcg32(N64, N64);
 
 pub mod Pcg32 {
   pub fn new(state: N64, increment: N64) -> Pcg32 {
-    increment = increment.or(N64::from_n32(1));
-    state = state.add(increment);
-    state = state.mul(multiplier).add(increment);
+    increment |= N64::from_n32(1);
+    state += increment;
+    state *= multiplier;
+    state += increment;
     Pcg32(state, increment)
   }
 
@@ -19,13 +20,15 @@ pub mod Pcg32 {
 
   pub fn .gen_n32(&Pcg32(state, increment)) -> N32 {
     let N64(lo, hi) = state;
-    state = state.mul(multiplier).add(increment);
+    state *= multiplier;
+    state += increment;
     N32::rotate_right((hi >> 13) ^ (hi << 5) ^ (lo >> 27), hi >> 27)
   }
 
   pub fn .mix(&Pcg32(state, increment), n: N32) {
-    state = state.xor(N64(0, n));
-    state = state.mul(multiplier).add(increment);
+    state ^= N64(0, n);
+    state *= multiplier;
+    state += increment;
   }
 
   pub fn seeded(seed: String) -> Pcg32 {

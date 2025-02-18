@@ -1,7 +1,7 @@
 use std::{collections::BTreeMap, mem::take};
 
 use crate::{
-  ast::{BinaryOp, Expr, ExprKind, Generics, Label, Span},
+  ast::{Expr, ExprKind, Generics, Label, Span},
   chart::VariantId,
   checker::{Checker, Form, Type},
   diag::Diag,
@@ -376,19 +376,72 @@ impl<'core> Checker<'core, '_> {
         self.check_expr_form_type(b, Form::Value, &mut Type::Bool);
         Type::Bool
       }
-      ExprKind::Neg(expr) => {
-        let ty = self.check_expr_form(expr, Form::Value);
-        self.check_bin_op(span, BinaryOp::Sub, false, Type::N32, ty)
+      ExprKind::Neg(inner) => {
+        let ty = self.check_expr_form(inner, Form::Value);
+        let Some(op_fn) = self.chart.builtins.neg else {
+          return Type::Error(self.core.report(Diag::MissingOperatorBuiltin { span }));
+        };
+        let return_ty = self.unifier.new_var(span);
+        let mut generics = Generics { span, ..Default::default() };
+        self._check_generics(
+          &mut generics,
+          self.chart.values[op_fn].generics,
+          true,
+          Some(vec![ty, return_ty.clone()]),
+        );
+        *expr = Expr {
+          span,
+          kind: ExprKind::Call(
+            Box::new(Expr { span, kind: ExprKind::Def(op_fn, generics) }),
+            vec![take(inner)],
+          ),
+        };
+        return_ty
       }
-      ExprKind::BinaryOp(op, a, b) => {
-        let a = self.check_expr_form(a, Form::Value);
-        let b = self.check_expr_form(b, Form::Value);
-        self.check_bin_op(span, *op, false, a, b)
+      ExprKind::BinaryOp(op, lhs, rhs) => {
+        let lhs_ty = self.check_expr_form(lhs, Form::Value);
+        let rhs_ty = self.check_expr_form(rhs, Form::Value);
+        let Some(&Some(op_fn)) = self.chart.builtins.binary_ops.get(*op) else {
+          return Type::Error(self.core.report(Diag::MissingOperatorBuiltin { span }));
+        };
+        let return_ty = self.unifier.new_var(span);
+        let mut generics = Generics { span, ..Default::default() };
+        self._check_generics(
+          &mut generics,
+          self.chart.values[op_fn].generics,
+          true,
+          Some(vec![lhs_ty, rhs_ty, return_ty.clone()]),
+        );
+        *expr = Expr {
+          span,
+          kind: ExprKind::Call(
+            Box::new(Expr { span, kind: ExprKind::Def(op_fn, generics) }),
+            vec![take(lhs), take(rhs)],
+          ),
+        };
+        return_ty
       }
-      ExprKind::BinaryOpAssign(op, a, b) => {
-        let a = self.check_expr_form(a, Form::Place);
-        let b = self.check_expr_form(b, Form::Value);
-        self.check_bin_op(span, *op, true, a, b);
+      ExprKind::BinaryOpAssign(op, lhs, rhs) => {
+        let lhs_ty = self.check_expr_form(lhs, Form::Place);
+        let rhs_ty = self.check_expr_form(rhs, Form::Value);
+        let Some(&Some(op_fn)) = self.chart.builtins.binary_ops.get(*op) else {
+          return Type::Error(self.core.report(Diag::MissingOperatorBuiltin { span }));
+        };
+        let mut generics = Generics { span, ..Default::default() };
+        self._check_generics(
+          &mut generics,
+          self.chart.values[op_fn].generics,
+          true,
+          Some(vec![lhs_ty.clone(), rhs_ty, lhs_ty]),
+        );
+        *expr = Expr {
+          span,
+          kind: ExprKind::CallAssign(
+            Box::new(Expr { span, kind: ExprKind::Def(op_fn, generics) }),
+            take(lhs),
+            take(rhs),
+          ),
+        };
         Type::NIL
       }
       ExprKind::ComparisonOp(init, cmps) => {
@@ -504,88 +557,6 @@ impl<'core> Checker<'core, '_> {
       }
       Type::Error(e) => Err(e.into()),
       ty => Err(Diag::NonFunctionCall { span, ty: self.display_type(&ty) }),
-    }
-  }
-
-  fn check_bin_op(
-    &mut self,
-    span: Span,
-    op: BinaryOp,
-    assign: bool,
-    mut a: Type<'core>,
-    mut b: Type<'core>,
-  ) -> Type<'core> {
-    match op {
-      BinaryOp::Concat => {
-        if self.chart.builtins.concat.is_none() {
-          return Type::Error(self.core.report(Diag::MissingBuiltin { span, builtin: "concat" }));
-        }
-        self.unifier.concretize(&mut a);
-        self.unifier.concretize(&mut b);
-        if self.unifier.unify(&mut a, &mut b) {
-          if let Type::Adt(n, _) = a {
-            if Some(n) == self.chart.builtins.list || Some(n) == self.chart.builtins.string {
-              return a;
-            }
-          }
-        }
-      }
-      _ => {
-        if let Ok(ty) = self._check_bin_op(op, assign, &mut a, &mut b, false, false) {
-          return ty;
-        }
-      }
-    }
-    let diag =
-      Diag::BadBinOp { span, op, assign, lhs: self.display_type(&a), rhs: self.display_type(&b) };
-    Type::Error(self.core.report(diag))
-  }
-
-  fn _check_bin_op(
-    &mut self,
-    op: BinaryOp,
-    assign: bool,
-    mut a: &mut Type<'core>,
-    mut b: &mut Type<'core>,
-    i: bool,
-    j: bool,
-  ) -> Result<Type<'core>, ()> {
-    self.unifier.concretize(a);
-    self.unifier.concretize(b);
-    match (op, &mut a, &mut b) {
-      (_, Type::Error(e), _) | (_, _, Type::Error(e)) => Ok(Type::Error(*e)),
-      (_, Type::Tuple(a), Type::Tuple(b)) if a.len() == b.len() => a
-        .iter_mut()
-        .zip(b)
-        .map(|(a, b)| self._check_bin_op(op, assign, a, b, i, j))
-        .collect::<Result<_, _>>()
-        .map(Type::Tuple),
-      (_, Type::Tuple(a), b @ (Type::N32 | Type::F32)) => a
-        .iter_mut()
-        .map(|a| self._check_bin_op(op, assign, a, b, i, j))
-        .collect::<Result<_, _>>()
-        .map(Type::Tuple),
-      (_, a @ (Type::N32 | Type::F32), Type::Tuple(b)) if !assign => b
-        .iter_mut()
-        .map(|b| self._check_bin_op(op, assign, a, b, i, j))
-        .collect::<Result<_, _>>()
-        .map(Type::Tuple),
-      (_, Type::N32, Type::N32) if !i && !j => Ok(Type::N32),
-      (BinaryOp::BitAnd | BinaryOp::BitOr | BinaryOp::BitXor, Type::Bool, Type::Bool)
-        if !i && !j =>
-      {
-        Ok(Type::Bool)
-      }
-      (BinaryOp::Add | BinaryOp::Sub, Type::Char, Type::N32) if !i && !j => Ok(Type::Char),
-      (BinaryOp::Sub, Type::Char, Type::Char) if !i && !j => Ok(Type::N32),
-      (
-        BinaryOp::Add | BinaryOp::Sub | BinaryOp::Mul | BinaryOp::Div | BinaryOp::Rem,
-        a @ (Type::N32 | Type::F32),
-        Type::N32 | Type::F32,
-      ) if !i && !j && (!assign || matches!(a, Type::F32)) => Ok(Type::F32),
-      (_, Type::Inverse(a), b) => self._check_bin_op(op, assign, a, b, !i, j),
-      (_, a, Type::Inverse(b)) => self._check_bin_op(op, assign, a, b, i, !j),
-      _ => Err(()),
     }
   }
 }

@@ -226,4 +226,8 @@ pub mod N32 {
     }
     r
   }
+
+  pub fn .to_f32(n: N32) -> F32 {
+    inline_ivy! (n <- n) -> F32 { out n = @add(+0.0 out) }
+  }
 }

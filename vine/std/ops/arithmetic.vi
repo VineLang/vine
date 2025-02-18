@@ -1,24 +1,30 @@
 
 pub trait Add[A, B, O] {
+  #[builtin = "add"]
   fn .add(a: A, b: B) -> O;
 }
 
 pub trait Sub[A, B, O] {
+  #[builtin = "sub"]
   fn .sub(a: A, b: B) -> O;
 }
 
 pub trait Mul[A, B, O] {
+  #[builtin = "mul"]
   fn .mul(a: A, b: B) -> O;
 }
 
 pub trait Div[A, B, O] {
+  #[builtin = "div"]
   fn .div(a: A, b: B) -> O;
 }
 
 pub trait Rem[A, B, O] {
+  #[builtin = "rem"]
   fn .rem(a: A, b: B) -> O;
 }
 
 pub trait Neg[A, O] {
+  #[builtin = "neg"]
   fn .neg(a: A) -> O;
 }

@@ -45,13 +45,13 @@ pub mod Char {
 
   pub impl sub_n32: Sub[Char, N32, Char] {
     fn .sub(a: Char, b: N32) -> Char {
-      inline_ivy! (a <- a, b <- b) -> Char { out a = @add(b out) }
+      inline_ivy! (a <- a, b <- b) -> Char { out a = @sub(b out) }
     }
   }
 
   pub impl sub_char: Sub[Char, Char, N32] {
     fn .sub(a: Char, b: Char) -> N32 {
-      inline_ivy! (a <- a, b <- b) -> N32 { out a = @add(b out) }
+      inline_ivy! (a <- a, b <- b) -> N32 { out a = @sub(b out) }
     }
   }
 }

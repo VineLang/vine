@@ -1,21 +1,26 @@
 
 pub trait And[A, B, O] {
+  #[builtin = "and"]
   fn .and(a: A, b: B) -> O;
 }
 
 pub trait Or[A, B, O] {
+  #[builtin = "or"]
   fn .or(a: A, b: B) -> O;
 }
 
 pub trait Xor[A, B, O] {
+  #[builtin = "xor"]
   fn .xor(a: A, b: B) -> O;
 }
 
 pub trait Shl[A, B, O] {
+  #[builtin = "shl"]
   fn .shl(a: A, b: B) -> O;
 }
 
 pub trait Shr[A, B, O] {
+  #[builtin = "shr"]
   fn .shr(a: A, b: B) -> O;
 }
 

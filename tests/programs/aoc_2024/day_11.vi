@@ -26,10 +26,10 @@ fn blink(&io: &IO, old: Map[N64, N64]) -> Map[N64, N64] {
   let iter = old.into_iter();
   dyn fn add_stones(number: N64, count: N64) {
     let &c = new.get_or_insert(number, N64::zero);
-    c = c.add(count);
+    c += count;
   }
   while iter.next() is Some((number, count)) {
-    if number.eq(N64::zero) {
+    if number.eq(&(N64::zero; _)) {
       add_stones(N64::one, count);
     } else {
       let digits = number.log_n32(10) + 1;
@@ -39,7 +39,7 @@ fn blink(&io: &IO, old: Map[N64, N64]) -> Map[N64, N64] {
         add_stones(a, count);
         add_stones(N64::from_n32(b), count);
       } else {
-        add_stones(number.mul(N64::from_n32(2024)), count);
+        add_stones(number * N64::from_n32(2024), count);
       }
     }
   }
@@ -50,7 +50,7 @@ fn count(&stones: &Map[N64, N64]) -> N64 {
   let n = N64::zero;
   let iter = stones.iter();
   while iter.next() is Some(&(_, count)) {
-    n = n.add(count);
+    n += count;
   }
   n
 }

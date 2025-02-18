@@ -7,7 +7,7 @@ use vine_util::{
 };
 
 use crate::{
-  ast::{Block, Expr, Ident, Local, Pat, Span, Trait, Ty},
+  ast::{BinaryOp, Block, Expr, Ident, Local, Pat, Span, Trait, Ty},
   checker::Type,
   diag::ErrorGuaranteed,
 };
@@ -39,9 +39,9 @@ pub struct Builtins {
   pub list: Option<AdtId>,
   pub string: Option<AdtId>,
 
-  pub concat: Option<ValueDefId>,
-
   pub to_string: Option<ValueDefId>,
+  pub binary_ops: IdxVec<BinaryOp, Option<ValueDefId>>,
+  pub neg: Option<ValueDefId>,
 }
 
 new_idx!(pub DefId);
@@ -330,7 +330,8 @@ impl Builtins {
     revert_option(&mut self.bool, checkpoint.defs);
     revert_option(&mut self.list, checkpoint.adts);
     revert_option(&mut self.string, checkpoint.adts);
-    revert_option(&mut self.concat, checkpoint.values);
+    revert_option(&mut self.to_string, checkpoint.values);
+    self.binary_ops.values_mut().for_each(|op| revert_option(op, checkpoint.values));
   }
 }
 

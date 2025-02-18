@@ -124,6 +124,8 @@ diags! {
     ["type aliases cannot be recursive"]
   MissingBuiltin { builtin: &'static str }
     ["cannot find builtin `{builtin}`"]
+  MissingOperatorBuiltin
+    ["cannot find builtin for operator"]
   NoReturn
     ["no function to return from"]
   NoLoopBreak

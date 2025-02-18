@@ -1,5 +1,5 @@
 
-use std::data::Array;
+use std::{data::Array, ops::vectorized::add};
 
 const config: (N32, N32) = (7, 12);
 // const config: (N32, N32) = (71, 1024);

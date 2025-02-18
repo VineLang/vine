@@ -1,5 +1,5 @@
 
-use std::data::Array;
+use std::{data::Array, ops::vectorized::{add, mul}};
 
 pub fn main(&io: &IO) {
   let grid = Array::empty;

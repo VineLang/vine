@@ -353,8 +353,9 @@ impl<'core> Charter<'core, '_> {
       Builtin::Prelude => set(Some(def_id), &mut self.chart.builtins.prelude),
       Builtin::List => set(adt(), &mut self.chart.builtins.list),
       Builtin::String => set(adt(), &mut self.chart.builtins.string),
-      Builtin::Concat => set(def.value_def, &mut self.chart.builtins.concat),
       Builtin::ToString => set(def.value_def, &mut self.chart.builtins.to_string),
+      Builtin::BinaryOp(op) => set(def.value_def, self.chart.builtins.binary_ops.get_or_extend(op)),
+      Builtin::Neg => set(def.value_def, &mut self.chart.builtins.neg),
     }
   }
 

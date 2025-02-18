@@ -10,9 +10,9 @@ pub fn main(&io: &IO) {
   let ways = N64::zero;
   while io.read_line() is Some(design) {
     let count = (match_counts(design, patterns); _).pop_back().unwrap();
-    if !count.eq(N64::zero) {
+    if !count.eq(&(N64::zero; _)) {
       possible += 1;
-      ways = ways.add(count);
+      ways += count;
     }
   }
 
@@ -30,7 +30,7 @@ fn match_counts(design: String, patterns: List[String]) -> Array[N64] {
     let total = N64::zero;
     while patterns.pop_front() is Some(pat) {
       if design.strip_prefix(&pat) is Ok(remaining) {
-        total = total.add(*array.get(remaining.len()));
+        total += *array.get(remaining.len());
       }
     }
     array.push_back(total);

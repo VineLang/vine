@@ -2,7 +2,9 @@
 pub mod comparison = "./comparison.vi";
 pub mod arithmetic = "./arithmetic.vi";
 pub mod bitwise = "./bitwise.vi";
+pub mod vectorized = "./vectorized.vi";
 
 pub trait Concat[A, B, O] {
+  #[builtin = "concat"]
   fn .concat(a: A, b: B) -> O;
 }

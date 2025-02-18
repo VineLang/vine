@@ -1,4 +1,6 @@
 
+use std::ops::vectorized::{and, or};
+
 pub fn main(&io: &IO) {
   let masks = List::new(100, ((0, 0), (0, 0)));
 

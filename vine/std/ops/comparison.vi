@@ -1,9 +1,7 @@
 
 pub trait Ord[T] {
   fn .cmp(a: &T, b: &T) -> Ord;
-
   fn .lt(a: &T, b: &T) -> Bool;
-
   fn .le(a: &T, b: &T) -> Bool;
 }
 

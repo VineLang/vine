@@ -46,12 +46,12 @@ pub fn main(&io: &IO) {
         }
       }
       let to = pos(char);
-      cost = cost.add(*(*c.get(last)).get(to));
+      cost += *(*c.get(last)).get(to);
       last = to;
     }
     let (num, _) = orig.split_once("A");
     let num = N32::parse(num).unwrap();
-    sum = sum.add(cost.mul(N64::from_n32(num)));
+    sum += cost * N64::from_n32(num);
   }
 
   io.println("Part 2: {sum}");
@@ -156,7 +156,7 @@ fn cost_func(c: CostFunc, size: N32, dead_row: N32) -> CostFunc {
         let ty = to / 3;
         let last = 5;
         dyn fn press(button: N32) {
-          cost = cost.add(*(*c.get(last)).get(button));
+          cost += *(*c.get(last)).get(button);
           last = button;
         }
         dyn fn do_horiz() {

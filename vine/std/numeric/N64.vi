@@ -95,7 +95,7 @@ pub mod N64 {
     while ah != 0 {
       let m = (N32::maximum / d) * ah;
       ql += m;
-      let N64(l, h) = N64(al, ah).sub(N64::mul_n32_n32(m, d));
+      let N64(l, h) = N64(al, ah) - N64::mul_n32_n32(m, d);
       al = l;
       ah = h;
     }
@@ -188,8 +188,8 @@ pub mod N64 {
         if !('0' <= char <= '9') {
           return None;
         }
-        num = num.mul(N64::from_n32(10));
-        num = num.add(N64::from_n32(char - '0'));
+        num *= N64::from_n32(10);
+        num += N64::from_n32(char - '0');
         len -= 1;
       }
       Some(num)
@@ -216,9 +216,9 @@ pub mod N64 {
     let n = N64::one;
     while e != 0 {
       if e % 2 != 0 {
-        n = n.mul(b);
+        n *= b;
       }
-      b = b.mul(b);
+      b *= b;
       e /= 2;
     }
     n
@@ -236,9 +236,9 @@ pub mod N64 {
 
   pub fn diff(a: N64, b: N64) -> N64 {
     if a.ge(&b) {
-      a.sub(b)
+      a - b
     } else {
-      b.sub(a)
+      b - a
     }
   }
 }

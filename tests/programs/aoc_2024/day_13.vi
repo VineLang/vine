@@ -34,14 +34,14 @@ pub fn main(&io: &IO) {
       part1 += a * 3 + b;
     }
 
-    let px = offset.add(n64(px));
-    let py = offset.add(n64(py));
-    let (a, _) = N64::diff(n64(by).mul(px), n64(bx).mul(py)).div_rem_n32(det);
-    let (b, _) = N64::diff(n64(ax).mul(py), n64(ay).mul(px)).div_rem_n32(det);
-    let x = a.mul(n64(ax)).add(b.mul(n64(bx)));
-    let y = a.mul(n64(ay)).add(b.mul(n64(by)));
-    if x.eq(px) && y.eq(py) {
-      part2 = part2.add(a.mul(n64(3)).add(b));
+    let px = offset + n64(px);
+    let py = offset + n64(py);
+    let (a, _) = N64::diff(n64(by) * px, n64(bx) * py).div_rem_n32(det);
+    let (b, _) = N64::diff(n64(ax) * py, n64(ay) * px).div_rem_n32(det);
+    let x = a * n64(ax) + b * n64(bx);
+    let y = a * n64(ay) + b * n64(by);
+    if x.eq(&px) && y.eq(&py) {
+      part2 += a * n64(3) + b;
     }
   }
 
