@@ -10,7 +10,7 @@ use vine_util::{
 
 use crate::{
   analyzer::usage::Usage,
-  ast::{ComparisonOp, DynFnId, Expr, ExprKind, Key, LabelId, Local, Pat, PatKind},
+  ast::{DynFnId, Expr, ExprKind, Key, LabelId, Local, Pat, PatKind},
   chart::{AdtId, Chart, ValueDef, ValueDefKind, VariantId},
   vir::{
     Interface, InterfaceId, InterfaceKind, Layer, LayerId, Port, Stage, StageId, Step, Transfer,
@@ -152,10 +152,8 @@ impl<'core, 'r> Distiller<'core, 'r> {
         Port::Erase
       }
       ExprKind::Ref(place, _) => {
-        let (value, space) = self.distill_expr_place(stage, place);
-        let wire = stage.new_wire();
-        stage.steps.push(Step::Ref(wire.0, value, space));
-        wire.1
+        let place = self.distill_expr_place(stage, place);
+        stage.ref_place(place)
       }
       ExprKind::Move(place, _) => {
         let (value, space) = self.distill_expr_place(stage, place);
@@ -217,25 +215,25 @@ impl<'core, 'r> Distiller<'core, 'r> {
         stage.steps.push(Step::Fn(func, vec![lhs, rhs], out));
         Port::Erase
       }
-      ExprKind::ComparisonOp(init, cmps) => {
+      ExprKind::CallCompare(init, cmps) => {
         let mut last_result = Port::Erase;
-        let mut lhs = self.distill_expr_value(stage, init);
-        for (i, (op, rhs)) in cmps.iter().enumerate() {
-          let (ext_fn, swap) = match op {
-            ComparisonOp::Eq => ("eq", false),
-            ComparisonOp::Ne => ("ne", false),
-            ComparisonOp::Lt => ("lt", false),
-            ComparisonOp::Gt => ("lt", true),
-            ComparisonOp::Le => ("le", false),
-            ComparisonOp::Ge => ("le", true),
-          };
+        let lhs = self.distill_expr_place(stage, init);
+        let mut lhs = stage.ref_place(lhs);
+        for (i, (func, rhs)) in cmps.iter().enumerate() {
+          let func = self.distill_expr_value(stage, func);
           let first = i == 0;
           let last = i == cmps.len() - 1;
-          let rhs = self.distill_expr_value(stage, rhs);
-          let (rhs, next_lhs) = if last { (rhs, Port::Erase) } else { stage.dup(rhs) };
-          let result = stage.ext_fn(ext_fn, swap, lhs, rhs);
+          let rhs = self.distill_expr_place(stage, rhs);
+          let (rhs, next_lhs) = if last {
+            (stage.ref_place(rhs), Port::Erase)
+          } else {
+            let wire = stage.new_wire();
+            (stage.ref_place((rhs.0, wire.0)), stage.ref_place((wire.1, rhs.1)))
+          };
+          let result = stage.new_wire();
+          stage.steps.push(Step::Fn(func, vec![lhs, rhs], result.0));
           last_result =
-            if first { result } else { stage.ext_fn("n32_and", false, last_result, result) };
+            if first { result.1 } else { stage.ext_fn("n32_and", false, last_result, result.1) };
           lhs = next_lhs;
         }
         last_result

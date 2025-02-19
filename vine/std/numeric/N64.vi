@@ -146,6 +146,10 @@ pub mod N64 {
     fn .eq(&N64(al, ah), &N64(bl, bh)) -> Bool {
       al == bl && ah == bh
     }
+
+    fn .ne(&N64(al, ah), &N64(bl, bh)) -> Bool {
+      al != bl && ah != bh
+    }
   }
 
   pub impl ord: Ord[N64] {
@@ -161,7 +165,7 @@ pub mod N64 {
   }
 
   pub fn .min(a: N64, b: N64) -> N64 {
-    if a.le(&b) {
+    if a < b {
       a
     } else {
       b
@@ -169,7 +173,7 @@ pub mod N64 {
   }
 
   pub fn .max(a: N64, b: N64) -> N64 {
-    if a.ge(&b) {
+    if a > b {
       a
     } else {
       b
@@ -198,9 +202,9 @@ pub mod N64 {
 
   pub impl to_string: ToString[N64] {
     fn .to_string(n: N64) -> String {
-      if !n.eq(&(N64::zero; _)) {
+      if n != N64::zero {
         let str = "";
-        while !n.eq(&(N64::zero; _)) {
+        while n != N64::zero {
           let (q, r) = N64::div_rem_n32(n, 10);
           str = String({ chars: ['0' + r] }) ++ str;
           n = q;
@@ -226,7 +230,7 @@ pub mod N64 {
 
   pub fn .log_n32(n: N64, b: N32) -> N32 {
     let l = 0;
-    while (N64::from_n32(b); _).le(&(n; _)) {
+    while N64::from_n32(b) < n {
       l += 1;
       let (d, _) = n.div_rem_n32(b);
       n = d;
@@ -235,7 +239,7 @@ pub mod N64 {
   }
 
   pub fn diff(a: N64, b: N64) -> N64 {
-    if a.ge(&b) {
+    if a > b {
       a - b
     } else {
       b - a

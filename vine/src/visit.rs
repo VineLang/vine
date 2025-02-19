@@ -163,6 +163,10 @@ pub trait VisitMut<'core, 'a> {
         self.visit_expr(b);
         self.visit_expr(c);
       }
+      ExprKind::CallCompare(a, b) => {
+        self.visit_expr(a);
+        self.visit(b.iter_mut().flat_map(|(x, y)| [x, y]));
+      }
     }
   }
 

@@ -10,7 +10,7 @@ pub fn main(&io: &IO) {
   let ways = N64::zero;
   while io.read_line() is Some(design) {
     let count = (match_counts(design, patterns); _).pop_back().unwrap();
-    if !count.eq(&(N64::zero; _)) {
+    if count != N64::zero {
       possible += 1;
       ways += count;
     }

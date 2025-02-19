@@ -139,7 +139,7 @@ pub mod N32 {
     }
 
     fn .le(&a: &N32, &b: &N32) -> Bool {
-      inline_ivy! (a <- a, b <- b) -> Bool { out a = @lt(b out) }
+      inline_ivy! (a <- a, b <- b) -> Bool { out a = @le(b out) }
     }
 
     const cmp: fn(&N32, &N32) -> Ord = Ord::cmp_from_lt[N32];
@@ -148,6 +148,10 @@ pub mod N32 {
   pub impl eq: Eq[N32] {
     fn .eq(&a: &N32, &b: &N32) -> Bool {
       inline_ivy! (a <- a, b <- b) -> Bool { out a = @eq(b out) }
+    }
+
+    fn .ne(&a: &N32, &b: &N32) -> Bool {
+      inline_ivy! (a <- a, b <- b) -> Bool { out a = @ne(b out) }
     }
   }
 

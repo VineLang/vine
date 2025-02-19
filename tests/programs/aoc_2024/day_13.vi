@@ -40,7 +40,7 @@ pub fn main(&io: &IO) {
     let (b, _) = N64::diff(n64(ax) * py, n64(ay) * px).div_rem_n32(det);
     let x = a * n64(ax) + b * n64(bx);
     let y = a * n64(ay) + b * n64(by);
-    if x.eq(&px) && y.eq(&py) {
+    if x == px && y == py {
       part2 += a * n64(3) + b;
     }
   }

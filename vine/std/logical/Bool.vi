@@ -1,5 +1,5 @@
 
-use ops::bitwise::{And, Not, Or, Xor};
+use ops::{bitwise::{And, Not, Or, Xor}, comparison::{Eq, Ord}};
 use unicode::ToString;
 
 #[builtin = "Bool"]
@@ -27,6 +27,28 @@ pub mod Bool {
     fn .not(a: Bool) -> Bool {
       inline_ivy! (a <- a) -> Bool { out a = @eq(0 out) }
     }
+  }
+
+  pub impl eq: Eq[Bool] {
+    fn .eq(&a: &Bool, &b: &Bool) -> Bool {
+      inline_ivy! (a <- a, b <- b) -> Bool { out a = @eq(b out) }
+    }
+
+    fn .ne(&a: &Bool, &b: &Bool) -> Bool {
+      inline_ivy! (a <- a, b <- b) -> Bool { out a = @ne(b out) }
+    }
+  }
+
+  pub impl ord: Ord[Bool] {
+    fn .lt(&a: &Bool, &b: &Bool) -> Bool {
+      inline_ivy! (a <- a, b <- b) -> Bool { out a = @lt(b out) }
+    }
+
+    fn .le(&a: &Bool, &b: &Bool) -> Bool {
+      inline_ivy! (a <- a, b <- b) -> Bool { out a = @le(b out) }
+    }
+
+    const cmp: fn(&Bool, &Bool) -> Ord = Ord::cmp_from_lt[Bool];
   }
 
   pub impl to_string: ToString[Bool] {

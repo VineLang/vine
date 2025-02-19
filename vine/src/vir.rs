@@ -266,4 +266,10 @@ impl Stage {
     self.steps.push(Step::ExtFn(ext_fn, swap, lhs, rhs, out.0));
     out.1
   }
+
+  pub fn ref_place(&mut self, (value, space): (Port, Port)) -> Port {
+    let wire = self.new_wire();
+    self.steps.push(Step::Ref(wire.0, value, space));
+    wire.1
+  }
 }

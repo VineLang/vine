@@ -28,14 +28,14 @@ pub fn main(&io: &IO) {
     }
     do.search {
       while results.pop_front() is Some(num) {
-        if num.eq(&goal) {
+        if num == goal {
           part1 += goal;
           part2 += goal;
           break.search;
         }
       }
       while results2.pop_front() is Some(num) {
-        if num.eq(&goal) {
+        if num == goal {
           part2 += goal;
           break.search;
         }

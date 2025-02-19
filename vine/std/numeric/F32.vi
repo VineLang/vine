@@ -38,4 +38,28 @@ pub mod F32 {
       inline_ivy! (a <- a) -> F32 { out a = @sub$(0 out) }
     }
   }
+
+  pub fn .eq(a: F32, b: F32) -> Bool {
+    inline_ivy! (a <- a, b <- b) -> Bool { out a = @eq(b out) }
+  }
+
+  pub fn .ne(a: F32, b: F32) -> Bool {
+    inline_ivy! (a <- a, b <- b) -> Bool { out a = @ne(b out) }
+  }
+
+  pub fn .lt(a: F32, b: F32) -> Bool {
+    inline_ivy! (a <- a, b <- b) -> Bool { out a = @lt(b out) }
+  }
+
+  pub fn .le(a: F32, b: F32) -> Bool {
+    inline_ivy! (a <- a, b <- b) -> Bool { out a = @le(b out) }
+  }
+
+  pub fn .gt(a: F32, b: F32) -> Bool {
+    inline_ivy! (a <- a, b <- b) -> Bool { out a = @lt$(b out) }
+  }
+
+  pub fn .ge(a: F32, b: F32) -> Bool {
+    inline_ivy! (a <- a, b <- b) -> Bool { out a = @le$(b out) }
+  }
 }

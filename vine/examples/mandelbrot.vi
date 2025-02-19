@@ -32,7 +32,7 @@ fn mandelbrot(x0: F32, y0: F32) -> Bool {
   let x2 = 0.0;
   let y2 = 0.0;
   let i = max_iter;
-  while (i > 0) & (x2 + y2 < 4.0) {
+  while (i > 0) & (x2 + y2).lt(4.0) {
     i -= 1;
     (x, y) = (x2 - y2 + x0, 2.0 * x * y + y0);
     x2 = x * x;

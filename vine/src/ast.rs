@@ -1,17 +1,13 @@
 use std::{
   collections::BTreeMap,
   fmt::{self, Debug, Display, Write},
-  mem::{take, transmute},
+  mem::take,
   path::PathBuf,
 };
 
 use class::Classes;
 use ivy::ast::Net;
-use vine_util::{
-  idx::{self, Idx},
-  interner::Interned,
-  new_idx,
-};
+use vine_util::{idx, interner::Interned, new_idx};
 
 use crate::{
   chart::{AdtId, ImplDefId, TraitDefId, TypeDefId, ValueDefId, VariantId},
@@ -173,6 +169,7 @@ pub enum Builtin {
   Neg,
   Not,
   BoolNot,
+  ComparisonOp(ComparisonOp),
 }
 
 pub type GenericParams<'core> = Generics<Ident<'core>, (Option<Ident<'core>>, Trait<'core>)>;
@@ -309,7 +306,7 @@ pub enum ExprKind<'core> {
   Is(B<Expr<'core>>, B<Pat<'core>>),
   #[class(value, cond)]
   LogicalOp(LogicalOp, B<Expr<'core>>, B<Expr<'core>>),
-  #[class(value)]
+  #[class(value, sugar)]
   ComparisonOp(B<Expr<'core>>, Vec<(ComparisonOp, Expr<'core>)>),
   #[class(value, sugar)]
   BinaryOpAssign(BinaryOp, B<Expr<'core>>, B<Expr<'core>>),
@@ -339,6 +336,8 @@ pub enum ExprKind<'core> {
   InlineIvy(Vec<(Ident<'core>, bool, Expr<'core>)>, Ty<'core>, Span, Net),
   #[class(value, synthetic)]
   CallAssign(B<Expr<'core>>, B<Expr<'core>>, B<Expr<'core>>),
+  #[class(value, synthetic)]
+  CallCompare(B<Expr<'core>>, Vec<(Expr<'core>, Expr<'core>)>),
   #[class(error)]
   Error(ErrorGuaranteed),
 }
@@ -517,23 +516,6 @@ impl BinaryOp {
   }
 }
 
-impl Idx for BinaryOp {}
-
-impl idx::IsEnabled for BinaryOp {}
-
-impl From<usize> for BinaryOp {
-  fn from(value: usize) -> Self {
-    assert!(value <= BinaryOp::Concat as usize);
-    unsafe { transmute(value as u8) }
-  }
-}
-
-impl From<BinaryOp> for usize {
-  fn from(val: BinaryOp) -> Self {
-    val as usize
-  }
-}
-
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum LogicalOp {
   And,
@@ -541,7 +523,7 @@ pub enum LogicalOp {
   Implies,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum ComparisonOp {
   Eq,
   Ne,
@@ -674,3 +656,6 @@ impl From<ErrorGuaranteed> for Block<'_> {
     Block { span: Span::NONE, stmts: Vec::from([err.into()]) }
   }
 }
+
+impl idx::IsEnabled for BinaryOp {}
+impl idx::IsEnabled for ComparisonOp {}
