@@ -25,27 +25,27 @@ pub mod Bool {
   #[builtin = "bool_not"]
   pub impl not: Not[Bool, Bool] {
     fn .not(a: Bool) -> Bool {
-      inline_ivy! (a <- a) -> Bool { out a = @eq(0 out) }
+      inline_ivy! (a <- a) -> Bool { out a = @n32_eq(0 out) }
     }
   }
 
   pub impl eq: Eq[Bool] {
     fn .eq(&a: &Bool, &b: &Bool) -> Bool {
-      inline_ivy! (a <- a, b <- b) -> Bool { out a = @eq(b out) }
+      inline_ivy! (a <- a, b <- b) -> Bool { out a = @n32_eq(b out) }
     }
 
     fn .ne(&a: &Bool, &b: &Bool) -> Bool {
-      inline_ivy! (a <- a, b <- b) -> Bool { out a = @ne(b out) }
+      inline_ivy! (a <- a, b <- b) -> Bool { out a = @n32_ne(b out) }
     }
   }
 
   pub impl ord: Ord[Bool] {
     fn .lt(&a: &Bool, &b: &Bool) -> Bool {
-      inline_ivy! (a <- a, b <- b) -> Bool { out a = @lt(b out) }
+      inline_ivy! (a <- a, b <- b) -> Bool { out a = @n32_lt(b out) }
     }
 
     fn .le(&a: &Bool, &b: &Bool) -> Bool {
-      inline_ivy! (a <- a, b <- b) -> Bool { out a = @le(b out) }
+      inline_ivy! (a <- a, b <- b) -> Bool { out a = @n32_le(b out) }
     }
 
     const cmp: fn(&Bool, &Bool) -> Ord = Ord::cmp_from_lt[Bool];

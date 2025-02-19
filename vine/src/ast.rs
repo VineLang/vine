@@ -295,7 +295,7 @@ pub enum ExprKind<'core> {
   Call(B<Expr<'core>>, Vec<Expr<'core>>),
   #[class(value, place, space, resolved)]
   Adt(AdtId, VariantId, GenericArgs<'core>, Vec<Expr<'core>>),
-  #[class(value)]
+  #[class(value, sugar)]
   Neg(B<Expr<'core>>),
   #[class(value, sugar)]
   BinaryOp(BinaryOp, B<Expr<'core>>, B<Expr<'core>>),

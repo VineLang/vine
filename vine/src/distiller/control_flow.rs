@@ -304,7 +304,7 @@ impl<'core, 'r> Distiller<'core, 'r> {
         let value = self.distill_expr_value(stage, cond);
         if negate {
           let wire = stage.new_wire();
-          stage.steps.push(Step::ExtFn("eq", false, value, Port::N32(0), wire.0));
+          stage.steps.push(Step::ExtFn("n32_eq", false, value, Port::N32(0), wire.0));
           wire.1
         } else {
           value

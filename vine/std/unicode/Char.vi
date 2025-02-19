@@ -17,21 +17,21 @@ pub mod Char {
 
   pub impl eq: Eq[Char] {
     fn .eq(&a: &Char, &b: &Char) -> Bool {
-      inline_ivy! (a <- a, b <- b) -> Bool { out a = @eq(b out) }
+      inline_ivy! (a <- a, b <- b) -> Bool { out a = @n32_eq(b out) }
     }
 
     fn .ne(&a: &Char, &b: &Char) -> Bool {
-      inline_ivy! (a <- a, b <- b) -> Bool { out a = @ne(b out) }
+      inline_ivy! (a <- a, b <- b) -> Bool { out a = @n32_ne(b out) }
     }
   }
 
   pub impl ord: Ord[Char] {
     fn .lt(&a: &Char, &b: &Char) -> Bool {
-      inline_ivy! (a <- a, b <- b) -> Bool { out a = @lt(b out) }
+      inline_ivy! (a <- a, b <- b) -> Bool { out a = @n32_lt(b out) }
     }
 
     fn .le(&a: &Char, &b: &Char) -> Bool {
-      inline_ivy! (a <- a, b <- b) -> Bool { out a = @le(b out) }
+      inline_ivy! (a <- a, b <- b) -> Bool { out a = @n32_le(b out) }
     }
 
     const cmp: fn(&Char, &Char) -> Ord = Ord::cmp_from_lt[Char];
@@ -53,19 +53,19 @@ pub mod Char {
 
   pub impl add_n32: Add[Char, N32, Char] {
     fn .add(a: Char, b: N32) -> Char {
-      inline_ivy! (a <- a, b <- b) -> Char { out a = @add(b out) }
+      inline_ivy! (a <- a, b <- b) -> Char { out a = @n32_add(b out) }
     }
   }
 
   pub impl sub_n32: Sub[Char, N32, Char] {
     fn .sub(a: Char, b: N32) -> Char {
-      inline_ivy! (a <- a, b <- b) -> Char { out a = @sub(b out) }
+      inline_ivy! (a <- a, b <- b) -> Char { out a = @n32_sub(b out) }
     }
   }
 
   pub impl sub_char: Sub[Char, Char, N32] {
     fn .sub(a: Char, b: Char) -> N32 {
-      inline_ivy! (a <- a, b <- b) -> N32 { out a = @sub(b out) }
+      inline_ivy! (a <- a, b <- b) -> N32 { out a = @n32_sub(b out) }
     }
   }
 }

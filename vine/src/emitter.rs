@@ -322,7 +322,7 @@ impl<'core, 'a> VirEmitter<'core, 'a> {
             Tree::n_ary(
               "tup",
               [
-                Tree::ExtFn("add".into(), false, Box::new(cur_len), Box::new(next_len.0)),
+                Tree::ExtFn("n32_add".into(), false, Box::new(cur_len), Box::new(next_len.0)),
                 cur_buf,
                 Tree::n_ary("tup", seg.chars().map(|c| Tree::N32(c as u32)).chain([next_buf.0])),
               ],

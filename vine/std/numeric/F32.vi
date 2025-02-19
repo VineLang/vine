@@ -5,67 +5,67 @@ use ops::{Cast, arithmetic::{Add, Div, Mul, Neg, Rem, Sub}};
 pub mod F32 {
   pub impl add: Add[F32, F32, F32] {
     fn .add(a: F32, b: F32) -> F32 {
-      inline_ivy! (a <- a, b <- b) -> F32 { out a = @add(b out) }
+      inline_ivy! (a <- a, b <- b) -> F32 { out a = @f32_add(b out) }
     }
   }
 
   pub impl sub: Sub[F32, F32, F32] {
     fn .sub(a: F32, b: F32) -> F32 {
-      inline_ivy! (a <- a, b <- b) -> F32 { out a = @sub(b out) }
+      inline_ivy! (a <- a, b <- b) -> F32 { out a = @f32_sub(b out) }
     }
   }
 
   pub impl mul: Mul[F32, F32, F32] {
     fn .mul(a: F32, b: F32) -> F32 {
-      inline_ivy! (a <- a, b <- b) -> F32 { out a = @mul(b out) }
+      inline_ivy! (a <- a, b <- b) -> F32 { out a = @f32_mul(b out) }
     }
   }
 
   pub impl div: Div[F32, F32, F32] {
     fn .div(a: F32, b: F32) -> F32 {
-      inline_ivy! (a <- a, b <- b) -> F32 { out a = @div(b out) }
+      inline_ivy! (a <- a, b <- b) -> F32 { out a = @f32_div(b out) }
     }
   }
 
   pub impl rem: Rem[F32, F32, F32] {
     fn .rem(a: F32, b: F32) -> F32 {
-      inline_ivy! (a <- a, b <- b) -> F32 { out a = @rem(b out) }
+      inline_ivy! (a <- a, b <- b) -> F32 { out a = @f32_rem(b out) }
     }
   }
 
   pub impl neg: Neg[F32, F32] {
     fn .neg(a: F32) -> F32 {
-      inline_ivy! (a <- a) -> F32 { out a = @sub$(0 out) }
+      inline_ivy! (a <- a) -> F32 { out a = @f32_sub$(+0.0 out) }
     }
   }
 
   pub fn .eq(a: F32, b: F32) -> Bool {
-    inline_ivy! (a <- a, b <- b) -> Bool { out a = @eq(b out) }
+    inline_ivy! (a <- a, b <- b) -> Bool { out a = @f32_eq(b out) }
   }
 
   pub fn .ne(a: F32, b: F32) -> Bool {
-    inline_ivy! (a <- a, b <- b) -> Bool { out a = @ne(b out) }
+    inline_ivy! (a <- a, b <- b) -> Bool { out a = @f32_ne(b out) }
   }
 
   pub fn .lt(a: F32, b: F32) -> Bool {
-    inline_ivy! (a <- a, b <- b) -> Bool { out a = @lt(b out) }
+    inline_ivy! (a <- a, b <- b) -> Bool { out a = @f32_lt(b out) }
   }
 
   pub fn .le(a: F32, b: F32) -> Bool {
-    inline_ivy! (a <- a, b <- b) -> Bool { out a = @le(b out) }
+    inline_ivy! (a <- a, b <- b) -> Bool { out a = @f32_le(b out) }
   }
 
   pub fn .gt(a: F32, b: F32) -> Bool {
-    inline_ivy! (a <- a, b <- b) -> Bool { out a = @lt$(b out) }
+    inline_ivy! (a <- a, b <- b) -> Bool { out a = @f32_lt$(b out) }
   }
 
   pub fn .ge(a: F32, b: F32) -> Bool {
-    inline_ivy! (a <- a, b <- b) -> Bool { out a = @le$(b out) }
+    inline_ivy! (a <- a, b <- b) -> Bool { out a = @f32_le$(b out) }
   }
 
   pub impl from_n32: Cast[N32, F32] {
     fn .cast(n: N32) -> F32 {
-      inline_ivy! (n <- n) -> F32 { out n = @add(+0.0 out) }
+      inline_ivy! (n <- n) -> F32 { out n = @n32_to_f32(0 out) }
     }
   }
 }

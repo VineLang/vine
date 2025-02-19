@@ -191,12 +191,6 @@ impl<'core, 'r> Distiller<'core, 'r> {
         stage.steps.push(Step::Fn(func, args, wire.0));
         wire.1
       }
-      ExprKind::Neg(value) => {
-        let value = self.distill_expr_value(stage, value);
-        let wire = stage.new_wire();
-        stage.steps.push(Step::ExtFn("sub", true, value, Port::N32(0), wire.0));
-        wire.1
-      }
       ExprKind::String(init, rest) => {
         let wire = stage.new_wire();
         let rest = rest

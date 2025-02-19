@@ -32,9 +32,9 @@ pub mod N64 {
         tup(l h)
         a = tup(dup(al0 al1) ah)
         b = tup(dup(bl0 bl1) bh)
-        al0 = @add(bl0 l)
+        al0 = @n32_add(bl0 l)
         al1 = @n32_add_high(bl1 c)
-        ah = @add(bh @add(c h))
+        ah = @n32_add(bh @n32_add(c h))
       }
     }
   }
@@ -45,9 +45,9 @@ pub mod N64 {
         tup(l h)
         a = tup(dup(al0 al1) ah)
         b = tup(dup(bl0 bl1) bh)
-        al0 = @sub(bl0 l)
-        al1 = @lt(bl1 c)
-        ah = @sub(bh @sub(c h))
+        al0 = @n32_sub(bl0 l)
+        al1 = @n32_lt(bl1 c)
+        ah = @n32_sub(bh @n32_sub(c h))
       }
     }
   }
@@ -58,11 +58,11 @@ pub mod N64 {
         tup(l h)
         a = tup(dup(al0 dup(al1 al2)) ah)
         b = tup(dup(bl0 dup(bl1 bl2)) bh)
-        al0 = @mul(bl0 l)
+        al0 = @n32_mul(bl0 l)
         al1 = @n32_mul_high(bl1 ll)
-        al2 = @mul(bh lh)
-        bl2 = @mul(ah hl)
-        lh = @add(hl @add(ll h))
+        al2 = @n32_mul(bh lh)
+        bl2 = @n32_mul(ah hl)
+        lh = @n32_add(hl @n32_add(ll h))
       }
     }
   }
@@ -72,7 +72,7 @@ pub mod N64 {
       tup(l h)
       a = dup(a0 a1)
       b = dup(b0 b1)
-      a0 = @mul(b0 l)
+      a0 = @n32_mul(b0 l)
       a1 = @n32_mul_high(b1 h)
     }
   }

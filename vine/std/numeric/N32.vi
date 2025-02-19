@@ -12,37 +12,37 @@ pub mod N32 {
 
   pub impl add: Add[N32, N32, N32] {
     fn .add(a: N32, b: N32) -> N32 {
-      inline_ivy! (a <- a, b <- b) -> N32 { out a = @add(b out) }
+      inline_ivy! (a <- a, b <- b) -> N32 { out a = @n32_add(b out) }
     }
   }
 
   pub impl sub: Sub[N32, N32, N32] {
     fn .sub(a: N32, b: N32) -> N32 {
-      inline_ivy! (a <- a, b <- b) -> N32 { out a = @sub(b out) }
+      inline_ivy! (a <- a, b <- b) -> N32 { out a = @n32_sub(b out) }
     }
   }
 
   pub impl mul: Mul[N32, N32, N32] {
     fn .mul(a: N32, b: N32) -> N32 {
-      inline_ivy! (a <- a, b <- b) -> N32 { out a = @mul(b out) }
+      inline_ivy! (a <- a, b <- b) -> N32 { out a = @n32_mul(b out) }
     }
   }
 
   pub impl div: Div[N32, N32, N32] {
     fn .div(a: N32, b: N32) -> N32 {
-      inline_ivy! (a <- a, b <- b) -> N32 { out a = @div(b out) }
+      inline_ivy! (a <- a, b <- b) -> N32 { out a = @n32_div(b out) }
     }
   }
 
   pub impl rem: Rem[N32, N32, N32] {
     fn .rem(a: N32, b: N32) -> N32 {
-      inline_ivy! (a <- a, b <- b) -> N32 { out a = @rem(b out) }
+      inline_ivy! (a <- a, b <- b) -> N32 { out a = @n32_rem(b out) }
     }
   }
 
   pub impl neg: Neg[N32, N32] {
     fn .neg(a: N32) -> N32 {
-      inline_ivy! (a <- a) -> N32 { out a = @sub$(0 out) }
+      inline_ivy! (a <- a) -> N32 { out a = @n32_sub$(0 out) }
     }
   }
 
@@ -135,11 +135,11 @@ pub mod N32 {
 
   pub impl ord: Ord[N32] {
     fn .lt(&a: &N32, &b: &N32) -> Bool {
-      inline_ivy! (a <- a, b <- b) -> Bool { out a = @lt(b out) }
+      inline_ivy! (a <- a, b <- b) -> Bool { out a = @n32_lt(b out) }
     }
 
     fn .le(&a: &N32, &b: &N32) -> Bool {
-      inline_ivy! (a <- a, b <- b) -> Bool { out a = @le(b out) }
+      inline_ivy! (a <- a, b <- b) -> Bool { out a = @n32_le(b out) }
     }
 
     const cmp: fn(&N32, &N32) -> Ord = Ord::cmp_from_lt[N32];
@@ -147,11 +147,11 @@ pub mod N32 {
 
   pub impl eq: Eq[N32] {
     fn .eq(&a: &N32, &b: &N32) -> Bool {
-      inline_ivy! (a <- a, b <- b) -> Bool { out a = @eq(b out) }
+      inline_ivy! (a <- a, b <- b) -> Bool { out a = @n32_eq(b out) }
     }
 
     fn .ne(&a: &N32, &b: &N32) -> Bool {
-      inline_ivy! (a <- a, b <- b) -> Bool { out a = @ne(b out) }
+      inline_ivy! (a <- a, b <- b) -> Bool { out a = @n32_ne(b out) }
     }
   }
 
