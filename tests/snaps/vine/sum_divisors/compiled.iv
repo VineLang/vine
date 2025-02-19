@@ -6,45 +6,45 @@
   ::sum_divisors::main::1 = x(x(w1 w9) 1)
 }
 
-::sum_divisors::main::1 { x(n0 dup30(n1 @le(100 ?(::sum_divisors::main::3 ::sum_divisors::main::2 x(n0 n1))))) }
+::sum_divisors::main::1 { x(n0 dup30(n1 @n32_le(100 ?(::sum_divisors::main::3 ::sum_divisors::main::2 x(n0 n1))))) }
 
-::sum_divisors::main::2 { x(x(n0 n1) dup14(dup31(n2 @le$(4 ?(::sum_divisors::3 ::sum_divisors::2 x(x(n2 dup66(n3 @ne(1 ?(::sum_divisors::12 ::sum_divisors::11 x(n3 x(x(n4 dup34(n5 @eq(n6 ?(::sum_divisors::main::6 ::sum_divisors::main::5 x(n7 x(x(n5 dup66(n8 @ne(0 ?(::std::numeric::N32::to_string::to_string::3 ::std::numeric::N32::to_string::to_string::2 x(n8 tup(@add(n9 n10) tup(n11 n12))))))) tup(@add(n10 dup66(n13 @ne(0 ?(::std::IO::print::3 ::std::IO::print::2 x(x(n0 @io_print_char(10 n14)) x(n13 n15)))))) tup(n12 _)))))))) _)))))) x(x(1 n4) 2))))) dup14(@add(1 dup35(_ n6)) dup14(n7 dup14(dup66(n16 @ne(0 ?(::std::numeric::N32::to_string::to_string::3 ::std::numeric::N32::to_string::to_string::2 x(n16 tup(@add(2 n9) tup(n15 tup(58 tup(32 n11)))))))) @add(1 dup30(n17 @le(100 ?(::sum_divisors::main::3 ::sum_divisors::main::2 x(x(n14 n1) n17)))))))))) }
+::sum_divisors::main::2 { x(x(n0 n1) dup14(dup31(n2 @n32_le$(4 ?(::sum_divisors::3 ::sum_divisors::2 x(x(n2 dup66(n3 @n32_ne(1 ?(::sum_divisors::12 ::sum_divisors::11 x(n3 x(x(n4 dup34(n5 @n32_eq(n6 ?(::sum_divisors::main::6 ::sum_divisors::main::5 x(n7 x(x(n5 dup66(n8 @n32_ne(0 ?(::std::numeric::N32::to_string::to_string::3 ::std::numeric::N32::to_string::to_string::2 x(n8 tup(@n32_add(n9 n10) tup(n11 n12))))))) tup(@n32_add(n10 dup66(n13 @n32_ne(0 ?(::std::IO::print::3 ::std::IO::print::2 x(x(n0 @io_print_char(10 n14)) x(n13 n15)))))) tup(n12 _)))))))) _)))))) x(x(1 n4) 2))))) dup14(@n32_add(1 dup35(_ n6)) dup14(n7 dup14(dup66(n16 @n32_ne(0 ?(::std::numeric::N32::to_string::to_string::3 ::std::numeric::N32::to_string::to_string::2 x(n16 tup(@n32_add(2 n9) tup(n15 tup(58 tup(32 n11)))))))) @n32_add(1 dup30(n17 @n32_le(100 ?(::sum_divisors::main::3 ::sum_divisors::main::2 x(x(n14 n1) n17)))))))))) }
 
 ::sum_divisors::main::3 { x(x(n0 n0) _) }
 
 ::sum_divisors::main::5 { x(_ x(x(n0 n0) tup(8 tup(tup(32 tup(40 tup(112 tup(114 tup(105 tup(109 tup(101 tup(41 n1)))))))) n1)))) }
 
-::sum_divisors::main::6 { x(@mul(2 dup35(_ n0)) x(x(dup34(n1 @eq(n0 ?(::sum_divisors::main::8 ::sum_divisors::main::7 n2))) n1) n2)) }
+::sum_divisors::main::6 { x(@n32_mul(2 dup35(_ n0)) x(x(dup34(n1 @n32_eq(n0 ?(::sum_divisors::main::8 ::sum_divisors::main::7 n2))) n1) n2)) }
 
 ::sum_divisors::main::7 { tup(11 tup(tup(32 tup(40 tup(112 tup(101 tup(114 tup(102 tup(101 tup(99 tup(116 tup(33 tup(41 n0))))))))))) n0)) }
 
 ::sum_divisors::main::8 { tup(0 tup(n0 n0)) }
 
-::std::numeric::N32::to_string::to_string::2 { x(dup66(n0 @ne(0 ?(::std::numeric::N32::to_string::to_string::6 ::std::numeric::N32::to_string::to_string::5 x(n0 x(tup(0 tup(n1 n1)) n2))))) n2) }
+::std::numeric::N32::to_string::to_string::2 { x(dup66(n0 @n32_ne(0 ?(::std::numeric::N32::to_string::to_string::6 ::std::numeric::N32::to_string::to_string::5 x(n0 x(tup(0 tup(n1 n1)) n2))))) n2) }
 
 ::std::numeric::N32::to_string::to_string::3 { x(_ tup(1 tup(tup(48 n0) n0))) }
 
-::std::numeric::N32::to_string::to_string::5 { x(dup60(@rem(10 @add$(48 n0)) @div(10 dup66(n1 @ne(0 ?(::std::numeric::N32::to_string::to_string::6 ::std::numeric::N32::to_string::to_string::5 x(n1 x(tup(n2 tup(tup(n0 n3) n4)) n5))))))) x(tup(@add$(1 n2) tup(n3 n4)) n5)) }
+::std::numeric::N32::to_string::to_string::5 { x(dup60(@n32_rem(10 @n32_add$(48 n0)) @n32_div(10 dup66(n1 @n32_ne(0 ?(::std::numeric::N32::to_string::to_string::6 ::std::numeric::N32::to_string::to_string::5 x(n1 x(tup(n2 tup(tup(n0 n3) n4)) n5))))))) x(tup(@n32_add$(1 n2) tup(n3 n4)) n5)) }
 
 ::std::numeric::N32::to_string::to_string::6 { x(_ x(n0 n0)) }
 
-::sum_divisors::2 { x(x(dup112(@rem(n0 dup66(_ @ne(0 ?(::sum_divisors::6 ::sum_divisors::5 x(x(n1 n2) x(n3 n4)))))) n1) n2) x(n3 dup115(n0 n4))) }
+::sum_divisors::2 { x(x(dup112(@n32_rem(n0 dup66(_ @n32_ne(0 ?(::sum_divisors::6 ::sum_divisors::5 x(x(n1 n2) x(n3 n4)))))) n1) n2) x(n3 dup115(n0 n4))) }
 
 ::sum_divisors::3 { x(x(n0 n0) x(x(n1 n1) _)) }
 
-::sum_divisors::5 { x(x(dup31(n0 n1) n2) x(n3 @add(1 dup110(@mul(n4 dup30(_ @le(n1 ?(::sum_divisors::3 ::sum_divisors::2 x(x(n0 n2) x(n3 n5)))))) dup110(n4 n5))))) }
+::sum_divisors::5 { x(x(dup31(n0 n1) n2) x(n3 @n32_add(1 dup110(@n32_mul(n4 dup30(_ @n32_le(n1 ?(::sum_divisors::3 ::sum_divisors::2 x(x(n0 n2) x(n3 n5)))))) dup110(n4 n5))))) }
 
-::sum_divisors::6 { x(x(dup135(@rem(n0 dup34(_ @eq(0 ?(::sum_divisors::9 ::sum_divisors::8 x(x(n1 dup31(n2 n3)) x(n4 x(n5 @sub(1 @div(n6 n7))))))))) n1) n8) x(x(@mul(n7 n9) n10) dup130(n5 dup130(dup136(n0 n4) dup130(@sub(1 n6) @add(1 dup110(@mul(n11 dup30(_ @le(n3 ?(::sum_divisors::3 ::sum_divisors::2 x(x(n2 n8) x(x(n9 n10) n12)))))) dup110(n11 n12)))))))) }
+::sum_divisors::6 { x(x(dup135(@n32_rem(n0 dup34(_ @n32_eq(0 ?(::sum_divisors::9 ::sum_divisors::8 x(x(n1 dup31(n2 n3)) x(n4 x(n5 @n32_sub(1 @n32_div(n6 n7))))))))) n1) n8) x(x(@n32_mul(n7 n9) n10) dup130(n5 dup130(dup136(n0 n4) dup130(@n32_sub(1 n6) @n32_add(1 dup110(@n32_mul(n11 dup30(_ @n32_le(n3 ?(::sum_divisors::3 ::sum_divisors::2 x(x(n2 n8) x(x(n9 n10) n12)))))) dup110(n11 n12)))))))) }
 
-::sum_divisors::8 { x(x(@div(n0 dup135(@rem(n1 dup34(_ @eq(0 ?(::sum_divisors::9 ::sum_divisors::8 x(x(n2 n3) x(n4 x(n5 n6))))))) n2)) n3) x(dup142(n7 dup142(n0 dup136(n1 n4))) x(@mul(n7 n5) n6))) }
+::sum_divisors::8 { x(x(@n32_div(n0 dup135(@n32_rem(n1 dup34(_ @n32_eq(0 ?(::sum_divisors::9 ::sum_divisors::8 x(x(n2 n3) x(n4 x(n5 n6))))))) n2)) n3) x(dup142(n7 dup142(n0 dup136(n1 n4))) x(@n32_mul(n7 n5) n6))) }
 
 ::sum_divisors::9 { x(x(n0 n0) x(_ x(n1 n1))) }
 
-::sum_divisors::11 { x(@add(1 n0) x(x(@mul(n0 n1) n1) _)) }
+::sum_divisors::11 { x(@n32_add(1 n0) x(x(@n32_mul(n0 n1) n1) _)) }
 
 ::sum_divisors::12 { x(_ x(x(n0 n0) _)) }
 
-::std::IO::print::2 { x(x(@io_print_char(n0 n1) n2) x(@sub(1 dup66(n3 @ne(0 ?(::std::IO::print::3 ::std::IO::print::2 x(x(n1 n2) x(n3 n4)))))) tup(n0 n4))) }
+::std::IO::print::2 { x(x(@io_print_char(n0 n1) n2) x(@n32_sub(1 dup66(n3 @n32_ne(0 ?(::std::IO::print::3 ::std::IO::print::2 x(x(n1 n2) x(n3 n4)))))) tup(n0 n4))) }
 
 ::std::IO::print::3 { x(x(n0 n0) _) }
 

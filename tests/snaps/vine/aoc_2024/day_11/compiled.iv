@@ -18,93 +18,93 @@
   ::day_11::main::6 = x(x(w6 w27) x(w23 0))
 }
 
-::day_11::main::1 { x(n0 tup(dup213(n1 @ne(0 ?(::std::data::List::pop_front::3 ::std::data::List::pop_front::2 x(x(n1 n2) x(x(n3 n4) enum(::day_11::main::4 enum(::day_11::main::5 x(n0 tup(n2 tup(n4 n5)))))))))) tup(n3 n5))) }
+::day_11::main::1 { x(n0 tup(dup213(n1 @n32_ne(0 ?(::std::data::List::pop_front::3 ::std::data::List::pop_front::2 x(x(n1 n2) x(x(n3 n4) enum(::day_11::main::4 enum(::day_11::main::5 x(n0 tup(n2 tup(n4 n5)))))))))) tup(n3 n5))) }
 
-::day_11::main::4 { enum(tup(dup116(n0 @eq(0 ?(::std::numeric::N32::parse::3 ::std::numeric::N32::parse::2 x(n0 x(n1 enum(::std::logical::Option::unwrap::3 enum(_ n2))))))) tup(n1 _)) x(x(tup(dup116(n3 @eq(0 ?(::std::data::Map::insert::1::3 ::std::data::Map::insert::1::2 x(x(n3 n4) x(x(n5 n6) x(tup(n2 0) x(::std::numeric::N64::one _))))))) n5) n7) tup(dup213(n8 @ne(0 ?(::std::data::List::pop_front::3 ::std::data::List::pop_front::2 x(x(n8 n9) x(x(n10 n11) enum(::day_11::main::4 enum(::day_11::main::5 x(x(tup(n4 n6) n7) tup(n9 tup(n11 n12)))))))))) tup(n10 n12)))) }
+::day_11::main::4 { enum(tup(dup116(n0 @n32_eq(0 ?(::std::numeric::N32::parse::3 ::std::numeric::N32::parse::2 x(n0 x(n1 enum(::std::logical::Option::unwrap::3 enum(_ n2))))))) tup(n1 _)) x(x(tup(dup116(n3 @n32_eq(0 ?(::std::data::Map::insert::1::3 ::std::data::Map::insert::1::2 x(x(n3 n4) x(x(n5 n6) x(tup(n2 0) x(::std::numeric::N64::one _))))))) n5) n7) tup(dup213(n8 @n32_ne(0 ?(::std::data::List::pop_front::3 ::std::data::List::pop_front::2 x(x(n8 n9) x(x(n10 n11) enum(::day_11::main::4 enum(::day_11::main::5 x(x(tup(n4 n6) n7) tup(n9 tup(n11 n12)))))))))) tup(n10 n12)))) }
 
 ::day_11::main::5 { x(x(n0 n0) _) }
 
-::day_11::main::6 { x(n0 x(n1 dup179(n2 @lt(75 ?(::day_11::main::8 ::day_11::main::7 x(n0 x(n1 n2))))))) }
+::day_11::main::6 { x(n0 x(n1 dup179(n2 @n32_lt(75 ?(::day_11::main::8 ::day_11::main::7 x(n0 x(n1 n2))))))) }
 
-::day_11::main::7 { x(x(n0 n1) x(tup(dup116(_ @eq(0 ?(::std::data::Map::IntoIter::next::4 ::std::data::Map::IntoIter::next::3 x(x(_ n2) x(x(tup(0 tup(n3 n3)) tup(dup213(n4 @ne(0 ?(::std::data::List::pop_front::3 ::std::data::List::pop_front::2 x(x(n4 n5) x(x(n6 n7) enum(::std::data::Map::IntoIter::next::8 enum(::std::data::Map::IntoIter::next::9 x(x(n2 n8) enum(::day_11::blink::5 enum(::day_11::blink::6 x(x(::std::data::Map::empty tup(dup116(n9 @eq(0 ?(::std::data::Map::Iter::next::1::4 ::std::data::Map::Iter::next::1::3 x(x(_ n10) x(x(tup(0 tup(n11 n11)) tup(dup213(n12 @ne(0 ?(::std::data::List::pop_front::3 ::std::data::List::pop_front::2 x(x(n12 n13) x(x(n14 n15) enum(::std::data::Map::Iter::next::1::8 enum(::std::data::Map::Iter::next::1::9 x(x(n10 n16) enum(::day_11::count::4 enum(::day_11::count::5 x(x(0 tup(dup213(n17 @ne(0 ?(::std::numeric::N64::eq::ne::3 ::std::numeric::N64::eq::ne::2 x(x(n18 n19) x(x(0 _) ?(::std::numeric::N64::to_string::to_string::3 ::std::numeric::N64::to_string::to_string::2 x(tup(n17 n19) tup(@add(n20 dup213(n21 @ne(0 ?(::std::IO::print::3 ::std::IO::print::2 x(x(n0 @io_print_char(10 n22)) x(n21 n23)))))) tup(n24 _))))))))) n18)) tup(n16 tup(n13 tup(n15 n25)))))))))))))) tup(n14 n25))) x(x(n26 n27) _)))))) n26)) tup(n8 tup(n5 tup(n7 n28)))))))))))))) tup(n6 n28))) x(n29 _)))))) n29) @add(1 dup38(dup213(n30 @ne(0 ?(::std::numeric::N32::to_string::to_string::3 ::std::numeric::N32::to_string::to_string::2 x(n30 tup(@add(2 n20) tup(n23 tup(58 tup(32 n24)))))))) dup179(n31 @lt(75 ?(::day_11::main::8 ::day_11::main::7 x(x(n22 n1) x(tup(n9 n27) n31))))))))) }
+::day_11::main::7 { x(x(n0 n1) x(tup(dup116(_ @n32_eq(0 ?(::std::data::Map::IntoIter::next::4 ::std::data::Map::IntoIter::next::3 x(x(_ n2) x(x(tup(0 tup(n3 n3)) tup(dup213(n4 @n32_ne(0 ?(::std::data::List::pop_front::3 ::std::data::List::pop_front::2 x(x(n4 n5) x(x(n6 n7) enum(::std::data::Map::IntoIter::next::8 enum(::std::data::Map::IntoIter::next::9 x(x(n2 n8) enum(::day_11::blink::5 enum(::day_11::blink::6 x(x(::std::data::Map::empty tup(dup116(n9 @n32_eq(0 ?(::std::data::Map::Iter::next::1::4 ::std::data::Map::Iter::next::1::3 x(x(_ n10) x(x(tup(0 tup(n11 n11)) tup(dup213(n12 @n32_ne(0 ?(::std::data::List::pop_front::3 ::std::data::List::pop_front::2 x(x(n12 n13) x(x(n14 n15) enum(::std::data::Map::Iter::next::1::8 enum(::std::data::Map::Iter::next::1::9 x(x(n10 n16) enum(::day_11::count::4 enum(::day_11::count::5 x(x(0 tup(dup213(n17 @n32_ne(0 ?(::std::numeric::N64::eq::ne::3 ::std::numeric::N64::eq::ne::2 x(x(n18 n19) x(x(0 _) ?(::std::numeric::N64::to_string::to_string::3 ::std::numeric::N64::to_string::to_string::2 x(tup(n17 n19) tup(@n32_add(n20 dup213(n21 @n32_ne(0 ?(::std::IO::print::3 ::std::IO::print::2 x(x(n0 @io_print_char(10 n22)) x(n21 n23)))))) tup(n24 _))))))))) n18)) tup(n16 tup(n13 tup(n15 n25)))))))))))))) tup(n14 n25))) x(x(n26 n27) _)))))) n26)) tup(n8 tup(n5 tup(n7 n28)))))))))))))) tup(n6 n28))) x(n29 _)))))) n29) @n32_add(1 dup38(dup213(n30 @n32_ne(0 ?(::std::numeric::N32::to_string::to_string::3 ::std::numeric::N32::to_string::to_string::2 x(n30 tup(@n32_add(2 n20) tup(n23 tup(58 tup(32 n24)))))))) dup179(n31 @n32_lt(75 ?(::day_11::main::8 ::day_11::main::7 x(x(n22 n1) x(tup(n9 n27) n31))))))))) }
 
 ::day_11::main::8 { x(x(n0 n0) _) }
 
 ::std::data::Map::insert::1::2 { x(x(_ 1) x(x(_ tup(::std::data::Map::empty tup(tup(n0 n1) ::std::data::Map::empty))) x(n0 x(n1 ::std::logical::Option::None)))) }
 
-::std::data::Map::insert::1::3 { x(n0 x(x(tup(n1 tup(tup(tup(n2 dup180(n3 n4)) n5) n6)) n7) x(tup(n8 dup179(n9 @lt(n4 ?(::std::numeric::N64::ord::lt::3 ::std::numeric::N64::ord::lt::2 x(x(n8 n10) x(x(n9 n11) x(x(n2 n12) x(x(n3 n13) ?(::std::ops::comparison::Ord::cmp_from_lt::1::3 ::std::ops::comparison::Ord::cmp_from_lt::1::2 x(x(tup(n10 n11) n14) x(x(tup(n12 n13) n15) enum(::std::data::Map::insert::1::8 enum(::std::data::Map::insert::1::9 enum(::std::data::Map::insert::1::10 x(n0 x(x(tup(n16 tup(tup(n17 n18) n19)) n7) x(n14 x(n20 x(x(n1 n16) x(x(n15 n17) x(x(n5 n18) x(x(n6 n19) x(n21 _))))))))))))))))))))))) x(n20 n21)))) }
+::std::data::Map::insert::1::3 { x(n0 x(x(tup(n1 tup(tup(tup(n2 dup180(n3 n4)) n5) n6)) n7) x(tup(n8 dup179(n9 @n32_lt(n4 ?(::std::numeric::N64::ord::lt::3 ::std::numeric::N64::ord::lt::2 x(x(n8 n10) x(x(n9 n11) x(x(n2 n12) x(x(n3 n13) ?(::std::ops::comparison::Ord::cmp_from_lt::1::3 ::std::ops::comparison::Ord::cmp_from_lt::1::2 x(x(tup(n10 n11) n14) x(x(tup(n12 n13) n15) enum(::std::data::Map::insert::1::8 enum(::std::data::Map::insert::1::9 enum(::std::data::Map::insert::1::10 x(n0 x(x(tup(n16 tup(tup(n17 n18) n19)) n7) x(n14 x(n20 x(x(n1 n16) x(x(n15 n17) x(x(n5 n18) x(x(n6 n19) x(n21 _))))))))))))))))))))))) x(n20 n21)))) }
 
-::std::data::Map::insert::1::8 { x(x(_ n0) x(x(tup(tup(dup1536(dup549(n1 @le(n2 ?(::std::data::Map::balance_right::3 ::std::data::Map::balance_right::2 x(tup(n1 n3) x(n4 x(tup(n5 n6) n7)))))) @add(n8 @add(1 n0))) n3) tup(n4 tup(dup1537(dup1522(n5 @mul$(3 @add(2 dup550(_ n2)))) n8) n6))) n7) x(n9 x(n10 x(x(tup(dup116(n11 @eq(0 ?(::std::data::Map::insert::1::3 ::std::data::Map::insert::1::2 x(x(n11 n12) x(x(n13 n14) x(n9 x(n10 n15))))))) n13) tup(n12 n14)) x(x(n16 n16) x(x(n17 n17) x(x(n18 n18) x(n15 _))))))))) }
+::std::data::Map::insert::1::8 { x(x(_ n0) x(x(tup(tup(dup1536(dup549(n1 @n32_le(n2 ?(::std::data::Map::balance_right::3 ::std::data::Map::balance_right::2 x(tup(n1 n3) x(n4 x(tup(n5 n6) n7)))))) @n32_add(n8 @n32_add(1 n0))) n3) tup(n4 tup(dup1537(dup1522(n5 @n32_mul$(3 @n32_add(2 dup550(_ n2)))) n8) n6))) n7) x(n9 x(n10 x(x(tup(dup116(n11 @n32_eq(0 ?(::std::data::Map::insert::1::3 ::std::data::Map::insert::1::2 x(x(n11 n12) x(x(n13 n14) x(n9 x(n10 n15))))))) n13) tup(n12 n14)) x(x(n16 n16) x(x(n17 n17) x(x(n18 n18) x(n15 _))))))))) }
 
 ::std::data::Map::insert::1::9 { x(x(n0 n0) x(x(n1 n1) x(n2 x(n3 x(x(n4 n4) x(x(_ n2) x(x(n5 n3) x(x(n6 n6) x(enum(enum(n5 n7) enum(_ n7)) _))))))))) }
 
-::std::data::Map::insert::1::10 { x(x(_ n0) x(x(tup(tup(dup1536(dup1522(n1 @mul$(3 @add(2 dup550(_ n2)))) @add(n3 @add(1 n0))) n4) tup(n5 tup(dup1537(dup549(n6 @le(n2 ?(::std::data::Map::balance_left::3 ::std::data::Map::balance_left::2 x(tup(n1 n4) x(n5 x(tup(n6 n7) n8)))))) n3) n7))) n8) x(n9 x(n10 x(x(n11 n11) x(x(n12 n12) x(x(n13 n13) x(x(tup(dup116(n14 @eq(0 ?(::std::data::Map::insert::1::3 ::std::data::Map::insert::1::2 x(x(n14 n15) x(x(n16 n17) x(n9 x(n10 n18))))))) n16) tup(n15 n17)) x(n18 _))))))))) }
+::std::data::Map::insert::1::10 { x(x(_ n0) x(x(tup(tup(dup1536(dup1522(n1 @n32_mul$(3 @n32_add(2 dup550(_ n2)))) @n32_add(n3 @n32_add(1 n0))) n4) tup(n5 tup(dup1537(dup549(n6 @n32_le(n2 ?(::std::data::Map::balance_left::3 ::std::data::Map::balance_left::2 x(tup(n1 n4) x(n5 x(tup(n6 n7) n8)))))) n3) n7))) n8) x(n9 x(n10 x(x(n11 n11) x(x(n12 n12) x(x(n13 n13) x(x(tup(dup116(n14 @n32_eq(0 ?(::std::data::Map::insert::1::3 ::std::data::Map::insert::1::2 x(x(n14 n15) x(x(n16 n17) x(n9 x(n10 n18))))))) n16) tup(n15 n17)) x(n18 _))))))))) }
 
 ::std::ops::comparison::Ord::cmp_from_lt::1::2 { x(x(n0 n0) x(x(n1 n1) ::std::ops::comparison::Ord::Lt)) }
 
-::std::ops::comparison::Ord::cmp_from_lt::1::3 { x(x(tup(n0 dup180(n1 n2)) tup(n3 n4)) x(x(tup(n5 dup179(n6 @lt(n2 ?(::std::numeric::N64::ord::lt::3 ::std::numeric::N64::ord::lt::2 x(x(n5 n7) x(x(n6 n8) x(x(n0 n3) x(x(n1 n4) ?(::std::ops::comparison::Ord::Eq ::std::ops::comparison::Ord::Gt n9))))))))) tup(n7 n8)) n9)) }
+::std::ops::comparison::Ord::cmp_from_lt::1::3 { x(x(tup(n0 dup180(n1 n2)) tup(n3 n4)) x(x(tup(n5 dup179(n6 @n32_lt(n2 ?(::std::numeric::N64::ord::lt::3 ::std::numeric::N64::ord::lt::2 x(x(n5 n7) x(x(n6 n8) x(x(n0 n3) x(x(n1 n4) ?(::std::ops::comparison::Ord::Eq ::std::ops::comparison::Ord::Gt n9))))))))) tup(n7 n8)) n9)) }
 
 ::std::numeric::N64::ord::lt::2 { x(x(n0 n0) x(x(n1 n1) x(x(n2 n2) x(x(n3 n3) 1)))) }
 
-::std::numeric::N64::ord::lt::3 { x(n0 x(x(dup116(n1 @eq(n2 ?(::std::numeric::N64::ord::lt::5 ::std::numeric::N64::ord::lt::4 x(n0 x(n3 n4))))) n1) x(n3 x(x(dup117(n5 n2) n5) n4)))) }
+::std::numeric::N64::ord::lt::3 { x(n0 x(x(dup116(n1 @n32_eq(n2 ?(::std::numeric::N64::ord::lt::5 ::std::numeric::N64::ord::lt::4 x(n0 x(n3 n4))))) n1) x(n3 x(x(dup117(n5 n2) n5) n4)))) }
 
-::std::numeric::N64::ord::lt::4 { x(x(dup179(n0 @lt(n1 ?(0 1 n2))) n0) x(x(dup180(n3 n1) n3) n2)) }
+::std::numeric::N64::ord::lt::4 { x(x(dup179(n0 @n32_lt(n1 ?(0 1 n2))) n0) x(x(dup180(n3 n1) n3) n2)) }
 
 ::std::numeric::N64::ord::lt::5 { x(x(n0 n0) x(x(n1 n1) 0)) }
 
-::std::numeric::N32::to_string::to_string::2 { x(dup213(n0 @ne(0 ?(::std::numeric::N32::to_string::to_string::6 ::std::numeric::N32::to_string::to_string::5 x(n0 x(tup(0 tup(n1 n1)) n2))))) n2) }
+::std::numeric::N32::to_string::to_string::2 { x(dup213(n0 @n32_ne(0 ?(::std::numeric::N32::to_string::to_string::6 ::std::numeric::N32::to_string::to_string::5 x(n0 x(tup(0 tup(n1 n1)) n2))))) n2) }
 
 ::std::numeric::N32::to_string::to_string::3 { x(_ tup(1 tup(tup(48 n0) n0))) }
 
-::std::numeric::N32::to_string::to_string::5 { x(dup207(@rem(10 @add$(48 n0)) @div(10 dup213(n1 @ne(0 ?(::std::numeric::N32::to_string::to_string::6 ::std::numeric::N32::to_string::to_string::5 x(n1 x(tup(n2 tup(tup(n0 n3) n4)) n5))))))) x(tup(@add$(1 n2) tup(n3 n4)) n5)) }
+::std::numeric::N32::to_string::to_string::5 { x(dup207(@n32_rem(10 @n32_add$(48 n0)) @n32_div(10 dup213(n1 @n32_ne(0 ?(::std::numeric::N32::to_string::to_string::6 ::std::numeric::N32::to_string::to_string::5 x(n1 x(tup(n2 tup(tup(n0 n3) n4)) n5))))))) x(tup(@n32_add$(1 n2) tup(n3 n4)) n5)) }
 
 ::std::numeric::N32::to_string::to_string::6 { x(_ x(n0 n0)) }
 
-::std::numeric::N64::to_string::to_string::2 { x(tup(dup213(n0 @ne(0 ?(::std::numeric::N64::eq::ne::3 ::std::numeric::N64::eq::ne::2 x(x(n1 n2) x(x(0 _) ?(::std::numeric::N64::to_string::to_string::6 ::std::numeric::N64::to_string::to_string::5 x(tup(n0 n2) x(tup(0 tup(n3 n3)) n4)))))))) n1) n4) }
+::std::numeric::N64::to_string::to_string::2 { x(tup(dup213(n0 @n32_ne(0 ?(::std::numeric::N64::eq::ne::3 ::std::numeric::N64::eq::ne::2 x(x(n1 n2) x(x(0 _) ?(::std::numeric::N64::to_string::to_string::6 ::std::numeric::N64::to_string::to_string::5 x(tup(n0 n2) x(tup(0 tup(n3 n3)) n4)))))))) n1) n4) }
 
 ::std::numeric::N64::to_string::to_string::3 { x(_ tup(1 tup(tup(48 n0) n0))) }
 
-::std::numeric::N64::to_string::to_string::5 { x(tup(n0 dup2111(@div(10 n1) @rem(10 dup180(n2 @lt$(10 ?(::std::numeric::N64::div_rem_n32::3 ::std::numeric::N64::div_rem_n32::2 x(x(n2 dup213(n3 @ne(0 ?(::std::numeric::N64::div_rem_n32::6 ::std::numeric::N64::div_rem_n32::5 x(x(n0 dup2110(@div(10 n4) @rem(10 @add$(48 n5)))) x(n3 x(10 x(0 @add(n4 dup213(n6 @ne(0 ?(::std::numeric::N64::eq::ne::3 ::std::numeric::N64::eq::ne::2 x(x(n7 n8) x(x(0 _) ?(::std::numeric::N64::to_string::to_string::6 ::std::numeric::N64::to_string::to_string::5 x(tup(n6 n8) x(tup(n9 tup(tup(n5 n10) n11)) n12))))))))))))))))) x(10 x(x(n1 n7) _))))))))) x(tup(@add$(1 n9) tup(n10 n11)) n12)) }
+::std::numeric::N64::to_string::to_string::5 { x(tup(n0 dup2111(@n32_div(10 n1) @n32_rem(10 dup180(n2 @n32_lt$(10 ?(::std::numeric::N64::div_rem_n32::3 ::std::numeric::N64::div_rem_n32::2 x(x(n2 dup213(n3 @n32_ne(0 ?(::std::numeric::N64::div_rem_n32::6 ::std::numeric::N64::div_rem_n32::5 x(x(n0 dup2110(@n32_div(10 n4) @n32_rem(10 @n32_add$(48 n5)))) x(n3 x(10 x(0 @n32_add(n4 dup213(n6 @n32_ne(0 ?(::std::numeric::N64::eq::ne::3 ::std::numeric::N64::eq::ne::2 x(x(n7 n8) x(x(0 _) ?(::std::numeric::N64::to_string::to_string::6 ::std::numeric::N64::to_string::to_string::5 x(tup(n6 n8) x(tup(n9 tup(tup(n5 n10) n11)) n12))))))))))))))))) x(10 x(x(n1 n7) _))))))))) x(tup(@n32_add$(1 n9) tup(n10 n11)) n12)) }
 
 ::std::numeric::N64::to_string::to_string::6 { x(_ x(n0 n0)) }
 
 ::std::numeric::N64::eq::ne::2 { x(x(n0 n0) x(x(n1 n1) 1)) }
 
-::std::numeric::N64::eq::ne::3 { x(x(dup213(n0 @ne(n1 ?(0 1 n2))) n0) x(x(dup214(n3 n1) n3) n2)) }
+::std::numeric::N64::eq::ne::3 { x(x(dup213(n0 @n32_ne(n1 ?(0 1 n2))) n0) x(x(dup214(n3 n1) n3) n2)) }
 
-::day_11::blink::5 { enum(tup(tup(dup116(n0 @eq(0 ?(::std::numeric::N64::eq::eq::3 ::std::numeric::N64::eq::eq::2 x(x(n1 n2) x(x(0 _) ?(::day_11::blink::9 ::day_11::blink::8 x(x(n3 n4) x(tup(n0 n2) x(n5 _))))))))) n1) n5) x(x(n3 n6) tup(tup(dup116(_ @eq(0 ?(::std::data::Map::IntoIter::next::4 ::std::data::Map::IntoIter::next::3 x(x(_ n7) x(x(n8 tup(dup213(n9 @ne(0 ?(::std::data::List::pop_front::3 ::std::data::List::pop_front::2 x(x(n9 n10) x(x(n11 n12) enum(::std::data::Map::IntoIter::next::8 enum(::std::data::Map::IntoIter::next::9 x(x(n7 n13) enum(::day_11::blink::5 enum(::day_11::blink::6 x(x(n4 n6) tup(n13 tup(n10 tup(n12 n14)))))))))))))) tup(n11 n14))) x(n15 _)))))) n15) n8))) }
+::day_11::blink::5 { enum(tup(tup(dup116(n0 @n32_eq(0 ?(::std::numeric::N64::eq::eq::3 ::std::numeric::N64::eq::eq::2 x(x(n1 n2) x(x(0 _) ?(::day_11::blink::9 ::day_11::blink::8 x(x(n3 n4) x(tup(n0 n2) x(n5 _))))))))) n1) n5) x(x(n3 n6) tup(tup(dup116(_ @n32_eq(0 ?(::std::data::Map::IntoIter::next::4 ::std::data::Map::IntoIter::next::3 x(x(_ n7) x(x(n8 tup(dup213(n9 @n32_ne(0 ?(::std::data::List::pop_front::3 ::std::data::List::pop_front::2 x(x(n9 n10) x(x(n11 n12) enum(::std::data::Map::IntoIter::next::8 enum(::std::data::Map::IntoIter::next::9 x(x(n7 n13) enum(::day_11::blink::5 enum(::day_11::blink::6 x(x(n4 n6) tup(n13 tup(n10 tup(n12 n14)))))))))))))) tup(n11 n14))) x(n15 _)))))) n15) n8))) }
 
 ::day_11::blink::6 { x(x(n0 n0) _) }
 
-::day_11::blink::8 { x(x(tup(dup116(n0 @eq(0 ?(::std::data::Map::insert::1::3 ::std::data::Map::insert::1::2 x(x(n0 n1) x(x(n2 n3) x(::std::numeric::N64::one x(tup(n4 n5) enum(::std::logical::Option::unwrap_or::4 enum(::std::logical::Option::unwrap_or::5 x(0 tup(dup(@add(n6 n4) @n32_add_high(n7 n8)) @add(n9 @add(n8 n5))))))))))))) n2) tup(n1 n3)) x(_ x(tup(dup(n6 n7) n9) _))) }
+::day_11::blink::8 { x(x(tup(dup116(n0 @n32_eq(0 ?(::std::data::Map::insert::1::3 ::std::data::Map::insert::1::2 x(x(n0 n1) x(x(n2 n3) x(::std::numeric::N64::one x(tup(n4 n5) enum(::std::logical::Option::unwrap_or::4 enum(::std::logical::Option::unwrap_or::5 x(0 tup(dup(@n32_add(n6 n4) @n32_add_high(n7 n8)) @n32_add(n9 @n32_add(n8 n5))))))))))))) n2) tup(n1 n3)) x(_ x(tup(dup(n6 n7) n9) _))) }
 
-::day_11::blink::9 { x(n0 x(dup329(tup(n1 dup180(n2 @lt$(0 ?(::std::numeric::N64::ord::lt::3 ::std::numeric::N64::ord::lt::2 x(x(10 _) x(x(0 _) x(x(n1 n3) x(x(n2 n4) ?(::std::numeric::N64::log_n32::3 ::std::numeric::N64::log_n32::2 x(tup(n3 n4) x(10 x(0 @add(1 dup331(@rem(2 dup116(_ @eq(0 ?(::day_11::blink::12 ::day_11::blink::11 x(n0 x(n5 x(n6 x(n7 n8)))))))) n7)))))))))))))) n5) x(n6 n8))) }
+::day_11::blink::9 { x(n0 x(dup329(tup(n1 dup180(n2 @n32_lt$(0 ?(::std::numeric::N64::ord::lt::3 ::std::numeric::N64::ord::lt::2 x(x(10 _) x(x(0 _) x(x(n1 n3) x(x(n2 n4) ?(::std::numeric::N64::log_n32::3 ::std::numeric::N64::log_n32::2 x(tup(n3 n4) x(10 x(0 @n32_add(1 dup331(@n32_rem(2 dup116(_ @n32_eq(0 ?(::day_11::blink::12 ::day_11::blink::11 x(n0 x(n5 x(n6 x(n7 n8)))))))) n7)))))))))))))) n5) x(n6 n8))) }
 
-::day_11::blink::11 { x(x(tup(dup116(n0 @eq(0 ?(::std::data::Map::insert::1::3 ::std::data::Map::insert::1::2 x(x(n0 dup116(n1 @eq(0 ?(::std::data::Map::insert::1::3 ::std::data::Map::insert::1::2 x(x(n1 n2) x(x(n3 n4) x(tup(n5 0) x(tup(n6 n7) enum(::std::logical::Option::unwrap_or::4 enum(::std::logical::Option::unwrap_or::5 x(0 tup(dup(@add(n8 n6) @n32_add_high(n9 n10)) @add(n11 @add(n10 n7)))))))))))))) x(x(n12 n3) x(tup(n13 n14) x(tup(n15 n16) enum(::std::logical::Option::unwrap_or::4 enum(::std::logical::Option::unwrap_or::5 x(0 tup(dup(@add(n17 n15) @n32_add_high(n18 n19)) @add(n20 @add(n19 n16))))))))))))) n12) tup(n2 n4)) x(tup(n21 dup2111(@div(n22 n23) @rem(n24 dup180(n25 n26)))) x(dup338(tup(dup(n17 n18) n20) tup(dup(n8 n9) n11)) x(@div(2 dup213(n27 @ne(0 ?(::std::numeric::N32::pow::3 ::std::numeric::N32::pow::2 x(10 x(n27 x(1 dup2116(n22 dup2116(n24 dup179(dup2115(n28 dup2115(n29 dup2115(n30 n31))) @lt(n26 ?(::std::numeric::N64::div_rem_n32::3 ::std::numeric::N64::div_rem_n32::2 x(x(n25 dup213(n32 @ne(0 ?(::std::numeric::N64::div_rem_n32::6 ::std::numeric::N64::div_rem_n32::5 x(x(n21 dup2110(@div(n30 n33) @rem(n31 n5))) x(n32 x(n29 x(0 @add(n33 n13))))))))) x(n28 x(x(n23 n14) _))))))))))))))) _)))) }
+::day_11::blink::11 { x(x(tup(dup116(n0 @n32_eq(0 ?(::std::data::Map::insert::1::3 ::std::data::Map::insert::1::2 x(x(n0 dup116(n1 @n32_eq(0 ?(::std::data::Map::insert::1::3 ::std::data::Map::insert::1::2 x(x(n1 n2) x(x(n3 n4) x(tup(n5 0) x(tup(n6 n7) enum(::std::logical::Option::unwrap_or::4 enum(::std::logical::Option::unwrap_or::5 x(0 tup(dup(@n32_add(n8 n6) @n32_add_high(n9 n10)) @n32_add(n11 @n32_add(n10 n7)))))))))))))) x(x(n12 n3) x(tup(n13 n14) x(tup(n15 n16) enum(::std::logical::Option::unwrap_or::4 enum(::std::logical::Option::unwrap_or::5 x(0 tup(dup(@n32_add(n17 n15) @n32_add_high(n18 n19)) @n32_add(n20 @n32_add(n19 n16))))))))))))) n12) tup(n2 n4)) x(tup(n21 dup2111(@n32_div(n22 n23) @n32_rem(n24 dup180(n25 n26)))) x(dup338(tup(dup(n17 n18) n20) tup(dup(n8 n9) n11)) x(@n32_div(2 dup213(n27 @n32_ne(0 ?(::std::numeric::N32::pow::3 ::std::numeric::N32::pow::2 x(10 x(n27 x(1 dup2116(n22 dup2116(n24 dup179(dup2115(n28 dup2115(n29 dup2115(n30 n31))) @n32_lt(n26 ?(::std::numeric::N64::div_rem_n32::3 ::std::numeric::N64::div_rem_n32::2 x(x(n25 dup213(n32 @n32_ne(0 ?(::std::numeric::N64::div_rem_n32::6 ::std::numeric::N64::div_rem_n32::5 x(x(n21 dup2110(@n32_div(n30 n33) @n32_rem(n31 n5))) x(n32 x(n29 x(0 @n32_add(n33 n13))))))))) x(n28 x(x(n23 n14) _))))))))))))))) _)))) }
 
-::day_11::blink::12 { x(x(tup(dup116(n0 @eq(0 ?(::std::data::Map::insert::1::3 ::std::data::Map::insert::1::2 x(x(n0 n1) x(x(n2 n3) x(tup(n4 n5) x(tup(n6 n7) enum(::std::logical::Option::unwrap_or::4 enum(::std::logical::Option::unwrap_or::5 x(0 tup(dup(@add(n8 n6) @n32_add_high(n9 n10)) @add(n11 @add(n10 n7))))))))))))) n2) tup(n1 n3)) x(tup(dup(@mul(2024 n4) dup(@n32_mul_high(2024 n12) @mul(0 @add(n13 @add(n12 n5))))) @mul$(2024 n13)) x(tup(dup(n8 n9) n11) _))) }
+::day_11::blink::12 { x(x(tup(dup116(n0 @n32_eq(0 ?(::std::data::Map::insert::1::3 ::std::data::Map::insert::1::2 x(x(n0 n1) x(x(n2 n3) x(tup(n4 n5) x(tup(n6 n7) enum(::std::logical::Option::unwrap_or::4 enum(::std::logical::Option::unwrap_or::5 x(0 tup(dup(@n32_add(n8 n6) @n32_add_high(n9 n10)) @n32_add(n11 @n32_add(n10 n7))))))))))))) n2) tup(n1 n3)) x(tup(dup(@n32_mul(2024 n4) dup(@n32_mul_high(2024 n12) @n32_mul(0 @n32_add(n13 @n32_add(n12 n5))))) @n32_mul$(2024 n13)) x(tup(dup(n8 n9) n11) _))) }
 
-::std::numeric::N64::eq::eq::2 { x(x(dup116(n0 @eq(n1 ?(0 1 n2))) n0) x(x(dup117(n3 n1) n3) n2)) }
+::std::numeric::N64::eq::eq::2 { x(x(dup116(n0 @n32_eq(n1 ?(0 1 n2))) n0) x(x(dup117(n3 n1) n3) n2)) }
 
 ::std::numeric::N64::eq::eq::3 { x(x(n0 n0) x(x(n1 n1) 0)) }
 
-::day_11::count::4 { enum(ref(tup(n0 dup409(n1 tup(dup(n2 n3) n4))) tup(n0 n1)) x(x(tup(dup(@add(n2 n5) @n32_add_high(n3 n6)) @add(n4 @add(n6 n7))) n8) tup(ref(tup(dup116(n9 @eq(0 ?(::std::data::Map::Iter::next::1::4 ::std::data::Map::Iter::next::1::3 x(x(_ n10) x(x(n11 tup(dup213(n12 @ne(0 ?(::std::data::List::pop_front::3 ::std::data::List::pop_front::2 x(x(n12 n13) x(x(n14 n15) enum(::std::data::Map::Iter::next::1::8 enum(::std::data::Map::Iter::next::1::9 x(x(n10 n16) enum(::day_11::count::4 enum(::day_11::count::5 x(x(tup(n5 n7) n8) tup(n16 tup(n13 tup(n15 n17)))))))))))))) tup(n14 n17))) x(x(n18 n19) _)))))) n18) tup(n9 n19)) n11))) }
+::day_11::count::4 { enum(ref(tup(n0 dup409(n1 tup(dup(n2 n3) n4))) tup(n0 n1)) x(x(tup(dup(@n32_add(n2 n5) @n32_add_high(n3 n6)) @n32_add(n4 @n32_add(n6 n7))) n8) tup(ref(tup(dup116(n9 @n32_eq(0 ?(::std::data::Map::Iter::next::1::4 ::std::data::Map::Iter::next::1::3 x(x(_ n10) x(x(n11 tup(dup213(n12 @n32_ne(0 ?(::std::data::List::pop_front::3 ::std::data::List::pop_front::2 x(x(n12 n13) x(x(n14 n15) enum(::std::data::Map::Iter::next::1::8 enum(::std::data::Map::Iter::next::1::9 x(x(n10 n16) enum(::day_11::count::4 enum(::day_11::count::5 x(x(tup(n5 n7) n8) tup(n16 tup(n13 tup(n15 n17)))))))))))))) tup(n14 n17))) x(x(n18 n19) _)))))) n18) tup(n9 n19)) n11))) }
 
 ::day_11::count::5 { x(x(n0 n0) _) }
 
 ::std::data::Map::Iter::next::1::3 { x(x(n0 n0) x(x(n1 n1) x(x(n2 n2) _))) }
 
-::std::data::Map::Iter::next::1::4 { x(x(_ n0) x(x(tup(@add$(1 n1) tup(n2 n3)) n4) x(x(tup(tup(dup116(n5 @eq(0 ?(::std::data::Map::Iter::next::1::4 ::std::data::Map::Iter::next::1::3 x(x(_ n0) x(x(tup(n1 tup(tup(ref(n6 n7) n2) n3)) n4) x(x(n8 n9) n10)))))) n8) n6) tup(tup(n5 n9) n7)) n10))) }
+::std::data::Map::Iter::next::1::4 { x(x(_ n0) x(x(tup(@n32_add$(1 n1) tup(n2 n3)) n4) x(x(tup(tup(dup116(n5 @n32_eq(0 ?(::std::data::Map::Iter::next::1::4 ::std::data::Map::Iter::next::1::3 x(x(_ n0) x(x(tup(n1 tup(tup(ref(n6 n7) n2) n3)) n4) x(x(n8 n9) n10)))))) n8) n6) tup(tup(n5 n9) n7)) n10))) }
 
 ::std::data::Map::Iter::next::1::8 { enum(ref(tup(n0 n1) tup(n2 n3)) x(x(_ ref(n1 n3)) enum(enum(ref(n0 n2) n4) enum(_ n4)))) }
 
 ::std::data::Map::Iter::next::1::9 { x(x(n0 n0) ::std::logical::Option::None) }
 
-::std::data::List::pop_front::2 { x(x(@sub(1 n0) n0) x(x(tup(n1 n2) n2) enum(enum(n1 n3) enum(_ n3)))) }
+::std::data::List::pop_front::2 { x(x(@n32_sub(1 n0) n0) x(x(tup(n1 n2) n2) enum(enum(n1 n3) enum(_ n3)))) }
 
 ::std::data::List::pop_front::3 { x(x(n0 n0) x(x(n1 n1) ::std::logical::Option::None)) }
 
-::std::data::List::Iter::next::2 { x(x(@sub(1 n0) n0) x(x(ref(tup(n1 n2) tup(n3 n4)) ref(n2 n4)) enum(enum(ref(n1 n3) n5) enum(_ n5)))) }
+::std::data::List::Iter::next::2 { x(x(@n32_sub(1 n0) n0) x(x(ref(tup(n1 n2) tup(n3 n4)) ref(n2 n4)) enum(enum(ref(n1 n3) n5) enum(_ n5)))) }
 
 ::std::data::List::Iter::next::3 { x(x(n0 n0) x(x(ref(n1 n1) _) ::std::logical::Option::None)) }
 
@@ -112,7 +112,7 @@
 
 ::std::data::Map::IntoIter::next::3 { x(x(n0 n0) x(x(n1 n1) _)) }
 
-::std::data::Map::IntoIter::next::4 { x(x(_ n0) x(x(tup(@add$(1 n1) tup(n2 n3)) n4) x(tup(tup(dup116(_ @eq(0 ?(::std::data::Map::IntoIter::next::4 ::std::data::Map::IntoIter::next::3 x(x(_ n0) x(x(tup(n1 tup(tup(n5 n2) n3)) n4) x(n6 n7)))))) n6) n5) n7))) }
+::std::data::Map::IntoIter::next::4 { x(x(_ n0) x(x(tup(@n32_add$(1 n1) tup(n2 n3)) n4) x(tup(tup(dup116(_ @n32_eq(0 ?(::std::data::Map::IntoIter::next::4 ::std::data::Map::IntoIter::next::3 x(x(_ n0) x(x(tup(n1 tup(tup(n5 n2) n3)) n4) x(n6 n7)))))) n6) n5) n7))) }
 
 ::std::data::Map::IntoIter::next::8 { enum(tup(n0 n1) x(x(_ n1) enum(enum(n0 n2) enum(_ n2)))) }
 
@@ -120,19 +120,19 @@
 
 ::std::data::Map::balance_left::2 { x(n0 x(n1 x(n2 tup(n0 tup(n1 n2))))) }
 
-::std::data::Map::balance_left::3 { x(n0 x(n1 x(tup(_ tup(tup(dup549(n2 @le(n3 ?(::std::data::Map::balance_left::6 ::std::data::Map::balance_left::5 x(n0 x(n1 x(tup(n2 n4) x(n5 x(tup(n6 n7) n8)))))))) n4) tup(n5 tup(dup1533(n6 @mul$(2 dup550(_ n3))) n7)))) n8))) }
+::std::data::Map::balance_left::3 { x(n0 x(n1 x(tup(_ tup(tup(dup549(n2 @n32_le(n3 ?(::std::data::Map::balance_left::6 ::std::data::Map::balance_left::5 x(n0 x(n1 x(tup(n2 n4) x(n5 x(tup(n6 n7) n8)))))))) n4) tup(n5 tup(dup1533(n6 @n32_mul$(2 dup550(_ n3))) n7)))) n8))) }
 
-::std::data::Map::balance_left::5 { x(tup(dup1238(n0 @add(n1 @add(1 n2))) n3) x(n4 x(tup(dup1238(n5 n1) n6) x(n7 x(n8 tup(tup(n2 tup(tup(n0 n3) tup(n4 tup(n5 n6)))) tup(n7 n8))))))) }
+::std::data::Map::balance_left::5 { x(tup(dup1238(n0 @n32_add(n1 @n32_add(1 n2))) n3) x(n4 x(tup(dup1238(n5 n1) n6) x(n7 x(n8 tup(tup(n2 tup(tup(n0 n3) tup(n4 tup(n5 n6)))) tup(n7 n8))))))) }
 
-::std::data::Map::balance_left::6 { x(tup(dup1238(n0 @add(n1 @add(1 n2))) n3) x(n4 x(tup(_ tup(tup(dup1238(n5 n1) n6) tup(n7 tup(dup1238(n8 @add(n9 @add(1 n10))) n11)))) x(n12 x(tup(dup1238(n13 n9) n14) tup(tup(n2 tup(tup(n0 n3) tup(n4 tup(n5 n6)))) tup(n7 tup(n10 tup(tup(n8 n11) tup(n12 tup(n13 n14))))))))))) }
+::std::data::Map::balance_left::6 { x(tup(dup1238(n0 @n32_add(n1 @n32_add(1 n2))) n3) x(n4 x(tup(_ tup(tup(dup1238(n5 n1) n6) tup(n7 tup(dup1238(n8 @n32_add(n9 @n32_add(1 n10))) n11)))) x(n12 x(tup(dup1238(n13 n9) n14) tup(tup(n2 tup(tup(n0 n3) tup(n4 tup(n5 n6)))) tup(n7 tup(n10 tup(tup(n8 n11) tup(n12 tup(n13 n14))))))))))) }
 
 ::std::data::Map::balance_right::2 { x(n0 x(n1 x(n2 tup(n0 tup(n1 n2))))) }
 
-::std::data::Map::balance_right::3 { x(tup(_ tup(tup(dup1533(n0 @mul$(2 dup550(_ n1))) n2) tup(n3 tup(dup549(n4 @le(n1 ?(::std::data::Map::balance_right::6 ::std::data::Map::balance_right::5 x(n5 x(n6 x(tup(n0 n2) x(n3 x(tup(n4 n7) n8)))))))) n7)))) x(n5 x(n6 n8))) }
+::std::data::Map::balance_right::3 { x(tup(_ tup(tup(dup1533(n0 @n32_mul$(2 dup550(_ n1))) n2) tup(n3 tup(dup549(n4 @n32_le(n1 ?(::std::data::Map::balance_right::6 ::std::data::Map::balance_right::5 x(n5 x(n6 x(tup(n0 n2) x(n3 x(tup(n4 n7) n8)))))))) n7)))) x(n5 x(n6 n8))) }
 
-::std::data::Map::balance_right::5 { x(n0 x(tup(dup1238(n1 n2) n3) x(n4 x(n5 x(tup(dup1238(n6 @add(n2 @add(1 n7))) n8) tup(n4 tup(n5 tup(n7 tup(tup(n6 n8) tup(n0 tup(n1 n3))))))))))) }
+::std::data::Map::balance_right::5 { x(n0 x(tup(dup1238(n1 n2) n3) x(n4 x(n5 x(tup(dup1238(n6 @n32_add(n2 @n32_add(1 n7))) n8) tup(n4 tup(n5 tup(n7 tup(tup(n6 n8) tup(n0 tup(n1 n3))))))))))) }
 
-::std::data::Map::balance_right::6 { x(n0 x(tup(dup1238(n1 n2) n3) x(tup(dup1238(n4 @add(n5 @add(1 n6))) n7) x(n8 x(tup(_ tup(tup(dup1238(n9 n5) n10) tup(n11 tup(dup1238(n12 @add(n2 @add(1 n13))) n14)))) tup(tup(n6 tup(tup(n4 n7) tup(n8 tup(n9 n10)))) tup(n11 tup(n13 tup(tup(n12 n14) tup(n0 tup(n1 n3))))))))))) }
+::std::data::Map::balance_right::6 { x(n0 x(tup(dup1238(n1 n2) n3) x(tup(dup1238(n4 @n32_add(n5 @n32_add(1 n6))) n7) x(n8 x(tup(_ tup(tup(dup1238(n9 n5) n10) tup(n11 tup(dup1238(n12 @n32_add(n2 @n32_add(1 n13))) n14)))) tup(tup(n6 tup(tup(n4 n7) tup(n8 tup(n9 n10)))) tup(n11 tup(n13 tup(tup(n12 n14) tup(n0 tup(n1 n3))))))))))) }
 
 ::std::logical::Option::unwrap_or::4 { enum(n0 x(_ n0)) }
 
@@ -144,76 +144,76 @@
 
 ::std::numeric::N32::parse::2 { x(_ x(_ ::std::logical::Option::None)) }
 
-::std::numeric::N32::parse::3 { x(dup213(n0 @ne(0 ?(::std::numeric::N32::parse::6 ::std::numeric::N32::parse::5 x(n0 x(n1 x(0 n2)))))) x(n1 n2)) }
+::std::numeric::N32::parse::3 { x(dup213(n0 @n32_ne(0 ?(::std::numeric::N32::parse::6 ::std::numeric::N32::parse::5 x(n0 x(n1 x(0 n2)))))) x(n1 n2)) }
 
-::std::numeric::N32::parse::5 { x(n0 x(tup(dup1884(dup1883(n1 @le(57 n2)) @le$(48 @n32_and(n2 ?(::std::numeric::N32::parse::9 ::std::numeric::N32::parse::8 x(n0 x(n3 x(n4 x(n1 n5)))))))) n3) x(n4 n5))) }
+::std::numeric::N32::parse::5 { x(n0 x(tup(dup1884(dup1883(n1 @n32_le(57 n2)) @n32_le$(48 @n32_and(n2 ?(::std::numeric::N32::parse::9 ::std::numeric::N32::parse::8 x(n0 x(n3 x(n4 x(n1 n5)))))))) n3) x(n4 n5))) }
 
 ::std::numeric::N32::parse::6 { x(_ x(_ x(n0 enum(enum(n0 n1) enum(_ n1))))) }
 
-::std::numeric::N32::parse::8 { x(@sub(1 dup213(n0 @ne(0 ?(::std::numeric::N32::parse::6 ::std::numeric::N32::parse::5 x(n0 x(n1 x(n2 n3))))))) x(n1 x(@mul(10 @add(n4 n2)) x(@sub(48 n4) n3)))) }
+::std::numeric::N32::parse::8 { x(@n32_sub(1 dup213(n0 @n32_ne(0 ?(::std::numeric::N32::parse::6 ::std::numeric::N32::parse::5 x(n0 x(n1 x(n2 n3))))))) x(n1 x(@n32_mul(10 @n32_add(n4 n2)) x(@n32_sub(48 n4) n3)))) }
 
 ::std::numeric::N32::parse::9 { x(_ x(_ x(_ x(_ ::std::logical::Option::None)))) }
 
-::std::numeric::N32::pow::2 { x(dup2017(n0 dup2017(n1 @mul(n1 n2))) x(dup2019(@rem(2 dup213(_ @ne(0 ?(::std::numeric::N32::pow::6 ::std::numeric::N32::pow::5 x(n0 x(x(n3 n4) _)))))) @div(2 dup213(n5 @ne(0 ?(::std::numeric::N32::pow::3 ::std::numeric::N32::pow::2 x(n2 x(n5 x(n4 n6)))))))) x(n3 n6))) }
+::std::numeric::N32::pow::2 { x(dup2017(n0 dup2017(n1 @n32_mul(n1 n2))) x(dup2019(@n32_rem(2 dup213(_ @n32_ne(0 ?(::std::numeric::N32::pow::6 ::std::numeric::N32::pow::5 x(n0 x(x(n3 n4) _)))))) @n32_div(2 dup213(n5 @n32_ne(0 ?(::std::numeric::N32::pow::3 ::std::numeric::N32::pow::2 x(n2 x(n5 x(n4 n6)))))))) x(n3 n6))) }
 
 ::std::numeric::N32::pow::3 { x(_ x(_ x(n0 n0))) }
 
-::std::numeric::N32::pow::5 { x(n0 x(x(@mul(n0 n1) n1) _)) }
+::std::numeric::N32::pow::5 { x(n0 x(x(@n32_mul(n0 n1) n1) _)) }
 
 ::std::numeric::N32::pow::6 { x(_ x(x(n0 n0) _)) }
 
 ::std::numeric::N64::one { tup(1 0) }
 
-::std::numeric::N64::div_rem_n32::2 { x(x(dup2126(@div(n0 n1) @rem(n2 n3)) n3) x(dup2127(n0 n2) x(x(_ n1) _))) }
+::std::numeric::N64::div_rem_n32::2 { x(x(dup2126(@n32_div(n0 n1) @n32_rem(n2 n3)) n3) x(dup2127(n0 n2) x(x(_ n1) _))) }
 
 ::std::numeric::N64::div_rem_n32::3 { x(x(n0 n0) x(_ x(x(n1 n1) _))) }
 
-::std::numeric::N64::div_rem_n32::5 { x(x(dup(@sub(n0 n1) @lt(n2 n3)) n4) x(dup2142(n5 @sub(n6 @sub(n3 dup213(n7 @ne(0 ?(::std::numeric::N64::div_rem_n32::6 ::std::numeric::N64::div_rem_n32::5 x(x(n1 n4) x(n7 x(n8 x(n9 n10)))))))))) x(dup2144(@div$(4294967295 @mul(n5 dup2148(n11 dup(@mul(n12 dup(n0 n2)) @n32_mul_high(n13 n6))))) dup2144(dup(n12 n13) n8)) x(@add(n11 n9) n10)))) }
+::std::numeric::N64::div_rem_n32::5 { x(x(dup(@n32_sub(n0 n1) @n32_lt(n2 n3)) n4) x(dup2142(n5 @n32_sub(n6 @n32_sub(n3 dup213(n7 @n32_ne(0 ?(::std::numeric::N64::div_rem_n32::6 ::std::numeric::N64::div_rem_n32::5 x(x(n1 n4) x(n7 x(n8 x(n9 n10)))))))))) x(dup2144(@n32_div$(4294967295 @n32_mul(n5 dup2148(n11 dup(@n32_mul(n12 dup(n0 n2)) @n32_mul_high(n13 n6))))) dup2144(dup(n12 n13) n8)) x(@n32_add(n11 n9) n10)))) }
 
 ::std::numeric::N64::div_rem_n32::6 { x(x(n0 n0) x(_ x(_ x(n1 n1)))) }
 
-::std::numeric::N64::log_n32::2 { x(tup(n0 dup2111(@div(n1 n2) @rem(n3 dup180(n4 n5)))) x(dup2335(dup2116(n1 dup2116(n3 dup179(dup2115(n6 dup2115(n7 dup2115(n8 n9))) @lt(n5 ?(::std::numeric::N64::div_rem_n32::3 ::std::numeric::N64::div_rem_n32::2 x(x(n4 dup213(n10 @ne(0 ?(::std::numeric::N64::div_rem_n32::6 ::std::numeric::N64::div_rem_n32::5 x(x(n0 dup2110(@div(n8 n11) @rem(n9 _))) x(n10 x(n7 x(0 @add(n11 n12))))))))) x(n6 x(x(n2 dup180(n13 @lt$(0 ?(::std::numeric::N64::ord::lt::3 ::std::numeric::N64::ord::lt::2 x(x(n14 _) x(x(0 _) x(x(n12 n15) x(x(n13 n16) ?(::std::numeric::N64::log_n32::3 ::std::numeric::N64::log_n32::2 x(tup(n15 n16) x(n17 x(n18 n19)))))))))))) _)))))))) dup2330(n14 n17)) x(@add(1 n18) n19))) }
+::std::numeric::N64::log_n32::2 { x(tup(n0 dup2111(@n32_div(n1 n2) @n32_rem(n3 dup180(n4 n5)))) x(dup2335(dup2116(n1 dup2116(n3 dup179(dup2115(n6 dup2115(n7 dup2115(n8 n9))) @n32_lt(n5 ?(::std::numeric::N64::div_rem_n32::3 ::std::numeric::N64::div_rem_n32::2 x(x(n4 dup213(n10 @n32_ne(0 ?(::std::numeric::N64::div_rem_n32::6 ::std::numeric::N64::div_rem_n32::5 x(x(n0 dup2110(@n32_div(n8 n11) @n32_rem(n9 _))) x(n10 x(n7 x(0 @n32_add(n11 n12))))))))) x(n6 x(x(n2 dup180(n13 @n32_lt$(0 ?(::std::numeric::N64::ord::lt::3 ::std::numeric::N64::ord::lt::2 x(x(n14 _) x(x(0 _) x(x(n12 n15) x(x(n13 n16) ?(::std::numeric::N64::log_n32::3 ::std::numeric::N64::log_n32::2 x(tup(n15 n16) x(n17 x(n18 n19)))))))))))) _)))))))) dup2330(n14 n17)) x(@n32_add(1 n18) n19))) }
 
 ::std::numeric::N64::log_n32::3 { x(_ x(_ x(n0 n0))) }
 
-::std::unicode::Char::eq::eq { fn(ref(dup2408(w0 @eq(w10 out)) w0) fn(ref(dup2409(w3 w10) w3) out)) }
+::std::unicode::Char::eq::eq { fn(ref(dup2408(w0 @n32_eq(w10 out)) w0) fn(ref(dup2409(w3 w10) w3) out)) }
 
-::std::unicode::Char::eq::ne { fn(ref(dup2412(n0 @ne(n1 n2)) n0) fn(ref(dup2413(n3 n1) n3) n2)) }
+::std::unicode::Char::eq::ne { fn(ref(dup2412(n0 @n32_ne(n1 n2)) n0) fn(ref(dup2413(n3 n1) n3) n2)) }
 
 ::std::unicode::String::split {
   fn(w0 fn(w1 w9))
   ::std::unicode::String::split::1 = x(w0 x(w1 x(tup(0 tup(w8 w8)) w9)))
 }
 
-::std::unicode::String::split::1 { x(tup(dup2463(n0 dup550(_ n1)) n2) x(dup2472(tup(dup2463(n3 dup549(_ @le(n1 ?(::std::unicode::String::split_once::3 ::std::unicode::String::split_once::2 x(tup(n3 n4) x(tup(0 tup(n5 n5)) x(tup(n0 n2) tup(n6 enum(::std::unicode::String::split::5 enum(::std::unicode::String::split::6 x(n7 x(tup(n8 tup(n9 n10)) n11)))))))))))) n4) n7) x(tup(@add(1 n8) tup(n9 tup(n6 n10))) n11))) }
+::std::unicode::String::split::1 { x(tup(dup2463(n0 dup550(_ n1)) n2) x(dup2472(tup(dup2463(n3 dup549(_ @n32_le(n1 ?(::std::unicode::String::split_once::3 ::std::unicode::String::split_once::2 x(tup(n3 n4) x(tup(0 tup(n5 n5)) x(tup(n0 n2) tup(n6 enum(::std::unicode::String::split::5 enum(::std::unicode::String::split::6 x(n7 x(tup(n8 tup(n9 n10)) n11)))))))))))) n4) n7) x(tup(@n32_add(1 n8) tup(n9 tup(n6 n10))) n11))) }
 
-::std::unicode::String::split::5 { enum(tup(dup2463(n0 dup550(_ n1)) n2) x(dup2472(tup(dup2463(n3 dup549(_ @le(n1 ?(::std::unicode::String::split_once::3 ::std::unicode::String::split_once::2 x(tup(n3 n4) x(tup(0 tup(n5 n5)) x(tup(n0 n2) tup(n6 enum(::std::unicode::String::split::5 enum(::std::unicode::String::split::6 x(n7 x(tup(n8 tup(n9 n10)) n11)))))))))))) n4) n7) x(tup(@add(1 n8) tup(n9 tup(n6 n10))) n11))) }
+::std::unicode::String::split::5 { enum(tup(dup2463(n0 dup550(_ n1)) n2) x(dup2472(tup(dup2463(n3 dup549(_ @n32_le(n1 ?(::std::unicode::String::split_once::3 ::std::unicode::String::split_once::2 x(tup(n3 n4) x(tup(0 tup(n5 n5)) x(tup(n0 n2) tup(n6 enum(::std::unicode::String::split::5 enum(::std::unicode::String::split::6 x(n7 x(tup(n8 tup(n9 n10)) n11)))))))))))) n4) n7) x(tup(@n32_add(1 n8) tup(n9 tup(n6 n10))) n11))) }
 
 ::std::unicode::String::split::6 { x(_ x(n0 n0)) }
 
-::std::unicode::String::split_once::2 { x(tup(dup723(n0 dup213(n1 @ne(0 ?(::std::data::List::Iter::next::3 ::std::data::List::Iter::next::2 x(x(n1 n2) x(x(ref(n3 n4) n5) enum(::std::unicode::String::split_once::8 enum(::std::unicode::String::split_once::9 x(tup(n0 tup(n4 n6)) x(n7 x(tup(n8 tup(n9 n10)) x(tup(n2 n5) x(tup(n11 ref(n12 n9)) n13))))))))))))) tup(n3 n6)) x(n7 x(tup(dup723(n8 n11) tup(n12 n10)) n13))) }
+::std::unicode::String::split_once::2 { x(tup(dup723(n0 dup213(n1 @n32_ne(0 ?(::std::data::List::Iter::next::3 ::std::data::List::Iter::next::2 x(x(n1 n2) x(x(ref(n3 n4) n5) enum(::std::unicode::String::split_once::8 enum(::std::unicode::String::split_once::9 x(tup(n0 tup(n4 n6)) x(n7 x(tup(n8 tup(n9 n10)) x(tup(n2 n5) x(tup(n11 ref(n12 n9)) n13))))))))))))) tup(n3 n6)) x(n7 x(tup(dup723(n8 n11) tup(n12 n10)) n13))) }
 
 ::std::unicode::String::split_once::3 { x(_ ::std::unicode::String::split_once::23) }
 
-::std::unicode::String::split_once::5 { x(n0 x(n1 x(n2 x(tup(dup213(n3 @ne(0 ?(::std::data::List::Iter::next::3 ::std::data::List::Iter::next::2 x(x(n3 n4) x(x(n5 n6) enum(::std::unicode::String::split_once::8 enum(::std::unicode::String::split_once::9 x(n0 x(n1 x(n2 x(tup(n4 n6) n7))))))))))) n5) n7)))) }
+::std::unicode::String::split_once::5 { x(n0 x(n1 x(n2 x(tup(dup213(n3 @n32_ne(0 ?(::std::data::List::Iter::next::3 ::std::data::List::Iter::next::2 x(x(n3 n4) x(x(n5 n6) enum(::std::unicode::String::split_once::8 enum(::std::unicode::String::split_once::9 x(n0 x(n1 x(n2 x(tup(n4 n6) n7))))))))))) n5) n7)))) }
 
-::std::unicode::String::split_once::8 { enum(ref(n0 n1) x(n2 x(n3 x(n4 x(n5 x(tup(dup213(n6 @ne(0 ?(::std::data::List::Iter::next::3 ::std::data::List::Iter::next::2 x(x(n6 n7) x(x(n8 n9) enum(::std::unicode::String::split_once::12 enum(::std::unicode::String::split_once::13 x(n2 x(n3 x(n4 x(n5 x(tup(n7 n9) x(x(n0 n1) n10))))))))))))) n8) n10)))))) }
+::std::unicode::String::split_once::8 { enum(ref(n0 n1) x(n2 x(n3 x(n4 x(n5 x(tup(dup213(n6 @n32_ne(0 ?(::std::data::List::Iter::next::3 ::std::data::List::Iter::next::2 x(x(n6 n7) x(x(n8 n9) enum(::std::unicode::String::split_once::12 enum(::std::unicode::String::split_once::13 x(n2 x(n3 x(n4 x(n5 x(tup(n7 n9) x(x(n0 n1) n10))))))))))))) n8) n10)))))) }
 
 ::std::unicode::String::split_once::9 { x(_ x(n0 x(tup(_ tup(_ n1)) x(_ x(tup(n2 ref(n3 _)) tup(n0 enum(enum(tup(n2 tup(n3 n1)) n4) enum(_ n4)))))))) }
 
-::std::unicode::String::split_once::12 { enum(ref(dup2413(n0 n1) n0) x(n2 x(n3 x(n4 x(n5 x(n6 x(x(dup2412(n7 @ne(n1 ?(::std::unicode::String::split_once::5 ::std::unicode::String::split_once::16 x(n2 x(n3 x(n4 x(n5 x(n6 n8)))))))) n7) n8))))))) }
+::std::unicode::String::split_once::12 { enum(ref(dup2413(n0 n1) n0) x(n2 x(n3 x(n4 x(n5 x(n6 x(x(dup2412(n7 @n32_ne(n1 ?(::std::unicode::String::split_once::5 ::std::unicode::String::split_once::16 x(n2 x(n3 x(n4 x(n5 x(n6 n8)))))))) n7) n8))))))) }
 
 ::std::unicode::String::split_once::13 { x(_ x(n0 x(tup(_ tup(_ n1)) x(_ x(tup(n2 ref(n3 _)) x(x(n4 n4) tup(n0 enum(enum(tup(n2 tup(n3 n1)) n5) enum(_ n5))))))))) }
 
-::std::unicode::String::split_once::16 { x(n0 x(n1 x(tup(dup213(n2 @ne(0 ?(::std::data::List::pop_front::3 ::std::data::List::pop_front::2 x(x(n2 n3) x(x(n4 n5) enum(::std::unicode::String::split_once::21 enum(::std::unicode::String::split_once::22 x(n0 x(n1 x(tup(n3 tup(n5 n6)) n7)))))))))) tup(n4 n6)) x(tup(_ ref(n8 n8)) x(tup(_ ref(n9 n9)) n7))))) }
+::std::unicode::String::split_once::16 { x(n0 x(n1 x(tup(dup213(n2 @n32_ne(0 ?(::std::data::List::pop_front::3 ::std::data::List::pop_front::2 x(x(n2 n3) x(x(n4 n5) enum(::std::unicode::String::split_once::21 enum(::std::unicode::String::split_once::22 x(n0 x(n1 x(tup(n3 tup(n5 n6)) n7)))))))))) tup(n4 n6)) x(tup(_ ref(n8 n8)) x(tup(_ ref(n9 n9)) n7))))) }
 
-::std::unicode::String::split_once::21 { enum(n0 x(tup(dup2463(n1 dup549(_ @le(n2 ?(::std::unicode::String::split_once::3 ::std::unicode::String::split_once::2 x(tup(n1 n3) x(tup(n4 tup(n5 n6)) x(tup(n7 n8) n9))))))) n3) x(tup(@add(1 n4) tup(n5 tup(n0 n6))) x(tup(dup2463(n7 dup550(_ n2)) n8) n9)))) }
+::std::unicode::String::split_once::21 { enum(n0 x(tup(dup2463(n1 dup549(_ @n32_le(n2 ?(::std::unicode::String::split_once::3 ::std::unicode::String::split_once::2 x(tup(n1 n3) x(tup(n4 tup(n5 n6)) x(tup(n7 n8) n9))))))) n3) x(tup(@n32_add(1 n4) tup(n5 tup(n0 n6))) x(tup(dup2463(n7 dup550(_ n2)) n8) n9)))) }
 
 ::std::unicode::String::split_once::22 { x(_ ::std::unicode::String::split_once::23) }
 
-::std::unicode::String::split_once::23 { x(tup(@add(n0 n1) tup(n2 n3)) x(tup(n0 tup(n3 n4)) tup(tup(n1 tup(n2 n4)) ::std::logical::Option::None))) }
+::std::unicode::String::split_once::23 { x(tup(@n32_add(n0 n1) tup(n2 n3)) x(tup(n0 tup(n3 n4)) tup(tup(n1 tup(n2 n4)) ::std::logical::Option::None))) }
 
-::std::IO::print::2 { x(x(@io_print_char(n0 n1) n2) x(@sub(1 dup213(n3 @ne(0 ?(::std::IO::print::3 ::std::IO::print::2 x(x(n1 n2) x(n3 n4)))))) tup(n0 n4))) }
+::std::IO::print::2 { x(x(@io_print_char(n0 n1) n2) x(@n32_sub(1 dup213(n3 @n32_ne(0 ?(::std::IO::print::3 ::std::IO::print::2 x(x(n1 n2) x(n3 n4)))))) tup(n0 n4))) }
 
 ::std::IO::print::3 { x(x(n0 n0) _) }
 
@@ -237,9 +237,9 @@
   ::std::IO::read_line::7 = x(w10 x(x(tup(1 tup(tup(w8 w11) w11)) w14) _))
 }
 
-::std::IO::read_line::7 { x(x(dup(@io_read_byte(10 dup(dup2412(n0 @ne(10 ?(::std::IO::read_line::10 ::std::IO::read_line::9 x(x(n1 n2) x(n0 n3))))) @seq$(n4 n1))) n4) n2) n3) }
+::std::IO::read_line::7 { x(x(dup(@io_read_byte(10 dup(dup2412(n0 @n32_ne(10 ?(::std::IO::read_line::10 ::std::IO::read_line::9 x(x(n1 n2) x(n0 n3))))) @seq$(n4 n1))) n4) n2) n3) }
 
-::std::IO::read_line::9 { x(x(dup(@io_read_byte(10 dup(dup2412(n0 @ne(10 ?(::std::IO::read_line::10 ::std::IO::read_line::9 x(x(n1 n2) x(n0 x(x(tup(n3 tup(n4 n5)) n6) n7)))))) @seq$(n8 n1))) n8) n2) x(n9 x(x(tup(@add(1 n3) tup(n4 tup(n9 n5))) n6) n7))) }
+::std::IO::read_line::9 { x(x(dup(@io_read_byte(10 dup(dup2412(n0 @n32_ne(10 ?(::std::IO::read_line::10 ::std::IO::read_line::9 x(x(n1 n2) x(n0 x(x(tup(n3 tup(n4 n5)) n6) n7)))))) @seq$(n8 n1))) n8) n2) x(n9 x(x(tup(@n32_add(1 n3) tup(n4 tup(n9 n5))) n6) n7))) }
 
 ::std::IO::read_line::10 { x(x(n0 n0) x(_ x(x(n1 n1) _))) }
 

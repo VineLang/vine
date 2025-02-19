@@ -6,25 +6,25 @@
   ::loop_break_continue::main::1 = x(x(w1 w11) x(0 w8))
 }
 
-::loop_break_continue::main::1 { x(n0 x(dup38(n1 @le$(5 ?(::loop_break_continue::main::4 ::loop_break_continue::main::3 x(n0 x(n1 n2))))) n2)) }
+::loop_break_continue::main::1 { x(n0 x(dup38(n1 @n32_le$(5 ?(::loop_break_continue::main::4 ::loop_break_continue::main::3 x(n0 x(n1 n2))))) n2)) }
 
 ::loop_break_continue::main::3 { x(x(n0 n0) _) }
 
-::loop_break_continue::main::4 { x(n0 x(@add(1 dup45(n1 @eq(3 ?(::loop_break_continue::main::7 ::loop_break_continue::main::6 x(n0 x(n1 n2)))))) n2)) }
+::loop_break_continue::main::4 { x(n0 x(@n32_add(1 dup45(n1 @n32_eq(3 ?(::loop_break_continue::main::7 ::loop_break_continue::main::6 x(n0 x(n1 n2)))))) n2)) }
 
-::loop_break_continue::main::6 { x(x(@io_print_char(99 @io_print_char(111 @io_print_char(110 @io_print_char(116 @io_print_char(105 @io_print_char(110 @io_print_char(117 @io_print_char(101 @io_print_char(32 @io_print_char(99 @io_print_char(97 @io_print_char(108 @io_print_char(108 @io_print_char(101 @io_print_char(100 @io_print_char(33 @io_print_char(32 @io_print_char(40 @io_print_char(115 @io_print_char(107 @io_print_char(105 @io_print_char(112 @io_print_char(112 @io_print_char(105 @io_print_char(110 @io_print_char(103 @io_print_char(32 @io_print_char(51 @io_print_char(41 @io_print_char(10 n0)))))))))))))))))))))))))))))) n1) x(dup38(n2 @le$(5 ?(::loop_break_continue::main::4 ::loop_break_continue::main::3 x(x(n0 n1) x(n2 n3))))) n3)) }
+::loop_break_continue::main::6 { x(x(@io_print_char(99 @io_print_char(111 @io_print_char(110 @io_print_char(116 @io_print_char(105 @io_print_char(110 @io_print_char(117 @io_print_char(101 @io_print_char(32 @io_print_char(99 @io_print_char(97 @io_print_char(108 @io_print_char(108 @io_print_char(101 @io_print_char(100 @io_print_char(33 @io_print_char(32 @io_print_char(40 @io_print_char(115 @io_print_char(107 @io_print_char(105 @io_print_char(112 @io_print_char(112 @io_print_char(105 @io_print_char(110 @io_print_char(103 @io_print_char(32 @io_print_char(51 @io_print_char(41 @io_print_char(10 n0)))))))))))))))))))))))))))))) n1) x(dup38(n2 @n32_le$(5 ?(::loop_break_continue::main::4 ::loop_break_continue::main::3 x(x(n0 n1) x(n2 n3))))) n3)) }
 
-::loop_break_continue::main::7 { x(x(n0 n1) x(dup29(dup69(n2 @ne(0 ?(::std::numeric::N32::to_string::to_string::3 ::std::numeric::N32::to_string::to_string::2 x(n2 tup(dup69(n3 @ne(0 ?(::std::IO::print::3 ::std::IO::print::2 x(x(n0 @io_print_char(10 n4)) x(n3 n5))))) tup(n5 _)))))) dup38(n6 @le$(5 ?(::loop_break_continue::main::4 ::loop_break_continue::main::3 x(x(n4 n1) x(n6 n7)))))) n7)) }
+::loop_break_continue::main::7 { x(x(n0 n1) x(dup29(dup69(n2 @n32_ne(0 ?(::std::numeric::N32::to_string::to_string::3 ::std::numeric::N32::to_string::to_string::2 x(n2 tup(dup69(n3 @n32_ne(0 ?(::std::IO::print::3 ::std::IO::print::2 x(x(n0 @io_print_char(10 n4)) x(n3 n5))))) tup(n5 _)))))) dup38(n6 @n32_le$(5 ?(::loop_break_continue::main::4 ::loop_break_continue::main::3 x(x(n4 n1) x(n6 n7)))))) n7)) }
 
-::std::numeric::N32::to_string::to_string::2 { x(dup69(n0 @ne(0 ?(::std::numeric::N32::to_string::to_string::6 ::std::numeric::N32::to_string::to_string::5 x(n0 x(tup(0 tup(n1 n1)) n2))))) n2) }
+::std::numeric::N32::to_string::to_string::2 { x(dup69(n0 @n32_ne(0 ?(::std::numeric::N32::to_string::to_string::6 ::std::numeric::N32::to_string::to_string::5 x(n0 x(tup(0 tup(n1 n1)) n2))))) n2) }
 
 ::std::numeric::N32::to_string::to_string::3 { x(_ tup(1 tup(tup(48 n0) n0))) }
 
-::std::numeric::N32::to_string::to_string::5 { x(dup63(@rem(10 @add$(48 n0)) @div(10 dup69(n1 @ne(0 ?(::std::numeric::N32::to_string::to_string::6 ::std::numeric::N32::to_string::to_string::5 x(n1 x(tup(n2 tup(tup(n0 n3) n4)) n5))))))) x(tup(@add$(1 n2) tup(n3 n4)) n5)) }
+::std::numeric::N32::to_string::to_string::5 { x(dup63(@n32_rem(10 @n32_add$(48 n0)) @n32_div(10 dup69(n1 @n32_ne(0 ?(::std::numeric::N32::to_string::to_string::6 ::std::numeric::N32::to_string::to_string::5 x(n1 x(tup(n2 tup(tup(n0 n3) n4)) n5))))))) x(tup(@n32_add$(1 n2) tup(n3 n4)) n5)) }
 
 ::std::numeric::N32::to_string::to_string::6 { x(_ x(n0 n0)) }
 
-::std::IO::print::2 { x(x(@io_print_char(n0 n1) n2) x(@sub(1 dup69(n3 @ne(0 ?(::std::IO::print::3 ::std::IO::print::2 x(x(n1 n2) x(n3 n4)))))) tup(n0 n4))) }
+::std::IO::print::2 { x(x(@io_print_char(n0 n1) n2) x(@n32_sub(1 dup69(n3 @n32_ne(0 ?(::std::IO::print::3 ::std::IO::print::2 x(x(n1 n2) x(n3 n4)))))) tup(n0 n4))) }
 
 ::std::IO::print::3 { x(x(n0 n0) _) }
 
