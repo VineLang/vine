@@ -5,9 +5,8 @@ error tests/programs/fail/informal.vi:6:3 - expected a space expression; found a
 error tests/programs/fail/informal.vi:6:8 - expected a value expression; found a space expression
 error tests/programs/fail/informal.vi:7:3 - expected a place expression; found a space expression
 error tests/programs/fail/informal.vi:7:8 - expected a value expression; found a space expression
-error tests/programs/fail/informal.vi:7:3 - cannot infer type
+error tests/programs/fail/informal.vi:7:3 - cannot find impl of trait `Add[?9, ~N32, ?9]`
 error tests/programs/fail/informal.vi:8:8 - `&` is invalid in a space pattern
 error tests/programs/fail/informal.vi:8:15 - expected a place expression; found a space expression
 error tests/programs/fail/informal.vi:8:13 - expected a value expression; found a space expression
 error tests/programs/fail/informal.vi:9:7 - expected a complete pattern
-error vine/std/rng/Pcg32.vi:12:21 - expected type `String`; found `N64`

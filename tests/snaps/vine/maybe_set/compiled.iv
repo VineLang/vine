@@ -3,13 +3,17 @@
 
 ::maybe_set::main {
   fn(w1 _)
-  0 = ?(::maybe_set::main::3 ::maybe_set::main::2 x(x(tup(8 tup(tup(111 tup(114 tup(105 tup(103 tup(105 tup(110 tup(97 tup(108 w16)))))))) w16)) w19) _))
-  ::std::IO::println = fn(w1 fn(w19 _))
+  ::std::numeric::N32::eq::ne = fn(ref(0 _) fn(ref(0 _) ?(::maybe_set::main::3 ::maybe_set::main::2 x(x(tup(8 tup(tup(111 tup(114 tup(105 tup(103 tup(105 tup(110 tup(97 tup(108 w16)))))))) w16)) w22) _))))
+  ::std::IO::println = fn(w1 fn(w22 _))
 }
 
 ::maybe_set::main::2 { x(x(_ tup(4 tup(tup(103 tup(111 tup(110 tup(101 w7)))) w7))) _) }
 
 ::maybe_set::main::3 { x(x(w2 w2) _) }
+
+::std::numeric::N32::eq::ne { fn(ref(dup11(n0 @ne(n1 n2)) n0) fn(ref(dup12(n3 n1) n3) n2)) }
+
+::std::unicode::String::to_chars::cast { fn(w0 w0) }
 
 ::std::IO::println {
   fn(ref(w1 w12) fn(w3 _))
@@ -18,13 +22,14 @@
 }
 
 ::std::IO::print {
-  fn(ref(w1 w16) fn(tup(w7 tup(w8 _)) _))
-  ::std::IO::print::1 = x(x(w1 w16) x(w7 w8))
+  fn(ref(w1 w15) fn(w3 _))
+  ::std::unicode::String::to_chars::cast = fn(w3 tup(w8 tup(w9 _)))
+  ::std::IO::print::1 = x(x(w1 w15) x(w8 w9))
 }
 
-::std::IO::print::1 { x(n0 x(dup2224(?(::std::IO::print::3 ::std::IO::print::2 x(n0 x(n1 n2))) n1) n2)) }
+::std::IO::print::1 { x(n0 x(dup11(n1 @ne(0 ?(::std::IO::print::3 ::std::IO::print::2 x(n0 x(n1 n2))))) n2)) }
 
-::std::IO::print::2 { x(x(@io_print_char(n0 n1) n2) x(@sub(1 dup2224(?(::std::IO::print::3 ::std::IO::print::2 x(x(n1 n2) x(n3 n4))) n3)) tup(n0 n4))) }
+::std::IO::print::2 { x(x(@io_print_char(n0 n1) n2) x(@sub(1 dup11(n3 @ne(0 ?(::std::IO::print::3 ::std::IO::print::2 x(x(n1 n2) x(n3 n4)))))) tup(n0 n4))) }
 
 ::std::IO::print::3 { x(x(n0 n0) _) }
 

@@ -28,15 +28,15 @@
   ::logic::main::1 = x(x(w138 w141) fn(0 _))
 }
 
-::logic::main::1 { x(x(n0 n1) fn(?(::logic::main::4 ::logic::main::3 tup(dup2284(?(::std::IO::print::3 ::std::IO::print::2 x(x(n0 @io_print_char(10 n1)) x(n2 n3))) n2) tup(n3 _))) _)) }
+::logic::main::1 { x(x(n0 n1) fn(?(::logic::main::4 ::logic::main::3 tup(dup126(n2 @ne(0 ?(::std::IO::print::3 ::std::IO::print::2 x(x(n0 @io_print_char(10 n1)) x(n2 n3))))) tup(n3 _))) _)) }
 
 ::logic::main::3 { tup(4 tup(tup(116 tup(114 tup(117 tup(101 n0)))) n0)) }
 
 ::logic::main::4 { tup(5 tup(tup(102 tup(97 tup(108 tup(115 tup(101 n0))))) n0)) }
 
-::std::IO::println { fn(ref(n0 n1) fn(tup(dup2284(?(::std::IO::print::3 ::std::IO::print::2 x(x(n0 @io_print_char(10 n1)) x(n2 n3))) n2) tup(n3 _)) _)) }
+::std::IO::println { fn(ref(n0 n1) fn(tup(dup126(n2 @ne(0 ?(::std::IO::print::3 ::std::IO::print::2 x(x(n0 @io_print_char(10 n1)) x(n2 n3))))) tup(n3 _)) _)) }
 
-::std::IO::print::2 { x(x(@io_print_char(n0 n1) n2) x(@sub(1 dup2284(?(::std::IO::print::3 ::std::IO::print::2 x(x(n1 n2) x(n3 n4))) n3)) tup(n0 n4))) }
+::std::IO::print::2 { x(x(@io_print_char(n0 n1) n2) x(@sub(1 dup126(n3 @ne(0 ?(::std::IO::print::3 ::std::IO::print::2 x(x(n1 n2) x(n3 n4)))))) tup(n0 n4))) }
 
 ::std::IO::print::3 { x(x(n0 n0) _) }
 

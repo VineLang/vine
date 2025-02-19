@@ -5,4 +5,3 @@ error tests/programs/fail/hallo_world.vi:9:14 - cannot find `hallo` in `::hallo_
 error tests/programs/fail/hallo_world.vi:9:21 - cannot find `world` in `::hallo_world::main`
 error tests/programs/fail/hallo_world.vi:2:10 - cannot find `io` in `::std`
 error tests/programs/fail/hallo_world.vi:9:3 - type `??` has no method `println`
-error vine/std/rng/Pcg32.vi:12:21 - expected type `String`; found `N64`

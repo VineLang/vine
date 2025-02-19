@@ -6,6 +6,8 @@
   ::std::IO::println = fn(w1 fn(tup(13 tup(tup(72 tup(101 tup(108 tup(108 tup(111 tup(44 tup(32 tup(119 tup(111 tup(114 tup(108 tup(100 tup(33 w13))))))))))))) w13)) _))
 }
 
+::std::unicode::String::to_chars::cast { fn(w0 w0) }
+
 ::std::IO::println {
   fn(ref(w1 w12) fn(w3 _))
   ::std::IO::print = fn(ref(w1 w7) fn(w3 _))
@@ -13,13 +15,14 @@
 }
 
 ::std::IO::print {
-  fn(ref(w1 w16) fn(tup(w7 tup(w8 _)) _))
-  ::std::IO::print::1 = x(x(w1 w16) x(w7 w8))
+  fn(ref(w1 w15) fn(w3 _))
+  ::std::unicode::String::to_chars::cast = fn(w3 tup(w8 tup(w9 _)))
+  ::std::IO::print::1 = x(x(w1 w15) x(w8 w9))
 }
 
-::std::IO::print::1 { x(n0 x(dup2218(?(::std::IO::print::3 ::std::IO::print::2 x(n0 x(n1 n2))) n1) n2)) }
+::std::IO::print::1 { x(n0 x(dup60(n1 @ne(0 ?(::std::IO::print::3 ::std::IO::print::2 x(n0 x(n1 n2))))) n2)) }
 
-::std::IO::print::2 { x(x(@io_print_char(n0 n1) n2) x(@sub(1 dup2218(?(::std::IO::print::3 ::std::IO::print::2 x(x(n1 n2) x(n3 n4))) n3)) tup(n0 n4))) }
+::std::IO::print::2 { x(x(@io_print_char(n0 n1) n2) x(@sub(1 dup60(n3 @ne(0 ?(::std::IO::print::3 ::std::IO::print::2 x(x(n1 n2) x(n3 n4)))))) tup(n0 n4))) }
 
 ::std::IO::print::3 { x(x(n0 n0) _) }
 

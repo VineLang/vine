@@ -4,25 +4,27 @@
 ::final_countdown::main {
   fn(w1 _)
   ::final_countdown::main::1 = x(x(ref(tup(0 tup(w27 w27)) w8) ref(w14 w18)) 10)
-  ::std::data::List::concat = fn(w14 fn(tup(24 tup(tup(105 tup(116 tup(39 tup(115 tup(32 tup(116 tup(104 tup(101 tup(32 tup(70 tup(73 tup(78 tup(65 tup(76 tup(32 tup(67 tup(79 tup(85 tup(78 tup(84 tup(68 tup(79 tup(87 tup(78 w33)))))))))))))))))))))))) w33)) w18))
+  ::std::data::List::concat::concat = fn(w14 fn(tup(24 tup(tup(105 tup(116 tup(39 tup(115 tup(32 tup(116 tup(104 tup(101 tup(32 tup(70 tup(73 tup(78 tup(65 tup(76 tup(32 tup(67 tup(79 tup(85 tup(78 tup(84 tup(68 tup(79 tup(87 tup(78 w33)))))))))))))))))))))))) w33)) w18))
   ::std::IO::println = fn(w1 fn(w8 _))
 }
 
-::final_countdown::main::1 { x(n0 dup14(@lt$(0 ?(::final_countdown::main::3 ::final_countdown::main::2 x(n0 n1))) n1)) }
+::final_countdown::main::1 { x(n0 dup31(n1 @lt$(0 ?(::final_countdown::main::3 ::final_countdown::main::2 x(n0 n1))))) }
 
-::final_countdown::main::2 { x(x(ref(tup(@add(n0 n1) tup(n2 n3)) n4) n5) dup18(dup23(?(::std::numeric::N32::to_string::to_string::3 ::std::numeric::N32::to_string::to_string::2 x(n6 tup(@add(4 n0) tup(n3 tup(46 tup(46 tup(46 tup(10 n7)))))))) n6) @sub(1 dup14(@lt$(0 ?(::final_countdown::main::3 ::final_countdown::main::2 x(x(ref(tup(n1 tup(n2 n7)) n4) n5) n8))) n8)))) }
+::final_countdown::main::2 { x(x(ref(tup(@add(n0 n1) tup(n2 n3)) n4) n5) dup19(dup72(n6 @ne(0 ?(::std::numeric::N32::to_string::to_string::3 ::std::numeric::N32::to_string::to_string::2 x(n6 tup(@add(4 n0) tup(n3 tup(46 tup(46 tup(46 tup(10 n7)))))))))) @sub(1 dup31(n8 @lt$(0 ?(::final_countdown::main::3 ::final_countdown::main::2 x(x(ref(tup(n1 tup(n2 n7)) n4) n5) n8))))))) }
 
 ::final_countdown::main::3 { x(x(n0 n0) _) }
 
-::std::numeric::N32::to_string::to_string::2 { x(dup32(?(::std::numeric::N32::to_string::to_string::6 ::std::numeric::N32::to_string::to_string::5 x(n0 x(tup(0 tup(n1 n1)) n2))) n0) n2) }
+::std::data::List::concat::concat { fn(tup(@add(n0 n1) tup(n2 n3)) fn(tup(n0 tup(n3 n4)) tup(n1 tup(n2 n4)))) }
+
+::std::numeric::N32::to_string::to_string::2 { x(dup72(n0 @ne(0 ?(::std::numeric::N32::to_string::to_string::6 ::std::numeric::N32::to_string::to_string::5 x(n0 x(tup(0 tup(n1 n1)) n2))))) n2) }
 
 ::std::numeric::N32::to_string::to_string::3 { x(_ tup(1 tup(tup(48 n0) n0))) }
 
-::std::numeric::N32::to_string::to_string::5 { x(dup35(@rem(10 @add$(48 n0)) @div(10 dup32(?(::std::numeric::N32::to_string::to_string::6 ::std::numeric::N32::to_string::to_string::5 x(n1 x(tup(n2 tup(tup(n0 n3) n4)) n5))) n1))) x(tup(@add$(1 n2) tup(n3 n4)) n5)) }
+::std::numeric::N32::to_string::to_string::5 { x(dup66(@rem(10 @add$(48 n0)) @div(10 dup72(n1 @ne(0 ?(::std::numeric::N32::to_string::to_string::6 ::std::numeric::N32::to_string::to_string::5 x(n1 x(tup(n2 tup(tup(n0 n3) n4)) n5))))))) x(tup(@add$(1 n2) tup(n3 n4)) n5)) }
 
 ::std::numeric::N32::to_string::to_string::6 { x(_ x(n0 n0)) }
 
-::std::data::List::concat { fn(tup(@add(n0 n1) tup(n2 n3)) fn(tup(n0 tup(n3 n4)) tup(n1 tup(n2 n4)))) }
+::std::unicode::String::to_chars::cast { fn(w0 w0) }
 
 ::std::IO::println {
   fn(ref(w1 w12) fn(w3 _))
@@ -31,13 +33,14 @@
 }
 
 ::std::IO::print {
-  fn(ref(w1 w16) fn(tup(w7 tup(w8 _)) _))
-  ::std::IO::print::1 = x(x(w1 w16) x(w7 w8))
+  fn(ref(w1 w15) fn(w3 _))
+  ::std::unicode::String::to_chars::cast = fn(w3 tup(w8 tup(w9 _)))
+  ::std::IO::print::1 = x(x(w1 w15) x(w8 w9))
 }
 
-::std::IO::print::1 { x(n0 x(dup2236(?(::std::IO::print::3 ::std::IO::print::2 x(n0 x(n1 n2))) n1) n2)) }
+::std::IO::print::1 { x(n0 x(dup72(n1 @ne(0 ?(::std::IO::print::3 ::std::IO::print::2 x(n0 x(n1 n2))))) n2)) }
 
-::std::IO::print::2 { x(x(@io_print_char(n0 n1) n2) x(@sub(1 dup2236(?(::std::IO::print::3 ::std::IO::print::2 x(x(n1 n2) x(n3 n4))) n3)) tup(n0 n4))) }
+::std::IO::print::2 { x(x(@io_print_char(n0 n1) n2) x(@sub(1 dup72(n3 @ne(0 ?(::std::IO::print::3 ::std::IO::print::2 x(x(n1 n2) x(n3 n4)))))) tup(n0 n4))) }
 
 ::std::IO::print::3 { x(x(n0 n0) _) }
 

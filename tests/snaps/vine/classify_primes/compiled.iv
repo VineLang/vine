@@ -6,29 +6,29 @@
   ::classify_primes::main::1 = x(x(w1 w9) 2)
 }
 
-::classify_primes::main::1 { x(n0 dup9(@lt(1000 ?(::classify_primes::main::3 ::classify_primes::main::2 x(n0 n1))) n1)) }
+::classify_primes::main::1 { x(n0 dup39(n1 @lt(1000 ?(::classify_primes::main::3 ::classify_primes::main::2 x(n0 n1))))) }
 
-::classify_primes::main::2 { x(x(n0 n1) dup13(dup19(@le$(4 ?(::classify_primes::main::7 ::classify_primes::main::6 x(n2 x(2 tup(@add(n3 dup2244(?(::std::IO::print::3 ::std::IO::print::2 x(x(n0 @io_print_char(10 n4)) x(n5 n6))) n5)) tup(n7 _)))))) n2) dup13(dup31(?(::std::numeric::N32::to_string::to_string::3 ::std::numeric::N32::to_string::to_string::2 x(n8 tup(@add(2 n3) tup(n6 tup(58 tup(32 n7)))))) n8) @add(1 dup9(@lt(1000 ?(::classify_primes::main::3 ::classify_primes::main::2 x(x(n4 n1) n9))) n9))))) }
+::classify_primes::main::2 { x(x(n0 n1) dup48(n2 @le$(4 ?(::classify_primes::main::7 ::classify_primes::main::6 x(x(n2 dup15(dup83(n3 @ne(0 ?(::std::numeric::N32::to_string::to_string::3 ::std::numeric::N32::to_string::to_string::2 x(n3 tup(@add(2 n4) tup(n5 tup(58 tup(32 n6)))))))) @add(1 dup39(n7 @lt(1000 ?(::classify_primes::main::3 ::classify_primes::main::2 x(x(n8 n1) n7))))))) x(2 tup(@add(n4 dup83(n9 @ne(0 ?(::std::IO::print::3 ::std::IO::print::2 x(x(n0 @io_print_char(10 n8)) x(n9 n5)))))) tup(n6 _)))))))) }
 
 ::classify_primes::main::3 { x(x(n0 n0) _) }
 
-::classify_primes::main::6 { x(dup22(@rem(n0 ?(::classify_primes::main::10 ::classify_primes::main::9 x(n1 x(n2 n3)))) n1) x(dup23(n0 n2) n3)) }
+::classify_primes::main::6 { x(x(dup27(@rem(n0 dup55(_ @eq(0 ?(::classify_primes::main::10 ::classify_primes::main::9 x(x(n1 n2) x(n3 n4)))))) n1) n2) x(dup28(n0 n3) n4)) }
 
-::classify_primes::main::7 { x(_ x(_ tup(5 tup(tup(112 tup(114 tup(105 tup(109 tup(101 n0))))) n0)))) }
+::classify_primes::main::7 { x(x(n0 n0) x(_ tup(5 tup(tup(112 tup(114 tup(105 tup(109 tup(101 n1))))) n1)))) }
 
-::classify_primes::main::9 { x(dup19(n0 n1) x(@add(1 dup20(@mul(n2 @le(n0 ?(::classify_primes::main::7 ::classify_primes::main::6 x(n1 x(n3 n4))))) dup20(n2 n3))) n4)) }
+::classify_primes::main::9 { x(x(n0 n0) x(_ tup(9 tup(tup(99 tup(111 tup(109 tup(112 tup(111 tup(115 tup(105 tup(116 tup(101 n1))))))))) n1)))) }
 
-::classify_primes::main::10 { x(_ x(_ tup(9 tup(tup(99 tup(111 tup(109 tup(112 tup(111 tup(115 tup(105 tup(116 tup(101 n0))))))))) n0)))) }
+::classify_primes::main::10 { x(x(dup48(n0 n1) n2) x(@add(1 dup24(@mul(n3 dup47(_ @le(n1 ?(::classify_primes::main::7 ::classify_primes::main::6 x(x(n0 n2) x(n4 n5)))))) dup24(n3 n4))) n5)) }
 
-::std::numeric::N32::to_string::to_string::2 { x(dup40(?(::std::numeric::N32::to_string::to_string::6 ::std::numeric::N32::to_string::to_string::5 x(n0 x(tup(0 tup(n1 n1)) n2))) n0) n2) }
+::std::numeric::N32::to_string::to_string::2 { x(dup83(n0 @ne(0 ?(::std::numeric::N32::to_string::to_string::6 ::std::numeric::N32::to_string::to_string::5 x(n0 x(tup(0 tup(n1 n1)) n2))))) n2) }
 
 ::std::numeric::N32::to_string::to_string::3 { x(_ tup(1 tup(tup(48 n0) n0))) }
 
-::std::numeric::N32::to_string::to_string::5 { x(dup43(@rem(10 @add$(48 n0)) @div(10 dup40(?(::std::numeric::N32::to_string::to_string::6 ::std::numeric::N32::to_string::to_string::5 x(n1 x(tup(n2 tup(tup(n0 n3) n4)) n5))) n1))) x(tup(@add$(1 n2) tup(n3 n4)) n5)) }
+::std::numeric::N32::to_string::to_string::5 { x(dup77(@rem(10 @add$(48 n0)) @div(10 dup83(n1 @ne(0 ?(::std::numeric::N32::to_string::to_string::6 ::std::numeric::N32::to_string::to_string::5 x(n1 x(tup(n2 tup(tup(n0 n3) n4)) n5))))))) x(tup(@add$(1 n2) tup(n3 n4)) n5)) }
 
 ::std::numeric::N32::to_string::to_string::6 { x(_ x(n0 n0)) }
 
-::std::IO::print::2 { x(x(@io_print_char(n0 n1) n2) x(@sub(1 dup2244(?(::std::IO::print::3 ::std::IO::print::2 x(x(n1 n2) x(n3 n4))) n3)) tup(n0 n4))) }
+::std::IO::print::2 { x(x(@io_print_char(n0 n1) n2) x(@sub(1 dup83(n3 @ne(0 ?(::std::IO::print::3 ::std::IO::print::2 x(x(n1 n2) x(n3 n4)))))) tup(n0 n4))) }
 
 ::std::IO::print::3 { x(x(n0 n0) _) }
 

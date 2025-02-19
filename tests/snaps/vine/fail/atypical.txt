@@ -13,11 +13,10 @@ error - expected type `fn(&IO)`; found `fn(IO)`
 error tests/programs/fail/atypical.vi:5:16 - no function to return from
 error tests/programs/fail/atypical.vi:7:16 - expected type `N32`; found `F32`
 error tests/programs/fail/atypical.vi:8:16 - expected type `F32`; found `N32`
-error tests/programs/fail/atypical.vi:9:23 - expected type `(N32, N32)`; found `(F32, F32)`
-error tests/programs/fail/atypical.vi:10:16 - expected type `(?4, ?5)`; found `N32`
-error tests/programs/fail/atypical.vi:11:7 - cannot infer type
+error tests/programs/fail/atypical.vi:9:23 - cannot find impl of trait `Add[(N32, N32), F32, ?7]`
+error tests/programs/fail/atypical.vi:10:16 - expected type `(?8, ?9)`; found `N32`
 error tests/programs/fail/atypical.vi:12:3 - cannot call non-function type `N32`
-error tests/programs/fail/atypical.vi:13:14 - cannot apply operator `+` to types `N32` and `~N32`
+error tests/programs/fail/atypical.vi:13:14 - cannot find impl of trait `Add[N32, ~N32, ?19]`
 error tests/programs/fail/atypical.vi:14:3 - type `N32` has no method `noop`
 error tests/programs/fail/atypical.vi:15:6 - expected type `Bool`; found `F32`
 error tests/programs/fail/atypical.vi:15:21 - expected type `N32`; found `String`
@@ -29,11 +28,10 @@ error tests/programs/fail/atypical.vi:18:7 - `::atypical::Thing` has 2 fields; 1
 error tests/programs/fail/atypical.vi:20:14 - expected type `T`; found `N32`
 error tests/programs/fail/atypical.vi:21:14 - expected type `U`; found `T`
 error tests/programs/fail/atypical.vi:22:7 - expected a complete pattern
-error tests/programs/fail/atypical.vi:23:4 - cannot apply operator `+` to types `String` and `N32`
-error tests/programs/fail/atypical.vi:24:7 - expected type `N32`; found `&?16`
+error tests/programs/fail/atypical.vi:23:4 - cannot find impl of trait `Add[String, N32, ?31]`
+error tests/programs/fail/atypical.vi:24:7 - expected type `N32`; found `&?32`
 error tests/programs/fail/atypical.vi:27:10 - expected type `()`; found `F32`
-error tests/programs/fail/atypical.vi:28:14 - cannot apply operator `+` to types `~N32` and `~N32`
-error tests/programs/fail/atypical.vi:29:3 - cannot apply operator `+=` to types `N32` and `F32`
+error tests/programs/fail/atypical.vi:28:14 - cannot find impl of trait `Add[~N32, ~N32, ?41]`
+error tests/programs/fail/atypical.vi:29:3 - cannot find impl of trait `Add[N32, F32, N32]`
 error tests/programs/fail/atypical.vi:30:3 - type `N32` has no method `parse`
 error tests/programs/fail/atypical.vi:6:27 - expected type `()`; found `N32`
-error vine/std/rng/Pcg32.vi:12:21 - expected type `String`; found `N64`
