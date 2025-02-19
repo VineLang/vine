@@ -148,7 +148,7 @@ pub mod N64 {
     }
 
     fn .ne(&N64(al, ah), &N64(bl, bh)) -> Bool {
-      al != bl && ah != bh
+      al != bl || ah != bh
     }
   }
 
