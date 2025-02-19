@@ -8,3 +8,25 @@ pub trait Concat[A, B, O] {
   #[builtin = "concat"]
   fn .concat(a: A, b: B) -> O;
 }
+
+pub trait Cast[C, T] {
+  #[builtin = "cast"]
+  fn .cast(value: C) -> T;
+}
+
+pub mod Cast {
+  pub impl identity[T]: Cast[T, T] {
+    fn .cast(value: T) -> T {
+      value
+    }
+  }
+
+  pub impl ref[C, T; Cast[C, T], Cast[T, C]]: Cast[&C, &T] {
+    fn .cast(&c: &C) -> &T {
+      let t = c as T;
+      let ref = &t;
+      c = t as C;
+      ref
+    }
+  }
+}

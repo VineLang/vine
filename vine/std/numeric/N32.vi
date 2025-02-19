@@ -98,7 +98,7 @@ pub mod N32 {
   }
 
   pub fn parse(str: String) -> Option[N32] {
-    let String({ chars: List(len, chars, _) }) = str;
+    let List(len, chars, _) = str as List;
     if len == 0 {
       None
     } else {
@@ -229,9 +229,5 @@ pub mod N32 {
       e *= 2;
     }
     r
-  }
-
-  pub fn .to_f32(n: N32) -> F32 {
-    inline_ivy! (n <- n) -> F32 { out n = @add(+0.0 out) }
   }
 }

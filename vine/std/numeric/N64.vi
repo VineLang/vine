@@ -1,5 +1,6 @@
 
 use ops::{
+  Cast,
   arithmetic::{Add, Div, Mul, Rem, Sub},
   bitwise::{And, Or, Shl, Shr, Xor},
   comparison::{Eq, Ord},
@@ -13,12 +14,16 @@ pub mod N64 {
   pub const one: N64 = N64(1, 0);
   pub const maximum: N64 = N64(N32::maximum, N32::maximum);
 
-  pub fn from_n32(val: N32) -> N64 {
-    N64(val, 0)
+  pub impl from_n32: Cast[N32, N64] {
+    fn .cast(val: N32) -> N64 {
+      N64(val, 0)
+    }
   }
 
-  pub fn .to_n32(N64(lo, hi)) -> N32 {
-    lo
+  pub impl to_n32: Cast[N64, N32] {
+    fn .cast(N64(lo, hi)) -> N32 {
+      lo
+    }
   }
 
   pub impl add: Add[N64, N64, N64] {
@@ -181,19 +186,19 @@ pub mod N64 {
   }
 
   pub fn parse(str: String) -> Option[N64] {
-    let String({ chars: List(len, chars, _) }) = str;
+    let List(len, chars, _) = str as List;
     if len == 0 {
       None
     } else {
-      let num = N64::from_n32(0);
+      let num = 0 as N64;
       while len != 0 {
         let List::Buf(char, tail) = chars;
         chars = tail;
         if !('0' <= char <= '9') {
           return None;
         }
-        num *= N64::from_n32(10);
-        num += N64::from_n32(char - '0');
+        num *= 10 as N64;
+        num += (char - '0') as N64;
         len -= 1;
       }
       Some(num)
@@ -206,7 +211,7 @@ pub mod N64 {
         let str = "";
         while n != N64::zero {
           let (q, r) = N64::div_rem_n32(n, 10);
-          str = String({ chars: ['0' + r] }) ++ str;
+          str = ['0' + r] as String ++ str;
           n = q;
         }
         str
@@ -230,7 +235,7 @@ pub mod N64 {
 
   pub fn .log_n32(n: N64, b: N32) -> N32 {
     let l = 0;
-    while N64::from_n32(b) < n {
+    while b as N64 < n {
       l += 1;
       let (d, _) = n.div_rem_n32(b);
       n = d;

@@ -23,7 +23,7 @@ pub fn main(&io: &IO) {
     y += 1;
   }
 
-  let grid = Array::from_list(grid.map(fn(String({ chars })) { Array::from_list(chars) }));
+  let grid = grid.map(fn(String({ chars })) { chars as Array }) as Array;
 
   let (_, length) = walk(&grid, guard_pos);
 

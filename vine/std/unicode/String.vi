@@ -1,5 +1,5 @@
 
-use ops::{Concat, comparison::Ord};
+use ops::{Cast, Concat, comparison::Ord};
 
 #[builtin = "String"]
 pub struct String {
@@ -57,8 +57,8 @@ pub mod String {
           }
         }
         let List::Iter(len, &buf) = move iter_b;
-        let String({ chars: List(_, _, end) }) = suffix;
-        return (prefix, Some(String({ chars: List(len, move buf, end) })));
+        let List(_, _, end) = suffix as List;
+        return (prefix, Some(List(len, move buf, end) as String));
       }
       iter_a.drop();
       iter_b.drop();
@@ -86,8 +86,8 @@ pub mod String {
       }
     }
     let List::Iter(len, &buf) = move self_iter;
-    let String({ chars: List(_, _, end) }) = self;
-    Ok(String({ chars: List(len, move buf, end) }))
+    let List(_, _, end) = self as List;
+    Ok(List(len, move buf, end) as String)
   }
 
   pub fn .eq(&self: &String, &other: &String) -> Bool {
@@ -105,8 +105,8 @@ pub mod String {
   }
 
   pub impl ord: Ord[String] {
-    fn cmp(&String({ chars: a }), &String({ chars: b })) -> Ord {
-      a.cmp(&b)
+    fn cmp(&a: &String, &b: &String) -> Ord {
+      a.chars.cmp(&b.chars)
     }
 
     const lt: fn(&String, &String) -> Bool = Ord::lt_from_cmp[String];
@@ -131,6 +131,18 @@ pub mod String {
   pub impl to_string: ToString[String] {
     fn .to_string(self: String) -> String {
       self
+    }
+  }
+
+  pub impl from_chars: Cast[List[Char], String] {
+    fn .cast(chars: List[Char]) -> String {
+      String({ chars })
+    }
+  }
+
+  pub impl to_chars: Cast[String, List[Char]] {
+    fn .cast(String({ chars })) -> List[Char] {
+      chars
     }
   }
 }

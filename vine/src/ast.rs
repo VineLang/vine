@@ -170,6 +170,7 @@ pub enum Builtin {
   Not,
   BoolNot,
   ComparisonOp(ComparisonOp),
+  Cast,
 }
 
 pub type GenericParams<'core> = Generics<Ident<'core>, (Option<Ident<'core>>, Trait<'core>)>;
@@ -310,6 +311,8 @@ pub enum ExprKind<'core> {
   ComparisonOp(B<Expr<'core>>, Vec<(ComparisonOp, Expr<'core>)>),
   #[class(value, sugar)]
   BinaryOpAssign(BinaryOp, B<Expr<'core>>, B<Expr<'core>>),
+  #[class(value, sugar)]
+  Cast(B<Expr<'core>>, B<Ty<'core>>, bool),
   #[class(value)]
   N32(u32),
   #[class(value)]

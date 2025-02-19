@@ -7,7 +7,7 @@ const height: N32 = black_box(512);
 const scale: F32 = 2.6;
 const center: (F32, F32) = (-0.8, 0.0);
 
-const adjusted_scale: F32 = scale / width.to_f32();
+const adjusted_scale: F32 = scale / width as F32;
 
 pub fn main(&io: &IO) {
   io.print_bytes([27, 80, 113]);
@@ -36,8 +36,8 @@ pub fn main(&io: &IO) {
 
     let i = 0;
     while i < width {
-      let pos = (i.to_f32() + 0.5, j.to_f32() + 0.5) - (width.to_f32(), height.to_f32()) / 2.0;
-      let (x, y) = center + pos * scale / width.to_f32();
+      let pos = (i as F32 + 0.5, j as F32 + 0.5) - (width as F32, height as F32) / 2.0;
+      let (x, y) = center + pos * scale / width as F32;
       let color = mandelbrot(x, y);
 
       if color != last_color {

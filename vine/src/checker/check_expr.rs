@@ -495,6 +495,25 @@ impl<'core> Checker<'core, '_> {
         }
         Type::Bool
       }
+      ExprKind::Cast(cur, to, _) => {
+        let cur_ty = self.check_expr_form(cur, Form::Value);
+        let to_ty = self.hydrate_type(to, true);
+        let Some(cast_fn) = self.chart.builtins.cast else {
+          return Type::Error(self.core.report(Diag::MissingOperatorBuiltin { span }));
+        };
+        let mut generics = Generics { span, ..Default::default() };
+        self._check_generics(
+          &mut generics,
+          self.chart.values[cast_fn].generics,
+          true,
+          Some(vec![cur_ty, to_ty.clone()]),
+        );
+        expr.kind = ExprKind::Call(
+          Box::new(Expr { span, kind: ExprKind::Def(cast_fn, generics) }),
+          vec![take(cur)],
+        );
+        to_ty
+      }
       ExprKind::N32(_) => Type::N32,
       ExprKind::Char(_) => Type::Char,
       ExprKind::F32(_) => Type::F32,

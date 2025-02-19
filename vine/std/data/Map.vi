@@ -1,5 +1,5 @@
 
-use ops::comparison::Ord;
+use ops::{Cast, comparison::Ord};
 use unicode::ToString;
 
 pub struct Map[K, V](N32, MapData[K, V]);
@@ -13,12 +13,14 @@ pub mod Map {
     Map(left.len() + right.len() + 1, (left, entry, right))
   }
 
-  pub fn from_list[K, V; Ord[K]](entries: List[(K, V)]) -> Map[K, V] {
-    let map = Map::empty[K, V];
-    while entries.pop_front() is Some((key, value)) {
-      map.insert(key, value);
+  pub impl from_list[K, V; Ord[K]]: Cast[List[(K, V)], Map[K, V]] {
+    fn .cast(entries: List[(K, V)]) -> Map[K, V] {
+      let map = Map::empty[K, V];
+      while entries.pop_front() is Some((key, value)) {
+        map.insert(key, value);
+      }
+      map
     }
-    map
   }
 
   pub fn .clear[K, V](&self: &Map[K, V]) {
@@ -247,12 +249,14 @@ pub mod Map {
     }
   }
 
-  pub fn .to_list[K, V; Ord[K]](Map[K, V](len, data)) -> List[(K, V)] {
-    if len == 0 {
-      []
-    } else {
-      let (left, entry, right) = data;
-      left.to_list() ++ [entry] ++ right.to_list()
+  pub impl to_list[K, V]: Cast[Map[K, V], List[(K, V)]] {
+    fn .cast(Map[K, V](len, data)) -> List[(K, V)] {
+      if len == 0 {
+        []
+      } else {
+        let (left, entry, right) = data;
+        left as List ++ [entry] ++ right as List
+      }
     }
   }
 

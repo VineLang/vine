@@ -129,6 +129,7 @@ impl<'core, 'src> VineParser<'core, 'src> {
           "neg" => Builtin::Neg,
           "not" => Builtin::Not,
           "bool_not" => Builtin::BoolNot,
+          "cast" => Builtin::Cast,
           "add" => Builtin::BinaryOp(BinaryOp::Add),
           "sub" => Builtin::BinaryOp(BinaryOp::Sub),
           "mul" => Builtin::BinaryOp(BinaryOp::Mul),
@@ -678,6 +679,11 @@ impl<'core, 'src> VineParser<'core, 'src> {
       return Ok(Ok(ExprKind::Assign(true, Box::new(lhs), Box::new(rhs))));
     }
 
+    if bp.permits(BP::Annotation) && self.eat(Token::As)? {
+      let ty = self.parse_type()?;
+      return Ok(Ok(ExprKind::Cast(Box::new(lhs), Box::new(ty), false)));
+    }
+
     if self.eat(Token::Dot)? {
       if self.eat(Token::And)? {
         return Ok(Ok(ExprKind::Ref(Box::new(lhs), true)));
@@ -690,6 +696,12 @@ impl<'core, 'src> VineParser<'core, 'src> {
       }
       if self.eat(Token::Tilde)? {
         return Ok(Ok(ExprKind::Inverse(Box::new(lhs), true)));
+      }
+      if self.eat(Token::As)? {
+        self.expect(Token::OpenBracket)?;
+        let ty = self.parse_type()?;
+        self.expect(Token::CloseBracket)?;
+        return Ok(Ok(ExprKind::Cast(Box::new(lhs), Box::new(ty), true)));
       }
       if self.check(Token::Num) {
         let token_span = self.start_span();

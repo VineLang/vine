@@ -1,5 +1,5 @@
 
-use ops::arithmetic::{Add, Div, Mul, Neg, Rem, Sub};
+use ops::{Cast, arithmetic::{Add, Div, Mul, Neg, Rem, Sub}};
 
 #[builtin = "F32"]
 pub mod F32 {
@@ -61,5 +61,11 @@ pub mod F32 {
 
   pub fn .ge(a: F32, b: F32) -> Bool {
     inline_ivy! (a <- a, b <- b) -> Bool { out a = @le$(b out) }
+  }
+
+  pub impl from_n32: Cast[N32, F32] {
+    fn .cast(n: N32) -> F32 {
+      inline_ivy! (n <- n) -> F32 { out n = @add(+0.0 out) }
+    }
   }
 }

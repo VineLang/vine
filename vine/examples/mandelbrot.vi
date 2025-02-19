@@ -12,8 +12,8 @@ pub fn main(&io: &IO) {
   while j < height {
     let i = 0;
     while i < width {
-      let pos = (i.to_f32() + 0.5, j.to_f32() + 0.5) - (width.to_f32(), height.to_f32()) / 2.0;
-      let (x, y) = center + pos * scale / width.to_f32() * (1.0, 2.0);
+      let pos = (i as F32 + 0.5, j as F32 + 0.5) - (width as F32, height as F32) / 2.0;
+      let (x, y) = center + pos * scale / width as F32 * (1.0, 2.0);
       io.print_char(if mandelbrot(x, y) {
         '#'
       } else {

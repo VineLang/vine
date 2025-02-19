@@ -16,7 +16,7 @@ pub fn main(&io: &IO) {
   let c = N32::parse(read_value()).unwrap();
 
   let program = read_value().split(",").map(fn(x) { N32::parse(x).unwrap() });
-  let program = Array::from_list(program);
+  let program = program as Array;
 
   let output = [];
 

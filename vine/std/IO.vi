@@ -7,7 +7,7 @@ pub mod IO {
   }
 
   pub fn .print(&io: &IO, str: String) {
-    let String({ chars: List(len, chars, _) }) = str;
+    let List(len, chars, _) = str as List;
     while len != 0 {
       len = len - 1;
       let List::Buf(char, tail) = chars;

@@ -17,7 +17,7 @@ pub fn main(&io: &IO) {
       x += 1;
     }
     iter.drop();
-    grid.push_back(Array::from_list(line.chars));
+    grid.push_back(line as List as Array);
     y += 1;
   }
 
@@ -28,7 +28,7 @@ pub fn main(&io: &IO) {
   }
 
   dyn fn show_grid() {
-    io.println(grid.to_list().map(fn(array: Array) { String({ chars: array.to_list() }) }).join("\n"));
+    io.println(grid.as[List].map(fn(array: Array) { array as List as String }).join("\n"));
   }
 
   let instructions = [];
@@ -59,10 +59,10 @@ pub fn main(&io: &IO) {
   }
 
   let part1 = 0;
-  let rows = grid.to_list();
+  let rows = grid as List;
   let y = 0;
   while rows.pop_front() is Some(row) {
-    let row = row.to_list();
+    let row = row as List;
     let x = 0;
     while row.pop_front() is Some(char) {
       if char == 'O' {
@@ -77,18 +77,18 @@ pub fn main(&io: &IO) {
 
   io.println("Part 1: {part1}");
 
-  grid = Array::from_list(initial_grid.to_list().map(fn(row: Array[Char]) {
+  grid = initial_grid.as[List].map(fn(row: Array[Char]) {
     let new_row = [];
-    let row = row.to_list();
+    let row = row as List;
     while row.pop_front() is Some(char) {
       if char == 'O' {
-        new_row ++= "[]".chars;
+        new_row ++= "[]" as List;
       } else {
         new_row ++= [char, char];
       }
     }
-    Array::from_list(new_row)
-  }));
+    new_row as Array
+  }).as[Array];
 
   let robot = initial * (2, 1);
 
@@ -180,10 +180,10 @@ pub fn main(&io: &IO) {
   let height = grid.len();
 
   let part2 = 0;
-  let rows = grid.to_list();
+  let rows = grid as List;
   let y = 0;
   while rows.pop_front() is Some(row) {
-    let row = row.to_list();
+    let row = row as List;
     let x = 0;
     while row.pop_front() is Some(char) {
       if char == '[' {

@@ -51,7 +51,7 @@ pub fn main(&io: &IO) {
     }
     let (num, _) = orig.split_once("A");
     let num = N32::parse(num).unwrap();
-    sum += cost * N64::from_n32(num);
+    sum += cost * num as N64;
   }
 
   io.println("Part 2: {sum}");

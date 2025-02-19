@@ -43,6 +43,7 @@ pub struct Builtins {
   pub neg: Option<ValueDefId>,
   pub not: Option<ValueDefId>,
   pub bool_not: Option<ImplDefId>,
+  pub cast: Option<ValueDefId>,
   pub binary_ops: IntMap<BinaryOp, Option<ValueDefId>>,
   pub comparison_ops: IntMap<ComparisonOp, Option<ValueDefId>>,
 }
@@ -337,6 +338,7 @@ impl Builtins {
     revert_option(&mut self.neg, checkpoint.values);
     revert_option(&mut self.not, checkpoint.values);
     revert_option(&mut self.bool_not, checkpoint.impls);
+    revert_option(&mut self.cast, checkpoint.values);
     self.binary_ops.values_mut().for_each(|op| revert_option(op, checkpoint.values));
     self.comparison_ops.values_mut().for_each(|op| revert_option(op, checkpoint.values));
   }

@@ -6,7 +6,7 @@ pub fn main(&io: &IO) {
 
   let machines = input.split("\n\n");
 
-  let offset = N64::from_n32(10).pow_n32(13);
+  let offset = 10.as[N64].pow_n32(13);
 
   let part1 = 0;
   let part2 = N64::zero;
@@ -34,19 +34,17 @@ pub fn main(&io: &IO) {
       part1 += a * 3 + b;
     }
 
-    let px = offset + n64(px);
-    let py = offset + n64(py);
-    let (a, _) = N64::diff(n64(by) * px, n64(bx) * py).div_rem_n32(det);
-    let (b, _) = N64::diff(n64(ax) * py, n64(ay) * px).div_rem_n32(det);
-    let x = a * n64(ax) + b * n64(bx);
-    let y = a * n64(ay) + b * n64(by);
+    let px = offset + px as N64;
+    let py = offset + py as N64;
+    let (a, _) = N64::diff(by as N64 * px, bx as N64 * py).div_rem_n32(det);
+    let (b, _) = N64::diff(ax as N64 * py, ay as N64 * px).div_rem_n32(det);
+    let x = a * ax as N64 + b * bx as N64;
+    let y = a * ay as N64 + b * by as N64;
     if x == px && y == py {
-      part2 += a * n64(3) + b;
+      part2 += a * 3 as N64 + b;
     }
   }
 
   io.println("Part 1: {part1}");
   io.println("Part 2: {part2}");
 }
-
-const n64: fn(N32) -> N64 = N64::from_n32;

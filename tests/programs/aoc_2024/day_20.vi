@@ -19,10 +19,10 @@ pub fn main(&io: &IO) {
       }
       row.push_back(char != '#');
     }
-    grid.push_back(Array::from_list(row));
+    grid.push_back(row as Array);
   }
 
-  let grid = Array::from_list(grid);
+  let grid = grid as Array;
 
   // io.println(
   //   grid.to_list().map(

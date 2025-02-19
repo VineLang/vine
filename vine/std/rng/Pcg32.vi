@@ -7,7 +7,7 @@ pub struct Pcg32(N64, N64);
 
 pub mod Pcg32 {
   pub fn new(state: N64, increment: N64) -> Pcg32 {
-    increment |= N64::from_n32(1);
+    increment |= 1 as N64;
     state += increment;
     state *= multiplier;
     state += increment;
@@ -35,7 +35,7 @@ pub mod Pcg32 {
     let rng = Pcg32::default;
     let iter = seed.chars.into_iter();
     while iter.next() is Some(char) {
-      rng.mix(char.as_n32());
+      rng.mix(char as N32)
     }
     rng
   }

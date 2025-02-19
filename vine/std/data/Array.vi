@@ -1,32 +1,38 @@
 
+use std::ops::Cast;
+
 pub struct Array[T](N32, Node[T]);
 
 pub mod Array {
   pub const empty[T]: Array[T] = Array(0, ~_);
 
   pub fn single[T](value: T) -> Array[T] {
-    Array(1, Node::leaf(value))
+    Array(1, value as Node)
   }
 
   pub fn new[T](len: N32, value: T) -> Array[T] {
     Array(len, Node::new(len, value))
   }
 
-  pub fn from_list[T](List[T](len, buf, _)) -> Array[T] {
-    Array::from_fn(
-      len,
-      &buf,
-      fn(&buf) {
-        let List::Buf(head, tail) = buf;
-        buf = tail;
-        head
-      },
-    )
+  pub impl from_list[T]: Cast[List[T], Array[T]] {
+    fn .cast(List[T](len, buf, _)) -> Array[T] {
+      Array::from_fn(
+        len,
+        &buf,
+        fn(&buf) {
+          let List::Buf(head, tail) = buf;
+          buf = tail;
+          head
+        },
+      )
+    }
   }
 
-  pub fn .to_list[T](self: Array[T]) -> List[T] {
-    let end;
-    List(self.len(), self.fold_back(move ~end, fn(a, b) { List::Buf(b, a) }), end)
+  pub impl to_list[T]: Cast[Array[T], List[T]] {
+    fn .cast(self: Array[T]) -> List[T] {
+      let end;
+      List(self.len(), self.fold_back(move ~end, fn(a, b) { List::Buf(b, a) }), end)
+    }
   }
 
   pub fn from_fn[T, S](len: N32, &state: &S, f: fn(&S) -> T) -> Array[T] {
@@ -92,20 +98,20 @@ pub mod Array {
       (node, size) = Node::half(node, size, i % 2);
       i /= 2;
     }
-    (*node).as_leaf()
+    node as &T
   }
 
   pub fn .push_back[T](&Array[T](len, *node), value: T) {
     if len == 0 {
       let &node = node;
-      node = Node::leaf(value)
+      node = value as Node;
     } else {
       let size = len;
       while size > 1 {
         (node, size) = Node::half(node, size, size % 2);
       }
       let &node = node;
-      node = Node(node, Node::leaf(value));
+      node = Node(node, value as Node);
     }
     len += 1;
   }
@@ -113,7 +119,7 @@ pub mod Array {
   pub fn .push_front[T](&Array[T](len, *node), value: T) {
     if len == 0 {
       let &node = node;
-      node = Node::leaf(value)
+      node = value as Node;
     } else {
       let size = len;
       while size > 1 {
@@ -123,7 +129,7 @@ pub mod Array {
         size = size / 2;
       }
       let &node = node;
-      node = Node(Node::leaf(value), node);
+      node = Node(value as Node, node);
     }
     len += 1;
   }
@@ -133,7 +139,7 @@ pub mod Array {
       None
     } else if len == 1 {
       len = 0;
-      Some((move *node).to_leaf())
+      Some(move *node as T)
     } else {
       let size = len;
       len -= 1;
@@ -142,7 +148,7 @@ pub mod Array {
         let &parent = node;
         (node, size) = Node::half(&parent, size, parity);
         if size == 1 {
-          let value = (move *node).to_leaf();
+          let value = move *node as T;
           let Node(left, right) = parent;
           parent = if parity == 0 {
             right
@@ -160,7 +166,7 @@ pub mod Array {
       None
     } else if len == 1 {
       len = 0;
-      Some((move *node).to_leaf())
+      Some(move *node as T)
     } else {
       let size = len;
       len -= 1;
@@ -171,7 +177,7 @@ pub mod Array {
         node = &right;
         size = (size + 1) / 2;
         if size == 1 {
-          let value = (move *node).to_leaf();
+          let value = move *node as T;
           parent = move left;
           return Some(value)
         }
@@ -192,21 +198,21 @@ pub mod Array {
 struct Node[T](Node[T], Node[T]);
 
 mod Node {
-  pub fn .to_leaf[T](node: Node[T]) -> T {
-    inline_ivy! (x <- node) -> T { x }
+  pub impl leaf_to_node[T]: Cast[T, Node[T]] {
+    fn .cast(value: T) -> Node[T] {
+      inline_ivy! (x <- value) -> Node[T] { x }
+    }
   }
 
-  pub fn .as_leaf[T](node: &Node[T]) -> &T {
-    inline_ivy! (x <- node) -> &T { x }
-  }
-
-  pub fn leaf[T](value: T) -> Node[T] {
-    inline_ivy! (x <- value) -> Node[T] { x }
+  pub impl node_to_leaf[T]: Cast[Node[T], T] {
+    fn .cast(value: Node[T]) -> T {
+      inline_ivy! (x <- value) -> T { x }
+    }
   }
 
   pub fn new[T](len: N32, value: T) -> Node[T] {
     if len == 1 {
-      Node::leaf(value)
+      value as Node
     } else {
       Node(Node::new((len + 1) / 2, value), Node::new(len / 2, value))
     }
@@ -239,7 +245,7 @@ mod Node {
 
   pub fn zip_with[T, U, V](len: N32, x: Node[T], y: Node[U], f: fn(T, U) -> V) -> Node[V] {
     if len == 1 {
-      Node::leaf(f(x.to_leaf(), y.to_leaf()))
+      f(x as T, y as U) as Node
     } else {
       let Node(xl, xr) = x;
       let Node(yl, yr) = y;
@@ -249,8 +255,8 @@ mod Node {
 
   pub fn unzip_with[T, U, V](len: N32, x: Node[T], f: fn(T) -> (U, V)) -> (Node[U], Node[V]) {
     if len == 1 {
-      let (u, v) = f(x.to_leaf());
-      (Node::leaf(u), Node::leaf(v))
+      let (u, v) = f(x as T);
+      (u as Node, v as Node)
     } else {
       let Node(l, r) = x;
       let (lx, ly) = unzip_with((len + 1) / 2, l, f);

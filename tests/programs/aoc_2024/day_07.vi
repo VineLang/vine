@@ -2,17 +2,17 @@
 use std::numeric::N64;
 
 pub fn main(&io: &IO) {
-  let part1 = N64::from_n32(0);
-  let part2 = N64::from_n32(0);
+  let part1 = 0 as N64;
+  let part2 = 0 as N64;
   while io.read_line() is Some(line) {
     let (goal, rest) = line.split_once(": ");
     let goal = N64::parse(goal).unwrap();
     let nums = rest.unwrap().split(" ");
-    let results = [N64::from_n32(N32::parse(nums.pop_front().unwrap()).unwrap())];
+    let results = [N32::parse(nums.pop_front().unwrap()).unwrap() as N64];
     let results2 = [];
     while nums.pop_front() is Some(num) {
       let len = num.len();
-      let num = N64::from_n32(N32::parse(num).unwrap());
+      let num = N32::parse(num).unwrap() as N64;
       let add = results.map(fn(x: N64) { x + num });
       let mul = results.map(fn(x: N64) { x * num });
       let pow = 1;
@@ -22,7 +22,7 @@ pub fn main(&io: &IO) {
       }
       let add2 = results2.map(fn(x: N64) { x + num });
       let mul2 = results2.map(fn(x: N64) { x * num });
-      let concat = (results ++ results2).map(fn(x: N64) { x * N64::from_n32(pow) + num });
+      let concat = (results ++ results2).map(fn(x: N64) { x * pow as N64 + num });
       results = add ++ mul;
       results2 = add2 ++ mul2 ++ concat;
     }

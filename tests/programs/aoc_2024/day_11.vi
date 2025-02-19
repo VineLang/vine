@@ -9,7 +9,7 @@ pub fn main(&io: &IO) {
   let stones = Map::empty[N64, _];
   let input = input.split(" ");
   while input.pop_front() is Some(stone) {
-    let stone = N64::from_n32(N32::parse(stone).unwrap());
+    let stone = N32::parse(stone).unwrap() as N64;
     stones.insert(stone, N64::one);
   }
 
@@ -37,9 +37,9 @@ fn blink(&io: &IO, old: Map[N64, N64]) -> Map[N64, N64] {
         let d = (10).pow(digits / 2);
         let (a, b) = number.div_rem_n32(d);
         add_stones(a, count);
-        add_stones(N64::from_n32(b), count);
+        add_stones(b as N64, count);
       } else {
-        add_stones(number * N64::from_n32(2024), count);
+        add_stones(number * 2024 as N64, count);
       }
     }
   }

@@ -3,6 +3,6 @@ use std::data::Array;
 
 pub fn main(&io: &IO) {
   let a = Array::new(1000000, 0);
-  let l = a.to_list();
+  let l = a as List;
   io.println(l.len().to_string());
 }

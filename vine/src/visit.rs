@@ -167,6 +167,10 @@ pub trait VisitMut<'core, 'a> {
         self.visit_expr(a);
         self.visit(b.iter_mut().flat_map(|(x, y)| [x, y]));
       }
+      ExprKind::Cast(e, t, _) => {
+        self.visit_expr(e);
+        self.visit_type(t);
+      }
     }
   }
 

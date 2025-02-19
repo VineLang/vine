@@ -15,9 +15,9 @@ pub fn main(&io: &IO) {
       }
       row.push_back((char != '#', [(-1, ~_), (-1, ~_), (-1, ~_), (-1, ~_)], false));
     }
-    grid.push_back(Array::from_list(row));
+    grid.push_back(row as Array);
   }
-  let grid = Array::from_list(grid);
+  let grid = grid as Array;
 
   let pq = Map::empty[N32, _];
   pq.insert(0, [(start, 0)]);
@@ -73,9 +73,9 @@ pub fn main(&io: &IO) {
     }
   }
 
-  let grid = grid.to_list();
+  let grid = grid as List;
   while grid.pop_front() is Some(row) {
-    let row = row.to_list();
+    let row = row as List;
     while row.pop_front() is Some((_, dirs, _)) {
       while dirs.pop_front() is Some(x) {
         let (_, ~used) = x;

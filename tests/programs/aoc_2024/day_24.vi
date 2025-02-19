@@ -36,7 +36,7 @@ pub fn main(&io: &IO) {
   let &~n = &part1;
   let i = 0;
   loop {
-    let wire = String({ chars: ['z', '0' + i / 10, '0' + i % 10] });
+    let wire = ['z', '0' + i / 10, '0' + i % 10] as String;
     if map.get(&wire) is Some(&wire) {
       let bit = if wire.get() {
         N64::one

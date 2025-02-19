@@ -23,7 +23,7 @@ pub fn main(&io: &IO) {
   let bytes = i;
 
   dyn fn show_grid(c: N32) {
-    io.println(grid.to_list().map(fn(row: Array[N32]) {
+    io.println(grid.as[List].map(fn(row: Array[N32]) {
       row.fold_front(
         "",
         fn(s: String, n: N32) {

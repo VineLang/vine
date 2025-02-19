@@ -70,9 +70,9 @@ pub fn main(&io: &IO) {
       let y = (py + vy * i) % height;
       *(*grid.get(y)).get(x) = '#';
     }
-    let lines = grid.to_list();
+    let lines = grid as List;
     while lines.pop_front() is Some(line) {
-      io.println(String({ chars: line.to_list() }));
+      io.println(line as List as String);
     }
     io.println(i.to_string());
     i += 1;
