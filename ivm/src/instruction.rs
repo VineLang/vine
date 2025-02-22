@@ -66,6 +66,8 @@ pub enum Instruction<'ivm> {
   /// be that of a binary node, and its label must comply with the tag's
   /// requirements.
   Binary(Tag, u16, Register, Register, Register),
+
+  Inert(Register, Register),
 }
 
 /// A "register" of an [`Instruction`], used to identify pairs of ports to link.
@@ -141,6 +143,12 @@ impl<'ivm, 'ext> IVM<'ivm, 'ext> {
             self.link_register(p0, node.0);
             self.link_register(p1, Port::new_wire(node.1));
             self.link_register(p2, Port::new_wire(node.2));
+          }
+          Instruction::Inert(p0, p1) => {
+            let wires = self.new_wires();
+            self.link_register(p0, Port::new_wire(wires.0 .0));
+            self.link_register(p1, Port::new_wire(wires.1 .0));
+            self.inert.push((Port::new_wire(wires.0 .1), Port::new_wire(wires.1 .1)));
           }
         }
       }

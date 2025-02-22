@@ -100,6 +100,7 @@ impl<'host, 'ctx, 'ivm, 'ext> Repl<'host, 'ctx, 'ivm, 'ext> {
           Port::new_wire(b)
         }
       },
+      Tree::BlackBox(t) => self.inject(*t),
     }
   }
 }

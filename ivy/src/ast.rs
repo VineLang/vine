@@ -19,6 +19,7 @@ pub enum Tree {
   F32(f32),
   Var(String),
   Global(String),
+  BlackBox(Box<Tree>),
 }
 
 #[derive(Debug, Clone)]
@@ -55,6 +56,7 @@ impl Display for Tree {
       Tree::F32(n) => write!(f, "{n:+?}"),
       Tree::Var(v) => write!(f, "{v}"),
       Tree::Global(g) => write!(f, "{g}"),
+      Tree::BlackBox(b) => write!(f, "#[{b}]"),
     }
   }
 }
@@ -105,22 +107,24 @@ impl Tree {
   }
 
   pub fn children(&self) -> impl DoubleEndedIterator + ExactSizeIterator<Item = &Self> + Clone {
-    multi_iter!(Children { Zero, Two, Three });
+    multi_iter!(Children { One, Zero, Two, Three });
     match self {
       Tree::Erase | Tree::N32(_) | Tree::F32(_) | Tree::Var(_) | Tree::Global(_) => {
         Children::Zero([])
       }
+      Tree::BlackBox(a) => Children::One([&**a]),
       Tree::Comb(_, a, b) | Tree::ExtFn(_, _, a, b) => Children::Two([&**a, b]),
       Tree::Branch(a, b, c) => Children::Three([&**a, b, c]),
     }
   }
 
   pub fn children_mut(&mut self) -> impl DoubleEndedIterator + ExactSizeIterator<Item = &mut Self> {
-    multi_iter!(Children { Zero, Two, Three });
+    multi_iter!(Children { Zero, One, Two, Three });
     match self {
       Tree::Erase | Tree::N32(_) | Tree::F32(_) | Tree::Var(_) | Tree::Global(_) => {
         Children::Zero([])
       }
+      Tree::BlackBox(a) => Children::One([&mut **a]),
       Tree::Comb(_, a, b) | Tree::ExtFn(_, _, a, b) => Children::Two([&mut **a, b]),
       Tree::Branch(a, b, c) => Children::Three([&mut **a, b, c]),
     }

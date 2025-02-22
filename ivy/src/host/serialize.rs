@@ -64,6 +64,10 @@ impl<'ivm> Host<'ivm> {
   /// Inserts `nets` into this host, creating an IVM [`Global`] for each net.
   /// Inserted nets will shadow any old nets with the same name.
   pub fn insert_nets(self: &mut &'ivm mut Host<'ivm>, nets: &Nets) {
+    self._insert_nets(nets, false);
+  }
+
+  pub(crate) fn _insert_nets(self: &mut &'ivm mut Host<'ivm>, nets: &Nets, black_box: bool) {
     let mut globals_vec = Vec::from_iter(nets.keys().map(|name| Global {
       name: name.clone(),
       labels: LabelSet::NONE,
@@ -92,6 +96,7 @@ impl<'ivm> Host<'ivm> {
       current: Default::default(),
       equivalences: Default::default(),
       registers: Default::default(),
+      black_box,
     };
 
     for (i, net) in nets.values().enumerate() {
@@ -114,6 +119,7 @@ struct Serializer<'host, 'ast, 'ivm> {
   current: Global<'ivm>,
   equivalences: BTreeMap<&'ast str, &'ast str>,
   registers: HashMap<&'ast str, Register>,
+  black_box: bool,
 }
 
 impl<'l, 'ast, 'ivm> Serializer<'l, 'ast, 'ivm> {
@@ -126,7 +132,7 @@ impl<'l, 'ast, 'ivm> Serializer<'l, 'ast, 'ivm> {
     self.registers.clear();
 
     for (a, b) in &net.pairs {
-      let (Tree::Var(a), Tree::Var(b)) = (a, b) else { continue };
+      let (Tree::Var(a), Tree::Var(b)) = (self.unbox(a), self.unbox(b)) else { continue };
       let a = self.equivalences.remove(&**a).unwrap_or(a);
       let b = self.equivalences.remove(&**b).unwrap_or(b);
       self.equivalences.insert(a, b);
@@ -141,7 +147,8 @@ impl<'l, 'ast, 'ivm> Serializer<'l, 'ast, 'ivm> {
       }
     }
 
-    if let Tree::Var(a) = &net.root {
+    let root = self.unbox(&net.root);
+    if let Tree::Var(a) = root {
       self.registers.insert(a, Register::ROOT);
       if let Some(b) = self.equivalences.get(&**a) {
         self.registers.insert(b, Register::ROOT);
@@ -150,12 +157,14 @@ impl<'l, 'ast, 'ivm> Serializer<'l, 'ast, 'ivm> {
     for (a, b) in net.pairs.iter().rev() {
       self.serialize_pair(a, b);
     }
-    if !matches!(net.root, Tree::Var(_)) {
+    if !matches!(root, Tree::Var(_)) {
       self.serialize_tree_to(&net.root, Register::ROOT);
     }
   }
 
   fn serialize_pair(&mut self, a: &'ast Tree, b: &'ast Tree) {
+    let a = self.unbox(a);
+    let b = self.unbox(b);
     let (a, b) = match (a, b) {
       (Tree::Var(_), Tree::Var(_)) => return,
       (a, b @ Tree::Var(_)) => (b, a),
@@ -166,6 +175,7 @@ impl<'l, 'ast, 'ivm> Serializer<'l, 'ast, 'ivm> {
   }
 
   fn serialize_tree(&mut self, tree: &'ast Tree) -> Register {
+    let tree = self.unbox(tree);
     if let Tree::Var(var) = tree {
       *self.registers.entry(var).or_insert_with(|| self.current.instructions.new_register())
     } else {
@@ -176,7 +186,7 @@ impl<'l, 'ast, 'ivm> Serializer<'l, 'ast, 'ivm> {
   }
 
   fn serialize_tree_to(&mut self, tree: &'ast Tree, to: Register) {
-    match tree {
+    match self.unbox(tree) {
       Tree::Erase => self.push(Instruction::Nilary(to, Port::ERASE)),
       Tree::N32(num) => {
         self.push(Instruction::Nilary(to, Port::new_ext_val(self.host.new_n32(*num))))
@@ -217,7 +227,20 @@ impl<'l, 'ast, 'ivm> Serializer<'l, 'ast, 'ivm> {
         let old = self.registers.insert(v, to);
         debug_assert!(old.is_none());
       }
+      Tree::BlackBox(t) => {
+        let from = self.serialize_tree(t);
+        self.push(Instruction::Inert(to, from));
+      }
     }
+  }
+
+  fn unbox(&mut self, mut tree: &'ast Tree) -> &'ast Tree {
+    if !self.black_box {
+      while let Tree::BlackBox(t) = tree {
+        tree = t;
+      }
+    }
+    tree
   }
 }
 

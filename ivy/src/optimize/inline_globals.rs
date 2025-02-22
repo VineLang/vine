@@ -53,6 +53,16 @@ impl Inliner {
 
 impl Net {
   fn should_inline(&self) -> bool {
-    self.pairs.is_empty() && self.root.children().next().is_none()
+    self.pairs.is_empty() && self.root.is_nilary()
+  }
+}
+
+impl Tree {
+  fn is_nilary(&self) -> bool {
+    match self {
+      Tree::Erase | Tree::N32(_) | Tree::F32(_) | Tree::Global(_) => true,
+      Tree::Comb(..) | Tree::ExtFn(..) | Tree::Branch(..) | Tree::Var(_) => false,
+      Tree::BlackBox(t) => t.is_nilary(),
+    }
   }
 }

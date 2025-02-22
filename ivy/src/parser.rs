@@ -137,6 +137,13 @@ impl<'src> IvyParser<'src> {
       return Ok(Tree::Erase);
     }
 
+    if self.eat(Token::Hash)? {
+      self.expect(Token::OpenBracket)?;
+      let inner = self.parse_tree()?;
+      self.expect(Token::CloseBracket)?;
+      return Ok(Tree::BlackBox(Box::new(inner)));
+    }
+
     self.unexpected()
   }
 }

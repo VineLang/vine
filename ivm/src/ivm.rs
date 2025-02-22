@@ -14,6 +14,8 @@ pub struct IVM<'ivm, 'ext> {
   /// Execution statistics of this IVM.
   pub stats: Stats,
 
+  pub(crate) extrinsics: &'ext Extrinsics<'ivm>,
+
   pub(crate) alloc: Allocator<'ivm>,
   pub(crate) alloc_pool: Vec<Allocator<'ivm>>,
 
@@ -24,10 +26,10 @@ pub struct IVM<'ivm, 'ext> {
   /// allocate memory).
   pub(crate) active_slow: Vec<(Port<'ivm>, Port<'ivm>)>,
 
+  pub inert: Vec<(Port<'ivm>, Port<'ivm>)>,
+
   /// Used by [`IVM::execute`].
   pub(crate) registers: Vec<Option<Port<'ivm>>>,
-
-  pub(crate) extrinsics: &'ext Extrinsics<'ivm>,
 }
 
 impl<'ivm, 'ext> IVM<'ivm, 'ext> {
@@ -42,12 +44,13 @@ impl<'ivm, 'ext> IVM<'ivm, 'ext> {
   ) -> Self {
     Self {
       alloc,
+      extrinsics,
       alloc_pool: Vec::new(),
       registers: Vec::new(),
       active_fast: Vec::new(),
       active_slow: Vec::new(),
+      inert: Vec::new(),
       stats: Stats::default(),
-      extrinsics,
     }
   }
 

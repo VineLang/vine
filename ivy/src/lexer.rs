@@ -16,6 +16,10 @@ pub enum Token {
   OpenBrace,
   #[token("}")]
   CloseBrace,
+  #[token("[")]
+  OpenBracket,
+  #[token("]")]
+  CloseBracket,
 
   #[token("@")]
   At,
@@ -27,6 +31,8 @@ pub enum Token {
   Hole,
   #[token("?")]
   Question,
+  #[token("#")]
+  Hash,
 
   #[regex(r"\d[\d\w]*")]
   N32,
