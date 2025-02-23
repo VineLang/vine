@@ -1,74 +1,44 @@
 
-::std::IO::print_byte { fn(ref(@io_print_byte(char io) io) fn(char _)) }
-
 ::main { ::mandelbrot_tga::main }
-
-::mandelbrot_tga::center {
-  tup(w0 +0.0)
-  +0.8 = @sub$(0 w0)
-}
 
 ::mandelbrot_tga::main {
   fn(ref(w1 w17) _)
-  1024 = @n32_shr(8 w8)
-  1024 = @n32_shr(8 w9)
-  ::std::IO::print_bytes = fn(ref(w1 w6) fn(tup(18 tup(tup(0 tup(0 tup(3 tup(0 tup(0 tup(0 tup(0 tup(0 tup(0 tup(0 tup(0 tup(0 tup(1024 tup(w8 tup(1024 tup(w9 tup(8 tup(32 w14)))))))))))))))))) w14)) _))
+  #[1024] = @n32_shr(8 w8)
+  #[1024] = @n32_shr(8 w9)
+  ::std::IO::print_bytes = fn(ref(w1 w6) fn(tup(18 tup(tup(0 tup(0 tup(3 tup(0 tup(0 tup(0 tup(0 tup(0 tup(0 tup(0 tup(0 tup(0 tup(#[1024] tup(w8 tup(#[1024] tup(w9 tup(8 tup(32 w14)))))))))))))))))) w14)) _))
   ::mandelbrot_tga::main::1 = x(x(w6 w17) 0)
 }
 
-::mandelbrot_tga::main::1 { x(w4 dup14(@lt(1024 ?(::mandelbrot_tga::main::3 ::mandelbrot_tga::main::2 x(w4 w5))) w5)) }
+::mandelbrot_tga::main::1 { x(n0 dup14(@lt(#[1024] ?(::mandelbrot_tga::main::3 ::mandelbrot_tga::main::2 x(n0 n1))) n1)) }
 
 ::mandelbrot_tga::main::2 {
-  x(x(w5 w12) dup18(w7 @add(1 w2)))
-  ::mandelbrot_tga::main::4 = x(x(w5 w9) x(w7 0))
-  ::mandelbrot_tga::main::1 = x(x(w9 w12) w2)
+  x(x(n0 n1) dup18(n2 @add(1 dup14(@lt(#[1024] ?(::mandelbrot_tga::main::3 ::mandelbrot_tga::main::2 x(x(n3 n1) n4))) n4))))
+  @lt$(0 ?(::mandelbrot_tga::main::6 ::mandelbrot_tga::main::5 x(x(n0 n3) x(n2 0)))) = #[1024]
 }
 
-::mandelbrot_tga::main::3 { x(x(w2 w2) _) }
-
-::mandelbrot_tga::main::4 { x(w5 x(w3 dup25(@lt(1024 ?(::mandelbrot_tga::main::6 ::mandelbrot_tga::main::5 x(w5 x(w3 w6)))) w6))) }
+::mandelbrot_tga::main::3 { x(x(n0 n0) _) }
 
 ::mandelbrot_tga::main::5 {
-  x(x(w25 w29) x(dup29(w2 w27) dup30(w1 @add(1 w21))))
-  +2.6 = @div(1024 @mul(w7 w8))
-  tup(w1 w2) = @add(+0.5 @sub(w6 w7))
-  1024 = @div(+2.0 w6)
-  ::mandelbrot_tga::center = @add(w8 tup(w10 w11))
-  ::mandelbrot_tga::mandelbrot = fn(w10 fn(w11 w18))
-  ::std::IO::print_byte = fn(ref(w25 w14) fn(w18 _))
-  ::mandelbrot_tga::main::4 = x(x(w14 w29) x(w27 w21))
+  x(x(@io_print_byte(n0 n1) n2) x(dup29(@add(+0.5 @sub(n3 n4)) n5) dup30(@add(+0.5 @sub(n6 n7)) @add(1 dup25(@lt(#[1024] ?(::mandelbrot_tga::main::6 ::mandelbrot_tga::main::5 x(x(n1 n2) x(n5 n8)))) n8)))))
+  @div$(+2.6 @mul(tup(n7 n4) tup(@add$(-0.8 dup53(@add$(+0.0 dup56(@mul(n9 dup49(@add(n10 @lt(+4.0 @n32_and$(1 ?(::mandelbrot_tga::mandelbrot::3 ::mandelbrot_tga::mandelbrot::2 x(n11 x(n12 x(n13 x(n14 x(n15 x(n16 x(1 @mul(256 @div(64 n0))))))))))))) n15)) dup56(n9 n13))) n11)) @add$(+0.0 dup54(@add$(+0.0 dup58(@mul(n17 dup50(n10 n16)) dup58(n17 n14))) n12))))) = #[1024]
+  @div(+2.0 n3) = #[1024]
+  @div(+2.0 n6) = #[1024]
 }
 
-::mandelbrot_tga::main::6 { x(x(w3 w3) _) }
+::mandelbrot_tga::main::6 { x(x(n0 n0) _) }
 
-::mandelbrot_tga::mandelbrot {
-  fn(w0 fn(w1 w11))
-  ::mandelbrot_tga::mandelbrot::1 = x(w0 x(w1 x(+0.0 x(+0.0 x(+0.0 x(+0.0 x(0 @mul(256 @div(64 w11)))))))))
-}
+::mandelbrot_tga::mandelbrot::2 { x(dup53(n0 n1) x(dup54(n2 n3) x(@mul$(+2.0 @mul(n4 @add(n2 dup58(@mul(n5 dup50(n6 n7)) dup58(n5 n8))))) x(n4 x(@sub(n9 @add(n0 dup56(@mul(n10 dup49(@add(n6 @lt(+4.0 n11)) n12)) dup56(n10 n13)))) x(n9 x(@add(1 dup52(@lt(64 @n32_and(n11 ?(::mandelbrot_tga::mandelbrot::3 ::mandelbrot_tga::mandelbrot::2 x(n1 x(n3 x(n13 x(n8 x(n12 x(n7 x(n14 n15)))))))))) n14)) n15))))))) }
 
-::mandelbrot_tga::mandelbrot::1 { x(w14 x(w13 x(w12 x(w11 x(dup49(@add(w3 @lt(+4.0 w5)) w18) x(dup50(w3 w17) x(dup52(@lt(64 @n32_and(w5 ?(::mandelbrot_tga::mandelbrot::3 ::mandelbrot_tga::mandelbrot::2 x(w14 x(w13 x(w12 x(w11 x(w18 x(w17 x(w15 w16)))))))))) w15) w16))))))) }
-
-::mandelbrot_tga::mandelbrot::2 {
-  x(dup53(w5 w40) x(dup54(w11 w39) x(w30 x(w29 x(@sub(w27 @add(w5 w6)) x(w27 x(@add(1 w1) w34)))))))
-  +2.0 = @mul(w30 @mul(w29 @add(w11 w12)))
-  tup(w6 w12) = tup(dup56(@mul(w18 w19) dup56(w18 w38)) dup58(@mul(w22 w23) dup58(w22 w37)))
-  ::mandelbrot_tga::mandelbrot::1 = x(w40 x(w39 x(w38 x(w37 x(w19 x(w23 x(w1 w34)))))))
-}
-
-::mandelbrot_tga::mandelbrot::3 { x(_ x(_ x(_ x(_ x(_ x(_ x(w1 w1))))))) }
+::mandelbrot_tga::mandelbrot::3 { x(_ x(_ x(_ x(_ x(_ x(_ x(n0 n0))))))) }
 
 ::std::IO::print_bytes {
   fn(ref(w1 w14) fn(tup(w7 tup(w8 _)) _))
   ::std::IO::print_bytes::1 = x(x(w1 w14) x(w7 w8))
 }
 
-::std::IO::print_bytes::1 { x(w4 x(dup2262(?(::std::IO::print_bytes::3 ::std::IO::print_bytes::2 x(w4 x(w6 w1))) w6) w1)) }
+::std::IO::print_bytes::1 { x(n0 x(dup2262(?(::std::IO::print_bytes::3 ::std::IO::print_bytes::2 x(n0 x(n1 n2))) n1) n2)) }
 
-::std::IO::print_bytes::2 {
-  x(x(w17 w21) x(@sub(1 w1) tup(w4 w5)))
-  ::std::IO::print_byte = fn(ref(w17 w10) fn(w4 _))
-  ::std::IO::print_bytes::1 = x(x(w10 w21) x(w1 w5))
-}
+::std::IO::print_bytes::2 { x(x(@io_print_byte(n0 n1) n2) x(@sub(1 dup2262(?(::std::IO::print_bytes::3 ::std::IO::print_bytes::2 x(x(n1 n2) x(n3 n4))) n3)) tup(n0 n4))) }
 
-::std::IO::print_bytes::3 { x(x(w3 w3) _) }
+::std::IO::print_bytes::3 { x(x(n0 n0) _) }
 
