@@ -18,7 +18,7 @@ struct Foo(N32, Char, F32);
 let foo = Foo(1, 'a', 4.6); // foo: Foo
 
 // named object struct
-struct Bar { p: Bool, r: String }
+struct Bar { p: Bool, q: String }
 let bar = Bar({ p: false, q: "xyz" }); // bar: Bar
 ```
 
