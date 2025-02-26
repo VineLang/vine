@@ -4,7 +4,7 @@ use logos::Logos;
 use vine_util::lexer::{lex_block_comment, Token as TokenTrait};
 
 #[derive(Logos, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-#[logos(skip r"[ \t\n\f]+")]
+#[logos(skip r"[ \t\r\n\f]+")]
 #[repr(u8)]
 pub enum Token {
   #[token(".")]
