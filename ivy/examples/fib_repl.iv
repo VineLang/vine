@@ -29,8 +29,8 @@
 
 ::fib::cont {
   fn(n0 fn(a fn(dup(b0 b1) o)))
-  n0 = @sub(1 n1)
-  a = @add(b0 c)
+  n0 = @n32_sub(1 n1)
+  a = @n32_add(b0 c)
   ::fib::loop = fn(n1 fn(b1 fn(c o)))
 }
 
@@ -46,7 +46,7 @@
 ::read_num::loop {
   fn(ref(dup(io0 io1) io2) s)
   io0 = @io_read_byte(10 dup(byte0 byte1))
-  byte0 = @eq(10 ?(
+  byte0 = @n32_eq(10 ?(
     ::read_num::cont
     ::read_num::end
     fn(ref(io1 io2) fn(byte1 s))
@@ -55,8 +55,8 @@
 
 ::read_num::cont {
   fn(ior fn(byte fn(n0 n2)))
-  byte = @sub(48 digit)
-  n0 = @mul(10 @add(digit n1))
+  byte = @n32_sub(48 digit)
+  n0 = @n32_mul(10 @n32_add(digit n1))
   ::read_num::loop = fn(ior fn(n1 n2))
 }
 
@@ -81,8 +81,8 @@
 
 ::print_num::loop {
   fn(ref(io0 io2) fn(dup(n0 n1) _))
-  n0 = @rem(10 @add(48 digit))
-  n1 = @div(10 dup(rest0 rest1))
+  n0 = @n32_rem(10 @n32_add(48 digit))
+  n1 = @n32_div(10 dup(rest0 rest1))
   rest0 = ?(
     ::print_num::end
     ::print_num::loop

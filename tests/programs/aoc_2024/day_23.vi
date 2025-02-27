@@ -66,7 +66,7 @@ pub fn main(&io: &IO) {
   let best = [];
 
   while graph.remove_min() is Some((a, tips)) {
-    extend_clique(&graph, &best, [a], tips.to_list().map(fn((x, _)) { x }));
+    extend_clique(&graph, &best, [a], tips.as[List].map(fn((x, _)) { x }));
   }
 
   io.println("Part 2: " ++ best.map(fn(x: N32) {

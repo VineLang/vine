@@ -61,9 +61,9 @@ pub fn main(&io: &IO) {
   io.println("done");
 }
 
-inline_ivy! balanced[K, V]: fn(&Map[K, V]) -> Bool {
+const balanced[K, V]: fn(&Map[K, V]) -> Bool = inline_ivy! () -> _ {
   ::std::data::Map::balanced
-}
+};
 
 pub fn rand(&seed: &N32) -> N32 {
   seed = seed * 49081047 + 93120830;

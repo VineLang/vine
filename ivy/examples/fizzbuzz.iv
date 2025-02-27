@@ -8,8 +8,8 @@
 
 ::loop {
   tup(io0 dup(dup(n0 n1) dup(n2 n3)))
-  n0 = @rem(3 d3)
-  n1 = @rem(5 d5)
+  n0 = @n32_rem(3 d3)
+  n1 = @n32_rem(5 d5)
 
   d3 = ?(
     tup(?(::fizzbuzz ::fizz r0) r0)
@@ -19,8 +19,8 @@
   )
   io1 = @io_print_byte(10 @io_flush(0 io2))
   
-  n3 = @add(1 dup(m0 m1))
-  m0 = @lt$(::end ?(::loop _ tup(io2 m1)))
+  n3 = @n32_add(1 dup(m0 m1))
+  m0 = @n32_lt$(::end ?(::loop _ tup(io2 m1)))
 }
 
 ::fizz {
@@ -55,8 +55,8 @@
 
 ::num::loop {
   fn(ref(io0 io2) fn(dup(n0 n1) _))
-  n0 = @rem(10 @add(48 digit))
-  n1 = @div(10 dup(rest0 rest1))
+  n0 = @n32_rem(10 @n32_add(48 digit))
+  n1 = @n32_div(10 dup(rest0 rest1))
   rest0 = ?(
     ::num::end
     ::num::loop

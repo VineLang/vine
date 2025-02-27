@@ -73,6 +73,8 @@ pub enum Token {
   ThickArrow,
   #[token("->")]
   ThinArrow,
+  #[token("<-")]
+  ThinLeftArrow,
   #[token("<<")]
   Shl,
   #[token(">>")]
@@ -110,7 +112,7 @@ pub enum Token {
   Enum,
   #[token("type")]
   Type,
-  #[token("inline_ivy")]
+  #[token("inline_ivy!")]
   InlineIvy,
   #[token("trait")]
   Trait,

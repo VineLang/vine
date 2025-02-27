@@ -1,16 +1,16 @@
 
-::std::IO::print_char { fn(ref(@io_print_char(char io) io) fn(char _)) }
-
-::std::IO::print_byte { fn(ref(@io_print_byte(char io) io) fn(char _)) }
-
-::std::IO::flush { fn(ref(@io_flush(0 io) io) _) }
-
 ::main { ::mandelbrot_sixel::main }
 
 ::mandelbrot_sixel::center {
   tup(w0 +0.0)
-  +0.8 = @sub$(0 w0)
+  ::std::numeric::F32::neg::neg = fn(+0.8 w0)
 }
+
+::std::numeric::F32::neg::neg { fn(@f32_sub$(+0.0 out) out) }
+
+::std::numeric::F32::div::div { fn(@f32_div(w1 out) fn(w1 out)) }
+
+::std::numeric::F32::from_n32::cast { fn(@n32_to_f32(0 out) out) }
 
 ::mandelbrot_sixel::main {
   fn(ref(w1 w19) _)
@@ -21,10 +21,13 @@
   ::std::IO::flush = fn(ref(w14 w19) _)
 }
 
-::mandelbrot_sixel::main::1 { x(w4 dup19(@le(100 ?(::mandelbrot_sixel::main::3 ::mandelbrot_sixel::main::2 x(w4 w5))) w5)) }
+::mandelbrot_sixel::main::1 {
+  x(w7 w5)
+  ::std::numeric::N32::ord::le = fn(ref(w5 w1) fn(ref(100 _) ?(::mandelbrot_sixel::main::3 ::mandelbrot_sixel::main::2 x(w7 w1))))
+}
 
 ::mandelbrot_sixel::main::2 {
-  x(x(w52 w55) dup32(w7 dup32(w25 dup32(w35 dup32(w45 @add(1 w49))))))
+  x(x(w52 w55) dup44(w7 dup44(w25 dup44(w35 dup44(w45 w48)))))
   ::std::IO::print_char = fn(ref(w52 w1) fn(35 _))
   ::std::numeric::N32::to_string::to_string = fn(w7 w8)
   ::std::IO::print = fn(ref(w1 w5) fn(w8 _))
@@ -39,38 +42,58 @@
   ::std::IO::print_char = fn(ref(w33 w39) fn(59 _))
   ::std::numeric::N32::to_string::to_string = fn(w45 w46)
   ::std::IO::print = fn(ref(w39 w43) fn(w46 _))
+  ::std::numeric::N32::add::add = fn(w48 fn(1 w49))
   ::mandelbrot_sixel::main::1 = x(x(w43 w55) w49)
 }
 
 ::mandelbrot_sixel::main::3 { x(x(w2 w2) _) }
 
-::mandelbrot_sixel::main::4 { x(w5 x(dup37(@lt(512 ?(::mandelbrot_sixel::main::6 ::mandelbrot_sixel::main::5 x(w5 x(w7 w2)))) w7) w2)) }
+::mandelbrot_sixel::main::4 {
+  x(w8 x(w6 w5))
+  ::std::numeric::N32::ord::lt = fn(ref(w6 w1) fn(ref(512 _) ?(::mandelbrot_sixel::main::6 ::mandelbrot_sixel::main::5 x(w8 x(w1 w5)))))
+}
 
 ::mandelbrot_sixel::main::5 {
-  x(x(w36 w56) x(dup47(w45 @add(1 w32)) dup49(w44 dup49(w21 @mul(2 dup50(@lt$(32 ?(::mandelbrot_sixel::main::15 ::mandelbrot_sixel::main::14 x(x(w51 w52) w50))) w51))))))
+  x(x(w36 w59) x(dup60(w45 w31) dup62(w44 dup62(w21 w24))))
   ::std::IO::print = fn(ref(w36 w3) fn(tup(2 tup(tup(35 tup(48 w39)) w39)) _))
   ::mandelbrot_sixel::main::7 = x(x(w3 w47) x(w45 x(w44 x(0 x(x(0 w42) 0)))))
   ::std::IO::print_char = fn(ref(w47 w9) fn(33 _))
   ::std::numeric::N32::to_string::to_string = fn(w42 w16)
   ::std::IO::print = fn(ref(w9 w13) fn(w16 _))
-  63 = @add(w21 w22)
+  ::std::numeric::N32::add::add = fn(63 fn(w21 w22))
   ::std::IO::print_byte = fn(ref(w13 w19) fn(w22 _))
-  ::std::IO::print_char = fn(ref(w19 w27) fn(w50 _))
-  ::mandelbrot_sixel::main::4 = x(x(w27 w56) x(w32 w52))
+  ::std::numeric::N32::mul::mul = fn(w24 fn(2 w25))
+  ::std::ops::comparison::Ord::gt::1 = fn(ref(w25 w49) fn(ref(32 _) ?(::mandelbrot_sixel::main::15 ::mandelbrot_sixel::main::14 x(x(w49 w55) w53))))
+  ::std::IO::print_char = fn(ref(w19 w27) fn(w53 _))
+  ::std::numeric::N32::add::add = fn(w31 fn(1 w32))
+  ::mandelbrot_sixel::main::4 = x(x(w27 w59) x(w32 w55))
 }
 
 ::mandelbrot_sixel::main::6 { x(x(w3 w3) _) }
 
-::mandelbrot_sixel::main::7 { x(w9 x(w7 x(w6 x(w5 x(w4 dup65(@lt(512 ?(::mandelbrot_sixel::main::9 ::mandelbrot_sixel::main::8 x(w9 x(w7 x(w6 x(w5 x(w4 w10))))))) w10)))))) }
+::mandelbrot_sixel::main::7 {
+  x(w12 x(w10 x(w9 x(w8 x(w7 w5)))))
+  ::std::numeric::N32::ord::lt = fn(ref(w5 w1) fn(ref(512 _) ?(::mandelbrot_sixel::main::9 ::mandelbrot_sixel::main::8 x(w12 x(w10 x(w9 x(w8 x(w7 w1))))))))
+}
 
 ::mandelbrot_sixel::main::8 {
-  x(x(w29 w47) x(dup69(w2 w45) x(dup70(w37 w44) x(w25 x(x(w24 w42) dup76(w1 @add(1 w21)))))))
-  +2.6 = @div(512 @mul(w7 w8))
-  tup(w1 w2) = @add(+0.5 @sub(w6 w7))
-  512 = @div(+2.0 w6)
-  ::mandelbrot_sixel::center = @add(w8 tup(w10 w11))
-  ::mandelbrot_sixel::mandelbrot = fn(w10 fn(w11 dup80(@ne(w25 ?(::mandelbrot_sixel::main::12 ::mandelbrot_sixel::main::11 x(x(w29 w39) x(w37 x(x(w24 w36) x(w34 _)))))) dup80(w34 w18))))
-  ::mandelbrot_sixel::main::7 = x(x(w39 w47) x(w45 x(w44 x(w18 x(x(w36 w42) w21)))))
+  x(x(w37 w59) x(dup84(w3 w57) x(dup85(w49 w56) x(w33 x(x(w32 w54) dup91(w0 w28))))))
+  ::std::numeric::F32::from_n32::cast = fn(w0 w1)
+  ::std::numeric::F32::add::add = fn(w1 fn(+0.5 w2))
+  ::std::numeric::F32::from_n32::cast = fn(w3 w4)
+  ::std::numeric::F32::add::add = fn(w4 fn(+0.5 w5))
+  ::std::numeric::F32::from_n32::cast = fn(512 w7)
+  ::std::numeric::F32::from_n32::cast = fn(512 w8)
+  ::std::ops::vectorized::div_scalar::div::1 = fn(tup(w7 w8) fn(+2.0 w10))
+  ::std::ops::vectorized::sub::sub::1 = fn(tup(w2 w5) fn(w10 w11))
+  ::std::ops::vectorized::mul_scalar::mul::1 = fn(w11 fn(+2.6 w14))
+  ::std::numeric::F32::from_n32::cast = fn(512 w15)
+  ::std::ops::vectorized::div_scalar::div::1 = fn(w14 fn(w15 w16))
+  ::std::ops::vectorized::add::add::1 = fn(::mandelbrot_sixel::center fn(w16 tup(w18 w19)))
+  ::mandelbrot_sixel::mandelbrot = fn(w18 fn(w19 w23))
+  ::std::numeric::N32::eq::ne = fn(ref(w23 dup96(w46 w26)) fn(ref(w33 _) ?(::mandelbrot_sixel::main::12 ::mandelbrot_sixel::main::11 x(x(w37 w51) x(w49 x(x(w32 w48) x(w46 _)))))))
+  ::std::numeric::N32::add::add = fn(w28 fn(1 w29))
+  ::mandelbrot_sixel::main::7 = x(x(w51 w59) x(w57 x(w56 x(w26 x(x(w48 w54) w29)))))
 }
 
 ::mandelbrot_sixel::main::9 { x(x(w7 w7) x(_ x(_ x(_ x(x(w2 w2) _))))) }
@@ -80,20 +103,28 @@
   ::std::IO::print_char = fn(ref(w33 w1) fn(33 _))
   ::std::numeric::N32::to_string::to_string = fn(w30 w8)
   ::std::IO::print = fn(ref(w1 w5) fn(w8 _))
-  63 = @add(w31 w14)
+  ::std::numeric::N32::add::add = fn(63 fn(w31 w14))
   ::std::IO::print_byte = fn(ref(w5 w11) fn(w14 _))
   ::std::IO::print_char = fn(ref(w11 w17) fn(35 _))
   ::std::numeric::N32::to_string::to_string = fn(w28 w24)
   ::std::IO::print = fn(ref(w17 w21) fn(w24 _))
 }
 
-::mandelbrot_sixel::main::12 { x(x(w8 w8) x(_ x(x(@add(1 w1) w1) _))) }
+::mandelbrot_sixel::main::12 {
+  x(x(w8 w8) x(_ x(x(w5 w1) _)))
+  ::std::numeric::N32::add::add = fn(w5 fn(1 w1))
+}
 
 ::mandelbrot_sixel::main::14 { x(x(_ 1) 45) }
 
 ::mandelbrot_sixel::main::15 { x(x(w4 w4) 36) }
 
-::std::numeric::N32::to_string::to_string { fn(dup104(?(::std::numeric::N32::to_string::to_string::3 ::std::numeric::N32::to_string::to_string::2 x(w7 w6)) w7) w6) }
+::std::numeric::N32::ord::le { fn(ref(dup121(w0 @n32_le(w10 out)) w0) fn(ref(dup122(w3 w10) w3) out)) }
+
+::std::numeric::N32::to_string::to_string {
+  fn(w0 w10)
+  ::std::numeric::N32::eq::ne = fn(ref(w0 w6) fn(ref(0 _) ?(::std::numeric::N32::to_string::to_string::3 ::std::numeric::N32::to_string::to_string::2 x(w6 w10))))
+}
 
 ::std::numeric::N32::to_string::to_string::2 {
   x(w6 w9)
@@ -102,62 +133,158 @@
 
 ::std::numeric::N32::to_string::to_string::3 { x(_ tup(1 tup(tup(48 w5) w5))) }
 
-::std::numeric::N32::to_string::to_string::4 { x(dup113(?(::std::numeric::N32::to_string::to_string::6 ::std::numeric::N32::to_string::to_string::5 x(w6 w2)) w6) w2) }
+::std::numeric::N32::to_string::to_string::4 {
+  x(w7 w6)
+  ::std::numeric::N32::eq::ne = fn(ref(w7 w1) fn(ref(0 _) ?(::std::numeric::N32::to_string::to_string::6 ::std::numeric::N32::to_string::to_string::5 x(w1 w6))))
+}
 
 ::std::numeric::N32::to_string::to_string::5 {
-  x(dup116(@rem(10 w1) @div(10 w8)) x(w11 w15))
-  48 = @add(w1 w2)
-  ::std::data::List::concat = fn(tup(1 tup(tup(w2 w13) w13)) fn(w11 w5))
+  x(dup139(w0 w7) x(w11 w15))
+  ::std::numeric::N32::rem::rem = fn(w0 fn(10 w1))
+  ::std::unicode::Char::add_n32::add = fn(48 fn(w1 w2))
+  ::std::data::List::concat::concat = fn(tup(1 tup(tup(w2 w13) w13)) fn(w11 w5))
+  ::std::numeric::N32::div::div = fn(w7 fn(10 w8))
   ::std::numeric::N32::to_string::to_string::4 = x(w8 x(w5 w15))
 }
 
 ::std::numeric::N32::to_string::to_string::6 { x(_ x(w1 w1)) }
 
-::mandelbrot_sixel::mandelbrot {
-  fn(w0 fn(w1 w12))
-  ::mandelbrot_sixel::mandelbrot::1 = x(w0 x(w1 x(+0.0 x(+0.0 x(+0.0 x(+0.0 x(0 @mul(101 @div(50 @rem(101 w12))))))))))
+::std::numeric::N32::eq::ne { fn(ref(dup145(w0 @n32_ne(w10 out)) w0) fn(ref(dup146(w3 w10) w3) out)) }
+
+::std::data::List::concat::concat {
+  fn(tup(w5 tup(w6 w11)) fn(tup(w10 tup(w11 w21)) tup(w18 tup(w6 w21))))
+  ::std::numeric::N32::add::add = fn(w5 fn(w10 w18))
 }
 
-::mandelbrot_sixel::mandelbrot::1 { x(w14 x(w13 x(w12 x(w11 x(dup136(@add(w3 @lt(+4.0 w5)) w18) x(dup137(w3 w17) x(dup139(@lt(50 @n32_and(w5 ?(::mandelbrot_sixel::mandelbrot::3 ::mandelbrot_sixel::mandelbrot::2 x(w14 x(w13 x(w12 x(w11 x(w18 x(w17 x(w15 w16)))))))))) w15) w16))))))) }
+::std::numeric::N32::add::add { fn(@n32_add(w1 out) fn(w1 out)) }
+
+::std::unicode::Char::add_n32::add { fn(@n32_add(w1 out) fn(w1 out)) }
+
+::std::numeric::N32::rem::rem { fn(@n32_rem(w1 out) fn(w1 out)) }
+
+::std::numeric::N32::div::div { fn(@n32_div(w1 out) fn(w1 out)) }
+
+::std::numeric::N32::ord::lt { fn(ref(dup175(w0 @n32_lt(w10 out)) w0) fn(ref(dup176(w3 w10) w3) out)) }
+
+::std::ops::vectorized::sub::sub::1 {
+  fn(tup(w0 w1) fn(tup(w3 w4) tup(w10 w13)))
+  ::std::numeric::F32::sub::sub = fn(w0 fn(w3 w10))
+  ::std::numeric::F32::sub::sub = fn(w1 fn(w4 w13))
+}
+
+::std::numeric::F32::sub::sub { fn(@f32_sub(w1 out) fn(w1 out)) }
+
+::std::numeric::F32::add::add { fn(@f32_add(w1 out) fn(w1 out)) }
+
+::std::ops::vectorized::div_scalar::div::1 {
+  fn(tup(w0 w1) fn(dup195(w7 w10) tup(w8 w11)))
+  ::std::numeric::F32::div::div = fn(w0 fn(w7 w8))
+  ::std::numeric::F32::div::div = fn(w1 fn(w10 w11))
+}
+
+::std::ops::vectorized::add::add::1 {
+  fn(tup(w0 w1) fn(tup(w3 w4) tup(w10 w13)))
+  ::std::numeric::F32::add::add = fn(w0 fn(w3 w10))
+  ::std::numeric::F32::add::add = fn(w1 fn(w4 w13))
+}
+
+::std::ops::vectorized::mul_scalar::mul::1 {
+  fn(tup(w0 w1) fn(dup206(w7 w10) tup(w8 w11)))
+  ::std::numeric::F32::mul::mul = fn(w0 fn(w7 w8))
+  ::std::numeric::F32::mul::mul = fn(w1 fn(w10 w11))
+}
+
+::std::numeric::F32::mul::mul { fn(@f32_mul(w1 out) fn(w1 out)) }
+
+::std::numeric::N32::mul::mul { fn(@n32_mul(w1 out) fn(w1 out)) }
+
+::std::ops::comparison::Ord::gt::1 {
+  fn(w1 fn(w4 w14))
+  ::std::numeric::N32::ord::lt = fn(w4 fn(w1 w14))
+}
+
+::mandelbrot_sixel::mandelbrot {
+  fn(w0 fn(w1 w12))
+  ::mandelbrot_sixel::mandelbrot::1 = x(w0 x(w1 x(+0.0 x(+0.0 x(+0.0 x(+0.0 x(0 w15)))))))
+  ::std::numeric::N32::mul::mul = fn(w15 fn(101 w10))
+  ::std::numeric::N32::div::div = fn(w10 fn(50 w11))
+  ::std::numeric::N32::rem::rem = fn(w11 fn(101 w12))
+}
+
+::mandelbrot_sixel::mandelbrot::1 {
+  x(w17 x(w16 x(w15 x(w14 x(dup237(w5 w21) x(dup238(w6 w20) x(w11 w19)))))))
+  ::std::numeric::N32::ord::lt = fn(ref(w11 w1) fn(ref(50 _) w4))
+  ::std::numeric::F32::add::add = fn(w5 fn(w6 w7))
+  ::std::numeric::F32::lt = fn(w7 fn(+4.0 w8))
+  ::std::logical::Bool::and::and = fn(w4 fn(w8 ?(::mandelbrot_sixel::mandelbrot::3 ::mandelbrot_sixel::mandelbrot::2 x(w17 x(w16 x(w15 x(w14 x(w21 x(w20 x(w1 w19))))))))))
+}
 
 ::mandelbrot_sixel::mandelbrot::2 {
-  x(dup140(w5 w40) x(dup141(w11 w39) x(w30 x(w29 x(@sub(w27 @add(w5 w6)) x(w27 x(@add(1 w1) w34)))))))
-  +2.0 = @mul(w30 @mul(w29 @add(w11 w12)))
-  tup(w6 w12) = tup(dup143(@mul(w18 w19) dup143(w18 w38)) dup145(@mul(w22 w23) dup145(w22 w37)))
+  x(dup242(w5 w40) x(dup243(w11 w39) x(w30 x(w29 x(w28 x(w27 x(w26 w34)))))))
+  ::std::numeric::N32::add::add = fn(w26 fn(1 w1))
+  ::std::numeric::F32::sub::sub = fn(w28 fn(w27 w4))
+  ::std::numeric::F32::add::add = fn(w4 fn(w5 w6))
+  ::std::numeric::F32::mul::mul = fn(+2.0 fn(w30 w8))
+  ::std::numeric::F32::mul::mul = fn(w8 fn(w29 w10))
+  ::std::numeric::F32::add::add = fn(w10 fn(w11 w12))
+  tup(w6 w12) = tup(dup245(w17 dup245(w18 w38)) dup247(w21 dup247(w22 w37)))
+  ::std::numeric::F32::mul::mul = fn(w17 fn(w18 w19))
+  ::std::numeric::F32::mul::mul = fn(w21 fn(w22 w23))
   ::mandelbrot_sixel::mandelbrot::1 = x(w40 x(w39 x(w38 x(w37 x(w19 x(w23 x(w1 w34)))))))
 }
 
 ::mandelbrot_sixel::mandelbrot::3 { x(_ x(_ x(_ x(_ x(_ x(_ x(w1 w1))))))) }
 
-::std::data::List::concat { fn(tup(@add(w10 w18) tup(w6 w11)) fn(tup(w10 tup(w11 w21)) tup(w18 tup(w6 w21)))) }
+::std::logical::Bool::and::and { fn(@n32_and(w1 out) fn(w1 out)) }
+
+::std::numeric::N32::sub::sub { fn(@n32_sub(w1 out) fn(w1 out)) }
+
+::std::numeric::F32::lt { fn(@f32_lt(w1 out) fn(w1 out)) }
+
+::std::unicode::String::to_chars::cast { fn(w0 w0) }
 
 ::std::IO::print {
-  fn(ref(w1 w16) fn(tup(w7 tup(w8 _)) _))
-  ::std::IO::print::1 = x(x(w1 w16) x(w7 w8))
+  fn(ref(w1 w15) fn(w3 _))
+  ::std::unicode::String::to_chars::cast = fn(w3 tup(w8 tup(w9 _)))
+  ::std::IO::print::1 = x(x(w1 w15) x(w8 w9))
 }
 
-::std::IO::print::1 { x(w4 x(dup2310(?(::std::IO::print::3 ::std::IO::print::2 x(w4 x(w6 w1))) w6) w1)) }
+::std::IO::print::1 {
+  x(w8 x(w6 w5))
+  ::std::numeric::N32::eq::ne = fn(ref(w6 w1) fn(ref(0 _) ?(::std::IO::print::3 ::std::IO::print::2 x(w8 x(w1 w5)))))
+}
 
 ::std::IO::print::2 {
-  x(x(w17 w21) x(@sub(1 w1) tup(w4 w5)))
+  x(x(w17 w21) x(w15 tup(w4 w5)))
+  ::std::numeric::N32::sub::sub = fn(w15 fn(1 w1))
   ::std::IO::print_char = fn(ref(w17 w10) fn(w4 _))
   ::std::IO::print::1 = x(x(w10 w21) x(w1 w5))
 }
 
 ::std::IO::print::3 { x(x(w3 w3) _) }
 
+::std::IO::print_char { fn(ref(@io_print_char(w3 w8) w8) fn(w3 _)) }
+
 ::std::IO::print_bytes {
   fn(ref(w1 w14) fn(tup(w7 tup(w8 _)) _))
   ::std::IO::print_bytes::1 = x(x(w1 w14) x(w7 w8))
 }
 
-::std::IO::print_bytes::1 { x(w4 x(dup2331(?(::std::IO::print_bytes::3 ::std::IO::print_bytes::2 x(w4 x(w6 w1))) w6) w1)) }
+::std::IO::print_bytes::1 {
+  x(w8 x(w6 w5))
+  ::std::numeric::N32::eq::ne = fn(ref(w6 w1) fn(ref(0 _) ?(::std::IO::print_bytes::3 ::std::IO::print_bytes::2 x(w8 x(w1 w5)))))
+}
 
 ::std::IO::print_bytes::2 {
-  x(x(w17 w21) x(@sub(1 w1) tup(w4 w5)))
+  x(x(w17 w21) x(w15 tup(w4 w5)))
+  ::std::numeric::N32::sub::sub = fn(w15 fn(1 w1))
   ::std::IO::print_byte = fn(ref(w17 w10) fn(w4 _))
   ::std::IO::print_bytes::1 = x(x(w10 w21) x(w1 w5))
 }
 
 ::std::IO::print_bytes::3 { x(x(w3 w3) _) }
+
+::std::IO::print_byte { fn(ref(@io_print_byte(w3 w8) w8) fn(w3 _)) }
+
+::std::IO::flush { fn(ref(@io_flush(0 w7) w7) _) }
 

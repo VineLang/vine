@@ -78,7 +78,7 @@ c = 3
 b = 2
 a = 3
 > do { let { p } = x }
-error input:1:18 - expected type `{ p: ?9 }`; found `{ a: N32, b: N32, c: N32 }`
+error input:1:18 - expected type `{ p: ?20 }`; found `{ a: N32, b: N32, c: N32 }`
 
 io = #io
 x = { a: 1, b: 2, c: 3 }

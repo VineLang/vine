@@ -35,7 +35,7 @@ io = #io
 
 io = #io
 > "abc" ++ 123
-error input:1:1 - cannot apply operator `++` to types `String` and `N32`
+error input:1:1 - cannot find impl of trait `Concat[String, N32, ?8]`
 
 io = #io
 > [true, false].to_string()
@@ -77,7 +77,7 @@ a = Array(5, Node(Node(Node(#ivy(0), #ivy(4)), #ivy(2)), Node(#ivy(1), #ivy(3)))
 Array(5, Node(Node(Node(#ivy(0), #ivy(4)), #ivy(2)), Node(#ivy(1), #ivy(3))))
 
 io = #io
-> Array::from_list([1,2,3,4,5,6,7,8,9]).reversed().to_list()
+> [1,2,3,4,5,6,7,8,9].as[Array].reversed().as[List]
 [9, 8, 7, 6, 5, 4, 3, 2, 1]
 
 io = #io
@@ -129,7 +129,7 @@ io = #io
 10
 
 io = #io
-> N64::parse("1234567890123456789000").unwrap().add(N64::parse("46").unwrap()).to_string()
+> (N64::parse("1234567890123456789000").unwrap() + N64::parse("46").unwrap()).to_string()
 "17082781258626382390"
 
 io = #io
@@ -145,20 +145,20 @@ io = #io
 ::std::logical::Option::None
 
 io = #io
-> N64::from_n32(3).pow_n32(33).to_string()
+> 3.as[N64].pow_n32(33).to_string()
 "5559060566555523"
 
 io = #io
-> N64::from_n32(3).pow_n32(33).log_n32(3)
-33
-
-io = #io
-> N64::from_n32(3).pow_n32(33).sub(N64::from_n32(1)).log_n32(3)
+> 3.as[N64].pow_n32(33).log_n32(3)
 32
 
 io = #io
-> N64::from_n32(3).pow_n32(33).add(N64::from_n32(1)).log_n32(3)
-33
+> (3.as[N64].pow_n32(33) - 1.as[N64]).log_n32(3)
+32
+
+io = #io
+> (3.as[N64].pow_n32(33) + 1.as[N64]).log_n32(3)
+32
 
 io = #io
 > "1,2,3,4".split(",")

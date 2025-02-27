@@ -13,10 +13,7 @@ pub use nohash_hasher::IsEnabled;
 
 pub use nohash_hasher::{IntMap, IntSet};
 
-pub trait Idx:
-  Copy + Eq + Ord + Hash + Default + IsEnabled + From<usize> + Into<usize> + Debug
-{
-}
+pub trait Idx: Copy + Eq + Ord + Hash + IsEnabled + From<usize> + Into<usize> + Debug {}
 impl Idx for usize {}
 
 #[macro_export]
@@ -333,7 +330,10 @@ impl<I: Idx> Counter<I> {
     self.0.into()
   }
 
-  pub fn reset(&mut self) {
+  pub fn reset(&mut self)
+  where
+    I: Default,
+  {
     self.0 = I::default();
   }
 }

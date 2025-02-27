@@ -1,4 +1,6 @@
 
+use std::ops::vectorized::or;
+
 pub fn main(&io: &IO) {
   let input = io.full_input();
 

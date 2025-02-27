@@ -36,7 +36,7 @@ io = #io
 io = #io
 x = []
 > x ++ ""
-error input:1:1 - cannot apply operator `++` to types `List[?7]` and `String`
+error input:1:1 - cannot find impl of trait `Concat[List[?7], String, ?11]`
 
 io = #io
 x = []

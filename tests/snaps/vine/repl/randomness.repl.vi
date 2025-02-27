@@ -39,7 +39,7 @@ nums = [22, 33, 78, 11, 79, 27, 26, 64, 57, 3, 76, 88, 72, 42, 10, 4, 35, 61, 36
 str = ""
 len = 100
 > while len != 0 { len -= 1; str ++= [' ' + rng.gen_n32() % 95] }
-error input:1:28 - cannot apply operator `++=` to types `String` and `List[Char]`
+error input:1:28 - cannot find impl of trait `Concat[String, List[Char], String]`
 
 io = #io
 rng = Pcg32(N64(949325415, 3618180105), N64(4150755663, 335903614))

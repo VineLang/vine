@@ -1,0 +1,63 @@
+
+use arithmetic::{Add, Div, Mul, Neg, Sub};
+use bitwise::{And, Or, Xor};
+
+pub impl add[A, B, C, X, Y, Z; Add[A, B, C], Add[X, Y, Z]]: Add[(A, X), (B, Y), (C, Z)] {
+  fn .add((a: A, x: X), (b: B, y: Y)) -> (C, Z) {
+    (a + b, x + y)
+  }
+}
+
+pub impl sub[A, B, C, X, Y, Z; Sub[A, B, C], Sub[X, Y, Z]]: Sub[(A, X), (B, Y), (C, Z)] {
+  fn .sub((a: A, x: X), (b: B, y: Y)) -> (C, Z) {
+    (a - b, x - y)
+  }
+}
+
+pub impl mul[A, B, C, X, Y, Z; Mul[A, B, C], Mul[X, Y, Z]]: Mul[(A, X), (B, Y), (C, Z)] {
+  fn .mul((a: A, x: X), (b: B, y: Y)) -> (C, Z) {
+    (a * b, x * y)
+  }
+}
+
+pub impl div[A, B, C, X, Y, Z; Mul[A, B, C], Mul[X, Y, Z]]: Div[(A, X), (B, Y), (C, Z)] {
+  fn .div((a: A, x: X), (b: B, y: Y)) -> (C, Z) {
+    (a * b, x * y)
+  }
+}
+
+pub impl neg[A, B, X, Y; Neg[A, B], Neg[X, Y]]: Neg[(A, X), (B, Y)] {
+  fn .neg((a: A, x: X)) -> (B, Y) {
+    (-a, -x)
+  }
+}
+
+pub impl and[A, B, C, X, Y, Z; And[A, B, C], And[X, Y, Z]]: And[(A, X), (B, Y), (C, Z)] {
+  fn .and((a: A, x: X), (b: B, y: Y)) -> (C, Z) {
+    (a & b, x & y)
+  }
+}
+
+pub impl or[A, B, C, X, Y, Z; Or[A, B, C], Or[X, Y, Z]]: Or[(A, X), (B, Y), (C, Z)] {
+  fn .or((a: A, x: X), (b: B, y: Y)) -> (C, Z) {
+    (a | b, x | y)
+  }
+}
+
+pub impl xor[A, B, C, X, Y, Z; Xor[A, B, C], Xor[X, Y, Z]]: Xor[(A, X), (B, Y), (C, Z)] {
+  fn .xor((a: A, x: X), (b: B, y: Y)) -> (C, Z) {
+    (a ^ b, x ^ y)
+  }
+}
+
+pub impl mul_scalar[A, B, S, X, Y; Mul[A, S, X], Mul[B, S, Y]]: Mul[(A, B), S, (X, Y)] {
+  fn .mul((a: A, b: B), s: S) -> (X, Y) {
+    (a * s, b * s)
+  }
+}
+
+pub impl div_scalar[A, B, S, X, Y; Div[A, S, X], Div[B, S, Y]]: Div[(A, B), S, (X, Y)] {
+  fn .div((a: A, b: B), s: S) -> (X, Y) {
+    (a / s, b / s)
+  }
+}

@@ -9,10 +9,10 @@ use crate::{core::Core, diag::Diag, lexer::Token};
 
 use crate::ast::{
   Attr, AttrKind, BinaryOp, Block, Builtin, ComparisonOp, ConstItem, DynFnStmt, EnumItem, Expr,
-  ExprKind, FnItem, GenericArgs, GenericParams, Generics, Ident, Impl, ImplItem, ImplKind,
-  InlineIvy, Item, ItemKind, Key, Label, LetStmt, LogicalOp, ModItem, ModKind, Pat, PatKind, Path,
-  Span, Stmt, StmtKind, StructItem, Trait, TraitItem, TraitKind, Ty, TyKind, TypeItem, UseItem,
-  UseTree, Variant, Vis,
+  ExprKind, FnItem, GenericArgs, GenericParams, Generics, Ident, Impl, ImplItem, ImplKind, Item,
+  ItemKind, Key, Label, LetStmt, LogicalOp, ModItem, ModKind, Pat, PatKind, Path, Span, Stmt,
+  StmtKind, StructItem, Trait, TraitItem, TraitKind, Ty, TyKind, TypeItem, UseItem, UseTree,
+  Variant, Vis,
 };
 
 pub struct VineParser<'core, 'src> {
@@ -80,7 +80,6 @@ impl<'core, 'src> VineParser<'core, 'src> {
       _ if self.check(Token::Trait) => ItemKind::Trait(self.parse_trait_item()?),
       _ if self.check(Token::Impl) => ItemKind::Impl(self.parse_impl_item()?),
       _ if self.check(Token::Use) => ItemKind::Use(self.parse_use_item()?),
-      _ if self.check(Token::InlineIvy) => ItemKind::Ivy(self.parse_ivy_item()?),
       _ if span == self.start_span() => return Ok(None),
       _ => self.unexpected()?,
     };
@@ -125,10 +124,29 @@ impl<'core, 'src> VineParser<'core, 'src> {
           "IO" => Builtin::IO,
           "List" => Builtin::List,
           "String" => Builtin::String,
-          "concat" => Builtin::Concat,
           "prelude" => Builtin::Prelude,
-          "ToString" => Builtin::ToStringTrait,
-          "to_string" => Builtin::ToStringFn,
+          "to_string" => Builtin::ToString,
+          "neg" => Builtin::Neg,
+          "not" => Builtin::Not,
+          "bool_not" => Builtin::BoolNot,
+          "cast" => Builtin::Cast,
+          "add" => Builtin::BinaryOp(BinaryOp::Add),
+          "sub" => Builtin::BinaryOp(BinaryOp::Sub),
+          "mul" => Builtin::BinaryOp(BinaryOp::Mul),
+          "div" => Builtin::BinaryOp(BinaryOp::Div),
+          "rem" => Builtin::BinaryOp(BinaryOp::Rem),
+          "and" => Builtin::BinaryOp(BinaryOp::BitAnd),
+          "or" => Builtin::BinaryOp(BinaryOp::BitOr),
+          "xor" => Builtin::BinaryOp(BinaryOp::BitXor),
+          "shl" => Builtin::BinaryOp(BinaryOp::Shl),
+          "shr" => Builtin::BinaryOp(BinaryOp::Shr),
+          "concat" => Builtin::BinaryOp(BinaryOp::Concat),
+          "eq" => Builtin::ComparisonOp(ComparisonOp::Eq),
+          "ne" => Builtin::ComparisonOp(ComparisonOp::Ne),
+          "lt" => Builtin::ComparisonOp(ComparisonOp::Lt),
+          "gt" => Builtin::ComparisonOp(ComparisonOp::Gt),
+          "le" => Builtin::ComparisonOp(ComparisonOp::Le),
+          "ge" => Builtin::ComparisonOp(ComparisonOp::Ge),
           _ => Err(Diag::BadBuiltin { span: str_span })?,
         };
         AttrKind::Builtin(builtin)
@@ -372,26 +390,6 @@ impl<'core, 'src> VineParser<'core, 'src> {
     Ok(())
   }
 
-  fn parse_ivy_item(&mut self) -> Parse<'core, InlineIvy<'core>> {
-    let span = self.span();
-    self.expect(Token::InlineIvy)?;
-    self.expect(Token::Bang)?;
-    let method = self.eat(Token::Dot)?;
-    let name = self.parse_ident()?;
-    let generics = self.parse_generic_params()?;
-    self.expect(Token::Colon)?;
-    let ty = self.parse_type()?;
-    if !self.check(Token::OpenBrace) {
-      self.unexpected()?;
-    }
-    let net = self.switch(
-      |state| IvyParser { state },
-      IvyParser::parse_net_inner,
-      |_| Diag::InvalidIvy { span },
-    )?;
-    Ok(InlineIvy { method, name, generics, ty, net })
-  }
-
   fn parse_expr_list(&mut self) -> Parse<'core, Vec<Expr<'core>>> {
     self.parse_delimited(PAREN_COMMA, Self::parse_expr)
   }
@@ -585,6 +583,32 @@ impl<'core, 'src> VineParser<'core, 'src> {
     if self.eat(Token::Hole)? {
       return Ok(ExprKind::Hole);
     }
+    if self.check(Token::InlineIvy) {
+      let span = self.span();
+      self.bump()?;
+      let binds = self.parse_delimited(PAREN_COMMA, |self_| {
+        let var = self_.parse_ident()?;
+        let value = self_.eat(Token::ThinLeftArrow)?;
+        if !value {
+          self_.expect(Token::ThinArrow)?;
+        }
+        let expr = self_.parse_expr()?;
+        Ok((var, value, expr))
+      })?;
+      self.expect(Token::ThinArrow)?;
+      let ty = self.parse_type()?;
+      if !self.check(Token::OpenBrace) {
+        self.unexpected()?;
+      }
+      let net_span = self.start_span();
+      let net = self.switch(
+        |state| IvyParser { state },
+        IvyParser::parse_net_inner,
+        |_| Diag::InvalidIvy { span },
+      )?;
+      let net_span = self.end_span(net_span);
+      return Ok(ExprKind::InlineIvy(binds, ty, net_span, net));
+    }
     self.unexpected()
   }
 
@@ -655,6 +679,11 @@ impl<'core, 'src> VineParser<'core, 'src> {
       return Ok(Ok(ExprKind::Assign(true, Box::new(lhs), Box::new(rhs))));
     }
 
+    if bp.permits(BP::Annotation) && self.eat(Token::As)? {
+      let ty = self.parse_type()?;
+      return Ok(Ok(ExprKind::Cast(Box::new(lhs), Box::new(ty), false)));
+    }
+
     if self.eat(Token::Dot)? {
       if self.eat(Token::And)? {
         return Ok(Ok(ExprKind::Ref(Box::new(lhs), true)));
@@ -667,6 +696,12 @@ impl<'core, 'src> VineParser<'core, 'src> {
       }
       if self.eat(Token::Tilde)? {
         return Ok(Ok(ExprKind::Inverse(Box::new(lhs), true)));
+      }
+      if self.eat(Token::As)? {
+        self.expect(Token::OpenBracket)?;
+        let ty = self.parse_type()?;
+        self.expect(Token::CloseBracket)?;
+        return Ok(Ok(ExprKind::Cast(Box::new(lhs), Box::new(ty), true)));
       }
       if self.check(Token::Num) {
         let token_span = self.start_span();

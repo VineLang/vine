@@ -1,10 +1,6 @@
 
 ::std::logical::Option::None { enum(_ enum(r r)) }
 
-::std::IO::print_char { fn(ref(@io_print_char(char io) io) fn(char _)) }
-
-::std::IO::read_byte { fn(ref(dup(io0 @io_read_byte(default dup(byte @seq$(io0 io1)))) io1) fn(default byte)) }
-
 ::main { ::cat::main }
 
 ::cat::main {
@@ -25,7 +21,22 @@
 
 ::cat::main::5 { x(w1 w1) }
 
-::std::data::List::concat { fn(tup(@add(w10 w18) tup(w6 w11)) fn(tup(w10 tup(w11 w21)) tup(w18 tup(w6 w21)))) }
+::std::numeric::N32::sub::sub { fn(@n32_sub(w1 out) fn(w1 out)) }
+
+::std::numeric::N32::eq::ne { fn(ref(dup70(w0 @n32_ne(w10 out)) w0) fn(ref(dup71(w3 w10) w3) out)) }
+
+::std::data::List::concat::concat {
+  fn(tup(w5 tup(w6 w11)) fn(tup(w10 tup(w11 w21)) tup(w18 tup(w6 w21))))
+  ::std::numeric::N32::add::add = fn(w5 fn(w10 w18))
+}
+
+::std::numeric::N32::add::add { fn(@n32_add(w1 out) fn(w1 out)) }
+
+::std::unicode::String::to_chars::cast { fn(w0 w0) }
+
+::std::unicode::Char::eq::eq { fn(ref(dup2165(w0 @n32_eq(w10 out)) w0) fn(ref(dup2166(w3 w10) w3) out)) }
+
+::std::unicode::Char::eq::ne { fn(ref(dup2169(w0 @n32_ne(w10 out)) w0) fn(ref(dup2170(w3 w10) w3) out)) }
 
 ::std::IO::println {
   fn(ref(w1 w12) fn(w3 _))
@@ -34,26 +45,37 @@
 }
 
 ::std::IO::print {
-  fn(ref(w1 w16) fn(tup(w7 tup(w8 _)) _))
-  ::std::IO::print::1 = x(x(w1 w16) x(w7 w8))
+  fn(ref(w1 w15) fn(w3 _))
+  ::std::unicode::String::to_chars::cast = fn(w3 tup(w8 tup(w9 _)))
+  ::std::IO::print::1 = x(x(w1 w15) x(w8 w9))
 }
 
-::std::IO::print::1 { x(w4 x(dup2189(?(::std::IO::print::3 ::std::IO::print::2 x(w4 x(w6 w1))) w6) w1)) }
+::std::IO::print::1 {
+  x(w8 x(w6 w5))
+  ::std::numeric::N32::eq::ne = fn(ref(w6 w1) fn(ref(0 _) ?(::std::IO::print::3 ::std::IO::print::2 x(w8 x(w1 w5)))))
+}
 
 ::std::IO::print::2 {
-  x(x(w17 w21) x(@sub(1 w1) tup(w4 w5)))
+  x(x(w17 w21) x(w15 tup(w4 w5)))
+  ::std::numeric::N32::sub::sub = fn(w15 fn(1 w1))
   ::std::IO::print_char = fn(ref(w17 w10) fn(w4 _))
   ::std::IO::print::1 = x(x(w10 w21) x(w1 w5))
 }
 
 ::std::IO::print::3 { x(x(w3 w3) _) }
 
+::std::IO::print_char { fn(ref(@io_print_char(w3 w8) w8) fn(w3 _)) }
+
 ::std::IO::read_line {
-  fn(ref(w1 w17) w14)
-  ::std::IO::read_byte = fn(ref(w1 w6) fn(0 dup2232(@ne(0 ?(::std::IO::read_line::3 ::std::IO::read_line::2 x(x(w6 w17) x(w15 w14)))) w15)))
+  fn(ref(w1 w20) w17)
+  ::std::IO::read_byte = fn(ref(w1 w6) fn(0 w8))
+  ::std::unicode::Char::eq::ne = fn(ref(w8 w13) fn(ref(0 _) ?(::std::IO::read_line::3 ::std::IO::read_line::2 x(x(w6 w20) x(w13 w17)))))
 }
 
-::std::IO::read_line::2 { x(w5 x(dup2238(@eq(10 ?(::std::IO::read_line::6 ::std::IO::read_line::5 x(w5 x(w9 w8)))) w9) enum(enum(w8 w12) enum(_ w12)))) }
+::std::IO::read_line::2 {
+  x(w5 x(w3 enum(enum(w11 w15) enum(_ w15))))
+  ::std::unicode::Char::eq::eq = fn(ref(w3 w7) fn(ref(10 _) ?(::std::IO::read_line::6 ::std::IO::read_line::5 x(w5 x(w7 w11)))))
+}
 
 ::std::IO::read_line::3 { x(x(w3 w3) x(_ ::std::logical::Option::None)) }
 
@@ -65,15 +87,18 @@
 }
 
 ::std::IO::read_line::7 {
-  x(x(w10 w18) w8)
-  ::std::IO::read_byte = fn(ref(w10 w1) fn(10 dup2255(@ne(10 ?(::std::IO::read_line::10 ::std::IO::read_line::9 x(x(w1 w18) x(w16 w8)))) w16)))
+  x(x(w10 w21) w8)
+  ::std::IO::read_byte = fn(ref(w10 w1) fn(10 w3))
+  ::std::unicode::Char::eq::ne = fn(ref(w3 w12) fn(ref(10 _) ?(::std::IO::read_line::10 ::std::IO::read_line::9 x(x(w1 w21) x(w12 w8)))))
 }
 
 ::std::IO::read_line::9 {
   x(w9 x(w7 x(x(w6 w19) w17)))
-  ::std::data::List::concat = fn(w6 fn(tup(1 tup(tup(w7 w10) w10)) w3))
+  ::std::data::List::concat::concat = fn(w6 fn(tup(1 tup(tup(w7 w10) w10)) w3))
   ::std::IO::read_line::7 = x(w9 x(x(w3 w19) w17))
 }
 
 ::std::IO::read_line::10 { x(x(w5 w5) x(_ x(x(w2 w2) _))) }
+
+::std::IO::read_byte { fn(ref(dup(@io_read_byte(w3 dup(byte @seq$(io2 w8))) io2) w8) fn(w3 byte)) }
 

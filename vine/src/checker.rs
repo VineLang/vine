@@ -550,7 +550,7 @@ impl<'core, 'a> Checker<'core, 'a> {
         .collect::<Vec<_>>();
       if args.impls.is_empty() {
         args.impls =
-          impl_params_types.into_iter().map(|ty| self.find_impl(args.span, &ty)).collect();
+          impl_params_types.into_iter().map(|mut ty| self.find_impl(args.span, &mut ty)).collect();
       } else {
         for (impl_, mut param_type) in args.impls.iter_mut().zip(impl_params_types.into_iter()) {
           self.check_impl_type(impl_, &mut param_type);
@@ -573,11 +573,13 @@ impl<'core, 'a> Checker<'core, 'a> {
     }
   }
 
-  fn find_impl(&mut self, span: Span, ty: &Type<'core>) -> Impl<'core> {
+  fn find_impl(&mut self, span: Span, ty: &mut Type<'core>) -> Impl<'core> {
     let results = self.finder(span).find_impl(ty);
     let diag = if let Ok(mut results) = results {
       if results.len() == 1 {
-        return results.pop().unwrap().0;
+        let mut result = results.pop().unwrap();
+        _ = self.unifier.unify(ty, &mut result.1);
+        return result.0;
       } else if results.is_empty() {
         Diag::CannotFindImpl { span, ty: self.display_type(ty) }
       } else {
