@@ -102,7 +102,7 @@ fn tests(t: &mut DynTester) {
   });
 }
 
-const VINE: &[&str] = &["vine"];
+const VINE: &[&str] = &["vine", "--release"];
 const IVY: &[&str] = &["ivy", "--release"];
 
 fn test_vi(t: &mut DynTester, path: &'static str, input: &'static [u8], output_ext: &'static str) {

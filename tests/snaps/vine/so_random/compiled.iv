@@ -1,11 +1,7 @@
 
-::std::numeric::N32::rotate_right { fn(@n32_rotr(x y) fn(x y)) }
+::std::numeric::N64::add { fn(tup(dup(@add(n0 n1) @n32_add_high(n2 n3)) @add(n4 @add(n3 n5))) fn(tup(dup(n0 n2) n4) tup(n1 n5))) }
 
-::std::numeric::N64::add { fn(tup(dup(@add(bl0 l) @n32_add_high(bl1 c)) @add(bh @add(c h))) fn(tup(dup(bl0 bl1) bh) tup(l h))) }
-
-::std::numeric::N64::mul { fn(tup(dup(@mul(bl0 l) dup(@n32_mul_high(bl1 ll) @mul(bh @add(hl @add(ll h))))) ah) fn(tup(dup(bl0 dup(bl1 @mul(ah hl))) bh) tup(l h))) }
-
-::std::IO::print_char { fn(ref(@io_print_char(char io) io) fn(char _)) }
+::std::numeric::N64::mul { fn(tup(dup(@mul(n0 n1) dup(@n32_mul_high(n2 n3) @mul(n4 @add(n5 @add(n3 n6))))) n7) fn(tup(dup(n0 dup(n2 @mul(n7 n5))) n4) tup(n1 n6))) }
 
 ::main { ::so_random::main }
 
@@ -14,39 +10,19 @@
   ::so_random::main::1 = x(x(w1 w11) x(0 ::std::rng::Pcg32::default))
 }
 
-::so_random::main::1 { x(w5 x(dup9(@lt(100 ?(::so_random::main::3 ::so_random::main::2 x(w5 x(w7 w2)))) w7) w2)) }
+::so_random::main::1 { x(n0 x(dup9(@lt(100 ?(::so_random::main::3 ::so_random::main::2 x(n0 x(n1 n2)))) n1) n2)) }
 
-::so_random::main::2 {
-  x(x(w14 w18) x(@add(1 w10) w11))
-  ::std::rng::Pcg32::gen_n32 = fn(ref(w11 w4) w6)
-  ::std::numeric::N32::to_string::to_string = fn(w6 w7)
-  ::std::IO::println = fn(ref(w14 w1) fn(w7 _))
-  ::so_random::main::1 = x(x(w1 w18) x(w10 w4))
-}
+::so_random::main::2 { x(x(n0 n1) x(@add(1 dup9(@lt(100 ?(::so_random::main::3 ::so_random::main::2 x(x(n2 n1) x(n3 tup(tup(n4 n5) n6))))) n3)) tup(dup1765(tup(@n32_shr(27 n7) dup1768(@n32_shr(13 @n32_xor(n8 @n32_xor(n7 @n32_rotr(n9 dup19(?(::std::numeric::N32::to_string::to_string::3 ::std::numeric::N32::to_string::to_string::2 x(n10 tup(dup2193(?(::std::IO::print::3 ::std::IO::print::2 x(x(n0 @io_print_char(10 n2)) x(n11 n12))) n11) tup(n12 _)))) n10))))) dup1768(@n32_shl(5 n8) @n32_shr(27 n9)))) tup(dup(@mul(1284865837 dup(@add(n13 n4) @n32_add_high(n14 n15))) dup(@n32_mul_high(1284865837 n16) @mul(1481765933 @add(n17 @add(n16 @add(n18 @add(n15 n5))))))) @mul$(1284865837 n17))) dup1766(n6 tup(dup(n13 n14) n18))))) }
 
-::so_random::main::3 { x(x(w3 w3) _) }
+::so_random::main::3 { x(x(n0 n0) _) }
 
-::std::numeric::N32::to_string::to_string { fn(dup19(?(::std::numeric::N32::to_string::to_string::3 ::std::numeric::N32::to_string::to_string::2 x(w7 w6)) w7) w6) }
+::std::numeric::N32::to_string::to_string::2 { x(dup28(?(::std::numeric::N32::to_string::to_string::6 ::std::numeric::N32::to_string::to_string::5 x(n0 x(tup(0 tup(n1 n1)) n2))) n0) n2) }
 
-::std::numeric::N32::to_string::to_string::2 {
-  x(w6 w9)
-  ::std::numeric::N32::to_string::to_string::4 = x(w6 x(tup(0 tup(w7 w7)) w9))
-}
+::std::numeric::N32::to_string::to_string::3 { x(_ tup(1 tup(tup(48 n0) n0))) }
 
-::std::numeric::N32::to_string::to_string::3 { x(_ tup(1 tup(tup(48 w5) w5))) }
+::std::numeric::N32::to_string::to_string::5 { x(dup31(@rem(10 @add$(48 n0)) @div(10 dup28(?(::std::numeric::N32::to_string::to_string::6 ::std::numeric::N32::to_string::to_string::5 x(n1 x(tup(n2 tup(tup(n0 n3) n4)) n5))) n1))) x(tup(@add$(1 n2) tup(n3 n4)) n5)) }
 
-::std::numeric::N32::to_string::to_string::4 { x(dup28(?(::std::numeric::N32::to_string::to_string::6 ::std::numeric::N32::to_string::to_string::5 x(w6 w2)) w6) w2) }
-
-::std::numeric::N32::to_string::to_string::5 {
-  x(dup31(@rem(10 w1) @div(10 w8)) x(w11 w15))
-  48 = @add(w1 w2)
-  ::std::data::List::concat = fn(tup(1 tup(tup(w2 w13) w13)) fn(w11 w5))
-  ::std::numeric::N32::to_string::to_string::4 = x(w8 x(w5 w15))
-}
-
-::std::numeric::N32::to_string::to_string::6 { x(_ x(w1 w1)) }
-
-::std::data::List::concat { fn(tup(@add(w10 w18) tup(w6 w11)) fn(tup(w10 tup(w11 w21)) tup(w18 tup(w6 w21)))) }
+::std::numeric::N32::to_string::to_string::6 { x(_ x(n0 n0)) }
 
 ::std::numeric::N64::from_n32 { fn(w0 tup(w0 0)) }
 
@@ -68,31 +44,7 @@
 
 ::std::rng::Pcg32::multiplier { tup(1284865837 1481765933) }
 
-::std::rng::Pcg32::gen_n32 {
-  fn(ref(tup(dup1765(tup(@n32_shr(27 w24) dup1768(@n32_shr(13 @n32_xor(w21 @n32_xor(w24 w25))) dup1768(@n32_shl(5 w21) @n32_shr(27 w27)))) w13) dup1766(w2 w15)) tup(w16 w2)) w28)
-  ::std::numeric::N64::mul = fn(w13 fn(::std::rng::Pcg32::multiplier w14))
-  ::std::numeric::N64::add = fn(w14 fn(w15 w16))
-  ::std::numeric::N32::rotate_right = fn(w25 fn(w27 w28))
-}
+::std::IO::print::2 { x(x(@io_print_char(n0 n1) n2) x(@sub(1 dup2193(?(::std::IO::print::3 ::std::IO::print::2 x(x(n1 n2) x(n3 n4))) n3)) tup(n0 n4))) }
 
-::std::IO::println {
-  fn(ref(w1 w12) fn(w3 _))
-  ::std::IO::print = fn(ref(w1 w7) fn(w3 _))
-  ::std::IO::print_char = fn(ref(w7 w12) fn(10 _))
-}
-
-::std::IO::print {
-  fn(ref(w1 w16) fn(tup(w7 tup(w8 _)) _))
-  ::std::IO::print::1 = x(x(w1 w16) x(w7 w8))
-}
-
-::std::IO::print::1 { x(w4 x(dup2193(?(::std::IO::print::3 ::std::IO::print::2 x(w4 x(w6 w1))) w6) w1)) }
-
-::std::IO::print::2 {
-  x(x(w17 w21) x(@sub(1 w1) tup(w4 w5)))
-  ::std::IO::print_char = fn(ref(w17 w10) fn(w4 _))
-  ::std::IO::print::1 = x(x(w10 w21) x(w1 w5))
-}
-
-::std::IO::print::3 { x(x(w3 w3) _) }
+::std::IO::print::3 { x(x(n0 n0) _) }
 

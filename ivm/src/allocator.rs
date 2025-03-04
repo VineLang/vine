@@ -57,6 +57,17 @@ impl<'ivm, 'ext> IVM<'ivm, 'ext> {
     }
   }
 
+  /// Allocates two new wires, returning both of their ends.
+  pub fn new_wires(&mut self) -> ((Wire<'ivm>, Wire<'ivm>), (Wire<'ivm>, Wire<'ivm>)) {
+    unsafe {
+      let addr = self.alloc_node();
+      (
+        (Wire::from_addr(addr), Wire::from_addr(addr)),
+        (Wire::from_addr(addr.other_half()), Wire::from_addr(addr.other_half())),
+      )
+    }
+  }
+
   /// Frees the memory backing a wire.
   #[inline]
   pub(crate) fn free_wire(&mut self, wire: Wire<'ivm>) {

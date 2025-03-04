@@ -13,9 +13,13 @@ impl<'ivm> Host<'ivm> {
   pub fn read<'ext>(&self, ivm: &IVM<'ivm, 'ext>, port: &Port<'ivm>) -> Tree {
     Reader::new(ivm, self).read_port(port)
   }
+
+  pub fn reader<'ctx, 'ext>(&'ctx self, ivm: &'ctx IVM<'ivm, 'ext>) -> Reader<'ctx, 'ivm, 'ext> {
+    Reader::new(ivm, self)
+  }
 }
 
-struct Reader<'ctx, 'ivm, 'ext> {
+pub struct Reader<'ctx, 'ivm, 'ext> {
   ivm: &'ctx IVM<'ivm, 'ext>,
   host: &'ctx Host<'ivm>,
   vars: HashMap<Addr, usize>,
@@ -27,7 +31,7 @@ impl<'ctx, 'ivm, 'ext> Reader<'ctx, 'ivm, 'ext> {
     Reader { ivm, host, vars: HashMap::new(), next_var: 0 }
   }
 
-  fn read_port(&mut self, p: &Port<'ivm>) -> Tree {
+  pub fn read_port(&mut self, p: &Port<'ivm>) -> Tree {
     let p = self.ivm.follow_ref(p);
     match p.tag() {
       Tag::Wire => {

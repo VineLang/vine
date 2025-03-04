@@ -12,7 +12,7 @@ pub fn main(&io: &IO) {
     let secret = N32::parse(secret).unwrap();
     let i = 0;
     let last_price = 0;
-    while i < 2000 {
+    while i < black_box(2000) {
       evolve(&secret);
       let price = secret % 10;
       (a, b, c, d) = (b, c, d, price - last_price);
