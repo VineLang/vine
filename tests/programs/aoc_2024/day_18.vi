@@ -1,5 +1,5 @@
 
-use std::data::Array;
+use std::{data::Array, ops::vectorized::add};
 
 const config: (N32, N32) = (7, 12);
 // const config: (N32, N32) = (71, 1024);
@@ -23,7 +23,7 @@ pub fn main(&io: &IO) {
   let bytes = i;
 
   dyn fn show_grid(c: N32) {
-    io.println(grid.to_list().map(fn(row: Array[N32]) {
+    io.println(grid.as[List].map(fn(row: Array[N32]) {
       row.fold_front(
         "",
         fn(s: String, n: N32) {

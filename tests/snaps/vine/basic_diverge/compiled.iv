@@ -9,11 +9,14 @@
   ::std::IO::println = fn(ref(w7 w15) fn(w20 _))
   ::basic_diverge::foo = fn(0 fn(ref(w18 w26) w28))
   ::std::IO::println = fn(ref(w15 w23) fn(w28 _))
-  ::std::numeric::N32::to_string::to_string = fn(w26 tup(@add(13 w38) tup(w39 w40)))
+  ::std::numeric::N32::to_string::to_string = fn(w26 tup(@n32_add(13 w38) tup(w39 w40)))
   ::std::IO::println = fn(ref(w23 w31) fn(tup(w38 tup(tup(10 tup(122 tup(101 tup(114 tup(111 tup(95 tup(99 tup(111 tup(117 tup(110 tup(116 tup(58 tup(32 w39))))))))))))) w40)) _))
 }
 
-::std::numeric::N32::to_string::to_string { fn(dup12(?(::std::numeric::N32::to_string::to_string::3 ::std::numeric::N32::to_string::to_string::2 x(w7 w6)) w7) w6) }
+::std::numeric::N32::to_string::to_string {
+  fn(w0 w10)
+  ::std::numeric::N32::eq::ne = fn(ref(w0 w6) fn(ref(0 _) ?(::std::numeric::N32::to_string::to_string::3 ::std::numeric::N32::to_string::to_string::2 x(w6 w10))))
+}
 
 ::std::numeric::N32::to_string::to_string::2 {
   x(w6 w9)
@@ -22,21 +25,23 @@
 
 ::std::numeric::N32::to_string::to_string::3 { x(_ tup(1 tup(tup(48 w5) w5))) }
 
-::std::numeric::N32::to_string::to_string::4 { x(dup21(?(::std::numeric::N32::to_string::to_string::6 ::std::numeric::N32::to_string::to_string::5 x(n0 n1)) n0) n1) }
+::std::numeric::N32::to_string::to_string::4 { x(dup32(n0 @n32_ne(0 ?(::std::numeric::N32::to_string::to_string::6 ::std::numeric::N32::to_string::to_string::5 x(n0 n1)))) n1) }
 
-::std::numeric::N32::to_string::to_string::5 { x(dup24(@rem(10 @add$(48 n0)) @div(10 dup21(?(::std::numeric::N32::to_string::to_string::6 ::std::numeric::N32::to_string::to_string::5 x(n1 x(tup(n2 tup(tup(n0 n3) n4)) n5))) n1))) x(tup(@add$(1 n2) tup(n3 n4)) n5)) }
+::std::numeric::N32::to_string::to_string::5 { x(dup26(@n32_rem(10 @n32_add$(48 n0)) @n32_div(10 dup32(n1 @n32_ne(0 ?(::std::numeric::N32::to_string::to_string::6 ::std::numeric::N32::to_string::to_string::5 x(n1 x(tup(n2 tup(tup(n0 n3) n4)) n5))))))) x(tup(@n32_add$(1 n2) tup(n3 n4)) n5)) }
 
 ::std::numeric::N32::to_string::to_string::6 { x(_ x(n0 n0)) }
 
-::basic_diverge::foo { fn(?(::basic_diverge::foo::3 ::basic_diverge::foo::2 x(x(n0 n1) n2)) fn(ref(n0 n1) n2)) }
+::std::numeric::N32::eq::ne { fn(ref(dup32(n0 @n32_ne(n1 n2)) n0) fn(ref(dup33(n3 n1) n3) n2)) }
+
+::basic_diverge::foo { fn(dup32(_ @n32_ne(0 ?(::basic_diverge::foo::3 ::basic_diverge::foo::2 x(x(n0 n1) n2)))) fn(ref(n0 n1) n2)) }
 
 ::basic_diverge::foo::2 { x(x(n0 n0) tup(9 tup(tup(110 tup(111 tup(110 tup(45 tup(122 tup(101 tup(114 tup(111 tup(33 n1))))))))) n1))) }
 
-::basic_diverge::foo::3 { x(x(@add(1 n0) n0) tup(4 tup(tup(122 tup(101 tup(114 tup(111 n1)))) n1))) }
+::basic_diverge::foo::3 { x(x(@n32_add(1 n0) n0) tup(4 tup(tup(122 tup(101 tup(114 tup(111 n1)))) n1))) }
 
-::std::IO::println { fn(ref(n0 n1) fn(tup(dup2196(?(::std::IO::print::3 ::std::IO::print::2 x(x(n0 @io_print_char(10 n1)) x(n2 n3))) n2) tup(n3 _)) _)) }
+::std::IO::println { fn(ref(n0 n1) fn(tup(dup32(n2 @n32_ne(0 ?(::std::IO::print::3 ::std::IO::print::2 x(x(n0 @io_print_char(10 n1)) x(n2 n3))))) tup(n3 _)) _)) }
 
-::std::IO::print::2 { x(x(@io_print_char(n0 n1) n2) x(@sub(1 dup2196(?(::std::IO::print::3 ::std::IO::print::2 x(x(n1 n2) x(n3 n4))) n3)) tup(n0 n4))) }
+::std::IO::print::2 { x(x(@io_print_char(n0 n1) n2) x(@n32_sub(1 dup32(n3 @n32_ne(0 ?(::std::IO::print::3 ::std::IO::print::2 x(x(n1 n2) x(n3 n4)))))) tup(n0 n4))) }
 
 ::std::IO::print::3 { x(x(n0 n0) _) }
 

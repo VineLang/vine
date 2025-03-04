@@ -1,21 +1,40 @@
 
-use ops::Ord;
+use ops::{Cast, arithmetic::{Add, Sub}, comparison::{Eq, Ord}};
 
 #[builtin = "Char"]
 pub mod Char {
-  pub inline_ivy! from_n32: fn(N32) -> Char { fn(x x) }
-  pub inline_ivy! .as_n32: fn(Char) -> N32 { fn(x x) }
+  pub impl from_n32: Cast[N32, Char] {
+    fn .cast(n: N32) -> Char {
+      inline_ivy! (n <- n) -> Char { n }
+    }
+  }
+
+  pub impl to_n32: Cast[Char, N32] {
+    fn .cast(c: Char) -> N32 {
+      inline_ivy! (c <- c) -> N32 { c }
+    }
+  }
+
+  pub impl eq: Eq[Char] {
+    fn .eq(&a: &Char, &b: &Char) -> Bool {
+      inline_ivy! (a <- a, b <- b) -> Bool { out a = @n32_eq(b out) }
+    }
+
+    fn .ne(&a: &Char, &b: &Char) -> Bool {
+      inline_ivy! (a <- a, b <- b) -> Bool { out a = @n32_ne(b out) }
+    }
+  }
 
   pub impl ord: Ord[Char] {
-    fn .cmp(&a: &Char, &b: &Char) -> Ord {
-      if a < b {
-        Ord::Lt
-      } else if a > b {
-        Ord::Gt
-      } else {
-        Ord::Eq
-      }
+    fn .lt(&a: &Char, &b: &Char) -> Bool {
+      inline_ivy! (a <- a, b <- b) -> Bool { out a = @n32_lt(b out) }
     }
+
+    fn .le(&a: &Char, &b: &Char) -> Bool {
+      inline_ivy! (a <- a, b <- b) -> Bool { out a = @n32_le(b out) }
+    }
+
+    const cmp: fn(&Char, &Char) -> Ord = Ord::cmp_from_lt[Char];
   }
 
   pub fn .is_whitespace(char: Char) -> Bool {
@@ -28,7 +47,25 @@ pub mod Char {
 
   pub impl to_string: ToString[Char] {
     fn .to_string(self: Char) -> String {
-      String({ chars: [self] })
+      [self] as String
+    }
+  }
+
+  pub impl add_n32: Add[Char, N32, Char] {
+    fn .add(a: Char, b: N32) -> Char {
+      inline_ivy! (a <- a, b <- b) -> Char { out a = @n32_add(b out) }
+    }
+  }
+
+  pub impl sub_n32: Sub[Char, N32, Char] {
+    fn .sub(a: Char, b: N32) -> Char {
+      inline_ivy! (a <- a, b <- b) -> Char { out a = @n32_sub(b out) }
+    }
+  }
+
+  pub impl sub_char: Sub[Char, Char, N32] {
+    fn .sub(a: Char, b: Char) -> N32 {
+      inline_ivy! (a <- a, b <- b) -> N32 { out a = @n32_sub(b out) }
     }
   }
 }

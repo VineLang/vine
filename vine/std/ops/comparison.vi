@@ -1,0 +1,83 @@
+
+pub trait Eq[T] {
+  #[builtin = "eq"]
+  fn .eq(a: &T, b: &T) -> Bool;
+
+  #[builtin = "ne"]
+  fn .ne(a: &T, b: &T) -> Bool;
+}
+
+pub mod Eq {
+  pub impl pair[A, B; Eq[A], Eq[B]]: Eq[(A, B)] {
+    fn eq(&(a0: A, b0: B), &(a1: A, b1: B)) -> Bool {
+      a0 == a1 && b0 == b1
+    }
+
+    fn ne(&(a0: A, b0: B), &(a1: A, b1: B)) -> Bool {
+      a0 != a1 || b0 != b1
+    }
+  }
+
+  pub fn ne_from_eq[T; Eq[T]](&a: &T, &b: &T) -> Bool {
+    !(a == b)
+  }
+}
+
+pub trait Ord[T] {
+  fn .cmp(a: &T, b: &T) -> Ord;
+
+  #[builtin = "lt"]
+  fn .lt(a: &T, b: &T) -> Bool;
+
+  #[builtin = "le"]
+  fn .le(a: &T, b: &T) -> Bool;
+}
+
+pub enum Ord {
+  Lt,
+  Eq,
+  Gt,
+}
+
+pub mod Ord {
+  pub impl pair[A, B; Ord[A], Ord[B]]: Ord[(A, B)] {
+    fn cmp(&(a0: A, b0: B), &(a1: A, b1: B)) -> Ord {
+      match a0.cmp(&a1) {
+        Ord::Lt { Ord::Lt }
+        Ord::Gt { Ord::Gt }
+        Ord::Eq { b0.cmp(&b1) }
+      }
+    }
+
+    const lt: fn(&(A, B), &(A, B)) -> Bool = Ord::lt_from_cmp[(A, B)];
+    const le: fn(&(A, B), &(A, B)) -> Bool = Ord::le_from_cmp[(A, B)];
+  }
+
+  #[builtin = "gt"]
+  pub fn .gt[T; Ord[T]](&a: &T, &b: &T) -> Bool {
+    b < a
+  }
+
+  #[builtin = "ge"]
+  pub fn .ge[T; Ord[T]](&a: &T, &b: &T) -> Bool {
+    b <= a
+  }
+
+  pub fn lt_from_cmp[T; Ord[T]](&a: &T, &b: &T) -> Bool {
+    a.cmp(&b) is Ord::Lt
+  }
+
+  pub fn le_from_cmp[T; Ord[T]](&a: &T, &b: &T) -> Bool {
+    !(a.cmp(&b) is Ord::Gt)
+  }
+
+  pub fn cmp_from_lt[T; Ord[T]](&a: &T, &b: &T) -> Ord {
+    if a < b {
+      Ord::Lt
+    } else if a > b {
+      Ord::Gt
+    } else {
+      Ord::Eq
+    }
+  }
+}

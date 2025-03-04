@@ -1,5 +1,5 @@
 
-use std::data::Map;
+use std::{data::Map, ops::vectorized::{add, div_scalar, neg, sub}};
 
 pub fn main(&io: &IO) {
   let input = io.full_input();

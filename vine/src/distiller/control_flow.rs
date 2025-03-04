@@ -1,5 +1,5 @@
 use crate::{
-  ast::{Block, ComparisonOp, Expr, ExprKind, LabelId, Local, LogicalOp, Pat, Stmt, StmtKind},
+  ast::{Block, Expr, ExprKind, LabelId, Local, LogicalOp, Pat, Stmt, StmtKind},
   vir::{Interface, InterfaceKind, Layer, Port, Stage, Step, Transfer},
 };
 
@@ -304,7 +304,7 @@ impl<'core, 'r> Distiller<'core, 'r> {
         let value = self.distill_expr_value(stage, cond);
         if negate {
           let wire = stage.new_wire();
-          stage.steps.push(Step::ExtFn("eq", false, value, Port::N32(0), wire.0));
+          stage.steps.push(Step::ExtFn("n32_eq", false, value, Port::N32(0), wire.0));
           wire.1
         } else {
           value
@@ -336,17 +336,6 @@ impl<'core, 'r> Distiller<'core, 'r> {
   ) -> (Stage, Stage) {
     if let ExprKind::Paren(inner) = &cond.kind {
       return self.distill_cond(layer, stage, inner);
-    }
-    if let ExprKind::ComparisonOp(lhs, cmps) = &cond.kind {
-      if let [(op, rhs)] = &**cmps {
-        if matches!(rhs.kind, ExprKind::N32(0)) {
-          if *op == ComparisonOp::Ne {
-            return self.distill_cond(layer, stage, lhs);
-          } else if *op == ComparisonOp::Eq {
-            return swap(self.distill_cond(layer, stage, lhs));
-          }
-        }
-      }
     }
     match &cond.kind {
       ExprKind![!cond] => {

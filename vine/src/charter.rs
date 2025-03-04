@@ -293,20 +293,6 @@ impl<'core> Charter<'core, '_> {
         None
       }
 
-      ItemKind::Ivy(ivy_item) => {
-        let def = self.chart_child(parent, ivy_item.name, vis, true);
-        let generics = self.chart_generics(def, ivy_item.generics, false);
-        self.define_value(
-          span,
-          def,
-          vis,
-          generics,
-          ValueDefKind::Ivy { ty: ivy_item.ty, net: ivy_item.net },
-          ivy_item.method,
-        );
-        Some(def)
-      }
-
       ItemKind::Taken => None,
     };
 
@@ -367,9 +353,17 @@ impl<'core> Charter<'core, '_> {
       Builtin::Prelude => set(Some(def_id), &mut self.chart.builtins.prelude),
       Builtin::List => set(adt(), &mut self.chart.builtins.list),
       Builtin::String => set(adt(), &mut self.chart.builtins.string),
-      Builtin::Concat => set(def.value_def, &mut self.chart.builtins.concat),
-      Builtin::ToStringTrait => set(def.trait_def, &mut self.chart.builtins.to_string_trait),
-      Builtin::ToStringFn => set(def.value_def, &mut self.chart.builtins.to_string_fn),
+      Builtin::ToString => set(def.value_def, &mut self.chart.builtins.to_string),
+      Builtin::Neg => set(def.value_def, &mut self.chart.builtins.neg),
+      Builtin::Not => set(def.value_def, &mut self.chart.builtins.not),
+      Builtin::BoolNot => set(def.impl_def, &mut self.chart.builtins.bool_not),
+      Builtin::Cast => set(def.value_def, &mut self.chart.builtins.cast),
+      Builtin::BinaryOp(op) => {
+        set(def.value_def, self.chart.builtins.binary_ops.entry(op).or_default())
+      }
+      Builtin::ComparisonOp(op) => {
+        set(def.value_def, self.chart.builtins.comparison_ops.entry(op).or_default())
+      }
     }
   }
 

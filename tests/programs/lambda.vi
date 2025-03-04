@@ -64,7 +64,7 @@ pub mod Term {
 
   pub fn parse(io: IO, source: String) -> Result[Term, String] {
     let err;
-    let parser = Parser({ io, scope: Map::empty, chars: source.chars, error: move ~err });
+    let parser = Parser({ io, scope: Map::empty, chars: source as List, error: move ~err });
     let term = parser.parse_term();
     ~parser.error = None;
     if err is Some(error) {

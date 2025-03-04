@@ -145,7 +145,6 @@ impl<'core: 'src, 'src> Formatter<'src> {
           Self::fmt_use_tree(None, &u.tree),
           Doc(";"),
         ]),
-        ItemKind::Ivy(_) => return self.fmt_verbatim(item.span),
         ItemKind::Taken => unreachable!(),
       },
     ]))
@@ -418,10 +417,14 @@ impl<'core: 'src, 'src> Formatter<'src> {
       ExprKind::Deref(x, false) => Doc::concat([Doc("*"), self.fmt_expr(x)]),
       ExprKind::Move(x, false) => Doc::concat([Doc("move "), self.fmt_expr(x)]),
       ExprKind::Inverse(x, false) => Doc::concat([Doc("~"), self.fmt_expr(x)]),
+      ExprKind::Cast(x, ty, false) => Doc::concat([self.fmt_expr(x), Doc(" as "), self.fmt_ty(ty)]),
       ExprKind::Ref(x, true) => Doc::concat([self.fmt_expr(x), Doc(".&")]),
       ExprKind::Deref(x, true) => Doc::concat([self.fmt_expr(x), Doc(".*")]),
       ExprKind::Move(x, true) => Doc::concat([self.fmt_expr(x), Doc(".move")]),
       ExprKind::Inverse(x, true) => Doc::concat([self.fmt_expr(x), Doc(".~")]),
+      ExprKind::Cast(x, ty, true) => {
+        Doc::concat([self.fmt_expr(x), Doc(".as["), self.fmt_ty(ty), Doc("]")])
+      }
       ExprKind::Place(v, s) => {
         Doc::concat([Doc("("), self.fmt_expr(v), Doc("; "), self.fmt_expr(s), Doc(")")])
       }
@@ -491,6 +494,16 @@ impl<'core: 'src, 'src> Formatter<'src> {
           |(expr, seg)| [Doc::group([self.fmt_expr(expr)]), self.fmt_verbatim(seg.span)],
         )))
       }
+      ExprKind::InlineIvy(binds, ty, net_span, _) => Doc::concat([
+        Doc("inline_ivy! "),
+        Doc::paren_comma(binds.iter().map(|(var, value, expr)| {
+          Doc::concat([Doc(*var), Doc(if *value { " <- " } else { " -> " }), self.fmt_expr(expr)])
+        })),
+        Doc(" -> "),
+        self.fmt_ty(ty),
+        Doc(" "),
+        self.fmt_verbatim(*net_span),
+      ]),
     }
   }
 

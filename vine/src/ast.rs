@@ -7,7 +7,7 @@ use std::{
 
 use class::Classes;
 use ivy::ast::Net;
-use vine_util::{interner::Interned, new_idx};
+use vine_util::{idx, interner::Interned, new_idx};
 
 use crate::{
   chart::{AdtId, ImplDefId, TraitDefId, TypeDefId, ValueDefId, VariantId},
@@ -37,7 +37,6 @@ pub enum ItemKind<'core> {
   Trait(TraitItem<'core>),
   Impl(ImplItem<'core>),
   Use(UseItem<'core>),
-  Ivy(InlineIvy<'core>),
   #[default]
   Taken,
 }
@@ -136,15 +135,6 @@ impl<'core> UseTree<'core> {
   }
 }
 
-#[derive(Debug, Clone)]
-pub struct InlineIvy<'core> {
-  pub method: bool,
-  pub name: Ident<'core>,
-  pub generics: GenericParams<'core>,
-  pub ty: Ty<'core>,
-  pub net: Net,
-}
-
 #[derive(Default, Debug, Clone)]
 pub enum Vis<'core> {
   #[default]
@@ -174,9 +164,13 @@ pub enum Builtin {
   Prelude,
   List,
   String,
-  Concat,
-  ToStringTrait,
-  ToStringFn,
+  ToString,
+  BinaryOp(BinaryOp),
+  Neg,
+  Not,
+  BoolNot,
+  ComparisonOp(ComparisonOp),
+  Cast,
 }
 
 pub type GenericParams<'core> = Generics<Ident<'core>, (Option<Ident<'core>>, Trait<'core>)>;
@@ -301,9 +295,9 @@ pub enum ExprKind<'core> {
   Call(B<Expr<'core>>, Vec<Expr<'core>>),
   #[class(value, place, space, resolved)]
   Adt(AdtId, VariantId, GenericArgs<'core>, Vec<Expr<'core>>),
-  #[class(value)]
+  #[class(value, sugar)]
   Neg(B<Expr<'core>>),
-  #[class(value)]
+  #[class(value, sugar)]
   BinaryOp(BinaryOp, B<Expr<'core>>, B<Expr<'core>>),
   #[class(value, cond)]
   Bool(bool),
@@ -313,10 +307,12 @@ pub enum ExprKind<'core> {
   Is(B<Expr<'core>>, B<Pat<'core>>),
   #[class(value, cond)]
   LogicalOp(LogicalOp, B<Expr<'core>>, B<Expr<'core>>),
-  #[class(value)]
+  #[class(value, sugar)]
   ComparisonOp(B<Expr<'core>>, Vec<(ComparisonOp, Expr<'core>)>),
-  #[class(value)]
+  #[class(value, sugar)]
   BinaryOpAssign(BinaryOp, B<Expr<'core>>, B<Expr<'core>>),
+  #[class(value, sugar)]
+  Cast(B<Expr<'core>>, B<Ty<'core>>, bool),
   #[class(value)]
   N32(u32),
   #[class(value)]
@@ -339,6 +335,12 @@ pub enum ExprKind<'core> {
   MoveLocal(Local),
   #[class(space, synthetic)]
   SetLocal(Local),
+  #[class(value)]
+  InlineIvy(Vec<(Ident<'core>, bool, Expr<'core>)>, Ty<'core>, Span, Net),
+  #[class(value, synthetic)]
+  CallAssign(B<Expr<'core>>, B<Expr<'core>>, B<Expr<'core>>),
+  #[class(value, synthetic)]
+  CallCompare(B<Expr<'core>>, Vec<(Expr<'core>, Expr<'core>)>),
   #[class(error)]
   Error(ErrorGuaranteed),
 }
@@ -478,7 +480,7 @@ pub enum TraitKind<'core> {
   Error(ErrorGuaranteed),
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum BinaryOp {
   BitOr,
   BitXor,
@@ -487,10 +489,10 @@ pub enum BinaryOp {
   Shr,
   Add,
   Sub,
-  Concat,
   Mul,
   Div,
   Rem,
+  Concat, //
 }
 
 impl Display for BinaryOp {
@@ -524,7 +526,7 @@ pub enum LogicalOp {
   Implies,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum ComparisonOp {
   Eq,
   Ne,
@@ -657,3 +659,6 @@ impl From<ErrorGuaranteed> for Block<'_> {
     Block { span: Span::NONE, stmts: Vec::from([err.into()]) }
   }
 }
+
+impl idx::IsEnabled for BinaryOp {}
+impl idx::IsEnabled for ComparisonOp {}

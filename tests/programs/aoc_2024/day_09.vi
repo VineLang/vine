@@ -29,7 +29,7 @@ fn part1(input: String) -> N64 {
 
   dyn fn push_block(id: N32, len: N32) {
     let end = pos + len;
-    sum = sum.add(N64::mul_n32_n32(id, ((end - 1) * end - (pos - 1) * pos) / 2));
+    sum = sum + N64::mul_n32_n32(id, ((end - 1) * end - (pos - 1) * pos) / 2);
     pos = end;
   }
 
@@ -88,7 +88,7 @@ fn part2(input: String) -> N64 {
     }
     iter.drop();
     let end = pos + len;
-    sum = sum.add(N64::mul_n32_n32(id, ((end - 1) * end - (pos - 1) * pos) / 2));
+    sum = sum + N64::mul_n32_n32(id, ((end - 1) * end - (pos - 1) * pos) / 2);
   }
 
   sum

@@ -6,13 +6,13 @@
   ::square_case::main::1 = x(x(w1 w9) 2)
 }
 
-::square_case::main::1 { x(n0 dup8(@lt(1000 ?(::square_case::main::3 ::square_case::main::2 x(n0 n1))) n1)) }
+::square_case::main::1 { x(n0 dup16(n1 @n32_lt(1000 ?(::square_case::main::3 ::square_case::main::2 x(n0 n1))))) }
 
-::square_case::main::2 { x(x(n0 n1) dup12(dup24(@lt$(0 ?(::square_case::squares::3 ::square_case::squares::2 x(x(n0 @io_print_char(10 n2)) x(n3 0)))) n3) dup12(n4 @mul(n4 dup8(@lt(1000 ?(::square_case::main::3 ::square_case::main::2 x(x(n2 n1) n5))) n5))))) }
+::square_case::main::2 { x(x(n0 n1) dup13(dup17(n2 @n32_lt$(0 ?(::square_case::squares::3 ::square_case::squares::2 x(x(n0 @io_print_char(10 n3)) x(n2 0))))) dup13(n4 @n32_mul(n4 dup16(n5 @n32_lt(1000 ?(::square_case::main::3 ::square_case::main::2 x(x(n3 n1) n5)))))))) }
 
 ::square_case::main::3 { x(x(n0 n0) _) }
 
-::square_case::squares::2 { x(x(@io_print_char(9633 n0) n1) x(dup24(n2 n3) @add(1 dup25(@lt(n2 ?(::square_case::squares::3 ::square_case::squares::2 x(x(n0 n1) x(n3 n4)))) n4)))) }
+::square_case::squares::2 { x(x(@io_print_char(9633 n0) n1) x(dup17(n2 n3) @n32_add(1 dup16(n4 @n32_lt(n3 ?(::square_case::squares::3 ::square_case::squares::2 x(x(n0 n1) x(n2 n4)))))))) }
 
 ::square_case::squares::3 { x(x(n0 n0) _) }
 

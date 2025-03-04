@@ -10,7 +10,7 @@ use vine_util::{
 
 use crate::{
   analyzer::usage::Usage,
-  ast::{BinaryOp, ComparisonOp, DynFnId, Expr, ExprKind, Key, LabelId, Local, Pat, PatKind},
+  ast::{DynFnId, Expr, ExprKind, Key, LabelId, Local, Pat, PatKind},
   chart::{AdtId, Chart, ValueDef, ValueDefKind, VariantId},
   vir::{
     Interface, InterfaceId, InterfaceKind, Layer, LayerId, Port, Stage, StageId, Step, Transfer,
@@ -152,10 +152,8 @@ impl<'core, 'r> Distiller<'core, 'r> {
         Port::Erase
       }
       ExprKind::Ref(place, _) => {
-        let (value, space) = self.distill_expr_place(stage, place);
-        let wire = stage.new_wire();
-        stage.steps.push(Step::Ref(wire.0, value, space));
-        wire.1
+        let place = self.distill_expr_place(stage, place);
+        stage.ref_place(place)
       }
       ExprKind::Move(place, _) => {
         let (value, space) = self.distill_expr_place(stage, place);
@@ -193,12 +191,6 @@ impl<'core, 'r> Distiller<'core, 'r> {
         stage.steps.push(Step::Fn(func, args, wire.0));
         wire.1
       }
-      ExprKind::Neg(value) => {
-        let value = self.distill_expr_value(stage, value);
-        let wire = stage.new_wire();
-        stage.steps.push(Step::ExtFn("sub", true, value, Port::N32(0), wire.0));
-        wire.1
-      }
       ExprKind::String(init, rest) => {
         let wire = stage.new_wire();
         let rest = rest
@@ -210,41 +202,54 @@ impl<'core, 'r> Distiller<'core, 'r> {
       }
       ExprKind::CopyLocal(local) => stage.get_local(*local),
       ExprKind::MoveLocal(local) => stage.take_local(*local),
-      ExprKind::BinaryOp(op, lhs, rhs) => {
-        let lhs = self.distill_expr_value(stage, lhs);
-        let rhs = self.distill_expr_value(stage, rhs);
-        let out = stage.new_wire();
-        self.distill_bin_op(stage, *op, lhs, rhs, out.0);
-        out.1
-      }
-      ExprKind::BinaryOpAssign(op, lhs, rhs) => {
+      ExprKind::CallAssign(func, lhs, rhs) => {
+        let func = self.distill_expr_value(stage, func);
         let rhs = self.distill_expr_value(stage, rhs);
         let (lhs, out) = self.distill_expr_place(stage, lhs);
-        self.distill_bin_op(stage, *op, lhs, rhs, out);
+        stage.steps.push(Step::Fn(func, vec![lhs, rhs], out));
         Port::Erase
       }
-      ExprKind::ComparisonOp(init, cmps) => {
+      ExprKind::CallCompare(init, cmps) => {
         let mut last_result = Port::Erase;
-        let mut lhs = self.distill_expr_value(stage, init);
-        for (i, (op, rhs)) in cmps.iter().enumerate() {
-          let (ext_fn, swap) = match op {
-            ComparisonOp::Eq => ("eq", false),
-            ComparisonOp::Ne => ("ne", false),
-            ComparisonOp::Lt => ("lt", false),
-            ComparisonOp::Gt => ("lt", true),
-            ComparisonOp::Le => ("le", false),
-            ComparisonOp::Ge => ("le", true),
-          };
+        let lhs = self.distill_expr_place(stage, init);
+        let mut lhs = stage.ref_place(lhs);
+        for (i, (func, rhs)) in cmps.iter().enumerate() {
+          let func = self.distill_expr_value(stage, func);
           let first = i == 0;
           let last = i == cmps.len() - 1;
-          let rhs = self.distill_expr_value(stage, rhs);
-          let (rhs, next_lhs) = if last { (rhs, Port::Erase) } else { stage.dup(rhs) };
-          let result = stage.ext_fn(ext_fn, swap, lhs, rhs);
+          let rhs = self.distill_expr_place(stage, rhs);
+          let (rhs, next_lhs) = if last {
+            (stage.ref_place(rhs), Port::Erase)
+          } else {
+            let wire = stage.new_wire();
+            (stage.ref_place((rhs.0, wire.0)), stage.ref_place((wire.1, rhs.1)))
+          };
+          let result = stage.new_wire();
+          stage.steps.push(Step::Fn(func, vec![lhs, rhs], result.0));
           last_result =
-            if first { result } else { stage.ext_fn("n32_and", false, last_result, result) };
+            if first { result.1 } else { stage.ext_fn("n32_and", false, last_result, result.1) };
           lhs = next_lhs;
         }
         last_result
+      }
+
+      ExprKind::InlineIvy(binds, _, _, net) => {
+        let out = stage.new_wire();
+        let binds = binds
+          .iter()
+          .map(|(var, value, expr)| {
+            (
+              var.0 .0.into(),
+              if *value {
+                self.distill_expr_value(stage, expr)
+              } else {
+                self.distill_expr_space(stage, expr)
+              },
+            )
+          })
+          .collect();
+        stage.steps.push(Step::InlineIvy(binds, out.0, net.clone()));
+        out.1
       }
     }
   }
@@ -456,30 +461,6 @@ impl<'core, 'r> Distiller<'core, 'r> {
     let local = self.locals.next();
     stage.declarations.push(local);
     local
-  }
-
-  fn distill_bin_op(&mut self, stage: &mut Stage, op: BinaryOp, lhs: Port, rhs: Port, out: Port) {
-    let ext_fn = match op {
-      BinaryOp::Concat => {
-        stage.steps.push(Step::Fn(
-          Port::Def(self.chart.builtins.concat.unwrap()),
-          vec![lhs, rhs],
-          out,
-        ));
-        return;
-      }
-      BinaryOp::BitOr => "n32_or",
-      BinaryOp::BitXor => "n32_xor",
-      BinaryOp::BitAnd => "n32_and",
-      BinaryOp::Shl => "n32_shl",
-      BinaryOp::Shr => "n32_shr",
-      BinaryOp::Add => "add",
-      BinaryOp::Sub => "sub",
-      BinaryOp::Mul => "mul",
-      BinaryOp::Div => "div",
-      BinaryOp::Rem => "rem",
-    };
-    stage.steps.push(Step::ExtFn(ext_fn, false, lhs, rhs, out));
   }
 
   fn distill_vec<T>(

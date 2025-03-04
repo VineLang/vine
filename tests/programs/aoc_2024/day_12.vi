@@ -50,7 +50,7 @@ pub fn main(&io: &IO) {
   let y = 0;
   let north = [];
   while y <= height {
-    let south = grid.pop_front().unwrap_or("").chars;
+    let south = grid.pop_front().unwrap_or("") as List;
     let s = south;
     let x = 0;
     let nw = '#';
@@ -101,7 +101,7 @@ mod Region {
 mod Regions {
   pub impl to_string: ToString[Regions] {
     fn to_string(Regions(array)) -> String {
-      array.to_list().to_string()
+      array.as[List].to_string()
     }
   }
 

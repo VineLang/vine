@@ -322,7 +322,7 @@ impl<'core, 'a> VirEmitter<'core, 'a> {
             Tree::n_ary(
               "tup",
               [
-                Tree::ExtFn("add".into(), false, Box::new(cur_len), Box::new(next_len.0)),
+                Tree::ExtFn("n32_add".into(), false, Box::new(cur_len), Box::new(next_len.0)),
                 cur_buf,
                 Tree::n_ary("tup", seg.chars().map(|c| Tree::N32(c as u32)).chain([next_buf.0])),
               ],
@@ -333,6 +333,13 @@ impl<'core, 'a> VirEmitter<'core, 'a> {
         }
         self.pairs.push((cur_len, len.1));
         self.pairs.push((cur_buf, end.1));
+      }
+      Step::InlineIvy(binds, out, net) => {
+        for (var, port) in binds {
+          self.pairs.push((Tree::Var(var.clone()), emit_port(port)));
+        }
+        self.pairs.push((emit_port(out), net.root.clone()));
+        self.pairs.extend_from_slice(&net.pairs);
       }
     }
   }

@@ -1,8 +1,6 @@
 
 ::std::logical::Option::None { enum(_ enum(n0 n0)) }
 
-::std::IO::print_char { fn(ref(@io_print_char(n0 n1) n1) fn(n0 _)) }
-
 ::main { ::cond_diverge::main }
 
 ::cond_diverge::main {
@@ -11,21 +9,23 @@
   ::std::IO::println = fn(w1 fn(w19 _))
 }
 
-::cond_diverge::main::1 { x(x(tup(dup129(?(::std::data::List::pop_front::3 ::std::data::List::pop_front::2 x(x(n0 n1) x(x(n2 n3) enum(::cond_diverge::main::5 enum(::cond_diverge::main::6 x(x(tup(n1 tup(n3 n4)) n5) n6)))))) n0) tup(n2 n4)) n5) n6) }
+::cond_diverge::main::1 { x(x(tup(dup97(n0 @n32_ne(0 ?(::std::data::List::pop_front::3 ::std::data::List::pop_front::2 x(x(n0 n1) x(x(n2 n3) enum(::cond_diverge::main::5 enum(::cond_diverge::main::6 x(x(tup(n1 tup(n3 n4)) n5) n6)))))))) tup(n2 n4)) n5) n6) }
 
-::cond_diverge::main::5 { enum(dup15(@eq(97 ?(::cond_diverge::main::8 ::cond_diverge::main::7 x(n0 x(n1 n2)))) n1) x(n0 n2)) }
+::cond_diverge::main::5 { enum(dup38(n0 @n32_eq(97 ?(::cond_diverge::main::8 ::cond_diverge::main::7 x(n1 x(n0 n2))))) x(n1 n2)) }
 
 ::cond_diverge::main::6 { x(x(n0 n0) _) }
 
-::cond_diverge::main::7 { x(x(tup(dup129(?(::std::data::List::pop_front::3 ::std::data::List::pop_front::2 x(x(n0 n1) x(x(n2 n3) enum(::cond_diverge::main::5 enum(::cond_diverge::main::6 x(x(tup(n1 tup(n3 n4)) n5) n6)))))) n0) tup(n2 n4)) n5) x(_ n6)) }
+::cond_diverge::main::7 { x(x(tup(dup97(n0 @n32_ne(0 ?(::std::data::List::pop_front::3 ::std::data::List::pop_front::2 x(x(n0 n1) x(x(n2 n3) enum(::cond_diverge::main::5 enum(::cond_diverge::main::6 x(x(tup(n1 tup(n3 n4)) n5) n6)))))))) tup(n2 n4)) n5) x(_ n6)) }
 
-::cond_diverge::main::8 { x(n0 x(@eq(98 ?(::cond_diverge::main::10 ::cond_diverge::main::1 x(n0 n1))) n1)) }
+::cond_diverge::main::8 { x(n0 x(dup38(_ @n32_eq(98 ?(::cond_diverge::main::10 ::cond_diverge::main::1 x(n0 n1)))) n1)) }
 
 ::cond_diverge::main::10 { x(x(n0 n0) _) }
 
-::std::data::List::pop_front::2 { x(x(@sub(1 n0) n0) x(x(tup(n1 n2) n2) enum(enum(n1 n3) enum(_ n3)))) }
+::std::data::List::pop_front::2 { x(x(@n32_sub(1 n0) n0) x(x(tup(n1 n2) n2) enum(enum(n1 n3) enum(_ n3)))) }
 
 ::std::data::List::pop_front::3 { x(x(n0 n0) x(x(n1 n1) ::std::logical::Option::None)) }
+
+::std::unicode::String::to_chars::cast { fn(w0 w0) }
 
 ::std::IO::println {
   fn(ref(w1 w12) fn(w3 _))
@@ -34,13 +34,16 @@
 }
 
 ::std::IO::print {
-  fn(ref(w1 w16) fn(tup(w7 tup(w8 _)) _))
-  ::std::IO::print::1 = x(x(w1 w16) x(w7 w8))
+  fn(ref(w1 w15) fn(w3 _))
+  ::std::unicode::String::to_chars::cast = fn(w3 tup(w8 tup(w9 _)))
+  ::std::IO::print::1 = x(x(w1 w15) x(w8 w9))
 }
 
-::std::IO::print::1 { x(n0 x(dup2211(?(::std::IO::print::3 ::std::IO::print::2 x(n0 x(n1 n2))) n1) n2)) }
+::std::IO::print::1 { x(n0 x(dup97(n1 @n32_ne(0 ?(::std::IO::print::3 ::std::IO::print::2 x(n0 x(n1 n2))))) n2)) }
 
-::std::IO::print::2 { x(x(@io_print_char(n0 n1) n2) x(@sub(1 dup2211(?(::std::IO::print::3 ::std::IO::print::2 x(x(n1 n2) x(n3 n4))) n3)) tup(n0 n4))) }
+::std::IO::print::2 { x(x(@io_print_char(n0 n1) n2) x(@n32_sub(1 dup97(n3 @n32_ne(0 ?(::std::IO::print::3 ::std::IO::print::2 x(x(n1 n2) x(n3 n4)))))) tup(n0 n4))) }
 
 ::std::IO::print::3 { x(x(n0 n0) _) }
+
+::std::IO::print_char { fn(ref(@io_print_char(n0 n1) n1) fn(n0 _)) }
 

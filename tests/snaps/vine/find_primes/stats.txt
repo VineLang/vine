@@ -1,15 +1,15 @@
 
 Interactions
-  Total            3_916_270
+  Total            4_500_383
   Annihilate       1_478_130
   Commute                  0
-  Copy               710_233
-  Erase              381_176
+  Copy               936_873
+  Erase              607_816
   Expand             367_483
-  Call               611_768
+  Call               742_601
   Branch             367_480
 
 Memory
-  Heap                   704 B
-  Allocated       76_074_768 B
-  Freed           76_074_768 B
+  Heap                   736 B
+  Allocated       81_794_336 B
+  Freed           81_794_336 B

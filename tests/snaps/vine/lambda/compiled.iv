@@ -1,11 +1,11 @@
 
 ::std::logical::Option::None { enum(_ enum(n0 n0)) }
 
-::std::ops::Ord::Lt { enum(n0 enum(_ enum(_ n0))) }
+::std::ops::comparison::Ord::Lt { enum(n0 enum(_ enum(_ n0))) }
 
-::std::ops::Ord::Eq { enum(_ enum(n0 enum(_ n0))) }
+::std::ops::comparison::Ord::Eq { enum(_ enum(n0 enum(_ n0))) }
 
-::std::ops::Ord::Gt { enum(_ enum(_ enum(n0 n0))) }
+::std::ops::comparison::Ord::Gt { enum(_ enum(_ enum(n0 n0))) }
 
 ::main { ::lambda::main }
 
@@ -14,19 +14,19 @@
   ::lambda::main::1 = x(w1 w7)
 }
 
-::lambda::main::1 { x(@io_print_char(62 @io_print_char(32 @io_flush(0 dup(n0 @io_read_byte(0 dup(dup2695(@ne(0 ?(::std::IO::read_line::3 ::std::IO::read_line::2 x(x(n1 n2) x(n3 enum(::lambda::main::4 enum(::lambda::main::5 x(n2 n4))))))) n3) @seq$(n0 n1))))))) n4) }
+::lambda::main::1 { x(@io_print_char(62 @io_print_char(32 @io_flush(0 dup(@io_read_byte(0 dup(dup198(n0 @n32_ne(0 ?(::std::IO::read_line::3 ::std::IO::read_line::2 x(x(n1 n2) x(n0 enum(::lambda::main::4 enum(::lambda::main::5 x(n2 n3)))))))) @seq$(n4 n1))) n4)))) n3) }
 
-::lambda::main::4 { enum(dup124(tup(dup561(?(::lambda::Parser::skip_ws::3 ::lambda::Parser::skip_ws::2 x(tup(tup(n0 n1) tup(enum(::lambda::Term::parse::4 enum(::lambda::Term::parse::5 x(n2 enum(::lambda::main::9 enum(::lambda::main::10 x(x(n3 @io_print_char(62 @io_print_char(32 @io_flush(0 dup(n4 @io_read_byte(0 dup(dup2695(@ne(0 ?(::std::IO::read_line::3 ::std::IO::read_line::2 x(x(n5 n6) x(n7 enum(::lambda::main::4 enum(::lambda::main::5 x(n6 n8))))))) n7) @seq$(n4 n5)))))))) _)))))) tup(_ ::std::data::Map::empty))) tup(tup(dup561(?(::lambda::Parser::parse_atom::3 ::lambda::Parser::parse_atom::2 x(x(tup(tup(n9 n10) n11) tup(tup(n12 tup(tup(dup171(dup179(n13 dup179(@eq(92 ?(::lambda::Parser::parse_atom::6 ::lambda::Parser::parse_atom::5 x(x(tup(tup(n12 tup(tup(n14 n15) n16)) tup(n17 tup(n18 n19))) tup(tup(dup561(?(::lambda::Parser::skip_ws::3 ::lambda::Parser::skip_ws::2 x(tup(tup(n20 n21) n22) tup(tup(dup561(?(::lambda::Parser::parse_term::3 ::lambda::Parser::parse_term::2 x(x(tup(tup(n23 n24) n25) tup(_ tup(::std::logical::Option::None _))) x(n26 n2))) n23) n24) n25))) n20) n21) n22)) x(n27 n26)))) n27)) n14) n15) n16)) tup(n17 tup(@io_print_char(n13 @io_print_char(10 n18)) n19)))) _)) n9) n10) n11))) n0) n1) _) x(n3 n8)) }
+::lambda::main::4 { enum(tup(dup646(dup194(_ @n32_ne(0 ?(::lambda::Parser::skip_ws::3 ::lambda::Parser::skip_ws::2 x(tup(tup(n0 n1) tup(enum(::lambda::Term::parse::4 enum(::lambda::Term::parse::5 x(n2 enum(::lambda::main::9 enum(::lambda::main::10 x(x(n3 @io_print_char(62 @io_print_char(32 @io_flush(0 dup(@io_read_byte(0 dup(dup198(n4 @n32_ne(0 ?(::std::IO::read_line::3 ::std::IO::read_line::2 x(x(n5 n6) x(n4 enum(::lambda::main::4 enum(::lambda::main::5 x(n6 n7)))))))) @seq$(n8 n5))) n8))))) _)))))) tup(_ ::std::data::Map::empty))) tup(tup(dup646(dup125(_ @n32_eq(0 ?(::lambda::Parser::parse_atom::3 ::lambda::Parser::parse_atom::2 x(x(tup(tup(n9 n10) n11) tup(tup(n12 tup(tup(dup202(dup210(n13 dup280(n14 @n32_eq(92 ?(::lambda::Parser::parse_atom::6 ::lambda::Parser::parse_atom::5 x(x(tup(tup(n12 tup(tup(n15 n16) n17)) tup(n18 tup(n19 n20))) tup(tup(dup646(dup194(_ @n32_ne(0 ?(::lambda::Parser::skip_ws::3 ::lambda::Parser::skip_ws::2 x(tup(tup(n21 n22) n23) tup(tup(dup646(dup194(_ @n32_ne(0 ?(::lambda::Parser::parse_term::3 ::lambda::Parser::parse_term::2 x(x(tup(tup(n24 n25) n26) tup(_ tup(::std::logical::Option::None _))) x(n27 n2))))) n24) n25) n26))))) n21) n22) n23)) x(n14 n27)))))) n15) n16) n17)) tup(n18 tup(@io_print_char(n13 @io_print_char(10 n19)) n20)))) _)))) n9) n10) n11))))) n0) n1) x(n3 n7)) }
 
 ::lambda::main::5 { x(n0 n0) }
 
-::lambda::main::9 { enum(enum(::lambda::Term::whnf::10 enum(::lambda::Term::whnf::11 enum(::lambda::Term::whnf::12 enum(::lambda::Term::print_normal::12 enum(_ enum(::lambda::Term::print_normal::14 x(0 tup(dup2652(?(::std::IO::print::3 ::std::IO::print::2 x(x(n0 @io_print_char(10 n1)) x(n2 n3))) n2) tup(n3 _))))))))) x(x(n0 n1) _)) }
+::lambda::main::9 { enum(enum(::lambda::Term::whnf::10 enum(::lambda::Term::whnf::11 enum(::lambda::Term::whnf::12 enum(::lambda::Term::print_normal::12 enum(_ enum(::lambda::Term::print_normal::14 x(0 tup(dup194(n0 @n32_ne(0 ?(::std::IO::print::3 ::std::IO::print::2 x(x(n1 @io_print_char(10 n2)) x(n0 n3))))) tup(n3 _))))))))) x(x(n1 n2) _)) }
 
-::lambda::main::10 { enum(tup(@add(7 dup2652(?(::std::IO::print::3 ::std::IO::print::2 x(x(n0 @io_print_char(10 n1)) x(n2 tup(101 tup(114 tup(114 tup(111 tup(114 tup(58 tup(32 n3)))))))))) n2)) tup(n3 _)) x(x(n0 n1) _)) }
+::lambda::main::10 { enum(tup(@n32_add(7 dup194(n0 @n32_ne(0 ?(::std::IO::print::3 ::std::IO::print::2 x(x(n1 @io_print_char(10 n2)) x(n0 tup(101 tup(114 tup(114 tup(111 tup(114 tup(58 tup(32 n3))))))))))))) tup(n3 _)) x(x(n1 n2) _)) }
 
-::lambda::Term::whnf::6 { enum(tup(dup833(?(::std::data::List::IntoIter::next::3 ::std::data::List::IntoIter::next::2 x(x(n0 n1) x(x(n2 n3) enum(::lambda::Term::bind::4 enum(_ x(n4 tup(n1 n3))))))) n0) tup(n2 _)) enum(enum(::lambda::Term::whnf::10 enum(::lambda::Term::whnf::11 enum(::lambda::Term::whnf::12 n5))) x(n4 n5))) }
+::lambda::Term::whnf::6 { enum(tup(dup194(n0 @n32_ne(0 ?(::std::data::List::IntoIter::next::3 ::std::data::List::IntoIter::next::2 x(x(n0 n1) x(x(n2 n3) enum(::lambda::Term::bind::4 enum(_ x(n4 tup(n1 n3))))))))) tup(n2 _)) enum(enum(::lambda::Term::whnf::10 enum(::lambda::Term::whnf::11 enum(::lambda::Term::whnf::12 n5))) x(n4 n5))) }
 
-::lambda::Term::whnf::8 { enum(n0 enum(tup(@add(1 n1) tup(n2 tup(n3 n4))) x(n3 enum(_ enum(_ enum(enum(n0 enum(tup(n1 tup(n2 n4)) n5)) n5)))))) }
+::lambda::Term::whnf::8 { enum(n0 enum(tup(@n32_add(1 n1) tup(n2 tup(n3 n4))) x(n3 enum(_ enum(_ enum(enum(n0 enum(tup(n1 tup(n2 n4)) n5)) n5)))))) }
 
 ::lambda::Term::whnf::10 { enum(n0 enum(n1 enum(enum(n0 enum(n1 n2)) enum(_ enum(_ n2))))) }
 
@@ -34,131 +34,131 @@
 
 ::lambda::Term::whnf::12 { enum(n0 enum(n1 enum(_ enum(_ enum(enum(n0 enum(n1 n2)) n2))))) }
 
-::lambda::Term::print_normal::5 { x(n0 x(tup(@add(1 n1) tup(n2 n3)) x(tup(dup833(?(::std::data::List::IntoIter::next::3 ::std::data::List::IntoIter::next::2 x(x(n4 n5) x(x(n6 n7) enum(::lambda::Term::print_normal::10 enum(::lambda::Term::print_normal::11 x(n0 x(x(tup(n1 tup(tup(40 n2) n3)) tup(@add(1 n8) tup(n9 tup(41 n10)))) tup(n5 n7)))))))) n4) tup(n6 _)) tup(n8 tup(n9 n10))))) }
+::lambda::Term::print_normal::5 { x(_ x(n0 x(_ n0))) }
 
-::lambda::Term::print_normal::6 { x(_ x(n0 x(_ n0))) }
+::lambda::Term::print_normal::6 { x(n0 x(tup(@n32_add(1 n1) tup(n2 n3)) x(tup(dup194(n4 @n32_ne(0 ?(::std::data::List::IntoIter::next::3 ::std::data::List::IntoIter::next::2 x(x(n4 n5) x(x(n6 n7) enum(::lambda::Term::print_normal::10 enum(::lambda::Term::print_normal::11 x(n0 x(x(tup(n1 tup(tup(40 n2) n3)) tup(@n32_add(1 n8) tup(n9 tup(41 n10)))) tup(n5 n7)))))))))) tup(n6 _)) tup(n8 tup(n9 n10))))) }
 
-::lambda::Term::print_normal::10 { enum(enum(::lambda::Term::whnf::10 enum(::lambda::Term::whnf::11 enum(::lambda::Term::whnf::12 enum(::lambda::Term::print_normal::12 enum(_ enum(::lambda::Term::print_normal::14 x(n0 tup(@add$(1 n1) tup(n2 n3))))))))) x(dup88(n0 n4) x(x(tup(@add(n1 n5) tup(n6 tup(32 n2))) n7) tup(dup833(?(::std::data::List::IntoIter::next::3 ::std::data::List::IntoIter::next::2 x(x(n8 n9) x(x(n10 n11) enum(::lambda::Term::print_normal::10 enum(::lambda::Term::print_normal::11 x(n4 x(x(tup(n5 tup(n6 n3)) n7) tup(n9 n11)))))))) n8) n10)))) }
+::lambda::Term::print_normal::10 { enum(enum(::lambda::Term::whnf::10 enum(::lambda::Term::whnf::11 enum(::lambda::Term::whnf::12 enum(::lambda::Term::print_normal::12 enum(_ enum(::lambda::Term::print_normal::14 x(n0 tup(@n32_add$(1 n1) tup(n2 n3))))))))) x(dup102(n0 n4) x(x(tup(@n32_add(n1 n5) tup(n6 tup(32 n2))) n7) tup(dup194(n8 @n32_ne(0 ?(::std::data::List::IntoIter::next::3 ::std::data::List::IntoIter::next::2 x(x(n8 n9) x(x(n10 n11) enum(::lambda::Term::print_normal::10 enum(::lambda::Term::print_normal::11 x(n4 x(x(tup(n5 tup(n6 n3)) n7) tup(n9 n11)))))))))) n10)))) }
 
 ::lambda::Term::print_normal::11 { x(_ x(x(n0 n0) _)) }
 
-::lambda::Term::print_normal::12 { enum(tup(dup833(?(::std::data::List::IntoIter::next::3 ::std::data::List::IntoIter::next::2 x(x(n0 n1) x(x(n2 n3) enum(::lambda::Term::bind::4 enum(_ x(enum(_ enum(_ enum(enum(n4 enum(tup(0 tup(n5 n5)) n6)) n6))) tup(n1 n3))))))) n0) tup(n2 _)) enum(enum(::lambda::Term::whnf::10 enum(::lambda::Term::whnf::11 enum(::lambda::Term::whnf::12 enum(::lambda::Term::print_normal::12 enum(_ enum(::lambda::Term::print_normal::14 x(n7 tup(@add(n8 n9) tup(n10 n11))))))))) x(dup96(@add(1 dup551(@lt$(0 ?(::lambda::new_var::3 ::lambda::new_var::2 x(n12 x(tup(0 tup(n13 n13)) dup99(n4 tup(@add(3 n8) tup(n14 tup(46 tup(32 n10))))))))) n12)) @add(1 n7)) tup(n9 tup(tup(92 n14) n11))))) }
+::lambda::Term::print_normal::12 { enum(tup(dup194(n0 @n32_ne(0 ?(::std::data::List::IntoIter::next::3 ::std::data::List::IntoIter::next::2 x(x(n0 n1) x(x(n2 n3) enum(::lambda::Term::bind::4 enum(_ x(enum(_ enum(_ enum(enum(n4 enum(tup(0 tup(n5 n5)) n6)) n6))) tup(n1 n3))))))))) tup(n2 _)) enum(enum(::lambda::Term::whnf::10 enum(::lambda::Term::whnf::11 enum(::lambda::Term::whnf::12 enum(::lambda::Term::print_normal::12 enum(_ enum(::lambda::Term::print_normal::14 x(n7 tup(@n32_add(n8 n9) tup(n10 n11))))))))) x(dup110(@n32_add(1 dup627(n12 @n32_lt$(0 ?(::lambda::new_var::3 ::lambda::new_var::2 x(n12 x(tup(0 tup(n13 n13)) dup113(n4 tup(@n32_add(3 n8) tup(n14 tup(46 tup(32 n10))))))))))) @n32_add(1 n7)) tup(n9 tup(tup(92 n14) n11))))) }
 
-::lambda::Term::print_normal::14 { enum(n0 enum(tup(dup561(?(::lambda::Term::print_normal::6 ::lambda::Term::print_normal::5 x(n1 x(n0 x(tup(n2 n3) n4)))) n2) n3) x(n1 n4))) }
+::lambda::Term::print_normal::14 { enum(n0 enum(tup(dup646(dup125(_ @n32_eq(0 ?(::lambda::Term::print_normal::6 ::lambda::Term::print_normal::5 x(n1 x(n0 x(tup(n2 n3) n4)))))) n2) n3) x(n1 n4))) }
 
-::lambda::Term::bind::4 { enum(n0 x(dup120(n0 n1) tup(dup833(?(::std::data::List::IntoIter::next::3 ::std::data::List::IntoIter::next::2 x(x(n2 n3) x(x(n4 n5) enum(::lambda::Term::bind::4 enum(_ x(n1 tup(n3 n5))))))) n2) n4))) }
+::lambda::Term::bind::4 { enum(n0 x(dup142(n0 n1) tup(dup194(n2 @n32_ne(0 ?(::std::data::List::IntoIter::next::3 ::std::data::List::IntoIter::next::2 x(x(n2 n3) x(x(n4 n5) enum(::lambda::Term::bind::4 enum(_ x(n1 tup(n3 n5))))))))) n4))) }
 
 ::lambda::Term::parse::4 { enum(n0 x(_ enum(_ enum(enum(n0 n1) n1)))) }
 
 ::lambda::Term::parse::5 { x(n0 enum(enum(n0 n1) enum(_ n1))) }
 
-::lambda::Parser::parse_term::2 { x(x(tup(tup(n0 tup(tup(dup154(@ne(41 ?(::lambda::Parser::parse_term::5 ::lambda::Parser::parse_term::4 x(x(tup(tup(n0 tup(tup(n1 n2) n3)) n4) n5) n6))) n1) n2) n3)) n4) n5) n6) }
+::lambda::Parser::parse_term::2 { x(x(tup(tup(n0 tup(tup(dup198(n1 @n32_ne(41 ?(::lambda::Parser::parse_term::5 ::lambda::Parser::parse_term::4 x(x(tup(tup(n0 tup(tup(n1 n2) n3)) n4) n5) n6)))) n2) n3)) n4) n5) n6) }
 
 ::lambda::Parser::parse_term::3 { x(x(n0 n0) x(n1 n1)) }
 
-::lambda::Parser::parse_term::4 { x(x(tup(tup(dup561(?(::lambda::Parser::skip_ws::3 ::lambda::Parser::skip_ws::2 x(tup(tup(n0 n1) n2) tup(tup(dup561(?(::lambda::Parser::parse_atom::3 ::lambda::Parser::parse_atom::2 x(x(tup(tup(n3 n4) n5) tup(tup(n6 tup(tup(dup171(dup179(n7 dup179(@eq(92 ?(::lambda::Parser::parse_atom::6 ::lambda::Parser::parse_atom::5 x(x(tup(tup(n6 tup(tup(n8 n9) n10)) tup(n11 tup(n12 n13))) tup(tup(dup561(?(::lambda::Parser::skip_ws::3 ::lambda::Parser::skip_ws::2 x(tup(tup(n14 n15) n16) tup(tup(dup561(?(::lambda::Parser::parse_term::3 ::lambda::Parser::parse_term::2 x(x(tup(tup(n17 n18) n19) n20) x(enum(_ enum(enum(n21 enum(n22 n23)) enum(_ n23))) n24))) n17) n18) n19))) n14) n15) n16)) x(n25 n22)))) n25)) n8) n9) n10)) tup(n11 tup(@io_print_char(n7 @io_print_char(10 n12)) n13)))) _)) n3) n4) n5))) n0) n1) n2) n20) x(n21 n24)) }
+::lambda::Parser::parse_term::4 { x(x(tup(tup(dup646(dup194(_ @n32_ne(0 ?(::lambda::Parser::skip_ws::3 ::lambda::Parser::skip_ws::2 x(tup(tup(n0 n1) n2) tup(tup(dup646(dup125(_ @n32_eq(0 ?(::lambda::Parser::parse_atom::3 ::lambda::Parser::parse_atom::2 x(x(tup(tup(n3 n4) n5) tup(tup(n6 tup(tup(dup202(dup210(n7 dup280(n8 @n32_eq(92 ?(::lambda::Parser::parse_atom::6 ::lambda::Parser::parse_atom::5 x(x(tup(tup(n6 tup(tup(n9 n10) n11)) tup(n12 tup(n13 n14))) tup(tup(dup646(dup194(_ @n32_ne(0 ?(::lambda::Parser::skip_ws::3 ::lambda::Parser::skip_ws::2 x(tup(tup(n15 n16) n17) tup(tup(dup646(dup194(_ @n32_ne(0 ?(::lambda::Parser::parse_term::3 ::lambda::Parser::parse_term::2 x(x(tup(tup(n18 n19) n20) n21) x(enum(_ enum(enum(n22 enum(n23 n24)) enum(_ n24))) n25))))) n18) n19) n20))))) n15) n16) n17)) x(n8 n23)))))) n9) n10) n11)) tup(n12 tup(@io_print_char(n7 @io_print_char(10 n13)) n14)))) _)))) n3) n4) n5))))) n0) n1) n2) n21) x(n22 n25)) }
 
 ::lambda::Parser::parse_term::5 { x(x(n0 n0) x(n1 n1)) }
 
-::lambda::Parser::parse_atom::2 { x(x(n0 n0) _) }
+::lambda::Parser::parse_atom::2 { x(x(tup(_ tup(enum(enum(tup(13 tup(tup(101 tup(120 tup(112 tup(101 tup(99 tup(116 tup(101 tup(100 tup(32 tup(116 tup(101 tup(114 tup(109 n0))))))))))))) n0)) n1) enum(_ n1)) _)) _) _) }
 
-::lambda::Parser::parse_atom::3 { x(x(tup(_ tup(enum(enum(tup(13 tup(tup(101 tup(120 tup(112 tup(101 tup(99 tup(116 tup(101 tup(100 tup(32 tup(116 tup(101 tup(114 tup(109 n0))))))))))))) n0)) n1) enum(_ n1)) _)) _) _) }
+::lambda::Parser::parse_atom::3 { x(x(n0 n0) _) }
 
-::lambda::Parser::parse_atom::5 { x(x(tup(tup(dup653(?(::std::data::List::pop_front::3 ::std::data::List::pop_front::2 x(x(n0 dup561(?(::lambda::Parser::skip_ws::3 ::lambda::Parser::skip_ws::2 x(tup(tup(n1 tup(n2 n3)) tup(n4 tup(n5 n6))) tup(tup(dup561(?(::lambda::Parser::parse_var::3 ::lambda::Parser::parse_var::2 x(x(tup(tup(n7 n8) n9) n10) x(tup(0 tup(n11 n11)) tup(dup561(?(::lambda::Parser::parse_var::12 ::lambda::Parser::parse_var::11 x(x(n10 tup(tup(dup561(?(::lambda::Parser::skip_ws::3 ::lambda::Parser::skip_ws::2 x(tup(tup(n12 n13) tup(n14 tup(n15 n16))) tup(tup(dup653(?(::std::data::List::pop_front::3 ::std::data::List::pop_front::2 x(x(n17 n18) x(x(n19 n20) enum(::lambda::Parser::expect_char::4 enum(::lambda::Parser::expect_char::8 x(x(tup(tup(n18 tup(n20 n21)) n22) tup(tup(dup561(?(::lambda::Parser::skip_ws::3 ::lambda::Parser::skip_ws::2 x(tup(tup(n23 n24) tup(n25 tup(n26 tup(n27 n28)))) tup(tup(dup561(?(::lambda::Parser::parse_atom::3 ::lambda::Parser::parse_atom::2 x(x(tup(tup(n29 n30) n31) tup(tup(n32 tup(tup(dup171(dup179(n33 dup179(@eq(92 ?(::lambda::Parser::parse_atom::6 ::lambda::Parser::parse_atom::5 x(x(tup(tup(n32 tup(tup(n34 n35) n36)) tup(n37 tup(n38 n39))) tup(n40 tup(n41 tup(n42 tup(dup411(n43 ?(::std::data::Map::get::1::3 ::std::data::Map::get::1::2 x(x(n44 n45) x(x(tup(n46 n47) _) enum(::std::logical::Option::unwrap::3 enum(_ ref(tup(dup653(?(::std::data::List::pop_front::3 ::std::data::List::pop_front::2 x(x(n48 n49) x(x(n50 n51) enum(::std::logical::Option::unwrap::3 enum(_ n52))))) n48) tup(n50 n53)) tup(n49 tup(n51 n53))))))))) n44))))) x(n54 n55)))) n54)) n34) n35) n36)) tup(n37 tup(@io_print_char(n33 @io_print_char(10 n38)) n39)))) _)) n29) n30) n31))) n23) n24) tup(n25 tup(n26 tup(dup260(?(::std::data::Map::insert::1::3 ::std::data::Map::insert::1::2 x(x(n56 n27) x(x(n57 n28) x(tup(n58 n59) x(tup(n60 tup(tup(tup(0 tup(n61 n61)) n62) n63)) enum(::std::logical::Option::unwrap_or::4 enum(::std::logical::Option::unwrap_or::5 x(tup(0 tup(n64 n64)) tup(@add$(1 n60) tup(n62 n63)))))))))) n56) n57))))) x(46 _))))))) n17) tup(n19 n21)) n22))) n12) n13) tup(n14 tup(n65 n16)))) _)) dup198(dup2652(?(::std::IO::print::3 ::std::IO::print::2 x(x(n65 @io_print_char(10 n15)) x(n66 n67))) n66) dup198(n58 n46))) dup198(tup(n67 _) dup198(n59 n47)))))) n7) n8) n9))) n1)) x(x(n68 n2) _))) n0) tup(n68 n3)) tup(n4 tup(@io_print_char(108 @io_print_char(97 @io_print_char(109 @io_print_char(98 @io_print_char(100 @io_print_char(97 @io_print_char(10 n5))))))) n6))) tup(n40 tup(n41 tup(n42 tup(n43 n45))))) x(_ enum(enum(n52 enum(n55 n69)) enum(_ enum(_ n69))))) }
+::lambda::Parser::parse_atom::5 { x(x(tup(tup(dup194(n0 @n32_ne(0 ?(::std::data::List::pop_front::3 ::std::data::List::pop_front::2 x(x(n0 dup646(dup194(_ @n32_ne(0 ?(::lambda::Parser::skip_ws::3 ::lambda::Parser::skip_ws::2 x(tup(tup(n1 tup(n2 n3)) tup(n4 tup(n5 n6))) tup(tup(dup646(dup194(_ @n32_ne(0 ?(::lambda::Parser::parse_var::3 ::lambda::Parser::parse_var::2 x(x(tup(tup(n7 n8) n9) n10) x(tup(0 tup(n11 n11)) tup(dup646(dup125(_ @n32_eq(0 ?(::lambda::Parser::parse_var::12 ::lambda::Parser::parse_var::11 x(x(n10 tup(tup(dup646(dup194(_ @n32_ne(0 ?(::lambda::Parser::skip_ws::3 ::lambda::Parser::skip_ws::2 x(tup(tup(n12 n13) tup(n14 tup(n15 n16))) tup(tup(dup194(n17 @n32_ne(0 ?(::std::data::List::pop_front::3 ::std::data::List::pop_front::2 x(x(n17 n18) x(x(n19 n20) enum(::lambda::Parser::expect_char::4 enum(::lambda::Parser::expect_char::8 x(x(tup(tup(n18 tup(n20 n21)) n22) tup(tup(dup646(dup194(_ @n32_ne(0 ?(::lambda::Parser::skip_ws::3 ::lambda::Parser::skip_ws::2 x(tup(tup(n23 n24) tup(n25 tup(n26 tup(n27 n28)))) tup(tup(dup646(dup125(_ @n32_eq(0 ?(::lambda::Parser::parse_atom::3 ::lambda::Parser::parse_atom::2 x(x(tup(tup(n29 n30) n31) tup(tup(n32 tup(tup(dup202(dup210(n33 dup280(n34 @n32_eq(92 ?(::lambda::Parser::parse_atom::6 ::lambda::Parser::parse_atom::5 x(x(tup(tup(n32 tup(tup(n35 n36) n37)) tup(n38 tup(n39 n40))) tup(n41 tup(n42 tup(n43 tup(dup125(n44 @n32_eq(0 ?(::std::data::Map::get::1::3 ::std::data::Map::get::1::2 x(x(n45 n46) x(x(tup(n47 n48) _) enum(::std::logical::Option::unwrap::3 enum(_ ref(tup(dup194(n49 @n32_ne(0 ?(::std::data::List::pop_front::3 ::std::data::List::pop_front::2 x(x(n49 n50) x(x(n51 n52) enum(::std::logical::Option::unwrap::3 enum(_ n53))))))) tup(n51 n54)) tup(n50 tup(n52 n54)))))))))) n45))))) x(n34 n55)))))) n35) n36) n37)) tup(n38 tup(@io_print_char(n33 @io_print_char(10 n39)) n40)))) _)))) n29) n30) n31))))) n23) n24) tup(n25 tup(n26 tup(dup125(n56 @n32_eq(0 ?(::std::data::Map::insert::1::3 ::std::data::Map::insert::1::2 x(x(n56 n27) x(x(n57 n28) x(tup(n58 n59) x(tup(n60 tup(tup(tup(0 tup(n61 n61)) n62) n63)) enum(::std::logical::Option::unwrap_or::4 enum(::std::logical::Option::unwrap_or::5 x(tup(0 tup(n64 n64)) tup(@n32_add$(1 n60) tup(n62 n63)))))))))))) n57))))) x(46 _))))))))) tup(n19 n21)) n22))))) n12) n13) tup(n14 tup(n65 n16)))) _)))) dup230(dup194(n66 @n32_ne(0 ?(::std::IO::print::3 ::std::IO::print::2 x(x(n65 @io_print_char(10 n15)) x(n66 n67))))) dup230(n58 n47))) dup230(tup(n67 _) dup230(n59 n48)))))))) n7) n8) n9))))) n1)) x(x(n68 n2) _))))) tup(n68 n3)) tup(n4 tup(@io_print_char(108 @io_print_char(97 @io_print_char(109 @io_print_char(98 @io_print_char(100 @io_print_char(97 @io_print_char(10 n5))))))) n6))) tup(n41 tup(n42 tup(n43 tup(n44 n46))))) x(_ enum(enum(n53 enum(n55 n69)) enum(_ enum(_ n69))))) }
 
-::lambda::Parser::parse_atom::6 { x(n0 x(@eq(40 ?(::lambda::Parser::parse_atom::8 ::lambda::Parser::parse_atom::7 x(n0 n1))) n1)) }
+::lambda::Parser::parse_atom::6 { x(n0 x(dup280(_ @n32_eq(40 ?(::lambda::Parser::parse_atom::8 ::lambda::Parser::parse_atom::7 x(n0 n1)))) n1)) }
 
-::lambda::Parser::parse_atom::7 { x(x(tup(tup(dup653(?(::std::data::List::pop_front::3 ::std::data::List::pop_front::2 x(x(n0 dup561(?(::lambda::Parser::skip_ws::3 ::lambda::Parser::skip_ws::2 x(tup(tup(n1 tup(n2 n3)) n4) tup(tup(dup561(?(::lambda::Parser::parse_atom::3 ::lambda::Parser::parse_atom::2 x(x(tup(tup(n5 n6) n7) tup(tup(n8 tup(tup(dup171(dup179(n9 dup179(@eq(92 ?(::lambda::Parser::parse_atom::6 ::lambda::Parser::parse_atom::5 x(x(tup(tup(n8 tup(tup(n10 n11) n12)) tup(n13 tup(n14 n15))) tup(tup(dup561(?(::lambda::Parser::skip_ws::3 ::lambda::Parser::skip_ws::2 x(tup(tup(n16 n17) n18) tup(tup(dup561(?(::lambda::Parser::parse_term::3 ::lambda::Parser::parse_term::2 x(x(tup(tup(n19 n20) n21) tup(tup(dup561(?(::lambda::Parser::skip_ws::3 ::lambda::Parser::skip_ws::2 x(tup(tup(n22 n23) n24) tup(tup(dup653(?(::std::data::List::pop_front::3 ::std::data::List::pop_front::2 x(x(n25 n26) x(x(n27 n28) enum(::lambda::Parser::expect_char::4 enum(::lambda::Parser::expect_char::8 x(x(tup(tup(n26 tup(n28 n29)) n30) n31) x(41 _))))))) n25) tup(n27 n29)) n30))) n22) n23) n24)) x(n32 n33))) n19) n20) n21))) n16) n17) n18)) x(n34 n32)))) n34)) n10) n11) n12)) tup(n13 tup(@io_print_char(n9 @io_print_char(10 n14)) n15)))) _)) n5) n6) n7))) n1)) x(x(n35 n2) _))) n0) tup(n35 n3)) n4) n31) n33) }
+::lambda::Parser::parse_atom::7 { x(x(tup(tup(dup194(n0 @n32_ne(0 ?(::std::data::List::pop_front::3 ::std::data::List::pop_front::2 x(x(n0 dup646(dup194(_ @n32_ne(0 ?(::lambda::Parser::skip_ws::3 ::lambda::Parser::skip_ws::2 x(tup(tup(n1 tup(n2 n3)) n4) tup(tup(dup646(dup125(_ @n32_eq(0 ?(::lambda::Parser::parse_atom::3 ::lambda::Parser::parse_atom::2 x(x(tup(tup(n5 n6) n7) tup(tup(n8 tup(tup(dup202(dup210(n9 dup280(n10 @n32_eq(92 ?(::lambda::Parser::parse_atom::6 ::lambda::Parser::parse_atom::5 x(x(tup(tup(n8 tup(tup(n11 n12) n13)) tup(n14 tup(n15 n16))) tup(tup(dup646(dup194(_ @n32_ne(0 ?(::lambda::Parser::skip_ws::3 ::lambda::Parser::skip_ws::2 x(tup(tup(n17 n18) n19) tup(tup(dup646(dup194(_ @n32_ne(0 ?(::lambda::Parser::parse_term::3 ::lambda::Parser::parse_term::2 x(x(tup(tup(n20 n21) n22) tup(tup(dup646(dup194(_ @n32_ne(0 ?(::lambda::Parser::skip_ws::3 ::lambda::Parser::skip_ws::2 x(tup(tup(n23 n24) n25) tup(tup(dup194(n26 @n32_ne(0 ?(::std::data::List::pop_front::3 ::std::data::List::pop_front::2 x(x(n26 n27) x(x(n28 n29) enum(::lambda::Parser::expect_char::4 enum(::lambda::Parser::expect_char::8 x(x(tup(tup(n27 tup(n29 n30)) n31) n32) x(41 _))))))))) tup(n28 n30)) n31))))) n23) n24) n25)) x(n33 n34))))) n20) n21) n22))))) n17) n18) n19)) x(n10 n33)))))) n11) n12) n13)) tup(n14 tup(@io_print_char(n9 @io_print_char(10 n15)) n16)))) _)))) n5) n6) n7))))) n1)) x(x(n35 n2) _))))) tup(n35 n3)) n4) n32) n34) }
 
-::lambda::Parser::parse_atom::8 { x(x(tup(tup(dup561(?(::lambda::Parser::parse_var::3 ::lambda::Parser::parse_var::2 x(x(tup(tup(n0 n1) n2) n3) x(tup(0 tup(n4 n4)) tup(dup561(?(::lambda::Parser::parse_var::12 ::lambda::Parser::parse_var::11 x(x(n3 tup(n5 tup(n6 tup(n7 tup(dup411(n8 ?(::std::data::Map::get::1::3 ::std::data::Map::get::1::2 x(x(n9 n10) x(x(tup(n11 n12) n13) enum(::lambda::Parser::parse_atom::12 enum(::lambda::Parser::parse_atom::16 x(x(tup(n5 tup(n6 tup(n7 tup(n8 n10)))) n14) x(n13 n15)))))))) n9))))) _)) n11) n12)))) n0) n1) n2) n14) n15) }
+::lambda::Parser::parse_atom::8 { x(x(tup(tup(dup646(dup194(_ @n32_ne(0 ?(::lambda::Parser::parse_var::3 ::lambda::Parser::parse_var::2 x(x(tup(tup(n0 n1) n2) n3) x(tup(0 tup(n4 n4)) tup(dup646(dup125(_ @n32_eq(0 ?(::lambda::Parser::parse_var::12 ::lambda::Parser::parse_var::11 x(x(n3 tup(n5 tup(n6 tup(n7 tup(dup125(n8 @n32_eq(0 ?(::std::data::Map::get::1::3 ::std::data::Map::get::1::2 x(x(n9 n10) x(x(tup(n11 n12) n13) enum(::lambda::Parser::parse_atom::12 enum(::lambda::Parser::parse_atom::16 x(x(tup(n5 tup(n6 tup(n7 tup(n8 n10)))) n14) x(n13 n15))))))))) n9))))) _)))) n11) n12)))))) n0) n1) n2) n14) n15) }
 
-::lambda::Parser::parse_atom::12 { enum(ref(tup(dup561(?(::lambda::Parser::parse_atom::15 ::lambda::Parser::parse_atom::14 x(n0 x(n1 x(x(tup(n2 n3) n4) n5)))) n2) n3) n4) x(n0 x(n1 n5))) }
+::lambda::Parser::parse_atom::12 { enum(ref(tup(dup646(dup194(_ @n32_ne(0 ?(::lambda::Parser::parse_atom::15 ::lambda::Parser::parse_atom::14 x(n0 x(n1 x(x(tup(n2 n3) n4) n5)))))) n2) n3) n4) x(n0 x(n1 n5))) }
 
-::lambda::Parser::parse_atom::14 { x(x(n0 n0) x(_ x(x(tup(n1 tup(tup(tup(@add(1 n2) tup(n3 tup(n4 n5))) n6) n7)) tup(n1 tup(tup(tup(n2 tup(n3 n5)) n6) n7))) n4))) }
+::lambda::Parser::parse_atom::14 { x(x(n0 n0) x(_ x(x(tup(n1 tup(tup(tup(@n32_add(1 n2) tup(n3 tup(n4 n5))) n6) n7)) tup(n1 tup(tup(tup(n2 tup(n3 n5)) n6) n7))) n4))) }
 
-::lambda::Parser::parse_atom::15 { x(x(tup(_ tup(enum(enum(tup(n0 tup(tup(117 tup(110 tup(98 tup(111 tup(117 tup(110 tup(100 tup(32 tup(118 tup(97 tup(114 tup(105 tup(97 tup(98 tup(108 tup(101 tup(32 tup(96 n1)))))))))))))))))) n2)) n3) enum(_ n3)) _)) _) x(tup(@add(19 n0) tup(n1 tup(96 n2))) x(x(n4 n4) _))) }
+::lambda::Parser::parse_atom::15 { x(x(tup(_ tup(enum(enum(tup(n0 tup(tup(117 tup(110 tup(98 tup(111 tup(117 tup(110 tup(100 tup(32 tup(118 tup(97 tup(114 tup(105 tup(97 tup(98 tup(108 tup(101 tup(32 tup(96 n1)))))))))))))))))) n2)) n3) enum(_ n3)) _)) _) x(tup(@n32_add(19 n0) tup(n1 tup(96 n2))) x(x(n4 n4) _))) }
 
-::lambda::Parser::parse_atom::16 { x(x(tup(_ tup(enum(enum(tup(n0 tup(tup(117 tup(110 tup(98 tup(111 tup(117 tup(110 tup(100 tup(32 tup(118 tup(97 tup(114 tup(105 tup(97 tup(98 tup(108 tup(101 tup(32 tup(96 n1)))))))))))))))))) n2)) n3) enum(_ n3)) _)) _) x(tup(@add(19 n0) tup(n1 tup(96 n2))) _)) }
+::lambda::Parser::parse_atom::16 { x(x(tup(_ tup(enum(enum(tup(n0 tup(tup(117 tup(110 tup(98 tup(111 tup(117 tup(110 tup(100 tup(32 tup(118 tup(97 tup(114 tup(105 tup(97 tup(98 tup(108 tup(101 tup(32 tup(96 n1)))))))))))))))))) n2)) n3) enum(_ n3)) _)) _) x(tup(@n32_add(19 n0) tup(n1 tup(96 n2))) _)) }
 
-::std::data::Map::insert::1::2 { x(n0 x(x(tup(n1 tup(tup(tup(dup801(n2 dup807(?(::std::data::List::Iter::next::3 ::std::data::List::Iter::next::2 x(x(n3 n4) x(x(ref(n5 n6) n7) enum(::std::data::List::ord::cmp::1::14 enum(::std::data::List::ord::cmp::1::17 x(x(tup(n8 n9) tup(_ ref(n10 n10))) x(x(tup(n4 n7) tup(_ ref(n11 n11))) x(enum(::std::data::Map::insert::1::8 enum(::std::data::Map::insert::1::9 enum(::std::data::Map::insert::1::10 x(n0 x(x(tup(n12 tup(tup(n13 n14) n15)) n16) x(tup(n17 tup(n18 n19)) x(n20 x(x(n1 n12) x(x(tup(n2 tup(n6 n21)) n13) x(x(n22 n14) x(x(n23 n15) x(n24 _)))))))))))) n25)))))))) n3)) tup(n5 n21)) n22) n23)) n16) x(tup(dup801(n17 dup807(?(::std::data::List::Iter::next::3 ::std::data::List::Iter::next::2 x(x(n26 n8) x(x(ref(n27 n18) n9) n25))) n26)) tup(n27 n19)) x(n20 n24)))) }
+::std::data::Map::insert::1::2 { x(x(_ 1) x(x(_ tup(::std::data::Map::empty tup(tup(n0 n1) ::std::data::Map::empty))) x(n0 x(n1 ::std::logical::Option::None)))) }
 
-::std::data::Map::insert::1::3 { x(x(_ 1) x(x(_ tup(::std::data::Map::empty tup(tup(n0 n1) ::std::data::Map::empty))) x(n0 x(n1 ::std::logical::Option::None)))) }
+::std::data::Map::insert::1::3 { x(n0 x(x(tup(n1 tup(tup(tup(dup894(n2 dup194(n3 @n32_ne(0 ?(::std::data::List::Iter::next::3 ::std::data::List::Iter::next::2 x(x(n3 n4) x(x(ref(n5 n6) n7) enum(::std::data::List::ord::cmp::1::14 enum(::std::data::List::ord::cmp::1::17 x(x(tup(n8 n9) tup(_ ref(n10 n10))) x(x(tup(n4 n7) tup(_ ref(n11 n11))) x(enum(::std::data::Map::insert::1::8 enum(::std::data::Map::insert::1::9 enum(::std::data::Map::insert::1::10 x(n0 x(x(tup(n12 tup(tup(n13 n14) n15)) n16) x(tup(n17 tup(n18 n19)) x(n20 x(x(n1 n12) x(x(tup(n2 tup(n6 n21)) n13) x(x(n22 n14) x(x(n23 n15) x(n24 _)))))))))))) n25))))))))))) tup(n5 n21)) n22) n23)) n16) x(tup(dup894(n17 dup194(n26 @n32_ne(0 ?(::std::data::List::Iter::next::3 ::std::data::List::Iter::next::2 x(x(n26 n8) x(x(ref(n27 n18) n9) n25)))))) tup(n27 n19)) x(n20 n24)))) }
 
-::std::data::Map::insert::1::8 { x(x(_ n0) x(x(tup(tup(dup1563(dup1556(n1 n2) @add(n3 @add(1 n0))) n4) tup(n5 tup(dup1564(dup1555(n6 @mul$(3 @add(2 @le$(n2 ?(::std::data::Map::balance_right::3 ::std::data::Map::balance_right::2 x(tup(n1 n4) x(n5 x(tup(n6 n7) n8)))))))) n3) n7))) n8) x(n9 x(n10 x(x(tup(dup260(?(::std::data::Map::insert::1::3 ::std::data::Map::insert::1::2 x(x(n11 n12) x(x(n13 n14) x(n9 x(n10 n15))))) n11) n13) tup(n12 n14)) x(x(n16 n16) x(x(n17 n17) x(x(n18 n18) x(n15 _))))))))) }
+::std::data::Map::insert::1::8 { x(x(_ n0) x(x(tup(tup(dup1707(dup720(n1 @n32_le(n2 ?(::std::data::Map::balance_right::3 ::std::data::Map::balance_right::2 x(tup(n1 n3) x(n4 x(tup(n5 n6) n7)))))) @n32_add(n8 @n32_add(1 n0))) n3) tup(n4 tup(dup1708(dup1693(n5 @n32_mul$(3 @n32_add(2 dup721(_ n2)))) n8) n6))) n7) x(n9 x(n10 x(x(tup(dup125(n11 @n32_eq(0 ?(::std::data::Map::insert::1::3 ::std::data::Map::insert::1::2 x(x(n11 n12) x(x(n13 n14) x(n9 x(n10 n15))))))) n13) tup(n12 n14)) x(x(n16 n16) x(x(n17 n17) x(x(n18 n18) x(n15 _))))))))) }
 
 ::std::data::Map::insert::1::9 { x(x(n0 n0) x(x(n1 n1) x(n2 x(n3 x(x(n4 n4) x(x(_ n2) x(x(n5 n3) x(x(n6 n6) x(enum(enum(n5 n7) enum(_ n7)) _))))))))) }
 
-::std::data::Map::insert::1::10 { x(x(_ n0) x(x(tup(tup(dup1563(dup1555(n1 @mul$(3 @add(2 @le$(n2 ?(::std::data::Map::balance_left::3 ::std::data::Map::balance_left::2 x(tup(n1 n3) x(n4 x(tup(n5 n6) n7)))))))) @add(n8 @add(1 n0))) n3) tup(n4 tup(dup1564(dup1556(n5 n2) n8) n6))) n7) x(n9 x(n10 x(x(n11 n11) x(x(n12 n12) x(x(n13 n13) x(x(tup(dup260(?(::std::data::Map::insert::1::3 ::std::data::Map::insert::1::2 x(x(n14 n15) x(x(n16 n17) x(n9 x(n10 n18))))) n14) n16) tup(n15 n17)) x(n18 _))))))))) }
+::std::data::Map::insert::1::10 { x(x(_ n0) x(x(tup(tup(dup1707(dup1693(n1 @n32_mul$(3 @n32_add(2 dup721(_ n2)))) @n32_add(n3 @n32_add(1 n0))) n4) tup(n5 tup(dup1708(dup720(n6 @n32_le(n2 ?(::std::data::Map::balance_left::3 ::std::data::Map::balance_left::2 x(tup(n1 n4) x(n5 x(tup(n6 n7) n8)))))) n3) n7))) n8) x(n9 x(n10 x(x(n11 n11) x(x(n12 n12) x(x(n13 n13) x(x(tup(dup125(n14 @n32_eq(0 ?(::std::data::Map::insert::1::3 ::std::data::Map::insert::1::2 x(x(n14 n15) x(x(n16 n17) x(n9 x(n10 n18))))))) n16) tup(n15 n17)) x(n18 _))))))))) }
 
-::std::data::List::ord::cmp::1::1 { x(x(tup(dup807(?(::std::data::List::Iter::next::3 ::std::data::List::Iter::next::2 x(x(n0 n1) x(x(n2 n3) n4))) n0) n2) n5) x(x(tup(dup807(?(::std::data::List::Iter::next::3 ::std::data::List::Iter::next::2 x(x(n6 n7) x(x(n8 n9) enum(::std::data::List::ord::cmp::1::14 enum(::std::data::List::ord::cmp::1::17 x(x(tup(n1 n3) n5) x(x(tup(n7 n9) n10) x(n11 n4)))))))) n6) n8) n10) n11)) }
+::std::data::List::ord::cmp::1::1 { x(x(tup(dup194(n0 @n32_ne(0 ?(::std::data::List::Iter::next::3 ::std::data::List::Iter::next::2 x(x(n0 n1) x(x(n2 n3) n4))))) n2) n5) x(x(tup(dup194(n6 @n32_ne(0 ?(::std::data::List::Iter::next::3 ::std::data::List::Iter::next::2 x(x(n6 n7) x(x(n8 n9) enum(::std::data::List::ord::cmp::1::14 enum(::std::data::List::ord::cmp::1::17 x(x(tup(n1 n3) n5) x(x(tup(n7 n9) n10) x(n11 n4)))))))))) n8) n10) n11)) }
 
-::std::data::List::ord::cmp::1::11 { x(x(n0 n0) x(x(n1 n1) ::std::ops::Ord::Lt)) }
+::std::data::List::ord::cmp::1::11 { x(x(n0 n0) x(x(n1 n1) ::std::ops::comparison::Ord::Lt)) }
 
-::std::data::List::ord::cmp::1::13 { x(x(n0 n0) x(x(n1 n1) ::std::ops::Ord::Gt)) }
+::std::data::List::ord::cmp::1::13 { x(x(n0 n0) x(x(n1 n1) ::std::ops::comparison::Ord::Gt)) }
 
 ::std::data::List::ord::cmp::1::14 { enum(n0 x(n1 x(n2 x(n3 enum(::std::data::List::ord::cmp::1::15 enum(::std::data::List::ord::cmp::1::16 x(n1 x(n2 x(n3 n0))))))))) }
 
-::std::data::List::ord::cmp::1::15 { enum(ref(dup400(n0 dup400(@lt(n1 ?(::std::unicode::Char::ord::cmp::3 ::std::unicode::Char::ord::cmp::2 x(n2 x(n3 enum(::std::data::List::ord::cmp::1::11 enum(::std::data::List::ord::cmp::1::1 enum(::std::data::List::ord::cmp::1::13 x(n4 x(n5 n6))))))))) n2)) n0) x(n4 x(n5 x(n6 ref(dup401(n7 dup401(n1 n3)) n7))))) }
+::std::data::List::ord::cmp::1::15 { enum(ref(dup457(n0 @n32_lt(n1 ?(::std::ops::comparison::Ord::cmp_from_lt::1::3 ::std::ops::comparison::Ord::cmp_from_lt::1::2 x(x(n0 n2) x(x(n3 n4) enum(::std::data::List::ord::cmp::1::11 enum(::std::data::List::ord::cmp::1::1 enum(::std::data::List::ord::cmp::1::13 x(n5 x(n6 n7)))))))))) n2) x(n5 x(n6 x(n7 ref(dup458(n3 n1) n4))))) }
 
-::std::data::List::ord::cmp::1::16 { x(x(n0 n0) x(x(n1 n1) x(::std::ops::Ord::Lt _))) }
+::std::data::List::ord::cmp::1::16 { x(x(n0 n0) x(x(n1 n1) x(::std::ops::comparison::Ord::Lt _))) }
 
-::std::data::List::ord::cmp::1::17 { x(x(n0 n0) x(x(n1 n1) x(n2 enum(::std::data::List::ord::cmp::1::18 enum(::std::ops::Ord::Eq n2))))) }
+::std::data::List::ord::cmp::1::17 { x(x(n0 n0) x(x(n1 n1) x(n2 enum(::std::data::List::ord::cmp::1::18 enum(::std::ops::comparison::Ord::Eq n2))))) }
 
-::std::data::List::ord::cmp::1::18 { enum(_ ::std::ops::Ord::Gt) }
+::std::data::List::ord::cmp::1::18 { enum(_ ::std::ops::comparison::Ord::Gt) }
 
-::std::unicode::Char::ord::cmp::2 { x(_ x(_ ::std::ops::Ord::Lt)) }
+::std::ops::comparison::Ord::cmp_from_lt::1::2 { x(x(n0 n0) x(x(n1 n1) ::std::ops::comparison::Ord::Lt)) }
 
-::std::unicode::Char::ord::cmp::3 { x(@lt$(n0 ?(::std::ops::Ord::Eq ::std::ops::Ord::Gt n1)) x(n0 n1)) }
+::std::ops::comparison::Ord::cmp_from_lt::1::3 { x(x(dup458(n0 n1) n0) x(x(dup457(n2 @n32_lt(n1 ?(::std::ops::comparison::Ord::Eq ::std::ops::comparison::Ord::Gt n3))) n2) n3)) }
 
-::std::data::Map::get::1::2 { x(x(tup(n0 tup(tup(tup(dup801(n1 dup807(?(::std::data::List::Iter::next::3 ::std::data::List::Iter::next::2 x(x(n2 n3) x(x(ref(n4 n5) n6) enum(::std::data::List::ord::cmp::1::14 enum(::std::data::List::ord::cmp::1::17 x(x(tup(n7 n8) tup(_ ref(n9 n9))) x(x(tup(n3 n6) tup(_ ref(n10 n10))) x(enum(::std::data::Map::get::1::8 enum(::std::data::Map::get::1::9 enum(::std::data::Map::get::1::10 x(x(tup(n11 tup(n12 n13)) n14) x(x(n0 n15) x(x(n16 n17) x(x(n18 n19) n20))))))) n21)))))))) n2)) tup(n4 n22)) n16) n18)) tup(n15 tup(tup(tup(n1 tup(n5 n22)) n17) n19))) x(x(tup(dup801(n11 dup807(?(::std::data::List::Iter::next::3 ::std::data::List::Iter::next::2 x(x(n23 n7) x(x(ref(n24 n12) n8) n21))) n23)) tup(n24 n13)) n14) n20)) }
+::std::data::Map::get::1::2 { x(x(n0 n0) x(x(n1 n1) ::std::logical::Option::None)) }
 
-::std::data::Map::get::1::3 { x(x(n0 n0) x(x(n1 n1) ::std::logical::Option::None)) }
+::std::data::Map::get::1::3 { x(x(tup(n0 tup(tup(tup(dup894(n1 dup194(n2 @n32_ne(0 ?(::std::data::List::Iter::next::3 ::std::data::List::Iter::next::2 x(x(n2 n3) x(x(ref(n4 n5) n6) enum(::std::data::List::ord::cmp::1::14 enum(::std::data::List::ord::cmp::1::17 x(x(tup(n7 n8) tup(_ ref(n9 n9))) x(x(tup(n3 n6) tup(_ ref(n10 n10))) x(enum(::std::data::Map::get::1::8 enum(::std::data::Map::get::1::9 enum(::std::data::Map::get::1::10 x(x(tup(n11 tup(n12 n13)) n14) x(x(n0 n15) x(x(n16 n17) x(x(n18 n19) n20))))))) n21))))))))))) tup(n4 n22)) n16) n18)) tup(n15 tup(tup(tup(n1 tup(n5 n22)) n17) n19))) x(x(tup(dup894(n11 dup194(n23 @n32_ne(0 ?(::std::data::List::Iter::next::3 ::std::data::List::Iter::next::2 x(x(n23 n7) x(x(ref(n24 n12) n8) n21)))))) tup(n24 n13)) n14) n20)) }
 
-::std::data::Map::get::1::8 { x(n0 x(x(tup(dup411(n2 ?(::std::data::Map::get::1::3 ::std::data::Map::get::1::2 x(x(n3 n4) x(n0 n5)))) n3) tup(n2 n4)) x(x(n6 n6) x(x(n7 n7) n5)))) }
+::std::data::Map::get::1::8 { x(n0 x(x(tup(dup125(n2 @n32_eq(0 ?(::std::data::Map::get::1::3 ::std::data::Map::get::1::2 x(x(n3 n4) x(n0 n5))))) n3) tup(n2 n4)) x(x(n6 n6) x(x(n7 n7) n5)))) }
 
 ::std::data::Map::get::1::9 { x(x(n0 n0) x(x(n1 n1) x(x(n2 n3) x(x(n4 n4) enum(enum(ref(n2 n3) n5) enum(_ n5)))))) }
 
-::std::data::Map::get::1::10 { x(n0 x(x(n2 n2) x(x(n3 n3) x(x(tup(dup411(n4 ?(::std::data::Map::get::1::3 ::std::data::Map::get::1::2 x(x(n5 n6) x(n0 n7)))) n5) tup(n4 n6)) n7)))) }
+::std::data::Map::get::1::10 { x(n0 x(x(n2 n2) x(x(n3 n3) x(x(tup(dup125(n4 @n32_eq(0 ?(::std::data::Map::get::1::3 ::std::data::Map::get::1::2 x(x(n5 n6) x(n0 n7))))) n5) tup(n4 n6)) n7)))) }
 
-::lambda::Parser::parse_var::2 { x(x(tup(tup(n0 tup(tup(dup472(dup478(dup2345(dup2342(@le$(97 @n32_and(n1 @n32_or(n2 @n32_or(n3 ?(::lambda::Parser::parse_var::7 ::lambda::Parser::parse_var::6 x(x(tup(tup(n0 tup(tup(n4 n5) n6)) n7) n8) x(n9 n10))))))) @le(122 n1)) dup2345(dup2343(@le$(65 @n32_and(n11 n2)) @le(90 n11)) dup2344(@le$(48 @n32_and(n12 n3)) @le(57 n12)))) n10) n4) n5) n6)) n7) n8) n9) }
+::lambda::Parser::parse_var::2 { x(x(tup(tup(n0 tup(tup(dup529(dup535(dup2072(dup2071(dup2072(dup2071(dup2072(dup2071(_ @n32_le(57 n1)) @n32_le$(48 @n32_and(n1 n2))) @n32_le(90 n3)) @n32_le$(65 @n32_and(n3 n4))) @n32_le(122 n5)) @n32_le$(97 @n32_and(n5 @n32_or(n4 @n32_or(n2 ?(::lambda::Parser::parse_var::7 ::lambda::Parser::parse_var::6 x(x(tup(tup(n0 tup(tup(n6 n7) n8)) n9) n10) x(n11 n12)))))))) n12) n6) n7) n8)) n9) n10) n11) }
 
 ::lambda::Parser::parse_var::3 { x(x(n0 n0) x(n1 n1)) }
 
-::lambda::Parser::parse_var::6 { x(x(tup(tup(dup653(?(::std::data::List::pop_front::3 ::std::data::List::pop_front::2 x(x(n0 dup561(?(::lambda::Parser::parse_var::3 ::lambda::Parser::parse_var::2 x(x(tup(tup(n1 tup(n2 n3)) n4) n5) x(tup(n6 tup(n7 n8)) n9))) n1)) x(x(n10 n2) _))) n0) tup(n10 n3)) n4) n5) x(x(tup(@add(1 n6) tup(n7 tup(n11 n8))) n9) n11)) }
+::lambda::Parser::parse_var::6 { x(x(tup(tup(dup194(n0 @n32_ne(0 ?(::std::data::List::pop_front::3 ::std::data::List::pop_front::2 x(x(n0 dup646(dup194(_ @n32_ne(0 ?(::lambda::Parser::parse_var::3 ::lambda::Parser::parse_var::2 x(x(tup(tup(n1 tup(n2 n3)) n4) n5) x(tup(n6 tup(n7 n8)) n9))))) n1)) x(x(n10 n2) _))))) tup(n10 n3)) n4) n5) x(x(tup(@n32_add(1 n6) tup(n7 tup(n11 n8))) n9) n11)) }
 
 ::lambda::Parser::parse_var::7 { x(x(n0 n0) x(x(n1 n1) _)) }
 
-::lambda::Parser::parse_var::11 { x(x(n0 n0) _) }
+::lambda::Parser::parse_var::11 { x(x(tup(_ tup(enum(enum(tup(17 tup(tup(101 tup(120 tup(112 tup(101 tup(99 tup(116 tup(101 tup(100 tup(32 tup(118 tup(97 tup(114 tup(105 tup(97 tup(98 tup(108 tup(101 n0))))))))))))))))) n0)) n1) enum(_ n1)) _)) _) _) }
 
-::lambda::Parser::parse_var::12 { x(x(tup(_ tup(enum(enum(tup(17 tup(tup(101 tup(120 tup(112 tup(101 tup(99 tup(116 tup(101 tup(100 tup(32 tup(118 tup(97 tup(114 tup(105 tup(97 tup(98 tup(108 tup(101 n0))))))))))))))))) n0)) n1) enum(_ n1)) _)) _) _) }
+::lambda::Parser::parse_var::12 { x(x(n0 n0) _) }
 
-::lambda::Parser::expect_char::4 { enum(@eq(n0 ?(::lambda::Parser::expect_char::8 ::lambda::Parser::expect_char::6 x(n1 x(n2 n3)))) x(n1 x(dup506(n0 n2) n3))) }
+::lambda::Parser::expect_char::4 { enum(dup280(_ @n32_eq(n0 ?(::lambda::Parser::expect_char::8 ::lambda::Parser::expect_char::6 x(n1 x(n2 n3))))) x(n1 x(dup281(n2 n0) n3))) }
 
 ::lambda::Parser::expect_char::6 { x(x(n0 n0) _) }
 
 ::lambda::Parser::expect_char::8 { x(x(tup(_ tup(enum(enum(tup(12 tup(tup(101 tup(120 tup(112 tup(101 tup(99 tup(116 tup(101 tup(100 tup(32 tup(96 tup(n0 tup(96 n1)))))))))))) n1)) n2) enum(_ n2)) _)) _) x(n0 _)) }
 
-::lambda::Parser::skip_ws::2 { x(tup(tup(n0 tup(tup(dup530(dup2339(@eq(32 @n32_or(n1 @n32_or(n2 ?(::lambda::Parser::skip_ws::5 ::lambda::Parser::skip_ws::4 x(tup(tup(n0 tup(tup(n3 n4) n5)) n6) n7))))) dup2339(@eq(9 n1) @eq(10 n2))) n3) n4) n5)) n6) n7) }
+::lambda::Parser::skip_ws::2 { x(tup(tup(n0 tup(tup(dup588(dup280(dup280(dup280(_ @n32_eq(10 n1)) @n32_eq(9 n2)) @n32_eq(32 @n32_or(n2 @n32_or(n1 ?(::lambda::Parser::skip_ws::5 ::lambda::Parser::skip_ws::4 x(tup(tup(n0 tup(tup(n3 n4) n5)) n6) n7)))))) n3) n4) n5)) n6) n7) }
 
 ::lambda::Parser::skip_ws::3 { x(n0 n0) }
 
-::lambda::Parser::skip_ws::4 { x(tup(tup(dup653(?(::std::data::List::pop_front::3 ::std::data::List::pop_front::2 x(x(n0 dup561(?(::lambda::Parser::skip_ws::3 ::lambda::Parser::skip_ws::2 x(tup(tup(n1 tup(n2 n3)) n4) n5)) n1)) x(x(n6 n2) _))) n0) tup(n6 n3)) n4) n5) }
+::lambda::Parser::skip_ws::4 { x(tup(tup(dup194(n0 @n32_ne(0 ?(::std::data::List::pop_front::3 ::std::data::List::pop_front::2 x(x(n0 dup646(dup194(_ @n32_ne(0 ?(::lambda::Parser::skip_ws::3 ::lambda::Parser::skip_ws::2 x(tup(tup(n1 tup(n2 n3)) n4) n5)))) n1)) x(x(n6 n2) _))))) tup(n6 n3)) n4) n5) }
 
 ::lambda::Parser::skip_ws::5 { x(n0 n0) }
 
-::lambda::new_var::2 { x(@sub(1 dup555(@rem(26 @add$(97 n0)) @div(26 dup551(@lt$(0 ?(::lambda::new_var::3 ::lambda::new_var::2 x(n1 x(tup(n2 tup(tup(n0 n3) n4)) n5)))) n1)))) x(tup(@add$(1 n2) tup(n3 n4)) n5)) }
+::lambda::new_var::2 { x(@n32_sub(1 dup614(@n32_rem(26 @n32_add$(97 n0)) @n32_div(26 dup627(n1 @n32_lt$(0 ?(::lambda::new_var::3 ::lambda::new_var::2 x(n1 x(tup(n2 tup(tup(n0 n3) n4)) n5)))))))) x(tup(@n32_add$(1 n2) tup(n3 n4)) n5)) }
 
 ::lambda::new_var::3 { x(_ x(n0 n0)) }
 
-::std::data::List::pop_front::2 { x(x(@sub(1 n0) n0) x(x(tup(n1 n2) n2) enum(enum(n1 n3) enum(_ n3)))) }
+::std::data::List::pop_front::2 { x(x(@n32_sub(1 n0) n0) x(x(tup(n1 n2) n2) enum(enum(n1 n3) enum(_ n3)))) }
 
 ::std::data::List::pop_front::3 { x(x(n0 n0) x(x(n1 n1) ::std::logical::Option::None)) }
 
-::std::data::List::Iter::next::2 { x(x(@sub(1 n0) n0) x(x(ref(tup(n1 n2) tup(n3 n4)) ref(n2 n4)) enum(enum(ref(n1 n3) n5) enum(_ n5)))) }
+::std::data::List::Iter::next::2 { x(x(@n32_sub(1 n0) n0) x(x(ref(tup(n1 n2) tup(n3 n4)) ref(n2 n4)) enum(enum(ref(n1 n3) n5) enum(_ n5)))) }
 
 ::std::data::List::Iter::next::3 { x(x(n0 n0) x(x(ref(n1 n1) _) ::std::logical::Option::None)) }
 
-::std::data::List::IntoIter::next::2 { x(x(@sub(1 n0) n0) x(x(tup(n1 n2) n2) enum(enum(n1 n3) enum(_ n3)))) }
+::std::data::List::IntoIter::next::2 { x(x(@n32_sub(1 n0) n0) x(x(tup(n1 n2) n2) enum(enum(n1 n3) enum(_ n3)))) }
 
 ::std::data::List::IntoIter::next::3 { x(x(n0 n0) x(x(n1 n1) ::std::logical::Option::None)) }
 
@@ -166,19 +166,19 @@
 
 ::std::data::Map::balance_left::2 { x(n0 x(n1 x(n2 tup(n0 tup(n1 n2))))) }
 
-::std::data::Map::balance_left::3 { x(n0 x(n1 x(tup(_ tup(tup(dup1559(n2 @le(n3 ?(::std::data::Map::balance_left::6 ::std::data::Map::balance_left::5 x(n0 x(n1 x(tup(n2 n4) x(n5 x(tup(n6 n7) n8)))))))) n4) tup(n5 tup(dup1560(n6 @mul$(2 n3)) n7)))) n8))) }
+::std::data::Map::balance_left::3 { x(n0 x(n1 x(tup(_ tup(tup(dup720(n2 @n32_le(n3 ?(::std::data::Map::balance_left::6 ::std::data::Map::balance_left::5 x(n0 x(n1 x(tup(n2 n4) x(n5 x(tup(n6 n7) n8)))))))) n4) tup(n5 tup(dup1704(n6 @n32_mul$(2 dup721(_ n3))) n7)))) n8))) }
 
-::std::data::Map::balance_left::5 { x(tup(dup1283(n0 @add(n1 @add(1 n2))) n3) x(n4 x(tup(dup1283(n5 n1) n6) x(n7 x(n8 tup(tup(n2 tup(tup(n0 n3) tup(n4 tup(n5 n6)))) tup(n7 n8))))))) }
+::std::data::Map::balance_left::5 { x(tup(dup1409(n0 @n32_add(n1 @n32_add(1 n2))) n3) x(n4 x(tup(dup1409(n5 n1) n6) x(n7 x(n8 tup(tup(n2 tup(tup(n0 n3) tup(n4 tup(n5 n6)))) tup(n7 n8))))))) }
 
-::std::data::Map::balance_left::6 { x(tup(dup1283(n0 @add(n1 @add(1 n2))) n3) x(n4 x(tup(_ tup(tup(dup1283(n5 n1) n6) tup(n7 tup(dup1283(n8 @add(n9 @add(1 n10))) n11)))) x(n12 x(tup(dup1283(n13 n9) n14) tup(tup(n2 tup(tup(n0 n3) tup(n4 tup(n5 n6)))) tup(n7 tup(n10 tup(tup(n8 n11) tup(n12 tup(n13 n14))))))))))) }
+::std::data::Map::balance_left::6 { x(tup(dup1409(n0 @n32_add(n1 @n32_add(1 n2))) n3) x(n4 x(tup(_ tup(tup(dup1409(n5 n1) n6) tup(n7 tup(dup1409(n8 @n32_add(n9 @n32_add(1 n10))) n11)))) x(n12 x(tup(dup1409(n13 n9) n14) tup(tup(n2 tup(tup(n0 n3) tup(n4 tup(n5 n6)))) tup(n7 tup(n10 tup(tup(n8 n11) tup(n12 tup(n13 n14))))))))))) }
 
 ::std::data::Map::balance_right::2 { x(n0 x(n1 x(n2 tup(n0 tup(n1 n2))))) }
 
-::std::data::Map::balance_right::3 { x(tup(_ tup(tup(dup1560(n0 @mul$(2 n1)) n2) tup(n3 tup(dup1559(n4 @le(n1 ?(::std::data::Map::balance_right::6 ::std::data::Map::balance_right::5 x(n5 x(n6 x(tup(n0 n2) x(n3 x(tup(n4 n7) n8)))))))) n7)))) x(n5 x(n6 n8))) }
+::std::data::Map::balance_right::3 { x(tup(_ tup(tup(dup1704(n0 @n32_mul$(2 dup721(_ n1))) n2) tup(n3 tup(dup720(n4 @n32_le(n1 ?(::std::data::Map::balance_right::6 ::std::data::Map::balance_right::5 x(n5 x(n6 x(tup(n0 n2) x(n3 x(tup(n4 n7) n8)))))))) n7)))) x(n5 x(n6 n8))) }
 
-::std::data::Map::balance_right::5 { x(n0 x(tup(dup1283(n1 n2) n3) x(n4 x(n5 x(tup(dup1283(n6 @add(n2 @add(1 n7))) n8) tup(n4 tup(n5 tup(n7 tup(tup(n6 n8) tup(n0 tup(n1 n3))))))))))) }
+::std::data::Map::balance_right::5 { x(n0 x(tup(dup1409(n1 n2) n3) x(n4 x(n5 x(tup(dup1409(n6 @n32_add(n2 @n32_add(1 n7))) n8) tup(n4 tup(n5 tup(n7 tup(tup(n6 n8) tup(n0 tup(n1 n3))))))))))) }
 
-::std::data::Map::balance_right::6 { x(n0 x(tup(dup1283(n1 n2) n3) x(tup(dup1283(n4 @add(n5 @add(1 n6))) n7) x(n8 x(tup(_ tup(tup(dup1283(n9 n5) n10) tup(n11 tup(dup1283(n12 @add(n2 @add(1 n13))) n14)))) tup(tup(n6 tup(tup(n4 n7) tup(n8 tup(n9 n10)))) tup(n11 tup(n13 tup(tup(n12 n14) tup(n0 tup(n1 n3))))))))))) }
+::std::data::Map::balance_right::6 { x(n0 x(tup(dup1409(n1 n2) n3) x(tup(dup1409(n4 @n32_add(n5 @n32_add(1 n6))) n7) x(n8 x(tup(_ tup(tup(dup1409(n9 n5) n10) tup(n11 tup(dup1409(n12 @n32_add(n2 @n32_add(1 n13))) n14)))) tup(tup(n6 tup(tup(n4 n7) tup(n8 tup(n9 n10)))) tup(n11 tup(n13 tup(tup(n12 n14) tup(n0 tup(n1 n3))))))))))) }
 
 ::std::logical::Option::unwrap_or::4 { enum(n0 x(_ n0)) }
 
@@ -186,19 +186,19 @@
 
 ::std::logical::Option::unwrap::3 { enum(n0 n0) }
 
-::std::IO::print::2 { x(x(@io_print_char(n0 n1) n2) x(@sub(1 dup2652(?(::std::IO::print::3 ::std::IO::print::2 x(x(n1 n2) x(n3 n4))) n3)) tup(n0 n4))) }
+::std::IO::print::2 { x(x(@io_print_char(n0 n1) n2) x(@n32_sub(1 dup194(n3 @n32_ne(0 ?(::std::IO::print::3 ::std::IO::print::2 x(x(n1 n2) x(n3 n4)))))) tup(n0 n4))) }
 
 ::std::IO::print::3 { x(x(n0 n0) _) }
 
-::std::IO::read_line::2 { x(n0 x(dup2701(@eq(10 ?(::std::IO::read_line::6 ::std::IO::read_line::5 x(n0 x(n1 n2)))) n1) enum(enum(n2 n3) enum(_ n3)))) }
+::std::IO::read_line::2 { x(n0 x(dup280(n1 @n32_eq(10 ?(::std::IO::read_line::6 ::std::IO::read_line::5 x(n0 x(n1 n2))))) enum(enum(n2 n3) enum(_ n3)))) }
 
 ::std::IO::read_line::3 { x(x(n0 n0) x(_ ::std::logical::Option::None)) }
 
 ::std::IO::read_line::5 { x(x(n0 n0) x(_ tup(0 tup(n1 n1)))) }
 
-::std::IO::read_line::6 { x(x(dup(n0 @io_read_byte(10 dup(dup2718(@ne(10 ?(::std::IO::read_line::10 ::std::IO::read_line::9 x(x(n1 n2) x(n3 x(x(tup(1 tup(tup(n4 n5) n5)) n6) _))))) n3) @seq$(n0 n1)))) n2) x(n4 n6)) }
+::std::IO::read_line::6 { x(x(dup(@io_read_byte(10 dup(dup198(n0 @n32_ne(10 ?(::std::IO::read_line::10 ::std::IO::read_line::9 x(x(n1 n2) x(n0 x(x(tup(1 tup(tup(n3 n4) n4)) n5) _)))))) @seq$(n6 n1))) n6) n2) x(n3 n5)) }
 
-::std::IO::read_line::9 { x(x(dup(n0 @io_read_byte(10 dup(dup2718(@ne(10 ?(::std::IO::read_line::10 ::std::IO::read_line::9 x(x(n1 n2) x(n3 x(x(tup(n4 tup(n5 n6)) n7) n8))))) n3) @seq$(n0 n1)))) n2) x(n9 x(x(tup(@add(1 n4) tup(n5 tup(n9 n6))) n7) n8))) }
+::std::IO::read_line::9 { x(x(dup(@io_read_byte(10 dup(dup198(n0 @n32_ne(10 ?(::std::IO::read_line::10 ::std::IO::read_line::9 x(x(n1 n2) x(n0 x(x(tup(n3 tup(n4 n5)) n6) n7)))))) @seq$(n8 n1))) n8) n2) x(n9 x(x(tup(@n32_add(1 n3) tup(n4 tup(n9 n5))) n6) n7))) }
 
 ::std::IO::read_line::10 { x(x(n0 n0) x(_ x(x(n1 n1) _))) }
 

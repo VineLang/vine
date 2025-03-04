@@ -1,9 +1,13 @@
 
+use std::ops::vectorized::{add, div_scalar, mul_scalar, sub};
+
 const max_iter: N32 = 64;
 const width: N32 = black_box(1024);
 const height: N32 = black_box(1024);
 const scale: F32 = 2.6;
 const center: (F32, F32) = (-0.8, 0.0);
+
+const adjusted_scale: F32 = scale / width as F32;
 
 pub fn main(&io: &IO) {
   io.print_bytes([0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, width, width >> 8, height, height >> 8, 8, 32]);
@@ -11,7 +15,8 @@ pub fn main(&io: &IO) {
   while j < height {
     let i = 0;
     while i < width {
-      let (x, y) = center + scale / width * ((i, j) + 0.5 - (width, height) / 2.0);
+      let pos = (i as F32 + 0.5, j as F32 + 0.5) - (width as F32, height as F32) / 2.0;
+      let (x, y) = center + pos * scale / width as F32;
       io.print_byte(mandelbrot(x, y));
       i += 1;
     }
@@ -25,7 +30,7 @@ fn mandelbrot(x0: F32, y0: F32) -> N32 {
   let x2 = 0.0;
   let y2 = 0.0;
   let i = 0;
-  while (i < max_iter) & (x2 + y2 < 4.0) {
+  while (i < max_iter) & (x2 + y2).lt(4.0) {
     i += 1;
     (x, y) = (x2 - y2 + x0, 2.0 * x * y + y0);
     x2 = x * x;

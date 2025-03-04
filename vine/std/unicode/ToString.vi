@@ -1,5 +1,4 @@
 
-#[builtin = "ToString"]
 pub trait ToString[T] {
   #[builtin = "to_string"]
   fn .to_string(self: T) -> String;
