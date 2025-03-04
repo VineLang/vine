@@ -16,4 +16,8 @@ pub mod prelude {
     numeric::{F32, N32},
     unicode::{Char, String},
   };
+
+  pub inline_ivy! black_box[T]: fn(T) -> T {
+    fn(x #[x])
+  }
 }

@@ -1,7 +1,7 @@
 
 const max_iter: N32 = 50;
-const width: N32 = 512;
-const height: N32 = 512;
+const width: N32 = black_box(512);
+const height: N32 = black_box(512);
 const scale: F32 = 2.6;
 const center: (F32, F32) = (-0.8, 0.0);
 
