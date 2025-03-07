@@ -1,0 +1,10 @@
+
+#[builtin = "Fork"]
+pub trait Fork[T] {
+  fn .fork(&self: &T) -> T;
+}
+
+#[builtin = "Drop"]
+pub trait Drop[T] {
+  fn .drop(self: T);
+}

@@ -4,9 +4,9 @@ use doc::{Doc, Writer};
 
 use crate::{
   ast::{
-    Block, ComparisonOp, Expr, ExprKind, GenericArgs, GenericParams, Generics, Ident, Impl,
-    ImplKind, Item, ItemKind, Label, LogicalOp, ModKind, Pat, PatKind, Path, Span, Stmt, StmtKind,
-    Trait, TraitKind, Ty, TyKind, UseTree, Vis,
+    Block, ComparisonOp, Expr, ExprKind, Flex, GenericArgs, GenericParams, Generics, Ident, Impl,
+    ImplKind, ImplParam, Item, ItemKind, Label, LogicalOp, ModKind, Pat, PatKind, Path, Span, Stmt,
+    StmtKind, Trait, TraitKind, Ty, TyKind, TypeParam, UseTree, Vis,
   },
   core::Core,
   diag::Diag,
@@ -294,14 +294,27 @@ impl<'core: 'src, 'src> Formatter<'src> {
   }
 
   fn fmt_generic_params(&self, generics: &GenericParams<'core>) -> Doc<'src> {
-    self.fmt_generics(
-      generics,
-      |i| Doc(*i),
-      |(i, t)| match i {
-        Some(i) => Doc::concat([Doc(*i), Doc(": "), self.fmt_trait(t)]),
-        None => self.fmt_trait(t),
-      },
-    )
+    self.fmt_generics(generics, |p| self.fmt_type_param(p), |p| self.fmt_impl_param(p))
+  }
+
+  fn fmt_type_param(&self, param: &TypeParam<'core>) -> Doc<'src> {
+    Doc::concat([Doc(param.name), self.fmt_flex(param.flex)])
+  }
+
+  fn fmt_flex(&self, flex: Flex) -> Doc<'src> {
+    Doc(match flex {
+      Flex::None => "",
+      Flex::Fork => "+",
+      Flex::Drop => "?",
+      Flex::Full => "*",
+    })
+  }
+
+  fn fmt_impl_param(&self, param: &ImplParam<'core>) -> Doc<'src> {
+    match param.name {
+      Some(n) => Doc::concat([Doc(n), Doc(": "), self.fmt_trait(&param.trait_)]),
+      None => self.fmt_trait(&param.trait_),
+    }
   }
 
   fn fmt_generic_args(&self, generics: &GenericArgs<'core>) -> Doc<'src> {

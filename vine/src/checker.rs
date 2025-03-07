@@ -385,10 +385,31 @@ impl<'core, 'a> Checker<'core, 'a> {
 
   fn assess_impl_params(&mut self, generics_id: GenericsId) {
     assert_eq!(self.types.impl_param_types.next_index(), generics_id);
-    let GenericsDef { def, ref mut impl_params, .. } = self.chart.generics[generics_id];
+    let GenericsDef { def, ref type_params, ref mut impl_params, .. } =
+      self.chart.generics[generics_id];
+    let core = &self.core;
+    let mut impl_param_types = type_params
+      .iter()
+      .enumerate()
+      .flat_map(|(i, param)| {
+        [
+          (self.chart.builtins.fork, "Fork", param.flex.fork()),
+          (self.chart.builtins.drop, "Drop", param.flex.drop()),
+        ]
+        .into_iter()
+        .filter(|&(.., has)| has)
+        .map(move |(trait_, builtin, _)| {
+          if let Some(trait_) = trait_ {
+            Type::Trait(trait_, vec![Type::Opaque(i)])
+          } else {
+            Type::Error(core.report(Diag::MissingBuiltin { span: param.span, builtin }))
+          }
+        })
+      })
+      .collect::<Vec<_>>();
     let mut impl_params = take(impl_params);
     self.initialize(def, generics_id);
-    let impl_param_types = impl_params.iter_mut().map(|(_, t)| self.assess_trait(t)).collect();
+    impl_param_types.extend(impl_params.iter_mut().map(|p| self.assess_trait(&mut p.trait_)));
     self.types.impl_param_types.push(impl_param_types);
     self.chart.generics[generics_id].impl_params = impl_params;
   }
@@ -507,6 +528,8 @@ impl<'core, 'a> Checker<'core, 'a> {
     pre_type_params: Option<Vec<Type<'core>>>,
   ) -> Vec<Type<'core>> {
     let params = &self.chart.generics[params_id];
+    let impl_param_types =
+      self.types.impl_param_types.get(params_id).unwrap_or(const { &Vec::new() });
     let check_count = |got, expected, kind| {
       if got != expected {
         self.core.report(Diag::BadGenericCount {
@@ -522,9 +545,9 @@ impl<'core, 'a> Checker<'core, 'a> {
       check_count(args.types.len(), params.type_params.len(), "type");
     }
     if !args.impls.is_empty() {
-      check_count(args.impls.len(), params.impl_params.len(), "impl");
+      check_count(args.impls.len(), impl_param_types.len(), "impl");
     }
-    let has_impl_params = !params.impl_params.is_empty();
+    let has_impl_params = !impl_param_types.is_empty();
     let mut type_params = (0..params.type_params.len())
       .iter()
       .map(|i| {
@@ -544,15 +567,15 @@ impl<'core, 'a> Checker<'core, 'a> {
       }
     }
     if has_impl_params {
-      let impl_params_types = self.types.impl_param_types[params_id]
+      let impl_param_types = self.types.impl_param_types[params_id]
         .iter()
         .map(|t| t.instantiate(&type_params))
         .collect::<Vec<_>>();
       if args.impls.is_empty() {
         args.impls =
-          impl_params_types.into_iter().map(|mut ty| self.find_impl(args.span, &mut ty)).collect();
+          impl_param_types.into_iter().map(|mut ty| self.find_impl(args.span, &mut ty)).collect();
       } else {
-        for (impl_, mut param_type) in args.impls.iter_mut().zip(impl_params_types.into_iter()) {
+        for (impl_, mut param_type) in args.impls.iter_mut().zip(impl_param_types.into_iter()) {
           self.check_impl_type(impl_, &mut param_type);
         }
       }

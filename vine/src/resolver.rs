@@ -202,10 +202,11 @@ impl<'core> ResolveVisitor<'core, '_, '_> {
       if self.type_params.len() != generics.type_params.len() {
         self.resolver.core.report(Diag::DuplicateTypeParam { span: generics.span });
       }
-      if self.impl_params.len() != generics.impl_params.iter().filter(|x| x.0.is_some()).count() {
+      if self.impl_params.len() != generics.impl_params.iter().filter(|x| x.name.is_some()).count()
+      {
         self.resolver.core.report(Diag::DuplicateImplParam { span: generics.span });
       }
-      self.visit(generics.impl_params.iter_mut().map(|(_, t)| t));
+      self.visit(generics.impl_params.iter_mut().map(|p| &mut p.trait_));
       self.resolver.chart.generics[id] = generics;
     }
 
@@ -227,10 +228,10 @@ impl<'core> ResolveVisitor<'core, '_, '_> {
 
     self.def = def;
     let generics = &self.resolver.chart.generics[generics];
-    self.type_params.extend(generics.type_params.iter().enumerate().map(|(i, &p)| (p, i)));
+    self.type_params.extend(generics.type_params.iter().enumerate().map(|(i, p)| (p.name, i)));
     self
       .impl_params
-      .extend(generics.impl_params.iter().enumerate().filter_map(|(i, &(p, _))| Some((p?, i))));
+      .extend(generics.impl_params.iter().enumerate().filter_map(|(i, p)| Some((p.name?, i))));
   }
 }
 

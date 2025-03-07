@@ -334,8 +334,7 @@ pub trait VisitMut<'core, 'a> {
   }
 
   fn _visit_generic_params(&mut self, generics: &'a mut GenericParams<'core>) {
-    let x = generics.impls.iter_mut().map(|x| &mut x.1);
-    self.visit(x);
+    self.visit(generics.impls.iter_mut().map(|x| &mut x.trait_));
   }
 
   fn _visit_generic_args(&mut self, generics: &'a mut GenericArgs<'core>) {
