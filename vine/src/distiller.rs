@@ -83,7 +83,7 @@ impl<'core, 'r> Distiller<'core, 'r> {
           self_._distill_fn(stage, local, params, body);
         }))
       }
-      ValueDefKind::Ivy { .. } | ValueDefKind::Adt(..) | ValueDefKind::TraitSubitem(..) => None,
+      ValueDefKind::Adt(..) | ValueDefKind::TraitSubitem(..) => None,
     }
   }
 

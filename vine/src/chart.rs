@@ -1,6 +1,5 @@
 use std::collections::HashMap;
 
-use ivy::ast::Net;
 use vine_util::{
   idx::{Counter, Idx, IdxVec, IntMap},
   new_idx,
@@ -147,10 +146,6 @@ pub enum ValueDefKind<'core> {
     params: Vec<Pat<'core>>,
     ret: Option<Ty<'core>>,
     body: Block<'core>,
-  },
-  Ivy {
-    ty: Ty<'core>,
-    net: Net,
   },
   Adt(AdtId, VariantId),
   TraitSubitem(TraitDefId, SubitemId),

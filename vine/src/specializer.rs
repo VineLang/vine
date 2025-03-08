@@ -42,7 +42,7 @@ impl<'core, 'a> Specializer<'core, 'a> {
           ValueDefKind::Taken => unreachable!(),
           ValueDefKind::Const { value, .. } => extractor.visit_expr(value),
           ValueDefKind::Fn { body, .. } => extractor.visit_block(body),
-          ValueDefKind::Ivy { .. } | ValueDefKind::Adt(..) | ValueDefKind::TraitSubitem(..) => {}
+          ValueDefKind::Adt(..) | ValueDefKind::TraitSubitem(..) => {}
         };
         let rels = extractor.rels;
         self.chart.values[value_id].kind = kind;

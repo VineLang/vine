@@ -74,9 +74,6 @@ impl<'core, 'a> Emitter<'core, 'a> {
     match &value_def.kind {
       ValueDefKind::Taken => unreachable!(),
       ValueDefKind::Const { .. } | ValueDefKind::Fn { .. } | ValueDefKind::TraitSubitem(..) => {}
-      ValueDefKind::Ivy { net, .. } => {
-        self.nets.insert(path.into(), net.clone());
-      }
       ValueDefKind::Adt(adt_id, variant_id) => {
         let adt = &self.chart.adts[*adt_id];
         let fields =

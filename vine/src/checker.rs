@@ -170,7 +170,7 @@ impl<'core, 'a> Checker<'core, 'a> {
         self.check_block_type(body, &mut ret);
         self.return_ty = old;
       }
-      ValueDefKind::Ivy { .. } | ValueDefKind::Adt(..) | ValueDefKind::TraitSubitem(..) => {}
+      ValueDefKind::Adt(..) | ValueDefKind::TraitSubitem(..) => {}
     }
     self.chart.values[value_id].kind = kind;
   }
@@ -423,7 +423,6 @@ impl<'core, 'a> Checker<'core, 'a> {
       ValueDefKind::Taken => unreachable!(),
       ValueDefKind::Const { ty, .. } => self.hydrate_type(ty, false),
       ValueDefKind::Fn { params, ret, .. } => self.assess_fn_sig(params, ret),
-      ValueDefKind::Ivy { ty, .. } => self.hydrate_type(ty, false),
       ValueDefKind::Adt(adt_id, variant_id) => {
         let adt = &self.chart.adts[*adt_id];
         let generics = &self.chart.generics[adt.generics];

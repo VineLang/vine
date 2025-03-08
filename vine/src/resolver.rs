@@ -133,7 +133,6 @@ impl<'core> ResolveVisitor<'core, '_, '_> {
           self.visit(ret);
           self.visit(body);
         }
-        ValueDefKind::Ivy { ty, .. } => self.visit(ty),
         ValueDefKind::Adt(..) | ValueDefKind::TraitSubitem(..) => {}
       }
       let value_def = &mut self.resolver.chart.values[id];
