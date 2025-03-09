@@ -4,7 +4,90 @@ pub trait Fork[T] {
   fn .fork(&self: &T) -> T;
 }
 
+pub mod Fork {
+  pub(std) fn copy[T](&value: &T) -> T {
+    inline_ivy! (value0 <- value, value1 -> value) -> T {
+      value2
+      value0 = copy(value0 value1)
+    }
+  }
+
+  pub impl ref[T]: Fork[&T] {
+    fn .fork(&&value: &&T) -> &T {
+      &value
+    }
+  }
+
+  pub impl tuple_0: Fork[()] {
+    fn .fork(&()) {}
+  }
+
+  pub impl tuple_1[A+]: Fork[(A,)] {
+    fn .fork(&(a: A,)) -> (A,) {
+      (a,)
+    }
+  }
+
+  pub impl tuple_2[A+, B+]: Fork[(A, B)] {
+    fn .fork(&(a: A, b: B)) -> (A, B) {
+      (a, b)
+    }
+  }
+
+  pub impl tuple_3[A+, B+, C+]: Fork[(A, B, C)] {
+    fn .fork(&(a: A, b: B, c: C)) -> (A, B, C) {
+      (a, b, c)
+    }
+  }
+
+  pub impl tuple_4[A+, B+, C+, D+]: Fork[(A, B, C, D)] {
+    fn .fork(&(a: A, b: B, c: C, d: D)) -> (A, B, C, D) {
+      (a, b, c, d)
+    }
+  }
+
+  pub impl tuple_5[A+, B+, C+, D+, E+]: Fork[(A, B, C, D, E)] {
+    fn .fork(&(a: A, b: B, c: C, d: D, e: E)) -> (A, B, C, D, E) {
+      (a, b, c, d, e)
+    }
+  }
+}
+
 #[builtin = "Drop"]
 pub trait Drop[T] {
   fn .drop(self: T);
+}
+
+pub mod Drop {
+  pub(std) fn .erase[T](value: T) {
+    inline_ivy! (value <- value) -> () { _ _ = value }
+  }
+
+  pub impl ref[T]: Drop[&T] {
+    fn .drop(&_: &T) {}
+  }
+
+  pub impl tuple_0: Drop[()] {
+    fn .drop(()) {}
+  }
+
+  pub impl tuple_1[A?]: Drop[(A,)] {
+    fn .drop((a: A,)) {}
+  }
+
+  pub impl tuple_2[A?, B?]: Drop[(A, B)] {
+    fn .drop((a: A, b: B)) {}
+  }
+
+  pub impl tuple_3[A?, B?, C?]: Drop[(A, B, C)] {
+    fn .drop((a: A, b: B, c: C)) {}
+  }
+
+  pub impl tuple_4[A?, B?, C?, D?]: Drop[(A, B, C, D)] {
+    fn .drop((a: A, b: B, c: C, d: D)) {}
+  }
+
+  pub impl tuple_5[A?, B?, C?, D?, E?]: Drop[(A, B, C, D, E)] {
+    fn .drop((a: A, b: B, c: C, d: D, e: E)) {}
+  }
 }

@@ -7,6 +7,18 @@ pub struct String {
 }
 
 pub mod String {
+  pub impl fork: Fork[String] {
+    fn .fork(&self: &String) -> String {
+      Fork::copy(&self)
+    }
+  }
+
+  pub impl drop: Drop[String] {
+    fn .drop(self: String) {
+      Drop::erase(self)
+    }
+  }
+
   pub fn .len(&String({ chars: List(len, _, _) })) -> N32 {
     len
   }

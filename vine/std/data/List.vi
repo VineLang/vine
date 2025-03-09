@@ -8,6 +8,15 @@ pub struct List[T](N32, Buf[T], ~Buf[T]);
 pub(std) struct Buf[T](T, Buf[T]);
 
 pub mod List {
+  pub impl drop[T?]: Drop[List[T]] {
+    fn .drop(List[T](len, buf, _)) {
+      while len != 0 {
+        Buf(_, buf) = buf;
+        len -= 1;
+      }
+    }
+  }
+
   pub fn .len[T](&self: &List[T]) -> N32 {
     self.0
   }
@@ -152,8 +161,8 @@ pub mod List {
       }
     }
 
-    pub fn .drop[T](&iter: &Iter[T]) {
-      let Iter(_, &_) = move iter;
+    pub impl drop[T]: Drop[Iter[T]] {
+      fn .drop(Iter[T](_, &_)) {}
     }
   }
 
@@ -172,6 +181,15 @@ pub mod List {
         Some(head)
       } else {
         None
+      }
+    }
+
+    pub impl drop[T?]: Drop[IntoIter[T]] {
+      fn .drop(IntoIter[T](len, buf)) {
+        while len != 0 {
+          Buf(_, buf) = buf;
+          len -= 1;
+        }
       }
     }
   }
