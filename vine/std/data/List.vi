@@ -195,10 +195,10 @@ pub mod List {
       let ord = loop {
         match (a.next(), b.next()) {
           (None, None) { break Ord::Eq }
-          (None, Some(_)) { break Ord::Lt }
-          (Some(_), None) { break Ord::Gt }
-          (Some(a), Some(b)) {
-            match a.*.cmp(b) {
+          (None, Some(&_)) { break Ord::Lt }
+          (Some(&_), None) { break Ord::Gt }
+          (Some(&a), Some(&b)) {
+            match a.cmp(&b) {
               Ord::Lt { break Ord::Lt }
               Ord::Eq {}
               Ord::Gt { break Ord::Gt }

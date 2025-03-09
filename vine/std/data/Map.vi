@@ -133,7 +133,7 @@ pub mod Map {
           balance_left(&data);
         }
         Ord::Eq {
-          old = Some(cur_value);
+          old = Some(move cur_value);
           len -= 1;
           data = merge_balanced(move left, move right);
         }
