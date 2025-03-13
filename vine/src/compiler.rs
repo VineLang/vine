@@ -31,7 +31,6 @@ impl<'core> Compiler<'core> {
       core,
       loader: Loader::new(core),
       chart: Chart::default(),
-      types: ChartTypes::default(),
       specs: Specializations::default(),
       vir: IdxVec::new(),
     }

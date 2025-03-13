@@ -124,8 +124,6 @@ pub enum Token {
   Move,
   #[token("let")]
   Let,
-  #[token("dyn")]
-  Dyn,
   #[token("const")]
   Const,
   #[token("defer")]

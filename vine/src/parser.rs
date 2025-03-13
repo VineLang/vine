@@ -8,9 +8,9 @@ use vine_util::parser::{Parser, ParserState};
 use crate::{core::Core, diag::Diag, lexer::Token};
 
 use crate::ast::{
-  Attr, AttrKind, BinaryOp, Block, Builtin, ComparisonOp, ConstItem, DynFnStmt, EnumItem, Expr,
-  ExprKind, Flex, FnItem, GenericArgs, GenericParams, Generics, Ident, Impl, ImplItem, ImplKind,
-  ImplParam, Item, ItemKind, Key, Label, LetStmt, LogicalOp, ModItem, ModKind, Pat, PatKind, Path,
+  Attr, AttrKind, BinaryOp, Block, Builtin, ComparisonOp, ConstItem, EnumItem, Expr, ExprKind,
+  Flex, FnItem, GenericArgs, GenericParams, Generics, Ident, Impl, ImplItem, ImplKind, ImplParam,
+  Item, ItemKind, Key, Label, LetFnStmt, LetStmt, LogicalOp, ModItem, ModKind, Pat, PatKind, Path,
   Span, Stmt, StmtKind, StructItem, Trait, TraitItem, TraitKind, Ty, TyKind, TypeItem, TypeParam,
   UseItem, UseTree, Variant, Vis,
 };
@@ -188,7 +188,7 @@ impl<'core, 'src> VineParser<'core, 'src> {
     let name = self.parse_ident()?;
     let generics = self.parse_generic_params()?;
     let params = self.parse_delimited(PAREN_COMMA, Self::parse_pat)?;
-    let ret = self.eat(Token::ThinArrow)?.then(|| self.parse_type()).transpose()?;
+    let ret = self.eat(Token::ThinArrow)?.then(|| self.parse_ty()).transpose()?;
     let body = (!self.eat(Token::Semi)?).then(|| self.parse_block()).transpose()?;
     Ok(FnItem { method, name, generics, params, ret, body })
   }
@@ -198,7 +198,7 @@ impl<'core, 'src> VineParser<'core, 'src> {
     let name = self.parse_ident()?;
     let generics = self.parse_generic_params()?;
     self.expect(Token::Colon)?;
-    let ty = self.parse_type()?;
+    let ty = self.parse_ty()?;
     let value = self.eat(Token::Eq)?.then(|| self.parse_expr()).transpose()?;
     self.expect(Token::Semi)?;
     Ok(ConstItem { name, generics, ty, value })
@@ -209,9 +209,9 @@ impl<'core, 'src> VineParser<'core, 'src> {
     let name = self.parse_ident()?;
     let generics = self.parse_generic_params()?;
     let (fields, object) = if self.check(Token::OpenParen) {
-      (self.parse_delimited(PAREN_COMMA, Self::parse_type)?, false)
+      (self.parse_delimited(PAREN_COMMA, Self::parse_ty)?, false)
     } else if self.check(Token::OpenBrace) {
-      (vec![self.parse_type()?], true)
+      (vec![self.parse_ty()?], true)
     } else {
       (Vec::new(), false)
     };
@@ -231,8 +231,7 @@ impl<'core, 'src> VineParser<'core, 'src> {
     self.expect(Token::Type)?;
     let name = self.parse_ident()?;
     let generics = self.parse_generic_params()?;
-    self.expect(Token::Eq)?;
-    let ty = self.parse_type()?;
+    let ty = self.eat(Token::Eq)?.then(|| self.parse_ty()).transpose()?;
     self.expect(Token::Semi)?;
     Ok(TypeItem { name, generics, ty })
   }
@@ -240,9 +239,9 @@ impl<'core, 'src> VineParser<'core, 'src> {
   fn parse_variant(&mut self) -> Parse<'core, Variant<'core>> {
     let name = self.parse_ident()?;
     let fields = if self.check(Token::OpenParen) {
-      self.parse_delimited(PAREN_COMMA, Self::parse_type)?
+      self.parse_delimited(PAREN_COMMA, Self::parse_ty)?
     } else if self.check(Token::OpenBrace) {
-      vec![self.parse_type()?]
+      vec![self.parse_ty()?]
     } else {
       Vec::new()
     };
@@ -291,7 +290,7 @@ impl<'core, 'src> VineParser<'core, 'src> {
   }
 
   fn parse_generic_args(&mut self) -> Parse<'core, GenericArgs<'core>> {
-    self.parse_generics(Self::parse_type, Self::parse_impl)
+    self.parse_generics(Self::parse_ty, Self::parse_impl)
   }
 
   fn parse_generics<T, I>(
@@ -594,9 +593,11 @@ impl<'core, 'src> VineParser<'core, 'src> {
       return Ok(ExprKind::Loop(label, body));
     }
     if self.eat(Token::Fn)? {
+      let flex = self.parse_flex()?;
       let params = self.parse_delimited(PAREN_COMMA, Self::parse_pat)?;
+      let ret = self.eat(Token::ThinArrow)?.then(|| self.parse_ty()).transpose()?;
       let body = self.parse_block()?;
-      return Ok(ExprKind::Fn(params, None, body));
+      return Ok(ExprKind::Fn(flex, params, ret, body));
     }
     if self.eat(Token::Match)? {
       let scrutinee = self.parse_expr()?;
@@ -623,7 +624,7 @@ impl<'core, 'src> VineParser<'core, 'src> {
         Ok((var, value, expr))
       })?;
       self.expect(Token::ThinArrow)?;
-      let ty = self.parse_type()?;
+      let ty = self.parse_ty()?;
       if !self.check(Token::OpenBrace) {
         self.unexpected()?;
       }
@@ -707,7 +708,7 @@ impl<'core, 'src> VineParser<'core, 'src> {
     }
 
     if bp.permits(BP::Annotation) && self.eat(Token::As)? {
-      let ty = self.parse_type()?;
+      let ty = self.parse_ty()?;
       return Ok(Ok(ExprKind::Cast(Box::new(lhs), Box::new(ty), false)));
     }
 
@@ -726,7 +727,7 @@ impl<'core, 'src> VineParser<'core, 'src> {
       }
       if self.eat(Token::As)? {
         self.expect(Token::OpenBracket)?;
-        let ty = self.parse_type()?;
+        let ty = self.parse_ty()?;
         self.expect(Token::CloseBracket)?;
         return Ok(Ok(ExprKind::Cast(Box::new(lhs), Box::new(ty), true)));
       }
@@ -841,12 +842,12 @@ impl<'core, 'src> VineParser<'core, 'src> {
         let key = self_.parse_key()?;
         let (pat, ty) = if self_.eat(Token::Colon)? {
           if self_.eat(Token::Colon)? {
-            (None, Some(self_.parse_type()?))
+            (None, Some(self_.parse_ty()?))
           } else {
             (Some(self_.parse_pat()?), None)
           }
         } else if self_.eat(Token::ColonColon)? {
-          (None, Some(self_.parse_type()?))
+          (None, Some(self_.parse_ty()?))
         } else {
           (None, None)
         };
@@ -868,13 +869,13 @@ impl<'core, 'src> VineParser<'core, 'src> {
     bp: BP,
   ) -> Parse<'core, Result<PatKind<'core>, Pat<'core>>> {
     if bp.permits(BP::Annotation) && self.eat(Token::Colon)? {
-      let ty = self.parse_type()?;
+      let ty = self.parse_ty()?;
       return Ok(Ok(PatKind::Annotation(Box::new(lhs), Box::new(ty))));
     }
     Ok(Err(lhs))
   }
 
-  fn parse_type(&mut self) -> Parse<'core, Ty<'core>> {
+  fn parse_ty(&mut self) -> Parse<'core, Ty<'core>> {
     let span = self.start_span();
     let kind = self._parse_type(span)?;
     let span = self.end_span(span);
@@ -886,14 +887,13 @@ impl<'core, 'src> VineParser<'core, 'src> {
       return Ok(TyKind::Hole);
     }
     if self.eat(Token::Fn)? {
-      let args = self.parse_delimited(PAREN_COMMA, Self::parse_type)?;
-      let ret = self.eat(Token::ThinArrow)?.then(|| self.parse_type()).transpose()?.map(Box::new);
-      return Ok(TyKind::Fn(args, ret));
+      let path = self.parse_path()?;
+      return Ok(TyKind::Fn(path));
     }
     if self.check(Token::OpenParen) {
       let mut tuple = false;
       let mut types = self.parse_delimited(PAREN_COMMA, |self_| {
-        let expr = self_.parse_type()?;
+        let expr = self_.parse_ty()?;
         if self_.check(Token::Comma) {
           tuple = true;
         }
@@ -908,20 +908,20 @@ impl<'core, 'src> VineParser<'core, 'src> {
       return Ok(TyKind::Object(self.parse_delimited(BRACE_COMMA, |self_| {
         let key = self_.parse_key()?;
         self_.expect(Token::Colon)?;
-        let value = self_.parse_type()?;
+        let value = self_.parse_ty()?;
         Ok((key, value))
       })?));
     }
     if self.eat(Token::And)? {
-      return Ok(TyKind::Ref(Box::new(self.parse_type()?)));
+      return Ok(TyKind::Ref(Box::new(self.parse_ty()?)));
     }
     if self.eat(Token::AndAnd)? {
-      let inner = self.parse_type()?;
+      let inner = self.parse_ty()?;
       let span = self.end_span(span + 1);
       return Ok(TyKind::Ref(Box::new(Ty { span, kind: TyKind::Ref(Box::new(inner)) })));
     }
     if self.eat(Token::Tilde)? {
-      return Ok(TyKind::Inverse(Box::new(self.parse_type()?)));
+      return Ok(TyKind::Inverse(Box::new(self.parse_ty()?)));
     }
     if self.check(Token::ColonColon) || self.check(Token::Ident) {
       let path = self.parse_path()?;
@@ -940,17 +940,44 @@ impl<'core, 'src> VineParser<'core, 'src> {
 
   fn parse_trait(&mut self) -> Parse<'core, Trait<'core>> {
     let span = self.start_span();
-    let kind = TraitKind::Path(self.parse_path()?);
+    let kind = self._parse_trait()?;
     let span = self.end_span(span);
     Ok(Trait { span, kind })
   }
 
+  fn _parse_trait(&mut self) -> Parse<'core, TraitKind<'core>> {
+    if self.check(Token::ColonColon) || self.check(Token::Ident) {
+      let path = self.parse_path()?;
+      return Ok(TraitKind::Path(path));
+    }
+
+    if self.eat(Token::Fn)? {
+      let recv = self.parse_ty()?;
+      let params = self.parse_delimited(PAREN_COMMA, Self::parse_ty)?;
+      let ret = self.eat(Token::ThinArrow)?.then(|| self.parse_ty()).transpose()?;
+      return Ok(TraitKind::Fn(recv, params, ret));
+    }
+
+    self.unexpected()
+  }
+
   pub(crate) fn parse_stmt(&mut self) -> Parse<'core, Stmt<'core>> {
     let span = self.start_span();
-    let kind = if self.check(Token::Let) {
-      StmtKind::Let(self.parse_let_stmt()?)
-    } else if self.check(Token::Dyn) {
-      StmtKind::DynFn(self.parse_dyn_fn_stmt()?)
+    let kind = if self.eat(Token::Let)? {
+      if self.eat(Token::Fn)? {
+        let flex = self.parse_flex()?;
+        let name = self.parse_ident()?;
+        let params = self.parse_delimited(PAREN_COMMA, Self::parse_pat)?;
+        let ret = self.eat(Token::ThinArrow)?.then(|| self.parse_ty()).transpose()?;
+        let body = self.parse_block()?;
+        StmtKind::LetFn(LetFnStmt { flex, name, params, ret, body })
+      } else {
+        let bind = self.parse_pat()?;
+        let init = self.eat(Token::Eq)?.then(|| self.parse_expr()).transpose()?;
+        let else_block = self.eat(Token::Else)?.then(|| self.parse_block()).transpose()?;
+        self.eat(Token::Semi)?;
+        StmtKind::Let(LetStmt { bind, init, else_block })
+      }
     } else if self.eat(Token::Semi)? {
       StmtKind::Empty
     } else if let Some(item) = self.maybe_parse_item()? {
@@ -971,25 +998,6 @@ impl<'core, 'src> VineParser<'core, 'src> {
     };
     let span = self.end_span(span);
     Ok(Stmt { span, kind })
-  }
-
-  fn parse_let_stmt(&mut self) -> Parse<'core, LetStmt<'core>> {
-    self.expect(Token::Let)?;
-    let bind = self.parse_pat()?;
-    let init = self.eat(Token::Eq)?.then(|| self.parse_expr()).transpose()?;
-    let else_block = self.eat(Token::Else)?.then(|| self.parse_block()).transpose()?;
-    self.eat(Token::Semi)?;
-    Ok(LetStmt { bind, init, else_block })
-  }
-
-  fn parse_dyn_fn_stmt(&mut self) -> Parse<'core, DynFnStmt<'core>> {
-    self.expect(Token::Dyn)?;
-    self.expect(Token::Fn)?;
-    let name = self.parse_ident()?;
-    let params = self.parse_delimited(PAREN_COMMA, Self::parse_pat)?;
-    let ret = self.eat(Token::ThinArrow)?.then(|| self.parse_type()).transpose()?;
-    let body = self.parse_block()?;
-    Ok(DynFnStmt { name, id: None, params, ret, body })
   }
 
   fn parse_path(&mut self) -> Parse<'core, Path<'core>> {

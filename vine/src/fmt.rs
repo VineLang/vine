@@ -106,8 +106,10 @@ impl<'core: 'src, 'src> Formatter<'src> {
           Doc("type "),
           Doc(t.name),
           self.fmt_generic_params(&t.generics),
-          Doc(" = "),
-          self.fmt_ty(&t.ty),
+          match &t.ty {
+            Some(ty) => Doc::concat([Doc(" = "), self.fmt_ty(&ty)]),
+            None => Doc(""),
+          },
           Doc(";"),
         ]),
         ItemKind::Mod(m) => Doc::concat([
@@ -254,13 +256,13 @@ impl<'core: 'src, 'src> Formatter<'src> {
         },
         Doc(";"),
       ]),
-      StmtKind::DynFn(d) => Doc::concat([
-        Doc("dyn fn "),
-        Doc(d.name),
-        Doc::paren_comma(d.params.iter().map(|p| self.fmt_pat(p))),
-        self.fmt_return_ty(d.ret.as_ref()),
+      StmtKind::LetFn(f) => Doc::concat([
+        Doc("let fn "),
+        Doc(f.name),
+        Doc::paren_comma(f.params.iter().map(|p| self.fmt_pat(p))),
+        self.fmt_return_ty(f.ret.as_ref()),
         Doc(" "),
-        self.fmt_block(&d.body, true),
+        self.fmt_block(&f.body, true),
       ]),
       StmtKind::Expr(expr, false) => self.fmt_expr(expr),
       StmtKind::Expr(expr, true) => Doc::concat([self.fmt_expr(expr), Doc(";")]),
@@ -323,7 +325,7 @@ impl<'core: 'src, 'src> Formatter<'src> {
 
   fn fmt_impl(&self, impl_: &Impl<'core>) -> Doc<'src> {
     match &impl_.kind {
-      ImplKind::Error(_) | ImplKind::Param(_) | ImplKind::Def(..) => unreachable!(),
+      ImplKind::Error(_) => unreachable!(),
       ImplKind::Hole => Doc("_"),
       ImplKind::Path(path) => self.fmt_path(path),
     }
@@ -331,8 +333,17 @@ impl<'core: 'src, 'src> Formatter<'src> {
 
   fn fmt_trait(&self, trait_: &Trait<'core>) -> Doc<'src> {
     match &trait_.kind {
-      TraitKind::Error(_) | TraitKind::Def(..) => unreachable!(),
+      TraitKind::Error(_) => unreachable!(),
       TraitKind::Path(path) => self.fmt_path(path),
+      TraitKind::Fn(recv, params, ret) => Doc::concat([
+        Doc("fn "),
+        self.fmt_ty(recv),
+        Doc::paren_comma(params.iter().map(|p| self.fmt_ty(p))),
+        match ret {
+          Some(ty) => Doc::concat([Doc(" -> "), self.fmt_ty(ty)]),
+          None => Doc(""),
+        },
+      ]),
     }
   }
 
@@ -373,7 +384,7 @@ impl<'core: 'src, 'src> Formatter<'src> {
 
   fn fmt_expr(&self, expr: &Expr<'core>) -> Doc<'src> {
     match &expr.kind {
-      ExprKind![synthetic || resolved || error] => unreachable!(),
+      ExprKind::Error(_) => unreachable!(),
       ExprKind::Paren(p) => Doc::paren(self.fmt_expr(p)),
       ExprKind::Hole => Doc("_"),
       ExprKind::Path(path) => self.fmt_path(path),
@@ -413,10 +424,15 @@ impl<'core: 'src, 'src> Formatter<'src> {
       ExprKind::Loop(l, b) => {
         Doc::concat([Doc("loop"), self.fmt_label(l), Doc(" "), self.fmt_block(b, true)])
       }
-      ExprKind::Fn(p, _, b) => Doc::concat([
+      ExprKind::Fn(f, p, r, b) => Doc::concat([
         Doc("fn"),
-        Doc::paren_comma(p.iter().map(|p| self.fmt_pat(p))),
+        self.fmt_flex(*f),
         Doc(" "),
+        Doc::paren_comma(p.iter().map(|p| self.fmt_pat(p))),
+        match r {
+          Some(ty) => Doc::concat([Doc(" -> "), self.fmt_ty(ty), Doc(" ")]),
+          None => Doc(" "),
+        },
         self.fmt_block(b, false),
       ]),
       ExprKind::Return(Some(x)) => Doc::concat([Doc("return "), self.fmt_expr(x)]),
@@ -531,7 +547,7 @@ impl<'core: 'src, 'src> Formatter<'src> {
 
   fn fmt_pat(&self, pat: &Pat<'core>) -> Doc<'src> {
     match &pat.kind {
-      PatKind::Local(_) | PatKind::Adt(..) | PatKind::Error(_) => unreachable!(),
+      PatKind::Error(_) => unreachable!(),
       PatKind::Hole => Doc("_"),
       PatKind::Paren(p) => Doc::paren(self.fmt_pat(p)),
       PatKind::PathCall(p, None) => self.fmt_path(p),
@@ -577,19 +593,15 @@ impl<'core: 'src, 'src> Formatter<'src> {
     match &ty.kind {
       TyKind::Hole => Doc("_"),
       TyKind::Paren(p) => Doc::paren(self.fmt_ty(p)),
-      TyKind::Fn(a, r) => Doc::concat([
-        Doc("fn"),
-        Doc::paren_comma(a.iter().map(|x| self.fmt_ty(x))),
-        self.fmt_return_ty(r.as_deref()),
-      ]),
       TyKind::Tuple(t) => Doc::tuple(t.iter().map(|x| self.fmt_ty(x))),
       TyKind::Ref(t) => Doc::concat([Doc("&"), self.fmt_ty(t)]),
       TyKind::Inverse(t) => Doc::concat([Doc("~"), self.fmt_ty(t)]),
       TyKind::Path(p) => self.fmt_path(p),
+      TyKind::Fn(p) => Doc::concat([Doc("fn "), self.fmt_path(p)]),
       TyKind::Object(o) => Doc::brace_comma_space(
         o.iter().map(|(k, t)| Doc::concat([Doc(k.ident), Doc(": "), self.fmt_ty(t)])),
       ),
-      TyKind::Param(_) | TyKind::Def(..) | TyKind::Error(_) => unreachable!(),
+      TyKind::Error(_) => unreachable!(),
     }
   }
 

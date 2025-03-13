@@ -1,4 +1,4 @@
-use std::{collections::hash_map::Entry, mem::take};
+use std::collections::hash_map::Entry;
 
 use vine_util::idx::{Counter, IdxVec};
 
@@ -8,10 +8,9 @@ use crate::{
     Span, Trait, TraitKind, Ty, TyKind, UseTree, Vis,
   },
   chart::{Chart, TraitSubitem},
-  checker::Type,
   core::Core,
   diag::{Diag, ErrorGuaranteed},
-  visit::VisitMut,
+  // visit::VisitMut,
 };
 
 use crate::chart::*;
@@ -138,7 +137,16 @@ impl<'core> Charter<'core, '_> {
       ItemKind::Type(type_item) => {
         let def = self.chart_child(parent, type_item.name, member_vis, true);
         let generics = self.chart_generics(def, type_item.generics, false);
-        self.define_type(span, def, vis, generics, TypeDefKind::Alias(type_item.ty));
+        self.define_type(
+          span,
+          def,
+          vis,
+          generics,
+          match type_item.ty {
+            Some(ty) => TypeDefKind::Alias(ty),
+            None => TypeDefKind::Opaque,
+          },
+        );
         Some(def)
       }
 
@@ -159,23 +167,25 @@ impl<'core> Charter<'core, '_> {
             span: generics.span,
             def,
             type_params: generics.type_params.clone(),
-            impl_params: vec![ImplParam {
-              span: Span::NONE,
-              name: None,
-              trait_: Trait {
-                span: Span::NONE,
-                kind: TraitKind::Def(
-                  trait_id,
-                  Generics {
-                    span: Span::NONE,
-                    types: (0..generics.type_params.len())
-                      .map(|i| Ty { span: Span::NONE, kind: TyKind::Param(i) })
-                      .collect(),
-                    impls: Vec::new(),
-                  },
-                ),
-              },
-            }],
+            impl_params: vec![
+              // ImplParam {
+              //   span: Span::NONE,
+              //   name: None,
+              //   trait_: Trait {
+              //     span: Span::NONE,
+              //     kind: TraitKind::Def(
+              //       trait_id,
+              //       Generics {
+              //         span: Span::NONE,
+              //         types: (0..generics.type_params.len())
+              //           .map(|i| Ty { span: Span::NONE, kind: TyKind::Param(i) })
+              //           .collect(),
+              //         impls: Vec::new(),
+              //       },
+              //     ),
+              //   },
+              // }
+            ],
           })
         };
         let subitems = trait_item
@@ -198,7 +208,7 @@ impl<'core> Charter<'core, '_> {
                 let sub_id = sub_id.next();
                 let kind = ValueDefKind::TraitSubitem(trait_id, sub_id);
                 self.define_value(span, def, vis, sub_generics, kind, fn_item.method);
-                self.chart_attrs(span, vis, Some(def), subitem.attrs);
+                self.chart_attrs(Some(def), subitem.attrs);
                 Some(TraitSubitem {
                   name: fn_item.name,
                   kind: TraitSubitemKind::Fn(fn_item.params, fn_item.ret),
@@ -215,7 +225,7 @@ impl<'core> Charter<'core, '_> {
                 let sub_id = sub_id.next();
                 let kind = ValueDefKind::TraitSubitem(trait_id, sub_id);
                 self.define_value(span, def, vis, sub_generics, kind, false);
-                self.chart_attrs(span, vis, Some(def), subitem.attrs);
+                self.chart_attrs(Some(def), subitem.attrs);
                 Some(TraitSubitem {
                   name: const_item.name,
                   kind: TraitSubitemKind::Const(const_item.ty),
@@ -253,7 +263,7 @@ impl<'core> Charter<'core, '_> {
                 let body = self.ensure_implemented(span, fn_item.body);
                 let kind = ValueDefKind::Fn { params: fn_item.params, ret: fn_item.ret, body };
                 let value = self.define_value(span, def, vis, generics, kind, fn_item.method);
-                self.chart_attrs(span, vis, Some(def), subitem.attrs);
+                self.chart_attrs(Some(def), subitem.attrs);
                 Some(ImplSubitem { span, name: fn_item.name, value })
               }
               ItemKind::Const(const_item) => {
@@ -264,7 +274,7 @@ impl<'core> Charter<'core, '_> {
                 let value = self.ensure_implemented(span, const_item.value);
                 let kind = ValueDefKind::Const { ty: const_item.ty, value };
                 let value = self.define_value(span, def, vis, generics, kind, false);
-                self.chart_attrs(span, vis, Some(def), subitem.attrs);
+                self.chart_attrs(Some(def), subitem.attrs);
                 Some(ImplSubitem { span, name: const_item.name, value })
               }
               _ => {
@@ -306,14 +316,14 @@ impl<'core> Charter<'core, '_> {
       }
     }
 
-    self.chart_attrs(span, vis, def, item.attrs);
+    self.chart_attrs(def, item.attrs);
   }
 
-  fn chart_attrs(&mut self, span: Span, vis: DefId, def: Option<DefId>, attrs: Vec<Attr>) {
+  fn chart_attrs(&mut self, def: Option<DefId>, attrs: Vec<Attr>) {
     for attr in attrs {
       match attr.kind {
         AttrKind::Builtin(builtin) => {
-          if !self.chart_builtin(span, def, vis, builtin) {
+          if !self.chart_builtin(def, builtin) {
             self.core.report(Diag::BadBuiltin { span: attr.span });
           }
         }
@@ -321,13 +331,7 @@ impl<'core> Charter<'core, '_> {
     }
   }
 
-  fn chart_builtin(
-    &mut self,
-    span: Span,
-    def_id: Option<DefId>,
-    vis: DefId,
-    builtin: Builtin,
-  ) -> bool {
+  fn chart_builtin(&mut self, def_id: Option<DefId>, builtin: Builtin) -> bool {
     let Some(def_id) = def_id else { return false };
     let def = &mut self.chart.defs[def_id];
 
@@ -339,18 +343,14 @@ impl<'core> Charter<'core, '_> {
         false
       }
     }
-    let primitive = |self_: &mut Self, ty| {
-      self_.define_type(span, def_id, vis, GenericsId::NONE, TypeDefKind::Builtin(ty));
-      Some(def_id)
-    };
     let adt = || def.type_def.and_then(|id| self.chart.types[id].kind.adt());
 
     match builtin {
-      Builtin::Bool => set(primitive(self, Type::Bool), &mut self.chart.builtins.bool),
-      Builtin::N32 => set(primitive(self, Type::N32), &mut self.chart.builtins.n32),
-      Builtin::F32 => set(primitive(self, Type::F32), &mut self.chart.builtins.f32),
-      Builtin::Char => set(primitive(self, Type::Char), &mut self.chart.builtins.char),
-      Builtin::IO => set(primitive(self, Type::IO), &mut self.chart.builtins.io),
+      Builtin::Bool => set(def.type_def, &mut self.chart.builtins.bool),
+      Builtin::N32 => set(def.type_def, &mut self.chart.builtins.n32),
+      Builtin::F32 => set(def.type_def, &mut self.chart.builtins.f32),
+      Builtin::Char => set(def.type_def, &mut self.chart.builtins.char),
+      Builtin::IO => set(def.type_def, &mut self.chart.builtins.io),
       Builtin::Prelude => set(Some(def_id), &mut self.chart.builtins.prelude),
       Builtin::List => set(adt(), &mut self.chart.builtins.list),
       Builtin::String => set(adt(), &mut self.chart.builtins.string),
@@ -519,7 +519,7 @@ define_define!(
 fn extract_subitems<'core>(item: &mut Item<'core>) -> Vec<Item<'core>> {
   let mut visitor = ExtractItems::default();
   if !matches!(item.kind, ItemKind::Mod(_) | ItemKind::Trait(_) | ItemKind::Impl(_)) {
-    visitor._visit_item(item);
+    // visitor._visit_item(item);
   }
   visitor.items
 }
@@ -529,8 +529,8 @@ pub struct ExtractItems<'core> {
   pub items: Vec<Item<'core>>,
 }
 
-impl<'core> VisitMut<'core, '_> for ExtractItems<'core> {
-  fn visit_item(&mut self, item: &mut Item<'core>) {
-    self.items.push(take(item));
-  }
-}
+// impl<'core> VisitMut<'core, '_> for ExtractItems<'core> {
+//   fn visit_item(&mut self, item: &mut Item<'core>) {
+//     self.items.push(take(item));
+//   }
+// }

@@ -14,7 +14,7 @@ use crate::{
   core::Core,
   diag::{Diag, FileInfo},
   parser::VineParser,
-  visit::{VisitMut, Visitee},
+  // visit::{VisitMut, Visitee},
 };
 
 pub struct Loader<'core> {
@@ -45,21 +45,22 @@ impl<'core> Loader<'core> {
         generics: GenericParams::default(),
         ty: Ty {
           span: Span::NONE,
-          kind: TyKind::Fn(
-            vec![Ty {
-              span: Span::NONE,
-              kind: TyKind::Ref(Box::new(Ty {
-                span: Span::NONE,
-                kind: TyKind::Path(ast::Path {
-                  span: Span::NONE,
-                  absolute: false,
-                  segments: vec![io],
-                  generics: None,
-                }),
-              })),
-            }],
-            None,
-          ),
+          kind: todo!(),
+          // TyKind::Fn(
+          //   vec![Ty {
+          //     span: Span::NONE,
+          //     kind: TyKind::Ref(Box::new(Ty {
+          //       span: Span::NONE,
+          //       kind: TyKind::Path(ast::Path {
+          //         span: Span::NONE,
+          //         absolute: false,
+          //         segments: vec![io],
+          //         generics: None,
+          //       }),
+          //     })),
+          //   }],
+          //   None,
+          // ),
         },
         value: Some(Expr {
           span: Span::NONE,
@@ -120,14 +121,14 @@ impl<'core> Loader<'core> {
     let mut items = VineParser::parse(self.core, &src, file)?;
     path.pop();
     for item in &mut items {
-      self.load_deps(&path, item);
+      // self.load_deps(&path, item);
     }
     Ok(items)
   }
 
-  pub(crate) fn load_deps<'t>(&mut self, base: &Path, visitee: impl Visitee<'core, 't>) {
-    LoadDeps { loader: self, base }.visit(visitee);
-  }
+  // pub(crate) fn load_deps<'t>(&mut self, base: &Path, visitee: impl
+  // Visitee<'core, 't>) {   LoadDeps { loader: self, base }.visit(visitee);
+  // }
 }
 
 struct LoadDeps<'core, 'a> {
@@ -135,14 +136,14 @@ struct LoadDeps<'core, 'a> {
   base: &'a Path,
 }
 
-impl<'core> VisitMut<'core, '_> for LoadDeps<'core, '_> {
-  fn visit_item<'a>(&'a mut self, item: &mut Item<'core>) {
-    if let ItemKind::Mod(module) = &mut item.kind {
-      if let ModKind::Unloaded(_, path) = &mut module.kind {
-        module.kind = self.loader.load_file(self.base.join(path), item.span);
-        return;
-      }
-    }
-    self._visit_item(item);
-  }
-}
+// impl<'core> VisitMut<'core, '_> for LoadDeps<'core, '_> {
+//   fn visit_item<'a>(&'a mut self, item: &mut Item<'core>) {
+//     if let ItemKind::Mod(module) = &mut item.kind {
+//       if let ModKind::Unloaded(_, path) = &mut module.kind {
+//         module.kind = self.loader.load_file(self.base.join(path), item.span);
+//         return;
+//       }
+//     }
+//     self._visit_item(item);
+//   }
+// }

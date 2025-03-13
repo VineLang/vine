@@ -7,6 +7,8 @@ use ops::{
 use unicode::ToString;
 
 #[builtin = "N32"]
+pub type N32;
+
 pub mod N32 {
   pub const maximum: N32 = 0xffffffff;
 

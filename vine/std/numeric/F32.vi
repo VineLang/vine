@@ -2,6 +2,8 @@
 use ops::{Cast, arithmetic::{Add, Div, Mul, Neg, Rem, Sub}};
 
 #[builtin = "F32"]
+pub type F32;
+
 pub mod F32 {
   pub impl fork: Fork[F32] {
     fn .fork(&self: &F32) -> F32 {

@@ -9,9 +9,9 @@ use vine_util::{
 
 use crate::{
   analyzer::{usage::Usage, UsageVar},
-  ast::Local,
   chart::{AdtId, ValueDefId, VariantId},
-  specializer::RelId,
+  // specializer::RelId,
+  tir::Local,
 };
 
 new_idx!(pub LayerId; n => ["L{n}"]);
@@ -169,7 +169,7 @@ impl Invocation {
 pub enum Port {
   Erase,
   Def(ValueDefId),
-  Rel(RelId),
+  // Rel(RelId),
   N32(u32),
   F32(f32),
   Wire(WireId),

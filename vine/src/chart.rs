@@ -6,11 +6,9 @@ use vine_util::{
 };
 
 use crate::{
-  ast::{
-    BinaryOp, Block, ComparisonOp, Expr, Ident, ImplParam, Local, Pat, Span, Trait, Ty, TypeParam,
-  },
-  checker::Type,
+  ast::{BinaryOp, Block, ComparisonOp, Expr, Ident, ImplParam, Pat, Span, Trait, Ty, TypeParam},
   diag::ErrorGuaranteed,
+  tir::Local,
 };
 
 #[derive(Debug, Default)]
@@ -31,11 +29,11 @@ pub struct Chart<'core> {
 pub struct Builtins {
   pub prelude: Option<DefId>,
 
-  pub bool: Option<DefId>,
-  pub n32: Option<DefId>,
-  pub f32: Option<DefId>,
-  pub char: Option<DefId>,
-  pub io: Option<DefId>,
+  pub bool: Option<TypeDefId>,
+  pub n32: Option<TypeDefId>,
+  pub f32: Option<TypeDefId>,
+  pub char: Option<TypeDefId>,
+  pub io: Option<TypeDefId>,
 
   pub list: Option<AdtId>,
   pub string: Option<AdtId>,
@@ -166,7 +164,7 @@ pub enum TypeDefKind<'core> {
   Taken,
   Alias(Ty<'core>),
   Adt(AdtId),
-  Builtin(Type<'core>),
+  Opaque,
 }
 
 #[derive(Debug)]
@@ -328,10 +326,10 @@ impl<'core> Def<'core> {
 impl Builtins {
   fn revert(&mut self, checkpoint: &ChartCheckpoint) {
     revert_option(&mut self.prelude, checkpoint.defs);
-    revert_option(&mut self.n32, checkpoint.defs);
-    revert_option(&mut self.f32, checkpoint.defs);
-    revert_option(&mut self.char, checkpoint.defs);
-    revert_option(&mut self.bool, checkpoint.defs);
+    revert_option(&mut self.n32, checkpoint.types);
+    revert_option(&mut self.f32, checkpoint.types);
+    revert_option(&mut self.char, checkpoint.types);
+    revert_option(&mut self.bool, checkpoint.types);
     revert_option(&mut self.list, checkpoint.adts);
     revert_option(&mut self.string, checkpoint.adts);
     revert_option(&mut self.to_string, checkpoint.values);

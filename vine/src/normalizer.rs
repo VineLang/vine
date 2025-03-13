@@ -6,7 +6,7 @@ use vine_util::{
 };
 
 use crate::{
-  ast::Local,
+  tir::Local,
   vir::{
     Interface, InterfaceId, InterfaceKind, Layer, LayerId, Port, Stage, StageId, Step, Transfer,
     WireId, VIR,

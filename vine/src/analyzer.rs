@@ -7,7 +7,7 @@ use usage::Usage;
 use vine_util::{idx::IdxVec, new_idx};
 
 use crate::{
-  ast::Local,
+  tir::Local,
   vir::{Interface, InterfaceId, Invocation, Stage, StageId, Step, VIR},
 };
 
