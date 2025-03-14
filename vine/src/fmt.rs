@@ -5,7 +5,7 @@ use doc::{Doc, Writer};
 use crate::{
   ast::{
     Block, ComparisonOp, Expr, ExprKind, Flex, GenericArgs, GenericParams, Generics, Ident, Impl,
-    ImplKind, ImplParam, Item, ItemKind, Label, LogicalOp, ModKind, Pat, PatKind, Path, Span, Stmt,
+    ImplKind, ImplParam, Item, ItemKind, LogicalOp, ModKind, Pat, PatKind, Path, Span, Stmt,
     StmtKind, Trait, TraitKind, Ty, TyKind, TypeParam, UseTree, Vis,
   },
   core::Core,
@@ -107,7 +107,7 @@ impl<'core: 'src, 'src> Formatter<'src> {
           Doc(t.name),
           self.fmt_generic_params(&t.generics),
           match &t.ty {
-            Some(ty) => Doc::concat([Doc(" = "), self.fmt_ty(&ty)]),
+            Some(ty) => Doc::concat([Doc(" = "), self.fmt_ty(ty)]),
             None => Doc(""),
           },
           Doc(";"),
@@ -444,12 +444,10 @@ impl<'core: 'src, 'src> Formatter<'src> {
       ExprKind::Continue(label) => Doc::concat([Doc("continue"), self.fmt_label(label)]),
       ExprKind::Ref(x, false) => Doc::concat([Doc("&"), self.fmt_expr(x)]),
       ExprKind::Deref(x, false) => Doc::concat([Doc("*"), self.fmt_expr(x)]),
-      ExprKind::Move(x, false) => Doc::concat([Doc("move "), self.fmt_expr(x)]),
       ExprKind::Inverse(x, false) => Doc::concat([Doc("~"), self.fmt_expr(x)]),
       ExprKind::Cast(x, ty, false) => Doc::concat([self.fmt_expr(x), Doc(" as "), self.fmt_ty(ty)]),
       ExprKind::Ref(x, true) => Doc::concat([self.fmt_expr(x), Doc(".&")]),
       ExprKind::Deref(x, true) => Doc::concat([self.fmt_expr(x), Doc(".*")]),
-      ExprKind::Move(x, true) => Doc::concat([self.fmt_expr(x), Doc(".move")]),
       ExprKind::Inverse(x, true) => Doc::concat([self.fmt_expr(x), Doc(".~")]),
       ExprKind::Cast(x, ty, true) => {
         Doc::concat([self.fmt_expr(x), Doc(".as["), self.fmt_ty(ty), Doc("]")])
@@ -469,9 +467,7 @@ impl<'core: 'src, 'src> Formatter<'src> {
         Doc::concat([Doc(k.ident), Doc(": "), self.fmt_expr(v)])
       })),
       ExprKind::List(l) => Doc::bracket_comma(l.iter().map(|x| self.fmt_expr(x))),
-      ExprKind::TupleField(e, i, _) => {
-        Doc::concat([self.fmt_expr(e), Doc("."), Doc(format!("{i}"))])
-      }
+      ExprKind::TupleField(e, i) => Doc::concat([self.fmt_expr(e), Doc("."), Doc(format!("{i}"))]),
       ExprKind::ObjectField(e, k) => Doc::concat([self.fmt_expr(e), Doc("."), Doc(k.ident)]),
       ExprKind::Method(e, i, g, a) => Doc::concat([
         self.fmt_expr(e),
@@ -536,8 +532,7 @@ impl<'core: 'src, 'src> Formatter<'src> {
     }
   }
 
-  fn fmt_label(&self, label: &Label<'core>) -> Doc<'src> {
-    let Label::Ident(label) = label else { unreachable!() };
+  fn fmt_label(&self, label: &Option<Ident<'core>>) -> Doc<'src> {
     if let Some(label) = label {
       Doc::concat([Doc("."), Doc(*label)])
     } else {

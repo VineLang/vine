@@ -10,8 +10,8 @@ use crate::{core::Core, diag::Diag, lexer::Token};
 use crate::ast::{
   Attr, AttrKind, BinaryOp, Block, Builtin, ComparisonOp, ConstItem, EnumItem, Expr, ExprKind,
   Flex, FnItem, GenericArgs, GenericParams, Generics, Ident, Impl, ImplItem, ImplKind, ImplParam,
-  Item, ItemKind, Key, Label, LetFnStmt, LetStmt, LogicalOp, ModItem, ModKind, Pat, PatKind, Path,
-  Span, Stmt, StmtKind, StructItem, Trait, TraitItem, TraitKind, Ty, TyKind, TypeItem, TypeParam,
+  Item, ItemKind, Key, LetFnStmt, LetStmt, LogicalOp, ModItem, ModKind, Pat, PatKind, Path, Span,
+  Stmt, StmtKind, StructItem, Trait, TraitItem, TraitKind, Ty, TyKind, TypeItem, TypeParam,
   UseItem, UseTree, Variant, Vis,
 };
 
@@ -125,7 +125,6 @@ impl<'core, 'src> VineParser<'core, 'src> {
           "List" => Builtin::List,
           "String" => Builtin::String,
           "prelude" => Builtin::Prelude,
-          "to_string" => Builtin::ToString,
           "neg" => Builtin::Neg,
           "not" => Builtin::Not,
           "bool_not" => Builtin::BoolNot,
@@ -487,9 +486,6 @@ impl<'core, 'src> VineParser<'core, 'src> {
     if self.eat(Token::Star)? {
       return Ok(ExprKind::Deref(Box::new(self.parse_expr_bp(BP::Prefix)?), false));
     }
-    if self.eat(Token::Move)? {
-      return Ok(ExprKind::Move(Box::new(self.parse_expr_bp(BP::Prefix)?), false));
-    }
     if self.eat(Token::Tilde)? {
       return Ok(ExprKind::Inverse(Box::new(self.parse_expr_bp(BP::Prefix)?), false));
     }
@@ -719,9 +715,6 @@ impl<'core, 'src> VineParser<'core, 'src> {
       if self.eat(Token::Star)? {
         return Ok(Ok(ExprKind::Deref(Box::new(lhs), true)));
       }
-      if self.eat(Token::Move)? {
-        return Ok(Ok(ExprKind::Move(Box::new(lhs), true)));
-      }
       if self.eat(Token::Tilde)? {
         return Ok(Ok(ExprKind::Inverse(Box::new(lhs), true)));
       }
@@ -745,14 +738,13 @@ impl<'core, 'src> VineParser<'core, 'src> {
           return Ok(Ok(ExprKind::TupleField(
             Box::new(Expr {
               span: Span { file: self.file, start: lhs.span.start, end: i_span.end },
-              kind: ExprKind::TupleField(Box::new(lhs), i, None),
+              kind: ExprKind::TupleField(Box::new(lhs), i),
             }),
             j,
-            None,
           )));
         } else {
           let i = self.parse_u32_like(num, |_| Diag::InvalidNum { span: token_span })? as usize;
-          return Ok(Ok(ExprKind::TupleField(Box::new(lhs), i, None)));
+          return Ok(Ok(ExprKind::TupleField(Box::new(lhs), i)));
         }
       }
       let key = self.parse_key()?;
@@ -773,8 +765,8 @@ impl<'core, 'src> VineParser<'core, 'src> {
     Ok(Err(lhs))
   }
 
-  fn parse_label(&mut self) -> Parse<'core, Label<'core>> {
-    Ok(Label::Ident(self.eat(Token::Dot)?.then(|| self.parse_ident()).transpose()?))
+  fn parse_label(&mut self) -> Parse<'core, Option<Ident<'core>>> {
+    self.eat(Token::Dot)?.then(|| self.parse_ident()).transpose()
   }
 
   fn parse_pat(&mut self) -> Parse<'core, Pat<'core>> {

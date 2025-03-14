@@ -17,5 +17,7 @@ pub mod parser;
 // pub mod specializer;
 pub mod tir;
 // pub mod unifier;
+pub mod resolver;
+pub mod types;
 pub mod vir;
 // pub mod visit;

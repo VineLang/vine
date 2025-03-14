@@ -156,7 +156,6 @@ pub enum Builtin {
   Prelude,
   List,
   String,
-  ToString,
   BinaryOp(BinaryOp),
   Neg,
   Not,
@@ -273,25 +272,24 @@ pub enum ExprKind<'core> {
   Hole,
   Paren(B<Expr<'core>>),
   Path(Path<'core>),
-  Do(Label<'core>, Block<'core>),
+  Do(Option<Ident<'core>>, Block<'core>),
   Assign(bool, B<Expr<'core>>, B<Expr<'core>>),
   Match(B<Expr<'core>>, Vec<(Pat<'core>, Block<'core>)>),
   If(Vec<(Expr<'core>, Block<'core>)>, Option<Block<'core>>),
-  While(Label<'core>, B<Expr<'core>>, Block<'core>),
-  Loop(Label<'core>, Block<'core>),
+  While(Option<Ident<'core>>, B<Expr<'core>>, Block<'core>),
+  Loop(Option<Ident<'core>>, Block<'core>),
   Fn(Flex, Vec<Pat<'core>>, Option<Ty<'core>>, Block<'core>),
   Return(Option<B<Expr<'core>>>),
-  Break(Label<'core>, Option<B<Expr<'core>>>),
-  Continue(Label<'core>),
+  Break(Option<Ident<'core>>, Option<B<Expr<'core>>>),
+  Continue(Option<Ident<'core>>),
   Ref(B<Expr<'core>>, bool),
   Deref(B<Expr<'core>>, bool),
-  Move(B<Expr<'core>>, bool),
   Inverse(B<Expr<'core>>, bool),
   Place(B<Expr<'core>>, B<Expr<'core>>),
   Tuple(Vec<Expr<'core>>),
   Object(Vec<(Key<'core>, Expr<'core>)>),
   List(Vec<Expr<'core>>),
-  TupleField(B<Expr<'core>>, usize, Option<usize>),
+  TupleField(B<Expr<'core>>, usize),
   ObjectField(B<Expr<'core>>, Key<'core>),
   Method(B<Expr<'core>>, Ident<'core>, GenericArgs<'core>, Vec<Expr<'core>>),
   Call(B<Expr<'core>>, Vec<Expr<'core>>),
@@ -317,24 +315,6 @@ pub struct StringSegment {
   pub content: String,
   pub span: Span,
 }
-
-#[derive(Debug, Clone, Copy)]
-pub enum Label<'core> {
-  Ident(Option<Ident<'core>>),
-  Resolved(LabelId),
-  Error(ErrorGuaranteed),
-}
-
-impl<'core> Label<'core> {
-  pub fn as_id(self) -> LabelId {
-    match self {
-      Label::Resolved(id) => id,
-      _ => unreachable!(),
-    }
-  }
-}
-
-new_idx!(pub LabelId);
 
 #[derive(Default, Clone)]
 pub struct Pat<'core> {

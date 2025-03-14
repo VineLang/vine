@@ -38,7 +38,6 @@ pub struct Builtins {
   pub list: Option<AdtId>,
   pub string: Option<AdtId>,
 
-  pub to_string: Option<ValueDefId>,
   pub neg: Option<ValueDefId>,
   pub not: Option<ValueDefId>,
   pub bool_not: Option<ImplDefId>,
@@ -332,7 +331,6 @@ impl Builtins {
     revert_option(&mut self.bool, checkpoint.types);
     revert_option(&mut self.list, checkpoint.adts);
     revert_option(&mut self.string, checkpoint.adts);
-    revert_option(&mut self.to_string, checkpoint.values);
     revert_option(&mut self.neg, checkpoint.values);
     revert_option(&mut self.not, checkpoint.values);
     revert_option(&mut self.bool_not, checkpoint.impls);

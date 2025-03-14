@@ -6,29 +6,14 @@ use vine_util::new_idx;
 
 use crate::{
   ast::{Ident, LogicalOp, Span},
-  chart::{AdtId, ImplDefId, TraitDefId, TypeDefId, ValueDefId, VariantId},
+  chart::{AdtId, ImplDefId, ValueDefId, VariantId},
   diag::ErrorGuaranteed,
+  types::Type,
 };
 
 new_idx!(pub LabelId);
 new_idx!(pub Local; n => ["l{n}"]);
 new_idx!(pub LocalFnId; n => ["f{n}"]);
-new_idx!(pub Type);
-
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub enum TypeKind<'core> {
-  Opaque(TypeDefId),
-  Tuple(Vec<Type>),
-  Object(BTreeMap<Ident<'core>, Type>),
-  Adt(AdtId, Vec<Type>),
-  Fn(Vec<Type>, Box<Type>),
-  Ref(Box<Type>),
-  Inverse(Box<Type>),
-  Trait(TraitDefId, Vec<Type>),
-  Param(usize),
-  Never,
-  Error(ErrorGuaranteed),
-}
 
 #[derive(Default, Debug, Clone)]
 pub struct TirBlock<'core> {
@@ -66,6 +51,7 @@ pub struct LocalFn<'core> {
 #[derive(Default, Clone)]
 pub struct TirExpr<'core> {
   pub span: Span,
+  pub ty: Type,
   pub kind: TirExprKind<'core>,
 }
 
@@ -180,14 +166,6 @@ pub enum TirImpl {
 
 pub type B<T> = Box<T>;
 
-impl<'core> TirExpr<'core> {
-  pub fn wrap(&mut self, f: impl FnOnce(B<Self>) -> TirExprKind<'core>) {
-    let span = self.span;
-    let kind = f(Box::new(take(self)));
-    *self = TirExpr { span, kind };
-  }
-}
-
 impl<'core> TirPat<'core> {
   pub const HOLE: Self = TirPat { span: Span::NONE, kind: TirPatKind::Hole };
 }
@@ -213,23 +191,5 @@ impl From<ErrorGuaranteed> for TirExprKind<'_> {
 impl From<ErrorGuaranteed> for TirPatKind<'_> {
   fn from(err: ErrorGuaranteed) -> Self {
     TirPatKind::Error(err)
-  }
-}
-
-impl From<ErrorGuaranteed> for TirExpr<'_> {
-  fn from(err: ErrorGuaranteed) -> Self {
-    TirExpr { span: Span::NONE, kind: err.into() }
-  }
-}
-
-impl From<ErrorGuaranteed> for TirStmt<'_> {
-  fn from(err: ErrorGuaranteed) -> Self {
-    TirStmt { span: Span::NONE, kind: TirStmtKind::Expr(err.into(), false) }
-  }
-}
-
-impl From<ErrorGuaranteed> for TirBlock<'_> {
-  fn from(err: ErrorGuaranteed) -> Self {
-    TirBlock { span: Span::NONE, stmts: Vec::from([err.into()]) }
   }
 }
