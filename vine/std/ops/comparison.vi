@@ -25,11 +25,7 @@ pub mod Eq {
 
 pub trait Ord[T] {
   fn .cmp(a: &T, b: &T) -> Ord;
-
-  #[builtin = "lt"]
   fn .lt(a: &T, b: &T) -> Bool;
-
-  #[builtin = "le"]
   fn .le(a: &T, b: &T) -> Bool;
 }
 
@@ -53,12 +49,10 @@ pub mod Ord {
     const le: fn(&(A, B), &(A, B)) -> Bool = Ord::le_from_cmp[(A, B)];
   }
 
-  #[builtin = "gt"]
   pub fn .gt[T; Ord[T]](&a: &T, &b: &T) -> Bool {
     b < a
   }
 
-  #[builtin = "ge"]
   pub fn .ge[T; Ord[T]](&a: &T, &b: &T) -> Bool {
     b <= a
   }
@@ -79,5 +73,37 @@ pub mod Ord {
     } else {
       Ord::Eq
     }
+  }
+}
+
+pub trait Lt[T] {
+  #[builtin = "lt"]
+  fn .lt(a: &T, b: &T) -> Bool;
+}
+
+pub mod Lt {
+  pub impl from_ord[T; Ord[T]]: Lt[T] {
+    const lt: fn(&T, &T) -> Bool = Ord::lt[T];
+  }
+
+  #[builtin = "gt"]
+  pub fn .gt[T; Lt[T]](&a: &T, &b: &T) -> Bool {
+    b < a
+  }
+}
+
+pub trait Le[T] {
+  #[builtin = "le"]
+  fn .le(a: &T, b: &T) -> Bool;
+}
+
+pub mod Le {
+  pub impl from_ord[T; Ord[T]]: Le[T] {
+    const le: fn(&T, &T) -> Bool = Ord::le[T];
+  }
+
+  #[builtin = "ge"]
+  pub fn .ge[T; Le[T]](&a: &T, &b: &T) -> Bool {
+    b <= a
   }
 }

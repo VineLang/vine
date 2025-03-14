@@ -77,6 +77,9 @@ impl<'ivm> Host<'ivm> {
       "f32_le" => |a, b| new_bool(as_f32(a) <= as_f32(b)),
 
       "n32_to_f32" => |a, _b| new_f32(as_n32(a) as f32),
+      "f32_to_n32" => |a, _b| new_n32(as_f32(a) as u32),
+      "f32_to_bits" => |a, _b| new_n32(as_f32(a).to_bits()),
+      "f32_from_bits" => |a, _b| new_f32(f32::from_bits(as_n32(a))),
 
       "io_print_char" => |a, b| {
         a.as_ty(&io);
