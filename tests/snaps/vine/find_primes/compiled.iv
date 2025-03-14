@@ -6,29 +6,29 @@
   ::find_primes::main::1 = x(x(w1 w11) x(1 w8))
 }
 
-::find_primes::main::1 { x(n0 x(@n32_add(1 dup57(n1 @n32_le$(4 ?(::find_primes::main::4 ::find_primes::main::3 x(n0 x(n1 x(2 n2))))))) n2)) }
+::find_primes::main::1 { x(n0 x(@n32_add(1 dup58(n1 @n32_le$(4 ?(::find_primes::main::4 ::find_primes::main::3 x(n0 x(n1 x(2 n2))))))) n2)) }
 
-::find_primes::main::3 { x(n0 x(n1 x(dup57(n2 @n32_le$(100 ?(::find_primes::main::7 ::find_primes::main::6 x(n0 x(n1 x(n2 n3)))))) n3))) }
+::find_primes::main::3 { x(n0 x(n1 x(dup58(n2 @n32_le$(100 ?(::find_primes::main::7 ::find_primes::main::6 x(n0 x(n1 x(n2 n3)))))) n3))) }
 
-::find_primes::main::4 { x(x(n0 n1) x(dup29(dup94(n2 @n32_ne(0 ?(::std::numeric::N32::to_string::to_string::3 ::std::numeric::N32::to_string::to_string::2 x(n2 tup(dup94(n3 @n32_ne(0 ?(::std::IO::print::3 ::std::IO::print::2 x(x(n0 @io_print_char(10 n4)) x(n3 n5))))) tup(n5 _)))))) @n32_add(1 dup57(n6 @n32_le$(4 ?(::find_primes::main::4 ::find_primes::main::3 x(x(n4 n1) x(n6 x(2 n7)))))))) x(_ n7))) }
+::find_primes::main::4 { x(x(n0 n1) x(dup29(dup95(n2 @n32_ne(0 ?(::std::numeric::N32::to_string::to_string::3 ::std::numeric::N32::to_string::to_string::2 x(n2 tup(dup95(n3 @n32_ne(0 ?(::std::IO::print::3 ::std::IO::print::2 x(x(n0 @io_print_char(10 n4)) x(n3 n5))))) tup(n5 _)))))) @n32_add(1 dup58(n6 @n32_le$(4 ?(::find_primes::main::4 ::find_primes::main::3 x(x(n4 n1) x(n6 x(2 n7)))))))) x(_ n7))) }
 
 ::find_primes::main::6 { x(x(n0 n0) _) }
 
-::find_primes::main::7 { x(n0 x(dup35(@n32_rem(n1 dup70(_ @n32_eq(0 ?(::find_primes::main::10 ::find_primes::main::9 x(n0 x(n2 x(n3 n4))))))) n2) x(dup36(n1 n3) n4))) }
+::find_primes::main::7 { x(n0 x(dup35(@n32_rem(n1 dup71(_ @n32_eq(0 ?(::find_primes::main::10 ::find_primes::main::9 x(n0 x(n2 x(n3 n4))))))) n2) x(dup36(n1 n3) n4))) }
 
-::find_primes::main::9 { x(n0 x(@n32_add(1 dup57(n1 @n32_le$(4 ?(::find_primes::main::4 ::find_primes::main::3 x(n0 x(n1 x(2 n2))))))) x(_ n2))) }
+::find_primes::main::9 { x(n0 x(@n32_add(1 dup58(n1 @n32_le$(4 ?(::find_primes::main::4 ::find_primes::main::3 x(n0 x(n1 x(2 n2))))))) x(_ n2))) }
 
-::find_primes::main::10 { x(n0 x(dup57(n1 n2) x(@n32_add(1 dup18(@n32_mul(n3 dup56(_ @n32_le(n2 ?(::find_primes::main::4 ::find_primes::main::3 x(n0 x(n1 x(n4 n5))))))) dup18(n3 n4))) n5))) }
+::find_primes::main::10 { x(n0 x(dup58(n1 n2) x(@n32_add(1 dup18(@n32_mul(n3 dup57(_ @n32_le(n2 ?(::find_primes::main::4 ::find_primes::main::3 x(n0 x(n1 x(n4 n5))))))) dup18(n3 n4))) n5))) }
 
-::std::numeric::N32::to_string::to_string::2 { x(dup94(n0 @n32_ne(0 ?(::std::numeric::N32::to_string::to_string::6 ::std::numeric::N32::to_string::to_string::5 x(n0 x(tup(0 tup(n1 n1)) n2))))) n2) }
+::std::numeric::N32::to_string::to_string::2 { x(dup95(n0 @n32_ne(0 ?(::std::numeric::N32::to_string::to_string::6 ::std::numeric::N32::to_string::to_string::5 x(n0 x(tup(0 tup(n1 n1)) n2))))) n2) }
 
 ::std::numeric::N32::to_string::to_string::3 { x(_ tup(1 tup(tup(48 n0) n0))) }
 
-::std::numeric::N32::to_string::to_string::5 { x(dup88(@n32_rem(10 @n32_add$(48 n0)) @n32_div(10 dup94(n1 @n32_ne(0 ?(::std::numeric::N32::to_string::to_string::6 ::std::numeric::N32::to_string::to_string::5 x(n1 x(tup(n2 tup(tup(n0 n3) n4)) n5))))))) x(tup(@n32_add$(1 n2) tup(n3 n4)) n5)) }
+::std::numeric::N32::to_string::to_string::5 { x(dup89(@n32_rem(10 @n32_add$(48 n0)) @n32_div(10 dup95(n1 @n32_ne(0 ?(::std::numeric::N32::to_string::to_string::6 ::std::numeric::N32::to_string::to_string::5 x(n1 x(tup(n2 tup(tup(n0 n3) n4)) n5))))))) x(tup(@n32_add$(1 n2) tup(n3 n4)) n5)) }
 
 ::std::numeric::N32::to_string::to_string::6 { x(_ x(n0 n0)) }
 
-::std::IO::print::2 { x(x(@io_print_char(n0 n1) n2) x(@n32_sub(1 dup94(n3 @n32_ne(0 ?(::std::IO::print::3 ::std::IO::print::2 x(x(n1 n2) x(n3 n4)))))) tup(n0 n4))) }
+::std::IO::print::2 { x(x(@io_print_char(n0 n1) n2) x(@n32_sub(1 dup95(n3 @n32_ne(0 ?(::std::IO::print::3 ::std::IO::print::2 x(x(n1 n2) x(n3 n4)))))) tup(n0 n4))) }
 
 ::std::IO::print::3 { x(x(n0 n0) _) }
 

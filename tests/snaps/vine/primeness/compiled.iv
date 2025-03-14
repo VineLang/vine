@@ -6,9 +6,9 @@
   ::primeness::main::1 = x(x(w1 w9) 0)
 }
 
-::primeness::main::1 { x(n0 dup29(n1 @n32_le(46 ?(::primeness::main::3 ::primeness::main::2 x(n0 n1))))) }
+::primeness::main::1 { x(n0 dup30(n1 @n32_le(46 ?(::primeness::main::3 ::primeness::main::2 x(n0 n1))))) }
 
-::primeness::main::2 { x(x(n0 n1) dup14(dup29(n2 @n32_le(0 ?(::primeness::3 ::primeness::2 x(n2 enum(::primeness::main::10 enum(::primeness::main::11 tup(n3 tup(n4 _)))))))) dup14(dup71(n5 @n32_ne(0 ?(::std::numeric::N32::to_string::to_string::3 ::std::numeric::N32::to_string::to_string::2 x(n5 tup(@n32_add(2 @n32_add(n3 dup71(n6 @n32_ne(0 ?(::std::IO::print::3 ::std::IO::print::2 x(x(n0 @io_print_char(10 n7)) x(n6 n8))))))) tup(n8 tup(58 tup(32 n4)))))))) @n32_add(1 dup29(n9 @n32_le(46 ?(::primeness::main::3 ::primeness::main::2 x(x(n7 n1) n9)))))))) }
+::primeness::main::2 { x(x(n0 n1) dup14(dup30(n2 @n32_le(0 ?(::primeness::3 ::primeness::2 x(n2 enum(::primeness::main::10 enum(::primeness::main::11 tup(n3 tup(n4 _)))))))) dup14(dup72(n5 @n32_ne(0 ?(::std::numeric::N32::to_string::to_string::3 ::std::numeric::N32::to_string::to_string::2 x(n5 tup(@n32_add(2 @n32_add(n3 dup72(n6 @n32_ne(0 ?(::std::IO::print::3 ::std::IO::print::2 x(x(n0 @io_print_char(10 n7)) x(n6 n8))))))) tup(n8 tup(58 tup(32 n4)))))))) @n32_add(1 dup30(n9 @n32_le(46 ?(::primeness::main::3 ::primeness::main::2 x(x(n7 n1) n9)))))))) }
 
 ::primeness::main::3 { x(x(n0 n0) _) }
 
@@ -20,31 +20,31 @@
 
 ::primeness::main::11 { enum(n0 n0) }
 
-::std::numeric::N32::to_string::to_string::2 { x(dup71(n0 @n32_ne(0 ?(::std::numeric::N32::to_string::to_string::6 ::std::numeric::N32::to_string::to_string::5 x(n0 x(tup(0 tup(n1 n1)) n2))))) n2) }
+::std::numeric::N32::to_string::to_string::2 { x(dup72(n0 @n32_ne(0 ?(::std::numeric::N32::to_string::to_string::6 ::std::numeric::N32::to_string::to_string::5 x(n0 x(tup(0 tup(n1 n1)) n2))))) n2) }
 
 ::std::numeric::N32::to_string::to_string::3 { x(_ tup(1 tup(tup(48 n0) n0))) }
 
-::std::numeric::N32::to_string::to_string::5 { x(dup65(@n32_rem(10 @n32_add$(48 n0)) @n32_div(10 dup71(n1 @n32_ne(0 ?(::std::numeric::N32::to_string::to_string::6 ::std::numeric::N32::to_string::to_string::5 x(n1 x(tup(n2 tup(tup(n0 n3) n4)) n5))))))) x(tup(@n32_add$(1 n2) tup(n3 n4)) n5)) }
+::std::numeric::N32::to_string::to_string::5 { x(dup66(@n32_rem(10 @n32_add$(48 n0)) @n32_div(10 dup72(n1 @n32_ne(0 ?(::std::numeric::N32::to_string::to_string::6 ::std::numeric::N32::to_string::to_string::5 x(n1 x(tup(n2 tup(tup(n0 n3) n4)) n5))))))) x(tup(@n32_add$(1 n2) tup(n3 n4)) n5)) }
 
 ::std::numeric::N32::to_string::to_string::6 { x(_ x(n0 n0)) }
 
 ::primeness::2 { x(_ enum(_ enum(enum(tup(27 tup(tup(112 tup(114 tup(105 tup(109 tup(101 tup(115 tup(32 tup(104 tup(97 tup(118 tup(101 tup(32 tup(116 tup(111 tup(32 tup(98 tup(101 tup(32 tup(112 tup(111 tup(115 tup(105 tup(116 tup(105 tup(118 tup(101 tup(33 n0))))))))))))))))))))))))))) n0)) n1) n1))) }
 
-::primeness::3 { x(dup112(n0 @n32_eq(1 ?(::primeness::6 ::primeness::5 x(n0 n1)))) n1) }
+::primeness::3 { x(dup113(n0 @n32_eq(1 ?(::primeness::6 ::primeness::5 x(n0 n1)))) n1) }
 
 ::primeness::5 { x(_ enum(_ enum(enum(tup(20 tup(tup(100 tup(101 tup(112 tup(101 tup(110 tup(100 tup(115 tup(32 tup(119 tup(104 tup(111 tup(39 tup(115 tup(32 tup(97 tup(115 tup(107 tup(105 tup(110 tup(103 n0)))))))))))))))))))) n0)) n1) n1))) }
 
-::primeness::6 { x(dup30(n0 @n32_le$(4 ?(::primeness::9 ::primeness::8 x(n0 x(2 n1))))) n1) }
+::primeness::6 { x(dup31(n0 @n32_le$(4 ?(::primeness::9 ::primeness::8 x(n0 x(2 n1))))) n1) }
 
-::primeness::8 { x(dup103(@n32_rem(n0 dup112(_ @n32_eq(0 ?(::primeness::12 ::primeness::11 x(n1 x(n2 n3)))))) n1) x(dup104(n0 n2) n3)) }
+::primeness::8 { x(dup104(@n32_rem(n0 dup113(_ @n32_eq(0 ?(::primeness::12 ::primeness::11 x(n1 x(n2 n3)))))) n1) x(dup105(n0 n2) n3)) }
 
 ::primeness::9 { x(_ x(_ enum(enum(1 n0) enum(_ n0)))) }
 
 ::primeness::11 { x(_ x(_ enum(enum(0 n0) enum(_ n0)))) }
 
-::primeness::12 { x(dup30(n0 n1) x(@n32_add(1 dup101(@n32_mul(n2 dup29(_ @n32_le(n1 ?(::primeness::9 ::primeness::8 x(n0 x(n3 n4)))))) dup101(n2 n3))) n4)) }
+::primeness::12 { x(dup31(n0 n1) x(@n32_add(1 dup102(@n32_mul(n2 dup30(_ @n32_le(n1 ?(::primeness::9 ::primeness::8 x(n0 x(n3 n4)))))) dup102(n2 n3))) n4)) }
 
-::std::IO::print::2 { x(x(@io_print_char(n0 n1) n2) x(@n32_sub(1 dup71(n3 @n32_ne(0 ?(::std::IO::print::3 ::std::IO::print::2 x(x(n1 n2) x(n3 n4)))))) tup(n0 n4))) }
+::std::IO::print::2 { x(x(@io_print_char(n0 n1) n2) x(@n32_sub(1 dup72(n3 @n32_ne(0 ?(::std::IO::print::3 ::std::IO::print::2 x(x(n1 n2) x(n3 n4)))))) tup(n0 n4))) }
 
 ::std::IO::print::3 { x(x(n0 n0) _) }
 
