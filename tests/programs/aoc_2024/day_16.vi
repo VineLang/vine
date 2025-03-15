@@ -13,7 +13,7 @@ pub fn main(&io: &IO) {
       } else if char == 'E' {
         end = (row.len(), grid.len());
       }
-      row.push_back((char != '#', [(-1, ~_), (-1, ~_), (-1, ~_), (-1, ~_)], false));
+      row.push_back((char != '#', [(-(1), ~_), (-(1), ~_), (-(1), ~_), (-(1), ~_)], false));
     }
     grid.push_back(row as Array);
   }
@@ -93,7 +93,7 @@ fn delta(dir: N32) -> (N32, N32) {
   let x = if dir & 2 == 0 {
     1
   } else {
-    -1
+    -(1)
   };
   if dir & 1 == 0 {
     (x, 0)

@@ -7,7 +7,7 @@ const config: (N32, N32) = (7, 12);
 pub fn main(&io: &IO) {
   let (size, iters) = config;
 
-  let grid = Array::new(size, Array::new(size, -1));
+  let grid = Array::new(size, Array::new(size, N32::maximum));
   let data = [];
 
   let i = 0;
@@ -39,7 +39,7 @@ pub fn main(&io: &IO) {
 
   // show_grid(iters);
 
-  show_grid(-1);
+  show_grid(N32::maximum);
 
   let part1 = pathfind(grid, size, iters);
 
@@ -62,9 +62,9 @@ pub fn main(&io: &IO) {
       }
     }
     connect(1, 0);
-    connect(-1, 0);
+    connect(-(1), 0);
     connect(0, 1);
-    connect(0, -1);
+    connect(0, -(1));
     *(*blocked.get(y)).get(x) = false;
   }
 
@@ -73,7 +73,7 @@ pub fn main(&io: &IO) {
   while y < size {
     let x = 0;
     while x < size {
-      if *(*grid.get(y)).get(x) == -1 {
+      if *(*grid.get(y)).get(x) == N32::maximum {
         i += 1;
         remove_data(x, y);
       }
@@ -167,8 +167,8 @@ fn pathfind(grid: Array[Array[N32]], size: N32, iters: N32) -> N32 {
         }
         visit(pos + (1, 0));
         visit(pos + (0, 1));
-        visit(pos + (-1, 0));
-        visit(pos + (0, -1));
+        visit(pos + (-(1), 0));
+        visit(pos + (0, -(1)));
       }
     }
     cur = next;

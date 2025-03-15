@@ -347,6 +347,7 @@ impl<'core> Charter<'core, '_> {
     match builtin {
       Builtin::Bool => set(primitive(self, Type::Bool), &mut self.chart.builtins.bool),
       Builtin::N32 => set(primitive(self, Type::N32), &mut self.chart.builtins.n32),
+      Builtin::I32 => set(primitive(self, Type::I32), &mut self.chart.builtins.i32),
       Builtin::F32 => set(primitive(self, Type::F32), &mut self.chart.builtins.f32),
       Builtin::Char => set(primitive(self, Type::Char), &mut self.chart.builtins.char),
       Builtin::IO => set(primitive(self, Type::IO), &mut self.chart.builtins.io),

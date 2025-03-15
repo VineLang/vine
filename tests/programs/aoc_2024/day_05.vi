@@ -103,7 +103,7 @@ fn set_bit(&mask: &Mask, n: N32, bit: Bool) {
   if bit {
     word |= (1 << n);
   } else {
-    word &= -1 ^ (1 << n);
+    word &= !(1 << n);
   }
 }
 

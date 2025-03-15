@@ -13,6 +13,7 @@ impl<'core> Checker<'core, '_> {
     match ty {
       Type::Bool => *str += "Bool",
       Type::N32 => *str += "N32",
+      Type::I32 => *str += "I32",
       Type::F32 => *str += "F32",
       Type::Char => *str += "Char",
       Type::IO => *str += "IO",

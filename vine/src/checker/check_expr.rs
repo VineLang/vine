@@ -515,6 +515,7 @@ impl<'core> Checker<'core, '_> {
         to_ty
       }
       ExprKind::N32(_) => Type::N32,
+      ExprKind::I32(_) => Type::I32,
       ExprKind::Char(_) => Type::Char,
       ExprKind::F32(_) => Type::F32,
       ExprKind::String(_, rest) => {

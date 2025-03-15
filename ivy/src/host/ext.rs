@@ -81,6 +81,12 @@ impl<'ivm> Host<'ivm> {
       "f32_to_bits" => |a, _b| new_n32(as_f32(a).to_bits()),
       "f32_from_bits" => |a, _b| new_f32(f32::from_bits(as_n32(a))),
 
+      "i32_div" => |a, b| new_n32((as_n32(a) as i32 / as_n32(b) as i32) as u32),
+      "i32_rem" => |a, b| new_n32((as_n32(a) as i32 % as_n32(b) as i32) as u32),
+      "i32_shr" => |a, b| new_n32((as_n32(a) as i32).wrapping_shr(as_n32(b)) as u32),
+      "i32_lt" => |a, b| new_bool((as_n32(a) as i32) < (as_n32(b) as i32)),
+      "i32_le" => |a, b| new_bool((as_n32(a) as i32) <= (as_n32(b) as i32)),
+
       "io_print_char" => |a, b| {
         a.as_ty(&io);
         print!("{}", char::try_from(as_n32(b)).unwrap());

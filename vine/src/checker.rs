@@ -617,6 +617,7 @@ new_idx!(pub Var);
 pub enum Type<'core> {
   Bool,
   N32,
+  I32,
   F32,
   Char,
   IO,
@@ -641,6 +642,7 @@ impl<'core> Type<'core> {
     match self {
       Type::Bool => Type::Bool,
       Type::N32 => Type::N32,
+      Type::I32 => Type::I32,
       Type::F32 => Type::F32,
       Type::Char => Type::Char,
       Type::IO => Type::IO,
@@ -670,6 +672,7 @@ impl<'core> Type<'core> {
     match self {
       Type::Bool
       | Type::N32
+      | Type::I32
       | Type::F32
       | Type::Char
       | Type::IO
@@ -706,6 +709,7 @@ impl<'core> Type<'core> {
       Type::Trait(trait_id, _) => Some(chart.traits[*trait_id].def),
       Type::Bool => chart.builtins.bool,
       Type::N32 => chart.builtins.n32,
+      Type::I32 => chart.builtins.i32,
       Type::F32 => chart.builtins.f32,
       Type::Char => chart.builtins.char,
       Type::IO => chart.builtins.io,

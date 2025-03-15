@@ -79,6 +79,7 @@ impl<'core> Unifier<'core> {
       }
       (Type::Bool, Type::Bool)
       | (Type::N32, Type::N32)
+      | (Type::I32, Type::I32)
       | (Type::F32, Type::F32)
       | (Type::Char, Type::Char)
       | (Type::IO, Type::IO) => !inverted,
