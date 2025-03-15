@@ -70,7 +70,7 @@ fn clear(&grid: &Array[Array[Char]], &spaces: &List[(N32, N32)]) {
 fn walk(&grid: &Array[Array[Char]], pos: (N32, N32)) -> (Bool, N32) {
   let height = grid.len();
   let width = (*grid.get(0)).len();
-  let dir = (0, -1);
+  let dir = (0, -(1));
   let distinct = 1;
   let repeat = 0;
 

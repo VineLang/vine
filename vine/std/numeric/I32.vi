@@ -1,0 +1,162 @@
+
+use ops::{
+  Cast,
+  arithmetic::{Add, Div, Mul, Neg, Rem, Sub},
+  bitwise::{And, Not, Or, Shl, Shr, Xor},
+  comparison::{Eq, Ord},
+};
+use unicode::ToString;
+
+#[builtin = "I32"]
+pub mod I32 {
+  pub const maximum: I32 = +0x7fffffff;
+  pub const minimum: I32 = -0x7fffffff;
+
+  pub impl add: Add[I32, I32, I32] {
+    fn .add(a: I32, b: I32) -> I32 {
+      inline_ivy! (a <- a, b <- b) -> I32 { out a = @n32_add(b out) }
+    }
+  }
+
+  pub impl sub: Sub[I32, I32, I32] {
+    fn .sub(a: I32, b: I32) -> I32 {
+      inline_ivy! (a <- a, b <- b) -> I32 { out a = @n32_sub(b out) }
+    }
+  }
+
+  pub impl mul: Mul[I32, I32, I32] {
+    fn .mul(a: I32, b: I32) -> I32 {
+      inline_ivy! (a <- a, b <- b) -> I32 { out a = @n32_mul(b out) }
+    }
+  }
+
+  pub impl div: Div[I32, I32, I32] {
+    fn .div(a: I32, b: I32) -> I32 {
+      inline_ivy! (a <- a, b <- b) -> I32 { out a = @i32_div(b out) }
+    }
+  }
+
+  pub impl rem: Rem[I32, I32, I32] {
+    fn .rem(a: I32, b: I32) -> I32 {
+      inline_ivy! (a <- a, b <- b) -> I32 { out a = @i32_rem(b out) }
+    }
+  }
+
+  pub impl neg: Neg[I32, I32] {
+    fn .neg(a: I32) -> I32 {
+      inline_ivy! (a <- a) -> I32 { out a = @n32_sub$(0 out) }
+    }
+  }
+
+  pub impl and: And[I32, I32, I32] {
+    fn .and(a: I32, b: I32) -> I32 {
+      inline_ivy! (a <- a, b <- b) -> I32 { out a = @n32_and(b out) }
+    }
+  }
+
+  pub impl or: Or[I32, I32, I32] {
+    fn .or(a: I32, b: I32) -> I32 {
+      inline_ivy! (a <- a, b <- b) -> I32 { out a = @n32_or(b out) }
+    }
+  }
+
+  pub impl xor: Xor[I32, I32, I32] {
+    fn .xor(a: I32, b: I32) -> I32 {
+      inline_ivy! (a <- a, b <- b) -> I32 { out a = @n32_xor(b out) }
+    }
+  }
+
+  pub impl shl: Shl[I32, N32, I32] {
+    fn .shl(a: I32, b: N32) -> I32 {
+      inline_ivy! (a <- a, b <- b) -> I32 { out a = @n32_shl(b out) }
+    }
+  }
+
+  pub impl shr: Shr[I32, N32, I32] {
+    fn .shr(a: I32, b: N32) -> I32 {
+      inline_ivy! (a <- a, b <- b) -> I32 { out a = @i32_shr(b out) }
+    }
+  }
+
+  pub impl not: Not[I32, I32] {
+    fn .not(a: I32) -> I32 {
+      inline_ivy! (a <- a) -> I32 { out a = @n32_xor(0xffffffff out) }
+    }
+  }
+
+  pub impl from_n32: Cast[N32, I32] {
+    fn cast(a: N32) -> I32 {
+      inline_ivy! (a <- a) -> I32 { a }
+    }
+  }
+
+  pub impl to_n32: Cast[I32, N32] {
+    fn cast(a: I32) -> N32 {
+      inline_ivy! (a <- a) -> N32 { a }
+    }
+  }
+
+  pub impl to_string: ToString[I32] {
+    fn .to_string(n: I32) -> String {
+      if n > +0 {
+        "+{n.as[N32]}"
+      } else if n < +0 {
+        "-{n.as[N32]}"
+      } else {
+        "0"
+      }
+    }
+  }
+
+  pub fn parse(str: String) -> Option[I32] {
+    if str.chars.pop_front() is Some(sign) {
+      if sign == '+' {
+        N32::parse(str).map(fn(x: N32) { x.as[I32] })
+      } else if sign == '-' {
+        N32::parse(str).map(fn(x: N32) { -x.as[I32] })
+      } else {
+        None
+      }
+    } else {
+      None
+    }
+  }
+
+  pub impl ord: Ord[I32] {
+    fn .lt(&a: &I32, &b: &I32) -> Bool {
+      inline_ivy! (a <- a, b <- b) -> Bool { out a = @i32_lt(b out) }
+    }
+
+    fn .le(&a: &I32, &b: &I32) -> Bool {
+      inline_ivy! (a <- a, b <- b) -> Bool { out a = @i32_le(b out) }
+    }
+
+    const cmp: fn(&I32, &I32) -> Ord = Ord::cmp_from_lt[I32];
+  }
+
+  pub impl eq: Eq[I32] {
+    fn .eq(&a: &I32, &b: &I32) -> Bool {
+      inline_ivy! (a <- a, b <- b) -> Bool { out a = @n32_eq(b out) }
+    }
+
+    fn .ne(&a: &I32, &b: &I32) -> Bool {
+      inline_ivy! (a <- a, b <- b) -> Bool { out a = @n32_ne(b out) }
+    }
+  }
+
+  pub fn .min(a: I32, b: I32) -> I32 {
+    if a < b {
+      a
+    } else {
+      b
+    }
+  }
+
+  pub fn .max(a: I32, b: I32) -> I32 {
+    if a > b {
+      a
+    } else {
+      b
+    }
+  }
+}

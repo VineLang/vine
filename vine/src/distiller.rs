@@ -128,6 +128,7 @@ impl<'core, 'r> Distiller<'core, 'r> {
       ExprKind::Paren(inner) => self.distill_expr_value(stage, inner),
       ExprKind::Char(c) => Port::N32(*c as u32),
       ExprKind::N32(n) => Port::N32(*n),
+      ExprKind::I32(n) => Port::N32(*n as u32),
       ExprKind::F32(f) => Port::F32(*f),
 
       ExprKind::Path(_) => unreachable!(),

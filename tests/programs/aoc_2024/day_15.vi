@@ -37,11 +37,11 @@ pub fn main(&io: &IO) {
     while line.chars.pop_front() is Some(char) {
       instructions ++= [char];
       let dir = if char == '<' {
-        (-1, 0)
+        (-(1), 0)
       } else if char == '>' {
         (1, 0)
       } else if char == '^' {
-        (0, -1)
+        (0, -(1))
       } else {
         (0, 1)
       };
@@ -95,7 +95,7 @@ pub fn main(&io: &IO) {
   while instructions.pop_front() is Some(char) {
     if char == '<' || char == '>' {
       let dir = if char == '<' {
-        (-1, 0)
+        (-(1), 0)
       } else {
         (1, 0)
       };
@@ -125,7 +125,7 @@ pub fn main(&io: &IO) {
       }
     } else {
       let dir_y = if char == '^' {
-        -1
+        -(1)
       } else {
         1
       };

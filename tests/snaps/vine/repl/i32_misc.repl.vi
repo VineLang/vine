@@ -1,0 +1,106 @@
+
+io = #io
+> +1
++1
+
+io = #io
+> +1 + +2
++3
+
+io = #io
+> +1 - +2
+-1
+
+io = #io
+> +5 * +5
++25
+
+io = #io
+> -5 * -5
++25
+
+io = #io
+> -5 * +5
+-25
+
+io = #io
+> -1 < +1
+true
+
+io = #io
+> -1 > +1
+false
+
+io = #io
+> -10 << 1
+-20
+
+io = #io
+> -10 >> 1
+-5
+
+io = #io
+> -10 / -2
++5
+
+io = #io
+> +10 / -2
+-5
+
+io = #io
+> -10 / +2
+-5
+
+io = #io
+> -10 % -3
+-1
+
+io = #io
+> +10 % -3
++1
+
+io = #io
+> -10 % +3
+-1
+
+io = #io
+> +10 % +3
++1
+
+io = #io
+> "{+123}"
+"+123"
+
+io = #io
+> "{-123}"
+"-4294967173"
+
+io = #io
+> "{0}"
+"0"
+
+io = #io
+> I32::parse("")
+::std::logical::Option::None
+
+io = #io
+> I32::parse("=0")
+::std::logical::Option::None
+
+io = #io
+> I32::parse("+0")
+Some(+0)
+
+io = #io
+> I32::parse("+123")
+Some(+123)
+
+io = #io
+> I32::parse("-123")
+Some(-123)
+
+io = #io
+> I32::parse("+a")
+::std::logical::Option::None
+
+io = #io

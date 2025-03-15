@@ -158,6 +158,7 @@ pub enum AttrKind {
 pub enum Builtin {
   Bool,
   N32,
+  I32,
   F32,
   Char,
   IO,
@@ -315,6 +316,8 @@ pub enum ExprKind<'core> {
   Cast(B<Expr<'core>>, B<Ty<'core>>, bool),
   #[class(value)]
   N32(u32),
+  #[class(value)]
+  I32(i32),
   #[class(value)]
   F32(f32),
   #[class(value)]

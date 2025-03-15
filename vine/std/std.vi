@@ -13,7 +13,7 @@ pub mod prelude {
     IO,
     data::List,
     logical::{Bool, Option::{Option, None, Some}, Result::{Result, Err, Ok}},
-    numeric::{F32, N32},
+    numeric::{F32, I32, N32},
     unicode::{Char, String},
   };
 

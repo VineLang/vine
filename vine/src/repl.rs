@@ -269,6 +269,7 @@ impl<'core, 'ctx, 'ivm, 'ext> Repl<'core, 'ctx, 'ivm, 'ext> {
       (Type::Bool, Tree::N32(0)) => "false".into(),
       (Type::Bool, Tree::N32(1)) => "true".into(),
       (Type::N32, Tree::N32(n)) => format!("{n}"),
+      (Type::I32, Tree::N32(n)) => format!("{:+}", *n as i32),
       (Type::F32, Tree::F32(n)) => format!("{n:?}"),
       (Type::Char, Tree::N32(n)) => format!("{:?}", char::try_from(*n).ok()?),
       (Type::IO, Tree::Var(v)) if v == "#io" => "#io".into(),

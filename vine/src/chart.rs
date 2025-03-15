@@ -32,6 +32,7 @@ pub struct Builtins {
 
   pub bool: Option<DefId>,
   pub n32: Option<DefId>,
+  pub i32: Option<DefId>,
   pub f32: Option<DefId>,
   pub char: Option<DefId>,
   pub io: Option<DefId>,

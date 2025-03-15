@@ -119,6 +119,7 @@ impl<'core, 'src> VineParser<'core, 'src> {
         let builtin = match &*str {
           "Bool" => Builtin::Bool,
           "N32" => Builtin::N32,
+          "I32" => Builtin::I32,
           "F32" => Builtin::F32,
           "Char" => Builtin::Char,
           "IO" => Builtin::IO,
@@ -175,6 +176,10 @@ impl<'core, 'src> VineParser<'core, 'src> {
     let token = self.expect(Token::Num)?;
     if token.contains('.') {
       Ok(ExprKind::F32(self.parse_f32_like(token, |_| Diag::InvalidNum { span })?))
+    } else if token.starts_with("+") || token.starts_with("-") {
+      let abs = self.parse_u32_like(&token[1..], |_| Diag::InvalidNum { span })? as i32;
+      let num = if token.starts_with("-") { -abs } else { abs };
+      Ok(ExprKind::I32(num))
     } else {
       Ok(ExprKind::N32(self.parse_u32_like(token, |_| Diag::InvalidNum { span })?))
     }
