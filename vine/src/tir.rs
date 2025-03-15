@@ -1,4 +1,4 @@
-use std::{collections::BTreeMap, fmt::Debug, mem::take};
+use std::fmt::Debug;
 
 use class::Classes;
 use ivy::ast::Net;
@@ -18,6 +18,7 @@ new_idx!(pub LocalFnId; n => ["f{n}"]);
 #[derive(Default, Debug, Clone)]
 pub struct TirBlock<'core> {
   pub span: Span,
+  pub ty: Type,
   pub stmts: Vec<TirStmt<'core>>,
 }
 
@@ -36,7 +37,7 @@ pub enum TirStmtKind<'core> {
 
 #[derive(Debug, Clone)]
 pub struct TirLetStmt<'core> {
-  pub bind: TirPat<'core>,
+  pub bind: TirPat,
   pub init: Option<TirExpr<'core>>,
   pub else_block: Option<TirBlock<'core>>,
 }
@@ -44,7 +45,7 @@ pub struct TirLetStmt<'core> {
 #[derive(Debug, Clone)]
 pub struct LocalFn<'core> {
   pub id: LocalFnId,
-  pub params: Vec<TirPat<'core>>,
+  pub params: Vec<TirPat>,
   pub body: TirBlock<'core>,
 }
 
@@ -71,7 +72,7 @@ pub enum TirExprKind<'core> {
   #[class(value)]
   Assign(bool, B<TirExpr<'core>>, B<TirExpr<'core>>),
   #[class(value)]
-  Match(B<TirExpr<'core>>, Vec<(TirPat<'core>, TirBlock<'core>)>),
+  Match(B<TirExpr<'core>>, Vec<(TirPat, TirBlock<'core>)>),
   #[class(value)]
   If(Vec<(TirExpr<'core>, TirBlock<'core>)>, Option<TirBlock<'core>>),
   #[class(value)]
@@ -79,7 +80,7 @@ pub enum TirExprKind<'core> {
   #[class(value)]
   Loop(LabelId, TirBlock<'core>),
   #[class(value)]
-  Fn(Vec<TirPat<'core>>, TirBlock<'core>),
+  Fn(Vec<TirPat>, TirBlock<'core>),
   #[class(value)]
   Return(B<TirExpr<'core>>),
   #[class(value)]
@@ -107,7 +108,7 @@ pub enum TirExprKind<'core> {
   #[class(value, cond)]
   Not(B<TirExpr<'core>>),
   #[class(value, cond)]
-  Is(B<TirExpr<'core>>, B<TirPat<'core>>),
+  Is(B<TirExpr<'core>>, B<TirPat>),
   #[class(value, cond)]
   LogicalOp(LogicalOp, B<TirExpr<'core>>, B<TirExpr<'core>>),
   #[class(value)]
@@ -129,30 +130,27 @@ pub enum TirExprKind<'core> {
 }
 
 #[derive(Default, Clone)]
-pub struct TirPat<'core> {
+pub struct TirPat {
   pub span: Span,
-  pub kind: TirPatKind<'core>,
+  pub ty: Type,
+  pub kind: TirPatKind,
 }
 
 #[derive(Default, Debug, Clone, Classes)]
-pub enum TirPatKind<'core> {
+pub enum TirPatKind {
   #[default]
   #[class(value, place, space)]
   Hole,
   #[class(value, place, space)]
-  Adt(AdtId, VariantId, Vec<TirPat<'core>>),
+  Adt(Option<(AdtId, VariantId)>, Vec<TirPat>),
   #[class(value, place, space)]
   Local(Local),
   #[class(value, place)]
-  Ref(B<TirPat<'core>>),
+  Ref(B<TirPat>),
   #[class(place)]
-  Deref(B<TirPat<'core>>),
+  Deref(B<TirPat>),
   #[class(value, place, space)]
-  Inverse(B<TirPat<'core>>),
-  #[class(value, place, space)]
-  Tuple(Vec<TirPat<'core>>),
-  #[class(value, place, space)]
-  Object(BTreeMap<Ident<'core>, TirPat<'core>>),
+  Inverse(B<TirPat>),
   #[class(error)]
   Error(ErrorGuaranteed),
 }
@@ -166,10 +164,6 @@ pub enum TirImpl {
 
 pub type B<T> = Box<T>;
 
-impl<'core> TirPat<'core> {
-  pub const HOLE: Self = TirPat { span: Span::NONE, kind: TirPatKind::Hole };
-}
-
 macro_rules! debug_kind {
   ($($Ty:ty),*) => {$(
     impl Debug for $Ty {
@@ -180,7 +174,7 @@ macro_rules! debug_kind {
   )*};
 }
 
-debug_kind!(TirStmt<'_>, TirExpr<'_>, TirPat<'_>);
+debug_kind!(TirStmt<'_>, TirExpr<'_>, TirPat);
 
 impl From<ErrorGuaranteed> for TirExprKind<'_> {
   fn from(err: ErrorGuaranteed) -> Self {
@@ -188,7 +182,7 @@ impl From<ErrorGuaranteed> for TirExprKind<'_> {
   }
 }
 
-impl From<ErrorGuaranteed> for TirPatKind<'_> {
+impl From<ErrorGuaranteed> for TirPatKind {
   fn from(err: ErrorGuaranteed) -> Self {
     TirPatKind::Error(err)
   }
