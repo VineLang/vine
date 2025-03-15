@@ -20,9 +20,9 @@
   ::std::IO::print::1 = x(x(w1 w15) x(w8 w9))
 }
 
-::std::IO::print::1 { x(n0 x(dup61(n1 @n32_ne(0 ?(::std::IO::print::3 ::std::IO::print::2 x(n0 x(n1 n2))))) n2)) }
+::std::IO::print::1 { x(n0 x(dup62(n1 @n32_ne(0 ?(::std::IO::print::3 ::std::IO::print::2 x(n0 x(n1 n2))))) n2)) }
 
-::std::IO::print::2 { x(x(@io_print_char(n0 n1) n2) x(@n32_sub(1 dup61(n3 @n32_ne(0 ?(::std::IO::print::3 ::std::IO::print::2 x(x(n1 n2) x(n3 n4)))))) tup(n0 n4))) }
+::std::IO::print::2 { x(x(@io_print_char(n0 n1) n2) x(@n32_sub(1 dup62(n3 @n32_ne(0 ?(::std::IO::print::3 ::std::IO::print::2 x(x(n1 n2) x(n3 n4)))))) tup(n0 n4))) }
 
 ::std::IO::print::3 { x(x(n0 n0) _) }
 

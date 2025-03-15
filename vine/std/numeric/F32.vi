@@ -1,8 +1,15 @@
 
-use ops::{Cast, arithmetic::{Add, Div, Mul, Neg, Rem, Sub}};
+use {
+  ops::{Cast, arithmetic::{Add, Div, Mul, Neg, Rem, Sub}, comparison::{Eq, Le, Lt}},
+  unicode::ToString,
+};
 
 #[builtin = "F32"]
 pub mod F32 {
+  const nan: F32 = inline_ivy! () -> F32 { +NaN };
+  const inf: F32 = inline_ivy! () -> F32 { +inf };
+  const neg_inf: F32 = inline_ivy! () -> F32 { -inf };
+
   pub impl add: Add[F32, F32, F32] {
     fn .add(a: F32, b: F32) -> F32 {
       inline_ivy! (a <- a, b <- b) -> F32 { out a = @f32_add(b out) }
@@ -35,37 +42,100 @@ pub mod F32 {
 
   pub impl neg: Neg[F32, F32] {
     fn .neg(a: F32) -> F32 {
-      inline_ivy! (a <- a) -> F32 { out a = @f32_sub$(+0.0 out) }
+      inline_ivy! (a <- a) -> F32 { out a = @f32_sub$(-0.0 out) }
     }
   }
 
-  pub fn .eq(a: F32, b: F32) -> Bool {
-    inline_ivy! (a <- a, b <- b) -> Bool { out a = @f32_eq(b out) }
+  pub impl eq: Eq[F32] {
+    fn .eq(&a: &F32, &b: &F32) -> Bool {
+      inline_ivy! (a <- a, b <- b) -> Bool { out a = @f32_eq(b out) }
+    }
+
+    fn .ne(&a: &F32, &b: &F32) -> Bool {
+      inline_ivy! (a <- a, b <- b) -> Bool { out a = @f32_ne(b out) }
+    }
   }
 
-  pub fn .ne(a: F32, b: F32) -> Bool {
-    inline_ivy! (a <- a, b <- b) -> Bool { out a = @f32_ne(b out) }
+  pub impl lt: Lt[F32] {
+    fn .lt(&a: &F32, &b: &F32) -> Bool {
+      inline_ivy! (a <- a, b <- b) -> Bool { out a = @f32_lt(b out) }
+    }
   }
 
-  pub fn .lt(a: F32, b: F32) -> Bool {
-    inline_ivy! (a <- a, b <- b) -> Bool { out a = @f32_lt(b out) }
-  }
-
-  pub fn .le(a: F32, b: F32) -> Bool {
-    inline_ivy! (a <- a, b <- b) -> Bool { out a = @f32_le(b out) }
-  }
-
-  pub fn .gt(a: F32, b: F32) -> Bool {
-    inline_ivy! (a <- a, b <- b) -> Bool { out a = @f32_lt$(b out) }
-  }
-
-  pub fn .ge(a: F32, b: F32) -> Bool {
-    inline_ivy! (a <- a, b <- b) -> Bool { out a = @f32_le$(b out) }
+  pub impl le: Le[F32] {
+    fn .le(&a: &F32, &b: &F32) -> Bool {
+      inline_ivy! (a <- a, b <- b) -> Bool { out a = @f32_le(b out) }
+    }
   }
 
   pub impl from_n32: Cast[N32, F32] {
     fn .cast(n: N32) -> F32 {
       inline_ivy! (n <- n) -> F32 { out n = @n32_to_f32(0 out) }
+    }
+  }
+
+  pub impl to_n32: Cast[F32, N32] {
+    fn .cast(n: F32) -> N32 {
+      inline_ivy! (n <- n) -> N32 { out n = @f32_to_n32(0 out) }
+    }
+  }
+
+  pub fn .to_bits(n: F32) -> N32 {
+    inline_ivy! (n <- n) -> N32 { out n = @f32_to_bits(0 out) }
+  }
+
+  pub fn .from_bits(n: N32) -> F32 {
+    inline_ivy! (n <- n) -> F32 { out n = @f32_from_bits(0 out) }
+  }
+
+  pub fn .is_nan(f: F32) -> Bool {
+    f != f
+  }
+
+  pub impl to_string: ToString[F32] {
+    fn .to_string(f: F32) -> String {
+      if f.is_nan() {
+        "NaN"
+      } else if f == F32::inf {
+        "+inf"
+      } else if f == F32::neg_inf {
+        "-inf"
+      } else if f == 0.0 {
+        if 1.0 / f > 0.0 {
+          "+0.0"
+        } else {
+          "-0.0"
+        }
+      } else {
+        let sign = if f < 0.0 {
+          f = -f;
+          "-"
+        } else {
+          "+"
+        };
+        let exp = if f > 1.0e+5 {
+          let exp = 0;
+          while f >= 10.0 {
+            f /= 10.0;
+            exp += 1;
+          }
+          "e+{exp}"
+        } else if f < 1.0e-5 {
+          let exp = 0;
+          while f <= 1.0 {
+            f *= 10.0;
+            exp += 1;
+          }
+          "e-{exp}"
+        } else {
+          ""
+        };
+        let int = f as N32;
+        f -= int as F32;
+        let dec = ((f + 1.0) * 1.0e+5).as[N32].to_string();
+        dec.chars.get(0).* = '.';
+        "{sign}{int}{dec}{exp}"
+      }
     }
   }
 }

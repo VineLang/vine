@@ -15,7 +15,7 @@ io = #io
 
 io = #io
 > 1.0.to_string()
-error input:1:1 - type `F32` has no method `to_string`
+"+1.00000"
 
 io = #io
 > ((1,2),(3,4)).0
@@ -35,7 +35,7 @@ io = #io
 
 io = #io
 > "abc" ++ 123
-error input:1:1 - cannot find impl of trait `Concat[String, N32, ?8]`
+error input:1:1 - cannot find impl of trait `Concat[String, N32, ?9]`
 
 io = #io
 > [true, false].to_string()

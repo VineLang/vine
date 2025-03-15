@@ -161,7 +161,7 @@ pub enum Token {
 
   #[regex(r"\p{ID_Start}\p{ID_Continue}*|_\p{ID_Continue}+")]
   Ident,
-  #[regex(r"\d[\d\w]*(\.\d+[\d\w]*)?")]
+  #[regex(r"\d[\d\w]*(\.\d+([eE][+-]?\d+)?)?")]
   Num,
   #[token(r#"""#)]
   DoubleQuote,
