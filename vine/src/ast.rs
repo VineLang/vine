@@ -6,7 +6,7 @@ use std::{
 };
 
 use ivy::ast::Net;
-use vine_util::{idx, interner::Interned, new_idx};
+use vine_util::{idx, interner::Interned};
 
 use crate::diag::ErrorGuaranteed;
 

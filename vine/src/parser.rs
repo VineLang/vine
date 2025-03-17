@@ -924,10 +924,22 @@ impl<'core, 'src> VineParser<'core, 'src> {
 
   fn parse_impl(&mut self) -> Parse<'core, Impl<'core>> {
     let span = self.start_span();
-    let kind =
-      if self.eat(Token::Hole)? { ImplKind::Hole } else { ImplKind::Path(self.parse_path()?) };
+    let kind = self._parse_impl()?;
     let span = self.end_span(span);
     Ok(Impl { span, kind })
+  }
+
+  fn _parse_impl(&mut self) -> Result<ImplKind<'core>, Diag<'core>> {
+    if self.eat(Token::Hole)? {
+      return Ok(ImplKind::Hole);
+    }
+
+    if self.check(Token::Ident) || self.check(Token::ColonColon) {
+      let path = self.parse_path()?;
+      return Ok(ImplKind::Path(path));
+    }
+
+    self.unexpected()
   }
 
   fn parse_trait(&mut self) -> Parse<'core, Trait<'core>> {

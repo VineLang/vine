@@ -4,8 +4,7 @@ use vine_util::idx::{Counter, IdxVec};
 
 use crate::{
   ast::{
-    Attr, AttrKind, Builtin, GenericParams, Generics, Ident, ImplParam, Item, ItemKind, ModKind,
-    Span, Trait, TraitKind, Ty, TyKind, UseTree, Vis,
+    Attr, AttrKind, Builtin, GenericParams, Ident, Item, ItemKind, ModKind, Span, UseTree, Vis,
   },
   chart::{Chart, TraitSubitem},
   core::Core,

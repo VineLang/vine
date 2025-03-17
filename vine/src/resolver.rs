@@ -1,9 +1,13 @@
+use std::collections::{BTreeMap, HashMap};
+
+use vine_util::idx::IdxVec;
+
 use crate::{
   ast::{Block, Expr, ExprKind, Ident, LogicalOp, Pat, PatKind, Span, Ty},
   chart::{Builtins, Chart, TypeDefId},
   core::Core,
   diag::{Diag, ErrorGuaranteed},
-  tir::{TirBlock, TirExpr, TirExprKind, TirPat, TirPatKind},
+  tir::{LabelId, TirBlock, TirExpr, TirExprKind, TirPat, TirPatKind},
   types::{Type, TypeKind, Types},
 };
 
@@ -16,6 +20,15 @@ pub struct Resolver<'core, 'ctx> {
   pub types: Types<'core>,
 
   return_ty: Option<Type>,
+  labels_by_name: HashMap<Ident<'core>, Vec<LabelId>>,
+  loops: Vec<LabelId>,
+  labels: IdxVec<LabelId, LabelInfo>,
+}
+
+#[derive(Debug, Clone, Copy)]
+struct LabelInfo {
+  break_ty: Type,
+  is_loop: bool,
 }
 
 impl<'core> Resolver<'core, '_> {
@@ -53,7 +66,6 @@ impl<'core> Resolver<'core, '_> {
         let ty = todo!();
         (ty, TirExprKind::Def(value_def_id, vec![]))
       }
-      ExprKind::Do(label, block) => todo!(),
       ExprKind::Assign(inv, space, value) => {
         let space = self.resolve_expr(space);
         let value = self.resolve_expr_ty(value, space.ty);
@@ -90,8 +102,32 @@ impl<'core> Resolver<'core, '_> {
         let else_branch = else_branch.as_ref().map(|block| self.resolve_block_ty(block, result));
         (result, TirExprKind::If(then_branches, else_branch))
       }
-      ExprKind::While(label, cond, block) => todo!(),
-      ExprKind::Loop(label, block) => todo!(),
+      ExprKind::Do(label, block) => {
+        let result = self.types.new_var();
+        self.bind_label(*label, LabelInfo { break_ty: result, is_loop: false }, |self_, id| {
+          let block = self_.resolve_block_ty(block, result);
+          (result, TirExprKind::Do(id, block))
+        })
+      }
+      ExprKind::While(label, cond, block) => {
+        let nil = self.types.nil();
+        let bool = self.require_builtin_ty(span, "Bool", |b| b.bool)?;
+        self.bind_label(*label, LabelInfo { break_ty: nil, is_loop: true }, |self_, id| {
+          self_.push_scope();
+          let cond = self_.resolve_cond(bool, cond);
+          let block = self_.resolve_block_ty(block, nil);
+          self_.pop_scope();
+          (nil, TirExprKind::While(id, Box::new(cond), block))
+        })
+      }
+      ExprKind::Loop(label, block) => {
+        let nil = self.types.nil();
+        let result = self.types.new_var();
+        self.bind_label(*label, LabelInfo { break_ty: result, is_loop: true }, |self_, id| {
+          let block = self_.resolve_block_ty(block, nil);
+          (result, TirExprKind::Loop(id, block))
+        })
+      }
       ExprKind::Fn(flex, pats, ty, block) => todo!(),
       ExprKind::Return(value) => {
         if let Some(ty) = self.return_ty {
@@ -102,14 +138,52 @@ impl<'core> Resolver<'core, '_> {
           } else if self.types.unify(ty, nil) {
             (self.types.new_var(), TirExprKind::Return(None))
           } else {
-            Err(self.core.report(Diag::MissingReturnExpr { span, ty: self.types.show(ty) }))?
+            Err(Diag::MissingReturnExpr { span, ty: self.types.show(ty) })?
           }
         } else {
-          Err(self.core.report(Diag::NoReturn { span }))?
+          Err(Diag::NoReturn { span })?
         }
       }
-      ExprKind::Break(label, expr) => todo!(),
-      ExprKind::Continue(label) => todo!(),
+      ExprKind::Break(label, value) => {
+        let id = if let &Some(label) = label {
+          if let Some(&id) = self.labels_by_name.get(&label).and_then(|x| x.last()) {
+            id
+          } else {
+            Err(Diag::UnboundLabel { span, label })?
+          }
+        } else if let Some(&id) = self.loops.last() {
+          id
+        } else {
+          Err(Diag::NoLoopBreak { span })?
+        };
+        let ty = self.labels[id].break_ty;
+        let nil = self.types.nil();
+        if let Some(value) = value {
+          let value = self.resolve_expr_ty(value, ty);
+          (self.types.new_var(), TirExprKind::Break(id, Some(Box::new(value))))
+        } else if self.types.unify(ty, nil) {
+          (self.types.new_var(), TirExprKind::Break(id, None))
+        } else {
+          Err(Diag::MissingBreakExpr { span, ty: self.types.show(ty) })?
+        }
+      }
+      ExprKind::Continue(label) => {
+        if let &Some(label) = label {
+          if let Some(&id) = self.labels_by_name.get(&label).and_then(|x| x.last()) {
+            if self.labels[id].is_loop {
+              (self.types.new_var(), TirExprKind::Continue(id))
+            } else {
+              Err(Diag::NoContinueLabel { span, label })?
+            }
+          } else {
+            Err(Diag::UnboundLabel { span, label })?
+          }
+        } else if let Some(&id) = self.loops.last() {
+          (self.types.new_var(), TirExprKind::Continue(id))
+        } else {
+          Err(Diag::NoLoopContinue { span })?
+        }
+      }
       ExprKind::Ref(inner, _) => {
         let inner = self.resolve_expr(inner);
         (self.types.new(TypeKind::Ref(inner.ty)), TirExprKind::Ref(Box::new(inner)))
@@ -274,6 +348,7 @@ impl<'core> Resolver<'core, '_> {
   }
 
   fn _resolve_pat(&mut self, pat: &Pat<'core>) -> Result<(Type, TirPatKind), Diag<'core>> {
+    let span = pat.span;
     Ok(match &pat.kind {
       PatKind::Hole => todo!(),
       PatKind::Paren(inner) => self._resolve_pat(inner)?,
@@ -302,13 +377,11 @@ impl<'core> Resolver<'core, '_> {
         (self.types.new(TypeKind::Tuple(tys)), TirPatKind::Adt(None, els))
       }
       PatKind::Object(entries) => {
-        // todo
-        let (tys, els) = entries
-          .iter()
-          .map(|(k, e)| (k.ident, self.resolve_pat(e)))
-          .map(|(k, e)| ((k, e.ty), e))
-          .collect();
-        (self.types.new(TypeKind::Object(tys)), TirPatKind::Adt(None, els))
+        let (ty, els) = self.resolve_object(span, entries, |self_, (key, value)| {
+          let value = self_.resolve_pat(value);
+          (key.ident, value.ty, value)
+        })?;
+        (ty, TirPatKind::Adt(None, els))
       }
       PatKind::Error(err) => Err(*err)?,
     })
@@ -399,5 +472,51 @@ impl<'core> Resolver<'core, '_> {
       _ => {}
     }
     Err(self.core.report(Diag::MissingObjectField { span, ty: self.types.show(ty), key }))
+  }
+
+  fn bind_label<T>(
+    &mut self,
+    label: Option<Ident<'core>>,
+    info: LabelInfo,
+    f: impl FnOnce(&mut Self, LabelId) -> T,
+  ) -> T {
+    let id = self.labels.push(info);
+    if let Some(label) = label {
+      self.labels_by_name.entry(label).or_default().push(id);
+    }
+    if info.is_loop {
+      self.loops.push(id);
+    }
+    let result = f(self, id);
+    if let Some(label) = label {
+      self.labels_by_name.get_mut(&label).unwrap().pop();
+    }
+    if info.is_loop {
+      self.loops.pop();
+    }
+    result
+  }
+
+  fn resolve_object<I, T>(
+    &mut self,
+    span: Span,
+    iter: impl IntoIterator<Item = I>,
+    mut f: impl FnMut(&mut Self, I) -> (Ident<'core>, Type, T),
+  ) -> Result<(Type, Vec<T>), ErrorGuaranteed> {
+    let mut map = BTreeMap::new();
+    let mut err = None;
+    for i in iter {
+      let (key, ty, t) = f(self, i);
+      let old = map.insert(key, (ty, t));
+      if old.is_some() {
+        err = Some(self.core.report(Diag::DuplicateKey { span }));
+      }
+    }
+    if let Some(err) = err {
+      Err(err)
+    } else {
+      let (tys, ts) = map.into_iter().map(|(key, (ty, t))| ((key, ty), t)).collect();
+      Ok((self.types.new(TypeKind::Object(tys)), ts))
+    }
   }
 }

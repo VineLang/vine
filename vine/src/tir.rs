@@ -2,10 +2,10 @@ use std::fmt::Debug;
 
 use class::Classes;
 use ivy::ast::Net;
-use vine_util::new_idx;
+use vine_util::{idx::IdxVec, new_idx};
 
 use crate::{
-  ast::{Ident, LogicalOp, Span},
+  ast::{Flex, Ident, LogicalOp, Span},
   chart::{AdtId, ImplDefId, ValueDefId, VariantId},
   diag::ErrorGuaranteed,
   types::Type,
@@ -13,7 +13,13 @@ use crate::{
 
 new_idx!(pub LabelId);
 new_idx!(pub Local; n => ["l{n}"]);
-new_idx!(pub LocalFnId; n => ["f{n}"]);
+new_idx!(pub ClosureId; n => ["c{n}"]);
+
+#[derive(Default, Debug, Clone)]
+pub struct Foo<'core> {
+  pub value: TirExpr<'core>,
+  pub closures: IdxVec<ClosureId, TirClosure<'core>>,
+}
 
 #[derive(Default, Debug, Clone)]
 pub struct TirBlock<'core> {
@@ -43,8 +49,8 @@ pub struct TirLetStmt<'core> {
 }
 
 #[derive(Debug, Clone)]
-pub struct LocalFn<'core> {
-  pub id: LocalFnId,
+pub struct TirClosure<'core> {
+  pub flex: Flex,
   pub params: Vec<TirPat>,
   pub body: TirBlock<'core>,
 }
@@ -66,7 +72,7 @@ pub enum TirExprKind<'core> {
   #[class(value, place, space)]
   Local(Local),
   #[class(value)]
-  LetFn(LocalFnId),
+  Closure(ClosureId),
   #[class(value)]
   Do(LabelId, TirBlock<'core>),
   #[class(value)]
@@ -80,11 +86,9 @@ pub enum TirExprKind<'core> {
   #[class(value)]
   Loop(LabelId, TirBlock<'core>),
   #[class(value)]
-  Fn(Vec<TirPat>, TirBlock<'core>),
-  #[class(value)]
   Return(Option<B<TirExpr<'core>>>),
   #[class(value)]
-  Break(LabelId, B<TirExpr<'core>>),
+  Break(LabelId, Option<B<TirExpr<'core>>>),
   #[class(value)]
   Continue(LabelId),
   #[class(value)]
@@ -159,6 +163,9 @@ pub enum TirPatKind {
 pub enum TirImpl {
   Param(usize),
   Def(ImplDefId, Vec<TirImpl>),
+  ClosureFn(ValueDefId, ClosureId),
+  ClosureFork(ValueDefId, ClosureId),
+  ClosureDrop(ValueDefId, ClosureId),
   Error(ErrorGuaranteed),
 }
 

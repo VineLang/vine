@@ -3,9 +3,10 @@ use std::collections::BTreeMap;
 use vine_util::{idx::IdxVec, new_idx};
 
 use crate::{
-  ast::Ident,
-  chart::{AdtId, TraitDefId, TypeDefId},
+  ast::{Flex, Ident},
+  chart::{AdtId, TraitDefId, TypeDefId, ValueDefId},
   diag::ErrorGuaranteed,
+  tir::ClosureId,
 };
 
 new_idx!(pub Type);
@@ -20,6 +21,7 @@ pub enum TypeKind<'core> {
   Ref(Type),
   Inverse(Type),
   Trait(TraitDefId, Vec<Type>),
+  Closure(ValueDefId, ClosureId, Flex),
   Param(usize),
   Never,
   Error(ErrorGuaranteed),
