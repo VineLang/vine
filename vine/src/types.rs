@@ -58,4 +58,8 @@ impl<'core> Types<'core> {
   pub fn show(&self, ty: Type) -> String {
     todo!()
   }
+
+  pub(crate) fn kind(&self, ty: Type) -> &TypeKind {
+    todo!()
+  }
 }

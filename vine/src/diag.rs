@@ -110,8 +110,8 @@ diags! {
     ["`{path}` expects {expected} {kind} parameter{}; was passed {got}", plural(*expected, "s", "")]
   BadFieldCount { path: &'core str, expected: usize, got: usize }
     ["`{path}` has {expected} field{}; {got} {} matched", plural(*expected, "s", ""), plural(*got, "were", "was")]
-  MissingTupleField { ty: String, i: usize }
-    ["type `{ty}` has no field `{i}`"]
+  MissingTupleField { ty: String, index: usize }
+    ["type `{ty}` has no field `{index}`"]
   MissingObjectField { ty: String, key: Ident<'core> }
     ["type `{ty}` has no field `{key}`"]
   SpaceField

@@ -1,5 +1,5 @@
 use crate::{
-  ast::{Block, Expr, ExprKind, LogicalOp, Pat, PatKind, Span, Ty},
+  ast::{Block, Expr, ExprKind, Ident, LogicalOp, Pat, PatKind, Span, Ty},
   chart::{Builtins, Chart, TypeDefId},
   core::Core,
   diag::{Diag, ErrorGuaranteed},
@@ -14,6 +14,8 @@ pub struct Resolver<'core, 'ctx> {
   pub core: &'core Core<'core>,
   pub chart: &'ctx mut Chart<'core>,
   pub types: Types<'core>,
+
+  return_ty: Option<Type>,
 }
 
 impl<'core> Resolver<'core, '_> {
@@ -88,10 +90,24 @@ impl<'core> Resolver<'core, '_> {
         let else_branch = else_branch.as_ref().map(|block| self.resolve_block_ty(block, result));
         (result, TirExprKind::If(then_branches, else_branch))
       }
-      ExprKind::While(label, expr, block) => todo!(),
+      ExprKind::While(label, cond, block) => todo!(),
       ExprKind::Loop(label, block) => todo!(),
       ExprKind::Fn(flex, pats, ty, block) => todo!(),
-      ExprKind::Return(expr) => todo!(),
+      ExprKind::Return(value) => {
+        if let Some(ty) = self.return_ty {
+          let nil = self.types.nil();
+          if let Some(value) = value {
+            let value = self.resolve_expr_ty(value, ty);
+            (self.types.new_var(), TirExprKind::Return(Some(Box::new(value))))
+          } else if self.types.unify(ty, nil) {
+            (self.types.new_var(), TirExprKind::Return(None))
+          } else {
+            Err(self.core.report(Diag::MissingReturnExpr { span, ty: self.types.show(ty) }))?
+          }
+        } else {
+          Err(self.core.report(Diag::NoReturn { span }))?
+        }
+      }
       ExprKind::Break(label, expr) => todo!(),
       ExprKind::Continue(label) => todo!(),
       ExprKind::Ref(inner, _) => {
@@ -140,8 +156,16 @@ impl<'core> Resolver<'core, '_> {
         let els = els.iter().map(|e| self.resolve_expr_ty(e, el_ty)).collect();
         (self.types.new(TypeKind::Adt(list, vec![el_ty])), TirExprKind::List(els))
       }
-      ExprKind::TupleField(expr, _) => todo!(),
-      ExprKind::ObjectField(expr, key) => todo!(),
+      ExprKind::TupleField(tuple, index) => {
+        let tuple = self.resolve_expr(tuple);
+        let (len, ty) = self.resolve_tuple_field(span, tuple.ty, *index)?;
+        (ty, TirExprKind::Field(Box::new(tuple), *index, len))
+      }
+      ExprKind::ObjectField(object, key) => {
+        let object = self.resolve_expr(object);
+        let (index, len, ty) = self.resolve_object_field(span, object.ty, key.ident)?;
+        (ty, TirExprKind::Field(Box::new(object), index, len))
+      }
       ExprKind::Method(expr, ident, generics, exprs) => todo!(),
       ExprKind::Call(expr, exprs) => todo!(),
       ExprKind::Neg(expr) => todo!(),
@@ -329,5 +353,51 @@ impl<'core> Resolver<'core, '_> {
 
   fn resolve_block_ty(&self, block: &Block<'core>, result: Type) -> TirBlock<'core> {
     todo!()
+  }
+
+  fn resolve_tuple_field(
+    &mut self,
+    span: Span,
+    ty: Type,
+    index: usize,
+  ) -> Result<(usize, Type), ErrorGuaranteed> {
+    match self.types.kind(ty) {
+      TypeKind::Tuple(els) => {
+        if index < els.len() {
+          return Ok((els.len(), els[index]));
+        }
+      }
+      TypeKind::Adt(adt_id, type_params) => todo!(),
+      TypeKind::Inverse(ty) => {
+        let (len, ty) = self.resolve_tuple_field(span, *ty, index)?;
+        return Ok((len, self.types.inverse(ty)));
+      }
+      TypeKind::Error(err) => return Err(*err),
+      _ => {}
+    }
+    Err(self.core.report(Diag::MissingTupleField { span, ty: self.types.show(ty), index }))
+  }
+
+  fn resolve_object_field(
+    &mut self,
+    span: Span,
+    ty: Type,
+    key: Ident<'core>,
+  ) -> Result<(usize, usize, Type), ErrorGuaranteed> {
+    match self.types.kind(ty) {
+      TypeKind::Object(entries) => {
+        if let Some((index, (_, &ty))) = entries.iter().enumerate().find(|&(_, (&k, _))| k == key) {
+          return Ok((index, entries.len(), ty));
+        }
+      }
+      TypeKind::Adt(adt_id, type_params) => todo!(),
+      TypeKind::Inverse(ty) => {
+        let (index, len, ty) = self.resolve_object_field(span, *ty, key)?;
+        return Ok((index, len, self.types.inverse(ty)));
+      }
+      TypeKind::Error(err) => return Err(*err),
+      _ => {}
+    }
+    Err(self.core.report(Diag::MissingObjectField { span, ty: self.types.show(ty), key }))
   }
 }

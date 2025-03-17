@@ -82,7 +82,7 @@ pub enum TirExprKind<'core> {
   #[class(value)]
   Fn(Vec<TirPat>, TirBlock<'core>),
   #[class(value)]
-  Return(B<TirExpr<'core>>),
+  Return(Option<B<TirExpr<'core>>>),
   #[class(value)]
   Break(LabelId, B<TirExpr<'core>>),
   #[class(value)]
@@ -98,7 +98,7 @@ pub enum TirExprKind<'core> {
   #[class(value)]
   List(Vec<TirExpr<'core>>),
   #[class(value, place)]
-  Field(B<TirExpr<'core>>, usize),
+  Field(B<TirExpr<'core>>, usize, usize),
   #[class(value)]
   Call(B<TirExpr<'core>>, Vec<TirExpr<'core>>),
   #[class(value, place, space)]
