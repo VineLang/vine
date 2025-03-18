@@ -39,8 +39,8 @@ impl<'core> Resolver<'core, '_> {
     if !self.types.unify(ty, expr.ty) {
       self.core.report(Diag::ExpectedTypeFound {
         span: expr.span,
-        expected: self.types.show(ty),
-        found: self.types.show(expr.ty),
+        expected: self.types.show(self.chart, ty),
+        found: self.types.show(self.chart, expr.ty),
       });
     }
     expr
@@ -146,7 +146,7 @@ impl<'core> Resolver<'core, '_> {
           } else if self.types.unify(ty, nil) {
             (self.types.new_var(), TirExprKind::Return(None))
           } else {
-            Err(Diag::MissingReturnExpr { span, ty: self.types.show(ty) })?
+            Err(Diag::MissingReturnExpr { span, ty: self.types.show(self.chart, ty) })?
           }
         } else {
           Err(Diag::NoReturn { span })?
@@ -172,7 +172,7 @@ impl<'core> Resolver<'core, '_> {
         } else if self.types.unify(ty, nil) {
           (self.types.new_var(), TirExprKind::Break(id, None))
         } else {
-          Err(Diag::MissingBreakExpr { span, ty: self.types.show(ty) })?
+          Err(Diag::MissingBreakExpr { span, ty: self.types.show(self.chart, ty) })?
         }
       }
       ExprKind::Continue(label) => {
@@ -214,8 +214,8 @@ impl<'core> Resolver<'core, '_> {
         } else {
           self.types.error(self.core.report(Diag::MismatchedValueSpaceTypes {
             span,
-            value: self.types.show(value.ty),
-            space: self.types.show(space.ty),
+            value: self.types.show(self.chart, value.ty),
+            space: self.types.show(self.chart, space.ty),
           }))
         };
         (ty, TirExprKind::Place(Box::new(value), Box::new(space)))
@@ -379,8 +379,8 @@ impl<'core> Resolver<'core, '_> {
     if !self.types.unify(ty, pat.ty) {
       self.core.report(Diag::ExpectedTypeFound {
         span: pat.span,
-        expected: self.types.show(ty),
-        found: self.types.show(pat.ty),
+        expected: self.types.show(self.chart, ty),
+        found: self.types.show(self.chart, pat.ty),
       });
     }
     pat
@@ -504,20 +504,24 @@ impl<'core> Resolver<'core, '_> {
     index: usize,
   ) -> Result<(usize, Type), ErrorGuaranteed> {
     match self.types.kind(ty) {
-      TypeKind::Tuple(els) => {
+      Some(TypeKind::Tuple(els)) => {
         if index < els.len() {
           return Ok((els.len(), els[index]));
         }
       }
-      TypeKind::Adt(adt_id, type_params) => todo!(),
-      TypeKind::Inverse(ty) => {
+      Some(TypeKind::Adt(adt_id, type_params)) => todo!(),
+      Some(TypeKind::Inverse(ty)) => {
         let (len, ty) = self.resolve_tuple_field(span, *ty, index)?;
         return Ok((len, self.types.inverse(ty)));
       }
-      TypeKind::Error(err) => return Err(*err),
+      Some(TypeKind::Error(err)) => return Err(*err),
       _ => {}
     }
-    Err(self.core.report(Diag::MissingTupleField { span, ty: self.types.show(ty), index }))
+    Err(self.core.report(Diag::MissingTupleField {
+      span,
+      ty: self.types.show(self.chart, ty),
+      index,
+    }))
   }
 
   fn resolve_object_field(
@@ -527,20 +531,24 @@ impl<'core> Resolver<'core, '_> {
     key: Ident<'core>,
   ) -> Result<(usize, usize, Type), ErrorGuaranteed> {
     match self.types.kind(ty) {
-      TypeKind::Object(entries) => {
+      Some(TypeKind::Object(entries)) => {
         if let Some((index, (_, &ty))) = entries.iter().enumerate().find(|&(_, (&k, _))| k == key) {
           return Ok((index, entries.len(), ty));
         }
       }
-      TypeKind::Adt(adt_id, type_params) => todo!(),
-      TypeKind::Inverse(ty) => {
+      Some(TypeKind::Adt(adt_id, type_params)) => todo!(),
+      Some(TypeKind::Inverse(ty)) => {
         let (index, len, ty) = self.resolve_object_field(span, *ty, key)?;
         return Ok((index, len, self.types.inverse(ty)));
       }
-      TypeKind::Error(err) => return Err(*err),
+      Some(TypeKind::Error(err)) => return Err(*err),
       _ => {}
     }
-    Err(self.core.report(Diag::MissingObjectField { span, ty: self.types.show(ty), key }))
+    Err(self.core.report(Diag::MissingObjectField {
+      span,
+      ty: self.types.show(self.chart, ty),
+      key,
+    }))
   }
 
   fn bind_label<T>(
