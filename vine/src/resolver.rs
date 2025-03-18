@@ -3,11 +3,11 @@ use std::collections::{BTreeMap, HashMap};
 use vine_util::idx::IdxVec;
 
 use crate::{
-  ast::{Block, Expr, ExprKind, Ident, LogicalOp, Pat, PatKind, Span, Ty},
-  chart::{Builtins, Chart, TypeDefId},
+  ast::{Block, Expr, ExprKind, Ident, LogicalOp, Pat, PatKind, Span, Ty, TyKind},
+  chart::{Builtins, Chart, TypeDefId, ValueDefId},
   core::Core,
   diag::{Diag, ErrorGuaranteed},
-  tir::{LabelId, TirBlock, TirExpr, TirExprKind, TirPat, TirPatKind},
+  tir::{ClosureId, LabelId, TirBlock, TirClosure, TirExpr, TirExprKind, TirPat, TirPatKind},
   types::{Type, TypeKind, Types},
 };
 
@@ -23,6 +23,8 @@ pub struct Resolver<'core, 'ctx> {
   labels_by_name: HashMap<Ident<'core>, Vec<LabelId>>,
   loops: Vec<LabelId>,
   labels: IdxVec<LabelId, LabelInfo>,
+  closures: IdxVec<ClosureId, TirClosure<'core>>,
+  cur_val: ValueDefId,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -128,7 +130,13 @@ impl<'core> Resolver<'core, '_> {
           (result, TirExprKind::Loop(id, block))
         })
       }
-      ExprKind::Fn(flex, pats, ty, block) => todo!(),
+      ExprKind::Fn(flex, params, ty, body) => {
+        let params = params.iter().map(|p| self.resolve_pat(p)).collect();
+        let ty = ty.as_ref().map(|t| self.resolve_ty(t)).unwrap_or_else(|| self.types.new_var());
+        let body = self.resolve_block_ty(body, ty);
+        let id = self.closures.push(TirClosure { flex: *flex, params, body });
+        (self.types.new(TypeKind::Closure(self.cur_val, id, *flex)), TirExprKind::Closure(id))
+      }
       ExprKind::Return(value) => {
         if let Some(ty) = self.return_ty {
           let nil = self.types.nil();
@@ -242,16 +250,49 @@ impl<'core> Resolver<'core, '_> {
       }
       ExprKind::Method(expr, ident, generics, exprs) => todo!(),
       ExprKind::Call(expr, exprs) => todo!(),
-      ExprKind::Neg(expr) => todo!(),
-      ExprKind::BinaryOp(binary_op, expr, expr1) => todo!(),
-      ExprKind::Not(expr) => todo!(),
+      ExprKind::Neg(value) => {
+        let interp = self.resolve_expr(value);
+        let out = self.types.new_var();
+        let call = self.resolve_builtin_fn(
+          span,
+          self.chart.builtins.neg,
+          vec![interp.ty, out],
+          vec![interp],
+        );
+        (out, call)
+      }
+      ExprKind::BinaryOp(op, lhs, rhs) => {
+        let lhs = self.resolve_expr(lhs);
+        let rhs = self.resolve_expr(rhs);
+        let out = self.types.new_var();
+        let call = self.resolve_builtin_fn(
+          span,
+          self.chart.builtins.binary_ops[op],
+          vec![lhs.ty, rhs.ty, out],
+          vec![lhs, rhs],
+        );
+        (out, call)
+      }
+      ExprKind::Not(value) => {
+        let value = self.resolve_expr(value);
+        let out = self.types.new_var();
+        let call =
+          self.resolve_builtin_fn(span, self.chart.builtins.not, vec![value.ty, out], vec![value]);
+        (out, call)
+      }
       ExprKind::Is(..) | ExprKind::LogicalOp(..) => {
         let bool = self.require_builtin_ty(span, "Bool", |b| b.bool)?;
         (bool, self._resolve_cond(bool, expr))
       }
       ExprKind::ComparisonOp(expr, items) => todo!(),
       ExprKind::BinaryOpAssign(binary_op, expr, expr1) => todo!(),
-      ExprKind::Cast(expr, ty, _) => todo!(),
+      ExprKind::Cast(value, ty, _) => {
+        let value = self.resolve_expr(value);
+        let ty = self.resolve_ty(ty);
+        let call =
+          self.resolve_builtin_fn(span, self.chart.builtins.cast, vec![value.ty, ty], vec![value]);
+        (ty, call)
+      }
       ExprKind::Bool(value) => {
         (self.require_builtin_ty(span, "Bool", |b| b.bool)?, TirExprKind::Bool(*value))
       }
@@ -269,10 +310,16 @@ impl<'core> Resolver<'core, '_> {
         let string = self.types.new(TypeKind::Adt(string, vec![]));
         let rest = rest
           .iter()
-          .map(|(interp, seg)| {
-            // todo
-            let interp = self.resolve_expr_ty(interp, string);
-            (interp, seg.content.clone())
+          .map(|(value, seg)| {
+            let span = value.span;
+            let value = self.resolve_expr(value);
+            let call = self.resolve_builtin_fn(
+              span,
+              self.chart.builtins.cast,
+              vec![value.ty, string],
+              vec![value],
+            );
+            (TirExpr { span, ty: string, kind: call }, seg.content.clone())
           })
           .collect();
         (string, TirExprKind::String(init.content.clone(), rest))
@@ -414,7 +461,29 @@ impl<'core> Resolver<'core, '_> {
   }
 
   fn resolve_ty(&mut self, ty: &Ty<'core>) -> Type {
-    todo!()
+    let span = ty.span;
+    match &ty.kind {
+      TyKind::Hole => self.types.new_var(),
+      TyKind::Paren(inner) => self.resolve_ty(inner),
+      TyKind::Tuple(els) => {
+        let els = els.iter().map(|t| self.resolve_ty(t)).collect();
+        self.types.new(TypeKind::Tuple(els))
+      }
+      TyKind::Object(entries) => self
+        .resolve_object(span, entries, |self_, (key, ty)| (key.ident, self_.resolve_ty(ty), ()))
+        .map(|x| x.0)
+        .unwrap_or_else(|err| self.types.error(err)),
+      TyKind::Ref(inner) => {
+        let inner = self.resolve_ty(inner);
+        self.types.new(TypeKind::Ref(inner))
+      }
+      TyKind::Inverse(inner) => {
+        let inner = self.resolve_ty(inner);
+        self.types.inverse(inner)
+      }
+      TyKind::Path(path) => todo!(),
+      TyKind::Error(err) => self.types.error(*err),
+    }
   }
 
   fn push_scope(&mut self) {}
@@ -518,5 +587,15 @@ impl<'core> Resolver<'core, '_> {
       let (tys, ts) = map.into_iter().map(|(key, (ty, t))| ((key, ty), t)).collect();
       Ok((self.types.new(TypeKind::Object(tys)), ts))
     }
+  }
+
+  fn resolve_builtin_fn(
+    &self,
+    span: Span,
+    op: Option<ValueDefId>,
+    type_args: Vec<Type>,
+    args: Vec<TirExpr<'core>>,
+  ) -> TirExprKind<'core> {
+    todo!()
   }
 }

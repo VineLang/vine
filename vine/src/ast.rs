@@ -379,7 +379,6 @@ pub enum TyKind<'core> {
   Ref(B<Ty<'core>>),
   Inverse(B<Ty<'core>>),
   Path(Path<'core>),
-  Fn(Path<'core>),
   Error(ErrorGuaranteed),
 }
 

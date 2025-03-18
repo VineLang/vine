@@ -2,7 +2,10 @@ use std::fmt::Debug;
 
 use class::Classes;
 use ivy::ast::Net;
-use vine_util::{idx::IdxVec, new_idx};
+use vine_util::{
+  idx::{Counter, IdxVec},
+  new_idx,
+};
 
 use crate::{
   ast::{Flex, Ident, LogicalOp, Span},
@@ -16,7 +19,8 @@ new_idx!(pub Local; n => ["l{n}"]);
 new_idx!(pub ClosureId; n => ["c{n}"]);
 
 #[derive(Default, Debug, Clone)]
-pub struct Foo<'core> {
+pub struct Tir<'core> {
+  pub locals: Counter<Local>,
   pub value: TirExpr<'core>,
   pub closures: IdxVec<ClosureId, TirClosure<'core>>,
 }

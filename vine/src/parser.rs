@@ -878,10 +878,6 @@ impl<'core, 'src> VineParser<'core, 'src> {
     if self.eat(Token::Hole)? {
       return Ok(TyKind::Hole);
     }
-    if self.eat(Token::Fn)? {
-      let path = self.parse_path()?;
-      return Ok(TyKind::Fn(path));
-    }
     if self.check(Token::OpenParen) {
       let mut tuple = false;
       let mut types = self.parse_delimited(PAREN_COMMA, |self_| {

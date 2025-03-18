@@ -592,7 +592,6 @@ impl<'core: 'src, 'src> Formatter<'src> {
       TyKind::Ref(t) => Doc::concat([Doc("&"), self.fmt_ty(t)]),
       TyKind::Inverse(t) => Doc::concat([Doc("~"), self.fmt_ty(t)]),
       TyKind::Path(p) => self.fmt_path(p),
-      TyKind::Fn(p) => Doc::concat([Doc("fn "), self.fmt_path(p)]),
       TyKind::Object(o) => Doc::brace_comma_space(
         o.iter().map(|(k, t)| Doc::concat([Doc(k.ident), Doc(": "), self.fmt_ty(t)])),
       ),
