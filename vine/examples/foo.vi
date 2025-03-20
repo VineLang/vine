@@ -1,0 +1,10 @@
+
+pub trait Equal[T] {
+  fn .equal(a: &T, b: &T) -> Bool;
+}
+
+fn main() {
+  let foo = true;
+  let bar = false;
+  foo.equal(&bar);
+}
