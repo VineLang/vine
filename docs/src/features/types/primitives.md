@@ -1,5 +1,9 @@
 # Primitive Types
 
+(Note: there is no implicit casting between numeric types. Values can be
+converted to another primitive type using the `as` operator
+(`45 as F32 + 1.0`).)
+
 ## `N32`
 
 The type `N32` describes natural numbers[^nats], represented with 32 bits of
@@ -10,6 +14,17 @@ binary (`0b101110`). Digits can be separated with underscores (`1_000_000`).
 
 `N32`s support the usual arithmetic and bitwise operators (`4 * 11 + 2`,
 `5 << 3 | 6`)
+
+## `I32`
+
+The type `I32` describes integers, represented with 32 bits of precision.
+
+`I32` values can be written as literals in decimal (`+46`, `-46`), hex (`+0x2e`,
+`-0x2e`), or binary (`+0b101110`, `-0b101110`). The sign is required. Digits can
+be separated with underscores (`+1_000_000`, `-1_000_000`).
+
+`I32`s support the usual arithmetic and bitwise operators (`+4 * +12 + -2`,
+`+5 << +3 | +6`)
 
 ## `F32`
 

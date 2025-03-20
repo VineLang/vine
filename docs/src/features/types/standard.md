@@ -12,6 +12,9 @@ scalar values.
 
 Strings can be written as literals using double quotes (`"Hello, world!"`).
 
+Expressions can be interpolated into string literals using braces
+(`"{10} + {36} = {10 + 36}"`).
+
 Strings can be concatenated with the `++` operator (`O(1)`).
 
 ## `List`
