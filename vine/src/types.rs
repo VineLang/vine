@@ -1,18 +1,17 @@
-use std::{collections::BTreeMap, fmt::Write, ops::BitAnd};
+use std::{collections::BTreeMap, fmt::Write};
 
-use logos::Span;
 use vine_util::{idx::IdxVec, new_idx};
 
 use crate::{
   ast::{Flex, Ident},
   chart::{AdtId, Chart, TraitDefId, TypeDefId, ValueDefId},
   diag::ErrorGuaranteed,
-  tir::ClosureId,
+  tir::{ClosureId, TirImpl},
 };
 
 new_idx!(pub Type);
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone)]
 pub enum TypeKind<'core> {
   Opaque(TypeDefId),
   Tuple(Vec<Type>),
@@ -20,8 +19,7 @@ pub enum TypeKind<'core> {
   Adt(AdtId, Vec<Type>),
   Ref(Type),
   Inverse(Type),
-  Trait(TraitDefId, Vec<Type>),
-  Closure(ValueDefId, ClosureId, Flex),
+  Closure(ValueDefId, ClosureId, Flex, Vec<Type>, Vec<TirImpl>),
   Param(usize, Ident<'core>),
   Never,
   Error(ErrorGuaranteed),
@@ -31,6 +29,13 @@ pub enum TypeKind<'core> {
 enum TypeNode<'core> {
   Root(Option<TypeKind<'core>>, usize),
   Child(Type),
+}
+
+#[derive(Debug, Clone)]
+pub enum ImplType {
+  Trait(TraitDefId, Vec<Type>),
+  Fn(Vec<Type>, Type),
+  Error(ErrorGuaranteed),
 }
 
 #[derive(Debug)]
@@ -70,12 +75,12 @@ impl<'core> Types<'core> {
     }
   }
 
-  pub fn unify(&mut self, a: Type, b: Type) -> bool {
+  pub fn unify(&mut self, a: Type, b: Type) -> UnifyResult {
     let a = self.find_mut(a);
     let b = self.find_mut(b);
 
     if a == b {
-      return true;
+      return Success;
     }
 
     let (a_node, b_node) = self.types.get2_mut(a, b).unwrap();
@@ -93,35 +98,39 @@ impl<'core> Types<'core> {
         *b_size += *a_size;
         *a_node = TypeNode::Child(b);
       }
-      return true;
+      return Success;
     }
 
     let mut a_kind = a_kind.take().unwrap();
     let mut b_kind = b_kind.take().unwrap();
 
-    let success = match (&mut a_kind, &mut b_kind) {
-      (TypeKind::Error(_), _) | (_, TypeKind::Error(_)) => todo!(),
-      (TypeKind::Opaque(i), TypeKind::Opaque(j)) => *i == *j,
-      (TypeKind::Param(i, _), TypeKind::Param(j, _)) => *i == *j,
-      (TypeKind::Tuple(a), TypeKind::Tuple(b)) if a.len() == b.len() => {
-        a.iter().zip(b).map(|(a, b)| self.unify(*a, *b)).fold(true, BitAnd::bitand)
-      }
-      (TypeKind::Object(a), TypeKind::Object(b)) if a.len() == b.len() => a
-        .iter()
-        .map(|(k, a)| if let Some(b) = b.get(k) { self.unify(*a, *b) } else { false })
-        .fold(true, BitAnd::bitand),
-      (TypeKind::Adt(i, a), TypeKind::Adt(j, b)) if *i == *j && a.len() == b.len() => {
-        a.iter().zip(b).map(|(a, b)| self.unify(*a, *b)).fold(true, BitAnd::bitand)
-      }
-      (TypeKind::Ref(a), TypeKind::Ref(b)) => self.unify(*a, *b),
-      (TypeKind::Inverse(a), TypeKind::Inverse(b)) => self.unify(*a, *b),
-      (TypeKind::Trait(i, a), TypeKind::Trait(j, b)) if *i == *j && a.len() == b.len() => {
-        a.iter().zip(b).map(|(a, b)| self.unify(*a, *b)).fold(true, BitAnd::bitand)
-      }
-      // TypeKind::Closure(value_def_id, closure_id, flex) => todo!(),
-      (TypeKind::Never, TypeKind::Never) => todo!(),
-      _ => false,
-    };
+    let result =
+      match (&mut a_kind, &mut b_kind) {
+        (TypeKind::Error(e), _) | (_, TypeKind::Error(e)) => Unknown(*e),
+        (TypeKind::Opaque(i), TypeKind::Opaque(j)) if *i == *j => Success,
+        (TypeKind::Param(i, _), TypeKind::Param(j, _)) if *i == *j => Success,
+        (TypeKind::Tuple(a), TypeKind::Tuple(b)) if a.len() == b.len() => {
+          UnifyResult::all(a.iter().zip(b).map(|(a, b)| self.unify(*a, *b)))
+        }
+        (TypeKind::Object(a), TypeKind::Object(b)) => {
+          UnifyResult::from_bool(a.len() == b.len()).and(UnifyResult::all(
+            a.iter()
+              .map(|(k, a)| if let Some(b) = b.get(k) { self.unify(*a, *b) } else { Failure }),
+          ))
+        }
+        (TypeKind::Adt(i, a), TypeKind::Adt(j, b)) if *i == *j && a.len() == b.len() => {
+          UnifyResult::all(a.iter().zip(b).map(|(a, b)| self.unify(*a, *b)))
+        }
+        (TypeKind::Ref(a), TypeKind::Ref(b)) => self.unify(*a, *b),
+        (TypeKind::Inverse(a), TypeKind::Inverse(b)) => self.unify(*a, *b),
+        (TypeKind::Closure(a, i, _, p, x), TypeKind::Closure(b, j, _, q, y))
+          if a == b && i == j && x == y =>
+        {
+          UnifyResult::all(p.iter().zip(q).map(|(a, b)| self.unify(*a, *b)))
+        }
+        (TypeKind::Never, TypeKind::Never) => Success,
+        _ => Failure,
+      };
 
     let (a_node, b_node) = self.types.get2_mut(a, b).unwrap();
     let TypeNode::Root(a_kind_ref, a_size) = &mut *a_node else { unreachable!() };
@@ -130,7 +139,7 @@ impl<'core> Types<'core> {
     *a_kind_ref = Some(a_kind);
     *b_kind_ref = Some(b_kind);
 
-    if success {
+    if result.is_success() {
       if a_size > b_size {
         *a_size += *b_size;
         *b_node = TypeNode::Child(a);
@@ -140,7 +149,20 @@ impl<'core> Types<'core> {
       }
     }
 
-    success
+    result
+  }
+
+  pub fn unify_impl_type(&mut self, a: &ImplType, b: &ImplType) -> UnifyResult {
+    match (a, b) {
+      (ImplType::Error(e), _) | (_, ImplType::Error(e)) => Unknown(*e),
+      (ImplType::Fn(a, x), ImplType::Fn(b, y)) if a.len() == b.len() => {
+        UnifyResult::all(a.iter().zip(b).map(|(a, b)| self.unify(*a, *b))).and(self.unify(*x, *y))
+      }
+      (ImplType::Trait(i, a), ImplType::Trait(j, b)) if i == j => {
+        UnifyResult::all(a.iter().zip(b).map(|(a, b)| self.unify(*a, *b)))
+      }
+      _ => Failure,
+    }
   }
 
   fn find(&self, ty: Type) -> Type {
@@ -228,11 +250,15 @@ impl<'core> Types<'core> {
             *str += chart.adts[*adt_id].name.0 .0;
             self._show_params(chart, params, str);
           }
-          TypeKind::Trait(trait_id, params) => {
-            *str += chart.defs[chart.traits[*trait_id].def].name.0 .0;
+          TypeKind::Closure(value_id, closure_id, flex, params, _) => {
+            *str += "fn";
+            *str += flex.as_str();
+            *str += " ";
+            *str += chart.defs[chart.values[*value_id].def].name.0 .0;
             self._show_params(chart, params, str);
+            *str += "#";
+            write!(*str, "{}", closure_id.0).unwrap();
           }
-          TypeKind::Closure(value_def_id, closure_id, flex) => todo!(),
           TypeKind::Param(_, name) => *str += name.0 .0,
           TypeKind::Never => *str += "!",
           TypeKind::Error(_) => *str += "??",
@@ -244,15 +270,80 @@ impl<'core> Types<'core> {
   fn _show_params(&self, chart: &Chart, params: &[Type], str: &mut String) {
     if !params.is_empty() {
       *str += "[";
-      let mut first = true;
-      for &ty in params {
-        if !first {
-          *str += ", ";
-        }
-        self._show(chart, ty, str);
-        first = false;
-      }
+      self._show_comma_separated(chart, params, str);
       *str += "]";
     }
+  }
+
+  fn _show_comma_separated(&self, chart: &Chart<'_>, tys: &[Type], str: &mut String) {
+    let mut first = true;
+    for &ty in tys {
+      if !first {
+        *str += ", ";
+      }
+      self._show(chart, ty, str);
+      first = false;
+    }
+  }
+
+  pub fn show_impl_type(&self, chart: &Chart, ty: &ImplType) -> String {
+    let mut str = String::new();
+    match ty {
+      ImplType::Trait(trait_id, params) => {
+        str += chart.defs[chart.traits[*trait_id].def].name.0 .0;
+        self._show_params(chart, params, &mut str);
+      }
+      ImplType::Fn(params, ret) => {
+        str += "fn (";
+        self._show_comma_separated(chart, params, &mut str);
+        str += ")";
+        if !matches!(self.kind(*ret), Some(TypeKind::Tuple(x)) if x.is_empty()) {
+          str += " -> ";
+          self._show(chart, *ret, &mut str);
+        }
+      }
+      ImplType::Error(_) => str += "??",
+    }
+    str
+  }
+}
+
+#[must_use]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+pub enum UnifyResult {
+  Success,
+  Failure,
+  Unknown(ErrorGuaranteed),
+}
+
+use UnifyResult::*;
+
+impl UnifyResult {
+  pub fn and(self, other: Self) -> Self {
+    match (self, other) {
+      (Failure, _) | (_, Failure) => Failure,
+      (Unknown(e), _) | (_, Unknown(e)) => Unknown(e),
+      (Success, Success) => Success,
+    }
+  }
+
+  pub fn all(i: impl IntoIterator<Item = Self>) -> Self {
+    i.into_iter().fold(Success, Self::and)
+  }
+
+  pub fn from_bool(b: bool) -> Self {
+    if b {
+      Success
+    } else {
+      Failure
+    }
+  }
+
+  pub fn is_success(self) -> bool {
+    matches!(self, Success)
+  }
+
+  pub fn is_ok(self) -> bool {
+    !matches!(self, Failure)
   }
 }

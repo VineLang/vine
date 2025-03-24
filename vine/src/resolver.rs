@@ -36,7 +36,7 @@ struct LabelInfo {
 impl<'core> Resolver<'core, '_> {
   fn resolve_expr_ty(&mut self, expr: &Expr<'core>, ty: Type) -> TirExpr<'core> {
     let expr = self.resolve_expr(expr);
-    if !self.types.unify(ty, expr.ty) {
+    if !self.types.unify(ty, expr.ty).is_ok() {
       self.core.report(Diag::ExpectedTypeFound {
         span: expr.span,
         expected: self.types.show(self.chart, ty),
@@ -135,7 +135,10 @@ impl<'core> Resolver<'core, '_> {
         let ty = ty.as_ref().map(|t| self.resolve_ty(t)).unwrap_or_else(|| self.types.new_var());
         let body = self.resolve_block_ty(body, ty);
         let id = self.closures.push(TirClosure { flex: *flex, params, body });
-        (self.types.new(TypeKind::Closure(self.cur_val, id, *flex)), TirExprKind::Closure(id))
+        (
+          self.types.new(TypeKind::Closure(self.cur_val, id, *flex, todo!(), todo!())),
+          TirExprKind::Closure(id),
+        )
       }
       ExprKind::Return(value) => {
         if let Some(ty) = self.return_ty {
@@ -143,7 +146,7 @@ impl<'core> Resolver<'core, '_> {
           if let Some(value) = value {
             let value = self.resolve_expr_ty(value, ty);
             (self.types.new_var(), TirExprKind::Return(Some(Box::new(value))))
-          } else if self.types.unify(ty, nil) {
+          } else if self.types.unify(ty, nil).is_ok() {
             (self.types.new_var(), TirExprKind::Return(None))
           } else {
             Err(Diag::MissingReturnExpr { span, ty: self.types.show(self.chart, ty) })?
@@ -169,7 +172,7 @@ impl<'core> Resolver<'core, '_> {
         if let Some(value) = value {
           let value = self.resolve_expr_ty(value, ty);
           (self.types.new_var(), TirExprKind::Break(id, Some(Box::new(value))))
-        } else if self.types.unify(ty, nil) {
+        } else if self.types.unify(ty, nil).is_ok() {
           (self.types.new_var(), TirExprKind::Break(id, None))
         } else {
           Err(Diag::MissingBreakExpr { span, ty: self.types.show(self.chart, ty) })?
@@ -209,7 +212,7 @@ impl<'core> Resolver<'core, '_> {
       ExprKind::Place(value, space) => {
         let value = self.resolve_expr(value);
         let space = self.resolve_expr(space);
-        let ty = if self.types.unify(value.ty, space.ty) {
+        let ty = if self.types.unify(value.ty, space.ty).is_ok() {
           value.ty
         } else {
           self.types.error(self.core.report(Diag::MismatchedValueSpaceTypes {
@@ -376,7 +379,7 @@ impl<'core> Resolver<'core, '_> {
 
   fn resolve_pat_ty(&mut self, pat: &Pat<'core>, ty: Type) -> TirPat {
     let pat = self.resolve_pat(pat);
-    if !self.types.unify(ty, pat.ty) {
+    if !self.types.unify(ty, pat.ty).is_ok() {
       self.core.report(Diag::ExpectedTypeFound {
         span: pat.span,
         expected: self.types.show(self.chart, ty),

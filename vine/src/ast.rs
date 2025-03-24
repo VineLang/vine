@@ -221,6 +221,15 @@ impl Flex {
       Flex::Full => 2,
     }
   }
+
+  pub fn as_str(&self) -> &str {
+    match self {
+      Flex::None => "",
+      Flex::Fork => "+",
+      Flex::Drop => "?",
+      Flex::Full => "*",
+    }
+  }
 }
 
 #[derive(Default, Debug, Clone)]

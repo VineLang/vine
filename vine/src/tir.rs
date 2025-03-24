@@ -163,7 +163,7 @@ pub enum TirPatKind {
   Error(ErrorGuaranteed),
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum TirImpl {
   Param(usize),
   Def(ImplDefId, Vec<TirImpl>),

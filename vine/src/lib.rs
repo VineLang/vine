@@ -18,6 +18,7 @@ pub mod parser;
 pub mod tir;
 // pub mod unifier;
 pub mod resolver;
+pub mod type_chart;
 pub mod types;
 pub mod vir;
 // pub mod visit;
