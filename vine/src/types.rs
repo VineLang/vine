@@ -1,6 +1,7 @@
 use std::{
   collections::{hash_map::Entry, BTreeMap, HashMap},
   fmt::Write,
+  net::ToSocketAddrs,
 };
 
 use vine_util::{
@@ -10,7 +11,7 @@ use vine_util::{
 
 use crate::{
   ast::Ident,
-  chart::{AdtId, Chart, TraitDefId, TypeDefId, ValueDefId},
+  chart::{AdtId, Chart, DefId, TraitDefId, TypeDefId, ValueDefId},
   diag::ErrorGuaranteed,
   tir::{ClosureId, TirImpl},
 };
@@ -45,7 +46,7 @@ pub enum ImplType {
   Error(ErrorGuaranteed),
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Clone)]
 pub struct Types<'core> {
   types: IdxVec<Type, TypeNode<'core>>,
   error: Option<Type>,
@@ -324,6 +325,21 @@ impl<'core> Types<'core> {
     export.dest.nil = export.source.nil.map(|t| export.export(t));
     export
   }
+
+  pub fn get_mod(&self, chart: &Chart, ty: Type) -> Option<DefId> {
+    match self.kind(ty).as_ref()? {
+      TypeKind::Opaque(id) => Some(chart.types[*id].def),
+      TypeKind::Adt(id, _) => Some(chart.adts[*id].def),
+      TypeKind::Ref(inner) | TypeKind::Inverse(inner) => self.get_mod(chart, *inner),
+      TypeKind::Fn(..)
+      | TypeKind::Closure(_)
+      | TypeKind::Param(..)
+      | TypeKind::Tuple(..)
+      | TypeKind::Object(..)
+      | TypeKind::Never
+      | TypeKind::Error(_) => None,
+    }
+  }
 }
 
 #[must_use]
@@ -390,6 +406,10 @@ impl<'core, 'ctx> TypeExport<'core, 'ctx> {
     }
   }
 
+  pub fn export_impl_type(&mut self, ty: &ImplType) -> ImplType {
+    todo!()
+  }
+
   pub fn finish(self) -> Types<'core> {
     self.dest
   }
@@ -415,6 +435,16 @@ impl<'core> TypeKind<'core> {
       TypeKind::Param(i, n) => TypeKind::Param(*i, *n),
       TypeKind::Never => TypeKind::Never,
       TypeKind::Error(err) => TypeKind::Error(*err),
+    }
+  }
+}
+
+impl ImplType {
+  pub fn approx_eq(&self, other: &ImplType) -> bool {
+    match (self, other) {
+      (ImplType::Fn(_, _, _), ImplType::Fn(_, _, _)) => true,
+      (ImplType::Trait(i, _), ImplType::Trait(j, _)) => i == j,
+      _ => false,
     }
   }
 }

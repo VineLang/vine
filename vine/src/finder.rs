@@ -3,15 +3,14 @@ use std::collections::{BTreeSet, HashSet};
 use crate::{
   ast::{Generics, Ident, Impl, ImplKind, Span},
   chart::{Chart, Def, DefId, GenericsId, ImplDefId, MemberKind, ValueDefId},
-  checker::{ChartTypes, Type},
-  unifier::{Unifier, UnifierCheckpoint},
+  signatures::Signatures,
+  tir::TirImpl,
+  types::{ImplType, Type, Types},
 };
 
 pub struct Finder<'core, 'a> {
   pub(crate) chart: &'a Chart<'core>,
-  pub(crate) initial_checkpoint: UnifierCheckpoint,
-  pub(crate) unifier: &'a mut Unifier<'core>,
-  pub(crate) types: &'a ChartTypes<'core>,
+  pub(crate) sigs: &'a Signatures<'core>,
   pub(crate) span: Span,
   pub(crate) source: DefId,
   pub(crate) generics: GenericsId,
@@ -28,6 +27,12 @@ const STEPS_LIMIT: u32 = 1_000;
 #[derive(Debug, Default, Clone, Copy)]
 pub struct Timeout;
 
+pub struct ImplResult<'core> {
+  pub types: Types<'core>,
+  pub impl_: TirImpl,
+  pub ty: ImplType,
+}
+
 impl<'core> Finder<'core, '_> {
   pub fn find_method(
     &mut self,
@@ -42,7 +47,7 @@ impl<'core> Finder<'core, '_> {
       let mut type_params = (0..self.chart.generics[generics].type_params.len())
         .map(|_| self.unifier.new_var(self.span))
         .collect::<Vec<_>>();
-      if let Some(ty) = self.types.value_types[candidate].receiver() {
+      if let Some(ty) = self.sigs.value_types[candidate].receiver() {
         let mut ty = ty.instantiate(&type_params);
         if self.unifier.unify(&mut ty, &mut receiver.clone()) {
           type_params.iter_mut().for_each(|t| self.unifier.export(&checkpoint, t));
@@ -88,31 +93,34 @@ impl<'core> Finder<'core, '_> {
 
   pub fn find_impl(
     &mut self,
-    query: &Type<'core>,
-  ) -> Result<Vec<(Impl<'core>, Type<'core>)>, Timeout> {
+    types: &Types<'core>,
+    query: &ImplType,
+  ) -> Result<Vec<ImplResult<'core>>, Timeout> {
     self.step()?;
+
+    let mut export = types.export();
+    let query = export.export_impl_type(query);
+    let types = export.finish();
 
     let mut found = Vec::new();
 
-    for (i, ty) in self.types.impl_param_types[self.generics].iter().enumerate() {
-      let checkpoint = self.unifier.checkpoint();
-      let mut ty = ty.clone();
-      if self.unifier.unify(&mut ty, &mut query.clone()) {
-        self.unifier.export(&checkpoint, &mut ty);
-        found.push((Impl { span: self.span, kind: ImplKind::Param(i) }, ty));
+    for (i, ty) in self.sigs.generics[self.generics].impl_params.iter().enumerate() {
+      let types = types.clone();
+      if types.unify_impl_type(&ty, &query).is_success() {
+        found.push(ImplResult { types, ty: ty.clone(), impl_: TirImpl::Param(i) });
       }
-      self.unifier.revert(&checkpoint);
     }
 
-    for candidate in self.find_impl_candidates(query) {
-      let checkpoint = self.unifier.checkpoint();
+    for candidate in self.find_impl_candidates(&types, &query) {
+      let types = types.clone();
       let generics = self.chart.impls[candidate].generics;
       let type_params = (0..self.chart.generics[generics].type_params.len())
-        .map(|_| self.unifier.new_var(self.span))
+        .map(|_| types.new_var())
         .collect::<Vec<_>>();
-      let mut ty = self.types.impl_def_types[candidate].instantiate(&type_params);
-      if self.unifier.unify(&mut ty, &mut query.clone()) {
-        let queries = self.types.impl_param_types[generics]
+      let mut ty = self.sigs.impls[candidate].instantiate(&type_params);
+      if types.unify_impl_type(&ty, &query).is_success() {
+        let queries = self.sigs.generics[generics]
+          .impl_params
           .iter()
           .map(|t| t.instantiate(&type_params))
           .collect::<Vec<_>>();
@@ -168,18 +176,19 @@ impl<'core> Finder<'core, '_> {
     Ok(found)
   }
 
-  fn find_impl_candidates(&mut self, query: &Type<'core>) -> BTreeSet<ImplDefId> {
-    let Type::Trait(goal_trait_id, _) = query else { return BTreeSet::new() };
+  fn find_impl_candidates(
+    &mut self,
+    types: &Types<'core>,
+    query: &ImplType,
+  ) -> BTreeSet<ImplDefId> {
     let mut candidates = BTreeSet::new();
     let search = &mut CandidateSearch {
       modules: HashSet::new(),
       consider_candidate: |def: &Def| {
         if let Some(impl_id) = def.impl_def {
-          let ty = &self.types.impl_def_types[impl_id];
-          if let Type::Trait(trait_id, _) = ty {
-            if trait_id == goal_trait_id {
-              candidates.insert(impl_id);
-            }
+          let impl_sig = &self.sigs.impls[impl_id];
+          if impl_sig.ty.approx_eq(query) {
+            candidates.insert(impl_id);
           }
         }
       },
@@ -189,12 +198,10 @@ impl<'core> Finder<'core, '_> {
       self.find_candidates_within(ancestor, search);
     }
 
-    if let Type::Trait(trait_id, params) = query {
+    if let ImplType::Trait(trait_id, params) = query {
       self.find_candidates_within(self.chart.traits[*trait_id].def, search);
-      for param in params {
-        let mut param = param.clone();
-        self.unifier.try_concretize(&mut param);
-        if let Ok(Some(mod_id)) = param.get_mod(self.chart) {
+      for &param in params {
+        if let Some(mod_id) = types.get_mod(self.chart, param) {
           self.find_candidates_within(mod_id, search);
         }
       }
@@ -237,9 +244,9 @@ impl<'core> Finder<'core, '_> {
       if let Some(impl_id) = def.impl_def {
         let impl_def = &self.chart.impls[impl_id];
         if self.chart.visible(impl_def.vis, self.source) {
-          let ty = &self.types.impl_def_types[impl_id];
-          if let Type::Trait(trait_id, _) = ty {
-            let trait_def = &self.chart.traits[*trait_id];
+          let impl_sig = &self.sigs.impls[impl_id];
+          if let ImplType::Trait(trait_id, _) = impl_sig.ty {
+            let trait_def = &self.chart.traits[trait_id];
             if self.chart.visible(trait_def.vis, self.source) {
               self.find_candidates_within(trait_def.def, search);
             }
@@ -252,7 +259,6 @@ impl<'core> Finder<'core, '_> {
   fn step(&mut self) -> Result<(), Timeout> {
     self.steps += 1;
     if self.steps > STEPS_LIMIT {
-      self.unifier.revert(&self.initial_checkpoint);
       Err(Timeout)
     } else {
       Ok(())
