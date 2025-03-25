@@ -140,6 +140,8 @@ diags! {
     ["expected a value of type `{ty}` to return"]
   MissingBreakExpr { ty: String }
     ["expected a value of type `{ty}` to break with"]
+  MissingBlockExpr { ty: String }
+    ["expected a value of type `{ty}` to evaluate to"]
   NoMethods { ty: String }
     ["type `{ty}` has no methods"]
   BadMethodReceiver { base_path: &'core str, ident: Ident<'core> }

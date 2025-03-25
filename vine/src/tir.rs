@@ -8,7 +8,7 @@ use vine_util::{
 };
 
 use crate::{
-  ast::{Flex, Ident, LogicalOp, Span},
+  ast::{Expr, Flex, Ident, LogicalOp, Span},
   chart::{AdtId, ImplDefId, ValueDefId, VariantId},
   diag::ErrorGuaranteed,
   types::Type,
@@ -30,6 +30,7 @@ pub struct TirBlock<'core> {
   pub span: Span,
   pub ty: Type,
   pub stmts: Vec<TirStmt<'core>>,
+  pub expr: Option<B<TirExpr<'core>>>,
 }
 
 #[derive(Clone)]
@@ -41,7 +42,7 @@ pub struct TirStmt<'core> {
 #[derive(Debug, Clone)]
 pub enum TirStmtKind<'core> {
   Let(TirLetStmt<'core>),
-  Expr(TirExpr<'core>, bool),
+  Expr(TirExpr<'core>),
   Empty,
 }
 

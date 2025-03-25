@@ -1,13 +1,19 @@
-use std::collections::{BTreeMap, HashMap};
+use std::{
+  collections::{BTreeMap, HashMap},
+  process::id,
+};
 
-use vine_util::idx::IdxVec;
+use vine_util::idx::{Counter, IdxVec};
 
 use crate::{
-  ast::{Block, Expr, ExprKind, Ident, LogicalOp, Pat, PatKind, Span, Ty, TyKind},
-  chart::{Builtins, Chart, TypeDefId, ValueDefId},
+  ast::{Block, Expr, ExprKind, Ident, LogicalOp, Pat, PatKind, Span, Stmt, StmtKind, Ty, TyKind},
+  chart::{Builtins, Chart, DefId, TypeDefId, ValueDefId},
   core::Core,
   diag::{Diag, ErrorGuaranteed},
-  tir::{ClosureId, LabelId, TirBlock, TirClosure, TirExpr, TirExprKind, TirPat, TirPatKind},
+  tir::{
+    ClosureId, LabelId, Local, TirBlock, TirClosure, TirExpr, TirExprKind, TirPat, TirPatKind,
+    TirStmt, TirStmtKind,
+  },
   types::{Type, TypeKind, Types},
 };
 
@@ -25,6 +31,16 @@ pub struct Resolver<'core, 'ctx> {
   labels: IdxVec<LabelId, LabelInfo>,
   closures: IdxVec<ClosureId, TirClosure<'core>>,
   cur_val: ValueDefId,
+  cur_def: DefId,
+  bindings: HashMap<Ident<'core>, Vec<(usize, Binding)>>,
+  scope_depth: usize,
+  locals: Counter<Local>,
+}
+
+#[derive(Debug, Clone, Copy)]
+enum Binding {
+  Local(Local, Type),
+  Closure(ClosureId),
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -34,7 +50,7 @@ struct LabelInfo {
 }
 
 impl<'core> Resolver<'core, '_> {
-  fn resolve_expr_ty(&mut self, expr: &Expr<'core>, ty: Type) -> TirExpr<'core> {
+  pub fn resolve_expr_ty(&mut self, expr: &Expr<'core>, ty: Type) -> TirExpr<'core> {
     let expr = self.resolve_expr(expr);
     if !self.types.unify(ty, expr.ty).is_ok() {
       self.core.report(Diag::ExpectedTypeFound {
@@ -63,8 +79,15 @@ impl<'core> Resolver<'core, '_> {
       ExprKind::Hole => (self.types.new_var(), TirExprKind::Hole),
       ExprKind::Paren(inner) => self._resolve_expr(inner)?,
       ExprKind::Path(path) => {
-        let base = todo!();
-        let value_def_id = self.resolve_path_to(base, path, "value", |d| d.value_def)?;
+        if let Some(ident) = path.as_ident() {
+          if let Some(&(_, binding)) = self.bindings.get(&ident).and_then(|x| x.last()) {
+            return Ok(match binding {
+              Binding::Local(local, ty) => (ty, TirExprKind::Local(local)),
+              Binding::Closure(closure_id) => todo!(),
+            });
+          }
+        }
+        let value_def_id = self.resolve_path_to(self.cur_def, path, "value", |d| d.value_def)?;
         let ty = todo!();
         (ty, TirExprKind::Def(value_def_id, vec![]))
       }
@@ -400,14 +423,29 @@ impl<'core> Resolver<'core, '_> {
   fn _resolve_pat(&mut self, pat: &Pat<'core>) -> Result<(Type, TirPatKind), Diag<'core>> {
     let span = pat.span;
     Ok(match &pat.kind {
-      PatKind::Hole => todo!(),
+      PatKind::Hole => (self.types.new_var(), TirPatKind::Hole),
       PatKind::Paren(inner) => self._resolve_pat(inner)?,
       PatKind::Annotation(inner, ty) => {
         let ty = self.resolve_ty(ty);
         let inner = self.resolve_pat_ty(inner, ty);
         (ty, inner.kind)
       }
-      PatKind::PathCall(path, pats) => todo!(),
+      PatKind::PathCall(path, args) => {
+        match self.resolve_path_to(self.cur_def, path, "value", |d| d.pattern_def) {
+          Ok(pat) => todo!(),
+          Err(diag) => {
+            if args.is_none() {
+              if let Some(ident) = path.as_ident() {
+                let local = self.locals.next();
+                let ty = self.types.new_var();
+                self.bind(ident, Binding::Local(local, ty));
+                return Ok((ty, TirPatKind::Local(local)));
+              }
+            }
+            Err(diag)?
+          }
+        }
+      }
       PatKind::Ref(inner) => {
         let inner = self.resolve_pat(inner);
         (self.types.new(TypeKind::Ref(inner.ty)), TirPatKind::Ref(Box::new(inner)))
@@ -489,15 +527,58 @@ impl<'core> Resolver<'core, '_> {
     }
   }
 
-  fn push_scope(&mut self) {}
-  fn pop_scope(&mut self) {}
-
-  fn resolve_block(&self, block: &Block<'core>) -> TirBlock<'core> {
-    todo!()
+  fn push_scope(&mut self) {
+    self.scope_depth += 1;
   }
 
-  fn resolve_block_ty(&self, block: &Block<'core>, result: Type) -> TirBlock<'core> {
-    todo!()
+  fn pop_scope(&mut self) {
+    self.scope_depth -= 1;
+    for bindings in self.bindings.values_mut() {
+      while bindings.last_mut().is_some_and(|x| x.0 > self.scope_depth) {
+        bindings.pop();
+      }
+    }
+  }
+
+  fn bind(&mut self, ident: Ident<'core>, binding: Binding) {
+    self.bindings.entry(ident).or_default().push((self.scope_depth, binding));
+  }
+
+  fn resolve_block_ty(&mut self, block: &Block<'core>, ty: Type) -> TirBlock<'core> {
+    let span = block.span;
+    let nil = self.types.nil();
+    let mut stmts = Vec::new();
+    let mut expr = None;
+    for (i, stmt) in block.stmts.iter().enumerate() {
+      if i == block.stmts.len() - 1 {
+        if let StmtKind::Expr(e, false) = &stmt.kind {
+          expr = Some(Box::new(self.resolve_expr_ty(e, ty)));
+          continue;
+        } else if !self.types.unify(ty, nil).is_ok() {
+          let err =
+            self.core.report(Diag::MissingBlockExpr { span, ty: self.types.show(self.chart, ty) });
+          expr = Some(Box::new(TirExpr {
+            span,
+            ty: self.types.error(err),
+            kind: TirExprKind::Error(err),
+          }));
+        }
+      }
+      stmts.extend(self.resolve_stmt(stmt));
+    }
+    TirBlock { span, ty, stmts, expr }
+  }
+
+  fn resolve_stmt(&mut self, stmt: &Stmt<'core>) -> Option<TirStmt<'core>> {
+    Some(TirStmt {
+      span: stmt.span,
+      kind: match &stmt.kind {
+        StmtKind::Let(let_stmt) => todo!(),
+        StmtKind::LetFn(let_fn_stmt) => todo!(),
+        StmtKind::Expr(expr, _) => TirStmtKind::Expr(self.resolve_expr(expr)),
+        StmtKind::Item(_) | StmtKind::Empty => None?,
+      },
+    })
   }
 
   fn resolve_tuple_field(
