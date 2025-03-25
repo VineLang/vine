@@ -1,7 +1,4 @@
-use std::{
-  collections::{BTreeMap, HashMap},
-  process::id,
-};
+use std::collections::{BTreeMap, HashMap};
 
 use vine_util::idx::{Counter, IdxVec};
 
@@ -14,7 +11,7 @@ use crate::{
     ClosureId, LabelId, Local, TirBlock, TirClosure, TirExpr, TirExprKind, TirPat, TirPatKind,
     TirStmt, TirStmtKind,
   },
-  types::{Type, TypeKind, Types},
+  types::{ImplType, Type, TypeKind, Types},
 };
 
 mod resolve_path;
@@ -30,7 +27,6 @@ pub struct Resolver<'core, 'ctx> {
   loops: Vec<LabelId>,
   labels: IdxVec<LabelId, LabelInfo>,
   closures: IdxVec<ClosureId, TirClosure<'core>>,
-  cur_val: ValueDefId,
   cur_def: DefId,
   bindings: HashMap<Ident<'core>, Vec<(usize, Binding)>>,
   scope_depth: usize,
@@ -40,7 +36,7 @@ pub struct Resolver<'core, 'ctx> {
 #[derive(Debug, Clone, Copy)]
 enum Binding {
   Local(Local, Type),
-  Closure(ClosureId),
+  Closure(ClosureId, Type),
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -83,13 +79,13 @@ impl<'core> Resolver<'core, '_> {
           if let Some(&(_, binding)) = self.bindings.get(&ident).and_then(|x| x.last()) {
             return Ok(match binding {
               Binding::Local(local, ty) => (ty, TirExprKind::Local(local)),
-              Binding::Closure(closure_id) => todo!(),
+              Binding::Closure(id, ty) => (ty, TirExprKind::Closure(id)),
             });
           }
         }
-        let value_def_id = self.resolve_path_to(self.cur_def, path, "value", |d| d.value_def)?;
+        let value_id = self.resolve_path_to(self.cur_def, path, "value", |d| d.value_def)?;
         let ty = todo!();
-        (ty, TirExprKind::Def(value_def_id, vec![]))
+        (ty, TirExprKind::Def(value_id, vec![]))
       }
       ExprKind::Assign(inv, space, value) => {
         let space = self.resolve_expr(space);
@@ -158,10 +154,7 @@ impl<'core> Resolver<'core, '_> {
         let ty = ty.as_ref().map(|t| self.resolve_ty(t)).unwrap_or_else(|| self.types.new_var());
         let body = self.resolve_block_ty(body, ty);
         let id = self.closures.push(TirClosure { flex: *flex, params, body });
-        (
-          self.types.new(TypeKind::Closure(self.cur_val, id, *flex, todo!(), todo!())),
-          TirExprKind::Closure(id),
-        )
+        (self.types.new(TypeKind::Closure(id)), TirExprKind::Closure(id))
       }
       ExprKind::Return(value) => {
         if let Some(ty) = self.return_ty {
@@ -275,16 +268,20 @@ impl<'core> Resolver<'core, '_> {
         (ty, TirExprKind::Field(Box::new(object), index, len))
       }
       ExprKind::Method(expr, ident, generics, exprs) => todo!(),
-      ExprKind::Call(expr, exprs) => todo!(),
+      ExprKind::Call(func, args) => {
+        let func = self.resolve_expr(func);
+        let (arg_tys, args) =
+          args.iter().map(|e| self.resolve_expr(e)).map(|e| (e.ty, e)).collect();
+        let ret = self.types.new_var();
+        let impl_ty = ImplType::Fn(func.ty, arg_tys, ret);
+        let impl_ = todo!();
+        (ret, TirExprKind::Call(impl_, Box::new(func), args))
+      }
       ExprKind::Neg(value) => {
-        let interp = self.resolve_expr(value);
+        let value = self.resolve_expr(value);
         let out = self.types.new_var();
-        let call = self.resolve_builtin_fn(
-          span,
-          self.chart.builtins.neg,
-          vec![interp.ty, out],
-          vec![interp],
-        );
+        let call =
+          self.resolve_builtin_fn(span, self.chart.builtins.neg, vec![value.ty, out], vec![value]);
         (out, call)
       }
       ExprKind::BinaryOp(op, lhs, rhs) => {
@@ -573,8 +570,17 @@ impl<'core> Resolver<'core, '_> {
     Some(TirStmt {
       span: stmt.span,
       kind: match &stmt.kind {
-        StmtKind::Let(let_stmt) => todo!(),
-        StmtKind::LetFn(let_fn_stmt) => todo!(),
+        StmtKind::Let(l) => todo!(),
+        StmtKind::LetFn(l) => {
+          let params = l.params.iter().map(|p| self.resolve_pat(p)).collect();
+          let ret =
+            l.ret.as_ref().map(|t| self.resolve_ty(t)).unwrap_or_else(|| self.types.new_var());
+          let body = self.resolve_block_ty(&l.body, ret);
+          let id = self.closures.push(TirClosure { flex: l.flex, params, body });
+          let ty = self.types.new(TypeKind::Closure(id));
+          self.bind(l.name, Binding::Closure(id, ty));
+          None?
+        }
         StmtKind::Expr(expr, _) => TirStmtKind::Expr(self.resolve_expr(expr)),
         StmtKind::Item(_) | StmtKind::Empty => None?,
       },
@@ -594,10 +600,6 @@ impl<'core> Resolver<'core, '_> {
         }
       }
       Some(TypeKind::Adt(adt_id, type_params)) => todo!(),
-      Some(TypeKind::Inverse(ty)) => {
-        let (len, ty) = self.resolve_tuple_field(span, *ty, index)?;
-        return Ok((len, self.types.inverse(ty)));
-      }
       Some(TypeKind::Error(err)) => return Err(*err),
       _ => {}
     }
@@ -621,10 +623,6 @@ impl<'core> Resolver<'core, '_> {
         }
       }
       Some(TypeKind::Adt(adt_id, type_params)) => todo!(),
-      Some(TypeKind::Inverse(ty)) => {
-        let (index, len, ty) = self.resolve_object_field(span, *ty, key)?;
-        return Ok((index, len, self.types.inverse(ty)));
-      }
       Some(TypeKind::Error(err)) => return Err(*err),
       _ => {}
     }

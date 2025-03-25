@@ -1,9 +1,15 @@
-use std::{collections::BTreeMap, fmt::Write};
+use std::{
+  collections::{hash_map::Entry, BTreeMap, HashMap},
+  fmt::Write,
+};
 
-use vine_util::{idx::IdxVec, new_idx};
+use vine_util::{
+  idx::{IdxVec, IntMap},
+  new_idx,
+};
 
 use crate::{
-  ast::{Flex, Ident},
+  ast::Ident,
   chart::{AdtId, Chart, TraitDefId, TypeDefId, ValueDefId},
   diag::ErrorGuaranteed,
   tir::{ClosureId, TirImpl},
@@ -19,7 +25,8 @@ pub enum TypeKind<'core> {
   Adt(AdtId, Vec<Type>),
   Ref(Type),
   Inverse(Type),
-  Closure(ValueDefId, ClosureId, Flex, Vec<Type>, Vec<TirImpl>),
+  Fn(ValueDefId, Vec<Type>, Vec<TirImpl>, Vec<Type>, Type),
+  Closure(ClosureId),
   Param(usize, Ident<'core>),
   Never,
   Error(ErrorGuaranteed),
@@ -34,11 +41,11 @@ enum TypeNode<'core> {
 #[derive(Debug, Clone)]
 pub enum ImplType {
   Trait(TraitDefId, Vec<Type>),
-  Fn(Vec<Type>, Type),
+  Fn(Type, Vec<Type>, Type),
   Error(ErrorGuaranteed),
 }
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct Types<'core> {
   types: IdxVec<Type, TypeNode<'core>>,
   error: Option<Type>,
@@ -109,6 +116,7 @@ impl<'core> Types<'core> {
         (TypeKind::Error(e), _) | (_, TypeKind::Error(e)) => Unknown(*e),
         (TypeKind::Opaque(i), TypeKind::Opaque(j)) if *i == *j => Success,
         (TypeKind::Param(i, _), TypeKind::Param(j, _)) if *i == *j => Success,
+        (TypeKind::Closure(i), TypeKind::Closure(j)) if *i == *j => Success,
         (TypeKind::Tuple(a), TypeKind::Tuple(b)) if a.len() == b.len() => {
           UnifyResult::all(a.iter().zip(b).map(|(a, b)| self.unify(*a, *b)))
         }
@@ -123,9 +131,7 @@ impl<'core> Types<'core> {
         }
         (TypeKind::Ref(a), TypeKind::Ref(b)) => self.unify(*a, *b),
         (TypeKind::Inverse(a), TypeKind::Inverse(b)) => self.unify(*a, *b),
-        (TypeKind::Closure(a, i, _, p, x), TypeKind::Closure(b, j, _, q, y))
-          if a == b && i == j && x == y =>
-        {
+        (TypeKind::Fn(a, p, x, _, _), TypeKind::Fn(b, q, y, _, _)) if a == b && x == y => {
           UnifyResult::all(p.iter().zip(q).map(|(a, b)| self.unify(*a, *b)))
         }
         (TypeKind::Never, TypeKind::Never) => Success,
@@ -155,9 +161,10 @@ impl<'core> Types<'core> {
   pub fn unify_impl_type(&mut self, a: &ImplType, b: &ImplType) -> UnifyResult {
     match (a, b) {
       (ImplType::Error(e), _) | (_, ImplType::Error(e)) => Unknown(*e),
-      (ImplType::Fn(a, x), ImplType::Fn(b, y)) if a.len() == b.len() => {
-        UnifyResult::all(a.iter().zip(b).map(|(a, b)| self.unify(*a, *b))).and(self.unify(*x, *y))
-      }
+      (ImplType::Fn(p, a, x), ImplType::Fn(q, b, y)) if a.len() == b.len() => self
+        .unify(*p, *q)
+        .and(UnifyResult::all(a.iter().zip(b).map(|(a, b)| self.unify(*a, *b))))
+        .and(self.unify(*x, *y)),
       (ImplType::Trait(i, a), ImplType::Trait(j, b)) if i == j => {
         UnifyResult::all(a.iter().zip(b).map(|(a, b)| self.unify(*a, *b)))
       }
@@ -183,7 +190,7 @@ impl<'core> Types<'core> {
     ty
   }
 
-  pub(crate) fn kind(&self, ty: Type) -> &Option<TypeKind> {
+  pub(crate) fn kind(&self, ty: Type) -> &Option<TypeKind<'core>> {
     let ty = self.find(ty);
     let TypeNode::Root(kind, _) = &self.types[ty] else { unreachable!() };
     kind
@@ -250,14 +257,15 @@ impl<'core> Types<'core> {
             *str += chart.adts[*adt_id].name.0 .0;
             self._show_params(chart, params, str);
           }
-          TypeKind::Closure(value_id, closure_id, flex, params, _) => {
+          TypeKind::Closure(closure_id) => {
+            *str += "fn#";
+            write!(*str, "{}", closure_id.0).unwrap();
+          }
+          TypeKind::Fn(value_id, params, _, _, _) => {
             *str += "fn";
-            *str += flex.as_str();
             *str += " ";
             *str += chart.defs[chart.values[*value_id].def].name.0 .0;
             self._show_params(chart, params, str);
-            *str += "#";
-            write!(*str, "{}", closure_id.0).unwrap();
           }
           TypeKind::Param(_, name) => *str += name.0 .0,
           TypeKind::Never => *str += "!",
@@ -293,8 +301,10 @@ impl<'core> Types<'core> {
         str += chart.defs[chart.traits[*trait_id].def].name.0 .0;
         self._show_params(chart, params, &mut str);
       }
-      ImplType::Fn(params, ret) => {
-        str += "fn (";
+      ImplType::Fn(recv, params, ret) => {
+        str += "fn ";
+        self._show(chart, *recv, &mut str);
+        str += "(";
         self._show_comma_separated(chart, params, &mut str);
         str += ")";
         if !matches!(self.kind(*ret), Some(TypeKind::Tuple(x)) if x.is_empty()) {
@@ -305,6 +315,14 @@ impl<'core> Types<'core> {
       ImplType::Error(_) => str += "??",
     }
     str
+  }
+
+  pub fn export(&mut self) -> TypeExport<'core, '_> {
+    let mut export =
+      TypeExport { mapping: HashMap::default(), source: self, dest: Types::default() };
+    export.dest.error = export.source.error.map(|t| export.export(t));
+    export.dest.nil = export.source.nil.map(|t| export.export(t));
+    export
   }
 }
 
@@ -345,5 +363,58 @@ impl UnifyResult {
 
   pub fn is_ok(self) -> bool {
     !matches!(self, Failure)
+  }
+}
+
+pub struct TypeExport<'core, 'ctx> {
+  mapping: IntMap<Type, Type>,
+  source: &'ctx Types<'core>,
+  dest: Types<'core>,
+}
+
+impl<'core, 'ctx> TypeExport<'core, 'ctx> {
+  pub fn export(&mut self, ty: Type) -> Type {
+    let old = self.source.find(ty);
+    match self.mapping.entry(old) {
+      Entry::Occupied(e) => *e.get(),
+      Entry::Vacant(e) => {
+        let new = self.dest.new_var();
+        e.insert(new);
+        if let Some(old_kind) = self.source.kind(old) {
+          let kind = old_kind.map(|t| self.export(t));
+          let TypeNode::Root(new_kind, _) = &mut self.dest.types[new] else { unreachable!() };
+          *new_kind = Some(kind)
+        }
+        new
+      }
+    }
+  }
+
+  pub fn finish(self) -> Types<'core> {
+    self.dest
+  }
+}
+
+impl<'core> TypeKind<'core> {
+  fn map(&self, mut f: impl FnMut(Type) -> Type) -> Self {
+    match self {
+      TypeKind::Opaque(i) => TypeKind::Opaque(*i),
+      TypeKind::Tuple(els) => TypeKind::Tuple(els.iter().copied().map(f).collect()),
+      TypeKind::Object(els) => TypeKind::Object(els.iter().map(|(&k, &v)| (k, f(v))).collect()),
+      TypeKind::Adt(i, els) => TypeKind::Adt(*i, els.iter().copied().map(f).collect()),
+      TypeKind::Ref(t) => TypeKind::Ref(f(*t)),
+      TypeKind::Inverse(t) => TypeKind::Inverse(f(*t)),
+      TypeKind::Fn(i, p, x, q, r) => TypeKind::Fn(
+        *i,
+        p.iter().copied().map(&mut f).collect(),
+        x.clone(),
+        q.iter().copied().map(&mut f).collect(),
+        f(*r),
+      ),
+      TypeKind::Closure(i) => TypeKind::Closure(*i),
+      TypeKind::Param(i, n) => TypeKind::Param(*i, *n),
+      TypeKind::Never => TypeKind::Never,
+      TypeKind::Error(err) => TypeKind::Error(*err),
+    }
   }
 }

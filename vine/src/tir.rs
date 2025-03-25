@@ -8,7 +8,7 @@ use vine_util::{
 };
 
 use crate::{
-  ast::{Expr, Flex, Ident, LogicalOp, Span},
+  ast::{Flex, Ident, LogicalOp, Span},
   chart::{AdtId, ImplDefId, ValueDefId, VariantId},
   diag::ErrorGuaranteed,
   types::Type,
@@ -109,7 +109,7 @@ pub enum TirExprKind<'core> {
   #[class(value, place)]
   Field(B<TirExpr<'core>>, usize, usize),
   #[class(value)]
-  Call(B<TirExpr<'core>>, Vec<TirExpr<'core>>),
+  Call(TirImpl, B<TirExpr<'core>>, Vec<TirExpr<'core>>),
   #[class(value, place, space)]
   Adt(Option<(AdtId, VariantId)>, Vec<TirExpr<'core>>),
   #[class(value, cond)]
@@ -131,9 +131,9 @@ pub enum TirExprKind<'core> {
   #[class(value)]
   InlineIvy(Vec<(Ident<'core>, bool, TirExpr<'core>)>, Net),
   #[class(value)]
-  CallAssign(B<TirExpr<'core>>, B<TirExpr<'core>>, B<TirExpr<'core>>),
+  CallAssign(TirImpl, B<TirExpr<'core>>, B<TirExpr<'core>>),
   #[class(value)]
-  CallCompare(B<TirExpr<'core>>, Vec<(TirExpr<'core>, TirExpr<'core>)>),
+  CallCompare(B<TirExpr<'core>>, Vec<(TirImpl, TirExpr<'core>)>),
   #[class(error)]
   Error(ErrorGuaranteed),
 }

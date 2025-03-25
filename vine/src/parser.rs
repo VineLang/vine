@@ -974,7 +974,8 @@ impl<'core, 'src> VineParser<'core, 'src> {
       } else {
         let bind = self.parse_pat()?;
         let init = self.eat(Token::Eq)?.then(|| self.parse_expr()).transpose()?;
-        let else_block = self.eat(Token::Else)?.then(|| self.parse_block()).transpose()?;
+        let else_block =
+          (init.is_some() && self.eat(Token::Else)?).then(|| self.parse_block()).transpose()?;
         self.eat(Token::Semi)?;
         StmtKind::Let(LetStmt { bind, init, else_block })
       }
