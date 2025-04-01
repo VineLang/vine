@@ -191,6 +191,19 @@ pub mod Map {
     }
   }
 
+  pub fn .contains_key[K, V; Ord[K]](&Map[K, V](len, data), &key: &K) -> Bool {
+    if len == 0 {
+      false
+    } else {
+      let &(left, (cur_key, cur_value), right) = &data;
+      match key.cmp(&cur_key) {
+        Ord::Lt { left.contains_key(&key) }
+        Ord::Eq { true }
+        Ord::Gt { right.contains_key(&key) }
+      }
+    }
+  }
+
   pub fn .iter[K, V](&self: &Map[K, V]) -> Iter[K, V] {
     Iter(&self, [])
   }

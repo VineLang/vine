@@ -1,0 +1,17 @@
+
+use std::data::Map;
+
+pub fn main(&io: &IO) {
+  let map = Map::empty[N32, String];
+
+  map.insert(4, "four");
+  map.insert(123456, "one hundred twenty three thousand four hundred fifty six");
+  map.insert(1, "one");
+
+  let key = 4;
+  io.println("{map.contains_key(&key)}");
+  key = 42;
+  io.println("{map.contains_key(&key)}");
+  key = 123456;
+  io.println("{map.contains_key(&key)}");
+}
