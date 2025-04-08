@@ -1,6 +1,5 @@
 use std::{
-  fs,
-  env,
+  env, fs,
   io::{stdin, Read},
   path::PathBuf,
   process::exit,
@@ -92,7 +91,7 @@ fn std_path() -> PathBuf {
     Some(std_path) => {
       path.push(std_path);
       path.push("std.vi");
-    },
+    }
     None => {
       path.push(env!("CARGO_MANIFEST_DIR"));
       path.push("../vine/std/std.vi");
