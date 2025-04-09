@@ -87,7 +87,7 @@ fn std_path() -> PathBuf {
   let compile_time_std_path = option_env!("VINE_STD_PATH");
   let runtime_std_path = env::var("VINE_STD_PATH").ok();
 
-  match runtime_std_path.or(compile_time_std_path.map(String::from)) {
+  match runtime_std_path.as_deref().or(compile_time_std_path) {
     Some(std_path) => {
       path.push(std_path);
       path.push("std.vi");
