@@ -38,7 +38,7 @@
     packages = forAllSystems (system: with (pkgs system);
     let 
       rustPlatform = makeRustPlatform rec {
-        cargo = rust-bin.nightly."2024-12-24".default;
+        cargo = rust-bin.fromRustupToolchainFile ./rust-toolchain.toml;
         rustc = cargo;
       };
     in
