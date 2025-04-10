@@ -1,3 +1,6 @@
 .DS_Store
 target
 tests/snaps/**/timing.txt
+
+# Nix build outputs
+result
