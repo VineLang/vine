@@ -57,14 +57,18 @@ impl<'ivm> Extrinsics<'ivm> {
       ext_ty
     }
   }
-  pub fn register_rc_ext_ty(&mut self, f: unsafe fn(*mut ())) -> ExtTy<'ivm> {
+  pub fn register_rc_ext_ty(&mut self, drop_in_place_function: unsafe fn(*mut ())) -> ExtTy<'ivm> {
     if self.rc_ext_ty.len() as usize >= Self::MAX_RC_EXT_TY_COUNT {
       panic!("IVM reached maximum amount of registered extrinsic reference-counted types.");
     } else {
       let ext_ty = ExtTy::from_id_and_rc(self.rc_ext_ty.len() as u16, true);
-      self.rc_ext_ty.push(f);
+      self.rc_ext_ty.push(drop_in_place_function);
       ext_ty
     }
+  }
+  pub unsafe fn set_rc_ext_ty_type_id(&mut self, ty: ExtTy<'ivm>, type_id: TypeId) {
+    assert!(ty.is_rc());
+    assert!(self.auto_rc_ty_ids.insert(type_id, ty.id()).is_none());
   }
   pub fn register_n32_ext_ty(&mut self) -> ExtTy<'ivm> {
     let n32_ext_ty = self.register_unboxed_ext_ty();
