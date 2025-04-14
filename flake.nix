@@ -23,18 +23,6 @@
     }); 
   in
   {
-    devShells = forAllSystems (system: with (pkgs system);
-      {
-        default = mkShell {
-          buildInputs = [ rustup ];
-          shellHook = ''
-            source <(rustup completions bash)
-            source <(rustup completions bash cargo)
-          '';
-        };
-      }
-    );
-
     packages = forAllSystems (system: with (pkgs system);
     let 
       rustPlatform = makeRustPlatform rec {
