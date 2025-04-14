@@ -6,6 +6,7 @@
 #![cfg_attr(miri, deny(fuzzy_provenance_casts, lossy_provenance_casts))]
 #![warn(clippy::std_instead_of_core)]
 
+mod arc;
 mod ivm;
 mod parallel;
 pub use ivm::*;

@@ -52,8 +52,8 @@ impl<'ctx, 'ivm, 'ext> Reader<'ctx, 'ivm, 'ext> {
         let val = unsafe { p.as_ext_val() };
         let ext_ty_name = self.host.reverse_ext_tys.get(&val.ty()).unwrap();
         match ext_ty_name.as_str() {
-          "N32" => Tree::N32(val.payload()),
-          "F32" => Tree::F32(f32::from_bits(val.payload())),
+          "N32" => Tree::N32(val.numeric_payload()),
+          "F32" => Tree::F32(f32::from_bits(val.numeric_payload())),
           "IO" => Tree::Var("#io".into()),
           name => Tree::Var(format!("#{}", name)),
         }

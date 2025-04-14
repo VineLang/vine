@@ -17,7 +17,7 @@ use core::{
 };
 
 /// A 64-bit value with provenance.
-#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
 #[repr(transparent)]
 pub(crate) struct Word(#[cfg(not(miri))] u64, #[cfg(miri)] *mut ());
 

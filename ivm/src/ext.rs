@@ -3,19 +3,27 @@
 
 #![allow(nonstandard_style)]
 
+use crate::arc::{Arc, ArcInner};
 use core::{
   fmt::{self, Debug},
   marker::PhantomData,
 };
+use std::{
+  any::{Any, TypeId},
+  collections::BTreeMap,
+};
 
-use crate::port::Tag;
+use crate::{port::Tag, word::Word};
 
 #[derive(Default)]
 pub struct Extrinsics<'ivm> {
   ext_fns: Vec<Box<dyn Fn(ExtVal<'ivm>, ExtVal<'ivm>) -> ExtVal<'ivm> + Sync + 'ivm>>,
 
-  /// Number of registered light (unboxed) ext types
-  light_ext_ty: u16,
+  unboxed_ext_ty: u16,
+
+  rc_ext_ty: Vec<unsafe fn(*mut ())>,
+
+  auto_rc_ty_ids: BTreeMap<TypeId, u16>,
 
   n32_ext_ty: Option<ExtTy<'ivm>>,
 
@@ -24,7 +32,8 @@ pub struct Extrinsics<'ivm> {
 
 impl<'ivm> Extrinsics<'ivm> {
   pub const MAX_EXT_FN_KIND_COUNT: usize = 0x7FFF;
-  pub const MAX_LIGHT_EXT_TY_COUNT: usize = 0x7FFF;
+  pub const MAX_UNBOXED_EXT_TY_COUNT: usize = 0x7FFF;
+  pub const MAX_RC_EXT_TY_COUNT: usize = 0x7FFF;
 
   pub fn register_ext_fn(
     &mut self,
@@ -39,18 +48,30 @@ impl<'ivm> Extrinsics<'ivm> {
     }
   }
 
-  pub fn register_light_ext_ty(&mut self) -> ExtTy<'ivm> {
-    if self.light_ext_ty as usize >= Self::MAX_LIGHT_EXT_TY_COUNT {
+  pub fn register_unboxed_ext_ty(&mut self) -> ExtTy<'ivm> {
+    if self.unboxed_ext_ty as usize >= Self::MAX_UNBOXED_EXT_TY_COUNT {
       panic!("IVM reached maximum amount of registered extrinsic unboxed types.");
     } else {
-      let ext_ty = ExtTy::from_id_and_rc(self.light_ext_ty, false);
-      self.light_ext_ty += 1;
+      let ext_ty = ExtTy::from_id_and_rc(self.unboxed_ext_ty, false);
+      self.unboxed_ext_ty += 1;
       ext_ty
     }
   }
-
+  pub fn register_rc_ext_ty(&mut self, drop_in_place_function: unsafe fn(*mut ())) -> ExtTy<'ivm> {
+    if self.rc_ext_ty.len() as usize >= Self::MAX_RC_EXT_TY_COUNT {
+      panic!("IVM reached maximum amount of registered extrinsic reference-counted types.");
+    } else {
+      let ext_ty = ExtTy::from_id_and_rc(self.rc_ext_ty.len() as u16, true);
+      self.rc_ext_ty.push(drop_in_place_function);
+      ext_ty
+    }
+  }
+  pub unsafe fn set_rc_ext_ty_type_id(&mut self, ty: ExtTy<'ivm>, type_id: TypeId) {
+    assert!(ty.is_rc());
+    assert!(self.auto_rc_ty_ids.insert(type_id, ty.id()).is_none());
+  }
   pub fn register_n32_ext_ty(&mut self) -> ExtTy<'ivm> {
-    let n32_ext_ty = self.register_light_ext_ty();
+    let n32_ext_ty = self.register_unboxed_ext_ty();
     assert!(self.n32_ext_ty.replace(n32_ext_ty).is_none());
     n32_ext_ty
   }
@@ -69,21 +90,55 @@ impl<'ivm> Extrinsics<'ivm> {
     (closure)(arg0, arg1)
   }
 
+  pub fn erase_ext_val(&self, val: ExtVal<'ivm>) {
+    if val.ty().is_rc() {
+      let function = self.rc_ext_ty.get(val.ty().id() as usize).unwrap();
+      let data = val.pointer_payload();
+      let arc = Arc::from_raw(data as *const ArcInner<()>);
+      unsafe {
+        Arc::drop_with(arc, *function);
+      }
+    }
+  }
+
+  pub fn dup_ext_val(&self, val: ExtVal<'ivm>) -> (ExtVal<'ivm>, ExtVal<'ivm>) {
+    if val.ty().is_rc() {
+      let ty = val.ty();
+      let data = val.pointer_payload();
+      let arc = Arc::from_raw(data as *const ArcInner<()>);
+      let arc2 = arc.clone();
+      unsafe {
+        (
+          ExtVal::new_rc_raw(ty, Arc::into_raw(arc) as _),
+          ExtVal::new_rc_raw(ty, Arc::into_raw(arc2) as _),
+        )
+      }
+    } else {
+      (val, val)
+    }
+  }
+
+  pub fn new_rc_instance<T: Any>(&self, data: T) -> ExtVal<'ivm> {
+    let ty_id = self.auto_rc_ty_ids.get(&data.type_id()).expect(
+      "Attempted to create instance of reference-counted data type that has not been registered!",
+    );
+    unsafe {
+      ExtVal::new_rc_raw(ExtTy::from_id_and_rc(*ty_id, true), Arc::new(data).into_raw() as _)
+    }
+  }
+
   pub fn ext_val_as_n32(&self, val: ExtVal<'ivm>) -> u32 {
     assert!(self.n32_ext_ty.is_some_and(move |x| val.ty() == x));
-    val.payload()
+    val.numeric_payload()
   }
 }
 
 /// An external value.
 ///
-/// The top 32 bits are the *payload*, and the 16 bits after that the *type* (an
-/// [`ExtTy`]). The interpretation of the payload depends on the type.
-///
-/// The bottom 16 bits are always `Tag::ExtVal as u16` for bit-compatibility
-/// with `ExtVal` ports.
+/// The top 16 bits are the `[`ExtTy`], the next 45 bits are the [`Payload`],
+/// and the final 3 bits are the tag.
 #[derive(Clone, Copy)]
-pub struct ExtVal<'ivm>(u64, PhantomData<fn(&'ivm ()) -> &'ivm ()>);
+pub struct ExtVal<'ivm>(Word, PhantomData<fn(&'ivm ()) -> &'ivm ()>);
 
 impl<'ivm> ExtVal<'ivm> {
   /// Creates an `ExtVal` from the raw bits.
@@ -91,37 +146,63 @@ impl<'ivm> ExtVal<'ivm> {
   /// ## Safety
   /// The bits must be a valid representation of an `ExtVal`.
   #[inline(always)]
-  pub unsafe fn from_bits(bits: u64) -> Self {
-    Self(bits, PhantomData)
+  pub(crate) const unsafe fn from_word(word: Word) -> Self {
+    Self(word, PhantomData)
   }
 
-  /// Returns the raw bits of this value.
   #[inline(always)]
-  pub fn bits(&self) -> u64 {
-    self.0
+  pub const fn new_unboxed(ty: ExtTy<'ivm>, payload: u32) -> Self {
+    assert!(!ty.is_rc());
+    unsafe {
+      Self::from_word(Word::from_bits(
+        ty.0 as (u64) << 48 | payload as (u64) << 3 | Tag::ExtVal as (u64),
+      ))
+    }
   }
 
-  /// Creates a new `ExtVal` with a given type and payload.
   #[inline(always)]
-  pub const fn new(ty: ExtTy<'ivm>, payload: u32) -> Self {
-    Self(payload as (u64) << 32 | ty.id() as (u64) << 16 | Tag::ExtVal as u64, PhantomData)
+  pub(crate) unsafe fn new_rc_raw(ty: ExtTy<'ivm>, pointer: *const ()) -> Self {
+    assert!(ty.is_rc());
+    unsafe {
+      Self::from_word(Word::from_ptr(pointer).map_bits(|_| {
+        let payload = pointer.addr() as u64;
+        // Ensure the payload pointer does not conflict with any other field
+        assert!(payload & 0xFF000007 == 0);
+        ty.0 as (u64) << 48 | payload as u64 | Tag::ExtVal as u64
+      }))
+    }
   }
   /// Accesses the type of this value.
   #[inline(always)]
   pub fn ty(&self) -> ExtTy<'ivm> {
-    ExtTy((self.0 >> 16) as u16, self.1)
+    ExtTy((self.0.bits() >> 48) as u16, self.1)
+  }
+
+  #[inline(always)]
+  pub(crate) fn word(&self) -> Word {
+    self.0
   }
 
   /// Accesses the payload of this value.
   #[inline(always)]
-  pub fn payload(&self) -> u32 {
-    (self.0 >> 32) as u32
+  pub fn numeric_payload(&self) -> u32 {
+    (self.0.bits() >> 3) as u32
   }
-
   #[inline(always)]
-  pub fn as_ty(&self, &ty: &ExtTy<'ivm>) -> u32 {
+  pub fn pointer_payload(&self) -> *const () {
+    self.0.map_bits(|x| x & !0xFF000007).ptr()
+  }
+  #[inline(always)]
+  pub fn as_unboxed_ty(&self, &ty: &ExtTy<'ivm>) -> u32 {
     assert!(self.ty() == ty);
-    (self.0 >> 32) as u32
+    assert!(!ty.is_rc());
+    self.numeric_payload()
+  }
+  #[inline(always)]
+  pub fn as_rc_ty(&self, &ty: &ExtTy<'ivm>) -> *const () {
+    assert!(self.ty() == ty);
+    assert!(!ty.is_rc());
+    self.pointer_payload()
   }
 }
 
@@ -142,7 +223,10 @@ impl<'ivm> ExtTy<'ivm> {
   }
 
   const fn id(self) -> u16 {
-    self.0
+    self.0 & 0x7FFF
+  }
+  const fn is_rc(self) -> bool {
+    self.0 >> 15 != 0
   }
 }
 

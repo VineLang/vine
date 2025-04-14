@@ -20,7 +20,7 @@ impl<'ivm, 'ext> IVM<'ivm, 'ext> {
     match (a.tag(), b.tag()) {
       (Wire, _) => self.link_wire(unsafe { a.as_wire() }, b),
       (_, Wire) => self.link_wire(unsafe { b.as_wire() }, a),
-      sym!(Global | Erase) | sym!(ExtVal | Erase) => self.stats.erase += 1,
+      sym!(Global | Erase) => self.stats.erase += 1,
       sym!(Comb) | sym!(ExtFn) if a.label() == b.label() => self.active_fast.push((a, b)),
       sym!(Global, _) | sym!(Comb | ExtFn | Branch) => self.active_slow.push((a, b)),
       sym!(Erase, _) | sym!(ExtVal, _) => self.active_fast.push((a, b)),
@@ -75,7 +75,7 @@ impl<'ivm, 'ext> IVM<'ivm, 'ext> {
   pub(crate) fn interact(&mut self, a: Port<'ivm>, b: Port<'ivm>) {
     use Tag::*;
     match ((a.tag(), a), (b.tag(), b)) {
-      sym!((Wire, _), _) | sym!((Erase | ExtVal, _)) => unreachable!(),
+      sym!((Wire, _), _) | sym!((Erase, _)) => unreachable!(),
       sym!((Global, c), (Comb, d)) if !unsafe { c.as_global() }.labels.has(d.label()) => {
         self.copy(c, d)
       }
@@ -85,16 +85,37 @@ impl<'ivm, 'ext> IVM<'ivm, 'ext> {
       {
         self.annihilate(a, b)
       }
-      sym!((Erase, n), (_, b)) | sym!((ExtVal, n), (Comb, b)) => self.copy(n, b),
-      ((Comb | ExtFn | Branch, a), (Comb | ExtFn | Branch, b)) => self.commute(a, b),
       sym!((ExtFn, f), (ExtVal, v)) => self.call(f, v),
       sym!((Branch, b), (ExtVal, v)) => self.branch(b, v),
+      sym!((Erase, _), (ExtVal, v)) => self.erase_ext_val(v),
+      sym!((Comb, b), (ExtVal, v)) => self.duplicate_ext_val(v, b),
+      sym!((Erase, n), (_, b)) => self.copy(n, b),
+      ((Comb | ExtFn | Branch, a), (Comb | ExtFn | Branch, b)) => self.commute(a, b),
+      ((ExtVal, a), (ExtVal, b)) => {
+        self.erase_ext_val(a);
+        self.erase_ext_val(b);
+      }
     }
   }
 
   // Note that all of the following functions are technically unsafe -- they
   // require the ports they are passed to have certain tags. They are not marked
   // as `unsafe` to reduce noise, and as such must be kept private.
+
+  fn erase_ext_val(&mut self, val: Port<'ivm>) {
+    self.stats.erase += 1;
+    let val = unsafe { val.as_ext_val() };
+    self.extrinsics.erase_ext_val(val);
+  }
+
+  fn duplicate_ext_val(&mut self, comb: Port<'ivm>, val: Port<'ivm>) {
+    self.stats.copy += 1;
+    let val = unsafe { val.as_ext_val() };
+    let (a, b) = self.extrinsics.dup_ext_val(val);
+    let (x, y) = unsafe { comb.aux() };
+    self.link_wire(x, Port::new_ext_val(a));
+    self.link_wire(y, Port::new_ext_val(b));
+  }
 
   fn expand(&mut self, c: Port<'ivm>, p: Port<'ivm>) {
     self.stats.expand += 1;
