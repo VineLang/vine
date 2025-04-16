@@ -8,42 +8,49 @@
     };
   };
 
-  outputs = { nixpkgs, rust-overlay, ... }: 
-  let
-    supportedSystems = [
-      "x86_64-linux"
-      "aarch64-linux"
-      "x86_64-darwin"
-      "aarch64-darwin"
-    ];
-    forAllSystems = nixpkgs.lib.genAttrs supportedSystems;
-    pkgs = system: (import nixpkgs { 
-      inherit system; 
-      overlays = [ rust-overlay.overlays.default ]; 
-    }); 
-  in
-  {
-    packages = forAllSystems (system: with (pkgs system);
-    let 
-      rustPlatform = makeRustPlatform rec {
-        cargo = rust-bin.fromRustupToolchainFile ./rust-toolchain.toml;
-        rustc = cargo;
-      };
+  outputs =
+    { nixpkgs, rust-overlay, ... }:
+    let
+      supportedSystems = [
+        "x86_64-linux"
+        "aarch64-linux"
+        "x86_64-darwin"
+        "aarch64-darwin"
+      ];
+      forAllSystems = nixpkgs.lib.genAttrs supportedSystems;
+      pkgs =
+        system:
+        (import nixpkgs {
+          inherit system;
+          overlays = [ rust-overlay.overlays.default ];
+        });
     in
     {
-      default = rustPlatform.buildRustPackage rec {
-        src = lib.cleanSource ./.;
-        pname = "vine";
-        version = "0.1";
-        CFG_RELEASE_CHANNEL = "nightly";
-        VINE_STD_PATH = "${src}/vine/std";
-        cargoLock = {
-          lockFile = "${src}/Cargo.lock";
-          outputHashes = {
-            "class-0.1.0" = "sha256-ye8DqeDRXsNpTWpGGlvWxSSc1AiXOLud99dHpB/VhZg=";
+      formatter = forAllSystems (system: with (pkgs system); nixfmt-rfc-style);
+
+      packages = forAllSystems (
+        system:
+        with (pkgs system);
+        let
+          rustPlatform = makeRustPlatform rec {
+            cargo = rust-bin.fromRustupToolchainFile ./rust-toolchain.toml;
+            rustc = cargo;
           };
-        };
-      };
-    });
-  };
+        in
+        {
+          default = rustPlatform.buildRustPackage rec {
+            src = lib.cleanSource ./.;
+            pname = "vine";
+            version = "0.1";
+            VINE_STD_PATH = "${src}/vine/std";
+            cargoLock = {
+              lockFile = "${src}/Cargo.lock";
+              outputHashes = {
+                "class-0.1.0" = "sha256-ye8DqeDRXsNpTWpGGlvWxSSc1AiXOLud99dHpB/VhZg=";
+              };
+            };
+          };
+        }
+      );
+    };
 }
