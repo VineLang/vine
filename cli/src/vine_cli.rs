@@ -1,5 +1,5 @@
 use std::{
-  fs,
+  env, fs,
   io::{stdin, Read},
   path::PathBuf,
   process::exit,
@@ -84,8 +84,19 @@ impl CompileArgs {
 
 fn std_path() -> PathBuf {
   let mut path = PathBuf::new();
-  path.push(env!("CARGO_MANIFEST_DIR"));
-  path.push("../vine/std/std.vi");
+  let compile_time_std_path = option_env!("VINE_STD_PATH");
+  let runtime_std_path = env::var("VINE_STD_PATH").ok();
+
+  match runtime_std_path.as_deref().or(compile_time_std_path) {
+    Some(std_path) => {
+      path.push(std_path);
+      path.push("std.vi");
+    }
+    None => {
+      path.push(env!("CARGO_MANIFEST_DIR"));
+      path.push("../vine/std/std.vi");
+    }
+  }
   path
 }
 
