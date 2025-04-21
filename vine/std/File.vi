@@ -72,13 +72,13 @@ pub mod PathBuf {
     }
   }
 
-  pub fn .push_char(&path: &PathBuf, c: Char) {
+  pub fn .push_char(&path: &PathBuf, c: Char) -> () {
     inline_ivy! (path0 <- path, path1 -> path, c <- c) -> () { _
       path0 = @path_push(c path1)
     }
   }
   
-  pub fn .push_string(&path: &PathBuf, str: String) {
+  pub fn .push_string(&path: &PathBuf, str: String) -> () {
     let List(len, chars, _) = str as List;
     while len != 0 {
       len = len - 1;

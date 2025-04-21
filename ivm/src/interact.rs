@@ -88,7 +88,7 @@ impl<'ivm, 'ext> IVM<'ivm, 'ext> {
       sym!((ExtFn, f), (ExtVal, v)) => self.call(f, v),
       sym!((Branch, b), (ExtVal, v)) => self.branch(b, v),
       sym!((Erase, _), (ExtVal, v)) => self.erase_ext_val(v),
-      sym!((Comb, b), (ExtVal, v)) => self.duplicate_ext_val(v, b),
+      sym!((Comb, b), (ExtVal, v)) => self.duplicate_ext_val(b, v),
       sym!((Erase, n), (_, b)) => self.copy(n, b),
       ((Comb | ExtFn | Branch, a), (Comb | ExtFn | Branch, b)) => self.commute(a, b),
       ((ExtVal, a), (ExtVal, b)) => {

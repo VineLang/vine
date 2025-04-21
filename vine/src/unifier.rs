@@ -82,7 +82,10 @@ impl<'core> Unifier<'core> {
       | (Type::I32, Type::I32)
       | (Type::F32, Type::F32)
       | (Type::Char, Type::Char)
-      | (Type::IO, Type::IO) => !inverted,
+      | (Type::IO, Type::IO) 
+      | (Type::IOError, Type::IOError) 
+      | (Type::PathBuf, Type::PathBuf) 
+      | (Type::File, Type::File) => !inverted,
       (Type::Opaque(a), Type::Opaque(b)) => a == b && !inverted,
       (Type::Tuple(a), Type::Tuple(b)) if a.len() == b.len() => {
         let mut success = true;
