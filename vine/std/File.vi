@@ -1,0 +1,90 @@
+#[builtin = "IOError"]
+pub mod IOError {
+  pub fn .code(self: IOError) -> N32 {
+    inline_ivy! (ioerror <- self) -> N32 {
+      errcode
+      self = @io_error_code(0 errcode)
+    }
+  }
+}
+
+#[builtin = "File"]
+pub mod File {
+  pub fn open(&io: &IO, path: PathBuf) -> Result[File, IOError] {
+    let file_or_error = inline_ivy! (io0 <- io, io3 -> io, path <- path) -> File {
+      file
+      io0 = dup(io1 io2)
+      io1 = @new_path(path dup(file @seq$(io2 io3))) 
+    };
+
+    if inline_ivy! (foe <- file_or_error) -> Bool {
+      is_error
+      foe = @is_error(0 is_error)
+    } {
+      Result::Err(inline_ivy! (foe <- file_or_error) -> IOError { foe })
+    } else {
+      Result::Ok(file_or_error)
+    }
+  }
+
+  pub fn .read_byte(&file: &File, default: N32) -> Result[N32, IOError] {
+    let byte_or_error = inline_ivy! (file0 <- file, file3 -> file, default <- default) -> N32 {
+      byte
+      file0 = dup(file1 file2)
+      file1 = @file_read_byte(default dup(byte @seq$(file2 file3))) 
+    };
+
+    if inline_ivy! (boe <- byte_or_error) -> Bool {
+      is_error
+      boe = @is_error(0 is_error)
+    } {
+      Result::Err(inline_ivy! (boe <- byte_or_error) -> IOError { boe })
+    } else {
+      Result::Ok(byte_or_error)
+    }
+  }
+
+  pub fn .write_byte(&file: &File, byte: N32) -> Result[N32, IOError] {
+    let or_error = inline_ivy! (file0 <- file, file3 -> file, byte <- byte) -> N32 {
+      res
+      file0 = dup(file1 file2)
+      file1 = @file_write_byte(byte dup(res @seq$(file2 file3))) 
+    };
+
+    if inline_ivy! (oe <- or_error) -> Bool {
+      is_error
+      oe = @is_error(0 is_error)
+    } {
+      Result::Err(inline_ivy! (oe <- or_error) -> IOError { oe })
+    } else {
+      Result::Ok(0)
+    }
+  }
+}
+
+#[builtin = "PathBuf"]
+pub mod PathBuf {
+  pub fn new(&io: &IO) -> PathBuf {
+    inline_ivy! (io0 <- io, io3 -> io) -> PathBuf {
+      path
+      io0 = dup(io1 io2)
+      io1 = @new_path(0 dup(path @seq$(io2 io3))) 
+    }
+  }
+
+  pub fn .push_char(&path: &PathBuf, c: Char) {
+    inline_ivy! (path0 <- path, path1 -> path, c <- c) -> () { _
+      path0 = @path_push(c path1)
+    }
+  }
+  
+  pub fn .push_string(&path: &PathBuf, str: String) {
+    let List(len, chars, _) = str as List;
+    while len != 0 {
+      len = len - 1;
+      let List::Buf(char, tail) = chars;
+      chars = tail;
+      path.push_char(char);
+    }
+  }
+}

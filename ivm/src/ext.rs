@@ -161,7 +161,7 @@ impl<'ivm> ExtVal<'ivm> {
   }
 
   #[inline(always)]
-  pub(crate) unsafe fn new_rc_raw(ty: ExtTy<'ivm>, pointer: *const ()) -> Self {
+  pub unsafe fn new_rc_raw(ty: ExtTy<'ivm>, pointer: *const ()) -> Self {
     assert!(ty.is_rc());
     unsafe {
       Self::from_word(Word::from_ptr(pointer).map_bits(|_| {

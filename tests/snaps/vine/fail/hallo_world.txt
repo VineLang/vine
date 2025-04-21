@@ -1,7 +1,22 @@
-error tests/programs/fail/hallo_world.vi:3:3 - duplicate definition of `println`
-error tests/programs/fail/hallo_world.vi:8:13 - cannot find `io` in `::std`
-error tests/programs/fail/hallo_world.vi:9:3 - cannot find `io` in `::hallo_world::main`
-error tests/programs/fail/hallo_world.vi:9:14 - cannot find `hallo` in `::hallo_world::main`
-error tests/programs/fail/hallo_world.vi:9:21 - cannot find `world` in `::hallo_world::main`
-error tests/programs/fail/hallo_world.vi:2:10 - cannot find `io` in `::std`
-error tests/programs/fail/hallo_world.vi:9:3 - type `??` has no method `println`
+warning: unnecessary parentheses around type
+   --> ivm/src/ext.rs:158:70
+    |
+158 |         ty.0 as (u64) << 48 | payload as (u64) << 3 | Tag::ExtVal as (u64),
+    |                                                                      ^   ^
+    |
+    = note: `#[warn(unused_parens)]` on by default
+help: remove these parentheses
+    |
+158 -         ty.0 as (u64) << 48 | payload as (u64) << 3 | Tag::ExtVal as (u64),
+158 +         ty.0 as (u64) << 48 | payload as (u64) << 3 | Tag::ExtVal as u64,
+    |
+
+warning: function `numeric_op` is never used
+   --> ivy/src/host/ext.rs:194:8
+    |
+194 |     fn numeric_op<'ivm>(
+    |        ^^^^^^^^^^
+    |
+    = note: `#[warn(dead_code)]` on by default
+
+error vine/std/File.vi:1:13 - bad builtin

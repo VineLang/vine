@@ -36,6 +36,9 @@ pub struct Builtins {
   pub f32: Option<DefId>,
   pub char: Option<DefId>,
   pub io: Option<DefId>,
+  pub ioerror: Option<DefId>,
+  pub pathbuf: Option<DefId>,
+  pub file: Option<DefId>,
 
   pub list: Option<AdtId>,
   pub string: Option<AdtId>,

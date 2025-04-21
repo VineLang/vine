@@ -1,11 +1,22 @@
-error tests/programs/fail/visibility.vi:18:1 - subitems must be private
-error tests/programs/fail/visibility.vi:26:7 - invalid visibility; expected the name of an ancestor module
-error - `::visibility::main` is only visible within `::visibility`
-error tests/programs/fail/visibility.vi:21:24 - `::visibility::lib::y` is only visible within `::visibility::lib`
-error tests/programs/fail/visibility.vi:21:7 - `::visibility::lib::y` is only visible within `::visibility::lib`
-error tests/programs/fail/visibility.vi:21:15 - `::visibility::lib::y` is only visible within `::visibility::lib`
-error tests/programs/fail/visibility.vi:27:8 - `::visibility::lib::a::b` is only visible within `::visibility::lib::a`
-error tests/programs/fail/visibility.vi:28:5 - `::visibility::lib::c` is only visible within `::visibility::lib`
-error tests/programs/fail/visibility.vi:29:8 - `::visibility::lib::d::e` is only visible within `::visibility::lib`
-error tests/programs/fail/visibility.vi:33:17 - circular import
-error tests/programs/fail/visibility.vi:19:3 - type `IO` has no method `read_char`
+warning: unnecessary parentheses around type
+   --> ivm/src/ext.rs:158:70
+    |
+158 |         ty.0 as (u64) << 48 | payload as (u64) << 3 | Tag::ExtVal as (u64),
+    |                                                                      ^   ^
+    |
+    = note: `#[warn(unused_parens)]` on by default
+help: remove these parentheses
+    |
+158 -         ty.0 as (u64) << 48 | payload as (u64) << 3 | Tag::ExtVal as (u64),
+158 +         ty.0 as (u64) << 48 | payload as (u64) << 3 | Tag::ExtVal as u64,
+    |
+
+warning: function `numeric_op` is never used
+   --> ivy/src/host/ext.rs:194:8
+    |
+194 |     fn numeric_op<'ivm>(
+    |        ^^^^^^^^^^
+    |
+    = note: `#[warn(dead_code)]` on by default
+
+error vine/std/File.vi:1:13 - bad builtin

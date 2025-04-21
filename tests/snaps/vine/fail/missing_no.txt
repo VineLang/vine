@@ -1,1 +1,23 @@
+warning: unnecessary parentheses around type
+   --> ivm/src/ext.rs:158:70
+    |
+158 |         ty.0 as (u64) << 48 | payload as (u64) << 3 | Tag::ExtVal as (u64),
+    |                                                                      ^   ^
+    |
+    = note: `#[warn(unused_parens)]` on by default
+help: remove these parentheses
+    |
+158 -         ty.0 as (u64) << 48 | payload as (u64) << 3 | Tag::ExtVal as (u64),
+158 +         ty.0 as (u64) << 48 | payload as (u64) << 3 | Tag::ExtVal as u64,
+    |
+
+warning: function `numeric_op` is never used
+   --> ivy/src/host/ext.rs:194:8
+    |
+194 |     fn numeric_op<'ivm>(
+    |        ^^^^^^^^^^
+    |
+    = note: `#[warn(dead_code)]` on by default
+
 error tests/programs/fail/missing_no.vi:2:1 - cannot read file `tests/programs/fail/no.vi`: No such file or directory (os error 2)
+error vine/std/File.vi:1:13 - bad builtin

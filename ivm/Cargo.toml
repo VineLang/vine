@@ -5,5 +5,8 @@ edition = "2021"
 
 [dependencies]
 
+[dev-dependencies]
+loom = "0.7.2"
+
 [lints]
 workspace = true

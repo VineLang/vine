@@ -1,12 +1,22 @@
-error tests/programs/fail/informal.vi:4:13 - types in item signatures cannot be elided
-error tests/programs/fail/informal.vi:4:13 - `*` is only valid in a place pattern
-error tests/programs/fail/informal.vi:5:3 - expected a space expression; found a value expression
-error tests/programs/fail/informal.vi:6:3 - expected a space expression; found a value expression
-error tests/programs/fail/informal.vi:6:8 - expected a value expression; found a space expression
-error tests/programs/fail/informal.vi:7:3 - expected a place expression; found a space expression
-error tests/programs/fail/informal.vi:7:8 - expected a value expression; found a space expression
-error tests/programs/fail/informal.vi:7:3 - cannot find impl of trait `Add[?9, ~N32, ?9]`
-error tests/programs/fail/informal.vi:8:8 - `&` is invalid in a space pattern
-error tests/programs/fail/informal.vi:8:15 - expected a place expression; found a space expression
-error tests/programs/fail/informal.vi:8:13 - expected a value expression; found a space expression
-error tests/programs/fail/informal.vi:9:7 - expected a complete pattern
+warning: unnecessary parentheses around type
+   --> ivm/src/ext.rs:158:70
+    |
+158 |         ty.0 as (u64) << 48 | payload as (u64) << 3 | Tag::ExtVal as (u64),
+    |                                                                      ^   ^
+    |
+    = note: `#[warn(unused_parens)]` on by default
+help: remove these parentheses
+    |
+158 -         ty.0 as (u64) << 48 | payload as (u64) << 3 | Tag::ExtVal as (u64),
+158 +         ty.0 as (u64) << 48 | payload as (u64) << 3 | Tag::ExtVal as u64,
+    |
+
+warning: function `numeric_op` is never used
+   --> ivy/src/host/ext.rs:194:8
+    |
+194 |     fn numeric_op<'ivm>(
+    |        ^^^^^^^^^^
+    |
+    = note: `#[warn(dead_code)]` on by default
+
+error vine/std/File.vi:1:13 - bad builtin

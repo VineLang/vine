@@ -17,6 +17,9 @@ impl<'core> Checker<'core, '_> {
       Type::F32 => *str += "F32",
       Type::Char => *str += "Char",
       Type::IO => *str += "IO",
+      Type::IOError => *str += "IOError",
+      Type::PathBuf => *str += "PathBuf",
+      Type::File => *str += "File",
       Type::Tuple(t) => {
         *str += "(";
         let mut first = true;

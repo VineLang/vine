@@ -1,8 +1,22 @@
-error tests/programs/fail/is_not.vi:3:23 - cannot find `y` in `::is_not::main`
-error tests/programs/fail/is_not.vi:4:18 - cannot find `y` in `::is_not::main`
-error tests/programs/fail/is_not.vi:5:16 - cannot find `y` in `::is_not::main`
-error tests/programs/fail/is_not.vi:5:26 - cannot find `y` in `::is_not::main`
-error tests/programs/fail/is_not.vi:5:29 - cannot find `z` in `::is_not::main`
-error tests/programs/fail/is_not.vi:7:3 - cannot find `y` in `::is_not::main`
-error tests/programs/fail/is_not.vi:2:13 - types in item signatures cannot be elided
-error tests/programs/fail/is_not.vi:5:23 - expected type `()`; found `(??, ??)`
+warning: unnecessary parentheses around type
+   --> ivm/src/ext.rs:158:70
+    |
+158 |         ty.0 as (u64) << 48 | payload as (u64) << 3 | Tag::ExtVal as (u64),
+    |                                                                      ^   ^
+    |
+    = note: `#[warn(unused_parens)]` on by default
+help: remove these parentheses
+    |
+158 -         ty.0 as (u64) << 48 | payload as (u64) << 3 | Tag::ExtVal as (u64),
+158 +         ty.0 as (u64) << 48 | payload as (u64) << 3 | Tag::ExtVal as u64,
+    |
+
+warning: function `numeric_op` is never used
+   --> ivy/src/host/ext.rs:194:8
+    |
+194 |     fn numeric_op<'ivm>(
+    |        ^^^^^^^^^^
+    |
+    = note: `#[warn(dead_code)]` on by default
+
+error vine/std/File.vi:1:13 - bad builtin

@@ -621,6 +621,9 @@ pub enum Type<'core> {
   F32,
   Char,
   IO,
+  IOError,
+  PathBuf,
+  File,
   Tuple(Vec<Type<'core>>),
   Object(BTreeMap<Ident<'core>, Type<'core>>),
   Fn(Vec<Type<'core>>, Box<Type<'core>>),
@@ -646,6 +649,9 @@ impl<'core> Type<'core> {
       Type::F32 => Type::F32,
       Type::Char => Type::Char,
       Type::IO => Type::IO,
+      Type::IOError => Type::IOError,
+      Type::PathBuf => Type::PathBuf,
+      Type::File => Type::File,
       Type::Tuple(tys) => Type::Tuple(tys.iter().map(|t| t.instantiate(opaque)).collect()),
       Type::Object(entries) => {
         Type::Object(entries.iter().map(|(&k, t)| (k, t.instantiate(opaque))).collect())
@@ -676,6 +682,9 @@ impl<'core> Type<'core> {
       | Type::F32
       | Type::Char
       | Type::IO
+      | Type::IOError
+      | Type::PathBuf
+      | Type::File
       | Type::Opaque(_)
       | Type::Var(_)
       | Type::Fresh(_)
@@ -713,6 +722,9 @@ impl<'core> Type<'core> {
       Type::F32 => chart.builtins.f32,
       Type::Char => chart.builtins.char,
       Type::IO => chart.builtins.io,
+      Type::File => chart.builtins.file,
+      Type::PathBuf => chart.builtins.pathbuf,
+      Type::IOError => chart.builtins.ioerror,
       Type::Tuple(_)
       | Type::Object(_)
       | Type::Fn(..)
