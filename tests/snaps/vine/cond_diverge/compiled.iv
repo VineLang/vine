@@ -9,13 +9,13 @@
   ::std::IO::println = fn(w1 fn(w19 _))
 }
 
-::cond_diverge::main::1 { x(x(tup(dup98(n0 @n32_ne(0 ?(::std::data::List::pop_front::3 ::std::data::List::pop_front::2 x(x(n0 n1) x(x(n2 n3) enum(::cond_diverge::main::5 enum(::cond_diverge::main::6 x(x(tup(n1 tup(n3 n4)) n5) n6)))))))) tup(n2 n4)) n5) n6) }
+::cond_diverge::main::1 { x(x(tup(dup547(n0 @n32_ne(0 ?(::std::data::List::pop_front::3 ::std::data::List::pop_front::2 x(x(n0 n1) x(x(n2 n3) enum(::cond_diverge::main::5 enum(::cond_diverge::main::6 x(x(tup(n1 tup(n3 n4)) n5) n6)))))))) tup(n2 n4)) n5) n6) }
 
 ::cond_diverge::main::5 { enum(dup38(n0 @n32_eq(97 ?(::cond_diverge::main::8 ::cond_diverge::main::7 x(n1 x(n0 n2))))) x(n1 n2)) }
 
 ::cond_diverge::main::6 { x(x(n0 n0) _) }
 
-::cond_diverge::main::7 { x(x(tup(dup98(n0 @n32_ne(0 ?(::std::data::List::pop_front::3 ::std::data::List::pop_front::2 x(x(n0 n1) x(x(n2 n3) enum(::cond_diverge::main::5 enum(::cond_diverge::main::6 x(x(tup(n1 tup(n3 n4)) n5) n6)))))))) tup(n2 n4)) n5) x(_ n6)) }
+::cond_diverge::main::7 { x(x(tup(dup547(n0 @n32_ne(0 ?(::std::data::List::pop_front::3 ::std::data::List::pop_front::2 x(x(n0 n1) x(x(n2 n3) enum(::cond_diverge::main::5 enum(::cond_diverge::main::6 x(x(tup(n1 tup(n3 n4)) n5) n6)))))))) tup(n2 n4)) n5) x(_ n6)) }
 
 ::cond_diverge::main::8 { x(n0 x(dup38(_ @n32_eq(98 ?(::cond_diverge::main::10 ::cond_diverge::main::1 x(n0 n1)))) n1)) }
 
@@ -39,9 +39,9 @@
   ::std::IO::print::1 = x(x(w1 w15) x(w8 w9))
 }
 
-::std::IO::print::1 { x(n0 x(dup98(n1 @n32_ne(0 ?(::std::IO::print::3 ::std::IO::print::2 x(n0 x(n1 n2))))) n2)) }
+::std::IO::print::1 { x(n0 x(dup547(n1 @n32_ne(0 ?(::std::IO::print::3 ::std::IO::print::2 x(n0 x(n1 n2))))) n2)) }
 
-::std::IO::print::2 { x(x(@io_print_char(n0 n1) n2) x(@n32_sub(1 dup98(n3 @n32_ne(0 ?(::std::IO::print::3 ::std::IO::print::2 x(x(n1 n2) x(n3 n4)))))) tup(n0 n4))) }
+::std::IO::print::2 { x(x(@io_print_char(n0 n1) n2) x(@n32_sub(1 dup547(n3 @n32_ne(0 ?(::std::IO::print::3 ::std::IO::print::2 x(x(n1 n2) x(n3 n4)))))) tup(n0 n4))) }
 
 ::std::IO::print::3 { x(x(n0 n0) _) }
 

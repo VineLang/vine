@@ -1,4 +1,5 @@
 
+use data::Iterator::{Iterator, IntoIterator}
 use ops::{Concat, comparison::Ord};
 use unicode::ToString;
 
@@ -133,46 +134,55 @@ pub mod List {
     self = output;
   }
 
-  pub struct Iter[T](N32, &Buf[T]);
+  struct Iter[T](N32, &Buf[T]);
 
   pub fn .iter[T](&List[T](len, buf, _)) -> Iter[T] {
     Iter(len, &buf)
   }
 
   pub mod Iter {
-    pub fn .next[T](&Iter[T](len, buf)) -> Option[&T] {
-      if len != 0 {
-        len -= 1;
-        let &Buf(*head, *tail) = buf;
-        buf = tail;
-        Some(head)
-      } else {
-        let &_ = move buf;
-        None
+    pub impl iter[T]: Iterator[Iter[T], &T] {
+      fn .next(&Iter[T](len, buf)) -> Option[&T] {
+        if len != 0 {
+          len -= 1;
+          let &Buf(*head, *tail) = buf;
+          buf = tail;
+          Some(head)
+        } else {
+          let &_ = move buf;
+          None
+        }
       }
-    }
 
-    pub fn .drop[T](&iter: &Iter[T]) {
-      let Iter(_, &_) = move iter;
+      fn .drop(&iter: &Iter[T]) {
+        let Iter(_, &_) = move iter;
+      }
     }
   }
 
   pub struct IntoIter[T](N32, Buf[T]);
 
-  pub fn .into_iter[T](List[T](len, buf, _)) -> IntoIter[T] {
-    IntoIter(len, buf)
+  pub impl into_iter[T]: IntoIterator[List[T], T, IntoIter[T]] {
+    fn .into_iter(List[T](len, buf, _)) -> IntoIter[T] {
+      IntoIter(len, buf)
+    }
   }
 
+
   pub mod IntoIter {
-    pub fn .next[T](&IntoIter[T](len, buf)) -> Option[T] {
-      if len != 0 {
-        len -= 1;
-        let Buf(head, tail) = buf;
-        buf = tail;
-        Some(head)
-      } else {
-        None
+    pub impl iter[T]: Iterator[IntoIter[T], T] {
+      fn .next(&IntoIter[T](len, buf)) -> Option[T] {
+        if len != 0 {
+          len -= 1;
+          let Buf(head, tail) = buf;
+          buf = tail;
+          Some(head)
+        } else {
+          None
+        }
       }
+
+      fn .drop(iter: &IntoIter[T]) {}
     }
   }
 
