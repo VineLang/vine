@@ -89,11 +89,10 @@ impl<'core, 'src> VineParser<'core, 'src> {
 
   fn parse_vis(&mut self) -> Parse<'core, Vis<'core>> {
     Ok(if self.eat(Token::Pub)? {
-      if self.eat(Token::OpenParen)? {
+      if self.eat(Token::Dot)? {
         let span = self.start_span();
         let ancestor = self.parse_ident()?;
         let span = self.end_span(span);
-        self.expect(Token::CloseParen)?;
         Vis::PublicTo(span, ancestor)
       } else {
         Vis::Public
@@ -207,15 +206,15 @@ impl<'core, 'src> VineParser<'core, 'src> {
     self.expect(Token::Struct)?;
     let name = self.parse_ident()?;
     let generics = self.parse_generic_params()?;
-    let (fields, object) = if self.check(Token::OpenParen) {
-      (self.parse_delimited(PAREN_COMMA, Self::parse_ty)?, false)
-    } else if self.check(Token::OpenBrace) {
-      (vec![self.parse_ty()?], true)
+    let data = if self.eat(Token::OpenParen)? {
+      let vis = self.parse_vis()?;
+      let ty = self.parse_ty()?;
+      Some((vis, ty))
     } else {
-      (Vec::new(), false)
+      None
     };
     self.eat(Token::Semi)?;
-    Ok(StructItem { name, generics, fields, object })
+    Ok(StructItem { name, generics, data })
   }
 
   fn parse_enum_item(&mut self) -> Parse<'core, EnumItem<'core>> {
@@ -237,14 +236,14 @@ impl<'core, 'src> VineParser<'core, 'src> {
 
   fn parse_variant(&mut self) -> Parse<'core, Variant<'core>> {
     let name = self.parse_ident()?;
-    let fields = if self.check(Token::OpenParen) {
-      self.parse_delimited(PAREN_COMMA, Self::parse_ty)?
-    } else if self.check(Token::OpenBrace) {
-      vec![self.parse_ty()?]
+    let data = if self.eat(Token::OpenParen)? {
+      let ty = self.parse_ty()?;
+      self.eat(Token::CloseParen)?;
+      Some(ty)
     } else {
-      Vec::new()
+      None
     };
-    Ok(Variant { name, fields })
+    Ok(Variant { name, data })
   }
 
   fn parse_generic_params(&mut self) -> Parse<'core, GenericParams<'core>> {
@@ -706,6 +705,10 @@ impl<'core, 'src> VineParser<'core, 'src> {
     if bp.permits(BP::Annotation) && self.eat(Token::As)? {
       let ty = self.parse_ty()?;
       return Ok(Ok(ExprKind::Cast(Box::new(lhs), Box::new(ty), false)));
+    }
+
+    if self.eat(Token::Bang)? {
+      return Ok(Ok(ExprKind::Unwrap(Box::new(lhs))));
     }
 
     if self.eat(Token::Dot)? {

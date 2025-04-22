@@ -37,11 +37,7 @@ struct Formatter<'src> {
 impl<'core: 'src, 'src> Formatter<'src> {
   fn fmt_item(&self, item: &Item<'core>) -> Doc<'src> {
     Doc::concat(item.attrs.iter().flat_map(|x| [self.fmt_verbatim(x.span), Doc::LINE]).chain([
-      match &item.vis {
-        Vis::Private => Doc::EMPTY,
-        Vis::Public => Doc("pub "),
-        Vis::PublicTo(_, name) => Doc::concat([Doc("pub("), Doc(*name), Doc(") ")]),
-      },
+      self.fmt_vis(&item.vis),
       match &item.kind {
         ItemKind::Fn(f) => {
           let params = &f.params;
@@ -74,16 +70,10 @@ impl<'core: 'src, 'src> Formatter<'src> {
           Doc("struct "),
           Doc(s.name),
           self.fmt_generic_params(&s.generics),
-          if s.object {
-            let TyKind::Object(e) = &s.fields[0].kind else { unreachable!() };
-            Doc::concat([
-              Doc(" "),
-              Doc::brace_comma_multiline(
-                e.iter().map(|(k, v)| Doc::concat([Doc(k.ident), Doc(": "), self.fmt_ty(v)])),
-              ),
-            ])
+          if let Some((vis, data)) = &s.data {
+            Doc::paren(Doc::concat([self.fmt_vis(vis), self.fmt_ty(data)]))
           } else {
-            Doc::concat([Doc::paren_comma(s.fields.iter().map(|x| self.fmt_ty(x))), Doc(";")])
+            Doc("")
           },
         ]),
         ItemKind::Enum(e) => Doc::concat([
@@ -94,11 +84,7 @@ impl<'core: 'src, 'src> Formatter<'src> {
           Doc::brace_comma_multiline(e.variants.iter().map(|v| {
             Doc::concat([
               Doc(v.name),
-              if v.fields.is_empty() {
-                Doc::EMPTY
-              } else {
-                Doc::paren_comma(v.fields.iter().map(|x| self.fmt_ty(x)))
-              },
+              if let Some(data) = &v.data { Doc::paren(self.fmt_ty(data)) } else { Doc("") },
             ])
           })),
         ]),
@@ -150,6 +136,14 @@ impl<'core: 'src, 'src> Formatter<'src> {
         ItemKind::Taken => unreachable!(),
       },
     ]))
+  }
+
+  fn fmt_vis(&self, vis: &Vis<'core>) -> Doc<'src> {
+    match vis {
+      Vis::Private => Doc::EMPTY,
+      Vis::Public => Doc("pub "),
+      Vis::PublicTo(_, name) => Doc::concat([Doc("pub."), Doc(*name)]),
+    }
   }
 
   fn fmt_block_like(
@@ -513,6 +507,7 @@ impl<'core: 'src, 'src> Formatter<'src> {
       ExprKind::BinaryOpAssign(op, a, b) => {
         Doc::concat([self.fmt_expr(a), Doc(" "), Doc(op.as_str()), Doc("= "), self.fmt_expr(b)])
       }
+      ExprKind::Unwrap(inner) => Doc::concat([self.fmt_expr(inner), Doc("!")]),
       ExprKind::N32(_) | ExprKind::F32(_) | ExprKind::Char(_) => self.fmt_verbatim(expr.span),
       ExprKind::String(init, rest) => {
         Doc::concat([self.fmt_verbatim(init.span)].into_iter().chain(rest.iter().flat_map(

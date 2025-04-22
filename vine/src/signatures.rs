@@ -1,7 +1,7 @@
 use vine_util::idx::IdxVec;
 
 use crate::{
-  chart::{AdtId, GenericsId, ImplDefId, SubitemId, TraitDefId, TypeDefId, ValueDefId},
+  chart::{AdtId, GenericsId, ImplDefId, SubitemId, TraitDefId, TypeDefId, ValueDefId, VariantId},
   types::{ImplType, Type, Types},
 };
 
@@ -54,5 +54,5 @@ pub struct GenericsSig<'core> {
 #[derive(Debug)]
 pub struct AdtSig<'core> {
   pub types: Types<'core>,
-  pub fields: Type,
+  pub variant_data: IdxVec<VariantId, Option<Type>>,
 }

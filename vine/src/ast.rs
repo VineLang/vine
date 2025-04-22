@@ -62,8 +62,7 @@ pub struct TypeItem<'core> {
 pub struct StructItem<'core> {
   pub name: Ident<'core>,
   pub generics: GenericParams<'core>,
-  pub fields: Vec<Ty<'core>>,
-  pub object: bool,
+  pub data: Option<(Vis<'core>, Ty<'core>)>,
 }
 
 #[derive(Debug, Clone)]
@@ -76,7 +75,7 @@ pub struct EnumItem<'core> {
 #[derive(Debug, Clone)]
 pub struct Variant<'core> {
   pub name: Ident<'core>,
-  pub fields: Vec<Ty<'core>>,
+  pub data: Option<Ty<'core>>,
 }
 
 #[derive(Debug, Clone)]
@@ -127,7 +126,7 @@ impl<'core> UseTree<'core> {
   }
 }
 
-#[derive(Default, Debug, Clone)]
+#[derive(Default, Debug, Clone, Copy)]
 pub enum Vis<'core> {
   #[default]
   Private,
@@ -311,6 +310,7 @@ pub enum ExprKind<'core> {
   ComparisonOp(B<Expr<'core>>, Vec<(ComparisonOp, Expr<'core>)>),
   BinaryOpAssign(BinaryOp, B<Expr<'core>>, B<Expr<'core>>),
   Cast(B<Expr<'core>>, B<Ty<'core>>, bool),
+  Unwrap(B<Expr<'core>>),
   N32(u32),
   F32(f32),
   Char(char),

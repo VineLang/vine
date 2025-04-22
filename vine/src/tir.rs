@@ -108,10 +108,14 @@ pub enum TirExprKind<'core> {
   List(Vec<TirExpr<'core>>),
   #[class(value, place)]
   Field(B<TirExpr<'core>>, usize, usize),
+  #[class(value, place, space)]
+  Unwrap(B<TirExpr<'core>>),
   #[class(value)]
   Call(TirImpl, B<TirExpr<'core>>, Vec<TirExpr<'core>>),
   #[class(value, place, space)]
-  Adt(Option<(AdtId, VariantId)>, Vec<TirExpr<'core>>),
+  Adt(AdtId, VariantId, Option<B<TirExpr<'core>>>),
+  #[class(value, place, space)]
+  Composite(Vec<TirExpr<'core>>),
   #[class(value, cond)]
   Bool(bool),
   #[class(value, cond)]

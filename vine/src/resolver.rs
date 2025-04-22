@@ -4,7 +4,7 @@ use vine_util::idx::{Counter, IdxVec};
 
 use crate::{
   ast::{Block, Expr, ExprKind, Ident, LogicalOp, Pat, PatKind, Span, Stmt, StmtKind, Ty, TyKind},
-  chart::{Builtins, Chart, DefId, GenericsId, TypeDefId, ValueDefId},
+  chart::{Builtins, Chart, DefId, GenericsId, TypeDefId, ValueDefId, VariantId},
   core::Core,
   diag::{Diag, ErrorGuaranteed},
   finder::find_impl,
@@ -245,7 +245,7 @@ impl<'core> Resolver<'core, '_> {
       }
       ExprKind::Tuple(els) => {
         let (tys, els) = els.iter().map(|e| self.resolve_expr(e)).map(|e| (e.ty, e)).collect();
-        (self.types.new(TypeKind::Tuple(tys)), TirExprKind::Adt(None, els))
+        (self.types.new(TypeKind::Tuple(tys)), TirExprKind::Composite(els))
       }
       ExprKind::Object(entries) => {
         let (tys, els) = entries
@@ -253,7 +253,7 @@ impl<'core> Resolver<'core, '_> {
           .map(|(k, e)| (k.ident, self.resolve_expr(e)))
           .map(|(k, e)| ((k, e.ty), e))
           .collect();
-        (self.types.new(TypeKind::Object(tys)), TirExprKind::Adt(None, els))
+        (self.types.new(TypeKind::Object(tys)), TirExprKind::Composite(els))
       }
       ExprKind::List(els) => {
         let list = self.require_builtin(span, "List", |b| b.list)?;
@@ -270,6 +270,23 @@ impl<'core> Resolver<'core, '_> {
         let object = self.resolve_expr(object);
         let (index, len, ty) = self.resolve_object_field(span, object.ty, key.ident)?;
         (ty, TirExprKind::Field(Box::new(object), index, len))
+      }
+      ExprKind::Unwrap(struct_) => {
+        let struct_ = self.resolve_expr(struct_);
+        let Some(TypeKind::Adt(adt_id, type_params)) = self.types.kind(struct_.ty) else {
+          Err(Diag::UnwrapNonStruct { span })?
+        };
+        let adt = &self.chart.adts[*adt_id];
+        if !adt.is_struct {
+          Err(Diag::UnwrapNonStruct { span })?
+        }
+        let sig = &self.sigs.adts[*adt_id];
+        let Some(data) = sig.variant_data[VariantId(0)] else {
+          Err(Diag::UnwrapNilStruct { span })?
+        };
+        let type_params = type_params.clone();
+        let ty = self.types.import(&sig.types, Some(&type_params)).transfer(data);
+        (ty, TirExprKind::Unwrap(Box::new(struct_)))
       }
       ExprKind::Method(expr, ident, generics, exprs) => todo!(),
       ExprKind::Call(func, args) => {
@@ -594,18 +611,29 @@ impl<'core> Resolver<'core, '_> {
   fn resolve_tuple_field(
     &mut self,
     span: Span,
-    ty: Type,
+    mut ty: Type,
     index: usize,
   ) -> Result<(usize, Type), ErrorGuaranteed> {
-    match self.types.kind(ty) {
-      Some(TypeKind::Tuple(els)) => {
-        if index < els.len() {
-          return Ok((els.len(), els[index]));
+    loop {
+      break match self.types.kind(ty) {
+        Some(TypeKind::Tuple(els)) => {
+          if index < els.len() {
+            return Ok((els.len(), els[index]));
+          }
         }
-      }
-      Some(TypeKind::Adt(adt_id, type_params)) => todo!(),
-      Some(TypeKind::Error(err)) => return Err(*err),
-      _ => {}
+        Some(TypeKind::Adt(adt_id, type_params)) => {
+          let adt = &self.chart.adts[*adt_id];
+          if adt.is_struct {
+            let sig = &self.sigs.adts[*adt_id];
+            if let Some(data) = sig.variant_data[VariantId(0)] {
+              ty = self.types.import(&sig.types, Some(&type_params.clone())).transfer(data);
+              continue;
+            }
+          }
+        }
+        Some(TypeKind::Error(err)) => return Err(*err),
+        _ => {}
+      };
     }
     Err(self.core.report(Diag::MissingTupleField {
       span,
@@ -617,18 +645,30 @@ impl<'core> Resolver<'core, '_> {
   fn resolve_object_field(
     &mut self,
     span: Span,
-    ty: Type,
+    mut ty: Type,
     key: Ident<'core>,
   ) -> Result<(usize, usize, Type), ErrorGuaranteed> {
-    match self.types.kind(ty) {
-      Some(TypeKind::Object(entries)) => {
-        if let Some((index, (_, &ty))) = entries.iter().enumerate().find(|&(_, (&k, _))| k == key) {
-          return Ok((index, entries.len(), ty));
+    loop {
+      break match self.types.kind(ty) {
+        Some(TypeKind::Object(entries)) => {
+          if let Some((index, (_, &ty))) = entries.iter().enumerate().find(|&(_, (&k, _))| k == key)
+          {
+            return Ok((index, entries.len(), ty));
+          }
         }
-      }
-      Some(TypeKind::Adt(adt_id, type_params)) => todo!(),
-      Some(TypeKind::Error(err)) => return Err(*err),
-      _ => {}
+        Some(TypeKind::Adt(adt_id, type_params)) => {
+          let adt = &self.chart.adts[*adt_id];
+          if adt.is_struct {
+            let sig = &self.sigs.adts[*adt_id];
+            if let Some(data) = sig.variant_data[VariantId(0)] {
+              ty = self.types.import(&sig.types, Some(&type_params.clone())).transfer(data);
+              continue;
+            }
+          }
+        }
+        Some(TypeKind::Error(err)) => return Err(*err),
+        _ => {}
+      };
     }
     Err(self.core.report(Diag::MissingObjectField {
       span,

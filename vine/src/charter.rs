@@ -86,6 +86,12 @@ impl<'core> Charter<'core, '_> {
       ItemKind::Struct(struct_item) => {
         let def = self.chart_child(parent, struct_item.name, member_vis, true);
         let generics = self.chart_generics(def, struct_item.generics, false);
+        let data_vis = struct_item
+          .data
+          .as_ref()
+          .map(|(vis, _)| self.resolve_vis(def, *vis))
+          .unwrap_or(def)
+          .max(vis);
         let adt = self.chart.adts.push(AdtDef {
           def,
           generics,
@@ -93,15 +99,14 @@ impl<'core> Charter<'core, '_> {
           variants: IdxVec::from([AdtVariant {
             def,
             name: struct_item.name,
-            fields: struct_item.fields,
-            object: struct_item.object,
+            data: struct_item.data.map(|x| x.1),
           }]),
           is_struct: true,
         });
         let variant = VariantId(0);
-        self.define_value(span, def, vis, generics, ValueDefKind::Adt(adt, variant), false);
-        self.define_pattern(span, def, vis, generics, PatternDefKind::Adt(adt, variant));
         self.define_type(span, def, vis, generics, TypeDefKind::Adt(adt));
+        self.define_value(span, def, data_vis, generics, ValueDefKind::Adt(adt, variant), false);
+        self.define_pattern(span, def, data_vis, generics, PatternDefKind::Adt(adt, variant));
         Some(def)
       }
 
@@ -118,7 +123,7 @@ impl<'core> Charter<'core, '_> {
             let def = self.chart_child(def, variant.name, vis, true);
             self.define_value(span, def, vis, generics, ValueDefKind::Adt(adt, id), false);
             self.define_pattern(span, def, vis, generics, PatternDefKind::Adt(adt, id));
-            AdtVariant { def, name: variant.name, fields: variant.fields, object: false }
+            AdtVariant { def, name: variant.name, data: variant.data }
           })
           .collect::<Vec<_>>()
           .into();

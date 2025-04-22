@@ -257,8 +257,7 @@ pub struct AdtDef<'core> {
 pub struct AdtVariant<'core> {
   pub def: DefId,
   pub name: Ident<'core>,
-  pub fields: Vec<Ty<'core>>,
-  pub object: bool,
+  pub data: Option<Ty<'core>>,
 }
 
 #[derive(Default, Debug)]
