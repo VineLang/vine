@@ -204,6 +204,15 @@ pub mod Map {
     }
   }
 
+  pub fn .map_values[K, V, U; Ord[K]](Map[K, V](len, data), f: fn(V) -> U) -> Map[K, U] {
+    if len == 0 {
+      Map::empty[K, U]
+    } else {
+      let (left, (key, value), right) = data;
+      Map(len, (left.map_values(f), (key, f(value)), right.map_values(f)))
+    }
+  }
+
   pub fn .iter[K, V](&self: &Map[K, V]) -> Iter[K, V] {
     Iter(&self, [])
   }
