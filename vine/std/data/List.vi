@@ -168,7 +168,6 @@ pub mod List {
     }
   }
 
-
   pub mod IntoIter {
     pub impl iter[T]: Iterator[IntoIter[T], T] {
       fn .next(&IntoIter[T](len, buf)) -> Option[T] {
