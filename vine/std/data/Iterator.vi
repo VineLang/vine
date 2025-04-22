@@ -1,3 +1,4 @@
+
 pub trait Iterator[T, Item] {
   fn .next(self: &T) -> Option[Item];
 
@@ -8,4 +9,3 @@ pub trait Iterator[T, Item] {
 pub trait IntoIterator[T, Item, Iter] {
   fn .into_iter(self: T) -> Iter;
 }
-
