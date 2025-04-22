@@ -1,7 +1,6 @@
 use std::{
   collections::{hash_map::Entry, BTreeMap, HashMap},
   fmt::Write,
-  net::ToSocketAddrs,
 };
 
 use vine_util::{
@@ -10,7 +9,7 @@ use vine_util::{
 };
 
 use crate::{
-  ast::Ident,
+  ast::{Ident, TypeItem},
   chart::{AdtId, Chart, DefId, TraitDefId, TypeDefId, ValueDefId},
   diag::ErrorGuaranteed,
   tir::{ClosureId, TirImpl},
@@ -33,7 +32,7 @@ pub enum TypeKind<'core> {
   Error(ErrorGuaranteed),
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 enum TypeNode<'core> {
   Root(Option<TypeKind<'core>>, usize),
   Child(Type),
@@ -318,7 +317,15 @@ impl<'core> Types<'core> {
     str
   }
 
-  pub fn export(&mut self) -> TypeExport<'core, '_> {
+  pub fn import<'ctx>(
+    &'ctx mut self,
+    source: &'ctx Types<'core>,
+    params: Option<&'ctx [Type]>,
+  ) -> TypeTransfer<'core, 'ctx> {
+    TypeTransfer { mapping: HashMap::default(), source, dest: self, params }
+  }
+
+  pub fn export(&self) -> TypeExport<'core, '_> {
     let mut export =
       TypeExport { mapping: HashMap::default(), source: self, dest: Types::default() };
     export.dest.error = export.source.error.map(|t| export.export(t));
@@ -381,6 +388,46 @@ impl UnifyResult {
     !matches!(self, Failure)
   }
 }
+
+pub struct TypeTransfer<'core, 'ctx, Dest: AsMut<Types<'core>>> {
+  mapping: IntMap<Type, Type>,
+  source: &'ctx Types<'core>,
+  dest: Dest,
+  params: Option<&'ctx [Type]>,
+}
+
+impl<'core, 'ctx, Dest: AsMut<Types<'core>>> TypeTransfer<'core, 'ctx, Dest> {
+  pub fn transfer(&mut self, ty: Type) -> Type {
+    let old = self.source.find(ty);
+    match self.mapping.entry(old) {
+      Entry::Occupied(e) => *e.get(),
+      Entry::Vacant(e) => {
+        let old_kind = self.source.kind(old);
+        if let Some(params) = self.params {
+          if let Some(TypeKind::Param(p, _)) = old_kind {
+            return params[*p];
+          }
+        }
+        let new = self.dest.as_mut().new_var();
+        e.insert(new);
+        if let Some(old_kind) = old_kind {
+          let kind = old_kind.map(|t| self.transfer(t));
+          let TypeNode::Root(new_kind, _) = &mut self.dest.as_mut().types[new] else {
+            unreachable!()
+          };
+          *new_kind = Some(kind)
+        }
+        new
+      }
+    }
+  }
+
+  pub fn import_impl_type(&mut self, ty: &ImplType) -> ImplType {
+    todo!()
+  }
+}
+
+impl<'core, 'ctx, Dest: AsMut<Types<'core>>> TypeTransfer<'core, 'ctx, Dest> {
 
 pub struct TypeExport<'core, 'ctx> {
   mapping: IntMap<Type, Type>,

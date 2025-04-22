@@ -1,20 +1,56 @@
-use std::collections::{BTreeSet, HashSet};
+use std::{collections::{BTreeSet, HashSet}, sync::Arc};
 
 use crate::{
   ast::{Generics, Ident, Impl, ImplKind, Span},
   chart::{Chart, Def, DefId, GenericsId, ImplDefId, MemberKind, ValueDefId},
+  core::Core,
+  diag::Diag,
   signatures::Signatures,
   tir::TirImpl,
   types::{ImplType, Type, Types},
 };
 
-pub struct Finder<'core, 'a> {
-  pub(crate) chart: &'a Chart<'core>,
-  pub(crate) sigs: &'a Signatures<'core>,
-  pub(crate) span: Span,
-  pub(crate) source: DefId,
-  pub(crate) generics: GenericsId,
-  pub(crate) steps: u32,
+pub fn find_impl<'core>(
+  types: &mut Types<'core>,
+  core: &Core<'core>,
+  chart: &Chart<'core>,
+  sigs: &Signatures<'core>,
+  source: DefId,
+  generics: GenericsId,
+  span: Span,
+  query: &ImplType,
+) -> TirImpl {
+  let mut export = types.export();
+  let sub_query = export.export_impl_type(query);
+  let sub_types = export.finish();
+
+  let show_ty = || types.show_impl_type(chart, query);
+  let mut finder = Finder { chart, sigs, source, generics, steps: 0 };
+  let Ok(mut results) = finder.find_impl(&sub_types, &sub_query) else {
+    return TirImpl::Error(core.report(Diag::SearchLimit { span, ty: show_ty() }));
+  };
+
+  if results.is_empty() {
+    return TirImpl::Error(core.report(Diag::CannotFindImpl { span, ty: show_ty() }));
+  }
+
+  if results.len() > 1 {
+    return TirImpl::Error(core.report(Diag::AmbiguousImpl { span, ty: show_ty() }));
+  }
+
+  let result = results.pop().unwrap();
+  let mut export = result.types.export();
+  let result_ty = export.export(ty)
+
+  todo!()
+}
+
+struct Finder<'core, 'a> {
+  chart: &'a Chart<'core>,
+  sigs: &'a Signatures<'core>,
+  source: DefId,
+  generics: GenericsId,
+  steps: u32,
 }
 
 struct CandidateSearch<F> {
@@ -33,36 +69,41 @@ pub struct ImplResult<'core> {
   pub ty: ImplType,
 }
 
+struct SubimplsResult<'core> {
+  types: Types<'core>,
+  impls: Vec<TirImpl>,
+}
+
 impl<'core> Finder<'core, '_> {
-  pub fn find_method(
-    &mut self,
-    receiver: &Type<'core>,
-    name: Ident,
-  ) -> Vec<(ValueDefId, Vec<Type<'core>>)> {
-    let mut found = Vec::new();
+  // pub fn find_method(
+  //   &mut self,
+  //   types: &Types<'core>,
+  //   receiver: Type,
+  //   name: Ident,
+  // ) -> Vec<(ValueDefId, Vec<Type>)> {
+  //   let mut found = Vec::new();
 
-    for candidate in self.find_method_candidates(receiver, name) {
-      let checkpoint = self.unifier.checkpoint();
-      let generics = self.chart.values[candidate].generics;
-      let mut type_params = (0..self.chart.generics[generics].type_params.len())
-        .map(|_| self.unifier.new_var(self.span))
-        .collect::<Vec<_>>();
-      if let Some(ty) = self.sigs.value_types[candidate].receiver() {
-        let mut ty = ty.instantiate(&type_params);
-        if self.unifier.unify(&mut ty, &mut receiver.clone()) {
-          type_params.iter_mut().for_each(|t| self.unifier.export(&checkpoint, t));
-          found.push((candidate, type_params));
-        }
-      }
-      self.unifier.revert(&checkpoint);
-    }
+  //   for candidate in self.find_method_candidates(types, receiver, name) {
+  //     let generics = self.chart.values[candidate].generics;
+  //     let mut type_params =
+  // (0..self.chart.generics[generics].type_params.len())       .map(|_|
+  // self.unifier.new_var(self.span))       .collect::<Vec<_>>();
+  //     if let Some(ty) = self.sigs.value_types[candidate].receiver() {
+  //       let mut ty = ty.instantiate(&type_params);
+  //       if self.unifier.unify(&mut ty, &mut receiver.clone()) {
+  //         type_params.iter_mut().for_each(|t| self.unifier.export(&checkpoint,
+  // t));         found.push((candidate, type_params));
+  //       }
+  //     }
+  //   }
 
-    found
-  }
+  //   found
+  // }
 
   fn find_method_candidates(
     &mut self,
-    receiver: &Type<'core>,
+    types: &Types<'core>,
+    receiver: Type,
     name: Ident,
   ) -> BTreeSet<ValueDefId> {
     let mut candidates = BTreeSet::new();
@@ -84,7 +125,7 @@ impl<'core> Finder<'core, '_> {
       self.find_candidates_within(ancestor, search);
     }
 
-    if let Ok(Some(def_id)) = receiver.get_mod(self.chart) {
+    if let Some(def_id) = types.get_mod(self.chart, receiver) {
       self.find_candidates_within(def_id, search);
     }
 
@@ -98,79 +139,64 @@ impl<'core> Finder<'core, '_> {
   ) -> Result<Vec<ImplResult<'core>>, Timeout> {
     self.step()?;
 
-    let mut export = types.export();
-    let query = export.export_impl_type(query);
-    let types = export.finish();
-
     let mut found = Vec::new();
 
     for (i, ty) in self.sigs.generics[self.generics].impl_params.iter().enumerate() {
-      let types = types.clone();
+      let mut types = types.clone();
       if types.unify_impl_type(&ty, &query).is_success() {
         found.push(ImplResult { types, ty: ty.clone(), impl_: TirImpl::Param(i) });
       }
     }
 
     for candidate in self.find_impl_candidates(&types, &query) {
-      let types = types.clone();
+      let mut types = types.clone();
       let generics = self.chart.impls[candidate].generics;
       let type_params = (0..self.chart.generics[generics].type_params.len())
         .map(|_| types.new_var())
         .collect::<Vec<_>>();
-      let mut ty = self.sigs.impls[candidate].instantiate(&type_params);
+      let sig = &self.sigs.impls[candidate];
+      let ty = types.import(&sig.types, &type_params).import_impl_type(&sig.ty);
       if types.unify_impl_type(&ty, &query).is_success() {
+        let sig = &self.sigs.generics[generics];
+        let mut import = types.import(&sig.types, &type_params);
         let queries = self.sigs.generics[generics]
           .impl_params
           .iter()
-          .map(|t| t.instantiate(&type_params))
+          .map(|t| import.import_impl_type(t))
           .collect::<Vec<_>>();
-        let results = self._find_impls(&checkpoint, &ty, &queries)?;
-        for (mut subimpls, ty) in results {
-          subimpls.reverse();
-          found.push((
-            Impl {
-              span: self.span,
-              kind: ImplKind::Def(
-                candidate,
-                Generics { span: self.span, types: Vec::new(), impls: subimpls },
-              ),
-            },
-            ty,
-          ));
+        let results = self.find_subimpls(types, &queries)?;
+        for mut result in results {
+          result.impls.reverse();
+          found.push(ImplResult {
+            types: result.types,
+            impl_: TirImpl::Def(candidate, result.impls),
+            ty: ty.clone(),
+          });
         }
       }
-      self.unifier.revert(&checkpoint);
     }
 
     Ok(found)
   }
 
-  fn _find_impls(
+  fn find_subimpls(
     &mut self,
-    root_checkpoint: &UnifierCheckpoint,
-    root_ty: &Type<'core>,
-    queries: &[Type<'core>],
-  ) -> Result<Vec<(Vec<Impl<'core>>, Type<'core>)>, Timeout> {
+    types: Types<'core>,
+    queries: &[ImplType],
+  ) -> Result<Vec<SubimplsResult<'core>>, Timeout> {
     let [query, rest_queries @ ..] = queries else {
-      let mut root_ty = root_ty.clone();
-      self.unifier.export(root_checkpoint, &mut root_ty);
-      return Ok(vec![(vec![], root_ty)]);
+      return Ok(vec![(SubimplsResult { types, impls: vec![] })]);
     };
 
     let mut found = Vec::new();
 
-    let impls = self.find_impl(query)?;
-    for (impl_, mut ty) in impls {
-      let checkpoint = self.unifier.checkpoint();
-      self.unifier.import(self.span, [&mut ty]);
-      let result = self.unifier.unify(&mut ty, &mut query.clone());
-      assert!(result);
-      let rest = self._find_impls(root_checkpoint, root_ty, rest_queries)?;
-      found.extend(rest.into_iter().map(|(mut impls, ty)| {
-        impls.push(impl_.clone());
-        (impls, ty)
+    let impls = self.find_impl(&types, query)?;
+    for impl_result in impls {
+      let rest = self.find_subimpls(impl_result.types, rest_queries)?;
+      found.extend(rest.into_iter().map(|mut subimpls_result| {
+        subimpls_result.impls.push(impl_result.impl_.clone());
+        subimpls_result
       }));
-      self.unifier.revert(&checkpoint);
     }
 
     Ok(found)
