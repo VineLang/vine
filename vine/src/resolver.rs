@@ -4,12 +4,14 @@ use vine_util::idx::{Counter, IdxVec};
 
 use crate::{
   ast::{Block, Expr, ExprKind, Ident, LogicalOp, Pat, PatKind, Span, Stmt, StmtKind, Ty, TyKind},
-  chart::{Builtins, Chart, DefId, TypeDefId, ValueDefId},
+  chart::{Builtins, Chart, DefId, GenericsId, TypeDefId, ValueDefId},
   core::Core,
   diag::{Diag, ErrorGuaranteed},
+  finder::find_impl,
+  signatures::Signatures,
   tir::{
-    ClosureId, LabelId, Local, TirBlock, TirClosure, TirExpr, TirExprKind, TirPat, TirPatKind,
-    TirStmt, TirStmtKind,
+    ClosureId, LabelId, Local, TirBlock, TirClosure, TirExpr, TirExprKind, TirImpl, TirPat,
+    TirPatKind, TirStmt, TirStmtKind,
   },
   types::{ImplType, Type, TypeKind, Types},
 };
@@ -20,6 +22,7 @@ mod resolve_path;
 pub struct Resolver<'core, 'ctx> {
   pub core: &'core Core<'core>,
   pub chart: &'ctx mut Chart<'core>,
+  pub sigs: &'ctx mut Signatures<'core>,
   pub types: Types<'core>,
 
   return_ty: Option<Type>,
@@ -28,6 +31,7 @@ pub struct Resolver<'core, 'ctx> {
   labels: IdxVec<LabelId, LabelInfo>,
   closures: IdxVec<ClosureId, TirClosure<'core>>,
   cur_def: DefId,
+  cur_generics: GenericsId,
   bindings: HashMap<Ident<'core>, Vec<(usize, Binding)>>,
   scope_depth: usize,
   locals: Counter<Local>,
@@ -274,7 +278,7 @@ impl<'core> Resolver<'core, '_> {
           args.iter().map(|e| self.resolve_expr(e)).map(|e| (e.ty, e)).collect();
         let ret = self.types.new_var();
         let impl_ty = ImplType::Fn(func.ty, arg_tys, ret);
-        let impl_ = todo!();
+        let impl_ = self.find_impl(span, &impl_ty);
         (ret, TirExprKind::Call(impl_, Box::new(func), args))
       }
       ExprKind::Neg(value) => {
@@ -687,5 +691,18 @@ impl<'core> Resolver<'core, '_> {
     args: Vec<TirExpr<'core>>,
   ) -> TirExprKind<'core> {
     todo!()
+  }
+
+  fn find_impl(&mut self, span: Span, impl_ty: &ImplType) -> TirImpl {
+    find_impl(
+      &mut self.types,
+      self.core,
+      self.chart,
+      self.sigs,
+      self.cur_def,
+      self.cur_generics,
+      span,
+      impl_ty,
+    )
   }
 }

@@ -1,4 +1,7 @@
-use std::{collections::{BTreeSet, HashSet}, sync::Arc};
+use std::{
+  collections::{BTreeSet, HashSet},
+  sync::Arc,
+};
 
 use crate::{
   ast::{Generics, Ident, Impl, ImplKind, Span},
@@ -10,6 +13,7 @@ use crate::{
   types::{ImplType, Type, Types},
 };
 
+#[allow(clippy::too_many_arguments)]
 pub fn find_impl<'core>(
   types: &mut Types<'core>,
   core: &Core<'core>,
@@ -21,7 +25,7 @@ pub fn find_impl<'core>(
   query: &ImplType,
 ) -> TirImpl {
   let mut export = types.export();
-  let sub_query = export.export_impl_type(query);
+  let sub_query = export.transfer_impl_type(query);
   let sub_types = export.finish();
 
   let show_ty = || types.show_impl_type(chart, query);
@@ -39,10 +43,13 @@ pub fn find_impl<'core>(
   }
 
   let result = results.pop().unwrap();
-  let mut export = result.types.export();
-  let result_ty = export.export(ty)
 
-  todo!()
+  let mut import = types.import(&result.types, None);
+  let result_ty = import.transfer_impl_type(&result.ty);
+  let unify_result = types.unify_impl_type(query, &result_ty);
+  assert!(unify_result.is_success());
+
+  result.impl_
 }
 
 struct Finder<'core, 'a> {
@@ -155,14 +162,14 @@ impl<'core> Finder<'core, '_> {
         .map(|_| types.new_var())
         .collect::<Vec<_>>();
       let sig = &self.sigs.impls[candidate];
-      let ty = types.import(&sig.types, &type_params).import_impl_type(&sig.ty);
+      let ty = types.import(&sig.types, Some(&type_params)).transfer_impl_type(&sig.ty);
       if types.unify_impl_type(&ty, &query).is_success() {
         let sig = &self.sigs.generics[generics];
-        let mut import = types.import(&sig.types, &type_params);
+        let mut import = types.import(&sig.types, Some(&type_params));
         let queries = self.sigs.generics[generics]
           .impl_params
           .iter()
-          .map(|t| import.import_impl_type(t))
+          .map(|t| import.transfer_impl_type(t))
           .collect::<Vec<_>>();
         let results = self.find_subimpls(types, &queries)?;
         for mut result in results {

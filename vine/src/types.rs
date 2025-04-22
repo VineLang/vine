@@ -321,15 +321,19 @@ impl<'core> Types<'core> {
     &'ctx mut self,
     source: &'ctx Types<'core>,
     params: Option<&'ctx [Type]>,
-  ) -> TypeTransfer<'core, 'ctx> {
+  ) -> TypeTransfer<'core, 'ctx, &'ctx mut Types<'core>> {
     TypeTransfer { mapping: HashMap::default(), source, dest: self, params }
   }
 
-  pub fn export(&self) -> TypeExport<'core, '_> {
-    let mut export =
-      TypeExport { mapping: HashMap::default(), source: self, dest: Types::default() };
-    export.dest.error = export.source.error.map(|t| export.export(t));
-    export.dest.nil = export.source.nil.map(|t| export.export(t));
+  pub fn export(&self) -> TypeTransfer<'core, '_, Types<'core>> {
+    let mut export = TypeTransfer {
+      mapping: HashMap::default(),
+      source: self,
+      dest: Types::default(),
+      params: None,
+    };
+    export.dest.error = export.source.error.map(|t| export.transfer(t));
+    export.dest.nil = export.source.nil.map(|t| export.transfer(t));
     export
   }
 
@@ -422,41 +426,12 @@ impl<'core, 'ctx, Dest: AsMut<Types<'core>>> TypeTransfer<'core, 'ctx, Dest> {
     }
   }
 
-  pub fn import_impl_type(&mut self, ty: &ImplType) -> ImplType {
-    todo!()
+  pub fn transfer_impl_type(&mut self, ty: &ImplType) -> ImplType {
+    ty.map(|t| self.transfer(t))
   }
 }
 
-impl<'core, 'ctx, Dest: AsMut<Types<'core>>> TypeTransfer<'core, 'ctx, Dest> {
-
-pub struct TypeExport<'core, 'ctx> {
-  mapping: IntMap<Type, Type>,
-  source: &'ctx Types<'core>,
-  dest: Types<'core>,
-}
-
-impl<'core, 'ctx> TypeExport<'core, 'ctx> {
-  pub fn export(&mut self, ty: Type) -> Type {
-    let old = self.source.find(ty);
-    match self.mapping.entry(old) {
-      Entry::Occupied(e) => *e.get(),
-      Entry::Vacant(e) => {
-        let new = self.dest.new_var();
-        e.insert(new);
-        if let Some(old_kind) = self.source.kind(old) {
-          let kind = old_kind.map(|t| self.export(t));
-          let TypeNode::Root(new_kind, _) = &mut self.dest.types[new] else { unreachable!() };
-          *new_kind = Some(kind)
-        }
-        new
-      }
-    }
-  }
-
-  pub fn export_impl_type(&mut self, ty: &ImplType) -> ImplType {
-    todo!()
-  }
-
+impl<'core, 'ctx> TypeTransfer<'core, 'ctx, Types<'core>> {
   pub fn finish(self) -> Types<'core> {
     self.dest
   }
@@ -493,5 +468,18 @@ impl ImplType {
       (ImplType::Trait(i, _), ImplType::Trait(j, _)) => i == j,
       _ => false,
     }
+  }
+  fn map(&self, mut f: impl FnMut(Type) -> Type) -> Self {
+    match self {
+      ImplType::Trait(def, ts) => ImplType::Trait(*def, ts.iter().copied().map(f).collect()),
+      ImplType::Fn(a, b, c) => ImplType::Fn(f(*a), b.iter().copied().map(&mut f).collect(), f(*c)),
+      ImplType::Error(e) => ImplType::Error(*e),
+    }
+  }
+}
+
+impl<'core> AsMut<Types<'core>> for Types<'core> {
+  fn as_mut(&mut self) -> &mut Types<'core> {
+    self
   }
 }
