@@ -14,4 +14,7 @@ pub fn main(&io: &IO) {
   io.println("{map.contains_key(&key)}");
   key = 123456;
   io.println("{map.contains_key(&key)}");
+
+  let lengths = map.map_values(fn(s: String) { s.len() });
+  io.println("{lengths}")
 }
