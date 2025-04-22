@@ -1,5 +1,5 @@
 
-use data::Iterator::{Iterator, IntoIterator}
+use data::Iterator::{Iterator, IntoIterator};
 use ops::{Concat, comparison::Ord};
 use unicode::ToString;
 
