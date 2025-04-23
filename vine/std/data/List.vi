@@ -134,7 +134,7 @@ pub mod List {
     self = output;
   }
 
-  struct Iter[T](N32, &Buf[T]);
+  pub struct Iter[T](N32, &Buf[T]);
 
   pub fn .iter[T](&List[T](len, buf, _)) -> Iter[T] {
     Iter(len, &buf)
