@@ -61,62 +61,65 @@ impl Stats {
 // `#![no_std]`.
 impl Display for Stats {
   fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-    let lines = [
-      ("Interactions", None),
-      ("  Total", Some((self.interactions(), ""))),
-      ("  Annihilate", Some((self.annihilate, ""))),
-      ("  Commute", Some((self.commute, ""))),
-      ("  Copy", Some((self.copy, ""))),
-      ("  Erase", Some((self.erase, ""))),
-      ("  Expand", Some((self.expand, ""))),
-      ("  Call", Some((self.call, ""))),
-      ("  Branch", Some((self.branch, ""))),
-      ("", None),
-    ]
-    .into_iter()
-    .chain(
-      (self.depth != 0)
-        .then_some(())
-        .into_iter()
-        .flat_map(|_| [("Computation Depth", Some((self.depth, ""))), ("", None)]),
-    )
-    .chain((self.workers_used != 0).then_some(()).into_iter().flat_map(|_| {
-      [
-        ("Workload", None),
-        ("  Workers", Some((self.workers_spawned, ""))),
-        ("  Active", Some((self.workers_used, ""))),
-        ("  Minimum", Some((self.worker_min, ""))),
-        ("  Average", Some((((self.interactions() as f64) / self.workers_used as f64) as u64, ""))),
-        ("  Maximum", Some((self.worker_max, ""))),
-        ("  Moved", Some((self.work_move, ""))),
-        ("", None),
-      ]
-    }))
-    .chain([
-      ("Memory", None),
-      ("  Heap", Some((self.mem_heap * 8, "B"))),
-      ("  Allocated", Some((self.mem_alloc * 8, "B"))),
-      ("  Freed", Some((self.mem_free * 8, "B"))),
-      ("", None),
-      ("Performance", None),
-      ("  Time", Some((self.time_clock.as_millis() as u64, "ms"))),
-      ("  Speed", Some((self.clock_speed(), "IPS"))),
-    ])
-    .chain((self.workers_used != 0).then_some(()).into_iter().flat_map(|_| {
-      [
-        ("  Working", Some((self.time_total.as_millis() as u64, "ms"))),
-        ("  Rate", Some((self.speed(), "IPS"))),
-      ]
-    }));
+    let mut lines = vec![
+      ("Interactions".to_string(), None),
+      ("  Total".to_string(), Some((self.interactions(), ""))),
+    ];
 
-    let max_label_width = lines.clone().map(|x| x.0.len()).max().unwrap() + 1;
-    let max_value =
-      lines.clone().filter_map(|x| x.1).map(|x| x.0).max().unwrap().max(1_000_000_000);
+    if self.depth != 0 {
+      lines.push(("  Depth".to_string(), Some((self.depth, ""))));
+    }
+
+    lines.extend([
+      ("  Annihilate".to_string(), Some((self.annihilate, ""))),
+      ("  Commute".to_string(), Some((self.commute, ""))),
+      ("  Copy".to_string(), Some((self.copy, ""))),
+      ("  Erase".to_string(), Some((self.erase, ""))),
+      ("  Expand".to_string(), Some((self.expand, ""))),
+      ("  Call".to_string(), Some((self.call, ""))),
+      ("  Branch".to_string(), Some((self.branch, ""))),
+      ("".to_string(), None),
+    ]);
+
+    if self.workers_used != 0 {
+      let average_per_worker = ((self.interactions() as f64) / self.workers_used as f64) as u64;
+      lines.extend([
+        ("Workload".to_string(), None),
+        ("  Workers".to_string(), Some((self.workers_spawned, ""))),
+        ("  Active".to_string(), Some((self.workers_used, ""))),
+        ("  Minimum".to_string(), Some((self.worker_min, ""))),
+        ("  Average".to_string(), Some((average_per_worker, ""))),
+        ("  Maximum".to_string(), Some((self.worker_max, ""))),
+        ("  Moved".to_string(), Some((self.work_move, ""))),
+        ("".to_string(), None),
+      ]);
+    }
+
+    lines.extend([
+      ("Memory".to_string(), None),
+      ("  Heap".to_string(), Some((self.mem_heap * 8, "B"))),
+      ("  Allocated".to_string(), Some((self.mem_alloc * 8, "B"))),
+      ("  Freed".to_string(), Some((self.mem_free * 8, "B"))),
+      ("".to_string(), None),
+      ("Performance".to_string(), None),
+      ("  Time".to_string(), Some((self.time_clock.as_millis() as u64, "ms"))),
+      ("  Speed".to_string(), Some((self.clock_speed(), "IPS"))),
+    ]);
+
+    if self.workers_used != 0 {
+      lines.extend([
+        ("  Working".to_string(), Some((self.time_total.as_millis() as u64, "ms"))),
+        ("  Rate".to_string(), Some((self.speed(), "IPS"))),
+      ]);
+    }
+
+    let max_label_width = lines.iter().map(|x| x.0.len()).max().unwrap() + 1;
+    let max_value = lines.iter().filter_map(|x| x.1).map(|x| x.0).max().unwrap().max(1_000_000_000);
     let max_value_width = measure_int(max_value);
 
     for (label, value) in lines {
       f.write_char('\n')?;
-      f.write_str(label)?;
+      f.write_str(&label)?;
       if let Some((mut value, unit)) = value {
         let value_width = measure_int(value);
         for _ in 0..(max_label_width + 2 + max_value_width - label.len() - value_width) {
