@@ -36,10 +36,10 @@ fn tests(t: &mut DynTester) {
     test_vi(t, "vine/examples/fizzbuzz.vi", b"", ".txt", true);
     test_vi(t, "vine/examples/guessing_game.vi", guessing_game_input, ".txt", true);
     test_vi(t, "vine/examples/hello_world.vi", b"", ".txt", true);
-    test_vi(t, "vine/examples/mandelbrot_sixel.vi", b"", ".sixel", false);
+    test_vi(t, "vine/examples/mandelbrot_sixel.vi", b"", ".sixel", true);
     test_vi(t, "vine/examples/mandelbrot_tga.vi", b"", ".tga", false);
-    test_vi(t, "vine/examples/mandelbrot.vi", b"", ".txt", false);
-    test_vi(t, "vine/examples/primeness.vi", b"", ".txt", false);
+    test_vi(t, "vine/examples/mandelbrot.vi", b"", ".txt", true);
+    test_vi(t, "vine/examples/primeness.vi", b"", ".txt", true);
     test_vi(t, "vine/examples/stream_primes.vi", b"", ".txt", true);
     test_vi(t, "vine/examples/sub_min.vi", b"", ".txt", true);
     test_vi(t, "vine/examples/sum_divisors.vi", b"", ".txt", true);
