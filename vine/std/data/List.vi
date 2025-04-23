@@ -1,4 +1,5 @@
 
+use data::Iterator;
 use ops::{Concat, comparison::Ord};
 use unicode::ToString;
 
@@ -140,20 +141,22 @@ pub mod List {
   }
 
   pub mod Iter {
-    pub fn .next[T](&Iter[T](len, buf)) -> Option[&T] {
-      if len != 0 {
-        len -= 1;
-        let &Buf(*head, *tail) = buf;
-        buf = tail;
-        Some(head)
-      } else {
-        let &_ = move buf;
-        None
+    pub impl iterator[T]: Iterator[Iter[T], &T] {
+      fn .next(&Iter[T](len, buf)) -> Option[&T] {
+        if len != 0 {
+          len -= 1;
+          let &Buf(*head, *tail) = buf;
+          buf = tail;
+          Some(head)
+        } else {
+          let &_ = move buf;
+          None
+        }
       }
-    }
 
-    pub fn .drop[T](&iter: &Iter[T]) {
-      let Iter(_, &_) = move iter;
+      fn .drop(&iter: &Iter[T]) {
+        let Iter(_, &_) = move iter;
+      }
     }
   }
 
@@ -164,15 +167,19 @@ pub mod List {
   }
 
   pub mod IntoIter {
-    pub fn .next[T](&IntoIter[T](len, buf)) -> Option[T] {
-      if len != 0 {
-        len -= 1;
-        let Buf(head, tail) = buf;
-        buf = tail;
-        Some(head)
-      } else {
-        None
+    pub impl iterator[T]: Iterator[IntoIter[T], T] {
+      fn .next(&IntoIter[T](len, buf)) -> Option[T] {
+        if len != 0 {
+          len -= 1;
+          let Buf(head, tail) = buf;
+          buf = tail;
+          Some(head)
+        } else {
+          None
+        }
       }
+
+      fn .drop(iter: &IntoIter[T]) {}
     }
   }
 

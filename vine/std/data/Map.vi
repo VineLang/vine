@@ -1,4 +1,5 @@
 
+use data::Iterator;
 use ops::{Cast, comparison::Ord};
 use unicode::ToString;
 
@@ -220,28 +221,30 @@ pub mod Map {
   pub struct Iter[K, V](&Map[K, V], List[&((K, V), Map[K, V])]);
 
   pub mod Iter {
-    pub fn .next[K, V; Ord[K]](&Iter[K, V](node, stack)) -> Option[&(K, V)] {
-      loop {
-        let &Map(len, data) = move node;
-        if len == 0 {
-          break;
+    pub impl iterator[K, V]: Iterator[Iter[K, V], &(K, V)] {
+      fn .next(&Iter[K, V](node, stack)) -> Option[&(K, V)] {
+        loop {
+          let &Map(len, data) = move node;
+          if len == 0 {
+            break;
+          }
+          let &(left, entry, right) = &data;
+          stack.push_front(&(entry, right));
+          node = &left;
         }
-        let &(left, entry, right) = &data;
-        stack.push_front(&(entry, right));
-        node = &left;
+        if stack.pop_front() is Some(el) {
+          let &(*entry, *new_node) = el;
+          node = new_node;
+          Some(entry)
+        } else {
+          None
+        }
       }
-      if stack.pop_front() is Some(el) {
-        let &(*entry, *new_node) = el;
-        node = new_node;
-        Some(entry)
-      } else {
-        None
-      }
-    }
 
-    pub fn .drop[K, V; Ord[K]](&iter: &Iter[K, V]) {
-      let Iter(&_, stack) = move iter;
-      while stack.pop_front() is Some(&_) {}
+      fn .drop(&iter: &Iter[K, V]) {
+        let Iter(&_, stack) = move iter;
+        while stack.pop_front() is Some(&_) {}
+      }
     }
   }
 
@@ -252,22 +255,26 @@ pub mod Map {
   pub struct IntoIter[K, V](Map[K, V], List[((K, V), Map[K, V])]);
 
   pub mod IntoIter {
-    pub fn .next[K, V](&IntoIter[K, V](node, stack)) -> Option[(K, V)] {
-      loop {
-        let Map(len, data) = move node;
-        if len == 0 {
-          break;
+    pub impl iterator[K, V]: Iterator[IntoIter[K, V], (K, V)] {
+      fn .next(&IntoIter[K, V](node, stack)) -> Option[(K, V)] {
+        loop {
+          let Map(len, data) = move node;
+          if len == 0 {
+            break;
+          }
+          let (left, entry, right) = data;
+          stack.push_front((entry, right));
+          node = left;
         }
-        let (left, entry, right) = data;
-        stack.push_front((entry, right));
-        node = left;
+        if stack.pop_front() is Some((entry, new_node)) {
+          node = new_node;
+          Some(entry)
+        } else {
+          None
+        }
       }
-      if stack.pop_front() is Some((entry, new_node)) {
-        node = new_node;
-        Some(entry)
-      } else {
-        None
-      }
+
+      fn .drop(self: &IntoIter[K, V]) {}
     }
   }
 

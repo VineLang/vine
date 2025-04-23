@@ -1,0 +1,6 @@
+
+pub trait Iterator[T, Item] {
+  fn .next(self: &T) -> Option[Item];
+
+  fn .drop(self: &T);
+}
