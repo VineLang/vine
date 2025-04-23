@@ -17,6 +17,9 @@ pub struct Stats {
   pub call: u64,
   pub branch: u64,
 
+  /// Depth of the execution
+  pub depth: u64,
+
   /// The size of the heap, in words; a high water mark of memory usage.
   pub mem_heap: u64,
   /// The number of words allocated over the course of execution.
@@ -71,6 +74,12 @@ impl Display for Stats {
       ("", None),
     ]
     .into_iter()
+    .chain(
+      (self.depth != 0)
+        .then_some(())
+        .into_iter()
+        .flat_map(|_| [("Computation Depth", Some((self.depth, ""))), ("", None)]),
+    )
     .chain((self.workers_used != 0).then_some(()).into_iter().flat_map(|_| {
       [
         ("Workload", None),

@@ -1,3 +1,4 @@
+use core::mem;
 use std::time::Instant;
 
 use crate::{
@@ -81,5 +82,26 @@ impl<'ivm, 'ext> IVM<'ivm, 'ext> {
     while let Some((a, b)) = self.active_fast.pop() {
       self.interact(a, b)
     }
+  }
+
+  /// Normalize all nets in breadth-first traversal.
+  ///
+  /// This is useful to get the depth (longest critical path) of the computation
+  /// to understand the parallelism of the program.
+  pub fn normalize_breadth_first(&mut self) {
+    let start = Instant::now();
+    let mut work;
+    loop {
+      work = mem::take(&mut self.active_fast);
+      work.append(&mut self.active_slow);
+      if work.is_empty() {
+        break;
+      }
+      for (a, b) in work {
+        self.interact(a, b);
+      }
+      self.stats.depth += 1;
+    }
+    self.stats.time_clock += start.elapsed();
   }
 }
