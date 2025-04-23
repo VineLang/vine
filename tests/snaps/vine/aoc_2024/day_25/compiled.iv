@@ -71,7 +71,7 @@
 
 ::std::numeric::N32::to_string::to_string::4 { x(dup146(n0 @n32_ne(0 ?(::std::numeric::N32::to_string::to_string::6 ::std::numeric::N32::to_string::to_string::5 x(n0 n1)))) n1) }
 
-::std::numeric::N32::to_string::to_string::5 { x(dup194(@n32_rem(10 @n32_add$(48 n0)) @n32_div(10 dup146(n1 @n32_ne(0 ?(::std::numeric::N32::to_string::to_string::6 ::std::numeric::N32::to_string::to_string::5 x(n1 x(tup(n2 tup(tup(n0 n3) n4)) n5))))))) x(tup(@n32_add$(1 n2) tup(n3 n4)) n5)) }
+::std::numeric::N32::to_string::to_string::5 { x(dup190(@n32_rem(10 @n32_add$(48 n0)) @n32_div(10 dup146(n1 @n32_ne(0 ?(::std::numeric::N32::to_string::to_string::6 ::std::numeric::N32::to_string::to_string::5 x(n1 x(tup(n2 tup(tup(n0 n3) n4)) n5))))))) x(tup(@n32_add$(1 n2) tup(n3 n4)) n5)) }
 
 ::std::numeric::N32::to_string::to_string::6 { x(_ x(n0 n0)) }
 
@@ -81,7 +81,7 @@
 
 ::day_25::fits::5 { x(_ x(_ 1)) }
 
-::day_25::fits::8 { enum(dup258(_ @n32_lt(n0 ?(::day_25::fits::1 ::day_25::fits::12 x(n1 x(n2 n3))))) x(n1 x(n2 x(dup259(_ n0) n3)))) }
+::day_25::fits::8 { enum(dup254(_ @n32_lt(n0 ?(::day_25::fits::1 ::day_25::fits::12 x(n1 x(n2 n3))))) x(n1 x(n2 x(dup255(_ n0) n3)))) }
 
 ::day_25::fits::9 { x(_ x(_ x(_ 1))) }
 

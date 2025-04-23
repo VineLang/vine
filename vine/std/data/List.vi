@@ -1,5 +1,5 @@
 
-use data::Iterator::{Iterator, IntoIterator};
+use data::Iterator;
 use ops::{Concat, comparison::Ord};
 use unicode::ToString;
 
@@ -162,10 +162,8 @@ pub mod List {
 
   pub struct IntoIter[T](N32, Buf[T]);
 
-  pub impl into_iter[T]: IntoIterator[List[T], T, IntoIter[T]] {
-    fn .into_iter(List[T](len, buf, _)) -> IntoIter[T] {
-      IntoIter(len, buf)
-    }
+  pub fn .into_iter[T](List[T](len, buf, _)) -> IntoIter[T] {
+    IntoIter(len, buf)
   }
 
   pub mod IntoIter {

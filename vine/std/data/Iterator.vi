@@ -4,8 +4,3 @@ pub trait Iterator[T, Item] {
 
   fn .drop(self: &T);
 }
-
-// TODO: Add trait bound to force the Iter type to be an `Iterator` over `Item`s.
-pub trait IntoIterator[T, Item, Iter] {
-  fn .into_iter(self: T) -> Iter;
-}

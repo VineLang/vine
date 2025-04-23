@@ -1,5 +1,5 @@
 
-use data::Iterator::{Iterator, IntoIterator};
+use data::Iterator;
 use ops::{Cast, comparison::Ord};
 use unicode::ToString;
 
@@ -248,10 +248,8 @@ pub mod Map {
     }
   }
 
-  pub impl into_iter[K, V]: IntoIterator[Map[K, V], (K, V), IntoIter[K, V]] {
-    fn .into_iter(self: Map[K, V]) -> IntoIter[K, V] {
-      IntoIter(self, [])
-    }
+  pub fn .into_iter[K, V](self: Map[K, V]) -> IntoIter[K, V] {
+    IntoIter(self, [])
   }
 
   pub struct IntoIter[K, V](Map[K, V], List[((K, V), Map[K, V])]);
