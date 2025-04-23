@@ -1,4 +1,5 @@
 
-pub mod List = "./List.vi";
 pub mod Array = "./Array.vi";
+pub mod Iterator = "./Iterator.vi";
+pub mod List = "./List.vi";
 pub mod Map = "./Map.vi";

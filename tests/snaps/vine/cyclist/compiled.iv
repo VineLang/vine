@@ -9,15 +9,15 @@
   ::cyclist::main::5 = x(x(w1 w13) w10)
 }
 
-::cyclist::main::1 { x(tup(dup124(dup32(_ @n32_lt(32 ?(::cyclist::main::3 ::cyclist::main::2 x(tup(n0 n1) n2)))) n0) n1) n2) }
+::cyclist::main::1 { x(tup(dup567(dup32(_ @n32_lt(32 ?(::cyclist::main::3 ::cyclist::main::2 x(tup(n0 n1) n2)))) n0) n1) n2) }
 
-::cyclist::main::2 { x(dup11(tup(dup209(n0 dup70(n1 @n32_ne(0 ?(::std::data::List::map::3 ::std::data::List::map::2 x(n1 x(n2 x(fn(n3 n4) x(n5 n6)))))))) tup(n2 _)) tup(dup124(@n32_add(n3 n4) @n32_add(n0 dup124(dup32(_ @n32_lt(32 ?(::cyclist::main::3 ::cyclist::main::2 x(tup(n7 tup(n8 n6)) n9)))) n7))) tup(n8 n5))) n9) }
+::cyclist::main::2 { x(dup11(tup(dup646(n0 dup70(n1 @n32_ne(0 ?(::std::data::List::map::3 ::std::data::List::map::2 x(n1 x(n2 x(fn(n3 n4) x(n5 n6)))))))) tup(n2 _)) tup(dup567(@n32_add(n3 n4) @n32_add(n0 dup567(dup32(_ @n32_lt(32 ?(::cyclist::main::3 ::cyclist::main::2 x(tup(n7 tup(n8 n6)) n9)))) n7))) tup(n8 n5))) n9) }
 
 ::cyclist::main::3 { x(n0 n0) }
 
 ::cyclist::main::5 { x(n0 tup(dup70(n1 @n32_ne(0 ?(::std::data::List::pop_front::3 ::std::data::List::pop_front::2 x(x(n1 n2) x(x(n3 n4) enum(::cyclist::main::8 enum(::cyclist::main::9 x(n0 tup(n2 tup(n4 n5)))))))))) tup(n3 n5))) }
 
-::cyclist::main::8 { enum(dup28(n0 dup70(n1 @n32_ne(0 ?(::std::numeric::N32::to_string::to_string::3 ::std::numeric::N32::to_string::to_string::2 x(n1 tup(@n32_add(2 n2) tup(n3 tup(59 tup(9 tup(91 n4)))))))))) x(x(n5 n6) tup(dup124(dup70(n7 @n32_ne(0 ?(::cyclist::cycle::3 ::cyclist::cycle::2 x(x(tup(n8 n9) dup27(tup(dup209(dup70(n10 @n32_ne(0 ?(::std::data::List::IntoIter::next::3 ::std::data::List::IntoIter::next::2 x(x(n10 n11) x(x(n12 n13) enum(::std::data::List::join::4 enum(::std::data::List::join::5 x(tup(2 tup(tup(44 tup(32 n14)) n14)) x(tup(n11 n13) tup(@n32_add(2 @n32_add(n2 dup70(n15 @n32_ne(0 ?(::std::IO::print::3 ::std::IO::print::2 x(x(n5 @io_print_char(10 n16)) x(n15 n3))))))) tup(n4 tup(93 _)))))))))))) dup70(n17 @n32_ne(0 ?(::std::data::List::map::3 ::std::data::List::map::2 x(n17 x(n18 x(::std::numeric::N32::to_string::to_string x(n12 _)))))))) tup(n18 _)) tup(dup70(n19 @n32_ne(0 ?(::std::data::List::pop_front::3 ::std::data::List::pop_front::2 x(x(n19 n20) x(x(n21 n22) enum(::cyclist::main::8 enum(::cyclist::main::9 x(x(n16 n6) tup(n20 tup(n22 n23)))))))))) tup(n21 n23)))) x(n0 x(n7 _)))))) n8) n9))) }
+::cyclist::main::8 { enum(dup28(n0 dup70(n1 @n32_ne(0 ?(::std::numeric::N32::to_string::to_string::3 ::std::numeric::N32::to_string::to_string::2 x(n1 tup(@n32_add(2 n2) tup(n3 tup(59 tup(9 tup(91 n4)))))))))) x(x(n5 n6) tup(dup567(dup70(n7 @n32_ne(0 ?(::cyclist::cycle::3 ::cyclist::cycle::2 x(x(tup(n8 n9) dup27(tup(dup646(dup70(n10 @n32_ne(0 ?(::std::data::List::IntoIter::iterator::next::3 ::std::data::List::IntoIter::iterator::next::2 x(x(n10 n11) x(x(n12 n13) enum(::std::data::List::join::4 enum(::std::data::List::join::5 x(tup(2 tup(tup(44 tup(32 n14)) n14)) x(tup(n11 n13) tup(@n32_add(2 @n32_add(n2 dup70(n15 @n32_ne(0 ?(::std::IO::print::3 ::std::IO::print::2 x(x(n5 @io_print_char(10 n16)) x(n15 n3))))))) tup(n4 tup(93 _)))))))))))) dup70(n17 @n32_ne(0 ?(::std::data::List::map::3 ::std::data::List::map::2 x(n17 x(n18 x(::std::numeric::N32::to_string::to_string x(n12 _)))))))) tup(n18 _)) tup(dup70(n19 @n32_ne(0 ?(::std::data::List::pop_front::3 ::std::data::List::pop_front::2 x(x(n19 n20) x(x(n21 n22) enum(::cyclist::main::8 enum(::cyclist::main::9 x(x(n16 n6) tup(n20 tup(n22 n23)))))))))) tup(n21 n23)))) x(n0 x(n7 _)))))) n8) n9))) }
 
 ::cyclist::main::9 { x(x(n0 n0) _) }
 
@@ -39,7 +39,7 @@
 
 ::cyclist::cycle::6 { x(x(n0 n0) _) }
 
-::std::data::List::map::2 { x(@n32_sub(1 dup70(n0 @n32_ne(0 ?(::std::data::List::map::3 ::std::data::List::map::2 x(n0 x(n1 x(n2 x(n3 n4)))))))) x(tup(n5 n1) x(dup229(fn(n5 n6) n2) x(tup(n6 n3) n4)))) }
+::std::data::List::map::2 { x(@n32_sub(1 dup70(n0 @n32_ne(0 ?(::std::data::List::map::3 ::std::data::List::map::2 x(n0 x(n1 x(n2 x(n3 n4)))))))) x(tup(n5 n1) x(dup666(fn(n5 n6) n2) x(tup(n6 n3) n4)))) }
 
 ::std::data::List::map::3 { x(_ x(_ x(_ x(n0 n0)))) }
 
@@ -47,17 +47,17 @@
 
 ::std::data::List::pop_front::3 { x(x(n0 n0) x(x(n1 n1) ::std::logical::Option::None)) }
 
-::std::data::List::join::4 { enum(n0 x(n1 x(tup(dup70(n2 @n32_ne(0 ?(::std::data::List::IntoIter::next::3 ::std::data::List::IntoIter::next::2 x(x(n2 n3) x(x(n4 n5) enum(::std::data::List::join::9 enum(::std::data::List::join::10 x(n1 x(tup(n3 n5) x(n0 n6)))))))))) n4) n6))) }
+::std::data::List::join::4 { enum(n0 x(n1 x(tup(dup70(n2 @n32_ne(0 ?(::std::data::List::IntoIter::iterator::next::3 ::std::data::List::IntoIter::iterator::next::2 x(x(n2 n3) x(x(n4 n5) enum(::std::data::List::join::9 enum(::std::data::List::join::10 x(n1 x(tup(n3 n5) x(n0 n6)))))))))) n4) n6))) }
 
 ::std::data::List::join::5 { x(_ x(_ tup(0 tup(n0 n0)))) }
 
-::std::data::List::join::9 { enum(tup(n0 tup(n1 n2)) x(dup308(tup(@n32_add(n0 n3) tup(n4 n1)) n5) x(tup(dup70(n6 @n32_ne(0 ?(::std::data::List::IntoIter::next::3 ::std::data::List::IntoIter::next::2 x(x(n6 n7) x(x(n8 n9) enum(::std::data::List::join::9 enum(::std::data::List::join::10 x(n5 x(tup(n7 n9) x(tup(n10 tup(n11 n2)) n12)))))))))) n8) x(tup(@n32_add(n3 n10) tup(n11 n4)) n12)))) }
+::std::data::List::join::9 { enum(tup(n0 tup(n1 n2)) x(dup745(tup(@n32_add(n0 n3) tup(n4 n1)) n5) x(tup(dup70(n6 @n32_ne(0 ?(::std::data::List::IntoIter::iterator::next::3 ::std::data::List::IntoIter::iterator::next::2 x(x(n6 n7) x(x(n8 n9) enum(::std::data::List::join::9 enum(::std::data::List::join::10 x(n5 x(tup(n7 n9) x(tup(n10 tup(n11 n2)) n12)))))))))) n8) x(tup(@n32_add(n3 n10) tup(n11 n4)) n12)))) }
 
 ::std::data::List::join::10 { x(_ x(_ x(n0 n0))) }
 
-::std::data::List::IntoIter::next::2 { x(x(@n32_sub(1 n0) n0) x(x(tup(n1 n2) n2) enum(enum(n1 n3) enum(_ n3)))) }
+::std::data::List::IntoIter::iterator::next::2 { x(x(@n32_sub(1 n0) n0) x(x(tup(n1 n2) n2) enum(enum(n1 n3) enum(_ n3)))) }
 
-::std::data::List::IntoIter::next::3 { x(x(n0 n0) x(x(n1 n1) ::std::logical::Option::None)) }
+::std::data::List::IntoIter::iterator::next::3 { x(x(n0 n0) x(x(n1 n1) ::std::logical::Option::None)) }
 
 ::std::logical::Option::unwrap::3 { enum(n0 n0) }
 
