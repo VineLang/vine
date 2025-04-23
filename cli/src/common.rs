@@ -24,7 +24,7 @@ pub struct RunArgs {
   #[arg(long, short, default_value = "0")]
   workers: usize,
   #[arg(long)]
-  breath_first: bool,
+  breadth_first: bool,
 }
 
 impl RunArgs {
@@ -38,7 +38,7 @@ impl RunArgs {
     let main = host.get("::main").expect("missing main");
     let mut ivm = IVM::new(&heap, &extrinsics);
     ivm.boot(main, host.new_io());
-    if self.breath_first {
+    if self.breadth_first {
       ivm.normalize_breadth_first();
     } else if self.workers > 0 {
       ivm.normalize_parallel(self.workers)
