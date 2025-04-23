@@ -167,7 +167,7 @@
 ::std::data::List::join {
   fn(w0 fn(w1 w14))
   ::std::data::List::into_iter = fn(w0 w5)
-  ::std::data::List::IntoIter::iter::next = fn(ref(w5 w10) enum(::std::data::List::join::4 enum(::std::data::List::join::5 x(w1 x(w10 w14)))))
+  ::std::data::List::IntoIter::iterator::next = fn(ref(w5 w10) enum(::std::data::List::join::4 enum(::std::data::List::join::5 x(w1 x(w10 w14)))))
 }
 
 ::std::data::List::join::4 {
@@ -177,17 +177,17 @@
 
 ::std::data::List::join::5 { x(_ x(_ tup(0 tup(w6 w6)))) }
 
-::std::data::List::join::6 { x(n0 x(tup(dup442(n1 @n32_ne(0 ?(::std::data::List::IntoIter::iter::next::3 ::std::data::List::IntoIter::iter::next::2 x(x(n1 n2) x(x(n3 n4) enum(::std::data::List::join::9 enum(::std::data::List::join::10 x(n0 x(tup(n2 n4) n5))))))))) n3) n5)) }
+::std::data::List::join::6 { x(n0 x(tup(dup442(n1 @n32_ne(0 ?(::std::data::List::IntoIter::iterator::next::3 ::std::data::List::IntoIter::iterator::next::2 x(x(n1 n2) x(x(n3 n4) enum(::std::data::List::join::9 enum(::std::data::List::join::10 x(n0 x(tup(n2 n4) n5))))))))) n3) n5)) }
 
-::std::data::List::join::9 { enum(tup(n0 tup(n1 n2)) x(dup1183(tup(@n32_add(n0 n3) tup(n4 n1)) n5) x(tup(dup442(n6 @n32_ne(0 ?(::std::data::List::IntoIter::iter::next::3 ::std::data::List::IntoIter::iter::next::2 x(x(n6 n7) x(x(n8 n9) enum(::std::data::List::join::9 enum(::std::data::List::join::10 x(n5 x(tup(n7 n9) x(tup(n10 tup(n11 n2)) n12)))))))))) n8) x(tup(@n32_add(n3 n10) tup(n11 n4)) n12)))) }
+::std::data::List::join::9 { enum(tup(n0 tup(n1 n2)) x(dup1183(tup(@n32_add(n0 n3) tup(n4 n1)) n5) x(tup(dup442(n6 @n32_ne(0 ?(::std::data::List::IntoIter::iterator::next::3 ::std::data::List::IntoIter::iterator::next::2 x(x(n6 n7) x(x(n8 n9) enum(::std::data::List::join::9 enum(::std::data::List::join::10 x(n5 x(tup(n7 n9) x(tup(n10 tup(n11 n2)) n12)))))))))) n8) x(tup(@n32_add(n3 n10) tup(n11 n4)) n12)))) }
 
 ::std::data::List::join::10 { x(_ x(_ x(n0 n0))) }
 
-::std::data::List::IntoIter::iter::next { fn(ref(tup(dup442(n0 @n32_ne(0 ?(::std::data::List::IntoIter::iter::next::3 ::std::data::List::IntoIter::iter::next::2 x(x(n0 n1) x(x(n2 n3) n4))))) n2) tup(n1 n3)) n4) }
+::std::data::List::IntoIter::iterator::next { fn(ref(tup(dup442(n0 @n32_ne(0 ?(::std::data::List::IntoIter::iterator::next::3 ::std::data::List::IntoIter::iterator::next::2 x(x(n0 n1) x(x(n2 n3) n4))))) n2) tup(n1 n3)) n4) }
 
-::std::data::List::IntoIter::iter::next::2 { x(x(@n32_sub(1 n0) n0) x(x(tup(n1 n2) n2) enum(enum(n1 n3) enum(_ n3)))) }
+::std::data::List::IntoIter::iterator::next::2 { x(x(@n32_sub(1 n0) n0) x(x(tup(n1 n2) n2) enum(enum(n1 n3) enum(_ n3)))) }
 
-::std::data::List::IntoIter::iter::next::3 { x(x(n0 n0) x(x(n1 n1) ::std::logical::Option::None)) }
+::std::data::List::IntoIter::iterator::next::3 { x(x(n0 n0) x(x(n1 n1) ::std::logical::Option::None)) }
 
 ::std::data::List::into_iter { fn(tup(w0 tup(w1 _)) tup(w0 w1)) }
 
