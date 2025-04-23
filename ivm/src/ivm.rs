@@ -90,14 +90,14 @@ impl<'ivm, 'ext> IVM<'ivm, 'ext> {
   /// to understand the parallelism of the program.
   pub fn normalize_breadth_first(&mut self) {
     let start = Instant::now();
-    let mut work;
+    let mut work = vec![];
     loop {
-      work = mem::take(&mut self.active_fast);
+      mem::swap(&mut work, &mut self.active_fast);
       work.append(&mut self.active_slow);
       if work.is_empty() {
         break;
       }
-      for (a, b) in work {
+      for (a, b) in work.drain(..) {
         self.interact(a, b);
       }
       self.stats.depth += 1;
