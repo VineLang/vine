@@ -3,7 +3,10 @@ use std::collections::{BTreeMap, HashMap};
 use vine_util::idx::{Counter, IdxVec};
 
 use crate::{
-  ast::{Block, Expr, ExprKind, Ident, LogicalOp, Pat, PatKind, Span, Stmt, StmtKind, Ty, TyKind},
+  ast::{
+    Block, Expr, ExprKind, GenericArgs, Ident, LogicalOp, Pat, PatKind, Span, Stmt, StmtKind, Ty,
+    TyKind,
+  },
   chart::{Builtins, Chart, DefId, GenericsId, TypeDefId, ValueDefId, VariantId},
   core::Core,
   diag::{Diag, ErrorGuaranteed},
@@ -88,8 +91,11 @@ impl<'core> Resolver<'core, '_> {
           }
         }
         let value_id = self.resolve_path_to(self.cur_def, path, "value", |d| d.value_def)?;
-        let ty = todo!();
-        (ty, TirExprKind::Def(value_id, vec![]))
+        let generics = self.chart.values[value_id].generics;
+        let (type_params, impl_params) = self.resolve_generic_args(generics, &path.generics);
+        let sig = &self.sigs.values[value_id];
+        let ty = self.types.import(&sig.types, Some(&type_params)).transfer(sig.ty);
+        (ty, TirExprKind::Def(value_id, impl_params))
       }
       ExprKind::Assign(inv, space, value) => {
         let space = self.resolve_expr(space);
@@ -744,5 +750,13 @@ impl<'core> Resolver<'core, '_> {
       span,
       impl_ty,
     )
+  }
+
+  fn resolve_generic_args(
+    &mut self,
+    generics: GenericsId,
+    args: &Option<GenericArgs>,
+  ) -> (Vec<Type>, Vec<TirImpl>) {
+    todo!()
   }
 }
