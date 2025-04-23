@@ -1,6 +1,7 @@
 
 Interactions
   Total               14_382
+  Depth                3_878
   Annihilate           7_359
   Commute                602
   Copy                 1_789
@@ -10,6 +11,6 @@ Interactions
   Branch                 650
 
 Memory
-  Heap                 8_128 B
-  Allocated          317_792 B
-  Freed              317_792 B
+  Heap                29_392 B
+  Allocated          319_408 B
+  Freed              319_408 B

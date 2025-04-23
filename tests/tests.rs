@@ -30,53 +30,53 @@ fn tests(t: &mut DynTester) {
   });
 
   t.group("vine", |t| {
-    test_vi(t, "vine/examples/cat.vi", include_bytes!("../vine/examples/cat.vi"), ".txt");
-    test_vi(t, "vine/examples/fib_repl.vi", fib_repl_input_vi, ".txt");
-    test_vi(t, "vine/examples/fib.vi", b"", ".txt");
-    test_vi(t, "vine/examples/fizzbuzz.vi", b"", ".txt");
-    test_vi(t, "vine/examples/guessing_game.vi", guessing_game_input, ".txt");
-    test_vi(t, "vine/examples/hello_world.vi", b"", ".txt");
-    test_vi(t, "vine/examples/mandelbrot_sixel.vi", b"", ".sixel");
-    test_vi(t, "vine/examples/mandelbrot_tga.vi", b"", ".tga");
-    test_vi(t, "vine/examples/mandelbrot.vi", b"", ".txt");
-    test_vi(t, "vine/examples/primeness.vi", b"", ".txt");
-    test_vi(t, "vine/examples/stream_primes.vi", b"", ".txt");
-    test_vi(t, "vine/examples/sub_min.vi", b"", ".txt");
-    test_vi(t, "vine/examples/sum_divisors.vi", b"", ".txt");
+    test_vi(t, "vine/examples/cat.vi", include_bytes!("../vine/examples/cat.vi"), ".txt", true);
+    test_vi(t, "vine/examples/fib_repl.vi", fib_repl_input_vi, ".txt", true);
+    test_vi(t, "vine/examples/fib.vi", b"", ".txt", true);
+    test_vi(t, "vine/examples/fizzbuzz.vi", b"", ".txt", true);
+    test_vi(t, "vine/examples/guessing_game.vi", guessing_game_input, ".txt", true);
+    test_vi(t, "vine/examples/hello_world.vi", b"", ".txt", true);
+    test_vi(t, "vine/examples/mandelbrot_sixel.vi", b"", ".sixel", true);
+    test_vi(t, "vine/examples/mandelbrot_tga.vi", b"", ".tga", false);
+    test_vi(t, "vine/examples/mandelbrot.vi", b"", ".txt", true);
+    test_vi(t, "vine/examples/primeness.vi", b"", ".txt", true);
+    test_vi(t, "vine/examples/stream_primes.vi", b"", ".txt", true);
+    test_vi(t, "vine/examples/sub_min.vi", b"", ".txt", true);
+    test_vi(t, "vine/examples/sum_divisors.vi", b"", ".txt", true);
 
-    test_vi(t, "tests/programs/array_from_list.vi", b"", ".txt");
-    test_vi(t, "tests/programs/array_order.vi", b"", ".txt");
-    test_vi(t, "tests/programs/array_to_list.vi", b"", ".txt");
-    test_vi(t, "tests/programs/basic_diverge.vi", b"", ".txt");
-    test_vi(t, "tests/programs/break_result.vi", b"", ".txt");
-    test_vi(t, "tests/programs/classify_primes.vi", b"", ".txt");
-    test_vi(t, "tests/programs/cond_diverge.vi", b"", ".txt");
-    test_vi(t, "tests/programs/cyclist.vi", b"", ".txt");
-    test_vi(t, "tests/programs/final_countdown.vi", b"", ".txt");
-    test_vi(t, "tests/programs/find_primes.vi", b"", ".txt");
-    test_vi(t, "tests/programs/inverse.vi", b"", ".txt");
-    test_vi(t, "tests/programs/lambda.vi", lambda_input, ".txt");
-    test_vi(t, "tests/programs/logic.vi", b"", ".txt");
-    test_vi(t, "tests/programs/loop_break_continue.vi", b"", ".txt");
-    test_vi(t, "tests/programs/loop_vi_loop.vi", b"", ".txt");
-    test_vi(t, "tests/programs/map_test.vi", b"", ".txt");
-    test_vi(t, "tests/programs/map_ops.vi", b"", ".txt");
-    test_vi(t, "tests/programs/maybe_set.vi", b"", ".txt");
-    test_vi(t, "tests/programs/no_return.vi", b"", ".txt");
-    test_vi(t, "tests/programs/option_party.vi", b"", ".txt");
-    test_vi(t, "tests/programs/par.vi", b"", ".txt");
-    test_vi(t, "tests/programs/pretty_div.vi", b"", ".txt");
-    test_vi(t, "tests/programs/segmented_sieve.vi", b"", ".txt");
-    test_vi(t, "tests/programs/sieve.vi", b"", ".txt");
-    test_vi(t, "tests/programs/so_random.vi", b"", ".txt");
-    test_vi(t, "tests/programs/specializations.vi", b"", ".txt");
-    test_vi(t, "tests/programs/square_case.vi", b"", ".txt");
-    test_vi(t, "tests/programs/verbose_add.vi", b"", ".txt");
+    test_vi(t, "tests/programs/array_from_list.vi", b"", ".txt", false);
+    test_vi(t, "tests/programs/array_order.vi", b"", ".txt", true);
+    test_vi(t, "tests/programs/array_to_list.vi", b"", ".txt", false);
+    test_vi(t, "tests/programs/basic_diverge.vi", b"", ".txt", true);
+    test_vi(t, "tests/programs/break_result.vi", b"", ".txt", true);
+    test_vi(t, "tests/programs/classify_primes.vi", b"", ".txt", true);
+    test_vi(t, "tests/programs/cond_diverge.vi", b"", ".txt", true);
+    test_vi(t, "tests/programs/cyclist.vi", b"", ".txt", true);
+    test_vi(t, "tests/programs/final_countdown.vi", b"", ".txt", true);
+    test_vi(t, "tests/programs/find_primes.vi", b"", ".txt", true);
+    test_vi(t, "tests/programs/inverse.vi", b"", ".txt", true);
+    test_vi(t, "tests/programs/lambda.vi", lambda_input, ".txt", true);
+    test_vi(t, "tests/programs/logic.vi", b"", ".txt", true);
+    test_vi(t, "tests/programs/loop_break_continue.vi", b"", ".txt", true);
+    test_vi(t, "tests/programs/loop_vi_loop.vi", b"", ".txt", true);
+    test_vi(t, "tests/programs/map_test.vi", b"", ".txt", false);
+    test_vi(t, "tests/programs/map_ops.vi", b"", ".txt", true);
+    test_vi(t, "tests/programs/maybe_set.vi", b"", ".txt", true);
+    test_vi(t, "tests/programs/no_return.vi", b"", ".txt", true);
+    test_vi(t, "tests/programs/option_party.vi", b"", ".txt", true);
+    test_vi(t, "tests/programs/par.vi", b"", ".txt", true);
+    test_vi(t, "tests/programs/pretty_div.vi", b"", ".txt", true);
+    test_vi(t, "tests/programs/segmented_sieve.vi", b"", ".txt", false);
+    test_vi(t, "tests/programs/sieve.vi", b"", ".txt", false);
+    test_vi(t, "tests/programs/so_random.vi", b"", ".txt", true);
+    test_vi(t, "tests/programs/specializations.vi", b"", ".txt", true);
+    test_vi(t, "tests/programs/square_case.vi", b"", ".txt", true);
+    test_vi(t, "tests/programs/verbose_add.vi", b"", ".txt", true);
 
     for (name, _) in t.glob_in("programs/aoc_2024/", "*.vi") {
       let name: String = name.into();
       let input = fs::read(format!("tests/programs/aoc_2024/input/{name}")).unwrap();
-      test_vi(t, leak(format!("tests/programs/aoc_2024/{name}.vi")), leak(input), ".txt");
+      test_vi(t, leak(format!("tests/programs/aoc_2024/{name}.vi")), leak(input), ".txt", true);
     }
 
     t.group("fmt", |t| {
@@ -108,7 +108,13 @@ fn tests(t: &mut DynTester) {
 const VINE: &[&str] = &["vine", "--release"];
 const IVY: &[&str] = &["ivy", "--release"];
 
-fn test_vi(t: &mut DynTester, path: &'static str, input: &'static [u8], output_ext: &'static str) {
+fn test_vi(
+  t: &mut DynTester,
+  path: &'static str,
+  input: &'static [u8],
+  output_ext: &'static str,
+  breadth_first: bool,
+) {
   let name =
     path.strip_prefix("tests/programs/").or(path.strip_prefix("vine/examples/")).unwrap_or(path);
   let name = name.strip_suffix(".vi").unwrap_or(name);
@@ -123,7 +129,7 @@ fn test_vi(t: &mut DynTester, path: &'static str, input: &'static [u8], output_e
     t.test("run", move || {
       let path = receiver.recv().unwrap();
       let path = path.as_os_str().to_str().unwrap();
-      run_iv("vine", name, path, input, output_ext);
+      run_iv("vine", name, path, input, output_ext, breadth_first);
     });
   });
 }
@@ -162,12 +168,23 @@ fn test_vi_fmt(t: &mut DynTester, path: &'static str) {
 fn test_iv(t: &mut DynTester, path: &'static str, input: &'static [u8], output_ext: &'static str) {
   let name = Path::file_stem(path.as_ref()).unwrap().to_str().unwrap();
   t.test(name, || {
-    run_iv("ivy", name, path, input, output_ext);
+    run_iv("ivy", name, path, input, output_ext, false);
   });
 }
 
-fn run_iv(group: &str, name: &str, path: &str, input: &[u8], output_ext: &str) {
-  let (stdout, stderr) = exec(IVY, &["run", path], input, true);
+fn run_iv(
+  group: &str,
+  name: &str,
+  path: &str,
+  input: &[u8],
+  output_ext: &str,
+  breadth_first: bool,
+) {
+  let mut args = vec!["run", path];
+  if breadth_first {
+    args.push("--breadth-first");
+  }
+  let (stdout, stderr) = exec(IVY, &args, input, true);
   test_snapshot(&[group, name, &format!("output{output_ext}")], &stdout);
   let full_stats = String::from_utf8(stderr).unwrap();
   let stats = full_stats.split_once("\nPerformance").unwrap().0;

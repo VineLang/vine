@@ -17,6 +17,9 @@ pub struct Stats {
   pub call: u64,
   pub branch: u64,
 
+  /// Depth of the execution
+  pub depth: u64,
+
   /// The size of the heap, in words; a high water mark of memory usage.
   pub mem_heap: u64,
   /// The number of words allocated over the course of execution.
@@ -51,6 +54,11 @@ impl Stats {
   pub fn clock_speed(&self) -> u64 {
     (self.interactions() as f64 / self.time_clock.as_secs_f64()) as u64
   }
+
+  /// The average number of interactions per worker.
+  pub fn worker_avg(&self) -> u64 {
+    (self.interactions() as f64 / self.workers_used as f64) as u64
+  }
 }
 
 // This code is very complex, as it avoids doing any allocation. Premature
@@ -58,80 +66,88 @@ impl Stats {
 // `#![no_std]`.
 impl Display for Stats {
   fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-    let lines = [
-      ("Interactions", None),
-      ("  Total", Some((self.interactions(), ""))),
-      ("  Annihilate", Some((self.annihilate, ""))),
-      ("  Commute", Some((self.commute, ""))),
-      ("  Copy", Some((self.copy, ""))),
-      ("  Erase", Some((self.erase, ""))),
-      ("  Expand", Some((self.expand, ""))),
-      ("  Call", Some((self.call, ""))),
-      ("  Branch", Some((self.branch, ""))),
-      ("", None),
-    ]
-    .into_iter()
-    .chain((self.workers_used != 0).then_some(()).into_iter().flat_map(|_| {
-      [
+    // The match is necessary to extend the lifetime of the temporaries.
+    #[allow(clippy::match_single_binding)]
+    match &[
+      Option::<&[_]>::Some(&[
+        ("Interactions", None),
+        ("  Total", Some((self.interactions(), ""))), //
+      ]),
+      (self.depth != 0).then_some(&[
+        ("  Depth", Some((self.depth, ""))), //
+      ]),
+      Some(&[
+        ("  Annihilate", Some((self.annihilate, ""))),
+        ("  Commute", Some((self.commute, ""))),
+        ("  Copy", Some((self.copy, ""))),
+        ("  Erase", Some((self.erase, ""))),
+        ("  Expand", Some((self.expand, ""))),
+        ("  Call", Some((self.call, ""))),
+        ("  Branch", Some((self.branch, ""))),
+        ("", None),
+      ]),
+      (self.workers_used != 0).then_some(&[
         ("Workload", None),
         ("  Workers", Some((self.workers_spawned, ""))),
         ("  Active", Some((self.workers_used, ""))),
         ("  Minimum", Some((self.worker_min, ""))),
-        ("  Average", Some((((self.interactions() as f64) / self.workers_used as f64) as u64, ""))),
+        ("  Average", Some((self.worker_avg(), ""))),
         ("  Maximum", Some((self.worker_max, ""))),
         ("  Moved", Some((self.work_move, ""))),
         ("", None),
-      ]
-    }))
-    .chain([
-      ("Memory", None),
-      ("  Heap", Some((self.mem_heap * 8, "B"))),
-      ("  Allocated", Some((self.mem_alloc * 8, "B"))),
-      ("  Freed", Some((self.mem_free * 8, "B"))),
-      ("", None),
-      ("Performance", None),
-      ("  Time", Some((self.time_clock.as_millis() as u64, "ms"))),
-      ("  Speed", Some((self.clock_speed(), "IPS"))),
-    ])
-    .chain((self.workers_used != 0).then_some(()).into_iter().flat_map(|_| {
-      [
+      ]),
+      Some(&[
+        ("Memory", None),
+        ("  Heap", Some((self.mem_heap * 8, "B"))),
+        ("  Allocated", Some((self.mem_alloc * 8, "B"))),
+        ("  Freed", Some((self.mem_free * 8, "B"))),
+        ("", None),
+        ("Performance", None),
+        ("  Time", Some((self.time_clock.as_millis() as u64, "ms"))),
+        ("  Speed", Some((self.clock_speed(), "IPS"))),
+      ]),
+      (self.workers_used != 0).then_some(&[
         ("  Working", Some((self.time_total.as_millis() as u64, "ms"))),
         ("  Rate", Some((self.speed(), "IPS"))),
-      ]
-    }));
+      ]),
+    ] {
+      parts => {
+        let lines = parts.iter().flatten().copied().flatten();
 
-    let max_label_width = lines.clone().map(|x| x.0.len()).max().unwrap() + 1;
-    let max_value =
-      lines.clone().filter_map(|x| x.1).map(|x| x.0).max().unwrap().max(1_000_000_000);
-    let max_value_width = measure_int(max_value);
+        let max_label_width = lines.clone().map(|x| x.0.len()).max().unwrap() + 1;
+        let max_value =
+          lines.clone().filter_map(|x| x.1).map(|x| x.0).max().unwrap().max(1_000_000_000);
+        let max_value_width = measure_int(max_value);
 
-    for (label, value) in lines {
-      f.write_char('\n')?;
-      f.write_str(label)?;
-      if let Some((mut value, unit)) = value {
-        let value_width = measure_int(value);
-        for _ in 0..(max_label_width + 2 + max_value_width - label.len() - value_width) {
-          f.write_char(' ')?;
-        }
+        for (label, value) in lines {
+          f.write_char('\n')?;
+          f.write_str(label)?;
+          if let Some((mut value, unit)) = value {
+            let value_width = measure_int(value);
+            for _ in 0..(max_label_width + 2 + max_value_width - label.len() - value_width) {
+              f.write_char(' ')?;
+            }
 
-        let mut text_buf = [0; measure_int(u64::MAX)];
-        let mut index = text_buf.len();
-        let mut digits = 0;
-        while value != 0 || digits == 0 {
-          if digits != 0 && digits % 3 == 0 {
-            index -= 1;
-            text_buf[index] = b'_';
+            let mut text_buf = [0; measure_int(u64::MAX)];
+            let mut index = text_buf.len();
+            let mut digits = 0;
+            while value != 0 || digits == 0 {
+              if digits != 0 && digits % 3 == 0 {
+                index -= 1;
+                text_buf[index] = b'_';
+              }
+              index -= 1;
+              text_buf[index] = b'0' + (value % 10) as u8;
+              value /= 10;
+              digits += 1;
+            }
+            f.write_str(unsafe { str::from_utf8_unchecked(&text_buf[index..]) })?;
+
+            if !unit.is_empty() {
+              f.write_char(' ')?;
+              f.write_str(unit)?;
+            }
           }
-          index -= 1;
-          text_buf[index] = b'0' + (value % 10) as u8;
-          value /= 10;
-          digits += 1;
-        }
-        f.write_str(unsafe { str::from_utf8_unchecked(&text_buf[index..]) })?;
-
-        if !unit.is_empty() {
-          f.write_char(' ')?;
-          f.write_str(unit)?;
         }
       }
     }
