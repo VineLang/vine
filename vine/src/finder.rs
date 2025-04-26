@@ -10,7 +10,7 @@ use crate::{
   diag::Diag,
   signatures::Signatures,
   tir::TirImpl,
-  types::{ImplType, Type, Types},
+  types::{ImplType, Type, TypeKind, Types},
 };
 
 #[allow(clippy::too_many_arguments)]
@@ -45,7 +45,7 @@ pub fn find_impl<'core>(
   let result = results.pop().unwrap();
 
   let mut import = types.import(&result.types, None);
-  let result_ty = import.transfer_impl_type(&result.ty);
+  let result_ty = import.transfer_impl_type(&query);
   let unify_result = types.unify_impl_type(query, &result_ty);
   assert!(unify_result.is_success());
 
@@ -73,7 +73,6 @@ pub struct Timeout;
 pub struct ImplResult<'core> {
   pub types: Types<'core>,
   pub impl_: TirImpl,
-  pub ty: ImplType,
 }
 
 struct SubimplsResult<'core> {
@@ -151,9 +150,11 @@ impl<'core> Finder<'core, '_> {
     for (i, ty) in self.sigs.generics[self.generics].impl_params.iter().enumerate() {
       let mut types = types.clone();
       if types.unify_impl_type(&ty, &query).is_success() {
-        found.push(ImplResult { types, ty: ty.clone(), impl_: TirImpl::Param(i) });
+        found.push(ImplResult { types, impl_: TirImpl::Param(i) });
       }
     }
+
+    self.find_builtin_impls(types, query, &mut found);
 
     for candidate in self.find_impl_candidates(&types, &query) {
       let mut types = types.clone();
@@ -174,11 +175,8 @@ impl<'core> Finder<'core, '_> {
         let results = self.find_subimpls(types, &queries)?;
         for mut result in results {
           result.impls.reverse();
-          found.push(ImplResult {
-            types: result.types,
-            impl_: TirImpl::Def(candidate, result.impls),
-            ty: ty.clone(),
-          });
+          found
+            .push(ImplResult { types: result.types, impl_: TirImpl::Def(candidate, result.impls) });
         }
       }
     }
@@ -283,6 +281,60 @@ impl<'core> Finder<'core, '_> {
             if self.chart.visible(trait_def.vis, self.source) {
               self.find_candidates_within(trait_def.def, search);
             }
+          }
+        }
+      }
+    }
+  }
+
+  fn find_builtin_impls(
+    &self,
+    types: &Types<'core>,
+    query: &ImplType,
+    found: &mut Vec<ImplResult<'core>>,
+  ) {
+    if let ImplType::Trait(trait_id, params) = query {
+      if let [recv] = &**params {
+        if self.chart.builtins.fork == Some(*trait_id) {
+          if let Some(TypeKind::Fn(value_id, closure_id, _, impl_params, flex, _, _)) =
+            types.kind(*recv)
+          {
+            if flex.fork() {
+              found.push(ImplResult {
+                types: types.clone(),
+                impl_: TirImpl::ClosureFork(*value_id, *closure_id, impl_params.clone()),
+              });
+            }
+          }
+        }
+        if self.chart.builtins.drop == Some(*trait_id) {
+          if let Some(TypeKind::Fn(value_id, closure_id, _, impl_params, flex, _, _)) =
+            types.kind(*recv)
+          {
+            if flex.fork() {
+              found.push(ImplResult {
+                types: types.clone(),
+                impl_: TirImpl::ClosureFork(*value_id, *closure_id, impl_params.clone()),
+              });
+            }
+          }
+        }
+      }
+    }
+
+    if let ImplType::Fn(recv, args, ret) = query {
+      if let Some(TypeKind::Fn(value_id, closure_id, _, impl_params, _, params, out)) =
+        types.kind(*recv)
+      {
+        if params.len() == impl_params.len() {
+          let mut types = types.clone();
+          if params.iter().zip(args).all(|(a, b)| types.unify(*a, *b).is_success())
+            && types.unify(*ret, *out).is_success()
+          {
+            found.push(ImplResult {
+              types,
+              impl_: TirImpl::ClosureFn(*value_id, *closure_id, impl_params.clone()),
+            })
           }
         }
       }

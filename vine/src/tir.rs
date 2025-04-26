@@ -173,9 +173,9 @@ pub enum TirPatKind {
 pub enum TirImpl {
   Param(usize),
   Def(ImplDefId, Vec<TirImpl>),
-  ClosureFn(ValueDefId, ClosureId),
-  ClosureFork(ValueDefId, ClosureId),
-  ClosureDrop(ValueDefId, ClosureId),
+  ClosureFn(ValueDefId, ClosureId, Vec<TirImpl>),
+  ClosureFork(ValueDefId, ClosureId, Vec<TirImpl>),
+  ClosureDrop(ValueDefId, ClosureId, Vec<TirImpl>),
   Error(ErrorGuaranteed),
 }
 

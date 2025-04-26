@@ -9,7 +9,7 @@ use vine_util::{
 };
 
 use crate::{
-  ast::{Ident, TypeItem},
+  ast::{Flex, Ident},
   chart::{AdtId, Chart, DefId, TraitDefId, TypeDefId, ValueDefId},
   diag::ErrorGuaranteed,
   tir::{ClosureId, TirImpl},
@@ -25,8 +25,7 @@ pub enum TypeKind<'core> {
   Adt(AdtId, Vec<Type>),
   Ref(Type),
   Inverse(Type),
-  Fn(ValueDefId, Vec<Type>, Vec<TirImpl>, Vec<Type>, Type),
-  Closure(ClosureId),
+  Fn(ValueDefId, ClosureId, Vec<Type>, Vec<TirImpl>, Flex, Vec<Type>, Type),
   Param(usize, Ident<'core>),
   Never,
   Error(ErrorGuaranteed),
@@ -116,7 +115,6 @@ impl<'core> Types<'core> {
         (TypeKind::Error(e), _) | (_, TypeKind::Error(e)) => Unknown(*e),
         (TypeKind::Opaque(i), TypeKind::Opaque(j)) if *i == *j => Success,
         (TypeKind::Param(i, _), TypeKind::Param(j, _)) if *i == *j => Success,
-        (TypeKind::Closure(i), TypeKind::Closure(j)) if *i == *j => Success,
         (TypeKind::Tuple(a), TypeKind::Tuple(b)) if a.len() == b.len() => {
           UnifyResult::all(a.iter().zip(b).map(|(a, b)| self.unify(*a, *b)))
         }
@@ -131,7 +129,9 @@ impl<'core> Types<'core> {
         }
         (TypeKind::Ref(a), TypeKind::Ref(b)) => self.unify(*a, *b),
         (TypeKind::Inverse(a), TypeKind::Inverse(b)) => self.unify(*a, *b),
-        (TypeKind::Fn(a, p, x, _, _), TypeKind::Fn(b, q, y, _, _)) if a == b && x == y => {
+        (TypeKind::Fn(a, i, p, x, _, _, _), TypeKind::Fn(b, j, q, y, _, _, _))
+          if a == b && i == j && x == y =>
+        {
           UnifyResult::all(p.iter().zip(q).map(|(a, b)| self.unify(*a, *b)))
         }
         (TypeKind::Never, TypeKind::Never) => Success,
@@ -257,14 +257,12 @@ impl<'core> Types<'core> {
             *str += chart.adts[*adt_id].name.0 .0;
             self._show_params(chart, params, str);
           }
-          TypeKind::Closure(closure_id) => {
-            *str += "fn#";
-            write!(*str, "{}", closure_id.0).unwrap();
-          }
-          TypeKind::Fn(value_id, params, _, _, _) => {
+          TypeKind::Fn(value_id, closure_id, params, _, _, _, _) => {
             *str += "fn";
             *str += " ";
             *str += chart.defs[chart.values[*value_id].def].name.0 .0;
+            *str += "#";
+            write!(*str, "{}", closure_id.0).unwrap();
             self._show_params(chart, params, str);
           }
           TypeKind::Param(_, name) => *str += name.0 .0,
@@ -343,7 +341,6 @@ impl<'core> Types<'core> {
       TypeKind::Adt(id, _) => Some(chart.adts[*id].def),
       TypeKind::Ref(inner) | TypeKind::Inverse(inner) => self.get_mod(chart, *inner),
       TypeKind::Fn(..)
-      | TypeKind::Closure(_)
       | TypeKind::Param(..)
       | TypeKind::Tuple(..)
       | TypeKind::Object(..)
@@ -446,14 +443,15 @@ impl<'core> TypeKind<'core> {
       TypeKind::Adt(i, els) => TypeKind::Adt(*i, els.iter().copied().map(f).collect()),
       TypeKind::Ref(t) => TypeKind::Ref(f(*t)),
       TypeKind::Inverse(t) => TypeKind::Inverse(f(*t)),
-      TypeKind::Fn(i, p, x, q, r) => TypeKind::Fn(
+      TypeKind::Fn(a, i, p, x, l, q, r) => TypeKind::Fn(
+        *a,
         *i,
         p.iter().copied().map(&mut f).collect(),
         x.clone(),
+        *l,
         q.iter().copied().map(&mut f).collect(),
         f(*r),
       ),
-      TypeKind::Closure(i) => TypeKind::Closure(*i),
       TypeKind::Param(i, n) => TypeKind::Param(*i, *n),
       TypeKind::Never => TypeKind::Never,
       TypeKind::Error(err) => TypeKind::Error(*err),

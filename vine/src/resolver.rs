@@ -4,8 +4,8 @@ use vine_util::idx::{Counter, IdxVec};
 
 use crate::{
   ast::{
-    Block, Expr, ExprKind, GenericArgs, Ident, LogicalOp, Pat, PatKind, Span, Stmt, StmtKind, Ty,
-    TyKind,
+    Block, Expr, ExprKind, Flex, GenericArgs, Ident, LogicalOp, Pat, PatKind, Span, Stmt, StmtKind,
+    Ty, TyKind,
   },
   chart::{Builtins, Chart, DefId, GenericsId, TypeDefId, ValueDefId, VariantId},
   core::Core,
@@ -33,6 +33,7 @@ pub struct Resolver<'core, 'ctx> {
   loops: Vec<LabelId>,
   labels: IdxVec<LabelId, LabelInfo>,
   closures: IdxVec<ClosureId, TirClosure<'core>>,
+  cur_value_def: ValueDefId,
   cur_def: DefId,
   cur_generics: GenericsId,
   bindings: HashMap<Ident<'core>, Vec<(usize, Binding)>>,
@@ -159,12 +160,13 @@ impl<'core> Resolver<'core, '_> {
           (result, TirExprKind::Loop(id, block))
         })
       }
-      ExprKind::Fn(flex, params, ty, body) => {
-        let params = params.iter().map(|p| self.resolve_pat(p)).collect();
-        let ty = ty.as_ref().map(|t| self.resolve_ty(t)).unwrap_or_else(|| self.types.new_var());
-        let body = self.resolve_block_ty(body, ty);
+      ExprKind::Fn(flex, params, ret, body) => {
+        let params = params.iter().map(|p| self.resolve_pat(p)).collect::<Vec<_>>();
+        let ret = ret.as_ref().map(|t| self.resolve_ty(t)).unwrap_or_else(|| self.types.new_var());
+        let body = self.resolve_block_ty(body, ret);
+        let param_tys = params.iter().map(|p| p.ty).collect();
         let id = self.closures.push(TirClosure { flex: *flex, params, body });
-        (self.types.new(TypeKind::Closure(id)), TirExprKind::Closure(id))
+        (self.fn_type(id, *flex, param_tys, ret), TirExprKind::Closure(id))
       }
       ExprKind::Return(value) => {
         if let Some(ty) = self.return_ty {
@@ -383,6 +385,10 @@ impl<'core> Resolver<'core, '_> {
     })
   }
 
+  fn fn_type(&mut self, id: ClosureId, flex: Flex, params: Vec<Type>, ret: Type) -> Type {
+    self.types.new(TypeKind::Fn(self.cur_value_def, id, todo!(), todo!(), flex, params, ret))
+  }
+
   fn resolve_cond(&mut self, bool: Type, expr: &Expr<'core>) -> TirExpr<'core> {
     TirExpr { span: expr.span, ty: bool, kind: self._resolve_cond(bool, expr) }
   }
@@ -599,12 +605,13 @@ impl<'core> Resolver<'core, '_> {
       kind: match &stmt.kind {
         StmtKind::Let(l) => todo!(),
         StmtKind::LetFn(l) => {
-          let params = l.params.iter().map(|p| self.resolve_pat(p)).collect();
+          let params = l.params.iter().map(|p| self.resolve_pat(p)).collect::<Vec<_>>();
           let ret =
             l.ret.as_ref().map(|t| self.resolve_ty(t)).unwrap_or_else(|| self.types.new_var());
           let body = self.resolve_block_ty(&l.body, ret);
+          let param_tys = params.iter().map(|p| p.ty).collect();
           let id = self.closures.push(TirClosure { flex: l.flex, params, body });
-          let ty = self.types.new(TypeKind::Closure(id));
+          let ty = self.fn_type(id, l.flex, param_tys, ret);
           self.bind(l.name, Binding::Closure(id, ty));
           None?
         }
