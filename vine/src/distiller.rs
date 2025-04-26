@@ -1,7 +1,4 @@
-use std::{
-  collections::BTreeMap,
-  mem::{replace, take},
-};
+use std::mem::{replace, take};
 
 use vine_util::{
   idx::{Counter, IdxVec},
@@ -10,7 +7,7 @@ use vine_util::{
 
 use crate::{
   analyzer::usage::Usage,
-  chart::{AdtId, Chart, ValueDef, ValueDefKind, VariantId},
+  chart::Chart,
   core::Core,
   diag::Diag,
   tir::{ClosureId, LabelId, Local, TirExpr, TirExprKind, TirPat, TirPatKind},
@@ -155,10 +152,11 @@ impl<'core, 'r> Distiller<'core, 'r> {
       TirExprKind::Composite(els) => {
         self.distill_vec(stage, els, Self::distill_expr_value, Step::Composite)
       }
-      TirExprKind::Adt(adt_id, variant_id, data) => {
+      TirExprKind::Struct(_, data) => self.distill_expr_value(stage, data),
+      TirExprKind::Enum(enum_id, variant_id, data) => {
         let data = data.as_ref().map(|e| self.distill_expr_value(stage, e));
         let wire = stage.new_wire();
-        stage.steps.push(Step::Adt(wire.0, *adt_id, *variant_id, data));
+        stage.steps.push(Step::Enum(wire.0, *enum_id, *variant_id, data));
         wire.1
       }
       TirExprKind::List(list) => {
@@ -260,10 +258,7 @@ impl<'core, 'r> Distiller<'core, 'r> {
       TirExprKind::Composite(els) => {
         self.distill_vec(stage, els, Self::distill_expr_space, Step::Composite)
       }
-      TirExprKind::Adt(adt_id, variant_id, data) => {
-        // todo
-        data.as_ref().map(|e| self.distill_expr_space(stage, e)).unwrap_or(Port::Erase)
-      }
+      TirExprKind::Struct(_, data) => self.distill_expr_space(stage, data),
       TirExprKind::Local(local) => stage.hedge_local(*local),
       TirExprKind::Unwrap(inner) => self.distill_expr_space(stage, inner),
     }
@@ -292,13 +287,7 @@ impl<'core, 'r> Distiller<'core, 'r> {
       TirExprKind::Composite(els) => {
         self.distill_vec_pair(stage, els, Self::distill_expr_place, Step::Composite)
       }
-      TirExprKind::Adt(adt_id, variant_id, data) => {
-        // todo
-        data
-          .as_ref()
-          .map(|e| self.distill_expr_place(stage, e))
-          .unwrap_or((Port::Erase, Port::Erase))
-      }
+      TirExprKind::Struct(_, data) => self.distill_expr_place(stage, data),
       TirExprKind::Field(tuple, idx, len) => {
         let tuple = self.distill_expr_place(stage, tuple);
         let (mut values, spaces) =
@@ -319,6 +308,7 @@ impl<'core, 'r> Distiller<'core, 'r> {
     match &pat.kind {
       TirPatKind::Error(e) => Port::Error(*e),
       TirPatKind::Deref(_) => Port::Error(self.core.report(Diag::DerefNonPlacePat { span })),
+      TirPatKind::Enum(..) => Port::Error(self.core.report(Diag::ExpectedCompletePat { span })),
       TirPatKind::Hole => Port::Erase,
       TirPatKind::Inverse(inner) => self.distill_pat_space(stage, inner),
       TirPatKind::Local(local) => {
@@ -328,10 +318,7 @@ impl<'core, 'r> Distiller<'core, 'r> {
       TirPatKind::Composite(els) => {
         self.distill_vec(stage, els, Self::distill_pat_value, Step::Composite)
       }
-      TirPatKind::Adt(adt_id, variant_id, data) => {
-        // todo
-        data.as_ref().map(|e| self.distill_pat_value(stage, e)).unwrap_or(Port::Erase)
-      }
+      TirPatKind::Struct(_, data) => self.distill_pat_value(stage, data),
       TirPatKind::Ref(place) => {
         let (value, space) = self.distill_pat_place(stage, place);
         let wire = stage.new_wire();
@@ -347,6 +334,7 @@ impl<'core, 'r> Distiller<'core, 'r> {
       TirPatKind::Error(e) => Port::Error(*e),
       TirPatKind::Deref(_) => Port::Error(self.core.report(Diag::DerefNonPlacePat { span })),
       TirPatKind::Ref(_) => Port::Error(self.core.report(Diag::RefSpacePat { span })),
+      TirPatKind::Enum(..) => Port::Error(self.core.report(Diag::ExpectedCompletePat { span })),
       TirPatKind::Hole => Port::Erase,
       TirPatKind::Inverse(inner) => self.distill_pat_value(stage, inner),
       TirPatKind::Local(local) => {
@@ -356,16 +344,18 @@ impl<'core, 'r> Distiller<'core, 'r> {
       TirPatKind::Composite(els) => {
         self.distill_vec(stage, els, Self::distill_pat_space, Step::Composite)
       }
-      TirPatKind::Adt(adt_id, variant_id, data) => {
-        // todo
-        data.as_ref().map(|e| self.distill_pat_space(stage, e)).unwrap_or(Port::Erase)
-      }
+      TirPatKind::Struct(_, data) => self.distill_pat_space(stage, data),
     }
   }
 
   fn distill_pat_place(&mut self, stage: &mut Stage, pat: &TirPat) -> (Port, Port) {
+    let span = pat.span;
     match &pat.kind {
       TirPatKind::Error(e) => (Port::Error(*e), Port::Error(*e)),
+      TirPatKind::Enum(..) => {
+        let e = self.core.report(Diag::ExpectedCompletePat { span });
+        (Port::Error(e), Port::Error(e))
+      }
       TirPatKind::Hole => stage.new_wire(),
       TirPatKind::Inverse(inner) => {
         let (value, space) = self.distill_pat_place(stage, inner);
@@ -379,13 +369,7 @@ impl<'core, 'r> Distiller<'core, 'r> {
       TirPatKind::Composite(els) => {
         self.distill_vec_pair(stage, els, Self::distill_pat_place, Step::Composite)
       }
-      TirPatKind::Adt(adt_id, variant_id, data) => {
-        // todo
-        data
-          .as_ref()
-          .map(|e| self.distill_pat_place(stage, e))
-          .unwrap_or((Port::Erase, Port::Erase))
-      }
+      TirPatKind::Struct(_, data) => self.distill_pat_place(stage, data),
       TirPatKind::Ref(place) => {
         let (value_0, value_1) = self.distill_pat_place(stage, place);
         let ref_in = stage.new_wire();

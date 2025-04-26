@@ -62,7 +62,8 @@ pub struct TypeItem<'core> {
 pub struct StructItem<'core> {
   pub name: Ident<'core>,
   pub generics: GenericParams<'core>,
-  pub data: Option<(Vis<'core>, Ty<'core>)>,
+  pub data_vis: Vis<'core>,
+  pub data: Ty<'core>,
 }
 
 #[derive(Debug, Clone)]

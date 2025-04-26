@@ -9,7 +9,7 @@ use vine_util::{
 
 use crate::{
   analyzer::{usage::Usage, UsageVar},
-  chart::{AdtId, ValueDefId, VariantId},
+  chart::{EnumId, ValueDefId, VariantId},
   diag::ErrorGuaranteed,
   tir::Local,
 };
@@ -75,7 +75,7 @@ impl Interface {
 pub enum InterfaceKind {
   Unconditional(StageId),
   Branch([StageId; 2]),
-  Match(AdtId, Vec<StageId>),
+  Match(EnumId, IdxVec<VariantId, StageId>),
 }
 
 impl InterfaceKind {
@@ -83,7 +83,7 @@ impl InterfaceKind {
     match self {
       InterfaceKind::Unconditional(s) => slice::from_ref(s),
       InterfaceKind::Branch(s) => s,
-      InterfaceKind::Match(_, s) => s,
+      InterfaceKind::Match(_, s) => &s.vec,
     }
   }
 }
@@ -110,7 +110,7 @@ pub enum Step {
 
   Fn(Port, Vec<Port>, Port),
   Composite(Port, Vec<Port>),
-  Adt(Port, AdtId, VariantId, Option<Port>),
+  Enum(Port, EnumId, VariantId, Option<Port>),
   Ref(Port, Port, Port),
   ExtFn(&'static str, bool, Port, Port, Port),
   Dup(Port, Port, Port),
@@ -121,7 +121,7 @@ pub enum Step {
 
 impl Step {
   pub fn ports(&self) -> impl Iterator<Item = &Port> {
-    multi_iter!(Ports { Zero, Two, Three, Invoke, Transfer, Composite, Adt, Fn, String, Ivy });
+    multi_iter!(Ports { Zero, Two, Three, Invoke, Transfer, Composite, Enum, Fn, String, Ivy });
     match self {
       Step::Invoke(_, invocation) => Ports::Invoke(invocation.ports()),
       Step::Transfer(transfer) | Step::Diverge(_, Some(transfer)) => {
@@ -133,7 +133,7 @@ impl Step {
       Step::Composite(port, ports) | Step::List(port, ports) => {
         Ports::Composite([port].into_iter().chain(ports))
       }
-      Step::Adt(port, _, _, data) => Ports::Adt([port].into_iter().chain(data)),
+      Step::Enum(port, _, _, data) => Ports::Enum([port].into_iter().chain(data)),
       Step::Ref(a, b, c) | Step::ExtFn(_, _, a, b, c) | Step::Dup(a, b, c) => {
         Ports::Three([a, b, c])
       }

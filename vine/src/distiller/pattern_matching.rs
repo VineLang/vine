@@ -5,11 +5,11 @@ use std::{
 
 use vine_util::{
   idx::{IdxVec, RangeExt},
-  multi_iter, new_idx,
+  new_idx,
 };
 
 use crate::{
-  chart::{AdtId, VariantId},
+  chart::EnumId,
   tir::{Local, TirPat, TirPatKind},
   vir::{Interface, InterfaceId, InterfaceKind, Layer, Port, Stage, Step, Transfer},
 };
@@ -74,7 +74,7 @@ enum MatchKind {
   Ref,
   Inverse,
   Composite(usize),
-  Adt(AdtId),
+  Enum(EnumId),
 }
 
 impl<'core, 'd, 'r> Matcher<'core, 'd, 'r> {
@@ -87,7 +87,7 @@ impl<'core, 'd, 'r> Matcher<'core, 'd, 'r> {
       let mut kind = None;
       for row in &mut rows {
         if let Entry::Occupied(mut e) = row.cells.entry(var) {
-          let row_kind = self.match_kind(e.get_mut());
+          let row_kind = Self::match_kind(e.get_mut());
           if let Some(row_kind) = row_kind {
             assert!(kind.is_none_or(|kind| kind == row_kind));
             kind = Some(row_kind);
@@ -180,18 +180,16 @@ impl<'core, 'd, 'r> Matcher<'core, 'd, 'r> {
             }
           }
 
-          multi_iter! { Iter { Composite, Adt } }
           self.eliminate_col(&mut rows, var, |p| match &p.kind {
-            TirPatKind::Composite(els) => Iter::Composite(new_vars.iter().zip(els)),
-            TirPatKind::Adt(.., data) => Iter::Adt(new_vars.iter().zip(data.as_deref())),
+            TirPatKind::Composite(els) => new_vars.iter().zip(els),
             _ => unreachable!(),
           });
         }
 
-        MatchKind::Adt(adt_id) => {
-          let adt = &self.distiller.chart.adts[adt_id];
+        MatchKind::Enum(enum_id) => {
+          let enum_ = &self.distiller.chart.enums[enum_id];
           let interface = self.distiller.interfaces.push(None);
-          let stages = adt
+          let stages = enum_
             .variants
             .iter()
             .map(|(variant_id, variant)| {
@@ -203,7 +201,7 @@ impl<'core, 'd, 'r> Matcher<'core, 'd, 'r> {
                 .iter()
                 .filter(|r| {
                   r.cells.get(&var).is_none_or(
-                    |p| matches!(&p.kind, TirPatKind::Adt(_, i, ..) if *i == variant_id),
+                    |p| matches!(&p.kind, TirPatKind::Enum(_, i, ..) if *i == variant_id),
                   )
                 })
                 .cloned()
@@ -215,7 +213,7 @@ impl<'core, 'd, 'r> Matcher<'core, 'd, 'r> {
                 let (result, header) = opt_tuple(new_local.map(|l| stage.mut_local(l)));
                 stage.header.extend(header);
                 let adt = stage.new_wire();
-                stage.steps.push(Step::Adt(adt.0, adt_id, variant_id, result));
+                stage.steps.push(Step::Enum(adt.0, enum_id, variant_id, result));
                 stage.set_local_to(local, adt.1);
               } else {
                 let local = new_local.map(|l| stage.set_local(l));
@@ -223,7 +221,7 @@ impl<'core, 'd, 'r> Matcher<'core, 'd, 'r> {
               }
 
               self.eliminate_col(&mut rows, var, |p| match &p.kind {
-                TirPatKind::Adt(.., data) => new_var.into_iter().zip(data.as_deref()),
+                TirPatKind::Enum(.., data) => new_var.into_iter().zip(data.as_deref()),
                 _ => unreachable!(),
               });
 
@@ -233,9 +231,10 @@ impl<'core, 'd, 'r> Matcher<'core, 'd, 'r> {
               self.distiller.finish_stage(stage);
               stage_id
             })
-            .collect::<Vec<_>>();
+            .collect::<Vec<_>>()
+            .into();
           self.distiller.interfaces[interface] =
-            Some(Interface::new(interface, layer.id, InterfaceKind::Match(adt_id, stages)));
+            Some(Interface::new(interface, layer.id, InterfaceKind::Match(enum_id, stages)));
           let value = stage.take_local(local);
           stage.transfer = Some(Transfer { interface, data: Some(value) });
           return;
@@ -282,27 +281,24 @@ impl<'core, 'd, 'r> Matcher<'core, 'd, 'r> {
   }
 
   fn add_to_row<'p>(&self, row: &mut Row<'p>, var: VarId, mut pat: &'p TirPat) {
-    if self.match_kind(&mut pat).is_some() {
+    if Self::match_kind(&mut pat).is_some() {
       row.cells.insert(var, pat);
     } else {
       row.bindings.push((var, pat));
     }
   }
 
-  fn match_kind(&self, pat: &mut &TirPat) -> Option<MatchKind> {
+  fn match_kind(pat: &mut &TirPat) -> Option<MatchKind> {
     loop {
       return match &pat.kind {
         TirPatKind::Error(_) => unreachable!(),
         TirPatKind::Hole | TirPatKind::Local(_) => None,
-        TirPatKind::Adt(adt_id, _, _) => {
-          let adt_def = &self.distiller.chart.adts[*adt_id];
-          if adt_def.variants.len() == 1 {
-            Some(MatchKind::Composite(adt_def.variants[VariantId(0)].data.is_some() as usize))
-          } else {
-            Some(MatchKind::Adt(*adt_id))
-          }
+        TirPatKind::Struct(_, p) => {
+          *pat = p;
+          continue;
         }
-        TirPatKind::Ref(p) => self.match_kind(&mut &**p).map(|_| MatchKind::Ref),
+        TirPatKind::Enum(enum_id, _, _) => Some(MatchKind::Enum(*enum_id)),
+        TirPatKind::Ref(p) => Self::match_kind(&mut &**p).map(|_| MatchKind::Ref),
         TirPatKind::Deref(p) => {
           if let TirPatKind::Ref(p) = &p.kind {
             *pat = p;
@@ -319,7 +315,7 @@ impl<'core, 'd, 'r> Matcher<'core, 'd, 'r> {
             *pat = p;
             continue;
           }
-          self.match_kind(&mut &**p).map(|_| MatchKind::Inverse)
+          Self::match_kind(&mut &**p).map(|_| MatchKind::Inverse)
         }
         TirPatKind::Composite(e) => Some(MatchKind::Composite(e.len())),
       };

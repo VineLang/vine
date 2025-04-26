@@ -10,7 +10,7 @@ use vine_util::{
 
 use crate::{
   ast::{Flex, Ident},
-  chart::{AdtId, Chart, DefId, TraitDefId, TypeDefId, ValueDefId},
+  chart::{Chart, DefId, EnumId, StructId, TraitDefId, TypeDefId, ValueDefId},
   diag::ErrorGuaranteed,
   tir::{ClosureId, TirImpl},
 };
@@ -22,7 +22,8 @@ pub enum TypeKind<'core> {
   Opaque(TypeDefId),
   Tuple(Vec<Type>),
   Object(BTreeMap<Ident<'core>, Type>),
-  Adt(AdtId, Vec<Type>),
+  Struct(StructId, Vec<Type>),
+  Enum(EnumId, Vec<Type>),
   Ref(Type),
   Inverse(Type),
   Fn(ValueDefId, ClosureId, Vec<Type>, Vec<TirImpl>, Flex, Vec<Type>, Type),
@@ -124,7 +125,10 @@ impl<'core> Types<'core> {
               .map(|(k, a)| if let Some(b) = b.get(k) { self.unify(*a, *b) } else { Failure }),
           ))
         }
-        (TypeKind::Adt(i, a), TypeKind::Adt(j, b)) if *i == *j && a.len() == b.len() => {
+        (TypeKind::Struct(i, a), TypeKind::Struct(j, b)) if *i == *j && a.len() == b.len() => {
+          UnifyResult::all(a.iter().zip(b).map(|(a, b)| self.unify(*a, *b)))
+        }
+        (TypeKind::Enum(i, a), TypeKind::Enum(j, b)) if *i == *j && a.len() == b.len() => {
           UnifyResult::all(a.iter().zip(b).map(|(a, b)| self.unify(*a, *b)))
         }
         (TypeKind::Ref(a), TypeKind::Ref(b)) => self.unify(*a, *b),
@@ -253,8 +257,12 @@ impl<'core> Types<'core> {
             *str += "~";
             self._show(chart, *ty, str)
           }
-          TypeKind::Adt(adt_id, params) => {
-            *str += chart.adts[*adt_id].name.0 .0;
+          TypeKind::Struct(struct_id, params) => {
+            *str += chart.structs[*struct_id].name.0 .0;
+            self._show_params(chart, params, str);
+          }
+          TypeKind::Enum(enum_id, params) => {
+            *str += chart.enums[*enum_id].name.0 .0;
             self._show_params(chart, params, str);
           }
           TypeKind::Fn(value_id, closure_id, params, _, _, _, _) => {
@@ -338,7 +346,8 @@ impl<'core> Types<'core> {
   pub fn get_mod(&self, chart: &Chart, ty: Type) -> Option<DefId> {
     match self.kind(ty).as_ref()? {
       TypeKind::Opaque(id) => Some(chart.types[*id].def),
-      TypeKind::Adt(id, _) => Some(chart.adts[*id].def),
+      TypeKind::Struct(id, _) => Some(chart.structs[*id].def),
+      TypeKind::Enum(id, _) => Some(chart.enums[*id].def),
       TypeKind::Ref(inner) | TypeKind::Inverse(inner) => self.get_mod(chart, *inner),
       TypeKind::Fn(..)
       | TypeKind::Param(..)
@@ -440,7 +449,8 @@ impl<'core> TypeKind<'core> {
       TypeKind::Opaque(i) => TypeKind::Opaque(*i),
       TypeKind::Tuple(els) => TypeKind::Tuple(els.iter().copied().map(f).collect()),
       TypeKind::Object(els) => TypeKind::Object(els.iter().map(|(&k, &v)| (k, f(v))).collect()),
-      TypeKind::Adt(i, els) => TypeKind::Adt(*i, els.iter().copied().map(f).collect()),
+      TypeKind::Struct(i, els) => TypeKind::Struct(*i, els.iter().copied().map(f).collect()),
+      TypeKind::Enum(i, els) => TypeKind::Enum(*i, els.iter().copied().map(f).collect()),
       TypeKind::Ref(t) => TypeKind::Ref(f(*t)),
       TypeKind::Inverse(t) => TypeKind::Inverse(f(*t)),
       TypeKind::Fn(a, i, p, x, l, q, r) => TypeKind::Fn(

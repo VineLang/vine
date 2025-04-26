@@ -70,11 +70,7 @@ impl<'core: 'src, 'src> Formatter<'src> {
           Doc("struct "),
           Doc(s.name),
           self.fmt_generic_params(&s.generics),
-          if let Some((vis, data)) = &s.data {
-            Doc::paren(Doc::concat([self.fmt_vis(vis), self.fmt_ty(data)]))
-          } else {
-            Doc("")
-          },
+          Doc::paren(Doc::concat([self.fmt_vis(&s.data_vis), self.fmt_ty(&s.data)])),
         ]),
         ItemKind::Enum(e) => Doc::concat([
           Doc("enum "),

@@ -9,7 +9,7 @@ use vine_util::{
 
 use crate::{
   ast::{Flex, Ident, LogicalOp, Span},
-  chart::{AdtId, ImplDefId, ValueDefId, VariantId},
+  chart::{EnumId, ImplDefId, StructId, ValueDefId, VariantId},
   diag::ErrorGuaranteed,
   types::Type,
 };
@@ -113,7 +113,9 @@ pub enum TirExprKind<'core> {
   #[class(value)]
   Call(TirImpl, B<TirExpr<'core>>, Vec<TirExpr<'core>>),
   #[class(value, place, space)]
-  Adt(AdtId, VariantId, Option<B<TirExpr<'core>>>),
+  Struct(StructId, B<TirExpr<'core>>),
+  #[class(value)]
+  Enum(EnumId, VariantId, Option<B<TirExpr<'core>>>),
   #[class(value, place, space)]
   Composite(Vec<TirExpr<'core>>),
   #[class(value, cond)]
@@ -151,21 +153,14 @@ pub struct TirPat {
 #[derive(Default, Debug, Clone, Classes)]
 pub enum TirPatKind {
   #[default]
-  #[class(value, place, space)]
   Hole,
-  #[class(value, place, space)]
   Composite(Vec<TirPat>),
-  #[class(value, place, space)]
-  Adt(AdtId, VariantId, Option<B<TirPat>>),
-  #[class(value, place, space)]
+  Struct(StructId, B<TirPat>),
+  Enum(EnumId, VariantId, Option<B<TirPat>>),
   Local(Local),
-  #[class(value, place)]
   Ref(B<TirPat>),
-  #[class(place)]
   Deref(B<TirPat>),
-  #[class(value, place, space)]
   Inverse(B<TirPat>),
-  #[class(error)]
   Error(ErrorGuaranteed),
 }
 

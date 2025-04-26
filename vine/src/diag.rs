@@ -200,8 +200,6 @@ diags! {
     ["circular import"]
   UnwrapNonStruct
     ["only struct types can be unwrapped"]
-  UnwrapNilStruct
-    ["this struct type has no data"]
 }
 
 fn plural<'a>(n: usize, plural: &'a str, singular: &'a str) -> &'a str {

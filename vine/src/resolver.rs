@@ -267,7 +267,7 @@ impl<'core> Resolver<'core, '_> {
         let list = self.require_builtin(span, "List", |b| b.list)?;
         let el_ty = self.types.new_var();
         let els = els.iter().map(|e| self.resolve_expr_ty(e, el_ty)).collect();
-        (self.types.new(TypeKind::Adt(list, vec![el_ty])), TirExprKind::List(els))
+        (self.types.new(TypeKind::Struct(list, vec![el_ty])), TirExprKind::List(els))
       }
       ExprKind::TupleField(tuple, index) => {
         let tuple = self.resolve_expr(tuple);
@@ -281,19 +281,12 @@ impl<'core> Resolver<'core, '_> {
       }
       ExprKind::Unwrap(struct_) => {
         let struct_ = self.resolve_expr(struct_);
-        let Some(TypeKind::Adt(adt_id, type_params)) = self.types.kind(struct_.ty) else {
+        let Some(TypeKind::Struct(struct_id, type_params)) = self.types.kind(struct_.ty) else {
           Err(Diag::UnwrapNonStruct { span })?
         };
-        let adt = &self.chart.adts[*adt_id];
-        if !adt.is_struct {
-          Err(Diag::UnwrapNonStruct { span })?
-        }
-        let sig = &self.sigs.adts[*adt_id];
-        let Some(data) = sig.variant_data[VariantId(0)] else {
-          Err(Diag::UnwrapNilStruct { span })?
-        };
+        let sig = &self.sigs.structs[*struct_id];
         let type_params = type_params.clone();
-        let ty = self.types.import(&sig.types, Some(&type_params)).transfer(data);
+        let ty = self.types.import(&sig.types, Some(&type_params)).transfer(sig.data);
         (ty, TirExprKind::Unwrap(Box::new(struct_)))
       }
       ExprKind::Method(expr, ident, generics, exprs) => todo!(),
@@ -359,7 +352,7 @@ impl<'core> Resolver<'core, '_> {
       }
       ExprKind::String(init, rest) => {
         let string = self.require_builtin(span, "String", |b| b.string)?;
-        let string = self.types.new(TypeKind::Adt(string, vec![]));
+        let string = self.types.new(TypeKind::Struct(string, vec![]));
         let rest = rest
           .iter()
           .map(|(value, seg)| {
@@ -634,15 +627,10 @@ impl<'core> Resolver<'core, '_> {
             return Ok((els.len(), els[index]));
           }
         }
-        Some(TypeKind::Adt(adt_id, type_params)) => {
-          let adt = &self.chart.adts[*adt_id];
-          if adt.is_struct {
-            let sig = &self.sigs.adts[*adt_id];
-            if let Some(data) = sig.variant_data[VariantId(0)] {
-              ty = self.types.import(&sig.types, Some(&type_params.clone())).transfer(data);
-              continue;
-            }
-          }
+        Some(TypeKind::Struct(adt_id, type_params)) => {
+          let sig = &self.sigs.structs[*adt_id];
+          ty = self.types.import(&sig.types, Some(&type_params.clone())).transfer(sig.data);
+          continue;
         }
         Some(TypeKind::Error(err)) => return Err(*err),
         _ => {}
@@ -669,15 +657,10 @@ impl<'core> Resolver<'core, '_> {
             return Ok((index, entries.len(), ty));
           }
         }
-        Some(TypeKind::Adt(adt_id, type_params)) => {
-          let adt = &self.chart.adts[*adt_id];
-          if adt.is_struct {
-            let sig = &self.sigs.adts[*adt_id];
-            if let Some(data) = sig.variant_data[VariantId(0)] {
-              ty = self.types.import(&sig.types, Some(&type_params.clone())).transfer(data);
-              continue;
-            }
-          }
+        Some(TypeKind::Struct(adt_id, type_params)) => {
+          let sig = &self.sigs.structs[*adt_id];
+          ty = self.types.import(&sig.types, Some(&type_params.clone())).transfer(sig.data);
+          continue;
         }
         Some(TypeKind::Error(err)) => return Err(*err),
         _ => {}

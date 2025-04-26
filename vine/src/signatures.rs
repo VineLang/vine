@@ -1,7 +1,10 @@
 use vine_util::idx::IdxVec;
 
 use crate::{
-  chart::{AdtId, GenericsId, ImplDefId, SubitemId, TraitDefId, TypeDefId, ValueDefId, VariantId},
+  chart::{
+    EnumId, GenericsId, ImplDefId, StructId, SubitemId, TraitDefId, TypeDefId, ValueDefId,
+    VariantId,
+  },
   types::{ImplType, Type, Types},
 };
 
@@ -12,7 +15,8 @@ pub struct Signatures<'core> {
   pub traits: IdxVec<TraitDefId, TraitSig<'core>>,
   pub impls: IdxVec<ImplDefId, ImplSig<'core>>,
   pub generics: IdxVec<GenericsId, GenericsSig<'core>>,
-  pub adts: IdxVec<AdtId, AdtSig<'core>>,
+  pub structs: IdxVec<StructId, StructSig<'core>>,
+  pub enums: IdxVec<EnumId, EnumSig<'core>>,
 }
 
 #[derive(Debug)]
@@ -52,7 +56,13 @@ pub struct GenericsSig<'core> {
 }
 
 #[derive(Debug)]
-pub struct AdtSig<'core> {
+pub struct StructSig<'core> {
+  pub types: Types<'core>,
+  pub data: Type,
+}
+
+#[derive(Debug)]
+pub struct EnumSig<'core> {
   pub types: Types<'core>,
   pub variant_data: IdxVec<VariantId, Option<Type>>,
 }

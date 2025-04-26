@@ -206,15 +206,12 @@ impl<'core, 'src> VineParser<'core, 'src> {
     self.expect(Token::Struct)?;
     let name = self.parse_ident()?;
     let generics = self.parse_generic_params()?;
-    let data = if self.eat(Token::OpenParen)? {
-      let vis = self.parse_vis()?;
-      let ty = self.parse_ty()?;
-      Some((vis, ty))
-    } else {
-      None
-    };
+    self.expect(Token::OpenParen)?;
+    let data_vis = self.parse_vis()?;
+    let data = self.parse_ty()?;
+    self.expect(Token::CloseParen)?;
     self.eat(Token::Semi)?;
-    Ok(StructItem { name, generics, data })
+    Ok(StructItem { name, generics, data_vis, data })
   }
 
   fn parse_enum_item(&mut self) -> Parse<'core, EnumItem<'core>> {
