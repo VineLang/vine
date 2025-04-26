@@ -138,7 +138,6 @@ pub enum TirExprKind<'core> {
   CallAssign(TirImpl, B<TirExpr<'core>>, B<TirExpr<'core>>),
   #[class(value)]
   CallCompare(B<TirExpr<'core>>, Vec<(TirImpl, TirExpr<'core>)>),
-  #[class(error)]
   Error(ErrorGuaranteed),
 }
 
@@ -155,7 +154,9 @@ pub enum TirPatKind {
   #[class(value, place, space)]
   Hole,
   #[class(value, place, space)]
-  Adt(Option<(AdtId, VariantId)>, Vec<TirPat>),
+  Composite(Vec<TirPat>),
+  #[class(value, place, space)]
+  Adt(AdtId, VariantId, Option<B<TirPat>>),
   #[class(value, place, space)]
   Local(Local),
   #[class(value, place)]

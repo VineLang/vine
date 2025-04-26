@@ -486,14 +486,14 @@ impl<'core> Resolver<'core, '_> {
       }
       PatKind::Tuple(els) => {
         let (tys, els) = els.iter().map(|e| self.resolve_pat(e)).map(|e| (e.ty, e)).collect();
-        (self.types.new(TypeKind::Tuple(tys)), TirPatKind::Adt(None, els))
+        (self.types.new(TypeKind::Tuple(tys)), TirPatKind::Composite(els))
       }
       PatKind::Object(entries) => {
         let (ty, els) = self.resolve_object(span, entries, |self_, (key, value)| {
           let value = self_.resolve_pat(value);
           (key.ident, value.ty, value)
         })?;
-        (ty, TirPatKind::Adt(None, els))
+        (ty, TirPatKind::Composite(els))
       }
       PatKind::Error(err) => Err(*err)?,
     })

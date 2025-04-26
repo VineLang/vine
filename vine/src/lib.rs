@@ -5,7 +5,7 @@ pub mod charter;
 // pub mod compiler;
 pub mod core;
 pub mod diag;
-// pub mod distiller;
+pub mod distiller;
 // pub mod emitter;
 pub mod finder;
 pub mod fmt;

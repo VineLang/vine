@@ -10,7 +10,7 @@ use vine_util::{
 use crate::{
   analyzer::{usage::Usage, UsageVar},
   chart::{AdtId, ValueDefId, VariantId},
-  // specializer::RelId,
+  diag::ErrorGuaranteed,
   tir::Local,
 };
 
@@ -109,8 +109,8 @@ pub enum Step {
   Link(Port, Port),
 
   Fn(Port, Vec<Port>, Port),
-  Tuple(Port, Vec<Port>),
-  Adt(AdtId, VariantId, Port, Vec<Port>),
+  Composite(Port, Vec<Port>),
+  Adt(Port, AdtId, VariantId, Option<Port>),
   Ref(Port, Port, Port),
   ExtFn(&'static str, bool, Port, Port, Port),
   Dup(Port, Port, Port),
@@ -121,7 +121,7 @@ pub enum Step {
 
 impl Step {
   pub fn ports(&self) -> impl Iterator<Item = &Port> {
-    multi_iter!(Ports { Zero, Two, Three, Invoke, Transfer, Tuple, Fn, String, Ivy });
+    multi_iter!(Ports { Zero, Two, Three, Invoke, Transfer, Composite, Adt, Fn, String, Ivy });
     match self {
       Step::Invoke(_, invocation) => Ports::Invoke(invocation.ports()),
       Step::Transfer(transfer) | Step::Diverge(_, Some(transfer)) => {
@@ -130,9 +130,10 @@ impl Step {
       Step::Diverge(_, None) => Ports::Zero([]),
       Step::Link(a, b) => Ports::Two([a, b]),
       Step::Fn(f, a, r) => Ports::Fn([f].into_iter().chain(a).chain([r])),
-      Step::Tuple(port, ports) | Step::List(port, ports) | Step::Adt(_, _, port, ports) => {
-        Ports::Tuple([port].into_iter().chain(ports))
+      Step::Composite(port, ports) | Step::List(port, ports) => {
+        Ports::Composite([port].into_iter().chain(ports))
       }
+      Step::Adt(port, _, _, data) => Ports::Adt([port].into_iter().chain(data)),
       Step::Ref(a, b, c) | Step::ExtFn(_, _, a, b, c) | Step::Dup(a, b, c) => {
         Ports::Three([a, b, c])
       }
@@ -173,6 +174,7 @@ pub enum Port {
   N32(u32),
   F32(f32),
   Wire(WireId),
+  Error(ErrorGuaranteed),
 }
 
 #[derive(Debug, Clone)]
