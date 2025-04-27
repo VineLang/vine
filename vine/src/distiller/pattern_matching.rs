@@ -11,7 +11,7 @@ use vine_util::{
 use crate::{
   chart::EnumId,
   tir::{Local, TirPat, TirPatKind},
-  vir::{Interface, InterfaceId, InterfaceKind, Layer, Port, Stage, Step, Transfer},
+  vir::{Header, Interface, InterfaceId, InterfaceKind, Layer, Port, Stage, Step, Transfer},
 };
 
 use super::Distiller;
@@ -211,13 +211,12 @@ impl<'core, 'd, 'r> Matcher<'core, 'd, 'r> {
                 || rows.iter().any(|x| x.bindings.iter().any(|&(v, _)| v == var))
               {
                 let (result, header) = opt_tuple(new_local.map(|l| stage.mut_local(l)));
-                stage.header.extend(header);
+                stage.header = Header::Match(header);
                 let adt = stage.new_wire();
                 stage.steps.push(Step::Enum(adt.0, enum_id, variant_id, result));
                 stage.set_local_to(local, adt.1);
               } else {
-                let local = new_local.map(|l| stage.set_local(l));
-                stage.header.extend(local);
+                stage.header = Header::Match(new_local.map(|l| stage.set_local(l)));
               }
 
               self.eliminate_col(&mut rows, var, |p| match &p.kind {

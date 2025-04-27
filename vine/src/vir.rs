@@ -11,7 +11,7 @@ use crate::{
   analyzer::{usage::Usage, UsageVar},
   chart::{EnumId, ValueDefId, VariantId},
   diag::ErrorGuaranteed,
-  tir::Local,
+  tir::{Local, TirImpl},
 };
 
 new_idx!(pub LayerId; n => ["L{n}"]);
@@ -74,16 +74,32 @@ impl Interface {
 #[derive(Debug, Clone)]
 pub enum InterfaceKind {
   Unconditional(StageId),
-  Branch([StageId; 2]),
+  Branch(StageId, StageId),
   Match(EnumId, IdxVec<VariantId, StageId>),
+  Closure { call: StageId, fork: Option<StageId>, drop: Option<StageId> },
 }
 
 impl InterfaceKind {
-  pub fn stages(&self) -> &[StageId] {
+  pub fn stage_count(&self) -> usize {
     match self {
-      InterfaceKind::Unconditional(s) => slice::from_ref(s),
-      InterfaceKind::Branch(s) => s,
-      InterfaceKind::Match(_, s) => &s.vec,
+      InterfaceKind::Unconditional(_) => 1,
+      InterfaceKind::Branch(..) => 2,
+      InterfaceKind::Match(_, stages) => stages.len(),
+      InterfaceKind::Closure { fork, drop, .. } => {
+        1 + (fork.is_some() as usize) + (drop.is_some() as usize)
+      }
+    }
+  }
+  pub fn stage(&self, i: usize) -> StageId {
+    match self {
+      InterfaceKind::Unconditional(s) => *s,
+      InterfaceKind::Branch(a, b) => [*a, *b][i],
+      InterfaceKind::Match(_, s) => s[VariantId(i)],
+      InterfaceKind::Closure { call, fork, drop } => match i {
+        0 => *call,
+        1 => fork.or(*drop).unwrap(),
+        _ => drop.unwrap(),
+      },
     }
   }
 }
@@ -93,11 +109,33 @@ pub struct Stage {
   pub id: StageId,
   pub interface: InterfaceId,
   pub layer: LayerId,
-  pub header: Vec<Port>,
+  pub header: Header,
   pub declarations: Vec<Local>,
   pub steps: Vec<Step>,
   pub transfer: Option<Transfer>,
   pub wires: Counter<WireId>,
+}
+
+#[derive(Default, Debug, Clone)]
+pub enum Header {
+  #[default]
+  None,
+  Match(Option<Port>),
+  Fn(Vec<Port>, Port),
+  Fork(Port, Port),
+  Drop,
+}
+
+impl Header {
+  pub fn ports(&self) -> impl Iterator<Item = &Port> {
+    multi_iter!(Ports { Zero, Two, Opt, Fn });
+    match self {
+      Header::None | Header::Drop => Ports::Zero([]),
+      Header::Fork(a, b) => Ports::Two([a, b]),
+      Header::Match(a) => Ports::Opt(a),
+      Header::Fn(a, b) => Ports::Fn(a.iter().chain([b])),
+    }
+  }
 }
 
 #[derive(Debug, Clone)]
@@ -108,7 +146,7 @@ pub enum Step {
 
   Link(Port, Port),
 
-  Fn(Port, Vec<Port>, Port),
+  Call(TirImpl, Port, Vec<Port>, Port),
   Composite(Port, Vec<Port>),
   Enum(Port, EnumId, VariantId, Option<Port>),
   Ref(Port, Port, Port),
@@ -129,7 +167,7 @@ impl Step {
       }
       Step::Diverge(_, None) => Ports::Zero([]),
       Step::Link(a, b) => Ports::Two([a, b]),
-      Step::Fn(f, a, r) => Ports::Fn([f].into_iter().chain(a).chain([r])),
+      Step::Call(_, f, a, r) => Ports::Fn([f].into_iter().chain(a).chain([r])),
       Step::Composite(port, ports) | Step::List(port, ports) => {
         Ports::Composite([port].into_iter().chain(ports))
       }

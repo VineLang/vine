@@ -12,8 +12,8 @@ use crate::{
   diag::Diag,
   tir::{ClosureId, LabelId, Local, TirExpr, TirExprKind, TirPat, TirPatKind},
   vir::{
-    Interface, InterfaceId, InterfaceKind, Layer, LayerId, Port, Stage, StageId, Step, Transfer,
-    VIR,
+    Header, Interface, InterfaceId, InterfaceKind, Layer, LayerId, Port, Stage, StageId, Step,
+    Transfer, VIR,
   },
 };
 
@@ -31,7 +31,7 @@ pub struct Distiller<'core, 'r> {
 
   labels: IdxVec<LabelId, Option<Label>>,
   returns: Vec<Return>,
-  dyn_fns: IdxVec<ClosureId, Option<DynFn>>,
+  closures: IdxVec<ClosureId, Closure>,
 
   locals: Counter<Local>,
 }
@@ -50,9 +50,8 @@ struct Return {
 }
 
 #[derive(Debug)]
-struct DynFn {
+struct Closure {
   interface: InterfaceId,
-  local: Local,
 }
 
 impl<'core, 'r> Distiller<'core, 'r> {
@@ -100,7 +99,7 @@ impl<'core, 'r> Distiller<'core, 'r> {
     self.finish_layer(layer);
     self.labels.clear();
     debug_assert!(self.returns.is_empty());
-    self.dyn_fns.clear();
+    self.closures.clear();
     VIR {
       layers: unwrap_idx_vec(take(&mut self.layers)),
       interfaces: unwrap_idx_vec(take(&mut self.interfaces)),
@@ -170,13 +169,12 @@ impl<'core, 'r> Distiller<'core, 'r> {
         stage.steps.push(Step::Composite(composite, ports));
         wire.1
       }
-      TirExprKind::Call(..) => {
-        todo!()
-        // let func = self.distill_expr_value(stage, func);
-        // let args = args.iter().map(|s| self.distill_expr_value(stage,
-        // s)).collect::<Vec<_>>(); let wire = stage.new_wire();
-        // stage.steps.push(Step::Fn(func, args, wire.0));
-        // wire.1
+      TirExprKind::Call(impl_, func, args) => {
+        let func = func.as_ref().map(|f| self.distill_expr_value(stage, f)).unwrap_or(Port::Erase);
+        let args = args.iter().map(|s| self.distill_expr_value(stage, s)).collect::<Vec<_>>();
+        let wire = stage.new_wire();
+        stage.steps.push(Step::Call(impl_.clone(), func, args, wire.0));
+        wire.1
       }
       TirExprKind::String(init, rest) => {
         let wire = stage.new_wire();
@@ -187,37 +185,33 @@ impl<'core, 'r> Distiller<'core, 'r> {
         stage.steps.push(Step::String(wire.0, init.clone(), rest));
         wire.1
       }
-      TirExprKind::CallAssign(func, lhs, rhs) => {
-        todo!()
-        // let func = self.distill_expr_value(stage, func);
-        // let rhs = self.distill_expr_value(stage, rhs);
-        // let (lhs, out) = self.distill_expr_place(stage, lhs);
-        // stage.steps.push(Step::Fn(func, vec![lhs, rhs], out));
-        // Port::Erase
+      TirExprKind::CallAssign(impl_, lhs, rhs) => {
+        let rhs = self.distill_expr_value(stage, rhs);
+        let (lhs, out) = self.distill_expr_place(stage, lhs);
+        stage.steps.push(Step::Call(impl_.clone(), Port::Erase, vec![lhs, rhs], out));
+        Port::Erase
       }
       TirExprKind::CallCompare(init, cmps) => {
-        todo!()
-        // let mut last_result = Port::Erase;
-        // let lhs = self.distill_expr_place(stage, init);
-        // let mut lhs = stage.ref_place(lhs);
-        // for (i, (func, rhs)) in cmps.iter().enumerate() {
-        //   let func = self.distill_expr_value(stage, func);
-        //   let first = i == 0;
-        //   let last = i == cmps.len() - 1;
-        //   let rhs = self.distill_expr_place(stage, rhs);
-        //   let (rhs, next_lhs) = if last {
-        //     (stage.ref_place(rhs), Port::Erase)
-        //   } else {
-        //     let wire = stage.new_wire();
-        //     (stage.ref_place((rhs.0, wire.0)), stage.ref_place((wire.1,
-        // rhs.1)))   };
-        //   let result = stage.new_wire();
-        //   stage.steps.push(Step::Fn(func, vec![lhs, rhs], result.0));
-        //   last_result =
-        //     if first { result.1 } else { stage.ext_fn("n32_and", false,
-        // last_result, result.1) };   lhs = next_lhs;
-        // }
-        // last_result
+        let mut last_result = Port::Erase;
+        let lhs = self.distill_expr_place(stage, init);
+        let mut lhs = stage.ref_place(lhs);
+        for (i, (impl_, rhs)) in cmps.iter().enumerate() {
+          let first = i == 0;
+          let last = i == cmps.len() - 1;
+          let rhs = self.distill_expr_place(stage, rhs);
+          let (rhs, next_lhs) = if last {
+            (stage.ref_place(rhs), Port::Erase)
+          } else {
+            let wire = stage.new_wire();
+            (stage.ref_place((rhs.0, wire.0)), stage.ref_place((wire.1, rhs.1)))
+          };
+          let result = stage.new_wire();
+          stage.steps.push(Step::Call(impl_.clone(), Port::Erase, vec![lhs, rhs], result.0));
+          last_result =
+            if first { result.1 } else { stage.ext_fn("n32_and", false, last_result, result.1) };
+          lhs = next_lhs;
+        }
+        last_result
       }
       TirExprKind::InlineIvy(binds, net) => {
         let out = stage.new_wire();
@@ -240,7 +234,14 @@ impl<'core, 'r> Distiller<'core, 'r> {
       TirExprKind::Local(local) => stage.get_local(*local),
       TirExprKind::Unwrap(inner) => self.distill_expr_value(stage, inner),
 
-      TirExprKind::Closure(closure_id) => todo!(),
+      TirExprKind::Closure(closure_id) => {
+        let wire = stage.new_wire();
+        let closure = &self.closures[*closure_id];
+        stage
+          .steps
+          .push(Step::Transfer(Transfer { interface: closure.interface, data: Some(wire.0) }));
+        wire.1
+      }
     }
   }
 
@@ -300,6 +301,26 @@ impl<'core, 'r> Distiller<'core, 'r> {
         (value, space)
       }
       TirExprKind::Unwrap(inner) => self.distill_expr_place(stage, inner),
+    }
+  }
+
+  fn distill_pat_nil(&mut self, stage: &mut Stage, pat: &TirPat) {
+    match &pat.kind {
+      TirPatKind::Hole | TirPatKind::Enum(_, _, None) | TirPatKind::Error(_) => {}
+      TirPatKind::Composite(els) => {
+        els.iter().for_each(|e| self.distill_pat_nil(stage, e));
+      }
+      TirPatKind::Struct(_, inner)
+      | TirPatKind::Enum(_, _, Some(inner))
+      | TirPatKind::Ref(inner)
+      | TirPatKind::Deref(inner)
+      | TirPatKind::Inverse(inner) => {
+        self.distill_pat_nil(stage, inner);
+      }
+      TirPatKind::Local(local) => {
+        stage.declarations.push(*local);
+        stage.erase_local(*local);
+      }
     }
   }
 
@@ -396,7 +417,7 @@ impl<'core, 'r> Distiller<'core, 'r> {
       id,
       layer: layer.id,
       interface,
-      header: Vec::new(),
+      header: Header::None,
       declarations: Vec::new(),
       steps: Vec::new(),
       transfer: None,
@@ -423,9 +444,10 @@ impl<'core, 'r> Distiller<'core, 'r> {
     (layer, stage)
   }
 
-  fn finish_stage(&mut self, stage: Stage) {
+  fn finish_stage(&mut self, stage: Stage) -> StageId {
     let id = stage.id;
     self.stages[id] = Some(stage);
+    id
   }
 
   fn finish_layer(&mut self, layer: Layer) {

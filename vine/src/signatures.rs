@@ -22,7 +22,15 @@ pub struct Signatures<'core> {
 #[derive(Debug)]
 pub struct ValueSig<'core> {
   pub types: Types<'core>,
-  pub ty: Type,
+  pub kind: ValueSigKind,
+}
+
+#[derive(Debug)]
+pub enum ValueSigKind {
+  Const(Type),
+  Fn(Vec<Type>, Type),
+  Struct(StructId, Type),
+  Enum(EnumId, VariantId, Option<Type>),
 }
 
 #[derive(Debug)]

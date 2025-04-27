@@ -280,7 +280,7 @@ pub enum ExprKind<'core> {
   #[default]
   Hole,
   Paren(B<Expr<'core>>),
-  Path(Path<'core>),
+  Path(Path<'core>, Option<Vec<Expr<'core>>>),
   Do(Option<Ident<'core>>, Block<'core>),
   Assign(bool, B<Expr<'core>>, B<Expr<'core>>),
   Match(B<Expr<'core>>, Vec<(Pat<'core>, Block<'core>)>),
@@ -338,7 +338,7 @@ pub enum PatKind<'core> {
   Hole,
   Paren(B<Pat<'core>>),
   Annotation(B<Pat<'core>>, B<Ty<'core>>),
-  PathCall(Path<'core>, Option<Vec<Pat<'core>>>),
+  Path(Path<'core>, Option<Box<Pat<'core>>>),
   Ref(B<Pat<'core>>),
   Deref(B<Pat<'core>>),
   Inverse(B<Pat<'core>>),

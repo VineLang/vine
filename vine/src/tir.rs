@@ -25,32 +25,22 @@ pub struct Tir<'core> {
   pub closures: IdxVec<ClosureId, TirClosure<'core>>,
 }
 
-#[derive(Default, Debug, Clone)]
+#[derive(Default, Clone)]
 pub struct TirBlock<'core> {
   pub span: Span,
   pub ty: Type,
-  pub stmts: Vec<TirStmt<'core>>,
-  pub expr: Option<B<TirExpr<'core>>>,
+  pub kind: TirBlockKind<'core>,
 }
 
-#[derive(Clone)]
-pub struct TirStmt<'core> {
-  pub span: Span,
-  pub kind: TirStmtKind<'core>,
-}
-
-#[derive(Debug, Clone)]
-pub enum TirStmtKind<'core> {
-  Let(TirLetStmt<'core>),
-  Expr(TirExpr<'core>),
-  Empty,
-}
-
-#[derive(Debug, Clone)]
-pub struct TirLetStmt<'core> {
-  pub bind: TirPat,
-  pub init: Option<TirExpr<'core>>,
-  pub else_block: Option<TirBlock<'core>>,
+#[derive(Default, Debug, Clone)]
+pub enum TirBlockKind<'core> {
+  #[default]
+  Nil,
+  Error(ErrorGuaranteed),
+  Let(TirPat, Option<B<TirExpr<'core>>>, B<TirBlock<'core>>),
+  LetElse(TirPat, B<TirExpr<'core>>, B<TirBlock<'core>>, B<TirBlock<'core>>),
+  Seq(B<TirExpr<'core>>, B<TirBlock<'core>>),
+  Expr(B<TirExpr<'core>>),
 }
 
 #[derive(Debug, Clone)]
@@ -111,7 +101,7 @@ pub enum TirExprKind<'core> {
   #[class(value, place, space)]
   Unwrap(B<TirExpr<'core>>),
   #[class(value)]
-  Call(TirImpl, B<TirExpr<'core>>, Vec<TirExpr<'core>>),
+  Call(TirImpl, Option<B<TirExpr<'core>>>, Vec<TirExpr<'core>>),
   #[class(value, place, space)]
   Struct(StructId, B<TirExpr<'core>>),
   #[class(value)]
@@ -186,7 +176,7 @@ macro_rules! debug_kind {
   )*};
 }
 
-debug_kind!(TirStmt<'_>, TirExpr<'_>, TirPat);
+debug_kind!(TirBlock<'_>, TirExpr<'_>, TirPat);
 
 impl From<ErrorGuaranteed> for TirExprKind<'_> {
   fn from(err: ErrorGuaranteed) -> Self {

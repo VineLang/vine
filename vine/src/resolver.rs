@@ -4,17 +4,17 @@ use vine_util::idx::{Counter, IdxVec};
 
 use crate::{
   ast::{
-    Block, Expr, ExprKind, Flex, GenericArgs, Ident, LogicalOp, Pat, PatKind, Span, Stmt, StmtKind,
-    Ty, TyKind,
+    Block, Expr, ExprKind, Flex, GenericArgs, Ident, Impl, ImplKind, LogicalOp, Pat, PatKind, Span,
+    Stmt, StmtKind, Trait, TraitKind, Ty, TyKind,
   },
-  chart::{Builtins, Chart, DefId, GenericsId, TypeDefId, ValueDefId, VariantId},
+  chart::{Builtins, Chart, DefId, GenericsId, PatternDefKind, TypeDefId, ValueDefId},
   core::Core,
   diag::{Diag, ErrorGuaranteed},
   finder::find_impl,
-  signatures::Signatures,
+  signatures::{Signatures, ValueSigKind},
   tir::{
-    ClosureId, LabelId, Local, TirBlock, TirClosure, TirExpr, TirExprKind, TirImpl, TirPat,
-    TirPatKind, TirStmt, TirStmtKind,
+    ClosureId, LabelId, Local, TirBlock, TirBlockKind, TirClosure, TirExpr, TirExprKind, TirImpl,
+    TirPat, TirPatKind,
   },
   types::{ImplType, Type, TypeKind, Types},
 };
@@ -82,21 +82,99 @@ impl<'core> Resolver<'core, '_> {
     Ok(match &expr.kind {
       ExprKind::Hole => (self.types.new_var(), TirExprKind::Hole),
       ExprKind::Paren(inner) => self._resolve_expr(inner)?,
-      ExprKind::Path(path) => {
+      ExprKind::Path(path, args) => {
         if let Some(ident) = path.as_ident() {
           if let Some(&(_, binding)) = self.bindings.get(&ident).and_then(|x| x.last()) {
-            return Ok(match binding {
+            let (ty, kind) = match binding {
               Binding::Local(local, ty) => (ty, TirExprKind::Local(local)),
               Binding::Closure(id, ty) => (ty, TirExprKind::Closure(id)),
-            });
+            };
+            if let Some(args) = args {
+              return Ok(self._resolve_call(span, TirExpr { span, ty, kind }, args));
+            } else {
+              return Ok((ty, kind));
+            }
           }
         }
         let value_id = self.resolve_path_to(self.cur_def, path, "value", |d| d.value_def)?;
         let generics = self.chart.values[value_id].generics;
         let (type_params, impl_params) = self.resolve_generic_args(generics, &path.generics);
         let sig = &self.sigs.values[value_id];
-        let ty = self.types.import(&sig.types, Some(&type_params)).transfer(sig.ty);
-        (ty, TirExprKind::Def(value_id, impl_params))
+        let mut import = self.types.import(&sig.types, Some(&type_params));
+        match &sig.kind {
+          ValueSigKind::Const(ty) => {
+            let ty = import.transfer(*ty);
+            let kind = TirExprKind::Def(value_id, impl_params);
+            if let Some(args) = args {
+              self._resolve_call(span, TirExpr { span, ty, kind }, args)
+            } else {
+              (ty, kind)
+            }
+          }
+          ValueSigKind::Fn(params, ret) => {
+            if let Some(args) = args {
+              let params = params.iter().map(|&t| import.transfer(t)).collect::<Vec<_>>();
+              let ret = import.transfer(*ret);
+              let args = args
+                .iter()
+                .enumerate()
+                .map(|(i, arg)| {
+                  let ty = params.get(i).copied().unwrap_or_else(|| self.types.new_var());
+                  self.resolve_expr_ty(arg, ty)
+                })
+                .collect::<Vec<_>>();
+              if args.len() != params.len() {
+                Err(Diag::BadArgCount { span, expected: params.len(), got: args.len() })?
+              }
+              (
+                ret,
+                TirExprKind::Call(
+                  TirImpl::ClosureFn(value_id, ClosureId(0), impl_params.clone()),
+                  None,
+                  args,
+                ),
+              )
+            } else {
+              let params = params.iter().map(|&t| import.transfer(t)).collect();
+              let ret = import.transfer(*ret);
+              let ty = self.types.new(TypeKind::Fn(
+                value_id,
+                ClosureId(0),
+                type_params,
+                impl_params.clone(),
+                Flex::Full,
+                params,
+                ret,
+              ));
+              (ty, TirExprKind::Def(value_id, impl_params))
+            }
+          }
+          &ValueSigKind::Struct(struct_id, data_ty) => {
+            let data_ty = import.transfer(data_ty);
+            let Some(args) = args else { Err(Diag::ExpectedDataExpr { span })? };
+            let [data] = &**args else { Err(Diag::ConstructorMultiArgs { span })? };
+            let data = self.resolve_expr_ty(data, data_ty);
+            (
+              self.types.new(TypeKind::Struct(struct_id, type_params)),
+              TirExprKind::Struct(struct_id, Box::new(data)),
+            )
+          }
+          &ValueSigKind::Enum(enum_id, variant_id, variant_data) => {
+            let data = match (variant_data, args) {
+              (None, None) => None,
+              (Some(ty), Some(args)) => {
+                let [data] = &**args else { Err(Diag::ConstructorMultiArgs { span })? };
+                Some(Box::new(self.resolve_expr_ty(data, ty)))
+              }
+              (None, Some(_)) => Err(Diag::EnumVariantNoData { span })?,
+              (Some(_), None) => Err(Diag::ExpectedDataExpr { span })?,
+            };
+            (
+              self.types.new(TypeKind::Enum(enum_id, type_params)),
+              TirExprKind::Enum(enum_id, variant_id, data),
+            )
+          }
+        }
       }
       ExprKind::Assign(inv, space, value) => {
         let space = self.resolve_expr(space);
@@ -292,12 +370,7 @@ impl<'core> Resolver<'core, '_> {
       ExprKind::Method(expr, ident, generics, exprs) => todo!(),
       ExprKind::Call(func, args) => {
         let func = self.resolve_expr(func);
-        let (arg_tys, args) =
-          args.iter().map(|e| self.resolve_expr(e)).map(|e| (e.ty, e)).collect();
-        let ret = self.types.new_var();
-        let impl_ty = ImplType::Fn(func.ty, arg_tys, ret);
-        let impl_ = self.find_impl(span, &impl_ty);
-        (ret, TirExprKind::Call(impl_, Box::new(func), args))
+        self._resolve_call(span, func, args)
       }
       ExprKind::Neg(value) => {
         let value = self.resolve_expr(value);
@@ -378,6 +451,19 @@ impl<'core> Resolver<'core, '_> {
     })
   }
 
+  fn _resolve_call(
+    &mut self,
+    span: Span,
+    func: TirExpr<'core>,
+    args: &Vec<Expr<'core>>,
+  ) -> (Type, TirExprKind<'core>) {
+    let (arg_tys, args) = args.iter().map(|e| self.resolve_expr(e)).map(|e| (e.ty, e)).collect();
+    let ret = self.types.new_var();
+    let impl_ty = ImplType::Fn(func.ty, arg_tys, ret);
+    let impl_ = self.find_impl(span, &impl_ty);
+    (ret, TirExprKind::Call(impl_, Some(Box::new(func)), args))
+  }
+
   fn fn_type(&mut self, id: ClosureId, flex: Flex, params: Vec<Type>, ret: Type) -> Type {
     self.types.new(TypeKind::Fn(self.cur_value_def, id, todo!(), todo!(), flex, params, ret))
   }
@@ -453,11 +539,41 @@ impl<'core> Resolver<'core, '_> {
         let inner = self.resolve_pat_ty(inner, ty);
         (ty, inner.kind)
       }
-      PatKind::PathCall(path, args) => {
+      PatKind::Path(path, data) => {
         match self.resolve_path_to(self.cur_def, path, "value", |d| d.pattern_def) {
-          Ok(pat) => todo!(),
+          Ok(pat_id) => {
+            let pat = &self.chart.patterns[pat_id];
+            match pat.kind {
+              PatternDefKind::Struct(struct_id) => {
+                let (params, _) = self.resolve_generic_args(pat.generics, &path.generics);
+                let sig = &self.sigs.structs[struct_id];
+                let Some(data) = data else { Err(Diag::ExpectedDataSubpattern { span })? };
+                let data_ty = self.types.import(&sig.types, Some(&params)).transfer(sig.data);
+                let data = self.resolve_pat_ty(data, data_ty);
+                (
+                  self.types.new(TypeKind::Struct(struct_id, params)),
+                  TirPatKind::Struct(struct_id, Box::new(data)),
+                )
+              }
+              PatternDefKind::Enum(enum_id, variant_id) => {
+                let (params, _) = self.resolve_generic_args(pat.generics, &path.generics);
+                let sig = &self.sigs.enums[enum_id];
+                let variant_data = sig.variant_data[variant_id];
+                let data = match (variant_data, data) {
+                  (None, None) => None,
+                  (Some(ty), Some(data)) => Some(Box::new(self.resolve_pat_ty(data, ty))),
+                  (None, Some(_)) => Err(Diag::EnumVariantNoData { span })?,
+                  (Some(_), None) => Err(Diag::ExpectedDataSubpattern { span })?,
+                };
+                (
+                  self.types.new(TypeKind::Enum(enum_id, params)),
+                  TirPatKind::Enum(enum_id, variant_id, data),
+                )
+              }
+            }
+          }
           Err(diag) => {
-            if args.is_none() {
+            if data.is_none() {
               if let Some(ident) = path.as_ident() {
                 let local = self.locals.next();
                 let ty = self.types.new_var();
@@ -568,50 +684,80 @@ impl<'core> Resolver<'core, '_> {
   }
 
   fn resolve_block_ty(&mut self, block: &Block<'core>, ty: Type) -> TirBlock<'core> {
-    let span = block.span;
-    let nil = self.types.nil();
-    let mut stmts = Vec::new();
-    let mut expr = None;
-    for (i, stmt) in block.stmts.iter().enumerate() {
-      if i == block.stmts.len() - 1 {
-        if let StmtKind::Expr(e, false) = &stmt.kind {
-          expr = Some(Box::new(self.resolve_expr_ty(e, ty)));
-          continue;
-        } else if !self.types.unify(ty, nil).is_ok() {
-          let err =
-            self.core.report(Diag::MissingBlockExpr { span, ty: self.types.show(self.chart, ty) });
-          expr = Some(Box::new(TirExpr {
-            span,
-            ty: self.types.error(err),
-            kind: TirExprKind::Error(err),
-          }));
-        }
-      }
-      stmts.extend(self.resolve_stmt(stmt));
-    }
-    TirBlock { span, ty, stmts, expr }
+    self.resolve_stmts_ty(block.span, &block.stmts, ty)
   }
 
-  fn resolve_stmt(&mut self, stmt: &Stmt<'core>) -> Option<TirStmt<'core>> {
-    Some(TirStmt {
-      span: stmt.span,
-      kind: match &stmt.kind {
-        StmtKind::Let(l) => todo!(),
-        StmtKind::LetFn(l) => {
-          let params = l.params.iter().map(|p| self.resolve_pat(p)).collect::<Vec<_>>();
-          let ret =
-            l.ret.as_ref().map(|t| self.resolve_ty(t)).unwrap_or_else(|| self.types.new_var());
-          let body = self.resolve_block_ty(&l.body, ret);
-          let param_tys = params.iter().map(|p| p.ty).collect();
-          let id = self.closures.push(TirClosure { flex: l.flex, params, body });
-          let ty = self.fn_type(id, l.flex, param_tys, ret);
-          self.bind(l.name, Binding::Closure(id, ty));
-          None?
+  fn resolve_stmts_ty(&mut self, span: Span, stmts: &[Stmt<'core>], ty: Type) -> TirBlock<'core> {
+    TirBlock { span, ty, kind: self._resolve_stmts_ty(span, stmts, ty) }
+  }
+
+  fn _resolve_stmts_ty(
+    &mut self,
+    span: Span,
+    stmts: &[Stmt<'core>],
+    ty: Type,
+  ) -> TirBlockKind<'core> {
+    let [stmt, stmts @ ..] = stmts else {
+      let nil = self.types.nil();
+      return if self.types.unify(ty, nil).is_ok() {
+        TirBlockKind::Nil
+      } else {
+        TirBlockKind::Error(
+          self.core.report(Diag::MissingBlockExpr { span, ty: self.types.show(self.chart, ty) }),
+        )
+      };
+    };
+    match &stmt.kind {
+      StmtKind::Let(l) => {
+        let init = l.init.as_ref().map(|i| self.resolve_expr(i));
+        let else_block = l.else_block.as_ref().map(|b| self.resolve_block_ty(b, ty));
+        let bind = self.resolve_pat(&l.bind);
+        if let Some(init) = &init {
+          if !self.types.unify(bind.ty, init.ty).is_ok() {
+            self.core.report(Diag::ExpectedTypeFound {
+              span: init.span,
+              expected: self.types.show(self.chart, bind.ty),
+              found: self.types.show(self.chart, init.ty),
+            });
+          }
         }
-        StmtKind::Expr(expr, _) => TirStmtKind::Expr(self.resolve_expr(expr)),
-        StmtKind::Item(_) | StmtKind::Empty => None?,
-      },
-    })
+        if let Some(else_block) = else_block {
+          TirBlockKind::LetElse(
+            bind,
+            Box::new(init.unwrap()),
+            Box::new(else_block),
+            Box::new(self.resolve_stmts_ty(span, stmts, ty)),
+          )
+        } else {
+          TirBlockKind::Let(
+            bind,
+            init.map(Box::new),
+            Box::new(self.resolve_stmts_ty(span, stmts, ty)),
+          )
+        }
+      }
+      StmtKind::LetFn(l) => {
+        let params = l.params.iter().map(|p| self.resolve_pat(p)).collect::<Vec<_>>();
+        let ret =
+          l.ret.as_ref().map(|t| self.resolve_ty(t)).unwrap_or_else(|| self.types.new_var());
+        let body = self.resolve_block_ty(&l.body, ret);
+        let param_tys = params.iter().map(|p| p.ty).collect();
+        let id = self.closures.push(TirClosure { flex: l.flex, params, body });
+        let ty = self.fn_type(id, l.flex, param_tys, ret);
+        self.bind(l.name, Binding::Closure(id, ty));
+        self._resolve_stmts_ty(span, stmts, ty)
+      }
+      StmtKind::Expr(expr, semi) => {
+        if !semi && stmts.is_empty() {
+          let expr = self.resolve_expr_ty(expr, ty);
+          TirBlockKind::Expr(Box::new(expr))
+        } else {
+          let expr = self.resolve_expr_ty(expr, ty);
+          TirBlockKind::Seq(Box::new(expr), Box::new(self.resolve_stmts_ty(span, stmts, ty)))
+        }
+      }
+      StmtKind::Item(_) | StmtKind::Empty => self._resolve_stmts_ty(span, stmts, ty),
+    }
   }
 
   fn resolve_tuple_field(
@@ -748,5 +894,54 @@ impl<'core> Resolver<'core, '_> {
     args: &Option<GenericArgs>,
   ) -> (Vec<Type>, Vec<TirImpl>) {
     todo!()
+  }
+
+  fn resolve_trait(&mut self, trait_: &Trait<'core>) -> ImplType {
+    self._resolve_trait(trait_).unwrap_or_else(|err| ImplType::Error(self.core.report(err)))
+  }
+
+  fn _resolve_trait(&mut self, trait_: &Trait<'core>) -> Result<ImplType, Diag<'core>> {
+    Ok(match &trait_.kind {
+      TraitKind::Fn(recv, params, ret) => {
+        let recv = self.resolve_ty(recv);
+        let params = params.iter().map(|p| self.resolve_ty(p)).collect();
+        let ret = ret.as_ref().map(|r| self.resolve_ty(r)).unwrap_or(self.types.nil());
+        ImplType::Fn(recv, params, ret)
+      }
+      TraitKind::Path(path) => {
+        let trait_id = self.resolve_path_to(self.cur_def, path, "trait", |d| d.trait_def)?;
+        let generics = self.chart.traits[trait_id].generics;
+        let (type_params, _) = self.resolve_generic_args(generics, &path.generics);
+        ImplType::Trait(trait_id, type_params)
+      }
+      TraitKind::Error(e) => Err(*e)?,
+    })
+  }
+
+  fn resolve_impl(&mut self, impl_: &Impl<'core>, ty: ImplType) -> TirImpl {
+    self._resolve_impl(impl_, ty).unwrap_or_else(|err| TirImpl::Error(self.core.report(err)))
+  }
+
+  fn _resolve_impl(&mut self, impl_: &Impl<'core>, ty: ImplType) -> Result<TirImpl, Diag<'core>> {
+    let span = impl_.span;
+    Ok(match &impl_.kind {
+      ImplKind::Hole => self.find_impl(impl_.span, &ty),
+      ImplKind::Path(path) => {
+        let impl_id = self.resolve_path_to(self.cur_def, path, "impl", |d| d.impl_def)?;
+        let generics = self.chart.impls[impl_id].generics;
+        let (type_params, impl_params) = self.resolve_generic_args(generics, &path.generics);
+        let sig = &self.sigs.impls[impl_id];
+        let impl_ty = self.types.import(&sig.types, Some(&type_params)).transfer_impl_type(&sig.ty);
+        if !self.types.unify_impl_type(&impl_ty, &ty).is_ok() {
+          Err(Diag::ExpectedTypeFound {
+            span,
+            expected: self.types.show_impl_type(self.chart, &ty),
+            found: self.types.show_impl_type(self.chart, &impl_ty),
+          })?
+        }
+        TirImpl::Def(impl_id, impl_params)
+      }
+      ImplKind::Error(e) => Err(*e)?,
+    })
   }
 }

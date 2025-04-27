@@ -64,12 +64,15 @@ impl<'core> Loader<'core> {
         },
         value: Some(Expr {
           span: Span::NONE,
-          kind: ExprKind::Path(ast::Path {
-            span: Span::NONE,
-            absolute: true,
-            segments: vec![self.auto_mod_name(&path), main],
-            generics: None,
-          }),
+          kind: ExprKind::Path(
+            ast::Path {
+              span: Span::NONE,
+              absolute: true,
+              segments: vec![self.auto_mod_name(&path), main],
+              generics: None,
+            },
+            None,
+          ),
         }),
       }),
     });

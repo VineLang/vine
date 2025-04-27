@@ -88,8 +88,8 @@ diags! {
     ["cannot apply operator `{op}{}` to types `{lhs}` and `{rhs}`", if *assign { "=" } else { "" }]
   MismatchedValueSpaceTypes { value: String, space: String }
     ["value has type `{value}` but space has type `{space}`"]
-  BadArgCount { ty: String, expected: usize, got: usize }
-    ["function type `{ty}` expects {expected} argument{}; was passed {got}", plural(*expected, "s", "")]
+  BadArgCount { expected: usize, got: usize }
+    ["function expects {expected} argument{}; was passed {got}", plural(*expected, "s", "")]
   NonFunctionCall { ty: String }
     ["cannot call non-function type `{ty}`"]
   CannotCompare { lhs: String, rhs: String}
@@ -200,6 +200,14 @@ diags! {
     ["circular import"]
   UnwrapNonStruct
     ["only struct types can be unwrapped"]
+  EnumVariantNoData
+    ["this enum variant has no data"]
+  ExpectedDataSubpattern
+    ["expected data subpattern"]
+  ExpectedDataExpr
+    ["expected data for struct"]
+  ConstructorMultiArgs
+    ["constructors expect exactly one argument"]
 }
 
 fn plural<'a>(n: usize, plural: &'a str, singular: &'a str) -> &'a str {

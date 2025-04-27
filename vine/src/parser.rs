@@ -507,7 +507,9 @@ impl<'core, 'src> VineParser<'core, 'src> {
       return Ok(ExprKind::Bool(false));
     }
     if self.check(Token::Ident) || self.check(Token::ColonColon) {
-      return Ok(ExprKind::Path(self.parse_path()?));
+      let path = self.parse_path()?;
+      let args = self.check(Token::OpenParen).then(|| self.parse_expr_list()).transpose()?;
+      return Ok(ExprKind::Path(path, args));
     }
     if self.eat(Token::OpenParen)? {
       if self.eat(Token::CloseParen)? {
@@ -543,7 +545,7 @@ impl<'core, 'src> VineParser<'core, 'src> {
         let value = if self_.eat(Token::Colon)? {
           self_.parse_expr()?
         } else {
-          Expr { span: key.span, kind: ExprKind::Path(key.into()) }
+          Expr { span: key.span, kind: ExprKind::Path(key.into(), None) }
         };
         Ok((key, value))
       })?));
@@ -797,8 +799,15 @@ impl<'core, 'src> VineParser<'core, 'src> {
     }
     if self.check(Token::Ident) || self.check(Token::ColonColon) {
       let path = self.parse_path()?;
-      let args = self.check(Token::OpenParen).then(|| self.parse_pat_list()).transpose()?;
-      return Ok(PatKind::PathCall(path, args));
+      let data = self
+        .eat(Token::OpenParen)?
+        .then(|| -> Parse<_> {
+          let data = self.parse_pat()?;
+          self.expect(Token::CloseParen)?;
+          Ok(Box::new(data))
+        })
+        .transpose()?;
+      return Ok(PatKind::Path(path, data));
     }
     if self.eat(Token::And)? {
       return Ok(PatKind::Ref(Box::new(self.parse_pat_bp(BP::Prefix)?)));
@@ -845,7 +854,7 @@ impl<'core, 'src> VineParser<'core, 'src> {
         };
         let span = self_.end_span(span);
         let mut pat =
-          pat.unwrap_or_else(|| Pat { span: key.span, kind: PatKind::PathCall(key.into(), None) });
+          pat.unwrap_or_else(|| Pat { span: key.span, kind: PatKind::Path(key.into(), None) });
         if let Some(ty) = ty {
           pat = Pat { span, kind: PatKind::Annotation(Box::new(pat), Box::new(ty)) };
         }

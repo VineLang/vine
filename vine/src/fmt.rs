@@ -377,7 +377,10 @@ impl<'core: 'src, 'src> Formatter<'src> {
       ExprKind::Error(_) => unreachable!(),
       ExprKind::Paren(p) => Doc::paren(self.fmt_expr(p)),
       ExprKind::Hole => Doc("_"),
-      ExprKind::Path(path) => self.fmt_path(path),
+      ExprKind::Path(path, None) => self.fmt_path(path),
+      ExprKind::Path(path, Some(args)) => {
+        Doc::concat([self.fmt_path(path), Doc::paren_comma(args.iter().map(|x| self.fmt_expr(x)))])
+      }
       ExprKind::Do(label, block) => {
         Doc::concat([Doc("do"), self.fmt_label(label), Doc(" "), self.fmt_block(block, false)])
       }
@@ -447,7 +450,7 @@ impl<'core: 'src, 'src> Formatter<'src> {
       }
       ExprKind::Tuple(t) => Doc::tuple(t.iter().map(|x| self.fmt_expr(x))),
       ExprKind::Object(o) => Doc::brace_comma_space(o.iter().map(|(k, v)| {
-        if let ExprKind::Path(path) = &v.kind {
+        if let ExprKind::Path(path, None) = &v.kind {
           if let Some(i) = path.as_ident() {
             if k.ident == i {
               return Doc(k.ident);
@@ -536,10 +539,8 @@ impl<'core: 'src, 'src> Formatter<'src> {
       PatKind::Error(_) => unreachable!(),
       PatKind::Hole => Doc("_"),
       PatKind::Paren(p) => Doc::paren(self.fmt_pat(p)),
-      PatKind::PathCall(p, None) => self.fmt_path(p),
-      PatKind::PathCall(p, Some(x)) => {
-        Doc::concat([self.fmt_path(p), Doc::paren_comma(x.iter().map(|x| self.fmt_pat(x)))])
-      }
+      PatKind::Path(p, None) => self.fmt_path(p),
+      PatKind::Path(p, Some(x)) => Doc::concat([self.fmt_path(p), Doc::paren(self.fmt_pat(x))]),
       PatKind::Ref(p) => Doc::concat([Doc("&"), self.fmt_pat(p)]),
       PatKind::Deref(p) => Doc::concat([Doc("*"), self.fmt_pat(p)]),
       PatKind::Inverse(p) => Doc::concat([Doc("~"), self.fmt_pat(p)]),
@@ -549,7 +550,7 @@ impl<'core: 'src, 'src> Formatter<'src> {
           PatKind::Annotation(p, t) => (&**p, Some(t)),
           _ => (pat, None),
         };
-        let pat = if let PatKind::PathCall(path, None) = &pat.kind {
+        let pat = if let PatKind::Path(path, None) = &pat.kind {
           if let Some(i) = path.as_ident() {
             if key.ident == i {
               None
