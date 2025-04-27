@@ -1,4 +1,3 @@
-use core::slice;
 use std::collections::BTreeMap;
 
 use ivy::ast::Net;
@@ -231,12 +230,6 @@ impl Stage {
   pub fn new_wire(&mut self) -> (Port, Port) {
     let w = self.wires.next();
     (Port::Wire(w), Port::Wire(w))
-  }
-
-  pub fn erase(&mut self, port: Port) {
-    if matches!(port, Port::Wire(..)) {
-      self.steps.push(Step::Link(port, Port::Erase));
-    }
   }
 
   pub fn get_local_to(&mut self, local: Local, to: Port) {

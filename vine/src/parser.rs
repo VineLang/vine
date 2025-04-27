@@ -415,10 +415,6 @@ impl<'core, 'src> VineParser<'core, 'src> {
     self.parse_delimited(PAREN_COMMA, Self::parse_expr)
   }
 
-  fn parse_pat_list(&mut self) -> Parse<'core, Vec<Pat<'core>>> {
-    self.parse_delimited(PAREN_COMMA, Self::parse_pat)
-  }
-
   fn parse_block(&mut self) -> Parse<'core, Block<'core>> {
     let span = self.start_span();
     let stmts = self.parse_delimited(BRACE, Self::parse_stmt)?;

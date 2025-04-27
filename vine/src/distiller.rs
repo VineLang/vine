@@ -7,10 +7,12 @@ use vine_util::{
 
 use crate::{
   analyzer::usage::Usage,
+  ast::Span,
   chart::Chart,
   core::Core,
   diag::Diag,
   tir::{ClosureId, LabelId, Local, TirExpr, TirExprKind, TirPat, TirPatKind},
+  types::{Type, Types},
   vir::{
     Header, Interface, InterfaceId, InterfaceKind, Layer, LayerId, Port, Stage, StageId, Step,
     Transfer, VIR,
@@ -24,6 +26,8 @@ mod pattern_matching;
 pub struct Distiller<'core, 'r> {
   chart: &'r Chart<'core>,
   core: &'core Core<'core>,
+
+  types: Types<'core>,
 
   layers: IdxVec<LayerId, Option<Layer>>,
   interfaces: IdxVec<InterfaceId, Option<Interface>>,
@@ -113,7 +117,10 @@ impl<'core, 'r> Distiller<'core, 'r> {
     let span = expr.span;
     match &expr.kind {
       TirExprKind::Error(e) => Port::Error(*e),
-      TirExprKind![!value && place] => todo!(),
+      TirExprKind![!value && place] => {
+        let place = self.distill_expr_place(stage, expr);
+        self.coerce_place_value(span, stage, expr.ty, false, place)
+      }
       TirExprKind![!value && !place && space] => {
         Port::Error(self.core.report(Diag::ExpectedValueFoundSpaceExpr { span }))
       }
@@ -249,12 +256,19 @@ impl<'core, 'r> Distiller<'core, 'r> {
     let span = expr.span;
     match &expr.kind {
       TirExprKind::Error(e) => Port::Error(*e),
-      TirExprKind![!space && place] => todo!(),
+      TirExprKind![!space && place] => {
+        let place = self.distill_expr_place(stage, expr);
+        self.coerce_place_value(span, stage, expr.ty, true, place)
+      }
       TirExprKind![!space && !place && value] => {
         Port::Error(self.core.report(Diag::ExpectedSpaceFoundValueExpr { span }))
       }
 
-      TirExprKind::Hole => Port::Erase,
+      TirExprKind::Hole => {
+        let wire = stage.new_wire();
+        self.drop(span, stage, expr.ty, wire.0);
+        wire.1
+      }
       TirExprKind::Inverse(inner) => self.distill_expr_value(stage, inner),
       TirExprKind::Composite(els) => {
         self.distill_vec(stage, els, Self::distill_expr_space, Step::Composite)
@@ -266,10 +280,17 @@ impl<'core, 'r> Distiller<'core, 'r> {
   }
 
   fn distill_expr_place(&mut self, stage: &mut Stage, expr: &TirExpr<'core>) -> (Port, Port) {
+    let span = expr.span;
     match &expr.kind {
       TirExprKind::Error(e) => (Port::Error(*e), Port::Error(*e)),
-      TirExprKind![!place && value && !space] => todo!(),
-      TirExprKind![!place && space && !value] => todo!(),
+      TirExprKind![!place && value && !space] => {
+        let value = self.distill_expr_value(stage, expr);
+        self.coerce_value_place(span, stage, expr.ty, false, value)
+      }
+      TirExprKind![!place && space && !value] => {
+        let space = self.distill_expr_value(stage, expr);
+        self.coerce_value_place(span, stage, expr.ty, true, space)
+      }
       TirExprKind::Local(local) => stage.mut_local(*local),
       TirExprKind::Deref(reference) => {
         let reference = self.distill_expr_value(stage, reference);
@@ -330,7 +351,11 @@ impl<'core, 'r> Distiller<'core, 'r> {
       TirPatKind::Error(e) => Port::Error(*e),
       TirPatKind::Deref(_) => Port::Error(self.core.report(Diag::DerefNonPlacePat { span })),
       TirPatKind::Enum(..) => Port::Error(self.core.report(Diag::ExpectedCompletePat { span })),
-      TirPatKind::Hole => Port::Erase,
+      TirPatKind::Hole => {
+        let wire = stage.new_wire();
+        self.drop(span, stage, pat.ty, wire.0);
+        wire.1
+      }
       TirPatKind::Inverse(inner) => self.distill_pat_space(stage, inner),
       TirPatKind::Local(local) => {
         stage.declarations.push(*local);
@@ -356,7 +381,12 @@ impl<'core, 'r> Distiller<'core, 'r> {
       TirPatKind::Deref(_) => Port::Error(self.core.report(Diag::DerefNonPlacePat { span })),
       TirPatKind::Ref(_) => Port::Error(self.core.report(Diag::RefSpacePat { span })),
       TirPatKind::Enum(..) => Port::Error(self.core.report(Diag::ExpectedCompletePat { span })),
-      TirPatKind::Hole => Port::Erase,
+      TirPatKind::Hole => {
+        let wire = stage.new_wire();
+        let ty = self.types.inverse(pat.ty);
+        self.drop(span, stage, ty, wire.0);
+        wire.1
+      }
       TirPatKind::Inverse(inner) => self.distill_pat_value(stage, inner),
       TirPatKind::Local(local) => {
         stage.declarations.push(*local);
@@ -495,5 +525,35 @@ impl<'core, 'r> Distiller<'core, 'r> {
     stage.steps.push(s(left.0, lefts));
     stage.steps.push(s(right.0, rights));
     (left.1, right.1)
+  }
+
+  fn drop(&mut self, span: Span, stage: &mut Stage, ty: Type, value: Port) {
+    todo!()
+  }
+
+  fn coerce_value_place(
+    &mut self,
+    span: Span,
+    stage: &mut Stage,
+    ty: Type,
+    invert: bool,
+    value: Port,
+  ) -> (Port, Port) {
+    let ty_inv = self.types.inverse(ty);
+    let (ty, ty_inv) = if invert { (ty_inv, ty) } else { (ty, ty_inv) };
+    todo!()
+  }
+
+  fn coerce_place_value(
+    &mut self,
+    span: Span,
+    stage: &mut Stage,
+    ty: Type,
+    invert: bool,
+    place: (Port, Port),
+  ) -> Port {
+    let ty_inv = self.types.inverse(ty);
+    let (ty, ty_inv) = if invert { (ty_inv, ty) } else { (ty, ty_inv) };
+    todo!()
   }
 }

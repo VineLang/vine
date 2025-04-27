@@ -8,6 +8,7 @@ use super::{pattern_matching::Row, Distiller, Label, Return};
 
 impl<'core, 'r> Distiller<'core, 'r> {
   pub fn distill_block(&mut self, stage: &mut Stage, block: &TirBlock<'core>) -> Port {
+    let ty = block.ty;
     match &block.kind {
       TirBlockKind::Nil => Port::Erase,
       TirBlockKind::Error(e) => Port::Error(*e),
@@ -37,7 +38,7 @@ impl<'core, 'r> Distiller<'core, 'r> {
         let result = self.distill_block(&mut then_stage, block);
         then_stage.set_local_to(local, result);
         let result = self.distill_block(&mut else_stage, else_block);
-        else_stage.erase(result);
+        self.drop(expr.span, &mut else_stage, ty, result);
         self.finish_stage(init_stage);
         self.finish_stage(then_stage);
         self.finish_stage(else_stage);
@@ -46,7 +47,7 @@ impl<'core, 'r> Distiller<'core, 'r> {
       }
       TirBlockKind::Seq(expr, block) => {
         let value = self.distill_expr_value(stage, expr);
-        stage.erase(value); // todo
+        self.drop(expr.span, stage, ty, value);
         self.distill_block(stage, block)
       }
       TirBlockKind::Expr(expr) => self.distill_expr_value(stage, expr),
@@ -136,7 +137,7 @@ impl<'core, 'r> Distiller<'core, 'r> {
     if let Some(local) = label.break_value {
       stage.set_local_to(local, value);
     } else {
-      stage.erase(value);
+      assert!(matches!(value, Port::Erase));
     }
 
     stage.steps.push(Step::Diverge(label.layer, None));
@@ -174,7 +175,7 @@ impl<'core, 'r> Distiller<'core, 'r> {
     });
 
     let result = self.distill_block(&mut body_stage, block);
-    body_stage.erase(result);
+    self.drop(block.span, &mut body_stage, block.ty, result);
     body_stage.transfer = Some(Transfer::unconditional(body_stage.interface));
 
     self.finish_stage(body_stage);
@@ -201,7 +202,7 @@ impl<'core, 'r> Distiller<'core, 'r> {
     let (mut then_stage, else_stage) = self.distill_cond(&mut layer, &mut cond_stage, cond);
 
     let result = self.distill_block(&mut then_stage, block);
-    then_stage.erase(result);
+    self.drop(block.span, &mut then_stage, block.ty, result);
     then_stage.transfer = Some(Transfer::unconditional(cond_stage.interface));
 
     self.finish_stage(cond_stage);

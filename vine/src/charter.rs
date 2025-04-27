@@ -94,7 +94,6 @@ impl<'core> Charter<'core, '_> {
           data_vis,
           data: struct_item.data,
         });
-        let variant = VariantId(0);
         self.define_type(span, def, vis, generics, TypeDefKind::Struct(struct_id));
         let vis = data_vis.max(vis);
         self.define_value(span, def, vis, generics, ValueDefKind::Struct(struct_id), false);
