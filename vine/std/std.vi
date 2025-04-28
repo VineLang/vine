@@ -6,7 +6,7 @@ pub mod rng = "./rng/rng.vi";
 pub mod ops = "./ops/ops.vi";
 pub mod unicode = "./unicode/unicode.vi";
 pub mod IO = "./IO.vi";
-pub mod File = "./File.vi";
+pub mod file = "./File.vi";
 
 #[builtin = "prelude"]
 pub mod prelude {

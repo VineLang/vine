@@ -155,7 +155,7 @@ impl<'ivm> ExtVal<'ivm> {
     assert!(!ty.is_rc());
     unsafe {
       Self::from_word(Word::from_bits(
-        ty.0 as (u64) << 48 | payload as (u64) << 3 | Tag::ExtVal as (u64),
+        ty.0 as (u64) << 48 | payload as (u64) << 3 | Tag::ExtVal as u64,
       ))
     }
   }
@@ -164,11 +164,11 @@ impl<'ivm> ExtVal<'ivm> {
   pub unsafe fn new_rc_raw(ty: ExtTy<'ivm>, pointer: *const ()) -> Self {
     assert!(ty.is_rc());
     unsafe {
-      Self::from_word(Word::from_ptr(pointer).map_bits(|_| {
+      Self::from_word(Word::from_ptr(pointer).map_bits(|payload| {
         let payload = pointer.addr() as u64;
         // Ensure the payload pointer does not conflict with any other field
         assert!(payload & 0xFF000007 == 0);
-        ty.0 as (u64) << 48 | payload as u64 | Tag::ExtVal as u64
+        ty.0 as (u64) << 48 | payload | Tag::ExtVal as u64
       }))
     }
   }

@@ -1,0 +1,38 @@
+use ::std::file::{File, IOError, PathBuf};
+
+pub fn main(&io: &IO) {
+  let file_path = PathBuf::new(&io);
+  // let file_path_invalid = PathBuf::new(&io);
+  // file_path.push_string("/tmp/file-test");
+  // file_path_invalid.push_string("NotAFile");
+
+  // match File::open(&io, file_path_invalid) {
+  //   Ok(file) {
+  //     io.println("Invalid path successfull opened?");
+  //   }
+  //   Err (err) {
+  //     io.println("Invalid path failed as expected: " ++ err.code().to_string());
+  //   }
+  // }
+  
+  // match File::open(&io, file_path) {
+  //   Ok(file) {
+  //     file.write_byte(120);
+  //   }
+  //   Err (err) {
+  //     io.println("Valid path failed: " ++ err.code().to_string());
+  //   }
+  // }
+  
+  // match File::open(&io, file_path) {
+  //   Ok(file) {
+  //     match file.read_byte(256) {
+  //       Ok (byte) { io.print_byte(byte) }
+  //       Err (err) { io.println("Failed to read code: " ++ err.code().to_string()) }
+  //     }
+  //   }
+  //   Err (err) {
+  //     io.println("Valid path failed: " ++ err.code().to_string());
+  //   }
+  // }
+}

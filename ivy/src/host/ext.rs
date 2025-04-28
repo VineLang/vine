@@ -56,7 +56,6 @@ impl<'ivm> Host<'ivm> {
     let as_n32 = move |x: ExtVal<'ivm>| x.as_unboxed_ty(&n32);
     let as_f32 = move |x: ExtVal<'ivm>| f32::from_bits(x.as_unboxed_ty(&f32));
     let new_n32 = move |x: u32| ExtVal::new_unboxed(n32, x);
-    let new_n32 = move |x: u32| ExtVal::new_unboxed(n32, x);
     let new_f32 = move |x: f32| ExtVal::new_unboxed(f32, x.to_bits());
     let new_bool = move |x: bool| new_n32(x as u32);
 
@@ -107,29 +106,6 @@ impl<'ivm> Host<'ivm> {
       "i32_shr" => |a, b| new_n32((as_n32(a) as i32).wrapping_shr(as_n32(b)) as u32),
       "i32_lt" => |a, b| new_bool((as_n32(a) as i32) < (as_n32(b) as i32)),
       "i32_le" => |a, b| new_bool((as_n32(a) as i32) <= (as_n32(b) as i32)),
-
-      // "n32_add" => |a, b| new_n32(as_n32(a).wrapping_add(as_n32(b))),
-      // "n32_sub" => |a, b| new_n32(as_n32(a).wrapping_sub(as_n32(b))),
-      // "n32_mul" => |a, b| new_n32(as_n32(a).wrapping_mul(as_n32(b))),
-      // "n32_div" => |a, b| new_n32(as_n32(a).wrapping_div(as_n32(b))),
-      // "n32_rem" => |a, b| new_n32(as_n32(a).wrapping_rem(as_n32(b))),
-
-      // "eq" => |a, b| comparison(n32, f32, a, b, |a, b| a == b, |a, b| a == b),
-      // "ne" => |a, b| comparison(n32, f32, a, b, |a, b| a != b, |a, b| a != b),
-      // "lt" => |a, b| comparison(n32, f32, a, b, |a, b| a < b, |a, b| a < b),
-      // "le" => |a, b| comparison(n32, f32, a, b, |a, b| a <= b, |a, b| a <= b),
-
-      // "n32_shl" => |a, b| ExtVal::new_unboxed(n32, a.as_unboxed_ty(&n32).wrapping_shl(b.as_unboxed_ty(&n32))),
-      // "n32_shr" => |a, b| ExtVal::new_unboxed(n32, a.as_unboxed_ty(&n32).wrapping_shr(b.as_unboxed_ty(&n32))),
-      // "n32_rotl" => |a, b| ExtVal::new_unboxed(n32, a.as_unboxed_ty(&n32).rotate_left(b.as_unboxed_ty(&n32))),
-      // "n32_rotr" => |a, b| ExtVal::new_unboxed(n32, a.as_unboxed_ty(&n32).rotate_right(b.as_unboxed_ty(&n32))),
-
-      // "n32_and" => |a, b| ExtVal::new_unboxed(n32, a.as_unboxed_ty(&n32) & b.as_unboxed_ty(&n32)),
-      // "n32_or" => |a, b| ExtVal::new_unboxed(n32, a.as_unboxed_ty(&n32) | b.as_unboxed_ty(&n32)),
-      // "n32_xor" => |a, b| ExtVal::new_unboxed(n32, a.as_unboxed_ty(&n32) ^ b.as_unboxed_ty(&n32)),
-
-      // "n32_add_high" => |a, b| ExtVal::new_unboxed(n32, (((a.as_unboxed_ty(&n32) as u64) + (b.as_unboxed_ty(&n32) as u64)) >> 32) as u32),
-      // "n32_mul_high" => |a, b| ExtVal::new_unboxed(n32, (((a.as_unboxed_ty(&n32) as u64) * (b.as_unboxed_ty(&n32) as u64)) >> 32) as u32),
 
       "io_print_char" => |a, b| {
         a.as_unboxed_ty(&io);
@@ -221,24 +197,5 @@ impl<'ivm> Host<'ivm> {
         }
       }
     );
-
-    enum NumericType {
-      F32,
-      N32,
-    }
-
-    fn ty_to_numeric_type<'ivm>(
-      val: ExtVal<'ivm>,
-      n32: ExtTy<'ivm>,
-      f32: ExtTy<'ivm>,
-    ) -> Option<NumericType> {
-      if val.ty() == n32 {
-        Some(NumericType::N32)
-      } else if val.ty() == f32 {
-        Some(NumericType::F32)
-      } else {
-        None
-      }
-    }
   }
 }
