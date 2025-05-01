@@ -7,6 +7,6 @@ Types fall in to several categories:
 
 - [primitive types](./primitives.md) are fundamental types defined by the
   compiler
-- [standard types](./primitives.md) are commonly-used types defined by the
+- [standard types](./standard.md) are commonly-used types defined by the
   standard library
 - [structs](./structs.md) and [enums](./enums.md) are user-defined types
