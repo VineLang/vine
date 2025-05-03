@@ -270,12 +270,12 @@ impl<'core, 'd, 'r> Matcher<'core, 'd, 'r> {
     len: usize,
   ) -> (Range<VarId>, Range<Local>) {
     let start_var = self.vars.next_index();
-    let start_local = self.distiller.locals.peek_next();
+    let start_local = self.distiller.locals.next_index();
     for _ in 0..len {
       _ = self.new_var(stage, form);
     }
     let end_var = self.vars.next_index();
-    let end_local = self.distiller.locals.peek_next();
+    let end_local = self.distiller.locals.next_index();
     (start_var..end_var, start_local..end_local)
   }
 

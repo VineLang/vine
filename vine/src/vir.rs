@@ -11,6 +11,7 @@ use crate::{
   chart::{EnumId, ValueDefId, VariantId},
   diag::ErrorGuaranteed,
   tir::{Local, TirImpl},
+  types::{Type, Types},
 };
 
 new_idx!(pub LayerId; n => ["L{n}"]);
@@ -23,8 +24,9 @@ impl LayerId {
 }
 
 #[derive(Debug, Clone)]
-pub struct VIR {
-  pub locals: Counter<Local>,
+pub struct VIR<'core> {
+  pub types: Types<'core>,
+  pub locals: IdxVec<Local, Option<Type>>,
   pub layers: IdxVec<LayerId, Layer>,
   pub interfaces: IdxVec<InterfaceId, Interface>,
   pub stages: IdxVec<StageId, Stage>,

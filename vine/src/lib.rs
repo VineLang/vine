@@ -6,7 +6,7 @@ pub mod charter;
 pub mod core;
 pub mod diag;
 pub mod distiller;
-// pub mod emitter;
+pub mod emitter;
 pub mod finder;
 pub mod fmt;
 pub mod lexer;

@@ -37,7 +37,7 @@ pub struct Distiller<'core, 'r> {
   returns: Vec<Return>,
   closures: IdxVec<ClosureId, Closure>,
 
-  locals: Counter<Local>,
+  locals: IdxVec<Local, Option<Type>>,
 }
 
 #[derive(Debug)]
@@ -90,28 +90,28 @@ impl<'core, 'r> Distiller<'core, 'r> {
   //   }
   // }
 
-  pub fn distill_root(
-    &mut self,
-    locals: Counter<Local>,
-    f: impl FnOnce(&mut Self, &mut Stage, Local),
-  ) -> VIR {
-    self.locals = locals;
-    let (layer, mut stage) = self.root_layer();
-    let local = self.locals.next();
-    f(self, &mut stage, local);
-    self.finish_stage(stage);
-    self.finish_layer(layer);
-    self.labels.clear();
-    debug_assert!(self.returns.is_empty());
-    self.closures.clear();
-    VIR {
-      layers: unwrap_idx_vec(take(&mut self.layers)),
-      interfaces: unwrap_idx_vec(take(&mut self.interfaces)),
-      stages: unwrap_idx_vec(take(&mut self.stages)),
-      locals: self.locals,
-      globals: vec![(local, Usage::Take)],
-    }
-  }
+  // pub fn distill_root(
+  //   &mut self,
+  //   locals: Counter<Local>,
+  //   f: impl FnOnce(&mut Self, &mut Stage, Local),
+  // ) -> VIR {
+  //   self.locals = locals;
+  //   let (layer, mut stage) = self.root_layer();
+  //   let local = self.locals.next();
+  //   f(self, &mut stage, local);
+  //   self.finish_stage(stage);
+  //   self.finish_layer(layer);
+  //   self.labels.clear();
+  //   debug_assert!(self.returns.is_empty());
+  //   self.closures.clear();
+  //   VIR {
+  //     layers: unwrap_idx_vec(take(&mut self.layers)),
+  //     interfaces: unwrap_idx_vec(take(&mut self.interfaces)),
+  //     stages: unwrap_idx_vec(take(&mut self.stages)),
+  //     locals: self.locals,
+  //     globals: vec![(local, Usage::Take)],
+  //   }
+  // }
 
   fn distill_expr_value(&mut self, stage: &mut Stage, expr: &TirExpr<'core>) -> Port {
     let span = expr.span;
@@ -468,12 +468,6 @@ impl<'core, 'r> Distiller<'core, 'r> {
     (layer, stage)
   }
 
-  fn root_layer(&mut self) -> (Layer, Stage) {
-    let mut layer = self.new_layer();
-    let stage = self.new_unconditional_stage(&mut layer);
-    (layer, stage)
-  }
-
   fn finish_stage(&mut self, stage: Stage) -> StageId {
     let id = stage.id;
     self.stages[id] = Some(stage);
@@ -494,7 +488,7 @@ impl<'core, 'r> Distiller<'core, 'r> {
   }
 
   fn new_local(&mut self, stage: &mut Stage) -> Local {
-    let local = self.locals.next();
+    let local = self.locals.push(None);
     stage.declarations.push(local);
     local
   }

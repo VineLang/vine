@@ -1,22 +1,20 @@
 use std::collections::{btree_map::Entry, BTreeMap};
 
-use vine_util::{
-  idx::{Counter, IdxVec},
-  unwrap_idx_vec,
-};
+use vine_util::{idx::IdxVec, unwrap_idx_vec};
 
 use crate::{
   tir::Local,
+  types::Type,
   vir::{
     Header, Interface, InterfaceId, InterfaceKind, Layer, LayerId, Port, Stage, StageId, Step,
     Transfer, WireId, VIR,
   },
 };
 
-pub fn normalize(source: &VIR) -> VIR {
+pub fn normalize<'core>(source: &VIR<'core>) -> VIR<'core> {
   let mut normalizer = Normalizer {
     source,
-    locals: source.locals,
+    locals: source.locals.clone(),
     interfaces: source.interfaces.clone(),
     stages: IdxVec::from(vec![None; source.stages.len()]),
     layer_divergence: IdxVec::from(vec![None; source.layers.len()]),
@@ -30,6 +28,7 @@ pub fn normalize(source: &VIR) -> VIR {
   }
 
   VIR {
+    types: source.types.clone(),
     locals: normalizer.locals,
     layers: IdxVec::new(),
     interfaces: normalizer.interfaces,
@@ -39,10 +38,10 @@ pub fn normalize(source: &VIR) -> VIR {
 }
 
 #[derive(Debug)]
-struct Normalizer<'a> {
-  source: &'a VIR,
+struct Normalizer<'a, 'core> {
+  source: &'a VIR<'core>,
 
-  locals: Counter<Local>,
+  locals: IdxVec<Local, Option<Type>>,
   interfaces: IdxVec<InterfaceId, Interface>,
   stages: IdxVec<StageId, Option<Stage>>,
 
@@ -50,7 +49,7 @@ struct Normalizer<'a> {
   final_transfers: IdxVec<LayerId, Option<Transfer>>,
 }
 
-impl<'a> Normalizer<'a> {
+impl<'core> Normalizer<'_, 'core> {
   fn normalize_layer(&mut self, layer: &Layer) {
     for &stage in &layer.stages {
       let source = &self.source.stages[stage];
@@ -94,7 +93,7 @@ impl<'a> Normalizer<'a> {
             wires: source.wires,
           };
           for &wire in wire_counts.keys() {
-            let local = self.locals.next();
+            let local = self.locals.push(None);
             stage.declarations.push(local);
             stage.set_local_to(local, Port::Wire(wire));
             new_stage.take_local_to(local, Port::Wire(wire));

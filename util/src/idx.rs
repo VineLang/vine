@@ -147,27 +147,27 @@ impl<I: Idx, T> IdxVec<I, T> {
   }
 
   #[inline(always)]
-  pub fn keys(&self) -> impl Iterator<Item = I> + Clone {
+  pub fn keys(&self) -> impl DoubleEndedIterator<Item = I> + Clone {
     (0..self.vec.len()).map(I::from)
   }
 
   #[inline(always)]
-  pub fn keys_from(&self, index: I) -> impl Iterator<Item = I> + Clone {
+  pub fn keys_from(&self, index: I) -> impl DoubleEndedIterator<Item = I> + Clone {
     (index..I::from(self.vec.len())).iter()
   }
 
   #[inline(always)]
-  pub fn into_values(self) -> impl Iterator<Item = T> {
+  pub fn into_values(self) -> impl DoubleEndedIterator<Item = T> {
     self.vec.into_iter()
   }
 
   #[inline(always)]
-  pub fn values(&self) -> impl Iterator<Item = &T> {
+  pub fn values(&self) -> impl DoubleEndedIterator<Item = &T> {
     self.vec.iter()
   }
 
   #[inline(always)]
-  pub fn values_mut(&mut self) -> impl Iterator<Item = &mut T> {
+  pub fn values_mut(&mut self) -> impl DoubleEndedIterator<Item = &mut T> {
     self.vec.iter_mut()
   }
 
