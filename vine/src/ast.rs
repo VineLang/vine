@@ -600,3 +600,65 @@ impl From<ErrorGuaranteed> for Block<'_> {
 
 impl idx::IsEnabled for BinaryOp {}
 impl idx::IsEnabled for ComparisonOp {}
+
+pub fn visit_block_subitems(block: &mut Block, f: &mut impl FnMut(&mut Item)) {
+  for stmt in &mut block.stmts {
+    match &mut stmt.kind {
+      StmtKind::Let(let_stmt) => todo!(),
+      StmtKind::LetFn(let_fn_stmt) => todo!(),
+      StmtKind::Expr(expr, _) => todo!(),
+      StmtKind::Item(item) => f(item),
+      StmtKind::Empty => {}
+    }
+  }
+}
+
+pub fn visit_expr_subitems(expr: &mut Expr, f: &mut impl FnMut(&mut Item)) {
+  match &mut expr.kind {
+    ExprKind::Hole
+    | ExprKind::N32(_)
+    | ExprKind::F32(_)
+    | ExprKind::Char(_)
+    | ExprKind::Error(_)
+    | ExprKind::Return(None)
+    | ExprKind::Break(_, None)
+    | ExprKind::Continue(_) => todo!(),
+    ExprKind::Paren(expr)
+    | ExprKind::Ref(expr, _)
+    | ExprKind::Deref(expr, _)
+    | ExprKind::Inverse(expr, _)
+    | ExprKind::Return(Some(expr))
+    | ExprKind::Break(_, Some(expr)) => {
+      todo!()
+    }
+    ExprKind::Tuple(exprs) => todo!(),
+    ExprKind::List(exprs) => todo!(),
+
+    ExprKind::Path(path, exprs) => todo!(),
+    ExprKind::Do(ident, block) => todo!(),
+    ExprKind::Assign(_, expr, expr1) => todo!(),
+    ExprKind::Match(expr, items) => todo!(),
+    ExprKind::If(items, block) => todo!(),
+    ExprKind::While(ident, expr, block) => todo!(),
+    ExprKind::Loop(ident, block) => todo!(),
+    ExprKind::Fn(flex, pats, ty, block) => todo!(),
+    ExprKind::Place(expr, expr1) => todo!(),
+    ExprKind::Object(items) => todo!(),
+    ExprKind::TupleField(expr, _) => todo!(),
+    ExprKind::ObjectField(expr, key) => todo!(),
+    ExprKind::Method(expr, ident, generics, exprs) => todo!(),
+    ExprKind::Call(expr, exprs) => todo!(),
+    ExprKind::Neg(expr) => todo!(),
+    ExprKind::BinaryOp(binary_op, expr, expr1) => todo!(),
+    ExprKind::Bool(_) => todo!(),
+    ExprKind::Not(expr) => todo!(),
+    ExprKind::Is(expr, pat) => todo!(),
+    ExprKind::LogicalOp(logical_op, expr, expr1) => todo!(),
+    ExprKind::ComparisonOp(expr, items) => todo!(),
+    ExprKind::BinaryOpAssign(binary_op, expr, expr1) => todo!(),
+    ExprKind::Cast(expr, ty, _) => todo!(),
+    ExprKind::Unwrap(expr) => todo!(),
+    ExprKind::String(string_segment, items) => todo!(),
+    ExprKind::InlineIvy(items, ty, span, net) => todo!(),
+  }
+}

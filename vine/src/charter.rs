@@ -1,4 +1,4 @@
-use std::collections::hash_map::Entry;
+use std::{collections::hash_map::Entry, mem::take};
 
 use vine_util::idx::Counter;
 
@@ -9,7 +9,7 @@ use crate::{
   chart::{Chart, TraitSubitem},
   core::Core,
   diag::{Diag, ErrorGuaranteed},
-  // visit::VisitMut,
+  visit::VisitMut,
 };
 
 use crate::chart::*;
@@ -516,7 +516,7 @@ define_define!(
 fn extract_subitems<'core>(item: &mut Item<'core>) -> Vec<Item<'core>> {
   let mut visitor = ExtractItems::default();
   if !matches!(item.kind, ItemKind::Mod(_) | ItemKind::Trait(_) | ItemKind::Impl(_)) {
-    // visitor._visit_item(item);
+    visitor._visit_item(item);
   }
   visitor.items
 }
@@ -526,8 +526,8 @@ pub struct ExtractItems<'core> {
   pub items: Vec<Item<'core>>,
 }
 
-// impl<'core> VisitMut<'core, '_> for ExtractItems<'core> {
-//   fn visit_item(&mut self, item: &mut Item<'core>) {
-//     self.items.push(take(item));
-//   }
-// }
+impl<'core> VisitMut<'core, '_> for ExtractItems<'core> {
+  fn visit_item(&mut self, item: &mut Item<'core>) {
+    self.items.push(take(item));
+  }
+}

@@ -208,7 +208,7 @@ impl<'core> Types<'core> {
 
   fn _show(&self, chart: &Chart, mut ty: Type, str: &mut String) {
     loop {
-      match &self.types[ty] {
+      break match &self.types[ty] {
         TypeNode::Child(parent) => {
           ty = *parent;
           continue;
@@ -277,7 +277,7 @@ impl<'core> Types<'core> {
           TypeKind::Never => *str += "!",
           TypeKind::Error(_) => *str += "??",
         },
-      }
+      };
     }
   }
 
