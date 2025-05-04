@@ -60,6 +60,12 @@ pub mod Array {
     )
   }
 
+  pub fn .for_each_independent[T](Array[T](len, node), f: fn(T)) {
+    if len != 0 {
+      node.for_each_independent(len, f)
+    }
+  }
+
   pub fn .fold_front[T, U](Array[T](len, node), initial: U, f: fn(U, T) -> U) -> U {
     if len == 0 {
       initial
@@ -85,6 +91,14 @@ pub mod Array {
       let Array(_, node) = zipped;
       ~ins = node;
       out
+    }
+  }
+
+  pub fn .fold_unordered[T](Array[T](len, node), empty: T, f: fn(T, T) -> T) -> T {
+    if len == 0 {
+      empty
+    } else {
+      node.fold(len, f)
     }
   }
 
@@ -301,6 +315,25 @@ mod Node {
       let &Node(l, r) = &node;
       drop[T]((len + 1) / 2, l);
       drop[T](len / 2, r);
+    }
+  }
+
+  pub fn .fold[T](node: Node[T], len: N32, f: fn(T, T) -> T) -> T {
+    if len == 1 {
+      node as T
+    } else {
+      let Node(l, r) = node;
+      f(l.fold((len + 1) / 2, f), r.fold(len / 2, f))
+    }
+  }
+
+  pub fn .for_each_independent[T](node: Node[T], len: N32, f: fn(T)) {
+    if len == 1 {
+      f(node as T)
+    } else {
+      let Node(l, r) = node;
+      l.for_each_independent((len + 1) / 2, f);
+      r.for_each_independent(len / 2, f);
     }
   }
 }
