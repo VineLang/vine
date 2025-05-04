@@ -53,6 +53,7 @@ pub struct Types<'core> {
 }
 
 impl<'core> Types<'core> {
+  #[allow(clippy::new_ret_no_self)]
   pub fn new(&mut self, kind: TypeKind<'core>) -> Type {
     self.types.push(TypeNode::Root(Some(kind), 1))
   }

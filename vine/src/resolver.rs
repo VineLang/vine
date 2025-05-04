@@ -240,11 +240,12 @@ impl<'core> Resolver<'core, '_> {
       }
       ExprKind::Fn(flex, params, ret, body) => {
         let params = params.iter().map(|p| self.resolve_pat(p)).collect::<Vec<_>>();
-        let ret = ret.as_ref().map(|t| self.resolve_ty(t)).unwrap_or_else(|| self.types.new_var());
+        let ret =
+          ret.as_ref().map(|t| self.resolve_ty(t, true)).unwrap_or_else(|| self.types.new_var());
         let body = self.resolve_block_ty(body, ret);
         let param_tys = params.iter().map(|p| p.ty).collect();
         let id = self.closures.push(TirClosure { flex: *flex, params, body });
-        (self.fn_type(id, *flex, param_tys, ret), TirExprKind::Closure(id))
+        (self.closure_type(id, *flex, param_tys, ret), TirExprKind::Closure(id))
       }
       ExprKind::Return(value) => {
         if let Some(ty) = self.return_ty {
@@ -406,7 +407,7 @@ impl<'core> Resolver<'core, '_> {
       ExprKind::BinaryOpAssign(binary_op, expr, expr1) => todo!(),
       ExprKind::Cast(value, ty, _) => {
         let value = self.resolve_expr(value);
-        let ty = self.resolve_ty(ty);
+        let ty = self.resolve_ty(ty, true);
         let call =
           self.resolve_builtin_fn(span, self.chart.builtins.cast, vec![value.ty, ty], vec![value]);
         (ty, call)
@@ -444,7 +445,7 @@ impl<'core> Resolver<'core, '_> {
       }
       ExprKind::InlineIvy(binds, ty, _, net) => {
         let binds = binds.iter().map(|(n, d, e)| (*n, *d, self.resolve_expr(e))).collect();
-        let ty = self.resolve_ty(ty);
+        let ty = self.resolve_ty(ty, true);
         (ty, TirExprKind::InlineIvy(binds, net.clone()))
       }
       ExprKind::Error(err) => Err(*err)?,
@@ -464,8 +465,25 @@ impl<'core> Resolver<'core, '_> {
     (ret, TirExprKind::Call(impl_, Some(Box::new(func)), args))
   }
 
-  fn fn_type(&mut self, id: ClosureId, flex: Flex, params: Vec<Type>, ret: Type) -> Type {
-    self.types.new(TypeKind::Fn(self.cur_value_def, id, todo!(), todo!(), flex, params, ret))
+  fn closure_type(&mut self, id: ClosureId, flex: Flex, params: Vec<Type>, ret: Type) -> Type {
+    let generics = &self.chart.generics[self.cur_generics];
+    let type_params = generics
+      .type_params
+      .iter()
+      .enumerate()
+      .map(|(i, p)| self.types.new(TypeKind::Param(i, p.name)))
+      .collect();
+    let impl_params =
+      generics.impl_params.iter().enumerate().map(|(i, _)| TirImpl::Param(i)).collect();
+    self.types.new(TypeKind::Fn(
+      self.cur_value_def,
+      id,
+      type_params,
+      impl_params,
+      flex,
+      params,
+      ret,
+    ))
   }
 
   fn resolve_cond(&mut self, bool: Type, expr: &Expr<'core>) -> TirExpr<'core> {
@@ -535,7 +553,7 @@ impl<'core> Resolver<'core, '_> {
       PatKind::Hole => (self.types.new_var(), TirPatKind::Hole),
       PatKind::Paren(inner) => self._resolve_pat(inner)?,
       PatKind::Annotation(inner, ty) => {
-        let ty = self.resolve_ty(ty);
+        let ty = self.resolve_ty(ty, true);
         let inner = self.resolve_pat_ty(inner, ty);
         (ty, inner.kind)
       }
@@ -640,25 +658,33 @@ impl<'core> Resolver<'core, '_> {
     }
   }
 
-  fn resolve_ty(&mut self, ty: &Ty<'core>) -> Type {
+  fn resolve_ty(&mut self, ty: &Ty<'core>, inference: bool) -> Type {
     let span = ty.span;
     match &ty.kind {
-      TyKind::Hole => self.types.new_var(),
-      TyKind::Paren(inner) => self.resolve_ty(inner),
+      TyKind::Hole => {
+        if inference {
+          self.types.new_var()
+        } else {
+          self.types.error(self.core.report(Diag::ItemTypeHole { span }))
+        }
+      }
+      TyKind::Paren(inner) => self.resolve_ty(inner, inference),
       TyKind::Tuple(els) => {
-        let els = els.iter().map(|t| self.resolve_ty(t)).collect();
+        let els = els.iter().map(|t| self.resolve_ty(t, inference)).collect();
         self.types.new(TypeKind::Tuple(els))
       }
       TyKind::Object(entries) => self
-        .resolve_object(span, entries, |self_, (key, ty)| (key.ident, self_.resolve_ty(ty), ()))
+        .resolve_object(span, entries, |self_, (key, ty)| {
+          (key.ident, self_.resolve_ty(ty, inference), ())
+        })
         .map(|x| x.0)
         .unwrap_or_else(|err| self.types.error(err)),
       TyKind::Ref(inner) => {
-        let inner = self.resolve_ty(inner);
+        let inner = self.resolve_ty(inner, inference);
         self.types.new(TypeKind::Ref(inner))
       }
       TyKind::Inverse(inner) => {
-        let inner = self.resolve_ty(inner);
+        let inner = self.resolve_ty(inner, inference);
         self.types.inverse(inner)
       }
       TyKind::Path(path) => todo!(),
@@ -739,11 +765,11 @@ impl<'core> Resolver<'core, '_> {
       StmtKind::LetFn(l) => {
         let params = l.params.iter().map(|p| self.resolve_pat(p)).collect::<Vec<_>>();
         let ret =
-          l.ret.as_ref().map(|t| self.resolve_ty(t)).unwrap_or_else(|| self.types.new_var());
+          l.ret.as_ref().map(|t| self.resolve_ty(t, true)).unwrap_or_else(|| self.types.new_var());
         let body = self.resolve_block_ty(&l.body, ret);
         let param_tys = params.iter().map(|p| p.ty).collect();
         let id = self.closures.push(TirClosure { flex: l.flex, params, body });
-        let ty = self.fn_type(id, l.flex, param_tys, ret);
+        let ty = self.closure_type(id, l.flex, param_tys, ret);
         self.bind(l.name, Binding::Closure(id, ty));
         self._resolve_stmts_ty(span, stmts, ty)
       }
@@ -896,16 +922,22 @@ impl<'core> Resolver<'core, '_> {
     todo!()
   }
 
-  fn resolve_trait(&mut self, trait_: &Trait<'core>) -> ImplType {
-    self._resolve_trait(trait_).unwrap_or_else(|err| ImplType::Error(self.core.report(err)))
+  fn resolve_trait(&mut self, trait_: &Trait<'core>, inference: bool) -> ImplType {
+    self
+      ._resolve_trait(trait_, inference)
+      .unwrap_or_else(|err| ImplType::Error(self.core.report(err)))
   }
 
-  fn _resolve_trait(&mut self, trait_: &Trait<'core>) -> Result<ImplType, Diag<'core>> {
+  fn _resolve_trait(
+    &mut self,
+    trait_: &Trait<'core>,
+    inference: bool,
+  ) -> Result<ImplType, Diag<'core>> {
     Ok(match &trait_.kind {
       TraitKind::Fn(recv, params, ret) => {
-        let recv = self.resolve_ty(recv);
-        let params = params.iter().map(|p| self.resolve_ty(p)).collect();
-        let ret = ret.as_ref().map(|r| self.resolve_ty(r)).unwrap_or(self.types.nil());
+        let recv = self.resolve_ty(recv, inference);
+        let params = params.iter().map(|p| self.resolve_ty(p, inference)).collect();
+        let ret = ret.as_ref().map(|r| self.resolve_ty(r, inference)).unwrap_or(self.types.nil());
         ImplType::Fn(recv, params, ret)
       }
       TraitKind::Path(path) => {
