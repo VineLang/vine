@@ -1,7 +1,8 @@
 
 Interactions
   Total                1_608
-  Depth                  247
+    Depth                247
+    Breadth                6
   Annihilate             639
   Commute                  0
   Copy                   160
