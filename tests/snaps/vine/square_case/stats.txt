@@ -1,7 +1,8 @@
 
 Interactions
   Total                3_445
-  Depth                2_350
+    Depth              2_350
+    Breadth                1
   Annihilate           1_140
   Commute                  0
   Copy                   579

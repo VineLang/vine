@@ -59,6 +59,11 @@ impl Stats {
   pub fn worker_avg(&self) -> u64 {
     (self.interactions() as f64 / self.workers_used as f64) as u64
   }
+
+  // The average breadth of interactions that could be processed in parallel.
+  pub fn breadth(&self) -> u64 {
+    self.interactions().checked_div(self.depth).unwrap_or(0)
+  }
 }
 
 // This code is very complex, as it avoids doing any allocation. Premature
@@ -74,7 +79,8 @@ impl Display for Stats {
         ("  Total", Some((self.interactions(), ""))), //
       ]),
       (self.depth != 0).then_some(&[
-        ("  Depth", Some((self.depth, ""))), //
+        ("    Depth", Some((self.depth, ""))),       //
+        ("    Breadth", Some((self.breadth(), ""))), //
       ]),
       Some(&[
         ("  Annihilate", Some((self.annihilate, ""))),
