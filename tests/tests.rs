@@ -71,6 +71,7 @@ fn tests(t: &mut DynTester) {
     test_vi(t, "tests/programs/so_random.vi", b"", ".txt", true);
     test_vi(t, "tests/programs/specializations.vi", b"", ".txt", true);
     test_vi(t, "tests/programs/square_case.vi", b"", ".txt", true);
+    test_vi(t, "tests/programs/string_ops.vi", b"", ".txt", true);
     test_vi(t, "tests/programs/verbose_add.vi", b"", ".txt", true);
 
     for (name, _) in t.glob_in("programs/aoc_2024/", "*.vi") {
