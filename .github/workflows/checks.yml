@@ -78,6 +78,7 @@ jobs:
       - uses: dsherret/rust-toolchain-file@v1
       - run: cargo fmt --check
       - run: cargo build
+      - run: cargo install --path cli
       - uses: dprint/check@v2.2
 
   cspell:
