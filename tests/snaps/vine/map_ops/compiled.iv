@@ -134,7 +134,7 @@
 
 ::std::data::Map::balance_right::6 { x(n0 x(tup(dup1104(n1 n2) n3) x(tup(dup1104(n4 @n32_add(n5 @n32_add(1 n6))) n7) x(n8 x(tup(_ tup(tup(dup1104(n9 n5) n10) tup(n11 tup(dup1104(n12 @n32_add(n2 @n32_add(1 n13))) n14)))) tup(tup(n6 tup(tup(n4 n7) tup(n8 tup(n9 n10)))) tup(n11 tup(n13 tup(tup(n12 n14) tup(n0 tup(n1 n3))))))))))) }
 
-::std::unicode::String::len { fn(ref(tup(dup2822(w0 w13) w2) tup(w0 w2)) w13) }
+::std::unicode::String::len { fn(ref(tup(dup2797(w0 w13) w2) tup(w0 w2)) w13) }
 
 ::std::IO::println { fn(ref(n0 n1) fn(tup(dup315(n2 @n32_ne(0 ?(::std::IO::print::3 ::std::IO::print::2 x(x(n0 @io_print_char(10 n1)) x(n2 n3))))) tup(n3 _)) _)) }
 

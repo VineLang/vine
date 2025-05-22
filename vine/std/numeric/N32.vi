@@ -205,18 +205,6 @@ pub mod N32 {
     s
   }
 
-  pub fn .pow(b: N32, e: N32) -> N32 {
-    let n = 1;
-    while e != 0 {
-      if e % 2 != 0 {
-        n *= b;
-      }
-      b *= b;
-      e /= 2;
-    }
-    n
-  }
-
   pub fn .log(n: N32, b: N32) -> N32 {
     let ~s = 0;
     let r = ~s;

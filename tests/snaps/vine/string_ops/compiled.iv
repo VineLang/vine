@@ -104,9 +104,9 @@
 
 ::std::logical::Option::unwrap::3 { enum(n0 n0) }
 
-::std::unicode::String::len { fn(ref(tup(dup2724(n0 n1) n2) tup(n0 n2)) n1) }
+::std::unicode::String::len { fn(ref(tup(dup2699(n0 n1) n2) tup(n0 n2)) n1) }
 
-::std::unicode::String::starts_with { fn(ref(tup(dup2724(n0 dup323(_ @n32_lt(n1 ?(::std::unicode::String::starts_with::3 ::std::unicode::String::starts_with::2 x(x(tup(n0 n2) n3) x(x(tup(n4 n5) n6) n7)))))) n2) n3) fn(ref(tup(dup2724(n4 dup324(_ n1)) n5) n6) n7)) }
+::std::unicode::String::starts_with { fn(ref(tup(dup2699(n0 dup323(_ @n32_lt(n1 ?(::std::unicode::String::starts_with::3 ::std::unicode::String::starts_with::2 x(x(tup(n0 n2) n3) x(x(tup(n4 n5) n6) n7)))))) n2) n3) fn(ref(tup(dup2699(n4 dup324(_ n1)) n5) n6) n7)) }
 
 ::std::unicode::String::starts_with::2 { x(x(n0 n0) x(x(n1 n1) 0)) }
 

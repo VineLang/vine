@@ -25,7 +25,7 @@
 
 ::map_test::main::1 { x(n0 x(n1 dup196(n2 @n32_lt$(0 ?(::map_test::main::3 ::map_test::main::2 x(n0 x(n1 n2))))))) }
 
-::map_test::main::2 { x(x(tup(dup276(n0 @n32_eq(0 ?(::std::data::Map::insert::1::3 ::std::data::Map::insert::1::2 x(x(n0 n1) x(x(n2 n3) x(n4 x(n5 _))))))) n2) n6) x(tup(dup2919(tup(@n32_shr(27 n7) dup2923(@n32_shr(13 @n32_xor(n8 @n32_xor(n7 @n32_rotr(n9 dup33(n4 dup33(@n32_mul(n10 n5) n10)))))) dup2923(@n32_shl(5 n8) @n32_shr(27 n9)))) tup(dup(@n32_mul(1284865837 dup(@n32_add(n11 n12) @n32_add_high(n13 n14))) dup(@n32_mul_high(1284865837 n15) @n32_mul(1481765933 @n32_add(n16 @n32_add(n15 @n32_add(n17 @n32_add(n14 n18))))))) @n32_mul$(1284865837 n16))) dup2921(n19 tup(dup(n11 n13) n17))) @n32_sub(1 dup196(n20 @n32_lt$(0 ?(::map_test::main::3 ::map_test::main::2 x(x(tup(n1 n3) n6) x(tup(tup(n12 n18) n19) n20)))))))) }
+::map_test::main::2 { x(x(tup(dup276(n0 @n32_eq(0 ?(::std::data::Map::insert::1::3 ::std::data::Map::insert::1::2 x(x(n0 n1) x(x(n2 n3) x(n4 x(n5 _))))))) n2) n6) x(tup(dup2894(tup(@n32_shr(27 n7) dup2898(@n32_shr(13 @n32_xor(n8 @n32_xor(n7 @n32_rotr(n9 dup33(n4 dup33(@n32_mul(n10 n5) n10)))))) dup2898(@n32_shl(5 n8) @n32_shr(27 n9)))) tup(dup(@n32_mul(1284865837 dup(@n32_add(n11 n12) @n32_add_high(n13 n14))) dup(@n32_mul_high(1284865837 n15) @n32_mul(1481765933 @n32_add(n16 @n32_add(n15 @n32_add(n17 @n32_add(n14 n18))))))) @n32_mul$(1284865837 n16))) dup2896(n19 tup(dup(n11 n13) n17))) @n32_sub(1 dup196(n20 @n32_lt$(0 ?(::map_test::main::3 ::map_test::main::2 x(x(tup(n1 n3) n6) x(tup(tup(n12 n18) n19) n20)))))))) }
 
 ::map_test::main::3 { x(x(n0 n0) _) }
 
@@ -49,7 +49,7 @@
 
 ::map_test::main::19 { x(n0 x(n1 x(n2 dup196(n3 @n32_lt$(0 ?(::map_test::main::21 ::map_test::main::20 x(n0 x(n1 x(n2 n3))))))))) }
 
-::map_test::main::20 { x(x(n0 n1) x(x(tup(dup276(n2 @n32_eq(0 ?(::std::data::Map::get::1::3 ::std::data::Map::get::1::2 x(x(n3 n4) x(x(n5 n6) enum(::map_test::main::25 enum(::map_test::main::29 x(x(n0 n7) x(n6 _))))))))) n3) n8) x(tup(dup2919(tup(@n32_shr(27 n9) dup2923(@n32_shr(13 @n32_xor(n10 @n32_xor(n9 @n32_rotr(n11 n5)))) dup2923(@n32_shl(5 n10) @n32_shr(27 n11)))) tup(dup(@n32_mul(1284865837 dup(@n32_add(n12 n13) @n32_add_high(n14 n15))) dup(@n32_mul_high(1284865837 n16) @n32_mul(1481765933 @n32_add(n17 @n32_add(n16 @n32_add(n18 @n32_add(n15 n19))))))) @n32_mul$(1284865837 n17))) dup2921(n20 tup(dup(n12 n14) n18))) @n32_sub(1 dup196(n21 @n32_lt$(0 ?(::map_test::main::21 ::map_test::main::20 x(x(n7 n1) x(x(tup(n2 n4) n8) x(tup(tup(n13 n19) n20) n21)))))))))) }
+::map_test::main::20 { x(x(n0 n1) x(x(tup(dup276(n2 @n32_eq(0 ?(::std::data::Map::get::1::3 ::std::data::Map::get::1::2 x(x(n3 n4) x(x(n5 n6) enum(::map_test::main::25 enum(::map_test::main::29 x(x(n0 n7) x(n6 _))))))))) n3) n8) x(tup(dup2894(tup(@n32_shr(27 n9) dup2898(@n32_shr(13 @n32_xor(n10 @n32_xor(n9 @n32_rotr(n11 n5)))) dup2898(@n32_shl(5 n10) @n32_shr(27 n11)))) tup(dup(@n32_mul(1284865837 dup(@n32_add(n12 n13) @n32_add_high(n14 n15))) dup(@n32_mul_high(1284865837 n16) @n32_mul(1481765933 @n32_add(n17 @n32_add(n16 @n32_add(n18 @n32_add(n15 n19))))))) @n32_mul$(1284865837 n17))) dup2896(n20 tup(dup(n12 n14) n18))) @n32_sub(1 dup196(n21 @n32_lt$(0 ?(::map_test::main::21 ::map_test::main::20 x(x(n7 n1) x(x(tup(n2 n4) n8) x(tup(tup(n13 n19) n20) n21)))))))))) }
 
 ::map_test::main::21 { x(x(n0 n0) x(x(n1 n1) _)) }
 
@@ -61,7 +61,7 @@
 
 ::map_test::main::30 { x(n0 x(n1 x(n2 dup196(n3 @n32_lt$(0 ?(::map_test::main::32 ::map_test::main::31 x(n0 x(n1 x(n2 n3))))))))) }
 
-::map_test::main::31 { x(x(n0 n1) x(tup(dup276(n2 @n32_eq(0 ?(::std::data::Map::remove::1::3 ::std::data::Map::remove::1::2 x(x(n2 n3) x(x(n4 n5) x(x(n6 n7) enum(::map_test::main::36 enum(::map_test::main::40 x(x(n0 n8) x(n7 _)))))))))) n4) x(tup(dup2919(tup(@n32_shr(27 n9) dup2923(@n32_shr(13 @n32_xor(n10 @n32_xor(n9 @n32_rotr(n11 n6)))) dup2923(@n32_shl(5 n10) @n32_shr(27 n11)))) tup(dup(@n32_mul(1284865837 dup(@n32_add(n12 n13) @n32_add_high(n14 n15))) dup(@n32_mul_high(1284865837 n16) @n32_mul(1481765933 @n32_add(n17 @n32_add(n16 @n32_add(n18 @n32_add(n15 n19))))))) @n32_mul$(1284865837 n17))) dup2921(n20 tup(dup(n12 n14) n18))) @n32_sub(1 dup153(@n32_rem(100 dup276(_ @n32_eq(0 ?(::map_test::main::43 ::map_test::main::42 x(x(n8 n21) x(x(tup(n3 n5) n22) x(n23 _))))))) dup153(n23 dup196(n24 @n32_lt$(0 ?(::map_test::main::32 ::map_test::main::31 x(x(n21 n1) x(n22 x(tup(tup(n13 n19) n20) n24)))))))))))) }
+::map_test::main::31 { x(x(n0 n1) x(tup(dup276(n2 @n32_eq(0 ?(::std::data::Map::remove::1::3 ::std::data::Map::remove::1::2 x(x(n2 n3) x(x(n4 n5) x(x(n6 n7) enum(::map_test::main::36 enum(::map_test::main::40 x(x(n0 n8) x(n7 _)))))))))) n4) x(tup(dup2894(tup(@n32_shr(27 n9) dup2898(@n32_shr(13 @n32_xor(n10 @n32_xor(n9 @n32_rotr(n11 n6)))) dup2898(@n32_shl(5 n10) @n32_shr(27 n11)))) tup(dup(@n32_mul(1284865837 dup(@n32_add(n12 n13) @n32_add_high(n14 n15))) dup(@n32_mul_high(1284865837 n16) @n32_mul(1481765933 @n32_add(n17 @n32_add(n16 @n32_add(n18 @n32_add(n15 n19))))))) @n32_mul$(1284865837 n17))) dup2896(n20 tup(dup(n12 n14) n18))) @n32_sub(1 dup153(@n32_rem(100 dup276(_ @n32_eq(0 ?(::map_test::main::43 ::map_test::main::42 x(x(n8 n21) x(x(tup(n3 n5) n22) x(n23 _))))))) dup153(n23 dup196(n24 @n32_lt$(0 ?(::map_test::main::32 ::map_test::main::31 x(x(n21 n1) x(n22 x(tup(tup(n13 n19) n20) n24)))))))))))) }
 
 ::map_test::main::32 { x(x(n0 n0) _) }
 
@@ -189,9 +189,9 @@
 
 ::std::rng::Pcg32::default { tup(tup(3505598835 1297702388) tup(4150755663 335903614)) }
 
-::std::rng::Pcg32::seeded { fn(dup2934(tup(dup403(n0 @n32_ne(0 ?(::std::data::List::IntoIter::iterator::next::3 ::std::data::List::IntoIter::iterator::next::2 x(x(n0 n1) x(x(n2 n3) enum(::std::rng::Pcg32::seeded::4 enum(::std::rng::Pcg32::seeded::5 x(x(::std::rng::Pcg32::default n4) tup(n1 n3))))))))) tup(n2 _)) _) n4) }
+::std::rng::Pcg32::seeded { fn(dup2909(tup(dup403(n0 @n32_ne(0 ?(::std::data::List::IntoIter::iterator::next::3 ::std::data::List::IntoIter::iterator::next::2 x(x(n0 n1) x(x(n2 n3) enum(::std::rng::Pcg32::seeded::4 enum(::std::rng::Pcg32::seeded::5 x(x(::std::rng::Pcg32::default n4) tup(n1 n3))))))))) tup(n2 _)) _) n4) }
 
-::std::rng::Pcg32::seeded::4 { enum(n0 x(x(tup(tup(@n32_xor(0 dup(@n32_mul(1284865837 dup(@n32_add(n1 n2) @n32_add_high(n3 n4))) dup(@n32_mul_high(1284865837 n5) @n32_mul(1481765933 @n32_add(n6 @n32_add(n5 @n32_add(n7 @n32_add(n4 n8)))))))) @n32_xor(n0 @n32_mul$(1284865837 n6))) dup2930(n9 tup(dup(n1 n3) n7))) n10) tup(dup403(n11 @n32_ne(0 ?(::std::data::List::IntoIter::iterator::next::3 ::std::data::List::IntoIter::iterator::next::2 x(x(n11 n12) x(x(n13 n14) enum(::std::rng::Pcg32::seeded::4 enum(::std::rng::Pcg32::seeded::5 x(x(tup(tup(n2 n8) n9) n10) tup(n12 n14))))))))) n13))) }
+::std::rng::Pcg32::seeded::4 { enum(n0 x(x(tup(tup(@n32_xor(0 dup(@n32_mul(1284865837 dup(@n32_add(n1 n2) @n32_add_high(n3 n4))) dup(@n32_mul_high(1284865837 n5) @n32_mul(1481765933 @n32_add(n6 @n32_add(n5 @n32_add(n7 @n32_add(n4 n8)))))))) @n32_xor(n0 @n32_mul$(1284865837 n6))) dup2905(n9 tup(dup(n1 n3) n7))) n10) tup(dup403(n11 @n32_ne(0 ?(::std::data::List::IntoIter::iterator::next::3 ::std::data::List::IntoIter::iterator::next::2 x(x(n11 n12) x(x(n13 n14) enum(::std::rng::Pcg32::seeded::4 enum(::std::rng::Pcg32::seeded::5 x(x(tup(tup(n2 n8) n9) n10) tup(n12 n14))))))))) n13))) }
 
 ::std::rng::Pcg32::seeded::5 { x(x(n0 n0) _) }
 

@@ -1,4 +1,0 @@
-
-pub fn main(&io: &IO) {
-  io.println("{4 + 4 ** 3 ** 2 / 2}");
-}
