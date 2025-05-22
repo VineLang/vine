@@ -149,22 +149,20 @@ io = #io
 ::std::logical::Option::None
 
 io = #io
-> 3.as[N64].pow_n32(33).to_string()
-error input:1:1 - type `N64` has no method `pow_n32`
-error input:1:1 - type `??` has no method `to_string`
+> (3 as N64 ** 33).to_string()
+"5559060566555523"
 
 io = #io
-> 3.as[N64].pow_n32(33).log_n32(3)
-error input:1:1 - type `N64` has no method `pow_n32`
-error input:1:1 - type `??` has no method `log_n32`
+> (3 as N64 ** 33).log_n32(3)
+32
 
 io = #io
-> (3.as[N64].pow_n32(33) - 1.as[N64]).log_n32(3)
-error input:1:2 - type `N64` has no method `pow_n32`
+> ((3 as N64 ** 33) - 1 as N64).log_n32(3)
+32
 
 io = #io
-> (3.as[N64].pow_n32(33) + 1.as[N64]).log_n32(3)
-error input:1:2 - type `N64` has no method `pow_n32`
+> ((3 as N64 ** 33) + 1 as N64).log_n32(3)
+32
 
 io = #io
 > "1,2,3,4".split(",")
