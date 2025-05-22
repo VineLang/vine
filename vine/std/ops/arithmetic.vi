@@ -14,6 +14,25 @@ pub trait Mul[A, B, O] {
   fn .mul(a: A, b: B) -> O;
 }
 
+pub trait Pow[B, E, O] {
+  #[builtin = "pow"]
+  fn .pow(base: B, exp: E) -> O;
+}
+
+pub mod Pow {
+  pub fn pow_by_squaring[B; Cast[N32, B], Mul[B, B, B]](base: B, exp: N32) -> B {
+    let result = 1 as B;
+    while exp != 0 {
+      if exp % 2 != 0 {
+        result *= base;
+      }
+      base *= base;
+      exp /= 2;
+    }
+    result
+  }
+}
+
 pub trait Div[A, B, O] {
   #[builtin = "div"]
   fn .div(a: A, b: B) -> O;

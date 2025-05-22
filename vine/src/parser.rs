@@ -142,6 +142,7 @@ impl<'core, 'src> VineParser<'core, 'src> {
           "shl" => Builtin::BinaryOp(BinaryOp::Shl),
           "shr" => Builtin::BinaryOp(BinaryOp::Shr),
           "concat" => Builtin::BinaryOp(BinaryOp::Concat),
+          "pow" => Builtin::BinaryOp(BinaryOp::Pow),
           "eq" => Builtin::ComparisonOp(ComparisonOp::Eq),
           "ne" => Builtin::ComparisonOp(ComparisonOp::Ne),
           "lt" => Builtin::ComparisonOp(ComparisonOp::Lt),
@@ -411,10 +412,10 @@ impl<'core, 'src> VineParser<'core, 'src> {
   }
 
   fn parse_expr(&mut self) -> Parse<'core, Expr<'core>> {
-    self.parse_expr_bp(BP::Min)
+    self.parse_expr_bp(BinPrecedence::Min)
   }
 
-  fn parse_expr_bp(&mut self, bp: BP) -> Parse<'core, Expr<'core>> {
+  fn parse_expr_bp(&mut self, bp: BinPrecedence) -> Parse<'core, Expr<'core>> {
     let span = self.start_span();
     let mut expr = self.parse_expr_prefix()?;
     loop {
@@ -438,7 +439,7 @@ impl<'core, 'src> VineParser<'core, 'src> {
         return Ok(ExprKind::Return(None));
       }
 
-      return Ok(ExprKind::Return(Some(Box::new(self.parse_expr_bp(BP::ControlFlow)?))));
+      return Ok(ExprKind::Return(Some(Box::new(self.parse_expr_bp(BinPrecedence::ControlFlow)?))));
     }
     if self.eat(Token::Break)? {
       let label = self.parse_label()?;
@@ -447,16 +448,19 @@ impl<'core, 'src> VineParser<'core, 'src> {
         return Ok(ExprKind::Break(label, None));
       }
 
-      return Ok(ExprKind::Break(label, Some(Box::new(self.parse_expr_bp(BP::ControlFlow)?))));
+      return Ok(ExprKind::Break(
+        label,
+        Some(Box::new(self.parse_expr_bp(BinPrecedence::ControlFlow)?)),
+      ));
     }
     if self.eat(Token::Continue)? {
       return Ok(ExprKind::Continue(self.parse_label()?));
     }
     if self.eat(Token::And)? {
-      return Ok(ExprKind::Ref(Box::new(self.parse_expr_bp(BP::Prefix)?), false));
+      return Ok(ExprKind::Ref(Box::new(self.parse_expr_bp(BinPrecedence::Prefix)?), false));
     }
     if self.eat(Token::AndAnd)? {
-      let inner = self.parse_expr_bp(BP::Prefix)?;
+      let inner = self.parse_expr_bp(BinPrecedence::Prefix)?;
       let span = self.end_span(span + 1);
       return Ok(ExprKind::Ref(
         Box::new(Expr { span, kind: ExprKind::Ref(Box::new(inner), false) }),
@@ -464,19 +468,19 @@ impl<'core, 'src> VineParser<'core, 'src> {
       ));
     }
     if self.eat(Token::Star)? {
-      return Ok(ExprKind::Deref(Box::new(self.parse_expr_bp(BP::Prefix)?), false));
+      return Ok(ExprKind::Deref(Box::new(self.parse_expr_bp(BinPrecedence::Prefix)?), false));
     }
     if self.eat(Token::Move)? {
-      return Ok(ExprKind::Move(Box::new(self.parse_expr_bp(BP::Prefix)?), false));
+      return Ok(ExprKind::Move(Box::new(self.parse_expr_bp(BinPrecedence::Prefix)?), false));
     }
     if self.eat(Token::Tilde)? {
-      return Ok(ExprKind::Inverse(Box::new(self.parse_expr_bp(BP::Prefix)?), false));
+      return Ok(ExprKind::Inverse(Box::new(self.parse_expr_bp(BinPrecedence::Prefix)?), false));
     }
     if self.eat(Token::Minus)? {
-      return Ok(ExprKind::Neg(Box::new(self.parse_expr_bp(BP::Prefix)?)));
+      return Ok(ExprKind::Neg(Box::new(self.parse_expr_bp(BinPrecedence::Prefix)?)));
     }
     if self.eat(Token::Bang)? {
-      return Ok(ExprKind::Not(Box::new(self.parse_expr_bp(BP::Prefix)?)));
+      return Ok(ExprKind::Not(Box::new(self.parse_expr_bp(BinPrecedence::Prefix)?)));
     }
     if self.check(Token::Num) {
       return self.parse_num();
@@ -620,16 +624,19 @@ impl<'core, 'src> VineParser<'core, 'src> {
   fn parse_expr_postfix(
     &mut self,
     lhs: Expr<'core>,
-    bp: BP,
+    bp: BinPrecedence,
   ) -> Parse<'core, Result<ExprKind<'core>, Expr<'core>>> {
-    for &(lbp, token, op) in BINARY_OP_TABLE {
-      let rbp = lbp.inc(); // left-associative
+    for &(lbp, associativity, token, op) in BINARY_OP_TABLE {
+      let rbp = match associativity {
+        Associativity::Left => lbp.inc(),
+        Associativity::Right => lbp,
+      };
       if bp.permits(lbp) && self.eat(token)? {
         if self.eat(Token::Eq)? {
           return Ok(Ok(ExprKind::BinaryOpAssign(
             op,
             Box::new(lhs),
-            Box::new(self.parse_expr_bp(BP::Assignment)?),
+            Box::new(self.parse_expr_bp(BinPrecedence::Assignment)?),
           )));
         } else {
           return Ok(Ok(ExprKind::BinaryOp(op, Box::new(lhs), Box::new(self.parse_expr_bp(rbp)?))));
@@ -637,32 +644,32 @@ impl<'core, 'src> VineParser<'core, 'src> {
       }
     }
 
-    if bp.permits(BP::LogicalAnd) && self.eat(Token::AndAnd)? {
-      let rhs = self.parse_expr_bp(BP::LogicalAnd)?;
+    if bp.permits(BinPrecedence::LogicalAnd) && self.eat(Token::AndAnd)? {
+      let rhs = self.parse_expr_bp(BinPrecedence::LogicalAnd)?;
       return Ok(Ok(ExprKind::LogicalOp(LogicalOp::And, Box::new(lhs), Box::new(rhs))));
     }
 
-    if bp.permits(BP::LogicalOr) && self.eat(Token::OrOr)? {
-      let rhs = self.parse_expr_bp(BP::LogicalOr)?;
+    if bp.permits(BinPrecedence::LogicalOr) && self.eat(Token::OrOr)? {
+      let rhs = self.parse_expr_bp(BinPrecedence::LogicalOr)?;
       return Ok(Ok(ExprKind::LogicalOp(LogicalOp::Or, Box::new(lhs), Box::new(rhs))));
     }
 
-    if bp.permits(BP::LogicalImplies) && self.eat(Token::ThickArrow)? {
-      let rhs = self.parse_expr_bp(BP::LogicalImplies)?;
+    if bp.permits(BinPrecedence::LogicalImplies) && self.eat(Token::ThickArrow)? {
+      let rhs = self.parse_expr_bp(BinPrecedence::LogicalImplies)?;
       return Ok(Ok(ExprKind::LogicalOp(LogicalOp::Implies, Box::new(lhs), Box::new(rhs))));
     }
 
-    if bp.permits(BP::Is) && self.eat(Token::Is)? {
+    if bp.permits(BinPrecedence::Is) && self.eat(Token::Is)? {
       let rhs = self.parse_pat()?;
       return Ok(Ok(ExprKind::Is(Box::new(lhs), Box::new(rhs))));
     }
 
-    if bp.permits(BP::Comparison) {
+    if bp.permits(BinPrecedence::Comparison) {
       let mut rhs = Vec::new();
       'main: loop {
         for &(token, op) in COMPARISON_OP_TABLE {
           if self.eat(token)? {
-            rhs.push((op, self.parse_expr_bp(BP::Comparison.inc())?));
+            rhs.push((op, self.parse_expr_bp(BinPrecedence::Comparison.inc())?));
             continue 'main;
           }
         }
@@ -673,18 +680,18 @@ impl<'core, 'src> VineParser<'core, 'src> {
       }
     }
 
-    if bp.permits(BP::Assignment) && self.eat(Token::Eq)? {
-      let rhs = self.parse_expr_bp(BP::Assignment)?;
+    if bp.permits(BinPrecedence::Assignment) && self.eat(Token::Eq)? {
+      let rhs = self.parse_expr_bp(BinPrecedence::Assignment)?;
       return Ok(Ok(ExprKind::Assign(false, Box::new(lhs), Box::new(rhs))));
     }
 
-    if bp.permits(BP::Assignment) && self.eat(Token::Tilde)? {
+    if bp.permits(BinPrecedence::Assignment) && self.eat(Token::Tilde)? {
       self.expect(Token::Eq)?;
-      let rhs = self.parse_expr_bp(BP::Assignment)?;
+      let rhs = self.parse_expr_bp(BinPrecedence::Assignment)?;
       return Ok(Ok(ExprKind::Assign(true, Box::new(lhs), Box::new(rhs))));
     }
 
-    if bp.permits(BP::Annotation) && self.eat(Token::As)? {
+    if bp.permits(BinPrecedence::Annotation) && self.eat(Token::As)? {
       let ty = self.parse_type()?;
       return Ok(Ok(ExprKind::Cast(Box::new(lhs), Box::new(ty), false)));
     }
@@ -755,10 +762,10 @@ impl<'core, 'src> VineParser<'core, 'src> {
   }
 
   fn parse_pat(&mut self) -> Parse<'core, Pat<'core>> {
-    self.parse_pat_bp(BP::Min)
+    self.parse_pat_bp(BinPrecedence::Min)
   }
 
-  fn parse_pat_bp(&mut self, bp: BP) -> Parse<'core, Pat<'core>> {
+  fn parse_pat_bp(&mut self, bp: BinPrecedence) -> Parse<'core, Pat<'core>> {
     let span = self.start_span();
     let mut pat = self.parse_pat_prefix()?;
     loop {
@@ -786,18 +793,18 @@ impl<'core, 'src> VineParser<'core, 'src> {
       return Ok(PatKind::PathCall(path, args));
     }
     if self.eat(Token::And)? {
-      return Ok(PatKind::Ref(Box::new(self.parse_pat_bp(BP::Prefix)?)));
+      return Ok(PatKind::Ref(Box::new(self.parse_pat_bp(BinPrecedence::Prefix)?)));
     }
     if self.eat(Token::AndAnd)? {
-      let inner = self.parse_pat_bp(BP::Prefix)?;
+      let inner = self.parse_pat_bp(BinPrecedence::Prefix)?;
       let span = self.end_span(span + 1);
       return Ok(PatKind::Ref(Box::new(Pat { span, kind: PatKind::Ref(Box::new(inner)) })));
     }
     if self.eat(Token::Star)? {
-      return Ok(PatKind::Deref(Box::new(self.parse_pat_bp(BP::Prefix)?)));
+      return Ok(PatKind::Deref(Box::new(self.parse_pat_bp(BinPrecedence::Prefix)?)));
     }
     if self.eat(Token::Tilde)? {
-      return Ok(PatKind::Inverse(Box::new(self.parse_pat_bp(BP::Prefix)?)));
+      return Ok(PatKind::Inverse(Box::new(self.parse_pat_bp(BinPrecedence::Prefix)?)));
     }
     if self.check(Token::OpenParen) {
       let mut tuple = false;
@@ -843,9 +850,9 @@ impl<'core, 'src> VineParser<'core, 'src> {
   fn parse_pat_postfix(
     &mut self,
     lhs: Pat<'core>,
-    bp: BP,
+    bp: BinPrecedence,
   ) -> Parse<'core, Result<PatKind<'core>, Pat<'core>>> {
-    if bp.permits(BP::Annotation) && self.eat(Token::Colon)? {
+    if bp.permits(BinPrecedence::Annotation) && self.eat(Token::Colon)? {
       let ty = self.parse_type()?;
       return Ok(Ok(PatKind::Annotation(Box::new(lhs), Box::new(ty))));
     }
@@ -1019,9 +1026,16 @@ const BRACKET_COMMA: Delimiters = Delimiters {
 
 const PATH: Delimiters = Delimiters { open: None, close: None, separator: Some(Token::ColonColon) };
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[repr(u8)]
+enum Associativity {
+  Left,
+  Right,
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 #[repr(u8)]
-enum BP {
+enum BinPrecedence {
   Min,
   ControlFlow,
   Assignment,
@@ -1036,17 +1050,18 @@ enum BP {
   BitShift,
   Additive,
   Multiplicative,
+  Exponential,
   Annotation,
   Prefix,
   Max,
 }
 
-impl BP {
+impl BinPrecedence {
   const fn inc(self) -> Self {
-    if self as u8 == BP::Max as u8 {
+    if self as u8 == BinPrecedence::Max as u8 {
       self
     } else {
-      unsafe { transmute::<u8, BP>(self as u8 + 1) }
+      unsafe { transmute::<u8, BinPrecedence>(self as u8 + 1) }
     }
   }
 
@@ -1056,18 +1071,19 @@ impl BP {
 }
 
 #[rustfmt::skip]
-const BINARY_OP_TABLE: &[(BP, Token, BinaryOp)] = &[
-  (BP::BitOr,          Token::Or,       BinaryOp::BitOr),
-  (BP::BitXor,         Token::Caret,    BinaryOp::BitXor),
-  (BP::BitAnd,         Token::And,      BinaryOp::BitAnd),
-  (BP::BitShift,       Token::Shl,      BinaryOp::Shl),
-  (BP::BitShift,       Token::Shr,      BinaryOp::Shr),
-  (BP::Additive,       Token::Plus,     BinaryOp::Add),
-  (BP::Additive,       Token::Minus,    BinaryOp::Sub),
-  (BP::Additive,       Token::PlusPlus, BinaryOp::Concat),
-  (BP::Multiplicative, Token::Star,     BinaryOp::Mul),
-  (BP::Multiplicative, Token::Slash,    BinaryOp::Div),
-  (BP::Multiplicative, Token::Percent,  BinaryOp::Rem),
+const BINARY_OP_TABLE: &[(BinPrecedence, Associativity, Token, BinaryOp)] = &[
+  (BinPrecedence::BitOr,          Associativity::Left, Token::Or,       BinaryOp::BitOr),
+  (BinPrecedence::BitXor,         Associativity::Left, Token::Caret,    BinaryOp::BitXor),
+  (BinPrecedence::BitAnd,         Associativity::Left, Token::And,      BinaryOp::BitAnd),
+  (BinPrecedence::BitShift,       Associativity::Left, Token::Shl,      BinaryOp::Shl),
+  (BinPrecedence::BitShift,       Associativity::Left, Token::Shr,      BinaryOp::Shr),
+  (BinPrecedence::Additive,       Associativity::Left, Token::Plus,     BinaryOp::Add),
+  (BinPrecedence::Additive,       Associativity::Left, Token::Minus,    BinaryOp::Sub),
+  (BinPrecedence::Additive,       Associativity::Left, Token::PlusPlus, BinaryOp::Concat),
+  (BinPrecedence::Multiplicative, Associativity::Left, Token::Star,     BinaryOp::Mul),
+  (BinPrecedence::Multiplicative, Associativity::Left, Token::Slash,    BinaryOp::Div),
+  (BinPrecedence::Multiplicative, Associativity::Left, Token::Percent,  BinaryOp::Rem),
+  (BinPrecedence::Exponential,    Associativity::Right, Token::StarStar, BinaryOp::Pow),
 ];
 
 #[rustfmt::skip]

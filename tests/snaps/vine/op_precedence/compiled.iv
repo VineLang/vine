@@ -1,0 +1,69 @@
+
+::main { ::op_precedence::main }
+
+::op_precedence::main {
+  fn(w1 _)
+  ::std::ops::arithmetic::Pow::pow_by_squaring::1 = fn(3 fn(2 w9))
+  ::std::ops::arithmetic::Pow::pow_by_squaring::1 = fn(4 fn(w9 w10))
+  ::std::numeric::N32::div::div = fn(w10 fn(2 w11))
+  ::std::numeric::N32::add::add = fn(4 fn(w11 w12))
+  ::std::numeric::N32::to_string::to_string = fn(w12 tup(@n32_add(0 w16) w17))
+  ::std::IO::println = fn(w1 fn(tup(w16 w17) _))
+}
+
+::std::numeric::N32::to_string::to_string {
+  fn(w0 w10)
+  ::std::numeric::N32::eq::ne = fn(ref(w0 w6) fn(ref(0 _) ?(::std::numeric::N32::to_string::to_string::3 ::std::numeric::N32::to_string::to_string::2 x(w6 w10))))
+}
+
+::std::numeric::N32::to_string::to_string::2 {
+  x(w6 w9)
+  ::std::numeric::N32::to_string::to_string::4 = x(w6 x(tup(0 tup(w7 w7)) w9))
+}
+
+::std::numeric::N32::to_string::to_string::3 { x(_ tup(1 tup(tup(48 w5) w5))) }
+
+::std::numeric::N32::to_string::to_string::4 { x(dup25(n0 @n32_ne(0 ?(::std::numeric::N32::to_string::to_string::6 ::std::numeric::N32::to_string::to_string::5 x(n0 n1)))) n1) }
+
+::std::numeric::N32::to_string::to_string::5 { x(dup19(@n32_rem(10 @n32_add$(48 n0)) @n32_div(10 dup25(n1 @n32_ne(0 ?(::std::numeric::N32::to_string::to_string::6 ::std::numeric::N32::to_string::to_string::5 x(n1 x(tup(n2 tup(tup(n0 n3) n4)) n5))))))) x(tup(@n32_add$(1 n2) tup(n3 n4)) n5)) }
+
+::std::numeric::N32::to_string::to_string::6 { x(_ x(n0 n0)) }
+
+::std::numeric::N32::eq::ne { fn(ref(dup25(n0 @n32_ne(n1 n2)) n0) fn(ref(dup26(n3 n1) n3) n2)) }
+
+::std::numeric::N32::add::add { fn(@n32_add(n0 n1) fn(n0 n1)) }
+
+::std::numeric::N32::div::div { fn(@n32_div(n0 n1) fn(n0 n1)) }
+
+::std::ops::arithmetic::Pow::pow_by_squaring::1 { fn(n0 fn(dup25(n1 @n32_ne(0 ?(::std::ops::arithmetic::Pow::pow_by_squaring::1::3 ::std::ops::arithmetic::Pow::pow_by_squaring::1::2 x(n0 x(n1 x(1 n2)))))) n2)) }
+
+::std::ops::arithmetic::Pow::pow_by_squaring::1::2 { x(dup70(n0 dup70(n1 @n32_mul(n1 n2))) x(dup72(@n32_rem(2 dup25(_ @n32_ne(0 ?(::std::ops::arithmetic::Pow::pow_by_squaring::1::6 ::std::ops::arithmetic::Pow::pow_by_squaring::1::5 x(n0 x(x(n3 n4) _)))))) @n32_div(2 dup25(n5 @n32_ne(0 ?(::std::ops::arithmetic::Pow::pow_by_squaring::1::3 ::std::ops::arithmetic::Pow::pow_by_squaring::1::2 x(n2 x(n5 x(n4 n6)))))))) x(n3 n6))) }
+
+::std::ops::arithmetic::Pow::pow_by_squaring::1::3 { x(_ x(_ x(n0 n0))) }
+
+::std::ops::arithmetic::Pow::pow_by_squaring::1::5 { x(n0 x(x(@n32_mul(n0 n1) n1) _)) }
+
+::std::ops::arithmetic::Pow::pow_by_squaring::1::6 { x(_ x(x(n0 n0) _)) }
+
+::std::unicode::String::to_chars::cast { fn(w0 w0) }
+
+::std::IO::println {
+  fn(ref(w1 w12) fn(w3 _))
+  ::std::IO::print = fn(ref(w1 w7) fn(w3 _))
+  ::std::IO::print_char = fn(ref(w7 w12) fn(10 _))
+}
+
+::std::IO::print {
+  fn(ref(w1 w15) fn(w3 _))
+  ::std::unicode::String::to_chars::cast = fn(w3 tup(w8 tup(w9 _)))
+  ::std::IO::print::1 = x(x(w1 w15) x(w8 w9))
+}
+
+::std::IO::print::1 { x(n0 x(dup25(n1 @n32_ne(0 ?(::std::IO::print::3 ::std::IO::print::2 x(n0 x(n1 n2))))) n2)) }
+
+::std::IO::print::2 { x(x(@io_print_char(n0 n1) n2) x(@n32_sub(1 dup25(n3 @n32_ne(0 ?(::std::IO::print::3 ::std::IO::print::2 x(x(n1 n2) x(n3 n4)))))) tup(n0 n4))) }
+
+::std::IO::print::3 { x(x(n0 n0) _) }
+
+::std::IO::print_char { fn(ref(@io_print_char(n0 n1) n1) fn(n0 _)) }
+

@@ -1,6 +1,6 @@
 
 use {
-  ops::{Cast, arithmetic::{Add, Div, Mul, Neg, Rem, Sub}, comparison::{Eq, Le, Lt}},
+  ops::{Cast, arithmetic::{Add, Div, Mul, Neg, Pow, Rem, Sub}, comparison::{Eq, Le, Lt}},
   unicode::ToString,
 };
 
@@ -25,6 +25,12 @@ pub mod F32 {
   pub impl mul: Mul[F32, F32, F32] {
     fn .mul(a: F32, b: F32) -> F32 {
       inline_ivy! (a <- a, b <- b) -> F32 { out a = @f32_mul(b out) }
+    }
+  }
+
+  pub impl pow: Pow[F32, N32, F32] {
+    fn .pow(base: F32, exp: N32) -> F32 {
+      Pow::pow_by_squaring[F32](base, exp)
     }
   }
 

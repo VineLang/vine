@@ -103,7 +103,7 @@
 
 ::std::numeric::N32::sqrt::1 { x(n0 x(dup189(n1 @n32_ne(0 ?(::std::numeric::N32::sqrt::3 ::std::numeric::N32::sqrt::2 x(n0 x(n1 n2))))) n2)) }
 
-::std::numeric::N32::sqrt::2 { x(dup221(n0 n1) x(dup2085(n2 @n32_shr(1 dup189(n3 @n32_ne(0 ?(::std::numeric::N32::sqrt::3 ::std::numeric::N32::sqrt::2 x(n0 x(n3 x(n4 n5)))))))) x(dup2088(@n32_add(n2 dup2090(@n32_mul(n6 dup220(_ @n32_le(n1 ?(::std::numeric::N32::sqrt::6 ::std::numeric::N32::sqrt::5 x(x(n7 n4) x(n8 _)))))) dup2090(n6 n8))) n7) n5))) }
+::std::numeric::N32::sqrt::2 { x(dup221(n0 n1) x(dup2175(n2 @n32_shr(1 dup189(n3 @n32_ne(0 ?(::std::numeric::N32::sqrt::3 ::std::numeric::N32::sqrt::2 x(n0 x(n3 x(n4 n5)))))))) x(dup2178(@n32_add(n2 dup2180(@n32_mul(n6 dup220(_ @n32_le(n1 ?(::std::numeric::N32::sqrt::6 ::std::numeric::N32::sqrt::5 x(x(n7 n4) x(n8 _)))))) dup2180(n6 n8))) n7) n5))) }
 
 ::std::numeric::N32::sqrt::3 { x(_ x(_ x(n0 n0))) }
 
