@@ -8,7 +8,7 @@
   },
   "exec": {
     "commands": [{
-      "command": "cargo run --bin vine fmt",
+      "command": "target/release/vine fmt",
       "exts": ["vi"]
     }]
   },
