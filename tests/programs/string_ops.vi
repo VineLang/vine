@@ -14,4 +14,13 @@ pub fn main(&io: &IO) {
   io.println("{s.starts_with(&prefix)}");
   let prefix = "hello world! hi";
   io.println("{s.starts_with(&prefix)}");
+
+  io.println("{"" == ""}");
+  io.println("{"" != ""}");
+  io.println("{"hello" == "hello"}");
+  io.println("{"hello" != "hello"}");
+  io.println("{"hello" == "world"}");
+  io.println("{"hello" != "world"}");
+  io.println("{"hello" == "hello world"}");
+  io.println("{"world" == "hello world"}");
 }

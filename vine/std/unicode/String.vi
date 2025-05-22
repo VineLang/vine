@@ -1,5 +1,5 @@
 
-use ops::{Cast, Concat, comparison::Ord};
+use ops::{Cast, Concat, comparison::{Eq, Ord}};
 
 #[builtin = "String"]
 pub struct String {
@@ -108,18 +108,24 @@ pub mod String {
     true
   }
 
-  pub fn .eq(&self: &String, &other: &String) -> Bool {
-    if self.len() != other.len() {
-      return false;
-    }
-    let iter_a = self.chars.iter();
-    let iter_b = other.chars.iter();
-    while iter_a.next() is Some(&a) && iter_b.next() is Some(&b) {
-      if a != b {
+  pub impl eq: Eq[String] {
+    fn eq(&self: &String, &other: &String) -> Bool {
+      if self.len() != other.len() {
         return false;
       }
+      let iter_a = self.chars.iter();
+      let iter_b = other.chars.iter();
+      while iter_a.next() is Some(&a) && iter_b.next() is Some(&b) {
+        if a != b {
+          return false;
+        }
+      }
+      true
     }
-    true
+
+    fn ne(&self: &String, &other: &String) -> Bool {
+      !(self == other)
+    }
   }
 
   pub impl ord: Ord[String] {
