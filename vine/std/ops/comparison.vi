@@ -17,10 +17,6 @@ pub mod Eq {
       a0 != a1 || b0 != b1
     }
   }
-
-  pub fn ne_from_eq[T; Eq[T]](&a: &T, &b: &T) -> Bool {
-    !(a == b)
-  }
 }
 
 pub trait Ord[T] {
