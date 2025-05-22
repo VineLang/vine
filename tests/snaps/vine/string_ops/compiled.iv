@@ -4,28 +4,52 @@
 ::main { ::string_ops::main }
 
 ::string_ops::main {
-  fn(ref(w1 w95) _)
-  ::std::unicode::String::len = fn(ref(tup(12 tup(tup(104 tup(101 tup(108 tup(108 tup(111 tup(32 tup(119 tup(111 tup(114 tup(108 tup(100 tup(33 w110)))))))))))) w110)) w12) w14)
-  ::std::numeric::N32::to_string::to_string = fn(w14 tup(@n32_add(0 w111) w112))
-  ::std::IO::println = fn(ref(w1 w8) fn(tup(w111 w112) _))
-  ::std::unicode::String::starts_with = fn(ref(w12 w24) fn(ref(tup(0 tup(w118 w118)) _) w29))
-  ::std::logical::Bool::to_string::to_string = fn(w29 tup(@n32_add(0 w119) w120))
-  ::std::IO::println = fn(ref(w8 w20) fn(tup(w119 w120) _))
-  ::std::unicode::String::starts_with = fn(ref(w24 w39) fn(ref(tup(1 tup(tup(104 w126) w126)) _) w44))
-  ::std::logical::Bool::to_string::to_string = fn(w44 tup(@n32_add(0 w127) w128))
-  ::std::IO::println = fn(ref(w20 w35) fn(tup(w127 w128) _))
-  ::std::unicode::String::starts_with = fn(ref(w39 w54) fn(ref(tup(6 tup(tup(104 tup(101 tup(108 tup(108 tup(111 tup(32 w134)))))) w134)) _) w59))
-  ::std::logical::Bool::to_string::to_string = fn(w59 tup(@n32_add(0 w135) w136))
-  ::std::IO::println = fn(ref(w35 w50) fn(tup(w135 w136) _))
-  ::std::unicode::String::starts_with = fn(ref(w54 w69) fn(ref(tup(5 tup(tup(119 tup(111 tup(114 tup(108 tup(100 w142))))) w142)) _) w74))
-  ::std::logical::Bool::to_string::to_string = fn(w74 tup(@n32_add(0 w143) w144))
-  ::std::IO::println = fn(ref(w50 w65) fn(tup(w143 w144) _))
-  ::std::unicode::String::starts_with = fn(ref(w69 w84) fn(ref(tup(4 tup(tup(104 tup(101 tup(108 tup(100 w150)))) w150)) _) w89))
-  ::std::logical::Bool::to_string::to_string = fn(w89 tup(@n32_add(0 w151) w152))
-  ::std::IO::println = fn(ref(w65 w80) fn(tup(w151 w152) _))
-  ::std::unicode::String::starts_with = fn(ref(w84 _) fn(ref(tup(15 tup(tup(104 tup(101 tup(108 tup(108 tup(111 tup(32 tup(119 tup(111 tup(114 tup(108 tup(100 tup(33 tup(32 tup(104 tup(105 w158))))))))))))))) w158)) _) w104))
-  ::std::logical::Bool::to_string::to_string = fn(w104 tup(@n32_add(0 w159) w160))
-  ::std::IO::println = fn(ref(w80 w95) fn(tup(w159 w160) _))
+  fn(ref(w1 w185) _)
+  ::std::unicode::String::len = fn(ref(tup(12 tup(tup(104 tup(101 tup(108 tup(108 tup(111 tup(32 tup(119 tup(111 tup(114 tup(108 tup(100 tup(33 w198)))))))))))) w198)) w12) w14)
+  ::std::numeric::N32::to_string::to_string = fn(w14 tup(@n32_add(0 w199) w200))
+  ::std::IO::println = fn(ref(w1 w8) fn(tup(w199 w200) _))
+  ::std::unicode::String::starts_with = fn(ref(w12 w24) fn(ref(tup(0 tup(w206 w206)) _) w29))
+  ::std::logical::Bool::to_string::to_string = fn(w29 tup(@n32_add(0 w207) w208))
+  ::std::IO::println = fn(ref(w8 w20) fn(tup(w207 w208) _))
+  ::std::unicode::String::starts_with = fn(ref(w24 w39) fn(ref(tup(1 tup(tup(104 w214) w214)) _) w44))
+  ::std::logical::Bool::to_string::to_string = fn(w44 tup(@n32_add(0 w215) w216))
+  ::std::IO::println = fn(ref(w20 w35) fn(tup(w215 w216) _))
+  ::std::unicode::String::starts_with = fn(ref(w39 w54) fn(ref(tup(6 tup(tup(104 tup(101 tup(108 tup(108 tup(111 tup(32 w222)))))) w222)) _) w59))
+  ::std::logical::Bool::to_string::to_string = fn(w59 tup(@n32_add(0 w223) w224))
+  ::std::IO::println = fn(ref(w35 w50) fn(tup(w223 w224) _))
+  ::std::unicode::String::starts_with = fn(ref(w54 w69) fn(ref(tup(5 tup(tup(119 tup(111 tup(114 tup(108 tup(100 w230))))) w230)) _) w74))
+  ::std::logical::Bool::to_string::to_string = fn(w74 tup(@n32_add(0 w231) w232))
+  ::std::IO::println = fn(ref(w50 w65) fn(tup(w231 w232) _))
+  ::std::unicode::String::starts_with = fn(ref(w69 w84) fn(ref(tup(4 tup(tup(104 tup(101 tup(108 tup(100 w238)))) w238)) _) w89))
+  ::std::logical::Bool::to_string::to_string = fn(w89 tup(@n32_add(0 w239) w240))
+  ::std::IO::println = fn(ref(w65 w80) fn(tup(w239 w240) _))
+  ::std::unicode::String::starts_with = fn(ref(w84 _) fn(ref(tup(15 tup(tup(104 tup(101 tup(108 tup(108 tup(111 tup(32 tup(119 tup(111 tup(114 tup(108 tup(100 tup(33 tup(32 tup(104 tup(105 w246))))))))))))))) w246)) _) w104))
+  ::std::logical::Bool::to_string::to_string = fn(w104 tup(@n32_add(0 w247) w248))
+  ::std::IO::println = fn(ref(w80 w95) fn(tup(w247 w248) _))
+  ::std::data::List::eq::eq::1 = fn(ref(tup(0 tup(w254 w254)) _) fn(ref(tup(0 tup(w257 w257)) _) w115))
+  ::std::logical::Bool::to_string::to_string = fn(w115 tup(@n32_add(0 w258) w259))
+  ::std::IO::println = fn(ref(w95 w108) fn(tup(w258 w259) _))
+  ::std::data::List::eq::ne::1 = fn(ref(tup(0 tup(w265 w265)) _) fn(ref(tup(0 tup(w268 w268)) _) w126))
+  ::std::logical::Bool::to_string::to_string = fn(w126 tup(@n32_add(0 w269) w270))
+  ::std::IO::println = fn(ref(w108 w119) fn(tup(w269 w270) _))
+  ::std::data::List::eq::eq::1 = fn(ref(tup(5 tup(tup(104 tup(101 tup(108 tup(108 tup(111 w276))))) w276)) _) fn(ref(tup(5 tup(tup(104 tup(101 tup(108 tup(108 tup(111 w279))))) w279)) _) w137))
+  ::std::logical::Bool::to_string::to_string = fn(w137 tup(@n32_add(0 w280) w281))
+  ::std::IO::println = fn(ref(w119 w130) fn(tup(w280 w281) _))
+  ::std::data::List::eq::ne::1 = fn(ref(tup(5 tup(tup(104 tup(101 tup(108 tup(108 tup(111 w287))))) w287)) _) fn(ref(tup(5 tup(tup(104 tup(101 tup(108 tup(108 tup(111 w290))))) w290)) _) w148))
+  ::std::logical::Bool::to_string::to_string = fn(w148 tup(@n32_add(0 w291) w292))
+  ::std::IO::println = fn(ref(w130 w141) fn(tup(w291 w292) _))
+  ::std::data::List::eq::eq::1 = fn(ref(tup(5 tup(tup(104 tup(101 tup(108 tup(108 tup(111 w298))))) w298)) _) fn(ref(tup(5 tup(tup(119 tup(111 tup(114 tup(108 tup(100 w301))))) w301)) _) w159))
+  ::std::logical::Bool::to_string::to_string = fn(w159 tup(@n32_add(0 w302) w303))
+  ::std::IO::println = fn(ref(w141 w152) fn(tup(w302 w303) _))
+  ::std::data::List::eq::ne::1 = fn(ref(tup(5 tup(tup(104 tup(101 tup(108 tup(108 tup(111 w309))))) w309)) _) fn(ref(tup(5 tup(tup(119 tup(111 tup(114 tup(108 tup(100 w312))))) w312)) _) w170))
+  ::std::logical::Bool::to_string::to_string = fn(w170 tup(@n32_add(0 w313) w314))
+  ::std::IO::println = fn(ref(w152 w163) fn(tup(w313 w314) _))
+  ::std::data::List::eq::eq::1 = fn(ref(tup(5 tup(tup(104 tup(101 tup(108 tup(108 tup(111 w320))))) w320)) _) fn(ref(tup(11 tup(tup(104 tup(101 tup(108 tup(108 tup(111 tup(32 tup(119 tup(111 tup(114 tup(108 tup(100 w323))))))))))) w323)) _) w181))
+  ::std::logical::Bool::to_string::to_string = fn(w181 tup(@n32_add(0 w324) w325))
+  ::std::IO::println = fn(ref(w163 w174) fn(tup(w324 w325) _))
+  ::std::data::List::eq::eq::1 = fn(ref(tup(5 tup(tup(119 tup(111 tup(114 tup(108 tup(100 w331))))) w331)) _) fn(ref(tup(11 tup(tup(104 tup(101 tup(108 tup(108 tup(111 tup(32 tup(119 tup(111 tup(114 tup(108 tup(100 w334))))))))))) w334)) _) w192))
+  ::std::logical::Bool::to_string::to_string = fn(w192 tup(@n32_add(0 w335) w336))
+  ::std::IO::println = fn(ref(w174 w185) fn(tup(w335 w336) _))
 }
 
 ::std::numeric::N32::to_string::to_string {
@@ -40,13 +64,13 @@
 
 ::std::numeric::N32::to_string::to_string::3 { x(_ tup(1 tup(tup(48 w5) w5))) }
 
-::std::numeric::N32::to_string::to_string::4 { x(dup44(n0 @n32_ne(0 ?(::std::numeric::N32::to_string::to_string::6 ::std::numeric::N32::to_string::to_string::5 x(n0 n1)))) n1) }
+::std::numeric::N32::to_string::to_string::4 { x(dup52(n0 @n32_ne(0 ?(::std::numeric::N32::to_string::to_string::6 ::std::numeric::N32::to_string::to_string::5 x(n0 n1)))) n1) }
 
-::std::numeric::N32::to_string::to_string::5 { x(dup38(@n32_rem(10 @n32_add$(48 n0)) @n32_div(10 dup44(n1 @n32_ne(0 ?(::std::numeric::N32::to_string::to_string::6 ::std::numeric::N32::to_string::to_string::5 x(n1 x(tup(n2 tup(tup(n0 n3) n4)) n5))))))) x(tup(@n32_add$(1 n2) tup(n3 n4)) n5)) }
+::std::numeric::N32::to_string::to_string::5 { x(dup46(@n32_rem(10 @n32_add$(48 n0)) @n32_div(10 dup52(n1 @n32_ne(0 ?(::std::numeric::N32::to_string::to_string::6 ::std::numeric::N32::to_string::to_string::5 x(n1 x(tup(n2 tup(tup(n0 n3) n4)) n5))))))) x(tup(@n32_add$(1 n2) tup(n3 n4)) n5)) }
 
 ::std::numeric::N32::to_string::to_string::6 { x(_ x(n0 n0)) }
 
-::std::numeric::N32::eq::ne { fn(ref(dup44(n0 @n32_ne(n1 n2)) n0) fn(ref(dup45(n3 n1) n3) n2)) }
+::std::numeric::N32::eq::ne { fn(ref(dup52(n0 @n32_ne(n1 n2)) n0) fn(ref(dup53(n3 n1) n3) n2)) }
 
 ::std::logical::Bool::to_string::to_string { fn(?(::std::logical::Bool::to_string::to_string::3 ::std::logical::Bool::to_string::to_string::2 n0) n0) }
 
@@ -54,31 +78,51 @@
 
 ::std::logical::Bool::to_string::to_string::3 { tup(5 tup(tup(102 tup(97 tup(108 tup(115 tup(101 n0))))) n0)) }
 
+::std::data::List::eq::eq::1 { fn(ref(tup(dup628(dup52(_ @n32_ne(n0 ?(::std::data::List::eq::eq::1::3 ::std::data::List::eq::eq::1::2 x(x(tup(n1 n2) n3) x(x(tup(n4 n5) n6) n7))))) n1) n2) n3) fn(ref(tup(dup628(dup53(_ n0) n4) n5) n6) n7)) }
+
+::std::data::List::eq::eq::1::2 { x(x(n0 n0) x(x(n1 n1) 0)) }
+
+::std::data::List::eq::eq::1::3 { x(x(tup(dup899(n0 dup52(n1 @n32_ne(0 ?(::std::data::List::Iter::iterator::next::3 ::std::data::List::Iter::iterator::next::2 x(x(n1 n2) x(x(ref(n3 n4) n5) enum(::std::data::List::eq::eq::1::7 enum(::std::data::List::eq::eq::1::8 x(tup(n2 n5) x(tup(n6 ref(n7 n8)) n9)))))))))) tup(n3 n10)) tup(n0 tup(n4 n10))) x(x(tup(dup899(n11 n6) tup(n7 n12)) tup(n11 tup(n8 n12))) n9)) }
+
+::std::data::List::eq::eq::1::4 { x(tup(dup52(n0 @n32_ne(0 ?(::std::data::List::Iter::iterator::next::3 ::std::data::List::Iter::iterator::next::2 x(x(n0 n1) x(x(n2 n3) enum(::std::data::List::eq::eq::1::7 enum(::std::data::List::eq::eq::1::8 x(tup(n1 n3) n4)))))))) n2) n4) }
+
+::std::data::List::eq::eq::1::7 { enum(ref(n0 n1) x(n2 x(tup(dup52(n3 @n32_ne(0 ?(::std::data::List::Iter::iterator::next::3 ::std::data::List::Iter::iterator::next::2 x(x(n3 n4) x(x(n5 n6) enum(::std::data::List::eq::eq::1::11 enum(::std::data::List::eq::eq::1::12 x(n2 x(tup(n4 n6) x(x(n0 n1) n7)))))))))) n5) n7))) }
+
+::std::data::List::eq::eq::1::8 { x(_ x(_ 1)) }
+
+::std::data::List::eq::eq::1::11 { enum(ref(dup165(n0 n1) n0) x(n2 x(n3 x(x(dup164(n4 @n32_ne(n1 ?(::std::data::List::eq::eq::1::4 ::std::data::List::eq::eq::1::15 x(n2 x(n3 n5))))) n4) n5)))) }
+
+::std::data::List::eq::eq::1::12 { x(_ x(_ x(x(n0 n0) 1))) }
+
+::std::data::List::eq::eq::1::15 { x(_ x(_ 0)) }
+
 ::std::data::List::Iter::iterator::next::2 { x(x(@n32_sub(1 n0) n0) x(x(ref(tup(n1 n2) tup(n3 n4)) ref(n2 n4)) enum(enum(ref(n1 n3) n5) enum(_ n5)))) }
 
 ::std::data::List::Iter::iterator::next::3 { x(x(n0 n0) x(x(ref(n1 n1) _) ::std::logical::Option::None)) }
 
+::std::data::List::eq::ne::1 { fn(ref(tup(dup628(dup52(_ @n32_ne(n0 ?(::std::data::List::eq::eq::1::3 ::std::data::List::eq::eq::1::2 x(x(tup(n1 n2) n3) x(x(tup(n4 n5) n6) @n32_eq(0 n7)))))) n1) n2) n3) fn(ref(tup(dup628(dup53(_ n0) n4) n5) n6) n7)) }
+
 ::std::logical::Option::unwrap::3 { enum(n0 n0) }
 
-::std::unicode::String::len { fn(ref(tup(dup2560(n0 n1) n2) tup(n0 n2)) n1) }
+::std::unicode::String::len { fn(ref(tup(dup2633(n0 n1) n2) tup(n0 n2)) n1) }
 
-::std::unicode::String::starts_with { fn(ref(tup(dup2560(n0 dup223(_ @n32_lt(n1 ?(::std::unicode::String::starts_with::3 ::std::unicode::String::starts_with::2 x(x(tup(n0 n2) n3) x(x(tup(n4 n5) n6) n7)))))) n2) n3) fn(ref(tup(dup2560(n4 dup224(_ n1)) n5) n6) n7)) }
+::std::unicode::String::starts_with { fn(ref(tup(dup2633(n0 dup323(_ @n32_lt(n1 ?(::std::unicode::String::starts_with::3 ::std::unicode::String::starts_with::2 x(x(tup(n0 n2) n3) x(x(tup(n4 n5) n6) n7)))))) n2) n3) fn(ref(tup(dup2633(n4 dup324(_ n1)) n5) n6) n7)) }
 
 ::std::unicode::String::starts_with::2 { x(x(n0 n0) x(x(n1 n1) 0)) }
 
-::std::unicode::String::starts_with::3 { x(x(tup(dup803(n0 n1) tup(n2 n3)) tup(n0 tup(n4 n3))) x(x(tup(dup803(n5 dup44(n6 @n32_ne(0 ?(::std::data::List::Iter::iterator::next::3 ::std::data::List::Iter::iterator::next::2 x(x(n6 n7) x(x(ref(n8 n9) n10) enum(::std::unicode::String::starts_with::7 enum(::std::unicode::String::starts_with::8 x(tup(n1 ref(n2 n4)) x(tup(n7 n10) n11)))))))))) tup(n8 n12)) tup(n5 tup(n9 n12))) n11)) }
+::std::unicode::String::starts_with::3 { x(x(tup(dup899(n0 n1) tup(n2 n3)) tup(n0 tup(n4 n3))) x(x(tup(dup899(n5 dup52(n6 @n32_ne(0 ?(::std::data::List::Iter::iterator::next::3 ::std::data::List::Iter::iterator::next::2 x(x(n6 n7) x(x(ref(n8 n9) n10) enum(::std::unicode::String::starts_with::7 enum(::std::unicode::String::starts_with::8 x(tup(n1 ref(n2 n4)) x(tup(n7 n10) n11)))))))))) tup(n8 n12)) tup(n5 tup(n9 n12))) n11)) }
 
-::std::unicode::String::starts_with::4 { x(n0 x(tup(dup44(n1 @n32_ne(0 ?(::std::data::List::Iter::iterator::next::3 ::std::data::List::Iter::iterator::next::2 x(x(n1 n2) x(x(n3 n4) enum(::std::unicode::String::starts_with::7 enum(::std::unicode::String::starts_with::8 x(n0 x(tup(n2 n4) n5))))))))) n3) n5)) }
+::std::unicode::String::starts_with::4 { x(n0 x(tup(dup52(n1 @n32_ne(0 ?(::std::data::List::Iter::iterator::next::3 ::std::data::List::Iter::iterator::next::2 x(x(n1 n2) x(x(n3 n4) enum(::std::unicode::String::starts_with::7 enum(::std::unicode::String::starts_with::8 x(n0 x(tup(n2 n4) n5))))))))) n3) n5)) }
 
-::std::unicode::String::starts_with::7 { enum(ref(dup2508(n0 @n32_ne(n1 ?(::std::unicode::String::starts_with::4 ::std::unicode::String::starts_with::10 x(tup(n2 n3) n4)))) n0) x(tup(dup44(n5 @n32_ne(0 ?(::std::data::List::Iter::iterator::next::3 ::std::data::List::Iter::iterator::next::2 x(x(n5 n2) x(x(n6 n3) enum(::std::logical::Option::unwrap::3 enum(_ ref(dup2509(n7 n1) n7)))))))) n6) n4)) }
+::std::unicode::String::starts_with::7 { enum(ref(dup164(n0 @n32_ne(n1 ?(::std::unicode::String::starts_with::4 ::std::unicode::String::starts_with::10 x(tup(n2 n3) n4)))) n0) x(tup(dup52(n5 @n32_ne(0 ?(::std::data::List::Iter::iterator::next::3 ::std::data::List::Iter::iterator::next::2 x(x(n5 n2) x(x(n6 n3) enum(::std::logical::Option::unwrap::3 enum(_ ref(dup165(n7 n1) n7)))))))) n6) n4)) }
 
 ::std::unicode::String::starts_with::8 { x(tup(_ ref(n0 n0)) x(_ 1)) }
 
 ::std::unicode::String::starts_with::10 { x(tup(_ ref(n0 n0)) x(tup(_ ref(n1 n1)) 0)) }
 
-::std::IO::println { fn(ref(n0 n1) fn(tup(dup44(n2 @n32_ne(0 ?(::std::IO::print::3 ::std::IO::print::2 x(x(n0 @io_print_char(10 n1)) x(n2 n3))))) tup(n3 _)) _)) }
+::std::IO::println { fn(ref(n0 n1) fn(tup(dup52(n2 @n32_ne(0 ?(::std::IO::print::3 ::std::IO::print::2 x(x(n0 @io_print_char(10 n1)) x(n2 n3))))) tup(n3 _)) _)) }
 
-::std::IO::print::2 { x(x(@io_print_char(n0 n1) n2) x(@n32_sub(1 dup44(n3 @n32_ne(0 ?(::std::IO::print::3 ::std::IO::print::2 x(x(n1 n2) x(n3 n4)))))) tup(n0 n4))) }
+::std::IO::print::2 { x(x(@io_print_char(n0 n1) n2) x(@n32_sub(1 dup52(n3 @n32_ne(0 ?(::std::IO::print::3 ::std::IO::print::2 x(x(n1 n2) x(n3 n4)))))) tup(n0 n4))) }
 
 ::std::IO::print::3 { x(x(n0 n0) _) }
 
