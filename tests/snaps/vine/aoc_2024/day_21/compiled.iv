@@ -314,7 +314,7 @@
 
 ::std::unicode::String::split_once::23 { x(tup(@n32_add(n0 n1) tup(n2 n3)) x(tup(n0 tup(n3 n4)) tup(tup(n1 tup(n2 n4)) ::std::logical::Option::None))) }
 
-::std::unicode::String::repeat::2 { x(dup3553(tup(n0 tup(n1 n2)) n3) x(@n32_sub(1 dup128(n4 @n32_ne(0 ?(::std::unicode::String::repeat::3 ::std::unicode::String::repeat::2 x(n3 x(n4 x(tup(n5 tup(n6 n2)) n7))))))) x(tup(@n32_add(n0 n5) tup(n6 n1)) n7))) }
+::std::unicode::String::repeat::2 { x(dup3593(tup(n0 tup(n1 n2)) n3) x(@n32_sub(1 dup128(n4 @n32_ne(0 ?(::std::unicode::String::repeat::3 ::std::unicode::String::repeat::2 x(n3 x(n4 x(tup(n5 tup(n6 n2)) n7))))))) x(tup(@n32_add(n0 n5) tup(n6 n1)) n7))) }
 
 ::std::unicode::String::repeat::3 { x(_ x(_ x(n0 n0))) }
 
