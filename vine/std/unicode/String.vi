@@ -110,21 +110,11 @@ pub mod String {
 
   pub impl eq: Eq[String] {
     fn eq(&self: &String, &other: &String) -> Bool {
-      if self.len() != other.len() {
-        return false;
-      }
-      let iter_a = self.chars.iter();
-      let iter_b = other.chars.iter();
-      while iter_a.next() is Some(&a) && iter_b.next() is Some(&b) {
-        if a != b {
-          return false;
-        }
-      }
-      true
+      self.chars == other.chars
     }
 
     fn ne(&self: &String, &other: &String) -> Bool {
-      !(self == other)
+      self.chars != other.chars
     }
   }
 

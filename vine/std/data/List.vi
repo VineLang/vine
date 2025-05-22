@@ -1,6 +1,6 @@
 
 use data::Iterator;
-use ops::{Concat, comparison::Ord};
+use ops::{Concat, comparison::{Eq, Ord}};
 use unicode::ToString;
 
 #[builtin = "List"]
@@ -193,6 +193,26 @@ pub mod List {
 
   pub fn .reverse[T](&self: &List[T]) {
     self = self.reversed();
+  }
+
+  pub impl eq[T; Eq[T]]: Eq[List[T]] {
+    fn eq(&a: &List[T], &b: &List[T]) -> Bool {
+      if a.len() != b.len() {
+        return false;
+      }
+      let a = a.iter();
+      let b = b.iter();
+      while a.next() is Some(&a) && b.next() is Some(&b) {
+        if a != b {
+          return false;
+        }
+      }
+      true
+    }
+
+    fn ne(&a: &List[T], &b: &List[T]) -> Bool {
+      !(a == b)
+    }
   }
 
   pub impl ord[T; Ord[T]]: Ord[List[T]] {
