@@ -10,8 +10,8 @@ use vine_util::{
 
 use crate::{
   ast::{Local, Pat, PatKind},
-  chart::{AdtId, VariantId},
-  vir::{Interface, InterfaceId, InterfaceKind, Layer, Port, Stage, Step, Transfer},
+  chart::EnumId,
+  vir::{Header, Interface, InterfaceId, InterfaceKind, Layer, Port, Stage, Step, Transfer},
 };
 
 use super::Distiller;
@@ -75,7 +75,7 @@ enum MatchKind {
   Inverse,
   Tuple(usize),
   Object(usize),
-  Adt(AdtId),
+  Enum(EnumId),
 }
 
 impl<'core, 'd, 'r> Matcher<'core, 'd, 'r> {
@@ -93,7 +93,7 @@ impl<'core, 'd, 'r> Matcher<'core, 'd, 'r> {
       let mut kind = None;
       for row in &mut rows {
         if let Entry::Occupied(mut e) = row.cells.entry(var) {
-          let row_kind = self.match_kind(e.get_mut());
+          let row_kind = Self::match_kind(e.get_mut());
           if let Some(row_kind) = row_kind {
             assert!(kind.is_none_or(|kind| kind == row_kind));
             kind = Some(row_kind);
@@ -187,7 +187,7 @@ impl<'core, 'd, 'r> Matcher<'core, 'd, 'r> {
           }
 
           self.eliminate_col(&mut rows, var, |p| match &p.kind {
-            PatKind::Tuple(tuple) | PatKind::Adt(.., tuple) => new_vars.iter().zip(tuple),
+            PatKind::Tuple(tuple) => new_vars.iter().zip(tuple),
             _ => unreachable!(),
           });
         }
@@ -222,23 +222,23 @@ impl<'core, 'd, 'r> Matcher<'core, 'd, 'r> {
           });
         }
 
-        MatchKind::Adt(adt_id) => {
-          let adt = &self.distiller.chart.adts[adt_id];
+        MatchKind::Enum(enum_id) => {
+          let enum_def = &self.distiller.chart.enums[enum_id];
           let interface = self.distiller.interfaces.push(None);
-          let stages = adt
+          let stages = enum_def
             .variants
             .iter()
             .map(|(variant_id, variant)| {
               let mut stage = self.distiller.new_stage(layer, interface);
-              let (new_vars, new_locals) =
-                self.new_var_range(&mut stage, form, variant.fields.len());
+              let (new_var, new_local) =
+                opt_tuple(variant.data.is_some().then(|| self.new_var(&mut stage, form)));
 
               let mut rows = rows
                 .iter()
                 .filter(|r| {
                   r.cells
                     .get(&var)
-                    .is_none_or(|p| matches!(&p.kind, PatKind::Adt(_, i, ..) if *i == variant_id))
+                    .is_none_or(|p| matches!(&p.kind, PatKind::Enum(_, i, ..) if *i == variant_id))
                 })
                 .cloned()
                 .collect::<Vec<_>>();
@@ -246,17 +246,17 @@ impl<'core, 'd, 'r> Matcher<'core, 'd, 'r> {
               if form == Form::Place
                 || rows.iter().any(|x| x.bindings.iter().any(|&(v, _)| v == var))
               {
-                let (result, header) = new_locals.iter().map(|l| stage.mut_local(l)).collect();
-                stage.header = header;
-                let adt = stage.new_wire();
-                stage.steps.push(Step::Adt(adt_id, variant_id, adt.0, result));
-                stage.set_local_to(local, adt.1);
+                let (result, header) = opt_tuple(new_local.map(|l| stage.mut_local(l)));
+                stage.header = Header::Match(header);
+                let wire = stage.new_wire();
+                stage.steps.push(Step::Enum(enum_id, variant_id, wire.0, result));
+                stage.set_local_to(local, wire.1);
               } else {
-                stage.header = new_locals.iter().map(|l| stage.set_local(l)).collect();
+                stage.header = Header::Match(new_local.map(|l| stage.set_local(l)));
               }
 
               self.eliminate_col(&mut rows, var, |p| match &p.kind {
-                PatKind::Adt(.., fields) => new_vars.iter().zip(fields),
+                PatKind::Enum(.., data) => new_var.into_iter().zip(data.as_deref()),
                 _ => unreachable!(),
               });
 
@@ -268,7 +268,7 @@ impl<'core, 'd, 'r> Matcher<'core, 'd, 'r> {
             })
             .collect::<Vec<_>>();
           self.distiller.interfaces[interface] =
-            Some(Interface::new(interface, layer.id, InterfaceKind::Match(adt_id, stages)));
+            Some(Interface::new(interface, layer.id, InterfaceKind::Match(enum_id, stages)));
           let value = stage.take_local(local);
           stage.transfer = Some(Transfer { interface, data: Some(value) });
           return;
@@ -319,31 +319,24 @@ impl<'core, 'd, 'r> Matcher<'core, 'd, 'r> {
   }
 
   fn add_to_row<'p>(&self, row: &mut Row<'core, 'p>, var: VarId, mut pat: &'p Pat<'core>) {
-    if self.match_kind(&mut pat).is_some() {
+    if Self::match_kind(&mut pat).is_some() {
       row.cells.insert(var, pat);
     } else {
       row.bindings.push((var, pat));
     }
   }
 
-  fn match_kind(&self, pat: &mut &Pat) -> Option<MatchKind> {
+  fn match_kind(pat: &mut &Pat) -> Option<MatchKind> {
     loop {
       return match &pat.kind {
-        PatKind::Error(_) | PatKind::PathCall(..) => unreachable!(),
+        PatKind::Error(_) | PatKind::Path(..) => unreachable!(),
         PatKind::Hole | PatKind::Local(_) => None,
-        PatKind::Paren(p) | PatKind::Annotation(p, _) => {
+        PatKind::Paren(p) | PatKind::Annotation(p, _) | PatKind::Struct(_, _, p) => {
           *pat = p;
           continue;
         }
-        PatKind::Adt(adt_id, _, _, _) => {
-          let adt_def = &self.distiller.chart.adts[*adt_id];
-          if adt_def.variants.len() == 1 {
-            Some(MatchKind::Tuple(adt_def.variants[VariantId(0)].fields.len()))
-          } else {
-            Some(MatchKind::Adt(*adt_id))
-          }
-        }
-        PatKind::Ref(p) => self.match_kind(&mut &**p).map(|_| MatchKind::Ref),
+        PatKind::Enum(enum_id, _, _, _) => Some(MatchKind::Enum(*enum_id)),
+        PatKind::Ref(p) => Self::match_kind(&mut &**p).map(|_| MatchKind::Ref),
         PatKind::Deref(p) => {
           if let PatKind::Ref(p) = &p.kind {
             *pat = p;
@@ -360,7 +353,7 @@ impl<'core, 'd, 'r> Matcher<'core, 'd, 'r> {
             *pat = p;
             continue;
           }
-          self.match_kind(&mut &**p).map(|_| MatchKind::Inverse)
+          Self::match_kind(&mut &**p).map(|_| MatchKind::Inverse)
         }
         PatKind::Tuple(t) => Some(MatchKind::Tuple(t.len())),
         PatKind::Object(e) => Some(MatchKind::Object(e.len())),
@@ -387,5 +380,12 @@ impl<'core, 'd, 'r> Matcher<'core, 'd, 'r> {
       }
     }
     stage.transfer = Some(Transfer::unconditional(row.arm));
+  }
+}
+
+fn opt_tuple<A, B>(opt: Option<(A, B)>) -> (Option<A>, Option<B>) {
+  match opt {
+    Some((a, b)) => (Some(a), Some(b)),
+    None => (None, None),
   }
 }

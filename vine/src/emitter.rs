@@ -6,10 +6,11 @@ use vine_util::idx::{Counter, IdxVec};
 use crate::{
   analyzer::usage::Usage,
   ast::Local,
-  chart::{AdtDef, Chart, ValueDef, ValueDefId, ValueDefKind, VariantId},
+  chart::{Chart, EnumDef, ValueDefId, VariantId},
   specializer::{Spec, SpecId, Specializations},
   vir::{
-    Interface, InterfaceId, InterfaceKind, Invocation, Port, Stage, StageId, Step, Transfer, VIR,
+    Header, Interface, InterfaceId, InterfaceKind, Invocation, Port, Stage, StageId, Step,
+    Transfer, VIR,
   },
 };
 
@@ -55,8 +56,7 @@ impl<'core, 'a> Emitter<'core, 'a> {
         emitter.wire_offset = 0;
         emitter.wires.0 = stage.wires.0 .0;
         let root = emitter.emit_interface(interface, true);
-        let root =
-          Tree::n_ary("enum", stage.header.iter().map(|p| emitter.emit_port(p)).chain([root]));
+        let root = emitter.emit_header(&stage.header, root);
         emitter._emit_stage(stage);
         for (_, local) in take(&mut emitter.locals) {
           emitter.finish_local(local);
@@ -67,32 +67,6 @@ impl<'core, 'a> Emitter<'core, 'a> {
     }
 
     self.dup_labels = emitter.dup_labels;
-  }
-
-  pub fn emit_ivy(&mut self, value_def: &ValueDef<'core>) {
-    let path = self.chart.defs[value_def.def].path;
-    match &value_def.kind {
-      ValueDefKind::Taken => unreachable!(),
-      ValueDefKind::Const { .. } | ValueDefKind::Fn { .. } | ValueDefKind::TraitSubitem(..) => {}
-      ValueDefKind::Ivy { net, .. } => {
-        self.nets.insert(path.into(), net.clone());
-      }
-      ValueDefKind::Adt(adt_id, variant_id) => {
-        let adt = &self.chart.adts[*adt_id];
-        let fields =
-          (0..adt.variants[*variant_id].fields.len()).map(|i| Tree::Var(format!("f{i}")));
-        let root = Tree::n_ary(
-          "fn",
-          fields.clone().chain([make_adt(
-            *variant_id,
-            adt,
-            || (Tree::Var("r".into()), Tree::Var("r".into())),
-            fields,
-          )]),
-        );
-        self.nets.insert(path.into(), Net { root, pairs: Vec::new() });
-      }
-    }
   }
 }
 
@@ -271,11 +245,11 @@ impl<'core, 'a> VirEmitter<'core, 'a> {
       Step::Tuple(port, tuple) => {
         self.pairs.push((emit_port(port), Tree::n_ary("tup", tuple.iter().map(emit_port))))
       }
-      Step::Adt(adt_id, variant_id, port, fields) => {
-        let adt = &self.chart.adts[*adt_id];
+      Step::Enum(enum_id, variant_id, port, fields) => {
+        let enum_def = &self.chart.enums[*enum_id];
         let fields = fields.iter().map(emit_port);
-        let adt = make_adt(*variant_id, adt, || self.new_wire(), fields);
-        self.pairs.push((emit_port(port), adt));
+        let enum_ = make_enum(*variant_id, enum_def, || self.new_wire(), fields);
+        self.pairs.push((emit_port(port), enum_));
       }
       Step::Ref(reference, value, space) => self.pairs.push((
         emit_port(reference),
@@ -384,6 +358,16 @@ impl<'core, 'a> VirEmitter<'core, 'a> {
     Tree::n_ary("tup", [Tree::N32(len), buf, end.1])
   }
 
+  fn emit_header(&self, header: &Header, root: Tree) -> Tree {
+    match header {
+      Header::None => root,
+      Header::Match(None) => root,
+      Header::Match(Some(data)) => {
+        Tree::Comb("enum".into(), Box::new(self.emit_port(data)), Box::new(root))
+      }
+    }
+  }
+
   fn new_wire(&mut self) -> (Tree, Tree) {
     let label = format!("w{}", self.wires.next());
     (Tree::Var(label.clone()), Tree::Var(label))
@@ -440,22 +424,18 @@ impl LocalState {
   }
 }
 
-fn make_adt(
+fn make_enum(
   variant_id: VariantId,
-  adt: &AdtDef,
+  enum_def: &EnumDef,
   mut new_wire: impl FnMut() -> (Tree, Tree),
   fields: impl DoubleEndedIterator<Item = Tree>,
 ) -> Tree {
-  if adt.variants.len() == 1 {
-    Tree::n_ary("tup", fields)
-  } else {
-    let wire = new_wire();
-    let mut fields = Tree::n_ary("enum", fields.chain([wire.0]));
-    Tree::n_ary(
-      "enum",
-      (0..adt.variants.len())
-        .map(|i| if variant_id.0 == i { take(&mut fields) } else { Tree::Erase })
-        .chain([wire.1]),
-    )
-  }
+  let wire = new_wire();
+  let mut fields = Tree::n_ary("enum", fields.chain([wire.0]));
+  Tree::n_ary(
+    "enum",
+    (0..enum_def.variants.len())
+      .map(|i| if variant_id.0 == i { take(&mut fields) } else { Tree::Erase })
+      .chain([wire.1]),
+  )
 }

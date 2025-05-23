@@ -1,8 +1,8 @@
 use std::{collections::BTreeMap, mem::take};
 
 use crate::{
-  ast::{Expr, ExprKind, Generics, ImplKind, Label, Span},
-  chart::{TypeDefId, VariantId},
+  ast::{Expr, ExprKind, Generics, Ident, ImplKind, Label, Span},
+  chart::TypeDefId,
   checker::{Checker, Form, Type},
   diag::Diag,
 };
@@ -79,35 +79,17 @@ impl<'core> Checker<'core, '_> {
         }
 
         self.unifier.concretize(&mut ty);
-        let field_ty = match &ty {
-          Type::Tuple(t) => {
-            *l = Some(t.len());
-            t.get(*i).cloned()
-          }
-          Type::Adt(adt_id, type_params) => {
-            let adt = &self.chart.adts[*adt_id];
-            if adt.is_struct {
-              let variant = &adt.variants[VariantId(0)];
-              if !variant.object && *i < variant.fields.len() {
-                *l = Some(variant.fields.len());
-                Some(self.types.adt_types[*adt_id][VariantId(0)][*i].instantiate(type_params))
-              } else {
-                None
-              }
-            } else {
-              None
-            }
-          }
-          _ => None,
-        };
-
-        let field_ty = field_ty.unwrap_or_else(|| {
-          Type::Error(self.core.report(Diag::MissingTupleField {
-            span,
-            ty: self.display_type(&ty),
-            i: *i,
-          }))
+        let (field_ty, len) = self.tuple_field(&ty, *i).unwrap_or_else(|| {
+          (
+            Type::Error(self.core.report(Diag::MissingTupleField {
+              span,
+              ty: self.display_type(&ty),
+              i: *i,
+            })),
+            0,
+          )
         });
+        *l = Some(len);
 
         (form, field_ty)
       }
@@ -120,31 +102,7 @@ impl<'core> Checker<'core, '_> {
         }
 
         self.unifier.concretize(&mut ty);
-        let field = match &ty {
-          Type::Object(e) => e
-            .iter()
-            .enumerate()
-            .find(|&(_, (&n, _))| k.ident == n)
-            .map(|(i, (_, t))| (t.clone(), i, e.len())),
-          Type::Adt(adt_id, type_params) => {
-            let adt = &self.chart.adts[*adt_id];
-            if adt.is_struct && adt.variants[VariantId(0)].object {
-              let [Type::Object(fields)] = &*self.types.adt_types[*adt_id][VariantId(0)] else {
-                unreachable!()
-              };
-              fields
-                .iter()
-                .enumerate()
-                .find(|&(_, (&n, _))| k.ident == n)
-                .map(|(i, (_, ty))| (ty.instantiate(type_params), i, fields.len()))
-            } else {
-              None
-            }
-          }
-          _ => None,
-        };
-
-        let (field_ty, i, len) = field.unwrap_or_else(|| {
+        let (field_ty, i, len) = self.object_field(&ty, k.ident).unwrap_or_else(|| {
           (
             Type::Error(self.core.report(Diag::MissingObjectField {
               span: k.span,
@@ -196,30 +154,61 @@ impl<'core> Checker<'core, '_> {
           )
         }
       }
-      ExprKind::Adt(adt_id, variant_id, generics, fields) => {
-        let type_params = self.check_generics(generics, self.chart.adts[*adt_id].generics, true);
-        let (forms, types) =
-          fields.iter_mut().map(|x| self.check_expr(x)).collect::<(Vec<_>, Vec<_>)>();
-        let adt = &self.chart.adts[*adt_id];
-        let field_types = self.types.adt_types[*adt_id][*variant_id]
-          .iter()
-          .map(|t| t.instantiate(&type_params))
-          .collect::<Vec<_>>();
-        let form = if adt.is_struct { self.tuple_form(span, &forms) } else { Form::Value };
-        for (((expr_form, expr), mut expr_type), mut field_type) in
-          forms.into_iter().zip(fields).zip(types).zip(field_types)
-        {
-          self.coerce_expr(expr, expr_form, form);
-          if !self.unifier.unify(&mut expr_type, &mut field_type) {
-            self.core.report(Diag::ExpectedTypeFound {
-              span: expr.span,
-              expected: self.display_type(&field_type),
-              found: self.display_type(&expr_type),
-            });
-          }
+      ExprKind::Struct(struct_id, generics, data) => {
+        let type_params =
+          self.check_generics(generics, self.chart.structs[*struct_id].generics, true);
+        let mut data_ty = self.types.struct_types[*struct_id].instantiate(&type_params);
+        let (form, mut ty) = self.check_expr(data);
+        if !self.unifier.unify(&mut ty, &mut data_ty) {
+          self.core.report(Diag::ExpectedTypeFound {
+            span: expr.span,
+            expected: self.display_type(&data_ty),
+            found: self.display_type(&ty),
+          });
         }
-        (form, Type::Adt(*adt_id, type_params))
+        (form, Type::Struct(*struct_id, type_params))
       }
+      ExprKind::Unwrap(inner) => {
+        let (form, mut ty) = self.check_expr(inner);
+
+        self.unifier.concretize(&mut ty);
+        let data_ty = match &ty {
+          Type::Struct(struct_id, type_params) => {
+            self.types.struct_types[*struct_id].instantiate(type_params)
+          }
+          _ => Type::Error(self.core.report(Diag::UnwrapNonStruct { span })),
+        };
+
+        (form, data_ty)
+      }
+    }
+  }
+
+  fn tuple_field(&mut self, ty: &Type<'core>, index: usize) -> Option<(Type<'core>, usize)> {
+    match ty {
+      Type::Tuple(tuple) => Some((tuple.get(index)?.clone(), tuple.len())),
+      Type::Struct(struct_id, params) => {
+        self.tuple_field(&self.types.struct_types[*struct_id].instantiate(params), index)
+      }
+      _ => None,
+    }
+  }
+
+  fn object_field(
+    &mut self,
+    ty: &Type<'core>,
+    key: Ident<'core>,
+  ) -> Option<(Type<'core>, usize, usize)> {
+    match ty {
+      Type::Object(entries) => entries
+        .iter()
+        .enumerate()
+        .find(|&(_, (&k, _))| k == key)
+        .map(|(i, (_, t))| (t.clone(), i, entries.len())),
+      Type::Struct(struct_id, params) => {
+        self.object_field(&self.types.struct_types[*struct_id].instantiate(params), key)
+      }
+      _ => None,
     }
   }
 
@@ -240,7 +229,7 @@ impl<'core> Checker<'core, '_> {
   fn _check_expr_value(&mut self, expr: &mut Expr<'core>) -> Type<'core> {
     let span = expr.span;
     match &mut expr.kind {
-      ExprKind![error || place || space || synthetic] | ExprKind::Path(_) => unreachable!(),
+      ExprKind![error || place || space || synthetic] | ExprKind::Path(..) => unreachable!(),
       ExprKind::DynFn(x) => self.dyn_fns[x].clone(),
       ExprKind::Def(id, args) => {
         let type_params = self.check_generics(args, self.chart.values[*id].generics, true);
@@ -352,7 +341,7 @@ impl<'core> Checker<'core, '_> {
           self.check_expr_form_type(el, Form::Value, &mut item);
         }
         if let Some(list) = self.chart.builtins.list {
-          Type::Adt(list, vec![item])
+          Type::Struct(list, vec![item])
         } else {
           Type::Error(self.core.report(Diag::MissingBuiltin { span, builtin: "List" }))
         }
@@ -523,7 +512,7 @@ impl<'core> Checker<'core, '_> {
       ExprKind::F32(_) => self.builtin_ty(span, "F32", self.chart.builtins.f32),
       ExprKind::String(_, rest) => {
         let mut string_ty =
-          self.chart.builtins.string.map(|d| Type::Adt(d, Vec::new())).unwrap_or_else(|| {
+          self.chart.builtins.string.map(|d| Type::Struct(d, Vec::new())).unwrap_or_else(|| {
             Type::Error(self.core.report(Diag::MissingBuiltin { span, builtin: "String" }))
           });
         if let Some(to_string) = self.chart.builtins.to_string {
@@ -554,6 +543,23 @@ impl<'core> Checker<'core, '_> {
           self.check_expr_form(expr, if *value { Form::Value } else { Form::Space });
         }
         self.hydrate_type(ty, true)
+      }
+      ExprKind::Enum(enum_id, variant_id, generics, data) => {
+        let type_params = self.check_generics(generics, self.chart.enums[*enum_id].generics, true);
+        let data_ty = &self.types.enum_types[*enum_id][*variant_id];
+        match (data, data_ty) {
+          (None, None) => {}
+          (Some(data), Some(data_ty)) => {
+            self.check_expr_form_type(data, Form::Value, &mut data_ty.instantiate(&type_params));
+          }
+          (None, Some(_)) => {
+            self.core.report(Diag::ExpectedDataExpr { span });
+          }
+          (Some(_), None) => {
+            self.core.report(Diag::EnumVariantNoData { span });
+          }
+        }
+        Type::Enum(*enum_id, type_params)
       }
     }
   }

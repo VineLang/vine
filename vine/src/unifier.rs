@@ -4,7 +4,7 @@ use vine_util::{idx::IdxVec, new_idx};
 
 use crate::{
   ast::Span,
-  chart::{AdtId, TraitDefId, TypeDefId},
+  chart::{EnumId, StructId, TraitDefId, TypeDefId},
   checker::{Type, Var},
   core::Core,
   diag::{Diag, ErrorGuaranteed},
@@ -106,7 +106,8 @@ impl<'core> Unifier<'core> {
         success &= self._unify(a, b, false);
         success
       }
-      (Type::Adt(AdtId(n), a), Type::Adt(AdtId(m), b))
+      (Type::Struct(StructId(n), a), Type::Struct(StructId(m), b))
+      | (Type::Enum(EnumId(n), a), Type::Enum(EnumId(m), b))
       | (Type::Opaque(TypeDefId(n), a), Type::Opaque(TypeDefId(m), b))
       | (Type::Trait(TraitDefId(n), a), Type::Trait(TraitDefId(m), b))
         if n == m && !inverted =>

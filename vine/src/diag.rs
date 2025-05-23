@@ -202,6 +202,16 @@ diags! {
     ["multiple methods named `{name}` for `{ty}`"]
   CircularImport
     ["circular import"]
+  UnwrapNonStruct
+    ["only struct types can be unwrapped"]
+  EnumVariantNoData
+    ["this enum variant has no data"]
+  ExpectedDataSubpattern
+    ["expected data subpattern"]
+  ExpectedDataExpr
+    ["constructor expects data"]
+  ConstructorMultiArgs
+    ["constructors expect exactly one argument"]
 }
 
 fn plural<'a>(n: usize, plural: &'a str, singular: &'a str) -> &'a str {

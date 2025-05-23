@@ -8,8 +8,8 @@ use vine_util::{
 use crate::{
   ast::Local,
   vir::{
-    Interface, InterfaceId, InterfaceKind, Layer, LayerId, Port, Stage, StageId, Step, Transfer,
-    WireId, VIR,
+    Header, Interface, InterfaceId, InterfaceKind, Layer, LayerId, Port, Stage, StageId, Step,
+    Transfer, WireId, VIR,
   },
 };
 
@@ -65,7 +65,7 @@ impl<'a> Normalizer<'a> {
         transfer: None,
         wires: source.wires,
       };
-      for port in &stage.header {
+      for port in stage.header.ports() {
         if let Port::Wire(wire) = port {
           toggle(&mut wire_counts, *wire);
         }
@@ -87,7 +87,7 @@ impl<'a> Normalizer<'a> {
             id: new_stage,
             interface,
             layer: LayerId::NONE,
-            header: Vec::new(),
+            header: Header::None,
             declarations: Vec::new(),
             steps: Vec::new(),
             transfer: None,

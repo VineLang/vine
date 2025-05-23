@@ -14,9 +14,9 @@ use crate::{
     StmtKind, Trait, TraitKind, Ty, TyKind,
   },
   chart::{
-    AdtDef, AdtId, Chart, ChartCheckpoint, DefId, GenericsDef, GenericsId, ImplDef, ImplDefId,
-    ImplDefKind, SubitemId, TraitDef, TraitDefId, TraitDefKind, TraitSubitemKind, TypeDefId,
-    TypeDefKind, ValueDef, ValueDefId, ValueDefKind, VariantId,
+    Chart, ChartCheckpoint, DefId, EnumDef, EnumId, GenericsDef, GenericsId, ImplDef, ImplDefId,
+    ImplDefKind, StructDef, StructId, SubitemId, TraitDef, TraitDefId, TraitDefKind,
+    TraitSubitemKind, TypeDefId, TypeDefKind, ValueDef, ValueDefId, ValueDefKind, VariantId,
   },
   core::Core,
   diag::{report, Diag, ErrorGuaranteed},
@@ -45,7 +45,8 @@ pub struct Checker<'core, 'a> {
 #[derive(Debug, Default)]
 pub struct ChartTypes<'core> {
   pub type_defs: IdxVec<TypeDefId, Option<Type<'core>>>,
-  pub adt_types: IdxVec<AdtId, IdxVec<VariantId, Vec<Type<'core>>>>,
+  pub struct_types: IdxVec<StructId, Type<'core>>,
+  pub enum_types: IdxVec<EnumId, IdxVec<VariantId, Option<Type<'core>>>>,
   pub trait_types: IdxVec<TraitDefId, TraitInfo<'core>>,
   pub impl_param_types: IdxVec<GenericsId, Vec<Type<'core>>>,
   pub value_types: IdxVec<ValueDefId, Type<'core>>,
@@ -86,8 +87,11 @@ impl<'core, 'a> Checker<'core, 'a> {
     for id in self.chart.types.keys_from(checkpoint.types) {
       self.assess_type_def(id);
     }
-    for id in self.chart.adts.keys_from(checkpoint.adts) {
-      self.assess_adt_type(id);
+    for id in self.chart.structs.keys_from(checkpoint.structs) {
+      self.assess_struct_type(id);
+    }
+    for id in self.chart.enums.keys_from(checkpoint.enums) {
+      self.assess_enum_type(id);
     }
     for id in self.chart.traits.keys_from(checkpoint.traits) {
       self.assess_trait_type(id);
@@ -136,8 +140,12 @@ impl<'core, 'a> Checker<'core, 'a> {
         (0..self.chart.generics[type_def.generics].type_params.len()).map(Type::Param).collect(),
       ),
       TypeDefKind::Alias(ty) => self.hydrate_type(ty, false),
-      TypeDefKind::Adt(adt_id) => Type::Adt(
-        *adt_id,
+      TypeDefKind::Struct(struct_id) => Type::Struct(
+        *struct_id,
+        (0..self.chart.generics[type_def.generics].type_params.len()).map(Type::Param).collect(),
+      ),
+      TypeDefKind::Enum(enum_id) => Type::Enum(
+        *enum_id,
         (0..self.chart.generics[type_def.generics].type_params.len()).map(Type::Param).collect(),
       ),
     };
@@ -173,7 +181,7 @@ impl<'core, 'a> Checker<'core, 'a> {
         self.check_block_type(body, &mut ret);
         self.return_ty = old;
       }
-      ValueDefKind::Ivy { .. } | ValueDefKind::Adt(..) | ValueDefKind::TraitSubitem(..) => {}
+      ValueDefKind::Struct(..) | ValueDefKind::Enum(..) | ValueDefKind::TraitSubitem(..) => {}
     }
     self.chart.values[value_id].kind = kind;
   }
@@ -276,12 +284,17 @@ impl<'core, 'a> Checker<'core, 'a> {
   fn hydrate_param(&mut self, pat: &mut Pat<'core>) -> Type<'core> {
     let span = pat.span;
     match &mut pat.kind {
-      PatKind::PathCall(..) => unreachable!(),
+      PatKind::Path(..) => unreachable!(),
       PatKind::Paren(inner) => self.hydrate_param(inner),
       PatKind::Annotation(_, ty) => self.hydrate_type(ty, false),
-      PatKind::Adt(adt, _, generics, _) => {
-        Type::Adt(*adt, self.check_generics(generics, self.chart.adts[*adt].generics, false))
-      }
+      PatKind::Struct(struct_id, generics, _) => Type::Struct(
+        *struct_id,
+        self.check_generics(generics, self.chart.structs[*struct_id].generics, false),
+      ),
+      PatKind::Enum(enum_id, _, generics, _) => Type::Enum(
+        *enum_id,
+        self.check_generics(generics, self.chart.enums[*enum_id].generics, false),
+      ),
       PatKind::Ref(p) => Type::Ref(Box::new(self.hydrate_param(p))),
       PatKind::Inverse(p) => Type::Inverse(Box::new(self.hydrate_param(p))),
       PatKind::Tuple(t) => Type::Tuple(t.iter_mut().map(|p| self.hydrate_param(p)).collect()),
@@ -349,18 +362,28 @@ impl<'core, 'a> Checker<'core, 'a> {
     Ok(Type::Object(fields))
   }
 
-  fn assess_adt_type(&mut self, adt_id: AdtId) {
-    assert_eq!(self.types.adt_types.next_index(), adt_id);
-    let AdtDef { def, generics, ref mut variants, .. } = self.chart.adts[adt_id];
+  fn assess_struct_type(&mut self, struct_id: StructId) {
+    assert_eq!(self.types.struct_types.next_index(), struct_id);
+    let StructDef { def, generics, ref mut data, .. } = self.chart.structs[struct_id];
+    let mut data = take(data);
+    self.initialize(def, generics);
+    let data_ty = self.hydrate_type(&mut data, false);
+    self.types.struct_types.push(data_ty);
+    self.chart.structs[struct_id].data = data;
+  }
+
+  fn assess_enum_type(&mut self, enum_id: EnumId) {
+    assert_eq!(self.types.enum_types.next_index(), enum_id);
+    let EnumDef { def, generics, ref mut variants, .. } = self.chart.enums[enum_id];
     let mut variants = take(variants);
     self.initialize(def, generics);
     let tys = variants
       .values_mut()
-      .map(|variant| variant.fields.iter_mut().map(|ty| self.hydrate_type(ty, false)).collect())
+      .map(|variant| variant.data.as_mut().map(|ty| self.hydrate_type(ty, false)))
       .collect::<Vec<_>>()
       .into();
-    self.types.adt_types.push(tys);
-    self.chart.adts[adt_id].variants = variants;
+    self.types.enum_types.push(tys);
+    self.chart.enums[enum_id].variants = variants;
   }
 
   fn assess_trait_type(&mut self, trait_id: TraitDefId) {
@@ -405,16 +428,28 @@ impl<'core, 'a> Checker<'core, 'a> {
       ValueDefKind::Taken => unreachable!(),
       ValueDefKind::Const { ty, .. } => self.hydrate_type(ty, false),
       ValueDefKind::Fn { params, ret, .. } => self.assess_fn_sig(params, ret),
-      ValueDefKind::Ivy { ty, .. } => self.hydrate_type(ty, false),
-      ValueDefKind::Adt(adt_id, variant_id) => {
-        let adt = &self.chart.adts[*adt_id];
-        let generics = &self.chart.generics[adt.generics];
-        let fields = &self.types.adt_types[*adt_id][*variant_id];
-        let adt = Type::Adt(*adt_id, (0..generics.type_params.len()).map(Type::Param).collect());
-        if fields.is_empty() {
-          adt
+      ValueDefKind::Struct(struct_id) => {
+        let struct_def = &self.chart.structs[*struct_id];
+        let generics = &self.chart.generics[struct_def.generics];
+        let data = &self.types.struct_types[*struct_id];
+        Type::Fn(
+          vec![data.clone()],
+          Box::new(Type::Struct(
+            *struct_id,
+            (0..generics.type_params.len()).map(Type::Param).collect(),
+          )),
+        )
+      }
+      ValueDefKind::Enum(enum_id, variant_id) => {
+        let enum_def = &self.chart.enums[*enum_id];
+        let generics = &self.chart.generics[enum_def.generics];
+        let data = &self.types.enum_types[*enum_id][*variant_id];
+        let enum_ty =
+          Type::Enum(*enum_id, (0..generics.type_params.len()).map(Type::Param).collect());
+        if let Some(data) = data {
+          Type::Fn(vec![data.clone()], Box::new(enum_ty))
         } else {
-          Type::Fn(fields.clone(), Box::new(adt))
+          enum_ty
         }
       }
       ValueDefKind::TraitSubitem(trait_def_id, subitem_id) => {
@@ -623,7 +658,8 @@ pub enum Type<'core> {
   Fn(Vec<Type<'core>>, Box<Type<'core>>),
   Ref(Box<Type<'core>>),
   Inverse(Box<Type<'core>>),
-  Adt(AdtId, Vec<Type<'core>>),
+  Struct(StructId, Vec<Type<'core>>),
+  Enum(EnumId, Vec<Type<'core>>),
   Trait(TraitDefId, Vec<Type<'core>>),
   Opaque(TypeDefId, Vec<Type<'core>>),
   Param(usize),
@@ -651,7 +687,10 @@ impl<'core> Type<'core> {
       Type::Opaque(id, tys) => {
         Type::Opaque(*id, tys.iter().map(|t| t.instantiate(params)).collect())
       }
-      Type::Adt(def, tys) => Type::Adt(*def, tys.iter().map(|t| t.instantiate(params)).collect()),
+      Type::Struct(def, tys) => {
+        Type::Struct(*def, tys.iter().map(|t| t.instantiate(params)).collect())
+      }
+      Type::Enum(def, tys) => Type::Enum(*def, tys.iter().map(|t| t.instantiate(params)).collect()),
       Type::Trait(def, tys) => {
         Type::Trait(*def, tys.iter().map(|t| t.instantiate(params)).collect())
       }
@@ -669,9 +708,11 @@ impl<'core> Type<'core> {
         Iter::Zero([])
       }
       Type::Ref(inner) | Type::Inverse(inner) => Iter::One([&mut **inner]),
-      Type::Tuple(items) | Type::Opaque(_, items) | Type::Adt(_, items) | Type::Trait(_, items) => {
-        Iter::Vec(items)
-      }
+      Type::Tuple(tys)
+      | Type::Opaque(_, tys)
+      | Type::Struct(_, tys)
+      | Type::Enum(_, tys)
+      | Type::Trait(_, tys) => Iter::Vec(tys),
       Type::Object(fields) => Iter::Object(fields.values_mut()),
       Type::Fn(params, ret) => Iter::Fn(params.iter_mut().chain([&mut **ret])),
     }
@@ -695,7 +736,8 @@ impl<'core> Type<'core> {
   pub fn get_mod(&self, chart: &Chart) -> Result<Option<DefId>, ErrorGuaranteed> {
     Ok(match self {
       Type::Opaque(type_id, _) => Some(chart.types[*type_id].def),
-      Type::Adt(adt_id, _) => Some(chart.adts[*adt_id].def),
+      Type::Struct(struct_id, _) => Some(chart.structs[*struct_id].def),
+      Type::Enum(enum_id, _) => Some(chart.enums[*enum_id].def),
       Type::Trait(trait_id, _) => Some(chart.traits[*trait_id].def),
       Type::Tuple(_)
       | Type::Object(_)
@@ -735,7 +777,8 @@ impl From<ErrorGuaranteed> for Type<'_> {
 impl<'core> ChartTypes<'core> {
   pub fn revert(&mut self, chart: &ChartCheckpoint) {
     self.type_defs.truncate(chart.types.0);
-    self.adt_types.truncate(chart.adts.0);
+    self.struct_types.truncate(chart.structs.0);
+    self.enum_types.truncate(chart.enums.0);
     self.trait_types.truncate(chart.traits.0);
     self.impl_param_types.truncate(chart.generics.0);
     self.value_types.truncate(chart.values.0);

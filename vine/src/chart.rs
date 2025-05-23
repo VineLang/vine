@@ -1,6 +1,5 @@
 use std::collections::HashMap;
 
-use ivy::ast::Net;
 use vine_util::{
   idx::{Counter, Idx, IdxVec, IntMap},
   new_idx,
@@ -20,7 +19,8 @@ pub struct Chart<'core> {
   pub traits: IdxVec<TraitDefId, TraitDef<'core>>,
   pub impls: IdxVec<ImplDefId, ImplDef<'core>>,
   pub generics: IdxVec<GenericsId, GenericsDef<'core>>,
-  pub adts: IdxVec<AdtId, AdtDef<'core>>,
+  pub structs: IdxVec<StructId, StructDef<'core>>,
+  pub enums: IdxVec<EnumId, EnumDef<'core>>,
   pub imports: IdxVec<ImportId, Import<'core>>,
   pub builtins: Builtins,
 }
@@ -36,8 +36,8 @@ pub struct Builtins {
   pub char: Option<TypeDefId>,
   pub io: Option<TypeDefId>,
 
-  pub list: Option<AdtId>,
-  pub string: Option<AdtId>,
+  pub list: Option<StructId>,
+  pub string: Option<StructId>,
 
   pub to_string: Option<ValueDefId>,
   pub neg: Option<ValueDefId>,
@@ -55,7 +55,8 @@ new_idx!(pub PatternDefId);
 new_idx!(pub TraitDefId);
 new_idx!(pub ImplDefId);
 new_idx!(pub GenericsId);
-new_idx!(pub AdtId);
+new_idx!(pub StructId);
+new_idx!(pub EnumId);
 new_idx!(pub VariantId);
 new_idx!(pub SubitemId);
 new_idx!(pub ImportId);
@@ -143,11 +144,8 @@ pub enum ValueDefKind<'core> {
     ret: Option<Ty<'core>>,
     body: Block<'core>,
   },
-  Ivy {
-    ty: Ty<'core>,
-    net: Net,
-  },
-  Adt(AdtId, VariantId),
+  Struct(StructId),
+  Enum(EnumId, VariantId),
   TraitSubitem(TraitDefId, SubitemId),
 }
 
@@ -166,7 +164,8 @@ pub enum TypeDefKind<'core> {
   Taken,
   Opaque,
   Alias(Ty<'core>),
-  Adt(AdtId),
+  Struct(StructId),
+  Enum(EnumId),
 }
 
 #[derive(Debug)]
@@ -180,7 +179,8 @@ pub struct PatternDef {
 
 #[derive(Debug)]
 pub enum PatternDefKind {
-  Adt(AdtId, VariantId),
+  Struct(StructId),
+  Enum(EnumId, VariantId),
 }
 
 #[derive(Debug)]
@@ -248,20 +248,27 @@ pub struct GenericsDef<'core> {
 }
 
 #[derive(Debug)]
-pub struct AdtDef<'core> {
+pub struct StructDef<'core> {
   pub def: DefId,
   pub generics: GenericsId,
   pub name: Ident<'core>,
-  pub variants: IdxVec<VariantId, AdtVariant<'core>>,
-  pub is_struct: bool,
+  pub data_vis: DefId,
+  pub data: Ty<'core>,
 }
 
 #[derive(Debug)]
-pub struct AdtVariant<'core> {
+pub struct EnumDef<'core> {
+  pub def: DefId,
+  pub generics: GenericsId,
+  pub name: Ident<'core>,
+  pub variants: IdxVec<VariantId, EnumVariant<'core>>,
+}
+
+#[derive(Debug)]
+pub struct EnumVariant<'core> {
   pub def: DefId,
   pub name: Ident<'core>,
-  pub fields: Vec<Ty<'core>>,
-  pub object: bool,
+  pub data: Option<Ty<'core>>,
 }
 
 #[derive(Default, Debug)]
@@ -273,7 +280,8 @@ pub struct ChartCheckpoint {
   pub traits: TraitDefId,
   pub impls: ImplDefId,
   pub generics: GenericsId,
-  pub adts: AdtId,
+  pub structs: StructId,
+  pub enums: EnumId,
   pub imports: ImportId,
 }
 
@@ -287,7 +295,8 @@ impl<'core> Chart<'core> {
       traits: self.traits.next_index(),
       impls: self.impls.next_index(),
       generics: self.generics.next_index(),
-      adts: self.adts.next_index(),
+      structs: self.structs.next_index(),
+      enums: self.enums.next_index(),
       imports: self.imports.next_index(),
     }
   }
@@ -300,7 +309,8 @@ impl<'core> Chart<'core> {
     self.traits.truncate(checkpoint.traits.0);
     self.impls.truncate(checkpoint.impls.0);
     self.generics.truncate(checkpoint.generics.0);
-    self.adts.truncate(checkpoint.adts.0);
+    self.structs.truncate(checkpoint.structs.0);
+    self.enums.truncate(checkpoint.enums.0);
     self.imports.truncate(checkpoint.imports.0);
 
     for def in self.defs.values_mut() {
@@ -334,8 +344,8 @@ impl Builtins {
     revert_option(&mut self.i32, checkpoint.types);
     revert_option(&mut self.char, checkpoint.types);
     revert_option(&mut self.io, checkpoint.types);
-    revert_option(&mut self.list, checkpoint.adts);
-    revert_option(&mut self.string, checkpoint.adts);
+    revert_option(&mut self.list, checkpoint.structs);
+    revert_option(&mut self.string, checkpoint.structs);
     revert_option(&mut self.to_string, checkpoint.values);
     revert_option(&mut self.neg, checkpoint.values);
     revert_option(&mut self.not, checkpoint.values);
@@ -353,9 +363,9 @@ fn revert_option<T: Idx>(option: &mut Option<T>, checkpoint: T) {
 }
 
 impl<'core> TypeDefKind<'core> {
-  pub fn adt(&self) -> Option<AdtId> {
-    if let TypeDefKind::Adt(adt) = self {
-      Some(*adt)
+  pub fn struct_id(&self) -> Option<StructId> {
+    if let TypeDefKind::Struct(struct_id) = self {
+      Some(*struct_id)
     } else {
       None
     }
