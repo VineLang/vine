@@ -4,7 +4,7 @@ use vine_util::{idx::IdxVec, new_idx};
 
 use crate::{
   ast::Span,
-  chart::{AdtId, TraitDefId},
+  chart::{AdtId, TraitDefId, TypeDefId},
   checker::{Type, Var},
   core::Core,
   diag::{Diag, ErrorGuaranteed},
@@ -77,13 +77,7 @@ impl<'core> Unifier<'core> {
           true
         }
       }
-      (Type::Bool, Type::Bool)
-      | (Type::N32, Type::N32)
-      | (Type::I32, Type::I32)
-      | (Type::F32, Type::F32)
-      | (Type::Char, Type::Char)
-      | (Type::IO, Type::IO) => !inverted,
-      (Type::Opaque(a), Type::Opaque(b)) => a == b && !inverted,
+      (Type::Param(a), Type::Param(b)) => a == b && !inverted,
       (Type::Tuple(a), Type::Tuple(b)) if a.len() == b.len() => {
         let mut success = true;
         for (a, b) in a.iter_mut().zip(b) {
@@ -113,6 +107,7 @@ impl<'core> Unifier<'core> {
         success
       }
       (Type::Adt(AdtId(n), a), Type::Adt(AdtId(m), b))
+      | (Type::Opaque(TypeDefId(n), a), Type::Opaque(TypeDefId(m), b))
       | (Type::Trait(TraitDefId(n), a), Type::Trait(TraitDefId(m), b))
         if n == m && !inverted =>
       {

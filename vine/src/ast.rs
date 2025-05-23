@@ -63,7 +63,7 @@ pub struct ConstItem<'core> {
 pub struct TypeItem<'core> {
   pub name: Ident<'core>,
   pub generics: GenericParams<'core>,
-  pub ty: Ty<'core>,
+  pub ty: Option<Ty<'core>>,
 }
 
 #[derive(Debug, Clone)]

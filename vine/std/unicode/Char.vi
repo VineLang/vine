@@ -2,6 +2,8 @@
 use ops::{Cast, arithmetic::{Add, Sub}, comparison::{Eq, Ord}};
 
 #[builtin = "Char"]
+pub type Char;
+
 pub mod Char {
   pub impl from_n32: Cast[N32, Char] {
     fn .cast(n: N32) -> Char {

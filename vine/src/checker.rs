@@ -131,12 +131,15 @@ impl<'core, 'a> Checker<'core, 'a> {
       TypeDefKind::Taken => {
         Type::Error(self.core.report(Diag::RecursiveTypeAlias { span: type_def.span }))
       }
+      TypeDefKind::Opaque => Type::Opaque(
+        type_id,
+        (0..self.chart.generics[type_def.generics].type_params.len()).map(Type::Param).collect(),
+      ),
       TypeDefKind::Alias(ty) => self.hydrate_type(ty, false),
       TypeDefKind::Adt(adt_id) => Type::Adt(
         *adt_id,
-        (0..self.chart.generics[type_def.generics].type_params.len()).map(Type::Opaque).collect(),
+        (0..self.chart.generics[type_def.generics].type_params.len()).map(Type::Param).collect(),
       ),
-      TypeDefKind::Builtin(ty) => ty.clone(),
     };
     self.chart.types[type_id].kind = kind;
     let slot = self.types.type_defs.get_or_extend(type_id);
@@ -265,7 +268,7 @@ impl<'core, 'a> Checker<'core, 'a> {
           self.check_generics(generics, self.chart.types[*type_def_id].generics, inference);
         self.assess_type_def(*type_def_id).instantiate(&type_params)
       }
-      TyKind::Param(n) => Type::Opaque(*n),
+      TyKind::Param(n) => Type::Param(*n),
       TyKind::Error(e) => Type::Error(*e),
     }
   }
@@ -407,7 +410,7 @@ impl<'core, 'a> Checker<'core, 'a> {
         let adt = &self.chart.adts[*adt_id];
         let generics = &self.chart.generics[adt.generics];
         let fields = &self.types.adt_types[*adt_id][*variant_id];
-        let adt = Type::Adt(*adt_id, (0..generics.type_params.len()).map(Type::Opaque).collect());
+        let adt = Type::Adt(*adt_id, (0..generics.type_params.len()).map(Type::Param).collect());
         if fields.is_empty() {
           adt
         } else {
@@ -615,12 +618,6 @@ new_idx!(pub Var);
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Type<'core> {
-  Bool,
-  N32,
-  I32,
-  F32,
-  Char,
-  IO,
   Tuple(Vec<Type<'core>>),
   Object(BTreeMap<Ident<'core>, Type<'core>>),
   Fn(Vec<Type<'core>>, Box<Type<'core>>),
@@ -628,7 +625,8 @@ pub enum Type<'core> {
   Inverse(Box<Type<'core>>),
   Adt(AdtId, Vec<Type<'core>>),
   Trait(TraitDefId, Vec<Type<'core>>),
-  Opaque(usize),
+  Opaque(TypeDefId, Vec<Type<'core>>),
+  Param(usize),
   Var(Var),
   Fresh(Var),
   Never,
@@ -638,29 +636,26 @@ pub enum Type<'core> {
 impl<'core> Type<'core> {
   pub const NIL: Type<'static> = Type::Tuple(Vec::new());
 
-  pub(crate) fn instantiate(&self, opaque: &[Type<'core>]) -> Type<'core> {
+  pub(crate) fn instantiate(&self, params: &[Type<'core>]) -> Type<'core> {
     match self {
-      Type::Bool => Type::Bool,
-      Type::N32 => Type::N32,
-      Type::I32 => Type::I32,
-      Type::F32 => Type::F32,
-      Type::Char => Type::Char,
-      Type::IO => Type::IO,
-      Type::Tuple(tys) => Type::Tuple(tys.iter().map(|t| t.instantiate(opaque)).collect()),
+      Type::Tuple(tys) => Type::Tuple(tys.iter().map(|t| t.instantiate(params)).collect()),
       Type::Object(entries) => {
-        Type::Object(entries.iter().map(|(&k, t)| (k, t.instantiate(opaque))).collect())
+        Type::Object(entries.iter().map(|(&k, t)| (k, t.instantiate(params))).collect())
       }
       Type::Fn(tys, ret) => Type::Fn(
-        tys.iter().map(|t| t.instantiate(opaque)).collect(),
-        Box::new(ret.instantiate(opaque)),
+        tys.iter().map(|t| t.instantiate(params)).collect(),
+        Box::new(ret.instantiate(params)),
       ),
-      Type::Ref(t) => Type::Ref(Box::new(t.instantiate(opaque))),
-      Type::Inverse(t) => Type::Inverse(Box::new(t.instantiate(opaque))),
-      Type::Adt(def, tys) => Type::Adt(*def, tys.iter().map(|t| t.instantiate(opaque)).collect()),
-      Type::Trait(def, tys) => {
-        Type::Trait(*def, tys.iter().map(|t| t.instantiate(opaque)).collect())
+      Type::Ref(t) => Type::Ref(Box::new(t.instantiate(params))),
+      Type::Inverse(t) => Type::Inverse(Box::new(t.instantiate(params))),
+      Type::Opaque(id, tys) => {
+        Type::Opaque(*id, tys.iter().map(|t| t.instantiate(params)).collect())
       }
-      Type::Opaque(n) => opaque[*n].clone(),
+      Type::Adt(def, tys) => Type::Adt(*def, tys.iter().map(|t| t.instantiate(params)).collect()),
+      Type::Trait(def, tys) => {
+        Type::Trait(*def, tys.iter().map(|t| t.instantiate(params)).collect())
+      }
+      Type::Param(n) => params[*n].clone(),
       Type::Error(e) => Type::Error(*e),
       Type::Never => Type::Never,
       Type::Var(_) | Type::Fresh(_) => unreachable!(),
@@ -670,19 +665,13 @@ impl<'core> Type<'core> {
   pub(crate) fn children_mut(&mut self) -> impl Iterator<Item = &mut Type<'core>> {
     multi_iter! { Iter { Zero, One, Vec, Object, Fn } }
     match self {
-      Type::Bool
-      | Type::N32
-      | Type::I32
-      | Type::F32
-      | Type::Char
-      | Type::IO
-      | Type::Opaque(_)
-      | Type::Var(_)
-      | Type::Fresh(_)
-      | Type::Never
-      | Type::Error(_) => Iter::Zero([]),
+      Type::Param(_) | Type::Var(_) | Type::Fresh(_) | Type::Never | Type::Error(_) => {
+        Iter::Zero([])
+      }
       Type::Ref(inner) | Type::Inverse(inner) => Iter::One([&mut **inner]),
-      Type::Tuple(items) | Type::Adt(_, items) | Type::Trait(_, items) => Iter::Vec(items),
+      Type::Tuple(items) | Type::Opaque(_, items) | Type::Adt(_, items) | Type::Trait(_, items) => {
+        Iter::Vec(items)
+      }
       Type::Object(fields) => Iter::Object(fields.values_mut()),
       Type::Fn(params, ret) => Iter::Fn(params.iter_mut().chain([&mut **ret])),
     }
@@ -705,20 +694,15 @@ impl<'core> Type<'core> {
 
   pub fn get_mod(&self, chart: &Chart) -> Result<Option<DefId>, ErrorGuaranteed> {
     Ok(match self {
+      Type::Opaque(type_id, _) => Some(chart.types[*type_id].def),
       Type::Adt(adt_id, _) => Some(chart.adts[*adt_id].def),
       Type::Trait(trait_id, _) => Some(chart.traits[*trait_id].def),
-      Type::Bool => chart.builtins.bool,
-      Type::N32 => chart.builtins.n32,
-      Type::I32 => chart.builtins.i32,
-      Type::F32 => chart.builtins.f32,
-      Type::Char => chart.builtins.char,
-      Type::IO => chart.builtins.io,
       Type::Tuple(_)
       | Type::Object(_)
       | Type::Fn(..)
       | Type::Ref(_)
       | Type::Inverse(_)
-      | Type::Opaque(_)
+      | Type::Param(_)
       | Type::Never => None,
       Type::Error(e) => Err(*e)?,
       Type::Var(_) | Type::Fresh(_) => None,

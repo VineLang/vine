@@ -11,12 +11,6 @@ impl<'core> Checker<'core, '_> {
 
   fn _display_type(&self, ty: &Type<'core>, str: &mut String) {
     match ty {
-      Type::Bool => *str += "Bool",
-      Type::N32 => *str += "N32",
-      Type::I32 => *str += "I32",
-      Type::F32 => *str += "F32",
-      Type::Char => *str += "Char",
-      Type::IO => *str += "IO",
       Type::Tuple(t) => {
         *str += "(";
         let mut first = true;
@@ -74,6 +68,10 @@ impl<'core> Checker<'core, '_> {
         *str += "~";
         self._display_type(ty, str)
       }
+      Type::Opaque(type_id, params) => {
+        *str += self.chart.defs[self.chart.types[*type_id].def].name.0 .0;
+        self._display_type_params(str, params);
+      }
       Type::Adt(adt_id, params) => {
         *str += self.chart.adts[*adt_id].name.0 .0;
         self._display_type_params(str, params);
@@ -82,7 +80,7 @@ impl<'core> Checker<'core, '_> {
         *str += self.chart.defs[self.chart.traits[*trait_id].def].name.0 .0;
         self._display_type_params(str, params);
       }
-      Type::Opaque(n) => *str += self.chart.generics[self.cur_generics].type_params[*n].0 .0,
+      Type::Param(n) => *str += self.chart.generics[self.cur_generics].type_params[*n].0 .0,
       Type::Var(v) => match &self.unifier.vars[*v].bound {
         Some((_, t)) => self._display_type(t, str),
         _ => write!(str, "?{v:?}").unwrap(),

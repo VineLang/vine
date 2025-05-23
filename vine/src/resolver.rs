@@ -148,7 +148,7 @@ impl<'core> ResolveVisitor<'core, '_, '_> {
       match &mut kind {
         TypeDefKind::Taken => unreachable!(),
         TypeDefKind::Alias(ty) => self.visit(ty),
-        TypeDefKind::Adt(_) | TypeDefKind::Builtin(_) => {}
+        TypeDefKind::Adt(_) | TypeDefKind::Opaque => {}
       }
       self.resolver.chart.types[id].kind = kind;
     }
