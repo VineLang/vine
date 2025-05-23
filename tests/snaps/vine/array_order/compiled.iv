@@ -1,6 +1,4 @@
 
-::std::logical::Option::None { enum(_ enum(n0 n0)) }
-
 ::main { ::array_order::main }
 
 ::array_order::main {
@@ -100,7 +98,7 @@
 
 ::std::data::Array::pop_back { fn(ref(tup(dup123(n0 @n32_eq(0 ?(::std::data::Array::pop_back::3 ::std::data::Array::pop_back::2 x(x(n0 n1) x(ref(n2 n3) n4))))) n2) tup(n1 n3)) n4) }
 
-::std::data::Array::pop_back::2 { x(x(n0 n0) x(_ ::std::logical::Option::None)) }
+::std::data::Array::pop_back::2 { x(x(n0 n0) x(_ enum(_ enum(n1 n1)))) }
 
 ::std::data::Array::pop_back::3 { x(x(dup123(n0 @n32_eq(1 ?(::std::data::Array::pop_back::5 ::std::data::Array::pop_back::4 x(x(n0 n1) n2)))) n1) n2) }
 

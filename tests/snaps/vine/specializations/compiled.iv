@@ -1,6 +1,4 @@
 
-::std::logical::Option::None { enum(_ enum(n0 n0)) }
-
 ::main { ::specializations::main }
 
 ::specializations::main {
@@ -96,7 +94,7 @@
 
 ::std::data::List::IntoIter::iterator::next::2 { x(x(@n32_sub(1 n0) n0) x(x(tup(n1 n2) n2) enum(enum(n1 n3) enum(_ n3)))) }
 
-::std::data::List::IntoIter::iterator::next::3 { x(x(n0 n0) x(x(n1 n1) ::std::logical::Option::None)) }
+::std::data::List::IntoIter::iterator::next::3 { x(x(n0 n0) x(x(n1 n1) enum(_ enum(n2 n2)))) }
 
 ::std::IO::println { fn(ref(n0 n1) fn(tup(dup35(n2 @n32_ne(0 ?(::std::IO::print::3 ::std::IO::print::2 x(x(n0 @io_print_char(10 n1)) x(n2 n3))))) tup(n3 _)) _)) }
 

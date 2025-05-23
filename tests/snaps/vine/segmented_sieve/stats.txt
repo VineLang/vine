@@ -1,11 +1,11 @@
 
 Interactions
-  Total           907_868_797
+  Total           907_866_798
   Annihilate      414_822_981
   Commute             169_830
   Copy            103_273_152
   Erase            97_763_998
-  Expand           63_393_677
+  Expand           63_391_678
   Call            166_223_318
   Branch           62_221_841
 

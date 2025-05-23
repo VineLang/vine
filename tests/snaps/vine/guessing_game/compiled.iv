@@ -1,6 +1,4 @@
 
-::std::logical::Option::None { enum(_ enum(n0 n0)) }
-
 ::main { ::guessing_game::main }
 
 ::guessing_game::main {
@@ -55,7 +53,7 @@
 
 ::std::data::List::IntoIter::iterator::next::2 { x(x(@n32_sub(1 n0) n0) x(x(tup(n1 n2) n2) enum(enum(n1 n3) enum(_ n3)))) }
 
-::std::data::List::IntoIter::iterator::next::3 { x(x(n0 n0) x(x(n1 n1) ::std::logical::Option::None)) }
+::std::data::List::IntoIter::iterator::next::3 { x(x(n0 n0) x(x(n1 n1) enum(_ enum(n2 n2)))) }
 
 ::std::data::List::into_iter { fn(tup(w0 tup(w1 _)) tup(w0 w1)) }
 
@@ -71,7 +69,7 @@
 
 ::std::numeric::N32::shr::shr { fn(@n32_shr(n0 n1) fn(n0 n1)) }
 
-::std::numeric::N32::parse::2 { x(_ x(_ ::std::logical::Option::None)) }
+::std::numeric::N32::parse::2 { x(_ x(_ enum(_ enum(n0 n0)))) }
 
 ::std::numeric::N32::parse::3 { x(dup124(n0 @n32_ne(0 ?(::std::numeric::N32::parse::6 ::std::numeric::N32::parse::5 x(n0 x(n1 x(0 n2)))))) x(n1 n2)) }
 
@@ -81,7 +79,7 @@
 
 ::std::numeric::N32::parse::8 { x(@n32_sub(1 dup124(n0 @n32_ne(0 ?(::std::numeric::N32::parse::6 ::std::numeric::N32::parse::5 x(n0 x(n1 x(n2 n3))))))) x(n1 x(@n32_mul(10 @n32_add(n4 n2)) x(@n32_sub(48 n4) n3)))) }
 
-::std::numeric::N32::parse::9 { x(_ x(_ x(_ x(_ ::std::logical::Option::None)))) }
+::std::numeric::N32::parse::9 { x(_ x(_ x(_ x(_ enum(_ enum(n0 n0)))))) }
 
 ::std::numeric::N32::rotate_right { fn(@n32_rotr(w1 out) fn(w1 out)) }
 
@@ -127,9 +125,9 @@
 }
 
 ::std::rng::Pcg32::seeded {
-  fn(dup2621(w8 _) w15)
-  ::std::data::List::into_iter = fn(w8 w9)
-  ::std::rng::Pcg32::seeded::1 = x(x(::std::rng::Pcg32::default w15) w9)
+  fn(dup2621(w6 _) w13)
+  ::std::data::List::into_iter = fn(w6 w7)
+  ::std::rng::Pcg32::seeded::1 = x(x(::std::rng::Pcg32::default w13) w7)
 }
 
 ::std::rng::Pcg32::seeded::1 { x(n0 tup(dup124(n1 @n32_ne(0 ?(::std::data::List::IntoIter::iterator::next::3 ::std::data::List::IntoIter::iterator::next::2 x(x(n1 n2) x(x(n3 n4) enum(::std::rng::Pcg32::seeded::4 enum(::std::rng::Pcg32::seeded::5 x(n0 tup(n2 n4))))))))) n3)) }
@@ -148,7 +146,7 @@
 
 ::std::IO::read_line::2 { x(n0 x(dup1839(n1 @n32_eq(10 ?(::std::IO::read_line::6 ::std::IO::read_line::5 x(n0 x(n1 n2))))) enum(enum(n2 n3) enum(_ n3)))) }
 
-::std::IO::read_line::3 { x(x(n0 n0) x(_ ::std::logical::Option::None)) }
+::std::IO::read_line::3 { x(x(n0 n0) x(_ enum(_ enum(n1 n1)))) }
 
 ::std::IO::read_line::5 { x(x(n0 n0) x(_ tup(0 tup(n1 n1)))) }
 

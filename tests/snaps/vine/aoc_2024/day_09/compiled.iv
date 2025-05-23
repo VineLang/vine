@@ -1,6 +1,4 @@
 
-::std::logical::Option::None { enum(_ enum(n0 n0)) }
-
 ::main { ::day_09::main }
 
 ::day_09::main {
@@ -87,11 +85,11 @@
 
 ::std::data::List::Iter::iterator::next::2 { x(x(@n32_sub(1 n0) n0) x(x(ref(tup(n1 n2) tup(n3 n4)) ref(n2 n4)) enum(enum(ref(n1 n3) n5) enum(_ n5)))) }
 
-::std::data::List::Iter::iterator::next::3 { x(x(n0 n0) x(x(ref(n1 n1) _) ::std::logical::Option::None)) }
+::std::data::List::Iter::iterator::next::3 { x(x(n0 n0) x(x(ref(n1 n1) _) enum(_ enum(n2 n2)))) }
 
 ::std::data::List::pop_front::2 { x(x(@n32_sub(1 n0) n0) x(x(tup(n1 n2) n2) enum(enum(n1 n3) enum(_ n3)))) }
 
-::std::data::List::pop_front::3 { x(x(n0 n0) x(x(n1 n1) ::std::logical::Option::None)) }
+::std::data::List::pop_front::3 { x(x(n0 n0) x(x(n1 n1) enum(_ enum(n2 n2)))) }
 
 ::std::logical::Option::unwrap_or::4 { enum(n0 x(_ n0)) }
 
@@ -134,13 +132,13 @@
   ::std::unicode::Char::eq::eq = fn(ref(w3 w7) fn(ref(10 _) ?(::std::IO::read_line::6 ::std::IO::read_line::5 x(w5 x(w7 w11)))))
 }
 
-::std::IO::read_line::3 { x(x(w3 w3) x(_ ::std::logical::Option::None)) }
+::std::IO::read_line::3 { x(x(w4 w4) x(_ enum(_ enum(w5 w5)))) }
 
 ::std::IO::read_line::5 { x(x(w4 w4) x(_ tup(0 tup(w7 w7)))) }
 
 ::std::IO::read_line::6 {
-  x(w10 x(w8 w14))
-  ::std::IO::read_line::7 = x(w10 x(x(tup(1 tup(tup(w8 w11) w11)) w14) _))
+  x(w8 x(w6 w12))
+  ::std::IO::read_line::7 = x(w8 x(x(tup(1 tup(tup(w6 w9) w9)) w12) _))
 }
 
 ::std::IO::read_line::7 { x(x(dup(@io_read_byte(10 dup(dup2804(n0 @n32_ne(10 ?(::std::IO::read_line::10 ::std::IO::read_line::9 x(x(n1 n2) x(n0 n3))))) @seq$(n4 n1))) n4) n2) n3) }

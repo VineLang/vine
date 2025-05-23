@@ -1,6 +1,4 @@
 
-::std::logical::Option::None { enum(_ enum(n0 n0)) }
-
 ::main { ::sieve::main }
 
 ::sieve::main {
@@ -43,7 +41,7 @@
 
 ::std::data::Array::get::3 { x(x(n0 n0) _) }
 
-::std::data::Array::pop_front::2 { x(x(n0 n0) x(_ ::std::logical::Option::None)) }
+::std::data::Array::pop_front::2 { x(x(n0 n0) x(_ enum(_ enum(n1 n1)))) }
 
 ::std::data::Array::pop_front::3 { x(x(dup167(n0 @n32_eq(1 ?(::std::data::Array::pop_front::5 ::std::data::Array::pop_front::4 x(x(n0 n1) n2)))) n1) n2) }
 

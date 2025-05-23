@@ -81,11 +81,11 @@ io = #io
 
 io = #io
 > I32::parse("")
-::std::logical::Option::None
+None
 
 io = #io
 > I32::parse("=0")
-::std::logical::Option::None
+None
 
 io = #io
 > I32::parse("+0")
@@ -101,6 +101,6 @@ Some(-123)
 
 io = #io
 > I32::parse("+a")
-::std::logical::Option::None
+None
 
 io = #io
