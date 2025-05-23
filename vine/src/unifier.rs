@@ -92,7 +92,7 @@ impl<'core> Unifier<'core> {
         success
       }
       (Type::Object(a), Type::Object(b)) => {
-        let mut success = true;
+        let mut success = a.len() == b.len();
         for (k, a) in a {
           if let Some(b) = b.get_mut(k) {
             success &= self._unify(a, b, inverted);

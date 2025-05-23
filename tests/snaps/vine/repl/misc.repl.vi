@@ -203,3 +203,7 @@ x = [[2]]
 [[2]]
 
 io = #io
+> let _: { a: N32, b: N32 } = { a: 1 }
+error input:1:29 - expected type `{ a: N32, b: N32 }`; found `{ a: N32 }`
+
+io = #io
