@@ -495,7 +495,8 @@ pub enum BinaryOp {
   Mul,
   Div,
   Rem,
-  Concat, //
+  Concat,
+  Pow,
 }
 
 impl Display for BinaryOp {
@@ -518,6 +519,7 @@ impl BinaryOp {
       BinaryOp::Mul => "*",
       BinaryOp::Div => "/",
       BinaryOp::Rem => "%",
+      BinaryOp::Pow => "**",
     }
   }
 }

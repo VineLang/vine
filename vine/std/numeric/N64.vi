@@ -1,7 +1,7 @@
 
 use ops::{
   Cast,
-  arithmetic::{Add, Div, Mul, Rem, Sub},
+  arithmetic::{Add, Div, Mul, Pow, Rem, Sub},
   bitwise::{And, Or, Shl, Shr, Xor},
   comparison::{Eq, Ord},
 };
@@ -221,16 +221,10 @@ pub mod N64 {
     }
   }
 
-  pub fn .pow_n32(b: N64, e: N32) -> N64 {
-    let n = N64::one;
-    while e != 0 {
-      if e % 2 != 0 {
-        n *= b;
-      }
-      b *= b;
-      e /= 2;
+  pub impl pow: Pow[N64, N32, N64] {
+    fn .pow(base: N64, exp: N32) -> N64 {
+      Pow::pow_by_squaring[N64](base, exp)
     }
-    n
   }
 
   pub fn .log_n32(n: N64, b: N32) -> N32 {

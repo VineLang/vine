@@ -1,6 +1,6 @@
 
 use ops::{
-  arithmetic::{Add, Div, Mul, Neg, Rem, Sub},
+  arithmetic::{Add, Div, Mul, Neg, Pow, Rem, Sub},
   bitwise::{And, Not, Or, Shl, Shr, Xor},
   comparison::{Eq, Ord},
 };
@@ -25,6 +25,12 @@ pub mod N32 {
   pub impl mul: Mul[N32, N32, N32] {
     fn .mul(a: N32, b: N32) -> N32 {
       inline_ivy! (a <- a, b <- b) -> N32 { out a = @n32_mul(b out) }
+    }
+  }
+
+  pub impl pow: Pow[N32, N32, N32] {
+    fn .pow(base: N32, exp: N32) -> N32 {
+      Pow::pow_by_squaring(base, exp)
     }
   }
 
@@ -197,18 +203,6 @@ pub mod N32 {
       r >>= 1;
     }
     s
-  }
-
-  pub fn .pow(b: N32, e: N32) -> N32 {
-    let n = 1;
-    while e != 0 {
-      if e % 2 != 0 {
-        n *= b;
-      }
-      b *= b;
-      e /= 2;
-    }
-    n
   }
 
   pub fn .log(n: N32, b: N32) -> N32 {

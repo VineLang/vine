@@ -142,6 +142,7 @@ impl<'core, 'src> VineParser<'core, 'src> {
           "shl" => Builtin::BinaryOp(BinaryOp::Shl),
           "shr" => Builtin::BinaryOp(BinaryOp::Shr),
           "concat" => Builtin::BinaryOp(BinaryOp::Concat),
+          "pow" => Builtin::BinaryOp(BinaryOp::Pow),
           "eq" => Builtin::ComparisonOp(ComparisonOp::Eq),
           "ne" => Builtin::ComparisonOp(ComparisonOp::Ne),
           "lt" => Builtin::ComparisonOp(ComparisonOp::Lt),
@@ -622,8 +623,11 @@ impl<'core, 'src> VineParser<'core, 'src> {
     lhs: Expr<'core>,
     bp: BP,
   ) -> Parse<'core, Result<ExprKind<'core>, Expr<'core>>> {
-    for &(lbp, token, op) in BINARY_OP_TABLE {
-      let rbp = lbp.inc(); // left-associative
+    for &(lbp, associativity, token, op) in BINARY_OP_TABLE {
+      let rbp = match associativity {
+        Associativity::Left => lbp.inc(),
+        Associativity::Right => lbp,
+      };
       if bp.permits(lbp) && self.eat(token)? {
         if self.eat(Token::Eq)? {
           return Ok(Ok(ExprKind::BinaryOpAssign(
@@ -1019,6 +1023,14 @@ const BRACKET_COMMA: Delimiters = Delimiters {
 
 const PATH: Delimiters = Delimiters { open: None, close: None, separator: Some(Token::ColonColon) };
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[repr(u8)]
+enum Associativity {
+  Left,
+  Right,
+}
+
+/// Binding power.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 #[repr(u8)]
 enum BP {
@@ -1036,6 +1048,7 @@ enum BP {
   BitShift,
   Additive,
   Multiplicative,
+  Exponential,
   Annotation,
   Prefix,
   Max,
@@ -1056,18 +1069,19 @@ impl BP {
 }
 
 #[rustfmt::skip]
-const BINARY_OP_TABLE: &[(BP, Token, BinaryOp)] = &[
-  (BP::BitOr,          Token::Or,       BinaryOp::BitOr),
-  (BP::BitXor,         Token::Caret,    BinaryOp::BitXor),
-  (BP::BitAnd,         Token::And,      BinaryOp::BitAnd),
-  (BP::BitShift,       Token::Shl,      BinaryOp::Shl),
-  (BP::BitShift,       Token::Shr,      BinaryOp::Shr),
-  (BP::Additive,       Token::Plus,     BinaryOp::Add),
-  (BP::Additive,       Token::Minus,    BinaryOp::Sub),
-  (BP::Additive,       Token::PlusPlus, BinaryOp::Concat),
-  (BP::Multiplicative, Token::Star,     BinaryOp::Mul),
-  (BP::Multiplicative, Token::Slash,    BinaryOp::Div),
-  (BP::Multiplicative, Token::Percent,  BinaryOp::Rem),
+const BINARY_OP_TABLE: &[(BP, Associativity, Token, BinaryOp)] = &[
+  (BP::BitOr,          Associativity::Left, Token::Or,       BinaryOp::BitOr),
+  (BP::BitXor,         Associativity::Left, Token::Caret,    BinaryOp::BitXor),
+  (BP::BitAnd,         Associativity::Left, Token::And,      BinaryOp::BitAnd),
+  (BP::BitShift,       Associativity::Left, Token::Shl,      BinaryOp::Shl),
+  (BP::BitShift,       Associativity::Left, Token::Shr,      BinaryOp::Shr),
+  (BP::Additive,       Associativity::Left, Token::Plus,     BinaryOp::Add),
+  (BP::Additive,       Associativity::Left, Token::Minus,    BinaryOp::Sub),
+  (BP::Additive,       Associativity::Left, Token::PlusPlus, BinaryOp::Concat),
+  (BP::Multiplicative, Associativity::Left, Token::Star,     BinaryOp::Mul),
+  (BP::Multiplicative, Associativity::Left, Token::Slash,    BinaryOp::Div),
+  (BP::Multiplicative, Associativity::Left, Token::Percent,  BinaryOp::Rem),
+  (BP::Exponential,    Associativity::Right, Token::StarStar, BinaryOp::Pow),
 ];
 
 #[rustfmt::skip]
