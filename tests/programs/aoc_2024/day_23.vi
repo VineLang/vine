@@ -5,7 +5,7 @@ pub fn main(&io: &IO) {
   let graph = Map::empty[N32, Map[N32, _]];
 
   while io.read_line() is Some(line) {
-    let String({ chars }) = line;
+    let String(chars) = line;
     let a = (chars.pop_front().unwrap() - 'a') * 26 + (chars.pop_front().unwrap() - 'a');
     chars.pop_front();
     let b = (chars.pop_front().unwrap() - 'a') * 26 + (chars.pop_front().unwrap() - 'a');
@@ -71,6 +71,6 @@ pub fn main(&io: &IO) {
 
   io.println("Part 2: " ++ best.map(fn(x: N32) {
     let chars = ['a' + x / 26, 'a' + x % 26];
-    String({ chars })
+    String(chars)
   }).join(","));
 }

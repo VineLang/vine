@@ -1,26 +1,26 @@
 
 use std::ops::Cast;
 
-pub struct Array[T](N32, Node[T]);
+pub struct Array[T]((N32, Node[T]));
 
 pub mod Array {
-  pub const empty[T]: Array[T] = Array(0, ~_);
+  pub const empty[T]: Array[T] = Array((0, ~_));
 
   pub fn single[T](value: T) -> Array[T] {
-    Array(1, value as Node)
+    Array((1, value as Node))
   }
 
   pub fn new[T](len: N32, value: T) -> Array[T] {
-    Array(len, Node::new(len, value))
+    Array((len, Node::new(len, value)))
   }
 
   pub impl from_list[T]: Cast[List[T], Array[T]] {
-    fn .cast(List[T](len, buf, _)) -> Array[T] {
+    fn .cast(List[T]((len, buf, _))) -> Array[T] {
       Array::from_fn(
         len,
         &buf,
         fn(&buf) {
-          let List::Buf(head, tail) = buf;
+          let List::Buf((head, tail)) = buf;
           buf = tail;
           head
         },
@@ -31,7 +31,7 @@ pub mod Array {
   pub impl to_list[T]: Cast[Array[T], List[T]] {
     fn .cast(self: Array[T]) -> List[T] {
       let end;
-      List(self.len(), self.fold_back(move ~end, fn(a, b) { List::Buf(b, a) }), end)
+      List((self.len(), self.fold_back(move ~end, fn(a, b) { List::Buf((b, a)) }), end))
     }
   }
 
@@ -41,12 +41,12 @@ pub mod Array {
     } else {
       let ~ins;
       let (node, outs) = Node::unzip_with(len, move ~ins, fn(s) { (f(&s), s) });
-      let outs = Array(len, outs);
+      let outs = Array((len, outs));
       let end = outs.pop_back().unwrap();
       outs.push_front(state);
-      let Array(_, outs) = outs;
+      let Array((_, outs)) = outs;
       ~ins = outs;
-      Array(len, node)
+      Array((len, node))
     }
   }
 
@@ -60,29 +60,29 @@ pub mod Array {
     )
   }
 
-  pub fn .fold_front[T, U](Array[T](len, node), initial: U, f: fn(U, T) -> U) -> U {
+  pub fn .fold_front[T, U](Array[T]((len, node)), initial: U, f: fn(U, T) -> U) -> U {
     if len == 0 {
       initial
     } else {
       let ~ins;
-      let zipped = Array(len, Node::zip_with(len, move ~ins, node, f));
+      let zipped = Array((len, Node::zip_with(len, move ~ins, node, f)));
       let out = zipped.pop_back().unwrap();
       zipped.push_front(initial);
-      let Array(_, node) = zipped;
+      let Array((_, node)) = zipped;
       ~ins = node;
       out
     }
   }
 
-  pub fn .fold_back[T, U](Array[T](len, node), initial: U, f: fn(U, T) -> U) -> U {
+  pub fn .fold_back[T, U](Array[T]((len, node)), initial: U, f: fn(U, T) -> U) -> U {
     if len == 0 {
       initial
     } else {
       let ~ins;
-      let zipped = Array(len, Node::zip_with(len, move ~ins, node, f));
+      let zipped = Array((len, Node::zip_with(len, move ~ins, node, f)));
       let out = zipped.pop_front().unwrap();
       zipped.push_back(initial);
-      let Array(_, node) = zipped;
+      let Array((_, node)) = zipped;
       ~ins = node;
       out
     }
@@ -92,7 +92,7 @@ pub mod Array {
     self.0
   }
 
-  pub fn .get[T](&Array[T](len, *node), i: N32) -> &T {
+  pub fn .get[T](&Array[T]((len, *node)), i: N32) -> &T {
     let size = len;
     while size > 1 {
       (node, size) = Node::half(node, size, i % 2);
@@ -101,7 +101,7 @@ pub mod Array {
     node as &T
   }
 
-  pub fn .push_back[T](&Array[T](len, *node), value: T) {
+  pub fn .push_back[T](&Array[T]((len, *node)), value: T) {
     if len == 0 {
       let &node = node;
       node = value as Node;
@@ -111,30 +111,30 @@ pub mod Array {
         (node, size) = Node::half(node, size, size % 2);
       }
       let &node = node;
-      node = Node(node, value as Node);
+      node = Node((node, value as Node));
     }
     len += 1;
   }
 
-  pub fn .push_front[T](&Array[T](len, *node), value: T) {
+  pub fn .push_front[T](&Array[T]((len, *node)), value: T) {
     if len == 0 {
       let &node = node;
       node = value as Node;
     } else {
       let size = len;
       while size > 1 {
-        let &Node(left, right) = node;
+        let &Node((left, right)) = node;
         (left, right) = (right, left);
         node = &left;
         size = size / 2;
       }
       let &node = node;
-      node = Node(value as Node, node);
+      node = Node((value as Node, node));
     }
     len += 1;
   }
 
-  pub fn .pop_back[T](&Array[T](len, *node)) -> Option[T] {
+  pub fn .pop_back[T](&Array[T]((len, *node))) -> Option[T] {
     if len == 0 {
       None
     } else if len == 1 {
@@ -149,7 +149,7 @@ pub mod Array {
         (node, size) = Node::half(&parent, size, parity);
         if size == 1 {
           let value = move *node as T;
-          let Node(left, right) = parent;
+          let Node((left, right)) = parent;
           parent = if parity == 0 {
             right
           } else {
@@ -161,7 +161,7 @@ pub mod Array {
     }
   }
 
-  pub fn .pop_front[T](&Array[T](len, *node)) -> Option[T] {
+  pub fn .pop_front[T](&Array[T]((len, *node))) -> Option[T] {
     if len == 0 {
       None
     } else if len == 1 {
@@ -172,7 +172,7 @@ pub mod Array {
       len -= 1;
       loop {
         let &parent = node;
-        let &Node(left, right) = &parent;
+        let &Node((left, right)) = &parent;
         (left, right) = (right, left);
         node = &right;
         size = (size + 1) / 2;
@@ -185,7 +185,7 @@ pub mod Array {
     }
   }
 
-  pub fn .reverse[T](&Array[T](len, node)) {
+  pub fn .reverse[T](&Array[T]((len, node))) {
     node.reverse(len)
   }
 
@@ -195,7 +195,7 @@ pub mod Array {
   }
 }
 
-struct Node[T](Node[T], Node[T]);
+struct Node[T]((Node[T], Node[T]));
 
 mod Node {
   pub impl leaf_to_node[T]: Cast[T, Node[T]] {
@@ -214,11 +214,11 @@ mod Node {
     if len == 1 {
       value as Node
     } else {
-      Node(Node::new((len + 1) / 2, value), Node::new(len / 2, value))
+      Node((Node::new((len + 1) / 2, value), Node::new(len / 2, value)))
     }
   }
 
-  pub fn .half[T](&Node(l, r): &Node[T], len: N32, x: N32) -> (&Node[T], N32) {
+  pub fn .half[T](&Node((l, r)): &Node[T], len: N32, x: N32) -> (&Node[T], N32) {
     if x == 0 {
       (&l, (len + 1) / 2)
     } else {
@@ -226,7 +226,7 @@ mod Node {
     }
   }
 
-  pub fn .swap[T](&Node(l, r): &Node[T], x: N32) {
+  pub fn .swap[T](&Node((l, r)): &Node[T], x: N32) {
     if x == 0 {
       (l, r) = (r, l);
     }
@@ -234,7 +234,7 @@ mod Node {
 
   pub fn .reverse[T](&self: &Node[T], len: N32) {
     if len > 1 {
-      let &Node(left, right) = &self;
+      let &Node((left, right)) = &self;
       if len % 2 == 0 {
         (left, right) = (right, left);
       }
@@ -247,9 +247,9 @@ mod Node {
     if len == 1 {
       f(x as T, y as U) as Node
     } else {
-      let Node(xl, xr) = x;
-      let Node(yl, yr) = y;
-      Node(zip_with((len + 1) / 2, xl, yl, f), zip_with(len / 2, xr, yr, f))
+      let Node((xl, xr)) = x;
+      let Node((yl, yr)) = y;
+      Node((zip_with((len + 1) / 2, xl, yl, f), zip_with(len / 2, xr, yr, f)))
     }
   }
 
@@ -258,10 +258,10 @@ mod Node {
       let (u, v) = f(x as T);
       (u as Node, v as Node)
     } else {
-      let Node(l, r) = x;
+      let Node((l, r)) = x;
       let (lx, ly) = unzip_with((len + 1) / 2, l, f);
       let (rx, ry) = unzip_with(len / 2, r, f);
-      (Node(lx, rx), Node(ly, ry))
+      (Node((lx, rx)), Node((ly, ry)))
     }
   }
 }

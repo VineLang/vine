@@ -11,22 +11,22 @@ pub fn main(&io: &IO) {
 }
 
 pub enum Term {
-  Lambda(List[~Term], Term),
-  Apply(Term, Term),
-  Spine(String, List[Term]),
+  Lambda((List[~Term], Term)),
+  Apply((Term, Term)),
+  Spine((String, List[Term])),
 }
 
 pub mod Term {
   fn .whnf(term: Term) -> Term {
     match term {
-      Term::Apply(fun, arg) {
+      Term::Apply((fun, arg)) {
         fun = fun.whnf();
         match fun {
-          Term::Lambda(param, body) {
+          Term::Lambda((param, body)) {
             bind(param, arg);
             body.whnf()
           }
-          Term::Spine(var, args) { Term::Spine(var, args ++ [arg]) }
+          Term::Spine((var, args)) { Term::Spine((var, args ++ [arg])) }
         }
       }
       term { term }
@@ -35,12 +35,12 @@ pub mod Term {
 
   pub fn .print_normal(term: Term, depth: N32) -> String {
     match term.whnf() {
-      Term::Lambda(param, body) {
+      Term::Lambda((param, body)) {
         let var = new_var(depth);
-        bind(param, Term::Spine(var, []));
+        bind(param, Term::Spine((var, [])));
         "\\{var}. {body.print_normal(depth + 1)}"
       }
-      Term::Spine(var, args) {
+      Term::Spine((var, args)) {
         if args.len() == 0 {
           var
         } else {
@@ -75,19 +75,16 @@ pub mod Term {
   }
 }
 
-struct Parser {
-  io: IO,
-  scope: Map[String, List[List[~Term]]],
-  chars: List[Char],
-  error: ~Option[String],
-}
+struct Parser(
+  { io: IO, scope: Map[String, List[List[~Term]]], chars: List[Char], error: ~Option[String] }
+);
 
 mod Parser {
   pub fn .parse_term(&self: &Parser) -> Term {
     let term = self.parse_atom();
     self.skip_ws();
     while self.chars.len() != 0 && self.chars.get(0).* != ')' {
-      term = Term::Apply(term, self.parse_atom());
+      term = Term::Apply((term, self.parse_atom()));
       self.skip_ws();
     }
     term
@@ -99,7 +96,7 @@ mod Parser {
       self.error("expected term");
     }
     let char = self.chars.get(0).*;
-    self.io.println(String({ chars: [char] }));
+    self.io.println(String([char]));
     if char == '\\' {
       self.io.println("lambda");
       self.chars.pop_front();
@@ -110,7 +107,7 @@ mod Parser {
       self.scope.get_or_insert(var, []).*.push_front([]);
       let body = self.parse_atom();
       let uses = self.scope.get(&var).unwrap().*.pop_front().unwrap();
-      Term::Lambda(uses, body)
+      Term::Lambda((uses, body))
     } else if char == '(' {
       self.chars.pop_front();
       let term = self.parse_term();
@@ -137,13 +134,13 @@ mod Parser {
     if chars.len() == 0 {
       self.error("expected variable");
     }
-    String({ chars })
+    String(chars)
   }
 
   fn .expect_char(&self: &Parser, char: Char) {
     self.skip_ws();
     if !(self.chars.pop_front() is Some(c) && c == char) {
-      self.error("expected `{String({ chars: [char] })}`");
+      self.error("expected `{String([char])}`");
     }
   }
 
@@ -168,5 +165,5 @@ fn new_var(n: N32) -> String {
     chars.push_front('a' + (n % 26));
     n /= 26;
   }
-  String({ chars })
+  String(chars)
 }

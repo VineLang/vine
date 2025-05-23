@@ -3,15 +3,15 @@ use data::Iterator;
 use ops::{Cast, comparison::Ord};
 use unicode::ToString;
 
-pub struct Map[K, V](N32, MapData[K, V]);
+pub struct Map[K, V]((N32, MapData[K, V]));
 
 type MapData[K, V] = (Map[K, V], (K, V), Map[K, V]);
 
 pub mod Map {
-  pub const empty[K, V]: Map[K, V] = Map(0, ~_);
+  pub const empty[K, V]: Map[K, V] = Map((0, ~_));
 
   fn new[K, V](left: Map[K, V], entry: (K, V), right: Map[K, V]) -> Map[K, V] {
-    Map(left.len() + right.len() + 1, (left, entry, right))
+    Map((left.len() + right.len() + 1, (left, entry, right)))
   }
 
   pub impl from_list[K, V; Ord[K]]: Cast[List[(K, V)], Map[K, V]] {
@@ -28,11 +28,11 @@ pub mod Map {
     self = Map::empty;
   }
 
-  pub fn .len[K, V](&Map[K, V](len, _)) -> N32 {
+  pub fn .len[K, V](&Map[K, V]((len, _))) -> N32 {
     len
   }
 
-  pub fn .insert[K, V; Ord[K]](&Map[K, V](len, data), key: K, value: V) -> Option[V] {
+  pub fn .insert[K, V; Ord[K]](&Map[K, V]((len, data)), key: K, value: V) -> Option[V] {
     if len == 0 {
       len = 1;
       data = (empty, (key, value), empty);
@@ -61,7 +61,7 @@ pub mod Map {
     }
   }
 
-  pub fn .get[K, V; Ord[K]](&Map[K, V](len, data), &key: &K) -> Option[&V] {
+  pub fn .get[K, V; Ord[K]](&Map[K, V]((len, data)), &key: &K) -> Option[&V] {
     if len == 0 {
       None
     } else {
@@ -83,7 +83,7 @@ pub mod Map {
     ref
   }
 
-  pub fn .get_le[K, V; Ord[K]](&Map[K, V](len, data), &key: &K) -> Option[&(K, V)] {
+  pub fn .get_le[K, V; Ord[K]](&Map[K, V]((len, data)), &key: &K) -> Option[&(K, V)] {
     if len == 0 {
       None
     } else {
@@ -102,7 +102,7 @@ pub mod Map {
     }
   }
 
-  pub fn .get_ge[K, V; Ord[K]](&Map[K, V](len, data), &key: &K) -> Option[&(K, V)] {
+  pub fn .get_ge[K, V; Ord[K]](&Map[K, V]((len, data)), &key: &K) -> Option[&(K, V)] {
     if len == 0 {
       None
     } else {
@@ -121,7 +121,7 @@ pub mod Map {
     }
   }
 
-  pub fn .remove[K, V; Ord[K]](&Map[K, V](len, data), &key: &K) -> Option[V] {
+  pub fn .remove[K, V; Ord[K]](&Map[K, V]((len, data)), &key: &K) -> Option[V] {
     if len == 0 {
       None
     } else {
@@ -164,11 +164,11 @@ pub mod Map {
     }
   }
 
-  fn ._remove_min[K, V](&Map[K, V](len, data)) -> (K, V) {
+  fn ._remove_min[K, V](&Map[K, V]((len, data))) -> (K, V) {
     len -= 1;
     let &(left, entry, right) = &data;
     if left.len() == 0 {
-      let Map(_, right) = move right;
+      let Map((_, right)) = move right;
       data = right;
       move entry
     } else {
@@ -178,11 +178,11 @@ pub mod Map {
     }
   }
 
-  fn ._remove_max[K, V](&Map[K, V](len, data)) -> (K, V) {
+  fn ._remove_max[K, V](&Map[K, V]((len, data))) -> (K, V) {
     len -= 1;
     let &(left, entry, right) = &data;
     if right.len() == 0 {
-      let Map(_, left) = move left;
+      let Map((_, left)) = move left;
       data = left;
       move entry
     } else {
@@ -192,7 +192,7 @@ pub mod Map {
     }
   }
 
-  pub fn .contains_key[K, V; Ord[K]](&Map[K, V](len, data), &key: &K) -> Bool {
+  pub fn .contains_key[K, V; Ord[K]](&Map[K, V]((len, data)), &key: &K) -> Bool {
     if len == 0 {
       false
     } else {
@@ -205,26 +205,26 @@ pub mod Map {
     }
   }
 
-  pub fn .map_values[K, V, U; Ord[K]](Map[K, V](len, data), f: fn(V) -> U) -> Map[K, U] {
+  pub fn .map_values[K, V, U; Ord[K]](Map[K, V]((len, data)), f: fn(V) -> U) -> Map[K, U] {
     if len == 0 {
       Map::empty[K, U]
     } else {
       let (left, (key, value), right) = data;
-      Map(len, (left.map_values(f), (key, f(value)), right.map_values(f)))
+      Map((len, (left.map_values(f), (key, f(value)), right.map_values(f))))
     }
   }
 
   pub fn .iter[K, V](&self: &Map[K, V]) -> Iter[K, V] {
-    Iter(&self, [])
+    Iter((&self, []))
   }
 
-  pub struct Iter[K, V](&Map[K, V], List[&((K, V), Map[K, V])]);
+  pub struct Iter[K, V]((&Map[K, V], List[&((K, V), Map[K, V])]));
 
   pub mod Iter {
     pub impl iterator[K, V]: Iterator[Iter[K, V], &(K, V)] {
-      fn .next(&Iter[K, V](node, stack)) -> Option[&(K, V)] {
+      fn .next(&Iter[K, V]((node, stack))) -> Option[&(K, V)] {
         loop {
-          let &Map(len, data) = move node;
+          let &Map((len, data)) = move node;
           if len == 0 {
             break;
           }
@@ -242,23 +242,23 @@ pub mod Map {
       }
 
       fn .drop(&iter: &Iter[K, V]) {
-        let Iter(&_, stack) = move iter;
+        let Iter((&_, stack)) = move iter;
         while stack.pop_front() is Some(&_) {}
       }
     }
   }
 
   pub fn .into_iter[K, V](self: Map[K, V]) -> IntoIter[K, V] {
-    IntoIter(self, [])
+    IntoIter((self, []))
   }
 
-  pub struct IntoIter[K, V](Map[K, V], List[((K, V), Map[K, V])]);
+  pub struct IntoIter[K, V]((Map[K, V], List[((K, V), Map[K, V])]));
 
   pub mod IntoIter {
     pub impl iterator[K, V]: Iterator[IntoIter[K, V], (K, V)] {
-      fn .next(&IntoIter[K, V](node, stack)) -> Option[(K, V)] {
+      fn .next(&IntoIter[K, V]((node, stack))) -> Option[(K, V)] {
         loop {
-          let Map(len, data) = move node;
+          let Map((len, data)) = move node;
           if len == 0 {
             break;
           }
@@ -279,7 +279,7 @@ pub mod Map {
   }
 
   pub impl to_list[K, V]: Cast[Map[K, V], List[(K, V)]] {
-    fn .cast(Map[K, V](len, data)) -> List[(K, V)] {
+    fn .cast(Map[K, V]((len, data))) -> List[(K, V)] {
       if len == 0 {
         []
       } else {
@@ -311,7 +311,7 @@ pub mod Map {
     }
   }
 
-  fn .balanced[K, V](&Map[K, V](len, data)) -> Bool {
+  fn .balanced[K, V](&Map[K, V]((len, data))) -> Bool {
     if len == 0 {
       true
     } else {
@@ -327,11 +327,11 @@ fn balance_left[K, V](&data: &MapData[K, V]) {
   data = if is_balanced(&l, &r) {
     (l, e, r)
   } else {
-    let Map(_, (rl, re, rr)) = r;
+    let Map((_, (rl, re, rr))) = r;
     if is_single(&rl, &rr) {
       (Map::new(l, e, rl), re, rr)
     } else {
-      let Map(_, (rll, rle, rlr)) = rl;
+      let Map((_, (rll, rle, rlr))) = rl;
       (Map::new(l, e, rll), rle, Map::new(rlr, re, rr))
     }
   }
@@ -342,11 +342,11 @@ fn balance_right[K, V](&data: &MapData[K, V]) {
   data = if is_balanced(&r, &l) {
     (l, e, r)
   } else {
-    let Map(_, (ll, le, lr)) = l;
+    let Map((_, (ll, le, lr))) = l;
     if is_single(&lr, &ll) {
       (ll, le, Map::new(lr, e, r))
     } else {
-      let Map(_, (lrl, lre, lrr)) = lr;
+      let Map((_, (lrl, lre, lrr))) = lr;
       (Map::new(ll, le, lrl), lre, Map::new(lrr, e, r))
     }
   }
@@ -354,10 +354,10 @@ fn balance_right[K, V](&data: &MapData[K, V]) {
 
 fn merge_balanced[K, V](left: Map[K, V], right: Map[K, V]) -> MapData[K, V] {
   if left.len() == 0 {
-    let Map(_, data) = right;
+    let Map((_, data)) = right;
     data
   } else if right.len() == 0 {
-    let Map(_, data) = left;
+    let Map((_, data)) = left;
     data
   } else if left.len() > right.len() {
     let entry = left._remove_max();
@@ -368,14 +368,14 @@ fn merge_balanced[K, V](left: Map[K, V], right: Map[K, V]) -> MapData[K, V] {
   }
 }
 
-fn is_balanced[K, V](&Map[K, V](a, _), &Map[K, V](b, _)) -> Bool {
+fn is_balanced[K, V](&Map[K, V]((a, _)), &Map[K, V]((b, _))) -> Bool {
   3 * a + 2 >= b
 }
 
-fn is_single[K, V](&Map[K, V](a, _), &Map[K, V](b, _)) -> Bool {
+fn is_single[K, V](&Map[K, V]((a, _)), &Map[K, V]((b, _))) -> Bool {
   a <= 2 * b
 }
 
-fn size[K, V](&(Map(l, _), _, Map(r, _)): &MapData[K, V]) -> N32 {
+fn size[K, V](&(Map((l, _)), _, Map((r, _))): &MapData[K, V]) -> N32 {
   l + r + 1
 }

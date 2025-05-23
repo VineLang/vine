@@ -98,7 +98,7 @@ pub mod N32 {
           chars = ['0' + n % 10] ++ chars;
           n = n / 10;
         }
-        String({ chars })
+        String(chars)
       } else {
         "0"
       }
@@ -106,13 +106,13 @@ pub mod N32 {
   }
 
   pub fn parse(str: String) -> Option[N32] {
-    let List(len, chars, _) = str as List;
+    let List((len, chars, _)) = str as List;
     if len == 0 {
       None
     } else {
       let num = 0;
       while len != 0 {
-        let List::Buf(char, tail) = chars;
+        let List::Buf((char, tail)) = chars;
         chars = tail;
         if !('0' <= char <= '9') {
           return None;

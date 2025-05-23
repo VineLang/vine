@@ -17,8 +17,8 @@ pub fn main(&io: &IO) {
     let px = N32::parse(px).unwrap();
     let py = N32::parse(py).unwrap();
     dyn fn parse_signed(x: String, m: N32) {
-      if *x.chars.get(0) == '-' {
-        x.chars.pop_front();
+      if *x!.get(0) == '-' {
+        x!.pop_front();
         m - N32::parse(x).unwrap()
       } else {
         N32::parse(x).unwrap()

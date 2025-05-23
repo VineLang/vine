@@ -6,7 +6,7 @@ pub fn main(&io: &IO) {
 
   while io.read_line() is Some(line) && line.len() != 0 {
     let (name, value) = line.split_once(": ");
-    let value = *(value.unwrap(); _).chars.get(0) == '1';
+    let value = *(value.unwrap(); _)!.get(0) == '1';
     map.insert(name, Wire::input(value));
   }
 
@@ -21,7 +21,7 @@ pub fn main(&io: &IO) {
     let wire_out = move *pieces.get(4);
     let a = (*get_wire(wire_a)).get();
     let b = (*get_wire(wire_b)).get();
-    let op = pieces.get(1).*.chars.get(0).*;
+    let op = pieces.get(1).*!.get(0).*;
     let out = if op == 'A' {
       a & b
     } else if op == 'O' {
@@ -53,23 +53,23 @@ pub fn main(&io: &IO) {
   io.println("Part 1: {part1}");
 }
 
-struct Wire(~Bool, Bool);
+struct Wire((~Bool, Bool));
 
 mod Wire {
   pub fn new() -> Wire {
     let x;
-    Wire(move ~x, x)
+    Wire((move ~x, x))
   }
 
   pub fn .input(value: Bool) -> Wire {
-    Wire(~_, value)
+    Wire((~_, value))
   }
 
-  pub fn .get(&Wire(_, value)) -> Bool {
+  pub fn .get(&Wire((_, value))) -> Bool {
     value
   }
 
-  pub fn .set(&Wire(~out, _), value: Bool) {
+  pub fn .set(&Wire((~out, _)), value: Bool) {
     out = value;
   }
 }

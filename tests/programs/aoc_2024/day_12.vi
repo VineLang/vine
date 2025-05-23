@@ -13,7 +13,7 @@ pub fn main(&io: &IO) {
     grid ++= [line];
     let cur = [];
     let west = ('#', 0);
-    while line.chars.pop_front() is Some(char) {
+    while line!.pop_front() is Some(char) {
       let i = regions.new();
       if west is (c, j) && c == char {
         let j = regions.find(j);
@@ -34,7 +34,7 @@ pub fn main(&io: &IO) {
   let &Regions(array) = &regions;
   while i < array.len() {
     match *array.get(i) {
-      Region::Root(a, p) {
+      Region::Root((a, p)) {
         price += a * (a * 4 - p * 2);
       }
       _ {}
@@ -83,7 +83,7 @@ pub fn main(&io: &IO) {
 struct Regions(Array[Region]);
 
 enum Region {
-  Root(N32, N32),
+  Root((N32, N32)),
   Child(N32),
 }
 
@@ -91,7 +91,7 @@ mod Region {
   pub impl to_string: ToString[Region] {
     fn to_string(self: Region) -> String {
       match self {
-        Region::Root(a, p) { "Root({a}, {p})" }
+        Region::Root((a, p)) { "Root({a}, {p})" }
         Region::Child(n) { "Child({n})" }
       }
     }
@@ -107,7 +107,7 @@ mod Regions {
 
   pub fn .new(&Regions(array)) -> N32 {
     let i = array.len();
-    array.push_back(Region::Root(1, 0));
+    array.push_back(Region::Root((1, 0)));
     i
   }
 
@@ -125,14 +125,14 @@ mod Regions {
     let i = self.find(i);
     let &Regions(array) = &self;
     match *array.get(i) {
-      Region::Root(a, _) { a }
+      Region::Root((a, _)) { a }
     }
   }
 
   pub fn .union_found(&Regions(array), i: N32, j: N32) -> N32 {
     if i == j {
       match array.get(i) {
-        &Region::Root(_, p) {
+        &Region::Root((_, p)) {
           p += 1;
         }
       }
@@ -141,15 +141,15 @@ mod Regions {
       let &r = array.get(i);
       let &s = array.get(j);
       match (r, s) {
-        (Region::Root(ra, rp), Region::Root(sa, sp)) {
+        (Region::Root((ra, rp)), Region::Root((sa, sp))) {
           let a = ra + sa;
           let p = rp + sp + 1;
           if ra < sa {
-            s = Region::Root(a, p);
+            s = Region::Root((a, p));
             r = Region::Child(j);
             j
           } else {
-            r = Region::Root(a, p);
+            r = Region::Root((a, p));
             s = Region::Child(i);
             i
           }

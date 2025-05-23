@@ -4,9 +4,9 @@ use ops::{Concat, comparison::{Eq, Ord}};
 use unicode::ToString;
 
 #[builtin = "List"]
-pub struct List[T](N32, Buf[T], ~Buf[T]);
+pub struct List[T]((N32, Buf[T], ~Buf[T]));
 
-pub(std) struct Buf[T](T, Buf[T]);
+pub.std struct Buf[T]((T, Buf[T]));
 
 pub mod List {
   pub fn .len[T](&self: &List[T]) -> N32 {
@@ -22,48 +22,48 @@ pub mod List {
     list
   }
 
-  pub fn .get[T](&List[T](len, *buf, _), i: N32) -> &T {
+  pub fn .get[T](&List[T]((len, *buf, _)), i: N32) -> &T {
     while i != 0 {
-      let &Buf(_, *tail) = buf;
+      let &Buf((_, *tail)) = buf;
       buf = tail;
       i -= 1;
     }
-    let &Buf(*head, _) = buf;
+    let &Buf((*head, _)) = buf;
     head
   }
 
-  pub fn .slice[T](List[T](len, buf, end), i: N32) -> List[T] {
+  pub fn .slice[T](List[T]((len, buf, end)), i: N32) -> List[T] {
     if i >= len {
       []
     } else {
       len -= i;
       while i != 0 {
-        Buf(_, buf) = buf;
+        Buf((_, buf)) = buf;
         i -= 1;
       }
-      List(len, buf, end)
+      List((len, buf, end))
     }
   }
 
-  pub fn .map[T, U](List[T](l, buf, ~_), f: fn(T) -> U) -> List[U] {
+  pub fn .map[T, U](List[T]((l, buf, ~_)), f: fn(T) -> U) -> List[U] {
     let len = l;
     let cur;
     let result = move ~cur;
     while l != 0 {
-      let Buf(head, tail) = buf;
+      let Buf((head, tail)) = buf;
       buf = tail;
       let next;
-      ~cur = Buf(f(head), move ~next);
+      ~cur = Buf((f(head), move ~next));
       ~next = move ~cur;
       l -= 1;
     }
-    List(len, result, move cur)
+    List((len, result, move cur))
   }
 
-  pub fn .pop_front[T](&List[T](len, buf, _)) -> Option[T] {
+  pub fn .pop_front[T](&List[T]((len, buf, _))) -> Option[T] {
     if len != 0 {
       len -= 1;
-      let Buf(head, tail) = buf;
+      let Buf((head, tail)) = buf;
       buf = tail;
       Some(head)
     } else {
@@ -73,10 +73,10 @@ pub mod List {
 
   pub impl concat[T]: Concat[List[T], List[T], List[T]] {
     fn .concat(a: List[T], b: List[T]) -> List[T] {
-      let List(a_len, a_buf, ~a_end) = a;
-      let List(b_len, b_buf, ~b_end) = b;
+      let List((a_len, a_buf, ~a_end)) = a;
+      let List((b_len, b_buf, ~b_end)) = b;
       a_end = b_buf;
-      List(a_len + b_len, a_buf, move ~b_end)
+      List((a_len + b_len, a_buf, move ~b_end))
     }
   }
 
@@ -88,15 +88,15 @@ pub mod List {
     list = [el] ++ list;
   }
 
-  pub fn .insert[T](&List[T](len, *buf, _), i: N32, el: T) {
+  pub fn .insert[T](&List[T]((len, *buf, _)), i: N32, el: T) {
     len += 1;
     while i != 0 {
-      let &Buf(_, *tail) = buf;
+      let &Buf((_, *tail)) = buf;
       buf = tail;
       i -= 1;
     }
     let &buf = buf;
-    buf = Buf(el, buf);
+    buf = Buf((el, buf));
   }
 
   pub fn .join(list: List[String], sep: String) -> String {
@@ -134,18 +134,18 @@ pub mod List {
     self = output;
   }
 
-  pub struct Iter[T](N32, &Buf[T]);
+  pub struct Iter[T]((N32, &Buf[T]));
 
-  pub fn .iter[T](&List[T](len, buf, _)) -> Iter[T] {
-    Iter(len, &buf)
+  pub fn .iter[T](&List[T]((len, buf, _))) -> Iter[T] {
+    Iter((len, &buf))
   }
 
   pub mod Iter {
     pub impl iterator[T]: Iterator[Iter[T], &T] {
-      fn .next(&Iter[T](len, buf)) -> Option[&T] {
+      fn .next(&Iter[T]((len, buf))) -> Option[&T] {
         if len != 0 {
           len -= 1;
-          let &Buf(*head, *tail) = buf;
+          let &Buf((*head, *tail)) = buf;
           buf = tail;
           Some(head)
         } else {
@@ -155,23 +155,23 @@ pub mod List {
       }
 
       fn .drop(&iter: &Iter[T]) {
-        let Iter(_, &_) = move iter;
+        let Iter((_, &_)) = move iter;
       }
     }
   }
 
-  pub struct IntoIter[T](N32, Buf[T]);
+  pub struct IntoIter[T]((N32, Buf[T]));
 
-  pub fn .into_iter[T](List[T](len, buf, _)) -> IntoIter[T] {
-    IntoIter(len, buf)
+  pub fn .into_iter[T](List[T]((len, buf, _))) -> IntoIter[T] {
+    IntoIter((len, buf))
   }
 
   pub mod IntoIter {
     pub impl iterator[T]: Iterator[IntoIter[T], T] {
-      fn .next(&IntoIter[T](len, buf)) -> Option[T] {
+      fn .next(&IntoIter[T]((len, buf))) -> Option[T] {
         if len != 0 {
           len -= 1;
-          let Buf(head, tail) = buf;
+          let Buf((head, tail)) = buf;
           buf = tail;
           Some(head)
         } else {

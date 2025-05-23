@@ -3,7 +3,7 @@
 
 use numeric::N64;
 
-pub struct Pcg32(N64, N64);
+pub struct Pcg32((N64, N64));
 
 pub mod Pcg32 {
   pub fn new(state: N64, increment: N64) -> Pcg32 {
@@ -11,29 +11,29 @@ pub mod Pcg32 {
     state += increment;
     state *= multiplier;
     state += increment;
-    Pcg32(state, increment)
+    Pcg32((state, increment))
   }
 
-  pub const default: Pcg32 = new(N64(0xd15ea5e5, 0xcafef00d), N64(0xf767814f, 0x14057b7e));
+  pub const default: Pcg32 = new(N64((0xd15ea5e5, 0xcafef00d)), N64((0xf767814f, 0x14057b7e)));
 
-  const multiplier: N64 = N64(0x4c957f2d, 0x5851f42d);
+  const multiplier: N64 = N64((0x4c957f2d, 0x5851f42d));
 
-  pub fn .gen_n32(&Pcg32(state, increment)) -> N32 {
-    let N64(lo, hi) = state;
+  pub fn .gen_n32(&Pcg32((state, increment))) -> N32 {
+    let N64((lo, hi)) = state;
     state *= multiplier;
     state += increment;
     N32::rotate_right((hi >> 13) ^ (hi << 5) ^ (lo >> 27), hi >> 27)
   }
 
-  pub fn .mix(&Pcg32(state, increment), n: N32) {
-    state ^= N64(0, n);
+  pub fn .mix(&Pcg32((state, increment)), n: N32) {
+    state ^= N64((0, n));
     state *= multiplier;
     state += increment;
   }
 
   pub fn seeded(seed: String) -> Pcg32 {
     let rng = Pcg32::default;
-    let iter = seed.chars.into_iter();
+    let iter = seed!.into_iter();
     while iter.next() is Some(char) {
       rng.mix(char as N32)
     }
