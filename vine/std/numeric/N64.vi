@@ -5,6 +5,7 @@ use ops::{
   bitwise::{And, Or, Shl, Shr, Xor},
   comparison::{Eq, Ord},
 };
+use debug::Show;
 
 pub struct N64((N32, N32));
 
@@ -217,6 +218,12 @@ pub mod N64 {
       } else {
         "0"
       }
+    }
+  }
+
+  pub impl show: Show[N64] {
+    fn .show(&n: &N64) -> Show {
+      Show::Literal("{n}")
     }
   }
 
