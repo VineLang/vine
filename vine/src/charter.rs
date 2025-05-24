@@ -95,8 +95,8 @@ impl<'core> Charter<'core, '_> {
           data_vis,
           data: struct_item.data,
         });
-        self.define_value(span, def, vis, generics, ValueDefKind::Struct(struct_id), false);
-        self.define_pattern(span, def, vis, generics, PatternDefKind::Struct(struct_id));
+        self.define_value(span, def, data_vis, generics, ValueDefKind::Struct(struct_id), false);
+        self.define_pattern(span, def, data_vis, generics, PatternDefKind::Struct(struct_id));
         self.define_type(span, def, vis, generics, TypeDefKind::Struct(struct_id));
         Some(def)
       }

@@ -76,7 +76,7 @@ pub mod Term {
 }
 
 struct Parser(
-  { io: IO, scope: Map[String, List[List[~Term]]], chars: List[Char], error: ~Option[String] }
+  pub { io: IO, scope: Map[String, List[List[~Term]]], chars: List[Char], error: ~Option[String] }
 );
 
 mod Parser {

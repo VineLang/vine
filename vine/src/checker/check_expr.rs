@@ -2,7 +2,7 @@ use std::{collections::BTreeMap, mem::take};
 
 use crate::{
   ast::{Expr, ExprKind, Generics, Ident, ImplKind, Label, Span},
-  chart::TypeDefId,
+  chart::{StructId, TypeDefId},
   checker::{Checker, Form, Type},
   diag::Diag,
 };
@@ -79,7 +79,7 @@ impl<'core> Checker<'core, '_> {
         }
 
         self.unifier.concretize(&mut ty);
-        let (field_ty, len) = self.tuple_field(&ty, *i).unwrap_or_else(|| {
+        let (field_ty, len) = self.tuple_field(span, &ty, *i).unwrap_or_else(|| {
           (
             Type::Error(self.core.report(Diag::MissingTupleField {
               span,
@@ -102,7 +102,7 @@ impl<'core> Checker<'core, '_> {
         }
 
         self.unifier.concretize(&mut ty);
-        let (field_ty, i, len) = self.object_field(&ty, k.ident).unwrap_or_else(|| {
+        let (field_ty, i, len) = self.object_field(span, &ty, k.ident).unwrap_or_else(|| {
           (
             Type::Error(self.core.report(Diag::MissingObjectField {
               span: k.span,
@@ -174,6 +174,7 @@ impl<'core> Checker<'core, '_> {
         self.unifier.concretize(&mut ty);
         let data_ty = match &ty {
           Type::Struct(struct_id, type_params) => {
+            self.ensure_struct_data_visible(span, &ty, *struct_id);
             self.types.struct_types[*struct_id].instantiate(type_params)
           }
           _ => Type::Error(self.core.report(Diag::UnwrapNonStruct { span })),
@@ -184,11 +185,28 @@ impl<'core> Checker<'core, '_> {
     }
   }
 
-  fn tuple_field(&mut self, ty: &Type<'core>, index: usize) -> Option<(Type<'core>, usize)> {
+  fn ensure_struct_data_visible(&mut self, span: Span, ty: &Type<'core>, struct_id: StructId) {
+    let vis = self.chart.structs[struct_id].data_vis;
+    if !self.chart.visible(vis, self.cur_def) {
+      self.core.report(Diag::StructDataInvisible {
+        span,
+        ty: self.display_type(ty),
+        vis: self.chart.defs[vis].path,
+      });
+    }
+  }
+
+  fn tuple_field(
+    &mut self,
+    span: Span,
+    ty: &Type<'core>,
+    index: usize,
+  ) -> Option<(Type<'core>, usize)> {
     match ty {
       Type::Tuple(tuple) => Some((tuple.get(index)?.clone(), tuple.len())),
       Type::Struct(struct_id, params) => {
-        self.tuple_field(&self.types.struct_types[*struct_id].instantiate(params), index)
+        self.ensure_struct_data_visible(span, ty, *struct_id);
+        self.tuple_field(span, &self.types.struct_types[*struct_id].instantiate(params), index)
       }
       _ => None,
     }
@@ -196,6 +214,7 @@ impl<'core> Checker<'core, '_> {
 
   fn object_field(
     &mut self,
+    span: Span,
     ty: &Type<'core>,
     key: Ident<'core>,
   ) -> Option<(Type<'core>, usize, usize)> {
@@ -206,7 +225,8 @@ impl<'core> Checker<'core, '_> {
         .find(|&(_, (&k, _))| k == key)
         .map(|(i, (_, t))| (t.clone(), i, entries.len())),
       Type::Struct(struct_id, params) => {
-        self.object_field(&self.types.struct_types[*struct_id].instantiate(params), key)
+        self.ensure_struct_data_visible(span, ty, *struct_id);
+        self.object_field(span, &self.types.struct_types[*struct_id].instantiate(params), key)
       }
       _ => None,
     }
