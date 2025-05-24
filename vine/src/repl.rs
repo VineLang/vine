@@ -242,11 +242,11 @@ impl<'core, 'ctx, 'ivm, 'ext> Repl<'core, 'ctx, 'ivm, 'ext> {
     self.ivm.normalize();
 
     let tree = self.host.read(self.ivm, &PortRef::new_wire(&out));
-    let output = (tree != Tree::Erase).then(|| self.show(&mut ty, &tree));
+    let output = self.show(&mut ty, &tree);
     self.ivm.link_wire(out, Port::ERASE);
     self.ivm.normalize();
 
-    Ok(output)
+    Ok((output != "()").then_some(output))
   }
 
   fn parse_line(&mut self, line: &str) -> Result<Vec<Stmt<'core>>, Diag<'core>> {
@@ -338,7 +338,12 @@ impl<'core, 'ctx, 'ivm, 'ext> Repl<'core, 'ctx, 'ivm, 'ext> {
       (Type::Struct(struct_id, args), tree) => {
         let name = self.compiler.chart.structs[*struct_id].name;
         let mut data = self.compiler.types.struct_types[*struct_id].instantiate(args);
-        format!("{name}({})", self.show(&mut data, tree))
+        let data = self.show(&mut data, tree);
+        if data.starts_with("(") {
+          format!("{name}{}", data)
+        } else {
+          format!("{name}({})", data)
+        }
       }
       (Type::Enum(enum_id, args), tree) => {
         let enum_def = &self.compiler.chart.enums[*enum_id];
@@ -363,24 +368,29 @@ impl<'core, 'ctx, 'ivm, 'ext> Repl<'core, 'ctx, 'ivm, 'ext> {
         let (variant_id, mut tree) = active_variant?;
         let variant = &enum_def.variants[variant_id];
         let name = variant.name;
-        let field_types = self.compiler.types.enum_types[*enum_id][variant_id]
-          .iter()
-          .map(|x| x.instantiate(args))
-          .collect::<Vec<_>>();
-        let mut fields = Vec::new();
-        for mut field in field_types {
+        let data = self.compiler.types.enum_types[*enum_id][variant_id]
+          .as_ref()
+          .map(|x| x.instantiate(args));
+        let data = if let Some(mut ty) = data {
           let Tree::Comb(c, l, r) = tree else { None? };
           let "enum" = &**c else { None? };
-          fields.push(self.show(&mut field, l));
           tree = r;
-        }
+          Some(self.show(&mut ty, l))
+        } else {
+          None
+        };
+
         if tree != end {
           None?
         }
-        if fields.is_empty() {
-          name.to_string()
+        if let Some(data) = data {
+          if data.starts_with("(") {
+            format!("{name}{}", data)
+          } else {
+            format!("{name}({})", data)
+          }
         } else {
-          format!("{name}({})", fields.join(", "))
+          name.to_string()
         }
       }
       (_, Tree::Erase) => "~_".into(),
