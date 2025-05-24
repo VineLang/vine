@@ -2,7 +2,7 @@ use std::{collections::BTreeMap, mem::take};
 
 use crate::{
   ast::{Expr, ExprKind, Generics, ImplKind, Label, Span},
-  chart::{Builtins, TypeDefId, VariantId},
+  chart::{TypeDefId, VariantId},
   checker::{Checker, Form, Type},
   diag::Diag,
 };
@@ -363,7 +363,7 @@ impl<'core> Checker<'core, '_> {
         ty
       }
       ExprKind::Call(func, args) => self.check_call(func, args, span),
-      ExprKind::Bool(_) => self.builtin_ty(span, "Bool", |b| b.bool),
+      ExprKind::Bool(_) => self.bool(span),
       ExprKind::Not(inner) => {
         let ty = self.check_expr_form(inner, Form::Value);
         let Some(op_fn) = self.chart.builtins.not else {
@@ -517,10 +517,10 @@ impl<'core> Checker<'core, '_> {
         );
         to_ty
       }
-      ExprKind::N32(_) => self.builtin_ty(span, "N32", |b| b.n32),
-      ExprKind::I32(_) => self.builtin_ty(span, "I32", |b| b.i32),
-      ExprKind::Char(_) => self.builtin_ty(span, "Char", |b| b.char),
-      ExprKind::F32(_) => self.builtin_ty(span, "F32", |b| b.f32),
+      ExprKind::N32(_) => self.builtin_ty(span, "N32", self.chart.builtins.n32),
+      ExprKind::I32(_) => self.builtin_ty(span, "I32", self.chart.builtins.i32),
+      ExprKind::Char(_) => self.builtin_ty(span, "Char", self.chart.builtins.char),
+      ExprKind::F32(_) => self.builtin_ty(span, "F32", self.chart.builtins.f32),
       ExprKind::String(_, rest) => {
         let mut string_ty =
           self.chart.builtins.string.map(|d| Type::Adt(d, Vec::new())).unwrap_or_else(|| {
@@ -621,9 +621,9 @@ impl<'core> Checker<'core, '_> {
     &mut self,
     span: Span,
     name: &'static str,
-    f: fn(&Builtins) -> Option<TypeDefId>,
+    builtin: Option<TypeDefId>,
   ) -> Type<'core> {
-    if let Some(id) = f(&self.chart.builtins) {
+    if let Some(id) = builtin {
       Type::Opaque(id, vec![])
     } else {
       Type::Error(self.core.report(Diag::MissingBuiltin { span, builtin: name }))
@@ -631,6 +631,6 @@ impl<'core> Checker<'core, '_> {
   }
 
   fn bool(&mut self, span: Span) -> Type<'core> {
-    self.builtin_ty(span, "Bool", |b| b.bool)
+    self.builtin_ty(span, "Bool", self.chart.builtins.bool)
   }
 }
