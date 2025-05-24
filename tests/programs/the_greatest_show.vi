@@ -3,7 +3,7 @@ use std::debug::Show;
 
 pub fn main(&io: &IO) {
   let the_greatest = {
-    a: { a: 1, b: 2.0, c: ("Woah", "Woah"!) },
+    a: { a: 1, b: 2.0, c: Some("Woah", "Woah"!) },
     b: Some([
       { a: 1, b: 2, c: 3 },
       { a: 100, b: 200, c: 300 },

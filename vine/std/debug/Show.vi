@@ -29,8 +29,13 @@ pub mod Show {
     match self {
       Literal(literal) { (literal.len(), literal) }
       Constructor(name, data) {
+        let omit_parens = &data is &Tuple(tuple) && tuple.len() != 1;
         let (width, data) = data._format(max_width, indent);
-        (width + name.len() + 2, "{name}({data})")
+        if omit_parens {
+          (width + name.len(), "{name}{data}")
+        } else {
+          (width + name.len() + 2, "{name}({data})")
+        }
       }
       Tuple(tuple) {
         if tuple.len() == 0 {
