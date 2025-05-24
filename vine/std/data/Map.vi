@@ -1,7 +1,6 @@
 
 use data::Iterator;
 use ops::{Cast, comparison::Ord};
-use unicode::ToString;
 
 pub struct Map[K, V]((N32, MapData[K, V]));
 
@@ -289,8 +288,8 @@ pub mod Map {
     }
   }
 
-  pub impl to_string[K, V; ToString[K], ToString[V]]: ToString[Map[K, V]] {
-    fn .to_string(map: Map[K, V]) -> String {
+  pub impl to_string[K, V; Cast[K, String], Cast[V, String]]: Cast[Map[K, V], String] {
+    fn .cast(map: Map[K, V]) -> String {
       let string = "";
       let iter = map.into_iter();
       let first = true;
@@ -299,8 +298,6 @@ pub mod Map {
           string ++= ", ";
         }
         first = false;
-        let key = ToString::to_string[K](key);
-        let value = ToString::to_string[V](value);
         string ++= "{key}: {value}";
       }
       if first {

@@ -12,7 +12,7 @@ pub fn main(&io: &IO) {
     let n = offset;
     offset += 1;
     if prime {
-      io.println(n.to_string());
+      io.println("{n}");
       primes.push_back(n);
       let i = n * n;
       while i <= sqrt {
@@ -35,7 +35,7 @@ pub fn main(&io: &IO) {
     let n = offset;
     while array.pop_front() is Some(prime) {
       if prime {
-        io.println(n.to_string());
+        io.println("{n}");
       }
       n += 1;
     }

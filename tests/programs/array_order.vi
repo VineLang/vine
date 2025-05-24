@@ -11,11 +11,11 @@ pub fn main(&io: &IO) {
       n
     },
   );
-  io.println((*a.get(42)).to_string());
+  io.println("{(*a.get(42))}");
   a.for_each(
     &io,
     fn(&io: &IO, n: N32) {
-      io.println(n.to_string());
+      io.println("{n}");
     },
   );
 }

@@ -1,8 +1,6 @@
 
-use {
-  ops::{Cast, arithmetic::{Add, Div, Mul, Neg, Pow, Rem, Sub}, comparison::{Eq, Le, Lt}},
-  unicode::ToString,
-};
+use ops::{Cast, arithmetic::{Add, Div, Mul, Neg, Pow, Rem, Sub}, comparison::{Eq, Le, Lt}};
+use debug::Show;
 
 #[builtin = "F32"]
 pub type F32;
@@ -100,8 +98,8 @@ pub mod F32 {
     f != f
   }
 
-  pub impl to_string: ToString[F32] {
-    fn .to_string(f: F32) -> String {
+  pub impl to_string: Cast[F32, String] {
+    fn .cast(f: F32) -> String {
       if f.is_nan() {
         "NaN"
       } else if f == F32::inf {
@@ -140,10 +138,16 @@ pub mod F32 {
         };
         let int = f as N32;
         f -= int as F32;
-        let dec = ((f + 1.0) * 1.0e+5).as[N32].to_string();
+        let dec = ((f + 1.0) * 1.0e+5) as N32 as String;
         dec!.get(0).* = '.';
         "{sign}{int}{dec}{exp}"
       }
+    }
+  }
+
+  pub impl show: Show[F32] {
+    fn .show(&self: &F32) -> Show {
+      Show::Literal("{self}")
     }
   }
 }

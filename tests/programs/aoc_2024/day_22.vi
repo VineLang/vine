@@ -35,7 +35,7 @@ pub fn main(&io: &IO) {
 
   io.println("Part 1: {part1}");
 
-  io.println(map.len().to_string());
+  io.println("{map.len()}");
 
   let part2 = 0;
   let iter = map.into_iter();

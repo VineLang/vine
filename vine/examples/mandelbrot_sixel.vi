@@ -15,15 +15,15 @@ pub fn main(&io: &IO) {
   let c = 0;
   while c <= 100 {
     io.print_char('#');
-    io.print(c.to_string());
+    io.print(c as String);
     io.print_char(';');
     io.print_char('2');
     io.print_char(';');
-    io.print(c.to_string());
+    io.print(c as String);
     io.print_char(';');
-    io.print(c.to_string());
+    io.print(c as String);
     io.print_char(';');
-    io.print(c.to_string());
+    io.print(c as String);
     c += 1;
   }
 
@@ -42,10 +42,10 @@ pub fn main(&io: &IO) {
 
       if color != last_color {
         io.print_char('!');
-        io.print(count.to_string());
+        io.print(count as String);
         io.print_byte(63 + row);
         io.print_char('#');
-        io.print(color.to_string());
+        io.print(color as String);
         count = 1;
       } else {
         count += 1;
@@ -56,7 +56,7 @@ pub fn main(&io: &IO) {
     }
 
     io.print_char('!');
-    io.print(count.to_string());
+    io.print(count as String);
     io.print_byte(63 + row);
 
     row *= 2;

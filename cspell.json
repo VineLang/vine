@@ -31,6 +31,7 @@
     "nats",
     "nonoverlapping",
     "nums",
+    "parens",
     "peekable",
     "primality",
     "readback",
@@ -52,7 +53,8 @@
     "unpark",
     "vecs",
     "visitee",
-    "whnf"
+    "whnf",
+    "woah"
   ],
   "dictionaries": [
     "rust"

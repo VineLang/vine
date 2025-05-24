@@ -1,0 +1,146 @@
+
+use ops::Cast;
+use data::List as List_;
+
+pub trait Show[T] {
+  fn .show(self: &T) -> Show;
+}
+
+pub enum Show {
+  Literal(String),
+  Constructor((String, Show)),
+  Tuple(List_[Show]),
+  Object(List_[(String, Show)]),
+  List(List_[Show]),
+}
+
+pub mod Show {
+  pub impl to_string: Cast[Show, String] {
+    fn .cast(self: Show) -> String {
+      self.format(80)
+    }
+  }
+
+  pub fn .format(self: Show, max_width: N32) -> String {
+    self._format(max_width, 0).1
+  }
+
+  fn ._format(self: Show, max_width: N32, indent: N32) -> (N32, String) {
+    match self {
+      Literal(literal) { (literal.len(), literal) }
+      Constructor(name, data) {
+        let omit_parens = &data is &Tuple(tuple) && tuple.len() != 1;
+        let (width, data) = data._format(max_width, indent);
+        if omit_parens {
+          (width + name.len(), "{name}{data}")
+        } else {
+          (width + name.len() + 2, "{name}({data})")
+        }
+      }
+      Tuple(tuple) {
+        if tuple.len() == 0 {
+          (2, "()")
+        } else if tuple.len() == 1 {
+          let (width, inner) = tuple.pop_front().unwrap()._format(max_width, indent);
+          (width + 3, "({inner},)")
+        } else {
+          let (width, str, _) = format_comma_sep(tuple, fn(show) { ("", show) }, max_width, indent);
+          (width, "({str})")
+        }
+      }
+      List(list) {
+        if list.len() == 0 {
+          (2, "[]")
+        } else {
+          let (width, str, _) = format_comma_sep(list, fn(show) { ("", show) }, max_width, indent);
+          (width, "[{str}]")
+        }
+      }
+      Object(entries) {
+        if entries.len() == 0 {
+          (2, "\{}")
+        } else {
+          let (width, str, multiline) = format_comma_sep(
+            entries,
+            fn((key, show)) { (key ++ ": ", show) },
+            max_width,
+            indent,
+          );
+          let str = if multiline {
+            "\{{str}}"
+          } else {
+            "\{ {str} }"
+          };
+          (width, str)
+        }
+      }
+    }
+  }
+
+  fn format_comma_sep[E](
+    entries: List_[E],
+    process_entry: fn(E) -> (String, Show),
+    max_width: N32,
+    indent: N32,
+  ) -> (N32, String, Bool) {
+    let ~_multiline;
+    let multiline: Bool = ~_multiline;
+    let total_width = 0;
+    let str = "";
+    let first = true;
+    let iter = entries.into_iter();
+    while iter.next() is Some(entry) {
+      let (prefix, show) = process_entry(entry);
+      let (width, value) = show._format(max_width, indent + 2);
+      total_width += prefix.len() + width + 2;
+      if multiline {
+        str ++= newline(indent + 2) ++ prefix ++ value ++ ",";
+      } else {
+        if !first {
+          str ++= ", ";
+        }
+        str ++= prefix ++ value;
+      }
+      first = false;
+    }
+    if multiline {
+      str ++= newline(indent);
+    }
+    ~_multiline = total_width > max_width;
+    (total_width, str, multiline)
+  }
+
+  fn newline(indent: N32) -> String {
+    "\n" ++ String(List_::new(indent, ' '))
+  }
+}
+
+pub impl show_nil: Show[()] {
+  fn .show(&()) -> Show {
+    Show::Tuple([])
+  }
+}
+
+pub impl show_singleton[A; Show[A]]: Show[(A,)] {
+  fn .show(&(a: A,)) -> Show {
+    Show::Tuple([a.show()])
+  }
+}
+
+pub impl show_pair[A, B; Show[A], Show[B]]: Show[(A, B)] {
+  fn .show(&(a: A, b: B)) -> Show {
+    Show::Tuple([a.show(), b.show()])
+  }
+}
+
+pub impl show_triple[A, B, C; Show[A], Show[B], Show[C]]: Show[(A, B, C)] {
+  fn .show(&(a: A, b: B, c: C)) -> Show {
+    Show::Tuple([a.show(), b.show(), c.show()])
+  }
+}
+
+pub impl show_quad[A, B, C, D; Show[A], Show[B], Show[C], Show[D]]: Show[(A, B, C, D)] {
+  fn .show(&(a: A, b: B, c: C, d: D)) -> Show {
+    Show::Tuple([a.show(), b.show(), c.show(), d.show()])
+  }
+}

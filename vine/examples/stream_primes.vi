@@ -15,7 +15,7 @@ pub fn main(&io: &IO) {
       d += 1;
     }
     if prime {
-      io.println(n.to_string());
+      io.println("{n}");
     }
   }
 }

@@ -8,7 +8,7 @@ pub fn main(&io: &IO) {
     while j < 5 {
       j = j + 1;
       n = n + 1;
-      io.println(n.to_string());
+      io.println("{n}");
     }
   }
 }

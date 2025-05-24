@@ -3,7 +3,7 @@ pub fn main(&io: &IO) {
   while io.prompt("> ") is Some(line) {
     let num = N32::parse(line);
     io.println(match num {
-      Some(num) { fib(num).to_string() }
+      Some(num) { fib(num) as String }
       None { "invalid number" }
     });
   }

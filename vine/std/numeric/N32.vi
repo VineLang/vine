@@ -1,10 +1,11 @@
 
 use ops::{
+  Cast,
   arithmetic::{Add, Div, Mul, Neg, Pow, Rem, Sub},
   bitwise::{And, Not, Or, Shl, Shr, Xor},
   comparison::{Eq, Ord},
 };
-use unicode::ToString;
+use debug::Show;
 
 #[builtin = "N32"]
 pub type N32;
@@ -32,7 +33,7 @@ pub mod N32 {
 
   pub impl pow: Pow[N32, N32, N32] {
     fn .pow(base: N32, exp: N32) -> N32 {
-      Pow::pow_by_squaring(base, exp)
+      Pow::pow_by_squaring[N32](base, exp)
     }
   }
 
@@ -90,8 +91,8 @@ pub mod N32 {
     }
   }
 
-  pub impl to_string: ToString[N32] {
-    fn .to_string(n: N32) -> String {
+  pub impl to_string: Cast[N32, String] {
+    fn .cast(n: N32) -> String {
       if n != 0 {
         let chars = [];
         while n != 0 {
@@ -102,6 +103,12 @@ pub mod N32 {
       } else {
         "0"
       }
+    }
+  }
+
+  pub impl show: Show[N32] {
+    fn .show(&n: &N32) -> Show {
+      Show::Literal("{n}")
     }
   }
 

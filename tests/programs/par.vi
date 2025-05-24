@@ -1,5 +1,5 @@
 
-use std::{rng::Pcg32, unicode::ToString};
+use std::{ops::Cast, rng::Pcg32};
 
 trait Session[A, B] {
   fn fork(f: fn(A)) -> B;
@@ -56,8 +56,8 @@ enum Move {
 }
 
 mod Move {
-  pub impl to_string: ToString[Move] {
-    fn .to_string(self: Move) -> String {
+  pub impl to_string: Cast[Move, String] {
+    fn .cast(self: Move) -> String {
       match self {
         Up { "Up" }
         Down { "Down" }

@@ -1,4 +1,3 @@
 
 pub mod Char = "./Char.vi";
 pub mod String = "./String.vi";
-pub mod ToString = "./ToString.vi";

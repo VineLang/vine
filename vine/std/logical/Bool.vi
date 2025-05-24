@@ -1,6 +1,6 @@
 
-use ops::{bitwise::{And, Not, Or, Xor}, comparison::{Eq, Ord}};
-use unicode::ToString;
+use ops::{Cast, bitwise::{And, Not, Or, Xor}, comparison::{Eq, Ord}};
+use debug::Show;
 
 #[builtin = "Bool"]
 pub type Bool;
@@ -53,13 +53,19 @@ pub mod Bool {
     const cmp: fn(&Bool, &Bool) -> Ord = Ord::cmp_from_lt[Bool];
   }
 
-  pub impl to_string: ToString[Bool] {
-    fn .to_string(self: Bool) -> String {
+  pub impl to_string: Cast[Bool, String] {
+    fn .cast(self: Bool) -> String {
       if self {
         "true"
       } else {
         "false"
       }
+    }
+  }
+
+  pub impl show: Show[Bool] {
+    fn .show(&self: &Bool) -> Show {
+      Show::Literal("{self}")
     }
   }
 }

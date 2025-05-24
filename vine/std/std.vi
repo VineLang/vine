@@ -1,5 +1,6 @@
 
 pub mod data = "./data/data.vi";
+pub mod debug = "./debug/debug.vi";
 pub mod logical = "./logical/logical.vi";
 pub mod numeric = "./numeric/numeric.vi";
 pub mod rng = "./rng/rng.vi";

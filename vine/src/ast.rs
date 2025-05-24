@@ -165,7 +165,6 @@ pub enum Builtin {
   Prelude,
   List,
   String,
-  ToString,
   BinaryOp(BinaryOp),
   Neg,
   Not,

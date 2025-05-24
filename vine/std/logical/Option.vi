@@ -1,4 +1,6 @@
 
+use debug::Show;
+
 pub enum Option[T] {
   Some(T),
   None,
@@ -47,6 +49,15 @@ pub mod Option {
   pub fn .unwrap[T](self: Option[T]) -> T {
     match self {
       Some(val) { val }
+    }
+  }
+
+  pub impl show[T; Show[T]]: Show[Option[T]] {
+    fn .show(&self: &Option[T]) -> Show {
+      match &self {
+        &Some(value) { Show::Constructor("Some", value.show()) }
+        &None { Show::Literal("None") }
+      }
     }
   }
 }
