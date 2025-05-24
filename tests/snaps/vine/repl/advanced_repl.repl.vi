@@ -1,15 +1,13 @@
 
 io = #io
-> struct Foo(N32, F32, Char, String);
-error input:1:15 - expected one of {ColonColon, CloseParen, OpenBracket}; found Some(Comma)
+> struct Foo((N32, F32, Char, String));
 
 io = #io
 > Foo(1, 1.1, '1', "11")
-error input:1:1 - cannot find `Foo` in `::repl`
+Foo(1, 1.1, '1', "11")
 
 io = #io
-> struct Bar; Bar
-error input:1:11 - expected one of {OpenParen, OpenBracket}; found Some(Semi)
+> struct Bar(()); Bar()
 
 io = #io
 > use std::option::Option::{Some,None};

@@ -15,7 +15,7 @@ pub fn main[T, U](io: IO) {
   if 0.0 { 0 } else { "" };
   main(1, 2, 3);
   0 < 0.0 < 0 < 0 < 0.0;
-  let Thing(x) = Foo(1);
+  let Thing((x,)) = Foo(1);
   let foo: foo = foo;
   let x: T = 0;
   let x: U = x;
@@ -35,6 +35,6 @@ pub fn main[T, U](io: IO) {
 
 // correct utilities
 enum Ay { Yay, Nay }
-struct Thing(N32, N32);
+struct Thing((N32, N32));
 fn rec[T](x: T) -> T { rec(x) }
 fn noop() {}
