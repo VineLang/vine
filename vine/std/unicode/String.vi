@@ -5,7 +5,7 @@ use ops::{Cast, Concat, comparison::{Eq, Ord}};
 pub struct String(pub List[Char]);
 
 pub mod String {
-  pub fn .len(&String(List((len, _, _)))) -> N32 {
+  pub fn .len(&String(List(len, _, _))) -> N32 {
     len
   }
 
@@ -54,9 +54,9 @@ pub mod String {
             break.check;
           }
         }
-        let List::Iter((len, &buf)) = move iter_b;
-        let List((_, _, end)) = suffix as List;
-        return (prefix, Some(List((len, move buf, end)) as String));
+        let List::Iter(len, &buf) = move iter_b;
+        let List(_, _, end) = suffix as List;
+        return (prefix, Some(List(len, move buf, end) as String));
       }
       iter_a.drop();
       iter_b.drop();
@@ -83,9 +83,9 @@ pub mod String {
         return Err(self)
       }
     }
-    let List::Iter((len, &buf)) = move self_iter;
-    let List((_, _, end)) = self as List;
-    Ok(List((len, move buf, end)) as String)
+    let List::Iter(len, &buf) = move self_iter;
+    let List(_, _, end) = self as List;
+    Ok(List(len, move buf, end) as String)
   }
 
   pub fn .starts_with(&self: &String, &prefix: &String) -> Bool {

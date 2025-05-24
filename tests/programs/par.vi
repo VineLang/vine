@@ -19,24 +19,24 @@ type Send[T, S] = Channel[~T, S];
 mod Channel {
   pub use channel_session::fork;
 
-  pub fn .recv[T, S](Channel[T, S]((t, s))) -> (T, S) {
+  pub fn .recv[T, S](Channel[T, S](t, s)) -> (T, S) {
     (t, s)
   }
 
-  pub fn .recv1[T](Channel[T, ()]((t, ()))) -> T {
+  pub fn .recv1[T](Channel[T, ()](t, ())) -> T {
     t
   }
 
-  pub fn .send[T, S](Channel[~T, S]((~out, s)), value: T) -> S {
+  pub fn .send[T, S](Channel[~T, S](~out, s), value: T) -> S {
     out = value;
     s
   }
 
-  pub fn .send1[T](Channel[~T, ()]((~out, ())), value: T) {
+  pub fn .send1[T](Channel[~T, ()](~out, ()), value: T) {
     out = value;
   }
 
-  pub fn .choose[T, P, Q; Session[P, Q]](Channel[~T, ()]((~out, ())), choice: fn(P) -> T) -> Q {
+  pub fn .choose[T, P, Q; Session[P, Q]](Channel[~T, ()](~out, ()), choice: fn(P) -> T) -> Q {
     Session::fork[P, Q](fn(p: P) {
       out = choice(p);
     })
@@ -46,7 +46,7 @@ mod Channel {
 impl channel_session[T, P, Q; Session[P, Q]]: Session[Recv[T, P], Send[T, Q]] {
   fn fork(f: fn(Recv[T, P])) -> Send[T, Q] {
     let value: T;
-    Channel((move ~value, Session::fork[P, Q](fn(s) { f(Channel((value, s))) })))
+    Channel(move ~value, Session::fork[P, Q](fn(s) { f(Channel(value, s)) }))
   }
 }
 

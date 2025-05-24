@@ -7,7 +7,7 @@ pub fn main(&io: &IO) {
 
   let matches = diamond(
     lines,
-    fn(char: Char, Neighbors[Char]((nw, n, ne, w, e, sw, s, se)), &matches: &N32) {
+    fn(char: Char, Neighbors[Char](nw, n, ne, w, e, sw, s, se), &matches: &N32) {
       if char == 'X' {
         nw.send('X');
         n.send('X');
@@ -41,7 +41,7 @@ pub fn main(&io: &IO) {
 
   let matches = diamond(
     lines,
-    fn(char: Char, Neighbors[Char]((nw, _, ne, _, _, sw, _, se)), &matches: &N32) {
+    fn(char: Char, Neighbors[Char](nw, _, ne, _, _, sw, _, se), &matches: &N32) {
       if char == 'A' {
         let nw = nw.send('A');
         let ne = ne.send('A');
@@ -67,17 +67,17 @@ pub fn main(&io: &IO) {
 struct Channel[M]((M, ~M));
 
 mod Channel {
-  pub fn .send[M](Channel[M]((got, ~out)), value: M) -> M {
+  pub fn .send[M](Channel[M](got, ~out), value: M) -> M {
     out = value;
     got
   }
 
-  pub fn .get[M](&Channel[M]((i, _))) -> M {
+  pub fn .get[M](&Channel[M](i, _)) -> M {
     i
   }
 }
 
-fn relay(Channel[Char]((ai, ~ao)), Channel[Char]((bi, ~bo)), recv: Char, send: Char) {
+fn relay(Channel[Char](ai, ~ao), Channel[Char](bi, ~bo), recv: Char, send: Char) {
   bo = if ai == recv {
     send
   } else {
@@ -90,7 +90,7 @@ fn relay(Channel[Char]((ai, ~ao)), Channel[Char]((bi, ~bo)), recv: Char, send: C
   };
 }
 
-fn check(Channel[Char]((i, ~o)), recv: Char) -> N32 {
+fn check(Channel[Char](i, ~o), recv: Char) -> N32 {
   o = '_';
   if i == recv {
     1
@@ -127,7 +127,7 @@ fn diamond[T, M, X](grid: List[List[T]], f: fn(T, Neighbors[M], &X), d: M, state
         let (n, s) = foo_channel(north.next().unwrap());
         let (nw, se) = foo_channel(north_west.next().unwrap());
         let (ne, sw) = foo_channel((~north_east).next().unwrap());
-        f(cell, Neighbors((nw, n, ne, w, e, sw, s, se)), &state);
+        f(cell, Neighbors(nw, n, ne, w, e, sw, s, se), &state);
       }
       north.drop()
       north_west.drop()
@@ -162,9 +162,9 @@ fn new_channel[M]() -> (Channel[M], Channel[M]) {
   let b;
   let x = ~a;
   let y = ~b;
-  (Channel((a, y)), Channel((b, x)))
+  (Channel(a, y), Channel(b, x))
 }
 
 fn neglect_channel[M](d: M) -> Channel[M] {
-  Channel((d, ~_))
+  Channel(d, ~_)
 }

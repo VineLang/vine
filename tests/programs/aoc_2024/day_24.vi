@@ -58,18 +58,18 @@ struct Wire((~Bool, Bool));
 mod Wire {
   pub fn new() -> Wire {
     let x;
-    Wire((move ~x, x))
+    Wire(move ~x, x)
   }
 
   pub fn .input(value: Bool) -> Wire {
-    Wire((~_, value))
+    Wire(~_, value)
   }
 
-  pub fn .get(&Wire((_, value))) -> Bool {
+  pub fn .get(&Wire(_, value)) -> Bool {
     value
   }
 
-  pub fn .set(&Wire((~out, _)), value: Bool) {
+  pub fn .set(&Wire(~out, _), value: Bool) {
     out = value;
   }
 }

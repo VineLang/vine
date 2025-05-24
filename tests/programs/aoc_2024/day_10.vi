@@ -9,11 +9,11 @@ pub fn main(&io: &IO) {
   let ratings = 0;
   cross(
     input.split_trim("\n").map(fn(String(chars)) { chars }),
-    fn(char: Char, Neighbors((n, s, e, w)), &(io: IO, id: N32, scores: N32, ratings: N32)) {
-      let Channel(((nit, nis), ~(not, nos))) = n;
-      let Channel(((sit, sis), ~(sot, sos))) = s;
-      let Channel(((eit, eis), ~(eot, eos))) = e;
-      let Channel(((wit, wis), ~(wot, wos))) = w;
+    fn(char: Char, Neighbors(n, s, e, w), &(io: IO, id: N32, scores: N32, ratings: N32)) {
+      let Channel((nit, nis), ~(not, nos)) = n;
+      let Channel((sit, sis), ~(sot, sos)) = s;
+      let Channel((eit, eis), ~(eot, eos)) = e;
+      let Channel((wit, wis), ~(wot, wos)) = w;
       not = char;
       sot = char;
       eot = char;
@@ -101,17 +101,17 @@ fn count(s: Set) -> N32 {
 struct Channel[M]((M, ~M));
 
 mod Channel {
-  pub fn .send[M](Channel[M]((got, ~out)), value: M) -> M {
+  pub fn .send[M](Channel[M](got, ~out), value: M) -> M {
     out = value;
     got
   }
 
-  pub fn get[M](&Channel[M]((i, _))) -> M {
+  pub fn get[M](&Channel[M](i, _)) -> M {
     i
   }
 }
 
-fn relay(Channel[Char]((ai, ~ao)), Channel[Char]((bi, ~bo)), recv: Char, send: Char) {
+fn relay(Channel[Char](ai, ~ao), Channel[Char](bi, ~bo), recv: Char, send: Char) {
   bo = if ai == recv {
     send
   } else {
@@ -124,7 +124,7 @@ fn relay(Channel[Char]((ai, ~ao)), Channel[Char]((bi, ~bo)), recv: Char, send: C
   };
 }
 
-fn check(Channel[Char]((i, ~o)), recv: Char) -> N32 {
+fn check(Channel[Char](i, ~o), recv: Char) -> N32 {
   o = '_';
   if i == recv {
     1
@@ -145,7 +145,7 @@ fn cross[T, M, X](grid: List[List[T]], f: fn(T, Neighbors[M], &X), d: M, &state:
       while row.pop_front() is Some(cell) {
         let (w, e) = foo_channel(&west);
         let (n, s) = foo_channel(north.next().unwrap());
-        f(cell, Neighbors((n, s, e, w)), &state);
+        f(cell, Neighbors(n, s, e, w), &state);
       }
       north.drop()
     }
@@ -172,9 +172,9 @@ fn new_channel[M]() -> (Channel[M], Channel[M]) {
   let b;
   let x = ~a;
   let y = ~b;
-  (Channel((a, y)), Channel((b, x)))
+  (Channel(a, y), Channel(b, x))
 }
 
 fn neglect_channel[M](d: M) -> Channel[M] {
-  Channel((d, ~_))
+  Channel(d, ~_)
 }
