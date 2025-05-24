@@ -10,12 +10,12 @@ io = #io
 > fn _foo() {}
 
 io = #io
-> 1.to_string()
-error input:1:1 - type `N32` has no method `to_string`
+> 1.as[String]
+"1"
 
 io = #io
-> 1.0.to_string()
-error input:1:1 - type `F32` has no method `to_string`
+> 1.0.as[String]
+"+1.00000"
 
 io = #io
 > ((1,2),(3,4)).0
@@ -26,20 +26,20 @@ io = #io
 1
 
 io = #io
-> ((1,2),(3,4)).0.0.to_string()
-error input:1:1 - type `N32` has no method `to_string`
+> ((1,2),(3,4)).0.0.as[String]
+"1"
 
 io = #io
-> ((1,2),(3,4)).1.1.to_string()
-error input:1:1 - type `N32` has no method `to_string`
+> ((1,2),(3,4)).1.1.as[String]
+"4"
 
 io = #io
 > "abc" ++ 123
-error input:1:1 - cannot find impl of trait `Concat[String, N32, ?5]`
+error input:1:1 - cannot find impl of trait `Concat[String, N32, ?13]`
 
 io = #io
-> [true, false].to_string()
-error input:1:1 - type `List[Bool]` has no method `to_string`
+> ([true, false]; _).show().as[String]
+"[true, false]"
 
 io = #io
 > [1,2,3,4].slice(2)
@@ -54,8 +54,12 @@ io = #io
 
 io = #io
 a = Array(5, Node(Node(Node(Node(#ivy(0)), Node(#ivy(4))), Node(#ivy(2))), Node(Node(#ivy(1)), Node(#ivy(3)))))
-> a.for_each(&io, fn(&io: &IO, v: N32) { io.println(v.to_string() )})
-error input:1:51 - type `N32` has no method `to_string`
+> a.for_each(&io, fn(&io: &IO, v: N32) { io.println("{v}")})
+0
+1
+2
+3
+4
 
 io = #io
 a = Array(5, Node(Node(Node(Node(#ivy(0)), Node(#ivy(4))), Node(#ivy(2))), Node(Node(#ivy(1)), Node(#ivy(3)))))
@@ -129,8 +133,8 @@ io = #io
 10
 
 io = #io
-> (N64::parse("1234567890123456789000").unwrap() + N64::parse("46").unwrap()).to_string()
-error input:1:1 - type `N64` has no method `to_string`
+> (N64::parse("1234567890123456789000").unwrap() + N64::parse("46").unwrap()) as String
+"17082781258626382390"
 
 io = #io
 > N64::parse("")
@@ -145,8 +149,8 @@ io = #io
 None
 
 io = #io
-> (3 as N64 ** 33).to_string()
-error input:1:1 - type `N64` has no method `to_string`
+> (3 as N64 ** 33) as String
+"5559060566555523"
 
 io = #io
 > (3 as N64 ** 33).log_n32(3)
@@ -173,8 +177,8 @@ io = #io
 ("1,2", Some("3,4, 5,6"))
 
 io = #io
-> 123.to_string(2)
-error input:1:1 - type `N32` has no method `to_string`
+> 123.show(2)
+error input:1:1 - function type `fn(&N32) -> Show` expects 1 argument; was passed 2
 
 io = #io
 > let x = [[1]];
