@@ -47,9 +47,7 @@ pub fn main(&io: &IO) {
         let ne = ne.send('A');
         let sw = sw.send('A');
         let se = se.send('A');
-        if ((nw == 'M' && se == 'S') || (nw == 'S' && se == 'M')) && (
-          (sw == 'M' && ne == 'S') || (sw == 'S' && ne == 'M')
-        ) {
+        if ((nw == 'M' && se == 'S') || (nw == 'S' && se == 'M')) && ((sw == 'M' && ne == 'S') || (sw == 'S' && ne == 'M')) {
           matches += 1;
         }
       } else {
@@ -101,9 +99,16 @@ fn check(Channel[Char]((i, ~o)), recv: Char) -> N32 {
   }
 }
 
-struct Neighbors[M](
-  (Channel[M], Channel[M], Channel[M], Channel[M], Channel[M], Channel[M], Channel[M], Channel[M])
-);
+struct Neighbors[M]((
+  Channel[M],
+  Channel[M],
+  Channel[M],
+  Channel[M],
+  Channel[M],
+  Channel[M],
+  Channel[M],
+  Channel[M],
+));
 
 fn diamond[T, M, X](grid: List[List[T]], f: fn(T, Neighbors[M], &X), d: M, state: X) -> X {
   let width = (*grid.get(0)).len();

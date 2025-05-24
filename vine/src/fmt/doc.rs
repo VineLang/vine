@@ -64,7 +64,7 @@ impl<'src> Doc<'src> {
   }
 
   pub fn paren(doc: Self) -> Self {
-    Doc::concat([Doc("("), Doc::group([doc]), Doc(")")])
+    Doc::concat([Doc("("), Doc::lazy_group([doc]), Doc(")")])
   }
 
   #[allow(clippy::too_many_arguments)]
@@ -174,7 +174,9 @@ impl<'src> DocKind<'src> {
       DocKind::SoftLine(s) | DocKind::IfSingle(s) => Measure::string(s),
       DocKind::IfMulti(_) => Measure::EMPTY,
       DocKind::Concat(x) | DocKind::Group(x) | DocKind::LazyGroup(x) => {
-        x.iter().fold(Measure::EMPTY, |a, b| a + b.measure)
+        let mut measure = x.iter().fold(Measure::EMPTY, |a, b| a + b.measure);
+        measure.leading = 0;
+        measure
       }
       DocKind::Interleave(x, sep) => x.iter().enumerate().fold(Measure::EMPTY, |m, (i, d)| {
         m + d.measure + if i != x.len() - 1 { sep.measure } else { Measure::EMPTY }
@@ -311,6 +313,9 @@ impl Measure {
       } else {
         width += 1;
       }
+    }
+    if !multi {
+      leading = width;
     }
     Measure { multi, leading, width }
   }
