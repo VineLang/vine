@@ -1,6 +1,6 @@
 use std::{collections::hash_map::Entry, mem::take};
 
-use vine_util::idx::{Counter, IdxVec};
+use vine_util::idx::Counter;
 
 use crate::{
   ast::{
@@ -87,29 +87,24 @@ impl<'core> Charter<'core, '_> {
       ItemKind::Struct(struct_item) => {
         let def = self.chart_child(parent, struct_item.name, member_vis, true);
         let generics = self.chart_generics(def, struct_item.generics, false);
-        let adt = self.chart.adts.push(AdtDef {
+        let data_vis = self.resolve_vis(def, struct_item.data_vis);
+        let struct_id = self.chart.structs.push(StructDef {
           def,
           generics,
           name: struct_item.name,
-          variants: IdxVec::from([AdtVariant {
-            def,
-            name: struct_item.name,
-            fields: struct_item.fields,
-            object: struct_item.object,
-          }]),
-          is_struct: true,
+          data_vis,
+          data: struct_item.data,
         });
-        let variant = VariantId(0);
-        self.define_value(span, def, vis, generics, ValueDefKind::Adt(adt, variant), false);
-        self.define_pattern(span, def, vis, generics, PatternDefKind::Adt(adt, variant));
-        self.define_type(span, def, vis, generics, TypeDefKind::Adt(adt));
+        self.define_value(span, def, data_vis, generics, ValueDefKind::Struct(struct_id), false);
+        self.define_pattern(span, def, data_vis, generics, PatternDefKind::Struct(struct_id));
+        self.define_type(span, def, vis, generics, TypeDefKind::Struct(struct_id));
         Some(def)
       }
 
       ItemKind::Enum(enum_item) => {
         let def = self.chart_child(parent, enum_item.name, member_vis, true);
         let generics = self.chart_generics(def, enum_item.generics, false);
-        let adt = self.chart.adts.next_index();
+        let enum_id = self.chart.enums.next_index();
         let variants = enum_item
           .variants
           .into_iter()
@@ -117,20 +112,14 @@ impl<'core> Charter<'core, '_> {
           .map(|(id, variant)| {
             let id = VariantId(id);
             let def = self.chart_child(def, variant.name, vis, true);
-            self.define_value(span, def, vis, generics, ValueDefKind::Adt(adt, id), false);
-            self.define_pattern(span, def, vis, generics, PatternDefKind::Adt(adt, id));
-            AdtVariant { def, name: variant.name, fields: variant.fields, object: false }
+            self.define_value(span, def, vis, generics, ValueDefKind::Enum(enum_id, id), false);
+            self.define_pattern(span, def, vis, generics, PatternDefKind::Enum(enum_id, id));
+            EnumVariant { def, name: variant.name, data: variant.data }
           })
           .collect::<Vec<_>>()
           .into();
-        self.chart.adts.push(AdtDef {
-          def,
-          name: enum_item.name,
-          generics,
-          variants,
-          is_struct: false,
-        });
-        self.define_type(span, def, vis, generics, TypeDefKind::Adt(adt));
+        self.chart.enums.push(EnumDef { def, name: enum_item.name, generics, variants });
+        self.define_type(span, def, vis, generics, TypeDefKind::Enum(enum_id));
         Some(def)
       }
 
@@ -340,7 +329,7 @@ impl<'core> Charter<'core, '_> {
         false
       }
     }
-    let adt = || def.type_def.and_then(|id| self.chart.types[id].kind.adt());
+    let struct_id = || def.type_def.and_then(|id| self.chart.types[id].kind.struct_id());
 
     match builtin {
       Builtin::Bool => set(def.type_def, &mut self.chart.builtins.bool),
@@ -350,8 +339,8 @@ impl<'core> Charter<'core, '_> {
       Builtin::Char => set(def.type_def, &mut self.chart.builtins.char),
       Builtin::IO => set(def.type_def, &mut self.chart.builtins.io),
       Builtin::Prelude => set(Some(def_id), &mut self.chart.builtins.prelude),
-      Builtin::List => set(adt(), &mut self.chart.builtins.list),
-      Builtin::String => set(adt(), &mut self.chart.builtins.string),
+      Builtin::List => set(struct_id(), &mut self.chart.builtins.list),
+      Builtin::String => set(struct_id(), &mut self.chart.builtins.string),
       Builtin::ToString => set(def.value_def, &mut self.chart.builtins.to_string),
       Builtin::Neg => set(def.value_def, &mut self.chart.builtins.neg),
       Builtin::Not => set(def.value_def, &mut self.chart.builtins.not),

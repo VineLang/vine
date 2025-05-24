@@ -3,7 +3,7 @@ use data::Iterator;
 use ops::{Cast, comparison::Ord};
 use unicode::ToString;
 
-pub struct Map[K, V](N32, MapData[K, V]);
+pub struct Map[K, V]((N32, MapData[K, V]));
 
 type MapData[K, V] = (Map[K, V], (K, V), Map[K, V]);
 
@@ -17,7 +17,7 @@ pub mod Map {
   pub impl from_list[K, V; Ord[K]]: Cast[List[(K, V)], Map[K, V]] {
     fn .cast(entries: List[(K, V)]) -> Map[K, V] {
       let map = Map::empty[K, V];
-      while entries.pop_front() is Some((key, value)) {
+      while entries.pop_front() is Some(key, value) {
         map.insert(key, value);
       }
       map
@@ -218,7 +218,7 @@ pub mod Map {
     Iter(&self, [])
   }
 
-  pub struct Iter[K, V](&Map[K, V], List[&((K, V), Map[K, V])]);
+  pub struct Iter[K, V]((&Map[K, V], List[&((K, V), Map[K, V])]));
 
   pub mod Iter {
     pub impl iterator[K, V]: Iterator[Iter[K, V], &(K, V)] {
@@ -252,7 +252,7 @@ pub mod Map {
     IntoIter(self, [])
   }
 
-  pub struct IntoIter[K, V](Map[K, V], List[((K, V), Map[K, V])]);
+  pub struct IntoIter[K, V]((Map[K, V], List[((K, V), Map[K, V])]));
 
   pub mod IntoIter {
     pub impl iterator[K, V]: Iterator[IntoIter[K, V], (K, V)] {
@@ -266,7 +266,7 @@ pub mod Map {
           stack.push_front((entry, right));
           node = left;
         }
-        if stack.pop_front() is Some((entry, new_node)) {
+        if stack.pop_front() is Some(entry, new_node) {
           node = new_node;
           Some(entry)
         } else {
@@ -294,7 +294,7 @@ pub mod Map {
       let string = "";
       let iter = map.into_iter();
       let first = true;
-      while iter.next() is Some((key, value)) {
+      while iter.next() is Some(key, value) {
         if !first {
           string ++= ", ";
         }

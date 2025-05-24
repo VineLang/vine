@@ -1,7 +1,7 @@
 
 use std::ops::Cast;
 
-pub struct Array[T](N32, Node[T]);
+pub struct Array[T]((N32, Node[T]));
 
 pub mod Array {
   pub const empty[T]: Array[T] = Array(0, ~_);
@@ -195,7 +195,7 @@ pub mod Array {
   }
 }
 
-struct Node[T](Node[T], Node[T]);
+struct Node[T]((Node[T], Node[T]));
 
 mod Node {
   pub impl leaf_to_node[T]: Cast[T, Node[T]] {

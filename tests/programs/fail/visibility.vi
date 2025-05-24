@@ -9,9 +9,9 @@ mod lib {
   pub mod d { pub fn f() {} pub fn g() {} }
   pub use d::{e, f};
 
-  struct x();
+  struct x(());
   pub mod x {}
-  struct y();
+  struct y(());
 }
 
 // bad: ~1 error per line
@@ -23,7 +23,7 @@ fn main(&io: &IO) {
 }
 
 mod p {
-  pub(main) use lib::{
+  pub.main use lib::{
     a::b,
     c,
     d::e,
@@ -35,7 +35,7 @@ use visibility::circular;
 // good
 mod q {
   const x: fn() = lib::d;
-  pub(visibility) use lib::{
+  pub.visibility use lib::{
     a::c,
     d,
     e,

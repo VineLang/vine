@@ -77,14 +77,11 @@ impl<'core> Compiler<'core> {
     let mut emitter = Emitter::new(chart, &self.specs);
     for value_id in chart.values.keys_from(checkpoint.chart.values) {
       let value_def = &chart.values[value_id];
-      let vir = if let Some(vir) = distiller.distill(value_def) {
+      let vir = distiller.distill(value_def).map(|vir| {
         let mut vir = normalize(&vir);
         analyze(&mut vir);
-        Some(vir)
-      } else {
-        emitter.emit_ivy(value_def);
-        None
-      };
+        vir
+      });
       assert_eq!(self.vir.next_index(), value_id);
       self.vir.push(vir);
     }

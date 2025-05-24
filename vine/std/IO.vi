@@ -67,7 +67,7 @@ pub mod IO {
             break;
           }
         }
-        String({ chars })
+        String(chars)
       })
     } else {
       None
@@ -81,7 +81,7 @@ pub mod IO {
       if byte != '\0' {
         chars ++= [byte];
       } else {
-        return String({ chars });
+        return String(chars);
       }
     }
   }

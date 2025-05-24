@@ -35,7 +35,7 @@ pub fn main(&io: &IO) {
     let orig = line;
     let cost = N64::zero;
     let last = 2;
-    while line.chars.pop_front() is Some(char) {
+    while line!.pop_front() is Some(char) {
       dyn fn pos(x: Char) {
         if x == '0' {
           1
@@ -59,7 +59,7 @@ pub fn main(&io: &IO) {
 
 fn control_string(cur: Char, string: String, seed: N32, f: fn(Char, Char, Bool) -> String) -> String {
   let out = "";
-  while string.chars.pop_front() is Some(next) {
+  while string!.pop_front() is Some(next) {
     out ++= f(cur, next, seed & 1 != 0);
     cur = next;
     seed /= 2;

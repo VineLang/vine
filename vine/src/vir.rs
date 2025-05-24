@@ -10,7 +10,7 @@ use vine_util::{
 use crate::{
   analyzer::{usage::Usage, UsageVar},
   ast::Local,
-  chart::{AdtId, ValueDefId, VariantId},
+  chart::{EnumId, ValueDefId, VariantId},
   specializer::RelId,
 };
 
@@ -75,7 +75,7 @@ impl Interface {
 pub enum InterfaceKind {
   Unconditional(StageId),
   Branch([StageId; 2]),
-  Match(AdtId, Vec<StageId>),
+  Match(EnumId, Vec<StageId>),
 }
 
 impl InterfaceKind {
@@ -93,11 +93,17 @@ pub struct Stage {
   pub id: StageId,
   pub interface: InterfaceId,
   pub layer: LayerId,
-  pub header: Vec<Port>,
+  pub header: Header,
   pub declarations: Vec<Local>,
   pub steps: Vec<Step>,
   pub transfer: Option<Transfer>,
   pub wires: Counter<WireId>,
+}
+
+#[derive(Debug, Clone)]
+pub enum Header {
+  None,
+  Match(Option<Port>),
 }
 
 #[derive(Debug, Clone)]
@@ -110,7 +116,7 @@ pub enum Step {
 
   Fn(Port, Vec<Port>, Port),
   Tuple(Port, Vec<Port>),
-  Adt(AdtId, VariantId, Port, Vec<Port>),
+  Enum(EnumId, VariantId, Port, Option<Port>),
   Ref(Port, Port, Port),
   ExtFn(&'static str, bool, Port, Port, Port),
   Dup(Port, Port, Port),
@@ -119,18 +125,29 @@ pub enum Step {
   InlineIvy(Vec<(String, Port)>, Port, Net),
 }
 
+impl Header {
+  pub fn ports(&self) -> impl Iterator<Item = &Port> {
+    multi_iter!(Ports { Zero, Opt });
+    match self {
+      Header::None => Ports::Zero([]),
+      Header::Match(a) => Ports::Opt(a),
+    }
+  }
+}
+
 impl Step {
   pub fn ports(&self) -> impl Iterator<Item = &Port> {
-    multi_iter!(Ports { Zero, Two, Three, Invoke, Transfer, Tuple, Fn, String, Ivy });
+    multi_iter!(Ports { Zero, One, Two, Three, Invoke, Transfer, Tuple, Fn, String, Ivy });
     match self {
       Step::Invoke(_, invocation) => Ports::Invoke(invocation.ports()),
       Step::Transfer(transfer) | Step::Diverge(_, Some(transfer)) => {
         Ports::Transfer(transfer.data.as_ref())
       }
       Step::Diverge(_, None) => Ports::Zero([]),
-      Step::Link(a, b) => Ports::Two([a, b]),
+      Step::Enum(_, _, a, None) => Ports::One([a]),
+      Step::Link(a, b) | Step::Enum(_, _, a, Some(b)) => Ports::Two([a, b]),
       Step::Fn(f, a, r) => Ports::Fn([f].into_iter().chain(a).chain([r])),
-      Step::Tuple(port, ports) | Step::List(port, ports) | Step::Adt(_, _, port, ports) => {
+      Step::Tuple(port, ports) | Step::List(port, ports) => {
         Ports::Tuple([port].into_iter().chain(ports))
       }
       Step::Ref(a, b, c) | Step::ExtFn(_, _, a, b, c) | Step::Dup(a, b, c) => {

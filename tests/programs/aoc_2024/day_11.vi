@@ -28,7 +28,7 @@ fn blink(&io: &IO, old: Map[N64, N64]) -> Map[N64, N64] {
     let &c = new.get_or_insert(number, N64::zero);
     c += count;
   }
-  while iter.next() is Some((number, count)) {
+  while iter.next() is Some(number, count) {
     if number == N64::zero {
       add_stones(N64::one, count);
     } else {

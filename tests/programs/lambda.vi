@@ -11,9 +11,9 @@ pub fn main(&io: &IO) {
 }
 
 pub enum Term {
-  Lambda(List[~Term], Term),
-  Apply(Term, Term),
-  Spine(String, List[Term]),
+  Lambda((List[~Term], Term)),
+  Apply((Term, Term)),
+  Spine((String, List[Term])),
 }
 
 pub mod Term {
@@ -75,12 +75,12 @@ pub mod Term {
   }
 }
 
-struct Parser {
+struct Parser(pub {
   io: IO,
   scope: Map[String, List[List[~Term]]],
   chars: List[Char],
   error: ~Option[String],
-}
+});
 
 mod Parser {
   pub fn .parse_term(&self: &Parser) -> Term {
@@ -99,7 +99,7 @@ mod Parser {
       self.error("expected term");
     }
     let char = self.chars.get(0).*;
-    self.io.println(String({ chars: [char] }));
+    self.io.println(String([char]));
     if char == '\\' {
       self.io.println("lambda");
       self.chars.pop_front();
@@ -137,13 +137,13 @@ mod Parser {
     if chars.len() == 0 {
       self.error("expected variable");
     }
-    String({ chars })
+    String(chars)
   }
 
   fn .expect_char(&self: &Parser, char: Char) {
     self.skip_ws();
     if !(self.chars.pop_front() is Some(c) && c == char) {
-      self.error("expected `{String({ chars: [char] })}`");
+      self.error("expected `{String([char])}`");
     }
   }
 
@@ -168,5 +168,5 @@ fn new_var(n: N32) -> String {
     chars.push_front('a' + (n % 26));
     n /= 26;
   }
-  String({ chars })
+  String(chars)
 }

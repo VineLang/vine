@@ -8,7 +8,7 @@ pub fn main(&io: &IO) {
   let scores = 0;
   let ratings = 0;
   cross(
-    input.split_trim("\n").map(fn(String({ chars })) { chars }),
+    input.split_trim("\n").map(fn(String(chars)) { chars }),
     fn(char: Char, Neighbors(n, s, e, w), &(io: IO, id: N32, scores: N32, ratings: N32)) {
       let Channel((nit, nis), ~(not, nos)) = n;
       let Channel((sit, sis), ~(sot, sos)) = s;
@@ -98,7 +98,7 @@ fn count(s: Set) -> N32 {
   c128(x) + c128(y)
 }
 
-struct Channel[M](M, ~M);
+struct Channel[M]((M, ~M));
 
 mod Channel {
   pub fn .send[M](Channel[M](got, ~out), value: M) -> M {
@@ -133,7 +133,7 @@ fn check(Channel[Char](i, ~o), recv: Char) -> N32 {
   }
 }
 
-struct Neighbors[M](Channel[M], Channel[M], Channel[M], Channel[M]);
+struct Neighbors[M]((Channel[M], Channel[M], Channel[M], Channel[M]));
 
 fn cross[T, M, X](grid: List[List[T]], f: fn(T, Neighbors[M], &X), d: M, &state: &X) {
   let width = (*grid.get(0)).len();

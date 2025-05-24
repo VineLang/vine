@@ -1,7 +1,7 @@
 
 pub fn main(&io: &IO) {
   let lines = [];
-  while io.read_line() is Some(String({ chars })) {
+  while io.read_line() is Some(String(chars)) {
     lines ++= [chars];
   }
 
@@ -47,9 +47,7 @@ pub fn main(&io: &IO) {
         let ne = ne.send('A');
         let sw = sw.send('A');
         let se = se.send('A');
-        if ((nw == 'M' && se == 'S') || (nw == 'S' && se == 'M')) && (
-          (sw == 'M' && ne == 'S') || (sw == 'S' && ne == 'M')
-        ) {
+        if ((nw == 'M' && se == 'S') || (nw == 'S' && se == 'M')) && ((sw == 'M' && ne == 'S') || (sw == 'S' && ne == 'M')) {
           matches += 1;
         }
       } else {
@@ -66,7 +64,7 @@ pub fn main(&io: &IO) {
   io.println("X-MAS: {matches}");
 }
 
-struct Channel[M](M, ~M);
+struct Channel[M]((M, ~M));
 
 mod Channel {
   pub fn .send[M](Channel[M](got, ~out), value: M) -> M {
@@ -101,7 +99,7 @@ fn check(Channel[Char](i, ~o), recv: Char) -> N32 {
   }
 }
 
-struct Neighbors[M](
+struct Neighbors[M]((
   Channel[M],
   Channel[M],
   Channel[M],
@@ -110,7 +108,7 @@ struct Neighbors[M](
   Channel[M],
   Channel[M],
   Channel[M],
-);
+));
 
 fn diamond[T, M, X](grid: List[List[T]], f: fn(T, Neighbors[M], &X), d: M, state: X) -> X {
   let width = (*grid.get(0)).len();

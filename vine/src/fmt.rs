@@ -37,11 +37,7 @@ struct Formatter<'src> {
 impl<'core: 'src, 'src> Formatter<'src> {
   fn fmt_item(&self, item: &Item<'core>) -> Doc<'src> {
     Doc::concat(item.attrs.iter().flat_map(|x| [self.fmt_verbatim(x.span), Doc::LINE]).chain([
-      match &item.vis {
-        Vis::Private => Doc::EMPTY,
-        Vis::Public => Doc("pub "),
-        Vis::PublicTo(_, name) => Doc::concat([Doc("pub("), Doc(*name), Doc(") ")]),
-      },
+      self.fmt_vis(&item.vis),
       match &item.kind {
         ItemKind::Fn(f) => {
           let params = &f.params;
@@ -74,17 +70,8 @@ impl<'core: 'src, 'src> Formatter<'src> {
           Doc("struct "),
           Doc(s.name),
           self.fmt_generic_params(&s.generics),
-          if s.object {
-            let TyKind::Object(e) = &s.fields[0].kind else { unreachable!() };
-            Doc::concat([
-              Doc(" "),
-              Doc::brace_comma_multiline(
-                e.iter().map(|(k, v)| Doc::concat([Doc(k.ident), Doc(": "), self.fmt_ty(v)])),
-              ),
-            ])
-          } else {
-            Doc::concat([Doc::paren_comma(s.fields.iter().map(|x| self.fmt_ty(x))), Doc(";")])
-          },
+          Doc::paren(Doc::concat([self.fmt_vis(&s.data_vis), self.fmt_ty(&s.data)])),
+          Doc(";"),
         ]),
         ItemKind::Enum(e) => Doc::concat([
           Doc("enum "),
@@ -94,11 +81,7 @@ impl<'core: 'src, 'src> Formatter<'src> {
           Doc::brace_comma_multiline(e.variants.iter().map(|v| {
             Doc::concat([
               Doc(v.name),
-              if v.fields.is_empty() {
-                Doc::EMPTY
-              } else {
-                Doc::paren_comma(v.fields.iter().map(|x| self.fmt_ty(x)))
-              },
+              if let Some(data) = &v.data { Doc::paren(self.fmt_ty(data)) } else { Doc("") },
             ])
           })),
         ]),
@@ -150,6 +133,14 @@ impl<'core: 'src, 'src> Formatter<'src> {
         ItemKind::Taken => unreachable!(),
       },
     ]))
+  }
+
+  fn fmt_vis(&self, vis: &Vis<'core>) -> Doc<'src> {
+    match vis {
+      Vis::Private => Doc::EMPTY,
+      Vis::Public => Doc("pub "),
+      Vis::PublicTo(_, name) => Doc::concat([Doc("pub."), Doc(*name), Doc(" ")]),
+    }
   }
 
   fn fmt_block_like(
@@ -365,7 +356,10 @@ impl<'core: 'src, 'src> Formatter<'src> {
       ExprKind![synthetic || resolved || error] => unreachable!(),
       ExprKind::Paren(p) => Doc::paren(self.fmt_expr(p)),
       ExprKind::Hole => Doc("_"),
-      ExprKind::Path(path) => self.fmt_path(path),
+      ExprKind::Path(path, None) => self.fmt_path(path),
+      ExprKind::Path(path, Some(args)) => {
+        Doc::concat([self.fmt_path(path), Doc::paren_comma(args.iter().map(|x| self.fmt_expr(x)))])
+      }
       ExprKind::Do(label, block) => {
         Doc::concat([Doc("do"), self.fmt_label(label), Doc(" "), self.fmt_block(block, false)])
       }
@@ -427,12 +421,13 @@ impl<'core: 'src, 'src> Formatter<'src> {
       ExprKind::Cast(x, ty, true) => {
         Doc::concat([self.fmt_expr(x), Doc(".as["), self.fmt_ty(ty), Doc("]")])
       }
+      ExprKind::Unwrap(x) => Doc::concat([self.fmt_expr(x), Doc("!")]),
       ExprKind::Place(v, s) => {
         Doc::concat([Doc("("), self.fmt_expr(v), Doc("; "), self.fmt_expr(s), Doc(")")])
       }
       ExprKind::Tuple(t) => Doc::tuple(t.iter().map(|x| self.fmt_expr(x))),
       ExprKind::Object(o) => Doc::brace_comma_space(o.iter().map(|(k, v)| {
-        if let ExprKind::Path(path) = &v.kind {
+        if let ExprKind::Path(path, None) = &v.kind {
           if let Some(i) = path.as_ident() {
             if k.ident == i {
               return Doc(k.ident);
@@ -522,11 +517,13 @@ impl<'core: 'src, 'src> Formatter<'src> {
 
   fn fmt_pat(&self, pat: &Pat<'core>) -> Doc<'src> {
     match &pat.kind {
-      PatKind::Local(_) | PatKind::Adt(..) | PatKind::Error(_) => unreachable!(),
+      PatKind::Local(_) | PatKind::Struct(..) | PatKind::Enum(..) | PatKind::Error(_) => {
+        unreachable!()
+      }
       PatKind::Hole => Doc("_"),
       PatKind::Paren(p) => Doc::paren(self.fmt_pat(p)),
-      PatKind::PathCall(p, None) => self.fmt_path(p),
-      PatKind::PathCall(p, Some(x)) => {
+      PatKind::Path(p, None) => self.fmt_path(p),
+      PatKind::Path(p, Some(x)) => {
         Doc::concat([self.fmt_path(p), Doc::paren_comma(x.iter().map(|x| self.fmt_pat(x)))])
       }
       PatKind::Ref(p) => Doc::concat([Doc("&"), self.fmt_pat(p)]),
@@ -538,7 +535,7 @@ impl<'core: 'src, 'src> Formatter<'src> {
           PatKind::Annotation(p, t) => (&**p, Some(t)),
           _ => (pat, None),
         };
-        let pat = if let PatKind::PathCall(path, None) = &pat.kind {
+        let pat = if let PatKind::Path(path, None) = &pat.kind {
           if let Some(i) = path.as_ident() {
             if key.ident == i {
               None

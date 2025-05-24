@@ -1,6 +1,4 @@
 
-::std::logical::Option::None { enum(_ enum(n0 n0)) }
-
 ::main { ::fib_repl::main }
 
 ::fib_repl::main {
@@ -30,7 +28,7 @@
 
 ::fib_repl::fib::3 { x(_ x(x(n0 n0) _)) }
 
-::std::numeric::N32::parse::2 { x(_ x(_ ::std::logical::Option::None)) }
+::std::numeric::N32::parse::2 { x(_ x(_ enum(_ enum(n0 n0)))) }
 
 ::std::numeric::N32::parse::3 { x(dup42(n0 @n32_ne(0 ?(::std::numeric::N32::parse::6 ::std::numeric::N32::parse::5 x(n0 x(n1 x(0 n2)))))) x(n1 n2)) }
 
@@ -40,7 +38,7 @@
 
 ::std::numeric::N32::parse::8 { x(@n32_sub(1 dup42(n0 @n32_ne(0 ?(::std::numeric::N32::parse::6 ::std::numeric::N32::parse::5 x(n0 x(n1 x(n2 n3))))))) x(n1 x(@n32_mul(10 @n32_add(n4 n2)) x(@n32_sub(48 n4) n3)))) }
 
-::std::numeric::N32::parse::9 { x(_ x(_ x(_ x(_ ::std::logical::Option::None)))) }
+::std::numeric::N32::parse::9 { x(_ x(_ x(_ x(_ enum(_ enum(n0 n0)))))) }
 
 ::std::IO::print::2 { x(x(@io_print_char(n0 n1) n2) x(@n32_sub(1 dup42(n3 @n32_ne(0 ?(::std::IO::print::3 ::std::IO::print::2 x(x(n1 n2) x(n3 n4)))))) tup(n0 n4))) }
 
@@ -48,7 +46,7 @@
 
 ::std::IO::read_line::2 { x(n0 x(dup1784(n1 @n32_eq(10 ?(::std::IO::read_line::6 ::std::IO::read_line::5 x(n0 x(n1 n2))))) enum(enum(n2 n3) enum(_ n3)))) }
 
-::std::IO::read_line::3 { x(x(n0 n0) x(_ ::std::logical::Option::None)) }
+::std::IO::read_line::3 { x(x(n0 n0) x(_ enum(_ enum(n1 n1)))) }
 
 ::std::IO::read_line::5 { x(x(n0 n0) x(_ tup(0 tup(n1 n1)))) }
 

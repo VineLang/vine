@@ -242,11 +242,11 @@ impl<'core, 'ctx, 'ivm, 'ext> Repl<'core, 'ctx, 'ivm, 'ext> {
     self.ivm.normalize();
 
     let tree = self.host.read(self.ivm, &PortRef::new_wire(&out));
-    let output = (tree != Tree::Erase).then(|| self.show(&mut ty, &tree));
+    let output = self.show(&mut ty, &tree);
     self.ivm.link_wire(out, Port::ERASE);
     self.ivm.normalize();
 
-    Ok(output)
+    Ok((output != "()").then_some(output))
   }
 
   fn parse_line(&mut self, line: &str) -> Result<Vec<Stmt<'core>>, Diag<'core>> {
@@ -297,7 +297,7 @@ impl<'core, 'ctx, 'ivm, 'ext> Repl<'core, 'ctx, 'ivm, 'ext> {
           tys.keys().zip(values).map(|(k, v)| format!("{k}: {v}")).collect::<Vec<_>>().join(", ")
         )
       }
-      (Type::Adt(def, args), tree)
+      (Type::Struct(def, args), tree)
         if builtins.list == Some(*def) || builtins.string == Some(*def) =>
       {
         let Tree::Comb(c, l, r) = tree else { None? };
@@ -335,60 +335,62 @@ impl<'core, 'ctx, 'ivm, 'ext> Repl<'core, 'ctx, 'ivm, 'ext> {
           )
         }
       }
-      (Type::Adt(adt_id, args), tree) => {
-        let adt = &self.compiler.chart.adts[*adt_id];
-        if adt.variants.len() == 1 {
-          let mut fields = self.compiler.types.adt_types[*adt_id][VariantId(0)]
-            .iter()
-            .map(|x| x.instantiate(args))
-            .collect::<Vec<_>>();
-          let name = adt.variants[VariantId(0)].name;
-          if fields.is_empty() {
-            name.to_string()
+      (Type::Struct(struct_id, args), tree) => {
+        let name = self.compiler.chart.structs[*struct_id].name;
+        let mut data = self.compiler.types.struct_types[*struct_id].instantiate(args);
+        let data = self.show(&mut data, tree);
+        if data.starts_with("(") {
+          format!("{name}{}", data)
+        } else {
+          format!("{name}({})", data)
+        }
+      }
+      (Type::Enum(enum_id, args), tree) => {
+        let enum_def = &self.compiler.chart.enums[*enum_id];
+        let variant_count = enum_def.variants.len();
+        let mut active_variant = None;
+        let mut tree = tree;
+        for i in 0..variant_count {
+          let Tree::Comb(c, l, r) = tree else { None? };
+          let "enum" = &**c else { None? };
+          if **l != Tree::Erase {
+            if active_variant.is_some() {
+              None?
+            }
+            active_variant = Some((VariantId(i), &**l));
+          }
+          tree = r;
+        }
+        let end = tree;
+        if !matches!(end, Tree::Var(_)) {
+          None?
+        }
+        let (variant_id, mut tree) = active_variant?;
+        let variant = &enum_def.variants[variant_id];
+        let name = variant.name;
+        let data = self.compiler.types.enum_types[*enum_id][variant_id]
+          .as_ref()
+          .map(|x| x.instantiate(args));
+        let data = if let Some(mut ty) = data {
+          let Tree::Comb(c, l, r) = tree else { None? };
+          let "enum" = &**c else { None? };
+          tree = r;
+          Some(self.show(&mut ty, l))
+        } else {
+          None
+        };
+
+        if tree != end {
+          None?
+        }
+        if let Some(data) = data {
+          if data.starts_with("(") {
+            format!("{name}{}", data)
           } else {
-            format!("{name}({})", self.read_tuple(&mut fields, tree)?.join(", "))
+            format!("{name}({})", data)
           }
         } else {
-          let variant_count = adt.variants.len();
-          let mut active_variant = None;
-          let mut tree = tree;
-          for i in 0..variant_count {
-            let Tree::Comb(c, l, r) = tree else { None? };
-            let "enum" = &**c else { None? };
-            if **l != Tree::Erase {
-              if active_variant.is_some() {
-                None?
-              }
-              active_variant = Some((VariantId(i), &**l));
-            }
-            tree = r;
-          }
-          let end = tree;
-          if !matches!(end, Tree::Var(_)) {
-            None?
-          }
-          let (variant_id, mut tree) = active_variant?;
-          let variant = &adt.variants[variant_id];
-          let name = variant.name;
-          let field_types = self.compiler.types.adt_types[*adt_id][variant_id]
-            .iter()
-            .map(|x| x.instantiate(args))
-            .collect::<Vec<_>>();
-          let mut fields = Vec::new();
-          for mut field in field_types {
-            let Tree::Comb(c, l, r) = tree else { None? };
-            let "enum" = &**c else { None? };
-            fields.push(self.show(&mut field, l));
-            tree = r;
-          }
-          if tree != end {
-            None?
-          }
-          if fields.is_empty() {
-            name.to_string()
-          } else {
-            format!("{name}({})", fields.join(", "))
-          }
+          name.to_string()
         }
       }
       (_, Tree::Erase) => "~_".into(),

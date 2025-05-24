@@ -1,6 +1,4 @@
 
-::std::logical::Option::None { enum(_ enum(n0 n0)) }
-
 ::main { ::cat::main }
 
 ::cat::main {
@@ -20,7 +18,7 @@
 
 ::std::IO::read_line::2 { x(n0 x(dup1758(n1 @n32_eq(10 ?(::std::IO::read_line::6 ::std::IO::read_line::5 x(n0 x(n1 n2))))) enum(enum(n2 n3) enum(_ n3)))) }
 
-::std::IO::read_line::3 { x(x(n0 n0) x(_ ::std::logical::Option::None)) }
+::std::IO::read_line::3 { x(x(n0 n0) x(_ enum(_ enum(n1 n1)))) }
 
 ::std::IO::read_line::5 { x(x(n0 n0) x(_ tup(0 tup(n1 n1)))) }
 

@@ -29,7 +29,7 @@ pub fn main(&io: &IO) {
   let y = 0;
   while grid.pop_front() is Some(row) {
     let x = 0;
-    while row.chars.pop_front() is Some(frequency) {
+    while row!.pop_front() is Some(frequency) {
       if frequency != '.' {
         let &antennas = antennas.get_or_insert(frequency, []);
         let pos = (x, y);

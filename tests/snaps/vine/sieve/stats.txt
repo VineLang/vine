@@ -1,11 +1,11 @@
 
 Interactions
-  Total          131_485_823
+  Total          131_485_822
   Annihilate      61_127_669
   Commute                  0
   Copy            14_000_727
   Erase           13_668_042
-  Expand           9_129_135
+  Expand           9_129_134
   Call            24_531_121
   Branch           9_029_129
 

@@ -1,6 +1,8 @@
 error tests/programs/fail/visibility.vi:18:1 - subitems must be private
 error tests/programs/fail/visibility.vi:26:7 - invalid visibility; expected the name of an ancestor module
 error - `::visibility::main` is only visible within `::visibility`
+error tests/programs/fail/visibility.vi:20:24 - constructor expects data
+error tests/programs/fail/visibility.vi:20:7 - expected data subpattern
 error tests/programs/fail/visibility.vi:21:24 - `::visibility::lib::y` is only visible within `::visibility::lib`
 error tests/programs/fail/visibility.vi:21:7 - `::visibility::lib::y` is only visible within `::visibility::lib`
 error tests/programs/fail/visibility.vi:21:15 - `::visibility::lib::y` is only visible within `::visibility::lib`

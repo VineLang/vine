@@ -1,13 +1,13 @@
 
 Interactions
-  Total           12_005_963
-    Depth          7_003_731
+  Total           12_005_960
+    Depth          7_003_728
     Breadth                1
   Annihilate       4_002_167
   Commute                  0
   Copy             2_000_803
   Erase            1_000_631
-  Expand           1_000_502
+  Expand           1_000_499
   Call             3_001_395
   Branch           1_000_465
 

@@ -1,13 +1,13 @@
 
 Interactions
-  Total                6_250
-    Depth              1_067
+  Total                6_245
+    Depth              1_066
     Breadth                5
   Annihilate           2_959
   Commute                 21
   Copy                   904
   Erase                  610
-  Expand                 422
+  Expand                 417
   Call                 1_030
   Branch                 304
 

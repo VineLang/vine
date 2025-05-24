@@ -1,13 +1,13 @@
 
 Interactions
-  Total                3_404
-    Depth                345
+  Total                3_397
+    Depth                344
     Breadth                9
   Annihilate           1_517
   Commute                  0
   Copy                   471
   Erase                  522
-  Expand                 303
+  Expand                 296
   Call                   399
   Branch                 192
 

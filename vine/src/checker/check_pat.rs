@@ -1,6 +1,5 @@
 use crate::{
-  ast::{GenericArgs, Pat, PatKind, Span},
-  chart::{AdtId, VariantId},
+  ast::{Pat, PatKind},
   checker::{Checker, Form, Type},
   diag::{report, Diag},
 };
@@ -32,7 +31,7 @@ impl<'core> Checker<'core, '_> {
     let span = pat.span;
     match (&mut pat.kind, form) {
       (_, Form::Error(_)) => unreachable!(),
-      (PatKind::PathCall(..), _) => unreachable!(),
+      (PatKind::Path(..), _) => unreachable!(),
       (PatKind::Error(e), _) => Type::Error(*e),
 
       (PatKind::Paren(p), _) => self.check_pat(p, form, refutable),
@@ -43,8 +42,37 @@ impl<'core> Checker<'core, '_> {
         ty
       }
 
-      (PatKind::Adt(adt, variant, generics, fields), _) => {
-        report!(self.core, pat.kind; self.check_adt_pat(span, *adt, *variant, generics, fields, form, refutable))
+      (PatKind::Struct(struct_id, generics, data), _) => {
+        let type_params =
+          self.check_generics(generics, self.chart.structs[*struct_id].generics, true);
+        let mut data_ty = self.types.struct_types[*struct_id].instantiate(&type_params);
+        self.check_pat_type(data, form, refutable, &mut data_ty);
+        Type::Struct(*struct_id, type_params)
+      }
+      (PatKind::Enum(enum_id, variant, generics, data), _) => {
+        let type_params = self.check_generics(generics, self.chart.enums[*enum_id].generics, true);
+        let data_ty = &self.types.enum_types[*enum_id][*variant];
+        match (data, data_ty) {
+          (None, None) => {}
+          (Some(data), Some(data_ty)) => {
+            self.check_pat_type(
+              data,
+              Form::Value,
+              refutable,
+              &mut data_ty.instantiate(&type_params),
+            );
+          }
+          (None, Some(_)) => {
+            self.core.report(Diag::ExpectedDataSubpattern { span });
+          }
+          (Some(_), None) => {
+            self.core.report(Diag::EnumVariantNoData { span });
+          }
+        }
+        if !refutable {
+          self.core.report(Diag::ExpectedCompletePat { span });
+        }
+        Type::Enum(*enum_id, type_params)
       }
 
       (PatKind::Hole, _) => self.unifier.new_var(span),
@@ -82,38 +110,5 @@ impl<'core> Checker<'core, '_> {
         Type::Error(err)
       }
     }
-  }
-
-  #[allow(clippy::too_many_arguments)]
-  fn check_adt_pat(
-    &mut self,
-    span: Span,
-    adt: AdtId,
-    variant: VariantId,
-    generics: &mut GenericArgs<'core>,
-    fields: &mut [Pat<'core>],
-    form: Form,
-    refutable: bool,
-  ) -> Result<Type<'core>, Diag<'core>> {
-    let type_params = self.check_generics(generics, self.chart.adts[adt].generics, true);
-    let field_tys = self.types.adt_types[adt][variant]
-      .iter()
-      .map(|t| t.instantiate(&type_params))
-      .collect::<Vec<_>>();
-    if fields.len() != field_tys.len() {
-      Err(Diag::BadFieldCount {
-        span,
-        path: self.chart.defs[self.chart.adts[adt].def].path,
-        expected: field_tys.len(),
-        got: fields.len(),
-      })?
-    }
-    for (field, mut ty) in fields.iter_mut().zip(field_tys) {
-      self.check_pat_type(field, form, refutable, &mut ty);
-    }
-    if !refutable && self.chart.adts[adt].variants.len() != 1 {
-      return Err(Diag::ExpectedCompletePat { span });
-    }
-    Ok(Type::Adt(adt, type_params))
   }
 }

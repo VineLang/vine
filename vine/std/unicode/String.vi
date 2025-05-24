@@ -2,12 +2,10 @@
 use ops::{Cast, Concat, comparison::{Eq, Ord}};
 
 #[builtin = "String"]
-pub struct String {
-  chars: List[Char],
-}
+pub struct String(pub List[Char]);
 
 pub mod String {
-  pub fn .len(&String({ chars: List(len, _, _) })) -> N32 {
+  pub fn .len(&String(List(len, _, _))) -> N32 {
     len
   }
 
@@ -48,8 +46,8 @@ pub mod String {
     let prefix = "";
     let suffix = self;
     while suffix.len() >= sep.len() {
-      let iter_a = sep.chars.iter();
-      let iter_b = suffix.chars.iter();
+      let iter_a = sep!.iter();
+      let iter_b = suffix!.iter();
       do.check {
         while iter_a.next() is Some(&a) && iter_b.next() is Some(&b) {
           if a != b {
@@ -62,8 +60,8 @@ pub mod String {
       }
       iter_a.drop();
       iter_b.drop();
-      if suffix.chars.pop_front() is Some(char) {
-        prefix ++= String({ chars: [char] });
+      if suffix!.pop_front() is Some(char) {
+        prefix ++= String([char]);
       } else {
         break;
       }
@@ -75,8 +73,8 @@ pub mod String {
     if self.len() < prefix.len() {
       return Err(prefix);
     }
-    let self_iter = self.chars.iter();
-    let prefix_iter = prefix.chars.iter();
+    let self_iter = self!.iter();
+    let prefix_iter = prefix!.iter();
     while prefix_iter.next() is Some(&a) {
       let &b = self_iter.next().unwrap();
       if a != b {
@@ -94,8 +92,8 @@ pub mod String {
     if self.len() < prefix.len() {
       return false;
     }
-    let self_iter = self.chars.iter();
-    let prefix_iter = prefix.chars.iter();
+    let self_iter = self!.iter();
+    let prefix_iter = prefix!.iter();
     while prefix_iter.next() is Some(&a) {
       let &b = self_iter.next().unwrap();
       if a != b {
@@ -110,17 +108,17 @@ pub mod String {
 
   pub impl eq: Eq[String] {
     fn eq(&self: &String, &other: &String) -> Bool {
-      self.chars == other.chars
+      self! == other!
     }
 
     fn ne(&self: &String, &other: &String) -> Bool {
-      self.chars != other.chars
+      self! != other!
     }
   }
 
   pub impl ord: Ord[String] {
     fn cmp(&a: &String, &b: &String) -> Ord {
-      a.chars.cmp(&b.chars)
+      a!.cmp(&b!)
     }
 
     const lt: fn(&String, &String) -> Bool = Ord::lt_from_cmp[String];
@@ -128,8 +126,8 @@ pub mod String {
   }
 
   pub impl concat: Concat[String, String, String] {
-    fn .concat(String({ chars: a }), String({ chars: b })) -> String {
-      String({ chars: a ++ b })
+    fn .concat(String(a), String(b)) -> String {
+      String(a ++ b)
     }
   }
 
@@ -150,12 +148,12 @@ pub mod String {
 
   pub impl from_chars: Cast[List[Char], String] {
     fn .cast(chars: List[Char]) -> String {
-      String({ chars })
+      String(chars)
     }
   }
 
   pub impl to_chars: Cast[String, List[Char]] {
-    fn .cast(String({ chars })) -> List[Char] {
+    fn .cast(String(chars)) -> List[Char] {
       chars
     }
   }

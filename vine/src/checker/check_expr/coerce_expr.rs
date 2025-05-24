@@ -33,7 +33,11 @@ impl<'core> Checker<'core, '_> {
     match &mut expr.kind {
       ExprKind::Local(l) => expr.kind = ExprKind::CopyLocal(*l),
       ExprKind::Inverse(e, _) => Self::hedge_expr(e),
-      ExprKind::Adt(_, _, _, t) | ExprKind::Tuple(t) => {
+      ExprKind::Enum(_, _, _, None) => {}
+      ExprKind::Struct(_, _, d) | ExprKind::Enum(_, _, _, Some(d)) => {
+        Self::copy_expr(d);
+      }
+      ExprKind::Tuple(t) => {
         for e in t {
           Self::copy_expr(e);
         }
@@ -51,7 +55,11 @@ impl<'core> Checker<'core, '_> {
     match &mut expr.kind {
       ExprKind::Local(l) => expr.kind = ExprKind::HedgeLocal(*l),
       ExprKind::Inverse(e, _) => Self::copy_expr(e),
-      ExprKind::Adt(_, _, _, t) | ExprKind::Tuple(t) => {
+      ExprKind::Enum(_, _, _, None) => {}
+      ExprKind::Struct(_, _, d) | ExprKind::Enum(_, _, _, Some(d)) => {
+        Self::hedge_expr(d);
+      }
+      ExprKind::Tuple(t) => {
         for e in t {
           Self::hedge_expr(e);
         }
@@ -69,7 +77,11 @@ impl<'core> Checker<'core, '_> {
     match &mut expr.kind {
       ExprKind::Local(l) => expr.kind = ExprKind::SetLocal(*l),
       ExprKind::Inverse(e, _) => Self::move_expr(e),
-      ExprKind::Adt(_, _, _, t) | ExprKind::Tuple(t) => {
+      ExprKind::Enum(_, _, _, None) => {}
+      ExprKind::Struct(_, _, d) | ExprKind::Enum(_, _, _, Some(d)) => {
+        Self::set_expr(d);
+      }
+      ExprKind::Tuple(t) => {
         for e in t {
           Self::set_expr(e);
         }
@@ -87,7 +99,11 @@ impl<'core> Checker<'core, '_> {
     match &mut expr.kind {
       ExprKind::Local(l) => expr.kind = ExprKind::MoveLocal(*l),
       ExprKind::Inverse(e, _) => Self::set_expr(e),
-      ExprKind::Adt(_, _, _, t) | ExprKind::Tuple(t) => {
+      ExprKind::Enum(_, _, _, None) => {}
+      ExprKind::Struct(_, _, d) | ExprKind::Enum(_, _, _, Some(d)) => {
+        Self::move_expr(d);
+      }
+      ExprKind::Tuple(t) => {
         for e in t {
           Self::move_expr(e);
         }

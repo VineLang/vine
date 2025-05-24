@@ -17,8 +17,8 @@ pub fn main(&io: &IO) {
     let px = N32::parse(px).unwrap();
     let py = N32::parse(py).unwrap();
     dyn fn parse_signed(x: String, m: N32) {
-      if *x.chars.get(0) == '-' {
-        x.chars.pop_front();
+      if *x!.get(0) == '-' {
+        x!.pop_front();
         m - N32::parse(x).unwrap()
       } else {
         N32::parse(x).unwrap()
@@ -35,7 +35,7 @@ pub fn main(&io: &IO) {
   let c = 0;
   let d = 0;
   let iter = robots.into_iter();
-  while iter.next() is Some((px, py, vx, vy)) {
+  while iter.next() is Some(px, py, vx, vy) {
     let x = (px + vx * 100) % width;
     let y = (py + vy * 100) % height;
     if x < width / 2 {
@@ -65,7 +65,7 @@ pub fn main(&io: &IO) {
     io.println("\x1b[2J\x1b[H");
     let grid = Array::new(height, Array::new(width, '.'));
     let iter = robots.into_iter();
-    while iter.next() is Some((px, py, vx, vy)) {
+    while iter.next() is Some(px, py, vx, vy) {
       let x = (px + vx * i) % width;
       let y = (py + vy * i) % height;
       *(*grid.get(y)).get(x) = '#';

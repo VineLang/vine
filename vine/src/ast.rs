@@ -10,7 +10,7 @@ use ivy::ast::Net;
 use vine_util::{idx, interner::Interned, new_idx};
 
 use crate::{
-  chart::{AdtId, ImplDefId, TraitDefId, TypeDefId, ValueDefId, VariantId},
+  chart::{EnumId, ImplDefId, StructId, TraitDefId, TypeDefId, ValueDefId, VariantId},
   diag::ErrorGuaranteed,
   specializer::RelId,
 };
@@ -70,8 +70,8 @@ pub struct TypeItem<'core> {
 pub struct StructItem<'core> {
   pub name: Ident<'core>,
   pub generics: GenericParams<'core>,
-  pub fields: Vec<Ty<'core>>,
-  pub object: bool,
+  pub data_vis: Vis<'core>,
+  pub data: Ty<'core>,
 }
 
 #[derive(Debug, Clone)]
@@ -84,7 +84,7 @@ pub struct EnumItem<'core> {
 #[derive(Debug, Clone)]
 pub struct Variant<'core> {
   pub name: Ident<'core>,
-  pub fields: Vec<Ty<'core>>,
+  pub data: Option<Ty<'core>>,
 }
 
 #[derive(Debug, Clone)]
@@ -241,7 +241,7 @@ pub enum ExprKind<'core> {
   #[class(value, place, space)]
   Paren(B<Expr<'core>>),
   #[class(value)]
-  Path(Path<'core>),
+  Path(Path<'core>, Option<Vec<Expr<'core>>>),
   #[class(value, resolved)]
   Def(ValueDefId, GenericArgs<'core>),
   #[class(value, synthetic)]
@@ -295,7 +295,9 @@ pub enum ExprKind<'core> {
   #[class(value)]
   Call(B<Expr<'core>>, Vec<Expr<'core>>),
   #[class(value, place, space, resolved)]
-  Adt(AdtId, VariantId, GenericArgs<'core>, Vec<Expr<'core>>),
+  Struct(StructId, GenericArgs<'core>, B<Expr<'core>>),
+  #[class(value, resolved)]
+  Enum(EnumId, VariantId, GenericArgs<'core>, Option<B<Expr<'core>>>),
   #[class(value, sugar)]
   Neg(B<Expr<'core>>),
   #[class(value, sugar)]
@@ -314,6 +316,8 @@ pub enum ExprKind<'core> {
   BinaryOpAssign(BinaryOp, B<Expr<'core>>, B<Expr<'core>>),
   #[class(value, sugar)]
   Cast(B<Expr<'core>>, B<Ty<'core>>, bool),
+  #[class(value, space, place)]
+  Unwrap(B<Expr<'core>>),
   #[class(value)]
   N32(u32),
   #[class(value)]
@@ -388,9 +392,11 @@ pub enum PatKind<'core> {
   #[class(value, place, space)]
   Annotation(B<Pat<'core>>, B<Ty<'core>>),
   #[class(value, place, space)]
-  PathCall(Path<'core>, Option<Vec<Pat<'core>>>),
+  Path(Path<'core>, Option<Vec<Pat<'core>>>),
   #[class(value, place, space)]
-  Adt(AdtId, VariantId, GenericArgs<'core>, Vec<Pat<'core>>),
+  Struct(StructId, GenericArgs<'core>, B<Pat<'core>>),
+  #[class(value, place, space)]
+  Enum(EnumId, VariantId, GenericArgs<'core>, Option<B<Pat<'core>>>),
   #[class(value, place, space)]
   Local(Local),
   #[class(value, place)]
@@ -434,14 +440,15 @@ impl<'core> Path<'core> {
   }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Default)]
 pub struct Ty<'core> {
   pub span: Span,
   pub kind: TyKind<'core>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub enum TyKind<'core> {
+  #[default]
   Hole,
   Paren(B<Ty<'core>>),
   Fn(Vec<Ty<'core>>, Option<B<Ty<'core>>>),

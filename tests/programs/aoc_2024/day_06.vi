@@ -12,7 +12,7 @@ pub fn main(&io: &IO) {
   let iter = grid.iter();
   while iter.next() is Some(&row) {
     let x = 0;
-    let iter = row.chars.iter();
+    let iter = row!.iter();
     while iter.next() is Some(&cell) {
       if cell == '^' {
         guard_pos = (x, y);
@@ -23,7 +23,7 @@ pub fn main(&io: &IO) {
     y += 1;
   }
 
-  let grid = grid.map(fn(String({ chars })) { chars as Array }) as Array;
+  let grid = grid.map(fn(String(chars)) { chars as Array }) as Array;
 
   let (_, length) = walk(&grid, guard_pos);
 
@@ -34,7 +34,7 @@ pub fn main(&io: &IO) {
 
   let i = 0;
   let loops = 0;
-  while spaces.pop_front() is Some((x, y)) {
+  while spaces.pop_front() is Some(x, y) {
     let grid = grid;
     *(*grid.get(y)).get(x) = '#';
     let (looped, _) = walk(&grid, guard_pos);

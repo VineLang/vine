@@ -1,6 +1,4 @@
 
-::std::logical::Option::None { enum(_ enum(n0 n0)) }
-
 ::main { ::cond_diverge::main }
 
 ::cond_diverge::main {
@@ -23,7 +21,7 @@
 
 ::std::data::List::pop_front::2 { x(x(@n32_sub(1 n0) n0) x(x(tup(n1 n2) n2) enum(enum(n1 n3) enum(_ n3)))) }
 
-::std::data::List::pop_front::3 { x(x(n0 n0) x(x(n1 n1) ::std::logical::Option::None)) }
+::std::data::List::pop_front::3 { x(x(n0 n0) x(x(n1 n1) enum(_ enum(n2 n2)))) }
 
 ::std::unicode::String::to_chars::cast { fn(w0 w0) }
 

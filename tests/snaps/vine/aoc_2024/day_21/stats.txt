@@ -1,13 +1,13 @@
 
 Interactions
-  Total            1_393_145
+  Total            1_393_062
     Depth              3_352
     Breadth              415
   Annihilate         574_706
   Commute              9_091
   Copy               202_056
   Erase              175_505
-  Expand              94_618
+  Expand              94_535
   Call               242_933
   Branch              94_236
 

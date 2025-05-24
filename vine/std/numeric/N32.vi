@@ -98,7 +98,7 @@ pub mod N32 {
           chars = ['0' + n % 10] ++ chars;
           n = n / 10;
         }
-        String({ chars })
+        String(chars)
       } else {
         "0"
       }

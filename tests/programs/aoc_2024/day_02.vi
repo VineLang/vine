@@ -39,7 +39,7 @@ fn is_safe(report: List[N32]) -> Bool {
       if order is Some(order) && order != (last > level) {
         return false;
       }
-      order = Some((last > level));
+      order = Some(last > level);
     }
     last = Some(level);
   }

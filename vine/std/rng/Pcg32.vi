@@ -3,7 +3,7 @@
 
 use numeric::N64;
 
-pub struct Pcg32(N64, N64);
+pub struct Pcg32((N64, N64));
 
 pub mod Pcg32 {
   pub fn new(state: N64, increment: N64) -> Pcg32 {
@@ -33,7 +33,7 @@ pub mod Pcg32 {
 
   pub fn seeded(seed: String) -> Pcg32 {
     let rng = Pcg32::default;
-    let iter = seed.chars.into_iter();
+    let iter = seed!.into_iter();
     while iter.next() is Some(char) {
       rng.mix(char as N32)
     }

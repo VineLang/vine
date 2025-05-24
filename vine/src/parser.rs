@@ -89,11 +89,10 @@ impl<'core, 'src> VineParser<'core, 'src> {
 
   fn parse_vis(&mut self) -> Parse<'core, Vis<'core>> {
     Ok(if self.eat(Token::Pub)? {
-      if self.eat(Token::OpenParen)? {
+      if self.eat(Token::Dot)? {
         let span = self.start_span();
         let ancestor = self.parse_ident()?;
         let span = self.end_span(span);
-        self.expect(Token::CloseParen)?;
         Vis::PublicTo(span, ancestor)
       } else {
         Vis::Public
@@ -212,15 +211,12 @@ impl<'core, 'src> VineParser<'core, 'src> {
     self.expect(Token::Struct)?;
     let name = self.parse_ident()?;
     let generics = self.parse_generic_params()?;
-    let (fields, object) = if self.check(Token::OpenParen) {
-      (self.parse_delimited(PAREN_COMMA, Self::parse_type)?, false)
-    } else if self.check(Token::OpenBrace) {
-      (vec![self.parse_type()?], true)
-    } else {
-      (Vec::new(), false)
-    };
+    self.expect(Token::OpenParen)?;
+    let data_vis = self.parse_vis()?;
+    let data = self.parse_type()?;
+    self.expect(Token::CloseParen)?;
     self.eat(Token::Semi)?;
-    Ok(StructItem { name, generics, fields, object })
+    Ok(StructItem { name, generics, data_vis, data })
   }
 
   fn parse_enum_item(&mut self) -> Parse<'core, EnumItem<'core>> {
@@ -242,14 +238,14 @@ impl<'core, 'src> VineParser<'core, 'src> {
 
   fn parse_variant(&mut self) -> Parse<'core, Variant<'core>> {
     let name = self.parse_ident()?;
-    let fields = if self.check(Token::OpenParen) {
-      self.parse_delimited(PAREN_COMMA, Self::parse_type)?
-    } else if self.check(Token::OpenBrace) {
-      vec![self.parse_type()?]
+    let data = if self.eat(Token::OpenParen)? {
+      let ty = self.parse_type()?;
+      self.eat(Token::CloseParen)?;
+      Some(ty)
     } else {
-      Vec::new()
+      None
     };
-    Ok(Variant { name, fields })
+    Ok(Variant { name, data })
   }
 
   fn parse_generic_params(&mut self) -> Parse<'core, GenericParams<'core>> {
@@ -399,10 +395,6 @@ impl<'core, 'src> VineParser<'core, 'src> {
     self.parse_delimited(PAREN_COMMA, Self::parse_expr)
   }
 
-  fn parse_pat_list(&mut self) -> Parse<'core, Vec<Pat<'core>>> {
-    self.parse_delimited(PAREN_COMMA, Self::parse_pat)
-  }
-
   fn parse_block(&mut self) -> Parse<'core, Block<'core>> {
     let span = self.start_span();
     let stmts = self.parse_delimited(BRACE, Self::parse_stmt)?;
@@ -494,7 +486,9 @@ impl<'core, 'src> VineParser<'core, 'src> {
       return Ok(ExprKind::Bool(false));
     }
     if self.check(Token::Ident) || self.check(Token::ColonColon) {
-      return Ok(ExprKind::Path(self.parse_path()?));
+      let path = self.parse_path()?;
+      let args = self.check(Token::OpenParen).then(|| self.parse_expr_list()).transpose()?;
+      return Ok(ExprKind::Path(path, args));
     }
     if self.eat(Token::OpenParen)? {
       if self.eat(Token::CloseParen)? {
@@ -530,7 +524,7 @@ impl<'core, 'src> VineParser<'core, 'src> {
         let value = if self_.eat(Token::Colon)? {
           self_.parse_expr()?
         } else {
-          Expr { span: key.span, kind: ExprKind::Path(key.into()) }
+          Expr { span: key.span, kind: ExprKind::Path(key.into(), None) }
         };
         Ok((key, value))
       })?));
@@ -692,6 +686,10 @@ impl<'core, 'src> VineParser<'core, 'src> {
       return Ok(Ok(ExprKind::Cast(Box::new(lhs), Box::new(ty), false)));
     }
 
+    if self.eat(Token::Bang)? {
+      return Ok(Ok(ExprKind::Unwrap(Box::new(lhs))));
+    }
+
     if self.eat(Token::Dot)? {
       if self.eat(Token::And)? {
         return Ok(Ok(ExprKind::Ref(Box::new(lhs), true)));
@@ -785,8 +783,11 @@ impl<'core, 'src> VineParser<'core, 'src> {
     }
     if self.check(Token::Ident) || self.check(Token::ColonColon) {
       let path = self.parse_path()?;
-      let args = self.check(Token::OpenParen).then(|| self.parse_pat_list()).transpose()?;
-      return Ok(PatKind::PathCall(path, args));
+      let data = self
+        .check(Token::OpenParen)
+        .then(|| self.parse_delimited(PAREN_COMMA, Self::parse_pat))
+        .transpose()?;
+      return Ok(PatKind::Path(path, data));
     }
     if self.eat(Token::And)? {
       return Ok(PatKind::Ref(Box::new(self.parse_pat_bp(BP::Prefix)?)));
@@ -833,7 +834,7 @@ impl<'core, 'src> VineParser<'core, 'src> {
         };
         let span = self_.end_span(span);
         let mut pat =
-          pat.unwrap_or_else(|| Pat { span: key.span, kind: PatKind::PathCall(key.into(), None) });
+          pat.unwrap_or_else(|| Pat { span: key.span, kind: PatKind::Path(key.into(), None) });
         if let Some(ty) = ty {
           pat = Pat { span, kind: PatKind::Annotation(Box::new(pat), Box::new(ty)) };
         }

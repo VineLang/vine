@@ -77,6 +77,7 @@ pub trait VisitMut<'core, 'a> {
       | ExprKind::TupleField(a, _, _)
       | ExprKind::ObjectField(a, _)
       | ExprKind::Inverse(a, _)
+      | ExprKind::Unwrap(a)
       | ExprKind::Copy(a)
       | ExprKind::Hedge(a)
       | ExprKind::Set(a) => self.visit_expr(a),
@@ -89,7 +90,10 @@ pub trait VisitMut<'core, 'a> {
         self.visit_expr(b);
       }
 
-      ExprKind::Path(path) => self.visit(&mut path.generics),
+      ExprKind::Path(path, args) => {
+        self.visit(&mut path.generics);
+        self.visit(args);
+      }
       ExprKind::Def(_, g) => self.visit(g),
       ExprKind::Do(_, b) | ExprKind::Loop(_, b) => self.visit_block(b),
       ExprKind::Match(a, b) => {
@@ -124,9 +128,13 @@ pub trait VisitMut<'core, 'a> {
       ExprKind::Tuple(a) | ExprKind::List(a) => {
         self.visit(a);
       }
-      ExprKind::Adt(_, _, a, b) => {
+      ExprKind::Struct(_, a, b) => {
         self.visit(a);
-        self.visit(b);
+        self.visit(&mut **b);
+      }
+      ExprKind::Enum(_, _, a, b) => {
+        self.visit(a);
+        self.visit(b.as_deref_mut());
       }
       ExprKind::Call(a, b) => {
         self.visit_expr(a);
@@ -186,13 +194,17 @@ pub trait VisitMut<'core, 'a> {
           self.visit_pat(t);
         }
       }
-      PatKind::PathCall(p, a) => {
+      PatKind::Path(p, a) => {
         self.visit(&mut p.generics);
-        self.visit(a);
+        self.visit(a.as_deref_mut());
       }
-      PatKind::Adt(_, _, a, b) => {
+      PatKind::Struct(_, a, b) => {
         self.visit(a);
-        self.visit(b);
+        self.visit(&mut **b);
+      }
+      PatKind::Enum(_, _, a, b) => {
+        self.visit(a);
+        self.visit(b.as_deref_mut());
       }
       PatKind::Annotation(p, t) => {
         self.visit_pat(p);
@@ -302,15 +314,11 @@ pub trait VisitMut<'core, 'a> {
         ModKind::Unloaded(..) | ModKind::Error(_) => {}
       },
       ItemKind::Struct(s) => {
-        for ty in &mut s.fields {
-          self.visit_type(ty);
-        }
+        self.visit_type(&mut s.data);
       }
       ItemKind::Enum(e) => {
         for v in &mut e.variants {
-          for ty in &mut v.fields {
-            self.visit_type(ty);
-          }
+          self.visit(&mut v.data);
         }
       }
       ItemKind::Type(t) => {

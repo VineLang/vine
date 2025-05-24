@@ -7,7 +7,7 @@ pub fn main(&io: &IO) {
   let end;
   while io.read_line() is Some(line) {
     let row = [];
-    while line.chars.pop_front() is Some(char) {
+    while line!.pop_front() is Some(char) {
       if char == 'S' {
         start = (row.len(), grid.len());
       } else if char == 'E' {
@@ -45,8 +45,8 @@ pub fn main(&io: &IO) {
   let part1 = 0;
   let part2 = 0;
   let done = false;
-  while !done && pq.remove_min() is Some((dist, heads)) {
-    while heads.pop_front() is Some((pos, dir)) {
+  while !done && pq.remove_min() is Some(dist, heads) {
+    while heads.pop_front() is Some(pos, dir) {
       let (px, py) = pos;
       let &(_, dirs, counted) = (*grid.get(py)).get(px);
       let &(min_dist, ~used) = dirs.get(dir);
@@ -76,7 +76,7 @@ pub fn main(&io: &IO) {
   let grid = grid as List;
   while grid.pop_front() is Some(row) {
     let row = row as List;
-    while row.pop_front() is Some((_, dirs, _)) {
+    while row.pop_front() is Some(_, dirs, _) {
       while dirs.pop_front() is Some(x) {
         let (_, ~used) = x;
         used = false;

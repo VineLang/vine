@@ -1,18 +1,16 @@
 
-::std::logical::Option::None { enum(_ enum(n0 n0)) }
-
 ::main { ::verbose_add::main }
 
 ::verbose_add::main {
-  fn(ref(w1 w25) _)
-  ::verbose_add = fn(enum(enum(1 w30) enum(_ w30)) fn(enum(enum(2 w31) enum(_ w31)) w10))
+  fn(ref(w1 w27) _)
+  ::verbose_add = fn(enum(enum(1 w34) enum(_ w34)) fn(enum(enum(2 w35) enum(_ w35)) w10))
   ::std::IO::println = fn(ref(w1 w6) fn(w10 _))
-  ::verbose_add = fn(::std::logical::Option::None fn(enum(enum(2 w32) enum(_ w32)) w16))
-  ::std::IO::println = fn(ref(w6 w13) fn(w16 _))
-  ::verbose_add = fn(enum(enum(1 w33) enum(_ w33)) fn(::std::logical::Option::None w22))
-  ::std::IO::println = fn(ref(w13 w19) fn(w22 _))
-  ::verbose_add = fn(::std::logical::Option::None fn(::std::logical::Option::None w27))
-  ::std::IO::println = fn(ref(w19 w25) fn(w27 _))
+  ::verbose_add = fn(enum(_ enum(w36 w36)) fn(enum(enum(2 w37) enum(_ w37)) w17))
+  ::std::IO::println = fn(ref(w6 w13) fn(w17 _))
+  ::verbose_add = fn(enum(enum(1 w38) enum(_ w38)) fn(enum(_ enum(w39 w39)) w24))
+  ::std::IO::println = fn(ref(w13 w20) fn(w24 _))
+  ::verbose_add = fn(enum(_ enum(w40 w40)) fn(enum(_ enum(w41 w41)) w31))
+  ::std::IO::println = fn(ref(w20 w27) fn(w31 _))
 }
 
 ::verbose_add { fn(enum(::verbose_add::4 enum(::verbose_add::5 x(n0 n1))) fn(n0 n1)) }

@@ -72,8 +72,12 @@ impl<'core> Checker<'core, '_> {
         *str += self.chart.defs[self.chart.types[*type_id].def].name.0 .0;
         self._display_type_params(str, params);
       }
-      Type::Adt(adt_id, params) => {
-        *str += self.chart.adts[*adt_id].name.0 .0;
+      Type::Struct(struct_id, params) => {
+        *str += self.chart.structs[*struct_id].name.0 .0;
+        self._display_type_params(str, params);
+      }
+      Type::Enum(enum_id, params) => {
+        *str += self.chart.enums[*enum_id].name.0 .0;
         self._display_type_params(str, params);
       }
       Type::Trait(trait_id, params) => {
