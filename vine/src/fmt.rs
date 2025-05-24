@@ -523,7 +523,9 @@ impl<'core: 'src, 'src> Formatter<'src> {
       PatKind::Hole => Doc("_"),
       PatKind::Paren(p) => Doc::paren(self.fmt_pat(p)),
       PatKind::Path(p, None) => self.fmt_path(p),
-      PatKind::Path(p, Some(x)) => Doc::concat([self.fmt_path(p), Doc::paren(self.fmt_pat(x))]),
+      PatKind::Path(p, Some(x)) => {
+        Doc::concat([self.fmt_path(p), Doc::paren_comma(x.iter().map(|x| self.fmt_pat(x)))])
+      }
       PatKind::Ref(p) => Doc::concat([Doc("&"), self.fmt_pat(p)]),
       PatKind::Deref(p) => Doc::concat([Doc("*"), self.fmt_pat(p)]),
       PatKind::Inverse(p) => Doc::concat([Doc("~"), self.fmt_pat(p)]),

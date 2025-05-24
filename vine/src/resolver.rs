@@ -275,18 +275,32 @@ impl<'core> VisitMut<'core, '_> for ResolveVisitor<'core, '_, '_> {
           PatternDefKind::Struct(struct_id) => PatKind::Struct(
             struct_id,
             path.take_generics(),
-            data.take().unwrap_or_else(|| {
-              Box::new(Pat {
+            match data.take() {
+              Some(mut args) => Box::new(if args.len() == 1 {
+                args.pop().unwrap()
+              } else {
+                Pat { span, kind: PatKind::Tuple(args) }
+              }),
+              None => Box::new(Pat {
                 span,
                 kind: PatKind::Error(
                   self.resolver.core.report(Diag::ExpectedDataSubpattern { span }),
                 ),
+              }),
+            },
+          ),
+          PatternDefKind::Enum(enum_id, variant) => PatKind::Enum(
+            enum_id,
+            variant,
+            path.take_generics(),
+            data.take().map(|mut args| {
+              Box::new(if args.len() == 1 {
+                args.pop().unwrap()
+              } else {
+                Pat { span, kind: PatKind::Tuple(args) }
               })
             }),
           ),
-          PatternDefKind::Enum(enum_id, variant) => {
-            PatKind::Enum(enum_id, variant, path.take_generics(), data.take())
-          }
         },
         Err(diag) => {
           if let (Some(ident), None) = (path.as_ident(), data) {
@@ -392,7 +406,7 @@ impl<'core> VisitMut<'core, '_> for ResolveVisitor<'core, '_, '_> {
           if let Some(bind) = self.scope.get(&ident).and_then(|x| x.last()) {
             expr.kind = bind.binding.into();
             if let Some(args) = args {
-              expr.kind = ExprKind::Call(Box::new(take(expr)), args)
+              *expr = Expr { span, kind: ExprKind::Call(Box::new(take(expr)), args) };
             }
             return;
           }
@@ -408,35 +422,38 @@ impl<'core> VisitMut<'core, '_> for ResolveVisitor<'core, '_, '_> {
         match self.resolver.chart.values[value].kind {
           ValueDefKind::Struct(struct_id) => {
             if let Some(mut args) = args {
-              if args.len() != 1 {
-                expr.kind =
-                  ExprKind::Error(self.resolver.core.report(Diag::ConstructorMultiArgs { span }))
-              } else {
-                expr.kind =
-                  ExprKind::Struct(struct_id, path.take_generics(), Box::new(args.pop().unwrap()));
-              }
+              expr.kind = ExprKind::Struct(
+                struct_id,
+                path.take_generics(),
+                Box::new(if args.len() != 1 {
+                  Expr { span, kind: ExprKind::Tuple(args) }
+                } else {
+                  args.pop().unwrap()
+                }),
+              )
             } else {
               expr.kind =
                 ExprKind::Error(self.resolver.core.report(Diag::ExpectedDataExpr { span }))
             }
           }
           ValueDefKind::Enum(enum_id, variant) => {
-            if args.as_ref().is_some_and(|x| x.len() != 1) {
-              expr.kind =
-                ExprKind::Error(self.resolver.core.report(Diag::ConstructorMultiArgs { span }))
-            } else {
-              expr.kind = ExprKind::Enum(
-                enum_id,
-                variant,
-                path.take_generics(),
-                args.map(|mut x| Box::new(x.pop().unwrap())),
-              )
-            }
+            expr.kind = ExprKind::Enum(
+              enum_id,
+              variant,
+              path.take_generics(),
+              args.map(|mut args| {
+                Box::new(if args.len() != 1 {
+                  Expr { span, kind: ExprKind::Tuple(args) }
+                } else {
+                  args.pop().unwrap()
+                })
+              }),
+            )
           }
           _ => {
             expr.kind = ExprKind::Def(value, path.take_generics());
             if let Some(args) = args {
-              expr.kind = ExprKind::Call(Box::new(take(expr)), args)
+              *expr = Expr { span, kind: ExprKind::Call(Box::new(take(expr)), args) };
             }
           }
         }

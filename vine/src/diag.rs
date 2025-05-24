@@ -210,8 +210,6 @@ diags! {
     ["expected data subpattern"]
   ExpectedDataExpr
     ["constructor expects data"]
-  ConstructorMultiArgs
-    ["constructors expect exactly one argument"]
   StructDataInvisible { ty: String, vis: &'core str }
     ["the data of `{ty}` is only visible within `{vis}`"]
 }

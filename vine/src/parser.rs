@@ -784,12 +784,8 @@ impl<'core, 'src> VineParser<'core, 'src> {
     if self.check(Token::Ident) || self.check(Token::ColonColon) {
       let path = self.parse_path()?;
       let data = self
-        .eat(Token::OpenParen)?
-        .then(|| -> Parse<_> {
-          let data = self.parse_pat()?;
-          self.expect(Token::CloseParen)?;
-          Ok(Box::new(data))
-        })
+        .check(Token::OpenParen)
+        .then(|| self.parse_delimited(PAREN_COMMA, Self::parse_pat))
         .transpose()?;
       return Ok(PatKind::Path(path, data));
     }

@@ -392,7 +392,7 @@ pub enum PatKind<'core> {
   #[class(value, place, space)]
   Annotation(B<Pat<'core>>, B<Ty<'core>>),
   #[class(value, place, space)]
-  Path(Path<'core>, Option<B<Pat<'core>>>),
+  Path(Path<'core>, Option<Vec<Pat<'core>>>),
   #[class(value, place, space)]
   Struct(StructId, GenericArgs<'core>, B<Pat<'core>>),
   #[class(value, place, space)]
