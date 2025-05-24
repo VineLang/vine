@@ -16,7 +16,7 @@ io = #io
 error input:1:10 - cannot find `option` in `::std`
 
 io = #io
-> Some([None, Some((1, 2))])
+> Some([None, Some(1, 2)])
 Some([None, Some((1, 2))])
 
 io = #io

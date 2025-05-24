@@ -39,7 +39,7 @@ pub fn main(&io: &IO) {
 
   let part2 = 0;
   let iter = map.into_iter();
-  while iter.next() is Some((_, (bananas, _))) {
+  while iter.next() is Some(_, (bananas, _)) {
     part2 = part2.max(bananas);
   }
 

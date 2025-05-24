@@ -85,7 +85,7 @@ pub fn main(&io: &IO) {
   let data_rev = data.reversed();
 
   let i = bytes;
-  while set.find(0) != set.find(size * size - 1) && data_rev.pop_front() is Some((x, y)) {
+  while set.find(0) != set.find(size * size - 1) && data_rev.pop_front() is Some(x, y) {
     remove_data(x, y);
     i -= 1;
   }

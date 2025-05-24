@@ -19,11 +19,11 @@ pub fn main(&io: &IO) {
     let graph = graph;
     let triangles = 0;
     let t_triangles = 0;
-    while graph.remove_min() is Some((a, a_out)) {
-      while a_out.remove_min() is Some((b, _)) {
+    while graph.remove_min() is Some(a, a_out) {
+      while a_out.remove_min() is Some(b, _) {
         let triangle_tips = [];
         let a_out = a_out;
-        while a_out.remove_min() is Some((c, _)) {
+        while a_out.remove_min() is Some(c, _) {
           let bool = graph.get(&b) is Some(&b) && b.get(&c) is Some(&_);
           if bool {
             triangle_tips ++= [c];
@@ -65,7 +65,7 @@ pub fn main(&io: &IO) {
 
   let best = [];
 
-  while graph.remove_min() is Some((a, tips)) {
+  while graph.remove_min() is Some(a, tips) {
     extend_clique(&graph, &best, [a], tips.as[List].map(fn((x, _)) { x }));
   }
 

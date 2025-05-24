@@ -139,7 +139,7 @@ pub fn main(&io: &IO) {
       while.outer front.len() != 0 {
         pos_y += dir_y;
         let new_front = [];
-        while front.pop_front() is Some((pos_x, carry)) {
+        while front.pop_front() is Some(pos_x, carry) {
           let &char = get((pos_x, pos_y));
           if char == '#' {
             ~success = false;

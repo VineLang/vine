@@ -19,7 +19,7 @@ pub fn main(&io: &IO) {
         let j = regions.find(j);
         i = regions.union_found(i, j);
       }
-      if north.pop_front() is Some((c, j)) && c == char {
+      if north.pop_front() is Some(c, j) && c == char {
         let j = regions.find(j);
         i = regions.union_found(i, j);
       }
