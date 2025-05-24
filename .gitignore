@@ -1,6 +1,6 @@
 .DS_Store
 target
-tests/snaps/**/timing.txt
+tests/snaps/**/{compiled.iv,timing.txt}
 
 # Nix build outputs
 result

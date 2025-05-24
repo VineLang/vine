@@ -124,7 +124,7 @@ fn test_vi(
     t.test("compile", move || {
       let (stdout, stderr) = exec(VINE, &["build", path], &[], true);
       assert!(stderr.is_empty());
-      let path = test_snapshot(&["vine", name, "compiled.iv"], &stdout);
+      let path = ignored_snapshot(&["vine", name, "compiled.iv"], &stdout);
       _ = sender.send(path);
     });
     t.test("run", move || {
@@ -190,8 +190,7 @@ fn run_iv(
   let full_stats = String::from_utf8(stderr).unwrap();
   let stats = full_stats.split_once("\nPerformance").unwrap().0;
   test_snapshot(&[group, name, "stats.txt"], stats.as_bytes());
-  fs::write(get_snapshot_path(&[group, name, "timing.txt"]), full_stats[stats.len()..].as_bytes())
-    .unwrap();
+  ignored_snapshot(&[group, name, "timing.txt"], full_stats[stats.len()..].as_bytes());
 }
 
 fn exec(bin: &[&str], args: &[&str], input: &[u8], success: bool) -> (Vec<u8>, Vec<u8>) {
@@ -232,6 +231,12 @@ fn test_snapshot(components: &[&str], contents: &[u8]) -> PathBuf {
       panic!("invalid snapshot {:?}", path);
     }
   }
+  path
+}
+
+fn ignored_snapshot(components: &[&str], contents: &[u8]) -> PathBuf {
+  let path = get_snapshot_path(components);
+  fs::write(&path, contents).unwrap();
   path
 }
 
