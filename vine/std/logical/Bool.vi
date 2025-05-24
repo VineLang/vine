@@ -3,6 +3,8 @@ use ops::{bitwise::{And, Not, Or, Xor}, comparison::{Eq, Ord}};
 use unicode::ToString;
 
 #[builtin = "Bool"]
+pub type Bool;
+
 pub mod Bool {
   pub impl and: And[Bool, Bool, Bool] {
     fn .and(a: Bool, b: Bool) -> Bool {

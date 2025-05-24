@@ -8,6 +8,8 @@ use ops::{
 use unicode::ToString;
 
 #[builtin = "I32"]
+pub type I32;
+
 pub mod I32 {
   pub const maximum: I32 = +0x7fffffff;
   pub const minimum: I32 = -0x7fffffff;

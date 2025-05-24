@@ -5,6 +5,8 @@ use {
 };
 
 #[builtin = "F32"]
+pub type F32;
+
 pub mod F32 {
   pub const nan: F32 = inline_ivy! () -> F32 { +NaN };
   pub const inf: F32 = inline_ivy! () -> F32 { +inf };

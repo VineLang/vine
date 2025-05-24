@@ -314,7 +314,7 @@ pub trait VisitMut<'core, 'a> {
         }
       }
       ItemKind::Type(t) => {
-        self.visit_type(&mut t.ty);
+        self.visit(&mut t.ty);
       }
       ItemKind::Trait(t) => {
         self.visit(&mut t.items);

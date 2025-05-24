@@ -2,7 +2,7 @@ use std::{collections::BTreeMap, mem::take};
 
 use crate::{
   ast::{Expr, ExprKind, Generics, ImplKind, Label, Span},
-  chart::VariantId,
+  chart::{TypeDefId, VariantId},
   checker::{Checker, Form, Type},
   diag::Diag,
 };
@@ -274,9 +274,10 @@ impl<'core> Checker<'core, '_> {
         result
       }
       ExprKind::If(arms, leg) => {
+        let mut bool = self.bool(span);
         let mut result = if leg.is_some() { self.unifier.new_var(span) } else { Type::NIL };
         for (cond, block) in arms {
-          self.check_expr_form_type(cond, Form::Value, &mut Type::Bool);
+          self.check_expr_form_type(cond, Form::Value, &mut bool);
           self.check_block_type(block, &mut result);
         }
         if let Some(leg) = leg {
@@ -285,8 +286,9 @@ impl<'core> Checker<'core, '_> {
         result
       }
       ExprKind::While(label, cond, block) => {
+        let mut bool = self.bool(span);
         *self.labels.get_or_extend(label.as_id()) = Some(Type::NIL);
-        self.check_expr_form_type(cond, Form::Value, &mut Type::Bool);
+        self.check_expr_form_type(cond, Form::Value, &mut bool);
         self.check_block(block);
         Type::NIL
       }
@@ -361,7 +363,7 @@ impl<'core> Checker<'core, '_> {
         ty
       }
       ExprKind::Call(func, args) => self.check_call(func, args, span),
-      ExprKind::Bool(_) => Type::Bool,
+      ExprKind::Bool(_) => self.bool(span),
       ExprKind::Not(inner) => {
         let ty = self.check_expr_form(inner, Form::Value);
         let Some(op_fn) = self.chart.builtins.not else {
@@ -389,12 +391,13 @@ impl<'core> Checker<'core, '_> {
       ExprKind::Is(expr, pat) => {
         let mut ty = self.check_expr_form(expr, Form::Value);
         self.check_pat_type(pat, Form::Value, true, &mut ty);
-        Type::Bool
+        self.bool(span)
       }
       ExprKind::LogicalOp(_, a, b) => {
-        self.check_expr_form_type(a, Form::Value, &mut Type::Bool);
-        self.check_expr_form_type(b, Form::Value, &mut Type::Bool);
-        Type::Bool
+        let mut bool = self.bool(span);
+        self.check_expr_form_type(a, Form::Value, &mut bool);
+        self.check_expr_form_type(b, Form::Value, &mut bool);
+        bool
       }
       ExprKind::Neg(inner) => {
         let ty = self.check_expr_form(inner, Form::Value);
@@ -493,7 +496,7 @@ impl<'core> Checker<'core, '_> {
           });
           expr.kind = ExprKind::CallCompare(take(init), cmps.collect());
         }
-        Type::Bool
+        self.bool(span)
       }
       ExprKind::Cast(cur, to, _) => {
         let cur_ty = self.check_expr_form(cur, Form::Value);
@@ -514,10 +517,10 @@ impl<'core> Checker<'core, '_> {
         );
         to_ty
       }
-      ExprKind::N32(_) => Type::N32,
-      ExprKind::I32(_) => Type::I32,
-      ExprKind::Char(_) => Type::Char,
-      ExprKind::F32(_) => Type::F32,
+      ExprKind::N32(_) => self.builtin_ty(span, "N32", self.chart.builtins.n32),
+      ExprKind::I32(_) => self.builtin_ty(span, "I32", self.chart.builtins.i32),
+      ExprKind::Char(_) => self.builtin_ty(span, "Char", self.chart.builtins.char),
+      ExprKind::F32(_) => self.builtin_ty(span, "F32", self.chart.builtins.f32),
       ExprKind::String(_, rest) => {
         let mut string_ty =
           self.chart.builtins.string.map(|d| Type::Adt(d, Vec::new())).unwrap_or_else(|| {
@@ -612,5 +615,22 @@ impl<'core> Checker<'core, '_> {
       self.coerce_expr(expr, form, Form::Place);
     }
     ty
+  }
+
+  fn builtin_ty(
+    &mut self,
+    span: Span,
+    name: &'static str,
+    builtin: Option<TypeDefId>,
+  ) -> Type<'core> {
+    if let Some(id) = builtin {
+      Type::Opaque(id, vec![])
+    } else {
+      Type::Error(self.core.report(Diag::MissingBuiltin { span, builtin: name }))
+    }
+  }
+
+  fn bool(&mut self, span: Span) -> Type<'core> {
+    self.builtin_ty(span, "Bool", self.chart.builtins.bool)
   }
 }

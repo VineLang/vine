@@ -86,7 +86,9 @@ impl<'core, 'ctx, 'ivm, 'ext> Repl<'core, 'ctx, 'ivm, 'ext> {
     let locals = BTreeMap::from([(Local(0), io)]);
     let mut unifier = Unifier::new(core);
     let var = unifier._new_var(Span::NONE);
-    _ = unifier.unify(&mut Type::Var(var), &mut Type::IO);
+    if let Some(io) = compiler.chart.builtins.io {
+      _ = unifier.unify(&mut Type::Var(var), &mut Type::Opaque(io, vec![]));
+    }
     let local_types = IntMap::from_iter([(Local(0), var)]);
 
     Ok(Repl {
@@ -264,15 +266,24 @@ impl<'core, 'ctx, 'ivm, 'ext> Repl<'core, 'ctx, 'ivm, 'ext> {
 
   fn _show(&self, ty: &mut Type<'core>, tree: &Tree) -> Option<String> {
     self.unifier.try_concretize(ty);
+    let builtins = &self.compiler.chart.builtins;
     Some(match (ty, tree) {
       (_, Tree::Global(g)) => g.clone(),
-      (Type::Bool, Tree::N32(0)) => "false".into(),
-      (Type::Bool, Tree::N32(1)) => "true".into(),
-      (Type::N32, Tree::N32(n)) => format!("{n}"),
-      (Type::I32, Tree::N32(n)) => format!("{:+}", *n as i32),
-      (Type::F32, Tree::F32(n)) => format!("{n:?}"),
-      (Type::Char, Tree::N32(n)) => format!("{:?}", char::try_from(*n).ok()?),
-      (Type::IO, Tree::Var(v)) if v == "#io" => "#io".into(),
+      (Type::Opaque(id, _), Tree::N32(0)) if builtins.bool == Some(*id) => "false".into(),
+      (Type::Opaque(id, _), Tree::N32(1)) if builtins.bool == Some(*id) => "true".into(),
+      (Type::Opaque(id, _), Tree::N32(n)) if builtins.n32 == Some(*id) => {
+        format!("{n}")
+      }
+      (Type::Opaque(id, _), Tree::N32(n)) if builtins.i32 == Some(*id) => {
+        format!("{:+}", *n as i32)
+      }
+      (Type::Opaque(id, _), Tree::F32(n)) if builtins.f32 == Some(*id) => {
+        format!("{n:?}")
+      }
+      (Type::Opaque(id, _), Tree::N32(n)) if builtins.char == Some(*id) => {
+        format!("{:?}", char::try_from(*n).ok()?)
+      }
+      (Type::Opaque(id, _), Tree::Var(v)) if builtins.io == Some(*id) && v == "#io" => "#io".into(),
       (Type::Tuple(tys), _) if tys.is_empty() => "()".into(),
       (Type::Tuple(tys), _) if tys.len() == 1 => format!("({},)", self.show(&mut tys[0], tree)),
       (Type::Tuple(tys), _) if !tys.is_empty() => {
@@ -287,8 +298,7 @@ impl<'core, 'ctx, 'ivm, 'ext> Repl<'core, 'ctx, 'ivm, 'ext> {
         )
       }
       (Type::Adt(def, args), tree)
-        if self.compiler.chart.builtins.list == Some(*def)
-          || self.compiler.chart.builtins.string == Some(*def) =>
+        if builtins.list == Some(*def) || builtins.string == Some(*def) =>
       {
         let Tree::Comb(c, l, r) = tree else { None? };
         let "tup" = &**c else { None? };
@@ -306,7 +316,7 @@ impl<'core, 'ctx, 'ivm, 'ext> Repl<'core, 'ctx, 'ivm, 'ext> {
         if &**r != cur || !matches!(cur, Tree::Var(_)) {
           None?
         }
-        if self.compiler.chart.builtins.string == Some(*def) {
+        if builtins.string == Some(*def) {
           let str = children
             .into_iter()
             .map(|x| {

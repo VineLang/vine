@@ -1,5 +1,7 @@
 
 #[builtin = "IO"]
+pub type IO;
+
 pub mod IO {
   pub fn .println(&io: &IO, str: String) {
     io.print(str);

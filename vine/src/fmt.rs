@@ -106,8 +106,10 @@ impl<'core: 'src, 'src> Formatter<'src> {
           Doc("type "),
           Doc(t.name),
           self.fmt_generic_params(&t.generics),
-          Doc(" = "),
-          self.fmt_ty(&t.ty),
+          match &t.ty {
+            Some(ty) => Doc::concat([Doc(" = "), self.fmt_ty(ty)]),
+            None => Doc(""),
+          },
           Doc(";"),
         ]),
         ItemKind::Mod(m) => Doc::concat([
