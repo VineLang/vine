@@ -11,11 +11,11 @@ io = #io
 
 io = #io
 > 1.to_string()
-"1"
+error input:1:1 - type `N32` has no method `to_string`
 
 io = #io
 > 1.0.to_string()
-"+1.00000"
+error input:1:1 - type `F32` has no method `to_string`
 
 io = #io
 > ((1,2),(3,4)).0
@@ -27,19 +27,19 @@ io = #io
 
 io = #io
 > ((1,2),(3,4)).0.0.to_string()
-"1"
+error input:1:1 - type `N32` has no method `to_string`
 
 io = #io
 > ((1,2),(3,4)).1.1.to_string()
-"4"
+error input:1:1 - type `N32` has no method `to_string`
 
 io = #io
 > "abc" ++ 123
-error input:1:1 - cannot find impl of trait `Concat[String, N32, ?9]`
+error input:1:1 - cannot find impl of trait `Concat[String, N32, ?5]`
 
 io = #io
 > [true, false].to_string()
-"[true, false]"
+error input:1:1 - type `List[Bool]` has no method `to_string`
 
 io = #io
 > [1,2,3,4].slice(2)
@@ -55,11 +55,7 @@ io = #io
 io = #io
 a = Array(5, Node(Node(Node(Node(#ivy(0)), Node(#ivy(4))), Node(#ivy(2))), Node(Node(#ivy(1)), Node(#ivy(3)))))
 > a.for_each(&io, fn(&io: &IO, v: N32) { io.println(v.to_string() )})
-0
-1
-2
-3
-4
+error input:1:51 - type `N32` has no method `to_string`
 
 io = #io
 a = Array(5, Node(Node(Node(Node(#ivy(0)), Node(#ivy(4))), Node(#ivy(2))), Node(Node(#ivy(1)), Node(#ivy(3)))))
@@ -134,7 +130,7 @@ io = #io
 
 io = #io
 > (N64::parse("1234567890123456789000").unwrap() + N64::parse("46").unwrap()).to_string()
-"17082781258626382390"
+error input:1:1 - type `N64` has no method `to_string`
 
 io = #io
 > N64::parse("")
@@ -150,7 +146,7 @@ None
 
 io = #io
 > (3 as N64 ** 33).to_string()
-"5559060566555523"
+error input:1:1 - type `N64` has no method `to_string`
 
 io = #io
 > (3 as N64 ** 33).log_n32(3)
@@ -178,7 +174,7 @@ io = #io
 
 io = #io
 > 123.to_string(2)
-error input:1:1 - function type `fn(N32) -> String` expects 1 argument; was passed 2
+error input:1:1 - type `N32` has no method `to_string`
 
 io = #io
 > let x = [[1]];
