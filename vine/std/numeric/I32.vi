@@ -5,7 +5,7 @@ use ops::{
   bitwise::{And, Not, Or, Shl, Shr, Xor},
   comparison::{Eq, Ord},
 };
-use unicode::ToString;
+use debug::Show;
 
 #[builtin = "I32"]
 pub type I32;
@@ -104,8 +104,8 @@ pub mod I32 {
     }
   }
 
-  pub impl to_string: ToString[I32] {
-    fn .to_string(n: I32) -> String {
+  pub impl to_string: Cast[I32, String] {
+    fn .cast(n: I32) -> String {
       if n > +0 {
         "+{n.as[N32]}"
       } else if n < +0 {
@@ -113,6 +113,12 @@ pub mod I32 {
       } else {
         "0"
       }
+    }
+  }
+
+  pub impl show: Show[I32] {
+    fn .show(&self: &I32) -> Show {
+      Show::Literal("{self}")
     }
   }
 

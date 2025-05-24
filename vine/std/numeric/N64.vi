@@ -5,7 +5,6 @@ use ops::{
   bitwise::{And, Or, Shl, Shr, Xor},
   comparison::{Eq, Ord},
 };
-use unicode::ToString;
 
 pub struct N64((N32, N32));
 
@@ -205,8 +204,8 @@ pub mod N64 {
     }
   }
 
-  pub impl to_string: ToString[N64] {
-    fn .to_string(n: N64) -> String {
+  pub impl to_string: Cast[N64, String] {
+    fn .cast(n: N64) -> String {
       if n != N64::zero {
         let str = "";
         while n != N64::zero {

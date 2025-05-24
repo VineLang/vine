@@ -125,7 +125,6 @@ impl<'core, 'src> VineParser<'core, 'src> {
           "List" => Builtin::List,
           "String" => Builtin::String,
           "prelude" => Builtin::Prelude,
-          "to_string" => Builtin::ToString,
           "neg" => Builtin::Neg,
           "not" => Builtin::Not,
           "bool_not" => Builtin::BoolNot,

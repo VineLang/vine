@@ -1,7 +1,7 @@
 
 use data::Iterator;
-use ops::{Concat, comparison::{Eq, Ord}};
-use unicode::ToString;
+use ops::{Cast, Concat, comparison::{Eq, Ord}};
+use debug::Show;
 
 #[builtin = "List"]
 pub struct List[T]((N32, Buf[T], ~Buf[T]));
@@ -99,11 +99,12 @@ pub mod List {
     buf = Buf(el, buf);
   }
 
-  pub fn .join(list: List[String], sep: String) -> String {
+  pub fn .join[T; Cast[T, String]](list: List[T], sep: String) -> String {
     let it = list.into_iter();
-    if it.next() is Some(str) {
+    if it.next() is Some(val) {
+      let str = "{val}";
       while it.next() is Some(val) {
-        str ++= sep ++ val;
+        str ++= "{sep}{val}";
       }
       str
     } else {
@@ -111,9 +112,14 @@ pub mod List {
     }
   }
 
-  pub impl to_string[T; ToString[T]]: ToString[List[T]] {
-    fn .to_string(list: List[T]) -> String {
-      "[{list.map(ToString::to_string[T]).join(", ")}]"
+  pub impl show[T; Show[T]]: Show[List[T]] {
+    fn .show(&self: &List[T]) -> Show {
+      let entries = [];
+      let iter = self.iter();
+      while iter.next() is Some(&value) {
+        entries.push_back(value.show());
+      }
+      Show::List(entries)
     }
   }
 

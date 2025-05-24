@@ -535,19 +535,19 @@ impl<'core> Checker<'core, '_> {
           self.chart.builtins.string.map(|d| Type::Struct(d, Vec::new())).unwrap_or_else(|| {
             Type::Error(self.core.report(Diag::MissingBuiltin { span, builtin: "String" }))
           });
-        if let Some(to_string) = self.chart.builtins.to_string {
+        if let Some(cast) = self.chart.builtins.cast {
           for (expr, _) in rest {
             let span = expr.span;
             let ty = self.check_expr_form(expr, Form::Value);
             let mut generics = Generics { span, ..Default::default() };
             self._check_generics(
               &mut generics,
-              self.chart.values[to_string].generics,
+              self.chart.values[cast].generics,
               true,
-              Some(vec![ty]),
+              Some(vec![ty, string_ty.clone()]),
             );
             expr.kind = ExprKind::Call(
-              Box::new(Expr { span, kind: ExprKind::Def(to_string, generics) }),
+              Box::new(Expr { span, kind: ExprKind::Def(cast, generics) }),
               vec![take(expr)],
             );
           }

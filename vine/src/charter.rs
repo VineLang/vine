@@ -341,7 +341,6 @@ impl<'core> Charter<'core, '_> {
       Builtin::Prelude => set(Some(def_id), &mut self.chart.builtins.prelude),
       Builtin::List => set(struct_id(), &mut self.chart.builtins.list),
       Builtin::String => set(struct_id(), &mut self.chart.builtins.string),
-      Builtin::ToString => set(def.value_def, &mut self.chart.builtins.to_string),
       Builtin::Neg => set(def.value_def, &mut self.chart.builtins.neg),
       Builtin::Not => set(def.value_def, &mut self.chart.builtins.not),
       Builtin::BoolNot => set(def.impl_def, &mut self.chart.builtins.bool_not),

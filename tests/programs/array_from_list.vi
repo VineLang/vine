@@ -4,5 +4,5 @@ use std::data::Array;
 pub fn main(&io: &IO) {
   let l = List::new(1000000, 0);
   let a = l as Array;
-  io.println(a.len().to_string());
+  io.println("{a.len()}");
 }

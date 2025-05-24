@@ -1,5 +1,6 @@
 
 use ops::{Cast, arithmetic::{Add, Sub}, comparison::{Eq, Ord}};
+use debug::Show;
 
 #[builtin = "Char"]
 pub type Char;
@@ -47,9 +48,15 @@ pub mod Char {
     ('a' <= char <= 'z') | ('A' <= char <= 'Z') | ('0' <= char <= '9')
   }
 
-  pub impl to_string: ToString[Char] {
-    fn .to_string(self: Char) -> String {
+  pub impl to_string: Cast[Char, String] {
+    fn .cast(self: Char) -> String {
       [self] as String
+    }
+  }
+
+  pub impl show: Show[Char] {
+    fn .show(&self: &Char) -> Show {
+      Show::Literal("'{self}'")
     }
   }
 

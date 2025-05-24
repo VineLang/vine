@@ -5,7 +5,7 @@ pub fn main(&io: &IO) {
   let i = 0;
   let rng = Pcg32::default;
   while i < 100 {
-    io.println(rng.gen_n32().to_string());
+    io.println("{rng.gen_n32()}");
     i += 1;
   }
 }

@@ -1,4 +1,6 @@
 
+use debug::Show;
+
 pub enum Result[T, E] {
   Ok(T),
   Err(E),
@@ -48,6 +50,15 @@ pub mod Result {
   pub fn .unwrap[T, E](self: Result[T, E], default: T) -> T {
     match self {
       Ok(val) { val }
+    }
+  }
+
+  pub impl show[T, E; Show[T], Show[E]]: Show[Result[T, E]] {
+    fn .show(&self: &Result[T, E]) -> Show {
+      match &self {
+        &Ok(value) { Show::Constructor("Ok", value.show()) }
+        &Err(value) { Show::Constructor("Err", value.show()) }
+      }
     }
   }
 }

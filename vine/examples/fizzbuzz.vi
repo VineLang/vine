@@ -14,7 +14,7 @@ fn message(n: N32) -> String {
   let r5 = n % 5;
   if r3 != 0 {
     if r5 != 0 {
-      n.to_string()
+      n as String
     } else {
       "Buzz"
     }
