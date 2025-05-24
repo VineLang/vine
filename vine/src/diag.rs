@@ -108,8 +108,6 @@ diags! {
     ["no {kind} associated with `{path}`"]
   BadGenericCount { path: &'core str, expected: usize, got: usize, kind: &'static str }
     ["`{path}` expects {expected} {kind} parameter{}; was passed {got}", plural(*expected, "s", "")]
-  BadFieldCount { path: &'core str, expected: usize, got: usize }
-    ["`{path}` has {expected} field{}; {got} {} matched", plural(*expected, "s", ""), plural(*got, "were", "was")]
   MissingTupleField { ty: String, i: usize }
     ["type `{ty}` has no field `{i}`"]
   MissingObjectField { ty: String, key: Ident<'core> }
