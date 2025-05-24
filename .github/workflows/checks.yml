@@ -66,9 +66,10 @@ jobs:
             ~/.cargo/git
             target
           key: ${{ runner.os }}-test-${{ hashFiles('**/Cargo.lock') }}
+      - run: cargo run --bin vine build vine/examples/cat.vi > cat.iv
       - name: test miri
         run: |
-          [[ "$(echo 'Hello, miri!' | MIRIFLAGS=-Zmiri-disable-isolation cargo miri run --bin ivy run tests/snaps/vine/cat/compiled.iv)" == "Hello, miri!" ]]
+          [[ "$(echo 'Hello, miri!' | MIRIFLAGS=-Zmiri-disable-isolation cargo miri run --bin ivy run cat.iv)" == "Hello, miri!" ]]
 
   fmt:
     runs-on: ubuntu-latest
