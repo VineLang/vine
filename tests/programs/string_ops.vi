@@ -23,4 +23,9 @@ pub fn main(&io: &IO) {
   io.println("{"hello" != "world"}");
   io.println("{"hello" == "hello world"}");
   io.println("{"world" == "hello world"}");
+
+  let x = "hi";
+  io.println("{x == "xy"}");
+  io.println("{x == "hi"}");
+  io.println("{x}");
 }
