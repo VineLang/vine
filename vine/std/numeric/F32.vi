@@ -36,9 +36,7 @@ pub mod F32 {
 
   pub impl pow_i32: Pow[F32, I32, F32] {
     fn .pow(base: F32, exp: I32) -> F32 {
-      if exp == 0 as I32 {
-        1.0
-      } else if exp < 0 as I32 {
+      if exp < +0 {
         1.0 / (base ** (-exp as N32))
       } else {
         base ** (exp as N32)
