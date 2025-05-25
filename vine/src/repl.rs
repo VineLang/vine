@@ -1,6 +1,6 @@
 use std::{
   collections::{BTreeMap, HashMap},
-  fmt::{self, Display},
+  fmt::Write,
   mem::{replace, take},
   path::PathBuf,
 };
@@ -20,7 +20,7 @@ use crate::{
   ast::{Block, Ident, Local, Span, Stmt},
   chart::{DefId, ValueDefId, VariantId},
   charter::{Charter, ExtractItems},
-  checker::{self, Checker, Type},
+  checker::Checker,
   compiler::{Compiler, Hooks},
   core::Core,
   diag::Diag,
@@ -30,7 +30,7 @@ use crate::{
   parser::VineParser,
   resolver::Resolver,
   specializer::{RelId, Spec, SpecId, Specializer},
-  unifier::Unifier,
+  types::{Type, TypeKind, Types},
   vir::{InterfaceId, StageId},
   visit::VisitMut,
 };
@@ -45,8 +45,8 @@ pub struct Repl<'core, 'ctx, 'ivm, 'ext> {
   vars: HashMap<Ident<'core>, Var<'ivm>>,
   locals: BTreeMap<Local, Ident<'core>>,
   local_count: Counter<Local>,
-  unifier: Unifier<'core>,
-  local_types: IntMap<Local, checker::Var>,
+  types: Types<'core>,
+  local_types: IntMap<Local, Type>,
 }
 
 #[derive(Debug)]
@@ -84,12 +84,13 @@ impl<'core, 'ctx, 'ivm, 'ext> Repl<'core, 'ctx, 'ivm, 'ext> {
       Var { local: Local(0), value: Port::new_ext_val(host.new_io()), space: Port::ERASE },
     )]);
     let locals = BTreeMap::from([(Local(0), io)]);
-    let mut unifier = Unifier::new(core);
-    let var = unifier._new_var(Span::NONE);
-    if let Some(io) = compiler.chart.builtins.io {
-      _ = unifier.unify(&mut Type::Var(var), &mut Type::Opaque(io, vec![]));
-    }
-    let local_types = IntMap::from_iter([(Local(0), var)]);
+    let mut types = Types::default();
+    let io_type = if let Some(io) = compiler.chart.builtins.io {
+      types.new(TypeKind::Opaque(io, vec![]))
+    } else {
+      types.nil()
+    };
+    let local_types = IntMap::from_iter([(Local(0), io_type)]);
 
     Ok(Repl {
       host,
@@ -101,7 +102,7 @@ impl<'core, 'ctx, 'ivm, 'ext> Repl<'core, 'ctx, 'ivm, 'ext> {
       vars,
       locals,
       local_count: Counter(Local(1)),
-      unifier,
+      types,
       local_types,
     })
   }
@@ -119,7 +120,7 @@ impl<'core, 'ctx, 'ivm, 'ext> Repl<'core, 'ctx, 'ivm, 'ext> {
 
     self.compiler.loader.load_deps(".".as_ref(), &mut block);
 
-    let mut ty = Type::NIL;
+    let mut ty = self.types.nil();
     let mut name = String::new();
 
     let nets = self.compiler.compile(ExecHooks {
@@ -128,7 +129,7 @@ impl<'core, 'ctx, 'ivm, 'ext> Repl<'core, 'ctx, 'ivm, 'ext> {
       ivm: self.ivm,
       locals: &mut self.locals,
       block: &mut block,
-      unifier: &mut self.unifier,
+      types: &mut self.types,
       local_types: &mut self.local_types,
       ty: &mut ty,
       local_count: &mut self.local_count,
@@ -143,9 +144,9 @@ impl<'core, 'ctx, 'ivm, 'ext> Repl<'core, 'ctx, 'ivm, 'ext> {
       ivm: &'a mut IVM<'ivm, 'ext>,
       locals: &'a mut BTreeMap<Local, Ident<'core>>,
       block: &'a mut Block<'core>,
-      unifier: &'a mut Unifier<'core>,
-      local_types: &'a mut IntMap<Local, checker::Var>,
-      ty: &'a mut Type<'core>,
+      types: &'a mut Types<'core>,
+      local_types: &'a mut IntMap<Local, Type>,
+      ty: &'a mut Type,
       local_count: &'a mut Counter<Local>,
       line: &'a mut usize,
       rels: IdxVec<RelId, SpecId>,
@@ -185,7 +186,7 @@ impl<'core, 'ctx, 'ivm, 'ext> Repl<'core, 'ctx, 'ivm, 'ext> {
       }
 
       fn check(&mut self, checker: &mut Checker<'core, '_>) {
-        *self.ty = checker._check_custom(self.repl_mod, self.unifier, self.local_types, self.block);
+        *self.ty = checker._check_custom(self.repl_mod, self.types, self.local_types, self.block);
       }
 
       fn specialize(&mut self, specializer: &mut Specializer<'core, '_>) {
@@ -242,7 +243,7 @@ impl<'core, 'ctx, 'ivm, 'ext> Repl<'core, 'ctx, 'ivm, 'ext> {
     self.ivm.normalize();
 
     let tree = self.host.read(self.ivm, &PortRef::new_wire(&out));
-    let output = self.show(&mut ty, &tree);
+    let output = self.show(ty, &tree);
     self.ivm.link_wire(out, Port::ERASE);
     self.ivm.normalize();
 
@@ -260,44 +261,50 @@ impl<'core, 'ctx, 'ivm, 'ext> Repl<'core, 'ctx, 'ivm, 'ext> {
     Ok(stmts)
   }
 
-  fn show(&self, ty: &mut Type<'core>, tree: &Tree) -> String {
+  fn show(&mut self, ty: Type, tree: &Tree) -> String {
     self._show(ty, tree).unwrap_or_else(|| format!("#ivy({})", tree))
   }
 
-  fn _show(&self, ty: &mut Type<'core>, tree: &Tree) -> Option<String> {
-    self.unifier.try_concretize(ty);
+  fn _show(&mut self, ty: Type, tree: &Tree) -> Option<String> {
     let builtins = &self.compiler.chart.builtins;
-    Some(match (ty, tree) {
+    let (inv, kind) = self.types.kind(ty)?;
+    if inv {
+      return None;
+    }
+    Some(match (kind, tree) {
       (_, Tree::Global(g)) => g.clone(),
-      (Type::Opaque(id, _), Tree::N32(0)) if builtins.bool == Some(*id) => "false".into(),
-      (Type::Opaque(id, _), Tree::N32(1)) if builtins.bool == Some(*id) => "true".into(),
-      (Type::Opaque(id, _), Tree::N32(n)) if builtins.n32 == Some(*id) => {
+      (TypeKind::Opaque(id, _), Tree::N32(0)) if builtins.bool == Some(*id) => "false".into(),
+      (TypeKind::Opaque(id, _), Tree::N32(1)) if builtins.bool == Some(*id) => "true".into(),
+      (TypeKind::Opaque(id, _), Tree::N32(n)) if builtins.n32 == Some(*id) => {
         format!("{n}")
       }
-      (Type::Opaque(id, _), Tree::N32(n)) if builtins.i32 == Some(*id) => {
+      (TypeKind::Opaque(id, _), Tree::N32(n)) if builtins.i32 == Some(*id) => {
         format!("{:+}", *n as i32)
       }
-      (Type::Opaque(id, _), Tree::F32(n)) if builtins.f32 == Some(*id) => {
+      (TypeKind::Opaque(id, _), Tree::F32(n)) if builtins.f32 == Some(*id) => {
         format!("{n:?}")
       }
-      (Type::Opaque(id, _), Tree::N32(n)) if builtins.char == Some(*id) => {
+      (TypeKind::Opaque(id, _), Tree::N32(n)) if builtins.char == Some(*id) => {
         format!("{:?}", char::try_from(*n).ok()?)
       }
-      (Type::Opaque(id, _), Tree::Var(v)) if builtins.io == Some(*id) && v == "#io" => "#io".into(),
-      (Type::Tuple(tys), _) if tys.is_empty() => "()".into(),
-      (Type::Tuple(tys), _) if tys.len() == 1 => format!("({},)", self.show(&mut tys[0], tree)),
-      (Type::Tuple(tys), _) if !tys.is_empty() => {
-        format!("({})", self.read_tuple(tys, tree)?.join(", "))
+      (TypeKind::Opaque(id, _), Tree::Var(v)) if builtins.io == Some(*id) && v == "#io" => {
+        "#io".into()
       }
-      (Type::Object(tys), _) if tys.is_empty() => "{}".into(),
-      (Type::Object(tys), _) => {
-        let values = self.read_tuple(tys.values_mut(), tree)?;
+      (TypeKind::Tuple(tys), _) if tys.is_empty() => "()".into(),
+      (TypeKind::Tuple(tys), _) if tys.len() == 1 => format!("({},)", self.show(tys[0], tree)),
+      (TypeKind::Tuple(tys), _) if !tys.is_empty() => {
+        format!("({})", self.read_tuple(tys.clone(), tree)?.join(", "))
+      }
+      (TypeKind::Object(tys), _) if tys.is_empty() => "{}".into(),
+      (TypeKind::Object(tys), _) => {
+        let tys = tys.clone();
+        let values = self.read_tuple(tys.values().copied(), tree)?;
         format!(
           "{{ {} }}",
           tys.keys().zip(values).map(|(k, v)| format!("{k}: {v}")).collect::<Vec<_>>().join(", ")
         )
       }
-      (Type::Struct(def, args), tree)
+      (TypeKind::Struct(def, args), tree)
         if builtins.list == Some(*def) || builtins.string == Some(*def) =>
       {
         let Tree::Comb(c, l, r) = tree else { None? };
@@ -327,25 +334,28 @@ impl<'core, 'ctx, 'ivm, 'ext> Repl<'core, 'ctx, 'ivm, 'ext> {
             .ok()?;
           format!("{str:?}")
         } else {
-          let [arg] = &mut **args else { None? };
-          self.unifier.try_concretize(arg);
+          let [arg] = **args else { None? };
           format!(
             "[{}]",
             children.into_iter().map(|x| self.show(arg, x)).collect::<Vec<_>>().join(", ")
           )
         }
       }
-      (Type::Struct(struct_id, args), tree) => {
+      (TypeKind::Struct(struct_id, args), tree) => {
         let name = self.compiler.chart.structs[*struct_id].name;
-        let mut data = self.compiler.types.struct_types[*struct_id].instantiate(args);
-        let data = self.show(&mut data, tree);
+        let args = args.clone();
+        let data =
+          self.types.import(&self.compiler.sigs.structs[*struct_id], Some(&args), |t, sig| {
+            t.transfer(sig.data)
+          });
+        let data = self.show(data, tree);
         if data.starts_with("(") {
           format!("{name}{}", data)
         } else {
           format!("{name}({})", data)
         }
       }
-      (Type::Enum(enum_id, args), tree) => {
+      (TypeKind::Enum(enum_id, args), tree) => {
         let enum_def = &self.compiler.chart.enums[*enum_id];
         let variant_count = enum_def.variants.len();
         let mut active_variant = None;
@@ -368,14 +378,16 @@ impl<'core, 'ctx, 'ivm, 'ext> Repl<'core, 'ctx, 'ivm, 'ext> {
         let (variant_id, mut tree) = active_variant?;
         let variant = &enum_def.variants[variant_id];
         let name = variant.name;
-        let data = self.compiler.types.enum_types[*enum_id][variant_id]
-          .as_ref()
-          .map(|x| x.instantiate(args));
-        let data = if let Some(mut ty) = data {
+        let enum_id = *enum_id;
+        let args = args.clone();
+        let data = self.types.import(&self.compiler.sigs.enums[enum_id], Some(&args), |t, sig| {
+          Some(t.transfer(sig.variant_data[variant_id]?))
+        });
+        let data = if let Some(ty) = data {
           let Tree::Comb(c, l, r) = tree else { None? };
           let "enum" = &**c else { None? };
           tree = r;
-          Some(self.show(&mut ty, l))
+          Some(self.show(ty, l))
         } else {
           None
         };
@@ -399,8 +411,8 @@ impl<'core, 'ctx, 'ivm, 'ext> Repl<'core, 'ctx, 'ivm, 'ext> {
   }
 
   fn read_tuple<'a>(
-    &self,
-    tys: impl IntoIterator<Item = &'a mut Type<'core>, IntoIter: DoubleEndedIterator>,
+    &mut self,
+    tys: impl IntoIterator<Item = Type, IntoIter: DoubleEndedIterator>,
     tree: &Tree,
   ) -> Option<Vec<String>>
   where
@@ -419,31 +431,22 @@ impl<'core, 'ctx, 'ivm, 'ext> Repl<'core, 'ctx, 'ivm, 'ext> {
     tup.push(self.show(last, tree));
     Some(tup)
   }
-}
 
-impl Display for Repl<'_, '_, '_, '_> {
-  fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-    for (local, ident) in &self.locals {
-      let var = &self.vars[ident];
+  pub fn format(&mut self) -> String {
+    let mut str = String::new();
+    for local in self.locals.keys().copied().collect::<Vec<_>>() {
+      let ident = self.locals[&local];
+      let var = &self.vars[&ident];
       let value = self.host.read(self.ivm, &var.value);
-      if value != Tree::Erase {
-        writeln!(
-          f,
-          "{} = {}",
-          ident.0 .0,
-          self.show(&mut Type::Var(self.local_types[local]), &value)
-        )?;
-      }
       let space = self.host.read(self.ivm, &var.space);
+      let ty = self.local_types[&local];
+      if value != Tree::Erase {
+        writeln!(str, "{} = {}", ident.0 .0, self.show(ty, &value)).unwrap();
+      }
       if space != Tree::Erase {
-        writeln!(
-          f,
-          "~{} = {}",
-          ident.0 .0,
-          self.show(&mut Type::Inverse(Box::new(Type::Var(self.local_types[local]))), &space)
-        )?;
+        writeln!(str, "~{} = {}", ident.0 .0, self.show(ty.inverse(), &space)).unwrap();
       }
     }
-    Ok(())
+    str
   }
 }

@@ -1,7 +1,8 @@
 use crate::{
   ast::{Pat, PatKind},
   checker::{Checker, Form, Type},
-  diag::{report, Diag},
+  diag::Diag,
+  types::TypeKind,
 };
 
 impl<'core> Checker<'core, '_> {
@@ -10,57 +11,53 @@ impl<'core> Checker<'core, '_> {
     pat: &mut Pat<'core>,
     form: Form,
     refutable: bool,
-    ty: &mut Type<'core>,
+    ty: Type,
   ) {
-    let mut found = self.check_pat(pat, form, refutable);
-    if !self.unifier.unify(&mut found, ty) {
+    let found = self.check_pat(pat, form, refutable);
+    if !self.types.unify(found, ty).is_ok() {
       self.core.report(Diag::ExpectedTypeFound {
         span: pat.span,
-        expected: self.display_type(ty),
-        found: self.display_type(&found),
+        expected: self.types.show(self.chart, ty),
+        found: self.types.show(self.chart, found),
       });
     }
   }
 
-  pub(super) fn check_pat(
-    &mut self,
-    pat: &mut Pat<'core>,
-    form: Form,
-    refutable: bool,
-  ) -> Type<'core> {
+  pub(super) fn check_pat(&mut self, pat: &mut Pat<'core>, form: Form, refutable: bool) -> Type {
     let span = pat.span;
     match (&mut pat.kind, form) {
       (_, Form::Error(_)) => unreachable!(),
       (PatKind::Path(..), _) => unreachable!(),
-      (PatKind::Error(e), _) => Type::Error(*e),
+      (PatKind::Error(e), _) => self.types.error(*e),
 
       (PatKind::Paren(p), _) => self.check_pat(p, form, refutable),
 
       (PatKind::Annotation(pat, ty), _) => {
-        let mut ty = self.hydrate_type(ty, true);
-        self.check_pat_type(pat, form, refutable, &mut ty);
+        let ty = self.hydrate_type(ty, true);
+        self.check_pat_type(pat, form, refutable, ty);
         ty
       }
 
       (PatKind::Struct(struct_id, generics, data), _) => {
         let type_params =
           self.check_generics(generics, self.chart.structs[*struct_id].generics, true);
-        let mut data_ty = self.types.struct_types[*struct_id].instantiate(&type_params);
-        self.check_pat_type(data, form, refutable, &mut data_ty);
-        Type::Struct(*struct_id, type_params)
+        let data_ty =
+          self.types.import(&self.sigs.structs[*struct_id], Some(&type_params), |t, sig| {
+            t.transfer(sig.data)
+          });
+        self.check_pat_type(data, form, refutable, data_ty);
+        self.types.new(TypeKind::Struct(*struct_id, type_params))
       }
       (PatKind::Enum(enum_id, variant, generics, data), _) => {
         let type_params = self.check_generics(generics, self.chart.enums[*enum_id].generics, true);
-        let data_ty = &self.types.enum_types[*enum_id][*variant];
+        let data_ty =
+          self.types.import(&self.sigs.enums[*enum_id], Some(&type_params), |t, sig| {
+            Some(t.transfer(sig.variant_data[*variant]?))
+          });
         match (data, data_ty) {
           (None, None) => {}
           (Some(data), Some(data_ty)) => {
-            self.check_pat_type(
-              data,
-              Form::Value,
-              refutable,
-              &mut data_ty.instantiate(&type_params),
-            );
+            self.check_pat_type(data, Form::Value, refutable, data_ty);
           }
           (None, Some(_)) => {
             self.core.report(Diag::ExpectedDataSubpattern { span });
@@ -72,42 +69,48 @@ impl<'core> Checker<'core, '_> {
         if !refutable {
           self.core.report(Diag::ExpectedCompletePat { span });
         }
-        Type::Enum(*enum_id, type_params)
+        self.types.new(TypeKind::Enum(*enum_id, type_params))
       }
 
-      (PatKind::Hole, _) => self.unifier.new_var(span),
+      (PatKind::Hole, _) => self.types.new_var(span),
       (PatKind::Local(l), _) => {
-        let var = self.unifier._new_var(span);
-        let old = self.locals.insert(*l, var);
+        let ty = self.types.new_var(span);
+        let old = self.locals.insert(*l, ty);
         debug_assert!(old.is_none());
-        Type::Var(var)
+        ty
       }
-      (PatKind::Inverse(p), _) => self.check_pat(p, form.inverse(), refutable).inverse(),
-      (PatKind::Tuple(t), _) => {
-        Type::Tuple(t.iter_mut().map(|p| self.check_pat(p, form, refutable)).collect())
+      (PatKind::Inverse(inner), _) => {
+        let inner = self.check_pat(inner, form.inverse(), refutable);
+        inner.inverse()
+      }
+      (PatKind::Tuple(els), _) => {
+        let els = els.iter_mut().map(|p| self.check_pat(p, form, refutable)).collect();
+        self.types.new(TypeKind::Tuple(els))
       }
       (PatKind::Object(e), _) => {
-        report!(self.core, pat.kind; self.build_object_type(e, |self_, p| self_.check_pat(p, form, refutable)))
+        self.build_object_type(e, |self_, p| self_.check_pat(p, form, refutable))
       }
       (PatKind::Deref(p), Form::Place) => {
-        let ty = self.unifier.new_var(span);
-        self.check_pat_type(p, Form::Value, refutable, &mut Type::Ref(Box::new(ty.clone())));
+        let ty = self.types.new_var(span);
+        let ref_ty = self.types.new(TypeKind::Ref(ty));
+        self.check_pat_type(p, Form::Value, refutable, ref_ty);
         ty
       }
 
-      (PatKind::Ref(p), Form::Value | Form::Place) => {
-        Type::Ref(Box::new(self.check_pat(p, Form::Place, refutable)))
+      (PatKind::Ref(inner), Form::Value | Form::Place) => {
+        let inner = self.check_pat(inner, Form::Place, refutable);
+        self.types.new(TypeKind::Ref(inner))
       }
 
       (PatKind::Ref(pat), Form::Space) => {
         let err = self.core.report(Diag::RefSpacePat { span });
         pat.kind = PatKind::Error(err);
-        Type::Error(err)
+        self.types.error(err)
       }
       (PatKind::Deref(pat), _) => {
         let err = self.core.report(Diag::DerefNonPlacePat { span });
         pat.kind = PatKind::Error(err);
-        Type::Error(err)
+        self.types.error(err)
       }
     }
   }
