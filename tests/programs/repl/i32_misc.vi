@@ -21,6 +21,8 @@
 I32::parse("")
 I32::parse("=0")
 I32::parse("+0")
+I32::parse("123")
 I32::parse("+123")
 I32::parse("-123")
 I32::parse("+a")
+I32::parse("a4321")
