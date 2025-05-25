@@ -206,10 +206,12 @@ pub mod List {
       if a.len() != b.len() {
         return false;
       }
-      let a = a.iter();
-      let b = b.iter();
-      while a.next() is Some(&a) && b.next() is Some(&b) {
-        if a != b {
+      let a_iter = a.iter();
+      let b_iter = b.iter();
+      while a_iter.next() is Some(&a_elem) && b_iter.next() is Some(&b_elem) {
+        if a_elem != b_elem {
+          a_iter.drop();
+          b_iter.drop();
           return false;
         }
       }
