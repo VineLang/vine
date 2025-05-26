@@ -48,6 +48,9 @@ pub struct Builtins {
   pub cast: Option<ValueDefId>,
   pub binary_ops: IntMap<BinaryOp, Option<ValueDefId>>,
   pub comparison_ops: IntMap<ComparisonOp, Option<ValueDefId>>,
+
+  pub fork: Option<TraitDefId>,
+  pub drop: Option<TraitDefId>,
 }
 
 new_idx!(pub DefId);

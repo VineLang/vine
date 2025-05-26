@@ -250,7 +250,7 @@ pub mod List {
     const le: fn(&List[T], &List[T]) -> Bool = Ord::le_from_cmp[List[T]];
   }
 
-  pub impl fork[T; Fork[T]]: Fork[List[T]] {
+  pub impl fork[T+]: Fork[List[T]] {
     fn .fork(&self: &List[T]) -> List[T] {
       let iter = self.iter();
       let out = [];
@@ -261,7 +261,7 @@ pub mod List {
     }
   }
 
-  pub impl drop[T; Drop[T]]: Drop[List[T]] {
+  pub impl drop[T?]: Drop[List[T]] {
     fn .drop(self: List[T]) {
       let iter = self.into_iter();
       while iter.next() is Some(value) {

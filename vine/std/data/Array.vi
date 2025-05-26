@@ -194,7 +194,7 @@ pub mod Array {
     self
   }
 
-  pub impl fork[T; Fork[T]]: Fork[Array[T]] {
+  pub impl fork[T+]: Fork[Array[T]] {
     fn .fork(&Array[T](len, node)) -> Array[T] {
       if len == 0 {
         Array::empty
@@ -204,7 +204,7 @@ pub mod Array {
     }
   }
 
-  pub impl drop[T; Drop[T]]: Drop[Array[T]] {
+  pub impl drop[T?]: Drop[Array[T]] {
     fn .drop(Array[T](len, node)) {
       if len == 0 {
         Drop::erase(node)
@@ -285,7 +285,7 @@ mod Node {
     }
   }
 
-  pub fn fork[T; Fork[T]](len: N32, &node: &Node[T]) -> Node[T] {
+  pub fn fork[T+](len: N32, &node: &Node[T]) -> Node[T] {
     if len == 1 {
       (&node).as[&T].*.fork().as[Node[T]]
     } else {
@@ -294,7 +294,7 @@ mod Node {
     }
   }
 
-  pub fn drop[T; Drop[T]](len: N32, node: Node[T]) {
+  pub fn drop[T?](len: N32, node: Node[T]) {
     if len == 1 {
       node.as[T].drop();
     } else {

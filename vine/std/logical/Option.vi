@@ -61,7 +61,7 @@ pub mod Option {
     }
   }
 
-  pub impl fork[T; Fork[T]]: Fork[Option[T]] {
+  pub impl fork[T+]: Fork[Option[T]] {
     fn .fork(&self: &Option[T]) -> Option[T] {
       match &self {
         &Some(value) { Some(value.fork()) }
@@ -70,7 +70,7 @@ pub mod Option {
     }
   }
 
-  pub impl drop[T; Drop[T]]: Drop[Option[T]] {
+  pub impl drop[T?]: Drop[Option[T]] {
     fn .drop(self: Option[T]) {
       match self {
         Some(value) { value.drop() }

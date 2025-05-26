@@ -348,6 +348,8 @@ impl<'core> Charter<'core, '_> {
       Builtin::Not => set(def.value_def, &mut self.chart.builtins.not),
       Builtin::BoolNot => set(def.impl_def, &mut self.chart.builtins.bool_not),
       Builtin::Cast => set(def.value_def, &mut self.chart.builtins.cast),
+      Builtin::Fork => set(def.trait_def, &mut self.chart.builtins.fork),
+      Builtin::Drop => set(def.trait_def, &mut self.chart.builtins.drop),
       Builtin::BinaryOp(op) => {
         set(def.value_def, self.chart.builtins.binary_ops.entry(op).or_default())
       }
