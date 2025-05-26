@@ -119,15 +119,17 @@ impl<'core> Types<'core> {
       return Success;
     }
 
-    if self.occurs(a, b) || self.occurs(b, a) {
-      return Failure;
-    }
-
     let (a_node, b_node) = self.types.get2_mut(a.idx(), b.idx()).unwrap();
-    let TypeNode::Root(a_kind, a_size) = &mut *a_node else { unreachable!() };
-    let TypeNode::Root(b_kind, b_size) = &mut *b_node else { unreachable!() };
+    let TypeNode::Root(a_kind, _) = &mut *a_node else { unreachable!() };
+    let TypeNode::Root(b_kind, _) = &mut *b_node else { unreachable!() };
 
     if a_kind.is_none() || b_kind.is_none() {
+      if self.occurs(a, b) || self.occurs(b, a) {
+        return Failure;
+      }
+      let (a_node, b_node) = self.types.get2_mut(a.idx(), b.idx()).unwrap();
+      let TypeNode::Root(a_kind, a_size) = &mut *a_node else { unreachable!() };
+      let TypeNode::Root(b_kind, b_size) = &mut *b_node else { unreachable!() };
       let kind = Option::or(
         a_kind.take().map(|(i, k)| (i ^ a.inv(), k)),
         b_kind.take().map(|(i, k)| (i ^ b.inv(), k)),
@@ -143,10 +145,6 @@ impl<'core> Types<'core> {
       }
       return Success;
     }
-
-    let (a_node, b_node) = self.types.get2_mut(a.idx(), b.idx()).unwrap();
-    let TypeNode::Root(a_kind, _) = &mut *a_node else { unreachable!() };
-    let TypeNode::Root(b_kind, _) = &mut *b_node else { unreachable!() };
 
     let a_kind = a_kind.take().unwrap();
     let b_kind = b_kind.take().unwrap();
