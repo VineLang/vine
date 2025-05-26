@@ -229,7 +229,7 @@ fn test_snapshot(components: &[&str], contents: &[u8]) -> PathBuf {
       println!("updating snapshot {:?}", path);
       fs::write(&path, contents).unwrap();
     } else {
-      panic!("invalid snapshot {:?}", path);
+      panic!("invalid snapshot {:?}; should be:\n{}", path, String::from_utf8_lossy(contents));
     }
   }
   path
