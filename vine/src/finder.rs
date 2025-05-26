@@ -44,12 +44,12 @@ impl<'core, 'a> Finder<'core, 'a> {
   pub fn find_method(
     &mut self,
     types: &Types<'core>,
-    ty: Type,
+    receiver: Type,
     name: Ident,
   ) -> Vec<(ValueDefId, TypeCtx<'core, Vec<Type>>)> {
     let mut found = Vec::new();
 
-    for candidate in self.find_method_candidates(types, ty, name) {
+    for candidate in self.find_method_candidates(types, receiver, name) {
       let mut types = types.clone();
       let generics = self.chart.values[candidate].generics;
       let type_params = (0..self.chart.generics[generics].type_params.len())
@@ -58,12 +58,12 @@ impl<'core, 'a> Finder<'core, 'a> {
       let candidate_ty =
         types.import(&self.sigs.values[candidate], Some(&type_params), |t, sig| t.transfer(sig.ty));
       if let Some((Inverted(false), TypeKind::Fn(params, _))) = types.kind(candidate_ty) {
-        if let [receiver, ..] = **params {
-          let receiver = match types.kind(receiver) {
+        if let [candidate_receiver, ..] = **params {
+          let candidate_receiver = match types.kind(candidate_receiver) {
             Some((Inverted(false), TypeKind::Ref(t))) => *t,
-            _ => receiver,
+            _ => candidate_receiver,
           };
-          if types.unify(ty, receiver).is_success() {
+          if types.unify(receiver, candidate_receiver).is_success() {
             found.push((candidate, TypeCtx { types, inner: type_params }));
           }
         }
