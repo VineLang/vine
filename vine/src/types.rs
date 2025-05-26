@@ -151,16 +151,20 @@ impl<'core> Types<'core> {
     let a_kind = a_kind.take().unwrap();
     let b_kind = b_kind.take().unwrap();
 
+    let inverted = a_kind.0 ^ a.inv() != b_kind.0 ^ b.inv();
+
     let result = match (&a_kind.1, &b_kind.1) {
       (TypeKind::Error(e), _) | (_, TypeKind::Error(e)) => Unknown(*e),
-      _ if a_kind.0 ^ a.inv() != b_kind.0 ^ b.inv() => Failure,
+      (TypeKind::Tuple(a), TypeKind::Tuple(b)) => self.unify_types(a, b, inverted),
+      (TypeKind::Object(a), TypeKind::Object(b)) => self.unify_objects(a, b, inverted),
+      _ if inverted => Failure,
       (TypeKind::Param(i, _), TypeKind::Param(j, _)) if *i == *j => Success,
-      (TypeKind::Tuple(a), TypeKind::Tuple(b)) => self.unify_types(a, b),
-      (TypeKind::Object(a), TypeKind::Object(b)) => self.unify_objects(a, b),
-      (TypeKind::Fn(a, x), TypeKind::Fn(b, y)) => self.unify_types(a, b).and(self.unify(*x, *y)),
-      (TypeKind::Opaque(i, a), TypeKind::Opaque(j, b)) if *i == *j => self.unify_types(a, b),
-      (TypeKind::Struct(i, a), TypeKind::Struct(j, b)) if *i == *j => self.unify_types(a, b),
-      (TypeKind::Enum(i, a), TypeKind::Enum(j, b)) if *i == *j => self.unify_types(a, b),
+      (TypeKind::Fn(a, x), TypeKind::Fn(b, y)) => {
+        self.unify_types(a, b, false).and(self.unify(*x, *y))
+      }
+      (TypeKind::Opaque(i, a), TypeKind::Opaque(j, b)) if *i == *j => self.unify_types(a, b, false),
+      (TypeKind::Struct(i, a), TypeKind::Struct(j, b)) if *i == *j => self.unify_types(a, b, false),
+      (TypeKind::Enum(i, a), TypeKind::Enum(j, b)) if *i == *j => self.unify_types(a, b, false),
       (TypeKind::Ref(a), TypeKind::Ref(b)) => self.unify(*a, *b),
       (TypeKind::Never, TypeKind::Never) => Success,
       _ => Failure,
@@ -186,9 +190,9 @@ impl<'core> Types<'core> {
     result
   }
 
-  pub fn unify_types(&mut self, a: &[Type], b: &[Type]) -> UnifyResult {
+  pub fn unify_types(&mut self, a: &[Type], b: &[Type], inv: bool) -> UnifyResult {
     if a.len() == b.len() {
-      UnifyResult::all(a.iter().zip(b).map(|(a, b)| self.unify(*a, *b)))
+      UnifyResult::all(a.iter().zip(b).map(|(&a, &b)| self.unify(a, b.invert_if(inv))))
     } else {
       UnifyResult::Failure
     }
@@ -198,10 +202,11 @@ impl<'core> Types<'core> {
     &mut self,
     a: &BTreeMap<Ident<'core>, Type>,
     b: &BTreeMap<Ident<'core>, Type>,
+    inv: bool,
   ) -> UnifyResult {
-    UnifyResult::from_bool(a.len() == b.len()).and(UnifyResult::all(a.iter().map(|(k, a)| {
-      if let Some(b) = b.get(k) {
-        self.unify(*a, *b)
+    UnifyResult::from_bool(a.len() == b.len()).and(UnifyResult::all(a.iter().map(|(k, &a)| {
+      if let Some(&b) = b.get(k) {
+        self.unify(a, b.invert_if(inv))
       } else {
         Failure
       }
@@ -211,7 +216,7 @@ impl<'core> Types<'core> {
   pub fn unify_impl_type(&mut self, a: &ImplType, b: &ImplType) -> UnifyResult {
     match (a, b) {
       (ImplType::Error(e), _) | (_, ImplType::Error(e)) => Unknown(*e),
-      (ImplType::Trait(i, a), ImplType::Trait(j, b)) if i == j => self.unify_types(a, b),
+      (ImplType::Trait(i, a), ImplType::Trait(j, b)) if i == j => self.unify_types(a, b, false),
       _ => Failure,
     }
   }
