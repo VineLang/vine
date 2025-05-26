@@ -35,7 +35,7 @@ io = #io
 
 io = #io
 > "abc" ++ 123
-error input:1:1 - cannot find impl of trait `Concat[String, N32, ?13]`
+error input:1:1 - cannot find impl of trait `Concat[String, N32, ?49]`
 
 io = #io
 > ([true, false]; _).show().as[String]
