@@ -317,6 +317,26 @@ pub mod Map {
       x && left.balanced() && right.balanced()
     }
   }
+
+  pub impl fork[K, V; Fork[K], Fork[V]]: Fork[Map[K, V]] {
+    fn .fork(&Map[K, V](len, data)) -> Map[K, V] {
+      if len == 0 {
+        Map::empty
+      } else {
+        Map(len, data.fork())
+      }
+    }
+  }
+
+  pub impl drop[K, V; Drop[K], Drop[V]]: Drop[Map[K, V]] {
+    fn .drop(Map[K, V](len, data)) {
+      if len == 0 {
+        Drop::erase(data);
+      } else {
+        data.drop();
+      }
+    }
+  }
 }
 
 fn balance_left[K, V](&data: &MapData[K, V]) {

@@ -6,6 +6,18 @@ use debug::Show;
 pub type Char;
 
 pub mod Char {
+  pub impl fork: Fork[Char] {
+    fn .fork(&self: &Char) -> Char {
+      Fork::copy(&self)
+    }
+  }
+
+  pub impl drop: Drop[Char] {
+    fn .drop(self: Char) {
+      Drop::erase(self)
+    }
+  }
+
   pub impl from_n32: Cast[N32, Char] {
     fn .cast(n: N32) -> Char {
       inline_ivy! (n <- n) -> Char { n }

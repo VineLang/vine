@@ -1,0 +1,98 @@
+
+pub trait Fork[T] {
+  fn .fork(&self: &T) -> T;
+}
+
+pub trait Drop[T] {
+  fn .drop(self: T);
+}
+
+pub mod Fork {
+  pub fn copy[T](&value: &T) -> T {
+    inline_ivy! (x <- value, x1 -> value) -> T {
+      x2
+      x = copy(x1 x2)
+    }
+  }
+
+  pub impl ref[T]: Fork[&T] {
+    fn fork(&&value: &&T) -> &T {
+      &value
+    }
+  }
+
+  pub impl nil: Fork[()] {
+    fn fork(&()) -> () {}
+  }
+
+  pub impl unary[A; Fork[A]]: Fork[(A,)] {
+    fn fork(&(a: A,)) -> (A,) {
+      (a.fork(),)
+    }
+  }
+
+  pub impl pair[A, B; Fork[A], Fork[B]]: Fork[(A, B)] {
+    fn fork(&(a: A, b: B)) -> (A, B) {
+      (a.fork(), b.fork())
+    }
+  }
+
+  pub impl triple[A, B, C; Fork[A], Fork[B], Fork[C]]: Fork[(A, B, C)] {
+    fn fork(&(a: A, b: B, c: C)) -> (A, B, C) {
+      (a.fork(), b.fork(), c.fork())
+    }
+  }
+
+  pub impl quad[A, B, C, D; Fork[A], Fork[B], Fork[C], Fork[D]]: Fork[(A, B, C, D)] {
+    fn fork(&(a: A, b: B, c: C, d: D)) -> (A, B, C, D) {
+      (a.fork(), b.fork(), c.fork(), d.fork())
+    }
+  }
+}
+
+pub mod Drop {
+  pub fn erase[T](value: T) {
+    inline_ivy! (x <- value) -> () {
+      _
+      x = _
+    }
+  }
+
+  pub impl ref[T]: Drop[&T] {
+    fn drop(&_: &T) {}
+  }
+
+  pub impl nil: Drop[()] {
+    fn drop(()) {}
+  }
+
+  pub impl unary[A; Drop[A]]: Drop[(A,)] {
+    fn drop((a: A,)) {
+      a.drop();
+    }
+  }
+
+  pub impl pair[A, B; Drop[A], Drop[B]]: Drop[(A, B)] {
+    fn drop((a: A, b: B)) {
+      a.drop();
+      b.drop();
+    }
+  }
+
+  pub impl triple[A, B, C; Drop[A], Drop[B], Drop[C]]: Drop[(A, B, C)] {
+    fn drop((a: A, b: B, c: C)) {
+      a.drop();
+      b.drop();
+      c.drop();
+    }
+  }
+
+  pub impl quad[A, B, C, D; Drop[A], Drop[B], Drop[C], Drop[D]]: Drop[(A, B, C, D)] {
+    fn drop((a: A, b: B, c: C, d: D)) {
+      a.drop();
+      b.drop();
+      c.drop();
+      d.drop();
+    }
+  }
+}

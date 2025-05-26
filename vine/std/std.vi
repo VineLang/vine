@@ -15,6 +15,7 @@ pub mod prelude {
     data::List,
     logical::{Bool, Option::{Option, None, Some}, Result::{Result, Err, Ok}},
     numeric::{F32, I32, N32},
+    ops::flex::{Drop, Fork},
     unicode::{Char, String},
   };
 

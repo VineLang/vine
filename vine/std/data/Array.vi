@@ -193,6 +193,26 @@ pub mod Array {
     self.reverse();
     self
   }
+
+  pub impl fork[T; Fork[T]]: Fork[Array[T]] {
+    fn .fork(&Array[T](len, node)) -> Array[T] {
+      if len == 0 {
+        Array::empty
+      } else {
+        Array(len, Node::fork[T](len, &node))
+      }
+    }
+  }
+
+  pub impl drop[T; Drop[T]]: Drop[Array[T]] {
+    fn .drop(Array[T](len, node)) {
+      if len == 0 {
+        Drop::erase(node)
+      } else {
+        Node::drop[T](len, node)
+      }
+    }
+  }
 }
 
 struct Node[T]((Node[T], Node[T]));
@@ -262,6 +282,25 @@ mod Node {
       let (lx, ly) = unzip_with((len + 1) / 2, l, f);
       let (rx, ry) = unzip_with(len / 2, r, f);
       (Node(lx, rx), Node(ly, ry))
+    }
+  }
+
+  pub fn fork[T; Fork[T]](len: N32, &node: &Node[T]) -> Node[T] {
+    if len == 1 {
+      (&node).as[&T].*.fork().as[Node[T]]
+    } else {
+      let &Node(l, r) = &node;
+      Node(fork[T]((len + 1) / 2, &l), fork[T](len / 2, &r))
+    }
+  }
+
+  pub fn drop[T; Drop[T]](len: N32, node: Node[T]) {
+    if len == 1 {
+      node.as[T].drop();
+    } else {
+      let &Node(l, r) = &node;
+      drop[T]((len + 1) / 2, l);
+      drop[T](len / 2, r);
     }
   }
 }

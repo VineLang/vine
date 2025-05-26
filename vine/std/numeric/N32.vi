@@ -11,6 +11,18 @@ use debug::Show;
 pub type N32;
 
 pub mod N32 {
+  pub impl fork: Fork[N32] {
+    fn .fork(&self: &N32) -> N32 {
+      Fork::copy(&self)
+    }
+  }
+
+  pub impl drop: Drop[N32] {
+    fn .drop(self: N32) {
+      Drop::erase(self)
+    }
+  }
+
   pub const maximum: N32 = 0xffffffff;
 
   pub impl add: Add[N32, N32, N32] {

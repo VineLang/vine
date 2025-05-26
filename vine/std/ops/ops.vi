@@ -2,6 +2,7 @@
 pub mod comparison = "./comparison.vi";
 pub mod arithmetic = "./arithmetic.vi";
 pub mod bitwise = "./bitwise.vi";
+pub mod flex = "./flex.vi";
 pub mod vectorized = "./vectorized.vi";
 
 pub trait Concat[A, B, O] {
