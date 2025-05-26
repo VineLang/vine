@@ -51,3 +51,8 @@ x.get(0).*.get(0).* = 2
 ~x.get(0).*.get(0).*.~
 move x
 let _: { a: N32, b: N32 } = { a: 1 }
+do { let x; x = (x, x); }
+let (a: N32, b: N32);
+let x: (~N32, ~N32) = ~(a, b);
+let x: { a: ~N32, b: ~N32 } = ~{ a, b };
+move (a, b, x)
