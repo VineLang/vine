@@ -27,7 +27,7 @@ fn part1(input: String) -> N64 {
   let pos = 0;
   let remaining = used;
 
-  dyn fn push_block(id: N32, len: N32) {
+  let fn push_block(id: N32, len: N32) {
     let end = pos + len;
     sum = sum + N64::mul_n32_n32(id, ((end - 1) * end - (pos - 1) * pos) / 2);
     pos = end;

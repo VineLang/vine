@@ -26,7 +26,7 @@ pub fn main(&io: &IO) {
         let prev = char - 1;
         let in_s = zero_set;
         let in_n = 0;
-        dyn fn recv(t: Char, (s: Set, n: N32)) {
+        let fn recv(t: Char, (s: Set, n: N32)) {
           if t == prev {
             in_s |= s;
             in_n += n;
@@ -80,7 +80,7 @@ fn set(n: N32) -> Set {
 }
 
 fn count(s: Set) -> N32 {
-  dyn fn c32(x: N32) {
+  let fn c32(x: N32) {
     let n = 0;
     while x != 0 {
       n += x & 1;
@@ -88,10 +88,10 @@ fn count(s: Set) -> N32 {
     }
     n
   }
-  dyn fn c64((a, b)) {
+  let fn c64((a, b)) {
     c32(a) + c32(b)
   }
-  dyn fn c128((a, b)) {
+  let fn c128((a, b)) {
     c64(a) + c64(b)
   }
   let (x, y) = s;

@@ -247,8 +247,8 @@ impl<'core: 'src, 'src> Formatter<'src> {
         },
         Doc(";"),
       ]),
-      StmtKind::DynFn(d) => Doc::concat([
-        Doc("dyn fn "),
+      StmtKind::LetFn(d) => Doc::concat([
+        Doc("let fn "),
         Doc(d.name),
         Doc::paren_comma(d.params.iter().map(|p| self.fmt_pat(p))),
         self.fmt_return_ty(d.ret.as_ref()),

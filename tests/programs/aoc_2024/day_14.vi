@@ -16,7 +16,7 @@ pub fn main(&io: &IO) {
     let vy = r.unwrap();
     let px = N32::parse(px).unwrap();
     let py = N32::parse(py).unwrap();
-    dyn fn parse_signed(x: String, m: N32) {
+    let fn parse_signed(x: String, m: N32) {
       if *x!.get(0) == '-' {
         x!.pop_front();
         m - N32::parse(x).unwrap()

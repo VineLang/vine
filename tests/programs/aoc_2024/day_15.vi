@@ -23,11 +23,11 @@ pub fn main(&io: &IO) {
 
   let initial_grid = grid;
 
-  dyn fn get((x, y)) {
+  let fn get((x, y)) {
     (*grid.get(y)).get(x)
   }
 
-  dyn fn show_grid() {
+  let fn show_grid() {
     io.println(grid.as[List].map(fn(array: Array) { array as List as String }).join("\n"));
   }
 

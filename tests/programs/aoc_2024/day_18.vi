@@ -22,7 +22,7 @@ pub fn main(&io: &IO) {
 
   let bytes = i;
 
-  dyn fn show_grid(c: N32) {
+  let fn show_grid(c: N32) {
     io.println(grid.as[List].map(fn(row: Array[N32]) {
       row.fold_front(
         "",
@@ -47,14 +47,14 @@ pub fn main(&io: &IO) {
 
   let set = DisjointSet::new(size * size);
 
-  dyn fn coord(x: N32, y: N32) {
+  let fn coord(x: N32, y: N32) {
     y * size + x
   }
 
   let blocked = Array::new(size, Array::new(size, true));
 
-  dyn fn remove_data(x: N32, y: N32) {
-    dyn fn connect(dx: N32, dy: N32) {
+  let fn remove_data(x: N32, y: N32) {
+    let fn connect(dx: N32, dy: N32) {
       let X = x + dx;
       let Y = y + dy;
       if X < size && Y < size && !*(*blocked.get(Y)).get(X) {
@@ -160,7 +160,7 @@ fn pathfind(grid: Array[Array[N32]], size: N32, iters: N32) -> N32 {
       let &cell = (*grid.get(y)).get(x);
       if cell >= iters {
         cell = 0;
-        dyn fn visit((x: N32, y: N32)) {
+        let fn visit((x: N32, y: N32)) {
           if x < size && y < size && *(*grid.get(y)).get(x) >= iters {
             next ++= [(x, y)];
           }

@@ -16,7 +16,7 @@ use crate::{
 };
 
 new_idx!(pub Local; n => ["l{n}"]);
-new_idx!(pub DynFnId; n => ["f{n}"]);
+new_idx!(pub LetFnId; n => ["f{n}"]);
 
 #[derive(Clone, Default)]
 pub struct Item<'core> {
@@ -204,7 +204,7 @@ pub struct Stmt<'core> {
 #[derive(Debug, Clone)]
 pub enum StmtKind<'core> {
   Let(LetStmt<'core>),
-  DynFn(DynFnStmt<'core>),
+  LetFn(LetFnStmt<'core>),
   Expr(Expr<'core>, bool),
   Item(Item<'core>),
   Empty,
@@ -218,9 +218,9 @@ pub struct LetStmt<'core> {
 }
 
 #[derive(Debug, Clone)]
-pub struct DynFnStmt<'core> {
+pub struct LetFnStmt<'core> {
   pub name: Ident<'core>,
-  pub id: Option<DynFnId>,
+  pub id: Option<LetFnId>,
   pub params: Vec<Pat<'core>>,
   pub ret: Option<Ty<'core>>,
   pub body: Block<'core>,
@@ -248,7 +248,7 @@ pub enum ExprKind<'core> {
   #[class(place, resolved)]
   Local(Local),
   #[class(value, resolved)]
-  DynFn(DynFnId),
+  LetFn(LetFnId),
   #[class(value)]
   Do(Label<'core>, Block<'core>),
   #[class(value)]

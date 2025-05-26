@@ -3,7 +3,7 @@ use crate::{
   vir::{Interface, InterfaceKind, Layer, Port, Stage, Step, Transfer},
 };
 
-use super::{pattern_matching::Row, Distiller, DynFn, Label, Return};
+use super::{pattern_matching::Row, Distiller, Label, LetFn, Return};
 
 impl<'core, 'r> Distiller<'core, 'r> {
   pub fn distill_block(&mut self, stage: &mut Stage, block: &Block<'core>) -> Port {
@@ -53,13 +53,13 @@ impl<'core, 'r> Distiller<'core, 'r> {
             stage.steps.push(Step::Link(pat, value));
           }
         }
-        StmtKind::DynFn(dyn_fn) => {
+        StmtKind::LetFn(let_fn) => {
           let local = self.new_local(stage);
           stage.erase_local(local);
           let (layer, mut stage) = self.root_layer();
-          *self.dyn_fns.get_or_extend(dyn_fn.id.unwrap()) =
-            Some(DynFn { interface: stage.interface, local });
-          self._distill_fn(&mut stage, local, &dyn_fn.params, &dyn_fn.body);
+          *self.let_fns.get_or_extend(let_fn.id.unwrap()) =
+            Some(LetFn { interface: stage.interface, local });
+          self._distill_fn(&mut stage, local, &let_fn.params, &let_fn.body);
           self.finish_stage(stage);
           self.finish_layer(layer);
         }

@@ -1,17 +1,17 @@
 
 pub fn main(&io: &IO) {
-  dyn fn print_option_n32(option: Option[N32]) {
+  let fn print_option_n32(option: Option[N32]) {
     io.println("  " ++ match option {
       Some(val) { "Some({val})" }
       None { "None" }
     })
   }
 
-  dyn fn print_n32(val: N32) {
+  let fn print_n32(val: N32) {
     io.println("  {val}")
   }
 
-  dyn fn print_bool(bool: Bool) {
+  let fn print_bool(bool: Bool) {
     io.println(if bool {
       "  true"
     } else {

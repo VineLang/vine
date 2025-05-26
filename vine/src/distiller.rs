@@ -10,7 +10,7 @@ use vine_util::{
 
 use crate::{
   analyzer::usage::Usage,
-  ast::{DynFnId, Expr, ExprKind, Key, LabelId, Local, Pat, PatKind},
+  ast::{Expr, ExprKind, Key, LabelId, LetFnId, Local, Pat, PatKind},
   chart::{Chart, ValueDef, ValueDefKind},
   vir::{
     Header, Interface, InterfaceId, InterfaceKind, Layer, LayerId, Port, Stage, StageId, Step,
@@ -31,7 +31,7 @@ pub struct Distiller<'core, 'r> {
 
   labels: IdxVec<LabelId, Option<Label>>,
   returns: Vec<Return>,
-  dyn_fns: IdxVec<DynFnId, Option<DynFn>>,
+  let_fns: IdxVec<LetFnId, Option<LetFn>>,
 
   locals: Counter<Local>,
 }
@@ -50,7 +50,7 @@ struct Return {
 }
 
 #[derive(Debug)]
-struct DynFn {
+struct LetFn {
   interface: InterfaceId,
   local: Local,
 }
@@ -64,7 +64,7 @@ impl<'core, 'r> Distiller<'core, 'r> {
       stages: Default::default(),
       labels: Default::default(),
       returns: Default::default(),
-      dyn_fns: Default::default(),
+      let_fns: Default::default(),
       locals: Default::default(),
     }
   }
@@ -100,7 +100,7 @@ impl<'core, 'r> Distiller<'core, 'r> {
     self.finish_layer(layer);
     self.labels.clear();
     debug_assert!(self.returns.is_empty());
-    self.dyn_fns.clear();
+    self.let_fns.clear();
     VIR {
       layers: unwrap_idx_vec(take(&mut self.layers)),
       interfaces: unwrap_idx_vec(take(&mut self.interfaces)),
@@ -137,10 +137,10 @@ impl<'core, 'r> Distiller<'core, 'r> {
       ExprKind::Def(id, _) => Port::Def(*id),
       ExprKind::Rel(id) => Port::Rel(*id),
 
-      ExprKind::DynFn(dyn_fn) => {
-        let dyn_fn = self.dyn_fns[*dyn_fn].as_ref().unwrap();
-        stage.steps.push(Step::Transfer(Transfer::unconditional(dyn_fn.interface)));
-        stage.take_local(dyn_fn.local)
+      ExprKind::LetFn(let_fn) => {
+        let let_fn = self.let_fns[*let_fn].as_ref().unwrap();
+        stage.steps.push(Step::Transfer(Transfer::unconditional(let_fn.interface)));
+        stage.take_local(let_fn.local)
       }
       ExprKind::Assign(inverse, space, value) => {
         if *inverse {
