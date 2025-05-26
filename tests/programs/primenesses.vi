@@ -1,0 +1,37 @@
+
+pub fn main(&io: &IO) {
+  let results = [
+    primenesses([]),
+    primenesses([2, 3, 5, 7, 11, 13]),
+    primenesses([1, 2, 3, 4]),
+    primenesses([3, 5, 7, 9]),
+    primenesses([2, 3, 5, 0, 9]),
+    primenesses([2, 3, 5, 8, 13]),
+  ];
+  io.println(results.show().as[String])
+}
+
+pub fn primenesses(list: List[N32]) -> Result[List[Bool], String] {
+  let out = [];
+  while list.pop_front() is Some(n) {
+    out.push_back(primeness(n)?);
+  }
+  Ok(out)
+}
+
+pub fn primeness(n: N32) -> Result[Bool, String] {
+  if n <= 0 {
+    return Err("primes have to be positive!");
+  }
+  if n == 1 {
+    return Err("depends who's asking");
+  }
+  let d = 2;
+  while d * d <= n {
+    if n % d == 0 {
+      return Ok(false);
+    }
+    d += 1;
+  }
+  Ok(true)
+}

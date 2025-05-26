@@ -58,3 +58,7 @@ let x: { a: ~N32, b: ~N32 } = ~{ a, b };
 move (a, b, x)
 let x
 x.a; x.a
+Ok(true)?
+fn foo() -> N32 { Ok(123)? }
+fn foo() -> Result[N32, String] { Ok(123)? }
+fn foo() -> Result[N32, String] { Err(123)? }
