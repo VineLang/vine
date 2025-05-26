@@ -56,3 +56,5 @@ let (a: N32, b: N32);
 let x: (~N32, ~N32) = ~(a, b);
 let x: { a: ~N32, b: ~N32 } = ~{ a, b };
 move (a, b, x)
+let x
+x.a; x.a

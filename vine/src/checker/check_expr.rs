@@ -159,7 +159,7 @@ impl<'core> Checker<'core, '_> {
       ExprKind::Unwrap(inner) => {
         let (form, ty) = self.check_expr(inner);
 
-        let data_ty = match self.types.force_kind(ty) {
+        let data_ty = match self.types.force_kind(self.core, ty) {
           (inv, TypeKind::Struct(struct_id, type_params)) => {
             let struct_id = *struct_id;
             let type_params = &type_params.clone();
@@ -194,7 +194,7 @@ impl<'core> Checker<'core, '_> {
   }
 
   fn tuple_field(&mut self, span: Span, ty: Type, index: usize) -> Option<(Type, usize)> {
-    match self.types.force_kind(ty) {
+    match self.types.force_kind(self.core, ty) {
       (inv, TypeKind::Tuple(tuple)) => Some((tuple.get(index)?.invert_if(inv), tuple.len())),
       (inv, TypeKind::Struct(struct_id, type_params)) => {
         let struct_id = *struct_id;
@@ -213,7 +213,7 @@ impl<'core> Checker<'core, '_> {
     ty: Type,
     key: Ident<'core>,
   ) -> Option<(Type, usize, usize)> {
-    match self.types.force_kind(ty) {
+    match self.types.force_kind(self.core, ty) {
       (inv, TypeKind::Object(entries)) => entries
         .iter()
         .enumerate()
@@ -612,7 +612,7 @@ impl<'core> Checker<'core, '_> {
     ty: Type,
     args: usize,
   ) -> Result<(Vec<Type>, Type), Diag<'core>> {
-    match self.types.force_kind(ty) {
+    match self.types.force_kind(self.core, ty) {
       (Inverted(false), TypeKind::Fn(params, ret)) => {
         if params.len() != args {
           Err(Diag::BadArgCount {

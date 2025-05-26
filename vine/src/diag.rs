@@ -266,7 +266,7 @@ impl<'core> Core<'core> {
 pub struct ErrorGuaranteed(());
 
 impl ErrorGuaranteed {
-  pub fn new_unchecked() -> Self {
+  pub const fn new_unchecked() -> Self {
     ErrorGuaranteed(())
   }
 }

@@ -69,7 +69,7 @@ impl<'core> Checker<'core, '_> {
       self._check_generics(generics, self.chart.values[id].generics, true, Some(type_params));
     let ty =
       self.types.import(&self.sigs.values[id], Some(&type_params), |t, sig| t.transfer(sig.ty));
-    match self.types.force_kind(ty) {
+    match self.types.force_kind(self.core, ty) {
       (Inverted(false), TypeKind::Fn(params, ret)) => {
         if params.len() != args + 1 {
           return Err(Diag::BadArgCount {
@@ -79,15 +79,17 @@ impl<'core> Checker<'core, '_> {
             ty: self.types.show(self.chart, ty),
           });
         }
+        let params = params.clone();
+        let ret = *ret;
         let (form, receiver) = match params.first().copied() {
           None => return Err(Diag::NilaryMethod { span, ty: self.types.show(self.chart, ty) }),
-          Some(receiver) => match self.types.force_kind(receiver) {
+          Some(receiver) => match self.types.force_kind(self.core, receiver) {
             (_, TypeKind::Error(e)) => return Err((*e).into()),
             (Inverted(false), TypeKind::Ref(receiver)) => (Form::Place, *receiver),
             _ => (Form::Value, receiver),
           },
         };
-        Ok((form, receiver, params.clone(), *ret))
+        Ok((form, receiver, params, ret))
       }
       (_, TypeKind::Error(e)) => Err(*e)?,
       _ => Err(Diag::NonFunctionCall { span, ty: self.types.show(self.chart, ty) }),

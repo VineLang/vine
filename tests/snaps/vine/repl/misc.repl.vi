@@ -242,3 +242,10 @@ x = { a: #ivy(n0), b: #ivy(n1) }
 (#ivy(dup1(dup1(_ _) n0)), #ivy(dup2(dup2(_ _) n1)), { a: #ivy(n0), b: #ivy(n1) })
 
 io = #io
+> let x
+
+io = #io
+> x.a; x.a
+error input:1:5 - cannot infer type
+
+io = #io
