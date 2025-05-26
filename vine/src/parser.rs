@@ -9,10 +9,10 @@ use crate::{core::Core, diag::Diag, lexer::Token};
 
 use crate::ast::{
   Attr, AttrKind, BinaryOp, Block, Builtin, ComparisonOp, ConstItem, EnumItem, Expr, ExprKind,
-  FnItem, GenericArgs, GenericParams, Generics, Ident, Impl, ImplItem, ImplKind, Item, ItemKind,
-  Key, Label, LetFnStmt, LetStmt, LogicalOp, ModItem, ModKind, Pat, PatKind, Path, Span, Stmt,
-  StmtKind, StructItem, Trait, TraitItem, TraitKind, Ty, TyKind, TypeItem, UseItem, UseTree,
-  Variant, Vis,
+  FnItem, GenericArgs, GenericParams, Generics, Ident, Impl, ImplItem, ImplKind, ImplParam, Item,
+  ItemKind, Key, Label, LetFnStmt, LetStmt, LogicalOp, ModItem, ModKind, Pat, PatKind, Path, Span,
+  Stmt, StmtKind, StructItem, Trait, TraitItem, TraitKind, Ty, TyKind, TypeItem, TypeParam,
+  UseItem, UseTree, Variant, Vis,
 };
 
 pub struct VineParser<'core, 'src> {
@@ -249,19 +249,31 @@ impl<'core, 'src> VineParser<'core, 'src> {
   }
 
   fn parse_generic_params(&mut self) -> Parse<'core, GenericParams<'core>> {
-    self.parse_generics(Self::parse_ident, |self_| {
-      if self_.check(Token::Ident) {
-        let path = self_.parse_path()?;
-        if path.as_ident().is_some() && self_.eat(Token::Colon)? {
-          let trait_ = self_.parse_trait()?;
-          Ok((path.as_ident(), trait_))
-        } else {
-          Ok((None, Trait { span: path.span, kind: TraitKind::Path(path) }))
-        }
+    self.parse_generics(Self::parse_type_param, Self::parse_impl_param)
+  }
+
+  fn parse_type_param(&mut self) -> Parse<'core, TypeParam<'core>> {
+    let span = self.start_span();
+    let name = self.parse_ident()?;
+    let span = self.end_span(span);
+    Ok(TypeParam { span, name })
+  }
+
+  fn parse_impl_param(&mut self) -> Parse<'core, ImplParam<'core>> {
+    let span = self.start_span();
+    let (name, trait_) = if self.check(Token::Ident) {
+      let path = self.parse_path()?;
+      if path.as_ident().is_some() && self.eat(Token::Colon)? {
+        let trait_ = self.parse_trait()?;
+        (path.as_ident(), trait_)
       } else {
-        Ok((None, self_.parse_trait()?))
+        (None, Trait { span: path.span, kind: TraitKind::Path(path) })
       }
-    })
+    } else {
+      (None, self.parse_trait()?)
+    };
+    let span = self.end_span(span);
+    Ok(ImplParam { span, name, trait_ })
   }
 
   fn parse_generic_args(&mut self) -> Parse<'core, GenericArgs<'core>> {

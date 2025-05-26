@@ -5,8 +5,8 @@ use doc::{Doc, Writer};
 use crate::{
   ast::{
     Block, ComparisonOp, Expr, ExprKind, GenericArgs, GenericParams, Generics, Ident, Impl,
-    ImplKind, Item, ItemKind, Label, LogicalOp, ModKind, Pat, PatKind, Path, Span, Stmt, StmtKind,
-    Trait, TraitKind, Ty, TyKind, UseTree, Vis,
+    ImplKind, ImplParam, Item, ItemKind, Label, LogicalOp, ModKind, Pat, PatKind, Path, Span, Stmt,
+    StmtKind, Trait, TraitKind, Ty, TyKind, TypeParam, UseTree, Vis,
   },
   core::Core,
   diag::Diag,
@@ -287,14 +287,18 @@ impl<'core: 'src, 'src> Formatter<'src> {
   }
 
   fn fmt_generic_params(&self, generics: &GenericParams<'core>) -> Doc<'src> {
-    self.fmt_generics(
-      generics,
-      |i| Doc(*i),
-      |(i, t)| match i {
-        Some(i) => Doc::concat([Doc(*i), Doc(": "), self.fmt_trait(t)]),
-        None => self.fmt_trait(t),
-      },
-    )
+    self.fmt_generics(generics, |p| self.fmt_type_param(p), |p| self.fmt_impl_param(p))
+  }
+
+  fn fmt_type_param(&self, param: &TypeParam<'core>) -> Doc<'src> {
+    Doc(param.name)
+  }
+
+  fn fmt_impl_param(&self, param: &ImplParam<'core>) -> Doc<'src> {
+    match param.name {
+      Some(name) => Doc::concat([Doc(name), Doc(": "), self.fmt_trait(&param.trait_)]),
+      None => self.fmt_trait(&param.trait_),
+    }
   }
 
   fn fmt_generic_args(&self, generics: &GenericArgs<'core>) -> Doc<'src> {

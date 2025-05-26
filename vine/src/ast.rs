@@ -174,7 +174,7 @@ pub enum Builtin {
   Cast,
 }
 
-pub type GenericParams<'core> = Generics<Ident<'core>, (Option<Ident<'core>>, Trait<'core>)>;
+pub type GenericParams<'core> = Generics<TypeParam<'core>, ImplParam<'core>>;
 pub type GenericArgs<'core> = Generics<Ty<'core>, Impl<'core>>;
 
 #[derive(Debug, Clone)]
@@ -188,6 +188,19 @@ impl<T, I> Default for Generics<T, I> {
   fn default() -> Self {
     Self { span: Span::default(), types: Default::default(), impls: Default::default() }
   }
+}
+
+#[derive(Debug, Clone, Copy)]
+pub struct TypeParam<'core> {
+  pub span: Span,
+  pub name: Ident<'core>,
+}
+
+#[derive(Debug, Clone)]
+pub struct ImplParam<'core> {
+  pub span: Span,
+  pub name: Option<Ident<'core>>,
+  pub trait_: Trait<'core>,
 }
 
 #[derive(Default, Debug, Clone)]

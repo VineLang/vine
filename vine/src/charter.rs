@@ -4,8 +4,8 @@ use vine_util::idx::Counter;
 
 use crate::{
   ast::{
-    Attr, AttrKind, Builtin, GenericParams, Generics, Ident, Item, ItemKind, ModKind, Span, Trait,
-    TraitKind, Ty, TyKind, UseTree, Vis,
+    Attr, AttrKind, Builtin, GenericParams, Generics, Ident, ImplParam, Item, ItemKind, ModKind,
+    Span, Trait, TraitKind, Ty, TyKind, UseTree, Vis,
   },
   chart::{Chart, TraitSubitem},
   core::Core,
@@ -156,9 +156,10 @@ impl<'core> Charter<'core, '_> {
             span: generics.span,
             def,
             type_params: generics.type_params.clone(),
-            impl_params: vec![(
-              None,
-              Trait {
+            impl_params: vec![ImplParam {
+              span: Span::NONE,
+              name: None,
+              trait_: Trait {
                 span: Span::NONE,
                 kind: TraitKind::Def(
                   trait_id,
@@ -171,7 +172,7 @@ impl<'core> Charter<'core, '_> {
                   },
                 ),
               },
-            )],
+            }],
           })
         };
         let subitems = trait_item

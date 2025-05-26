@@ -264,7 +264,7 @@ impl<'core, 'a> Checker<'core, 'a> {
         )
       }
       TyKind::Param(index) => {
-        let name = self.chart.generics[self.cur_generics].type_params[*index];
+        let name = self.chart.generics[self.cur_generics].type_params[*index].name;
         self.types.new(TypeKind::Param(*index, name))
       }
       TyKind::Error(e) => self.types.error(*e),
@@ -423,7 +423,8 @@ impl<'core, 'a> Checker<'core, 'a> {
     let GenericsDef { def, ref mut impl_params, .. } = self.chart.generics[generics_id];
     let mut impl_params = take(impl_params);
     self.initialize(def, generics_id);
-    let impl_param_types = impl_params.iter_mut().map(|(_, t)| self.assess_trait(t)).collect();
+    let impl_param_types =
+      impl_params.iter_mut().map(|p| self.assess_trait(&mut p.trait_)).collect();
     self.sigs.generics.push(TypeCtx {
       types: take(&mut self.types),
       inner: GenericsSig { impl_params: impl_param_types },
@@ -627,7 +628,7 @@ impl<'core, 'a> Checker<'core, 'a> {
       .type_params
       .iter()
       .enumerate()
-      .map(|(i, name)| self.types.new(TypeKind::Param(i, *name)))
+      .map(|(i, p)| self.types.new(TypeKind::Param(i, p.name)))
       .collect::<Vec<_>>()
   }
 }

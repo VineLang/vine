@@ -6,7 +6,9 @@ use vine_util::{
 };
 
 use crate::{
-  ast::{BinaryOp, Block, ComparisonOp, Expr, Ident, Local, Pat, Span, Trait, Ty},
+  ast::{
+    BinaryOp, Block, ComparisonOp, Expr, Ident, ImplParam, Local, Pat, Span, Trait, Ty, TypeParam,
+  },
   diag::ErrorGuaranteed,
 };
 
@@ -243,8 +245,8 @@ pub struct ImplSubitem<'core> {
 pub struct GenericsDef<'core> {
   pub span: Span,
   pub def: DefId,
-  pub type_params: Vec<Ident<'core>>,
-  pub impl_params: Vec<(Option<Ident<'core>>, Trait<'core>)>,
+  pub type_params: Vec<TypeParam<'core>>,
+  pub impl_params: Vec<ImplParam<'core>>,
 }
 
 #[derive(Debug)]
