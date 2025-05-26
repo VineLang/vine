@@ -124,12 +124,12 @@ pub mod I32 {
 
   pub fn parse(str: String) -> Option[I32] {
     if str!.pop_front() is Some(prefix) {
-      if prefix == '+' {
-        N32::parse(str).map(fn(x: N32) { x as I32 })
-      } else if prefix == '-' {
+      if prefix == '-' {
         N32::parse(str).map(fn(x: N32) { -x as I32 })
       } else {
-        str!.push_front(prefix);
+        if prefix != '+' {
+          str!.push_front(prefix);
+        }
         N32::parse(str).map(fn(x: N32) { x as I32 })
       }
     } else {
