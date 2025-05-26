@@ -216,7 +216,7 @@ impl<'core, 'a> Checker<'core, 'a> {
 
   fn check_block_type(&mut self, block: &mut Block<'core>, ty: Type) {
     let found = self.check_block(block);
-    if !self.types.unify(found, ty).is_ok() {
+    if self.types.unify(found, ty).is_failure() {
       self.core.report(Diag::ExpectedTypeFound {
         span: block.span,
         expected: self.types.show(self.chart, ty),
@@ -331,7 +331,7 @@ impl<'core, 'a> Checker<'core, 'a> {
               let ty = self
                 .types
                 .import(&self.sigs.values[subitem.value], None, |t, sig| t.transfer(sig.ty));
-              if !self.types.unify(ty, trait_ty).is_ok() {
+              if self.types.unify(ty, trait_ty).is_failure() {
                 self.core.report(Diag::ExpectedTypeFound {
                   span: subitem.span,
                   expected: self.types.show(self.chart, trait_ty),
@@ -509,7 +509,7 @@ impl<'core, 'a> Checker<'core, 'a> {
       }
       _ => {
         let found = self.check_impl(impl_);
-        if !self.types.unify_impl_type(&found, ty).is_ok() {
+        if self.types.unify_impl_type(&found, ty).is_failure() {
           self.core.report(Diag::ExpectedTypeFound {
             span: impl_.span,
             expected: self.types.show_impl_type(self.chart, ty),

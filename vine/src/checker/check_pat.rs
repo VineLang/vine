@@ -14,7 +14,7 @@ impl<'core> Checker<'core, '_> {
     ty: Type,
   ) {
     let found = self.check_pat(pat, form, refutable);
-    if !self.types.unify(found, ty).is_ok() {
+    if self.types.unify(found, ty).is_failure() {
       self.core.report(Diag::ExpectedTypeFound {
         span: pat.span,
         expected: self.types.show(self.chart, ty),

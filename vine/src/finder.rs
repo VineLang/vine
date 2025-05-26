@@ -127,7 +127,7 @@ impl<'core, 'a> Finder<'core, 'a> {
 
     let result_ty = types.import(&result, None, |t, _| t.transfer_impl_type(&sub_query));
     let unify_result = types.unify_impl_type(query, &result_ty);
-    assert!(unify_result.is_ok());
+    assert!(!unify_result.is_failure());
 
     result.inner
   }

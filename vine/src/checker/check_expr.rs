@@ -14,7 +14,7 @@ mod coerce_expr;
 impl<'core> Checker<'core, '_> {
   pub(super) fn check_expr_form_type(&mut self, expr: &mut Expr<'core>, form: Form, ty: Type) {
     let found = self.check_expr_form(expr, form);
-    if !self.types.unify(found, ty).is_ok() {
+    if self.types.unify(found, ty).is_failure() {
       self.core.report(Diag::ExpectedTypeFound {
         span: expr.span,
         expected: self.types.show(self.chart, ty),
@@ -55,7 +55,7 @@ impl<'core> Checker<'core, '_> {
       ExprKind::Place(v, s) => {
         let v = self.check_expr_form(v, Form::Value);
         let s = self.check_expr_form(s, Form::Space);
-        let ty = if !self.types.unify(v, s).is_ok() {
+        let ty = if self.types.unify(v, s).is_failure() {
           self.types.error(self.core.report(Diag::MismatchedValueSpaceTypes {
             span,
             value: self.types.show(self.chart, v),
@@ -147,7 +147,7 @@ impl<'core> Checker<'core, '_> {
             t.transfer(sig.data)
           });
         let (form, ty) = self.check_expr(data);
-        if !self.types.unify(ty, data_ty).is_ok() {
+        if self.types.unify(ty, data_ty).is_failure() {
           self.core.report(Diag::ExpectedTypeFound {
             span: expr.span,
             expected: self.types.show(self.chart, data_ty),
@@ -258,7 +258,7 @@ impl<'core> Checker<'core, '_> {
         let ty = self.types.new_var(span);
         *self.labels.get_or_extend(label.as_id()) = Some(ty);
         let got = self.check_block(block);
-        if !self.types.unify(ty, got).is_ok() {
+        if self.types.unify(ty, got).is_failure() {
           self.core.report(Diag::ExpectedTypeFound {
             span: block.span,
             expected: self.types.show(self.chart, ty),
@@ -327,7 +327,7 @@ impl<'core> Checker<'core, '_> {
           let ty = self.labels[label.as_id()].unwrap();
           if let Some(e) = e {
             self.check_expr_form_type(e, Form::Value, ty);
-          } else if !self.types.unify(ty, nil).is_ok() {
+          } else if self.types.unify(ty, nil).is_failure() {
             self.core.report(Diag::MissingBreakExpr { span, ty: self.types.show(self.chart, ty) });
           }
         }
@@ -338,7 +338,7 @@ impl<'core> Checker<'core, '_> {
           let ty = *ty;
           if let Some(e) = e {
             self.check_expr_form_type(e, Form::Value, ty);
-          } else if !self.types.unify(ty, nil).is_ok() {
+          } else if self.types.unify(ty, nil).is_failure() {
             self.core.report(Diag::MissingReturnExpr { span, ty: self.types.show(self.chart, ty) });
           }
         } else {
@@ -469,7 +469,7 @@ impl<'core> Checker<'core, '_> {
         let mut err = false;
         for (_, expr) in cmps.iter_mut() {
           let other_ty = self.check_expr_pseudo_place(expr);
-          if !self.types.unify(ty, other_ty).is_ok() {
+          if self.types.unify(ty, other_ty).is_failure() {
             self.core.report(Diag::CannotCompare {
               span,
               lhs: self.types.show(self.chart, ty),

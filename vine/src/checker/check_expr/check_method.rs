@@ -44,7 +44,7 @@ impl<'core> Checker<'core, '_> {
     let (form, receiver_ty, params, ret) =
       self.method_sig(span, id, generics, type_params, args.len())?;
     self.coerce_expr(receiver, receiver_form, form);
-    if !self.types.unify(ty, receiver_ty).is_ok() {
+    if self.types.unify(ty, receiver_ty).is_failure() {
       Err(Diag::ExpectedTypeFound {
         span: receiver.span,
         expected: self.types.show(self.chart, receiver_ty),

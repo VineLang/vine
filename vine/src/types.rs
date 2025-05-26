@@ -552,8 +552,8 @@ impl UnifyResult {
     matches!(self, Success)
   }
 
-  pub fn is_ok(self) -> bool {
-    !matches!(self, Failure)
+  pub fn is_failure(self) -> bool {
+    matches!(self, Failure)
   }
 }
 
