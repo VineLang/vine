@@ -5,7 +5,7 @@ pub fn main(&io: &IO) {
   let seed = io.prompt("Enter a seed: ").unwrap();
   let rng = Pcg32::seeded(seed);
 
-  dyn fn prompt_num(msg: String) -> N32 {
+  let fn prompt_num(msg: String) -> N32 {
     loop {
       if io.prompt(msg) is Some(input) && N32::parse(input) is Some(n) {
         return n;

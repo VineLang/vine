@@ -57,7 +57,7 @@ pub fn main(&io: &IO) {
     while x <= width {
       let ne = north.pop_front().unwrap_or('#');
       let se = s.pop_front().unwrap_or('#');
-      dyn fn check_corner(x: N32, y: N32, a: Char, b: Char, c: Char, d: Char) {
+      let fn check_corner(x: N32, y: N32, a: Char, b: Char, c: Char, d: Char) {
         if a != '#' && (b != a != d || a == b == d != c) {
           let i = x + y * width;
           let a = regions.get_area(i);

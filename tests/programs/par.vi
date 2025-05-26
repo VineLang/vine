@@ -99,28 +99,28 @@ fn start_playing(&io: &IO) -> Game {
 
       io.println("{move1} {move2} {move3}");
 
-      dyn fn win1() {
+      let fn win1() {
         outcome1.send1(Win);
         outcome2.send1(Loss);
         outcome3.send1(Loss);
         winner.send1(First);
       }
 
-      dyn fn win2() {
+      let fn win2() {
         outcome1.send1(Loss);
         outcome2.send1(Win);
         outcome3.send1(Loss);
         winner.send1(Second);
       }
 
-      dyn fn win3() {
+      let fn win3() {
         outcome1.send1(Loss);
         outcome2.send1(Loss);
         outcome3.send1(Win);
         winner.send1(Third);
       }
 
-      dyn fn draw() {
+      let fn draw() {
         player1 = outcome1.choose[_, _, Player](fn(x) { Draw(x) });
         player2 = outcome2.choose[_, _, Player](fn(x) { Draw(x) });
         player3 = outcome3.choose[_, _, Player](fn(x) { Draw(x) });
@@ -142,7 +142,7 @@ fn start_playing(&io: &IO) -> Game {
 }
 
 fn random_player(&rng: &Pcg32) -> Player {
-  dyn fn random_move() {
+  let fn random_move() {
     if rng.gen_n32() & 1 == 0 {
       Move::Up
     } else {

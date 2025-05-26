@@ -249,7 +249,7 @@ impl<'core> Checker<'core, '_> {
     let span = expr.span;
     match &mut expr.kind {
       ExprKind![error || place || space || synthetic] | ExprKind::Path(..) => unreachable!(),
-      ExprKind::DynFn(x) => self.dyn_fns[x],
+      ExprKind::LetFn(x) => self.let_fns[x],
       ExprKind::Def(id, args) => {
         let type_params = self.check_generics(args, self.chart.values[*id].generics, true);
         self.types.import(&self.sigs.values[*id], Some(&type_params), |t, sig| t.transfer(sig.ty))

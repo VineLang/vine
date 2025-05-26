@@ -22,7 +22,7 @@ pub fn main(&io: &IO) {
   let pq = Map::empty[N32, _];
   pq.insert(0, [(start, 0)]);
 
-  dyn fn try_insert(dist: N32, pos: (N32, N32), dir) {
+  let fn try_insert(dist: N32, pos: (N32, N32), dir) {
     let (x, y) = pos;
     let &(passable, dirs, _) = (*grid.get(y)).get(x);
     if passable {

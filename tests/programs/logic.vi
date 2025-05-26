@@ -1,6 +1,6 @@
 
 pub fn main(&io: &IO) {
-  dyn fn print_bool(bool) {
+  let fn print_bool(bool) {
     io.println(if bool {
       "true"
     } else {

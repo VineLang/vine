@@ -15,7 +15,7 @@ pub fn main(&io: &IO) {
     map.insert(num, num * num)
   }
 
-  dyn fn integrity_check(expected_length: N32) {
+  let fn integrity_check(expected_length: N32) {
     let iter = map.iter();
     let last = 0;
     let count = 0;

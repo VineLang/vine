@@ -8,9 +8,9 @@ use vine_util::parser::{Parser, ParserState};
 use crate::{core::Core, diag::Diag, lexer::Token};
 
 use crate::ast::{
-  Attr, AttrKind, BinaryOp, Block, Builtin, ComparisonOp, ConstItem, DynFnStmt, EnumItem, Expr,
-  ExprKind, FnItem, GenericArgs, GenericParams, Generics, Ident, Impl, ImplItem, ImplKind, Item,
-  ItemKind, Key, Label, LetStmt, LogicalOp, ModItem, ModKind, Pat, PatKind, Path, Span, Stmt,
+  Attr, AttrKind, BinaryOp, Block, Builtin, ComparisonOp, ConstItem, EnumItem, Expr, ExprKind,
+  FnItem, GenericArgs, GenericParams, Generics, Ident, Impl, ImplItem, ImplKind, Item, ItemKind,
+  Key, Label, LetFnStmt, LetStmt, LogicalOp, ModItem, ModKind, Pat, PatKind, Path, Span, Stmt,
   StmtKind, StructItem, Trait, TraitItem, TraitKind, Ty, TyKind, TypeItem, UseItem, UseTree,
   Variant, Vis,
 };
@@ -928,10 +928,20 @@ impl<'core, 'src> VineParser<'core, 'src> {
 
   pub(crate) fn parse_stmt(&mut self) -> Parse<'core, Stmt<'core>> {
     let span = self.start_span();
-    let kind = if self.check(Token::Let) {
-      StmtKind::Let(self.parse_let_stmt()?)
-    } else if self.check(Token::Dyn) {
-      StmtKind::DynFn(self.parse_dyn_fn_stmt()?)
+    let kind = if self.eat(Token::Let)? {
+      if self.eat(Token::Fn)? {
+        let name = self.parse_ident()?;
+        let params = self.parse_delimited(PAREN_COMMA, Self::parse_pat)?;
+        let ret = self.eat(Token::ThinArrow)?.then(|| self.parse_type()).transpose()?;
+        let body = self.parse_block()?;
+        StmtKind::LetFn(LetFnStmt { name, id: None, params, ret, body })
+      } else {
+        let bind = self.parse_pat()?;
+        let init = self.eat(Token::Eq)?.then(|| self.parse_expr()).transpose()?;
+        let else_block = self.eat(Token::Else)?.then(|| self.parse_block()).transpose()?;
+        self.eat(Token::Semi)?;
+        StmtKind::Let(LetStmt { bind, init, else_block })
+      }
     } else if self.eat(Token::Semi)? {
       StmtKind::Empty
     } else if let Some(item) = self.maybe_parse_item()? {
@@ -952,25 +962,6 @@ impl<'core, 'src> VineParser<'core, 'src> {
     };
     let span = self.end_span(span);
     Ok(Stmt { span, kind })
-  }
-
-  fn parse_let_stmt(&mut self) -> Parse<'core, LetStmt<'core>> {
-    self.expect(Token::Let)?;
-    let bind = self.parse_pat()?;
-    let init = self.eat(Token::Eq)?.then(|| self.parse_expr()).transpose()?;
-    let else_block = self.eat(Token::Else)?.then(|| self.parse_block()).transpose()?;
-    self.eat(Token::Semi)?;
-    Ok(LetStmt { bind, init, else_block })
-  }
-
-  fn parse_dyn_fn_stmt(&mut self) -> Parse<'core, DynFnStmt<'core>> {
-    self.expect(Token::Dyn)?;
-    self.expect(Token::Fn)?;
-    let name = self.parse_ident()?;
-    let params = self.parse_delimited(PAREN_COMMA, Self::parse_pat)?;
-    let ret = self.eat(Token::ThinArrow)?.then(|| self.parse_type()).transpose()?;
-    let body = self.parse_block()?;
-    Ok(DynFnStmt { name, id: None, params, ret, body })
   }
 
   fn parse_path(&mut self) -> Parse<'core, Path<'core>> {

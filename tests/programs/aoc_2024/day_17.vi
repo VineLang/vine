@@ -4,7 +4,7 @@ use std::data::Array;
 pub fn main(&io: &IO) {
   let input = io.full_input();
 
-  dyn fn read_value() {
+  let fn read_value() {
     let (_, rest) = input.split_once(": ");
     let (value, rest) = rest.unwrap().split_once("\n");
     input = rest.unwrap();
@@ -26,7 +26,7 @@ pub fn main(&io: &IO) {
     steps -= 1;
     let opcode = *program.get(ip);
     let operand = *program.get(ip + 1);
-    dyn fn combo() {
+    let fn combo() {
       if operand == 4 {
         a
       } else if operand == 5 {

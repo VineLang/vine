@@ -9,7 +9,7 @@ use vine_util::idx::Counter;
 
 use crate::{
   ast::{
-    DynFnId, Expr, ExprKind, Ident, Impl, ImplKind, Label, LabelId, Local, LogicalOp, Pat, PatKind,
+    Expr, ExprKind, Ident, Impl, ImplKind, Label, LabelId, LetFnId, Local, LogicalOp, Pat, PatKind,
     Span, Stmt, StmtKind, Trait, TraitKind, Ty, TyKind,
   },
   chart::{
@@ -42,7 +42,7 @@ impl<'core> Resolver<'core, '_> {
       scope: Default::default(),
       scope_depth: Default::default(),
       locals: Default::default(),
-      dyn_fns: Default::default(),
+      let_fns: Default::default(),
       labels: Default::default(),
       loops: Default::default(),
       label_id: Default::default(),
@@ -68,7 +68,7 @@ impl<'core> Resolver<'core, '_> {
         .collect(),
       scope_depth: 0,
       locals: *local_count,
-      dyn_fns: Counter::default(),
+      let_fns: Counter::default(),
       labels: Default::default(),
       loops: Default::default(),
       label_id: Default::default(),
@@ -99,7 +99,7 @@ struct ResolveVisitor<'core, 'a, 'b> {
   scope: HashMap<Ident<'core>, Vec<ScopeEntry>>,
   scope_depth: usize,
   locals: Counter<Local>,
-  dyn_fns: Counter<DynFnId>,
+  let_fns: Counter<LetFnId>,
   labels: HashMap<Ident<'core>, (LabelId, bool)>,
   loops: Vec<LabelId>,
   label_id: Counter<LabelId>,
@@ -114,7 +114,7 @@ struct ScopeEntry {
 #[derive(Debug, Clone, Copy)]
 enum Binding {
   Local(Local),
-  DynFn(DynFnId),
+  LetFn(LetFnId),
 }
 
 impl<'core> ResolveVisitor<'core, '_, '_> {
@@ -228,7 +228,7 @@ impl<'core> ResolveVisitor<'core, '_, '_> {
     self.scope.clear();
     debug_assert_eq!(self.scope_depth, 0);
     self.locals.reset();
-    self.dyn_fns.reset();
+    self.let_fns.reset();
     self.labels.clear();
     debug_assert!(self.loops.is_empty());
     self.label_id.reset();
@@ -258,9 +258,9 @@ impl<'core> VisitMut<'core, '_> for ResolveVisitor<'core, '_, '_> {
 
   fn visit_stmt(&mut self, stmt: &mut Stmt<'core>) {
     self._visit_stmt(stmt);
-    if let StmtKind::DynFn(d) = &mut stmt.kind {
-      let id = self.dyn_fns.next();
-      self.bind(d.name, Binding::DynFn(id));
+    if let StmtKind::LetFn(d) = &mut stmt.kind {
+      let id = self.let_fns.next();
+      self.bind(d.name, Binding::LetFn(id));
       d.id = Some(id);
     }
   }
@@ -578,7 +578,7 @@ impl From<Binding> for ExprKind<'_> {
   fn from(val: Binding) -> Self {
     match val {
       Binding::Local(l) => ExprKind::Local(l),
-      Binding::DynFn(d) => ExprKind::DynFn(d),
+      Binding::LetFn(d) => ExprKind::LetFn(d),
     }
   }
 }

@@ -10,7 +10,7 @@ pub fn main(&io: &IO) {
     map.insert(name, Wire::input(value));
   }
 
-  dyn fn get_wire(wire) {
+  let fn get_wire(wire) {
     map.get_or_insert(wire, Wire::new())
   }
 

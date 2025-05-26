@@ -7,7 +7,7 @@ use vine_util::idx::{IdxVec, IntMap, RangeExt};
 
 use crate::{
   ast::{
-    Block, DynFnId, GenericArgs, Impl, ImplKind, Key, LabelId, Local, Pat, PatKind, Span, StmtKind,
+    Block, GenericArgs, Impl, ImplKind, Key, LabelId, LetFnId, Local, Pat, PatKind, Span, StmtKind,
     Trait, TraitKind, Ty, TyKind,
   },
   chart::{
@@ -32,7 +32,7 @@ pub struct Checker<'core, 'a> {
   sigs: &'a mut Signatures<'core>,
   types: Types<'core>,
   locals: IntMap<Local, Type>,
-  dyn_fns: IntMap<DynFnId, Type>,
+  let_fns: IntMap<LetFnId, Type>,
   return_ty: Option<Type>,
   labels: IdxVec<LabelId, Option<Type>>,
   cur_def: DefId,
@@ -51,7 +51,7 @@ impl<'core, 'a> Checker<'core, 'a> {
       sigs: types,
       types: Types::default(),
       locals: Default::default(),
-      dyn_fns: Default::default(),
+      let_fns: Default::default(),
       return_ty: None,
       labels: Default::default(),
       cur_def: DefId::ROOT,
@@ -98,7 +98,7 @@ impl<'core, 'a> Checker<'core, 'a> {
     self.labels.clear();
     self.types.reset();
     self.locals.clear();
-    self.dyn_fns.clear();
+    self.let_fns.clear();
 
     self.cur_def = def_id;
     self.cur_generics = generics_id;
@@ -189,7 +189,7 @@ impl<'core, 'a> Checker<'core, 'a> {
             self.check_block_type(block, never);
           }
         }
-        StmtKind::DynFn(d) => {
+        StmtKind::LetFn(d) => {
           let params = d.params.iter_mut().map(|p| self.check_pat(p, Form::Value, false)).collect();
           let ret = d
             .ret
@@ -200,7 +200,7 @@ impl<'core, 'a> Checker<'core, 'a> {
           self.check_block_type(&mut d.body, ret);
           self.return_ty = old;
           let ty = self.types.new(TypeKind::Fn(params, ret));
-          self.dyn_fns.insert(d.id.unwrap(), ty);
+          self.let_fns.insert(d.id.unwrap(), ty);
         }
         StmtKind::Expr(e, semi) => {
           ty = self.check_expr_form(e, Form::Value);
