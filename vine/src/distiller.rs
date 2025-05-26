@@ -124,6 +124,7 @@ impl<'core, 'r> Distiller<'core, 'r> {
       ExprKind::Continue(label) => self.distill_continue(stage, label.as_id()),
       ExprKind::Fn(params, _, body) => self.distill_fn(stage, params, body),
       ExprKind::Match(value, arms) => self.distill_match(stage, value, arms),
+      ExprKind::Try(result) => self.distill_try(stage, result),
 
       ExprKind::Paren(inner) | ExprKind::Unwrap(inner) | ExprKind::Struct(_, _, inner) => {
         self.distill_expr_value(stage, inner)

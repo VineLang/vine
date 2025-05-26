@@ -580,6 +580,31 @@ impl<'core> Checker<'core, '_> {
         }
         self.types.new(TypeKind::Enum(*enum_id, type_params))
       }
+      ExprKind::Try(result) => {
+        let Some(result_id) = self.chart.builtins.result else {
+          return self
+            .types
+            .error(self.core.report(Diag::MissingBuiltin { span, builtin: "Result" }));
+        };
+        let ok = self.types.new_var(span);
+        let err = self.types.new_var(span);
+        let result_ty = self.types.new(TypeKind::Enum(result_id, vec![ok, err]));
+        self.check_expr_form_type(result, Form::Value, result_ty);
+        let return_ok = self.types.new_var(span);
+        let return_result = self.types.new(TypeKind::Enum(result_id, vec![return_ok, err]));
+        if let Some(return_ty) = &self.return_ty {
+          if self.types.unify(*return_ty, return_result).is_failure() {
+            self.core.report(Diag::TryBadReturnType {
+              span,
+              tried: self.types.show(self.chart, result_ty),
+              ret: self.types.show(self.chart, *return_ty),
+            });
+          }
+        } else {
+          self.core.report(Diag::NoReturn { span });
+        }
+        ok
+      }
     }
   }
 

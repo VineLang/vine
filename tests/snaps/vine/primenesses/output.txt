@@ -1,0 +1,8 @@
+[
+  Ok([]),
+  Ok([true, true, true, true, true, true]),
+  Err("depends who's asking"),
+  Ok([true, true, true, false]),
+  Err("primes have to be positive!"),
+  Ok([true, true, true, false, true]),
+]
