@@ -59,8 +59,8 @@ pub mod String {
         let List(_, _, end) = suffix as List;
         return (prefix, Some(List(len, move buf, end) as String));
       }
-      iter_a.drop();
-      iter_b.drop();
+      iter_a.drop_iter();
+      iter_b.drop_iter();
       if suffix!.pop_front() is Some(char) {
         prefix ++= String([char]);
       } else {
@@ -79,8 +79,8 @@ pub mod String {
     while prefix_iter.next() is Some(&a) {
       let &b = self_iter.next().unwrap();
       if a != b {
-        self_iter.drop()
-        prefix_iter.drop()
+        self_iter.drop_iter()
+        prefix_iter.drop_iter()
         return Err(self)
       }
     }
@@ -98,12 +98,12 @@ pub mod String {
     while prefix_iter.next() is Some(&a) {
       let &b = self_iter.next().unwrap();
       if a != b {
-        self_iter.drop()
-        prefix_iter.drop()
+        self_iter.drop_iter()
+        prefix_iter.drop_iter()
         return false
       }
     }
-    self_iter.drop();
+    self_iter.drop_iter();
     true
   }
 

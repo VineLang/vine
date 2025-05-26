@@ -160,7 +160,7 @@ pub mod List {
         }
       }
 
-      fn .drop(&iter: &Iter[T]) {
+      fn .drop_iter(&iter: &Iter[T]) {
         let Iter(_, &_) = move iter;
       }
     }
@@ -185,7 +185,7 @@ pub mod List {
         }
       }
 
-      fn .drop(iter: &IntoIter[T]) {}
+      fn .drop_iter(iter: &IntoIter[T]) {}
     }
   }
 
@@ -210,8 +210,8 @@ pub mod List {
       let b_iter = b.iter();
       while a_iter.next() is Some(&a_elem) && b_iter.next() is Some(&b_elem) {
         if a_elem != b_elem {
-          a_iter.drop();
-          b_iter.drop();
+          a_iter.drop_iter();
+          b_iter.drop_iter();
           return false;
         }
       }
@@ -241,8 +241,8 @@ pub mod List {
           }
         }
       };
-      a.drop();
-      b.drop();
+      a.drop_iter();
+      b.drop_iter();
       ord
     }
 

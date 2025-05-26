@@ -240,7 +240,7 @@ pub mod Map {
         }
       }
 
-      fn .drop(&iter: &Iter[K, V]) {
+      fn .drop_iter(&iter: &Iter[K, V]) {
         let Iter(&_, stack) = move iter;
         while stack.pop_front() is Some(&_) {}
       }
@@ -273,7 +273,7 @@ pub mod Map {
         }
       }
 
-      fn .drop(self: &IntoIter[K, V]) {}
+      fn .drop_iter(self: &IntoIter[K, V]) {}
     }
   }
 

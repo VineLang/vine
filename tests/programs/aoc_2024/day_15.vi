@@ -16,7 +16,7 @@ pub fn main(&io: &IO) {
       };
       x += 1;
     }
-    iter.drop();
+    iter.drop_iter();
     grid.push_back(line as List as Array);
     y += 1;
   }
