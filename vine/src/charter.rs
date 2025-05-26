@@ -330,6 +330,7 @@ impl<'core> Charter<'core, '_> {
       }
     }
     let struct_id = || def.type_def.and_then(|id| self.chart.types[id].kind.struct_id());
+    let enum_id = || def.type_def.and_then(|id| self.chart.types[id].kind.enum_id());
 
     match builtin {
       Builtin::Bool => set(def.type_def, &mut self.chart.builtins.bool),
@@ -341,6 +342,7 @@ impl<'core> Charter<'core, '_> {
       Builtin::Prelude => set(Some(def_id), &mut self.chart.builtins.prelude),
       Builtin::List => set(struct_id(), &mut self.chart.builtins.list),
       Builtin::String => set(struct_id(), &mut self.chart.builtins.string),
+      Builtin::Result => set(enum_id(), &mut self.chart.builtins.result),
       Builtin::Neg => set(def.value_def, &mut self.chart.builtins.neg),
       Builtin::Not => set(def.value_def, &mut self.chart.builtins.not),
       Builtin::BoolNot => set(def.impl_def, &mut self.chart.builtins.bool_not),

@@ -78,6 +78,7 @@ pub trait VisitMut<'core, 'a> {
       | ExprKind::ObjectField(a, _)
       | ExprKind::Inverse(a, _)
       | ExprKind::Unwrap(a)
+      | ExprKind::Try(a)
       | ExprKind::Copy(a)
       | ExprKind::Hedge(a)
       | ExprKind::Set(a) => self.visit_expr(a),

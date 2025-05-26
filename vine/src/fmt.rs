@@ -422,6 +422,7 @@ impl<'core: 'src, 'src> Formatter<'src> {
         Doc::concat([self.fmt_expr(x), Doc(".as["), self.fmt_ty(ty), Doc("]")])
       }
       ExprKind::Unwrap(x) => Doc::concat([self.fmt_expr(x), Doc("!")]),
+      ExprKind::Try(x) => Doc::concat([self.fmt_expr(x), Doc("?")]),
       ExprKind::Place(v, s) => {
         Doc::concat([Doc("("), self.fmt_expr(v), Doc("; "), self.fmt_expr(s), Doc(")")])
       }

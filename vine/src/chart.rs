@@ -38,6 +38,7 @@ pub struct Builtins {
 
   pub list: Option<StructId>,
   pub string: Option<StructId>,
+  pub result: Option<EnumId>,
 
   pub neg: Option<ValueDefId>,
   pub not: Option<ValueDefId>,
@@ -364,6 +365,14 @@ impl<'core> TypeDefKind<'core> {
   pub fn struct_id(&self) -> Option<StructId> {
     if let TypeDefKind::Struct(struct_id) = self {
       Some(*struct_id)
+    } else {
+      None
+    }
+  }
+
+  pub fn enum_id(&self) -> Option<EnumId> {
+    if let TypeDefKind::Enum(enum_id) = self {
+      Some(*enum_id)
     } else {
       None
     }

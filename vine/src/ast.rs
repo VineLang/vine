@@ -165,6 +165,7 @@ pub enum Builtin {
   Prelude,
   List,
   String,
+  Result,
   BinaryOp(BinaryOp),
   Neg,
   Not,
@@ -317,6 +318,8 @@ pub enum ExprKind<'core> {
   Cast(B<Expr<'core>>, B<Ty<'core>>, bool),
   #[class(value, space, place)]
   Unwrap(B<Expr<'core>>),
+  #[class(value)]
+  Try(B<Expr<'core>>),
   #[class(value)]
   N32(u32),
   #[class(value)]

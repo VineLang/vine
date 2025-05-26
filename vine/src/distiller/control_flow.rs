@@ -1,5 +1,8 @@
 use crate::{
-  ast::{Block, Expr, ExprKind, LabelId, Local, LogicalOp, Pat, Stmt, StmtKind},
+  ast::{
+    Block, Expr, ExprKind, Generics, LabelId, Local, LogicalOp, Pat, PatKind, Span, Stmt, StmtKind,
+  },
+  chart::VariantId,
   vir::{Interface, InterfaceKind, Layer, Port, Stage, Step, Transfer},
 };
 
@@ -392,6 +395,55 @@ impl<'core, 'r> Distiller<'core, 'r> {
         swap_if(invert_out, (true_stage, false_stage))
       }
     }
+  }
+
+  pub(super) fn distill_try(&mut self, stage: &mut Stage, result: &Expr<'core>) -> Port {
+    let result_id = self.chart.builtins.result.unwrap();
+    let ok_variant = VariantId(0);
+    let err_variant = VariantId(1);
+
+    let (mut layer, mut init_stage) = self.child_layer(stage);
+    let result = self.distill_expr_value(&mut init_stage, result);
+    let mut ok_stage = self.new_unconditional_stage(&mut layer);
+    let mut err_stage = self.new_unconditional_stage(&mut layer);
+    let ok_local = self.locals.next();
+    let err_local = self.locals.next();
+    let pat = |variant_id, local| Pat {
+      span: Span::NONE,
+      kind: PatKind::Enum(
+        result_id,
+        variant_id,
+        Generics::default(),
+        Some(Box::new(Pat { span: Span::NONE, kind: PatKind::Local(local) })),
+      ),
+    };
+
+    self.distill_pattern_match(
+      &mut layer,
+      &mut init_stage,
+      result,
+      vec![
+        Row::new(&pat(ok_variant, ok_local), ok_stage.interface),
+        Row::new(&pat(err_variant, err_local), err_stage.interface),
+      ],
+    );
+    self.finish_stage(init_stage);
+
+    let out_local = self.locals.next();
+    let value = ok_stage.take_local(ok_local);
+    ok_stage.set_local_to(out_local, value);
+    self.finish_stage(ok_stage);
+
+    let ret = self.returns.last().unwrap();
+    let err = err_stage.take_local(err_local);
+    let result = err_stage.new_wire();
+    err_stage.steps.push(Step::Enum(result_id, err_variant, result.0, Some(err)));
+    err_stage.set_local_to(ret.local, result.1);
+    err_stage.steps.push(Step::Diverge(ret.layer, None));
+    self.finish_stage(err_stage);
+
+    self.finish_layer(layer);
+    stage.take_local(out_local)
   }
 }
 

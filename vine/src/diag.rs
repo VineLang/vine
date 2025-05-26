@@ -210,6 +210,9 @@ diags! {
     ["constructor expects data"]
   StructDataInvisible { ty: String, vis: &'core str }
     ["the data of `{ty}` is only visible within `{vis}`"]
+  TryBadReturnType { tried: String, ret: String }
+    ["cannot try `{tried}` in a function returning `{ret}`"]
+
 }
 
 fn plural<'a>(n: usize, plural: &'a str, singular: &'a str) -> &'a str {

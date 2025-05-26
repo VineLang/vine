@@ -124,6 +124,7 @@ impl<'core, 'src> VineParser<'core, 'src> {
           "IO" => Builtin::IO,
           "List" => Builtin::List,
           "String" => Builtin::String,
+          "Result" => Builtin::Result,
           "prelude" => Builtin::Prelude,
           "neg" => Builtin::Neg,
           "not" => Builtin::Not,
@@ -687,6 +688,10 @@ impl<'core, 'src> VineParser<'core, 'src> {
 
     if self.eat(Token::Bang)? {
       return Ok(Ok(ExprKind::Unwrap(Box::new(lhs))));
+    }
+
+    if self.eat(Token::Question)? {
+      return Ok(Ok(ExprKind::Try(Box::new(lhs))));
     }
 
     if self.eat(Token::Dot)? {
