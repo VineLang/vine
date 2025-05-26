@@ -5,13 +5,14 @@ use crate::{
   analyzer::analyze,
   chart::{Chart, ChartCheckpoint, ValueDefId},
   charter::Charter,
-  checker::{ChartTypes, Checker},
+  checker::Checker,
   core::Core,
   distiller::Distiller,
   emitter::Emitter,
   loader::Loader,
   normalizer::normalize,
   resolver::Resolver,
+  signatures::Signatures,
   specializer::{SpecId, Specializations, Specializer},
   vir::VIR,
 };
@@ -20,7 +21,7 @@ pub struct Compiler<'core> {
   core: &'core Core<'core>,
   pub loader: Loader<'core>,
   pub chart: Chart<'core>,
-  pub types: ChartTypes<'core>,
+  pub sigs: Signatures<'core>,
   specs: Specializations<'core>,
   vir: IdxVec<ValueDefId, Option<VIR>>,
 }
@@ -31,7 +32,7 @@ impl<'core> Compiler<'core> {
       core,
       loader: Loader::new(core),
       chart: Chart::default(),
-      types: ChartTypes::default(),
+      sigs: Signatures::default(),
       specs: Specializations::default(),
       vir: IdxVec::new(),
     }
@@ -63,7 +64,7 @@ impl<'core> Compiler<'core> {
     resolver.resolve_since(&checkpoint.chart);
     hooks.resolve(&mut resolver);
 
-    let mut checker = Checker::new(core, chart, &mut self.types);
+    let mut checker = Checker::new(core, chart, &mut self.sigs);
     checker.check_since(&checkpoint.chart);
     hooks.check(&mut checker);
 
@@ -101,7 +102,7 @@ impl<'core> Compiler<'core> {
 
   fn revert(&mut self, checkpoint: &CompilerCheckpoint) {
     self.chart.revert(&checkpoint.chart);
-    self.types.revert(&checkpoint.chart);
+    self.sigs.revert(&checkpoint.chart);
     self.specs.revert(&checkpoint.chart, checkpoint.specs);
     self.vir.truncate(checkpoint.chart.values.0);
   }

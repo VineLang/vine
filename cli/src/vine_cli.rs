@@ -176,7 +176,7 @@ impl VineReplCommand {
     };
     let mut rl = DefaultEditor::new()?;
     loop {
-      print!("\n{repl}");
+      print!("\n{}", repl.format());
       match rl.readline("> ") {
         Ok(line) => {
           if self.echo {

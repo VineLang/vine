@@ -266,7 +266,7 @@ impl<'core> Core<'core> {
 pub struct ErrorGuaranteed(());
 
 impl ErrorGuaranteed {
-  pub fn new_unchecked() -> Self {
+  pub const fn new_unchecked() -> Self {
     ErrorGuaranteed(())
   }
 }
@@ -315,18 +315,3 @@ impl<T> From<ErrorGuaranteed> for Result<T, Diag<'_>> {
     Err(value.into())
   }
 }
-
-macro_rules! report {
-  ($group:expr $(, $target:expr)*; $result:expr) => {
-    match $result {
-      Ok(value) => value,
-      Err(diag) => {
-        let err = $group.report(diag);
-        $($target = err.into();)*
-        return err.into();
-      }
-    }
-  };
-}
-
-pub(crate) use report;

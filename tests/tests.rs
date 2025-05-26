@@ -124,7 +124,7 @@ fn test_vi(
     let (sender, receiver) = channel();
     t.test("compile", move || {
       let (stdout, stderr) = exec(VINE, &["build", path], &[], true);
-      assert!(stderr.is_empty());
+      assert_empty_stderr(&stderr);
       let path = ignored_snapshot(&["vine", name, "compiled.iv"], &stdout);
       _ = sender.send(path);
     });
@@ -149,7 +149,7 @@ fn test_vi_repl(t: &mut DynTester, path: &'static str) {
   t.test(name, move || {
     let input = fs::read_to_string(path).unwrap();
     let (stdout, stderr) = exec(VINE, &["repl", "--echo"], input.as_bytes(), true);
-    assert!(stderr.is_empty());
+    assert_empty_stderr(&stderr);
     test_snapshot(&["vine", "repl", &format!("{name}.repl.vi")], &stdout);
   });
 }
@@ -159,10 +159,10 @@ fn test_vi_fmt(t: &mut DynTester, path: &'static str) {
   t.test(name, move || {
     let input = fs::read_to_string(path).unwrap();
     let (formatted, stderr) = exec(VINE, &["fmt"], input.as_bytes(), true);
-    assert!(stderr.is_empty());
+    assert_empty_stderr(&stderr);
     test_snapshot(&["vine", "fmt", &format!("{name}.fmt.vi")], &formatted);
     let (stdout, stderr) = exec(VINE, &["fmt"], input.as_bytes(), true);
-    assert!(stderr.is_empty());
+    assert_empty_stderr(&stderr);
     assert_eq!(stdout, formatted);
   });
 }
@@ -229,7 +229,7 @@ fn test_snapshot(components: &[&str], contents: &[u8]) -> PathBuf {
       println!("updating snapshot {:?}", path);
       fs::write(&path, contents).unwrap();
     } else {
-      panic!("invalid snapshot {:?}", path);
+      panic!("invalid snapshot {:?}; should be:\n{}", path, String::from_utf8_lossy(contents));
     }
   }
   path
@@ -262,4 +262,10 @@ fn parallel_read(mut read: impl Read + Send + 'static) -> JoinHandle<Vec<u8>> {
 
 fn leak<T: AsRef<U> + 'static, U: ?Sized>(value: T) -> &'static U {
   (*Box::leak(Box::new(value))).as_ref()
+}
+
+fn assert_empty_stderr(stderr: &[u8]) {
+  if !stderr.is_empty() {
+    panic!("non-empty stderr:\n{}", String::from_utf8_lossy(stderr))
+  }
 }

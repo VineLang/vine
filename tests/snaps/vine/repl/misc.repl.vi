@@ -35,7 +35,7 @@ io = #io
 
 io = #io
 > "abc" ++ 123
-error input:1:1 - cannot find impl of trait `Concat[String, N32, ?13]`
+error input:1:1 - cannot find impl of trait `Concat[String, N32, ?49]`
 
 io = #io
 > ([true, false]; _).show().as[String]
@@ -217,5 +217,35 @@ x = [[2]]
 io = #io
 > let _: { a: N32, b: N32 } = { a: 1 }
 error input:1:29 - expected type `{ a: N32, b: N32 }`; found `{ a: N32 }`
+
+io = #io
+> do { let x; x = (x, x); }
+error input:1:17 - expected type `?663`; found `(?663, ?663)`
+
+io = #io
+> let (a: N32, b: N32);
+
+io = #io
+> let x: (~N32, ~N32) = ~(a, b);
+
+io = #io
+a = #ivy(dup1(_ n0))
+b = #ivy(dup2(_ n0))
+x = (#ivy(n0), #ivy(n1))
+> let x: { a: ~N32, b: ~N32 } = ~{ a, b };
+
+io = #io
+a = #ivy(dup1(dup1(_ _) n0))
+b = #ivy(dup2(dup2(_ _) n0))
+x = { a: #ivy(n0), b: #ivy(n1) }
+> move (a, b, x)
+(#ivy(dup1(dup1(_ _) n0)), #ivy(dup2(dup2(_ _) n1)), { a: #ivy(n0), b: #ivy(n1) })
+
+io = #io
+> let x
+
+io = #io
+> x.a; x.a
+error input:1:5 - cannot infer type
 
 io = #io

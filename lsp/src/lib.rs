@@ -6,11 +6,12 @@ use tower_lsp::{jsonrpc::Result, lsp_types::*, Client, LanguageServer, LspServic
 use vine::{
   chart::Chart,
   charter::Charter,
-  checker::{ChartTypes, Checker},
+  checker::Checker,
   core::{Core, CoreArenas},
   diag::Diag,
   loader::Loader,
   resolver::Resolver,
+  signatures::Signatures,
 };
 
 #[derive(Debug)]
@@ -41,7 +42,7 @@ impl Backend {
     let chart = &mut Chart::default();
     Charter { core, chart }.chart_root(root);
     Resolver { core, chart }.resolve_all();
-    Checker::new(core, chart, &mut ChartTypes::default()).check_all();
+    Checker::new(core, chart, &mut Signatures::default()).check_all();
 
     self.report(core, core.take_diags())
   }
