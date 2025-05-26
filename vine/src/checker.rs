@@ -147,7 +147,7 @@ impl<'core, 'a> Checker<'core, 'a> {
           self.check_pat(pat, Form::Value, false);
         }
         let ty = self.types.import(&self.sigs.values[value_id], None, |t, sig| t.transfer(sig.ty));
-        let Some((false, &TypeKind::Fn(_, ret))) = self.types.kind(ty) else { unreachable!() };
+        let Some((_, &TypeKind::Fn(_, ret))) = self.types.kind(ty) else { unreachable!() };
         let old = self.return_ty.replace(ret);
         self.check_block_type(body, ret);
         self.return_ty = old;

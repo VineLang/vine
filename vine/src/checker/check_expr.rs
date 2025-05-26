@@ -5,7 +5,7 @@ use crate::{
   chart::{StructId, TypeDefId},
   checker::{Checker, Form, Type},
   diag::Diag,
-  types::TypeKind,
+  types::{Inverted, TypeKind},
 };
 
 mod check_method;
@@ -613,7 +613,7 @@ impl<'core> Checker<'core, '_> {
     args: usize,
   ) -> Result<(Vec<Type>, Type), Diag<'core>> {
     match self.types.force_kind(ty) {
-      (false, TypeKind::Fn(params, ret)) => {
+      (Inverted(false), TypeKind::Fn(params, ret)) => {
         if params.len() != args {
           Err(Diag::BadArgCount {
             span,

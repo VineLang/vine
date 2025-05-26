@@ -268,7 +268,7 @@ impl<'core, 'ctx, 'ivm, 'ext> Repl<'core, 'ctx, 'ivm, 'ext> {
   fn _show(&mut self, ty: Type, tree: &Tree) -> Option<String> {
     let builtins = &self.compiler.chart.builtins;
     let (inv, kind) = self.types.kind(ty)?;
-    if inv {
+    if inv.0 {
       return None;
     }
     Some(match (kind, tree) {

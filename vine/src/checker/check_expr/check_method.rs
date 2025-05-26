@@ -5,7 +5,7 @@ use crate::{
   chart::ValueDefId,
   checker::{Checker, Form, Type},
   diag::{Diag, ErrorGuaranteed},
-  types::{TypeCtx, TypeKind},
+  types::{Inverted, TypeCtx, TypeKind},
 };
 
 impl<'core> Checker<'core, '_> {
@@ -70,7 +70,7 @@ impl<'core> Checker<'core, '_> {
     let ty =
       self.types.import(&self.sigs.values[id], Some(&type_params), |t, sig| t.transfer(sig.ty));
     match self.types.force_kind(ty) {
-      (false, TypeKind::Fn(params, ret)) => {
+      (Inverted(false), TypeKind::Fn(params, ret)) => {
         if params.len() != args + 1 {
           return Err(Diag::BadArgCount {
             span,
@@ -83,7 +83,7 @@ impl<'core> Checker<'core, '_> {
           None => return Err(Diag::NilaryMethod { span, ty: self.types.show(self.chart, ty) }),
           Some(receiver) => match self.types.force_kind(receiver) {
             (_, TypeKind::Error(e)) => return Err((*e).into()),
-            (false, TypeKind::Ref(receiver)) => (Form::Place, *receiver),
+            (Inverted(false), TypeKind::Ref(receiver)) => (Form::Place, *receiver),
             _ => (Form::Value, receiver),
           },
         };

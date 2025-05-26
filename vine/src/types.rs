@@ -1,6 +1,7 @@
 use std::{
   collections::{hash_map::Entry, BTreeMap, HashMap},
   fmt::{self, Debug, Write},
+  ops::{BitXor, BitXorAssign},
 };
 
 use vine_util::{
@@ -14,32 +15,41 @@ use crate::{
   diag::ErrorGuaranteed,
 };
 
+/// A type variable, or its inverse. The high bit of the usize denotes the
+/// inverse. The remaining bits are a `TypeIdx`.
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub struct Type(usize);
 new_idx!(pub TypeIdx; n => ["t{n}"]);
 
 const INV_BIT: usize = isize::MIN as usize;
 impl Type {
-  fn new(inv: bool, idx: TypeIdx) -> Type {
+  fn new(inv: Inverted, idx: TypeIdx) -> Type {
     Type(idx.0).invert_if(inv)
   }
 
-  fn inv(&self) -> bool {
-    self.0 & INV_BIT != 0
+  fn inv(self) -> Inverted {
+    Inverted(self.0 & INV_BIT != 0)
   }
 
-  fn idx(&self) -> TypeIdx {
+  fn idx(self) -> TypeIdx {
     TypeIdx(self.0 & !INV_BIT)
   }
 
-  pub fn invert_if(&self, inv: bool) -> Type {
-    Type(self.0 ^ (inv as usize * INV_BIT))
+  pub fn invert_if(self, inv: Inverted) -> Type {
+    if inv.0 {
+      self.inverse()
+    } else {
+      self
+    }
   }
 
-  pub fn inverse(&self) -> Type {
+  pub fn inverse(self) -> Type {
     Type(self.0 ^ INV_BIT)
   }
 }
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct Inverted(pub bool);
 
 impl From<TypeIdx> for Type {
   fn from(value: TypeIdx) -> Self {
@@ -47,9 +57,22 @@ impl From<TypeIdx> for Type {
   }
 }
 
+impl BitXor for Inverted {
+  type Output = Self;
+  fn bitxor(self, rhs: Self) -> Self::Output {
+    Inverted(self.0 ^ rhs.0)
+  }
+}
+
+impl BitXorAssign for Inverted {
+  fn bitxor_assign(&mut self, rhs: Self) {
+    self.0 ^= rhs.0;
+  }
+}
+
 impl Debug for Type {
   fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-    if self.inv() {
+    if self.inv().0 {
       f.write_char('~')?;
     }
     write!(f, "{:?}", self.idx())
@@ -70,9 +93,15 @@ pub enum TypeKind<'core> {
   Error(ErrorGuaranteed),
 }
 
+/// A node in the union-find tree for the unification of type variables.
 #[derive(Debug, Clone)]
 enum TypeNode<'core> {
-  Root(Option<(bool, TypeKind<'core>)>, usize),
+  Root {
+    // The concrete type, if known, of this type variable.
+    kind: Option<(Inverted, TypeKind<'core>)>,
+    // The size of the tree rooted at this node.
+    size: usize,
+  },
   Child(Type),
 }
 
@@ -92,22 +121,28 @@ pub struct Types<'core> {
 impl<'core> Types<'core> {
   #[allow(clippy::new_ret_no_self)]
   pub fn new(&mut self, kind: TypeKind<'core>) -> Type {
-    self.types.push(TypeNode::Root(Some((false, kind)), 1)).into()
+    self.types.push(TypeNode::Root { kind: Some((Inverted(false), kind)), size: 1 }).into()
   }
 
   pub fn new_var(&mut self, _span: Span) -> Type {
-    self.types.push(TypeNode::Root(None, 1)).into()
+    self.types.push(TypeNode::Root { kind: None, size: 1 }).into()
   }
 
   pub fn error(&mut self, err: ErrorGuaranteed) -> Type {
     *self.error.get_or_insert_with(|| {
-      self.types.push(TypeNode::Root(Some((false, TypeKind::Error(err))), 1)).into()
+      self
+        .types
+        .push(TypeNode::Root { kind: Some((Inverted(false), TypeKind::Error(err))), size: 1 })
+        .into()
     })
   }
 
   pub fn nil(&mut self) -> Type {
     *self.nil.get_or_insert_with(|| {
-      self.types.push(TypeNode::Root(Some((false, TypeKind::Tuple(vec![]))), 1)).into()
+      self
+        .types
+        .push(TypeNode::Root { kind: Some((Inverted(false), TypeKind::Tuple(vec![]))), size: 1 })
+        .into()
     })
   }
 
@@ -120,16 +155,16 @@ impl<'core> Types<'core> {
     }
 
     let (a_node, b_node) = self.types.get2_mut(a.idx(), b.idx()).unwrap();
-    let TypeNode::Root(a_kind, _) = &mut *a_node else { unreachable!() };
-    let TypeNode::Root(b_kind, _) = &mut *b_node else { unreachable!() };
+    let TypeNode::Root { kind: a_kind, .. } = &mut *a_node else { unreachable!() };
+    let TypeNode::Root { kind: b_kind, .. } = &mut *b_node else { unreachable!() };
 
     if a_kind.is_none() || b_kind.is_none() {
       if self.occurs(a, b) || self.occurs(b, a) {
         return Failure;
       }
       let (a_node, b_node) = self.types.get2_mut(a.idx(), b.idx()).unwrap();
-      let TypeNode::Root(a_kind, a_size) = &mut *a_node else { unreachable!() };
-      let TypeNode::Root(b_kind, b_size) = &mut *b_node else { unreachable!() };
+      let TypeNode::Root { kind: a_kind, size: a_size } = &mut *a_node else { unreachable!() };
+      let TypeNode::Root { kind: b_kind, size: b_size } = &mut *b_node else { unreachable!() };
       let kind = Option::or(
         a_kind.take().map(|(i, k)| (i ^ a.inv(), k)),
         b_kind.take().map(|(i, k)| (i ^ b.inv(), k)),
@@ -149,28 +184,32 @@ impl<'core> Types<'core> {
     let a_kind = a_kind.take().unwrap();
     let b_kind = b_kind.take().unwrap();
 
-    let inverted = a_kind.0 ^ a.inv() != b_kind.0 ^ b.inv();
+    let inverted = Inverted(a_kind.0 ^ a.inv() != b_kind.0 ^ b.inv());
 
     let result = match (&a_kind.1, &b_kind.1) {
       (TypeKind::Error(e), _) | (_, TypeKind::Error(e)) => Unknown(*e),
       (TypeKind::Tuple(a), TypeKind::Tuple(b)) => self.unify_types(a, b, inverted),
       (TypeKind::Object(a), TypeKind::Object(b)) => self.unify_objects(a, b, inverted),
-      _ if inverted => Failure,
+      _ if inverted.0 => Failure,
       (TypeKind::Param(i, _), TypeKind::Param(j, _)) if *i == *j => Success,
       (TypeKind::Fn(a, x), TypeKind::Fn(b, y)) => {
-        self.unify_types(a, b, false).and(self.unify(*x, *y))
+        self.unify_types(a, b, inverted).and(self.unify(*x, *y))
       }
-      (TypeKind::Opaque(i, a), TypeKind::Opaque(j, b)) if *i == *j => self.unify_types(a, b, false),
-      (TypeKind::Struct(i, a), TypeKind::Struct(j, b)) if *i == *j => self.unify_types(a, b, false),
-      (TypeKind::Enum(i, a), TypeKind::Enum(j, b)) if *i == *j => self.unify_types(a, b, false),
+      (TypeKind::Opaque(TypeDefId(i), a), TypeKind::Opaque(TypeDefId(j), b))
+      | (TypeKind::Struct(StructId(i), a), TypeKind::Struct(StructId(j), b))
+      | (TypeKind::Enum(EnumId(i), a), TypeKind::Enum(EnumId(j), b))
+        if *i == *j =>
+      {
+        self.unify_types(a, b, Inverted(false))
+      }
       (TypeKind::Ref(a), TypeKind::Ref(b)) => self.unify(*a, *b),
       (TypeKind::Never, TypeKind::Never) => Success,
       _ => Failure,
     };
 
     let (a_node, b_node) = self.types.get2_mut(a.idx(), b.idx()).unwrap();
-    let TypeNode::Root(a_kind_ref, a_size) = &mut *a_node else { unreachable!() };
-    let TypeNode::Root(b_kind_ref, b_size) = &mut *b_node else { unreachable!() };
+    let TypeNode::Root { kind: a_kind_ref, size: a_size } = &mut *a_node else { unreachable!() };
+    let TypeNode::Root { kind: b_kind_ref, size: b_size } = &mut *b_node else { unreachable!() };
 
     *a_kind_ref = Some(a_kind);
     *b_kind_ref = Some(b_kind);
@@ -188,7 +227,7 @@ impl<'core> Types<'core> {
     result
   }
 
-  pub fn unify_types(&mut self, a: &[Type], b: &[Type], inv: bool) -> UnifyResult {
+  pub fn unify_types(&mut self, a: &[Type], b: &[Type], inv: Inverted) -> UnifyResult {
     if a.len() == b.len() {
       UnifyResult::all(a.iter().zip(b).map(|(&a, &b)| self.unify(a, b.invert_if(inv))))
     } else {
@@ -200,7 +239,7 @@ impl<'core> Types<'core> {
     &mut self,
     a: &BTreeMap<Ident<'core>, Type>,
     b: &BTreeMap<Ident<'core>, Type>,
-    inv: bool,
+    inv: Inverted,
   ) -> UnifyResult {
     UnifyResult::from_bool(a.len() == b.len()).and(UnifyResult::all(a.iter().map(|(k, &a)| {
       if let Some(&b) = b.get(k) {
@@ -214,7 +253,9 @@ impl<'core> Types<'core> {
   pub fn unify_impl_type(&mut self, a: &ImplType, b: &ImplType) -> UnifyResult {
     match (a, b) {
       (ImplType::Error(e), _) | (_, ImplType::Error(e)) => Unknown(*e),
-      (ImplType::Trait(i, a), ImplType::Trait(j, b)) if i == j => self.unify_types(a, b, false),
+      (ImplType::Trait(i, a), ImplType::Trait(j, b)) if i == j => {
+        self.unify_types(a, b, Inverted(false))
+      }
       _ => Failure,
     }
   }
@@ -247,13 +288,13 @@ impl<'core> Types<'core> {
     root
   }
 
-  pub(crate) fn kind(&self, ty: Type) -> Option<(bool, &TypeKind<'core>)> {
+  pub(crate) fn kind(&self, ty: Type) -> Option<(Inverted, &TypeKind<'core>)> {
     let ty = self.find(ty);
-    let TypeNode::Root(kind, _) = &self.types[ty.idx()] else { unreachable!() };
-    kind.as_ref().map(|(inv, kind)| (inv ^ ty.inv(), kind))
+    let TypeNode::Root { kind, .. } = &self.types[ty.idx()] else { unreachable!() };
+    kind.as_ref().map(|(inv, kind)| (*inv ^ ty.inv(), kind))
   }
 
-  pub(crate) fn force_kind(&self, ty: Type) -> (bool, &TypeKind<'core>) {
+  pub(crate) fn force_kind(&self, ty: Type) -> (Inverted, &TypeKind<'core>) {
     // todo
     self.kind(ty).unwrap()
   }
@@ -271,11 +312,11 @@ impl<'core> Types<'core> {
           ty = parent.invert_if(ty.inv());
           continue;
         }
-        TypeNode::Root(None, _) => {
-          write!(str, "{}?{}", if ty.inv() { "~" } else { "" }, ty.0).unwrap()
+        TypeNode::Root { kind: None, .. } => {
+          write!(str, "{}?{}", if ty.inv().0 { "~" } else { "" }, ty.0).unwrap()
         }
-        TypeNode::Root(Some((inv, kind)), _) => {
-          if inv ^ ty.inv() {
+        TypeNode::Root { kind: Some((inv, kind)), .. } => {
+          if (*inv ^ ty.inv()).0 {
             *str += "~";
           }
           match kind {
@@ -309,7 +350,7 @@ impl<'core> Types<'core> {
               *str += "fn(";
               self._show_comma_separated(chart, params, str);
               *str += ")";
-              if !matches!(self.kind(*ret), Some((false, TypeKind::Tuple(els))) if els.is_empty()) {
+              if !matches!(self.kind(*ret), Some((_, TypeKind::Tuple(els))) if els.is_empty()) {
                 *str += " -> ";
                 self._show(chart, *ret, str);
               }
@@ -482,7 +523,9 @@ impl<'core, 'ctx> TypeTransfer<'core, 'ctx> {
         e.insert(new);
         if let Some((inv, old_kind)) = old_kind {
           let kind = old_kind.map(|t| self.transfer(t));
-          let TypeNode::Root(new_kind, _) = &mut self.dest.types[new.idx()] else { unreachable!() };
+          let TypeNode::Root { kind: new_kind, .. } = &mut self.dest.types[new.idx()] else {
+            unreachable!()
+          };
           *new_kind = Some((inv, kind))
         }
         new.invert_if(old.inv())

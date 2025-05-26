@@ -6,7 +6,7 @@ use crate::{
   core::Core,
   diag::{Diag, ErrorGuaranteed},
   signatures::Signatures,
-  types::{ImplType, Type, TypeCtx, TypeKind, Types},
+  types::{ImplType, Inverted, Type, TypeCtx, TypeKind, Types},
 };
 
 pub struct Finder<'core, 'a> {
@@ -57,10 +57,10 @@ impl<'core, 'a> Finder<'core, 'a> {
         .collect::<Vec<_>>();
       let candidate_ty =
         types.import(&self.sigs.values[candidate], Some(&type_params), |t, sig| t.transfer(sig.ty));
-      if let Some((false, TypeKind::Fn(params, _))) = types.kind(candidate_ty) {
+      if let Some((Inverted(false), TypeKind::Fn(params, _))) = types.kind(candidate_ty) {
         if let [receiver, ..] = **params {
           let receiver = match types.kind(receiver) {
-            Some((false, TypeKind::Ref(t))) => *t,
+            Some((Inverted(false), TypeKind::Ref(t))) => *t,
             _ => receiver,
           };
           if types.unify(ty, receiver).is_success() {
