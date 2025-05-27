@@ -10,13 +10,6 @@ pub trait Drop[T] {
 }
 
 pub mod Fork {
-  pub fn copy[T](&value: &T) -> T {
-    inline_ivy! (x <- value, x1 -> value) -> T {
-      x2
-      x = copy(x1 x2)
-    }
-  }
-
   pub impl ref[T]: Fork[&T] {
     fn fork(&&value: &&T) -> &T {
       &value
@@ -53,13 +46,6 @@ pub mod Fork {
 }
 
 pub mod Drop {
-  pub fn erase[T](value: T) {
-    inline_ivy! (x <- value) -> () {
-      _
-      x = _
-    }
-  }
-
   pub impl ref[T]: Drop[&T] {
     fn drop(&_: &T) {}
   }

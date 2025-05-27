@@ -12,13 +12,13 @@ pub mod F32 {
 
   pub impl fork: Fork[F32] {
     fn .fork(&self: &F32) -> F32 {
-      Fork::copy(&self)
+      unsafe::copy(&self)
     }
   }
 
   pub impl drop: Drop[F32] {
     fn .drop(self: F32) {
-      Drop::erase(self)
+      unsafe::erase(self)
     }
   }
 

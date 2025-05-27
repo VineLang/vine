@@ -207,7 +207,7 @@ pub mod Array {
   pub impl drop[T?]: Drop[Array[T]] {
     fn .drop(Array[T](len, node)) {
       if len == 0 {
-        Drop::erase(node)
+        unsafe::erase(node)
       } else {
         Node::drop[T](len, node)
       }

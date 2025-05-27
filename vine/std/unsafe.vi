@@ -1,0 +1,13 @@
+
+pub fn copy[T](&value: &T) -> T {
+  inline_ivy! (x <- value, x1 -> value) -> T {
+    x2
+    x = copy(x1 x2)
+  }
+}
+
+pub const eraser[T]: T = inline_ivy! () -> T { _ };
+
+pub fn erase[T](value: T) {
+  ~eraser = value;
+}

@@ -8,13 +8,13 @@ pub struct String(pub List[Char]);
 pub mod String {
   pub impl fork: Fork[String] {
     fn .fork(&self: &String) -> String {
-      Fork::copy(&self)
+      unsafe::copy(&self)
     }
   }
 
   pub impl drop: Drop[String] {
     fn .drop(self: String) {
-      Drop::erase(self)
+      unsafe::erase(self)
     }
   }
 

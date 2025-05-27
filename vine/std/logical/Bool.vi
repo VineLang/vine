@@ -8,13 +8,13 @@ pub type Bool;
 pub mod Bool {
   pub impl fork: Fork[Bool] {
     fn .fork(&self: &Bool) -> Bool {
-      Fork::copy(&self)
+      unsafe::copy(&self)
     }
   }
 
   pub impl drop: Drop[Bool] {
     fn .drop(self: Bool) {
-      Drop::erase(self)
+      unsafe::erase(self)
     }
   }
 

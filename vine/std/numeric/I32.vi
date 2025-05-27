@@ -16,13 +16,13 @@ pub mod I32 {
 
   pub impl fork: Fork[I32] {
     fn .fork(&self: &I32) -> I32 {
-      Fork::copy(&self)
+      unsafe::copy(&self)
     }
   }
 
   pub impl drop: Drop[I32] {
     fn .drop(self: I32) {
-      Drop::erase(self)
+      unsafe::erase(self)
     }
   }
 

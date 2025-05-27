@@ -8,13 +8,13 @@ pub type Char;
 pub mod Char {
   pub impl fork: Fork[Char] {
     fn .fork(&self: &Char) -> Char {
-      Fork::copy(&self)
+      unsafe::copy(&self)
     }
   }
 
   pub impl drop: Drop[Char] {
     fn .drop(self: Char) {
-      Drop::erase(self)
+      unsafe::erase(self)
     }
   }
 

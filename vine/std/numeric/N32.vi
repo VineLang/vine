@@ -13,13 +13,13 @@ pub type N32;
 pub mod N32 {
   pub impl fork: Fork[N32] {
     fn .fork(&self: &N32) -> N32 {
-      Fork::copy(&self)
+      unsafe::copy(&self)
     }
   }
 
   pub impl drop: Drop[N32] {
     fn .drop(self: N32) {
-      Drop::erase(self)
+      unsafe::erase(self)
     }
   }
 

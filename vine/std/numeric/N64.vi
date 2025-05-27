@@ -16,13 +16,13 @@ pub mod N64 {
 
   pub impl fork: Fork[N64] {
     fn .fork(&self: &N64) -> N64 {
-      Fork::copy(&self)
+      unsafe::copy(&self)
     }
   }
 
   pub impl drop: Drop[N64] {
     fn .drop(self: N64) {
-      Drop::erase(self)
+      unsafe::erase(self)
     }
   }
 
