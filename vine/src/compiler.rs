@@ -3,7 +3,7 @@ use vine_util::idx::IdxVec;
 
 use crate::{
   analyzer::analyze,
-  chart::{Chart, ChartCheckpoint, ValueDefId},
+  chart::{checkpoint::ChartCheckpoint, Chart, ConcreteConstId, ConcreteFnId},
   charter::Charter,
   checker::Checker,
   core::Core,
@@ -23,7 +23,8 @@ pub struct Compiler<'core> {
   pub chart: Chart<'core>,
   pub sigs: Signatures<'core>,
   specs: Specializations<'core>,
-  vir: IdxVec<ValueDefId, Option<VIR>>,
+  const_vir: IdxVec<ConcreteConstId, VIR>,
+  fn_vir: IdxVec<ConcreteFnId, VIR>,
 }
 
 impl<'core> Compiler<'core> {
@@ -34,7 +35,8 @@ impl<'core> Compiler<'core> {
       chart: Chart::default(),
       sigs: Signatures::default(),
       specs: Specializations::default(),
-      vir: IdxVec::new(),
+      const_vir: IdxVec::new(),
+      fn_vir: IdxVec::new(),
     }
   }
 
@@ -76,19 +78,25 @@ impl<'core> Compiler<'core> {
 
     let mut distiller = Distiller::new(chart);
     let mut emitter = Emitter::new(chart, &self.specs);
-    for value_id in chart.values.keys_from(checkpoint.chart.values) {
-      let value_def = &chart.values[value_id];
-      let vir = distiller.distill(value_def).map(|vir| {
-        let mut vir = normalize(&vir);
-        analyze(&mut vir);
-        vir
-      });
-      assert_eq!(self.vir.next_index(), value_id);
-      self.vir.push(vir);
+    for const_id in chart.concrete_consts.keys_from(checkpoint.chart.concrete_consts) {
+      let const_def = &chart.concrete_consts[const_id];
+      let vir = distiller.distill_const_def(const_def);
+      let mut vir = normalize(&vir);
+      analyze(&mut vir);
+      assert_eq!(self.const_vir.next_index(), const_id);
+      self.const_vir.push(vir);
+    }
+    for fn_id in chart.concrete_fns.keys_from(checkpoint.chart.concrete_fns) {
+      let fn_def = &chart.concrete_fns[fn_id];
+      let vir = distiller.distill_fn_def(fn_def);
+      let mut vir = normalize(&vir);
+      analyze(&mut vir);
+      assert_eq!(self.fn_vir.next_index(), fn_id);
+      self.fn_vir.push(vir);
     }
 
     for spec_id in self.specs.specs.keys_from(checkpoint.specs) {
-      emitter.emit_spec(spec_id, &self.vir);
+      emitter.emit_spec(spec_id, &self.const_vir, &self.fn_vir);
     }
 
     hooks.emit(&mut distiller, &mut emitter);
@@ -104,7 +112,8 @@ impl<'core> Compiler<'core> {
     self.chart.revert(&checkpoint.chart);
     self.sigs.revert(&checkpoint.chart);
     self.specs.revert(&checkpoint.chart, checkpoint.specs);
-    self.vir.truncate(checkpoint.chart.values.0);
+    self.const_vir.truncate(checkpoint.chart.concrete_consts.0);
+    self.fn_vir.truncate(checkpoint.chart.concrete_fns.0);
   }
 }
 

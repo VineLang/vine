@@ -597,6 +597,7 @@ impl<'core: 'src, 'src> Formatter<'src> {
 
   fn fmt_ty(&self, ty: &Ty<'core>) -> Doc<'src> {
     match &ty.kind {
+      TyKind::Error(_) | TyKind![resolved] => unreachable!(),
       TyKind::Hole => Doc("_"),
       TyKind::Paren(p) => Doc::paren(self.fmt_ty(p)),
       TyKind::Fn(a, r) => Doc::concat([
@@ -611,7 +612,6 @@ impl<'core: 'src, 'src> Formatter<'src> {
       TyKind::Object(o) => Doc::brace_comma_space(
         o.iter().map(|(k, t)| Doc::concat([Doc(k.ident), Doc(": "), self.fmt_ty(t)])),
       ),
-      TyKind::Param(_) | TyKind::Def(..) | TyKind::Error(_) => unreachable!(),
     }
   }
 

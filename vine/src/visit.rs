@@ -65,7 +65,8 @@ pub trait VisitMut<'core, 'a> {
       | ExprKind::Break(_, None)
       | ExprKind::SetLocal(_)
       | ExprKind::HedgeLocal(_)
-      | ExprKind::Rel(..) => {}
+      | ExprKind::FnRel(_)
+      | ExprKind::ConstRel(_) => {}
       ExprKind::Paren(a)
       | ExprKind::Ref(a, _)
       | ExprKind::Deref(a, _)
@@ -95,7 +96,7 @@ pub trait VisitMut<'core, 'a> {
         self.visit(&mut path.generics);
         self.visit(args);
       }
-      ExprKind::Def(_, g) => self.visit(g),
+      ExprKind::ConstDef(_, g) | ExprKind::FnDef(_, g) => self.visit(g),
       ExprKind::Do(_, b) | ExprKind::Loop(_, b) => self.visit_block(b),
       ExprKind::Match(a, b) => {
         self.visit_expr(a);
@@ -232,7 +233,9 @@ pub trait VisitMut<'core, 'a> {
       TyKind::Hole | TyKind::Param(_) => {}
       TyKind::Paren(t) | TyKind::Ref(t) | TyKind::Inverse(t) => self.visit_type(t),
       TyKind::Path(p) => self.visit(&mut p.generics),
-      TyKind::Def(_, a) => self.visit(a),
+      TyKind::Opaque(_, a) | TyKind::Alias(_, a) | TyKind::Struct(_, a) | TyKind::Enum(_, a) => {
+        self.visit(a)
+      }
       TyKind::Tuple(a) => {
         for t in a {
           self.visit_type(t);
