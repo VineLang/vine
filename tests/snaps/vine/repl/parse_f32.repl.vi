@@ -1,0 +1,161 @@
+
+io = #io
+> F32::parse("0")
+Some(0.0)
+
+io = #io
+> F32::parse("-0")
+Some(-0.0)
+
+io = #io
+> F32::parse("42")
+Some(42.0)
+
+io = #io
+> F32::parse("3.14")
+Some(3.14)
+
+io = #io
+> F32::parse("-0.001")
+Some(-0.001)
+
+io = #io
+> F32::parse(".5")
+Some(0.5)
+
+io = #io
+> F32::parse("5.")
+Some(5.0)
+
+io = #io
+> F32::parse("000123.4500")
+Some(123.45)
+
+io = #io
+> F32::parse("-000.000")
+Some(-0.0)
+
+io = #io
+> F32::parse("+7.2")
+Some(7.2)
+
+io = #io
+> F32::parse("+.8")
+Some(0.8)
+
+io = #io
+> F32::parse("-.0")
+Some(-0.0)
+
+io = #io
+> F32::parse("1e3")
+Some(1000.0)
+
+io = #io
+> F32::parse("-2.5E-4")
+Some(-0.00025)
+
+io = #io
+> F32::parse(".1e+1")
+Some(1.0)
+
+io = #io
+> F32::parse("0.1")
+Some(0.1)
+
+io = #io
+> F32::parse("16777219")              // 2²⁴ + 3 → rounds to even 16777220
+Some(16777220.0)
+
+io = #io
+> F32::parse("1e39")
+Some(inf)
+
+io = #io
+> F32::parse("1e-9999")
+Some(0.0)
+
+io = #io
+> F32::parse("inf")
+Some(::std::numeric::F32::inf)
+
+io = #io
+> F32::parse("+inf")
+Some(::std::numeric::F32::inf)
+
+io = #io
+> F32::parse("-inf")
+Some(-inf)
+
+io = #io
+> F32::parse("nan")
+Some(::std::numeric::F32::nan)
+
+io = #io
+> F32::parse("NaN")
+Some(::std::numeric::F32::nan)
+
+io = #io
+> F32::parse("  9.81")
+None
+
+io = #io
+> F32::parse("-2.0\n")
+None
+
+io = #io
+> F32::parse("1,23")
+None
+
+io = #io
+> F32::parse("12 345.6")
+None
+
+io = #io
+> F32::parse("")
+None
+
+io = #io
+> F32::parse(".")
+None
+
+io = #io
+> F32::parse("1e")
+None
+
+io = #io
+> F32::parse("e5")
+None
+
+io = #io
+> F32::parse("-")
+None
+
+io = #io
+> F32::parse("3.1.4")
+None
+
+io = #io
+> // Test cases the current implementation cannot handle
+
+io = #io
+> F32::parse("6.0221408e23")
+Some(6.022141e23)
+
+io = #io
+> F32::parse("3.4028234663852886e38") // f32::MAX
+Some(3.3465944e31)
+
+io = #io
+> F32::parse("1.1754943508222875e-38")// smallest *normal* +
+Some(0.0)
+
+io = #io
+> F32::parse("1.401298464324817e-45") // smallest *sub-normal* +
+Some(0.0)
+
+io = #io
+> F32::parse("1.0000000596046448")    // halfway between 1 and next float
+Some(2.4709658e-7)
+
+io = #io

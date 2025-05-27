@@ -103,6 +103,7 @@ fn tests(t: &mut DynTester) {
       test_vi_repl(t, "tests/programs/repl/i32_misc.vi");
       test_vi_repl(t, "tests/programs/repl/misc.vi");
       test_vi_repl(t, "tests/programs/repl/objects.vi");
+      test_vi_repl(t, "tests/programs/repl/parse_f32.vi");
       test_vi_repl(t, "tests/programs/repl/randomness.vi");
     });
   });
