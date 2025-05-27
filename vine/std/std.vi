@@ -6,6 +6,7 @@ pub mod numeric = "./numeric/numeric.vi";
 pub mod rng = "./rng/rng.vi";
 pub mod ops = "./ops/ops.vi";
 pub mod unicode = "./unicode/unicode.vi";
+pub mod unsafe = "./unsafe.vi";
 pub mod IO = "./IO.vi";
 
 #[builtin = "prelude"]
@@ -15,7 +16,9 @@ pub mod prelude {
     data::List,
     logical::{Bool, Option::{Option, None, Some}, Result::{Result, Err, Ok}},
     numeric::{F32, I32, N32},
+    ops::flex::{Drop, Fork},
     unicode::{Char, String},
+    unsafe,
   };
 
   pub fn black_box[T](value: T) -> T {

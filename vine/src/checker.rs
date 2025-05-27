@@ -264,7 +264,7 @@ impl<'core, 'a> Checker<'core, 'a> {
         )
       }
       TyKind::Param(index) => {
-        let name = self.chart.generics[self.cur_generics].type_params[*index];
+        let name = self.chart.generics[self.cur_generics].type_params[*index].name;
         self.types.new(TypeKind::Param(*index, name))
       }
       TyKind::Error(e) => self.types.error(*e),
@@ -420,10 +420,40 @@ impl<'core, 'a> Checker<'core, 'a> {
 
   fn assess_impl_params(&mut self, generics_id: GenericsId) {
     assert_eq!(self.sigs.generics.next_index(), generics_id);
-    let GenericsDef { def, ref mut impl_params, .. } = self.chart.generics[generics_id];
+    let GenericsDef { def, ref mut type_params, ref mut impl_params, .. } =
+      self.chart.generics[generics_id];
+    let type_params = take(type_params);
     let mut impl_params = take(impl_params);
     self.initialize(def, generics_id);
-    let impl_param_types = impl_params.iter_mut().map(|(_, t)| self.assess_trait(t)).collect();
+    let mut impl_param_types = vec![];
+    impl_param_types.extend(
+      type_params
+        .iter()
+        .enumerate()
+        .flat_map(|(i, param)| {
+          let span = param.span;
+          let ty = self.types.new(TypeKind::Param(i, param.name));
+          [
+            param.flex.fork().then(|| {
+              if let Some(fork) = self.chart.builtins.fork {
+                ImplType::Trait(fork, vec![ty])
+              } else {
+                ImplType::Error(self.core.report(Diag::MissingBuiltin { span, builtin: "Fork" }))
+              }
+            }),
+            param.flex.drop().then(|| {
+              if let Some(drop) = self.chart.builtins.drop {
+                ImplType::Trait(drop, vec![ty])
+              } else {
+                ImplType::Error(self.core.report(Diag::MissingBuiltin { span, builtin: "Drop" }))
+              }
+            }),
+          ]
+        })
+        .flatten(),
+    );
+    self.chart.generics[generics_id].type_params = type_params;
+    impl_param_types.extend(impl_params.iter_mut().map(|p| self.assess_trait(&mut p.trait_)));
     self.sigs.generics.push(TypeCtx {
       types: take(&mut self.types),
       inner: GenericsSig { impl_params: impl_param_types },
@@ -627,7 +657,7 @@ impl<'core, 'a> Checker<'core, 'a> {
       .type_params
       .iter()
       .enumerate()
-      .map(|(i, name)| self.types.new(TypeKind::Param(i, *name)))
+      .map(|(i, p)| self.types.new(TypeKind::Param(i, p.name)))
       .collect::<Vec<_>>()
   }
 }

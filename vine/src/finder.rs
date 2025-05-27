@@ -94,9 +94,7 @@ impl<'core, 'a> Finder<'core, 'a> {
       },
     };
 
-    for &ancestor in &self.chart.defs[self.source].ancestors {
-      self.find_candidates_within(ancestor, search);
-    }
+    self.find_general_candidates(search);
 
     if let Some(def_id) = types.get_mod(self.chart, receiver) {
       self.find_candidates_within(def_id, search);
@@ -224,9 +222,7 @@ impl<'core, 'a> Finder<'core, 'a> {
       },
     };
 
-    for &ancestor in &self.chart.defs[self.source].ancestors {
-      self.find_candidates_within(ancestor, search);
-    }
+    self.find_general_candidates(search);
 
     if let ImplType::Trait(trait_id, params) = query {
       self.find_candidates_within(self.chart.traits[*trait_id].def, search);
@@ -238,6 +234,15 @@ impl<'core, 'a> Finder<'core, 'a> {
     }
 
     candidates
+  }
+
+  fn find_general_candidates(&mut self, search: &mut CandidateSearch<impl FnMut(&Def<'_>)>) {
+    for &ancestor in &self.chart.defs[self.source].ancestors {
+      self.find_candidates_within(ancestor, search);
+    }
+    if let Some(prelude) = self.chart.builtins.prelude {
+      self.find_candidates_within(prelude, search);
+    }
   }
 
   fn find_candidates_within<F: FnMut(&Def)>(

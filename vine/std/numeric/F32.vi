@@ -10,6 +10,18 @@ pub mod F32 {
   pub const inf: F32 = inline_ivy! () -> F32 { +inf };
   pub const neg_inf: F32 = inline_ivy! () -> F32 { -inf };
 
+  pub impl fork: Fork[F32] {
+    fn .fork(&self: &F32) -> F32 {
+      unsafe::copy(&self)
+    }
+  }
+
+  pub impl drop: Drop[F32] {
+    fn .drop(self: F32) {
+      unsafe::erase(self)
+    }
+  }
+
   pub impl add: Add[F32, F32, F32] {
     fn .add(a: F32, b: F32) -> F32 {
       inline_ivy! (a <- a, b <- b) -> F32 { out a = @f32_add(b out) }

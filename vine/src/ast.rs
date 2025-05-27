@@ -172,9 +172,11 @@ pub enum Builtin {
   BoolNot,
   ComparisonOp(ComparisonOp),
   Cast,
+  Fork,
+  Drop,
 }
 
-pub type GenericParams<'core> = Generics<Ident<'core>, (Option<Ident<'core>>, Trait<'core>)>;
+pub type GenericParams<'core> = Generics<TypeParam<'core>, ImplParam<'core>>;
 pub type GenericArgs<'core> = Generics<Ty<'core>, Impl<'core>>;
 
 #[derive(Debug, Clone)]
@@ -187,6 +189,38 @@ pub struct Generics<T, I> {
 impl<T, I> Default for Generics<T, I> {
   fn default() -> Self {
     Self { span: Span::default(), types: Default::default(), impls: Default::default() }
+  }
+}
+
+#[derive(Debug, Clone, Copy)]
+pub struct TypeParam<'core> {
+  pub span: Span,
+  pub name: Ident<'core>,
+  pub flex: Flex,
+}
+
+#[derive(Debug, Clone)]
+pub struct ImplParam<'core> {
+  pub span: Span,
+  pub name: Option<Ident<'core>>,
+  pub trait_: Trait<'core>,
+}
+
+#[derive(Debug, Clone, Copy)]
+pub enum Flex {
+  None,
+  Fork,
+  Drop,
+  Full,
+}
+
+impl Flex {
+  pub fn fork(self) -> bool {
+    matches!(self, Flex::Fork | Flex::Full)
+  }
+
+  pub fn drop(self) -> bool {
+    matches!(self, Flex::Drop | Flex::Full)
   }
 }
 

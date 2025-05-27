@@ -121,7 +121,7 @@ fn diamond[T, M, X](grid: List[List[T]], f: fn(T, Neighbors[M], &X), d: M, state
       let north = north.iter();
       let north_west = north_west.iter();
       let ~north_east = north_east.iter();
-      (~north_east).drop()
+      (~north_east).drop_iter()
       while row.pop_front() is Some(cell) {
         let (w, e) = foo_channel(&west);
         let (n, s) = foo_channel(north.next().unwrap());
@@ -129,8 +129,8 @@ fn diamond[T, M, X](grid: List[List[T]], f: fn(T, Neighbors[M], &X), d: M, state
         let (ne, sw) = foo_channel((~north_east).next().unwrap());
         f(cell, Neighbors(nw, n, ne, w, e, sw, s, se), &state);
       }
-      north.drop()
-      north_west.drop()
+      north.drop_iter()
+      north_west.drop_iter()
     }
     west.send(d);
     north_west.pop_front().unwrap().send(d);

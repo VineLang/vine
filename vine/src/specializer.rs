@@ -33,7 +33,13 @@ impl<'core, 'a> Specializer<'core, 'a> {
     for value_id in self.chart.values.keys_from(checkpoint.values) {
       let value_def = &mut self.chart.values[value_id];
       let def_info = {
-        let impl_params = self.chart.generics[value_def.generics].impl_params.len();
+        let generics = &self.chart.generics[value_def.generics];
+        let impl_params = generics
+          .type_params
+          .iter()
+          .map(|p| p.flex.fork() as usize + p.flex.drop() as usize)
+          .sum::<usize>()
+          + generics.impl_params.len();
         let mut kind = take(&mut value_def.kind);
         let mut extractor = RelExtractor { rels: IdxVec::new(), chart: self.chart };
         match &mut kind {

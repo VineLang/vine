@@ -86,7 +86,7 @@ fn part2(input: String) -> N64 {
         break;
       }
     }
-    iter.drop();
+    iter.drop_iter();
     let end = pos + len;
     sum = sum + N64::mul_n32_n32(id, ((end - 1) * end - (pos - 1) * pos) / 2);
   }
