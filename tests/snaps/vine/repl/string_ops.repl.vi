@@ -1,0 +1,140 @@
+
+io = #io
+> let s = "hello world!";
+
+io = #io
+s = "hello world!"
+> s.len()
+12
+
+io = #io
+s = "hello world!"
+> s.starts_with(&(""; _))
+true
+
+io = #io
+s = "hello world!"
+> s.starts_with(&("h"; _))
+true
+
+io = #io
+s = "hello world!"
+> s.starts_with(&("hello "; _))
+true
+
+io = #io
+s = "hello world!"
+> s.starts_with(&("world"; _))
+false
+
+io = #io
+s = "hello world!"
+> s.starts_with(&("held"; _))
+false
+
+io = #io
+s = "hello world!"
+> s.starts_with(&("hello world! hi"; _))
+false
+
+io = #io
+s = "hello world!"
+> "" == ""
+::std::data::List::eq::eq::1::13
+
+io = #io
+s = "hello world!"
+> "" != ""
+false
+
+io = #io
+s = "hello world!"
+> "hello" == "hello"
+::std::data::List::eq::eq::1::13
+
+io = #io
+s = "hello world!"
+> "hello" != "hello"
+false
+
+io = #io
+s = "hello world!"
+> "hello" == "world"
+false
+
+io = #io
+s = "hello world!"
+> "hello" != "world"
+true
+
+io = #io
+s = "hello world!"
+> "hello" == "hello world"
+false
+
+io = #io
+s = "hello world!"
+> "world" == "hello world"
+false
+
+io = #io
+s = "hello world!"
+> let x = "hi";
+
+io = #io
+s = "hello world!"
+x = "hi"
+> x == "xy"
+false
+
+io = #io
+s = "hello world!"
+x = "hi"
+> x == "hi"
+::std::data::List::eq::eq::1::13
+
+io = #io
+s = "hello world!"
+x = "hi"
+> x
+"hi"
+
+io = #io
+s = "hello world!"
+x = "hi"
+> "   hi   ".trim_front()
+#ivy(tup(5 tup(tup(104 tup(105 tup(32 tup(32 tup(32 n0))))) dup652(dup652(dup652(dup652(_ n0) _) _) _))))
+
+io = #io
+s = "hello world!"
+x = "hi"
+> "   hi   ".trim_back()
+"   hi"
+
+io = #io
+s = "hello world!"
+x = "hi"
+> "   hi   ".trim()
+"hi"
+
+io = #io
+s = "hello world!"
+x = "hi"
+> "\n\n\n\n\t\thello    \n\t    world\n\n\n \t\n".trim()
+"hello    \n\t    world"
+
+io = #io
+s = "hello world!"
+x = "hi"
+> "".trim()
+""
+
+io = #io
+s = "hello world!"
+x = "hi"
+> "hi".trim()
+"hi"
+
+io = #io
+s = "hello world!"
+x = "hi"
