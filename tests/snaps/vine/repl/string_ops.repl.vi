@@ -103,7 +103,7 @@ io = #io
 s = "hello world!"
 x = "hi"
 > "   hi   ".trim_front()
-#ivy(tup(5 tup(tup(104 tup(105 tup(32 tup(32 tup(32 n0))))) dup652(dup652(dup652(dup652(_ n0) _) _) _))))
+"hi   "
 
 io = #io
 s = "hello world!"

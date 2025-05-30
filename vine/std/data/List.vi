@@ -116,6 +116,8 @@ pub mod List {
     while len != 0 {
       let Buf(head, tail) = buf;
       if !pred(&head) {
+        // Assign buffer again to prevent cloning in the else case
+        buf = Buf(head, tail);
         break;
       }
       buf = tail;
