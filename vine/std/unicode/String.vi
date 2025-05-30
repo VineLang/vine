@@ -101,6 +101,29 @@ pub mod String {
     Ok(List(len, move buf, end) as String)
   }
 
+  pub fn .trim_front(String(chars)) -> String {
+    chars.drop_while(fn(&c: &Char) { c.is_whitespace() });
+    String(chars)
+  }
+
+  pub fn .trim_back(String(chars)) -> String {
+    let trimmed_chars = [];
+    let ~trailing_whitespace = true;
+    while chars.pop_front() is Some(char) {
+      if !~trailing_whitespace {
+        trimmed_chars.push_back(char);
+      }
+      if !char.is_whitespace() {
+        ~trailing_whitespace = false;
+      }
+    }
+    String(trimmed_chars)
+  }
+
+  pub fn .trim(self: String) -> String {
+    self.trim_front().trim_back()
+  }
+
   pub fn .starts_with(&self: &String, &prefix: &String) -> Bool {
     if self.len() < prefix.len() {
       return false;

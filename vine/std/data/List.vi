@@ -112,6 +112,19 @@ pub mod List {
     }
   }
 
+  pub fn .drop_while[T](&List[T](len, buf, ~_), pred: fn(&T) -> Bool) {
+    while len != 0 {
+      let Buf(head, tail) = buf;
+      if !pred(&head) {
+        // Assign buffer again to prevent cloning in the else case
+        buf = Buf(head, tail);
+        break;
+      }
+      buf = tail;
+      len -= 1;
+    }
+  }
+
   pub impl show[T; Show[T]]: Show[List[T]] {
     fn .show(&self: &List[T]) -> Show {
       let entries = [];

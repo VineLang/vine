@@ -1,0 +1,26 @@
+let s = "hello world!";
+s.len()
+s.starts_with(&(""; _))
+s.starts_with(&("h"; _))
+s.starts_with(&("hello "; _))
+s.starts_with(&("world"; _))
+s.starts_with(&("held"; _))
+s.starts_with(&("hello world! hi"; _))
+"" == ""
+"" != ""
+"hello" == "hello"
+"hello" != "hello"
+"hello" == "world"
+"hello" != "world"
+"hello" == "hello world"
+"world" == "hello world"
+let x = "hi";
+x == "xy"
+x == "hi"
+x
+"   hi   ".trim_front()
+"   hi   ".trim_back()
+"   hi   ".trim()
+"\n\n\n\n\t\thello    \n\t    world\n\n\n \t\n".trim()
+"".trim()
+"hi".trim()
