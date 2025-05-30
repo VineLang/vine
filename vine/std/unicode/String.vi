@@ -102,7 +102,8 @@ pub mod String {
   }
 
   pub fn .trim_front(String(chars)) -> String {
-    String(chars.drop_while(fn(&c: &Char) { c.is_whitespace() }))
+    chars.drop_while(fn(&c: &Char) { c.is_whitespace() });
+    String(chars)
   }
 
   pub fn .trim_back(String(chars)) -> String {

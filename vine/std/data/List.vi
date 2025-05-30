@@ -112,7 +112,7 @@ pub mod List {
     }
   }
 
-  pub fn .drop_while[T](List[T](len, buf, ~end), pred: fn(&T) -> Bool) -> List[T] {
+  pub fn .drop_while[T](&List[T](len, buf, ~_), pred: fn(&T) -> Bool) {
     while len != 0 {
       let Buf(head, tail) = buf;
       if !pred(&head) {
@@ -123,7 +123,6 @@ pub mod List {
       buf = tail;
       len -= 1;
     }
-    List(len, buf, move ~end)
   }
 
   pub impl show[T; Show[T]]: Show[List[T]] {
