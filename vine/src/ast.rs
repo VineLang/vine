@@ -174,6 +174,10 @@ pub enum Builtin {
   Cast,
   Fork,
   Drop,
+  Range,
+  BoundUnbounded,
+  BoundInclusive,
+  BoundExclusive,
 }
 
 pub type GenericParams<'core> = Generics<TypeParam<'core>, ImplParam<'core>>;
@@ -354,6 +358,10 @@ pub enum ExprKind<'core> {
   Unwrap(B<Expr<'core>>),
   #[class(value)]
   Try(B<Expr<'core>>),
+  #[class(value, sugar)]
+  RangeExclusive(Option<B<Expr<'core>>>, Option<B<Expr<'core>>>),
+  #[class(value, sugar)]
+  RangeInclusive(Option<B<Expr<'core>>>, B<Expr<'core>>),
   #[class(value)]
   N32(u32),
   #[class(value)]

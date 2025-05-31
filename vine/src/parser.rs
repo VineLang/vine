@@ -150,6 +150,10 @@ impl<'core, 'src> VineParser<'core, 'src> {
           "ge" => Builtin::ComparisonOp(ComparisonOp::Ge),
           "Fork" => Builtin::Fork,
           "Drop" => Builtin::Drop,
+          "Range" => Builtin::Range,
+          "BoundUnbounded" => Builtin::BoundUnbounded,
+          "BoundInclusive" => Builtin::BoundInclusive,
+          "BoundExclusive" => Builtin::BoundExclusive,
           _ => Err(Diag::BadBuiltin { span: str_span })?,
         };
         AttrKind::Builtin(builtin)
@@ -433,103 +437,125 @@ impl<'core, 'src> VineParser<'core, 'src> {
     self.parse_expr_bp(BP::Min)
   }
 
-  fn parse_expr_bp(&mut self, bp: BP) -> Parse<'core, Expr<'core>> {
+  fn maybe_parse_expr_bp(&mut self, bp: BP) -> Parse<'core, Option<Expr<'core>>> {
     let span = self.start_span();
-    let mut expr = self.parse_expr_prefix()?;
+    let Some(mut expr) = self.maybe_parse_expr_prefix()? else {
+      return Ok(None);
+    };
     loop {
       expr = match self.parse_expr_postfix(expr, bp)? {
         Ok(kind) => Expr { span: self.end_span(span), kind },
-        Err(expr) => return Ok(expr),
+        Err(expr) => return Ok(Some(expr)),
       }
     }
   }
 
-  fn parse_expr_prefix(&mut self) -> Parse<'core, Expr<'core>> {
-    let span = self.start_span();
-    let kind = self._parse_expr_prefix(span)?;
-    let span = self.end_span(span);
-    Ok(Expr { span, kind })
+  fn parse_expr_bp(&mut self, bp: BP) -> Parse<'core, Expr<'core>> {
+    match self.maybe_parse_expr_bp(bp)? {
+      Some(expr) => Ok(expr),
+      None => self.unexpected(),
+    }
   }
 
-  fn _parse_expr_prefix(&mut self, span: usize) -> Parse<'core, ExprKind<'core>> {
+  fn maybe_parse_expr_prefix(&mut self) -> Parse<'core, Option<Expr<'core>>> {
+    let span = self.start_span();
+    let Some(kind) = self._maybe_parse_expr_prefix(span)? else {
+      return Ok(None);
+    };
+    let span = self.end_span(span);
+    Ok(Some(Expr { span, kind }))
+  }
+
+  fn _maybe_parse_expr_prefix(&mut self, span: usize) -> Parse<'core, Option<ExprKind<'core>>> {
     if self.eat(Token::Return)? {
       if self.check(Token::Semi) {
-        return Ok(ExprKind::Return(None));
+        return Ok(Some(ExprKind::Return(None)));
       }
 
-      return Ok(ExprKind::Return(Some(Box::new(self.parse_expr_bp(BP::ControlFlow)?))));
+      return Ok(Some(ExprKind::Return(Some(Box::new(self.parse_expr_bp(BP::ControlFlow)?)))));
     }
     if self.eat(Token::Break)? {
       let label = self.parse_label()?;
 
       if self.check(Token::Semi) {
-        return Ok(ExprKind::Break(label, None));
+        return Ok(Some(ExprKind::Break(label, None)));
       }
 
-      return Ok(ExprKind::Break(label, Some(Box::new(self.parse_expr_bp(BP::ControlFlow)?))));
+      return Ok(Some(ExprKind::Break(
+        label,
+        Some(Box::new(self.parse_expr_bp(BP::ControlFlow)?)),
+      )));
     }
     if self.eat(Token::Continue)? {
-      return Ok(ExprKind::Continue(self.parse_label()?));
+      return Ok(Some(ExprKind::Continue(self.parse_label()?)));
     }
     if self.eat(Token::And)? {
-      return Ok(ExprKind::Ref(Box::new(self.parse_expr_bp(BP::Prefix)?), false));
+      return Ok(Some(ExprKind::Ref(Box::new(self.parse_expr_bp(BP::Prefix)?), false)));
     }
     if self.eat(Token::AndAnd)? {
       let inner = self.parse_expr_bp(BP::Prefix)?;
       let span = self.end_span(span + 1);
-      return Ok(ExprKind::Ref(
+      return Ok(Some(ExprKind::Ref(
         Box::new(Expr { span, kind: ExprKind::Ref(Box::new(inner), false) }),
         false,
-      ));
+      )));
     }
     if self.eat(Token::Star)? {
-      return Ok(ExprKind::Deref(Box::new(self.parse_expr_bp(BP::Prefix)?), false));
+      return Ok(Some(ExprKind::Deref(Box::new(self.parse_expr_bp(BP::Prefix)?), false)));
     }
     if self.eat(Token::Move)? {
-      return Ok(ExprKind::Move(Box::new(self.parse_expr_bp(BP::Prefix)?), false));
+      return Ok(Some(ExprKind::Move(Box::new(self.parse_expr_bp(BP::Prefix)?), false)));
     }
     if self.eat(Token::Tilde)? {
-      return Ok(ExprKind::Inverse(Box::new(self.parse_expr_bp(BP::Prefix)?), false));
+      return Ok(Some(ExprKind::Inverse(Box::new(self.parse_expr_bp(BP::Prefix)?), false)));
     }
     if self.eat(Token::Minus)? {
-      return Ok(ExprKind::Neg(Box::new(self.parse_expr_bp(BP::Prefix)?)));
+      return Ok(Some(ExprKind::Neg(Box::new(self.parse_expr_bp(BP::Prefix)?))));
     }
     if self.eat(Token::Bang)? {
-      return Ok(ExprKind::Not(Box::new(self.parse_expr_bp(BP::Prefix)?)));
+      return Ok(Some(ExprKind::Not(Box::new(self.parse_expr_bp(BP::Prefix)?))));
+    }
+    if self.eat(Token::DotDot)? {
+      let right_bound = self.maybe_parse_expr_bp(BP::Range)?;
+      return Ok(Some(ExprKind::RangeExclusive(None, right_bound.map(Box::new))));
+    }
+    if self.eat(Token::DotDotEq)? {
+      let right_bound = self.parse_expr_bp(BP::Range)?;
+      return Ok(Some(ExprKind::RangeInclusive(None, Box::new(right_bound))));
     }
     if self.check(Token::Num) {
-      return self.parse_num();
+      return Ok(Some(self.parse_num()?));
     }
     if self.check(Token::SingleQuote) {
-      return self.parse_char_expr();
+      return Ok(Some(self.parse_char_expr()?));
     }
     if self.check(Token::DoubleQuote) {
-      return self.parse_string_expr();
+      return Ok(Some(self.parse_string_expr()?));
     }
     if self.eat(Token::True)? {
-      return Ok(ExprKind::Bool(true));
+      return Ok(Some(ExprKind::Bool(true)));
     }
     if self.eat(Token::False)? {
-      return Ok(ExprKind::Bool(false));
+      return Ok(Some(ExprKind::Bool(false)));
     }
     if self.check(Token::Ident) || self.check(Token::ColonColon) {
       let path = self.parse_path()?;
       let args = self.check(Token::OpenParen).then(|| self.parse_expr_list()).transpose()?;
-      return Ok(ExprKind::Path(path, args));
+      return Ok(Some(ExprKind::Path(path, args)));
     }
     if self.eat(Token::OpenParen)? {
       if self.eat(Token::CloseParen)? {
-        return Ok(ExprKind::Tuple(vec![]));
+        return Ok(Some(ExprKind::Tuple(vec![])));
       }
       let expr = self.parse_expr()?;
       if self.eat(Token::Semi)? {
         let value = expr;
         let space = self.parse_expr()?;
         self.expect(Token::CloseParen)?;
-        return Ok(ExprKind::Place(Box::new(value), Box::new(space)));
+        return Ok(Some(ExprKind::Place(Box::new(value), Box::new(space))));
       }
       if self.eat(Token::CloseParen)? {
-        return Ok(ExprKind::Paren(Box::new(expr)));
+        return Ok(Some(ExprKind::Paren(Box::new(expr))));
       }
       self.expect(Token::Comma)?;
       let mut exprs = vec![expr];
@@ -543,10 +569,10 @@ impl<'core, 'src> VineParser<'core, 'src> {
         }
       }
       self.expect(Token::CloseParen)?;
-      return Ok(ExprKind::Tuple(exprs));
+      return Ok(Some(ExprKind::Tuple(exprs)));
     }
     if self.check(Token::OpenBrace) {
-      return Ok(ExprKind::Object(self.parse_delimited(BRACE_COMMA, |self_| {
+      return Ok(Some(ExprKind::Object(self.parse_delimited(BRACE_COMMA, |self_| {
         let key = self_.parse_key()?;
         let value = if self_.eat(Token::Colon)? {
           self_.parse_expr()?
@@ -554,14 +580,14 @@ impl<'core, 'src> VineParser<'core, 'src> {
           Expr { span: key.span, kind: ExprKind::Path(key.into(), None) }
         };
         Ok((key, value))
-      })?));
+      })?)));
     }
     if self.check(Token::OpenBracket) {
       let exprs = self.parse_delimited(BRACKET_COMMA, Self::parse_expr)?;
-      return Ok(ExprKind::List(exprs));
+      return Ok(Some(ExprKind::List(exprs)));
     }
     if self.eat(Token::Do)? {
-      return Ok(ExprKind::Do(self.parse_label()?, self.parse_block()?));
+      return Ok(Some(ExprKind::Do(self.parse_label()?, self.parse_block()?)));
     }
     if self.eat(Token::If)? {
       let mut arms = Vec::new();
@@ -574,10 +600,10 @@ impl<'core, 'src> VineParser<'core, 'src> {
             continue;
           } else {
             let leg = self.parse_block()?;
-            return Ok(ExprKind::If(arms, Some(leg)));
+            return Ok(Some(ExprKind::If(arms, Some(leg))));
           }
         } else {
-          return Ok(ExprKind::If(arms, None));
+          return Ok(Some(ExprKind::If(arms, None)));
         }
       }
     }
@@ -585,17 +611,17 @@ impl<'core, 'src> VineParser<'core, 'src> {
       let label = self.parse_label()?;
       let cond = self.parse_expr()?;
       let body = self.parse_block()?;
-      return Ok(ExprKind::While(label, Box::new(cond), body));
+      return Ok(Some(ExprKind::While(label, Box::new(cond), body)));
     }
     if self.eat(Token::Loop)? {
       let label = self.parse_label()?;
       let body = self.parse_block()?;
-      return Ok(ExprKind::Loop(label, body));
+      return Ok(Some(ExprKind::Loop(label, body)));
     }
     if self.eat(Token::Fn)? {
       let params = self.parse_delimited(PAREN_COMMA, Self::parse_pat)?;
       let body = self.parse_block()?;
-      return Ok(ExprKind::Fn(params, None, body));
+      return Ok(Some(ExprKind::Fn(params, None, body)));
     }
     if self.eat(Token::Match)? {
       let scrutinee = self.parse_expr()?;
@@ -604,10 +630,10 @@ impl<'core, 'src> VineParser<'core, 'src> {
         let value = self_.parse_block()?;
         Ok((pat, value))
       })?;
-      return Ok(ExprKind::Match(Box::new(scrutinee), arms));
+      return Ok(Some(ExprKind::Match(Box::new(scrutinee), arms)));
     }
     if self.eat(Token::Hole)? {
-      return Ok(ExprKind::Hole);
+      return Ok(Some(ExprKind::Hole));
     }
     if self.check(Token::InlineIvy) {
       let span = self.span();
@@ -633,9 +659,9 @@ impl<'core, 'src> VineParser<'core, 'src> {
         |_| Diag::InvalidIvy { span },
       )?;
       let net_span = self.end_span(net_span);
-      return Ok(ExprKind::InlineIvy(binds, ty, net_span, net));
+      return Ok(Some(ExprKind::InlineIvy(binds, ty, net_span, net)));
     }
-    self.unexpected()
+    Ok(None)
   }
 
   fn parse_expr_postfix(
@@ -719,6 +745,16 @@ impl<'core, 'src> VineParser<'core, 'src> {
 
     if self.eat(Token::Question)? {
       return Ok(Ok(ExprKind::Try(Box::new(lhs))));
+    }
+
+    if bp.permits(BP::Range) && self.eat(Token::DotDot)? {
+      let rhs = self.maybe_parse_expr_bp(BP::Range)?;
+      return Ok(Ok(ExprKind::RangeExclusive(Some(Box::new(lhs)), rhs.map(Box::new))));
+    }
+
+    if bp.permits(BP::Range) && self.eat(Token::DotDotEq)? {
+      let rhs = self.parse_expr_bp(BP::Range)?;
+      return Ok(Ok(ExprKind::RangeInclusive(Some(Box::new(lhs)), Box::new(rhs))));
     }
 
     if self.eat(Token::Dot)? {
@@ -984,7 +1020,9 @@ impl<'core, 'src> VineParser<'core, 'src> {
       || self.check(Token::While)
       || self.check(Token::For)
     {
-      let expr = self.parse_expr_prefix()?;
+      let Some(expr) = self.maybe_parse_expr_prefix()? else {
+        return self.unexpected();
+      };
       let semi = self.eat(Token::Semi)?;
       StmtKind::Expr(expr, semi)
     } else {
@@ -1064,6 +1102,7 @@ enum BP {
   LogicalAnd,
   Is,
   Comparison,
+  Range,
   BitOr,
   BitXor,
   BitAnd,

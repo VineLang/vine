@@ -181,6 +181,14 @@ pub trait VisitMut<'core, 'a> {
         self.visit_expr(e);
         self.visit_type(t);
       }
+      ExprKind::RangeExclusive(start, end) => {
+        self.visit(start.as_deref_mut());
+        self.visit(end.as_deref_mut());
+      }
+      ExprKind::RangeInclusive(start, end) => {
+        self.visit(start.as_deref_mut());
+        self.visit(&mut **end);
+      }
     }
   }
 
