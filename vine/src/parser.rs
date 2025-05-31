@@ -8,11 +8,11 @@ use vine_util::parser::{Parser, ParserState};
 use crate::{core::Core, diag::Diag, lexer::Token};
 
 use crate::ast::{
-  Attr, AttrKind, BinaryOp, Block, Bound, Builtin, ComparisonOp, ConstItem, EnumItem, Expr,
-  ExprKind, Flex, FnItem, GenericArgs, GenericParams, Generics, Ident, Impl, ImplItem, ImplKind,
-  ImplParam, Item, ItemKind, Key, Label, LetFnStmt, LetStmt, LogicalOp, ModItem, ModKind, Pat,
-  PatKind, Path, Span, Stmt, StmtKind, StructItem, Trait, TraitItem, TraitKind, Ty, TyKind,
-  TypeItem, TypeParam, UseItem, UseTree, Variant, Vis,
+  Attr, AttrKind, BinaryOp, Block, Builtin, ComparisonOp, ConstItem, EnumItem, Expr, ExprKind,
+  Flex, FnItem, GenericArgs, GenericParams, Generics, Ident, Impl, ImplItem, ImplKind, ImplParam,
+  Item, ItemKind, Key, Label, LetFnStmt, LetStmt, LogicalOp, ModItem, ModKind, Pat, PatKind, Path,
+  Span, Stmt, StmtKind, StructItem, Trait, TraitItem, TraitKind, Ty, TyKind, TypeItem, TypeParam,
+  UseItem, UseTree, Variant, Vis,
 };
 
 pub struct VineParser<'core, 'src> {
@@ -151,9 +151,9 @@ impl<'core, 'src> VineParser<'core, 'src> {
           "Fork" => Builtin::Fork,
           "Drop" => Builtin::Drop,
           "Range" => Builtin::Range,
-          "Unbounded" => Builtin::RangeBound(Bound::Unbounded),
-          "BoundInclusive" => Builtin::RangeBound(Bound::Inclusive),
-          "BoundExclusive" => Builtin::RangeBound(Bound::Exclusive),
+          "BoundUnbounded" => Builtin::BoundUnbounded,
+          "BoundInclusive" => Builtin::BoundInclusive,
+          "BoundExclusive" => Builtin::BoundExclusive,
           _ => Err(Diag::BadBuiltin { span: str_span })?,
         };
         AttrKind::Builtin(builtin)

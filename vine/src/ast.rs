@@ -175,7 +175,9 @@ pub enum Builtin {
   Fork,
   Drop,
   Range,
-  RangeBound(Bound),
+  BoundUnbounded,
+  BoundInclusive,
+  BoundExclusive,
 }
 
 pub type GenericParams<'core> = Generics<TypeParam<'core>, ImplParam<'core>>;
@@ -588,13 +590,6 @@ pub enum ComparisonOp {
   Gt,
   Le,
   Ge,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub enum Bound {
-  Unbounded,
-  Inclusive,
-  Exclusive,
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]

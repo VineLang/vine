@@ -7,7 +7,7 @@ pub trait Bound[B, T] {
 }
 
 pub mod Bound {
-  #[builtin = "Unbounded"]
+  #[builtin = "BoundUnbounded"]
   pub struct Unbounded(());
   #[builtin = "BoundInclusive"]
   pub struct Inclusive[T](T);

@@ -4,8 +4,8 @@ use vine_util::idx::Counter;
 
 use crate::{
   ast::{
-    Attr, AttrKind, Bound, Builtin, GenericParams, Generics, Ident, ImplParam, Item, ItemKind,
-    ModKind, Span, Trait, TraitKind, Ty, TyKind, UseTree, Vis,
+    Attr, AttrKind, Builtin, GenericParams, Generics, Ident, ImplParam, Item, ItemKind, ModKind,
+    Span, Trait, TraitKind, Ty, TyKind, UseTree, Vis,
   },
   chart::{Chart, TraitSubitem},
   core::Core,
@@ -357,13 +357,9 @@ impl<'core> Charter<'core, '_> {
         set(def.value_def, self.chart.builtins.comparison_ops.entry(op).or_default())
       }
       Builtin::Range => set(struct_id(), &mut self.chart.builtins.range),
-      Builtin::RangeBound(Bound::Unbounded) => set(struct_id(), &mut self.chart.builtins.unbounded),
-      Builtin::RangeBound(Bound::Exclusive) => {
-        set(struct_id(), &mut self.chart.builtins.bound_exclusive)
-      }
-      Builtin::RangeBound(Bound::Inclusive) => {
-        set(struct_id(), &mut self.chart.builtins.bound_inclusive)
-      }
+      Builtin::BoundUnbounded => set(struct_id(), &mut self.chart.builtins.bound_unbounded),
+      Builtin::BoundExclusive => set(struct_id(), &mut self.chart.builtins.bound_exclusive),
+      Builtin::BoundInclusive => set(struct_id(), &mut self.chart.builtins.bound_inclusive),
     }
   }
 

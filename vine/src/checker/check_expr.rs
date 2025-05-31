@@ -683,7 +683,7 @@ impl<'core> Checker<'core, '_> {
     bound_value: &mut Option<Box<Expr<'core>>>,
     inclusive: bool,
   ) -> Result<(Expr<'core>, Type), Type> {
-    let unbounded_id = self.chart.builtins.unbounded.ok_or_else(|| {
+    let unbounded_id = self.chart.builtins.bound_unbounded.ok_or_else(|| {
       self.types.error(self.core.report(Diag::MissingBuiltin { span, builtin: "Unbounded" }))
     })?;
     let bound_id = if inclusive {
