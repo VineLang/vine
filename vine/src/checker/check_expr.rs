@@ -523,6 +523,24 @@ impl<'core> Checker<'core, '_> {
         );
         to_ty
       }
+      ExprKind::RangeExclusive(start, end) => {
+        match self.check_range_expr(span, start, end, false) {
+          Ok((expr_kind, ty)) => {
+            expr.kind = expr_kind;
+            ty
+          }
+          Err(e) => e,
+        }
+      }
+      ExprKind::RangeInclusive(start, end) => {
+        match self.check_range_expr(span, start, &mut Some(take(end)), true) {
+          Ok((expr_kind, ty)) => {
+            expr.kind = expr_kind;
+            ty
+          }
+          Err(e) => e,
+        }
+      }
       ExprKind::N32(_) => self.builtin_ty(span, "N32", self.chart.builtins.n32),
       ExprKind::I32(_) => self.builtin_ty(span, "I32", self.chart.builtins.i32),
       ExprKind::Char(_) => self.builtin_ty(span, "Char", self.chart.builtins.char),
@@ -628,6 +646,78 @@ impl<'core> Checker<'core, '_> {
         }
         self.types.error(self.core.report(e))
       }
+    }
+  }
+
+  fn check_range_expr(
+    &mut self,
+    span: Span,
+    start: &mut Option<Box<Expr<'core>>>,
+    end: &mut Option<Box<Expr<'core>>>,
+    end_inclusive: bool,
+  ) -> Result<(ExprKind<'core>, Type), Type> {
+    let bound_value_ty = self.types.new_var(span);
+    let (left_bound, left_bound_ty) = self.check_range_bound(span, bound_value_ty, start, true)?;
+    let (right_bound, right_bound_ty) =
+      self.check_range_bound(span, bound_value_ty, end, end_inclusive)?;
+
+    let Some(range_id) = self.chart.builtins.range else {
+      return Err(
+        self.types.error(self.core.report(Diag::MissingBuiltin { span, builtin: "Range" })),
+      );
+    };
+    let generics = Generics { span, ..Default::default() };
+    let expr_kind = ExprKind::Struct(
+      range_id,
+      generics,
+      Box::new(Expr { span, kind: ExprKind::Tuple(vec![left_bound, right_bound]) }),
+    );
+    let ty = self.types.new(TypeKind::Struct(range_id, vec![left_bound_ty, right_bound_ty]));
+    Ok((expr_kind, ty))
+  }
+
+  fn check_range_bound(
+    &mut self,
+    span: Span,
+    bound_value_ty: Type,
+    bound_value: &mut Option<Box<Expr<'core>>>,
+    inclusive: bool,
+  ) -> Result<(Expr<'core>, Type), Type> {
+    let unbounded_id = self.chart.builtins.unbounded.ok_or_else(|| {
+      self.types.error(self.core.report(Diag::MissingBuiltin { span, builtin: "Unbounded" }))
+    })?;
+    let bound_id = if inclusive {
+      self.chart.builtins.bound_inclusive.ok_or_else(|| {
+        self.types.error(self.core.report(Diag::MissingBuiltin { span, builtin: "BoundInclusive" }))
+      })?
+    } else {
+      self.chart.builtins.bound_exclusive.ok_or_else(|| {
+        self.types.error(self.core.report(Diag::MissingBuiltin { span, builtin: "BoundExclusive" }))
+      })?
+    };
+    let generics = Generics { span, ..Default::default() };
+    match bound_value {
+      Some(bound) => {
+        self.check_expr_form_type(bound, Form::Value, bound_value_ty);
+        Ok((
+          Expr {
+            span: bound.span,
+            kind: ExprKind::Struct(bound_id, generics, Box::new(take(bound))),
+          },
+          self.types.new(TypeKind::Struct(bound_id, vec![bound_value_ty])),
+        ))
+      }
+      None => Ok((
+        Expr {
+          span,
+          kind: ExprKind::Struct(
+            unbounded_id,
+            generics,
+            Box::new(Expr { span, kind: ExprKind::Tuple(vec![]) }),
+          ),
+        },
+        self.types.new(TypeKind::Struct(unbounded_id, vec![])),
+      )),
     }
   }
 

@@ -9,7 +9,6 @@ fn _foo() {}
 ((1,2),(3,4)).1.1.as[String]
 "abc" ++ 123
 ([true, false]; _).show().as[String]
-[1,2,3,4].slice(2)
 [1,2,3,4].reversed()
 let a = Array::from_fn(5, &(0; _), fn(&x: &N32) { let n = x; x += 1; n });
 a.for_each(&io, fn(&io: &IO, v: N32) { io.println("{v}")})

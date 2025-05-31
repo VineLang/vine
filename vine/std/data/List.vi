@@ -1,6 +1,6 @@
 
 use data::Iterator;
-use ops::{Cast, Concat, comparison::{Eq, Ord}};
+use ops::{Cast, Concat, comparison::{Eq, Ord}, range::{Bound, Range}};
 use debug::Show;
 
 #[builtin = "List"]
@@ -32,17 +32,20 @@ pub mod List {
     head
   }
 
-  pub fn .slice[T](List[T](len, buf, end), i: N32) -> List[T] {
-    if i >= len {
-      []
-    } else {
-      len -= i;
-      while i != 0 {
-        Buf(_, buf) = buf;
-        i -= 1;
-      }
-      List(len, buf, end)
+  pub fn .slice[T, B1, B2; Bound[B1, N32], Bound[B2, N32]](self: List[T], range: Range[B1, B2]) -> List[
+    T,
+  ] {
+    let i = 0;
+    let slice = [];
+
+    while !range.contains(i) && self.pop_front() is Some(_) {
+      i += 1;
     }
+    while self.pop_front() is Some(value) && range.contains(i) {
+      slice.push_back(value);
+      i += 1;
+    }
+    slice
   }
 
   pub fn .map[T, U](List[T](l, buf, ~_), f: fn(T) -> U) -> List[U] {
