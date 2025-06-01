@@ -129,6 +129,17 @@ pub mod List {
     buf = Buf(el, buf);
   }
 
+  pub fn .find[T](&self: &List[T], pred: fn(&T) -> Bool) -> Option[&T] {
+    let iter = self.iter();
+    while iter.next() is Some(&value) {
+      if pred(&value) {
+        iter.drop_iter();
+        return Some(&value)
+      }
+    }
+    None
+  }
+
   pub fn .join[T; Cast[T, String]](list: List[T], sep: String) -> String {
     let it = list.into_iter();
     if it.next() is Some(val) {
