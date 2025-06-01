@@ -138,3 +138,21 @@ x = "hi"
 io = #io
 s = "hello world!"
 x = "hi"
+> "abcdefg".split_at(3)
+("abc", "defg")
+
+io = #io
+s = "hello world!"
+x = "hi"
+> "abcdefg".split_at(0)
+("", "abcdefg")
+
+io = #io
+s = "hello world!"
+x = "hi"
+> "abcdefg".split_at(7)
+("abcdefg", "")
+
+io = #io
+s = "hello world!"
+x = "hi"

@@ -24,3 +24,6 @@ x
 "\n\n\n\n\t\thello    \n\t    world\n\n\n \t\n".trim()
 "".trim()
 "hi".trim()
+"abcdefg".split_at(3)
+"abcdefg".split_at(0)
+"abcdefg".split_at(7)
