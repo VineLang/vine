@@ -58,6 +58,18 @@ io = #io
 [4, 3, 2, 1]
 
 io = #io
+> [1,2,3,4].filter(fn(&x: &N32) { x % 2 == 0 })
+[2, 4]
+
+io = #io
+> ["aaa", "bbb", "ccc"].filter(fn(&x: &String) { x.len() > 2 })
+["aaa", "bbb", "ccc"]
+
+io = #io
+> [].filter(fn(&x: &Bool) { x })
+[]
+
+io = #io
 > let a = Array::from_fn(5, &(0; _), fn(&x: &N32) { let n = x; x += 1; n });
 
 io = #io
@@ -228,7 +240,7 @@ error input:1:29 - expected type `{ a: N32, b: N32 }`; found `{ a: N32 }`
 
 io = #io
 > do { let x; x = (x, x); }
-error input:1:17 - expected type `?693`; found `(?693, ?693)`
+error input:1:17 - expected type `?760`; found `(?760, ?760)`
 
 io = #io
 > let (a: N32, b: N32);
