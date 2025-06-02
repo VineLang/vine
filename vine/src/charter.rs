@@ -356,6 +356,10 @@ impl<'core> Charter<'core, '_> {
       Builtin::ComparisonOp(op) => {
         set(def.value_def, self.chart.builtins.comparison_ops.entry(op).or_default())
       }
+      Builtin::Range => set(struct_id(), &mut self.chart.builtins.range),
+      Builtin::BoundUnbounded => set(struct_id(), &mut self.chart.builtins.bound_unbounded),
+      Builtin::BoundExclusive => set(struct_id(), &mut self.chart.builtins.bound_exclusive),
+      Builtin::BoundInclusive => set(struct_id(), &mut self.chart.builtins.bound_inclusive),
     }
   }
 

@@ -1,6 +1,6 @@
 
 use data::Iterator;
-use ops::{Cast, Concat, comparison::{Eq, Ord}};
+use ops::{Cast, Concat, comparison::{Eq, Ord}, range::{Bound, Range}};
 use debug::Show;
 
 #[builtin = "List"]
@@ -32,17 +32,25 @@ pub mod List {
     head
   }
 
-  pub fn .slice[T](List[T](len, buf, end), i: N32) -> List[T] {
-    if i >= len {
-      []
-    } else {
-      len -= i;
-      while i != 0 {
-        Buf(_, buf) = buf;
-        i -= 1;
-      }
-      List(len, buf, end)
+  pub fn .slice[T, B1, B2; Bound[B1, N32], Bound[B2, N32]](self: List[T], Range[B1, B2](start, end)) -> List[
+    T,
+  ] {
+    // Underflow does not matter, still correct
+    let end_index = self.len() - 1;
+    let i = 0;
+    let slice = [];
+
+    while !start.left_of(&i) && self.pop_front() is Some(_) {
+      i += 1;
     }
+    if end.right_of(&end_index) {
+      return self;
+    }
+    while end.right_of(&i) && self.pop_front() is Some(value) {
+      slice.push_back(value);
+      i += 1;
+    }
+    slice
   }
 
   pub fn .split_at[T](self: List[T], i: N32) -> (List[T], List[T]) {

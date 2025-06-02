@@ -42,10 +42,6 @@ io = #io
 "[true, false]"
 
 io = #io
-> [1,2,3,4].slice(2)
-[3, 4]
-
-io = #io
 > [1,2,3,4].split_at(2)
 ([1, 2], [3, 4])
 
@@ -232,7 +228,7 @@ error input:1:29 - expected type `{ a: N32, b: N32 }`; found `{ a: N32 }`
 
 io = #io
 > do { let x; x = (x, x); }
-error input:1:17 - expected type `?705`; found `(?705, ?705)`
+error input:1:17 - expected type `?693`; found `(?693, ?693)`
 
 io = #io
 > let (a: N32, b: N32);

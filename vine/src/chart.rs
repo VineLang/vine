@@ -51,6 +51,11 @@ pub struct Builtins {
 
   pub fork: Option<TraitDefId>,
   pub drop: Option<TraitDefId>,
+
+  pub range: Option<StructId>,
+  pub bound_exclusive: Option<StructId>,
+  pub bound_inclusive: Option<StructId>,
+  pub bound_unbounded: Option<StructId>,
 }
 
 new_idx!(pub DefId);

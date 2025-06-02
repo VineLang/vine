@@ -436,6 +436,26 @@ impl<'core: 'src, 'src> Formatter<'src> {
       }
       ExprKind::Unwrap(x) => Doc::concat([self.fmt_expr(x), Doc("!")]),
       ExprKind::Try(x) => Doc::concat([self.fmt_expr(x), Doc("?")]),
+      ExprKind::RangeExclusive(start, end) => {
+        let mut doc_items = vec![];
+        if let Some(start) = start {
+          doc_items.push(self.fmt_expr(start));
+        }
+        doc_items.push(Doc(".."));
+        if let Some(end) = end {
+          doc_items.push(self.fmt_expr(end));
+        }
+        Doc::concat(doc_items)
+      }
+      ExprKind::RangeInclusive(start, end) => {
+        let mut doc_items = vec![];
+        if let Some(start) = start {
+          doc_items.push(self.fmt_expr(start));
+        }
+        doc_items.push(Doc("..="));
+        doc_items.push(self.fmt_expr(end));
+        Doc::concat(doc_items)
+      }
       ExprKind::Place(v, s) => {
         Doc::concat([Doc("("), self.fmt_expr(v), Doc("; "), self.fmt_expr(s), Doc(")")])
       }
