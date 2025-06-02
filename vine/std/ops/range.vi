@@ -8,11 +8,11 @@ pub trait Bound[B, T] {
 
 pub mod Bound {
   #[builtin = "BoundUnbounded"]
-  pub struct Unbounded(());
+  pub struct Unbounded(pub ());
   #[builtin = "BoundInclusive"]
-  pub struct Inclusive[T](T);
+  pub struct Inclusive[T](pub T);
   #[builtin = "BoundExclusive"]
-  pub struct Exclusive[T](T);
+  pub struct Exclusive[T](pub T);
 
   pub mod Unbounded {
     pub impl bound[T]: Bound[Unbounded, T] {
@@ -49,7 +49,7 @@ pub mod Bound {
 }
 
 #[builtin = "Range"]
-pub struct Range[B1, B2]((B1, B2));
+pub struct Range[B1, B2](pub (B1, B2));
 
 pub mod Range {
   pub fn .contains[B1, B2, T; Bound[B1, T], Bound[B2, T]](&Range[B1, B2](start, end), value: T) -> Bool {
