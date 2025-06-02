@@ -53,6 +53,18 @@ pub mod List {
     slice
   }
 
+  pub fn .split_at[T](self: List[T], i: N32) -> (List[T], List[T]) {
+    if i >= self.len() {
+      return (self, []);
+    }
+    let prefix = [];
+    while i != 0 && self.pop_front() is Some(value) {
+      prefix.push_back(value);
+      i -= 1;
+    }
+    (prefix, self)
+  }
+
   pub fn .map[T, U](List[T](l, buf, ~_), f: fn(T) -> U) -> List[U] {
     let len = l;
     let cur;
