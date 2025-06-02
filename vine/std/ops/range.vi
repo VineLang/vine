@@ -2,8 +2,8 @@
 use comparison::Ord;
 
 pub trait Bound[B, T] {
-  fn .left_of(self: &B, value: T) -> Bool;
-  fn .right_of(self: &B, value: T) -> Bool;
+  fn .left_of(self: &B, value: &T) -> Bool;
+  fn .right_of(self: &B, value: &T) -> Bool;
 }
 
 pub mod Bound {
@@ -16,10 +16,10 @@ pub mod Bound {
 
   pub mod Unbounded {
     pub impl bound[T]: Bound[Unbounded, T] {
-      fn .left_of(self: &Unbounded, _value: T) -> Bool {
+      fn .left_of(self: &Unbounded, &_value: &T) -> Bool {
         true
       }
-      fn .right_of(self: &Unbounded, _value: T) -> Bool {
+      fn .right_of(self: &Unbounded, &_value: &T) -> Bool {
         true
       }
     }
@@ -27,10 +27,10 @@ pub mod Bound {
 
   pub mod Inclusive {
     pub impl bound[T; Ord[T]]: Bound[Inclusive[T], T] {
-      fn .left_of(&Inclusive[T](bound), value: T) -> Bool {
+      fn .left_of(&Inclusive[T](bound), &value: &T) -> Bool {
         bound <= value
       }
-      fn .right_of(&Inclusive[T](bound), value: T) -> Bool {
+      fn .right_of(&Inclusive[T](bound), &value: &T) -> Bool {
         value <= bound
       }
     }
@@ -38,10 +38,10 @@ pub mod Bound {
 
   pub mod Exclusive {
     pub impl bound[T; Ord[T]]: Bound[Exclusive[T], T] {
-      fn .left_of(&Exclusive[T](bound), value: T) -> Bool {
+      fn .left_of(&Exclusive[T](bound), &value: &T) -> Bool {
         bound < value
       }
-      fn .right_of(&Exclusive[T](bound), value: T) -> Bool {
+      fn .right_of(&Exclusive[T](bound), &value: &T) -> Bool {
         value < bound
       }
     }
@@ -52,7 +52,7 @@ pub mod Bound {
 pub struct Range[B1, B2](pub (B1, B2));
 
 pub mod Range {
-  pub fn .contains[B1, B2, T; Bound[B1, T], Bound[B2, T]](&Range[B1, B2](start, end), value: T) -> Bool {
-    start.left_of(value) && end.right_of(value)
+  pub fn .contains[B1, B2, T; Bound[B1, T], Bound[B2, T]](&Range[B1, B2](start, end), &value: &T) -> Bool {
+    start.left_of(&value) && end.right_of(&value)
   }
 }

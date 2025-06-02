@@ -35,17 +35,18 @@ pub mod List {
   pub fn .slice[T, B1, B2; Bound[B1, N32], Bound[B2, N32]](self: List[T], Range[B1, B2](start, end)) -> List[
     T,
   ] {
-    let len = self.len();
+    // Underflow does not matter, still correct
+    let end_index = self.len() - 1;
     let i = 0;
     let slice = [];
 
-    while !start.left_of(i) && self.pop_front() is Some(_) {
+    while !start.left_of(&i) && self.pop_front() is Some(_) {
       i += 1;
     }
-    if end.right_of(len - 1) {
+    if end.right_of(&end_index) {
       return self;
     }
-    while end.right_of(i) && self.pop_front() is Some(value) {
+    while end.right_of(&i) && self.pop_front() is Some(value) {
       slice.push_back(value);
       i += 1;
     }
