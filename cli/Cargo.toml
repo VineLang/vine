@@ -6,6 +6,7 @@ edition = "2021"
 [dependencies]
 anyhow = "1.0.87"
 clap = { version = "4.5.17", features = ["derive", "env"] }
+clap_complete = "4.5.52"
 rustyline = "14.0.0"
 
 ivm = { path = "../ivm" }

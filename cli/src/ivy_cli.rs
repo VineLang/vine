@@ -1,7 +1,8 @@
-use std::{fs, path::PathBuf};
+use std::{fs, io, path::PathBuf};
 
 use anyhow::Result;
-use clap::{Args, Parser};
+use clap::{Args, CommandFactory, Parser};
+use clap_complete::generate;
 use rustyline::DefaultEditor;
 
 use ivm::{ext::Extrinsics, heap::Heap, IVM};
@@ -17,6 +18,8 @@ pub enum IvyCommand {
   #[command(about = "Optimize an Ivy program")]
   Optimize(IvyOptimizeCommand),
   Repl(IvyReplCommand),
+  #[command(about = "Generate shell completion scripts")]
+  Completion(IvyCompletionCommand),
 }
 
 impl IvyCommand {
@@ -25,6 +28,7 @@ impl IvyCommand {
       IvyCommand::Run(run) => run.execute(),
       IvyCommand::Optimize(optimize) => optimize.execute(),
       IvyCommand::Repl(repl) => repl.execute(),
+      IvyCommand::Completion(completion) => completion.execute(),
     }
   }
 }
@@ -97,6 +101,23 @@ impl IvyReplCommand {
         Err(_) => break,
       }
     }
+    Ok(())
+  }
+}
+
+#[derive(Debug, Args)]
+pub struct IvyCompletionCommand {
+  pub shell: clap_complete::Shell,
+}
+
+impl IvyCompletionCommand {
+  pub fn execute(self) -> Result<()> {
+    let shell = self.shell;
+
+    let mut cmd = IvyCommand::command();
+    let cmd_name = cmd.get_name().to_string();
+    generate(shell, &mut cmd, cmd_name, &mut io::stdout());
+
     Ok(())
   }
 }

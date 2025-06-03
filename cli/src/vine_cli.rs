@@ -1,12 +1,12 @@
 use std::{
   env, fs,
-  io::{stdin, Read},
+  io::{self, stdin, Read},
   path::PathBuf,
   process::exit,
 };
 
 use anyhow::Result;
-use clap::{Args, Parser};
+use clap::{Args, CommandFactory, Parser};
 
 use ivm::{ext::Extrinsics, heap::Heap, IVM};
 use ivy::{ast::Nets, host::Host};
@@ -31,6 +31,9 @@ pub enum VineCommand {
   Fmt(VineFmtCommand),
   Repl(VineReplCommand),
   Lsp(VineLspCommand),
+
+  #[command(about = "Generate shell completion scripts")]
+  Completion(VineCompletionCommand),
 }
 
 impl VineCommand {
@@ -41,6 +44,7 @@ impl VineCommand {
       VineCommand::Repl(repl) => repl.execute(),
       VineCommand::Fmt(fmt) => fmt.execute(),
       VineCommand::Lsp(lsp) => lsp.execute(),
+      VineCommand::Completion(completion) => completion.execute(),
     }
   }
 }
@@ -223,6 +227,23 @@ impl VineLspCommand {
       self.entrypoints.push(std_path().display().to_string());
     }
     lsp(self.entrypoints);
+    Ok(())
+  }
+}
+
+#[derive(Debug, Args)]
+pub struct VineCompletionCommand {
+  pub shell: clap_complete::Shell,
+}
+
+impl VineCompletionCommand {
+  pub fn execute(self) -> Result<()> {
+    let shell = self.shell;
+
+    let mut cmd = VineCommand::command();
+    let cmd_name = cmd.get_name().to_string();
+    clap_complete::generate(shell, &mut cmd, cmd_name, &mut io::stdout());
+
     Ok(())
   }
 }
