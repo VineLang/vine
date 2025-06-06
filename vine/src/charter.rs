@@ -103,7 +103,7 @@ impl<'core> Charter<'core, '_> {
       ItemKind::Struct(struct_item) => {
         let def = self.chart_child(parent, struct_item.name, member_vis, true);
         let generics = self.chart_generics(def, struct_item.generics, false);
-        let data_vis = self.resolve_vis(def, struct_item.data_vis);
+        let data_vis = self.resolve_vis(parent, struct_item.data_vis);
         let struct_id = self.chart.structs.push(StructDef {
           span,
           def,
