@@ -62,7 +62,9 @@ pub mod Bool {
       inline_ivy! (a <- a, b <- b) -> Bool { out a = @n32_le(b out) }
     }
 
-    const cmp: fn(&Bool, &Bool) -> Ord = Ord::cmp_from_lt[Bool];
+    fn .cmp(a: &Bool, b: &Bool) -> Ord {
+      Ord::cmp_from_lt[Bool](a, b)
+    }
   }
 
   pub impl to_string: Cast[Bool, String] {

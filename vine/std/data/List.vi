@@ -4,9 +4,9 @@ use ops::{Cast, Concat, comparison::{Eq, Ord}, range::{Bound, Range}};
 use debug::Show;
 
 #[builtin = "List"]
-pub struct List[T]((N32, Buf[T], ~Buf[T]));
+pub struct List[T](pub.std (N32, Buf[T], ~Buf[T]));
 
-pub.std struct Buf[T]((T, Buf[T]));
+pub.std struct Buf[T](pub.std (T, Buf[T]));
 
 pub mod List {
   pub fn .len[T](&self: &List[T]) -> N32 {
@@ -173,7 +173,7 @@ pub mod List {
     self = output;
   }
 
-  pub struct Iter[T]((N32, &Buf[T]));
+  pub struct Iter[T](pub.std (N32, &Buf[T]));
 
   pub fn .iter[T](&List[T](len, buf, _)) -> Iter[T] {
     Iter(len, &buf)
@@ -199,7 +199,7 @@ pub mod List {
     }
   }
 
-  pub struct IntoIter[T]((N32, Buf[T]));
+  pub struct IntoIter[T](pub.std (N32, Buf[T]));
 
   pub fn .into_iter[T](List[T](len, buf, _)) -> IntoIter[T] {
     IntoIter(len, buf)
@@ -279,8 +279,13 @@ pub mod List {
       ord
     }
 
-    const lt: fn(&List[T], &List[T]) -> Bool = Ord::lt_from_cmp[List[T]];
-    const le: fn(&List[T], &List[T]) -> Bool = Ord::le_from_cmp[List[T]];
+    fn lt(a: &List[T], b: &List[T]) -> Bool {
+      Ord::lt_from_cmp[List[T]](a, b)
+    }
+
+    fn le(a: &List[T], b: &List[T]) -> Bool {
+      Ord::le_from_cmp[List[T]](a, b)
+    }
   }
 
   pub impl fork[T+]: Fork[List[T]] {
