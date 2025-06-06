@@ -11,7 +11,7 @@ use vine_util::{
 use crate::{
   analyzer::usage::Usage,
   ast::{Expr, ExprKind, Key, LabelId, LetFnId, Local, Pat, PatKind},
-  chart::{Chart, ValueDef, ValueDefKind},
+  chart::{Chart, ConcreteConstDef, ConcreteFnDef},
   vir::{
     Header, Interface, InterfaceId, InterfaceKind, Layer, LayerId, Port, Stage, StageId, Step,
     Transfer, VIR,
@@ -69,22 +69,17 @@ impl<'core, 'r> Distiller<'core, 'r> {
     }
   }
 
-  pub fn distill(&mut self, value_def: &ValueDef<'core>) -> Option<VIR> {
-    match &value_def.kind {
-      ValueDefKind::Taken => unreachable!(),
-      ValueDefKind::Const { value, .. } => {
-        Some(self.distill_root(value_def.locals, |self_, stage, local| {
-          let result = self_.distill_expr_value(stage, value);
-          stage.set_local_to(local, result);
-        }))
-      }
-      ValueDefKind::Fn { params, body, .. } => {
-        Some(self.distill_root(value_def.locals, |self_, stage, local| {
-          self_._distill_fn(stage, local, params, body);
-        }))
-      }
-      ValueDefKind::Struct(..) | ValueDefKind::Enum(..) | ValueDefKind::TraitSubitem(..) => None,
-    }
+  pub fn distill_const_def(&mut self, const_def: &ConcreteConstDef<'core>) -> VIR {
+    self.distill_root(const_def.locals, |self_, stage, local| {
+      let result = self_.distill_expr_value(stage, &const_def.value);
+      stage.set_local_to(local, result);
+    })
+  }
+
+  pub fn distill_fn_def(&mut self, fn_def: &ConcreteFnDef<'core>) -> VIR {
+    self.distill_root(fn_def.locals, |self_, stage, local| {
+      self_._distill_fn(stage, local, &fn_def.params, &fn_def.body);
+    })
   }
 
   pub fn distill_root(
@@ -134,9 +129,9 @@ impl<'core, 'r> Distiller<'core, 'r> {
       ExprKind::I32(n) => Port::N32(*n as u32),
       ExprKind::F32(f) => Port::F32(*f),
 
-      ExprKind::Path(..) => unreachable!(),
-      ExprKind::Def(id, _) => Port::Def(*id),
-      ExprKind::Rel(id) => Port::Rel(*id),
+      ExprKind::Path(..) | ExprKind::ConstDef(..) | ExprKind::FnDef(..) => unreachable!(),
+      ExprKind::ConstRel(id) => Port::ConstRel(*id),
+      ExprKind::FnRel(id) => Port::FnRel(*id),
 
       ExprKind::LetFn(let_fn) => {
         let let_fn = self.let_fns[*let_fn].as_ref().unwrap();

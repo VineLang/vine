@@ -169,7 +169,9 @@ pub mod N32 {
       inline_ivy! (a <- a, b <- b) -> Bool { out a = @n32_le(b out) }
     }
 
-    const cmp: fn(&N32, &N32) -> Ord = Ord::cmp_from_lt[N32];
+    fn cmp(a: &N32, b: &N32) -> Ord {
+      Ord::cmp_from_lt[N32](a, b)
+    }
   }
 
   pub impl eq: Eq[N32] {

@@ -2,7 +2,7 @@ mod resolve_path;
 
 use std::{
   collections::{BTreeMap, HashMap},
-  mem::{replace, take},
+  mem::take,
 };
 
 use vine_util::idx::Counter;
@@ -10,12 +10,11 @@ use vine_util::idx::Counter;
 use crate::{
   ast::{
     Expr, ExprKind, Ident, Impl, ImplKind, Label, LabelId, LetFnId, Local, LogicalOp, Pat, PatKind,
-    Span, Stmt, StmtKind, Trait, TraitKind, Ty, TyKind,
+    Stmt, StmtKind, Trait, TraitKind, Ty, TyKind,
   },
   chart::{
-    Chart, ChartCheckpoint, DefId, EnumDef, GenericsId, ImplDef, ImplDefKind, PatternDefKind,
-    StructDef, TraitDef, TraitDefKind, TraitSubitemKind, TypeDef, TypeDefKind, ValueDef,
-    ValueDefKind,
+    checkpoint::ChartCheckpoint, Chart, DefId, DefImplKind, DefPatternKind, DefTraitKind,
+    DefTypeKind, DefValueKind, GenericsId,
   },
   core::Core,
   diag::Diag,
@@ -119,94 +118,14 @@ enum Binding {
 
 impl<'core> ResolveVisitor<'core, '_, '_> {
   fn resolve_since(&mut self, checkpoint: &ChartCheckpoint) {
-    for id in self.resolver.chart.values.keys_from(checkpoint.values) {
-      let ValueDef { def, generics, ref mut kind, .. } = self.resolver.chart.values[id];
-      let mut kind = take(kind);
-      self.initialize(def, generics);
-      match &mut kind {
-        ValueDefKind::Taken => unreachable!(),
-        ValueDefKind::Const { ty, value } => {
-          self.visit(ty);
-          self.visit(value);
-        }
-        ValueDefKind::Fn { params, ret, body } => {
-          self.visit(params);
-          self.visit(ret);
-          self.visit(body);
-        }
-        ValueDefKind::Struct(..) | ValueDefKind::Enum(..) | ValueDefKind::TraitSubitem(..) => {}
-      }
-      let value_def = &mut self.resolver.chart.values[id];
-      value_def.kind = kind;
-      value_def.locals = self.locals;
-    }
-
-    for id in self.resolver.chart.types.keys_from(checkpoint.types) {
-      let TypeDef { def, generics, ref mut kind, .. } = self.resolver.chart.types[id];
-      let mut kind = take(kind);
-      self.initialize(def, generics);
-      match &mut kind {
-        TypeDefKind::Taken => unreachable!(),
-        TypeDefKind::Alias(ty) => self.visit(ty),
-        TypeDefKind::Struct(_) | TypeDefKind::Enum(_) | TypeDefKind::Opaque => {}
-      }
-      self.resolver.chart.types[id].kind = kind;
-    }
-
-    for id in self.resolver.chart.traits.keys_from(checkpoint.traits) {
-      let TraitDef { def, generics, ref mut kind, .. } = self.resolver.chart.traits[id];
-      let mut kind = take(kind);
-      self.initialize(def, generics);
-      match &mut kind {
-        TraitDefKind::Taken => unreachable!(),
-        TraitDefKind::Trait { subitems } => {
-          for subitem in subitems.values_mut() {
-            match &mut subitem.kind {
-              TraitSubitemKind::Fn(params, ty) => {
-                self.visit(params);
-                self.visit(ty);
-              }
-              TraitSubitemKind::Const(ty) => self.visit_type(ty),
-            }
-          }
-        }
-      }
-      self.resolver.chart.traits[id].kind = kind;
-    }
-
-    for id in self.resolver.chart.impls.keys_from(checkpoint.impls) {
-      let ImplDef { def, generics, ref mut kind, .. } = self.resolver.chart.impls[id];
-      let mut kind = take(kind);
-      self.initialize(def, generics);
-      match &mut kind {
-        ImplDefKind::Taken => unreachable!(),
-        ImplDefKind::Impl { trait_, .. } => self.visit(trait_),
-      }
-      self.resolver.chart.impls[id].kind = kind;
-    }
-
-    for id in self.resolver.chart.structs.keys_from(checkpoint.structs) {
-      let StructDef { def, generics, ref mut data, .. } = self.resolver.chart.structs[id];
-      let mut data = replace(data, Ty { span: Span::NONE, kind: TyKind::Hole });
-      self.initialize(def, generics);
-      self.visit(&mut data);
-      self.resolver.chart.structs[id].data = data;
-    }
-
-    for id in self.resolver.chart.enums.keys_from(checkpoint.enums) {
-      let EnumDef { def, generics, ref mut variants, .. } = self.resolver.chart.enums[id];
-      let mut variants = take(variants);
-      self.initialize(def, generics);
-      for variant in variants.values_mut() {
-        self.visit(&mut variant.data);
-      }
-      self.resolver.chart.enums[id].variants = variants;
+    for id in self.resolver.chart.imports.keys_from(checkpoint.imports) {
+      _ = self.resolver.resolve_import(id);
     }
 
     for id in self.resolver.chart.generics.keys_from(checkpoint.generics) {
+      let mut generics = self.resolver.chart.generics[id].clone();
       let def = self.resolver.chart.generics[id].def;
       self.initialize(def, id);
-      let mut generics = take(&mut self.resolver.chart.generics[id]);
       if self.type_params.len() != generics.type_params.len() {
         self.resolver.core.report(Diag::DuplicateTypeParam { span: generics.span });
       }
@@ -218,8 +137,66 @@ impl<'core> ResolveVisitor<'core, '_, '_> {
       self.resolver.chart.generics[id] = generics;
     }
 
-    for id in self.resolver.chart.imports.keys_from(checkpoint.imports) {
-      _ = self.resolver.resolve_import(id);
+    for id in self.resolver.chart.concrete_consts.keys_from(checkpoint.concrete_consts) {
+      let mut const_def = self.resolver.chart.concrete_consts[id].clone();
+      self.initialize(const_def.def, const_def.generics);
+      self.visit(&mut const_def.ty);
+      self.visit(&mut const_def.value);
+      const_def.locals = self.locals;
+      self.resolver.chart.concrete_consts[id] = const_def;
+    }
+
+    for id in self.resolver.chart.concrete_fns.keys_from(checkpoint.concrete_fns) {
+      let mut fn_def = self.resolver.chart.concrete_fns[id].clone();
+      self.initialize(fn_def.def, fn_def.generics);
+      self.visit(&mut fn_def.params);
+      self.visit(&mut fn_def.ret_ty);
+      self.visit(&mut fn_def.body);
+      fn_def.locals = self.locals;
+      self.resolver.chart.concrete_fns[id] = fn_def;
+    }
+
+    for id in self.resolver.chart.type_aliases.keys_from(checkpoint.type_aliases) {
+      let mut alias_def = self.resolver.chart.type_aliases[id].clone();
+      self.initialize(alias_def.def, alias_def.generics);
+      self.visit(&mut alias_def.ty);
+      self.resolver.chart.type_aliases[id] = alias_def;
+    }
+
+    for id in self.resolver.chart.structs.keys_from(checkpoint.structs) {
+      let mut struct_def = self.resolver.chart.structs[id].clone();
+      self.initialize(struct_def.def, struct_def.generics);
+      self.visit(&mut struct_def.data);
+      self.resolver.chart.structs[id] = struct_def;
+    }
+
+    for id in self.resolver.chart.enums.keys_from(checkpoint.enums) {
+      let mut enum_def = self.resolver.chart.enums[id].clone();
+      self.initialize(enum_def.def, enum_def.generics);
+      for variant in enum_def.variants.values_mut() {
+        self.visit(&mut variant.data);
+      }
+      self.resolver.chart.enums[id] = enum_def;
+    }
+
+    for id in self.resolver.chart.traits.keys_from(checkpoint.traits) {
+      let mut trait_def = self.resolver.chart.traits[id].clone();
+      self.initialize(trait_def.def, trait_def.generics);
+      for trait_const in trait_def.consts.values_mut() {
+        self.visit(&mut trait_const.ty);
+      }
+      for trait_fn in trait_def.fns.values_mut() {
+        self.visit(&mut trait_fn.params);
+        self.visit(&mut trait_fn.ret_ty);
+      }
+      self.resolver.chart.traits[id] = trait_def;
+    }
+
+    for id in self.resolver.chart.impls.keys_from(checkpoint.impls) {
+      let mut impl_def = self.resolver.chart.impls[id].clone();
+      self.initialize(impl_def.def, impl_def.generics);
+      self.visit(&mut impl_def.trait_);
+      self.resolver.chart.impls[id] = impl_def;
     }
   }
 
@@ -270,39 +247,37 @@ impl<'core> VisitMut<'core, '_> for ResolveVisitor<'core, '_, '_> {
     self._visit_pat(pat);
     let span = pat.span;
     if let PatKind::Path(path, data) = &mut pat.kind {
-      let resolved = self.resolver.resolve_path_to(self.def, path, "pattern", |d| d.pattern_def);
+      let resolved = self.resolver.resolve_path_to(self.def, path, "pattern", |d| d.pattern_kind);
       pat.kind = match resolved {
-        Ok(id) => match self.resolver.chart.patterns[id].kind {
-          PatternDefKind::Struct(struct_id) => PatKind::Struct(
-            struct_id,
-            path.take_generics(),
-            match data.take() {
-              Some(mut args) => Box::new(if args.len() == 1 {
-                args.pop().unwrap()
-              } else {
-                Pat { span, kind: PatKind::Tuple(args) }
-              }),
-              None => Box::new(Pat {
-                span,
-                kind: PatKind::Error(
-                  self.resolver.core.report(Diag::ExpectedDataSubpattern { span }),
-                ),
-              }),
-            },
-          ),
-          PatternDefKind::Enum(enum_id, variant) => PatKind::Enum(
-            enum_id,
-            variant,
-            path.take_generics(),
-            data.take().map(|mut args| {
-              Box::new(if args.len() == 1 {
-                args.pop().unwrap()
-              } else {
-                Pat { span, kind: PatKind::Tuple(args) }
-              })
+        Ok(DefPatternKind::Struct(struct_id)) => PatKind::Struct(
+          struct_id,
+          path.take_generics(),
+          match data.take() {
+            Some(mut args) => Box::new(if args.len() == 1 {
+              args.pop().unwrap()
+            } else {
+              Pat { span, kind: PatKind::Tuple(args) }
             }),
-          ),
-        },
+            None => Box::new(Pat {
+              span,
+              kind: PatKind::Error(
+                self.resolver.core.report(Diag::ExpectedDataSubpattern { span }),
+              ),
+            }),
+          },
+        ),
+        Ok(DefPatternKind::Enum(enum_id, variant)) => PatKind::Enum(
+          enum_id,
+          variant,
+          path.take_generics(),
+          data.take().map(|mut args| {
+            Box::new(if args.len() == 1 {
+              args.pop().unwrap()
+            } else {
+              Pat { span, kind: PatKind::Tuple(args) }
+            })
+          }),
+        ),
         Err(diag) => {
           if let (Some(ident), None) = (path.as_ident(), data) {
             let local = self.locals.next();
@@ -402,30 +377,23 @@ impl<'core> VisitMut<'core, '_> for ResolveVisitor<'core, '_, '_> {
       ExprKind::Path(path, args) => {
         self.visit(&mut path.generics);
         self.visit(&mut *args);
-        let args = args.take();
+        let mut args = args.take();
+        let generics = path.take_generics();
         if let Some(ident) = path.as_ident() {
           if let Some(bind) = self.scope.get(&ident).and_then(|x| x.last()) {
             expr.kind = bind.binding.into();
-            if let Some(args) = args {
+            if let Some(args) = args.take() {
               *expr = Expr { span, kind: ExprKind::Call(Box::new(take(expr)), args) };
             }
             return;
           }
         }
-        let value = match self.resolver.resolve_path_to(self.def, path, "value", |d| d.value_def) {
-          Ok(id) => id,
-          Err(diag) => {
-            expr.kind = ExprKind::Error(self.resolver.core.report(diag));
-            return;
-          }
-        };
-
-        match self.resolver.chart.values[value].kind {
-          ValueDefKind::Struct(struct_id) => {
-            if let Some(mut args) = args {
-              expr.kind = ExprKind::Struct(
+        expr.kind = match self.resolver.resolve_path_to(self.def, path, "value", |d| d.value_kind) {
+          Ok(DefValueKind::Struct(struct_id)) => {
+            if let Some(mut args) = args.take() {
+              ExprKind::Struct(
                 struct_id,
-                path.take_generics(),
+                generics,
                 Box::new(if args.len() != 1 {
                   Expr { span, kind: ExprKind::Tuple(args) }
                 } else {
@@ -433,30 +401,27 @@ impl<'core> VisitMut<'core, '_> for ResolveVisitor<'core, '_, '_> {
                 }),
               )
             } else {
-              expr.kind =
-                ExprKind::Error(self.resolver.core.report(Diag::ExpectedDataExpr { span }))
+              ExprKind::Error(self.resolver.core.report(Diag::ExpectedDataExpr { span }))
             }
           }
-          ValueDefKind::Enum(enum_id, variant) => {
-            expr.kind = ExprKind::Enum(
-              enum_id,
-              variant,
-              path.take_generics(),
-              args.map(|mut args| {
-                Box::new(if args.len() != 1 {
-                  Expr { span, kind: ExprKind::Tuple(args) }
-                } else {
-                  args.pop().unwrap()
-                })
-              }),
-            )
-          }
-          _ => {
-            expr.kind = ExprKind::Def(value, path.take_generics());
-            if let Some(args) = args {
-              *expr = Expr { span, kind: ExprKind::Call(Box::new(take(expr)), args) };
-            }
-          }
+          Ok(DefValueKind::Enum(enum_id, variant)) => ExprKind::Enum(
+            enum_id,
+            variant,
+            generics,
+            args.take().map(|mut args| {
+              Box::new(if args.len() != 1 {
+                Expr { span, kind: ExprKind::Tuple(args) }
+              } else {
+                args.pop().unwrap()
+              })
+            }),
+          ),
+          Ok(DefValueKind::Const(kind)) => ExprKind::ConstDef(kind, generics),
+          Ok(DefValueKind::Fn(kind)) => ExprKind::FnDef(kind, generics),
+          Err(diag) => ExprKind::Error(self.resolver.core.report(diag)),
+        };
+        if let Some(args) = args {
+          *expr = Expr { span, kind: ExprKind::Call(Box::new(take(expr)), args) };
         }
       }
 
@@ -473,8 +438,12 @@ impl<'core> VisitMut<'core, '_> for ResolveVisitor<'core, '_, '_> {
           return;
         }
       }
-      ty.kind = match self.resolver.resolve_path_to(self.def, path, "type", |d| d.type_def) {
-        Ok(id) => TyKind::Def(id, path.take_generics()),
+      let generics = path.take_generics();
+      ty.kind = match self.resolver.resolve_path_to(self.def, path, "type", |d| d.type_kind) {
+        Ok(DefTypeKind::Opaque(id)) => TyKind::Opaque(id, generics),
+        Ok(DefTypeKind::Alias(id)) => TyKind::Alias(id, generics),
+        Ok(DefTypeKind::Struct(id)) => TyKind::Struct(id, generics),
+        Ok(DefTypeKind::Enum(id)) => TyKind::Enum(id, generics),
         Err(diag) => TyKind::Error(self.resolver.core.report(diag)),
       };
     }
@@ -489,8 +458,8 @@ impl<'core> VisitMut<'core, '_> for ResolveVisitor<'core, '_, '_> {
           return;
         }
       }
-      impl_.kind = match self.resolver.resolve_path_to(self.def, path, "impl", |d| d.impl_def) {
-        Ok(id) => ImplKind::Def(id, path.take_generics()),
+      impl_.kind = match self.resolver.resolve_path_to(self.def, path, "impl", |d| d.impl_kind) {
+        Ok(DefImplKind::Impl(id)) => ImplKind::Def(id, path.take_generics()),
         Err(diag) => ImplKind::Error(self.resolver.core.report(diag)),
       };
     }
@@ -499,8 +468,8 @@ impl<'core> VisitMut<'core, '_> for ResolveVisitor<'core, '_, '_> {
   fn visit_trait(&mut self, trait_: &mut Trait<'core>) {
     self._visit_trait(trait_);
     if let TraitKind::Path(path) = &mut trait_.kind {
-      trait_.kind = match self.resolver.resolve_path_to(self.def, path, "trait", |d| d.trait_def) {
-        Ok(id) => TraitKind::Def(id, path.take_generics()),
+      trait_.kind = match self.resolver.resolve_path_to(self.def, path, "trait", |d| d.trait_kind) {
+        Ok(DefTraitKind::Trait(id)) => TraitKind::Def(id, path.take_generics()),
         Err(diag) => TraitKind::Error(self.resolver.core.report(diag)),
       };
     }

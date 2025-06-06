@@ -49,7 +49,9 @@ pub mod Char {
       inline_ivy! (a <- a, b <- b) -> Bool { out a = @n32_le(b out) }
     }
 
-    const cmp: fn(&Char, &Char) -> Ord = Ord::cmp_from_lt[Char];
+    fn cmp(a: &Char, b: &Char) -> Ord {
+      Ord::cmp_from_lt[Char](a, b)
+    }
   }
 
   pub fn .is_whitespace(char: Char) -> Bool {

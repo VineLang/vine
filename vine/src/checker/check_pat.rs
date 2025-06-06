@@ -41,18 +41,15 @@ impl<'core> Checker<'core, '_> {
       (PatKind::Struct(struct_id, generics, data), _) => {
         let type_params =
           self.check_generics(generics, self.chart.structs[*struct_id].generics, true);
-        let data_ty =
-          self.types.import(&self.sigs.structs[*struct_id], Some(&type_params), |t, sig| {
-            t.transfer(sig.data)
-          });
+        let data_ty = self.types.import(&self.sigs.structs[*struct_id], Some(&type_params)).data;
         self.check_pat_type(data, form, refutable, data_ty);
         self.types.new(TypeKind::Struct(*struct_id, type_params))
       }
       (PatKind::Enum(enum_id, variant, generics, data), _) => {
         let type_params = self.check_generics(generics, self.chart.enums[*enum_id].generics, true);
         let data_ty =
-          self.types.import(&self.sigs.enums[*enum_id], Some(&type_params), |t, sig| {
-            Some(t.transfer(sig.variant_data[*variant]?))
+          self.types.import_with(&self.sigs.enums[*enum_id], Some(&type_params), |t, sig| {
+            Some(t.transfer(&sig.variant_data[*variant]?))
           });
         match (data, data_ty) {
           (None, None) => {}

@@ -6,17 +6,17 @@ error tests/programs/fail/atypical.vi:31:3 - cannot find label `stuff`
 error tests/programs/fail/atypical.vi:32:14 - cannot continue label `stuff`
 error tests/programs/fail/atypical.vi:3:19 - no type associated with `::atypical::foo`
 error tests/programs/fail/atypical.vi:3:24 - types in item signatures cannot be elided
+error tests/programs/fail/atypical.vi:5:12 - types in item signatures cannot be elided
 error tests/programs/fail/atypical.vi:4:8 - types in item signatures cannot be elided
 error tests/programs/fail/atypical.vi:4:14 - `::atypical::Foo` expects 1 type parameter; was passed 0
-error tests/programs/fail/atypical.vi:5:12 - types in item signatures cannot be elided
 error - expected type `fn(&IO)`; found `fn(IO)`
 error tests/programs/fail/atypical.vi:5:16 - no function to return from
 error tests/programs/fail/atypical.vi:7:16 - expected type `N32`; found `F32`
 error tests/programs/fail/atypical.vi:8:16 - expected type `F32`; found `N32`
-error tests/programs/fail/atypical.vi:9:23 - cannot find impl of trait `Add[(N32, N32), F32, ?20]`
-error tests/programs/fail/atypical.vi:10:16 - expected type `(?21, ?22)`; found `N32`
+error tests/programs/fail/atypical.vi:9:23 - cannot find impl of trait `Add[(N32, N32), F32, ?18]`
+error tests/programs/fail/atypical.vi:10:16 - expected type `(?19, ?20)`; found `N32`
 error tests/programs/fail/atypical.vi:12:3 - cannot call non-function type `N32`
-error tests/programs/fail/atypical.vi:13:14 - cannot find impl of trait `Add[N32, ~N32, ?36]`
+error tests/programs/fail/atypical.vi:13:14 - cannot find impl of trait `Add[N32, ~N32, ?34]`
 error tests/programs/fail/atypical.vi:14:3 - type `N32` has no method `noop`
 error tests/programs/fail/atypical.vi:15:6 - expected type `Bool`; found `F32`
 error tests/programs/fail/atypical.vi:15:21 - expected type `N32`; found `String`
@@ -24,15 +24,15 @@ error tests/programs/fail/atypical.vi:16:3 - function type `fn(IO)` expects 1 ar
 error tests/programs/fail/atypical.vi:17:3 - cannot compare `N32` and `F32`
 error tests/programs/fail/atypical.vi:17:3 - cannot compare `F32` and `N32`
 error tests/programs/fail/atypical.vi:17:3 - cannot compare `N32` and `F32`
-error tests/programs/fail/atypical.vi:18:13 - expected type `(N32, N32)`; found `(?59,)`
+error tests/programs/fail/atypical.vi:18:13 - expected type `(N32, N32)`; found `(?57,)`
 error tests/programs/fail/atypical.vi:20:14 - expected type `T`; found `N32`
 error tests/programs/fail/atypical.vi:21:14 - expected type `U`; found `T`
 error tests/programs/fail/atypical.vi:22:7 - expected a complete pattern
 error tests/programs/fail/atypical.vi:22:17 - expected type `Ay`; found `N32`
-error tests/programs/fail/atypical.vi:23:4 - cannot find impl of trait `Add[String, N32, ?79]`
-error tests/programs/fail/atypical.vi:24:7 - expected type `N32`; found `&?81`
+error tests/programs/fail/atypical.vi:23:4 - cannot find impl of trait `Add[String, N32, ?78]`
+error tests/programs/fail/atypical.vi:24:7 - expected type `N32`; found `&?80`
 error tests/programs/fail/atypical.vi:27:10 - expected type `()`; found `F32`
-error tests/programs/fail/atypical.vi:28:14 - cannot find impl of trait `Add[~N32, ~N32, ?90]`
+error tests/programs/fail/atypical.vi:28:14 - cannot find impl of trait `Add[~N32, ~N32, ?89]`
 error tests/programs/fail/atypical.vi:29:3 - cannot find impl of trait `Add[N32, F32, N32]`
 error tests/programs/fail/atypical.vi:30:3 - type `N32` has no method `parse`
 error tests/programs/fail/atypical.vi:6:27 - expected type `()`; found `N32`

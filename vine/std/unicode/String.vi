@@ -162,8 +162,13 @@ pub mod String {
       a!.cmp(&b!)
     }
 
-    const lt: fn(&String, &String) -> Bool = Ord::lt_from_cmp[String];
-    const le: fn(&String, &String) -> Bool = Ord::le_from_cmp[String];
+    fn lt(a: &String, b: &String) -> Bool {
+      Ord::lt_from_cmp[String](a, b)
+    }
+
+    fn le(a: &String, b: &String) -> Bool {
+      Ord::le_from_cmp[String](a, b)
+    }
   }
 
   pub impl concat: Concat[String, String, String] {

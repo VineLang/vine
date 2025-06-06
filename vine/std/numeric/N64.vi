@@ -7,7 +7,7 @@ use ops::{
 };
 use debug::Show;
 
-pub struct N64((N32, N32));
+pub struct N64(pub (N32, N32));
 
 pub mod N64 {
   pub const zero: N64 = N64(0, 0);
@@ -178,7 +178,9 @@ pub mod N64 {
       ah < bh || ah == bh && al <= bl
     }
 
-    const cmp: fn(&N64, &N64) -> Ord = Ord::cmp_from_lt[N64];
+    fn cmp(a: &N64, b: &N64) -> Ord {
+      Ord::cmp_from_lt[N64](a, b)
+    }
   }
 
   pub fn .min(a: N64, b: N64) -> N64 {

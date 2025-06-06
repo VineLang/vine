@@ -11,14 +11,15 @@ use crate::{
     Trait, TraitKind, Ty, TyKind,
   },
   chart::{
-    Chart, ChartCheckpoint, DefId, EnumDef, EnumId, GenericsDef, GenericsId, ImplDef, ImplDefId,
-    ImplDefKind, StructDef, StructId, TraitDef, TraitDefId, TraitDefKind, TraitSubitemKind,
-    TypeDefId, TypeDefKind, ValueDef, ValueDefId, ValueDefKind,
+    checkpoint::ChartCheckpoint, Chart, ConcreteConstId, ConcreteFnId, DefId, EnumId, GenericsDef,
+    GenericsId, ImplId, ImplSubitemKind, StructId, TraitId, TypeAliasId,
   },
   core::Core,
   diag::{Diag, ErrorGuaranteed},
   finder::Finder,
-  signatures::{EnumSig, GenericsSig, ImplSig, Signatures, StructSig, TraitSig, TypeSig, ValueSig},
+  signatures::{
+    ConstSig, EnumSig, FnSig, GenericsSig, ImplSig, Signatures, StructSig, TraitSig, TypeAliasSig,
+  },
   types::{ImplType, Type, TypeCtx, TypeKind, Types},
 };
 
@@ -64,29 +65,35 @@ impl<'core, 'a> Checker<'core, 'a> {
   }
 
   pub(crate) fn check_since(&mut self, checkpoint: &ChartCheckpoint) {
-    for id in self.chart.types.keys_from(checkpoint.types) {
-      self.assess_type_def(id);
+    for id in self.chart.type_aliases.keys_from(checkpoint.type_aliases) {
+      self.resolve_type_alias(id);
     }
     for id in self.chart.structs.keys_from(checkpoint.structs) {
-      self.assess_struct_type(id);
+      self.resolve_struct_sig(id);
     }
     for id in self.chart.enums.keys_from(checkpoint.enums) {
-      self.assess_enum_type(id);
+      self.resolve_enum_sig(id);
     }
     for id in self.chart.traits.keys_from(checkpoint.traits) {
-      self.assess_trait_type(id);
+      self.resolve_trait_sig(id);
     }
     for id in self.chart.generics.keys_from(checkpoint.generics) {
-      self.assess_impl_params(id);
+      self.resolve_generics_sig(id);
     }
-    for id in self.chart.values.keys_from(checkpoint.values) {
-      self.assess_value_type(id);
+    for id in self.chart.concrete_consts.keys_from(checkpoint.concrete_consts) {
+      self.resolve_const_sig(id);
+    }
+    for id in self.chart.concrete_fns.keys_from(checkpoint.concrete_fns) {
+      self.resolve_fn_sig(id);
     }
     for id in self.chart.impls.keys_from(checkpoint.impls) {
-      self.assess_impl_type(id);
+      self.resolve_impl_sig(id);
     }
-    for id in self.chart.values.keys_from(checkpoint.values) {
-      self.check_value_def(id);
+    for id in self.chart.concrete_consts.keys_from(checkpoint.concrete_consts) {
+      self.check_const_def(id);
+    }
+    for id in self.chart.concrete_fns.keys_from(checkpoint.concrete_fns) {
+      self.check_fn_def(id);
     }
     for id in self.chart.impls.keys_from(checkpoint.impls) {
       self.check_impl_def(id);
@@ -104,57 +111,46 @@ impl<'core, 'a> Checker<'core, 'a> {
     self.cur_generics = generics_id;
   }
 
-  fn assess_type_def(&mut self, type_id: TypeDefId) {
-    if let Some(Some(_)) = self.sigs.types.get(type_id) {
+  fn resolve_type_alias(&mut self, alias_id: TypeAliasId) {
+    if let Some(Some(_)) = self.sigs.type_aliases.get(alias_id) {
       return;
     }
-    let type_def = &mut self.chart.types[type_id];
-    let span = type_def.span;
+    let mut alias_def = self.chart.type_aliases[alias_id].clone();
     let prev_types = take(&mut self.types);
-    let prev_def = replace(&mut self.cur_def, type_def.def);
-    let prev_generics = replace(&mut self.cur_generics, type_def.generics);
-    let mut kind = take(&mut type_def.kind);
-    let params = self.all_params(self.chart.types[type_id].generics);
-    let ty = match &mut kind {
-      TypeDefKind::Taken => self.types.error(self.core.report(Diag::RecursiveTypeAlias { span })),
-      TypeDefKind::Alias(ty) => self.hydrate_type(ty, false),
-      TypeDefKind::Opaque => self.types.new(TypeKind::Opaque(type_id, params)),
-      TypeDefKind::Struct(struct_id) => self.types.new(TypeKind::Struct(*struct_id, params)),
-      TypeDefKind::Enum(enum_id) => self.types.new(TypeKind::Enum(*enum_id, params)),
-    };
-    self.chart.types[type_id].kind = kind;
-    let slot = self.sigs.types.get_or_extend(type_id);
+    let prev_def = replace(&mut self.cur_def, alias_def.def);
+    let prev_generics = replace(&mut self.cur_generics, alias_def.generics);
+    let ty = self.hydrate_type(&mut alias_def.ty, false);
+    self.chart.type_aliases[alias_id] = alias_def;
+    let slot = self.sigs.type_aliases.get_or_extend(alias_id);
     if slot.is_none() {
-      *slot = Some(self.types.export(|t| TypeSig { ty: t.transfer(ty) }));
+      *slot = Some(self.types.export(|t| TypeAliasSig { ty: t.transfer(&ty) }));
     }
     self.cur_def = prev_def;
     self.cur_generics = prev_generics;
     self.types = prev_types;
   }
 
-  fn check_value_def(&mut self, value_id: ValueDefId) {
-    let ValueDef { def, generics, ref mut kind, .. } = self.chart.values[value_id];
-    let mut kind = take(kind);
-    self.initialize(def, generics);
-    match &mut kind {
-      ValueDefKind::Taken => unreachable!(),
-      ValueDefKind::Const { value, .. } => {
-        let ty = self.types.import(&self.sigs.values[value_id], None, |t, sig| t.transfer(sig.ty));
-        self.check_expr_form_type(value, Form::Value, ty)
-      }
-      ValueDefKind::Fn { params, body, .. } => {
-        for pat in params {
-          self.check_pat(pat, Form::Value, false);
-        }
-        let ty = self.types.import(&self.sigs.values[value_id], None, |t, sig| t.transfer(sig.ty));
-        let Some((_, &TypeKind::Fn(_, ret))) = self.types.kind(ty) else { unreachable!() };
-        let old = self.return_ty.replace(ret);
-        self.check_block_type(body, ret);
-        self.return_ty = old;
-      }
-      ValueDefKind::Struct(..) | ValueDefKind::Enum(..) | ValueDefKind::TraitSubitem(..) => {}
+  fn check_const_def(&mut self, const_id: ConcreteConstId) {
+    let mut const_def = self.chart.concrete_consts[const_id].clone();
+    self.initialize(const_def.def, const_def.generics);
+    let ty = self.types.import(&self.sigs.concrete_consts[const_id], None).ty;
+    self.check_expr_form_type(&mut const_def.value, Form::Value, ty);
+    self.chart.concrete_consts[const_id] = const_def;
+  }
+
+  fn check_fn_def(&mut self, fn_id: ConcreteFnId) {
+    let mut fn_def = self.chart.concrete_fns[fn_id].clone();
+    self.initialize(fn_def.def, fn_def.generics);
+    let ret_ty = self
+      .types
+      .import_with(&self.sigs.concrete_fns[fn_id], None, |t, sig| t.transfer(&sig.ret_ty));
+    for pat in fn_def.params.iter_mut() {
+      self.check_pat(pat, Form::Value, false);
     }
-    self.chart.values[value_id].kind = kind;
+    self.return_ty = Some(ret_ty);
+    self.check_block_type(&mut fn_def.body, ret_ty);
+    self.return_ty = None;
+    self.chart.concrete_fns[fn_id] = fn_def;
   }
 
   pub(crate) fn _check_custom(
@@ -253,15 +249,29 @@ impl<'core, 'a> Checker<'core, 'a> {
         inner.inverse()
       }
       TyKind::Path(_) => unreachable!(),
-      TyKind::Def(type_def_id, generics) => {
-        let type_params =
-          self.check_generics(generics, self.chart.types[*type_def_id].generics, inference);
-        self.assess_type_def(*type_def_id);
-        self.types.import(
-          self.sigs.types[*type_def_id].as_ref().unwrap(),
-          Some(&type_params),
-          |t, sig| t.transfer(sig.ty),
-        )
+      TyKind::Opaque(opaque_id, generics) => {
+        let generics_id = self.chart.opaque_types[*opaque_id].generics;
+        let type_params = self.check_generics(generics, generics_id, inference);
+        self.types.new(TypeKind::Opaque(*opaque_id, type_params))
+      }
+      TyKind::Struct(struct_id, generics) => {
+        let generics_id = self.chart.structs[*struct_id].generics;
+        let type_params = self.check_generics(generics, generics_id, inference);
+        self.types.new(TypeKind::Struct(*struct_id, type_params))
+      }
+      TyKind::Enum(enum_id, generics) => {
+        let generics_id = self.chart.enums[*enum_id].generics;
+        let type_params = self.check_generics(generics, generics_id, inference);
+        self.types.new(TypeKind::Enum(*enum_id, type_params))
+      }
+      TyKind::Alias(type_alias_id, generics) => {
+        let generics_id = self.chart.type_aliases[*type_alias_id].generics;
+        let type_params = self.check_generics(generics, generics_id, inference);
+        self.resolve_type_alias(*type_alias_id);
+        self
+          .types
+          .import(self.sigs.type_aliases[*type_alias_id].as_ref().unwrap(), Some(&type_params))
+          .ty
       }
       TyKind::Param(index) => {
         let name = self.chart.generics[self.cur_generics].type_params[*index].name;
@@ -306,46 +316,73 @@ impl<'core, 'a> Checker<'core, 'a> {
     }
   }
 
-  fn check_impl_def(&mut self, impl_id: ImplDefId) {
-    let ImplDef { span, def, generics, ref mut kind, .. } = self.chart.impls[impl_id];
-    let mut kind = take(kind);
-    self.initialize(def, generics);
-    match &mut kind {
-      ImplDefKind::Taken => unreachable!(),
-      ImplDefKind::Impl { subitems, .. } => {
-        let ty = self
-          .types
-          .import(&self.sigs.impls[impl_id], None, |t, sig| t.transfer_impl_type(&sig.ty));
-        if let ImplType::Trait(trait_id, trait_type_params) = ty {
-          let trait_sig = &self.sigs.traits[trait_id];
-          subitems.vec.sort_by_key(|s| trait_sig.inner.lookup.get(&s.name));
-          if trait_sig.inner.lookup.len() > subitems.len() {
-            self.core.report(Diag::IncompleteImpl { span });
-          }
-          for subitem in subitems.values_mut() {
-            let trait_sig = &self.sigs.traits[trait_id];
-            if let Some(&subitem_id) = trait_sig.inner.lookup.get(&subitem.name) {
-              let trait_ty = self.types.import(trait_sig, Some(&trait_type_params), |t, sig| {
-                t.transfer(sig.subitem_types[subitem_id])
-              });
-              let ty = self
-                .types
-                .import(&self.sigs.values[subitem.value], None, |t, sig| t.transfer(sig.ty));
-              if self.types.unify(ty, trait_ty).is_failure() {
-                self.core.report(Diag::ExpectedTypeFound {
-                  span: subitem.span,
-                  expected: self.types.show(self.chart, trait_ty),
-                  found: self.types.show(self.chart, ty),
-                });
-              }
-            } else {
-              self.core.report(Diag::ExtraneousImplItem { span: subitem.span, name: subitem.name });
-            }
-          }
+  fn check_impl_def(&mut self, impl_id: ImplId) {
+    let mut impl_def = self.chart.impls[impl_id].clone();
+    self.initialize(impl_def.def, impl_def.generics);
+    let span = impl_def.span;
+    let ty = self.types.import(&self.sigs.impls[impl_id], None).ty;
+    if let ImplType::Trait(trait_id, type_params) = ty {
+      let trait_def = &self.chart.traits[trait_id];
+      let trait_sig = &self.sigs.traits[trait_id];
+      let consts = IdxVec::from(Vec::from_iter(trait_sig.consts.iter().map(|(id, sig)| {
+        let name = trait_def.consts[id].name;
+        let Some(subitem) = impl_def.subitems.iter().find(|i| i.name == name) else {
+          return Err(self.core.report(Diag::IncompleteImpl { span, name }));
+        };
+        let span = subitem.span;
+        let ImplSubitemKind::Const(const_id) = subitem.kind else {
+          return Err(self.core.report(Diag::WrongImplSubitemKind { span, expected: "const" }));
+        };
+        let expected_ty = self.types.import(sig, Some(&type_params)).ty;
+        let const_sig = &self.sigs.concrete_consts[const_id];
+        let found_ty = self.types.import(const_sig, None).ty;
+        if self.types.unify(expected_ty, found_ty).is_failure() {
+          self.core.report(Diag::ExpectedTypeFound {
+            span,
+            expected: self.types.show(self.chart, expected_ty),
+            found: self.types.show(self.chart, found_ty),
+          });
+        }
+        Ok(const_id)
+      })));
+      let fns = IdxVec::from(Vec::from_iter(trait_sig.fns.iter().map(|(id, sig)| {
+        let name = trait_def.fns[id].name;
+        let Some(subitem) = impl_def.subitems.iter().find(|i| i.name == name) else {
+          return Err(self.core.report(Diag::IncompleteImpl { span, name }));
+        };
+        let span = subitem.span;
+        let ImplSubitemKind::Fn(fn_id) = subitem.kind else {
+          return Err(self.core.report(Diag::WrongImplSubitemKind { span, expected: "fn" }));
+        };
+        let expected_ty = {
+          let sig = self.types.import(sig, Some(&type_params));
+          self.types.new(TypeKind::Fn(sig.params, sig.ret_ty))
+        };
+        let fn_sig = &self.sigs.concrete_fns[fn_id];
+        let found_ty = {
+          let sig = self.types.import(fn_sig, None);
+          self.types.new(TypeKind::Fn(sig.params, sig.ret_ty))
+        };
+        if self.types.unify(expected_ty, found_ty).is_failure() {
+          self.core.report(Diag::ExpectedTypeFound {
+            span,
+            expected: self.types.show(self.chart, expected_ty),
+            found: self.types.show(self.chart, found_ty),
+          });
+        }
+        Ok(fn_id)
+      })));
+      for item in impl_def.subitems.iter() {
+        if trait_def.consts.values().all(|x| x.name != item.name)
+          && trait_def.fns.values().all(|x| x.name != item.name)
+        {
+          self.core.report(Diag::ExtraneousImplItem { span: item.span, name: item.name });
         }
       }
+      impl_def.consts = consts;
+      impl_def.fns = fns;
     }
-    self.chart.impls[impl_id].kind = kind;
+    self.chart.impls[impl_id] = impl_def;
   }
 
   fn build_object_type<T>(
@@ -368,57 +405,48 @@ impl<'core, 'a> Checker<'core, 'a> {
     }
   }
 
-  fn assess_struct_type(&mut self, struct_id: StructId) {
+  fn resolve_struct_sig(&mut self, struct_id: StructId) {
     assert_eq!(self.sigs.structs.next_index(), struct_id);
-    let StructDef { def, generics, ref mut data, .. } = self.chart.structs[struct_id];
-    let mut data = take(data);
-    self.initialize(def, generics);
-    let data_ty = self.hydrate_type(&mut data, false);
-    self
-      .sigs
-      .structs
-      .push(TypeCtx { types: take(&mut self.types), inner: StructSig { data: data_ty } });
-    self.chart.structs[struct_id].data = data;
+    let mut struct_def = self.chart.structs[struct_id].clone();
+    self.initialize(struct_def.def, struct_def.generics);
+    let data = self.hydrate_type(&mut struct_def.data, false);
+    self.sigs.structs.push(TypeCtx { types: take(&mut self.types), inner: StructSig { data } });
+    self.chart.structs[struct_id] = struct_def;
   }
 
-  fn assess_enum_type(&mut self, enum_id: EnumId) {
+  fn resolve_enum_sig(&mut self, enum_id: EnumId) {
     assert_eq!(self.sigs.enums.next_index(), enum_id);
-    let EnumDef { def, generics, ref mut variants, .. } = self.chart.enums[enum_id];
-    let mut variants = take(variants);
-    self.initialize(def, generics);
-    let variant_data = variants
+    let mut enum_def = self.chart.enums[enum_id].clone();
+    self.initialize(enum_def.def, enum_def.generics);
+    let variant_data = enum_def
+      .variants
       .values_mut()
       .map(|variant| variant.data.as_mut().map(|ty| self.hydrate_type(ty, false)))
       .collect::<Vec<_>>()
       .into();
     self.sigs.enums.push(TypeCtx { types: take(&mut self.types), inner: EnumSig { variant_data } });
-    self.chart.enums[enum_id].variants = variants;
+    self.chart.enums[enum_id] = enum_def;
   }
 
-  fn assess_trait_type(&mut self, trait_id: TraitDefId) {
+  fn resolve_trait_sig(&mut self, trait_id: TraitId) {
     assert_eq!(self.sigs.traits.next_index(), trait_id);
-    let TraitDef { def, generics, ref mut kind, .. } = self.chart.traits[trait_id];
-    let mut kind = take(kind);
-    self.initialize(def, generics);
-    let sig = match &mut kind {
-      TraitDefKind::Taken => unreachable!(),
-      TraitDefKind::Trait { subitems } => TraitSig {
-        lookup: subitems.iter_mut().map(|(id, subitem)| (subitem.name, id)).collect(),
-        subitem_types: subitems
-          .values_mut()
-          .map(|subitem| match &mut subitem.kind {
-            TraitSubitemKind::Fn(params, ret) => self.assess_fn_sig(params, ret),
-            TraitSubitemKind::Const(ty) => self.hydrate_type(ty, false),
-          })
-          .collect::<Vec<_>>()
-          .into(),
-      },
+    let mut trait_def = self.chart.traits[trait_id].clone();
+    self.initialize(trait_def.def, trait_def.generics);
+    let sig = TraitSig {
+      consts: IdxVec::from(Vec::from_iter(trait_def.consts.values_mut().map(|trait_const| {
+        let ty = self.hydrate_type(&mut trait_const.ty, false);
+        TypeCtx { types: take(&mut self.types), inner: ConstSig { ty } }
+      }))),
+      fns: IdxVec::from(Vec::from_iter(trait_def.fns.values_mut().map(|trait_fn| {
+        let (params, ret_ty) = self.assess_fn_sig(&mut trait_fn.params, &mut trait_fn.ret_ty);
+        TypeCtx { types: take(&mut self.types), inner: FnSig { params, ret_ty } }
+      }))),
     };
-    self.sigs.traits.push(TypeCtx { types: take(&mut self.types), inner: sig });
-    self.chart.traits[trait_id].kind = kind;
+    self.sigs.traits.push(sig);
+    self.chart.traits[trait_id] = trait_def;
   }
 
-  fn assess_impl_params(&mut self, generics_id: GenericsId) {
+  fn resolve_generics_sig(&mut self, generics_id: GenericsId) {
     assert_eq!(self.sigs.generics.next_index(), generics_id);
     let GenericsDef { def, ref mut type_params, ref mut impl_params, .. } =
       self.chart.generics[generics_id];
@@ -461,63 +489,47 @@ impl<'core, 'a> Checker<'core, 'a> {
     self.chart.generics[generics_id].impl_params = impl_params;
   }
 
-  fn assess_value_type(&mut self, value_id: ValueDefId) {
-    assert_eq!(self.sigs.values.next_index(), value_id);
-    let ValueDef { def, generics, ref mut kind, .. } = self.chart.values[value_id];
-    let mut kind = take(kind);
-    self.initialize(def, generics);
-    let ty = match &mut kind {
-      ValueDefKind::Taken => unreachable!(),
-      ValueDefKind::Const { ty, .. } => self.hydrate_type(ty, false),
-      ValueDefKind::Fn { params, ret, .. } => self.assess_fn_sig(params, ret),
-      ValueDefKind::Struct(struct_id) => {
-        let struct_def = &self.chart.structs[*struct_id];
-        let data =
-          self.types.import(&self.sigs.structs[*struct_id], None, |t, sig| t.transfer(sig.data));
-        let params = self.all_params(struct_def.generics);
-        let struct_ty = self.types.new(TypeKind::Struct(*struct_id, params));
-        self.types.new(TypeKind::Fn(vec![data], struct_ty))
-      }
-      ValueDefKind::Enum(enum_id, variant_id) => {
-        let enum_def = &self.chart.enums[*enum_id];
-        let data = self.types.import(&self.sigs.enums[*enum_id], None, |t, sig| {
-          Some(t.transfer(sig.variant_data[*variant_id]?))
-        });
-        let params = self.all_params(enum_def.generics);
-        let enum_ty = self.types.new(TypeKind::Enum(*enum_id, params));
-        if let Some(data) = data {
-          self.types.new(TypeKind::Fn(vec![data], enum_ty))
-        } else {
-          enum_ty
-        }
-      }
-      ValueDefKind::TraitSubitem(trait_def_id, subitem_id) => {
-        self.types.import(&self.sigs.traits[*trait_def_id], None, |t, sig| {
-          t.transfer(sig.subitem_types[*subitem_id])
-        })
-      }
-    };
-    self.sigs.values.push(TypeCtx { types: take(&mut self.types), inner: ValueSig { ty } });
-    self.chart.values[value_id].kind = kind;
+  fn resolve_const_sig(&mut self, const_id: ConcreteConstId) {
+    assert_eq!(self.sigs.concrete_consts.next_index(), const_id);
+    let mut const_def = self.chart.concrete_consts[const_id].clone();
+    self.initialize(const_def.def, const_def.generics);
+    let ty = self.hydrate_type(&mut const_def.ty, false);
+    self
+      .sigs
+      .concrete_consts
+      .push(TypeCtx { types: take(&mut self.types), inner: ConstSig { ty } });
+    self.chart.concrete_consts[const_id] = const_def;
   }
 
-  fn assess_impl_type(&mut self, impl_id: ImplDefId) {
+  fn resolve_fn_sig(&mut self, fn_id: ConcreteFnId) {
+    assert_eq!(self.sigs.concrete_fns.next_index(), fn_id);
+    let mut fn_def = self.chart.concrete_fns[fn_id].clone();
+    self.initialize(fn_def.def, fn_def.generics);
+    let (params, ret_ty) = self.assess_fn_sig(&mut fn_def.params, &mut fn_def.ret_ty);
+    self
+      .sigs
+      .concrete_fns
+      .push(TypeCtx { types: take(&mut self.types), inner: FnSig { params, ret_ty } });
+    self.chart.concrete_fns[fn_id] = fn_def;
+  }
+
+  fn resolve_impl_sig(&mut self, impl_id: ImplId) {
     assert_eq!(self.sigs.impls.next_index(), impl_id);
-    let ImplDef { def, generics, ref mut kind, .. } = self.chart.impls[impl_id];
-    let mut kind = take(kind);
-    self.initialize(def, generics);
-    let ty = match &mut kind {
-      ImplDefKind::Taken => unreachable!(),
-      ImplDefKind::Impl { trait_, .. } => self.assess_trait(trait_),
-    };
+    let mut impl_def = self.chart.impls[impl_id].clone();
+    self.initialize(impl_def.def, impl_def.generics);
+    let ty = self.assess_trait(&mut impl_def.trait_);
     self.sigs.impls.push(TypeCtx { types: take(&mut self.types), inner: ImplSig { ty } });
-    self.chart.impls[impl_id].kind = kind;
+    self.chart.impls[impl_id] = impl_def;
   }
 
-  fn assess_fn_sig(&mut self, params: &mut [Pat<'core>], ret: &mut Option<Ty<'core>>) -> Type {
+  fn assess_fn_sig(
+    &mut self,
+    params: &mut [Pat<'core>],
+    ret: &mut Option<Ty<'core>>,
+  ) -> (Vec<Type>, Type) {
     let params = params.iter_mut().map(|p| self.hydrate_param(p)).collect();
     let ret = ret.as_mut().map(|t| self.hydrate_type(t, false)).unwrap_or(self.types.nil());
-    self.types.new(TypeKind::Fn(params, ret))
+    (params, ret)
   }
 
   fn assess_trait(&mut self, trait_: &mut Trait<'core>) -> ImplType {
@@ -556,15 +568,13 @@ impl<'core, 'a> Checker<'core, 'a> {
       ImplKind::Path(_) => unreachable!(),
       ImplKind::Hole => ImplType::Error(self.core.report(Diag::UnspecifiedImpl { span })),
       ImplKind::Param(n) => {
-        self.types.import(&self.sigs.generics[self.cur_generics], None, |t, sig| {
-          t.transfer_impl_type(&sig.impl_params[*n])
+        self.types.import_with(&self.sigs.generics[self.cur_generics], None, |t, sig| {
+          t.transfer(&sig.impl_params[*n])
         })
       }
       ImplKind::Def(id, generics) => {
         let type_params = self.check_generics(generics, self.chart.impls[*id].generics, true);
-        self
-          .types
-          .import(&self.sigs.impls[*id], Some(&type_params), |t, sig| t.transfer_impl_type(&sig.ty))
+        self.types.import(&self.sigs.impls[*id], Some(&type_params)).ty
       }
       ImplKind::Error(e) => ImplType::Error(*e),
     }
@@ -628,9 +638,7 @@ impl<'core, 'a> Checker<'core, 'a> {
     };
     if has_impl_params {
       let impl_params_types =
-        self.types.import(&self.sigs.generics[params_id], Some(&type_params), |t, sig| {
-          sig.impl_params.iter().map(|ty| t.transfer_impl_type(ty)).collect::<Vec<_>>()
-        });
+        self.types.import(&self.sigs.generics[params_id], Some(&type_params)).impl_params;
       if args.impls.is_empty() {
         args.impls =
           impl_params_types.into_iter().map(|ty| self.find_impl(args.span, &ty)).collect();
@@ -650,15 +658,6 @@ impl<'core, 'a> Checker<'core, 'a> {
   fn find_impl(&mut self, span: Span, ty: &ImplType) -> Impl<'core> {
     Finder::new(self.core, self.chart, self.sigs, self.cur_def, self.cur_generics, span)
       .find_impl(&mut self.types, ty)
-  }
-
-  fn all_params(&mut self, generics: GenericsId) -> Vec<Type> {
-    self.chart.generics[generics]
-      .type_params
-      .iter()
-      .enumerate()
-      .map(|(i, p)| self.types.new(TypeKind::Param(i, p.name)))
-      .collect::<Vec<_>>()
   }
 }
 

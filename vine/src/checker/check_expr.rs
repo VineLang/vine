@@ -2,7 +2,7 @@ use std::{collections::BTreeMap, mem::take};
 
 use crate::{
   ast::{Expr, ExprKind, Generics, Ident, ImplKind, Label, Span},
-  chart::{StructId, TypeDefId},
+  chart::{OpaqueTypeId, StructId},
   checker::{Checker, Form, Type},
   diag::Diag,
   types::{Inverted, TypeKind},
@@ -142,10 +142,7 @@ impl<'core> Checker<'core, '_> {
       ExprKind::Struct(struct_id, generics, data) => {
         let type_params =
           self.check_generics(generics, self.chart.structs[*struct_id].generics, true);
-        let data_ty =
-          self.types.import(&self.sigs.structs[*struct_id], Some(&type_params), |t, sig| {
-            t.transfer(sig.data)
-          });
+        let data_ty = self.types.import(&self.sigs.structs[*struct_id], Some(&type_params)).data;
         let (form, ty) = self.check_expr(data);
         if self.types.unify(ty, data_ty).is_failure() {
           self.core.report(Diag::ExpectedTypeFound {
@@ -188,9 +185,7 @@ impl<'core> Checker<'core, '_> {
         vis: self.chart.defs[vis].path,
       });
     }
-    self
-      .types
-      .import(&self.sigs.structs[struct_id], Some(type_params), |t, sig| t.transfer(sig.data))
+    self.types.import(&self.sigs.structs[struct_id], Some(type_params)).data
   }
 
   fn tuple_field(&mut self, span: Span, ty: Type, index: usize) -> Option<(Type, usize)> {
@@ -250,9 +245,14 @@ impl<'core> Checker<'core, '_> {
     match &mut expr.kind {
       ExprKind![error || place || space || synthetic] | ExprKind::Path(..) => unreachable!(),
       ExprKind::LetFn(x) => self.let_fns[x],
-      ExprKind::Def(id, args) => {
-        let type_params = self.check_generics(args, self.chart.values[*id].generics, true);
-        self.types.import(&self.sigs.values[*id], Some(&type_params), |t, sig| t.transfer(sig.ty))
+      ExprKind::ConstDef(kind, args) => {
+        let type_params = self.check_generics(args, self.chart.const_generics(*kind), true);
+        self.types.import(self.sigs.const_sig(*kind), Some(&type_params)).ty
+      }
+      ExprKind::FnDef(kind, args) => {
+        let type_params = self.check_generics(args, self.chart.fn_generics(*kind), true);
+        let sig = self.types.import(self.sigs.fn_sig(*kind), Some(&type_params));
+        self.types.new(TypeKind::Fn(sig.params, sig.ret_ty))
       }
       ExprKind::Do(label, block) => {
         let ty = self.types.new_var(span);
@@ -379,7 +379,7 @@ impl<'core> Checker<'core, '_> {
         let mut generics = Generics { span, ..Default::default() };
         self._check_generics(
           &mut generics,
-          self.chart.values[op_fn].generics,
+          self.chart.fn_generics(op_fn),
           true,
           Some(vec![ty, return_ty]),
         );
@@ -389,7 +389,7 @@ impl<'core> Checker<'core, '_> {
           }
         }
         expr.kind = ExprKind::Call(
-          Box::new(Expr { span, kind: ExprKind::Def(op_fn, generics) }),
+          Box::new(Expr { span, kind: ExprKind::FnDef(op_fn, generics) }),
           vec![take(inner)],
         );
         return_ty
@@ -414,12 +414,12 @@ impl<'core> Checker<'core, '_> {
         let mut generics = Generics { span, ..Default::default() };
         self._check_generics(
           &mut generics,
-          self.chart.values[op_fn].generics,
+          self.chart.fn_generics(op_fn),
           true,
           Some(vec![ty, return_ty]),
         );
         expr.kind = ExprKind::Call(
-          Box::new(Expr { span, kind: ExprKind::Def(op_fn, generics) }),
+          Box::new(Expr { span, kind: ExprKind::FnDef(op_fn, generics) }),
           vec![take(inner)],
         );
         return_ty
@@ -434,12 +434,12 @@ impl<'core> Checker<'core, '_> {
         let mut generics = Generics { span, ..Default::default() };
         self._check_generics(
           &mut generics,
-          self.chart.values[op_fn].generics,
+          self.chart.fn_generics(op_fn),
           true,
           Some(vec![lhs_ty, rhs_ty, return_ty]),
         );
         expr.kind = ExprKind::Call(
-          Box::new(Expr { span, kind: ExprKind::Def(op_fn, generics) }),
+          Box::new(Expr { span, kind: ExprKind::FnDef(op_fn, generics) }),
           vec![take(lhs), take(rhs)],
         );
         return_ty
@@ -453,12 +453,12 @@ impl<'core> Checker<'core, '_> {
         let mut generics = Generics { span, ..Default::default() };
         self._check_generics(
           &mut generics,
-          self.chart.values[op_fn].generics,
+          self.chart.fn_generics(op_fn),
           true,
           Some(vec![lhs_ty, rhs_ty, lhs_ty]),
         );
         expr.kind = ExprKind::CallAssign(
-          Box::new(Expr { span, kind: ExprKind::Def(op_fn, generics) }),
+          Box::new(Expr { span, kind: ExprKind::FnDef(op_fn, generics) }),
           take(lhs),
           take(rhs),
         );
@@ -486,11 +486,11 @@ impl<'core> Checker<'core, '_> {
                 let mut generics = Generics { span, ..Default::default() };
                 self._check_generics(
                   &mut generics,
-                  self.chart.values[op_fn].generics,
+                  self.chart.fn_generics(op_fn),
                   true,
                   Some(vec![ty]),
                 );
-                Expr { span, kind: ExprKind::Def(op_fn, generics) }
+                Expr { span, kind: ExprKind::FnDef(op_fn, generics) }
               } else {
                 Expr {
                   span,
@@ -513,12 +513,12 @@ impl<'core> Checker<'core, '_> {
         let mut generics = Generics { span, ..Default::default() };
         self._check_generics(
           &mut generics,
-          self.chart.values[cast_fn].generics,
+          self.chart.fn_generics(cast_fn),
           true,
           Some(vec![cur_ty, to_ty]),
         );
         expr.kind = ExprKind::Call(
-          Box::new(Expr { span, kind: ExprKind::Def(cast_fn, generics) }),
+          Box::new(Expr { span, kind: ExprKind::FnDef(cast_fn, generics) }),
           vec![take(cur)],
         );
         to_ty
@@ -558,12 +558,12 @@ impl<'core> Checker<'core, '_> {
             let mut generics = Generics { span, ..Default::default() };
             self._check_generics(
               &mut generics,
-              self.chart.values[cast].generics,
+              self.chart.fn_generics(cast),
               true,
               Some(vec![ty, string_ty]),
             );
             expr.kind = ExprKind::Call(
-              Box::new(Expr { span, kind: ExprKind::Def(cast, generics) }),
+              Box::new(Expr { span, kind: ExprKind::FnDef(cast, generics) }),
               vec![take(expr)],
             );
           }
@@ -583,8 +583,8 @@ impl<'core> Checker<'core, '_> {
       ExprKind::Enum(enum_id, variant_id, generics, data) => {
         let type_params = self.check_generics(generics, self.chart.enums[*enum_id].generics, true);
         let data_ty =
-          self.types.import(&self.sigs.enums[*enum_id], Some(&type_params), |t, sig| {
-            Some(t.transfer(sig.variant_data[*variant_id]?))
+          self.types.import_with(&self.sigs.enums[*enum_id], Some(&type_params), |t, sig| {
+            Some(t.transfer(&sig.variant_data[*variant_id]?))
           });
         match (data, data_ty) {
           (None, None) => {}
@@ -756,7 +756,7 @@ impl<'core> Checker<'core, '_> {
     ty
   }
 
-  fn builtin_ty(&mut self, span: Span, name: &'static str, builtin: Option<TypeDefId>) -> Type {
+  fn builtin_ty(&mut self, span: Span, name: &'static str, builtin: Option<OpaqueTypeId>) -> Type {
     if let Some(id) = builtin {
       self.types.new(TypeKind::Opaque(id, vec![]))
     } else {

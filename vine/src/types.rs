@@ -6,13 +6,13 @@ use std::{
 };
 
 use vine_util::{
-  idx::{IdxVec, IntMap},
+  idx::{IdxVec, IntMap, RangeExt},
   multi_iter, new_idx,
 };
 
 use crate::{
   ast::{Ident, Span},
-  chart::{Chart, DefId, EnumId, StructId, TraitDefId, TypeDefId},
+  chart::{Chart, DefId, EnumId, OpaqueTypeId, StructId, TraitId},
   core::Core,
   diag::{Diag, ErrorGuaranteed},
 };
@@ -87,7 +87,7 @@ pub enum TypeKind<'core> {
   Tuple(Vec<Type>),
   Object(BTreeMap<Ident<'core>, Type>),
   Fn(Vec<Type>, Type),
-  Opaque(TypeDefId, Vec<Type>),
+  Opaque(OpaqueTypeId, Vec<Type>),
   Struct(StructId, Vec<Type>),
   Enum(EnumId, Vec<Type>),
   Ref(Type),
@@ -149,7 +149,7 @@ impl<'core> Default for TypeState<'core> {
 
 #[derive(Debug, Clone)]
 pub enum ImplType {
-  Trait(TraitDefId, Vec<Type>),
+  Trait(TraitId, Vec<Type>),
   Error(ErrorGuaranteed),
 }
 
@@ -168,6 +168,10 @@ impl<'core> Types<'core> {
 
   pub fn new_var(&mut self, span: Span) -> Type {
     self.types.push(Root { state: Unknown(span), size: 1 }).into()
+  }
+
+  pub fn new_vars(&mut self, span: Span, len: usize) -> Vec<Type> {
+    (0..len).iter().map(|_| self.new_var(span)).collect()
   }
 
   pub fn error(&mut self, err: ErrorGuaranteed) -> Type {
@@ -238,7 +242,7 @@ impl<'core> Types<'core> {
       (TypeKind::Fn(a, x), TypeKind::Fn(b, y)) => {
         self.unify_types(a, b, inverted).and(self.unify(*x, *y))
       }
-      (TypeKind::Opaque(TypeDefId(i), a), TypeKind::Opaque(TypeDefId(j), b))
+      (TypeKind::Opaque(OpaqueTypeId(i), a), TypeKind::Opaque(OpaqueTypeId(j), b))
       | (TypeKind::Struct(StructId(i), a), TypeKind::Struct(StructId(j), b))
       | (TypeKind::Enum(EnumId(i), a), TypeKind::Enum(EnumId(j), b))
         if *i == *j =>
@@ -417,7 +421,7 @@ impl<'core> Types<'core> {
               self._show(chart, *ty, str)
             }
             TypeKind::Opaque(type_id, params) => {
-              *str += chart.defs[chart.types[*type_id].def].name.0 .0;
+              *str += chart.opaque_types[*type_id].name.0 .0;
               self._show_params(chart, params, str);
             }
             TypeKind::Struct(struct_id, params) => {
@@ -462,7 +466,7 @@ impl<'core> Types<'core> {
     let mut str = String::new();
     match ty {
       ImplType::Trait(trait_id, params) => {
-        str += chart.defs[chart.traits[*trait_id].def].name.0 .0;
+        str += chart.traits[*trait_id].name.0 .0;
         self._show_params(chart, params, &mut str);
       }
       ImplType::Error(_) => str += "??",
@@ -470,7 +474,15 @@ impl<'core> Types<'core> {
     str
   }
 
-  pub fn import<T, U>(
+  pub fn import<T: TransferTypes<'core>>(
+    &mut self,
+    source: &TypeCtx<'core, T>,
+    params: Option<&[Type]>,
+  ) -> T {
+    self.import_with(source, params, |t, value| t.transfer(value))
+  }
+
+  pub fn import_with<T, U>(
     &mut self,
     source: &TypeCtx<'core, T>,
     params: Option<&[Type]>,
@@ -489,15 +501,15 @@ impl<'core> Types<'core> {
     let mut types = Types::default();
     let mut export =
       TypeTransfer { mapping: HashMap::default(), source: self, dest: &mut types, params: None };
-    export.dest.error = export.source.error.map(|t| export.transfer(t));
-    export.dest.nil = export.source.nil.map(|t| export.transfer(t));
+    export.dest.error = export.source.error.map(|t| export.transfer(&t));
+    export.dest.nil = export.source.nil.map(|t| export.transfer(&t));
     let inner = f(&mut export);
     TypeCtx { types, inner }
   }
 
   pub fn get_mod(&self, chart: &Chart, ty: Type) -> Option<DefId> {
     match self.kind(ty).as_ref()?.1 {
-      TypeKind::Opaque(id, _) => Some(chart.types[*id].def),
+      TypeKind::Opaque(id, _) => Some(chart.opaque_types[*id].def),
       TypeKind::Struct(id, _) => Some(chart.structs[*id].def),
       TypeKind::Enum(id, _) => Some(chart.enums[*id].def),
       TypeKind::Ref(inner) => self.get_mod(chart, *inner),
@@ -565,7 +577,11 @@ pub struct TypeTransfer<'core, 'ctx> {
 }
 
 impl<'core, 'ctx> TypeTransfer<'core, 'ctx> {
-  pub fn transfer(&mut self, ty: Type) -> Type {
+  pub fn transfer<T: TransferTypes<'core>>(&mut self, t: &T) -> T {
+    t.transfer(self)
+  }
+
+  fn transfer_type(&mut self, ty: Type) -> Type {
     let old = self.source.find(ty);
     match self.mapping.entry(old.idx()) {
       Entry::Occupied(e) => (*e.get()).invert_if(old.inv()),
@@ -582,7 +598,7 @@ impl<'core, 'ctx> TypeTransfer<'core, 'ctx> {
         });
         e.insert(new);
         if let Some((inv, old_kind)) = old_kind {
-          let kind = old_kind.map(|t| self.transfer(t));
+          let kind = old_kind.map(|t| self.transfer(&t));
           let Root { state: new_kind, .. } = &mut self.dest.types[new.idx()] else {
             unreachable!()
           };
@@ -593,8 +609,8 @@ impl<'core, 'ctx> TypeTransfer<'core, 'ctx> {
     }
   }
 
-  pub fn transfer_impl_type(&mut self, ty: &ImplType) -> ImplType {
-    ty.map(|t| self.transfer(t))
+  fn transfer_impl_type(&mut self, ty: &ImplType) -> ImplType {
+    ty.map(|t| self.transfer(&t))
   }
 }
 
@@ -648,4 +664,26 @@ impl ImplType {
 pub struct TypeCtx<'core, T> {
   pub types: Types<'core>,
   pub inner: T,
+}
+
+pub trait TransferTypes<'core> {
+  fn transfer(&self, t: &mut TypeTransfer<'core, '_>) -> Self;
+}
+
+impl<'core> TransferTypes<'core> for Type {
+  fn transfer(&self, t: &mut TypeTransfer<'core, '_>) -> Self {
+    t.transfer_type(*self)
+  }
+}
+
+impl<'core> TransferTypes<'core> for ImplType {
+  fn transfer(&self, t: &mut TypeTransfer<'core, '_>) -> Self {
+    t.transfer_impl_type(self)
+  }
+}
+
+impl<'core, T: TransferTypes<'core>> TransferTypes<'core> for Vec<T> {
+  fn transfer(&self, t: &mut TypeTransfer<'core, '_>) -> Self {
+    self.iter().map(|value| t.transfer(value)).collect()
+  }
 }
