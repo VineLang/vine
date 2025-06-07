@@ -29,7 +29,7 @@ use crate::{
   normalizer::normalize,
   parser::VineParser,
   resolver::Resolver,
-  specializer::{ProtoId, Spec, SpecRels, Specializer},
+  specializer::{Spec, SpecRels, Specializer, TemplateId},
   types::{Type, TypeKind, Types},
   vir::{InterfaceId, StageId},
   visit::VisitMut,
@@ -215,7 +215,7 @@ impl<'core, 'ctx, 'ivm, 'ext> Repl<'core, 'ctx, 'ivm, 'ext> {
           self.name,
           &Spec {
             def: DefId(0),
-            proto: ProtoId::Const(ConcreteConstId(0)),
+            template: TemplateId::Const(ConcreteConstId(0)),
             index: 0,
             singular: true,
             rels: self.rels.take().unwrap(),
