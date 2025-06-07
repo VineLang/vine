@@ -10,9 +10,7 @@ use ivy::ast::Net;
 use vine_util::{idx, interner::Interned, new_idx};
 
 use crate::{
-  chart::{
-    ConstKind, EnumId, FnKind, ImplId, OpaqueTypeId, StructId, TraitId, TypeAliasId, VariantId,
-  },
+  chart::{ConstId, EnumId, FnId, ImplId, OpaqueTypeId, StructId, TraitId, TypeAliasId, VariantId},
   diag::ErrorGuaranteed,
   specializer::{ConstRelId, FnRelId},
 };
@@ -283,9 +281,9 @@ pub enum ExprKind<'core> {
   #[class(value)]
   Path(Path<'core>, Option<Vec<Expr<'core>>>),
   #[class(value, resolved)]
-  ConstDef(ConstKind, GenericArgs<'core>),
+  ConstDef(ConstId, GenericArgs<'core>),
   #[class(value, resolved)]
-  FnDef(FnKind, GenericArgs<'core>),
+  FnDef(FnId, GenericArgs<'core>),
   #[class(value, synthetic)]
   ConstRel(ConstRelId),
   #[class(value, synthetic)]

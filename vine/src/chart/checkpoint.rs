@@ -1,10 +1,10 @@
 use vine_util::idx::Idx;
 
-use crate::chart::ConstKind;
+use crate::chart::ConstId;
 
 use super::{
   Builtins, Chart, ConcreteConstId, ConcreteFnId, Def, DefId, DefImplKind, DefPatternKind,
-  DefTraitKind, DefTypeKind, DefValueKind, EnumId, FnKind, GenericsId, ImplId, ImportId,
+  DefTraitKind, DefTypeKind, DefValueKind, EnumId, FnId, GenericsId, ImplId, ImportId,
   MemberKind, OpaqueTypeId, StructId, TraitId, TypeAliasId,
 };
 
@@ -102,10 +102,10 @@ impl<'core> Def<'core> {
 impl DefValueKind {
   fn after(&self, checkpoint: &ChartCheckpoint) -> bool {
     match *self {
-      DefValueKind::Const(ConstKind::Concrete(const_id)) => const_id >= checkpoint.concrete_consts,
-      DefValueKind::Const(ConstKind::Abstract(trait_id, _)) => trait_id >= checkpoint.traits,
-      DefValueKind::Fn(FnKind::Concrete(fn_id)) => fn_id >= checkpoint.concrete_fns,
-      DefValueKind::Fn(FnKind::Abstract(trait_id, _)) => trait_id >= checkpoint.traits,
+      DefValueKind::Const(ConstId::Concrete(const_id)) => const_id >= checkpoint.concrete_consts,
+      DefValueKind::Const(ConstId::Abstract(trait_id, _)) => trait_id >= checkpoint.traits,
+      DefValueKind::Fn(FnId::Concrete(fn_id)) => fn_id >= checkpoint.concrete_fns,
+      DefValueKind::Fn(FnId::Abstract(trait_id, _)) => trait_id >= checkpoint.traits,
       DefValueKind::Struct(struct_id) => struct_id >= checkpoint.structs,
       DefValueKind::Enum(enum_id, _) => enum_id >= checkpoint.enums,
     }
@@ -205,10 +205,10 @@ fn revert_idx<T: Idx>(option: &mut Option<T>, checkpoint: T) {
   }
 }
 
-fn revert_fn(builtin: &mut Option<FnKind>, checkpoint: &ChartCheckpoint) {
+fn revert_fn(builtin: &mut Option<FnId>, checkpoint: &ChartCheckpoint) {
   match *builtin {
-    Some(FnKind::Concrete(fn_id)) if fn_id >= checkpoint.concrete_fns => *builtin = None,
-    Some(FnKind::Abstract(trait_id, _)) if trait_id >= checkpoint.traits => *builtin = None,
+    Some(FnId::Concrete(fn_id)) if fn_id >= checkpoint.concrete_fns => *builtin = None,
+    Some(FnId::Abstract(trait_id, _)) if trait_id >= checkpoint.traits => *builtin = None,
     _ => {}
   }
 }

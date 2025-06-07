@@ -2,7 +2,7 @@ use std::mem::take;
 
 use crate::{
   ast::{Expr, ExprKind, GenericArgs, Ident, Span},
-  chart::FnKind,
+  chart::FnId,
   checker::{Checker, Form, Type},
   diag::{Diag, ErrorGuaranteed},
   signatures::FnSig,
@@ -37,7 +37,7 @@ impl<'core> Checker<'core, '_> {
     ident: Ident<'core>,
     generics: &mut GenericArgs<'core>,
     args: &mut [Expr<'core>],
-  ) -> Result<(Form, FnKind, Type), Diag<'core>> {
+  ) -> Result<(Form, FnId, Type), Diag<'core>> {
     let (receiver_form, ty) = self.check_expr(receiver);
     let (id, type_params) = self.find_method(span, ty, ident)?;
     let type_params = self.types.import(&type_params, None);
@@ -60,14 +60,14 @@ impl<'core> Checker<'core, '_> {
   fn method_sig(
     &mut self,
     span: Span,
-    fn_kind: FnKind,
+    fn_id: FnId,
     generics: &mut GenericArgs<'core>,
     type_params: Vec<Type>,
     args: usize,
   ) -> Result<(Form, Type, Vec<Type>, Type), Diag<'core>> {
     let type_params =
-      self._check_generics(generics, self.chart.fn_generics(fn_kind), true, Some(type_params));
-    let FnSig { params, ret_ty } = self.types.import(self.sigs.fn_sig(fn_kind), Some(&type_params));
+      self._check_generics(generics, self.chart.fn_generics(fn_id), true, Some(type_params));
+    let FnSig { params, ret_ty } = self.types.import(self.sigs.fn_sig(fn_id), Some(&type_params));
     let fn_ty = self.types.new(TypeKind::Fn(params.clone(), ret_ty));
     if params.len() != args + 1 {
       return Err(Diag::BadArgCount {
@@ -93,7 +93,7 @@ impl<'core> Checker<'core, '_> {
     span: Span,
     receiver: &mut Box<Expr<'core>>,
     args: &mut Vec<Expr<'core>>,
-    fn_kind: FnKind,
+    fn_id: FnId,
     generics: &mut GenericArgs<'core>,
     form: Form,
   ) -> ExprKind<'core> {
@@ -103,7 +103,7 @@ impl<'core> Checker<'core, '_> {
     }
     let mut args = take(args);
     args.insert(0, receiver);
-    let func = Expr { span, kind: ExprKind::FnDef(fn_kind, take(generics)) };
+    let func = Expr { span, kind: ExprKind::FnDef(fn_id, take(generics)) };
     ExprKind::Call(Box::new(func), args)
   }
 
@@ -112,7 +112,7 @@ impl<'core> Checker<'core, '_> {
     span: Span,
     receiver: Type,
     name: Ident<'core>,
-  ) -> Result<(FnKind, TypeCtx<'core, Vec<Type>>), ErrorGuaranteed> {
+  ) -> Result<(FnId, TypeCtx<'core, Vec<Type>>), ErrorGuaranteed> {
     let mut results = self.finder(span).find_method(&self.types, receiver, name);
     if results.len() == 1 {
       Ok(results.pop().unwrap())

@@ -8,7 +8,7 @@ use crate::{
   ast::Local,
   chart::{Chart, ConcreteConstId, ConcreteFnId, EnumDef, VariantId},
   diag::ErrorGuaranteed,
-  specializer::{ProtoKind, Spec, SpecId, Specializations},
+  specializer::{ProtoId, Spec, SpecId, Specializations},
   vir::{
     Header, Interface, InterfaceId, InterfaceKind, Invocation, Port, Stage, StageId, Step,
     Transfer, VIR,
@@ -36,8 +36,8 @@ impl<'core, 'a> Emitter<'core, 'a> {
     let spec = self.specs.specs[spec].as_ref().unwrap();
     let path = self.chart.defs[spec.def].path;
     let vir = match spec.proto {
-      ProtoKind::Const(id) => &const_vir[id],
-      ProtoKind::Fn(id) => &fn_vir[id],
+      ProtoId::Const(id) => &const_vir[id],
+      ProtoId::Fn(id) => &fn_vir[id],
     };
     self.emit_vir(vir, path, spec)
   }

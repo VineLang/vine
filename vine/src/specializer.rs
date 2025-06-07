@@ -8,7 +8,7 @@ use vine_util::{idx::IdxVec, new_idx};
 use crate::{
   ast::{Expr, ExprKind, Impl, ImplKind},
   chart::{
-    checkpoint::ChartCheckpoint, Chart, ConcreteConstId, ConcreteFnId, ConstKind, DefId, FnKind,
+    checkpoint::ChartCheckpoint, Chart, ConcreteConstId, ConcreteFnId, ConstId, DefId, FnId,
     GenericsDef, ImplId, TraitConstId, TraitFnId,
   },
   diag::ErrorGuaranteed,
@@ -57,19 +57,19 @@ impl<'core, 'a> Specializer<'core, 'a> {
   fn specialize_roots(&mut self, checkpoint: &ChartCheckpoint) {
     for const_id in self.specs.consts.keys_from(checkpoint.concrete_consts) {
       if self.specs.consts[const_id].impl_params == 0 {
-        self.specialize(ProtoKind::Const(const_id), Vec::new());
+        self.specialize(ProtoId::Const(const_id), Vec::new());
       }
     }
     for fn_id in self.specs.fns.keys_from(checkpoint.concrete_fns) {
       if self.specs.fns[fn_id].impl_params == 0 {
-        self.specialize(ProtoKind::Fn(fn_id), Vec::new());
+        self.specialize(ProtoId::Fn(fn_id), Vec::new());
       }
     }
   }
 
-  fn specialize(&mut self, kind: ProtoKind, impl_args: Vec<ImplTree>) -> SpecId {
+  fn specialize(&mut self, id: ProtoId, impl_args: Vec<ImplTree>) -> SpecId {
     let spec_id = self.specs.specs.next_index();
-    let proto = &mut self.proto_mut(kind);
+    let proto = &mut self.proto_mut(id);
     let index = proto.specs.len();
     let entry = match proto.specs.entry(impl_args) {
       Entry::Occupied(e) => return *e.get(),
@@ -82,21 +82,21 @@ impl<'core, 'a> Specializer<'core, 'a> {
     self.specs.specs.push(None);
     let rels = SpecRels {
       fns: IdxVec::from(Vec::from_iter(fn_rel_ids.map(|rel_id| {
-        let rel = &self.proto(kind).fn_rels[rel_id];
+        let rel = &self.proto(id).fn_rels[rel_id];
         let (fn_id, args) = self.instantiate_fn_rel(rel, &impl_args)?;
-        Ok(self.specialize(ProtoKind::Fn(fn_id), args))
+        Ok(self.specialize(ProtoId::Fn(fn_id), args))
       }))),
       consts: IdxVec::from(Vec::from_iter(const_rel_ids.map(|rel_id| {
-        let rel = &self.proto(kind).const_rels[rel_id];
+        let rel = &self.proto(id).const_rels[rel_id];
         let (const_id, args) = self.instantiate_const_rel(rel, &impl_args)?;
-        Ok(self.specialize(ProtoKind::Const(const_id), args))
+        Ok(self.specialize(ProtoId::Const(const_id), args))
       }))),
     };
-    let def = match kind {
-      ProtoKind::Const(id) => self.chart.concrete_consts[id].def,
-      ProtoKind::Fn(id) => self.chart.concrete_fns[id].def,
+    let def = match id {
+      ProtoId::Const(id) => self.chart.concrete_consts[id].def,
+      ProtoId::Fn(id) => self.chart.concrete_fns[id].def,
     };
-    let spec = Spec { def, proto: kind, index, singular: impl_args.is_empty(), rels };
+    let spec = Spec { def, proto: id, index, singular: impl_args.is_empty(), rels };
     self.specs.specs[spec_id] = Some(spec);
     spec_id
   }
@@ -136,26 +136,26 @@ impl<'core, 'a> Specializer<'core, 'a> {
     SpecRels {
       fns: IdxVec::from(Vec::from_iter(proto.fn_rels.values().map(|rel| {
         let (fn_id, args) = self.instantiate_fn_rel(rel, &[])?;
-        Ok(self.specialize(ProtoKind::Fn(fn_id), args))
+        Ok(self.specialize(ProtoId::Fn(fn_id), args))
       }))),
       consts: IdxVec::from(Vec::from_iter(proto.const_rels.values().map(|rel| {
         let (const_id, args) = self.instantiate_const_rel(rel, &[])?;
-        Ok(self.specialize(ProtoKind::Const(const_id), args))
+        Ok(self.specialize(ProtoId::Const(const_id), args))
       }))),
     }
   }
 
-  fn proto(&self, kind: ProtoKind) -> &ProtoInfo<'core> {
-    match kind {
-      ProtoKind::Const(const_id) => &self.specs.consts[const_id],
-      ProtoKind::Fn(fn_id) => &self.specs.fns[fn_id],
+  fn proto(&self, id: ProtoId) -> &ProtoInfo<'core> {
+    match id {
+      ProtoId::Const(const_id) => &self.specs.consts[const_id],
+      ProtoId::Fn(fn_id) => &self.specs.fns[fn_id],
     }
   }
 
-  fn proto_mut(&mut self, kind: ProtoKind) -> &mut ProtoInfo<'core> {
-    match kind {
-      ProtoKind::Const(const_id) => &mut self.specs.consts[const_id],
-      ProtoKind::Fn(fn_id) => &mut self.specs.fns[fn_id],
+  fn proto_mut(&mut self, id: ProtoId) -> &mut ProtoInfo<'core> {
+    match id {
+      ProtoId::Const(const_id) => &mut self.specs.consts[const_id],
+      ProtoId::Fn(fn_id) => &mut self.specs.fns[fn_id],
     }
   }
 }
@@ -170,7 +170,7 @@ fn impl_param_count(generics: &GenericsDef) -> usize {
 }
 
 #[derive(Debug, Clone, Copy)]
-pub enum ProtoKind {
+pub enum ProtoId {
   Const(ConcreteConstId),
   Fn(ConcreteFnId),
 }
@@ -183,18 +183,18 @@ struct RelExtractor<'core> {
 impl<'core> VisitMut<'core, '_> for RelExtractor<'core> {
   fn visit_expr(&mut self, expr: &mut Expr<'core>) {
     match &mut expr.kind {
-      ExprKind::ConstDef(const_kind, generics) => {
+      ExprKind::ConstDef(const_id, generics) => {
         let mut impls = take(&mut generics.impls);
-        expr.kind = ExprKind::ConstRel(self.proto.const_rels.push(match *const_kind {
-          ConstKind::Concrete(const_id) => Rel::Def(const_id, impls),
-          ConstKind::Abstract(_, const_id) => Rel::Subitem(impls.pop().unwrap(), const_id),
+        expr.kind = ExprKind::ConstRel(self.proto.const_rels.push(match *const_id {
+          ConstId::Concrete(const_id) => Rel::Def(const_id, impls),
+          ConstId::Abstract(_, const_id) => Rel::Subitem(impls.pop().unwrap(), const_id),
         }));
       }
-      ExprKind::FnDef(fn_kind, generics) => {
+      ExprKind::FnDef(fn_id, generics) => {
         let mut impls = take(&mut generics.impls);
-        expr.kind = ExprKind::FnRel(self.proto.fn_rels.push(match *fn_kind {
-          FnKind::Concrete(fn_id) => Rel::Def(fn_id, impls),
-          FnKind::Abstract(_, fn_id) => Rel::Subitem(impls.pop().unwrap(), fn_id),
+        expr.kind = ExprKind::FnRel(self.proto.fn_rels.push(match *fn_id {
+          FnId::Concrete(fn_id) => Rel::Def(fn_id, impls),
+          FnId::Abstract(_, fn_id) => Rel::Subitem(impls.pop().unwrap(), fn_id),
         }));
       }
       _ => (),
@@ -218,7 +218,7 @@ new_idx!(pub SpecId);
 #[derive(Debug)]
 pub struct Spec {
   pub def: DefId,
-  pub proto: ProtoKind,
+  pub proto: ProtoId,
   pub index: usize,
   pub singular: bool,
   pub rels: SpecRels,

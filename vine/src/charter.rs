@@ -80,7 +80,7 @@ impl<'core> Charter<'core, '_> {
           body,
           locals: Counter::default(),
         });
-        self.define_value(span, def, vis, DefValueKind::Fn(FnKind::Concrete(fn_id)));
+        self.define_value(span, def, vis, DefValueKind::Fn(FnId::Concrete(fn_id)));
         Some(def)
       }
 
@@ -96,7 +96,7 @@ impl<'core> Charter<'core, '_> {
           value,
           locals: Counter::default(),
         });
-        self.define_value(span, def, vis, DefValueKind::Const(ConstKind::Concrete(const_id)));
+        self.define_value(span, def, vis, DefValueKind::Const(ConstId::Concrete(const_id)));
         Some(def)
       }
 
@@ -191,7 +191,7 @@ impl<'core> Charter<'core, '_> {
               let trait_const_id =
                 consts.push(TraitConst { name: const_item.name, ty: const_item.ty });
               let def = self.chart_child(def, const_item.name, vis, true);
-              let kind = DefValueKind::Const(ConstKind::Abstract(trait_id, trait_const_id));
+              let kind = DefValueKind::Const(ConstId::Abstract(trait_id, trait_const_id));
               self.define_value(span, def, vis, kind);
               self.chart_attrs(Some(def), subitem.attrs);
             }
@@ -209,7 +209,7 @@ impl<'core> Charter<'core, '_> {
                 ret_ty: fn_item.ret,
               });
               let def = self.chart_child(def, fn_item.name, vis, true);
-              let kind = DefValueKind::Fn(FnKind::Abstract(trait_id, trait_fn_id));
+              let kind = DefValueKind::Fn(FnId::Abstract(trait_id, trait_fn_id));
               self.define_value(span, def, vis, kind);
               self.chart_attrs(Some(def), subitem.attrs);
             }
@@ -256,7 +256,7 @@ impl<'core> Charter<'core, '_> {
                 value,
                 locals: Counter::default(),
               });
-              self.define_value(span, def, vis, DefValueKind::Const(ConstKind::Concrete(const_id)));
+              self.define_value(span, def, vis, DefValueKind::Const(ConstId::Concrete(const_id)));
               self.chart_attrs(Some(def), subitem.attrs);
               subitems.push(ImplSubitem {
                 span,
@@ -280,7 +280,7 @@ impl<'core> Charter<'core, '_> {
                 body,
                 locals: Counter::default(),
               });
-              self.define_value(span, def, vis, DefValueKind::Fn(FnKind::Concrete(fn_id)));
+              self.define_value(span, def, vis, DefValueKind::Fn(FnId::Concrete(fn_id)));
               self.chart_attrs(Some(def), subitem.attrs);
               subitems.push(ImplSubitem {
                 span,
@@ -366,7 +366,7 @@ impl<'core> Charter<'core, '_> {
       Some(WithVis { kind: DefTypeKind::Enum(id), .. }) => Some(id),
       _ => None,
     };
-    let fn_kind = match def.value_kind {
+    let fn_id = match def.value_kind {
       Some(WithVis { kind: DefValueKind::Fn(kind), .. }) => Some(kind),
       _ => None,
     };
@@ -391,14 +391,14 @@ impl<'core> Charter<'core, '_> {
       Builtin::List => set(&mut builtins.list, struct_id),
       Builtin::String => set(&mut builtins.string, struct_id),
       Builtin::Result => set(&mut builtins.result, enum_id),
-      Builtin::Neg => set(&mut builtins.neg, fn_kind),
-      Builtin::Not => set(&mut builtins.not, fn_kind),
-      Builtin::Cast => set(&mut builtins.cast, fn_kind),
+      Builtin::Neg => set(&mut builtins.neg, fn_id),
+      Builtin::Not => set(&mut builtins.not, fn_id),
+      Builtin::Cast => set(&mut builtins.cast, fn_id),
       Builtin::Fork => set(&mut builtins.fork, trait_id),
       Builtin::Drop => set(&mut builtins.drop, trait_id),
       Builtin::BoolNot => set(&mut builtins.bool_not, impl_id),
-      Builtin::BinaryOp(op) => set(builtins.binary_ops.entry(op).or_default(), fn_kind),
-      Builtin::ComparisonOp(op) => set(builtins.comparison_ops.entry(op).or_default(), fn_kind),
+      Builtin::BinaryOp(op) => set(builtins.binary_ops.entry(op).or_default(), fn_id),
+      Builtin::ComparisonOp(op) => set(builtins.comparison_ops.entry(op).or_default(), fn_id),
       Builtin::Range => set(&mut builtins.range, struct_id),
       Builtin::BoundUnbounded => set(&mut builtins.bound_unbounded, struct_id),
       Builtin::BoundExclusive => set(&mut builtins.bound_exclusive, struct_id),

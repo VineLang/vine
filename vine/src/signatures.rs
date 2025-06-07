@@ -2,8 +2,8 @@ use vine_util::idx::IdxVec;
 
 use crate::{
   chart::{
-    checkpoint::ChartCheckpoint, ConcreteConstId, ConcreteFnId, ConstKind, EnumId, FnKind,
-    GenericsId, ImplId, StructId, TraitConstId, TraitFnId, TraitId, TypeAliasId, VariantId,
+    checkpoint::ChartCheckpoint, ConcreteConstId, ConcreteFnId, ConstId, EnumId, FnId, GenericsId,
+    ImplId, StructId, TraitConstId, TraitFnId, TraitId, TypeAliasId, VariantId,
   },
   types::{ImplType, TransferTypes, Type, TypeCtx, TypeTransfer},
 };
@@ -63,17 +63,17 @@ pub struct ImplSig {
 }
 
 impl<'core> Signatures<'core> {
-  pub fn const_sig(&self, const_kind: ConstKind) -> &TypeCtx<'core, ConstSig> {
-    match const_kind {
-      ConstKind::Concrete(const_id) => &self.concrete_consts[const_id],
-      ConstKind::Abstract(trait_id, const_id) => &self.traits[trait_id].consts[const_id],
+  pub fn const_sig(&self, const_id: ConstId) -> &TypeCtx<'core, ConstSig> {
+    match const_id {
+      ConstId::Concrete(const_id) => &self.concrete_consts[const_id],
+      ConstId::Abstract(trait_id, const_id) => &self.traits[trait_id].consts[const_id],
     }
   }
 
-  pub fn fn_sig(&self, fn_kind: FnKind) -> &TypeCtx<'core, FnSig> {
-    match fn_kind {
-      FnKind::Concrete(fn_id) => &self.concrete_fns[fn_id],
-      FnKind::Abstract(trait_id, fn_id) => &self.traits[trait_id].fns[fn_id],
+  pub fn fn_sig(&self, fn_id: FnId) -> &TypeCtx<'core, FnSig> {
+    match fn_id {
+      FnId::Concrete(fn_id) => &self.concrete_fns[fn_id],
+      FnId::Abstract(trait_id, fn_id) => &self.traits[trait_id].fns[fn_id],
     }
   }
 

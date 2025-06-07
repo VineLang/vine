@@ -45,11 +45,11 @@ pub struct Builtins {
   pub string: Option<StructId>,
   pub result: Option<EnumId>,
 
-  pub neg: Option<FnKind>,
-  pub not: Option<FnKind>,
-  pub cast: Option<FnKind>,
-  pub binary_ops: IntMap<BinaryOp, Option<FnKind>>,
-  pub comparison_ops: IntMap<ComparisonOp, Option<FnKind>>,
+  pub neg: Option<FnId>,
+  pub not: Option<FnId>,
+  pub cast: Option<FnId>,
+  pub binary_ops: IntMap<BinaryOp, Option<FnId>>,
+  pub comparison_ops: IntMap<ComparisonOp, Option<FnId>>,
 
   pub bool_not: Option<ImplId>,
 
@@ -93,20 +93,20 @@ pub enum MemberKind {
 
 #[derive(Debug, Clone, Copy)]
 pub enum DefValueKind {
-  Const(ConstKind),
-  Fn(FnKind),
+  Const(ConstId),
+  Fn(FnId),
   Struct(StructId),
   Enum(EnumId, VariantId),
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
-pub enum ConstKind {
+pub enum ConstId {
   Concrete(ConcreteConstId),
   Abstract(TraitId, TraitConstId),
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
-pub enum FnKind {
+pub enum FnId {
   Concrete(ConcreteFnId),
   Abstract(TraitId, TraitFnId),
 }
@@ -298,24 +298,24 @@ impl<'core> Chart<'core> {
     vis == from || vis < from && self.defs[from].ancestors.binary_search(&vis).is_ok()
   }
 
-  pub fn fn_is_method(&self, fn_kind: FnKind) -> bool {
-    match fn_kind {
-      FnKind::Concrete(fn_id) => self.concrete_fns[fn_id].method,
-      FnKind::Abstract(trait_id, fn_id) => self.traits[trait_id].fns[fn_id].method,
+  pub fn fn_is_method(&self, fn_id: FnId) -> bool {
+    match fn_id {
+      FnId::Concrete(fn_id) => self.concrete_fns[fn_id].method,
+      FnId::Abstract(trait_id, fn_id) => self.traits[trait_id].fns[fn_id].method,
     }
   }
 
-  pub fn fn_generics(&self, fn_kind: FnKind) -> GenericsId {
-    match fn_kind {
-      FnKind::Concrete(fn_id) => self.concrete_fns[fn_id].generics,
-      FnKind::Abstract(trait_id, _) => self.traits[trait_id].subitem_generics,
+  pub fn fn_generics(&self, fn_id: FnId) -> GenericsId {
+    match fn_id {
+      FnId::Concrete(fn_id) => self.concrete_fns[fn_id].generics,
+      FnId::Abstract(trait_id, _) => self.traits[trait_id].subitem_generics,
     }
   }
 
-  pub fn const_generics(&self, const_kind: ConstKind) -> GenericsId {
-    match const_kind {
-      ConstKind::Concrete(const_id) => self.concrete_consts[const_id].generics,
-      ConstKind::Abstract(trait_id, _) => self.traits[trait_id].subitem_generics,
+  pub fn const_generics(&self, const_id: ConstId) -> GenericsId {
+    match const_id {
+      ConstId::Concrete(const_id) => self.concrete_consts[const_id].generics,
+      ConstId::Abstract(trait_id, _) => self.traits[trait_id].subitem_generics,
     }
   }
 }

@@ -3,7 +3,7 @@ use std::collections::{BTreeSet, HashSet};
 use crate::{
   ast::{GenericArgs, Ident, Impl, ImplKind, Span},
   chart::{
-    Chart, Def, DefId, DefImplKind, DefTraitKind, DefValueKind, FnKind, GenericsId, ImplId,
+    Chart, Def, DefId, DefImplKind, DefTraitKind, DefValueKind, FnId, GenericsId, ImplId,
     MemberKind, WithVis,
   },
   core::Core,
@@ -49,7 +49,7 @@ impl<'core, 'a> Finder<'core, 'a> {
     types: &Types<'core>,
     receiver: Type,
     name: Ident,
-  ) -> Vec<(FnKind, TypeCtx<'core, Vec<Type>>)> {
+  ) -> Vec<(FnId, TypeCtx<'core, Vec<Type>>)> {
     let mut found = Vec::new();
 
     for candidate in self.find_method_candidates(types, receiver, name) {
@@ -79,7 +79,7 @@ impl<'core, 'a> Finder<'core, 'a> {
     types: &Types<'core>,
     receiver: Type,
     name: Ident,
-  ) -> BTreeSet<FnKind> {
+  ) -> BTreeSet<FnId> {
     let mut candidates = BTreeSet::new();
     let search = &mut CandidateSearch {
       modules: HashSet::new(),
