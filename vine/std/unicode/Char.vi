@@ -7,45 +7,45 @@ pub type Char;
 
 pub mod Char {
   pub impl fork: Fork[Char] {
-    fn .fork(&self: &Char) -> Char {
+    fn fork(&self: &Char) -> Char {
       unsafe::copy(&self)
     }
   }
 
   pub impl drop: Drop[Char] {
-    fn .drop(self: Char) {
+    fn drop(self: Char) {
       unsafe::erase(self)
     }
   }
 
   pub impl from_n32: Cast[N32, Char] {
-    fn .cast(n: N32) -> Char {
+    fn cast(n: N32) -> Char {
       inline_ivy! (n <- n) -> Char { n }
     }
   }
 
   pub impl to_n32: Cast[Char, N32] {
-    fn .cast(c: Char) -> N32 {
+    fn cast(c: Char) -> N32 {
       inline_ivy! (c <- c) -> N32 { c }
     }
   }
 
   pub impl eq: Eq[Char] {
-    fn .eq(&a: &Char, &b: &Char) -> Bool {
+    fn eq(&a: &Char, &b: &Char) -> Bool {
       inline_ivy! (a <- a, b <- b) -> Bool { out a = @n32_eq(b out) }
     }
 
-    fn .ne(&a: &Char, &b: &Char) -> Bool {
+    fn ne(&a: &Char, &b: &Char) -> Bool {
       inline_ivy! (a <- a, b <- b) -> Bool { out a = @n32_ne(b out) }
     }
   }
 
   pub impl ord: Ord[Char] {
-    fn .lt(&a: &Char, &b: &Char) -> Bool {
+    fn lt(&a: &Char, &b: &Char) -> Bool {
       inline_ivy! (a <- a, b <- b) -> Bool { out a = @n32_lt(b out) }
     }
 
-    fn .le(&a: &Char, &b: &Char) -> Bool {
+    fn le(&a: &Char, &b: &Char) -> Bool {
       inline_ivy! (a <- a, b <- b) -> Bool { out a = @n32_le(b out) }
     }
 
@@ -63,31 +63,31 @@ pub mod Char {
   }
 
   pub impl to_string: Cast[Char, String] {
-    fn .cast(self: Char) -> String {
+    fn cast(self: Char) -> String {
       [self] as String
     }
   }
 
   pub impl show: Show[Char] {
-    fn .show(&self: &Char) -> Show {
+    fn show(&self: &Char) -> Show {
       Show::Literal("'{self}'")
     }
   }
 
   pub impl add_n32: Add[Char, N32, Char] {
-    fn .add(a: Char, b: N32) -> Char {
+    fn add(a: Char, b: N32) -> Char {
       inline_ivy! (a <- a, b <- b) -> Char { out a = @n32_add(b out) }
     }
   }
 
   pub impl sub_n32: Sub[Char, N32, Char] {
-    fn .sub(a: Char, b: N32) -> Char {
+    fn sub(a: Char, b: N32) -> Char {
       inline_ivy! (a <- a, b <- b) -> Char { out a = @n32_sub(b out) }
     }
   }
 
   pub impl sub_char: Sub[Char, Char, N32] {
-    fn .sub(a: Char, b: Char) -> N32 {
+    fn sub(a: Char, b: Char) -> N32 {
       inline_ivy! (a <- a, b <- b) -> N32 { out a = @n32_sub(b out) }
     }
   }

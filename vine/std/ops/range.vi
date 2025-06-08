@@ -16,10 +16,10 @@ pub mod Bound {
 
   pub mod Unbounded {
     pub impl bound[T]: Bound[Unbounded, T] {
-      fn .left_of(self: &Unbounded, &_value: &T) -> Bool {
+      fn left_of(self: &Unbounded, &_value: &T) -> Bool {
         true
       }
-      fn .right_of(self: &Unbounded, &_value: &T) -> Bool {
+      fn right_of(self: &Unbounded, &_value: &T) -> Bool {
         true
       }
     }
@@ -27,10 +27,10 @@ pub mod Bound {
 
   pub mod Inclusive {
     pub impl bound[T; Ord[T]]: Bound[Inclusive[T], T] {
-      fn .left_of(&Inclusive[T](bound), &value: &T) -> Bool {
+      fn left_of(&Inclusive[T](bound), &value: &T) -> Bool {
         bound <= value
       }
-      fn .right_of(&Inclusive[T](bound), &value: &T) -> Bool {
+      fn right_of(&Inclusive[T](bound), &value: &T) -> Bool {
         value <= bound
       }
     }
@@ -38,10 +38,10 @@ pub mod Bound {
 
   pub mod Exclusive {
     pub impl bound[T; Ord[T]]: Bound[Exclusive[T], T] {
-      fn .left_of(&Exclusive[T](bound), &value: &T) -> Bool {
+      fn left_of(&Exclusive[T](bound), &value: &T) -> Bool {
         bound < value
       }
-      fn .right_of(&Exclusive[T](bound), &value: &T) -> Bool {
+      fn right_of(&Exclusive[T](bound), &value: &T) -> Bool {
         value < bound
       }
     }

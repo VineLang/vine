@@ -53,7 +53,7 @@ pub mod Option {
   }
 
   pub impl show[T; Show[T]]: Show[Option[T]] {
-    fn .show(&self: &Option[T]) -> Show {
+    fn show(&self: &Option[T]) -> Show {
       match &self {
         &Some(value) { Show::Constructor("Some", value.show()) }
         &None { Show::Literal("None") }
@@ -62,7 +62,7 @@ pub mod Option {
   }
 
   pub impl fork[T+]: Fork[Option[T]] {
-    fn .fork(&self: &Option[T]) -> Option[T] {
+    fn fork(&self: &Option[T]) -> Option[T] {
       match &self {
         &Some(value) { Some(value.fork()) }
         &None { None }
@@ -71,7 +71,7 @@ pub mod Option {
   }
 
   pub impl drop[T?]: Drop[Option[T]] {
-    fn .drop(self: Option[T]) {
+    fn drop(self: Option[T]) {
       match self {
         Some(value) { value.drop() }
         None {}

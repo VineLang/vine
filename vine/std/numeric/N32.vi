@@ -12,13 +12,13 @@ pub type N32;
 
 pub mod N32 {
   pub impl fork: Fork[N32] {
-    fn .fork(&self: &N32) -> N32 {
+    fn fork(&self: &N32) -> N32 {
       unsafe::copy(&self)
     }
   }
 
   pub impl drop: Drop[N32] {
-    fn .drop(self: N32) {
+    fn drop(self: N32) {
       unsafe::erase(self)
     }
   }
@@ -26,85 +26,85 @@ pub mod N32 {
   pub const maximum: N32 = 0xffffffff;
 
   pub impl add: Add[N32, N32, N32] {
-    fn .add(a: N32, b: N32) -> N32 {
+    fn add(a: N32, b: N32) -> N32 {
       inline_ivy! (a <- a, b <- b) -> N32 { out a = @n32_add(b out) }
     }
   }
 
   pub impl sub: Sub[N32, N32, N32] {
-    fn .sub(a: N32, b: N32) -> N32 {
+    fn sub(a: N32, b: N32) -> N32 {
       inline_ivy! (a <- a, b <- b) -> N32 { out a = @n32_sub(b out) }
     }
   }
 
   pub impl mul: Mul[N32, N32, N32] {
-    fn .mul(a: N32, b: N32) -> N32 {
+    fn mul(a: N32, b: N32) -> N32 {
       inline_ivy! (a <- a, b <- b) -> N32 { out a = @n32_mul(b out) }
     }
   }
 
   pub impl pow: Pow[N32, N32, N32] {
-    fn .pow(base: N32, exp: N32) -> N32 {
+    fn pow(base: N32, exp: N32) -> N32 {
       Pow::pow_by_squaring[N32](base, exp)
     }
   }
 
   pub impl div: Div[N32, N32, N32] {
-    fn .div(a: N32, b: N32) -> N32 {
+    fn div(a: N32, b: N32) -> N32 {
       inline_ivy! (a <- a, b <- b) -> N32 { out a = @n32_div(b out) }
     }
   }
 
   pub impl rem: Rem[N32, N32, N32] {
-    fn .rem(a: N32, b: N32) -> N32 {
+    fn rem(a: N32, b: N32) -> N32 {
       inline_ivy! (a <- a, b <- b) -> N32 { out a = @n32_rem(b out) }
     }
   }
 
   pub impl neg: Neg[N32, N32] {
-    fn .neg(a: N32) -> N32 {
+    fn neg(a: N32) -> N32 {
       inline_ivy! (a <- a) -> N32 { out a = @n32_sub$(0 out) }
     }
   }
 
   pub impl and: And[N32, N32, N32] {
-    fn .and(a: N32, b: N32) -> N32 {
+    fn and(a: N32, b: N32) -> N32 {
       inline_ivy! (a <- a, b <- b) -> N32 { out a = @n32_and(b out) }
     }
   }
 
   pub impl or: Or[N32, N32, N32] {
-    fn .or(a: N32, b: N32) -> N32 {
+    fn or(a: N32, b: N32) -> N32 {
       inline_ivy! (a <- a, b <- b) -> N32 { out a = @n32_or(b out) }
     }
   }
 
   pub impl xor: Xor[N32, N32, N32] {
-    fn .xor(a: N32, b: N32) -> N32 {
+    fn xor(a: N32, b: N32) -> N32 {
       inline_ivy! (a <- a, b <- b) -> N32 { out a = @n32_xor(b out) }
     }
   }
 
   pub impl shl: Shl[N32, N32, N32] {
-    fn .shl(a: N32, b: N32) -> N32 {
+    fn shl(a: N32, b: N32) -> N32 {
       inline_ivy! (a <- a, b <- b) -> N32 { out a = @n32_shl(b out) }
     }
   }
 
   pub impl shr: Shr[N32, N32, N32] {
-    fn .shr(a: N32, b: N32) -> N32 {
+    fn shr(a: N32, b: N32) -> N32 {
       inline_ivy! (a <- a, b <- b) -> N32 { out a = @n32_shr(b out) }
     }
   }
 
   pub impl not: Not[N32, N32] {
-    fn .not(a: N32) -> N32 {
+    fn not(a: N32) -> N32 {
       inline_ivy! (a <- a) -> N32 { out a = @n32_xor(0xffffffff out) }
     }
   }
 
   pub impl to_string: Cast[N32, String] {
-    fn .cast(n: N32) -> String {
+    fn cast(n: N32) -> String {
       if n != 0 {
         let chars = [];
         while n != 0 {
@@ -119,7 +119,7 @@ pub mod N32 {
   }
 
   pub impl show: Show[N32] {
-    fn .show(&n: &N32) -> Show {
+    fn show(&n: &N32) -> Show {
       Show::Literal("{n}")
     }
   }
@@ -161,11 +161,11 @@ pub mod N32 {
   }
 
   pub impl ord: Ord[N32] {
-    fn .lt(&a: &N32, &b: &N32) -> Bool {
+    fn lt(&a: &N32, &b: &N32) -> Bool {
       inline_ivy! (a <- a, b <- b) -> Bool { out a = @n32_lt(b out) }
     }
 
-    fn .le(&a: &N32, &b: &N32) -> Bool {
+    fn le(&a: &N32, &b: &N32) -> Bool {
       inline_ivy! (a <- a, b <- b) -> Bool { out a = @n32_le(b out) }
     }
 
@@ -175,11 +175,11 @@ pub mod N32 {
   }
 
   pub impl eq: Eq[N32] {
-    fn .eq(&a: &N32, &b: &N32) -> Bool {
+    fn eq(&a: &N32, &b: &N32) -> Bool {
       inline_ivy! (a <- a, b <- b) -> Bool { out a = @n32_eq(b out) }
     }
 
-    fn .ne(&a: &N32, &b: &N32) -> Bool {
+    fn ne(&a: &N32, &b: &N32) -> Bool {
       inline_ivy! (a <- a, b <- b) -> Bool { out a = @n32_ne(b out) }
     }
   }

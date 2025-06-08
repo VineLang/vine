@@ -102,7 +102,7 @@ pub mod List {
   }
 
   pub impl concat[T]: Concat[List[T], List[T], List[T]] {
-    fn .concat(a: List[T], b: List[T]) -> List[T] {
+    fn concat(a: List[T], b: List[T]) -> List[T] {
       let List(a_len, a_buf, ~a_end) = a;
       let List(b_len, b_buf, ~b_end) = b;
       a_end = b_buf;
@@ -156,7 +156,7 @@ pub mod List {
   }
 
   pub impl show[T; Show[T]]: Show[List[T]] {
-    fn .show(&self: &List[T]) -> Show {
+    fn show(&self: &List[T]) -> Show {
       let entries = [];
       let iter = self.iter();
       while iter.next() is Some(&value) {
@@ -191,7 +191,7 @@ pub mod List {
 
   pub mod Iter {
     pub impl iterator[T]: Iterator[Iter[T], &T] {
-      fn .next(&Iter[T](len, buf)) -> Option[&T] {
+      fn next(&Iter[T](len, buf)) -> Option[&T] {
         if len != 0 {
           len -= 1;
           let &Buf(*head, *tail) = buf;
@@ -203,7 +203,7 @@ pub mod List {
         }
       }
 
-      fn .drop_iter(&iter: &Iter[T]) {
+      fn drop_iter(&iter: &Iter[T]) {
         let Iter(_, &_) = move iter;
       }
     }
@@ -217,7 +217,7 @@ pub mod List {
 
   pub mod IntoIter {
     pub impl iterator[T]: Iterator[IntoIter[T], T] {
-      fn .next(&IntoIter[T](len, buf)) -> Option[T] {
+      fn next(&IntoIter[T](len, buf)) -> Option[T] {
         if len != 0 {
           len -= 1;
           let Buf(head, tail) = buf;
@@ -228,7 +228,7 @@ pub mod List {
         }
       }
 
-      fn .drop_iter(iter: &IntoIter[T]) {}
+      fn drop_iter(iter: &IntoIter[T]) {}
     }
   }
 
@@ -299,7 +299,7 @@ pub mod List {
   }
 
   pub impl fork[T+]: Fork[List[T]] {
-    fn .fork(&self: &List[T]) -> List[T] {
+    fn fork(&self: &List[T]) -> List[T] {
       let iter = self.iter();
       let out = [];
       while iter.next() is Some(&value) {
@@ -310,7 +310,7 @@ pub mod List {
   }
 
   pub impl drop[T?]: Drop[List[T]] {
-    fn .drop(self: List[T]) {
+    fn drop(self: List[T]) {
       let iter = self.into_iter();
       while iter.next() is Some(value) {
         value.drop();

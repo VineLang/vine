@@ -57,7 +57,7 @@ enum Move {
 
 mod Move {
   pub impl to_string: Cast[Move, String] {
-    fn .cast(self: Move) -> String {
+    fn cast(self: Move) -> String {
       match self {
         Up { "Up" }
         Down { "Down" }

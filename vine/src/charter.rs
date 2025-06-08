@@ -268,6 +268,9 @@ impl<'core> Charter<'core, '_> {
               if !fn_item.generics.impls.is_empty() || !fn_item.generics.types.is_empty() {
                 self.core.report(Diag::ImplItemGen { span });
               }
+              if fn_item.method {
+                self.core.report(Diag::ImplItemMethod { span });
+              }
               let def = self.chart_child(def, fn_item.name, vis, false);
               let body = self.ensure_implemented(span, fn_item.body);
               let fn_id = self.chart.concrete_fns.push(ConcreteFnDef {
