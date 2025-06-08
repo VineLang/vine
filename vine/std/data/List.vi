@@ -80,6 +80,16 @@ pub mod List {
     List(len, result, move cur)
   }
 
+  pub fn .filter[T](self: List[T], pred: fn(&T) -> Bool) -> List[T] {
+    let result = [];
+    while self.pop_front() is Some(value) {
+      if pred(&value) {
+        result.push_back(value);
+      }
+    }
+    result
+  }
+
   pub fn .pop_front[T](&List[T](len, buf, _)) -> Option[T] {
     if len != 0 {
       len -= 1;
