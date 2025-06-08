@@ -16,7 +16,7 @@ pub enum Show {
 
 pub mod Show {
   pub impl to_string: Cast[Show, String] {
-    fn .cast(self: Show) -> String {
+    fn cast(self: Show) -> String {
       self.format(80)
     }
   }
@@ -116,31 +116,31 @@ pub mod Show {
 }
 
 pub impl show_nil: Show[()] {
-  fn .show(&()) -> Show {
+  fn show(&()) -> Show {
     Show::Tuple([])
   }
 }
 
 pub impl show_singleton[A; Show[A]]: Show[(A,)] {
-  fn .show(&(a: A,)) -> Show {
+  fn show(&(a: A,)) -> Show {
     Show::Tuple([a.show()])
   }
 }
 
 pub impl show_pair[A, B; Show[A], Show[B]]: Show[(A, B)] {
-  fn .show(&(a: A, b: B)) -> Show {
+  fn show(&(a: A, b: B)) -> Show {
     Show::Tuple([a.show(), b.show()])
   }
 }
 
 pub impl show_triple[A, B, C; Show[A], Show[B], Show[C]]: Show[(A, B, C)] {
-  fn .show(&(a: A, b: B, c: C)) -> Show {
+  fn show(&(a: A, b: B, c: C)) -> Show {
     Show::Tuple([a.show(), b.show(), c.show()])
   }
 }
 
 pub impl show_quad[A, B, C, D; Show[A], Show[B], Show[C], Show[D]]: Show[(A, B, C, D)] {
-  fn .show(&(a: A, b: B, c: C, d: D)) -> Show {
+  fn show(&(a: A, b: B, c: C, d: D)) -> Show {
     Show::Tuple([a.show(), b.show(), c.show(), d.show()])
   }
 }

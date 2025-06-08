@@ -88,7 +88,7 @@ enum Region {
 
 mod Region {
   pub impl show: Show[Region] {
-    fn .show(&self: &Region) -> Show {
+    fn show(&self: &Region) -> Show {
       match self {
         Region::Root(x) { Show::Constructor("Root", x.show()) }
         Region::Child(x) { Show::Constructor("Child", x.show()) }
@@ -99,7 +99,7 @@ mod Region {
 
 mod Regions {
   pub impl to_string: Cast[Regions, String] {
-    fn .cast(Regions(array)) -> String {
+    fn cast(Regions(array)) -> String {
       (array.as[List]; _).show() as String
     }
   }

@@ -168,6 +168,8 @@ diags! {
     ["trait items cannot have generics"]
   ImplItemGen
     ["impl items cannot have generics"]
+  ImplItemMethod
+    ["impl fns cannot be marked as methods; this is done at the trait level"]
   ImplementedTraitItem
     ["trait items cannot have implementations"]
   UnexpectedImplArgs

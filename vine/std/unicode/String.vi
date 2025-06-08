@@ -7,13 +7,13 @@ pub struct String(pub List[Char]);
 
 pub mod String {
   pub impl fork: Fork[String] {
-    fn .fork(&self: &String) -> String {
+    fn fork(&self: &String) -> String {
       unsafe::copy(&self)
     }
   }
 
   pub impl drop: Drop[String] {
-    fn .drop(self: String) {
+    fn drop(self: String) {
       unsafe::erase(self)
     }
   }
@@ -172,7 +172,7 @@ pub mod String {
   }
 
   pub impl concat: Concat[String, String, String] {
-    fn .concat(String(a), String(b)) -> String {
+    fn concat(String(a), String(b)) -> String {
       String(a ++ b)
     }
   }
@@ -187,19 +187,19 @@ pub mod String {
   }
 
   pub impl from_chars: Cast[List[Char], String] {
-    fn .cast(chars: List[Char]) -> String {
+    fn cast(chars: List[Char]) -> String {
       String(chars)
     }
   }
 
   pub impl to_chars: Cast[String, List[Char]] {
-    fn .cast(String(chars)) -> List[Char] {
+    fn cast(String(chars)) -> List[Char] {
       chars
     }
   }
 
   pub impl show: Show[String] {
-    fn .show(&self: &String) -> Show {
+    fn show(&self: &String) -> Show {
       Show::Literal("\"{self}\"")
     }
   }
