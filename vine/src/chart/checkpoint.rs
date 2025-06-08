@@ -4,8 +4,8 @@ use crate::chart::ConstId;
 
 use super::{
   Builtins, Chart, ConcreteConstId, ConcreteFnId, Def, DefId, DefImplKind, DefPatternKind,
-  DefTraitKind, DefTypeKind, DefValueKind, EnumId, FnId, GenericsId, ImplId, ImportId,
-  MemberKind, OpaqueTypeId, StructId, TraitId, TypeAliasId,
+  DefTraitKind, DefTypeKind, DefValueKind, EnumId, FnId, GenericsId, ImplId, ImportId, MemberKind,
+  OpaqueTypeId, StructId, TraitId, TypeAliasId,
 };
 
 #[derive(Default, Debug)]
