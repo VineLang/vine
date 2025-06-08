@@ -41,8 +41,13 @@ pub mod Ord {
       }
     }
 
-    const lt: fn(&(A, B), &(A, B)) -> Bool = Ord::lt_from_cmp[(A, B)];
-    const le: fn(&(A, B), &(A, B)) -> Bool = Ord::le_from_cmp[(A, B)];
+    fn lt(x: &(A, B), y: &(A, B)) -> Bool {
+      Ord::lt_from_cmp[(A, B)](x, y)
+    }
+
+    fn le(x: &(A, B), y: &(A, B)) -> Bool {
+      Ord::le_from_cmp[(A, B)](x, y)
+    }
   }
 
   pub fn .gt[T; Ord[T]](&a: &T, &b: &T) -> Bool {
@@ -79,7 +84,9 @@ pub trait Lt[T] {
 
 pub mod Lt {
   pub impl from_ord[T; Ord[T]]: Lt[T] {
-    const lt: fn(&T, &T) -> Bool = Ord::lt[T];
+    fn lt(a: &T, b: &T) -> Bool {
+      Ord::lt[T](a, b)
+    }
   }
 
   #[builtin = "gt"]
@@ -95,7 +102,9 @@ pub trait Le[T] {
 
 pub mod Le {
   pub impl from_ord[T; Ord[T]]: Le[T] {
-    const le: fn(&T, &T) -> Bool = Ord::le[T];
+    fn le(a: &T, b: &T) -> Bool {
+      Ord::le[T](a, b)
+    }
   }
 
   #[builtin = "ge"]

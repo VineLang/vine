@@ -2,7 +2,10 @@ use std::collections::{BTreeSet, HashSet};
 
 use crate::{
   ast::{GenericArgs, Ident, Impl, ImplKind, Span},
-  chart::{Chart, Def, DefId, GenericsId, ImplDefId, MemberKind, ValueDefId},
+  chart::{
+    Chart, Def, DefId, DefImplKind, DefTraitKind, DefValueKind, FnId, GenericsId, ImplId,
+    MemberKind, WithVis,
+  },
   core::Core,
   diag::{Diag, ErrorGuaranteed},
   signatures::Signatures,
@@ -46,26 +49,24 @@ impl<'core, 'a> Finder<'core, 'a> {
     types: &Types<'core>,
     receiver: Type,
     name: Ident,
-  ) -> Vec<(ValueDefId, TypeCtx<'core, Vec<Type>>)> {
+  ) -> Vec<(FnId, TypeCtx<'core, Vec<Type>>)> {
     let mut found = Vec::new();
 
     for candidate in self.find_method_candidates(types, receiver, name) {
       let mut types = types.clone();
-      let generics = self.chart.values[candidate].generics;
-      let type_params = (0..self.chart.generics[generics].type_params.len())
-        .map(|_| types.new_var(self.span))
-        .collect::<Vec<_>>();
-      let candidate_ty =
-        types.import(&self.sigs.values[candidate], Some(&type_params), |t, sig| t.transfer(sig.ty));
-      if let Some((Inverted(false), TypeKind::Fn(params, _))) = types.kind(candidate_ty) {
-        if let [candidate_receiver, ..] = **params {
-          let candidate_receiver = match types.kind(candidate_receiver) {
-            Some((Inverted(false), TypeKind::Ref(t))) => *t,
-            _ => candidate_receiver,
-          };
-          if types.unify(receiver, candidate_receiver).is_success() {
-            found.push((candidate, TypeCtx { types, inner: type_params }));
-          }
+      let generics = self.chart.fn_generics(candidate);
+      let type_params = types.new_vars(self.span, self.chart.generics[generics].type_params.len());
+      let candidate_receiver =
+        types.import_with(self.sigs.fn_sig(candidate), Some(&type_params), |t, sig| {
+          sig.params.first().map(|&ty| t.transfer(&ty))
+        });
+      if let Some(candidate_receiver) = candidate_receiver {
+        let candidate_receiver = match types.kind(candidate_receiver) {
+          Some((Inverted(false), TypeKind::Ref(t))) => *t,
+          _ => candidate_receiver,
+        };
+        if types.unify(receiver, candidate_receiver).is_success() {
+          found.push((candidate, TypeCtx { types, inner: type_params }));
         }
       }
     }
@@ -78,16 +79,15 @@ impl<'core, 'a> Finder<'core, 'a> {
     types: &Types<'core>,
     receiver: Type,
     name: Ident,
-  ) -> BTreeSet<ValueDefId> {
+  ) -> BTreeSet<FnId> {
     let mut candidates = BTreeSet::new();
     let search = &mut CandidateSearch {
       modules: HashSet::new(),
-      consider_candidate: |def: &Def| {
+      consider_candidate: |self_: &Self, def: &Def| {
         if def.name == name {
-          if let Some(value_id) = def.value_def {
-            let value = &self.chart.values[value_id];
-            if value.method {
-              candidates.insert(value_id);
+          if let Some(WithVis { kind: DefValueKind::Fn(fn_kind), vis }) = def.value_kind {
+            if self_.chart.visible(vis, self_.source) && self_.chart.fn_is_method(fn_kind) {
+              candidates.insert(fn_kind);
             }
           }
         }
@@ -105,8 +105,7 @@ impl<'core, 'a> Finder<'core, 'a> {
 
   pub fn find_impl(&mut self, types: &mut Types<'core>, query: &ImplType) -> Impl<'core> {
     let span = self.span;
-    let TypeCtx { types: sub_types, inner: sub_query } =
-      types.export(|t| t.transfer_impl_type(query));
+    let TypeCtx { types: sub_types, inner: sub_query } = types.export(|t| t.transfer(query));
 
     let show_ty = || types.show_impl_type(self.chart, query);
     let Ok(mut results) = self._find_impl(&sub_types, &sub_query) else {
@@ -123,7 +122,7 @@ impl<'core, 'a> Finder<'core, 'a> {
 
     let result = results.pop().unwrap();
 
-    let result_ty = types.import(&result, None, |t, _| t.transfer_impl_type(&sub_query));
+    let result_ty = types.import_with(&result, None, |t, _| t.transfer(&sub_query));
     let unify_result = types.unify_impl_type(query, &result_ty);
     assert!(!unify_result.is_failure());
 
@@ -143,7 +142,7 @@ impl<'core, 'a> Finder<'core, 'a> {
     for (i, ty) in generics.inner.impl_params.iter().enumerate() {
       if query.approx_eq(ty) {
         let mut types = types.clone();
-        let ty = types.import(generics, None, |t, _| t.transfer_impl_type(ty));
+        let ty = types.import_with(generics, None, |t, _| t.transfer(ty));
         if types.unify_impl_type(&ty, query).is_success() {
           found.push(TypeCtx { types, inner: Impl { span: self.span, kind: ImplKind::Param(i) } });
         }
@@ -156,13 +155,9 @@ impl<'core, 'a> Finder<'core, 'a> {
       let type_params = (0..self.chart.generics[generics].type_params.len())
         .map(|_| types.new_var(self.span))
         .collect::<Vec<_>>();
-      let ty = types.import(&self.sigs.impls[candidate], Some(&type_params), |t, sig| {
-        t.transfer_impl_type(&sig.ty)
-      });
+      let ty = types.import(&self.sigs.impls[candidate], Some(&type_params)).ty;
       if types.unify_impl_type(&ty, query).is_success() {
-        let queries = types.import(&self.sigs.generics[generics], Some(&type_params), |t, sig| {
-          sig.impl_params.iter().map(|ty| t.transfer_impl_type(ty)).collect::<Vec<_>>()
-        });
+        let queries = types.import(&self.sigs.generics[generics], Some(&type_params)).impl_params;
         let results = self.find_subimpls(types, &queries)?;
         for result in results {
           let mut impls = result.inner;
@@ -204,19 +199,17 @@ impl<'core, 'a> Finder<'core, 'a> {
     Ok(found)
   }
 
-  fn find_impl_candidates(
-    &mut self,
-    types: &Types<'core>,
-    query: &ImplType,
-  ) -> BTreeSet<ImplDefId> {
+  fn find_impl_candidates(&mut self, types: &Types<'core>, query: &ImplType) -> BTreeSet<ImplId> {
     let mut candidates = BTreeSet::new();
     let search = &mut CandidateSearch {
       modules: HashSet::new(),
-      consider_candidate: |def: &Def| {
-        if let Some(impl_id) = def.impl_def {
-          let impl_sig = &self.sigs.impls[impl_id];
-          if impl_sig.inner.ty.approx_eq(query) {
-            candidates.insert(impl_id);
+      consider_candidate: |self_: &Self, def: &Def| {
+        if let Some(WithVis { vis, kind: DefImplKind::Impl(impl_id) }) = def.impl_kind {
+          if self_.chart.visible(vis, self_.source) {
+            let impl_sig = &self_.sigs.impls[impl_id];
+            if impl_sig.inner.ty.approx_eq(query) {
+              candidates.insert(impl_id);
+            }
           }
         }
       },
@@ -236,7 +229,7 @@ impl<'core, 'a> Finder<'core, 'a> {
     candidates
   }
 
-  fn find_general_candidates(&mut self, search: &mut CandidateSearch<impl FnMut(&Def<'_>)>) {
+  fn find_general_candidates(&mut self, search: &mut CandidateSearch<impl FnMut(&Self, &Def<'_>)>) {
     for &ancestor in &self.chart.defs[self.source].ancestors {
       self.find_candidates_within(ancestor, search);
     }
@@ -245,7 +238,7 @@ impl<'core, 'a> Finder<'core, 'a> {
     }
   }
 
-  fn find_candidates_within<F: FnMut(&Def)>(
+  fn find_candidates_within<F: FnMut(&Self, &Def)>(
     &mut self,
     mod_id: DefId,
     search: &mut CandidateSearch<F>,
@@ -267,24 +260,21 @@ impl<'core, 'a> Finder<'core, 'a> {
 
       let def = &self.chart.defs[def_id];
 
-      (search.consider_candidate)(def);
+      (search.consider_candidate)(self, def);
 
-      if let Some(trait_id) = def.trait_def {
-        let trait_def = &self.chart.traits[trait_id];
-        if self.chart.visible(trait_def.vis, self.source) {
+      if let Some(WithVis { kind: DefTraitKind::Trait(trait_id), vis }) = def.trait_kind {
+        if self.chart.visible(vis, self.source) {
+          let trait_def = &self.chart.traits[trait_id];
           self.find_candidates_within(trait_def.def, search);
         }
       }
 
-      if let Some(impl_id) = def.impl_def {
-        let impl_def = &self.chart.impls[impl_id];
-        if self.chart.visible(impl_def.vis, self.source) {
+      if let Some(WithVis { kind: DefImplKind::Impl(impl_id), vis }) = def.impl_kind {
+        if self.chart.visible(vis, self.source) {
           let impl_sig = &self.sigs.impls[impl_id];
           if let ImplType::Trait(trait_id, _) = impl_sig.inner.ty {
             let trait_def = &self.chart.traits[trait_id];
-            if self.chart.visible(trait_def.vis, self.source) {
-              self.find_candidates_within(trait_def.def, search);
-            }
+            self.find_candidates_within(trait_def.def, search);
           }
         }
       }

@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use vine_util::{
-  idx::{Counter, Idx, IdxVec, IntMap},
+  idx::{Counter, IdxVec, IntMap},
   new_idx,
 };
 
@@ -12,18 +12,21 @@ use crate::{
   diag::ErrorGuaranteed,
 };
 
+pub mod checkpoint;
+
 #[derive(Debug, Default)]
 pub struct Chart<'core> {
   pub defs: IdxVec<DefId, Def<'core>>,
-  pub values: IdxVec<ValueDefId, ValueDef<'core>>,
-  pub types: IdxVec<TypeDefId, TypeDef<'core>>,
-  pub patterns: IdxVec<PatternDefId, PatternDef>,
-  pub traits: IdxVec<TraitDefId, TraitDef<'core>>,
-  pub impls: IdxVec<ImplDefId, ImplDef<'core>>,
+  pub imports: IdxVec<ImportId, ImportDef<'core>>,
   pub generics: IdxVec<GenericsId, GenericsDef<'core>>,
+  pub concrete_consts: IdxVec<ConcreteConstId, ConcreteConstDef<'core>>,
+  pub concrete_fns: IdxVec<ConcreteFnId, ConcreteFnDef<'core>>,
+  pub opaque_types: IdxVec<OpaqueTypeId, OpaqueTypeDef<'core>>,
+  pub type_aliases: IdxVec<TypeAliasId, TypeAliasDef<'core>>,
   pub structs: IdxVec<StructId, StructDef<'core>>,
   pub enums: IdxVec<EnumId, EnumDef<'core>>,
-  pub imports: IdxVec<ImportId, Import<'core>>,
+  pub traits: IdxVec<TraitId, TraitDef<'core>>,
+  pub impls: IdxVec<ImplId, ImplDef<'core>>,
   pub builtins: Builtins,
 }
 
@@ -31,26 +34,27 @@ pub struct Chart<'core> {
 pub struct Builtins {
   pub prelude: Option<DefId>,
 
-  pub bool: Option<TypeDefId>,
-  pub n32: Option<TypeDefId>,
-  pub i32: Option<TypeDefId>,
-  pub f32: Option<TypeDefId>,
-  pub char: Option<TypeDefId>,
-  pub io: Option<TypeDefId>,
+  pub bool: Option<OpaqueTypeId>,
+  pub n32: Option<OpaqueTypeId>,
+  pub i32: Option<OpaqueTypeId>,
+  pub f32: Option<OpaqueTypeId>,
+  pub char: Option<OpaqueTypeId>,
+  pub io: Option<OpaqueTypeId>,
 
   pub list: Option<StructId>,
   pub string: Option<StructId>,
   pub result: Option<EnumId>,
 
-  pub neg: Option<ValueDefId>,
-  pub not: Option<ValueDefId>,
-  pub bool_not: Option<ImplDefId>,
-  pub cast: Option<ValueDefId>,
-  pub binary_ops: IntMap<BinaryOp, Option<ValueDefId>>,
-  pub comparison_ops: IntMap<ComparisonOp, Option<ValueDefId>>,
+  pub neg: Option<FnId>,
+  pub not: Option<FnId>,
+  pub cast: Option<FnId>,
+  pub binary_ops: IntMap<BinaryOp, Option<FnId>>,
+  pub comparison_ops: IntMap<ComparisonOp, Option<FnId>>,
 
-  pub fork: Option<TraitDefId>,
-  pub drop: Option<TraitDefId>,
+  pub bool_not: Option<ImplId>,
+
+  pub fork: Option<TraitId>,
+  pub drop: Option<TraitId>,
 
   pub range: Option<StructId>,
   pub bound_exclusive: Option<StructId>,
@@ -59,46 +63,26 @@ pub struct Builtins {
 }
 
 new_idx!(pub DefId);
-new_idx!(pub ValueDefId);
-new_idx!(pub TypeDefId);
-new_idx!(pub PatternDefId);
-new_idx!(pub TraitDefId);
-new_idx!(pub ImplDefId);
-new_idx!(pub GenericsId);
-new_idx!(pub StructId);
-new_idx!(pub EnumId);
-new_idx!(pub VariantId);
-new_idx!(pub SubitemId);
-new_idx!(pub ImportId);
-
-impl DefId {
-  pub const ROOT: Self = Self(0);
-}
-
-impl GenericsId {
-  pub const NONE: Self = Self(0);
-}
-
 #[derive(Debug)]
 pub struct Def<'core> {
   pub name: Ident<'core>,
   pub path: &'core str,
 
-  pub members: HashMap<Ident<'core>, Member>,
+  pub members: HashMap<Ident<'core>, WithVis<MemberKind>>,
   pub parent: Option<DefId>,
   pub ancestors: Vec<DefId>,
 
-  pub value_def: Option<ValueDefId>,
-  pub type_def: Option<TypeDefId>,
-  pub pattern_def: Option<PatternDefId>,
-  pub trait_def: Option<TraitDefId>,
-  pub impl_def: Option<ImplDefId>,
+  pub value_kind: Option<WithVis<DefValueKind>>,
+  pub type_kind: Option<WithVis<DefTypeKind>>,
+  pub pattern_kind: Option<WithVis<DefPatternKind>>,
+  pub trait_kind: Option<WithVis<DefTraitKind>>,
+  pub impl_kind: Option<WithVis<DefImplKind>>,
 }
 
-#[derive(Debug)]
-pub struct Member {
+#[derive(Debug, Clone, Copy)]
+pub struct WithVis<T> {
   pub vis: DefId,
-  pub kind: MemberKind,
+  pub kind: T,
 }
 
 #[derive(Debug)]
@@ -108,7 +92,52 @@ pub enum MemberKind {
 }
 
 #[derive(Debug, Clone, Copy)]
-pub struct Import<'core> {
+pub enum DefValueKind {
+  Const(ConstId),
+  Fn(FnId),
+  Struct(StructId),
+  Enum(EnumId, VariantId),
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+pub enum ConstId {
+  Concrete(ConcreteConstId),
+  Abstract(TraitId, TraitConstId),
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+pub enum FnId {
+  Concrete(ConcreteFnId),
+  Abstract(TraitId, TraitFnId),
+}
+
+#[derive(Debug, Clone, Copy)]
+pub enum DefTypeKind {
+  Opaque(OpaqueTypeId),
+  Alias(TypeAliasId),
+  Struct(StructId),
+  Enum(EnumId),
+}
+
+#[derive(Debug, Clone, Copy)]
+pub enum DefPatternKind {
+  Struct(StructId),
+  Enum(EnumId, VariantId),
+}
+
+#[derive(Debug, Clone, Copy)]
+pub enum DefTraitKind {
+  Trait(TraitId),
+}
+
+#[derive(Debug, Clone, Copy)]
+pub enum DefImplKind {
+  Impl(ImplId),
+}
+
+new_idx!(pub ImportId);
+#[derive(Debug, Clone, Copy)]
+pub struct ImportDef<'core> {
   pub span: Span,
   pub def: DefId,
   pub parent: ImportParent,
@@ -130,125 +159,7 @@ pub enum ImportState {
   Resolving,
 }
 
-#[derive(Debug)]
-pub struct ValueDef<'core> {
-  pub span: Span,
-  pub def: DefId,
-  pub vis: DefId,
-  pub generics: GenericsId,
-  pub locals: Counter<Local>,
-  pub kind: ValueDefKind<'core>,
-  pub method: bool,
-}
-
-#[derive(Debug, Default)]
-pub enum ValueDefKind<'core> {
-  #[default]
-  Taken,
-  Const {
-    ty: Ty<'core>,
-    value: Expr<'core>,
-  },
-  Fn {
-    params: Vec<Pat<'core>>,
-    ret: Option<Ty<'core>>,
-    body: Block<'core>,
-  },
-  Struct(StructId),
-  Enum(EnumId, VariantId),
-  TraitSubitem(TraitDefId, SubitemId),
-}
-
-#[derive(Debug)]
-pub struct TypeDef<'core> {
-  pub span: Span,
-  pub def: DefId,
-  pub vis: DefId,
-  pub generics: GenericsId,
-  pub kind: TypeDefKind<'core>,
-}
-
-#[derive(Debug, Default)]
-pub enum TypeDefKind<'core> {
-  #[default]
-  Taken,
-  Opaque,
-  Alias(Ty<'core>),
-  Struct(StructId),
-  Enum(EnumId),
-}
-
-#[derive(Debug)]
-pub struct PatternDef {
-  pub span: Span,
-  pub def: DefId,
-  pub vis: DefId,
-  pub generics: GenericsId,
-  pub kind: PatternDefKind,
-}
-
-#[derive(Debug)]
-pub enum PatternDefKind {
-  Struct(StructId),
-  Enum(EnumId, VariantId),
-}
-
-#[derive(Debug)]
-pub struct TraitDef<'core> {
-  pub span: Span,
-  pub def: DefId,
-  pub vis: DefId,
-  pub generics: GenericsId,
-  pub kind: TraitDefKind<'core>,
-}
-
-#[derive(Debug, Default)]
-pub enum TraitDefKind<'core> {
-  #[default]
-  Taken,
-  Trait {
-    subitems: IdxVec<SubitemId, TraitSubitem<'core>>,
-  },
-}
-
-#[derive(Debug)]
-pub struct TraitSubitem<'core> {
-  pub name: Ident<'core>,
-  pub kind: TraitSubitemKind<'core>,
-}
-
-#[derive(Debug)]
-pub enum TraitSubitemKind<'core> {
-  Fn(Vec<Pat<'core>>, Option<Ty<'core>>),
-  Const(Ty<'core>),
-}
-
-#[derive(Debug)]
-pub struct ImplDef<'core> {
-  pub span: Span,
-  pub def: DefId,
-  pub vis: DefId,
-  pub generics: GenericsId,
-  pub kind: ImplDefKind<'core>,
-}
-
-#[derive(Debug, Default)]
-pub enum ImplDefKind<'core> {
-  #[default]
-  Taken,
-  Impl {
-    trait_: Trait<'core>,
-    subitems: IdxVec<SubitemId, ImplSubitem<'core>>,
-  },
-}
-
-#[derive(Debug)]
-pub struct ImplSubitem<'core> {
-  pub span: Span,
-  pub name: Ident<'core>,
-  pub value: ValueDefId,
-}
-
+new_idx!(pub GenericsId);
 #[derive(Debug, Default, Clone)]
 pub struct GenericsDef<'core> {
   pub span: Span,
@@ -257,8 +168,52 @@ pub struct GenericsDef<'core> {
   pub impl_params: Vec<ImplParam<'core>>,
 }
 
-#[derive(Debug)]
+new_idx!(pub ConcreteConstId);
+#[derive(Debug, Clone)]
+pub struct ConcreteConstDef<'core> {
+  pub span: Span,
+  pub def: DefId,
+  pub generics: GenericsId,
+  pub ty: Ty<'core>,
+  pub value: Expr<'core>,
+  pub locals: Counter<Local>,
+}
+
+new_idx!(pub ConcreteFnId);
+#[derive(Debug, Clone)]
+pub struct ConcreteFnDef<'core> {
+  pub span: Span,
+  pub def: DefId,
+  pub generics: GenericsId,
+  pub method: bool,
+  pub params: Vec<Pat<'core>>,
+  pub ret_ty: Option<Ty<'core>>,
+  pub body: Block<'core>,
+  pub locals: Counter<Local>,
+}
+
+new_idx!(pub OpaqueTypeId);
+#[derive(Debug, Clone)]
+pub struct OpaqueTypeDef<'core> {
+  pub span: Span,
+  pub def: DefId,
+  pub generics: GenericsId,
+  pub name: Ident<'core>,
+}
+
+new_idx!(pub TypeAliasId);
+#[derive(Debug, Clone)]
+pub struct TypeAliasDef<'core> {
+  pub span: Span,
+  pub def: DefId,
+  pub generics: GenericsId,
+  pub ty: Ty<'core>,
+}
+
+new_idx!(pub StructId);
+#[derive(Debug, Clone)]
 pub struct StructDef<'core> {
+  pub span: Span,
   pub def: DefId,
   pub generics: GenericsId,
   pub name: Ident<'core>,
@@ -266,136 +221,106 @@ pub struct StructDef<'core> {
   pub data: Ty<'core>,
 }
 
-#[derive(Debug)]
+new_idx!(pub EnumId);
+#[derive(Debug, Clone)]
 pub struct EnumDef<'core> {
+  pub span: Span,
   pub def: DefId,
   pub generics: GenericsId,
   pub name: Ident<'core>,
   pub variants: IdxVec<VariantId, EnumVariant<'core>>,
 }
 
-#[derive(Debug)]
+new_idx!(pub VariantId);
+#[derive(Debug, Clone)]
 pub struct EnumVariant<'core> {
+  pub span: Span,
   pub def: DefId,
   pub name: Ident<'core>,
   pub data: Option<Ty<'core>>,
 }
 
-#[derive(Default, Debug)]
-pub struct ChartCheckpoint {
-  pub defs: DefId,
-  pub values: ValueDefId,
-  pub types: TypeDefId,
-  pub patterns: PatternDefId,
-  pub traits: TraitDefId,
-  pub impls: ImplDefId,
+new_idx!(pub TraitId);
+#[derive(Debug, Clone)]
+pub struct TraitDef<'core> {
+  pub span: Span,
+  pub def: DefId,
+  pub name: Ident<'core>,
   pub generics: GenericsId,
-  pub structs: StructId,
-  pub enums: EnumId,
-  pub imports: ImportId,
+  pub subitem_generics: GenericsId,
+  pub consts: IdxVec<TraitConstId, TraitConst<'core>>,
+  pub fns: IdxVec<TraitFnId, TraitFn<'core>>,
 }
 
-impl<'core> Chart<'core> {
-  pub fn checkpoint(&self) -> ChartCheckpoint {
-    ChartCheckpoint {
-      defs: self.defs.next_index(),
-      values: self.values.next_index(),
-      types: self.types.next_index(),
-      patterns: self.patterns.next_index(),
-      traits: self.traits.next_index(),
-      impls: self.impls.next_index(),
-      generics: self.generics.next_index(),
-      structs: self.structs.next_index(),
-      enums: self.enums.next_index(),
-      imports: self.imports.next_index(),
-    }
-  }
-
-  pub fn revert(&mut self, checkpoint: &ChartCheckpoint) {
-    self.defs.truncate(checkpoint.defs.0);
-    self.values.truncate(checkpoint.values.0);
-    self.types.truncate(checkpoint.types.0);
-    self.patterns.truncate(checkpoint.patterns.0);
-    self.traits.truncate(checkpoint.traits.0);
-    self.impls.truncate(checkpoint.impls.0);
-    self.generics.truncate(checkpoint.generics.0);
-    self.structs.truncate(checkpoint.structs.0);
-    self.enums.truncate(checkpoint.enums.0);
-    self.imports.truncate(checkpoint.imports.0);
-
-    for def in self.defs.values_mut() {
-      def.revert(checkpoint);
-    }
-
-    self.builtins.revert(checkpoint);
-  }
+new_idx!(pub TraitConstId);
+#[derive(Debug, Clone)]
+pub struct TraitConst<'core> {
+  pub name: Ident<'core>,
+  pub ty: Ty<'core>,
 }
 
-impl<'core> Def<'core> {
-  fn revert(&mut self, checkpoint: &ChartCheckpoint) {
-    self.members.retain(|_, member| match member.kind {
-      MemberKind::Child(id) => id < checkpoint.defs,
-      MemberKind::Import(id) => id < checkpoint.imports,
-    });
-    revert_option(&mut self.value_def, checkpoint.values);
-    revert_option(&mut self.type_def, checkpoint.types);
-    revert_option(&mut self.pattern_def, checkpoint.patterns);
-    revert_option(&mut self.trait_def, checkpoint.traits);
-    revert_option(&mut self.impl_def, checkpoint.impls);
-  }
+new_idx!(pub TraitFnId);
+#[derive(Debug, Clone)]
+pub struct TraitFn<'core> {
+  pub method: bool,
+  pub name: Ident<'core>,
+  pub params: Vec<Pat<'core>>,
+  pub ret_ty: Option<Ty<'core>>,
 }
 
-impl Builtins {
-  fn revert(&mut self, checkpoint: &ChartCheckpoint) {
-    revert_option(&mut self.prelude, checkpoint.defs);
-    revert_option(&mut self.bool, checkpoint.types);
-    revert_option(&mut self.n32, checkpoint.types);
-    revert_option(&mut self.f32, checkpoint.types);
-    revert_option(&mut self.i32, checkpoint.types);
-    revert_option(&mut self.char, checkpoint.types);
-    revert_option(&mut self.io, checkpoint.types);
-    revert_option(&mut self.list, checkpoint.structs);
-    revert_option(&mut self.string, checkpoint.structs);
-    revert_option(&mut self.neg, checkpoint.values);
-    revert_option(&mut self.not, checkpoint.values);
-    revert_option(&mut self.bool_not, checkpoint.impls);
-    revert_option(&mut self.cast, checkpoint.values);
-    self.binary_ops.values_mut().for_each(|op| revert_option(op, checkpoint.values));
-    self.comparison_ops.values_mut().for_each(|op| revert_option(op, checkpoint.values));
-  }
+new_idx!(pub ImplId);
+#[derive(Debug, Clone)]
+pub struct ImplDef<'core> {
+  pub span: Span,
+  pub def: DefId,
+  pub generics: GenericsId,
+  pub trait_: Trait<'core>,
+  pub subitems: Vec<ImplSubitem<'core>>,
+  pub consts: IdxVec<TraitConstId, Result<ConcreteConstId, ErrorGuaranteed>>,
+  pub fns: IdxVec<TraitFnId, Result<ConcreteFnId, ErrorGuaranteed>>,
 }
 
-fn revert_option<T: Idx>(option: &mut Option<T>, checkpoint: T) {
-  if option.is_some_and(|id| id >= checkpoint) {
-    *option = None;
-  }
+#[derive(Debug, Clone)]
+pub struct ImplSubitem<'core> {
+  pub span: Span,
+  pub name: Ident<'core>,
+  pub kind: ImplSubitemKind,
 }
 
-impl<'core> TypeDefKind<'core> {
-  pub fn struct_id(&self) -> Option<StructId> {
-    if let TypeDefKind::Struct(struct_id) = self {
-      Some(*struct_id)
-    } else {
-      None
-    }
-  }
-
-  pub fn enum_id(&self) -> Option<EnumId> {
-    if let TypeDefKind::Enum(enum_id) = self {
-      Some(*enum_id)
-    } else {
-      None
-    }
-  }
+#[derive(Debug, Clone)]
+pub enum ImplSubitemKind {
+  Const(ConcreteConstId),
+  Fn(ConcreteFnId),
 }
 
 impl<'core> Chart<'core> {
   pub fn visible(&self, vis: DefId, from: DefId) -> bool {
     vis == from || vis < from && self.defs[from].ancestors.binary_search(&vis).is_ok()
   }
+
+  pub fn fn_is_method(&self, fn_id: FnId) -> bool {
+    match fn_id {
+      FnId::Concrete(fn_id) => self.concrete_fns[fn_id].method,
+      FnId::Abstract(trait_id, fn_id) => self.traits[trait_id].fns[fn_id].method,
+    }
+  }
+
+  pub fn fn_generics(&self, fn_id: FnId) -> GenericsId {
+    match fn_id {
+      FnId::Concrete(fn_id) => self.concrete_fns[fn_id].generics,
+      FnId::Abstract(trait_id, _) => self.traits[trait_id].subitem_generics,
+    }
+  }
+
+  pub fn const_generics(&self, const_id: ConstId) -> GenericsId {
+    match const_id {
+      ConstId::Concrete(const_id) => self.concrete_consts[const_id].generics,
+      ConstId::Abstract(trait_id, _) => self.traits[trait_id].subitem_generics,
+    }
+  }
 }
 
-impl<'core> Import<'core> {
+impl<'core> ImportDef<'core> {
   pub fn resolved(&self) -> Option<DefId> {
     if let ImportState::Resolved(Ok(def_id)) = self.state {
       Some(def_id)
@@ -403,4 +328,12 @@ impl<'core> Import<'core> {
       None
     }
   }
+}
+
+impl DefId {
+  pub const ROOT: Self = Self(0);
+}
+
+impl GenericsId {
+  pub const NONE: Self = Self(0);
 }

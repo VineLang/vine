@@ -274,7 +274,7 @@ error input:1:1 - no function to return from
 
 io = #io
 > fn foo() -> N32 { Ok(123)? }
-error input:1:19 - cannot try `Result[N32, ?4]` in a function returning `N32`
+error input:1:19 - cannot try `Result[N32, ?3]` in a function returning `N32`
 
 io = #io
 > fn foo() -> Result[N32, String] { Ok(123)? }
@@ -282,7 +282,7 @@ error input:1:33 - expected type `Result[N32, String]`; found `N32`
 
 io = #io
 > fn foo() -> Result[N32, String] { Err(123)? }
-error input:1:35 - cannot try `Result[?5, N32]` in a function returning `Result[N32, String]`
+error input:1:35 - cannot try `Result[?4, N32]` in a function returning `Result[N32, String]`
 
 io = #io
 > let x = (1, 2.0, [Some(Ok(true)), Some(Err("hi")), None], ((), ((),), ((), ())));

@@ -10,9 +10,9 @@ use ivy::ast::Net;
 use vine_util::{idx, interner::Interned, new_idx};
 
 use crate::{
-  chart::{EnumId, ImplDefId, StructId, TraitDefId, TypeDefId, ValueDefId, VariantId},
+  chart::{ConstId, EnumId, FnId, ImplId, OpaqueTypeId, StructId, TraitId, TypeAliasId, VariantId},
   diag::ErrorGuaranteed,
-  specializer::RelId,
+  specializer::{ConstRelId, FnRelId},
 };
 
 new_idx!(pub Local; n => ["l{n}"]);
@@ -281,9 +281,13 @@ pub enum ExprKind<'core> {
   #[class(value)]
   Path(Path<'core>, Option<Vec<Expr<'core>>>),
   #[class(value, resolved)]
-  Def(ValueDefId, GenericArgs<'core>),
+  ConstDef(ConstId, GenericArgs<'core>),
+  #[class(value, resolved)]
+  FnDef(FnId, GenericArgs<'core>),
   #[class(value, synthetic)]
-  Rel(RelId),
+  ConstRel(ConstRelId),
+  #[class(value, synthetic)]
+  FnRel(FnRelId),
   #[class(place, resolved)]
   Local(Local),
   #[class(value, resolved)]
@@ -490,7 +494,7 @@ pub struct Ty<'core> {
   pub kind: TyKind<'core>,
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone, Default, Classes)]
 pub enum TyKind<'core> {
   #[default]
   Hole,
@@ -501,8 +505,16 @@ pub enum TyKind<'core> {
   Ref(B<Ty<'core>>),
   Inverse(B<Ty<'core>>),
   Path(Path<'core>),
+  #[class(resolved)]
   Param(usize),
-  Def(TypeDefId, GenericArgs<'core>),
+  #[class(resolved)]
+  Opaque(OpaqueTypeId, GenericArgs<'core>),
+  #[class(resolved)]
+  Alias(TypeAliasId, GenericArgs<'core>),
+  #[class(resolved)]
+  Struct(StructId, GenericArgs<'core>),
+  #[class(resolved)]
+  Enum(EnumId, GenericArgs<'core>),
   Error(ErrorGuaranteed),
 }
 
@@ -517,7 +529,7 @@ pub enum ImplKind<'core> {
   Hole,
   Param(usize),
   Path(Path<'core>),
-  Def(ImplDefId, GenericArgs<'core>),
+  Def(ImplId, GenericArgs<'core>),
   Error(ErrorGuaranteed),
 }
 
@@ -530,7 +542,7 @@ pub struct Trait<'core> {
 #[derive(Debug, Clone)]
 pub enum TraitKind<'core> {
   Path(Path<'core>),
-  Def(TraitDefId, GenericArgs<'core>),
+  Def(TraitId, GenericArgs<'core>),
   Error(ErrorGuaranteed),
 }
 

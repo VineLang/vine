@@ -6,8 +6,9 @@ use vine_util::idx::{Counter, IdxVec};
 use crate::{
   analyzer::usage::Usage,
   ast::Local,
-  chart::{Chart, EnumDef, ValueDefId, VariantId},
-  specializer::{Spec, SpecId, Specializations},
+  chart::{Chart, ConcreteConstId, ConcreteFnId, EnumDef, VariantId},
+  diag::ErrorGuaranteed,
+  specializer::{Spec, SpecId, Specializations, TemplateId},
   vir::{
     Header, Interface, InterfaceId, InterfaceKind, Invocation, Port, Stage, StageId, Step,
     Transfer, VIR,
@@ -26,12 +27,18 @@ impl<'core, 'a> Emitter<'core, 'a> {
     Emitter { nets: Nets::default(), chart, specs, dup_labels: Counter::default() }
   }
 
-  pub fn emit_spec(&mut self, spec: SpecId, vir: &IdxVec<ValueDefId, Option<VIR>>) {
+  pub fn emit_spec(
+    &mut self,
+    spec: SpecId,
+    const_vir: &IdxVec<ConcreteConstId, VIR>,
+    fn_vir: &IdxVec<ConcreteFnId, VIR>,
+  ) {
     let spec = self.specs.specs[spec].as_ref().unwrap();
-    let value_id = spec.value;
-    let value = &self.chart.values[value_id];
-    let Some(vir) = &vir[value_id] else { return };
-    let path = self.chart.defs[value.def].path;
+    let path = self.chart.defs[spec.def].path;
+    let vir = match spec.template {
+      TemplateId::Const(id) => &const_vir[id],
+      TemplateId::Fn(id) => &fn_vir[id],
+    };
     self.emit_vir(vir, path, spec)
   }
 
@@ -334,17 +341,26 @@ impl<'core, 'a> VirEmitter<'core, 'a> {
       Port::N32(n) => Tree::N32(*n),
       Port::F32(f) => Tree::F32(*f),
       Port::Wire(w) => Tree::Var(format!("w{}", wire_offset + w.0)),
-      Port::Def(id) => Tree::Global(chart.defs[chart.values[*id].def].path.into()),
-      Port::Rel(rel) => {
-        let spec_id = spec.rels[*rel];
-        let spec = specs.specs[spec_id].as_ref().unwrap();
-        let path = chart.defs[chart.values[spec.value].def].path;
-        Tree::Global(if spec.singular {
-          path.to_string()
-        } else {
-          format!("{}::{}", path, spec.index)
-        })
-      }
+      Port::ConstRel(rel) => Self::_emit_rel_spec(specs, chart, spec.rels.consts[*rel]),
+      Port::FnRel(rel) => Self::_emit_rel_spec(specs, chart, spec.rels.fns[*rel]),
+    }
+  }
+
+  fn _emit_rel_spec(
+    specs: &Specializations,
+    chart: &Chart,
+    spec_id: Result<SpecId, ErrorGuaranteed>,
+  ) -> Tree {
+    if let Ok(spec_id) = spec_id {
+      let spec = specs.specs[spec_id].as_ref().unwrap();
+      let path = chart.defs[spec.def].path;
+      Tree::Global(if spec.singular {
+        path.to_string()
+      } else {
+        format!("{}::{}", path, spec.index)
+      })
+    } else {
+      Tree::Erase
     }
   }
 

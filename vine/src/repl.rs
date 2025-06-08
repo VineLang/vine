@@ -1,7 +1,7 @@
 use std::{
   collections::{BTreeMap, HashMap},
   fmt::Write,
-  mem::{replace, take},
+  mem::replace,
   path::PathBuf,
 };
 
@@ -11,14 +11,14 @@ use ivm::{
 };
 use ivy::{ast::Tree, host::Host};
 use vine_util::{
-  idx::{Counter, IdxVec, IntMap},
+  idx::{Counter, IntMap},
   parser::{Parser, ParserState},
 };
 
 use crate::{
   analyzer::{analyze, usage::Usage},
   ast::{Block, Ident, Local, Span, Stmt},
-  chart::{DefId, ValueDefId, VariantId},
+  chart::{ConcreteConstId, DefId, VariantId},
   charter::{Charter, ExtractItems},
   checker::Checker,
   compiler::{Compiler, Hooks},
@@ -29,7 +29,7 @@ use crate::{
   normalizer::normalize,
   parser::VineParser,
   resolver::Resolver,
-  specializer::{RelId, Spec, SpecId, Specializer},
+  specializer::{Spec, SpecRels, Specializer, TemplateId},
   types::{Type, TypeKind, Types},
   vir::{InterfaceId, StageId},
   visit::VisitMut,
@@ -134,7 +134,7 @@ impl<'core, 'ctx, 'ivm, 'ext> Repl<'core, 'ctx, 'ivm, 'ext> {
       ty: &mut ty,
       local_count: &mut self.local_count,
       line: &mut self.line,
-      rels: IdxVec::new(),
+      rels: None,
       name: &mut name,
     })?;
 
@@ -149,7 +149,7 @@ impl<'core, 'ctx, 'ivm, 'ext> Repl<'core, 'ctx, 'ivm, 'ext> {
       ty: &'a mut Type,
       local_count: &'a mut Counter<Local>,
       line: &'a mut usize,
-      rels: IdxVec<RelId, SpecId>,
+      rels: Option<SpecRels>,
       name: &'a mut String,
     }
 
@@ -190,7 +190,7 @@ impl<'core, 'ctx, 'ivm, 'ext> Repl<'core, 'ctx, 'ivm, 'ext> {
       }
 
       fn specialize(&mut self, specializer: &mut Specializer<'core, '_>) {
-        self.rels = specializer._specialize_custom(&mut *self.block);
+        self.rels = Some(specializer._specialize_custom(&mut *self.block));
       }
 
       fn emit(&mut self, distiller: &mut Distiller<'core, '_>, emitter: &mut Emitter<'core, '_>) {
@@ -213,7 +213,13 @@ impl<'core, 'ctx, 'ivm, 'ext> Repl<'core, 'ctx, 'ivm, 'ext> {
         emitter.emit_vir(
           &vir,
           self.name,
-          &Spec { value: ValueDefId(0), index: 0, singular: true, rels: take(&mut self.rels) },
+          &Spec {
+            def: DefId(0),
+            template: TemplateId::Const(ConcreteConstId(0)),
+            index: 0,
+            singular: true,
+            rels: self.rels.take().unwrap(),
+          },
         );
       }
     }
@@ -344,10 +350,7 @@ impl<'core, 'ctx, 'ivm, 'ext> Repl<'core, 'ctx, 'ivm, 'ext> {
       (TypeKind::Struct(struct_id, args), tree) => {
         let name = self.compiler.chart.structs[*struct_id].name;
         let args = args.clone();
-        let data =
-          self.types.import(&self.compiler.sigs.structs[*struct_id], Some(&args), |t, sig| {
-            t.transfer(sig.data)
-          });
+        let data = self.types.import(&self.compiler.sigs.structs[*struct_id], Some(&args)).data;
         let data = self.show(data, tree);
         if data.starts_with("(") {
           format!("{name}{}", data)
@@ -380,9 +383,10 @@ impl<'core, 'ctx, 'ivm, 'ext> Repl<'core, 'ctx, 'ivm, 'ext> {
         let name = variant.name;
         let enum_id = *enum_id;
         let args = args.clone();
-        let data = self.types.import(&self.compiler.sigs.enums[enum_id], Some(&args), |t, sig| {
-          Some(t.transfer(sig.variant_data[variant_id]?))
-        });
+        let data =
+          self.types.import_with(&self.compiler.sigs.enums[enum_id], Some(&args), |t, sig| {
+            Some(t.transfer(&sig.variant_data[variant_id]?))
+          });
         let data = if let Some(ty) = data {
           let Tree::Comb(c, l, r) = tree else { None? };
           let "enum" = &**c else { None? };

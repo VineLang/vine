@@ -104,8 +104,8 @@ diags! {
     ["invalid method; function type `{ty}` takes no parameters"]
   ExpectedTypeFound { expected: String, found: String }
     ["expected type `{expected}`; found `{found}`"]
-  PathNoAssociated { kind: &'static str, path: &'core str }
-    ["no {kind} associated with `{path}`"]
+  PathNoAssociated { desc: &'static str, path: &'core str }
+    ["no {desc} associated with `{path}`"]
   BadGenericCount { path: &'core str, expected: usize, got: usize, kind: &'static str }
     ["`{path}` expects {expected} {kind} parameter{}; was passed {got}", plural(*expected, "s", "")]
   MissingTupleField { ty: String, i: usize }
@@ -146,14 +146,8 @@ diags! {
     ["`{module}::{ident}` is only visible within `{vis}`"]
   BadVis
     ["invalid visibility; expected the name of an ancestor module"]
-  ValueInvisible { path: &'core str, vis: &'core str }
-    ["the value `{path}` is only visible within `{vis}`"]
-  TypeInvisible { path: &'core str, vis: &'core str }
-    ["the type `{path}` is only visible within `{vis}`"]
-  PatInvisible { path: &'core str, vis: &'core str }
-    ["the pattern `{path}` is only visible within `{vis}`"]
-  ImplInvisible { path: &'core str, vis: &'core str }
-    ["the impl `{path}` is only visible within `{vis}`"]
+  InvisibleAssociated { desc: &'static str, path: &'core str, vis: &'core str }
+    ["the {desc} `{path}` is only visible within `{vis}`"]
   VisibleSubitem
     ["subitems must be private"]
   DuplicateKey
@@ -182,8 +176,10 @@ diags! {
     ["no item `{name}` exists in trait"]
   UnspecifiedImpl
     ["impl parameters must be explicitly specified"]
-  IncompleteImpl
-    ["not all trait items implemented"]
+  IncompleteImpl { name: Ident<'core> }
+    ["missing implementation of `{name}`"]
+  WrongImplSubitemKind { expected: &'static str }
+    ["expected a {expected}"]
   DuplicateTypeParam
     ["duplicate type param"]
   DuplicateImplParam

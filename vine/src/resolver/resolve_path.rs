@@ -1,6 +1,6 @@
 use crate::{
   ast::{Ident, Path, Span},
-  chart::{Def, DefId, Import, ImportId, ImportParent, ImportState, MemberKind},
+  chart::{Def, DefId, ImportDef, ImportId, ImportParent, ImportState, MemberKind, WithVis},
   diag::{Diag, ErrorGuaranteed},
 };
 
@@ -11,12 +11,26 @@ impl<'core> Resolver<'core, '_> {
     &mut self,
     base: DefId,
     path: &Path<'core>,
-    kind: &'static str,
-    f: impl FnOnce(&Def) -> Option<T>,
+    desc: &'static str,
+    f: impl FnOnce(&Def) -> Option<WithVis<T>>,
   ) -> Result<T, Diag<'core>> {
     let def = self.resolve_path(base, path)?;
     let def = &self.chart.defs[def];
-    f(def).ok_or(Diag::PathNoAssociated { span: path.span, kind, path: def.path })
+    match f(def) {
+      Some(WithVis { vis, kind }) => {
+        if self.chart.visible(vis, base) {
+          Ok(kind)
+        } else {
+          Err(Diag::InvisibleAssociated {
+            span: path.span,
+            desc,
+            path: def.path,
+            vis: self.chart.defs[vis].path,
+          })
+        }
+      }
+      None => Err(Diag::PathNoAssociated { span: path.span, desc, path: def.path }),
+    }
   }
 
   pub fn resolve_path(&mut self, base: DefId, path: &Path<'core>) -> Result<DefId, Diag<'core>> {
@@ -124,8 +138,8 @@ impl<'core> Resolver<'core, '_> {
     }
   }
 
-  fn _resolve_import(&mut self, import: Import<'core>) -> Result<DefId, ErrorGuaranteed> {
-    let Import { span, def, parent, ident, .. } = import;
+  fn _resolve_import(&mut self, import: ImportDef<'core>) -> Result<DefId, ErrorGuaranteed> {
+    let ImportDef { span, def, parent, ident, .. } = import;
     match parent {
       ImportParent::Root => self.resolve_ident(span, def, DefId::ROOT, ident),
       ImportParent::Scope => self.resolve_initial(span, def, ident),

@@ -40,7 +40,7 @@ false
 io = #io
 s = "hello world!"
 > "" == ""
-::std::data::List::eq::eq::1::13
+::std::data::List::eq::eq::0::13
 
 io = #io
 s = "hello world!"
@@ -50,7 +50,7 @@ false
 io = #io
 s = "hello world!"
 > "hello" == "hello"
-::std::data::List::eq::eq::1::13
+::std::data::List::eq::eq::0::13
 
 io = #io
 s = "hello world!"
@@ -91,7 +91,7 @@ io = #io
 s = "hello world!"
 x = "hi"
 > x == "hi"
-::std::data::List::eq::eq::1::13
+::std::data::List::eq::eq::0::13
 
 io = #io
 s = "hello world!"
