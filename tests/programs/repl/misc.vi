@@ -51,7 +51,7 @@ N64::parse("1.0")
 "1,2, 3,4, 5,6".split_once(", ")
 123.show(2)
 let x = [[1]];
-(x.get(0).unwrap(); _).get(0)
+(*x.at(0).unwrap()).get(0)
 x.at(0).unwrap().*.at(0).unwrap().* = 2
 ~x.at(0).unwrap().*.at(0).unwrap().*.~
 move x

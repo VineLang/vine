@@ -32,11 +32,11 @@ pub fn main(&io: &IO) {
   let i = 0;
   let &Regions(array) = &regions;
   while i < array.len() {
-    match array.get(i).unwrap() {
-      Region::Root(a, p) {
+    match array.at(i).unwrap() {
+      &Region::Root(a, p) {
         price += a * (a * 4 - p * 2);
       }
-      _ {}
+      &_ {}
     }
     i += 1;
   }
@@ -129,8 +129,8 @@ mod Regions {
   pub fn .get_area(&self: &Regions, i: N32) -> N32 {
     let i = self.find(i);
     let &Regions(array) = &self;
-    match array.get(i).unwrap() {
-      Region::Root(a, _) { a }
+    match array.at(i).unwrap() {
+      &Region::Root(a, _) { a }
     }
   }
 

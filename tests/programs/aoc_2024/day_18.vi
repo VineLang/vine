@@ -73,7 +73,7 @@ pub fn main(&io: &IO) {
   while y < size {
     let x = 0;
     while x < size {
-      if (grid.get(y).unwrap(); _).get(x).unwrap() == N32::maximum {
+      if (*grid.at(y).unwrap()).get(x).unwrap() == N32::maximum {
         i += 1;
         remove_data(x, y);
       }
@@ -90,7 +90,7 @@ pub fn main(&io: &IO) {
     i -= 1;
   }
 
-  let (x, y) = data.get(i).unwrap();
+  let &(x, y) = data.at(i).unwrap();
 
   io.println("Part 2: {x},{y}");
 }
@@ -161,7 +161,7 @@ fn pathfind(grid: Array[Array[N32]], size: N32, iters: N32) -> N32 {
       if cell >= iters {
         cell = 0;
         let fn visit((x: N32, y: N32)) {
-          if x < size && y < size && (grid.get(y).unwrap(); _).get(x).unwrap() >= iters {
+          if x < size && y < size && (*grid.at(y).unwrap()).get(x).unwrap() >= iters {
             next ++= [(x, y)];
           }
         }

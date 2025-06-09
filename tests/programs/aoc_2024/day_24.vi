@@ -21,7 +21,7 @@ pub fn main(&io: &IO) {
     let wire_out = move *pieces.at(4).unwrap();
     let a = (*at_wire(wire_a)).get();
     let b = (*at_wire(wire_b)).get();
-    let op = (pieces.get(1).unwrap()!; _).get(0).unwrap();
+    let op = (*pieces.at(1).unwrap())!.get(0).unwrap();
     let out = if op == 'A' {
       a & b
     } else if op == 'O' {
