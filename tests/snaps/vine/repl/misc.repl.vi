@@ -70,6 +70,23 @@ io = #io
 []
 
 io = #io
+> let l = [+1,+2,-13,+4];
+
+io = #io
+l = [+1, +2, -13, +4]
+> l.find(fn(&x: &I32) { x == +7 })
+None
+
+io = #io
+l = [+1, +2, -13, +4]
+> *l.find(fn(&x: &I32) { x < +0 }).unwrap() -= +5;
+
+io = #io
+l = [+1, +2, -18, +4]
+> move l
+[+1, +2, -18, +4]
+
+io = #io
 > let a = Array::from_fn(5, &(0; _), fn(&x: &N32) { let n = x; x += 1; n });
 
 io = #io
@@ -240,7 +257,7 @@ error input:1:29 - expected type `{ a: N32, b: N32 }`; found `{ a: N32 }`
 
 io = #io
 > do { let x; x = (x, x); }
-error input:1:17 - expected type `?787`; found `(?787, ?787)`
+error input:1:17 - expected type `?839`; found `(?839, ?839)`
 
 io = #io
 > let (a: N32, b: N32);
@@ -249,17 +266,17 @@ io = #io
 > let x: (~N32, ~N32) = ~(a, b);
 
 io = #io
-a = #ivy(dup1(_ n0))
-b = #ivy(dup2(_ n0))
+a = #ivy(dup2(_ n0))
+b = #ivy(dup3(_ n0))
 x = (#ivy(n0), #ivy(n1))
 > let x: { a: ~N32, b: ~N32 } = ~{ a, b };
 
 io = #io
-a = #ivy(dup1(dup1(_ _) n0))
-b = #ivy(dup2(dup2(_ _) n0))
+a = #ivy(dup2(dup2(_ _) n0))
+b = #ivy(dup3(dup3(_ _) n0))
 x = { a: #ivy(n0), b: #ivy(n1) }
 > move (a, b, x)
-(#ivy(dup1(dup1(_ _) n0)), #ivy(dup2(dup2(_ _) n1)), { a: #ivy(n0), b: #ivy(n1) })
+(#ivy(dup2(dup2(_ _) n0)), #ivy(dup3(dup3(_ _) n1)), { a: #ivy(n0), b: #ivy(n1) })
 
 io = #io
 > let x
