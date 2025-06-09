@@ -611,10 +611,14 @@ impl<'core, 'a> Checker<'core, 'a> {
     if !inference || !args.types.is_empty() {
       check_count(args.types.len(), params.type_params.len(), "type");
     }
+    let impl_param_count =
+      // Things with no inference cannot have implementation parameters; skip
+      // checking the `GenericsSig` as this may not have been resolved yet.
+      if !inference { 0 } else { self.sigs.generics[params_id].inner.impl_params.len() };
     if !args.impls.is_empty() {
-      check_count(args.impls.len(), params.impl_params.len(), "impl");
+      check_count(args.impls.len(), impl_param_count, "impl");
     }
-    let has_impl_params = !params.impl_params.is_empty();
+    let has_impl_params = impl_param_count != 0;
     let type_param_count = params.type_params.len();
     let type_params = if let Some(type_params) = type_params {
       for (a, b) in type_params.iter().zip(args.types.iter_mut()) {

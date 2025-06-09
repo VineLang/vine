@@ -285,15 +285,15 @@ io = #io
 error input:1:35 - cannot try `Result[?4, N32]` in a function returning `Result[N32, String]`
 
 io = #io
-> let x = (1, 2.0, [Some(Ok(true)), Some(Err("hi")), None], ((), ((),), ((), ())));
+> let x = (1, 2.0, ([Some(Ok(true)), Some(Err("hi")), None], [1, 2, 3] as Array), ((), ((),), ((), ())));
 
 io = #io
-x = (1, 2.0, [Some(Ok(true)), Some(Err("hi")), None], ((), ((),), ((), ())))
+x = (1, 2.0, ([Some(Ok(true)), Some(Err("hi")), None], Array(3, Node(Node(Node(#ivy(1)), Node(#ivy(3))), Node(#ivy(2))))), ((), ((),), ((), ())))
 > x.fork()
-(1, 2.0, [Some(Ok(true)), Some(Err("hi")), None], ((), ((),), ((), ())))
+(1, 2.0, ([Some(Ok(true)), Some(Err("hi")), None], Array(3, Node(Node(Node(#ivy(1)), Node(#ivy(3))), Node(#ivy(2))))), ((), ((),), ((), ())))
 
 io = #io
-x = (1, 2.0, [Some(Ok(true)), Some(Err("hi")), None], ((), ((),), ((), ())))
+x = (1, 2.0, ([Some(Ok(true)), Some(Err("hi")), None], Array(3, Node(Node(Node(#ivy(1)), Node(#ivy(3))), Node(#ivy(2))))), ((), ((),), ((), ())))
 > x.drop(); let x;
 
 io = #io

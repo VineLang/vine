@@ -67,6 +67,6 @@ Ok(true)?
 fn foo() -> N32 { Ok(123)? }
 fn foo() -> Result[N32, String] { Ok(123)? }
 fn foo() -> Result[N32, String] { Err(123)? }
-let x = (1, 2.0, [Some(Ok(true)), Some(Err("hi")), None], ((), ((),), ((), ())));
+let x = (1, 2.0, ([Some(Ok(true)), Some(Err("hi")), None], [1, 2, 3] as Array), ((), ((),), ((), ())));
 x.fork()
 x.drop(); let x;
