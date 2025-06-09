@@ -36,7 +36,7 @@ pub fn main(&io: &IO) {
   let loops = 0;
   while spaces.pop_front() is Some(x, y) {
     let grid = grid;
-    *(*grid.get(y)).get(x) = '#';
+    *(*grid.at(y).unwrap()).at(x).unwrap() = '#';
     let (looped, _) = walk(&grid, guard_pos);
     if looped {
       loops += 1;
@@ -50,13 +50,13 @@ pub fn main(&io: &IO) {
 
 fn clear(&grid: &Array[Array[Char]], &spaces: &List[(N32, N32)]) {
   let height = grid.len();
-  let width = (*grid.get(0)).len();
+  let width = (*grid.at(0).unwrap()).len();
   let y = 0;
   while y < height {
-    let &row = grid.get(y);
+    let &row = grid.at(y).unwrap();
     let x = 0;
     while x < width {
-      let &cell = row.get(x);
+      let &cell = row.at(x).unwrap();
       if cell == 'X' {
         spaces ++= [(x, y)];
         cell = '.';
@@ -69,7 +69,7 @@ fn clear(&grid: &Array[Array[Char]], &spaces: &List[(N32, N32)]) {
 
 fn walk(&grid: &Array[Array[Char]], pos: (N32, N32)) -> (Bool, N32) {
   let height = grid.len();
-  let width = (*grid.get(0)).len();
+  let width = (*grid.at(0).unwrap()).len();
   let dir = (0, -(1));
   let distinct = 1;
   let repeat = 0;
@@ -80,7 +80,7 @@ fn walk(&grid: &Array[Array[Char]], pos: (N32, N32)) -> (Bool, N32) {
     if x >= width || y >= height {
       return (false, distinct);
     }
-    let &cell = (*grid.get(y)).get(x);
+    let &cell = (*grid.at(y).unwrap()).at(x).unwrap();
     if cell == '#' {
       let (x, y) = dir;
       dir = (-y, x);

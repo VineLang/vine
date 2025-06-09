@@ -24,13 +24,13 @@ pub fn main(&io: &IO) {
 
   let fn try_insert(dist: N32, pos: (N32, N32), dir) {
     let (x, y) = pos;
-    let &(passable, dirs, _) = (*grid.get(y)).get(x);
+    let &(passable, dirs, _) = (*grid.at(y).unwrap()).at(x).unwrap();
     if passable {
-      let &(min_dist, used) = dirs.get(dir);
+      let &(min_dist, used) = dirs.at(dir).unwrap();
       if dist < min_dist {
         ~used = false;
         min_dist = dist;
-        (*pq.get_or_insert(dist, [])).push_back((pos, dir))
+        (*pq.at_or_insert(dist, [])).push_back((pos, dir))
       }
       if dist == min_dist {
         ~used
@@ -48,8 +48,8 @@ pub fn main(&io: &IO) {
   while !done && pq.remove_min() is Some(dist, heads) {
     while heads.pop_front() is Some(pos, dir) {
       let (px, py) = pos;
-      let &(_, dirs, counted) = (*grid.get(py)).get(px);
-      let &(min_dist, ~used) = dirs.get(dir);
+      let &(_, dirs, counted) = (*grid.at(py).unwrap()).at(px).unwrap();
+      let &(min_dist, ~used) = dirs.at(dir).unwrap();
       if dist <= min_dist {
         min_dist = dist;
         let (ex, ey) = end;

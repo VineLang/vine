@@ -15,7 +15,7 @@ pub fn main(&io: &IO) {
     let (x, y) = line.split_once(",");
     let x = N32::parse(x).unwrap();
     let y = N32::parse(y.unwrap()).unwrap();
-    *(*grid.get(y)).get(x) = i;
+    *(*grid.at(y).unwrap()).at(x).unwrap() = i;
     data ++= [(x, y)];
     i += 1;
   }
@@ -57,7 +57,7 @@ pub fn main(&io: &IO) {
     let fn connect(dx: N32, dy: N32) {
       let X = x + dx;
       let Y = y + dy;
-      if X < size && Y < size && !*(*blocked.get(Y)).get(X) {
+      if X < size && Y < size && !*(*blocked.at(Y).unwrap()).at(X).unwrap() {
         set.union(coord(x, y), coord(X, Y));
       }
     }
@@ -65,7 +65,7 @@ pub fn main(&io: &IO) {
     connect(-(1), 0);
     connect(0, 1);
     connect(0, -(1));
-    *(*blocked.get(y)).get(x) = false;
+    *(*blocked.at(y).unwrap()).at(x).unwrap() = false;
   }
 
   let i = 0;
@@ -73,7 +73,7 @@ pub fn main(&io: &IO) {
   while y < size {
     let x = 0;
     while x < size {
-      if *(*grid.get(y)).get(x) == N32::maximum {
+      if (*grid.at(y).unwrap()).get(x).unwrap() == N32::maximum {
         i += 1;
         remove_data(x, y);
       }
@@ -90,7 +90,7 @@ pub fn main(&io: &IO) {
     i -= 1;
   }
 
-  let (x, y) = *data.get(i);
+  let &(x, y) = data.at(i).unwrap();
 
   io.println("Part 2: {x},{y}");
 }
@@ -109,7 +109,7 @@ mod DisjointSet {
 
   pub fn .find(&DisjointSet(array), i: N32) -> N32 {
     let ~root;
-    while array.get(i) is &Node::Child(parent) {
+    while array.at(i) is Some(&Node::Child(parent)) {
       i = parent;
       parent = ~root;
     }
@@ -124,8 +124,8 @@ mod DisjointSet {
       return a;
     }
     let &DisjointSet(array) = &self;
-    let &a_node = array.get(a);
-    let &b_node = array.get(b);
+    let &a_node = array.at(a).unwrap();
+    let &b_node = array.at(b).unwrap();
     match (&a_node, &b_node) {
       (&Node::Root(a_size), &Node::Root(b_size)) {
         if a_size < b_size {
@@ -157,11 +157,11 @@ fn pathfind(grid: Array[Array[N32]], size: N32, iters: N32) -> N32 {
         next = [];
         break;
       }
-      let &cell = (*grid.get(y)).get(x);
+      let &cell = (*grid.at(y).unwrap()).at(x).unwrap();
       if cell >= iters {
         cell = 0;
         let fn visit((x: N32, y: N32)) {
-          if x < size && y < size && *(*grid.get(y)).get(x) >= iters {
+          if x < size && y < size && (*grid.at(y).unwrap()).get(x).unwrap() >= iters {
             next ++= [(x, y)];
           }
         }

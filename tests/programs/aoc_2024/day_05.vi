@@ -8,7 +8,7 @@ pub fn main(&io: &IO) {
     let (left, right) = line.split_once("|");
     let a = N32::parse(left).unwrap();
     let b = N32::parse(right.unwrap()).unwrap();
-    set_bit(masks.get(b), a, true);
+    set_bit(masks.at(b).unwrap(), a, true);
   }
 
   let part1 = 0;
@@ -16,12 +16,12 @@ pub fn main(&io: &IO) {
   while io.read_line() is Some(line) {
     let nums = line.split(",").map(fn(x) { N32::parse(x).unwrap() });
     let good = true;
-    let middle = *nums.get(nums.len() / 2);
+    let middle = nums.get(nums.len() / 2).unwrap();
     let mask = ((0, 0), (0, 0));
     let iter = nums.iter();
     while iter.next() is Some(&num) {
       good &= !get_bit(mask, num);
-      mask |= *masks.get(num);
+      mask |= masks.get(num).unwrap();
     }
     iter.drop_iter();
     if good {
@@ -35,14 +35,14 @@ pub fn main(&io: &IO) {
       let out = [];
       let pending = [];
       while nums.pop_front() is Some(num) {
-        let mask = *masks.get(num) & nums_mask;
+        let mask = masks.get(num).unwrap() & nums_mask;
         if is_empty(mask) {
           process(num, &(out, pending, nums_mask));
         } else {
           pending ++= [(num, mask)];
         }
       }
-      part2 += *out.get(out.len() / 2);
+      part2 += out.get(out.len() / 2).unwrap();
 
       fn process(num: N32, &(out: List[N32], pending: List[(N32, Mask)], nums_mask: Mask)) {
         out ++= [num];

@@ -10,7 +10,7 @@ pub fn main(&io: &IO) {
 
   let grid = input.split_trim("\n");
 
-  let width = (*grid.get(0)).len();
+  let width = (*grid.at(0).unwrap()).len();
   let height = grid.len();
 
   let fn check_antinode((x: N32, y: N32)) {
@@ -31,7 +31,7 @@ pub fn main(&io: &IO) {
     let x = 0;
     while row!.pop_front() is Some(frequency) {
       if frequency != '.' {
-        let &antennas = antennas.get_or_insert(frequency, []);
+        let &antennas = antennas.at_or_insert(frequency, []);
         let pos = (x, y);
         let iter = antennas.into_iter();
         while iter.next() is Some(other_pos) {

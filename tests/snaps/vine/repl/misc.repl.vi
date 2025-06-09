@@ -234,16 +234,16 @@ io = #io
 
 io = #io
 x = [[1]]
-> x.get(0).*.get(0).*
-1
+> (*x.at(0).unwrap()).get(0)
+Some(1)
 
 io = #io
 x = [[1]]
-> x.get(0).*.get(0).* = 2
+> x.at(0).unwrap().*.at(0).unwrap().* = 2
 
 io = #io
 x = [[2]]
-> ~x.get(0).*.get(0).*.~
+> ~x.at(0).unwrap().*.at(0).unwrap().*.~
 2
 
 io = #io
@@ -257,7 +257,7 @@ error input:1:29 - expected type `{ a: N32, b: N32 }`; found `{ a: N32 }`
 
 io = #io
 > do { let x; x = (x, x); }
-error input:1:17 - expected type `?812`; found `(?812, ?812)`
+error input:1:17 - expected type `?839`; found `(?839, ?839)`
 
 io = #io
 > let (a: N32, b: N32);

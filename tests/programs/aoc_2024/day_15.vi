@@ -24,7 +24,7 @@ pub fn main(&io: &IO) {
   let initial_grid = grid;
 
   let fn get((x, y)) {
-    (*grid.get(y)).get(x)
+    (*grid.at(y).unwrap()).at(x).unwrap()
   }
 
   let fn show_grid() {
@@ -150,7 +150,7 @@ pub fn main(&io: &IO) {
             new_front.push_back((pos_x, '['));
             new_front.push_back((pos_x + 1, ']'));
             let carry = '.';
-            if front.len() != 0 && front.get(0) is &(p, c) && p == pos_x + 1 {
+            if front.len() != 0 && front.at(0) is Some(&(p, c)) && p == pos_x + 1 {
               front.pop_front();
               carry = c;
             }
@@ -176,7 +176,7 @@ pub fn main(&io: &IO) {
     }
   }
 
-  let width = (*grid.get(0)).len();
+  let width = (*grid.at(0).unwrap()).len();
   let height = grid.len();
 
   let part2 = 0;

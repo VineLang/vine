@@ -12,7 +12,7 @@ pub fn main(&io: &IO) {
     if a > b {
       (b, a) = (a, b)
     }
-    (*graph.get_or_insert(a, Map::empty)).insert(b, ());
+    (*graph.at_or_insert(a, Map::empty)).insert(b, ());
   }
 
   do {
@@ -24,7 +24,7 @@ pub fn main(&io: &IO) {
         let triangle_tips = [];
         let a_out = a_out;
         while a_out.remove_min() is Some(c, _) {
-          let bool = graph.get(&b) is Some(&b) && b.get(&c) is Some(&_);
+          let bool = graph.at(&b) is Some(&b) && b.at(&c) is Some(&_);
           if bool {
             triangle_tips ++= [c];
             triangles += 1;
@@ -48,13 +48,13 @@ pub fn main(&io: &IO) {
   ) {
     if tips.len() != 0 {
       if clique.len() >= best.len() {
-        best = clique ++ [*tips.get(0)];
+        best = clique ++ [tips.get(0).unwrap()];
       }
       while tips.pop_front() is Some(x) {
         let out = [];
         let tips = tips;
         while tips.pop_front() is Some(y) {
-          if graph.get(&x) is Some(&m) && m.get(&y) is Some(&_) {
+          if graph.at(&x) is Some(&m) && m.at(&y) is Some(&_) {
             out ++= [y];
           }
         }

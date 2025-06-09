@@ -22,14 +22,21 @@ pub mod List {
     list
   }
 
-  pub fn .get[T](&List[T](len, *buf, _), i: N32) -> &T {
+  pub fn .at[T](&List[T](len, *buf, _), i: N32) -> Option[&T] {
+    if i >= len {
+      return None
+    }
     while i != 0 {
       let &Buf(_, *tail) = buf;
       buf = tail;
       i -= 1;
     }
     let &Buf(*head, _) = buf;
-    head
+    Some(head)
+  }
+
+  pub fn .get[T+](&self: &List[T], i: N32) -> Option[T] {
+    self.at(i).as_forked()
   }
 
   pub fn .slice[T, B1, B2; Bound[B1, N32], Bound[B2, N32]](self: List[T], Range[B1, B2](start, end)) -> List[

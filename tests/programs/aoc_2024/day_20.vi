@@ -45,8 +45,8 @@ pub fn main(&io: &IO) {
 
   while !eq(cur, end) {
     let next;
-    let fn check(pos) {
-      if !eq(prev, pos) && *(*grid.get(pos.1)).get(pos.0) {
+    let fn check(pos: (N32, N32)) {
+      if !eq(prev, pos) && (*grid.at(pos.1).unwrap()).get(pos.0).unwrap() {
         next = pos;
       }
     }

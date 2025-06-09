@@ -41,7 +41,7 @@ fn part1(input: String) -> N64 {
     let empty = empty.min(remaining);
     remaining -= empty;
     while empty != 0 {
-      let &(id, file) = backward.get(0);
+      let &(id, file) = backward.at(0).unwrap();
       let truncated = file.min(empty);
       file -= truncated;
       if file == 0 {

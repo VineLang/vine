@@ -32,11 +32,11 @@ pub fn main(&io: &IO) {
   let i = 0;
   let &Regions(array) = &regions;
   while i < array.len() {
-    match *array.get(i) {
-      Region::Root(a, p) {
+    match array.at(i).unwrap() {
+      &Region::Root(a, p) {
         price += a * (a * 4 - p * 2);
       }
-      _ {}
+      &_ {}
     }
     i += 1;
   }
@@ -95,6 +95,12 @@ mod Region {
       }
     }
   }
+
+  pub impl fork: Fork[Region] {
+    fn fork(&self: &Region) -> Region {
+      unsafe::copy(&self)
+    }
+  }
 }
 
 mod Regions {
@@ -112,7 +118,7 @@ mod Regions {
 
   pub fn .find(&Regions(array), i: N32) -> N32 {
     let ~root;
-    while array.get(i) is &Region::Child(p) {
+    while array.at(i) is Some(&Region::Child(p)) {
       i = p;
       p = ~root;
     }
@@ -123,22 +129,22 @@ mod Regions {
   pub fn .get_area(&self: &Regions, i: N32) -> N32 {
     let i = self.find(i);
     let &Regions(array) = &self;
-    match *array.get(i) {
-      Region::Root(a, _) { a }
+    match array.at(i).unwrap() {
+      &Region::Root(a, _) { a }
     }
   }
 
   pub fn .union_found(&Regions(array), i: N32, j: N32) -> N32 {
     if i == j {
-      match array.get(i) {
+      match array.at(i).unwrap() {
         &Region::Root(_, p) {
           p += 1;
         }
       }
       i
     } else {
-      let &r = array.get(i);
-      let &s = array.get(j);
+      let &r = array.at(i).unwrap();
+      let &s = array.at(j).unwrap();
       match (r, s) {
         (Region::Root(ra, rp), Region::Root(sa, sp)) {
           let a = ra + sa;

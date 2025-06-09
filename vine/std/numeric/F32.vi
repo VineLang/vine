@@ -161,7 +161,7 @@ pub mod F32 {
         let int = f as N32;
         f -= int as F32;
         let dec = ((f + 1.0) * 1.0e+5) as N32 as String;
-        dec!.get(0).* = '.';
+        dec!.at(0).unwrap().* = '.';
         "{sign}{int}{dec}{exp}"
       }
     }

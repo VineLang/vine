@@ -135,8 +135,8 @@ fn check(Channel[Char](i, ~o), recv: Char) -> N32 {
 
 struct Neighbors[M]((Channel[M], Channel[M], Channel[M], Channel[M]));
 
-fn cross[T, M, X](grid: List[List[T]], f: fn(T, Neighbors[M], &X), d: M, &state: &X) {
-  let width = (*grid.get(0)).len();
+fn cross[M, X](grid: List[List[Char]], f: fn(Char, Neighbors[M], &X), d: M, &state: &X) {
+  let width = (*grid.at(0).unwrap()).len();
   let north = List::new(width, neglect_channel(d));
   while grid.pop_front() is Some(row) {
     let west = neglect_channel(d);

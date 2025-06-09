@@ -24,8 +24,8 @@ pub fn main(&io: &IO) {
   let steps = 100;
   while ip < program.len() && steps != 0 {
     steps -= 1;
-    let opcode = *program.get(ip);
-    let operand = *program.get(ip + 1);
+    let &opcode = program.at(ip).unwrap();
+    let &operand = program.at(ip + 1).unwrap();
     let fn combo() {
       if operand == 4 {
         a

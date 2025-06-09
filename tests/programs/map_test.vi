@@ -40,7 +40,7 @@ pub fn main(&io: &IO) {
   while n > 0 {
     n -= 1;
     let num = rng.gen_n32();
-    if map.get(&num) is Some(&n) => n != num * num {
+    if map.get(&num) is Some(n) => n != num * num {
       io.println("missing {num}");
     }
   }

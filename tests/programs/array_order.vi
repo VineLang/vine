@@ -11,7 +11,7 @@ pub fn main(&io: &IO) {
       n
     },
   );
-  io.println("{(*a.get(42))}");
+  io.println("{(a.get(42).unwrap())}");
   a.for_each(
     &io,
     fn(&io: &IO, n: N32) {
