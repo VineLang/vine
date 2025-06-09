@@ -86,12 +86,8 @@ pub mod Map {
     ref
   }
 
-  pub fn .get_or_insert[K, V; Ord[K]](&self: &Map[K, V], key: K, value: V) -> V {
-    let ~insert;
-    let old = self.insert(key, ~insert);
-    let value = old.unwrap_or(value);
-    ~insert = value;
-    value
+  pub fn .get_or_insert[K, V+; Ord[K]](&self: &Map[K, V], key: K, value: V) -> V {
+    self.at_or_insert(key, value).*.fork()
   }
 
   pub fn .at_le[K, V; Ord[K]](&Map[K, V](len, data), &key: &K) -> Option[&(K, V)] {

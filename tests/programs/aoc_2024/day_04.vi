@@ -110,7 +110,7 @@ struct Neighbors[M]((
   Channel[M],
 ));
 
-fn diamond[T, M, X; Fork[T]](grid: List[List[T]], f: fn(T, Neighbors[M], &X), d: M, state: X) -> X {
+fn diamond[T+, M, X](grid: List[List[T]], f: fn(T, Neighbors[M], &X), d: M, state: X) -> X {
   let width = (*grid.at(0).unwrap()).len();
   let north = List::new(width, neglect_channel(d));
   let north_west = List::new(width, neglect_channel(d));
