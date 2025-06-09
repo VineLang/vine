@@ -1,8 +1,8 @@
+error tests/programs/fail/is_not.vi:2:13 - types in item signatures cannot be elided
 error tests/programs/fail/is_not.vi:3:23 - cannot find `y` in `::is_not::main`
 error tests/programs/fail/is_not.vi:4:18 - cannot find `y` in `::is_not::main`
 error tests/programs/fail/is_not.vi:5:16 - cannot find `y` in `::is_not::main`
 error tests/programs/fail/is_not.vi:5:26 - cannot find `y` in `::is_not::main`
 error tests/programs/fail/is_not.vi:5:29 - cannot find `z` in `::is_not::main`
-error tests/programs/fail/is_not.vi:7:3 - cannot find `y` in `::is_not::main`
-error tests/programs/fail/is_not.vi:2:13 - types in item signatures cannot be elided
 error tests/programs/fail/is_not.vi:5:23 - expected type `()`; found `(??, ??)`
+error tests/programs/fail/is_not.vi:7:3 - cannot find `y` in `::is_not::main`
