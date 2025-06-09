@@ -86,7 +86,7 @@ mod Parser {
   pub fn .parse_term(&self: &Parser) -> Term {
     let term = self.parse_atom();
     self.skip_ws();
-    while self.chars.len() != 0 && self.chars.get(0).* != ')' {
+    while self.chars.len() != 0 && self.chars.get(0).unwrap() != ')' {
       term = Term::Apply(term, self.parse_atom());
       self.skip_ws();
     }
@@ -98,7 +98,7 @@ mod Parser {
     if self.chars.len() == 0 {
       self.error("expected term");
     }
-    let char = self.chars.get(0).*;
+    let char = self.chars.get(0).unwrap();
     self.io.println(String([char]));
     if char == '\\' {
       self.io.println("lambda");
@@ -107,9 +107,9 @@ mod Parser {
       let var = self.parse_var();
       self.io.println(var);
       self.expect_char('.');
-      self.scope.get_or_insert(var, []).*.push_front([]);
+      self.scope.at_or_insert(var, []).*.push_front([]);
       let body = self.parse_atom();
-      let uses = self.scope.get(&var).unwrap().*.pop_front().unwrap();
+      let uses = self.scope.at(&var).unwrap().*.pop_front().unwrap();
       Term::Lambda(uses, body)
     } else if char == '(' {
       self.chars.pop_front();
@@ -118,9 +118,9 @@ mod Parser {
       term
     } else {
       let var = self.parse_var();
-      if self.scope.get(&var) is Some(&binds) && binds.len() != 0 {
+      if self.scope.at(&var) is Some(&binds) && binds.len() != 0 {
         let term;
-        binds.get(0).*.push_back(move ~term);
+        binds.at(0).unwrap().*.push_back(move ~term);
         term
       } else {
         self.error("unbound variable `{var}`")
@@ -130,7 +130,7 @@ mod Parser {
 
   fn .parse_var(&self: &Parser) -> String {
     let chars = [];
-    while self.chars.len() != 0 && self.chars.get(0).* is char && char.is_alphanumeric() {
+    while self.chars.len() != 0 && self.chars.get(0) is Some(char) && char.is_alphanumeric() {
       self.chars.pop_front();
       chars.push_back(char);
     }
@@ -148,7 +148,7 @@ mod Parser {
   }
 
   fn .skip_ws(&self: &Parser) {
-    while self.chars.len() != 0 && self.chars.get(0).*.is_whitespace() {
+    while self.chars.len() != 0 && self.chars.get(0).unwrap().is_whitespace() {
       self.chars.pop_front();
     }
   }

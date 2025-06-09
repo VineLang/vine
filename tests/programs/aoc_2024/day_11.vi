@@ -25,7 +25,7 @@ fn blink(&io: &IO, old: Map[N64, N64]) -> Map[N64, N64] {
   let new = Map::empty[N64, _];
   let iter = old.into_iter();
   let fn add_stones(number: N64, count: N64) {
-    let &c = new.get_or_insert(number, N64::zero);
+    let &c = new.at_or_insert(number, N64::zero);
     c += count;
   }
   while iter.next() is Some(number, count) {

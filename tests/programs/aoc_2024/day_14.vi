@@ -17,7 +17,7 @@ pub fn main(&io: &IO) {
     let px = N32::parse(px).unwrap();
     let py = N32::parse(py).unwrap();
     let fn parse_signed(x: String, m: N32) {
-      if *x!.get(0) == '-' {
+      if x!.get(0).unwrap() == '-' {
         x!.pop_front();
         m - N32::parse(x).unwrap()
       } else {
@@ -68,7 +68,7 @@ pub fn main(&io: &IO) {
     while iter.next() is Some(px, py, vx, vy) {
       let x = (px + vx * i) % width;
       let y = (py + vy * i) % height;
-      *(*grid.get(y)).get(x) = '#';
+      *(*grid.at(y).unwrap()).at(x).unwrap() = '#';
     }
     let lines = grid as List;
     while lines.pop_front() is Some(line) {

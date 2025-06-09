@@ -60,20 +60,24 @@ pub mod Map {
     }
   }
 
-  pub fn .get[K, V; Ord[K]](&Map[K, V](len, data), &key: &K) -> Option[&V] {
+  pub fn .at[K, V; Ord[K]](&Map[K, V](len, data), &key: &K) -> Option[&V] {
     if len == 0 {
       None
     } else {
       let &(left, (cur_key, cur_value), right) = &data;
       match key.cmp(&cur_key) {
-        Ord::Lt { left.get(&key) }
+        Ord::Lt { left.at(&key) }
         Ord::Eq { Some(&cur_value) }
-        Ord::Gt { right.get(&key) }
+        Ord::Gt { right.at(&key) }
       }
     }
   }
 
-  pub fn .get_or_insert[K, V; Ord[K]](&self: &Map[K, V], key: K, value: V) -> &V {
+  pub fn .get[K, V+; Ord[K]](&self: &Map[K, V], key: &K) -> Option[V] {
+    self.at(key).as_forked()
+  }
+
+  pub fn .at_or_insert[K, V; Ord[K]](&self: &Map[K, V], key: K, value: V) -> &V {
     let ~insert;
     let old = self.insert(key, ~insert);
     let value = old.unwrap_or(value);
@@ -82,16 +86,24 @@ pub mod Map {
     ref
   }
 
-  pub fn .get_le[K, V; Ord[K]](&Map[K, V](len, data), &key: &K) -> Option[&(K, V)] {
+  pub fn .get_or_insert[K, V; Ord[K]](&self: &Map[K, V], key: K, value: V) -> V {
+    let ~insert;
+    let old = self.insert(key, ~insert);
+    let value = old.unwrap_or(value);
+    ~insert = value;
+    value
+  }
+
+  pub fn .at_le[K, V; Ord[K]](&Map[K, V](len, data), &key: &K) -> Option[&(K, V)] {
     if len == 0 {
       None
     } else {
       let &(left, (cur_key, cur_value), right) = &data;
       match key.cmp(&cur_key) {
-        Ord::Lt { left.get_ge(&key) }
+        Ord::Lt { left.at_le(&key) }
         Ord::Eq { Some(&(cur_key, cur_value)) }
         Ord::Gt {
-          if right.get_ge(&key) is Some(entry) {
+          if right.at_le(&key) is Some(entry) {
             Some(entry)
           } else {
             Some(&(cur_key, cur_value))
@@ -101,23 +113,31 @@ pub mod Map {
     }
   }
 
-  pub fn .get_ge[K, V; Ord[K]](&Map[K, V](len, data), &key: &K) -> Option[&(K, V)] {
+  pub fn .get_le[K+, V+; Ord[K]](&self: &Map[K, V], &key: &K) -> Option[(K, V)] {
+    self.at_le(&key).as_forked()
+  }
+
+  pub fn .at_ge[K, V; Ord[K]](&Map[K, V](len, data), &key: &K) -> Option[&(K, V)] {
     if len == 0 {
       None
     } else {
       let &(left, (cur_key, cur_value), right) = &data;
       match key.cmp(&cur_key) {
         Ord::Lt {
-          if left.get_ge(&key) is Some(entry) {
+          if left.at_ge(&key) is Some(entry) {
             Some(entry)
           } else {
             Some(&(cur_key, cur_value))
           }
         }
         Ord::Eq { Some(&(cur_key, cur_value)) }
-        Ord::Gt { right.get_ge(&key) }
+        Ord::Gt { right.at_ge(&key) }
       }
     }
+  }
+
+  pub fn .get_ge[K+, V+; Ord[K]](&self: &Map[K, V], &key: &K) -> Option[(K, V)] {
+    self.at_ge(&key).as_forked()
   }
 
   pub fn .remove[K, V; Ord[K]](&Map[K, V](len, data), &key: &K) -> Option[V] {

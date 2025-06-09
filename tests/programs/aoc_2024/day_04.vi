@@ -5,7 +5,7 @@ pub fn main(&io: &IO) {
     lines ++= [chars];
   }
 
-  let matches = diamond(
+  let matches = diamond[Char, Char, N32](
     lines,
     fn(char: Char, Neighbors[Char](nw, n, ne, w, e, sw, s, se), &matches: &N32) {
       if char == 'X' {
@@ -39,7 +39,7 @@ pub fn main(&io: &IO) {
 
   io.println("XMAS: {matches}");
 
-  let matches = diamond(
+  let matches = diamond[Char, Char, N32](
     lines,
     fn(char: Char, Neighbors[Char](nw, _, ne, _, _, sw, _, se), &matches: &N32) {
       if char == 'A' {
@@ -110,8 +110,8 @@ struct Neighbors[M]((
   Channel[M],
 ));
 
-fn diamond[T, M, X](grid: List[List[T]], f: fn(T, Neighbors[M], &X), d: M, state: X) -> X {
-  let width = (*grid.get(0)).len();
+fn diamond[T, M, X; Fork[T]](grid: List[List[T]], f: fn(T, Neighbors[M], &X), d: M, state: X) -> X {
+  let width = (grid.get(0).unwrap(); _).len();
   let north = List::new(width, neglect_channel(d));
   let north_west = List::new(width, neglect_channel(d));
   let north_east = List::new(width, neglect_channel(d));

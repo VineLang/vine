@@ -4,14 +4,14 @@ pub fn main(&io: &IO) {
   let keys = [];
 
   while io.read_line() is Some(line) {
-    let on = line!.get(0).*;
+    let on = line!.get(0).unwrap();
     let is_lock = on == '#';
     let heights = List::new(5, 1);
     while io.read_line() is Some(line) && line.len() != 0 {
       let i = 0;
       while line!.pop_front() is Some(char) {
         if char == on {
-          heights.get(i).* += 1;
+          *heights.at(i).unwrap() += 1;
         }
         i += 1;
       }

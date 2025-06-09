@@ -92,13 +92,20 @@ pub mod Array {
     self.0
   }
 
-  pub fn .get[T](&Array[T](len, *node), i: N32) -> &T {
+  pub fn .at[T](&Array[T](len, *node), i: N32) -> Option[&T] {
+    if i >= len {
+      return None
+    }
     let size = len;
     while size > 1 {
       (node, size) = Node::half(node, size, i % 2);
       i /= 2;
     }
-    node as &T
+    Some(node as &T)
+  }
+
+  pub fn .get[T+](&self: &Array[T], i: N32) -> Option[T] {
+    self.at(i).as_forked()
   }
 
   pub fn .push_back[T](&Array[T](len, *node), value: T) {

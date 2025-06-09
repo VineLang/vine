@@ -21,6 +21,13 @@ pub mod Option {
     }
   }
 
+  pub fn .as_forked[T+](self: Option[&T]) -> Option[T] {
+    match self {
+      Some(&val) { Some(val.fork()) }
+      None { None }
+    }
+  }
+
   pub fn .flatten[T](self: Option[Option[T]]) -> Option[T] {
     match self {
       Some(Some(val)) { Some(val) }

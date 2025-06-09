@@ -6,22 +6,22 @@ pub fn main(&io: &IO) {
 
   while io.read_line() is Some(line) && line.len() != 0 {
     let (name, value) = line.split_once(": ");
-    let value = *(value.unwrap(); _)!.get(0) == '1';
+    let value = (value.unwrap(); _)!.get(0).unwrap() == '1';
     map.insert(name, Wire::input(value));
   }
 
-  let fn get_wire(wire) {
-    map.get_or_insert(wire, Wire::new())
+  let fn at_wire(wire) {
+    map.at_or_insert(wire, Wire::new())
   }
 
   while io.read_line() is Some(line) {
     let pieces = line.split(" ");
-    let wire_a = move *pieces.get(0);
-    let wire_b = move *pieces.get(2);
-    let wire_out = move *pieces.get(4);
-    let a = (*get_wire(wire_a)).get();
-    let b = (*get_wire(wire_b)).get();
-    let op = pieces.get(1).*!.get(0).*;
+    let wire_a = move *pieces.at(0).unwrap();
+    let wire_b = move *pieces.at(2).unwrap();
+    let wire_out = move *pieces.at(4).unwrap();
+    let a = (*at_wire(wire_a)).get();
+    let b = (*at_wire(wire_b)).get();
+    let op = (pieces.get(1).unwrap()!; _).get(0).unwrap();
     let out = if op == 'A' {
       a & b
     } else if op == 'O' {
@@ -29,7 +29,7 @@ pub fn main(&io: &IO) {
     } else {
       a ^ b
     };
-    (*get_wire(wire_out)).set(out);
+    (*at_wire(wire_out)).set(out);
   }
 
   let part1 = N64::zero;
@@ -37,7 +37,7 @@ pub fn main(&io: &IO) {
   let i = 0;
   loop {
     let wire = ['z', '0' + i / 10, '0' + i % 10] as String;
-    if map.get(&wire) is Some(&wire) {
+    if map.at(&wire) is Some(&wire) {
       let bit = if wire.get() {
         N64::one
       } else {

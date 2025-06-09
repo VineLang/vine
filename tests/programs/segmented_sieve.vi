@@ -16,7 +16,7 @@ pub fn main(&io: &IO) {
       primes.push_back(n);
       let i = n * n;
       while i <= sqrt {
-        *array.get(i - offset) = false;
+        *array.at(i - offset).unwrap() = false;
         i += n;
       }
     }
@@ -28,7 +28,7 @@ pub fn main(&io: &IO) {
     while iter.next() is Some(prime) {
       let i = N32::max(prime * prime, ((offset - 1) / prime + 1) * prime);
       while i < top {
-        *array.get(i - offset) = false;
+        *array.at(i - offset).unwrap() = false;
         i += prime;
       }
     }
