@@ -193,8 +193,8 @@ impl<'core> Types<'core> {
     let a = self.find_mut(a);
     let b = self.find_mut(b);
 
-    if a == b {
-      return Success;
+    if a.idx() == b.idx() {
+      return UnifyResult::from_bool(a.inverse() == b.inverse());
     }
 
     let (a_node, b_node) = self.types.get2_mut(a.idx(), b.idx()).unwrap();
