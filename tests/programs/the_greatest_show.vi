@@ -29,6 +29,6 @@ pub fn main(&io: &IO) {
 
 impl show_obj[A, B, C; Show[A], Show[B], Show[C]]: Show[{ a: A, b: B, c: C }] {
   fn show(&{ a:: A, b:: B, c:: C }) -> Show {
-    Show::Object([("a", a.show()), ("b", b.show()), ("c", c.show())])
+    Show::object([("a", a.show()), ("b", b.show()), ("c", c.show())])
   }
 }

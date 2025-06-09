@@ -90,8 +90,8 @@ mod Region {
   pub impl show: Show[Region] {
     fn show(&self: &Region) -> Show {
       match self {
-        Region::Root(x) { Show::Constructor("Root", x.show()) }
-        Region::Child(x) { Show::Constructor("Child", x.show()) }
+        Region::Root(x) { Show::constructor("Root", x.show()) }
+        Region::Child(x) { Show::constructor("Child", x.show()) }
       }
     }
   }

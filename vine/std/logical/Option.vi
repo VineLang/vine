@@ -62,7 +62,7 @@ pub mod Option {
   pub impl show[T; Show[T]]: Show[Option[T]] {
     fn show(&self: &Option[T]) -> Show {
       match &self {
-        &Some(value) { Show::Constructor("Some", value.show()) }
+        &Some(value) { Show::constructor("Some", value.show()) }
         &None { Show::Literal("None") }
       }
     }

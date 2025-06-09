@@ -175,12 +175,10 @@ pub mod List {
 
   pub impl show[T; Show[T]]: Show[List[T]] {
     fn show(&self: &List[T]) -> Show {
-      let entries = [];
-      let iter = self.iter();
-      while iter.next() is Some(&value) {
-        entries.push_back(value.show());
-      }
-      Show::List(entries)
+      let items = [Show::Literal("["), Show::Break];
+      items ++= Show::comma_separated(self.map(fn(value: T) { value.show() }));
+      items.push_back(Show::Literal("]"));
+      Show::Group(items)
     }
   }
 

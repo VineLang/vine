@@ -1,17 +1,16 @@
 
 use ops::Cast;
-use data::List as List_;
 
 pub trait Show[T] {
   fn .show(self: &T) -> Show;
 }
 
 pub enum Show {
+  Break,
   Literal(String),
-  Constructor((String, Show)),
-  Tuple(List_[Show]),
-  Object(List_[(String, Show)]),
-  List(List_[Show]),
+  Dynamic({ single_line: Show, multiline: Show }),
+  Indented(Show),
+  Group(List[Show]),
 }
 
 pub mod Show {
@@ -21,126 +20,206 @@ pub mod Show {
     }
   }
 
-  pub fn .format(self: Show, max_width: N32) -> String {
-    self._format(max_width, 0).1
+  pub fn constructor(name: String, data: Show) -> Show {
+    Show::Group([
+      Show::Literal("{name}("),
+      Show::Break,
+      Show::Indented(data),
+      Show::Break,
+      Show::Literal(")"),
+    ])
   }
 
-  fn ._format(self: Show, max_width: N32, indent: N32) -> (N32, String) {
+  pub fn tuple(items: List[Show]) -> Show {
+    let items = [Show::Literal("("), Show::Break];
+    items ++= Show::comma_separated(items);
+    items.push_back(Show::Literal(")"));
+    Show::Group(items)
+  }
+
+  pub fn object(entries: List[(String, Show)]) -> Show {
+    let entries = entries.map(fn((key: String, value)) {
+      Show::Group([Show::Literal("{key}: "), value])
+    });
+    let items = [Show::Literal("\{"), Show::Break];
+    items ++= Show::comma_separated(entries);
+    items.push_back(Show::Literal("}"));
+    Show::Group(items)
+  }
+
+  pub fn comma_separated(items: List[Show]) -> List[Show] {
+    let separator = Show::Dynamic({
+      single_line: Show::Literal(", "),
+      multiline: Show::Literal(","),
+    });
+    separated(items, separator, true, true)
+  }
+
+  pub fn separated(
+    items: List[Show],
+    separator: Show,
+    add_break: Bool,
+    multiline_trailing_separator: Bool,
+  ) -> List[Show] {
+    let item_iter = items.into_iter();
+    let items = [];
+    let ~last_item;
+    while item_iter.next() is Some(item) {
+      items.push_back(item);
+      ~last_item = false;
+      if !~last_item || multiline_trailing_separator {
+        items.push_back(Show::Dynamic({ single_line: Show::Literal(""), multiline: separator }));
+        if add_break {
+          items.push_back(Show::Break);
+        }
+      }
+    }
+    ~last_item = true;
+    items
+  }
+
+  fn .single_line_width(&self: &Show) -> N32 {
     match self {
-      Literal(literal) { (literal.len(), literal) }
-      Constructor(name, data) {
-        let omit_parens = &data is &Tuple(tuple) && tuple.len() != 1;
-        let (width, data) = data._format(max_width, indent);
-        if omit_parens {
-          (width + name.len(), "{name}{data}")
-        } else {
-          (width + name.len() + 2, "{name}({data})")
+      Break { 0 }
+      Literal(literal) { literal.len() }
+      Dynamic({ single_line, multiline }) { single_line.single_line_width() }
+      Indented(data) { data.single_line_width() }
+      Group(items) {
+        // FIX by making .map and .sum method on Iterator
+        let width = 0;
+        let iter = items.iter();
+        while iter.next() is Some(&item) {
+          width += item.single_line_width();
         }
-      }
-      Tuple(tuple) {
-        if tuple.len() == 0 {
-          (2, "()")
-        } else if tuple.len() == 1 {
-          let (width, inner) = tuple.pop_front().unwrap()._format(max_width, indent);
-          (width + 3, "({inner},)")
-        } else {
-          let (width, str, _) = format_comma_sep(tuple, fn(show) { ("", show) }, max_width, indent);
-          (width, "({str})")
-        }
-      }
-      List(list) {
-        if list.len() == 0 {
-          (2, "[]")
-        } else {
-          let (width, str, _) = format_comma_sep(list, fn(show) { ("", show) }, max_width, indent);
-          (width, "[{str}]")
-        }
-      }
-      Object(entries) {
-        if entries.len() == 0 {
-          (2, "\{}")
-        } else {
-          let (width, str, multiline) = format_comma_sep(
-            entries,
-            fn((key, show)) { (key ++ ": ", show) },
-            max_width,
-            indent,
-          );
-          let str = if multiline {
-            "\{{str}}"
-          } else {
-            "\{ {str} }"
-          };
-          (width, str)
-        }
+        width
       }
     }
   }
 
-  fn format_comma_sep[E](
-    entries: List_[E],
-    process_entry: fn(E) -> (String, Show),
-    max_width: N32,
-    indent: N32,
-  ) -> (N32, String, Bool) {
-    let ~_multiline;
-    let multiline: Bool = ~_multiline;
-    let total_width = 0;
-    let str = "";
-    let first = true;
-    let iter = entries.into_iter();
-    while iter.next() is Some(entry) {
-      let (prefix, show) = process_entry(entry);
-      let (width, value) = show._format(max_width, indent + 2);
-      total_width += prefix.len() + width + 2;
-      if multiline {
-        str ++= newline(indent + 2) ++ prefix ++ value ++ ",";
-      } else {
-        if !first {
-          str ++= ", ";
-        }
-        str ++= prefix ++ value;
-      }
-      first = false;
+  pub fn .format(self: Show, max_width: N32) -> String {
+    match self._format(max_width, false) {
+      Format::SingleLine(str) { str }
+      Format::MultiLine(lines) { lines.join("\n") }
     }
-    if multiline {
-      str ++= newline(indent);
-    }
-    ~_multiline = total_width > max_width;
-    (total_width, str, multiline)
   }
 
-  fn newline(indent: N32) -> String {
-    "\n" ++ String(List_::new(indent, ' '))
+  enum Format {
+    SingleLine(String),
+    MultiLine(List[String]),
+  }
+
+  mod Format {
+    pub fn .join(self: Format, separator: String) -> String {
+      match self {
+        SingleLine(str) { str }
+        MultiLine(lines) { lines.join(separator) }
+      }
+    }
+  }
+
+  fn ._format(self: Show, max_width: N32, is_parent_multiline: Bool) -> Format {
+    match self {
+      Break { Format::SingleLine("") }
+      Literal(literal) { Format::SingleLine(literal) }
+      Dynamic({ single_line, multiline }) {
+        if is_parent_multiline {
+          multiline._format(max_width, true)
+        } else {
+          single_line._format(max_width, false)
+        }
+      }
+      Indented(data) {
+        if is_parent_multiline {
+          match data._format(max_width - 2, is_parent_multiline) {
+            Format::SingleLine(str) { Format::SingleLine("  {str}") }
+            Format::MultiLine(lines) {
+              Format::MultiLine(lines.map(fn(line: String) { "  {line}" }))
+            }
+          }
+        } else {
+          data._format(max_width, is_parent_multiline)
+        }
+      }
+      Group(items) {
+        let single_line_width = 0;
+        let iter = items.iter();
+        while iter.next() is Some(&item) {
+          single_line_width += item.single_line_width();
+        }
+        if single_line_width <= max_width {
+          Format::SingleLine(items.map(fn(item) { item._format(max_width, false) }).map(fn(format: Format) {
+            format.join("")
+          }).join(""))
+        } else {
+          let lines = [];
+          let current_line = "";
+          let iter = items.into_iter();
+          while iter.next() is Some(item) {
+            match item {
+              Break {
+                lines.push_back(current_line);
+                current_line = "";
+              }
+              item {
+                match item._format(max_width, false) {
+                  Format::SingleLine(str) {
+                    current_line ++= str;
+                  }
+                  Format::MultiLine(lines) {
+                    let iter = lines.into_iter();
+                    if iter.next() is Some(line) {
+                      current_line ++= line;
+                      lines.push_back(line);
+                    }
+                    let ~last;
+                    while iter.next() is Some(line) {
+                      ~last = false;
+                      if ~last {
+                        current_line = line;
+                      } else {
+                        lines.push_back(line);
+                      }
+                    }
+                    ~last = true;
+                  }
+                }
+              }
+            }
+          }
+          lines.push_back(current_line);
+          Format::MultiLine(lines)
+        }
+      }
+    }
   }
 }
 
 pub impl show_nil: Show[()] {
   fn show(&()) -> Show {
-    Show::Tuple([])
+    Show::Literal("()")
   }
 }
 
 pub impl show_singleton[A; Show[A]]: Show[(A,)] {
   fn show(&(a: A,)) -> Show {
-    Show::Tuple([a.show()])
+    Show::Group([Show::Literal("("), a.show(), Show::Literal(",)")])
   }
 }
 
 pub impl show_pair[A, B; Show[A], Show[B]]: Show[(A, B)] {
   fn show(&(a: A, b: B)) -> Show {
-    Show::Tuple([a.show(), b.show()])
+    Show::tuple([a.show(), b.show()])
   }
 }
 
 pub impl show_triple[A, B, C; Show[A], Show[B], Show[C]]: Show[(A, B, C)] {
   fn show(&(a: A, b: B, c: C)) -> Show {
-    Show::Tuple([a.show(), b.show(), c.show()])
+    Show::tuple([a.show(), b.show(), c.show()])
   }
 }
 
 pub impl show_quad[A, B, C, D; Show[A], Show[B], Show[C], Show[D]]: Show[(A, B, C, D)] {
   fn show(&(a: A, b: B, c: C, d: D)) -> Show {
-    Show::Tuple([a.show(), b.show(), c.show(), d.show()])
+    Show::tuple([a.show(), b.show(), c.show(), d.show()])
   }
 }
