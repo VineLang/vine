@@ -3,14 +3,14 @@ use std::mem::take;
 use crate::{
   ast::{Expr, ExprKind, GenericArgs, Ident, Span},
   chart::FnId,
-  checker::{Checker, Form, Type},
   diag::{Diag, ErrorGuaranteed},
+  resolver::{Form, Resolver, Type},
   signatures::FnSig,
   types::{Inverted, TypeCtx, TypeKind},
 };
 
-impl<'core> Checker<'core, '_> {
-  pub(super) fn check_method(
+impl<'core> Resolver<'core, '_> {
+  pub(super) fn resolve_method(
     &mut self,
     span: Span,
     receiver: &mut Box<Expr<'core>>,
@@ -18,11 +18,11 @@ impl<'core> Checker<'core, '_> {
     generics: &mut GenericArgs<'core>,
     args: &mut Vec<Expr<'core>>,
   ) -> (ExprKind<'core>, Type) {
-    match self._check_method(span, receiver, name, generics, args) {
+    match self._resolve_method(span, receiver, name, generics, args) {
       Ok((form, id, ret)) => (self.desugar_method(span, receiver, args, id, generics, form), ret),
       Err(e) => {
         for arg in args {
-          self.check_expr_form(arg, Form::Value);
+          self.resolve_expr_form(arg, Form::Value);
         }
         let err = self.core.report(e);
         (ExprKind::Error(err), self.types.error(err))
@@ -30,7 +30,7 @@ impl<'core> Checker<'core, '_> {
     }
   }
 
-  fn _check_method(
+  fn _resolve_method(
     &mut self,
     span: Span,
     receiver: &mut Box<Expr<'core>>,
@@ -38,7 +38,7 @@ impl<'core> Checker<'core, '_> {
     generics: &mut GenericArgs<'core>,
     args: &mut [Expr<'core>],
   ) -> Result<(Form, FnId, Type), Diag<'core>> {
-    let (receiver_form, ty) = self.check_expr(receiver);
+    let (receiver_form, ty) = self.resolve_expr(receiver);
     let (id, type_params) = self.find_method(span, ty, ident)?;
     let type_params = self.types.import(&type_params, None);
     let (form, receiver_ty, params, ret) =
@@ -52,7 +52,7 @@ impl<'core> Checker<'core, '_> {
       })?
     }
     for (ty, arg) in params.into_iter().skip(1).zip(args.iter_mut()) {
-      self.check_expr_form_type(arg, Form::Value, ty);
+      self.resolve_expr_form_type(arg, Form::Value, ty);
     }
     Ok((form, id, ret))
   }
@@ -66,7 +66,7 @@ impl<'core> Checker<'core, '_> {
     args: usize,
   ) -> Result<(Form, Type, Vec<Type>, Type), Diag<'core>> {
     let type_params =
-      self._check_generics(generics, self.chart.fn_generics(fn_id), true, Some(type_params));
+      self._resolve_generics(generics, self.chart.fn_generics(fn_id), true, Some(type_params));
     let FnSig { params, ret_ty } = self.types.import(self.sigs.fn_sig(fn_id), Some(&type_params));
     let fn_ty = self.types.new(TypeKind::Fn(params.clone(), ret_ty));
     if params.len() != args + 1 {

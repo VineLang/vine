@@ -1,10 +1,10 @@
 use crate::{
   ast::{Expr, ExprKind},
-  checker::{Checker, Form},
+  resolver::{Resolver, Form},
   diag::Diag,
 };
 
-impl<'core> Checker<'core, '_> {
+impl<'core> Resolver<'core, '_> {
   pub(super) fn coerce_expr(&mut self, expr: &mut Expr<'core>, from: Form, to: Form) {
     let span = expr.span;
     match (from, to) {

@@ -20,7 +20,6 @@ use crate::{
   ast::{Block, Ident, Local, Span, Stmt},
   chart::{ConcreteConstId, DefId, VariantId},
   charter::{Charter, ExtractItems},
-  checker::Checker,
   compiler::{Compiler, Hooks},
   core::Core,
   diag::Diag,
@@ -28,6 +27,7 @@ use crate::{
   emitter::Emitter,
   normalizer::normalize,
   parser::VineParser,
+  resolver::Resolver,
   specializer::{Spec, SpecRels, Specializer, TemplateId},
   types::{Type, TypeKind, Types},
   vir::{InterfaceId, StageId},
@@ -156,8 +156,8 @@ impl<'core, 'ctx, 'ivm, 'ext> Repl<'core, 'ctx, 'ivm, 'ext> {
         }
       }
 
-      fn check(&mut self, checker: &mut Checker<'core, '_>) {
-        let (ty, binds) = checker._check_custom(
+      fn resolve(&mut self, resolver: &mut Resolver<'core, '_>) {
+        let (ty, binds) = resolver._resolve_custom(
           self.repl_mod,
           self.types,
           self.locals,

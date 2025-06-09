@@ -4,9 +4,9 @@ use crate::{
   diag::{Diag, ErrorGuaranteed},
 };
 
-use super::Checker;
+use super::Resolver;
 
-impl<'core> Checker<'core, '_> {
+impl<'core> Resolver<'core, '_> {
   pub fn resolve_path_to<T>(
     &mut self,
     base: DefId,

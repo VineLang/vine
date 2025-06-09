@@ -1,20 +1,20 @@
 use crate::{
   ast::{Pat, PatKind},
   chart::DefPatternKind,
-  checker::{Binding, Checker, Form, Type},
   diag::Diag,
+  resolver::{Binding, Form, Resolver, Type},
   types::TypeKind,
 };
 
-impl<'core> Checker<'core, '_> {
-  pub(super) fn check_pat_type(
+impl<'core> Resolver<'core, '_> {
+  pub(super) fn resolve_pat_type(
     &mut self,
     pat: &mut Pat<'core>,
     form: Form,
     refutable: bool,
     ty: Type,
   ) {
-    let found = self.check_pat(pat, form, refutable);
+    let found = self.resolve_pat(pat, form, refutable);
     if self.types.unify(found, ty).is_failure() {
       self.core.report(Diag::ExpectedTypeFound {
         span: pat.span,
@@ -24,18 +24,18 @@ impl<'core> Checker<'core, '_> {
     }
   }
 
-  pub(super) fn check_pat(&mut self, pat: &mut Pat<'core>, form: Form, refutable: bool) -> Type {
+  pub(super) fn resolve_pat(&mut self, pat: &mut Pat<'core>, form: Form, refutable: bool) -> Type {
     let span = pat.span;
     match (&mut pat.kind, form) {
       (_, Form::Error(_)) => unreachable!(),
       (PatKind::Struct(..) | PatKind::Enum(..) | PatKind::Local(_), _) => unreachable!(),
       (PatKind::Error(e), _) => self.types.error(*e),
 
-      (PatKind::Paren(p), _) => self.check_pat(p, form, refutable),
+      (PatKind::Paren(p), _) => self.resolve_pat(p, form, refutable),
 
       (PatKind::Annotation(pat, ty), _) => {
-        let ty = self.hydrate_type(ty, true);
-        self.check_pat_type(pat, form, refutable, ty);
+        let ty = self.resolve_type(ty, true);
+        self.resolve_pat_type(pat, form, refutable, ty);
         ty
       }
 
@@ -58,9 +58,9 @@ impl<'core> Checker<'core, '_> {
             };
             let mut generics = path.take_generics();
             let type_params =
-              self.check_generics(&mut generics, self.chart.structs[struct_id].generics, true);
+              self.resolve_generics(&mut generics, self.chart.structs[struct_id].generics, true);
             let data_ty = self.types.import(&self.sigs.structs[struct_id], Some(&type_params)).data;
-            self.check_pat_type(&mut data, form, refutable, data_ty);
+            self.resolve_pat_type(&mut data, form, refutable, data_ty);
             pat.kind = PatKind::Struct(struct_id, generics, Box::new(data));
             self.types.new(TypeKind::Struct(struct_id, type_params))
           }
@@ -74,7 +74,7 @@ impl<'core> Checker<'core, '_> {
             });
             let mut generics = path.take_generics();
             let type_params =
-              self.check_generics(&mut generics, self.chart.enums[enum_id].generics, true);
+              self.resolve_generics(&mut generics, self.chart.enums[enum_id].generics, true);
             let data_ty =
               self.types.import_with(&self.sigs.enums[enum_id], Some(&type_params), |t, sig| {
                 Some(t.transfer(&sig.variant_data[variant]?))
@@ -82,7 +82,7 @@ impl<'core> Checker<'core, '_> {
             match (&mut data, data_ty) {
               (None, None) => {}
               (Some(data), Some(data_ty)) => {
-                self.check_pat_type(data, Form::Value, refutable, data_ty);
+                self.resolve_pat_type(data, Form::Value, refutable, data_ty);
               }
               (None, Some(_)) => {
                 self.core.report(Diag::ExpectedDataSubpattern { span });
@@ -115,25 +115,25 @@ impl<'core> Checker<'core, '_> {
 
       (PatKind::Hole, _) => self.types.new_var(span),
       (PatKind::Inverse(inner), _) => {
-        let inner = self.check_pat(inner, form.inverse(), refutable);
+        let inner = self.resolve_pat(inner, form.inverse(), refutable);
         inner.inverse()
       }
       (PatKind::Tuple(els), _) => {
-        let els = els.iter_mut().map(|p| self.check_pat(p, form, refutable)).collect();
+        let els = els.iter_mut().map(|p| self.resolve_pat(p, form, refutable)).collect();
         self.types.new(TypeKind::Tuple(els))
       }
       (PatKind::Object(e), _) => {
-        self.build_object_type(e, |self_, p| self_.check_pat(p, form, refutable))
+        self.build_object_type(e, |self_, p| self_.resolve_pat(p, form, refutable))
       }
       (PatKind::Deref(p), Form::Place) => {
         let ty = self.types.new_var(span);
         let ref_ty = self.types.new(TypeKind::Ref(ty));
-        self.check_pat_type(p, Form::Value, refutable, ref_ty);
+        self.resolve_pat_type(p, Form::Value, refutable, ref_ty);
         ty
       }
 
       (PatKind::Ref(inner), Form::Value | Form::Place) => {
-        let inner = self.check_pat(inner, Form::Place, refutable);
+        let inner = self.resolve_pat(inner, Form::Place, refutable);
         self.types.new(TypeKind::Ref(inner))
       }
 

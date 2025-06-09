@@ -24,12 +24,12 @@ use crate::{
   types::{ImplType, Type, TypeCtx, TypeKind, Types},
 };
 
-mod check_expr;
-mod check_pat;
+mod resolve_expr;
+mod resolve_pat;
 mod resolve_path;
 
 #[derive(Debug)]
-pub struct Checker<'core, 'a> {
+pub struct Resolver<'core, 'a> {
   core: &'core Core<'core>,
   chart: &'a mut Chart<'core>,
   sigs: &'a mut Signatures<'core>,
@@ -69,13 +69,13 @@ enum Binding {
   LetFn(LetFnId, Type),
 }
 
-impl<'core, 'a> Checker<'core, 'a> {
+impl<'core, 'a> Resolver<'core, 'a> {
   pub fn new(
     core: &'core Core<'core>,
     chart: &'a mut Chart<'core>,
     sigs: &'a mut Signatures<'core>,
   ) -> Self {
-    Checker {
+    Resolver {
       core,
       chart,
       sigs,
@@ -95,11 +95,11 @@ impl<'core, 'a> Checker<'core, 'a> {
     }
   }
 
-  pub fn check_all(&mut self) {
-    self.check_since(&ChartCheckpoint::default());
+  pub fn resolve_all(&mut self) {
+    self.resolve_since(&ChartCheckpoint::default());
   }
 
-  pub(crate) fn check_since(&mut self, checkpoint: &ChartCheckpoint) {
+  pub(crate) fn resolve_since(&mut self, checkpoint: &ChartCheckpoint) {
     for id in self.chart.imports.keys_from(checkpoint.imports) {
       _ = self.resolve_import(id);
     }
@@ -128,13 +128,13 @@ impl<'core, 'a> Checker<'core, 'a> {
       self.resolve_impl_sig(id);
     }
     for id in self.chart.concrete_consts.keys_from(checkpoint.concrete_consts) {
-      self.check_const_def(id);
+      self.resolve_const_def(id);
     }
     for id in self.chart.concrete_fns.keys_from(checkpoint.concrete_fns) {
-      self.check_fn_def(id);
+      self.resolve_fn_def(id);
     }
     for id in self.chart.impls.keys_from(checkpoint.impls) {
-      self.check_impl_def(id);
+      self.resolve_impl_def(id);
     }
   }
 
@@ -170,7 +170,7 @@ impl<'core, 'a> Checker<'core, 'a> {
     }
     let mut alias_def = self.chart.type_aliases[alias_id].clone();
     self.initialize(alias_def.def, alias_def.generics);
-    let ty = self.hydrate_type(&mut alias_def.ty, false);
+    let ty = self.resolve_type(&mut alias_def.ty, false);
     self.chart.type_aliases[alias_id] = alias_def;
     let slot = self.sigs.type_aliases.get_or_extend(alias_id);
     if slot.is_none() {
@@ -178,32 +178,32 @@ impl<'core, 'a> Checker<'core, 'a> {
     }
   }
 
-  fn check_const_def(&mut self, const_id: ConcreteConstId) {
+  fn resolve_const_def(&mut self, const_id: ConcreteConstId) {
     let mut const_def = self.chart.concrete_consts[const_id].clone();
     self.initialize(const_def.def, const_def.generics);
     let ty = self.types.import(&self.sigs.concrete_consts[const_id], None).ty;
-    self.check_expr_form_type(&mut const_def.value, Form::Value, ty);
+    self.resolve_expr_form_type(&mut const_def.value, Form::Value, ty);
     const_def.locals = self.locals;
     self.chart.concrete_consts[const_id] = const_def;
   }
 
-  fn check_fn_def(&mut self, fn_id: ConcreteFnId) {
+  fn resolve_fn_def(&mut self, fn_id: ConcreteFnId) {
     let mut fn_def = self.chart.concrete_fns[fn_id].clone();
     self.initialize(fn_def.def, fn_def.generics);
     let ret_ty = self
       .types
       .import_with(&self.sigs.concrete_fns[fn_id], None, |t, sig| t.transfer(&sig.ret_ty));
     for pat in fn_def.params.iter_mut() {
-      self.check_pat(pat, Form::Value, false);
+      self.resolve_pat(pat, Form::Value, false);
     }
     self.return_ty = Some(ret_ty);
-    self.check_block_type(&mut fn_def.body, ret_ty);
+    self.resolve_block_type(&mut fn_def.body, ret_ty);
     self.return_ty = None;
     fn_def.locals = self.locals;
     self.chart.concrete_fns[fn_id] = fn_def;
   }
 
-  pub(crate) fn _check_custom(
+  pub(crate) fn _resolve_custom(
     &mut self,
     def_id: DefId,
     types: &mut Types<'core>,
@@ -220,7 +220,7 @@ impl<'core, 'a> Checker<'core, 'a> {
       .collect();
     swap(types, &mut self.types);
     self.locals = *local_count;
-    let ty = self._check_block(block);
+    let ty = self._resolve_block(block);
     *local_count = self.locals;
     swap(types, &mut self.types);
     (
@@ -240,14 +240,14 @@ impl<'core, 'a> Checker<'core, 'a> {
     )
   }
 
-  fn check_block(&mut self, block: &mut Block<'core>) -> Type {
+  fn resolve_block(&mut self, block: &mut Block<'core>) -> Type {
     self.enter_scope();
-    let ty = self._check_block(block);
+    let ty = self._resolve_block(block);
     self.exit_scope();
     ty
   }
 
-  fn _check_block(&mut self, block: &mut Block<'core>) -> Type {
+  fn _resolve_block(&mut self, block: &mut Block<'core>) -> Type {
     let mut ty = self.types.nil();
     for stmt in block.stmts.iter_mut() {
       ty = self.types.nil();
@@ -255,11 +255,11 @@ impl<'core, 'a> Checker<'core, 'a> {
         StmtKind::Let(l) => {
           let refutable = l.else_block.is_some();
           let expr_info = if let Some(value) = &mut l.init {
-            Some((value.span, self.check_expr_form(value, Form::Value)))
+            Some((value.span, self.resolve_expr_form(value, Form::Value)))
           } else {
             None
           };
-          let pat_ty = self.check_pat(&mut l.bind, Form::Value, refutable);
+          let pat_ty = self.resolve_pat(&mut l.bind, Form::Value, refutable);
           if let Some((expr_span, expr_ty)) = expr_info {
             if self.types.unify(expr_ty, pat_ty).is_failure() {
               self.core.report(Diag::ExpectedTypeFound {
@@ -271,21 +271,22 @@ impl<'core, 'a> Checker<'core, 'a> {
           }
           if let Some(block) = &mut l.else_block {
             let never = self.types.new(TypeKind::Never);
-            self.check_block_type(block, never);
+            self.resolve_block_type(block, never);
           }
         }
         StmtKind::LetFn(d) => {
           let old_labels = take(&mut self.labels);
           let old_loops = take(&mut self.loops);
           self.enter_scope();
-          let params = d.params.iter_mut().map(|p| self.check_pat(p, Form::Value, false)).collect();
+          let params =
+            d.params.iter_mut().map(|p| self.resolve_pat(p, Form::Value, false)).collect();
           let ret = d
             .ret
             .as_mut()
-            .map(|t| self.hydrate_type(t, true))
+            .map(|t| self.resolve_type(t, true))
             .unwrap_or_else(|| self.types.new_var(d.body.span));
           let old_return_ty = self.return_ty.replace(ret);
-          self.check_block_type(&mut d.body, ret);
+          self.resolve_block_type(&mut d.body, ret);
           self.exit_scope();
           self.labels = old_labels;
           self.loops = old_loops;
@@ -296,7 +297,7 @@ impl<'core, 'a> Checker<'core, 'a> {
           d.id = Some(id);
         }
         StmtKind::Expr(e, semi) => {
-          ty = self.check_expr_form(e, Form::Value);
+          ty = self.resolve_expr_form(e, Form::Value);
           if *semi {
             ty = self.types.nil();
           }
@@ -307,8 +308,8 @@ impl<'core, 'a> Checker<'core, 'a> {
     ty
   }
 
-  fn check_block_type(&mut self, block: &mut Block<'core>, ty: Type) {
-    let found = self.check_block(block);
+  fn resolve_block_type(&mut self, block: &mut Block<'core>, ty: Type) {
+    let found = self.resolve_block(block);
     if self.types.unify(found, ty).is_failure() {
       self.core.report(Diag::ExpectedTypeFound {
         span: block.span,
@@ -318,31 +319,31 @@ impl<'core, 'a> Checker<'core, 'a> {
     }
   }
 
-  fn hydrate_type(&mut self, ty: &mut Ty<'core>, inference: bool) -> Type {
+  fn resolve_type(&mut self, ty: &mut Ty<'core>, inference: bool) -> Type {
     let span = ty.span;
     match &mut ty.kind {
       TyKind::Hole if inference => self.types.new_var(span),
-      TyKind::Paren(t) => self.hydrate_type(t, inference),
+      TyKind::Paren(t) => self.resolve_type(t, inference),
       TyKind::Hole => self.types.error(self.core.report(Diag::ItemTypeHole { span })),
       TyKind::Fn(args, ret) => {
-        let params = args.iter_mut().map(|arg| self.hydrate_type(arg, inference)).collect();
+        let params = args.iter_mut().map(|arg| self.resolve_type(arg, inference)).collect();
         let ret =
-          ret.as_mut().map(|ret| self.hydrate_type(ret, inference)).unwrap_or(self.types.nil());
+          ret.as_mut().map(|ret| self.resolve_type(ret, inference)).unwrap_or(self.types.nil());
         self.types.new(TypeKind::Fn(params, ret))
       }
       TyKind::Tuple(tys) => {
-        let tys = tys.iter_mut().map(|arg| self.hydrate_type(arg, inference)).collect();
+        let tys = tys.iter_mut().map(|arg| self.resolve_type(arg, inference)).collect();
         self.types.new(TypeKind::Tuple(tys))
       }
       TyKind::Object(entries) => {
-        self.build_object_type(entries, |self_, t| self_.hydrate_type(t, inference))
+        self.build_object_type(entries, |self_, t| self_.resolve_type(t, inference))
       }
       TyKind::Ref(inner) => {
-        let inner = self.hydrate_type(inner, inference);
+        let inner = self.resolve_type(inner, inference);
         self.types.new(TypeKind::Ref(inner))
       }
       TyKind::Inverse(inner) => {
-        let inner = self.hydrate_type(inner, inference);
+        let inner = self.resolve_type(inner, inference);
         inner.inverse()
       }
       TyKind::Path(path) => {
@@ -357,23 +358,23 @@ impl<'core, 'a> Checker<'core, 'a> {
         match resolved {
           Ok(DefTypeKind::Opaque(opaque_id)) => {
             let generics_id = self.chart.opaque_types[opaque_id].generics;
-            let type_params = self.check_generics(generics, generics_id, inference);
+            let type_params = self.resolve_generics(generics, generics_id, inference);
             self.types.new(TypeKind::Opaque(opaque_id, type_params))
           }
           Ok(DefTypeKind::Struct(struct_id)) => {
             let generics_id = self.chart.structs[struct_id].generics;
-            let type_params = self.check_generics(generics, generics_id, inference);
+            let type_params = self.resolve_generics(generics, generics_id, inference);
             self.types.new(TypeKind::Struct(struct_id, type_params))
           }
           Ok(DefTypeKind::Enum(enum_id)) => {
             let generics_id = self.chart.enums[enum_id].generics;
-            let type_params = self.check_generics(generics, generics_id, inference);
+            let type_params = self.resolve_generics(generics, generics_id, inference);
             self.types.new(TypeKind::Enum(enum_id, type_params))
           }
           Ok(DefTypeKind::Alias(type_alias_id)) => {
             let generics_id = self.chart.type_aliases[type_alias_id].generics;
-            let type_params = self.check_generics(generics, generics_id, inference);
-            Checker::new(self.core, self.chart, self.sigs).resolve_type_alias(type_alias_id);
+            let type_params = self.resolve_generics(generics, generics_id, inference);
+            Resolver::new(self.core, self.chart, self.sigs).resolve_type_alias(type_alias_id);
             self
               .types
               .import(self.sigs.type_aliases[type_alias_id].as_ref().unwrap(), Some(&type_params))
@@ -386,12 +387,12 @@ impl<'core, 'a> Checker<'core, 'a> {
     }
   }
 
-  fn hydrate_param(&mut self, pat: &mut Pat<'core>) -> Type {
+  fn resolve_pat_sig(&mut self, pat: &mut Pat<'core>) -> Type {
     let span = pat.span;
     match &mut pat.kind {
       PatKind::Struct(..) | PatKind::Enum(..) => unreachable!(),
-      PatKind::Paren(inner) => self.hydrate_param(inner),
-      PatKind::Annotation(_, ty) => self.hydrate_type(ty, false),
+      PatKind::Paren(inner) => self.resolve_pat_sig(inner),
+      PatKind::Annotation(_, ty) => self.resolve_type(ty, false),
       PatKind::Path(path, _) => {
         let resolved = self.resolve_path_to(self.cur_def, path, "pattern", |d| d.pattern_kind);
         let _generics = &mut Generics::default();
@@ -399,30 +400,30 @@ impl<'core, 'a> Checker<'core, 'a> {
         match resolved {
           Ok(DefPatternKind::Struct(struct_id)) => {
             let type_params =
-              self.check_generics(generics, self.chart.structs[struct_id].generics, false);
+              self.resolve_generics(generics, self.chart.structs[struct_id].generics, false);
             self.types.new(TypeKind::Struct(struct_id, type_params))
           }
           Ok(DefPatternKind::Enum(enum_id, _)) => {
             let type_params =
-              self.check_generics(generics, self.chart.enums[enum_id].generics, false);
+              self.resolve_generics(generics, self.chart.enums[enum_id].generics, false);
             self.types.new(TypeKind::Enum(enum_id, type_params))
           }
           Err(_) => self.types.error(self.core.report(Diag::ItemTypeHole { span })),
         }
       }
       PatKind::Ref(inner) => {
-        let inner = self.hydrate_param(inner);
+        let inner = self.resolve_pat_sig(inner);
         self.types.new(TypeKind::Ref(inner))
       }
       PatKind::Inverse(inner) => {
-        let inner = self.hydrate_param(inner);
+        let inner = self.resolve_pat_sig(inner);
         inner.inverse()
       }
       PatKind::Tuple(els) => {
-        let els = els.iter_mut().map(|p| self.hydrate_param(p)).collect();
+        let els = els.iter_mut().map(|p| self.resolve_pat_sig(p)).collect();
         self.types.new(TypeKind::Tuple(els))
       }
-      PatKind::Object(entries) => self.build_object_type(entries, Self::hydrate_param),
+      PatKind::Object(entries) => self.build_object_type(entries, Self::resolve_pat_sig),
       PatKind::Hole | PatKind::Local(_) | PatKind::Deref(_) => {
         self.types.error(self.core.report(Diag::ItemTypeHole { span }))
       }
@@ -430,7 +431,7 @@ impl<'core, 'a> Checker<'core, 'a> {
     }
   }
 
-  fn check_impl_def(&mut self, impl_id: ImplId) {
+  fn resolve_impl_def(&mut self, impl_id: ImplId) {
     let mut impl_def = self.chart.impls[impl_id].clone();
     self.initialize(impl_def.def, impl_def.generics);
     let span = impl_def.span;
@@ -523,7 +524,7 @@ impl<'core, 'a> Checker<'core, 'a> {
     assert_eq!(self.sigs.structs.next_index(), struct_id);
     let mut struct_def = self.chart.structs[struct_id].clone();
     self.initialize(struct_def.def, struct_def.generics);
-    let data = self.hydrate_type(&mut struct_def.data, false);
+    let data = self.resolve_type(&mut struct_def.data, false);
     self.sigs.structs.push(TypeCtx { types: take(&mut self.types), inner: StructSig { data } });
     self.chart.structs[struct_id] = struct_def;
   }
@@ -535,7 +536,7 @@ impl<'core, 'a> Checker<'core, 'a> {
     let variant_data = enum_def
       .variants
       .values_mut()
-      .map(|variant| variant.data.as_mut().map(|ty| self.hydrate_type(ty, false)))
+      .map(|variant| variant.data.as_mut().map(|ty| self.resolve_type(ty, false)))
       .collect::<Vec<_>>()
       .into();
     self.sigs.enums.push(TypeCtx { types: take(&mut self.types), inner: EnumSig { variant_data } });
@@ -548,11 +549,11 @@ impl<'core, 'a> Checker<'core, 'a> {
     self.initialize(trait_def.def, trait_def.generics);
     let sig = TraitSig {
       consts: IdxVec::from(Vec::from_iter(trait_def.consts.values_mut().map(|trait_const| {
-        let ty = self.hydrate_type(&mut trait_const.ty, false);
+        let ty = self.resolve_type(&mut trait_const.ty, false);
         TypeCtx { types: take(&mut self.types), inner: ConstSig { ty } }
       }))),
       fns: IdxVec::from(Vec::from_iter(trait_def.fns.values_mut().map(|trait_fn| {
-        let (params, ret_ty) = self.assess_fn_sig(&mut trait_fn.params, &mut trait_fn.ret_ty);
+        let (params, ret_ty) = self._resolve_fn_sig(&mut trait_fn.params, &mut trait_fn.ret_ty);
         TypeCtx { types: take(&mut self.types), inner: FnSig { params, ret_ty } }
       }))),
     };
@@ -593,7 +594,7 @@ impl<'core, 'a> Checker<'core, 'a> {
         .flatten(),
     );
     impl_param_types
-      .extend(generics_def.impl_params.iter_mut().map(|p| self.assess_trait(&mut p.trait_)));
+      .extend(generics_def.impl_params.iter_mut().map(|p| self.resolve_trait(&mut p.trait_)));
     self.sigs.generics.push(TypeCtx {
       types: take(&mut self.types),
       inner: GenericsSig { impl_params: impl_param_types },
@@ -613,7 +614,7 @@ impl<'core, 'a> Checker<'core, 'a> {
     assert_eq!(self.sigs.concrete_consts.next_index(), const_id);
     let mut const_def = self.chart.concrete_consts[const_id].clone();
     self.initialize(const_def.def, const_def.generics);
-    let ty = self.hydrate_type(&mut const_def.ty, false);
+    let ty = self.resolve_type(&mut const_def.ty, false);
     self
       .sigs
       .concrete_consts
@@ -625,7 +626,7 @@ impl<'core, 'a> Checker<'core, 'a> {
     assert_eq!(self.sigs.concrete_fns.next_index(), fn_id);
     let mut fn_def = self.chart.concrete_fns[fn_id].clone();
     self.initialize(fn_def.def, fn_def.generics);
-    let (params, ret_ty) = self.assess_fn_sig(&mut fn_def.params, &mut fn_def.ret_ty);
+    let (params, ret_ty) = self._resolve_fn_sig(&mut fn_def.params, &mut fn_def.ret_ty);
     self
       .sigs
       .concrete_fns
@@ -637,29 +638,29 @@ impl<'core, 'a> Checker<'core, 'a> {
     assert_eq!(self.sigs.impls.next_index(), impl_id);
     let mut impl_def = self.chart.impls[impl_id].clone();
     self.initialize(impl_def.def, impl_def.generics);
-    let ty = self.assess_trait(&mut impl_def.trait_);
+    let ty = self.resolve_trait(&mut impl_def.trait_);
     self.sigs.impls.push(TypeCtx { types: take(&mut self.types), inner: ImplSig { ty } });
     self.chart.impls[impl_id] = impl_def;
   }
 
-  fn assess_fn_sig(
+  fn _resolve_fn_sig(
     &mut self,
     params: &mut [Pat<'core>],
     ret: &mut Option<Ty<'core>>,
   ) -> (Vec<Type>, Type) {
-    let params = params.iter_mut().map(|p| self.hydrate_param(p)).collect();
-    let ret = ret.as_mut().map(|t| self.hydrate_type(t, false)).unwrap_or(self.types.nil());
+    let params = params.iter_mut().map(|p| self.resolve_pat_sig(p)).collect();
+    let ret = ret.as_mut().map(|t| self.resolve_type(t, false)).unwrap_or(self.types.nil());
     (params, ret)
   }
 
-  fn assess_trait(&mut self, trait_: &mut Trait<'core>) -> ImplType {
+  fn resolve_trait(&mut self, trait_: &mut Trait<'core>) -> ImplType {
     match &mut trait_.kind {
       TraitKind::Path(path) => {
         match self.resolve_path_to(self.cur_def, path, "trait", |d| d.trait_kind) {
           Ok(DefTraitKind::Trait(id)) => {
             let mut generics = path.take_generics();
             let type_params =
-              self.check_generics(&mut generics, self.chart.traits[id].generics, false);
+              self.resolve_generics(&mut generics, self.chart.traits[id].generics, false);
             ImplType::Trait(id, type_params)
           }
           Err(diag) => ImplType::Error(self.core.report(diag)),
@@ -669,14 +670,14 @@ impl<'core, 'a> Checker<'core, 'a> {
     }
   }
 
-  fn check_impl_type(&mut self, impl_: &mut Impl<'core>, ty: &ImplType) {
+  fn resolve_impl_type(&mut self, impl_: &mut Impl<'core>, ty: &ImplType) {
     let span = impl_.span;
     match &mut impl_.kind {
       ImplKind::Hole => {
         *impl_ = self.find_impl(span, ty);
       }
       _ => {
-        let found = self.check_impl(impl_);
+        let found = self.resolve_impl(impl_);
         if self.types.unify_impl_type(&found, ty).is_failure() {
           self.core.report(Diag::ExpectedTypeFound {
             span: impl_.span,
@@ -688,7 +689,7 @@ impl<'core, 'a> Checker<'core, 'a> {
     }
   }
 
-  fn check_impl(&mut self, impl_: &mut Impl<'core>) -> ImplType {
+  fn resolve_impl(&mut self, impl_: &mut Impl<'core>) -> ImplType {
     let span = impl_.span;
     match &mut impl_.kind {
       ImplKind::Param(_) | ImplKind::Def(..) => unreachable!(),
@@ -707,7 +708,7 @@ impl<'core, 'a> Checker<'core, 'a> {
           Ok(DefImplKind::Impl(id)) => {
             let mut generics = path.take_generics();
             let type_params =
-              self.check_generics(&mut generics, self.chart.impls[id].generics, true);
+              self.resolve_generics(&mut generics, self.chart.impls[id].generics, true);
             impl_.kind = ImplKind::Def(id, generics);
             self.types.import(&self.sigs.impls[id], Some(&type_params)).ty
           }
@@ -723,16 +724,16 @@ impl<'core, 'a> Checker<'core, 'a> {
     }
   }
 
-  pub fn check_generics(
+  pub fn resolve_generics(
     &mut self,
     args: &mut GenericArgs<'core>,
     params_id: GenericsId,
     inference: bool,
   ) -> Vec<Type> {
-    self._check_generics(args, params_id, inference, None)
+    self._resolve_generics(args, params_id, inference, None)
   }
 
-  fn _check_generics(
+  fn _resolve_generics(
     &mut self,
     args: &mut GenericArgs<'core>,
     params_id: GenericsId,
@@ -765,7 +766,7 @@ impl<'core, 'a> Checker<'core, 'a> {
     let type_param_count = params.type_params.len();
     let type_params = if let Some(type_params) = type_params {
       for (a, b) in type_params.iter().zip(args.types.iter_mut()) {
-        let b = self.hydrate_type(b, inference);
+        let b = self.resolve_type(b, inference);
         _ = self.types.unify(*a, b);
       }
       type_params
@@ -773,7 +774,7 @@ impl<'core, 'a> Checker<'core, 'a> {
       (0..type_param_count)
         .iter()
         .map(|i| {
-          args.types.get_mut(i).map(|t| self.hydrate_type(t, inference)).unwrap_or_else(|| {
+          args.types.get_mut(i).map(|t| self.resolve_type(t, inference)).unwrap_or_else(|| {
             if inference {
               self.types.new_var(args.span)
             } else {
@@ -791,7 +792,7 @@ impl<'core, 'a> Checker<'core, 'a> {
           impl_params_types.into_iter().map(|ty| self.find_impl(args.span, &ty)).collect();
       } else {
         for (impl_, param_type) in args.impls.iter_mut().zip(impl_params_types.into_iter()) {
-          self.check_impl_type(impl_, &param_type);
+          self.resolve_impl_type(impl_, &param_type);
         }
       }
     }
