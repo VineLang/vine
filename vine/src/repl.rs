@@ -11,7 +11,7 @@ use ivm::{
 };
 use ivy::{ast::Tree, host::Host};
 use vine_util::{
-  idx::{Counter, IntMap},
+  idx::Counter,
   parser::{Parser, ParserState},
 };
 
@@ -28,7 +28,6 @@ use crate::{
   emitter::Emitter,
   normalizer::normalize,
   parser::VineParser,
-  resolver::Resolver,
   specializer::{Spec, SpecRels, Specializer, TemplateId},
   types::{Type, TypeKind, Types},
   vir::{InterfaceId, StageId},
@@ -43,10 +42,9 @@ pub struct Repl<'core, 'ctx, 'ivm, 'ext> {
   repl_mod: DefId,
   line: usize,
   vars: HashMap<Ident<'core>, Var<'ivm>>,
-  locals: BTreeMap<Local, Ident<'core>>,
+  locals: BTreeMap<Local, (Ident<'core>, Type)>,
   local_count: Counter<Local>,
   types: Types<'core>,
-  local_types: IntMap<Local, Type>,
 }
 
 #[derive(Debug)]
@@ -83,14 +81,13 @@ impl<'core, 'ctx, 'ivm, 'ext> Repl<'core, 'ctx, 'ivm, 'ext> {
       io,
       Var { local: Local(0), value: Port::new_ext_val(host.new_io()), space: Port::ERASE },
     )]);
-    let locals = BTreeMap::from([(Local(0), io)]);
     let mut types = Types::default();
     let io_type = if let Some(io) = compiler.chart.builtins.io {
       types.new(TypeKind::Opaque(io, vec![]))
     } else {
       types.nil()
     };
-    let local_types = IntMap::from_iter([(Local(0), io_type)]);
+    let locals = BTreeMap::from([(Local(0), (io, io_type))]);
 
     Ok(Repl {
       host,
@@ -103,7 +100,6 @@ impl<'core, 'ctx, 'ivm, 'ext> Repl<'core, 'ctx, 'ivm, 'ext> {
       locals,
       local_count: Counter(Local(1)),
       types,
-      local_types,
     })
   }
 
@@ -130,7 +126,6 @@ impl<'core, 'ctx, 'ivm, 'ext> Repl<'core, 'ctx, 'ivm, 'ext> {
       locals: &mut self.locals,
       block: &mut block,
       types: &mut self.types,
-      local_types: &mut self.local_types,
       ty: &mut ty,
       local_count: &mut self.local_count,
       line: &mut self.line,
@@ -142,10 +137,9 @@ impl<'core, 'ctx, 'ivm, 'ext> Repl<'core, 'ctx, 'ivm, 'ext> {
       repl_mod: DefId,
       vars: &'a mut HashMap<Ident<'core>, Var<'ivm>>,
       ivm: &'a mut IVM<'ivm, 'ext>,
-      locals: &'a mut BTreeMap<Local, Ident<'core>>,
+      locals: &'a mut BTreeMap<Local, (Ident<'core>, Type)>,
       block: &'a mut Block<'core>,
       types: &'a mut Types<'core>,
-      local_types: &'a mut IntMap<Local, Type>,
       ty: &'a mut Type,
       local_count: &'a mut Counter<Local>,
       line: &'a mut usize,
@@ -162,31 +156,29 @@ impl<'core, 'ctx, 'ivm, 'ext> Repl<'core, 'ctx, 'ivm, 'ext> {
         }
       }
 
-      fn resolve(&mut self, resolver: &mut Resolver<'core, '_>) {
-        let binds = resolver.resolve_custom(
+      fn check(&mut self, checker: &mut Checker<'core, '_>) {
+        let (ty, binds) = checker._check_custom(
           self.repl_mod,
+          self.types,
           self.locals,
           self.local_count,
-          &mut self.block.stmts,
+          self.block,
         );
-        for (ident, local) in binds {
+        *self.ty = ty;
+        for (ident, local, ty) in binds {
           if self.vars.get(&ident).is_none_or(|v| v.local != local) {
             let wire = self.ivm.new_wire();
             let old = self.vars.insert(
               ident,
               Var { local, value: Port::new_wire(wire.0), space: Port::new_wire(wire.1) },
             );
-            self.locals.insert(local, ident);
+            self.locals.insert(local, (ident, ty));
             if let Some(old) = old {
               self.locals.remove(&old.local);
               self.ivm.link(old.value, old.space);
             }
           }
         }
-      }
-
-      fn check(&mut self, checker: &mut Checker<'core, '_>) {
-        *self.ty = checker._check_custom(self.repl_mod, self.types, self.local_types, self.block);
       }
 
       fn specialize(&mut self, specializer: &mut Specializer<'core, '_>) {
@@ -232,8 +224,8 @@ impl<'core, 'ctx, 'ivm, 'ext> Repl<'core, 'ctx, 'ivm, 'ext> {
     let mut cur = w.1;
 
     let label = self.host.label_to_u16("x");
-    for var in self.locals.values() {
-      let var = self.vars.get_mut(var).unwrap();
+    for (local, _) in self.locals.values() {
+      let var = self.vars.get_mut(local).unwrap();
       let n = unsafe { self.ivm.new_node(Tag::Comb, label) };
       let m = unsafe { self.ivm.new_node(Tag::Comb, label) };
       self.ivm.link_wire(cur, n.0);
@@ -439,11 +431,10 @@ impl<'core, 'ctx, 'ivm, 'ext> Repl<'core, 'ctx, 'ivm, 'ext> {
   pub fn format(&mut self) -> String {
     let mut str = String::new();
     for local in self.locals.keys().copied().collect::<Vec<_>>() {
-      let ident = self.locals[&local];
+      let (ident, ty) = self.locals[&local];
       let var = &self.vars[&ident];
       let value = self.host.read(self.ivm, &var.value);
       let space = self.host.read(self.ivm, &var.space);
-      let ty = self.local_types[&local];
       if value != Tree::Erase {
         writeln!(str, "{} = {}", ident.0 .0, self.show(ty, &value)).unwrap();
       }

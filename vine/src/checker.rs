@@ -1,18 +1,19 @@
 use std::{
-  collections::BTreeMap,
-  mem::{replace, swap, take},
+  collections::{BTreeMap, HashMap},
+  mem::{swap, take},
 };
 
-use vine_util::idx::{IdxVec, IntMap, RangeExt};
+use vine_util::idx::{Counter, IdxVec, RangeExt};
 
 use crate::{
   ast::{
-    Block, GenericArgs, Impl, ImplKind, Key, LabelId, LetFnId, Local, Pat, PatKind, Span, StmtKind,
-    Trait, TraitKind, Ty, TyKind,
+    Block, GenericArgs, Generics, Ident, Impl, ImplKind, Key, Label, LabelId, LetFnId, Local, Pat,
+    PatKind, Span, StmtKind, Trait, TraitKind, Ty, TyKind,
   },
   chart::{
-    checkpoint::ChartCheckpoint, Chart, ConcreteConstId, ConcreteFnId, DefId, EnumId, GenericsDef,
-    GenericsId, ImplId, ImplSubitemKind, StructId, TraitId, TypeAliasId,
+    checkpoint::ChartCheckpoint, Chart, ConcreteConstId, ConcreteFnId, DefId, DefImplKind,
+    DefPatternKind, DefTraitKind, DefTypeKind, EnumId, GenericsId, ImplId, ImplSubitemKind,
+    StructId, TraitId, TypeAliasId,
   },
   core::Core,
   diag::{Diag, ErrorGuaranteed},
@@ -25,6 +26,7 @@ use crate::{
 
 mod check_expr;
 mod check_pat;
+mod resolve_path;
 
 #[derive(Debug)]
 pub struct Checker<'core, 'a> {
@@ -32,24 +34,51 @@ pub struct Checker<'core, 'a> {
   chart: &'a mut Chart<'core>,
   sigs: &'a mut Signatures<'core>,
   types: Types<'core>,
-  locals: IntMap<Local, Type>,
-  let_fns: IntMap<LetFnId, Type>,
   return_ty: Option<Type>,
-  labels: IdxVec<LabelId, Option<Type>>,
   cur_def: DefId,
   cur_generics: GenericsId,
+
+  type_param_lookup: HashMap<Ident<'core>, usize>,
+  impl_param_lookup: HashMap<Ident<'core>, usize>,
+
+  scope: HashMap<Ident<'core>, Vec<ScopeEntry>>,
+  scope_depth: usize,
+  locals: Counter<Local>,
+  let_fns: Counter<LetFnId>,
+  labels: HashMap<Ident<'core>, LabelInfo>,
+  loops: Vec<LabelInfo>,
+  label_id: Counter<LabelId>,
+}
+
+#[derive(Debug)]
+struct ScopeEntry {
+  depth: usize,
+  binding: Binding,
+}
+
+#[derive(Debug, Clone, Copy)]
+struct LabelInfo {
+  id: LabelId,
+  is_loop: bool,
+  break_ty: Type,
+}
+
+#[derive(Debug, Clone, Copy)]
+enum Binding {
+  Local(Local, Type),
+  LetFn(LetFnId, Type),
 }
 
 impl<'core, 'a> Checker<'core, 'a> {
   pub fn new(
     core: &'core Core<'core>,
     chart: &'a mut Chart<'core>,
-    types: &'a mut Signatures<'core>,
+    sigs: &'a mut Signatures<'core>,
   ) -> Self {
     Checker {
       core,
       chart,
-      sigs: types,
+      sigs,
       types: Types::default(),
       locals: Default::default(),
       let_fns: Default::default(),
@@ -57,6 +86,12 @@ impl<'core, 'a> Checker<'core, 'a> {
       labels: Default::default(),
       cur_def: DefId::ROOT,
       cur_generics: GenericsId::NONE,
+      type_param_lookup: Default::default(),
+      impl_param_lookup: Default::default(),
+      scope: Default::default(),
+      scope_depth: Default::default(),
+      loops: Default::default(),
+      label_id: Default::default(),
     }
   }
 
@@ -65,6 +100,9 @@ impl<'core, 'a> Checker<'core, 'a> {
   }
 
   pub(crate) fn check_since(&mut self, checkpoint: &ChartCheckpoint) {
+    for id in self.chart.imports.keys_from(checkpoint.imports) {
+      _ = self.resolve_import(id);
+    }
     for id in self.chart.type_aliases.keys_from(checkpoint.type_aliases) {
       self.resolve_type_alias(id);
     }
@@ -104,11 +142,26 @@ impl<'core, 'a> Checker<'core, 'a> {
     assert!(self.return_ty.is_none());
     self.labels.clear();
     self.types.reset();
-    self.locals.clear();
-    self.let_fns.clear();
+
+    self.type_param_lookup.clear();
+    self.impl_param_lookup.clear();
+    self.scope.clear();
+    debug_assert_eq!(self.scope_depth, 0);
+    self.locals.reset();
+    self.let_fns.reset();
+    self.labels.clear();
+    debug_assert!(self.loops.is_empty());
+    self.label_id.reset();
 
     self.cur_def = def_id;
     self.cur_generics = generics_id;
+    let generics = &self.chart.generics[generics_id];
+    self
+      .type_param_lookup
+      .extend(generics.type_params.iter().enumerate().map(|(i, &p)| (p.name, i)));
+    self
+      .impl_param_lookup
+      .extend(generics.impl_params.iter().enumerate().filter_map(|(i, p)| Some((p.name?, i))));
   }
 
   fn resolve_type_alias(&mut self, alias_id: TypeAliasId) {
@@ -116,18 +169,13 @@ impl<'core, 'a> Checker<'core, 'a> {
       return;
     }
     let mut alias_def = self.chart.type_aliases[alias_id].clone();
-    let prev_types = take(&mut self.types);
-    let prev_def = replace(&mut self.cur_def, alias_def.def);
-    let prev_generics = replace(&mut self.cur_generics, alias_def.generics);
+    self.initialize(alias_def.def, alias_def.generics);
     let ty = self.hydrate_type(&mut alias_def.ty, false);
     self.chart.type_aliases[alias_id] = alias_def;
     let slot = self.sigs.type_aliases.get_or_extend(alias_id);
     if slot.is_none() {
       *slot = Some(self.types.export(|t| TypeAliasSig { ty: t.transfer(&ty) }));
     }
-    self.cur_def = prev_def;
-    self.cur_generics = prev_generics;
-    self.types = prev_types;
   }
 
   fn check_const_def(&mut self, const_id: ConcreteConstId) {
@@ -135,6 +183,7 @@ impl<'core, 'a> Checker<'core, 'a> {
     self.initialize(const_def.def, const_def.generics);
     let ty = self.types.import(&self.sigs.concrete_consts[const_id], None).ty;
     self.check_expr_form_type(&mut const_def.value, Form::Value, ty);
+    const_def.locals = self.locals;
     self.chart.concrete_consts[const_id] = const_def;
   }
 
@@ -150,6 +199,7 @@ impl<'core, 'a> Checker<'core, 'a> {
     self.return_ty = Some(ret_ty);
     self.check_block_type(&mut fn_def.body, ret_ty);
     self.return_ty = None;
+    fn_def.locals = self.locals;
     self.chart.concrete_fns[fn_id] = fn_def;
   }
 
@@ -157,28 +207,67 @@ impl<'core, 'a> Checker<'core, 'a> {
     &mut self,
     def_id: DefId,
     types: &mut Types<'core>,
-    locals: &mut IntMap<Local, Type>,
+    locals: &BTreeMap<Local, (Ident<'core>, Type)>,
+    local_count: &mut Counter<Local>,
     block: &mut Block<'core>,
-  ) -> Type {
+  ) -> (Type, impl Iterator<Item = (Ident<'core>, Local, Type)>) {
     self.cur_def = def_id;
+    self.scope = locals
+      .iter()
+      .map(|(&local, &(name, ty))| {
+        (name, vec![ScopeEntry { depth: 0, binding: Binding::Local(local, ty) }])
+      })
+      .collect();
     swap(types, &mut self.types);
-    swap(locals, &mut self.locals);
-    let ty = self.check_block(block);
+    self.locals = *local_count;
+    let ty = self._check_block(block);
+    *local_count = self.locals;
     swap(types, &mut self.types);
-    swap(locals, &mut self.locals);
-    ty
+    (
+      ty,
+      take(&mut self.scope).into_iter().filter_map(|(name, entries)| {
+        let entry = entries.first()?;
+        if entry.depth == 0 {
+          if let Binding::Local(local, ty) = entry.binding {
+            Some((name, local, ty))
+          } else {
+            None
+          }
+        } else {
+          None
+        }
+      }),
+    )
   }
 
   fn check_block(&mut self, block: &mut Block<'core>) -> Type {
+    self.enter_scope();
+    let ty = self._check_block(block);
+    self.exit_scope();
+    ty
+  }
+
+  fn _check_block(&mut self, block: &mut Block<'core>) -> Type {
     let mut ty = self.types.nil();
     for stmt in block.stmts.iter_mut() {
       ty = self.types.nil();
       match &mut stmt.kind {
         StmtKind::Let(l) => {
           let refutable = l.else_block.is_some();
-          let let_ty = self.check_pat(&mut l.bind, Form::Value, refutable);
-          if let Some(value) = &mut l.init {
-            self.check_expr_form_type(value, Form::Value, let_ty);
+          let expr_info = if let Some(value) = &mut l.init {
+            Some((value.span, self.check_expr_form(value, Form::Value)))
+          } else {
+            None
+          };
+          let pat_ty = self.check_pat(&mut l.bind, Form::Value, refutable);
+          if let Some((expr_span, expr_ty)) = expr_info {
+            if self.types.unify(expr_ty, pat_ty).is_failure() {
+              self.core.report(Diag::ExpectedTypeFound {
+                span: expr_span,
+                expected: self.types.show(self.chart, pat_ty),
+                found: self.types.show(self.chart, expr_ty),
+              });
+            }
           }
           if let Some(block) = &mut l.else_block {
             let never = self.types.new(TypeKind::Never);
@@ -186,17 +275,25 @@ impl<'core, 'a> Checker<'core, 'a> {
           }
         }
         StmtKind::LetFn(d) => {
+          let old_labels = take(&mut self.labels);
+          let old_loops = take(&mut self.loops);
+          self.enter_scope();
           let params = d.params.iter_mut().map(|p| self.check_pat(p, Form::Value, false)).collect();
           let ret = d
             .ret
             .as_mut()
             .map(|t| self.hydrate_type(t, true))
             .unwrap_or_else(|| self.types.new_var(d.body.span));
-          let old = self.return_ty.replace(ret);
+          let old_return_ty = self.return_ty.replace(ret);
           self.check_block_type(&mut d.body, ret);
-          self.return_ty = old;
+          self.exit_scope();
+          self.labels = old_labels;
+          self.loops = old_loops;
+          self.return_ty = old_return_ty;
+          let id = self.let_fns.next();
           let ty = self.types.new(TypeKind::Fn(params, ret));
-          self.let_fns.insert(d.id.unwrap(), ty);
+          self.bind(d.name, Binding::LetFn(id, ty));
+          d.id = Some(id);
         }
         StmtKind::Expr(e, semi) => {
           ty = self.check_expr_form(e, Form::Value);
@@ -248,34 +345,42 @@ impl<'core, 'a> Checker<'core, 'a> {
         let inner = self.hydrate_type(inner, inference);
         inner.inverse()
       }
-      TyKind::Path(_) => unreachable!(),
-      TyKind::Opaque(opaque_id, generics) => {
-        let generics_id = self.chart.opaque_types[*opaque_id].generics;
-        let type_params = self.check_generics(generics, generics_id, inference);
-        self.types.new(TypeKind::Opaque(*opaque_id, type_params))
-      }
-      TyKind::Struct(struct_id, generics) => {
-        let generics_id = self.chart.structs[*struct_id].generics;
-        let type_params = self.check_generics(generics, generics_id, inference);
-        self.types.new(TypeKind::Struct(*struct_id, type_params))
-      }
-      TyKind::Enum(enum_id, generics) => {
-        let generics_id = self.chart.enums[*enum_id].generics;
-        let type_params = self.check_generics(generics, generics_id, inference);
-        self.types.new(TypeKind::Enum(*enum_id, type_params))
-      }
-      TyKind::Alias(type_alias_id, generics) => {
-        let generics_id = self.chart.type_aliases[*type_alias_id].generics;
-        let type_params = self.check_generics(generics, generics_id, inference);
-        self.resolve_type_alias(*type_alias_id);
-        self
-          .types
-          .import(self.sigs.type_aliases[*type_alias_id].as_ref().unwrap(), Some(&type_params))
-          .ty
-      }
-      TyKind::Param(index) => {
-        let name = self.chart.generics[self.cur_generics].type_params[*index].name;
-        self.types.new(TypeKind::Param(*index, name))
+      TyKind::Path(path) => {
+        if let Some(ident) = path.as_ident() {
+          if let Some(&i) = self.type_param_lookup.get(&ident) {
+            return self.types.new(TypeKind::Param(i, ident));
+          }
+        }
+        let resolved = self.resolve_path_to(self.cur_def, path, "type", |d| d.type_kind);
+        let _generics = &mut Generics::default();
+        let generics = path.generics.as_mut().unwrap_or(_generics);
+        match resolved {
+          Ok(DefTypeKind::Opaque(opaque_id)) => {
+            let generics_id = self.chart.opaque_types[opaque_id].generics;
+            let type_params = self.check_generics(generics, generics_id, inference);
+            self.types.new(TypeKind::Opaque(opaque_id, type_params))
+          }
+          Ok(DefTypeKind::Struct(struct_id)) => {
+            let generics_id = self.chart.structs[struct_id].generics;
+            let type_params = self.check_generics(generics, generics_id, inference);
+            self.types.new(TypeKind::Struct(struct_id, type_params))
+          }
+          Ok(DefTypeKind::Enum(enum_id)) => {
+            let generics_id = self.chart.enums[enum_id].generics;
+            let type_params = self.check_generics(generics, generics_id, inference);
+            self.types.new(TypeKind::Enum(enum_id, type_params))
+          }
+          Ok(DefTypeKind::Alias(type_alias_id)) => {
+            let generics_id = self.chart.type_aliases[type_alias_id].generics;
+            let type_params = self.check_generics(generics, generics_id, inference);
+            Checker::new(self.core, self.chart, self.sigs).resolve_type_alias(type_alias_id);
+            self
+              .types
+              .import(self.sigs.type_aliases[type_alias_id].as_ref().unwrap(), Some(&type_params))
+              .ty
+          }
+          Err(diag) => self.types.error(self.core.report(diag)),
+        }
       }
       TyKind::Error(e) => self.types.error(*e),
     }
@@ -284,17 +389,26 @@ impl<'core, 'a> Checker<'core, 'a> {
   fn hydrate_param(&mut self, pat: &mut Pat<'core>) -> Type {
     let span = pat.span;
     match &mut pat.kind {
-      PatKind::Path(..) => unreachable!(),
+      PatKind::Struct(..) | PatKind::Enum(..) => unreachable!(),
       PatKind::Paren(inner) => self.hydrate_param(inner),
       PatKind::Annotation(_, ty) => self.hydrate_type(ty, false),
-      PatKind::Struct(struct_id, generics, _) => {
-        let type_params =
-          self.check_generics(generics, self.chart.structs[*struct_id].generics, false);
-        self.types.new(TypeKind::Struct(*struct_id, type_params))
-      }
-      PatKind::Enum(enum_id, _, generics, _) => {
-        let type_params = self.check_generics(generics, self.chart.enums[*enum_id].generics, false);
-        self.types.new(TypeKind::Enum(*enum_id, type_params))
+      PatKind::Path(path, _) => {
+        let resolved = self.resolve_path_to(self.cur_def, path, "pattern", |d| d.pattern_kind);
+        let _generics = &mut Generics::default();
+        let generics = path.generics.as_mut().unwrap_or(_generics);
+        match resolved {
+          Ok(DefPatternKind::Struct(struct_id)) => {
+            let type_params =
+              self.check_generics(generics, self.chart.structs[struct_id].generics, false);
+            self.types.new(TypeKind::Struct(struct_id, type_params))
+          }
+          Ok(DefPatternKind::Enum(enum_id, _)) => {
+            let type_params =
+              self.check_generics(generics, self.chart.enums[enum_id].generics, false);
+            self.types.new(TypeKind::Enum(enum_id, type_params))
+          }
+          Err(_) => self.types.error(self.core.report(Diag::ItemTypeHole { span })),
+        }
       }
       PatKind::Ref(inner) => {
         let inner = self.hydrate_param(inner);
@@ -448,14 +562,12 @@ impl<'core, 'a> Checker<'core, 'a> {
 
   fn resolve_generics_sig(&mut self, generics_id: GenericsId) {
     assert_eq!(self.sigs.generics.next_index(), generics_id);
-    let GenericsDef { def, ref mut type_params, ref mut impl_params, .. } =
-      self.chart.generics[generics_id];
-    let type_params = take(type_params);
-    let mut impl_params = take(impl_params);
-    self.initialize(def, generics_id);
+    let mut generics_def = self.chart.generics[generics_id].clone();
+    self.initialize(generics_def.def, generics_id);
     let mut impl_param_types = vec![];
     impl_param_types.extend(
-      type_params
+      generics_def
+        .type_params
         .iter()
         .enumerate()
         .flat_map(|(i, param)| {
@@ -480,13 +592,21 @@ impl<'core, 'a> Checker<'core, 'a> {
         })
         .flatten(),
     );
-    self.chart.generics[generics_id].type_params = type_params;
-    impl_param_types.extend(impl_params.iter_mut().map(|p| self.assess_trait(&mut p.trait_)));
+    impl_param_types
+      .extend(generics_def.impl_params.iter_mut().map(|p| self.assess_trait(&mut p.trait_)));
     self.sigs.generics.push(TypeCtx {
       types: take(&mut self.types),
       inner: GenericsSig { impl_params: impl_param_types },
     });
-    self.chart.generics[generics_id].impl_params = impl_params;
+    if self.type_param_lookup.len() != generics_def.type_params.len() {
+      self.core.report(Diag::DuplicateTypeParam { span: generics_def.span });
+    }
+    if self.impl_param_lookup.len()
+      != generics_def.impl_params.iter().filter(|x| x.name.is_some()).count()
+    {
+      self.core.report(Diag::DuplicateImplParam { span: generics_def.span });
+    }
+    self.chart.generics[generics_id] = generics_def;
   }
 
   fn resolve_const_sig(&mut self, const_id: ConcreteConstId) {
@@ -534,10 +654,16 @@ impl<'core, 'a> Checker<'core, 'a> {
 
   fn assess_trait(&mut self, trait_: &mut Trait<'core>) -> ImplType {
     match &mut trait_.kind {
-      TraitKind::Path(_) => unreachable!(),
-      TraitKind::Def(id, generics) => {
-        let type_params = self.check_generics(generics, self.chart.traits[*id].generics, false);
-        ImplType::Trait(*id, type_params)
+      TraitKind::Path(path) => {
+        match self.resolve_path_to(self.cur_def, path, "trait", |d| d.trait_kind) {
+          Ok(DefTraitKind::Trait(id)) => {
+            let mut generics = path.take_generics();
+            let type_params =
+              self.check_generics(&mut generics, self.chart.traits[id].generics, false);
+            ImplType::Trait(id, type_params)
+          }
+          Err(diag) => ImplType::Error(self.core.report(diag)),
+        }
       }
       TraitKind::Error(e) => ImplType::Error(*e),
     }
@@ -565,17 +691,34 @@ impl<'core, 'a> Checker<'core, 'a> {
   fn check_impl(&mut self, impl_: &mut Impl<'core>) -> ImplType {
     let span = impl_.span;
     match &mut impl_.kind {
-      ImplKind::Path(_) => unreachable!(),
+      ImplKind::Param(_) | ImplKind::Def(..) => unreachable!(),
+      ImplKind::Path(path) => {
+        if let Some(ident) = path.as_ident() {
+          if let Some(&i) = self.impl_param_lookup.get(&ident) {
+            impl_.kind = ImplKind::Param(i);
+            return self.types.import_with(
+              &self.sigs.generics[self.cur_generics],
+              None,
+              |t, sig| t.transfer(&sig.impl_params[i]),
+            );
+          }
+        }
+        match self.resolve_path_to(self.cur_def, path, "impl", |d| d.impl_kind) {
+          Ok(DefImplKind::Impl(id)) => {
+            let mut generics = path.take_generics();
+            let type_params =
+              self.check_generics(&mut generics, self.chart.impls[id].generics, true);
+            impl_.kind = ImplKind::Def(id, generics);
+            self.types.import(&self.sigs.impls[id], Some(&type_params)).ty
+          }
+          Err(diag) => {
+            let err = self.core.report(diag);
+            impl_.kind = ImplKind::Error(err);
+            ImplType::Error(err)
+          }
+        }
+      }
       ImplKind::Hole => ImplType::Error(self.core.report(Diag::UnspecifiedImpl { span })),
-      ImplKind::Param(n) => {
-        self.types.import_with(&self.sigs.generics[self.cur_generics], None, |t, sig| {
-          t.transfer(&sig.impl_params[*n])
-        })
-      }
-      ImplKind::Def(id, generics) => {
-        let type_params = self.check_generics(generics, self.chart.impls[*id].generics, true);
-        self.types.import(&self.sigs.impls[*id], Some(&type_params)).ty
-      }
       ImplKind::Error(e) => ImplType::Error(*e),
     }
   }
@@ -662,6 +805,60 @@ impl<'core, 'a> Checker<'core, 'a> {
   fn find_impl(&mut self, span: Span, ty: &ImplType) -> Impl<'core> {
     Finder::new(self.core, self.chart, self.sigs, self.cur_def, self.cur_generics, span)
       .find_impl(&mut self.types, ty)
+  }
+
+  fn bind(&mut self, ident: Ident<'core>, binding: Binding) {
+    let stack = self.scope.entry(ident).or_default();
+    let top = stack.last_mut();
+    if top.as_ref().is_some_and(|x| x.depth == self.scope_depth) {
+      top.unwrap().binding = binding;
+    } else {
+      stack.push(ScopeEntry { depth: self.scope_depth, binding })
+    }
+  }
+
+  fn enter_scope(&mut self) {
+    self.scope_depth += 1;
+  }
+
+  fn exit_scope(&mut self) {
+    self.scope_depth -= 1;
+    for stack in self.scope.values_mut() {
+      if stack.last().is_some_and(|x| x.depth > self.scope_depth) {
+        stack.pop();
+      }
+    }
+  }
+
+  fn bind_label<T>(
+    &mut self,
+    label: &mut Label<'core>,
+    is_loop: bool,
+    break_ty: Type,
+    f: impl FnOnce(&mut Self) -> T,
+  ) -> T {
+    let id = self.label_id.next();
+    let info = LabelInfo { id, is_loop, break_ty };
+    if is_loop {
+      self.loops.push(info);
+    }
+    let result;
+    if let Label::Ident(Some(label)) = label {
+      let old = self.labels.insert(*label, info);
+      result = f(self);
+      if let Some(old) = old {
+        self.labels.insert(*label, old);
+      } else {
+        self.labels.remove(label);
+      }
+    } else {
+      result = f(self);
+    }
+    if is_loop {
+      self.loops.pop();
+    }
+    *label = Label::Resolved(id);
+    result
   }
 }
 

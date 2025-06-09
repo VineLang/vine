@@ -258,7 +258,7 @@ impl<'core, 'r> Distiller<'core, 'r> {
 
   fn distill_expr_space(&mut self, stage: &mut Stage, expr: &Expr<'core>) -> Port {
     match &expr.kind {
-      ExprKind![sugar || error || !space] => unreachable!("{expr:?}"),
+      ExprKind![sugar || error || !space] | ExprKind::Path(..) => unreachable!("{expr:?}"),
       ExprKind::Paren(inner) | ExprKind::Unwrap(inner) | ExprKind::Struct(_, _, inner) => {
         self.distill_expr_space(stage, inner)
       }
@@ -286,7 +286,7 @@ impl<'core, 'r> Distiller<'core, 'r> {
 
   fn distill_expr_place(&mut self, stage: &mut Stage, expr: &Expr<'core>) -> (Port, Port) {
     match &expr.kind {
-      ExprKind![sugar || error || !place] => unreachable!("{expr:?}"),
+      ExprKind![sugar || error || !place] | ExprKind::Path(..) => unreachable!("{expr:?}"),
       ExprKind::Paren(inner) | ExprKind::Unwrap(inner) | ExprKind::Struct(_, _, inner) => {
         self.distill_expr_place(stage, inner)
       }

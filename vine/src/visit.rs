@@ -4,9 +4,6 @@ use crate::ast::{
 };
 
 pub trait VisitMut<'core, 'a> {
-  fn enter_scope(&mut self) {}
-  fn exit_scope(&mut self) {}
-
   fn visit_expr(&mut self, expr: &'a mut Expr<'core>) {
     self._visit_expr(expr);
   }
@@ -101,18 +98,14 @@ pub trait VisitMut<'core, 'a> {
       ExprKind::Match(a, b) => {
         self.visit_expr(a);
         for (p, b) in b {
-          self.enter_scope();
           self.visit_pat(p);
           self.visit_block(b);
-          self.exit_scope();
         }
       }
       ExprKind::If(arms, leg) => {
         for (cond, block) in arms {
-          self.enter_scope();
           self.visit(cond);
           self.visit(block);
-          self.exit_scope();
         }
         self.visit(leg);
       }
@@ -121,11 +114,9 @@ pub trait VisitMut<'core, 'a> {
         self.visit_block(b);
       }
       ExprKind::Fn(a, b, c) => {
-        self.enter_scope();
         self.visit(a);
         self.visit(b);
         self.visit_block(c);
-        self.exit_scope();
       }
       ExprKind::Tuple(a) | ExprKind::List(a) => {
         self.visit(a);
@@ -230,12 +221,9 @@ pub trait VisitMut<'core, 'a> {
 
   fn _visit_type(&mut self, ty: &'a mut Ty<'core>) {
     match &mut ty.kind {
-      TyKind::Hole | TyKind::Param(_) => {}
+      TyKind::Hole => {}
       TyKind::Paren(t) | TyKind::Ref(t) | TyKind::Inverse(t) => self.visit_type(t),
       TyKind::Path(p) => self.visit(&mut p.generics),
-      TyKind::Opaque(_, a) | TyKind::Alias(_, a) | TyKind::Struct(_, a) | TyKind::Enum(_, a) => {
-        self.visit(a)
-      }
       TyKind::Tuple(a) => {
         for t in a {
           self.visit_type(t);
@@ -270,7 +258,6 @@ pub trait VisitMut<'core, 'a> {
     match &mut trait_.kind {
       TraitKind::Error(_) => {}
       TraitKind::Path(p) => self.visit(&mut p.generics),
-      TraitKind::Def(_, a) => self.visit(a),
     }
   }
 
@@ -286,7 +273,6 @@ pub trait VisitMut<'core, 'a> {
         self.visit_pat(&mut l.bind);
       }
       StmtKind::LetFn(d) => {
-        self.enter_scope();
         for p in &mut d.params {
           self.visit_pat(p);
         }
@@ -294,7 +280,6 @@ pub trait VisitMut<'core, 'a> {
           self.visit_type(t);
         }
         self.visit_block(&mut d.body);
-        self.exit_scope();
       }
       StmtKind::Expr(t, _) => self.visit_expr(t),
       StmtKind::Item(i) => self.visit_item(i),
@@ -347,11 +332,9 @@ pub trait VisitMut<'core, 'a> {
   }
 
   fn _visit_block(&mut self, block: &'a mut Block<'core>) {
-    self.enter_scope();
     for stmt in &mut block.stmts {
       self.visit_stmt(stmt);
     }
-    self.exit_scope();
   }
 
   fn _visit_generic_params(&mut self, generics: &'a mut GenericParams<'core>) {

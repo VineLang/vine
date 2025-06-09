@@ -1,9 +1,9 @@
 use std::{collections::BTreeMap, mem::take};
 
 use crate::{
-  ast::{Expr, ExprKind, Generics, Ident, ImplKind, Label, Span},
-  chart::{OpaqueTypeId, StructId},
-  checker::{Checker, Form, Type},
+  ast::{Expr, ExprKind, Generics, Ident, ImplKind, Label, LogicalOp, Span},
+  chart::{DefValueKind, OpaqueTypeId, StructId},
+  checker::{Binding, Checker, Form, Type},
   diag::Diag,
   types::{Inverted, TypeKind},
 };
@@ -39,9 +39,6 @@ impl<'core> Checker<'core, '_> {
       ExprKind::Paren(e) => self.check_expr(e),
       ExprKind::Error(e) => (Form::Error(*e), self.types.error(*e)),
       ExprKind::Hole => (Form::Space, self.types.new_var(span)),
-      ExprKind::Local(l) => {
-        (Form::Place, *self.locals.entry(*l).or_insert_with(|| self.types.new_var(span)))
-      }
       ExprKind::Deref(e, _) => {
         let ty = self.types.new_var(span);
         let ref_ty = self.types.new(TypeKind::Ref(ty));
@@ -139,20 +136,6 @@ impl<'core> Checker<'core, '_> {
           (form, ty)
         }
       }
-      ExprKind::Struct(struct_id, generics, data) => {
-        let type_params =
-          self.check_generics(generics, self.chart.structs[*struct_id].generics, true);
-        let data_ty = self.types.import(&self.sigs.structs[*struct_id], Some(&type_params)).data;
-        let (form, ty) = self.check_expr(data);
-        if self.types.unify(ty, data_ty).is_failure() {
-          self.core.report(Diag::ExpectedTypeFound {
-            span: expr.span,
-            expected: self.types.show(self.chart, data_ty),
-            found: self.types.show(self.chart, ty),
-          });
-        }
-        (form, self.types.new(TypeKind::Struct(*struct_id, type_params)))
-      }
       ExprKind::Unwrap(inner) => {
         let (form, ty) = self.check_expr(inner);
 
@@ -166,6 +149,112 @@ impl<'core> Checker<'core, '_> {
         };
 
         (form, data_ty)
+      }
+      ExprKind::Path(path, args) => {
+        let mut args = args.take();
+        let (form, ty) = 'inner: {
+          if let Some(ident) = path.as_ident() {
+            if let Some(bind) = self.scope.get(&ident).and_then(|x| x.last()) {
+              break 'inner match bind.binding {
+                Binding::Local(local, ty) => {
+                  expr.kind = ExprKind::Local(local);
+                  (Form::Place, ty)
+                }
+                Binding::LetFn(id, ty) => {
+                  expr.kind = ExprKind::LetFn(id);
+                  (Form::Value, ty)
+                }
+              };
+            }
+          }
+          let mut generics = path.take_generics();
+          match self.resolve_path_to(self.cur_def, path, "value", |d| d.value_kind) {
+            Ok(DefValueKind::Struct(struct_id)) => {
+              let type_params =
+                self.check_generics(&mut generics, self.chart.structs[struct_id].generics, true);
+              let data_ty =
+                self.types.import(&self.sigs.structs[struct_id], Some(&type_params)).data;
+              let ((form, ty), data) = if let Some(mut args) = args.take() {
+                let mut data = if args.len() != 1 {
+                  Expr { span, kind: ExprKind::Tuple(args) }
+                } else {
+                  args.pop().unwrap()
+                };
+                (self.check_expr(&mut data), data)
+              } else {
+                let err = self.core.report(Diag::ExpectedDataExpr { span });
+                (
+                  (Form::Error(err), self.types.error(err)),
+                  Expr { span, kind: ExprKind::Error(err) },
+                )
+              };
+              if self.types.unify(ty, data_ty).is_failure() {
+                self.core.report(Diag::ExpectedTypeFound {
+                  span: expr.span,
+                  expected: self.types.show(self.chart, data_ty),
+                  found: self.types.show(self.chart, ty),
+                });
+              }
+              expr.kind = ExprKind::Struct(struct_id, generics, Box::new(data));
+              (form, self.types.new(TypeKind::Struct(struct_id, type_params)))
+            }
+            Ok(DefValueKind::Enum(enum_id, variant_id)) => {
+              let type_params =
+                self.check_generics(&mut generics, self.chart.enums[enum_id].generics, true);
+              let data_ty =
+                self.types.import_with(&self.sigs.enums[enum_id], Some(&type_params), |t, sig| {
+                  Some(t.transfer(&sig.variant_data[variant_id]?))
+                });
+              let mut data = args.take().map(|mut args| {
+                if args.len() != 1 {
+                  Expr { span, kind: ExprKind::Tuple(args) }
+                } else {
+                  args.pop().unwrap()
+                }
+              });
+              match (&mut data, data_ty) {
+                (None, None) => {}
+                (Some(data), Some(data_ty)) => {
+                  self.check_expr_form_type(data, Form::Value, data_ty)
+                }
+                (None, Some(_)) => {
+                  self.core.report(Diag::ExpectedDataExpr { span });
+                }
+                (Some(_), None) => {
+                  self.core.report(Diag::EnumVariantNoData { span });
+                }
+              }
+              expr.kind = ExprKind::Enum(enum_id, variant_id, generics, data.map(Box::new));
+              (Form::Value, self.types.new(TypeKind::Enum(enum_id, type_params)))
+            }
+            Ok(DefValueKind::Const(const_id)) => {
+              let type_params =
+                self.check_generics(&mut generics, self.chart.const_generics(const_id), true);
+              expr.kind = ExprKind::ConstDef(const_id, generics);
+              (Form::Value, self.types.import(self.sigs.const_sig(const_id), Some(&type_params)).ty)
+            }
+            Ok(DefValueKind::Fn(fn_id)) => {
+              let type_params =
+                self.check_generics(&mut generics, self.chart.fn_generics(fn_id), true);
+              let sig = self.types.import(self.sigs.fn_sig(fn_id), Some(&type_params));
+              expr.kind = ExprKind::FnDef(fn_id, generics);
+              (Form::Value, self.types.new(TypeKind::Fn(sig.params, sig.ret_ty)))
+            }
+            Err(diag) => {
+              let err = self.core.report(diag);
+              expr.kind = ExprKind::Error(err);
+              (Form::Error(err), self.types.error(err))
+            }
+          }
+        };
+        if let Some(mut args) = args {
+          self.coerce_expr(expr, form, Form::Value);
+          let ty = self._check_call(span, ty, &mut args);
+          *expr = Expr { span, kind: ExprKind::Call(Box::new(take(expr)), args) };
+          (Form::Value, ty)
+        } else {
+          (form, ty)
+        }
       }
     }
   }
@@ -243,28 +332,10 @@ impl<'core> Checker<'core, '_> {
     let nil = self.types.nil();
     let span = expr.span;
     match &mut expr.kind {
-      ExprKind![error || place || space || synthetic] | ExprKind::Path(..) => unreachable!(),
-      ExprKind::LetFn(x) => self.let_fns[x],
-      ExprKind::ConstDef(kind, args) => {
-        let type_params = self.check_generics(args, self.chart.const_generics(*kind), true);
-        self.types.import(self.sigs.const_sig(*kind), Some(&type_params)).ty
-      }
-      ExprKind::FnDef(kind, args) => {
-        let type_params = self.check_generics(args, self.chart.fn_generics(*kind), true);
-        let sig = self.types.import(self.sigs.fn_sig(*kind), Some(&type_params));
-        self.types.new(TypeKind::Fn(sig.params, sig.ret_ty))
-      }
+      ExprKind![error || place || space || synthetic] => unreachable!(),
       ExprKind::Do(label, block) => {
         let ty = self.types.new_var(span);
-        *self.labels.get_or_extend(label.as_id()) = Some(ty);
-        let got = self.check_block(block);
-        if self.types.unify(ty, got).is_failure() {
-          self.core.report(Diag::ExpectedTypeFound {
-            span: block.span,
-            expected: self.types.show(self.chart, ty),
-            found: self.types.show(self.chart, got),
-          });
-        }
+        self.bind_label(label, false, ty, |self_| self_.check_block_type(block, ty));
         ty
       }
       ExprKind::Assign(_, space, value) => {
@@ -276,17 +347,20 @@ impl<'core> Checker<'core, '_> {
         let scrutinee = self.check_expr_form(scrutinee, Form::Value);
         let result = self.types.new_var(span);
         for (pat, block) in arms {
+          self.enter_scope();
           self.check_pat_type(pat, Form::Value, true, scrutinee);
           self.check_block_type(block, result);
+          self.exit_scope();
         }
         result
       }
       ExprKind::If(arms, leg) => {
-        let bool = self.bool(span);
         let result = if leg.is_some() { self.types.new_var(span) } else { self.types.nil() };
         for (cond, block) in arms {
-          self.check_expr_form_type(cond, Form::Value, bool);
+          self.enter_scope();
+          self.check_cond(cond);
           self.check_block_type(block, result);
+          self.exit_scope();
         }
         if let Some(leg) = leg {
           self.check_block_type(leg, result);
@@ -294,41 +368,63 @@ impl<'core> Checker<'core, '_> {
         result
       }
       ExprKind::While(label, cond, block) => {
-        let bool = self.bool(span);
-        *self.labels.get_or_extend(label.as_id()) = Some(self.types.nil());
-        self.check_expr_form_type(cond, Form::Value, bool);
-        self.check_block(block);
-        self.types.nil()
+        let nil = self.types.nil();
+        self.bind_label(label, true, nil, |self_| {
+          self_.enter_scope();
+          self_.check_cond(cond);
+          self_.check_block(block);
+          self_.exit_scope();
+        });
+        nil
       }
       ExprKind::Loop(label, block) => {
         let result = self.types.new_var(span);
-        *self.labels.get_or_extend(label.as_id()) = Some(result);
-        self.check_block(block);
+        self.bind_label(label, true, result, |self_| {
+          self_.check_block(block);
+        });
         result
       }
       ExprKind::Fn(params, ret, body) => {
+        let old_labels = take(&mut self.labels);
+        let old_loops = take(&mut self.loops);
+        self.enter_scope();
         let params = params.iter_mut().map(|pat| self.check_pat(pat, Form::Value, false)).collect();
         let ret = match ret {
           Some(Some(t)) => self.hydrate_type(t, true),
           Some(None) => self.types.nil(),
           None => self.types.new_var(span),
         };
-        let old = self.return_ty.replace(ret);
+        let old_return_ty = self.return_ty.replace(ret);
         self.check_block_type(body, ret);
-        self.return_ty = old;
+        self.exit_scope();
+        self.return_ty = old_return_ty;
+        self.labels = old_labels;
+        self.loops = old_loops;
         self.types.new(TypeKind::Fn(params, ret))
       }
-      ExprKind::Break(label, e) => {
-        if let Label::Error(_) = label {
-          if let Some(e) = e {
-            self.check_expr_form(e, Form::Value);
-          }
+      ExprKind::Break(label, value) => {
+        let label_info = if let Label::Ident(Some(label)) = *label {
+          self.labels.get(&label).copied().ok_or(Diag::UnboundLabel { span, label })
         } else {
-          let ty = self.labels[label.as_id()].unwrap();
-          if let Some(e) = e {
-            self.check_expr_form_type(e, Form::Value, ty);
-          } else if self.types.unify(ty, nil).is_failure() {
-            self.core.report(Diag::MissingBreakExpr { span, ty: self.types.show(self.chart, ty) });
+          self.loops.last().copied().ok_or(Diag::NoLoopBreak { span })
+        };
+        match label_info {
+          Ok(label_info) => {
+            *label = Label::Resolved(label_info.id);
+            if let Some(value) = value {
+              self.check_expr_form_type(value, Form::Value, label_info.break_ty);
+            } else if self.types.unify(label_info.break_ty, nil).is_failure() {
+              self.core.report(Diag::MissingBreakExpr {
+                span,
+                ty: self.types.show(self.chart, label_info.break_ty),
+              });
+            }
+          }
+          Err(diag) => {
+            *label = Label::Error(self.core.report(diag));
+            if let Some(value) = value {
+              self.check_expr_form(value, Form::Value);
+            }
           }
         }
         self.types.new_var(span)
@@ -346,7 +442,28 @@ impl<'core> Checker<'core, '_> {
         }
         self.types.new_var(span)
       }
-      ExprKind::Continue(_) => self.types.new_var(span),
+      ExprKind::Continue(label) => {
+        let info = if let Label::Ident(Some(label)) = *label {
+          self.labels.get(&label).ok_or(Diag::UnboundLabel { span, label }).and_then(|&info| {
+            if info.is_loop {
+              Ok(info)
+            } else {
+              Err(Diag::NoContinueLabel { span, label })
+            }
+          })
+        } else {
+          self.loops.last().copied().ok_or(Diag::NoLoopContinue { span })
+        };
+        match info {
+          Ok(info) => {
+            *label = Label::Resolved(info.id);
+          }
+          Err(diag) => {
+            *label = Label::Error(self.core.report(diag));
+          }
+        }
+        self.types.new_var(span)
+      }
       ExprKind::Ref(expr, _) => {
         let ty = self.check_expr_form(expr, Form::Place);
         self.types.new(TypeKind::Ref(ty))
@@ -368,7 +485,10 @@ impl<'core> Checker<'core, '_> {
         expr.kind = desugared;
         ty
       }
-      ExprKind::Call(func, args) => self.check_call(func, args, span),
+      ExprKind::Call(func, args) => {
+        let func_ty = self.check_expr_form(func, Form::Value);
+        self._check_call(span, func_ty, args)
+      }
       ExprKind::Bool(_) => self.bool(span),
       ExprKind::Not(inner) => {
         let ty = self.check_expr_form(inner, Form::Value);
@@ -393,17 +513,6 @@ impl<'core> Checker<'core, '_> {
           vec![take(inner)],
         );
         return_ty
-      }
-      ExprKind::Is(expr, pat) => {
-        let ty = self.check_expr_form(expr, Form::Value);
-        self.check_pat_type(pat, Form::Value, true, ty);
-        self.bool(span)
-      }
-      ExprKind::LogicalOp(_, a, b) => {
-        let bool = self.bool(span);
-        self.check_expr_form_type(a, Form::Value, bool);
-        self.check_expr_form_type(b, Form::Value, bool);
-        bool
       }
       ExprKind::Neg(inner) => {
         let ty = self.check_expr_form(inner, Form::Value);
@@ -580,24 +689,6 @@ impl<'core> Checker<'core, '_> {
         }
         self.hydrate_type(ty, true)
       }
-      ExprKind::Enum(enum_id, variant_id, generics, data) => {
-        let type_params = self.check_generics(generics, self.chart.enums[*enum_id].generics, true);
-        let data_ty =
-          self.types.import_with(&self.sigs.enums[*enum_id], Some(&type_params), |t, sig| {
-            Some(t.transfer(&sig.variant_data[*variant_id]?))
-          });
-        match (data, data_ty) {
-          (None, None) => {}
-          (Some(data), Some(data_ty)) => self.check_expr_form_type(data, Form::Value, data_ty),
-          (None, Some(_)) => {
-            self.core.report(Diag::ExpectedDataExpr { span });
-          }
-          (Some(_), None) => {
-            self.core.report(Diag::EnumVariantNoData { span });
-          }
-        }
-        self.types.new(TypeKind::Enum(*enum_id, type_params))
-      }
       ExprKind::Try(result) => {
         let Some(result_id) = self.chart.builtins.result else {
           return self
@@ -623,17 +714,50 @@ impl<'core> Checker<'core, '_> {
         }
         ok
       }
+      ExprKind::Is(..) | ExprKind::LogicalOp(..) => {
+        self.enter_scope();
+        self.check_cond(expr);
+        self.exit_scope();
+        self.bool(span)
+      }
     }
   }
 
-  fn check_call(
-    &mut self,
-    func: &mut Box<Expr<'core>>,
-    args: &mut Vec<Expr<'core>>,
-    span: Span,
-  ) -> Type {
-    let ty = self.check_expr_form(func, Form::Value);
-    match self.fn_sig(span, ty, args.len()) {
+  fn check_cond(&mut self, cond: &mut Expr<'core>) {
+    let span = cond.span;
+    match &mut cond.kind {
+      ExprKind::Error(_) => {}
+      ExprKind::Is(expr, pat) => {
+        let ty = self.check_expr_form(expr, Form::Value);
+        self.check_pat_type(pat, Form::Value, true, ty);
+      }
+      ExprKind::LogicalOp(LogicalOp::And, a, b) => {
+        self.check_cond(a);
+        self.check_cond(b);
+      }
+      ExprKind::LogicalOp(LogicalOp::Or, a, b) => {
+        self.enter_scope();
+        self.check_cond(a);
+        self.exit_scope();
+        self.enter_scope();
+        self.check_cond(b);
+        self.exit_scope();
+      }
+      ExprKind::LogicalOp(LogicalOp::Implies, a, b) => {
+        self.enter_scope();
+        self.check_cond(a);
+        self.check_cond(b);
+        self.exit_scope();
+      }
+      _ => {
+        let bool = self.bool(span);
+        self.check_expr_form_type(cond, Form::Value, bool);
+      }
+    }
+  }
+
+  fn _check_call(&mut self, span: Span, func_ty: Type, args: &mut Vec<Expr<'core>>) -> Type {
+    match self.fn_sig(span, func_ty, args.len()) {
       Ok((params, ret)) => {
         for (ty, arg) in params.into_iter().zip(args) {
           self.check_expr_form_type(arg, Form::Value, ty);

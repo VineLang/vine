@@ -10,7 +10,7 @@ use ivy::ast::Net;
 use vine_util::{idx, interner::Interned, new_idx};
 
 use crate::{
-  chart::{ConstId, EnumId, FnId, ImplId, OpaqueTypeId, StructId, TraitId, TypeAliasId, VariantId},
+  chart::{ConstId, EnumId, FnId, ImplId, StructId, VariantId},
   diag::ErrorGuaranteed,
   specializer::{ConstRelId, FnRelId},
 };
@@ -278,19 +278,19 @@ pub enum ExprKind<'core> {
   Hole,
   #[class(value, place, space)]
   Paren(B<Expr<'core>>),
-  #[class(value)]
+  #[class(value, place, space)]
   Path(Path<'core>, Option<Vec<Expr<'core>>>),
-  #[class(value, resolved)]
+  #[class(value, synthetic)]
   ConstDef(ConstId, GenericArgs<'core>),
-  #[class(value, resolved)]
+  #[class(value, synthetic)]
   FnDef(FnId, GenericArgs<'core>),
   #[class(value, synthetic)]
   ConstRel(ConstRelId),
   #[class(value, synthetic)]
   FnRel(FnRelId),
-  #[class(place, resolved)]
+  #[class(place, synthetic)]
   Local(Local),
-  #[class(value, resolved)]
+  #[class(value, synthetic)]
   LetFn(LetFnId),
   #[class(value)]
   Do(Label<'core>, Block<'core>),
@@ -336,9 +336,9 @@ pub enum ExprKind<'core> {
   Method(B<Expr<'core>>, Ident<'core>, GenericArgs<'core>, Vec<Expr<'core>>),
   #[class(value)]
   Call(B<Expr<'core>>, Vec<Expr<'core>>),
-  #[class(value, place, space, resolved)]
+  #[class(value, place, space, synthetic)]
   Struct(StructId, GenericArgs<'core>, B<Expr<'core>>),
-  #[class(value, resolved)]
+  #[class(value, synthetic)]
   Enum(EnumId, VariantId, GenericArgs<'core>, Option<B<Expr<'core>>>),
   #[class(value, sugar)]
   Neg(B<Expr<'core>>),
@@ -494,7 +494,7 @@ pub struct Ty<'core> {
   pub kind: TyKind<'core>,
 }
 
-#[derive(Debug, Clone, Default, Classes)]
+#[derive(Debug, Clone, Default)]
 pub enum TyKind<'core> {
   #[default]
   Hole,
@@ -505,16 +505,6 @@ pub enum TyKind<'core> {
   Ref(B<Ty<'core>>),
   Inverse(B<Ty<'core>>),
   Path(Path<'core>),
-  #[class(resolved)]
-  Param(usize),
-  #[class(resolved)]
-  Opaque(OpaqueTypeId, GenericArgs<'core>),
-  #[class(resolved)]
-  Alias(TypeAliasId, GenericArgs<'core>),
-  #[class(resolved)]
-  Struct(StructId, GenericArgs<'core>),
-  #[class(resolved)]
-  Enum(EnumId, GenericArgs<'core>),
   Error(ErrorGuaranteed),
 }
 
@@ -542,7 +532,6 @@ pub struct Trait<'core> {
 #[derive(Debug, Clone)]
 pub enum TraitKind<'core> {
   Path(Path<'core>),
-  Def(TraitId, GenericArgs<'core>),
   Error(ErrorGuaranteed),
 }
 

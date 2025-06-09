@@ -324,7 +324,7 @@ impl<'core: 'src, 'src> Formatter<'src> {
 
   fn fmt_trait(&self, trait_: &Trait<'core>) -> Doc<'src> {
     match &trait_.kind {
-      TraitKind::Error(_) | TraitKind::Def(..) => unreachable!(),
+      TraitKind::Error(_) => unreachable!(),
       TraitKind::Path(path) => self.fmt_path(path),
     }
   }
@@ -366,7 +366,7 @@ impl<'core: 'src, 'src> Formatter<'src> {
 
   fn fmt_expr(&self, expr: &Expr<'core>) -> Doc<'src> {
     match &expr.kind {
-      ExprKind![synthetic || resolved || error] => unreachable!(),
+      ExprKind![synthetic || error] => unreachable!(),
       ExprKind::Paren(p) => Doc::paren(self.fmt_expr(p)),
       ExprKind::Hole => Doc("_"),
       ExprKind::Path(path, None) => self.fmt_path(path),
@@ -597,7 +597,7 @@ impl<'core: 'src, 'src> Formatter<'src> {
 
   fn fmt_ty(&self, ty: &Ty<'core>) -> Doc<'src> {
     match &ty.kind {
-      TyKind::Error(_) | TyKind![resolved] => unreachable!(),
+      TyKind::Error(_) => unreachable!(),
       TyKind::Hole => Doc("_"),
       TyKind::Paren(p) => Doc::paren(self.fmt_ty(p)),
       TyKind::Fn(a, r) => Doc::concat([

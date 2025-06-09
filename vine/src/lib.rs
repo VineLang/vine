@@ -15,7 +15,6 @@ pub mod loader;
 pub mod normalizer;
 pub mod parser;
 pub mod repl;
-pub mod resolver;
 pub mod signatures;
 pub mod specializer;
 pub mod types;

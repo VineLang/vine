@@ -11,7 +11,6 @@ use crate::{
   emitter::Emitter,
   loader::Loader,
   normalizer::normalize,
-  resolver::Resolver,
   signatures::Signatures,
   specializer::{SpecId, Specializations, Specializer},
   vir::VIR,
@@ -61,10 +60,6 @@ impl<'core> Compiler<'core> {
     let mut charter = Charter { core, chart };
     charter.chart_root(root);
     hooks.chart(&mut charter);
-
-    let mut resolver = Resolver { core, chart };
-    resolver.resolve_since(&checkpoint.chart);
-    hooks.resolve(&mut resolver);
 
     let mut checker = Checker::new(core, chart, &mut self.sigs);
     checker.check_since(&checkpoint.chart);
@@ -119,7 +114,6 @@ impl<'core> Compiler<'core> {
 
 pub trait Hooks<'core> {
   fn chart(&mut self, _charter: &mut Charter<'core, '_>) {}
-  fn resolve(&mut self, _resolver: &mut Resolver<'core, '_>) {}
   fn check(&mut self, _checker: &mut Checker<'core, '_>) {}
   fn specialize(&mut self, _specializer: &mut Specializer<'core, '_>) {}
   fn emit(&mut self, _distiller: &mut Distiller<'core, '_>, _emitter: &mut Emitter<'core, '_>) {}
