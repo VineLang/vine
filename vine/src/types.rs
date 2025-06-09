@@ -25,6 +25,8 @@ new_idx!(pub TypeIdx; n => ["t{n}"]);
 
 const INV_BIT: usize = isize::MIN as usize;
 impl Type {
+  pub const _NONE: Type = Type(usize::MAX);
+
   fn new(inv: Inverted, idx: TypeIdx) -> Type {
     Type(idx.0).invert_if(inv)
   }

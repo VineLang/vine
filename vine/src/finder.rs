@@ -1,14 +1,15 @@
 use std::collections::{BTreeSet, HashSet};
 
 use crate::{
-  ast::{GenericArgs, Ident, Impl, ImplKind, Span},
+  ast::{Ident, Span},
   chart::{
     Chart, Def, DefId, DefImplKind, DefTraitKind, DefValueKind, FnId, GenericsId, ImplId,
     MemberKind, WithVis,
   },
   core::Core,
-  diag::{Diag, ErrorGuaranteed},
-  signatures::Signatures,
+  diag::Diag,
+  signatures::{ImportState, Signatures},
+  tir::TirImpl,
   types::{ImplType, Inverted, Type, TypeCtx, TypeKind, Types},
 };
 
@@ -103,21 +104,21 @@ impl<'core, 'a> Finder<'core, 'a> {
     candidates
   }
 
-  pub fn find_impl(&mut self, types: &mut Types<'core>, query: &ImplType) -> Impl<'core> {
+  pub fn find_impl(&mut self, types: &mut Types<'core>, query: &ImplType) -> TirImpl {
     let span = self.span;
     let TypeCtx { types: sub_types, inner: sub_query } = types.export(|t| t.transfer(query));
 
     let show_ty = || types.show_impl_type(self.chart, query);
     let Ok(mut results) = self._find_impl(&sub_types, &sub_query) else {
-      return impl_error(span, self.core.report(Diag::SearchLimit { span, ty: show_ty() }));
+      return TirImpl::Error(self.core.report(Diag::SearchLimit { span, ty: show_ty() }));
     };
 
     if results.is_empty() {
-      return impl_error(span, self.core.report(Diag::CannotFindImpl { span, ty: show_ty() }));
+      return TirImpl::Error(self.core.report(Diag::CannotFindImpl { span, ty: show_ty() }));
     }
 
     if results.len() > 1 {
-      return impl_error(span, self.core.report(Diag::AmbiguousImpl { span, ty: show_ty() }));
+      return TirImpl::Error(self.core.report(Diag::AmbiguousImpl { span, ty: show_ty() }));
     }
 
     let result = results.pop().unwrap();
@@ -133,7 +134,7 @@ impl<'core, 'a> Finder<'core, 'a> {
     &mut self,
     types: &Types<'core>,
     query: &ImplType,
-  ) -> Result<Vec<TypeCtx<'core, Impl<'core>>>, Timeout> {
+  ) -> Result<Vec<TypeCtx<'core, TirImpl>>, Timeout> {
     self.step()?;
 
     let mut found = Vec::new();
@@ -144,7 +145,7 @@ impl<'core, 'a> Finder<'core, 'a> {
         let mut types = types.clone();
         let ty = types.import_with(generics, None, |t, _| t.transfer(ty));
         if types.unify_impl_type(&ty, query).is_success() {
-          found.push(TypeCtx { types, inner: Impl { span: self.span, kind: ImplKind::Param(i) } });
+          found.push(TypeCtx { types, inner: TirImpl::Param(i) });
         }
       }
     }
@@ -162,13 +163,7 @@ impl<'core, 'a> Finder<'core, 'a> {
         for result in results {
           let mut impls = result.inner;
           impls.reverse();
-          found.push(TypeCtx {
-            types: result.types,
-            inner: Impl {
-              span: self.span,
-              kind: ImplKind::Def(candidate, GenericArgs { span: self.span, types: vec![], impls }),
-            },
-          });
+          found.push(TypeCtx { types: result.types, inner: TirImpl::Def(candidate, impls) });
         }
       }
     }
@@ -180,7 +175,7 @@ impl<'core, 'a> Finder<'core, 'a> {
     &mut self,
     types: Types<'core>,
     queries: &[ImplType],
-  ) -> Result<Vec<TypeCtx<'core, Vec<Impl<'core>>>>, Timeout> {
+  ) -> Result<Vec<TypeCtx<'core, Vec<TirImpl>>>, Timeout> {
     let [query, rest_queries @ ..] = queries else {
       return Ok(vec![(TypeCtx { types, inner: vec![] })]);
     };
@@ -254,7 +249,10 @@ impl<'core, 'a> Finder<'core, 'a> {
 
       let def_id = match member.kind {
         MemberKind::Child(def_id) => Some(def_id),
-        MemberKind::Import(import_id) => self.chart.imports[import_id].resolved(),
+        MemberKind::Import(import_id) => match self.sigs.imports[import_id] {
+          ImportState::Resolved(Ok(def_id)) => Some(def_id),
+          _ => None,
+        },
       };
       let Some(def_id) = def_id else { continue };
 
@@ -289,8 +287,4 @@ impl<'core, 'a> Finder<'core, 'a> {
       Ok(())
     }
   }
-}
-
-fn impl_error<'core>(span: Span, err: ErrorGuaranteed) -> Impl<'core> {
-  Impl { span, kind: ImplKind::Error(err) }
 }

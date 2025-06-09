@@ -9,7 +9,7 @@ use vine::{
   core::{Core, CoreArenas},
   diag::Diag,
   loader::Loader,
-  resolver::Resolver,
+  resolver::{Resolutions, Resolver},
   signatures::Signatures,
 };
 
@@ -40,7 +40,8 @@ impl Backend {
 
     let chart = &mut Chart::default();
     Charter { core, chart }.chart_root(root);
-    Resolver::new(core, chart, &mut Signatures::default()).resolve_all();
+    Resolver::new(core, chart, &mut Signatures::default(), &mut Resolutions::default())
+      .resolve_all();
 
     self.report(core, core.take_diags())
   }

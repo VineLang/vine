@@ -1,10 +1,9 @@
-use std::{collections::BTreeMap, mem::take};
-
 use crate::{
-  ast::{Expr, ExprKind, Generics, Ident, ImplKind, Label, LogicalOp, Span},
+  ast::{Expr, ExprKind, Generics, Ident, Label, LogicalOp, Span},
   chart::{DefValueKind, OpaqueTypeId, StructId},
   diag::Diag,
   resolver::{Binding, Form, Resolver, Type},
+  tir::{TirExpr, TirExprKind, TirImpl},
   types::{Inverted, TypeKind},
 };
 
@@ -12,251 +11,214 @@ mod coerce_expr;
 mod resolve_method;
 
 impl<'core> Resolver<'core, '_> {
-  pub(super) fn resolve_expr_form_type(&mut self, expr: &mut Expr<'core>, form: Form, ty: Type) {
-    let found = self.resolve_expr_form(expr, form);
-    if self.types.unify(found, ty).is_failure() {
-      self.core.report(Diag::ExpectedTypeFound {
-        span: expr.span,
-        expected: self.types.show(self.chart, ty),
-        found: self.types.show(self.chart, found),
-      });
+  pub(super) fn resolve_expr_form_type(
+    &mut self,
+    expr: &Expr<'core>,
+    form: Form,
+    ty: Type,
+  ) -> TirExpr {
+    let expr = self.resolve_expr_form(expr, form);
+    self.expect_type(expr.span, expr.ty, ty);
+    expr
+  }
+
+  pub(super) fn resolve_expr_form(&mut self, expr: &Expr<'core>, form: Form) -> TirExpr {
+    let mut expr = self.resolve_expr(expr);
+    self.coerce_expr(&mut expr, form);
+    expr
+  }
+
+  pub(super) fn resolve_expr(&mut self, expr: &Expr<'core>) -> TirExpr {
+    match self._resolve_expr(expr) {
+      Ok((form, ty, kind)) => TirExpr { span: expr.span, ty, form, kind: Box::new(kind) },
+      Err(diag) => self.error_expr(expr.span, diag),
     }
   }
 
-  pub(super) fn resolve_expr_form(&mut self, expr: &mut Expr<'core>, form: Form) -> Type {
-    let (found, ty) = self.resolve_expr(expr);
-    self.coerce_expr(expr, found, form);
-    ty
-  }
-
-  pub(super) fn resolve_expr(&mut self, expr: &mut Expr<'core>) -> (Form, Type) {
+  fn _resolve_expr(
+    &mut self,
+    expr: &Expr<'core>,
+  ) -> Result<(Form, Type, TirExprKind), Diag<'core>> {
     let span = expr.span;
-    match &mut expr.kind {
+    Ok(match &expr.kind {
       ExprKind![synthetic] => unreachable!(),
       ExprKind![!error && !space && !place && !synthetic] => {
-        (Form::Value, self._resolve_expr_value(expr))
+        let (ty, kind) = self._resolve_expr_value(expr)?;
+        (Form::Value, ty, kind)
       }
-      ExprKind::Paren(e) => self.resolve_expr(e),
-      ExprKind::Error(e) => (Form::Error(*e), self.types.error(*e)),
-      ExprKind::Hole => (Form::Space, self.types.new_var(span)),
-      ExprKind::Deref(e, _) => {
+      ExprKind::Paren(e) => self._resolve_expr(e)?,
+      ExprKind::Error(e) => Err(*e)?,
+      ExprKind::Hole => (Form::Space, self.types.new_var(span), TirExprKind::Hole),
+      ExprKind::Deref(inner, _) => {
         let ty = self.types.new_var(span);
         let ref_ty = self.types.new(TypeKind::Ref(ty));
-        self.resolve_expr_form_type(e, Form::Value, ref_ty);
-        (Form::Place, ty)
+        let inner = self.resolve_expr_form_type(inner, Form::Value, ref_ty);
+        (Form::Place, ty, TirExprKind::Deref(inner))
       }
-      ExprKind::Inverse(expr, _) => {
-        let (form, ty) = self.resolve_expr(expr);
-        (form.inverse(), ty.inverse())
+      ExprKind::Inverse(inner, _) => {
+        let inner = self.resolve_expr(inner);
+        (inner.form.inverse(), inner.ty.inverse(), TirExprKind::Inverse(inner))
       }
-      ExprKind::Place(v, s) => {
-        let v = self.resolve_expr_form(v, Form::Value);
-        let s = self.resolve_expr_form(s, Form::Space);
-        let ty = if self.types.unify(v, s).is_failure() {
+      ExprKind::Place(value, space) => {
+        let value = self.resolve_expr_form(value, Form::Value);
+        let space = self.resolve_expr_form(space, Form::Space);
+        let ty = if self.types.unify(value.ty, space.ty).is_failure() {
           self.types.error(self.core.report(Diag::MismatchedValueSpaceTypes {
             span,
-            value: self.types.show(self.chart, v),
-            space: self.types.show(self.chart, s),
+            value: self.types.show(self.chart, value.ty),
+            space: self.types.show(self.chart, space.ty),
           }))
         } else {
-          v
+          value.ty
         };
-        (Form::Place, ty)
+        (Form::Place, ty, TirExprKind::Place(value, space))
       }
-      ExprKind::TupleField(e, i, l) => {
-        let (form, ty) = self.resolve_expr(e);
-
-        if form == Form::Space {
-          let e = self.core.report(Diag::SpaceField { span });
-          return (Form::Error(e), self.types.error(e));
+      ExprKind::TupleField(tuple, index, _) => {
+        let tuple = self.resolve_expr(tuple);
+        if tuple.form == Form::Space {
+          self.core.report(Diag::SpaceField { span });
         }
-
-        let (field_ty, len) = self.tuple_field(span, ty, *i).unwrap_or_else(|| {
-          (
-            self.types.error(self.core.report(Diag::MissingTupleField {
-              span,
-              ty: self.types.show(self.chart, ty),
-              i: *i,
-            })),
-            0,
-          )
-        });
-        *l = Some(len);
-
-        (form, field_ty)
+        let (ty, len) = self.tuple_field(span, tuple.ty, *index).ok_or_else(|| {
+          Diag::MissingTupleField { span, ty: self.types.show(self.chart, tuple.ty), i: *index }
+        })?;
+        (tuple.form, ty, TirExprKind::Field(tuple, *index, len))
       }
-      ExprKind::ObjectField(e, k) => {
-        let (form, ty) = self.resolve_expr(e);
-
-        if form == Form::Space {
-          let e = self.core.report(Diag::SpaceField { span });
-          return (Form::Error(e), self.types.error(e));
+      ExprKind::ObjectField(object, key) => {
+        let object = self.resolve_expr(object);
+        if object.form == Form::Space {
+          self.core.report(Diag::SpaceField { span });
         }
-
-        let (field_ty, i, len) = self.object_field(span, ty, k.ident).unwrap_or_else(|| {
-          let ty = self.types.error(self.core.report(Diag::MissingObjectField {
-            span: k.span,
-            ty: self.types.show(self.chart, ty),
-            key: k.ident,
-          }));
-          (ty, 0, 0)
-        });
-
-        expr.kind = ExprKind::TupleField(take(e), i, Some(len));
-
-        (form, field_ty)
-      }
-      ExprKind::Tuple(v) => {
-        if v.is_empty() {
-          (Form::Place, self.types.nil())
-        } else {
-          let (forms, types) =
-            v.iter_mut().map(|x| self.resolve_expr(x)).collect::<(Vec<_>, Vec<_>)>();
-          let form = self.tuple_form(span, &forms);
-          for (f, e) in forms.into_iter().zip(v) {
-            self.coerce_expr(e, f, form);
+        let (ty, index, len) = self.object_field(span, object.ty, key.ident).ok_or_else(|| {
+          Diag::MissingObjectField {
+            span: key.span,
+            ty: self.types.show(self.chart, object.ty),
+            key: key.ident,
           }
-          (form, self.types.new(TypeKind::Tuple(types)))
-        }
+        })?;
+        (object.form, ty, TirExprKind::Field(object, index, len))
       }
+      ExprKind::Tuple(elements) => self._resolve_tuple(span, elements),
       ExprKind::Object(entries) => {
-        if entries.is_empty() {
-          (Form::Place, self.types.new(TypeKind::Object(BTreeMap::new())))
-        } else {
-          let mut forms = Vec::new();
-          let ty = self.build_object_type(entries, |self_, e| {
-            let (form, ty) = self_.resolve_expr(e);
-            forms.push(form);
-            ty
-          });
-          let form = self.tuple_form(span, &forms);
-          for (f, (_, v)) in forms.into_iter().zip(entries) {
-            self.coerce_expr(v, f, form);
-          }
-          (form, ty)
+        let mut object = self.build_object(entries, Self::resolve_expr)?;
+        let form = self.composite_form(span, object.values().map(|x| x.form));
+        for element in object.values_mut() {
+          self.coerce_expr(element, form);
         }
+        let ty = self.types.new(TypeKind::Object(object.iter().map(|(&i, x)| (i, x.ty)).collect()));
+        (form, ty, TirExprKind::Composite(object.into_values().collect()))
       }
       ExprKind::Unwrap(inner) => {
-        let (form, ty) = self.resolve_expr(inner);
+        let inner = self.resolve_expr(inner);
 
-        let data_ty = match self.types.force_kind(self.core, ty) {
+        let data_ty = match self.types.force_kind(self.core, inner.ty) {
           (inv, TypeKind::Struct(struct_id, type_params)) => {
             let struct_id = *struct_id;
             let type_params = &type_params.clone();
-            self.get_struct_data(span, ty, struct_id, type_params).invert_if(inv)
+            self.get_struct_data(span, inner.ty, struct_id, type_params).invert_if(inv)
           }
           _ => self.types.error(self.core.report(Diag::UnwrapNonStruct { span })),
         };
 
-        (form, data_ty)
+        (inner.form, data_ty, TirExprKind::Unwrap(inner))
       }
       ExprKind::Path(path, args) => {
-        let mut args = args.take();
-        let (form, ty) = 'inner: {
+        let mut args = args.as_ref();
+        let (form, ty, kind) = 'inner: {
           if let Some(ident) = path.as_ident() {
             if let Some(bind) = self.scope.get(&ident).and_then(|x| x.last()) {
               break 'inner match bind.binding {
-                Binding::Local(local, ty) => {
-                  expr.kind = ExprKind::Local(local);
-                  (Form::Place, ty)
-                }
-                Binding::LetFn(id, ty) => {
-                  expr.kind = ExprKind::LetFn(id);
-                  (Form::Value, ty)
-                }
+                Binding::Local(local, ty) => (Form::Place, ty, TirExprKind::Local(local)),
+                Binding::Closure(id, ty) => (Form::Value, ty, TirExprKind::Closure(id)),
               };
             }
           }
-          let mut generics = path.take_generics();
           match self.resolve_path_to(self.cur_def, path, "value", |d| d.value_kind) {
             Ok(DefValueKind::Struct(struct_id)) => {
-              let type_params =
-                self.resolve_generics(&mut generics, self.chart.structs[struct_id].generics, true);
+              let (type_params, _) =
+                self.resolve_generics(path, self.chart.structs[struct_id].generics, true);
               let data_ty =
                 self.types.import(&self.sigs.structs[struct_id], Some(&type_params)).data;
-              let ((form, ty), data) = if let Some(mut args) = args.take() {
-                let mut data = if args.len() != 1 {
-                  Expr { span, kind: ExprKind::Tuple(args) }
+              let data = if let Some(args) = args.take() {
+                if let [data] = &**args {
+                  self.resolve_expr(data)
                 } else {
-                  args.pop().unwrap()
-                };
-                (self.resolve_expr(&mut data), data)
+                  let (form, ty, kind) = self._resolve_tuple(span, args);
+                  TirExpr { span, form, ty, kind: Box::new(kind) }
+                }
               } else {
-                let err = self.core.report(Diag::ExpectedDataExpr { span });
-                (
-                  (Form::Error(err), self.types.error(err)),
-                  Expr { span, kind: ExprKind::Error(err) },
-                )
+                self.error_expr(span, Diag::ExpectedDataExpr { span })
               };
-              if self.types.unify(ty, data_ty).is_failure() {
+              if self.types.unify(data.ty, data_ty).is_failure() {
                 self.core.report(Diag::ExpectedTypeFound {
                   span: expr.span,
                   expected: self.types.show(self.chart, data_ty),
-                  found: self.types.show(self.chart, ty),
+                  found: self.types.show(self.chart, data.ty),
                 });
               }
-              expr.kind = ExprKind::Struct(struct_id, generics, Box::new(data));
-              (form, self.types.new(TypeKind::Struct(struct_id, type_params)))
+              let ty = self.types.new(TypeKind::Struct(struct_id, type_params));
+              (data.form, ty, TirExprKind::Struct(struct_id, data))
             }
             Ok(DefValueKind::Enum(enum_id, variant_id)) => {
-              let type_params =
-                self.resolve_generics(&mut generics, self.chart.enums[enum_id].generics, true);
+              let (type_params, _) =
+                self.resolve_generics(path, self.chart.enums[enum_id].generics, true);
               let data_ty =
                 self.types.import_with(&self.sigs.enums[enum_id], Some(&type_params), |t, sig| {
                   Some(t.transfer(&sig.variant_data[variant_id]?))
                 });
-              let mut data = args.take().map(|mut args| {
-                if args.len() != 1 {
-                  Expr { span, kind: ExprKind::Tuple(args) }
+              let data = args.take().map(|args| {
+                if let [data] = &**args {
+                  self.resolve_expr(data)
                 } else {
-                  args.pop().unwrap()
+                  let (form, ty, kind) = self._resolve_tuple(span, args);
+                  TirExpr { span, form, ty, kind: Box::new(kind) }
                 }
               });
-              match (&mut data, data_ty) {
-                (None, None) => {}
-                (Some(data), Some(data_ty)) => {
-                  self.resolve_expr_form_type(data, Form::Value, data_ty)
+              let data = match data_ty {
+                Some(data_ty) => Some(match data {
+                  Some(mut data) => {
+                    self.coerce_expr(&mut data, Form::Value);
+                    self.expect_type(data.span, data.ty, data_ty);
+                    data
+                  }
+                  None => self.error_expr(span, Diag::ExpectedDataExpr { span }),
+                }),
+                None => {
+                  if data.is_some() {
+                    self.core.report(Diag::EnumVariantNoData { span });
+                  }
+                  None
                 }
-                (None, Some(_)) => {
-                  self.core.report(Diag::ExpectedDataExpr { span });
-                }
-                (Some(_), None) => {
-                  self.core.report(Diag::EnumVariantNoData { span });
-                }
-              }
-              expr.kind = ExprKind::Enum(enum_id, variant_id, generics, data.map(Box::new));
-              (Form::Value, self.types.new(TypeKind::Enum(enum_id, type_params)))
+              };
+              let ty = self.types.new(TypeKind::Enum(enum_id, type_params));
+              (Form::Value, ty, TirExprKind::Enum(enum_id, variant_id, data))
             }
             Ok(DefValueKind::Const(const_id)) => {
-              let type_params =
-                self.resolve_generics(&mut generics, self.chart.const_generics(const_id), true);
-              expr.kind = ExprKind::ConstDef(const_id, generics);
-              (Form::Value, self.types.import(self.sigs.const_sig(const_id), Some(&type_params)).ty)
+              let (type_params, impl_params) =
+                self.resolve_generics(path, self.chart.const_generics(const_id), true);
+              let ty = self.types.import(self.sigs.const_sig(const_id), Some(&type_params)).ty;
+              let rel = self.const_rels.push((const_id, impl_params));
+              (Form::Value, ty, TirExprKind::Const(rel))
             }
             Ok(DefValueKind::Fn(fn_id)) => {
-              let type_params =
-                self.resolve_generics(&mut generics, self.chart.fn_generics(fn_id), true);
+              let (type_params, impl_params) =
+                self.resolve_generics(path, self.chart.fn_generics(fn_id), true);
               let sig = self.types.import(self.sigs.fn_sig(fn_id), Some(&type_params));
-              expr.kind = ExprKind::FnDef(fn_id, generics);
-              (Form::Value, self.types.new(TypeKind::Fn(sig.params, sig.ret_ty)))
+              let ty = self.types.new(TypeKind::Fn(sig.params, sig.ret_ty));
+              let rel = self.fn_rels.push((fn_id, impl_params));
+              (Form::Value, ty, TirExprKind::Fn(rel))
             }
-            Err(diag) => {
-              let err = self.core.report(diag);
-              expr.kind = ExprKind::Error(err);
-              (Form::Error(err), self.types.error(err))
-            }
+            Err(diag) => Err(diag)?,
           }
         };
-        if let Some(mut args) = args {
-          self.coerce_expr(expr, form, Form::Value);
-          let ty = self._resolve_call(span, ty, &mut args);
-          *expr = Expr { span, kind: ExprKind::Call(Box::new(take(expr)), args) };
-          (Form::Value, ty)
+        if let Some(args) = args {
+          let (ty, kind) =
+            self._resolve_call(span, TirExpr { span, ty, form, kind: Box::new(kind) }, args)?;
+          (Form::Value, ty, kind)
         } else {
-          (form, ty)
+          (form, ty, kind)
         }
       }
-    }
+    })
   }
 
   fn get_struct_data(
@@ -314,9 +276,9 @@ impl<'core> Resolver<'core, '_> {
     }
   }
 
-  fn tuple_form(&mut self, span: Span, forms: &[Form]) -> Form {
-    let space = forms.iter().any(|&x| x == Form::Space);
-    let value = forms.iter().any(|&x| x == Form::Value);
+  fn composite_form(&mut self, span: Span, forms: impl IntoIterator<Item = Form> + Clone) -> Form {
+    let space = forms.clone().into_iter().any(|x| x == Form::Space);
+    let value = forms.clone().into_iter().any(|x| x == Form::Value);
     if !space && !value {
       Form::Place
     } else if space && !value {
@@ -328,80 +290,83 @@ impl<'core> Resolver<'core, '_> {
     }
   }
 
-  fn _resolve_expr_value(&mut self, expr: &mut Expr<'core>) -> Type {
+  fn _resolve_tuple(
+    &mut self,
+    span: Span,
+    elements: &Vec<Expr<'core>>,
+  ) -> (Form, Type, TirExprKind) {
+    let mut elements = elements.iter().map(|x| self.resolve_expr(x)).collect::<Vec<_>>();
+    let form = self.composite_form(span, elements.iter().map(|x| x.form));
+    for element in &mut elements {
+      self.coerce_expr(element, form);
+    }
+    let ty = self.types.new(TypeKind::Tuple(elements.iter().map(|x| x.ty).collect()));
+    (form, ty, TirExprKind::Composite(elements))
+  }
+
+  fn _resolve_expr_value(
+    &mut self,
+    expr: &Expr<'core>,
+  ) -> Result<(Type, TirExprKind), Diag<'core>> {
     let nil = self.types.nil();
     let span = expr.span;
-    match &mut expr.kind {
+    Ok(match &expr.kind {
       ExprKind![error || place || space || synthetic] => unreachable!(),
       ExprKind::Do(label, block) => {
         let ty = self.types.new_var(span);
-        self.bind_label(label, false, ty, |self_| self_.resolve_block_type(block, ty));
-        ty
+        let (label, block) =
+          self.bind_label(label, false, ty, |self_| self_.resolve_block_type(block, ty));
+        (ty, TirExprKind::Do(label, block))
       }
-      ExprKind::Assign(_, space, value) => {
-        let ty = self.resolve_expr_form(space, Form::Space);
-        self.resolve_expr_form_type(value, Form::Value, ty);
-        self.types.nil()
+      ExprKind::Assign(dir, space, value) => {
+        let space = self.resolve_expr_form(space, Form::Space);
+        let value = self.resolve_expr_form_type(value, Form::Value, space.ty);
+        (self.types.nil(), TirExprKind::Assign(*dir, space, value))
       }
       ExprKind::Match(scrutinee, arms) => {
         let scrutinee = self.resolve_expr_form(scrutinee, Form::Value);
         let result = self.types.new_var(span);
-        for (pat, block) in arms {
+        let arms = Vec::from_iter(arms.iter().map(|(pat, block)| {
           self.enter_scope();
-          self.resolve_pat_type(pat, Form::Value, true, scrutinee);
-          self.resolve_block_type(block, result);
+          let pat = self.resolve_pat_type(pat, Form::Value, true, scrutinee.ty);
+          let block = self.resolve_block_type(block, result);
           self.exit_scope();
-        }
-        result
+          (pat, block)
+        }));
+        (result, TirExprKind::Match(scrutinee, arms))
       }
       ExprKind::If(arms, leg) => {
         let result = if leg.is_some() { self.types.new_var(span) } else { self.types.nil() };
-        for (cond, block) in arms {
+        let arms = Vec::from_iter(arms.iter().map(|(cond, block)| {
           self.enter_scope();
-          self.resolve_cond(cond);
-          self.resolve_block_type(block, result);
+          let cond = self.resolve_cond(cond);
+          let block = self.resolve_block_type(block, result);
           self.exit_scope();
-        }
-        if let Some(leg) = leg {
-          self.resolve_block_type(leg, result);
-        }
-        result
+          (cond, block)
+        }));
+        let leg = leg.as_ref().map(|leg| self.resolve_block_type(leg, result));
+        (result, TirExprKind::If(arms, leg))
       }
       ExprKind::While(label, cond, block) => {
         let nil = self.types.nil();
-        self.bind_label(label, true, nil, |self_| {
+        let (label, (cond, block)) = self.bind_label(label, true, nil, |self_| {
           self_.enter_scope();
-          self_.resolve_cond(cond);
-          self_.resolve_block(block);
+          let cond = self_.resolve_cond(cond);
+          let block = self_.resolve_block(block);
           self_.exit_scope();
+          (cond, block)
         });
-        nil
+        (nil, TirExprKind::While(label, cond, block))
       }
       ExprKind::Loop(label, block) => {
         let result = self.types.new_var(span);
-        self.bind_label(label, true, result, |self_| {
-          self_.resolve_block(block);
-        });
-        result
+        let (label, block) =
+          self.bind_label(label, true, result, |self_| self_.resolve_block(block));
+        (result, TirExprKind::Loop(label, block))
       }
       ExprKind::Fn(params, ret, body) => {
-        let old_labels = take(&mut self.labels);
-        let old_loops = take(&mut self.loops);
-        self.enter_scope();
-        let params =
-          params.iter_mut().map(|pat| self.resolve_pat(pat, Form::Value, false)).collect();
-        let ret = match ret {
-          Some(Some(t)) => self.resolve_type(t, true),
-          Some(None) => self.types.nil(),
-          None => self.types.new_var(span),
-        };
-        let old_return_ty = self.return_ty.replace(ret);
-        self.resolve_block_type(body, ret);
-        self.exit_scope();
-        self.return_ty = old_return_ty;
-        self.labels = old_labels;
-        self.loops = old_loops;
-        self.types.new(TypeKind::Fn(params, ret))
+        let (ty, closure_id) = self.resolve_closure(params, ret, body, true);
+        (ty, TirExprKind::Closure(closure_id))
       }
       ExprKind::Break(label, value) => {
         let label_info = if let Label::Ident(Some(label)) = *label {
@@ -411,295 +376,272 @@ impl<'core> Resolver<'core, '_> {
         };
         match label_info {
           Ok(label_info) => {
-            *label = Label::Resolved(label_info.id);
-            if let Some(value) = value {
-              self.resolve_expr_form_type(value, Form::Value, label_info.break_ty);
-            } else if self.types.unify(label_info.break_ty, nil).is_failure() {
-              self.core.report(Diag::MissingBreakExpr {
-                span,
-                ty: self.types.show(self.chart, label_info.break_ty),
-              });
-            }
+            let value = match value {
+              Some(value) => {
+                Some(self.resolve_expr_form_type(value, Form::Value, label_info.break_ty))
+              }
+              None => {
+                if self.types.unify(label_info.break_ty, nil).is_failure() {
+                  self.core.report(Diag::MissingBreakExpr {
+                    span,
+                    ty: self.types.show(self.chart, label_info.break_ty),
+                  });
+                }
+                None
+              }
+            };
+            (self.types.new_var(span), TirExprKind::Break(label_info.id, value))
           }
           Err(diag) => {
-            *label = Label::Error(self.core.report(diag));
             if let Some(value) = value {
               self.resolve_expr_form(value, Form::Value);
             }
+            Err(diag)?
           }
         }
-        self.types.new_var(span)
       }
-      ExprKind::Return(e) => {
+      ExprKind::Return(value) => {
         if let Some(ty) = &self.return_ty {
           let ty = *ty;
-          if let Some(e) = e {
-            self.resolve_expr_form_type(e, Form::Value, ty);
-          } else if self.types.unify(ty, nil).is_failure() {
-            self.core.report(Diag::MissingReturnExpr { span, ty: self.types.show(self.chart, ty) });
-          }
+          let value = match value {
+            Some(value) => Some(self.resolve_expr_form_type(value, Form::Value, ty)),
+            None => {
+              if self.types.unify(ty, nil).is_failure() {
+                self
+                  .core
+                  .report(Diag::MissingReturnExpr { span, ty: self.types.show(self.chart, ty) });
+              }
+              None
+            }
+          };
+          (self.types.new_var(span), TirExprKind::Return(value))
         } else {
-          self.core.report(Diag::NoReturn { span });
+          Err(Diag::NoReturn { span })?
         }
-        self.types.new_var(span)
       }
       ExprKind::Continue(label) => {
-        let info = if let Label::Ident(Some(label)) = *label {
-          self.labels.get(&label).ok_or(Diag::UnboundLabel { span, label }).and_then(|&info| {
-            if info.is_loop {
-              Ok(info)
-            } else {
-              Err(Diag::NoContinueLabel { span, label })
-            }
-          })
+        let label_info = if let Label::Ident(Some(label)) = *label {
+          let label_info = *self.labels.get(&label).ok_or(Diag::UnboundLabel { span, label })?;
+          if !label_info.is_loop {
+            Err(Diag::NoContinueLabel { span, label })?
+          }
+          label_info
         } else {
-          self.loops.last().copied().ok_or(Diag::NoLoopContinue { span })
+          self.loops.last().copied().ok_or(Diag::NoLoopContinue { span })?
         };
-        match info {
-          Ok(info) => {
-            *label = Label::Resolved(info.id);
-          }
-          Err(diag) => {
-            *label = Label::Error(self.core.report(diag));
-          }
-        }
-        self.types.new_var(span)
+        (self.types.new_var(span), TirExprKind::Continue(label_info.id))
       }
-      ExprKind::Ref(expr, _) => {
-        let ty = self.resolve_expr_form(expr, Form::Place);
-        self.types.new(TypeKind::Ref(ty))
+      ExprKind::Ref(inner, _) => {
+        let inner = self.resolve_expr_form(inner, Form::Place);
+        (self.types.new(TypeKind::Ref(inner.ty)), TirExprKind::Ref(inner))
       }
-      ExprKind::Move(expr, _) => self.resolve_expr_form(expr, Form::Place),
-      ExprKind::List(els) => {
-        let item = self.types.new_var(span);
-        for el in els {
-          self.resolve_expr_form_type(el, Form::Value, item);
-        }
-        if let Some(list) = self.chart.builtins.list {
-          self.types.new(TypeKind::Struct(list, vec![item]))
-        } else {
-          self.types.error(self.core.report(Diag::MissingBuiltin { span, builtin: "List" }))
-        }
+      ExprKind::Move(inner, _) => {
+        let inner = self.resolve_expr_form(inner, Form::Place);
+        (inner.ty, TirExprKind::Move(inner))
+      }
+      ExprKind::List(elements) => {
+        let ty = self.types.new_var(span);
+        let elements = Vec::from_iter(
+          elements.iter().map(|element| self.resolve_expr_form_type(element, Form::Value, ty)),
+        );
+        let Some(list) = self.chart.builtins.list else {
+          Err(Diag::MissingBuiltin { span, builtin: "List" })?
+        };
+        (self.types.new(TypeKind::Struct(list, vec![ty])), TirExprKind::List(elements))
       }
       ExprKind::Method(receiver, name, generics, args) => {
-        let (desugared, ty) = self.resolve_method(span, receiver, *name, generics, args);
-        expr.kind = desugared;
-        ty
+        self.resolve_method(span, receiver, *name, generics, args)?
       }
       ExprKind::Call(func, args) => {
-        let func_ty = self.resolve_expr_form(func, Form::Value);
-        self._resolve_call(span, func_ty, args)
+        let func = self.resolve_expr(func);
+        self._resolve_call(span, func, args)?
       }
-      ExprKind::Bool(_) => self.bool(span),
+      ExprKind::Bool(bool) => (self.bool(span), TirExprKind::Bool(*bool)),
       ExprKind::Not(inner) => {
-        let ty = self.resolve_expr_form(inner, Form::Value);
+        let inner = self.resolve_expr_form(inner, Form::Value);
         let Some(op_fn) = self.chart.builtins.not else {
-          return self.types.error(self.core.report(Diag::MissingOperatorBuiltin { span }));
+          Err(Diag::MissingOperatorBuiltin { span })?
         };
         let return_ty = self.types.new_var(span);
-        let mut generics = Generics { span, ..Default::default() };
-        self._resolve_generics(
-          &mut generics,
+        let (_, impl_params) = self._resolve_generics(
+          &Generics { span, ..Default::default() },
           self.chart.fn_generics(op_fn),
           true,
-          Some(vec![ty, return_ty]),
+          Some(vec![inner.ty, return_ty]),
         );
-        if let ImplKind::Def(id, _) = generics.impls[0].kind {
-          if self.chart.builtins.bool_not == Some(id) {
-            return return_ty;
+        if let Some(TirImpl::Def(id, _)) = impl_params.first() {
+          if self.chart.builtins.bool_not == Some(*id) {
+            return Ok((return_ty, TirExprKind::Not(inner)));
           }
         }
-        expr.kind = ExprKind::Call(
-          Box::new(Expr { span, kind: ExprKind::FnDef(op_fn, generics) }),
-          vec![take(inner)],
-        );
-        return_ty
+        (return_ty, TirExprKind::CallFn(self.fn_rels.push((op_fn, impl_params)), vec![inner]))
       }
       ExprKind::Neg(inner) => {
-        let ty = self.resolve_expr_form(inner, Form::Value);
-        let Some(op_fn) = self.chart.builtins.neg else {
-          return self.types.error(self.core.report(Diag::MissingOperatorBuiltin { span }));
+        let inner = self.resolve_expr_form(inner, Form::Value);
+        let Some(fn_id) = self.chart.builtins.neg else {
+          Err(Diag::MissingOperatorBuiltin { span })?
         };
         let return_ty = self.types.new_var(span);
-        let mut generics = Generics { span, ..Default::default() };
-        self._resolve_generics(
-          &mut generics,
-          self.chart.fn_generics(op_fn),
+        let (_, impl_params) = self._resolve_generics(
+          &Generics { span, ..Default::default() },
+          self.chart.fn_generics(fn_id),
           true,
-          Some(vec![ty, return_ty]),
+          Some(vec![inner.ty, return_ty]),
         );
-        expr.kind = ExprKind::Call(
-          Box::new(Expr { span, kind: ExprKind::FnDef(op_fn, generics) }),
-          vec![take(inner)],
-        );
-        return_ty
+        (return_ty, TirExprKind::CallFn(self.fn_rels.push((fn_id, impl_params)), vec![inner]))
       }
       ExprKind::BinaryOp(op, lhs, rhs) => {
-        let lhs_ty = self.resolve_expr_form(lhs, Form::Value);
-        let rhs_ty = self.resolve_expr_form(rhs, Form::Value);
-        let Some(&Some(op_fn)) = self.chart.builtins.binary_ops.get(op) else {
-          return self.types.error(self.core.report(Diag::MissingOperatorBuiltin { span }));
+        let lhs = self.resolve_expr_form(lhs, Form::Value);
+        let rhs = self.resolve_expr_form(rhs, Form::Value);
+        let Some(&Some(fn_id)) = self.chart.builtins.binary_ops.get(op) else {
+          Err(Diag::MissingOperatorBuiltin { span })?
         };
         let return_ty = self.types.new_var(span);
-        let mut generics = Generics { span, ..Default::default() };
-        self._resolve_generics(
-          &mut generics,
-          self.chart.fn_generics(op_fn),
+        let (_, impl_params) = self._resolve_generics(
+          &Generics { span, ..Default::default() },
+          self.chart.fn_generics(fn_id),
           true,
-          Some(vec![lhs_ty, rhs_ty, return_ty]),
+          Some(vec![lhs.ty, rhs.ty, return_ty]),
         );
-        expr.kind = ExprKind::Call(
-          Box::new(Expr { span, kind: ExprKind::FnDef(op_fn, generics) }),
-          vec![take(lhs), take(rhs)],
-        );
-        return_ty
+        (return_ty, TirExprKind::CallFn(self.fn_rels.push((fn_id, impl_params)), vec![lhs, rhs]))
       }
       ExprKind::BinaryOpAssign(op, lhs, rhs) => {
-        let lhs_ty = self.resolve_expr_form(lhs, Form::Place);
-        let rhs_ty = self.resolve_expr_form(rhs, Form::Value);
-        let Some(&Some(op_fn)) = self.chart.builtins.binary_ops.get(op) else {
-          return self.types.error(self.core.report(Diag::MissingOperatorBuiltin { span }));
+        let lhs = self.resolve_expr_form(lhs, Form::Place);
+        let rhs = self.resolve_expr_form(rhs, Form::Value);
+        let Some(&Some(fn_id)) = self.chart.builtins.binary_ops.get(op) else {
+          Err(Diag::MissingOperatorBuiltin { span })?
         };
-        let mut generics = Generics { span, ..Default::default() };
-        self._resolve_generics(
-          &mut generics,
-          self.chart.fn_generics(op_fn),
+        let (_, impl_params) = self._resolve_generics(
+          &Generics { span, ..Default::default() },
+          self.chart.fn_generics(fn_id),
           true,
-          Some(vec![lhs_ty, rhs_ty, lhs_ty]),
+          Some(vec![lhs.ty, rhs.ty, lhs.ty]),
         );
-        expr.kind = ExprKind::CallAssign(
-          Box::new(Expr { span, kind: ExprKind::FnDef(op_fn, generics) }),
-          take(lhs),
-          take(rhs),
-        );
-        self.types.nil()
+        let nil = self.types.nil();
+        (nil, TirExprKind::CallAssign(self.fn_rels.push((fn_id, impl_params)), lhs, rhs))
       }
       ExprKind::ComparisonOp(init, cmps) => {
-        let mut ty = self.resolve_expr_pseudo_place(init);
-        let mut err = false;
-        for (_, expr) in cmps.iter_mut() {
-          let other_ty = self.resolve_expr_pseudo_place(expr);
-          if self.types.unify(ty, other_ty).is_failure() {
-            self.core.report(Diag::CannotCompare {
+        let init = self.resolve_expr_pseudo_place(init);
+        let mut err = Ok(());
+        let mut ty = init.ty;
+        let mut rhs = Vec::new();
+        for (_, expr) in cmps.iter() {
+          let other = self.resolve_expr_pseudo_place(expr);
+          if self.types.unify(ty, other.ty).is_failure() {
+            err = Err(self.core.report(Diag::CannotCompare {
               span,
               lhs: self.types.show(self.chart, ty),
-              rhs: self.types.show(self.chart, other_ty),
-            });
-            err = true;
-            ty = other_ty;
+              rhs: self.types.show(self.chart, other.ty),
+            }));
+            ty = other.ty;
           }
+          rhs.push(other);
         }
-        if !err {
-          let cmps = cmps.drain(..).map(|(op, expr)| {
-            (
-              if let Some(&Some(op_fn)) = self.chart.builtins.comparison_ops.get(&op) {
-                let mut generics = Generics { span, ..Default::default() };
-                self._resolve_generics(
-                  &mut generics,
-                  self.chart.fn_generics(op_fn),
-                  true,
-                  Some(vec![ty]),
-                );
-                Expr { span, kind: ExprKind::FnDef(op_fn, generics) }
-              } else {
-                Expr {
-                  span,
-                  kind: ExprKind::Error(self.core.report(Diag::MissingOperatorBuiltin { span })),
-                }
-              },
-              expr,
-            )
-          });
-          expr.kind = ExprKind::CallCompare(take(init), cmps.collect());
-        }
-        self.bool(span)
+        err?;
+        let cmps = cmps
+          .iter()
+          .zip(rhs)
+          .map(|((op, _), rhs)| {
+            let Some(&Some(fn_id)) = self.chart.builtins.comparison_ops.get(op) else {
+              Err(Diag::MissingOperatorBuiltin { span })?
+            };
+            let (_, impl_params) = self._resolve_generics(
+              &Generics { span, ..Default::default() },
+              self.chart.fn_generics(fn_id),
+              true,
+              Some(vec![ty]),
+            );
+            Ok((self.fn_rels.push((fn_id, impl_params)), rhs))
+          })
+          .collect::<Result<Vec<_>, Diag>>()?;
+        (self.bool(span), TirExprKind::CallCompare(init, cmps))
       }
-      ExprKind::Cast(cur, to, _) => {
-        let cur_ty = self.resolve_expr_form(cur, Form::Value);
+      ExprKind::Cast(inner, to, _) => {
+        let inner = self.resolve_expr_form(inner, Form::Value);
         let to_ty = self.resolve_type(to, true);
-        let Some(cast_fn) = self.chart.builtins.cast else {
-          return self.types.error(self.core.report(Diag::MissingOperatorBuiltin { span }));
+        let Some(fn_id) = self.chart.builtins.cast else {
+          Err(Diag::MissingOperatorBuiltin { span })?
         };
-        let mut generics = Generics { span, ..Default::default() };
-        self._resolve_generics(
-          &mut generics,
-          self.chart.fn_generics(cast_fn),
+        let (_, impl_params) = self._resolve_generics(
+          &Generics { span, ..Default::default() },
+          self.chart.fn_generics(fn_id),
           true,
-          Some(vec![cur_ty, to_ty]),
+          Some(vec![inner.ty, to_ty]),
         );
-        expr.kind = ExprKind::Call(
-          Box::new(Expr { span, kind: ExprKind::FnDef(cast_fn, generics) }),
-          vec![take(cur)],
-        );
-        to_ty
+        (to_ty, TirExprKind::CallFn(self.fn_rels.push((fn_id, impl_params)), vec![inner]))
       }
       ExprKind::RangeExclusive(start, end) => {
-        match self.resolve_range_expr(span, start, end, false) {
-          Ok((expr_kind, ty)) => {
-            expr.kind = expr_kind;
-            ty
-          }
-          Err(e) => e,
-        }
+        self.resolve_range_expr(span, start.as_deref(), end.as_deref(), false)?
       }
       ExprKind::RangeInclusive(start, end) => {
-        match self.resolve_range_expr(span, start, &mut Some(take(end)), true) {
-          Ok((expr_kind, ty)) => {
-            expr.kind = expr_kind;
-            ty
-          }
-          Err(e) => e,
-        }
+        self.resolve_range_expr(span, start.as_deref(), Some(end), true)?
       }
-      ExprKind::N32(_) => self.builtin_ty(span, "N32", self.chart.builtins.n32),
-      ExprKind::I32(_) => self.builtin_ty(span, "I32", self.chart.builtins.i32),
-      ExprKind::Char(_) => self.builtin_ty(span, "Char", self.chart.builtins.char),
-      ExprKind::F32(_) => self.builtin_ty(span, "F32", self.chart.builtins.f32),
-      ExprKind::String(_, rest) => {
+      ExprKind::N32(n) => {
+        (self.builtin_ty(span, "N32", self.chart.builtins.n32), TirExprKind::N32(*n))
+      }
+      ExprKind::I32(n) => {
+        (self.builtin_ty(span, "I32", self.chart.builtins.i32), TirExprKind::I32(*n))
+      }
+      ExprKind::F32(n) => {
+        (self.builtin_ty(span, "F32", self.chart.builtins.f32), TirExprKind::F32(*n))
+      }
+      ExprKind::Char(c) => {
+        (self.builtin_ty(span, "Char", self.chart.builtins.char), TirExprKind::Char(*c))
+      }
+      ExprKind::String(init, rest) => {
         let string_ty = if let Some(string) = self.chart.builtins.string {
           self.types.new(TypeKind::Struct(string, Vec::new()))
         } else {
           self.types.error(self.core.report(Diag::MissingBuiltin { span, builtin: "String" }))
         };
-        if let Some(cast) = self.chart.builtins.cast {
-          for (expr, _) in rest {
-            let span = expr.span;
-            let ty = self.resolve_expr_form(expr, Form::Value);
-            let mut generics = Generics { span, ..Default::default() };
-            self._resolve_generics(
-              &mut generics,
-              self.chart.fn_generics(cast),
-              true,
-              Some(vec![ty, string_ty]),
-            );
-            expr.kind = ExprKind::Call(
-              Box::new(Expr { span, kind: ExprKind::FnDef(cast, generics) }),
-              vec![take(expr)],
-            );
-          }
-        } else {
-          for (expr, _) in rest {
-            self.resolve_expr_form_type(expr, Form::Value, string_ty);
-          }
-        }
-        string_ty
+        let rest = rest
+          .iter()
+          .map(|(expr, str)| {
+            let expr = if let Some(fn_id) = self.chart.builtins.cast {
+              let span = expr.span;
+              let expr = self.resolve_expr_form(expr, Form::Value);
+              let (_, impl_params) = self._resolve_generics(
+                &Generics { span, ..Default::default() },
+                self.chart.fn_generics(fn_id),
+                true,
+                Some(vec![expr.ty, string_ty]),
+              );
+              TirExpr {
+                span,
+                ty: string_ty,
+                form: Form::Value,
+                kind: Box::new(TirExprKind::CallFn(
+                  self.fn_rels.push((fn_id, impl_params)),
+                  vec![expr],
+                )),
+              }
+            } else {
+              self.resolve_expr_form_type(expr, Form::Value, string_ty)
+            };
+            (expr, str.content.clone())
+          })
+          .collect();
+        (string_ty, TirExprKind::String(init.content.clone(), rest))
       }
-      ExprKind::InlineIvy(binds, ty, _, _) => {
-        for (_, value, expr) in binds {
-          self.resolve_expr_form(expr, if *value { Form::Value } else { Form::Space });
-        }
-        self.resolve_type(ty, true)
+      ExprKind::InlineIvy(binds, ty, _, net) => {
+        let binds = Vec::from_iter(binds.iter().map(|(name, value, expr)| {
+          (
+            name.0 .0.into(),
+            *value,
+            self.resolve_expr_form(expr, if *value { Form::Value } else { Form::Space }),
+          )
+        }));
+        let ty = self.resolve_type(ty, true);
+        (ty, TirExprKind::InlineIvy(binds, net.clone()))
       }
       ExprKind::Try(result) => {
         let Some(result_id) = self.chart.builtins.result else {
-          return self
-            .types
-            .error(self.core.report(Diag::MissingBuiltin { span, builtin: "Result" }));
+          Err(Diag::MissingBuiltin { span, builtin: "Result" })?
         };
         let ok = self.types.new_var(span);
         let err = self.types.new_var(span);
         let result_ty = self.types.new(TypeKind::Enum(result_id, vec![ok, err]));
-        self.resolve_expr_form_type(result, Form::Value, result_ty);
+        let result = self.resolve_expr_form_type(result, Form::Value, result_ty);
         let return_ok = self.types.new_var(span);
         let return_result = self.types.new(TypeKind::Enum(result_id, vec![return_ok, err]));
         if let Some(return_ty) = &self.return_ty {
@@ -713,63 +655,85 @@ impl<'core> Resolver<'core, '_> {
         } else {
           self.core.report(Diag::NoReturn { span });
         }
-        ok
+        (ok, TirExprKind::Try(result))
       }
       ExprKind::Is(..) | ExprKind::LogicalOp(..) => {
         self.enter_scope();
-        self.resolve_cond(expr);
+        let kind = self._resolve_cond(expr)?;
         self.exit_scope();
-        self.bool(span)
+        (self.bool(span), kind)
       }
+    })
+  }
+
+  fn resolve_cond(&mut self, cond: &Expr<'core>) -> TirExpr {
+    match self._resolve_cond(cond) {
+      Ok(kind) => {
+        let ty = self.bool(cond.span);
+        TirExpr { span: cond.span, ty, form: Form::Value, kind: Box::new(kind) }
+      }
+      Err(diag) => self.error_expr(cond.span, diag),
     }
   }
 
-  fn resolve_cond(&mut self, cond: &mut Expr<'core>) {
+  fn _resolve_cond(&mut self, cond: &Expr<'core>) -> Result<TirExprKind, Diag<'core>> {
     let span = cond.span;
-    match &mut cond.kind {
-      ExprKind::Error(_) => {}
+    Ok(match &cond.kind {
+      ExprKind::Error(err) => Err(*err)?,
       ExprKind::Is(expr, pat) => {
-        let ty = self.resolve_expr_form(expr, Form::Value);
-        self.resolve_pat_type(pat, Form::Value, true, ty);
+        let expr = self.resolve_expr_form(expr, Form::Value);
+        let pat = self.resolve_pat_type(pat, Form::Value, true, expr.ty);
+        TirExprKind::Is(expr, pat)
       }
       ExprKind::LogicalOp(LogicalOp::And, a, b) => {
-        self.resolve_cond(a);
-        self.resolve_cond(b);
+        let a = self.resolve_cond(a);
+        let b = self.resolve_cond(b);
+        TirExprKind::LogicalOp(LogicalOp::And, a, b)
       }
       ExprKind::LogicalOp(LogicalOp::Or, a, b) => {
         self.enter_scope();
-        self.resolve_cond(a);
+        let a = self.resolve_cond(a);
         self.exit_scope();
         self.enter_scope();
-        self.resolve_cond(b);
+        let b = self.resolve_cond(b);
         self.exit_scope();
+        TirExprKind::LogicalOp(LogicalOp::Or, a, b)
       }
       ExprKind::LogicalOp(LogicalOp::Implies, a, b) => {
         self.enter_scope();
-        self.resolve_cond(a);
-        self.resolve_cond(b);
+        let a = self.resolve_cond(a);
+        let b = self.resolve_cond(b);
         self.exit_scope();
+        TirExprKind::LogicalOp(LogicalOp::Implies, a, b)
       }
       _ => {
         let bool = self.bool(span);
-        self.resolve_expr_form_type(cond, Form::Value, bool);
+        *self.resolve_expr_form_type(cond, Form::Value, bool).kind
       }
-    }
+    })
   }
 
-  fn _resolve_call(&mut self, span: Span, func_ty: Type, args: &mut Vec<Expr<'core>>) -> Type {
-    match self.fn_sig(span, func_ty, args.len()) {
+  fn _resolve_call(
+    &mut self,
+    span: Span,
+    mut func: TirExpr,
+    args: &Vec<Expr<'core>>,
+  ) -> Result<(Type, TirExprKind), Diag<'core>> {
+    self.coerce_expr(&mut func, Form::Value);
+    match self.fn_sig(span, func.ty, args.len()) {
       Ok((params, ret)) => {
-        for (ty, arg) in params.into_iter().zip(args) {
-          self.resolve_expr_form_type(arg, Form::Value, ty);
-        }
-        ret
+        let args = args
+          .iter()
+          .zip(params)
+          .map(|(arg, ty)| self.resolve_expr_form_type(arg, Form::Value, ty))
+          .collect();
+        Ok((ret, TirExprKind::Call(func, args)))
       }
-      Err(e) => {
+      Err(diag) => {
         for arg in args {
           self.resolve_expr_form(arg, Form::Value);
         }
-        self.types.error(self.core.report(e))
+        Err(diag)
       }
     }
   }
@@ -777,73 +741,75 @@ impl<'core> Resolver<'core, '_> {
   fn resolve_range_expr(
     &mut self,
     span: Span,
-    start: &mut Option<Box<Expr<'core>>>,
-    end: &mut Option<Box<Expr<'core>>>,
+    start: Option<&Expr<'core>>,
+    end: Option<&Expr<'core>>,
     end_inclusive: bool,
-  ) -> Result<(ExprKind<'core>, Type), Type> {
+  ) -> Result<(Type, TirExprKind), Diag<'core>> {
     let bound_value_ty = self.types.new_var(span);
-    let (left_bound, left_bound_ty) =
-      self.resolve_range_bound(span, bound_value_ty, start, true)?;
-    let (right_bound, right_bound_ty) =
-      self.resolve_range_bound(span, bound_value_ty, end, end_inclusive)?;
-
+    let left_bound = self.resolve_range_bound(span, bound_value_ty, start, true)?;
+    let right_bound = self.resolve_range_bound(span, bound_value_ty, end, end_inclusive)?;
     let Some(range_id) = self.chart.builtins.range else {
-      return Err(
-        self.types.error(self.core.report(Diag::MissingBuiltin { span, builtin: "Range" })),
-      );
+      Err(Diag::MissingBuiltin { span, builtin: "Range" })?
     };
-    let generics = Generics { span, ..Default::default() };
-    let expr_kind = ExprKind::Struct(
-      range_id,
-      generics,
-      Box::new(Expr { span, kind: ExprKind::Tuple(vec![left_bound, right_bound]) }),
-    );
-    let ty = self.types.new(TypeKind::Struct(range_id, vec![left_bound_ty, right_bound_ty]));
-    Ok((expr_kind, ty))
+    let ty = self.types.new(TypeKind::Struct(range_id, vec![left_bound.ty, right_bound.ty]));
+    Ok((
+      ty,
+      TirExprKind::Struct(
+        range_id,
+        TirExpr {
+          span,
+          ty: self.types.new(TypeKind::Tuple(vec![left_bound.ty, right_bound.ty])),
+          form: Form::Value,
+          kind: Box::new(TirExprKind::Composite(vec![left_bound, right_bound])),
+        },
+      ),
+    ))
   }
 
   fn resolve_range_bound(
     &mut self,
     span: Span,
     bound_value_ty: Type,
-    bound_value: &mut Option<Box<Expr<'core>>>,
+    bound_value: Option<&Expr<'core>>,
     inclusive: bool,
-  ) -> Result<(Expr<'core>, Type), Type> {
-    let unbounded_id = self.chart.builtins.bound_unbounded.ok_or_else(|| {
-      self.types.error(self.core.report(Diag::MissingBuiltin { span, builtin: "Unbounded" }))
-    })?;
-    let bound_id = if inclusive {
-      self.chart.builtins.bound_inclusive.ok_or_else(|| {
-        self.types.error(self.core.report(Diag::MissingBuiltin { span, builtin: "BoundInclusive" }))
-      })?
-    } else {
-      self.chart.builtins.bound_exclusive.ok_or_else(|| {
-        self.types.error(self.core.report(Diag::MissingBuiltin { span, builtin: "BoundExclusive" }))
-      })?
-    };
-    let generics = Generics { span, ..Default::default() };
+  ) -> Result<TirExpr, Diag<'core>> {
     match bound_value {
       Some(bound) => {
-        self.resolve_expr_form_type(bound, Form::Value, bound_value_ty);
-        Ok((
-          Expr {
-            span: bound.span,
-            kind: ExprKind::Struct(bound_id, generics, Box::new(take(bound))),
-          },
-          self.types.new(TypeKind::Struct(bound_id, vec![bound_value_ty])),
-        ))
+        let bound = self.resolve_expr_form_type(bound, Form::Value, bound_value_ty);
+        let (bound_id, bound_name) = if inclusive {
+          (self.chart.builtins.bound_inclusive, "BoundInclusive")
+        } else {
+          (self.chart.builtins.bound_exclusive, "BoundExclusive")
+        };
+        let Some(bound_id) = bound_id else {
+          Err(Diag::MissingBuiltin { span, builtin: bound_name })?
+        };
+        Ok(TirExpr {
+          span: bound.span,
+          ty: self.types.new(TypeKind::Struct(bound_id, vec![bound_value_ty])),
+          form: Form::Value,
+          kind: Box::new(TirExprKind::Struct(bound_id, bound)),
+        })
       }
-      None => Ok((
-        Expr {
+      None => {
+        let Some(unbounded_id) = self.chart.builtins.bound_unbounded else {
+          Err(Diag::MissingBuiltin { span, builtin: "Unbounded" })?
+        };
+        Ok(TirExpr {
           span,
-          kind: ExprKind::Struct(
+          ty: self.types.new(TypeKind::Struct(unbounded_id, vec![])),
+          form: Form::Value,
+          kind: Box::new(TirExprKind::Struct(
             unbounded_id,
-            generics,
-            Box::new(Expr { span, kind: ExprKind::Tuple(vec![]) }),
-          ),
-        },
-        self.types.new(TypeKind::Struct(unbounded_id, vec![])),
-      )),
+            TirExpr {
+              span,
+              ty: self.types.nil(),
+              form: Form::Value,
+              kind: Box::new(TirExprKind::Composite(vec![])),
+            },
+          )),
+        })
+      }
     }
   }
 
@@ -871,15 +837,24 @@ impl<'core> Resolver<'core, '_> {
     }
   }
 
-  fn resolve_expr_pseudo_place(&mut self, expr: &mut Expr<'core>) -> Type {
+  fn resolve_expr_pseudo_place(&mut self, expr: &Expr<'core>) -> TirExpr {
+    let mut expr = self.resolve_expr(expr);
     let span = expr.span;
-    let (form, ty) = self.resolve_expr(expr);
-    if form == Form::Value {
-      expr.wrap(|e| ExprKind::Place(e, Box::new(Expr { span, kind: ExprKind::Hole })));
+    let ty = expr.ty;
+    if expr.form == Form::Value {
+      TirExpr {
+        span,
+        ty: expr.ty,
+        form: Form::Place,
+        kind: Box::new(TirExprKind::Place(
+          expr,
+          TirExpr { span, ty, form: Form::Space, kind: Box::new(TirExprKind::Hole) },
+        )),
+      }
     } else {
-      self.coerce_expr(expr, form, Form::Place);
+      self.coerce_expr(&mut expr, Form::Place);
+      expr
     }
-    ty
   }
 
   fn builtin_ty(&mut self, span: Span, name: &'static str, builtin: Option<OpaqueTypeId>) -> Type {

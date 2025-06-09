@@ -12,11 +12,10 @@ use vine_util::{idx, interner::Interned, new_idx};
 use crate::{
   chart::{ConstId, EnumId, FnId, ImplId, StructId, VariantId},
   diag::ErrorGuaranteed,
-  specializer::{ConstRelId, FnRelId},
+  tir::{ConstRelId, FnRelId, LabelId, Local},
 };
 
-new_idx!(pub Local; n => ["l{n}"]);
-new_idx!(pub LetFnId; n => ["f{n}"]);
+new_idx!(pub LetFnId);
 
 #[derive(Clone, Default)]
 pub struct Item<'core> {
@@ -305,7 +304,7 @@ pub enum ExprKind<'core> {
   #[class(value)]
   Loop(Label<'core>, Block<'core>),
   #[class(value)]
-  Fn(Vec<Pat<'core>>, Option<Option<Ty<'core>>>, Block<'core>),
+  Fn(Vec<Pat<'core>>, Option<Ty<'core>>, Block<'core>),
   #[class(value)]
   Return(Option<B<Expr<'core>>>),
   #[class(value)]
@@ -421,8 +420,6 @@ impl<'core> Label<'core> {
     }
   }
 }
-
-new_idx!(pub LabelId);
 
 #[derive(Default, Clone)]
 pub struct Pat<'core> {

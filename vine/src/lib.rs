@@ -17,6 +17,7 @@ pub mod repl;
 pub mod resolver;
 pub mod signatures;
 pub mod specializer;
+pub mod tir;
 pub mod types;
 pub mod vir;
 pub mod visit;

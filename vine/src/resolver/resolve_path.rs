@@ -1,7 +1,8 @@
 use crate::{
   ast::{Ident, Path, Span},
-  chart::{Def, DefId, ImportDef, ImportId, ImportParent, ImportState, MemberKind, WithVis},
+  chart::{Def, DefId, ImportDef, ImportId, ImportParent, MemberKind, WithVis},
   diag::{Diag, ErrorGuaranteed},
+  signatures::ImportState,
 };
 
 use super::Resolver;
@@ -100,7 +101,7 @@ impl<'core> Resolver<'core, '_> {
     base: DefId,
     ident: Ident<'core>,
   ) -> Result<Option<DefId>, Diag<'core>> {
-    let def = &mut self.chart.defs[base];
+    let def = &self.chart.defs[base];
 
     if let Some(member) = def.members.get(&ident) {
       let vis = member.vis;
@@ -124,15 +125,16 @@ impl<'core> Resolver<'core, '_> {
   }
 
   pub(super) fn resolve_import(&mut self, import_id: ImportId) -> Result<DefId, ErrorGuaranteed> {
-    let import = &mut self.chart.imports[import_id];
-    match import.state {
-      ImportState::Resolved(resolved) => resolved,
+    let import = &self.chart.imports[import_id];
+    let state = self.sigs.imports.get_or_extend_with(import_id, || ImportState::Unresolved);
+    match state {
+      ImportState::Resolved(resolved) => *resolved,
       ImportState::Resolving => Err(self.core.report(Diag::CircularImport { span: import.span })),
       ImportState::Unresolved => {
-        import.state = ImportState::Resolving;
+        *state = ImportState::Resolving;
         let import = *import;
         let resolved = self._resolve_import(import);
-        self.chart.imports[import_id].state = ImportState::Resolved(resolved);
+        self.sigs.imports[import_id] = ImportState::Resolved(resolved);
         resolved
       }
     }

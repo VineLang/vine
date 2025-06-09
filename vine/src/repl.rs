@@ -17,7 +17,7 @@ use vine_util::{
 
 use crate::{
   analyzer::{analyze, usage::Usage},
-  ast::{Block, Ident, Local, Span, Stmt},
+  ast::{Block, Ident, Span, Stmt},
   chart::{ConcreteConstId, DefId, VariantId},
   charter::{Charter, ExtractItems},
   compiler::{Compiler, Hooks},
@@ -29,6 +29,7 @@ use crate::{
   parser::VineParser,
   resolver::Resolver,
   specializer::{Spec, SpecRels, Specializer, TemplateId},
+  tir::{Local, Tir},
   types::{Type, TypeKind, Types},
   vir::{InterfaceId, StageId},
   visit::VisitMut,
@@ -116,7 +117,7 @@ impl<'core, 'ctx, 'ivm, 'ext> Repl<'core, 'ctx, 'ivm, 'ext> {
 
     self.compiler.loader.load_deps(".".as_ref(), &mut block);
 
-    let mut ty = self.types.nil();
+    let mut tir = None;
     let mut name = String::new();
 
     let nets = self.compiler.compile(ExecHooks {
@@ -126,12 +127,14 @@ impl<'core, 'ctx, 'ivm, 'ext> Repl<'core, 'ctx, 'ivm, 'ext> {
       locals: &mut self.locals,
       block: &mut block,
       types: &mut self.types,
-      ty: &mut ty,
+      tir: &mut tir,
       local_count: &mut self.local_count,
       line: &mut self.line,
       rels: None,
       name: &mut name,
     })?;
+
+    let tir = tir.unwrap();
 
     struct ExecHooks<'core, 'ivm, 'ext, 'a> {
       repl_mod: DefId,
@@ -140,7 +143,7 @@ impl<'core, 'ctx, 'ivm, 'ext> Repl<'core, 'ctx, 'ivm, 'ext> {
       locals: &'a mut BTreeMap<Local, (Ident<'core>, Type)>,
       block: &'a mut Block<'core>,
       types: &'a mut Types<'core>,
-      ty: &'a mut Type,
+      tir: &'a mut Option<Tir>,
       local_count: &'a mut Counter<Local>,
       line: &'a mut usize,
       rels: Option<SpecRels>,
@@ -157,14 +160,14 @@ impl<'core, 'ctx, 'ivm, 'ext> Repl<'core, 'ctx, 'ivm, 'ext> {
       }
 
       fn resolve(&mut self, resolver: &mut Resolver<'core, '_>) {
-        let (ty, binds) = resolver._resolve_custom(
+        let (tir, binds) = resolver._resolve_custom(
           self.repl_mod,
           self.types,
           self.locals,
           self.local_count,
           self.block,
         );
-        *self.ty = ty;
+        *self.tir = Some(tir);
         for (ident, local, ty) in binds {
           if self.vars.get(&ident).is_none_or(|v| v.local != local) {
             let wire = self.ivm.new_wire();
@@ -182,7 +185,7 @@ impl<'core, 'ctx, 'ivm, 'ext> Repl<'core, 'ctx, 'ivm, 'ext> {
       }
 
       fn specialize(&mut self, specializer: &mut Specializer<'core, '_>) {
-        self.rels = Some(specializer._specialize_custom(&mut *self.block));
+        self.rels = Some(specializer._specialize_custom(self.tir.as_ref().unwrap()));
       }
 
       fn emit(&mut self, distiller: &mut Distiller<'core, '_>, emitter: &mut Emitter<'core, '_>) {
@@ -191,10 +194,7 @@ impl<'core, 'ctx, 'ivm, 'ext> Repl<'core, 'ctx, 'ivm, 'ext> {
 
         *self.name = format!("::repl::{line}");
 
-        let mut vir = distiller.distill_root(*self.local_count, |distiller, stage, local| {
-          let result = distiller.distill_block(stage, self.block);
-          stage.set_local_to(local, result);
-        });
+        let mut vir = distiller.distill_tir(self.tir.as_ref().unwrap());
         vir.stages[StageId(0)].declarations.retain(|l| !self.locals.contains_key(l));
         vir.globals.extend(self.vars.values().map(|v| (v.local, Usage::Mut)));
         let mut vir = normalize(&vir);
@@ -241,7 +241,7 @@ impl<'core, 'ctx, 'ivm, 'ext> Repl<'core, 'ctx, 'ivm, 'ext> {
     self.ivm.normalize();
 
     let tree = self.host.read(self.ivm, &PortRef::new_wire(&out));
-    let output = self.show(ty, &tree);
+    let output = self.show(tir.root.ty, &tree);
     self.ivm.link_wire(out, Port::ERASE);
     self.ivm.normalize();
 

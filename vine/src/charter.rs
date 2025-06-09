@@ -94,7 +94,6 @@ impl<'core> Charter<'core, '_> {
           generics,
           ty: const_item.ty,
           value,
-          locals: Counter::default(),
         });
         self.define_value(span, def, vis, DefValueKind::Const(ConstId::Concrete(const_id)));
         Some(def)
@@ -254,7 +253,6 @@ impl<'core> Charter<'core, '_> {
                 generics,
                 ty: const_item.ty,
                 value,
-                locals: Counter::default(),
               });
               self.define_value(span, def, vis, DefValueKind::Const(ConstId::Concrete(const_id)));
               self.chart_attrs(Some(def), subitem.attrs);
@@ -302,8 +300,6 @@ impl<'core> Charter<'core, '_> {
           generics,
           trait_: impl_item.trait_,
           subitems,
-          consts: IdxVec::new(),
-          fns: IdxVec::new(),
         });
         self.define_impl(span, def, vis, DefImplKind::Impl(impl_id));
         Some(def)
@@ -477,13 +473,7 @@ impl<'core> Charter<'core, '_> {
     use_tree: UseTree<'core>,
   ) {
     let span = use_tree.span;
-    let import = self.chart.imports.push(ImportDef {
-      span,
-      def: def_id,
-      parent,
-      ident,
-      state: ImportState::Unresolved,
-    });
+    let import = self.chart.imports.push(ImportDef { span, def: def_id, parent, ident });
     let def = &mut self.chart.defs[def_id];
     for name in use_tree.aliases {
       if let Entry::Vacant(e) = def.members.entry(name) {

@@ -1,11 +1,10 @@
-use std::mem::take;
-
 use crate::{
-  ast::{Expr, ExprKind, GenericArgs, Ident, Span},
+  ast::{Expr, GenericArgs, Ident, Span},
   chart::FnId,
   diag::{Diag, ErrorGuaranteed},
   resolver::{Form, Resolver, Type},
   signatures::FnSig,
+  tir::{TirExpr, TirExprKind},
   types::{Inverted, TypeCtx, TypeKind},
 };
 
@@ -13,19 +12,18 @@ impl<'core> Resolver<'core, '_> {
   pub(super) fn resolve_method(
     &mut self,
     span: Span,
-    receiver: &mut Box<Expr<'core>>,
+    receiver: &Expr<'core>,
     name: Ident<'core>,
-    generics: &mut GenericArgs<'core>,
-    args: &mut Vec<Expr<'core>>,
-  ) -> (ExprKind<'core>, Type) {
+    generics: &GenericArgs<'core>,
+    args: &[Expr<'core>],
+  ) -> Result<(Type, TirExprKind), Diag<'core>> {
     match self._resolve_method(span, receiver, name, generics, args) {
-      Ok((form, id, ret)) => (self.desugar_method(span, receiver, args, id, generics, form), ret),
-      Err(e) => {
+      Ok((ty, kind)) => Ok((ty, kind)),
+      Err(diag) => {
         for arg in args {
           self.resolve_expr_form(arg, Form::Value);
         }
-        let err = self.core.report(e);
-        (ExprKind::Error(err), self.types.error(err))
+        Err(diag)
       }
     }
   }
@@ -33,51 +31,27 @@ impl<'core> Resolver<'core, '_> {
   fn _resolve_method(
     &mut self,
     span: Span,
-    receiver: &mut Box<Expr<'core>>,
+    receiver: &Expr<'core>,
     ident: Ident<'core>,
-    generics: &mut GenericArgs<'core>,
-    args: &mut [Expr<'core>],
-  ) -> Result<(Form, FnId, Type), Diag<'core>> {
-    let (receiver_form, ty) = self.resolve_expr(receiver);
-    let (id, type_params) = self.find_method(span, ty, ident)?;
+    generics: &GenericArgs<'core>,
+    args: &[Expr<'core>],
+  ) -> Result<(Type, TirExprKind), Diag<'core>> {
+    let mut receiver = self.resolve_expr(receiver);
+    let (fn_id, type_params) = self.find_method(span, receiver.ty, ident)?;
     let type_params = self.types.import(&type_params, None);
-    let (form, receiver_ty, params, ret) =
-      self.method_sig(span, id, generics, type_params, args.len())?;
-    self.coerce_expr(receiver, receiver_form, form);
-    if self.types.unify(ty, receiver_ty).is_failure() {
-      Err(Diag::ExpectedTypeFound {
-        span: receiver.span,
-        expected: self.types.show(self.chart, receiver_ty),
-        found: self.types.show(self.chart, ty),
-      })?
-    }
-    for (ty, arg) in params.into_iter().skip(1).zip(args.iter_mut()) {
-      self.resolve_expr_form_type(arg, Form::Value, ty);
-    }
-    Ok((form, id, ret))
-  }
-
-  fn method_sig(
-    &mut self,
-    span: Span,
-    fn_id: FnId,
-    generics: &mut GenericArgs<'core>,
-    type_params: Vec<Type>,
-    args: usize,
-  ) -> Result<(Form, Type, Vec<Type>, Type), Diag<'core>> {
-    let type_params =
+    let (type_params, impl_params) =
       self._resolve_generics(generics, self.chart.fn_generics(fn_id), true, Some(type_params));
     let FnSig { params, ret_ty } = self.types.import(self.sigs.fn_sig(fn_id), Some(&type_params));
     let fn_ty = self.types.new(TypeKind::Fn(params.clone(), ret_ty));
-    if params.len() != args + 1 {
+    if params.len() != args.len() + 1 {
       return Err(Diag::BadArgCount {
         span,
         expected: params.len(),
-        got: args + 1,
+        got: args.len() + 1,
         ty: self.types.show(self.chart, fn_ty),
       });
     }
-    let (form, receiver) = match params.first().copied() {
+    let (receiver_form, receiver_ty) = match params.first().copied() {
       None => return Err(Diag::NilaryMethod { span, ty: self.types.show(self.chart, fn_ty) }),
       Some(receiver) => match self.types.force_kind(self.core, receiver) {
         (_, TypeKind::Error(e)) => return Err((*e).into()),
@@ -85,26 +59,27 @@ impl<'core> Resolver<'core, '_> {
         _ => (Form::Value, receiver),
       },
     };
-    Ok((form, receiver, params, ret_ty))
-  }
-
-  fn desugar_method(
-    &mut self,
-    span: Span,
-    receiver: &mut Box<Expr<'core>>,
-    args: &mut Vec<Expr<'core>>,
-    fn_id: FnId,
-    generics: &mut GenericArgs<'core>,
-    form: Form,
-  ) -> ExprKind<'core> {
-    let mut receiver = take(&mut **receiver);
-    if form == Form::Place {
-      receiver = Expr { span: receiver.span, kind: ExprKind::Ref(Box::new(receiver), false) };
-    }
-    let mut args = take(args);
-    args.insert(0, receiver);
-    let func = Expr { span, kind: ExprKind::FnDef(fn_id, take(generics)) };
-    ExprKind::Call(Box::new(func), args)
+    self.coerce_expr(&mut receiver, receiver_form);
+    self.expect_type(span, receiver.ty, receiver_ty);
+    let receiver = if receiver_form == Form::Place {
+      TirExpr {
+        span,
+        ty: self.types.new(TypeKind::Ref(receiver.ty)),
+        form: Form::Value,
+        kind: Box::new(TirExprKind::Ref(receiver)),
+      }
+    } else {
+      receiver
+    };
+    let args = Vec::from_iter(
+      [receiver].into_iter().chain(
+        args
+          .iter()
+          .zip(params.into_iter().skip(1))
+          .map(|(arg, ty)| self.resolve_expr_form_type(arg, Form::Value, ty)),
+      ),
+    );
+    Ok((ret_ty, TirExprKind::CallFn(self.fn_rels.push((fn_id, impl_params)), args)))
   }
 
   fn find_method(

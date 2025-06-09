@@ -1,89 +1,104 @@
 use crate::{
-  ast::{
-    Block, Expr, ExprKind, Generics, LabelId, Local, LogicalOp, Pat, PatKind, Span, Stmt, StmtKind,
-  },
+  ast::{LogicalOp, Span},
   chart::VariantId,
-  vir::{Interface, InterfaceKind, Layer, Port, Stage, Step, Transfer},
+  tir::{ClosureId, Form, LabelId, TirClosure, TirExpr, TirExprKind, TirPat, TirPatKind},
+  types::Type,
+  vir::{Header, Interface, InterfaceId, InterfaceKind, Layer, Port, Stage, Step, Transfer},
 };
 
-use super::{pattern_matching::Row, Distiller, Label, LetFn, Return};
+use super::{pattern_matching::Row, Distiller, Label, Return};
 
 impl<'core, 'r> Distiller<'core, 'r> {
-  pub fn distill_block(&mut self, stage: &mut Stage, block: &Block<'core>) -> Port {
-    self.distill_stmts(stage, &block.stmts)
+  pub(super) fn distill_closure_def(&mut self, closure: &TirClosure) -> InterfaceId {
+    let mut layer = self.new_layer();
+    let interface = self.interfaces.push(None);
+    let mut stage = self.new_stage(&mut layer, interface);
+    self.interfaces[interface] =
+      Some(Interface::new(interface, layer.id, InterfaceKind::Fn(stage.id)));
+    let return_local = self.new_local(&mut stage);
+
+    let params =
+      closure.params.iter().map(|p| self.distill_pat_value(&mut stage, p)).collect::<Vec<_>>();
+    let result = stage.take_local(return_local);
+    stage.header = Header::Fn(params, result);
+
+    self.returns.push(Return { layer: stage.layer, local: return_local });
+    let result = self.distill_expr_value(&mut stage, &closure.body);
+    stage.set_local_to(return_local, result);
+    self.returns.pop();
+
+    self.finish_stage(stage);
+    self.finish_layer(layer);
+    interface
   }
 
-  fn distill_stmts(&mut self, stage: &mut Stage, stmts: &[Stmt<'core>]) -> Port {
-    let mut result = Port::Erase;
-    for (i, stmt) in stmts.iter().enumerate() {
-      stage.erase(result);
-      result = Port::Erase;
-      match &stmt.kind {
-        StmtKind::Let(let_) => {
-          if let Some(else_block) = &let_.else_block {
-            let local = self.new_local(stage);
-            stage.erase_local(local);
-            let (mut layer, mut init_stage) = self.child_layer(stage);
-            let value = let_
-              .init
-              .as_ref()
-              .map(|v| self.distill_expr_value(&mut init_stage, v))
-              .unwrap_or(Port::Erase);
-            let mut then_stage = self.new_unconditional_stage(&mut layer);
-            let mut else_stage = self.new_unconditional_stage(&mut layer);
-            self.distill_pattern_match(
-              &mut layer,
-              &mut init_stage,
-              value,
-              vec![
-                Row::new(&let_.bind, then_stage.interface),
-                Row::new(&Pat::HOLE, else_stage.interface),
-              ],
-            );
-            let result = self.distill_stmts(&mut then_stage, &stmts[i + 1..]);
-            then_stage.set_local_to(local, result);
-            let result = self.distill_block(&mut else_stage, else_block);
-            else_stage.erase(result);
-            self.finish_stage(init_stage);
-            self.finish_stage(then_stage);
-            self.finish_stage(else_stage);
-            self.finish_layer(layer);
-            return stage.take_local(local);
-          } else {
-            let value =
-              let_.init.as_ref().map(|v| self.distill_expr_value(stage, v)).unwrap_or(Port::Erase);
-            let pat = self.distill_pat_value(stage, &let_.bind);
-            stage.steps.push(Step::Link(pat, value));
-          }
-        }
-        StmtKind::LetFn(let_fn) => {
-          let local = self.new_local(stage);
-          stage.erase_local(local);
-          let (layer, mut stage) = self.root_layer();
-          *self.let_fns.get_or_extend(let_fn.id.unwrap()) =
-            Some(LetFn { interface: stage.interface, local });
-          self._distill_fn(&mut stage, local, &let_fn.params, &let_fn.body);
-          self.finish_stage(stage);
-          self.finish_layer(layer);
-        }
-        StmtKind::Expr(expr, semi) => {
-          result = self.distill_expr_value(stage, expr);
-          if *semi {
-            stage.erase(result);
-            result = Port::Erase;
-          }
-        }
-        StmtKind::Item(_) | StmtKind::Empty => {}
-      }
-    }
-    result
+  pub(super) fn distill_closure(&mut self, stage: &mut Stage, closure_id: ClosureId) -> Port {
+    let interface = self.closures[closure_id];
+    let wire = stage.new_wire();
+    stage.steps.push(Step::Transfer(Transfer { interface, data: Some(wire.0) }));
+    wire.1
+  }
+
+  pub(super) fn distill_seq(
+    &mut self,
+    stage: &mut Stage,
+    ignored: &TirExpr,
+    continuation: &TirExpr,
+  ) -> Port {
+    let ignored = self.distill_expr_value(stage, ignored);
+    stage.erase(ignored);
+    self.distill_expr_value(stage, continuation)
+  }
+
+  pub(super) fn distill_let(
+    &mut self,
+    stage: &mut Stage,
+    pat: &TirPat,
+    init: &Option<TirExpr>,
+    continuation: &TirExpr,
+  ) -> Port {
+    let value = init.as_ref().map(|v| self.distill_expr_value(stage, v)).unwrap_or(Port::Erase);
+    let pat = self.distill_pat_value(stage, pat);
+    stage.steps.push(Step::Link(pat, value));
+    self.distill_expr_value(stage, continuation)
+  }
+
+  pub(super) fn distill_let_else(
+    &mut self,
+    stage: &mut Stage,
+    pat: &TirPat,
+    init: &TirExpr,
+    else_block: &TirExpr,
+    continuation: &TirExpr,
+  ) -> Port {
+    let local = self.new_local(stage);
+    stage.erase_local(local);
+    let (mut layer, mut init_stage) = self.child_layer(stage);
+    let value = self.distill_expr_value(&mut init_stage, init);
+    let mut then_stage = self.new_unconditional_stage(&mut layer);
+    let mut else_stage = self.new_unconditional_stage(&mut layer);
+    self.distill_pattern_match(
+      &mut layer,
+      &mut init_stage,
+      value,
+      vec![Row::new(Some(pat), then_stage.interface), Row::new(None, else_stage.interface)],
+    );
+    let result = self.distill_expr_value(&mut then_stage, continuation);
+    then_stage.set_local_to(local, result);
+    let result = self.distill_expr_value(&mut else_stage, else_block);
+    else_stage.erase(result);
+    self.finish_stage(init_stage);
+    self.finish_stage(then_stage);
+    self.finish_stage(else_stage);
+    self.finish_layer(layer);
+    stage.take_local(local)
   }
 
   pub(super) fn distill_match(
     &mut self,
     stage: &mut Stage,
-    value: &Expr<'core>,
-    arms: &Vec<(Pat<'core>, Block<'core>)>,
+    value: &TirExpr,
+    arms: &[(TirPat, TirExpr)],
   ) -> Port {
     let local = self.new_local(stage);
     let (mut layer, mut init_stage) = self.child_layer(stage);
@@ -92,58 +107,17 @@ impl<'core, 'r> Distiller<'core, 'r> {
       .iter()
       .map(|(pat, expr)| {
         let mut stage = self.new_unconditional_stage(&mut layer);
-        let result = self.distill_block(&mut stage, expr);
+        let result = self.distill_expr_value(&mut stage, expr);
         stage.set_local_to(local, result);
         let interface = stage.interface;
         self.finish_stage(stage);
-        Row::new(pat, interface)
+        Row::new(Some(pat), interface)
       })
       .collect();
     self.distill_pattern_match(&mut layer, &mut init_stage, value, rows);
     self.finish_stage(init_stage);
     self.finish_layer(layer);
     stage.take_local(local)
-  }
-
-  pub(super) fn distill_fn(
-    &mut self,
-    stage: &mut Stage,
-    params: &[Pat<'core>],
-    body: &Block<'core>,
-  ) -> Port {
-    let fn_local = self.new_local(stage);
-    let (layer, mut body_stage) = self.child_layer(stage);
-
-    self._distill_fn(&mut body_stage, fn_local, params, body);
-
-    self.finish_stage(body_stage);
-    self.finish_layer(layer);
-
-    stage.take_local(fn_local)
-  }
-
-  pub(super) fn _distill_fn(
-    &mut self,
-    stage: &mut Stage,
-    fn_local: Local,
-    params: &[Pat<'core>],
-    body: &Block<'core>,
-  ) {
-    let return_local = self.new_local(stage);
-
-    let params = params.iter().map(|p| self.distill_pat_value(stage, p)).collect::<Vec<_>>();
-
-    let result = stage.take_local(return_local);
-    let wire = stage.new_wire();
-    stage.steps.push(Step::Fn(wire.0, params, result));
-    stage.set_local_to(fn_local, wire.1);
-
-    self.returns.push(Return { layer: stage.layer, local: return_local });
-
-    let result = self.distill_block(stage, body);
-    stage.set_local_to(return_local, result);
-
-    self.returns.pop();
   }
 
   pub(super) fn distill_continue(&mut self, stage: &mut Stage, label: LabelId) -> Port {
@@ -157,7 +131,7 @@ impl<'core, 'r> Distiller<'core, 'r> {
     &mut self,
     stage: &mut Stage,
     label: LabelId,
-    value: &Option<Box<Expr<'core>>>,
+    value: &Option<TirExpr>,
   ) -> Port {
     let value = value.as_ref().map(|v| self.distill_expr_value(stage, v)).unwrap_or(Port::Erase);
 
@@ -173,11 +147,7 @@ impl<'core, 'r> Distiller<'core, 'r> {
     Port::Erase
   }
 
-  pub(super) fn distill_return(
-    &mut self,
-    stage: &mut Stage,
-    value: &Option<Box<Expr<'core>>>,
-  ) -> Port {
+  pub(super) fn distill_return(&mut self, stage: &mut Stage, value: &Option<TirExpr>) -> Port {
     let value = value.as_ref().map(|v| self.distill_expr_value(stage, v)).unwrap_or(Port::Erase);
     let return_ = self.returns.last().unwrap();
 
@@ -191,7 +161,7 @@ impl<'core, 'r> Distiller<'core, 'r> {
     &mut self,
     stage: &mut Stage,
     label: LabelId,
-    block: &Block<'core>,
+    block: &TirExpr,
   ) -> Port {
     let local = self.new_local(stage);
     let (layer, mut body_stage) = self.child_layer(stage);
@@ -202,7 +172,7 @@ impl<'core, 'r> Distiller<'core, 'r> {
       break_value: Some(local),
     });
 
-    let result = self.distill_block(&mut body_stage, block);
+    let result = self.distill_expr_value(&mut body_stage, block);
     body_stage.erase(result);
     body_stage.transfer = Some(Transfer::unconditional(body_stage.interface));
 
@@ -216,8 +186,8 @@ impl<'core, 'r> Distiller<'core, 'r> {
     &mut self,
     stage: &mut Stage,
     label: LabelId,
-    cond: &Expr<'core>,
-    block: &Block<'core>,
+    cond: &TirExpr,
+    block: &TirExpr,
   ) -> Port {
     let (mut layer, mut cond_stage) = self.child_layer(stage);
 
@@ -229,7 +199,7 @@ impl<'core, 'r> Distiller<'core, 'r> {
 
     let (mut then_stage, else_stage) = self.distill_cond(&mut layer, &mut cond_stage, cond);
 
-    let result = self.distill_block(&mut then_stage, block);
+    let result = self.distill_expr_value(&mut then_stage, block);
     then_stage.erase(result);
     then_stage.transfer = Some(Transfer::unconditional(cond_stage.interface));
 
@@ -244,15 +214,15 @@ impl<'core, 'r> Distiller<'core, 'r> {
   pub(super) fn distill_if(
     &mut self,
     stage: &mut Stage,
-    arms: &[(Expr<'core>, Block<'core>)],
-    leg: &Option<Block<'core>>,
+    arms: &[(TirExpr, TirExpr)],
+    leg: &Option<TirExpr>,
   ) -> Port {
     let local = self.new_local(stage);
     let (mut layer, mut cur_stage) = self.child_layer(stage);
 
     for (cond, block) in arms {
       let (mut then_stage, else_stage) = self.distill_cond(&mut layer, &mut cur_stage, cond);
-      let result = self.distill_block(&mut then_stage, block);
+      let result = self.distill_expr_value(&mut then_stage, block);
       then_stage.set_local_to(local, result);
       self.finish_stage(cur_stage);
       self.finish_stage(then_stage);
@@ -260,7 +230,7 @@ impl<'core, 'r> Distiller<'core, 'r> {
     }
 
     if let Some(leg) = leg {
-      let result = self.distill_block(&mut cur_stage, leg);
+      let result = self.distill_expr_value(&mut cur_stage, leg);
       cur_stage.set_local_to(local, result);
     } else {
       cur_stage.erase_local(local);
@@ -272,19 +242,14 @@ impl<'core, 'r> Distiller<'core, 'r> {
     stage.take_local(local)
   }
 
-  pub(super) fn distill_do(
-    &mut self,
-    stage: &mut Stage,
-    label: LabelId,
-    block: &Block<'core>,
-  ) -> Port {
+  pub(super) fn distill_do(&mut self, stage: &mut Stage, label: LabelId, block: &TirExpr) -> Port {
     let local = self.new_local(stage);
     let (layer, mut body_stage) = self.child_layer(stage);
 
     *self.labels.get_or_extend(label) =
       Some(Label { layer: layer.id, continue_transfer: None, break_value: Some(local) });
 
-    let result = self.distill_block(&mut body_stage, block);
+    let result = self.distill_expr_value(&mut body_stage, block);
     body_stage.set_local_to(local, result);
 
     self.finish_stage(body_stage);
@@ -296,14 +261,11 @@ impl<'core, 'r> Distiller<'core, 'r> {
   pub(super) fn distill_cond_bool(
     &mut self,
     stage: &mut Stage,
-    cond: &Expr<'core>,
+    cond: &TirExpr,
     negate: bool,
   ) -> Port {
-    if let ExprKind::Paren(inner) = &cond.kind {
-      return self.distill_cond_bool(stage, inner, negate);
-    }
-    match &cond.kind {
-      ExprKind![!cond] => {
+    match &*cond.kind {
+      TirExprKind![!cond] => {
         let value = self.distill_expr_value(stage, cond);
         if negate {
           let wire = stage.new_wire();
@@ -313,8 +275,8 @@ impl<'core, 'r> Distiller<'core, 'r> {
           value
         }
       }
-      ExprKind::Bool(b) => Port::N32((*b ^ negate) as u32),
-      ExprKind::Not(inner) => self.distill_cond_bool(stage, inner, !negate),
+      TirExprKind::Bool(bool) => Port::N32((*bool ^ negate) as u32),
+      TirExprKind::Not(inner) => self.distill_cond_bool(stage, inner, !negate),
       _ => {
         let local = self.new_local(stage);
         let (mut sub_layer, mut sub_stage) = self.child_layer(stage);
@@ -335,13 +297,10 @@ impl<'core, 'r> Distiller<'core, 'r> {
     &mut self,
     layer: &mut Layer,
     stage: &mut Stage,
-    cond: &Expr<'core>,
+    cond: &TirExpr,
   ) -> (Stage, Stage) {
-    if let ExprKind::Paren(inner) = &cond.kind {
-      return self.distill_cond(layer, stage, inner);
-    }
-    match &cond.kind {
-      ExprKind![!cond] => {
+    match &*cond.kind {
+      TirExprKind![!cond] => {
         let bool = self.distill_expr_value(stage, cond);
         let interface = self.interfaces.push(None);
         let true_stage = self.new_stage(layer, interface);
@@ -354,7 +313,7 @@ impl<'core, 'r> Distiller<'core, 'r> {
         stage.transfer = Some(Transfer { interface, data: Some(bool) });
         (true_stage, false_stage)
       }
-      ExprKind::Bool(bool) => {
+      TirExprKind::Bool(bool) => {
         let true_stage = self.new_unconditional_stage(layer);
         let false_stage = self.new_unconditional_stage(layer);
         stage.transfer = Some(Transfer::unconditional(if *bool {
@@ -364,8 +323,8 @@ impl<'core, 'r> Distiller<'core, 'r> {
         }));
         (true_stage, false_stage)
       }
-      ExprKind::Not(inner) => swap(self.distill_cond(layer, stage, inner)),
-      ExprKind::Is(value, pat) => {
+      TirExprKind::Not(inner) => swap(self.distill_cond(layer, stage, inner)),
+      TirExprKind::Is(value, pat) => {
         let value = self.distill_expr_value(stage, value);
         let true_stage = self.new_unconditional_stage(layer);
         let false_stage = self.new_unconditional_stage(layer);
@@ -373,11 +332,11 @@ impl<'core, 'r> Distiller<'core, 'r> {
           layer,
           stage,
           value,
-          vec![Row::new(pat, true_stage.interface), Row::new(&Pat::HOLE, false_stage.interface)],
+          vec![Row::new(Some(pat), true_stage.interface), Row::new(None, false_stage.interface)],
         );
         (true_stage, false_stage)
       }
-      ExprKind::LogicalOp(op, a, b) => {
+      TirExprKind::LogicalOp(op, a, b) => {
         let (invert_out, invert_a, invert_b) = match op {
           LogicalOp::And => (false, false, false),
           LogicalOp::Or => (true, true, true), // A || B == !(!A && !B)
@@ -397,7 +356,7 @@ impl<'core, 'r> Distiller<'core, 'r> {
     }
   }
 
-  pub(super) fn distill_try(&mut self, stage: &mut Stage, result: &Expr<'core>) -> Port {
+  pub(super) fn distill_try(&mut self, stage: &mut Stage, result: &TirExpr) -> Port {
     let result_id = self.chart.builtins.result.unwrap();
     let ok_variant = VariantId(0);
     let err_variant = VariantId(1);
@@ -408,14 +367,20 @@ impl<'core, 'r> Distiller<'core, 'r> {
     let mut err_stage = self.new_unconditional_stage(&mut layer);
     let ok_local = self.locals.next();
     let err_local = self.locals.next();
-    let pat = |variant_id, local| Pat {
+    let pat = |variant_id, local| TirPat {
       span: Span::NONE,
-      kind: PatKind::Enum(
+      ty: Type::_NONE,
+      form: Form::Value,
+      kind: Box::new(TirPatKind::Enum(
         result_id,
         variant_id,
-        Generics::default(),
-        Some(Box::new(Pat { span: Span::NONE, kind: PatKind::Local(local) })),
-      ),
+        Some(TirPat {
+          span: Span::NONE,
+          ty: Type::_NONE,
+          form: Form::Value,
+          kind: Box::new(TirPatKind::Local(local)),
+        }),
+      )),
     };
 
     self.distill_pattern_match(
@@ -423,8 +388,8 @@ impl<'core, 'r> Distiller<'core, 'r> {
       &mut init_stage,
       result,
       vec![
-        Row::new(&pat(ok_variant, ok_local), ok_stage.interface),
-        Row::new(&pat(err_variant, err_local), err_stage.interface),
+        Row::new(Some(&pat(ok_variant, ok_local)), ok_stage.interface),
+        Row::new(Some(&pat(err_variant, err_local)), err_stage.interface),
       ],
     );
     self.finish_stage(init_stage);

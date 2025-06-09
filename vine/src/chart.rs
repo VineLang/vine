@@ -6,10 +6,8 @@ use vine_util::{
 };
 
 use crate::{
-  ast::{
-    BinaryOp, Block, ComparisonOp, Expr, Ident, ImplParam, Local, Pat, Span, Trait, Ty, TypeParam,
-  },
-  diag::ErrorGuaranteed,
+  ast::{BinaryOp, Block, ComparisonOp, Expr, Ident, ImplParam, Pat, Span, Trait, Ty, TypeParam},
+  tir::Local,
 };
 
 pub mod checkpoint;
@@ -142,7 +140,6 @@ pub struct ImportDef<'core> {
   pub def: DefId,
   pub parent: ImportParent,
   pub ident: Ident<'core>,
-  pub state: ImportState,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -150,13 +147,6 @@ pub enum ImportParent {
   Root,
   Scope,
   Import(ImportId),
-}
-
-#[derive(Debug, Clone, Copy)]
-pub enum ImportState {
-  Unresolved,
-  Resolved(Result<DefId, ErrorGuaranteed>),
-  Resolving,
 }
 
 new_idx!(pub GenericsId);
@@ -176,7 +166,6 @@ pub struct ConcreteConstDef<'core> {
   pub generics: GenericsId,
   pub ty: Ty<'core>,
   pub value: Expr<'core>,
-  pub locals: Counter<Local>,
 }
 
 new_idx!(pub ConcreteFnId);
@@ -276,8 +265,6 @@ pub struct ImplDef<'core> {
   pub generics: GenericsId,
   pub trait_: Trait<'core>,
   pub subitems: Vec<ImplSubitem<'core>>,
-  pub consts: IdxVec<TraitConstId, Result<ConcreteConstId, ErrorGuaranteed>>,
-  pub fns: IdxVec<TraitFnId, Result<ConcreteFnId, ErrorGuaranteed>>,
 }
 
 #[derive(Debug, Clone)]
@@ -316,16 +303,6 @@ impl<'core> Chart<'core> {
     match const_id {
       ConstId::Concrete(const_id) => self.concrete_consts[const_id].generics,
       ConstId::Abstract(trait_id, _) => self.traits[trait_id].subitem_generics,
-    }
-  }
-}
-
-impl<'core> ImportDef<'core> {
-  pub fn resolved(&self) -> Option<DefId> {
-    if let ImportState::Resolved(Ok(def_id)) = self.state {
-      Some(def_id)
-    } else {
-      None
     }
   }
 }
