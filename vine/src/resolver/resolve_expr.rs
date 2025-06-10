@@ -1,9 +1,9 @@
 use crate::{
-  ast::{Expr, ExprKind, Generics, Ident, LogicalOp, Span},
-  chart::{DefValueKind, OpaqueTypeId, StructId},
+  ast::{Expr, ExprKind, Ident, LogicalOp, Span},
+  chart::{DefValueKind, FnId, OpaqueTypeId, StructId},
   diag::Diag,
   resolver::{Binding, Form, Resolver, Type},
-  tir::{TirExpr, TirExprKind, TirImpl},
+  tir::{FnRelId, TirExpr, TirExprKind, TirImpl},
   types::{Inverted, TypeKind},
 };
 
@@ -190,82 +190,35 @@ impl<'core> Resolver<'core, '_> {
       ExprKind::Bool(bool) => (Form::Value, self.bool(span), TirExprKind::Bool(*bool)),
       ExprKind::Not(inner) => {
         let inner = self.resolve_expr_form(inner, Form::Value);
-        let Some(op_fn) = self.chart.builtins.not else {
-          Err(Diag::MissingOperatorBuiltin { span })?
-        };
         let return_ty = self.types.new_var(span);
-        let (_, impl_params) = self._resolve_generics(
-          &Generics { span, types: vec![], impls: vec![] },
-          self.chart.fn_generics(op_fn),
-          true,
-          Some(vec![inner.ty, return_ty]),
-        );
-        if let Some(TirImpl::Def(id, _)) = impl_params.first() {
+        let rel = self.builtin_fn(span, self.chart.builtins.not, "not", [inner.ty, return_ty])?;
+        if let Some(TirImpl::Def(id, _)) = self.fn_rels[rel].1.first() {
           if self.chart.builtins.bool_not == Some(*id) {
             return Ok((Form::Value, return_ty, TirExprKind::Not(inner)));
           }
         }
-        (
-          Form::Value,
-          return_ty,
-          TirExprKind::CallFn(self.fn_rels.push((op_fn, impl_params)), vec![inner]),
-        )
+        (Form::Value, return_ty, TirExprKind::CallFn(rel, vec![inner]))
       }
       ExprKind::Neg(inner) => {
         let inner = self.resolve_expr_form(inner, Form::Value);
-        let Some(fn_id) = self.chart.builtins.neg else {
-          Err(Diag::MissingOperatorBuiltin { span })?
-        };
         let return_ty = self.types.new_var(span);
-        let (_, impl_params) = self._resolve_generics(
-          &Generics { span, types: vec![], impls: vec![] },
-          self.chart.fn_generics(fn_id),
-          true,
-          Some(vec![inner.ty, return_ty]),
-        );
-        (
-          Form::Value,
-          return_ty,
-          TirExprKind::CallFn(self.fn_rels.push((fn_id, impl_params)), vec![inner]),
-        )
+        let rel = self.builtin_fn(span, self.chart.builtins.not, "neg", [inner.ty, return_ty])?;
+        (Form::Value, return_ty, TirExprKind::CallFn(rel, vec![inner]))
       }
       ExprKind::BinaryOp(op, lhs, rhs) => {
         let lhs = self.resolve_expr_form(lhs, Form::Value);
         let rhs = self.resolve_expr_form(rhs, Form::Value);
-        let Some(&Some(fn_id)) = self.chart.builtins.binary_ops.get(op) else {
-          Err(Diag::MissingOperatorBuiltin { span })?
-        };
         let return_ty = self.types.new_var(span);
-        let (_, impl_params) = self._resolve_generics(
-          &Generics { span, types: vec![], impls: vec![] },
-          self.chart.fn_generics(fn_id),
-          true,
-          Some(vec![lhs.ty, rhs.ty, return_ty]),
-        );
-        (
-          Form::Value,
-          return_ty,
-          TirExprKind::CallFn(self.fn_rels.push((fn_id, impl_params)), vec![lhs, rhs]),
-        )
+        let fn_id = self.chart.builtins.binary_ops.get(op).copied().flatten();
+        let rel = self.builtin_fn(span, fn_id, op.as_str(), [lhs.ty, rhs.ty, return_ty])?;
+        (Form::Value, return_ty, TirExprKind::CallFn(rel, vec![lhs, rhs]))
       }
       ExprKind::BinaryOpAssign(op, lhs, rhs) => {
         let lhs = self.resolve_expr_form(lhs, Form::Place);
         let rhs = self.resolve_expr_form(rhs, Form::Value);
-        let Some(&Some(fn_id)) = self.chart.builtins.binary_ops.get(op) else {
-          Err(Diag::MissingOperatorBuiltin { span })?
-        };
-        let (_, impl_params) = self._resolve_generics(
-          &Generics { span, types: vec![], impls: vec![] },
-          self.chart.fn_generics(fn_id),
-          true,
-          Some(vec![lhs.ty, rhs.ty, lhs.ty]),
-        );
-        let nil = self.types.nil();
-        (
-          Form::Value,
-          nil,
-          TirExprKind::CallAssign(self.fn_rels.push((fn_id, impl_params)), lhs, rhs),
-        )
+        let fn_id = self.chart.builtins.binary_ops.get(op).copied().flatten();
+        let rel = self.builtin_fn(span, fn_id, op.as_str(), [lhs.ty, rhs.ty, lhs.ty])?;
+        (Form::Value, self.types.nil(), TirExprKind::CallAssign(rel, lhs, rhs))
       }
       ExprKind::ComparisonOp(init, cmps) => {
         let init = self.resolve_expr_pseudo_place(init);
@@ -289,16 +242,9 @@ impl<'core> Resolver<'core, '_> {
           .iter()
           .zip(rhs)
           .map(|((op, _), rhs)| {
-            let Some(&Some(fn_id)) = self.chart.builtins.comparison_ops.get(op) else {
-              Err(Diag::MissingOperatorBuiltin { span })?
-            };
-            let (_, impl_params) = self._resolve_generics(
-              &Generics { span, types: vec![], impls: vec![] },
-              self.chart.fn_generics(fn_id),
-              true,
-              Some(vec![ty]),
-            );
-            Ok((self.fn_rels.push((fn_id, impl_params)), rhs))
+            let fn_id = self.chart.builtins.comparison_ops.get(op).copied().flatten();
+            let rel = self.builtin_fn(span, fn_id, op.as_str(), [ty])?;
+            Ok((rel, rhs))
           })
           .collect::<Result<Vec<_>, Diag>>()?;
         (Form::Value, self.bool(span), TirExprKind::CallCompare(init, cmps))
@@ -306,20 +252,8 @@ impl<'core> Resolver<'core, '_> {
       ExprKind::Cast(inner, to, _) => {
         let inner = self.resolve_expr_form(inner, Form::Value);
         let to_ty = self.resolve_type(to, true);
-        let Some(fn_id) = self.chart.builtins.cast else {
-          Err(Diag::MissingOperatorBuiltin { span })?
-        };
-        let (_, impl_params) = self._resolve_generics(
-          &Generics { span, types: vec![], impls: vec![] },
-          self.chart.fn_generics(fn_id),
-          true,
-          Some(vec![inner.ty, to_ty]),
-        );
-        (
-          Form::Value,
-          to_ty,
-          TirExprKind::CallFn(self.fn_rels.push((fn_id, impl_params)), vec![inner]),
-        )
+        let rel = self.builtin_fn(span, self.chart.builtins.cast, "cast", [inner.ty, to_ty])?;
+        (Form::Value, to_ty, TirExprKind::CallFn(rel, vec![inner]))
       }
       ExprKind::RangeExclusive(start, end) => {
         self.resolve_range_expr(span, start.as_deref(), end.as_deref(), false)?
@@ -350,26 +284,19 @@ impl<'core> Resolver<'core, '_> {
         let rest = rest
           .iter()
           .map(|(expr, str)| {
-            let expr = if let Some(fn_id) = self.chart.builtins.cast {
-              let span = expr.span;
-              let expr = self.resolve_expr_form(expr, Form::Value);
-              let (_, impl_params) = self._resolve_generics(
-                &Generics { span, types: vec![], impls: vec![] },
-                self.chart.fn_generics(fn_id),
-                true,
-                Some(vec![expr.ty, string_ty]),
-              );
+            let span = expr.span;
+            let expr = self.resolve_expr_form(expr, Form::Value);
+            let rel = self.builtin_fn(span, self.chart.builtins.cast, "cast", [expr.ty, string_ty]);
+            let expr = if let Ok(rel) = rel {
               TirExpr {
                 span,
                 ty: string_ty,
                 form: Form::Value,
-                kind: Box::new(TirExprKind::CallFn(
-                  self.fn_rels.push((fn_id, impl_params)),
-                  vec![expr],
-                )),
+                kind: Box::new(TirExprKind::CallFn(rel, vec![expr])),
               }
             } else {
-              self.resolve_expr_form_type(expr, Form::Value, string_ty)
+              self.expect_type(span, expr.ty, string_ty);
+              expr
             };
             (expr, str.content.clone())
           })
@@ -874,5 +801,26 @@ impl<'core> Resolver<'core, '_> {
 
   fn bool(&mut self, span: Span) -> Type {
     self.builtin_ty(span, "Bool", self.chart.builtins.bool)
+  }
+
+  fn builtin_fn<const N: usize>(
+    &mut self,
+    span: Span,
+    fn_id: Option<FnId>,
+    name: &'static str,
+    type_params: [Type; N],
+  ) -> Result<FnRelId, Diag<'core>> {
+    if let Some(fn_id) = fn_id {
+      let (_, impl_params) = self._resolve_generics(
+        span,
+        None,
+        self.chart.fn_generics(fn_id),
+        true,
+        Some(Vec::from(type_params)),
+      );
+      Ok(self.fn_rels.push((fn_id, impl_params)))
+    } else {
+      Err(Diag::MissingBuiltin { span, builtin: name })?
+    }
   }
 }

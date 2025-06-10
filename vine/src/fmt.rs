@@ -4,9 +4,9 @@ use doc::{Doc, Writer};
 
 use crate::{
   ast::{
-    Block, ComparisonOp, Expr, ExprKind, Flex, GenericArgs, GenericParams, Generics, Ident, Impl,
-    ImplKind, ImplParam, Item, ItemKind, LogicalOp, ModKind, Pat, PatKind, Path, Span, Stmt,
-    StmtKind, Trait, TraitKind, Ty, TyKind, TypeParam, UseTree, Vis,
+    Block, Expr, ExprKind, Flex, GenericArgs, GenericParams, Generics, Ident, Impl, ImplKind,
+    ImplParam, Item, ItemKind, LogicalOp, ModKind, Pat, PatKind, Path, Span, Stmt, StmtKind, Trait,
+    TraitKind, Ty, TyKind, TypeParam, UseTree, Vis,
   },
   core::Core,
   diag::Diag,
@@ -498,21 +498,9 @@ impl<'core: 'src, 'src> Formatter<'src> {
         }),
         self.fmt_expr(b),
       ]),
-      ExprKind::ComparisonOp(e, v) => {
-        Doc::concat([self.fmt_expr(e)].into_iter().chain(v.iter().flat_map(|(op, x)| {
-          [
-            Doc(match op {
-              ComparisonOp::Eq => " == ",
-              ComparisonOp::Ne => " != ",
-              ComparisonOp::Lt => " < ",
-              ComparisonOp::Gt => " > ",
-              ComparisonOp::Le => " <= ",
-              ComparisonOp::Ge => " >= ",
-            }),
-            self.fmt_expr(x),
-          ]
-        })))
-      }
+      ExprKind::ComparisonOp(e, v) => Doc::concat([self.fmt_expr(e)].into_iter().chain(
+        v.iter().flat_map(|(op, x)| [Doc(" "), Doc(op.as_str()), Doc(" "), self.fmt_expr(x)]),
+      )),
       ExprKind::BinaryOp(op, a, b) => {
         Doc::concat([self.fmt_expr(a), Doc(" "), Doc(op.as_str()), Doc(" "), self.fmt_expr(b)])
       }

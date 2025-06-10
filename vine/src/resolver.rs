@@ -7,8 +7,8 @@ use vine_util::idx::{Counter, IdxVec, RangeExt};
 
 use crate::{
   ast::{
-    Block, GenericArgs, Generics, Ident, Impl, ImplKind, Key, Pat, PatKind, Path, Span, Stmt,
-    StmtKind, Trait, TraitKind, Ty, TyKind,
+    Block, GenericArgs, Ident, Impl, ImplKind, Key, Pat, PatKind, Path, Span, Stmt, StmtKind,
+    Trait, TraitKind, Ty, TyKind,
   },
   chart::{
     checkpoint::ChartCheckpoint, Chart, ConcreteConstId, ConcreteFnId, ConstId, DefId, DefImplKind,
@@ -781,26 +781,24 @@ impl<'core, 'a> Resolver<'core, 'a> {
     params_id: GenericsId,
     inference: bool,
   ) -> (Vec<Type>, Vec<TirImpl>) {
-    self._resolve_generics(
-      path.generics.as_ref().unwrap_or(&Generics { span: path.span, types: vec![], impls: vec![] }),
-      params_id,
-      inference,
-      None,
-    )
+    self._resolve_generics(path.span, path.generics.as_ref(), params_id, inference, None)
   }
 
   fn _resolve_generics(
     &mut self,
-    args: &GenericArgs<'core>,
+    span: Span,
+    args: Option<&GenericArgs<'core>>,
     params_id: GenericsId,
     inference: bool,
     type_params: Option<Vec<Type>>,
   ) -> (Vec<Type>, Vec<TirImpl>) {
+    let _args = GenericArgs { span, types: Vec::new(), impls: Vec::new() };
+    let args = args.unwrap_or(&_args);
     let params = &self.chart.generics[params_id];
     let check_count = |got, expected, kind| {
       if got != expected {
         self.core.report(Diag::BadGenericCount {
-          span: args.span,
+          span,
           path: self.chart.defs[params.def].path,
           expected,
           got,

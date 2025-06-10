@@ -39,8 +39,13 @@ impl<'core> Resolver<'core, '_> {
     let mut receiver = self.resolve_expr(receiver);
     let (fn_id, type_params) = self.find_method(span, receiver.ty, ident)?;
     let type_params = self.types.import(&type_params, None);
-    let (type_params, impl_params) =
-      self._resolve_generics(generics, self.chart.fn_generics(fn_id), true, Some(type_params));
+    let (type_params, impl_params) = self._resolve_generics(
+      span,
+      Some(generics),
+      self.chart.fn_generics(fn_id),
+      true,
+      Some(type_params),
+    );
     let FnSig { params, ret_ty } = self.types.import(self.sigs.fn_sig(fn_id), Some(&type_params));
     let fn_ty = self.types.new(TypeKind::Fn(params.clone(), ret_ty));
     if params.len() != args.len() + 1 {

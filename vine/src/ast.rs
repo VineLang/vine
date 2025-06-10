@@ -461,6 +461,19 @@ pub enum ComparisonOp {
   Ge,
 }
 
+impl ComparisonOp {
+  pub fn as_str(&self) -> &'static str {
+    match self {
+      ComparisonOp::Eq => "==",
+      ComparisonOp::Ne => "!=",
+      ComparisonOp::Lt => "<",
+      ComparisonOp::Gt => ">",
+      ComparisonOp::Le => "<=",
+      ComparisonOp::Ge => ">=",
+    }
+  }
+}
+
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Ident<'core>(pub Interned<'core, str>);
 
