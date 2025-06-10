@@ -5,7 +5,6 @@ use std::{
   path::PathBuf,
 };
 
-use class::Classes;
 use ivy::ast::Net;
 use vine_util::{idx, interner::Interned};
 
@@ -263,98 +262,53 @@ pub struct Expr<'core> {
   pub kind: ExprKind<'core>,
 }
 
-#[derive(Default, Debug, Clone, Classes)]
+#[derive(Default, Debug, Clone)]
 pub enum ExprKind<'core> {
   #[default]
-  #[class(space)]
   Hole,
-  #[class(value, place, space)]
   Paren(B<Expr<'core>>),
-  #[class(value, place, space)]
   Path(Path<'core>, Option<Vec<Expr<'core>>>),
-  #[class(value)]
   Do(Option<Ident<'core>>, Block<'core>),
-  #[class(value)]
   Assign(bool, B<Expr<'core>>, B<Expr<'core>>),
-  #[class(value)]
   Match(B<Expr<'core>>, Vec<(Pat<'core>, Block<'core>)>),
-  #[class(value)]
   If(Vec<(Expr<'core>, Block<'core>)>, Option<Block<'core>>),
-  #[class(value)]
   While(Option<Ident<'core>>, B<Expr<'core>>, Block<'core>),
-  #[class(value)]
   Loop(Option<Ident<'core>>, Block<'core>),
-  #[class(value)]
   Fn(Vec<Pat<'core>>, Option<Ty<'core>>, Block<'core>),
-  #[class(value)]
   Return(Option<B<Expr<'core>>>),
-  #[class(value)]
   Break(Option<Ident<'core>>, Option<B<Expr<'core>>>),
-  #[class(value)]
   Continue(Option<Ident<'core>>),
-  #[class(value)]
   Ref(B<Expr<'core>>, bool),
-  #[class(place)]
   Deref(B<Expr<'core>>, bool),
-  #[class(value)]
   Move(B<Expr<'core>>, bool),
-  #[class(value, place, space)]
   Inverse(B<Expr<'core>>, bool),
-  #[class(place)]
   Place(B<Expr<'core>>, B<Expr<'core>>),
-  #[class(value, place, space)]
   Tuple(Vec<Expr<'core>>),
-  #[class(value, place, space)]
   Object(Vec<(Key<'core>, Expr<'core>)>),
-  #[class(value)]
   List(Vec<Expr<'core>>),
-  #[class(value, place)]
   TupleField(B<Expr<'core>>, usize, Option<usize>),
-  #[class(value, place, sugar)]
   ObjectField(B<Expr<'core>>, Key<'core>),
-  #[class(value, sugar)]
   Method(B<Expr<'core>>, Ident<'core>, GenericArgs<'core>, Vec<Expr<'core>>),
-  #[class(value)]
   Call(B<Expr<'core>>, Vec<Expr<'core>>),
-  #[class(value, sugar)]
   Neg(B<Expr<'core>>),
-  #[class(value, sugar)]
   BinaryOp(BinaryOp, B<Expr<'core>>, B<Expr<'core>>),
-  #[class(value, cond)]
   Bool(bool),
-  #[class(value, cond)]
   Not(B<Expr<'core>>),
-  #[class(value, cond)]
   Is(B<Expr<'core>>, B<Pat<'core>>),
-  #[class(value, cond)]
   LogicalOp(LogicalOp, B<Expr<'core>>, B<Expr<'core>>),
-  #[class(value, sugar)]
   ComparisonOp(B<Expr<'core>>, Vec<(ComparisonOp, Expr<'core>)>),
-  #[class(value, sugar)]
   BinaryOpAssign(BinaryOp, B<Expr<'core>>, B<Expr<'core>>),
-  #[class(value, sugar)]
   Cast(B<Expr<'core>>, B<Ty<'core>>, bool),
-  #[class(value, space, place)]
   Unwrap(B<Expr<'core>>),
-  #[class(value)]
   Try(B<Expr<'core>>),
-  #[class(value, sugar)]
   RangeExclusive(Option<B<Expr<'core>>>, Option<B<Expr<'core>>>),
-  #[class(value, sugar)]
   RangeInclusive(Option<B<Expr<'core>>>, B<Expr<'core>>),
-  #[class(value)]
   N32(u32),
-  #[class(value)]
   I32(i32),
-  #[class(value)]
   F32(f32),
-  #[class(value)]
   Char(char),
-  #[class(value)]
   String(StringSegment, Vec<(Expr<'core>, StringSegment)>),
-  #[class(value)]
   InlineIvy(Vec<(Ident<'core>, bool, Expr<'core>)>, Ty<'core>, Span, Net),
-  #[class(error)]
   Error(ErrorGuaranteed),
 }
 
@@ -370,28 +324,18 @@ pub struct Pat<'core> {
   pub kind: PatKind<'core>,
 }
 
-#[derive(Default, Debug, Clone, Classes)]
+#[derive(Default, Debug, Clone)]
 pub enum PatKind<'core> {
   #[default]
-  #[class(value, place, space)]
   Hole,
-  #[class(value, place, space)]
   Paren(B<Pat<'core>>),
-  #[class(value, place, space)]
   Annotation(B<Pat<'core>>, B<Ty<'core>>),
-  #[class(value, place, space)]
   Path(Path<'core>, Option<Vec<Pat<'core>>>),
-  #[class(value, place)]
   Ref(B<Pat<'core>>),
-  #[class(place)]
   Deref(B<Pat<'core>>),
-  #[class(value, place, space)]
   Inverse(B<Pat<'core>>),
-  #[class(value, place, space)]
   Tuple(Vec<Pat<'core>>),
-  #[class(value, place, space)]
   Object(Vec<(Key<'core>, Pat<'core>)>),
-  #[class(error)]
   Error(ErrorGuaranteed),
 }
 

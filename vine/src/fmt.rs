@@ -366,7 +366,7 @@ impl<'core: 'src, 'src> Formatter<'src> {
 
   fn fmt_expr(&self, expr: &Expr<'core>) -> Doc<'src> {
     match &expr.kind {
-      ExprKind![error] => unreachable!(),
+      ExprKind::Error(_) => unreachable!(),
       ExprKind::Paren(p) => Doc::paren(self.fmt_expr(p)),
       ExprKind::Hole => Doc("_"),
       ExprKind::Path(path, None) => self.fmt_path(path),

@@ -16,9 +16,9 @@ impl<'core> Resolver<'core, '_> {
     name: Ident<'core>,
     generics: &GenericArgs<'core>,
     args: &[Expr<'core>],
-  ) -> Result<(Type, TirExprKind), Diag<'core>> {
+  ) -> Result<(Form, Type, TirExprKind), Diag<'core>> {
     match self._resolve_method(span, receiver, name, generics, args) {
-      Ok((ty, kind)) => Ok((ty, kind)),
+      Ok((ty, kind)) => Ok((Form::Value, ty, kind)),
       Err(diag) => {
         for arg in args {
           self.resolve_expr_form(arg, Form::Value);

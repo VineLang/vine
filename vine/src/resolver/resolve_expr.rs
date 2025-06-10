@@ -41,9 +41,380 @@ impl<'core> Resolver<'core, '_> {
   ) -> Result<(Form, Type, TirExprKind), Diag<'core>> {
     let span = expr.span;
     Ok(match &expr.kind {
-      ExprKind![!error && !space && !place] => {
-        let (ty, kind) = self._resolve_expr_value(expr)?;
-        (Form::Value, ty, kind)
+      ExprKind::Do(label, block) => {
+        let ty = self.types.new_var(span);
+        let (label, block) =
+          self.bind_label(label, false, ty, |self_| self_.resolve_block_type(block, ty));
+        (Form::Value, ty, TirExprKind::Do(label, block))
+      }
+      ExprKind::Assign(dir, space, value) => {
+        let space = self.resolve_expr_form(space, Form::Space);
+        let value = self.resolve_expr_form_type(value, Form::Value, space.ty);
+        (Form::Value, self.types.nil(), TirExprKind::Assign(*dir, space, value))
+      }
+      ExprKind::Match(scrutinee, arms) => {
+        let scrutinee = self.resolve_expr_form(scrutinee, Form::Value);
+        let result = self.types.new_var(span);
+        let arms = Vec::from_iter(arms.iter().map(|(pat, block)| {
+          self.enter_scope();
+          let pat = self.resolve_pat_type(pat, Form::Value, true, scrutinee.ty);
+          let block = self.resolve_block_type(block, result);
+          self.exit_scope();
+          (pat, block)
+        }));
+        (Form::Value, result, TirExprKind::Match(scrutinee, arms))
+      }
+      ExprKind::If(arms, leg) => {
+        let result = if leg.is_some() { self.types.new_var(span) } else { self.types.nil() };
+        let arms = Vec::from_iter(arms.iter().map(|(cond, block)| {
+          self.enter_scope();
+          let cond = self.resolve_cond(cond);
+          let block = self.resolve_block_type(block, result);
+          self.exit_scope();
+          (cond, block)
+        }));
+        let leg = leg.as_ref().map(|leg| self.resolve_block_type(leg, result));
+        (Form::Value, result, TirExprKind::If(arms, leg))
+      }
+      ExprKind::While(label, cond, block) => {
+        let nil = self.types.nil();
+        let (label, (cond, block)) = self.bind_label(label, true, nil, |self_| {
+          self_.enter_scope();
+          let cond = self_.resolve_cond(cond);
+          let block = self_.resolve_block(block);
+          self_.exit_scope();
+          (cond, block)
+        });
+        (Form::Value, nil, TirExprKind::While(label, cond, block))
+      }
+      ExprKind::Loop(label, block) => {
+        let result = self.types.new_var(span);
+        let (label, block) =
+          self.bind_label(label, true, result, |self_| self_.resolve_block(block));
+        (Form::Value, result, TirExprKind::Loop(label, block))
+      }
+      ExprKind::Fn(params, ret, body) => {
+        let (ty, closure_id) = self.resolve_closure(params, ret, body, true);
+        (Form::Value, ty, TirExprKind::Closure(closure_id))
+      }
+      ExprKind::Break(label, value) => {
+        let nil = self.types.nil();
+        let label_info = if let Some(label) = *label {
+          self.labels.get(&label).copied().ok_or(Diag::UnboundLabel { span, label })
+        } else {
+          self.loops.last().copied().ok_or(Diag::NoLoopBreak { span })
+        };
+        match label_info {
+          Ok(label_info) => {
+            let value = match value {
+              Some(value) => {
+                Some(self.resolve_expr_form_type(value, Form::Value, label_info.break_ty))
+              }
+              None => {
+                if self.types.unify(label_info.break_ty, nil).is_failure() {
+                  self.core.report(Diag::MissingBreakExpr {
+                    span,
+                    ty: self.types.show(self.chart, label_info.break_ty),
+                  });
+                }
+                None
+              }
+            };
+            (Form::Value, self.types.new_var(span), TirExprKind::Break(label_info.id, value))
+          }
+          Err(diag) => {
+            if let Some(value) = value {
+              self.resolve_expr_form(value, Form::Value);
+            }
+            Err(diag)?
+          }
+        }
+      }
+      ExprKind::Return(value) => {
+        let nil = self.types.nil();
+        if let Some(ty) = &self.return_ty {
+          let ty = *ty;
+          let value = match value {
+            Some(value) => Some(self.resolve_expr_form_type(value, Form::Value, ty)),
+            None => {
+              if self.types.unify(ty, nil).is_failure() {
+                self
+                  .core
+                  .report(Diag::MissingReturnExpr { span, ty: self.types.show(self.chart, ty) });
+              }
+              None
+            }
+          };
+          (Form::Value, self.types.new_var(span), TirExprKind::Return(value))
+        } else {
+          Err(Diag::NoReturn { span })?
+        }
+      }
+      ExprKind::Continue(label) => {
+        let label_info = if let Some(label) = *label {
+          let label_info = *self.labels.get(&label).ok_or(Diag::UnboundLabel { span, label })?;
+          if !label_info.is_loop {
+            Err(Diag::NoContinueLabel { span, label })?
+          }
+          label_info
+        } else {
+          self.loops.last().copied().ok_or(Diag::NoLoopContinue { span })?
+        };
+        (Form::Value, self.types.new_var(span), TirExprKind::Continue(label_info.id))
+      }
+      ExprKind::Ref(inner, _) => {
+        let inner = self.resolve_expr_form(inner, Form::Place);
+        (Form::Value, self.types.new(TypeKind::Ref(inner.ty)), TirExprKind::Ref(inner))
+      }
+      ExprKind::Move(inner, _) => {
+        let inner = self.resolve_expr_form(inner, Form::Place);
+        (Form::Value, inner.ty, TirExprKind::Move(inner))
+      }
+      ExprKind::List(elements) => {
+        let ty = self.types.new_var(span);
+        let elements = Vec::from_iter(
+          elements.iter().map(|element| self.resolve_expr_form_type(element, Form::Value, ty)),
+        );
+        let Some(list) = self.chart.builtins.list else {
+          Err(Diag::MissingBuiltin { span, builtin: "List" })?
+        };
+        (Form::Value, self.types.new(TypeKind::Struct(list, vec![ty])), TirExprKind::List(elements))
+      }
+      ExprKind::Method(receiver, name, generics, args) => {
+        self.resolve_method(span, receiver, *name, generics, args)?
+      }
+      ExprKind::Call(func, args) => {
+        let func = self.resolve_expr(func);
+        self._resolve_call(span, func, args)?
+      }
+      ExprKind::Bool(bool) => (Form::Value, self.bool(span), TirExprKind::Bool(*bool)),
+      ExprKind::Not(inner) => {
+        let inner = self.resolve_expr_form(inner, Form::Value);
+        let Some(op_fn) = self.chart.builtins.not else {
+          Err(Diag::MissingOperatorBuiltin { span })?
+        };
+        let return_ty = self.types.new_var(span);
+        let (_, impl_params) = self._resolve_generics(
+          &Generics { span, ..Default::default() },
+          self.chart.fn_generics(op_fn),
+          true,
+          Some(vec![inner.ty, return_ty]),
+        );
+        if let Some(TirImpl::Def(id, _)) = impl_params.first() {
+          if self.chart.builtins.bool_not == Some(*id) {
+            return Ok((Form::Value, return_ty, TirExprKind::Not(inner)));
+          }
+        }
+        (
+          Form::Value,
+          return_ty,
+          TirExprKind::CallFn(self.fn_rels.push((op_fn, impl_params)), vec![inner]),
+        )
+      }
+      ExprKind::Neg(inner) => {
+        let inner = self.resolve_expr_form(inner, Form::Value);
+        let Some(fn_id) = self.chart.builtins.neg else {
+          Err(Diag::MissingOperatorBuiltin { span })?
+        };
+        let return_ty = self.types.new_var(span);
+        let (_, impl_params) = self._resolve_generics(
+          &Generics { span, ..Default::default() },
+          self.chart.fn_generics(fn_id),
+          true,
+          Some(vec![inner.ty, return_ty]),
+        );
+        (
+          Form::Value,
+          return_ty,
+          TirExprKind::CallFn(self.fn_rels.push((fn_id, impl_params)), vec![inner]),
+        )
+      }
+      ExprKind::BinaryOp(op, lhs, rhs) => {
+        let lhs = self.resolve_expr_form(lhs, Form::Value);
+        let rhs = self.resolve_expr_form(rhs, Form::Value);
+        let Some(&Some(fn_id)) = self.chart.builtins.binary_ops.get(op) else {
+          Err(Diag::MissingOperatorBuiltin { span })?
+        };
+        let return_ty = self.types.new_var(span);
+        let (_, impl_params) = self._resolve_generics(
+          &Generics { span, ..Default::default() },
+          self.chart.fn_generics(fn_id),
+          true,
+          Some(vec![lhs.ty, rhs.ty, return_ty]),
+        );
+        (
+          Form::Value,
+          return_ty,
+          TirExprKind::CallFn(self.fn_rels.push((fn_id, impl_params)), vec![lhs, rhs]),
+        )
+      }
+      ExprKind::BinaryOpAssign(op, lhs, rhs) => {
+        let lhs = self.resolve_expr_form(lhs, Form::Place);
+        let rhs = self.resolve_expr_form(rhs, Form::Value);
+        let Some(&Some(fn_id)) = self.chart.builtins.binary_ops.get(op) else {
+          Err(Diag::MissingOperatorBuiltin { span })?
+        };
+        let (_, impl_params) = self._resolve_generics(
+          &Generics { span, ..Default::default() },
+          self.chart.fn_generics(fn_id),
+          true,
+          Some(vec![lhs.ty, rhs.ty, lhs.ty]),
+        );
+        let nil = self.types.nil();
+        (
+          Form::Value,
+          nil,
+          TirExprKind::CallAssign(self.fn_rels.push((fn_id, impl_params)), lhs, rhs),
+        )
+      }
+      ExprKind::ComparisonOp(init, cmps) => {
+        let init = self.resolve_expr_pseudo_place(init);
+        let mut err = Ok(());
+        let mut ty = init.ty;
+        let mut rhs = Vec::new();
+        for (_, expr) in cmps.iter() {
+          let other = self.resolve_expr_pseudo_place(expr);
+          if self.types.unify(ty, other.ty).is_failure() {
+            err = Err(self.core.report(Diag::CannotCompare {
+              span,
+              lhs: self.types.show(self.chart, ty),
+              rhs: self.types.show(self.chart, other.ty),
+            }));
+            ty = other.ty;
+          }
+          rhs.push(other);
+        }
+        err?;
+        let cmps = cmps
+          .iter()
+          .zip(rhs)
+          .map(|((op, _), rhs)| {
+            let Some(&Some(fn_id)) = self.chart.builtins.comparison_ops.get(op) else {
+              Err(Diag::MissingOperatorBuiltin { span })?
+            };
+            let (_, impl_params) = self._resolve_generics(
+              &Generics { span, ..Default::default() },
+              self.chart.fn_generics(fn_id),
+              true,
+              Some(vec![ty]),
+            );
+            Ok((self.fn_rels.push((fn_id, impl_params)), rhs))
+          })
+          .collect::<Result<Vec<_>, Diag>>()?;
+        (Form::Value, self.bool(span), TirExprKind::CallCompare(init, cmps))
+      }
+      ExprKind::Cast(inner, to, _) => {
+        let inner = self.resolve_expr_form(inner, Form::Value);
+        let to_ty = self.resolve_type(to, true);
+        let Some(fn_id) = self.chart.builtins.cast else {
+          Err(Diag::MissingOperatorBuiltin { span })?
+        };
+        let (_, impl_params) = self._resolve_generics(
+          &Generics { span, ..Default::default() },
+          self.chart.fn_generics(fn_id),
+          true,
+          Some(vec![inner.ty, to_ty]),
+        );
+        (
+          Form::Value,
+          to_ty,
+          TirExprKind::CallFn(self.fn_rels.push((fn_id, impl_params)), vec![inner]),
+        )
+      }
+      ExprKind::RangeExclusive(start, end) => {
+        self.resolve_range_expr(span, start.as_deref(), end.as_deref(), false)?
+      }
+      ExprKind::RangeInclusive(start, end) => {
+        self.resolve_range_expr(span, start.as_deref(), Some(end), true)?
+      }
+      ExprKind::N32(n) => {
+        (Form::Value, self.builtin_ty(span, "N32", self.chart.builtins.n32), TirExprKind::N32(*n))
+      }
+      ExprKind::I32(n) => {
+        (Form::Value, self.builtin_ty(span, "I32", self.chart.builtins.i32), TirExprKind::I32(*n))
+      }
+      ExprKind::F32(n) => {
+        (Form::Value, self.builtin_ty(span, "F32", self.chart.builtins.f32), TirExprKind::F32(*n))
+      }
+      ExprKind::Char(c) => (
+        Form::Value,
+        self.builtin_ty(span, "Char", self.chart.builtins.char),
+        TirExprKind::Char(*c),
+      ),
+      ExprKind::String(init, rest) => {
+        let string_ty = if let Some(string) = self.chart.builtins.string {
+          self.types.new(TypeKind::Struct(string, Vec::new()))
+        } else {
+          self.types.error(self.core.report(Diag::MissingBuiltin { span, builtin: "String" }))
+        };
+        let rest = rest
+          .iter()
+          .map(|(expr, str)| {
+            let expr = if let Some(fn_id) = self.chart.builtins.cast {
+              let span = expr.span;
+              let expr = self.resolve_expr_form(expr, Form::Value);
+              let (_, impl_params) = self._resolve_generics(
+                &Generics { span, ..Default::default() },
+                self.chart.fn_generics(fn_id),
+                true,
+                Some(vec![expr.ty, string_ty]),
+              );
+              TirExpr {
+                span,
+                ty: string_ty,
+                form: Form::Value,
+                kind: Box::new(TirExprKind::CallFn(
+                  self.fn_rels.push((fn_id, impl_params)),
+                  vec![expr],
+                )),
+              }
+            } else {
+              self.resolve_expr_form_type(expr, Form::Value, string_ty)
+            };
+            (expr, str.content.clone())
+          })
+          .collect();
+        (Form::Value, string_ty, TirExprKind::String(init.content.clone(), rest))
+      }
+      ExprKind::InlineIvy(binds, ty, _, net) => {
+        let binds = Vec::from_iter(binds.iter().map(|(name, value, expr)| {
+          (
+            name.0 .0.into(),
+            *value,
+            self.resolve_expr_form(expr, if *value { Form::Value } else { Form::Space }),
+          )
+        }));
+        let ty = self.resolve_type(ty, true);
+        (Form::Value, ty, TirExprKind::InlineIvy(binds, net.clone()))
+      }
+      ExprKind::Try(result) => {
+        let Some(result_id) = self.chart.builtins.result else {
+          Err(Diag::MissingBuiltin { span, builtin: "Result" })?
+        };
+        let ok = self.types.new_var(span);
+        let err = self.types.new_var(span);
+        let result_ty = self.types.new(TypeKind::Enum(result_id, vec![ok, err]));
+        let result = self.resolve_expr_form_type(result, Form::Value, result_ty);
+        let return_ok = self.types.new_var(span);
+        let return_result = self.types.new(TypeKind::Enum(result_id, vec![return_ok, err]));
+        if let Some(return_ty) = &self.return_ty {
+          if self.types.unify(*return_ty, return_result).is_failure() {
+            self.core.report(Diag::TryBadReturnType {
+              span,
+              tried: self.types.show(self.chart, result_ty),
+              ret: self.types.show(self.chart, *return_ty),
+            });
+          }
+        } else {
+          self.core.report(Diag::NoReturn { span });
+        }
+        (Form::Value, ok, TirExprKind::Try(result))
+      }
+      ExprKind::Is(..) | ExprKind::LogicalOp(..) => {
+        self.enter_scope();
+        let kind = self._resolve_cond(expr)?;
+        self.exit_scope();
+        (Form::Value, self.bool(span), kind)
       }
       ExprKind::Paren(e) => self._resolve_expr(e)?,
       ExprKind::Error(e) => Err(*e)?,
@@ -210,9 +581,7 @@ impl<'core> Resolver<'core, '_> {
           }
         };
         if let Some(args) = args {
-          let (ty, kind) =
-            self._resolve_call(span, TirExpr { span, ty, form, kind: Box::new(kind) }, args)?;
-          (Form::Value, ty, kind)
+          self._resolve_call(span, TirExpr { span, ty, form, kind: Box::new(kind) }, args)?
         } else {
           (form, ty, kind)
         }
@@ -303,368 +672,6 @@ impl<'core> Resolver<'core, '_> {
     (form, ty, TirExprKind::Composite(elements))
   }
 
-  fn _resolve_expr_value(
-    &mut self,
-    expr: &Expr<'core>,
-  ) -> Result<(Type, TirExprKind), Diag<'core>> {
-    let nil = self.types.nil();
-    let span = expr.span;
-    Ok(match &expr.kind {
-      ExprKind![error || place || space] => unreachable!(),
-      ExprKind::Do(label, block) => {
-        let ty = self.types.new_var(span);
-        let (label, block) =
-          self.bind_label(label, false, ty, |self_| self_.resolve_block_type(block, ty));
-        (ty, TirExprKind::Do(label, block))
-      }
-      ExprKind::Assign(dir, space, value) => {
-        let space = self.resolve_expr_form(space, Form::Space);
-        let value = self.resolve_expr_form_type(value, Form::Value, space.ty);
-        (self.types.nil(), TirExprKind::Assign(*dir, space, value))
-      }
-      ExprKind::Match(scrutinee, arms) => {
-        let scrutinee = self.resolve_expr_form(scrutinee, Form::Value);
-        let result = self.types.new_var(span);
-        let arms = Vec::from_iter(arms.iter().map(|(pat, block)| {
-          self.enter_scope();
-          let pat = self.resolve_pat_type(pat, Form::Value, true, scrutinee.ty);
-          let block = self.resolve_block_type(block, result);
-          self.exit_scope();
-          (pat, block)
-        }));
-        (result, TirExprKind::Match(scrutinee, arms))
-      }
-      ExprKind::If(arms, leg) => {
-        let result = if leg.is_some() { self.types.new_var(span) } else { self.types.nil() };
-        let arms = Vec::from_iter(arms.iter().map(|(cond, block)| {
-          self.enter_scope();
-          let cond = self.resolve_cond(cond);
-          let block = self.resolve_block_type(block, result);
-          self.exit_scope();
-          (cond, block)
-        }));
-        let leg = leg.as_ref().map(|leg| self.resolve_block_type(leg, result));
-        (result, TirExprKind::If(arms, leg))
-      }
-      ExprKind::While(label, cond, block) => {
-        let nil = self.types.nil();
-        let (label, (cond, block)) = self.bind_label(label, true, nil, |self_| {
-          self_.enter_scope();
-          let cond = self_.resolve_cond(cond);
-          let block = self_.resolve_block(block);
-          self_.exit_scope();
-          (cond, block)
-        });
-        (nil, TirExprKind::While(label, cond, block))
-      }
-      ExprKind::Loop(label, block) => {
-        let result = self.types.new_var(span);
-        let (label, block) =
-          self.bind_label(label, true, result, |self_| self_.resolve_block(block));
-        (result, TirExprKind::Loop(label, block))
-      }
-      ExprKind::Fn(params, ret, body) => {
-        let (ty, closure_id) = self.resolve_closure(params, ret, body, true);
-        (ty, TirExprKind::Closure(closure_id))
-      }
-      ExprKind::Break(label, value) => {
-        let label_info = if let Some(label) = *label {
-          self.labels.get(&label).copied().ok_or(Diag::UnboundLabel { span, label })
-        } else {
-          self.loops.last().copied().ok_or(Diag::NoLoopBreak { span })
-        };
-        match label_info {
-          Ok(label_info) => {
-            let value = match value {
-              Some(value) => {
-                Some(self.resolve_expr_form_type(value, Form::Value, label_info.break_ty))
-              }
-              None => {
-                if self.types.unify(label_info.break_ty, nil).is_failure() {
-                  self.core.report(Diag::MissingBreakExpr {
-                    span,
-                    ty: self.types.show(self.chart, label_info.break_ty),
-                  });
-                }
-                None
-              }
-            };
-            (self.types.new_var(span), TirExprKind::Break(label_info.id, value))
-          }
-          Err(diag) => {
-            if let Some(value) = value {
-              self.resolve_expr_form(value, Form::Value);
-            }
-            Err(diag)?
-          }
-        }
-      }
-      ExprKind::Return(value) => {
-        if let Some(ty) = &self.return_ty {
-          let ty = *ty;
-          let value = match value {
-            Some(value) => Some(self.resolve_expr_form_type(value, Form::Value, ty)),
-            None => {
-              if self.types.unify(ty, nil).is_failure() {
-                self
-                  .core
-                  .report(Diag::MissingReturnExpr { span, ty: self.types.show(self.chart, ty) });
-              }
-              None
-            }
-          };
-          (self.types.new_var(span), TirExprKind::Return(value))
-        } else {
-          Err(Diag::NoReturn { span })?
-        }
-      }
-      ExprKind::Continue(label) => {
-        let label_info = if let Some(label) = *label {
-          let label_info = *self.labels.get(&label).ok_or(Diag::UnboundLabel { span, label })?;
-          if !label_info.is_loop {
-            Err(Diag::NoContinueLabel { span, label })?
-          }
-          label_info
-        } else {
-          self.loops.last().copied().ok_or(Diag::NoLoopContinue { span })?
-        };
-        (self.types.new_var(span), TirExprKind::Continue(label_info.id))
-      }
-      ExprKind::Ref(inner, _) => {
-        let inner = self.resolve_expr_form(inner, Form::Place);
-        (self.types.new(TypeKind::Ref(inner.ty)), TirExprKind::Ref(inner))
-      }
-      ExprKind::Move(inner, _) => {
-        let inner = self.resolve_expr_form(inner, Form::Place);
-        (inner.ty, TirExprKind::Move(inner))
-      }
-      ExprKind::List(elements) => {
-        let ty = self.types.new_var(span);
-        let elements = Vec::from_iter(
-          elements.iter().map(|element| self.resolve_expr_form_type(element, Form::Value, ty)),
-        );
-        let Some(list) = self.chart.builtins.list else {
-          Err(Diag::MissingBuiltin { span, builtin: "List" })?
-        };
-        (self.types.new(TypeKind::Struct(list, vec![ty])), TirExprKind::List(elements))
-      }
-      ExprKind::Method(receiver, name, generics, args) => {
-        self.resolve_method(span, receiver, *name, generics, args)?
-      }
-      ExprKind::Call(func, args) => {
-        let func = self.resolve_expr(func);
-        self._resolve_call(span, func, args)?
-      }
-      ExprKind::Bool(bool) => (self.bool(span), TirExprKind::Bool(*bool)),
-      ExprKind::Not(inner) => {
-        let inner = self.resolve_expr_form(inner, Form::Value);
-        let Some(op_fn) = self.chart.builtins.not else {
-          Err(Diag::MissingOperatorBuiltin { span })?
-        };
-        let return_ty = self.types.new_var(span);
-        let (_, impl_params) = self._resolve_generics(
-          &Generics { span, ..Default::default() },
-          self.chart.fn_generics(op_fn),
-          true,
-          Some(vec![inner.ty, return_ty]),
-        );
-        if let Some(TirImpl::Def(id, _)) = impl_params.first() {
-          if self.chart.builtins.bool_not == Some(*id) {
-            return Ok((return_ty, TirExprKind::Not(inner)));
-          }
-        }
-        (return_ty, TirExprKind::CallFn(self.fn_rels.push((op_fn, impl_params)), vec![inner]))
-      }
-      ExprKind::Neg(inner) => {
-        let inner = self.resolve_expr_form(inner, Form::Value);
-        let Some(fn_id) = self.chart.builtins.neg else {
-          Err(Diag::MissingOperatorBuiltin { span })?
-        };
-        let return_ty = self.types.new_var(span);
-        let (_, impl_params) = self._resolve_generics(
-          &Generics { span, ..Default::default() },
-          self.chart.fn_generics(fn_id),
-          true,
-          Some(vec![inner.ty, return_ty]),
-        );
-        (return_ty, TirExprKind::CallFn(self.fn_rels.push((fn_id, impl_params)), vec![inner]))
-      }
-      ExprKind::BinaryOp(op, lhs, rhs) => {
-        let lhs = self.resolve_expr_form(lhs, Form::Value);
-        let rhs = self.resolve_expr_form(rhs, Form::Value);
-        let Some(&Some(fn_id)) = self.chart.builtins.binary_ops.get(op) else {
-          Err(Diag::MissingOperatorBuiltin { span })?
-        };
-        let return_ty = self.types.new_var(span);
-        let (_, impl_params) = self._resolve_generics(
-          &Generics { span, ..Default::default() },
-          self.chart.fn_generics(fn_id),
-          true,
-          Some(vec![lhs.ty, rhs.ty, return_ty]),
-        );
-        (return_ty, TirExprKind::CallFn(self.fn_rels.push((fn_id, impl_params)), vec![lhs, rhs]))
-      }
-      ExprKind::BinaryOpAssign(op, lhs, rhs) => {
-        let lhs = self.resolve_expr_form(lhs, Form::Place);
-        let rhs = self.resolve_expr_form(rhs, Form::Value);
-        let Some(&Some(fn_id)) = self.chart.builtins.binary_ops.get(op) else {
-          Err(Diag::MissingOperatorBuiltin { span })?
-        };
-        let (_, impl_params) = self._resolve_generics(
-          &Generics { span, ..Default::default() },
-          self.chart.fn_generics(fn_id),
-          true,
-          Some(vec![lhs.ty, rhs.ty, lhs.ty]),
-        );
-        let nil = self.types.nil();
-        (nil, TirExprKind::CallAssign(self.fn_rels.push((fn_id, impl_params)), lhs, rhs))
-      }
-      ExprKind::ComparisonOp(init, cmps) => {
-        let init = self.resolve_expr_pseudo_place(init);
-        let mut err = Ok(());
-        let mut ty = init.ty;
-        let mut rhs = Vec::new();
-        for (_, expr) in cmps.iter() {
-          let other = self.resolve_expr_pseudo_place(expr);
-          if self.types.unify(ty, other.ty).is_failure() {
-            err = Err(self.core.report(Diag::CannotCompare {
-              span,
-              lhs: self.types.show(self.chart, ty),
-              rhs: self.types.show(self.chart, other.ty),
-            }));
-            ty = other.ty;
-          }
-          rhs.push(other);
-        }
-        err?;
-        let cmps = cmps
-          .iter()
-          .zip(rhs)
-          .map(|((op, _), rhs)| {
-            let Some(&Some(fn_id)) = self.chart.builtins.comparison_ops.get(op) else {
-              Err(Diag::MissingOperatorBuiltin { span })?
-            };
-            let (_, impl_params) = self._resolve_generics(
-              &Generics { span, ..Default::default() },
-              self.chart.fn_generics(fn_id),
-              true,
-              Some(vec![ty]),
-            );
-            Ok((self.fn_rels.push((fn_id, impl_params)), rhs))
-          })
-          .collect::<Result<Vec<_>, Diag>>()?;
-        (self.bool(span), TirExprKind::CallCompare(init, cmps))
-      }
-      ExprKind::Cast(inner, to, _) => {
-        let inner = self.resolve_expr_form(inner, Form::Value);
-        let to_ty = self.resolve_type(to, true);
-        let Some(fn_id) = self.chart.builtins.cast else {
-          Err(Diag::MissingOperatorBuiltin { span })?
-        };
-        let (_, impl_params) = self._resolve_generics(
-          &Generics { span, ..Default::default() },
-          self.chart.fn_generics(fn_id),
-          true,
-          Some(vec![inner.ty, to_ty]),
-        );
-        (to_ty, TirExprKind::CallFn(self.fn_rels.push((fn_id, impl_params)), vec![inner]))
-      }
-      ExprKind::RangeExclusive(start, end) => {
-        self.resolve_range_expr(span, start.as_deref(), end.as_deref(), false)?
-      }
-      ExprKind::RangeInclusive(start, end) => {
-        self.resolve_range_expr(span, start.as_deref(), Some(end), true)?
-      }
-      ExprKind::N32(n) => {
-        (self.builtin_ty(span, "N32", self.chart.builtins.n32), TirExprKind::N32(*n))
-      }
-      ExprKind::I32(n) => {
-        (self.builtin_ty(span, "I32", self.chart.builtins.i32), TirExprKind::I32(*n))
-      }
-      ExprKind::F32(n) => {
-        (self.builtin_ty(span, "F32", self.chart.builtins.f32), TirExprKind::F32(*n))
-      }
-      ExprKind::Char(c) => {
-        (self.builtin_ty(span, "Char", self.chart.builtins.char), TirExprKind::Char(*c))
-      }
-      ExprKind::String(init, rest) => {
-        let string_ty = if let Some(string) = self.chart.builtins.string {
-          self.types.new(TypeKind::Struct(string, Vec::new()))
-        } else {
-          self.types.error(self.core.report(Diag::MissingBuiltin { span, builtin: "String" }))
-        };
-        let rest = rest
-          .iter()
-          .map(|(expr, str)| {
-            let expr = if let Some(fn_id) = self.chart.builtins.cast {
-              let span = expr.span;
-              let expr = self.resolve_expr_form(expr, Form::Value);
-              let (_, impl_params) = self._resolve_generics(
-                &Generics { span, ..Default::default() },
-                self.chart.fn_generics(fn_id),
-                true,
-                Some(vec![expr.ty, string_ty]),
-              );
-              TirExpr {
-                span,
-                ty: string_ty,
-                form: Form::Value,
-                kind: Box::new(TirExprKind::CallFn(
-                  self.fn_rels.push((fn_id, impl_params)),
-                  vec![expr],
-                )),
-              }
-            } else {
-              self.resolve_expr_form_type(expr, Form::Value, string_ty)
-            };
-            (expr, str.content.clone())
-          })
-          .collect();
-        (string_ty, TirExprKind::String(init.content.clone(), rest))
-      }
-      ExprKind::InlineIvy(binds, ty, _, net) => {
-        let binds = Vec::from_iter(binds.iter().map(|(name, value, expr)| {
-          (
-            name.0 .0.into(),
-            *value,
-            self.resolve_expr_form(expr, if *value { Form::Value } else { Form::Space }),
-          )
-        }));
-        let ty = self.resolve_type(ty, true);
-        (ty, TirExprKind::InlineIvy(binds, net.clone()))
-      }
-      ExprKind::Try(result) => {
-        let Some(result_id) = self.chart.builtins.result else {
-          Err(Diag::MissingBuiltin { span, builtin: "Result" })?
-        };
-        let ok = self.types.new_var(span);
-        let err = self.types.new_var(span);
-        let result_ty = self.types.new(TypeKind::Enum(result_id, vec![ok, err]));
-        let result = self.resolve_expr_form_type(result, Form::Value, result_ty);
-        let return_ok = self.types.new_var(span);
-        let return_result = self.types.new(TypeKind::Enum(result_id, vec![return_ok, err]));
-        if let Some(return_ty) = &self.return_ty {
-          if self.types.unify(*return_ty, return_result).is_failure() {
-            self.core.report(Diag::TryBadReturnType {
-              span,
-              tried: self.types.show(self.chart, result_ty),
-              ret: self.types.show(self.chart, *return_ty),
-            });
-          }
-        } else {
-          self.core.report(Diag::NoReturn { span });
-        }
-        (ok, TirExprKind::Try(result))
-      }
-      ExprKind::Is(..) | ExprKind::LogicalOp(..) => {
-        self.enter_scope();
-        let kind = self._resolve_cond(expr)?;
-        self.exit_scope();
-        (self.bool(span), kind)
-      }
-    })
-  }
-
   fn resolve_cond(&mut self, cond: &Expr<'core>) -> TirExpr {
     match self._resolve_cond(cond) {
       Ok(kind) => {
@@ -717,7 +724,7 @@ impl<'core> Resolver<'core, '_> {
     span: Span,
     mut func: TirExpr,
     args: &Vec<Expr<'core>>,
-  ) -> Result<(Type, TirExprKind), Diag<'core>> {
+  ) -> Result<(Form, Type, TirExprKind), Diag<'core>> {
     self.coerce_expr(&mut func, Form::Value);
     match self.fn_sig(span, func.ty, args.len()) {
       Ok((params, ret)) => {
@@ -726,7 +733,7 @@ impl<'core> Resolver<'core, '_> {
           .zip(params)
           .map(|(arg, ty)| self.resolve_expr_form_type(arg, Form::Value, ty))
           .collect();
-        Ok((ret, TirExprKind::Call(func, args)))
+        Ok((Form::Value, ret, TirExprKind::Call(func, args)))
       }
       Err(diag) => {
         for arg in args {
@@ -743,7 +750,7 @@ impl<'core> Resolver<'core, '_> {
     start: Option<&Expr<'core>>,
     end: Option<&Expr<'core>>,
     end_inclusive: bool,
-  ) -> Result<(Type, TirExprKind), Diag<'core>> {
+  ) -> Result<(Form, Type, TirExprKind), Diag<'core>> {
     let bound_value_ty = self.types.new_var(span);
     let left_bound = self.resolve_range_bound(span, bound_value_ty, start, true)?;
     let right_bound = self.resolve_range_bound(span, bound_value_ty, end, end_inclusive)?;
@@ -752,6 +759,7 @@ impl<'core> Resolver<'core, '_> {
     };
     let ty = self.types.new(TypeKind::Struct(range_id, vec![left_bound.ty, right_bound.ty]));
     Ok((
+      Form::Value,
       ty,
       TirExprKind::Struct(
         range_id,
