@@ -150,7 +150,7 @@ pub enum ImportParent {
 }
 
 new_idx!(pub GenericsId);
-#[derive(Debug, Default, Clone)]
+#[derive(Debug, Clone)]
 pub struct GenericsDef<'core> {
   pub span: Span,
   pub def: DefId,

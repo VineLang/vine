@@ -782,7 +782,7 @@ impl<'core, 'a> Resolver<'core, 'a> {
     inference: bool,
   ) -> (Vec<Type>, Vec<TirImpl>) {
     self._resolve_generics(
-      path.generics.as_ref().unwrap_or(&Generics { span: path.span, ..Default::default() }),
+      path.generics.as_ref().unwrap_or(&Generics { span: path.span, types: vec![], impls: vec![] }),
       params_id,
       inference,
       None,

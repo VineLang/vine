@@ -1,7 +1,6 @@
 use std::{
   collections::BTreeMap,
   fmt::{self, Debug, Display, Write},
-  mem::take,
   path::PathBuf,
 };
 
@@ -10,7 +9,7 @@ use vine_util::{idx, interner::Interned};
 
 use crate::diag::ErrorGuaranteed;
 
-#[derive(Clone, Default)]
+#[derive(Clone)]
 pub struct Item<'core> {
   pub span: Span,
   pub vis: Vis<'core>,
@@ -18,7 +17,7 @@ pub struct Item<'core> {
   pub kind: ItemKind<'core>,
 }
 
-#[derive(Default, Debug, Clone)]
+#[derive(Debug, Clone)]
 pub enum ItemKind<'core> {
   Fn(FnItem<'core>),
   Const(ConstItem<'core>),
@@ -29,7 +28,6 @@ pub enum ItemKind<'core> {
   Trait(TraitItem<'core>),
   Impl(ImplItem<'core>),
   Use(UseItem<'core>),
-  #[default]
   Taken,
 }
 
@@ -113,7 +111,7 @@ pub struct UseItem<'core> {
   pub tree: UseTree<'core>,
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct UseTree<'core> {
   pub span: Span,
   pub aliases: Vec<Ident<'core>>,
@@ -121,15 +119,18 @@ pub struct UseTree<'core> {
 }
 
 impl<'core> UseTree<'core> {
+  pub fn empty(span: Span) -> Self {
+    UseTree { span, aliases: Vec::new(), children: BTreeMap::new() }
+  }
+
   pub fn prune(&mut self) -> bool {
     self.children.retain(|_, tree| tree.prune());
     !self.aliases.is_empty() || !self.children.is_empty()
   }
 }
 
-#[derive(Default, Debug, Clone)]
+#[derive(Debug, Clone)]
 pub enum Vis<'core> {
-  #[default]
   Private,
   Public,
   PublicTo(Span, Ident<'core>),
@@ -182,12 +183,6 @@ pub struct Generics<T, I> {
   pub impls: Vec<I>,
 }
 
-impl<T, I> Default for Generics<T, I> {
-  fn default() -> Self {
-    Self { span: Span::default(), types: Default::default(), impls: Default::default() }
-  }
-}
-
 #[derive(Debug, Clone, Copy)]
 pub struct TypeParam<'core> {
   pub span: Span,
@@ -220,7 +215,7 @@ impl Flex {
   }
 }
 
-#[derive(Default, Debug, Clone)]
+#[derive(Debug, Clone)]
 pub struct Block<'core> {
   pub span: Span,
   pub stmts: Vec<Stmt<'core>>,
@@ -256,15 +251,14 @@ pub struct LetFnStmt<'core> {
   pub body: Block<'core>,
 }
 
-#[derive(Default, Clone)]
+#[derive(Clone)]
 pub struct Expr<'core> {
   pub span: Span,
   pub kind: ExprKind<'core>,
 }
 
-#[derive(Default, Debug, Clone)]
+#[derive(Debug, Clone)]
 pub enum ExprKind<'core> {
-  #[default]
   Hole,
   Paren(B<Expr<'core>>),
   Path(Path<'core>, Option<Vec<Expr<'core>>>),
@@ -312,21 +306,20 @@ pub enum ExprKind<'core> {
   Error(ErrorGuaranteed),
 }
 
-#[derive(Default, Debug, Clone)]
+#[derive(Debug, Clone)]
 pub struct StringSegment {
   pub content: String,
   pub span: Span,
 }
 
-#[derive(Default, Clone)]
+#[derive(Clone)]
 pub struct Pat<'core> {
   pub span: Span,
   pub kind: PatKind<'core>,
 }
 
-#[derive(Default, Debug, Clone)]
+#[derive(Debug, Clone)]
 pub enum PatKind<'core> {
-  #[default]
   Hole,
   Paren(B<Pat<'core>>),
   Annotation(B<Pat<'core>>, B<Ty<'core>>),
@@ -339,7 +332,7 @@ pub enum PatKind<'core> {
   Error(ErrorGuaranteed),
 }
 
-#[derive(Default, Debug, Clone)]
+#[derive(Debug, Clone)]
 pub struct Path<'core> {
   pub span: Span,
   pub absolute: bool,
@@ -366,15 +359,14 @@ impl<'core> Path<'core> {
   }
 }
 
-#[derive(Clone, Default)]
+#[derive(Clone)]
 pub struct Ty<'core> {
   pub span: Span,
   pub kind: TyKind<'core>,
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub enum TyKind<'core> {
-  #[default]
   Hole,
   Paren(B<Ty<'core>>),
   Fn(Vec<Ty<'core>>, Option<B<Ty<'core>>>),
@@ -495,25 +487,7 @@ impl Span {
   pub const NONE: Span = Span { file: usize::MAX, start: 0, end: 0 };
 }
 
-impl Default for Span {
-  fn default() -> Self {
-    Span::NONE
-  }
-}
-
 pub type B<T> = Box<T>;
-
-impl<'core> Expr<'core> {
-  pub fn wrap(&mut self, f: impl FnOnce(B<Self>) -> ExprKind<'core>) {
-    let span = self.span;
-    let kind = f(Box::new(take(self)));
-    *self = Expr { span, kind };
-  }
-}
-
-impl<'core> Pat<'core> {
-  pub const HOLE: Self = Pat { span: Span::NONE, kind: PatKind::Hole };
-}
 
 impl Display for Path<'_> {
   fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {

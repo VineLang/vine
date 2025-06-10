@@ -195,7 +195,7 @@ impl<'core> Resolver<'core, '_> {
         };
         let return_ty = self.types.new_var(span);
         let (_, impl_params) = self._resolve_generics(
-          &Generics { span, ..Default::default() },
+          &Generics { span, types: vec![], impls: vec![] },
           self.chart.fn_generics(op_fn),
           true,
           Some(vec![inner.ty, return_ty]),
@@ -218,7 +218,7 @@ impl<'core> Resolver<'core, '_> {
         };
         let return_ty = self.types.new_var(span);
         let (_, impl_params) = self._resolve_generics(
-          &Generics { span, ..Default::default() },
+          &Generics { span, types: vec![], impls: vec![] },
           self.chart.fn_generics(fn_id),
           true,
           Some(vec![inner.ty, return_ty]),
@@ -237,7 +237,7 @@ impl<'core> Resolver<'core, '_> {
         };
         let return_ty = self.types.new_var(span);
         let (_, impl_params) = self._resolve_generics(
-          &Generics { span, ..Default::default() },
+          &Generics { span, types: vec![], impls: vec![] },
           self.chart.fn_generics(fn_id),
           true,
           Some(vec![lhs.ty, rhs.ty, return_ty]),
@@ -255,7 +255,7 @@ impl<'core> Resolver<'core, '_> {
           Err(Diag::MissingOperatorBuiltin { span })?
         };
         let (_, impl_params) = self._resolve_generics(
-          &Generics { span, ..Default::default() },
+          &Generics { span, types: vec![], impls: vec![] },
           self.chart.fn_generics(fn_id),
           true,
           Some(vec![lhs.ty, rhs.ty, lhs.ty]),
@@ -293,7 +293,7 @@ impl<'core> Resolver<'core, '_> {
               Err(Diag::MissingOperatorBuiltin { span })?
             };
             let (_, impl_params) = self._resolve_generics(
-              &Generics { span, ..Default::default() },
+              &Generics { span, types: vec![], impls: vec![] },
               self.chart.fn_generics(fn_id),
               true,
               Some(vec![ty]),
@@ -310,7 +310,7 @@ impl<'core> Resolver<'core, '_> {
           Err(Diag::MissingOperatorBuiltin { span })?
         };
         let (_, impl_params) = self._resolve_generics(
-          &Generics { span, ..Default::default() },
+          &Generics { span, types: vec![], impls: vec![] },
           self.chart.fn_generics(fn_id),
           true,
           Some(vec![inner.ty, to_ty]),
@@ -354,7 +354,7 @@ impl<'core> Resolver<'core, '_> {
               let span = expr.span;
               let expr = self.resolve_expr_form(expr, Form::Value);
               let (_, impl_params) = self._resolve_generics(
-                &Generics { span, ..Default::default() },
+                &Generics { span, types: vec![], impls: vec![] },
                 self.chart.fn_generics(fn_id),
                 true,
                 Some(vec![expr.ty, string_ty]),

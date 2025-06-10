@@ -1,4 +1,4 @@
-use std::{collections::hash_map::Entry, mem::take};
+use std::{collections::hash_map::Entry, mem::replace};
 
 use vine_util::idx::{Counter, IdxVec};
 
@@ -23,7 +23,12 @@ pub struct Charter<'core, 'a> {
 impl<'core> Charter<'core, '_> {
   pub fn chart_root(&mut self, root: ModKind<'core>) {
     if self.chart.generics.is_empty() {
-      self.chart.generics.push(GenericsDef::default());
+      self.chart.generics.push(GenericsDef {
+        span: Span::NONE,
+        def: DefId::ROOT,
+        type_params: Vec::new(),
+        impl_params: Vec::new(),
+      });
     }
     if self.chart.defs.is_empty() {
       self.new_def(self.core.ident("::"), "", None);
@@ -603,6 +608,9 @@ pub struct ExtractItems<'core> {
 
 impl<'core> VisitMut<'core, '_> for ExtractItems<'core> {
   fn visit_item(&mut self, item: &mut Item<'core>) {
-    self.items.push(take(item));
+    self.items.push(replace(
+      item,
+      Item { span: Span::NONE, vis: Vis::Private, attrs: vec![], kind: ItemKind::Taken },
+    ));
   }
 }

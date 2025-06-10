@@ -42,7 +42,7 @@ impl<'core> Loader<'core> {
       attrs: Vec::new(),
       kind: ItemKind::Const(ConstItem {
         name: main,
-        generics: GenericParams::default(),
+        generics: GenericParams { span: Span::NONE, impls: vec![], types: vec![] },
         ty: Ty {
           span: Span::NONE,
           kind: TyKind::Fn(
