@@ -9,11 +9,11 @@ use crate::{
   tir::Local,
   vir::{
     Header, Interface, InterfaceId, InterfaceKind, Layer, LayerId, Port, Stage, StageId, Step,
-    Transfer, WireId, VIR,
+    Transfer, Vir, WireId,
   },
 };
 
-pub fn normalize(source: &VIR) -> VIR {
+pub fn normalize(source: &Vir) -> Vir {
   let mut normalizer = Normalizer {
     source,
     locals: source.locals,
@@ -29,7 +29,7 @@ pub fn normalize(source: &VIR) -> VIR {
     }
   }
 
-  VIR {
+  Vir {
     locals: normalizer.locals,
     layers: IdxVec::new(),
     interfaces: normalizer.interfaces,
@@ -40,7 +40,7 @@ pub fn normalize(source: &VIR) -> VIR {
 
 #[derive(Debug)]
 struct Normalizer<'a> {
-  source: &'a VIR,
+  source: &'a Vir,
 
   locals: Counter<Local>,
   interfaces: IdxVec<InterfaceId, Interface>,

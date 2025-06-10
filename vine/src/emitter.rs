@@ -11,7 +11,7 @@ use crate::{
   tir::Local,
   vir::{
     Header, Interface, InterfaceId, InterfaceKind, Invocation, Port, Stage, StageId, Step,
-    Transfer, VIR,
+    Transfer, Vir,
   },
 };
 
@@ -30,8 +30,8 @@ impl<'core, 'a> Emitter<'core, 'a> {
   pub fn emit_spec(
     &mut self,
     spec: SpecId,
-    const_vir: &IdxVec<ConcreteConstId, VIR>,
-    fn_vir: &IdxVec<ConcreteFnId, VIR>,
+    const_vir: &IdxVec<ConcreteConstId, Vir>,
+    fn_vir: &IdxVec<ConcreteFnId, Vir>,
   ) {
     let spec = self.specs.specs[spec].as_ref().unwrap();
     let path = self.chart.defs[spec.def].path;
@@ -42,7 +42,7 @@ impl<'core, 'a> Emitter<'core, 'a> {
     self.emit_vir(vir, path, spec)
   }
 
-  pub fn emit_vir(&mut self, vir: &VIR, path: &str, spec: &Spec) {
+  pub fn emit_vir(&mut self, vir: &Vir, path: &str, spec: &Spec) {
     let mut emitter = VirEmitter {
       chart: self.chart,
       path,

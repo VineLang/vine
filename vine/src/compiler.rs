@@ -13,7 +13,7 @@ use crate::{
   resolver::{Resolutions, Resolver},
   signatures::Signatures,
   specializer::{SpecId, Specializations, Specializer},
-  vir::VIR,
+  vir::Vir,
 };
 
 pub struct Compiler<'core> {
@@ -23,8 +23,8 @@ pub struct Compiler<'core> {
   pub sigs: Signatures<'core>,
   pub resolutions: Resolutions,
   specs: Specializations,
-  const_vir: IdxVec<ConcreteConstId, VIR>,
-  fn_vir: IdxVec<ConcreteFnId, VIR>,
+  const_vir: IdxVec<ConcreteConstId, Vir>,
+  fn_vir: IdxVec<ConcreteFnId, Vir>,
 }
 
 impl<'core> Compiler<'core> {

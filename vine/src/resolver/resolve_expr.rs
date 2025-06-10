@@ -202,7 +202,7 @@ impl<'core> Resolver<'core, '_> {
       ExprKind::Neg(inner) => {
         let inner = self.resolve_expr_form(inner, Form::Value);
         let return_ty = self.types.new_var(span);
-        let rel = self.builtin_fn(span, self.chart.builtins.not, "neg", [inner.ty, return_ty])?;
+        let rel = self.builtin_fn(span, self.chart.builtins.neg, "neg", [inner.ty, return_ty])?;
         (Form::Value, return_ty, TirExprKind::CallFn(rel, vec![inner]))
       }
       ExprKind::BinaryOp(op, lhs, rhs) => {

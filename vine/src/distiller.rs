@@ -11,7 +11,7 @@ use crate::{
   tir::{ClosureId, Form, LabelId, Local, Tir, TirExpr, TirExprKind, TirPat, TirPatKind},
   vir::{
     Header, Interface, InterfaceId, InterfaceKind, Layer, LayerId, Port, Stage, StageId, Step,
-    Transfer, VIR,
+    Transfer, Vir,
   },
 };
 
@@ -60,7 +60,7 @@ impl<'core, 'r> Distiller<'core, 'r> {
     }
   }
 
-  pub fn distill_tir(&mut self, tir: &Tir) -> VIR {
+  pub fn distill_tir(&mut self, tir: &Tir) -> Vir {
     self.locals = tir.locals;
     let (layer, mut stage) = self.root_layer();
     let local = self.locals.next();
@@ -75,7 +75,7 @@ impl<'core, 'r> Distiller<'core, 'r> {
     self.labels.clear();
     debug_assert!(self.returns.is_empty());
     self.closures.clear();
-    VIR {
+    Vir {
       layers: unwrap_idx_vec(take(&mut self.layers)),
       interfaces: unwrap_idx_vec(take(&mut self.interfaces)),
       stages: unwrap_idx_vec(take(&mut self.stages)),

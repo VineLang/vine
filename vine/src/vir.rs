@@ -23,7 +23,7 @@ impl LayerId {
 }
 
 #[derive(Debug, Clone)]
-pub struct VIR {
+pub struct Vir {
   pub locals: Counter<Local>,
   pub layers: IdxVec<LayerId, Layer>,
   pub interfaces: IdxVec<InterfaceId, Interface>,
