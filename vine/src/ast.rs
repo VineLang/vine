@@ -7,15 +7,9 @@ use std::{
 
 use class::Classes;
 use ivy::ast::Net;
-use vine_util::{idx, interner::Interned, new_idx};
+use vine_util::{idx, interner::Interned};
 
-use crate::{
-  chart::{ConstId, EnumId, FnId, ImplId, StructId, VariantId},
-  diag::ErrorGuaranteed,
-  tir::{ConstRelId, FnRelId, LabelId, Local},
-};
-
-new_idx!(pub LetFnId);
+use crate::diag::ErrorGuaranteed;
 
 #[derive(Clone, Default)]
 pub struct Item<'core> {
@@ -258,7 +252,6 @@ pub struct LetStmt<'core> {
 #[derive(Debug, Clone)]
 pub struct LetFnStmt<'core> {
   pub name: Ident<'core>,
-  pub id: Option<LetFnId>,
   pub params: Vec<Pat<'core>>,
   pub ret: Option<Ty<'core>>,
   pub body: Block<'core>,
@@ -279,20 +272,8 @@ pub enum ExprKind<'core> {
   Paren(B<Expr<'core>>),
   #[class(value, place, space)]
   Path(Path<'core>, Option<Vec<Expr<'core>>>),
-  #[class(value, synthetic)]
-  ConstDef(ConstId, GenericArgs<'core>),
-  #[class(value, synthetic)]
-  FnDef(FnId, GenericArgs<'core>),
-  #[class(value, synthetic)]
-  ConstRel(ConstRelId),
-  #[class(value, synthetic)]
-  FnRel(FnRelId),
-  #[class(place, synthetic)]
-  Local(Local),
-  #[class(value, synthetic)]
-  LetFn(LetFnId),
   #[class(value)]
-  Do(Label<'core>, Block<'core>),
+  Do(Option<Ident<'core>>, Block<'core>),
   #[class(value)]
   Assign(bool, B<Expr<'core>>, B<Expr<'core>>),
   #[class(value)]
@@ -300,17 +281,17 @@ pub enum ExprKind<'core> {
   #[class(value)]
   If(Vec<(Expr<'core>, Block<'core>)>, Option<Block<'core>>),
   #[class(value)]
-  While(Label<'core>, B<Expr<'core>>, Block<'core>),
+  While(Option<Ident<'core>>, B<Expr<'core>>, Block<'core>),
   #[class(value)]
-  Loop(Label<'core>, Block<'core>),
+  Loop(Option<Ident<'core>>, Block<'core>),
   #[class(value)]
   Fn(Vec<Pat<'core>>, Option<Ty<'core>>, Block<'core>),
   #[class(value)]
   Return(Option<B<Expr<'core>>>),
   #[class(value)]
-  Break(Label<'core>, Option<B<Expr<'core>>>),
+  Break(Option<Ident<'core>>, Option<B<Expr<'core>>>),
   #[class(value)]
-  Continue(Label<'core>),
+  Continue(Option<Ident<'core>>),
   #[class(value)]
   Ref(B<Expr<'core>>, bool),
   #[class(place)]
@@ -335,10 +316,6 @@ pub enum ExprKind<'core> {
   Method(B<Expr<'core>>, Ident<'core>, GenericArgs<'core>, Vec<Expr<'core>>),
   #[class(value)]
   Call(B<Expr<'core>>, Vec<Expr<'core>>),
-  #[class(value, place, space, synthetic)]
-  Struct(StructId, GenericArgs<'core>, B<Expr<'core>>),
-  #[class(value, synthetic)]
-  Enum(EnumId, VariantId, GenericArgs<'core>, Option<B<Expr<'core>>>),
   #[class(value, sugar)]
   Neg(B<Expr<'core>>),
   #[class(value, sugar)]
@@ -375,26 +352,8 @@ pub enum ExprKind<'core> {
   Char(char),
   #[class(value)]
   String(StringSegment, Vec<(Expr<'core>, StringSegment)>),
-  #[class(space, synthetic)]
-  Set(B<Expr<'core>>),
-  #[class(value, synthetic)]
-  Copy(B<Expr<'core>>),
-  #[class(space, synthetic)]
-  Hedge(B<Expr<'core>>),
-  #[class(value, synthetic)]
-  CopyLocal(Local),
-  #[class(space, synthetic)]
-  HedgeLocal(Local),
-  #[class(value, synthetic)]
-  MoveLocal(Local),
-  #[class(space, synthetic)]
-  SetLocal(Local),
   #[class(value)]
   InlineIvy(Vec<(Ident<'core>, bool, Expr<'core>)>, Ty<'core>, Span, Net),
-  #[class(value, synthetic)]
-  CallAssign(B<Expr<'core>>, B<Expr<'core>>, B<Expr<'core>>),
-  #[class(value, synthetic)]
-  CallCompare(B<Expr<'core>>, Vec<(Expr<'core>, Expr<'core>)>),
   #[class(error)]
   Error(ErrorGuaranteed),
 }
@@ -403,22 +362,6 @@ pub enum ExprKind<'core> {
 pub struct StringSegment {
   pub content: String,
   pub span: Span,
-}
-
-#[derive(Debug, Clone, Copy)]
-pub enum Label<'core> {
-  Ident(Option<Ident<'core>>),
-  Resolved(LabelId),
-  Error(ErrorGuaranteed),
-}
-
-impl<'core> Label<'core> {
-  pub fn as_id(self) -> LabelId {
-    match self {
-      Label::Resolved(id) => id,
-      _ => unreachable!(),
-    }
-  }
 }
 
 #[derive(Default, Clone)]
@@ -438,12 +381,6 @@ pub enum PatKind<'core> {
   Annotation(B<Pat<'core>>, B<Ty<'core>>),
   #[class(value, place, space)]
   Path(Path<'core>, Option<Vec<Pat<'core>>>),
-  #[class(value, place, space)]
-  Struct(StructId, GenericArgs<'core>, B<Pat<'core>>),
-  #[class(value, place, space)]
-  Enum(EnumId, VariantId, GenericArgs<'core>, Option<B<Pat<'core>>>),
-  #[class(value, place, space)]
-  Local(Local),
   #[class(value, place)]
   Ref(B<Pat<'core>>),
   #[class(place)]
@@ -514,9 +451,7 @@ pub struct Impl<'core> {
 #[derive(Debug, Clone)]
 pub enum ImplKind<'core> {
   Hole,
-  Param(usize),
   Path(Path<'core>),
-  Def(ImplId, GenericArgs<'core>),
   Error(ErrorGuaranteed),
 }
 

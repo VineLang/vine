@@ -7,8 +7,8 @@ use vine_util::idx::{Counter, IdxVec, RangeExt};
 
 use crate::{
   ast::{
-    Block, GenericArgs, Generics, Ident, Impl, ImplKind, Key, Label, LetFnId, Pat, PatKind, Path,
-    Span, Stmt, StmtKind, Trait, TraitKind, Ty, TyKind,
+    Block, GenericArgs, Generics, Ident, Impl, ImplKind, Key, Pat, PatKind, Path, Span, Stmt,
+    StmtKind, Trait, TraitKind, Ty, TyKind,
   },
   chart::{
     checkpoint::ChartCheckpoint, Chart, ConcreteConstId, ConcreteFnId, ConstId, DefId, DefImplKind,
@@ -49,7 +49,6 @@ pub struct Resolver<'core, 'a> {
   scope: HashMap<Ident<'core>, Vec<ScopeEntry>>,
   scope_depth: usize,
   locals: Counter<Local>,
-  let_fns: Counter<LetFnId>,
   labels: HashMap<Ident<'core>, LabelInfo>,
   loops: Vec<LabelInfo>,
   label_id: Counter<LabelId>,
@@ -105,7 +104,6 @@ impl<'core, 'a> Resolver<'core, 'a> {
       resolutions,
       types: Types::default(),
       locals: Default::default(),
-      let_fns: Default::default(),
       return_ty: None,
       labels: Default::default(),
       cur_def: DefId::ROOT,
@@ -175,7 +173,6 @@ impl<'core, 'a> Resolver<'core, 'a> {
     self.scope.clear();
     debug_assert_eq!(self.scope_depth, 0);
     self.locals.reset();
-    self.let_fns.reset();
     self.labels.clear();
     debug_assert!(self.loops.is_empty());
     self.label_id.reset();
@@ -438,7 +435,6 @@ impl<'core, 'a> Resolver<'core, 'a> {
   fn resolve_pat_sig(&mut self, pat: &Pat<'core>) -> Type {
     let span = pat.span;
     match &pat.kind {
-      PatKind::Struct(..) | PatKind::Enum(..) => unreachable!(),
       PatKind::Paren(inner) => self.resolve_pat_sig(inner),
       PatKind::Annotation(_, ty) => self.resolve_type(ty, false),
       PatKind::Path(path, _) => {
@@ -470,7 +466,7 @@ impl<'core, 'a> Resolver<'core, 'a> {
         self.types.new(TypeKind::Tuple(elements))
       }
       PatKind::Object(entries) => self.build_object_type(entries, Self::resolve_pat_sig),
-      PatKind::Hole | PatKind::Local(_) | PatKind::Deref(_) => {
+      PatKind::Hole | PatKind::Deref(_) => {
         self.types.error(self.core.report(Diag::ItemTypeHole { span }))
       }
       PatKind::Error(e) => self.types.error(*e),
@@ -748,7 +744,6 @@ impl<'core, 'a> Resolver<'core, 'a> {
   fn resolve_impl(&mut self, impl_: &Impl<'core>) -> (ImplType, TirImpl) {
     let span = impl_.span;
     match &impl_.kind {
-      ImplKind::Param(_) | ImplKind::Def(..) => unreachable!(),
       ImplKind::Path(path) => {
         if let Some(ident) = path.as_ident() {
           if let Some(&i) = self.impl_param_lookup.get(&ident) {
@@ -898,7 +893,7 @@ impl<'core, 'a> Resolver<'core, 'a> {
 
   fn bind_label<T>(
     &mut self,
-    label: &Label<'core>,
+    label: &Option<Ident<'core>>,
     is_loop: bool,
     break_ty: Type,
     f: impl FnOnce(&mut Self) -> T,
@@ -909,7 +904,7 @@ impl<'core, 'a> Resolver<'core, 'a> {
       self.loops.push(info);
     }
     let result;
-    if let Label::Ident(Some(label)) = label {
+    if let Some(label) = label {
       let old = self.labels.insert(*label, info);
       result = f(self);
       if let Some(old) = old {

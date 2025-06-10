@@ -5,7 +5,7 @@ use doc::{Doc, Writer};
 use crate::{
   ast::{
     Block, ComparisonOp, Expr, ExprKind, Flex, GenericArgs, GenericParams, Generics, Ident, Impl,
-    ImplKind, ImplParam, Item, ItemKind, Label, LogicalOp, ModKind, Pat, PatKind, Path, Span, Stmt,
+    ImplKind, ImplParam, Item, ItemKind, LogicalOp, ModKind, Pat, PatKind, Path, Span, Stmt,
     StmtKind, Trait, TraitKind, Ty, TyKind, TypeParam, UseTree, Vis,
   },
   core::Core,
@@ -316,7 +316,7 @@ impl<'core: 'src, 'src> Formatter<'src> {
 
   fn fmt_impl(&self, impl_: &Impl<'core>) -> Doc<'src> {
     match &impl_.kind {
-      ImplKind::Error(_) | ImplKind::Param(_) | ImplKind::Def(..) => unreachable!(),
+      ImplKind::Error(_) => unreachable!(),
       ImplKind::Hole => Doc("_"),
       ImplKind::Path(path) => self.fmt_path(path),
     }
@@ -366,7 +366,7 @@ impl<'core: 'src, 'src> Formatter<'src> {
 
   fn fmt_expr(&self, expr: &Expr<'core>) -> Doc<'src> {
     match &expr.kind {
-      ExprKind![synthetic || error] => unreachable!(),
+      ExprKind![error] => unreachable!(),
       ExprKind::Paren(p) => Doc::paren(self.fmt_expr(p)),
       ExprKind::Hole => Doc("_"),
       ExprKind::Path(path, None) => self.fmt_path(path),
@@ -540,8 +540,7 @@ impl<'core: 'src, 'src> Formatter<'src> {
     }
   }
 
-  fn fmt_label(&self, label: &Label<'core>) -> Doc<'src> {
-    let Label::Ident(label) = label else { unreachable!() };
+  fn fmt_label(&self, label: &Option<Ident<'core>>) -> Doc<'src> {
     if let Some(label) = label {
       Doc::concat([Doc("."), Doc(*label)])
     } else {
@@ -551,7 +550,7 @@ impl<'core: 'src, 'src> Formatter<'src> {
 
   fn fmt_pat(&self, pat: &Pat<'core>) -> Doc<'src> {
     match &pat.kind {
-      PatKind::Local(_) | PatKind::Struct(..) | PatKind::Enum(..) | PatKind::Error(_) => {
+      PatKind::Error(_) => {
         unreachable!()
       }
       PatKind::Hole => Doc("_"),

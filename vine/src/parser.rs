@@ -10,8 +10,8 @@ use crate::{core::Core, diag::Diag, lexer::Token};
 use crate::ast::{
   Attr, AttrKind, BinaryOp, Block, Builtin, ComparisonOp, ConstItem, EnumItem, Expr, ExprKind,
   Flex, FnItem, GenericArgs, GenericParams, Generics, Ident, Impl, ImplItem, ImplKind, ImplParam,
-  Item, ItemKind, Key, Label, LetFnStmt, LetStmt, LogicalOp, ModItem, ModKind, Pat, PatKind, Path,
-  Span, Stmt, StmtKind, StructItem, Trait, TraitItem, TraitKind, Ty, TyKind, TypeItem, TypeParam,
+  Item, ItemKind, Key, LetFnStmt, LetStmt, LogicalOp, ModItem, ModKind, Pat, PatKind, Path, Span,
+  Stmt, StmtKind, StructItem, Trait, TraitItem, TraitKind, Ty, TyKind, TypeItem, TypeParam,
   UseItem, UseTree, Variant, Vis,
 };
 
@@ -818,8 +818,8 @@ impl<'core, 'src> VineParser<'core, 'src> {
     Ok(Err(lhs))
   }
 
-  fn parse_label(&mut self) -> Parse<'core, Label<'core>> {
-    Ok(Label::Ident(self.eat(Token::Dot)?.then(|| self.parse_ident()).transpose()?))
+  fn parse_label(&mut self) -> Parse<'core, Option<Ident<'core>>> {
+    self.eat(Token::Dot)?.then(|| self.parse_ident()).transpose()
   }
 
   fn parse_pat(&mut self) -> Parse<'core, Pat<'core>> {
@@ -1002,7 +1002,7 @@ impl<'core, 'src> VineParser<'core, 'src> {
         let params = self.parse_delimited(PAREN_COMMA, Self::parse_pat)?;
         let ret = self.eat(Token::ThinArrow)?.then(|| self.parse_type()).transpose()?;
         let body = self.parse_block()?;
-        StmtKind::LetFn(LetFnStmt { name, id: None, params, ret, body })
+        StmtKind::LetFn(LetFnStmt { name, params, ret, body })
       } else {
         let bind = self.parse_pat()?;
         let init = self.eat(Token::Eq)?.then(|| self.parse_expr()).transpose()?;

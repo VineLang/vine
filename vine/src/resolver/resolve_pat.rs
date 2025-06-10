@@ -36,7 +36,6 @@ impl<'core> Resolver<'core, '_> {
     let span = pat.span;
     Ok(match (&pat.kind, form) {
       (_, Form::Error(_)) => unreachable!(),
-      (PatKind::Struct(..) | PatKind::Enum(..) | PatKind::Local(_), _) => unreachable!(),
       (PatKind::Error(e), _) => Err(*e)?,
 
       (PatKind::Paren(p), _) => self._resolve_pat(p, form, refutable)?,

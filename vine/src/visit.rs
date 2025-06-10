@@ -47,8 +47,6 @@ pub trait VisitMut<'core, 'a> {
   fn _visit_expr(&mut self, expr: &'a mut Expr<'core>) {
     match &mut expr.kind {
       ExprKind::Hole
-      | ExprKind::Local(_)
-      | ExprKind::LetFn(_)
       | ExprKind::Bool(_)
       | ExprKind::N32(_)
       | ExprKind::I32(_)
@@ -56,14 +54,8 @@ pub trait VisitMut<'core, 'a> {
       | ExprKind::Char(_)
       | ExprKind::Continue(_)
       | ExprKind::Error(_)
-      | ExprKind::CopyLocal(_)
-      | ExprKind::MoveLocal(_)
       | ExprKind::Return(None)
-      | ExprKind::Break(_, None)
-      | ExprKind::SetLocal(_)
-      | ExprKind::HedgeLocal(_)
-      | ExprKind::FnRel(_)
-      | ExprKind::ConstRel(_) => {}
+      | ExprKind::Break(_, None) => {}
       ExprKind::Paren(a)
       | ExprKind::Ref(a, _)
       | ExprKind::Deref(a, _)
@@ -76,10 +68,7 @@ pub trait VisitMut<'core, 'a> {
       | ExprKind::ObjectField(a, _)
       | ExprKind::Inverse(a, _)
       | ExprKind::Unwrap(a)
-      | ExprKind::Try(a)
-      | ExprKind::Copy(a)
-      | ExprKind::Hedge(a)
-      | ExprKind::Set(a) => self.visit_expr(a),
+      | ExprKind::Try(a) => self.visit_expr(a),
       ExprKind::Assign(_, a, b)
       | ExprKind::Place(a, b)
       | ExprKind::BinaryOp(_, a, b)
@@ -93,7 +82,6 @@ pub trait VisitMut<'core, 'a> {
         self.visit(&mut path.generics);
         self.visit(args);
       }
-      ExprKind::ConstDef(_, g) | ExprKind::FnDef(_, g) => self.visit(g),
       ExprKind::Do(_, b) | ExprKind::Loop(_, b) => self.visit_block(b),
       ExprKind::Match(a, b) => {
         self.visit_expr(a);
@@ -120,14 +108,6 @@ pub trait VisitMut<'core, 'a> {
       }
       ExprKind::Tuple(a) | ExprKind::List(a) => {
         self.visit(a);
-      }
-      ExprKind::Struct(_, a, b) => {
-        self.visit(a);
-        self.visit(&mut **b);
-      }
-      ExprKind::Enum(_, _, a, b) => {
-        self.visit(a);
-        self.visit(b.as_deref_mut());
       }
       ExprKind::Call(a, b) => {
         self.visit_expr(a);
@@ -160,15 +140,6 @@ pub trait VisitMut<'core, 'a> {
         }
         self.visit_type(ty);
       }
-      ExprKind::CallAssign(a, b, c) => {
-        self.visit_expr(a);
-        self.visit_expr(b);
-        self.visit_expr(c);
-      }
-      ExprKind::CallCompare(a, b) => {
-        self.visit_expr(a);
-        self.visit(b.iter_mut().flat_map(|(x, y)| [x, y]));
-      }
       ExprKind::Cast(e, t, _) => {
         self.visit_expr(e);
         self.visit_type(t);
@@ -186,7 +157,7 @@ pub trait VisitMut<'core, 'a> {
 
   fn _visit_pat(&mut self, pat: &'a mut Pat<'core>) {
     match &mut pat.kind {
-      PatKind::Hole | PatKind::Local(_) | PatKind::Error(_) => {}
+      PatKind::Hole | PatKind::Error(_) => {}
       PatKind::Paren(a) | PatKind::Ref(a) | PatKind::Deref(a) | PatKind::Inverse(a) => {
         self.visit_pat(a)
       }
@@ -198,14 +169,6 @@ pub trait VisitMut<'core, 'a> {
       PatKind::Path(p, a) => {
         self.visit(&mut p.generics);
         self.visit(a.as_deref_mut());
-      }
-      PatKind::Struct(_, a, b) => {
-        self.visit(a);
-        self.visit(&mut **b);
-      }
-      PatKind::Enum(_, _, a, b) => {
-        self.visit(a);
-        self.visit(b.as_deref_mut());
       }
       PatKind::Annotation(p, t) => {
         self.visit_pat(p);
@@ -248,9 +211,8 @@ pub trait VisitMut<'core, 'a> {
 
   fn _visit_impl(&mut self, impl_: &'a mut Impl<'core>) {
     match &mut impl_.kind {
-      ImplKind::Hole | ImplKind::Param(_) | ImplKind::Error(_) => {}
+      ImplKind::Hole | ImplKind::Error(_) => {}
       ImplKind::Path(p) => self.visit(&mut p.generics),
-      ImplKind::Def(_, a) => self.visit(a),
     }
   }
 

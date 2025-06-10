@@ -1,5 +1,5 @@
 use crate::{
-  ast::{Expr, ExprKind, Generics, Ident, Label, LogicalOp, Span},
+  ast::{Expr, ExprKind, Generics, Ident, LogicalOp, Span},
   chart::{DefValueKind, OpaqueTypeId, StructId},
   diag::Diag,
   resolver::{Binding, Form, Resolver, Type},
@@ -41,8 +41,7 @@ impl<'core> Resolver<'core, '_> {
   ) -> Result<(Form, Type, TirExprKind), Diag<'core>> {
     let span = expr.span;
     Ok(match &expr.kind {
-      ExprKind![synthetic] => unreachable!(),
-      ExprKind![!error && !space && !place && !synthetic] => {
+      ExprKind![!error && !space && !place] => {
         let (ty, kind) = self._resolve_expr_value(expr)?;
         (Form::Value, ty, kind)
       }
@@ -311,7 +310,7 @@ impl<'core> Resolver<'core, '_> {
     let nil = self.types.nil();
     let span = expr.span;
     Ok(match &expr.kind {
-      ExprKind![error || place || space || synthetic] => unreachable!(),
+      ExprKind![error || place || space] => unreachable!(),
       ExprKind::Do(label, block) => {
         let ty = self.types.new_var(span);
         let (label, block) =
@@ -369,7 +368,7 @@ impl<'core> Resolver<'core, '_> {
         (ty, TirExprKind::Closure(closure_id))
       }
       ExprKind::Break(label, value) => {
-        let label_info = if let Label::Ident(Some(label)) = *label {
+        let label_info = if let Some(label) = *label {
           self.labels.get(&label).copied().ok_or(Diag::UnboundLabel { span, label })
         } else {
           self.loops.last().copied().ok_or(Diag::NoLoopBreak { span })
@@ -420,7 +419,7 @@ impl<'core> Resolver<'core, '_> {
         }
       }
       ExprKind::Continue(label) => {
-        let label_info = if let Label::Ident(Some(label)) = *label {
+        let label_info = if let Some(label) = *label {
           let label_info = *self.labels.get(&label).ok_or(Diag::UnboundLabel { span, label })?;
           if !label_info.is_loop {
             Err(Diag::NoContinueLabel { span, label })?
