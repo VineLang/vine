@@ -196,9 +196,7 @@ impl<'core, 'a> Resolver<'core, 'a> {
     self.initialize(alias_def.def, alias_def.generics);
     let ty = self.resolve_type(&alias_def.ty, false);
     let slot = self.sigs.type_aliases.get_or_extend(alias_id);
-    if slot.is_none() {
-      *slot = Some(self.types.export(|t| TypeAliasSig { ty: t.transfer(&ty) }));
-    }
+    *slot = Some(self.types.export(|t| TypeAliasSig { ty: t.transfer(&ty) }));
   }
 
   fn resolve_const_def(&mut self, const_id: ConcreteConstId) {
