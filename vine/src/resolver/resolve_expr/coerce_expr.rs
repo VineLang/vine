@@ -10,7 +10,6 @@ impl<'core> Resolver<'core, '_> {
     match (expr.form, to) {
       (_, Form::Error(_)) | (Form::Error(_), _) => {}
       (Form::Value, Form::Value) | (Form::Place, Form::Place) | (Form::Space, Form::Space) => {}
-      // (Form::Value, Form::Place) => expr.wrap(TirExprKind::Temp),
       (Form::Place, Form::Value) => Self::copy_expr(expr),
       (Form::Place, Form::Space) => Self::set_expr(expr),
 
