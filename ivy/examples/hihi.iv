@@ -1,4 +1,6 @@
 
+:: { ::main }
+
 ::main {
   fn(ref(io0 io2) _)
   dup(io0 io1) = @io_print_char(104 @io_print_char(105 @io_print_char(10 @io_flush(0 dup(io1 io2)))))

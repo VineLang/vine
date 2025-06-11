@@ -1,4 +1,7 @@
 
+
+:: { ::main }
+
 ::main {
   fn(io _)
   ::loop = tup(io 1)

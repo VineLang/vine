@@ -34,6 +34,7 @@ impl<'core> Loader<'core> {
 
   pub fn load_main_mod(&mut self, path: impl Into<PathBuf>) {
     let path = path.into();
+    let empty = self.core.ident("");
     let main = self.core.ident("main");
     let io = self.core.ident("IO");
     self.root.push(Item {
@@ -41,7 +42,7 @@ impl<'core> Loader<'core> {
       vis: Vis::Private,
       attrs: Vec::new(),
       kind: ItemKind::Const(ConstItem {
-        name: main,
+        name: empty,
         generics: GenericParams { span: Span::NONE, impls: vec![], types: vec![] },
         ty: Ty {
           span: Span::NONE,

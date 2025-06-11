@@ -35,7 +35,7 @@ impl RunArgs {
 
     host.register_default_extrinsics(&mut extrinsics);
     host.insert_nets(&nets);
-    let main = host.get("::main").expect("missing main");
+    let main = host.get("::").expect("missing main");
     let mut ivm = IVM::new(&heap, &extrinsics);
     ivm.boot(main, host.new_io());
     if self.breadth_first {
