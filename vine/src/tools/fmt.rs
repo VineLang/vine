@@ -321,6 +321,7 @@ impl<'core: 'src, 'src> Formatter<'src> {
       ImplKind::Error(_) => unreachable!(),
       ImplKind::Hole => Doc("_"),
       ImplKind::Path(path) => self.fmt_path(path),
+      ImplKind::Fn(path) => Doc::concat([Doc("fn "), self.fmt_path(path)]),
     }
   }
 
@@ -328,6 +329,15 @@ impl<'core: 'src, 'src> Formatter<'src> {
     match &trait_.kind {
       TraitKind::Error(_) => unreachable!(),
       TraitKind::Path(path) => self.fmt_path(path),
+      TraitKind::Fn(receiver, args, ret) => Doc::concat([
+        Doc("fn "),
+        self.fmt_ty(receiver),
+        Doc::paren_comma(args.iter().map(|a| self.fmt_ty(a))),
+        match ret {
+          Some(ty) => Doc::concat([Doc(" -> "), self.fmt_ty(ty)]),
+          None => Doc(""),
+        },
+      ]),
     }
   }
 
@@ -589,15 +599,11 @@ impl<'core: 'src, 'src> Formatter<'src> {
       TyKind::Error(_) => unreachable!(),
       TyKind::Hole => Doc("_"),
       TyKind::Paren(p) => Doc::paren(self.fmt_ty(p)),
-      TyKind::Fn(a, r) => Doc::concat([
-        Doc("fn"),
-        Doc::paren_comma(a.iter().map(|x| self.fmt_ty(x))),
-        self.fmt_return_ty(r.as_deref()),
-      ]),
       TyKind::Tuple(t) => Doc::tuple(t.iter().map(|x| self.fmt_ty(x))),
       TyKind::Ref(t) => Doc::concat([Doc("&"), self.fmt_ty(t)]),
       TyKind::Inverse(t) => Doc::concat([Doc("~"), self.fmt_ty(t)]),
       TyKind::Path(p) => self.fmt_path(p),
+      TyKind::Fn(p) => Doc::concat([Doc("fn "), self.fmt_path(p)]),
       TyKind::Object(o) => Doc::brace_comma_space(
         o.iter().map(|(k, t)| Doc::concat([Doc(k.ident), Doc(": "), self.fmt_ty(t)])),
       ),

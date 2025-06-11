@@ -86,17 +86,18 @@ impl<'core> Compiler<'core> {
       resolutions: &self.resolutions,
       fragments: &self.fragments,
       specs: &mut self.specs,
+      vir: &self.vir,
     };
     specializer.specialize_since(checkpoint);
 
-    let mut emitter = Emitter::new(chart, &self.specs, &self.fragments);
+    let mut emitter = Emitter::new(chart, &self.specs, &self.fragments, &self.vir);
 
     if let Some(main) = self.resolutions.main {
       emitter.emit_main(main);
     }
 
     for spec_id in self.specs.specs.keys_from(checkpoint.specs) {
-      emitter.emit_spec(spec_id, &self.vir);
+      emitter.emit_spec(spec_id);
     }
 
     hooks.emit(&mut emitter);

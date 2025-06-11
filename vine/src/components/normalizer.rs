@@ -35,6 +35,7 @@ pub fn normalize(source: &Vir) -> Vir {
     interfaces: normalizer.interfaces,
     stages: unwrap_idx_vec(normalizer.stages),
     globals: source.globals.clone(),
+    closures: source.closures.clone(),
   }
 }
 

@@ -7,7 +7,7 @@ use vine_util::{
 
 use crate::structures::{
   ast::{LogicalOp, Span},
-  chart::{EnumId, ImplId, StructId, VariantId},
+  chart::{EnumId, FnId, ImplId, StructId, VariantId},
   diag::ErrorGuaranteed,
   resolutions::{ConstRelId, FnRelId},
   types::Type,
@@ -54,7 +54,7 @@ pub enum TirExprKind {
   #[class(value)]
   Const(ConstRelId),
   #[class(value)]
-  Fn(FnRelId),
+  Fn,
   #[class(place)]
   Local(Local),
   #[class(value)]
@@ -94,9 +94,7 @@ pub enum TirExprKind {
   #[class(value, place)]
   Field(TirExpr, usize, usize),
   #[class(value)]
-  Call(TirExpr, Vec<TirExpr>),
-  #[class(value)]
-  CallFn(FnRelId, Vec<TirExpr>),
+  Call(FnRelId, Option<TirExpr>, Vec<TirExpr>),
   #[class(value, place, space)]
   Struct(StructId, TirExpr),
   #[class(value)]
@@ -183,11 +181,13 @@ pub enum TirPatKind {
   Error(ErrorGuaranteed),
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum TirImpl {
   Error(ErrorGuaranteed),
   Param(usize),
   Def(ImplId, Vec<TirImpl>),
+  Fn(FnId, Vec<TirImpl>),
+  Closure(ClosureId),
 }
 
 impl Form {

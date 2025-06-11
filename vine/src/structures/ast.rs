@@ -372,7 +372,7 @@ pub struct Ty<'core> {
 pub enum TyKind<'core> {
   Hole,
   Paren(B<Ty<'core>>),
-  Fn(Vec<Ty<'core>>, Option<B<Ty<'core>>>),
+  Fn(Path<'core>),
   Tuple(Vec<Ty<'core>>),
   Object(Vec<(Key<'core>, Ty<'core>)>),
   Ref(B<Ty<'core>>),
@@ -391,6 +391,7 @@ pub struct Impl<'core> {
 pub enum ImplKind<'core> {
   Hole,
   Path(Path<'core>),
+  Fn(Path<'core>),
   Error(ErrorGuaranteed),
 }
 
@@ -403,6 +404,7 @@ pub struct Trait<'core> {
 #[derive(Debug, Clone)]
 pub enum TraitKind<'core> {
   Path(Path<'core>),
+  Fn(Ty<'core>, Vec<Ty<'core>>, Option<Ty<'core>>),
   Error(ErrorGuaranteed),
 }
 

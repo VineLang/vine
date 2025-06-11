@@ -4,6 +4,7 @@ use crate::{
     ast::{Expr, GenericArgs, Ident, Span},
     chart::FnId,
     diag::{Diag, ErrorGuaranteed},
+    resolutions::FnRel,
     signatures::FnSig,
     tir::{TirExpr, TirExprKind},
     types::{Inverted, TypeCtx, TypeKind},
@@ -49,17 +50,11 @@ impl<'core> Resolver<'core, '_> {
       Some(type_params),
     );
     let FnSig { params, ret_ty } = self.types.import(self.sigs.fn_sig(fn_id), Some(&type_params));
-    let fn_ty = self.types.new(TypeKind::Fn(params.clone(), ret_ty));
     if params.len() != args.len() + 1 {
-      return Err(Diag::BadArgCount {
-        span,
-        expected: params.len(),
-        got: args.len() + 1,
-        ty: self.types.show(self.chart, fn_ty),
-      });
+      return Err(Diag::BadArgCount { span, expected: params.len(), got: args.len() + 1 });
     }
     let (receiver_form, receiver_ty) = match params.first().copied() {
-      None => return Err(Diag::NilaryMethod { span, ty: self.types.show(self.chart, fn_ty) }),
+      None => return Err(Diag::NilaryMethod { span }),
       Some(receiver) => match self.types.force_kind(self.core, receiver) {
         (_, TypeKind::Error(e)) => return Err((*e).into()),
         (Inverted(false), TypeKind::Ref(receiver)) => (Form::Place, *receiver),
@@ -86,7 +81,7 @@ impl<'core> Resolver<'core, '_> {
           .map(|(arg, ty)| self.resolve_expr_form_type(arg, Form::Value, ty)),
       ),
     );
-    Ok((ret_ty, TirExprKind::CallFn(self.fn_rels.push((fn_id, impl_params)), args)))
+    Ok((ret_ty, TirExprKind::Call(self.rels.fns.push(FnRel::Item(fn_id, impl_params)), None, args)))
   }
 
   fn find_method(

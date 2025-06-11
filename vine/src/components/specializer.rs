@@ -3,12 +3,13 @@ use std::collections::hash_map::Entry;
 use vine_util::idx::IdxVec;
 
 use crate::structures::{
-  chart::{Chart, ConstId, FnId},
+  chart::{Chart, ConstId, FnId, ImplId},
   checkpoint::Checkpoint,
   diag::ErrorGuaranteed,
-  resolutions::{Fragment, FragmentId, Resolutions},
+  resolutions::{FnRel, Fragment, FragmentId, Resolutions},
   specializations::{ImplTree, Spec, SpecId, SpecRels, Specializations},
-  tir::TirImpl,
+  tir::{ClosureId, TirImpl},
+  vir::{InterfaceKind, StageId, Vir},
 };
 
 #[derive(Debug)]
@@ -17,6 +18,7 @@ pub struct Specializer<'core, 'a> {
   pub resolutions: &'a Resolutions,
   pub specs: &'a mut Specializations,
   pub fragments: &'a IdxVec<FragmentId, Fragment<'core>>,
+  pub vir: &'a IdxVec<FragmentId, Vir>,
 }
 
 impl<'core, 'a> Specializer<'core, 'a> {
@@ -41,12 +43,12 @@ impl<'core, 'a> Specializer<'core, 'a> {
     self.specs.specs.push(None);
     let fragment = &self.fragments[id];
     let rels = SpecRels {
-      fns: IdxVec::from(Vec::from_iter(fragment.fn_rels.values().map(|rel| {
-        let (id, args) = self.instantiate_fn_rel(rel, &impl_args)?;
-        Ok(self.specialize(id, args))
+      fns: IdxVec::from(Vec::from_iter(fragment.rels.fns.values().map(|rel| {
+        let (id, args, stage) = self.instantiate_fn_rel(id, &impl_args, rel)?;
+        Ok((self.specialize(id, args), stage))
       }))),
-      consts: IdxVec::from(Vec::from_iter(fragment.const_rels.values().map(|rel| {
-        let (id, args) = self.instantiate_const_rel(rel, &impl_args)?;
+      consts: IdxVec::from(Vec::from_iter(fragment.rels.consts.values().map(|rel| {
+        let (id, args) = self.instantiate_const_rel(id, &impl_args, rel)?;
         Ok(self.specialize(id, args))
       }))),
     };
@@ -57,17 +59,18 @@ impl<'core, 'a> Specializer<'core, 'a> {
 
   fn instantiate_const_rel(
     &self,
+    fragment_id: FragmentId,
+    args: &Vec<ImplTree>,
     (const_id, impls): &(ConstId, Vec<TirImpl>),
-    impl_args: &[ImplTree],
   ) -> Result<(FragmentId, Vec<ImplTree>), ErrorGuaranteed> {
     match *const_id {
       ConstId::Concrete(const_id) => {
-        let impls = impls.iter().map(|x| instantiate(x, impl_args)).collect::<Result<_, _>>()?;
+        let impls = impls.iter().map(|x| instantiate(fragment_id, args, x)).collect();
         Ok((self.resolutions.consts[const_id], impls))
       }
       ConstId::Abstract(_, const_id) => {
         let [impl_] = &**impls else { unreachable!() };
-        let ImplTree(impl_id, impls) = instantiate(impl_, impl_args)?;
+        let (impl_id, impls) = instantiate(fragment_id, args, impl_).assume_def()?;
         let const_id = self.resolutions.impls[impl_id].as_ref()?.consts[const_id]?;
         Ok((self.resolutions.consts[const_id], impls))
       }
@@ -76,30 +79,91 @@ impl<'core, 'a> Specializer<'core, 'a> {
 
   fn instantiate_fn_rel(
     &self,
-    (fn_id, impls): &(FnId, Vec<TirImpl>),
-    impl_args: &[ImplTree],
-  ) -> Result<(FragmentId, Vec<ImplTree>), ErrorGuaranteed> {
-    match *fn_id {
-      FnId::Concrete(fn_id) => {
-        let impls = impls.iter().map(|x| instantiate(x, impl_args)).collect::<Result<_, _>>()?;
-        Ok((self.resolutions.fns[fn_id], impls))
+    fragment_id: FragmentId,
+    args: &Vec<ImplTree>,
+    fn_rel: &FnRel,
+  ) -> Result<(FragmentId, Vec<ImplTree>, StageId), ErrorGuaranteed> {
+    match fn_rel {
+      FnRel::Item(fn_id, impls) => {
+        let impls = impls.iter().map(|x| instantiate(fragment_id, args, x)).collect();
+        self.instantiate_fn_id(*fn_id, impls)
       }
-      FnId::Abstract(_, fn_id) => {
-        let [impl_] = &**impls else { unreachable!() };
-        let ImplTree(impl_id, impls) = instantiate(impl_, impl_args)?;
-        let fn_id = self.resolutions.impls[impl_id].as_ref()?.fns[fn_id]?;
-        Ok((self.resolutions.fns[fn_id], impls))
+      FnRel::Impl(impl_) => {
+        let impl_ = instantiate(fragment_id, args, impl_);
+        match impl_ {
+          ImplTree::Error(err) => Err(err),
+          ImplTree::Def(..) => unreachable!(),
+          ImplTree::Fn(fn_id, impls) => self.instantiate_fn_id(fn_id, impls),
+          ImplTree::Closure(fragment_id, impls, closure_id) => {
+            Ok((fragment_id, impls, self._closure_stage(fragment_id, Some(closure_id))))
+          }
+        }
       }
     }
   }
+
+  fn instantiate_fn_id(
+    &self,
+    fn_id: FnId,
+    mut impls: Vec<ImplTree>,
+  ) -> Result<(FragmentId, Vec<ImplTree>, StageId), ErrorGuaranteed> {
+    match fn_id {
+      FnId::Concrete(fn_id) => {
+        let fragment_id = self.resolutions.fns[fn_id];
+        Ok((fragment_id, impls, self._closure_stage(fragment_id, None)))
+      }
+      FnId::Abstract(_, fn_id) => {
+        assert_eq!(impls.len(), 1);
+        let impl_ = impls.pop().unwrap();
+        let (impl_id, impls) = impl_.assume_def()?;
+        let fn_id = self.resolutions.impls[impl_id].as_ref()?.fns[fn_id]?;
+        let fragment_id = self.resolutions.fns[fn_id];
+        Ok((fragment_id, impls, self._closure_stage(fragment_id, None)))
+      }
+    }
+  }
+
+  fn _closure_stage(&self, fragment_id: FragmentId, closure_id: Option<ClosureId>) -> StageId {
+    match self._closure_interface(fragment_id, closure_id) {
+      InterfaceKind::Fn(fn_stage) => *fn_stage,
+      _ => unreachable!(),
+    }
+  }
+
+  fn _closure_interface(
+    &self,
+    fragment_id: FragmentId,
+    closure_id: Option<ClosureId>,
+  ) -> &InterfaceKind {
+    let vir = &self.vir[fragment_id];
+    let interface_id = match closure_id {
+      Some(id) => vir.closures[id],
+      None => *vir.closures.last().unwrap(),
+    };
+    &vir.interfaces[interface_id].kind
+  }
 }
 
-fn instantiate(impl_: &TirImpl, params: &[ImplTree]) -> Result<ImplTree, ErrorGuaranteed> {
-  match &impl_ {
-    TirImpl::Error(err) => Err(*err),
-    TirImpl::Param(i) => Ok(params[*i].clone()),
+fn instantiate(fragment_id: FragmentId, args: &Vec<ImplTree>, impl_: &TirImpl) -> ImplTree {
+  match impl_ {
+    TirImpl::Error(err) => ImplTree::Error(*err),
+    TirImpl::Param(i) => args[*i].clone(),
     TirImpl::Def(id, impls) => {
-      Ok(ImplTree(*id, impls.iter().map(|i| instantiate(i, params)).collect::<Result<_, _>>()?))
+      ImplTree::Def(*id, impls.iter().map(|i| instantiate(fragment_id, args, i)).collect())
+    }
+    TirImpl::Fn(id, impls) => {
+      ImplTree::Fn(*id, impls.iter().map(|i| instantiate(fragment_id, args, i)).collect())
+    }
+    TirImpl::Closure(id) => ImplTree::Closure(fragment_id, args.clone(), *id),
+  }
+}
+
+impl ImplTree {
+  fn assume_def(self) -> Result<(ImplId, Vec<ImplTree>), ErrorGuaranteed> {
+    match self {
+      ImplTree::Def(impl_id, impls) => Ok((impl_id, impls)),
+      ImplTree::Error(err) => Err(err),
+      ImplTree::Fn(..) | ImplTree::Closure(..) => unreachable!(),
     }
   }
 }

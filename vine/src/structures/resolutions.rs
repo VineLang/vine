@@ -21,13 +21,24 @@ pub struct ResolvedImpl {
 }
 
 new_idx!(pub FragmentId);
-new_idx!(pub ConstRelId);
-new_idx!(pub FnRelId);
 #[derive(Debug)]
 pub struct Fragment<'core> {
   pub path: &'core str,
   pub impl_params: usize,
-  pub const_rels: IdxVec<ConstRelId, (ConstId, Vec<TirImpl>)>,
-  pub fn_rels: IdxVec<FnRelId, (FnId, Vec<TirImpl>)>,
+  pub rels: Rels,
   pub tir: Tir,
+}
+
+new_idx!(pub ConstRelId);
+new_idx!(pub FnRelId);
+#[derive(Debug, Clone, Default)]
+pub struct Rels {
+  pub consts: IdxVec<ConstRelId, (ConstId, Vec<TirImpl>)>,
+  pub fns: IdxVec<FnRelId, FnRel>,
+}
+
+#[derive(Debug, Clone)]
+pub enum FnRel {
+  Item(FnId, Vec<TirImpl>),
+  Impl(TirImpl),
 }

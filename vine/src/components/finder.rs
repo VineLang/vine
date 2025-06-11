@@ -139,6 +139,8 @@ impl<'core, 'a> Finder<'core, 'a> {
 
     let mut found = Vec::new();
 
+    self.find_auto_impls(types, query, &mut found)?;
+
     let generics = &self.sigs.generics[self.generics];
     for (i, ty) in generics.inner.impl_params.iter().enumerate() {
       if query.approx_eq(ty) {
@@ -158,17 +160,27 @@ impl<'core, 'a> Finder<'core, 'a> {
         .collect::<Vec<_>>();
       let ty = types.import(&self.sigs.impls[candidate], Some(&type_params)).ty;
       if types.unify_impl_type(&ty, query).is_success() {
-        let queries = types.import(&self.sigs.generics[generics], Some(&type_params)).impl_params;
-        let results = self.find_subimpls(types, &queries)?;
-        for result in results {
-          let mut impls = result.inner;
-          impls.reverse();
-          found.push(TypeCtx { types: result.types, inner: TirImpl::Def(candidate, impls) });
+        for result in self.find_impl_params(types, generics, type_params)? {
+          found.push(TypeCtx { types: result.types, inner: TirImpl::Def(candidate, result.inner) });
         }
       }
     }
 
     Ok(found)
+  }
+
+  fn find_impl_params(
+    &mut self,
+    mut types: Types<'core>,
+    generics: GenericsId,
+    type_params: Vec<Type>,
+  ) -> Result<impl Iterator<Item = TypeCtx<'core, Vec<TirImpl>>>, Timeout> {
+    let queries = types.import(&self.sigs.generics[generics], Some(&type_params)).impl_params;
+    let results = self.find_subimpls(types, &queries)?;
+    Ok(results.into_iter().map(|mut result| {
+      result.inner.reverse();
+      result
+    }))
   }
 
   fn find_subimpls(
@@ -286,5 +298,46 @@ impl<'core, 'a> Finder<'core, 'a> {
     } else {
       Ok(())
     }
+  }
+
+  fn find_auto_impls(
+    &mut self,
+    types: &Types<'core>,
+    query: &ImplType,
+    found: &mut Vec<TypeCtx<'core, TirImpl>>,
+  ) -> Result<(), Timeout> {
+    match query {
+      ImplType::Fn(receiver, params, ret) => match types.kind(*receiver) {
+        Some((Inverted(false), TypeKind::Fn(fn_id))) => {
+          let mut types = types.clone();
+          let generics = self.chart.fn_generics(*fn_id);
+          let type_params =
+            types.new_vars(self.span, self.chart.generics[generics].type_params.len());
+          let sig = types.import(self.sigs.fn_sig(*fn_id), Some(&type_params));
+          if types
+            .unify_types(&sig.params, params, Inverted(false))
+            .and(types.unify(sig.ret_ty, *ret))
+            .is_success()
+          {
+            for result in self.find_impl_params(types, generics, type_params)? {
+              found.push(TypeCtx { types: result.types, inner: TirImpl::Fn(*fn_id, result.inner) });
+            }
+          }
+        }
+        Some((Inverted(false), TypeKind::Closure(closure_id, closure_params, closure_ret))) => {
+          let mut types = types.clone();
+          if types
+            .unify_types(closure_params, params, Inverted(false))
+            .and(types.unify(*closure_ret, *ret))
+            .is_success()
+          {
+            found.push(TypeCtx { types, inner: TirImpl::Closure(*closure_id) });
+          }
+        }
+        _ => {}
+      },
+      ImplType::Trait(..) | ImplType::Error(_) => {}
+    }
+    Ok(())
   }
 }

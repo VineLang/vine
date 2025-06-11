@@ -3,9 +3,11 @@ use std::collections::HashMap;
 use vine_util::{idx::IdxVec, new_idx};
 
 use crate::structures::{
-  chart::ImplId,
+  chart::{FnId, ImplId},
   diag::ErrorGuaranteed,
   resolutions::{ConstRelId, FnRelId, FragmentId},
+  tir::ClosureId,
+  vir::StageId,
 };
 
 #[derive(Debug, Default)]
@@ -25,9 +27,14 @@ pub struct Spec {
 
 #[derive(Debug)]
 pub struct SpecRels {
-  pub fns: IdxVec<FnRelId, Result<SpecId, ErrorGuaranteed>>,
+  pub fns: IdxVec<FnRelId, Result<(SpecId, StageId), ErrorGuaranteed>>,
   pub consts: IdxVec<ConstRelId, Result<SpecId, ErrorGuaranteed>>,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct ImplTree(pub ImplId, pub Vec<ImplTree>);
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub enum ImplTree {
+  Error(ErrorGuaranteed),
+  Def(ImplId, Vec<ImplTree>),
+  Fn(FnId, Vec<ImplTree>),
+  Closure(FragmentId, Vec<ImplTree>, ClosureId),
+}

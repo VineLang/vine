@@ -79,13 +79,13 @@ impl<'core, 'r> Distiller<'core, 'r> {
     self.finish_layer(layer);
     self.labels.clear();
     debug_assert!(self.returns.is_empty());
-    self.closures.clear();
     Vir {
       layers: unwrap_idx_vec(take(&mut self.layers)),
       interfaces: unwrap_idx_vec(take(&mut self.interfaces)),
       stages: unwrap_idx_vec(take(&mut self.stages)),
       locals: self.locals,
       globals: vec![(local, Usage::Take)],
+      closures: take(&mut self.closures),
     }
   }
 
@@ -121,7 +121,7 @@ impl<'core, 'r> Distiller<'core, 'r> {
       TirExprKind::F32(f) => Port::F32(*f),
 
       TirExprKind::Const(id) => Port::ConstRel(*id),
-      TirExprKind::Fn(id) => Port::FnRel(*id),
+      TirExprKind::Fn => Port::Erase,
 
       TirExprKind::Assign(inverse, space, value) => {
         if *inverse {
@@ -171,18 +171,14 @@ impl<'core, 'r> Distiller<'core, 'r> {
         stage.steps.push(Step::Composite(composite, ports));
         wire.1
       }
-      TirExprKind::Call(func, args) => {
-        let func = self.distill_expr_value(stage, func);
+      TirExprKind::Call(rel, receiver, args) => {
+        let receiver = match receiver {
+          Some(receiver) => self.distill_expr_value(stage, receiver),
+          None => Port::Erase,
+        };
         let args = args.iter().map(|s| self.distill_expr_value(stage, s)).collect::<Vec<_>>();
         let wire = stage.new_wire();
-        stage.steps.push(Step::Fn(func, args, wire.0));
-        wire.1
-      }
-      TirExprKind::CallFn(func, args) => {
-        let func = Port::FnRel(*func);
-        let args = args.iter().map(|s| self.distill_expr_value(stage, s)).collect::<Vec<_>>();
-        let wire = stage.new_wire();
-        stage.steps.push(Step::Fn(func, args, wire.0));
+        stage.steps.push(Step::Call(*rel, receiver, args, wire.0));
         wire.1
       }
       TirExprKind::String(init, rest) => {
@@ -197,10 +193,9 @@ impl<'core, 'r> Distiller<'core, 'r> {
       TirExprKind::CopyLocal(local) => stage.get_local(*local),
       TirExprKind::MoveLocal(local) => stage.take_local(*local),
       TirExprKind::CallAssign(func, lhs, rhs) => {
-        let func = Port::FnRel(*func);
         let rhs = self.distill_expr_value(stage, rhs);
         let (lhs, out) = self.distill_expr_place(stage, lhs);
-        stage.steps.push(Step::Fn(func, vec![lhs, rhs], out));
+        stage.steps.push(Step::Call(*func, Port::Erase, vec![lhs, rhs], out));
         Port::Erase
       }
       TirExprKind::CallCompare(init, cmps) => {
@@ -208,7 +203,6 @@ impl<'core, 'r> Distiller<'core, 'r> {
         let lhs = self.distill_expr_place(stage, init);
         let mut lhs = stage.ref_place(lhs);
         for (i, (func, rhs)) in cmps.iter().enumerate() {
-          let func = Port::FnRel(*func);
           let first = i == 0;
           let last = i == cmps.len() - 1;
           let rhs = self.distill_expr_place(stage, rhs);
@@ -219,7 +213,7 @@ impl<'core, 'r> Distiller<'core, 'r> {
             (stage.ref_place((rhs.0, wire.0)), stage.ref_place((wire.1, rhs.1)))
           };
           let result = stage.new_wire();
-          stage.steps.push(Step::Fn(func, vec![lhs, rhs], result.0));
+          stage.steps.push(Step::Call(*func, Port::Erase, vec![lhs, rhs], result.0));
           last_result =
             if first { result.1 } else { stage.ext_fn("n32_and", false, last_result, result.1) };
           lhs = next_lhs;

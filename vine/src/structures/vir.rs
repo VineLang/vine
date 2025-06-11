@@ -12,7 +12,7 @@ use crate::{
     chart::{EnumId, VariantId},
     diag::ErrorGuaranteed,
     resolutions::{ConstRelId, FnRelId},
-    tir::Local,
+    tir::{ClosureId, Local},
   },
 };
 
@@ -32,6 +32,7 @@ pub struct Vir {
   pub interfaces: IdxVec<InterfaceId, Interface>,
   pub stages: IdxVec<StageId, Stage>,
   pub globals: Vec<(Local, Usage)>,
+  pub closures: IdxVec<ClosureId, InterfaceId>,
 }
 
 #[derive(Debug, Clone)]
@@ -120,7 +121,7 @@ pub enum Step {
 
   Link(Port, Port),
 
-  Fn(Port, Vec<Port>, Port),
+  Call(FnRelId, Port, Vec<Port>, Port),
   Composite(Port, Vec<Port>),
   Enum(EnumId, VariantId, Port, Option<Port>),
   Ref(Port, Port, Port),
@@ -153,7 +154,7 @@ impl Step {
       Step::Diverge(_, None) => Ports::Zero([]),
       Step::Enum(_, _, a, None) => Ports::One([a]),
       Step::Link(a, b) | Step::Enum(_, _, a, Some(b)) => Ports::Two([a, b]),
-      Step::Fn(f, a, r) => Ports::Fn([f].into_iter().chain(a).chain([r])),
+      Step::Call(_, f, a, r) => Ports::Fn([f].into_iter().chain(a).chain([r])),
       Step::Composite(port, ports) | Step::List(port, ports) => {
         Ports::Tuple([port].into_iter().chain(ports))
       }
@@ -193,7 +194,6 @@ impl Invocation {
 pub enum Port {
   Erase,
   ConstRel(ConstRelId),
-  FnRel(FnRelId),
   N32(u32),
   F32(f32),
   Wire(WireId),

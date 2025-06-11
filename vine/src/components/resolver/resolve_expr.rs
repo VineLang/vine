@@ -2,11 +2,11 @@ use crate::{
   components::resolver::{Binding, Form, Resolver, Type},
   structures::{
     ast::{Expr, ExprKind, Ident, LogicalOp, Span},
-    chart::{DefValueKind, FnId, OpaqueTypeId, StructId},
+    chart::{DefValueKind, FnId, GenericsId, OpaqueTypeId, StructId},
     diag::Diag,
-    resolutions::FnRelId,
+    resolutions::{FnRel, FnRelId},
     tir::{TirExpr, TirExprKind, TirImpl},
-    types::{Inverted, TypeKind},
+    types::{ImplType, TypeKind},
   },
 };
 
@@ -195,18 +195,20 @@ impl<'core> Resolver<'core, '_> {
         let inner = self.resolve_expr_form(inner, Form::Value);
         let return_ty = self.types.new_var(span);
         let rel = self.builtin_fn(span, self.chart.builtins.not, "not", [inner.ty, return_ty])?;
-        if let Some(TirImpl::Def(id, _)) = self.fn_rels[rel].1.first() {
-          if self.chart.builtins.bool_not == Some(*id) {
-            return Ok((Form::Value, return_ty, TirExprKind::Not(inner)));
+        if let FnRel::Item(FnId::Abstract(..), impls) = &self.rels.fns[rel] {
+          if let [TirImpl::Def(id, _)] = **impls {
+            if self.chart.builtins.bool_not == Some(id) {
+              return Ok((Form::Value, return_ty, TirExprKind::Not(inner)));
+            }
           }
         }
-        (Form::Value, return_ty, TirExprKind::CallFn(rel, vec![inner]))
+        (Form::Value, return_ty, TirExprKind::Call(rel, None, vec![inner]))
       }
       ExprKind::Neg(inner) => {
         let inner = self.resolve_expr_form(inner, Form::Value);
         let return_ty = self.types.new_var(span);
         let rel = self.builtin_fn(span, self.chart.builtins.neg, "neg", [inner.ty, return_ty])?;
-        (Form::Value, return_ty, TirExprKind::CallFn(rel, vec![inner]))
+        (Form::Value, return_ty, TirExprKind::Call(rel, None, vec![inner]))
       }
       ExprKind::BinaryOp(op, lhs, rhs) => {
         let lhs = self.resolve_expr_form(lhs, Form::Value);
@@ -214,7 +216,7 @@ impl<'core> Resolver<'core, '_> {
         let return_ty = self.types.new_var(span);
         let fn_id = self.chart.builtins.binary_ops.get(op).copied().flatten();
         let rel = self.builtin_fn(span, fn_id, op.as_str(), [lhs.ty, rhs.ty, return_ty])?;
-        (Form::Value, return_ty, TirExprKind::CallFn(rel, vec![lhs, rhs]))
+        (Form::Value, return_ty, TirExprKind::Call(rel, None, vec![lhs, rhs]))
       }
       ExprKind::BinaryOpAssign(op, lhs, rhs) => {
         let lhs = self.resolve_expr_form(lhs, Form::Place);
@@ -256,7 +258,7 @@ impl<'core> Resolver<'core, '_> {
         let inner = self.resolve_expr_form(inner, Form::Value);
         let to_ty = self.resolve_type(to, true);
         let rel = self.builtin_fn(span, self.chart.builtins.cast, "cast", [inner.ty, to_ty])?;
-        (Form::Value, to_ty, TirExprKind::CallFn(rel, vec![inner]))
+        (Form::Value, to_ty, TirExprKind::Call(rel, None, vec![inner]))
       }
       ExprKind::RangeExclusive(start, end) => {
         self.resolve_range_expr(span, start.as_deref(), end.as_deref(), false)?
@@ -295,7 +297,7 @@ impl<'core> Resolver<'core, '_> {
                 span,
                 ty: string_ty,
                 form: Form::Value,
-                kind: Box::new(TirExprKind::CallFn(rel, vec![expr])),
+                kind: Box::new(TirExprKind::Call(rel, None, vec![expr])),
               }
             } else {
               self.expect_type(span, expr.ty, string_ty);
@@ -496,16 +498,31 @@ impl<'core> Resolver<'core, '_> {
               let (type_params, impl_params) =
                 self.resolve_generics(path, self.chart.const_generics(const_id), true);
               let ty = self.types.import(self.sigs.const_sig(const_id), Some(&type_params)).ty;
-              let rel = self.const_rels.push((const_id, impl_params));
+              let rel = self.rels.consts.push((const_id, impl_params));
               (Form::Value, ty, TirExprKind::Const(rel))
             }
             Ok(DefValueKind::Fn(fn_id)) => {
-              let (type_params, impl_params) =
-                self.resolve_generics(path, self.chart.fn_generics(fn_id), true);
-              let sig = self.types.import(self.sigs.fn_sig(fn_id), Some(&type_params));
-              let ty = self.types.new(TypeKind::Fn(sig.params, sig.ret_ty));
-              let rel = self.fn_rels.push((fn_id, impl_params));
-              (Form::Value, ty, TirExprKind::Fn(rel))
+              if let Some(args) = args.take() {
+                let (type_params, impl_params) =
+                  self.resolve_generics(path, self.chart.fn_generics(fn_id), true);
+                let sig = self.types.import(self.sigs.fn_sig(fn_id), Some(&type_params));
+                if sig.params.len() != args.len() {
+                  for arg in args {
+                    _ = self.resolve_expr_form(arg, Form::Value);
+                  }
+                  Err(Diag::BadArgCount { span, expected: sig.params.len(), got: args.len() })?
+                }
+                let args = args
+                  .iter()
+                  .zip(sig.params)
+                  .map(|(arg, ty)| self.resolve_expr_form_type(arg, Form::Value, ty))
+                  .collect::<Vec<_>>();
+                let rel = self.rels.fns.push(FnRel::Item(fn_id, impl_params));
+                (Form::Value, sig.ret_ty, TirExprKind::Call(rel, None, args))
+              } else {
+                _ = self.resolve_generics(path, GenericsId::NONE, true);
+                (Form::Value, self.types.new(TypeKind::Fn(fn_id)), TirExprKind::Fn)
+              }
             }
             Err(diag) => Err(diag)?,
           }
@@ -656,22 +673,12 @@ impl<'core> Resolver<'core, '_> {
     args: &Vec<Expr<'core>>,
   ) -> Result<(Form, Type, TirExprKind), Diag<'core>> {
     self.coerce_expr(&mut func, Form::Value);
-    match self.fn_sig(span, func.ty, args.len()) {
-      Ok((params, ret)) => {
-        let args = args
-          .iter()
-          .zip(params)
-          .map(|(arg, ty)| self.resolve_expr_form_type(arg, Form::Value, ty))
-          .collect();
-        Ok((Form::Value, ret, TirExprKind::Call(func, args)))
-      }
-      Err(diag) => {
-        for arg in args {
-          self.resolve_expr_form(arg, Form::Value);
-        }
-        Err(diag)
-      }
-    }
+    let args = args.iter().map(|arg| self.resolve_expr_form(arg, Form::Value)).collect::<Vec<_>>();
+    let ret_ty = self.types.new_var(span);
+    let impl_type = ImplType::Fn(func.ty, args.iter().map(|x| x.ty).collect(), ret_ty);
+    let impl_ = self.find_impl(span, &impl_type);
+    let rel = self.rels.fns.push(FnRel::Impl(impl_));
+    Ok((Form::Value, ret_ty, TirExprKind::Call(rel, Some(func), args)))
   }
 
   fn resolve_range_expr(
@@ -750,30 +757,6 @@ impl<'core> Resolver<'core, '_> {
     }
   }
 
-  fn fn_sig(
-    &mut self,
-    span: Span,
-    ty: Type,
-    args: usize,
-  ) -> Result<(Vec<Type>, Type), Diag<'core>> {
-    match self.types.force_kind(self.core, ty) {
-      (Inverted(false), TypeKind::Fn(params, ret)) => {
-        if params.len() != args {
-          Err(Diag::BadArgCount {
-            span,
-            expected: params.len(),
-            got: args,
-            ty: self.types.show(self.chart, ty),
-          })
-        } else {
-          Ok((params.clone(), *ret))
-        }
-      }
-      (_, TypeKind::Error(e)) => Err(*e)?,
-      _ => Err(Diag::NonFunctionCall { span, ty: self.types.show(self.chart, ty) }),
-    }
-  }
-
   fn resolve_expr_pseudo_place(&mut self, expr: &Expr<'core>) -> TirExpr {
     let mut expr = self.resolve_expr(expr);
     let span = expr.span;
@@ -826,7 +809,7 @@ impl<'core> Resolver<'core, '_> {
         true,
         Some(Vec::from(type_params)),
       );
-      Ok(self.fn_rels.push((fn_id, impl_params)))
+      Ok(self.rels.fns.push(FnRel::Item(fn_id, impl_params)))
     } else {
       Err(Diag::MissingBuiltin { span, builtin: name })?
     }

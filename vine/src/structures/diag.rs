@@ -96,14 +96,14 @@ diags! {
     ["cannot apply operator `{op}{}` to types `{lhs}` and `{rhs}`", if *assign { "=" } else { "" }]
   MismatchedValueSpaceTypes { value: String, space: String }
     ["value has type `{value}` but space has type `{space}`"]
-  BadArgCount { ty: String, expected: usize, got: usize }
-    ["function type `{ty}` expects {expected} argument{}; was passed {got}", plural(*expected, "s", "")]
+  BadArgCount { expected: usize, got: usize }
+    ["function expects {expected} argument{}; was passed {got}", plural(*expected, "s", "")]
   NonFunctionCall { ty: String }
     ["cannot call non-function type `{ty}`"]
   CannotCompare { lhs: String, rhs: String}
     ["cannot compare `{lhs}` and `{rhs}`"]
-  NilaryMethod { ty: String }
-    ["invalid method; function type `{ty}` takes no parameters"]
+  NilaryMethod
+    ["invalid method; function takes no parameters"]
   ExpectedTypeFound { expected: String, found: String }
     ["expected type `{expected}`; found `{found}`"]
   PathNoAssociated { desc: &'static str, path: &'core str }
@@ -220,6 +220,8 @@ diags! {
     ["unconditional infinite loops are invalid"]
   NonExhaustiveMatch
     ["match arms do not cover all possible cases"]
+  CannotImplFn
+    ["cannot directly implement the fn trait"]
 }
 
 fn plural<'a>(n: usize, plural: &'a str, singular: &'a str) -> &'a str {
