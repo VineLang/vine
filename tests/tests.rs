@@ -59,6 +59,7 @@ fn tests(t: &mut DynTester) {
     test_vi(t, "tests/programs/logic.vi", b"", ".txt", true);
     test_vi(t, "tests/programs/loop_break_continue.vi", b"", ".txt", true);
     test_vi(t, "tests/programs/loop_vi_loop.vi", b"", ".txt", true);
+    test_vi(t, "tests/programs/main.vi", b"", ".txt", false);
     test_vi(t, "tests/programs/map_test.vi", b"", ".txt", false);
     test_vi(t, "tests/programs/map_ops.vi", b"", ".txt", true);
     test_vi(t, "tests/programs/maybe_set.vi", b"", ".txt", true);

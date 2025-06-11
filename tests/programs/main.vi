@@ -1,0 +1,4 @@
+
+pub fn main(&io: &IO) {
+  io.println("main")
+}
