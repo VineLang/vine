@@ -342,6 +342,9 @@ impl<'core> Charter<'core, '_> {
             self.core.report(Diag::BadBuiltin { span: attr.span });
           }
         }
+        AttrKind::Main => {
+          self.chart.main_mod = def;
+        }
       }
     }
   }

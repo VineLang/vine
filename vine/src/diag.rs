@@ -212,6 +212,8 @@ diags! {
     ["cannot try `{tried}` in a function returning `{ret}`"]
   MissingBlockExpr { ty: String }
     ["expected a value of type `{ty}` to evaluate to"]
+  GenericMain
+    ["main cannot be generic"]
 }
 
 fn plural<'a>(n: usize, plural: &'a str, singular: &'a str) -> &'a str {

@@ -27,6 +27,11 @@ impl<'core, 'a> Emitter<'core, 'a> {
     Emitter { nets: Nets::default(), chart, specs, dup_labels: Counter::default() }
   }
 
+  pub fn emit_main(&mut self, main: ConcreteFnId) {
+    let path = self.chart.defs[self.chart.concrete_fns[main].def].path;
+    self.nets.insert("::".into(), Net { root: Tree::Global(path.into()), pairs: Vec::new() });
+  }
+
   pub fn emit_spec(
     &mut self,
     spec: SpecId,

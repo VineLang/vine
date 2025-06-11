@@ -791,7 +791,12 @@ impl<'core> Resolver<'core, '_> {
     }
   }
 
-  fn builtin_ty(&mut self, span: Span, name: &'static str, builtin: Option<OpaqueTypeId>) -> Type {
+  pub(super) fn builtin_ty(
+    &mut self,
+    span: Span,
+    name: &'static str,
+    builtin: Option<OpaqueTypeId>,
+  ) -> Type {
     if let Some(id) = builtin {
       self.types.new(TypeKind::Opaque(id, vec![]))
     } else {
