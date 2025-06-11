@@ -1,24 +1,15 @@
 use std::{
   collections::BTreeMap,
   fmt::{self, Debug, Display, Write},
-  mem::take,
   path::PathBuf,
 };
 
-use class::Classes;
 use ivy::ast::Net;
-use vine_util::{idx, interner::Interned, new_idx};
+use vine_util::{idx, interner::Interned};
 
-use crate::{
-  chart::{ConstId, EnumId, FnId, ImplId, OpaqueTypeId, StructId, TraitId, TypeAliasId, VariantId},
-  diag::ErrorGuaranteed,
-  specializer::{ConstRelId, FnRelId},
-};
+use crate::diag::ErrorGuaranteed;
 
-new_idx!(pub Local; n => ["l{n}"]);
-new_idx!(pub LetFnId; n => ["f{n}"]);
-
-#[derive(Clone, Default)]
+#[derive(Clone)]
 pub struct Item<'core> {
   pub span: Span,
   pub vis: Vis<'core>,
@@ -26,7 +17,7 @@ pub struct Item<'core> {
   pub kind: ItemKind<'core>,
 }
 
-#[derive(Default, Debug, Clone)]
+#[derive(Debug, Clone)]
 pub enum ItemKind<'core> {
   Fn(FnItem<'core>),
   Const(ConstItem<'core>),
@@ -37,7 +28,6 @@ pub enum ItemKind<'core> {
   Trait(TraitItem<'core>),
   Impl(ImplItem<'core>),
   Use(UseItem<'core>),
-  #[default]
   Taken,
 }
 
@@ -121,7 +111,7 @@ pub struct UseItem<'core> {
   pub tree: UseTree<'core>,
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct UseTree<'core> {
   pub span: Span,
   pub aliases: Vec<Ident<'core>>,
@@ -129,15 +119,18 @@ pub struct UseTree<'core> {
 }
 
 impl<'core> UseTree<'core> {
+  pub fn empty(span: Span) -> Self {
+    UseTree { span, aliases: Vec::new(), children: BTreeMap::new() }
+  }
+
   pub fn prune(&mut self) -> bool {
     self.children.retain(|_, tree| tree.prune());
     !self.aliases.is_empty() || !self.children.is_empty()
   }
 }
 
-#[derive(Default, Debug, Clone)]
+#[derive(Debug, Clone)]
 pub enum Vis<'core> {
-  #[default]
   Private,
   Public,
   PublicTo(Span, Ident<'core>),
@@ -190,12 +183,6 @@ pub struct Generics<T, I> {
   pub impls: Vec<I>,
 }
 
-impl<T, I> Default for Generics<T, I> {
-  fn default() -> Self {
-    Self { span: Span::default(), types: Default::default(), impls: Default::default() }
-  }
-}
-
 #[derive(Debug, Clone, Copy)]
 pub struct TypeParam<'core> {
   pub span: Span,
@@ -228,7 +215,7 @@ impl Flex {
   }
 }
 
-#[derive(Default, Debug, Clone)]
+#[derive(Debug, Clone)]
 pub struct Block<'core> {
   pub span: Span,
   pub stmts: Vec<Stmt<'core>>,
@@ -259,209 +246,93 @@ pub struct LetStmt<'core> {
 #[derive(Debug, Clone)]
 pub struct LetFnStmt<'core> {
   pub name: Ident<'core>,
-  pub id: Option<LetFnId>,
   pub params: Vec<Pat<'core>>,
   pub ret: Option<Ty<'core>>,
   pub body: Block<'core>,
 }
 
-#[derive(Default, Clone)]
+#[derive(Clone)]
 pub struct Expr<'core> {
   pub span: Span,
   pub kind: ExprKind<'core>,
 }
 
-#[derive(Default, Debug, Clone, Classes)]
+#[derive(Debug, Clone)]
 pub enum ExprKind<'core> {
-  #[default]
-  #[class(space)]
   Hole,
-  #[class(value, place, space)]
   Paren(B<Expr<'core>>),
-  #[class(value)]
   Path(Path<'core>, Option<Vec<Expr<'core>>>),
-  #[class(value, resolved)]
-  ConstDef(ConstId, GenericArgs<'core>),
-  #[class(value, resolved)]
-  FnDef(FnId, GenericArgs<'core>),
-  #[class(value, synthetic)]
-  ConstRel(ConstRelId),
-  #[class(value, synthetic)]
-  FnRel(FnRelId),
-  #[class(place, resolved)]
-  Local(Local),
-  #[class(value, resolved)]
-  LetFn(LetFnId),
-  #[class(value)]
-  Do(Label<'core>, Block<'core>),
-  #[class(value)]
+  Do(Option<Ident<'core>>, Block<'core>),
   Assign(bool, B<Expr<'core>>, B<Expr<'core>>),
-  #[class(value)]
   Match(B<Expr<'core>>, Vec<(Pat<'core>, Block<'core>)>),
-  #[class(value)]
   If(Vec<(Expr<'core>, Block<'core>)>, Option<Block<'core>>),
-  #[class(value)]
-  While(Label<'core>, B<Expr<'core>>, Block<'core>),
-  #[class(value)]
-  Loop(Label<'core>, Block<'core>),
-  #[class(value)]
-  Fn(Vec<Pat<'core>>, Option<Option<Ty<'core>>>, Block<'core>),
-  #[class(value)]
+  While(Option<Ident<'core>>, B<Expr<'core>>, Block<'core>),
+  Loop(Option<Ident<'core>>, Block<'core>),
+  Fn(Vec<Pat<'core>>, Option<Ty<'core>>, Block<'core>),
   Return(Option<B<Expr<'core>>>),
-  #[class(value)]
-  Break(Label<'core>, Option<B<Expr<'core>>>),
-  #[class(value)]
-  Continue(Label<'core>),
-  #[class(value)]
+  Break(Option<Ident<'core>>, Option<B<Expr<'core>>>),
+  Continue(Option<Ident<'core>>),
   Ref(B<Expr<'core>>, bool),
-  #[class(place)]
   Deref(B<Expr<'core>>, bool),
-  #[class(value)]
   Move(B<Expr<'core>>, bool),
-  #[class(value, place, space)]
   Inverse(B<Expr<'core>>, bool),
-  #[class(place)]
   Place(B<Expr<'core>>, B<Expr<'core>>),
-  #[class(value, place, space)]
   Tuple(Vec<Expr<'core>>),
-  #[class(value, place, space)]
   Object(Vec<(Key<'core>, Expr<'core>)>),
-  #[class(value)]
   List(Vec<Expr<'core>>),
-  #[class(value, place)]
   TupleField(B<Expr<'core>>, usize, Option<usize>),
-  #[class(value, place, sugar)]
   ObjectField(B<Expr<'core>>, Key<'core>),
-  #[class(value, sugar)]
   Method(B<Expr<'core>>, Ident<'core>, GenericArgs<'core>, Vec<Expr<'core>>),
-  #[class(value)]
   Call(B<Expr<'core>>, Vec<Expr<'core>>),
-  #[class(value, place, space, resolved)]
-  Struct(StructId, GenericArgs<'core>, B<Expr<'core>>),
-  #[class(value, resolved)]
-  Enum(EnumId, VariantId, GenericArgs<'core>, Option<B<Expr<'core>>>),
-  #[class(value, sugar)]
   Neg(B<Expr<'core>>),
-  #[class(value, sugar)]
   BinaryOp(BinaryOp, B<Expr<'core>>, B<Expr<'core>>),
-  #[class(value, cond)]
   Bool(bool),
-  #[class(value, cond)]
   Not(B<Expr<'core>>),
-  #[class(value, cond)]
   Is(B<Expr<'core>>, B<Pat<'core>>),
-  #[class(value, cond)]
   LogicalOp(LogicalOp, B<Expr<'core>>, B<Expr<'core>>),
-  #[class(value, sugar)]
   ComparisonOp(B<Expr<'core>>, Vec<(ComparisonOp, Expr<'core>)>),
-  #[class(value, sugar)]
   BinaryOpAssign(BinaryOp, B<Expr<'core>>, B<Expr<'core>>),
-  #[class(value, sugar)]
   Cast(B<Expr<'core>>, B<Ty<'core>>, bool),
-  #[class(value, space, place)]
   Unwrap(B<Expr<'core>>),
-  #[class(value)]
   Try(B<Expr<'core>>),
-  #[class(value, sugar)]
   RangeExclusive(Option<B<Expr<'core>>>, Option<B<Expr<'core>>>),
-  #[class(value, sugar)]
   RangeInclusive(Option<B<Expr<'core>>>, B<Expr<'core>>),
-  #[class(value)]
   N32(u32),
-  #[class(value)]
   I32(i32),
-  #[class(value)]
   F32(f32),
-  #[class(value)]
   Char(char),
-  #[class(value)]
   String(StringSegment, Vec<(Expr<'core>, StringSegment)>),
-  #[class(space, synthetic)]
-  Set(B<Expr<'core>>),
-  #[class(value, synthetic)]
-  Copy(B<Expr<'core>>),
-  #[class(space, synthetic)]
-  Hedge(B<Expr<'core>>),
-  #[class(value, synthetic)]
-  CopyLocal(Local),
-  #[class(space, synthetic)]
-  HedgeLocal(Local),
-  #[class(value, synthetic)]
-  MoveLocal(Local),
-  #[class(space, synthetic)]
-  SetLocal(Local),
-  #[class(value)]
   InlineIvy(Vec<(Ident<'core>, bool, Expr<'core>)>, Ty<'core>, Span, Net),
-  #[class(value, synthetic)]
-  CallAssign(B<Expr<'core>>, B<Expr<'core>>, B<Expr<'core>>),
-  #[class(value, synthetic)]
-  CallCompare(B<Expr<'core>>, Vec<(Expr<'core>, Expr<'core>)>),
-  #[class(error)]
   Error(ErrorGuaranteed),
 }
 
-#[derive(Default, Debug, Clone)]
+#[derive(Debug, Clone)]
 pub struct StringSegment {
   pub content: String,
   pub span: Span,
 }
 
-#[derive(Debug, Clone, Copy)]
-pub enum Label<'core> {
-  Ident(Option<Ident<'core>>),
-  Resolved(LabelId),
-  Error(ErrorGuaranteed),
-}
-
-impl<'core> Label<'core> {
-  pub fn as_id(self) -> LabelId {
-    match self {
-      Label::Resolved(id) => id,
-      _ => unreachable!(),
-    }
-  }
-}
-
-new_idx!(pub LabelId);
-
-#[derive(Default, Clone)]
+#[derive(Clone)]
 pub struct Pat<'core> {
   pub span: Span,
   pub kind: PatKind<'core>,
 }
 
-#[derive(Default, Debug, Clone, Classes)]
+#[derive(Debug, Clone)]
 pub enum PatKind<'core> {
-  #[default]
-  #[class(value, place, space)]
   Hole,
-  #[class(value, place, space)]
   Paren(B<Pat<'core>>),
-  #[class(value, place, space)]
   Annotation(B<Pat<'core>>, B<Ty<'core>>),
-  #[class(value, place, space)]
   Path(Path<'core>, Option<Vec<Pat<'core>>>),
-  #[class(value, place, space)]
-  Struct(StructId, GenericArgs<'core>, B<Pat<'core>>),
-  #[class(value, place, space)]
-  Enum(EnumId, VariantId, GenericArgs<'core>, Option<B<Pat<'core>>>),
-  #[class(value, place, space)]
-  Local(Local),
-  #[class(value, place)]
   Ref(B<Pat<'core>>),
-  #[class(place)]
   Deref(B<Pat<'core>>),
-  #[class(value, place, space)]
   Inverse(B<Pat<'core>>),
-  #[class(value, place, space)]
   Tuple(Vec<Pat<'core>>),
-  #[class(value, place, space)]
   Object(Vec<(Key<'core>, Pat<'core>)>),
-  #[class(error)]
   Error(ErrorGuaranteed),
 }
 
-#[derive(Default, Debug, Clone)]
+#[derive(Debug, Clone)]
 pub struct Path<'core> {
   pub span: Span,
   pub absolute: bool,
@@ -488,15 +359,14 @@ impl<'core> Path<'core> {
   }
 }
 
-#[derive(Clone, Default)]
+#[derive(Clone)]
 pub struct Ty<'core> {
   pub span: Span,
   pub kind: TyKind<'core>,
 }
 
-#[derive(Debug, Clone, Default, Classes)]
+#[derive(Debug, Clone)]
 pub enum TyKind<'core> {
-  #[default]
   Hole,
   Paren(B<Ty<'core>>),
   Fn(Vec<Ty<'core>>, Option<B<Ty<'core>>>),
@@ -505,16 +375,6 @@ pub enum TyKind<'core> {
   Ref(B<Ty<'core>>),
   Inverse(B<Ty<'core>>),
   Path(Path<'core>),
-  #[class(resolved)]
-  Param(usize),
-  #[class(resolved)]
-  Opaque(OpaqueTypeId, GenericArgs<'core>),
-  #[class(resolved)]
-  Alias(TypeAliasId, GenericArgs<'core>),
-  #[class(resolved)]
-  Struct(StructId, GenericArgs<'core>),
-  #[class(resolved)]
-  Enum(EnumId, GenericArgs<'core>),
   Error(ErrorGuaranteed),
 }
 
@@ -527,9 +387,7 @@ pub struct Impl<'core> {
 #[derive(Debug, Clone)]
 pub enum ImplKind<'core> {
   Hole,
-  Param(usize),
   Path(Path<'core>),
-  Def(ImplId, GenericArgs<'core>),
   Error(ErrorGuaranteed),
 }
 
@@ -542,7 +400,6 @@ pub struct Trait<'core> {
 #[derive(Debug, Clone)]
 pub enum TraitKind<'core> {
   Path(Path<'core>),
-  Def(TraitId, GenericArgs<'core>),
   Error(ErrorGuaranteed),
 }
 
@@ -604,6 +461,19 @@ pub enum ComparisonOp {
   Ge,
 }
 
+impl ComparisonOp {
+  pub fn as_str(&self) -> &'static str {
+    match self {
+      ComparisonOp::Eq => "==",
+      ComparisonOp::Ne => "!=",
+      ComparisonOp::Lt => "<",
+      ComparisonOp::Gt => ">",
+      ComparisonOp::Le => "<=",
+      ComparisonOp::Ge => ">=",
+    }
+  }
+}
+
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Ident<'core>(pub Interned<'core, str>);
 
@@ -630,25 +500,7 @@ impl Span {
   pub const NONE: Span = Span { file: usize::MAX, start: 0, end: 0 };
 }
 
-impl Default for Span {
-  fn default() -> Self {
-    Span::NONE
-  }
-}
-
 pub type B<T> = Box<T>;
-
-impl<'core> Expr<'core> {
-  pub fn wrap(&mut self, f: impl FnOnce(B<Self>) -> ExprKind<'core>) {
-    let span = self.span;
-    let kind = f(Box::new(take(self)));
-    *self = Expr { span, kind };
-  }
-}
-
-impl<'core> Pat<'core> {
-  pub const HOLE: Self = Pat { span: Span::NONE, kind: PatKind::Hole };
-}
 
 impl Display for Path<'_> {
   fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {

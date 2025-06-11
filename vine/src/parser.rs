@@ -10,8 +10,8 @@ use crate::{core::Core, diag::Diag, lexer::Token};
 use crate::ast::{
   Attr, AttrKind, BinaryOp, Block, Builtin, ComparisonOp, ConstItem, EnumItem, Expr, ExprKind,
   Flex, FnItem, GenericArgs, GenericParams, Generics, Ident, Impl, ImplItem, ImplKind, ImplParam,
-  Item, ItemKind, Key, Label, LetFnStmt, LetStmt, LogicalOp, ModItem, ModKind, Pat, PatKind, Path,
-  Span, Stmt, StmtKind, StructItem, Trait, TraitItem, TraitKind, Ty, TyKind, TypeItem, TypeParam,
+  Item, ItemKind, Key, LetFnStmt, LetStmt, LogicalOp, ModItem, ModKind, Pat, PatKind, Path, Span,
+  Stmt, StmtKind, StructItem, Trait, TraitItem, TraitKind, Ty, TyKind, TypeItem, TypeParam,
   UseItem, UseTree, Variant, Vis,
 };
 
@@ -305,13 +305,14 @@ impl<'core, 'src> VineParser<'core, 'src> {
     mut parse_i: impl FnMut(&mut Self) -> Parse<'core, I>,
   ) -> Parse<'core, Generics<T, I>> {
     let span = self.start_span();
-    let mut generics = Generics::default();
+    let mut types = Vec::new();
+    let mut impls = Vec::new();
     if self.eat(Token::OpenBracket)? {
       loop {
         if self.eat(Token::Semi)? || self.check(Token::CloseBracket) {
           break;
         }
-        generics.types.push(parse_t(self)?);
+        types.push(parse_t(self)?);
         if self.eat(Token::Comma)? {
           continue;
         }
@@ -326,7 +327,7 @@ impl<'core, 'src> VineParser<'core, 'src> {
         if self.eat(Token::CloseBracket)? {
           break;
         }
-        generics.impls.push(parse_i(self)?);
+        impls.push(parse_i(self)?);
         if self.eat(Token::Comma)? {
           continue;
         }
@@ -335,8 +336,7 @@ impl<'core, 'src> VineParser<'core, 'src> {
       }
     }
     let span = self.end_span(span);
-    generics.span = span;
-    Ok(generics)
+    Ok(Generics { span, types, impls })
   }
 
   fn parse_mod_item(&mut self) -> Parse<'core, ModItem<'core>> {
@@ -377,7 +377,8 @@ impl<'core, 'src> VineParser<'core, 'src> {
   fn parse_use_item(&mut self) -> Parse<'core, UseItem<'core>> {
     self.expect(Token::Use)?;
     let absolute = self.eat(Token::ColonColon)?;
-    let mut tree = UseTree::default();
+    let span = self.start_span();
+    let mut tree = UseTree::empty(self.span());
     loop {
       self.parse_use_tree(None, &mut tree)?;
       if !self.eat(Token::Comma)? {
@@ -385,6 +386,7 @@ impl<'core, 'src> VineParser<'core, 'src> {
       }
     }
     tree.prune();
+    tree.span = self.end_span(span);
     self.eat(Token::Semi)?;
     Ok(UseItem { absolute, tree })
   }
@@ -405,7 +407,7 @@ impl<'core, 'src> VineParser<'core, 'src> {
           tree.aliases.push(ident);
         }
       } else {
-        let child = tree.children.entry(ident).or_insert(UseTree { span, ..Default::default() });
+        let child = tree.children.entry(ident).or_insert(UseTree::empty(span));
         if self.eat(Token::ColonColon)? {
           let is_group = self.check(Token::OpenBrace);
           self.parse_use_tree(is_group.then_some(ident), child)?;
@@ -818,8 +820,8 @@ impl<'core, 'src> VineParser<'core, 'src> {
     Ok(Err(lhs))
   }
 
-  fn parse_label(&mut self) -> Parse<'core, Label<'core>> {
-    Ok(Label::Ident(self.eat(Token::Dot)?.then(|| self.parse_ident()).transpose()?))
+  fn parse_label(&mut self) -> Parse<'core, Option<Ident<'core>>> {
+    self.eat(Token::Dot)?.then(|| self.parse_ident()).transpose()
   }
 
   fn parse_pat(&mut self) -> Parse<'core, Pat<'core>> {
@@ -1002,7 +1004,7 @@ impl<'core, 'src> VineParser<'core, 'src> {
         let params = self.parse_delimited(PAREN_COMMA, Self::parse_pat)?;
         let ret = self.eat(Token::ThinArrow)?.then(|| self.parse_type()).transpose()?;
         let body = self.parse_block()?;
-        StmtKind::LetFn(LetFnStmt { name, id: None, params, ret, body })
+        StmtKind::LetFn(LetFnStmt { name, params, ret, body })
       } else {
         let bind = self.parse_pat()?;
         let init = self.eat(Token::Eq)?.then(|| self.parse_expr()).transpose()?;

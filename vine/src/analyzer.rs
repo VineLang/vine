@@ -7,13 +7,13 @@ use usage::Usage;
 use vine_util::{idx::IdxVec, new_idx};
 
 use crate::{
-  ast::Local,
-  vir::{Interface, InterfaceId, Invocation, Stage, StageId, Step, VIR},
+  tir::Local,
+  vir::{Interface, InterfaceId, Invocation, Stage, StageId, Step, Vir},
 };
 
 pub mod usage;
 
-pub fn analyze(vir: &mut VIR) {
+pub fn analyze(vir: &mut Vir) {
   Analyzer {
     globals: &vir.globals,
     stages: &vir.stages,

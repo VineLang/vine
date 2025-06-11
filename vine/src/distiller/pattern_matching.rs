@@ -9,8 +9,8 @@ use vine_util::{
 };
 
 use crate::{
-  ast::{Local, Pat, PatKind},
   chart::EnumId,
+  tir::{Local, TirPat, TirPatKind},
   vir::{Header, Interface, InterfaceId, InterfaceKind, Layer, Port, Stage, Step, Transfer},
 };
 
@@ -22,7 +22,7 @@ impl<'core, 'r> Distiller<'core, 'r> {
     layer: &mut Layer,
     stage: &mut Stage,
     value: Port,
-    rows: Vec<Row<'core, '_>>,
+    rows: Vec<Row<'_>>,
   ) {
     let local = self.new_local(stage);
     stage.set_local_to(local, value);
@@ -51,15 +51,15 @@ impl Form {
 new_idx!(VarId);
 
 #[derive(Debug, Clone)]
-pub struct Row<'core, 'p> {
-  cells: BTreeMap<VarId, &'p Pat<'core>>,
-  bindings: Vec<(VarId, &'p Pat<'core>)>,
+pub struct Row<'p> {
+  cells: BTreeMap<VarId, &'p TirPat>,
+  bindings: Vec<(VarId, &'p TirPat)>,
   arm: InterfaceId,
 }
 
-impl<'core, 'p> Row<'core, 'p> {
-  pub fn new(pat: &'p Pat<'core>, arm: InterfaceId) -> Self {
-    Row { cells: BTreeMap::from([(VarId(0), pat)]), bindings: Vec::new(), arm }
+impl<'p> Row<'p> {
+  pub fn new(pat: Option<&'p TirPat>, arm: InterfaceId) -> Self {
+    Row { cells: pat.iter().map(|&pat| (VarId(0), pat)).collect(), bindings: Vec::new(), arm }
   }
 }
 
@@ -73,18 +73,12 @@ struct Matcher<'core, 'd, 'r> {
 enum MatchKind {
   Ref,
   Inverse,
-  Tuple(usize),
-  Object(usize),
+  Composite(usize),
   Enum(EnumId),
 }
 
 impl<'core, 'd, 'r> Matcher<'core, 'd, 'r> {
-  fn distill_rows<'p>(
-    &mut self,
-    mut rows: Vec<Row<'core, 'p>>,
-    layer: &mut Layer,
-    stage: &mut Stage,
-  ) {
+  fn distill_rows<'p>(&mut self, mut rows: Vec<Row<'p>>, layer: &mut Layer, stage: &mut Stage) {
     while !rows.is_empty() {
       let Some((&var, _)) = rows[0].cells.last_key_value() else {
         return self.distill_row(rows.swap_remove(0), stage);
@@ -99,7 +93,7 @@ impl<'core, 'd, 'r> Matcher<'core, 'd, 'r> {
             kind = Some(row_kind);
           } else {
             let pat = e.remove();
-            if !matches!(pat.kind, PatKind::Hole) {
+            if !matches!(*pat.kind, TirPatKind::Hole) {
               row.bindings.push((var, pat));
             }
           }
@@ -135,8 +129,8 @@ impl<'core, 'd, 'r> Matcher<'core, 'd, 'r> {
             Form::Space => unreachable!(),
           }
 
-          self.eliminate_col(&mut rows, var, |p| match &p.kind {
-            PatKind::Ref(inner) => [(new_var, &**inner)],
+          self.eliminate_col(&mut rows, var, |pat| match &*pat.kind {
+            TirPatKind::Ref(inner) => [(new_var, inner)],
             _ => unreachable!(),
           });
         }
@@ -158,66 +152,36 @@ impl<'core, 'd, 'r> Matcher<'core, 'd, 'r> {
             }
           }
 
-          self.eliminate_col(&mut rows, var, |p| match &p.kind {
-            PatKind::Inverse(inner) => [(new_var, &**inner)],
+          self.eliminate_col(&mut rows, var, |pat| match &*pat.kind {
+            TirPatKind::Inverse(inner) => [(new_var, inner)],
             _ => unreachable!(),
           });
         }
 
-        MatchKind::Tuple(len) => {
+        MatchKind::Composite(len) => {
           let (new_vars, new_locals) = self.new_var_range(stage, form, len);
           match form {
             Form::Value => {
               let value = stage.take_local(local);
               let spaces = new_locals.iter().map(|l| stage.set_local(l)).collect::<Vec<_>>();
-              stage.steps.push(Step::Tuple(value, spaces));
+              stage.steps.push(Step::Composite(value, spaces));
             }
             Form::Space => {
               let space = stage.set_local(local);
               let values = new_locals.iter().map(|l| stage.take_local(l)).collect::<Vec<_>>();
-              stage.steps.push(Step::Tuple(space, values));
+              stage.steps.push(Step::Composite(space, values));
             }
             Form::Place => {
               let (value, space) = stage.mut_local(local);
               let (values, spaces) =
                 new_locals.iter().map(|l| stage.mut_local(l)).collect::<(Vec<_>, Vec<_>)>();
-              stage.steps.push(Step::Tuple(value, spaces));
-              stage.steps.push(Step::Tuple(space, values));
+              stage.steps.push(Step::Composite(value, spaces));
+              stage.steps.push(Step::Composite(space, values));
             }
           }
 
-          self.eliminate_col(&mut rows, var, |p| match &p.kind {
-            PatKind::Tuple(tuple) => new_vars.iter().zip(tuple),
-            _ => unreachable!(),
-          });
-        }
-
-        MatchKind::Object(len) => {
-          let (new_vars, new_locals) = self.new_var_range(stage, form, len);
-          match form {
-            Form::Value => {
-              let value = stage.take_local(local);
-              let spaces = new_locals.iter().map(|l| stage.set_local(l)).collect::<Vec<_>>();
-              stage.steps.push(Step::Tuple(value, spaces));
-            }
-            Form::Space => {
-              let space = stage.set_local(local);
-              let values = new_locals.iter().map(|l| stage.take_local(l)).collect::<Vec<_>>();
-              stage.steps.push(Step::Tuple(space, values));
-            }
-            Form::Place => {
-              let (value, space) = stage.mut_local(local);
-              let (values, spaces) =
-                new_locals.iter().map(|l| stage.mut_local(l)).collect::<(Vec<_>, Vec<_>)>();
-              stage.steps.push(Step::Tuple(value, spaces));
-              stage.steps.push(Step::Tuple(space, values));
-            }
-          }
-
-          self.eliminate_col(&mut rows, var, |p| match &p.kind {
-            PatKind::Object(fields) => new_vars.iter().zip(
-              fields.iter().map(|(k, v)| (k.ident, v)).collect::<BTreeMap<_, _>>().into_values(),
-            ),
+          self.eliminate_col(&mut rows, var, |pat| match &*pat.kind {
+            TirPatKind::Composite(composite) => new_vars.iter().zip(composite),
             _ => unreachable!(),
           });
         }
@@ -236,9 +200,9 @@ impl<'core, 'd, 'r> Matcher<'core, 'd, 'r> {
               let mut rows = rows
                 .iter()
                 .filter(|r| {
-                  r.cells
-                    .get(&var)
-                    .is_none_or(|p| matches!(&p.kind, PatKind::Enum(_, i, ..) if *i == variant_id))
+                  r.cells.get(&var).is_none_or(
+                    |pat| matches!(&*pat.kind, TirPatKind::Enum(_, i, ..) if *i == variant_id),
+                  )
                 })
                 .cloned()
                 .collect::<Vec<_>>();
@@ -255,8 +219,8 @@ impl<'core, 'd, 'r> Matcher<'core, 'd, 'r> {
                 stage.header = Header::Match(new_local.map(|l| stage.set_local(l)));
               }
 
-              self.eliminate_col(&mut rows, var, |p| match &p.kind {
-                PatKind::Enum(.., data) => new_var.into_iter().zip(data.as_deref()),
+              self.eliminate_col(&mut rows, var, |pat| match &*pat.kind {
+                TirPatKind::Enum(.., data) => new_var.into_iter().zip(data),
                 _ => unreachable!(),
               });
 
@@ -277,13 +241,9 @@ impl<'core, 'd, 'r> Matcher<'core, 'd, 'r> {
     }
   }
 
-  fn eliminate_col<
-    'p,
-    F: FnMut(&'p Pat<'core>) -> I,
-    I: IntoIterator<Item = (VarId, &'p Pat<'core>)>,
-  >(
+  fn eliminate_col<'p, F: FnMut(&'p TirPat) -> I, I: IntoIterator<Item = (VarId, &'p TirPat)>>(
     &mut self,
-    rows: &mut Vec<Row<'core, 'p>>,
+    rows: &mut Vec<Row<'p>>,
     var: VarId,
     mut f: F,
   ) {
@@ -318,7 +278,7 @@ impl<'core, 'd, 'r> Matcher<'core, 'd, 'r> {
     (start_var..end_var, start_local..end_local)
   }
 
-  fn add_to_row<'p>(&self, row: &mut Row<'core, 'p>, var: VarId, mut pat: &'p Pat<'core>) {
+  fn add_to_row<'p>(&self, row: &mut Row<'p>, var: VarId, mut pat: &'p TirPat) {
     if Self::match_kind(&mut pat).is_some() {
       row.cells.insert(var, pat);
     } else {
@@ -326,42 +286,41 @@ impl<'core, 'd, 'r> Matcher<'core, 'd, 'r> {
     }
   }
 
-  fn match_kind(pat: &mut &Pat) -> Option<MatchKind> {
+  fn match_kind(pat: &mut &TirPat) -> Option<MatchKind> {
     loop {
-      return match &pat.kind {
-        PatKind::Error(_) | PatKind::Path(..) => unreachable!(),
-        PatKind::Hole | PatKind::Local(_) => None,
-        PatKind::Paren(p) | PatKind::Annotation(p, _) | PatKind::Struct(_, _, p) => {
-          *pat = p;
+      return match &*pat.kind {
+        TirPatKind::Error(_) => unreachable!(),
+        TirPatKind::Hole | TirPatKind::Local(_) => None,
+        TirPatKind::Struct(_, inner) => {
+          *pat = inner;
           continue;
         }
-        PatKind::Enum(enum_id, _, _, _) => Some(MatchKind::Enum(*enum_id)),
-        PatKind::Ref(p) => Self::match_kind(&mut &**p).map(|_| MatchKind::Ref),
-        PatKind::Deref(p) => {
-          if let PatKind::Ref(p) = &p.kind {
-            *pat = p;
+        TirPatKind::Enum(enum_id, _, _) => Some(MatchKind::Enum(*enum_id)),
+        TirPatKind::Ref(inner) => Self::match_kind(&mut { inner }).map(|_| MatchKind::Ref),
+        TirPatKind::Deref(inner) => {
+          if let TirPatKind::Ref(inner) = &*inner.kind {
+            *pat = inner;
             continue;
           }
           None
         }
-        PatKind::Inverse(p) => {
-          if let PatKind::Inverse(p) = &p.kind {
-            *pat = p;
+        TirPatKind::Inverse(inner) => {
+          if let TirPatKind::Inverse(inner) = &*inner.kind {
+            *pat = inner;
             continue;
           }
-          if let PatKind::Hole = &p.kind {
-            *pat = p;
+          if let TirPatKind::Hole = &*inner.kind {
+            *pat = inner;
             continue;
           }
-          Self::match_kind(&mut &**p).map(|_| MatchKind::Inverse)
+          Self::match_kind(&mut { inner }).map(|_| MatchKind::Inverse)
         }
-        PatKind::Tuple(t) => Some(MatchKind::Tuple(t.len())),
-        PatKind::Object(e) => Some(MatchKind::Object(e.len())),
+        TirPatKind::Composite(elements) => Some(MatchKind::Composite(elements.len())),
       };
     }
   }
 
-  fn distill_row<'p>(&mut self, row: Row<'core, 'p>, stage: &mut Stage) {
+  fn distill_row<'p>(&mut self, row: Row<'p>, stage: &mut Stage) {
     for (var, pat) in row.bindings {
       let (local, form) = self.vars[var];
       match form {

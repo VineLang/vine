@@ -210,7 +210,8 @@ diags! {
     ["the data of `{ty}` is only visible within `{vis}`"]
   TryBadReturnType { tried: String, ret: String }
     ["cannot try `{tried}` in a function returning `{ret}`"]
-
+  MissingBlockExpr { ty: String }
+    ["expected a value of type `{ty}` to evaluate to"]
 }
 
 fn plural<'a>(n: usize, plural: &'a str, singular: &'a str) -> &'a str {
@@ -314,5 +315,11 @@ impl Display for Pos<'_> {
 impl<T> From<ErrorGuaranteed> for Result<T, Diag<'_>> {
   fn from(value: ErrorGuaranteed) -> Self {
     Err(value.into())
+  }
+}
+
+impl From<&ErrorGuaranteed> for ErrorGuaranteed {
+  fn from(value: &ErrorGuaranteed) -> Self {
+    *value
   }
 }

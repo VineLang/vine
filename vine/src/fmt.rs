@@ -4,9 +4,9 @@ use doc::{Doc, Writer};
 
 use crate::{
   ast::{
-    Block, ComparisonOp, Expr, ExprKind, Flex, GenericArgs, GenericParams, Generics, Ident, Impl,
-    ImplKind, ImplParam, Item, ItemKind, Label, LogicalOp, ModKind, Pat, PatKind, Path, Span, Stmt,
-    StmtKind, Trait, TraitKind, Ty, TyKind, TypeParam, UseTree, Vis,
+    Block, Expr, ExprKind, Flex, GenericArgs, GenericParams, Generics, Ident, Impl, ImplKind,
+    ImplParam, Item, ItemKind, LogicalOp, ModKind, Pat, PatKind, Path, Span, Stmt, StmtKind, Trait,
+    TraitKind, Ty, TyKind, TypeParam, UseTree, Vis,
   },
   core::Core,
   diag::Diag,
@@ -316,7 +316,7 @@ impl<'core: 'src, 'src> Formatter<'src> {
 
   fn fmt_impl(&self, impl_: &Impl<'core>) -> Doc<'src> {
     match &impl_.kind {
-      ImplKind::Error(_) | ImplKind::Param(_) | ImplKind::Def(..) => unreachable!(),
+      ImplKind::Error(_) => unreachable!(),
       ImplKind::Hole => Doc("_"),
       ImplKind::Path(path) => self.fmt_path(path),
     }
@@ -324,7 +324,7 @@ impl<'core: 'src, 'src> Formatter<'src> {
 
   fn fmt_trait(&self, trait_: &Trait<'core>) -> Doc<'src> {
     match &trait_.kind {
-      TraitKind::Error(_) | TraitKind::Def(..) => unreachable!(),
+      TraitKind::Error(_) => unreachable!(),
       TraitKind::Path(path) => self.fmt_path(path),
     }
   }
@@ -366,7 +366,7 @@ impl<'core: 'src, 'src> Formatter<'src> {
 
   fn fmt_expr(&self, expr: &Expr<'core>) -> Doc<'src> {
     match &expr.kind {
-      ExprKind![synthetic || resolved || error] => unreachable!(),
+      ExprKind::Error(_) => unreachable!(),
       ExprKind::Paren(p) => Doc::paren(self.fmt_expr(p)),
       ExprKind::Hole => Doc("_"),
       ExprKind::Path(path, None) => self.fmt_path(path),
@@ -498,21 +498,9 @@ impl<'core: 'src, 'src> Formatter<'src> {
         }),
         self.fmt_expr(b),
       ]),
-      ExprKind::ComparisonOp(e, v) => {
-        Doc::concat([self.fmt_expr(e)].into_iter().chain(v.iter().flat_map(|(op, x)| {
-          [
-            Doc(match op {
-              ComparisonOp::Eq => " == ",
-              ComparisonOp::Ne => " != ",
-              ComparisonOp::Lt => " < ",
-              ComparisonOp::Gt => " > ",
-              ComparisonOp::Le => " <= ",
-              ComparisonOp::Ge => " >= ",
-            }),
-            self.fmt_expr(x),
-          ]
-        })))
-      }
+      ExprKind::ComparisonOp(e, v) => Doc::concat([self.fmt_expr(e)].into_iter().chain(
+        v.iter().flat_map(|(op, x)| [Doc(" "), Doc(op.as_str()), Doc(" "), self.fmt_expr(x)]),
+      )),
       ExprKind::BinaryOp(op, a, b) => {
         Doc::concat([self.fmt_expr(a), Doc(" "), Doc(op.as_str()), Doc(" "), self.fmt_expr(b)])
       }
@@ -540,8 +528,7 @@ impl<'core: 'src, 'src> Formatter<'src> {
     }
   }
 
-  fn fmt_label(&self, label: &Label<'core>) -> Doc<'src> {
-    let Label::Ident(label) = label else { unreachable!() };
+  fn fmt_label(&self, label: &Option<Ident<'core>>) -> Doc<'src> {
     if let Some(label) = label {
       Doc::concat([Doc("."), Doc(*label)])
     } else {
@@ -551,7 +538,7 @@ impl<'core: 'src, 'src> Formatter<'src> {
 
   fn fmt_pat(&self, pat: &Pat<'core>) -> Doc<'src> {
     match &pat.kind {
-      PatKind::Local(_) | PatKind::Struct(..) | PatKind::Enum(..) | PatKind::Error(_) => {
+      PatKind::Error(_) => {
         unreachable!()
       }
       PatKind::Hole => Doc("_"),
@@ -597,7 +584,7 @@ impl<'core: 'src, 'src> Formatter<'src> {
 
   fn fmt_ty(&self, ty: &Ty<'core>) -> Doc<'src> {
     match &ty.kind {
-      TyKind::Error(_) | TyKind![resolved] => unreachable!(),
+      TyKind::Error(_) => unreachable!(),
       TyKind::Hole => Doc("_"),
       TyKind::Paren(p) => Doc::paren(self.fmt_ty(p)),
       TyKind::Fn(a, r) => Doc::concat([

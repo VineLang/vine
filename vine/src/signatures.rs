@@ -2,14 +2,17 @@ use vine_util::idx::IdxVec;
 
 use crate::{
   chart::{
-    checkpoint::ChartCheckpoint, ConcreteConstId, ConcreteFnId, ConstId, EnumId, FnId, GenericsId,
-    ImplId, StructId, TraitConstId, TraitFnId, TraitId, TypeAliasId, VariantId,
+    checkpoint::ChartCheckpoint, ConcreteConstId, ConcreteFnId, ConstId, DefId, EnumId, FnId,
+    GenericsId, ImplId, ImportId, StructId, TraitConstId, TraitFnId, TraitId, TypeAliasId,
+    VariantId,
   },
+  diag::ErrorGuaranteed,
   types::{ImplType, TransferTypes, Type, TypeCtx, TypeTransfer},
 };
 
 #[derive(Debug, Default)]
 pub struct Signatures<'core> {
+  pub imports: IdxVec<ImportId, ImportState>,
   pub generics: IdxVec<GenericsId, TypeCtx<'core, GenericsSig>>,
   pub concrete_consts: IdxVec<ConcreteConstId, TypeCtx<'core, ConstSig>>,
   pub concrete_fns: IdxVec<ConcreteFnId, TypeCtx<'core, FnSig>>,
@@ -18,6 +21,13 @@ pub struct Signatures<'core> {
   pub enums: IdxVec<EnumId, TypeCtx<'core, EnumSig>>,
   pub impls: IdxVec<ImplId, TypeCtx<'core, ImplSig>>,
   pub traits: IdxVec<TraitId, TraitSig<'core>>,
+}
+
+#[derive(Debug, Clone, Copy)]
+pub enum ImportState {
+  Unresolved,
+  Resolved(Result<DefId, ErrorGuaranteed>),
+  Resolving,
 }
 
 #[derive(Debug)]
@@ -79,6 +89,7 @@ impl<'core> Signatures<'core> {
 
   pub fn revert(&mut self, checkpoint: &ChartCheckpoint) {
     let Signatures {
+      imports,
       generics,
       concrete_consts,
       concrete_fns,
@@ -88,6 +99,7 @@ impl<'core> Signatures<'core> {
       traits,
       impls,
     } = self;
+    imports.truncate(checkpoint.imports.0);
     generics.truncate(checkpoint.generics.0);
     concrete_consts.truncate(checkpoint.concrete_consts.0);
     concrete_fns.truncate(checkpoint.concrete_fns.0);

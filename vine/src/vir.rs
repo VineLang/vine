@@ -9,9 +9,8 @@ use vine_util::{
 
 use crate::{
   analyzer::{usage::Usage, UsageVar},
-  ast::Local,
   chart::{EnumId, VariantId},
-  specializer::{ConstRelId, FnRelId},
+  tir::{ConstRelId, FnRelId, Local},
 };
 
 new_idx!(pub LayerId; n => ["L{n}"]);
@@ -24,7 +23,7 @@ impl LayerId {
 }
 
 #[derive(Debug, Clone)]
-pub struct VIR {
+pub struct Vir {
   pub locals: Counter<Local>,
   pub layers: IdxVec<LayerId, Layer>,
   pub interfaces: IdxVec<InterfaceId, Interface>,
@@ -76,6 +75,7 @@ pub enum InterfaceKind {
   Unconditional(StageId),
   Branch([StageId; 2]),
   Match(EnumId, Vec<StageId>),
+  Fn(StageId),
 }
 
 impl InterfaceKind {
@@ -84,6 +84,7 @@ impl InterfaceKind {
       InterfaceKind::Unconditional(s) => slice::from_ref(s),
       InterfaceKind::Branch(s) => s,
       InterfaceKind::Match(_, s) => s,
+      InterfaceKind::Fn(s) => slice::from_ref(s),
     }
   }
 }
@@ -104,6 +105,7 @@ pub struct Stage {
 pub enum Header {
   None,
   Match(Option<Port>),
+  Fn(Vec<Port>, Port),
 }
 
 #[derive(Debug, Clone)]
@@ -115,7 +117,7 @@ pub enum Step {
   Link(Port, Port),
 
   Fn(Port, Vec<Port>, Port),
-  Tuple(Port, Vec<Port>),
+  Composite(Port, Vec<Port>),
   Enum(EnumId, VariantId, Port, Option<Port>),
   Ref(Port, Port, Port),
   ExtFn(&'static str, bool, Port, Port, Port),
@@ -127,10 +129,11 @@ pub enum Step {
 
 impl Header {
   pub fn ports(&self) -> impl Iterator<Item = &Port> {
-    multi_iter!(Ports { Zero, Opt });
+    multi_iter!(Ports { Zero, Opt, Fn });
     match self {
       Header::None => Ports::Zero([]),
       Header::Match(a) => Ports::Opt(a),
+      Header::Fn(params, ret) => Ports::Fn(params.iter().chain([ret])),
     }
   }
 }
@@ -147,7 +150,7 @@ impl Step {
       Step::Enum(_, _, a, None) => Ports::One([a]),
       Step::Link(a, b) | Step::Enum(_, _, a, Some(b)) => Ports::Two([a, b]),
       Step::Fn(f, a, r) => Ports::Fn([f].into_iter().chain(a).chain([r])),
-      Step::Tuple(port, ports) | Step::List(port, ports) => {
+      Step::Composite(port, ports) | Step::List(port, ports) => {
         Ports::Tuple([port].into_iter().chain(ports))
       }
       Step::Ref(a, b, c) | Step::ExtFn(_, _, a, b, c) | Step::Dup(a, b, c) => {

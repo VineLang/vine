@@ -5,33 +5,33 @@ use vine_util::idx::{Counter, IdxVec};
 
 use crate::{
   analyzer::usage::Usage,
-  ast::Local,
   chart::{Chart, ConcreteConstId, ConcreteFnId, EnumDef, VariantId},
   diag::ErrorGuaranteed,
   specializer::{Spec, SpecId, Specializations, TemplateId},
+  tir::Local,
   vir::{
     Header, Interface, InterfaceId, InterfaceKind, Invocation, Port, Stage, StageId, Step,
-    Transfer, VIR,
+    Transfer, Vir,
   },
 };
 
 pub struct Emitter<'core, 'a> {
   pub nets: Nets,
   chart: &'a Chart<'core>,
-  specs: &'a Specializations<'core>,
+  specs: &'a Specializations,
   dup_labels: Counter<usize>,
 }
 
 impl<'core, 'a> Emitter<'core, 'a> {
-  pub fn new(chart: &'a Chart<'core>, specs: &'a Specializations<'core>) -> Self {
+  pub fn new(chart: &'a Chart<'core>, specs: &'a Specializations) -> Self {
     Emitter { nets: Nets::default(), chart, specs, dup_labels: Counter::default() }
   }
 
   pub fn emit_spec(
     &mut self,
     spec: SpecId,
-    const_vir: &IdxVec<ConcreteConstId, VIR>,
-    fn_vir: &IdxVec<ConcreteFnId, VIR>,
+    const_vir: &IdxVec<ConcreteConstId, Vir>,
+    fn_vir: &IdxVec<ConcreteFnId, Vir>,
   ) {
     let spec = self.specs.specs[spec].as_ref().unwrap();
     let path = self.chart.defs[spec.def].path;
@@ -42,7 +42,7 @@ impl<'core, 'a> Emitter<'core, 'a> {
     self.emit_vir(vir, path, spec)
   }
 
-  pub fn emit_vir(&mut self, vir: &VIR, path: &str, spec: &Spec) {
+  pub fn emit_vir(&mut self, vir: &Vir, path: &str, spec: &Spec) {
     let mut emitter = VirEmitter {
       chart: self.chart,
       path,
@@ -82,7 +82,7 @@ struct VirEmitter<'core, 'a> {
   path: &'a str,
   stages: &'a IdxVec<StageId, Stage>,
   interfaces: &'a IdxVec<InterfaceId, Interface>,
-  specs: &'a Specializations<'core>,
+  specs: &'a Specializations,
   spec: &'a Spec,
   locals: BTreeMap<Local, LocalState>,
   pairs: Vec<(Tree, Tree)>,
@@ -118,6 +118,14 @@ impl<'core, 'a> VirEmitter<'core, 'a> {
       InterfaceKind::Match(_, stages) => (
         self.emit_port(transfer.data.as_ref().unwrap()),
         Tree::n_ary("enum", stages.iter().map(|&s| self.emit_stage_node(s)).chain([target])),
+      ),
+      InterfaceKind::Fn(stage) => (
+        self.emit_stage_node(*stage),
+        Tree::Comb(
+          "x".into(),
+          Box::new(target),
+          Box::new(self.emit_port(transfer.data.as_ref().unwrap())),
+        ),
       ),
     });
   }
@@ -249,7 +257,7 @@ impl<'core, 'a> VirEmitter<'core, 'a> {
       Step::Fn(func, args, ret) => self
         .pairs
         .push((emit_port(func), Tree::n_ary("fn", args.iter().chain([ret]).map(emit_port)))),
-      Step::Tuple(port, tuple) => {
+      Step::Composite(port, tuple) => {
         self.pairs.push((emit_port(port), Tree::n_ary("tup", tuple.iter().map(emit_port))))
       }
       Step::Enum(enum_id, variant_id, port, fields) => {
@@ -381,6 +389,11 @@ impl<'core, 'a> VirEmitter<'core, 'a> {
       Header::Match(Some(data)) => {
         Tree::Comb("enum".into(), Box::new(self.emit_port(data)), Box::new(root))
       }
+      Header::Fn(params, result) => Tree::Comb(
+        "x".into(),
+        Box::new(root),
+        Box::new(Tree::n_ary("fn", params.iter().chain([result]).map(|port| self.emit_port(port)))),
+      ),
     }
   }
 

@@ -1,4 +1,4 @@
-use std::{collections::hash_map::Entry, mem::take};
+use std::{collections::hash_map::Entry, mem::replace};
 
 use vine_util::idx::{Counter, IdxVec};
 
@@ -23,7 +23,12 @@ pub struct Charter<'core, 'a> {
 impl<'core> Charter<'core, '_> {
   pub fn chart_root(&mut self, root: ModKind<'core>) {
     if self.chart.generics.is_empty() {
-      self.chart.generics.push(GenericsDef::default());
+      self.chart.generics.push(GenericsDef {
+        span: Span::NONE,
+        def: DefId::ROOT,
+        type_params: Vec::new(),
+        impl_params: Vec::new(),
+      });
     }
     if self.chart.defs.is_empty() {
       self.new_def(self.core.ident("::"), "", None);
@@ -94,7 +99,6 @@ impl<'core> Charter<'core, '_> {
           generics,
           ty: const_item.ty,
           value,
-          locals: Counter::default(),
         });
         self.define_value(span, def, vis, DefValueKind::Const(ConstId::Concrete(const_id)));
         Some(def)
@@ -254,7 +258,6 @@ impl<'core> Charter<'core, '_> {
                 generics,
                 ty: const_item.ty,
                 value,
-                locals: Counter::default(),
               });
               self.define_value(span, def, vis, DefValueKind::Const(ConstId::Concrete(const_id)));
               self.chart_attrs(Some(def), subitem.attrs);
@@ -302,8 +305,6 @@ impl<'core> Charter<'core, '_> {
           generics,
           trait_: impl_item.trait_,
           subitems,
-          consts: IdxVec::new(),
-          fns: IdxVec::new(),
         });
         self.define_impl(span, def, vis, DefImplKind::Impl(impl_id));
         Some(def)
@@ -477,13 +478,7 @@ impl<'core> Charter<'core, '_> {
     use_tree: UseTree<'core>,
   ) {
     let span = use_tree.span;
-    let import = self.chart.imports.push(ImportDef {
-      span,
-      def: def_id,
-      parent,
-      ident,
-      state: ImportState::Unresolved,
-    });
+    let import = self.chart.imports.push(ImportDef { span, def: def_id, parent, ident });
     let def = &mut self.chart.defs[def_id];
     for name in use_tree.aliases {
       if let Entry::Vacant(e) = def.members.entry(name) {
@@ -613,6 +608,9 @@ pub struct ExtractItems<'core> {
 
 impl<'core> VisitMut<'core, '_> for ExtractItems<'core> {
   fn visit_item(&mut self, item: &mut Item<'core>) {
-    self.items.push(take(item));
+    self.items.push(replace(
+      item,
+      Item { span: Span::NONE, vis: Vis::Private, attrs: vec![], kind: ItemKind::Taken },
+    ));
   }
 }

@@ -11,16 +11,15 @@ use ivm::{
 };
 use ivy::{ast::Tree, host::Host};
 use vine_util::{
-  idx::{Counter, IntMap},
+  idx::Counter,
   parser::{Parser, ParserState},
 };
 
 use crate::{
   analyzer::{analyze, usage::Usage},
-  ast::{Block, Ident, Local, Span, Stmt},
+  ast::{Block, Ident, Span, Stmt},
   chart::{ConcreteConstId, DefId, VariantId},
   charter::{Charter, ExtractItems},
-  checker::Checker,
   compiler::{Compiler, Hooks},
   core::Core,
   diag::Diag,
@@ -30,6 +29,7 @@ use crate::{
   parser::VineParser,
   resolver::Resolver,
   specializer::{Spec, SpecRels, Specializer, TemplateId},
+  tir::{Local, Tir},
   types::{Type, TypeKind, Types},
   vir::{InterfaceId, StageId},
   visit::VisitMut,
@@ -43,10 +43,9 @@ pub struct Repl<'core, 'ctx, 'ivm, 'ext> {
   repl_mod: DefId,
   line: usize,
   vars: HashMap<Ident<'core>, Var<'ivm>>,
-  locals: BTreeMap<Local, Ident<'core>>,
+  locals: BTreeMap<Local, (Ident<'core>, Type)>,
   local_count: Counter<Local>,
   types: Types<'core>,
-  local_types: IntMap<Local, Type>,
 }
 
 #[derive(Debug)]
@@ -83,14 +82,13 @@ impl<'core, 'ctx, 'ivm, 'ext> Repl<'core, 'ctx, 'ivm, 'ext> {
       io,
       Var { local: Local(0), value: Port::new_ext_val(host.new_io()), space: Port::ERASE },
     )]);
-    let locals = BTreeMap::from([(Local(0), io)]);
     let mut types = Types::default();
     let io_type = if let Some(io) = compiler.chart.builtins.io {
       types.new(TypeKind::Opaque(io, vec![]))
     } else {
       types.nil()
     };
-    let local_types = IntMap::from_iter([(Local(0), io_type)]);
+    let locals = BTreeMap::from([(Local(0), (io, io_type))]);
 
     Ok(Repl {
       host,
@@ -103,7 +101,6 @@ impl<'core, 'ctx, 'ivm, 'ext> Repl<'core, 'ctx, 'ivm, 'ext> {
       locals,
       local_count: Counter(Local(1)),
       types,
-      local_types,
     })
   }
 
@@ -120,7 +117,7 @@ impl<'core, 'ctx, 'ivm, 'ext> Repl<'core, 'ctx, 'ivm, 'ext> {
 
     self.compiler.loader.load_deps(".".as_ref(), &mut block);
 
-    let mut ty = self.types.nil();
+    let mut tir = None;
     let mut name = String::new();
 
     let nets = self.compiler.compile(ExecHooks {
@@ -130,23 +127,23 @@ impl<'core, 'ctx, 'ivm, 'ext> Repl<'core, 'ctx, 'ivm, 'ext> {
       locals: &mut self.locals,
       block: &mut block,
       types: &mut self.types,
-      local_types: &mut self.local_types,
-      ty: &mut ty,
+      tir: &mut tir,
       local_count: &mut self.local_count,
       line: &mut self.line,
       rels: None,
       name: &mut name,
     })?;
 
+    let tir = tir.unwrap();
+
     struct ExecHooks<'core, 'ivm, 'ext, 'a> {
       repl_mod: DefId,
       vars: &'a mut HashMap<Ident<'core>, Var<'ivm>>,
       ivm: &'a mut IVM<'ivm, 'ext>,
-      locals: &'a mut BTreeMap<Local, Ident<'core>>,
+      locals: &'a mut BTreeMap<Local, (Ident<'core>, Type)>,
       block: &'a mut Block<'core>,
       types: &'a mut Types<'core>,
-      local_types: &'a mut IntMap<Local, Type>,
-      ty: &'a mut Type,
+      tir: &'a mut Option<Tir>,
       local_count: &'a mut Counter<Local>,
       line: &'a mut usize,
       rels: Option<SpecRels>,
@@ -163,20 +160,22 @@ impl<'core, 'ctx, 'ivm, 'ext> Repl<'core, 'ctx, 'ivm, 'ext> {
       }
 
       fn resolve(&mut self, resolver: &mut Resolver<'core, '_>) {
-        let binds = resolver.resolve_custom(
+        let (tir, binds) = resolver._resolve_custom(
           self.repl_mod,
+          self.types,
           self.locals,
           self.local_count,
-          &mut self.block.stmts,
+          self.block,
         );
-        for (ident, local) in binds {
+        *self.tir = Some(tir);
+        for (ident, local, ty) in binds {
           if self.vars.get(&ident).is_none_or(|v| v.local != local) {
             let wire = self.ivm.new_wire();
             let old = self.vars.insert(
               ident,
               Var { local, value: Port::new_wire(wire.0), space: Port::new_wire(wire.1) },
             );
-            self.locals.insert(local, ident);
+            self.locals.insert(local, (ident, ty));
             if let Some(old) = old {
               self.locals.remove(&old.local);
               self.ivm.link(old.value, old.space);
@@ -185,12 +184,8 @@ impl<'core, 'ctx, 'ivm, 'ext> Repl<'core, 'ctx, 'ivm, 'ext> {
         }
       }
 
-      fn check(&mut self, checker: &mut Checker<'core, '_>) {
-        *self.ty = checker._check_custom(self.repl_mod, self.types, self.local_types, self.block);
-      }
-
       fn specialize(&mut self, specializer: &mut Specializer<'core, '_>) {
-        self.rels = Some(specializer._specialize_custom(&mut *self.block));
+        self.rels = Some(specializer._specialize_custom(self.tir.as_ref().unwrap()));
       }
 
       fn emit(&mut self, distiller: &mut Distiller<'core, '_>, emitter: &mut Emitter<'core, '_>) {
@@ -199,10 +194,7 @@ impl<'core, 'ctx, 'ivm, 'ext> Repl<'core, 'ctx, 'ivm, 'ext> {
 
         *self.name = format!("::repl::{line}");
 
-        let mut vir = distiller.distill_root(*self.local_count, |distiller, stage, local| {
-          let result = distiller.distill_block(stage, self.block);
-          stage.set_local_to(local, result);
-        });
+        let mut vir = distiller.distill_tir(self.tir.as_ref().unwrap());
         vir.stages[StageId(0)].declarations.retain(|l| !self.locals.contains_key(l));
         vir.globals.extend(self.vars.values().map(|v| (v.local, Usage::Mut)));
         let mut vir = normalize(&vir);
@@ -232,8 +224,8 @@ impl<'core, 'ctx, 'ivm, 'ext> Repl<'core, 'ctx, 'ivm, 'ext> {
     let mut cur = w.1;
 
     let label = self.host.label_to_u16("x");
-    for var in self.locals.values() {
-      let var = self.vars.get_mut(var).unwrap();
+    for (local, _) in self.locals.values() {
+      let var = self.vars.get_mut(local).unwrap();
       let n = unsafe { self.ivm.new_node(Tag::Comb, label) };
       let m = unsafe { self.ivm.new_node(Tag::Comb, label) };
       self.ivm.link_wire(cur, n.0);
@@ -249,7 +241,7 @@ impl<'core, 'ctx, 'ivm, 'ext> Repl<'core, 'ctx, 'ivm, 'ext> {
     self.ivm.normalize();
 
     let tree = self.host.read(self.ivm, &PortRef::new_wire(&out));
-    let output = self.show(ty, &tree);
+    let output = self.show(tir.root.ty, &tree);
     self.ivm.link_wire(out, Port::ERASE);
     self.ivm.normalize();
 
@@ -439,11 +431,10 @@ impl<'core, 'ctx, 'ivm, 'ext> Repl<'core, 'ctx, 'ivm, 'ext> {
   pub fn format(&mut self) -> String {
     let mut str = String::new();
     for local in self.locals.keys().copied().collect::<Vec<_>>() {
-      let ident = self.locals[&local];
+      let (ident, ty) = self.locals[&local];
       let var = &self.vars[&ident];
       let value = self.host.read(self.ivm, &var.value);
       let space = self.host.read(self.ivm, &var.space);
-      let ty = self.local_types[&local];
       if value != Tree::Erase {
         writeln!(str, "{} = {}", ident.0 .0, self.show(ty, &value)).unwrap();
       }
