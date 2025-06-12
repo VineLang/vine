@@ -94,6 +94,7 @@ pub mod Array {
 
   pub fn .at[T](&Array[T](len, *node), i: N32) -> Option[&T] {
     if i >= len {
+      let &_ = node;
       return None
     }
     let size = len;

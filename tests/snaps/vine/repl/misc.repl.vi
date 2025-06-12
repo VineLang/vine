@@ -110,6 +110,16 @@ a = Array(5, Node(Node(Node(Node(#ivy(0)), Node(#ivy(4))), Node(#ivy(2))), Node(
 
 io = #io
 a = Array(5, Node(Node(Node(Node(#ivy(0)), Node(#ivy(4))), Node(#ivy(2))), Node(Node(#ivy(1)), Node(#ivy(3)))))
+> a.get(3)
+Some(3)
+
+io = #io
+a = Array(5, Node(Node(Node(Node(#ivy(0)), Node(#ivy(4))), Node(#ivy(2))), Node(Node(#ivy(1)), Node(#ivy(3)))))
+> a.at(5)
+None
+
+io = #io
+a = Array(5, Node(Node(Node(Node(#ivy(0)), Node(#ivy(4))), Node(#ivy(2))), Node(Node(#ivy(1)), Node(#ivy(3)))))
 > move a
 Array(5, Node(Node(Node(Node(#ivy(0)), Node(#ivy(4))), Node(#ivy(2))), Node(Node(#ivy(1)), Node(#ivy(3)))))
 
@@ -248,6 +258,11 @@ x = [[2]]
 
 io = #io
 x = [[2]]
+> x.at(3)
+None
+
+io = #io
+x = [[2]]
 > move x
 [[2]]
 
@@ -257,7 +272,7 @@ error input:1:29 - expected type `{ a: N32, b: N32 }`; found `{ a: N32 }`
 
 io = #io
 > do { let x; x = (x, x); }
-error input:1:17 - expected type `?913`; found `(?913, ?913)`
+error input:1:17 - expected type `?1004`; found `(?1004, ?1004)`
 
 io = #io
 > let (a: N32, b: N32);
