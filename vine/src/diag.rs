@@ -244,25 +244,26 @@ impl<'core> Core<'core> {
 
   pub fn bail(&self) -> Result<(), String> {
     let mut diags = self.diags.borrow_mut();
-    let files = self.files.borrow();
     if diags.is_empty() {
       Ok(())
     } else {
       let mut err = String::new();
       for diag in diags.iter() {
-        match diag.span() {
-          Some(Span::NONE) => writeln!(err, "error - {}", diag).unwrap(),
-          Some(span) => {
-            let file = &files[span.file];
-            writeln!(err, "error {} - {}", file.get_pos(span.start), diag).unwrap();
+        if let Some(span) = diag.span() {
+          match self.show_span(span) {
+            Some(span) => writeln!(err, "error {span} - {}", diag).unwrap(),
+            None => writeln!(err, "error - {}", diag).unwrap(),
           }
-          None => {}
         }
       }
       err.pop();
       diags.clear();
       Err(err)
     }
+  }
+
+  pub fn show_span(&self, span: Span) -> Option<String> {
+    (span != Span::NONE).then(|| format!("{}", self.files.borrow()[span.file].get_pos(span.start)))
   }
 }
 

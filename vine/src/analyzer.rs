@@ -4,7 +4,10 @@ use std::{
 };
 
 use usage::Usage;
-use vine_util::{idx::IdxVec, new_idx};
+use vine_util::{
+  idx::{IdxVec, IntMap},
+  new_idx,
+};
 
 use crate::{
   tir::Local,
@@ -23,7 +26,7 @@ pub fn analyze(vir: &mut Vir) {
     relations: IdxVec::new(),
     segments: Vec::new(),
     dirty: BTreeSet::new(),
-    locals: Vec::new(),
+    locals: IntMap::default(),
     disconnects: Vec::new(),
   }
   .analyze();
@@ -40,7 +43,7 @@ struct Analyzer<'a> {
   relations: IdxVec<RelationId, (UsageVar, UsageVar, UsageVar, UsageVar)>,
   segments: Vec<(UsageVar, HashMap<Local, Usage>)>,
   dirty: BTreeSet<UsageVar>,
-  locals: Vec<(Local, StageId)>,
+  locals: IntMap<Local, Vec<StageId>>,
   disconnects: Vec<(StageId, UsageVar, UsageVar)>,
 }
 
@@ -55,15 +58,15 @@ impl Analyzer<'_> {
   fn analyze(&mut self) {
     self.sweep(InterfaceId(0));
 
-    self.locals.extend(self.globals.iter().map(|&(g, _)| (g, StageId(usize::MAX))));
+    self.locals.extend(self.globals.iter().map(|&(g, _)| (g, Vec::new())));
     let root_segment =
       (self.get_transfer(InterfaceId(0)).1, self.globals.iter().copied().collect());
     self.segments.push(root_segment);
 
     self.build();
 
-    for (local, stage) in take(&mut self.locals) {
-      self.process_local(local, stage);
+    for (local, stages) in take(&mut self.locals) {
+      self.process_local(local, stages);
     }
 
     for &(global, usage) in self.globals {
@@ -103,7 +106,10 @@ impl Analyzer<'_> {
       transfers.clear();
       forwards.clear();
       backwards.clear();
-      self.locals.extend(stage.declarations.iter().map(|&l| (l, stage.id)));
+
+      for &local in &stage.declarations {
+        self.locals.entry(local).or_default().push(stage.id);
+      }
 
       let incoming = self.get_transfer(stage.interface);
       if stage.declarations.is_empty() {
@@ -178,7 +184,7 @@ impl Analyzer<'_> {
     }
   }
 
-  fn process_local(&mut self, local: Local, declared: StageId) {
+  fn process_local(&mut self, local: Local, declared: Vec<StageId>) {
     self.usage.fill(Usage::Zero);
     self.usage[UsageVar::NONE] = Usage::None;
     self.dirty.insert(UsageVar::NONE);
@@ -188,7 +194,7 @@ impl Analyzer<'_> {
       self.dirty.insert(*var);
     }
     for &(stage, connected, disconnected) in &self.disconnects {
-      let var = if stage == declared { disconnected } else { connected };
+      let var = if declared.contains(&stage) { disconnected } else { connected };
       self.usage[var] = Usage::None;
       self.dirty.insert(var);
     }

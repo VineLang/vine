@@ -54,6 +54,7 @@ fn tests(t: &mut DynTester) {
     test_vi(t, "tests/programs/cyclist.vi", b"", ".txt", true);
     test_vi(t, "tests/programs/final_countdown.vi", b"", ".txt", true);
     test_vi(t, "tests/programs/find_primes.vi", b"", ".txt", true);
+    test_vi(t, "tests/programs/centimanes.vi", b"", ".txt", true);
     test_vi(t, "tests/programs/inverse.vi", b"", ".txt", true);
     test_vi(t, "tests/programs/lambda.vi", lambda_input, ".txt", true);
     test_vi(t, "tests/programs/logic.vi", b"", ".txt", true);
