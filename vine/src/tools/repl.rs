@@ -18,23 +18,19 @@ use vine_util::{
 use crate::{
   compiler::{Compiler, Hooks},
   components::{
-    analyzer::{analyze, usage::Usage},
+    analyzer::usage::Usage,
     charter::{Charter, ExtractItems},
-    distiller::Distiller,
-    emitter::Emitter,
-    normalizer::normalize,
     parser::VineParser,
-    resolver::Resolver,
-    specializer::{Spec, SpecRels, Specializer, TemplateId},
+    resolver::{FragmentId, Resolver},
   },
   structures::{
     ast::{visit::VisitMut, Block, Ident, Span, Stmt},
-    chart::{ConcreteConstId, DefId, VariantId},
+    chart::{DefId, VariantId},
     core::Core,
     diag::Diag,
-    tir::{Local, Tir},
+    tir::Local,
     types::{Type, TypeKind, Types},
-    vir::{InterfaceId, StageId},
+    vir::{StageId, Vir},
   },
 };
 
@@ -120,39 +116,35 @@ impl<'core, 'ctx, 'ivm, 'ext> Repl<'core, 'ctx, 'ivm, 'ext> {
 
     self.compiler.loader.load_deps(".".as_ref(), &mut block);
 
-    let mut tir = None;
-    let mut name = String::new();
+    let mut fragment = None;
+    let path = self.core.alloc_str(&format!("::repl::{}", self.line));
 
     let nets = self.compiler.compile(ExecHooks {
-      core: self.core,
+      path,
       repl_mod: self.repl_mod,
       vars: &mut self.vars,
       ivm: self.ivm,
       locals: &mut self.locals,
       block: &mut block,
       types: &mut self.types,
-      tir: &mut tir,
+      fragment: &mut fragment,
       local_count: &mut self.local_count,
-      line: &mut self.line,
-      rels: None,
-      name: &mut name,
     })?;
 
-    let tir = tir.unwrap();
+    let fragment = fragment.unwrap();
+
+    self.line += 1;
 
     struct ExecHooks<'core, 'ivm, 'ext, 'a> {
-      core: &'core Core<'core>,
+      path: &'core str,
       repl_mod: DefId,
       vars: &'a mut HashMap<Ident<'core>, Var<'ivm>>,
       ivm: &'a mut IVM<'ivm, 'ext>,
       locals: &'a mut BTreeMap<Local, (Ident<'core>, Type)>,
       block: &'a mut Block<'core>,
       types: &'a mut Types<'core>,
-      tir: &'a mut Option<Tir>,
+      fragment: &'a mut Option<FragmentId>,
       local_count: &'a mut Counter<Local>,
-      line: &'a mut usize,
-      rels: Option<SpecRels>,
-      name: &'a mut String,
     }
 
     impl<'core> Hooks<'core> for ExecHooks<'core, '_, '_, '_> {
@@ -165,14 +157,16 @@ impl<'core, 'ctx, 'ivm, 'ext> Repl<'core, 'ctx, 'ivm, 'ext> {
       }
 
       fn resolve(&mut self, resolver: &mut Resolver<'core, '_>) {
-        let (tir, binds) = resolver._resolve_custom(
+        let (fragment, binds) = resolver._resolve_custom(
+          self.block.span,
+          self.path,
           self.repl_mod,
           self.types,
           self.locals,
           self.local_count,
           self.block,
         );
-        *self.tir = Some(tir);
+        *self.fragment = Some(fragment);
         for (ident, local, ty) in binds {
           if self.vars.get(&ident).is_none_or(|v| v.local != local) {
             let wire = self.ivm.new_wire();
@@ -189,35 +183,12 @@ impl<'core, 'ctx, 'ivm, 'ext> Repl<'core, 'ctx, 'ivm, 'ext> {
         }
       }
 
-      fn specialize(&mut self, specializer: &mut Specializer<'core, '_>) {
-        self.rels = Some(specializer._specialize_custom(self.tir.as_ref().unwrap()));
-      }
-
-      fn emit(&mut self, distiller: &mut Distiller<'core, '_>, emitter: &mut Emitter<'core, '_>) {
-        let line = *self.line;
-        *self.line += 1;
-
-        *self.name = format!("::repl::{line}");
-
-        let mut vir = distiller.distill_tir(self.tir.as_ref().unwrap());
-        vir.stages[StageId(0)].declarations.retain(|l| !self.locals.contains_key(l));
-        vir.globals.extend(self.vars.values().map(|v| (v.local, Usage::Mut)));
-        let mut vir = normalize(&vir);
-        analyze(self.core, Span::NONE, &mut vir);
-        for var in self.vars.values() {
-          vir.interfaces[InterfaceId(0)].wires.insert(var.local, (Usage::Mut, Usage::Mut));
+      fn distill(&mut self, fragment_id: FragmentId, vir: &mut Vir) {
+        let id = self.fragment.unwrap();
+        if id == fragment_id {
+          vir.stages[StageId(0)].declarations.retain(|l| !self.locals.contains_key(l));
+          vir.globals.extend(self.vars.values().map(|v| (v.local, Usage::Mut)));
         }
-        emitter.emit_vir(
-          &vir,
-          self.name,
-          &Spec {
-            def: DefId(0),
-            template: TemplateId::Const(ConcreteConstId(0)),
-            index: 0,
-            singular: true,
-            rels: self.rels.take().unwrap(),
-          },
-        );
       }
     }
 
@@ -242,11 +213,11 @@ impl<'core, 'ctx, 'ivm, 'ext> Repl<'core, 'ctx, 'ivm, 'ext> {
 
     let out = cur;
 
-    self.ivm.execute(&self.host.get(&name).unwrap().instructions, Port::new_wire(root));
+    self.ivm.execute(&self.host.get(path).unwrap().instructions, Port::new_wire(root));
     self.ivm.normalize();
 
     let tree = self.host.read(self.ivm, &PortRef::new_wire(&out));
-    let output = self.show(tir.root.ty, &tree);
+    let output = self.show(self.compiler.fragments[fragment].tir.root.ty, &tree);
     self.ivm.link_wire(out, Port::ERASE);
     self.ivm.normalize();
 

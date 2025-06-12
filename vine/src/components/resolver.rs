@@ -3,7 +3,10 @@ use std::{
   mem::{swap, take},
 };
 
-use vine_util::idx::{Counter, IdxVec, RangeExt};
+use vine_util::{
+  idx::{Counter, IdxVec, RangeExt},
+  new_idx,
+};
 
 use crate::{
   components::finder::Finder,
@@ -41,6 +44,7 @@ pub struct Resolver<'core, 'a> {
   chart: &'a Chart<'core>,
   sigs: &'a mut Signatures<'core>,
   resolutions: &'a mut Resolutions,
+  fragments: &'a mut IdxVec<FragmentId, Fragment<'core>>,
   types: Types<'core>,
   return_ty: Option<Type>,
   cur_def: DefId,
@@ -61,12 +65,23 @@ pub struct Resolver<'core, 'a> {
   closures: IdxVec<ClosureId, TirClosure>,
 }
 
+new_idx!(pub FragmentId);
+
 #[derive(Debug, Default)]
 pub struct Resolutions {
-  pub consts: IdxVec<ConcreteConstId, Tir>,
-  pub fns: IdxVec<ConcreteFnId, Tir>,
+  pub consts: IdxVec<ConcreteConstId, FragmentId>,
+  pub fns: IdxVec<ConcreteFnId, FragmentId>,
   pub impls: IdxVec<ImplId, Result<ResolvedImpl, ErrorGuaranteed>>,
-  pub main: Option<ConcreteFnId>,
+  pub main: Option<FragmentId>,
+}
+
+#[derive(Debug)]
+pub struct Fragment<'core> {
+  pub path: &'core str,
+  pub impl_params: usize,
+  pub const_rels: IdxVec<ConstRelId, (ConstId, Vec<TirImpl>)>,
+  pub fn_rels: IdxVec<FnRelId, (FnId, Vec<TirImpl>)>,
+  pub tir: Tir,
 }
 
 #[derive(Debug, Default)]
@@ -100,12 +115,14 @@ impl<'core, 'a> Resolver<'core, 'a> {
     chart: &'a Chart<'core>,
     sigs: &'a mut Signatures<'core>,
     resolutions: &'a mut Resolutions,
+    fragments: &'a mut IdxVec<FragmentId, Fragment<'core>>,
   ) -> Self {
     Resolver {
       core,
       chart,
       sigs,
       resolutions,
+      fragments,
       types: Types::default(),
       locals: Default::default(),
       return_ty: None,
@@ -175,7 +192,7 @@ impl<'core, 'a> Resolver<'core, 'a> {
   fn resolve_main(&mut self, main_mod: DefId) {
     match self._resolve_main(main_mod) {
       Ok(main_mod) => {
-        self.resolutions.main = Some(main_mod);
+        self.resolutions.main = Some(self.resolutions.fns[main_mod]);
       }
       Err(diag) => {
         self.core.report(diag);
@@ -263,9 +280,10 @@ impl<'core, 'a> Resolver<'core, 'a> {
     self.initialize(const_def.def, const_def.generics);
     let ty = self.types.import(&self.sigs.concrete_consts[const_id], None).ty;
     let root = self.resolve_expr_form_type(&const_def.value, Form::Value, ty);
-    let tir = self.finish_tir(root);
+    let fragment = self.finish_fragment(const_def.span, self.chart.defs[const_def.def].path, root);
+    let fragment_id = self.fragments.push(fragment);
     assert_eq!(self.resolutions.consts.next_index(), const_id);
-    self.resolutions.consts.push(tir);
+    self.resolutions.consts.push(fragment_id);
   }
 
   fn resolve_fn_def(&mut self, fn_id: ConcreteFnId) {
@@ -279,19 +297,22 @@ impl<'core, 'a> Resolver<'core, 'a> {
       form: Form::Value,
       kind: Box::new(TirExprKind::Closure(closure_id)),
     };
-    let tir = self.finish_tir(root);
+    let fragment = self.finish_fragment(fn_def.span, self.chart.defs[fn_def.def].path, root);
+    let fragment_id = self.fragments.push(fragment);
     assert_eq!(self.resolutions.fns.next_index(), fn_id);
-    self.resolutions.fns.push(tir);
+    self.resolutions.fns.push(fragment_id);
   }
 
   pub(crate) fn _resolve_custom(
     &mut self,
+    span: Span,
+    path: &'core str,
     def_id: DefId,
     types: &mut Types<'core>,
     locals: &BTreeMap<Local, (Ident<'core>, Type)>,
     local_count: &mut Counter<Local>,
     block: &mut Block<'core>,
-  ) -> (Tir, impl Iterator<Item = (Ident<'core>, Local, Type)>) {
+  ) -> (FragmentId, impl Iterator<Item = (Ident<'core>, Local, Type)>) {
     self.cur_def = def_id;
     self.scope = locals
       .iter()
@@ -305,8 +326,9 @@ impl<'core, 'a> Resolver<'core, 'a> {
     let root = self.resolve_stmts_type(block.span, &block.stmts, ty);
     *local_count = self.locals;
     swap(types, &mut self.types);
+    let fragment = self.finish_fragment(span, path, root);
     (
-      self.finish_tir(root),
+      self.fragments.push(fragment),
       take(&mut self.scope).into_iter().filter_map(|(name, entries)| {
         let entry = entries.first()?;
         if entry.depth == 0 {
@@ -468,7 +490,7 @@ impl<'core, 'a> Resolver<'core, 'a> {
           Ok(DefTypeKind::Alias(type_alias_id)) => {
             let generics_id = self.chart.type_aliases[type_alias_id].generics;
             let (type_params, _) = self.resolve_generics(path, generics_id, inference);
-            Resolver::new(self.core, self.chart, self.sigs, self.resolutions)
+            Resolver::new(self.core, self.chart, self.sigs, self.resolutions, self.fragments)
               .resolve_type_alias(type_alias_id);
             self
               .types
@@ -999,13 +1021,13 @@ impl<'core, 'a> Resolver<'core, 'a> {
     }
   }
 
-  fn finish_tir(&mut self, root: TirExpr) -> Tir {
-    Tir {
-      locals: self.locals,
-      closures: take(&mut self.closures),
+  fn finish_fragment(&mut self, span: Span, path: &'core str, root: TirExpr) -> Fragment<'core> {
+    Fragment {
+      path,
+      impl_params: self.sigs.generics[self.cur_generics].inner.impl_params.len(),
       const_rels: take(&mut self.const_rels),
       fn_rels: take(&mut self.fn_rels),
-      root,
+      tir: Tir { span, locals: self.locals, closures: take(&mut self.closures), root },
     }
   }
 }

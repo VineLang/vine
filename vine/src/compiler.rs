@@ -9,16 +9,11 @@ use crate::{
     emitter::Emitter,
     loader::Loader,
     normalizer::normalize,
-    resolver::{Resolutions, Resolver},
+    resolver::{Fragment, FragmentId, Resolutions, Resolver},
     specializer::{Specializations, Specializer},
   },
   structures::{
-    chart::{Chart, ConcreteConstId, ConcreteFnId},
-    checkpoint::Checkpoint,
-    core::Core,
-    diag::Diag,
-    signatures::Signatures,
-    vir::Vir,
+    chart::Chart, checkpoint::Checkpoint, core::Core, diag::Diag, signatures::Signatures, vir::Vir,
   },
 };
 
@@ -29,8 +24,8 @@ pub struct Compiler<'core> {
   pub sigs: Signatures<'core>,
   pub resolutions: Resolutions,
   pub specs: Specializations,
-  pub const_vir: IdxVec<ConcreteConstId, Vir>,
-  pub fn_vir: IdxVec<ConcreteFnId, Vir>,
+  pub fragments: IdxVec<FragmentId, Fragment<'core>>,
+  pub vir: IdxVec<FragmentId, Vir>,
 }
 
 impl<'core> Compiler<'core> {
@@ -42,8 +37,8 @@ impl<'core> Compiler<'core> {
       sigs: Signatures::default(),
       resolutions: Resolutions::default(),
       specs: Specializations::default(),
-      const_vir: IdxVec::new(),
-      fn_vir: IdxVec::new(),
+      fragments: IdxVec::new(),
+      vir: IdxVec::new(),
     }
   }
 
@@ -69,43 +64,41 @@ impl<'core> Compiler<'core> {
     charter.chart_root(root);
     hooks.chart(&mut charter);
 
-    let mut resolver = Resolver::new(core, chart, &mut self.sigs, &mut self.resolutions);
+    let mut resolver =
+      Resolver::new(core, chart, &mut self.sigs, &mut self.resolutions, &mut self.fragments);
     resolver.resolve_since(checkpoint);
     hooks.resolve(&mut resolver);
 
-    let mut specializer =
-      Specializer { chart, resolutions: &self.resolutions, specs: &mut self.specs };
-    specializer.specialize_since(checkpoint);
-    hooks.specialize(&mut specializer);
-
     let mut distiller = Distiller::new(core, chart);
-    let mut emitter = Emitter::new(chart, &self.specs);
-    for const_id in chart.concrete_consts.keys_from(checkpoint.concrete_consts) {
-      let tir = &self.resolutions.consts[const_id];
-      let vir = distiller.distill_tir(tir);
+    for fragment_id in self.fragments.keys_from(checkpoint.fragments) {
+      let tir = &self.fragments[fragment_id].tir;
+      let mut vir = distiller.distill_tir(tir);
+      hooks.distill(fragment_id, &mut vir);
       let mut vir = normalize(&vir);
-      analyze(self.core, chart.concrete_consts[const_id].span, &mut vir);
-      assert_eq!(self.const_vir.next_index(), const_id);
-      self.const_vir.push(vir);
+      analyze(self.core, tir.span, &mut vir);
+      assert_eq!(self.vir.next_index(), fragment_id);
+      self.vir.push(vir);
     }
-    for fn_id in chart.concrete_fns.keys_from(checkpoint.concrete_fns) {
-      let tir = &self.resolutions.fns[fn_id];
-      let vir = distiller.distill_tir(tir);
-      let mut vir = normalize(&vir);
-      analyze(self.core, chart.concrete_fns[fn_id].span, &mut vir);
-      assert_eq!(self.fn_vir.next_index(), fn_id);
-      self.fn_vir.push(vir);
-    }
+
+    let mut specializer = Specializer {
+      chart,
+      resolutions: &self.resolutions,
+      fragments: &self.fragments,
+      specs: &mut self.specs,
+    };
+    specializer.specialize_since(checkpoint);
+
+    let mut emitter = Emitter::new(chart, &self.specs, &self.fragments);
 
     if let Some(main) = self.resolutions.main {
       emitter.emit_main(main);
     }
 
     for spec_id in self.specs.specs.keys_from(checkpoint.specs) {
-      emitter.emit_spec(spec_id, &self.const_vir, &self.fn_vir);
+      emitter.emit_spec(spec_id, &self.vir);
     }
 
-    hooks.emit(&mut distiller, &mut emitter);
+    hooks.emit(&mut emitter);
 
     core.bail()?;
 
@@ -116,8 +109,8 @@ impl<'core> Compiler<'core> {
 pub trait Hooks<'core> {
   fn chart(&mut self, _charter: &mut Charter<'core, '_>) {}
   fn resolve(&mut self, _resolver: &mut Resolver<'core, '_>) {}
-  fn specialize(&mut self, _specializer: &mut Specializer<'core, '_>) {}
-  fn emit(&mut self, _distiller: &mut Distiller<'core, '_>, _emitter: &mut Emitter<'core, '_>) {}
+  fn distill(&mut self, _fragment_id: FragmentId, _vir: &mut Vir) {}
+  fn emit(&mut self, _emitter: &mut Emitter<'core, '_>) {}
 }
 
 impl<'core> Hooks<'core> for () {}

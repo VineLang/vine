@@ -7,7 +7,7 @@ use vine_util::{
 
 use crate::structures::{
   ast::{LogicalOp, Span},
-  chart::{ConstId, EnumId, FnId, ImplId, StructId, VariantId},
+  chart::{EnumId, ImplId, StructId, VariantId},
   diag::ErrorGuaranteed,
   types::Type,
 };
@@ -20,10 +20,9 @@ new_idx!(pub ConstRelId);
 
 #[derive(Debug, Clone)]
 pub struct Tir {
+  pub span: Span,
   pub locals: Counter<Local>,
   pub closures: IdxVec<ClosureId, TirClosure>,
-  pub const_rels: IdxVec<ConstRelId, (ConstId, Vec<TirImpl>)>,
-  pub fn_rels: IdxVec<FnRelId, (FnId, Vec<TirImpl>)>,
   pub root: TirExpr,
 }
 

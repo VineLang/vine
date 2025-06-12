@@ -3,7 +3,7 @@ use vine_util::idx::Idx;
 use crate::{
   compiler::Compiler,
   components::{
-    resolver::Resolutions,
+    resolver::{FragmentId, Resolutions},
     specializer::{SpecId, Specializations},
   },
   structures::{
@@ -29,6 +29,7 @@ pub struct Checkpoint {
   pub enums: EnumId,
   pub traits: TraitId,
   pub impls: ImplId,
+  pub fragments: FragmentId,
   pub specs: SpecId,
 }
 
@@ -46,18 +47,19 @@ impl<'core> Compiler<'core> {
       enums: self.chart.enums.next_index(),
       traits: self.chart.traits.next_index(),
       impls: self.chart.impls.next_index(),
+      fragments: self.fragments.next_index(),
       specs: self.specs.specs.next_index(),
     }
   }
 
   pub fn revert(&mut self, checkpoint: &Checkpoint) {
-    let Compiler { core: _, loader: _, chart, sigs, resolutions, specs, const_vir, fn_vir } = self;
+    let Compiler { core: _, loader: _, chart, sigs, resolutions, specs, fragments, vir } = self;
     chart.revert(checkpoint);
     sigs.revert(checkpoint);
     resolutions.revert(checkpoint);
     specs.revert(checkpoint);
-    const_vir.truncate(checkpoint.concrete_consts.0);
-    fn_vir.truncate(checkpoint.concrete_fns.0);
+    fragments.truncate(checkpoint.fragments.0);
+    vir.truncate(checkpoint.fragments.0);
   }
 }
 
@@ -256,18 +258,16 @@ impl Resolutions {
     consts.truncate(checkpoint.concrete_consts.0);
     fns.truncate(checkpoint.concrete_fns.0);
     impls.truncate(checkpoint.impls.0);
-    revert_idx(main, checkpoint.concrete_fns);
+    revert_idx(main, checkpoint.fragments);
   }
 }
 
 impl Specializations {
   fn revert(&mut self, checkpoint: &Checkpoint) {
-    let Specializations { consts, fns, specs } = self;
+    let Specializations { lookup, specs } = self;
     specs.truncate(checkpoint.specs.0);
-    consts.truncate(checkpoint.concrete_consts.0);
-    fns.truncate(checkpoint.concrete_fns.0);
-    consts.values_mut().for_each(|info| info.specs.retain(|_, s| *s < checkpoint.specs));
-    fns.values_mut().for_each(|info| info.specs.retain(|_, s| *s < checkpoint.specs));
+    lookup.truncate(checkpoint.fragments.0);
+    lookup.values_mut().for_each(|map| map.retain(|_, s| *s < checkpoint.specs));
   }
 }
 

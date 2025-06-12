@@ -6,15 +6,15 @@ use vine_util::idx::{Counter, IdxVec};
 use crate::{
   components::{
     analyzer::usage::Usage,
-    specializer::{Spec, SpecId, Specializations, TemplateId},
+    resolver::{Fragment, FragmentId},
+    specializer::{Spec, SpecId, Specializations},
   },
   structures::{
-    chart::{Chart, ConcreteConstId, ConcreteFnId, EnumDef, VariantId},
+    chart::{Chart, EnumDef, VariantId},
     diag::ErrorGuaranteed,
     tir::Local,
     vir::{
-      Header, Interface, InterfaceId, InterfaceKind, Invocation, Port, Stage, StageId, Step,
-      Transfer, Vir,
+      Header, Interface, InterfaceKind, Invocation, Port, Stage, StageId, Step, Transfer, Vir,
     },
   },
 };
@@ -23,42 +23,36 @@ pub struct Emitter<'core, 'a> {
   pub nets: Nets,
   chart: &'a Chart<'core>,
   specs: &'a Specializations,
+  fragments: &'a IdxVec<FragmentId, Fragment<'core>>,
   dup_labels: Counter<usize>,
 }
 
 impl<'core, 'a> Emitter<'core, 'a> {
-  pub fn new(chart: &'a Chart<'core>, specs: &'a Specializations) -> Self {
-    Emitter { nets: Nets::default(), chart, specs, dup_labels: Counter::default() }
+  pub fn new(
+    chart: &'a Chart<'core>,
+    specs: &'a Specializations,
+    fragments: &'a IdxVec<FragmentId, Fragment<'core>>,
+  ) -> Self {
+    Emitter { nets: Nets::default(), chart, specs, fragments, dup_labels: Counter::default() }
   }
 
-  pub fn emit_main(&mut self, main: ConcreteFnId) {
-    let path = self.chart.defs[self.chart.concrete_fns[main].def].path;
+  pub fn emit_main(&mut self, main: FragmentId) {
+    let path = self.fragments[main].path;
     self.nets.insert("::".into(), Net { root: Tree::Global(path.into()), pairs: Vec::new() });
   }
 
-  pub fn emit_spec(
-    &mut self,
-    spec: SpecId,
-    const_vir: &IdxVec<ConcreteConstId, Vir>,
-    fn_vir: &IdxVec<ConcreteFnId, Vir>,
-  ) {
+  pub fn emit_spec(&mut self, spec: SpecId, vir: &IdxVec<FragmentId, Vir>) {
     let spec = self.specs.specs[spec].as_ref().unwrap();
-    let path = self.chart.defs[spec.def].path;
-    let vir = match spec.template {
-      TemplateId::Const(id) => &const_vir[id],
-      TemplateId::Fn(id) => &fn_vir[id],
-    };
-    self.emit_vir(vir, path, spec)
-  }
+    let path = self.fragments[spec.fragment].path;
+    let vir = &vir[spec.fragment];
 
-  pub fn emit_vir(&mut self, vir: &Vir, path: &str, spec: &Spec) {
     let mut emitter = VirEmitter {
       chart: self.chart,
-      path,
-      stages: &vir.stages,
-      interfaces: &vir.interfaces,
       specs: self.specs,
+      fragments: self.fragments,
+      path,
       spec,
+      vir,
       locals: BTreeMap::new(),
       pairs: Vec::new(),
       wire_offset: 0,
@@ -88,11 +82,11 @@ impl<'core, 'a> Emitter<'core, 'a> {
 
 struct VirEmitter<'core, 'a> {
   chart: &'a Chart<'core>,
-  path: &'a str,
-  stages: &'a IdxVec<StageId, Stage>,
-  interfaces: &'a IdxVec<InterfaceId, Interface>,
   specs: &'a Specializations,
+  fragments: &'a IdxVec<FragmentId, Fragment<'core>>,
+  path: &'a str,
   spec: &'a Spec,
+  vir: &'a Vir,
   locals: BTreeMap<Local, LocalState>,
   pairs: Vec<(Tree, Tree)>,
   wire_offset: usize,
@@ -106,10 +100,10 @@ impl<'core, 'a> VirEmitter<'core, 'a> {
   }
 
   pub fn emit_transfer(&mut self, transfer: &Transfer) {
-    let interface = &self.interfaces[transfer.interface];
+    let interface = &self.vir.interfaces[transfer.interface];
     if interface.inline() {
       let InterfaceKind::Unconditional(stage) = interface.kind else { unreachable!() };
-      return self.inline_stage(&self.stages[stage]);
+      return self.inline_stage(&self.vir.stages[stage]);
     }
 
     let target = self.emit_interface(interface, false);
@@ -249,7 +243,7 @@ impl<'core, 'a> VirEmitter<'core, 'a> {
 
   fn emit_step(&mut self, step: &Step) {
     let wire_offset = self.wire_offset;
-    let emit_port = |p| Self::_emit_port(wire_offset, self.chart, self.specs, self.spec, p);
+    let emit_port = |p| Self::_emit_port(wire_offset, self.specs, self.fragments, self.spec, p);
     match step {
       Step::Invoke(local, invocation) => match invocation {
         Invocation::Erase => self.local(*local).erase(),
@@ -343,13 +337,13 @@ impl<'core, 'a> VirEmitter<'core, 'a> {
   }
 
   fn emit_port(&self, port: &Port) -> Tree {
-    Self::_emit_port(self.wire_offset, self.chart, self.specs, self.spec, port)
+    Self::_emit_port(self.wire_offset, self.specs, self.fragments, self.spec, port)
   }
 
   fn _emit_port(
     wire_offset: usize,
-    chart: &Chart,
     specs: &Specializations,
+    fragments: &IdxVec<FragmentId, Fragment<'core>>,
     spec: &Spec,
     port: &Port,
   ) -> Tree {
@@ -359,19 +353,19 @@ impl<'core, 'a> VirEmitter<'core, 'a> {
       Port::N32(n) => Tree::N32(*n),
       Port::F32(f) => Tree::F32(*f),
       Port::Wire(w) => Tree::Var(format!("w{}", wire_offset + w.0)),
-      Port::ConstRel(rel) => Self::_emit_rel_spec(specs, chart, spec.rels.consts[*rel]),
-      Port::FnRel(rel) => Self::_emit_rel_spec(specs, chart, spec.rels.fns[*rel]),
+      Port::ConstRel(rel) => Self::_emit_rel_spec(specs, fragments, spec.rels.consts[*rel]),
+      Port::FnRel(rel) => Self::_emit_rel_spec(specs, fragments, spec.rels.fns[*rel]),
     }
   }
 
   fn _emit_rel_spec(
     specs: &Specializations,
-    chart: &Chart,
+    fragments: &IdxVec<FragmentId, Fragment<'core>>,
     spec_id: Result<SpecId, ErrorGuaranteed>,
   ) -> Tree {
     if let Ok(spec_id) = spec_id {
       let spec = specs.specs[spec_id].as_ref().unwrap();
-      let path = chart.defs[spec.def].path;
+      let path = fragments[spec.fragment].path;
       Tree::Global(if spec.singular {
         path.to_string()
       } else {
