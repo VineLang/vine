@@ -4,13 +4,17 @@ use futures::{stream::FuturesUnordered, StreamExt};
 use tower_lsp::{jsonrpc::Result, lsp_types::*, Client, LanguageServer, LspService, Server};
 
 use vine::{
-  chart::Chart,
-  charter::Charter,
-  core::{Core, CoreArenas},
-  diag::Diag,
-  loader::Loader,
-  resolver::{Resolutions, Resolver},
-  signatures::Signatures,
+  components::{
+    charter::Charter,
+    loader::Loader,
+    resolver::{Resolutions, Resolver},
+  },
+  structures::{
+    chart::Chart,
+    core::{Core, CoreArenas},
+    diag::Diag,
+    signatures::Signatures,
+  },
 };
 
 #[derive(Debug)]
