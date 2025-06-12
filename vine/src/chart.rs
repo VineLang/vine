@@ -26,6 +26,7 @@ pub struct Chart<'core> {
   pub traits: IdxVec<TraitId, TraitDef<'core>>,
   pub impls: IdxVec<ImplId, ImplDef<'core>>,
   pub builtins: Builtins,
+  pub main_mod: Option<DefId>,
 }
 
 #[derive(Debug, Default)]
@@ -303,6 +304,15 @@ impl<'core> Chart<'core> {
     match const_id {
       ConstId::Concrete(const_id) => self.concrete_consts[const_id].generics,
       ConstId::Abstract(trait_id, _) => self.traits[trait_id].subitem_generics,
+    }
+  }
+}
+
+impl<'core> Def<'core> {
+  pub fn fn_id(&self) -> Option<WithVis<FnId>> {
+    match self.value_kind {
+      Some(WithVis { vis, kind: DefValueKind::Fn(fn_id) }) => Some(WithVis { vis, kind: fn_id }),
+      _ => None,
     }
   }
 }

@@ -63,6 +63,7 @@ pub struct Resolutions {
   pub consts: IdxVec<ConcreteConstId, Tir>,
   pub fns: IdxVec<ConcreteFnId, Tir>,
   pub impls: IdxVec<ImplId, Result<ResolvedImpl, ErrorGuaranteed>>,
+  pub main: Option<ConcreteFnId>,
 }
 
 #[derive(Debug, Default)]
@@ -161,6 +162,61 @@ impl<'core, 'a> Resolver<'core, 'a> {
     for id in self.chart.impls.keys_from(checkpoint.impls) {
       self.resolve_impl_def(id);
     }
+    if let Some(main_mod) = self.chart.main_mod {
+      if main_mod >= checkpoint.defs {
+        self.resolve_main(main_mod);
+      }
+    }
+  }
+
+  fn resolve_main(&mut self, main_mod: DefId) {
+    match self._resolve_main(main_mod) {
+      Ok(main_mod) => {
+        self.resolutions.main = Some(main_mod);
+      }
+      Err(diag) => {
+        self.core.report(diag);
+      }
+    }
+  }
+
+  fn _resolve_main(&mut self, main_mod: DefId) -> Result<ConcreteFnId, Diag<'core>> {
+    self.types.reset();
+    let span = Span::NONE;
+    let main_mod_name = self.chart.defs[main_mod].name;
+    let main_ident = self.core.ident("main");
+    let path = Path {
+      span,
+      absolute: true,
+      segments: if main_mod_name == main_ident {
+        vec![main_ident]
+      } else {
+        vec![main_mod_name, main_ident]
+      },
+      generics: None,
+    };
+    let fn_id = self.resolve_path_to(DefId::ROOT, &path, "fn", |def| def.fn_id())?;
+    let generics = &self.chart.generics[self.chart.fn_generics(fn_id)];
+    if !generics.type_params.is_empty() || !generics.impl_params.is_empty() {
+      Err(Diag::GenericMain { span })?
+    }
+    let FnId::Concrete(fn_id) = fn_id else { unreachable!() };
+    let fn_def = &self.chart.concrete_fns[fn_id];
+    let span = fn_def.span;
+    let sig = self.types.import(&self.sigs.concrete_fns[fn_id], None);
+    let found_ty = self.types.new(TypeKind::Fn(sig.params, sig.ret_ty));
+    let io = self.builtin_ty(span, "IO", self.chart.builtins.io);
+    let io_ref = self.types.new(TypeKind::Ref(io));
+    let nil = self.types.nil();
+    let expected_ty = self.types.new(TypeKind::Fn(vec![io_ref], nil));
+    if self.types.unify(found_ty, expected_ty).is_failure() {
+      Err(Diag::ExpectedTypeFound {
+        span,
+        expected: self.types.show(self.chart, expected_ty),
+        found: self.types.show(self.chart, found_ty),
+      })?
+    };
+    Ok(fn_id)
   }
 
   fn initialize(&mut self, def_id: DefId, generics_id: GenericsId) {
@@ -960,9 +1016,14 @@ impl<'core, 'a> Resolver<'core, 'a> {
 
 impl Resolutions {
   pub fn revert(&mut self, checkpoint: &ChartCheckpoint) {
-    let Resolutions { consts, fns, impls } = self;
+    let Resolutions { consts, fns, impls, main } = self;
     consts.truncate(checkpoint.concrete_consts.0);
     fns.truncate(checkpoint.concrete_fns.0);
     impls.truncate(checkpoint.impls.0);
+    if let Some(_main) = *main {
+      if _main < checkpoint.concrete_fns {
+        *main = None;
+      }
+    }
   }
 }

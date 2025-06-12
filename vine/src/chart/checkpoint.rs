@@ -54,7 +54,9 @@ impl<'core> Chart<'core> {
       traits,
       impls,
       builtins,
+      main_mod,
     } = self;
+
     defs.truncate(checkpoint.defs.0);
     imports.truncate(checkpoint.imports.0);
     generics.truncate(checkpoint.generics.0);
@@ -72,6 +74,8 @@ impl<'core> Chart<'core> {
     }
 
     builtins.revert(checkpoint);
+
+    revert_idx(main_mod, checkpoint.defs);
   }
 }
 

@@ -1,4 +1,6 @@
 
+:: { ::main }
+
 ::main {
   fn(dup(io0 io1) _)
   io0 = @io_read_byte(0 dup(byte0 byte1))

@@ -145,6 +145,7 @@ pub struct Attr {
 #[derive(Debug, Clone)]
 pub enum AttrKind {
   Builtin(Builtin),
+  Main,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]

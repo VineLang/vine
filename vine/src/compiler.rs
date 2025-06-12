@@ -93,6 +93,10 @@ impl<'core> Compiler<'core> {
       self.fn_vir.push(vir);
     }
 
+    if let Some(main) = self.resolutions.main {
+      emitter.emit_main(main);
+    }
+
     for spec_id in self.specs.specs.keys_from(checkpoint.specs) {
       emitter.emit_spec(spec_id, &self.const_vir, &self.fn_vir);
     }

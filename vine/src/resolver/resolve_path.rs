@@ -44,7 +44,7 @@ impl<'core> Resolver<'core, '_> {
     }
   }
 
-  fn _resolve_path(
+  pub(super) fn _resolve_path(
     &mut self,
     span: Span,
     source: DefId,

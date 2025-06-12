@@ -38,7 +38,7 @@ pub enum Token {
   N32,
   #[regex(r"[+-][\d\w\.\+\-]+")]
   F32,
-  #[regex(r"(::\p{ID_Continue}+)+")]
+  #[regex(r":[:\p{ID_Continue}]+")]
   Global,
   #[regex(r"\p{ID_Start}\p{ID_Continue}*")]
   Ident,

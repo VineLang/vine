@@ -3,7 +3,6 @@ error tests/programs/fail/atypical.vi:3:24 - types in item signatures cannot be 
 error tests/programs/fail/atypical.vi:5:12 - types in item signatures cannot be elided
 error tests/programs/fail/atypical.vi:4:8 - types in item signatures cannot be elided
 error tests/programs/fail/atypical.vi:4:14 - `::atypical::Foo` expects 1 type parameter; was passed 0
-error - expected type `fn(&IO)`; found `fn(IO)`
 error tests/programs/fail/atypical.vi:5:16 - no function to return from
 error tests/programs/fail/atypical.vi:7:16 - expected type `N32`; found `F32`
 error tests/programs/fail/atypical.vi:8:16 - expected type `F32`; found `N32`
@@ -36,3 +35,4 @@ error tests/programs/fail/atypical.vi:30:3 - type `N32` has no method `parse`
 error tests/programs/fail/atypical.vi:31:3 - cannot find label `stuff`
 error tests/programs/fail/atypical.vi:32:14 - cannot continue label `stuff`
 error tests/programs/fail/atypical.vi:33:3 - expected type `()`; found `N32`
+error - main cannot be generic

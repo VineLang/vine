@@ -4,7 +4,6 @@ error tests/programs/fail/visibility.vi:27:8 - `::visibility::lib::a::b` is only
 error tests/programs/fail/visibility.vi:28:5 - `::visibility::lib::c` is only visible within `::visibility::lib`
 error tests/programs/fail/visibility.vi:29:8 - `::visibility::lib::d::e` is only visible within `::visibility::lib`
 error tests/programs/fail/visibility.vi:33:17 - circular import
-error - `::visibility::main` is only visible within `::visibility`
 error tests/programs/fail/visibility.vi:19:3 - type `IO` has no method `read_char`
 error tests/programs/fail/visibility.vi:20:24 - the value `::visibility::lib::x` is only visible within `::visibility::lib`
 error tests/programs/fail/visibility.vi:20:15 - the type `::visibility::lib::x` is only visible within `::visibility::lib`
@@ -12,3 +11,4 @@ error tests/programs/fail/visibility.vi:20:7 - the pattern `::visibility::lib::x
 error tests/programs/fail/visibility.vi:21:24 - `::visibility::lib::y` is only visible within `::visibility::lib`
 error tests/programs/fail/visibility.vi:21:15 - `::visibility::lib::y` is only visible within `::visibility::lib`
 error tests/programs/fail/visibility.vi:21:7 - `::visibility::lib::y` is only visible within `::visibility::lib`
+error - `::visibility::main` is only visible within `::visibility`

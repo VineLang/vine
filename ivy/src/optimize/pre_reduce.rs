@@ -12,7 +12,7 @@ use crate::{
 
 pub fn pre_reduce(nets: &mut Nets) {
   let mut prune = PreReduce { nets, marks: HashMap::new() };
-  prune.visit_global("::main");
+  prune.visit_global("::");
   let marks = prune.marks;
 
   let heap = &Heap::new();

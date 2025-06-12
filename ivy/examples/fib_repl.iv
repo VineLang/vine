@@ -1,4 +1,6 @@
 
+:: { ::main }
+
 ::main {
   fn(io0 _)
   io0 = @io_print_byte(62 @io_print_byte(32 @io_flush(0 io1)))

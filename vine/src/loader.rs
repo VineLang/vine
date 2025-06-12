@@ -7,10 +7,7 @@ use std::{
 };
 
 use crate::{
-  ast::{
-    self, ConstItem, Expr, ExprKind, GenericParams, Ident, Item, ItemKind, ModItem, ModKind, Span,
-    Ty, TyKind, Vis,
-  },
+  ast::{Attr, AttrKind, Ident, Item, ItemKind, ModItem, ModKind, Span, Vis},
   core::Core,
   diag::{Diag, FileInfo},
   parser::VineParser,
@@ -33,49 +30,8 @@ impl<'core> Loader<'core> {
   }
 
   pub fn load_main_mod(&mut self, path: impl Into<PathBuf>) {
-    let path = path.into();
-    let main = self.core.ident("main");
-    let io = self.core.ident("IO");
-    self.root.push(Item {
-      span: Span::NONE,
-      vis: Vis::Private,
-      attrs: Vec::new(),
-      kind: ItemKind::Const(ConstItem {
-        name: main,
-        generics: GenericParams { span: Span::NONE, impls: vec![], types: vec![] },
-        ty: Ty {
-          span: Span::NONE,
-          kind: TyKind::Fn(
-            vec![Ty {
-              span: Span::NONE,
-              kind: TyKind::Ref(Box::new(Ty {
-                span: Span::NONE,
-                kind: TyKind::Path(ast::Path {
-                  span: Span::NONE,
-                  absolute: false,
-                  segments: vec![io],
-                  generics: None,
-                }),
-              })),
-            }],
-            None,
-          ),
-        },
-        value: Some(Expr {
-          span: Span::NONE,
-          kind: ExprKind::Path(
-            ast::Path {
-              span: Span::NONE,
-              absolute: true,
-              segments: vec![self.auto_mod_name(&path), main],
-              generics: None,
-            },
-            None,
-          ),
-        }),
-      }),
-    });
-    self.load_mod(path)
+    self.load_mod(path);
+    self.root.last_mut().unwrap().attrs.push(Attr { span: Span::NONE, kind: AttrKind::Main });
   }
 
   pub fn load_mod(&mut self, path: impl Into<PathBuf>) {
