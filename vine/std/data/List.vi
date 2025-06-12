@@ -24,6 +24,7 @@ pub mod List {
 
   pub fn .at[T](&List[T](len, *buf, _), i: N32) -> Option[&T] {
     if i >= len {
+      let &_ = buf;
       return None
     }
     while i != 0 {
