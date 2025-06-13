@@ -1,5 +1,6 @@
 
 use data::Iterator;
+use debug::Show;
 use ops::{Cast, comparison::Ord};
 
 pub struct Map[K, V]((N32, MapData[K, V]));
@@ -321,6 +322,17 @@ pub mod Map {
       } else {
         "\{ {string} }"
       }
+    }
+  }
+
+  pub impl show[K, V; Show[K], Show[V]]: Show[Map[K, V]] {
+    fn show(&self: &Map[K, V]) -> Show {
+      let entries = [];
+      let iter = self.iter();
+      while iter.next() is Some(&(key, value)) {
+        entries.push_front((key.show(), value.show()));
+      }
+      Show::Constructor("Map", Show::Object(entries))
     }
   }
 

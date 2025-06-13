@@ -1,9 +1,21 @@
 
+use std::data::Map;
 use std::debug::Show;
 
 pub fn main(&io: &IO) {
   let the_greatest = {
-    a: { a: 1, b: 2.0, c: Some("Woah", "Woah"!) },
+    a: {
+      a: {
+        a: 1,
+        b: Map::empty[List[N32], List[N32]],
+        c: [
+          (3, [(2, Map::empty)] as Map),
+          (4, [(5, [(6, "a"), (7, "b")] as Map), (8, [(9, "c")] as Map), (10, Map::empty)] as Map),
+        ] as Map,
+      },
+      b: 2.0,
+      c: Some("Woah", "Woah"!),
+    },
     b: Some([
       { a: 1, b: 2, c: 3 },
       { a: 100, b: 200, c: 300 },
@@ -29,6 +41,10 @@ pub fn main(&io: &IO) {
 
 impl show_obj[A, B, C; Show[A], Show[B], Show[C]]: Show[{ a: A, b: B, c: C }] {
   fn show(&{ a:: A, b:: B, c:: C }) -> Show {
-    Show::Object([("a", a.show()), ("b", b.show()), ("c", c.show())])
+    Show::Object([
+      (Show::Literal("a"), a.show()),
+      (Show::Literal("b"), b.show()),
+      (Show::Literal("c"), c.show()),
+    ])
   }
 }
