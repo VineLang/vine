@@ -10,7 +10,7 @@ pub enum Show {
   Literal(String),
   Constructor((String, Show)),
   Tuple(List_[Show]),
-  Object(List_[(String, Show)]),
+  Object(List_[(Show, Show)]),
   List(List_[Show]),
 }
 
@@ -44,7 +44,7 @@ pub mod Show {
           let (width, inner) = tuple.pop_front().unwrap()._format(max_width, indent);
           (width + 3, "({inner},)")
         } else {
-          let (width, str, _) = format_comma_sep(tuple, fn(show) { ("", show) }, max_width, indent);
+          let (width, str, _) = format_comma_sep(tuple, fn(show) { [show] }, max_width, indent);
           (width, "({str})")
         }
       }
@@ -52,7 +52,7 @@ pub mod Show {
         if list.len() == 0 {
           (2, "[]")
         } else {
-          let (width, str, _) = format_comma_sep(list, fn(show) { ("", show) }, max_width, indent);
+          let (width, str, _) = format_comma_sep(list, fn(show) { [show] }, max_width, indent);
           (width, "[{str}]")
         }
       }
@@ -62,7 +62,7 @@ pub mod Show {
         } else {
           let (width, str, multiline) = format_comma_sep(
             entries,
-            fn((key, show)) { (key ++ ": ", show) },
+            fn((key, show)) { [key, Literal(": "), show] },
             max_width,
             indent,
           );
@@ -79,7 +79,7 @@ pub mod Show {
 
   fn format_comma_sep[E](
     entries: List_[E],
-    process_entry: fn(E) -> (String, Show),
+    process_entry: fn(E) -> List_[Show],
     max_width: N32,
     indent: N32,
   ) -> (N32, String, Bool) {
@@ -90,16 +90,20 @@ pub mod Show {
     let first = true;
     let iter = entries.into_iter();
     while iter.next() is Some(entry) {
-      let (prefix, show) = process_entry(entry);
-      let (width, value) = show._format(max_width, indent + 2);
-      total_width += prefix.len() + width + 2;
+      let show_iter = process_entry(entry).into_iter();
+      total_width += 2;
       if multiline {
-        str ++= newline(indent + 2) ++ prefix ++ value ++ ",";
-      } else {
-        if !first {
-          str ++= ", ";
-        }
-        str ++= prefix ++ value;
+        str ++= newline(indent + 2);
+      } else if !first {
+        str ++= ", ";
+      }
+      while show_iter.next() is Some(show) {
+        let (width, show_str) = show._format(max_width, indent + 2);
+        total_width += width;
+        str ++= show_str;
+      }
+      if multiline {
+        str ++= ",";
       }
       first = false;
     }
