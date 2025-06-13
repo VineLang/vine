@@ -10,8 +10,6 @@ use crate::structures::{
   tir::Local,
 };
 
-pub mod checkpoint;
-
 #[derive(Debug, Default)]
 pub struct Chart<'core> {
   pub defs: IdxVec<DefId, Def<'core>>,

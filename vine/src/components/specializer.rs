@@ -5,10 +5,8 @@ use vine_util::{idx::IdxVec, new_idx};
 use crate::{
   components::resolver::Resolutions,
   structures::{
-    chart::{
-      checkpoint::ChartCheckpoint, Chart, ConcreteConstId, ConcreteFnId, ConstId, DefId, FnId,
-      GenericsId, ImplId,
-    },
+    chart::{Chart, ConcreteConstId, ConcreteFnId, ConstId, DefId, FnId, GenericsId, ImplId},
+    checkpoint::Checkpoint,
     diag::ErrorGuaranteed,
     tir::{ConstRelId, FnRelId, Tir, TirImpl},
   },
@@ -23,18 +21,18 @@ pub struct Specializer<'core, 'a> {
 
 #[derive(Debug, Default)]
 pub struct Specializations {
-  consts: IdxVec<ConcreteConstId, TemplateInfo>,
-  fns: IdxVec<ConcreteFnId, TemplateInfo>,
+  pub consts: IdxVec<ConcreteConstId, TemplateInfo>,
+  pub fns: IdxVec<ConcreteFnId, TemplateInfo>,
   pub specs: IdxVec<SpecId, Option<Spec>>,
 }
 
 impl<'core, 'a> Specializer<'core, 'a> {
-  pub fn specialize_since(&mut self, checkpoint: &ChartCheckpoint) {
+  pub fn specialize_since(&mut self, checkpoint: &Checkpoint) {
     self.initialize(checkpoint);
     self.specialize_roots(checkpoint);
   }
 
-  fn initialize(&mut self, checkpoint: &ChartCheckpoint) {
+  fn initialize(&mut self, checkpoint: &Checkpoint) {
     for const_id in self.chart.concrete_consts.keys_from(checkpoint.concrete_consts) {
       self.specs.consts.push(TemplateInfo {
         impl_params: self.impl_param_count(self.chart.concrete_consts[const_id].generics),
@@ -54,7 +52,7 @@ impl<'core, 'a> Specializer<'core, 'a> {
     }
   }
 
-  fn specialize_roots(&mut self, checkpoint: &ChartCheckpoint) {
+  fn specialize_roots(&mut self, checkpoint: &Checkpoint) {
     for const_id in self.specs.consts.keys_from(checkpoint.concrete_consts) {
       if self.specs.consts[const_id].impl_params == 0 {
         self.specialize(TemplateId::Const(const_id), Vec::new());
@@ -181,11 +179,11 @@ pub enum TemplateId {
 }
 
 #[derive(Debug, Default)]
-struct TemplateInfo {
+pub struct TemplateInfo {
   impl_params: usize,
   const_rels: IdxVec<ConstRelId, (ConstId, Vec<TirImpl>)>,
   fn_rels: IdxVec<FnRelId, (FnId, Vec<TirImpl>)>,
-  specs: HashMap<Vec<ImplTree>, SpecId>,
+  pub specs: HashMap<Vec<ImplTree>, SpecId>,
 }
 
 new_idx!(pub SpecId);
@@ -206,7 +204,7 @@ pub struct SpecRels {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-struct ImplTree(ImplId, Vec<ImplTree>);
+pub struct ImplTree(ImplId, Vec<ImplTree>);
 
 fn instantiate(impl_: &TirImpl, params: &[ImplTree]) -> Result<ImplTree, ErrorGuaranteed> {
   match &impl_ {
@@ -215,15 +213,5 @@ fn instantiate(impl_: &TirImpl, params: &[ImplTree]) -> Result<ImplTree, ErrorGu
     TirImpl::Def(id, impls) => {
       Ok(ImplTree(*id, impls.iter().map(|i| instantiate(i, params)).collect::<Result<_, _>>()?))
     }
-  }
-}
-
-impl Specializations {
-  pub fn revert(&mut self, checkpoint: &ChartCheckpoint, specs: SpecId) {
-    self.specs.truncate(specs.0);
-    self.consts.truncate(checkpoint.concrete_consts.0);
-    self.fns.truncate(checkpoint.concrete_fns.0);
-    self.consts.values_mut().for_each(|info| info.specs.retain(|_, s| *s < specs));
-    self.fns.values_mut().for_each(|info| info.specs.retain(|_, s| *s < specs));
   }
 }

@@ -13,10 +13,11 @@ use crate::{
       Trait, TraitKind, Ty, TyKind,
     },
     chart::{
-      checkpoint::ChartCheckpoint, Chart, ConcreteConstId, ConcreteFnId, ConstId, DefId,
-      DefImplKind, DefPatternKind, DefTraitKind, DefTypeKind, EnumId, FnId, GenericsId, ImplId,
-      ImplSubitemKind, StructId, TraitConstId, TraitFnId, TraitId, TypeAliasId,
+      Chart, ConcreteConstId, ConcreteFnId, ConstId, DefId, DefImplKind, DefPatternKind,
+      DefTraitKind, DefTypeKind, EnumId, FnId, GenericsId, ImplId, ImplSubitemKind, StructId,
+      TraitConstId, TraitFnId, TraitId, TypeAliasId,
     },
+    checkpoint::Checkpoint,
     core::Core,
     diag::{Diag, ErrorGuaranteed},
     signatures::{
@@ -124,10 +125,10 @@ impl<'core, 'a> Resolver<'core, 'a> {
   }
 
   pub fn resolve_all(&mut self) {
-    self.resolve_since(&ChartCheckpoint::default());
+    self.resolve_since(&Checkpoint::default());
   }
 
-  pub(crate) fn resolve_since(&mut self, checkpoint: &ChartCheckpoint) {
+  pub(crate) fn resolve_since(&mut self, checkpoint: &Checkpoint) {
     for id in self.chart.imports.keys_from(checkpoint.imports) {
       _ = self.resolve_import(id);
     }
@@ -1005,20 +1006,6 @@ impl<'core, 'a> Resolver<'core, 'a> {
       const_rels: take(&mut self.const_rels),
       fn_rels: take(&mut self.fn_rels),
       root,
-    }
-  }
-}
-
-impl Resolutions {
-  pub fn revert(&mut self, checkpoint: &ChartCheckpoint) {
-    let Resolutions { consts, fns, impls, main } = self;
-    consts.truncate(checkpoint.concrete_consts.0);
-    fns.truncate(checkpoint.concrete_fns.0);
-    impls.truncate(checkpoint.impls.0);
-    if let Some(_main) = *main {
-      if _main < checkpoint.concrete_fns {
-        *main = None;
-      }
     }
   }
 }
