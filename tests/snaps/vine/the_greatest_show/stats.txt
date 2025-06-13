@@ -12,6 +12,6 @@ Interactions
   Branch               3_195
 
 Memory
-  Heap                95_152 B
+  Heap                96_544 B
   Allocated        1_343_344 B
   Freed            1_343_344 B

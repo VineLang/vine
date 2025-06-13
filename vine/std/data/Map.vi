@@ -330,7 +330,7 @@ pub mod Map {
       let entries = [];
       let iter = self.iter();
       while iter.next() is Some(&(key, value)) {
-        entries.push_front((key.show(), value.show()));
+        entries.push_back((key.show(), value.show()));
       }
       Show::Constructor("Map", Show::Object(entries))
     }
