@@ -13,8 +13,8 @@ use ivy::{ast::Nets, host::Host};
 use rustyline::DefaultEditor;
 use vine::{
   compiler::Compiler,
-  core::{Core, CoreArenas},
-  repl::Repl,
+  structures::core::{Core, CoreArenas},
+  tools::repl::Repl,
 };
 use vine_lsp::lsp;
 

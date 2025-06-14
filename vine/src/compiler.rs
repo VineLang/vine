@@ -2,18 +2,22 @@ use ivy::ast::Nets;
 use vine_util::idx::IdxVec;
 
 use crate::{
-  analyzer::analyze,
-  chart::{checkpoint::ChartCheckpoint, Chart, ConcreteConstId, ConcreteFnId},
-  charter::Charter,
-  core::Core,
-  distiller::Distiller,
-  emitter::Emitter,
-  loader::Loader,
-  normalizer::normalize,
-  resolver::{Resolutions, Resolver},
-  signatures::Signatures,
-  specializer::{SpecId, Specializations, Specializer},
-  vir::Vir,
+  components::{
+    analyzer::analyze,
+    charter::Charter,
+    distiller::Distiller,
+    emitter::Emitter,
+    loader::Loader,
+    normalizer::normalize,
+    resolver::{Resolutions, Resolver},
+    specializer::{SpecId, Specializations, Specializer},
+  },
+  structures::{
+    chart::{checkpoint::ChartCheckpoint, Chart, ConcreteConstId, ConcreteFnId},
+    core::Core,
+    signatures::Signatures,
+    vir::Vir,
+  },
 };
 
 pub struct Compiler<'core> {
