@@ -19,6 +19,9 @@ fn _foo() {}
 let l = [+1,+2,-13,+4];
 l.find(fn(&x: &I32) { x == +7 })
 *l.find(fn(&x: &I32) { x < +0 }).unwrap() -= +5;
+l.contains(&(+1; _))
+l.contains(&(+4; _))
+l.contains(&(+7; _))
 move l
 let a = Array::from_fn(5, &(0; _), fn(&x: &N32) { let n = x; x += 1; n });
 a.for_each(&io, fn(&io: &IO, v: N32) { io.println("{v}")})
