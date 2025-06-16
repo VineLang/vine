@@ -83,7 +83,7 @@ impl<'core> Compiler<'core> {
       let tir = &self.resolutions.consts[const_id];
       let vir = distiller.distill_tir(tir);
       let mut vir = normalize(&vir);
-      analyze(&mut vir);
+      analyze(self.core, chart.concrete_consts[const_id].span, &mut vir);
       assert_eq!(self.const_vir.next_index(), const_id);
       self.const_vir.push(vir);
     }
@@ -91,7 +91,7 @@ impl<'core> Compiler<'core> {
       let tir = &self.resolutions.fns[fn_id];
       let vir = distiller.distill_tir(tir);
       let mut vir = normalize(&vir);
-      analyze(&mut vir);
+      analyze(self.core, chart.concrete_fns[fn_id].span, &mut vir);
       assert_eq!(self.fn_vir.next_index(), fn_id);
       self.fn_vir.push(vir);
     }
