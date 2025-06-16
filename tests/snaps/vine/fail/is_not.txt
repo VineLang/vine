@@ -6,3 +6,4 @@ error tests/programs/fail/is_not.vi:5:26 - cannot find `y` in `::is_not::main`
 error tests/programs/fail/is_not.vi:5:29 - cannot find `z` in `::is_not::main`
 error tests/programs/fail/is_not.vi:5:25 - expected type `()`; found `(??, ??)`
 error tests/programs/fail/is_not.vi:7:3 - cannot find `y` in `::is_not::main`
+error tests/programs/fail/is_not.vi:2:1 - unconditional infinite loops are invalid
