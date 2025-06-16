@@ -335,7 +335,7 @@ impl<'core> Resolver<'core, '_> {
             });
           }
         } else {
-          self.core.report(Diag::NoReturn { span });
+          Err(Diag::NoReturn { span })?
         }
         (Form::Value, ok, TirExprKind::Try(result))
       }
@@ -545,7 +545,7 @@ impl<'core> Resolver<'core, '_> {
         let data_ty = self.get_struct_data(span, ty, struct_id, type_params);
         self.tuple_field(span, data_ty.invert_if(inv), index)
       }
-      (_, TypeKind::Error(_)) => Some((ty, 0)),
+      (_, TypeKind::Error(_)) => Some((ty, index + 1)),
       _ => None,
     }
   }
@@ -568,7 +568,7 @@ impl<'core> Resolver<'core, '_> {
         let data_ty = self.get_struct_data(span, ty, struct_id, type_params);
         self.object_field(span, data_ty.invert_if(inv), key)
       }
-      (_, TypeKind::Error(_)) => Some((ty, 0, 0)),
+      (_, TypeKind::Error(_)) => Some((ty, 0, 1)),
       _ => None,
     }
   }

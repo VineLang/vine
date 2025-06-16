@@ -354,6 +354,7 @@ impl<'core, 'a> VirEmitter<'core, 'a> {
     port: &Port,
   ) -> Tree {
     match port {
+      Port::Error(_) => Tree::Erase,
       Port::Erase => Tree::Erase,
       Port::N32(n) => Tree::N32(*n),
       Port::F32(f) => Tree::F32(*f),

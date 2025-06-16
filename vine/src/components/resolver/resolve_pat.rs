@@ -100,7 +100,7 @@ impl<'core> Resolver<'core, '_> {
               }
             };
             if !refutable {
-              self.core.report(Diag::ExpectedCompletePat { span });
+              Err(Diag::ExpectedCompletePat { span })?
             }
             let ty = self.types.new(TypeKind::Enum(enum_id, type_params));
             (ty, TirPatKind::Enum(enum_id, variant, data))

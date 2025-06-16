@@ -64,7 +64,7 @@ impl<'core, 'ctx, 'ivm, 'ext> Repl<'core, 'ctx, 'ivm, 'ext> {
     ivm: &'ctx mut IVM<'ivm, 'ext>,
     core: &'core Core<'core>,
     libs: Vec<PathBuf>,
-  ) -> Result<Self, String> {
+  ) -> Result<Self, Vec<Diag<'core>>> {
     let mut compiler = Compiler::new(core);
     for lib in libs {
       compiler.loader.load_mod(lib);
@@ -107,7 +107,7 @@ impl<'core, 'ctx, 'ivm, 'ext> Repl<'core, 'ctx, 'ivm, 'ext> {
     })
   }
 
-  pub fn exec(&mut self, line: &str) -> Result<Option<String>, String> {
+  pub fn exec(&mut self, line: &str) -> Result<Option<String>, Vec<Diag<'core>>> {
     let stmts = match self.parse_line(line) {
       Ok(stmts) => stmts,
       Err(diag) => {

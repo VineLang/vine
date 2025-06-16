@@ -9,6 +9,7 @@ use crate::{
   components::analyzer::usage::Usage,
   structures::{
     chart::Chart,
+    core::Core,
     tir::{ClosureId, Form, LabelId, Local, Tir, TirExpr, TirExprKind, TirPat, TirPatKind},
     vir::{
       Header, Interface, InterfaceId, InterfaceKind, Layer, LayerId, Port, Stage, StageId, Step,
@@ -22,6 +23,8 @@ mod pattern_matching;
 
 #[derive(Debug)]
 pub struct Distiller<'core, 'r> {
+  #[allow(unused)]
+  core: &'core Core<'core>,
   chart: &'r Chart<'core>,
 
   layers: IdxVec<LayerId, Option<Layer>>,
@@ -49,8 +52,9 @@ struct Return {
 }
 
 impl<'core, 'r> Distiller<'core, 'r> {
-  pub fn new(chart: &'r Chart<'core>) -> Self {
+  pub fn new(core: &'core Core<'core>, chart: &'r Chart<'core>) -> Self {
     Distiller {
+      core,
       chart,
       layers: Default::default(),
       interfaces: Default::default(),
@@ -87,9 +91,10 @@ impl<'core, 'r> Distiller<'core, 'r> {
   }
 
   fn distill_expr_value(&mut self, stage: &mut Stage, expr: &TirExpr) -> Port {
-    assert_eq!(expr.form, Form::Value);
+    assert!(matches!(expr.form, Form::Value | Form::Error(_)));
     match &*expr.kind {
-      TirExprKind![error || !value] => unreachable!("{expr:?}"),
+      TirExprKind::Error(err) => Port::Error(*err),
+      TirExprKind![!value] => unreachable!("{expr:?}"),
 
       TirExprKind![cond] => self.distill_cond_bool(stage, expr, false),
       TirExprKind::Closure(closure_id) => self.distill_closure(stage, *closure_id),
@@ -245,9 +250,10 @@ impl<'core, 'r> Distiller<'core, 'r> {
   }
 
   fn distill_expr_space(&mut self, stage: &mut Stage, expr: &TirExpr) -> Port {
-    assert_eq!(expr.form, Form::Space);
+    assert!(matches!(expr.form, Form::Space | Form::Error(_)));
     match &*expr.kind {
-      TirExprKind![error || !space] => unreachable!("{expr:?}"),
+      TirExprKind::Error(err) => Port::Error(*err),
+      TirExprKind![!space] => unreachable!("{expr:?}"),
       TirExprKind::Unwrap(inner) | TirExprKind::Struct(_, inner) => {
         self.distill_expr_space(stage, inner)
       }
@@ -273,9 +279,10 @@ impl<'core, 'r> Distiller<'core, 'r> {
   }
 
   fn distill_expr_place(&mut self, stage: &mut Stage, expr: &TirExpr) -> (Port, Port) {
-    assert_eq!(expr.form, Form::Place);
+    assert!(matches!(expr.form, Form::Place | Form::Error(_)));
     match &*expr.kind {
-      TirExprKind![error || !place] => unreachable!("{expr:?}"),
+      TirExprKind::Error(err) => (Port::Error(*err), Port::Error(*err)),
+      TirExprKind![!place] => unreachable!("{expr:?}"),
       TirExprKind::Unwrap(inner) | TirExprKind::Struct(_, inner) => {
         self.distill_expr_place(stage, inner)
       }
@@ -312,8 +319,9 @@ impl<'core, 'r> Distiller<'core, 'r> {
   }
 
   fn distill_pat_value(&mut self, stage: &mut Stage, pat: &TirPat) -> Port {
-    assert_eq!(pat.form, Form::Value);
+    assert!(matches!(pat.form, Form::Value | Form::Error(_)));
     match &*pat.kind {
+      TirPatKind::Error(err) => Port::Error(*err),
       TirPatKind![!value] | TirPatKind::Enum(..) => unreachable!(),
       TirPatKind::Hole => Port::Erase,
       TirPatKind::Struct(_, inner) => self.distill_pat_value(stage, inner),
@@ -335,8 +343,9 @@ impl<'core, 'r> Distiller<'core, 'r> {
   }
 
   fn distill_pat_space(&mut self, stage: &mut Stage, pat: &TirPat) -> Port {
-    assert_eq!(pat.form, Form::Space);
+    assert!(matches!(pat.form, Form::Space | Form::Error(_)));
     match &*pat.kind {
+      TirPatKind::Error(err) => Port::Error(*err),
       TirPatKind![!space] | TirPatKind::Enum(..) => unreachable!(),
       TirPatKind::Hole => Port::Erase,
       TirPatKind::Struct(_, inner) => self.distill_pat_space(stage, inner),
@@ -352,9 +361,10 @@ impl<'core, 'r> Distiller<'core, 'r> {
   }
 
   fn distill_pat_place(&mut self, stage: &mut Stage, pat: &TirPat) -> (Port, Port) {
-    assert_eq!(pat.form, Form::Place);
+    assert!(matches!(pat.form, Form::Place | Form::Error(_)));
     match &*pat.kind {
-      TirPatKind![!place] | TirPatKind::Enum(..) => unreachable!(),
+      TirPatKind::Error(err) => (Port::Error(*err), Port::Error(*err)),
+      TirPatKind::Enum(..) => unreachable!(),
       TirPatKind::Hole => stage.new_wire(),
       TirPatKind::Struct(_, inner) => self.distill_pat_place(stage, inner),
       TirPatKind::Inverse(inner) => {

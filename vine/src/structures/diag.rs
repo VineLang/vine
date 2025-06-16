@@ -240,28 +240,31 @@ impl<'core> Core<'core> {
     !self.diags.borrow().is_empty()
   }
 
-  pub fn take_diags(&self) -> Vec<Diag> {
+  pub fn take_diags(&self) -> Vec<Diag<'core>> {
     take(&mut *self.diags.borrow_mut())
   }
 
-  pub fn bail(&self) -> Result<(), String> {
-    let mut diags = self.diags.borrow_mut();
+  pub fn bail(&self) -> Result<(), Vec<Diag<'core>>> {
+    let diags = self.take_diags();
     if diags.is_empty() {
       Ok(())
     } else {
-      let mut err = String::new();
-      for diag in diags.iter() {
-        if let Some(span) = diag.span() {
-          match self.show_span(span) {
-            Some(span) => writeln!(err, "error {span} - {}", diag).unwrap(),
-            None => writeln!(err, "error - {}", diag).unwrap(),
-          }
+      Err(diags)
+    }
+  }
+
+  pub fn print_diags(&self, diags: &[Diag<'core>]) -> String {
+    let mut err = String::new();
+    for diag in diags.iter() {
+      if let Some(span) = diag.span() {
+        match self.show_span(span) {
+          Some(span) => writeln!(err, "error {span} - {}", diag).unwrap(),
+          None => writeln!(err, "error - {}", diag).unwrap(),
         }
       }
-      err.pop();
-      diags.clear();
-      Err(err)
     }
+    err.pop();
+    err
   }
 
   pub fn show_span(&self, span: Span) -> Option<String> {
