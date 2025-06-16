@@ -104,6 +104,14 @@ pub mod I32 {
     }
   }
 
+  pub fn .abs(a: I32) -> I32 {
+    if a < +0 {
+      -a
+    } else {
+      a
+    }
+  }
+
   pub impl from_n32: Cast[N32, I32] {
     fn cast(a: N32) -> I32 {
       inline_ivy! (a <- a) -> I32 { a }

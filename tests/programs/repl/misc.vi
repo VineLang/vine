@@ -80,3 +80,8 @@ fn foo() -> Result[N32, String] { Err(123)? }
 let x = (1, 2.0, ([Some(Ok(true)), Some(Err("hi")), None], [1, 2, 3] as Array), ((), ((),), ((), ())));
 x.fork()
 x.drop(); let x;
+-8765.123e-8.abs()
+8765.123e-8.abs()
+F32::inf.abs()
+F32::neg_inf.abs()
+F32::nan.abs()
