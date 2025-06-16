@@ -42,7 +42,7 @@ pub mod F32 {
 
   pub impl pow_n32: Pow[F32, N32, F32] {
     fn pow(base: F32, exp: N32) -> F32 {
-      Pow::pow_by_squaring[F32](base, exp)
+      Pow::pow_by_squaring(base, exp)
     }
   }
 

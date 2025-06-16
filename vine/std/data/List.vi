@@ -318,11 +318,11 @@ pub mod List {
     }
 
     fn lt(a: &List[T], b: &List[T]) -> Bool {
-      Ord::lt_from_cmp[List[T]](a, b)
+      Ord::lt_from_cmp(a, b)
     }
 
     fn le(a: &List[T], b: &List[T]) -> Bool {
-      Ord::le_from_cmp[List[T]](a, b)
+      Ord::le_from_cmp(a, b)
     }
   }
 

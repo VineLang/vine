@@ -297,7 +297,7 @@ mod Node {
       (&node).as[&T].*.fork().as[Node[T]]
     } else {
       let &Node(l, r) = &node;
-      Node(fork[T]((len + 1) / 2, &l), fork[T](len / 2, &r))
+      Node(fork((len + 1) / 2, &l), fork(len / 2, &r))
     }
   }
 
@@ -306,8 +306,8 @@ mod Node {
       node.as[T].drop();
     } else {
       let &Node(l, r) = &node;
-      drop[T]((len + 1) / 2, l);
-      drop[T](len / 2, r);
+      drop((len + 1) / 2, l);
+      drop(len / 2, r);
     }
   }
 }

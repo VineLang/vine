@@ -46,7 +46,7 @@ pub mod I32 {
 
   pub impl pow: Pow[I32, N32, I32] {
     fn pow(base: I32, exp: N32) -> I32 {
-      Pow::pow_by_squaring[I32](base, exp)
+      Pow::pow_by_squaring(base, exp)
     }
   }
 
@@ -167,7 +167,7 @@ pub mod I32 {
     }
 
     fn cmp(a: &I32, b: &I32) -> Ord {
-      Ord::cmp_from_lt[I32](a, b)
+      Ord::cmp_from_lt(a, b)
     }
   }
 

@@ -50,7 +50,7 @@ pub mod Char {
     }
 
     fn cmp(a: &Char, b: &Char) -> Ord {
-      Ord::cmp_from_lt[Char](a, b)
+      Ord::cmp_from_lt(a, b)
     }
   }
 
