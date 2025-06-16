@@ -120,6 +120,14 @@ pub mod F32 {
     f != f
   }
 
+  pub fn .abs(f: F32) -> F32 {
+    if f < 0.0 {
+      -f
+    } else {
+      f
+    }
+  }
+
   pub impl to_string: Cast[F32, String] {
     fn cast(f: F32) -> String {
       if f.is_nan() {

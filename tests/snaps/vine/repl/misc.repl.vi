@@ -344,3 +344,23 @@ x = (1, 2.0, ([Some(Ok(true)), Some(Err("hi")), None], Array(3, Node(Node(Node(#
 > x.drop(); let x;
 
 io = #io
+> -8765.123e-8.abs()
+8.765123e-5
+
+io = #io
+> 8765.123e-8.abs()
+8.765123e-5
+
+io = #io
+> F32::inf.abs()
+::std::numeric::F32::inf
+
+io = #io
+> F32::neg_inf.abs()
+inf
+
+io = #io
+> F32::nan.abs()
+::std::numeric::F32::nan
+
+io = #io
