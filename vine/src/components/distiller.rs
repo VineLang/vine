@@ -425,9 +425,10 @@ impl<'core, 'r> Distiller<'core, 'r> {
     (layer, stage)
   }
 
-  fn finish_stage(&mut self, stage: Stage) {
+  fn finish_stage(&mut self, stage: Stage) -> StageId {
     let id = stage.id;
     self.stages[id] = Some(stage);
+    id
   }
 
   fn finish_layer(&mut self, layer: Layer) {

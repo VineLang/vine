@@ -324,7 +324,7 @@ impl<'core, 'a> Finder<'core, 'a> {
             }
           }
         }
-        Some((Inverted(false), TypeKind::Closure(closure_id, closure_params, closure_ret))) => {
+        Some((Inverted(false), TypeKind::Closure(closure_id, _, closure_params, closure_ret))) => {
           let mut types = types.clone();
           if types
             .unify_types(closure_params, params, Inverted(false))
@@ -336,7 +336,35 @@ impl<'core, 'a> Finder<'core, 'a> {
         }
         _ => {}
       },
-      ImplType::Trait(..) | ImplType::Error(_) => {}
+      ImplType::Trait(trait_id, type_params) => {
+        if Some(*trait_id) == self.chart.builtins.fork {
+          match types.kind(type_params[0]) {
+            Some((Inverted(false), TypeKind::Fn(_))) => {
+              if let Some(copy) = self.chart.builtins.copy {
+                found.push(TypeCtx { types: types.clone(), inner: TirImpl::Def(copy, vec![]) });
+              }
+            }
+            Some((Inverted(false), TypeKind::Closure(id, flex, ..))) if flex.fork() => {
+              found.push(TypeCtx { types: types.clone(), inner: TirImpl::ForkClosure(*id) });
+            }
+            _ => {}
+          }
+        }
+        if Some(*trait_id) == self.chart.builtins.drop {
+          match types.kind(type_params[0]) {
+            Some((Inverted(false), TypeKind::Fn(_))) => {
+              if let Some(erase) = self.chart.builtins.erase {
+                found.push(TypeCtx { types: types.clone(), inner: TirImpl::Def(erase, vec![]) });
+              }
+            }
+            Some((Inverted(false), TypeKind::Closure(id, flex, ..))) if flex.drop() => {
+              found.push(TypeCtx { types: types.clone(), inner: TirImpl::DropClosure(*id) });
+            }
+            _ => {}
+          }
+        }
+      }
+      ImplType::Error(_) => {}
     }
     Ok(())
   }

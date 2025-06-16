@@ -195,6 +195,8 @@ impl Builtins {
       comparison_ops,
       fork,
       drop,
+      copy,
+      erase,
       range,
       bound_exclusive,
       bound_inclusive,
@@ -218,6 +220,8 @@ impl Builtins {
     comparison_ops.values_mut().for_each(|op| revert_fn(op, checkpoint));
     revert_idx(fork, checkpoint.traits);
     revert_idx(drop, checkpoint.traits);
+    revert_idx(copy, checkpoint.impls);
+    revert_idx(erase, checkpoint.impls);
     revert_idx(range, checkpoint.structs);
     revert_idx(bound_exclusive, checkpoint.structs);
     revert_idx(bound_inclusive, checkpoint.structs);

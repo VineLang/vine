@@ -170,6 +170,8 @@ pub enum Builtin {
   Cast,
   Fork,
   Drop,
+  Copy,
+  Erase,
   Range,
   BoundUnbounded,
   BoundInclusive,
@@ -248,6 +250,7 @@ pub struct LetStmt<'core> {
 
 #[derive(Debug, Clone)]
 pub struct LetFnStmt<'core> {
+  pub flex: Flex,
   pub name: Ident<'core>,
   pub params: Vec<Pat<'core>>,
   pub ret: Option<Ty<'core>>,
@@ -271,7 +274,7 @@ pub enum ExprKind<'core> {
   If(Vec<(Expr<'core>, Block<'core>)>, Option<Block<'core>>),
   While(Option<Ident<'core>>, B<Expr<'core>>, Block<'core>),
   Loop(Option<Ident<'core>>, Block<'core>),
-  Fn(Vec<Pat<'core>>, Option<Ty<'core>>, Block<'core>),
+  Fn(Flex, Vec<Pat<'core>>, Option<Ty<'core>>, Block<'core>),
   Return(Option<B<Expr<'core>>>),
   Break(Option<Ident<'core>>, Option<B<Expr<'core>>>),
   Continue(Option<Ident<'core>>),

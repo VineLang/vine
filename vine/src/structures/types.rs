@@ -11,7 +11,7 @@ use vine_util::{
 };
 
 use crate::structures::{
-  ast::{Ident, Span},
+  ast::{Flex, Ident, Span},
   chart::{Chart, DefId, EnumId, FnId, OpaqueTypeId, StructId, TraitId},
   core::Core,
   diag::{Diag, ErrorGuaranteed},
@@ -93,7 +93,7 @@ pub enum TypeKind<'core> {
   Struct(StructId, Vec<Type>),
   Enum(EnumId, Vec<Type>),
   Fn(FnId),
-  Closure(ClosureId, Vec<Type>, Type),
+  Closure(ClosureId, Flex, Vec<Type>, Type),
   Ref(Type),
   Never,
   Error(ErrorGuaranteed),
@@ -652,8 +652,8 @@ impl<'core> TypeKind<'core> {
       TypeKind::Enum(i, els) => TypeKind::Enum(*i, els.iter().copied().map(f).collect()),
       TypeKind::Ref(t) => TypeKind::Ref(f(*t)),
       TypeKind::Fn(i) => TypeKind::Fn(*i),
-      TypeKind::Closure(i, p, r) => {
-        TypeKind::Closure(*i, p.iter().copied().map(&mut f).collect(), f(*r))
+      TypeKind::Closure(i, x, p, r) => {
+        TypeKind::Closure(*i, *x, p.iter().copied().map(&mut f).collect(), f(*r))
       }
       TypeKind::Param(i, n) => TypeKind::Param(*i, *n),
       TypeKind::Never => TypeKind::Never,
@@ -673,7 +673,7 @@ impl<'core> TypeKind<'core> {
       | TypeKind::Struct(_, els)
       | TypeKind::Enum(_, els) => Children::Vec(els.iter().copied()),
       TypeKind::Object(els) => Children::Object(els.values().copied()),
-      TypeKind::Closure(_, p, r) => Children::Closure(p.iter().copied().chain([*r])),
+      TypeKind::Closure(_, _, p, r) => Children::Closure(p.iter().copied().chain([*r])),
     }
   }
 }

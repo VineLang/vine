@@ -52,6 +52,8 @@ pub struct Builtins {
 
   pub fork: Option<TraitId>,
   pub drop: Option<TraitId>,
+  pub copy: Option<ImplId>,
+  pub erase: Option<ImplId>,
 
   pub range: Option<StructId>,
   pub bound_exclusive: Option<StructId>,

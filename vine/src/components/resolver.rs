@@ -9,8 +9,8 @@ use crate::{
   components::finder::Finder,
   structures::{
     ast::{
-      Block, GenericArgs, Ident, Impl, ImplKind, Key, Pat, PatKind, Path, Span, Stmt, StmtKind,
-      Trait, TraitKind, Ty, TyKind,
+      Block, Flex, GenericArgs, Ident, Impl, ImplKind, Key, Pat, PatKind, Path, Span, Stmt,
+      StmtKind, Trait, TraitKind, Ty, TyKind,
     },
     chart::{
       Chart, ConcreteConstId, ConcreteFnId, DefId, DefImplKind, DefPatternKind, DefTraitKind,
@@ -254,7 +254,7 @@ impl<'core, 'a> Resolver<'core, 'a> {
     let fn_def = &self.chart.concrete_fns[fn_id];
     self.initialize(fn_def.def, fn_def.generics);
     let (ty, closure_id) =
-      self.resolve_closure(&fn_def.params, &fn_def.ret_ty, &fn_def.body, false);
+      self.resolve_closure(Flex::None, &fn_def.params, &fn_def.ret_ty, &fn_def.body, false);
     let root = TirExpr {
       span: fn_def.span,
       ty,
@@ -355,7 +355,7 @@ impl<'core, 'a> Resolver<'core, 'a> {
         }
       }
       StmtKind::LetFn(l) => {
-        let (fn_ty, id) = self.resolve_closure(&l.params, &l.ret, &l.body, true);
+        let (fn_ty, id) = self.resolve_closure(l.flex, &l.params, &l.ret, &l.body, true);
         self.bind(l.name, Binding::Closure(id, fn_ty));
         return self.resolve_stmts_type(span, rest, ty);
       }
@@ -374,6 +374,7 @@ impl<'core, 'a> Resolver<'core, 'a> {
 
   fn resolve_closure(
     &mut self,
+    flex: Flex,
     params: &[Pat<'core>],
     ret: &Option<Ty<'core>>,
     body: &Block<'core>,
@@ -397,8 +398,8 @@ impl<'core, 'a> Resolver<'core, 'a> {
     self.loops = old_loops;
     self.return_ty = old_return_ty;
     let param_tys = params.iter().map(|x| x.ty).collect();
-    let id = self.closures.push(TirClosure { params, body });
-    let ty = self.types.new(TypeKind::Closure(id, param_tys, ret_ty));
+    let id = self.closures.push(TirClosure { flex, params, body });
+    let ty = self.types.new(TypeKind::Closure(id, flex, param_tys, ret_ty));
     (ty, id)
   }
 

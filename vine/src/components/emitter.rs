@@ -124,7 +124,7 @@ impl<'core, 'a> VirEmitter<'core, 'a> {
         self.emit_port(transfer.data.as_ref().unwrap()),
         Tree::n_ary("enum", stages.iter().map(|&s| self.emit_stage_node(s)).chain([target])),
       ),
-      InterfaceKind::Fn(..) => (self.emit_port(transfer.data.as_ref().unwrap()), target),
+      InterfaceKind::Fn { .. } => (self.emit_port(transfer.data.as_ref().unwrap()), target),
     });
   }
 
@@ -383,6 +383,15 @@ impl<'core, 'a> VirEmitter<'core, 'a> {
         "fn",
         [root].into_iter().chain(params.iter().chain([result]).map(|port| self.emit_port(port))),
       ),
+      Header::Fork(former, latter) => Tree::n_ary(
+        "fn",
+        [
+          Tree::Erase,
+          Tree::Comb("ref".into(), Box::new(root), Box::new(self.emit_port(latter))),
+          self.emit_port(former),
+        ],
+      ),
+      Header::Drop => Tree::n_ary("fn", [Tree::Erase, root, Tree::Erase]),
     }
   }
 

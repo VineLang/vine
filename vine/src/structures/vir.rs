@@ -79,17 +79,19 @@ pub enum InterfaceKind {
   Unconditional(StageId),
   Branch(StageId, StageId),
   Match(EnumId, Vec<StageId>),
-  Fn(StageId),
+  Fn { call: StageId, fork: Option<StageId>, drop: Option<StageId> },
 }
 
 impl InterfaceKind {
   pub fn stages(&self) -> impl Iterator<Item = StageId> + use<'_> {
-    multi_iter! { Stages { One, Two, Vec } }
+    multi_iter! { Stages { One, Two, Vec, Fn } }
     match self {
       InterfaceKind::Unconditional(a) => Stages::One([*a]),
       InterfaceKind::Branch(a, b) => Stages::Two([*a, *b]),
       InterfaceKind::Match(_, s) => Stages::Vec(s.iter().copied()),
-      InterfaceKind::Fn(a) => Stages::One([*a]),
+      InterfaceKind::Fn { call, fork, drop } => {
+        Stages::Fn([*call].into_iter().chain(*fork).chain(*drop))
+      }
     }
   }
 }
@@ -111,6 +113,8 @@ pub enum Header {
   None,
   Match(Option<Port>),
   Fn(Vec<Port>, Port),
+  Fork(Port, Port),
+  Drop,
 }
 
 #[derive(Debug, Clone)]
@@ -134,11 +138,12 @@ pub enum Step {
 
 impl Header {
   pub fn ports(&self) -> impl Iterator<Item = &Port> {
-    multi_iter!(Ports { Zero, Opt, Fn });
+    multi_iter!(Ports { Zero, Two, Opt, Fn });
     match self {
-      Header::None => Ports::Zero([]),
+      Header::None | Header::Drop => Ports::Zero([]),
       Header::Match(a) => Ports::Opt(a),
       Header::Fn(params, ret) => Ports::Fn(params.iter().chain([ret])),
+      Header::Fork(a, b) => Ports::Two([a, b]),
     }
   }
 }

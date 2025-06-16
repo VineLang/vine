@@ -153,6 +153,8 @@ impl<'core, 'src> VineParser<'core, 'src> {
           "ge" => Builtin::ComparisonOp(ComparisonOp::Ge),
           "Fork" => Builtin::Fork,
           "Drop" => Builtin::Drop,
+          "copy" => Builtin::Copy,
+          "erase" => Builtin::Erase,
           "Range" => Builtin::Range,
           "BoundUnbounded" => Builtin::BoundUnbounded,
           "BoundInclusive" => Builtin::BoundInclusive,
@@ -624,9 +626,10 @@ impl<'core, 'src> VineParser<'core, 'src> {
       return Ok(Some(ExprKind::Loop(label, body)));
     }
     if self.eat(Token::Fn)? {
+      let flex = self.parse_flex()?;
       let params = self.parse_delimited(PAREN_COMMA, Self::parse_pat)?;
       let body = self.parse_block()?;
-      return Ok(Some(ExprKind::Fn(params, None, body)));
+      return Ok(Some(ExprKind::Fn(flex, params, None, body)));
     }
     if self.eat(Token::Match)? {
       let scrutinee = self.parse_expr()?;
@@ -1027,11 +1030,12 @@ impl<'core, 'src> VineParser<'core, 'src> {
     let span = self.start_span();
     let kind = if self.eat(Token::Let)? {
       if self.eat(Token::Fn)? {
+        let flex = self.parse_flex()?;
         let name = self.parse_ident()?;
         let params = self.parse_delimited(PAREN_COMMA, Self::parse_pat)?;
         let ret = self.eat(Token::ThinArrow)?.then(|| self.parse_type()).transpose()?;
         let body = self.parse_block()?;
-        StmtKind::LetFn(LetFnStmt { name, params, ret, body })
+        StmtKind::LetFn(LetFnStmt { flex, name, params, ret, body })
       } else {
         let bind = self.parse_pat()?;
         let init = self.eat(Token::Eq)?.then(|| self.parse_expr()).transpose()?;

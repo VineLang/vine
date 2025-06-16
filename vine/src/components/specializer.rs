@@ -92,7 +92,9 @@ impl<'core, 'a> Specializer<'core, 'a> {
         let impl_ = instantiate(fragment_id, args, impl_);
         match impl_ {
           ImplTree::Error(err) => Err(err),
-          ImplTree::Def(..) => unreachable!(),
+          ImplTree::Def(..) | ImplTree::ForkClosure(..) | ImplTree::DropClosure(..) => {
+            unreachable!()
+          }
           ImplTree::Fn(fn_id, impls) => self.instantiate_fn_id(fn_id, impls),
           ImplTree::Closure(fragment_id, impls, closure_id) => {
             Ok((fragment_id, impls, self._closure_stage(fragment_id, Some(closure_id))))
@@ -115,17 +117,34 @@ impl<'core, 'a> Specializer<'core, 'a> {
       FnId::Abstract(_, fn_id) => {
         assert_eq!(impls.len(), 1);
         let impl_ = impls.pop().unwrap();
-        let (impl_id, impls) = impl_.assume_def()?;
-        let fn_id = self.resolutions.impls[impl_id].as_ref()?.fns[fn_id]?;
-        let fragment_id = self.resolutions.fns[fn_id];
-        Ok((fragment_id, impls, self._closure_stage(fragment_id, None)))
+        match impl_ {
+          ImplTree::Def(impl_id, impls) => {
+            let fn_id = self.resolutions.impls[impl_id].as_ref()?.fns[fn_id]?;
+            let fragment_id = self.resolutions.fns[fn_id];
+            Ok((fragment_id, impls, self._closure_stage(fragment_id, None)))
+          }
+          ImplTree::ForkClosure(fragment_id, impls, closure_id) => {
+            match self._closure_interface(fragment_id, Some(closure_id)) {
+              InterfaceKind::Fn { fork: Some(stage), .. } => Ok((fragment_id, impls, *stage)),
+              _ => unreachable!(),
+            }
+          }
+          ImplTree::DropClosure(fragment_id, impls, closure_id) => {
+            match self._closure_interface(fragment_id, Some(closure_id)) {
+              InterfaceKind::Fn { drop: Some(stage), .. } => Ok((fragment_id, impls, *stage)),
+              _ => unreachable!(),
+            }
+          }
+          ImplTree::Error(err) => Err(err),
+          ImplTree::Fn(..) | ImplTree::Closure(..) => unreachable!(),
+        }
       }
     }
   }
 
   fn _closure_stage(&self, fragment_id: FragmentId, closure_id: Option<ClosureId>) -> StageId {
     match self._closure_interface(fragment_id, closure_id) {
-      InterfaceKind::Fn(fn_stage) => *fn_stage,
+      InterfaceKind::Fn { call, .. } => *call,
       _ => unreachable!(),
     }
   }
@@ -155,6 +174,8 @@ fn instantiate(fragment_id: FragmentId, args: &Vec<ImplTree>, impl_: &TirImpl) -
       ImplTree::Fn(*id, impls.iter().map(|i| instantiate(fragment_id, args, i)).collect())
     }
     TirImpl::Closure(id) => ImplTree::Closure(fragment_id, args.clone(), *id),
+    TirImpl::ForkClosure(id) => ImplTree::ForkClosure(fragment_id, args.clone(), *id),
+    TirImpl::DropClosure(id) => ImplTree::DropClosure(fragment_id, args.clone(), *id),
   }
 }
 
@@ -163,7 +184,7 @@ impl ImplTree {
     match self {
       ImplTree::Def(impl_id, impls) => Ok((impl_id, impls)),
       ImplTree::Error(err) => Err(err),
-      ImplTree::Fn(..) | ImplTree::Closure(..) => unreachable!(),
+      _ => unreachable!(),
     }
   }
 }

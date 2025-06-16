@@ -250,7 +250,9 @@ impl<'core: 'src, 'src> Formatter<'src> {
         Doc(";"),
       ]),
       StmtKind::LetFn(d) => Doc::concat([
-        Doc("let fn "),
+        Doc("let fn"),
+        self.fmt_flex(d.flex),
+        Doc(" "),
         Doc(d.name),
         Doc::paren_comma(d.params.iter().map(|p| self.fmt_pat(p))),
         self.fmt_return_ty(d.ret.as_ref()),
@@ -421,8 +423,10 @@ impl<'core: 'src, 'src> Formatter<'src> {
       ExprKind::Loop(l, b) => {
         Doc::concat([Doc("loop"), self.fmt_label(l), Doc(" "), self.fmt_block(b, true)])
       }
-      ExprKind::Fn(p, _, b) => Doc::concat([
+      ExprKind::Fn(flex, p, _, b) => Doc::concat([
         Doc("fn"),
+        self.fmt_flex(*flex),
+        Doc(" "),
         Doc::paren_comma(p.iter().map(|p| self.fmt_pat(p))),
         Doc(" "),
         self.fmt_block(b, false),

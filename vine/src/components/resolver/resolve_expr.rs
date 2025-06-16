@@ -96,8 +96,8 @@ impl<'core> Resolver<'core, '_> {
           self.bind_label(label, true, result, |self_| self_.resolve_block(block));
         (Form::Value, result, TirExprKind::Loop(label, block))
       }
-      ExprKind::Fn(params, ret, body) => {
-        let (ty, closure_id) = self.resolve_closure(params, ret, body, true);
+      ExprKind::Fn(flex, params, ret, body) => {
+        let (ty, closure_id) = self.resolve_closure(*flex, params, ret, body, true);
         (Form::Value, ty, TirExprKind::Closure(closure_id))
       }
       ExprKind::Break(label, value) => {

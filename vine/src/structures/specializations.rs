@@ -37,4 +37,6 @@ pub enum ImplTree {
   Def(ImplId, Vec<ImplTree>),
   Fn(FnId, Vec<ImplTree>),
   Closure(FragmentId, Vec<ImplTree>, ClosureId),
+  ForkClosure(FragmentId, Vec<ImplTree>, ClosureId),
+  DropClosure(FragmentId, Vec<ImplTree>, ClosureId),
 }

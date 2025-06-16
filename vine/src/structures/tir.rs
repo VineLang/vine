@@ -6,7 +6,7 @@ use vine_util::{
 };
 
 use crate::structures::{
-  ast::{LogicalOp, Span},
+  ast::{Flex, LogicalOp, Span},
   chart::{EnumId, FnId, ImplId, StructId, VariantId},
   diag::ErrorGuaranteed,
   resolutions::{ConstRelId, FnRelId},
@@ -27,6 +27,7 @@ pub struct Tir {
 
 #[derive(Debug, Clone)]
 pub struct TirClosure {
+  pub flex: Flex,
   pub params: Vec<TirPat>,
   pub body: TirExpr,
 }
@@ -188,6 +189,8 @@ pub enum TirImpl {
   Def(ImplId, Vec<TirImpl>),
   Fn(FnId, Vec<TirImpl>),
   Closure(ClosureId),
+  ForkClosure(ClosureId),
+  DropClosure(ClosureId),
 }
 
 impl Form {
