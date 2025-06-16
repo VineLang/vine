@@ -108,7 +108,7 @@ impl<'core, 'a> VirEmitter<'core, 'a> {
 
     self.pairs.push(match &interface.kind {
       InterfaceKind::Unconditional(stage) => (self.emit_stage_node(*stage), target),
-      InterfaceKind::Branch([zero, non_zero]) => (
+      InterfaceKind::Branch(zero, non_zero) => (
         self.emit_port(transfer.data.as_ref().unwrap()),
         Tree::Branch(
           Box::new(self.emit_stage_node(*zero)),

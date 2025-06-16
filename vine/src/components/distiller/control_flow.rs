@@ -310,7 +310,7 @@ impl<'core, 'r> Distiller<'core, 'r> {
         self.interfaces[interface] = Some(Interface::new(
           interface,
           layer.id,
-          InterfaceKind::Branch([false_stage.id, true_stage.id]),
+          InterfaceKind::Branch(false_stage.id, true_stage.id),
         ));
         stage.transfer = Some(Transfer { interface, data: Some(bool) });
         (true_stage, false_stage)

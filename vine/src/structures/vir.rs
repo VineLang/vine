@@ -1,4 +1,3 @@
-use core::slice;
 use std::collections::BTreeMap;
 
 use ivy::ast::Net;
@@ -77,18 +76,19 @@ impl Interface {
 #[derive(Debug, Clone)]
 pub enum InterfaceKind {
   Unconditional(StageId),
-  Branch([StageId; 2]),
+  Branch(StageId, StageId),
   Match(EnumId, Vec<StageId>),
   Fn(StageId),
 }
 
 impl InterfaceKind {
-  pub fn stages(&self) -> &[StageId] {
+  pub fn stages(&self) -> impl Iterator<Item = StageId> + use<'_> {
+    multi_iter! { Stages { One, Two, Vec } }
     match self {
-      InterfaceKind::Unconditional(s) => slice::from_ref(s),
-      InterfaceKind::Branch(s) => s,
-      InterfaceKind::Match(_, s) => s,
-      InterfaceKind::Fn(s) => slice::from_ref(s),
+      InterfaceKind::Unconditional(a) => Stages::One([*a]),
+      InterfaceKind::Branch(a, b) => Stages::Two([*a, *b]),
+      InterfaceKind::Match(_, s) => Stages::Vec(s.iter().copied()),
+      InterfaceKind::Fn(a) => Stages::One([*a]),
     }
   }
 }

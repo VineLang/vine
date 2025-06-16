@@ -91,8 +91,8 @@ impl<'core> Analyzer<'core, '_> {
       return;
     }
     interface.incoming = 1;
-    for i in 0..interface.kind.stages().len() {
-      let stage = &self.stages[self.interfaces[interface_id].kind.stages()[i]];
+    for i in 0..interface.kind.stages().count() {
+      let stage = &self.stages[self.interfaces[interface_id].kind.stages().nth(i).unwrap()];
       for step in &stage.steps {
         if let Step::Transfer(transfer) = step {
           self.sweep(transfer.interface);
