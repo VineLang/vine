@@ -4,14 +4,12 @@ use ivy::ast::{Net, Nets, Tree};
 use vine_util::idx::{Counter, IdxVec};
 
 use crate::{
-  components::{
-    analyzer::usage::Usage,
-    resolver::{Fragment, FragmentId},
-    specializer::{Spec, SpecId, Specializations},
-  },
+  components::analyzer::usage::Usage,
   structures::{
     chart::{Chart, EnumDef, VariantId},
     diag::ErrorGuaranteed,
+    resolutions::{Fragment, FragmentId},
+    specializations::{Spec, SpecId, Specializations},
     tir::Local,
     vir::{
       Header, Interface, InterfaceKind, Invocation, Port, Stage, StageId, Step, Transfer, Vir,

@@ -3,17 +3,18 @@ use vine_util::idx::IdxVec;
 
 use crate::{
   components::{
-    analyzer::analyze,
-    charter::Charter,
-    distiller::Distiller,
-    emitter::Emitter,
-    loader::Loader,
-    normalizer::normalize,
-    resolver::{Fragment, FragmentId, Resolutions, Resolver},
-    specializer::{Specializations, Specializer},
+    analyzer::analyze, charter::Charter, distiller::Distiller, emitter::Emitter, loader::Loader,
+    normalizer::normalize, resolver::Resolver, specializer::Specializer,
   },
   structures::{
-    chart::Chart, checkpoint::Checkpoint, core::Core, diag::Diag, signatures::Signatures, vir::Vir,
+    chart::Chart,
+    checkpoint::Checkpoint,
+    core::Core,
+    diag::Diag,
+    resolutions::{Fragment, FragmentId, Resolutions},
+    signatures::Signatures,
+    specializations::Specializations,
+    vir::Vir,
   },
 };
 

@@ -2,17 +2,15 @@ use vine_util::idx::Idx;
 
 use crate::{
   compiler::Compiler,
-  components::{
-    resolver::{FragmentId, Resolutions},
-    specializer::{SpecId, Specializations},
-  },
   structures::{
     chart::{
       Builtins, Chart, ConcreteConstId, ConcreteFnId, ConstId, Def, DefId, DefImplKind,
       DefPatternKind, DefTraitKind, DefTypeKind, DefValueKind, EnumId, FnId, GenericsId, ImplId,
       ImportId, MemberKind, OpaqueTypeId, StructId, TraitId, TypeAliasId,
     },
+    resolutions::{FragmentId, Resolutions},
     signatures::Signatures,
+    specializations::{SpecId, Specializations},
   },
 };
 

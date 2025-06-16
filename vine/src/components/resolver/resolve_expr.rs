@@ -4,7 +4,8 @@ use crate::{
     ast::{Expr, ExprKind, Ident, LogicalOp, Span},
     chart::{DefValueKind, FnId, OpaqueTypeId, StructId},
     diag::Diag,
-    tir::{FnRelId, TirExpr, TirExprKind, TirImpl},
+    resolutions::FnRelId,
+    tir::{TirExpr, TirExprKind, TirImpl},
     types::{Inverted, TypeKind},
   },
 };

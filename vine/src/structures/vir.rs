@@ -12,7 +12,8 @@ use crate::{
   structures::{
     chart::{EnumId, VariantId},
     diag::ErrorGuaranteed,
-    tir::{ConstRelId, FnRelId, Local},
+    resolutions::{ConstRelId, FnRelId},
+    tir::Local,
   },
 };
 

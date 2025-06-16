@@ -9,14 +9,13 @@ use crate::structures::{
   ast::{LogicalOp, Span},
   chart::{EnumId, ImplId, StructId, VariantId},
   diag::ErrorGuaranteed,
+  resolutions::{ConstRelId, FnRelId},
   types::Type,
 };
 
 new_idx!(pub LabelId);
 new_idx!(pub Local; n => ["l{n}"]);
 new_idx!(pub ClosureId; n => ["c{n}"]);
-new_idx!(pub FnRelId);
-new_idx!(pub ConstRelId);
 
 #[derive(Debug, Clone)]
 pub struct Tir {

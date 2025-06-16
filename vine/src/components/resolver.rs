@@ -3,10 +3,7 @@ use std::{
   mem::{swap, take},
 };
 
-use vine_util::{
-  idx::{Counter, IdxVec, RangeExt},
-  new_idx,
-};
+use vine_util::idx::{Counter, IdxVec, RangeExt};
 
 use crate::{
   components::finder::Finder,
@@ -18,17 +15,18 @@ use crate::{
     chart::{
       Chart, ConcreteConstId, ConcreteFnId, ConstId, DefId, DefImplKind, DefPatternKind,
       DefTraitKind, DefTypeKind, EnumId, FnId, GenericsId, ImplId, ImplSubitemKind, StructId,
-      TraitConstId, TraitFnId, TraitId, TypeAliasId,
+      TraitId, TypeAliasId,
     },
     checkpoint::Checkpoint,
     core::Core,
     diag::{Diag, ErrorGuaranteed},
+    resolutions::{ConstRelId, FnRelId, Fragment, FragmentId, Resolutions, ResolvedImpl},
     signatures::{
       ConstSig, EnumSig, FnSig, GenericsSig, ImplSig, Signatures, StructSig, TraitSig, TypeAliasSig,
     },
     tir::{
-      ClosureId, ConstRelId, FnRelId, Form, LabelId, Local, Tir, TirClosure, TirExpr, TirExprKind,
-      TirImpl, TirPat, TirPatKind,
+      ClosureId, Form, LabelId, Local, Tir, TirClosure, TirExpr, TirExprKind, TirImpl, TirPat,
+      TirPatKind,
     },
     types::{ImplType, Type, TypeCtx, TypeKind, Types},
   },
@@ -63,31 +61,6 @@ pub struct Resolver<'core, 'a> {
   const_rels: IdxVec<ConstRelId, (ConstId, Vec<TirImpl>)>,
   fn_rels: IdxVec<FnRelId, (FnId, Vec<TirImpl>)>,
   closures: IdxVec<ClosureId, TirClosure>,
-}
-
-new_idx!(pub FragmentId);
-
-#[derive(Debug, Default)]
-pub struct Resolutions {
-  pub consts: IdxVec<ConcreteConstId, FragmentId>,
-  pub fns: IdxVec<ConcreteFnId, FragmentId>,
-  pub impls: IdxVec<ImplId, Result<ResolvedImpl, ErrorGuaranteed>>,
-  pub main: Option<FragmentId>,
-}
-
-#[derive(Debug)]
-pub struct Fragment<'core> {
-  pub path: &'core str,
-  pub impl_params: usize,
-  pub const_rels: IdxVec<ConstRelId, (ConstId, Vec<TirImpl>)>,
-  pub fn_rels: IdxVec<FnRelId, (FnId, Vec<TirImpl>)>,
-  pub tir: Tir,
-}
-
-#[derive(Debug, Default)]
-pub struct ResolvedImpl {
-  pub consts: IdxVec<TraitConstId, Result<ConcreteConstId, ErrorGuaranteed>>,
-  pub fns: IdxVec<TraitFnId, Result<ConcreteFnId, ErrorGuaranteed>>,
 }
 
 #[derive(Debug)]
