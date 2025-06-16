@@ -109,6 +109,8 @@ pub struct VineRunCommand {
   #[command(flatten)]
   compile: CompileArgs,
   #[command(flatten)]
+  optimizations: Optimizations,
+  #[command(flatten)]
   run_args: RunArgs,
 }
 
@@ -118,7 +120,7 @@ impl VineRunCommand {
       panic!("must supply main")
     }
     let mut nets = self.compile.compile();
-    Optimizations::default().apply(&mut nets);
+    self.optimizations.apply(&mut nets);
     self.run_args.run(nets);
     Ok(())
   }
