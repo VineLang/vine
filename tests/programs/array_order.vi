@@ -2,20 +2,17 @@
 use std::data::Array;
 
 pub fn main(&io: &IO) {
+  let i = 0;
   let a = Array::from_fn(
     100,
-    &(0; _),
-    fn(&i: &N32) {
+    fn* () {
       let n = i;
       i += 1;
       n
     },
   );
   io.println("{(a.get(42).unwrap())}");
-  a.for_each(
-    &io,
-    fn(&io: &IO, n: N32) {
-      io.println("{n}");
-    },
-  );
+  a.for_each(fn* (n: N32) {
+    io.println("{n}");
+  });
 }

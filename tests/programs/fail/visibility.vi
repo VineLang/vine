@@ -34,7 +34,7 @@ use visibility::circular;
 
 // good
 mod q {
-  const x: fn() = lib::d;
+  fn x() { lib::d() }
   pub.visibility use lib::{
     a::c,
     d,

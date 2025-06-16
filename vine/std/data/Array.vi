@@ -18,8 +18,7 @@ pub mod Array {
     fn cast(List[T](len, buf, _)) -> Array[T] {
       Array::from_fn(
         len,
-        &buf,
-        fn(&buf) {
+        fn* () {
           let List::Buf(head, tail) = buf;
           buf = tail;
           head
@@ -31,36 +30,36 @@ pub mod Array {
   pub impl to_list[T]: Cast[Array[T], List[T]] {
     fn cast(self: Array[T]) -> List[T] {
       let end;
-      List(self.len(), self.fold_back(move ~end, fn(a, b) { List::Buf(b, a) }), end)
+      List(self.len(), self.fold_back(move ~end, fn* (a, b) { List::Buf(b, a) }), end)
     }
   }
 
-  pub fn from_fn[T, S](len: N32, &state: &S, f: fn(&S) -> T) -> Array[T] {
+  pub fn from_fn[T, F*; fn F() -> T](len: N32, f: F) -> Array[T] {
     if len == 0 {
       Array::empty
     } else {
       let ~ins;
-      let (node, outs) = Node::unzip_with(len, move ~ins, fn(s) { (f(&s), s) });
+      let (node, outs) = Node::unzip_with(len, move ~ins, fn* (f: F) { (f.fork()(), f) });
       let outs = Array(len, outs);
-      let end = outs.pop_back().unwrap();
-      outs.push_front(state);
+      outs.pop_back().unwrap().drop();
+      outs.push_front(f);
       let Array(_, outs) = outs;
       ~ins = outs;
       Array(len, node)
     }
   }
 
-  pub fn .for_each[T, S](self: Array[T], &state: &S, f: fn(&S, T)) {
-    state = self.fold_front(
-      state,
-      fn(state, value) {
-        f(&state, value);
-        state
+  pub fn .for_each[T, F*; fn F(T)](self: Array[T], f: F) {
+    self.fold_front(
+      f,
+      fn* (f: F, value) {
+        f.fork()(value);
+        f
       },
-    )
+    ).drop()
   }
 
-  pub fn .fold_front[T, U](Array[T](len, node), initial: U, f: fn(U, T) -> U) -> U {
+  pub fn .fold_front[T, U, F*; fn F(U, T) -> U](Array[T](len, node), initial: U, f: F) -> U {
     if len == 0 {
       initial
     } else {
@@ -74,7 +73,7 @@ pub mod Array {
     }
   }
 
-  pub fn .fold_back[T, U](Array[T](len, node), initial: U, f: fn(U, T) -> U) -> U {
+  pub fn .fold_back[T, U, F*; fn F(U, T) -> U](Array[T](len, node), initial: U, f: F) -> U {
     if len == 0 {
       initial
     } else {
@@ -207,7 +206,7 @@ pub mod Array {
       if len == 0 {
         Array::empty
       } else {
-        Array(len, Node::fork[T](len, &node))
+        Array(len, Node::fork(len, &node))
       }
     }
   }
@@ -217,7 +216,7 @@ pub mod Array {
       if len == 0 {
         unsafe::erase(node)
       } else {
-        Node::drop[T](len, node)
+        Node::drop(len, node)
       }
     }
   }
@@ -271,7 +270,7 @@ mod Node {
     }
   }
 
-  pub fn zip_with[T, U, V](len: N32, x: Node[T], y: Node[U], f: fn(T, U) -> V) -> Node[V] {
+  pub fn zip_with[T, U, V, F*; fn F(T, U) -> V](len: N32, x: Node[T], y: Node[U], f: F) -> Node[V] {
     if len == 1 {
       f(x as T, y as U) as Node
     } else {
@@ -281,7 +280,7 @@ mod Node {
     }
   }
 
-  pub fn unzip_with[T, U, V](len: N32, x: Node[T], f: fn(T) -> (U, V)) -> (Node[U], Node[V]) {
+  pub fn unzip_with[T, U, V, F; fn F(T) -> (U, V)](len: N32, x: Node[T], f: F) -> (Node[U], Node[V]) {
     if len == 1 {
       let (u, v) = f(x as T);
       (u as Node, v as Node)

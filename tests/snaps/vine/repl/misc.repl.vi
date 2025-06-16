@@ -58,15 +58,15 @@ io = #io
 [4, 3, 2, 1]
 
 io = #io
-> [1,2,3,4].filter(fn(&x: &N32) { x % 2 == 0 })
+> [1,2,3,4].filter(fn* (&x: &N32) { x % 2 == 0 })
 [2, 4]
 
 io = #io
-> ["aaa", "bbb", "ccc"].filter(fn(&x: &String) { x.len() > 2 })
+> ["aaa", "bbb", "ccc"].filter(fn* (&x: &String) { x.len() > 2 })
 ["aaa", "bbb", "ccc"]
 
 io = #io
-> [].filter(fn(&x: &Bool) { x })
+> [].filter(fn* (&x: &Bool) { x })
 []
 
 io = #io
@@ -74,12 +74,12 @@ io = #io
 
 io = #io
 l = [+1, +2, -13, +4]
-> l.find(fn(&x: &I32) { x == +7 })
+> l.find(fn* (&x: &I32) { x == +7 })
 None
 
 io = #io
 l = [+1, +2, -13, +4]
-> *l.find(fn(&x: &I32) { x < +0 }).unwrap() -= +5;
+> *l.find(fn* (&x: &I32) { x < +0 }).unwrap() -= +5;
 
 io = #io
 l = [+1, +2, -18, +4]
@@ -94,7 +94,7 @@ true
 io = #io
 l = [+1, +2, -18, +4]
 > l.contains(&(+7; _))
-::std::data::List::contains::0::7
+::std::data::List::contains::0::9
 
 io = #io
 l = [+1, +2, -18, +4]
@@ -102,11 +102,11 @@ l = [+1, +2, -18, +4]
 [+1, +2, -18, +4]
 
 io = #io
-> let a = Array::from_fn(5, &(0; _), fn(&x: &N32) { let n = x; x += 1; n });
+> let a = Array::from_fn(5, do { let x = 0; (fn* () { let n = x; x += 1; n }) });
 
 io = #io
 a = Array(5, Node(Node(Node(Node(#ivy(0)), Node(#ivy(4))), Node(#ivy(2))), Node(Node(#ivy(1)), Node(#ivy(3)))))
-> a.for_each(&io, fn(&io: &IO, v: N32) { io.println("{v}")})
+> a.for_each(fn* (v: N32) { io.println("{v}")})
 0
 1
 2
@@ -115,12 +115,12 @@ a = Array(5, Node(Node(Node(Node(#ivy(0)), Node(#ivy(4))), Node(#ivy(2))), Node(
 
 io = #io
 a = Array(5, Node(Node(Node(Node(#ivy(0)), Node(#ivy(4))), Node(#ivy(2))), Node(Node(#ivy(1)), Node(#ivy(3)))))
-> -a.fold_front(0, fn(a: N32, b: N32) { a - b })
+> -a.fold_front(0, fn* (a: N32, b: N32) { a - b })
 10
 
 io = #io
 a = Array(5, Node(Node(Node(Node(#ivy(0)), Node(#ivy(4))), Node(#ivy(2))), Node(Node(#ivy(1)), Node(#ivy(3)))))
-> -a.fold_back(5, fn(a: N32, b: N32) { a - b })
+> -a.fold_back(5, fn* (a: N32, b: N32) { a - b })
 5
 
 io = #io
@@ -252,7 +252,7 @@ io = #io
 
 io = #io
 > 123.show(2)
-error input:1:1 - function type `fn(&N32) -> Show` expects 1 argument; was passed 2
+error input:1:1 - function expects 1 argument; was passed 2
 
 io = #io
 > let x = [[1]];
@@ -287,7 +287,7 @@ error input:1:29 - expected type `{ a: N32, b: N32 }`; found `{ a: N32 }`
 
 io = #io
 > do { let x; x = (x, x); }
-error input:1:17 - expected type `?1040`; found `(?1040, ?1040)`
+error input:1:17 - expected type `?1237`; found `(?1237, ?1237)`
 
 io = #io
 > let (a: N32, b: N32);

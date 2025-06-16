@@ -2,15 +2,15 @@
 pub fn main(&io: &IO) {
   let input = io.full_input();
 
-  let lines = input.split_trim("\n").map(fn(line: String) {
+  let lines = input.split_trim("\n").map(fn* (line: String) {
     let parts = line.split("   ");
     let left = N32::parse(parts.pop_front().unwrap()).unwrap();
     let right = N32::parse(parts.pop_front().unwrap()).unwrap();
     (left, right)
   });
 
-  let left = lines.map(fn((left, _)) { left });
-  let right = lines.map(fn((_, right)) { right });
+  let left = lines.map(fn* ((left, _)) { left });
+  let right = lines.map(fn* ((_, right)) { right });
 
   left.sort_by(N32::ascending);
   right.sort_by(N32::ascending);

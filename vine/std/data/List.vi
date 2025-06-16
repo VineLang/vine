@@ -73,7 +73,7 @@ pub mod List {
     (prefix, self)
   }
 
-  pub fn .map[T, U](List[T](l, buf, ~_), f: fn(T) -> U) -> List[U] {
+  pub fn .map[T, U, F*; fn F(T) -> U](List[T](l, buf, ~_), f: F) -> List[U] {
     let len = l;
     let cur;
     let result = move ~cur;
@@ -81,20 +81,22 @@ pub mod List {
       let Buf(head, tail) = buf;
       buf = tail;
       let next;
-      ~cur = Buf(f(head), move ~next);
+      ~cur = Buf(f.fork()(head), move ~next);
       ~next = move ~cur;
       l -= 1;
     }
+    f.drop()
     List(len, result, move cur)
   }
 
-  pub fn .filter[T](self: List[T], pred: fn(&T) -> Bool) -> List[T] {
+  pub fn .filter[T, F*; fn F(&T) -> Bool](self: List[T], pred: F) -> List[T] {
     let result = [];
     while self.pop_front() is Some(value) {
-      if pred(&value) {
+      if pred.fork()(&value) {
         result.push_back(value);
       }
     }
+    pred.drop()
     result
   }
 
@@ -137,19 +139,20 @@ pub mod List {
     buf = Buf(el, buf);
   }
 
-  pub fn .find[T](&self: &List[T], pred: fn(&T) -> Bool) -> Option[&T] {
+  pub fn .find[T, F*; fn F(&T) -> Bool](&self: &List[T], pred: F) -> Option[&T] {
     let iter = self.iter();
     while iter.next() is Some(&value) {
-      if pred(&value) {
+      if pred.fork()(&value) {
         iter.drop_iter();
         return Some(&value)
       }
     }
+    pred.drop()
     None
   }
 
   pub fn .contains[T; Eq[T]](&self: &List[T], &el: &T) -> Bool {
-    self.find(fn(&e: &T) { e == el }) is Some(&_)
+    self.find(fn* (&e: &T) { e == el }) is Some(&_)
   }
 
   pub fn .join[T; Cast[T, String]](list: List[T], sep: String) -> String {
@@ -165,10 +168,10 @@ pub mod List {
     }
   }
 
-  pub fn .drop_while[T](&List[T](len, buf, ~_), pred: fn(&T) -> Bool) {
+  pub fn .drop_while[T, F*; fn F(&T) -> Bool](&List[T](len, buf, ~_), pred: F) {
     while len != 0 {
       let Buf(head, tail) = buf;
-      if !pred(&head) {
+      if !pred.fork()(&head) {
         // Assign buffer again to prevent cloning in the else case
         buf = Buf(head, tail);
         break;
@@ -176,6 +179,7 @@ pub mod List {
       buf = tail;
       len -= 1;
     }
+    pred.drop()
   }
 
   pub impl show[T; Show[T]]: Show[List[T]] {
@@ -189,12 +193,12 @@ pub mod List {
     }
   }
 
-  pub fn .sort_by[T](&self: &List[T], cmp: fn(&T, &T) -> Bool) {
+  pub fn .sort_by[T, F*; fn F(&T, &T) -> Bool](&self: &List[T], cmp: F) {
     let output = [];
     while self.pop_front() is Some(a) {
       let left = [];
       while output.pop_front() is Some(b) {
-        if cmp(&a, &b) {
+        if cmp.fork()(&a, &b) {
           output.push_front(b);
           break;
         } else {
@@ -203,6 +207,7 @@ pub mod List {
       }
       output = left ++ [a] ++ output;
     }
+    cmp.drop()
     self = output;
   }
 

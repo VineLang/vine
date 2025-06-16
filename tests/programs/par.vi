@@ -2,13 +2,20 @@
 use std::{ops::Cast, rng::Pcg32};
 
 trait Session[A, B] {
-  fn fork(f: fn(A)) -> B;
+  fn _fork(a: ~A) -> B;
+}
+
+mod Session {
+  pub fn fork[A, B, F; Session[A, B], fn F(A)](f: F) -> B {
+    let a;
+    let b = Session::_fork[A, B](move ~a);
+    f(a);
+    b
+  }
 }
 
 impl nil_session: Session[(), ()] {
-  fn fork(f: fn(())) -> () {
-    f(())
-  }
+  fn _fork(~()) -> () {}
 }
 
 struct Channel[T, S]((T, S));
@@ -17,8 +24,6 @@ type Recv[T, S] = Channel[T, S];
 type Send[T, S] = Channel[~T, S];
 
 mod Channel {
-  pub use channel_session::fork;
-
   pub fn .recv[T, S](Channel[T, S](t, s)) -> (T, S) {
     (t, s)
   }
@@ -36,17 +41,17 @@ mod Channel {
     out = value;
   }
 
-  pub fn .choose[T, P, Q; Session[P, Q]](Channel[~T, ()](~out, ()), choice: fn(P) -> T) -> Q {
-    Session::fork[P, Q](fn(p: P) {
+  pub fn .choose[T, P, Q, F; Session[P, Q], fn F(P) -> T](Channel[~T, ()](~out, ()), choice: F) -> Q {
+    Session::fork[P, Q, _](fn (p: P) {
       out = choice(p);
     })
   }
 }
 
 impl channel_session[T, P, Q; Session[P, Q]]: Session[Recv[T, P], Send[T, Q]] {
-  fn fork(f: fn(Recv[T, P])) -> Send[T, Q] {
+  fn _fork(~out: ~Recv[T, P]) -> Send[T, Q] {
     let value: T;
-    Channel(move ~value, Session::fork[P, Q](fn(s) { f(Channel(value, s)) }))
+    Channel(move ~value, Session::fork[P, Q, _](fn (s) { out = Channel(value, s) }))
   }
 }
 
@@ -89,7 +94,7 @@ fn start_playing(&io: &IO) -> Game {
   use Outcome::{Draw, Loss, Win};
   use Winner::{First, Second, Third};
 
-  Session::fork[_, Game](fn(game: GameDual) {
+  Session::fork[_, Game, _](fn (game: GameDual) {
     let ((player1, player2, player3), winner) = game.recv();
 
     loop {
@@ -121,9 +126,9 @@ fn start_playing(&io: &IO) -> Game {
       }
 
       let fn draw() {
-        player1 = outcome1.choose[_, _, Player](fn(x) { Draw(x) });
-        player2 = outcome2.choose[_, _, Player](fn(x) { Draw(x) });
-        player3 = outcome3.choose[_, _, Player](fn(x) { Draw(x) });
+        player1 = outcome1.choose[_, _, Player, _](fn (x) { Draw(x) });
+        player2 = outcome2.choose[_, _, Player, _](fn (x) { Draw(x) });
+        player3 = outcome3.choose[_, _, Player, _](fn (x) { Draw(x) });
         io.println("Draw...");
       }
 
@@ -149,7 +154,7 @@ fn random_player(&rng: &Pcg32) -> Player {
       Move::Down
     }
   }
-  Session::fork[Round, _](fn(round: Round) {
+  Session::fork[Round, _, _](fn (round: Round) {
     while round.send(random_move()).recv1() is Outcome::Draw(next_round) {
       round = next_round;
     }

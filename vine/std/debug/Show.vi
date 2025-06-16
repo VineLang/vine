@@ -44,7 +44,7 @@ pub mod Show {
           let (width, inner) = tuple.pop_front().unwrap()._format(max_width, indent);
           (width + 3, "({inner},)")
         } else {
-          let (width, str, _) = format_comma_sep(tuple, fn(show) { [show] }, max_width, indent);
+          let (width, str, _) = format_comma_sep(tuple, fn* (show) { [show] }, max_width, indent);
           (width, "({str})")
         }
       }
@@ -52,7 +52,7 @@ pub mod Show {
         if list.len() == 0 {
           (2, "[]")
         } else {
-          let (width, str, _) = format_comma_sep(list, fn(show) { [show] }, max_width, indent);
+          let (width, str, _) = format_comma_sep(list, fn* (show) { [show] }, max_width, indent);
           (width, "[{str}]")
         }
       }
@@ -62,7 +62,7 @@ pub mod Show {
         } else {
           let (width, str, multiline) = format_comma_sep(
             entries,
-            fn((key, show)) { [key, Literal(": "), show] },
+            fn* ((key, show)) { [key, Literal(": "), show] },
             max_width,
             indent,
           );
@@ -77,9 +77,9 @@ pub mod Show {
     }
   }
 
-  fn format_comma_sep[E](
+  fn format_comma_sep[E, F*; fn F(E) -> List_[Show]](
     entries: List_[E],
-    process_entry: fn(E) -> List_[Show],
+    process_entry: F,
     max_width: N32,
     indent: N32,
   ) -> (N32, String, Bool) {
@@ -90,7 +90,7 @@ pub mod Show {
     let first = true;
     let iter = entries.into_iter();
     while iter.next() is Some(entry) {
-      let show_iter = process_entry(entry).into_iter();
+      let show_iter = process_entry.fork()(entry).into_iter();
       total_width += 2;
       if multiline {
         str ++= newline(indent + 2);
@@ -111,6 +111,7 @@ pub mod Show {
       str ++= newline(indent);
     }
     ~_multiline = total_width > max_width;
+    process_entry.drop();
     (total_width, str, multiline)
   }
 

@@ -28,7 +28,7 @@ pub fn main(&io: &IO) {
   }
 
   let fn show_grid() {
-    io.println(grid.as[List].map(fn(array: Array) { array as List as String }).join("\n"));
+    io.println(grid.as[List].map(fn* (array: Array) { array as List as String }).join("\n"));
   }
 
   let instructions = [];
@@ -77,7 +77,7 @@ pub fn main(&io: &IO) {
 
   io.println("Part 1: {part1}");
 
-  grid = initial_grid.as[List].map(fn(row: Array[Char]) {
+  grid = initial_grid.as[List].map(fn* (row: Array[Char]) {
     let new_row = [];
     let row = row as List;
     while row.pop_front() is Some(char) {

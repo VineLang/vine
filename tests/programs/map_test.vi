@@ -28,7 +28,7 @@ pub fn main(&io: &IO) {
     if !(count == map.len() == expected_length) {
       io.println("bad length");
     }
-    if !balanced(&map) {
+    if !map.balanced() {
       io.println("imbalanced");
     }
   }
@@ -60,10 +60,6 @@ pub fn main(&io: &IO) {
 
   io.println("done");
 }
-
-const balanced[K, V]: fn(&Map[K, V]) -> Bool = inline_ivy! () -> _ {
-  ::std::data::Map::balanced
-};
 
 pub fn rand(&seed: &N32) -> N32 {
   seed = seed * 49081047 + 93120830;
