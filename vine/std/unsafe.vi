@@ -11,3 +11,7 @@ pub const eraser[T]: T = inline_ivy! () -> T { _ };
 pub fn erase[T](value: T) {
   ~eraser = value;
 }
+
+pub fn unreachable[T]() -> T {
+  eraser
+}

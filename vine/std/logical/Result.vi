@@ -51,6 +51,7 @@ pub mod Result {
   pub fn .unwrap[T, E](self: Result[T, E], default: T) -> T {
     match self {
       Ok(val) { val }
+      Err(_) { unsafe::unreachable() }
     }
   }
 

@@ -218,6 +218,8 @@ diags! {
     ["main cannot be generic"]
   InfiniteLoop
     ["unconditional infinite loops are invalid"]
+  NonExhaustiveMatch
+    ["match arms do not cover all possible cases"]
 }
 
 fn plural<'a>(n: usize, plural: &'a str, singular: &'a str) -> &'a str {

@@ -23,7 +23,6 @@ mod pattern_matching;
 
 #[derive(Debug)]
 pub struct Distiller<'core, 'r> {
-  #[allow(unused)]
   core: &'core Core<'core>,
   chart: &'r Chart<'core>,
 
@@ -110,7 +109,7 @@ impl<'core, 'r> Distiller<'core, 'r> {
       TirExprKind::Return(value) => self.distill_return(stage, value),
       TirExprKind::Break(label, value) => self.distill_break(stage, *label, value),
       TirExprKind::Continue(label) => self.distill_continue(stage, *label),
-      TirExprKind::Match(value, arms) => self.distill_match(stage, value, arms),
+      TirExprKind::Match(value, arms) => self.distill_match(expr.span, stage, value, arms),
       TirExprKind::Try(result) => self.distill_try(stage, result),
 
       TirExprKind::Unwrap(inner) | TirExprKind::Struct(_, inner) => {

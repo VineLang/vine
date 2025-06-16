@@ -78,6 +78,7 @@ impl<'core, 'r> Distiller<'core, 'r> {
     let mut then_stage = self.new_unconditional_stage(&mut layer);
     let mut else_stage = self.new_unconditional_stage(&mut layer);
     self.distill_pattern_match(
+      Span::NONE,
       &mut layer,
       &mut init_stage,
       value,
@@ -96,6 +97,7 @@ impl<'core, 'r> Distiller<'core, 'r> {
 
   pub(super) fn distill_match(
     &mut self,
+    span: Span,
     stage: &mut Stage,
     value: &TirExpr,
     arms: &[(TirPat, TirExpr)],
@@ -114,7 +116,7 @@ impl<'core, 'r> Distiller<'core, 'r> {
         Row::new(Some(pat), interface)
       })
       .collect();
-    self.distill_pattern_match(&mut layer, &mut init_stage, value, rows);
+    self.distill_pattern_match(span, &mut layer, &mut init_stage, value, rows);
     self.finish_stage(init_stage);
     self.finish_layer(layer);
     stage.take_local(local)
@@ -329,6 +331,7 @@ impl<'core, 'r> Distiller<'core, 'r> {
         let true_stage = self.new_unconditional_stage(layer);
         let false_stage = self.new_unconditional_stage(layer);
         self.distill_pattern_match(
+          Span::NONE,
           layer,
           stage,
           value,
@@ -384,6 +387,7 @@ impl<'core, 'r> Distiller<'core, 'r> {
     };
 
     self.distill_pattern_match(
+      Span::NONE,
       &mut layer,
       &mut init_stage,
       result,
