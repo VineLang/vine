@@ -503,8 +503,9 @@ impl<'core> Resolver<'core, '_> {
             }
             Ok(DefValueKind::Fn(fn_id)) => {
               if let Some(args) = args.take() {
-                let (type_params, impl_params) =
-                  self.resolve_generics(path, self.chart.fn_generics(fn_id), true);
+                let generics_id = self.chart.fn_generics(fn_id);
+                let type_params_len = self.chart.generics[generics_id].type_params.len();
+                let type_params = self.types.new_vars(path.span, type_params_len);
                 let sig = self.types.import(self.sigs.fn_sig(fn_id), Some(&type_params));
                 if sig.params.len() != args.len() {
                   for arg in args {
@@ -514,9 +515,19 @@ impl<'core> Resolver<'core, '_> {
                 }
                 let args = args
                   .iter()
-                  .zip(sig.params)
-                  .map(|(arg, ty)| self.resolve_expr_form_type(arg, Form::Value, ty))
+                  .map(|arg| self.resolve_expr_form(arg, Form::Value))
                   .collect::<Vec<_>>();
+                for (arg, ty) in args.iter().zip(sig.params) {
+                  // just need inference; errors will be reported later
+                  _ = self.types.unify(arg.ty, ty);
+                }
+                let generics = path.generics.as_ref();
+                let (type_params, impl_params) =
+                  self._resolve_generics(path.span, generics, generics_id, true, Some(type_params));
+                let sig = self.types.import(self.sigs.fn_sig(fn_id), Some(&type_params));
+                for (arg, ty) in args.iter().zip(sig.params) {
+                  self.expect_type(arg.span, arg.ty, ty);
+                }
                 let rel = self.rels.fns.push(FnRel::Item(fn_id, impl_params));
                 (Form::Value, sig.ret_ty, TirExprKind::Call(rel, None, args))
               } else {

@@ -855,7 +855,7 @@ impl<'core, 'a> Resolver<'core, 'a> {
     args: Option<&GenericArgs<'core>>,
     params_id: GenericsId,
     inference: bool,
-    type_params: Option<Vec<Type>>,
+    inferred_type_params: Option<Vec<Type>>,
   ) -> (Vec<Type>, Vec<TirImpl>) {
     let _args = GenericArgs { span, types: Vec::new(), impls: Vec::new() };
     let args = args.unwrap_or(&_args);
@@ -883,12 +883,13 @@ impl<'core, 'a> Resolver<'core, 'a> {
     }
     let has_impl_params = impl_param_count != 0;
     let type_param_count = params.type_params.len();
-    let type_params = if let Some(type_params) = type_params {
-      for (a, b) in type_params.iter().zip(args.types.iter()) {
-        let b = self.resolve_type(b, inference);
-        _ = self.types.unify(*a, b);
+    let type_params = if let Some(mut inferred) = inferred_type_params {
+      for (inferred, ty) in inferred.iter_mut().zip(args.types.iter()) {
+        let ty = self.resolve_type(ty, inference);
+        _ = self.types.unify(*inferred, ty);
+        *inferred = ty;
       }
-      type_params
+      inferred
     } else {
       (0..type_param_count)
         .iter()

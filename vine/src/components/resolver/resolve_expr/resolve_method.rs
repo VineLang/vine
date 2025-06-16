@@ -5,7 +5,6 @@ use crate::{
     chart::FnId,
     diag::{Diag, ErrorGuaranteed},
     resolutions::FnRel,
-    signatures::FnSig,
     tir::{TirExpr, TirExprKind},
     types::{Inverted, TypeCtx, TypeKind},
   },
@@ -20,28 +19,19 @@ impl<'core> Resolver<'core, '_> {
     generics: &GenericArgs<'core>,
     args: &[Expr<'core>],
   ) -> Result<(Form, Type, TirExprKind), Diag<'core>> {
-    match self._resolve_method(span, receiver, name, generics, args) {
-      Ok((ty, kind)) => Ok((Form::Value, ty, kind)),
-      Err(diag) => {
-        for arg in args {
-          self.resolve_expr_form(arg, Form::Value);
-        }
-        Err(diag)
-      }
-    }
-  }
-
-  fn _resolve_method(
-    &mut self,
-    span: Span,
-    receiver: &Expr<'core>,
-    ident: Ident<'core>,
-    generics: &GenericArgs<'core>,
-    args: &[Expr<'core>],
-  ) -> Result<(Type, TirExprKind), Diag<'core>> {
     let mut receiver = self.resolve_expr(receiver);
-    let (fn_id, type_params) = self.find_method(span, receiver.ty, ident)?;
+    let mut args =
+      args.iter().map(|arg| self.resolve_expr_form(arg, Form::Value)).collect::<Vec<_>>();
+    let (fn_id, type_params) = self.find_method(span, receiver.ty, name)?;
     let type_params = self.types.import(&type_params, None);
+    let sig = self.types.import(self.sigs.fn_sig(fn_id), Some(&type_params));
+    if sig.params.len() != args.len() + 1 {
+      return Err(Diag::BadArgCount { span, expected: sig.params.len(), got: args.len() + 1 });
+    }
+    for (arg, ty) in args.iter().zip(sig.params.iter().skip(1)) {
+      // just need inference; errors will be reported later
+      _ = self.types.unify(arg.ty, *ty);
+    }
     let (type_params, impl_params) = self._resolve_generics(
       span,
       Some(generics),
@@ -49,11 +39,11 @@ impl<'core> Resolver<'core, '_> {
       true,
       Some(type_params),
     );
-    let FnSig { params, ret_ty } = self.types.import(self.sigs.fn_sig(fn_id), Some(&type_params));
-    if params.len() != args.len() + 1 {
-      return Err(Diag::BadArgCount { span, expected: params.len(), got: args.len() + 1 });
+    let sig = self.types.import(self.sigs.fn_sig(fn_id), Some(&type_params));
+    for (arg, ty) in args.iter().zip(sig.params.iter().skip(1)) {
+      self.expect_type(arg.span, arg.ty, *ty);
     }
-    let (receiver_form, receiver_ty) = match params.first().copied() {
+    let (receiver_form, receiver_ty) = match sig.params.first().copied() {
       None => return Err(Diag::NilaryMethod { span }),
       Some(receiver) => match self.types.force_kind(self.core, receiver) {
         (_, TypeKind::Error(e)) => return Err((*e).into()),
@@ -73,15 +63,12 @@ impl<'core> Resolver<'core, '_> {
     } else {
       receiver
     };
-    let args = Vec::from_iter(
-      [receiver].into_iter().chain(
-        args
-          .iter()
-          .zip(params.into_iter().skip(1))
-          .map(|(arg, ty)| self.resolve_expr_form_type(arg, Form::Value, ty)),
-      ),
-    );
-    Ok((ret_ty, TirExprKind::Call(self.rels.fns.push(FnRel::Item(fn_id, impl_params)), None, args)))
+    args.insert(0, receiver);
+    Ok((
+      Form::Value,
+      sig.ret_ty,
+      TirExprKind::Call(self.rels.fns.push(FnRel::Item(fn_id, impl_params)), None, args),
+    ))
   }
 
   fn find_method(
