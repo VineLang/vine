@@ -148,6 +148,10 @@ pub mod List {
     None
   }
 
+  pub fn .contains[T; Eq[T]](&self: &List[T], &el: &T) -> Bool {
+    self.find(fn(&e: &T) { e == el }) is Some(&_)
+  }
+
   pub fn .join[T; Cast[T, String]](list: List[T], sep: String) -> String {
     let it = list.into_iter();
     if it.next() is Some(val) {

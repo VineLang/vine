@@ -83,6 +83,21 @@ l = [+1, +2, -13, +4]
 
 io = #io
 l = [+1, +2, -18, +4]
+> l.contains(&(+1; _))
+true
+
+io = #io
+l = [+1, +2, -18, +4]
+> l.contains(&(+4; _))
+true
+
+io = #io
+l = [+1, +2, -18, +4]
+> l.contains(&(+7; _))
+::std::data::List::contains::0::7
+
+io = #io
+l = [+1, +2, -18, +4]
 > move l
 [+1, +2, -18, +4]
 
@@ -272,7 +287,7 @@ error input:1:29 - expected type `{ a: N32, b: N32 }`; found `{ a: N32 }`
 
 io = #io
 > do { let x; x = (x, x); }
-error input:1:17 - expected type `?1004`; found `(?1004, ?1004)`
+error input:1:17 - expected type `?1040`; found `(?1040, ?1040)`
 
 io = #io
 > let (a: N32, b: N32);
