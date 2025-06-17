@@ -27,6 +27,7 @@ pub mod Term {
             body.whnf()
           }
           Term::Spine(var, args) { Term::Spine(var, args ++ [arg]) }
+          Term::Apply(_) { unsafe::unreachable() }
         }
       }
       term { term }
@@ -52,6 +53,7 @@ pub mod Term {
           out ++ ")"
         }
       }
+      Term::Apply(_) { unsafe::unreachable() }
     }
   }
 

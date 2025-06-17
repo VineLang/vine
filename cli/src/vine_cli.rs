@@ -78,8 +78,8 @@ impl CompileArgs {
 
     match compiler.compile(()) {
       Ok(nets) => nets,
-      Err(err) => {
-        eprintln!("{}", err);
+      Err(diags) => {
+        eprintln!("{}", core.print_diags(&diags));
         exit(1);
       }
     }
@@ -175,8 +175,8 @@ impl VineReplCommand {
     let core = &Core::new(&arenas);
     let mut repl = match Repl::new(host, &mut ivm, core, self.libs) {
       Ok(repl) => repl,
-      Err(err) => {
-        eprintln!("{err}");
+      Err(diags) => {
+        eprintln!("{}", core.print_diags(&diags));
         exit(1);
       }
     };
@@ -192,7 +192,7 @@ impl VineReplCommand {
           match repl.exec(&line) {
             Ok(Some(result)) => println!("{result}"),
             Ok(None) => {}
-            Err(err) => println!("{err}"),
+            Err(diags) => println!("{}", core.print_diags(&diags)),
           }
         }
         Err(_) => break,

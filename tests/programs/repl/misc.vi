@@ -85,3 +85,4 @@ x.drop(); let x;
 F32::inf.abs()
 F32::neg_inf.abs()
 F32::nan.abs()
+do { match Some(1) { Some(_) {} } }

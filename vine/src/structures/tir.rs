@@ -151,7 +151,7 @@ pub enum TirExprKind {
   LetElse(TirPat, TirExpr, TirExpr, TirExpr),
   #[class(value)]
   Seq(TirExpr, TirExpr),
-  #[class(error)]
+  #[class(value, place, space)]
   Error(ErrorGuaranteed),
 }
 
@@ -181,7 +181,7 @@ pub enum TirPatKind {
   Inverse(TirPat),
   #[class(value, place, space)]
   Composite(Vec<TirPat>),
-  #[class(error)]
+  #[class(value, place, space)]
   Error(ErrorGuaranteed),
 }
 

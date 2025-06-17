@@ -334,26 +334,18 @@ impl<'core, 'a> Resolver<'core, 'a> {
   }
 
   fn resolve_stmts_type(&mut self, span: Span, stmts: &[Stmt<'core>], ty: Type) -> TirExpr {
-    TirExpr {
-      span,
-      ty,
-      form: Form::Value,
-      kind: Box::new(self._resolve_stmts_type(span, stmts, ty)),
-    }
-  }
-
-  fn _resolve_stmts_type(&mut self, span: Span, stmts: &[Stmt<'core>], ty: Type) -> TirExprKind {
     let [stmt, rest @ ..] = stmts else {
       let nil = self.types.nil();
-      return if self.types.unify(ty, nil).is_failure() {
+      let kind = if self.types.unify(ty, nil).is_failure() {
         TirExprKind::Error(
           self.core.report(Diag::MissingBlockExpr { span, ty: self.types.show(self.chart, ty) }),
         )
       } else {
         TirExprKind::Composite(Vec::new())
       };
+      return TirExpr { span, ty, form: Form::Value, kind: Box::new(kind) };
     };
-    match &stmt.kind {
+    let kind = match &stmt.kind {
       StmtKind::Let(l) => {
         let init = l.init.as_ref().map(|init| self.resolve_expr_form(init, Form::Value));
         let else_block = l.else_block.as_ref().map(|block| {
@@ -378,18 +370,19 @@ impl<'core, 'a> Resolver<'core, 'a> {
       StmtKind::LetFn(l) => {
         let (fn_ty, id) = self.resolve_closure(&l.params, &l.ret, &l.body, true);
         self.bind(l.name, Binding::Closure(id, fn_ty));
-        self._resolve_stmts_type(span, rest, ty)
+        return self.resolve_stmts_type(span, rest, ty);
       }
       StmtKind::Expr(expr, semi) => {
         if !semi && rest.is_empty() {
-          *self.resolve_expr_form_type(expr, Form::Value, ty).kind
+          return self.resolve_expr_form_type(expr, Form::Value, ty);
         } else {
           let expr = self.resolve_expr_form(expr, Form::Value);
           TirExprKind::Seq(expr, self.resolve_stmts_type(span, rest, ty))
         }
       }
-      StmtKind::Item(_) | StmtKind::Empty => self._resolve_stmts_type(span, rest, ty),
-    }
+      StmtKind::Item(_) | StmtKind::Empty => return self.resolve_stmts_type(span, rest, ty),
+    };
+    TirExpr { span, ty, form: Form::Value, kind: Box::new(kind) }
   }
 
   fn resolve_closure(

@@ -9,7 +9,9 @@ use vine_util::{
 };
 
 use crate::structures::{
+  ast::Span,
   chart::EnumId,
+  diag::Diag,
   tir::{Local, TirPat, TirPatKind},
   vir::{Header, Interface, InterfaceId, InterfaceKind, Layer, Port, Stage, Step, Transfer},
 };
@@ -19,6 +21,7 @@ use super::Distiller;
 impl<'core, 'r> Distiller<'core, 'r> {
   pub fn distill_pattern_match(
     &mut self,
+    span: Span,
     layer: &mut Layer,
     stage: &mut Stage,
     value: Port,
@@ -26,8 +29,12 @@ impl<'core, 'r> Distiller<'core, 'r> {
   ) {
     let local = self.new_local(stage);
     stage.set_local_to(local, value);
-    let mut matcher = Matcher { vars: IdxVec::from([(local, Form::Value)]), distiller: self };
+    let mut matcher =
+      Matcher { exhaustive: true, vars: IdxVec::from([(local, Form::Value)]), distiller: self };
     matcher.distill_rows(rows, layer, stage);
+    if !matcher.exhaustive {
+      self.core.report(Diag::NonExhaustiveMatch { span });
+    }
   }
 }
 
@@ -65,6 +72,7 @@ impl<'p> Row<'p> {
 
 #[derive(Debug)]
 struct Matcher<'core, 'd, 'r> {
+  exhaustive: bool,
   vars: IdxVec<VarId, (Local, Form)>,
   distiller: &'d mut Distiller<'core, 'r>,
 }
@@ -79,7 +87,12 @@ enum MatchKind {
 
 impl<'core, 'd, 'r> Matcher<'core, 'd, 'r> {
   fn distill_rows<'p>(&mut self, mut rows: Vec<Row<'p>>, layer: &mut Layer, stage: &mut Stage) {
-    while !rows.is_empty() {
+    loop {
+      if rows.is_empty() {
+        self.exhaustive = false;
+        return;
+      }
+
       let Some((&var, _)) = rows[0].cells.last_key_value() else {
         return self.distill_row(rows.swap_remove(0), stage);
       };

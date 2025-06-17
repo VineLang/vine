@@ -138,6 +138,7 @@ mod DisjointSet {
           a
         }
       }
+      _ { unsafe::unreachable() }
     }
   }
 }

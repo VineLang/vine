@@ -11,6 +11,7 @@ use crate::{
   components::analyzer::{usage::Usage, UsageVar},
   structures::{
     chart::{EnumId, VariantId},
+    diag::ErrorGuaranteed,
     tir::{ConstRelId, FnRelId, Local},
   },
 };
@@ -195,6 +196,7 @@ pub enum Port {
   N32(u32),
   F32(f32),
   Wire(WireId),
+  Error(ErrorGuaranteed),
 }
 
 #[derive(Debug, Clone)]

@@ -10,14 +10,20 @@ use vine_util::{
 };
 
 use crate::structures::{
+  ast::Span,
+  core::Core,
+  diag::Diag,
   tir::Local,
   vir::{Interface, InterfaceId, Invocation, Stage, StageId, Step, Vir},
 };
 
 pub mod usage;
 
-pub fn analyze(vir: &mut Vir) {
+pub fn analyze<'core>(core: &'core Core<'core>, span: Span, vir: &mut Vir) {
   Analyzer {
+    core,
+    infinite_loop: false,
+    span,
     globals: &vir.globals,
     stages: &vir.stages,
     interfaces: &mut vir.interfaces,
@@ -33,7 +39,11 @@ pub fn analyze(vir: &mut Vir) {
 }
 
 #[derive(Debug)]
-struct Analyzer<'a> {
+struct Analyzer<'core, 'a> {
+  core: &'core Core<'core>,
+  infinite_loop: bool,
+  span: Span,
+
   globals: &'a Vec<(Local, Usage)>,
   stages: &'a IdxVec<StageId, Stage>,
   interfaces: &'a mut IdxVec<InterfaceId, Interface>,
@@ -54,7 +64,7 @@ impl UsageVar {
   pub const NONE: Self = UsageVar(0);
 }
 
-impl Analyzer<'_> {
+impl<'core> Analyzer<'core, '_> {
   fn analyze(&mut self) {
     self.sweep(InterfaceId(0));
 
@@ -215,7 +225,11 @@ impl Analyzer<'_> {
         let interior = self.usage[interface.interior.unwrap()];
         let exterior = self.usage[interface.exterior.unwrap()];
         if interior == Usage::Zero || exterior == Usage::Zero {
-          panic!("infinite loop")
+          if !self.infinite_loop {
+            self.core.report(Diag::InfiniteLoop { span: self.span });
+            self.infinite_loop = true;
+          }
+          continue;
         }
         if interior != Usage::None && exterior != Usage::None {
           assert!(matches!(exterior, Usage::Mut | Usage::Erase | Usage::Set | Usage::Take));

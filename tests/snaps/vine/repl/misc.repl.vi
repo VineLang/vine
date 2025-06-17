@@ -364,3 +364,7 @@ io = #io
 ::std::numeric::F32::nan
 
 io = #io
+> do { match Some(1) { Some(_) {} } }
+error input:1:6 - match arms do not cover all possible cases
+
+io = #io

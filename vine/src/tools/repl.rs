@@ -64,7 +64,7 @@ impl<'core, 'ctx, 'ivm, 'ext> Repl<'core, 'ctx, 'ivm, 'ext> {
     ivm: &'ctx mut IVM<'ivm, 'ext>,
     core: &'core Core<'core>,
     libs: Vec<PathBuf>,
-  ) -> Result<Self, String> {
+  ) -> Result<Self, Vec<Diag<'core>>> {
     let mut compiler = Compiler::new(core);
     for lib in libs {
       compiler.loader.load_mod(lib);
@@ -107,7 +107,7 @@ impl<'core, 'ctx, 'ivm, 'ext> Repl<'core, 'ctx, 'ivm, 'ext> {
     })
   }
 
-  pub fn exec(&mut self, line: &str) -> Result<Option<String>, String> {
+  pub fn exec(&mut self, line: &str) -> Result<Option<String>, Vec<Diag<'core>>> {
     let stmts = match self.parse_line(line) {
       Ok(stmts) => stmts,
       Err(diag) => {
@@ -124,6 +124,7 @@ impl<'core, 'ctx, 'ivm, 'ext> Repl<'core, 'ctx, 'ivm, 'ext> {
     let mut name = String::new();
 
     let nets = self.compiler.compile(ExecHooks {
+      core: self.core,
       repl_mod: self.repl_mod,
       vars: &mut self.vars,
       ivm: self.ivm,
@@ -140,6 +141,7 @@ impl<'core, 'ctx, 'ivm, 'ext> Repl<'core, 'ctx, 'ivm, 'ext> {
     let tir = tir.unwrap();
 
     struct ExecHooks<'core, 'ivm, 'ext, 'a> {
+      core: &'core Core<'core>,
       repl_mod: DefId,
       vars: &'a mut HashMap<Ident<'core>, Var<'ivm>>,
       ivm: &'a mut IVM<'ivm, 'ext>,
@@ -201,7 +203,7 @@ impl<'core, 'ctx, 'ivm, 'ext> Repl<'core, 'ctx, 'ivm, 'ext> {
         vir.stages[StageId(0)].declarations.retain(|l| !self.locals.contains_key(l));
         vir.globals.extend(self.vars.values().map(|v| (v.local, Usage::Mut)));
         let mut vir = normalize(&vir);
-        analyze(&mut vir);
+        analyze(self.core, Span::NONE, &mut vir);
         for var in self.vars.values() {
           vir.interfaces[InterfaceId(0)].wires.insert(var.local, (Usage::Mut, Usage::Mut));
         }

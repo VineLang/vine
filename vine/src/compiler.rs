@@ -15,6 +15,7 @@ use crate::{
   structures::{
     chart::{checkpoint::ChartCheckpoint, Chart, ConcreteConstId, ConcreteFnId},
     core::Core,
+    diag::Diag,
     signatures::Signatures,
     vir::Vir,
   },
@@ -45,7 +46,7 @@ impl<'core> Compiler<'core> {
     }
   }
 
-  pub fn compile(&mut self, hooks: impl Hooks<'core>) -> Result<Nets, String> {
+  pub fn compile(&mut self, hooks: impl Hooks<'core>) -> Result<Nets, Vec<Diag<'core>>> {
     let checkpoint = self.checkpoint();
     self._compile(hooks, &checkpoint).inspect_err(|_| {
       self.revert(&checkpoint);
@@ -56,7 +57,7 @@ impl<'core> Compiler<'core> {
     &mut self,
     mut hooks: impl Hooks<'core>,
     checkpoint: &CompilerCheckpoint,
-  ) -> Result<Nets, String> {
+  ) -> Result<Nets, Vec<Diag<'core>>> {
     let core = self.core;
     let root = self.loader.finish();
     core.bail()?;
@@ -71,20 +72,18 @@ impl<'core> Compiler<'core> {
     resolver.resolve_since(&checkpoint.chart);
     hooks.resolve(&mut resolver);
 
-    core.bail()?;
-
     let mut specializer =
       Specializer { chart, resolutions: &self.resolutions, specs: &mut self.specs };
     specializer.specialize_since(&checkpoint.chart);
     hooks.specialize(&mut specializer);
 
-    let mut distiller = Distiller::new(chart);
+    let mut distiller = Distiller::new(core, chart);
     let mut emitter = Emitter::new(chart, &self.specs);
     for const_id in chart.concrete_consts.keys_from(checkpoint.chart.concrete_consts) {
       let tir = &self.resolutions.consts[const_id];
       let vir = distiller.distill_tir(tir);
       let mut vir = normalize(&vir);
-      analyze(&mut vir);
+      analyze(self.core, chart.concrete_consts[const_id].span, &mut vir);
       assert_eq!(self.const_vir.next_index(), const_id);
       self.const_vir.push(vir);
     }
@@ -92,7 +91,7 @@ impl<'core> Compiler<'core> {
       let tir = &self.resolutions.fns[fn_id];
       let vir = distiller.distill_tir(tir);
       let mut vir = normalize(&vir);
-      analyze(&mut vir);
+      analyze(self.core, chart.concrete_fns[fn_id].span, &mut vir);
       assert_eq!(self.fn_vir.next_index(), fn_id);
       self.fn_vir.push(vir);
     }
@@ -106,6 +105,8 @@ impl<'core> Compiler<'core> {
     }
 
     hooks.emit(&mut distiller, &mut emitter);
+
+    core.bail()?;
 
     Ok(emitter.nets)
   }

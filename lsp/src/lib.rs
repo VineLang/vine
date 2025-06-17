@@ -4,16 +4,10 @@ use futures::{stream::FuturesUnordered, StreamExt};
 use tower_lsp::{jsonrpc::Result, lsp_types::*, Client, LanguageServer, LspService, Server};
 
 use vine::{
-  components::{
-    charter::Charter,
-    loader::Loader,
-    resolver::{Resolutions, Resolver},
-  },
+  compiler::Compiler,
   structures::{
-    chart::Chart,
     core::{Core, CoreArenas},
     diag::Diag,
-    signatures::Signatures,
   },
 };
 
@@ -27,27 +21,21 @@ impl Backend {
   fn refresh(&self) -> impl Future<Output = ()> + Send + '_ {
     let arenas = &CoreArenas::default();
     let core = &Core::new(arenas);
+    let mut compiler = Compiler::new(core);
 
-    let mut loader = Loader::new(core);
     for glob in &self.entrypoints {
       for entry in glob::glob(glob).unwrap() {
         let e = entry.unwrap();
-        loader.load_mod(e);
+        compiler.loader.load_mod(e);
       }
     }
 
-    if core.has_diags() {
-      return self.report(core, core.take_diags());
-    }
+    let diags = match compiler.compile(()) {
+      Ok(_) => Vec::new(),
+      Err(diags) => diags,
+    };
 
-    let root = loader.finish();
-
-    let chart = &mut Chart::default();
-    Charter { core, chart }.chart_root(root);
-    Resolver::new(core, chart, &mut Signatures::default(), &mut Resolutions::default())
-      .resolve_all();
-
-    self.report(core, core.take_diags())
+    self.report(core, diags)
   }
 
   fn report(

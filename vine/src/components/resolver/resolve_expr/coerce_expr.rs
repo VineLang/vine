@@ -8,30 +8,27 @@ use crate::{
 
 impl<'core> Resolver<'core, '_> {
   pub(super) fn coerce_expr(&mut self, expr: &mut TirExpr, to: Form) {
+    if let Err(diag) = self._coerce_expr(expr, to) {
+      let err = self.core.report(diag);
+      expr.form = Form::Error(err);
+      *expr.kind = TirExprKind::Error(err);
+    }
+  }
+
+  fn _coerce_expr(&mut self, expr: &mut TirExpr, to: Form) -> Result<(), Diag<'core>> {
     let span = expr.span;
     match (expr.form, to) {
-      (_, Form::Error(_)) | (Form::Error(_), _) => {}
+      (_, Form::Error(err)) | (Form::Error(err), _) => Err(err)?,
       (Form::Value, Form::Value) | (Form::Place, Form::Place) | (Form::Space, Form::Space) => {}
       (Form::Place, Form::Value) => Self::copy_expr(expr),
       (Form::Place, Form::Space) => Self::set_expr(expr),
 
-      (Form::Value, Form::Place) => {
-        *expr.kind =
-          TirExprKind::Error(self.core.report(Diag::ExpectedPlaceFoundValueExpr { span }));
-      }
-      (Form::Space, Form::Value) => {
-        *expr.kind =
-          TirExprKind::Error(self.core.report(Diag::ExpectedValueFoundSpaceExpr { span }));
-      }
-      (Form::Space, Form::Place) => {
-        *expr.kind =
-          TirExprKind::Error(self.core.report(Diag::ExpectedPlaceFoundSpaceExpr { span }))
-      }
-      (Form::Value, Form::Space) => {
-        *expr.kind =
-          TirExprKind::Error(self.core.report(Diag::ExpectedSpaceFoundValueExpr { span }));
-      }
+      (Form::Value, Form::Place) => Err(Diag::ExpectedPlaceFoundValueExpr { span })?,
+      (Form::Space, Form::Value) => Err(Diag::ExpectedValueFoundSpaceExpr { span })?,
+      (Form::Space, Form::Place) => Err(Diag::ExpectedPlaceFoundSpaceExpr { span })?,
+      (Form::Value, Form::Space) => Err(Diag::ExpectedSpaceFoundValueExpr { span })?,
     }
+    Ok(())
   }
 
   fn copy_expr(expr: &mut TirExpr) {
