@@ -56,7 +56,7 @@ pub mod Option {
   pub fn .unwrap[T](self: Option[T]) -> T {
     match self {
       Some(val) { val }
-      None { unsafe::eraser }
+      None { unsafe::unreachable() }
     }
   }
 
