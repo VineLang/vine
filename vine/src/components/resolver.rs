@@ -336,18 +336,14 @@ impl<'core, 'a> Resolver<'core, 'a> {
   fn resolve_stmts_type(&mut self, span: Span, stmts: &[Stmt<'core>], ty: Type) -> TirExpr {
     let [stmt, rest @ ..] = stmts else {
       let nil = self.types.nil();
-      return if self.types.unify(ty, nil).is_failure() {
-        TirExpr {
-          span,
-          ty,
-          form: Form::Value,
-          kind: Box::new(TirExprKind::Error(
-            self.core.report(Diag::MissingBlockExpr { span, ty: self.types.show(self.chart, ty) }),
-          )),
-        }
+      let kind = if self.types.unify(ty, nil).is_failure() {
+        TirExprKind::Error(
+          self.core.report(Diag::MissingBlockExpr { span, ty: self.types.show(self.chart, ty) }),
+        )
       } else {
-        TirExpr { span, ty, form: Form::Value, kind: Box::new(TirExprKind::Composite(Vec::new())) }
+        TirExprKind::Composite(Vec::new())
       };
+      return TirExpr { span, ty, form: Form::Value, kind: Box::new(kind) };
     };
     let kind = match &stmt.kind {
       StmtKind::Let(l) => {
