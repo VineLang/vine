@@ -237,7 +237,7 @@ impl<'core, 'ctx, 'ivm, 'ext> Repl<'core, 'ctx, 'ivm, 'ext> {
   }
 
   fn show(&mut self, ty: Type, tree: &Tree) -> String {
-    self._show(ty, tree).unwrap_or_else(|| format!("#ivy({})", tree))
+    self._show(ty, tree).unwrap_or_else(|| format!("#ivy({tree})"))
   }
 
   fn _show(&mut self, ty: Type, tree: &Tree) -> Option<String> {
@@ -322,9 +322,9 @@ impl<'core, 'ctx, 'ivm, 'ext> Repl<'core, 'ctx, 'ivm, 'ext> {
         let data = self.types.import(&self.compiler.sigs.structs[*struct_id], Some(&args)).data;
         let data = self.show(data, tree);
         if data.starts_with("(") {
-          format!("{name}{}", data)
+          format!("{name}{data}")
         } else {
-          format!("{name}({})", data)
+          format!("{name}({data})")
         }
       }
       (TypeKind::Enum(enum_id, args), tree) => {
@@ -370,9 +370,9 @@ impl<'core, 'ctx, 'ivm, 'ext> Repl<'core, 'ctx, 'ivm, 'ext> {
         }
         if let Some(data) = data {
           if data.starts_with("(") {
-            format!("{name}{}", data)
+            format!("{name}{data}")
           } else {
-            format!("{name}({})", data)
+            format!("{name}({data})")
           }
         } else {
           name.to_string()

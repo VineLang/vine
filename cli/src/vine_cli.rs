@@ -186,7 +186,7 @@ impl VineReplCommand {
       match rl.readline("> ") {
         Ok(line) => {
           if self.echo {
-            println!("> {}", line);
+            println!("> {line}");
           }
           _ = rl.add_history_entry(&line);
           match repl.exec(&line) {
