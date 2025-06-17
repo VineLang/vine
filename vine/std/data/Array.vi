@@ -30,7 +30,7 @@ pub mod Array {
   pub impl to_list[T]: Cast[Array[T], List[T]] {
     fn cast(self: Array[T]) -> List[T] {
       let end;
-      List(self.len(), self.fold_back(move ~end, fn* (a, b) { List::Buf(b, a) }), end)
+      List(self.len(), self.fold_back(unsafe::move(&~end), fn* (a, b) { List::Buf(b, a) }), end)
     }
   }
 
@@ -39,7 +39,7 @@ pub mod Array {
       Array::empty
     } else {
       let ~ins;
-      let (node, outs) = Node::unzip_with(len, move ~ins, fn* (f: F) { (f.fork()(), f) });
+      let (node, outs) = Node::unzip_with(len, unsafe::move(&~ins), fn* (f: F) { (f.fork()(), f) });
       let outs = Array(len, outs);
       outs.pop_back().unwrap().drop();
       outs.push_front(f);
@@ -64,7 +64,7 @@ pub mod Array {
       initial
     } else {
       let ~ins;
-      let zipped = Array(len, Node::zip_with(len, move ~ins, node, f));
+      let zipped = Array(len, Node::zip_with(len, unsafe::move(&~ins), node, f));
       let out = zipped.pop_back().unwrap();
       zipped.push_front(initial);
       let Array(_, node) = zipped;
@@ -78,7 +78,7 @@ pub mod Array {
       initial
     } else {
       let ~ins;
-      let zipped = Array(len, Node::zip_with(len, move ~ins, node, f));
+      let zipped = Array(len, Node::zip_with(len, unsafe::move(&~ins), node, f));
       let out = zipped.pop_front().unwrap();
       zipped.push_back(initial);
       let Array(_, node) = zipped;
@@ -146,7 +146,7 @@ pub mod Array {
       None
     } else if len == 1 {
       len = 0;
-      Some(move *node as T)
+      Some(unsafe::move(node) as T)
     } else {
       let size = len;
       len -= 1;
@@ -155,7 +155,7 @@ pub mod Array {
         let &parent = node;
         (node, size) = Node::half(&parent, size, parity);
         if size == 1 {
-          let value = move *node as T;
+          let value = unsafe::move(node) as T;
           let Node(left, right) = parent;
           parent = if parity == 0 {
             right
@@ -173,7 +173,7 @@ pub mod Array {
       None
     } else if len == 1 {
       len = 0;
-      Some(move *node as T)
+      Some(unsafe::move(node) as T)
     } else {
       let size = len;
       len -= 1;
@@ -184,8 +184,8 @@ pub mod Array {
         node = &right;
         size = (size + 1) / 2;
         if size == 1 {
-          let value = move *node as T;
-          parent = move left;
+          let value = unsafe::move(node) as T;
+          parent = unsafe::move(&left);
           return Some(value)
         }
       }

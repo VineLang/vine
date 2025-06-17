@@ -510,9 +510,6 @@ impl<'core, 'src> VineParser<'core, 'src> {
     if self.eat(Token::Star)? {
       return Ok(Some(ExprKind::Deref(Box::new(self.parse_expr_bp(BP::Prefix)?), false)));
     }
-    if self.eat(Token::Move)? {
-      return Ok(Some(ExprKind::Move(Box::new(self.parse_expr_bp(BP::Prefix)?), false)));
-    }
     if self.eat(Token::Tilde)? {
       return Ok(Some(ExprKind::Inverse(Box::new(self.parse_expr_bp(BP::Prefix)?), false)));
     }
@@ -771,9 +768,6 @@ impl<'core, 'src> VineParser<'core, 'src> {
       }
       if self.eat(Token::Star)? {
         return Ok(Ok(ExprKind::Deref(Box::new(lhs), true)));
-      }
-      if self.eat(Token::Move)? {
-        return Ok(Ok(ExprKind::Move(Box::new(lhs), true)));
       }
       if self.eat(Token::Tilde)? {
         return Ok(Ok(ExprKind::Inverse(Box::new(lhs), true)));

@@ -169,10 +169,6 @@ impl<'core> Resolver<'core, '_> {
         let inner = self.resolve_expr_form(inner, Form::Place);
         (Form::Value, self.types.new(TypeKind::Ref(inner.ty)), TirExprKind::Ref(inner))
       }
-      ExprKind::Move(inner, _) => {
-        let inner = self.resolve_expr_form(inner, Form::Place);
-        (Form::Value, inner.ty, TirExprKind::Move(inner))
-      }
       ExprKind::List(elements) => {
         let ty = self.types.new_var(span);
         let elements = Vec::from_iter(

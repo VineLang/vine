@@ -98,8 +98,7 @@ l = [+1, +2, -18, +4]
 
 io = #io
 l = [+1, +2, -18, +4]
-> move l
-[+1, +2, -18, +4]
+> let l
 
 io = #io
 > let a = Array::from_fn(5, do { let x = 0; (fn* () { let n = x; x += 1; n }) });
@@ -135,8 +134,7 @@ None
 
 io = #io
 a = Array(5, Node(Node(Node(Node(#ivy(0)), Node(#ivy(4))), Node(#ivy(2))), Node(Node(#ivy(1)), Node(#ivy(3)))))
-> move a
-Array(5, Node(Node(Node(Node(#ivy(0)), Node(#ivy(4))), Node(#ivy(2))), Node(Node(#ivy(1)), Node(#ivy(3)))))
+> let a
 
 io = #io
 > [1,2,3,4,5,6,7,8,9].as[Array].reversed().as[List]
@@ -278,8 +276,7 @@ None
 
 io = #io
 x = [[2]]
-> move x
-[[2]]
+> let x
 
 io = #io
 > let _: { a: N32, b: N32 } = { a: 1 }
@@ -287,7 +284,7 @@ error input:1:29 - expected type `{ a: N32, b: N32 }`; found `{ a: N32 }`
 
 io = #io
 > do { let x; x = (x, x); }
-error input:1:17 - expected type `?1237`; found `(?1237, ?1237)`
+error input:1:17 - expected type `?1210`; found `(?1210, ?1210)`
 
 io = #io
 > let (a: N32, b: N32);
@@ -305,8 +302,7 @@ io = #io
 a = #ivy(dup2(dup2(_ _) n0))
 b = #ivy(dup3(dup3(_ _) n0))
 x = { a: #ivy(n0), b: #ivy(n1) }
-> move (a, b, x)
-(#ivy(dup2(dup2(_ _) n0)), #ivy(dup3(dup3(_ _) n1)), { a: #ivy(n0), b: #ivy(n1) })
+> let (a, b, x)
 
 io = #io
 > let x

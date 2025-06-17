@@ -150,9 +150,9 @@ pub mod Map {
           balance_left(&data);
         }
         Ord::Eq {
-          old = Some(move cur_value);
+          old = Some(unsafe::move(&cur_value));
           len -= 1;
-          data = merge_balanced(move left, move right);
+          data = merge_balanced(unsafe::move(&left), unsafe::move(&right));
         }
         Ord::Gt {
           old = right.remove(&key);
@@ -184,9 +184,9 @@ pub mod Map {
     len -= 1;
     let &(left, entry, right) = &data;
     if left.len() == 0 {
-      let Map(_, right) = move right;
+      let Map(_, right) = unsafe::move(&right);
       data = right;
-      move entry
+      unsafe::move(&entry)
     } else {
       let min = left._remove_min();
       balance_left(&data);
@@ -198,9 +198,9 @@ pub mod Map {
     len -= 1;
     let &(left, entry, right) = &data;
     if right.len() == 0 {
-      let Map(_, left) = move left;
+      let Map(_, left) = unsafe::move(&left);
       data = left;
-      move entry
+      unsafe::move(&entry)
     } else {
       let max = right._remove_max();
       balance_right(&data);
@@ -241,7 +241,7 @@ pub mod Map {
     pub impl iterator[K, V]: Iterator[Iter[K, V], &(K, V)] {
       fn next(&Iter[K, V](node, stack)) -> Option[&(K, V)] {
         loop {
-          let &Map(len, data) = move node;
+          let &Map(len, data) = unsafe::move(&node);
           if len == 0 {
             break;
           }
@@ -259,7 +259,7 @@ pub mod Map {
       }
 
       fn drop_iter(&iter: &Iter[K, V]) {
-        let Iter(&_, stack) = move iter;
+        let Iter(&_, stack) = unsafe::move(&iter);
         while stack.pop_front() is Some(&_) {}
       }
     }
@@ -275,7 +275,7 @@ pub mod Map {
     pub impl iterator[K, V]: Iterator[IntoIter[K, V], (K, V)] {
       fn next(&IntoIter[K, V](node, stack)) -> Option[(K, V)] {
         loop {
-          let Map(len, data) = move node;
+          let Map(len, data) = unsafe::move(&node);
           if len == 0 {
             break;
           }

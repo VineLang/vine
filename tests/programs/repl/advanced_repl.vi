@@ -8,6 +8,6 @@ Some([None, Some(1, 2)])
 ([],"")
 let x = [];
 x ++ ""
-move x
+let x
 use std::result::Result::{Ok, Err};
 [Ok(1234), Err("oh no")]

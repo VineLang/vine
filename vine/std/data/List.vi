@@ -76,17 +76,17 @@ pub mod List {
   pub fn .map[T, U, F*; fn F(T) -> U](List[T](l, buf, ~_), f: F) -> List[U] {
     let len = l;
     let cur;
-    let result = move ~cur;
+    let result = unsafe::move(&~cur);
     while l != 0 {
       let Buf(head, tail) = buf;
       buf = tail;
       let next;
-      ~cur = Buf(f.fork()(head), move ~next);
-      ~next = move ~cur;
+      ~cur = Buf(f.fork()(head), unsafe::move(&~next));
+      ~next = unsafe::move(&~cur);
       l -= 1;
     }
     f.drop()
-    List(len, result, move cur)
+    List(len, result, unsafe::move(&cur))
   }
 
   pub fn .filter[T, F*; fn F(&T) -> Bool](self: List[T], pred: F) -> List[T] {
@@ -116,7 +116,7 @@ pub mod List {
       let List(a_len, a_buf, ~a_end) = a;
       let List(b_len, b_buf, ~b_end) = b;
       a_end = b_buf;
-      List(a_len + b_len, a_buf, move ~b_end)
+      List(a_len + b_len, a_buf, unsafe::move(&~b_end))
     }
   }
 
@@ -226,13 +226,13 @@ pub mod List {
           buf = tail;
           Some(head)
         } else {
-          let &_ = move buf;
+          let &_ = unsafe::move(&buf);
           None
         }
       }
 
       fn drop_iter(&iter: &Iter[T]) {
-        let Iter(_, &_) = move iter;
+        let Iter(_, &_) = unsafe::move(&iter);
       }
     }
   }

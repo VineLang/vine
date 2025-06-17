@@ -440,12 +440,10 @@ impl<'core: 'src, 'src> Formatter<'src> {
       ExprKind::Continue(label) => Doc::concat([Doc("continue"), self.fmt_label(label)]),
       ExprKind::Ref(x, false) => Doc::concat([Doc("&"), self.fmt_expr(x)]),
       ExprKind::Deref(x, false) => Doc::concat([Doc("*"), self.fmt_expr(x)]),
-      ExprKind::Move(x, false) => Doc::concat([Doc("move "), self.fmt_expr(x)]),
       ExprKind::Inverse(x, false) => Doc::concat([Doc("~"), self.fmt_expr(x)]),
       ExprKind::Cast(x, ty, false) => Doc::concat([self.fmt_expr(x), Doc(" as "), self.fmt_ty(ty)]),
       ExprKind::Ref(x, true) => Doc::concat([self.fmt_expr(x), Doc(".&")]),
       ExprKind::Deref(x, true) => Doc::concat([self.fmt_expr(x), Doc(".*")]),
-      ExprKind::Move(x, true) => Doc::concat([self.fmt_expr(x), Doc(".move")]),
       ExprKind::Inverse(x, true) => Doc::concat([self.fmt_expr(x), Doc(".~")]),
       ExprKind::Cast(x, ty, true) => {
         Doc::concat([self.fmt_expr(x), Doc(".as["), self.fmt_ty(ty), Doc("]")])

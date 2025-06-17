@@ -15,3 +15,9 @@ pub fn erase[T](value: T) {
 pub fn unreachable[T]() -> T {
   eraser
 }
+
+pub fn move[T](&value: &T) -> T {
+  let result = value;
+  value = eraser;
+  result
+}

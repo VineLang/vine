@@ -48,7 +48,7 @@ pub fn main(&io: &IO) {
         out ++= [num];
         set_bit(&nums_mask, num, false);
         let ~future;
-        let &future_state = move ~future;
+        let &future_state = unsafe::move(&~future);
         let iter = pending.into_iter();
         pending = [];
         while iter.next() is Some(n, mask) {

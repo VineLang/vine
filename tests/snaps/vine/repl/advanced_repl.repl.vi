@@ -40,8 +40,7 @@ error input:1:1 - cannot find impl of trait `Concat[List[?67], String, ?72]`
 
 io = #io
 x = []
-> move x
-[]
+> let x
 
 io = #io
 > use std::result::Result::{Ok, Err};

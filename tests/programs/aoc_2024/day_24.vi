@@ -16,9 +16,9 @@ pub fn main(&io: &IO) {
 
   while io.read_line() is Some(line) {
     let pieces = line.split(" ");
-    let wire_a = move *pieces.at(0).unwrap();
-    let wire_b = move *pieces.at(2).unwrap();
-    let wire_out = move *pieces.at(4).unwrap();
+    let wire_a = unsafe::move(pieces.at(0).unwrap());
+    let wire_b = unsafe::move(pieces.at(2).unwrap());
+    let wire_out = unsafe::move(pieces.at(4).unwrap());
     let a = (*at_wire(wire_a)).get();
     let b = (*at_wire(wire_b)).get();
     let op = (*pieces.at(1).unwrap())!.get(0).unwrap();
@@ -58,7 +58,7 @@ struct Wire((~Bool, Bool));
 mod Wire {
   pub fn new() -> Wire {
     let x;
-    Wire(move ~x, x)
+    Wire(unsafe::move(&~x), x)
   }
 
   pub fn .input(value: Bool) -> Wire {

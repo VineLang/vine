@@ -280,7 +280,6 @@ pub enum ExprKind<'core> {
   Continue(Option<Ident<'core>>),
   Ref(B<Expr<'core>>, bool),
   Deref(B<Expr<'core>>, bool),
-  Move(B<Expr<'core>>, bool),
   Inverse(B<Expr<'core>>, bool),
   Place(B<Expr<'core>>, B<Expr<'core>>),
   Tuple(Vec<Expr<'core>>),

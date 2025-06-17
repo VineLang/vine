@@ -67,9 +67,9 @@ pub mod String {
             break.check;
           }
         }
-        let List::Iter(len, &buf) = move iter_b;
+        let List::Iter(len, &buf) = unsafe::move(&iter_b);
         let List(_, _, end) = suffix as List;
-        return (prefix, Some(List(len, move buf, end) as String));
+        return (prefix, Some(List(len, unsafe::move(&buf), end) as String));
       }
       iter_a.drop_iter();
       iter_b.drop_iter();
@@ -96,9 +96,9 @@ pub mod String {
         return Err(self)
       }
     }
-    let List::Iter(len, &buf) = move self_iter;
+    let List::Iter(len, &buf) = unsafe::move(&self_iter);
     let List(_, _, end) = self as List;
-    Ok(List(len, move buf, end) as String)
+    Ok(List(len, unsafe::move(&buf), end) as String)
   }
 
   pub fn .trim_front(String(chars)) -> String {

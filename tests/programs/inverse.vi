@@ -9,11 +9,11 @@ pub fn main(&io: &IO) {
 
 fn refs(&io: &IO) {
   let x = 0;
-  inc((move x, move ~x));
+  inc((unsafe::move(&x), unsafe::move(&~x)));
   io.println("x = {x}");
-  inc((move x, move ~x));
+  inc((unsafe::move(&x), unsafe::move(&~x)));
   io.println("x = {x}");
-  inc((move x, move ~x));
+  inc((unsafe::move(&x), unsafe::move(&~x)));
   io.println("x = {x}");
 }
 
@@ -26,7 +26,7 @@ mod refs {
 fn fns(&io: &IO) {
   let f = do {
     let n: N32;
-    (move ~n, n * n)
+    (unsafe::move(&~n), n * n)
   };
   io.println("f(1) = {call(f, 1)}");
   io.println("f(2) = {call(f, 2)}");

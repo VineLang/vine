@@ -22,14 +22,14 @@ l.find(fn* (&x: &I32) { x == +7 })
 l.contains(&(+1; _))
 l.contains(&(+4; _))
 l.contains(&(+7; _))
-move l
+let l
 let a = Array::from_fn(5, do { let x = 0; (fn* () { let n = x; x += 1; n }) });
 a.for_each(fn* (v: N32) { io.println("{v}")})
 -a.fold_front(0, fn* (a: N32, b: N32) { a - b })
 -a.fold_back(5, fn* (a: N32, b: N32) { a - b })
 a.get(3)
 a.at(5)
-move a
+let a
 [1,2,3,4,5,6,7,8,9].as[Array].reversed().as[List]
 List::new(100, "")
 2 ** 10
@@ -64,13 +64,13 @@ let x = [[1]];
 x.at(0).unwrap().*.at(0).unwrap().* = 2
 ~x.at(0).unwrap().*.at(0).unwrap().*.~
 x.at(3)
-move x
+let x
 let _: { a: N32, b: N32 } = { a: 1 }
 do { let x; x = (x, x); }
 let (a: N32, b: N32);
 let x: (~N32, ~N32) = ~(a, b);
 let x: { a: ~N32, b: ~N32 } = ~{ a, b };
-move (a, b, x)
+let (a, b, x)
 let x
 x.a; x.a
 Ok(true)?
