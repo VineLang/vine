@@ -83,12 +83,12 @@ pub enum InterfaceKind {
 }
 
 impl InterfaceKind {
-  pub fn stages(&self) -> impl Iterator<Item = StageId> + use<'_> {
+  pub fn stages(&self) -> impl Iterator<Item = StageId> {
     multi_iter! { Stages { One, Two, Vec, Fn } }
     match self {
       InterfaceKind::Unconditional(a) => Stages::One([*a]),
       InterfaceKind::Branch(a, b) => Stages::Two([*a, *b]),
-      InterfaceKind::Match(_, s) => Stages::Vec(s.iter().copied()),
+      InterfaceKind::Match(_, s) => Stages::Vec(s.clone()),
       InterfaceKind::Fn { call, fork, drop } => {
         Stages::Fn([*call].into_iter().chain(*fork).chain(*drop))
       }
