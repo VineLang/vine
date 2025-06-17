@@ -55,7 +55,7 @@ impl<'ctx, 'ivm, 'ext> Reader<'ctx, 'ivm, 'ext> {
           "N32" => Tree::N32(val.payload()),
           "F32" => Tree::F32(f32::from_bits(val.payload())),
           "IO" => Tree::Var("#io".into()),
-          name => Tree::Var(format!("#{}", name)),
+          name => Tree::Var(format!("#{name}")),
         }
       }
       Tag::Comb => {

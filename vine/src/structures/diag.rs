@@ -238,7 +238,7 @@ impl<'core> Core<'core> {
     ErrorGuaranteed(())
   }
 
-  pub fn files(&self) -> Ref<Vec<FileInfo>> {
+  pub fn files(&self) -> Ref<'_, Vec<FileInfo>> {
     self.files.borrow()
   }
 
@@ -264,8 +264,8 @@ impl<'core> Core<'core> {
     for diag in diags.iter() {
       if let Some(span) = diag.span() {
         match self.show_span(span) {
-          Some(span) => writeln!(err, "error {span} - {}", diag).unwrap(),
-          None => writeln!(err, "error - {}", diag).unwrap(),
+          Some(span) => writeln!(err, "error {span} - {diag}").unwrap(),
+          None => writeln!(err, "error - {diag}").unwrap(),
         }
       }
     }

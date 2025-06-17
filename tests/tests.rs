@@ -196,7 +196,7 @@ fn run_iv(
   let full_stats = String::from_utf8(stderr).unwrap();
   let stats = full_stats.split_once("\nPerformance").unwrap().0;
   test_snapshot(&[group, name, "stats.txt"], stats.as_bytes());
-  ignored_snapshot(&[group, name, "timing.txt"], full_stats[stats.len()..].as_bytes());
+  ignored_snapshot(&[group, name, "timing.txt"], &full_stats.as_bytes()[stats.len()..]);
 }
 
 fn exec(bin: &[&str], args: &[&str], input: &[u8], success: bool) -> (Vec<u8>, Vec<u8>) {
@@ -231,7 +231,7 @@ fn test_snapshot(components: &[&str], contents: &[u8]) -> PathBuf {
   let existing = fs::read(&path).ok();
   if existing.is_none_or(|x| x != contents) {
     if should_write_snapshot() {
-      println!("updating snapshot {:?}", path);
+      println!("updating snapshot {path:?}");
       fs::write(&path, contents).unwrap();
     } else {
       panic!("invalid snapshot {:?}; should be:\n{}", path, String::from_utf8_lossy(contents));

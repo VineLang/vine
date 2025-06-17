@@ -75,7 +75,7 @@ impl<'ivm> Host<'ivm> {
 
   pub fn instantiate_ext_fn(&self, ext_fn_name: &str, swap: bool) -> ExtFn<'ivm> {
     let mut ext_fn =
-      *self.ext_fns.get(ext_fn_name).unwrap_or_else(|| panic!("Unknown ext fn '{}'", ext_fn_name));
+      *self.ext_fns.get(ext_fn_name).unwrap_or_else(|| panic!("Unknown ext fn '{ext_fn_name}'"));
     if swap {
       ext_fn = ext_fn.swap()
     }

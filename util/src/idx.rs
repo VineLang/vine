@@ -127,22 +127,22 @@ impl<I: Idx, T> IdxVec<I, T> {
   }
 
   #[inline(always)]
-  pub fn iter(&self) -> Iter<I, T> {
+  pub fn iter(&self) -> Iter<'_, I, T> {
     self.into_iter()
   }
 
   #[inline(always)]
-  pub fn iter_mut(&mut self) -> IterMut<I, T> {
+  pub fn iter_mut(&mut self) -> IterMut<'_, I, T> {
     self.into_iter()
   }
 
   #[inline(always)]
-  pub fn slice(&self, range: Range<I>) -> slice::Iter<T> {
+  pub fn slice(&self, range: Range<I>) -> slice::Iter<'_, T> {
     self.vec[range.start.into()..range.end.into()].iter()
   }
 
   #[inline(always)]
-  pub fn slice_mut(&mut self, range: Range<I>) -> slice::IterMut<T> {
+  pub fn slice_mut(&mut self, range: Range<I>) -> slice::IterMut<'_, T> {
     self.vec[range.start.into()..range.end.into()].iter_mut()
   }
 
@@ -194,7 +194,7 @@ impl<I: Idx, T> IdxVec<I, T> {
     self.vec.clear();
   }
 
-  pub fn drain(&mut self) -> Map<Enumerate<vec::Drain<T>>, MapEntry<I, T>> {
+  pub fn drain(&mut self) -> Map<Enumerate<vec::Drain<'_, T>>, MapEntry<I, T>> {
     self.vec.drain(..).enumerate().map(map_entry)
   }
 
