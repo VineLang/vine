@@ -1,7 +1,7 @@
 use crate::structures::{
   ast::{LogicalOp, Span},
   chart::VariantId,
-  tir::{ClosureId, Form, LabelId, TirClosure, TirExpr, TirExprKind, TirPat, TirPatKind},
+  tir::{ClosureId, LabelId, TirClosure, TirExpr, TirExprKind, TirPat, TirPatKind},
   types::Type,
   vir::{Header, Interface, InterfaceId, InterfaceKind, Layer, Port, Stage, Step, Transfer},
 };
@@ -66,8 +66,7 @@ impl<'core, 'r> Distiller<'core, 'r> {
     ignored: &TirExpr,
     continuation: &TirExpr,
   ) -> Port {
-    let ignored = self.distill_expr_value(stage, ignored);
-    stage.erase(ignored);
+    self.distill_expr_nil(stage, ignored);
     self.distill_expr_value(stage, continuation)
   }
 
@@ -78,9 +77,13 @@ impl<'core, 'r> Distiller<'core, 'r> {
     init: &Option<TirExpr>,
     continuation: &TirExpr,
   ) -> Port {
-    let value = init.as_ref().map(|v| self.distill_expr_value(stage, v)).unwrap_or(Port::Erase);
-    let pat = self.distill_pat_value(stage, pat);
-    stage.steps.push(Step::Link(pat, value));
+    if let Some(init) = init {
+      let value = self.distill_expr_value(stage, init);
+      let pat = self.distill_pat_value(stage, pat);
+      stage.steps.push(Step::Link(pat, value));
+    } else {
+      self.distill_pat_nil(stage, pat);
+    }
     self.distill_expr_value(stage, continuation)
   }
 
@@ -143,11 +146,10 @@ impl<'core, 'r> Distiller<'core, 'r> {
     stage.take_local(local)
   }
 
-  pub(super) fn distill_continue(&mut self, stage: &mut Stage, label: LabelId) -> Port {
+  pub(super) fn distill_continue(&mut self, stage: &mut Stage, label: LabelId) {
     let label = self.labels[label].as_ref().unwrap();
     let transfer = Transfer::unconditional(label.continue_transfer.unwrap());
     stage.steps.push(Step::Diverge(label.layer, Some(transfer)));
-    Port::Erase
   }
 
   pub(super) fn distill_break(
@@ -155,7 +157,7 @@ impl<'core, 'r> Distiller<'core, 'r> {
     stage: &mut Stage,
     label: LabelId,
     value: &Option<TirExpr>,
-  ) -> Port {
+  ) {
     let value = value.as_ref().map(|v| self.distill_expr_value(stage, v)).unwrap_or(Port::Erase);
 
     let label = self.labels[label].as_ref().unwrap();
@@ -166,18 +168,14 @@ impl<'core, 'r> Distiller<'core, 'r> {
     }
 
     stage.steps.push(Step::Diverge(label.layer, None));
-
-    Port::Erase
   }
 
-  pub(super) fn distill_return(&mut self, stage: &mut Stage, value: &Option<TirExpr>) -> Port {
+  pub(super) fn distill_return(&mut self, stage: &mut Stage, value: &Option<TirExpr>) {
     let value = value.as_ref().map(|v| self.distill_expr_value(stage, v)).unwrap_or(Port::Erase);
     let return_ = self.returns.last().unwrap();
 
     stage.set_local_to(return_.local, value);
     stage.steps.push(Step::Diverge(return_.layer, None));
-
-    Port::Erase
   }
 
   pub(super) fn distill_loop(
@@ -211,7 +209,7 @@ impl<'core, 'r> Distiller<'core, 'r> {
     label: LabelId,
     cond: &TirExpr,
     block: &TirExpr,
-  ) -> Port {
+  ) {
     let (mut layer, mut cond_stage) = self.child_layer(stage);
 
     *self.labels.get_or_extend(label) = Some(Label {
@@ -230,8 +228,6 @@ impl<'core, 'r> Distiller<'core, 'r> {
     self.finish_stage(then_stage);
     self.finish_stage(else_stage);
     self.finish_layer(layer);
-
-    Port::Erase
   }
 
   pub(super) fn distill_if(
@@ -394,14 +390,12 @@ impl<'core, 'r> Distiller<'core, 'r> {
     let pat = |variant_id, local| TirPat {
       span: Span::NONE,
       ty: Type::_NONE,
-      form: Form::Value,
       kind: Box::new(TirPatKind::Enum(
         result_id,
         variant_id,
         Some(TirPat {
           span: Span::NONE,
           ty: Type::_NONE,
-          form: Form::Value,
           kind: Box::new(TirPatKind::Local(local)),
         }),
       )),

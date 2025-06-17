@@ -78,8 +78,6 @@ diags! {
     ["expected a space expression; found a value expression"]
   ExpectedValueFoundSpaceExpr
     ["expected a value expression; found a space expression"]
-  ExpectedPlaceFoundValueExpr
-    ["expected a place expression; found a value expression"]
   ExpectedPlaceFoundSpaceExpr
     ["expected a place expression; found a space expression"]
   InconsistentTupleForm
@@ -222,6 +220,8 @@ diags! {
     ["match arms do not cover all possible cases"]
   CannotImplFn
     ["cannot directly implement the fn trait"]
+  AmbiguousPolyformicComposite
+    ["composite expression in polyformic position has elements of mixed forms"]
 }
 
 fn plural<'a>(n: usize, plural: &'a str, singular: &'a str) -> &'a str {

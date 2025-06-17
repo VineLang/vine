@@ -25,8 +25,7 @@ use crate::{
       ConstSig, EnumSig, FnSig, GenericsSig, ImplSig, Signatures, StructSig, TraitSig, TypeAliasSig,
     },
     tir::{
-      ClosureId, Form, LabelId, Local, Tir, TirClosure, TirExpr, TirExprKind, TirImpl, TirPat,
-      TirPatKind,
+      ClosureId, LabelId, Local, Tir, TirClosure, TirExpr, TirExprKind, TirImpl, TirPat, TirPatKind,
     },
     types::{ImplType, Type, TypeCtx, TypeKind, Types},
   },
@@ -243,7 +242,7 @@ impl<'core, 'a> Resolver<'core, 'a> {
     let const_def = &self.chart.concrete_consts[const_id];
     self.initialize(const_def.def, const_def.generics);
     let ty = self.types.import(&self.sigs.concrete_consts[const_id], None).ty;
-    let root = self.resolve_expr_form_type(&const_def.value, Form::Value, ty);
+    let root = self.resolve_expr_type(&const_def.value, ty);
     let fragment = self.finish_fragment(const_def.span, self.chart.defs[const_def.def].path, root);
     let fragment_id = self.fragments.push(fragment);
     assert_eq!(self.resolutions.consts.next_index(), const_id);
@@ -255,12 +254,7 @@ impl<'core, 'a> Resolver<'core, 'a> {
     self.initialize(fn_def.def, fn_def.generics);
     let (ty, closure_id) =
       self.resolve_closure(Flex::None, &fn_def.params, &fn_def.ret_ty, &fn_def.body, false);
-    let root = TirExpr {
-      span: fn_def.span,
-      ty,
-      form: Form::Value,
-      kind: Box::new(TirExprKind::Closure(closure_id)),
-    };
+    let root = TirExpr { span: fn_def.span, ty, kind: Box::new(TirExprKind::Closure(closure_id)) };
     let fragment = self.finish_fragment(fn_def.span, self.chart.defs[fn_def.def].path, root);
     let fragment_id = self.fragments.push(fragment);
     assert_eq!(self.resolutions.fns.next_index(), fn_id);
@@ -331,16 +325,16 @@ impl<'core, 'a> Resolver<'core, 'a> {
       } else {
         TirExprKind::Composite(Vec::new())
       };
-      return TirExpr { span, ty, form: Form::Value, kind: Box::new(kind) };
+      return TirExpr { span, ty, kind: Box::new(kind) };
     };
     let kind = match &stmt.kind {
       StmtKind::Let(l) => {
-        let init = l.init.as_ref().map(|init| self.resolve_expr_form(init, Form::Value));
+        let init = l.init.as_ref().map(|init| self.resolve_expr(init));
         let else_block = l.else_block.as_ref().map(|block| {
           let never = self.types.new(TypeKind::Never);
           self.resolve_block_type(block, never)
         });
-        let bind = self.resolve_pat(&l.bind, Form::Value, l.else_block.is_some());
+        let bind = self.resolve_pat(&l.bind);
         if let Some(init) = &init {
           self.expect_type(init.span, init.ty, bind.ty);
         }
@@ -362,15 +356,15 @@ impl<'core, 'a> Resolver<'core, 'a> {
       }
       StmtKind::Expr(expr, semi) => {
         if !semi && rest.is_empty() {
-          return self.resolve_expr_form_type(expr, Form::Value, ty);
+          return self.resolve_expr_type(expr, ty);
         } else {
-          let expr = self.resolve_expr_form(expr, Form::Value);
+          let expr = self.resolve_expr(expr);
           TirExprKind::Seq(expr, self.resolve_stmts_type(span, rest, ty))
         }
       }
       StmtKind::Item(_) | StmtKind::Empty => return self.resolve_stmts_type(span, rest, ty),
     };
-    TirExpr { span, ty, form: Form::Value, kind: Box::new(kind) }
+    TirExpr { span, ty, kind: Box::new(kind) }
   }
 
   fn resolve_closure(
@@ -384,7 +378,7 @@ impl<'core, 'a> Resolver<'core, 'a> {
     let old_labels = take(&mut self.labels);
     let old_loops = take(&mut self.loops);
     self.enter_scope();
-    let params = params.iter().map(|p| self.resolve_pat(p, Form::Value, false)).collect::<Vec<_>>();
+    let params = params.iter().map(|p| self.resolve_pat(p)).collect::<Vec<_>>();
     let ret_ty = ret.as_ref().map(|t| self.resolve_type(t, true)).unwrap_or_else(|| {
       if inferred_ret {
         self.types.new_var(body.span)
@@ -989,22 +983,12 @@ impl<'core, 'a> Resolver<'core, 'a> {
 
   fn error_expr(&mut self, span: Span, diag: Diag<'core>) -> TirExpr {
     let err = self.core.report(diag);
-    TirExpr {
-      span,
-      ty: self.types.error(err),
-      form: Form::Error(err),
-      kind: Box::new(TirExprKind::Error(err)),
-    }
+    TirExpr { span, ty: self.types.error(err), kind: Box::new(TirExprKind::Error(err)) }
   }
 
   fn error_pat(&mut self, span: Span, diag: Diag<'core>) -> TirPat {
     let err = self.core.report(diag);
-    TirPat {
-      span,
-      ty: self.types.error(err),
-      form: Form::Error(err),
-      kind: Box::new(TirPatKind::Error(err)),
-    }
+    TirPat { span, ty: self.types.error(err), kind: Box::new(TirPatKind::Error(err)) }
   }
 
   fn expect_type(&mut self, span: Span, found: Type, expected: Type) {
