@@ -1,17 +1,15 @@
-use std::collections::{hash_map::Entry, HashMap};
+use std::collections::hash_map::Entry;
 
-use vine_util::{idx::IdxVec, new_idx};
+use vine_util::idx::IdxVec;
 
-use crate::{
-  components::resolver::Resolutions,
-  structures::{
-    chart::{
-      checkpoint::ChartCheckpoint, Chart, ConcreteConstId, ConcreteFnId, ConstId, DefId, FnId,
-      GenericsId, ImplId,
-    },
-    diag::ErrorGuaranteed,
-    tir::{ConstRelId, FnRelId, Tir, TirImpl},
-  },
+use crate::structures::{
+  chart::{Chart, ConstId, FnId, ImplId},
+  checkpoint::Checkpoint,
+  diag::ErrorGuaranteed,
+  resolutions::{FnRel, Fragment, FragmentId, Resolutions},
+  specializations::{ImplTree, Spec, SpecId, SpecRels, Specializations},
+  tir::{ClosureId, TirImpl},
+  vir::{InterfaceKind, StageId, Vir},
 };
 
 #[derive(Debug)]
@@ -19,211 +17,174 @@ pub struct Specializer<'core, 'a> {
   pub chart: &'a Chart<'core>,
   pub resolutions: &'a Resolutions,
   pub specs: &'a mut Specializations,
-}
-
-#[derive(Debug, Default)]
-pub struct Specializations {
-  consts: IdxVec<ConcreteConstId, TemplateInfo>,
-  fns: IdxVec<ConcreteFnId, TemplateInfo>,
-  pub specs: IdxVec<SpecId, Option<Spec>>,
+  pub fragments: &'a IdxVec<FragmentId, Fragment<'core>>,
+  pub vir: &'a IdxVec<FragmentId, Vir>,
 }
 
 impl<'core, 'a> Specializer<'core, 'a> {
-  pub fn specialize_since(&mut self, checkpoint: &ChartCheckpoint) {
-    self.initialize(checkpoint);
-    self.specialize_roots(checkpoint);
-  }
-
-  fn initialize(&mut self, checkpoint: &ChartCheckpoint) {
-    for const_id in self.chart.concrete_consts.keys_from(checkpoint.concrete_consts) {
-      self.specs.consts.push(TemplateInfo {
-        impl_params: self.impl_param_count(self.chart.concrete_consts[const_id].generics),
-        const_rels: self.resolutions.consts[const_id].const_rels.clone(),
-        fn_rels: self.resolutions.consts[const_id].fn_rels.clone(),
-        specs: HashMap::new(),
-      });
-    }
-
-    for fn_id in self.chart.concrete_fns.keys_from(checkpoint.concrete_fns) {
-      self.specs.fns.push(TemplateInfo {
-        impl_params: self.impl_param_count(self.chart.concrete_fns[fn_id].generics),
-        const_rels: self.resolutions.fns[fn_id].const_rels.clone(),
-        fn_rels: self.resolutions.fns[fn_id].fn_rels.clone(),
-        specs: HashMap::new(),
-      });
-    }
-  }
-
-  fn specialize_roots(&mut self, checkpoint: &ChartCheckpoint) {
-    for const_id in self.specs.consts.keys_from(checkpoint.concrete_consts) {
-      if self.specs.consts[const_id].impl_params == 0 {
-        self.specialize(TemplateId::Const(const_id), Vec::new());
-      }
-    }
-
-    for fn_id in self.specs.fns.keys_from(checkpoint.concrete_fns) {
-      if self.specs.fns[fn_id].impl_params == 0 {
-        self.specialize(TemplateId::Fn(fn_id), Vec::new());
+  pub fn specialize_since(&mut self, checkpoint: &Checkpoint) {
+    for fragment_id in self.fragments.keys_from(checkpoint.fragments) {
+      if self.fragments[fragment_id].impl_params == 0 {
+        self.specialize(fragment_id, Vec::new());
       }
     }
   }
 
-  fn specialize(&mut self, id: TemplateId, impl_args: Vec<ImplTree>) -> SpecId {
+  fn specialize(&mut self, id: FragmentId, impl_args: Vec<ImplTree>) -> SpecId {
     let spec_id = self.specs.specs.next_index();
-    let template = &mut self.template_mut(id);
-    let index = template.specs.len();
-    let entry = match template.specs.entry(impl_args) {
+    let lookup = self.specs.lookup.get_or_extend(id);
+    let index = lookup.len();
+    let entry = match lookup.entry(impl_args) {
       Entry::Occupied(e) => return *e.get(),
       Entry::Vacant(e) => e,
     };
     let impl_args = entry.key().clone();
     entry.insert(spec_id);
-    let fn_rel_ids = template.fn_rels.keys();
-    let const_rel_ids = template.const_rels.keys();
     self.specs.specs.push(None);
+    let fragment = &self.fragments[id];
     let rels = SpecRels {
-      fns: IdxVec::from(Vec::from_iter(fn_rel_ids.map(|rel_id| {
-        let rel = &self.template(id).fn_rels[rel_id];
-        let (fn_id, args) = self.instantiate_fn_rel(rel, &impl_args)?;
-        Ok(self.specialize(TemplateId::Fn(fn_id), args))
+      fns: IdxVec::from(Vec::from_iter(fragment.rels.fns.values().map(|rel| {
+        let (id, args, stage) = self.instantiate_fn_rel(id, &impl_args, rel)?;
+        Ok((self.specialize(id, args), stage))
       }))),
-      consts: IdxVec::from(Vec::from_iter(const_rel_ids.map(|rel_id| {
-        let rel = &self.template(id).const_rels[rel_id];
-        let (const_id, args) = self.instantiate_const_rel(rel, &impl_args)?;
-        Ok(self.specialize(TemplateId::Const(const_id), args))
+      consts: IdxVec::from(Vec::from_iter(fragment.rels.consts.values().map(|rel| {
+        let (id, args) = self.instantiate_const_rel(id, &impl_args, rel)?;
+        Ok(self.specialize(id, args))
       }))),
     };
-    let def = match id {
-      TemplateId::Const(id) => self.chart.concrete_consts[id].def,
-      TemplateId::Fn(id) => self.chart.concrete_fns[id].def,
-    };
-    let spec = Spec { def, template: id, index, singular: impl_args.is_empty(), rels };
+    let spec = Spec { fragment: id, index, singular: impl_args.is_empty(), rels };
     self.specs.specs[spec_id] = Some(spec);
     spec_id
   }
 
   fn instantiate_const_rel(
     &self,
+    fragment_id: FragmentId,
+    args: &Vec<ImplTree>,
     (const_id, impls): &(ConstId, Vec<TirImpl>),
-    impl_args: &[ImplTree],
-  ) -> Result<(ConcreteConstId, Vec<ImplTree>), ErrorGuaranteed> {
+  ) -> Result<(FragmentId, Vec<ImplTree>), ErrorGuaranteed> {
     match *const_id {
       ConstId::Concrete(const_id) => {
-        Ok((const_id, impls.iter().map(|x| instantiate(x, impl_args)).collect::<Result<_, _>>()?))
+        let impls = impls.iter().map(|x| instantiate(fragment_id, args, x)).collect();
+        Ok((self.resolutions.consts[const_id], impls))
       }
-      ConstId::Abstract(_, trait_const_id) => {
+      ConstId::Abstract(_, const_id) => {
         let [impl_] = &**impls else { unreachable!() };
-        let ImplTree(impl_id, impls) = instantiate(impl_, impl_args)?;
-        Ok((self.resolutions.impls[impl_id].as_ref()?.consts[trait_const_id]?, impls))
+        let (impl_id, impls) = instantiate(fragment_id, args, impl_).assume_def()?;
+        let const_id = self.resolutions.impls[impl_id].as_ref()?.consts[const_id]?;
+        Ok((self.resolutions.consts[const_id], impls))
       }
     }
   }
 
   fn instantiate_fn_rel(
     &self,
-    (fn_id, impls): &(FnId, Vec<TirImpl>),
-    impl_args: &[ImplTree],
-  ) -> Result<(ConcreteFnId, Vec<ImplTree>), ErrorGuaranteed> {
-    match *fn_id {
+    fragment_id: FragmentId,
+    args: &Vec<ImplTree>,
+    fn_rel: &FnRel,
+  ) -> Result<(FragmentId, Vec<ImplTree>, StageId), ErrorGuaranteed> {
+    match fn_rel {
+      FnRel::Item(fn_id, impls) => {
+        let impls = impls.iter().map(|x| instantiate(fragment_id, args, x)).collect();
+        self.instantiate_fn_id(*fn_id, impls)
+      }
+      FnRel::Impl(impl_) => {
+        let impl_ = instantiate(fragment_id, args, impl_);
+        match impl_ {
+          ImplTree::Error(err) => Err(err),
+          ImplTree::Def(..) | ImplTree::ForkClosure(..) | ImplTree::DropClosure(..) => {
+            unreachable!()
+          }
+          ImplTree::Fn(fn_id, impls) => self.instantiate_fn_id(fn_id, impls),
+          ImplTree::Closure(fragment_id, impls, closure_id) => {
+            Ok((fragment_id, impls, self._closure_stage(fragment_id, Some(closure_id))))
+          }
+        }
+      }
+    }
+  }
+
+  fn instantiate_fn_id(
+    &self,
+    fn_id: FnId,
+    mut impls: Vec<ImplTree>,
+  ) -> Result<(FragmentId, Vec<ImplTree>, StageId), ErrorGuaranteed> {
+    match fn_id {
       FnId::Concrete(fn_id) => {
-        Ok((fn_id, impls.iter().map(|x| instantiate(x, impl_args)).collect::<Result<_, _>>()?))
+        let fragment_id = self.resolutions.fns[fn_id];
+        Ok((fragment_id, impls, self._closure_stage(fragment_id, None)))
       }
       FnId::Abstract(_, fn_id) => {
-        let [impl_] = &**impls else { unreachable!() };
-        let ImplTree(impl_id, impls) = instantiate(impl_, impl_args)?;
-        Ok((self.resolutions.impls[impl_id].as_ref()?.fns[fn_id]?, impls))
+        assert_eq!(impls.len(), 1);
+        let impl_ = impls.pop().unwrap();
+        match impl_ {
+          ImplTree::Def(impl_id, impls) => {
+            let fn_id = self.resolutions.impls[impl_id].as_ref()?.fns[fn_id]?;
+            let fragment_id = self.resolutions.fns[fn_id];
+            Ok((fragment_id, impls, self._closure_stage(fragment_id, None)))
+          }
+          ImplTree::ForkClosure(fragment_id, impls, closure_id) => {
+            match self._closure_interface(fragment_id, Some(closure_id)) {
+              InterfaceKind::Fn { fork: Some(stage), .. } => Ok((fragment_id, impls, *stage)),
+              _ => unreachable!(),
+            }
+          }
+          ImplTree::DropClosure(fragment_id, impls, closure_id) => {
+            match self._closure_interface(fragment_id, Some(closure_id)) {
+              InterfaceKind::Fn { drop: Some(stage), .. } => Ok((fragment_id, impls, *stage)),
+              _ => unreachable!(),
+            }
+          }
+          ImplTree::Error(err) => Err(err),
+          ImplTree::Fn(..) | ImplTree::Closure(..) => unreachable!(),
+        }
       }
     }
   }
 
-  pub(crate) fn _specialize_custom(&mut self, tir: &Tir) -> SpecRels {
-    SpecRels {
-      fns: IdxVec::from(Vec::from_iter(tir.fn_rels.values().map(|rel| {
-        let (fn_id, args) = self.instantiate_fn_rel(rel, &[])?;
-        Ok(self.specialize(TemplateId::Fn(fn_id), args))
-      }))),
-      consts: IdxVec::from(Vec::from_iter(tir.const_rels.values().map(|rel| {
-        let (const_id, args) = self.instantiate_const_rel(rel, &[])?;
-        Ok(self.specialize(TemplateId::Const(const_id), args))
-      }))),
+  fn _closure_stage(&self, fragment_id: FragmentId, closure_id: Option<ClosureId>) -> StageId {
+    match self._closure_interface(fragment_id, closure_id) {
+      InterfaceKind::Fn { call, .. } => *call,
+      _ => unreachable!(),
     }
   }
 
-  fn template(&self, id: TemplateId) -> &TemplateInfo {
-    match id {
-      TemplateId::Const(const_id) => &self.specs.consts[const_id],
-      TemplateId::Fn(fn_id) => &self.specs.fns[fn_id],
-    }
-  }
-
-  fn template_mut(&mut self, id: TemplateId) -> &mut TemplateInfo {
-    match id {
-      TemplateId::Const(const_id) => &mut self.specs.consts[const_id],
-      TemplateId::Fn(fn_id) => &mut self.specs.fns[fn_id],
-    }
-  }
-
-  fn impl_param_count(&self, generics_id: GenericsId) -> usize {
-    let generics = &self.chart.generics[generics_id];
-    generics
-      .type_params
-      .iter()
-      .map(|p| p.flex.fork() as usize + p.flex.drop() as usize)
-      .sum::<usize>()
-      + generics.impl_params.len()
+  fn _closure_interface(
+    &self,
+    fragment_id: FragmentId,
+    closure_id: Option<ClosureId>,
+  ) -> &InterfaceKind {
+    let vir = &self.vir[fragment_id];
+    let interface_id = match closure_id {
+      Some(id) => vir.closures[id],
+      None => *vir.closures.last().unwrap(),
+    };
+    &vir.interfaces[interface_id].kind
   }
 }
 
-#[derive(Debug, Clone, Copy)]
-pub enum TemplateId {
-  Const(ConcreteConstId),
-  Fn(ConcreteFnId),
-}
-
-#[derive(Debug, Default)]
-struct TemplateInfo {
-  impl_params: usize,
-  const_rels: IdxVec<ConstRelId, (ConstId, Vec<TirImpl>)>,
-  fn_rels: IdxVec<FnRelId, (FnId, Vec<TirImpl>)>,
-  specs: HashMap<Vec<ImplTree>, SpecId>,
-}
-
-new_idx!(pub SpecId);
-
-#[derive(Debug)]
-pub struct Spec {
-  pub def: DefId,
-  pub template: TemplateId,
-  pub index: usize,
-  pub singular: bool,
-  pub rels: SpecRels,
-}
-
-#[derive(Debug)]
-pub struct SpecRels {
-  pub fns: IdxVec<FnRelId, Result<SpecId, ErrorGuaranteed>>,
-  pub consts: IdxVec<ConstRelId, Result<SpecId, ErrorGuaranteed>>,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-struct ImplTree(ImplId, Vec<ImplTree>);
-
-fn instantiate(impl_: &TirImpl, params: &[ImplTree]) -> Result<ImplTree, ErrorGuaranteed> {
-  match &impl_ {
-    TirImpl::Error(err) => Err(*err),
-    TirImpl::Param(i) => Ok(params[*i].clone()),
+fn instantiate(fragment_id: FragmentId, args: &Vec<ImplTree>, impl_: &TirImpl) -> ImplTree {
+  match impl_ {
+    TirImpl::Error(err) => ImplTree::Error(*err),
+    TirImpl::Param(i) => args[*i].clone(),
     TirImpl::Def(id, impls) => {
-      Ok(ImplTree(*id, impls.iter().map(|i| instantiate(i, params)).collect::<Result<_, _>>()?))
+      ImplTree::Def(*id, impls.iter().map(|i| instantiate(fragment_id, args, i)).collect())
     }
+    TirImpl::Fn(id, impls) => {
+      ImplTree::Fn(*id, impls.iter().map(|i| instantiate(fragment_id, args, i)).collect())
+    }
+    TirImpl::Closure(id) => ImplTree::Closure(fragment_id, args.clone(), *id),
+    TirImpl::ForkClosure(id) => ImplTree::ForkClosure(fragment_id, args.clone(), *id),
+    TirImpl::DropClosure(id) => ImplTree::DropClosure(fragment_id, args.clone(), *id),
   }
 }
 
-impl Specializations {
-  pub fn revert(&mut self, checkpoint: &ChartCheckpoint, specs: SpecId) {
-    self.specs.truncate(specs.0);
-    self.consts.truncate(checkpoint.concrete_consts.0);
-    self.fns.truncate(checkpoint.concrete_fns.0);
-    self.consts.values_mut().for_each(|info| info.specs.retain(|_, s| *s < specs));
-    self.fns.values_mut().for_each(|info| info.specs.retain(|_, s| *s < specs));
+impl ImplTree {
+  fn assume_def(self) -> Result<(ImplId, Vec<ImplTree>), ErrorGuaranteed> {
+    match self {
+      ImplTree::Def(impl_id, impls) => Ok((impl_id, impls)),
+      ImplTree::Error(err) => Err(err),
+      _ => unreachable!(),
+    }
   }
 }

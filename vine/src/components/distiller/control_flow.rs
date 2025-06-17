@@ -12,22 +12,43 @@ impl<'core, 'r> Distiller<'core, 'r> {
   pub(super) fn distill_closure_def(&mut self, closure: &TirClosure) -> InterfaceId {
     let mut layer = self.new_layer();
     let interface = self.interfaces.push(None);
-    let mut stage = self.new_stage(&mut layer, interface);
+
+    let call = {
+      let mut stage = self.new_stage(&mut layer, interface);
+
+      let return_local = self.new_local(&mut stage);
+      let params =
+        closure.params.iter().map(|p| self.distill_pat_value(&mut stage, p)).collect::<Vec<_>>();
+      let result = stage.take_local(return_local);
+      stage.header = Header::Fn(params, result);
+
+      self.returns.push(Return { layer: stage.layer, local: return_local });
+      let result = self.distill_expr_value(&mut stage, &closure.body);
+      stage.set_local_to(return_local, result);
+      self.returns.pop();
+
+      self.finish_stage(stage)
+    };
+
+    let fork = closure.flex.fork().then(|| {
+      let mut stage = self.new_stage(&mut layer, interface);
+      let former = stage.new_wire();
+      let latter = stage.new_wire();
+      stage.steps.push(Step::Transfer(Transfer { interface, data: Some(former.0) }));
+      stage.steps.push(Step::Transfer(Transfer { interface, data: Some(latter.0) }));
+      stage.header = Header::Fork(former.1, latter.1);
+      self.finish_stage(stage)
+    });
+
+    let drop = closure.flex.drop().then(|| {
+      let mut stage = self.new_stage(&mut layer, interface);
+      stage.header = Header::Drop;
+      self.finish_stage(stage)
+    });
+
     self.interfaces[interface] =
-      Some(Interface::new(interface, layer.id, InterfaceKind::Fn(stage.id)));
-    let return_local = self.new_local(&mut stage);
+      Some(Interface::new(interface, layer.id, InterfaceKind::Fn { call, fork, drop }));
 
-    let params =
-      closure.params.iter().map(|p| self.distill_pat_value(&mut stage, p)).collect::<Vec<_>>();
-    let result = stage.take_local(return_local);
-    stage.header = Header::Fn(params, result);
-
-    self.returns.push(Return { layer: stage.layer, local: return_local });
-    let result = self.distill_expr_value(&mut stage, &closure.body);
-    stage.set_local_to(return_local, result);
-    self.returns.pop();
-
-    self.finish_stage(stage);
     self.finish_layer(layer);
     interface
   }
@@ -310,7 +331,7 @@ impl<'core, 'r> Distiller<'core, 'r> {
         self.interfaces[interface] = Some(Interface::new(
           interface,
           layer.id,
-          InterfaceKind::Branch([false_stage.id, true_stage.id]),
+          InterfaceKind::Branch(false_stage.id, true_stage.id),
         ));
         stage.transfer = Some(Transfer { interface, data: Some(bool) });
         (true_stage, false_stage)

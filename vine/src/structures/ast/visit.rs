@@ -101,7 +101,7 @@ pub trait VisitMut<'core, 'a> {
         self.visit_expr(a);
         self.visit_block(b);
       }
-      ExprKind::Fn(a, b, c) => {
+      ExprKind::Fn(_, a, b, c) => {
         self.visit(a);
         self.visit(b);
         self.visit_block(c);
@@ -186,18 +186,10 @@ pub trait VisitMut<'core, 'a> {
     match &mut ty.kind {
       TyKind::Hole => {}
       TyKind::Paren(t) | TyKind::Ref(t) | TyKind::Inverse(t) => self.visit_type(t),
-      TyKind::Path(p) => self.visit(&mut p.generics),
+      TyKind::Path(p) | TyKind::Fn(p) => self.visit(&mut p.generics),
       TyKind::Tuple(a) => {
         for t in a {
           self.visit_type(t);
-        }
-      }
-      TyKind::Fn(a, r) => {
-        for t in a {
-          self.visit_type(t);
-        }
-        if let Some(r) = r {
-          self.visit_type(r);
         }
       }
       TyKind::Object(o) => {
@@ -212,7 +204,7 @@ pub trait VisitMut<'core, 'a> {
   fn _visit_impl(&mut self, impl_: &'a mut Impl<'core>) {
     match &mut impl_.kind {
       ImplKind::Hole | ImplKind::Error(_) => {}
-      ImplKind::Path(p) => self.visit(&mut p.generics),
+      ImplKind::Path(p) | ImplKind::Fn(p) => self.visit(&mut p.generics),
     }
   }
 
@@ -220,6 +212,11 @@ pub trait VisitMut<'core, 'a> {
     match &mut trait_.kind {
       TraitKind::Error(_) => {}
       TraitKind::Path(p) => self.visit(&mut p.generics),
+      TraitKind::Fn(a, b, c) => {
+        self.visit(a);
+        self.visit(b);
+        self.visit(c);
+      }
     }
   }
 

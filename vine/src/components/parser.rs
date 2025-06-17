@@ -153,6 +153,8 @@ impl<'core, 'src> VineParser<'core, 'src> {
           "ge" => Builtin::ComparisonOp(ComparisonOp::Ge),
           "Fork" => Builtin::Fork,
           "Drop" => Builtin::Drop,
+          "copy" => Builtin::Copy,
+          "erase" => Builtin::Erase,
           "Range" => Builtin::Range,
           "BoundUnbounded" => Builtin::BoundUnbounded,
           "BoundInclusive" => Builtin::BoundInclusive,
@@ -624,9 +626,10 @@ impl<'core, 'src> VineParser<'core, 'src> {
       return Ok(Some(ExprKind::Loop(label, body)));
     }
     if self.eat(Token::Fn)? {
+      let flex = self.parse_flex()?;
       let params = self.parse_delimited(PAREN_COMMA, Self::parse_pat)?;
       let body = self.parse_block()?;
-      return Ok(Some(ExprKind::Fn(params, None, body)));
+      return Ok(Some(ExprKind::Fn(flex, params, None, body)));
     }
     if self.eat(Token::Match)? {
       let scrutinee = self.parse_expr()?;
@@ -940,9 +943,8 @@ impl<'core, 'src> VineParser<'core, 'src> {
       return Ok(TyKind::Hole);
     }
     if self.eat(Token::Fn)? {
-      let args = self.parse_delimited(PAREN_COMMA, Self::parse_type)?;
-      let ret = self.eat(Token::ThinArrow)?.then(|| self.parse_type()).transpose()?.map(Box::new);
-      return Ok(TyKind::Fn(args, ret));
+      let path = self.parse_path()?;
+      return Ok(TyKind::Fn(path));
     }
     if self.check(Token::OpenParen) {
       let mut tuple = false;
@@ -986,28 +988,54 @@ impl<'core, 'src> VineParser<'core, 'src> {
 
   fn parse_impl(&mut self) -> Parse<'core, Impl<'core>> {
     let span = self.start_span();
-    let kind =
-      if self.eat(Token::Hole)? { ImplKind::Hole } else { ImplKind::Path(self.parse_path()?) };
+    let kind = self._parse_impl()?;
     let span = self.end_span(span);
     Ok(Impl { span, kind })
   }
 
+  fn _parse_impl(&mut self) -> Result<ImplKind<'core>, Diag<'core>> {
+    if self.eat(Token::Hole)? {
+      return Ok(ImplKind::Hole);
+    }
+    if self.check(Token::ColonColon) || self.check(Token::Ident) {
+      return Ok(ImplKind::Path(self.parse_path()?));
+    }
+    if self.eat(Token::Fn)? {
+      return Ok(ImplKind::Fn(self.parse_path()?));
+    }
+    self.unexpected()
+  }
+
   fn parse_trait(&mut self) -> Parse<'core, Trait<'core>> {
     let span = self.start_span();
-    let kind = TraitKind::Path(self.parse_path()?);
+    let kind = self._parse_trait()?;
     let span = self.end_span(span);
     Ok(Trait { span, kind })
+  }
+
+  fn _parse_trait(&mut self) -> Parse<'core, TraitKind<'core>> {
+    if self.check(Token::ColonColon) || self.check(Token::Ident) {
+      return Ok(TraitKind::Path(self.parse_path()?));
+    }
+    if self.eat(Token::Fn)? {
+      let receiver = self.parse_type()?;
+      let params = self.parse_delimited(PAREN_COMMA, Self::parse_type)?;
+      let ret = self.eat(Token::ThinArrow)?.then(|| self.parse_type()).transpose()?;
+      return Ok(TraitKind::Fn(receiver, params, ret));
+    }
+    self.unexpected()
   }
 
   pub(crate) fn parse_stmt(&mut self) -> Parse<'core, Stmt<'core>> {
     let span = self.start_span();
     let kind = if self.eat(Token::Let)? {
       if self.eat(Token::Fn)? {
+        let flex = self.parse_flex()?;
         let name = self.parse_ident()?;
         let params = self.parse_delimited(PAREN_COMMA, Self::parse_pat)?;
         let ret = self.eat(Token::ThinArrow)?.then(|| self.parse_type()).transpose()?;
         let body = self.parse_block()?;
-        StmtKind::LetFn(LetFnStmt { name, params, ret, body })
+        StmtKind::LetFn(LetFnStmt { flex, name, params, ret, body })
       } else {
         let bind = self.parse_pat()?;
         let init = self.eat(Token::Eq)?.then(|| self.parse_expr()).transpose()?;

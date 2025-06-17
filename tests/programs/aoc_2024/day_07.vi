@@ -13,16 +13,16 @@ pub fn main(&io: &IO) {
     while nums.pop_front() is Some(num) {
       let len = num.len();
       let num = N32::parse(num).unwrap() as N64;
-      let add = results.map(fn(x: N64) { x + num });
-      let mul = results.map(fn(x: N64) { x * num });
+      let add = results.map(fn* (x: N64) { x + num });
+      let mul = results.map(fn* (x: N64) { x * num });
       let pow = 1;
       while len > 0 {
         pow *= 10;
         len -= 1;
       }
-      let add2 = results2.map(fn(x: N64) { x + num });
-      let mul2 = results2.map(fn(x: N64) { x * num });
-      let concat = (results ++ results2).map(fn(x: N64) { x * pow as N64 + num });
+      let add2 = results2.map(fn* (x: N64) { x + num });
+      let mul2 = results2.map(fn* (x: N64) { x * num });
+      let concat = (results ++ results2).map(fn* (x: N64) { x * pow as N64 + num });
       results = add ++ mul;
       results2 = add2 ++ mul2 ++ concat;
     }

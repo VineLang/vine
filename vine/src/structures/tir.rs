@@ -6,29 +6,28 @@ use vine_util::{
 };
 
 use crate::structures::{
-  ast::{LogicalOp, Span},
-  chart::{ConstId, EnumId, FnId, ImplId, StructId, VariantId},
+  ast::{Flex, LogicalOp, Span},
+  chart::{EnumId, FnId, ImplId, StructId, VariantId},
   diag::ErrorGuaranteed,
+  resolutions::{ConstRelId, FnRelId},
   types::Type,
 };
 
 new_idx!(pub LabelId);
 new_idx!(pub Local; n => ["l{n}"]);
 new_idx!(pub ClosureId; n => ["c{n}"]);
-new_idx!(pub FnRelId);
-new_idx!(pub ConstRelId);
 
 #[derive(Debug, Clone)]
 pub struct Tir {
+  pub span: Span,
   pub locals: Counter<Local>,
   pub closures: IdxVec<ClosureId, TirClosure>,
-  pub const_rels: IdxVec<ConstRelId, (ConstId, Vec<TirImpl>)>,
-  pub fn_rels: IdxVec<FnRelId, (FnId, Vec<TirImpl>)>,
   pub root: TirExpr,
 }
 
 #[derive(Debug, Clone)]
 pub struct TirClosure {
+  pub flex: Flex,
   pub params: Vec<TirPat>,
   pub body: TirExpr,
 }
@@ -56,7 +55,7 @@ pub enum TirExprKind {
   #[class(value)]
   Const(ConstRelId),
   #[class(value)]
-  Fn(FnRelId),
+  Fn,
   #[class(place)]
   Local(Local),
   #[class(value)]
@@ -96,9 +95,7 @@ pub enum TirExprKind {
   #[class(value, place)]
   Field(TirExpr, usize, usize),
   #[class(value)]
-  Call(TirExpr, Vec<TirExpr>),
-  #[class(value)]
-  CallFn(FnRelId, Vec<TirExpr>),
+  Call(FnRelId, Option<TirExpr>, Vec<TirExpr>),
   #[class(value, place, space)]
   Struct(StructId, TirExpr),
   #[class(value)]
@@ -185,11 +182,15 @@ pub enum TirPatKind {
   Error(ErrorGuaranteed),
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum TirImpl {
   Error(ErrorGuaranteed),
   Param(usize),
   Def(ImplId, Vec<TirImpl>),
+  Fn(FnId, Vec<TirImpl>),
+  Closure(ClosureId),
+  ForkClosure(ClosureId),
+  DropClosure(ClosureId),
 }
 
 impl Form {

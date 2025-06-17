@@ -4,17 +4,14 @@ use ivy::ast::{Net, Nets, Tree};
 use vine_util::idx::{Counter, IdxVec};
 
 use crate::{
-  components::{
-    analyzer::usage::Usage,
-    specializer::{Spec, SpecId, Specializations, TemplateId},
-  },
+  components::analyzer::usage::Usage,
   structures::{
-    chart::{Chart, ConcreteConstId, ConcreteFnId, EnumDef, VariantId},
-    diag::ErrorGuaranteed,
+    chart::{Chart, EnumDef, VariantId},
+    resolutions::{Fragment, FragmentId},
+    specializations::{Spec, SpecId, Specializations},
     tir::Local,
     vir::{
-      Header, Interface, InterfaceId, InterfaceKind, Invocation, Port, Stage, StageId, Step,
-      Transfer, Vir,
+      Header, Interface, InterfaceKind, Invocation, Port, Stage, StageId, Step, Transfer, Vir,
     },
   },
 };
@@ -23,42 +20,41 @@ pub struct Emitter<'core, 'a> {
   pub nets: Nets,
   chart: &'a Chart<'core>,
   specs: &'a Specializations,
+  fragments: &'a IdxVec<FragmentId, Fragment<'core>>,
+  vir: &'a IdxVec<FragmentId, Vir>,
   dup_labels: Counter<usize>,
 }
 
 impl<'core, 'a> Emitter<'core, 'a> {
-  pub fn new(chart: &'a Chart<'core>, specs: &'a Specializations) -> Self {
-    Emitter { nets: Nets::default(), chart, specs, dup_labels: Counter::default() }
+  pub fn new(
+    chart: &'a Chart<'core>,
+    specs: &'a Specializations,
+    fragments: &'a IdxVec<FragmentId, Fragment<'core>>,
+    vir: &'a IdxVec<FragmentId, Vir>,
+  ) -> Self {
+    Emitter { nets: Nets::default(), chart, specs, fragments, vir, dup_labels: Counter::default() }
   }
 
-  pub fn emit_main(&mut self, main: ConcreteFnId) {
-    let path = self.chart.defs[self.chart.concrete_fns[main].def].path;
-    self.nets.insert("::".into(), Net { root: Tree::Global(path.into()), pairs: Vec::new() });
+  pub fn emit_main(&mut self, main: FragmentId) {
+    let path = self.fragments[main].path;
+    let vir = &self.vir[main];
+    let func = *vir.closures.last().unwrap();
+    let InterfaceKind::Fn { call, .. } = vir.interfaces[func].kind else { unreachable!() };
+    let global = format!("{path}::{}", call.0);
+    self.nets.insert("::".into(), Net { root: Tree::Global(global), pairs: Vec::new() });
   }
 
-  pub fn emit_spec(
-    &mut self,
-    spec: SpecId,
-    const_vir: &IdxVec<ConcreteConstId, Vir>,
-    fn_vir: &IdxVec<ConcreteFnId, Vir>,
-  ) {
-    let spec = self.specs.specs[spec].as_ref().unwrap();
-    let path = self.chart.defs[spec.def].path;
-    let vir = match spec.template {
-      TemplateId::Const(id) => &const_vir[id],
-      TemplateId::Fn(id) => &fn_vir[id],
-    };
-    self.emit_vir(vir, path, spec)
-  }
+  pub fn emit_spec(&mut self, spec_id: SpecId) {
+    let spec = self.specs.specs[spec_id].as_ref().unwrap();
+    let vir = &self.vir[spec.fragment];
 
-  pub fn emit_vir(&mut self, vir: &Vir, path: &str, spec: &Spec) {
     let mut emitter = VirEmitter {
       chart: self.chart,
-      path,
-      stages: &vir.stages,
-      interfaces: &vir.interfaces,
       specs: self.specs,
+      fragments: self.fragments,
+      spec_id,
       spec,
+      vir,
       locals: BTreeMap::new(),
       pairs: Vec::new(),
       wire_offset: 0,
@@ -78,7 +74,7 @@ impl<'core, 'a> Emitter<'core, 'a> {
           emitter.finish_local(local);
         }
         let net = Net { root, pairs: take(&mut emitter.pairs) };
-        self.nets.insert(emitter.stage_name(stage.id), net);
+        self.nets.insert(emitter.stage_name(spec_id, stage.id), net);
       }
     }
 
@@ -88,11 +84,11 @@ impl<'core, 'a> Emitter<'core, 'a> {
 
 struct VirEmitter<'core, 'a> {
   chart: &'a Chart<'core>,
-  path: &'a str,
-  stages: &'a IdxVec<StageId, Stage>,
-  interfaces: &'a IdxVec<InterfaceId, Interface>,
   specs: &'a Specializations,
+  fragments: &'a IdxVec<FragmentId, Fragment<'core>>,
+  spec_id: SpecId,
   spec: &'a Spec,
+  vir: &'a Vir,
   locals: BTreeMap<Local, LocalState>,
   pairs: Vec<(Tree, Tree)>,
   wire_offset: usize,
@@ -106,17 +102,17 @@ impl<'core, 'a> VirEmitter<'core, 'a> {
   }
 
   pub fn emit_transfer(&mut self, transfer: &Transfer) {
-    let interface = &self.interfaces[transfer.interface];
+    let interface = &self.vir.interfaces[transfer.interface];
     if interface.inline() {
       let InterfaceKind::Unconditional(stage) = interface.kind else { unreachable!() };
-      return self.inline_stage(&self.stages[stage]);
+      return self.inline_stage(&self.vir.stages[stage]);
     }
 
     let target = self.emit_interface(interface, false);
 
     self.pairs.push(match &interface.kind {
       InterfaceKind::Unconditional(stage) => (self.emit_stage_node(*stage), target),
-      InterfaceKind::Branch([zero, non_zero]) => (
+      InterfaceKind::Branch(zero, non_zero) => (
         self.emit_port(transfer.data.as_ref().unwrap()),
         Tree::Branch(
           Box::new(self.emit_stage_node(*zero)),
@@ -128,14 +124,7 @@ impl<'core, 'a> VirEmitter<'core, 'a> {
         self.emit_port(transfer.data.as_ref().unwrap()),
         Tree::n_ary("enum", stages.iter().map(|&s| self.emit_stage_node(s)).chain([target])),
       ),
-      InterfaceKind::Fn(stage) => (
-        self.emit_stage_node(*stage),
-        Tree::Comb(
-          "x".into(),
-          Box::new(target),
-          Box::new(self.emit_port(transfer.data.as_ref().unwrap())),
-        ),
-      ),
+      InterfaceKind::Fn { .. } => (self.emit_port(transfer.data.as_ref().unwrap()), target),
     });
   }
 
@@ -240,7 +229,7 @@ impl<'core, 'a> VirEmitter<'core, 'a> {
   }
 
   fn emit_stage_node(&self, stage_id: StageId) -> Tree {
-    Tree::Global(self.stage_name(stage_id))
+    Tree::Global(self.stage_name(self.spec_id, stage_id))
   }
 
   fn local(&mut self, local: Local) -> &mut LocalState {
@@ -249,7 +238,7 @@ impl<'core, 'a> VirEmitter<'core, 'a> {
 
   fn emit_step(&mut self, step: &Step) {
     let wire_offset = self.wire_offset;
-    let emit_port = |p| Self::_emit_port(wire_offset, self.chart, self.specs, self.spec, p);
+    let emit_port = |p| Self::_emit_port(wire_offset, self.specs, self.fragments, self.spec, p);
     match step {
       Step::Invoke(local, invocation) => match invocation {
         Invocation::Erase => self.local(*local).erase(),
@@ -263,9 +252,16 @@ impl<'core, 'a> VirEmitter<'core, 'a> {
       Step::Diverge(..) => unreachable!(),
 
       Step::Link(a, b) => self.pairs.push((emit_port(a), emit_port(b))),
-      Step::Fn(func, args, ret) => self
-        .pairs
-        .push((emit_port(func), Tree::n_ary("fn", args.iter().chain([ret]).map(emit_port)))),
+      Step::Call(rel, recv, args, ret) => {
+        let func = match self.spec.rels.fns[*rel] {
+          Ok((spec_id, stage_id)) => Tree::Global(self.stage_name(spec_id, stage_id)),
+          Err(_) => Tree::Erase,
+        };
+        self.pairs.push((
+          func,
+          Tree::n_ary("fn", [recv].into_iter().chain(args).chain([ret]).map(emit_port)),
+        ))
+      }
       Step::Composite(port, tuple) => {
         self.pairs.push((emit_port(port), Tree::n_ary("tup", tuple.iter().map(emit_port))))
       }
@@ -343,13 +339,13 @@ impl<'core, 'a> VirEmitter<'core, 'a> {
   }
 
   fn emit_port(&self, port: &Port) -> Tree {
-    Self::_emit_port(self.wire_offset, self.chart, self.specs, self.spec, port)
+    Self::_emit_port(self.wire_offset, self.specs, self.fragments, self.spec, port)
   }
 
   fn _emit_port(
     wire_offset: usize,
-    chart: &Chart,
     specs: &Specializations,
+    fragments: &IdxVec<FragmentId, Fragment<'core>>,
     spec: &Spec,
     port: &Port,
   ) -> Tree {
@@ -359,26 +355,10 @@ impl<'core, 'a> VirEmitter<'core, 'a> {
       Port::N32(n) => Tree::N32(*n),
       Port::F32(f) => Tree::F32(*f),
       Port::Wire(w) => Tree::Var(format!("w{}", wire_offset + w.0)),
-      Port::ConstRel(rel) => Self::_emit_rel_spec(specs, chart, spec.rels.consts[*rel]),
-      Port::FnRel(rel) => Self::_emit_rel_spec(specs, chart, spec.rels.fns[*rel]),
-    }
-  }
-
-  fn _emit_rel_spec(
-    specs: &Specializations,
-    chart: &Chart,
-    spec_id: Result<SpecId, ErrorGuaranteed>,
-  ) -> Tree {
-    if let Ok(spec_id) = spec_id {
-      let spec = specs.specs[spec_id].as_ref().unwrap();
-      let path = chart.defs[spec.def].path;
-      Tree::Global(if spec.singular {
-        path.to_string()
-      } else {
-        format!("{}::{}", path, spec.index)
-      })
-    } else {
-      Tree::Erase
+      Port::ConstRel(rel) => match spec.rels.consts[*rel] {
+        Ok(spec_id) => Tree::Global(Self::_stage_name(specs, fragments, spec_id, StageId(0))),
+        Err(_) => Tree::Erase,
+      },
     }
   }
 
@@ -399,11 +379,19 @@ impl<'core, 'a> VirEmitter<'core, 'a> {
       Header::Match(Some(data)) => {
         Tree::Comb("enum".into(), Box::new(self.emit_port(data)), Box::new(root))
       }
-      Header::Fn(params, result) => Tree::Comb(
-        "x".into(),
-        Box::new(root),
-        Box::new(Tree::n_ary("fn", params.iter().chain([result]).map(|port| self.emit_port(port)))),
+      Header::Fn(params, result) => Tree::n_ary(
+        "fn",
+        [root].into_iter().chain(params.iter().chain([result]).map(|port| self.emit_port(port))),
       ),
+      Header::Fork(former, latter) => Tree::n_ary(
+        "fn",
+        [
+          Tree::Erase,
+          Tree::Comb("ref".into(), Box::new(root), Box::new(self.emit_port(latter))),
+          self.emit_port(former),
+        ],
+      ),
+      Header::Drop => Tree::n_ary("fn", [Tree::Erase, root, Tree::Erase]),
     }
   }
 
@@ -412,10 +400,21 @@ impl<'core, 'a> VirEmitter<'core, 'a> {
     (Tree::Var(label.clone()), Tree::Var(label))
   }
 
-  fn stage_name(&self, stage_id: StageId) -> String {
-    let mut name = self.path.to_owned();
-    if !self.spec.singular {
-      write!(name, "::{}", self.spec.index).unwrap();
+  pub fn stage_name(&self, spec_id: SpecId, stage_id: StageId) -> String {
+    Self::_stage_name(self.specs, self.fragments, spec_id, stage_id)
+  }
+
+  fn _stage_name(
+    specs: &Specializations,
+    fragments: &IdxVec<FragmentId, Fragment<'core>>,
+    spec_id: SpecId,
+    stage_id: StageId,
+  ) -> String {
+    let spec = specs.specs[spec_id].as_ref().unwrap();
+    let path = fragments[spec.fragment].path;
+    let mut name = path.to_owned();
+    if !spec.singular {
+      write!(name, "::{}", spec.index).unwrap();
     }
     if stage_id.0 != 0 {
       write!(name, "::{}", stage_id.0).unwrap();

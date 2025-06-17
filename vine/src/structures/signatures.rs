@@ -2,9 +2,8 @@ use vine_util::idx::IdxVec;
 
 use crate::structures::{
   chart::{
-    checkpoint::ChartCheckpoint, ConcreteConstId, ConcreteFnId, ConstId, DefId, EnumId, FnId,
-    GenericsId, ImplId, ImportId, StructId, TraitConstId, TraitFnId, TraitId, TypeAliasId,
-    VariantId,
+    ConcreteConstId, ConcreteFnId, ConstId, DefId, EnumId, FnId, GenericsId, ImplId, ImportId,
+    StructId, TraitConstId, TraitFnId, TraitId, TypeAliasId, VariantId,
   },
   diag::ErrorGuaranteed,
   types::{ImplType, TransferTypes, Type, TypeCtx, TypeTransfer},
@@ -85,29 +84,6 @@ impl<'core> Signatures<'core> {
       FnId::Concrete(fn_id) => &self.concrete_fns[fn_id],
       FnId::Abstract(trait_id, fn_id) => &self.traits[trait_id].fns[fn_id],
     }
-  }
-
-  pub fn revert(&mut self, checkpoint: &ChartCheckpoint) {
-    let Signatures {
-      imports,
-      generics,
-      concrete_consts,
-      concrete_fns,
-      type_aliases,
-      structs,
-      enums,
-      traits,
-      impls,
-    } = self;
-    imports.truncate(checkpoint.imports.0);
-    generics.truncate(checkpoint.generics.0);
-    concrete_consts.truncate(checkpoint.concrete_consts.0);
-    concrete_fns.truncate(checkpoint.concrete_fns.0);
-    type_aliases.truncate(checkpoint.type_aliases.0);
-    structs.truncate(checkpoint.structs.0);
-    enums.truncate(checkpoint.enums.0);
-    traits.truncate(checkpoint.traits.0);
-    impls.truncate(checkpoint.impls.0);
   }
 }
 

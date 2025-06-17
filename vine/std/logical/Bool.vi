@@ -63,7 +63,7 @@ pub mod Bool {
     }
 
     fn cmp(a: &Bool, b: &Bool) -> Ord {
-      Ord::cmp_from_lt[Bool](a, b)
+      Ord::cmp_from_lt(a, b)
     }
   }
 

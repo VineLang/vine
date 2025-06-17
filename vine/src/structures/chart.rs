@@ -10,8 +10,6 @@ use crate::structures::{
   tir::Local,
 };
 
-pub mod checkpoint;
-
 #[derive(Debug, Default)]
 pub struct Chart<'core> {
   pub defs: IdxVec<DefId, Def<'core>>,
@@ -54,6 +52,8 @@ pub struct Builtins {
 
   pub fork: Option<TraitId>,
   pub drop: Option<TraitId>,
+  pub copy: Option<ImplId>,
+  pub erase: Option<ImplId>,
 
   pub range: Option<StructId>,
   pub bound_exclusive: Option<StructId>,
@@ -98,13 +98,13 @@ pub enum DefValueKind {
   Enum(EnumId, VariantId),
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum ConstId {
   Concrete(ConcreteConstId),
   Abstract(TraitId, TraitConstId),
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum FnId {
   Concrete(ConcreteFnId),
   Abstract(TraitId, TraitFnId),

@@ -179,7 +179,7 @@ pub mod N64 {
     }
 
     fn cmp(a: &N64, b: &N64) -> Ord {
-      Ord::cmp_from_lt[N64](a, b)
+      Ord::cmp_from_lt(a, b)
     }
   }
 
@@ -243,7 +243,7 @@ pub mod N64 {
 
   pub impl pow: Pow[N64, N32, N64] {
     fn pow(base: N64, exp: N32) -> N64 {
-      Pow::pow_by_squaring[N64](base, exp)
+      Pow::pow_by_squaring(base, exp)
     }
   }
 

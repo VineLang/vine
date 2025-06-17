@@ -8,8 +8,8 @@ pub fn main(&io: &IO) {
   let scores = 0;
   let ratings = 0;
   cross(
-    input.split_trim("\n").map(fn(String(chars)) { chars }),
-    fn(char: Char, Neighbors(n, s, e, w), &(io: IO, id: N32, scores: N32, ratings: N32)) {
+    input.split_trim("\n").map(fn* (String(chars)) { chars }),
+    fn* (char: Char, Neighbors(n, s, e, w)) {
       let Channel((nit, nis), ~(not, nos)) = n;
       let Channel((sit, sis), ~(sot, sos)) = s;
       let Channel((eit, eis), ~(eot, eos)) = e;
@@ -50,7 +50,6 @@ pub fn main(&io: &IO) {
       wos = x;
     },
     ('.', (zero_set, 0)),
-    &(io, id, scores, ratings),
   );
 
   io.println("Scores: {scores}");
@@ -135,7 +134,7 @@ fn check(Channel[Char](i, ~o), recv: Char) -> N32 {
 
 struct Neighbors[M]((Channel[M], Channel[M], Channel[M], Channel[M]));
 
-fn cross[M, X](grid: List[List[Char]], f: fn(Char, Neighbors[M], &X), d: M, &state: &X) {
+fn cross[M, F*; fn F(Char, Neighbors[M])](grid: List[List[Char]], f: F, d: M) {
   let width = (*grid.at(0).unwrap()).len();
   let north = List::new(width, neglect_channel(d));
   while grid.pop_front() is Some(row) {
@@ -145,12 +144,13 @@ fn cross[M, X](grid: List[List[Char]], f: fn(Char, Neighbors[M], &X), d: M, &sta
       while row.pop_front() is Some(cell) {
         let (w, e) = foo_channel(&west);
         let (n, s) = foo_channel(north.next().unwrap());
-        f(cell, Neighbors(n, s, e, w), &state);
+        f.fork()(cell, Neighbors(n, s, e, w));
       }
       north.drop_iter()
     }
     west.send(d);
   }
+  f.drop();
   drop_all(north, d);
 }
 

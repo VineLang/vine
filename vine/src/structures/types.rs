@@ -11,10 +11,11 @@ use vine_util::{
 };
 
 use crate::structures::{
-  ast::{Ident, Span},
-  chart::{Chart, DefId, EnumId, OpaqueTypeId, StructId, TraitId},
+  ast::{Flex, Ident, Span},
+  chart::{Chart, DefId, EnumId, FnId, OpaqueTypeId, StructId, TraitId},
   core::Core,
   diag::{Diag, ErrorGuaranteed},
+  tir::ClosureId,
 };
 
 /// A type variable, or its inverse. The high bit of the usize denotes the
@@ -88,10 +89,11 @@ pub enum TypeKind<'core> {
   Param(usize, Ident<'core>),
   Tuple(Vec<Type>),
   Object(BTreeMap<Ident<'core>, Type>),
-  Fn(Vec<Type>, Type),
   Opaque(OpaqueTypeId, Vec<Type>),
   Struct(StructId, Vec<Type>),
   Enum(EnumId, Vec<Type>),
+  Fn(FnId),
+  Closure(ClosureId, Flex, Vec<Type>, Type),
   Ref(Type),
   Never,
   Error(ErrorGuaranteed),
@@ -152,6 +154,7 @@ impl<'core> Default for TypeState<'core> {
 #[derive(Debug, Clone)]
 pub enum ImplType {
   Trait(TraitId, Vec<Type>),
+  Fn(Type, Vec<Type>, Type),
   Error(ErrorGuaranteed),
 }
 
@@ -241,9 +244,6 @@ impl<'core> Types<'core> {
       (TypeKind::Object(a), TypeKind::Object(b)) => self.unify_objects(a, b, inverted),
       _ if inverted.0 => Failure,
       (TypeKind::Param(i, _), TypeKind::Param(j, _)) if *i == *j => Success,
-      (TypeKind::Fn(a, x), TypeKind::Fn(b, y)) => {
-        self.unify_types(a, b, inverted).and(self.unify(*x, *y))
-      }
       (TypeKind::Opaque(OpaqueTypeId(i), a), TypeKind::Opaque(OpaqueTypeId(j), b))
       | (TypeKind::Struct(StructId(i), a), TypeKind::Struct(StructId(j), b))
       | (TypeKind::Enum(EnumId(i), a), TypeKind::Enum(EnumId(j), b))
@@ -251,6 +251,8 @@ impl<'core> Types<'core> {
       {
         self.unify_types(a, b, Inverted(false))
       }
+      (TypeKind::Fn(i), TypeKind::Fn(j)) if *i == *j => Success,
+      (TypeKind::Closure(i, ..), TypeKind::Closure(j, ..)) if *i == *j => Success,
       (TypeKind::Ref(a), TypeKind::Ref(b)) => self.unify(*a, *b),
       (TypeKind::Never, TypeKind::Never) => Success,
       _ => Failure,
@@ -304,6 +306,9 @@ impl<'core> Types<'core> {
       (ImplType::Error(e), _) | (_, ImplType::Error(e)) => Indeterminate(*e),
       (ImplType::Trait(i, a), ImplType::Trait(j, b)) if i == j => {
         self.unify_types(a, b, Inverted(false))
+      }
+      (ImplType::Fn(a, p, x), ImplType::Fn(b, q, y)) => {
+        self.unify(*a, *b).and(self.unify_types(p, q, Inverted(false))).and(self.unify(*x, *y))
       }
       _ => Failure,
     }
@@ -409,18 +414,27 @@ impl<'core> Types<'core> {
                 *str += " }";
               }
             }
-            TypeKind::Fn(params, ret) => {
-              *str += "fn(";
-              self._show_comma_separated(chart, params, str);
-              *str += ")";
-              if !matches!(self.kind(*ret), Some((_, TypeKind::Tuple(els))) if els.is_empty()) {
-                *str += " -> ";
-                self._show(chart, *ret, str);
-              }
-            }
             TypeKind::Ref(ty) => {
               *str += "&";
               self._show(chart, *ty, str)
+            }
+            TypeKind::Fn(fn_id) => {
+              *str += "fn ";
+              match fn_id {
+                FnId::Concrete(fn_id) => {
+                  *str += chart.defs[chart.concrete_fns[*fn_id].def].path;
+                }
+                FnId::Abstract(trait_id, fn_id) => {
+                  *str += chart.defs[chart.traits[*trait_id].def].path;
+                  *str += "::";
+                  *str += chart.traits[*trait_id].fns[*fn_id].name.0 .0;
+                }
+              }
+            }
+            TypeKind::Closure(closure_id, ..) => {
+              *str += "<local fn ";
+              write!(*str, "{}", closure_id.0).unwrap();
+              *str += ">";
             }
             TypeKind::Opaque(type_id, params) => {
               *str += chart.opaque_types[*type_id].name.0 .0;
@@ -471,6 +485,17 @@ impl<'core> Types<'core> {
         str += chart.traits[*trait_id].name.0 .0;
         self._show_params(chart, params, &mut str);
       }
+      ImplType::Fn(receiver, params, ret) => {
+        str += "fn ";
+        self._show(chart, *receiver, &mut str);
+        str += "(";
+        self._show_comma_separated(chart, params, &mut str);
+        str += ")";
+        if !matches!(self.kind(*ret), Some((_, TypeKind::Tuple(els))) if els.is_empty()) {
+          str += " -> ";
+          self._show(chart, *ret, &mut str);
+        }
+      }
       ImplType::Error(_) => str += "??",
     }
     str
@@ -516,6 +541,7 @@ impl<'core> Types<'core> {
       TypeKind::Enum(id, _) => Some(chart.enums[*id].def),
       TypeKind::Ref(inner) => self.get_mod(chart, *inner),
       TypeKind::Fn(..)
+      | TypeKind::Closure(..)
       | TypeKind::Param(..)
       | TypeKind::Tuple(..)
       | TypeKind::Object(..)
@@ -625,7 +651,10 @@ impl<'core> TypeKind<'core> {
       TypeKind::Struct(i, els) => TypeKind::Struct(*i, els.iter().copied().map(f).collect()),
       TypeKind::Enum(i, els) => TypeKind::Enum(*i, els.iter().copied().map(f).collect()),
       TypeKind::Ref(t) => TypeKind::Ref(f(*t)),
-      TypeKind::Fn(p, r) => TypeKind::Fn(p.iter().copied().map(&mut f).collect(), f(*r)),
+      TypeKind::Fn(i) => TypeKind::Fn(*i),
+      TypeKind::Closure(i, x, p, r) => {
+        TypeKind::Closure(*i, *x, p.iter().copied().map(&mut f).collect(), f(*r))
+      }
       TypeKind::Param(i, n) => TypeKind::Param(*i, *n),
       TypeKind::Never => TypeKind::Never,
       TypeKind::Error(err) => TypeKind::Error(*err),
@@ -633,16 +662,18 @@ impl<'core> TypeKind<'core> {
   }
 
   fn children(&self) -> impl Iterator<Item = Type> + '_ {
-    multi_iter! { Children { Zero, One, Vec, Object, Fn } }
+    multi_iter! { Children { Zero, One, Vec, Object, Closure } }
     match self {
-      TypeKind::Param(..) | TypeKind::Never | TypeKind::Error(_) => Children::Zero([]),
+      TypeKind::Param(..) | TypeKind::Fn(_) | TypeKind::Never | TypeKind::Error(_) => {
+        Children::Zero([])
+      }
       TypeKind::Ref(t) => Children::One([*t]),
       TypeKind::Tuple(els)
       | TypeKind::Opaque(_, els)
       | TypeKind::Struct(_, els)
       | TypeKind::Enum(_, els) => Children::Vec(els.iter().copied()),
       TypeKind::Object(els) => Children::Object(els.values().copied()),
-      TypeKind::Fn(p, r) => Children::Fn(p.iter().copied().chain([*r])),
+      TypeKind::Closure(_, _, p, r) => Children::Closure(p.iter().copied().chain([*r])),
     }
   }
 }
@@ -651,12 +682,16 @@ impl ImplType {
   pub fn approx_eq(&self, other: &ImplType) -> bool {
     match (self, other) {
       (ImplType::Trait(i, _), ImplType::Trait(j, _)) => i == j,
+      (ImplType::Fn(_, p, _), ImplType::Fn(_, q, _)) => p.len() == q.len(),
       _ => false,
     }
   }
-  fn map(&self, f: impl FnMut(Type) -> Type) -> Self {
+  fn map(&self, mut f: impl FnMut(Type) -> Type) -> Self {
     match self {
       ImplType::Trait(def, ts) => ImplType::Trait(*def, ts.iter().copied().map(f).collect()),
+      ImplType::Fn(receiver, params, ret) => {
+        ImplType::Fn(f(*receiver), params.iter().copied().map(&mut f).collect(), f(*ret))
+      }
       ImplType::Error(e) => ImplType::Error(*e),
     }
   }

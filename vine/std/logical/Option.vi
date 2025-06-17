@@ -7,10 +7,13 @@ pub enum Option[T] {
 }
 
 pub mod Option {
-  pub fn .map[T, U](self: Option[T], f: fn(T) -> U) -> Option[U] {
+  pub fn .map[T, U, F?; fn F(T) -> U](self: Option[T], f: F) -> Option[U] {
     match self {
       Some(val) { Some(f(val)) }
-      None { None }
+      None {
+        f.drop();
+        None
+      }
     }
   }
 
@@ -35,7 +38,7 @@ pub mod Option {
     }
   }
 
-  pub fn .and_then[T, U](self: Option[T], f: fn(T) -> Option[U]) -> Option[U] {
+  pub fn .and_then[T, U, F?; fn F(T) -> Option[U]](self: Option[T], f: F) -> Option[U] {
     self.map(f).flatten()
   }
 

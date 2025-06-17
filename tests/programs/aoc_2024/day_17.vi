@@ -15,7 +15,7 @@ pub fn main(&io: &IO) {
   let b = N32::parse(read_value()).unwrap();
   let c = N32::parse(read_value()).unwrap();
 
-  let program = read_value().split(",").map(fn(x) { N32::parse(x).unwrap() });
+  let program = read_value().split(",").map(fn* (x) { N32::parse(x).unwrap() });
   let program = program as Array;
 
   let output = [];
@@ -60,6 +60,6 @@ pub fn main(&io: &IO) {
     ip += 2;
   }
 
-  let output = output.map(fn(x: N32) { "{x}" }).join(",");
+  let output = output.map(fn* (x: N32) { "{x}" }).join(",");
   io.println("Part 1: {output}");
 }

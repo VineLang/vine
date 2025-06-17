@@ -5,9 +5,10 @@ pub fn main(&io: &IO) {
     lines ++= [chars];
   }
 
-  let matches = diamond[Char, Char, N32](
+  let matches = 0;
+  diamond(
     lines,
-    fn(char: Char, Neighbors[Char](nw, n, ne, w, e, sw, s, se), &matches: &N32) {
+    fn* (char: Char, Neighbors[Char](nw, n, ne, w, e, sw, s, se)) {
       if char == 'X' {
         nw.send('X');
         n.send('X');
@@ -34,14 +35,14 @@ pub fn main(&io: &IO) {
       }
     },
     '.',
-    0,
   );
 
   io.println("XMAS: {matches}");
 
-  let matches = diamond[Char, Char, N32](
+  let matches = 0;
+  diamond(
     lines,
-    fn(char: Char, Neighbors[Char](nw, _, ne, _, _, sw, _, se), &matches: &N32) {
+    fn* (char: Char, Neighbors[Char](nw, _, ne, _, _, sw, _, se)) {
       if char == 'A' {
         let nw = nw.send('A');
         let ne = ne.send('A');
@@ -58,7 +59,6 @@ pub fn main(&io: &IO) {
       }
     },
     '.',
-    0,
   );
 
   io.println("X-MAS: {matches}");
@@ -110,7 +110,7 @@ struct Neighbors[M]((
   Channel[M],
 ));
 
-fn diamond[T+, M, X](grid: List[List[T]], f: fn(T, Neighbors[M], &X), d: M, state: X) -> X {
+fn diamond[T+, M, F*; fn F(T, Neighbors[M])](grid: List[List[T]], f: F, d: M) {
   let width = (*grid.at(0).unwrap()).len();
   let north = List::new(width, neglect_channel(d));
   let north_west = List::new(width, neglect_channel(d));
@@ -127,7 +127,7 @@ fn diamond[T+, M, X](grid: List[List[T]], f: fn(T, Neighbors[M], &X), d: M, stat
         let (n, s) = foo_channel(north.next().unwrap());
         let (nw, se) = foo_channel(north_west.next().unwrap());
         let (ne, sw) = foo_channel((~north_east).next().unwrap());
-        f(cell, Neighbors(nw, n, ne, w, e, sw, s, se), &state);
+        f.fork()(cell, Neighbors(nw, n, ne, w, e, sw, s, se));
       }
       north.drop_iter()
       north_west.drop_iter()
@@ -141,7 +141,7 @@ fn diamond[T+, M, X](grid: List[List[T]], f: fn(T, Neighbors[M], &X), d: M, stat
   drop_all(north, d);
   drop_all(north_west, d);
   drop_all(north_east, d);
-  state
+  f.drop()
 }
 
 fn drop_all[M](c: List[Channel[M]], d: M) {

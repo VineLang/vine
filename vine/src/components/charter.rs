@@ -402,6 +402,8 @@ impl<'core> Charter<'core, '_> {
       Builtin::Cast => set(&mut builtins.cast, fn_id),
       Builtin::Fork => set(&mut builtins.fork, trait_id),
       Builtin::Drop => set(&mut builtins.drop, trait_id),
+      Builtin::Copy => set(&mut builtins.copy, impl_id),
+      Builtin::Erase => set(&mut builtins.erase, impl_id),
       Builtin::BoolNot => set(&mut builtins.bool_not, impl_id),
       Builtin::BinaryOp(op) => set(builtins.binary_ops.entry(op).or_default(), fn_id),
       Builtin::ComparisonOp(op) => set(builtins.comparison_ops.entry(op).or_default(), fn_id),

@@ -1,8 +1,11 @@
 pub mod ast;
 pub mod chart;
+pub mod checkpoint;
 pub mod core;
 pub mod diag;
+pub mod resolutions;
 pub mod signatures;
+pub mod specializations;
 pub mod tir;
 pub mod types;
 pub mod vir;

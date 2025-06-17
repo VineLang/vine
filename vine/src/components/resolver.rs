@@ -9,22 +9,24 @@ use crate::{
   components::finder::Finder,
   structures::{
     ast::{
-      Block, GenericArgs, Ident, Impl, ImplKind, Key, Pat, PatKind, Path, Span, Stmt, StmtKind,
-      Trait, TraitKind, Ty, TyKind,
+      Block, Flex, GenericArgs, Ident, Impl, ImplKind, Key, Pat, PatKind, Path, Span, Stmt,
+      StmtKind, Trait, TraitKind, Ty, TyKind,
     },
     chart::{
-      checkpoint::ChartCheckpoint, Chart, ConcreteConstId, ConcreteFnId, ConstId, DefId,
-      DefImplKind, DefPatternKind, DefTraitKind, DefTypeKind, EnumId, FnId, GenericsId, ImplId,
-      ImplSubitemKind, StructId, TraitConstId, TraitFnId, TraitId, TypeAliasId,
+      Chart, ConcreteConstId, ConcreteFnId, DefId, DefImplKind, DefPatternKind, DefTraitKind,
+      DefTypeKind, EnumId, FnId, GenericsId, ImplId, ImplSubitemKind, StructId, TraitId,
+      TypeAliasId,
     },
+    checkpoint::Checkpoint,
     core::Core,
     diag::{Diag, ErrorGuaranteed},
+    resolutions::{Fragment, FragmentId, Rels, Resolutions, ResolvedImpl},
     signatures::{
       ConstSig, EnumSig, FnSig, GenericsSig, ImplSig, Signatures, StructSig, TraitSig, TypeAliasSig,
     },
     tir::{
-      ClosureId, ConstRelId, FnRelId, Form, LabelId, Local, Tir, TirClosure, TirExpr, TirExprKind,
-      TirImpl, TirPat, TirPatKind,
+      ClosureId, Form, LabelId, Local, Tir, TirClosure, TirExpr, TirExprKind, TirImpl, TirPat,
+      TirPatKind,
     },
     types::{ImplType, Type, TypeCtx, TypeKind, Types},
   },
@@ -40,6 +42,7 @@ pub struct Resolver<'core, 'a> {
   chart: &'a Chart<'core>,
   sigs: &'a mut Signatures<'core>,
   resolutions: &'a mut Resolutions,
+  fragments: &'a mut IdxVec<FragmentId, Fragment<'core>>,
   types: Types<'core>,
   return_ty: Option<Type>,
   cur_def: DefId,
@@ -55,23 +58,8 @@ pub struct Resolver<'core, 'a> {
   loops: Vec<LabelInfo>,
   label_id: Counter<LabelId>,
 
-  const_rels: IdxVec<ConstRelId, (ConstId, Vec<TirImpl>)>,
-  fn_rels: IdxVec<FnRelId, (FnId, Vec<TirImpl>)>,
+  rels: Rels,
   closures: IdxVec<ClosureId, TirClosure>,
-}
-
-#[derive(Debug, Default)]
-pub struct Resolutions {
-  pub consts: IdxVec<ConcreteConstId, Tir>,
-  pub fns: IdxVec<ConcreteFnId, Tir>,
-  pub impls: IdxVec<ImplId, Result<ResolvedImpl, ErrorGuaranteed>>,
-  pub main: Option<ConcreteFnId>,
-}
-
-#[derive(Debug, Default)]
-pub struct ResolvedImpl {
-  pub consts: IdxVec<TraitConstId, Result<ConcreteConstId, ErrorGuaranteed>>,
-  pub fns: IdxVec<TraitFnId, Result<ConcreteFnId, ErrorGuaranteed>>,
 }
 
 #[derive(Debug)]
@@ -99,12 +87,14 @@ impl<'core, 'a> Resolver<'core, 'a> {
     chart: &'a Chart<'core>,
     sigs: &'a mut Signatures<'core>,
     resolutions: &'a mut Resolutions,
+    fragments: &'a mut IdxVec<FragmentId, Fragment<'core>>,
   ) -> Self {
     Resolver {
       core,
       chart,
       sigs,
       resolutions,
+      fragments,
       types: Types::default(),
       locals: Default::default(),
       return_ty: None,
@@ -117,17 +107,16 @@ impl<'core, 'a> Resolver<'core, 'a> {
       scope_depth: Default::default(),
       loops: Default::default(),
       label_id: Default::default(),
-      const_rels: Default::default(),
-      fn_rels: Default::default(),
+      rels: Default::default(),
       closures: Default::default(),
     }
   }
 
   pub fn resolve_all(&mut self) {
-    self.resolve_since(&ChartCheckpoint::default());
+    self.resolve_since(&Checkpoint::default());
   }
 
-  pub(crate) fn resolve_since(&mut self, checkpoint: &ChartCheckpoint) {
+  pub(crate) fn resolve_since(&mut self, checkpoint: &Checkpoint) {
     for id in self.chart.imports.keys_from(checkpoint.imports) {
       _ = self.resolve_import(id);
     }
@@ -174,7 +163,7 @@ impl<'core, 'a> Resolver<'core, 'a> {
   fn resolve_main(&mut self, main_mod: DefId) {
     match self._resolve_main(main_mod) {
       Ok(main_mod) => {
-        self.resolutions.main = Some(main_mod);
+        self.resolutions.main = Some(self.resolutions.fns[main_mod]);
       }
       Err(diag) => {
         self.core.report(diag);
@@ -205,19 +194,12 @@ impl<'core, 'a> Resolver<'core, 'a> {
     let FnId::Concrete(fn_id) = fn_id else { unreachable!() };
     let fn_def = &self.chart.concrete_fns[fn_id];
     let span = fn_def.span;
-    let sig = self.types.import(&self.sigs.concrete_fns[fn_id], None);
-    let found_ty = self.types.new(TypeKind::Fn(sig.params, sig.ret_ty));
     let io = self.builtin_ty(span, "IO", self.chart.builtins.io);
     let io_ref = self.types.new(TypeKind::Ref(io));
     let nil = self.types.nil();
-    let expected_ty = self.types.new(TypeKind::Fn(vec![io_ref], nil));
-    if self.types.unify(found_ty, expected_ty).is_failure() {
-      Err(Diag::ExpectedTypeFound {
-        span,
-        expected: self.types.show(self.chart, expected_ty),
-        found: self.types.show(self.chart, found_ty),
-      })?
-    };
+    let expected = FnSig { params: vec![io_ref], ret_ty: nil };
+    let found = self.types.import(&self.sigs.concrete_fns[fn_id], None);
+    Self::expect_fn_sig(self.core, self.chart, &mut self.types, span, main_ident, expected, found);
     Ok(fn_id)
   }
 
@@ -262,35 +244,40 @@ impl<'core, 'a> Resolver<'core, 'a> {
     self.initialize(const_def.def, const_def.generics);
     let ty = self.types.import(&self.sigs.concrete_consts[const_id], None).ty;
     let root = self.resolve_expr_form_type(&const_def.value, Form::Value, ty);
-    let tir = self.finish_tir(root);
+    let fragment = self.finish_fragment(const_def.span, self.chart.defs[const_def.def].path, root);
+    let fragment_id = self.fragments.push(fragment);
     assert_eq!(self.resolutions.consts.next_index(), const_id);
-    self.resolutions.consts.push(tir);
+    self.resolutions.consts.push(fragment_id);
   }
 
   fn resolve_fn_def(&mut self, fn_id: ConcreteFnId) {
     let fn_def = &self.chart.concrete_fns[fn_id];
     self.initialize(fn_def.def, fn_def.generics);
     let (ty, closure_id) =
-      self.resolve_closure(&fn_def.params, &fn_def.ret_ty, &fn_def.body, false);
+      self.resolve_closure(Flex::None, &fn_def.params, &fn_def.ret_ty, &fn_def.body, false);
     let root = TirExpr {
       span: fn_def.span,
       ty,
       form: Form::Value,
       kind: Box::new(TirExprKind::Closure(closure_id)),
     };
-    let tir = self.finish_tir(root);
+    let fragment = self.finish_fragment(fn_def.span, self.chart.defs[fn_def.def].path, root);
+    let fragment_id = self.fragments.push(fragment);
     assert_eq!(self.resolutions.fns.next_index(), fn_id);
-    self.resolutions.fns.push(tir);
+    self.resolutions.fns.push(fragment_id);
   }
 
+  #[allow(clippy::too_many_arguments)]
   pub(crate) fn _resolve_custom(
     &mut self,
+    span: Span,
+    path: &'core str,
     def_id: DefId,
     types: &mut Types<'core>,
     locals: &BTreeMap<Local, (Ident<'core>, Type)>,
     local_count: &mut Counter<Local>,
     block: &mut Block<'core>,
-  ) -> (Tir, impl Iterator<Item = (Ident<'core>, Local, Type)>) {
+  ) -> (FragmentId, impl Iterator<Item = (Ident<'core>, Local, Type)>) {
     self.cur_def = def_id;
     self.scope = locals
       .iter()
@@ -304,8 +291,9 @@ impl<'core, 'a> Resolver<'core, 'a> {
     let root = self.resolve_stmts_type(block.span, &block.stmts, ty);
     *local_count = self.locals;
     swap(types, &mut self.types);
+    let fragment = self.finish_fragment(span, path, root);
     (
-      self.finish_tir(root),
+      self.fragments.push(fragment),
       take(&mut self.scope).into_iter().filter_map(|(name, entries)| {
         let entry = entries.first()?;
         if entry.depth == 0 {
@@ -368,7 +356,7 @@ impl<'core, 'a> Resolver<'core, 'a> {
         }
       }
       StmtKind::LetFn(l) => {
-        let (fn_ty, id) = self.resolve_closure(&l.params, &l.ret, &l.body, true);
+        let (fn_ty, id) = self.resolve_closure(l.flex, &l.params, &l.ret, &l.body, true);
         self.bind(l.name, Binding::Closure(id, fn_ty));
         return self.resolve_stmts_type(span, rest, ty);
       }
@@ -387,6 +375,7 @@ impl<'core, 'a> Resolver<'core, 'a> {
 
   fn resolve_closure(
     &mut self,
+    flex: Flex,
     params: &[Pat<'core>],
     ret: &Option<Ty<'core>>,
     body: &Block<'core>,
@@ -396,21 +385,22 @@ impl<'core, 'a> Resolver<'core, 'a> {
     let old_loops = take(&mut self.loops);
     self.enter_scope();
     let params = params.iter().map(|p| self.resolve_pat(p, Form::Value, false)).collect::<Vec<_>>();
-    let ret = ret.as_ref().map(|t| self.resolve_type(t, true)).unwrap_or_else(|| {
+    let ret_ty = ret.as_ref().map(|t| self.resolve_type(t, true)).unwrap_or_else(|| {
       if inferred_ret {
         self.types.new_var(body.span)
       } else {
         self.types.nil()
       }
     });
-    let old_return_ty = self.return_ty.replace(ret);
-    let body = self.resolve_block_type(body, ret);
+    let old_return_ty = self.return_ty.replace(ret_ty);
+    let body = self.resolve_block_type(body, ret_ty);
     self.exit_scope();
     self.labels = old_labels;
     self.loops = old_loops;
     self.return_ty = old_return_ty;
-    let ty = self.types.new(TypeKind::Fn(params.iter().map(|x| x.ty).collect(), ret));
-    let id = self.closures.push(TirClosure { params, body });
+    let param_tys = params.iter().map(|x| x.ty).collect();
+    let id = self.closures.push(TirClosure { flex, params, body });
+    let ty = self.types.new(TypeKind::Closure(id, flex, param_tys, ret_ty));
     (ty, id)
   }
 
@@ -420,12 +410,6 @@ impl<'core, 'a> Resolver<'core, 'a> {
       TyKind::Hole if inference => self.types.new_var(span),
       TyKind::Paren(t) => self.resolve_type(t, inference),
       TyKind::Hole => self.types.error(self.core.report(Diag::ItemTypeHole { span })),
-      TyKind::Fn(args, ret) => {
-        let params = args.iter().map(|arg| self.resolve_type(arg, inference)).collect();
-        let ret =
-          ret.as_ref().map(|ret| self.resolve_type(ret, inference)).unwrap_or(self.types.nil());
-        self.types.new(TypeKind::Fn(params, ret))
-      }
       TyKind::Tuple(tys) => {
         let tys = tys.iter().map(|arg| self.resolve_type(arg, inference)).collect();
         self.types.new(TypeKind::Tuple(tys))
@@ -467,7 +451,7 @@ impl<'core, 'a> Resolver<'core, 'a> {
           Ok(DefTypeKind::Alias(type_alias_id)) => {
             let generics_id = self.chart.type_aliases[type_alias_id].generics;
             let (type_params, _) = self.resolve_generics(path, generics_id, inference);
-            Resolver::new(self.core, self.chart, self.sigs, self.resolutions)
+            Resolver::new(self.core, self.chart, self.sigs, self.resolutions, self.fragments)
               .resolve_type_alias(type_alias_id);
             self
               .types
@@ -477,6 +461,10 @@ impl<'core, 'a> Resolver<'core, 'a> {
           Err(diag) => self.types.error(self.core.report(diag)),
         }
       }
+      TyKind::Fn(path) => match self.resolve_path_to(self.cur_def, path, "fn", |d| d.fn_id()) {
+        Ok(fn_id) => self.types.new(TypeKind::Fn(fn_id)),
+        Err(diag) => self.types.error(self.core.report(diag)),
+      },
       TyKind::Error(e) => self.types.error(*e),
     }
   }
@@ -561,22 +549,9 @@ impl<'core, 'a> Resolver<'core, 'a> {
           let ImplSubitemKind::Fn(fn_id) = subitem.kind else {
             return Err(self.core.report(Diag::WrongImplSubitemKind { span, expected: "fn" }));
           };
-          let expected_ty = {
-            let sig = self.types.import(sig, Some(&type_params));
-            self.types.new(TypeKind::Fn(sig.params, sig.ret_ty))
-          };
-          let fn_sig = &self.sigs.concrete_fns[fn_id];
-          let found_ty = {
-            let sig = self.types.import(fn_sig, None);
-            self.types.new(TypeKind::Fn(sig.params, sig.ret_ty))
-          };
-          if self.types.unify(expected_ty, found_ty).is_failure() {
-            self.core.report(Diag::ExpectedTypeFound {
-              span,
-              expected: self.types.show(self.chart, expected_ty),
-              found: self.types.show(self.chart, found_ty),
-            });
-          }
+          let expected = self.types.import(sig, Some(&type_params));
+          let found = self.types.import(&self.sigs.concrete_fns[fn_id], None);
+          Self::expect_fn_sig(self.core, self.chart, &mut self.types, span, name, expected, found);
           Ok(fn_id)
         })));
         for item in impl_def.subitems.iter() {
@@ -588,10 +563,32 @@ impl<'core, 'a> Resolver<'core, 'a> {
         }
         Ok(ResolvedImpl { consts, fns })
       }
+      ImplType::Fn(..) => Err(self.core.report(Diag::CannotImplFn { span })),
       ImplType::Error(err) => Err(err),
     };
     assert_eq!(self.resolutions.impls.next_index(), impl_id);
     self.resolutions.impls.push(resolved);
+  }
+
+  fn expect_fn_sig(
+    core: &Core<'core>,
+    chart: &Chart<'core>,
+    types: &mut Types<'core>,
+    span: Span,
+    name: Ident<'core>,
+    expected_sig: FnSig,
+    found_sig: FnSig,
+  ) {
+    let fake_receiver = types.new(TypeKind::Param(usize::MAX, name)); // for nicer printing
+    let expected_ty = ImplType::Fn(fake_receiver, expected_sig.params, expected_sig.ret_ty);
+    let found_ty = ImplType::Fn(fake_receiver, found_sig.params, found_sig.ret_ty);
+    if types.unify_impl_type(&expected_ty, &found_ty).is_failure() {
+      core.report(Diag::ExpectedTypeFound {
+        span,
+        expected: types.show_impl_type(chart, &expected_ty),
+        found: types.show_impl_type(chart, &found_ty),
+      });
+    }
   }
 
   fn build_object_type<T>(
@@ -768,6 +765,14 @@ impl<'core, 'a> Resolver<'core, 'a> {
           Err(diag) => ImplType::Error(self.core.report(diag)),
         }
       }
+      TraitKind::Fn(receiver, params, ret) => ImplType::Fn(
+        self.resolve_type(receiver, false),
+        params.iter().map(|p| self.resolve_type(p, false)).collect(),
+        match ret {
+          Some(ret) => self.resolve_type(ret, false),
+          None => self.types.nil(),
+        },
+      ),
       TraitKind::Error(e) => ImplType::Error(*e),
     }
   }
@@ -820,6 +825,19 @@ impl<'core, 'a> Resolver<'core, 'a> {
         let err = self.core.report(Diag::UnspecifiedImpl { span });
         (ImplType::Error(err), TirImpl::Error(err))
       }
+      ImplKind::Fn(path) => match self.resolve_path_to(self.cur_def, path, "fn", |d| d.fn_id()) {
+        Ok(fn_id) => {
+          let (type_params, impl_params) =
+            self.resolve_generics(path, self.chart.fn_generics(fn_id), true);
+          let sig = self.types.import(self.sigs.fn_sig(fn_id), Some(&type_params));
+          let ty = ImplType::Fn(self.types.new(TypeKind::Fn(fn_id)), sig.params, sig.ret_ty);
+          (ty, TirImpl::Fn(fn_id, impl_params))
+        }
+        Err(diag) => {
+          let err = self.core.report(diag);
+          (ImplType::Error(err), TirImpl::Error(err))
+        }
+      },
       ImplKind::Error(err) => (ImplType::Error(*err), TirImpl::Error(*err)),
     }
   }
@@ -839,7 +857,7 @@ impl<'core, 'a> Resolver<'core, 'a> {
     args: Option<&GenericArgs<'core>>,
     params_id: GenericsId,
     inference: bool,
-    type_params: Option<Vec<Type>>,
+    inferred_type_params: Option<Vec<Type>>,
   ) -> (Vec<Type>, Vec<TirImpl>) {
     let _args = GenericArgs { span, types: Vec::new(), impls: Vec::new() };
     let args = args.unwrap_or(&_args);
@@ -867,12 +885,13 @@ impl<'core, 'a> Resolver<'core, 'a> {
     }
     let has_impl_params = impl_param_count != 0;
     let type_param_count = params.type_params.len();
-    let type_params = if let Some(type_params) = type_params {
-      for (a, b) in type_params.iter().zip(args.types.iter()) {
-        let b = self.resolve_type(b, inference);
-        _ = self.types.unify(*a, b);
+    let type_params = if let Some(mut inferred) = inferred_type_params {
+      for (inferred, ty) in inferred.iter_mut().zip(args.types.iter()) {
+        let ty = self.resolve_type(ty, inference);
+        _ = self.types.unify(*inferred, ty);
+        *inferred = ty;
       }
-      type_params
+      inferred
     } else {
       (0..type_param_count)
         .iter()
@@ -998,27 +1017,12 @@ impl<'core, 'a> Resolver<'core, 'a> {
     }
   }
 
-  fn finish_tir(&mut self, root: TirExpr) -> Tir {
-    Tir {
-      locals: self.locals,
-      closures: take(&mut self.closures),
-      const_rels: take(&mut self.const_rels),
-      fn_rels: take(&mut self.fn_rels),
-      root,
-    }
-  }
-}
-
-impl Resolutions {
-  pub fn revert(&mut self, checkpoint: &ChartCheckpoint) {
-    let Resolutions { consts, fns, impls, main } = self;
-    consts.truncate(checkpoint.concrete_consts.0);
-    fns.truncate(checkpoint.concrete_fns.0);
-    impls.truncate(checkpoint.impls.0);
-    if let Some(_main) = *main {
-      if _main < checkpoint.concrete_fns {
-        *main = None;
-      }
+  fn finish_fragment(&mut self, span: Span, path: &'core str, root: TirExpr) -> Fragment<'core> {
+    Fragment {
+      path,
+      impl_params: self.sigs.generics[self.cur_generics].inner.impl_params.len(),
+      rels: take(&mut self.rels),
+      tir: Tir { span, locals: self.locals, closures: take(&mut self.closures), root },
     }
   }
 }

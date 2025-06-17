@@ -221,12 +221,13 @@ pub mod Map {
     }
   }
 
-  pub fn .map_values[K, V, U; Ord[K]](Map[K, V](len, data), f: fn(V) -> U) -> Map[K, U] {
+  pub fn .map_values[K, V, U, F*; Ord[K], fn F(V) -> U](Map[K, V](len, data), f: F) -> Map[K, U] {
     if len == 0 {
+      f.drop();
       Map::empty[K, U]
     } else {
       let (left, (key, value), right) = data;
-      Map(len, (left.map_values(f), (key, f(value)), right.map_values(f)))
+      Map(len, (left.map_values(f.fork()), (key, f.fork()(value)), right.map_values(f)))
     }
   }
 
@@ -336,7 +337,8 @@ pub mod Map {
     }
   }
 
-  fn .balanced[K, V](&Map[K, V](len, data)) -> Bool {
+  // TODO(#118): make private once tests can be written inline
+  pub fn .balanced[K, V](&Map[K, V](len, data)) -> Bool {
     if len == 0 {
       true
     } else {

@@ -9,7 +9,7 @@ pub fn main(&io: &IO) {
 
   let iter = lines.into_iter();
   while iter.next() is Some(line) {
-    let report = line.split(" ").map(fn(x) { N32::parse(x).unwrap() });
+    let report = line.split(" ").map(fn* (x) { N32::parse(x).unwrap() });
     if is_safe(report) {
       safe_count += 1;
       dampened_safe_count += 1;

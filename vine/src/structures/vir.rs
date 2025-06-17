@@ -1,4 +1,3 @@
-use core::slice;
 use std::collections::BTreeMap;
 
 use ivy::ast::Net;
@@ -12,7 +11,8 @@ use crate::{
   structures::{
     chart::{EnumId, VariantId},
     diag::ErrorGuaranteed,
-    tir::{ConstRelId, FnRelId, Local},
+    resolutions::{ConstRelId, FnRelId},
+    tir::{ClosureId, Local},
   },
 };
 
@@ -32,6 +32,7 @@ pub struct Vir {
   pub interfaces: IdxVec<InterfaceId, Interface>,
   pub stages: IdxVec<StageId, Stage>,
   pub globals: Vec<(Local, Usage)>,
+  pub closures: IdxVec<ClosureId, InterfaceId>,
 }
 
 #[derive(Debug, Clone)]
@@ -76,18 +77,21 @@ impl Interface {
 #[derive(Debug, Clone)]
 pub enum InterfaceKind {
   Unconditional(StageId),
-  Branch([StageId; 2]),
+  Branch(StageId, StageId),
   Match(EnumId, Vec<StageId>),
-  Fn(StageId),
+  Fn { call: StageId, fork: Option<StageId>, drop: Option<StageId> },
 }
 
 impl InterfaceKind {
-  pub fn stages(&self) -> &[StageId] {
+  pub fn stages(&self) -> impl Iterator<Item = StageId> {
+    multi_iter! { Stages { One, Two, Vec, Fn } }
     match self {
-      InterfaceKind::Unconditional(s) => slice::from_ref(s),
-      InterfaceKind::Branch(s) => s,
-      InterfaceKind::Match(_, s) => s,
-      InterfaceKind::Fn(s) => slice::from_ref(s),
+      InterfaceKind::Unconditional(a) => Stages::One([*a]),
+      InterfaceKind::Branch(a, b) => Stages::Two([*a, *b]),
+      InterfaceKind::Match(_, s) => Stages::Vec(s.clone()),
+      InterfaceKind::Fn { call, fork, drop } => {
+        Stages::Fn([*call].into_iter().chain(*fork).chain(*drop))
+      }
     }
   }
 }
@@ -109,6 +113,8 @@ pub enum Header {
   None,
   Match(Option<Port>),
   Fn(Vec<Port>, Port),
+  Fork(Port, Port),
+  Drop,
 }
 
 #[derive(Debug, Clone)]
@@ -119,7 +125,7 @@ pub enum Step {
 
   Link(Port, Port),
 
-  Fn(Port, Vec<Port>, Port),
+  Call(FnRelId, Port, Vec<Port>, Port),
   Composite(Port, Vec<Port>),
   Enum(EnumId, VariantId, Port, Option<Port>),
   Ref(Port, Port, Port),
@@ -132,11 +138,12 @@ pub enum Step {
 
 impl Header {
   pub fn ports(&self) -> impl Iterator<Item = &Port> {
-    multi_iter!(Ports { Zero, Opt, Fn });
+    multi_iter!(Ports { Zero, Two, Opt, Fn });
     match self {
-      Header::None => Ports::Zero([]),
+      Header::None | Header::Drop => Ports::Zero([]),
       Header::Match(a) => Ports::Opt(a),
       Header::Fn(params, ret) => Ports::Fn(params.iter().chain([ret])),
+      Header::Fork(a, b) => Ports::Two([a, b]),
     }
   }
 }
@@ -152,7 +159,7 @@ impl Step {
       Step::Diverge(_, None) => Ports::Zero([]),
       Step::Enum(_, _, a, None) => Ports::One([a]),
       Step::Link(a, b) | Step::Enum(_, _, a, Some(b)) => Ports::Two([a, b]),
-      Step::Fn(f, a, r) => Ports::Fn([f].into_iter().chain(a).chain([r])),
+      Step::Call(_, f, a, r) => Ports::Fn([f].into_iter().chain(a).chain([r])),
       Step::Composite(port, ports) | Step::List(port, ports) => {
         Ports::Tuple([port].into_iter().chain(ports))
       }
@@ -192,7 +199,6 @@ impl Invocation {
 pub enum Port {
   Erase,
   ConstRel(ConstRelId),
-  FnRel(FnRelId),
   N32(u32),
   F32(f32),
   Wire(WireId),

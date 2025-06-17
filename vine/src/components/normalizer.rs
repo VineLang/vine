@@ -35,6 +35,7 @@ pub fn normalize(source: &Vir) -> Vir {
     interfaces: normalizer.interfaces,
     stages: unwrap_idx_vec(normalizer.stages),
     globals: source.globals.clone(),
+    closures: source.closures.clone(),
   }
 }
 
@@ -123,7 +124,9 @@ impl<'a> Normalizer<'a> {
           if let Step::Transfer(transfer) = step {
             let interface = &self.source.interfaces[transfer.interface];
             let sub_layer = &self.source.layers[interface.layer];
-            self.normalize_layer(sub_layer);
+            if sub_layer.parent.is_some() {
+              self.normalize_layer(sub_layer);
+            }
           }
           stage.steps.push(step.clone());
         }
@@ -138,6 +141,9 @@ impl<'a> Normalizer<'a> {
   }
 
   fn layer_divergence(&mut self, layer: &Layer) -> LayerId {
+    if layer.parent.is_none() {
+      return LayerId::NONE;
+    }
     if let Some(divergence) = self.layer_divergence[layer.id] {
       return divergence;
     }
