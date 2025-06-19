@@ -6,12 +6,14 @@ use debug::Show;
 pub type Char;
 
 pub mod Char {
+  #[duplicate]
   pub impl fork: Fork[Char] {
     fn fork(&self: &Char) -> Char {
       unsafe::duplicate(&self)
     }
   }
 
+  #[erase]
   pub impl drop: Drop[Char] {
     fn drop(self: Char) {
       unsafe::erase(self)

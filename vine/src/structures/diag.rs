@@ -234,6 +234,10 @@ diags! {
     ["variable of type `{ty}` read whilst uninitialized"]
   BadManualAttr
     ["the `#[manual]` attribute can only be applied to an impl"]
+  BadDuplicateAttr
+    ["the `#[duplicate]` attribute can only be applied to an impl of the `Fork trait"]
+  BadEraseAttr
+    ["the `#[erase]` attribute can only be applied to an impl of the `Drop` trait"]
 }
 
 fn plural<'a>(n: usize, plural: &'a str, singular: &'a str) -> &'a str {

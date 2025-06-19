@@ -21,6 +21,8 @@ pub struct Resolutions {
 pub struct ResolvedImpl {
   pub consts: IdxVec<TraitConstId, Result<ConcreteConstId, ErrorGuaranteed>>,
   pub fns: IdxVec<TraitFnId, Result<ConcreteFnId, ErrorGuaranteed>>,
+  pub is_fork: bool,
+  pub is_drop: bool,
 }
 
 new_idx!(pub FragmentId);

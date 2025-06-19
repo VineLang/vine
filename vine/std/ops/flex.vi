@@ -16,28 +16,33 @@ pub mod Fork {
     }
   }
 
+  #[duplicate]
   pub impl nil: Fork[()] {
     fn fork(&()) -> () {}
   }
 
+  #[duplicate]
   pub impl unary[A+]: Fork[(A,)] {
     fn fork(&(a: A,)) -> (A,) {
       (a,)
     }
   }
 
+  #[duplicate]
   pub impl pair[A+, B+]: Fork[(A, B)] {
     fn fork(&(a: A, b: B)) -> (A, B) {
       (a, b)
     }
   }
 
+  #[duplicate]
   pub impl triple[A+, B+, C+]: Fork[(A, B, C)] {
     fn fork(&(a: A, b: B, c: C)) -> (A, B, C) {
       (a, b, c)
     }
   }
 
+  #[duplicate]
   pub impl quad[A+, B+, C+, D+]: Fork[(A, B, C, D)] {
     fn fork(&(a: A, b: B, c: C, d: D)) -> (A, B, C, D) {
       (a, b, c, d)
@@ -50,22 +55,27 @@ pub mod Drop {
     fn drop(&_: &T) {}
   }
 
+  #[erase]
   pub impl nil: Drop[()] {
     fn drop(()) {}
   }
 
+  #[erase]
   pub impl unary[A?]: Drop[(A,)] {
     fn drop((_: A,)) {}
   }
 
+  #[erase]
   pub impl pair[A?, B?]: Drop[(A, B)] {
     fn drop((_: A, _: B)) {}
   }
 
+  #[erase]
   pub impl triple[A?, B?, C?]: Drop[(A, B, C)] {
     fn drop((_: A, _: B, _: C)) {}
   }
 
+  #[erase]
   pub impl quad[A?, B?, C?, D?]: Drop[(A, B, C, D)] {
     fn drop((_: A, _: B, _: C, _: D)) {}
   }

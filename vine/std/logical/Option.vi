@@ -69,6 +69,7 @@ pub mod Option {
     }
   }
 
+  #[duplicate]
   pub impl fork[T+]: Fork[Option[T]] {
     fn fork(&self: &Option[T]) -> Option[T] {
       match &self {
@@ -78,6 +79,7 @@ pub mod Option {
     }
   }
 
+  #[erase]
   pub impl drop[T?]: Drop[Option[T]] {
     fn drop(self: Option[T]) {
       match self {

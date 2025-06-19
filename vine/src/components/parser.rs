@@ -164,6 +164,8 @@ impl<'core, 'src> VineParser<'core, 'src> {
         AttrKind::Builtin(builtin)
       }
       "manual" => AttrKind::Manual,
+      "duplicate" => AttrKind::Duplicate,
+      "erase" => AttrKind::Erase,
       _ => Err(Diag::UnknownAttribute { span: ident_span })?,
     };
     self.expect(Token::CloseBracket)?;

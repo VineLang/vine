@@ -66,12 +66,12 @@ impl<'core, 'a> Specializer<'core, 'a> {
   ) -> Result<(FragmentId, Vec<ImplTree>), ErrorGuaranteed> {
     match *const_id {
       ConstId::Concrete(const_id) => {
-        let impls = impls.iter().map(|x| instantiate(fragment_id, args, x)).collect();
+        let impls = impls.iter().map(|x| self.instantiate(fragment_id, args, x)).collect();
         Ok((self.resolutions.consts[const_id], impls))
       }
       ConstId::Abstract(_, const_id) => {
         let [impl_] = &**impls else { unreachable!() };
-        let (impl_id, impls) = instantiate(fragment_id, args, impl_).assume_def()?;
+        let (impl_id, impls) = self.instantiate(fragment_id, args, impl_).assume_def()?;
         let const_id = self.resolutions.impls[impl_id].as_ref()?.consts[const_id]?;
         Ok((self.resolutions.consts[const_id], impls))
       }
@@ -86,11 +86,11 @@ impl<'core, 'a> Specializer<'core, 'a> {
   ) -> Result<(FragmentId, Vec<ImplTree>, StageId), ErrorGuaranteed> {
     match fn_rel {
       FnRel::Item(fn_id, impls) => {
-        let impls = impls.iter().map(|x| instantiate(fragment_id, args, x)).collect();
+        let impls = impls.iter().map(|x| self.instantiate(fragment_id, args, x)).collect();
         self.instantiate_fn_id(*fn_id, impls)
       }
       FnRel::Impl(impl_) => {
-        let impl_ = instantiate(fragment_id, args, impl_);
+        let impl_ = self.instantiate(fragment_id, args, impl_);
         match impl_ {
           ImplTree::Error(err) => Err(err),
           ImplTree::Def(..) | ImplTree::ForkClosure(..) | ImplTree::DropClosure(..) => {
@@ -162,21 +162,58 @@ impl<'core, 'a> Specializer<'core, 'a> {
     };
     &vir.interfaces[interface_id].kind
   }
-}
 
-fn instantiate(fragment_id: FragmentId, args: &Vec<ImplTree>, impl_: &TirImpl) -> ImplTree {
-  match impl_ {
-    TirImpl::Error(err) => ImplTree::Error(*err),
-    TirImpl::Param(i) => args[*i].clone(),
-    TirImpl::Def(id, impls) => {
-      ImplTree::Def(*id, impls.iter().map(|i| instantiate(fragment_id, args, i)).collect())
+  fn instantiate(
+    &self,
+    fragment_id: FragmentId,
+    args: &Vec<ImplTree>,
+    impl_: &TirImpl,
+  ) -> ImplTree {
+    match impl_ {
+      TirImpl::Error(err) => ImplTree::Error(*err),
+      TirImpl::Param(i) => args[*i].clone(),
+      TirImpl::Def(id, impls) => {
+        let impls =
+          impls.iter().map(|i| self.instantiate(fragment_id, args, i)).collect::<Vec<_>>();
+        if let Some(duplicate) = self.chart.builtins.duplicate {
+          if self.chart.impls[*id].duplicate && impls.iter().all(|i| self.duplicate_compatible(i)) {
+            return ImplTree::Def(duplicate, vec![]);
+          }
+        }
+        if let Some(erase) = self.chart.builtins.erase {
+          if self.chart.impls[*id].erase && impls.iter().all(|i| self.erase_compatible(i)) {
+            return ImplTree::Def(erase, vec![]);
+          }
+        }
+        ImplTree::Def(*id, impls)
+      }
+      TirImpl::Fn(id, impls) => {
+        ImplTree::Fn(*id, impls.iter().map(|i| self.instantiate(fragment_id, args, i)).collect())
+      }
+      TirImpl::Closure(id) => ImplTree::Closure(fragment_id, args.clone(), *id),
+      TirImpl::ForkClosure(id) => ImplTree::ForkClosure(fragment_id, args.clone(), *id),
+      TirImpl::DropClosure(id) => ImplTree::DropClosure(fragment_id, args.clone(), *id),
     }
-    TirImpl::Fn(id, impls) => {
-      ImplTree::Fn(*id, impls.iter().map(|i| instantiate(fragment_id, args, i)).collect())
+  }
+
+  fn duplicate_compatible(&self, impl_: &ImplTree) -> bool {
+    match impl_ {
+      ImplTree::Def(impl_id, _) => {
+        self.chart.builtins.duplicate == Some(*impl_id)
+          || self.resolutions.impls[*impl_id].as_ref().is_ok_and(|i| !i.is_fork)
+      }
+      _ => false,
     }
-    TirImpl::Closure(id) => ImplTree::Closure(fragment_id, args.clone(), *id),
-    TirImpl::ForkClosure(id) => ImplTree::ForkClosure(fragment_id, args.clone(), *id),
-    TirImpl::DropClosure(id) => ImplTree::DropClosure(fragment_id, args.clone(), *id),
+  }
+
+  fn erase_compatible(&self, impl_: &ImplTree) -> bool {
+    match impl_ {
+      ImplTree::Def(impl_id, _) => {
+        self.chart.builtins.erase == Some(*impl_id)
+          || self.resolutions.impls[*impl_id].as_ref().is_ok_and(|i| !i.is_drop)
+      }
+      _ => false,
+    }
   }
 }
 

@@ -11,12 +11,14 @@ use debug::Show;
 pub type N32;
 
 pub mod N32 {
+  #[duplicate]
   pub impl fork: Fork[N32] {
     fn fork(&self: &N32) -> N32 {
       unsafe::duplicate(&self)
     }
   }
 
+  #[erase]
   pub impl drop: Drop[N32] {
     fn drop(self: N32) {
       unsafe::erase(self)

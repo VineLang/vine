@@ -14,12 +14,14 @@ pub mod N64 {
   pub const one: N64 = N64(1, 0);
   pub const maximum: N64 = N64(N32::maximum, N32::maximum);
 
+  #[duplicate]
   pub impl fork: Fork[N64] {
     fn fork(&self: &N64) -> N64 {
       unsafe::duplicate(&self)
     }
   }
 
+  #[erase]
   pub impl drop: Drop[N64] {
     fn drop(self: N64) {
       unsafe::erase(self)

@@ -512,10 +512,10 @@ impl<'core, 'a> Resolver<'core, 'a> {
     self.initialize(impl_def.def, impl_def.generics);
     let span = impl_def.span;
     let ty = self.types.import(&self.sigs.impls[impl_id], None).ty;
-    let resolved = match ty {
+    let resolved = match &ty {
       ImplType::Trait(trait_id, type_params) => {
-        let trait_def = &self.chart.traits[trait_id];
-        let trait_sig = &self.sigs.traits[trait_id];
+        let trait_def = &self.chart.traits[*trait_id];
+        let trait_sig = &self.sigs.traits[*trait_id];
         let consts = IdxVec::from(Vec::from_iter(trait_sig.consts.iter().map(|(id, sig)| {
           let name = trait_def.consts[id].name;
           let Some(subitem) = impl_def.subitems.iter().find(|i| i.name == name) else {
@@ -525,7 +525,7 @@ impl<'core, 'a> Resolver<'core, 'a> {
           let ImplSubitemKind::Const(const_id) = subitem.kind else {
             return Err(self.core.report(Diag::WrongImplSubitemKind { span, expected: "const" }));
           };
-          let expected_ty = self.types.import(sig, Some(&type_params)).ty;
+          let expected_ty = self.types.import(sig, Some(type_params)).ty;
           let const_sig = &self.sigs.concrete_consts[const_id];
           let found_ty = self.types.import(const_sig, None).ty;
           if self.types.unify(expected_ty, found_ty).is_failure() {
@@ -546,7 +546,7 @@ impl<'core, 'a> Resolver<'core, 'a> {
           let ImplSubitemKind::Fn(fn_id) = subitem.kind else {
             return Err(self.core.report(Diag::WrongImplSubitemKind { span, expected: "fn" }));
           };
-          let expected = self.types.import(sig, Some(&type_params));
+          let expected = self.types.import(sig, Some(type_params));
           let found = self.types.import(&self.sigs.concrete_fns[fn_id], None);
           Self::expect_fn_sig(self.core, self.chart, &mut self.types, span, name, expected, found);
           Ok(fn_id)
@@ -558,11 +558,19 @@ impl<'core, 'a> Resolver<'core, 'a> {
             self.core.report(Diag::ExtraneousImplItem { span: item.span, name: item.name });
           }
         }
-        Ok(ResolvedImpl { consts, fns })
+        let is_fork = self.chart.builtins.fork == Some(*trait_id);
+        let is_drop = self.chart.builtins.drop == Some(*trait_id);
+        Ok(ResolvedImpl { consts, fns, is_fork, is_drop })
       }
       ImplType::Fn(..) => Err(self.core.report(Diag::CannotImplFn { span })),
-      ImplType::Error(err) => Err(err),
+      ImplType::Error(err) => Err(*err),
     };
+    if impl_def.duplicate && resolved.as_ref().is_ok_and(|i| !i.is_fork) {
+      self.core.report(Diag::BadDuplicateAttr { span });
+    }
+    if impl_def.erase && resolved.as_ref().is_ok_and(|i| !i.is_drop) {
+      self.core.report(Diag::BadEraseAttr { span });
+    }
     assert_eq!(self.resolutions.impls.next_index(), impl_id);
     self.resolutions.impls.push(resolved);
   }

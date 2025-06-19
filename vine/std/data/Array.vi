@@ -215,6 +215,7 @@ pub mod Array {
     self
   }
 
+  #[duplicate]
   pub impl fork[T+]: Fork[Array[T]] {
     fn fork(&Array[T](len, node)) -> Array[T] {
       if len == 0 {
@@ -225,6 +226,7 @@ pub mod Array {
     }
   }
 
+  #[erase]
   pub impl drop[T?]: Drop[Array[T]] {
     fn drop(Array[T](len, node)) {
       if len == 0 {

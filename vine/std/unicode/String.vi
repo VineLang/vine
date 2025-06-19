@@ -6,12 +6,14 @@ use debug::Show;
 pub struct String(pub List[Char]);
 
 pub mod String {
+  #[duplicate]
   pub impl fork: Fork[String] {
     fn fork(&self: &String) -> String {
       unsafe::duplicate(&self)
     }
   }
 
+  #[erase]
   pub impl drop: Drop[String] {
     fn drop(self: String) {
       unsafe::erase(self)

@@ -96,6 +96,7 @@ mod Region {
     }
   }
 
+  #[duplicate]
   pub impl fork: Fork[Region] {
     fn fork(&self: &Region) -> Region {
       unsafe::duplicate(&self)

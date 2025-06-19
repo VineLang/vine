@@ -149,6 +149,8 @@ pub enum AttrKind {
   Builtin(Builtin),
   Main,
   Manual,
+  Duplicate,
+  Erase,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]

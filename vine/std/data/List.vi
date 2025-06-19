@@ -330,6 +330,7 @@ pub mod List {
     }
   }
 
+  #[duplicate]
   pub impl fork[T+]: Fork[List[T]] {
     fn fork(&self: &List[T]) -> List[T] {
       let iter = self.iter();
@@ -341,6 +342,7 @@ pub mod List {
     }
   }
 
+  #[erase]
   pub impl drop[T?]: Drop[List[T]] {
     fn drop(self: List[T]) {
       let iter = self.into_iter();

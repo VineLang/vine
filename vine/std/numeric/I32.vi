@@ -14,12 +14,14 @@ pub mod I32 {
   pub const maximum: I32 = +0x7fffffff;
   pub const minimum: I32 = -0x7fffffff;
 
+  #[duplicate]
   pub impl fork: Fork[I32] {
     fn fork(&self: &I32) -> I32 {
       unsafe::duplicate(&self)
     }
   }
 
+  #[erase]
   pub impl drop: Drop[I32] {
     fn drop(self: I32) {
       unsafe::erase(self)

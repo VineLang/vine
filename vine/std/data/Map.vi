@@ -357,6 +357,7 @@ pub mod Map {
     }
   }
 
+  #[duplicate]
   pub impl fork[K+, V+]: Fork[Map[K, V]] {
     fn fork(&Map[K, V](len, data)) -> Map[K, V] {
       if len == 0 {
@@ -367,6 +368,7 @@ pub mod Map {
     }
   }
 
+  #[erase]
   pub impl drop[K?, V?]: Drop[Map[K, V]] {
     fn drop(Map[K, V](len, data)) {
       if len == 0 {
