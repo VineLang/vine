@@ -7,14 +7,19 @@ use vine_util::{
 };
 
 use crate::{
-  components::analyzer::{usage::Usage, UsageVar},
+  components::{
+    analyzer::{effect::Effect, EffectVar},
+    finder::Finder,
+  },
   structures::{
     ast::Span,
-    chart::{EnumId, StructId, VariantId},
+    chart::{Chart, DefId, EnumId, GenericsId, StructId, VariantId},
+    core::Core,
     diag::ErrorGuaranteed,
     resolutions::{ConstRelId, FnRelId, Rels},
-    tir::{ClosureId, Local, LocalInfo},
-    types::{Type, Types},
+    signatures::Signatures,
+    tir::{ClosureId, Local},
+    types::{Inverted, Type, Types},
   },
 };
 
@@ -30,12 +35,12 @@ impl LayerId {
 #[derive(Debug, Clone)]
 pub struct Vir<'core> {
   pub types: Types<'core>,
-  pub locals: IdxVec<Local, LocalInfo>,
+  pub locals: IdxVec<Local, VirLocal>,
   pub rels: Rels,
   pub layers: IdxVec<LayerId, Layer>,
   pub interfaces: IdxVec<InterfaceId, Interface>,
   pub stages: IdxVec<StageId, Stage>,
-  pub globals: Vec<(Local, Usage)>,
+  pub globals: Vec<(Local, Effect)>,
   pub closures: IdxVec<ClosureId, InterfaceId>,
 }
 
@@ -53,9 +58,9 @@ pub struct Interface {
   pub kind: InterfaceKind,
 
   pub incoming: usize,
-  pub interior: Option<UsageVar>,
-  pub exterior: Option<UsageVar>,
-  pub wires: BTreeMap<Local, (Usage, Usage)>,
+  pub interior: Option<EffectVar>,
+  pub exterior: Option<EffectVar>,
+  pub wires: BTreeMap<Local, (bool, bool, bool)>,
 }
 
 impl Interface {
@@ -136,7 +141,6 @@ pub enum Step {
   Enum(EnumId, VariantId, Port, Option<Port>),
   Ref(Port, Port, Port),
   ExtFn(&'static str, bool, Port, Port, Port),
-  Dup(Port, Port, Port),
   List(Port, Vec<Port>),
   String(Port, String, Vec<(Port, String)>),
   InlineIvy(Vec<(String, Port)>, Port, Net),
@@ -169,9 +173,7 @@ impl Step {
       Step::Composite(port, ports) | Step::List(port, ports) => {
         Ports::Tuple([port].into_iter().chain(ports))
       }
-      Step::Ref(a, b, c) | Step::ExtFn(_, _, a, b, c) | Step::Dup(a, b, c) => {
-        Ports::Three([a, b, c])
-      }
+      Step::Ref(a, b, c) | Step::ExtFn(_, _, a, b, c) => Ports::Three([a, b, c]),
       Step::String(a, _, b) => Ports::String([a].into_iter().chain(b.iter().map(|x| &x.0))),
       Step::InlineIvy(binds, root, _) => Ports::Ivy(binds.iter().map(|x| &x.1).chain([root])),
     }
@@ -180,23 +182,24 @@ impl Step {
 
 #[derive(Debug, Clone)]
 pub enum Invocation {
-  Erase,
-  Get(Port),
-  Hedge(Port),
-  Take(Port),
-  Set(Port),
-  Mut(Port, Port),
+  Bar,
+  Read(Port),
+  Write(Port),
+  ReadBar(Port),
+  BarWrite(Port),
+  ReadWrite(Port, Port),
 }
 
 impl Invocation {
   fn ports(&self) -> impl Iterator<Item = &Port> {
     multi_iter!(Ports { Zero, One, Two });
     match self {
-      Invocation::Erase => Ports::Zero([]),
-      Invocation::Get(a) | Invocation::Hedge(a) | Invocation::Take(a) | Invocation::Set(a) => {
-        Ports::One([a])
-      }
-      Invocation::Mut(a, b) => Ports::Two([a, b]),
+      Invocation::Bar => Ports::Zero([]),
+      Invocation::Read(a)
+      | Invocation::Write(a)
+      | Invocation::ReadBar(a)
+      | Invocation::BarWrite(a) => Ports::One([a]),
+      Invocation::ReadWrite(a, b) => Ports::Two([a, b]),
     }
   }
 }
@@ -249,66 +252,59 @@ impl Stage {
     }
   }
 
-  pub fn get_local_to(&mut self, local: Local, to: Port) {
-    self.steps.push(Step::Invoke(local, Invocation::Get(to)));
+  pub fn local_read_to(&mut self, local: Local, to: Port) {
+    self.steps.push(Step::Invoke(local, Invocation::Read(to)));
   }
 
-  pub fn hedge_local_to(&mut self, local: Local, to: Port) {
-    self.steps.push(Step::Invoke(local, Invocation::Hedge(to)));
+  pub fn local_write_to(&mut self, local: Local, to: Port) {
+    self.steps.push(Step::Invoke(local, Invocation::Write(to)));
   }
 
-  pub fn take_local_to(&mut self, local: Local, to: Port) {
-    self.steps.push(Step::Invoke(local, Invocation::Take(to)));
+  pub fn local_read_bar_to(&mut self, local: Local, to: Port) {
+    self.steps.push(Step::Invoke(local, Invocation::ReadBar(to)));
   }
 
-  pub fn set_local_to(&mut self, local: Local, to: Port) {
-    self.steps.push(Step::Invoke(local, Invocation::Set(to)));
+  pub fn local_bar_write_to(&mut self, local: Local, to: Port) {
+    self.steps.push(Step::Invoke(local, Invocation::BarWrite(to)));
   }
 
-  pub fn mut_local_to(&mut self, local: Local, o: Port, i: Port) {
-    self.steps.push(Step::Invoke(local, Invocation::Mut(o, i)));
+  pub fn local_read_write_to(&mut self, local: Local, o: Port, i: Port) {
+    self.steps.push(Step::Invoke(local, Invocation::ReadWrite(o, i)));
   }
 
-  pub fn get_local(&mut self, local: Local, span: Span, ty: Type) -> Port {
+  pub fn local_read(&mut self, local: Local, span: Span, ty: Type) -> Port {
     let wire = self.new_wire(span, ty);
-    self.get_local_to(local, wire.neg);
+    self.local_read_to(local, wire.neg);
     wire.pos
   }
 
-  pub fn hedge_local(&mut self, local: Local, span: Span, ty: Type) -> Port {
+  pub fn local_write(&mut self, local: Local, span: Span, ty: Type) -> Port {
     let wire = self.new_wire(span, ty);
-    self.get_local_to(local, wire.pos);
+    self.local_write_to(local, wire.pos);
     wire.neg
   }
 
-  pub fn take_local(&mut self, local: Local, span: Span, ty: Type) -> Port {
+  pub fn local_read_bar(&mut self, local: Local, span: Span, ty: Type) -> Port {
     let wire = self.new_wire(span, ty);
-    self.take_local_to(local, wire.neg);
+    self.local_read_bar_to(local, wire.neg);
     wire.pos
   }
 
-  pub fn set_local(&mut self, local: Local, span: Span, ty: Type) -> Port {
+  pub fn local_bar_write(&mut self, local: Local, span: Span, ty: Type) -> Port {
     let wire = self.new_wire(span, ty);
-    self.set_local_to(local, wire.pos);
+    self.local_bar_write_to(local, wire.pos);
     wire.neg
   }
 
-  pub fn mut_local(&mut self, local: Local, span: Span, ty: Type) -> (Port, Port) {
+  pub fn local_read_write(&mut self, local: Local, span: Span, ty: Type) -> (Port, Port) {
     let o = self.new_wire(span, ty);
     let i = self.new_wire(span, ty);
-    self.mut_local_to(local, o.neg, i.pos);
+    self.local_read_write_to(local, o.neg, i.pos);
     (o.pos, i.neg)
   }
 
-  pub fn erase_local(&mut self, local: Local) {
-    self.steps.push(Step::Invoke(local, Invocation::Erase));
-  }
-
-  pub fn dup(&mut self, span: Span, p: Port) -> (Port, Port) {
-    let a = self.new_wire(span, p.ty);
-    let b = self.new_wire(span, p.ty);
-    self.steps.push(Step::Dup(p, a.neg, b.neg));
-    (a.pos, b.pos)
+  pub fn local_bar(&mut self, local: Local) {
+    self.steps.push(Step::Invoke(local, Invocation::Bar));
   }
 
   pub fn ext_fn(
@@ -329,5 +325,38 @@ impl Stage {
     let wire = self.new_wire(span, ty);
     self.steps.push(Step::Ref(wire.neg, value, space));
     wire.pos
+  }
+}
+
+#[derive(Debug, Clone)]
+pub struct VirLocal {
+  pub span: Span,
+  pub ty: Type,
+  pub inv: Inverted,
+  pub fork: Option<FnRelId>,
+  pub drop: Option<FnRelId>,
+}
+
+impl VirLocal {
+  pub fn new<'core>(
+    core: &'core Core<'core>,
+    chart: &Chart<'core>,
+    sigs: &Signatures<'core>,
+    def: DefId,
+    generics: GenericsId,
+    types: &mut Types<'core>,
+    rels: &mut Rels,
+    span: Span,
+    ty: Type,
+  ) -> VirLocal {
+    let flex =
+      Finder::new(core, chart, sigs, def, generics, span).find_flex(types, ty).unwrap_or_default();
+    VirLocal {
+      span,
+      ty,
+      inv: flex.inv,
+      fork: flex.fork.map(|impl_| rels.fork_rel(chart, impl_)),
+      drop: flex.drop.map(|impl_| rels.drop_rel(chart, impl_)),
+    }
   }
 }

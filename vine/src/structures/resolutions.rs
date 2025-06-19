@@ -2,7 +2,7 @@ use vine_util::{idx::IdxVec, new_idx};
 
 use crate::structures::{
   chart::{
-    ConcreteConstId, ConcreteFnId, ConstId, DefId, FnId, GenericsId, ImplId, TraitConstId,
+    Chart, ConcreteConstId, ConcreteFnId, ConstId, DefId, FnId, GenericsId, ImplId, TraitConstId,
     TraitFnId,
   },
   diag::ErrorGuaranteed,
@@ -45,4 +45,16 @@ pub struct Rels {
 pub enum FnRel {
   Item(FnId, Vec<TirImpl>),
   Impl(TirImpl),
+}
+
+impl Rels {
+  pub fn fork_rel<'core>(&mut self, chart: &Chart<'core>, impl_: TirImpl) -> FnRelId {
+    let fork = chart.builtins.fork.unwrap();
+    self.fns.push(FnRel::Item(FnId::Abstract(fork, TraitFnId(0)), vec![impl_]))
+  }
+
+  pub fn drop_rel<'core>(&mut self, chart: &Chart<'core>, impl_: TirImpl) -> FnRelId {
+    let drop = chart.builtins.drop.unwrap();
+    self.fns.push(FnRel::Item(FnId::Abstract(drop, TraitFnId(0)), vec![impl_]))
+  }
 }

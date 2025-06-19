@@ -6,7 +6,7 @@ use vine_util::{
 };
 
 use crate::{
-  components::{analyzer::usage::Usage, finder::Finder},
+  components::{analyzer::effect::Effect, finder::Finder},
   structures::{
     ast::Span,
     chart::{Chart, DefId, FnId, GenericsId, TraitFnId},
@@ -14,11 +14,11 @@ use crate::{
     diag::{Diag, ErrorGuaranteed},
     resolutions::{FnRel, Fragment, Rels},
     signatures::Signatures,
-    tir::{ClosureId, LabelId, Local, LocalInfo, TirExpr, TirExprKind, TirPat, TirPatKind},
+    tir::{ClosureId, LabelId, Local, TirExpr, TirExprKind, TirLocal, TirPat, TirPatKind},
     types::{ImplType, Inverted, Type, TypeKind, Types},
     vir::{
       Header, Interface, InterfaceId, InterfaceKind, Layer, LayerId, Port, PortKind, Stage,
-      StageId, Step, Transfer, Vir,
+      StageId, Step, Transfer, Vir, VirLocal,
     },
   },
 };
@@ -44,7 +44,7 @@ pub struct Distiller<'core, 'r> {
   generics: GenericsId,
   types: Types<'core>,
   rels: Rels,
-  locals: IdxVec<Local, LocalInfo>,
+  locals: IdxVec<Local, TirLocal>,
 }
 
 #[derive(Debug)]
@@ -99,25 +99,30 @@ impl<'core, 'r> Distiller<'core, 'r> {
     self.types = fragment.tir.types.clone();
     self.rels = fragment.tir.rels.clone();
     let (layer, mut stage) = self.root_layer(fragment.tir.root.span);
-    let local = self.locals.push(LocalInfo { span: fragment.tir.span, ty: fragment.tir.root.ty });
+    let local = self.locals.push(TirLocal { span: fragment.tir.span, ty: fragment.tir.root.ty });
     for closure in fragment.tir.closures.values() {
       let interface = self.distill_closure_def(closure);
       self.closures.push(interface);
     }
     let result = self.distill_expr_value(&mut stage, &fragment.tir.root);
-    stage.set_local_to(local, result);
+    stage.local_bar_write_to(local, result);
     self.finish_stage(stage);
     self.finish_layer(layer);
     self.labels.clear();
     debug_assert!(self.returns.is_empty());
+    let locals =
+      IdxVec::from(Vec::from_iter(take(&mut self.locals).into_iter().map(|(_, local)| {
+        let Self { core, chart, sigs, def, generics, ref mut types, ref mut rels, .. } = *self;
+        VirLocal::new(core, chart, sigs, def, generics, types, rels, local.span, local.ty)
+      })));
     Vir {
       types: take(&mut self.types),
       rels: take(&mut self.rels),
       layers: unwrap_idx_vec(take(&mut self.layers)),
       interfaces: unwrap_idx_vec(take(&mut self.interfaces)),
       stages: unwrap_idx_vec(take(&mut self.stages)),
-      locals: take(&mut self.locals),
-      globals: vec![(local, Usage::Take)],
+      locals,
+      globals: vec![(local, Effect::RB)],
       closures: take(&mut self.closures),
     }
   }
@@ -185,7 +190,7 @@ impl<'core, 'r> Distiller<'core, 'r> {
       TirExprKind::Match(value, arms) => self.distill_match(stage, span, ty, value, arms),
       TirExprKind::Try(ok, err, result) => self.distill_try(stage, span, ty, *ok, *err, result),
 
-      TirExprKind::Local(local) => stage.get_local(*local, span, ty),
+      TirExprKind::Local(local) => stage.local_read(*local, span, ty),
 
       TirExprKind::Char(c) => Port { ty, kind: PortKind::N32(*c as u32) },
       TirExprKind::N32(n) => Port { ty, kind: PortKind::N32(*n) },
@@ -306,7 +311,7 @@ impl<'core, 'r> Distiller<'core, 'r> {
         Poly::Place(place) => self.coerce_place_space(span, stage, place),
         Poly::Space(space) => space,
       },
-      TirExprKind::Local(local) => stage.set_local(*local, span, ty),
+      TirExprKind::Local(local) => stage.local_write(*local, span, ty),
       TirExprKind::Unwrap(struct_id, inner) => {
         let inner = self.distill_expr_space(stage, inner);
         let wire = stage.new_wire(span, ty);
@@ -355,7 +360,7 @@ impl<'core, 'r> Distiller<'core, 'r> {
         stage.steps.push(Step::Struct(*struct_id, space.pos, inner_space));
         (value.pos, space.neg)
       }
-      TirExprKind::Local(local) => stage.mut_local(*local, span, ty),
+      TirExprKind::Local(local) => stage.local_read_write(*local, span, ty),
       TirExprKind::Deref(reference) => {
         let reference = self.distill_expr_value(stage, reference);
         let value = stage.new_wire(span, ty);
@@ -531,7 +536,7 @@ impl<'core, 'r> Distiller<'core, 'r> {
       }
       TirPatKind::Local(local) => {
         stage.declarations.push(*local);
-        stage.erase_local(*local);
+        stage.local_bar(*local);
       }
     }
   }
@@ -556,7 +561,7 @@ impl<'core, 'r> Distiller<'core, 'r> {
       TirPatKind::Inverse(inner) => self.distill_pat_space(stage, inner),
       TirPatKind::Local(local) => {
         stage.declarations.push(*local);
-        stage.set_local(*local, span, ty)
+        stage.local_bar_write(*local, span, ty)
       }
       TirPatKind::Composite(elements) => {
         self.distill_vec(stage, span, tyi, elements, Self::distill_pat_value, Step::Composite)
@@ -591,7 +596,7 @@ impl<'core, 'r> Distiller<'core, 'r> {
       TirPatKind::Inverse(inner) => self.distill_pat_value(stage, inner),
       TirPatKind::Local(local) => {
         stage.declarations.push(*local);
-        stage.take_local(*local, span, ty)
+        stage.local_read_bar(*local, span, ty)
       }
       TirPatKind::Composite(elements) => {
         self.distill_vec(stage, span, ty, elements, Self::distill_pat_space, Step::Composite)
@@ -627,7 +632,7 @@ impl<'core, 'r> Distiller<'core, 'r> {
       }
       TirPatKind::Local(local) => {
         stage.declarations.push(*local);
-        let (a, b) = stage.mut_local(*local, span, ty);
+        let (a, b) = stage.local_read_write(*local, span, ty);
         (b, a)
       }
       TirPatKind::Composite(elements) => {
@@ -678,14 +683,12 @@ impl<'core, 'r> Distiller<'core, 'r> {
     match inv {
       Inverted(false) => match flex.fork {
         Some(impl_) => {
-          let fork = self.chart.builtins.fork.unwrap();
-          let fn_rel =
-            self.rels.fns.push(FnRel::Item(FnId::Abstract(fork, TraitFnId(0)), vec![impl_]));
+          let fork_rel = self.rels.fork_rel(self.chart, impl_);
           let ref_ty = self.types.new(TypeKind::Ref(ty));
           let ref_ = stage.new_wire(span, ref_ty);
           stage.steps.push(Step::Ref(ref_.neg, value, space));
           let out = stage.new_wire(span, ty);
-          stage.steps.push(Step::Call(fn_rel, None, vec![ref_.pos], out.neg));
+          stage.steps.push(Step::Call(fork_rel, None, vec![ref_.pos], out.neg));
           out.pos
         }
         None => {
@@ -695,11 +698,9 @@ impl<'core, 'r> Distiller<'core, 'r> {
       },
       Inverted(true) => match flex.drop {
         Some(impl_) => {
-          let drop = self.chart.builtins.drop.unwrap();
-          let fn_rel =
-            self.rels.fns.push(FnRel::Item(FnId::Abstract(drop, TraitFnId(0)), vec![impl_]));
+          let drop_rel = self.rels.drop_rel(self.chart, impl_);
           let nil = Port { ty: self.types.nil(), kind: PortKind::Nil };
-          stage.steps.push(Step::Call(fn_rel, None, vec![space], nil));
+          stage.steps.push(Step::Call(drop_rel, None, vec![space], nil));
           value
         }
         None => {
@@ -783,7 +784,7 @@ impl<'core, 'r> Distiller<'core, 'r> {
   }
 
   fn new_local(&mut self, stage: &mut Stage, span: Span, ty: Type) -> Local {
-    let local = self.locals.push(LocalInfo { span, ty });
+    let local = self.locals.push(TirLocal { span, ty });
     stage.declarations.push(local);
     local
   }

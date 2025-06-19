@@ -25,7 +25,7 @@ use crate::{
       ConstSig, EnumSig, FnSig, GenericsSig, ImplSig, Signatures, StructSig, TraitSig, TypeAliasSig,
     },
     tir::{
-      ClosureId, LabelId, Local, LocalInfo, Tir, TirClosure, TirExpr, TirExprKind, TirImpl, TirPat,
+      ClosureId, LabelId, Local, TirLocal, Tir, TirClosure, TirExpr, TirExprKind, TirImpl, TirPat,
       TirPatKind,
     },
     types::{ImplType, Type, TypeCtx, TypeKind, Types},
@@ -53,7 +53,7 @@ pub struct Resolver<'core, 'a> {
 
   scope: HashMap<Ident<'core>, Vec<ScopeEntry>>,
   scope_depth: usize,
-  locals: IdxVec<Local, LocalInfo>,
+  locals: IdxVec<Local, TirLocal>,
   labels: HashMap<Ident<'core>, LabelInfo>,
   loops: Vec<LabelInfo>,
   label_id: Counter<LabelId>,
@@ -270,7 +270,7 @@ impl<'core, 'a> Resolver<'core, 'a> {
     def_id: DefId,
     types: &mut Types<'core>,
     locals: &BTreeMap<Local, (Ident<'core>, Type)>,
-    local_info: &mut IdxVec<Local, LocalInfo>,
+    local_info: &mut IdxVec<Local, TirLocal>,
     block: &mut Block<'core>,
   ) -> (FragmentId, impl Iterator<Item = (Ident<'core>, Local, Type)>) {
     self.cur_def = def_id;

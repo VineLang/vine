@@ -4,7 +4,7 @@ use crate::{
     ast::{Pat, PatKind},
     chart::DefPatternKind,
     diag::Diag,
-    tir::{LocalInfo, TirPat, TirPatKind},
+    tir::{TirLocal, TirPat, TirPatKind},
     types::TypeKind,
   },
 };
@@ -99,7 +99,7 @@ impl<'core> Resolver<'core, '_> {
           Err(diag) => {
             if let (Some(ident), None) = (path.as_ident(), data) {
               let ty = self.types.new_var(span);
-              let local = self.locals.push(LocalInfo { span, ty });
+              let local = self.locals.push(TirLocal { span, ty });
               self.bind(ident, Binding::Local(local, ty));
               (ty, TirPatKind::Local(local))
             } else {

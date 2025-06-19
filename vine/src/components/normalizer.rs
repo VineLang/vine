@@ -4,17 +4,34 @@ use vine_util::{idx::IdxVec, unwrap_idx_vec};
 
 use crate::structures::{
   ast::Span,
-  tir::{Local, LocalInfo},
-  types::Type,
+  chart::{Chart, DefId, GenericsId},
+  core::Core,
+  resolutions::{Fragment, Rels},
+  signatures::Signatures,
+  tir::Local,
+  types::{Type, Types},
   vir::{
     Header, Interface, InterfaceId, InterfaceKind, Layer, LayerId, Port, PortKind, Stage, StageId,
-    Step, Transfer, Vir, WireId,
+    Step, Transfer, Vir, VirLocal, WireId,
   },
 };
 
-pub fn normalize<'core>(source: &Vir<'core>) -> Vir<'core> {
+pub fn normalize<'core>(
+  core: &'core Core<'core>,
+  chart: &Chart<'core>,
+  sigs: &Signatures<'core>,
+  fragment: &Fragment<'core>,
+  source: &Vir<'core>,
+) -> Vir<'core> {
   let mut normalizer = Normalizer {
+    core,
+    chart,
+    sigs,
     source,
+    def: fragment.def,
+    generics: fragment.generics,
+    types: source.types.clone(),
+    rels: source.rels.clone(),
     locals: source.locals.clone(),
     interfaces: source.interfaces.clone(),
     stages: IdxVec::from(vec![None; source.stages.len()]),
@@ -29,9 +46,9 @@ pub fn normalize<'core>(source: &Vir<'core>) -> Vir<'core> {
   }
 
   Vir {
-    types: source.types.clone(),
+    types: normalizer.types,
     locals: normalizer.locals,
-    rels: source.rels.clone(),
+    rels: normalizer.rels,
     layers: IdxVec::new(),
     interfaces: normalizer.interfaces,
     stages: unwrap_idx_vec(normalizer.stages),
@@ -42,9 +59,17 @@ pub fn normalize<'core>(source: &Vir<'core>) -> Vir<'core> {
 
 #[derive(Debug)]
 struct Normalizer<'core, 'a> {
-  source: &'a Vir<'core>,
+  core: &'core Core<'core>,
+  chart: &'a Chart<'core>,
+  sigs: &'a Signatures<'core>,
 
-  locals: IdxVec<Local, LocalInfo>,
+  source: &'a Vir<'core>,
+  def: DefId,
+  generics: GenericsId,
+
+  types: Types<'core>,
+  rels: Rels,
+  locals: IdxVec<Local, VirLocal>,
   interfaces: IdxVec<InterfaceId, Interface>,
   stages: IdxVec<StageId, Option<Stage>>,
 
@@ -94,11 +119,15 @@ impl<'core> Normalizer<'core, '_> {
             wires: source.wires,
           };
           for (&wire, &(span, ty)) in &open_wires {
-            let local = self.locals.push(LocalInfo { span, ty });
+            let Self { core, chart, sigs, def, generics, ref mut types, ref mut rels, .. } = *self;
+            let vir_local = VirLocal::new(core, chart, sigs, def, generics, types, rels, span, ty);
+            let local = self.locals.push(vir_local);
             stage.declarations.push(local);
-            stage.set_local_to(local, Port { ty, kind: PortKind::Wire(span, wire) });
-            new_stage
-              .take_local_to(local, Port { ty: ty.inverse(), kind: PortKind::Wire(span, wire) });
+            stage.local_bar_write_to(local, Port { ty, kind: PortKind::Wire(span, wire) });
+            new_stage.local_read_bar_to(
+              local,
+              Port { ty: ty.inverse(), kind: PortKind::Wire(span, wire) },
+            );
           }
           match step {
             Step::Transfer(transfer) => {

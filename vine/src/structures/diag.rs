@@ -230,6 +230,8 @@ diags! {
     ["cannot fork `{ty}`"]
   CannotDrop { ty: String }
     ["cannot drop `{ty}`"]
+  UninitializedVariable { ty: String }
+    ["variable of type `{ty}` read whilst uninitialized"]
 }
 
 fn plural<'a>(n: usize, plural: &'a str, singular: &'a str) -> &'a str {

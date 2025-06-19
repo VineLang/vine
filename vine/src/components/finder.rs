@@ -23,7 +23,7 @@ pub struct Finder<'core, 'a> {
   steps: u32,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct FlexImpls {
   pub inv: Inverted,
   pub fork: Option<TirImpl>,
@@ -158,11 +158,15 @@ impl<'core, 'a> Finder<'core, 'a> {
     let pos_flex = pos_fork.is_some() || pos_drop.is_some();
     let neg_flex = neg_fork.is_some() || neg_drop.is_some();
 
-    if pos_flex && neg_flex {
+    if pos_flex
+      && neg_flex
+      && !matches!(types.kind(ty), Some((_, TypeKind::Tuple(els))) if els.is_empty())
+      && !matches!(types.kind(ty), Some((_, TypeKind::Object(entries))) if entries.is_empty())
+    {
       Err(Diag::BiFlexible { span, ty: types.show(self.chart, ty) })?
     }
 
-    let inv = Inverted(neg_flex);
+    let inv = Inverted(!pos_flex && neg_flex);
     let [fork, drop] = if inv.0 { [neg_fork, neg_drop] } else { [pos_fork, pos_drop] };
 
     let [(fork_ty, fork), (drop_ty, drop)] = [fork, drop].map(|result| {

@@ -18,7 +18,7 @@ use vine_util::{
 use crate::{
   compiler::{Compiler, Hooks},
   components::{
-    analyzer::usage::Usage,
+    analyzer::effect::Effect,
     charter::{Charter, ExtractItems},
     parser::VineParser,
     resolver::Resolver,
@@ -29,7 +29,7 @@ use crate::{
     core::Core,
     diag::Diag,
     resolutions::FragmentId,
-    tir::{Local, LocalInfo},
+    tir::{Local, TirLocal},
     types::{Type, TypeKind, Types},
     vir::{StageId, Vir},
   },
@@ -44,7 +44,7 @@ pub struct Repl<'core, 'ctx, 'ivm, 'ext> {
   line: usize,
   vars: HashMap<Ident<'core>, Var<'ivm>>,
   locals: BTreeMap<Local, (Ident<'core>, Type)>,
-  local_info: IdxVec<Local, LocalInfo>,
+  local_info: IdxVec<Local, TirLocal>,
   types: Types<'core>,
 }
 
@@ -89,7 +89,7 @@ impl<'core, 'ctx, 'ivm, 'ext> Repl<'core, 'ctx, 'ivm, 'ext> {
       types.nil()
     };
     let locals = BTreeMap::from([(Local(0), (io, io_type))]);
-    let local_info = IdxVec::from(vec![LocalInfo { span: Span::NONE, ty: io_type }]);
+    let local_info = IdxVec::from(vec![TirLocal { span: Span::NONE, ty: io_type }]);
 
     Ok(Repl { host, ivm, core, compiler, repl_mod, line: 0, vars, locals, local_info, types })
   }
@@ -135,7 +135,7 @@ impl<'core, 'ctx, 'ivm, 'ext> Repl<'core, 'ctx, 'ivm, 'ext> {
       block: &'a mut Block<'core>,
       types: &'a mut Types<'core>,
       fragment: &'a mut Option<FragmentId>,
-      local_info: &'a mut IdxVec<Local, LocalInfo>,
+      local_info: &'a mut IdxVec<Local, TirLocal>,
     }
 
     impl<'core> Hooks<'core> for ExecHooks<'core, '_, '_, '_> {
@@ -178,7 +178,7 @@ impl<'core, 'ctx, 'ivm, 'ext> Repl<'core, 'ctx, 'ivm, 'ext> {
         let id = self.fragment.unwrap();
         if id == fragment_id {
           vir.stages[StageId(0)].declarations.retain(|l| !self.locals.contains_key(l));
-          vir.globals.extend(self.vars.values().map(|v| (v.local, Usage::Mut)));
+          vir.globals.extend(self.vars.values().map(|v| (v.local, Effect::RBW)));
         }
       }
     }

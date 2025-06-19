@@ -25,7 +25,7 @@ impl<'core, 'r> Distiller<'core, 'r> {
   ) {
     let ty = value.ty;
     let local = self.new_local(stage, span, ty);
-    stage.set_local_to(local, value);
+    stage.local_bar_write_to(local, value);
     let vars = IdxVec::from(vec![Var { ty, kind: VarKind::Local(local, Form::Value) }]);
     let mut matcher = Matcher { span, exhaustive: true, distiller: self };
     matcher.distill_rows(layer, stage, vars, rows);
@@ -164,7 +164,9 @@ impl<'core, 'd, 'r> Matcher<'core, 'd, 'r> {
       element_tys.clone().map(|t| self.new_var(stage, &mut vars, form, t)).collect();
     let value = self.borrow_var(stage, &mut vars, var_id, VarKind::Composite(element_vars.clone()));
     let element_ports = Vec::from_iter(
-      element_tys.zip(element_locals).map(|(ty, local)| stage.set_local(local, self.span, ty)),
+      element_tys
+        .zip(element_locals)
+        .map(|(ty, local)| stage.local_bar_write(local, self.span, ty)),
     );
     stage.steps.push(Step::Composite(value, element_ports));
     self.eliminate_col(&mut rows, var_id, |pat| match &*pat.kind {
@@ -185,7 +187,7 @@ impl<'core, 'd, 'r> Matcher<'core, 'd, 'r> {
   ) {
     let (inner_var, inner_local) = self.new_var(stage, &mut vars, Form::Place, inner_ty);
     let value = self.borrow_var(stage, &mut vars, var_id, VarKind::Ref(inner_local));
-    let (a, b) = stage.mut_local(inner_local, self.span, inner_ty);
+    let (a, b) = stage.local_read_write(inner_local, self.span, inner_ty);
     stage.steps.push(Step::Ref(value, b, a));
     self.eliminate_col(&mut rows, var_id, |pat| match &*pat.kind {
       TirPatKind::Ref(inner) => Some([(inner_var, inner)]),
@@ -210,7 +212,7 @@ impl<'core, 'd, 'r> Matcher<'core, 'd, 'r> {
     let value = self.borrow_var(stage, &mut vars, var_id, VarKind::Struct(struct_id, content_var));
     let content = stage.new_wire(self.span, content_ty);
     stage.steps.push(Step::Struct(struct_id, value, content.neg));
-    stage.set_local_to(content_local, content.pos);
+    stage.local_bar_write_to(content_local, content.pos);
     self.eliminate_col(&mut rows, var_id, |pat| match &*pat.kind {
       TirPatKind::Struct(_, inner) => Some([(content_var, inner)]),
       _ => unreachable!(),
@@ -245,7 +247,7 @@ impl<'core, 'd, 'r> Matcher<'core, 'd, 'r> {
       let new_var = VarKind::Enum(enum_id, variant_id, content.map(|(_, var, _)| var));
       self.restore_var(&mut stage, &mut vars, var_id, new_var);
       stage.header =
-        Header::Match(content.map(|(ty, _, local)| stage.set_local(local, self.span, ty)));
+        Header::Match(content.map(|(ty, _, local)| stage.local_bar_write(local, self.span, ty)));
 
       self.eliminate_col(&mut rows, var_id, |pat| match &*pat.kind {
         TirPatKind::Enum(_, pat_variant_id, content_pat) => (pat_variant_id == &variant_id)
@@ -355,13 +357,14 @@ impl<'core, 'd, 'r> Matcher<'core, 'd, 'r> {
   fn take_var(&mut self, stage: &mut Stage, vars: &IdxVec<VarId, Var>, var: &Var) -> Port {
     let wire = stage.new_wire(self.span, var.ty);
     match &var.kind {
-      VarKind::Local(local, _) => stage.take_local_to(*local, wire.neg),
+      VarKind::Local(local, _) => stage.local_read_bar_to(*local, wire.neg),
       VarKind::Composite(els) => {
         let els = els.iter().map(|&v| self.take_var(stage, vars, &vars[v])).collect();
         stage.steps.push(Step::Composite(wire.neg, els));
       }
       VarKind::Ref(local) => {
-        let (value, space) = stage.mut_local(*local, self.span, self.distiller.locals[*local].ty);
+        let (value, space) =
+          stage.local_read_write(*local, self.span, self.distiller.locals[*local].ty);
         stage.steps.push(Step::Ref(wire.neg, value, space));
       }
       VarKind::Struct(struct_id, content) => {
@@ -378,7 +381,7 @@ impl<'core, 'd, 'r> Matcher<'core, 'd, 'r> {
 
   fn set_var(&mut self, stage: &mut Stage, var: &Var) -> Option<Port> {
     if let VarKind::Local(local, Form::Place) = var.kind {
-      Some(stage.set_local(local, self.span, var.ty))
+      Some(stage.local_bar_write(local, self.span, var.ty))
     } else {
       None
     }

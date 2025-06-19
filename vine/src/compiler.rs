@@ -75,7 +75,7 @@ impl<'core> Compiler<'core> {
       let fragment = &self.fragments[fragment_id];
       let mut vir = distiller.distill_fragment(fragment);
       hooks.distill(fragment_id, &mut vir);
-      let mut vir = normalize(&vir);
+      let mut vir = normalize(core, chart, &self.sigs, fragment, &vir);
       analyze(self.core, fragment.tir.span, &mut vir);
       assert_eq!(self.vir.next_index(), fragment_id);
       self.vir.push(vir);
@@ -90,7 +90,7 @@ impl<'core> Compiler<'core> {
     };
     specializer.specialize_since(checkpoint);
 
-    let mut emitter = Emitter::new(chart, &self.specs, &self.fragments, &self.vir);
+    let mut emitter = Emitter::new(core, chart, &self.specs, &self.fragments, &self.vir);
 
     if let Some(main) = self.resolutions.main {
       emitter.emit_main(main);

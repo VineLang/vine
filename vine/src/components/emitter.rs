@@ -3,37 +3,38 @@ use std::{collections::BTreeMap, fmt::Write, mem::take};
 use ivy::ast::{Net, Nets, Tree};
 use vine_util::idx::{Counter, IdxVec};
 
-use crate::{
-  components::analyzer::usage::Usage,
-  structures::{
-    chart::{Chart, EnumDef, VariantId},
-    resolutions::{Fragment, FragmentId},
-    specializations::{Spec, SpecId, Specializations},
-    tir::Local,
-    vir::{
-      Header, Interface, InterfaceKind, Invocation, Port, PortKind, Stage, StageId, Step, Transfer,
-      Vir,
-    },
+use crate::structures::{
+  chart::{Chart, EnumDef, VariantId},
+  core::Core,
+  diag::Diag,
+  resolutions::{FnRelId, Fragment, FragmentId},
+  specializations::{Spec, SpecId, Specializations},
+  tir::Local,
+  types::Inverted,
+  vir::{
+    Header, Interface, InterfaceKind, Invocation, Port, PortKind, Stage, StageId, Step, Transfer,
+    Vir, VirLocal,
   },
 };
 
 pub struct Emitter<'core, 'a> {
   pub nets: Nets,
+  core: &'core Core<'core>,
   chart: &'a Chart<'core>,
   specs: &'a Specializations,
   fragments: &'a IdxVec<FragmentId, Fragment<'core>>,
   vir: &'a IdxVec<FragmentId, Vir<'core>>,
-  dup_labels: Counter<usize>,
 }
 
 impl<'core, 'a> Emitter<'core, 'a> {
   pub fn new(
+    core: &'core Core<'core>,
     chart: &'a Chart<'core>,
     specs: &'a Specializations,
     fragments: &'a IdxVec<FragmentId, Fragment<'core>>,
     vir: &'a IdxVec<FragmentId, Vir<'core>>,
   ) -> Self {
-    Emitter { nets: Nets::default(), chart, specs, fragments, vir, dup_labels: Counter::default() }
+    Emitter { nets: Nets::default(), core, chart, specs, fragments, vir }
   }
 
   pub fn emit_main(&mut self, main: FragmentId) {
@@ -50,6 +51,7 @@ impl<'core, 'a> Emitter<'core, 'a> {
     let vir = &self.vir[spec.fragment];
 
     let mut emitter = VirEmitter {
+      core: self.core,
       chart: self.chart,
       specs: self.specs,
       fragments: self.fragments,
@@ -60,7 +62,6 @@ impl<'core, 'a> Emitter<'core, 'a> {
       pairs: Vec::new(),
       wire_offset: 0,
       wires: Counter::default(),
-      dup_labels: self.dup_labels,
     };
 
     for stage in vir.stages.values() {
@@ -68,22 +69,21 @@ impl<'core, 'a> Emitter<'core, 'a> {
       if interface.incoming != 0 && !interface.inline() {
         emitter.wire_offset = 0;
         emitter.wires.0 = stage.wires.0 .0;
-        let root = emitter.emit_interface(interface, true);
+        let root = emitter.emit_interface(interface, false);
         let root = emitter.emit_header(&stage.header, root);
         emitter._emit_stage(stage);
-        for (_, local) in take(&mut emitter.locals) {
-          emitter.finish_local(local);
+        for (local, state) in take(&mut emitter.locals) {
+          emitter.finish_local(&vir.locals[local], state);
         }
         let net = Net { root, pairs: take(&mut emitter.pairs) };
         self.nets.insert(emitter.stage_name(spec_id, stage.id), net);
       }
     }
-
-    self.dup_labels = emitter.dup_labels;
   }
 }
 
 struct VirEmitter<'core, 'a> {
+  core: &'core Core<'core>,
   chart: &'a Chart<'core>,
   specs: &'a Specializations,
   fragments: &'a IdxVec<FragmentId, Fragment<'core>>,
@@ -94,14 +94,9 @@ struct VirEmitter<'core, 'a> {
   pairs: Vec<(Tree, Tree)>,
   wire_offset: usize,
   wires: Counter<usize>,
-  dup_labels: Counter<usize>,
 }
 
 impl<'core, 'a> VirEmitter<'core, 'a> {
-  fn dup_label(&mut self) -> String {
-    format!("dup{}", self.dup_labels.next())
-  }
-
   pub fn emit_transfer(&mut self, transfer: &Transfer) {
     let interface = &self.vir.interfaces[transfer.interface];
     if interface.inline() {
@@ -109,7 +104,7 @@ impl<'core, 'a> VirEmitter<'core, 'a> {
       return self.inline_stage(&self.vir.stages[stage]);
     }
 
-    let target = self.emit_interface(interface, false);
+    let target = self.emit_interface(interface, true);
 
     self.pairs.push(match &interface.kind {
       InterfaceKind::Unconditional(stage) => (self.emit_stage_node(*stage), target),
@@ -129,30 +124,71 @@ impl<'core, 'a> VirEmitter<'core, 'a> {
     });
   }
 
-  fn finish_local(&mut self, mut local: LocalState) {
-    if local.past.is_empty() {
-      local.past.push((Vec::new(), Vec::new()));
+  fn finish_local(&mut self, local: &VirLocal, mut state: LocalState) {
+    if state.past.is_empty() {
+      state.past.push((Vec::new(), Vec::new()));
     }
-    let first = &mut local.past[0];
-    first.0.append(&mut local.spaces);
-    first.1.append(&mut local.values);
-    for (mut spaces, mut values) in local.past.into_iter() {
-      if spaces.is_empty() {
-        for value in values {
-          self.pairs.push((Tree::Erase, value));
+    let first = &mut state.past[0];
+    first.0.append(&mut state.spaces);
+    first.1.append(&mut state.values);
+    for (spaces, values) in state.past.into_iter() {
+      let (mut sources, mut sinks) = if local.inv.0 { (spaces, values) } else { (values, spaces) };
+      if local.inv.0 {
+        sinks.reverse();
+      }
+      assert!(sources.len() <= 1);
+      let source = sources.pop();
+      if sinks.is_empty() {
+        if let Some(source) = source {
+          match local.drop {
+            Some(drop_rel) => {
+              let drop_tree = self.emit_fn_rel(&drop_rel);
+              self.pairs.push((drop_tree, Tree::n_ary("fn", [Tree::Erase, source, Tree::Erase])));
+            }
+            None => {
+              self.core.report(Diag::CannotDrop {
+                span: local.span,
+                ty: self.vir.types.show(self.chart, local.ty),
+              });
+              self.pairs.push((source, Tree::Erase));
+            }
+          }
         }
-      } else if values.is_empty() {
-        for space in spaces {
-          self.pairs.push((space, Tree::Erase));
-        }
-      } else if values.len() == 1 {
-        let label = self.dup_label();
-        self.pairs.push((Tree::n_ary(&label, spaces), values.pop().unwrap()));
-      } else if spaces.len() == 1 {
-        let label = self.dup_label();
-        self.pairs.push((spaces.pop().unwrap(), Tree::n_ary(&label, values)));
       } else {
-        unreachable!()
+        let source = source.unwrap_or_else(|| {
+          self.core.report(Diag::UninitializedVariable {
+            span: local.span,
+            ty: self.vir.types.show(self.chart, local.ty),
+          });
+          Tree::Erase
+        });
+        if sinks.len() == 1 {
+          self.pairs.push((source, sinks.pop().unwrap()));
+        } else {
+          match local.fork {
+            Some(fork_rel) => {
+              let fork_tree = self.emit_fn_rel(&fork_rel);
+              let sink = sinks
+                .into_iter()
+                .reduce(|former, latter| {
+                  let wire = self.new_wire();
+                  self.pairs.push((
+                    fork_tree.clone(),
+                    Tree::n_ary("fn", [Tree::Erase, Tree::n_ary("ref", [wire.0, latter]), former]),
+                  ));
+                  wire.1
+                })
+                .unwrap();
+              self.pairs.push((source, sink));
+            }
+            None => {
+              self.core.report(Diag::CannotFork {
+                span: local.span,
+                ty: self.vir.types.show(self.chart, local.ty),
+              });
+            }
+          }
+        }
       }
     }
   }
@@ -161,21 +197,14 @@ impl<'core, 'a> VirEmitter<'core, 'a> {
     let prev_wire_offset = self.wire_offset;
     self.wire_offset = self.wires.peek_next();
     self.wires.0 += stage.wires.0 .0;
-    for local in &stage.declarations {
-      if let Some(local) = self.locals.remove(local) {
-        self.finish_local(local);
-      }
-    }
-    for step in &stage.steps {
-      self.emit_step(step);
-    }
+    self._emit_stage(stage);
     self.wire_offset = prev_wire_offset;
   }
 
   fn _emit_stage(&mut self, stage: &Stage) {
     for local in &stage.declarations {
-      if let Some(local) = self.locals.remove(local) {
-        self.finish_local(local);
+      if let Some(state) = self.locals.remove(local) {
+        self.finish_local(&self.vir.locals[*local], state);
       }
     }
     for step in &stage.steps {
@@ -183,47 +212,30 @@ impl<'core, 'a> VirEmitter<'core, 'a> {
     }
   }
 
-  fn emit_interface(&mut self, interface: &Interface, side: bool) -> Tree {
+  fn emit_interface(&mut self, interface: &Interface, interior: bool) -> Tree {
     Tree::n_ary(
       "x",
-      interface.wires.iter().filter_map(|(&local, usage)| {
-        let usage = if side { usage.1 } else { usage.0 };
-        match usage {
-          Usage::Erase => {
-            self.local(local).erase();
-            None
-          }
-          Usage::Mut => {
-            let a = self.new_wire();
-            let b = self.new_wire();
-            self.local(local).mutate(a.0, b.0);
-            if side {
-              Some(Tree::Comb("x".into(), Box::new(b.1), Box::new(a.1)))
-            } else {
-              Some(Tree::Comb("x".into(), Box::new(a.1), Box::new(b.1)))
-            }
-          }
-          Usage::Set => {
-            let w = self.new_wire();
-            self.local(local).set(w.0);
-            Some(w.1)
-          }
-          Usage::Take => {
-            let w = self.new_wire();
-            self.local(local).take(w.0);
-            Some(w.1)
-          }
-          Usage::Get => {
-            let w = self.new_wire();
-            self.local(local).get(w.0);
-            Some(w.1)
-          }
-          Usage::Hedge => {
-            let w = self.new_wire();
-            self.local(local).hedge(w.0);
-            Some(w.1)
-          }
-          u => unreachable!("{u:?}"),
+      interface.wires.iter().filter_map(|(&local, &(input, bar, output))| {
+        let (read, bar, write) =
+          if interior { (input, bar, output) } else { (output, true, input) };
+        let read = read.then(|| {
+          let w = self.new_wire();
+          self.local(local).read(w.0);
+          w.1
+        });
+        if bar {
+          self.local(local).bar();
+        }
+        let write = write.then(|| {
+          let w = self.new_wire();
+          self.local(local).write(w.0);
+          w.1
+        });
+        let wires = if interior { (read, write) } else { (write, read) };
+        match wires {
+          (None, None) => None,
+          (None, Some(x)) | (Some(x), None) => Some(x),
+          (Some(x), Some(y)) => Some(Tree::Comb("x".into(), Box::new(x), Box::new(y))),
         }
       }),
     )
@@ -234,7 +246,12 @@ impl<'core, 'a> VirEmitter<'core, 'a> {
   }
 
   fn local(&mut self, local: Local) -> &mut LocalState {
-    self.locals.entry(local).or_default()
+    self.locals.entry(local).or_insert_with(|| LocalState {
+      inv: self.vir.locals[local].inv,
+      past: Vec::new(),
+      spaces: Vec::new(),
+      values: Vec::new(),
+    })
   }
 
   fn emit_step(&mut self, step: &Step) {
@@ -242,22 +259,19 @@ impl<'core, 'a> VirEmitter<'core, 'a> {
     let emit_port = |p| Self::_emit_port(wire_offset, self.specs, self.fragments, self.spec, p);
     match step {
       Step::Invoke(local, invocation) => match invocation {
-        Invocation::Erase => self.local(*local).erase(),
-        Invocation::Get(port) => self.local(*local).get(emit_port(port)),
-        Invocation::Hedge(port) => self.local(*local).hedge(emit_port(port)),
-        Invocation::Take(port) => self.local(*local).take(emit_port(port)),
-        Invocation::Set(port) => self.local(*local).set(emit_port(port)),
-        Invocation::Mut(a, b) => self.local(*local).mutate(emit_port(a), emit_port(b)),
+        Invocation::Bar => self.local(*local).bar(),
+        Invocation::Read(port) => self.local(*local).read(emit_port(port)),
+        Invocation::Write(port) => self.local(*local).write(emit_port(port)),
+        Invocation::ReadBar(port) => self.local(*local).read_bar(emit_port(port)),
+        Invocation::BarWrite(port) => self.local(*local).bar_write(emit_port(port)),
+        Invocation::ReadWrite(a, b) => self.local(*local).read_write(emit_port(a), emit_port(b)),
       },
       Step::Transfer(transfer) => self.emit_transfer(transfer),
       Step::Diverge(..) => unreachable!(),
 
       Step::Link(a, b) | Step::Struct(_, a, b) => self.pairs.push((emit_port(a), emit_port(b))),
       Step::Call(rel, recv, args, ret) => {
-        let func = match self.spec.rels.fns[*rel] {
-          Ok((spec_id, stage_id)) => Tree::Global(self.stage_name(spec_id, stage_id)),
-          Err(_) => Tree::Erase,
-        };
+        let func = self.emit_fn_rel(rel);
         self.pairs.push((
           func,
           Tree::n_ary(
@@ -285,12 +299,6 @@ impl<'core, 'a> VirEmitter<'core, 'a> {
         emit_port(lhs),
         Tree::ExtFn(ext_fn.to_string(), *swap, Box::new(emit_port(rhs)), Box::new(emit_port(out))),
       )),
-      Step::Dup(a, b, c) => {
-        let label = self.dup_label();
-        self
-          .pairs
-          .push((emit_port(a), Tree::Comb(label, Box::new(emit_port(b)), Box::new(emit_port(c)))))
-      }
       Step::List(port, list) => {
         let str = self.emit_list(list.iter().map(emit_port));
         self.pairs.push((emit_port(port), str))
@@ -341,6 +349,13 @@ impl<'core, 'a> VirEmitter<'core, 'a> {
         self.pairs.push((emit_port(out), net.root.clone()));
         self.pairs.extend_from_slice(&net.pairs);
       }
+    }
+  }
+
+  fn emit_fn_rel(&mut self, rel: &FnRelId) -> Tree {
+    match self.spec.rels.fns[*rel] {
+      Ok((spec_id, stage_id)) => Tree::Global(self.stage_name(spec_id, stage_id)),
+      Err(_) => Tree::Erase,
     }
   }
 
@@ -429,39 +444,45 @@ impl<'core, 'a> VirEmitter<'core, 'a> {
   }
 }
 
-#[derive(Default)]
+#[derive(Debug)]
 struct LocalState {
+  inv: Inverted,
   past: Vec<(Vec<Tree>, Vec<Tree>)>,
   spaces: Vec<Tree>,
   values: Vec<Tree>,
 }
 
 impl LocalState {
-  fn mutate(&mut self, a: Tree, b: Tree) {
-    self.get(a);
-    self.erase();
-    self.hedge(b);
+  fn read(&mut self, tree: Tree) {
+    self.spaces.push(tree);
+    if self.inv.0 {
+      self.bar();
+    }
   }
 
-  fn get(&mut self, port: Tree) {
-    self.spaces.push(port);
+  fn read_bar(&mut self, tree: Tree) {
+    self.read(tree);
+    self.bar();
   }
 
-  fn take(&mut self, port: Tree) {
-    self.get(port);
-    self.erase();
+  fn write(&mut self, tree: Tree) {
+    if !self.inv.0 {
+      self.bar();
+    }
+    self.values.push(tree);
   }
 
-  fn hedge(&mut self, port: Tree) {
-    self.values.push(port);
+  fn bar_write(&mut self, tree: Tree) {
+    self.bar();
+    self.write(tree);
   }
 
-  fn set(&mut self, port: Tree) {
-    self.erase();
-    self.hedge(port);
+  fn read_write(&mut self, a: Tree, b: Tree) {
+    self.read(a);
+    self.write(b);
   }
 
-  fn erase(&mut self) {
+  fn bar(&mut self) {
     if self.past.is_empty() || !self.spaces.is_empty() || !self.values.is_empty() {
       self.past.push((take(&mut self.spaces), take(&mut self.values)));
     }
