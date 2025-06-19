@@ -197,6 +197,7 @@ impl Invocation {
 
 #[derive(Debug, Clone)]
 pub enum Port {
+  Nil,
   Erase,
   ConstRel(ConstRelId),
   N32(u32),

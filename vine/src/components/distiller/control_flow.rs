@@ -158,7 +158,7 @@ impl<'core, 'r> Distiller<'core, 'r> {
     label: LabelId,
     value: &Option<TirExpr>,
   ) {
-    let value = value.as_ref().map(|v| self.distill_expr_value(stage, v)).unwrap_or(Port::Erase);
+    let value = value.as_ref().map(|v| self.distill_expr_value(stage, v)).unwrap_or(Port::Nil);
 
     let label = self.labels[label].as_ref().unwrap();
     if let Some(local) = label.break_value {
@@ -171,7 +171,7 @@ impl<'core, 'r> Distiller<'core, 'r> {
   }
 
   pub(super) fn distill_return(&mut self, stage: &mut Stage, value: &Option<TirExpr>) {
-    let value = value.as_ref().map(|v| self.distill_expr_value(stage, v)).unwrap_or(Port::Erase);
+    let value = value.as_ref().map(|v| self.distill_expr_value(stage, v)).unwrap_or(Port::Nil);
     let return_ = self.returns.last().unwrap();
 
     stage.set_local_to(return_.local, value);

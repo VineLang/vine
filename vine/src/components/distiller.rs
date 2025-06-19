@@ -132,7 +132,7 @@ impl<'core, 'r> Distiller<'core, 'r> {
       TirExprKind::Error(err) => Port::Error(*err),
       TirExprKind![nil] => {
         self.distill_expr_nil(stage, expr);
-        Port::Erase
+        Port::Nil
       }
       TirExprKind![!value] => match self.distill_expr_poly(stage, expr) {
         Poly::Error(err) => Port::Error(err),
@@ -169,7 +169,7 @@ impl<'core, 'r> Distiller<'core, 'r> {
       TirExprKind::F32(f) => Port::F32(*f),
 
       TirExprKind::Const(id) => Port::ConstRel(*id),
-      TirExprKind::Fn => Port::Erase,
+      TirExprKind::Fn => Port::Nil,
 
       TirExprKind::Ref(place) => {
         let place = self.distill_expr_place(stage, place);
@@ -191,7 +191,7 @@ impl<'core, 'r> Distiller<'core, 'r> {
       TirExprKind::Call(rel, receiver, args) => {
         let receiver = match receiver {
           Some(receiver) => self.distill_expr_value(stage, receiver),
-          None => Port::Erase,
+          None => Port::Nil,
         };
         let args = args.iter().map(|s| self.distill_expr_value(stage, s)).collect::<Vec<_>>();
         let wire = stage.new_wire();
@@ -208,7 +208,7 @@ impl<'core, 'r> Distiller<'core, 'r> {
         wire.1
       }
       TirExprKind::CallCompare(init, cmps) => {
-        let mut last_result = Port::Erase;
+        let mut last_result = Port::Nil;
         let lhs = self.distill_expr_place(stage, init);
         let mut lhs = stage.ref_place(lhs);
         for (i, (func, rhs)) in cmps.iter().enumerate() {
@@ -216,13 +216,13 @@ impl<'core, 'r> Distiller<'core, 'r> {
           let last = i == cmps.len() - 1;
           let rhs = self.distill_expr_place(stage, rhs);
           let (rhs, next_lhs) = if last {
-            (stage.ref_place(rhs), Port::Erase)
+            (stage.ref_place(rhs), Port::Nil)
           } else {
             let wire = stage.new_wire();
             (stage.ref_place((rhs.0, wire.0)), stage.ref_place((wire.1, rhs.1)))
           };
           let result = stage.new_wire();
-          stage.steps.push(Step::Call(*func, Port::Erase, vec![lhs, rhs], result.0));
+          stage.steps.push(Step::Call(*func, Port::Nil, vec![lhs, rhs], result.0));
           last_result =
             if first { result.1 } else { stage.ext_fn("n32_and", false, last_result, result.1) };
           lhs = next_lhs;
