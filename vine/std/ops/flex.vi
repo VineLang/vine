@@ -86,10 +86,10 @@ pub mod Drop {
 }
 
 mod internal {
-  #[builtin = "copy"]
-  impl copy[T]: Fork[T] {
+  #[builtin = "duplicate"]
+  impl duplicate[T]: Fork[T] {
     fn fork(&self: &T) -> T {
-      unsafe::copy(&self)
+      unsafe::duplicate(&self)
     }
   }
 

@@ -52,7 +52,7 @@ pub struct Builtins {
 
   pub fork: Option<TraitId>,
   pub drop: Option<TraitId>,
-  pub copy: Option<ImplId>,
+  pub duplicate: Option<ImplId>,
   pub erase: Option<ImplId>,
 
   pub range: Option<StructId>,

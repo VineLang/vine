@@ -16,7 +16,7 @@ pub mod I32 {
 
   pub impl fork: Fork[I32] {
     fn fork(&self: &I32) -> I32 {
-      unsafe::copy(&self)
+      unsafe::duplicate(&self)
     }
   }
 

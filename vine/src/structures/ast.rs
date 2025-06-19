@@ -170,7 +170,7 @@ pub enum Builtin {
   Cast,
   Fork,
   Drop,
-  Copy,
+  Duplicate,
   Erase,
   Range,
   BoundUnbounded,

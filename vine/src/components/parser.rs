@@ -153,7 +153,7 @@ impl<'core, 'src> VineParser<'core, 'src> {
           "ge" => Builtin::ComparisonOp(ComparisonOp::Ge),
           "Fork" => Builtin::Fork,
           "Drop" => Builtin::Drop,
-          "copy" => Builtin::Copy,
+          "duplicate" => Builtin::Duplicate,
           "erase" => Builtin::Erase,
           "Range" => Builtin::Range,
           "BoundUnbounded" => Builtin::BoundUnbounded,

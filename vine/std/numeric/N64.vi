@@ -16,7 +16,7 @@ pub mod N64 {
 
   pub impl fork: Fork[N64] {
     fn fork(&self: &N64) -> N64 {
-      unsafe::copy(&self)
+      unsafe::duplicate(&self)
     }
   }
 

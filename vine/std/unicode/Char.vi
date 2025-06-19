@@ -8,7 +8,7 @@ pub type Char;
 pub mod Char {
   pub impl fork: Fork[Char] {
     fn fork(&self: &Char) -> Char {
-      unsafe::copy(&self)
+      unsafe::duplicate(&self)
     }
   }
 

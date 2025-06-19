@@ -1,8 +1,8 @@
 
-pub fn copy[T](&value: &T) -> T {
+pub fn duplicate[T](&value: &T) -> T {
   inline_ivy! (x <- value, x1 -> value) -> T {
     x2
-    x = copy(x1 x2)
+    x = dup(x1 x2)
   }
 }
 

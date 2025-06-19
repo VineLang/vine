@@ -340,8 +340,8 @@ impl<'core, 'a> Finder<'core, 'a> {
         if Some(*trait_id) == self.chart.builtins.fork {
           match types.kind(type_params[0]) {
             Some((Inverted(false), TypeKind::Fn(_))) => {
-              if let Some(copy) = self.chart.builtins.copy {
-                found.push(TypeCtx { types: types.clone(), inner: TirImpl::Def(copy, vec![]) });
+              if let Some(dup) = self.chart.builtins.duplicate {
+                found.push(TypeCtx { types: types.clone(), inner: TirImpl::Def(dup, vec![]) });
               }
             }
             Some((Inverted(false), TypeKind::Closure(id, flex, ..))) if flex.fork() => {

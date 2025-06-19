@@ -8,7 +8,7 @@ pub type Bool;
 pub mod Bool {
   pub impl fork: Fork[Bool] {
     fn fork(&self: &Bool) -> Bool {
-      unsafe::copy(&self)
+      unsafe::duplicate(&self)
     }
   }
 

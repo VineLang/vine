@@ -8,7 +8,7 @@ pub struct String(pub List[Char]);
 pub mod String {
   pub impl fork: Fork[String] {
     fn fork(&self: &String) -> String {
-      unsafe::copy(&self)
+      unsafe::duplicate(&self)
     }
   }
 
