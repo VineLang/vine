@@ -6,7 +6,7 @@ use crate::structures::{
   ast::{Flex, LogicalOp, Span},
   chart::{EnumId, FnId, ImplId, StructId, VariantId},
   diag::ErrorGuaranteed,
-  resolutions::{ConstRelId, FnRelId},
+  resolutions::{ConstRelId, FnRelId, Rels},
   types::{Type, Types},
 };
 
@@ -19,6 +19,7 @@ pub struct Tir<'core> {
   pub span: Span,
   pub types: Types<'core>,
   pub locals: IdxVec<Local, Type>,
+  pub rels: Rels,
   pub closures: IdxVec<ClosureId, TirClosure>,
   pub root: TirExpr,
 }

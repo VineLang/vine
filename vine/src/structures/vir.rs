@@ -11,7 +11,7 @@ use crate::{
   structures::{
     chart::{EnumId, StructId, VariantId},
     diag::ErrorGuaranteed,
-    resolutions::{ConstRelId, FnRelId},
+    resolutions::{ConstRelId, FnRelId, Rels},
     tir::{ClosureId, Local},
     types::{Type, Types},
   },
@@ -30,6 +30,7 @@ impl LayerId {
 pub struct Vir<'core> {
   pub types: Types<'core>,
   pub locals: IdxVec<Local, Type>,
+  pub rels: Rels,
   pub layers: IdxVec<LayerId, Layer>,
   pub interfaces: IdxVec<InterfaceId, Interface>,
   pub stages: IdxVec<StageId, Stage>,
@@ -213,7 +214,6 @@ impl Port {
 #[derive(Debug, Clone)]
 pub enum PortKind {
   Nil,
-  Erase,
   ConstRel(ConstRelId),
   N32(u32),
   F32(f32),
@@ -244,13 +244,6 @@ impl Stage {
     Wire {
       pos: Port { ty, kind: PortKind::Wire(w) },
       neg: Port { ty: ty.inverse(), kind: PortKind::Wire(w) },
-    }
-  }
-
-  pub fn erase(&mut self, port: Port) {
-    if matches!(port.kind, PortKind::Wire(_)) {
-      let ty = port.ty;
-      self.steps.push(Step::Link(port, Port { ty: ty.inverse(), kind: PortKind::Erase }));
     }
   }
 

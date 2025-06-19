@@ -1,7 +1,10 @@
 use vine_util::{idx::IdxVec, new_idx};
 
 use crate::structures::{
-  chart::{ConcreteConstId, ConcreteFnId, ConstId, FnId, ImplId, TraitConstId, TraitFnId},
+  chart::{
+    ConcreteConstId, ConcreteFnId, ConstId, DefId, FnId, GenericsId, ImplId, TraitConstId,
+    TraitFnId,
+  },
   diag::ErrorGuaranteed,
   tir::{Tir, TirImpl},
 };
@@ -24,8 +27,9 @@ new_idx!(pub FragmentId);
 #[derive(Debug)]
 pub struct Fragment<'core> {
   pub path: &'core str,
+  pub def: DefId,
+  pub generics: GenericsId,
   pub impl_params: usize,
-  pub rels: Rels,
   pub tir: Tir<'core>,
 }
 

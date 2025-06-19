@@ -72,11 +72,11 @@ impl<'core> Compiler<'core> {
 
     let mut distiller = Distiller::new(core, chart, &self.sigs);
     for fragment_id in self.fragments.keys_from(checkpoint.fragments) {
-      let tir = &self.fragments[fragment_id].tir;
-      let mut vir = distiller.distill_tir(tir);
+      let fragment = &self.fragments[fragment_id];
+      let mut vir = distiller.distill_fragment(fragment);
       hooks.distill(fragment_id, &mut vir);
       let mut vir = normalize(&vir);
-      analyze(self.core, tir.span, &mut vir);
+      analyze(self.core, fragment.tir.span, &mut vir);
       assert_eq!(self.vir.next_index(), fragment_id);
       self.vir.push(vir);
     }

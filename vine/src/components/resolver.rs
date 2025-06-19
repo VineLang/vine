@@ -1005,14 +1005,16 @@ impl<'core, 'a> Resolver<'core, 'a> {
 
   fn finish_fragment(&mut self, span: Span, path: &'core str, root: TirExpr) -> Fragment<'core> {
     Fragment {
+      def: self.cur_def,
+      generics: self.cur_generics,
       path,
       impl_params: self.sigs.generics[self.cur_generics].inner.impl_params.len(),
-      rels: take(&mut self.rels),
       tir: Tir {
         span,
         types: take(&mut self.types),
         locals: take(&mut self.locals),
         closures: take(&mut self.closures),
+        rels: take(&mut self.rels),
         root,
       },
     }

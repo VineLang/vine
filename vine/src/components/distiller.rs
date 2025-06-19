@@ -6,14 +6,16 @@ use vine_util::{
 };
 
 use crate::{
-  components::analyzer::usage::Usage,
+  components::{analyzer::usage::Usage, finder::Finder},
   structures::{
-    chart::Chart,
+    ast::Span,
+    chart::{Chart, DefId, FnId, GenericsId, TraitFnId},
     core::Core,
     diag::{Diag, ErrorGuaranteed},
+    resolutions::{FnRel, Fragment, Rels},
     signatures::Signatures,
-    tir::{ClosureId, LabelId, Local, Tir, TirExpr, TirExprKind, TirPat, TirPatKind},
-    types::{Type, TypeKind, Types},
+    tir::{ClosureId, LabelId, Local, TirExpr, TirExprKind, TirPat, TirPatKind},
+    types::{ImplType, Type, TypeKind, Types},
     vir::{
       Header, Interface, InterfaceId, InterfaceKind, Layer, LayerId, Port, PortKind, Stage,
       StageId, Step, Transfer, Vir,
@@ -38,8 +40,10 @@ pub struct Distiller<'core, 'r> {
   returns: Vec<Return>,
   closures: IdxVec<ClosureId, InterfaceId>,
 
+  def: DefId,
+  generics: GenericsId,
   types: Types<'core>,
-
+  rels: Rels,
   locals: IdxVec<Local, Type>,
 }
 
@@ -82,19 +86,25 @@ impl<'core, 'r> Distiller<'core, 'r> {
       closures: Default::default(),
       locals: Default::default(),
       types: Types::default(),
+      rels: Rels::default(),
+      def: DefId(0),
+      generics: GenericsId(0),
     }
   }
 
-  pub fn distill_tir(&mut self, tir: &Tir<'core>) -> Vir<'core> {
-    self.locals = tir.locals.clone();
-    self.types = tir.types.clone();
+  pub fn distill_fragment(&mut self, fragment: &Fragment<'core>) -> Vir<'core> {
+    self.def = fragment.def;
+    self.generics = fragment.generics;
+    self.locals = fragment.tir.locals.clone();
+    self.types = fragment.tir.types.clone();
+    self.rels = fragment.tir.rels.clone();
     let (layer, mut stage) = self.root_layer();
-    let local = self.locals.push(tir.root.ty);
-    for closure in tir.closures.values() {
+    let local = self.locals.push(fragment.tir.root.ty);
+    for closure in fragment.tir.closures.values() {
       let interface = self.distill_closure_def(closure);
       self.closures.push(interface);
     }
-    let result = self.distill_expr_value(&mut stage, &tir.root);
+    let result = self.distill_expr_value(&mut stage, &fragment.tir.root);
     stage.set_local_to(local, result);
     self.finish_stage(stage);
     self.finish_layer(layer);
@@ -102,6 +112,7 @@ impl<'core, 'r> Distiller<'core, 'r> {
     debug_assert!(self.returns.is_empty());
     Vir {
       types: take(&mut self.types),
+      rels: take(&mut self.rels),
       layers: unwrap_idx_vec(take(&mut self.layers)),
       interfaces: unwrap_idx_vec(take(&mut self.interfaces)),
       stages: unwrap_idx_vec(take(&mut self.stages)),
@@ -115,7 +126,7 @@ impl<'core, 'r> Distiller<'core, 'r> {
     match &*expr.kind {
       TirExprKind![!nil] => {
         let value = self.distill_expr_value(stage, expr);
-        stage.erase(value);
+        self.drop(expr.span, stage, expr.ty, value);
       }
       TirExprKind::While(label, cond, block) => self.distill_while(stage, *label, cond, block),
       TirExprKind::Return(value) => self.distill_return(stage, value),
@@ -294,7 +305,7 @@ impl<'core, 'r> Distiller<'core, 'r> {
           Port::error(tyi, self.core.report(Diag::ExpectedSpaceFoundValueExpr { span }))
         }
         Poly::Place((value, space)) => {
-          stage.erase(value);
+          self.drop(span, stage, expr.ty, value);
           space
         }
         Poly::Space(space) => space,
@@ -312,7 +323,7 @@ impl<'core, 'r> Distiller<'core, 'r> {
         stage.steps.push(Step::Struct(*struct_id, wire.pos, inner));
         wire.neg
       }
-      TirExprKind::Hole => Port { ty: tyi, kind: PortKind::Erase },
+      TirExprKind::Hole => self.drop_space(span, stage, ty),
       TirExprKind::Inverse(inner) => self.distill_expr_value(stage, inner),
       TirExprKind::Composite(elements) => {
         self.distill_vec(stage, tyi, elements, Self::distill_expr_space, Step::Composite)
@@ -328,12 +339,9 @@ impl<'core, 'r> Distiller<'core, 'r> {
       TirExprKind::Error(err) => (Port::error(ty, *err), Port::error(tyi, *err)),
       TirExprKind![!place] => match self.distill_expr_poly(stage, expr) {
         Poly::Error(err) => (Port::error(ty, err), Port::error(tyi, err)),
-        Poly::Value(value) => (value, Port { ty: tyi, kind: PortKind::Erase }),
+        Poly::Value(value) => (value, self.drop_space(span, stage, ty)),
         Poly::Place(place) => place,
-        Poly::Space(_) => {
-          let err = self.core.report(Diag::ExpectedPlaceFoundSpaceExpr { span });
-          (Port::error(ty, err), Port::error(tyi, err))
-        }
+        Poly::Space(space) => (self.drop_space(span, stage, ty.inverse()), space),
       },
       TirExprKind::Unwrap(struct_id, inner) => {
         let (inner_value, inner_space) = self.distill_expr_place(stage, inner);
@@ -478,12 +486,15 @@ impl<'core, 'r> Distiller<'core, 'r> {
         match inner {
           Poly::Error(err) => Poly::Error(err),
           Poly::Value(value) => {
-            let mut ports = fields
-              .iter()
-              .map(|&ty| Port { ty: ty.inverse(), kind: PortKind::Erase })
-              .collect::<Vec<_>>();
             let wire = stage.new_wire(ty);
-            ports[*index] = wire.neg;
+            let mut neg = Some(wire.neg);
+            let ports = Vec::from_iter(fields.iter().enumerate().map(|(i, &ty)| {
+              if i == *index {
+                neg.take().unwrap()
+              } else {
+                self.drop_space(span, stage, ty)
+              }
+            }));
             stage.steps.push(Step::Composite(value, ports));
             Poly::Value(wire.pos)
           }
@@ -539,7 +550,7 @@ impl<'core, 'r> Distiller<'core, 'r> {
         Port::error(tyi, self.core.report(Diag::ExpectedCompletePat { span }))
       }
       TirPatKind::Deref(..) => Port::error(tyi, self.core.report(Diag::DerefNonPlacePat { span })),
-      TirPatKind::Hole => Port { ty: tyi, kind: PortKind::Erase },
+      TirPatKind::Hole => self.drop_space(span, stage, ty),
       TirPatKind::Struct(struct_id, inner) => {
         let inner = self.distill_pat_value(stage, inner);
         let wire = stage.new_wire(ty);
@@ -566,6 +577,7 @@ impl<'core, 'r> Distiller<'core, 'r> {
   fn distill_pat_space(&mut self, stage: &mut Stage, pat: &TirPat) -> Port {
     let span = pat.span;
     let ty = pat.ty;
+    let tyi = pat.ty.inverse();
     match &*pat.kind {
       TirPatKind::Error(err) => Port::error(ty, *err),
       TirPatKind![!complete] => {
@@ -573,7 +585,7 @@ impl<'core, 'r> Distiller<'core, 'r> {
       }
       TirPatKind::Deref(..) => Port::error(ty, self.core.report(Diag::DerefNonPlacePat { span })),
       TirPatKind::Ref(..) => Port::error(ty, self.core.report(Diag::RefSpacePat { span })),
-      TirPatKind::Hole => Port { ty, kind: PortKind::Erase },
+      TirPatKind::Hole => self.drop_space(span, stage, tyi),
       TirPatKind::Struct(struct_id, inner) => {
         let inner = self.distill_pat_space(stage, inner);
         let wire = stage.new_wire(ty);
@@ -642,6 +654,24 @@ impl<'core, 'r> Distiller<'core, 'r> {
         (value.neg, space.pos)
       }
     }
+  }
+
+  fn drop(&mut self, span: Span, stage: &mut Stage, ty: Type, port: Port) {
+    let Some(drop) = self.chart.builtins.drop else {
+      self.core.report(Diag::MissingBuiltin { span, builtin: "Drop" });
+      return;
+    };
+    let mut finder = Finder::new(self.core, self.chart, self.sigs, self.def, self.generics, span);
+    let impl_ = finder.find_impl(&mut self.types, &ImplType::Trait(drop, vec![ty]));
+    let fn_rel = self.rels.fns.push(FnRel::Item(FnId::Abstract(drop, TraitFnId(0)), vec![impl_]));
+    let nil = Port { ty: self.types.nil(), kind: PortKind::Nil };
+    stage.steps.push(Step::Call(fn_rel, None, vec![port], nil));
+  }
+
+  fn drop_space(&mut self, span: Span, stage: &mut Stage, ty: Type) -> Port {
+    let wire = stage.new_wire(ty);
+    self.drop(span, stage, ty, wire.pos);
+    wire.neg
   }
 
   fn new_stage(&mut self, layer: &mut Layer, interface: InterfaceId) -> Stage {

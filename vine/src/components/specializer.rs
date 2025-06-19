@@ -41,13 +41,13 @@ impl<'core, 'a> Specializer<'core, 'a> {
     let impl_args = entry.key().clone();
     entry.insert(spec_id);
     self.specs.specs.push(None);
-    let fragment = &self.fragments[id];
+    let rels = &self.vir[id].rels;
     let rels = SpecRels {
-      fns: IdxVec::from(Vec::from_iter(fragment.rels.fns.values().map(|rel| {
+      fns: IdxVec::from(Vec::from_iter(rels.fns.values().map(|rel| {
         let (id, args, stage) = self.instantiate_fn_rel(id, &impl_args, rel)?;
         Ok((self.specialize(id, args), stage))
       }))),
-      consts: IdxVec::from(Vec::from_iter(fragment.rels.consts.values().map(|rel| {
+      consts: IdxVec::from(Vec::from_iter(rels.consts.values().map(|rel| {
         let (id, args) = self.instantiate_const_rel(id, &impl_args, rel)?;
         Ok(self.specialize(id, args))
       }))),

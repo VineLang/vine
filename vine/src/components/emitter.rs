@@ -357,7 +357,7 @@ impl<'core, 'a> VirEmitter<'core, 'a> {
   ) -> Tree {
     match port.kind {
       PortKind::Error(_) => Tree::Erase,
-      PortKind::Nil | PortKind::Erase => Tree::Erase,
+      PortKind::Nil => Tree::Erase,
       PortKind::N32(n) => Tree::N32(n),
       PortKind::F32(f) => Tree::F32(f),
       PortKind::Wire(w) => Tree::Var(format!("w{}", wire_offset + w.0)),

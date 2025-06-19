@@ -30,6 +30,7 @@ pub fn normalize<'core>(source: &Vir<'core>) -> Vir<'core> {
   Vir {
     types: source.types.clone(),
     locals: normalizer.locals,
+    rels: source.rels.clone(),
     layers: IdxVec::new(),
     interfaces: normalizer.interfaces,
     stages: unwrap_idx_vec(normalizer.stages),

@@ -118,7 +118,8 @@ impl<'core, 'r> Distiller<'core, 'r> {
     let result = self.distill_expr_value(&mut then_stage, continuation);
     then_stage.set_local_to(local, result);
     let result = self.distill_expr_value(&mut else_stage, else_block);
-    else_stage.erase(result);
+    let never = result.ty;
+    else_stage.steps.push(Step::Link(result, Port { ty: never.inverse(), kind: PortKind::Nil }));
     self.finish_stage(init_stage);
     self.finish_stage(then_stage);
     self.finish_stage(else_stage);
@@ -175,7 +176,7 @@ impl<'core, 'r> Distiller<'core, 'r> {
     if let Some(local) = label.break_value {
       stage.set_local_to(local, value);
     } else {
-      stage.erase(value);
+      stage.steps.push(Step::Link(value, Port { ty: self.types.nil(), kind: PortKind::Nil }));
     }
 
     stage.steps.push(Step::Diverge(label.layer, None));
@@ -209,7 +210,7 @@ impl<'core, 'r> Distiller<'core, 'r> {
     });
 
     let result = self.distill_expr_value(&mut body_stage, block);
-    body_stage.erase(result);
+    body_stage.steps.push(Step::Link(result, Port { ty: self.types.nil(), kind: PortKind::Nil }));
     body_stage.transfer = Some(Transfer::unconditional(body_stage.interface));
 
     self.finish_stage(body_stage);
@@ -236,7 +237,7 @@ impl<'core, 'r> Distiller<'core, 'r> {
     let (mut then_stage, else_stage) = self.distill_cond(&mut layer, &mut cond_stage, cond);
 
     let result = self.distill_expr_value(&mut then_stage, block);
-    then_stage.erase(result);
+    then_stage.steps.push(Step::Link(result, Port { ty: self.types.nil(), kind: PortKind::Nil }));
     then_stage.transfer = Some(Transfer::unconditional(cond_stage.interface));
 
     self.finish_stage(cond_stage);
