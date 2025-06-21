@@ -25,13 +25,13 @@ let mood = match day {
 mood // ":)"
 ```
 
-Enum variants can have associated fields in the form of a tuple or an object.
+Like structs, enum variants can wrap content:
 
 ```rs
 enum Shape {
   Point,
   Circle(F32),
-  Rect { width: F32, height: F32 },
+  Rect({ width: F32, height: F32 }),
 }
 
 let x = Shape::Point; // x: Shape
@@ -40,7 +40,7 @@ let z = Shape::Rect({ width: 4.0, height: 6.0 }); // z: Shape
 ```
 
 Pattern matching can be used to branch on the variant of the enum and access its
-fields.
+content.
 
 ```rs
 fn perimeter(shape: Shape) -> F32 {

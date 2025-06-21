@@ -1,16 +1,44 @@
 # Methods
 
-User-defined types can have *methods*, functions defined in the type's module
-that take the type as their first parameter.
+Any function can be marked as a *method* by writing a `.` before the name in the
+definition:
+
+```rs
+fn .sum(list: List[N32]) -> N32 {
+  let sum = 0;
+  while list.pop_front() is Some(value) {
+    sum += value;
+  }
+  sum
+}
+```
+
+Methods must take at least one argument, called the *receiver*. Methods can
+still be called like normal functions, but they can also be called using method
+syntax:
+
+```rs
+[1, 2, 3].sum() // 6
+```
+
+A method call can refer to any *method candidate* with the appropriate receiver
+types. Method candidates include:
+
+- any method that is in scope
+- any method defined in the module of the receiver type
+
+This means that if you define a custom type, and declare methods in its module,
+anything using that type can call those methods, without needing to explicitly
+import them:
 
 ```rs
 enum Shape {
   Circle(F32),
-  Rect { width: F32, height: F32 },
+  Rect({ width: F32, height: F32 }),
 }
 
 mod Shape {
-  pub fn perimeter(shape: Shape) -> F32 {
+  pub fn .perimeter(shape: Shape) -> F32 {
     match shape {
       Shape::Circle(radius) {
         6.28 * radius
@@ -31,7 +59,7 @@ allowing the method to mutate the value it is called upon.
 
 ```rs
 mod Shape {
-  pub fn scale(&shape: &Shape, factor: F32) {
+  pub fn .scale(&shape: &Shape, factor: F32) {
     match &shape {
       &Shape::Circle(radius) {
         radius *= factor;
