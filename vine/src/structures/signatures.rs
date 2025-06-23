@@ -117,6 +117,12 @@ impl<'core> TransferTypes<'core> for StructSig {
   }
 }
 
+impl<'core> TransferTypes<'core> for EnumSig {
+  fn transfer(&self, t: &mut TypeTransfer<'core, '_>) -> Self {
+    Self { variant_data: t.transfer(&self.variant_data) }
+  }
+}
+
 impl<'core> TransferTypes<'core> for ImplSig {
   fn transfer(&self, t: &mut TypeTransfer<'core, '_>) -> Self {
     Self { ty: t.transfer(&self.ty) }

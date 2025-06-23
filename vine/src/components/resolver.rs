@@ -52,7 +52,7 @@ pub struct Resolver<'core, 'a> {
 
   scope: HashMap<Ident<'core>, Vec<ScopeEntry>>,
   scope_depth: usize,
-  locals: Counter<Local>,
+  locals: IdxVec<Local, Type>,
   labels: HashMap<Ident<'core>, LabelInfo>,
   loops: Vec<LabelInfo>,
   label_id: Counter<LabelId>,
@@ -211,7 +211,7 @@ impl<'core, 'a> Resolver<'core, 'a> {
     self.impl_param_lookup.clear();
     self.scope.clear();
     debug_assert_eq!(self.scope_depth, 0);
-    self.locals.reset();
+    self.locals.clear();
     self.labels.clear();
     debug_assert!(self.loops.is_empty());
     self.label_id.reset();
@@ -269,7 +269,7 @@ impl<'core, 'a> Resolver<'core, 'a> {
     def_id: DefId,
     types: &mut Types<'core>,
     locals: &BTreeMap<Local, (Ident<'core>, Type)>,
-    local_count: &mut Counter<Local>,
+    locals_vec: &mut IdxVec<Local, Type>,
     block: &mut Block<'core>,
   ) -> (FragmentId, impl Iterator<Item = (Ident<'core>, Local, Type)>) {
     self.cur_def = def_id;
@@ -280,11 +280,11 @@ impl<'core, 'a> Resolver<'core, 'a> {
       })
       .collect();
     swap(types, &mut self.types);
-    self.locals = *local_count;
+    self.locals = take(locals_vec);
     let ty = self.types.new_var(block.span);
     let root = self.resolve_stmts_type(block.span, &block.stmts, ty);
-    *local_count = self.locals;
-    swap(types, &mut self.types);
+    *locals_vec = self.locals.clone();
+    *types = self.types.clone();
     let fragment = self.finish_fragment(span, path, root);
     (
       self.fragments.push(fragment),
@@ -393,8 +393,9 @@ impl<'core, 'a> Resolver<'core, 'a> {
     self.loops = old_loops;
     self.return_ty = old_return_ty;
     let param_tys = params.iter().map(|x| x.ty).collect();
-    let id = self.closures.push(TirClosure { flex, params, body });
+    let id = self.closures.next_index();
     let ty = self.types.new(TypeKind::Closure(id, flex, param_tys, ret_ty));
+    self.closures.push(TirClosure { ty, flex, params, body });
     (ty, id)
   }
 
@@ -991,13 +992,15 @@ impl<'core, 'a> Resolver<'core, 'a> {
     TirPat { span, ty: self.types.error(err), kind: Box::new(TirPatKind::Error(err)) }
   }
 
-  fn expect_type(&mut self, span: Span, found: Type, expected: Type) {
+  fn expect_type(&mut self, span: Span, found: Type, expected: Type) -> Option<ErrorGuaranteed> {
     if self.types.unify(found, expected).is_failure() {
-      self.core.report(Diag::ExpectedTypeFound {
+      Some(self.core.report(Diag::ExpectedTypeFound {
         span,
         expected: self.types.show(self.chart, expected),
         found: self.types.show(self.chart, found),
-      });
+      }))
+    } else {
+      None
     }
   }
 
@@ -1006,7 +1009,13 @@ impl<'core, 'a> Resolver<'core, 'a> {
       path,
       impl_params: self.sigs.generics[self.cur_generics].inner.impl_params.len(),
       rels: take(&mut self.rels),
-      tir: Tir { span, locals: self.locals, closures: take(&mut self.closures), root },
+      tir: Tir {
+        span,
+        types: take(&mut self.types),
+        locals: take(&mut self.locals),
+        closures: take(&mut self.closures),
+        root,
+      },
     }
   }
 }

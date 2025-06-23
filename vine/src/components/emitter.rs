@@ -11,7 +11,8 @@ use crate::{
     specializations::{Spec, SpecId, Specializations},
     tir::Local,
     vir::{
-      Header, Interface, InterfaceKind, Invocation, Port, Stage, StageId, Step, Transfer, Vir,
+      Header, Interface, InterfaceKind, Invocation, Port, PortKind, Stage, StageId, Step, Transfer,
+      Vir,
     },
   },
 };
@@ -21,7 +22,7 @@ pub struct Emitter<'core, 'a> {
   chart: &'a Chart<'core>,
   specs: &'a Specializations,
   fragments: &'a IdxVec<FragmentId, Fragment<'core>>,
-  vir: &'a IdxVec<FragmentId, Vir>,
+  vir: &'a IdxVec<FragmentId, Vir<'core>>,
   dup_labels: Counter<usize>,
 }
 
@@ -30,7 +31,7 @@ impl<'core, 'a> Emitter<'core, 'a> {
     chart: &'a Chart<'core>,
     specs: &'a Specializations,
     fragments: &'a IdxVec<FragmentId, Fragment<'core>>,
-    vir: &'a IdxVec<FragmentId, Vir>,
+    vir: &'a IdxVec<FragmentId, Vir<'core>>,
   ) -> Self {
     Emitter { nets: Nets::default(), chart, specs, fragments, vir, dup_labels: Counter::default() }
   }
@@ -88,7 +89,7 @@ struct VirEmitter<'core, 'a> {
   fragments: &'a IdxVec<FragmentId, Fragment<'core>>,
   spec_id: SpecId,
   spec: &'a Spec,
-  vir: &'a Vir,
+  vir: &'a Vir<'core>,
   locals: BTreeMap<Local, LocalState>,
   pairs: Vec<(Tree, Tree)>,
   wire_offset: usize,
@@ -251,7 +252,7 @@ impl<'core, 'a> VirEmitter<'core, 'a> {
       Step::Transfer(transfer) => self.emit_transfer(transfer),
       Step::Diverge(..) => unreachable!(),
 
-      Step::Link(a, b) => self.pairs.push((emit_port(a), emit_port(b))),
+      Step::Link(a, b) | Step::Struct(_, a, b) => self.pairs.push((emit_port(a), emit_port(b))),
       Step::Call(rel, recv, args, ret) => {
         let func = match self.spec.rels.fns[*rel] {
           Ok((spec_id, stage_id)) => Tree::Global(self.stage_name(spec_id, stage_id)),
@@ -259,7 +260,12 @@ impl<'core, 'a> VirEmitter<'core, 'a> {
         };
         self.pairs.push((
           func,
-          Tree::n_ary("fn", [recv].into_iter().chain(args).chain([ret]).map(emit_port)),
+          Tree::n_ary(
+            "fn",
+            [recv.as_ref().map(emit_port).unwrap_or(Tree::Erase)]
+              .into_iter()
+              .chain(args.iter().chain([ret]).map(emit_port)),
+          ),
         ))
       }
       Step::Composite(port, tuple) => {
@@ -349,13 +355,13 @@ impl<'core, 'a> VirEmitter<'core, 'a> {
     spec: &Spec,
     port: &Port,
   ) -> Tree {
-    match port {
-      Port::Error(_) => Tree::Erase,
-      Port::Nil | Port::Erase => Tree::Erase,
-      Port::N32(n) => Tree::N32(*n),
-      Port::F32(f) => Tree::F32(*f),
-      Port::Wire(w) => Tree::Var(format!("w{}", wire_offset + w.0)),
-      Port::ConstRel(rel) => match spec.rels.consts[*rel] {
+    match port.kind {
+      PortKind::Error(_) => Tree::Erase,
+      PortKind::Nil | PortKind::Erase => Tree::Erase,
+      PortKind::N32(n) => Tree::N32(n),
+      PortKind::F32(f) => Tree::F32(f),
+      PortKind::Wire(w) => Tree::Var(format!("w{}", wire_offset + w.0)),
+      PortKind::ConstRel(rel) => match spec.rels.consts[rel] {
         Ok(spec_id) => Tree::Global(Self::_stage_name(specs, fragments, spec_id, StageId(0))),
         Err(_) => Tree::Erase,
       },

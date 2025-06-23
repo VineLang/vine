@@ -26,7 +26,7 @@ pub struct Fragment<'core> {
   pub path: &'core str,
   pub impl_params: usize,
   pub rels: Rels,
-  pub tir: Tir,
+  pub tir: Tir<'core>,
 }
 
 new_idx!(pub ConstRelId);

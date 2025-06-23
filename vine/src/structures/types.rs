@@ -6,7 +6,7 @@ use std::{
 };
 
 use vine_util::{
-  idx::{IdxVec, IntMap, RangeExt},
+  idx::{Idx, IdxVec, IntMap, RangeExt},
   multi_iter, new_idx,
 };
 
@@ -26,8 +26,6 @@ new_idx!(pub TypeIdx; n => ["t{n}"]);
 
 const INV_BIT: usize = isize::MIN as usize;
 impl Type {
-  pub const _NONE: Type = Type(usize::MAX);
-
   fn new(inv: Inverted, idx: TypeIdx) -> Type {
     Type(idx.0).invert_if(inv)
   }
@@ -719,8 +717,20 @@ impl<'core> TransferTypes<'core> for ImplType {
   }
 }
 
+impl<'core, T: TransferTypes<'core>> TransferTypes<'core> for Option<T> {
+  fn transfer(&self, t: &mut TypeTransfer<'core, '_>) -> Self {
+    self.as_ref().map(|value| t.transfer(value))
+  }
+}
+
 impl<'core, T: TransferTypes<'core>> TransferTypes<'core> for Vec<T> {
   fn transfer(&self, t: &mut TypeTransfer<'core, '_>) -> Self {
     self.iter().map(|value| t.transfer(value)).collect()
+  }
+}
+
+impl<'core, I: Idx, T: TransferTypes<'core>> TransferTypes<'core> for IdxVec<I, T> {
+  fn transfer(&self, t: &mut TypeTransfer<'core, '_>) -> Self {
+    t.transfer(&self.vec).into()
   }
 }

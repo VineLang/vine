@@ -26,7 +26,7 @@ pub struct Compiler<'core> {
   pub resolutions: Resolutions,
   pub specs: Specializations,
   pub fragments: IdxVec<FragmentId, Fragment<'core>>,
-  pub vir: IdxVec<FragmentId, Vir>,
+  pub vir: IdxVec<FragmentId, Vir<'core>>,
 }
 
 impl<'core> Compiler<'core> {
@@ -70,7 +70,7 @@ impl<'core> Compiler<'core> {
     resolver.resolve_since(checkpoint);
     hooks.resolve(&mut resolver);
 
-    let mut distiller = Distiller::new(core, chart);
+    let mut distiller = Distiller::new(core, chart, &self.sigs);
     for fragment_id in self.fragments.keys_from(checkpoint.fragments) {
       let tir = &self.fragments[fragment_id].tir;
       let mut vir = distiller.distill_tir(tir);

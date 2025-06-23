@@ -313,7 +313,7 @@ impl<'core> Resolver<'core, '_> {
         } else {
           Err(Diag::NoReturn { span })?
         }
-        (ok, TirExprKind::Try(result))
+        (ok, TirExprKind::Try(ok, err, result))
       }
       ExprKind::Is(..) | ExprKind::LogicalOp(..) => {
         self.enter_scope();
@@ -350,21 +350,22 @@ impl<'core> Resolver<'core, '_> {
       }
       ExprKind::TupleField(tuple, index, _) => {
         let tuple = self.resolve_expr(tuple);
-        let (ty, len) = self.tuple_field(span, tuple.ty, *index).ok_or_else(|| {
+        let (ty, fields) = self.tuple_field(span, tuple.ty, *index).ok_or_else(|| {
           Diag::MissingTupleField { span, ty: self.types.show(self.chart, tuple.ty), i: *index }
         })?;
-        (ty, TirExprKind::Field(tuple, *index, len))
+        (ty, TirExprKind::Field(tuple, *index, fields))
       }
       ExprKind::ObjectField(object, key) => {
         let object = self.resolve_expr(object);
-        let (ty, index, len) = self.object_field(span, object.ty, key.ident).ok_or_else(|| {
-          Diag::MissingObjectField {
-            span: key.span,
-            ty: self.types.show(self.chart, object.ty),
-            key: key.ident,
-          }
-        })?;
-        (ty, TirExprKind::Field(object, index, len))
+        let (ty, index, fields) =
+          self.object_field(span, object.ty, key.ident).ok_or_else(|| {
+            Diag::MissingObjectField {
+              span: key.span,
+              ty: self.types.show(self.chart, object.ty),
+              key: key.ident,
+            }
+          })?;
+        (ty, TirExprKind::Field(object, index, fields))
       }
       ExprKind::Tuple(elements) => self._resolve_tuple(elements),
       ExprKind::Object(entries) => {
@@ -375,16 +376,16 @@ impl<'core> Resolver<'core, '_> {
       ExprKind::Unwrap(inner) => {
         let inner = self.resolve_expr(inner);
 
-        let data_ty = match self.types.force_kind(self.core, inner.ty) {
+        let (struct_id, data_ty) = match self.types.force_kind(self.core, inner.ty) {
           (inv, TypeKind::Struct(struct_id, type_params)) => {
             let struct_id = *struct_id;
             let type_params = &type_params.clone();
-            self.get_struct_data(span, inner.ty, struct_id, type_params).invert_if(inv)
+            (struct_id, self.get_struct_data(span, inner.ty, struct_id, type_params).invert_if(inv))
           }
-          _ => self.types.error(self.core.report(Diag::UnwrapNonStruct { span })),
+          _ => Err(Diag::UnwrapNonStruct { span })?,
         };
 
-        (data_ty, TirExprKind::Unwrap(inner))
+        (data_ty, TirExprKind::Unwrap(struct_id, inner))
       }
       ExprKind::Path(path, args) => {
         let mut args = args.as_ref();
@@ -524,16 +525,16 @@ impl<'core> Resolver<'core, '_> {
     self.types.import(&self.sigs.structs[struct_id], Some(type_params)).data
   }
 
-  fn tuple_field(&mut self, span: Span, ty: Type, index: usize) -> Option<(Type, usize)> {
+  fn tuple_field(&mut self, span: Span, ty: Type, index: usize) -> Option<(Type, Vec<Type>)> {
     match self.types.force_kind(self.core, ty) {
-      (inv, TypeKind::Tuple(tuple)) => Some((tuple.get(index)?.invert_if(inv), tuple.len())),
+      (inv, TypeKind::Tuple(tuple)) => Some((tuple.get(index)?.invert_if(inv), tuple.clone())),
       (inv, TypeKind::Struct(struct_id, type_params)) => {
         let struct_id = *struct_id;
         let type_params = &type_params.clone();
         let data_ty = self.get_struct_data(span, ty, struct_id, type_params);
         self.tuple_field(span, data_ty.invert_if(inv), index)
       }
-      (_, TypeKind::Error(_)) => Some((ty, index + 1)),
+      (_, TypeKind::Error(_)) => Some((ty, vec![ty; index + 1])),
       _ => None,
     }
   }
@@ -543,20 +544,20 @@ impl<'core> Resolver<'core, '_> {
     span: Span,
     ty: Type,
     key: Ident<'core>,
-  ) -> Option<(Type, usize, usize)> {
+  ) -> Option<(Type, usize, Vec<Type>)> {
     match self.types.force_kind(self.core, ty) {
       (inv, TypeKind::Object(entries)) => entries
         .iter()
         .enumerate()
         .find(|&(_, (&k, _))| k == key)
-        .map(|(i, (_, t))| (t.invert_if(inv), i, entries.len())),
+        .map(|(i, (_, t))| (t.invert_if(inv), i, entries.values().copied().collect())),
       (inv, TypeKind::Struct(struct_id, type_params)) => {
         let struct_id = *struct_id;
         let type_params = &type_params.clone();
         let data_ty = self.get_struct_data(span, ty, struct_id, type_params);
         self.object_field(span, data_ty.invert_if(inv), key)
       }
-      (_, TypeKind::Error(_)) => Some((ty, 0, 1)),
+      (_, TypeKind::Error(_)) => Some((ty, 0, vec![ty])),
       _ => None,
     }
   }

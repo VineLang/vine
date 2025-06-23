@@ -18,7 +18,7 @@ pub struct Specializer<'core, 'a> {
   pub resolutions: &'a Resolutions,
   pub specs: &'a mut Specializations,
   pub fragments: &'a IdxVec<FragmentId, Fragment<'core>>,
-  pub vir: &'a IdxVec<FragmentId, Vir>,
+  pub vir: &'a IdxVec<FragmentId, Vir<'core>>,
 }
 
 impl<'core, 'a> Specializer<'core, 'a> {

@@ -1,22 +1,20 @@
 use std::collections::{btree_map::Entry, BTreeMap};
 
-use vine_util::{
-  idx::{Counter, IdxVec},
-  unwrap_idx_vec,
-};
+use vine_util::{idx::IdxVec, unwrap_idx_vec};
 
 use crate::structures::{
   tir::Local,
+  types::Type,
   vir::{
-    Header, Interface, InterfaceId, InterfaceKind, Layer, LayerId, Port, Stage, StageId, Step,
-    Transfer, Vir, WireId,
+    Header, Interface, InterfaceId, InterfaceKind, Layer, LayerId, Port, PortKind, Stage, StageId,
+    Step, Transfer, Vir, WireId,
   },
 };
 
-pub fn normalize(source: &Vir) -> Vir {
+pub fn normalize<'core>(source: &Vir<'core>) -> Vir<'core> {
   let mut normalizer = Normalizer {
     source,
-    locals: source.locals,
+    locals: source.locals.clone(),
     interfaces: source.interfaces.clone(),
     stages: IdxVec::from(vec![None; source.stages.len()]),
     layer_divergence: IdxVec::from(vec![None; source.layers.len()]),
@@ -30,6 +28,7 @@ pub fn normalize(source: &Vir) -> Vir {
   }
 
   Vir {
+    types: source.types.clone(),
     locals: normalizer.locals,
     layers: IdxVec::new(),
     interfaces: normalizer.interfaces,
@@ -40,10 +39,10 @@ pub fn normalize(source: &Vir) -> Vir {
 }
 
 #[derive(Debug)]
-struct Normalizer<'a> {
-  source: &'a Vir,
+struct Normalizer<'core, 'a> {
+  source: &'a Vir<'core>,
 
-  locals: Counter<Local>,
+  locals: IdxVec<Local, Type>,
   interfaces: IdxVec<InterfaceId, Interface>,
   stages: IdxVec<StageId, Option<Stage>>,
 
@@ -51,11 +50,11 @@ struct Normalizer<'a> {
   final_transfers: IdxVec<LayerId, Option<Transfer>>,
 }
 
-impl<'a> Normalizer<'a> {
+impl<'core> Normalizer<'core, '_> {
   fn normalize_layer(&mut self, layer: &Layer) {
     for &stage in &layer.stages {
       let source = &self.source.stages[stage];
-      let mut wire_counts = BTreeMap::<WireId, ()>::new();
+      let mut open_wires = BTreeMap::new();
       let mut stage = Stage {
         id: source.id,
         interface: source.interface,
@@ -67,15 +66,11 @@ impl<'a> Normalizer<'a> {
         wires: source.wires,
       };
       for port in stage.header.ports() {
-        if let Port::Wire(wire) = port {
-          toggle(&mut wire_counts, *wire);
-        }
+        update_open_wires(&mut open_wires, port);
       }
       for step in &source.steps {
         for port in step.ports() {
-          if let Port::Wire(wire) = port {
-            toggle(&mut wire_counts, *wire);
-          }
+          update_open_wires(&mut open_wires, port);
         }
         if self.step_divergence(step) <= layer.id {
           let new_stage = self.stages.push(None);
@@ -94,11 +89,11 @@ impl<'a> Normalizer<'a> {
             transfer: None,
             wires: source.wires,
           };
-          for &wire in wire_counts.keys() {
-            let local = self.locals.next();
+          for (&wire, &ty) in &open_wires {
+            let local = self.locals.push(ty);
             stage.declarations.push(local);
-            stage.set_local_to(local, Port::Wire(wire));
-            new_stage.take_local_to(local, Port::Wire(wire));
+            stage.set_local_to(local, Port { ty, kind: PortKind::Wire(wire) });
+            new_stage.take_local_to(local, Port { ty: ty.inverse(), kind: PortKind::Wire(wire) });
           }
           match step {
             Step::Transfer(transfer) => {
@@ -175,9 +170,15 @@ impl<'a> Normalizer<'a> {
   }
 }
 
-fn toggle<T: Ord>(wire_counts: &mut BTreeMap<T, ()>, key: T) {
-  match wire_counts.entry(key) {
-    Entry::Vacant(e) => *e.insert(()),
-    Entry::Occupied(e) => e.remove(),
+fn update_open_wires(open_wires: &mut BTreeMap<WireId, Type>, port: &Port) {
+  if let Port { ty, kind: PortKind::Wire(wire) } = port {
+    match open_wires.entry(*wire) {
+      Entry::Vacant(e) => {
+        e.insert(ty.inverse());
+      }
+      Entry::Occupied(e) => {
+        e.remove();
+      }
+    }
   }
 }

@@ -11,9 +11,12 @@ use crate::{
 
 impl<'core> Resolver<'core, '_> {
   pub(super) fn resolve_pat_type(&mut self, pat: &Pat<'core>, ty: Type) -> TirPat {
+    let span = pat.span;
     let pat = self.resolve_pat(pat);
-    self.expect_type(pat.span, pat.ty, ty);
-    pat
+    match self.expect_type(pat.span, pat.ty, ty) {
+      Some(err) => self.error_pat(span, err.into()),
+      None => pat,
+    }
   }
 
   pub(super) fn resolve_pat(&mut self, pat: &Pat<'core>) -> TirPat {
@@ -85,7 +88,7 @@ impl<'core> Resolver<'core, '_> {
               }),
               None => {
                 if data.is_some() {
-                  self.core.report(Diag::EnumVariantNoData { span });
+                  Err(Diag::EnumVariantNoData { span })?
                 }
                 None
               }
@@ -95,8 +98,8 @@ impl<'core> Resolver<'core, '_> {
           }
           Err(diag) => {
             if let (Some(ident), None) = (path.as_ident(), data) {
-              let local = self.locals.next();
               let ty = self.types.new_var(span);
+              let local = self.locals.push(ty);
               self.bind(ident, Binding::Local(local, ty));
               (ty, TirPatKind::Local(local))
             } else {

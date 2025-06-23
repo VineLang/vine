@@ -1,16 +1,13 @@
 use class::Classes;
 use ivy::ast::Net;
-use vine_util::{
-  idx::{Counter, IdxVec},
-  new_idx,
-};
+use vine_util::{idx::IdxVec, new_idx};
 
 use crate::structures::{
   ast::{Flex, LogicalOp, Span},
   chart::{EnumId, FnId, ImplId, StructId, VariantId},
   diag::ErrorGuaranteed,
   resolutions::{ConstRelId, FnRelId},
-  types::Type,
+  types::{Type, Types},
 };
 
 new_idx!(pub LabelId);
@@ -18,15 +15,17 @@ new_idx!(pub Local; n => ["l{n}"]);
 new_idx!(pub ClosureId; n => ["c{n}"]);
 
 #[derive(Debug, Clone)]
-pub struct Tir {
+pub struct Tir<'core> {
   pub span: Span,
-  pub locals: Counter<Local>,
+  pub types: Types<'core>,
+  pub locals: IdxVec<Local, Type>,
   pub closures: IdxVec<ClosureId, TirClosure>,
   pub root: TirExpr,
 }
 
 #[derive(Debug, Clone)]
 pub struct TirClosure {
+  pub ty: Type,
   pub flex: Flex,
   pub params: Vec<TirPat>,
   pub body: TirExpr,
@@ -82,7 +81,7 @@ pub enum TirExprKind {
   #[class(value)]
   List(Vec<TirExpr>),
   #[class(poly)]
-  Field(TirExpr, usize, usize),
+  Field(TirExpr, usize, Vec<Type>),
   #[class(value)]
   Call(FnRelId, Option<TirExpr>, Vec<TirExpr>),
   #[class(poly, value, place, space)]
@@ -98,9 +97,9 @@ pub enum TirExprKind {
   #[class(value, cond)]
   LogicalOp(LogicalOp, TirExpr, TirExpr),
   #[class(poly, value, place, space)]
-  Unwrap(TirExpr),
+  Unwrap(StructId, TirExpr),
   #[class(value)]
-  Try(TirExpr),
+  Try(Type, Type, TirExpr),
   #[class(value)]
   N32(u32),
   #[class(value)]
@@ -136,23 +135,23 @@ pub struct TirPat {
 
 #[derive(Debug, Clone, Classes)]
 pub enum TirPatKind {
-  #[class(value, place, space)]
+  #[class(value, place, space, complete)]
   Hole,
-  #[class(value, place, space)]
+  #[class(value, place, space, complete, incomplete)]
   Struct(StructId, TirPat),
-  #[class(value, place, space)]
+  #[class(value, place, space, incomplete)]
   Enum(EnumId, VariantId, Option<TirPat>),
-  #[class(value, place, space)]
+  #[class(value, place, space, complete)]
   Local(Local),
-  #[class(value, place)]
+  #[class(value, place, complete, incomplete)]
   Ref(TirPat),
-  #[class(place)]
+  #[class(place, complete)]
   Deref(TirPat),
-  #[class(value, place, space)]
+  #[class(value, place, space, complete)]
   Inverse(TirPat),
-  #[class(value, place, space)]
+  #[class(value, place, space, complete, incomplete)]
   Composite(Vec<TirPat>),
-  #[class(value, place, space)]
+  #[class(value, place, space, complete)]
   Error(ErrorGuaranteed),
 }
 

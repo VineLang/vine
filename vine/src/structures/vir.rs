@@ -9,10 +9,11 @@ use vine_util::{
 use crate::{
   components::analyzer::{usage::Usage, UsageVar},
   structures::{
-    chart::{EnumId, VariantId},
+    chart::{EnumId, StructId, VariantId},
     diag::ErrorGuaranteed,
     resolutions::{ConstRelId, FnRelId},
     tir::{ClosureId, Local},
+    types::{Type, Types},
   },
 };
 
@@ -26,8 +27,9 @@ impl LayerId {
 }
 
 #[derive(Debug, Clone)]
-pub struct Vir {
-  pub locals: Counter<Local>,
+pub struct Vir<'core> {
+  pub types: Types<'core>,
+  pub locals: IdxVec<Local, Type>,
   pub layers: IdxVec<LayerId, Layer>,
   pub interfaces: IdxVec<InterfaceId, Interface>,
   pub stages: IdxVec<StageId, Stage>,
@@ -125,8 +127,9 @@ pub enum Step {
 
   Link(Port, Port),
 
-  Call(FnRelId, Port, Vec<Port>, Port),
+  Call(FnRelId, Option<Port>, Vec<Port>, Port),
   Composite(Port, Vec<Port>),
+  Struct(StructId, Port, Port),
   Enum(EnumId, VariantId, Port, Option<Port>),
   Ref(Port, Port, Port),
   ExtFn(&'static str, bool, Port, Port, Port),
@@ -158,8 +161,8 @@ impl Step {
       }
       Step::Diverge(_, None) => Ports::Zero([]),
       Step::Enum(_, _, a, None) => Ports::One([a]),
-      Step::Link(a, b) | Step::Enum(_, _, a, Some(b)) => Ports::Two([a, b]),
-      Step::Call(_, f, a, r) => Ports::Fn([f].into_iter().chain(a).chain([r])),
+      Step::Link(a, b) | Step::Struct(_, a, b) | Step::Enum(_, _, a, Some(b)) => Ports::Two([a, b]),
+      Step::Call(_, f, a, r) => Ports::Fn(f.as_ref().into_iter().chain(a).chain([r])),
       Step::Composite(port, ports) | Step::List(port, ports) => {
         Ports::Tuple([port].into_iter().chain(ports))
       }
@@ -196,7 +199,19 @@ impl Invocation {
 }
 
 #[derive(Debug, Clone)]
-pub enum Port {
+pub struct Port {
+  pub ty: Type,
+  pub kind: PortKind,
+}
+
+impl Port {
+  pub fn error(ty: Type, err: ErrorGuaranteed) -> Port {
+    Port { ty, kind: PortKind::Error(err) }
+  }
+}
+
+#[derive(Debug, Clone)]
+pub enum PortKind {
   Nil,
   Erase,
   ConstRel(ConstRelId),
@@ -218,15 +233,24 @@ impl Transfer {
   }
 }
 
+pub struct Wire {
+  pub pos: Port,
+  pub neg: Port,
+}
+
 impl Stage {
-  pub fn new_wire(&mut self) -> (Port, Port) {
+  pub fn new_wire(&mut self, ty: Type) -> Wire {
     let w = self.wires.next();
-    (Port::Wire(w), Port::Wire(w))
+    Wire {
+      pos: Port { ty, kind: PortKind::Wire(w) },
+      neg: Port { ty: ty.inverse(), kind: PortKind::Wire(w) },
+    }
   }
 
   pub fn erase(&mut self, port: Port) {
-    if matches!(port, Port::Wire(..)) {
-      self.steps.push(Step::Link(port, Port::Erase));
+    if matches!(port.kind, PortKind::Wire(_)) {
+      let ty = port.ty;
+      self.steps.push(Step::Link(port, Port { ty: ty.inverse(), kind: PortKind::Erase }));
     }
   }
 
@@ -250,35 +274,35 @@ impl Stage {
     self.steps.push(Step::Invoke(local, Invocation::Mut(o, i)));
   }
 
-  pub fn get_local(&mut self, local: Local) -> Port {
-    let wire = self.new_wire();
-    self.get_local_to(local, wire.0);
-    wire.1
+  pub fn get_local(&mut self, local: Local, ty: Type) -> Port {
+    let wire = self.new_wire(ty);
+    self.get_local_to(local, wire.neg);
+    wire.pos
   }
 
-  pub fn hedge_local(&mut self, local: Local) -> Port {
-    let wire = self.new_wire();
-    self.hedge_local_to(local, wire.0);
-    wire.1
+  pub fn hedge_local(&mut self, local: Local, ty: Type) -> Port {
+    let wire = self.new_wire(ty);
+    self.get_local_to(local, wire.pos);
+    wire.neg
   }
 
-  pub fn take_local(&mut self, local: Local) -> Port {
-    let wire = self.new_wire();
-    self.take_local_to(local, wire.0);
-    wire.1
+  pub fn take_local(&mut self, local: Local, ty: Type) -> Port {
+    let wire = self.new_wire(ty);
+    self.take_local_to(local, wire.neg);
+    wire.pos
   }
 
-  pub fn set_local(&mut self, local: Local) -> Port {
-    let wire = self.new_wire();
-    self.set_local_to(local, wire.0);
-    wire.1
+  pub fn set_local(&mut self, local: Local, ty: Type) -> Port {
+    let wire = self.new_wire(ty);
+    self.set_local_to(local, wire.pos);
+    wire.neg
   }
 
-  pub fn mut_local(&mut self, local: Local) -> (Port, Port) {
-    let o = self.new_wire();
-    let i = self.new_wire();
-    self.mut_local_to(local, o.0, i.0);
-    (o.1, i.1)
+  pub fn mut_local(&mut self, local: Local, ty: Type) -> (Port, Port) {
+    let o = self.new_wire(ty);
+    let i = self.new_wire(ty);
+    self.mut_local_to(local, o.neg, i.pos);
+    (o.pos, i.neg)
   }
 
   pub fn erase_local(&mut self, local: Local) {
@@ -286,21 +310,28 @@ impl Stage {
   }
 
   pub fn dup(&mut self, p: Port) -> (Port, Port) {
-    let a = self.new_wire();
-    let b = self.new_wire();
-    self.steps.push(Step::Dup(p, a.0, b.0));
-    (a.1, b.1)
+    let a = self.new_wire(p.ty);
+    let b = self.new_wire(p.ty);
+    self.steps.push(Step::Dup(p, a.neg, b.neg));
+    (a.pos, b.pos)
   }
 
-  pub fn ext_fn(&mut self, ext_fn: &'static str, swap: bool, lhs: Port, rhs: Port) -> Port {
-    let out = self.new_wire();
-    self.steps.push(Step::ExtFn(ext_fn, swap, lhs, rhs, out.0));
-    out.1
+  pub fn ext_fn(
+    &mut self,
+    ext_fn: &'static str,
+    swap: bool,
+    lhs: Port,
+    rhs: Port,
+    ty: Type,
+  ) -> Port {
+    let out = self.new_wire(ty);
+    self.steps.push(Step::ExtFn(ext_fn, swap, lhs, rhs, out.neg));
+    out.pos
   }
 
-  pub fn ref_place(&mut self, (value, space): (Port, Port)) -> Port {
-    let wire = self.new_wire();
-    self.steps.push(Step::Ref(wire.0, value, space));
-    wire.1
+  pub fn ref_place(&mut self, ty: Type, (value, space): (Port, Port)) -> Port {
+    let wire = self.new_wire(ty);
+    self.steps.push(Step::Ref(wire.neg, value, space));
+    wire.pos
   }
 }

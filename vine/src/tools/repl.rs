@@ -11,7 +11,7 @@ use ivm::{
 };
 use ivy::{ast::Tree, host::Host};
 use vine_util::{
-  idx::Counter,
+  idx::IdxVec,
   parser::{Parser, ParserState},
 };
 
@@ -44,7 +44,7 @@ pub struct Repl<'core, 'ctx, 'ivm, 'ext> {
   line: usize,
   vars: HashMap<Ident<'core>, Var<'ivm>>,
   locals: BTreeMap<Local, (Ident<'core>, Type)>,
-  local_count: Counter<Local>,
+  local_types: IdxVec<Local, Type>,
   types: Types<'core>,
 }
 
@@ -89,19 +89,9 @@ impl<'core, 'ctx, 'ivm, 'ext> Repl<'core, 'ctx, 'ivm, 'ext> {
       types.nil()
     };
     let locals = BTreeMap::from([(Local(0), (io, io_type))]);
+    let local_types = IdxVec::from(vec![io_type]);
 
-    Ok(Repl {
-      host,
-      ivm,
-      core,
-      compiler,
-      repl_mod,
-      line: 0,
-      vars,
-      locals,
-      local_count: Counter(Local(1)),
-      types,
-    })
+    Ok(Repl { host, ivm, core, compiler, repl_mod, line: 0, vars, locals, local_types, types })
   }
 
   pub fn exec(&mut self, line: &str) -> Result<Option<String>, Vec<Diag<'core>>> {
@@ -129,7 +119,7 @@ impl<'core, 'ctx, 'ivm, 'ext> Repl<'core, 'ctx, 'ivm, 'ext> {
       block: &mut block,
       types: &mut self.types,
       fragment: &mut fragment,
-      local_count: &mut self.local_count,
+      local_types: &mut self.local_types,
     })?;
 
     let fragment = fragment.unwrap();
@@ -145,7 +135,7 @@ impl<'core, 'ctx, 'ivm, 'ext> Repl<'core, 'ctx, 'ivm, 'ext> {
       block: &'a mut Block<'core>,
       types: &'a mut Types<'core>,
       fragment: &'a mut Option<FragmentId>,
-      local_count: &'a mut Counter<Local>,
+      local_types: &'a mut IdxVec<Local, Type>,
     }
 
     impl<'core> Hooks<'core> for ExecHooks<'core, '_, '_, '_> {
@@ -164,7 +154,7 @@ impl<'core, 'ctx, 'ivm, 'ext> Repl<'core, 'ctx, 'ivm, 'ext> {
           self.repl_mod,
           self.types,
           self.locals,
-          self.local_count,
+          self.local_types,
           self.block,
         );
         *self.fragment = Some(fragment);
