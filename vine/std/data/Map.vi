@@ -257,10 +257,11 @@ pub mod Map {
           None
         }
       }
+    }
 
-      fn drop_iter(&iter: &Iter[K, V]) {
-        let Iter(&_, stack) = unsafe::move(&iter);
-        while stack.pop_front() is Some(&_) {}
+    pub impl drop[K, V]: Drop[Iter[K, V]] {
+      fn drop(Iter[K, V](&_, stack)) {
+        stack.drop()
       }
     }
   }
@@ -290,8 +291,12 @@ pub mod Map {
           None
         }
       }
-
-      fn drop_iter(self: &IntoIter[K, V]) {}
+    }
+    pub impl drop[K?, V?]: Drop[IntoIter[K, V]] {
+      fn drop(IntoIter[K, V](node, stack)) {
+        node.drop()
+        stack.drop()
+      }
     }
   }
 

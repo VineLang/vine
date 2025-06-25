@@ -23,7 +23,7 @@ pub fn main(&io: &IO) {
       good &= !get_bit(mask, num);
       mask |= masks.get(num).unwrap();
     }
-    iter.drop_iter();
+    iter.drop();
     if good {
       part1 += middle;
     } else {

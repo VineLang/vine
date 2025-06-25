@@ -146,7 +146,7 @@ fn cross[M, F*; fn F(Char, Neighbors[M])](grid: List[List[Char]], f: F, d: M) {
         let (n, s) = foo_channel(north.next().unwrap());
         f.fork()(cell, Neighbors(n, s, e, w));
       }
-      north.drop_iter()
+      north.drop()
     }
     west.send(d);
   }

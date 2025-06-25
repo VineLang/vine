@@ -143,7 +143,7 @@ pub mod List {
     let iter = self.iter();
     while iter.next() is Some(&value) {
       if pred.fork()(&value) {
-        iter.drop_iter();
+        iter.drop();
         return Some(&value)
       }
     }
@@ -230,10 +230,10 @@ pub mod List {
           None
         }
       }
+    }
 
-      fn drop_iter(&iter: &Iter[T]) {
-        let Iter(_, &_) = unsafe::move(&iter);
-      }
+    pub impl drop[T]: Drop[Iter[T]] {
+      fn drop(Iter[T](_, &_)) {}
     }
   }
 
@@ -255,8 +255,12 @@ pub mod List {
           None
         }
       }
+    }
 
-      fn drop_iter(iter: &IntoIter[T]) {}
+    pub impl drop[T?]: Drop[IntoIter[T]] {
+      fn drop(IntoIter[T](len, buf)) {
+        List(len, buf, unsafe::eraser).drop()
+      }
     }
   }
 
@@ -281,8 +285,8 @@ pub mod List {
       let b_iter = b.iter();
       while a_iter.next() is Some(&a_elem) && b_iter.next() is Some(&b_elem) {
         if a_elem != b_elem {
-          a_iter.drop_iter();
-          b_iter.drop_iter();
+          a_iter.drop();
+          b_iter.drop();
           return false;
         }
       }
@@ -312,8 +316,8 @@ pub mod List {
           }
         }
       };
-      a.drop_iter();
-      b.drop_iter();
+      a.drop();
+      b.drop();
       ord
     }
 
