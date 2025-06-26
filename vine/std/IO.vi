@@ -9,13 +9,15 @@ pub mod IO {
   }
 
   pub fn .print(&io: &IO, str: String) {
-    let List(len, chars, _) = str as List;
+    let List(len, chars, _end) = str as List;
+    unsafe::erase(_end);
     while len != 0 {
       len = len - 1;
       let List::Buf(char, tail) = chars;
       chars = tail;
       io.print_char(char);
     }
+    unsafe::erase(chars);
   }
 
   pub fn .print_char(&io: &IO, char: Char) {
@@ -25,13 +27,15 @@ pub mod IO {
   }
 
   pub fn .print_bytes(&io: &IO, bytes: List[N32]) {
-    let List(len, bytes, _) = bytes;
+    let List(len, bytes, _end) = bytes;
+    unsafe::erase(_end);
     while len != 0 {
       len = len - 1;
       let List::Buf(byte, tail) = bytes;
       bytes = tail;
       io.print_byte(byte);
     }
+    unsafe::erase(bytes);
   }
 
   pub fn .print_byte(&io: &IO, byte: N32) {

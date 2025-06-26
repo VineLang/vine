@@ -28,7 +28,8 @@ pub impl erase[T]: Drop[T] {
   }
 }
 
-pub fn unreachable[T]() -> T {
+pub fn unreachable[T, U](ignored: T) -> U {
+  unsafe::erase(ignored)
   eraser
 }
 

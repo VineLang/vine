@@ -37,24 +37,24 @@ pub mod Result {
     self.map(f).flatten()
   }
 
-  pub fn .or[T, E](self: Result[T, E], default: Result[T, E]) -> Result[T, E] {
+  pub fn .or[T?, E?](self: Result[T, E], default: Result[T, E]) -> Result[T, E] {
     match self {
       Err(_) { default }
       x { x }
     }
   }
 
-  pub fn .unwrap_or[T, E](self: Result[T, E], default: T) -> T {
+  pub fn .unwrap_or[T?, E?](self: Result[T, E], default: T) -> T {
     match self {
       Ok(val) { val }
       Err(_) { default }
     }
   }
 
-  pub fn .unwrap[T, E](self: Result[T, E], default: T) -> T {
+  pub fn .unwrap[T, E](self: Result[T, E]) -> T {
     match self {
       Ok(val) { val }
-      Err(_) { unsafe::unreachable() }
+      Err(err) { unsafe::unreachable(err) }
     }
   }
 

@@ -77,7 +77,7 @@ pub mod Show {
     }
   }
 
-  fn format_comma_sep[E, F*; fn F(E) -> List_[Show]](
+  fn format_comma_sep[E?, F*; fn F(E) -> List_[Show]](
     entries: List_[E],
     process_entry: F,
     max_width: N32,
@@ -117,6 +117,18 @@ pub mod Show {
 
   fn newline(indent: N32) -> String {
     "\n" ++ String(List_::new(indent, ' '))
+  }
+
+  pub impl drop: Drop[Show] {
+    fn drop(self: Show) {
+      match self {
+        Literal(_) {}
+        Constructor(_) {}
+        Tuple(_) {}
+        Object(_) {}
+        List(_) {}
+      }
+    }
   }
 }
 

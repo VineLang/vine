@@ -101,12 +101,30 @@ mod Region {
       unsafe::duplicate(&self)
     }
   }
+
+  pub impl drop: Drop[Region] {
+    fn drop(self: Region) {
+      unsafe::erase(self)
+    }
+  }
 }
 
 mod Regions {
   pub impl to_string: Cast[Regions, String] {
     fn cast(Regions(array)) -> String {
       (array.as[List]; _).show() as String
+    }
+  }
+
+  pub impl fork: Fork[Regions] {
+    fn fork(&self: &Regions) -> Regions {
+      unsafe::duplicate(&self)
+    }
+  }
+
+  pub impl drop: Drop[Regions] {
+    fn drop(self: Regions) {
+      unsafe::erase(self)
     }
   }
 
@@ -131,7 +149,7 @@ mod Regions {
     let &Regions(array) = &self;
     match array.at(i).unwrap() {
       &Region::Root(a, _) { a }
-      _ { unsafe::unreachable() }
+      _ { unsafe::unreachable(()) }
     }
   }
 
@@ -141,7 +159,7 @@ mod Regions {
         &Region::Root(_, p) {
           p += 1;
         }
-        _ { unsafe::unreachable() }
+        _ { unsafe::unreachable(()) }
       }
       i
     } else {
@@ -161,7 +179,7 @@ mod Regions {
             i
           }
         }
-        _ { unsafe::unreachable() }
+        _ { unsafe::unreachable(()) }
       }
     }
   }

@@ -20,7 +20,7 @@ pub trait Pow[B, E, O] {
 }
 
 pub mod Pow {
-  pub fn pow_by_squaring[B; Cast[N32, B], Mul[B, B, B]](base: B, exp: N32) -> B {
+  pub fn pow_by_squaring[B*; Cast[N32, B], Mul[B, B, B]](base: B, exp: N32) -> B {
     let result = 1 as B;
     while exp != 0 {
       if exp % 2 != 0 {

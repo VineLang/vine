@@ -125,8 +125,10 @@ pub mod N32 {
   }
 
   pub fn parse(str: String) -> Option[N32] {
-    let List(len, chars, _) = str as List;
+    let List(len, chars, _end) = str as List;
+    unsafe::erase(_end);
     if len == 0 {
+      unsafe::erase(chars);
       None
     } else {
       let num = 0;
@@ -134,12 +136,14 @@ pub mod N32 {
         let List::Buf(char, tail) = chars;
         chars = tail;
         if !('0' <= char <= '9') {
+          unsafe::erase(chars);
           return None;
         }
         num *= 10;
         num += char - '0';
         len -= 1;
       }
+      unsafe::erase(chars);
       Some(num)
     }
   }

@@ -6,7 +6,7 @@ pub fn main(&io: &IO) {
 
   let grid = input.split_trim("\n");
 
-  let guard_pos;
+  let guard_pos = (0, 0);
 
   let y = 0;
   let iter = grid.iter();

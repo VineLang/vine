@@ -4,7 +4,7 @@ use std::{data::Array, ops::vectorized::{add, mul}};
 pub fn main(&io: &IO) {
   let grid = Array::empty;
   let y = 0;
-  let initial;
+  let initial = (0, 0);
   while io.read_line() is Some(line) && line.len() != 0 {
     let x = 0;
     let iter = line!.iter();

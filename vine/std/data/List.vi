@@ -9,11 +9,13 @@ pub struct List[T](pub.std (N32, Buf[T], ~Buf[T]));
 pub.std struct Buf[T](pub.std (T, Buf[T]));
 
 pub mod List {
+  pub const empty[T]: List[T] = [];
+
   pub fn .len[T](&self: &List[T]) -> N32 {
     self.0
   }
 
-  pub fn new[T](len: N32, value: T) -> List[T] {
+  pub fn new[T*](len: N32, value: T) -> List[T] {
     let list = [];
     while len > 0 {
       list.push_back(value);
@@ -40,9 +42,10 @@ pub mod List {
     self.at(i).as_forked()
   }
 
-  pub fn .slice[T, B1, B2; Bound[B1, N32], Bound[B2, N32]](self: List[T], Range[B1, B2](start, end)) -> List[
-    T,
-  ] {
+  pub fn .slice[T?, B1?, B2?; Bound[B1, N32], Bound[B2, N32]](
+    self: List[T],
+    Range[B1, B2](start, end),
+  ) -> List[T] {
     // Underflow does not matter, still correct
     let end_index = self.len() - 1;
     let i = 0;
@@ -73,23 +76,25 @@ pub mod List {
     (prefix, self)
   }
 
-  pub fn .map[T, U, F*; fn F(T) -> U](List[T](l, buf, ~_), f: F) -> List[U] {
+  pub fn .map[T, U, F*; fn F(T) -> U](List[T](l, buf, _end), f: F) -> List[U] {
+    unsafe::erase(_end);
     let len = l;
     let cur;
-    let result = unsafe::move(&~cur);
+    let result = ~cur;
     while l != 0 {
       let Buf(head, tail) = buf;
       buf = tail;
       let next;
-      ~cur = Buf(f.fork()(head), unsafe::move(&~next));
-      ~next = unsafe::move(&~cur);
+      ~cur = Buf(f.fork()(head), ~next);
+      ~next = ~cur;
       l -= 1;
     }
+    unsafe::erase(buf);
     f.drop()
-    List(len, result, unsafe::move(&cur))
+    List(len, result, cur)
   }
 
-  pub fn .filter[T, F*; fn F(&T) -> Bool](self: List[T], pred: F) -> List[T] {
+  pub fn .filter[T?, F*; fn F(&T) -> Bool](self: List[T], pred: F) -> List[T] {
     let result = [];
     while self.pop_front() is Some(value) {
       if pred.fork()(&value) {
@@ -116,7 +121,7 @@ pub mod List {
       let List(a_len, a_buf, ~a_end) = a;
       let List(b_len, b_buf, ~b_end) = b;
       a_end = b_buf;
-      List(a_len + b_len, a_buf, unsafe::move(&~b_end))
+      List(a_len + b_len, a_buf, ~b_end)
     }
   }
 
@@ -157,7 +162,7 @@ pub mod List {
 
   pub fn .join[T; Cast[T, String]](list: List[T], sep: String) -> String {
     let it = list.into_iter();
-    if it.next() is Some(val) {
+    let str = if it.next() is Some(val) {
       let str = "{val}";
       while it.next() is Some(val) {
         str ++= "{sep}{val}";
@@ -165,10 +170,12 @@ pub mod List {
       str
     } else {
       ""
-    }
+    };
+    unsafe::erase(it);
+    str
   }
 
-  pub fn .drop_while[T, F*; fn F(&T) -> Bool](&List[T](len, buf, ~_), pred: F) {
+  pub fn .drop_while[T?, F*; fn F(&T) -> Bool](&List[T](len, buf, _), pred: F) {
     while len != 0 {
       let Buf(head, tail) = buf;
       if !pred.fork()(&head) {
@@ -207,6 +214,7 @@ pub mod List {
       }
       output = left ++ [a] ++ output;
     }
+    unsafe::erase(self);
     cmp.drop()
     self = output;
   }
@@ -239,7 +247,8 @@ pub mod List {
 
   pub struct IntoIter[T](pub.std (N32, Buf[T]));
 
-  pub fn .into_iter[T](List[T](len, buf, _)) -> IntoIter[T] {
+  pub fn .into_iter[T](List[T](len, buf, _end)) -> IntoIter[T] {
+    unsafe::erase(_end);
     IntoIter(len, buf)
   }
 
@@ -269,6 +278,7 @@ pub mod List {
     while self.pop_front() is Some(value) {
       reversed.push_front(value);
     }
+    unsafe::erase(self);
     reversed
   }
 
@@ -347,6 +357,7 @@ pub mod List {
       while iter.next() is Some(value) {
         value.drop();
       }
+      unsafe::erase(iter);
     }
   }
 }

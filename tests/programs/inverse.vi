@@ -9,11 +9,11 @@ pub fn main(&io: &IO) {
 
 fn refs(&io: &IO) {
   let x = 0;
-  inc((unsafe::move(&x), unsafe::move(&~x)));
+  inc((x, ~x));
   io.println("x = {x}");
-  inc((unsafe::move(&x), unsafe::move(&~x)));
+  inc((x, ~x));
   io.println("x = {x}");
-  inc((unsafe::move(&x), unsafe::move(&~x)));
+  inc((x, ~x));
   io.println("x = {x}");
 }
 
@@ -26,11 +26,12 @@ mod refs {
 fn fns(&io: &IO) {
   let f = do {
     let n: N32;
-    (unsafe::move(&~n), n * n)
+    (~n, n * 2)
   };
-  io.println("f(1) = {call(f, 1)}");
-  io.println("f(2) = {call(f, 2)}");
-  io.println("f(3) = {call(f, 3)}");
+  io.println("f(1) = {call(unsafe::duplicate(&f), 1)}");
+  io.println("f(2) = {call(unsafe::duplicate(&f), 2)}");
+  io.println("f(3) = {call(unsafe::duplicate(&f), 3)}");
+  unsafe::erase(f);
 }
 
 mod fns {
@@ -46,17 +47,17 @@ fn rev(&io: &IO) {
   ~s = "0";
   io.println("s = {~s}");
   io.println("s = {~s}");
-  ~s = "1";
+  set(&s, "1");
   io.println("s = {get(&s)}");
   io.println("s = {get(&s)}");
-  set(&s, "2");
+  ~s = "2";
 }
 
 mod rev {
-  fn get[T](&x: &~T) -> T {
+  fn get[T+](&x: &~T) -> T {
     ~x
   }
-  fn set[T](&x: &~T, value: T) {
+  fn set[T?](&x: &~T, value: T) {
     ~x = value
   }
 }

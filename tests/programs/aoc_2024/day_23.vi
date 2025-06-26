@@ -2,7 +2,7 @@
 use std::data::Map;
 
 pub fn main(&io: &IO) {
-  let graph = Map::empty[N32, Map[N32, _]];
+  let graph = Map::empty[N32, Map[N32, ()]];
 
   while io.read_line() is Some(line) {
     let String(chars) = line;

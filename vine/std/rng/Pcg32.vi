@@ -39,4 +39,14 @@ pub mod Pcg32 {
     }
     rng
   }
+
+  pub impl fork: Fork[Pcg32] {
+    fn fork(&Pcg32(inner)) -> Pcg32 {
+      Pcg32(inner)
+    }
+  }
+
+  pub impl drop: Drop[Pcg32] {
+    fn drop(Pcg32(_)) {}
+  }
 }

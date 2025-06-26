@@ -42,14 +42,14 @@ pub mod Option {
     self.map(f).flatten()
   }
 
-  pub fn .or[T](self: Option[T], default: Option[T]) -> Option[T] {
+  pub fn .or[T?](self: Option[T], default: Option[T]) -> Option[T] {
     match self {
       None { default }
       x { x }
     }
   }
 
-  pub fn .unwrap_or[T](self: Option[T], default: T) -> T {
+  pub fn .unwrap_or[T?](self: Option[T], default: T) -> T {
     match self {
       Some(val) { val }
       None { default }
@@ -59,7 +59,7 @@ pub mod Option {
   pub fn .unwrap[T](self: Option[T]) -> T {
     match self {
       Some(val) { val }
-      None { unsafe::unreachable() }
+      None { unsafe::unreachable(()) }
     }
   }
 
