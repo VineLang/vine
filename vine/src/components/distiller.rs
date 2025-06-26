@@ -15,7 +15,7 @@ use crate::{
     resolutions::{FnRel, Fragment, Rels},
     signatures::Signatures,
     tir::{ClosureId, LabelId, Local, TirExpr, TirExprKind, TirPat, TirPatKind},
-    types::{ImplType, Type, TypeKind, Types},
+    types::{ImplType, Inverted, Type, TypeKind, Types},
     vir::{
       Header, Interface, InterfaceId, InterfaceKind, Layer, LayerId, Port, PortKind, Stage,
       StageId, Step, Transfer, Vir,
@@ -163,11 +163,7 @@ impl<'core, 'r> Distiller<'core, 'r> {
       TirExprKind![!value] => match self.distill_expr_poly(stage, expr) {
         Poly::Error(err) => Port::error(ty, err),
         Poly::Value(value) => value,
-        Poly::Place((value, space)) => {
-          let value = stage.dup(value);
-          stage.steps.push(Step::Link(value.0, space));
-          value.1
-        }
+        Poly::Place(place) => self.coerce_place_value(span, stage, place),
         Poly::Space(_) => {
           Port::error(ty, self.core.report(Diag::ExpectedValueFoundSpaceExpr { span }))
         }
@@ -304,10 +300,7 @@ impl<'core, 'r> Distiller<'core, 'r> {
         Poly::Value(_) => {
           Port::error(tyi, self.core.report(Diag::ExpectedSpaceFoundValueExpr { span }))
         }
-        Poly::Place((value, space)) => {
-          self.drop(span, stage, expr.ty, value);
-          space
-        }
+        Poly::Place(place) => self.coerce_place_space(span, stage, place),
         Poly::Space(space) => space,
       },
       TirExprKind::Local(local) => stage.set_local(*local, ty),
@@ -653,6 +646,64 @@ impl<'core, 'r> Distiller<'core, 'r> {
         stage.steps.push(Step::Ref(reference, value.pos, space.neg));
         (value.neg, space.pos)
       }
+    }
+  }
+
+  fn coerce_place_value(&mut self, span: Span, stage: &mut Stage, place: (Port, Port)) -> Port {
+    self._coerce_place(span, stage, place, Inverted(false))
+  }
+
+  fn coerce_place_space(&mut self, span: Span, stage: &mut Stage, place: (Port, Port)) -> Port {
+    self._coerce_place(span, stage, place, Inverted(true))
+  }
+
+  fn _coerce_place(
+    &mut self,
+    span: Span,
+    stage: &mut Stage,
+    (value, space): (Port, Port),
+    inv: Inverted,
+  ) -> Port {
+    let ty = value.ty.invert_if(inv);
+    let mut finder = Finder::new(self.core, self.chart, self.sigs, self.def, self.generics, span);
+    let flex = match finder.find_flex(&mut self.types, value.ty) {
+      Ok(flex) => flex,
+      Err(err) => return Port::error(ty, err),
+    };
+    let (value, space) = if inv.0 { (space, value) } else { (value, space) };
+    let inv = flex.inv ^ inv;
+    match inv {
+      Inverted(false) => match flex.fork {
+        Some(impl_) => {
+          let fork = self.chart.builtins.fork.unwrap();
+          let fn_rel =
+            self.rels.fns.push(FnRel::Item(FnId::Abstract(fork, TraitFnId(0)), vec![impl_]));
+          let ref_ty = self.types.new(TypeKind::Ref(ty));
+          let ref_ = stage.new_wire(ref_ty);
+          stage.steps.push(Step::Ref(ref_.neg, value, space));
+          let out = stage.new_wire(ty);
+          stage.steps.push(Step::Call(fn_rel, None, vec![ref_.pos], out.neg));
+          out.pos
+        }
+        None => {
+          let diag = Diag::CannotFork { span, ty: self.types.show(self.chart, ty) };
+          Port::error(ty, self.core.report(diag))
+        }
+      },
+      Inverted(true) => match flex.drop {
+        Some(impl_) => {
+          let drop = self.chart.builtins.drop.unwrap();
+          let fn_rel =
+            self.rels.fns.push(FnRel::Item(FnId::Abstract(drop, TraitFnId(0)), vec![impl_]));
+          let nil = Port { ty: self.types.nil(), kind: PortKind::Nil };
+          stage.steps.push(Step::Call(fn_rel, None, vec![space], nil));
+          value
+        }
+        None => {
+          let diag = Diag::CannotFork { span, ty: self.types.show(self.chart, ty.inverse()) };
+          Port::error(ty, self.core.report(diag))
+        }
+      },
     }
   }
 

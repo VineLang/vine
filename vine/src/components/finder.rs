@@ -7,7 +7,7 @@ use crate::structures::{
     MemberKind, WithVis,
   },
   core::Core,
-  diag::Diag,
+  diag::{Diag, ErrorGuaranteed},
   signatures::{ImportState, Signatures},
   tir::TirImpl,
   types::{ImplType, Inverted, Type, TypeCtx, TypeKind, Types},
@@ -23,6 +23,13 @@ pub struct Finder<'core, 'a> {
   steps: u32,
 }
 
+#[derive(Debug)]
+pub struct FlexImpls {
+  pub inv: Inverted,
+  pub fork: Option<TirImpl>,
+  pub drop: Option<TirImpl>,
+}
+
 struct CandidateSearch<F> {
   modules: HashSet<DefId>,
   consider_candidate: F,
@@ -31,7 +38,7 @@ struct CandidateSearch<F> {
 const STEPS_LIMIT: u32 = 1_000;
 
 #[derive(Debug, Default, Clone, Copy)]
-pub struct Timeout;
+struct Timeout;
 
 impl<'core, 'a> Finder<'core, 'a> {
   pub fn new(
@@ -102,6 +109,86 @@ impl<'core, 'a> Finder<'core, 'a> {
     }
 
     candidates
+  }
+
+  pub fn find_flex(
+    &mut self,
+    types: &mut Types<'core>,
+    ty: Type,
+  ) -> Result<FlexImpls, ErrorGuaranteed> {
+    self._find_flex(types, ty).map_err(|diag| self.core.report(diag))
+  }
+
+  fn _find_flex(&mut self, types: &mut Types<'core>, ty: Type) -> Result<FlexImpls, Diag<'core>> {
+    let span = self.span;
+    let TypeCtx { types: sub_types, inner: sub_ty } = types.export(|t| t.transfer(&ty));
+
+    let Some(fork) = self.chart.builtins.fork else {
+      Err(Diag::MissingBuiltin { span, builtin: "Fork" })?
+    };
+    let Some(drop) = self.chart.builtins.drop else {
+      Err(Diag::MissingBuiltin { span, builtin: "Drop" })?
+    };
+
+    let results =
+      [(fork, sub_ty), (drop, sub_ty), (fork, sub_ty.inverse()), (drop, sub_ty.inverse())].map(
+        |(trait_, ty)| {
+          let query = ImplType::Trait(trait_, vec![ty]);
+          let results = self._find_impl(&sub_types, &query).unwrap_or_default();
+          (query, results)
+        },
+      );
+
+    if self.steps > STEPS_LIMIT {
+      Err(Diag::FlexSearchLimit { span: self.span, ty: types.show(self.chart, ty) })?
+    }
+
+    let mut error = Ok(());
+    let [pos_fork, pos_drop, neg_fork, neg_drop] = results.map(|(query, mut results)| {
+      if results.len() > 1 {
+        let diag = Diag::AmbiguousImpl { span, ty: sub_types.show_impl_type(self.chart, &query) };
+        error = Err(self.core.report(diag));
+        None
+      } else {
+        results.pop()
+      }
+    });
+    error?;
+
+    let pos_flex = pos_fork.is_some() || pos_drop.is_some();
+    let neg_flex = neg_fork.is_some() || neg_drop.is_some();
+
+    if pos_flex && neg_flex {
+      Err(Diag::BiFlexible { span, ty: types.show(self.chart, ty) })?
+    }
+
+    let inv = Inverted(neg_flex);
+    let [fork, drop] = if inv.0 { [neg_fork, neg_drop] } else { [pos_fork, pos_drop] };
+
+    let [(fork_ty, fork), (drop_ty, drop)] = [fork, drop].map(|result| {
+      (
+        result.as_ref().map(|result| types.import_with(result, None, |t, _| t.transfer(&sub_ty))),
+        result.map(|result| result.inner),
+      )
+    });
+
+    if let (Some(fork_ty), Some(drop_ty)) = (fork_ty, drop_ty) {
+      if types.unify(fork_ty, drop_ty).is_failure() {
+        Err(Diag::IncompatibleForkDropInference {
+          span,
+          ty: types.show(self.chart, ty.invert_if(inv)),
+          fork_ty: types.show(self.chart, fork_ty.invert_if(inv)),
+          drop_ty: types.show(self.chart, drop_ty.invert_if(inv)),
+        })?
+      }
+    }
+
+    if let Some(new_ty) = fork_ty.or(drop_ty) {
+      let unify_result = types.unify(ty, new_ty);
+      assert!(!unify_result.is_failure());
+    }
+
+    Ok(FlexImpls { inv, fork, drop })
   }
 
   pub fn find_impl(&mut self, types: &mut Types<'core>, query: &ImplType) -> TirImpl {

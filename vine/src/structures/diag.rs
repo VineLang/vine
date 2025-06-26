@@ -220,6 +220,16 @@ diags! {
     ["cannot directly implement the fn trait"]
   AmbiguousPolyformicComposite
     ["composite expression in polyformic position has elements of mixed forms"]
+  FlexSearchLimit { ty: String }
+    ["search limit reached when finding flex of type `{ty}`"]
+  BiFlexible { ty: String }
+    ["implementation of `Fork`/`Drop` found for both `{ty}` and its inverse"]
+  IncompatibleForkDropInference { ty: String, fork_ty: String, drop_ty: String }
+    ["finding flex of `{ty}` resulted in incompatible impls `Fork[{fork_ty}]` and `Drop[{drop_ty}]`"]
+  CannotFork { ty: String }
+    ["cannot fork `{ty}`"]
+  CannotDrop { ty: String }
+    ["cannot drop `{ty}`"]
 }
 
 fn plural<'a>(n: usize, plural: &'a str, singular: &'a str) -> &'a str {
