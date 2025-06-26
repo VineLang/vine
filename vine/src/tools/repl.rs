@@ -29,7 +29,7 @@ use crate::{
     core::Core,
     diag::Diag,
     resolutions::FragmentId,
-    tir::Local,
+    tir::{Local, LocalInfo},
     types::{Type, TypeKind, Types},
     vir::{StageId, Vir},
   },
@@ -44,7 +44,7 @@ pub struct Repl<'core, 'ctx, 'ivm, 'ext> {
   line: usize,
   vars: HashMap<Ident<'core>, Var<'ivm>>,
   locals: BTreeMap<Local, (Ident<'core>, Type)>,
-  local_types: IdxVec<Local, Type>,
+  local_info: IdxVec<Local, LocalInfo>,
   types: Types<'core>,
 }
 
@@ -89,9 +89,9 @@ impl<'core, 'ctx, 'ivm, 'ext> Repl<'core, 'ctx, 'ivm, 'ext> {
       types.nil()
     };
     let locals = BTreeMap::from([(Local(0), (io, io_type))]);
-    let local_types = IdxVec::from(vec![io_type]);
+    let local_info = IdxVec::from(vec![LocalInfo { span: Span::NONE, ty: io_type }]);
 
-    Ok(Repl { host, ivm, core, compiler, repl_mod, line: 0, vars, locals, local_types, types })
+    Ok(Repl { host, ivm, core, compiler, repl_mod, line: 0, vars, locals, local_info, types })
   }
 
   pub fn exec(&mut self, line: &str) -> Result<Option<String>, Vec<Diag<'core>>> {
@@ -119,7 +119,7 @@ impl<'core, 'ctx, 'ivm, 'ext> Repl<'core, 'ctx, 'ivm, 'ext> {
       block: &mut block,
       types: &mut self.types,
       fragment: &mut fragment,
-      local_types: &mut self.local_types,
+      local_info: &mut self.local_info,
     })?;
 
     let fragment = fragment.unwrap();
@@ -135,7 +135,7 @@ impl<'core, 'ctx, 'ivm, 'ext> Repl<'core, 'ctx, 'ivm, 'ext> {
       block: &'a mut Block<'core>,
       types: &'a mut Types<'core>,
       fragment: &'a mut Option<FragmentId>,
-      local_types: &'a mut IdxVec<Local, Type>,
+      local_info: &'a mut IdxVec<Local, LocalInfo>,
     }
 
     impl<'core> Hooks<'core> for ExecHooks<'core, '_, '_, '_> {
@@ -154,7 +154,7 @@ impl<'core, 'ctx, 'ivm, 'ext> Repl<'core, 'ctx, 'ivm, 'ext> {
           self.repl_mod,
           self.types,
           self.locals,
-          self.local_types,
+          self.local_info,
           self.block,
         );
         *self.fragment = Some(fragment);

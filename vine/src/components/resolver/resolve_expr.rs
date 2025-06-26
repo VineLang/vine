@@ -82,7 +82,7 @@ impl<'core> Resolver<'core, '_> {
         (result, TirExprKind::Loop(label, block))
       }
       ExprKind::Fn(flex, params, ret, body) => {
-        let (ty, closure_id) = self.resolve_closure(*flex, params, ret, body, true);
+        let (ty, closure_id) = self.resolve_closure(span, *flex, params, ret, body, true);
         (ty, TirExprKind::Closure(closure_id))
       }
       ExprKind::Break(label, value) => {

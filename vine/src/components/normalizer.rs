@@ -3,7 +3,8 @@ use std::collections::{btree_map::Entry, BTreeMap};
 use vine_util::{idx::IdxVec, unwrap_idx_vec};
 
 use crate::structures::{
-  tir::Local,
+  ast::Span,
+  tir::{Local, LocalInfo},
   types::Type,
   vir::{
     Header, Interface, InterfaceId, InterfaceKind, Layer, LayerId, Port, PortKind, Stage, StageId,
@@ -43,7 +44,7 @@ pub fn normalize<'core>(source: &Vir<'core>) -> Vir<'core> {
 struct Normalizer<'core, 'a> {
   source: &'a Vir<'core>,
 
-  locals: IdxVec<Local, Type>,
+  locals: IdxVec<Local, LocalInfo>,
   interfaces: IdxVec<InterfaceId, Interface>,
   stages: IdxVec<StageId, Option<Stage>>,
 
@@ -58,6 +59,7 @@ impl<'core> Normalizer<'core, '_> {
       let mut open_wires = BTreeMap::new();
       let mut stage = Stage {
         id: source.id,
+        span: source.span,
         interface: source.interface,
         layer: LayerId::NONE,
         header: source.header.clone(),
@@ -83,6 +85,7 @@ impl<'core> Normalizer<'core, '_> {
           let mut new_stage: Stage = Stage {
             id: new_stage,
             interface,
+            span: source.span,
             layer: LayerId::NONE,
             header: Header::None,
             declarations: Vec::new(),
@@ -90,11 +93,12 @@ impl<'core> Normalizer<'core, '_> {
             transfer: None,
             wires: source.wires,
           };
-          for (&wire, &ty) in &open_wires {
-            let local = self.locals.push(ty);
+          for (&wire, &(span, ty)) in &open_wires {
+            let local = self.locals.push(LocalInfo { span, ty });
             stage.declarations.push(local);
-            stage.set_local_to(local, Port { ty, kind: PortKind::Wire(wire) });
-            new_stage.take_local_to(local, Port { ty: ty.inverse(), kind: PortKind::Wire(wire) });
+            stage.set_local_to(local, Port { ty, kind: PortKind::Wire(span, wire) });
+            new_stage
+              .take_local_to(local, Port { ty: ty.inverse(), kind: PortKind::Wire(span, wire) });
           }
           match step {
             Step::Transfer(transfer) => {
@@ -171,11 +175,11 @@ impl<'core> Normalizer<'core, '_> {
   }
 }
 
-fn update_open_wires(open_wires: &mut BTreeMap<WireId, Type>, port: &Port) {
-  if let Port { ty, kind: PortKind::Wire(wire) } = port {
+fn update_open_wires(open_wires: &mut BTreeMap<WireId, (Span, Type)>, port: &Port) {
+  if let Port { ty, kind: PortKind::Wire(span, wire) } = port {
     match open_wires.entry(*wire) {
       Entry::Vacant(e) => {
-        e.insert(ty.inverse());
+        e.insert((*span, ty.inverse()));
       }
       Entry::Occupied(e) => {
         e.remove();

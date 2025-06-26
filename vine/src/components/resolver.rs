@@ -25,7 +25,8 @@ use crate::{
       ConstSig, EnumSig, FnSig, GenericsSig, ImplSig, Signatures, StructSig, TraitSig, TypeAliasSig,
     },
     tir::{
-      ClosureId, LabelId, Local, Tir, TirClosure, TirExpr, TirExprKind, TirImpl, TirPat, TirPatKind,
+      ClosureId, LabelId, Local, LocalInfo, Tir, TirClosure, TirExpr, TirExprKind, TirImpl, TirPat,
+      TirPatKind,
     },
     types::{ImplType, Type, TypeCtx, TypeKind, Types},
   },
@@ -52,7 +53,7 @@ pub struct Resolver<'core, 'a> {
 
   scope: HashMap<Ident<'core>, Vec<ScopeEntry>>,
   scope_depth: usize,
-  locals: IdxVec<Local, Type>,
+  locals: IdxVec<Local, LocalInfo>,
   labels: HashMap<Ident<'core>, LabelInfo>,
   loops: Vec<LabelInfo>,
   label_id: Counter<LabelId>,
@@ -251,11 +252,12 @@ impl<'core, 'a> Resolver<'core, 'a> {
 
   fn resolve_fn_def(&mut self, fn_id: ConcreteFnId) {
     let fn_def = &self.chart.concrete_fns[fn_id];
+    let span = fn_def.span;
     self.initialize(fn_def.def, fn_def.generics);
     let (ty, closure_id) =
-      self.resolve_closure(Flex::None, &fn_def.params, &fn_def.ret_ty, &fn_def.body, false);
-    let root = TirExpr { span: fn_def.span, ty, kind: Box::new(TirExprKind::Closure(closure_id)) };
-    let fragment = self.finish_fragment(fn_def.span, self.chart.defs[fn_def.def].path, root);
+      self.resolve_closure(span, Flex::None, &fn_def.params, &fn_def.ret_ty, &fn_def.body, false);
+    let root = TirExpr { span, ty, kind: Box::new(TirExprKind::Closure(closure_id)) };
+    let fragment = self.finish_fragment(span, self.chart.defs[fn_def.def].path, root);
     let fragment_id = self.fragments.push(fragment);
     assert_eq!(self.resolutions.fns.next_index(), fn_id);
     self.resolutions.fns.push(fragment_id);
@@ -268,7 +270,7 @@ impl<'core, 'a> Resolver<'core, 'a> {
     def_id: DefId,
     types: &mut Types<'core>,
     locals: &BTreeMap<Local, (Ident<'core>, Type)>,
-    locals_vec: &mut IdxVec<Local, Type>,
+    local_info: &mut IdxVec<Local, LocalInfo>,
     block: &mut Block<'core>,
   ) -> (FragmentId, impl Iterator<Item = (Ident<'core>, Local, Type)>) {
     self.cur_def = def_id;
@@ -279,10 +281,10 @@ impl<'core, 'a> Resolver<'core, 'a> {
       })
       .collect();
     swap(types, &mut self.types);
-    self.locals = take(locals_vec);
+    self.locals = take(local_info);
     let ty = self.types.new_var(block.span);
     let root = self.resolve_stmts_type(block.span, &block.stmts, ty);
-    *locals_vec = self.locals.clone();
+    *local_info = self.locals.clone();
     *types = self.types.clone();
     let fragment = self.finish_fragment(span, path, root);
     (
@@ -349,7 +351,7 @@ impl<'core, 'a> Resolver<'core, 'a> {
         }
       }
       StmtKind::LetFn(l) => {
-        let (fn_ty, id) = self.resolve_closure(l.flex, &l.params, &l.ret, &l.body, true);
+        let (fn_ty, id) = self.resolve_closure(span, l.flex, &l.params, &l.ret, &l.body, true);
         self.bind(l.name, Binding::Closure(id, fn_ty));
         return self.resolve_stmts_type(span, rest, ty);
       }
@@ -368,6 +370,7 @@ impl<'core, 'a> Resolver<'core, 'a> {
 
   fn resolve_closure(
     &mut self,
+    span: Span,
     flex: Flex,
     params: &[Pat<'core>],
     ret: &Option<Ty<'core>>,
@@ -394,7 +397,7 @@ impl<'core, 'a> Resolver<'core, 'a> {
     let param_tys = params.iter().map(|x| x.ty).collect();
     let id = self.closures.next_index();
     let ty = self.types.new(TypeKind::Closure(id, flex, param_tys, ret_ty));
-    self.closures.push(TirClosure { ty, flex, params, body });
+    self.closures.push(TirClosure { span, ty, flex, params, body });
     (ty, id)
   }
 

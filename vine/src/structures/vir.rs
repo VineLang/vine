@@ -9,10 +9,11 @@ use vine_util::{
 use crate::{
   components::analyzer::{usage::Usage, UsageVar},
   structures::{
+    ast::Span,
     chart::{EnumId, StructId, VariantId},
     diag::ErrorGuaranteed,
     resolutions::{ConstRelId, FnRelId, Rels},
-    tir::{ClosureId, Local},
+    tir::{ClosureId, Local, LocalInfo},
     types::{Type, Types},
   },
 };
@@ -29,7 +30,7 @@ impl LayerId {
 #[derive(Debug, Clone)]
 pub struct Vir<'core> {
   pub types: Types<'core>,
-  pub locals: IdxVec<Local, Type>,
+  pub locals: IdxVec<Local, LocalInfo>,
   pub rels: Rels,
   pub layers: IdxVec<LayerId, Layer>,
   pub interfaces: IdxVec<InterfaceId, Interface>,
@@ -101,6 +102,7 @@ impl InterfaceKind {
 
 #[derive(Debug, Clone)]
 pub struct Stage {
+  pub span: Span,
   pub id: StageId,
   pub interface: InterfaceId,
   pub layer: LayerId,
@@ -217,7 +219,7 @@ pub enum PortKind {
   ConstRel(ConstRelId),
   N32(u32),
   F32(f32),
-  Wire(WireId),
+  Wire(Span, WireId),
   Error(ErrorGuaranteed),
 }
 
@@ -239,11 +241,11 @@ pub struct Wire {
 }
 
 impl Stage {
-  pub fn new_wire(&mut self, ty: Type) -> Wire {
+  pub fn new_wire(&mut self, span: Span, ty: Type) -> Wire {
     let w = self.wires.next();
     Wire {
-      pos: Port { ty, kind: PortKind::Wire(w) },
-      neg: Port { ty: ty.inverse(), kind: PortKind::Wire(w) },
+      pos: Port { ty, kind: PortKind::Wire(span, w) },
+      neg: Port { ty: ty.inverse(), kind: PortKind::Wire(span, w) },
     }
   }
 
@@ -267,33 +269,33 @@ impl Stage {
     self.steps.push(Step::Invoke(local, Invocation::Mut(o, i)));
   }
 
-  pub fn get_local(&mut self, local: Local, ty: Type) -> Port {
-    let wire = self.new_wire(ty);
+  pub fn get_local(&mut self, local: Local, span: Span, ty: Type) -> Port {
+    let wire = self.new_wire(span, ty);
     self.get_local_to(local, wire.neg);
     wire.pos
   }
 
-  pub fn hedge_local(&mut self, local: Local, ty: Type) -> Port {
-    let wire = self.new_wire(ty);
+  pub fn hedge_local(&mut self, local: Local, span: Span, ty: Type) -> Port {
+    let wire = self.new_wire(span, ty);
     self.get_local_to(local, wire.pos);
     wire.neg
   }
 
-  pub fn take_local(&mut self, local: Local, ty: Type) -> Port {
-    let wire = self.new_wire(ty);
+  pub fn take_local(&mut self, local: Local, span: Span, ty: Type) -> Port {
+    let wire = self.new_wire(span, ty);
     self.take_local_to(local, wire.neg);
     wire.pos
   }
 
-  pub fn set_local(&mut self, local: Local, ty: Type) -> Port {
-    let wire = self.new_wire(ty);
+  pub fn set_local(&mut self, local: Local, span: Span, ty: Type) -> Port {
+    let wire = self.new_wire(span, ty);
     self.set_local_to(local, wire.pos);
     wire.neg
   }
 
-  pub fn mut_local(&mut self, local: Local, ty: Type) -> (Port, Port) {
-    let o = self.new_wire(ty);
-    let i = self.new_wire(ty);
+  pub fn mut_local(&mut self, local: Local, span: Span, ty: Type) -> (Port, Port) {
+    let o = self.new_wire(span, ty);
+    let i = self.new_wire(span, ty);
     self.mut_local_to(local, o.neg, i.pos);
     (o.pos, i.neg)
   }
@@ -302,28 +304,29 @@ impl Stage {
     self.steps.push(Step::Invoke(local, Invocation::Erase));
   }
 
-  pub fn dup(&mut self, p: Port) -> (Port, Port) {
-    let a = self.new_wire(p.ty);
-    let b = self.new_wire(p.ty);
+  pub fn dup(&mut self, span: Span, p: Port) -> (Port, Port) {
+    let a = self.new_wire(span, p.ty);
+    let b = self.new_wire(span, p.ty);
     self.steps.push(Step::Dup(p, a.neg, b.neg));
     (a.pos, b.pos)
   }
 
   pub fn ext_fn(
     &mut self,
+    span: Span,
     ext_fn: &'static str,
     swap: bool,
     lhs: Port,
     rhs: Port,
     ty: Type,
   ) -> Port {
-    let out = self.new_wire(ty);
+    let out = self.new_wire(span, ty);
     self.steps.push(Step::ExtFn(ext_fn, swap, lhs, rhs, out.neg));
     out.pos
   }
 
-  pub fn ref_place(&mut self, ty: Type, (value, space): (Port, Port)) -> Port {
-    let wire = self.new_wire(ty);
+  pub fn ref_place(&mut self, span: Span, ty: Type, (value, space): (Port, Port)) -> Port {
+    let wire = self.new_wire(span, ty);
     self.steps.push(Step::Ref(wire.neg, value, space));
     wire.pos
   }

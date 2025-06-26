@@ -18,7 +18,7 @@ new_idx!(pub ClosureId; n => ["c{n}"]);
 pub struct Tir<'core> {
   pub span: Span,
   pub types: Types<'core>,
-  pub locals: IdxVec<Local, Type>,
+  pub locals: IdxVec<Local, LocalInfo>,
   pub rels: Rels,
   pub closures: IdxVec<ClosureId, TirClosure>,
   pub root: TirExpr,
@@ -26,10 +26,17 @@ pub struct Tir<'core> {
 
 #[derive(Debug, Clone)]
 pub struct TirClosure {
+  pub span: Span,
   pub ty: Type,
   pub flex: Flex,
   pub params: Vec<TirPat>,
   pub body: TirExpr,
+}
+
+#[derive(Debug, Clone)]
+pub struct LocalInfo {
+  pub span: Span,
+  pub ty: Type,
 }
 
 #[derive(Debug, Clone)]

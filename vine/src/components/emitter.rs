@@ -360,7 +360,7 @@ impl<'core, 'a> VirEmitter<'core, 'a> {
       PortKind::Nil => Tree::Erase,
       PortKind::N32(n) => Tree::N32(n),
       PortKind::F32(f) => Tree::F32(f),
-      PortKind::Wire(w) => Tree::Var(format!("w{}", wire_offset + w.0)),
+      PortKind::Wire(_, w) => Tree::Var(format!("w{}", wire_offset + w.0)),
       PortKind::ConstRel(rel) => match spec.rels.consts[rel] {
         Ok(spec_id) => Tree::Global(Self::_stage_name(specs, fragments, spec_id, StageId(0))),
         Err(_) => Tree::Erase,
