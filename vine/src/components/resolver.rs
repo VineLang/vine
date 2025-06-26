@@ -261,7 +261,6 @@ impl<'core, 'a> Resolver<'core, 'a> {
     self.resolutions.fns.push(fragment_id);
   }
 
-  #[allow(clippy::too_many_arguments)]
   pub(crate) fn _resolve_custom(
     &mut self,
     span: Span,

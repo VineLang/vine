@@ -17,3 +17,4 @@ vine-util = { path = "../util" }
 [lints.clippy]
 absolute_paths = "warn"
 large_enum_variant = "allow"
+too_many_arguments = "allow"
