@@ -1,9 +1,9 @@
-use ivy::ast::Nets;
+use ivy::ast::{Net, Nets, Tree};
 use vine_util::idx::IdxVec;
 
 use crate::{
   components::{
-    analyzer::analyze, charter::Charter, distiller::Distiller, emitter::Emitter, loader::Loader,
+    analyzer::analyze, charter::Charter, distiller::Distiller, emitter::emit, loader::Loader,
     normalizer::normalize, resolver::Resolver, specializer::Specializer,
   },
   structures::{
@@ -14,7 +14,8 @@ use crate::{
     resolutions::{Fragment, FragmentId, Resolutions},
     signatures::Signatures,
     specializations::Specializations,
-    vir::Vir,
+    template::Template,
+    vir::{InterfaceKind, Vir},
   },
 };
 
@@ -24,9 +25,10 @@ pub struct Compiler<'core> {
   pub chart: Chart<'core>,
   pub sigs: Signatures<'core>,
   pub resolutions: Resolutions,
-  pub specs: Specializations,
+  pub specs: Specializations<'core>,
   pub fragments: IdxVec<FragmentId, Fragment<'core>>,
   pub vir: IdxVec<FragmentId, Vir<'core>>,
+  pub templates: IdxVec<FragmentId, Template>,
 }
 
 impl<'core> Compiler<'core> {
@@ -40,6 +42,7 @@ impl<'core> Compiler<'core> {
       specs: Specializations::default(),
       fragments: IdxVec::new(),
       vir: IdxVec::new(),
+      templates: IdxVec::new(),
     }
   }
 
@@ -77,8 +80,11 @@ impl<'core> Compiler<'core> {
       hooks.distill(fragment_id, &mut vir);
       let mut vir = normalize(core, chart, &self.sigs, fragment, &vir);
       analyze(self.core, fragment.tir.span, &mut vir);
+      let template = emit(core, chart, &vir);
       assert_eq!(self.vir.next_index(), fragment_id);
       self.vir.push(vir);
+      assert_eq!(self.templates.next_index(), fragment_id);
+      self.templates.push(template);
     }
 
     let mut specializer = Specializer {
@@ -90,21 +96,25 @@ impl<'core> Compiler<'core> {
     };
     specializer.specialize_since(checkpoint);
 
-    let mut emitter = Emitter::new(core, chart, &self.specs, &self.fragments, &self.vir);
+    core.bail()?;
+
+    let mut nets = Nets::default();
 
     if let Some(main) = self.resolutions.main {
-      emitter.emit_main(main);
+      let path = self.fragments[main].path;
+      let vir = &self.vir[main];
+      let func = *vir.closures.last().unwrap();
+      let InterfaceKind::Fn { call, .. } = vir.interfaces[func].kind else { unreachable!() };
+      let global = format!("{path}:s{}", call.0);
+      nets.insert("::".into(), Net { root: Tree::Global(global), pairs: Vec::new() });
     }
 
     for spec_id in self.specs.specs.keys_from(checkpoint.specs) {
-      emitter.emit_spec(spec_id);
+      let spec = self.specs.specs[spec_id].as_ref().unwrap();
+      self.templates[spec.fragment].instantiate(&mut nets, &self.specs, spec);
     }
 
-    hooks.emit(&mut emitter);
-
-    core.bail()?;
-
-    Ok(emitter.nets)
+    Ok(nets)
   }
 }
 
@@ -112,7 +122,6 @@ pub trait Hooks<'core> {
   fn chart(&mut self, _charter: &mut Charter<'core, '_>) {}
   fn resolve(&mut self, _resolver: &mut Resolver<'core, '_>) {}
   fn distill(&mut self, _fragment_id: FragmentId, _vir: &mut Vir) {}
-  fn emit(&mut self, _emitter: &mut Emitter<'core, '_>) {}
 }
 
 impl<'core> Hooks<'core> for () {}

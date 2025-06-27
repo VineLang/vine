@@ -11,15 +11,22 @@ use crate::structures::{
 };
 
 #[derive(Debug, Default)]
-pub struct Specializations {
+pub struct Specializations<'core> {
   pub lookup: IdxVec<FragmentId, HashMap<Vec<ImplTree>, SpecId>>,
-  pub specs: IdxVec<SpecId, Option<Spec>>,
+  pub specs: IdxVec<SpecId, Option<Spec<'core>>>,
+}
+
+impl<'core> Specializations<'core> {
+  pub fn spec(&self, spec_id: SpecId) -> &Spec<'core> {
+    self.specs[spec_id].as_ref().unwrap()
+  }
 }
 
 new_idx!(pub SpecId);
 #[derive(Debug)]
-pub struct Spec {
+pub struct Spec<'core> {
   pub fragment: FragmentId,
+  pub path: &'core str,
   pub index: usize,
   pub singular: bool,
   pub rels: SpecRels,

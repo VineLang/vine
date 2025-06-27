@@ -51,13 +51,15 @@ impl<'core> Compiler<'core> {
   }
 
   pub fn revert(&mut self, checkpoint: &Checkpoint) {
-    let Compiler { core: _, loader: _, chart, sigs, resolutions, specs, fragments, vir } = self;
+    let Compiler { core: _, loader: _, chart, sigs, resolutions, specs, fragments, vir, templates } =
+      self;
     chart.revert(checkpoint);
     sigs.revert(checkpoint);
     resolutions.revert(checkpoint);
     specs.revert(checkpoint);
     fragments.truncate(checkpoint.fragments.0);
     vir.truncate(checkpoint.fragments.0);
+    templates.truncate(checkpoint.fragments.0);
   }
 }
 
@@ -264,7 +266,7 @@ impl Resolutions {
   }
 }
 
-impl Specializations {
+impl<'core> Specializations<'core> {
   fn revert(&mut self, checkpoint: &Checkpoint) {
     let Specializations { lookup, specs } = self;
     specs.truncate(checkpoint.specs.0);

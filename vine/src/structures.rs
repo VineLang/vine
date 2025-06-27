@@ -6,6 +6,7 @@ pub mod diag;
 pub mod resolutions;
 pub mod signatures;
 pub mod specializations;
+pub mod template;
 pub mod tir;
 pub mod types;
 pub mod vir;

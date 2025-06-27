@@ -16,7 +16,7 @@ use crate::structures::{
 pub struct Specializer<'core, 'a> {
   pub chart: &'a Chart<'core>,
   pub resolutions: &'a Resolutions,
-  pub specs: &'a mut Specializations,
+  pub specs: &'a mut Specializations<'core>,
   pub fragments: &'a IdxVec<FragmentId, Fragment<'core>>,
   pub vir: &'a IdxVec<FragmentId, Vir<'core>>,
 }
@@ -52,7 +52,8 @@ impl<'core, 'a> Specializer<'core, 'a> {
         Ok(self.specialize(id, args))
       }))),
     };
-    let spec = Spec { fragment: id, index, singular: impl_args.is_empty(), rels };
+    let path = self.fragments[id].path;
+    let spec = Spec { fragment: id, path, index, singular: impl_args.is_empty(), rels };
     self.specs.specs[spec_id] = Some(spec);
     spec_id
   }
