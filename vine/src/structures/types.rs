@@ -250,7 +250,9 @@ impl<'core> Types<'core> {
         self.unify_types(a, b, Inverted(false))
       }
       (TypeKind::Fn(i), TypeKind::Fn(j)) if *i == *j => Success,
-      (TypeKind::Closure(i, ..), TypeKind::Closure(j, ..)) if *i == *j => Success,
+      (TypeKind::Closure(i, _, p, r), TypeKind::Closure(j, _, q, s)) if *i == *j => {
+        self.unify_types(p, q, Inverted(false)).and(self.unify(*r, *s))
+      }
       (TypeKind::Ref(a), TypeKind::Ref(b)) => self.unify(*a, *b),
       (TypeKind::Never, TypeKind::Never) => Success,
       _ => Failure,
