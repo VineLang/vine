@@ -303,7 +303,7 @@ impl<'core, 'a> Finder<'core, 'a> {
       modules: HashSet::new(),
       consider_candidate: |self_: &Self, def: &Def| {
         if let Some(WithVis { vis, kind: DefImplKind::Impl(impl_id) }) = def.impl_kind {
-          if self_.chart.visible(vis, self_.source) {
+          if self_.chart.visible(vis, self_.source) && !self_.chart.impls[impl_id].manual {
             let impl_sig = &self_.sigs.impls[impl_id];
             if impl_sig.inner.ty.approx_eq(query) {
               candidates.insert(impl_id);

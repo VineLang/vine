@@ -304,6 +304,7 @@ impl<'core> Charter<'core, '_> {
           generics,
           trait_: impl_item.trait_,
           subitems,
+          manual: false,
         });
         self.define_impl(span, def, vis, DefImplKind::Impl(impl_id));
         Some(def)
@@ -335,6 +336,7 @@ impl<'core> Charter<'core, '_> {
 
   fn chart_attrs(&mut self, def: Option<DefId>, attrs: Vec<Attr>) {
     for attr in attrs {
+      let span = attr.span;
       match attr.kind {
         AttrKind::Builtin(builtin) => {
           if !self.chart_builtin(def, builtin) {
@@ -343,6 +345,17 @@ impl<'core> Charter<'core, '_> {
         }
         AttrKind::Main => {
           self.chart.main_mod = def;
+        }
+        AttrKind::Manual => {
+          let impl_id = def.and_then(|id| match self.chart.defs[id].impl_kind {
+            Some(WithVis { vis: _, kind: DefImplKind::Impl(id) }) => Some(id),
+            _ => None,
+          });
+          let Some(impl_id) = impl_id else {
+            self.core.report(Diag::BadManualAttr { span });
+            continue;
+          };
+          self.chart.impls[impl_id].manual = true;
         }
       }
     }

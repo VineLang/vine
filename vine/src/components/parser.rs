@@ -163,6 +163,7 @@ impl<'core, 'src> VineParser<'core, 'src> {
         };
         AttrKind::Builtin(builtin)
       }
+      "manual" => AttrKind::Manual,
       _ => Err(Diag::UnknownAttribute { span: ident_span })?,
     };
     self.expect(Token::CloseBracket)?;

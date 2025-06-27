@@ -84,19 +84,3 @@ pub mod Drop {
     }
   }
 }
-
-mod internal {
-  #[builtin = "duplicate"]
-  impl duplicate[T]: Fork[T] {
-    fn fork(&self: &T) -> T {
-      unsafe::duplicate(&self)
-    }
-  }
-
-  #[builtin = "erase"]
-  impl erase[T]: Drop[T] {
-    fn drop(self: T) {
-      unsafe::erase(self)
-    }
-  }
-}

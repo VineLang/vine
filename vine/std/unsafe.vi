@@ -6,10 +6,26 @@ pub fn duplicate[T](&value: &T) -> T {
   }
 }
 
+#[manual]
+#[builtin = "duplicate"]
+pub impl duplicate[T]: Fork[T] {
+  fn fork(&self: &T) -> T {
+    unsafe::duplicate(&self)
+  }
+}
+
 pub const eraser[T]: T = inline_ivy! () -> T { _ };
 
 pub fn erase[T](value: T) {
   ~eraser = value;
+}
+
+#[manual]
+#[builtin = "erase"]
+pub impl erase[T]: Drop[T] {
+  fn drop(self: T) {
+    unsafe::erase(self)
+  }
 }
 
 pub fn unreachable[T]() -> T {

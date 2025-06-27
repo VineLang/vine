@@ -266,6 +266,7 @@ pub struct ImplDef<'core> {
   pub generics: GenericsId,
   pub trait_: Trait<'core>,
   pub subitems: Vec<ImplSubitem<'core>>,
+  pub manual: bool,
 }
 
 #[derive(Debug, Clone)]

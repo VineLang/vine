@@ -232,6 +232,8 @@ diags! {
     ["cannot drop `{ty}`"]
   UninitializedVariable { ty: String }
     ["variable of type `{ty}` read whilst uninitialized"]
+  BadManualAttr
+    ["the `#[manual]` attribute can only be applied to an impl"]
 }
 
 fn plural<'a>(n: usize, plural: &'a str, singular: &'a str) -> &'a str {
