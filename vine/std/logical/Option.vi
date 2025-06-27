@@ -10,10 +10,7 @@ pub mod Option {
   pub fn .map[T, U, F?; fn F(T) -> U](self: Option[T], f: F) -> Option[U] {
     match self {
       Some(val) { Some(f(val)) }
-      None {
-        f.drop();
-        None
-      }
+      None { None }
     }
   }
 
@@ -26,7 +23,7 @@ pub mod Option {
 
   pub fn .as_forked[T+](self: Option[&T]) -> Option[T] {
     match self {
-      Some(&val) { Some(val.fork()) }
+      Some(&val) { Some(val) }
       None { None }
     }
   }
@@ -75,7 +72,7 @@ pub mod Option {
   pub impl fork[T+]: Fork[Option[T]] {
     fn fork(&self: &Option[T]) -> Option[T] {
       match &self {
-        &Some(value) { Some(value.fork()) }
+        &Some(value) { Some(value) }
         &None { None }
       }
     }
@@ -84,7 +81,7 @@ pub mod Option {
   pub impl drop[T?]: Drop[Option[T]] {
     fn drop(self: Option[T]) {
       match self {
-        Some(value) { value.drop() }
+        Some(_) {}
         None {}
       }
     }

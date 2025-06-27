@@ -90,7 +90,7 @@ pub mod Show {
     let first = true;
     let iter = entries.into_iter();
     while iter.next() is Some(entry) {
-      let show_iter = process_entry.fork()(entry).into_iter();
+      let show_iter = process_entry(entry).into_iter();
       total_width += 2;
       if multiline {
         str ++= newline(indent + 2);
@@ -111,7 +111,6 @@ pub mod Show {
       str ++= newline(indent);
     }
     ~_multiline = total_width > max_width;
-    process_entry.drop();
     (total_width, str, multiline)
   }
 

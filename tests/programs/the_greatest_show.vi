@@ -50,9 +50,5 @@ impl show_obj[A, B, C; Show[A], Show[B], Show[C]]: Show[{ a: A, b: B, c: C }] {
 }
 
 impl drop_obj[A?, B?, C?]: Drop[{ a: A, b: B, c: C }] {
-  fn drop({ a:: A, b:: B, c:: C }) {
-    a.drop();
-    b.drop();
-    c.drop();
-  }
+  fn drop({ a: _: A, b: _: B, c: _: C }) {}
 }

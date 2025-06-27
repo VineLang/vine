@@ -46,9 +46,9 @@ pub mod Array {
       Array::empty
     } else {
       let ~ins;
-      let (node, outs) = Node::unzip_with(len, ~ins, fn* (f: F) { (f.fork()(), f) });
+      let (node, outs) = Node::unzip_with(len, ~ins, fn* (f: F) { (f(), f) });
       let outs = Array(len, outs);
-      outs.pop_back().unwrap().drop();
+      outs.pop_back().unwrap();
       outs.push_front(f);
       let Array(_, outs) = outs;
       ~ins = outs;
@@ -60,10 +60,10 @@ pub mod Array {
     self.fold_front(
       f,
       fn* (f: F, value) {
-        f.fork()(value);
+        f(value);
         f
       },
-    ).drop()
+    );
   }
 
   pub fn .fold_front[T, U, F*; fn F(U, T) -> U](Array[T](len, node), initial: U, f: F) -> U {
@@ -320,7 +320,7 @@ mod Node {
 
   pub fn drop[T?](len: N32, node: Node[T]) {
     if len == 1 {
-      node.as[T].drop();
+      _ = node as T;
     } else {
       let Node(l, r) = node;
       drop((len + 1) / 2, l);

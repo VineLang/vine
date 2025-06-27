@@ -72,8 +72,6 @@ pub mod String {
         unsafe::erase(_buf);
         return (prefix, Some(List(len, unsafe::move(&buf), end) as String));
       }
-      iter_a.drop();
-      iter_b.drop();
       if suffix!.pop_front() is Some(char) {
         prefix ++= String([char]);
       } else {
@@ -92,8 +90,6 @@ pub mod String {
     while prefix_iter.next() is Some(&a) {
       let &b = self_iter.next().unwrap();
       if a != b {
-        self_iter.drop()
-        prefix_iter.drop()
         return Err(self)
       }
     }
@@ -135,12 +131,9 @@ pub mod String {
     while prefix_iter.next() is Some(&a) {
       let &b = self_iter.next().unwrap();
       if a != b {
-        self_iter.drop()
-        prefix_iter.drop()
         return false
       }
     }
-    self_iter.drop();
     true
   }
 

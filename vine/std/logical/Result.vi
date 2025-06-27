@@ -11,10 +11,7 @@ pub mod Result {
   pub fn .map[T, U, E, F?; fn F(T) -> U](self: Result[T, E], f: F) -> Result[U, E] {
     match self {
       Ok(val) { Ok(f(val)) }
-      Err(err) {
-        f.drop();
-        Err(err)
-      }
+      Err(err) { Err(err) }
     }
   }
 
@@ -70,8 +67,8 @@ pub mod Result {
   pub impl fork[T+, E+]: Fork[Result[T, E]] {
     fn fork(&self: &Result[T, E]) -> Result[T, E] {
       match &self {
-        &Ok(value) { Ok(value.fork()) }
-        &Err(value) { Err(value.fork()) }
+        &Ok(value) { Ok(value) }
+        &Err(value) { Err(value) }
       }
     }
   }
@@ -79,8 +76,8 @@ pub mod Result {
   pub impl drop[T?, E?]: Drop[Result[T, E]] {
     fn drop(self: Result[T, E]) {
       match self {
-        Ok(value) { value.drop() }
-        Err(value) { value.drop() }
+        Ok(_) {}
+        Err(_) {}
       }
     }
   }
