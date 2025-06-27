@@ -379,7 +379,7 @@ impl<'core> Types<'core> {
           continue;
         }
         Root { state: Unknown(..) | InferenceFailed(..), .. } => {
-          write!(str, "{}?{}", if ty.inv().0 { "~" } else { "" }, ty.0).unwrap()
+          write!(str, "{}?{}", if ty.inv().0 { "~" } else { "" }, ty.idx().0).unwrap()
         }
         Root { state: Known(inv, kind), .. } => {
           if (*inv ^ ty.inv()).0 {
