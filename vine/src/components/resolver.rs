@@ -909,11 +909,13 @@ impl<'core, 'a> Resolver<'core, 'a> {
       if args.impls.is_empty() {
         impl_params_types.into_iter().map(|ty| self.find_impl(args.span, &ty)).collect()
       } else {
-        args
-          .impls
-          .iter()
-          .zip(impl_params_types)
-          .map(|(impl_, ty)| self.resolve_impl_type(impl_, &ty))
+        impl_params_types
+          .into_iter()
+          .enumerate()
+          .map(|(i, ty)| match args.impls.get(i) {
+            Some(impl_) => self.resolve_impl_type(impl_, &ty),
+            None => TirImpl::Error(ErrorGuaranteed::new_unchecked()),
+          })
           .collect()
       }
     } else {
