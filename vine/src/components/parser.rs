@@ -173,7 +173,7 @@ impl<'core, 'src> VineParser<'core, 'src> {
     Ok(Attr { span, kind })
   }
 
-  fn parse_ident(&mut self) -> Parse<'core, Ident<'core>> {
+  pub fn parse_ident(&mut self) -> Parse<'core, Ident<'core>> {
     let token = self.expect(Token::Ident)?;
     Ok(self.core.ident(token))
   }
@@ -1081,7 +1081,7 @@ impl<'core, 'src> VineParser<'core, 'src> {
     Span { file: self.file, start: span, end: self.state.last_token_end }
   }
 
-  fn span(&self) -> Span {
+  pub(crate) fn span(&self) -> Span {
     let span = self.state.lexer.span();
     Span { file: self.file, start: span.start, end: span.end }
   }

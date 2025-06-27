@@ -83,7 +83,9 @@ impl<'core, 'a> Emitter<'core, 'a> {
         self.emit_port(transfer.data.as_ref().unwrap()),
         Tree::n_ary("enum", stages.iter().map(|&s| self.emit_stage_rel(s)).chain([target])),
       ),
-      InterfaceKind::Fn { .. } => (self.emit_port(transfer.data.as_ref().unwrap()), target),
+      InterfaceKind::Fn { .. } | InterfaceKind::Inspect(..) => {
+        (self.emit_port(transfer.data.as_ref().unwrap()), target)
+      }
     };
     self.pairs.push(pair);
   }
@@ -177,32 +179,57 @@ impl<'core, 'a> Emitter<'core, 'a> {
   }
 
   fn emit_interface(&mut self, interface: &Interface, interior: bool) -> Tree {
-    Tree::n_ary(
-      "x",
-      interface.wires.iter().filter_map(|(&local, &(input, bar, output))| {
-        let (read, bar, write) =
-          if interior { (input, bar, output) } else { (output, true, input) };
-        let read = read.then(|| {
-          let w = self.new_wire();
-          self.local(local).read(w.0);
-          w.1
-        });
-        if bar {
-          self.local(local).bar();
-        }
-        let write = write.then(|| {
-          let w = self.new_wire();
-          self.local(local).write(w.0);
-          w.1
-        });
-        let wires = if interior { (read, write) } else { (write, read) };
-        match wires {
-          (None, None) => None,
-          (None, Some(x)) | (Some(x), None) => Some(x),
-          (Some(x), Some(y)) => Some(Tree::Comb("x".into(), Box::new(x), Box::new(y))),
-        }
-      }),
-    )
+    if let InterfaceKind::Inspect(locals) = &interface.kind {
+      assert!(interior);
+      Tree::n_ary(
+        "x",
+        locals
+          .iter()
+          .flat_map(|&local| {
+            let (read, _, write) = interface.wires.get(&local).copied().unwrap_or_default();
+            let read = read.then(|| {
+              let w = self.new_wire();
+              self.local(local).read(w.0);
+              w.1
+            });
+            self.local(local).bar();
+            let write = write.then(|| {
+              let w = self.new_wire();
+              self.local(local).write(w.0);
+              w.1
+            });
+            [read, write].into_iter().flatten()
+          })
+          .chain([Tree::Erase]),
+      )
+    } else {
+      Tree::n_ary(
+        "x",
+        interface.wires.iter().filter_map(|(&local, &(input, bar, output))| {
+          let (read, bar, write) =
+            if interior { (input, bar, output) } else { (output, true, input) };
+          let read = read.then(|| {
+            let w = self.new_wire();
+            self.local(local).read(w.0);
+            w.1
+          });
+          if bar {
+            self.local(local).bar();
+          }
+          let write = write.then(|| {
+            let w = self.new_wire();
+            self.local(local).write(w.0);
+            w.1
+          });
+          let wires = if interior { (read, write) } else { (write, read) };
+          match wires {
+            (None, None) => None,
+            (None, Some(x)) | (Some(x), None) => Some(x),
+            (Some(x), Some(y)) => Some(Tree::Comb("x".into(), Box::new(x), Box::new(y))),
+          }
+        }),
+      )
+    }
   }
 
   fn local(&mut self, local: Local) -> &mut LocalState {
@@ -411,6 +438,10 @@ impl<'core, 'a> Emitter<'core, 'a> {
         ],
       ),
       Header::Drop => Tree::n_ary("fn", [Tree::Erase, root, Tree::Erase]),
+      Header::Entry(ports) => {
+        assert_eq!(root, Tree::Erase);
+        Tree::n_ary("x", ports.iter().map(|port| self.emit_port(port)))
+      }
     }
   }
 

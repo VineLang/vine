@@ -238,6 +238,8 @@ diags! {
     ["the `#[duplicate]` attribute can only be applied to an impl of the `Fork trait"]
   BadEraseAttr
     ["the `#[erase]` attribute can only be applied to an impl of the `Drop` trait"]
+  InvalidCommand
+    ["invalid command; type `/help` for a list of commands"]
 }
 
 fn plural<'a>(n: usize, plural: &'a str, singular: &'a str) -> &'a str {

@@ -6,7 +6,7 @@ use vine_util::{
 };
 
 use crate::{
-  components::{analyzer::effect::Effect, finder::Finder},
+  components::finder::Finder,
   structures::{
     ast::Span,
     chart::{Chart, DefId, FnId, GenericsId, TraitFnId},
@@ -99,13 +99,12 @@ impl<'core, 'r> Distiller<'core, 'r> {
     self.types = fragment.tir.types.clone();
     self.rels = fragment.tir.rels.clone();
     let (layer, mut stage) = self.root_layer(fragment.tir.root.span);
-    let local = self.locals.push(TirLocal { span: fragment.tir.span, ty: fragment.tir.root.ty });
     for closure in fragment.tir.closures.values() {
       let interface = self.distill_closure_def(closure);
       self.closures.push(interface);
     }
     let result = self.distill_expr_value(&mut stage, &fragment.tir.root);
-    stage.local_bar_write_to(local, result);
+    stage.header = Header::Entry(vec![result]);
     self.finish_stage(stage);
     self.finish_layer(layer);
     self.labels.clear();
@@ -122,7 +121,6 @@ impl<'core, 'r> Distiller<'core, 'r> {
       interfaces: unwrap_idx_vec(take(&mut self.interfaces)),
       stages: unwrap_idx_vec(take(&mut self.stages)),
       locals,
-      globals: vec![(local, Effect::RB)],
       closures: take(&mut self.closures),
     }
   }

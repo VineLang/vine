@@ -52,7 +52,6 @@ pub fn normalize<'core>(
     layers: IdxVec::new(),
     interfaces: normalizer.interfaces,
     stages: unwrap_idx_vec(normalizer.stages),
-    globals: source.globals.clone(),
     closures: source.closures.clone(),
   }
 }

@@ -16,7 +16,7 @@ use crate::{
     diag::Diag,
     tir::Local,
     types::Inverted,
-    vir::{Interface, InterfaceId, Invocation, Stage, StageId, Step, Vir, VirLocal},
+    vir::{Interface, InterfaceId, InterfaceKind, Invocation, Stage, StageId, Step, Vir, VirLocal},
   },
 };
 
@@ -28,7 +28,6 @@ pub fn analyze<'core>(core: &'core Core<'core>, span: Span, vir: &mut Vir) {
     infinite_loop: false,
     span,
     locals: &vir.locals,
-    globals: &vir.globals,
     stages: &vir.stages,
     interfaces: &mut vir.interfaces,
     effects: IdxVec::from([Effect::P]),
@@ -49,7 +48,6 @@ struct Analyzer<'core, 'a> {
   span: Span,
 
   locals: &'a IdxVec<Local, VirLocal>,
-  globals: &'a Vec<(Local, Effect)>,
   stages: &'a IdxVec<StageId, Stage>,
   interfaces: &'a mut IdxVec<InterfaceId, Interface>,
 
@@ -73,9 +71,7 @@ impl<'core> Analyzer<'core, '_> {
   fn analyze(&mut self) {
     self.sweep(InterfaceId(0));
 
-    self.local_declarations.extend(self.globals.iter().map(|&(g, _)| (g, Vec::new())));
-    let root_segment =
-      (self.get_transfer(InterfaceId(0)).1, self.globals.iter().copied().collect());
+    let root_segment = (self.get_transfer(InterfaceId(0)).1, HashMap::new());
     self.segments.push(root_segment);
 
     self.build();
@@ -107,6 +103,13 @@ impl<'core> Analyzer<'core, '_> {
     let mut transfers = Vec::new();
     let mut forwards = Vec::new();
     let mut backwards = Vec::new();
+
+    for interface in self.interfaces.keys() {
+      let transfer = self.get_transfer(interface);
+      if let InterfaceKind::Inspect(locals) = &self.interfaces[interface].kind {
+        self.segments.push((transfer.0, locals.iter().map(|&l| (l, Effect::RBW)).collect()));
+      }
+    }
 
     for stage in self.stages.values() {
       if self.interfaces[stage.interface].incoming == 0 {

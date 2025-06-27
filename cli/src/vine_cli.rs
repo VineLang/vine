@@ -182,17 +182,18 @@ impl VineReplCommand {
     };
     let mut rl = DefaultEditor::new()?;
     loop {
-      print!("\n{}", repl.format());
+      println!();
+      if repl.options.show_scope {
+        repl.print_scope();
+      }
       match rl.readline("> ") {
         Ok(line) => {
           if self.echo {
             println!("> {line}");
           }
           _ = rl.add_history_entry(&line);
-          match repl.exec(&line) {
-            Ok(Some(result)) => println!("{result}"),
-            Ok(None) => {}
-            Err(diags) => println!("{}", core.print_diags(&diags)),
+          if let Err(diags) = repl.exec(&line) {
+            println!("{}", core.print_diags(&diags))
           }
         }
         Err(_) => break,

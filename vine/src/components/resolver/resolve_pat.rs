@@ -100,7 +100,7 @@ impl<'core> Resolver<'core, '_> {
             if let (Some(ident), None) = (path.as_ident(), data) {
               let ty = self.types.new_var(span);
               let local = self.locals.push(TirLocal { span, ty });
-              self.bind(ident, Binding::Local(local, ty));
+              self.bind(ident, Binding::Local(local, span, ty));
               (ty, TirPatKind::Local(local))
             } else {
               Err(diag)?

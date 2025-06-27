@@ -7,10 +7,7 @@ use vine_util::{
 };
 
 use crate::{
-  components::{
-    analyzer::{effect::Effect, EffectVar},
-    finder::Finder,
-  },
+  components::{analyzer::EffectVar, finder::Finder},
   structures::{
     ast::Span,
     chart::{Chart, DefId, EnumId, GenericsId, StructId, VariantId},
@@ -40,7 +37,6 @@ pub struct Vir<'core> {
   pub layers: IdxVec<LayerId, Layer>,
   pub interfaces: IdxVec<InterfaceId, Interface>,
   pub stages: IdxVec<StageId, Stage>,
-  pub globals: Vec<(Local, Effect)>,
   pub closures: IdxVec<ClosureId, InterfaceId>,
 }
 
@@ -89,11 +85,12 @@ pub enum InterfaceKind {
   Branch(StageId, StageId),
   Match(EnumId, Vec<StageId>),
   Fn { call: StageId, fork: Option<StageId>, drop: Option<StageId> },
+  Inspect(Vec<Local>),
 }
 
 impl InterfaceKind {
   pub fn stages(&self) -> impl Iterator<Item = StageId> {
-    multi_iter! { Stages { One, Two, Vec, Fn } }
+    multi_iter! { Stages { Zero, One, Two, Vec, Fn } }
     match self {
       InterfaceKind::Unconditional(a) => Stages::One([*a]),
       InterfaceKind::Branch(a, b) => Stages::Two([*a, *b]),
@@ -101,6 +98,7 @@ impl InterfaceKind {
       InterfaceKind::Fn { call, fork, drop } => {
         Stages::Fn([*call].into_iter().chain(*fork).chain(*drop))
       }
+      InterfaceKind::Inspect(_) => Stages::Zero([]),
     }
   }
 }
@@ -118,13 +116,15 @@ pub struct Stage {
   pub wires: Counter<WireId>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Default, Debug, Clone)]
 pub enum Header {
+  #[default]
   None,
   Match(Option<Port>),
   Fn(Vec<Port>, Port),
   Fork(Port, Port),
   Drop,
+  Entry(Vec<Port>),
 }
 
 #[derive(Debug, Clone)]
@@ -148,12 +148,13 @@ pub enum Step {
 
 impl Header {
   pub fn ports(&self) -> impl Iterator<Item = &Port> {
-    multi_iter!(Ports { Zero, Two, Opt, Fn });
+    multi_iter!(Ports { Zero, Two, Opt, Fn, Vec });
     match self {
       Header::None | Header::Drop => Ports::Zero([]),
       Header::Match(a) => Ports::Opt(a),
       Header::Fn(params, ret) => Ports::Fn(params.iter().chain([ret])),
       Header::Fork(a, b) => Ports::Two([a, b]),
+      Header::Entry(ports) => Ports::Vec(ports),
     }
   }
 }

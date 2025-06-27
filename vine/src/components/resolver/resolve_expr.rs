@@ -393,7 +393,7 @@ impl<'core> Resolver<'core, '_> {
           if let Some(ident) = path.as_ident() {
             if let Some(bind) = self.scope.get(&ident).and_then(|x| x.last()) {
               break 'inner match bind.binding {
-                Binding::Local(local, ty) => (ty, TirExprKind::Local(local)),
+                Binding::Local(local, _, ty) => (ty, TirExprKind::Local(local)),
                 Binding::Closure(id, ty) => (ty, TirExprKind::Closure(id)),
               };
             }

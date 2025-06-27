@@ -1,6 +1,6 @@
 use std::{
   collections::{BTreeMap, HashMap},
-  mem::{swap, take},
+  mem::take,
 };
 
 use vine_util::idx::{Counter, IdxVec, RangeExt};
@@ -25,7 +25,7 @@ use crate::{
       ConstSig, EnumSig, FnSig, GenericsSig, ImplSig, Signatures, StructSig, TraitSig, TypeAliasSig,
     },
     tir::{
-      ClosureId, LabelId, Local, TirLocal, Tir, TirClosure, TirExpr, TirExprKind, TirImpl, TirPat,
+      ClosureId, LabelId, Local, Tir, TirClosure, TirExpr, TirExprKind, TirImpl, TirLocal, TirPat,
       TirPatKind,
     },
     types::{ImplType, Type, TypeCtx, TypeKind, Types},
@@ -77,7 +77,7 @@ struct LabelInfo {
 
 #[derive(Debug, Clone, Copy)]
 enum Binding {
-  Local(Local, Type),
+  Local(Local, Span, Type),
   Closure(ClosureId, Type),
 }
 
@@ -263,45 +263,47 @@ impl<'core, 'a> Resolver<'core, 'a> {
     self.resolutions.fns.push(fragment_id);
   }
 
-  pub(crate) fn _resolve_custom(
+  #[allow(clippy::type_complexity)]
+  pub(crate) fn _resolve_repl<'l>(
     &mut self,
     span: Span,
     path: &'core str,
     def_id: DefId,
-    types: &mut Types<'core>,
-    locals: &BTreeMap<Local, (Ident<'core>, Type)>,
-    local_info: &mut IdxVec<Local, TirLocal>,
-    block: &mut Block<'core>,
-  ) -> (FragmentId, impl Iterator<Item = (Ident<'core>, Local, Type)>) {
-    self.cur_def = def_id;
-    self.scope = locals
-      .iter()
-      .map(|(&local, &(name, ty))| {
-        (name, vec![ScopeEntry { depth: 0, binding: Binding::Local(local, ty) }])
-      })
-      .collect();
-    swap(types, &mut self.types);
-    self.locals = take(local_info);
+    types: Types<'core>,
+    locals: impl Iterator<Item = (Ident<'core>, Span, Type)>,
+    block: &Block<'core>,
+  ) -> (FragmentId, Type, Vec<(Local, Ident<'core>, Span, Type)>) {
+    self.initialize(def_id, GenericsId::NONE);
+    self.types = types;
+    for (name, span, ty) in locals {
+      let local = self.locals.push(TirLocal { span, ty });
+      let binding = Binding::Local(local, span, ty);
+      self.scope.insert(name, vec![ScopeEntry { depth: 0, binding }]);
+    }
     let ty = self.types.new_var(block.span);
     let root = self.resolve_stmts_type(block.span, &block.stmts, ty);
-    *local_info = self.locals.clone();
-    *types = self.types.clone();
+    let root = TirExpr {
+      span,
+      ty: self.types.new(TypeKind::Ref(ty)),
+      kind: Box::new(TirExprKind::Ref(root)),
+    };
     let fragment = self.finish_fragment(span, path, root);
-    (
-      self.fragments.push(fragment),
-      take(&mut self.scope).into_iter().filter_map(|(name, entries)| {
+    let fragment_id = self.fragments.push(fragment);
+    let mut bindings =
+      Vec::from_iter(take(&mut self.scope).into_iter().filter_map(|(name, entries)| {
         let entry = entries.first()?;
         if entry.depth == 0 {
-          if let Binding::Local(local, ty) = entry.binding {
-            Some((name, local, ty))
+          if let Binding::Local(local, span, ty) = entry.binding {
+            Some((local, name, span, ty))
           } else {
             None
           }
         } else {
           None
         }
-      }),
-    )
+      }));
+    bindings.sort_by_key(|b| b.0);
+    (fragment_id, ty, bindings)
   }
 
   fn resolve_block(&mut self, block: &Block<'core>) -> TirExpr {
