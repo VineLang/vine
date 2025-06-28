@@ -425,6 +425,7 @@ impl<'core> Charter<'core, '_> {
       Builtin::IO => set(&mut builtins.io, opaque_type_id),
       Builtin::List => set(&mut builtins.list, struct_id),
       Builtin::String => set(&mut builtins.string, struct_id),
+      Builtin::Option => set(&mut builtins.option, enum_id),
       Builtin::Result => set(&mut builtins.result, enum_id),
       Builtin::Neg => set(&mut builtins.neg, fn_id),
       Builtin::Not => set(&mut builtins.not, fn_id),
@@ -440,6 +441,7 @@ impl<'core> Charter<'core, '_> {
       Builtin::BoundUnbounded => set(&mut builtins.bound_unbounded, struct_id),
       Builtin::BoundExclusive => set(&mut builtins.bound_exclusive, struct_id),
       Builtin::BoundInclusive => set(&mut builtins.bound_inclusive, struct_id),
+      Builtin::Advance => set(&mut builtins.advance, fn_id),
     }
   }
 

@@ -164,6 +164,7 @@ pub enum Builtin {
   Prelude,
   List,
   String,
+  Option,
   Result,
   BinaryOp(BinaryOp),
   Neg,
@@ -179,6 +180,7 @@ pub enum Builtin {
   BoundUnbounded,
   BoundInclusive,
   BoundExclusive,
+  Advance,
 }
 
 pub type GenericParams<'core> = Generics<TypeParam<'core>, ImplParam<'core>>;
@@ -277,6 +279,7 @@ pub enum ExprKind<'core> {
   If(Vec<(Expr<'core>, Block<'core>)>, Option<Block<'core>>),
   While(Option<Ident<'core>>, B<Expr<'core>>, Block<'core>),
   Loop(Option<Ident<'core>>, Block<'core>),
+  For(Option<Ident<'core>>, Pat<'core>, B<Expr<'core>>, Block<'core>),
   Fn(Flex, Vec<Pat<'core>>, Option<Ty<'core>>, Block<'core>),
   Return(Option<B<Expr<'core>>>),
   Break(Option<Ident<'core>>, Option<B<Expr<'core>>>),

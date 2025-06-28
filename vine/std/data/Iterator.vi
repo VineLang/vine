@@ -1,4 +1,5 @@
 
-pub trait Iterator[T, Item] {
-  fn .next(self: &T) -> Option[Item];
+pub trait Iterator[Self, Item] {
+  #[builtin = "advance"]
+  fn .advance(self: Self) -> Option[(Item, Self)];
 }

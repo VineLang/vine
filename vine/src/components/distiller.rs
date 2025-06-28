@@ -135,6 +135,9 @@ impl<'core, 'r> Distiller<'core, 'r> {
       TirExprKind::While(label, cond, block) => {
         self.distill_while(stage, span, *label, cond, block)
       }
+      TirExprKind::For(label, rel, pat, iter, block) => {
+        self.distill_for(stage, span, *label, *rel, pat, iter, block)
+      }
       TirExprKind::Return(value) => self.distill_return(stage, value),
       TirExprKind::Break(label, value) => self.distill_break(stage, *label, value),
       TirExprKind::Continue(label) => self.distill_continue(stage, *label),

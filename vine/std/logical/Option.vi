@@ -1,6 +1,7 @@
 
 use debug::Show;
 
+#[builtin = "Option"]
 pub enum Option[T] {
   Some(T),
   None,

@@ -188,6 +188,7 @@ impl Builtins {
       io,
       list,
       string,
+      option,
       result,
       neg,
       not,
@@ -203,6 +204,7 @@ impl Builtins {
       bound_exclusive,
       bound_inclusive,
       bound_unbounded,
+      advance,
     } = self;
     revert_idx(prelude, checkpoint.defs);
     revert_idx(bool, checkpoint.opaque_types);
@@ -213,6 +215,7 @@ impl Builtins {
     revert_idx(io, checkpoint.opaque_types);
     revert_idx(list, checkpoint.structs);
     revert_idx(string, checkpoint.structs);
+    revert_idx(option, checkpoint.enums);
     revert_idx(result, checkpoint.enums);
     revert_fn(neg, checkpoint);
     revert_fn(not, checkpoint);
@@ -228,6 +231,7 @@ impl Builtins {
     revert_idx(bound_exclusive, checkpoint.structs);
     revert_idx(bound_inclusive, checkpoint.structs);
     revert_idx(bound_unbounded, checkpoint.structs);
+    revert_fn(advance, checkpoint);
   }
 }
 

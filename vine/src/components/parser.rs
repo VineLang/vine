@@ -127,6 +127,7 @@ impl<'core, 'src> VineParser<'core, 'src> {
           "IO" => Builtin::IO,
           "List" => Builtin::List,
           "String" => Builtin::String,
+          "Option" => Builtin::Option,
           "Result" => Builtin::Result,
           "prelude" => Builtin::Prelude,
           "neg" => Builtin::Neg,
@@ -159,6 +160,7 @@ impl<'core, 'src> VineParser<'core, 'src> {
           "BoundUnbounded" => Builtin::BoundUnbounded,
           "BoundInclusive" => Builtin::BoundInclusive,
           "BoundExclusive" => Builtin::BoundExclusive,
+          "advance" => Builtin::Advance,
           _ => Err(Diag::BadBuiltin { span: str_span })?,
         };
         AttrKind::Builtin(builtin)
@@ -624,6 +626,14 @@ impl<'core, 'src> VineParser<'core, 'src> {
       let label = self.parse_label()?;
       let body = self.parse_block()?;
       return Ok(Some(ExprKind::Loop(label, body)));
+    }
+    if self.eat(Token::For)? {
+      let label = self.parse_label()?;
+      let pat = self.parse_pat()?;
+      self.expect(Token::In)?;
+      let expr = self.parse_expr()?;
+      let body = self.parse_block()?;
+      return Ok(Some(ExprKind::For(label, pat, Box::new(expr), body)));
     }
     if self.eat(Token::Fn)? {
       let flex = self.parse_flex()?;

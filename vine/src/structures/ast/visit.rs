@@ -105,6 +105,11 @@ pub trait VisitMut<'core, 'a> {
         self.visit(b);
         self.visit_block(c);
       }
+      ExprKind::For(_, a, b, c) => {
+        self.visit(a);
+        self.visit_expr(b);
+        self.visit(c);
+      }
       ExprKind::Tuple(a) | ExprKind::List(a) => {
         self.visit(a);
       }
