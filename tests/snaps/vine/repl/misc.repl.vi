@@ -1,110 +1,107 @@
 
-io = #io
+let io: IO = #io;
 > use std::{data::Array, numeric::N64};
 
-io = #io
-> (1, _)
-error input:1:1 - tuple members have inconsistent forms
-
-io = #io
+let io: IO = #io;
 > fn _foo() {}
 
-io = #io
+let io: IO = #io;
 > 1.as[String]
 "1"
 
-io = #io
+let io: IO = #io;
 > 1.0.as[String]
 "+1.00000"
 
-io = #io
+let io: IO = #io;
 > ((1,2),(3,4)).0
 (1, 2)
 
-io = #io
+let io: IO = #io;
 > ((1,2),(3,4)).0.0
 1
 
-io = #io
+let io: IO = #io;
 > ((1,2),(3,4)).0.0.as[String]
 "1"
 
-io = #io
+let io: IO = #io;
 > ((1,2),(3,4)).1.1.as[String]
 "4"
 
-io = #io
+let io: IO = #io;
 > "abc" ++ 123
-error input:1:1 - cannot find impl of trait `Concat[String, N32, ?59]`
+error input:1:1 - cannot find impl of trait `Concat[String, N32, ?86]`
+error input:1:1 - search limit reached when finding impl of trait `Drop[?83]`
 
-io = #io
+let io: IO = #io;
 > ([true, false]; _).show().as[String]
 "[true, false]"
 
-io = #io
+let io: IO = #io;
 > [1,2,3,4].split_at(2)
 ([1, 2], [3, 4])
 
-io = #io
+let io: IO = #io;
 > [1,2,3,4].split_at(0)
 ([], [1, 2, 3, 4])
 
-io = #io
+let io: IO = #io;
 > [1,2,3,4].split_at(6)
 ([1, 2, 3, 4], [])
 
-io = #io
+let io: IO = #io;
 > [1,2,3,4].reversed()
 [4, 3, 2, 1]
 
-io = #io
+let io: IO = #io;
 > [1,2,3,4].filter(fn* (&x: &N32) { x % 2 == 0 })
 [2, 4]
 
-io = #io
+let io: IO = #io;
 > ["aaa", "bbb", "ccc"].filter(fn* (&x: &String) { x.len() > 2 })
 ["aaa", "bbb", "ccc"]
 
-io = #io
-> [].filter(fn* (&x: &Bool) { x })
+let io: IO = #io;
+> List::empty[Bool].filter(fn* (&x) { x })
 []
 
-io = #io
+let io: IO = #io;
 > let l = [+1,+2,-13,+4];
 
-io = #io
-l = [+1, +2, -13, +4]
+let io: IO = #io;
+let l: List[I32] = [+1, +2, -13, +4];
 > l.find(fn* (&x: &I32) { x == +7 })
 None
 
-io = #io
-l = [+1, +2, -13, +4]
+let io: IO = #io;
+let l: List[I32] = [+1, +2, -13, +4];
 > *l.find(fn* (&x: &I32) { x < +0 }).unwrap() -= +5;
 
-io = #io
-l = [+1, +2, -18, +4]
+let io: IO = #io;
+let l: List[I32] = [+1, +2, -18, +4];
 > l.contains(&(+1; _))
 true
 
-io = #io
-l = [+1, +2, -18, +4]
+let io: IO = #io;
+let l: List[I32] = [+1, +2, -18, +4];
 > l.contains(&(+4; _))
 true
 
-io = #io
-l = [+1, +2, -18, +4]
+let io: IO = #io;
+let l: List[I32] = [+1, +2, -18, +4];
 > l.contains(&(+7; _))
-::std::data::List::contains::0::9
+::std::data::List::contains:0:s9
 
-io = #io
-l = [+1, +2, -18, +4]
-> let l
+let io: IO = #io;
+let l: List[I32] = [+1, +2, -18, +4];
+> /clear l
 
-io = #io
+let io: IO = #io;
 > let a = Array::from_fn(5, do { let x = 0; (fn* () { let n = x; x += 1; n }) });
 
-io = #io
-a = Array(5, Node(Node(Node(Node(#ivy(0)), Node(#ivy(4))), Node(#ivy(2))), Node(Node(#ivy(1)), Node(#ivy(3)))))
+let io: IO = #io;
+let a: Array[N32] = Array(5, Node(Node(Node(Node(#ivy(0)), Node(#ivy(4))), Node(#ivy(2))), Node(Node(#ivy(1)), Node(#ivy(3)))));
 > a.for_each(fn* (v: N32) { io.println("{v}")})
 0
 1
@@ -112,255 +109,303 @@ a = Array(5, Node(Node(Node(Node(#ivy(0)), Node(#ivy(4))), Node(#ivy(2))), Node(
 3
 4
 
-io = #io
-a = Array(5, Node(Node(Node(Node(#ivy(0)), Node(#ivy(4))), Node(#ivy(2))), Node(Node(#ivy(1)), Node(#ivy(3)))))
+let io: IO = #io;
+let a: Array[N32] = Array(5, Node(Node(Node(Node(#ivy(0)), Node(#ivy(4))), Node(#ivy(2))), Node(Node(#ivy(1)), Node(#ivy(3)))));
 > -a.fold_front(0, fn* (a: N32, b: N32) { a - b })
 10
 
-io = #io
-a = Array(5, Node(Node(Node(Node(#ivy(0)), Node(#ivy(4))), Node(#ivy(2))), Node(Node(#ivy(1)), Node(#ivy(3)))))
+let io: IO = #io;
+let a: Array[N32] = Array(5, Node(Node(Node(Node(#ivy(0)), Node(#ivy(4))), Node(#ivy(2))), Node(Node(#ivy(1)), Node(#ivy(3)))));
 > -a.fold_back(5, fn* (a: N32, b: N32) { a - b })
 5
 
-io = #io
-a = Array(5, Node(Node(Node(Node(#ivy(0)), Node(#ivy(4))), Node(#ivy(2))), Node(Node(#ivy(1)), Node(#ivy(3)))))
+let io: IO = #io;
+let a: Array[N32] = Array(5, Node(Node(Node(Node(#ivy(0)), Node(#ivy(4))), Node(#ivy(2))), Node(Node(#ivy(1)), Node(#ivy(3)))));
 > a.get(3)
 Some(3)
 
-io = #io
-a = Array(5, Node(Node(Node(Node(#ivy(0)), Node(#ivy(4))), Node(#ivy(2))), Node(Node(#ivy(1)), Node(#ivy(3)))))
+let io: IO = #io;
+let a: Array[N32] = Array(5, Node(Node(Node(Node(#ivy(0)), Node(#ivy(4))), Node(#ivy(2))), Node(Node(#ivy(1)), Node(#ivy(3)))));
 > a.at(5)
 None
 
-io = #io
-a = Array(5, Node(Node(Node(Node(#ivy(0)), Node(#ivy(4))), Node(#ivy(2))), Node(Node(#ivy(1)), Node(#ivy(3)))))
-> let a
+let io: IO = #io;
+let a: Array[N32] = Array(5, Node(Node(Node(Node(#ivy(0)), Node(#ivy(4))), Node(#ivy(2))), Node(Node(#ivy(1)), Node(#ivy(3)))));
+> /clear a
 
-io = #io
+let io: IO = #io;
 > [1,2,3,4,5,6,7,8,9].as[Array].reversed().as[List]
 [9, 8, 7, 6, 5, 4, 3, 2, 1]
 
-io = #io
+let io: IO = #io;
 > List::new(100, "")
 ["", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""]
 
-io = #io
+let io: IO = #io;
 > 2 ** 10
 1024
 
-io = #io
+let io: IO = #io;
 > 4 + 4 ** 3 ** 2 / 2
 131076
 
-io = #io
+let io: IO = #io;
 > 12.34 ** -5
 3.4948148e-6
 
-io = #io
+let io: IO = #io;
 > 12.34 ** +0
 1.0
 
-io = #io
+let io: IO = #io;
 > 12.34 ** +3
 1879.0809
 
-io = #io
+let io: IO = #io;
 > 1024.log(2)
 10
 
-io = #io
+let io: IO = #io;
 > 1000.log(2)
 9
 
-io = #io
+let io: IO = #io;
 > 1025.log(2)
 10
 
-io = #io
+let io: IO = #io;
 > 10.max(100)
 100
 
-io = #io
+let io: IO = #io;
 > 10.min(100)
 10
 
-io = #io
+let io: IO = #io;
 > 10.diff(100)
 90
 
-io = #io
+let io: IO = #io;
 > 123.gcd(456)
 3
 
-io = #io
+let io: IO = #io;
 > 99.sqrt()
 9
 
-io = #io
+let io: IO = #io;
 > 100.sqrt()
 10
 
-io = #io
+let io: IO = #io;
 > 101.sqrt()
 10
 
-io = #io
+let io: IO = #io;
 > (N64::parse("1234567890123456789000").unwrap() + N64::parse("46").unwrap()) as String
 "17082781258626382390"
 
-io = #io
+let io: IO = #io;
 > N64::parse("")
 None
 
-io = #io
+let io: IO = #io;
 > N64::parse("one")
 None
 
-io = #io
+let io: IO = #io;
 > N64::parse("1.0")
 None
 
-io = #io
+let io: IO = #io;
 > (3 as N64 ** 33) as String
 "5559060566555523"
 
-io = #io
+let io: IO = #io;
 > (3 as N64 ** 33).log_n32(3)
 32
 
-io = #io
+let io: IO = #io;
 > ((3 as N64 ** 33) - 1 as N64).log_n32(3)
 32
 
-io = #io
+let io: IO = #io;
 > ((3 as N64 ** 33) + 1 as N64).log_n32(3)
 32
 
-io = #io
+let io: IO = #io;
 > "1,2,3,4".split(",")
 ["1", "2", "3", "4"]
 
-io = #io
+let io: IO = #io;
 > "      1 2  3 4   ".split_trim(" ")
 ["1", "2", "", "3", "4"]
 
-io = #io
+let io: IO = #io;
 > "1,2, 3,4, 5,6".split_once(", ")
 ("1,2", Some("3,4, 5,6"))
 
-io = #io
+let io: IO = #io;
 > 123.show(2)
 error input:1:1 - function expects 1 argument; was passed 2
 
-io = #io
+let io: IO = #io;
 > let x = [[1]];
 
-io = #io
-x = [[1]]
+let io: IO = #io;
+let x: List[List[N32]] = [[1]];
 > (*x.at(0).unwrap()).get(0)
 Some(1)
 
-io = #io
-x = [[1]]
+let io: IO = #io;
+let x: List[List[N32]] = [[1]];
 > x.at(0).unwrap().*.at(0).unwrap().* = 2
 
-io = #io
-x = [[2]]
+let io: IO = #io;
+let x: List[List[N32]] = [[2]];
 > ~x.at(0).unwrap().*.at(0).unwrap().*.~
 2
 
-io = #io
-x = [[2]]
+let io: IO = #io;
+let x: List[List[N32]] = [[2]];
 > x.at(3)
 None
 
-io = #io
-x = [[2]]
-> let x
+let io: IO = #io;
+let x: List[List[N32]] = [[2]];
+> /clear x
 
-io = #io
+let io: IO = #io;
 > let _: { a: N32, b: N32 } = { a: 1 }
 error input:1:29 - expected type `{ a: N32, b: N32 }`; found `{ a: N32 }`
+error input:1:5 - cannot find impl of trait `Drop[{ a: N32, b: N32 }]`
 
-io = #io
+let io: IO = #io;
 > do { let x; x = (x, x); }
-error input:1:17 - expected type `?1210`; found `(?1210, ?1210)`
+error input:1:17 - expected type `?1514`; found `(?1514, ?1514)`
+error input:1:10 - search limit reached when finding flex of type `?1514`
+error input:1:10 - cannot drop `?1514`
+error input:1:10 - variable of type `?1514` read whilst uninitialized
+error input:1:10 - cannot fork `?1514`
 
-io = #io
+let io: IO = #io;
 > let (a: N32, b: N32);
 
-io = #io
+let io: IO = #io;
+let a: N32;
+let b: N32;
 > let x: (~N32, ~N32) = ~(a, b);
 
-io = #io
-a = #ivy(dup2(_ n0))
-b = #ivy(dup3(_ n0))
-x = (#ivy(n0), #ivy(n1))
-> let x: { a: ~N32, b: ~N32 } = ~{ a, b };
+let io: IO = #io;
+let a: N32 = #ivy(n0);
+let b: N32 = #ivy(n1);
+let x: (~N32, ~N32) = (#ivy(n0), #ivy(n1));
+> let y: { a: ~N32, b: ~N32 } = ~{ a, b };
 
-io = #io
-a = #ivy(dup2(dup2(_ _) n0))
-b = #ivy(dup3(dup3(_ _) n0))
-x = { a: #ivy(n0), b: #ivy(n1) }
-> let (a, b, x)
+let io: IO = #io;
+let a: N32 = #ivy(n0);
+let b: N32 = #ivy(n1);
+let x: (~N32, ~N32) = (::std::unsafe::eraser, ::std::unsafe::eraser);
+let y: { a: ~N32, b: ~N32 } = { a: #ivy(n0), b: #ivy(n1) };
+> ~x = (1, 2);
 
-io = #io
-> let x
+let io: IO = #io;
+let a: N32 = #ivy(n0);
+let b: N32 = #ivy(n1);
+let x: (~N32, ~N32);
+let y: { a: ~N32, b: ~N32 } = { a: #ivy(n0), b: #ivy(n1) };
+> ~y = { a: 4, b: 6 }
 
-io = #io
-> x.a; x.a
+let io: IO = #io;
+let a: N32 = 4;
+let b: N32 = 6;
+let x: (~N32, ~N32);
+let y: { a: ~N32, b: ~N32 };
+> /clear a b x y
+
+let io: IO = #io;
+> let x; x.a; x.a
 error input:1:5 - cannot infer type
+error input:1:8 - search limit reached when finding flex of type `?1604`
+error input:1:8 - search limit reached when finding impl of trait `Drop[?1604]`
+error input:1:13 - search limit reached when finding flex of type `?1604`
+error - search limit reached when finding impl of trait `Drop[?1604]`
+error input:1:5 - search limit reached when finding flex of type `?1604`
+error input:1:5 - variable of type `?1604` read whilst uninitialized
 
-io = #io
+let io: IO = #io;
 > Ok(true)?
 error input:1:1 - no function to return from
 
-io = #io
+let io: IO = #io;
 > fn foo() -> N32 { Ok(123)? }
 error input:1:19 - cannot try `Result[N32, ?2]` in a function returning `N32`
+error input:1:19 - search limit reached when finding flex of type `?2`
+error input:1:19 - search limit reached when finding flex of type `Result[N32, ?2]`
+error input:1:19 - search limit reached when finding flex of type `?2`
 
-io = #io
+let io: IO = #io;
 > fn foo() -> Result[N32, String] { Ok(123)? }
 error input:1:35 - expected type `Result[N32, String]`; found `N32`
 
-io = #io
+let io: IO = #io;
 > fn foo() -> Result[N32, String] { Err(123)? }
 error input:1:35 - cannot try `Result[?3, N32]` in a function returning `Result[N32, String]`
 
-io = #io
+let io: IO = #io;
 > let x = (1, 2.0, ([Some(Ok(true)), Some(Err("hi")), None], [1, 2, 3] as Array), ((), ((),), ((), ())));
 
-io = #io
-x = (1, 2.0, ([Some(Ok(true)), Some(Err("hi")), None], Array(3, Node(Node(Node(#ivy(1)), Node(#ivy(3))), Node(#ivy(2))))), ((), ((),), ((), ())))
+let io: IO = #io;
+let x: (N32, F32, (List[Option[Result[Bool, String]]], Array[N32]), ((), ((),), ((), ()))) = (1, 2.0, ([Some(Ok(true)), Some(Err("hi")), None], Array(3, Node(Node(Node(#ivy(1)), Node(#ivy(3))), Node(#ivy(2))))), ((), ((),), ((), ())));
 > x.fork()
 (1, 2.0, ([Some(Ok(true)), Some(Err("hi")), None], Array(3, Node(Node(Node(#ivy(1)), Node(#ivy(3))), Node(#ivy(2))))), ((), ((),), ((), ())))
 
-io = #io
-x = (1, 2.0, ([Some(Ok(true)), Some(Err("hi")), None], Array(3, Node(Node(Node(#ivy(1)), Node(#ivy(3))), Node(#ivy(2))))), ((), ((),), ((), ())))
-> x.drop(); let x;
+let io: IO = #io;
+let x: (N32, F32, (List[Option[Result[Bool, String]]], Array[N32]), ((), ((),), ((), ()))) = (1, 2.0, ([Some(Ok(true)), Some(Err("hi")), None], Array(3, Node(Node(Node(#ivy(1)), Node(#ivy(3))), Node(#ivy(2))))), ((), ((),), ((), ())));
+> x.drop()
 
-io = #io
+let io: IO = #io;
+let x: (N32, F32, (List[Option[Result[Bool, String]]], Array[N32]), ((), ((),), ((), ()))) = (1, 2.0, ([Some(Ok(true)), Some(Err("hi")), None], Array(3, Node(Node(Node(#ivy(1)), Node(#ivy(3))), Node(#ivy(2))))), ((), ((),), ((), ())));
+> /clear x
+
+let io: IO = #io;
 > -8765.123e-8.abs()
 8.765123e-5
 
-io = #io
+let io: IO = #io;
 > 8765.123e-8.abs()
 8.765123e-5
 
-io = #io
+let io: IO = #io;
 > F32::inf.abs()
 ::std::numeric::F32::inf
 
-io = #io
+let io: IO = #io;
 > F32::neg_inf.abs()
 inf
 
-io = #io
+let io: IO = #io;
 > F32::nan.abs()
 ::std::numeric::F32::nan
 
-io = #io
+let io: IO = #io;
 > do { match Some(1) { Some(_) {} } }
 error input:1:6 - match arms do not cover all possible cases
+error input:1:6 - variable of type `()` read whilst uninitialized
 
-io = #io
+let io: IO = #io;
+> let x = 1
+
+let io: IO = #io;
+let x: N32 = 1;
+> let x = x + 1
+
+let io: IO = #io;
+let x: N32 = 2;
+> /clear x
+
+let io: IO = #io;
+> match (Some(1), 2) { (None, _) { None } x { Some(x) } }
+Some(Some(1), 2)
+
+let io: IO = #io;

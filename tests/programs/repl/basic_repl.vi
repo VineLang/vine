@@ -7,3 +7,7 @@ x = fib(x)
 x = fib(x)
 x = fib(x)
 io.println("Hello, world!")
+/help
+/set show_scope false
+/clear x
+/set show_scope true

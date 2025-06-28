@@ -1,5 +1,4 @@
 use std::{data::Array, numeric::N64};
-(1, _)
 fn _foo() {}
 1.as[String]
 1.0.as[String]
@@ -15,21 +14,21 @@ fn _foo() {}
 [1,2,3,4].reversed()
 [1,2,3,4].filter(fn* (&x: &N32) { x % 2 == 0 })
 ["aaa", "bbb", "ccc"].filter(fn* (&x: &String) { x.len() > 2 })
-[].filter(fn* (&x: &Bool) { x })
+List::empty[Bool].filter(fn* (&x) { x })
 let l = [+1,+2,-13,+4];
 l.find(fn* (&x: &I32) { x == +7 })
 *l.find(fn* (&x: &I32) { x < +0 }).unwrap() -= +5;
 l.contains(&(+1; _))
 l.contains(&(+4; _))
 l.contains(&(+7; _))
-let l
+/clear l
 let a = Array::from_fn(5, do { let x = 0; (fn* () { let n = x; x += 1; n }) });
 a.for_each(fn* (v: N32) { io.println("{v}")})
 -a.fold_front(0, fn* (a: N32, b: N32) { a - b })
 -a.fold_back(5, fn* (a: N32, b: N32) { a - b })
 a.get(3)
 a.at(5)
-let a
+/clear a
 [1,2,3,4,5,6,7,8,9].as[Array].reversed().as[List]
 List::new(100, "")
 2 ** 10
@@ -64,25 +63,31 @@ let x = [[1]];
 x.at(0).unwrap().*.at(0).unwrap().* = 2
 ~x.at(0).unwrap().*.at(0).unwrap().*.~
 x.at(3)
-let x
+/clear x
 let _: { a: N32, b: N32 } = { a: 1 }
 do { let x; x = (x, x); }
 let (a: N32, b: N32);
 let x: (~N32, ~N32) = ~(a, b);
-let x: { a: ~N32, b: ~N32 } = ~{ a, b };
-let (a, b, x)
-let x
-x.a; x.a
+let y: { a: ~N32, b: ~N32 } = ~{ a, b };
+~x = (1, 2);
+~y = { a: 4, b: 6 }
+/clear a b x y
+let x; x.a; x.a
 Ok(true)?
 fn foo() -> N32 { Ok(123)? }
 fn foo() -> Result[N32, String] { Ok(123)? }
 fn foo() -> Result[N32, String] { Err(123)? }
 let x = (1, 2.0, ([Some(Ok(true)), Some(Err("hi")), None], [1, 2, 3] as Array), ((), ((),), ((), ())));
 x.fork()
-x.drop(); let x;
+x.drop()
+/clear x
 -8765.123e-8.abs()
 8765.123e-8.abs()
 F32::inf.abs()
 F32::neg_inf.abs()
 F32::nan.abs()
 do { match Some(1) { Some(_) {} } }
+let x = 1
+let x = x + 1
+/clear x
+match (Some(1), 2) { (None, _) { None } x { Some(x) } }

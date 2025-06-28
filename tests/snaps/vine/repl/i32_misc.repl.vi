@@ -1,130 +1,130 @@
 
-io = #io
+let io: IO = #io;
 > +1
 +1
 
-io = #io
+let io: IO = #io;
 > +1 + +2
 +3
 
-io = #io
+let io: IO = #io;
 > +1 - +2
 -1
 
-io = #io
+let io: IO = #io;
 > +5 * +5
 +25
 
-io = #io
+let io: IO = #io;
 > -5 * -5
 +25
 
-io = #io
+let io: IO = #io;
 > -5 * +5
 -25
 
-io = #io
+let io: IO = #io;
 > -1 < +1
 true
 
-io = #io
+let io: IO = #io;
 > -1 > +1
 false
 
-io = #io
+let io: IO = #io;
 > -10 << 1
 -20
 
-io = #io
+let io: IO = #io;
 > -10 >> 1
 -5
 
-io = #io
+let io: IO = #io;
 > -10 / -2
 +5
 
-io = #io
+let io: IO = #io;
 > +10 / -2
 -5
 
-io = #io
+let io: IO = #io;
 > -10 / +2
 -5
 
-io = #io
+let io: IO = #io;
 > -10 % -3
 -1
 
-io = #io
+let io: IO = #io;
 > +10 % -3
 +1
 
-io = #io
+let io: IO = #io;
 > -10 % +3
 -1
 
-io = #io
+let io: IO = #io;
 > +10 % +3
 +1
 
-io = #io
+let io: IO = #io;
 > +10.abs()
 +10
 
-io = #io
+let io: IO = #io;
 > -10.abs()
 +10
 
-io = #io
+let io: IO = #io;
 > -0.abs()
 +0
 
-io = #io
+let io: IO = #io;
 > -1234567890.abs()
 +1234567890
 
-io = #io
+let io: IO = #io;
 > "{+123}"
 "+123"
 
-io = #io
+let io: IO = #io;
 > "{-123}"
 "-4294967173"
 
-io = #io
+let io: IO = #io;
 > "{0}"
 "0"
 
-io = #io
+let io: IO = #io;
 > I32::parse("")
 None
 
-io = #io
+let io: IO = #io;
 > I32::parse("=0")
 None
 
-io = #io
+let io: IO = #io;
 > I32::parse("+0")
 Some(+0)
 
-io = #io
+let io: IO = #io;
 > I32::parse("123")
 Some(+123)
 
-io = #io
+let io: IO = #io;
 > I32::parse("+123")
 Some(+123)
 
-io = #io
+let io: IO = #io;
 > I32::parse("-123")
 Some(-123)
 
-io = #io
+let io: IO = #io;
 > I32::parse("+a")
 None
 
-io = #io
+let io: IO = #io;
 > I32::parse("a4321")
 None
 
-io = #io
+let io: IO = #io;

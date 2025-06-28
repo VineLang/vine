@@ -1,56 +1,56 @@
 
-io = #io
+let io: IO = #io;
 > let l = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 
-io = #io
-l = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+let io: IO = #io;
+let l: List[N32] = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 > l.slice(3..5)
 [3, 4]
 
-io = #io
-l = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+let io: IO = #io;
+let l: List[N32] = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 > l.slice(5..)
 [5, 6, 7, 8, 9, 10]
 
-io = #io
-l = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+let io: IO = #io;
+let l: List[N32] = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 > l.slice(..2)
 [0, 1]
 
-io = #io
-l = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+let io: IO = #io;
+let l: List[N32] = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 > l.slice(..)
 [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 
-io = #io
-l = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+let io: IO = #io;
+let l: List[N32] = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 > l.slice(3..=5)
 [3, 4, 5]
 
-io = #io
-l = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+let io: IO = #io;
+let l: List[N32] = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 > l.slice(..=2)
 [0, 1, 2]
 
-io = #io
-l = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+let io: IO = #io;
+let l: List[N32] = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 > l.slice(5..=)
 error input:1:13 - expected one of {DotDot, DotDotEq, ColonColon, And, AndAnd, Minus, Star, Bang, Tilde, OpenBrace, OpenParen, OpenBracket, Hole, Fn, InlineIvy, Match, Return, Do, Loop, While, Break, Continue, If, True, False, Ident, Num, DoubleQuote, SingleQuote}; found Some(CloseParen)
 
-io = #io
-l = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+let io: IO = #io;
+let l: List[N32] = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 > l.slice(..=)
 error input:1:12 - expected one of {DotDot, DotDotEq, ColonColon, And, AndAnd, Minus, Star, Bang, Tilde, OpenBrace, OpenParen, OpenBracket, Hole, Fn, InlineIvy, Match, Return, Do, Loop, While, Break, Continue, If, True, False, Ident, Num, DoubleQuote, SingleQuote}; found Some(CloseParen)
 
-io = #io
-l = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+let io: IO = #io;
+let l: List[N32] = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 > l.slice(9..5)
 []
 
-io = #io
-l = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+let io: IO = #io;
+let l: List[N32] = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 > l.slice(1 + 3 .. l.len() - 2 * 2)
 [4, 5, 6]
 
-io = #io
-l = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+let io: IO = #io;
+let l: List[N32] = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
