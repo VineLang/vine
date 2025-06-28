@@ -440,24 +440,24 @@ impl<'core, 'r> Distiller<'core, 'r> {
         let mut acc = None;
         for el in els {
           let el = self.distill_expr_poly(stage, el);
-          acc = Some({
-            let mut acc = acc.unwrap_or_else(|| match el {
-              Poly::Error(err) => Poly::Error(err),
-              Poly::Value(_) => Poly::Value(vec![]),
-              Poly::Place(_) => Poly::Place((vec![], vec![])),
-              Poly::Space(_) => Poly::Space(vec![]),
-            });
-            match (&mut acc, el) {
-              (_, Poly::Error(err)) => acc = Poly::Error(err),
-              (Poly::Value(ps), Poly::Value(p)) | (Poly::Space(ps), Poly::Space(p)) => ps.push(p),
-              (Poly::Place((ps, qs)), Poly::Place((p, q))) => {
-                ps.push(p);
-                qs.push(q);
-              }
-              _ => acc = Poly::Error(self.core.report(Diag::AmbiguousPolyformicComposite { span })),
-            }
-            acc
+          let mut new_acc = acc.unwrap_or_else(|| match el {
+            Poly::Error(err) => Poly::Error(err),
+            Poly::Value(_) => Poly::Value(vec![]),
+            Poly::Place(_) => Poly::Place((vec![], vec![])),
+            Poly::Space(_) => Poly::Space(vec![]),
           });
+          match (&mut new_acc, el) {
+            (_, Poly::Error(err)) => new_acc = Poly::Error(err),
+            (Poly::Value(ps), Poly::Value(p)) | (Poly::Space(ps), Poly::Space(p)) => ps.push(p),
+            (Poly::Place((ps, qs)), Poly::Place((p, q))) => {
+              ps.push(p);
+              qs.push(q);
+            }
+            _ => {
+              new_acc = Poly::Error(self.core.report(Diag::AmbiguousPolyformicComposite { span }))
+            }
+          }
+          acc = Some(new_acc);
         }
         match acc.unwrap_or(Poly::Place((vec![], vec![]))) {
           Poly::Error(err) => Poly::Error(err),
