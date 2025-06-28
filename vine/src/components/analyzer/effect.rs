@@ -1,20 +1,33 @@
 #[repr(u8)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Effect {
-  P,
-  B,
-  PB,
-  RP,
-  RB,
-  RPB,
-  BW,
-  PBW,
-  RBW,
-  RPBW,
-  X,
+  Pass,
+  Barrier,
+  PassBarrier,
+  ReadPass,
+  ReadBarrier,
+  ReadPassBarrier,
+  BarrierWrite,
+  PassBarrierWrite,
+  ReadBarrierWrite,
+  ReadPassBarrierWrite,
+  Never,
 }
 
-use Effect::*;
+#[rustfmt::skip]
+use Effect::{
+  Pass                 as P,
+  Barrier              as B,
+  PassBarrier          as PB,
+  ReadPass             as RP,
+  ReadBarrier          as RB,
+  ReadPassBarrier      as RPB,
+  BarrierWrite         as BW,
+  PassBarrierWrite     as PBW,
+  ReadBarrierWrite     as RBW,
+  ReadPassBarrierWrite as RPBW,
+  Never                as X,
+};
 
 #[rustfmt::skip]
 const JOIN: &[[Effect; 11]; 11] = &[

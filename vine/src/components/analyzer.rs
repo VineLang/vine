@@ -30,7 +30,7 @@ pub fn analyze<'core>(core: &'core Core<'core>, span: Span, vir: &mut Vir) {
     locals: &vir.locals,
     stages: &vir.stages,
     interfaces: &mut vir.interfaces,
-    effects: IdxVec::from([Effect::P]),
+    effects: IdxVec::from([Effect::Pass]),
     dependent: IdxVec::from([Vec::new()]),
     relations: IdxVec::new(),
     segments: Vec::new(),
@@ -64,7 +64,7 @@ new_idx!(pub EffectVar; n => ["e{n}"]);
 new_idx!(pub RelationId; n => ["R{n}"]);
 
 impl EffectVar {
-  pub const P: Self = EffectVar(0);
+  pub const PASS: Self = EffectVar(0);
 }
 
 impl<'core> Analyzer<'core, '_> {
@@ -107,7 +107,9 @@ impl<'core> Analyzer<'core, '_> {
     for interface in self.interfaces.keys() {
       let transfer = self.get_transfer(interface);
       if let InterfaceKind::Inspect(locals) = &self.interfaces[interface].kind {
-        self.segments.push((transfer.0, locals.iter().map(|&l| (l, Effect::RBW)).collect()));
+        self
+          .segments
+          .push((transfer.0, locals.iter().map(|&l| (l, Effect::ReadBarrierWrite)).collect()));
       }
     }
 
@@ -132,10 +134,10 @@ impl<'core> Analyzer<'core, '_> {
         let connected = self.new_var();
         let disconnected = self.new_var();
         let inner = (self.new_var(), self.new_var());
-        self.new_relation(incoming.1, connected, EffectVar::P, inner.0);
-        self.new_relation(inner.1, connected, EffectVar::P, incoming.0);
-        self.new_relation(disconnected, EffectVar::P, EffectVar::P, inner.0);
-        self.new_relation(disconnected, EffectVar::P, EffectVar::P, incoming.0);
+        self.new_relation(incoming.1, connected, EffectVar::PASS, inner.0);
+        self.new_relation(inner.1, connected, EffectVar::PASS, incoming.0);
+        self.new_relation(disconnected, EffectVar::PASS, EffectVar::PASS, inner.0);
+        self.new_relation(disconnected, EffectVar::PASS, EffectVar::PASS, incoming.0);
         self.disconnects.push((stage.id, connected, disconnected));
         transfers.push(inner);
       }
@@ -144,7 +146,7 @@ impl<'core> Analyzer<'core, '_> {
 
       for step in &stage.steps {
         if let Step::Invoke(local, invocation) = step {
-          let effect = current_segment.entry(*local).or_insert(Effect::P);
+          let effect = current_segment.entry(*local).or_insert(Effect::Pass);
           let local = &self.locals[*local];
           let other = invocation.effect(local.inv, local.fork.is_some());
           *effect = if local.inv.0 { other.join(*effect) } else { effect.join(other) };
@@ -154,7 +156,7 @@ impl<'core> Analyzer<'core, '_> {
             self.segments.push((var, take(&mut current_segment)));
             segments.push(var);
           } else {
-            segments.push(EffectVar::P);
+            segments.push(EffectVar::PASS);
           }
           let transfer = self.get_transfer(transfer.interface);
           transfers.push(transfer);
@@ -166,13 +168,13 @@ impl<'core> Analyzer<'core, '_> {
         self.segments.push((var, current_segment));
         segments.push(var);
       } else {
-        segments.push(EffectVar::P);
+        segments.push(EffectVar::PASS);
       }
 
       debug_assert_eq!(transfers.len(), segments.len());
       let n = segments.len();
 
-      let mut forward = EffectVar::P;
+      let mut forward = EffectVar::PASS;
       forwards.reserve(n);
       forwards.push(forward);
       for i in 0..(n - 1) {
@@ -195,24 +197,24 @@ impl<'core> Analyzer<'core, '_> {
       for ((&forward, &transfer), &backward) in
         forwards.iter().zip(transfers.iter()).zip(backwards.iter().rev())
       {
-        self.new_relation(backward, EffectVar::P, forward, transfer.1);
+        self.new_relation(backward, EffectVar::PASS, forward, transfer.1);
       }
     }
   }
 
   fn process_local(&mut self, local: Local, declared: Vec<StageId>) {
     let inv = self.locals[local].inv;
-    self.effects.fill(Effect::X);
-    self.effects[EffectVar::P] = Effect::P;
-    self.dirty.insert(EffectVar::P);
+    self.effects.fill(Effect::Never);
+    self.effects[EffectVar::PASS] = Effect::Pass;
+    self.dirty.insert(EffectVar::PASS);
     for (var, effects) in &mut self.segments {
-      let effect = effects.remove(&local).unwrap_or(Effect::P);
+      let effect = effects.remove(&local).unwrap_or(Effect::Pass);
       self.effects[*var] = effect;
       self.dirty.insert(*var);
     }
     for &(stage, connected, disconnected) in &self.disconnects {
       let var = if declared.contains(&stage) { disconnected } else { connected };
-      self.effects[var] = Effect::P;
+      self.effects[var] = Effect::Pass;
       self.dirty.insert(var);
     }
     while let Some(var) = self.dirty.pop_first() {
@@ -232,14 +234,14 @@ impl<'core> Analyzer<'core, '_> {
       if interface.incoming != 0 {
         let interior = self.effects[interface.interior.unwrap()];
         let exterior = self.effects[interface.exterior.unwrap()];
-        if interior == Effect::X || exterior == Effect::X {
+        if interior == Effect::Never || exterior == Effect::Never {
           if !self.infinite_loop {
             self.core.report(Diag::InfiniteLoop { span: self.span });
             self.infinite_loop = true;
           }
           continue;
         }
-        if interior != Effect::P && exterior != Effect::P {
+        if interior != Effect::Pass && exterior != Effect::Pass {
           assert!(!exterior.pass());
           let barrier = interior.barrier();
           let output = interior.write() && exterior.read();
@@ -260,7 +262,7 @@ impl<'core> Analyzer<'core, '_> {
 
   fn new_var(&mut self) -> EffectVar {
     self.dependent.push(Vec::new());
-    self.effects.push(Effect::X)
+    self.effects.push(Effect::Never)
   }
 
   fn get_transfer(&mut self, interface: InterfaceId) -> (EffectVar, EffectVar) {
@@ -278,13 +280,13 @@ impl<'core> Analyzer<'core, '_> {
 impl Invocation {
   fn effect(&self, inv: Inverted, fork: bool) -> Effect {
     match (self, inv.0) {
-      (Invocation::Barrier, _) => Effect::B,
-      (Invocation::Read(_), false) | (Invocation::Write(_), true) if fork => Effect::RP,
+      (Invocation::Barrier, _) => Effect::Barrier,
+      (Invocation::Read(_), false) | (Invocation::Write(_), true) if fork => Effect::ReadPass,
       (Invocation::Read(_) | Invocation::ReadBarrier(_), false)
-      | (Invocation::Write(_) | Invocation::BarrierWrite(_), true) => Effect::RB,
+      | (Invocation::Write(_) | Invocation::BarrierWrite(_), true) => Effect::ReadBarrier,
       (Invocation::Write(_) | Invocation::BarrierWrite(_), false)
-      | (Invocation::Read(_) | Invocation::ReadBarrier(_), true) => Effect::BW,
-      (Invocation::ReadWrite(..), _) => Effect::RBW,
+      | (Invocation::Read(_) | Invocation::ReadBarrier(_), true) => Effect::BarrierWrite,
+      (Invocation::ReadWrite(..), _) => Effect::ReadBarrierWrite,
     }
   }
 }
