@@ -5,5 +5,5 @@ edition = "2021"
 
 [dependencies]
 
-[lints]
-workspace = true
+[lints.clippy]
+absolute_paths = "warn"

@@ -14,5 +14,6 @@ ivm = { path = "../ivm" }
 ivy = { path = "../ivy" }
 vine-util = { path = "../util" }
 
-[lints]
-workspace = true
+[lints.clippy]
+absolute_paths = "warn"
+large_enum_variant = "allow"

@@ -10,5 +10,5 @@ logos = "0.14.0"
 ivm = { path = "../ivm" }
 vine-util = { path = "../util" }
 
-[lints]
-workspace = true
+[lints.clippy]
+absolute_paths = "warn"

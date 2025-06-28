@@ -10,5 +10,5 @@ tokio = { version = "1.41.1", features = ["full"] }
 tower-lsp = "0.20.0"
 vine = { version = "0.1.0", path = "../vine" }
 
-[lints]
-workspace = true
+[lints.clippy]
+absolute_paths = "warn"
