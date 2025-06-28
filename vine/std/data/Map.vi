@@ -262,6 +262,12 @@ pub mod Map {
       }
     }
 
+    pub impl fork[K, V]: Fork[Iter[K, V]] {
+      fn fork(&Iter[K, V](node, stack)) -> Iter[K, V] {
+        Iter(node.fork(), stack.fork())
+      }
+    }
+
     pub impl drop[K, V]: Drop[Iter[K, V]] {
       fn drop(Iter[K, V](_)) {}
     }
@@ -293,6 +299,13 @@ pub mod Map {
         }
       }
     }
+
+    pub impl fork[K+, V+]: Fork[IntoIter[K, V]] {
+      fn fork(&IntoIter[K, V](node, stack)) -> IntoIter[K, V] {
+        IntoIter(node.fork(), stack.fork())
+      }
+    }
+
     pub impl drop[K?, V?]: Drop[IntoIter[K, V]] {
       fn drop(IntoIter[K, V](_)) {}
     }

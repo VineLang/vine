@@ -70,10 +70,7 @@ pub mod String {
             break.check;
           }
         }
-        let List::Iter(len, &buf) = iter;
-        let List(_, _buf, end) = suffix as List;
-        unsafe::erase(_buf);
-        return (prefix, Some(List(len, unsafe::move(&buf), end) as String));
+        return (prefix, Some(String(unsafe::move(iter.tail()))));
       }
       if suffix!.pop_front() is Some(char) {
         prefix ++= String([char]);
@@ -96,10 +93,7 @@ pub mod String {
         return Err(self)
       }
     }
-    let List::Iter(len, &buf) = iter;
-    let List(_, _buf, end) = self as List;
-    unsafe::erase(_buf);
-    Ok(List(len, unsafe::move(&buf), end) as String)
+    Ok(String(unsafe::move(iter.tail())))
   }
 
   pub fn .trim_front(String(chars)) -> String {

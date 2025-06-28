@@ -220,52 +220,74 @@ pub mod List {
     self = output;
   }
 
-  pub struct Iter[T](pub.std (N32, &Buf[T]));
+  pub struct Iter[T]((N32, &Buf[T], &(N32, ~Buf[T])));
 
-  pub fn .iter[T](&List[T](len, buf, _)) -> Iter[T] {
-    Iter(len, &buf)
+  pub fn .iter[T](&List[T](len, buf, end)) -> Iter[T] {
+    Iter(len, &buf, &(len, end))
   }
 
   pub mod Iter {
     pub impl iterator[T]: Iterator[Iter[T], &T] {
-      fn advance(Iter[T](len, &buf)) -> Option[(&T, Iter[T])] {
+      fn advance(Iter[T](len, &buf, &full)) -> Option[(&T, Iter[T])] {
         if len != 0 {
           let &Buf(head, tail) = &buf;
-          Some(&head, Iter(len - 1, &tail))
+          Some(&head, Iter(len - 1, &tail, &full))
         } else {
           None
         }
+      }
+    }
+
+    pub impl fork[T]: Fork[Iter[T]] {
+      fn fork(&Iter[T](len, &buf, &full)) -> Iter[T] {
+        Iter(len, &buf, &full)
       }
     }
 
     pub impl drop[T]: Drop[Iter[T]] {
-      fn drop(Iter[T](_, &_)) {}
+      fn drop(Iter[T](len, &_, &_)) {}
+    }
+
+    pub fn .tail[T](&Iter[T](len, &buf, &(full_len, end))) -> &List[T] {
+      full_len -= len;
+      let ref = &List(len, buf, end);
+      full_len += len;
+      ref
     }
   }
 
-  pub struct IntoIter[T](pub.std (N32, Buf[T]));
+  pub struct IntoIter[T](List[T]);
 
-  pub fn .into_iter[T](List[T](len, buf, _end)) -> IntoIter[T] {
-    unsafe::erase(_end);
-    IntoIter(len, buf)
+  pub fn .into_iter[T](self: List[T]) -> IntoIter[T] {
+    IntoIter(self)
   }
 
   pub mod IntoIter {
     pub impl iterator[T]: Iterator[IntoIter[T], T] {
-      fn advance(IntoIter[T](len, buf)) -> Option[(T, IntoIter[T])] {
+      fn advance(IntoIter[T](List(len, buf, end))) -> Option[(T, IntoIter[T])] {
         if len != 0 {
           let Buf(head, tail) = buf;
-          Some(head, IntoIter(len - 1, tail))
+          Some((head, IntoIter(List(len - 1, tail, end))))
         } else {
-          unsafe::erase(buf);
+          unsafe::erase((buf, end));
           None
         }
       }
     }
 
+    pub impl fork[T+]: Fork[IntoIter[T]] {
+      fn fork(&IntoIter[T](list)) -> IntoIter[T] {
+        IntoIter(list)
+      }
+    }
+
     pub impl drop[T?]: Drop[IntoIter[T]] {
-      fn drop(IntoIter[T](len, buf)) {
-        _ = List(len, buf, unsafe::eraser);
+      fn drop(IntoIter[T](_)) {}
+    }
+
+    pub impl to_list[T]: Cast[IntoIter[T], List[T]] {
+      fn cast(IntoIter[T](list)) -> List[T] {
+        list
       }
     }
   }
