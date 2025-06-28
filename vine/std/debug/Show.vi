@@ -118,6 +118,7 @@ pub mod Show {
     "\n" ++ String(List_::new(indent, ' '))
   }
 
+  #[erase]
   pub impl drop: Drop[Show] {
     fn drop(self: Show) {
       match self {
