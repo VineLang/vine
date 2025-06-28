@@ -1,0 +1,116 @@
+
+use std::{data::Iterator, debug::Show};
+
+pub fn main(&io: &IO) {
+  io.println("--- concat, empty, one, from_next ---");
+  let list = [1, 2, 3];
+  let iter = Iterator::one(0) ++ Iterator::empty ++ Iterator::from_next(fn* () { list.pop_front() });
+  for x in iter {
+    io.println("{x}");
+  }
+
+  io.println("--- map, filter, flat_map, enumerate, for_each ---");
+  let iter = 0..10;
+  let iter = iter.map(fn* (x: N32) { x * x });
+  let iter = iter.filter(fn* (&x: &N32) { x % 2 != 0 });
+  let iter = iter.flat_map(fn* (x: N32) { List::new(x, x).into_iter() });
+  let acc = 0;
+  let iter = iter.map(fn* (x: N32) {
+    acc += x;
+    acc
+  });
+  let iter = iter.enumerate();
+  iter.for_each(fn* ((i: N32, x: N32)) {
+    io.println("{i}: {x}");
+  });
+
+  io.println("--- take, inspect ---");
+  let iter = (0..100).inspect(fn* (&x: &N32) { debug::log("{x}") });
+  for x in iter.take(10) {
+    io.println("{x}");
+  }
+  io.println("--- take_while ---");
+  for x in iter.take_while(fn* (&x: &N32) { x < 10 }) {
+    io.println("{x}");
+  }
+
+  io.println("--- skip, skip_while ---");
+  let iter = (0..20).skip(10).skip_while(fn* (&x: &N32) {
+    debug::log("{x}");
+    x < 15
+  });
+  for x in iter {
+    io.println("{x}");
+  }
+
+  io.println("--- zip, inspect ---");
+  for (a, b) in [(5, 3), (3, 5)].into_iter() {
+    io.println("{a}, {b}");
+    let a = (0..a).inspect(fn* (&x: &N32) { debug::log("x: {x}") });
+    let b = (0..b).inspect(fn* (&y: &N32) { debug::log("y: {y}") });
+    for t in a.zip(b) {
+      io.println("{t.show()}");
+    }
+  }
+
+  io.println("--- filter, all, count, any, reduce ---");
+  io.println("{
+    (2..46).filter(fn* (&n: &N32) {
+      debug::log("{n}?");
+      (2..n).all(fn* (m: N32) {
+        debug::log("{m}");
+        n % m != 0
+      })
+    }).count()
+  }");
+  io.println("{
+    (2..46).filter(fn* (&n: &N32) {
+      debug::log("{n}?");
+      !(2..n).any(fn* (m: N32) {
+        debug::log("{m}");
+        n % m == 0
+      })
+    }).reduce(N32::add::add).show()
+  }");
+
+  io.println("--- inspect, nth, last, collect ---");
+  let iter = (0..10).inspect(fn* (&n: &N32) { debug::log("{n}") });
+  io.println("{iter.nth(3).show()}");
+  io.println("{iter.last().show()}");
+  io.println("{iter.collect[List, _, _]().show()}");
+
+  io.println("--- fold ---");
+  io.println("{(0..5).fold("_", fn* (a: String, b: N32) { "({a}, {b})" })}");
+
+  io.println("--- filter_map, map_while, forked, collect, find, find_map ---");
+  let nums = [
+    [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+    [1, 3, 5, 7, 9],
+    [0, 1, 1, 2, 3, 5, 8],
+    [2, 3, 5, 7],
+    [0, 1, 4, 9],
+    [1, 2, 4, 8],
+    [6],
+  ];
+  io.println("{
+    (0..11).map(fn* (i: N32) {
+      nums.iter().filter_map(fn* (&l: &List[N32]) { l.at(i) }).forked().collect[List, _, _]()
+    }).collect[List, _, _]().show()
+  }");
+  io.println("{
+    (0..11).map(fn* (i: N32) {
+      nums.iter().map_while(fn* (&l: &List[N32]) { l.at(i) }).forked().collect[List, _, _]()
+    }).collect[List, _, _]().show()
+  }");
+  nums.reverse();
+  io.println("{
+    (0..11).map(fn* (i: N32) {
+      nums.iter().find(fn* (&&l: &&List[N32]) { l.len() > i }).as_forked()
+    }).collect[List, _, _]().show()
+  }")
+  io.println("{
+    (0..11).map(fn* (i: N32) { nums.iter().find_map(fn* (&l: &List[N32]) { l.at(i) }).as_forked() }).collect[
+      List, _, _;
+    ]().show()
+  }")
+}
