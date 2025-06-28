@@ -15,8 +15,8 @@ vine = { path = "../vine", optional = true }
 vine-lsp = { path = "../lsp", optional = true }
 vine-util = { path = "../util" }
 
-[lints]
-workspace = true
+[lints.clippy]
+absolute_paths = "warn"
 
 [features]
 vine = ["dep:vine", "dep:vine-lsp"]
