@@ -206,7 +206,7 @@ impl<'core, 'ctx, 'ivm, 'ext> Repl<'core, 'ctx, 'ivm, 'ext> {
             if entry.space.is_some() {
               ports.push(stage.local_read(Local(i), entry.span, entry.ty));
             }
-            stage.local_bar(Local(i));
+            stage.local_barrier(Local(i));
             if entry.value.is_some() {
               ports.push(stage.local_write(Local(i), entry.span, entry.ty));
             }

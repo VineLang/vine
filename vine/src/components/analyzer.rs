@@ -241,10 +241,10 @@ impl<'core> Analyzer<'core, '_> {
         }
         if interior != Effect::P && exterior != Effect::P {
           assert!(!exterior.pass());
-          let bar = interior.bar();
+          let barrier = interior.barrier();
           let output = interior.write() && exterior.read();
           let input = exterior.write() && (interior.read() || output && interior.pass());
-          let wire = if inv.0 { (output, bar, input) } else { (input, bar, output) };
+          let wire = if inv.0 { (output, barrier, input) } else { (input, barrier, output) };
           interface.wires.insert(local, wire);
         }
       }
@@ -278,12 +278,12 @@ impl<'core> Analyzer<'core, '_> {
 impl Invocation {
   fn effect(&self, inv: Inverted, fork: bool) -> Effect {
     match (self, inv.0) {
-      (Invocation::Bar, _) => Effect::B,
+      (Invocation::Barrier, _) => Effect::B,
       (Invocation::Read(_), false) | (Invocation::Write(_), true) if fork => Effect::RP,
-      (Invocation::Read(_) | Invocation::ReadBar(_), false)
-      | (Invocation::Write(_) | Invocation::BarWrite(_), true) => Effect::RB,
-      (Invocation::Write(_) | Invocation::BarWrite(_), false)
-      | (Invocation::Read(_) | Invocation::ReadBar(_), true) => Effect::BW,
+      (Invocation::Read(_) | Invocation::ReadBarrier(_), false)
+      | (Invocation::Write(_) | Invocation::BarrierWrite(_), true) => Effect::RB,
+      (Invocation::Write(_) | Invocation::BarrierWrite(_), false)
+      | (Invocation::Read(_) | Invocation::ReadBarrier(_), true) => Effect::BW,
       (Invocation::ReadWrite(..), _) => Effect::RBW,
     }
   }

@@ -22,12 +22,12 @@ impl<'core, 'r> Distiller<'core, 'r> {
       let return_local = self.new_local(&mut stage, span, closure.body.ty);
       let params =
         closure.params.iter().map(|p| self.distill_pat_value(&mut stage, p)).collect::<Vec<_>>();
-      let result = stage.local_read_bar(return_local, span, closure.body.ty);
+      let result = stage.local_read_barrier(return_local, span, closure.body.ty);
       stage.header = Header::Fn(params, result);
 
       self.returns.push(Return { ty: closure.body.ty, layer: stage.layer, local: return_local });
       let result = self.distill_expr_value(&mut stage, &closure.body);
-      stage.local_bar_write_to(return_local, result);
+      stage.local_barrier_write_to(return_local, result);
       self.returns.pop();
 
       self.finish_stage(stage)
@@ -106,7 +106,7 @@ impl<'core, 'r> Distiller<'core, 'r> {
     continuation: &TirExpr,
   ) -> Port {
     let local = self.new_local(stage, span, continuation.ty);
-    stage.local_bar(local);
+    stage.local_barrier(local);
     let (mut layer, mut init_stage) = self.child_layer(stage, span);
     let value = self.distill_expr_value(&mut init_stage, init);
     let mut then_stage = self.new_unconditional_stage(&mut layer, span);
@@ -119,7 +119,7 @@ impl<'core, 'r> Distiller<'core, 'r> {
       vec![Row::new(Some(pat), then_stage.interface), Row::new(None, else_stage.interface)],
     );
     let result = self.distill_expr_value(&mut then_stage, continuation);
-    then_stage.local_bar_write_to(local, result);
+    then_stage.local_barrier_write_to(local, result);
     let result = self.distill_expr_value(&mut else_stage, else_block);
     let never = result.ty;
     else_stage.steps.push(Step::Link(result, Port { ty: never.inverse(), kind: PortKind::Nil }));
@@ -127,7 +127,7 @@ impl<'core, 'r> Distiller<'core, 'r> {
     self.finish_stage(then_stage);
     self.finish_stage(else_stage);
     self.finish_layer(layer);
-    stage.local_read_bar(local, span, continuation.ty)
+    stage.local_read_barrier(local, span, continuation.ty)
   }
 
   pub(super) fn distill_match(
@@ -146,7 +146,7 @@ impl<'core, 'r> Distiller<'core, 'r> {
       .map(|(pat, expr)| {
         let mut stage = self.new_unconditional_stage(&mut layer, span);
         let result = self.distill_expr_value(&mut stage, expr);
-        stage.local_bar_write_to(local, result);
+        stage.local_barrier_write_to(local, result);
         let interface = stage.interface;
         self.finish_stage(stage);
         Row::new(Some(pat), interface)
@@ -155,7 +155,7 @@ impl<'core, 'r> Distiller<'core, 'r> {
     self.distill_pattern_match(span, &mut layer, &mut init_stage, value, rows);
     self.finish_stage(init_stage);
     self.finish_layer(layer);
-    stage.local_read_bar(local, span, ty)
+    stage.local_read_barrier(local, span, ty)
   }
 
   pub(super) fn distill_continue(&mut self, stage: &mut Stage, label: LabelId) {
@@ -177,7 +177,7 @@ impl<'core, 'r> Distiller<'core, 'r> {
 
     let label = self.labels[label].as_ref().unwrap();
     if let Some(local) = label.break_value {
-      stage.local_bar_write_to(local, value);
+      stage.local_barrier_write_to(local, value);
     } else {
       stage.steps.push(Step::Link(value, Port { ty: self.types.nil(), kind: PortKind::Nil }));
     }
@@ -192,7 +192,7 @@ impl<'core, 'r> Distiller<'core, 'r> {
     };
     let return_ = self.returns.last().unwrap();
 
-    stage.local_bar_write_to(return_.local, value);
+    stage.local_barrier_write_to(return_.local, value);
     stage.steps.push(Step::Diverge(return_.layer, None));
   }
 
@@ -220,7 +220,7 @@ impl<'core, 'r> Distiller<'core, 'r> {
     self.finish_stage(body_stage);
     self.finish_layer(layer);
 
-    stage.local_read_bar(local, span, ty)
+    stage.local_read_barrier(local, span, ty)
   }
 
   pub(super) fn distill_while(
@@ -265,7 +265,7 @@ impl<'core, 'r> Distiller<'core, 'r> {
     for (cond, block) in arms {
       let (mut then_stage, else_stage) = self.distill_cond(&mut layer, &mut cur_stage, span, cond);
       let result = self.distill_expr_value(&mut then_stage, block);
-      then_stage.local_bar_write_to(local, result);
+      then_stage.local_barrier_write_to(local, result);
       self.finish_stage(cur_stage);
       self.finish_stage(then_stage);
       cur_stage = else_stage;
@@ -273,15 +273,15 @@ impl<'core, 'r> Distiller<'core, 'r> {
 
     if let Some(leg) = leg {
       let result = self.distill_expr_value(&mut cur_stage, leg);
-      cur_stage.local_bar_write_to(local, result);
+      cur_stage.local_barrier_write_to(local, result);
     } else {
-      cur_stage.local_bar_write_to(local, Port { ty: self.types.nil(), kind: PortKind::Nil });
+      cur_stage.local_barrier_write_to(local, Port { ty: self.types.nil(), kind: PortKind::Nil });
     }
 
     self.finish_stage(cur_stage);
     self.finish_layer(layer);
 
-    stage.local_read_bar(local, span, ty)
+    stage.local_read_barrier(local, span, ty)
   }
 
   pub(super) fn distill_do(
@@ -298,12 +298,12 @@ impl<'core, 'r> Distiller<'core, 'r> {
       Some(Label { layer: layer.id, continue_transfer: None, break_value: Some(local) });
 
     let result = self.distill_expr_value(&mut body_stage, block);
-    body_stage.local_bar_write_to(local, result);
+    body_stage.local_barrier_write_to(local, result);
 
     self.finish_stage(body_stage);
     self.finish_layer(layer);
 
-    stage.local_read_bar(local, span, block.ty)
+    stage.local_read_barrier(local, span, block.ty)
   }
 
   pub(super) fn distill_cond_bool(
@@ -330,13 +330,13 @@ impl<'core, 'r> Distiller<'core, 'r> {
         let (mut sub_layer, mut sub_stage) = self.child_layer(stage, span);
         let (mut true_stage, mut false_stage) =
           self.distill_cond(&mut sub_layer, &mut sub_stage, span, cond);
-        true_stage.local_bar_write_to(local, Port { ty, kind: PortKind::N32(!negate as u32) });
-        false_stage.local_bar_write_to(local, Port { ty, kind: PortKind::N32(negate as u32) });
+        true_stage.local_barrier_write_to(local, Port { ty, kind: PortKind::N32(!negate as u32) });
+        false_stage.local_barrier_write_to(local, Port { ty, kind: PortKind::N32(negate as u32) });
         self.finish_stage(true_stage);
         self.finish_stage(false_stage);
         self.finish_stage(sub_stage);
         self.finish_layer(sub_layer);
-        stage.local_read_bar(local, span, ty)
+        stage.local_read_barrier(local, span, ty)
       }
     }
   }
@@ -449,20 +449,20 @@ impl<'core, 'r> Distiller<'core, 'r> {
     self.finish_stage(init_stage);
 
     let out_local = self.new_local(stage, span, ty);
-    let value = ok_stage.local_read_bar(ok_local, span, ok_ty);
-    ok_stage.local_bar_write_to(out_local, value);
+    let value = ok_stage.local_read_barrier(ok_local, span, ok_ty);
+    ok_stage.local_barrier_write_to(out_local, value);
     self.finish_stage(ok_stage);
 
     let ret = self.returns.last().unwrap();
-    let err = err_stage.local_read_bar(err_local, span, err_ty);
+    let err = err_stage.local_read_barrier(err_local, span, err_ty);
     let result = err_stage.new_wire(span, ret.ty);
     err_stage.steps.push(Step::Enum(result_id, err_variant, result.neg, Some(err)));
-    err_stage.local_bar_write_to(ret.local, result.pos);
+    err_stage.local_barrier_write_to(ret.local, result.pos);
     err_stage.steps.push(Step::Diverge(ret.layer, None));
     self.finish_stage(err_stage);
 
     self.finish_layer(layer);
-    stage.local_read_bar(out_local, span, ty)
+    stage.local_read_barrier(out_local, span, ty)
   }
 }
 

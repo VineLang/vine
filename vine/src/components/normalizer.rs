@@ -122,8 +122,8 @@ impl<'core> Normalizer<'core, '_> {
             let vir_local = VirLocal::new(core, chart, sigs, def, generics, types, rels, span, ty);
             let local = self.locals.push(vir_local);
             stage.declarations.push(local);
-            stage.local_bar_write_to(local, Port { ty, kind: PortKind::Wire(span, wire) });
-            new_stage.local_read_bar_to(
+            stage.local_barrier_write_to(local, Port { ty, kind: PortKind::Wire(span, wire) });
+            new_stage.local_read_barrier_to(
               local,
               Port { ty: ty.inverse(), kind: PortKind::Wire(span, wire) },
             );

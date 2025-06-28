@@ -192,7 +192,7 @@ impl<'core, 'a> Emitter<'core, 'a> {
               self.local(local).read(w.0);
               w.1
             });
-            self.local(local).bar();
+            self.local(local).barrier();
             let write = write.then(|| {
               let w = self.new_wire();
               self.local(local).write(w.0);
@@ -205,16 +205,16 @@ impl<'core, 'a> Emitter<'core, 'a> {
     } else {
       Tree::n_ary(
         "x",
-        interface.wires.iter().filter_map(|(&local, &(input, bar, output))| {
-          let (read, bar, write) =
-            if interior { (input, bar, output) } else { (output, true, input) };
+        interface.wires.iter().filter_map(|(&local, &(input, barrier, output))| {
+          let (read, barrier, write) =
+            if interior { (input, barrier, output) } else { (output, true, input) };
           let read = read.then(|| {
             let w = self.new_wire();
             self.local(local).read(w.0);
             w.1
           });
-          if bar {
-            self.local(local).bar();
+          if barrier {
+            self.local(local).barrier();
           }
           let write = write.then(|| {
             let w = self.new_wire();
@@ -244,7 +244,7 @@ impl<'core, 'a> Emitter<'core, 'a> {
   fn emit_step(&mut self, step: &Step) {
     match step {
       Step::Invoke(local, invocation) => match invocation {
-        Invocation::Bar => self.local(*local).bar(),
+        Invocation::Barrier => self.local(*local).barrier(),
         Invocation::Read(port) => {
           let tree = self.emit_port(port);
           self.local(*local).read(tree)
@@ -253,13 +253,13 @@ impl<'core, 'a> Emitter<'core, 'a> {
           let tree = self.emit_port(port);
           self.local(*local).write(tree)
         }
-        Invocation::ReadBar(port) => {
+        Invocation::ReadBarrier(port) => {
           let tree = self.emit_port(port);
-          self.local(*local).read_bar(tree)
+          self.local(*local).read_barrier(tree)
         }
-        Invocation::BarWrite(port) => {
+        Invocation::BarrierWrite(port) => {
           let tree = self.emit_port(port);
-          self.local(*local).bar_write(tree)
+          self.local(*local).barrier_write(tree)
         }
         Invocation::ReadWrite(a, b) => {
           let a = self.emit_port(a);
@@ -463,24 +463,24 @@ impl LocalState {
   fn read(&mut self, tree: Tree) {
     self.spaces.push(tree);
     if self.inv.0 {
-      self.bar();
+      self.barrier();
     }
   }
 
-  fn read_bar(&mut self, tree: Tree) {
+  fn read_barrier(&mut self, tree: Tree) {
     self.read(tree);
-    self.bar();
+    self.barrier();
   }
 
   fn write(&mut self, tree: Tree) {
     if !self.inv.0 {
-      self.bar();
+      self.barrier();
     }
     self.values.push(tree);
   }
 
-  fn bar_write(&mut self, tree: Tree) {
-    self.bar();
+  fn barrier_write(&mut self, tree: Tree) {
+    self.barrier();
     self.write(tree);
   }
 
@@ -489,7 +489,7 @@ impl LocalState {
     self.write(b);
   }
 
-  fn bar(&mut self) {
+  fn barrier(&mut self) {
     if self.past.is_empty() || !self.spaces.is_empty() || !self.values.is_empty() {
       self.past.push((take(&mut self.spaces), take(&mut self.values)));
     }

@@ -183,11 +183,11 @@ impl Step {
 
 #[derive(Debug, Clone)]
 pub enum Invocation {
-  Bar,
+  Barrier,
   Read(Port),
   Write(Port),
-  ReadBar(Port),
-  BarWrite(Port),
+  ReadBarrier(Port),
+  BarrierWrite(Port),
   ReadWrite(Port, Port),
 }
 
@@ -195,11 +195,11 @@ impl Invocation {
   fn ports(&self) -> impl Iterator<Item = &Port> {
     multi_iter!(Ports { Zero, One, Two });
     match self {
-      Invocation::Bar => Ports::Zero([]),
+      Invocation::Barrier => Ports::Zero([]),
       Invocation::Read(a)
       | Invocation::Write(a)
-      | Invocation::ReadBar(a)
-      | Invocation::BarWrite(a) => Ports::One([a]),
+      | Invocation::ReadBarrier(a)
+      | Invocation::BarrierWrite(a) => Ports::One([a]),
       Invocation::ReadWrite(a, b) => Ports::Two([a, b]),
     }
   }
@@ -261,12 +261,12 @@ impl Stage {
     self.steps.push(Step::Invoke(local, Invocation::Write(to)));
   }
 
-  pub fn local_read_bar_to(&mut self, local: Local, to: Port) {
-    self.steps.push(Step::Invoke(local, Invocation::ReadBar(to)));
+  pub fn local_read_barrier_to(&mut self, local: Local, to: Port) {
+    self.steps.push(Step::Invoke(local, Invocation::ReadBarrier(to)));
   }
 
-  pub fn local_bar_write_to(&mut self, local: Local, to: Port) {
-    self.steps.push(Step::Invoke(local, Invocation::BarWrite(to)));
+  pub fn local_barrier_write_to(&mut self, local: Local, to: Port) {
+    self.steps.push(Step::Invoke(local, Invocation::BarrierWrite(to)));
   }
 
   pub fn local_read_write_to(&mut self, local: Local, o: Port, i: Port) {
@@ -285,15 +285,15 @@ impl Stage {
     wire.neg
   }
 
-  pub fn local_read_bar(&mut self, local: Local, span: Span, ty: Type) -> Port {
+  pub fn local_read_barrier(&mut self, local: Local, span: Span, ty: Type) -> Port {
     let wire = self.new_wire(span, ty);
-    self.local_read_bar_to(local, wire.neg);
+    self.local_read_barrier_to(local, wire.neg);
     wire.pos
   }
 
-  pub fn local_bar_write(&mut self, local: Local, span: Span, ty: Type) -> Port {
+  pub fn local_barrier_write(&mut self, local: Local, span: Span, ty: Type) -> Port {
     let wire = self.new_wire(span, ty);
-    self.local_bar_write_to(local, wire.pos);
+    self.local_barrier_write_to(local, wire.pos);
     wire.neg
   }
 
@@ -304,8 +304,8 @@ impl Stage {
     (o.pos, i.neg)
   }
 
-  pub fn local_bar(&mut self, local: Local) {
-    self.steps.push(Step::Invoke(local, Invocation::Bar));
+  pub fn local_barrier(&mut self, local: Local) {
+    self.steps.push(Step::Invoke(local, Invocation::Barrier));
   }
 
   pub fn ext_fn(

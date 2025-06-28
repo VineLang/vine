@@ -534,7 +534,7 @@ impl<'core, 'r> Distiller<'core, 'r> {
       }
       TirPatKind::Local(local) => {
         stage.declarations.push(*local);
-        stage.local_bar(*local);
+        stage.local_barrier(*local);
       }
     }
   }
@@ -559,7 +559,7 @@ impl<'core, 'r> Distiller<'core, 'r> {
       TirPatKind::Inverse(inner) => self.distill_pat_space(stage, inner),
       TirPatKind::Local(local) => {
         stage.declarations.push(*local);
-        stage.local_bar_write(*local, span, ty)
+        stage.local_barrier_write(*local, span, ty)
       }
       TirPatKind::Composite(elements) => {
         self.distill_vec(stage, span, tyi, elements, Self::distill_pat_value, Step::Composite)
@@ -594,7 +594,7 @@ impl<'core, 'r> Distiller<'core, 'r> {
       TirPatKind::Inverse(inner) => self.distill_pat_value(stage, inner),
       TirPatKind::Local(local) => {
         stage.declarations.push(*local);
-        stage.local_read_bar(*local, span, ty)
+        stage.local_read_barrier(*local, span, ty)
       }
       TirPatKind::Composite(elements) => {
         self.distill_vec(stage, span, ty, elements, Self::distill_pat_space, Step::Composite)

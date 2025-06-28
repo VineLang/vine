@@ -63,7 +63,7 @@ impl Effect {
     matches!(self, P | PB | RP | RPB | PBW | RPBW)
   }
 
-  pub fn bar(self) -> bool {
+  pub fn barrier(self) -> bool {
     matches!(self, B | PB | RB | RPB | BW | PBW | RBW | RPBW)
   }
 
