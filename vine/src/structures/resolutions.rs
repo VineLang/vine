@@ -1,7 +1,10 @@
 use vine_util::{idx::IdxVec, new_idx};
 
 use crate::structures::{
-  chart::{ConcreteConstId, ConcreteFnId, ConstId, FnId, ImplId, TraitConstId, TraitFnId},
+  chart::{
+    Chart, ConcreteConstId, ConcreteFnId, ConstId, DefId, FnId, GenericsId, ImplId, TraitConstId,
+    TraitFnId,
+  },
   diag::ErrorGuaranteed,
   tir::{Tir, TirImpl},
 };
@@ -18,15 +21,18 @@ pub struct Resolutions {
 pub struct ResolvedImpl {
   pub consts: IdxVec<TraitConstId, Result<ConcreteConstId, ErrorGuaranteed>>,
   pub fns: IdxVec<TraitFnId, Result<ConcreteFnId, ErrorGuaranteed>>,
+  pub is_fork: bool,
+  pub is_drop: bool,
 }
 
 new_idx!(pub FragmentId);
 #[derive(Debug)]
 pub struct Fragment<'core> {
   pub path: &'core str,
+  pub def: DefId,
+  pub generics: GenericsId,
   pub impl_params: usize,
-  pub rels: Rels,
-  pub tir: Tir,
+  pub tir: Tir<'core>,
 }
 
 new_idx!(pub ConstRelId);
@@ -41,4 +47,16 @@ pub struct Rels {
 pub enum FnRel {
   Item(FnId, Vec<TirImpl>),
   Impl(TirImpl),
+}
+
+impl Rels {
+  pub fn fork_rel<'core>(&mut self, chart: &Chart<'core>, impl_: TirImpl) -> FnRelId {
+    let fork = chart.builtins.fork.unwrap();
+    self.fns.push(FnRel::Item(FnId::Abstract(fork, TraitFnId(0)), vec![impl_]))
+  }
+
+  pub fn drop_rel<'core>(&mut self, chart: &Chart<'core>, impl_: TirImpl) -> FnRelId {
+    let drop = chart.builtins.drop.unwrap();
+    self.fns.push(FnRel::Item(FnId::Abstract(drop, TraitFnId(0)), vec![impl_]))
+  }
 }

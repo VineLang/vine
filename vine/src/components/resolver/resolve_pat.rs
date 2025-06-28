@@ -1,30 +1,27 @@
 use crate::{
-  components::resolver::{Binding, Form, Resolver, Type},
+  components::resolver::{Binding, Resolver, Type},
   structures::{
     ast::{Pat, PatKind},
     chart::DefPatternKind,
     diag::Diag,
-    tir::{TirPat, TirPatKind},
+    tir::{TirLocal, TirPat, TirPatKind},
     types::TypeKind,
   },
 };
 
 impl<'core> Resolver<'core, '_> {
-  pub(super) fn resolve_pat_type(
-    &mut self,
-    pat: &Pat<'core>,
-    form: Form,
-    refutable: bool,
-    ty: Type,
-  ) -> TirPat {
-    let pat = self.resolve_pat(pat, form, refutable);
-    self.expect_type(pat.span, pat.ty, ty);
-    pat
+  pub(super) fn resolve_pat_type(&mut self, pat: &Pat<'core>, ty: Type) -> TirPat {
+    let span = pat.span;
+    let pat = self.resolve_pat(pat);
+    match self.expect_type(pat.span, pat.ty, ty) {
+      Some(err) => self.error_pat(span, err.into()),
+      None => pat,
+    }
   }
 
-  pub(super) fn resolve_pat(&mut self, pat: &Pat<'core>, form: Form, refutable: bool) -> TirPat {
-    match self._resolve_pat(pat, form, refutable) {
-      Ok((ty, kind)) => TirPat { span: pat.span, ty, form, kind: Box::new(kind) },
+  pub(super) fn resolve_pat(&mut self, pat: &Pat<'core>) -> TirPat {
+    match self._resolve_pat(pat) {
+      Ok((ty, kind)) => TirPat { span: pat.span, ty, kind: Box::new(kind) },
       Err(diag) => self.error_pat(pat.span, diag),
     }
   }
@@ -32,32 +29,29 @@ impl<'core> Resolver<'core, '_> {
   pub(super) fn _resolve_pat(
     &mut self,
     pat: &Pat<'core>,
-    form: Form,
-    refutable: bool,
   ) -> Result<(Type, TirPatKind), Diag<'core>> {
     let span = pat.span;
-    Ok(match (&pat.kind, form) {
-      (_, Form::Error(_)) => unreachable!(),
-      (PatKind::Error(e), _) => Err(*e)?,
+    Ok(match &pat.kind {
+      PatKind::Error(e) => Err(*e)?,
 
-      (PatKind::Paren(p), _) => self._resolve_pat(p, form, refutable)?,
+      PatKind::Paren(p) => self._resolve_pat(p)?,
 
-      (PatKind::Annotation(pat, ty), _) => {
+      PatKind::Annotation(pat, ty) => {
         let ty = self.resolve_type(ty, true);
-        (ty, *self.resolve_pat_type(pat, form, refutable, ty).kind)
+        (ty, *self.resolve_pat_type(pat, ty).kind)
       }
 
-      (PatKind::Path(path, data), _) => {
+      PatKind::Path(path, data) => {
         let resolved = self.resolve_path_to(self.cur_def, path, "pattern", |d| d.pattern_kind);
         match resolved {
           Ok(DefPatternKind::Struct(struct_id)) => {
             let data = match data {
               Some(args) => {
                 if let [data] = &**args {
-                  self.resolve_pat(data, form, refutable)
+                  self.resolve_pat(data)
                 } else {
-                  let (ty, kind) = self._resolve_pat_tuple(form, refutable, args);
-                  TirPat { span, ty, form, kind: Box::new(kind) }
+                  let (ty, kind) = self._resolve_pat_tuple(args);
+                  TirPat { span, ty, kind: Box::new(kind) }
                 }
               }
               None => self.error_pat(span, Diag::ExpectedDataSubpattern { span }),
@@ -72,10 +66,10 @@ impl<'core> Resolver<'core, '_> {
           Ok(DefPatternKind::Enum(enum_id, variant)) => {
             let data = data.as_ref().map(|args| {
               if let [data] = &**args {
-                self.resolve_pat(data, form, refutable)
+                self.resolve_pat(data)
               } else {
-                let (ty, kind) = self._resolve_pat_tuple(form, refutable, args);
-                TirPat { span, ty, form, kind: Box::new(kind) }
+                let (ty, kind) = self._resolve_pat_tuple(args);
+                TirPat { span, ty, kind: Box::new(kind) }
               }
             });
             let (type_params, _) =
@@ -94,22 +88,19 @@ impl<'core> Resolver<'core, '_> {
               }),
               None => {
                 if data.is_some() {
-                  self.core.report(Diag::EnumVariantNoData { span });
+                  Err(Diag::EnumVariantNoData { span })?
                 }
                 None
               }
             };
-            if !refutable {
-              Err(Diag::ExpectedCompletePat { span })?
-            }
             let ty = self.types.new(TypeKind::Enum(enum_id, type_params));
             (ty, TirPatKind::Enum(enum_id, variant, data))
           }
           Err(diag) => {
             if let (Some(ident), None) = (path.as_ident(), data) {
-              let local = self.locals.next();
               let ty = self.types.new_var(span);
-              self.bind(ident, Binding::Local(local, ty));
+              let local = self.locals.push(TirLocal { span, ty });
+              self.bind(ident, Binding::Local(local, span, ty));
               (ty, TirPatKind::Local(local))
             } else {
               Err(diag)?
@@ -118,43 +109,33 @@ impl<'core> Resolver<'core, '_> {
         }
       }
 
-      (PatKind::Hole, _) => (self.types.new_var(span), TirPatKind::Hole),
-      (PatKind::Inverse(inner), _) => {
-        let inner = self.resolve_pat(inner, form.inverse(), refutable);
+      PatKind::Hole => (self.types.new_var(span), TirPatKind::Hole),
+      PatKind::Inverse(inner) => {
+        let inner = self.resolve_pat(inner);
         (inner.ty.inverse(), TirPatKind::Inverse(inner))
       }
-      (PatKind::Tuple(elements), _) => self._resolve_pat_tuple(form, refutable, elements),
-      (PatKind::Object(entries), _) => {
-        let object =
-          self.build_object(entries, |self_, pat| self_.resolve_pat(pat, form, refutable))?;
+      PatKind::Tuple(elements) => self._resolve_pat_tuple(elements),
+      PatKind::Object(entries) => {
+        let object = self.build_object(entries, |self_, pat| self_.resolve_pat(pat))?;
         let ty = self.types.new(TypeKind::Object(object.iter().map(|(&i, x)| (i, x.ty)).collect()));
         (ty, TirPatKind::Composite(object.into_values().collect()))
       }
-      (PatKind::Deref(inner), Form::Place) => {
+      PatKind::Deref(inner) => {
         let ty = self.types.new_var(span);
         let ref_ty = self.types.new(TypeKind::Ref(ty));
-        let inner = self.resolve_pat_type(inner, Form::Value, refutable, ref_ty);
+        let inner = self.resolve_pat_type(inner, ref_ty);
         (ty, TirPatKind::Deref(inner))
       }
 
-      (PatKind::Ref(inner), Form::Value | Form::Place) => {
-        let inner = self.resolve_pat(inner, Form::Place, refutable);
+      PatKind::Ref(inner) => {
+        let inner = self.resolve_pat(inner);
         (self.types.new(TypeKind::Ref(inner.ty)), TirPatKind::Ref(inner))
       }
-
-      (PatKind::Ref(_), Form::Space) => Err(Diag::RefSpacePat { span })?,
-      (PatKind::Deref(_), _) => Err(Diag::DerefNonPlacePat { span })?,
     })
   }
 
-  fn _resolve_pat_tuple(
-    &mut self,
-    form: Form,
-    refutable: bool,
-    elements: &[Pat<'core>],
-  ) -> (Type, TirPatKind) {
-    let elements =
-      Vec::from_iter(elements.iter().map(|element| self.resolve_pat(element, form, refutable)));
+  fn _resolve_pat_tuple(&mut self, elements: &[Pat<'core>]) -> (Type, TirPatKind) {
+    let elements = Vec::from_iter(elements.iter().map(|element| self.resolve_pat(element)));
     let ty = self.types.new(TypeKind::Tuple(elements.iter().map(|x| x.ty).collect()));
     (ty, TirPatKind::Composite(elements))
   }

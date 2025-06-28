@@ -1,158 +1,158 @@
 
-io = #io
+let io: IO = #io;
 > let s = "hello world!";
 
-io = #io
-s = "hello world!"
+let io: IO = #io;
+let s: String = "hello world!";
 > s.len()
 12
 
-io = #io
-s = "hello world!"
+let io: IO = #io;
+let s: String = "hello world!";
 > s.starts_with(&(""; _))
 true
 
-io = #io
-s = "hello world!"
+let io: IO = #io;
+let s: String = "hello world!";
 > s.starts_with(&("h"; _))
 true
 
-io = #io
-s = "hello world!"
+let io: IO = #io;
+let s: String = "hello world!";
 > s.starts_with(&("hello "; _))
 true
 
-io = #io
-s = "hello world!"
+let io: IO = #io;
+let s: String = "hello world!";
 > s.starts_with(&("world"; _))
 false
 
-io = #io
-s = "hello world!"
+let io: IO = #io;
+let s: String = "hello world!";
 > s.starts_with(&("held"; _))
 false
 
-io = #io
-s = "hello world!"
+let io: IO = #io;
+let s: String = "hello world!";
 > s.starts_with(&("hello world! hi"; _))
 false
 
-io = #io
-s = "hello world!"
+let io: IO = #io;
+let s: String = "hello world!";
 > "" == ""
-::std::data::List::eq::eq::0::14
+::std::data::List::eq::eq:0:s14
 
-io = #io
-s = "hello world!"
+let io: IO = #io;
+let s: String = "hello world!";
 > "" != ""
 false
 
-io = #io
-s = "hello world!"
+let io: IO = #io;
+let s: String = "hello world!";
 > "hello" == "hello"
-::std::data::List::eq::eq::0::14
+::std::data::List::eq::eq:0:s14
 
-io = #io
-s = "hello world!"
+let io: IO = #io;
+let s: String = "hello world!";
 > "hello" != "hello"
 false
 
-io = #io
-s = "hello world!"
+let io: IO = #io;
+let s: String = "hello world!";
 > "hello" == "world"
 false
 
-io = #io
-s = "hello world!"
+let io: IO = #io;
+let s: String = "hello world!";
 > "hello" != "world"
 true
 
-io = #io
-s = "hello world!"
+let io: IO = #io;
+let s: String = "hello world!";
 > "hello" == "hello world"
 false
 
-io = #io
-s = "hello world!"
+let io: IO = #io;
+let s: String = "hello world!";
 > "world" == "hello world"
 false
 
-io = #io
-s = "hello world!"
+let io: IO = #io;
+let s: String = "hello world!";
 > let x = "hi";
 
-io = #io
-s = "hello world!"
-x = "hi"
+let io: IO = #io;
+let s: String = "hello world!";
+let x: String = "hi";
 > x == "xy"
 false
 
-io = #io
-s = "hello world!"
-x = "hi"
+let io: IO = #io;
+let s: String = "hello world!";
+let x: String = "hi";
 > x == "hi"
-::std::data::List::eq::eq::0::14
+::std::data::List::eq::eq:0:s14
 
-io = #io
-s = "hello world!"
-x = "hi"
+let io: IO = #io;
+let s: String = "hello world!";
+let x: String = "hi";
 > x
 "hi"
 
-io = #io
-s = "hello world!"
-x = "hi"
+let io: IO = #io;
+let s: String = "hello world!";
+let x: String = "hi";
 > "   hi   ".trim_front()
 "hi   "
 
-io = #io
-s = "hello world!"
-x = "hi"
+let io: IO = #io;
+let s: String = "hello world!";
+let x: String = "hi";
 > "   hi   ".trim_back()
 "   hi"
 
-io = #io
-s = "hello world!"
-x = "hi"
+let io: IO = #io;
+let s: String = "hello world!";
+let x: String = "hi";
 > "   hi   ".trim()
 "hi"
 
-io = #io
-s = "hello world!"
-x = "hi"
+let io: IO = #io;
+let s: String = "hello world!";
+let x: String = "hi";
 > "\n\n\n\n\t\thello    \n\t    world\n\n\n \t\n".trim()
 "hello    \n\t    world"
 
-io = #io
-s = "hello world!"
-x = "hi"
+let io: IO = #io;
+let s: String = "hello world!";
+let x: String = "hi";
 > "".trim()
 ""
 
-io = #io
-s = "hello world!"
-x = "hi"
+let io: IO = #io;
+let s: String = "hello world!";
+let x: String = "hi";
 > "hi".trim()
 "hi"
 
-io = #io
-s = "hello world!"
-x = "hi"
+let io: IO = #io;
+let s: String = "hello world!";
+let x: String = "hi";
 > "abcdefg".split_at(3)
 ("abc", "defg")
 
-io = #io
-s = "hello world!"
-x = "hi"
+let io: IO = #io;
+let s: String = "hello world!";
+let x: String = "hi";
 > "abcdefg".split_at(0)
 ("", "abcdefg")
 
-io = #io
-s = "hello world!"
-x = "hi"
+let io: IO = #io;
+let s: String = "hello world!";
+let x: String = "hi";
 > "abcdefg".split_at(7)
 ("abcdefg", "")
 
-io = #io
-s = "hello world!"
-x = "hi"
+let io: IO = #io;
+let s: String = "hello world!";
+let x: String = "hi";

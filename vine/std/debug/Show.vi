@@ -77,7 +77,7 @@ pub mod Show {
     }
   }
 
-  fn format_comma_sep[E, F*; fn F(E) -> List_[Show]](
+  fn format_comma_sep[E?, F*; fn F(E) -> List_[Show]](
     entries: List_[E],
     process_entry: F,
     max_width: N32,
@@ -90,7 +90,7 @@ pub mod Show {
     let first = true;
     let iter = entries.into_iter();
     while iter.next() is Some(entry) {
-      let show_iter = process_entry.fork()(entry).into_iter();
+      let show_iter = process_entry(entry).into_iter();
       total_width += 2;
       if multiline {
         str ++= newline(indent + 2);
@@ -111,12 +111,24 @@ pub mod Show {
       str ++= newline(indent);
     }
     ~_multiline = total_width > max_width;
-    process_entry.drop();
     (total_width, str, multiline)
   }
 
   fn newline(indent: N32) -> String {
     "\n" ++ String(List_::new(indent, ' '))
+  }
+
+  #[erase]
+  pub impl drop: Drop[Show] {
+    fn drop(self: Show) {
+      match self {
+        Literal(_) {}
+        Constructor(_) {}
+        Tuple(_) {}
+        Object(_) {}
+        List(_) {}
+      }
+    }
   }
 }
 

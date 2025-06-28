@@ -8,23 +8,24 @@ pub struct Map[K, V]((N32, MapData[K, V]));
 type MapData[K, V] = (Map[K, V], (K, V), Map[K, V]);
 
 pub mod Map {
-  pub const empty[K, V]: Map[K, V] = Map(0, ~_);
+  pub const empty[K, V]: Map[K, V] = Map(0, unsafe::eraser);
 
   fn new[K, V](left: Map[K, V], entry: (K, V), right: Map[K, V]) -> Map[K, V] {
     Map(left.len() + right.len() + 1, (left, entry, right))
   }
 
-  pub impl from_list[K, V; Ord[K]]: Cast[List[(K, V)], Map[K, V]] {
+  pub impl from_list[K?, V?; Ord[K]]: Cast[List[(K, V)], Map[K, V]] {
     fn cast(entries: List[(K, V)]) -> Map[K, V] {
       let map = Map::empty[K, V];
       while entries.pop_front() is Some(key, value) {
         map.insert(key, value);
       }
+      unsafe::erase(entries);
       map
     }
   }
 
-  pub fn .clear[K, V](&self: &Map[K, V]) {
+  pub fn .clear[K?, V?](&self: &Map[K, V]) {
     self = Map::empty;
   }
 
@@ -32,9 +33,10 @@ pub mod Map {
     len
   }
 
-  pub fn .insert[K, V; Ord[K]](&Map[K, V](len, data), key: K, value: V) -> Option[V] {
+  pub fn .insert[K?, V; Ord[K]](&Map[K, V](len, data), key: K, value: V) -> Option[V] {
     if len == 0 {
       len = 1;
+      unsafe::erase(data);
       data = (empty, (key, value), empty);
       None
     } else {
@@ -78,7 +80,7 @@ pub mod Map {
     self.at(key).as_forked()
   }
 
-  pub fn .at_or_insert[K, V; Ord[K]](&self: &Map[K, V], key: K, value: V) -> &V {
+  pub fn .at_or_insert[K?, V?; Ord[K]](&self: &Map[K, V], key: K, value: V) -> &V {
     let ~insert;
     let old = self.insert(key, ~insert);
     let value = old.unwrap_or(value);
@@ -87,8 +89,8 @@ pub mod Map {
     ref
   }
 
-  pub fn .get_or_insert[K, V+; Ord[K]](&self: &Map[K, V], key: K, value: V) -> V {
-    self.at_or_insert(key, value).*.fork()
+  pub fn .get_or_insert[K?, V*; Ord[K]](&self: &Map[K, V], key: K, value: V) -> V {
+    self.at_or_insert(key, value).*
   }
 
   pub fn .at_le[K, V; Ord[K]](&Map[K, V](len, data), &key: &K) -> Option[&(K, V)] {
@@ -150,9 +152,10 @@ pub mod Map {
           balance_left(&data);
         }
         Ord::Eq {
-          old = Some(move cur_value);
+          old = Some(unsafe::move(&cur_value));
           len -= 1;
-          data = merge_balanced(move left, move right);
+          unsafe::erase(data);
+          data = merge_balanced(unsafe::move(&left), unsafe::move(&right));
         }
         Ord::Gt {
           old = right.remove(&key);
@@ -184,9 +187,10 @@ pub mod Map {
     len -= 1;
     let &(left, entry, right) = &data;
     if left.len() == 0 {
-      let Map(_, right) = move right;
+      let Map(_, right) = unsafe::move(&right);
+      unsafe::erase(data);
       data = right;
-      move entry
+      unsafe::move(&entry)
     } else {
       let min = left._remove_min();
       balance_left(&data);
@@ -198,9 +202,10 @@ pub mod Map {
     len -= 1;
     let &(left, entry, right) = &data;
     if right.len() == 0 {
-      let Map(_, left) = move left;
+      let Map(_, left) = unsafe::move(&left);
+      unsafe::erase(data);
       data = left;
-      move entry
+      unsafe::move(&entry)
     } else {
       let max = right._remove_max();
       balance_right(&data);
@@ -223,11 +228,11 @@ pub mod Map {
 
   pub fn .map_values[K, V, U, F*; Ord[K], fn F(V) -> U](Map[K, V](len, data), f: F) -> Map[K, U] {
     if len == 0 {
-      f.drop();
+      unsafe::erase(data);
       Map::empty[K, U]
     } else {
       let (left, (key, value), right) = data;
-      Map(len, (left.map_values(f.fork()), (key, f.fork()(value)), right.map_values(f)))
+      Map(len, (left.map_values(f), (key, f(value)), right.map_values(f)))
     }
   }
 
@@ -241,7 +246,7 @@ pub mod Map {
     pub impl iterator[K, V]: Iterator[Iter[K, V], &(K, V)] {
       fn next(&Iter[K, V](node, stack)) -> Option[&(K, V)] {
         loop {
-          let &Map(len, data) = move node;
+          let &Map(len, data) = node;
           if len == 0 {
             break;
           }
@@ -257,11 +262,10 @@ pub mod Map {
           None
         }
       }
+    }
 
-      fn drop_iter(&iter: &Iter[K, V]) {
-        let Iter(&_, stack) = move iter;
-        while stack.pop_front() is Some(&_) {}
-      }
+    pub impl drop[K, V]: Drop[Iter[K, V]] {
+      fn drop(Iter[K, V](_)) {}
     }
   }
 
@@ -275,8 +279,9 @@ pub mod Map {
     pub impl iterator[K, V]: Iterator[IntoIter[K, V], (K, V)] {
       fn next(&IntoIter[K, V](node, stack)) -> Option[(K, V)] {
         loop {
-          let Map(len, data) = move node;
+          let Map(len, data) = node;
           if len == 0 {
+            unsafe::erase(data);
             break;
           }
           let (left, entry, right) = data;
@@ -287,17 +292,20 @@ pub mod Map {
           node = new_node;
           Some(entry)
         } else {
+          node = Map::empty;
           None
         }
       }
-
-      fn drop_iter(self: &IntoIter[K, V]) {}
+    }
+    pub impl drop[K?, V?]: Drop[IntoIter[K, V]] {
+      fn drop(IntoIter[K, V](_)) {}
     }
   }
 
   pub impl to_list[K, V]: Cast[Map[K, V], List[(K, V)]] {
     fn cast(Map[K, V](len, data)) -> List[(K, V)] {
       if len == 0 {
+        unsafe::erase(data);
         []
       } else {
         let (left, entry, right) = data;
@@ -318,6 +326,7 @@ pub mod Map {
         first = false;
         string ++= "{key}: {value}";
       }
+      unsafe::erase(iter);
       if first {
         "\{}"
       } else {
@@ -348,6 +357,7 @@ pub mod Map {
     }
   }
 
+  #[duplicate]
   pub impl fork[K+, V+]: Fork[Map[K, V]] {
     fn fork(&Map[K, V](len, data)) -> Map[K, V] {
       if len == 0 {
@@ -358,12 +368,13 @@ pub mod Map {
     }
   }
 
+  #[erase]
   pub impl drop[K?, V?]: Drop[Map[K, V]] {
     fn drop(Map[K, V](len, data)) {
       if len == 0 {
         unsafe::erase(data);
       } else {
-        data.drop();
+        _ = data;
       }
     }
   }
@@ -401,10 +412,12 @@ fn balance_right[K, V](&data: &MapData[K, V]) {
 
 fn merge_balanced[K, V](left: Map[K, V], right: Map[K, V]) -> MapData[K, V] {
   if left.len() == 0 {
+    unsafe::erase(left);
     let Map(_, data) = right;
     data
   } else if right.len() == 0 {
     let Map(_, data) = left;
+    unsafe::erase(right);
     data
   } else if left.len() > right.len() {
     let entry = left._remove_max();

@@ -8,7 +8,7 @@ trait Session[A, B] {
 mod Session {
   pub fn fork[A, B, F; Session[A, B], fn F(A)](f: F) -> B {
     let a;
-    let b = Session::_fork[A, B](move ~a);
+    let b = Session::_fork[A, B](~a);
     f(a);
     b
   }
@@ -50,8 +50,8 @@ mod Channel {
 
 impl channel_session[T, P, Q; Session[P, Q]]: Session[Recv[T, P], Send[T, Q]] {
   fn _fork(~out: ~Recv[T, P]) -> Send[T, Q] {
-    let value: T;
-    Channel(move ~value, Session::fork[P, Q, _](fn (s) { out = Channel(value, s) }))
+    let value;
+    Channel(~value, Session::fork[P, Q, _](fn (s) { out = Channel(value, s) }))
   }
 }
 
@@ -66,6 +66,15 @@ mod Move {
       match self {
         Up { "Up" }
         Down { "Down" }
+      }
+    }
+  }
+
+  pub impl fork: Fork[Move] {
+    fn fork(&self: &Move) -> Move {
+      match &self {
+        &Up { Up }
+        &Down { Down }
       }
     }
   }

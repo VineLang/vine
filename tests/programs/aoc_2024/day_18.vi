@@ -102,7 +102,31 @@ enum Node {
   Child(N32),
 }
 
+mod Node {
+  pub impl fork: Fork[Node] {
+    fn fork(&self: &Node) -> Node {
+      match &self {
+        &Root(x) { Root(x) }
+        &Child(x) { Child(x) }
+      }
+    }
+  }
+
+  pub impl drop: Drop[Node] {
+    fn drop(self: Node) {
+      match self {
+        Root(_) {}
+        Child(_) {}
+      }
+    }
+  }
+}
+
 mod DisjointSet {
+  pub impl drop: Drop[DisjointSet] {
+    fn drop(DisjointSet(_)) {}
+  }
+
   pub fn new(len: N32) -> DisjointSet {
     DisjointSet(Array::new(len, Node::Root(1)))
   }
@@ -138,7 +162,7 @@ mod DisjointSet {
           a
         }
       }
-      _ { unsafe::unreachable() }
+      _ { unsafe::unreachable(()) }
     }
   }
 }

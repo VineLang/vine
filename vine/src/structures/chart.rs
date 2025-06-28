@@ -52,7 +52,7 @@ pub struct Builtins {
 
   pub fork: Option<TraitId>,
   pub drop: Option<TraitId>,
-  pub copy: Option<ImplId>,
+  pub duplicate: Option<ImplId>,
   pub erase: Option<ImplId>,
 
   pub range: Option<StructId>,
@@ -266,6 +266,9 @@ pub struct ImplDef<'core> {
   pub generics: GenericsId,
   pub trait_: Trait<'core>,
   pub subitems: Vec<ImplSubitem<'core>>,
+  pub manual: bool,
+  pub duplicate: bool,
+  pub erase: bool,
 }
 
 #[derive(Debug, Clone)]

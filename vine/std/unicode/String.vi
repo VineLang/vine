@@ -6,12 +6,14 @@ use debug::Show;
 pub struct String(pub List[Char]);
 
 pub mod String {
+  #[duplicate]
   pub impl fork: Fork[String] {
     fn fork(&self: &String) -> String {
-      unsafe::copy(&self)
+      unsafe::duplicate(&self)
     }
   }
 
+  #[erase]
   pub impl drop: Drop[String] {
     fn drop(self: String) {
       unsafe::erase(self)
@@ -67,12 +69,11 @@ pub mod String {
             break.check;
           }
         }
-        let List::Iter(len, &buf) = move iter_b;
-        let List(_, _, end) = suffix as List;
-        return (prefix, Some(List(len, move buf, end) as String));
+        let List::Iter(len, &buf) = unsafe::move(&iter_b);
+        let List(_, _buf, end) = suffix as List;
+        unsafe::erase(_buf);
+        return (prefix, Some(List(len, unsafe::move(&buf), end) as String));
       }
-      iter_a.drop_iter();
-      iter_b.drop_iter();
       if suffix!.pop_front() is Some(char) {
         prefix ++= String([char]);
       } else {
@@ -91,14 +92,13 @@ pub mod String {
     while prefix_iter.next() is Some(&a) {
       let &b = self_iter.next().unwrap();
       if a != b {
-        self_iter.drop_iter()
-        prefix_iter.drop_iter()
         return Err(self)
       }
     }
-    let List::Iter(len, &buf) = move self_iter;
-    let List(_, _, end) = self as List;
-    Ok(List(len, move buf, end) as String)
+    let List::Iter(len, &buf) = unsafe::move(&self_iter);
+    let List(_, _buf, end) = self as List;
+    unsafe::erase(_buf);
+    Ok(List(len, unsafe::move(&buf), end) as String)
   }
 
   pub fn .trim_front(String(chars)) -> String {
@@ -133,12 +133,9 @@ pub mod String {
     while prefix_iter.next() is Some(&a) {
       let &b = self_iter.next().unwrap();
       if a != b {
-        self_iter.drop_iter()
-        prefix_iter.drop_iter()
         return false
       }
     }
-    self_iter.drop_iter();
     true
   }
 

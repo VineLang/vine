@@ -46,7 +46,7 @@ pub fn main(&io: &IO) {
   print_option_n32(add_options(Some(1), Some(2)));
 
   io.println("or:");
-  print_option_n32(None.or(None));
+  print_option_n32(None.or[N32](None));
   print_option_n32(Some(1).or(None));
   print_option_n32(None.or(Some(2)));
   print_option_n32(Some(1).or(Some(2)));
@@ -56,11 +56,11 @@ pub fn main(&io: &IO) {
   print_n32(Some(1).unwrap_or(0));
 
   io.println("is_some:");
-  print_bool(None is Some(_));
+  print_bool(None[()] is Some(_));
   print_bool(Some(()) is Some(_));
 
   io.println("is_none:");
-  print_bool(None is None);
+  print_bool(None[()] is None);
   print_bool(Some(()) is None);
 
   io.println("is_some_and:");

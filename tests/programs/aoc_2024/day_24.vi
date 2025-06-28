@@ -7,18 +7,18 @@ pub fn main(&io: &IO) {
   while io.read_line() is Some(line) && line.len() != 0 {
     let (name, value) = line.split_once(": ");
     let value = (value.unwrap(); _)!.get(0).unwrap() == '1';
-    map.insert(name, Wire::input(value));
+    unsafe::erase(map.insert(name, Wire::input(value)));
   }
 
   let fn at_wire(wire) {
-    map.at_or_insert(wire, Wire::new())
+    map.at_or_insert[; _, unsafe::erase, _](wire, Wire::new())
   }
 
   while io.read_line() is Some(line) {
     let pieces = line.split(" ");
-    let wire_a = move *pieces.at(0).unwrap();
-    let wire_b = move *pieces.at(2).unwrap();
-    let wire_out = move *pieces.at(4).unwrap();
+    let wire_a = unsafe::move(pieces.at(0).unwrap());
+    let wire_b = unsafe::move(pieces.at(2).unwrap());
+    let wire_out = unsafe::move(pieces.at(4).unwrap());
     let a = (*at_wire(wire_a)).get();
     let b = (*at_wire(wire_b)).get();
     let op = (*pieces.at(1).unwrap())!.get(0).unwrap();
@@ -51,6 +51,8 @@ pub fn main(&io: &IO) {
   }
 
   io.println("Part 1: {part1}");
+
+  unsafe::erase(map);
 }
 
 struct Wire((~Bool, Bool));
@@ -58,11 +60,11 @@ struct Wire((~Bool, Bool));
 mod Wire {
   pub fn new() -> Wire {
     let x;
-    Wire(move ~x, x)
+    Wire(~x, x)
   }
 
   pub fn .input(value: Bool) -> Wire {
-    Wire(~_, value)
+    Wire(unsafe::eraser, value)
   }
 
   pub fn .get(&Wire(_, value)) -> Bool {

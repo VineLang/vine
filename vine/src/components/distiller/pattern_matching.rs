@@ -1,18 +1,14 @@
-use std::{
-  collections::{btree_map::Entry, BTreeMap},
-  ops::Range,
-};
+use std::collections::BTreeMap;
 
-use vine_util::{
-  idx::{IdxVec, RangeExt},
-  new_idx,
-};
+use vine_util::{idx::IdxVec, new_idx};
 
 use crate::structures::{
   ast::Span,
-  chart::EnumId,
+  chart::{EnumId, StructId, VariantId},
   diag::Diag,
+  signatures::{EnumSig, StructSig},
   tir::{Local, TirPat, TirPatKind},
+  types::{Inverted, Type, TypeKind},
   vir::{Header, Interface, InterfaceId, InterfaceKind, Layer, Port, Stage, Step, Transfer},
 };
 
@@ -27,11 +23,12 @@ impl<'core, 'r> Distiller<'core, 'r> {
     value: Port,
     rows: Vec<Row<'_>>,
   ) {
-    let local = self.new_local(stage);
-    stage.set_local_to(local, value);
-    let mut matcher =
-      Matcher { exhaustive: true, vars: IdxVec::from([(local, Form::Value)]), distiller: self };
-    matcher.distill_rows(rows, layer, stage);
+    let ty = value.ty;
+    let local = self.new_local(stage, span, ty);
+    stage.local_barrier_write_to(local, value);
+    let vars = IdxVec::from(vec![Var { ty, kind: VarKind::Local(local, Form::Value) }]);
+    let mut matcher = Matcher { span, exhaustive: true, distiller: self };
+    matcher.distill_rows(layer, stage, vars, rows);
     if !matcher.exhaustive {
       self.core.report(Diag::NonExhaustiveMatch { span });
     }
@@ -41,18 +38,7 @@ impl<'core, 'r> Distiller<'core, 'r> {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum Form {
   Value,
-  Space,
   Place,
-}
-
-impl Form {
-  fn inverse(self) -> Self {
-    match self {
-      Form::Value => Form::Space,
-      Form::Space => Form::Value,
-      Form::Place => Form::Place,
-    }
-  }
 }
 
 new_idx!(VarId);
@@ -64,300 +50,341 @@ pub struct Row<'p> {
   arm: InterfaceId,
 }
 
+#[derive(Debug, Clone)]
+struct Var {
+  ty: Type,
+  kind: VarKind,
+}
+
+#[derive(Debug, Clone)]
+enum VarKind {
+  Local(Local, Form),
+  Composite(Vec<VarId>),
+  Enum(EnumId, VariantId, Option<VarId>),
+  Struct(StructId, VarId),
+  Ref(Local),
+}
+
+impl VarKind {
+  fn form(&self) -> Form {
+    match self {
+      VarKind::Local(_, form) => *form,
+      _ => Form::Value,
+    }
+  }
+}
+
 impl<'p> Row<'p> {
   pub fn new(pat: Option<&'p TirPat>, arm: InterfaceId) -> Self {
-    Row { cells: pat.iter().map(|&pat| (VarId(0), pat)).collect(), bindings: Vec::new(), arm }
+    let mut row = Row { cells: BTreeMap::new(), bindings: Vec::new(), arm };
+    if let Some(pat) = pat {
+      row.add(VarId(0), pat);
+    }
+    row
+  }
+
+  fn add(&mut self, var: VarId, pat: &'p TirPat) {
+    if matches!(*pat.kind, TirPatKind![incomplete]) {
+      self.cells.insert(var, pat);
+    } else if !matches!(*pat.kind, TirPatKind::Hole) {
+      self.bindings.push((var, pat));
+    }
   }
 }
 
 #[derive(Debug)]
 struct Matcher<'core, 'd, 'r> {
+  span: Span,
   exhaustive: bool,
-  vars: IdxVec<VarId, (Local, Form)>,
   distiller: &'d mut Distiller<'core, 'r>,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-enum MatchKind {
-  Ref,
-  Inverse,
-  Composite(usize),
-  Enum(EnumId),
-}
-
 impl<'core, 'd, 'r> Matcher<'core, 'd, 'r> {
-  fn distill_rows<'p>(&mut self, mut rows: Vec<Row<'p>>, layer: &mut Layer, stage: &mut Stage) {
-    loop {
-      if rows.is_empty() {
-        self.exhaustive = false;
-        return;
+  fn distill_rows<'p>(
+    &mut self,
+    layer: &mut Layer,
+    stage: &mut Stage,
+    vars: IdxVec<VarId, Var>,
+    mut rows: Vec<Row<'p>>,
+  ) {
+    if rows.is_empty() {
+      self.exhaustive = false;
+      return;
+    }
+
+    let Some((&var_id, _)) = rows[0].cells.last_key_value() else {
+      return self.distill_row(stage, &vars, rows.swap_remove(0));
+    };
+
+    let var = &vars[var_id];
+    let ty = var.ty;
+    let form = var.kind.form();
+
+    match self.distiller.types.kind(ty) {
+      Some((inv, TypeKind::Tuple(els))) => {
+        self.match_composite(layer, stage, vars, rows, var_id, form, inv, els.clone());
       }
-
-      let Some((&var, _)) = rows[0].cells.last_key_value() else {
-        return self.distill_row(rows.swap_remove(0), stage);
-      };
-
-      let mut kind = None;
-      for row in &mut rows {
-        if let Entry::Occupied(mut e) = row.cells.entry(var) {
-          let row_kind = Self::match_kind(e.get_mut());
-          if let Some(row_kind) = row_kind {
-            assert!(kind.is_none_or(|kind| kind == row_kind));
-            kind = Some(row_kind);
-          } else {
-            let pat = e.remove();
-            if !matches!(*pat.kind, TirPatKind::Hole) {
-              row.bindings.push((var, pat));
-            }
-          }
-        }
+      Some((inv, TypeKind::Object(entries))) => {
+        let els = entries.values().copied().collect();
+        self.match_composite(layer, stage, vars, rows, var_id, form, inv, els);
       }
-
-      let Some(kind) = kind else {
-        continue;
-      };
-
-      let (local, form) = self.vars[var];
-
-      match kind {
-        MatchKind::Ref => {
-          let (new_var, new_local) = self.new_var(stage, Form::Place);
-          match form {
-            Form::Value => {
-              let reference = stage.take_local(local);
-              let val_0 = stage.new_wire();
-              let val_1 = stage.new_wire();
-              stage.steps.push(Step::Ref(reference, val_0.0, val_1.1));
-              stage.mut_local_to(new_local, val_1.0, val_0.1);
-            }
-            Form::Place => {
-              let (ref_in, ref_out) = stage.mut_local(local);
-              let val_0 = stage.new_wire();
-              let val_1 = stage.new_wire();
-              let val_2 = stage.new_wire();
-              stage.steps.push(Step::Ref(ref_in, val_0.0, val_2.1));
-              stage.steps.push(Step::Ref(ref_out, val_1.1, val_2.0));
-              stage.mut_local_to(new_local, val_1.0, val_0.1);
-            }
-            Form::Space => unreachable!(),
-          }
-
-          self.eliminate_col(&mut rows, var, |pat| match &*pat.kind {
-            TirPatKind::Ref(inner) => [(new_var, inner)],
-            _ => unreachable!(),
-          });
-        }
-
-        MatchKind::Inverse => {
-          let (new_var, new_local) = self.new_var(stage, form.inverse());
-          match form {
-            Form::Value => {
-              let port = stage.take_local(local);
-              stage.set_local_to(new_local, port);
-            }
-            Form::Space => {
-              let port = stage.set_local(local);
-              stage.take_local_to(new_local, port);
-            }
-            Form::Place => {
-              let (a, b) = stage.mut_local(local);
-              stage.mut_local_to(new_local, a, b);
-            }
-          }
-
-          self.eliminate_col(&mut rows, var, |pat| match &*pat.kind {
-            TirPatKind::Inverse(inner) => [(new_var, inner)],
-            _ => unreachable!(),
-          });
-        }
-
-        MatchKind::Composite(len) => {
-          let (new_vars, new_locals) = self.new_var_range(stage, form, len);
-          match form {
-            Form::Value => {
-              let value = stage.take_local(local);
-              let spaces = new_locals.iter().map(|l| stage.set_local(l)).collect::<Vec<_>>();
-              stage.steps.push(Step::Composite(value, spaces));
-            }
-            Form::Space => {
-              let space = stage.set_local(local);
-              let values = new_locals.iter().map(|l| stage.take_local(l)).collect::<Vec<_>>();
-              stage.steps.push(Step::Composite(space, values));
-            }
-            Form::Place => {
-              let (value, space) = stage.mut_local(local);
-              let (values, spaces) =
-                new_locals.iter().map(|l| stage.mut_local(l)).collect::<(Vec<_>, Vec<_>)>();
-              stage.steps.push(Step::Composite(value, spaces));
-              stage.steps.push(Step::Composite(space, values));
-            }
-          }
-
-          self.eliminate_col(&mut rows, var, |pat| match &*pat.kind {
-            TirPatKind::Composite(composite) => new_vars.iter().zip(composite),
-            _ => unreachable!(),
-          });
-        }
-
-        MatchKind::Enum(enum_id) => {
-          let enum_def = &self.distiller.chart.enums[enum_id];
-          let interface = self.distiller.interfaces.push(None);
-          let stages = enum_def
-            .variants
-            .iter()
-            .map(|(variant_id, variant)| {
-              let mut stage = self.distiller.new_stage(layer, interface);
-              let (new_var, new_local) =
-                opt_tuple(variant.data.is_some().then(|| self.new_var(&mut stage, form)));
-
-              let mut rows = rows
-                .iter()
-                .filter(|r| {
-                  r.cells.get(&var).is_none_or(
-                    |pat| matches!(&*pat.kind, TirPatKind::Enum(_, i, ..) if *i == variant_id),
-                  )
-                })
-                .cloned()
-                .collect::<Vec<_>>();
-
-              if form == Form::Place
-                || rows.iter().any(|x| x.bindings.iter().any(|&(v, _)| v == var))
-              {
-                let (result, header) = opt_tuple(new_local.map(|l| stage.mut_local(l)));
-                stage.header = Header::Match(header);
-                let wire = stage.new_wire();
-                stage.steps.push(Step::Enum(enum_id, variant_id, wire.0, result));
-                stage.set_local_to(local, wire.1);
-              } else {
-                stage.header = Header::Match(new_local.map(|l| stage.set_local(l)));
-              }
-
-              self.eliminate_col(&mut rows, var, |pat| match &*pat.kind {
-                TirPatKind::Enum(.., data) => new_var.into_iter().zip(data),
-                _ => unreachable!(),
-              });
-
-              self.distill_rows(rows, layer, &mut stage);
-
-              let stage_id = stage.id;
-              self.distiller.finish_stage(stage);
-              stage_id
-            })
-            .collect::<Vec<_>>();
-          self.distiller.interfaces[interface] =
-            Some(Interface::new(interface, layer.id, InterfaceKind::Match(enum_id, stages)));
-          let value = stage.take_local(local);
-          stage.transfer = Some(Transfer { interface, data: Some(value) });
-          return;
-        }
+      Some((Inverted(false), TypeKind::Ref(inner))) => {
+        self.match_ref(layer, stage, vars, rows, var_id, *inner);
       }
+      Some((Inverted(false), TypeKind::Struct(struct_id, type_params))) => {
+        let struct_id = *struct_id;
+        let sig = &self.distiller.sigs.structs[struct_id];
+        let sig = self.distiller.types.import(sig, Some(&type_params.clone()));
+        self.match_struct(layer, stage, vars, rows, var_id, form, struct_id, sig);
+      }
+      Some((Inverted(false), TypeKind::Enum(enum_id, type_params))) => {
+        let enum_id = *enum_id;
+        let sig = &self.distiller.sigs.enums[enum_id];
+        let sig = self.distiller.types.import(sig, Some(&type_params.clone()));
+        self.match_enum(layer, stage, vars, rows, var_id, form, enum_id, sig);
+      }
+      Some((_, TypeKind::Error(_))) => {}
+      _ => unreachable!(),
     }
   }
 
-  fn eliminate_col<'p, F: FnMut(&'p TirPat) -> I, I: IntoIterator<Item = (VarId, &'p TirPat)>>(
+  fn match_composite<'p>(
+    &mut self,
+    layer: &mut Layer,
+    stage: &mut Stage,
+    mut vars: IdxVec<VarId, Var>,
+    mut rows: Vec<Row<'p>>,
+    var_id: VarId,
+    form: Form,
+    inv: Inverted,
+    element_tys: Vec<Type>,
+  ) {
+    let element_tys = element_tys.iter().map(|&t| t.invert_if(inv));
+    let (element_vars, element_locals): (Vec<_>, Vec<_>) =
+      element_tys.clone().map(|t| self.new_var(stage, &mut vars, form, t)).collect();
+    let value = self.borrow_var(stage, &mut vars, var_id, VarKind::Composite(element_vars.clone()));
+    let element_ports = Vec::from_iter(
+      element_tys
+        .zip(element_locals)
+        .map(|(ty, local)| stage.local_barrier_write(local, self.span, ty)),
+    );
+    stage.steps.push(Step::Composite(value, element_ports));
+    self.eliminate_col(&mut rows, var_id, |pat| match &*pat.kind {
+      TirPatKind::Composite(pats) => Some(element_vars.iter().copied().zip(pats)),
+      _ => unreachable!(),
+    });
+    self.distill_rows(layer, stage, vars, rows);
+  }
+
+  fn match_ref<'p>(
+    &mut self,
+    layer: &mut Layer,
+    stage: &mut Stage,
+    mut vars: IdxVec<VarId, Var>,
+    mut rows: Vec<Row<'p>>,
+    var_id: VarId,
+    inner_ty: Type,
+  ) {
+    let (inner_var, inner_local) = self.new_var(stage, &mut vars, Form::Place, inner_ty);
+    let value = self.borrow_var(stage, &mut vars, var_id, VarKind::Ref(inner_local));
+    let (a, b) = stage.local_read_write(inner_local, self.span, inner_ty);
+    stage.steps.push(Step::Ref(value, b, a));
+    self.eliminate_col(&mut rows, var_id, |pat| match &*pat.kind {
+      TirPatKind::Ref(inner) => Some([(inner_var, inner)]),
+      _ => unreachable!(),
+    });
+    self.distill_rows(layer, stage, vars, rows);
+  }
+
+  fn match_struct<'p>(
+    &mut self,
+    layer: &mut Layer,
+    stage: &mut Stage,
+    mut vars: IdxVec<VarId, Var>,
+    mut rows: Vec<Row<'p>>,
+    var_id: VarId,
+    form: Form,
+    struct_id: StructId,
+    sig: StructSig,
+  ) {
+    let content_ty = sig.data;
+    let (content_var, content_local) = self.new_var(stage, &mut vars, form, content_ty);
+    let value = self.borrow_var(stage, &mut vars, var_id, VarKind::Struct(struct_id, content_var));
+    let content = stage.new_wire(self.span, content_ty);
+    stage.steps.push(Step::Struct(struct_id, value, content.neg));
+    stage.local_barrier_write_to(content_local, content.pos);
+    self.eliminate_col(&mut rows, var_id, |pat| match &*pat.kind {
+      TirPatKind::Struct(_, inner) => Some([(content_var, inner)]),
+      _ => unreachable!(),
+    });
+    self.distill_rows(layer, stage, vars, rows);
+  }
+
+  fn match_enum<'p>(
+    &mut self,
+    layer: &mut Layer,
+    stage: &mut Stage,
+    vars: IdxVec<VarId, Var>,
+    rows: Vec<Row<'p>>,
+    var_id: VarId,
+    form: Form,
+    enum_id: EnumId,
+    sig: EnumSig,
+  ) {
+    let interface = self.distiller.interfaces.push(None);
+
+    let stages = Vec::from_iter(sig.variant_data.iter().map(|(variant_id, &content_ty)| {
+      let mut vars = vars.clone();
+      let mut rows = rows.clone();
+
+      let mut stage = self.distiller.new_stage(layer, self.span, interface);
+
+      let content = content_ty.map(|ty| {
+        let (var, local) = self.new_var(&mut stage, &mut vars, form, ty);
+        (ty, var, local)
+      });
+
+      let new_var = VarKind::Enum(enum_id, variant_id, content.map(|(_, var, _)| var));
+      self.restore_var(&mut stage, &mut vars, var_id, new_var);
+      stage.header = Header::Match(
+        content.map(|(ty, _, local)| stage.local_barrier_write(local, self.span, ty)),
+      );
+
+      self.eliminate_col(&mut rows, var_id, |pat| match &*pat.kind {
+        TirPatKind::Enum(_, pat_variant_id, content_pat) => (pat_variant_id == &variant_id)
+          .then(|| content.map(|(_, var, _)| var).into_iter().zip(content_pat)),
+        _ => unreachable!(),
+      });
+
+      self.distill_rows(layer, &mut stage, vars, rows);
+
+      self.distiller.finish_stage(stage)
+    }));
+
+    self.distiller.interfaces[interface] =
+      Some(Interface::new(interface, layer.id, InterfaceKind::Match(enum_id, stages)));
+
+    let value = self.take_var(stage, &vars, &vars[var_id]);
+    stage.transfer = Some(Transfer { interface, data: Some(value) });
+  }
+
+  fn eliminate_col<
+    'p,
+    F: FnMut(&'p TirPat) -> Option<I>,
+    I: IntoIterator<Item = (VarId, &'p TirPat)>,
+  >(
     &mut self,
     rows: &mut Vec<Row<'p>>,
     var: VarId,
     mut f: F,
   ) {
-    for row in rows {
+    rows.retain_mut(|row| {
       if let Some(pat) = row.cells.remove(&var) {
-        for (var, pat) in f(pat) {
-          self.add_to_row(row, var, pat);
+        if let Some(new_cells) = f(pat) {
+          for (var, pat) in new_cells {
+            row.add(var, pat);
+          }
+          true
+        } else {
+          false
         }
+      } else {
+        true
       }
-    }
+    });
   }
 
-  fn new_var(&mut self, stage: &mut Stage, form: Form) -> (VarId, Local) {
-    let local = self.distiller.new_local(stage);
-    let var = self.vars.push((local, form));
+  fn new_var(
+    &mut self,
+    stage: &mut Stage,
+    vars: &mut IdxVec<VarId, Var>,
+    form: Form,
+    ty: Type,
+  ) -> (VarId, Local) {
+    let local = self.distiller.new_local(stage, self.span, ty);
+    let var = vars.push(Var { ty, kind: VarKind::Local(local, form) });
     (var, local)
   }
 
-  fn new_var_range(
-    &mut self,
-    stage: &mut Stage,
-    form: Form,
-    len: usize,
-  ) -> (Range<VarId>, Range<Local>) {
-    let start_var = self.vars.next_index();
-    let start_local = self.distiller.locals.peek_next();
-    for _ in 0..len {
-      _ = self.new_var(stage, form);
-    }
-    let end_var = self.vars.next_index();
-    let end_local = self.distiller.locals.peek_next();
-    (start_var..end_var, start_local..end_local)
-  }
-
-  fn add_to_row<'p>(&self, row: &mut Row<'p>, var: VarId, mut pat: &'p TirPat) {
-    if Self::match_kind(&mut pat).is_some() {
-      row.cells.insert(var, pat);
-    } else {
-      row.bindings.push((var, pat));
-    }
-  }
-
-  fn match_kind(pat: &mut &TirPat) -> Option<MatchKind> {
-    loop {
-      return match &*pat.kind {
-        TirPatKind::Error(_) => unreachable!(),
-        TirPatKind::Hole | TirPatKind::Local(_) => None,
-        TirPatKind::Struct(_, inner) => {
-          *pat = inner;
-          continue;
+  fn distill_row<'p>(&mut self, stage: &mut Stage, vars: &IdxVec<VarId, Var>, row: Row<'p>) {
+    for (var_id, pat) in row.bindings {
+      let var = &vars[var_id];
+      let value = self.take_var(stage, vars, var);
+      match self.set_var(stage, var) {
+        None => {
+          let v = self.distiller.distill_pat_value(stage, pat);
+          stage.steps.push(Step::Link(value, v));
         }
-        TirPatKind::Enum(enum_id, _, _) => Some(MatchKind::Enum(*enum_id)),
-        TirPatKind::Ref(inner) => Self::match_kind(&mut { inner }).map(|_| MatchKind::Ref),
-        TirPatKind::Deref(inner) => {
-          if let TirPatKind::Ref(inner) = &*inner.kind {
-            *pat = inner;
-            continue;
-          }
-          None
-        }
-        TirPatKind::Inverse(inner) => {
-          if let TirPatKind::Inverse(inner) = &*inner.kind {
-            *pat = inner;
-            continue;
-          }
-          if let TirPatKind::Hole = &*inner.kind {
-            *pat = inner;
-            continue;
-          }
-          Self::match_kind(&mut { inner }).map(|_| MatchKind::Inverse)
-        }
-        TirPatKind::Composite(elements) => Some(MatchKind::Composite(elements.len())),
-      };
-    }
-  }
-
-  fn distill_row<'p>(&mut self, row: Row<'p>, stage: &mut Stage) {
-    for (var, pat) in row.bindings {
-      let (local, form) = self.vars[var];
-      match form {
-        Form::Value => {
-          let port = self.distiller.distill_pat_value(stage, pat);
-          stage.take_local_to(local, port);
-        }
-        Form::Space => {
-          let port = self.distiller.distill_pat_space(stage, pat);
-          stage.set_local_to(local, port);
-        }
-        Form::Place => {
-          let (a, b) = self.distiller.distill_pat_place(stage, pat);
-          stage.mut_local_to(local, a, b);
+        Some(space) => {
+          let (v, s) = self.distiller.distill_pat_place(stage, pat);
+          stage.steps.push(Step::Link(value, v));
+          stage.steps.push(Step::Link(space, s));
         }
       }
     }
     stage.transfer = Some(Transfer::unconditional(row.arm));
   }
-}
 
-fn opt_tuple<A, B>(opt: Option<(A, B)>) -> (Option<A>, Option<B>) {
-  match opt {
-    Some((a, b)) => (Some(a), Some(b)),
-    None => (None, None),
+  fn borrow_var(
+    &mut self,
+    stage: &mut Stage,
+    vars: &mut IdxVec<VarId, Var>,
+    id: VarId,
+    new_var: VarKind,
+  ) -> Port {
+    let value = self.take_var(stage, vars, &vars[id]);
+    self.restore_var(stage, vars, id, new_var);
+    value
+  }
+
+  fn restore_var(
+    &mut self,
+    stage: &mut Stage,
+    vars: &mut IdxVec<VarId, Var>,
+    id: VarId,
+    new_var: VarKind,
+  ) {
+    let var = &mut vars[id];
+    let ty = var.ty;
+    match self.set_var(stage, var) {
+      None => var.kind = new_var,
+      Some(space) => {
+        let new_value = self.take_var(stage, vars, &Var { ty, kind: new_var });
+        stage.steps.push(Step::Link(space, new_value));
+      }
+    }
+  }
+
+  fn take_var(&mut self, stage: &mut Stage, vars: &IdxVec<VarId, Var>, var: &Var) -> Port {
+    let wire = stage.new_wire(self.span, var.ty);
+    match &var.kind {
+      VarKind::Local(local, _) => stage.local_read_barrier_to(*local, wire.neg),
+      VarKind::Composite(els) => {
+        let els = els.iter().map(|&v| self.take_var(stage, vars, &vars[v])).collect();
+        stage.steps.push(Step::Composite(wire.neg, els));
+      }
+      VarKind::Ref(local) => {
+        let (value, space) =
+          stage.local_read_write(*local, self.span, self.distiller.locals[*local].ty);
+        stage.steps.push(Step::Ref(wire.neg, value, space));
+      }
+      VarKind::Struct(struct_id, content) => {
+        let content = self.take_var(stage, vars, &vars[*content]);
+        stage.steps.push(Step::Struct(*struct_id, wire.neg, content));
+      }
+      VarKind::Enum(enum_id, variant_id, content) => {
+        let content = content.map(|v| self.take_var(stage, vars, &vars[v]));
+        stage.steps.push(Step::Enum(*enum_id, *variant_id, wire.neg, content));
+      }
+    }
+    wire.pos
+  }
+
+  fn set_var(&mut self, stage: &mut Stage, var: &Var) -> Option<Port> {
+    if let VarKind::Local(local, Form::Place) = var.kind {
+      Some(stage.local_barrier_write(local, self.span, var.ty))
+    } else {
+      None
+    }
   }
 }

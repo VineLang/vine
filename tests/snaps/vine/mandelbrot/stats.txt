@@ -12,6 +12,6 @@ Interactions
   Branch             270_040
 
 Memory
-  Heap             1_246_144 B
-  Allocated      193_567_808 B
-  Freed          193_567_808 B
+  Heap             1_249_536 B
+  Allocated      185_289_440 B
+  Freed          185_289_440 B

@@ -11,10 +11,7 @@ pub mod Result {
   pub fn .map[T, U, E, F?; fn F(T) -> U](self: Result[T, E], f: F) -> Result[U, E] {
     match self {
       Ok(val) { Ok(f(val)) }
-      Err(err) {
-        f.drop();
-        Err(err)
-      }
+      Err(err) { Err(err) }
     }
   }
 
@@ -37,24 +34,24 @@ pub mod Result {
     self.map(f).flatten()
   }
 
-  pub fn .or[T, E](self: Result[T, E], default: Result[T, E]) -> Result[T, E] {
+  pub fn .or[T?, E?](self: Result[T, E], default: Result[T, E]) -> Result[T, E] {
     match self {
       Err(_) { default }
       x { x }
     }
   }
 
-  pub fn .unwrap_or[T, E](self: Result[T, E], default: T) -> T {
+  pub fn .unwrap_or[T?, E?](self: Result[T, E], default: T) -> T {
     match self {
       Ok(val) { val }
       Err(_) { default }
     }
   }
 
-  pub fn .unwrap[T, E](self: Result[T, E], default: T) -> T {
+  pub fn .unwrap[T, E](self: Result[T, E]) -> T {
     match self {
       Ok(val) { val }
-      Err(_) { unsafe::unreachable() }
+      Err(err) { unsafe::unreachable(err) }
     }
   }
 
@@ -67,20 +64,22 @@ pub mod Result {
     }
   }
 
+  #[duplicate]
   pub impl fork[T+, E+]: Fork[Result[T, E]] {
     fn fork(&self: &Result[T, E]) -> Result[T, E] {
       match &self {
-        &Ok(value) { Ok(value.fork()) }
-        &Err(value) { Err(value.fork()) }
+        &Ok(value) { Ok(value) }
+        &Err(value) { Err(value) }
       }
     }
   }
 
+  #[erase]
   pub impl drop[T?, E?]: Drop[Result[T, E]] {
     fn drop(self: Result[T, E]) {
       match self {
-        Ok(value) { value.drop() }
-        Err(value) { value.drop() }
+        Ok(_) {}
+        Err(_) {}
       }
     }
   }

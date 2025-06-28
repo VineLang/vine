@@ -1,8 +1,16 @@
 
-pub fn copy[T](&value: &T) -> T {
+pub fn duplicate[T](&value: &T) -> T {
   inline_ivy! (x <- value, x1 -> value) -> T {
     x2
-    x = copy(x1 x2)
+    x = dup(x1 x2)
+  }
+}
+
+#[manual]
+#[builtin = "duplicate"]
+pub impl duplicate[T]: Fork[T] {
+  fn fork(&self: &T) -> T {
+    unsafe::duplicate(&self)
   }
 }
 
@@ -12,6 +20,21 @@ pub fn erase[T](value: T) {
   ~eraser = value;
 }
 
-pub fn unreachable[T]() -> T {
+#[manual]
+#[builtin = "erase"]
+pub impl erase[T]: Drop[T] {
+  fn drop(self: T) {
+    unsafe::erase(self)
+  }
+}
+
+pub fn unreachable[T, U](ignored: T) -> U {
+  unsafe::erase(ignored)
   eraser
+}
+
+pub fn move[T](&value: &T) -> T {
+  let result = value;
+  value = eraser;
+  result
 }

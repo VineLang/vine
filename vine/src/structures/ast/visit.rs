@@ -59,7 +59,6 @@ pub trait VisitMut<'core, 'a> {
       ExprKind::Paren(a)
       | ExprKind::Ref(a, _)
       | ExprKind::Deref(a, _)
-      | ExprKind::Move(a, _)
       | ExprKind::Neg(a)
       | ExprKind::Not(a)
       | ExprKind::Break(_, Some(a))

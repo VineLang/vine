@@ -304,6 +304,9 @@ impl<'core> Charter<'core, '_> {
           generics,
           trait_: impl_item.trait_,
           subitems,
+          manual: false,
+          duplicate: false,
+          erase: false,
         });
         self.define_impl(span, def, vis, DefImplKind::Impl(impl_id));
         Some(def)
@@ -335,14 +338,40 @@ impl<'core> Charter<'core, '_> {
 
   fn chart_attrs(&mut self, def: Option<DefId>, attrs: Vec<Attr>) {
     for attr in attrs {
+      let span = attr.span;
+      let impl_id = def.and_then(|id| match self.chart.defs[id].impl_kind {
+        Some(WithVis { vis: _, kind: DefImplKind::Impl(id) }) => Some(id),
+        _ => None,
+      });
       match attr.kind {
         AttrKind::Builtin(builtin) => {
           if !self.chart_builtin(def, builtin) {
-            self.core.report(Diag::BadBuiltin { span: attr.span });
+            self.core.report(Diag::BadBuiltin { span });
           }
         }
         AttrKind::Main => {
           self.chart.main_mod = def;
+        }
+        AttrKind::Manual => {
+          let Some(impl_id) = impl_id else {
+            self.core.report(Diag::BadManualAttr { span });
+            continue;
+          };
+          self.chart.impls[impl_id].manual = true;
+        }
+        AttrKind::Duplicate => {
+          let Some(impl_id) = impl_id else {
+            self.core.report(Diag::BadDuplicateAttr { span });
+            continue;
+          };
+          self.chart.impls[impl_id].duplicate = true;
+        }
+        AttrKind::Erase => {
+          let Some(impl_id) = impl_id else {
+            self.core.report(Diag::BadEraseAttr { span });
+            continue;
+          };
+          self.chart.impls[impl_id].erase = true;
         }
       }
     }
@@ -402,7 +431,7 @@ impl<'core> Charter<'core, '_> {
       Builtin::Cast => set(&mut builtins.cast, fn_id),
       Builtin::Fork => set(&mut builtins.fork, trait_id),
       Builtin::Drop => set(&mut builtins.drop, trait_id),
-      Builtin::Copy => set(&mut builtins.copy, impl_id),
+      Builtin::Duplicate => set(&mut builtins.duplicate, impl_id),
       Builtin::Erase => set(&mut builtins.erase, impl_id),
       Builtin::BoolNot => set(&mut builtins.bool_not, impl_id),
       Builtin::BinaryOp(op) => set(builtins.binary_ops.entry(op).or_default(), fn_id),

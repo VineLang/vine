@@ -1,8 +1,8 @@
 use std::rng::Pcg32;
 let rng = Pcg32::default
-let nums = []
+let nums: List[N32] = []
 let len = 20
 while len != 0 { len -= 1; nums ++= [rng.gen_n32() % 100] }
 let str = ""
 let len = 100
-while len != 0 { len -= 1; str ++= [' ' + rng.gen_n32() % 95] }
+while len != 0 { len -= 1; str ++= String([' ' + rng.gen_n32() % 95]) }

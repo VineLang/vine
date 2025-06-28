@@ -1,16 +1,13 @@
 use class::Classes;
 use ivy::ast::Net;
-use vine_util::{
-  idx::{Counter, IdxVec},
-  new_idx,
-};
+use vine_util::{idx::IdxVec, new_idx};
 
 use crate::structures::{
   ast::{Flex, LogicalOp, Span},
   chart::{EnumId, FnId, ImplId, StructId, VariantId},
   diag::ErrorGuaranteed,
-  resolutions::{ConstRelId, FnRelId},
-  types::Type,
+  resolutions::{ConstRelId, FnRelId, Rels},
+  types::{Type, Types},
 };
 
 new_idx!(pub LabelId);
@@ -18,34 +15,35 @@ new_idx!(pub Local; n => ["l{n}"]);
 new_idx!(pub ClosureId; n => ["c{n}"]);
 
 #[derive(Debug, Clone)]
-pub struct Tir {
+pub struct Tir<'core> {
   pub span: Span,
-  pub locals: Counter<Local>,
+  pub types: Types<'core>,
+  pub locals: IdxVec<Local, TirLocal>,
+  pub rels: Rels,
   pub closures: IdxVec<ClosureId, TirClosure>,
   pub root: TirExpr,
 }
 
 #[derive(Debug, Clone)]
 pub struct TirClosure {
+  pub span: Span,
+  pub ty: Type,
   pub flex: Flex,
   pub params: Vec<TirPat>,
   pub body: TirExpr,
 }
 
 #[derive(Debug, Clone)]
+pub struct TirLocal {
+  pub span: Span,
+  pub ty: Type,
+}
+
+#[derive(Debug, Clone)]
 pub struct TirExpr {
   pub span: Span,
   pub ty: Type,
-  pub form: Form,
   pub kind: Box<TirExprKind>,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum Form {
-  Value,
-  Place,
-  Space,
-  Error(ErrorGuaranteed),
 }
 
 #[derive(Debug, Clone, Classes)]
@@ -56,47 +54,45 @@ pub enum TirExprKind {
   Const(ConstRelId),
   #[class(value)]
   Fn,
-  #[class(place)]
+  #[class(poly, value, place, space)]
   Local(Local),
   #[class(value)]
   Closure(ClosureId),
   #[class(value)]
   Do(LabelId, TirExpr),
-  #[class(value)]
+  #[class(nil, value)]
   Assign(bool, TirExpr, TirExpr),
   #[class(value)]
   Match(TirExpr, Vec<(TirPat, TirExpr)>),
   #[class(value)]
   If(Vec<(TirExpr, TirExpr)>, Option<TirExpr>),
-  #[class(value)]
+  #[class(nil, value)]
   While(LabelId, TirExpr, TirExpr),
   #[class(value)]
   Loop(LabelId, TirExpr),
-  #[class(value)]
+  #[class(nil, value)]
   Return(Option<TirExpr>),
-  #[class(value)]
+  #[class(nil, value)]
   Break(LabelId, Option<TirExpr>),
-  #[class(value)]
+  #[class(nil, value)]
   Continue(LabelId),
   #[class(value)]
   Ref(TirExpr),
   #[class(place)]
   Deref(TirExpr),
-  #[class(value)]
-  Move(TirExpr),
-  #[class(value, place, space)]
+  #[class(poly, value, place, space)]
   Inverse(TirExpr),
   #[class(place)]
   Place(TirExpr, TirExpr),
-  #[class(value, place, space)]
+  #[class(poly, value, place, space)]
   Composite(Vec<TirExpr>),
   #[class(value)]
   List(Vec<TirExpr>),
-  #[class(value, place)]
-  Field(TirExpr, usize, usize),
+  #[class(poly)]
+  Field(TirExpr, usize, Vec<Type>),
   #[class(value)]
   Call(FnRelId, Option<TirExpr>, Vec<TirExpr>),
-  #[class(value, place, space)]
+  #[class(poly, value, place, space)]
   Struct(StructId, TirExpr),
   #[class(value)]
   Enum(EnumId, VariantId, Option<TirExpr>),
@@ -108,10 +104,10 @@ pub enum TirExprKind {
   Is(TirExpr, TirPat),
   #[class(value, cond)]
   LogicalOp(LogicalOp, TirExpr, TirExpr),
-  #[class(value, space, place)]
-  Unwrap(TirExpr),
+  #[class(poly, value, place, space)]
+  Unwrap(StructId, TirExpr),
   #[class(value)]
-  Try(TirExpr),
+  Try(Type, Type, TirExpr),
   #[class(value)]
   N32(u32),
   #[class(value)]
@@ -122,23 +118,9 @@ pub enum TirExprKind {
   Char(char),
   #[class(value)]
   String(String, Vec<(TirExpr, String)>),
-  #[class(space)]
-  Set(TirExpr),
-  #[class(value)]
-  Copy(TirExpr),
-  #[class(space)]
-  Hedge(TirExpr),
-  #[class(value)]
-  CopyLocal(Local),
-  #[class(space)]
-  HedgeLocal(Local),
-  #[class(value)]
-  MoveLocal(Local),
-  #[class(space)]
-  SetLocal(Local),
   #[class(value)]
   InlineIvy(Vec<(String, bool, TirExpr)>, Net),
-  #[class(value)]
+  #[class(nil, value)]
   CallAssign(FnRelId, TirExpr, TirExpr),
   #[class(value)]
   CallCompare(TirExpr, Vec<(FnRelId, TirExpr)>),
@@ -148,7 +130,7 @@ pub enum TirExprKind {
   LetElse(TirPat, TirExpr, TirExpr, TirExpr),
   #[class(value)]
   Seq(TirExpr, TirExpr),
-  #[class(value, place, space)]
+  #[class(poly, value, place, space)]
   Error(ErrorGuaranteed),
 }
 
@@ -156,29 +138,28 @@ pub enum TirExprKind {
 pub struct TirPat {
   pub span: Span,
   pub ty: Type,
-  pub form: Form,
   pub kind: Box<TirPatKind>,
 }
 
 #[derive(Debug, Clone, Classes)]
 pub enum TirPatKind {
-  #[class(value, place, space)]
+  #[class(value, place, space, complete)]
   Hole,
-  #[class(value, place, space)]
+  #[class(value, place, space, complete, incomplete)]
   Struct(StructId, TirPat),
-  #[class(value, place, space)]
+  #[class(value, place, space, incomplete)]
   Enum(EnumId, VariantId, Option<TirPat>),
-  #[class(value, place, space)]
+  #[class(value, place, space, complete)]
   Local(Local),
-  #[class(value, place)]
+  #[class(value, place, complete, incomplete)]
   Ref(TirPat),
-  #[class(place)]
+  #[class(place, complete)]
   Deref(TirPat),
-  #[class(value, place, space)]
+  #[class(value, place, space, complete)]
   Inverse(TirPat),
-  #[class(value, place, space)]
+  #[class(value, place, space, complete, incomplete)]
   Composite(Vec<TirPat>),
-  #[class(value, place, space)]
+  #[class(value, place, space, complete)]
   Error(ErrorGuaranteed),
 }
 
@@ -191,15 +172,4 @@ pub enum TirImpl {
   Closure(ClosureId),
   ForkClosure(ClosureId),
   DropClosure(ClosureId),
-}
-
-impl Form {
-  pub fn inverse(self) -> Self {
-    match self {
-      Form::Value => Form::Space,
-      Form::Place => Form::Place,
-      Form::Space => Form::Value,
-      Form::Error(e) => Form::Error(e),
-    }
-  }
 }

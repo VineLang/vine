@@ -78,10 +78,6 @@ diags! {
     ["expected a space expression; found a value expression"]
   ExpectedValueFoundSpaceExpr
     ["expected a value expression; found a space expression"]
-  ExpectedPlaceFoundValueExpr
-    ["expected a place expression; found a value expression"]
-  ExpectedPlaceFoundSpaceExpr
-    ["expected a place expression; found a space expression"]
   InconsistentTupleForm
     ["tuple members have inconsistent forms"]
   DerefNonPlacePat
@@ -222,6 +218,28 @@ diags! {
     ["match arms do not cover all possible cases"]
   CannotImplFn
     ["cannot directly implement the fn trait"]
+  AmbiguousPolyformicComposite
+    ["composite expression in polyformic position has elements of mixed forms"]
+  FlexSearchLimit { ty: String }
+    ["search limit reached when finding flex of type `{ty}`"]
+  BiFlexible { ty: String }
+    ["implementation of `Fork`/`Drop` found for both `{ty}` and its inverse"]
+  IncompatibleForkDropInference { ty: String, fork_ty: String, drop_ty: String }
+    ["finding flex of `{ty}` resulted in incompatible impls `Fork[{fork_ty}]` and `Drop[{drop_ty}]`"]
+  CannotFork { ty: String }
+    ["cannot fork `{ty}`"]
+  CannotDrop { ty: String }
+    ["cannot drop `{ty}`"]
+  UninitializedVariable { ty: String }
+    ["variable of type `{ty}` read whilst uninitialized"]
+  BadManualAttr
+    ["the `#[manual]` attribute can only be applied to an impl"]
+  BadDuplicateAttr
+    ["the `#[duplicate]` attribute can only be applied to an impl of the `Fork trait"]
+  BadEraseAttr
+    ["the `#[erase]` attribute can only be applied to an impl of the `Drop` trait"]
+  InvalidCommand
+    ["invalid command; type `/help` for a list of commands"]
 }
 
 fn plural<'a>(n: usize, plural: &'a str, singular: &'a str) -> &'a str {

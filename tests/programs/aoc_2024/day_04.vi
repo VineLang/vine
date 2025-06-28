@@ -28,7 +28,7 @@ pub fn main(&io: &IO) {
         relay(n, s, recv, char);
         relay(ne, sw, recv, char);
         relay(w, e, recv, char);
-      } else if char == 'S' {
+      } else {
         matches += check(nw, 'A') + check(ne, 'A') + check(sw, 'A') + check(se, 'A');
         let x = check(n, 'A') + check(s, 'A') + check(w, 'A') + check(e, 'A');
         matches += x;
@@ -42,7 +42,8 @@ pub fn main(&io: &IO) {
   let matches = 0;
   diamond(
     lines,
-    fn* (char: Char, Neighbors[Char](nw, _, ne, _, _, sw, _, se)) {
+    fn* (char: Char, Neighbors[Char](nw, _n, ne, _w, _e, sw, _s, se)) {
+      unsafe::erase((_n, _w, _e, _s));
       if char == 'A' {
         let nw = nw.send('A');
         let ne = ne.send('A');
@@ -72,7 +73,7 @@ mod Channel {
     got
   }
 
-  pub fn .get[M](&Channel[M](i, _)) -> M {
+  pub fn .get[M+](&Channel[M](i, _)) -> M {
     i
   }
 }
@@ -110,27 +111,24 @@ struct Neighbors[M]((
   Channel[M],
 ));
 
-fn diamond[T+, M, F*; fn F(T, Neighbors[M])](grid: List[List[T]], f: F, d: M) {
+fn diamond[T*, M*, F*; fn F(T, Neighbors[M])](grid: List[List[T]], f: F, d: M) {
   let width = (*grid.at(0).unwrap()).len();
-  let north = List::new(width, neglect_channel(d));
-  let north_west = List::new(width, neglect_channel(d));
-  let north_east = List::new(width, neglect_channel(d));
+  let north = List::new[; unsafe::duplicate, unsafe::erase](width, neglect_channel(d));
+  let north_west = List::new[; unsafe::duplicate, unsafe::erase](width, neglect_channel(d));
+  let north_east = List::new[; unsafe::duplicate, unsafe::erase](width, neglect_channel(d));
   while grid.pop_front() is Some(row) {
     let west = neglect_channel(d);
     do {
       let north = north.iter();
       let north_west = north_west.iter();
       let ~north_east = north_east.iter();
-      (~north_east).drop_iter()
       while row.pop_front() is Some(cell) {
         let (w, e) = foo_channel(&west);
         let (n, s) = foo_channel(north.next().unwrap());
         let (nw, se) = foo_channel(north_west.next().unwrap());
         let (ne, sw) = foo_channel((~north_east).next().unwrap());
-        f.fork()(cell, Neighbors(nw, n, ne, w, e, sw, s, se));
+        f(cell, Neighbors(nw, n, ne, w, e, sw, s, se));
       }
-      north.drop_iter()
-      north_west.drop_iter()
     }
     west.send(d);
     north_west.pop_front().unwrap().send(d);
@@ -141,13 +139,13 @@ fn diamond[T+, M, F*; fn F(T, Neighbors[M])](grid: List[List[T]], f: F, d: M) {
   drop_all(north, d);
   drop_all(north_west, d);
   drop_all(north_east, d);
-  f.drop()
 }
 
-fn drop_all[M](c: List[Channel[M]], d: M) {
+fn drop_all[M*](c: List[Channel[M]], d: M) {
   while c.pop_front() is Some(c) {
     c.send(d);
   }
+  unsafe::erase(c);
 }
 
 fn foo_channel[M](&c: &Channel[M]) -> (Channel[M], Channel[M]) {
@@ -166,5 +164,5 @@ fn new_channel[M]() -> (Channel[M], Channel[M]) {
 }
 
 fn neglect_channel[M](d: M) -> Channel[M] {
-  Channel(d, ~_)
+  Channel(d, unsafe::eraser)
 }

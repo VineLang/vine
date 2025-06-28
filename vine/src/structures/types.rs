@@ -6,7 +6,7 @@ use std::{
 };
 
 use vine_util::{
-  idx::{IdxVec, IntMap, RangeExt},
+  idx::{Idx, IdxVec, IntMap, RangeExt},
   multi_iter, new_idx,
 };
 
@@ -26,8 +26,6 @@ new_idx!(pub TypeIdx; n => ["t{n}"]);
 
 const INV_BIT: usize = isize::MIN as usize;
 impl Type {
-  pub const _NONE: Type = Type(usize::MAX);
-
   fn new(inv: Inverted, idx: TypeIdx) -> Type {
     Type(idx.0).invert_if(inv)
   }
@@ -53,7 +51,7 @@ impl Type {
   }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub struct Inverted(pub bool);
 
 impl From<TypeIdx> for Type {
@@ -252,7 +250,9 @@ impl<'core> Types<'core> {
         self.unify_types(a, b, Inverted(false))
       }
       (TypeKind::Fn(i), TypeKind::Fn(j)) if *i == *j => Success,
-      (TypeKind::Closure(i, ..), TypeKind::Closure(j, ..)) if *i == *j => Success,
+      (TypeKind::Closure(i, _, p, r), TypeKind::Closure(j, _, q, s)) if *i == *j => {
+        self.unify_types(p, q, Inverted(false)).and(self.unify(*r, *s))
+      }
       (TypeKind::Ref(a), TypeKind::Ref(b)) => self.unify(*a, *b),
       (TypeKind::Never, TypeKind::Never) => Success,
       _ => Failure,
@@ -381,7 +381,7 @@ impl<'core> Types<'core> {
           continue;
         }
         Root { state: Unknown(..) | InferenceFailed(..), .. } => {
-          write!(str, "{}?{}", if ty.inv().0 { "~" } else { "" }, ty.0).unwrap()
+          write!(str, "{}?{}", if ty.inv().0 { "~" } else { "" }, ty.idx().0).unwrap()
         }
         Root { state: Known(inv, kind), .. } => {
           if (*inv ^ ty.inv()).0 {
@@ -719,8 +719,20 @@ impl<'core> TransferTypes<'core> for ImplType {
   }
 }
 
+impl<'core, T: TransferTypes<'core>> TransferTypes<'core> for Option<T> {
+  fn transfer(&self, t: &mut TypeTransfer<'core, '_>) -> Self {
+    self.as_ref().map(|value| t.transfer(value))
+  }
+}
+
 impl<'core, T: TransferTypes<'core>> TransferTypes<'core> for Vec<T> {
   fn transfer(&self, t: &mut TypeTransfer<'core, '_>) -> Self {
     self.iter().map(|value| t.transfer(value)).collect()
+  }
+}
+
+impl<'core, I: Idx, T: TransferTypes<'core>> TransferTypes<'core> for IdxVec<I, T> {
+  fn transfer(&self, t: &mut TypeTransfer<'core, '_>) -> Self {
+    t.transfer(&self.vec).into()
   }
 }

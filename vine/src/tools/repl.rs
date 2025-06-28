@@ -1,39 +1,35 @@
-use std::{
-  collections::{BTreeMap, HashMap},
-  fmt::Write,
-  mem::replace,
-  path::PathBuf,
-};
+use std::{mem::take, path::PathBuf};
 
 use ivm::{
   port::{Port, PortRef, Tag},
+  wire::Wire,
   IVM,
 };
-use ivy::{ast::Tree, host::Host};
-use vine_util::{
-  idx::Counter,
-  parser::{Parser, ParserState},
-};
+use ivy::host::Host;
+use vine_util::parser::{Parser, ParserState};
 
 use crate::{
   compiler::{Compiler, Hooks},
   components::{
-    analyzer::usage::Usage,
     charter::{Charter, ExtractItems},
     parser::VineParser,
     resolver::Resolver,
   },
   structures::{
     ast::{visit::VisitMut, Block, Ident, Span, Stmt},
-    chart::{DefId, VariantId},
+    chart::DefId,
     core::Core,
     diag::Diag,
     resolutions::FragmentId,
     tir::Local,
     types::{Type, TypeKind, Types},
-    vir::{StageId, Vir},
+    vir::{Header, Interface, InterfaceKind, Layer, StageId, Step, Transfer, Vir},
   },
+  tools::repl::command::{ReplCommand, ReplOption, ReplOptions, HELP},
 };
+
+mod command;
+mod show_tree;
 
 pub struct Repl<'core, 'ctx, 'ivm, 'ext> {
   host: &'ivm mut Host<'ivm>,
@@ -42,17 +38,17 @@ pub struct Repl<'core, 'ctx, 'ivm, 'ext> {
   compiler: Compiler<'core>,
   repl_mod: DefId,
   line: usize,
-  vars: HashMap<Ident<'core>, Var<'ivm>>,
-  locals: BTreeMap<Local, (Ident<'core>, Type)>,
-  local_count: Counter<Local>,
+  scope: Vec<ScopeEntry<'core, 'ivm>>,
   types: Types<'core>,
+  pub options: ReplOptions,
 }
 
-#[derive(Debug)]
-struct Var<'ivm> {
-  local: Local,
-  value: Port<'ivm>,
-  space: Port<'ivm>,
+struct ScopeEntry<'core, 'ivm> {
+  name: Ident<'core>,
+  span: Span,
+  ty: Type,
+  value: Option<Port<'ivm>>,
+  space: Option<Port<'ivm>>,
 }
 
 impl<'core, 'ctx, 'ivm, 'ext> Repl<'core, 'ctx, 'ivm, 'ext> {
@@ -77,78 +73,95 @@ impl<'core, 'ctx, 'ivm, 'ext> Repl<'core, 'ctx, 'ivm, 'ext> {
     }
     host.insert_nets(&nets);
 
-    let io = core.ident("io");
-    let vars = HashMap::from([(
-      io,
-      Var { local: Local(0), value: Port::new_ext_val(host.new_io()), space: Port::ERASE },
-    )]);
     let mut types = Types::default();
-    let io_type = if let Some(io) = compiler.chart.builtins.io {
-      types.new(TypeKind::Opaque(io, vec![]))
-    } else {
-      types.nil()
-    };
-    let locals = BTreeMap::from([(Local(0), (io, io_type))]);
+    let mut scope = Vec::new();
+    if let Some(io_type) = compiler.chart.builtins.io {
+      scope.push(ScopeEntry {
+        name: core.ident("io"),
+        span: Span::NONE,
+        ty: types.new(TypeKind::Opaque(io_type, vec![])),
+        value: Some(Port::new_ext_val(host.new_io())),
+        space: None,
+      });
+    }
 
-    Ok(Repl {
-      host,
-      ivm,
-      core,
-      compiler,
-      repl_mod,
-      line: 0,
-      vars,
-      locals,
-      local_count: Counter(Local(1)),
-      types,
-    })
+    let line = 0;
+    let options = ReplOptions::default();
+
+    Ok(Repl { host, ivm, core, compiler, repl_mod, line, scope, types, options })
   }
 
-  pub fn exec(&mut self, line: &str) -> Result<Option<String>, Vec<Diag<'core>>> {
-    let stmts = match self.parse_line(line) {
-      Ok(stmts) => stmts,
+  pub fn exec(&mut self, input: &str) -> Result<(), Vec<Diag<'core>>> {
+    let command = match self.parse_input(input) {
+      Ok(command) => command,
       Err(diag) => {
         self.core.report(diag);
         self.core.bail()?;
         unreachable!()
       }
     };
+
+    match command {
+      ReplCommand::Help => {
+        println!("{HELP}");
+      }
+      ReplCommand::Scope => {
+        self.print_scope();
+      }
+      ReplCommand::Clear(vars) => self.run(vec![], vars)?,
+      ReplCommand::Set(option) => match option {
+        ReplOption::ShowScope(bool) => self.options.show_scope = bool,
+      },
+      ReplCommand::Run(stmts) => self.run(stmts, vec![])?,
+    }
+
+    Ok(())
+  }
+
+  pub fn run(
+    &mut self,
+    stmts: Vec<Stmt<'core>>,
+    clear: Vec<Ident<'core>>,
+  ) -> Result<(), Vec<Diag<'core>>> {
     let mut block = Block { span: Span::NONE, stmts };
 
     self.compiler.loader.load_deps(".".as_ref(), &mut block);
 
-    let mut fragment = None;
     let path = self.core.alloc_str(&format!("::repl::{}", self.line));
+    let mut fragment = None;
+    let mut ty = None;
+    let mut bindings = Vec::new();
 
     let nets = self.compiler.compile(ExecHooks {
       path,
       repl_mod: self.repl_mod,
-      vars: &mut self.vars,
-      ivm: self.ivm,
-      locals: &mut self.locals,
+      scope: &mut self.scope,
       block: &mut block,
       types: &mut self.types,
       fragment: &mut fragment,
-      local_count: &mut self.local_count,
+      ty: &mut ty,
+      bindings: &mut bindings,
+      clear,
     })?;
 
     let fragment = fragment.unwrap();
+    let ty = ty.unwrap();
 
     self.line += 1;
 
-    struct ExecHooks<'core, 'ivm, 'ext, 'a> {
+    struct ExecHooks<'core, 'ivm, 'a> {
       path: &'core str,
       repl_mod: DefId,
-      vars: &'a mut HashMap<Ident<'core>, Var<'ivm>>,
-      ivm: &'a mut IVM<'ivm, 'ext>,
-      locals: &'a mut BTreeMap<Local, (Ident<'core>, Type)>,
+      scope: &'a mut Vec<ScopeEntry<'core, 'ivm>>,
       block: &'a mut Block<'core>,
       types: &'a mut Types<'core>,
       fragment: &'a mut Option<FragmentId>,
-      local_count: &'a mut Counter<Local>,
+      ty: &'a mut Option<Type>,
+      bindings: &'a mut Vec<(Local, Ident<'core>, Span, Type)>,
+      clear: Vec<Ident<'core>>,
     }
 
-    impl<'core> Hooks<'core> for ExecHooks<'core, '_, '_, '_> {
+    impl<'core> Hooks<'core> for ExecHooks<'core, '_, '_> {
       fn chart(&mut self, charter: &mut Charter<'core, '_>) {
         let mut extractor = ExtractItems::default();
         extractor.visit(&mut *self.block);
@@ -158,37 +171,49 @@ impl<'core, 'ctx, 'ivm, 'ext> Repl<'core, 'ctx, 'ivm, 'ext> {
       }
 
       fn resolve(&mut self, resolver: &mut Resolver<'core, '_>) {
-        let (fragment, binds) = resolver._resolve_custom(
+        let (fragment, ty, mut bindings) = resolver._resolve_repl(
           self.block.span,
           self.path,
           self.repl_mod,
-          self.types,
-          self.locals,
-          self.local_count,
+          self.types.clone(),
+          self.scope.iter().map(|entry| (entry.name, entry.span, entry.ty)),
           self.block,
         );
         *self.fragment = Some(fragment);
-        for (ident, local, ty) in binds {
-          if self.vars.get(&ident).is_none_or(|v| v.local != local) {
-            let wire = self.ivm.new_wire();
-            let old = self.vars.insert(
-              ident,
-              Var { local, value: Port::new_wire(wire.0), space: Port::new_wire(wire.1) },
-            );
-            self.locals.insert(local, (ident, ty));
-            if let Some(old) = old {
-              self.locals.remove(&old.local);
-              self.ivm.link(old.value, old.space);
-            }
-          }
+        *self.ty = Some(ty);
+        if !self.clear.is_empty() {
+          bindings.retain_mut(|b| !self.clear.contains(&b.1));
         }
+        *self.bindings = bindings;
       }
 
       fn distill(&mut self, fragment_id: FragmentId, vir: &mut Vir) {
         let id = self.fragment.unwrap();
         if id == fragment_id {
-          vir.stages[StageId(0)].declarations.retain(|l| !self.locals.contains_key(l));
-          vir.globals.extend(self.vars.values().map(|v| (v.local, Usage::Mut)));
+          let layer = vir.layers.next_index();
+          vir.layers.push(Layer { id: layer, parent: None, stages: vec![] });
+          let interface = vir.interfaces.next_index();
+          let locals = self.bindings.iter().map(|b| b.0).collect();
+          vir.interfaces.push(Interface::new(interface, layer, InterfaceKind::Inspect(locals)));
+          let stage = &mut vir.stages[StageId(0)];
+          let wire = stage.new_wire(Span::NONE, self.types.nil());
+          stage.steps.push(Step::Transfer(Transfer { interface, data: Some(wire.neg) }));
+          let Header::Entry(mut ports) = take(&mut stage.header) else { unreachable!() };
+          ports.push(wire.pos);
+
+          for (i, entry) in self.scope.iter().enumerate().rev() {
+            stage.declarations.push(Local(i));
+            if entry.space.is_some() {
+              ports.push(stage.local_read(Local(i), entry.span, entry.ty));
+            }
+            stage.local_barrier(Local(i));
+            if entry.value.is_some() {
+              ports.push(stage.local_write(Local(i), entry.span, entry.ty));
+            }
+          }
+
+          ports.reverse();
+          stage.header = Header::Entry(ports);
         }
       }
     }
@@ -198,227 +223,98 @@ impl<'core, 'ctx, 'ivm, 'ext> Repl<'core, 'ctx, 'ivm, 'ext> {
     let w = self.ivm.new_wire();
     let root = w.0;
 
-    let mut cur = w.1;
-
-    let label = self.host.label_to_u16("x");
-    for (local, _) in self.locals.values() {
-      let var = self.vars.get_mut(local).unwrap();
-      let n = unsafe { self.ivm.new_node(Tag::Comb, label) };
-      let m = unsafe { self.ivm.new_node(Tag::Comb, label) };
-      self.ivm.link_wire(cur, n.0);
-      self.ivm.link_wire(n.1, m.0);
-      let value = replace(&mut var.value, Port::new_wire(m.2));
-      self.ivm.link_wire(m.1, value);
-      cur = n.2;
+    fn make_node<'ivm>(
+      ivm: &mut IVM<'ivm, '_>,
+      label: u16,
+      wire: Wire<'ivm>,
+    ) -> (Wire<'ivm>, Wire<'ivm>) {
+      let node = unsafe { ivm.new_node(Tag::Comb, label) };
+      ivm.link_wire(wire, node.0);
+      (node.1, node.2)
     }
 
-    let out = cur;
+    let label_x = self.host.label_to_u16("x");
+    let label_ref = self.host.label_to_u16("ref");
+
+    let mut cur = w.1;
+    let mut wire;
+    for entry in take(&mut self.scope) {
+      if let Some(port) = entry.value {
+        (wire, cur) = make_node(self.ivm, label_x, cur);
+        self.ivm.link_wire(wire, port);
+      }
+      if let Some(port) = entry.space {
+        (wire, cur) = make_node(self.ivm, label_x, cur);
+        self.ivm.link_wire(wire, port);
+      }
+    }
+
+    let (binds, cur) = make_node(self.ivm, label_x, cur);
+    let (result, destroy) = make_node(self.ivm, label_ref, cur);
+
+    let mut binds = Some(binds);
+    let vir = &self.compiler.vir[fragment];
+    self.types = vir.types.clone();
+    let wires = &vir.interfaces.last().unwrap().wires;
+    self.scope = Vec::from_iter(bindings.into_iter().map(|(local, name, span, ty)| {
+      let (value, _, space) = wires.get(&local).copied().unwrap_or_default();
+      let value = value.then(|| {
+        let (a, b) = make_node(self.ivm, label_x, binds.take().unwrap());
+        binds = Some(b);
+        Port::new_wire(a)
+      });
+      let space = space.then(|| {
+        let (a, b) = make_node(self.ivm, label_x, binds.take().unwrap());
+        binds = Some(b);
+        Port::new_wire(a)
+      });
+      ScopeEntry { name, span, ty, value, space }
+    }));
+    self.ivm.link_wire(binds.unwrap(), Port::ERASE);
 
     self.ivm.execute(&self.host.get(path).unwrap().instructions, Port::new_wire(root));
     self.ivm.normalize();
 
-    let tree = self.host.read(self.ivm, &PortRef::new_wire(&out));
-    let output = self.show(self.compiler.fragments[fragment].tir.root.ty, &tree);
-    self.ivm.link_wire(out, Port::ERASE);
+    let tree = self.host.read(self.ivm, &PortRef::new_wire(&result));
+    let output = self.show_tree(ty, &tree);
+    self.ivm.link_wire_wire(result, destroy);
     self.ivm.normalize();
 
-    Ok((output != "()").then_some(output))
+    if output != "()" {
+      println!("{output}");
+    }
+
+    Ok(())
   }
 
-  fn parse_line(&mut self, line: &str) -> Result<Vec<Stmt<'core>>, Diag<'core>> {
+  fn parse_input(&mut self, line: &str) -> Result<ReplCommand<'core>, Diag<'core>> {
     let file = self.compiler.loader.add_file(None, "input".into(), line);
     let mut parser = VineParser { core: self.core, state: ParserState::new(line), file };
     parser.bump()?;
-    let mut stmts = Vec::new();
-    while parser.state.token.is_some() {
-      stmts.push(parser.parse_stmt()?);
-    }
-    Ok(stmts)
+    parser.parse_repl_command()
   }
 
-  fn show(&mut self, ty: Type, tree: &Tree) -> String {
-    self._show(ty, tree).unwrap_or_else(|| format!("#ivy({tree})"))
-  }
-
-  fn _show(&mut self, ty: Type, tree: &Tree) -> Option<String> {
-    let builtins = &self.compiler.chart.builtins;
-    let (inv, kind) = self.types.kind(ty)?;
-    if inv.0 {
-      return None;
-    }
-    Some(match (kind, tree) {
-      (_, Tree::Global(g)) => g.clone(),
-      (TypeKind::Opaque(id, _), Tree::N32(0)) if builtins.bool == Some(*id) => "false".into(),
-      (TypeKind::Opaque(id, _), Tree::N32(1)) if builtins.bool == Some(*id) => "true".into(),
-      (TypeKind::Opaque(id, _), Tree::N32(n)) if builtins.n32 == Some(*id) => {
-        format!("{n}")
-      }
-      (TypeKind::Opaque(id, _), Tree::N32(n)) if builtins.i32 == Some(*id) => {
-        format!("{:+}", *n as i32)
-      }
-      (TypeKind::Opaque(id, _), Tree::F32(n)) if builtins.f32 == Some(*id) => {
-        format!("{n:?}")
-      }
-      (TypeKind::Opaque(id, _), Tree::N32(n)) if builtins.char == Some(*id) => {
-        format!("{:?}", char::try_from(*n).ok()?)
-      }
-      (TypeKind::Opaque(id, _), Tree::Var(v)) if builtins.io == Some(*id) && v == "#io" => {
-        "#io".into()
-      }
-      (TypeKind::Tuple(tys), _) if tys.is_empty() => "()".into(),
-      (TypeKind::Tuple(tys), _) if tys.len() == 1 => format!("({},)", self.show(tys[0], tree)),
-      (TypeKind::Tuple(tys), _) if !tys.is_empty() => {
-        format!("({})", self.read_tuple(tys.clone(), tree)?.join(", "))
-      }
-      (TypeKind::Object(tys), _) if tys.is_empty() => "{}".into(),
-      (TypeKind::Object(tys), _) => {
-        let tys = tys.clone();
-        let values = self.read_tuple(tys.values().copied(), tree)?;
-        format!(
-          "{{ {} }}",
-          tys.keys().zip(values).map(|(k, v)| format!("{k}: {v}")).collect::<Vec<_>>().join(", ")
-        )
-      }
-      (TypeKind::Struct(def, args), tree)
-        if builtins.list == Some(*def) || builtins.string == Some(*def) =>
-      {
-        let Tree::Comb(c, l, r) = tree else { None? };
-        let "tup" = &**c else { None? };
-        let Tree::N32(len) = **l else { None? };
-        let Tree::Comb(c, l, r) = &**r else { None? };
-        let "tup" = &**c else { None? };
-        let mut cur = &**l;
-        let mut children = vec![];
-        for _ in 0..len {
-          let Tree::Comb(c, l, r) = cur else { None? };
-          let "tup" = &**c else { None? };
-          children.push(l);
-          cur = r;
-        }
-        if &**r != cur || !matches!(cur, Tree::Var(_)) {
-          None?
-        }
-        if builtins.string == Some(*def) {
-          let str = children
-            .into_iter()
-            .map(|x| {
-              let Tree::N32(n) = **x else { Err(())? };
-              char::from_u32(n).ok_or(())
-            })
-            .collect::<Result<String, ()>>()
-            .ok()?;
-          format!("{str:?}")
-        } else {
-          let [arg] = **args else { None? };
-          format!(
-            "[{}]",
-            children.into_iter().map(|x| self.show(arg, x)).collect::<Vec<_>>().join(", ")
-          )
-        }
-      }
-      (TypeKind::Struct(struct_id, args), tree) => {
-        let name = self.compiler.chart.structs[*struct_id].name;
-        let args = args.clone();
-        let data = self.types.import(&self.compiler.sigs.structs[*struct_id], Some(&args)).data;
-        let data = self.show(data, tree);
-        if data.starts_with("(") {
-          format!("{name}{data}")
-        } else {
-          format!("{name}({data})")
-        }
-      }
-      (TypeKind::Enum(enum_id, args), tree) => {
-        let enum_def = &self.compiler.chart.enums[*enum_id];
-        let variant_count = enum_def.variants.len();
-        let mut active_variant = None;
-        let mut tree = tree;
-        for i in 0..variant_count {
-          let Tree::Comb(c, l, r) = tree else { None? };
-          let "enum" = &**c else { None? };
-          if **l != Tree::Erase {
-            if active_variant.is_some() {
-              None?
-            }
-            active_variant = Some((VariantId(i), &**l));
-          }
-          tree = r;
-        }
-        let end = tree;
-        if !matches!(end, Tree::Var(_)) {
-          None?
-        }
-        let (variant_id, mut tree) = active_variant?;
-        let variant = &enum_def.variants[variant_id];
-        let name = variant.name;
-        let enum_id = *enum_id;
-        let args = args.clone();
-        let data =
-          self.types.import_with(&self.compiler.sigs.enums[enum_id], Some(&args), |t, sig| {
-            Some(t.transfer(&sig.variant_data[variant_id]?))
-          });
-        let data = if let Some(ty) = data {
-          let Tree::Comb(c, l, r) = tree else { None? };
-          let "enum" = &**c else { None? };
-          tree = r;
-          Some(self.show(ty, l))
-        } else {
-          None
-        };
-
-        if tree != end {
-          None?
-        }
-        if let Some(data) = data {
-          if data.starts_with("(") {
-            format!("{name}{data}")
-          } else {
-            format!("{name}({data})")
-          }
-        } else {
-          name.to_string()
-        }
-      }
-      (_, Tree::Erase) => "~_".into(),
-      _ => None?,
-    })
-  }
-
-  fn read_tuple<'a>(
-    &mut self,
-    tys: impl IntoIterator<Item = Type, IntoIter: DoubleEndedIterator>,
-    tree: &Tree,
-  ) -> Option<Vec<String>>
-  where
-    'core: 'a,
-  {
-    let mut tys = tys.into_iter();
-    let mut tup = Vec::new();
-    let mut tree = tree;
-    let last = tys.next_back().unwrap();
-    for ty in tys {
-      let Tree::Comb(l, a, b) = tree else { None? };
-      let "tup" = &**l else { None? };
-      tup.push(self.show(ty, a));
-      tree = b;
-    }
-    tup.push(self.show(last, tree));
-    Some(tup)
-  }
-
-  pub fn format(&mut self) -> String {
-    let mut str = String::new();
-    for local in self.locals.keys().copied().collect::<Vec<_>>() {
-      let (ident, ty) = self.locals[&local];
-      let var = &self.vars[&ident];
-      let value = self.host.read(self.ivm, &var.value);
-      let space = self.host.read(self.ivm, &var.space);
-      if value != Tree::Erase {
-        writeln!(str, "{} = {}", ident.0 .0, self.show(ty, &value)).unwrap();
-      }
-      if space != Tree::Erase {
-        writeln!(str, "~{} = {}", ident.0 .0, self.show(ty.inverse(), &space)).unwrap();
+  pub fn print_scope(&mut self) {
+    let mut reader = self.host.reader(self.ivm);
+    let trees = Vec::from_iter(self.scope.iter().map(|entry| {
+      (
+        entry.value.as_ref().map(|p| reader.read_port(p)),
+        entry.space.as_ref().map(|p| reader.read_port(p)),
+      )
+    }));
+    for (i, (value, space)) in (0..self.scope.len()).zip(trees) {
+      let entry = &self.scope[i];
+      let ident = entry.name.0 .0;
+      let ty = entry.ty;
+      let value = value.map(|tree| self.show_tree(ty, &tree));
+      let space = space.map(|tree| self.show_tree(ty.inverse(), &tree));
+      let ty = self.types.show(&self.compiler.chart, ty);
+      match (value, space) {
+        (None, None) => println!("let {ident}: {ty};"),
+        (Some(value), None) => println!("let {ident}: {ty} = {value};"),
+        (None, Some(space)) => println!("let ~{ident}: ~{ty} = {space};"),
+        (Some(value), Some(space)) => println!("let &{ident}: &{ty} = &({value}; ~{space});"),
       }
     }
-    str
   }
 }

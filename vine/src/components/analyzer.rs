@@ -3,36 +3,39 @@ use std::{
   mem::take,
 };
 
-use usage::Usage;
 use vine_util::{
   idx::{IdxVec, IntMap},
   new_idx,
 };
 
-use crate::structures::{
-  ast::Span,
-  core::Core,
-  diag::Diag,
-  tir::Local,
-  vir::{Interface, InterfaceId, Invocation, Stage, StageId, Step, Vir},
+use crate::{
+  components::analyzer::effect::Effect,
+  structures::{
+    ast::Span,
+    core::Core,
+    diag::Diag,
+    tir::Local,
+    types::Inverted,
+    vir::{Interface, InterfaceId, InterfaceKind, Invocation, Stage, StageId, Step, Vir, VirLocal},
+  },
 };
 
-pub mod usage;
+pub mod effect;
 
 pub fn analyze<'core>(core: &'core Core<'core>, span: Span, vir: &mut Vir) {
   Analyzer {
     core,
     infinite_loop: false,
     span,
-    globals: &vir.globals,
+    locals: &vir.locals,
     stages: &vir.stages,
     interfaces: &mut vir.interfaces,
-    usage: IdxVec::from([Usage::None]),
-    effects: IdxVec::from([Vec::new()]),
+    effects: IdxVec::from([Effect::Pass]),
+    dependent: IdxVec::from([Vec::new()]),
     relations: IdxVec::new(),
     segments: Vec::new(),
     dirty: BTreeSet::new(),
-    locals: IntMap::default(),
+    local_declarations: IntMap::default(),
     disconnects: Vec::new(),
   }
   .analyze();
@@ -44,43 +47,37 @@ struct Analyzer<'core, 'a> {
   infinite_loop: bool,
   span: Span,
 
-  globals: &'a Vec<(Local, Usage)>,
+  locals: &'a IdxVec<Local, VirLocal>,
   stages: &'a IdxVec<StageId, Stage>,
   interfaces: &'a mut IdxVec<InterfaceId, Interface>,
 
-  usage: IdxVec<UsageVar, Usage>,
-  effects: IdxVec<UsageVar, Vec<RelationId>>,
-  relations: IdxVec<RelationId, (UsageVar, UsageVar, UsageVar, UsageVar)>,
-  segments: Vec<(UsageVar, HashMap<Local, Usage>)>,
-  dirty: BTreeSet<UsageVar>,
-  locals: IntMap<Local, Vec<StageId>>,
-  disconnects: Vec<(StageId, UsageVar, UsageVar)>,
+  effects: IdxVec<EffectVar, Effect>,
+  dependent: IdxVec<EffectVar, Vec<RelationId>>,
+  relations: IdxVec<RelationId, (EffectVar, EffectVar, EffectVar, EffectVar)>,
+  segments: Vec<(EffectVar, HashMap<Local, Effect>)>,
+  dirty: BTreeSet<EffectVar>,
+  local_declarations: IntMap<Local, Vec<StageId>>,
+  disconnects: Vec<(StageId, EffectVar, EffectVar)>,
 }
 
-new_idx!(pub UsageVar; n => ["u{n}"]);
+new_idx!(pub EffectVar; n => ["e{n}"]);
 new_idx!(pub RelationId; n => ["R{n}"]);
 
-impl UsageVar {
-  pub const NONE: Self = UsageVar(0);
+impl EffectVar {
+  pub const PASS: Self = EffectVar(0);
 }
 
 impl<'core> Analyzer<'core, '_> {
   fn analyze(&mut self) {
     self.sweep(InterfaceId(0));
 
-    self.locals.extend(self.globals.iter().map(|&(g, _)| (g, Vec::new())));
-    let root_segment =
-      (self.get_transfer(InterfaceId(0)).1, self.globals.iter().copied().collect());
+    let root_segment = (self.get_transfer(InterfaceId(0)).1, HashMap::new());
     self.segments.push(root_segment);
 
     self.build();
 
-    for (local, stages) in take(&mut self.locals) {
+    for (local, stages) in take(&mut self.local_declarations) {
       self.process_local(local, stages);
-    }
-
-    for &(global, usage) in self.globals {
-      self.interfaces[InterfaceId(0)].wires.insert(global, (Usage::Zero, Usage::Mut.effect(usage)));
     }
   }
 
@@ -107,6 +104,15 @@ impl<'core> Analyzer<'core, '_> {
     let mut forwards = Vec::new();
     let mut backwards = Vec::new();
 
+    for interface in self.interfaces.keys() {
+      let transfer = self.get_transfer(interface);
+      if let InterfaceKind::Inspect(locals) = &self.interfaces[interface].kind {
+        self
+          .segments
+          .push((transfer.0, locals.iter().map(|&l| (l, Effect::ReadBarrierWrite)).collect()));
+      }
+    }
+
     for stage in self.stages.values() {
       if self.interfaces[stage.interface].incoming == 0 {
         continue;
@@ -118,7 +124,7 @@ impl<'core> Analyzer<'core, '_> {
       backwards.clear();
 
       for &local in &stage.declarations {
-        self.locals.entry(local).or_default().push(stage.id);
+        self.local_declarations.entry(local).or_default().push(stage.id);
       }
 
       let incoming = self.get_transfer(stage.interface);
@@ -128,10 +134,10 @@ impl<'core> Analyzer<'core, '_> {
         let connected = self.new_var();
         let disconnected = self.new_var();
         let inner = (self.new_var(), self.new_var());
-        self.new_relation(incoming.1, connected, UsageVar::NONE, inner.0);
-        self.new_relation(inner.1, connected, UsageVar::NONE, incoming.0);
-        self.new_relation(disconnected, UsageVar::NONE, UsageVar::NONE, inner.0);
-        self.new_relation(disconnected, UsageVar::NONE, UsageVar::NONE, incoming.0);
+        self.new_relation(incoming.1, connected, EffectVar::PASS, inner.0);
+        self.new_relation(inner.1, connected, EffectVar::PASS, incoming.0);
+        self.new_relation(disconnected, EffectVar::PASS, EffectVar::PASS, inner.0);
+        self.new_relation(disconnected, EffectVar::PASS, EffectVar::PASS, incoming.0);
         self.disconnects.push((stage.id, connected, disconnected));
         transfers.push(inner);
       }
@@ -140,15 +146,17 @@ impl<'core> Analyzer<'core, '_> {
 
       for step in &stage.steps {
         if let Step::Invoke(local, invocation) = step {
-          let usage = current_segment.entry(*local).or_insert(Usage::None);
-          *usage = usage.join(invocation.usage());
+          let effect = current_segment.entry(*local).or_insert(Effect::Pass);
+          let local = &self.locals[*local];
+          let other = invocation.effect(local.inv, local.fork.is_some());
+          *effect = if local.inv.0 { other.join(*effect) } else { effect.join(other) };
         } else if let Step::Transfer(transfer) = step {
           if !current_segment.is_empty() {
             let var = self.new_var();
             self.segments.push((var, take(&mut current_segment)));
             segments.push(var);
           } else {
-            segments.push(UsageVar::NONE);
+            segments.push(EffectVar::PASS);
           }
           let transfer = self.get_transfer(transfer.interface);
           transfers.push(transfer);
@@ -160,13 +168,13 @@ impl<'core> Analyzer<'core, '_> {
         self.segments.push((var, current_segment));
         segments.push(var);
       } else {
-        segments.push(UsageVar::NONE);
+        segments.push(EffectVar::PASS);
       }
 
       debug_assert_eq!(transfers.len(), segments.len());
       let n = segments.len();
 
-      let mut forward = UsageVar::NONE;
+      let mut forward = EffectVar::PASS;
       forwards.reserve(n);
       forwards.push(forward);
       for i in 0..(n - 1) {
@@ -189,69 +197,75 @@ impl<'core> Analyzer<'core, '_> {
       for ((&forward, &transfer), &backward) in
         forwards.iter().zip(transfers.iter()).zip(backwards.iter().rev())
       {
-        self.new_relation(backward, UsageVar::NONE, forward, transfer.1);
+        self.new_relation(backward, EffectVar::PASS, forward, transfer.1);
       }
     }
   }
 
   fn process_local(&mut self, local: Local, declared: Vec<StageId>) {
-    self.usage.fill(Usage::Zero);
-    self.usage[UsageVar::NONE] = Usage::None;
-    self.dirty.insert(UsageVar::NONE);
-    for (var, usage) in &mut self.segments {
-      let usage = usage.remove(&local).unwrap_or(Usage::None);
-      self.usage[*var] = usage;
+    let inv = self.locals[local].inv;
+    self.effects.fill(Effect::Never);
+    self.effects[EffectVar::PASS] = Effect::Pass;
+    self.dirty.insert(EffectVar::PASS);
+    for (var, effects) in &mut self.segments {
+      let effect = effects.remove(&local).unwrap_or(Effect::Pass);
+      self.effects[*var] = effect;
       self.dirty.insert(*var);
     }
     for &(stage, connected, disconnected) in &self.disconnects {
       let var = if declared.contains(&stage) { disconnected } else { connected };
-      self.usage[var] = Usage::None;
+      self.effects[var] = Effect::Pass;
       self.dirty.insert(var);
     }
     while let Some(var) = self.dirty.pop_first() {
-      for &relation in &self.effects[var] {
+      for &relation in &self.dependent[var] {
         let (a, b, c, out) = self.relations[relation];
-        let abc = self.usage[a].join(self.usage[b]).join(self.usage[c]);
-        let old = self.usage[out];
+        let (a, b, c) = (self.effects[a], self.effects[b], self.effects[c]);
+        let abc = if inv.0 { c.join(b).join(a) } else { a.join(b).join(c) };
+        let old = self.effects[out];
         let new = old.union(abc);
         if new != old {
-          self.usage[out] = new;
+          self.effects[out] = new;
           self.dirty.insert(out);
         }
       }
     }
     for interface in self.interfaces.values_mut() {
       if interface.incoming != 0 {
-        let interior = self.usage[interface.interior.unwrap()];
-        let exterior = self.usage[interface.exterior.unwrap()];
-        if interior == Usage::Zero || exterior == Usage::Zero {
+        let interior = self.effects[interface.interior.unwrap()];
+        let exterior = self.effects[interface.exterior.unwrap()];
+        if interior == Effect::Never || exterior == Effect::Never {
           if !self.infinite_loop {
             self.core.report(Diag::InfiniteLoop { span: self.span });
             self.infinite_loop = true;
           }
           continue;
         }
-        if interior != Usage::None && exterior != Usage::None {
-          assert!(matches!(exterior, Usage::Mut | Usage::Erase | Usage::Set | Usage::Take));
-          interface.wires.insert(local, (exterior.effect(interior), interior.effect(exterior)));
+        if interior != Effect::Pass && exterior != Effect::Pass {
+          assert!(!exterior.pass());
+          let barrier = interior.barrier();
+          let output = interior.write() && exterior.read();
+          let input = exterior.write() && (interior.read() || output && interior.pass());
+          let wire = if inv.0 { (output, barrier, input) } else { (input, barrier, output) };
+          interface.wires.insert(local, wire);
         }
       }
     }
   }
 
-  fn new_relation(&mut self, a: UsageVar, b: UsageVar, c: UsageVar, o: UsageVar) {
+  fn new_relation(&mut self, a: EffectVar, b: EffectVar, c: EffectVar, o: EffectVar) {
     let relation = self.relations.push((a, b, c, o));
-    self.effects[a].push(relation);
-    self.effects[b].push(relation);
-    self.effects[c].push(relation);
+    self.dependent[a].push(relation);
+    self.dependent[b].push(relation);
+    self.dependent[c].push(relation);
   }
 
-  fn new_var(&mut self) -> UsageVar {
-    self.effects.push(Vec::new());
-    self.usage.push(Usage::Zero)
+  fn new_var(&mut self) -> EffectVar {
+    self.dependent.push(Vec::new());
+    self.effects.push(Effect::Never)
   }
 
-  fn get_transfer(&mut self, interface: InterfaceId) -> (UsageVar, UsageVar) {
+  fn get_transfer(&mut self, interface: InterfaceId) -> (EffectVar, EffectVar) {
     let mut interfaces = take(self.interfaces);
     let interface = &mut interfaces[interface];
     let transfer = (
@@ -264,14 +278,15 @@ impl<'core> Analyzer<'core, '_> {
 }
 
 impl Invocation {
-  fn usage(&self) -> Usage {
-    match self {
-      Invocation::Erase => Usage::Erase,
-      Invocation::Get(_) => Usage::Get,
-      Invocation::Hedge(_) => Usage::Hedge,
-      Invocation::Take(_) => Usage::Take,
-      Invocation::Set(_) => Usage::Set,
-      Invocation::Mut(..) => Usage::Mut,
+  fn effect(&self, inv: Inverted, fork: bool) -> Effect {
+    match (self, inv.0) {
+      (Invocation::Barrier, _) => Effect::Barrier,
+      (Invocation::Read(_), false) | (Invocation::Write(_), true) if fork => Effect::ReadPass,
+      (Invocation::Read(_) | Invocation::ReadBarrier(_), false)
+      | (Invocation::Write(_) | Invocation::BarrierWrite(_), true) => Effect::ReadBarrier,
+      (Invocation::Write(_) | Invocation::BarrierWrite(_), false)
+      | (Invocation::Read(_) | Invocation::ReadBarrier(_), true) => Effect::BarrierWrite,
+      (Invocation::ReadWrite(..), _) => Effect::ReadBarrierWrite,
     }
   }
 }

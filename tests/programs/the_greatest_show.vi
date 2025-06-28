@@ -9,7 +9,7 @@ pub fn main(&io: &IO) {
         a: 1,
         b: Map::empty[List[N32], List[N32]],
         c: [
-          (3, [(2, Map::empty)] as Map),
+          (3, [(2, Map::empty[N32, String])] as Map),
           (4, [(5, [(6, "a"), (7, "b")] as Map), (8, [(9, "c")] as Map), (10, Map::empty)] as Map),
         ] as Map,
       },
@@ -47,4 +47,8 @@ impl show_obj[A, B, C; Show[A], Show[B], Show[C]]: Show[{ a: A, b: B, c: C }] {
       (Show::Literal("c"), c.show()),
     ])
   }
+}
+
+impl drop_obj[A?, B?, C?]: Drop[{ a: A, b: B, c: C }] {
+  fn drop({ a: _: A, b: _: B, c: _: C }) {}
 }

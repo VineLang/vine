@@ -122,8 +122,6 @@ pub enum Token {
   Impl,
   #[token("match")]
   Match,
-  #[token("move")]
-  Move,
   #[token("let")]
   Let,
   #[token("dyn")]

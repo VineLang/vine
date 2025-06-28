@@ -148,6 +148,9 @@ pub struct Attr {
 pub enum AttrKind {
   Builtin(Builtin),
   Main,
+  Manual,
+  Duplicate,
+  Erase,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -170,7 +173,7 @@ pub enum Builtin {
   Cast,
   Fork,
   Drop,
-  Copy,
+  Duplicate,
   Erase,
   Range,
   BoundUnbounded,
@@ -280,7 +283,6 @@ pub enum ExprKind<'core> {
   Continue(Option<Ident<'core>>),
   Ref(B<Expr<'core>>, bool),
   Deref(B<Expr<'core>>, bool),
-  Move(B<Expr<'core>>, bool),
   Inverse(B<Expr<'core>>, bool),
   Place(B<Expr<'core>>, B<Expr<'core>>),
   Tuple(Vec<Expr<'core>>),

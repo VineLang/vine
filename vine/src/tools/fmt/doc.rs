@@ -67,7 +67,6 @@ impl<'src> Doc<'src> {
     Doc::concat([Doc("("), Doc::lazy_group([doc]), Doc(")")])
   }
 
-  #[allow(clippy::too_many_arguments)]
   pub fn delimited(
     empty: &'src str,
     open: &'src str,

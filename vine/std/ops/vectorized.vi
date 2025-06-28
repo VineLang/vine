@@ -50,13 +50,13 @@ pub impl xor[A, B, C, X, Y, Z; Xor[A, B, C], Xor[X, Y, Z]]: Xor[(A, X), (B, Y), 
   }
 }
 
-pub impl mul_scalar[A, B, S, X, Y; Mul[A, S, X], Mul[B, S, Y]]: Mul[(A, B), S, (X, Y)] {
+pub impl mul_scalar[A, B, S+, X, Y; Mul[A, S, X], Mul[B, S, Y]]: Mul[(A, B), S, (X, Y)] {
   fn mul((a: A, b: B), s: S) -> (X, Y) {
     (a * s, b * s)
   }
 }
 
-pub impl div_scalar[A, B, S, X, Y; Div[A, S, X], Div[B, S, Y]]: Div[(A, B), S, (X, Y)] {
+pub impl div_scalar[A, B, S+, X, Y; Div[A, S, X], Div[B, S, Y]]: Div[(A, B), S, (X, Y)] {
   fn div((a: A, b: B), s: S) -> (X, Y) {
     (a / s, b / s)
   }

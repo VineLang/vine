@@ -1,5 +1,5 @@
 use crate::{
-  components::resolver::{Form, Resolver, Type},
+  components::resolver::{Resolver, Type},
   structures::{
     ast::{Expr, GenericArgs, Ident, Span},
     chart::FnId,
@@ -18,10 +18,9 @@ impl<'core> Resolver<'core, '_> {
     name: Ident<'core>,
     generics: &GenericArgs<'core>,
     args: &[Expr<'core>],
-  ) -> Result<(Form, Type, TirExprKind), Diag<'core>> {
-    let mut receiver = self.resolve_expr(receiver);
-    let mut args =
-      args.iter().map(|arg| self.resolve_expr_form(arg, Form::Value)).collect::<Vec<_>>();
+  ) -> Result<(Type, TirExprKind), Diag<'core>> {
+    let receiver = self.resolve_expr(receiver);
+    let mut args = args.iter().map(|arg| self.resolve_expr(arg)).collect::<Vec<_>>();
     let (fn_id, type_params) = self.find_method(span, receiver.ty, name)?;
     let type_params = self.types.import(&type_params, None);
     let sig = self.types.import(self.sigs.fn_sig(fn_id), Some(&type_params));
@@ -43,21 +42,19 @@ impl<'core> Resolver<'core, '_> {
     for (arg, ty) in args.iter().zip(sig.params.iter().skip(1)) {
       self.expect_type(arg.span, arg.ty, *ty);
     }
-    let (receiver_form, receiver_ty) = match sig.params.first().copied() {
+    let (receiver_place, receiver_ty) = match sig.params.first().copied() {
       None => return Err(Diag::NilaryMethod { span }),
       Some(receiver) => match self.types.force_kind(self.core, receiver) {
         (_, TypeKind::Error(e)) => return Err((*e).into()),
-        (Inverted(false), TypeKind::Ref(receiver)) => (Form::Place, *receiver),
-        _ => (Form::Value, receiver),
+        (Inverted(false), TypeKind::Ref(receiver)) => (true, *receiver),
+        _ => (false, receiver),
       },
     };
-    self.coerce_expr(&mut receiver, receiver_form);
     self.expect_type(span, receiver.ty, receiver_ty);
-    let receiver = if receiver_form == Form::Place {
+    let receiver = if receiver_place {
       TirExpr {
         span,
         ty: self.types.new(TypeKind::Ref(receiver.ty)),
-        form: Form::Value,
         kind: Box::new(TirExprKind::Ref(receiver)),
       }
     } else {
@@ -65,7 +62,6 @@ impl<'core> Resolver<'core, '_> {
     };
     args.insert(0, receiver);
     Ok((
-      Form::Value,
       sig.ret_ty,
       TirExprKind::Call(self.rels.fns.push(FnRel::Item(fn_id, impl_params)), None, args),
     ))

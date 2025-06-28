@@ -1,13 +1,18 @@
 error tests/programs/fail/informal.vi:4:13 - types in item signatures cannot be elided
+error tests/programs/fail/informal.vi:7:3 - cannot find impl of trait `Add[?13, ~N32, ?13]`
+error tests/programs/fail/informal.vi:9:15 - expected type `IO`; found `&?0`
 error tests/programs/fail/informal.vi:4:13 - `*` is only valid in a place pattern
 error tests/programs/fail/informal.vi:5:3 - expected a space expression; found a value expression
-error tests/programs/fail/informal.vi:6:3 - expected a space expression; found a value expression
+error tests/programs/fail/informal.vi:6:8 - search limit reached when finding impl of trait `Drop[~?11]`
 error tests/programs/fail/informal.vi:6:8 - expected a value expression; found a space expression
-error tests/programs/fail/informal.vi:7:3 - expected a place expression; found a space expression
-error tests/programs/fail/informal.vi:7:8 - expected a value expression; found a space expression
-error tests/programs/fail/informal.vi:7:3 - cannot find impl of trait `Add[?11, ~N32, ?11]`
-error tests/programs/fail/informal.vi:8:15 - expected a place expression; found a space expression
-error tests/programs/fail/informal.vi:8:13 - expected a value expression; found a space expression
+error tests/programs/fail/informal.vi:6:4 - search limit reached when finding impl of trait `Drop[?11]`
+error tests/programs/fail/informal.vi:6:4 - expected a value expression; found a space expression
+error tests/programs/fail/informal.vi:7:9 - expected a space expression; found a value expression
+error tests/programs/fail/informal.vi:7:3 - search limit reached when finding impl of trait `Drop[?13]`
+error tests/programs/fail/informal.vi:7:3 - search limit reached when finding impl of trait `Drop[~?13]`
+error tests/programs/fail/informal.vi:8:15 - search limit reached when finding impl of trait `Drop[?17]`
+error tests/programs/fail/informal.vi:8:15 - search limit reached when finding impl of trait `Drop[~?17]`
+error tests/programs/fail/informal.vi:8:14 - expected a space expression; found a value expression
 error tests/programs/fail/informal.vi:8:8 - `&` is invalid in a space pattern
-error tests/programs/fail/informal.vi:9:15 - cannot find `io` in `::informal::main`
 error tests/programs/fail/informal.vi:9:7 - expected a complete pattern
+error tests/programs/fail/informal.vi:4:14 - variable of type `&?24` read whilst uninitialized

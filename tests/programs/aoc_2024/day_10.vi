@@ -39,7 +39,7 @@ pub fn main(&io: &IO) {
         if char == '9' {
           scores += count(in_s);
           ratings += in_n;
-          ~_
+          unsafe::eraser
         } else {
           (in_s, in_n)
         }
@@ -105,7 +105,7 @@ mod Channel {
     got
   }
 
-  pub fn get[M](&Channel[M](i, _)) -> M {
+  pub fn get[M+](&Channel[M](i, _)) -> M {
     i
   }
 }
@@ -134,9 +134,9 @@ fn check(Channel[Char](i, ~o), recv: Char) -> N32 {
 
 struct Neighbors[M]((Channel[M], Channel[M], Channel[M], Channel[M]));
 
-fn cross[M, F*; fn F(Char, Neighbors[M])](grid: List[List[Char]], f: F, d: M) {
+fn cross[M*, F*; fn F(Char, Neighbors[M])](grid: List[List[Char]], f: F, d: M) {
   let width = (*grid.at(0).unwrap()).len();
-  let north = List::new(width, neglect_channel(d));
+  let north = List::new[; unsafe::duplicate, unsafe::erase](width, neglect_channel(d));
   while grid.pop_front() is Some(row) {
     let west = neglect_channel(d);
     do {
@@ -144,20 +144,19 @@ fn cross[M, F*; fn F(Char, Neighbors[M])](grid: List[List[Char]], f: F, d: M) {
       while row.pop_front() is Some(cell) {
         let (w, e) = foo_channel(&west);
         let (n, s) = foo_channel(north.next().unwrap());
-        f.fork()(cell, Neighbors(n, s, e, w));
+        f(cell, Neighbors(n, s, e, w));
       }
-      north.drop_iter()
     }
     west.send(d);
   }
-  f.drop();
   drop_all(north, d);
 }
 
-fn drop_all[M](c: List[Channel[M]], d: M) {
+fn drop_all[M*](c: List[Channel[M]], d: M) {
   while c.pop_front() is Some(c) {
     c.send(d);
   }
+  unsafe::erase(c);
 }
 
 fn foo_channel[M](&c: &Channel[M]) -> (Channel[M], Channel[M]) {
@@ -176,5 +175,5 @@ fn new_channel[M]() -> (Channel[M], Channel[M]) {
 }
 
 fn neglect_channel[M](d: M) -> Channel[M] {
-  Channel(d, ~_)
+  Channel(d, unsafe::eraser)
 }

@@ -153,7 +153,7 @@ impl<'core, 'src> VineParser<'core, 'src> {
           "ge" => Builtin::ComparisonOp(ComparisonOp::Ge),
           "Fork" => Builtin::Fork,
           "Drop" => Builtin::Drop,
-          "copy" => Builtin::Copy,
+          "duplicate" => Builtin::Duplicate,
           "erase" => Builtin::Erase,
           "Range" => Builtin::Range,
           "BoundUnbounded" => Builtin::BoundUnbounded,
@@ -163,6 +163,9 @@ impl<'core, 'src> VineParser<'core, 'src> {
         };
         AttrKind::Builtin(builtin)
       }
+      "manual" => AttrKind::Manual,
+      "duplicate" => AttrKind::Duplicate,
+      "erase" => AttrKind::Erase,
       _ => Err(Diag::UnknownAttribute { span: ident_span })?,
     };
     self.expect(Token::CloseBracket)?;
@@ -170,7 +173,7 @@ impl<'core, 'src> VineParser<'core, 'src> {
     Ok(Attr { span, kind })
   }
 
-  fn parse_ident(&mut self) -> Parse<'core, Ident<'core>> {
+  pub fn parse_ident(&mut self) -> Parse<'core, Ident<'core>> {
     let token = self.expect(Token::Ident)?;
     Ok(self.core.ident(token))
   }
@@ -510,9 +513,6 @@ impl<'core, 'src> VineParser<'core, 'src> {
     if self.eat(Token::Star)? {
       return Ok(Some(ExprKind::Deref(Box::new(self.parse_expr_bp(BP::Prefix)?), false)));
     }
-    if self.eat(Token::Move)? {
-      return Ok(Some(ExprKind::Move(Box::new(self.parse_expr_bp(BP::Prefix)?), false)));
-    }
     if self.eat(Token::Tilde)? {
       return Ok(Some(ExprKind::Inverse(Box::new(self.parse_expr_bp(BP::Prefix)?), false)));
     }
@@ -771,9 +771,6 @@ impl<'core, 'src> VineParser<'core, 'src> {
       }
       if self.eat(Token::Star)? {
         return Ok(Ok(ExprKind::Deref(Box::new(lhs), true)));
-      }
-      if self.eat(Token::Move)? {
-        return Ok(Ok(ExprKind::Move(Box::new(lhs), true)));
       }
       if self.eat(Token::Tilde)? {
         return Ok(Ok(ExprKind::Inverse(Box::new(lhs), true)));
@@ -1084,7 +1081,7 @@ impl<'core, 'src> VineParser<'core, 'src> {
     Span { file: self.file, start: span, end: self.state.last_token_end }
   }
 
-  fn span(&self) -> Span {
+  pub(crate) fn span(&self) -> Span {
     let span = self.state.lexer.span();
     Span { file: self.file, start: span.start, end: span.end }
   }

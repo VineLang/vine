@@ -23,6 +23,18 @@ pub mod Bound {
         true
       }
     }
+
+    #[duplicate]
+    pub impl fork: Fork[Unbounded] {
+      fn fork(&Unbounded(())) -> Unbounded {
+        Unbounded(())
+      }
+    }
+
+    #[erase]
+    pub impl drop: Drop[Unbounded] {
+      fn drop(Unbounded(())) {}
+    }
   }
 
   pub mod Inclusive {
@@ -33,6 +45,18 @@ pub mod Bound {
       fn right_of(&Inclusive[T](bound), &value: &T) -> Bool {
         value <= bound
       }
+    }
+
+    #[duplicate]
+    pub impl fork[T+]: Fork[Inclusive[T]] {
+      fn fork(&Inclusive[T](bound)) -> Inclusive[T] {
+        Inclusive(bound)
+      }
+    }
+
+    #[erase]
+    pub impl drop[T?]: Drop[Inclusive[T]] {
+      fn drop(Inclusive[T](_)) {}
     }
   }
 
@@ -45,6 +69,18 @@ pub mod Bound {
         value < bound
       }
     }
+
+    #[duplicate]
+    pub impl fork[T+]: Fork[Exclusive[T]] {
+      fn fork(&Exclusive[T](bound)) -> Exclusive[T] {
+        Exclusive(bound)
+      }
+    }
+
+    #[erase]
+    pub impl drop[T?]: Drop[Exclusive[T]] {
+      fn drop(Exclusive[T](_)) {}
+    }
   }
 }
 
@@ -54,5 +90,17 @@ pub struct Range[B1, B2](pub (B1, B2));
 pub mod Range {
   pub fn .contains[B1, B2, T; Bound[B1, T], Bound[B2, T]](&Range[B1, B2](start, end), &value: &T) -> Bool {
     start.left_of(&value) && end.right_of(&value)
+  }
+
+  #[duplicate]
+  pub impl fork[B1+, B2+]: Fork[Range[B1, B2]] {
+    fn fork(&Range[B1, B2](bounds)) -> Range[B1, B2] {
+      Range(bounds)
+    }
+  }
+
+  #[erase]
+  pub impl drop[B1?, B2?]: Drop[Range[B1, B2]] {
+    fn drop(Range[B1, B2](_)) {}
   }
 }

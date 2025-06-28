@@ -28,10 +28,10 @@ pub fn main(&io: &IO) {
   print_bool(!true);
   print_bool(!!false);
 
-  // Test short-circuiting behavior; `~_` is an eraser node,
+  // Test short-circuiting behavior; `unsafe::eraser` is an eraser node,
   // so would erase `io` if it was evaluated.
   io.println("---");
-  print_bool(true || ~_);
-  print_bool(false => ~_);
-  print_bool(false && ~_);
+  print_bool(true || unsafe::eraser);
+  print_bool(false => unsafe::eraser);
+  print_bool(false && unsafe::eraser);
 }

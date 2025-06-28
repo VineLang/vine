@@ -34,3 +34,25 @@ pub fn main(&io: &IO) {
   io.println("{arms.furiosity()} furious arms");
   io.println("{arms.len()} non-furious arms");
 }
+
+mod Centimanes {
+  pub impl fork: Fork[Centimanes] {
+    fn fork(&self: &Centimanes) -> Centimanes {
+      match &self {
+        &Gyges { Gyges }
+        &Cottus { Cottus }
+        &Briareus { Briareus }
+      }
+    }
+  }
+
+  pub impl drop: Drop[Centimanes] {
+    fn drop(self: Centimanes) {
+      match self {
+        Gyges {}
+        Cottus {}
+        Briareus {}
+      }
+    }
+  }
+}
