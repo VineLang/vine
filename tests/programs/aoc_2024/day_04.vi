@@ -1,4 +1,6 @@
 
+use std::data::Iterator::Fused;
+
 pub fn main(&io: &IO) {
   let lines = [];
   while io.read_line() is Some(String(chars)) {
@@ -119,9 +121,9 @@ fn diamond[T*, M*, F*; fn F(T, Neighbors[M])](grid: List[List[T]], f: F, d: M) {
   while grid.pop_front() is Some(row) {
     let west = neglect_channel(d);
     do {
-      let north = north.iter();
-      let north_west = north_west.iter();
-      let ~north_east = north_east.iter();
+      let north = Fused::new(north.iter());
+      let north_west = Fused::new(north_west.iter());
+      let ~north_east = Fused::new(north_east.iter());
       while row.pop_front() is Some(cell) {
         let (w, e) = foo_channel(&west);
         let (n, s) = foo_channel(north.next().unwrap());

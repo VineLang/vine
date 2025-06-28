@@ -33,8 +33,7 @@ pub fn main(&io: &IO) {
       if frequency != '.' {
         let &antennas = antennas.at_or_insert(frequency, []);
         let pos = (x, y);
-        let iter = antennas.into_iter();
-        while iter.next() is Some(other_pos) {
+        for other_pos in antennas.into_iter() {
           check_antinode(pos + pos - other_pos);
           check_antinode(other_pos + other_pos - pos);
           let (X, Y) = other_pos;

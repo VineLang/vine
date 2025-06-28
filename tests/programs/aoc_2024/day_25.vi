@@ -26,8 +26,7 @@ pub fn main(&io: &IO) {
   let sum = 0;
   while keys.pop_front() is Some(key) {
     let n = 0;
-    let iter = locks.into_iter();
-    while iter.next() is Some(lock) {
+    for lock in locks.into_iter() {
       if fits(lock, key) {
         n += 1;
       }

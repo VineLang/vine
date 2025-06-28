@@ -67,8 +67,7 @@ pub fn main(&io: &IO) {
   let i = 0;
   while path.pop_front() is Some(p) {
     let j = i + 1;
-    let iter = path.into_iter();
-    while iter.next() is Some(q) {
+    for q in path.into_iter() {
       let dist = dist(p, q);
       let saved = j - i - dist;
       if saved >= cutoff {

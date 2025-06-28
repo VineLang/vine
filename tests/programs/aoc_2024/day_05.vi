@@ -18,8 +18,7 @@ pub fn main(&io: &IO) {
     let good = true;
     let middle = nums.get(nums.len() / 2).unwrap();
     let mask = ((0, 0), (0, 0));
-    let iter = nums.iter();
-    while iter.next() is Some(&num) {
+    for &num in nums.iter() {
       good &= !get_bit(mask, num);
       mask |= masks.get(num).unwrap();
     }
@@ -27,8 +26,7 @@ pub fn main(&io: &IO) {
       part1 += middle;
     } else {
       let nums_mask = ((0, 0), (0, 0));
-      let iter = nums.iter();
-      while iter.next() is Some(&num) {
+      for &num in nums.iter() {
         set_bit(&nums_mask, num, true);
       }
       let out = [];
@@ -50,7 +48,7 @@ pub fn main(&io: &IO) {
         let &future_state = unsafe::move(&~future);
         let iter = pending.into_iter();
         pending = [];
-        while iter.next() is Some(n, mask) {
+        for (n, mask) in iter {
           set_bit(&mask, num, false);
           if is_empty(mask) {
             process(n, &future_state);

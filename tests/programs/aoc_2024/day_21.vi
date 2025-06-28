@@ -5,8 +5,7 @@ pub fn main(&io: &IO) {
   let lines = io.full_input().split_trim("\n");
 
   let sum = 0;
-  let iter = lines.into_iter();
-  while iter.next() is Some(line) {
+  for line in lines.into_iter() {
     let fn test_seed(seed: N32) {
       let line = control_string('A', line, seed, control_numeric);
       let line = control_string('A', line, 0, control_directional);
@@ -30,8 +29,7 @@ pub fn main(&io: &IO) {
   c = cost_func(c, 12, 0);
 
   let sum = N64::zero;
-  let iter = lines.into_iter();
-  while iter.next() is Some(line) {
+  for line in lines.into_iter() {
     let orig = line;
     let cost = N64::zero;
     let last = 2;

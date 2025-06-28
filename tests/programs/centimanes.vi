@@ -16,10 +16,9 @@ use Centimanes::Briareus;
 // the sea goat
 
 fn .furiosity(&arms: &List[Centimanes]) -> N32 {
-  let iter = arms.into_iter();
   let furiosity = 0;
   let non_furious_arms = [];
-  while iter.next() is Some(arm) {
+  for arm in arms.into_iter() {
     match arm {
       Cottus { furiosity += 1 }
       arm { non_furious_arms.push_back(arm) }

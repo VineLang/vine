@@ -23,12 +23,11 @@ pub fn main(&io: &IO) {
 
 fn blink(&io: &IO, old: Map[N64, N64]) -> Map[N64, N64] {
   let new = Map::empty[N64, _];
-  let iter = old.into_iter();
   let fn add_stones(number: N64, count: N64) {
     let &c = new.at_or_insert(number, N64::zero);
     c += count;
   }
-  while iter.next() is Some(number, count) {
+  for (number, count) in old.into_iter() {
     if number == N64::zero {
       add_stones(N64::one, count);
     } else {
@@ -48,8 +47,7 @@ fn blink(&io: &IO, old: Map[N64, N64]) -> Map[N64, N64] {
 
 fn count(&stones: &Map[N64, N64]) -> N64 {
   let n = N64::zero;
-  let iter = stones.iter();
-  while iter.next() is Some(&(_, count)) {
+  for &(_, count) in stones.iter() {
     n += count;
   }
   n

@@ -16,10 +16,9 @@ pub fn main(&io: &IO) {
   }
 
   let fn integrity_check(expected_length: N32) {
-    let iter = map.iter();
     let last = 0;
     let count = 0;
-    while iter.next() is Some(&(k, v)) {
+    for &(k, v) in map.iter() {
       count += 1;
       if last > k {
         io.println("out of order");

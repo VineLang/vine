@@ -47,11 +47,9 @@ pub mod Term {
           var
         } else {
           let out = "({var}";
-          let iter = args.into_iter();
-          while iter.next() is Some(arg) {
+          for arg in args.into_iter() {
             out ++= " " ++ arg.print_normal(depth);
           }
-          unsafe::erase(iter);
           out ++ ")"
         }
       }
@@ -60,11 +58,9 @@ pub mod Term {
   }
 
   fn bind(uses: List[~Term], term: Term) {
-    let iter = uses.into_iter();
-    while iter.next() is Some(out) {
-      ~out = unsafe::duplicate(&term);
+    for ~out in uses.into_iter() {
+      out = unsafe::duplicate(&term);
     }
-    unsafe::erase(iter);
     unsafe::erase(term);
   }
 
