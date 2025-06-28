@@ -15,7 +15,7 @@ pub(crate) struct Node(pub AtomicWord, pub AtomicWord);
 pub const HEAP_SIZE_BYTES: usize = if cfg!(miri) {
   1 << 16
 } else if cfg!(target_pointer_width = "64") {
-  1 << 40
+  1 << 32
 } else {
   1 << 30
 };
