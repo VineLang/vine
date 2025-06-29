@@ -246,8 +246,7 @@ impl<'core, 'a> Resolver<'core, 'a> {
     let root = self.resolve_expr_type(&const_def.value, ty);
     let fragment = self.finish_fragment(const_def.span, self.chart.defs[const_def.def].path, root);
     let fragment_id = self.fragments.push(fragment);
-    assert_eq!(self.resolutions.consts.next_index(), const_id);
-    self.resolutions.consts.push(fragment_id);
+    self.resolutions.consts.push_to(const_id, fragment_id);
   }
 
   fn resolve_fn_def(&mut self, fn_id: ConcreteFnId) {
@@ -259,8 +258,7 @@ impl<'core, 'a> Resolver<'core, 'a> {
     let root = TirExpr { span, ty, kind: Box::new(TirExprKind::Closure(closure_id)) };
     let fragment = self.finish_fragment(span, self.chart.defs[fn_def.def].path, root);
     let fragment_id = self.fragments.push(fragment);
-    assert_eq!(self.resolutions.fns.next_index(), fn_id);
-    self.resolutions.fns.push(fragment_id);
+    self.resolutions.fns.push_to(fn_id, fragment_id);
   }
 
   #[allow(clippy::type_complexity)]
@@ -399,7 +397,7 @@ impl<'core, 'a> Resolver<'core, 'a> {
     let param_tys = params.iter().map(|x| x.ty).collect();
     let id = self.closures.next_index();
     let ty = self.types.new(TypeKind::Closure(id, flex, param_tys, ret_ty));
-    self.closures.push(TirClosure { span, ty, flex, params, body });
+    self.closures.push_to(id, TirClosure { span, ty, flex, params, body });
     (ty, id)
   }
 
@@ -573,8 +571,7 @@ impl<'core, 'a> Resolver<'core, 'a> {
     if impl_def.erase && resolved.as_ref().is_ok_and(|i| !i.is_drop) {
       self.core.report(Diag::BadEraseAttr { span });
     }
-    assert_eq!(self.resolutions.impls.next_index(), impl_id);
-    self.resolutions.impls.push(resolved);
+    self.resolutions.impls.push_to(impl_id, resolved);
   }
 
   fn expect_fn_sig(
@@ -636,15 +633,14 @@ impl<'core, 'a> Resolver<'core, 'a> {
   }
 
   fn resolve_struct_sig(&mut self, struct_id: StructId) {
-    assert_eq!(self.sigs.structs.next_index(), struct_id);
     let struct_def = &self.chart.structs[struct_id];
     self.initialize(struct_def.def, struct_def.generics);
     let data = self.resolve_type(&struct_def.data, false);
-    self.sigs.structs.push(TypeCtx { types: take(&mut self.types), inner: StructSig { data } });
+    let types = take(&mut self.types);
+    self.sigs.structs.push_to(struct_id, TypeCtx { types, inner: StructSig { data } });
   }
 
   fn resolve_enum_sig(&mut self, enum_id: EnumId) {
-    assert_eq!(self.sigs.enums.next_index(), enum_id);
     let enum_def = &self.chart.enums[enum_id];
     self.initialize(enum_def.def, enum_def.generics);
     let variant_data = enum_def
@@ -653,11 +649,11 @@ impl<'core, 'a> Resolver<'core, 'a> {
       .map(|variant| variant.data.as_ref().map(|ty| self.resolve_type(ty, false)))
       .collect::<Vec<_>>()
       .into();
-    self.sigs.enums.push(TypeCtx { types: take(&mut self.types), inner: EnumSig { variant_data } });
+    let types = take(&mut self.types);
+    self.sigs.enums.push_to(enum_id, TypeCtx { types, inner: EnumSig { variant_data } });
   }
 
   fn resolve_trait_sig(&mut self, trait_id: TraitId) {
-    assert_eq!(self.sigs.traits.next_index(), trait_id);
     let trait_def = &self.chart.traits[trait_id];
     self.initialize(trait_def.def, trait_def.generics);
     let sig = TraitSig {
@@ -670,15 +666,14 @@ impl<'core, 'a> Resolver<'core, 'a> {
         TypeCtx { types: take(&mut self.types), inner: FnSig { params, ret_ty } }
       }))),
     };
-    self.sigs.traits.push(sig);
+    self.sigs.traits.push_to(trait_id, sig);
   }
 
   fn resolve_generics_sig(&mut self, generics_id: GenericsId) {
-    assert_eq!(self.sigs.generics.next_index(), generics_id);
     let generics_def = &self.chart.generics[generics_id];
     self.initialize(generics_def.def, generics_id);
-    let mut impl_param_types = vec![];
-    impl_param_types.extend(
+    let mut impl_params = vec![];
+    impl_params.extend(
       generics_def
         .type_params
         .iter()
@@ -705,11 +700,9 @@ impl<'core, 'a> Resolver<'core, 'a> {
         })
         .flatten(),
     );
-    impl_param_types.extend(generics_def.impl_params.iter().map(|p| self.resolve_trait(&p.trait_)));
-    self.sigs.generics.push(TypeCtx {
-      types: take(&mut self.types),
-      inner: GenericsSig { impl_params: impl_param_types },
-    });
+    impl_params.extend(generics_def.impl_params.iter().map(|p| self.resolve_trait(&p.trait_)));
+    let types = take(&mut self.types);
+    self.sigs.generics.push_to(generics_id, TypeCtx { types, inner: GenericsSig { impl_params } });
     if self.type_param_lookup.len() != generics_def.type_params.len() {
       self.core.report(Diag::DuplicateTypeParam { span: generics_def.span });
     }
@@ -721,33 +714,27 @@ impl<'core, 'a> Resolver<'core, 'a> {
   }
 
   fn resolve_const_sig(&mut self, const_id: ConcreteConstId) {
-    assert_eq!(self.sigs.concrete_consts.next_index(), const_id);
     let const_def = &self.chart.concrete_consts[const_id];
     self.initialize(const_def.def, const_def.generics);
     let ty = self.resolve_type(&const_def.ty, false);
-    self
-      .sigs
-      .concrete_consts
-      .push(TypeCtx { types: take(&mut self.types), inner: ConstSig { ty } });
+    let types = take(&mut self.types);
+    self.sigs.concrete_consts.push_to(const_id, TypeCtx { types, inner: ConstSig { ty } });
   }
 
   fn resolve_fn_sig(&mut self, fn_id: ConcreteFnId) {
-    assert_eq!(self.sigs.concrete_fns.next_index(), fn_id);
     let fn_def = &self.chart.concrete_fns[fn_id];
     self.initialize(fn_def.def, fn_def.generics);
     let (params, ret_ty) = self._resolve_fn_sig(&fn_def.params, &fn_def.ret_ty);
-    self
-      .sigs
-      .concrete_fns
-      .push(TypeCtx { types: take(&mut self.types), inner: FnSig { params, ret_ty } });
+    let types = take(&mut self.types);
+    self.sigs.concrete_fns.push_to(fn_id, TypeCtx { types, inner: FnSig { params, ret_ty } });
   }
 
   fn resolve_impl_sig(&mut self, impl_id: ImplId) {
-    assert_eq!(self.sigs.impls.next_index(), impl_id);
     let impl_def = &self.chart.impls[impl_id];
     self.initialize(impl_def.def, impl_def.generics);
     let ty = self.resolve_trait(&impl_def.trait_);
-    self.sigs.impls.push(TypeCtx { types: take(&mut self.types), inner: ImplSig { ty } });
+    let types = take(&mut self.types);
+    self.sigs.impls.push_to(impl_id, TypeCtx { types, inner: ImplSig { ty } });
   }
 
   fn _resolve_fn_sig(

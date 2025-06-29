@@ -261,8 +261,9 @@ impl<'core> Analyzer<'core, '_> {
   }
 
   fn new_var(&mut self) -> EffectVar {
-    self.dependent.push(Vec::new());
-    self.effects.push(Effect::Never)
+    let var = self.effects.push(Effect::Never);
+    self.dependent.push_to(var, Vec::new());
+    var
   }
 
   fn get_transfer(&mut self, interface: InterfaceId) -> (EffectVar, EffectVar) {

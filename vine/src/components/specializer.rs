@@ -40,7 +40,7 @@ impl<'core, 'a> Specializer<'core, 'a> {
     };
     let impl_args = entry.key().clone();
     entry.insert(spec_id);
-    self.specs.specs.push(None);
+    self.specs.specs.push_to(spec_id, None);
     let rels = &self.vir[id].rels;
     let rels = SpecRels {
       fns: IdxVec::from(Vec::from_iter(rels.fns.values().map(|rel| {

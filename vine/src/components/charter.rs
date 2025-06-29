@@ -22,12 +22,15 @@ pub struct Charter<'core, 'a> {
 impl<'core> Charter<'core, '_> {
   pub fn chart_root(&mut self, root: ModKind<'core>) {
     if self.chart.generics.is_empty() {
-      self.chart.generics.push(GenericsDef {
-        span: Span::NONE,
-        def: DefId::ROOT,
-        type_params: Vec::new(),
-        impl_params: Vec::new(),
-      });
+      self.chart.generics.push_to(
+        GenericsId::NONE,
+        GenericsDef {
+          span: Span::NONE,
+          def: DefId::ROOT,
+          type_params: Vec::new(),
+          impl_params: Vec::new(),
+        },
+      );
     }
     if self.chart.defs.is_empty() {
       self.new_def(self.core.ident("::"), "", None);
@@ -138,7 +141,8 @@ impl<'core> Charter<'core, '_> {
           })
           .collect::<Vec<_>>()
           .into();
-        self.chart.enums.push(EnumDef { span, def, name: enum_item.name, generics, variants });
+        let enum_def = EnumDef { span, def, name: enum_item.name, generics, variants };
+        self.chart.enums.push_to(enum_id, enum_def);
         self.define_type(span, def, vis, DefTypeKind::Enum(enum_id));
         Some(def)
       }

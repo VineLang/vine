@@ -78,11 +78,18 @@ impl<I: Idx, T> IdxVec<I, T> {
     self.len().into()
   }
 
+  #[must_use]
   #[inline(always)]
   pub fn push(&mut self, value: T) -> I {
     let index = self.next_index();
     self.vec.push(value);
     index
+  }
+
+  #[inline(always)]
+  pub fn push_to(&mut self, index: I, value: T) {
+    assert_eq!(self.next_index(), index);
+    self.vec.push(value);
   }
 
   #[inline(always)]
