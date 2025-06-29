@@ -117,7 +117,7 @@ pub mod List {
   pub fn .head_tail[T](List[T](len, buf, end)) -> Option[(T, List[T])] {
     if len != 0 {
       let Buf(head, tail) = buf;
-      Some((head, List(len - 1, tail, end)))
+      Some(head, List(len - 1, tail, end))
     } else {
       unsafe::erase((buf, end));
       None
@@ -264,7 +264,7 @@ pub mod List {
       fn advance(IntoIter[T](List(len, buf, end))) -> Option[(T, IntoIter[T])] {
         if len != 0 {
           let Buf(head, tail) = buf;
-          Some((head, IntoIter(List(len - 1, tail, end))))
+          Some(head, IntoIter(List(len - 1, tail, end)))
         } else {
           unsafe::erase((buf, end));
           None
@@ -332,7 +332,7 @@ pub mod List {
           (None, None) { break Ord::Eq }
           (None, Some(_)) { break Ord::Lt }
           (Some(_), None) { break Ord::Gt }
-          (Some((&a, _a_iter)), Some((&b, _b_iter))) {
+          (Some(&a, _a_iter), Some(&b, _b_iter)) {
             (a_iter, b_iter) = (_a_iter, _b_iter);
             match a.cmp(&b) {
               Ord::Lt { break Ord::Lt }

@@ -254,7 +254,7 @@ pub mod Map {
           node = &left;
         }
         if stack.head_tail() is Some(&(entry, node), stack) {
-          Some((&entry, Iter(&node, stack)))
+          Some(&entry, Iter(&node, stack))
         } else {
           None
         }
