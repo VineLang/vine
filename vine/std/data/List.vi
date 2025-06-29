@@ -166,17 +166,15 @@ pub mod List {
   }
 
   pub fn .join[T; Cast[T, String]](list: List[T], sep: String) -> String {
-    let iter = list.into_iter();
-    let str = if iter.advance() is Some((val, iter)) {
-      let str = "{val}";
-      for val in iter {
+    if list.head_tail() is Some(head, tail) {
+      let str = "{head}";
+      for val in tail.into_iter() {
         str ++= "{sep}{val}";
       }
       str
     } else {
       ""
-    };
-    str
+    }
   }
 
   pub fn .drop_while[T?, F*; fn F(&T) -> Bool](&List[T](len, buf, _), pred: F) {
