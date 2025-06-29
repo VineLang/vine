@@ -75,6 +75,21 @@ impl<'core> Resolver<'core, '_> {
         });
         (nil, TirExprKind::While(label, cond, block))
       }
+      ExprKind::For(label, pat, iter, block) => {
+        let nil = self.types.nil();
+        let (label, result) = self.bind_label(label, true, nil, |self_| {
+          self_.enter_scope();
+          let iter = self_.resolve_expr(iter);
+          let pat = self_.resolve_pat(pat);
+          let rel =
+            self_.builtin_fn(span, self_.chart.builtins.advance, "advance", [iter.ty, pat.ty])?;
+          let block = self_.resolve_block(block);
+          self_.exit_scope();
+          Result::<_, Diag<'core>>::Ok((rel, pat, iter, block))
+        });
+        let (rel, pat, iter, block) = result?;
+        (nil, TirExprKind::For(label, rel, pat, iter, block))
+      }
       ExprKind::Loop(label, block) => {
         let result = self.types.new_var(span);
         let (label, block) =

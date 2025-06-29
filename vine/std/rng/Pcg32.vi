@@ -33,8 +33,7 @@ pub mod Pcg32 {
 
   pub fn seeded(seed: String) -> Pcg32 {
     let rng = Pcg32::default;
-    let iter = seed!.into_iter();
-    while iter.next() is Some(char) {
+    for char in seed!.into_iter() {
       rng.mix(char as N32)
     }
     rng

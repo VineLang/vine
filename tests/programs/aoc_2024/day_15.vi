@@ -7,8 +7,7 @@ pub fn main(&io: &IO) {
   let initial = (0, 0);
   while io.read_line() is Some(line) && line.len() != 0 {
     let x = 0;
-    let iter = line!.iter();
-    while iter.next() is Some(&char) {
+    for &char in line!.iter() {
       if char == '@' {
         initial = (x, y);
         char = '.';
@@ -33,7 +32,7 @@ pub fn main(&io: &IO) {
   let instructions = [];
   let robot = initial;
   while io.read_line() is Some(line) {
-    while line!.pop_front() is Some(char) {
+    for char in line!.into_iter() {
       instructions ++= [char];
       let dir = if char == '<' {
         (-(1), 0)
@@ -58,12 +57,10 @@ pub fn main(&io: &IO) {
   }
 
   let part1 = 0;
-  let rows = grid as List;
   let y = 0;
-  while rows.pop_front() is Some(row) {
-    let row = row as List;
+  for row in grid.as[List].into_iter() {
     let x = 0;
-    while row.pop_front() is Some(char) {
+    for char in row.as[List].into_iter() {
       if char == 'O' {
         part1 += y * 100 + x;
       }
@@ -78,8 +75,7 @@ pub fn main(&io: &IO) {
 
   grid = initial_grid.as[List].map(fn* (row: Array[Char]) {
     let new_row = [];
-    let row = row as List;
-    while row.pop_front() is Some(char) {
+    for char in row.as[List].into_iter() {
       if char == 'O' {
         new_row ++= "[]" as List;
       } else {
@@ -91,7 +87,7 @@ pub fn main(&io: &IO) {
 
   let robot = initial * (2, 1);
 
-  while instructions.pop_front() is Some(char) {
+  for char in instructions.into_iter() {
     if char == '<' || char == '>' {
       let dir = if char == '<' {
         (-(1), 0)
@@ -179,12 +175,10 @@ pub fn main(&io: &IO) {
   let height = grid.len();
 
   let part2 = 0;
-  let rows = grid as List;
   let y = 0;
-  while rows.pop_front() is Some(row) {
-    let row = row as List;
+  for row in grid.as[List].into_iter() {
     let x = 0;
-    while row.pop_front() is Some(char) {
+    for char in row.as[List].into_iter() {
       if char == '[' {
         part2 += y * 100 + x;
       }

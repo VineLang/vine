@@ -9,11 +9,9 @@ pub fn main(&io: &IO) {
   let guard_pos = (0, 0);
 
   let y = 0;
-  let iter = grid.iter();
-  while iter.next() is Some(&row) {
+  for &row in grid.iter() {
     let x = 0;
-    let iter = row!.iter();
-    while iter.next() is Some(&cell) {
+    for &cell in row!.iter() {
       if cell == '^' {
         guard_pos = (x, y);
         cell = 'X';
@@ -34,7 +32,7 @@ pub fn main(&io: &IO) {
 
   let i = 0;
   let loops = 0;
-  while spaces.pop_front() is Some(x, y) {
+  for (x, y) in spaces.into_iter() {
     let grid = grid;
     *(*grid.at(y).unwrap()).at(x).unwrap() = '#';
     let (looped, _) = walk(&grid, guard_pos);

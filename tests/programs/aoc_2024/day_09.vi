@@ -72,10 +72,10 @@ fn part2(input: String) -> N64 {
   }
 
   let sum = N64::zero;
-  while files.pop_front() is Some(id, len, orig_pos) {
+  for (id, len, orig_pos) in files.into_iter() {
     let iter = spaces.iter();
     let pos = orig_pos;
-    while iter.next() is Some(&(start, empty)) {
+    for &(start, empty) in iter {
       if start > orig_pos {
         break;
       }

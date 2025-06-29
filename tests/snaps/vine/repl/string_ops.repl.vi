@@ -40,7 +40,7 @@ false
 let io: IO = #io;
 let s: String = "hello world!";
 > "" == ""
-::std::data::List::eq::eq:0:s14
+true
 
 let io: IO = #io;
 let s: String = "hello world!";
@@ -50,7 +50,7 @@ false
 let io: IO = #io;
 let s: String = "hello world!";
 > "hello" == "hello"
-::std::data::List::eq::eq:0:s14
+true
 
 let io: IO = #io;
 let s: String = "hello world!";
@@ -91,7 +91,7 @@ let io: IO = #io;
 let s: String = "hello world!";
 let x: String = "hi";
 > x == "hi"
-::std::data::List::eq::eq:0:s14
+true
 
 let io: IO = #io;
 let s: String = "hello world!";

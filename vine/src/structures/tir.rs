@@ -71,6 +71,8 @@ pub enum TirExprKind {
   #[class(value)]
   Loop(LabelId, TirExpr),
   #[class(nil, value)]
+  For(LabelId, FnRelId, TirPat, TirExpr, TirExpr),
+  #[class(nil, value)]
   Return(Option<TirExpr>),
   #[class(nil, value)]
   Break(LabelId, Option<TirExpr>),

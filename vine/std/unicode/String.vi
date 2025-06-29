@@ -61,18 +61,16 @@ pub mod String {
     let prefix = "";
     let suffix = self;
     while suffix.len() >= sep.len() {
-      let iter_a = sep!.iter();
-      let iter_b = suffix!.iter();
       do.check {
-        while iter_a.next() is Some(&a) && iter_b.next() is Some(&b) {
+        let iter = suffix!.iter();
+        for &a in sep!.iter() {
+          let (&b, _iter) = iter.advance().unwrap();
+          iter = _iter;
           if a != b {
             break.check;
           }
         }
-        let List::Iter(len, &buf) = unsafe::move(&iter_b);
-        let List(_, _buf, end) = suffix as List;
-        unsafe::erase(_buf);
-        return (prefix, Some(List(len, unsafe::move(&buf), end) as String));
+        return (prefix, Some(String(unsafe::move(iter.tail()))));
       }
       if suffix!.pop_front() is Some(char) {
         prefix ++= String([char]);
@@ -87,18 +85,15 @@ pub mod String {
     if self.len() < prefix.len() {
       return Err(prefix);
     }
-    let self_iter = self!.iter();
-    let prefix_iter = prefix!.iter();
-    while prefix_iter.next() is Some(&a) {
-      let &b = self_iter.next().unwrap();
+    let iter = self!.iter();
+    for &a in prefix!.iter() {
+      let (&b, _iter) = iter.advance().unwrap();
+      iter = _iter;
       if a != b {
         return Err(self)
       }
     }
-    let List::Iter(len, &buf) = unsafe::move(&self_iter);
-    let List(_, _buf, end) = self as List;
-    unsafe::erase(_buf);
-    Ok(List(len, unsafe::move(&buf), end) as String)
+    Ok(String(unsafe::move(iter.tail())))
   }
 
   pub fn .trim_front(String(chars)) -> String {
@@ -109,7 +104,7 @@ pub mod String {
   pub fn .trim_back(String(chars)) -> String {
     let trimmed_chars = [];
     let ~trailing_whitespace = true;
-    while chars.pop_front() is Some(char) {
+    for char in chars.into_iter() {
       if !~trailing_whitespace {
         trimmed_chars.push_back(char);
       }
@@ -129,9 +124,9 @@ pub mod String {
       return false;
     }
     let self_iter = self!.iter();
-    let prefix_iter = prefix!.iter();
-    while prefix_iter.next() is Some(&a) {
-      let &b = self_iter.next().unwrap();
+    for &a in prefix!.iter() {
+      let (&b, _self_iter) = self_iter.advance().unwrap();
+      self_iter = _self_iter;
       if a != b {
         return false
       }

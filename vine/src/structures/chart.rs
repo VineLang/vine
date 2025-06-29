@@ -40,6 +40,7 @@ pub struct Builtins {
 
   pub list: Option<StructId>,
   pub string: Option<StructId>,
+  pub option: Option<EnumId>,
   pub result: Option<EnumId>,
 
   pub neg: Option<FnId>,
@@ -47,7 +48,6 @@ pub struct Builtins {
   pub cast: Option<FnId>,
   pub binary_ops: IntMap<BinaryOp, Option<FnId>>,
   pub comparison_ops: IntMap<ComparisonOp, Option<FnId>>,
-
   pub bool_not: Option<ImplId>,
 
   pub fork: Option<TraitId>,
@@ -59,6 +59,8 @@ pub struct Builtins {
   pub bound_exclusive: Option<StructId>,
   pub bound_inclusive: Option<StructId>,
   pub bound_unbounded: Option<StructId>,
+
+  pub advance: Option<FnId>,
 }
 
 new_idx!(pub DefId);

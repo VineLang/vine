@@ -1,4 +1,6 @@
 
+use std::data::Iterator::Fused;
+
 pub fn main(&io: &IO) {
   let lines = [];
   while io.read_line() is Some(String(chars)) {
@@ -116,13 +118,13 @@ fn diamond[T*, M*, F*; fn F(T, Neighbors[M])](grid: List[List[T]], f: F, d: M) {
   let north = List::new[; unsafe::duplicate, unsafe::erase](width, neglect_channel(d));
   let north_west = List::new[; unsafe::duplicate, unsafe::erase](width, neglect_channel(d));
   let north_east = List::new[; unsafe::duplicate, unsafe::erase](width, neglect_channel(d));
-  while grid.pop_front() is Some(row) {
+  for row in grid.into_iter() {
     let west = neglect_channel(d);
     do {
-      let north = north.iter();
-      let north_west = north_west.iter();
-      let ~north_east = north_east.iter();
-      while row.pop_front() is Some(cell) {
+      let north = Fused::new(north.iter());
+      let north_west = Fused::new(north_west.iter());
+      let ~north_east = Fused::new(north_east.iter());
+      for cell in row.into_iter() {
         let (w, e) = foo_channel(&west);
         let (n, s) = foo_channel(north.next().unwrap());
         let (nw, se) = foo_channel(north_west.next().unwrap());
@@ -142,10 +144,9 @@ fn diamond[T*, M*, F*; fn F(T, Neighbors[M])](grid: List[List[T]], f: F, d: M) {
 }
 
 fn drop_all[M*](c: List[Channel[M]], d: M) {
-  while c.pop_front() is Some(c) {
+  for c in c.into_iter() {
     c.send(d);
   }
-  unsafe::erase(c);
 }
 
 fn foo_channel[M](&c: &Channel[M]) -> (Channel[M], Channel[M]) {

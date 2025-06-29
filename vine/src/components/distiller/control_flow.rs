@@ -1,8 +1,10 @@
 use crate::structures::{
   ast::{LogicalOp, Span},
   chart::VariantId,
+  diag::Diag,
+  resolutions::FnRelId,
   tir::{ClosureId, LabelId, TirClosure, TirExpr, TirExprKind, TirLocal, TirPat, TirPatKind},
-  types::Type,
+  types::{Type, TypeKind},
   vir::{
     Header, Interface, InterfaceId, InterfaceKind, Layer, Port, PortKind, Stage, Step, Transfer,
   },
@@ -248,6 +250,97 @@ impl<'core, 'r> Distiller<'core, 'r> {
     self.finish_stage(cond_stage);
     self.finish_stage(then_stage);
     self.finish_stage(else_stage);
+    self.finish_layer(layer);
+  }
+
+  pub(super) fn distill_for(
+    &mut self,
+    stage: &mut Stage,
+    span: Span,
+    label: LabelId,
+    rel: FnRelId,
+    pat: &TirPat,
+    iter: &TirExpr,
+    block: &TirExpr,
+  ) {
+    let Some(option_enum) = self.chart.builtins.option else {
+      self.core.report(Diag::MissingBuiltin { span, builtin: "Option" });
+      return;
+    };
+
+    let value_ty = pat.ty;
+    let iter_ty = iter.ty;
+    let tuple_ty = self.types.new(TypeKind::Tuple(vec![value_ty, iter_ty]));
+    let option_ty = self.types.new(TypeKind::Enum(option_enum, vec![tuple_ty]));
+    let some_variant = VariantId(0);
+    let none_variant = VariantId(1);
+    let iter_local = self.new_local(stage, span, iter_ty);
+    let value_local = self.locals.push(TirLocal { span, ty: value_ty });
+    let inner_iter_local = self.locals.push(TirLocal { span, ty: iter_ty });
+
+    let iter = self.distill_expr_value(stage, iter);
+    stage.local_write_to(iter_local, iter);
+
+    let (mut layer, mut init_stage) = self.child_layer(stage, span);
+    let mut some_stage = self.new_unconditional_stage(&mut layer, span);
+    let none_stage = self.new_unconditional_stage(&mut layer, span);
+
+    let iter = init_stage.local_read_barrier(iter_local, span, iter_ty);
+    let option = init_stage.new_wire(span, option_ty);
+    init_stage.steps.push(Step::Call(rel, None, vec![iter], option.neg));
+    self.distill_pattern_match(
+      span,
+      &mut layer,
+      &mut init_stage,
+      option.pos,
+      vec![
+        Row::new(
+          Some(&TirPat {
+            span,
+            ty: option_ty,
+            kind: Box::new(TirPatKind::Enum(
+              option_enum,
+              some_variant,
+              Some(TirPat {
+                span,
+                ty: tuple_ty,
+                kind: Box::new(TirPatKind::Composite(vec![
+                  TirPat { span, ty: value_ty, kind: Box::new(TirPatKind::Local(value_local)) },
+                  TirPat { span, ty: iter_ty, kind: Box::new(TirPatKind::Local(inner_iter_local)) },
+                ])),
+              }),
+            )),
+          }),
+          some_stage.interface,
+        ),
+        Row::new(
+          Some(&TirPat {
+            span,
+            ty: option_ty,
+            kind: Box::new(TirPatKind::Enum(option_enum, none_variant, None)),
+          }),
+          none_stage.interface,
+        ),
+      ],
+    );
+
+    *self.labels.get_or_extend(label) = Some(Label {
+      layer: layer.id,
+      continue_transfer: Some(init_stage.interface),
+      break_value: None,
+    });
+
+    let iter = some_stage.local_read_barrier(inner_iter_local, span, iter_ty);
+    some_stage.local_barrier_write_to(iter_local, iter);
+    let pat = self.distill_pat_value(&mut some_stage, pat);
+    some_stage.local_read_barrier_to(value_local, pat);
+    let result = self.distill_expr_value(&mut some_stage, block);
+    some_stage.steps.push(Step::Link(result, Port { ty: self.types.nil(), kind: PortKind::Nil }));
+    some_stage.transfer = Some(Transfer::unconditional(init_stage.interface));
+
+    self.finish_stage(init_stage);
+    self.finish_stage(some_stage);
+    self.finish_stage(none_stage);
     self.finish_layer(layer);
   }
 

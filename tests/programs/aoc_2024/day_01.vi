@@ -18,7 +18,9 @@ pub fn main(&io: &IO) {
   let total_dist = 0;
   let iter_a = left.into_iter();
   let iter_b = right.into_iter();
-  while iter_a.next() is Some(a) && iter_b.next() is Some(b) {
+  for a in iter_a {
+    let (b, _iter_b) = iter_b.advance().unwrap();
+    iter_b = _iter_b;
     total_dist += if a > b {
       a - b
     } else {
@@ -29,11 +31,9 @@ pub fn main(&io: &IO) {
   io.println("Total Distance: {total_dist}");
 
   let similarity = 0;
-  let iter_a = left.into_iter();
-  while iter_a.next() is Some(a) {
+  for a in left.into_iter() {
     let count = 0;
-    let iter_b = right.into_iter();
-    while iter_b.next() is Some(b) {
+    for b in right.into_iter() {
       if a == b {
         count += 1;
       }

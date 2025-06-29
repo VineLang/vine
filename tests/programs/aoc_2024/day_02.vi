@@ -7,8 +7,7 @@ pub fn main(&io: &IO) {
   let safe_count = 0;
   let dampened_safe_count = 0;
 
-  let iter = lines.into_iter();
-  while iter.next() is Some(line) {
+  for line in lines.into_iter() {
     let report = line.split(" ").map(fn* (x) { N32::parse(x).unwrap() });
     if is_safe(report) {
       safe_count += 1;
@@ -25,8 +24,7 @@ pub fn main(&io: &IO) {
 fn is_safe(report: List[N32]) -> Bool {
   let last = None[N32];
   let order = None[Bool];
-  let iter = report.into_iter();
-  while iter.next() is Some(level) {
+  for level in report.into_iter() {
     if last is Some(last) {
       let diff = if last > level {
         last - level

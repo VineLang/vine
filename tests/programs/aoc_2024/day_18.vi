@@ -175,7 +175,7 @@ fn pathfind(grid: Array[Array[N32]], size: N32, iters: N32) -> N32 {
   let i = 0;
   while cur.len() != 0 {
     let next = [];
-    while cur.pop_front() is Some(pos) {
+    for pos in cur.into_iter() {
       let (x, y) = pos;
       if x == size - 1 && y == size - 1 {
         result = i;

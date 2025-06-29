@@ -88,16 +88,14 @@ pub mod Show {
     let total_width = 0;
     let str = "";
     let first = true;
-    let iter = entries.into_iter();
-    while iter.next() is Some(entry) {
-      let show_iter = process_entry(entry).into_iter();
+    for entry in entries.into_iter() {
       total_width += 2;
       if multiline {
         str ++= newline(indent + 2);
       } else if !first {
         str ++= ", ";
       }
-      while show_iter.next() is Some(show) {
+      for show in process_entry(entry).into_iter() {
         let (width, show_str) = show._format(max_width, indent + 2);
         total_width += width;
         str ++= show_str;
