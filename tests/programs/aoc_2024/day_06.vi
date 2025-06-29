@@ -32,7 +32,7 @@ pub fn main(&io: &IO) {
 
   let i = 0;
   let loops = 0;
-  while spaces.pop_front() is Some(x, y) {
+  for (x, y) in spaces.into_iter() {
     let grid = grid;
     *(*grid.at(y).unwrap()).at(x).unwrap() = '#';
     let (looped, _) = walk(&grid, guard_pos);

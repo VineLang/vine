@@ -17,10 +17,9 @@ pub mod Map {
   pub impl from_list[K?, V?; Ord[K]]: Cast[List[(K, V)], Map[K, V]] {
     fn cast(entries: List[(K, V)]) -> Map[K, V] {
       let map = Map::empty[K, V];
-      while entries.pop_front() is Some(key, value) {
+      for (key, value) in entries.into_iter() {
         map.insert(key, value);
       }
-      unsafe::erase(entries);
       map
     }
   }

@@ -95,7 +95,7 @@ pub mod List {
 
   pub fn .filter[T?, F*; fn F(&T) -> Bool](self: List[T], pred: F) -> List[T] {
     let result = [];
-    while self.pop_front() is Some(value) {
+    for value in self.into_iter() {
       if pred(&value) {
         result.push_back(value);
       }
@@ -204,7 +204,7 @@ pub mod List {
 
   pub fn .sort_by[T, F*; fn F(&T, &T) -> Bool](&self: &List[T], cmp: F) {
     let output = [];
-    while self.pop_front() is Some(a) {
+    for a in self.into_iter() {
       let left = [];
       while output.pop_front() is Some(b) {
         if cmp(&a, &b) {
@@ -216,7 +216,6 @@ pub mod List {
       }
       output = left ++ [a] ++ output;
     }
-    unsafe::erase(self);
     self = output;
   }
 
@@ -294,10 +293,9 @@ pub mod List {
 
   pub fn .reversed[T](self: List[T]) -> List[T] {
     let reversed = [];
-    while self.pop_front() is Some(value) {
+    for value in self.into_iter() {
       reversed.push_front(value);
     }
-    unsafe::erase(self);
     reversed
   }
 

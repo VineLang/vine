@@ -8,7 +8,7 @@ pub fn main(&io: &IO) {
 
   let stones = Map::empty[N64, _];
   let input = input.split(" ");
-  while input.pop_front() is Some(stone) {
+  for stone in input.into_iter() {
     let stone = N32::parse(stone).unwrap() as N64;
     stones.insert(stone, N64::one);
   }

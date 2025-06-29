@@ -104,7 +104,7 @@ pub mod String {
   pub fn .trim_back(String(chars)) -> String {
     let trimmed_chars = [];
     let ~trailing_whitespace = true;
-    while chars.pop_front() is Some(char) {
+    for char in chars.into_iter() {
       if !~trailing_whitespace {
         trimmed_chars.push_back(char);
       }

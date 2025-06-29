@@ -10,7 +10,7 @@ pub fn main(&io: &IO) {
     let nums = rest.unwrap().split(" ");
     let results = [N32::parse(nums.pop_front().unwrap()).unwrap() as N64];
     let results2 = [];
-    while nums.pop_front() is Some(num) {
+    for num in nums.into_iter() {
       let len = num.len();
       let num = N32::parse(num).unwrap() as N64;
       let add = results.map(fn* (x: N64) { x + num });
@@ -27,14 +27,14 @@ pub fn main(&io: &IO) {
       results2 = add2 ++ mul2 ++ concat;
     }
     do.search {
-      while results.pop_front() is Some(num) {
+      for num in results.into_iter() {
         if num == goal {
           part1 += goal;
           part2 += goal;
           break.search;
         }
       }
-      while results2.pop_front() is Some(num) {
+      for num in results2.into_iter() {
         if num == goal {
           part2 += goal;
           break.search;

@@ -10,7 +10,7 @@ pub fn main(&io: &IO) {
 
   let part1 = 0;
   let part2 = N64::zero;
-  while machines.pop_front() is Some(machine) {
+  for machine in machines.into_iter() {
     let (_, r) = machine.split_once("+");
     let (ax, r) = r.unwrap().split_once(", Y+");
     let (ay, r) = r.unwrap().split_once("\nButton B: X+");

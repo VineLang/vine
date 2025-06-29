@@ -52,8 +52,7 @@ pub fn main(&io: &IO) {
       }
       while tips.pop_front() is Some(x) {
         let out = [];
-        let tips = tips;
-        while tips.pop_front() is Some(y) {
+        for y in tips.into_iter() {
           if graph.at(&x) is Some(&m) && m.at(&y) is Some(&_) {
             out ++= [y];
           }

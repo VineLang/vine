@@ -7,7 +7,7 @@ pub fn main(&io: &IO) {
   let end = (0, 0);
   while io.read_line() is Some(line) {
     let row = [];
-    while line!.pop_front() is Some(char) {
+    for char in line!.into_iter() {
       if char == 'S' {
         start = (row.len(), grid.len());
       } else if char == 'E' {
@@ -55,7 +55,7 @@ pub fn main(&io: &IO) {
   let part2 = 0;
   let done = false;
   while !done && pq.remove_min() is Some(dist, heads) {
-    while heads.pop_front() is Some(pos, dir) {
+    for (pos, dir) in heads.into_iter() {
       let (px, py) = pos;
       let &(_, dirs, counted) = (*grid.at(py).unwrap()).at(px).unwrap();
       let &(min_dist, ~used) = dirs.at(dir).unwrap();
@@ -82,19 +82,14 @@ pub fn main(&io: &IO) {
     }
   }
 
-  let grid = grid as List;
-  while grid.pop_front() is Some(row) {
-    let row = row as List;
-    while row.pop_front() is Some(_, dirs, _) {
-      while dirs.pop_front() is Some(x) {
+  for row in grid.as[List].into_iter() {
+    for (_, dirs, _) in row.as[List].into_iter() {
+      for x in dirs.into_iter() {
         let (_, ~used) = x;
         used = false;
       }
-      unsafe::erase(dirs);
     }
-    unsafe::erase(row);
   }
-  unsafe::erase(grid);
 
   io.println("Part 1: {part1}");
 

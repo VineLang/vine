@@ -31,7 +31,7 @@ pub fn main(&io: &IO) {
       }
       let out = [];
       let pending = [];
-      while nums.pop_front() is Some(num) {
+      for num in nums.into_iter() {
         let mask = masks.get(num).unwrap() & nums_mask;
         if is_empty(mask) {
           process(num, &(out, pending, nums_mask));

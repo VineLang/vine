@@ -13,7 +13,7 @@ pub fn main(&io: &IO) {
 
 pub fn primenesses(list: List[N32]) -> Result[List[Bool], String] {
   let out = [];
-  while list.pop_front() is Some(n) {
+  for n in list.into_iter() {
     out.push_back(primeness(n)?);
   }
   Ok(out)

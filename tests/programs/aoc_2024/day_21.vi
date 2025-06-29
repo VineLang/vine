@@ -33,7 +33,7 @@ pub fn main(&io: &IO) {
     let orig = line;
     let cost = N64::zero;
     let last = 2;
-    while line!.pop_front() is Some(char) {
+    for char in line!.into_iter() {
       let fn pos(x: Char) {
         if x == '0' {
           1
@@ -57,7 +57,7 @@ pub fn main(&io: &IO) {
 
 fn control_string[F*; fn F(Char, Char, Bool) -> String](cur: Char, string: String, seed: N32, f: F) -> String {
   let out = "";
-  while string!.pop_front() is Some(next) {
+  for next in string!.into_iter() {
     out ++= f(cur, next, seed & 1 != 0);
     cur = next;
     seed /= 2;

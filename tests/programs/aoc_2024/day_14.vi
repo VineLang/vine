@@ -68,8 +68,7 @@ pub fn main(&io: &IO) {
       let y = (py + vy * i) % height;
       *(*grid.at(y).unwrap()).at(x).unwrap() = '#';
     }
-    let lines = grid as List;
-    while lines.pop_front() is Some(line) {
+    for line in grid.as[List].into_iter() {
       io.println(line as List as String);
     }
     io.println("{i}");
