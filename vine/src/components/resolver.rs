@@ -516,7 +516,7 @@ impl<'core, 'a> Resolver<'core, 'a> {
       ImplType::Trait(trait_id, type_params) => {
         let trait_def = &self.chart.traits[*trait_id];
         let trait_sig = &self.sigs.traits[*trait_id];
-        let consts = IdxVec::from(Vec::from_iter(trait_sig.consts.iter().map(|(id, sig)| {
+        let consts = IdxVec::from_iter(trait_sig.consts.iter().map(|(id, sig)| {
           let name = trait_def.consts[id].name;
           let Some(subitem) = impl_def.subitems.iter().find(|i| i.name == name) else {
             return Err(self.core.report(Diag::IncompleteImpl { span, name }));
@@ -536,8 +536,8 @@ impl<'core, 'a> Resolver<'core, 'a> {
             });
           }
           Ok(const_id)
-        })));
-        let fns = IdxVec::from(Vec::from_iter(trait_sig.fns.iter().map(|(id, sig)| {
+        }));
+        let fns = IdxVec::from_iter(trait_sig.fns.iter().map(|(id, sig)| {
           let name = trait_def.fns[id].name;
           let Some(subitem) = impl_def.subitems.iter().find(|i| i.name == name) else {
             return Err(self.core.report(Diag::IncompleteImpl { span, name }));
@@ -550,7 +550,7 @@ impl<'core, 'a> Resolver<'core, 'a> {
           let found = self.types.import(&self.sigs.concrete_fns[fn_id], None);
           Self::expect_fn_sig(self.core, self.chart, &mut self.types, span, name, expected, found);
           Ok(fn_id)
-        })));
+        }));
         for item in impl_def.subitems.iter() {
           if trait_def.consts.values().all(|x| x.name != item.name)
             && trait_def.fns.values().all(|x| x.name != item.name)
@@ -647,8 +647,7 @@ impl<'core, 'a> Resolver<'core, 'a> {
       .variants
       .values()
       .map(|variant| variant.data.as_ref().map(|ty| self.resolve_type(ty, false)))
-      .collect::<Vec<_>>()
-      .into();
+      .collect();
     let types = take(&mut self.types);
     self.sigs.enums.push_to(enum_id, TypeCtx { types, inner: EnumSig { variant_data } });
   }
@@ -657,14 +656,14 @@ impl<'core, 'a> Resolver<'core, 'a> {
     let trait_def = &self.chart.traits[trait_id];
     self.initialize(trait_def.def, trait_def.generics);
     let sig = TraitSig {
-      consts: IdxVec::from(Vec::from_iter(trait_def.consts.values().map(|trait_const| {
+      consts: IdxVec::from_iter(trait_def.consts.values().map(|trait_const| {
         let ty = self.resolve_type(&trait_const.ty, false);
         TypeCtx { types: take(&mut self.types), inner: ConstSig { ty } }
-      }))),
-      fns: IdxVec::from(Vec::from_iter(trait_def.fns.values().map(|trait_fn| {
+      })),
+      fns: IdxVec::from_iter(trait_def.fns.values().map(|trait_fn| {
         let (params, ret_ty) = self._resolve_fn_sig(&trait_fn.params, &trait_fn.ret_ty);
         TypeCtx { types: take(&mut self.types), inner: FnSig { params, ret_ty } }
-      }))),
+      })),
     };
     self.sigs.traits.push_to(trait_id, sig);
   }

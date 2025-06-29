@@ -59,6 +59,14 @@ impl<I: Idx, T> IdxVec<I, T> {
   }
 
   #[inline(always)]
+  pub fn repeat(value: T, len: usize) -> Self
+  where
+    T: Clone,
+  {
+    vec![value; len].into()
+  }
+
+  #[inline(always)]
   pub fn len(&self) -> usize {
     self.vec.len()
   }
@@ -289,6 +297,12 @@ impl<'a, I: Idx, T> IntoIterator for &'a mut IdxVec<I, T> {
   type IntoIter = IterMut<'a, I, T>;
   fn into_iter(self) -> Self::IntoIter {
     self.vec.iter_mut().enumerate().map(map_entry)
+  }
+}
+
+impl<I: Idx, T> FromIterator<T> for IdxVec<I, T> {
+  fn from_iter<It: IntoIterator<Item = T>>(iter: It) -> Self {
+    Vec::from_iter(iter).into()
   }
 }
 

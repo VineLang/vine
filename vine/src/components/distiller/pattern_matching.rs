@@ -26,7 +26,7 @@ impl<'core, 'r> Distiller<'core, 'r> {
     let ty = value.ty;
     let local = self.new_local(stage, span, ty);
     stage.local_barrier_write_to(local, value);
-    let vars = IdxVec::from(vec![Var { ty, kind: VarKind::Local(local, Form::Value) }]);
+    let vars = IdxVec::from([Var { ty, kind: VarKind::Local(local, Form::Value) }]);
     let mut matcher = Matcher { span, exhaustive: true, distiller: self };
     matcher.distill_rows(layer, stage, vars, rows);
     if !matcher.exhaustive {

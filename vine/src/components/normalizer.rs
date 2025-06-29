@@ -34,9 +34,9 @@ pub fn normalize<'core>(
     rels: source.rels.clone(),
     locals: source.locals.clone(),
     interfaces: source.interfaces.clone(),
-    stages: IdxVec::from(vec![None; source.stages.len()]),
-    layer_divergence: IdxVec::from(vec![None; source.layers.len()]),
-    final_transfers: IdxVec::from(vec![None; source.layers.len()]),
+    stages: IdxVec::repeat(None, source.stages.len()),
+    layer_divergence: IdxVec::repeat(None, source.layers.len()),
+    final_transfers: IdxVec::repeat(None, source.layers.len()),
   };
 
   for layer in source.layers.values() {
