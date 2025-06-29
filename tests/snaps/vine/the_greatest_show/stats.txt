@@ -1,11 +1,11 @@
 
 Interactions
-  Total               51_045
+  Total               51_002
     Depth              9_644
     Breadth                5
-  Annihilate          24_496
+  Annihilate          24_463
   Commute                177
-  Copy                 5_487
+  Copy                 5_477
   Erase                7_492
   Expand               3_669
   Call                 6_946
@@ -13,5 +13,5 @@ Interactions
 
 Memory
   Heap                82_528 B
-  Allocated        1_060_224 B
-  Freed            1_060_224 B
+  Allocated        1_059_008 B
+  Freed            1_059_008 B
