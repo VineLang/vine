@@ -319,7 +319,7 @@ impl<'core: 'src, 'src> Formatter<'src> {
   }
 
   fn fmt_impl(&self, impl_: &Impl<'core>) -> Doc<'src> {
-    match &impl_.kind {
+    match &*impl_.kind {
       ImplKind::Error(_) => unreachable!(),
       ImplKind::Hole => Doc("_"),
       ImplKind::Path(path) => self.fmt_path(path),
@@ -328,7 +328,7 @@ impl<'core: 'src, 'src> Formatter<'src> {
   }
 
   fn fmt_trait(&self, trait_: &Trait<'core>) -> Doc<'src> {
-    match &trait_.kind {
+    match &*trait_.kind {
       TraitKind::Error(_) => unreachable!(),
       TraitKind::Path(path) => self.fmt_path(path),
       TraitKind::Fn(receiver, args, ret) => Doc::concat([
@@ -379,7 +379,7 @@ impl<'core: 'src, 'src> Formatter<'src> {
   }
 
   fn fmt_expr(&self, expr: &Expr<'core>) -> Doc<'src> {
-    match &expr.kind {
+    match &*expr.kind {
       ExprKind::Error(_) => unreachable!(),
       ExprKind::Paren(p) => Doc::paren(self.fmt_expr(p)),
       ExprKind::Hole => Doc("_"),
@@ -485,7 +485,7 @@ impl<'core: 'src, 'src> Formatter<'src> {
       }
       ExprKind::Tuple(t) => Doc::tuple(t.iter().map(|x| self.fmt_expr(x))),
       ExprKind::Object(o) => Doc::brace_comma_space(o.iter().map(|(k, v)| {
-        if let ExprKind::Path(path, None) = &v.kind {
+        if let ExprKind::Path(path, None) = &*v.kind {
           if let Some(i) = path.as_ident() {
             if k.ident == i {
               return Doc(k.ident);
@@ -561,7 +561,7 @@ impl<'core: 'src, 'src> Formatter<'src> {
   }
 
   fn fmt_pat(&self, pat: &Pat<'core>) -> Doc<'src> {
-    match &pat.kind {
+    match &*pat.kind {
       PatKind::Error(_) => {
         unreachable!()
       }
@@ -576,11 +576,11 @@ impl<'core: 'src, 'src> Formatter<'src> {
       PatKind::Inverse(p) => Doc::concat([Doc("~"), self.fmt_pat(p)]),
       PatKind::Annotation(p, t) => Doc::concat([self.fmt_pat(p), Doc(": "), self.fmt_ty(t)]),
       PatKind::Object(o) => Doc::brace_comma_space(o.iter().map(|(key, pat)| {
-        let (pat, ty) = match &pat.kind {
-          PatKind::Annotation(p, t) => (&**p, Some(t)),
+        let (pat, ty) = match &*pat.kind {
+          PatKind::Annotation(p, t) => (p, Some(t)),
           _ => (pat, None),
         };
-        let pat = if let PatKind::Path(path, None) = &pat.kind {
+        let pat = if let PatKind::Path(path, None) = &*pat.kind {
           if let Some(i) = path.as_ident() {
             if key.ident == i {
               None
@@ -607,7 +607,7 @@ impl<'core: 'src, 'src> Formatter<'src> {
   }
 
   fn fmt_ty(&self, ty: &Ty<'core>) -> Doc<'src> {
-    match &ty.kind {
+    match &*ty.kind {
       TyKind::Error(_) => unreachable!(),
       TyKind::Hole => Doc("_"),
       TyKind::Paren(p) => Doc::paren(self.fmt_ty(p)),

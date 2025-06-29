@@ -403,7 +403,7 @@ impl<'core, 'a> Resolver<'core, 'a> {
 
   fn resolve_type(&mut self, ty: &Ty<'core>, inference: bool) -> Type {
     let span = ty.span;
-    match &ty.kind {
+    match &*ty.kind {
       TyKind::Hole if inference => self.types.new_var(span),
       TyKind::Paren(t) => self.resolve_type(t, inference),
       TyKind::Hole => self.types.error(self.core.report(Diag::ItemTypeHole { span })),
@@ -468,7 +468,7 @@ impl<'core, 'a> Resolver<'core, 'a> {
 
   fn resolve_pat_sig(&mut self, pat: &Pat<'core>) -> Type {
     let span = pat.span;
-    match &pat.kind {
+    match &*pat.kind {
       PatKind::Paren(inner) => self.resolve_pat_sig(inner),
       PatKind::Annotation(_, ty) => self.resolve_type(ty, false),
       PatKind::Path(path, _) => {
@@ -747,7 +747,7 @@ impl<'core, 'a> Resolver<'core, 'a> {
   }
 
   fn resolve_trait(&mut self, trait_: &Trait<'core>) -> ImplType {
-    match &trait_.kind {
+    match &*trait_.kind {
       TraitKind::Path(path) => {
         match self.resolve_path_to(self.cur_def, path, "trait", |d| d.trait_kind) {
           Ok(DefTraitKind::Trait(trait_id)) => {
@@ -772,7 +772,7 @@ impl<'core, 'a> Resolver<'core, 'a> {
 
   fn resolve_impl_type(&mut self, impl_: &Impl<'core>, ty: &ImplType) -> TirImpl {
     let span = impl_.span;
-    match &impl_.kind {
+    match &*impl_.kind {
       ImplKind::Hole => self.find_impl(span, ty),
       _ => {
         let (found_ty, impl_) = self.resolve_impl(impl_);
@@ -790,7 +790,7 @@ impl<'core, 'a> Resolver<'core, 'a> {
 
   fn resolve_impl(&mut self, impl_: &Impl<'core>) -> (ImplType, TirImpl) {
     let span = impl_.span;
-    match &impl_.kind {
+    match &*impl_.kind {
       ImplKind::Path(path) => {
         if let Some(ident) = path.as_ident() {
           if let Some(&i) = self.impl_param_lookup.get(&ident) {

@@ -45,7 +45,7 @@ pub trait VisitMut<'core, 'a> {
   }
 
   fn _visit_expr(&mut self, expr: &'a mut Expr<'core>) {
-    match &mut expr.kind {
+    match &mut *expr.kind {
       ExprKind::Hole
       | ExprKind::Bool(_)
       | ExprKind::N32(_)
@@ -149,18 +149,18 @@ pub trait VisitMut<'core, 'a> {
         self.visit_type(t);
       }
       ExprKind::RangeExclusive(start, end) => {
-        self.visit(start.as_deref_mut());
-        self.visit(end.as_deref_mut());
+        self.visit(start.as_mut());
+        self.visit(end.as_mut());
       }
       ExprKind::RangeInclusive(start, end) => {
-        self.visit(start.as_deref_mut());
-        self.visit(&mut **end);
+        self.visit(start.as_mut());
+        self.visit(end);
       }
     }
   }
 
   fn _visit_pat(&mut self, pat: &'a mut Pat<'core>) {
-    match &mut pat.kind {
+    match &mut *pat.kind {
       PatKind::Hole | PatKind::Error(_) => {}
       PatKind::Paren(a) | PatKind::Ref(a) | PatKind::Deref(a) | PatKind::Inverse(a) => {
         self.visit_pat(a)
@@ -187,7 +187,7 @@ pub trait VisitMut<'core, 'a> {
   }
 
   fn _visit_type(&mut self, ty: &'a mut Ty<'core>) {
-    match &mut ty.kind {
+    match &mut *ty.kind {
       TyKind::Hole => {}
       TyKind::Paren(t) | TyKind::Ref(t) | TyKind::Inverse(t) => self.visit_type(t),
       TyKind::Path(p) | TyKind::Fn(p) => self.visit(&mut p.generics),
@@ -206,14 +206,14 @@ pub trait VisitMut<'core, 'a> {
   }
 
   fn _visit_impl(&mut self, impl_: &'a mut Impl<'core>) {
-    match &mut impl_.kind {
+    match &mut *impl_.kind {
       ImplKind::Hole | ImplKind::Error(_) => {}
       ImplKind::Path(p) | ImplKind::Fn(p) => self.visit(&mut p.generics),
     }
   }
 
   fn _visit_trait(&mut self, trait_: &'a mut Trait<'core>) {
-    match &mut trait_.kind {
+    match &mut *trait_.kind {
       TraitKind::Error(_) => {}
       TraitKind::Path(p) => self.visit(&mut p.generics),
       TraitKind::Fn(a, b, c) => {

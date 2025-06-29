@@ -475,7 +475,7 @@ impl<'core> Charter<'core, '_> {
         name: None,
         trait_: Trait {
           span,
-          kind: TraitKind::Path(Path {
+          kind: Box::new(TraitKind::Path(Path {
             span,
             absolute: false,
             segments: vec![trait_name],
@@ -486,17 +486,17 @@ impl<'core> Charter<'core, '_> {
                 .iter()
                 .map(|param| Ty {
                   span,
-                  kind: TyKind::Path(Path {
+                  kind: Box::new(TyKind::Path(Path {
                     span,
                     absolute: false,
                     segments: vec![param.name],
                     generics: None,
-                  }),
+                  })),
                 })
                 .collect(),
               impls: vec![],
             }),
-          }),
+          })),
         },
       }],
       ..generics
