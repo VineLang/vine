@@ -1,4 +1,4 @@
-use std::future::Future;
+use std::{future::Future, time::Instant};
 
 use futures::{stream::FuturesUnordered, StreamExt};
 use tower_lsp::{jsonrpc::Result, lsp_types::*, Client, LanguageServer, LspService, Server};
@@ -30,10 +30,12 @@ impl Backend {
       }
     }
 
+    let start = Instant::now();
     let diags = match compiler.compile(()) {
       Ok(_) => Vec::new(),
       Err(diags) => diags,
     };
+    eprintln!("compiled in {:?}", start.elapsed());
 
     self.report(core, diags)
   }
