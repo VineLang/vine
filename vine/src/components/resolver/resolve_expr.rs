@@ -79,8 +79,8 @@ impl<'core> Resolver<'core, '_> {
         let nil = self.types.nil();
         let (label, result) = self.bind_label(label, true, nil, |self_| {
           self_.enter_scope();
-          let pat = self_.resolve_pat(pat);
           let iter = self_.resolve_expr(iter);
+          let pat = self_.resolve_pat(pat);
           let rel =
             self_.builtin_fn(span, self_.chart.builtins.advance, "advance", [iter.ty, pat.ty])?;
           let block = self_.resolve_block(block);
