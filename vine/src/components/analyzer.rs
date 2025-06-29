@@ -1,7 +1,4 @@
-use std::{
-  collections::{BTreeSet, HashMap},
-  mem::take,
-};
+use std::{collections::HashMap, mem::take};
 
 use vine_util::{
   idx::{IdxVec, IntMap},
@@ -34,7 +31,8 @@ pub fn analyze<'core>(core: &'core Core<'core>, span: Span, vir: &mut Vir) {
     dependent: IdxVec::from([Vec::new()]),
     relations: IdxVec::new(),
     segments: Vec::new(),
-    dirty: BTreeSet::new(),
+    is_dirty: IdxVec::from([false]),
+    dirty: Vec::new(),
     local_declarations: IntMap::default(),
     disconnects: Vec::new(),
   }
@@ -46,16 +44,15 @@ struct Analyzer<'core, 'a> {
   core: &'core Core<'core>,
   infinite_loop: bool,
   span: Span,
-
   locals: &'a IdxVec<Local, VirLocal>,
   stages: &'a IdxVec<StageId, Stage>,
   interfaces: &'a mut IdxVec<InterfaceId, Interface>,
-
   effects: IdxVec<EffectVar, Effect>,
   dependent: IdxVec<EffectVar, Vec<RelationId>>,
   relations: IdxVec<RelationId, (EffectVar, EffectVar, EffectVar, EffectVar)>,
-  segments: Vec<(EffectVar, HashMap<Local, Effect>)>,
-  dirty: BTreeSet<EffectVar>,
+  segments: Vec<(EffectVar, IntMap<Local, Effect>)>,
+  is_dirty: IdxVec<EffectVar, bool>,
+  dirty: Vec<EffectVar>,
   local_declarations: IntMap<Local, Vec<StageId>>,
   disconnects: Vec<(StageId, EffectVar, EffectVar)>,
 }
@@ -71,7 +68,7 @@ impl<'core> Analyzer<'core, '_> {
   fn analyze(&mut self) {
     self.sweep(InterfaceId(0));
 
-    let root_segment = (self.get_transfer(InterfaceId(0)).1, HashMap::new());
+    let root_segment = (self.get_transfer(InterfaceId(0)).1, HashMap::default());
     self.segments.push(root_segment);
 
     self.build();
@@ -142,7 +139,7 @@ impl<'core> Analyzer<'core, '_> {
         transfers.push(inner);
       }
 
-      let mut current_segment = HashMap::new();
+      let mut current_segment = HashMap::default();
 
       for step in &stage.steps {
         if let Step::Invoke(local, invocation) = step {
@@ -204,21 +201,34 @@ impl<'core> Analyzer<'core, '_> {
 
   fn process_local(&mut self, local: Local, declared: Vec<StageId>) {
     let inv = self.locals[local].inv;
+    self.fill_segments(local, declared);
+    self.fixed_point(inv);
+    self.set_wires(local, inv);
+  }
+
+  fn fill_segments(&mut self, local: Local, declared: Vec<StageId>) {
     self.effects.fill(Effect::Never);
     self.effects[EffectVar::PASS] = Effect::Pass;
-    self.dirty.insert(EffectVar::PASS);
-    for (var, effects) in &mut self.segments {
+    self.mark_dirty(EffectVar::PASS);
+    for i in 0..self.segments.len() {
+      let (var, ref mut effects) = self.segments[i];
       let effect = effects.remove(&local).unwrap_or(Effect::Pass);
-      self.effects[*var] = effect;
-      self.dirty.insert(*var);
+      self.effects[var] = effect;
+      self.mark_dirty(var);
     }
-    for &(stage, connected, disconnected) in &self.disconnects {
+    for i in 0..self.disconnects.len() {
+      let (stage, connected, disconnected) = self.disconnects[i];
       let var = if declared.contains(&stage) { disconnected } else { connected };
       self.effects[var] = Effect::Pass;
-      self.dirty.insert(var);
+      self.mark_dirty(var);
     }
-    while let Some(var) = self.dirty.pop_first() {
-      for &relation in &self.dependent[var] {
+  }
+
+  fn fixed_point(&mut self, inv: Inverted) {
+    while let Some(var) = self.dirty.pop() {
+      self.is_dirty[var] = false;
+      for i in 0..self.dependent[var].len() {
+        let relation = self.dependent[var][i];
         let (a, b, c, out) = self.relations[relation];
         let (a, b, c) = (self.effects[a], self.effects[b], self.effects[c]);
         let abc = if inv.0 { c.join(b).join(a) } else { a.join(b).join(c) };
@@ -226,10 +236,13 @@ impl<'core> Analyzer<'core, '_> {
         let new = old.union(abc);
         if new != old {
           self.effects[out] = new;
-          self.dirty.insert(out);
+          self.mark_dirty(out);
         }
       }
     }
+  }
+
+  fn set_wires(&mut self, local: Local, inv: Inverted) {
     for interface in self.interfaces.values_mut() {
       if interface.incoming != 0 {
         let interior = self.effects[interface.interior.unwrap()];
@@ -263,7 +276,16 @@ impl<'core> Analyzer<'core, '_> {
   fn new_var(&mut self) -> EffectVar {
     let var = self.effects.push(Effect::Never);
     self.dependent.push_to(var, Vec::new());
+    self.is_dirty.push_to(var, false);
     var
+  }
+
+  fn mark_dirty(&mut self, var: EffectVar) {
+    let dirty = &mut self.is_dirty[var];
+    if !*dirty {
+      *dirty = true;
+      self.dirty.push(var);
+    }
   }
 
   fn get_transfer(&mut self, interface: InterfaceId) -> (EffectVar, EffectVar) {

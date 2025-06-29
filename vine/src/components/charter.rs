@@ -44,6 +44,7 @@ impl<'core> Charter<'core, '_> {
       name,
       path,
       members: Default::default(),
+      all_members: Default::default(),
       parent,
       ancestors: parent
         .iter()
@@ -514,9 +515,11 @@ impl<'core> Charter<'core, '_> {
     let span = use_tree.span;
     let import = self.chart.imports.push(ImportDef { span, def: def_id, parent, ident });
     let def = &mut self.chart.defs[def_id];
+    let member = WithVis { vis, kind: MemberKind::Import(import) };
+    def.all_members.push(member);
     for name in use_tree.aliases {
       if let Entry::Vacant(e) = def.members.entry(name) {
-        e.insert(WithVis { vis, kind: MemberKind::Import(import) });
+        e.insert(member);
       } else {
         self.core.report(Diag::DuplicateItem { span, name });
       }
@@ -541,7 +544,9 @@ impl<'core> Charter<'core, '_> {
     let mut new = false;
     let member = parent_def.members.entry(name).or_insert_with(|| {
       new = true;
-      WithVis { vis, kind: MemberKind::Child(next_def_id) }
+      let member = WithVis { vis, kind: MemberKind::Child(next_def_id) };
+      parent_def.all_members.push(member);
+      member
     });
     let child = match member.kind {
       MemberKind::Child(child) => child,

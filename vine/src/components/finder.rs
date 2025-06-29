@@ -1,5 +1,7 @@
 use std::collections::{BTreeSet, HashSet};
 
+use vine_util::idx::IntSet;
+
 use crate::structures::{
   ast::{Ident, Span},
   chart::{
@@ -31,7 +33,7 @@ pub struct FlexImpls {
 }
 
 struct CandidateSearch<F> {
-  modules: HashSet<DefId>,
+  modules: IntSet<DefId>,
   consider_candidate: F,
 }
 
@@ -90,7 +92,7 @@ impl<'core, 'a> Finder<'core, 'a> {
   ) -> BTreeSet<FnId> {
     let mut candidates = BTreeSet::new();
     let search = &mut CandidateSearch {
-      modules: HashSet::new(),
+      modules: HashSet::default(),
       consider_candidate: |self_: &Self, def: &Def| {
         if def.name == name {
           if let Some(WithVis { kind: DefValueKind::Fn(fn_kind), vis }) = def.value_kind {
@@ -300,7 +302,7 @@ impl<'core, 'a> Finder<'core, 'a> {
   fn find_impl_candidates(&mut self, types: &Types<'core>, query: &ImplType) -> BTreeSet<ImplId> {
     let mut candidates = BTreeSet::new();
     let search = &mut CandidateSearch {
-      modules: HashSet::new(),
+      modules: HashSet::default(),
       consider_candidate: |self_: &Self, def: &Def| {
         if let Some(WithVis { vis, kind: DefImplKind::Impl(impl_id) }) = def.impl_kind {
           if self_.chart.visible(vis, self_.source) && !self_.chart.impls[impl_id].manual {
@@ -345,7 +347,7 @@ impl<'core, 'a> Finder<'core, 'a> {
       return;
     }
 
-    for member in self.chart.defs[mod_id].members.values() {
+    for member in &self.chart.defs[mod_id].all_members {
       if !self.chart.visible(member.vis, self.source) {
         continue;
       }
