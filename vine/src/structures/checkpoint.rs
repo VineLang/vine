@@ -109,6 +109,10 @@ impl<'core> Def<'core> {
       MemberKind::Child(id) => id < checkpoint.defs,
       MemberKind::Import(id) => id < checkpoint.imports,
     });
+    self.all_members.retain(|member| match member.kind {
+      MemberKind::Child(id) => id < checkpoint.defs,
+      MemberKind::Import(id) => id < checkpoint.imports,
+    });
     if self.value_kind.is_some_and(|k| k.kind.after(checkpoint)) {
       self.value_kind = None;
     }

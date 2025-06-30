@@ -28,7 +28,7 @@ impl<'core> Resolver<'core, '_> {
 
   fn _resolve_expr(&mut self, expr: &Expr<'core>) -> Result<(Type, TirExprKind), Diag<'core>> {
     let span = expr.span;
-    Ok(match &expr.kind {
+    Ok(match &*expr.kind {
       ExprKind::Do(label, block) => {
         let ty = self.types.new_var(span);
         let (label, block) =
@@ -254,10 +254,10 @@ impl<'core> Resolver<'core, '_> {
         (to_ty, TirExprKind::Call(rel, None, vec![inner]))
       }
       ExprKind::RangeExclusive(start, end) => {
-        self.resolve_range_expr(span, start.as_deref(), end.as_deref(), false)?
+        self.resolve_range_expr(span, start.as_ref(), end.as_ref(), false)?
       }
       ExprKind::RangeInclusive(start, end) => {
-        self.resolve_range_expr(span, start.as_deref(), Some(end), true)?
+        self.resolve_range_expr(span, start.as_ref(), Some(end), true)?
       }
       ExprKind::N32(n) => {
         (self.builtin_ty(span, "N32", self.chart.builtins.n32), TirExprKind::N32(*n))
@@ -595,7 +595,7 @@ impl<'core> Resolver<'core, '_> {
 
   fn _resolve_cond(&mut self, cond: &Expr<'core>) -> Result<TirExprKind, Diag<'core>> {
     let span = cond.span;
-    Ok(match &cond.kind {
+    Ok(match &*cond.kind {
       ExprKind::Error(err) => Err(*err)?,
       ExprKind::Is(expr, pat) => {
         let expr = self.resolve_expr(expr);

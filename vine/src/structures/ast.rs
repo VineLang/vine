@@ -265,49 +265,49 @@ pub struct LetFnStmt<'core> {
 #[derive(Clone)]
 pub struct Expr<'core> {
   pub span: Span,
-  pub kind: ExprKind<'core>,
+  pub kind: Box<ExprKind<'core>>,
 }
 
 #[derive(Debug, Clone)]
 pub enum ExprKind<'core> {
   Hole,
-  Paren(B<Expr<'core>>),
+  Paren(Expr<'core>),
   Path(Path<'core>, Option<Vec<Expr<'core>>>),
   Do(Option<Ident<'core>>, Block<'core>),
-  Assign(bool, B<Expr<'core>>, B<Expr<'core>>),
-  Match(B<Expr<'core>>, Vec<(Pat<'core>, Block<'core>)>),
+  Assign(bool, Expr<'core>, Expr<'core>),
+  Match(Expr<'core>, Vec<(Pat<'core>, Block<'core>)>),
   If(Vec<(Expr<'core>, Block<'core>)>, Option<Block<'core>>),
-  While(Option<Ident<'core>>, B<Expr<'core>>, Block<'core>),
+  While(Option<Ident<'core>>, Expr<'core>, Block<'core>),
   Loop(Option<Ident<'core>>, Block<'core>),
-  For(Option<Ident<'core>>, Pat<'core>, B<Expr<'core>>, Block<'core>),
+  For(Option<Ident<'core>>, Pat<'core>, Expr<'core>, Block<'core>),
   Fn(Flex, Vec<Pat<'core>>, Option<Ty<'core>>, Block<'core>),
-  Return(Option<B<Expr<'core>>>),
-  Break(Option<Ident<'core>>, Option<B<Expr<'core>>>),
+  Return(Option<Expr<'core>>),
+  Break(Option<Ident<'core>>, Option<Expr<'core>>),
   Continue(Option<Ident<'core>>),
-  Ref(B<Expr<'core>>, bool),
-  Deref(B<Expr<'core>>, bool),
-  Inverse(B<Expr<'core>>, bool),
-  Place(B<Expr<'core>>, B<Expr<'core>>),
+  Ref(Expr<'core>, bool),
+  Deref(Expr<'core>, bool),
+  Inverse(Expr<'core>, bool),
+  Place(Expr<'core>, Expr<'core>),
   Tuple(Vec<Expr<'core>>),
   Object(Vec<(Key<'core>, Expr<'core>)>),
   List(Vec<Expr<'core>>),
-  TupleField(B<Expr<'core>>, usize, Option<usize>),
-  ObjectField(B<Expr<'core>>, Key<'core>),
-  Method(B<Expr<'core>>, Ident<'core>, GenericArgs<'core>, Vec<Expr<'core>>),
-  Call(B<Expr<'core>>, Vec<Expr<'core>>),
-  Neg(B<Expr<'core>>),
-  BinaryOp(BinaryOp, B<Expr<'core>>, B<Expr<'core>>),
+  TupleField(Expr<'core>, usize, Option<usize>),
+  ObjectField(Expr<'core>, Key<'core>),
+  Method(Expr<'core>, Ident<'core>, GenericArgs<'core>, Vec<Expr<'core>>),
+  Call(Expr<'core>, Vec<Expr<'core>>),
+  Neg(Expr<'core>),
+  BinaryOp(BinaryOp, Expr<'core>, Expr<'core>),
   Bool(bool),
-  Not(B<Expr<'core>>),
-  Is(B<Expr<'core>>, B<Pat<'core>>),
-  LogicalOp(LogicalOp, B<Expr<'core>>, B<Expr<'core>>),
-  ComparisonOp(B<Expr<'core>>, Vec<(ComparisonOp, Expr<'core>)>),
-  BinaryOpAssign(BinaryOp, B<Expr<'core>>, B<Expr<'core>>),
-  Cast(B<Expr<'core>>, B<Ty<'core>>, bool),
-  Unwrap(B<Expr<'core>>),
-  Try(B<Expr<'core>>),
-  RangeExclusive(Option<B<Expr<'core>>>, Option<B<Expr<'core>>>),
-  RangeInclusive(Option<B<Expr<'core>>>, B<Expr<'core>>),
+  Not(Expr<'core>),
+  Is(Expr<'core>, Pat<'core>),
+  LogicalOp(LogicalOp, Expr<'core>, Expr<'core>),
+  ComparisonOp(Expr<'core>, Vec<(ComparisonOp, Expr<'core>)>),
+  BinaryOpAssign(BinaryOp, Expr<'core>, Expr<'core>),
+  Cast(Expr<'core>, Ty<'core>, bool),
+  Unwrap(Expr<'core>),
+  Try(Expr<'core>),
+  RangeExclusive(Option<Expr<'core>>, Option<Expr<'core>>),
+  RangeInclusive(Option<Expr<'core>>, Expr<'core>),
   N32(u32),
   I32(i32),
   F32(f32),
@@ -326,18 +326,18 @@ pub struct StringSegment {
 #[derive(Clone)]
 pub struct Pat<'core> {
   pub span: Span,
-  pub kind: PatKind<'core>,
+  pub kind: Box<PatKind<'core>>,
 }
 
 #[derive(Debug, Clone)]
 pub enum PatKind<'core> {
   Hole,
-  Paren(B<Pat<'core>>),
-  Annotation(B<Pat<'core>>, B<Ty<'core>>),
+  Paren(Pat<'core>),
+  Annotation(Pat<'core>, Ty<'core>),
   Path(Path<'core>, Option<Vec<Pat<'core>>>),
-  Ref(B<Pat<'core>>),
-  Deref(B<Pat<'core>>),
-  Inverse(B<Pat<'core>>),
+  Ref(Pat<'core>),
+  Deref(Pat<'core>),
+  Inverse(Pat<'core>),
   Tuple(Vec<Pat<'core>>),
   Object(Vec<(Key<'core>, Pat<'core>)>),
   Error(ErrorGuaranteed),
@@ -373,18 +373,18 @@ impl<'core> Path<'core> {
 #[derive(Clone)]
 pub struct Ty<'core> {
   pub span: Span,
-  pub kind: TyKind<'core>,
+  pub kind: Box<TyKind<'core>>,
 }
 
 #[derive(Debug, Clone)]
 pub enum TyKind<'core> {
   Hole,
-  Paren(B<Ty<'core>>),
+  Paren(Ty<'core>),
   Fn(Path<'core>),
   Tuple(Vec<Ty<'core>>),
   Object(Vec<(Key<'core>, Ty<'core>)>),
-  Ref(B<Ty<'core>>),
-  Inverse(B<Ty<'core>>),
+  Ref(Ty<'core>),
+  Inverse(Ty<'core>),
   Path(Path<'core>),
   Error(ErrorGuaranteed),
 }
@@ -392,7 +392,7 @@ pub enum TyKind<'core> {
 #[derive(Clone)]
 pub struct Impl<'core> {
   pub span: Span,
-  pub kind: ImplKind<'core>,
+  pub kind: Box<ImplKind<'core>>,
 }
 
 #[derive(Debug, Clone)]
@@ -406,7 +406,7 @@ pub enum ImplKind<'core> {
 #[derive(Clone)]
 pub struct Trait<'core> {
   pub span: Span,
-  pub kind: TraitKind<'core>,
+  pub kind: Box<TraitKind<'core>>,
 }
 
 #[derive(Debug, Clone)]
@@ -513,8 +513,6 @@ impl Span {
   pub const NONE: Span = Span { file: usize::MAX, start: 0, end: 0 };
 }
 
-pub type B<T> = Box<T>;
-
 impl Display for Path<'_> {
   fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
     if self.absolute {
@@ -577,7 +575,7 @@ impl From<ErrorGuaranteed> for TyKind<'_> {
 
 impl From<ErrorGuaranteed> for Expr<'_> {
   fn from(err: ErrorGuaranteed) -> Self {
-    Expr { span: Span::NONE, kind: err.into() }
+    Expr { span: Span::NONE, kind: Box::new(err.into()) }
   }
 }
 

@@ -22,12 +22,15 @@ pub struct Charter<'core, 'a> {
 impl<'core> Charter<'core, '_> {
   pub fn chart_root(&mut self, root: ModKind<'core>) {
     if self.chart.generics.is_empty() {
-      self.chart.generics.push(GenericsDef {
-        span: Span::NONE,
-        def: DefId::ROOT,
-        type_params: Vec::new(),
-        impl_params: Vec::new(),
-      });
+      self.chart.generics.push_to(
+        GenericsId::NONE,
+        GenericsDef {
+          span: Span::NONE,
+          def: DefId::ROOT,
+          type_params: Vec::new(),
+          impl_params: Vec::new(),
+        },
+      );
     }
     if self.chart.defs.is_empty() {
       self.new_def(self.core.ident("::"), "", None);
@@ -41,6 +44,7 @@ impl<'core> Charter<'core, '_> {
       name,
       path,
       members: Default::default(),
+      all_members: Default::default(),
       parent,
       ancestors: parent
         .iter()
@@ -125,20 +129,16 @@ impl<'core> Charter<'core, '_> {
         let def = self.chart_child(parent, enum_item.name, member_vis, true);
         let generics = self.chart_generics(def, enum_item.generics, false);
         let enum_id = self.chart.enums.next_index();
-        let variants = enum_item
-          .variants
-          .into_iter()
-          .enumerate()
-          .map(|(id, variant)| {
+        let variants =
+          IdxVec::from_iter(enum_item.variants.into_iter().enumerate().map(|(id, variant)| {
             let variant_id = VariantId(id);
             let def = self.chart_child(def, variant.name, vis, true);
             self.define_value(span, def, vis, DefValueKind::Enum(enum_id, variant_id));
             self.define_pattern(span, def, vis, DefPatternKind::Enum(enum_id, variant_id));
             EnumVariant { span, def, name: variant.name, data: variant.data }
-          })
-          .collect::<Vec<_>>()
-          .into();
-        self.chart.enums.push(EnumDef { span, def, name: enum_item.name, generics, variants });
+          }));
+        let enum_def = EnumDef { span, def, name: enum_item.name, generics, variants };
+        self.chart.enums.push_to(enum_id, enum_def);
         self.define_type(span, def, vis, DefTypeKind::Enum(enum_id));
         Some(def)
       }
@@ -476,7 +476,7 @@ impl<'core> Charter<'core, '_> {
         name: None,
         trait_: Trait {
           span,
-          kind: TraitKind::Path(Path {
+          kind: Box::new(TraitKind::Path(Path {
             span,
             absolute: false,
             segments: vec![trait_name],
@@ -487,17 +487,17 @@ impl<'core> Charter<'core, '_> {
                 .iter()
                 .map(|param| Ty {
                   span,
-                  kind: TyKind::Path(Path {
+                  kind: Box::new(TyKind::Path(Path {
                     span,
                     absolute: false,
                     segments: vec![param.name],
                     generics: None,
-                  }),
+                  })),
                 })
                 .collect(),
               impls: vec![],
             }),
-          }),
+          })),
         },
       }],
       ..generics
@@ -515,9 +515,11 @@ impl<'core> Charter<'core, '_> {
     let span = use_tree.span;
     let import = self.chart.imports.push(ImportDef { span, def: def_id, parent, ident });
     let def = &mut self.chart.defs[def_id];
+    let member = WithVis { vis, kind: MemberKind::Import(import) };
+    def.all_members.push(member);
     for name in use_tree.aliases {
       if let Entry::Vacant(e) = def.members.entry(name) {
-        e.insert(WithVis { vis, kind: MemberKind::Import(import) });
+        e.insert(member);
       } else {
         self.core.report(Diag::DuplicateItem { span, name });
       }
@@ -542,7 +544,9 @@ impl<'core> Charter<'core, '_> {
     let mut new = false;
     let member = parent_def.members.entry(name).or_insert_with(|| {
       new = true;
-      WithVis { vis, kind: MemberKind::Child(next_def_id) }
+      let member = WithVis { vis, kind: MemberKind::Child(next_def_id) };
+      parent_def.all_members.push(member);
+      member
     });
     let child = match member.kind {
       MemberKind::Child(child) => child,
