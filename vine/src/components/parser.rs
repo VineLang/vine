@@ -284,7 +284,7 @@ impl<'core, 'src> VineParser<'core, 'src> {
         let trait_ = self.parse_trait()?;
         (path.as_ident(), trait_)
       } else {
-        (None, Trait { span: path.span, kind: TraitKind::Path(path) })
+        (None, Trait { span: path.span, kind: Box::new(TraitKind::Path(path)) })
       }
     } else {
       (None, self.parse_trait()?)
@@ -456,7 +456,7 @@ impl<'core, 'src> VineParser<'core, 'src> {
     };
     loop {
       expr = match self.parse_expr_postfix(expr, bp)? {
-        Ok(kind) => Expr { span: self.end_span(span), kind },
+        Ok(kind) => Expr { span: self.end_span(span), kind: Box::new(kind) },
         Err(expr) => return Ok(Some(expr)),
       }
     }
@@ -475,7 +475,7 @@ impl<'core, 'src> VineParser<'core, 'src> {
       return Ok(None);
     };
     let span = self.end_span(span);
-    Ok(Some(Expr { span, kind }))
+    Ok(Some(Expr { span, kind: Box::new(kind) }))
   }
 
   fn _maybe_parse_expr_prefix(&mut self, span: usize) -> Parse<'core, Option<ExprKind<'core>>> {
@@ -484,7 +484,7 @@ impl<'core, 'src> VineParser<'core, 'src> {
         return Ok(Some(ExprKind::Return(None)));
       }
 
-      return Ok(Some(ExprKind::Return(Some(Box::new(self.parse_expr_bp(BP::ControlFlow)?)))));
+      return Ok(Some(ExprKind::Return(Some(self.parse_expr_bp(BP::ControlFlow)?))));
     }
     if self.eat(Token::Break)? {
       let label = self.parse_label()?;
@@ -493,44 +493,41 @@ impl<'core, 'src> VineParser<'core, 'src> {
         return Ok(Some(ExprKind::Break(label, None)));
       }
 
-      return Ok(Some(ExprKind::Break(
-        label,
-        Some(Box::new(self.parse_expr_bp(BP::ControlFlow)?)),
-      )));
+      return Ok(Some(ExprKind::Break(label, Some(self.parse_expr_bp(BP::ControlFlow)?))));
     }
     if self.eat(Token::Continue)? {
       return Ok(Some(ExprKind::Continue(self.parse_label()?)));
     }
     if self.eat(Token::And)? {
-      return Ok(Some(ExprKind::Ref(Box::new(self.parse_expr_bp(BP::Prefix)?), false)));
+      return Ok(Some(ExprKind::Ref(self.parse_expr_bp(BP::Prefix)?, false)));
     }
     if self.eat(Token::AndAnd)? {
       let inner = self.parse_expr_bp(BP::Prefix)?;
       let span = self.end_span(span + 1);
       return Ok(Some(ExprKind::Ref(
-        Box::new(Expr { span, kind: ExprKind::Ref(Box::new(inner), false) }),
+        Expr { span, kind: Box::new(ExprKind::Ref(inner, false)) },
         false,
       )));
     }
     if self.eat(Token::Star)? {
-      return Ok(Some(ExprKind::Deref(Box::new(self.parse_expr_bp(BP::Prefix)?), false)));
+      return Ok(Some(ExprKind::Deref(self.parse_expr_bp(BP::Prefix)?, false)));
     }
     if self.eat(Token::Tilde)? {
-      return Ok(Some(ExprKind::Inverse(Box::new(self.parse_expr_bp(BP::Prefix)?), false)));
+      return Ok(Some(ExprKind::Inverse(self.parse_expr_bp(BP::Prefix)?, false)));
     }
     if self.eat(Token::Minus)? {
-      return Ok(Some(ExprKind::Neg(Box::new(self.parse_expr_bp(BP::Prefix)?))));
+      return Ok(Some(ExprKind::Neg(self.parse_expr_bp(BP::Prefix)?)));
     }
     if self.eat(Token::Bang)? {
-      return Ok(Some(ExprKind::Not(Box::new(self.parse_expr_bp(BP::Prefix)?))));
+      return Ok(Some(ExprKind::Not(self.parse_expr_bp(BP::Prefix)?)));
     }
     if self.eat(Token::DotDot)? {
       let right_bound = self.maybe_parse_expr_bp(BP::Range)?;
-      return Ok(Some(ExprKind::RangeExclusive(None, right_bound.map(Box::new))));
+      return Ok(Some(ExprKind::RangeExclusive(None, right_bound)));
     }
     if self.eat(Token::DotDotEq)? {
       let right_bound = self.parse_expr_bp(BP::Range)?;
-      return Ok(Some(ExprKind::RangeInclusive(None, Box::new(right_bound))));
+      return Ok(Some(ExprKind::RangeInclusive(None, right_bound)));
     }
     if self.check(Token::Num) {
       return Ok(Some(self.parse_num()?));
@@ -561,10 +558,10 @@ impl<'core, 'src> VineParser<'core, 'src> {
         let value = expr;
         let space = self.parse_expr()?;
         self.expect(Token::CloseParen)?;
-        return Ok(Some(ExprKind::Place(Box::new(value), Box::new(space))));
+        return Ok(Some(ExprKind::Place(value, space)));
       }
       if self.eat(Token::CloseParen)? {
-        return Ok(Some(ExprKind::Paren(Box::new(expr))));
+        return Ok(Some(ExprKind::Paren(expr)));
       }
       self.expect(Token::Comma)?;
       let mut exprs = vec![expr];
@@ -586,7 +583,7 @@ impl<'core, 'src> VineParser<'core, 'src> {
         let value = if self_.eat(Token::Colon)? {
           self_.parse_expr()?
         } else {
-          Expr { span: key.span, kind: ExprKind::Path(key.into(), None) }
+          Expr { span: key.span, kind: Box::new(ExprKind::Path(key.into(), None)) }
         };
         Ok((key, value))
       })?)));
@@ -620,7 +617,7 @@ impl<'core, 'src> VineParser<'core, 'src> {
       let label = self.parse_label()?;
       let cond = self.parse_expr()?;
       let body = self.parse_block()?;
-      return Ok(Some(ExprKind::While(label, Box::new(cond), body)));
+      return Ok(Some(ExprKind::While(label, cond, body)));
     }
     if self.eat(Token::Loop)? {
       let label = self.parse_label()?;
@@ -633,7 +630,7 @@ impl<'core, 'src> VineParser<'core, 'src> {
       self.expect(Token::In)?;
       let expr = self.parse_expr()?;
       let body = self.parse_block()?;
-      return Ok(Some(ExprKind::For(label, pat, Box::new(expr), body)));
+      return Ok(Some(ExprKind::For(label, pat, expr, body)));
     }
     if self.eat(Token::Fn)? {
       let flex = self.parse_flex()?;
@@ -648,7 +645,7 @@ impl<'core, 'src> VineParser<'core, 'src> {
         let value = self_.parse_block()?;
         Ok((pat, value))
       })?;
-      return Ok(Some(ExprKind::Match(Box::new(scrutinee), arms)));
+      return Ok(Some(ExprKind::Match(scrutinee, arms)));
     }
     if self.eat(Token::Hole)? {
       return Ok(Some(ExprKind::Hole));
@@ -694,35 +691,31 @@ impl<'core, 'src> VineParser<'core, 'src> {
       };
       if bp.permits(lbp) && self.eat(token)? {
         if self.eat(Token::Eq)? {
-          return Ok(Ok(ExprKind::BinaryOpAssign(
-            op,
-            Box::new(lhs),
-            Box::new(self.parse_expr_bp(BP::Assignment)?),
-          )));
+          return Ok(Ok(ExprKind::BinaryOpAssign(op, lhs, self.parse_expr_bp(BP::Assignment)?)));
         } else {
-          return Ok(Ok(ExprKind::BinaryOp(op, Box::new(lhs), Box::new(self.parse_expr_bp(rbp)?))));
+          return Ok(Ok(ExprKind::BinaryOp(op, lhs, self.parse_expr_bp(rbp)?)));
         }
       }
     }
 
     if bp.permits(BP::LogicalAnd) && self.eat(Token::AndAnd)? {
       let rhs = self.parse_expr_bp(BP::LogicalAnd)?;
-      return Ok(Ok(ExprKind::LogicalOp(LogicalOp::And, Box::new(lhs), Box::new(rhs))));
+      return Ok(Ok(ExprKind::LogicalOp(LogicalOp::And, lhs, rhs)));
     }
 
     if bp.permits(BP::LogicalOr) && self.eat(Token::OrOr)? {
       let rhs = self.parse_expr_bp(BP::LogicalOr)?;
-      return Ok(Ok(ExprKind::LogicalOp(LogicalOp::Or, Box::new(lhs), Box::new(rhs))));
+      return Ok(Ok(ExprKind::LogicalOp(LogicalOp::Or, lhs, rhs)));
     }
 
     if bp.permits(BP::LogicalImplies) && self.eat(Token::ThickArrow)? {
       let rhs = self.parse_expr_bp(BP::LogicalImplies)?;
-      return Ok(Ok(ExprKind::LogicalOp(LogicalOp::Implies, Box::new(lhs), Box::new(rhs))));
+      return Ok(Ok(ExprKind::LogicalOp(LogicalOp::Implies, lhs, rhs)));
     }
 
     if bp.permits(BP::Is) && self.eat(Token::Is)? {
       let rhs = self.parse_pat()?;
-      return Ok(Ok(ExprKind::Is(Box::new(lhs), Box::new(rhs))));
+      return Ok(Ok(ExprKind::Is(lhs, rhs)));
     }
 
     if bp.permits(BP::Comparison) {
@@ -737,59 +730,59 @@ impl<'core, 'src> VineParser<'core, 'src> {
         break;
       }
       if !rhs.is_empty() {
-        return Ok(Ok(ExprKind::ComparisonOp(Box::new(lhs), rhs)));
+        return Ok(Ok(ExprKind::ComparisonOp(lhs, rhs)));
       }
     }
 
     if bp.permits(BP::Assignment) && self.eat(Token::Eq)? {
       let rhs = self.parse_expr_bp(BP::Assignment)?;
-      return Ok(Ok(ExprKind::Assign(false, Box::new(lhs), Box::new(rhs))));
+      return Ok(Ok(ExprKind::Assign(false, lhs, rhs)));
     }
 
     if bp.permits(BP::Assignment) && self.eat(Token::Tilde)? {
       self.expect(Token::Eq)?;
       let rhs = self.parse_expr_bp(BP::Assignment)?;
-      return Ok(Ok(ExprKind::Assign(true, Box::new(lhs), Box::new(rhs))));
+      return Ok(Ok(ExprKind::Assign(true, lhs, rhs)));
     }
 
     if bp.permits(BP::Annotation) && self.eat(Token::As)? {
       let ty = self.parse_type()?;
-      return Ok(Ok(ExprKind::Cast(Box::new(lhs), Box::new(ty), false)));
+      return Ok(Ok(ExprKind::Cast(lhs, ty, false)));
     }
 
     if self.eat(Token::Bang)? {
-      return Ok(Ok(ExprKind::Unwrap(Box::new(lhs))));
+      return Ok(Ok(ExprKind::Unwrap(lhs)));
     }
 
     if self.eat(Token::Question)? {
-      return Ok(Ok(ExprKind::Try(Box::new(lhs))));
+      return Ok(Ok(ExprKind::Try(lhs)));
     }
 
     if bp.permits(BP::Range) && self.eat(Token::DotDot)? {
       let rhs = self.maybe_parse_expr_bp(BP::Range)?;
-      return Ok(Ok(ExprKind::RangeExclusive(Some(Box::new(lhs)), rhs.map(Box::new))));
+      return Ok(Ok(ExprKind::RangeExclusive(Some(lhs), rhs)));
     }
 
     if bp.permits(BP::Range) && self.eat(Token::DotDotEq)? {
       let rhs = self.parse_expr_bp(BP::Range)?;
-      return Ok(Ok(ExprKind::RangeInclusive(Some(Box::new(lhs)), Box::new(rhs))));
+      return Ok(Ok(ExprKind::RangeInclusive(Some(lhs), rhs)));
     }
 
     if self.eat(Token::Dot)? {
       if self.eat(Token::And)? {
-        return Ok(Ok(ExprKind::Ref(Box::new(lhs), true)));
+        return Ok(Ok(ExprKind::Ref(lhs, true)));
       }
       if self.eat(Token::Star)? {
-        return Ok(Ok(ExprKind::Deref(Box::new(lhs), true)));
+        return Ok(Ok(ExprKind::Deref(lhs, true)));
       }
       if self.eat(Token::Tilde)? {
-        return Ok(Ok(ExprKind::Inverse(Box::new(lhs), true)));
+        return Ok(Ok(ExprKind::Inverse(lhs, true)));
       }
       if self.eat(Token::As)? {
         self.expect(Token::OpenBracket)?;
         let ty = self.parse_type()?;
         self.expect(Token::CloseBracket)?;
-        return Ok(Ok(ExprKind::Cast(Box::new(lhs), Box::new(ty), true)));
+        return Ok(Ok(ExprKind::Cast(lhs, ty, true)));
       }
       if self.check(Token::Num) {
         let token_span = self.start_span();
@@ -803,31 +796,31 @@ impl<'core, 'src> VineParser<'core, 'src> {
           let i = self.parse_u32_like(i, |_| Diag::InvalidNum { span: i_span })? as usize;
           let j = self.parse_u32_like(j, |_| Diag::InvalidNum { span: j_span })? as usize;
           return Ok(Ok(ExprKind::TupleField(
-            Box::new(Expr {
+            Expr {
               span: Span { file: self.file, start: lhs.span.start, end: i_span.end },
-              kind: ExprKind::TupleField(Box::new(lhs), i, None),
-            }),
+              kind: Box::new(ExprKind::TupleField(lhs, i, None)),
+            },
             j,
             None,
           )));
         } else {
           let i = self.parse_u32_like(num, |_| Diag::InvalidNum { span: token_span })? as usize;
-          return Ok(Ok(ExprKind::TupleField(Box::new(lhs), i, None)));
+          return Ok(Ok(ExprKind::TupleField(lhs, i, None)));
         }
       }
       let key = self.parse_key()?;
       if self.check(Token::OpenBracket) || self.check(Token::OpenParen) {
         let generics = self.parse_generic_args()?;
         let args = self.parse_expr_list()?;
-        return Ok(Ok(ExprKind::Method(Box::new(lhs), key.ident, generics, args)));
+        return Ok(Ok(ExprKind::Method(lhs, key.ident, generics, args)));
       } else {
-        return Ok(Ok(ExprKind::ObjectField(Box::new(lhs), key)));
+        return Ok(Ok(ExprKind::ObjectField(lhs, key)));
       }
     }
 
     if self.check(Token::OpenParen) {
       let args = self.parse_expr_list()?;
-      return Ok(Ok(ExprKind::Call(Box::new(lhs), args)));
+      return Ok(Ok(ExprKind::Call(lhs, args)));
     }
 
     Ok(Err(lhs))
@@ -846,7 +839,7 @@ impl<'core, 'src> VineParser<'core, 'src> {
     let mut pat = self.parse_pat_prefix()?;
     loop {
       pat = match self.parse_pat_postfix(pat, bp)? {
-        Ok(kind) => Pat { span: self.end_span(span), kind },
+        Ok(kind) => Pat { span: self.end_span(span), kind: Box::new(kind) },
         Err(pat) => return Ok(pat),
       }
     }
@@ -856,7 +849,7 @@ impl<'core, 'src> VineParser<'core, 'src> {
     let span = self.start_span();
     let kind = self._parse_pat_prefix(span)?;
     let span = self.end_span(span);
-    Ok(Pat { span, kind })
+    Ok(Pat { span, kind: Box::new(kind) })
   }
 
   fn _parse_pat_prefix(&mut self, span: usize) -> Parse<'core, PatKind<'core>> {
@@ -872,18 +865,18 @@ impl<'core, 'src> VineParser<'core, 'src> {
       return Ok(PatKind::Path(path, data));
     }
     if self.eat(Token::And)? {
-      return Ok(PatKind::Ref(Box::new(self.parse_pat_bp(BP::Prefix)?)));
+      return Ok(PatKind::Ref(self.parse_pat_bp(BP::Prefix)?));
     }
     if self.eat(Token::AndAnd)? {
       let inner = self.parse_pat_bp(BP::Prefix)?;
       let span = self.end_span(span + 1);
-      return Ok(PatKind::Ref(Box::new(Pat { span, kind: PatKind::Ref(Box::new(inner)) })));
+      return Ok(PatKind::Ref(Pat { span, kind: Box::new(PatKind::Ref(inner)) }));
     }
     if self.eat(Token::Star)? {
-      return Ok(PatKind::Deref(Box::new(self.parse_pat_bp(BP::Prefix)?)));
+      return Ok(PatKind::Deref(self.parse_pat_bp(BP::Prefix)?));
     }
     if self.eat(Token::Tilde)? {
-      return Ok(PatKind::Inverse(Box::new(self.parse_pat_bp(BP::Prefix)?)));
+      return Ok(PatKind::Inverse(self.parse_pat_bp(BP::Prefix)?));
     }
     if self.check(Token::OpenParen) {
       let mut tuple = false;
@@ -895,7 +888,7 @@ impl<'core, 'src> VineParser<'core, 'src> {
         Ok(expr)
       })?;
       if pats.len() == 1 && !tuple {
-        return Ok(PatKind::Paren(Box::new(pats.pop().unwrap())));
+        return Ok(PatKind::Paren(pats.pop().unwrap()));
       }
       return Ok(PatKind::Tuple(pats));
     }
@@ -915,10 +908,12 @@ impl<'core, 'src> VineParser<'core, 'src> {
           (None, None)
         };
         let span = self_.end_span(span);
-        let mut pat =
-          pat.unwrap_or_else(|| Pat { span: key.span, kind: PatKind::Path(key.into(), None) });
+        let mut pat = pat.unwrap_or_else(|| Pat {
+          span: key.span,
+          kind: Box::new(PatKind::Path(key.into(), None)),
+        });
         if let Some(ty) = ty {
-          pat = Pat { span, kind: PatKind::Annotation(Box::new(pat), Box::new(ty)) };
+          pat = Pat { span, kind: Box::new(PatKind::Annotation(pat, ty)) };
         }
         Ok((key, pat))
       })?));
@@ -933,7 +928,7 @@ impl<'core, 'src> VineParser<'core, 'src> {
   ) -> Parse<'core, Result<PatKind<'core>, Pat<'core>>> {
     if bp.permits(BP::Annotation) && self.eat(Token::Colon)? {
       let ty = self.parse_type()?;
-      return Ok(Ok(PatKind::Annotation(Box::new(lhs), Box::new(ty))));
+      return Ok(Ok(PatKind::Annotation(lhs, ty)));
     }
     Ok(Err(lhs))
   }
@@ -942,7 +937,7 @@ impl<'core, 'src> VineParser<'core, 'src> {
     let span = self.start_span();
     let kind = self._parse_type(span)?;
     let span = self.end_span(span);
-    Ok(Ty { span, kind })
+    Ok(Ty { span, kind: Box::new(kind) })
   }
 
   fn _parse_type(&mut self, span: usize) -> Parse<'core, TyKind<'core>> {
@@ -963,7 +958,7 @@ impl<'core, 'src> VineParser<'core, 'src> {
         Ok(expr)
       })?;
       if types.len() == 1 && !tuple {
-        return Ok(TyKind::Paren(Box::new(types.pop().unwrap())));
+        return Ok(TyKind::Paren(types.pop().unwrap()));
       }
       return Ok(TyKind::Tuple(types));
     }
@@ -976,15 +971,15 @@ impl<'core, 'src> VineParser<'core, 'src> {
       })?));
     }
     if self.eat(Token::And)? {
-      return Ok(TyKind::Ref(Box::new(self.parse_type()?)));
+      return Ok(TyKind::Ref(self.parse_type()?));
     }
     if self.eat(Token::AndAnd)? {
       let inner = self.parse_type()?;
       let span = self.end_span(span + 1);
-      return Ok(TyKind::Ref(Box::new(Ty { span, kind: TyKind::Ref(Box::new(inner)) })));
+      return Ok(TyKind::Ref(Ty { span, kind: Box::new(TyKind::Ref(inner)) }));
     }
     if self.eat(Token::Tilde)? {
-      return Ok(TyKind::Inverse(Box::new(self.parse_type()?)));
+      return Ok(TyKind::Inverse(self.parse_type()?));
     }
     if self.check(Token::ColonColon) || self.check(Token::Ident) {
       let path = self.parse_path()?;
@@ -997,7 +992,7 @@ impl<'core, 'src> VineParser<'core, 'src> {
     let span = self.start_span();
     let kind = self._parse_impl()?;
     let span = self.end_span(span);
-    Ok(Impl { span, kind })
+    Ok(Impl { span, kind: Box::new(kind) })
   }
 
   fn _parse_impl(&mut self) -> Result<ImplKind<'core>, Diag<'core>> {
@@ -1017,7 +1012,7 @@ impl<'core, 'src> VineParser<'core, 'src> {
     let span = self.start_span();
     let kind = self._parse_trait()?;
     let span = self.end_span(span);
-    Ok(Trait { span, kind })
+    Ok(Trait { span, kind: Box::new(kind) })
   }
 
   fn _parse_trait(&mut self) -> Parse<'core, TraitKind<'core>> {

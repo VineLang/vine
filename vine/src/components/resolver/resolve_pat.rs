@@ -31,7 +31,7 @@ impl<'core> Resolver<'core, '_> {
     pat: &Pat<'core>,
   ) -> Result<(Type, TirPatKind), Diag<'core>> {
     let span = pat.span;
-    Ok(match &pat.kind {
+    Ok(match &*pat.kind {
       PatKind::Error(e) => Err(*e)?,
 
       PatKind::Paren(p) => self._resolve_pat(p)?,

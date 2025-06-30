@@ -191,10 +191,10 @@ impl<'core, 'ctx, 'ivm, 'ext> Repl<'core, 'ctx, 'ivm, 'ext> {
         let id = self.fragment.unwrap();
         if id == fragment_id {
           let layer = vir.layers.next_index();
-          vir.layers.push(Layer { id: layer, parent: None, stages: vec![] });
-          let interface = vir.interfaces.next_index();
+          _ = vir.layers.push(Layer { id: layer, parent: None, stages: vec![] });
           let locals = self.bindings.iter().map(|b| b.0).collect();
-          vir.interfaces.push(Interface::new(interface, layer, InterfaceKind::Inspect(locals)));
+          let interface = vir.interfaces.next_index();
+          _ = vir.interfaces.push(Interface::new(interface, layer, InterfaceKind::Inspect(locals)));
           let stage = &mut vir.stages[StageId(0)];
           let wire = stage.new_wire(Span::NONE, self.types.nil());
           stage.steps.push(Step::Transfer(Transfer { interface, data: Some(wire.neg) }));

@@ -99,9 +99,9 @@ impl<'core, 'r> Distiller<'core, 'r> {
     self.types = fragment.tir.types.clone();
     self.rels = fragment.tir.rels.clone();
     let (layer, mut stage) = self.root_layer(fragment.tir.root.span);
-    for closure in fragment.tir.closures.values() {
+    for (id, closure) in &fragment.tir.closures {
       let interface = self.distill_closure_def(closure);
-      self.closures.push(interface);
+      self.closures.push_to(id, interface);
     }
     let result = self.distill_expr_value(&mut stage, &fragment.tir.root);
     stage.header = Header::Entry(vec![result]);
@@ -109,11 +109,10 @@ impl<'core, 'r> Distiller<'core, 'r> {
     self.finish_layer(layer);
     self.labels.clear();
     debug_assert!(self.returns.is_empty());
-    let locals =
-      IdxVec::from(Vec::from_iter(take(&mut self.locals).into_iter().map(|(_, local)| {
-        let Self { core, chart, sigs, def, generics, ref mut types, ref mut rels, .. } = *self;
-        VirLocal::new(core, chart, sigs, def, generics, types, rels, local.span, local.ty)
-      })));
+    let locals = IdxVec::from_iter(take(&mut self.locals).into_iter().map(|(_, local)| {
+      let Self { core, chart, sigs, def, generics, ref mut types, ref mut rels, .. } = *self;
+      VirLocal::new(core, chart, sigs, def, generics, types, rels, local.span, local.ty)
+    }));
     Vir {
       types: take(&mut self.types),
       rels: take(&mut self.rels),

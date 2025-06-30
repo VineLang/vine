@@ -29,7 +29,7 @@ pub fn emit<'core>(core: &'core Core<'core>, chart: &Chart<'core>, vir: &Vir<'co
     rels: TemplateStageRels::default(),
   };
 
-  let stages = IdxVec::from(Vec::from_iter(vir.stages.values().map(|stage| {
+  let stages = IdxVec::from_iter(vir.stages.values().map(|stage| {
     let interface = &vir.interfaces[stage.interface];
     (interface.incoming != 0 && !interface.inline()).then(|| {
       emitter.wire_offset = 0;
@@ -43,7 +43,7 @@ pub fn emit<'core>(core: &'core Core<'core>, chart: &Chart<'core>, vir: &Vir<'co
       let net = Net { root, pairs: take(&mut emitter.pairs) };
       TemplateStage { net, rels: take(&mut emitter.rels) }
     })
-  })));
+  }));
 
   Template { stages }
 }

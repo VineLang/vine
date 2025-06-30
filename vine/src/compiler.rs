@@ -81,10 +81,8 @@ impl<'core> Compiler<'core> {
       let mut vir = normalize(core, chart, &self.sigs, fragment, &vir);
       analyze(self.core, fragment.tir.span, &mut vir);
       let template = emit(core, chart, &vir);
-      assert_eq!(self.vir.next_index(), fragment_id);
-      self.vir.push(vir);
-      assert_eq!(self.templates.next_index(), fragment_id);
-      self.templates.push(template);
+      self.vir.push_to(fragment_id, vir);
+      self.templates.push_to(fragment_id, template);
     }
 
     let mut specializer = Specializer {

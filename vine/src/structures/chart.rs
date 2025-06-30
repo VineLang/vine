@@ -70,6 +70,8 @@ pub struct Def<'core> {
   pub path: &'core str,
 
   pub members: HashMap<Ident<'core>, WithVis<MemberKind>>,
+  pub all_members: Vec<WithVis<MemberKind>>,
+
   pub parent: Option<DefId>,
   pub ancestors: Vec<DefId>,
 
@@ -86,7 +88,7 @@ pub struct WithVis<T> {
   pub kind: T,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub enum MemberKind {
   Child(DefId),
   Import(ImportId),
@@ -288,7 +290,7 @@ pub enum ImplSubitemKind {
 
 impl<'core> Chart<'core> {
   pub fn visible(&self, vis: DefId, from: DefId) -> bool {
-    vis == from || vis < from && self.defs[from].ancestors.binary_search(&vis).is_ok()
+    vis == from || vis < from && self.defs[from].ancestors.contains(&vis)
   }
 
   pub fn fn_is_method(&self, fn_id: FnId) -> bool {
