@@ -175,3 +175,15 @@ pub enum TirImpl {
   ForkClosure(ClosureId),
   DropClosure(ClosureId),
 }
+
+impl TirExpr {
+  pub fn new(span: Span, ty: Type, kind: TirExprKind) -> Self {
+    TirExpr { span, ty, kind: Box::new(kind) }
+  }
+}
+
+impl TirPat {
+  pub fn new(span: Span, ty: Type, kind: TirPatKind) -> Self {
+    TirPat { span, ty, kind: Box::new(kind) }
+  }
+}

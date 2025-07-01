@@ -45,7 +45,7 @@ error tests/programs/fail/atypical.vi:14:3 - cannot find impl of trait `Drop[??]
 error tests/programs/fail/atypical.vi:16:3 - cannot find impl of trait `Drop[??]`
 error tests/programs/fail/atypical.vi:17:3 - cannot find impl of trait `Drop[??]`
 error tests/programs/fail/atypical.vi:22:7 - expected a complete pattern
-error tests/programs/fail/atypical.vi:23:3 - search limit reached when finding impl of trait `Drop[?73]`
+error tests/programs/fail/atypical.vi:23:4 - search limit reached when finding impl of trait `Drop[?73]`
 error tests/programs/fail/atypical.vi:25:3 - cannot find impl of trait `Drop[??]`
 error tests/programs/fail/atypical.vi:26:3 - cannot find impl of trait `Drop[??]`
 error tests/programs/fail/atypical.vi:28:14 - search limit reached when finding impl of trait `Drop[?83]`

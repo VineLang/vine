@@ -1,24 +1,43 @@
 use crate::{
-  components::resolver::{Resolver, Type},
+  components::resolver::Resolver,
   structures::{
-    ast::{Expr, GenericArgs, Ident, Span},
+    ast::{Expr, GenericArgs, Generics, Ident, Impl, Span, Ty},
     chart::FnId,
     diag::{Diag, ErrorGuaranteed},
     resolutions::FnRel,
     tir::{TirExpr, TirExprKind},
-    types::{Inverted, TypeCtx, TypeKind},
+    types::{Inverted, Type, TypeCtx, TypeKind},
   },
+  tools::fmt::{doc::Doc, Formatter},
 };
 
+impl<'core: 'src, 'src> Formatter<'src> {
+  pub(crate) fn fmt_expr_method(
+    &self,
+    receiver: &Expr<'core>,
+    name: &Ident<'core>,
+    generics: &Generics<Ty<'core>, Impl<'core>>,
+    args: &Vec<Expr<'core>>,
+  ) -> Doc<'src> {
+    Doc::concat([
+      self.fmt_expr(receiver),
+      Doc("."),
+      Doc(*name),
+      self.fmt_generic_args(generics),
+      Doc::paren_comma(args.iter().map(|x| self.fmt_expr(x))),
+    ])
+  }
+}
+
 impl<'core> Resolver<'core, '_> {
-  pub(super) fn resolve_method(
+  pub(crate) fn resolve_method(
     &mut self,
     span: Span,
     receiver: &Expr<'core>,
     name: Ident<'core>,
     generics: &GenericArgs<'core>,
     args: &[Expr<'core>],
-  ) -> Result<(Type, TirExprKind), Diag<'core>> {
+  ) -> Result<TirExpr, Diag<'core>> {
     let receiver = self.resolve_expr(receiver);
     let mut args = args.iter().map(|arg| self.resolve_expr(arg)).collect::<Vec<_>>();
     let (fn_id, type_params) = self.find_method(span, receiver.ty, name)?;
@@ -61,7 +80,8 @@ impl<'core> Resolver<'core, '_> {
       receiver
     };
     args.insert(0, receiver);
-    Ok((
+    Ok(TirExpr::new(
+      span,
       sig.ret_ty,
       TirExprKind::Call(self.rels.fns.push(FnRel::Item(fn_id, impl_params)), None, args),
     ))

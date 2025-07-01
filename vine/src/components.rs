@@ -5,6 +5,7 @@ pub mod emitter;
 pub mod finder;
 pub mod lexer;
 pub mod loader;
+pub mod matcher;
 pub mod normalizer;
 pub mod parser;
 pub mod resolver;
