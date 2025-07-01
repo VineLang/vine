@@ -24,8 +24,7 @@
           inherit system;
           overlays = [ rust-overlay.overlays.default ];
         });
-    in
-    {
+    in rec {
       formatter = forAllSystems (system: with (pkgs system); nixfmt-rfc-style);
 
       packages = forAllSystems (
@@ -52,5 +51,7 @@
           };
         }
       );
+
+      checks = packages;
     };
 }
