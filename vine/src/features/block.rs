@@ -44,9 +44,9 @@ impl<'core: 'src, 'src> Formatter<'src> {
 }
 
 impl<'core> Resolver<'core, '_> {
-  pub(crate) fn resolve_block(&mut self, block: &Block<'core>) -> TirExpr {
-    let ty = self.types.new_var(block.span);
-    self.resolve_block_type(block, ty)
+  pub(crate) fn resolve_block_nil(&mut self, block: &Block<'core>) -> TirExpr {
+    let nil = self.types.nil();
+    self.resolve_block_type(block, nil)
   }
 
   pub(crate) fn resolve_block_type(&mut self, block: &Block<'core>, ty: Type) -> TirExpr {

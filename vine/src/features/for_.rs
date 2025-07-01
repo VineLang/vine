@@ -14,7 +14,7 @@ use crate::{
     diag::Diag,
     resolutions::FnRelId,
     tir::{LabelId, TirExpr, TirExprKind, TirLocal, TirPat, TirPatKind},
-    types::TypeKind,
+    types::{Type, TypeKind},
     vir::{Port, PortKind, Stage, Step, Transfer},
   },
   tools::fmt::{doc::Doc, Formatter},
@@ -28,7 +28,8 @@ impl<'core> VineParser<'core, '_> {
     self.expect(Token::In)?;
     let expr = self.parse_expr()?;
     let body = self.parse_block()?;
-    Ok(ExprKind::For(label, pat, expr, body))
+    let else_ = self.eat(Token::Else)?.then(|| self.parse_block()).transpose()?;
+    Ok(ExprKind::For(label, pat, expr, body, else_))
   }
 }
 
@@ -39,6 +40,7 @@ impl<'core: 'src, 'src> Formatter<'src> {
     pat: &Pat<'core>,
     expr: &Expr<'core>,
     block: &Block<'core>,
+    else_: &Option<Block<'core>>,
   ) -> Doc<'src> {
     Doc::concat([
       Doc("for"),
@@ -49,6 +51,10 @@ impl<'core: 'src, 'src> Formatter<'src> {
       self.fmt_expr(expr),
       Doc(" "),
       self.fmt_block(block, true),
+      match else_ {
+        Some(else_) => Doc::concat([Doc(" else "), self.fmt_block(else_, true)]),
+        None => Doc(""),
+      },
     ])
   }
 }
@@ -61,20 +67,22 @@ impl<'core> Resolver<'core, '_> {
     pat: &Pat<'core>,
     iter: &Expr<'core>,
     block: &Block<'core>,
+    else_: &Option<Block<'core>>,
   ) -> Result<TirExpr, Diag<'core>> {
-    let nil = self.types.nil();
-    let (label, result) = self.bind_label(label, true, nil, |self_| {
+    let result_ty = if else_.is_some() { self.types.new_var(span) } else { self.types.nil() };
+    let (label, result) = self.bind_label(label, true, result_ty, |self_| {
       self_.enter_scope();
       let iter = self_.resolve_expr(iter);
       let pat = self_.resolve_pat(pat);
       let rel =
         self_.builtin_fn(span, self_.chart.builtins.advance, "advance", [iter.ty, pat.ty])?;
-      let block = self_.resolve_block(block);
+      let block = self_.resolve_block_nil(block);
       self_.exit_scope();
-      Result::<_, Diag<'core>>::Ok((rel, pat, iter, block))
+      let else_ = else_.as_ref().map(|b| self_.resolve_block_type(b, result_ty));
+      Result::<_, Diag<'core>>::Ok((rel, pat, iter, block, else_))
     });
-    let (rel, pat, iter, block) = result?;
-    Ok(TirExpr::new(span, nil, TirExprKind::For(label, rel, pat, iter, block)))
+    let (rel, pat, iter, block, else_) = result?;
+    Ok(TirExpr::new(span, result_ty, TirExprKind::For(label, rel, pat, iter, block, else_)))
   }
 }
 
@@ -83,16 +91,21 @@ impl<'core> Distiller<'core, '_> {
     &mut self,
     stage: &mut Stage,
     span: Span,
+    result_ty: Type,
     label: LabelId,
     rel: FnRelId,
     pat: &TirPat,
     iter: &TirExpr,
     block: &TirExpr,
-  ) {
+    else_: &Option<TirExpr>,
+  ) -> Port {
     let Some(option_enum) = self.chart.builtins.option else {
-      self.core.report(Diag::MissingBuiltin { span, builtin: "Option" });
-      return;
+      let err = self.core.report(Diag::MissingBuiltin { span, builtin: "Option" });
+      return Port::error(result_ty, err);
     };
+
+    let result_local = self.new_local(stage, span, result_ty);
+    stage.local_barrier(result_local);
 
     let value_ty = pat.ty;
     let iter_ty = iter.ty;
@@ -109,7 +122,7 @@ impl<'core> Distiller<'core, '_> {
 
     let (mut layer, mut init_stage) = self.child_layer(stage, span);
     let mut some_stage = self.new_unconditional_stage(&mut layer, span);
-    let none_stage = self.new_unconditional_stage(&mut layer, span);
+    let mut none_stage = self.new_unconditional_stage(&mut layer, span);
 
     let iter = init_stage.local_read_barrier(iter_local, span, iter_ty);
     let option = init_stage.new_wire(span, option_ty);
@@ -153,7 +166,7 @@ impl<'core> Distiller<'core, '_> {
     *self.labels.get_or_extend(label) = Some(Label {
       layer: layer.id,
       continue_transfer: Some(init_stage.interface),
-      break_value: None,
+      break_value: Some(result_local),
     });
 
     let iter = some_stage.local_read_barrier(inner_iter_local, span, iter_ty);
@@ -164,9 +177,19 @@ impl<'core> Distiller<'core, '_> {
     some_stage.steps.push(Step::Link(result, Port { ty: self.types.nil(), kind: PortKind::Nil }));
     some_stage.transfer = Some(Transfer::unconditional(init_stage.interface));
 
+    if let Some(else_) = else_ {
+      let result = self.distill_expr_value(&mut none_stage, else_);
+      none_stage.local_barrier_write_to(result_local, result);
+    } else {
+      none_stage
+        .local_barrier_write_to(result_local, Port { ty: self.types.nil(), kind: PortKind::Nil });
+    }
+
     self.finish_stage(init_stage);
     self.finish_stage(some_stage);
     self.finish_stage(none_stage);
     self.finish_layer(layer);
+
+    stage.local_read_barrier(result_local, span, result_ty)
   }
 }

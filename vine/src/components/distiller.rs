@@ -216,15 +216,8 @@ impl<'core, 'r> Distiller<'core, 'r> {
   }
 
   pub(crate) fn distill_expr_nil(&mut self, stage: &mut Stage, expr: &TirExpr) {
-    let span = expr.span;
     match &*expr.kind {
       TirExprKind![!nil] => self.distill_expr_nil_coerce_value(stage, expr),
-      TirExprKind::While(label, cond, block) => {
-        self.distill_while(stage, span, *label, cond, block)
-      }
-      TirExprKind::For(label, rel, pat, iter, block) => {
-        self.distill_for(stage, span, *label, *rel, pat, iter, block)
-      }
       TirExprKind::Return(value) => self.distill_return(stage, value),
       TirExprKind::Break(label, value) => self.distill_break(stage, *label, value),
       TirExprKind::Continue(label) => self.distill_continue(stage, *label),
@@ -256,6 +249,12 @@ impl<'core, 'r> Distiller<'core, 'r> {
       TirExprKind::Do(label, block) => self.distill_do(stage, span, *label, block),
       TirExprKind::If(arms, leg) => self.distill_if(stage, span, ty, arms, leg),
       TirExprKind::Loop(label, block) => self.distill_loop(stage, span, ty, *label, block),
+      TirExprKind::While(label, cond, block, else_) => {
+        self.distill_while(stage, span, ty, *label, cond, block, else_)
+      }
+      TirExprKind::For(label, rel, pat, iter, block, else_) => {
+        self.distill_for(stage, span, ty, *label, *rel, pat, iter, block, else_)
+      }
       TirExprKind::Match(value, arms) => self.distill_match(stage, span, ty, value, arms),
       TirExprKind::Try(ok, err, result) => self.distill_try(stage, span, ty, *ok, *err, result),
       TirExprKind::Local(local) => self.distill_expr_value_local(stage, span, ty, *local),

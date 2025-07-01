@@ -481,9 +481,11 @@ impl<'core, 'a> Resolver<'core, 'a> {
       ExprKind::Assign(dir, space, value) => self.resolve_expr_assign(span, *dir, space, value),
       ExprKind::Match(scrutinee, arms) => self.resolve_match(span, scrutinee, arms),
       ExprKind::If(arms, leg) => self.resolve_expr_if(span, arms, leg),
-      ExprKind::While(label, cond, block) => self.resolve_expr_while(span, *label, cond, block),
-      ExprKind::For(label, pat, iter, block) => {
-        self.resolve_expr_for(span, *label, pat, iter, block)
+      ExprKind::While(label, cond, block, else_) => {
+        self.resolve_expr_while(span, *label, cond, block, else_)
+      }
+      ExprKind::For(label, pat, iter, block, else_) => {
+        self.resolve_expr_for(span, *label, pat, iter, block, else_)
       }
       ExprKind::Loop(label, block) => self.resolve_expr_loop(span, *label, block),
       ExprKind::Fn(flex, params, ret, body) => self.resolve_expr_fn(span, flex, params, ret, body),

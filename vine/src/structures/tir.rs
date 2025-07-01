@@ -66,12 +66,12 @@ pub enum TirExprKind {
   Match(TirExpr, Vec<(TirPat, TirExpr)>),
   #[class(value)]
   If(Vec<(TirExpr, TirExpr)>, Option<TirExpr>),
-  #[class(nil, value)]
-  While(LabelId, TirExpr, TirExpr),
+  #[class(value)]
+  While(LabelId, TirExpr, TirExpr, Option<TirExpr>),
   #[class(value)]
   Loop(LabelId, TirExpr),
-  #[class(nil, value)]
-  For(LabelId, FnRelId, TirPat, TirExpr, TirExpr),
+  #[class(value)]
+  For(LabelId, FnRelId, TirPat, TirExpr, TirExpr, Option<TirExpr>),
   #[class(nil, value)]
   Return(Option<TirExpr>),
   #[class(nil, value)]

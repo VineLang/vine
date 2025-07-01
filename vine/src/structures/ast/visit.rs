@@ -96,19 +96,21 @@ pub trait VisitMut<'core, 'a> {
         }
         self.visit(leg);
       }
-      ExprKind::While(_, a, b) => {
+      ExprKind::While(_, a, b, c) => {
         self.visit_expr(a);
         self.visit_block(b);
+        self.visit(c);
       }
       ExprKind::Fn(_, a, b, c) => {
         self.visit(a);
         self.visit(b);
         self.visit_block(c);
       }
-      ExprKind::For(_, a, b, c) => {
+      ExprKind::For(_, a, b, c, d) => {
         self.visit(a);
         self.visit_expr(b);
         self.visit(c);
+        self.visit(d);
       }
       ExprKind::Tuple(a) | ExprKind::List(a) => {
         self.visit(a);
