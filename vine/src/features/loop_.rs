@@ -2,15 +2,15 @@ use vine_util::parser::Parser;
 
 use crate::{
   components::{
-    distiller::{Distiller, Label},
+    distiller::{Distiller, TargetDistillation},
     lexer::Token,
     parser::VineParser,
-    resolver::Resolver,
+    resolver::{Resolver, TargetInfo},
   },
   structures::{
-    ast::{Block, ExprKind, Ident, Span},
+    ast::{Block, ExprKind, Label, Span, Target},
     diag::Diag,
-    tir::{LabelId, TirExpr, TirExprKind},
+    tir::{TargetId, TirExpr, TirExprKind},
     types::Type,
     vir::{Port, Stage},
   },
@@ -27,11 +27,7 @@ impl<'core> VineParser<'core, '_> {
 }
 
 impl<'core: 'src, 'src> Formatter<'src> {
-  pub(crate) fn fmt_expr_loop(
-    &self,
-    label: Option<Ident<'core>>,
-    body: &Block<'core>,
-  ) -> Doc<'src> {
+  pub(crate) fn fmt_expr_loop(&self, label: Label<'core>, body: &Block<'core>) -> Doc<'src> {
     Doc::concat([Doc("loop"), self.fmt_label(label), Doc(" "), self.fmt_block(body, true)])
   }
 }
@@ -40,13 +36,18 @@ impl<'core> Resolver<'core, '_> {
   pub(crate) fn resolve_expr_loop(
     &mut self,
     span: Span,
-    label: Option<Ident<'core>>,
+    label: Label<'core>,
     block: &Block<'core>,
   ) -> Result<TirExpr, Diag<'core>> {
     let ty = self.types.new_var(span);
-    let (label, block) =
-      self.bind_label(label, true, ty, |self_| self_.resolve_block_type(block, ty));
-    Ok(TirExpr::new(span, ty, TirExprKind::Loop(label, block)))
+    let target_id = self.target_id.next();
+    let block = self.bind_target(
+      label,
+      [Target::AnyLoop, Target::Loop],
+      TargetInfo { id: target_id, break_ty: ty, continue_: true },
+      |self_| self_.resolve_block_type(block, ty),
+    );
+    Ok(TirExpr::new(span, ty, TirExprKind::Loop(target_id, block)))
   }
 }
 
@@ -56,16 +57,16 @@ impl<'core> Distiller<'core, '_> {
     stage: &mut Stage,
     span: Span,
     ty: Type,
-    label: LabelId,
+    label: TargetId,
     block: &TirExpr,
   ) -> Port {
     let local = self.new_local(stage, span, ty);
     let (layer, mut body_stage) = self.child_layer(stage, span);
 
-    *self.labels.get_or_extend(label) = Some(Label {
+    *self.targets.get_or_extend(label) = Some(TargetDistillation {
       layer: layer.id,
       continue_transfer: Some(body_stage.interface),
-      break_value: Some(local),
+      break_value: local,
     });
 
     let result = self.distill_expr_value(&mut body_stage, block);

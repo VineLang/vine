@@ -10,7 +10,7 @@ use crate::structures::{
   types::{Type, Types},
 };
 
-new_idx!(pub LabelId);
+new_idx!(pub TargetId);
 new_idx!(pub Local; n => ["l{n}"]);
 new_idx!(pub ClosureId; n => ["c{n}"]);
 
@@ -59,7 +59,7 @@ pub enum TirExprKind {
   #[class(value)]
   Closure(ClosureId),
   #[class(value)]
-  Do(LabelId, TirExpr),
+  Do(TargetId, TirExpr),
   #[class(nil, value)]
   Assign(bool, TirExpr, TirExpr),
   #[class(value)]
@@ -67,17 +67,17 @@ pub enum TirExprKind {
   #[class(value)]
   If(Vec<(TirExpr, TirExpr)>, Option<TirExpr>),
   #[class(value)]
-  While(LabelId, TirExpr, TirExpr, Option<TirExpr>),
+  While(TargetId, TirExpr, TirExpr, Option<TirExpr>),
   #[class(value)]
-  Loop(LabelId, TirExpr),
+  Loop(TargetId, TirExpr),
   #[class(value)]
-  For(LabelId, FnRelId, TirPat, TirExpr, TirExpr, Option<TirExpr>),
+  For(TargetId, FnRelId, TirPat, TirExpr, TirExpr, Option<TirExpr>),
   #[class(nil, value)]
   Return(Option<TirExpr>),
   #[class(nil, value)]
-  Break(LabelId, Option<TirExpr>),
+  Break(TargetId, Option<TirExpr>),
   #[class(nil, value)]
-  Continue(LabelId),
+  Continue(TargetId),
   #[class(value)]
   Ref(TirExpr),
   #[class(place)]

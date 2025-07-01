@@ -12,7 +12,7 @@ use crate::structures::{
   diag::{Diag, ErrorGuaranteed},
   resolutions::{Fragment, Rels},
   signatures::Signatures,
-  tir::{ClosureId, LabelId, Local, TirExpr, TirExprKind, TirLocal, TirPat, TirPatKind},
+  tir::{ClosureId, Local, TargetId, TirExpr, TirExprKind, TirLocal, TirPat, TirPatKind},
   types::{Type, Types},
   vir::{
     Header, Interface, InterfaceId, InterfaceKind, Layer, LayerId, Port, Stage, StageId, Step,
@@ -30,7 +30,7 @@ pub struct Distiller<'core, 'r> {
   pub(crate) interfaces: IdxVec<InterfaceId, Option<Interface>>,
   pub(crate) stages: IdxVec<StageId, Option<Stage>>,
 
-  pub(crate) labels: IdxVec<LabelId, Option<Label>>,
+  pub(crate) targets: IdxVec<TargetId, Option<TargetDistillation>>,
   pub(crate) returns: Vec<Return>,
   pub(crate) closures: IdxVec<ClosureId, InterfaceId>,
 
@@ -42,10 +42,10 @@ pub struct Distiller<'core, 'r> {
 }
 
 #[derive(Debug)]
-pub(crate) struct Label {
+pub(crate) struct TargetDistillation {
   pub(crate) layer: LayerId,
   pub(crate) continue_transfer: Option<InterfaceId>,
-  pub(crate) break_value: Option<Local>,
+  pub(crate) break_value: Local,
 }
 
 #[derive(Debug)]
@@ -75,7 +75,7 @@ impl<'core, 'r> Distiller<'core, 'r> {
       layers: Default::default(),
       interfaces: Default::default(),
       stages: Default::default(),
-      labels: Default::default(),
+      targets: Default::default(),
       returns: Default::default(),
       closures: Default::default(),
       locals: Default::default(),
@@ -101,7 +101,7 @@ impl<'core, 'r> Distiller<'core, 'r> {
     stage.header = Header::Entry(vec![result]);
     self.finish_stage(stage);
     self.finish_layer(layer);
-    self.labels.clear();
+    self.targets.clear();
     debug_assert!(self.returns.is_empty());
     let locals = IdxVec::from_iter(take(&mut self.locals).into_iter().map(|(_, local)| {
       let Self { core, chart, sigs, def, generics, ref mut types, ref mut rels, .. } = *self;

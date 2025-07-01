@@ -2,15 +2,15 @@ use vine_util::parser::Parser;
 
 use crate::{
   components::{
-    distiller::{Distiller, Label},
+    distiller::{Distiller, TargetDistillation},
     lexer::Token,
     parser::VineParser,
-    resolver::Resolver,
+    resolver::{Resolver, TargetInfo},
   },
   structures::{
-    ast::{Block, Expr, ExprKind, Ident, Span},
+    ast::{Block, Expr, ExprKind, Label, Span, Target},
     diag::Diag,
-    tir::{LabelId, TirExpr, TirExprKind},
+    tir::{TargetId, TirExpr, TirExprKind},
     types::Type,
     vir::{Port, PortKind, Stage, Step, Transfer},
   },
@@ -31,7 +31,7 @@ impl<'core> VineParser<'core, '_> {
 impl<'core: 'src, 'src> Formatter<'src> {
   pub(crate) fn fmt_expr_while(
     &self,
-    label: Option<Ident<'core>>,
+    label: Label<'core>,
     cond: &Expr<'core>,
     body: &Block<'core>,
     else_: &Option<Block<'core>>,
@@ -55,21 +55,27 @@ impl<'core> Resolver<'core, '_> {
   pub(crate) fn resolve_expr_while(
     &mut self,
     span: Span,
-    label: Option<Ident<'core>>,
+    label: Label<'core>,
     cond: &Expr<'core>,
     block: &Block<'core>,
     else_: &Option<Block<'core>>,
   ) -> Result<TirExpr, Diag<'core>> {
     let result = if else_.is_some() { self.types.new_var(span) } else { self.types.nil() };
-    let (label, (cond, block, else_)) = self.bind_label(label, true, result, |self_| {
-      self_.enter_scope();
-      let cond = self_.resolve_scoped_cond(cond);
-      let block = self_.resolve_block_nil(block);
-      self_.exit_scope();
-      let else_ = else_.as_ref().map(|b| self_.resolve_block_type(b, result));
-      (cond, block, else_)
-    });
-    Ok(TirExpr::new(span, result, TirExprKind::While(label, cond, block, else_)))
+    let target_id = self.target_id.next();
+    let (cond, block, else_) = self.bind_target(
+      label,
+      [Target::AnyLoop, Target::While],
+      TargetInfo { id: target_id, break_ty: result, continue_: true },
+      |self_| {
+        self_.enter_scope();
+        let cond = self_.resolve_scoped_cond(cond);
+        let block = self_.resolve_block_nil(block);
+        self_.exit_scope();
+        let else_ = else_.as_ref().map(|b| self_.resolve_block_type(b, result));
+        (cond, block, else_)
+      },
+    );
+    Ok(TirExpr::new(span, result, TirExprKind::While(target_id, cond, block, else_)))
   }
 }
 
@@ -79,7 +85,7 @@ impl<'core> Distiller<'core, '_> {
     stage: &mut Stage,
     span: Span,
     ty: Type,
-    label: LabelId,
+    label: TargetId,
     cond: &TirExpr,
     block: &TirExpr,
     else_: &Option<TirExpr>,
@@ -88,10 +94,10 @@ impl<'core> Distiller<'core, '_> {
     stage.local_barrier(local);
     let (mut layer, mut cond_stage) = self.child_layer(stage, span);
 
-    *self.labels.get_or_extend(label) = Some(Label {
+    *self.targets.get_or_extend(label) = Some(TargetDistillation {
       layer: layer.id,
       continue_transfer: Some(cond_stage.interface),
-      break_value: Some(local),
+      break_value: local,
     });
 
     let (mut then_stage, mut else_stage) =

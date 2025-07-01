@@ -2,18 +2,18 @@ use vine_util::parser::Parser;
 
 use crate::{
   components::{
-    distiller::{Distiller, Label},
+    distiller::{Distiller, TargetDistillation},
     lexer::Token,
     matcher::Row,
     parser::VineParser,
-    resolver::Resolver,
+    resolver::{Resolver, TargetInfo},
   },
   structures::{
-    ast::{Block, Expr, ExprKind, Ident, Pat, Span},
+    ast::{Block, Expr, ExprKind, Label, Pat, Span, Target},
     chart::VariantId,
     diag::Diag,
     resolutions::FnRelId,
-    tir::{LabelId, TirExpr, TirExprKind, TirLocal, TirPat, TirPatKind},
+    tir::{TargetId, TirExpr, TirExprKind, TirLocal, TirPat, TirPatKind},
     types::{Type, TypeKind},
     vir::{Port, PortKind, Stage, Step, Transfer},
   },
@@ -36,7 +36,7 @@ impl<'core> VineParser<'core, '_> {
 impl<'core: 'src, 'src> Formatter<'src> {
   pub(crate) fn fmt_expr_for(
     &self,
-    label: Option<Ident<'core>>,
+    label: Label<'core>,
     pat: &Pat<'core>,
     expr: &Expr<'core>,
     block: &Block<'core>,
@@ -63,26 +63,32 @@ impl<'core> Resolver<'core, '_> {
   pub(crate) fn resolve_expr_for(
     &mut self,
     span: Span,
-    label: Option<Ident<'core>>,
+    label: Label<'core>,
     pat: &Pat<'core>,
     iter: &Expr<'core>,
     block: &Block<'core>,
     else_: &Option<Block<'core>>,
   ) -> Result<TirExpr, Diag<'core>> {
     let result_ty = if else_.is_some() { self.types.new_var(span) } else { self.types.nil() };
-    let (label, result) = self.bind_label(label, true, result_ty, |self_| {
-      self_.enter_scope();
-      let iter = self_.resolve_expr(iter);
-      let pat = self_.resolve_pat(pat);
-      let rel =
-        self_.builtin_fn(span, self_.chart.builtins.advance, "advance", [iter.ty, pat.ty])?;
-      let block = self_.resolve_block_nil(block);
-      self_.exit_scope();
-      let else_ = else_.as_ref().map(|b| self_.resolve_block_type(b, result_ty));
-      Result::<_, Diag<'core>>::Ok((rel, pat, iter, block, else_))
-    });
+    let target_id = self.target_id.next();
+    let result = self.bind_target(
+      label,
+      [Target::AnyLoop, Target::For],
+      TargetInfo { id: target_id, break_ty: result_ty, continue_: false },
+      |self_| {
+        self_.enter_scope();
+        let iter = self_.resolve_expr(iter);
+        let pat = self_.resolve_pat(pat);
+        let rel =
+          self_.builtin_fn(span, self_.chart.builtins.advance, "advance", [iter.ty, pat.ty])?;
+        let block = self_.resolve_block_nil(block);
+        self_.exit_scope();
+        let else_ = else_.as_ref().map(|b| self_.resolve_block_type(b, result_ty));
+        Result::<_, Diag<'core>>::Ok((rel, pat, iter, block, else_))
+      },
+    );
     let (rel, pat, iter, block, else_) = result?;
-    Ok(TirExpr::new(span, result_ty, TirExprKind::For(label, rel, pat, iter, block, else_)))
+    Ok(TirExpr::new(span, result_ty, TirExprKind::For(target_id, rel, pat, iter, block, else_)))
   }
 }
 
@@ -92,7 +98,7 @@ impl<'core> Distiller<'core, '_> {
     stage: &mut Stage,
     span: Span,
     result_ty: Type,
-    label: LabelId,
+    target_id: TargetId,
     rel: FnRelId,
     pat: &TirPat,
     iter: &TirExpr,
@@ -163,10 +169,10 @@ impl<'core> Distiller<'core, '_> {
       ],
     );
 
-    *self.labels.get_or_extend(label) = Some(Label {
+    *self.targets.get_or_extend(target_id) = Some(TargetDistillation {
       layer: layer.id,
       continue_transfer: Some(init_stage.interface),
-      break_value: Some(result_local),
+      break_value: result_local,
     });
 
     let iter = some_stage.local_read_barrier(inner_iter_local, span, iter_ty);

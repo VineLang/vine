@@ -210,8 +210,7 @@ impl<'core> Resolver<'core, '_> {
     body: &Block<'core>,
     inferred_ret: bool,
   ) -> (Type, ClosureId) {
-    let old_labels = take(&mut self.labels);
-    let old_loops = take(&mut self.loops);
+    let old_targets = take(&mut self.targets);
     self.enter_scope();
     let params = params.iter().map(|p| self.resolve_pat(p)).collect::<Vec<_>>();
     let ret_ty = ret.as_ref().map(|t| self.resolve_ty(t, true)).unwrap_or_else(|| {
@@ -224,8 +223,7 @@ impl<'core> Resolver<'core, '_> {
     let old_return_ty = self.return_ty.replace(ret_ty);
     let body = self.resolve_block_type(body, ret_ty);
     self.exit_scope();
-    self.labels = old_labels;
-    self.loops = old_loops;
+    self.targets = old_targets;
     self.return_ty = old_return_ty;
     let param_tys = params.iter().map(|x| x.ty).collect();
     let id = self.closures.next_index();
