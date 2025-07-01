@@ -21,7 +21,7 @@ pub fn main[T, U](io: IO) {
   let x: U = x;
   let Ay::Yay = 0;
   (loop { break "x" } + 1);
-  let &x: N32 = loop {};
+  let &x: N32 = loop { continue };
   continue;
   break;
   return 0.0;

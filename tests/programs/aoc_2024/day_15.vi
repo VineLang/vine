@@ -117,6 +117,7 @@ pub fn main(&io: &IO) {
           char = carry;
         }
         carry = old;
+        continue;
       }
     } else {
       let dir_y = if char == '^' {

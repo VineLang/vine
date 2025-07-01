@@ -8,7 +8,9 @@ pub fn main(&io: &IO) {
   let fn prompt_num(msg: String) -> N32 {
     loop {
       if io.prompt(msg) is Some(input) && N32::parse(input) is Some(n) {
-        return n;
+        n
+      } else {
+        continue
       }
     }
   }
@@ -24,15 +26,16 @@ pub fn main(&io: &IO) {
     let guess = prompt_num("Enter your guess: ");
     if guess < num {
       io.println("Too low.");
+      continue;
     } else if guess > num {
       io.println("Too high.");
+      continue;
     } else {
       io.println("You got it " ++ if guesses == 1 {
         "immediately?!"
       } else {
         "in {guesses} guesses!"
       });
-      break;
     }
   }
 }

@@ -142,14 +142,20 @@ fn start_playing(&io: &IO) -> Game {
       }
 
       match (move1, move2, move3) {
-        (Up, Down, Down) { break win1() }
-        (Down, Up, Up) { break win1() }
-        (Down, Up, Down) { break win2() }
-        (Up, Down, Up) { break win2() }
-        (Down, Down, Up) { break win3() }
-        (Up, Up, Down) { break win3() }
-        (Up, Up, Up) { draw() }
-        (Down, Down, Down) { draw() }
+        (Up, Down, Down) { win1() }
+        (Down, Up, Up) { win1() }
+        (Down, Up, Down) { win2() }
+        (Up, Down, Up) { win2() }
+        (Down, Down, Up) { win3() }
+        (Up, Up, Down) { win3() }
+        (Up, Up, Up) {
+          draw();
+          continue
+        }
+        (Down, Down, Down) {
+          draw();
+          continue
+        }
       }
     }
   })

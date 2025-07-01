@@ -165,18 +165,19 @@ pub mod Array {
         let parity = (size - 1) % 2;
         let &parent = node;
         (node, size) = Node::half(&parent, size, parity);
-        if size == 1 {
-          let value = unsafe::move(node) as T;
-          let Node(left, right) = parent;
-          parent = if parity == 0 {
-            unsafe::erase(left);
-            right
-          } else {
-            unsafe::erase(right);
-            left
-          };
-          return Some(value)
+        if size != 1 {
+          continue;
         }
+        let value = unsafe::move(node) as T;
+        let Node(left, right) = parent;
+        parent = if parity == 0 {
+          unsafe::erase(left);
+          right
+        } else {
+          unsafe::erase(right);
+          left
+        };
+        Some(value)
       }
     }
   }
@@ -196,12 +197,13 @@ pub mod Array {
         (left, right) = (right, left);
         node = &right;
         size = (size + 1) / 2;
-        if size == 1 {
-          let value = unsafe::move(node) as T;
-          unsafe::erase(parent);
-          parent = unsafe::move(&left);
-          return Some(value)
+        if size != 1 {
+          continue;
         }
+        let value = unsafe::move(node) as T;
+        unsafe::erase(parent);
+        parent = unsafe::move(&left);
+        Some(value)
       }
     }
   }

@@ -329,15 +329,15 @@ pub mod List {
       let b_iter = b.iter();
       let ord = loop {
         match (a_iter.advance(), b_iter.advance()) {
-          (None, None) { break Ord::Eq }
-          (None, Some(_)) { break Ord::Lt }
-          (Some(_), None) { break Ord::Gt }
+          (None, None) { Ord::Eq }
+          (None, Some(_)) { Ord::Lt }
+          (Some(_), None) { Ord::Gt }
           (Some(&a, _a_iter), Some(&b, _b_iter)) {
             (a_iter, b_iter) = (_a_iter, _b_iter);
             match a.cmp(&b) {
-              Ord::Lt { break Ord::Lt }
-              Ord::Eq {}
-              Ord::Gt { break Ord::Gt }
+              Ord::Lt { Ord::Lt }
+              Ord::Eq { continue }
+              Ord::Gt { Ord::Gt }
             }
           }
         }

@@ -31,8 +31,9 @@ pub mod String {
       list ++= [found];
       if remaining is Some(remaining) {
         self = remaining;
+        continue
       } else {
-        return list;
+        list
       }
     }
   }
@@ -51,8 +52,9 @@ pub mod String {
       ~end ~= empty && ~end;
       if remaining is Some(remaining) {
         self = remaining;
+        continue
       } else {
-        return list;
+        list
       }
     }
   }

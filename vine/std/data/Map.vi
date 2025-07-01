@@ -252,6 +252,7 @@ pub mod Map {
           let &(left, entry, right) = &data;
           stack.push_front(&(entry, right));
           node = &left;
+          continue;
         }
         if stack.head_tail() is Some(&(entry, node), stack) {
           Some(&entry, Iter(&node, stack))
@@ -290,6 +291,7 @@ pub mod Map {
           let (left, entry, right) = data;
           stack.push_front((entry, right));
           node = left;
+          continue;
         }
         if stack.head_tail() is Some((entry, node), stack) {
           Some(entry, IntoIter(node, stack))

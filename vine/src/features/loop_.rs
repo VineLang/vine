@@ -12,7 +12,7 @@ use crate::{
     diag::Diag,
     tir::{LabelId, TirExpr, TirExprKind},
     types::Type,
-    vir::{Port, PortKind, Stage, Step, Transfer},
+    vir::{Port, Stage},
   },
   tools::fmt::{doc::Doc, Formatter},
 };
@@ -43,9 +43,10 @@ impl<'core> Resolver<'core, '_> {
     label: Option<Ident<'core>>,
     block: &Block<'core>,
   ) -> Result<TirExpr, Diag<'core>> {
-    let result = self.types.new_var(span);
-    let (label, block) = self.bind_label(label, true, result, |self_| self_.resolve_block(block));
-    Ok(TirExpr::new(span, result, TirExprKind::Loop(label, block)))
+    let ty = self.types.new_var(span);
+    let (label, block) =
+      self.bind_label(label, true, ty, |self_| self_.resolve_block_type(block, ty));
+    Ok(TirExpr::new(span, ty, TirExprKind::Loop(label, block)))
   }
 }
 
@@ -68,8 +69,7 @@ impl<'core> Distiller<'core, '_> {
     });
 
     let result = self.distill_expr_value(&mut body_stage, block);
-    body_stage.steps.push(Step::Link(result, Port { ty: self.types.nil(), kind: PortKind::Nil }));
-    body_stage.transfer = Some(Transfer::unconditional(body_stage.interface));
+    body_stage.local_barrier_write_to(local, result);
 
     self.finish_stage(body_stage);
     self.finish_layer(layer);

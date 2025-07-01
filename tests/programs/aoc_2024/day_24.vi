@@ -45,8 +45,7 @@ pub fn main(&io: &IO) {
       };
       ~n ~= (~n << 1) | bit;
       i += 1;
-    } else {
-      break;
+      continue;
     }
   }
 
