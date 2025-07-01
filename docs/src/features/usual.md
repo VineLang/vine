@@ -8,7 +8,7 @@ including:
 - [booleans](./conditions.md) (including short-circuiting):
   `true && !(false || 1 == 2)`
 - [lists](./types/standard.md#list): `[1, 2, 3] ++ [4, 5, 6]`
-- [strings](./types//standard.md#string): `"abc" ++ "def"`
+- [strings](./types/standard.md#string): `"abc" ++ "def"`
 - [tuples](./types/structs.md): `(1, 1.0, "abc")`, `(1, 2).0`
 - [variables](./variables.md): `let x = 5; x += 1`
 - basic control flow:
