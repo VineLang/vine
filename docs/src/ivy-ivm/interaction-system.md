@@ -25,7 +25,7 @@ corresponding global net when necessary during interaction.
 net.
 
 - *extrinsic values* are nilary agents that represent external entities
-- *extrinsic functions* are n-ary agents that represent external operations
+- *extrinsic functions* are binary agents that represent external operations
 - *extrinsic branches* are ternary agents that represent a boolean query on an
   external entity
 
