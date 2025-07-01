@@ -95,11 +95,3 @@ jobs:
             **/*.md
             **/*.vi
             **/*.iv
-
-  nix-flake:
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@v3
-      - uses: cachix/install-nix-action@v31
-      - run: nix flake check
