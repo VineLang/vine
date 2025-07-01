@@ -399,20 +399,25 @@ fn balance_right[K, V](&data: &MapData[K, V]) {
 }
 
 fn merge_balanced[K, V](left: Map[K, V], right: Map[K, V]) -> MapData[K, V] {
-  if left.len() == 0 {
-    unsafe::erase(left);
-    let Map(_, data) = right;
-    data
-  } else if right.len() == 0 {
-    let Map(_, data) = left;
-    unsafe::erase(right);
-    data
-  } else if left.len() > right.len() {
-    let entry = left._remove_max();
-    (left, entry, right)
-  } else {
-    let entry = right._remove_min();
-    (left, entry, right)
+  when {
+    left.len() == 0 {
+      unsafe::erase(left);
+      let Map(_, data) = right;
+      data
+    }
+    right.len() == 0 {
+      let Map(_, data) = left;
+      unsafe::erase(right);
+      data
+    }
+    left.len() > right.len() {
+      let entry = left._remove_max();
+      (left, entry, right)
+    }
+    _ {
+      let entry = right._remove_min();
+      (left, entry, right)
+    }
   }
 }
 

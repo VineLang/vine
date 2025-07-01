@@ -153,57 +153,61 @@ pub mod Array {
   }
 
   pub fn .pop_back[T](&Array[T](len, *node)) -> Option[T] {
-    if len == 0 {
-      None
-    } else if len == 1 {
-      len = 0;
-      Some(unsafe::move(node) as T)
-    } else {
-      let size = len;
-      len -= 1;
-      loop {
-        let parity = (size - 1) % 2;
-        let &parent = node;
-        (node, size) = Node::half(&parent, size, parity);
-        if size != 1 {
-          continue;
+    when {
+      len == 0 { None }
+      len == 1 {
+        len = 0;
+        Some(unsafe::move(node) as T)
+      }
+      _ {
+        let size = len;
+        len -= 1;
+        loop {
+          let parity = (size - 1) % 2;
+          let &parent = node;
+          (node, size) = Node::half(&parent, size, parity);
+          if size != 1 {
+            continue;
+          }
+          let value = unsafe::move(node) as T;
+          let Node(left, right) = parent;
+          parent = if parity == 0 {
+            unsafe::erase(left);
+            right
+          } else {
+            unsafe::erase(right);
+            left
+          };
+          Some(value)
         }
-        let value = unsafe::move(node) as T;
-        let Node(left, right) = parent;
-        parent = if parity == 0 {
-          unsafe::erase(left);
-          right
-        } else {
-          unsafe::erase(right);
-          left
-        };
-        Some(value)
       }
     }
   }
 
   pub fn .pop_front[T](&Array[T](len, *node)) -> Option[T] {
-    if len == 0 {
-      None
-    } else if len == 1 {
-      len = 0;
-      Some(unsafe::move(node) as T)
-    } else {
-      let size = len;
-      len -= 1;
-      loop {
-        let &parent = node;
-        let &Node(left, right) = &parent;
-        (left, right) = (right, left);
-        node = &right;
-        size = (size + 1) / 2;
-        if size != 1 {
-          continue;
+    when {
+      len == 0 { None }
+      len == 1 {
+        len = 0;
+        Some(unsafe::move(node) as T)
+      }
+      _ {
+        let size = len;
+        len -= 1;
+        loop {
+          let &parent = node;
+          let &Node(left, right) = &parent;
+          (left, right) = (right, left);
+          node = &right;
+          size = (size + 1) / 2;
+          if size != 1 {
+            continue;
+          }
+          let value = unsafe::move(node) as T;
+          unsafe::erase(parent);
+          parent = unsafe::move(&left);
+          Some(value)
         }
-        let value = unsafe::move(node) as T;
-        unsafe::erase(parent);
-        parent = unsafe::move(&left);
-        Some(value)
       }
     }
   }

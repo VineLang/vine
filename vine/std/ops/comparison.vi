@@ -67,12 +67,10 @@ pub mod Ord {
   }
 
   pub fn cmp_from_lt[T; Ord[T]](&a: &T, &b: &T) -> Ord {
-    if a < b {
-      Ord::Lt
-    } else if a > b {
-      Ord::Gt
-    } else {
-      Ord::Eq
+    when {
+      a < b { Ord::Lt }
+      a > b { Ord::Gt }
+      _ { Ord::Eq }
     }
   }
 }

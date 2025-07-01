@@ -128,12 +128,10 @@ pub mod I32 {
 
   pub impl to_string: Cast[I32, String] {
     fn cast(n: I32) -> String {
-      if n > +0 {
-        "+{n.as[N32]}"
-      } else if n < +0 {
-        "-{n.as[N32]}"
-      } else {
-        "0"
+      when {
+        n > +0 { "+{n.as[N32]}" }
+        n < +0 { "-{n.as[N32]}" }
+        _ { "0" }
       }
     }
   }

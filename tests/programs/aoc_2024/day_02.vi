@@ -9,11 +9,15 @@ pub fn main(&io: &IO) {
 
   for line in lines.into_iter() {
     let report = line.split(" ").map(fn* (x) { N32::parse(x).unwrap() });
-    if is_safe(report) {
-      safe_count += 1;
-      dampened_safe_count += 1;
-    } else if problem_dampener(report) {
-      dampened_safe_count += 1;
+    when {
+      is_safe(report) {
+        safe_count += 1;
+        dampened_safe_count += 1;
+      }
+      problem_dampener(report) {
+        dampened_safe_count += 1;
+      }
+      _ {}
     }
   }
 

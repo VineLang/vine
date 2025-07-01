@@ -24,18 +24,22 @@ pub fn main(&io: &IO) {
   loop {
     guesses += 1;
     let guess = prompt_num("Enter your guess: ");
-    if guess < num {
-      io.println("Too low.");
-      continue;
-    } else if guess > num {
-      io.println("Too high.");
-      continue;
-    } else {
-      io.println("You got it " ++ if guesses == 1 {
-        "immediately?!"
-      } else {
-        "in {guesses} guesses!"
-      });
+    when {
+      guess < num {
+        io.println("Too low.");
+        continue;
+      }
+      guess > num {
+        io.println("Too high.");
+        continue;
+      }
+      _ {
+        io.println("You got it " ++ if guesses == 1 {
+          "immediately?!"
+        } else {
+          "in {guesses} guesses!"
+        });
+      }
     }
   }
 }

@@ -102,28 +102,32 @@ mod Parser {
       return self.error("expected term");
     }
     let char = self.chars.get(0).unwrap();
-    if char == '\\' {
-      self.chars.pop_front();
-      self.skip_ws();
-      let var = self.parse_var();
-      self.expect_char('.');
-      self.scope.at_or_insert[; _, unsafe::erase, _](var, []).*.push_front([]);
-      let body = self.parse_atom();
-      let uses = self.scope.at(&var).unwrap().*.pop_front().unwrap();
-      Term::Lambda(uses, body)
-    } else if char == '(' {
-      self.chars.pop_front();
-      let term = self.parse_term();
-      self.expect_char(')');
-      term
-    } else {
-      let var = self.parse_var();
-      if self.scope.at(&var) is Some(&binds) && binds.len() != 0 {
-        let term;
-        binds.at(0).unwrap().*.push_back(~term);
+    when {
+      char == '\\' {
+        self.chars.pop_front();
+        self.skip_ws();
+        let var = self.parse_var();
+        self.expect_char('.');
+        self.scope.at_or_insert[; _, unsafe::erase, _](var, []).*.push_front([]);
+        let body = self.parse_atom();
+        let uses = self.scope.at(&var).unwrap().*.pop_front().unwrap();
+        Term::Lambda(uses, body)
+      }
+      char == '(' {
+        self.chars.pop_front();
+        let term = self.parse_term();
+        self.expect_char(')');
         term
-      } else {
-        self.error("unbound variable `{var}`")
+      }
+      _ {
+        let var = self.parse_var();
+        if self.scope.at(&var) is Some(&binds) && binds.len() != 0 {
+          let term;
+          binds.at(0).unwrap().*.push_back(~term);
+          term
+        } else {
+          self.error("unbound variable `{var}`")
+        }
       }
     }
   }

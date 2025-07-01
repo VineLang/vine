@@ -105,6 +105,7 @@ impl<'core> Distiller<'core, '_> {
     let local = self.new_local(stage, span, ty);
     let (mut layer, mut cur_stage) = self.child_layer(stage, span);
 
+    self.targets.get_or_extend(target_id);
     for (cond, block) in arms {
       let next_stage = self.new_unconditional_stage(&mut layer, span);
       self.targets[target_id] = Some(TargetDistillation {

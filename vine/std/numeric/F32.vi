@@ -132,47 +132,49 @@ pub mod F32 {
 
   pub impl to_string: Cast[F32, String] {
     fn cast(f: F32) -> String {
-      if f.is_nan() {
-        "NaN"
-      } else if f == F32::inf {
-        "+inf"
-      } else if f == F32::neg_inf {
-        "-inf"
-      } else if f == 0.0 {
-        if 1.0 / f > 0.0 {
-          "+0.0"
-        } else {
-          "-0.0"
+      when {
+        f.is_nan() { "NaN" }
+        f == F32::inf { "+inf" }
+        f == F32::neg_inf { "-inf" }
+        f == 0.0 {
+          if 1.0 / f > 0.0 {
+            "+0.0"
+          } else {
+            "-0.0"
+          }
         }
-      } else {
-        let sign = if f < 0.0 {
-          f = -f;
-          "-"
-        } else {
-          "+"
-        };
-        let exp = if f > 1.0e+5 {
-          let exp = 0;
-          while f >= 10.0 {
-            f /= 10.0;
-            exp += 1;
-          }
-          "e+{exp}"
-        } else if f < 1.0e-5 {
-          let exp = 0;
-          while f <= 1.0 {
-            f *= 10.0;
-            exp += 1;
-          }
-          "e-{exp}"
-        } else {
-          ""
-        };
-        let int = f as N32;
-        f -= int as F32;
-        let dec = ((f + 1.0) * 1.0e+5) as N32 as String;
-        dec!.at(0).unwrap().* = '.';
-        "{sign}{int}{dec}{exp}"
+        _ {
+          let sign = if f < 0.0 {
+            f = -f;
+            "-"
+          } else {
+            "+"
+          };
+          let exp = when {
+            f > 1.0e+5 {
+              let exp = 0;
+              while f >= 10.0 {
+                f /= 10.0;
+                exp += 1;
+              }
+              "e+{exp}"
+            }
+            f < 1.0e-5 {
+              let exp = 0;
+              while f <= 1.0 {
+                f *= 10.0;
+                exp += 1;
+              }
+              "e-{exp}"
+            }
+            _ { "" }
+          };
+          let int = f as N32;
+          f -= int as F32;
+          let dec = ((f + 1.0) * 1.0e+5) as N32 as String;
+          dec!.at(0).unwrap().* = '.';
+          "{sign}{int}{dec}{exp}"
+        }
       }
     }
   }
@@ -193,57 +195,58 @@ pub mod F32 {
       Some(char) { char }
       None { return None }
     };
-    let is_negative = if prefix == '-' {
-      true
-    } else if prefix == '+' {
-      false
-    } else {
-      str!.push_front(prefix);
-      false
+    let is_negative = when {
+      prefix == '-' { true }
+      prefix == '+' { false }
+      _ {
+        str!.push_front(prefix);
+        false
+      }
     };
 
-    let value = if str == "NaN" || str == "nan" {
-      F32::nan
-    } else if str == "inf" {
-      F32::inf
-    } else {
-      let mantissa = 0;
-      let next_char = str!.pop_front();
-      let num_digits = 0;
-      while next_char is Some(char) && ('0' <= char <= '9') {
-        mantissa = mantissa * 10 + (char - '0') as N32;
-        num_digits += 1;
-        next_char = str!.pop_front();
-      }
-      let exponent = +0;
-      if next_char is Some(char) && char == '.' {
-        next_char = str!.pop_front();
+    let value = when {
+      str == "NaN" || str == "nan" { F32::nan }
+      str == "inf" { F32::inf }
+      _ {
+        let mantissa = 0;
+        let next_char = str!.pop_front();
+        let num_digits = 0;
         while next_char is Some(char) && ('0' <= char <= '9') {
           mantissa = mantissa * 10 + (char - '0') as N32;
           num_digits += 1;
-          exponent -= +1;
           next_char = str!.pop_front();
         }
-      }
-      if num_digits == 0 {
-        return None;
-      }
-      if next_char is Some(char) && (char == 'e' || char == 'E') {
-        match I32::parse(str) {
-          Some(exp) {
-            exponent += exp;
-          }
-          None {
-            return None;
+        let exponent = +0;
+        if next_char is Some(char) && char == '.' {
+          next_char = str!.pop_front();
+          while next_char is Some(char) && ('0' <= char <= '9') {
+            mantissa = mantissa * 10 + (char - '0') as N32;
+            num_digits += 1;
+            exponent -= +1;
+            next_char = str!.pop_front();
           }
         }
-      } else if next_char is Some(_) {
-        return None;
-      }
-      if exponent < +0 {
-        mantissa as F32 / (10.0 ** (-exponent as N32))
-      } else {
-        mantissa as F32 * (10.0 ** exponent as N32)
+        if num_digits == 0 {
+          return None;
+        }
+        if next_char is Some(char) {
+          if char != 'e' && char != 'E' {
+            return None;
+          }
+          match I32::parse(str) {
+            Some(exp) {
+              exponent += exp;
+            }
+            None {
+              return None;
+            }
+          }
+        }
+        if exponent < +0 {
+          mantissa as F32 / (10.0 ** (-exponent as N32))
+        } else {
+          mantissa as F32 * (10.0 ** exponent as N32)
+        }
       }
     };
 
