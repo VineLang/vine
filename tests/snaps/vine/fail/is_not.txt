@@ -20,6 +20,5 @@ error tests/programs/fail/is_not.vi:2:13 - cannot fork `?0`
 error tests/programs/fail/is_not.vi:3:11 - cannot drop `?0`
 error tests/programs/fail/is_not.vi:4:13 - cannot drop `?0`
 error tests/programs/fail/is_not.vi:5:11 - cannot drop `?0`
-error tests/programs/fail/is_not.vi:6:3 - variable of type `()` read whilst uninitialized
 error tests/programs/fail/is_not.vi:2:13 - variable of type `?0` read whilst uninitialized
 error tests/programs/fail/is_not.vi:6:14 - cannot drop `?0`
