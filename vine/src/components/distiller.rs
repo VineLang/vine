@@ -248,6 +248,9 @@ impl<'core, 'r> Distiller<'core, 'r> {
       }
       TirExprKind::Do(label, block) => self.distill_do(stage, span, *label, block),
       TirExprKind::If(arms, leg) => self.distill_if(stage, span, ty, arms, leg),
+      TirExprKind::When(target, arms, leg) => {
+        self.distill_when(stage, span, ty, *target, arms, leg)
+      }
       TirExprKind::Loop(label, block) => self.distill_loop(stage, span, ty, *label, block),
       TirExprKind::While(label, cond, block, else_) => {
         self.distill_while(stage, span, ty, *label, cond, block, else_)

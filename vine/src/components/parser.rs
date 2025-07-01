@@ -237,6 +237,9 @@ impl<'core, 'src> VineParser<'core, 'src> {
     if self.check(Token::If) {
       return Ok(Some(self.parse_expr_if()?));
     }
+    if self.check(Token::When) {
+      return Ok(Some(self.parse_expr_when()?));
+    }
     if self.check(Token::While) {
       return Ok(Some(self.parse_expr_while()?));
     }
@@ -531,10 +534,12 @@ impl<'core, 'src> VineParser<'core, 'src> {
       return Ok(StmtKind::Item(item));
     }
     if self.check(Token::If)
+      || self.check(Token::When)
       || self.check(Token::Match)
       || self.check(Token::Loop)
       || self.check(Token::While)
       || self.check(Token::For)
+      || self.check(Token::Do)
     {
       let Some(expr) = self.maybe_parse_expr_prefix()? else {
         return self.unexpected();

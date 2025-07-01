@@ -96,6 +96,13 @@ pub trait VisitMut<'core, 'a> {
         }
         self.visit(leg);
       }
+      ExprKind::When(_, arms, leg) => {
+        for (cond, block) in arms {
+          self.visit(cond);
+          self.visit(block);
+        }
+        self.visit(leg);
+      }
       ExprKind::While(_, a, b, c) => {
         self.visit_expr(a);
         self.visit_block(b);

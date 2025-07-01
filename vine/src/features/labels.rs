@@ -31,6 +31,8 @@ impl<'core> VineParser<'core, '_> {
         Target::While
       } else if self.eat(Token::For)? {
         Target::For
+      } else if self.eat(Token::When)? {
+        Target::When
       } else {
         Target::Label(self.parse_ident()?)
       }
@@ -67,6 +69,7 @@ impl<'core: 'src, 'src> Formatter<'src> {
       Target::Loop => Doc(".loop"),
       Target::While => Doc(".while"),
       Target::For => Doc(".for"),
+      Target::When => Doc(".when"),
     }
   }
 

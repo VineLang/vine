@@ -247,6 +247,7 @@ pub enum ExprKind<'core> {
   Assign(bool, Expr<'core>, Expr<'core>),
   Match(Expr<'core>, Vec<(Pat<'core>, Block<'core>)>),
   If(Vec<(Expr<'core>, Block<'core>)>, Option<Block<'core>>),
+  When(Label<'core>, Vec<(Expr<'core>, Block<'core>)>, Block<'core>),
   While(Label<'core>, Expr<'core>, Block<'core>, Option<Block<'core>>),
   Loop(Label<'core>, Block<'core>),
   For(Label<'core>, Pat<'core>, Expr<'core>, Block<'core>, Option<Block<'core>>),
@@ -298,6 +299,7 @@ pub enum Target<'core> {
   Loop,
   While,
   For,
+  When,
 }
 
 #[derive(Debug, Clone)]
