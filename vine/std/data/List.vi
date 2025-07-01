@@ -155,10 +155,11 @@ pub mod List {
   pub fn .find[T, F*; fn F(&T) -> Bool](&self: &List[T], pred: F) -> Option[&T] {
     for &value in self.iter() {
       if pred(&value) {
-        return Some(&value)
+        break Some(&value)
       }
+    } else {
+      None
     }
-    None
   }
 
   pub fn .contains[T; Eq[T]](&self: &List[T], &el: &T) -> Bool {
@@ -312,10 +313,11 @@ pub mod List {
         let (&b, _b_iter) = b_iter.advance().unwrap();
         b_iter = _b_iter;
         if a != b {
-          return false;
+          break false;
         }
+      } else {
+        true
       }
-      true
     }
 
     fn ne(&a: &List[T], &b: &List[T]) -> Bool {

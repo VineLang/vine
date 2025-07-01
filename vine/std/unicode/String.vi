@@ -63,15 +63,14 @@ pub mod String {
     let prefix = "";
     let suffix = self;
     while suffix.len() >= sep.len() {
-      do.check {
-        let iter = suffix!.iter();
-        for &a in sep!.iter() {
-          let (&b, _iter) = iter.advance().unwrap();
-          iter = _iter;
-          if a != b {
-            break.check;
-          }
+      let iter = suffix!.iter();
+      for &a in sep!.iter() {
+        let (&b, _iter) = iter.advance().unwrap();
+        iter = _iter;
+        if a != b {
+          break;
         }
+      } else {
         return (prefix, Some(String(unsafe::move(iter.tail()))));
       }
       if suffix!.pop_front() is Some(char) {
@@ -130,10 +129,11 @@ pub mod String {
       let (&b, _self_iter) = self_iter.advance().unwrap();
       self_iter = _self_iter;
       if a != b {
-        return false
+        break false;
       }
+    } else {
+      true
     }
-    true
   }
 
   pub fn .split_at(String(chars), i: N32) -> (String, String) {

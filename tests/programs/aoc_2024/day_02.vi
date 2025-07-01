@@ -32,16 +32,17 @@ fn is_safe(report: List[N32]) -> Bool {
         level - last
       };
       if !(1 <= diff <= 3) {
-        return false;
+        break false;
       }
       if order is Some(order) && order != (last > level) {
-        return false;
+        break false;
       }
       order = Some(last > level);
     }
     last = Some(level);
+  } else {
+    true
   }
-  true
 }
 
 fn problem_dampener(report: List[N32]) -> Bool {
@@ -49,9 +50,10 @@ fn problem_dampener(report: List[N32]) -> Bool {
   let suffix = report;
   while suffix.pop_front() is Some(level) {
     if is_safe(prefix ++ suffix) {
-      return true;
+      break true;
     }
     prefix ++= [level];
+  } else {
+    false
   }
-  false
 }
