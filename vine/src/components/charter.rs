@@ -1,12 +1,7 @@
-use std::{collections::hash_map::Entry, mem::replace};
-
-use vine_util::idx::{Counter, IdxVec};
+use std::mem::replace;
 
 use crate::structures::{
-  ast::{
-    visit::VisitMut, Attr, AttrKind, Builtin, GenericParams, Generics, Ident, ImplParam, Item,
-    ItemKind, ModKind, Path, Span, Trait, TraitKind, Ty, TyKind, UseTree, Vis,
-  },
+  ast::{visit::VisitMut, Attr, AttrKind, Ident, Item, ItemKind, ModKind, Span, Vis},
   chart::Chart,
   core::Core,
   diag::{Diag, ErrorGuaranteed},
@@ -74,96 +69,19 @@ impl<'core> Charter<'core, '_> {
     let member_vis = vis.max(member_vis);
 
     let def = match item.kind {
-      ItemKind::Fn(fn_item) => {
-        let def = self.chart_child(parent, fn_item.name, member_vis, true);
-        let generics = self.chart_generics(def, fn_item.generics, true);
-        let body = self.ensure_implemented(span, fn_item.body);
-        let fn_id = self.chart.concrete_fns.push(ConcreteFnDef {
-          span,
-          def,
-          generics,
-          method: fn_item.method,
-          params: fn_item.params,
-          ret_ty: fn_item.ret,
-          body,
-          locals: Counter::default(),
-        });
-        self.define_value(span, def, vis, DefValueKind::Fn(FnId::Concrete(fn_id)));
-        Some(def)
-      }
+      ItemKind::Fn(fn_item) => Some(self.chart_fn(parent, span, vis, member_vis, fn_item)),
 
       ItemKind::Const(const_item) => {
-        let def = self.chart_child(parent, const_item.name, member_vis, true);
-        let generics = self.chart_generics(def, const_item.generics, true);
-        let value = self.ensure_implemented(span, const_item.value);
-        let const_id = self.chart.concrete_consts.push(ConcreteConstDef {
-          span,
-          def,
-          generics,
-          ty: const_item.ty,
-          value,
-        });
-        self.define_value(span, def, vis, DefValueKind::Const(ConstId::Concrete(const_id)));
-        Some(def)
+        Some(self.chart_const(parent, span, vis, member_vis, const_item))
       }
 
       ItemKind::Struct(struct_item) => {
-        let def = self.chart_child(parent, struct_item.name, member_vis, true);
-        let generics = self.chart_generics(def, struct_item.generics, false);
-        let data_vis = self.resolve_vis(parent, struct_item.data_vis);
-        let struct_id = self.chart.structs.push(StructDef {
-          span,
-          def,
-          generics,
-          name: struct_item.name,
-          data_vis,
-          data: struct_item.data,
-        });
-        self.define_value(span, def, data_vis, DefValueKind::Struct(struct_id));
-        self.define_pattern(span, def, data_vis, DefPatternKind::Struct(struct_id));
-        self.define_type(span, def, vis, DefTypeKind::Struct(struct_id));
-        Some(def)
+        Some(self.chart_struct(parent, span, vis, member_vis, struct_item))
       }
 
-      ItemKind::Enum(enum_item) => {
-        let def = self.chart_child(parent, enum_item.name, member_vis, true);
-        let generics = self.chart_generics(def, enum_item.generics, false);
-        let enum_id = self.chart.enums.next_index();
-        let variants =
-          IdxVec::from_iter(enum_item.variants.into_iter().enumerate().map(|(id, variant)| {
-            let variant_id = VariantId(id);
-            let def = self.chart_child(def, variant.name, vis, true);
-            self.define_value(span, def, vis, DefValueKind::Enum(enum_id, variant_id));
-            self.define_pattern(span, def, vis, DefPatternKind::Enum(enum_id, variant_id));
-            EnumVariant { span, def, name: variant.name, data: variant.data }
-          }));
-        let enum_def = EnumDef { span, def, name: enum_item.name, generics, variants };
-        self.chart.enums.push_to(enum_id, enum_def);
-        self.define_type(span, def, vis, DefTypeKind::Enum(enum_id));
-        Some(def)
-      }
+      ItemKind::Enum(enum_item) => Some(self.chart_enum(parent, span, vis, member_vis, enum_item)),
 
-      ItemKind::Type(type_item) => {
-        let def = self.chart_child(parent, type_item.name, member_vis, true);
-        let generics = self.chart_generics(def, type_item.generics, false);
-        let kind = match type_item.ty {
-          Some(ty) => {
-            let alias_id = self.chart.type_aliases.push(TypeAliasDef { span, def, generics, ty });
-            DefTypeKind::Alias(alias_id)
-          }
-          None => {
-            let opaque_id = self.chart.opaque_types.push(OpaqueTypeDef {
-              span,
-              def,
-              generics,
-              name: type_item.name,
-            });
-            DefTypeKind::Opaque(opaque_id)
-          }
-        };
-        self.define_type(span, def, vis, kind);
-        Some(def)
-      }
+      ItemKind::Type(type_item) => Some(self.chart_type(parent, span, vis, member_vis, type_item)),
 
       ItemKind::Mod(mod_item) => {
         let def = self.chart_child(parent, mod_item.name, member_vis, true);
@@ -172,152 +90,13 @@ impl<'core> Charter<'core, '_> {
       }
 
       ItemKind::Trait(trait_item) => {
-        let def = self.chart_child(parent, trait_item.name, member_vis, true);
-        let generics = self.chart_generics(def, trait_item.generics, false);
-        let subitem_generics = self.chart_trait_subitem_generics(span, trait_item.name, generics);
-        let trait_id = self.chart.traits.next_index();
-        let mut consts = IdxVec::new();
-        let mut fns = IdxVec::new();
-        for subitem in trait_item.items {
-          let span = subitem.span;
-          if !matches!(subitem.vis, Vis::Private) {
-            self.core.report(Diag::TraitItemVis { span });
-          }
-          match subitem.kind {
-            ItemKind::Const(const_item) => {
-              if !const_item.generics.impls.is_empty() || !const_item.generics.types.is_empty() {
-                self.core.report(Diag::TraitItemGen { span });
-              }
-              if const_item.value.is_some() {
-                self.core.report(Diag::ImplementedTraitItem { span });
-              }
-              let trait_const_id =
-                consts.push(TraitConst { name: const_item.name, ty: const_item.ty });
-              let def = self.chart_child(def, const_item.name, vis, true);
-              let kind = DefValueKind::Const(ConstId::Abstract(trait_id, trait_const_id));
-              self.define_value(span, def, vis, kind);
-              self.chart_attrs(Some(def), subitem.attrs);
-            }
-            ItemKind::Fn(fn_item) => {
-              if !fn_item.generics.impls.is_empty() || !fn_item.generics.types.is_empty() {
-                self.core.report(Diag::TraitItemGen { span });
-              }
-              if fn_item.body.is_some() {
-                self.core.report(Diag::ImplementedTraitItem { span });
-              }
-              let trait_fn_id = fns.push(TraitFn {
-                name: fn_item.name,
-                method: fn_item.method,
-                params: fn_item.params,
-                ret_ty: fn_item.ret,
-              });
-              let def = self.chart_child(def, fn_item.name, vis, true);
-              let kind = DefValueKind::Fn(FnId::Abstract(trait_id, trait_fn_id));
-              self.define_value(span, def, vis, kind);
-              self.chart_attrs(Some(def), subitem.attrs);
-            }
-            _ => {
-              self.core.report(Diag::InvalidTraitItem { span });
-            }
-          }
-        }
-        let _trait_id = self.chart.traits.push(TraitDef {
-          span,
-          def,
-          name: trait_item.name,
-          generics,
-          subitem_generics,
-          consts,
-          fns,
-        });
-        assert_eq!(_trait_id, trait_id);
-        self.define_trait(span, def, vis, DefTraitKind::Trait(trait_id));
-        Some(def)
+        Some(self.chart_trait(parent, span, vis, member_vis, trait_item))
       }
 
-      ItemKind::Impl(impl_item) => {
-        let def = self.chart_child(parent, impl_item.name, member_vis, true);
-        let generics = self.chart_generics(def, impl_item.generics, true);
-        let mut subitems = Vec::new();
-        for subitem in impl_item.items {
-          let span = subitem.span;
-          if !matches!(subitem.vis, Vis::Private) {
-            self.core.report(Diag::ImplItemVis { span });
-          }
-          match subitem.kind {
-            ItemKind::Const(const_item) => {
-              if !const_item.generics.impls.is_empty() || !const_item.generics.types.is_empty() {
-                self.core.report(Diag::ImplItemGen { span });
-              }
-              let def = self.chart_child(def, const_item.name, vis, false);
-              let value = self.ensure_implemented(span, const_item.value);
-              let const_id = self.chart.concrete_consts.push(ConcreteConstDef {
-                span,
-                def,
-                generics,
-                ty: const_item.ty,
-                value,
-              });
-              self.define_value(span, def, vis, DefValueKind::Const(ConstId::Concrete(const_id)));
-              self.chart_attrs(Some(def), subitem.attrs);
-              subitems.push(ImplSubitem {
-                span,
-                name: const_item.name,
-                kind: ImplSubitemKind::Const(const_id),
-              })
-            }
-            ItemKind::Fn(fn_item) => {
-              if !fn_item.generics.impls.is_empty() || !fn_item.generics.types.is_empty() {
-                self.core.report(Diag::ImplItemGen { span });
-              }
-              if fn_item.method {
-                self.core.report(Diag::ImplItemMethod { span });
-              }
-              let def = self.chart_child(def, fn_item.name, vis, false);
-              let body = self.ensure_implemented(span, fn_item.body);
-              let fn_id = self.chart.concrete_fns.push(ConcreteFnDef {
-                span,
-                def,
-                generics,
-                method: fn_item.method,
-                params: fn_item.params,
-                ret_ty: fn_item.ret,
-                body,
-                locals: Counter::default(),
-              });
-              self.define_value(span, def, vis, DefValueKind::Fn(FnId::Concrete(fn_id)));
-              self.chart_attrs(Some(def), subitem.attrs);
-              subitems.push(ImplSubitem {
-                span,
-                name: fn_item.name,
-                kind: ImplSubitemKind::Fn(fn_id),
-              });
-            }
-            _ => {
-              self.core.report(Diag::InvalidImplItem { span });
-            }
-          }
-        }
-        let impl_id = self.chart.impls.push(ImplDef {
-          span,
-          def,
-          generics,
-          trait_: impl_item.trait_,
-          subitems,
-          manual: false,
-          duplicate: false,
-          erase: false,
-        });
-        self.define_impl(span, def, vis, DefImplKind::Impl(impl_id));
-        Some(def)
-      }
+      ItemKind::Impl(impl_item) => Some(self.chart_impl(parent, span, vis, member_vis, impl_item)),
 
       ItemKind::Use(use_item) => {
-        let import_parent =
-          if use_item.absolute { ImportParent::Root } else { ImportParent::Scope };
-        for (ident, use_tree) in use_item.tree.children {
-          self.chart_use_tree(parent, vis, import_parent, ident, use_tree);
-        }
+        self.chart_use(parent, vis, use_item);
         None
       }
 
@@ -336,7 +115,7 @@ impl<'core> Charter<'core, '_> {
     self.chart_attrs(def, item.attrs);
   }
 
-  fn chart_attrs(&mut self, def: Option<DefId>, attrs: Vec<Attr>) {
+  pub(crate) fn chart_attrs(&mut self, def: Option<DefId>, attrs: Vec<Attr>) {
     for attr in attrs {
       let span = attr.span;
       let impl_id = def.and_then(|id| match self.chart.defs[id].impl_kind {
@@ -377,158 +156,6 @@ impl<'core> Charter<'core, '_> {
     }
   }
 
-  fn chart_builtin(&mut self, def_id: Option<DefId>, builtin: Builtin) -> bool {
-    let Some(def_id) = def_id else { return false };
-    let def = &mut self.chart.defs[def_id];
-
-    fn set<T>(builtin: &mut Option<T>, got: Option<T>) -> bool {
-      if builtin.is_none() && got.is_some() {
-        *builtin = got;
-        true
-      } else {
-        false
-      }
-    }
-    let opaque_type_id = match def.type_kind {
-      Some(WithVis { kind: DefTypeKind::Opaque(id), .. }) => Some(id),
-      _ => None,
-    };
-    let struct_id = match def.type_kind {
-      Some(WithVis { kind: DefTypeKind::Struct(id), .. }) => Some(id),
-      _ => None,
-    };
-    let enum_id = match def.type_kind {
-      Some(WithVis { kind: DefTypeKind::Enum(id), .. }) => Some(id),
-      _ => None,
-    };
-    let fn_id = match def.value_kind {
-      Some(WithVis { kind: DefValueKind::Fn(kind), .. }) => Some(kind),
-      _ => None,
-    };
-    let trait_id = match def.trait_kind {
-      Some(WithVis { kind: DefTraitKind::Trait(id), .. }) => Some(id),
-      _ => None,
-    };
-    let impl_id = match def.impl_kind {
-      Some(WithVis { kind: DefImplKind::Impl(id), .. }) => Some(id),
-      _ => None,
-    };
-
-    let builtins = &mut self.chart.builtins;
-    match builtin {
-      Builtin::Prelude => set(&mut builtins.prelude, Some(def_id)),
-      Builtin::Bool => set(&mut builtins.bool, opaque_type_id),
-      Builtin::N32 => set(&mut builtins.n32, opaque_type_id),
-      Builtin::I32 => set(&mut builtins.i32, opaque_type_id),
-      Builtin::F32 => set(&mut builtins.f32, opaque_type_id),
-      Builtin::Char => set(&mut builtins.char, opaque_type_id),
-      Builtin::IO => set(&mut builtins.io, opaque_type_id),
-      Builtin::List => set(&mut builtins.list, struct_id),
-      Builtin::String => set(&mut builtins.string, struct_id),
-      Builtin::Option => set(&mut builtins.option, enum_id),
-      Builtin::Result => set(&mut builtins.result, enum_id),
-      Builtin::Neg => set(&mut builtins.neg, fn_id),
-      Builtin::Not => set(&mut builtins.not, fn_id),
-      Builtin::Cast => set(&mut builtins.cast, fn_id),
-      Builtin::Fork => set(&mut builtins.fork, trait_id),
-      Builtin::Drop => set(&mut builtins.drop, trait_id),
-      Builtin::Duplicate => set(&mut builtins.duplicate, impl_id),
-      Builtin::Erase => set(&mut builtins.erase, impl_id),
-      Builtin::BoolNot => set(&mut builtins.bool_not, impl_id),
-      Builtin::BinaryOp(op) => set(builtins.binary_ops.entry(op).or_default(), fn_id),
-      Builtin::ComparisonOp(op) => set(builtins.comparison_ops.entry(op).or_default(), fn_id),
-      Builtin::Range => set(&mut builtins.range, struct_id),
-      Builtin::BoundUnbounded => set(&mut builtins.bound_unbounded, struct_id),
-      Builtin::BoundExclusive => set(&mut builtins.bound_exclusive, struct_id),
-      Builtin::BoundInclusive => set(&mut builtins.bound_inclusive, struct_id),
-      Builtin::Advance => set(&mut builtins.advance, fn_id),
-    }
-  }
-
-  fn chart_generics(
-    &mut self,
-    def: DefId,
-    mut generics: GenericParams<'core>,
-    impl_allowed: bool,
-  ) -> GenericsId {
-    if !impl_allowed && !generics.impls.is_empty() {
-      self.core.report(Diag::UnexpectedImplParam { span: generics.span });
-      generics.impls.clear();
-    }
-    self.chart.generics.push(GenericsDef {
-      span: generics.span,
-      def,
-      type_params: generics.types,
-      impl_params: generics.impls,
-    })
-  }
-
-  fn chart_trait_subitem_generics(
-    &mut self,
-    span: Span,
-    trait_name: Ident<'core>,
-    generics: GenericsId,
-  ) -> GenericsId {
-    let generics = self.chart.generics[generics].clone();
-    self.chart.generics.push(GenericsDef {
-      impl_params: vec![ImplParam {
-        span,
-        name: None,
-        trait_: Trait {
-          span,
-          kind: Box::new(TraitKind::Path(Path {
-            span,
-            absolute: false,
-            segments: vec![trait_name],
-            generics: Some(Generics {
-              span,
-              types: generics
-                .type_params
-                .iter()
-                .map(|param| Ty {
-                  span,
-                  kind: Box::new(TyKind::Path(Path {
-                    span,
-                    absolute: false,
-                    segments: vec![param.name],
-                    generics: None,
-                  })),
-                })
-                .collect(),
-              impls: vec![],
-            }),
-          })),
-        },
-      }],
-      ..generics
-    })
-  }
-
-  fn chart_use_tree(
-    &mut self,
-    def_id: DefId,
-    vis: DefId,
-    parent: ImportParent,
-    ident: Ident<'core>,
-    use_tree: UseTree<'core>,
-  ) {
-    let span = use_tree.span;
-    let import = self.chart.imports.push(ImportDef { span, def: def_id, parent, ident });
-    let def = &mut self.chart.defs[def_id];
-    let member = WithVis { vis, kind: MemberKind::Import(import) };
-    def.all_members.push(member);
-    for name in use_tree.aliases {
-      if let Entry::Vacant(e) = def.members.entry(name) {
-        e.insert(member);
-      } else {
-        self.core.report(Diag::DuplicateItem { span, name });
-      }
-    }
-    for (ident, child) in use_tree.children {
-      self.chart_use_tree(def_id, vis, ImportParent::Import(import), ident, child);
-    }
-  }
-
   pub(crate) fn chart_child(
     &mut self,
     parent: DefId,
@@ -565,7 +192,7 @@ impl<'core> Charter<'core, '_> {
     child
   }
 
-  fn resolve_vis(&mut self, base: DefId, vis: Vis) -> DefId {
+  pub(crate) fn resolve_vis(&mut self, base: DefId, vis: Vis) -> DefId {
     match vis {
       Vis::Private => base,
       Vis::Public => DefId::ROOT,
@@ -582,11 +209,15 @@ impl<'core> Charter<'core, '_> {
     }
   }
 
-  fn ensure_implemented<T: From<ErrorGuaranteed>>(&mut self, span: Span, option: Option<T>) -> T {
+  pub(crate) fn ensure_implemented<T: From<ErrorGuaranteed>>(
+    &mut self,
+    span: Span,
+    option: Option<T>,
+  ) -> T {
     option.unwrap_or_else(|| self.core.report(Diag::MissingImplementation { span }).into())
   }
 
-  fn define_value(&mut self, span: Span, def: DefId, vis: DefId, kind: DefValueKind) {
+  pub(crate) fn define_value(&mut self, span: Span, def: DefId, vis: DefId, kind: DefValueKind) {
     let def = &mut self.chart.defs[def];
     if def.value_kind.is_none() {
       def.value_kind = Some(WithVis { vis, kind });
@@ -595,7 +226,7 @@ impl<'core> Charter<'core, '_> {
     }
   }
 
-  fn define_type(&mut self, span: Span, def: DefId, vis: DefId, kind: DefTypeKind) {
+  pub(crate) fn define_type(&mut self, span: Span, def: DefId, vis: DefId, kind: DefTypeKind) {
     let def = &mut self.chart.defs[def];
     if def.type_kind.is_none() {
       def.type_kind = Some(WithVis { vis, kind });
@@ -604,7 +235,13 @@ impl<'core> Charter<'core, '_> {
     }
   }
 
-  fn define_pattern(&mut self, span: Span, def: DefId, vis: DefId, kind: DefPatternKind) {
+  pub(crate) fn define_pattern(
+    &mut self,
+    span: Span,
+    def: DefId,
+    vis: DefId,
+    kind: DefPatternKind,
+  ) {
     let def = &mut self.chart.defs[def];
     if def.pattern_kind.is_none() {
       def.pattern_kind = Some(WithVis { vis, kind });
@@ -613,7 +250,7 @@ impl<'core> Charter<'core, '_> {
     }
   }
 
-  fn define_trait(&mut self, span: Span, def: DefId, vis: DefId, kind: DefTraitKind) {
+  pub(crate) fn define_trait(&mut self, span: Span, def: DefId, vis: DefId, kind: DefTraitKind) {
     let def = &mut self.chart.defs[def];
     if def.trait_kind.is_none() {
       def.trait_kind = Some(WithVis { vis, kind });
@@ -622,7 +259,7 @@ impl<'core> Charter<'core, '_> {
     }
   }
 
-  fn define_impl(&mut self, span: Span, def: DefId, vis: DefId, kind: DefImplKind) {
+  pub(crate) fn define_impl(&mut self, span: Span, def: DefId, vis: DefId, kind: DefImplKind) {
     let def = &mut self.chart.defs[def];
     if def.impl_kind.is_none() {
       def.impl_kind = Some(WithVis { vis, kind });

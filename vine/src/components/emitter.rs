@@ -3,17 +3,15 @@ use std::{collections::BTreeMap, mem::take};
 use ivy::ast::{Net, Tree};
 use vine_util::idx::{Counter, IdxVec};
 
-use crate::structures::{
-  chart::Chart,
-  core::Core,
-  diag::Diag,
-  resolutions::{ConstRelId, FnRelId},
-  template::{Template, TemplateStage, TemplateStageRels},
-  tir::Local,
-  types::Inverted,
-  vir::{
-    Header, Interface, InterfaceKind, Invocation, Port, PortKind, Stage, StageId, Step, Transfer,
-    Vir, VirLocal,
+use crate::{
+  features::local::LocalEmissionState,
+  structures::{
+    chart::Chart,
+    core::Core,
+    resolutions::{ConstRelId, FnRelId},
+    template::{Template, TemplateStage, TemplateStageRels},
+    tir::Local,
+    vir::{Header, Interface, InterfaceKind, Port, PortKind, Stage, StageId, Step, Transfer, Vir},
   },
 };
 
@@ -48,15 +46,15 @@ pub fn emit<'core>(core: &'core Core<'core>, chart: &Chart<'core>, vir: &Vir<'co
   Template { stages }
 }
 
-struct Emitter<'core, 'a> {
-  core: &'core Core<'core>,
-  chart: &'a Chart<'core>,
-  vir: &'a Vir<'core>,
-  locals: BTreeMap<Local, LocalState>,
-  pairs: Vec<(Tree, Tree)>,
-  wire_offset: usize,
-  wires: Counter<usize>,
-  rels: TemplateStageRels,
+pub(crate) struct Emitter<'core, 'a> {
+  pub(crate) core: &'core Core<'core>,
+  pub(crate) chart: &'a Chart<'core>,
+  pub(crate) vir: &'a Vir<'core>,
+  pub(crate) locals: BTreeMap<Local, LocalEmissionState>,
+  pub(crate) pairs: Vec<(Tree, Tree)>,
+  pub(crate) wire_offset: usize,
+  pub(crate) wires: Counter<usize>,
+  pub(crate) rels: TemplateStageRels,
 }
 
 impl<'core, 'a> Emitter<'core, 'a> {
@@ -90,75 +88,6 @@ impl<'core, 'a> Emitter<'core, 'a> {
     self.pairs.push(pair);
   }
 
-  fn finish_local(&mut self, local: &VirLocal, mut state: LocalState) {
-    if state.past.is_empty() {
-      state.past.push((Vec::new(), Vec::new()));
-    }
-    let first = &mut state.past[0];
-    first.0.append(&mut state.spaces);
-    first.1.append(&mut state.values);
-    for (spaces, values) in state.past.into_iter() {
-      let (mut sources, mut sinks) = if local.inv.0 { (spaces, values) } else { (values, spaces) };
-      if local.inv.0 {
-        sinks.reverse();
-      }
-      assert!(sources.len() <= 1);
-      let source = sources.pop();
-      if sinks.is_empty() {
-        if let Some(source) = source {
-          match local.drop {
-            Some(drop_rel) => {
-              let drop_tree = self.emit_fn_rel(drop_rel);
-              self.pairs.push((drop_tree, Tree::n_ary("fn", [Tree::Erase, source, Tree::Erase])));
-            }
-            None => {
-              self.core.report(Diag::CannotDrop {
-                span: local.span,
-                ty: self.vir.types.show(self.chart, local.ty),
-              });
-              self.pairs.push((source, Tree::Erase));
-            }
-          }
-        }
-      } else {
-        let source = source.unwrap_or_else(|| {
-          self.core.report(Diag::UninitializedVariable {
-            span: local.span,
-            ty: self.vir.types.show(self.chart, local.ty),
-          });
-          Tree::Erase
-        });
-        if sinks.len() == 1 {
-          self.pairs.push((source, sinks.pop().unwrap()));
-        } else {
-          match local.fork {
-            Some(fork_rel) => {
-              let sink = sinks
-                .into_iter()
-                .reduce(|former, latter| {
-                  let wire = self.new_wire();
-                  let fork_tree = self.emit_fn_rel(fork_rel);
-                  self.pairs.push((
-                    fork_tree,
-                    Tree::n_ary("fn", [Tree::Erase, Tree::n_ary("ref", [wire.0, latter]), former]),
-                  ));
-                  wire.1
-                })
-                .unwrap();
-              self.pairs.push((source, sink));
-            }
-            None => {
-              self.core.report(Diag::CannotFork {
-                span: local.span,
-                ty: self.vir.types.show(self.chart, local.ty),
-              });
-            }
-          }
-        }
-      }
-    }
-  }
-
   fn inline_stage(&mut self, stage: &Stage) {
     let prev_wire_offset = self.wire_offset;
     self.wire_offset = self.wires.peek_next();
@@ -187,17 +116,7 @@ impl<'core, 'a> Emitter<'core, 'a> {
           .iter()
           .flat_map(|&local| {
             let (read, _, write) = interface.wires.get(&local).copied().unwrap_or_default();
-            let read = read.then(|| {
-              let w = self.new_wire();
-              self.local(local).read(w.0);
-              w.1
-            });
-            self.local(local).barrier();
-            let write = write.then(|| {
-              let w = self.new_wire();
-              self.local(local).write(w.0);
-              w.1
-            });
+            let (read, write) = self.emit_compound_invocation(local, read, true, write);
             [read, write].into_iter().flatten()
           })
           .chain([Tree::Erase]),
@@ -208,19 +127,7 @@ impl<'core, 'a> Emitter<'core, 'a> {
         interface.wires.iter().filter_map(|(&local, &(input, barrier, output))| {
           let (read, barrier, write) =
             if interior { (input, barrier, output) } else { (output, true, input) };
-          let read = read.then(|| {
-            let w = self.new_wire();
-            self.local(local).read(w.0);
-            w.1
-          });
-          if barrier {
-            self.local(local).barrier();
-          }
-          let write = write.then(|| {
-            let w = self.new_wire();
-            self.local(local).write(w.0);
-            w.1
-          });
+          let (read, write) = self.emit_compound_invocation(local, read, barrier, write);
           let wires = if interior { (read, write) } else { (write, read) };
           match wires {
             (None, None) => None,
@@ -232,182 +139,78 @@ impl<'core, 'a> Emitter<'core, 'a> {
     }
   }
 
-  fn local(&mut self, local: Local) -> &mut LocalState {
-    self.locals.entry(local).or_insert_with(|| LocalState {
-      inv: self.vir.locals[local].inv,
-      past: Vec::new(),
-      spaces: Vec::new(),
-      values: Vec::new(),
-    })
-  }
-
   fn emit_step(&mut self, step: &Step) {
     match step {
-      Step::Invoke(local, invocation) => match invocation {
-        Invocation::Barrier => self.local(*local).barrier(),
-        Invocation::Read(port) => {
-          let tree = self.emit_port(port);
-          self.local(*local).read(tree)
-        }
-        Invocation::Write(port) => {
-          let tree = self.emit_port(port);
-          self.local(*local).write(tree)
-        }
-        Invocation::ReadBarrier(port) => {
-          let tree = self.emit_port(port);
-          self.local(*local).read_barrier(tree)
-        }
-        Invocation::BarrierWrite(port) => {
-          let tree = self.emit_port(port);
-          self.local(*local).barrier_write(tree)
-        }
-        Invocation::ReadWrite(a, b) => {
-          let a = self.emit_port(a);
-          let b = self.emit_port(b);
-          self.local(*local).read_write(a, b)
-        }
-      },
+      Step::Invoke(local, invocation) => self.emit_invocation(local, invocation),
       Step::Transfer(transfer) => self.emit_transfer(transfer),
       Step::Diverge(..) => unreachable!(),
 
-      Step::Link(a, b) | Step::Struct(_, a, b) => {
-        let a = self.emit_port(a);
-        let b = self.emit_port(b);
-        self.pairs.push((a, b))
+      Step::Link(a, b) => {
+        self.emit_link(a, b);
       }
-      Step::Call(rel, recv, args, ret) => {
-        let func = self.emit_fn_rel(*rel);
-        let recv = recv.as_ref().map(|p| self.emit_port(p)).unwrap_or(Tree::Erase);
-        let pair = (
-          func,
-          Tree::n_ary(
-            "fn",
-            [recv].into_iter().chain(args.iter().chain([ret]).map(|p| self.emit_port(p))),
-          ),
-        );
-        self.pairs.push(pair)
-      }
-      Step::Composite(port, tuple) => {
-        let pair =
-          (self.emit_port(port), Tree::n_ary("tup", tuple.iter().map(|p| self.emit_port(p))));
-        self.pairs.push(pair)
-      }
+      Step::Struct(id, a, b) => self.emit_struct(*id, a, b),
+      Step::Call(rel, recv, args, ret) => self.emit_call(*rel, recv, args, ret),
+      Step::Composite(port, tuple) => self.emit_composite(port, tuple),
+      Step::Ref(reference, value, space) => self.emit_ref(reference, value, space),
       Step::Enum(enum_id, variant_id, port, fields) => {
-        let enum_def = &self.chart.enums[*enum_id];
-        let wire = self.new_wire();
-        let mut fields =
-          Tree::n_ary("enum", fields.iter().map(|p| self.emit_port(p)).chain([wire.0]));
-        let enum_ = Tree::n_ary(
-          "enum",
-          (0..enum_def.variants.len())
-            .map(|i| if variant_id.0 == i { take(&mut fields) } else { Tree::Erase })
-            .chain([wire.1]),
-        );
-        let pair = (self.emit_port(port), enum_);
-        self.pairs.push(pair);
-      }
-      Step::Ref(reference, value, space) => {
-        let pair = (
-          self.emit_port(reference),
-          Tree::Comb(
-            "ref".into(),
-            Box::new(self.emit_port(value)),
-            Box::new(self.emit_port(space)),
-          ),
-        );
-        self.pairs.push(pair)
+        self.emit_enum(*enum_id, *variant_id, port, fields)
       }
       Step::ExtFn(ext_fn, swap, lhs, rhs, out) => {
-        let pair = (
-          self.emit_port(lhs),
-          Tree::ExtFn(
-            ext_fn.to_string(),
-            *swap,
-            Box::new(self.emit_port(rhs)),
-            Box::new(self.emit_port(out)),
-          ),
-        );
-        self.pairs.push(pair)
+        self.emit_ext_fn(ext_fn, swap, lhs, rhs, out);
       }
-      Step::List(port, list) => {
-        let end = self.new_wire();
-        let buf = Tree::n_ary("tup", list.iter().map(|p| self.emit_port(p)).chain([end.0]));
-        let list = Tree::n_ary("tup", [Tree::N32(list.len() as u32), buf, end.1]);
-        let pair = (self.emit_port(port), list);
-        self.pairs.push(pair)
-      }
-      Step::String(port, init, rest) => {
-        let const_len =
-          init.chars().count() + rest.iter().map(|x| x.1.chars().count()).sum::<usize>();
-        let len = self.new_wire();
-        let start = self.new_wire();
-        let end = self.new_wire();
-        let port = self.emit_port(port);
-        self.pairs.push((
-          port,
-          Tree::n_ary(
-            "tup",
-            [
-              len.0,
-              Tree::n_ary("tup", init.chars().map(|c| Tree::N32(c as u32)).chain([start.0])),
-              end.0,
-            ],
-          ),
-        ));
-        let mut cur_len = Tree::N32(const_len as u32);
-        let mut cur_buf = start.1;
-        for (port, seg) in rest {
-          let next_len = self.new_wire();
-          let next_buf = self.new_wire();
-          let port = self.emit_port(port);
-          self.pairs.push((
-            port,
-            Tree::n_ary(
-              "tup",
-              [
-                Tree::ExtFn("n32_add".into(), false, Box::new(cur_len), Box::new(next_len.0)),
-                cur_buf,
-                Tree::n_ary("tup", seg.chars().map(|c| Tree::N32(c as u32)).chain([next_buf.0])),
-              ],
-            ),
-          ));
-          cur_len = next_len.1;
-          cur_buf = next_buf.1;
-        }
-        self.pairs.push((cur_len, len.1));
-        self.pairs.push((cur_buf, end.1));
-      }
+      Step::List(port, list) => self.emit_list(port, list),
+      Step::String(port, init, rest) => self.emit_string(port, init, rest),
       Step::InlineIvy(binds, out, net) => {
-        for (var, port) in binds {
-          let port = self.emit_port(port);
-          self.pairs.push((Tree::Var(var.clone()), port));
-        }
-        let out = self.emit_port(out);
-        self.pairs.push((out, net.root.clone()));
-        self.pairs.extend_from_slice(&net.pairs);
+        self.emit_inline_ivy(binds, out, net);
       }
     }
   }
 
-  fn emit_fn_rel(&mut self, rel: FnRelId) -> Tree {
+  fn emit_link(&mut self, a: &Port, b: &Port) {
+    let a = self.emit_port(a);
+    let b = self.emit_port(b);
+    self.pairs.push((a, b))
+  }
+
+  fn emit_ext_fn(
+    &mut self,
+    ext_fn: &&'static str,
+    swap: &bool,
+    lhs: &Port,
+    rhs: &Port,
+    out: &Port,
+  ) {
+    let pair = (
+      self.emit_port(lhs),
+      Tree::ExtFn(
+        ext_fn.to_string(),
+        *swap,
+        Box::new(self.emit_port(rhs)),
+        Box::new(self.emit_port(out)),
+      ),
+    );
+    self.pairs.push(pair)
+  }
+
+  pub(crate) fn emit_fn_rel(&mut self, rel: FnRelId) -> Tree {
     let wire = self.new_wire();
     self.rels.fns.push((rel, wire.0));
     wire.1
   }
 
-  fn emit_const_rel(&mut self, rel: ConstRelId) -> Tree {
+  pub(crate) fn emit_const_rel(&mut self, rel: ConstRelId) -> Tree {
     let wire = self.new_wire();
     self.rels.consts.push((rel, wire.0));
     wire.1
   }
 
-  fn emit_stage_rel(&mut self, stage: StageId) -> Tree {
+  pub(crate) fn emit_stage_rel(&mut self, stage: StageId) -> Tree {
     let wire = self.new_wire();
     self.rels.stages.push((stage, wire.0));
     wire.1
   }
 
-  fn emit_port(&mut self, port: &Port) -> Tree {
+  pub(crate) fn emit_port(&mut self, port: &Port) -> Tree {
     match port.kind {
       PortKind::Error(_) => Tree::Erase,
       PortKind::Nil => Tree::Erase,
@@ -445,53 +248,8 @@ impl<'core, 'a> Emitter<'core, 'a> {
     }
   }
 
-  fn new_wire(&mut self) -> (Tree, Tree) {
+  pub(crate) fn new_wire(&mut self) -> (Tree, Tree) {
     let label = format!("w{}", self.wires.next());
     (Tree::Var(label.clone()), Tree::Var(label))
-  }
-}
-
-#[derive(Debug)]
-struct LocalState {
-  inv: Inverted,
-  past: Vec<(Vec<Tree>, Vec<Tree>)>,
-  spaces: Vec<Tree>,
-  values: Vec<Tree>,
-}
-
-impl LocalState {
-  fn read(&mut self, tree: Tree) {
-    self.spaces.push(tree);
-    if self.inv.0 {
-      self.barrier();
-    }
-  }
-
-  fn read_barrier(&mut self, tree: Tree) {
-    self.read(tree);
-    self.barrier();
-  }
-
-  fn write(&mut self, tree: Tree) {
-    if !self.inv.0 {
-      self.barrier();
-    }
-    self.values.push(tree);
-  }
-
-  fn barrier_write(&mut self, tree: Tree) {
-    self.barrier();
-    self.write(tree);
-  }
-
-  fn read_write(&mut self, a: Tree, b: Tree) {
-    self.read(a);
-    self.write(b);
-  }
-
-  fn barrier(&mut self) {
-    if self.past.is_empty() || !self.spaces.is_empty() || !self.values.is_empty() {
-      self.past.push((take(&mut self.spaces), take(&mut self.values)));
-    }
   }
 }

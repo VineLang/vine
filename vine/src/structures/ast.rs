@@ -7,7 +7,7 @@ use std::{
 use ivy::ast::Net;
 use vine_util::{idx, interner::Interned};
 
-use crate::structures::diag::ErrorGuaranteed;
+use crate::{features::builtin::Builtin, structures::diag::ErrorGuaranteed};
 
 pub mod visit;
 
@@ -153,36 +153,6 @@ pub enum AttrKind {
   Erase,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub enum Builtin {
-  Bool,
-  N32,
-  I32,
-  F32,
-  Char,
-  IO,
-  Prelude,
-  List,
-  String,
-  Option,
-  Result,
-  BinaryOp(BinaryOp),
-  Neg,
-  Not,
-  BoolNot,
-  ComparisonOp(ComparisonOp),
-  Cast,
-  Fork,
-  Drop,
-  Duplicate,
-  Erase,
-  Range,
-  BoundUnbounded,
-  BoundInclusive,
-  BoundExclusive,
-  Advance,
-}
-
 pub type GenericParams<'core> = Generics<TypeParam<'core>, ImplParam<'core>>;
 pub type GenericArgs<'core> = Generics<Ty<'core>, Impl<'core>>;
 
@@ -291,7 +261,7 @@ pub enum ExprKind<'core> {
   Tuple(Vec<Expr<'core>>),
   Object(Vec<(Key<'core>, Expr<'core>)>),
   List(Vec<Expr<'core>>),
-  TupleField(Expr<'core>, usize, Option<usize>),
+  TupleField(Expr<'core>, usize),
   ObjectField(Expr<'core>, Key<'core>),
   Method(Expr<'core>, Ident<'core>, GenericArgs<'core>, Vec<Expr<'core>>),
   Call(Expr<'core>, Vec<Expr<'core>>),

@@ -1,13 +1,10 @@
 use std::collections::HashMap;
 
-use vine_util::{
-  idx::{Counter, IdxVec, IntMap},
-  new_idx,
-};
+use vine_util::{idx::IdxVec, new_idx};
 
-use crate::structures::{
-  ast::{BinaryOp, Block, ComparisonOp, Expr, Ident, ImplParam, Pat, Span, Trait, Ty, TypeParam},
-  tir::Local,
+use crate::{
+  features::builtin::Builtins,
+  structures::ast::{Block, Expr, Ident, ImplParam, Pat, Span, Trait, Ty, TypeParam},
 };
 
 #[derive(Debug, Default)]
@@ -25,42 +22,6 @@ pub struct Chart<'core> {
   pub impls: IdxVec<ImplId, ImplDef<'core>>,
   pub builtins: Builtins,
   pub main_mod: Option<DefId>,
-}
-
-#[derive(Debug, Default)]
-pub struct Builtins {
-  pub prelude: Option<DefId>,
-
-  pub bool: Option<OpaqueTypeId>,
-  pub n32: Option<OpaqueTypeId>,
-  pub i32: Option<OpaqueTypeId>,
-  pub f32: Option<OpaqueTypeId>,
-  pub char: Option<OpaqueTypeId>,
-  pub io: Option<OpaqueTypeId>,
-
-  pub list: Option<StructId>,
-  pub string: Option<StructId>,
-  pub option: Option<EnumId>,
-  pub result: Option<EnumId>,
-
-  pub neg: Option<FnId>,
-  pub not: Option<FnId>,
-  pub cast: Option<FnId>,
-  pub binary_ops: IntMap<BinaryOp, Option<FnId>>,
-  pub comparison_ops: IntMap<ComparisonOp, Option<FnId>>,
-  pub bool_not: Option<ImplId>,
-
-  pub fork: Option<TraitId>,
-  pub drop: Option<TraitId>,
-  pub duplicate: Option<ImplId>,
-  pub erase: Option<ImplId>,
-
-  pub range: Option<StructId>,
-  pub bound_exclusive: Option<StructId>,
-  pub bound_inclusive: Option<StructId>,
-  pub bound_unbounded: Option<StructId>,
-
-  pub advance: Option<FnId>,
 }
 
 new_idx!(pub DefId);
@@ -183,7 +144,6 @@ pub struct ConcreteFnDef<'core> {
   pub params: Vec<Pat<'core>>,
   pub ret_ty: Option<Ty<'core>>,
   pub body: Block<'core>,
-  pub locals: Counter<Local>,
 }
 
 new_idx!(pub OpaqueTypeId);

@@ -2,11 +2,12 @@ use vine_util::idx::Idx;
 
 use crate::{
   compiler::Compiler,
+  features::builtin::Builtins,
   structures::{
     chart::{
-      Builtins, Chart, ConcreteConstId, ConcreteFnId, ConstId, Def, DefId, DefImplKind,
-      DefPatternKind, DefTraitKind, DefTypeKind, DefValueKind, EnumId, FnId, GenericsId, ImplId,
-      ImportId, MemberKind, OpaqueTypeId, StructId, TraitId, TypeAliasId,
+      Chart, ConcreteConstId, ConcreteFnId, ConstId, Def, DefId, DefImplKind, DefPatternKind,
+      DefTraitKind, DefTypeKind, DefValueKind, EnumId, FnId, GenericsId, ImplId, ImportId,
+      MemberKind, OpaqueTypeId, StructId, TraitId, TypeAliasId,
     },
     resolutions::{FragmentId, Resolutions},
     signatures::Signatures,
