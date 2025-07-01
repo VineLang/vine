@@ -180,9 +180,6 @@ impl<'core> Distiller<'core, '_> {
     if let Some(else_) = else_ {
       let result = self.distill_expr_value(&mut none_stage, else_);
       none_stage.local_barrier_write_to(result_local, result);
-    } else {
-      none_stage
-        .local_barrier_write_to(result_local, Port { ty: self.types.nil(), kind: PortKind::Nil });
     }
 
     self.finish_stage(init_stage);

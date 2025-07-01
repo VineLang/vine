@@ -30,6 +30,7 @@ pub struct FlexImpls {
   pub inv: Inverted,
   pub fork: Option<TirImpl>,
   pub drop: Option<TirImpl>,
+  pub is_nil: bool,
 }
 
 struct CandidateSearch<F> {
@@ -159,12 +160,9 @@ impl<'core, 'a> Finder<'core, 'a> {
 
     let pos_flex = pos_fork.is_some() || pos_drop.is_some();
     let neg_flex = neg_fork.is_some() || neg_drop.is_some();
+    let is_nil = types.is_nil(ty);
 
-    if pos_flex
-      && neg_flex
-      && !matches!(types.kind(ty), Some((_, TypeKind::Tuple(els))) if els.is_empty())
-      && !matches!(types.kind(ty), Some((_, TypeKind::Object(entries))) if entries.is_empty())
-    {
+    if pos_flex && neg_flex && !is_nil {
       Err(Diag::BiFlexible { span, ty: types.show(self.chart, ty) })?
     }
 
@@ -194,7 +192,7 @@ impl<'core, 'a> Finder<'core, 'a> {
       assert!(!unify_result.is_failure());
     }
 
-    Ok(FlexImpls { inv, fork, drop })
+    Ok(FlexImpls { inv, fork, drop, is_nil })
   }
 
   pub fn find_impl(&mut self, types: &mut Types<'core>, query: &ImplType) -> TirImpl {

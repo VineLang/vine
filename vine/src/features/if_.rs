@@ -7,7 +7,7 @@ use crate::{
     diag::Diag,
     tir::{TirExpr, TirExprKind},
     types::Type,
-    vir::{Port, PortKind, Stage},
+    vir::{Port, Stage},
   },
   tools::fmt::{doc::Doc, Formatter},
 };
@@ -96,8 +96,6 @@ impl<'core> Distiller<'core, '_> {
     if let Some(leg) = leg {
       let result = self.distill_expr_value(&mut cur_stage, leg);
       cur_stage.local_barrier_write_to(local, result);
-    } else {
-      cur_stage.local_barrier_write_to(local, Port { ty: self.types.nil(), kind: PortKind::Nil });
     }
 
     self.finish_stage(cur_stage);
