@@ -247,7 +247,7 @@ impl<'core, 'r> Distiller<'core, 'r> {
         self.distill_let_else(stage, span, pat, init, else_block, continuation)
       }
       TirExprKind::Do(label, block) => self.distill_do(stage, span, *label, block),
-      TirExprKind::If(arms, leg) => self.distill_if(stage, span, ty, arms, leg),
+      TirExprKind::If(cond, then, else_) => self.distill_if(stage, span, ty, cond, then, else_),
       TirExprKind::When(target, arms, leg) => {
         self.distill_when(stage, span, ty, *target, arms, leg)
       }

@@ -204,7 +204,7 @@ impl<'core: 'src, 'src> Formatter<'src> {
       ExprKind::Do(label, body) => self.fmt_expr_do(*label, body),
       ExprKind::Assign(inverted, space, value) => self.fmt_expr_assign(*inverted, space, value),
       ExprKind::Match(expr, arms) => self.fmt_expr_match(expr, arms),
-      ExprKind::If(arms, leg) => self.fmt_expr_if(arms, leg),
+      ExprKind::If(cond, then, else_) => self.fmt_expr_if(cond, then, else_),
       ExprKind::When(label, arms, leg) => self.fmt_expr_when(*label, arms, leg),
       ExprKind::While(label, cond, body, else_) => self.fmt_expr_while(*label, cond, body, else_),
       ExprKind::Loop(label, body) => self.fmt_expr_loop(*label, body),
