@@ -8,8 +8,8 @@ use crate::{
     ast::{LetStmt, Span, Stmt, StmtKind},
     diag::Diag,
     tir::{TirExpr, TirExprKind, TirPat},
-    types::{Type, TypeKind},
-    vir::{Port, PortKind, Stage, Step},
+    types::Type,
+    vir::{Port, Stage, Step},
   },
   tools::fmt::{doc::Doc, Formatter},
 };
@@ -55,10 +55,7 @@ impl<'core> Resolver<'core, '_> {
     rest: &[Stmt<'core>],
   ) -> TirExprKind {
     let init = stmt.init.as_ref().map(|init| self.resolve_expr(init));
-    let else_block = stmt.else_block.as_ref().map(|block| {
-      let never = self.types.new(TypeKind::Never);
-      self.resolve_block_type(block, never)
-    });
+    let else_block = stmt.else_block.as_ref().map(|block| self.resolve_block_type(block, ty));
     let bind = self.resolve_pat(&stmt.bind);
     if let Some(init) = &init {
       self.expect_type(init.span, init.ty, bind.ty);
@@ -114,8 +111,7 @@ impl<'core> Distiller<'core, '_> {
     let result = self.distill_expr_value(&mut then_stage, continuation);
     then_stage.local_barrier_write_to(local, result);
     let result = self.distill_expr_value(&mut else_stage, else_block);
-    let never = result.ty;
-    else_stage.steps.push(Step::Link(result, Port { ty: never.inverse(), kind: PortKind::Nil }));
+    else_stage.local_barrier_write_to(local, result);
     self.finish_stage(init_stage);
     self.finish_stage(then_stage);
     self.finish_stage(else_stage);

@@ -7,7 +7,7 @@ pub fn main(&io: &IO) {
 }
 
 fn verbose_add(a: Option[N32], b: Option[N32]) -> String {
-  let Some(a) = a else { return "a was none" };
-  let Some(b) = b else { return "b was none" };
+  let Some(a) = a else { "a was none" };
+  let Some(b) = b else { "b was none" };
   "{a} + {b} = {(a + b)}"
 }
