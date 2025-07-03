@@ -35,12 +35,12 @@ let l: List[N32] = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 let io: IO = #io;
 let l: List[N32] = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 > l.slice(5..=)
-error input:1:13 - expected one of {DotDot, DotDotEq, ColonColon, And, AndAnd, Minus, Star, StarStar, Bang, Tilde, OpenBrace, OpenParen, OpenBracket, Hole, Fn, InlineIvy, Match, Return, Do, Loop, While, For, Break, Continue, If, True, False, Ident, Num, DoubleQuote, SingleQuote}; found Some(CloseParen)
+error input:1:13 - expected one of {DotDot, DotDotEq, ColonColon, And, AndAnd, Minus, Star, StarStar, Bang, Tilde, OpenBrace, OpenParen, OpenBracket, Hole, Fn, InlineIvy, Match, Return, Do, Loop, While, For, Break, Continue, If, When, True, False, Ident, Num, DoubleQuote, SingleQuote}; found Some(CloseParen)
 
 let io: IO = #io;
 let l: List[N32] = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 > l.slice(..=)
-error input:1:12 - expected one of {DotDot, DotDotEq, ColonColon, And, AndAnd, Minus, Star, StarStar, Bang, Tilde, OpenBrace, OpenParen, OpenBracket, Hole, Fn, InlineIvy, Match, Return, Do, Loop, While, For, Break, Continue, If, True, False, Ident, Num, DoubleQuote, SingleQuote}; found Some(CloseParen)
+error input:1:12 - expected one of {DotDot, DotDotEq, ColonColon, And, AndAnd, Minus, Star, StarStar, Bang, Tilde, OpenBrace, OpenParen, OpenBracket, Hole, Fn, InlineIvy, Match, Return, Do, Loop, While, For, Break, Continue, If, When, True, False, Ident, Num, DoubleQuote, SingleQuote}; found Some(CloseParen)
 
 let io: IO = #io;
 let l: List[N32] = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
