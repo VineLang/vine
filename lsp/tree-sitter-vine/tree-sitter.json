@@ -1,0 +1,18 @@
+{
+  "$schema": "https://tree-sitter.github.io/tree-sitter/assets/schemas/config.schema.json",
+  "grammars": [
+    {
+      "name": "vine",
+      "camelcase": "Vine",
+      "title": "Vine",
+      "scope": "source.vine",
+      "file-types": ["vi"],
+      "injection-regex": "^vine$",
+      "class-name": "TreeSitterVine",
+      "highlights": ["queries/highlights.scm"]
+    }
+  ],
+  "metadata": {
+    "version": "0.0.0"
+  }
+}
