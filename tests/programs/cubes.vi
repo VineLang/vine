@@ -1,0 +1,31 @@
+
+use std::rng::Pcg32;
+
+fn cube_root(x: F32) -> F32 {
+  if x == 0.0 {
+    return 0.0;
+  }
+  let initial = x;
+  loop {
+    let next = (2.0 * x + initial / (x * x)) / 3.0;
+    if F32::abs(next - x) < 5.0e-4 {
+      return next;
+    }
+    x = next;
+  }
+}
+
+pub fn main(&io: &IO) {
+  let seed = "impeccably stylish penguin";
+  let rng = Pcg32::seeded(seed);
+  let n = 100;
+  while n > 0 {
+    n -= 1
+    let x = rng.gen_n32() as F32;
+    if rng.gen_n32() % 2 == 0 {
+      x = -x;
+    }
+    let root = cube_root(x);
+    io.println("{x} -> {root}");
+  }
+}
