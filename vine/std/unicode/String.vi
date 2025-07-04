@@ -31,7 +31,7 @@ pub mod String {
       list ++= [found];
       if remaining is Some(remaining) {
         self = remaining;
-        continue
+        continue;
       } else {
         list
       }
@@ -52,7 +52,7 @@ pub mod String {
       ~end ~= empty && ~end;
       if remaining is Some(remaining) {
         self = remaining;
-        continue
+        continue;
       } else {
         list
       }
@@ -91,7 +91,7 @@ pub mod String {
       let (&b, _iter) = iter.advance().unwrap();
       iter = _iter;
       if a != b {
-        return Err(self)
+        return Err(self);
       }
     }
     Ok(String(unsafe::move(iter.tail())))

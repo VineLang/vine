@@ -85,7 +85,7 @@ pub mod IO {
         String(chars)
       } else {
         chars ++= [byte];
-        continue
+        continue;
       }
     }
   }

@@ -12,7 +12,7 @@ fn cube_root(x: F32) -> F32 {
       return next;
     }
     x = next;
-    continue
+    continue;
   }
 }
 

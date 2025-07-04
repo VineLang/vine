@@ -10,7 +10,7 @@ pub fn main(&io: &IO) {
       if io.prompt(msg) is Some(input) && N32::parse(input) is Some(n) {
         n
       } else {
-        continue
+        continue;
       }
     }
   }

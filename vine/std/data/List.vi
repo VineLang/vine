@@ -27,7 +27,7 @@ pub mod List {
   pub fn .at[T](&List[T](len, *buf, _), i: N32) -> Option[&T] {
     if i >= len {
       let &_ = buf;
-      return None
+      return None;
     }
     while i != 0 {
       let &Buf(_, *tail) = buf;
@@ -155,7 +155,7 @@ pub mod List {
   pub fn .find[T, F*; fn F(&T) -> Bool](&self: &List[T], pred: F) -> Option[&T] {
     for &value in self.iter() {
       if pred(&value) {
-        break Some(&value)
+        break Some(&value);
       }
     } else {
       None
@@ -338,7 +338,9 @@ pub mod List {
             (a_iter, b_iter) = (_a_iter, _b_iter);
             match a.cmp(&b) {
               Ord::Lt { Ord::Lt }
-              Ord::Eq { continue }
+              Ord::Eq {
+                continue;
+              }
               Ord::Gt { Ord::Gt }
             }
           }

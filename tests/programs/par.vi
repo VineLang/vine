@@ -150,11 +150,11 @@ fn start_playing(&io: &IO) -> Game {
         (Up, Up, Down) { win3() }
         (Up, Up, Up) {
           draw();
-          continue
+          continue;
         }
         (Down, Down, Down) {
           draw();
-          continue
+          continue;
         }
       }
     }

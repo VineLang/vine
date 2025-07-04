@@ -193,7 +193,9 @@ pub mod F32 {
   pub fn parse(str: String) -> Option[F32] {
     let prefix = match str!.pop_front() {
       Some(char) { char }
-      None { return None }
+      None {
+        return None;
+      }
     };
     let is_negative = when {
       prefix == '-' { true }
