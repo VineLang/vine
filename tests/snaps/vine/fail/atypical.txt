@@ -3,7 +3,7 @@ error tests/programs/fail/atypical.vi:3:24 - types in item signatures cannot be 
 error tests/programs/fail/atypical.vi:5:12 - types in item signatures cannot be elided
 error tests/programs/fail/atypical.vi:4:8 - types in item signatures cannot be elided
 error tests/programs/fail/atypical.vi:4:14 - `::atypical::Foo` expects 1 type parameter; was passed 0
-error tests/programs/fail/atypical.vi:5:16 - no function to return from
+error tests/programs/fail/atypical.vi:5:21 - no function to return from
 error tests/programs/fail/atypical.vi:7:16 - expected type `N32`; found `F32`
 error tests/programs/fail/atypical.vi:8:16 - expected type `F32`; found `N32`
 error tests/programs/fail/atypical.vi:9:23 - cannot find impl of trait `Add[(N32, N32), F32, ?13]`
@@ -46,11 +46,8 @@ error tests/programs/fail/atypical.vi:16:3 - cannot find impl of trait `Drop[??]
 error tests/programs/fail/atypical.vi:17:3 - cannot find impl of trait `Drop[??]`
 error tests/programs/fail/atypical.vi:22:7 - expected a complete pattern
 error tests/programs/fail/atypical.vi:23:4 - search limit reached when finding impl of trait `Drop[?72]`
-error tests/programs/fail/atypical.vi:25:3 - cannot find impl of trait `Drop[??]`
-error tests/programs/fail/atypical.vi:26:3 - cannot find impl of trait `Drop[??]`
 error tests/programs/fail/atypical.vi:28:14 - search limit reached when finding impl of trait `Drop[?82]`
 error tests/programs/fail/atypical.vi:30:3 - cannot find impl of trait `Drop[??]`
-error tests/programs/fail/atypical.vi:31:3 - cannot find impl of trait `Drop[??]`
 error tests/programs/fail/atypical.vi:32:3 - cannot find impl of trait `Drop[??]`
 error tests/programs/fail/atypical.vi:10:8 - search limit reached when finding flex of type `?19`
 error tests/programs/fail/atypical.vi:10:11 - search limit reached when finding flex of type `?20`
