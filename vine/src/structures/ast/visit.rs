@@ -1,6 +1,6 @@
 use crate::structures::ast::{
-  Block, Expr, ExprKind, GenericArgs, GenericParams, Impl, ImplKind, Item, ItemKind, ModKind, Pat,
-  PatKind, Stmt, StmtKind, Trait, TraitKind, Ty, TyKind,
+  Block, Expr, ExprKind, GenericArgs, GenericParams, Impl, ImplKind, Item, ItemKind, LetElse,
+  ModKind, Pat, PatKind, Stmt, StmtKind, Trait, TraitKind, Ty, TyKind,
 };
 
 pub trait VisitMut<'core, 'a> {
@@ -245,8 +245,15 @@ pub trait VisitMut<'core, 'a> {
         if let Some(init) = &mut l.init {
           self.visit_expr(init);
         }
-        if let Some(block) = &mut l.else_block {
-          self.visit_block(block);
+        match &mut l.else_ {
+          Some(LetElse::Block(b)) => self.visit(b),
+          Some(LetElse::Match(a)) => {
+            for (p, b) in a {
+              self.visit(p);
+              self.visit(b);
+            }
+          }
+          None => {}
         }
         self.visit_pat(&mut l.bind);
       }

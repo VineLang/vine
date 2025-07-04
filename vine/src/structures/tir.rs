@@ -131,8 +131,6 @@ pub enum TirExprKind {
   #[class(value)]
   Let(TirPat, Option<TirExpr>, TirExpr),
   #[class(value)]
-  LetElse(TirPat, TirExpr, TirExpr, TirExpr),
-  #[class(value)]
   Seq(TirExpr, TirExpr),
   #[class(poly, value, place, space)]
   Error(ErrorGuaranteed),

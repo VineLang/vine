@@ -243,9 +243,6 @@ impl<'core, 'r> Distiller<'core, 'r> {
       }
       TirExprKind::Seq(ignored, continuation) => self.distill_seq(stage, ignored, continuation),
       TirExprKind::Let(pat, init, continuation) => self.distill_let(stage, pat, init, continuation),
-      TirExprKind::LetElse(pat, init, else_block, continuation) => {
-        self.distill_let_else(stage, span, pat, init, else_block, continuation)
-      }
       TirExprKind::Do(label, block) => self.distill_do(stage, span, *label, block),
       TirExprKind::If(cond, then, else_) => self.distill_if(stage, span, ty, cond, then, else_),
       TirExprKind::When(target, arms, leg) => {
