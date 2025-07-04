@@ -21,8 +21,8 @@ impl<'core> VineParser<'core, '_> {
       return self._parse_stmt_let_fn();
     }
     let bind = self.parse_pat()?;
-    let init = self.eat(Token::Eq)?.then(|| self.parse_expr()).transpose()?;
-    let else_block = self.eat(Token::Else)?.then(|| self.parse_block()).transpose()?;
+    let init = self.eat_then(Token::Eq, Self::parse_expr)?;
+    let else_block = self.eat_then(Token::Else, Self::parse_block)?;
     self.eat(Token::Semi)?;
     Ok(StmtKind::Let(LetStmt { bind, init, else_block }))
   }

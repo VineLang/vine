@@ -23,7 +23,7 @@ impl<'core> VineParser<'core, '_> {
     let label = self.parse_label()?;
     let cond = self.parse_expr()?;
     let body = self.parse_block()?;
-    let else_ = self.eat(Token::Else)?.then(|| self.parse_block()).transpose()?;
+    let else_ = self.eat_then(Token::Else, Self::parse_block)?;
     Ok(ExprKind::While(label, cond, body, else_))
   }
 }

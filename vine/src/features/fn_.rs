@@ -9,7 +9,7 @@ use crate::{
     distiller::{Distiller, Return},
     emitter::Emitter,
     lexer::Token,
-    parser::{VineParser, BP, PAREN_COMMA},
+    parser::{VineParser, BP},
     resolver::{Binding, Resolver},
   },
   structures::{
@@ -31,8 +31,8 @@ impl<'core> VineParser<'core, '_> {
     let method = self.eat(Token::Dot)?;
     let name = self.parse_ident()?;
     let generics = self.parse_generic_params()?;
-    let params = self.parse_delimited(PAREN_COMMA, Self::parse_pat)?;
-    let ret = self.eat(Token::ThinArrow)?.then(|| self.parse_ty()).transpose()?;
+    let params = self.parse_pats()?;
+    let ret = self.eat_then(Token::ThinArrow, Self::parse_ty)?;
     let body = (!self.eat(Token::Semi)?).then(|| self.parse_block()).transpose()?;
     Ok(FnItem { method, name, generics, params, ret, body })
   }
@@ -40,7 +40,7 @@ impl<'core> VineParser<'core, '_> {
   pub(crate) fn parse_expr_fn(&mut self) -> Result<ExprKind<'core>, Diag<'core>> {
     self.expect(Token::Fn)?;
     let flex = self.parse_flex()?;
-    let params = self.parse_delimited(PAREN_COMMA, Self::parse_pat)?;
+    let params = self.parse_pats()?;
     let body = self.parse_block()?;
     Ok(ExprKind::Fn(flex, params, None, body))
   }
@@ -54,8 +54,8 @@ impl<'core> VineParser<'core, '_> {
     self.expect(Token::Fn)?;
     let flex = self.parse_flex()?;
     let name = self.parse_ident()?;
-    let params = self.parse_delimited(PAREN_COMMA, Self::parse_pat)?;
-    let ret = self.eat(Token::ThinArrow)?.then(|| self.parse_ty()).transpose()?;
+    let params = self.parse_pats()?;
+    let ret = self.eat_then(Token::ThinArrow, Self::parse_ty)?;
     let body = self.parse_block()?;
     Ok(StmtKind::LetFn(LetFnStmt { flex, name, params, ret, body }))
   }

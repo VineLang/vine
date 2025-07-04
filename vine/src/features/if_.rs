@@ -17,7 +17,7 @@ impl<'core> VineParser<'core, '_> {
     self.expect(Token::If)?;
     let cond = self.parse_expr()?;
     let then = self.parse_block()?;
-    let else_ = self.eat(Token::Else)?.then(|| self.parse_block()).transpose()?;
+    let else_ = self.eat_then(Token::Else, Self::parse_block)?;
     Ok(ExprKind::If(cond, then, else_))
   }
 }

@@ -18,7 +18,7 @@ use crate::{
 
 impl<'core> VineParser<'core, '_> {
   pub(crate) fn parse_label(&mut self) -> Result<Label<'core>, Diag<'core>> {
-    Ok(Label(self.eat(Token::Dot)?.then(|| self.parse_ident()).transpose()?))
+    Ok(Label(self.eat_then(Token::Dot, Self::parse_ident)?))
   }
 
   pub(crate) fn parse_target(&mut self) -> Result<Target<'core>, Diag<'core>> {

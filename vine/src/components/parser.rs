@@ -385,6 +385,10 @@ impl<'core, 'src> VineParser<'core, 'src> {
     Ok(Err(lhs))
   }
 
+  pub(crate) fn parse_pats(&mut self) -> Result<Vec<Pat<'core>>, Diag<'core>> {
+    self.parse_delimited(PAREN_COMMA, Self::parse_pat)
+  }
+
   pub(crate) fn parse_pat(&mut self) -> Result<Pat<'core>, Diag<'core>> {
     self.parse_pat_bp(BP::Min)
   }
@@ -510,7 +514,7 @@ impl<'core, 'src> VineParser<'core, 'src> {
     if self.eat(Token::Fn)? {
       let receiver = self.parse_ty()?;
       let params = self.parse_delimited(PAREN_COMMA, Self::parse_ty)?;
-      let ret = self.eat(Token::ThinArrow)?.then(|| self.parse_ty()).transpose()?;
+      let ret = self.eat_then(Token::ThinArrow, Self::parse_ty)?;
       return Ok(TraitKind::Fn(receiver, params, ret));
     }
     self.unexpected()
