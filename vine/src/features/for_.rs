@@ -9,7 +9,7 @@ use crate::{
     resolver::{Resolver, TargetInfo},
   },
   structures::{
-    ast::{Block, Expr, ExprKind, Label, Pat, Span, Target},
+    ast::{Block, Expr, ExprKind, Label, Pat, Span, Target, Ty},
     chart::VariantId,
     diag::Diag,
     resolutions::FnRelId,
@@ -27,9 +27,10 @@ impl<'core> VineParser<'core, '_> {
     let pat = self.parse_pat()?;
     self.expect(Token::In)?;
     let expr = self.parse_expr()?;
+    let ty = self.parse_arrow_ty()?;
     let body = self.parse_block()?;
     let else_ = self.eat_then(Token::Else, Self::parse_block)?;
-    Ok(ExprKind::For(label, pat, expr, body, else_))
+    Ok(ExprKind::For(label, pat, expr, ty, body, else_))
   }
 }
 
@@ -39,6 +40,7 @@ impl<'core: 'src, 'src> Formatter<'src> {
     label: Label<'core>,
     pat: &Pat<'core>,
     expr: &Expr<'core>,
+    ty: &Option<Ty<'core>>,
     block: &Block<'core>,
     else_: &Option<Block<'core>>,
   ) -> Doc<'src> {
@@ -49,6 +51,7 @@ impl<'core: 'src, 'src> Formatter<'src> {
       self.fmt_pat(pat),
       Doc(" in "),
       self.fmt_expr(expr),
+      self.fmt_arrow_ty(ty),
       Doc(" "),
       self.fmt_block(block, true),
       match else_ {
@@ -66,15 +69,16 @@ impl<'core> Resolver<'core, '_> {
     label: Label<'core>,
     pat: &Pat<'core>,
     iter: &Expr<'core>,
+    ty: &Option<Ty<'core>>,
     block: &Block<'core>,
     else_: &Option<Block<'core>>,
   ) -> Result<TirExpr, Diag<'core>> {
-    let result_ty = if else_.is_some() { self.types.new_var(span) } else { self.types.nil() };
+    let ty = self.resolve_arrow_ty(span, ty, true);
     let target_id = self.target_id.next();
     let result = self.bind_target(
       label,
       [Target::AnyLoop, Target::For],
-      TargetInfo { id: target_id, break_ty: result_ty, continue_: false },
+      TargetInfo { id: target_id, break_ty: ty, continue_: false },
       |self_| {
         self_.enter_scope();
         let iter = self_.resolve_expr(iter);
@@ -83,12 +87,16 @@ impl<'core> Resolver<'core, '_> {
           self_.builtin_fn(span, self_.chart.builtins.advance, "advance", [iter.ty, pat.ty])?;
         let block = self_.resolve_block_nil(block);
         self_.exit_scope();
-        let else_ = else_.as_ref().map(|b| self_.resolve_block_type(b, result_ty));
+        let else_ = else_.as_ref().map(|b| self_.resolve_block_type(b, ty));
+        let nil = self_.types.nil();
+        if else_.is_none() && self_.types.unify(ty, nil).is_failure() {
+          self_.core.report(Diag::MissingElse { span });
+        }
         Result::<_, Diag<'core>>::Ok((rel, pat, iter, block, else_))
       },
     );
     let (rel, pat, iter, block, else_) = result?;
-    Ok(TirExpr::new(span, result_ty, TirExprKind::For(target_id, rel, pat, iter, block, else_)))
+    Ok(TirExpr::new(span, ty, TirExprKind::For(target_id, rel, pat, iter, block, else_)))
   }
 }
 

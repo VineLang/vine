@@ -3,7 +3,7 @@ use vine_util::parser::Parser;
 use crate::{
   components::{distiller::Distiller, lexer::Token, parser::VineParser, resolver::Resolver},
   structures::{
-    ast::{Block, Expr, ExprKind, Span},
+    ast::{Block, Expr, ExprKind, Span, Ty},
     diag::Diag,
     tir::{TirExpr, TirExprKind},
     types::Type,
@@ -16,9 +16,10 @@ impl<'core> VineParser<'core, '_> {
   pub(crate) fn parse_expr_if(&mut self) -> Result<ExprKind<'core>, Diag<'core>> {
     self.expect(Token::If)?;
     let cond = self.parse_expr()?;
+    let ty = self.parse_arrow_ty()?;
     let then = self.parse_block()?;
     let else_ = self.eat_then(Token::Else, Self::parse_block)?;
-    Ok(ExprKind::If(cond, then, else_))
+    Ok(ExprKind::If(cond, ty, then, else_))
   }
 }
 
@@ -26,12 +27,14 @@ impl<'core: 'src, 'src> Formatter<'src> {
   pub(crate) fn fmt_expr_if(
     &self,
     cond: &Expr<'core>,
+    ty: &Option<Ty<'core>>,
     then: &Block<'core>,
     else_: &Option<Block<'core>>,
   ) -> Doc<'src> {
     Doc::concat([
       Doc("if "),
       self.fmt_expr(cond),
+      self.fmt_arrow_ty(ty),
       Doc(" "),
       self.fmt_block(then, true),
       match else_ {
@@ -47,16 +50,21 @@ impl<'core> Resolver<'core, '_> {
     &mut self,
     span: Span,
     cond: &Expr<'core>,
+    ty: &Option<Ty<'core>>,
     then: &Block<'core>,
     else_: &Option<Block<'core>>,
   ) -> Result<TirExpr, Diag<'core>> {
-    let result = if else_.is_some() { self.types.new_var(span) } else { self.types.nil() };
+    let ty = self.resolve_arrow_ty(span, ty, true);
     self.enter_scope();
     let cond = self.resolve_scoped_cond(cond);
-    let then = self.resolve_block_type(then, result);
+    let then = self.resolve_block_type(then, ty);
     self.exit_scope();
-    let else_ = else_.as_ref().map(|leg| self.resolve_block_type(leg, result));
-    Ok(TirExpr::new(span, result, TirExprKind::If(cond, then, else_)))
+    let else_ = else_.as_ref().map(|leg| self.resolve_block_type(leg, ty));
+    let nil = self.types.nil();
+    if else_.is_none() && self.types.unify(ty, nil).is_failure() {
+      self.core.report(Diag::MissingElse { span });
+    }
+    Ok(TirExpr::new(span, ty, TirExprKind::If(cond, then, else_)))
   }
 }
 

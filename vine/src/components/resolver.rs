@@ -474,18 +474,18 @@ impl<'core, 'a> Resolver<'core, 'a> {
     match &*expr.kind {
       ExprKind::Error(e) => Err(*e)?,
       ExprKind::Paren(e) => self._resolve_expr(e),
-      ExprKind::Do(label, block) => self.resolve_expr_do(span, *label, block),
+      ExprKind::Do(label, ty, block) => self.resolve_expr_do(span, *label, ty, block),
       ExprKind::Assign(dir, space, value) => self.resolve_expr_assign(span, *dir, space, value),
-      ExprKind::Match(scrutinee, arms) => self.resolve_match(span, scrutinee, arms),
-      ExprKind::If(cond, then, else_) => self.resolve_expr_if(span, cond, then, else_),
-      ExprKind::When(label, arms, leg) => self.resolve_expr_when(span, *label, arms, leg),
-      ExprKind::While(label, cond, block, else_) => {
-        self.resolve_expr_while(span, *label, cond, block, else_)
+      ExprKind::Match(scrutinee, ty, arms) => self.resolve_match(span, scrutinee, ty, arms),
+      ExprKind::If(cond, ty, then, else_) => self.resolve_expr_if(span, cond, ty, then, else_),
+      ExprKind::When(label, ty, arms, leg) => self.resolve_expr_when(span, *label, ty, arms, leg),
+      ExprKind::While(label, cond, ty, block, else_) => {
+        self.resolve_expr_while(span, *label, cond, ty, block, else_)
       }
-      ExprKind::For(label, pat, iter, block, else_) => {
-        self.resolve_expr_for(span, *label, pat, iter, block, else_)
+      ExprKind::For(label, pat, iter, ty, block, else_) => {
+        self.resolve_expr_for(span, *label, pat, iter, ty, block, else_)
       }
-      ExprKind::Loop(label, block) => self.resolve_expr_loop(span, *label, block),
+      ExprKind::Loop(label, ty, block) => self.resolve_expr_loop(span, *label, ty, block),
       ExprKind::Fn(flex, params, ret, body) => self.resolve_expr_fn(span, flex, params, ret, body),
       ExprKind::Break(label, value) => self.resolve_expr_break(span, *label, value),
       ExprKind::Return(value) => self.resolve_expr_return(span, value),
@@ -591,6 +591,24 @@ impl<'core, 'a> Resolver<'core, 'a> {
       TyKind::Inverse(inner) => self.resolve_ty_inverse(inner, inference),
       TyKind::Path(path) => self.resolve_ty_path(path, inference),
       TyKind::Fn(path) => self.resolve_ty_fn(path),
+    }
+  }
+
+  pub(crate) fn resolve_arrow_ty(
+    &mut self,
+    span: Span,
+    ty: &Option<Ty<'core>>,
+    inference: bool,
+  ) -> Type {
+    match ty {
+      Some(ty) => self.resolve_ty(ty, inference),
+      None => {
+        if inference {
+          self.types.new_var(span)
+        } else {
+          self.types.nil()
+        }
+      }
     }
   }
 }

@@ -81,28 +81,35 @@ pub trait VisitMut<'core, 'a> {
         self.visit(&mut path.generics);
         self.visit(args);
       }
-      ExprKind::Do(_, b) | ExprKind::Loop(_, b) => self.visit_block(b),
-      ExprKind::Match(a, b) => {
+      ExprKind::Do(_, a, b) | ExprKind::Loop(_, a, b) => {
+        self.visit(a);
+        self.visit_block(b);
+      }
+      ExprKind::Match(a, b, c) => {
         self.visit_expr(a);
-        for (p, b) in b {
+        self.visit(b);
+        for (p, b) in c {
           self.visit_pat(p);
           self.visit_block(b);
         }
       }
-      ExprKind::If(cond, then, else_) => {
+      ExprKind::If(cond, ty, then, else_) => {
         self.visit(cond);
+        self.visit(ty);
         self.visit(then);
         self.visit(else_);
       }
-      ExprKind::When(_, arms, leg) => {
+      ExprKind::When(_, ty, arms, leg) => {
+        self.visit(ty);
         for (cond, block) in arms {
           self.visit(cond);
           self.visit(block);
         }
         self.visit(leg);
       }
-      ExprKind::While(_, a, b, c) => {
+      ExprKind::While(_, a, ty, b, c) => {
         self.visit_expr(a);
+        self.visit(ty);
         self.visit_block(b);
         self.visit(c);
       }
@@ -111,9 +118,10 @@ pub trait VisitMut<'core, 'a> {
         self.visit(b);
         self.visit_block(c);
       }
-      ExprKind::For(_, a, b, c, d) => {
+      ExprKind::For(_, a, b, ty, c, d) => {
         self.visit(a);
         self.visit_expr(b);
+        self.visit(ty);
         self.visit(c);
         self.visit(d);
       }

@@ -480,6 +480,10 @@ impl<'core, 'src> VineParser<'core, 'src> {
     self.unexpected()
   }
 
+  pub(crate) fn parse_arrow_ty(&mut self) -> Result<Option<Ty<'core>>, Diag<'core>> {
+    Ok(self.eat_then(Token::ThinArrow, Self::parse_ty)?)
+  }
+
   pub(crate) fn parse_impl(&mut self) -> Result<Impl<'core>, Diag<'core>> {
     let span = self.start_span();
     let kind = self._parse_impl()?;
@@ -514,7 +518,7 @@ impl<'core, 'src> VineParser<'core, 'src> {
     if self.eat(Token::Fn)? {
       let receiver = self.parse_ty()?;
       let params = self.parse_delimited(PAREN_COMMA, Self::parse_ty)?;
-      let ret = self.eat_then(Token::ThinArrow, Self::parse_ty)?;
+      let ret = self.parse_arrow_ty()?;
       return Ok(TraitKind::Fn(receiver, params, ret));
     }
     self.unexpected()

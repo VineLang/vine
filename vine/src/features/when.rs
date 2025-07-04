@@ -8,7 +8,7 @@ use crate::{
     resolver::{Resolver, TargetInfo},
   },
   structures::{
-    ast::{Block, Expr, ExprKind, Label, Span, Target},
+    ast::{Block, Expr, ExprKind, Label, Span, Target, Ty},
     diag::Diag,
     tir::{TargetId, TirExpr, TirExprKind},
     types::Type,
@@ -21,6 +21,7 @@ impl<'core> VineParser<'core, '_> {
   pub(crate) fn parse_expr_when(&mut self) -> Result<ExprKind<'core>, Diag<'core>> {
     self.expect(Token::When)?;
     let label = self.parse_label()?;
+    let ty = self.parse_arrow_ty()?;
     self.expect(Token::OpenBrace)?;
     let mut arms = Vec::new();
     while !self.check(Token::Hole) {
@@ -31,7 +32,7 @@ impl<'core> VineParser<'core, '_> {
     self.expect(Token::Hole)?;
     let leg = self.parse_block()?;
     self.expect(Token::CloseBrace)?;
-    Ok(ExprKind::When(label, arms, leg))
+    Ok(ExprKind::When(label, ty, arms, leg))
   }
 }
 
@@ -39,12 +40,14 @@ impl<'core: 'src, 'src> Formatter<'src> {
   pub(crate) fn fmt_expr_when(
     &self,
     label: Label<'core>,
+    ty: &Option<Ty<'core>>,
     arms: &Vec<(Expr<'core>, Block<'core>)>,
     leg: &Block<'core>,
   ) -> Doc<'src> {
     Doc::concat([
       Doc("when"),
       self.fmt_label(label),
+      self.fmt_arrow_ty(ty),
       Doc(" "),
       Doc::brace_multiline(
         arms
@@ -63,20 +66,21 @@ impl<'core> Resolver<'core, '_> {
     &mut self,
     span: Span,
     label: Label<'core>,
+    ty: &Option<Ty<'core>>,
     arms: &Vec<(Expr<'core>, Block<'core>)>,
     leg: &Block<'core>,
   ) -> Result<TirExpr, Diag<'core>> {
-    let result = self.types.new_var(span);
+    let ty = self.resolve_arrow_ty(span, ty, true);
     let target_id = self.target_id.next();
     let arms = self.bind_target(
       label,
       [Target::When],
-      TargetInfo { id: target_id, break_ty: result, continue_: true },
+      TargetInfo { id: target_id, break_ty: ty, continue_: true },
       |self_| {
         Vec::from_iter(arms.iter().map(|(cond, block)| {
           self_.enter_scope();
           let cond = self_.resolve_scoped_cond(cond);
-          let block = self_.resolve_block_type(block, result);
+          let block = self_.resolve_block_type(block, ty);
           self_.exit_scope();
           (cond, block)
         }))
@@ -85,10 +89,10 @@ impl<'core> Resolver<'core, '_> {
     let leg = self.bind_target(
       label,
       [Target::When],
-      TargetInfo { id: target_id, break_ty: result, continue_: false },
-      |self_| self_.resolve_block_type(leg, result),
+      TargetInfo { id: target_id, break_ty: ty, continue_: false },
+      |self_| self_.resolve_block_type(leg, ty),
     );
-    Ok(TirExpr::new(span, result, TirExprKind::When(target_id, arms, leg)))
+    Ok(TirExpr::new(span, ty, TirExprKind::When(target_id, arms, leg)))
   }
 }
 

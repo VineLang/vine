@@ -8,7 +8,7 @@ use crate::{
     resolver::{Resolver, TargetInfo},
   },
   structures::{
-    ast::{Block, Expr, ExprKind, Label, Span, Target},
+    ast::{Block, Expr, ExprKind, Label, Span, Target, Ty},
     diag::Diag,
     tir::{TargetId, TirExpr, TirExprKind},
     types::Type,
@@ -22,9 +22,10 @@ impl<'core> VineParser<'core, '_> {
     self.expect(Token::While)?;
     let label = self.parse_label()?;
     let cond = self.parse_expr()?;
+    let ty = self.parse_arrow_ty()?;
     let body = self.parse_block()?;
     let else_ = self.eat_then(Token::Else, Self::parse_block)?;
-    Ok(ExprKind::While(label, cond, body, else_))
+    Ok(ExprKind::While(label, cond, ty, body, else_))
   }
 }
 
@@ -33,12 +34,14 @@ impl<'core: 'src, 'src> Formatter<'src> {
     &self,
     label: Label<'core>,
     cond: &Expr<'core>,
+    ty: &Option<Ty<'core>>,
     body: &Block<'core>,
     else_: &Option<Block<'core>>,
   ) -> Doc<'src> {
     Doc::concat([
       Doc("while"),
       self.fmt_label(label),
+      self.fmt_arrow_ty(ty),
       Doc(" "),
       self.fmt_expr(cond),
       Doc(" "),
@@ -57,25 +60,30 @@ impl<'core> Resolver<'core, '_> {
     span: Span,
     label: Label<'core>,
     cond: &Expr<'core>,
+    ty: &Option<Ty<'core>>,
     block: &Block<'core>,
     else_: &Option<Block<'core>>,
   ) -> Result<TirExpr, Diag<'core>> {
-    let result = if else_.is_some() { self.types.new_var(span) } else { self.types.nil() };
+    let ty = self.resolve_arrow_ty(span, ty, true);
     let target_id = self.target_id.next();
     let (cond, block, else_) = self.bind_target(
       label,
       [Target::AnyLoop, Target::While],
-      TargetInfo { id: target_id, break_ty: result, continue_: true },
+      TargetInfo { id: target_id, break_ty: ty, continue_: true },
       |self_| {
         self_.enter_scope();
         let cond = self_.resolve_scoped_cond(cond);
         let block = self_.resolve_block_nil(block);
         self_.exit_scope();
-        let else_ = else_.as_ref().map(|b| self_.resolve_block_type(b, result));
+        let else_ = else_.as_ref().map(|b| self_.resolve_block_type(b, ty));
+        let nil = self_.types.nil();
+        if else_.is_none() && self_.types.unify(ty, nil).is_failure() {
+          self_.core.report(Diag::MissingElse { span });
+        }
         (cond, block, else_)
       },
     );
-    Ok(TirExpr::new(span, result, TirExprKind::While(target_id, cond, block, else_)))
+    Ok(TirExpr::new(span, ty, TirExprKind::While(target_id, cond, block, else_)))
   }
 }
 

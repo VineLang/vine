@@ -8,7 +8,7 @@ use crate::{
     resolver::{Resolver, TargetInfo},
   },
   structures::{
-    ast::{Block, ExprKind, Label, Span, Target},
+    ast::{Block, ExprKind, Label, Span, Target, Ty},
     diag::Diag,
     tir::{TargetId, TirExpr, TirExprKind},
     types::Type,
@@ -21,14 +21,26 @@ impl<'core> VineParser<'core, '_> {
   pub(crate) fn parse_expr_loop(&mut self) -> Result<ExprKind<'core>, Diag<'core>> {
     self.expect(Token::Loop)?;
     let label = self.parse_label()?;
+    let ty = self.parse_arrow_ty()?;
     let body = self.parse_block()?;
-    Ok(ExprKind::Loop(label, body))
+    Ok(ExprKind::Loop(label, ty, body))
   }
 }
 
 impl<'core: 'src, 'src> Formatter<'src> {
-  pub(crate) fn fmt_expr_loop(&self, label: Label<'core>, body: &Block<'core>) -> Doc<'src> {
-    Doc::concat([Doc("loop"), self.fmt_label(label), Doc(" "), self.fmt_block(body, true)])
+  pub(crate) fn fmt_expr_loop(
+    &self,
+    label: Label<'core>,
+    ty: &Option<Ty<'core>>,
+    body: &Block<'core>,
+  ) -> Doc<'src> {
+    Doc::concat([
+      Doc("loop"),
+      self.fmt_label(label),
+      self.fmt_arrow_ty(ty),
+      Doc(" "),
+      self.fmt_block(body, true),
+    ])
   }
 }
 
@@ -37,9 +49,10 @@ impl<'core> Resolver<'core, '_> {
     &mut self,
     span: Span,
     label: Label<'core>,
+    ty: &Option<Ty<'core>>,
     block: &Block<'core>,
   ) -> Result<TirExpr, Diag<'core>> {
-    let ty = self.types.new_var(span);
+    let ty = self.resolve_arrow_ty(span, ty, true);
     let target_id = self.target_id.next();
     let block = self.bind_target(
       label,

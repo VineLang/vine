@@ -201,17 +201,19 @@ impl<'core: 'src, 'src> Formatter<'src> {
       ExprKind::Paren(p) => Doc::paren(self.fmt_expr(p)),
       ExprKind::Hole => Doc("_"),
       ExprKind::Path(path, args) => self.fmt_expr_path(path, args),
-      ExprKind::Do(label, body) => self.fmt_expr_do(*label, body),
+      ExprKind::Do(label, ty, body) => self.fmt_expr_do(*label, ty, body),
       ExprKind::Assign(inverted, space, value) => self.fmt_expr_assign(*inverted, space, value),
-      ExprKind::Match(expr, arms) => self.fmt_expr_match(expr, arms),
-      ExprKind::If(cond, then, else_) => self.fmt_expr_if(cond, then, else_),
-      ExprKind::When(label, arms, leg) => self.fmt_expr_when(*label, arms, leg),
-      ExprKind::While(label, cond, body, else_) => self.fmt_expr_while(*label, cond, body, else_),
-      ExprKind::Loop(label, body) => self.fmt_expr_loop(*label, body),
-      ExprKind::For(label, pat, expr, block, else_) => {
-        self.fmt_expr_for(*label, pat, expr, block, else_)
+      ExprKind::Match(expr, ty, arms) => self.fmt_expr_match(expr, ty, arms),
+      ExprKind::If(cond, ty, then, else_) => self.fmt_expr_if(cond, ty, then, else_),
+      ExprKind::When(label, ty, arms, leg) => self.fmt_expr_when(*label, ty, arms, leg),
+      ExprKind::While(label, cond, ty, body, else_) => {
+        self.fmt_expr_while(*label, cond, ty, body, else_)
       }
-      ExprKind::Fn(flex, params, _, body) => self.fmt_expr_fn(flex, params, body),
+      ExprKind::Loop(label, ty, body) => self.fmt_expr_loop(*label, ty, body),
+      ExprKind::For(label, pat, expr, ty, block, else_) => {
+        self.fmt_expr_for(*label, pat, expr, ty, block, else_)
+      }
+      ExprKind::Fn(flex, params, ty, body) => self.fmt_expr_fn(flex, params, ty, body),
       ExprKind::Return(expr) => self.fmt_expr_return(expr),
       ExprKind::Break(label, expr) => self.fmt_expr_break(*label, expr),
       ExprKind::Continue(label) => self.fmt_expr_continue(*label),
@@ -275,6 +277,13 @@ impl<'core: 'src, 'src> Formatter<'src> {
       TyKind::Path(path) => self.fmt_path(path),
       TyKind::Fn(path) => Doc::concat([Doc("fn "), self.fmt_path(path)]),
       TyKind::Object(object) => self.fmt_ty_object(object),
+    }
+  }
+
+  pub(crate) fn fmt_arrow_ty(&self, ty: &Option<Ty<'core>>) -> Doc<'src> {
+    match ty {
+      Some(ty) => Doc::concat([Doc(" -> "), self.fmt_ty(ty)]),
+      None => Doc(""),
     }
   }
 

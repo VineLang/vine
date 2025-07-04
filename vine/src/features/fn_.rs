@@ -32,7 +32,7 @@ impl<'core> VineParser<'core, '_> {
     let name = self.parse_ident()?;
     let generics = self.parse_generic_params()?;
     let params = self.parse_pats()?;
-    let ret = self.eat_then(Token::ThinArrow, Self::parse_ty)?;
+    let ret = self.parse_arrow_ty()?;
     let body = (!self.eat(Token::Semi)?).then(|| self.parse_block()).transpose()?;
     Ok(FnItem { method, name, generics, params, ret, body })
   }
@@ -41,8 +41,9 @@ impl<'core> VineParser<'core, '_> {
     self.expect(Token::Fn)?;
     let flex = self.parse_flex()?;
     let params = self.parse_pats()?;
+    let ty = self.parse_arrow_ty()?;
     let body = self.parse_block()?;
-    Ok(ExprKind::Fn(flex, params, None, body))
+    Ok(ExprKind::Fn(flex, params, ty, body))
   }
 
   pub(crate) fn parse_expr_return(&mut self) -> Result<ExprKind<'core>, Diag<'core>> {
@@ -55,7 +56,7 @@ impl<'core> VineParser<'core, '_> {
     let flex = self.parse_flex()?;
     let name = self.parse_ident()?;
     let params = self.parse_pats()?;
-    let ret = self.eat_then(Token::ThinArrow, Self::parse_ty)?;
+    let ret = self.parse_arrow_ty()?;
     let body = self.parse_block()?;
     Ok(StmtKind::LetFn(LetFnStmt { flex, name, params, ret, body }))
   }
@@ -95,6 +96,7 @@ impl<'core: 'src, 'src> Formatter<'src> {
     &self,
     flex: &Flex,
     params: &Vec<Pat<'core>>,
+    ty: &Option<Ty<'core>>,
     body: &Block<'core>,
   ) -> Doc<'src> {
     Doc::concat([
@@ -102,6 +104,7 @@ impl<'core: 'src, 'src> Formatter<'src> {
       self.fmt_flex(*flex),
       Doc(" "),
       Doc::paren_comma(params.iter().map(|p| self.fmt_pat(p))),
+      self.fmt_arrow_ty(ty),
       Doc(" "),
       self.fmt_block(body, false),
     ])
