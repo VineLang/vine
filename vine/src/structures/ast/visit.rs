@@ -52,17 +52,12 @@ pub trait VisitMut<'core, 'a> {
       | ExprKind::I32(_)
       | ExprKind::F32(_)
       | ExprKind::Char(_)
-      | ExprKind::Continue(_)
-      | ExprKind::Error(_)
-      | ExprKind::Return(None)
-      | ExprKind::Break(_, None) => {}
+      | ExprKind::Error(_) => {}
       ExprKind::Paren(a)
       | ExprKind::Ref(a, _)
       | ExprKind::Deref(a, _)
       | ExprKind::Neg(a)
       | ExprKind::Not(a)
-      | ExprKind::Break(_, Some(a))
-      | ExprKind::Return(Some(a))
       | ExprKind::TupleField(a, _)
       | ExprKind::ObjectField(a, _)
       | ExprKind::Inverse(a, _)
@@ -266,9 +261,14 @@ pub trait VisitMut<'core, 'a> {
         }
         self.visit_block(&mut d.body);
       }
-      StmtKind::Expr(t, _) => self.visit_expr(t),
+      StmtKind::Expr(t, _) | StmtKind::Return(Some(t)) | StmtKind::Break(_, Some(t)) => {
+        self.visit_expr(t)
+      }
       StmtKind::Item(i) => self.visit_item(i),
-      StmtKind::Empty => {}
+      StmtKind::Empty
+      | StmtKind::Return(None)
+      | StmtKind::Break(_, None)
+      | StmtKind::Continue(_) => {}
     }
   }
 

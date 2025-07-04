@@ -213,6 +213,9 @@ pub enum StmtKind<'core> {
   LetFn(LetFnStmt<'core>),
   Expr(Expr<'core>, bool),
   Item(Item<'core>),
+  Return(Option<Expr<'core>>),
+  Break(Target<'core>, Option<Expr<'core>>),
+  Continue(Target<'core>),
   Empty,
 }
 
@@ -258,9 +261,6 @@ pub enum ExprKind<'core> {
   Loop(Label<'core>, Option<Ty<'core>>, Block<'core>),
   For(Label<'core>, Pat<'core>, Expr<'core>, Option<Ty<'core>>, Block<'core>, Option<Block<'core>>),
   Fn(Flex, Vec<Pat<'core>>, Option<Ty<'core>>, Block<'core>),
-  Return(Option<Expr<'core>>),
-  Break(Target<'core>, Option<Expr<'core>>),
-  Continue(Target<'core>),
   Ref(Expr<'core>, bool),
   Deref(Expr<'core>, bool),
   Inverse(Expr<'core>, bool),

@@ -46,9 +46,10 @@ impl<'core> VineParser<'core, '_> {
     Ok(ExprKind::Fn(flex, params, ty, body))
   }
 
-  pub(crate) fn parse_expr_return(&mut self) -> Result<ExprKind<'core>, Diag<'core>> {
+  pub(crate) fn parse_stmt_return(&mut self) -> Result<StmtKind<'core>, Diag<'core>> {
     let expr = self.maybe_parse_expr_bp(BP::Min)?;
-    Ok(ExprKind::Return(expr))
+    self.eat(Token::Semi)?;
+    Ok(StmtKind::Return(expr))
   }
 
   pub(crate) fn _parse_stmt_let_fn(&mut self) -> Result<StmtKind<'core>, Diag<'core>> {
@@ -114,10 +115,10 @@ impl<'core: 'src, 'src> Formatter<'src> {
     Doc::concat([self.fmt_expr(func), Doc::paren_comma(args.iter().map(|x| self.fmt_expr(x)))])
   }
 
-  pub(crate) fn fmt_expr_return(&self, expr: &Option<Expr<'core>>) -> Doc<'src> {
+  pub(crate) fn fmt_stmt_return(&self, expr: &Option<Expr<'core>>) -> Doc<'src> {
     match expr {
-      Some(expr) => Doc::concat([Doc("return "), self.fmt_expr(expr)]),
-      None => Doc("return"),
+      Some(expr) => Doc::concat([Doc("return "), self.fmt_expr(expr), Doc(";")]),
+      None => Doc("return;"),
     }
   }
 

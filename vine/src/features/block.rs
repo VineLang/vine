@@ -87,6 +87,24 @@ impl<'core> Resolver<'core, '_> {
           TirExprKind::Seq(expr, self.resolve_stmts_type(span, rest, ty))
         }
       }
+      StmtKind::Return(_) | StmtKind::Break(..) | StmtKind::Continue(..) => {
+        let stmt = match &stmt.kind {
+          StmtKind::Break(label, value) => self.resolve_expr_break(stmt.span, *label, value),
+          StmtKind::Return(value) => self.resolve_expr_return(stmt.span, value),
+          StmtKind::Continue(label) => self.resolve_expr_continue(stmt.span, *label),
+          _ => unreachable!(),
+        };
+        let mut stmt = stmt.unwrap_or_else(|diag| self.error_expr(span, diag));
+        if rest.is_empty() {
+          _ = self.types.unify(stmt.ty, ty);
+          return stmt;
+        } else {
+          let nil = self.types.nil();
+          _ = self.types.unify(stmt.ty, nil);
+          stmt.ty = nil;
+          TirExprKind::Seq(stmt, self.resolve_stmts_type(span, rest, ty))
+        }
+      }
       StmtKind::Item(_) | StmtKind::Empty => return self.resolve_stmts_type(span, rest, ty),
     };
     TirExpr { span, ty, kind: Box::new(kind) }

@@ -177,15 +177,6 @@ impl<'core, 'src> VineParser<'core, 'src> {
     &mut self,
     span: usize,
   ) -> Result<Option<ExprKind<'core>>, Diag<'core>> {
-    if self.eat(Token::Return)? {
-      return Ok(Some(self.parse_expr_return()?));
-    }
-    if self.eat(Token::Break)? {
-      return Ok(Some(self.parse_expr_break()?));
-    }
-    if self.eat(Token::Continue)? {
-      return Ok(Some(self.parse_expr_continue()?));
-    }
     if self.check(Token::And) || self.check(Token::AndAnd) {
       return Ok(Some(self.parse_expr_ref(span)?));
     }
@@ -554,6 +545,15 @@ impl<'core, 'src> VineParser<'core, 'src> {
       };
       let semi = self.eat(Token::Semi)?;
       return Ok(StmtKind::Expr(expr, semi));
+    }
+    if self.eat(Token::Return)? {
+      return Ok(self.parse_stmt_return()?);
+    }
+    if self.eat(Token::Break)? {
+      return Ok(self.parse_stmt_break()?);
+    }
+    if self.eat(Token::Continue)? {
+      return Ok(self.parse_stmt_continue()?);
     }
     let expr = self.parse_expr()?;
     let semi = self.eat(Token::Semi)?;

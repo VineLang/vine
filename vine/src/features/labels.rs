@@ -8,7 +8,7 @@ use crate::{
     resolver::{Resolver, TargetInfo},
   },
   structures::{
-    ast::{Expr, ExprKind, Label, Span, Target},
+    ast::{Expr, Label, Span, StmtKind, Target},
     diag::Diag,
     tir::{TargetId, TirExpr, TirExprKind},
     vir::{Port, PortKind, Stage, Step, Transfer},
@@ -41,14 +41,17 @@ impl<'core> VineParser<'core, '_> {
     })
   }
 
-  pub(crate) fn parse_expr_break(&mut self) -> Result<ExprKind<'core>, Diag<'core>> {
+  pub(crate) fn parse_stmt_break(&mut self) -> Result<StmtKind<'core>, Diag<'core>> {
     let target = self.parse_target()?;
     let expr = self.maybe_parse_expr_bp(BP::Min)?;
-    Ok(ExprKind::Break(target, expr))
+    self.eat(Token::Semi)?;
+    Ok(StmtKind::Break(target, expr))
   }
 
-  pub(crate) fn parse_expr_continue(&mut self) -> Result<ExprKind<'core>, Diag<'core>> {
-    Ok(ExprKind::Continue(self.parse_target()?))
+  pub(crate) fn parse_stmt_continue(&mut self) -> Result<StmtKind<'core>, Diag<'core>> {
+    let target = self.parse_target()?;
+    self.eat(Token::Semi)?;
+    Ok(StmtKind::Continue(target))
   }
 }
 
@@ -73,21 +76,25 @@ impl<'core: 'src, 'src> Formatter<'src> {
     }
   }
 
-  pub(crate) fn fmt_expr_break(
+  pub(crate) fn fmt_stmt_break(
     &self,
     target: Target<'core>,
     expr: &Option<Expr<'core>>,
   ) -> Doc<'src> {
     match expr {
-      Some(expr) => {
-        Doc::concat([Doc("break"), self.fmt_target(target), Doc(" "), self.fmt_expr(expr)])
-      }
-      None => Doc::concat([Doc("break"), self.fmt_target(target)]),
+      Some(expr) => Doc::concat([
+        Doc("break"),
+        self.fmt_target(target),
+        Doc(" "),
+        self.fmt_expr(expr),
+        Doc(";"),
+      ]),
+      None => Doc::concat([Doc("break"), self.fmt_target(target), Doc(";")]),
     }
   }
 
-  pub(crate) fn fmt_expr_continue(&self, target: Target<'core>) -> Doc<'src> {
-    Doc::concat([Doc("continue"), self.fmt_target(target)])
+  pub(crate) fn fmt_stmt_continue(&self, target: Target<'core>) -> Doc<'src> {
+    Doc::concat([Doc("continue"), self.fmt_target(target), Doc(";")])
   }
 }
 

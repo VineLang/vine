@@ -157,6 +157,9 @@ impl<'core: 'src, 'src> Formatter<'src> {
       StmtKind::Expr(expr, false) => self.fmt_expr(expr),
       StmtKind::Expr(expr, true) => Doc::concat([self.fmt_expr(expr), Doc(";")]),
       StmtKind::Item(item) => self.fmt_item(item),
+      StmtKind::Return(expr) => self.fmt_stmt_return(expr),
+      StmtKind::Break(label, expr) => self.fmt_stmt_break(*label, expr),
+      StmtKind::Continue(label) => self.fmt_stmt_continue(*label),
       StmtKind::Empty => Doc::EMPTY,
     }
   }
@@ -214,9 +217,6 @@ impl<'core: 'src, 'src> Formatter<'src> {
         self.fmt_expr_for(*label, pat, expr, ty, block, else_)
       }
       ExprKind::Fn(flex, params, ty, body) => self.fmt_expr_fn(flex, params, ty, body),
-      ExprKind::Return(expr) => self.fmt_expr_return(expr),
-      ExprKind::Break(label, expr) => self.fmt_expr_break(*label, expr),
-      ExprKind::Continue(label) => self.fmt_expr_continue(*label),
       ExprKind::Ref(expr, postfix) => self.fmt_expr_ref(expr, *postfix),
       ExprKind::Deref(expr, postfix) => self.fmt_expr_deref(expr, *postfix),
       ExprKind::Inverse(expr, postfix) => self.fmt_expr_inverse(expr, *postfix),

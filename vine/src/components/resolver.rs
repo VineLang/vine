@@ -487,9 +487,6 @@ impl<'core, 'a> Resolver<'core, 'a> {
       }
       ExprKind::Loop(label, ty, block) => self.resolve_expr_loop(span, *label, ty, block),
       ExprKind::Fn(flex, params, ret, body) => self.resolve_expr_fn(span, flex, params, ret, body),
-      ExprKind::Break(label, value) => self.resolve_expr_break(span, *label, value),
-      ExprKind::Return(value) => self.resolve_expr_return(span, value),
-      ExprKind::Continue(label) => self.resolve_expr_continue(span, *label),
       ExprKind::Ref(inner, _) => self.resolve_expr_ref(span, inner),
       ExprKind::List(elements) => self.resolve_expr_list(span, elements),
       ExprKind::Method(receiver, name, generics, args) => {
