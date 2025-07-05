@@ -200,7 +200,11 @@ impl<'core> Analyzer<'core, '_> {
   }
 
   fn process_local(&mut self, local: Local, declared: Vec<StageId>) {
-    let inv = self.locals[local].inv;
+    let info = &self.locals[local];
+    if info.is_nil {
+      return;
+    }
+    let inv = info.inv;
     self.fill_segments(local, declared);
     self.fixed_point(inv);
     self.set_wires(local, inv);

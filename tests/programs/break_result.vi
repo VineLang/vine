@@ -2,5 +2,6 @@
 pub fn main(&io: &IO) {
   io.println(loop {
     break "loop result";
+    continue;
   });
 }

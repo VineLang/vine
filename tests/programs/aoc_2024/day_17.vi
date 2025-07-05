@@ -27,35 +27,42 @@ pub fn main(&io: &IO) {
     let &opcode = program.at(ip).unwrap();
     let &operand = program.at(ip + 1).unwrap();
     let fn combo() {
-      if operand == 4 {
-        a
-      } else if operand == 5 {
-        b
-      } else if operand == 6 {
-        c
-      } else {
-        operand
+      when {
+        operand == 4 { a }
+        operand == 5 { b }
+        operand == 6 { c }
+        _ { operand }
       }
     }
-    if opcode == 0 {
-      a >>= combo();
-    } else if opcode == 1 {
-      b ^= operand;
-    } else if opcode == 2 {
-      b = combo() & 7;
-    } else if opcode == 3 {
-      if a != 0 {
-        ip = operand - 2;
+    when {
+      opcode == 0 {
+        a >>= combo();
       }
-    } else if opcode == 4 {
-      b ^= c;
-    } else if opcode == 5 {
-      let n = combo() & 7;
-      output ++= [n];
-    } else if opcode == 6 {
-      b = a >> combo();
-    } else if opcode == 7 {
-      c = a >> combo();
+      opcode == 1 {
+        b ^= operand;
+      }
+      opcode == 2 {
+        b = combo() & 7;
+      }
+      opcode == 3 {
+        if a != 0 {
+          ip = operand - 2;
+        }
+      }
+      opcode == 4 {
+        b ^= c;
+      }
+      opcode == 5 {
+        let n = combo() & 7;
+        output ++= [n];
+      }
+      opcode == 6 {
+        b = a >> combo();
+      }
+      opcode == 7 {
+        c = a >> combo();
+      }
+      _ {}
     }
     ip += 2;
   }

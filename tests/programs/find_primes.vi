@@ -16,5 +16,6 @@ pub fn main(&io: &IO) {
       d += 1;
     }
     io.println("{n}");
+    continue;
   }
 }

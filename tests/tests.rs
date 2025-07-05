@@ -77,6 +77,7 @@ fn tests(t: &mut DynTester) {
     test_vi(t, "tests/programs/square_case.vi", b"", ".txt", true);
     test_vi(t, "tests/programs/the_greatest_show.vi", b"", ".txt", true);
     test_vi(t, "tests/programs/verbose_add.vi", b"", ".txt", true);
+    test_vi(t, "tests/programs/when_break_continue.vi", b"", ".txt", true);
 
     for (name, _) in t.glob_in("programs/aoc_2024/", "*.vi") {
       let name: String = name.into();

@@ -31,9 +31,10 @@ pub fn primeness(n: N32) -> Result[Bool, String] {
   let d = 2;
   while d * d <= n {
     if n % d == 0 {
-      return Ok(false);
+      break Ok(false);
     }
     d += 1;
+  } else {
+    Ok(true)
   }
-  Ok(true)
 }

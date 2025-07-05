@@ -6,8 +6,8 @@ use crate::{
   components::finder::Finder,
   structures::{
     ast::{
-      Block, Expr, ExprKind, Ident, Impl, ImplKind, Pat, PatKind, Path, Span, Trait, TraitKind, Ty,
-      TyKind,
+      Block, Expr, ExprKind, Ident, Impl, ImplKind, Pat, PatKind, Path, Span, Target, Trait,
+      TraitKind, Ty, TyKind,
     },
     chart::{Chart, ConcreteFnId, DefId, DefTraitKind, FnId, GenericsId, OpaqueTypeId, TraitId},
     checkpoint::Checkpoint,
@@ -16,7 +16,7 @@ use crate::{
     resolutions::{FnRel, FnRelId, Fragment, FragmentId, Rels, Resolutions},
     signatures::{ConstSig, FnSig, Signatures, TraitSig},
     tir::{
-      ClosureId, LabelId, Local, Tir, TirClosure, TirExpr, TirExprKind, TirImpl, TirLocal, TirPat,
+      ClosureId, Local, TargetId, Tir, TirClosure, TirExpr, TirExprKind, TirImpl, TirLocal, TirPat,
       TirPatKind,
     },
     types::{ImplType, Type, TypeCtx, TypeKind, Types},
@@ -41,9 +41,8 @@ pub struct Resolver<'core, 'a> {
   pub(crate) scope: HashMap<Ident<'core>, Vec<ScopeEntry>>,
   pub(crate) scope_depth: usize,
   pub(crate) locals: IdxVec<Local, TirLocal>,
-  pub(crate) labels: HashMap<Ident<'core>, LabelInfo>,
-  pub(crate) loops: Vec<LabelInfo>,
-  pub(crate) label_id: Counter<LabelId>,
+  pub(crate) targets: HashMap<Target<'core>, Vec<TargetInfo>>,
+  pub(crate) target_id: Counter<TargetId>,
 
   pub(crate) rels: Rels,
   pub(crate) closures: IdxVec<ClosureId, TirClosure>,
@@ -56,10 +55,10 @@ pub(crate) struct ScopeEntry {
 }
 
 #[derive(Debug, Clone, Copy)]
-pub(crate) struct LabelInfo {
-  pub(crate) id: LabelId,
-  pub(crate) is_loop: bool,
+pub(crate) struct TargetInfo {
+  pub(crate) id: TargetId,
   pub(crate) break_ty: Type,
+  pub(crate) continue_: bool,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -85,15 +84,14 @@ impl<'core, 'a> Resolver<'core, 'a> {
       types: Types::default(),
       locals: Default::default(),
       return_ty: None,
-      labels: Default::default(),
+      targets: Default::default(),
       cur_def: DefId::ROOT,
       cur_generics: GenericsId::NONE,
       type_param_lookup: Default::default(),
       impl_param_lookup: Default::default(),
       scope: Default::default(),
       scope_depth: Default::default(),
-      loops: Default::default(),
-      label_id: Default::default(),
+      target_id: Default::default(),
       rels: Default::default(),
       closures: Default::default(),
     }
@@ -192,7 +190,7 @@ impl<'core, 'a> Resolver<'core, 'a> {
 
   pub(crate) fn initialize(&mut self, def_id: DefId, generics_id: GenericsId) {
     assert!(self.return_ty.is_none());
-    self.labels.clear();
+    self.targets.clear();
     self.types.reset();
 
     self.type_param_lookup.clear();
@@ -200,9 +198,8 @@ impl<'core, 'a> Resolver<'core, 'a> {
     self.scope.clear();
     debug_assert_eq!(self.scope_depth, 0);
     self.locals.clear();
-    self.labels.clear();
-    debug_assert!(self.loops.is_empty());
-    self.label_id.reset();
+    self.targets.clear();
+    self.target_id.reset();
 
     self.cur_def = def_id;
     self.cur_generics = generics_id;
@@ -477,19 +474,19 @@ impl<'core, 'a> Resolver<'core, 'a> {
     match &*expr.kind {
       ExprKind::Error(e) => Err(*e)?,
       ExprKind::Paren(e) => self._resolve_expr(e),
-      ExprKind::Do(label, block) => self.resolve_expr_do(span, *label, block),
+      ExprKind::Do(label, ty, block) => self.resolve_expr_do(span, *label, ty, block),
       ExprKind::Assign(dir, space, value) => self.resolve_expr_assign(span, *dir, space, value),
-      ExprKind::Match(scrutinee, arms) => self.resolve_match(span, scrutinee, arms),
-      ExprKind::If(arms, leg) => self.resolve_expr_if(span, arms, leg),
-      ExprKind::While(label, cond, block) => self.resolve_expr_while(span, *label, cond, block),
-      ExprKind::For(label, pat, iter, block) => {
-        self.resolve_expr_for(span, *label, pat, iter, block)
+      ExprKind::Match(scrutinee, ty, arms) => self.resolve_match(span, scrutinee, ty, arms),
+      ExprKind::If(cond, ty, then, else_) => self.resolve_expr_if(span, cond, ty, then, else_),
+      ExprKind::When(label, ty, arms, leg) => self.resolve_expr_when(span, *label, ty, arms, leg),
+      ExprKind::While(label, cond, ty, block, else_) => {
+        self.resolve_expr_while(span, *label, cond, ty, block, else_)
       }
-      ExprKind::Loop(label, block) => self.resolve_expr_loop(span, *label, block),
+      ExprKind::For(label, pat, iter, ty, block, else_) => {
+        self.resolve_expr_for(span, *label, pat, iter, ty, block, else_)
+      }
+      ExprKind::Loop(label, ty, block) => self.resolve_expr_loop(span, *label, ty, block),
       ExprKind::Fn(flex, params, ret, body) => self.resolve_expr_fn(span, flex, params, ret, body),
-      ExprKind::Break(label, value) => self.resolve_expr_break(span, *label, value),
-      ExprKind::Return(value) => self.resolve_expr_return(span, value),
-      ExprKind::Continue(label) => self.resolve_expr_continue(span, *label),
       ExprKind::Ref(inner, _) => self.resolve_expr_ref(span, inner),
       ExprKind::List(elements) => self.resolve_expr_list(span, elements),
       ExprKind::Method(receiver, name, generics, args) => {
@@ -591,6 +588,24 @@ impl<'core, 'a> Resolver<'core, 'a> {
       TyKind::Inverse(inner) => self.resolve_ty_inverse(inner, inference),
       TyKind::Path(path) => self.resolve_ty_path(path, inference),
       TyKind::Fn(path) => self.resolve_ty_fn(path),
+    }
+  }
+
+  pub(crate) fn resolve_arrow_ty(
+    &mut self,
+    span: Span,
+    ty: &Option<Ty<'core>>,
+    inference: bool,
+  ) -> Type {
+    match ty {
+      Some(ty) => self.resolve_ty(ty, inference),
+      None => {
+        if inference {
+          self.types.new_var(span)
+        } else {
+          self.types.nil()
+        }
+      }
     }
   }
 }

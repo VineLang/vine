@@ -348,6 +348,14 @@ impl<'core> Types<'core> {
     state.kind().map(|(inv, kind)| (inv ^ ty.inv(), kind))
   }
 
+  pub(crate) fn is_nil(&self, ty: Type) -> bool {
+    match self.kind(ty) {
+      Some((_, TypeKind::Tuple(elements))) => elements.is_empty(),
+      Some((_, TypeKind::Object(entries))) => entries.is_empty(),
+      _ => false,
+    }
+  }
+
   pub(crate) fn force_kind(
     &mut self,
     core: &Core<'core>,

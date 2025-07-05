@@ -5,13 +5,12 @@ pub fn main(&io: &IO) {
   let n = 2;
   while n < max {
     let d = 2;
-    let class = do.class {
-      while d * d <= n {
-        if n % d == 0 {
-          break.class "composite";
-        }
-        d += 1;
+    let class = while d * d <= n {
+      if n % d == 0 {
+        break "composite";
       }
+      d += 1;
+    } else {
       "prime"
     };
     io.println("{n}: {class}");

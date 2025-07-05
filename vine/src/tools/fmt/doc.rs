@@ -118,8 +118,9 @@ impl<'src> Doc<'src> {
     Self::delimited("{}", "{", "}", true, false, false, false, docs)
   }
 
-  pub fn brace_multiline(docs: impl ExactSizeIterator<Item = Self>) -> Self {
-    if docs.len() == 0 {
+  pub fn brace_multiline(docs: impl Iterator<Item = Self>) -> Self {
+    let mut docs = docs.peekable();
+    if docs.peek().is_none() {
       Doc("{}")
     } else {
       Doc::concat([Doc("{"), Doc::indent([Doc::interleave(docs, Doc::LINE)]), Doc("}")])

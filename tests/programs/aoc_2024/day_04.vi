@@ -11,29 +11,33 @@ pub fn main(&io: &IO) {
   diamond(
     lines,
     fn* (char: Char, Neighbors[Char](nw, n, ne, w, e, sw, s, se)) {
-      if char == 'X' {
-        nw.send('X');
-        n.send('X');
-        ne.send('X');
-        w.send('X');
-        e.send('X');
-        sw.send('X');
-        s.send('X');
-        se.send('X');
-      } else if char == 'M' || char == 'A' {
-        let recv = if char == 'M' {
-          'X'
-        } else {
-          'M'
-        };
-        relay(nw, se, recv, char);
-        relay(n, s, recv, char);
-        relay(ne, sw, recv, char);
-        relay(w, e, recv, char);
-      } else {
-        matches += check(nw, 'A') + check(ne, 'A') + check(sw, 'A') + check(se, 'A');
-        let x = check(n, 'A') + check(s, 'A') + check(w, 'A') + check(e, 'A');
-        matches += x;
+      when {
+        char == 'X' {
+          nw.send('X');
+          n.send('X');
+          ne.send('X');
+          w.send('X');
+          e.send('X');
+          sw.send('X');
+          s.send('X');
+          se.send('X');
+        }
+        char == 'M' || char == 'A' {
+          let recv = if char == 'M' {
+            'X'
+          } else {
+            'M'
+          };
+          relay(nw, se, recv, char);
+          relay(n, s, recv, char);
+          relay(ne, sw, recv, char);
+          relay(w, e, recv, char);
+        }
+        _ {
+          matches += check(nw, 'A') + check(ne, 'A') + check(sw, 'A') + check(se, 'A');
+          let x = check(n, 'A') + check(s, 'A') + check(w, 'A') + check(e, 'A');
+          matches += x;
+        }
       }
     },
     '.',

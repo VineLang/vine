@@ -26,18 +26,18 @@ pub fn main(&io: &IO) {
       results = add ++ mul;
       results2 = add2 ++ mul2 ++ concat;
     }
-    do.search {
+    do {
       for num in results.into_iter() {
         if num == goal {
           part1 += goal;
           part2 += goal;
-          break.search;
+          break.do;
         }
       }
       for num in results2.into_iter() {
         if num == goal {
           part2 += goal;
-          break.search;
+          break.do;
         }
       }
     }

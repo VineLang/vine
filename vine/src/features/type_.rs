@@ -17,7 +17,7 @@ impl<'core> VineParser<'core, '_> {
     self.expect(Token::Type)?;
     let name = self.parse_ident()?;
     let generics = self.parse_generic_params()?;
-    let ty = self.eat(Token::Eq)?.then(|| self.parse_ty()).transpose()?;
+    let ty = self.eat_then(Token::Eq, Self::parse_ty)?;
     self.eat(Token::Semi)?;
     Ok(TypeItem { name, generics, ty })
   }

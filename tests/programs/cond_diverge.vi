@@ -5,6 +5,7 @@ pub fn main(&io: &IO) {
     if x!.pop_front() is Some(c) && (c == 'a' || c == 'b') {} else {
       break;
     }
+    continue;
   }
   io.println(x);
 }

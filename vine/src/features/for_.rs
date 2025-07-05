@@ -2,19 +2,19 @@ use vine_util::parser::Parser;
 
 use crate::{
   components::{
-    distiller::{Distiller, Label},
+    distiller::{Distiller, TargetDistillation},
     lexer::Token,
     matcher::Row,
     parser::VineParser,
-    resolver::Resolver,
+    resolver::{Resolver, TargetInfo},
   },
   structures::{
-    ast::{Block, Expr, ExprKind, Ident, Pat, Span},
+    ast::{Block, Expr, ExprKind, Label, Pat, Span, Target, Ty},
     chart::VariantId,
     diag::Diag,
     resolutions::FnRelId,
-    tir::{LabelId, TirExpr, TirExprKind, TirLocal, TirPat, TirPatKind},
-    types::TypeKind,
+    tir::{TargetId, TirExpr, TirExprKind, TirLocal, TirPat, TirPatKind},
+    types::{Type, TypeKind},
     vir::{Port, PortKind, Stage, Step, Transfer},
   },
   tools::fmt::{doc::Doc, Formatter},
@@ -27,18 +27,22 @@ impl<'core> VineParser<'core, '_> {
     let pat = self.parse_pat()?;
     self.expect(Token::In)?;
     let expr = self.parse_expr()?;
+    let ty = self.parse_arrow_ty()?;
     let body = self.parse_block()?;
-    Ok(ExprKind::For(label, pat, expr, body))
+    let else_ = self.eat_then(Token::Else, Self::parse_block)?;
+    Ok(ExprKind::For(label, pat, expr, ty, body, else_))
   }
 }
 
 impl<'core: 'src, 'src> Formatter<'src> {
   pub(crate) fn fmt_expr_for(
     &self,
-    label: Option<Ident<'core>>,
+    label: Label<'core>,
     pat: &Pat<'core>,
     expr: &Expr<'core>,
+    ty: &Option<Ty<'core>>,
     block: &Block<'core>,
+    else_: &Option<Block<'core>>,
   ) -> Doc<'src> {
     Doc::concat([
       Doc("for"),
@@ -47,8 +51,13 @@ impl<'core: 'src, 'src> Formatter<'src> {
       self.fmt_pat(pat),
       Doc(" in "),
       self.fmt_expr(expr),
+      self.fmt_arrow_ty(ty),
       Doc(" "),
       self.fmt_block(block, true),
+      match else_ {
+        Some(else_) => Doc::concat([Doc(" else "), self.fmt_block(else_, true)]),
+        None => Doc(""),
+      },
     ])
   }
 }
@@ -57,24 +66,37 @@ impl<'core> Resolver<'core, '_> {
   pub(crate) fn resolve_expr_for(
     &mut self,
     span: Span,
-    label: Option<Ident<'core>>,
+    label: Label<'core>,
     pat: &Pat<'core>,
     iter: &Expr<'core>,
+    ty: &Option<Ty<'core>>,
     block: &Block<'core>,
+    else_: &Option<Block<'core>>,
   ) -> Result<TirExpr, Diag<'core>> {
-    let nil = self.types.nil();
-    let (label, result) = self.bind_label(label, true, nil, |self_| {
-      self_.enter_scope();
-      let iter = self_.resolve_expr(iter);
-      let pat = self_.resolve_pat(pat);
-      let rel =
-        self_.builtin_fn(span, self_.chart.builtins.advance, "advance", [iter.ty, pat.ty])?;
-      let block = self_.resolve_block(block);
-      self_.exit_scope();
-      Result::<_, Diag<'core>>::Ok((rel, pat, iter, block))
-    });
-    let (rel, pat, iter, block) = result?;
-    Ok(TirExpr::new(span, nil, TirExprKind::For(label, rel, pat, iter, block)))
+    let ty = self.resolve_arrow_ty(span, ty, true);
+    let target_id = self.target_id.next();
+    let result = self.bind_target(
+      label,
+      [Target::AnyLoop, Target::For],
+      TargetInfo { id: target_id, break_ty: ty, continue_: false },
+      |self_| {
+        self_.enter_scope();
+        let iter = self_.resolve_expr(iter);
+        let pat = self_.resolve_pat(pat);
+        let rel =
+          self_.builtin_fn(span, self_.chart.builtins.advance, "advance", [iter.ty, pat.ty])?;
+        let block = self_.resolve_block_nil(block);
+        self_.exit_scope();
+        let else_ = else_.as_ref().map(|b| self_.resolve_block_type(b, ty));
+        let nil = self_.types.nil();
+        if else_.is_none() && self_.types.unify(ty, nil).is_failure() {
+          self_.core.report(Diag::MissingElse { span });
+        }
+        Result::<_, Diag<'core>>::Ok((rel, pat, iter, block, else_))
+      },
+    );
+    let (rel, pat, iter, block, else_) = result?;
+    Ok(TirExpr::new(span, ty, TirExprKind::For(target_id, rel, pat, iter, block, else_)))
   }
 }
 
@@ -83,16 +105,21 @@ impl<'core> Distiller<'core, '_> {
     &mut self,
     stage: &mut Stage,
     span: Span,
-    label: LabelId,
+    result_ty: Type,
+    target_id: TargetId,
     rel: FnRelId,
     pat: &TirPat,
     iter: &TirExpr,
     block: &TirExpr,
-  ) {
+    else_: &Option<TirExpr>,
+  ) -> Port {
     let Some(option_enum) = self.chart.builtins.option else {
-      self.core.report(Diag::MissingBuiltin { span, builtin: "Option" });
-      return;
+      let err = self.core.report(Diag::MissingBuiltin { span, builtin: "Option" });
+      return Port::error(result_ty, err);
     };
+
+    let result_local = self.new_local(stage, span, result_ty);
+    stage.local_barrier(result_local);
 
     let value_ty = pat.ty;
     let iter_ty = iter.ty;
@@ -109,7 +136,7 @@ impl<'core> Distiller<'core, '_> {
 
     let (mut layer, mut init_stage) = self.child_layer(stage, span);
     let mut some_stage = self.new_unconditional_stage(&mut layer, span);
-    let none_stage = self.new_unconditional_stage(&mut layer, span);
+    let mut none_stage = self.new_unconditional_stage(&mut layer, span);
 
     let iter = init_stage.local_read_barrier(iter_local, span, iter_ty);
     let option = init_stage.new_wire(span, option_ty);
@@ -150,10 +177,10 @@ impl<'core> Distiller<'core, '_> {
       ],
     );
 
-    *self.labels.get_or_extend(label) = Some(Label {
+    *self.targets.get_or_extend(target_id) = Some(TargetDistillation {
       layer: layer.id,
       continue_transfer: Some(init_stage.interface),
-      break_value: None,
+      break_value: result_local,
     });
 
     let iter = some_stage.local_read_barrier(inner_iter_local, span, iter_ty);
@@ -164,9 +191,16 @@ impl<'core> Distiller<'core, '_> {
     some_stage.steps.push(Step::Link(result, Port { ty: self.types.nil(), kind: PortKind::Nil }));
     some_stage.transfer = Some(Transfer::unconditional(init_stage.interface));
 
+    if let Some(else_) = else_ {
+      let result = self.distill_expr_value(&mut none_stage, else_);
+      none_stage.local_barrier_write_to(result_local, result);
+    }
+
     self.finish_stage(init_stage);
     self.finish_stage(some_stage);
     self.finish_stage(none_stage);
     self.finish_layer(layer);
+
+    stage.local_read_barrier(result_local, span, result_ty)
   }
 }

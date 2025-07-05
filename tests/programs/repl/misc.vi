@@ -91,3 +91,5 @@ let x = 1
 let x = x + 1
 /clear x
 match (Some(1), 2) { (None, _) { None } x { Some(x) } }
+let Ok(n) = Ok(46) else match { Err(e) { e } }; "{n}"
+let Ok(n) = Ok("abc") else match { Err(e) { e } }; "{n}"

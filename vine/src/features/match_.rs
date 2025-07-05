@@ -9,7 +9,7 @@ use crate::{
     resolver::Resolver,
   },
   structures::{
-    ast::{Block, Expr, ExprKind, Pat, Span},
+    ast::{Block, Expr, ExprKind, Pat, Span, Ty},
     diag::Diag,
     tir::{TirExpr, TirExprKind, TirPat},
     types::Type,
@@ -22,12 +22,13 @@ impl<'core> VineParser<'core, '_> {
   pub(crate) fn parse_expr_match(&mut self) -> Result<ExprKind<'core>, Diag<'core>> {
     self.expect(Token::Match)?;
     let scrutinee = self.parse_expr()?;
+    let ty = self.parse_arrow_ty()?;
     let arms = self.parse_delimited(BRACE, |self_| {
       let pat = self_.parse_pat()?;
       let value = self_.parse_block()?;
       Ok((pat, value))
     })?;
-    Ok(ExprKind::Match(scrutinee, arms))
+    Ok(ExprKind::Match(scrutinee, ty, arms))
   }
 }
 
@@ -35,11 +36,13 @@ impl<'core: 'src, 'src> Formatter<'src> {
   pub(crate) fn fmt_expr_match(
     &self,
     expr: &Expr<'core>,
+    ty: &Option<Ty<'core>>,
     arms: &Vec<(Pat<'core>, Block<'core>)>,
   ) -> Doc<'src> {
     Doc::concat([
       Doc("match "),
       self.fmt_expr(expr),
+      self.fmt_arrow_ty(ty),
       Doc(" "),
       Doc::brace_multiline(
         arms
@@ -55,18 +58,19 @@ impl<'core> Resolver<'core, '_> {
     &mut self,
     span: Span,
     scrutinee: &Expr<'core>,
+    ty: &Option<Ty<'core>>,
     arms: &Vec<(Pat<'core>, Block<'core>)>,
   ) -> Result<TirExpr, Diag<'core>> {
     let scrutinee = self.resolve_expr(scrutinee);
-    let result = self.types.new_var(span);
+    let ty = self.resolve_arrow_ty(span, ty, true);
     let arms = Vec::from_iter(arms.iter().map(|(pat, block)| {
       self.enter_scope();
       let pat = self.resolve_pat_type(pat, scrutinee.ty);
-      let block = self.resolve_block_type(block, result);
+      let block = self.resolve_block_type(block, ty);
       self.exit_scope();
       (pat, block)
     }));
-    Ok(TirExpr::new(span, result, TirExprKind::Match(scrutinee, arms)))
+    Ok(TirExpr::new(span, ty, TirExprKind::Match(scrutinee, arms)))
   }
 }
 

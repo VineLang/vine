@@ -38,14 +38,16 @@ pub mod Show {
         }
       }
       Tuple(tuple) {
-        if tuple.len() == 0 {
-          (2, "()")
-        } else if tuple.len() == 1 {
-          let (width, inner) = tuple.pop_front().unwrap()._format(max_width, indent);
-          (width + 3, "({inner},)")
-        } else {
-          let (width, str, _) = format_comma_sep(tuple, fn* (show) { [show] }, max_width, indent);
-          (width, "({str})")
+        when {
+          tuple.len() == 0 { (2, "()") }
+          tuple.len() == 1 {
+            let (width, inner) = tuple.pop_front().unwrap()._format(max_width, indent);
+            (width + 3, "({inner},)")
+          }
+          _ {
+            let (width, str, _) = format_comma_sep(tuple, fn* (show) { [show] }, max_width, indent);
+            (width, "({str})")
+          }
         }
       }
       List(list) {
@@ -92,8 +94,10 @@ pub mod Show {
       total_width += 2;
       if multiline {
         str ++= newline(indent + 2);
-      } else if !first {
-        str ++= ", ";
+      } else {
+        if !first {
+          str ++= ", ";
+        }
       }
       for show in process_entry(entry).into_iter() {
         let (width, show_str) = show._format(max_width, indent + 2);

@@ -9,7 +9,7 @@ use crate::{
     distiller::{Distiller, Return},
     emitter::Emitter,
     lexer::Token,
-    parser::{VineParser, BP, PAREN_COMMA},
+    parser::{VineParser, BP},
     resolver::{Binding, Resolver},
   },
   structures::{
@@ -31,8 +31,8 @@ impl<'core> VineParser<'core, '_> {
     let method = self.eat(Token::Dot)?;
     let name = self.parse_ident()?;
     let generics = self.parse_generic_params()?;
-    let params = self.parse_delimited(PAREN_COMMA, Self::parse_pat)?;
-    let ret = self.eat(Token::ThinArrow)?.then(|| self.parse_ty()).transpose()?;
+    let params = self.parse_pats()?;
+    let ret = self.parse_arrow_ty()?;
     let body = (!self.eat(Token::Semi)?).then(|| self.parse_block()).transpose()?;
     Ok(FnItem { method, name, generics, params, ret, body })
   }
@@ -40,22 +40,24 @@ impl<'core> VineParser<'core, '_> {
   pub(crate) fn parse_expr_fn(&mut self) -> Result<ExprKind<'core>, Diag<'core>> {
     self.expect(Token::Fn)?;
     let flex = self.parse_flex()?;
-    let params = self.parse_delimited(PAREN_COMMA, Self::parse_pat)?;
+    let params = self.parse_pats()?;
+    let ty = self.parse_arrow_ty()?;
     let body = self.parse_block()?;
-    Ok(ExprKind::Fn(flex, params, None, body))
+    Ok(ExprKind::Fn(flex, params, ty, body))
   }
 
-  pub(crate) fn parse_expr_return(&mut self) -> Result<ExprKind<'core>, Diag<'core>> {
+  pub(crate) fn parse_stmt_return(&mut self) -> Result<StmtKind<'core>, Diag<'core>> {
     let expr = self.maybe_parse_expr_bp(BP::Min)?;
-    Ok(ExprKind::Return(expr))
+    self.eat(Token::Semi)?;
+    Ok(StmtKind::Return(expr))
   }
 
   pub(crate) fn _parse_stmt_let_fn(&mut self) -> Result<StmtKind<'core>, Diag<'core>> {
     self.expect(Token::Fn)?;
     let flex = self.parse_flex()?;
     let name = self.parse_ident()?;
-    let params = self.parse_delimited(PAREN_COMMA, Self::parse_pat)?;
-    let ret = self.eat(Token::ThinArrow)?.then(|| self.parse_ty()).transpose()?;
+    let params = self.parse_pats()?;
+    let ret = self.parse_arrow_ty()?;
     let body = self.parse_block()?;
     Ok(StmtKind::LetFn(LetFnStmt { flex, name, params, ret, body }))
   }
@@ -95,6 +97,7 @@ impl<'core: 'src, 'src> Formatter<'src> {
     &self,
     flex: &Flex,
     params: &Vec<Pat<'core>>,
+    ty: &Option<Ty<'core>>,
     body: &Block<'core>,
   ) -> Doc<'src> {
     Doc::concat([
@@ -102,6 +105,7 @@ impl<'core: 'src, 'src> Formatter<'src> {
       self.fmt_flex(*flex),
       Doc(" "),
       Doc::paren_comma(params.iter().map(|p| self.fmt_pat(p))),
+      self.fmt_arrow_ty(ty),
       Doc(" "),
       self.fmt_block(body, false),
     ])
@@ -111,10 +115,10 @@ impl<'core: 'src, 'src> Formatter<'src> {
     Doc::concat([self.fmt_expr(func), Doc::paren_comma(args.iter().map(|x| self.fmt_expr(x)))])
   }
 
-  pub(crate) fn fmt_expr_return(&self, expr: &Option<Expr<'core>>) -> Doc<'src> {
+  pub(crate) fn fmt_stmt_return(&self, expr: &Option<Expr<'core>>) -> Doc<'src> {
     match expr {
-      Some(expr) => Doc::concat([Doc("return "), self.fmt_expr(expr)]),
-      None => Doc("return"),
+      Some(expr) => Doc::concat([Doc("return "), self.fmt_expr(expr), Doc(";")]),
+      None => Doc("return;"),
     }
   }
 
@@ -210,8 +214,7 @@ impl<'core> Resolver<'core, '_> {
     body: &Block<'core>,
     inferred_ret: bool,
   ) -> (Type, ClosureId) {
-    let old_labels = take(&mut self.labels);
-    let old_loops = take(&mut self.loops);
+    let old_targets = take(&mut self.targets);
     self.enter_scope();
     let params = params.iter().map(|p| self.resolve_pat(p)).collect::<Vec<_>>();
     let ret_ty = ret.as_ref().map(|t| self.resolve_ty(t, true)).unwrap_or_else(|| {
@@ -224,8 +227,7 @@ impl<'core> Resolver<'core, '_> {
     let old_return_ty = self.return_ty.replace(ret_ty);
     let body = self.resolve_block_type(body, ret_ty);
     self.exit_scope();
-    self.labels = old_labels;
-    self.loops = old_loops;
+    self.targets = old_targets;
     self.return_ty = old_return_ty;
     let param_tys = params.iter().map(|x| x.ty).collect();
     let id = self.closures.next_index();

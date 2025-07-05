@@ -12,7 +12,7 @@ pub fn main(&io: &IO) {
   while n > 0 {
     n -= 1;
     let num = rng.gen_n32();
-    map.insert(num, num * num)
+    map.insert(num, num * num);
   }
 
   let fn integrity_check(expected_length: N32) {

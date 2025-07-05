@@ -2,17 +2,17 @@ use vine_util::parser::Parser;
 
 use crate::{
   components::{
-    distiller::{Distiller, Label},
+    distiller::{Distiller, TargetDistillation},
     lexer::Token,
     parser::VineParser,
-    resolver::Resolver,
+    resolver::{Resolver, TargetInfo},
   },
   structures::{
-    ast::{Block, ExprKind, Ident, Span},
+    ast::{Block, ExprKind, Label, Span, Target, Ty},
     diag::Diag,
-    tir::{LabelId, TirExpr, TirExprKind},
+    tir::{TargetId, TirExpr, TirExprKind},
     types::Type,
-    vir::{Port, PortKind, Stage, Step, Transfer},
+    vir::{Port, Stage},
   },
   tools::fmt::{doc::Doc, Formatter},
 };
@@ -21,18 +21,26 @@ impl<'core> VineParser<'core, '_> {
   pub(crate) fn parse_expr_loop(&mut self) -> Result<ExprKind<'core>, Diag<'core>> {
     self.expect(Token::Loop)?;
     let label = self.parse_label()?;
+    let ty = self.parse_arrow_ty()?;
     let body = self.parse_block()?;
-    Ok(ExprKind::Loop(label, body))
+    Ok(ExprKind::Loop(label, ty, body))
   }
 }
 
 impl<'core: 'src, 'src> Formatter<'src> {
   pub(crate) fn fmt_expr_loop(
     &self,
-    label: Option<Ident<'core>>,
+    label: Label<'core>,
+    ty: &Option<Ty<'core>>,
     body: &Block<'core>,
   ) -> Doc<'src> {
-    Doc::concat([Doc("loop"), self.fmt_label(label), Doc(" "), self.fmt_block(body, true)])
+    Doc::concat([
+      Doc("loop"),
+      self.fmt_label(label),
+      self.fmt_arrow_ty(ty),
+      Doc(" "),
+      self.fmt_block(body, true),
+    ])
   }
 }
 
@@ -40,12 +48,19 @@ impl<'core> Resolver<'core, '_> {
   pub(crate) fn resolve_expr_loop(
     &mut self,
     span: Span,
-    label: Option<Ident<'core>>,
+    label: Label<'core>,
+    ty: &Option<Ty<'core>>,
     block: &Block<'core>,
   ) -> Result<TirExpr, Diag<'core>> {
-    let result = self.types.new_var(span);
-    let (label, block) = self.bind_label(label, true, result, |self_| self_.resolve_block(block));
-    Ok(TirExpr::new(span, result, TirExprKind::Loop(label, block)))
+    let ty = self.resolve_arrow_ty(span, ty, true);
+    let target_id = self.target_id.next();
+    let block = self.bind_target(
+      label,
+      [Target::AnyLoop, Target::Loop],
+      TargetInfo { id: target_id, break_ty: ty, continue_: true },
+      |self_| self_.resolve_block_type(block, ty),
+    );
+    Ok(TirExpr::new(span, ty, TirExprKind::Loop(target_id, block)))
   }
 }
 
@@ -55,21 +70,20 @@ impl<'core> Distiller<'core, '_> {
     stage: &mut Stage,
     span: Span,
     ty: Type,
-    label: LabelId,
+    label: TargetId,
     block: &TirExpr,
   ) -> Port {
     let local = self.new_local(stage, span, ty);
     let (layer, mut body_stage) = self.child_layer(stage, span);
 
-    *self.labels.get_or_extend(label) = Some(Label {
+    *self.targets.get_or_extend(label) = Some(TargetDistillation {
       layer: layer.id,
       continue_transfer: Some(body_stage.interface),
-      break_value: Some(local),
+      break_value: local,
     });
 
     let result = self.distill_expr_value(&mut body_stage, block);
-    body_stage.steps.push(Step::Link(result, Port { ty: self.types.nil(), kind: PortKind::Nil }));
-    body_stage.transfer = Some(Transfer::unconditional(body_stage.interface));
+    body_stage.local_barrier_write_to(local, result);
 
     self.finish_stage(body_stage);
     self.finish_layer(layer);

@@ -45,6 +45,22 @@ pub trait Parser<'src> {
     Ok(matches)
   }
 
+  fn check_then<T>(
+    &mut self,
+    kind: Self::Token,
+    f: impl FnOnce(&mut Self) -> Result<T, Self::Error>,
+  ) -> Result<Option<T>, Self::Error> {
+    self.check(kind).then(|| f(self)).transpose()
+  }
+
+  fn eat_then<T>(
+    &mut self,
+    kind: Self::Token,
+    f: impl FnOnce(&mut Self) -> Result<T, Self::Error>,
+  ) -> Result<Option<T>, Self::Error> {
+    self.eat(kind)?.then(|| f(self)).transpose()
+  }
+
   fn expect(&mut self, kind: Self::Token) -> Result<&'src str, Self::Error> {
     if self.check(kind) {
       let token = self.state().lexer.slice();

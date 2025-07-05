@@ -72,11 +72,11 @@ fn walk(&grid: &Array[Array[Char]], pos: (N32, N32)) -> (Bool, N32) {
   let distinct = 1;
   let repeat = 0;
 
-  while repeat < 3 * distinct {
+  let looped = while repeat < 3 * distinct {
     let new_pos = pos + dir;
     let (x, y) = new_pos;
     if x >= width || y >= height {
-      return (false, distinct);
+      break false;
     }
     let &cell = (*grid.at(y).unwrap()).at(x).unwrap();
     if cell == '#' {
@@ -91,7 +91,9 @@ fn walk(&grid: &Array[Array[Char]], pos: (N32, N32)) -> (Bool, N32) {
     }
     cell = 'X';
     pos = new_pos;
-  }
+  } else {
+    true
+  };
 
-  (true, distinct)
+  (looped, distinct)
 }

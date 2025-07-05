@@ -3,7 +3,7 @@ use vine_util::parser::Parser;
 use crate::{
   components::{
     lexer::Token,
-    parser::{VineParser, PAREN_COMMA, PATH},
+    parser::{VineParser, PATH},
     resolver::{Binding, Resolver},
   },
   structures::{
@@ -23,23 +23,20 @@ impl<'core> VineParser<'core, '_> {
     let span = self.start_span();
     let absolute = self.eat(Token::ColonColon)?;
     let segments = self.parse_delimited(PATH, Self::parse_ident)?;
-    let generics = self.check(Token::OpenBracket).then(|| self.parse_generic_args()).transpose()?;
+    let generics = self.check_then(Token::OpenBracket, Self::parse_generic_args)?;
     let span = self.end_span(span);
     Ok(Path { span, absolute, segments, generics })
   }
 
   pub(crate) fn parse_expr_path(&mut self) -> Result<ExprKind<'core>, Diag<'core>> {
     let path = self.parse_path()?;
-    let args = self.check(Token::OpenParen).then(|| self.parse_exprs()).transpose()?;
+    let args = self.check_then(Token::OpenParen, Self::parse_exprs)?;
     Ok(ExprKind::Path(path, args))
   }
 
   pub(crate) fn parse_pat_path(&mut self) -> Result<PatKind<'core>, Diag<'core>> {
     let path = self.parse_path()?;
-    let data = self
-      .check(Token::OpenParen)
-      .then(|| self.parse_delimited(PAREN_COMMA, Self::parse_pat))
-      .transpose()?;
+    let data = self.check_then(Token::OpenParen, Self::parse_pats)?;
     Ok(PatKind::Path(path, data))
   }
 }

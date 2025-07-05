@@ -12,7 +12,7 @@ use crate::structures::{
   diag::{Diag, ErrorGuaranteed},
   resolutions::{Fragment, Rels},
   signatures::Signatures,
-  tir::{ClosureId, LabelId, Local, TirExpr, TirExprKind, TirLocal, TirPat, TirPatKind},
+  tir::{ClosureId, Local, TargetId, TirExpr, TirExprKind, TirLocal, TirPat, TirPatKind},
   types::{Type, Types},
   vir::{
     Header, Interface, InterfaceId, InterfaceKind, Layer, LayerId, Port, Stage, StageId, Step,
@@ -30,7 +30,7 @@ pub struct Distiller<'core, 'r> {
   pub(crate) interfaces: IdxVec<InterfaceId, Option<Interface>>,
   pub(crate) stages: IdxVec<StageId, Option<Stage>>,
 
-  pub(crate) labels: IdxVec<LabelId, Option<Label>>,
+  pub(crate) targets: IdxVec<TargetId, Option<TargetDistillation>>,
   pub(crate) returns: Vec<Return>,
   pub(crate) closures: IdxVec<ClosureId, InterfaceId>,
 
@@ -42,10 +42,10 @@ pub struct Distiller<'core, 'r> {
 }
 
 #[derive(Debug)]
-pub(crate) struct Label {
+pub(crate) struct TargetDistillation {
   pub(crate) layer: LayerId,
   pub(crate) continue_transfer: Option<InterfaceId>,
-  pub(crate) break_value: Option<Local>,
+  pub(crate) break_value: Local,
 }
 
 #[derive(Debug)]
@@ -75,7 +75,7 @@ impl<'core, 'r> Distiller<'core, 'r> {
       layers: Default::default(),
       interfaces: Default::default(),
       stages: Default::default(),
-      labels: Default::default(),
+      targets: Default::default(),
       returns: Default::default(),
       closures: Default::default(),
       locals: Default::default(),
@@ -101,7 +101,7 @@ impl<'core, 'r> Distiller<'core, 'r> {
     stage.header = Header::Entry(vec![result]);
     self.finish_stage(stage);
     self.finish_layer(layer);
-    self.labels.clear();
+    self.targets.clear();
     debug_assert!(self.returns.is_empty());
     let locals = IdxVec::from_iter(take(&mut self.locals).into_iter().map(|(_, local)| {
       let Self { core, chart, sigs, def, generics, ref mut types, ref mut rels, .. } = *self;
@@ -216,15 +216,8 @@ impl<'core, 'r> Distiller<'core, 'r> {
   }
 
   pub(crate) fn distill_expr_nil(&mut self, stage: &mut Stage, expr: &TirExpr) {
-    let span = expr.span;
     match &*expr.kind {
       TirExprKind![!nil] => self.distill_expr_nil_coerce_value(stage, expr),
-      TirExprKind::While(label, cond, block) => {
-        self.distill_while(stage, span, *label, cond, block)
-      }
-      TirExprKind::For(label, rel, pat, iter, block) => {
-        self.distill_for(stage, span, *label, *rel, pat, iter, block)
-      }
       TirExprKind::Return(value) => self.distill_return(stage, value),
       TirExprKind::Break(label, value) => self.distill_break(stage, *label, value),
       TirExprKind::Continue(label) => self.distill_continue(stage, *label),
@@ -250,12 +243,18 @@ impl<'core, 'r> Distiller<'core, 'r> {
       }
       TirExprKind::Seq(ignored, continuation) => self.distill_seq(stage, ignored, continuation),
       TirExprKind::Let(pat, init, continuation) => self.distill_let(stage, pat, init, continuation),
-      TirExprKind::LetElse(pat, init, else_block, continuation) => {
-        self.distill_let_else(stage, span, pat, init, else_block, continuation)
-      }
       TirExprKind::Do(label, block) => self.distill_do(stage, span, *label, block),
-      TirExprKind::If(arms, leg) => self.distill_if(stage, span, ty, arms, leg),
+      TirExprKind::If(cond, then, else_) => self.distill_if(stage, span, ty, cond, then, else_),
+      TirExprKind::When(target, arms, leg) => {
+        self.distill_when(stage, span, ty, *target, arms, leg)
+      }
       TirExprKind::Loop(label, block) => self.distill_loop(stage, span, ty, *label, block),
+      TirExprKind::While(label, cond, block, else_) => {
+        self.distill_while(stage, span, ty, *label, cond, block, else_)
+      }
+      TirExprKind::For(label, rel, pat, iter, block, else_) => {
+        self.distill_for(stage, span, ty, *label, *rel, pat, iter, block, else_)
+      }
       TirExprKind::Match(value, arms) => self.distill_match(stage, span, ty, value, arms),
       TirExprKind::Try(ok, err, result) => self.distill_try(stage, span, ty, *ok, *err, result),
       TirExprKind::Local(local) => self.distill_expr_value_local(stage, span, ty, *local),
