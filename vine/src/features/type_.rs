@@ -70,7 +70,19 @@ impl<'core> Resolver<'core, '_> {
     if let Some(Some(_)) = self.sigs.type_aliases.get(alias_id) {
       return;
     }
+
+    if self.sigs.type_aliases.get(alias_id).is_some() {
+      let alias_def = &self.chart.type_aliases[alias_id];
+      self.core.report(Diag::RecursiveTypeAlias { span: alias_def.ty.span });
+      let slot = self.sigs.type_aliases.get_or_extend(alias_id);
+      let error_type =
+        self.types.error(self.core.report(Diag::RecursiveTypeAlias { span: alias_def.ty.span }));
+      *slot = Some(self.types.export(|t| TypeAliasSig { ty: t.transfer(&error_type) }));
+      return;
+    }
     let alias_def = &self.chart.type_aliases[alias_id];
+    let slot = self.sigs.type_aliases.get_or_extend(alias_id);
+    *slot = None;
     self.initialize(alias_def.def, alias_def.generics);
     let ty = self.resolve_ty(&alias_def.ty, false);
     let slot = self.sigs.type_aliases.get_or_extend(alias_id);
