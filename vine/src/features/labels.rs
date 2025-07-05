@@ -106,7 +106,7 @@ impl<'core> Resolver<'core, '_> {
     kind: TargetInfo,
     f: impl FnOnce(&mut Self) -> T,
   ) -> T {
-    let targets = targets.into_iter().chain(label.0.map(|ident| Target::Label(ident)));
+    let targets = targets.into_iter().chain(label.0.map(Target::Label));
     for target in targets.clone() {
       self.targets.entry(target).or_default().push(kind);
     }

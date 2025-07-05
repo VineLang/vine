@@ -472,7 +472,7 @@ impl<'core, 'src> VineParser<'core, 'src> {
   }
 
   pub(crate) fn parse_arrow_ty(&mut self) -> Result<Option<Ty<'core>>, Diag<'core>> {
-    Ok(self.eat_then(Token::ThinArrow, Self::parse_ty)?)
+    self.eat_then(Token::ThinArrow, Self::parse_ty)
   }
 
   pub(crate) fn parse_impl(&mut self) -> Result<Impl<'core>, Diag<'core>> {
@@ -547,13 +547,13 @@ impl<'core, 'src> VineParser<'core, 'src> {
       return Ok(StmtKind::Expr(expr, semi));
     }
     if self.eat(Token::Return)? {
-      return Ok(self.parse_stmt_return()?);
+      return self.parse_stmt_return();
     }
     if self.eat(Token::Break)? {
-      return Ok(self.parse_stmt_break()?);
+      return self.parse_stmt_break();
     }
     if self.eat(Token::Continue)? {
-      return Ok(self.parse_stmt_continue()?);
+      return self.parse_stmt_continue();
     }
     let expr = self.parse_expr()?;
     let semi = self.eat(Token::Semi)?;
