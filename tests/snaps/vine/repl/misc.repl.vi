@@ -408,11 +408,11 @@ let io: IO = #io;
 Some(Some(1), 2)
 
 let io: IO = #io;
-> let Ok(n) = Ok(46) else match { Err(e) { e } }; "{n}"
+> let Ok(n) = Ok(46) else match { Err(e: String) { "error: {e}" } }; "{n}"
 "46"
 
 let io: IO = #io;
-> let Ok(n) = Ok("abc") else match { Err(e) { e } }; "{n}"
-"abc"
+> let Ok(n: N32) = Err("abc") else match { Err(e) { "error: {e}" } }; "{n}"
+"error: abc"
 
 let io: IO = #io;
