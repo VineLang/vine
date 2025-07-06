@@ -46,7 +46,6 @@ pub fn main(&io: &IO) {
           y > height / 2 {
             b += 1;
           }
-          _ {}
         }
       }
       x > width / 2 {
@@ -57,10 +56,8 @@ pub fn main(&io: &IO) {
           y > height / 2 {
             d += 1;
           }
-          _ {}
         }
       }
-      _ {}
     }
   }
 

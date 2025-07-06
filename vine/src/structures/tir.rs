@@ -67,7 +67,7 @@ pub enum TirExprKind {
   #[class(value)]
   If(TirExpr, TirExpr, Option<TirExpr>),
   #[class(value)]
-  When(TargetId, Vec<(TirExpr, TirExpr)>, TirExpr),
+  When(TargetId, Vec<(TirExpr, TirExpr)>, Option<TirExpr>),
   #[class(value)]
   While(TargetId, TirExpr, TirExpr, Option<TirExpr>),
   #[class(value)]

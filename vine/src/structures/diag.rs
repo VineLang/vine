@@ -238,6 +238,8 @@ diags! {
     ["invalid command; type `/help` for a list of commands"]
   MissingElse
     ["missing else block"]
+  MissingTerminalArm
+    ["missing terminal arm in `when`"]
 }
 
 fn plural<'a>(n: usize, plural: &'a str, singular: &'a str) -> &'a str {

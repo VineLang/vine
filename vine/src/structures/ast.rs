@@ -256,7 +256,7 @@ pub enum ExprKind<'core> {
   Assign(bool, Expr<'core>, Expr<'core>),
   Match(Expr<'core>, Option<Ty<'core>>, Vec<(Pat<'core>, Block<'core>)>),
   If(Expr<'core>, Option<Ty<'core>>, Block<'core>, Option<Block<'core>>),
-  When(Label<'core>, Option<Ty<'core>>, Vec<(Expr<'core>, Block<'core>)>, Block<'core>),
+  When(Label<'core>, Option<Ty<'core>>, Vec<(Expr<'core>, Block<'core>)>, Option<Block<'core>>),
   While(Label<'core>, Expr<'core>, Option<Ty<'core>>, Block<'core>, Option<Block<'core>>),
   Loop(Label<'core>, Option<Ty<'core>>, Block<'core>),
   For(Label<'core>, Pat<'core>, Expr<'core>, Option<Ty<'core>>, Block<'core>, Option<Block<'core>>),

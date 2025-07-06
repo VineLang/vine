@@ -17,7 +17,6 @@ pub fn main(&io: &IO) {
       problem_dampener(report) {
         dampened_safe_count += 1;
       }
-      _ {}
     }
   }
 

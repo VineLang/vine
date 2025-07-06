@@ -161,7 +161,6 @@ pub fn main(&io: &IO) {
                 char = '.';
               }
             }
-            _ {}
           }
 
           if ~success {

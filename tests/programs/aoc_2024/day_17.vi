@@ -62,7 +62,6 @@ pub fn main(&io: &IO) {
       opcode == 7 {
         c = a >> combo();
       }
-      _ {}
     }
     ip += 2;
   }

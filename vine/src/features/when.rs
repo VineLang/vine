@@ -24,13 +24,12 @@ impl<'core> VineParser<'core, '_> {
     let ty = self.parse_arrow_ty()?;
     self.expect(Token::OpenBrace)?;
     let mut arms = Vec::new();
-    while !self.check(Token::Hole) {
+    while !self.check(Token::Hole) && !self.check(Token::CloseBrace) {
       let cond = self.parse_expr()?;
       let then = self.parse_block()?;
       arms.push((cond, then));
     }
-    self.expect(Token::Hole)?;
-    let leg = self.parse_block()?;
+    let leg = self.eat_then(Token::Hole, Self::parse_block)?;
     self.expect(Token::CloseBrace)?;
     Ok(ExprKind::When(label, ty, arms, leg))
   }
@@ -42,7 +41,7 @@ impl<'core: 'src, 'src> Formatter<'src> {
     label: Label<'core>,
     ty: &Option<Ty<'core>>,
     arms: &Vec<(Expr<'core>, Block<'core>)>,
-    leg: &Block<'core>,
+    leg: &Option<Block<'core>>,
   ) -> Doc<'src> {
     Doc::concat([
       Doc("when"),
@@ -55,7 +54,7 @@ impl<'core: 'src, 'src> Formatter<'src> {
           .map(|(cond, block)| {
             Doc::concat([self.fmt_expr(cond), Doc(" "), self.fmt_block(block, false)])
           })
-          .chain([Doc::concat([Doc("_ "), self.fmt_block(leg, false)])]),
+          .chain(leg.iter().flat_map(|leg| [Doc::concat([Doc("_ "), self.fmt_block(leg, false)])])),
       ),
     ])
   }
@@ -68,7 +67,7 @@ impl<'core> Resolver<'core, '_> {
     label: Label<'core>,
     ty: &Option<Ty<'core>>,
     arms: &Vec<(Expr<'core>, Block<'core>)>,
-    leg: &Block<'core>,
+    leg: &Option<Block<'core>>,
   ) -> Result<TirExpr, Diag<'core>> {
     let ty = self.resolve_arrow_ty(span, ty, true);
     let target_id = self.target_id.next();
@@ -86,12 +85,21 @@ impl<'core> Resolver<'core, '_> {
         }))
       },
     );
-    let leg = self.bind_target(
-      label,
-      [Target::When],
-      TargetInfo { id: target_id, break_ty: ty, continue_: false },
-      |self_| self_.resolve_block_type(leg, ty),
-    );
+    let leg = match leg {
+      Some(leg) => Some(self.bind_target(
+        label,
+        [Target::When],
+        TargetInfo { id: target_id, break_ty: ty, continue_: false },
+        |self_| self_.resolve_block_type(leg, ty),
+      )),
+      None => {
+        let nil = self.types.nil();
+        if self.types.unify(ty, nil).is_failure() {
+          self.core.report(Diag::MissingTerminalArm { span });
+        }
+        None
+      }
+    };
     Ok(TirExpr::new(span, ty, TirExprKind::When(target_id, arms, leg)))
   }
 }
@@ -104,7 +112,7 @@ impl<'core> Distiller<'core, '_> {
     ty: Type,
     target_id: TargetId,
     arms: &[(TirExpr, TirExpr)],
-    leg: &TirExpr,
+    leg: &Option<TirExpr>,
   ) -> Port {
     let local = self.new_local(stage, span, ty);
     let (mut layer, mut cur_stage) = self.child_layer(stage, span);
@@ -130,8 +138,10 @@ impl<'core> Distiller<'core, '_> {
 
     self.targets[target_id] =
       Some(TargetDistillation { layer: layer.id, continue_transfer: None, break_value: local });
-    let result = self.distill_expr_value(&mut cur_stage, leg);
-    cur_stage.local_barrier_write_to(local, result);
+    if let Some(leg) = leg {
+      let result = self.distill_expr_value(&mut cur_stage, leg);
+      cur_stage.local_barrier_write_to(local, result);
+    }
 
     self.finish_stage(cur_stage);
     self.finish_layer(layer);
