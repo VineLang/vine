@@ -1,4 +1,6 @@
 
+use derive::Composite;
+
 #[builtin = "Fork"]
 pub trait Fork[T] {
   fn .fork(&self: &T) -> T;
@@ -17,35 +19,22 @@ pub mod Fork {
   }
 
   #[duplicate]
-  pub impl nil: Fork[()] {
+  pub impl tuple_nil: Fork[()] {
     fn fork(&()) -> () {}
   }
 
   #[duplicate]
-  pub impl unary[A+]: Fork[(A,)] {
-    fn fork(&(a: A,)) -> (A,) {
-      (a,)
+  pub impl object_nil: Fork[{}] {
+    fn fork(&{}) -> {} {
+      {}
     }
   }
 
   #[duplicate]
-  pub impl pair[A+, B+]: Fork[(A, B)] {
-    fn fork(&(a: A, b: B)) -> (A, B) {
-      (a, b)
-    }
-  }
-
-  #[duplicate]
-  pub impl triple[A+, B+, C+]: Fork[(A, B, C)] {
-    fn fork(&(a: A, b: B, c: C)) -> (A, B, C) {
-      (a, b, c)
-    }
-  }
-
-  #[duplicate]
-  pub impl quad[A+, B+, C+, D+]: Fork[(A, B, C, D)] {
-    fn fork(&(a: A, b: B, c: C, d: D)) -> (A, B, C, D) {
-      (a, b, c, d)
+  pub impl composite[C, I, R; Composite[C, I, R], Fork[I], Fork[R]]: Fork[C] {
+    fn fork(&composite: &C) -> C {
+      let &(init, rest) = &composite as &(I, R);
+      (init, rest) as C
     }
   }
 }
@@ -56,27 +45,19 @@ pub mod Drop {
   }
 
   #[erase]
-  pub impl nil: Drop[()] {
+  pub impl tuple_nil: Drop[()] {
     fn drop(()) {}
   }
 
   #[erase]
-  pub impl unary[A?]: Drop[(A,)] {
-    fn drop((_: A,)) {}
+  pub impl object_nil: Drop[{}] {
+    fn drop({}) {}
   }
 
   #[erase]
-  pub impl pair[A?, B?]: Drop[(A, B)] {
-    fn drop((_: A, _: B)) {}
-  }
-
-  #[erase]
-  pub impl triple[A?, B?, C?]: Drop[(A, B, C)] {
-    fn drop((_: A, _: B, _: C)) {}
-  }
-
-  #[erase]
-  pub impl quad[A?, B?, C?, D?]: Drop[(A, B, C, D)] {
-    fn drop((_: A, _: B, _: C, _: D)) {}
+  pub impl composite[C, I, R; Composite[C, I, R], Drop[I], Drop[R]]: Drop[C] {
+    fn drop(composite: C) {
+      (_, _) = composite as (I, R);
+    }
   }
 }

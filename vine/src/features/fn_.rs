@@ -297,7 +297,7 @@ impl<'core> Resolver<'core, '_> {
     )
   }
 
-  pub(crate) fn resolve_impl_fn(&mut self, path: &Path<'core>) -> (ImplType, TirImpl) {
+  pub(crate) fn resolve_impl_fn(&mut self, path: &Path<'core>) -> (ImplType, TirImpl<'core>) {
     match self.resolve_path(self.cur_def, path, "fn", |d| d.fn_id()) {
       Ok(fn_id) => {
         let (type_params, impl_params) =

@@ -26,10 +26,10 @@ pub struct Finder<'core, 'a> {
 }
 
 #[derive(Debug, Default)]
-pub struct FlexImpls {
+pub struct FlexImpls<'core> {
   pub inv: Inverted,
-  pub fork: Option<TirImpl>,
-  pub drop: Option<TirImpl>,
+  pub fork: Option<TirImpl<'core>>,
+  pub drop: Option<TirImpl<'core>>,
   pub is_nil: bool,
 }
 
@@ -118,11 +118,15 @@ impl<'core, 'a> Finder<'core, 'a> {
     &mut self,
     types: &mut Types<'core>,
     ty: Type,
-  ) -> Result<FlexImpls, ErrorGuaranteed> {
+  ) -> Result<FlexImpls<'core>, ErrorGuaranteed> {
     self._find_flex(types, ty).map_err(|diag| self.core.report(diag))
   }
 
-  fn _find_flex(&mut self, types: &mut Types<'core>, ty: Type) -> Result<FlexImpls, Diag<'core>> {
+  fn _find_flex(
+    &mut self,
+    types: &mut Types<'core>,
+    ty: Type,
+  ) -> Result<FlexImpls<'core>, Diag<'core>> {
     let span = self.span;
     let TypeCtx { types: sub_types, inner: sub_ty } = types.export(|t| t.transfer(&ty));
 
@@ -195,7 +199,7 @@ impl<'core, 'a> Finder<'core, 'a> {
     Ok(FlexImpls { inv, fork, drop, is_nil })
   }
 
-  pub fn find_impl(&mut self, types: &mut Types<'core>, query: &ImplType) -> TirImpl {
+  pub fn find_impl(&mut self, types: &mut Types<'core>, query: &ImplType) -> TirImpl<'core> {
     let span = self.span;
     let TypeCtx { types: sub_types, inner: sub_query } = types.export(|t| t.transfer(query));
 
@@ -225,7 +229,7 @@ impl<'core, 'a> Finder<'core, 'a> {
     &mut self,
     types: &Types<'core>,
     query: &ImplType,
-  ) -> Result<Vec<TypeCtx<'core, TirImpl>>, Timeout> {
+  ) -> Result<Vec<TypeCtx<'core, TirImpl<'core>>>, Timeout> {
     self.step()?;
 
     let mut found = Vec::new();
@@ -265,7 +269,7 @@ impl<'core, 'a> Finder<'core, 'a> {
     mut types: Types<'core>,
     generics: GenericsId,
     type_params: Vec<Type>,
-  ) -> Result<impl Iterator<Item = TypeCtx<'core, Vec<TirImpl>>>, Timeout> {
+  ) -> Result<impl Iterator<Item = TypeCtx<'core, Vec<TirImpl<'core>>>>, Timeout> {
     let queries = types.import(&self.sigs.generics[generics], Some(&type_params)).impl_params;
     let results = self.find_subimpls(types, &queries)?;
     Ok(results.into_iter().map(|mut result| {
@@ -278,7 +282,7 @@ impl<'core, 'a> Finder<'core, 'a> {
     &mut self,
     types: Types<'core>,
     queries: &[ImplType],
-  ) -> Result<Vec<TypeCtx<'core, Vec<TirImpl>>>, Timeout> {
+  ) -> Result<Vec<TypeCtx<'core, Vec<TirImpl<'core>>>>, Timeout> {
     let [query, rest_queries @ ..] = queries else {
       return Ok(vec![(TypeCtx { types, inner: vec![] })]);
     };
@@ -395,7 +399,7 @@ impl<'core, 'a> Finder<'core, 'a> {
     &mut self,
     types: &Types<'core>,
     query: &ImplType,
-    found: &mut Vec<TypeCtx<'core, TirImpl>>,
+    found: &mut Vec<TypeCtx<'core, TirImpl<'core>>>,
   ) -> Result<(), Timeout> {
     match query {
       ImplType::Fn(receiver, params, ret) => match types.kind(*receiver) {
@@ -452,6 +456,41 @@ impl<'core, 'a> Finder<'core, 'a> {
               found.push(TypeCtx { types: types.clone(), inner: TirImpl::DropClosure(*id) });
             }
             _ => {}
+          }
+        }
+        if Some(*trait_id) == self.chart.builtins.tuple {
+          if let Some((inv, TypeKind::Tuple(elements))) = types.kind(type_params[0]) {
+            if let [init, ref rest @ ..] = **elements {
+              let init = init.invert_if(inv);
+              let rest = rest.iter().map(|t| t.invert_if(inv)).collect();
+              let mut types = types.clone();
+              let rest = types.new(TypeKind::Tuple(rest));
+              if types
+                .unify(init, type_params[1])
+                .and(types.unify(rest, type_params[2]))
+                .is_success()
+              {
+                found.push(TypeCtx { types, inner: TirImpl::Tuple(elements.len()) });
+              }
+            }
+          }
+        }
+        if Some(*trait_id) == self.chart.builtins.object {
+          if let Some((inv, TypeKind::Object(entries))) = types.kind(type_params[0]) {
+            let mut iter = entries.iter();
+            if let Some((&key, &init)) = iter.next() {
+              let init = init.invert_if(inv);
+              let rest = iter.map(|(&k, &t)| (k, t.invert_if(inv))).collect();
+              let mut types = types.clone();
+              let rest = types.new(TypeKind::Object(rest));
+              if types
+                .unify(init, type_params[1])
+                .and(types.unify(rest, type_params[2]))
+                .is_success()
+              {
+                found.push(TypeCtx { types, inner: TirImpl::Object(key, entries.len()) });
+              }
+            }
           }
         }
       }

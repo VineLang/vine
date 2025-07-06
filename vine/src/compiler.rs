@@ -85,18 +85,20 @@ impl<'core> Compiler<'core> {
       self.templates.push_to(fragment_id, template);
     }
 
+    let mut nets = Nets::default();
+
     let mut specializer = Specializer {
+      core,
       chart,
       resolutions: &self.resolutions,
       fragments: &self.fragments,
       specs: &mut self.specs,
       vir: &self.vir,
+      nets: &mut nets,
     };
     specializer.specialize_since(checkpoint);
 
     core.bail()?;
-
-    let mut nets = Nets::default();
 
     if let Some(main) = self.resolutions.main {
       let path = self.fragments[main].path;
@@ -109,7 +111,9 @@ impl<'core> Compiler<'core> {
 
     for spec_id in self.specs.specs.keys_from(checkpoint.specs) {
       let spec = self.specs.specs[spec_id].as_ref().unwrap();
-      self.templates[spec.fragment].instantiate(&mut nets, &self.specs, spec);
+      if let Some(fragment_id) = spec.fragment {
+        self.templates[fragment_id].instantiate(&mut nets, &self.specs, spec);
+      }
     }
 
     Ok(nets)

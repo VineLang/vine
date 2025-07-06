@@ -1,6 +1,7 @@
 
 use ops::Cast;
 use data::List as List_;
+use derive::{Object as Object_, Tuple as Tuple_};
 
 pub trait Show[T] {
   fn .show(self: &T) -> Show;
@@ -132,34 +133,54 @@ pub mod Show {
       }
     }
   }
-}
 
-pub impl show_nil: Show[()] {
-  fn show(&()) -> Show {
-    Show::Tuple([])
+  pub trait ShowTuple[T] {
+    fn .show_tuple(&self: &T) -> List_[Show];
   }
-}
 
-pub impl show_singleton[A; Show[A]]: Show[(A,)] {
-  fn show(&(a: A,)) -> Show {
-    Show::Tuple([a.show()])
+  pub impl tuple[T; ShowTuple[T]]: Show[T] {
+    fn show(&self: &T) -> Show {
+      Show::Tuple(self.show_tuple())
+    }
   }
-}
 
-pub impl show_pair[A, B; Show[A], Show[B]]: Show[(A, B)] {
-  fn show(&(a: A, b: B)) -> Show {
-    Show::Tuple([a.show(), b.show()])
+  pub mod ShowTuple {
+    pub impl nil: ShowTuple[()] {
+      fn show_tuple(&()) -> List_[Show] {
+        []
+      }
+    }
+
+    pub impl tuple[T, I, R; Tuple_[T, I, R], Show[I], ShowTuple[R]]: ShowTuple[T] {
+      fn show_tuple(&tuple: &T) -> List_[Show] {
+        let &(init, rest) = &tuple as &(I, R);
+        [init.show()] ++ rest.show_tuple()
+      }
+    }
   }
-}
 
-pub impl show_triple[A, B, C; Show[A], Show[B], Show[C]]: Show[(A, B, C)] {
-  fn show(&(a: A, b: B, c: C)) -> Show {
-    Show::Tuple([a.show(), b.show(), c.show()])
+  pub trait ShowObject[T] {
+    fn .show_object(&self: &T) -> List_[(Show, Show)];
   }
-}
 
-pub impl show_quad[A, B, C, D; Show[A], Show[B], Show[C], Show[D]]: Show[(A, B, C, D)] {
-  fn show(&(a: A, b: B, c: C, d: D)) -> Show {
-    Show::Tuple([a.show(), b.show(), c.show(), d.show()])
+  pub impl object[T; ShowObject[T]]: Show[T] {
+    fn show(&self: &T) -> Show {
+      Show::Object(self.show_object())
+    }
+  }
+
+  pub mod ShowObject {
+    pub impl nil: ShowObject[{}] {
+      fn show_object(&{}) -> List_[(Show, Show)] {
+        []
+      }
+    }
+
+    pub impl object[O, I, R; Object_[O, I, R], Show[I], ShowObject[R]]: ShowObject[O] {
+      fn show_object(&object: &O) -> List_[(Show, Show)] {
+        let &(init, rest) = &object as &(I, R);
+        [(Show::Literal(Object_::key), init.show())] ++ rest.show_object()
+      }
+    }
   }
 }

@@ -231,7 +231,7 @@ impl<'core> Resolver<'core, '_> {
     &mut self,
     path: &Path<'core>,
     id: ImplId,
-  ) -> (ImplType, TirImpl) {
+  ) -> (ImplType, TirImpl<'core>) {
     let (type_params, impl_params) =
       self.resolve_generics(path, self.chart.impls[id].generics, true);
     let ty = self.types.import(&self.sigs.impls[id], Some(&type_params)).ty;

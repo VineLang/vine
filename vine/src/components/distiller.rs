@@ -37,7 +37,7 @@ pub struct Distiller<'core, 'r> {
   pub(crate) def: DefId,
   pub(crate) generics: GenericsId,
   pub(crate) types: Types<'core>,
-  pub(crate) rels: Rels,
+  pub(crate) rels: Rels<'core>,
   pub(crate) locals: IdxVec<Local, TirLocal>,
 }
 

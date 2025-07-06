@@ -1,0 +1,62 @@
+
+use ops::Cast;
+
+#[builtin = "Tuple"]
+pub trait Tuple[Tuple, Init, Rest] {
+  fn deconstruct(tuple: Tuple) -> (Init, Rest);
+  fn reconstruct(init: Init, rest: Rest) -> Tuple;
+}
+
+pub mod Tuple {
+  pub use Composite::{cast_deconstruct, cast_reconstruct};
+}
+
+#[builtin = "Object"]
+pub trait Object[Object, Init, Rest] {
+  const key: String;
+  fn deconstruct(object: Object) -> (Init, Rest);
+  fn reconstruct(init: Init, rest: Rest) -> Object;
+}
+
+pub mod Object {
+  pub use Composite::{cast_deconstruct, cast_reconstruct};
+}
+
+pub trait Composite[Composite, Init, Rest] {
+  fn deconstruct(composite: Composite) -> (Init, Rest);
+  fn reconstruct(init: Init, rest: Rest) -> Composite;
+}
+
+pub mod Composite {
+  pub impl tuple[C, I, R; Tuple[C, I, R]]: Composite[C, I, R] {
+    fn deconstruct(composite: C) -> (I, R) {
+      Tuple::deconstruct(composite)
+    }
+
+    fn reconstruct(init: I, rest: R) -> C {
+      Tuple::reconstruct(init, rest)
+    }
+  }
+
+  pub impl object[C, I, R; Object[C, I, R]]: Composite[C, I, R] {
+    fn deconstruct(composite: C) -> (I, R) {
+      Object::deconstruct(composite)
+    }
+
+    fn reconstruct(init: I, rest: R) -> C {
+      Object::reconstruct(init, rest)
+    }
+  }
+
+  pub impl cast_deconstruct[C, I, R; Composite[C, I, R]]: Cast[C, (I, R)] {
+    fn cast(composite: C) -> (I, R) {
+      Composite::deconstruct(composite)
+    }
+  }
+
+  pub impl cast_reconstruct[C, I, R; Composite[C, I, R]]: Cast[(I, R), C] {
+    fn cast((init: I, rest: R)) -> C {
+      Composite::reconstruct(init, rest)
+    }
+  }
+}

@@ -38,17 +38,3 @@ pub fn main(&io: &IO) {
   };
   io.println("{the_greatest.show()}");
 }
-
-impl show_obj[A, B, C; Show[A], Show[B], Show[C]]: Show[{ a: A, b: B, c: C }] {
-  fn show(&{ a:: A, b:: B, c:: C }) -> Show {
-    Show::Object([
-      (Show::Literal("a"), a.show()),
-      (Show::Literal("b"), b.show()),
-      (Show::Literal("c"), c.show()),
-    ])
-  }
-}
-
-impl drop_obj[A?, B?, C?]: Drop[{ a: A, b: B, c: C }] {
-  fn drop({ a: _: A, b: _: B, c: _: C }) {}
-}

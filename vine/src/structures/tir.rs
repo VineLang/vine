@@ -3,7 +3,7 @@ use ivy::ast::Net;
 use vine_util::{idx::IdxVec, new_idx};
 
 use crate::structures::{
-  ast::{Flex, LogicalOp, Span},
+  ast::{Flex, Ident, LogicalOp, Span},
   chart::{EnumId, FnId, ImplId, StructId, VariantId},
   diag::ErrorGuaranteed,
   resolutions::{ConstRelId, FnRelId, Rels},
@@ -19,7 +19,7 @@ pub struct Tir<'core> {
   pub span: Span,
   pub types: Types<'core>,
   pub locals: IdxVec<Local, TirLocal>,
-  pub rels: Rels,
+  pub rels: Rels<'core>,
   pub closures: IdxVec<ClosureId, TirClosure>,
   pub root: TirExpr,
 }
@@ -166,14 +166,16 @@ pub enum TirPatKind {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub enum TirImpl {
+pub enum TirImpl<'core> {
   Error(ErrorGuaranteed),
   Param(usize),
-  Def(ImplId, Vec<TirImpl>),
-  Fn(FnId, Vec<TirImpl>),
+  Def(ImplId, Vec<TirImpl<'core>>),
+  Fn(FnId, Vec<TirImpl<'core>>),
   Closure(ClosureId),
   ForkClosure(ClosureId),
   DropClosure(ClosureId),
+  Tuple(usize),
+  Object(Ident<'core>, usize),
 }
 
 impl TirExpr {
