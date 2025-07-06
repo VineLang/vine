@@ -1,0 +1,7 @@
+error tests/programs/fail/recursive_type_alias.vi:2:10 - type aliases cannot be recursive
+error tests/programs/fail/recursive_type_alias.vi:2:10 - type aliases cannot be recursive
+error tests/programs/fail/recursive_type_alias.vi:5:10 - type aliases cannot be recursive
+error tests/programs/fail/recursive_type_alias.vi:5:10 - type aliases cannot be recursive
+error tests/programs/fail/recursive_type_alias.vi:9:10 - cannot find `Array` in `::recursive_type_alias::F`
+error - `::recursive_type_alias::main` is only visible within `::recursive_type_alias`
+error tests/programs/fail/recursive_type_alias.vi:12:9 - cannot drop `??`
