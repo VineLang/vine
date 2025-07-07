@@ -1,13 +1,12 @@
-
-import * as vscode from "vscode"
-import { LanguageClient } from "vscode-languageclient/node"
+import * as vscode from "vscode";
+import { LanguageClient } from "vscode-languageclient/node";
 
 let client: LanguageClient;
 
-module.exports = { activate, deactivate }
+module.exports = { activate, deactivate };
 
 async function activate(context: vscode.ExtensionContext) {
-  context.subscriptions.push(vscode.commands.registerCommand("vine.restartServer", restartServer))
+  context.subscriptions.push(vscode.commands.registerCommand("vine.restartServer", restartServer));
 
   const config = vscode.workspace.getConfiguration("vine");
 
@@ -37,11 +36,10 @@ async function activate(context: vscode.ExtensionContext) {
   client.start();
 
   async function restartServer() {
-    await client.restart()
+    await client.restart();
   }
 }
 
 function deactivate() {
   return client?.stop();
 }
-

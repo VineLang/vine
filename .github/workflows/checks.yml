@@ -95,3 +95,17 @@ jobs:
             **/*.md
             **/*.vi
             **/*.iv
+
+  tree-sitter:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v3
+      - uses: hustcer/setup-nu@v3
+        with:
+          version: "0.105.1"
+      - uses: tree-sitter/setup-action@v2
+        with:
+          install-lib: false
+      - run: nu test.nu
+        working-directory: lsp/tree-sitter-vine
