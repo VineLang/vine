@@ -278,7 +278,7 @@ module.exports = grammar({
 
     _stmt: $ =>
       choice(
-        ";",
+        $.stmt_empty,
         $._item,
         prec(
           BP.Max,
