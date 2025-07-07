@@ -75,8 +75,8 @@ impl<'core> Resolver<'core, '_> {
     };
     let kind = match &stmt.kind {
       StmtKind::Let(stmt) => self.resolve_stmts_let(span, ty, stmt, rest),
-      StmtKind::LetFn(stmt) => {
-        self.resolve_stmt_let_fn(span, stmt);
+      StmtKind::LetFn(_) => {
+        let rest = self.resolve_stmts_let_fn_group(stmts);
         return self.resolve_stmts_type(span, rest, ty);
       }
       StmtKind::Expr(expr, semi) => {

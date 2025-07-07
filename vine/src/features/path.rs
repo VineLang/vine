@@ -262,12 +262,23 @@ impl<'core> Resolver<'core, '_> {
     }
   }
 
-  pub(crate) fn resolve_pat_sig_path(&mut self, span: Span, path: &Path<'core>) -> Type {
+  pub(crate) fn resolve_pat_sig_path(
+    &mut self,
+    span: Span,
+    path: &Path<'core>,
+    inference: bool,
+  ) -> Type {
     let resolved = self.resolve_path(self.cur_def, path, "pattern", |d| d.pattern_kind);
     match resolved {
       Ok(DefPatternKind::Struct(struct_id)) => self.resolve_pat_sig_path_struct(path, struct_id),
       Ok(DefPatternKind::Enum(enum_id, _)) => self.resolve_pat_sig_path_enum(path, enum_id),
-      Err(_) => self.types.error(self.core.report(Diag::ItemTypeHole { span })),
+      Err(_) => {
+        if inference {
+          self.types.new_var(span)
+        } else {
+          self.types.error(self.core.report(Diag::ItemTypeHole { span }))
+        }
+      }
     }
   }
 

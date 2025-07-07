@@ -255,8 +255,9 @@ impl<'core> Resolver<'core, '_> {
     Ok(TirPat::new(span, ty, TirPatKind::Composite(elements)))
   }
 
-  pub(crate) fn resolve_pat_sig_tuple(&mut self, elements: &[Pat<'core>]) -> Type {
-    let elements = elements.iter().map(|element| self.resolve_pat_sig(element)).collect();
+  pub(crate) fn resolve_pat_sig_tuple(&mut self, elements: &[Pat<'core>], inference: bool) -> Type {
+    let elements =
+      elements.iter().map(|element| self.resolve_pat_sig(element, inference)).collect();
     self.types.new(TypeKind::Tuple(elements))
   }
 
@@ -285,8 +286,12 @@ impl<'core> Resolver<'core, '_> {
     Ok(TirPat::new(span, ty, TirPatKind::Composite(object.into_values().collect())))
   }
 
-  pub(crate) fn resolve_pat_sig_object(&mut self, entries: &Vec<(Key<'core>, Pat<'core>)>) -> Type {
-    self._build_object_type(entries, Self::resolve_pat_sig)
+  pub(crate) fn resolve_pat_sig_object(
+    &mut self,
+    entries: &Vec<(Key<'core>, Pat<'core>)>,
+    inference: bool,
+  ) -> Type {
+    self._build_object_type(entries, |self_, pat| self_.resolve_pat_sig(pat, inference))
   }
 
   pub(crate) fn resolve_ty_object(

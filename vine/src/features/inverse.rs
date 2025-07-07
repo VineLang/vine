@@ -50,8 +50,8 @@ impl<'core> Resolver<'core, '_> {
     Ok(TirPat::new(span, inner.ty.inverse(), TirPatKind::Inverse(inner)))
   }
 
-  pub(crate) fn resolve_pat_sig_inverse(&mut self, inner: &Pat<'core>) -> Type {
-    let inner = self.resolve_pat_sig(inner);
+  pub(crate) fn resolve_pat_sig_inverse(&mut self, inner: &Pat<'core>, inference: bool) -> Type {
+    let inner = self.resolve_pat_sig(inner, inference);
     inner.inverse()
   }
 

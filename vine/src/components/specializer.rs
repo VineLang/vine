@@ -215,7 +215,7 @@ impl<'core, 'a> Specializer<'core, 'a> {
     let vir = &self.vir[fragment_id];
     let interface_id = match closure_id {
       Some(id) => vir.closures[id],
-      None => *vir.closures.last().unwrap(),
+      None => vir.closures[ClosureId(0)],
     };
     &vir.interfaces[interface_id].kind
   }

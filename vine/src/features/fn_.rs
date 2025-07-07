@@ -13,14 +13,14 @@ use crate::{
     resolver::{Binding, Resolver},
   },
   structures::{
-    ast::{Block, Expr, ExprKind, Flex, FnItem, LetFnStmt, Pat, Path, Span, StmtKind, Ty},
+    ast::{Block, Expr, ExprKind, Flex, FnItem, LetFnStmt, Pat, Path, Span, Stmt, StmtKind, Ty},
     chart::{ConcreteFnDef, ConcreteFnId, DefId, DefValueKind, FnId, GenericsId},
     diag::Diag,
-    resolutions::{FnRel, FnRelId},
+    resolutions::{FnRel, FnRelId, Fragment},
     signatures::FnSig,
     tir::{ClosureId, TirClosure, TirExpr, TirExprKind, TirImpl},
     types::{ImplType, Type, TypeCtx, TypeKind},
-    vir::{Header, Interface, InterfaceId, InterfaceKind, Port, PortKind, Stage, Step, Transfer},
+    vir::{Header, Interface, InterfaceKind, Port, PortKind, Stage, Step, Transfer},
   },
   tools::fmt::{doc::Doc, Formatter},
 };
@@ -170,7 +170,7 @@ impl<'core> Resolver<'core, '_> {
     params: &[Pat<'core>],
     ret: &Option<Ty<'core>>,
   ) -> (Vec<Type>, Type) {
-    let params = params.iter().map(|p| self.resolve_pat_sig(p)).collect();
+    let params = params.iter().map(|p| self.resolve_pat_sig(p, false)).collect();
     let ret = ret.as_ref().map(|t| self.resolve_ty(t, false)).unwrap_or(self.types.nil());
     (params, ret)
   }
@@ -199,10 +199,45 @@ impl<'core> Resolver<'core, '_> {
     Ok(TirExpr::new(span, ty, TirExprKind::Closure(closure_id)))
   }
 
-  pub(crate) fn resolve_stmt_let_fn(&mut self, span: Span, stmt: &LetFnStmt<'core>) {
-    let (fn_ty, id) =
-      self.resolve_closure(span, stmt.flex, &stmt.params, &stmt.ret, &stmt.body, true);
-    self.bind(stmt.name, Binding::Closure(id, fn_ty));
+  pub(crate) fn resolve_stmts_let_fn_group<'s>(
+    &mut self,
+    mut stmts: &'s [Stmt<'core>],
+  ) -> &'s [Stmt<'core>] {
+    let mut let_fns = Vec::new();
+    while let [stmt, rest @ ..] = stmts {
+      match &stmt.kind {
+        StmtKind::LetFn(let_fn) => {
+          let span = stmt.span;
+          let id = self.closures.push(None);
+          let param_tys =
+            Vec::from_iter(let_fn.params.iter().map(|p| self.resolve_pat_sig(p, true)));
+          let ret = self.resolve_arrow_ty(span, &let_fn.ret, true);
+          let ty = self.types.new(TypeKind::Closure(id, let_fn.flex, param_tys.clone(), ret));
+          self.bind(let_fn.name, Binding::Closure(id, ty));
+          let_fns.push((span, id, param_tys, ret, let_fn));
+        }
+        StmtKind::Empty | StmtKind::Item(_) => {}
+        _ => break,
+      }
+      stmts = rest;
+    }
+    for (span, id, param_tys, ret, let_fn) in let_fns {
+      let old_targets = take(&mut self.targets);
+      let old_return_ty = self.return_ty.replace(ret);
+      self.enter_scope();
+      let params = Vec::from_iter(
+        let_fn.params.iter().zip(&param_tys).map(|(p, &ty)| self.resolve_pat_type(p, ty)),
+      );
+      let body = self.resolve_block_type(&let_fn.body, ret);
+      self.exit_scope();
+      self.targets = old_targets;
+      self.return_ty = old_return_ty;
+      let param_tys = params.iter().map(|x| x.ty).collect();
+      let ty = self.types.new(TypeKind::Closure(id, let_fn.flex, param_tys, ret));
+      let closure = TirClosure { span: span, ty, flex: let_fn.flex, params, body };
+      self.closures[id] = Some(closure);
+    }
+    stmts
   }
 
   pub(crate) fn resolve_closure(
@@ -214,6 +249,7 @@ impl<'core> Resolver<'core, '_> {
     body: &Block<'core>,
     inferred_ret: bool,
   ) -> (Type, ClosureId) {
+    let id = self.closures.push(None);
     let old_targets = take(&mut self.targets);
     self.enter_scope();
     let params = params.iter().map(|p| self.resolve_pat(p)).collect::<Vec<_>>();
@@ -230,9 +266,9 @@ impl<'core> Resolver<'core, '_> {
     self.targets = old_targets;
     self.return_ty = old_return_ty;
     let param_tys = params.iter().map(|x| x.ty).collect();
-    let id = self.closures.next_index();
     let ty = self.types.new(TypeKind::Closure(id, flex, param_tys, ret_ty));
-    self.closures.push_to(id, TirClosure { span, ty, flex, params, body });
+    let closure = TirClosure { span, ty, flex, params, body };
+    self.closures[id] = Some(closure);
     (ty, id)
   }
 
@@ -362,10 +398,19 @@ impl<'core> Resolver<'core, '_> {
 }
 
 impl<'core> Distiller<'core, '_> {
-  pub(crate) fn distill_closure(&mut self, closure: &TirClosure) -> InterfaceId {
+  pub(crate) fn distill_closures(&mut self, fragment: &Fragment<'core>) {
+    for id in fragment.tir.closures.keys() {
+      self.closures.push_to(id, self.interfaces.push(None));
+    }
+    for (id, closure) in &fragment.tir.closures {
+      self.distill_closure(id, closure);
+    }
+  }
+
+  fn distill_closure(&mut self, id: ClosureId, closure: &TirClosure) {
     let span = closure.span;
     let mut layer = self.new_layer();
-    let interface = self.interfaces.push(None);
+    let interface = self.closures[id];
 
     let call = {
       let mut stage = self.new_stage(&mut layer, span, interface);
@@ -404,7 +449,6 @@ impl<'core> Distiller<'core, '_> {
       Some(Interface::new(interface, layer.id, InterfaceKind::Fn { call, fork, drop }));
 
     self.finish_layer(layer);
-    interface
   }
 
   pub(crate) fn distill_expr_value_fn(&mut self, ty: Type) -> Port {

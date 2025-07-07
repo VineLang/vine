@@ -15,6 +15,7 @@ use crate::{
     signatures::Signatures,
     specializations::Specializations,
     template::Template,
+    tir::ClosureId,
     vir::{InterfaceKind, Vir},
   },
 };
@@ -103,7 +104,7 @@ impl<'core> Compiler<'core> {
     if let Some(main) = self.resolutions.main {
       let path = self.fragments[main].path;
       let vir = &self.vir[main];
-      let func = *vir.closures.last().unwrap();
+      let func = vir.closures[ClosureId(0)];
       let InterfaceKind::Fn { call, .. } = vir.interfaces[func].kind else { unreachable!() };
       let global = format!("{path}:s{}", call.0);
       nets.insert("::".into(), Net { root: Tree::Global(global), pairs: Vec::new() });
