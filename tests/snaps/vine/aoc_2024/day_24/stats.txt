@@ -1,17 +1,17 @@
 
 Interactions
-  Total              233_684
-    Depth             56_941
+  Total              231_813
+    Depth             56_939
     Breadth                4
-  Annihilate         135_333
+  Annihilate         134_071
   Commute                432
-  Copy                24_220
-  Erase               27_164
+  Copy                24_217
+  Erase               26_558
   Expand              16_811
   Call                19_559
   Branch              10_165
 
 Memory
-  Heap                65_584 B
-  Allocated        5_272_016 B
-  Freed            5_272_016 B
+  Heap                65_600 B
+  Allocated        5_231_584 B
+  Freed            5_231_584 B

@@ -27,7 +27,7 @@ pub mod List {
   pub fn .at[T](&List[T](len, *buf, _), i: N32) -> Option[&T] {
     if i >= len {
       let &_ = buf;
-      return None
+      return None;
     }
     while i != 0 {
       let &Buf(_, *tail) = buf;
@@ -155,10 +155,11 @@ pub mod List {
   pub fn .find[T, F*; fn F(&T) -> Bool](&self: &List[T], pred: F) -> Option[&T] {
     for &value in self.iter() {
       if pred(&value) {
-        return Some(&value)
+        break Some(&value);
       }
+    } else {
+      None
     }
-    None
   }
 
   pub fn .contains[T; Eq[T]](&self: &List[T], &el: &T) -> Bool {
@@ -312,10 +313,11 @@ pub mod List {
         let (&b, _b_iter) = b_iter.advance().unwrap();
         b_iter = _b_iter;
         if a != b {
-          return false;
+          break false;
         }
+      } else {
+        true
       }
-      true
     }
 
     fn ne(&a: &List[T], &b: &List[T]) -> Bool {
@@ -329,15 +331,17 @@ pub mod List {
       let b_iter = b.iter();
       let ord = loop {
         match (a_iter.advance(), b_iter.advance()) {
-          (None, None) { break Ord::Eq }
-          (None, Some(_)) { break Ord::Lt }
-          (Some(_), None) { break Ord::Gt }
+          (None, None) { Ord::Eq }
+          (None, Some(_)) { Ord::Lt }
+          (Some(_), None) { Ord::Gt }
           (Some(&a, _a_iter), Some(&b, _b_iter)) {
             (a_iter, b_iter) = (_a_iter, _b_iter);
             match a.cmp(&b) {
-              Ord::Lt { break Ord::Lt }
-              Ord::Eq {}
-              Ord::Gt { break Ord::Gt }
+              Ord::Lt { Ord::Lt }
+              Ord::Eq {
+                continue;
+              }
+              Ord::Gt { Ord::Gt }
             }
           }
         }

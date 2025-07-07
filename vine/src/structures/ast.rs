@@ -213,6 +213,9 @@ pub enum StmtKind<'core> {
   LetFn(LetFnStmt<'core>),
   Expr(Expr<'core>, bool),
   Item(Item<'core>),
+  Return(Option<Expr<'core>>),
+  Break(Target<'core>, Option<Expr<'core>>),
+  Continue(Target<'core>),
   Empty,
 }
 
@@ -220,7 +223,13 @@ pub enum StmtKind<'core> {
 pub struct LetStmt<'core> {
   pub bind: Pat<'core>,
   pub init: Option<Expr<'core>>,
-  pub else_block: Option<Block<'core>>,
+  pub else_: Option<LetElse<'core>>,
+}
+
+#[derive(Debug, Clone)]
+pub enum LetElse<'core> {
+  Block(Block<'core>),
+  Match(Vec<(Pat<'core>, Block<'core>)>),
 }
 
 #[derive(Debug, Clone)]
@@ -243,17 +252,15 @@ pub enum ExprKind<'core> {
   Hole,
   Paren(Expr<'core>),
   Path(Path<'core>, Option<Vec<Expr<'core>>>),
-  Do(Option<Ident<'core>>, Block<'core>),
+  Do(Label<'core>, Option<Ty<'core>>, Block<'core>),
   Assign(bool, Expr<'core>, Expr<'core>),
-  Match(Expr<'core>, Vec<(Pat<'core>, Block<'core>)>),
-  If(Vec<(Expr<'core>, Block<'core>)>, Option<Block<'core>>),
-  While(Option<Ident<'core>>, Expr<'core>, Block<'core>),
-  Loop(Option<Ident<'core>>, Block<'core>),
-  For(Option<Ident<'core>>, Pat<'core>, Expr<'core>, Block<'core>),
+  Match(Expr<'core>, Option<Ty<'core>>, Vec<(Pat<'core>, Block<'core>)>),
+  If(Expr<'core>, Option<Ty<'core>>, Block<'core>, Option<Block<'core>>),
+  When(Label<'core>, Option<Ty<'core>>, Vec<(Expr<'core>, Block<'core>)>, Option<Block<'core>>),
+  While(Label<'core>, Expr<'core>, Option<Ty<'core>>, Block<'core>, Option<Block<'core>>),
+  Loop(Label<'core>, Option<Ty<'core>>, Block<'core>),
+  For(Label<'core>, Pat<'core>, Expr<'core>, Option<Ty<'core>>, Block<'core>, Option<Block<'core>>),
   Fn(Flex, Vec<Pat<'core>>, Option<Ty<'core>>, Block<'core>),
-  Return(Option<Expr<'core>>),
-  Break(Option<Ident<'core>>, Option<Expr<'core>>),
-  Continue(Option<Ident<'core>>),
   Ref(Expr<'core>, bool),
   Deref(Expr<'core>, bool),
   Inverse(Expr<'core>, bool),
@@ -285,6 +292,20 @@ pub enum ExprKind<'core> {
   String(StringSegment, Vec<(Expr<'core>, StringSegment)>),
   InlineIvy(Vec<(Ident<'core>, bool, Expr<'core>)>, Ty<'core>, Span, Net),
   Error(ErrorGuaranteed),
+}
+
+#[derive(Debug, Clone, Copy)]
+pub struct Label<'core>(pub Option<Ident<'core>>);
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum Target<'core> {
+  AnyLoop,
+  Label(Ident<'core>),
+  Do,
+  Loop,
+  While,
+  For,
+  When,
 }
 
 #[derive(Debug, Clone)]

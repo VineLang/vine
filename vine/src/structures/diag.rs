@@ -124,14 +124,10 @@ diags! {
     ["cannot find builtin for operator"]
   NoReturn
     ["no function to return from"]
-  NoLoopBreak
-    ["no loop to break from"]
-  NoLoopContinue
-    ["no loop to continue"]
-  UnboundLabel { label: Ident<'core> }
-    ["cannot find label `{label}`"]
-  NoContinueLabel { label: Ident<'core> }
-    ["cannot continue label `{label}`"]
+  InvalidBreakTarget
+    ["invalid break target"]
+  InvalidContinueTarget
+    ["invalid continue target"]
   MissingReturnExpr { ty: String }
     ["expected a value of type `{ty}` to return"]
   MissingBreakExpr { ty: String }
@@ -240,6 +236,10 @@ diags! {
     ["the `#[erase]` attribute can only be applied to an impl of the `Drop` trait"]
   InvalidCommand
     ["invalid command; type `/help` for a list of commands"]
+  MissingElse
+    ["missing else block"]
+  MissingTerminalArm
+    ["missing terminal arm in `when`"]
 }
 
 fn plural<'a>(n: usize, plural: &'a str, singular: &'a str) -> &'a str {

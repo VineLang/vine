@@ -177,15 +177,6 @@ impl<'core, 'src> VineParser<'core, 'src> {
     &mut self,
     span: usize,
   ) -> Result<Option<ExprKind<'core>>, Diag<'core>> {
-    if self.eat(Token::Return)? {
-      return Ok(Some(self.parse_expr_return()?));
-    }
-    if self.eat(Token::Break)? {
-      return Ok(Some(self.parse_expr_break()?));
-    }
-    if self.eat(Token::Continue)? {
-      return Ok(Some(self.parse_expr_continue()?));
-    }
     if self.check(Token::And) || self.check(Token::AndAnd) {
       return Ok(Some(self.parse_expr_ref(span)?));
     }
@@ -236,6 +227,9 @@ impl<'core, 'src> VineParser<'core, 'src> {
     }
     if self.check(Token::If) {
       return Ok(Some(self.parse_expr_if()?));
+    }
+    if self.check(Token::When) {
+      return Ok(Some(self.parse_expr_when()?));
     }
     if self.check(Token::While) {
       return Ok(Some(self.parse_expr_while()?));
@@ -382,6 +376,10 @@ impl<'core, 'src> VineParser<'core, 'src> {
     Ok(Err(lhs))
   }
 
+  pub(crate) fn parse_pats(&mut self) -> Result<Vec<Pat<'core>>, Diag<'core>> {
+    self.parse_delimited(PAREN_COMMA, Self::parse_pat)
+  }
+
   pub(crate) fn parse_pat(&mut self) -> Result<Pat<'core>, Diag<'core>> {
     self.parse_pat_bp(BP::Min)
   }
@@ -473,6 +471,10 @@ impl<'core, 'src> VineParser<'core, 'src> {
     self.unexpected()
   }
 
+  pub(crate) fn parse_arrow_ty(&mut self) -> Result<Option<Ty<'core>>, Diag<'core>> {
+    self.eat_then(Token::ThinArrow, Self::parse_ty)
+  }
+
   pub(crate) fn parse_impl(&mut self) -> Result<Impl<'core>, Diag<'core>> {
     let span = self.start_span();
     let kind = self._parse_impl()?;
@@ -507,7 +509,7 @@ impl<'core, 'src> VineParser<'core, 'src> {
     if self.eat(Token::Fn)? {
       let receiver = self.parse_ty()?;
       let params = self.parse_delimited(PAREN_COMMA, Self::parse_ty)?;
-      let ret = self.eat(Token::ThinArrow)?.then(|| self.parse_ty()).transpose()?;
+      let ret = self.parse_arrow_ty()?;
       return Ok(TraitKind::Fn(receiver, params, ret));
     }
     self.unexpected()
@@ -531,16 +533,27 @@ impl<'core, 'src> VineParser<'core, 'src> {
       return Ok(StmtKind::Item(item));
     }
     if self.check(Token::If)
+      || self.check(Token::When)
       || self.check(Token::Match)
       || self.check(Token::Loop)
       || self.check(Token::While)
       || self.check(Token::For)
+      || self.check(Token::Do)
     {
       let Some(expr) = self.maybe_parse_expr_prefix()? else {
         return self.unexpected();
       };
       let semi = self.eat(Token::Semi)?;
       return Ok(StmtKind::Expr(expr, semi));
+    }
+    if self.eat(Token::Return)? {
+      return self.parse_stmt_return();
+    }
+    if self.eat(Token::Break)? {
+      return self.parse_stmt_break();
+    }
+    if self.eat(Token::Continue)? {
+      return self.parse_stmt_continue();
     }
     let expr = self.parse_expr()?;
     let semi = self.eat(Token::Semi)?;

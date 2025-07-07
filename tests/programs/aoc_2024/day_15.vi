@@ -34,14 +34,11 @@ pub fn main(&io: &IO) {
   while io.read_line() is Some(line) {
     for char in line!.into_iter() {
       instructions ++= [char];
-      let dir = if char == '<' {
-        (-(1), 0)
-      } else if char == '>' {
-        (1, 0)
-      } else if char == '^' {
-        (0, -(1))
-      } else {
-        (0, 1)
+      let dir = when {
+        char == '<' { (-(1), 0) }
+        char == '>' { (1, 0) }
+        char == '^' { (0, -(1)) }
+        _ { (0, 1) }
       };
       let target_pos = robot + dir;
       while *get(target_pos) == 'O' {
@@ -117,6 +114,7 @@ pub fn main(&io: &IO) {
           char = carry;
         }
         carry = old;
+        continue;
       }
     } else {
       let dir_y = if char == '^' {
@@ -136,29 +134,32 @@ pub fn main(&io: &IO) {
         let new_front = [];
         while front.pop_front() is Some(pos_x, carry) {
           let &char = get((pos_x, pos_y));
-          if char == '#' {
-            ~success = false;
-            new_front = [];
-            break;
-          }
-          if char == '[' {
-            new_front.push_back((pos_x, '['));
-            new_front.push_back((pos_x + 1, ']'));
-            let carry = '.';
-            if front.len() != 0 && front.at(0) is Some(&(p, c)) && p == pos_x + 1 {
-              front.pop_front();
-              carry = c;
+          when {
+            char == '#' {
+              ~success = false;
+              new_front = [];
+              break;
             }
-            let &char = get((pos_x + 1, pos_y));
-            if ~success {
-              char = carry;
+            char == '[' {
+              new_front.push_back((pos_x, '['));
+              new_front.push_back((pos_x + 1, ']'));
+              let carry = '.';
+              if front.len() != 0 && front.at(0) is Some(&(p, c)) && p == pos_x + 1 {
+                front.pop_front();
+                carry = c;
+              }
+              let &char = get((pos_x + 1, pos_y));
+              if ~success {
+                char = carry;
+              }
             }
-          } else if char == ']' {
-            new_front.push_back((pos_x - 1, '['));
-            new_front.push_back((pos_x, ']'));
-            let &char = get((pos_x - 1, pos_y));
-            if ~success {
-              char = '.';
+            char == ']' {
+              new_front.push_back((pos_x - 1, '['));
+              new_front.push_back((pos_x, ']'));
+              let &char = get((pos_x - 1, pos_y));
+              if ~success {
+                char = '.';
+              }
             }
           }
 

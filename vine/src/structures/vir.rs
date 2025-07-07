@@ -336,6 +336,7 @@ pub struct VirLocal {
   pub inv: Inverted,
   pub fork: Option<FnRelId>,
   pub drop: Option<FnRelId>,
+  pub is_nil: bool,
 }
 
 impl VirLocal {
@@ -358,6 +359,7 @@ impl VirLocal {
       inv: flex.inv,
       fork: flex.fork.map(|impl_| rels.fork_rel(chart, impl_)),
       drop: flex.drop.map(|impl_| rels.drop_rel(chart, impl_)),
+      is_nil: flex.is_nil,
     }
   }
 }

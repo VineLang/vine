@@ -1,6 +1,6 @@
 use crate::structures::ast::{
-  Block, Expr, ExprKind, GenericArgs, GenericParams, Impl, ImplKind, Item, ItemKind, ModKind, Pat,
-  PatKind, Stmt, StmtKind, Trait, TraitKind, Ty, TyKind,
+  Block, Expr, ExprKind, GenericArgs, GenericParams, Impl, ImplKind, Item, ItemKind, LetElse,
+  ModKind, Pat, PatKind, Stmt, StmtKind, Trait, TraitKind, Ty, TyKind,
 };
 
 pub trait VisitMut<'core, 'a> {
@@ -52,17 +52,12 @@ pub trait VisitMut<'core, 'a> {
       | ExprKind::I32(_)
       | ExprKind::F32(_)
       | ExprKind::Char(_)
-      | ExprKind::Continue(_)
-      | ExprKind::Error(_)
-      | ExprKind::Return(None)
-      | ExprKind::Break(_, None) => {}
+      | ExprKind::Error(_) => {}
       ExprKind::Paren(a)
       | ExprKind::Ref(a, _)
       | ExprKind::Deref(a, _)
       | ExprKind::Neg(a)
       | ExprKind::Not(a)
-      | ExprKind::Break(_, Some(a))
-      | ExprKind::Return(Some(a))
       | ExprKind::TupleField(a, _)
       | ExprKind::ObjectField(a, _)
       | ExprKind::Inverse(a, _)
@@ -81,34 +76,49 @@ pub trait VisitMut<'core, 'a> {
         self.visit(&mut path.generics);
         self.visit(args);
       }
-      ExprKind::Do(_, b) | ExprKind::Loop(_, b) => self.visit_block(b),
-      ExprKind::Match(a, b) => {
+      ExprKind::Do(_, a, b) | ExprKind::Loop(_, a, b) => {
+        self.visit(a);
+        self.visit_block(b);
+      }
+      ExprKind::Match(a, b, c) => {
         self.visit_expr(a);
-        for (p, b) in b {
+        self.visit(b);
+        for (p, b) in c {
           self.visit_pat(p);
           self.visit_block(b);
         }
       }
-      ExprKind::If(arms, leg) => {
+      ExprKind::If(cond, ty, then, else_) => {
+        self.visit(cond);
+        self.visit(ty);
+        self.visit(then);
+        self.visit(else_);
+      }
+      ExprKind::When(_, ty, arms, leg) => {
+        self.visit(ty);
         for (cond, block) in arms {
           self.visit(cond);
           self.visit(block);
         }
         self.visit(leg);
       }
-      ExprKind::While(_, a, b) => {
+      ExprKind::While(_, a, ty, b, c) => {
         self.visit_expr(a);
+        self.visit(ty);
         self.visit_block(b);
+        self.visit(c);
       }
       ExprKind::Fn(_, a, b, c) => {
         self.visit(a);
         self.visit(b);
         self.visit_block(c);
       }
-      ExprKind::For(_, a, b, c) => {
+      ExprKind::For(_, a, b, ty, c, d) => {
         self.visit(a);
         self.visit_expr(b);
+        self.visit(ty);
         self.visit(c);
+        self.visit(d);
       }
       ExprKind::Tuple(a) | ExprKind::List(a) => {
         self.visit(a);
@@ -230,8 +240,15 @@ pub trait VisitMut<'core, 'a> {
         if let Some(init) = &mut l.init {
           self.visit_expr(init);
         }
-        if let Some(block) = &mut l.else_block {
-          self.visit_block(block);
+        match &mut l.else_ {
+          Some(LetElse::Block(b)) => self.visit(b),
+          Some(LetElse::Match(a)) => {
+            for (p, b) in a {
+              self.visit(p);
+              self.visit(b);
+            }
+          }
+          None => {}
         }
         self.visit_pat(&mut l.bind);
       }
@@ -244,9 +261,14 @@ pub trait VisitMut<'core, 'a> {
         }
         self.visit_block(&mut d.body);
       }
-      StmtKind::Expr(t, _) => self.visit_expr(t),
+      StmtKind::Expr(t, _) | StmtKind::Return(Some(t)) | StmtKind::Break(_, Some(t)) => {
+        self.visit_expr(t)
+      }
       StmtKind::Item(i) => self.visit_item(i),
-      StmtKind::Empty => {}
+      StmtKind::Empty
+      | StmtKind::Return(None)
+      | StmtKind::Break(_, None)
+      | StmtKind::Continue(_) => {}
     }
   }
 

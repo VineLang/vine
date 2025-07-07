@@ -2,7 +2,7 @@
 // ~1 error per line
 type Foo[X] = (X, foo, _);
 fn foo(x, y: Foo) {}
-const bar: _ = return;
+const bar: _ = do { return };
 pub fn main[T, U](io: IO) {
   let x: N32 = 0.0;
   let x: F32 = 0;
@@ -21,7 +21,7 @@ pub fn main[T, U](io: IO) {
   let x: U = x;
   let Ay::Yay = 0;
   (loop { break "x" } + 1);
-  let &x: N32 = loop {};
+  let &x: N32 = loop { continue };
   continue;
   break;
   return 0.0;

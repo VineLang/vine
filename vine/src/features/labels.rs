@@ -5,125 +5,146 @@ use crate::{
     distiller::Distiller,
     lexer::Token,
     parser::{VineParser, BP},
-    resolver::{LabelInfo, Resolver},
+    resolver::{Resolver, TargetInfo},
   },
   structures::{
-    ast::{Expr, ExprKind, Ident, Span},
+    ast::{Expr, Label, Span, StmtKind, Target},
     diag::Diag,
-    tir::{LabelId, TirExpr, TirExprKind},
-    types::Type,
+    tir::{TargetId, TirExpr, TirExprKind},
     vir::{Port, PortKind, Stage, Step, Transfer},
   },
   tools::fmt::{doc::Doc, Formatter},
 };
 
 impl<'core> VineParser<'core, '_> {
-  pub(crate) fn parse_label(&mut self) -> Result<Option<Ident<'core>>, Diag<'core>> {
-    self.eat(Token::Dot)?.then(|| self.parse_ident()).transpose()
+  pub(crate) fn parse_label(&mut self) -> Result<Label<'core>, Diag<'core>> {
+    Ok(Label(self.eat_then(Token::Dot, Self::parse_ident)?))
   }
 
-  pub(crate) fn parse_expr_break(&mut self) -> Result<ExprKind<'core>, Diag<'core>> {
-    let label = self.parse_label()?;
+  pub(crate) fn parse_target(&mut self) -> Result<Target<'core>, Diag<'core>> {
+    Ok(if self.eat(Token::Dot)? {
+      if self.eat(Token::Do)? {
+        Target::Do
+      } else if self.eat(Token::Loop)? {
+        Target::Loop
+      } else if self.eat(Token::While)? {
+        Target::While
+      } else if self.eat(Token::For)? {
+        Target::For
+      } else if self.eat(Token::When)? {
+        Target::When
+      } else {
+        Target::Label(self.parse_ident()?)
+      }
+    } else {
+      Target::AnyLoop
+    })
+  }
+
+  pub(crate) fn parse_stmt_break(&mut self) -> Result<StmtKind<'core>, Diag<'core>> {
+    let target = self.parse_target()?;
     let expr = self.maybe_parse_expr_bp(BP::Min)?;
-    Ok(ExprKind::Break(label, expr))
+    self.eat(Token::Semi)?;
+    Ok(StmtKind::Break(target, expr))
   }
 
-  pub(crate) fn parse_expr_continue(&mut self) -> Result<ExprKind<'core>, Diag<'core>> {
-    Ok(ExprKind::Continue(self.parse_label()?))
+  pub(crate) fn parse_stmt_continue(&mut self) -> Result<StmtKind<'core>, Diag<'core>> {
+    let target = self.parse_target()?;
+    self.eat(Token::Semi)?;
+    Ok(StmtKind::Continue(target))
   }
 }
 
 impl<'core: 'src, 'src> Formatter<'src> {
-  pub(crate) fn fmt_label(&self, label: Option<Ident<'core>>) -> Doc<'src> {
-    if let Some(label) = label {
+  pub(crate) fn fmt_label(&self, label: Label<'core>) -> Doc<'src> {
+    if let Some(label) = label.0 {
       Doc::concat([Doc("."), Doc(label)])
     } else {
       Doc("")
     }
   }
 
-  pub(crate) fn fmt_expr_break(
-    &self,
-    label: Option<Ident<'core>>,
-    expr: &Option<Expr<'core>>,
-  ) -> Doc<'src> {
-    match expr {
-      Some(expr) => {
-        Doc::concat([Doc("break"), self.fmt_label(label), Doc(" "), self.fmt_expr(expr)])
-      }
-      None => Doc::concat([Doc("break"), self.fmt_label(label)]),
+  pub(crate) fn fmt_target(&self, target: Target<'core>) -> Doc<'src> {
+    match target {
+      Target::AnyLoop => Doc(""),
+      Target::Label(label) => Doc::concat([Doc("."), Doc(label)]),
+      Target::Do => Doc(".do"),
+      Target::Loop => Doc(".loop"),
+      Target::While => Doc(".while"),
+      Target::For => Doc(".for"),
+      Target::When => Doc(".when"),
     }
   }
 
-  pub(crate) fn fmt_expr_continue(&self, label: Option<Ident<'core>>) -> Doc<'src> {
-    Doc::concat([Doc("continue"), self.fmt_label(label)])
+  pub(crate) fn fmt_stmt_break(
+    &self,
+    target: Target<'core>,
+    expr: &Option<Expr<'core>>,
+  ) -> Doc<'src> {
+    match expr {
+      Some(expr) => Doc::concat([
+        Doc("break"),
+        self.fmt_target(target),
+        Doc(" "),
+        self.fmt_expr(expr),
+        Doc(";"),
+      ]),
+      None => Doc::concat([Doc("break"), self.fmt_target(target), Doc(";")]),
+    }
+  }
+
+  pub(crate) fn fmt_stmt_continue(&self, target: Target<'core>) -> Doc<'src> {
+    Doc::concat([Doc("continue"), self.fmt_target(target), Doc(";")])
   }
 }
 
 impl<'core> Resolver<'core, '_> {
-  pub(crate) fn bind_label<T>(
+  pub(crate) fn bind_target<T>(
     &mut self,
-    label: Option<Ident<'core>>,
-    is_loop: bool,
-    break_ty: Type,
+    label: Label<'core>,
+    targets: impl IntoIterator<IntoIter: Clone, Item = Target<'core>>,
+    kind: TargetInfo,
     f: impl FnOnce(&mut Self) -> T,
-  ) -> (LabelId, T) {
-    let id = self.label_id.next();
-    let info = LabelInfo { id, is_loop, break_ty };
-    if is_loop {
-      self.loops.push(info);
+  ) -> T {
+    let targets = targets.into_iter().chain(label.0.map(Target::Label));
+    for target in targets.clone() {
+      self.targets.entry(target).or_default().push(kind);
     }
-    let result;
-    if let Some(label) = label {
-      let old = self.labels.insert(label, info);
-      result = f(self);
-      if let Some(old) = old {
-        self.labels.insert(label, old);
-      } else {
-        self.labels.remove(&label);
-      }
-    } else {
-      result = f(self);
+    let result = f(self);
+    for target in targets {
+      self.targets.get_mut(&target).unwrap().pop();
     }
-    if is_loop {
-      self.loops.pop();
-    }
-    (id, result)
+    result
   }
 
   pub(crate) fn resolve_expr_break(
     &mut self,
     span: Span,
-    label: Option<Ident<'core>>,
+    target: Target<'core>,
     value: &Option<Expr<'core>>,
   ) -> Result<TirExpr, Diag<'core>> {
     let nil = self.types.nil();
-    let label_info = if let Some(label) = label {
-      self.labels.get(&label).copied().ok_or(Diag::UnboundLabel { span, label })
-    } else {
-      self.loops.last().copied().ok_or(Diag::NoLoopBreak { span })
-    };
-    match label_info {
-      Ok(label_info) => {
+    match self.targets.get(&target).and_then(|x| x.last()) {
+      Some(&target) => {
         let value = match value {
-          Some(value) => Some(self.resolve_expr_type(value, label_info.break_ty)),
+          Some(value) => Some(self.resolve_expr_type(value, target.break_ty)),
           None => {
-            if self.types.unify(label_info.break_ty, nil).is_failure() {
+            if self.types.unify(target.break_ty, nil).is_failure() {
               self.core.report(Diag::MissingBreakExpr {
                 span,
-                ty: self.types.show(self.chart, label_info.break_ty),
+                ty: self.types.show(self.chart, target.break_ty),
               });
             }
             None
           }
         };
-        Ok(TirExpr::new(span, self.types.new_var(span), TirExprKind::Break(label_info.id, value)))
+        Ok(TirExpr::new(span, self.types.new_var(span), TirExprKind::Break(target.id, value)))
       }
-      Err(diag) => {
+      None => {
         if let Some(value) = value {
           self.resolve_expr(value);
         }
-        Err(diag)?
+        Err(Diag::InvalidBreakTarget { span })?
       }
     }
   }
@@ -131,18 +152,14 @@ impl<'core> Resolver<'core, '_> {
   pub(crate) fn resolve_expr_continue(
     &mut self,
     span: Span,
-    label: Option<Ident<'core>>,
+    target: Target<'core>,
   ) -> Result<TirExpr, Diag<'core>> {
-    let label_info = if let Some(label) = label {
-      let label_info = *self.labels.get(&label).ok_or(Diag::UnboundLabel { span, label })?;
-      if !label_info.is_loop {
-        Err(Diag::NoContinueLabel { span, label })?
+    match self.targets.get(&target).and_then(|x| x.last()) {
+      Some(target) if target.continue_ => {
+        Ok(TirExpr::new(span, self.types.new_var(span), TirExprKind::Continue(target.id)))
       }
-      label_info
-    } else {
-      self.loops.last().copied().ok_or(Diag::NoLoopContinue { span })?
-    };
-    Ok(TirExpr::new(span, self.types.new_var(span), TirExprKind::Continue(label_info.id)))
+      _ => Err(Diag::InvalidContinueTarget { span })?,
+    }
   }
 }
 
@@ -150,7 +167,7 @@ impl<'core> Distiller<'core, '_> {
   pub(crate) fn distill_break(
     &mut self,
     stage: &mut Stage,
-    label: LabelId,
+    label: TargetId,
     value: &Option<TirExpr>,
   ) {
     let value = match value {
@@ -158,18 +175,14 @@ impl<'core> Distiller<'core, '_> {
       None => Port { ty: self.types.nil(), kind: PortKind::Nil },
     };
 
-    let label = self.labels[label].as_ref().unwrap();
-    if let Some(local) = label.break_value {
-      stage.local_barrier_write_to(local, value);
-    } else {
-      stage.steps.push(Step::Link(value, Port { ty: self.types.nil(), kind: PortKind::Nil }));
-    }
+    let label = self.targets[label].as_ref().unwrap();
+    stage.local_barrier_write_to(label.break_value, value);
 
     stage.steps.push(Step::Diverge(label.layer, None));
   }
 
-  pub(crate) fn distill_continue(&mut self, stage: &mut Stage, label: LabelId) {
-    let label = self.labels[label].as_ref().unwrap();
+  pub(crate) fn distill_continue(&mut self, stage: &mut Stage, label: TargetId) {
+    let label = self.targets[label].as_ref().unwrap();
     let transfer = Transfer::unconditional(label.continue_transfer.unwrap());
     stage.steps.push(Step::Diverge(label.layer, Some(transfer)));
   }

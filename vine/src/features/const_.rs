@@ -26,7 +26,7 @@ impl<'core> VineParser<'core, '_> {
     let generics = self.parse_generic_params()?;
     self.expect(Token::Colon)?;
     let ty = self.parse_ty()?;
-    let value = self.eat(Token::Eq)?.then(|| self.parse_expr()).transpose()?;
+    let value = self.eat_then(Token::Eq, Self::parse_expr)?;
     self.expect(Token::Semi)?;
     Ok(ConstItem { name, generics, ty, value })
   }

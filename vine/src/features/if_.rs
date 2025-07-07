@@ -3,11 +3,11 @@ use vine_util::parser::Parser;
 use crate::{
   components::{distiller::Distiller, lexer::Token, parser::VineParser, resolver::Resolver},
   structures::{
-    ast::{Block, Expr, ExprKind, Span},
+    ast::{Block, Expr, ExprKind, Span, Ty},
     diag::Diag,
     tir::{TirExpr, TirExprKind},
     types::Type,
-    vir::{Port, PortKind, Stage},
+    vir::{Port, Stage},
   },
   tools::fmt::{doc::Doc, Formatter},
 };
@@ -15,40 +15,33 @@ use crate::{
 impl<'core> VineParser<'core, '_> {
   pub(crate) fn parse_expr_if(&mut self) -> Result<ExprKind<'core>, Diag<'core>> {
     self.expect(Token::If)?;
-    let mut arms = Vec::new();
-    loop {
-      let cond = self.parse_expr()?;
-      let then = self.parse_block()?;
-      arms.push((cond, then));
-      if self.eat(Token::Else)? {
-        if self.eat(Token::If)? {
-          continue;
-        } else {
-          let leg = self.parse_block()?;
-          return Ok(ExprKind::If(arms, Some(leg)));
-        }
-      } else {
-        return Ok(ExprKind::If(arms, None));
-      }
-    }
+    let cond = self.parse_expr()?;
+    let ty = self.parse_arrow_ty()?;
+    let then = self.parse_block()?;
+    let else_ = self.eat_then(Token::Else, Self::parse_block)?;
+    Ok(ExprKind::If(cond, ty, then, else_))
   }
 }
 
 impl<'core: 'src, 'src> Formatter<'src> {
   pub(crate) fn fmt_expr_if(
     &self,
-    arms: &Vec<(Expr<'core>, Block<'core>)>,
-    leg: &Option<Block<'core>>,
+    cond: &Expr<'core>,
+    ty: &Option<Ty<'core>>,
+    then: &Block<'core>,
+    else_: &Option<Block<'core>>,
   ) -> Doc<'src> {
-    Doc::interleave(
-      arms
-        .iter()
-        .map(|(cond, block)| {
-          Doc::concat([Doc("if "), self.fmt_expr(cond), Doc(" "), self.fmt_block(block, true)])
-        })
-        .chain(leg.iter().map(|block| self.fmt_block(block, true))),
-      Doc(" else "),
-    )
+    Doc::concat([
+      Doc("if "),
+      self.fmt_expr(cond),
+      self.fmt_arrow_ty(ty),
+      Doc(" "),
+      self.fmt_block(then, true),
+      match else_ {
+        Some(else_) => Doc::concat([Doc(" else "), self.fmt_block(else_, true)]),
+        None => Doc(""),
+      },
+    ])
   }
 }
 
@@ -56,19 +49,22 @@ impl<'core> Resolver<'core, '_> {
   pub(crate) fn resolve_expr_if(
     &mut self,
     span: Span,
-    arms: &Vec<(Expr<'core>, Block<'core>)>,
-    leg: &Option<Block<'core>>,
+    cond: &Expr<'core>,
+    ty: &Option<Ty<'core>>,
+    then: &Block<'core>,
+    else_: &Option<Block<'core>>,
   ) -> Result<TirExpr, Diag<'core>> {
-    let result = if leg.is_some() { self.types.new_var(span) } else { self.types.nil() };
-    let arms = Vec::from_iter(arms.iter().map(|(cond, block)| {
-      self.enter_scope();
-      let cond = self.resolve_scoped_cond(cond);
-      let block = self.resolve_block_type(block, result);
-      self.exit_scope();
-      (cond, block)
-    }));
-    let leg = leg.as_ref().map(|leg| self.resolve_block_type(leg, result));
-    Ok(TirExpr::new(span, result, TirExprKind::If(arms, leg)))
+    let ty = self.resolve_arrow_ty(span, ty, true);
+    self.enter_scope();
+    let cond = self.resolve_scoped_cond(cond);
+    let then = self.resolve_block_type(then, ty);
+    self.exit_scope();
+    let else_ = else_.as_ref().map(|leg| self.resolve_block_type(leg, ty));
+    let nil = self.types.nil();
+    if else_.is_none() && self.types.unify(ty, nil).is_failure() {
+      self.core.report(Diag::MissingElse { span });
+    }
+    Ok(TirExpr::new(span, ty, TirExprKind::If(cond, then, else_)))
   }
 }
 
@@ -78,29 +74,26 @@ impl<'core> Distiller<'core, '_> {
     stage: &mut Stage,
     span: Span,
     ty: Type,
-    arms: &[(TirExpr, TirExpr)],
-    leg: &Option<TirExpr>,
+    cond: &TirExpr,
+    then: &TirExpr,
+    else_: &Option<TirExpr>,
   ) -> Port {
     let local = self.new_local(stage, span, ty);
-    let (mut layer, mut cur_stage) = self.child_layer(stage, span);
+    let (mut layer, mut init_stage) = self.child_layer(stage, span);
 
-    for (cond, block) in arms {
-      let (mut then_stage, else_stage) = self.distill_cond(&mut layer, &mut cur_stage, span, cond);
-      let result = self.distill_expr_value(&mut then_stage, block);
-      then_stage.local_barrier_write_to(local, result);
-      self.finish_stage(cur_stage);
-      self.finish_stage(then_stage);
-      cur_stage = else_stage;
+    let (mut then_stage, mut else_stage) =
+      self.distill_cond(&mut layer, &mut init_stage, span, cond);
+    let result = self.distill_expr_value(&mut then_stage, then);
+    then_stage.local_barrier_write_to(local, result);
+    self.finish_stage(init_stage);
+    self.finish_stage(then_stage);
+
+    if let Some(leg) = else_ {
+      let result = self.distill_expr_value(&mut else_stage, leg);
+      else_stage.local_barrier_write_to(local, result);
     }
 
-    if let Some(leg) = leg {
-      let result = self.distill_expr_value(&mut cur_stage, leg);
-      cur_stage.local_barrier_write_to(local, result);
-    } else {
-      cur_stage.local_barrier_write_to(local, Port { ty: self.types.nil(), kind: PortKind::Nil });
-    }
-
-    self.finish_stage(cur_stage);
+    self.finish_stage(else_stage);
     self.finish_layer(layer);
 
     stage.local_read_barrier(local, span, ty)

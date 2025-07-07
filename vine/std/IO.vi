@@ -67,8 +67,7 @@ pub mod IO {
           byte = io.read_byte('\n');
           if byte != '\n' {
             chars ++= [byte];
-          } else {
-            break;
+            continue;
           }
         }
         String(chars)
@@ -82,10 +81,11 @@ pub mod IO {
     let chars = [];
     loop {
       let byte = io.read_byte('\0');
-      if byte != '\0' {
-        chars ++= [byte];
+      if byte == '\0' {
+        String(chars)
       } else {
-        return String(chars);
+        chars ++= [byte];
+        continue;
       }
     }
   }

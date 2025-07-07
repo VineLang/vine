@@ -391,7 +391,6 @@ let io: IO = #io;
 let io: IO = #io;
 > do { match Some(1) { Some(_) {} } }
 error input:1:6 - match arms do not cover all possible cases
-error input:1:6 - variable of type `()` read whilst uninitialized
 
 let io: IO = #io;
 > let x = 1
@@ -407,5 +406,13 @@ let x: N32 = 2;
 let io: IO = #io;
 > match (Some(1), 2) { (None, _) { None } x { Some(x) } }
 Some(Some(1), 2)
+
+let io: IO = #io;
+> let Ok(n) = Ok(46) else match { Err(e: String) { "error: {e}" } }; "{n}"
+"46"
+
+let io: IO = #io;
+> let Ok(n: N32) = Err("abc") else match { Err(e) { "error: {e}" } }; "{n}"
+"error: abc"
 
 let io: IO = #io;

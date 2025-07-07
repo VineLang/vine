@@ -37,17 +37,26 @@ pub fn main(&io: &IO) {
   for (px, py, vx, vy) in robots.into_iter() {
     let x = (px + vx * 100) % width;
     let y = (py + vy * 100) % height;
-    if x < width / 2 {
-      if y < height / 2 {
-        a += 1;
-      } else if y > height / 2 {
-        b += 1;
+    when {
+      x < width / 2 {
+        when {
+          y < height / 2 {
+            a += 1;
+          }
+          y > height / 2 {
+            b += 1;
+          }
+        }
       }
-    } else if x > width / 2 {
-      if y < height / 2 {
-        c += 1;
-      } else if y > height / 2 {
-        d += 1;
+      x > width / 2 {
+        when {
+          y < height / 2 {
+            c += 1;
+          }
+          y > height / 2 {
+            d += 1;
+          }
+        }
       }
     }
   }

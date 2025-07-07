@@ -44,9 +44,9 @@ impl<'core: 'src, 'src> Formatter<'src> {
 }
 
 impl<'core> Resolver<'core, '_> {
-  pub(crate) fn resolve_block(&mut self, block: &Block<'core>) -> TirExpr {
-    let ty = self.types.new_var(block.span);
-    self.resolve_block_type(block, ty)
+  pub(crate) fn resolve_block_nil(&mut self, block: &Block<'core>) -> TirExpr {
+    let nil = self.types.nil();
+    self.resolve_block_type(block, nil)
   }
 
   pub(crate) fn resolve_block_type(&mut self, block: &Block<'core>, ty: Type) -> TirExpr {
@@ -85,6 +85,24 @@ impl<'core> Resolver<'core, '_> {
         } else {
           let expr = self.resolve_expr(expr);
           TirExprKind::Seq(expr, self.resolve_stmts_type(span, rest, ty))
+        }
+      }
+      StmtKind::Return(_) | StmtKind::Break(..) | StmtKind::Continue(..) => {
+        let stmt = match &stmt.kind {
+          StmtKind::Break(label, value) => self.resolve_expr_break(stmt.span, *label, value),
+          StmtKind::Return(value) => self.resolve_expr_return(stmt.span, value),
+          StmtKind::Continue(label) => self.resolve_expr_continue(stmt.span, *label),
+          _ => unreachable!(),
+        };
+        let mut stmt = stmt.unwrap_or_else(|diag| self.error_expr(span, diag));
+        if rest.is_empty() {
+          _ = self.types.unify(stmt.ty, ty);
+          return stmt;
+        } else {
+          let nil = self.types.nil();
+          _ = self.types.unify(stmt.ty, nil);
+          stmt.ty = nil;
+          TirExprKind::Seq(stmt, self.resolve_stmts_type(span, rest, ty))
         }
       }
       StmtKind::Item(_) | StmtKind::Empty => return self.resolve_stmts_type(span, rest, ty),

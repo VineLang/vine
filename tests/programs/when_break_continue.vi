@@ -1,0 +1,38 @@
+
+pub fn main(&io: &IO) {
+  for a in [false, true].into_iter() {
+    for b in [false, true].into_iter() {
+      for c in [false, true].into_iter() {
+        for d in [false, true].into_iter() {
+          run(&io, a, b, c, d);
+        }
+      }
+    }
+  }
+}
+
+fn run(&io: &IO, a: Bool, b: Bool, c: Bool, d: Bool) {
+  io.println("{a} {b} {c} {d}");
+  when {
+    a {
+      io.print("0");
+      if b {
+        io.print("1");
+        continue.when;
+      }
+      io.print("2");
+    }
+    c {
+      io.print("3");
+      if d {
+        io.print("4");
+        break.when;
+      }
+      io.print("5");
+    }
+    _ {
+      io.print("6");
+    }
+  }
+  io.print("\n\n");
+}

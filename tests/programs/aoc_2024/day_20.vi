@@ -12,10 +12,9 @@ pub fn main(&io: &IO) {
   while io.read_line() is Some(line) {
     let row = [];
     for char in line!.into_iter() {
-      if char == 'S' {
-        start = (row.len(), grid.len())
-      } else if char == 'E' {
-        end = (row.len(), grid.len())
+      when {
+        char == 'S' { start = (row.len(), grid.len()) }
+        char == 'E' { end = (row.len(), grid.len()) }
       }
       row.push_back(char != '#');
     }
