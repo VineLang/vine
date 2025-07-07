@@ -35,24 +35,38 @@ error tests/programs/fail/atypical.vi:31:3 - invalid break target
 error tests/programs/fail/atypical.vi:32:14 - invalid continue target
 error tests/programs/fail/atypical.vi:33:3 - expected type `()`; found `N32`
 error - main cannot be generic
-error tests/programs/fail/atypical.vi:4:8 - search limit reached when finding flex of type `?0`
-error tests/programs/fail/atypical.vi:4:11 - search limit reached when finding flex of type `(?1, ??, ??)`
+error tests/programs/fail/atypical.vi:4:8 - found several impls of trait `Fork[?1]`
+error tests/programs/fail/atypical.vi:4:8 - found several impls of trait `Drop[?1]`
+error tests/programs/fail/atypical.vi:4:8 - found several impls of trait `Fork[~?1]`
+error tests/programs/fail/atypical.vi:4:8 - found several impls of trait `Drop[~?1]`
 error tests/programs/fail/atypical.vi:4:8 - cannot drop `?0`
 error tests/programs/fail/atypical.vi:4:11 - cannot drop `(?1, ??, ??)`
-error tests/programs/fail/atypical.vi:12:3 - search limit reached when finding impl of trait `Drop[?29]`
-error tests/programs/fail/atypical.vi:13:14 - search limit reached when finding impl of trait `Drop[?33]`
+error tests/programs/fail/atypical.vi:12:3 - found several impls of trait `Drop[?29]`
+error tests/programs/fail/atypical.vi:13:14 - found several impls of trait `Drop[?33]`
 error tests/programs/fail/atypical.vi:14:3 - cannot find impl of trait `Drop[??]`
 error tests/programs/fail/atypical.vi:16:3 - cannot find impl of trait `Drop[??]`
 error tests/programs/fail/atypical.vi:17:3 - cannot find impl of trait `Drop[??]`
 error tests/programs/fail/atypical.vi:22:7 - expected a complete pattern
-error tests/programs/fail/atypical.vi:23:4 - search limit reached when finding impl of trait `Drop[?72]`
-error tests/programs/fail/atypical.vi:28:14 - search limit reached when finding impl of trait `Drop[?82]`
+error tests/programs/fail/atypical.vi:23:4 - found several impls of trait `Drop[?72]`
+error tests/programs/fail/atypical.vi:28:14 - found several impls of trait `Drop[?82]`
 error tests/programs/fail/atypical.vi:30:3 - cannot find impl of trait `Drop[??]`
 error tests/programs/fail/atypical.vi:32:3 - cannot find impl of trait `Drop[??]`
-error tests/programs/fail/atypical.vi:10:8 - search limit reached when finding flex of type `?19`
-error tests/programs/fail/atypical.vi:10:11 - search limit reached when finding flex of type `?20`
-error tests/programs/fail/atypical.vi:18:14 - search limit reached when finding flex of type `?53`
-error tests/programs/fail/atypical.vi:24:8 - search limit reached when finding flex of type `?76`
+error tests/programs/fail/atypical.vi:10:8 - found several impls of trait `Fork[?2]`
+error tests/programs/fail/atypical.vi:10:8 - found several impls of trait `Drop[?2]`
+error tests/programs/fail/atypical.vi:10:8 - found several impls of trait `Fork[~?2]`
+error tests/programs/fail/atypical.vi:10:8 - found several impls of trait `Drop[~?2]`
+error tests/programs/fail/atypical.vi:10:11 - found several impls of trait `Fork[?2]`
+error tests/programs/fail/atypical.vi:10:11 - found several impls of trait `Drop[?2]`
+error tests/programs/fail/atypical.vi:10:11 - found several impls of trait `Fork[~?2]`
+error tests/programs/fail/atypical.vi:10:11 - found several impls of trait `Drop[~?2]`
+error tests/programs/fail/atypical.vi:18:14 - found several impls of trait `Fork[?2]`
+error tests/programs/fail/atypical.vi:18:14 - found several impls of trait `Drop[?2]`
+error tests/programs/fail/atypical.vi:18:14 - found several impls of trait `Fork[~?2]`
+error tests/programs/fail/atypical.vi:18:14 - found several impls of trait `Drop[~?2]`
+error tests/programs/fail/atypical.vi:24:8 - found several impls of trait `Fork[?2]`
+error tests/programs/fail/atypical.vi:24:8 - found several impls of trait `Drop[?2]`
+error tests/programs/fail/atypical.vi:24:8 - found several impls of trait `Fork[~?2]`
+error tests/programs/fail/atypical.vi:24:8 - found several impls of trait `Drop[~?2]`
 error tests/programs/fail/atypical.vi:6:1 - unconditional infinite loops are invalid
 error tests/programs/fail/atypical.vi:6:19 - cannot drop `IO`
 error tests/programs/fail/atypical.vi:10:8 - cannot drop `?19`

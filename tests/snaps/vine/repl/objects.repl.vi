@@ -17,101 +17,101 @@ let x: { a: N32, b: N32, c: N32 } = { a: 1, b: 2, c: 3 };
 > let y = { x }
 
 let io: IO = #io;
-let x: { a: N32, b: N32, c: N32 };
+let x: { a: N32, b: N32, c: N32 } = { a: 1, b: 2, c: 3 };
 let y: { x: { a: N32, b: N32, c: N32 } } = { x: { a: 1, b: 2, c: 3 } };
 > let z = { y }
 
 let io: IO = #io;
-let x: { a: N32, b: N32, c: N32 };
-let y: { x: { a: N32, b: N32, c: N32 } };
+let x: { a: N32, b: N32, c: N32 } = { a: 1, b: 2, c: 3 };
+let y: { x: { a: N32, b: N32, c: N32 } } = { x: { a: 1, b: 2, c: 3 } };
 let z: { y: { x: { a: N32, b: N32, c: N32 } } } = { y: { x: { a: 1, b: 2, c: 3 } } };
 > z.y.x.a
 1
 
 let io: IO = #io;
-let x: { a: N32, b: N32, c: N32 };
-let y: { x: { a: N32, b: N32, c: N32 } };
+let x: { a: N32, b: N32, c: N32 } = { a: 1, b: 2, c: 3 };
+let y: { x: { a: N32, b: N32, c: N32 } } = { x: { a: 1, b: 2, c: 3 } };
 let z: { y: { x: { a: N32, b: N32, c: N32 } } } = { y: { x: { a: 1, b: 2, c: 3 } } };
 > z.y.x.a += y.x.b
-error input:1:5 - variable of type `{ x: { a: N32, b: N32, c: N32 } }` read whilst uninitialized
 
 let io: IO = #io;
-let x: { a: N32, b: N32, c: N32 };
-let y: { x: { a: N32, b: N32, c: N32 } };
-let z: { y: { x: { a: N32, b: N32, c: N32 } } } = { y: { x: { a: 1, b: 2, c: 3 } } };
+let x: { a: N32, b: N32, c: N32 } = { a: 1, b: 2, c: 3 };
+let y: { x: { a: N32, b: N32, c: N32 } } = { x: { a: 1, b: 2, c: 3 } };
+let z: { y: { x: { a: N32, b: N32, c: N32 } } } = { y: { x: { a: 3, b: 2, c: 3 } } };
 > let { y: { x: o } } = z
 
 let io: IO = #io;
-let x: { a: N32, b: N32, c: N32 };
-let y: { x: { a: N32, b: N32, c: N32 } };
-let z: { y: { x: { a: N32, b: N32, c: N32 } } };
-let o: { a: N32, b: N32, c: N32 } = { a: 1, b: 2, c: 3 };
+let x: { a: N32, b: N32, c: N32 } = { a: 1, b: 2, c: 3 };
+let y: { x: { a: N32, b: N32, c: N32 } } = { x: { a: 1, b: 2, c: 3 } };
+let z: { y: { x: { a: N32, b: N32, c: N32 } } } = { y: { x: { a: 3, b: 2, c: 3 } } };
+let o: { a: N32, b: N32, c: N32 } = { a: 3, b: 2, c: 3 };
 > let { c, b, a } = o
 
 let io: IO = #io;
-let x: { a: N32, b: N32, c: N32 };
-let y: { x: { a: N32, b: N32, c: N32 } };
-let z: { y: { x: { a: N32, b: N32, c: N32 } } };
-let o: { a: N32, b: N32, c: N32 };
+let x: { a: N32, b: N32, c: N32 } = { a: 1, b: 2, c: 3 };
+let y: { x: { a: N32, b: N32, c: N32 } } = { x: { a: 1, b: 2, c: 3 } };
+let z: { y: { x: { a: N32, b: N32, c: N32 } } } = { y: { x: { a: 3, b: 2, c: 3 } } };
+let o: { a: N32, b: N32, c: N32 } = { a: 3, b: 2, c: 3 };
 let c: N32 = 3;
 let b: N32 = 2;
-let a: N32 = 1;
+let a: N32 = 3;
 > a + b + c
-6
+8
 
 let io: IO = #io;
-let x: { a: N32, b: N32, c: N32 };
-let y: { x: { a: N32, b: N32, c: N32 } };
-let z: { y: { x: { a: N32, b: N32, c: N32 } } };
-let o: { a: N32, b: N32, c: N32 };
+let x: { a: N32, b: N32, c: N32 } = { a: 1, b: 2, c: 3 };
+let y: { x: { a: N32, b: N32, c: N32 } } = { x: { a: 1, b: 2, c: 3 } };
+let z: { y: { x: { a: N32, b: N32, c: N32 } } } = { y: { x: { a: 3, b: 2, c: 3 } } };
+let o: { a: N32, b: N32, c: N32 } = { a: 3, b: 2, c: 3 };
 let c: N32 = 3;
 let b: N32 = 2;
-let a: N32 = 1;
+let a: N32 = 3;
 > x.p
 error input:1:3 - type `{ a: N32, b: N32, c: N32 }` has no field `p`
 
 let io: IO = #io;
-let x: { a: N32, b: N32, c: N32 };
-let y: { x: { a: N32, b: N32, c: N32 } };
-let z: { y: { x: { a: N32, b: N32, c: N32 } } };
-let o: { a: N32, b: N32, c: N32 };
+let x: { a: N32, b: N32, c: N32 } = { a: 1, b: 2, c: 3 };
+let y: { x: { a: N32, b: N32, c: N32 } } = { x: { a: 1, b: 2, c: 3 } };
+let z: { y: { x: { a: N32, b: N32, c: N32 } } } = { y: { x: { a: 3, b: 2, c: 3 } } };
+let o: { a: N32, b: N32, c: N32 } = { a: 3, b: 2, c: 3 };
 let c: N32 = 3;
 let b: N32 = 2;
-let a: N32 = 1;
+let a: N32 = 3;
 > do { let { p } = x }
-error input:1:18 - expected type `{ p: ?66 }`; found `{ a: N32, b: N32, c: N32 }`
-error input:1:12 - search limit reached when finding flex of type `?66`
-error input:1:5 - variable of type `{ a: N32, b: N32, c: N32 }` read whilst uninitialized
-error input:1:12 - cannot drop `?66`
+error input:1:18 - expected type `{ p: ?320 }`; found `{ a: N32, b: N32, c: N32 }`
+error input:1:12 - found several impls of trait `Fork[?1]`
+error input:1:12 - found several impls of trait `Drop[?1]`
+error input:1:12 - found several impls of trait `Fork[~?1]`
+error input:1:12 - found several impls of trait `Drop[~?1]`
+error input:1:12 - cannot drop `?320`
 
 let io: IO = #io;
-let x: { a: N32, b: N32, c: N32 };
-let y: { x: { a: N32, b: N32, c: N32 } };
-let z: { y: { x: { a: N32, b: N32, c: N32 } } };
-let o: { a: N32, b: N32, c: N32 };
+let x: { a: N32, b: N32, c: N32 } = { a: 1, b: 2, c: 3 };
+let y: { x: { a: N32, b: N32, c: N32 } } = { x: { a: 1, b: 2, c: 3 } };
+let z: { y: { x: { a: N32, b: N32, c: N32 } } } = { y: { x: { a: 3, b: 2, c: 3 } } };
+let o: { a: N32, b: N32, c: N32 } = { a: 3, b: 2, c: 3 };
 let c: N32 = 3;
 let b: N32 = 2;
-let a: N32 = 1;
+let a: N32 = 3;
 > z = { Y: y }
 error input:1:5 - expected type `{ y: { x: { a: N32, b: N32, c: N32 } } }`; found `{ Y: { x: { a: N32, b: N32, c: N32 } } }`
-error input:1:5 - variable of type `{ x: { a: N32, b: N32, c: N32 } }` read whilst uninitialized
 
 let io: IO = #io;
-let x: { a: N32, b: N32, c: N32 };
-let y: { x: { a: N32, b: N32, c: N32 } };
-let z: { y: { x: { a: N32, b: N32, c: N32 } } };
-let o: { a: N32, b: N32, c: N32 };
+let x: { a: N32, b: N32, c: N32 } = { a: 1, b: 2, c: 3 };
+let y: { x: { a: N32, b: N32, c: N32 } } = { x: { a: 1, b: 2, c: 3 } };
+let z: { y: { x: { a: N32, b: N32, c: N32 } } } = { y: { x: { a: 3, b: 2, c: 3 } } };
+let o: { a: N32, b: N32, c: N32 } = { a: 3, b: 2, c: 3 };
 let c: N32 = 3;
 let b: N32 = 2;
-let a: N32 = 1;
+let a: N32 = 3;
 > z = { y: 1 }
 error input:1:5 - expected type `{ y: { x: { a: N32, b: N32, c: N32 } } }`; found `{ y: N32 }`
 
 let io: IO = #io;
-let x: { a: N32, b: N32, c: N32 };
-let y: { x: { a: N32, b: N32, c: N32 } };
-let z: { y: { x: { a: N32, b: N32, c: N32 } } };
-let o: { a: N32, b: N32, c: N32 };
+let x: { a: N32, b: N32, c: N32 } = { a: 1, b: 2, c: 3 };
+let y: { x: { a: N32, b: N32, c: N32 } } = { x: { a: 1, b: 2, c: 3 } };
+let z: { y: { x: { a: N32, b: N32, c: N32 } } } = { y: { x: { a: 3, b: 2, c: 3 } } };
+let o: { a: N32, b: N32, c: N32 } = { a: 3, b: 2, c: 3 };
 let c: N32 = 3;
 let b: N32 = 2;
-let a: N32 = 1;
+let a: N32 = 3;

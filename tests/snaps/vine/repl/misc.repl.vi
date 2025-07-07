@@ -32,7 +32,7 @@ let io: IO = #io;
 let io: IO = #io;
 > "abc" ++ 123
 error input:1:1 - cannot find impl of trait `Concat[String, N32, ?86]`
-error input:1:1 - search limit reached when finding impl of trait `Drop[?83]`
+error input:1:1 - found several impls of trait `Drop[?83]`
 
 let io: IO = #io;
 > ([true, false]; _).show().as[String]
@@ -278,12 +278,14 @@ let x: List[List[N32]] = [[2]];
 let io: IO = #io;
 > let _: { a: N32, b: N32 } = { a: 1 }
 error input:1:29 - expected type `{ a: N32, b: N32 }`; found `{ a: N32 }`
-error input:1:5 - cannot find impl of trait `Drop[{ a: N32, b: N32 }]`
 
 let io: IO = #io;
 > do { let x; x = (x, x); }
 error input:1:17 - expected type `?1514`; found `(?1514, ?1514)`
-error input:1:10 - search limit reached when finding flex of type `?1514`
+error input:1:10 - found several impls of trait `Fork[?1]`
+error input:1:10 - found several impls of trait `Drop[?1]`
+error input:1:10 - found several impls of trait `Fork[~?1]`
+error input:1:10 - found several impls of trait `Drop[~?1]`
 error input:1:10 - cannot drop `?1514`
 error input:1:10 - variable of type `?1514` read whilst uninitialized
 error input:1:10 - cannot fork `?1514`
@@ -326,12 +328,21 @@ let y: { a: ~N32, b: ~N32 };
 let io: IO = #io;
 > let x; x.a; x.a
 error input:1:5 - cannot infer type
-error input:1:8 - search limit reached when finding flex of type `?1604`
-error input:1:8 - search limit reached when finding impl of trait `Drop[?1604]`
-error input:1:13 - search limit reached when finding flex of type `?1604`
-error - search limit reached when finding impl of trait `Drop[?1604]`
-error input:1:5 - search limit reached when finding flex of type `?1604`
-error input:1:5 - variable of type `?1604` read whilst uninitialized
+error input:1:8 - found several impls of trait `Fork[?1]`
+error input:1:8 - found several impls of trait `Drop[?1]`
+error input:1:8 - found several impls of trait `Fork[~?1]`
+error input:1:8 - found several impls of trait `Drop[~?1]`
+error input:1:8 - found several impls of trait `Drop[?1628]`
+error input:1:13 - found several impls of trait `Fork[?1]`
+error input:1:13 - found several impls of trait `Drop[?1]`
+error input:1:13 - found several impls of trait `Fork[~?1]`
+error input:1:13 - found several impls of trait `Drop[~?1]`
+error - found several impls of trait `Drop[?1628]`
+error input:1:5 - found several impls of trait `Fork[?1]`
+error input:1:5 - found several impls of trait `Drop[?1]`
+error input:1:5 - found several impls of trait `Fork[~?1]`
+error input:1:5 - found several impls of trait `Drop[~?1]`
+error input:1:5 - variable of type `?1628` read whilst uninitialized
 
 let io: IO = #io;
 > Ok(true)?
@@ -340,9 +351,16 @@ error input:1:1 - no function to return from
 let io: IO = #io;
 > fn foo() -> N32 { Ok(123)? }
 error input:1:19 - cannot try `Result[N32, ?2]` in a function returning `N32`
-error input:1:19 - search limit reached when finding flex of type `?2`
-error input:1:19 - search limit reached when finding flex of type `Result[N32, ?2]`
-error input:1:19 - search limit reached when finding flex of type `?2`
+error input:1:19 - found several impls of trait `Fork[?0]`
+error input:1:19 - found several impls of trait `Drop[?0]`
+error input:1:19 - found several impls of trait `Fork[~?0]`
+error input:1:19 - found several impls of trait `Drop[~?0]`
+error input:1:19 - found several impls of trait `Fork[Result[N32, ?2]]`
+error input:1:19 - found several impls of trait `Drop[Result[N32, ?2]]`
+error input:1:19 - found several impls of trait `Fork[?0]`
+error input:1:19 - found several impls of trait `Drop[?0]`
+error input:1:19 - found several impls of trait `Fork[~?0]`
+error input:1:19 - found several impls of trait `Drop[~?0]`
 
 let io: IO = #io;
 > fn foo() -> Result[N32, String] { Ok(123)? }
