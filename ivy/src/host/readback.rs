@@ -62,7 +62,7 @@ impl<'ctx, 'ivm, 'ext> Reader<'ctx, 'ivm, 'ext> {
         let label = p.label();
         let (p1, p2) = unsafe { p.aux_ref() };
         Tree::Comb(
-          self.host.label_from_u16(label).to_owned(),
+          Host::label_from_u16(label, &self.host.comb_labels).to_owned(),
           self.read_wire(&p1),
           self.read_wire(&p2),
         )

@@ -34,7 +34,8 @@ pub struct Host<'ivm> {
 
   /// This is an `IndexMap` instead of an `IndexSet` so that the raw entry API
   /// can be used.
-  labels: IndexMap<String, ()>,
+  pub comb_labels: IndexMap<String, ()>,
+  pub opaque_ext_fn_labels: IndexMap<String, ()>,
 }
 
 impl<'ivm> Host<'ivm> {
@@ -46,19 +47,22 @@ impl<'ivm> Host<'ivm> {
     self.globals.get(name).copied()
   }
 
-  pub fn label_to_u16<'l>(&mut self, label: impl Into<Cow<'l, str>>) -> u16 {
+  pub fn label_to_u16<'l>(
+    label: impl Into<Cow<'l, str>>,
+    labels: &mut IndexMap<String, ()>,
+  ) -> u16 {
     let label = label.into();
-    match self.labels.raw_entry_mut_v1().from_key(&*label) {
+    match labels.raw_entry_mut_v1().from_key(&*label) {
       RawEntryMut::Occupied(e) => e.index() as u16,
       RawEntryMut::Vacant(e) => {
         e.insert(label.into(), ());
-        (self.labels.len() - 1) as u16
+        (labels.len() - 1) as u16
       }
     }
   }
 
-  pub fn label_from_u16(&self, label: u16) -> &str {
-    self.labels.get_index(label as usize).unwrap().0
+  pub fn label_from_u16(label: u16, labels: &IndexMap<String, ()>) -> &str {
+    labels.get_index(label as usize).unwrap().0
   }
 
   pub fn new_f32(&self, payload: f32) -> ExtVal<'ivm> {
@@ -73,12 +77,11 @@ impl<'ivm> Host<'ivm> {
     ExtVal::new(self.ext_tys["IO"], 0)
   }
 
-  pub fn instantiate_ext_fn(&self, ext_fn_name: &str, swap: bool) -> ExtFn<'ivm> {
-    let mut ext_fn =
-      *self.ext_fns.get(ext_fn_name).unwrap_or_else(|| panic!("Unknown ext fn '{ext_fn_name}'"));
+  pub fn instantiate_ext_fn(&self, ext_fn_name: &str, swap: bool) -> Option<ExtFn<'ivm>> {
+    let mut ext_fn = *self.ext_fns.get(ext_fn_name)?;
     if swap {
       ext_fn = ext_fn.swap()
     }
-    ext_fn
+    Some(ext_fn)
   }
 }

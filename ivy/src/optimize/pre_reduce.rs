@@ -29,15 +29,27 @@ pub fn pre_reduce(nets: &mut Nets) {
     let r = ivm.new_wire();
     ivm.execute(&host.get(name).unwrap().instructions, Port::new_wire(r.0));
     ivm.normalize();
-    let inert = take(&mut ivm.inert);
+    let inert_links = take(&mut ivm.inert_links);
+    let inert_nodes = take(&mut ivm.inert_nodes);
     let mut reader = host.reader(ivm);
     net.root = reader.read_port(&Port::new_wire(r.1));
     net.pairs.clear();
     net.pairs.extend(
-      inert
+      inert_links
         .into_iter()
         .map(|(a, b)| (reader.read_port(&a), Tree::BlackBox(Box::new(reader.read_port(&b))))),
     );
+    net.pairs.extend(inert_nodes.into_iter().map(|(ext_fn, a, b, c)| {
+      (
+        reader.read_port(&a),
+        Tree::ExtFn(
+          Host::label_from_u16(ext_fn.label, &host.opaque_ext_fn_labels).to_owned(),
+          ext_fn.swap,
+          Box::new(reader.read_port(&b)),
+          Box::new(reader.read_port(&c)),
+        ),
+      )
+    }));
   }
 }
 

@@ -111,6 +111,11 @@ fn tests(t: &mut DynTester) {
       test_vi_repl(t, "tests/programs/repl/slice_and_dice.vi");
       test_vi_repl(t, "tests/programs/repl/string_ops.vi");
     });
+
+    t.group("compile", |t| {
+      test_vi_compile(t, "tests/programs/compile/opaque_ext_fn.vi");
+      test_vi_compile(t, "tests/programs/compile/pre_reduce_opaque_fn.vi");
+    });
   });
 }
 
@@ -140,6 +145,15 @@ fn test_vi(
       let path = path.as_os_str().to_str().unwrap();
       run_iv("vine", name, path, input, output_ext, breadth_first);
     });
+  });
+}
+
+fn test_vi_compile(t: &mut DynTester, path: &'static str) {
+  let name = Path::file_stem(path.as_ref()).unwrap().to_str().unwrap();
+  t.test("compile", move || {
+    let (stdout, stderr) = exec(VINE, &["build", path], &[], true);
+    assert_empty_stderr(&stderr);
+    test_snapshot(&["vine", "compile", &format!("{name}.iv")], &stdout);
   });
 }
 

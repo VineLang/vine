@@ -3,7 +3,7 @@ use std::time::Instant;
 
 use crate::{
   allocator::Allocator,
-  ext::{ExtVal, Extrinsics},
+  ext::{ExtVal, Extrinsics, OpaqueExtFn},
   global::Global,
   heap::Heap,
   port::Port,
@@ -27,7 +27,8 @@ pub struct IVM<'ivm, 'ext> {
   /// allocate memory).
   pub(crate) active_slow: Vec<(Port<'ivm>, Port<'ivm>)>,
 
-  pub inert: Vec<(Port<'ivm>, Port<'ivm>)>,
+  pub inert_links: Vec<(Port<'ivm>, Port<'ivm>)>,
+  pub inert_nodes: Vec<(OpaqueExtFn, Port<'ivm>, Port<'ivm>, Port<'ivm>)>,
 
   /// Used by [`IVM::execute`].
   pub(crate) registers: Vec<Option<Port<'ivm>>>,
@@ -50,7 +51,8 @@ impl<'ivm, 'ext> IVM<'ivm, 'ext> {
       registers: Vec::new(),
       active_fast: Vec::new(),
       active_slow: Vec::new(),
-      inert: Vec::new(),
+      inert_links: Vec::new(),
+      inert_nodes: Vec::new(),
       stats: Stats::default(),
     }
   }

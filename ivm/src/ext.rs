@@ -181,3 +181,9 @@ impl<'ivm> Debug for ExtFn<'ivm> {
     write!(f, "ExtFn({:?})", self.0)
   }
 }
+
+#[derive(Debug, Clone, Copy)]
+pub struct OpaqueExtFn {
+  pub label: u16,
+  pub swap: bool,
+}

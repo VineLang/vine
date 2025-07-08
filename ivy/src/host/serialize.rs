@@ -49,6 +49,7 @@ use std::{
 
 use ivm::{
   addr::Addr,
+  ext::OpaqueExtFn,
   global::{Global, LabelSet},
   instruction::{Instruction, Instructions, Register},
   port::{Port, Tag},
@@ -195,7 +196,7 @@ impl<'l, 'ast, 'ivm> Serializer<'l, 'ast, 'ivm> {
         self.push(Instruction::Nilary(to, Port::new_ext_val(self.host.new_f32(*num))))
       }
       Tree::Comb(label, a, b) => {
-        let label = self.host.label_to_u16(label);
+        let label = Host::label_to_u16(label, &mut self.host.comb_labels);
         let a = self.serialize_tree(a);
         let b = self.serialize_tree(b);
         self.push(Instruction::Binary(Tag::Comb, label, to, a, b));
@@ -203,8 +204,15 @@ impl<'l, 'ast, 'ivm> Serializer<'l, 'ast, 'ivm> {
       Tree::ExtFn(f, swap, a, b) => {
         let a = self.serialize_tree(a);
         let b = self.serialize_tree(b);
-        let ext_fn = self.host.instantiate_ext_fn(f, *swap);
-        self.push(Instruction::Binary(Tag::ExtFn, ext_fn.bits(), to, a, b));
+        match self.host.instantiate_ext_fn(f, *swap) {
+          Some(ext_fn) => {
+            self.push(Instruction::Binary(Tag::ExtFn, ext_fn.bits(), to, a, b));
+          }
+          None => {
+            let label = Host::label_to_u16(f, &mut self.host.opaque_ext_fn_labels);
+            self.push(Instruction::InertNode(OpaqueExtFn { label, swap: *swap }, to, a, b));
+          }
+        }
       }
       Tree::Global(name) => {
         let global = self.host.get_raw(name).expect("undefined global");
@@ -229,7 +237,7 @@ impl<'l, 'ast, 'ivm> Serializer<'l, 'ast, 'ivm> {
       }
       Tree::BlackBox(t) => {
         let from = self.serialize_tree(t);
-        self.push(Instruction::Inert(to, from));
+        self.push(Instruction::InertLink(to, from));
       }
     }
   }
