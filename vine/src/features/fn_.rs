@@ -234,7 +234,7 @@ impl<'core> Resolver<'core, '_> {
       self.return_ty = old_return_ty;
       let param_tys = params.iter().map(|x| x.ty).collect();
       let ty = self.types.new(TypeKind::Closure(id, let_fn.flex, param_tys, ret));
-      let closure = TirClosure { span: span, ty, flex: let_fn.flex, params, body };
+      let closure = TirClosure { span, ty, flex: let_fn.flex, params, body };
       self.closures[id] = Some(closure);
     }
     stmts
