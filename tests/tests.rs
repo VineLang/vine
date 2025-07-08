@@ -17,8 +17,7 @@ dyntest!(tests);
 fn tests(t: &mut DynTester) {
   env::set_current_dir("..").unwrap();
 
-  // cspell:disable-line
-  let brainfuck_input = b">,[>,]<[.<]\nlufsseccus lasrever";
+  let brainfuck_input = b">,[>,]<[.<]\nlufsseccus lasrever"; // cspell:disable-line
   let fib_repl_input_iv = b"1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n21\n100\n999999\n";
   let fib_repl_input_vi = b"1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n21\n100\n999999\n\nabc\n";
   let guessing_game_input = b"a seed\na maximum number\n100\n50\n75\n63\n56\n60\n58\n57";

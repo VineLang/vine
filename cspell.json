@@ -5,6 +5,7 @@
     "allocs",
     "bitflags",
     "builtins",
+    "brainfuck",
     "centimanes",
     "cfgs",
     "cmps",
