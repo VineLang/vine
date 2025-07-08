@@ -93,10 +93,7 @@ impl<'core, 'r> Distiller<'core, 'r> {
     self.types = fragment.tir.types.clone();
     self.rels = fragment.tir.rels.clone();
     let (layer, mut stage) = self.root_layer(fragment.tir.root.span);
-    for (id, closure) in &fragment.tir.closures {
-      let interface = self.distill_closure(closure);
-      self.closures.push_to(id, interface);
-    }
+    self.distill_closures(fragment);
     let result = self.distill_expr_value(&mut stage, &fragment.tir.root);
     stage.header = Header::Entry(vec![result]);
     self.finish_stage(stage);

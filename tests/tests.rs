@@ -17,6 +17,7 @@ dyntest!(tests);
 fn tests(t: &mut DynTester) {
   env::set_current_dir("..").unwrap();
 
+  let brainfuck_input = b">,[>,]<[.<]\nlufsseccus lasrever"; // cspell:disable-line
   let fib_repl_input_iv = b"1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n21\n100\n999999\n";
   let fib_repl_input_vi = b"1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n21\n100\n999999\n\nabc\n";
   let guessing_game_input = b"a seed\na maximum number\n100\n50\n75\n63\n56\n60\n58\n57";
@@ -48,6 +49,7 @@ fn tests(t: &mut DynTester) {
     test_vi(t, "tests/programs/array_order.vi", b"", ".txt", true);
     test_vi(t, "tests/programs/array_to_list.vi", b"", ".txt", false);
     test_vi(t, "tests/programs/basic_diverge.vi", b"", ".txt", true);
+    test_vi(t, "tests/programs/brainfuck.vi", brainfuck_input, ".txt", true);
     test_vi(t, "tests/programs/break_result.vi", b"", ".txt", true);
     test_vi(t, "tests/programs/classify_primes.vi", b"", ".txt", true);
     test_vi(t, "tests/programs/cond_diverge.vi", b"", ".txt", true);

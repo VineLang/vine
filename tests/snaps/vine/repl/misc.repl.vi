@@ -91,7 +91,7 @@ true
 let io: IO = #io;
 let l: List[I32] = [+1, +2, -18, +4];
 > l.contains(&(+7; _))
-::std::data::List::contains:0:s9
+::std::data::List::contains:0:s6
 
 let io: IO = #io;
 let l: List[I32] = [+1, +2, -18, +4];

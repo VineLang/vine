@@ -1,6 +1,9 @@
 use std::{collections::HashMap, mem::take};
 
-use vine_util::idx::{Counter, IdxVec};
+use vine_util::{
+  idx::{Counter, IdxVec},
+  unwrap_idx_vec,
+};
 
 use crate::{
   components::finder::Finder,
@@ -45,7 +48,7 @@ pub struct Resolver<'core, 'a> {
   pub(crate) target_id: Counter<TargetId>,
 
   pub(crate) rels: Rels<'core>,
-  pub(crate) closures: IdxVec<ClosureId, TirClosure>,
+  pub(crate) closures: IdxVec<ClosureId, Option<TirClosure>>,
 }
 
 #[derive(Debug)]
@@ -414,7 +417,7 @@ impl<'core, 'a> Resolver<'core, 'a> {
         span,
         types: take(&mut self.types),
         locals: take(&mut self.locals),
-        closures: take(&mut self.closures),
+        closures: unwrap_idx_vec(take(&mut self.closures)),
         rels: take(&mut self.rels),
         root,
       },
@@ -559,16 +562,16 @@ impl<'core, 'a> Resolver<'core, 'a> {
     }
   }
 
-  pub(crate) fn resolve_pat_sig(&mut self, pat: &Pat<'core>) -> Type {
+  pub(crate) fn resolve_pat_sig(&mut self, pat: &Pat<'core>, inference: bool) -> Type {
     let span = pat.span;
     match &*pat.kind {
-      PatKind::Paren(inner) => self.resolve_pat_sig(inner),
-      PatKind::Annotation(_, ty) => self.resolve_ty(ty, false),
-      PatKind::Path(path, _) => self.resolve_pat_sig_path(span, path),
-      PatKind::Ref(inner) => self.resolve_pat_sig_ref(inner),
-      PatKind::Inverse(inner) => self.resolve_pat_sig_inverse(inner),
-      PatKind::Tuple(elements) => self.resolve_pat_sig_tuple(elements),
-      PatKind::Object(entries) => self.resolve_pat_sig_object(entries),
+      PatKind::Paren(inner) => self.resolve_pat_sig(inner, inference),
+      PatKind::Annotation(_, ty) => self.resolve_ty(ty, inference),
+      PatKind::Path(path, _) => self.resolve_pat_sig_path(span, path, inference),
+      PatKind::Ref(inner) => self.resolve_pat_sig_ref(inner, inference),
+      PatKind::Inverse(inner) => self.resolve_pat_sig_inverse(inner, inference),
+      PatKind::Tuple(elements) => self.resolve_pat_sig_tuple(elements, inference),
+      PatKind::Object(entries) => self.resolve_pat_sig_object(entries, inference),
       PatKind::Hole | PatKind::Deref(_) => {
         self.types.error(self.core.report(Diag::ItemTypeHole { span }))
       }

@@ -1,0 +1,103 @@
+
+enum Instruction {
+  Inc,
+  Dec,
+  Left,
+  Right,
+  Input,
+  Output,
+  Loop(List[Instruction]),
+}
+
+use Instruction::{Dec, Inc, Input, Left, Loop, Output, Right};
+
+pub fn main(&io: &IO) {
+  let source = io.read_line().unwrap_or("");
+
+  let fn parse() -> List[Instruction] {
+    let instructions = [];
+    while source!.pop_front() is Some(char) {
+      instructions ++= [
+        when {
+          char == '+' { Inc }
+          char == '-' { Dec }
+          char == '<' { Left }
+          char == '>' { Right }
+          char == ',' { Input }
+          char == '.' { Output }
+          char == '[' { Loop(parse()) }
+          char == ']' {
+            break;
+          }
+          _ {
+            continue;
+          }
+        },
+      ];
+    }
+    instructions
+  }
+
+  let program = parse();
+  let tape_left = [];
+  let tape_head = 0;
+  let tape_right = [];
+
+  let fn run(&instructions: &List[Instruction]) {
+    for &instruction in instructions.iter() {
+      match &instruction {
+        &Inc { inc() }
+        &Dec { dec() }
+        &Left { left() }
+        &Right { right() }
+        &Input { input() }
+        &Output { output() }
+        &Loop(instructions) { loop_(&instructions) }
+      }
+    }
+  }
+
+  let fn inc() {
+    tape_head = (tape_head + 1) & 0xFF;
+  }
+
+  let fn dec() {
+    tape_head = (tape_head - 1) & 0xFF;
+  }
+
+  let fn left() {
+    tape_right.push_front(tape_head);
+    tape_head = tape_left.pop_front().unwrap_or(0);
+  }
+
+  let fn right() {
+    tape_left.push_front(tape_head);
+    tape_head = tape_right.pop_front().unwrap_or(0);
+  }
+
+  let fn input() {
+    tape_head = io.read_byte('\0') as N32;
+  }
+
+  let fn output() {
+    io.print_byte(tape_head);
+  }
+
+  let fn loop_(&instructions) {
+    while tape_head != 0 {
+      run(&instructions);
+    }
+  }
+
+  run(&program);
+  io.flush();
+}
+
+impl drop: Drop[Instruction] {
+  fn drop(self: Instruction) {
+    match self {
+      Loop(_) {}
+      _ {}
+    }
+  }
+}

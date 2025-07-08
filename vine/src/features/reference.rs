@@ -137,8 +137,8 @@ impl<'core> Resolver<'core, '_> {
     Ok(TirPat::new(span, self.types.new(TypeKind::Ref(inner.ty)), TirPatKind::Ref(inner)))
   }
 
-  pub(crate) fn resolve_pat_sig_ref(&mut self, inner: &Pat<'core>) -> Type {
-    let inner = self.resolve_pat_sig(inner);
+  pub(crate) fn resolve_pat_sig_ref(&mut self, inner: &Pat<'core>, inference: bool) -> Type {
+    let inner = self.resolve_pat_sig(inner, inference);
     self.types.new(TypeKind::Ref(inner))
   }
 
