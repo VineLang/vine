@@ -6,7 +6,8 @@ use crate::{
   components::{charter::Charter, lexer::Token, parser::VineParser, resolver::Resolver},
   structures::{
     ast::{
-      GenericArgs, GenericParams, Generics, ImplParam, Path, Span, Trait, TraitKind, TypeParam,
+      GenericArgs, GenericParams, Generics, ImplParam, Origin, OriginParams, Path, Relation, Span,
+      Trait, TraitKind, TypeParam,
     },
     chart::{DefId, GenericsDef, GenericsId},
     diag::{Diag, ErrorGuaranteed},
@@ -19,7 +20,44 @@ use crate::{
 
 impl<'core> VineParser<'core, '_> {
   pub(crate) fn parse_generic_params(&mut self) -> Result<GenericParams<'core>, Diag<'core>> {
-    self.parse_generics(true, Self::parse_type_param, Self::parse_impl_param)
+    self.parse_generics(
+      true,
+      Self::parse_origin_params,
+      Self::parse_type_param,
+      Self::parse_impl_param,
+    )
+  }
+
+  fn parse_origin_params(&mut self) -> Result<OriginParams<'core>, Diag<'core>> {
+    let init = self.parse_origin()?;
+    let mut rest = Vec::new();
+    while let Some(relation) = self.parse_relation()? {
+      let next = self.parse_origin()?;
+      rest.push((relation, next));
+    }
+    Ok(OriginParams { init, rest })
+  }
+
+  fn parse_relation(&mut self) -> Result<Option<Relation>, Diag<'core>> {
+    Ok(if self.eat(Token::Lt)? {
+      Some(Relation::Lt)
+    } else if self.eat(Token::Le)? {
+      Some(Relation::Le)
+    } else if self.eat(Token::Ge)? {
+      Some(Relation::Ge)
+    } else if self.eat(Token::Gt)? {
+      Some(Relation::Gt)
+    } else {
+      None
+    })
+  }
+
+  pub(crate) fn parse_origin(&mut self) -> Result<Origin<'core>, Diag<'core>> {
+    let span = self.start_span();
+    self.expect(Token::Colon)?;
+    let name = self.parse_ident()?;
+    let span = self.end_span(span);
+    Ok(Origin { span, name })
   }
 
   fn parse_type_param(&mut self) -> Result<TypeParam<'core>, Diag<'core>> {
@@ -48,27 +86,32 @@ impl<'core> VineParser<'core, '_> {
   }
 
   pub(crate) fn parse_generic_args(&mut self) -> Result<GenericArgs<'core>, Diag<'core>> {
-    self.parse_generics(false, Self::parse_ty, Self::parse_impl)
+    self.parse_generics(false, Self::parse_origin, Self::parse_ty, Self::parse_impl)
   }
 
-  fn parse_generics<T, I>(
+  fn parse_generics<O, T, I>(
     &mut self,
     can_inherit: bool,
+    parse_o: impl FnMut(&mut Self) -> Result<O, Diag<'core>>,
     parse_t: impl FnMut(&mut Self) -> Result<T, Diag<'core>>,
     parse_i: impl FnMut(&mut Self) -> Result<I, Diag<'core>>,
-  ) -> Result<Generics<T, I>, Diag<'core>> {
+  ) -> Result<Generics<O, T, I>, Diag<'core>> {
     let span = self.start_span();
     let mut inherit = false;
+    let mut origins = Vec::new();
     let mut types = Vec::new();
     let mut impls = Vec::new();
     if self.eat(Token::OpenBracket)? {
       inherit = can_inherit && self.eat(Token::DotDotDot)?;
+      if self.check(Token::Colon) {
+        self.parse_generics_section(&mut origins, parse_o)?;
+      }
       self.parse_generics_section(&mut types, parse_t)?;
       self.parse_generics_section(&mut impls, parse_i)?;
       self.expect(Token::CloseBracket)?;
     }
     let span = self.end_span(span);
-    Ok(Generics { span, inherit, types, impls })
+    Ok(Generics { span, inherit, origins, types, impls })
   }
 
   fn parse_generics_section<E>(
@@ -91,11 +134,36 @@ impl<'core> VineParser<'core, '_> {
 
 impl<'core: 'src, 'src> Formatter<'src> {
   pub(crate) fn fmt_generic_params(&self, generics: &GenericParams<'core>) -> Doc<'src> {
-    self.fmt_generics(generics, |p| self.fmt_type_param(p), |p| self.fmt_impl_param(p))
+    self.fmt_generics(
+      generics,
+      |o| self.fmt_origin_params(o),
+      |p| self.fmt_type_param(p),
+      |p| self.fmt_impl_param(p),
+    )
   }
 
   pub(crate) fn fmt_generic_args(&self, generics: &GenericArgs<'core>) -> Doc<'src> {
-    self.fmt_generics(generics, |t| self.fmt_ty(t), |p| self.fmt_impl(p))
+    self.fmt_generics(generics, |o| self.fmt_origin(o), |t| self.fmt_ty(t), |p| self.fmt_impl(p))
+  }
+
+  fn fmt_origin_params(&self, origin_params: &OriginParams<'core>) -> Doc<'src> {
+    Doc::concat([self.fmt_origin(&origin_params.init)].into_iter().chain(
+      origin_params.rest.iter().flat_map(|(rel, next)| {
+        [
+          Doc(match rel {
+            Relation::Lt => " < ",
+            Relation::Le => " <= ",
+            Relation::Ge => " >= ",
+            Relation::Gt => " > ",
+          }),
+          self.fmt_origin(next),
+        ]
+      }),
+    ))
+  }
+
+  pub(crate) fn fmt_origin(&self, origin: &Origin<'core>) -> Doc<'src> {
+    Doc::concat([Doc(":"), Doc(origin.name)])
   }
 
   fn fmt_type_param(&self, param: &TypeParam<'core>) -> Doc<'src> {
@@ -109,15 +177,18 @@ impl<'core: 'src, 'src> Formatter<'src> {
     }
   }
 
-  pub(crate) fn fmt_generics<T, I>(
+  pub(crate) fn fmt_generics<O, T, I>(
     &self,
-    generics: &Generics<T, I>,
+    generics: &Generics<O, T, I>,
+    fmt_o: impl Fn(&O) -> Doc<'src>,
     fmt_t: impl Fn(&T) -> Doc<'src>,
     fmt_i: impl Fn(&I) -> Doc<'src>,
   ) -> Doc<'src> {
+    let include_origins = !generics.origins.is_empty();
     let include_types = !generics.types.is_empty() || !generics.impls.is_empty();
     let include_impls = !generics.impls.is_empty();
     let sections = [
+      include_origins.then(|| self.fmt_generics_section(&generics.origins, fmt_o)),
       include_types.then(|| self.fmt_generics_section(&generics.types, fmt_t)),
       include_impls.then(|| self.fmt_generics_section(&generics.impls, fmt_i)),
     ];

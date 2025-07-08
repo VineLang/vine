@@ -178,21 +178,42 @@ pub enum CfgKind<'core> {
   Not(Cfg<'core>),
 }
 
-pub type GenericParams<'core> = Generics<TypeParam<'core>, ImplParam<'core>>;
-pub type GenericArgs<'core> = Generics<Ty<'core>, Impl<'core>>;
+pub type GenericParams<'core> = Generics<OriginParams<'core>, TypeParam<'core>, ImplParam<'core>>;
+pub type GenericArgs<'core> = Generics<Origin<'core>, Ty<'core>, Impl<'core>>;
 
 #[derive(Debug, Clone)]
-pub struct Generics<T, I> {
+pub struct Generics<O, T, I> {
   pub span: Span,
   pub inherit: bool,
+  pub origins: Vec<O>,
   pub types: Vec<T>,
   pub impls: Vec<I>,
 }
 
-impl<T, I> Generics<T, I> {
+impl<O, T, I> Generics<O, T, I> {
   pub fn empty(span: Span) -> Self {
-    Generics { span, inherit: false, types: Vec::new(), impls: Vec::new() }
+    Generics { span, inherit: false, origins: Vec::new(), types: Vec::new(), impls: Vec::new() }
   }
+}
+
+#[derive(Debug, Clone)]
+pub struct OriginParams<'core> {
+  pub init: Origin<'core>,
+  pub rest: Vec<(Relation, Origin<'core>)>,
+}
+
+#[derive(Debug, Clone)]
+pub struct Origin<'core> {
+  pub span: Span,
+  pub name: Ident<'core>,
+}
+
+#[derive(Debug, Clone, Copy)]
+pub enum Relation {
+  Lt,
+  Le,
+  Ge,
+  Gt,
 }
 
 #[derive(Debug, Clone, Copy)]
