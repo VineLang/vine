@@ -15,7 +15,7 @@ pub struct Signatures<'core> {
   pub generics: IdxVec<GenericsId, TypeCtx<'core, GenericsSig>>,
   pub concrete_consts: IdxVec<ConcreteConstId, TypeCtx<'core, ConstSig>>,
   pub concrete_fns: IdxVec<ConcreteFnId, TypeCtx<'core, FnSig>>,
-  pub type_aliases: IdxVec<TypeAliasId, Option<TypeCtx<'core, TypeAliasSig>>>,
+  pub type_aliases: IdxVec<TypeAliasId, TypeAliasState<'core>>,
   pub structs: IdxVec<StructId, TypeCtx<'core, StructSig>>,
   pub enums: IdxVec<EnumId, TypeCtx<'core, EnumSig>>,
   pub impls: IdxVec<ImplId, TypeCtx<'core, ImplSig>>,
@@ -27,6 +27,14 @@ pub enum ImportState {
   Unresolved,
   Resolved(Result<DefId, ErrorGuaranteed>),
   Resolving,
+}
+
+#[derive(Debug, Default)]
+pub enum TypeAliasState<'core> {
+  #[default]
+  Unresolved,
+  Resolving,
+  Resolved(TypeCtx<'core, TypeAliasSig>),
 }
 
 #[derive(Debug)]
