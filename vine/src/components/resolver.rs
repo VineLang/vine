@@ -44,7 +44,7 @@ pub struct Resolver<'core, 'a> {
   pub(crate) targets: HashMap<Target<'core>, Vec<TargetInfo>>,
   pub(crate) target_id: Counter<TargetId>,
 
-  pub(crate) rels: Rels,
+  pub(crate) rels: Rels<'core>,
   pub(crate) closures: IdxVec<ClosureId, TirClosure>,
 }
 
@@ -309,7 +309,7 @@ impl<'core, 'a> Resolver<'core, 'a> {
     }
   }
 
-  pub(crate) fn resolve_impl_type(&mut self, impl_: &Impl<'core>, ty: &ImplType) -> TirImpl {
+  pub(crate) fn resolve_impl_type(&mut self, impl_: &Impl<'core>, ty: &ImplType) -> TirImpl<'core> {
     let span = impl_.span;
     match &*impl_.kind {
       ImplKind::Hole => self.find_impl(span, ty),
@@ -327,7 +327,7 @@ impl<'core, 'a> Resolver<'core, 'a> {
     }
   }
 
-  fn resolve_impl(&mut self, impl_: &Impl<'core>) -> (ImplType, TirImpl) {
+  fn resolve_impl(&mut self, impl_: &Impl<'core>) -> (ImplType, TirImpl<'core>) {
     let span = impl_.span;
     match &*impl_.kind {
       ImplKind::Path(path) => self.resolve_impl_path(path),
@@ -344,7 +344,7 @@ impl<'core, 'a> Resolver<'core, 'a> {
     Finder::new(self.core, self.chart, self.sigs, self.cur_def, self.cur_generics, span)
   }
 
-  pub(crate) fn find_impl(&mut self, span: Span, ty: &ImplType) -> TirImpl {
+  pub(crate) fn find_impl(&mut self, span: Span, ty: &ImplType) -> TirImpl<'core> {
     Finder::new(self.core, self.chart, self.sigs, self.cur_def, self.cur_generics, span)
       .find_impl(&mut self.types, ty)
   }

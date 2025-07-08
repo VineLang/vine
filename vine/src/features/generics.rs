@@ -218,7 +218,7 @@ impl<'core> Resolver<'core, '_> {
     path: &Path<'core>,
     params_id: GenericsId,
     inference: bool,
-  ) -> (Vec<Type>, Vec<TirImpl>) {
+  ) -> (Vec<Type>, Vec<TirImpl<'core>>) {
     self._resolve_generics(path.span, path.generics.as_ref(), params_id, inference, None)
   }
 
@@ -229,7 +229,7 @@ impl<'core> Resolver<'core, '_> {
     params_id: GenericsId,
     inference: bool,
     inferred_type_params: Option<Vec<Type>>,
-  ) -> (Vec<Type>, Vec<TirImpl>) {
+  ) -> (Vec<Type>, Vec<TirImpl<'core>>) {
     let _args = GenericArgs { span, types: Vec::new(), impls: Vec::new() };
     let args = args.unwrap_or(&_args);
     let params = &self.chart.generics[params_id];

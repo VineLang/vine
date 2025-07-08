@@ -33,7 +33,7 @@ impl LayerId {
 pub struct Vir<'core> {
   pub types: Types<'core>,
   pub locals: IdxVec<Local, VirLocal>,
-  pub rels: Rels,
+  pub rels: Rels<'core>,
   pub layers: IdxVec<LayerId, Layer>,
   pub interfaces: IdxVec<InterfaceId, Interface>,
   pub stages: IdxVec<StageId, Stage>,
@@ -347,7 +347,7 @@ impl VirLocal {
     def: DefId,
     generics: GenericsId,
     types: &mut Types<'core>,
-    rels: &mut Rels,
+    rels: &mut Rels<'core>,
     span: Span,
     ty: Type,
   ) -> VirLocal {

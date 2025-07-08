@@ -210,6 +210,8 @@ impl Builtins {
       bound_inclusive,
       bound_unbounded,
       advance,
+      tuple,
+      object,
     } = self;
     revert_idx(prelude, checkpoint.defs);
     revert_idx(bool, checkpoint.opaque_types);
@@ -237,6 +239,8 @@ impl Builtins {
     revert_idx(bound_inclusive, checkpoint.structs);
     revert_idx(bound_unbounded, checkpoint.structs);
     revert_fn(advance, checkpoint);
+    revert_idx(tuple, checkpoint.traits);
+    revert_idx(object, checkpoint.traits);
   }
 }
 
@@ -277,10 +281,14 @@ impl Resolutions {
 
 impl<'core> Specializations<'core> {
   fn revert(&mut self, checkpoint: &Checkpoint) {
-    let Specializations { lookup, specs } = self;
+    let Specializations { lookup, specs, composite_deconstruct, composite_reconstruct, object_key } =
+      self;
     specs.truncate(checkpoint.specs.0);
     lookup.truncate(checkpoint.fragments.0);
     lookup.values_mut().for_each(|map| map.retain(|_, s| *s < checkpoint.specs));
+    composite_deconstruct.retain(|_, s| *s < checkpoint.specs);
+    composite_reconstruct.retain(|_, s| *s < checkpoint.specs);
+    object_key.retain(|_, s| *s < checkpoint.specs);
   }
 }
 

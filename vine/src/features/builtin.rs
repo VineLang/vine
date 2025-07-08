@@ -40,6 +40,8 @@ pub enum Builtin {
   BoundInclusive,
   BoundExclusive,
   Advance,
+  Tuple,
+  Object,
 }
 
 impl<'core> VineParser<'core, '_> {
@@ -90,6 +92,8 @@ impl<'core> VineParser<'core, '_> {
       "BoundInclusive" => Builtin::BoundInclusive,
       "BoundExclusive" => Builtin::BoundExclusive,
       "advance" => Builtin::Advance,
+      "Tuple" => Builtin::Tuple,
+      "Object" => Builtin::Object,
       _ => Err(Diag::BadBuiltin { span })?,
     })
   }
@@ -129,6 +133,9 @@ pub struct Builtins {
   pub bound_unbounded: Option<StructId>,
 
   pub advance: Option<FnId>,
+
+  pub tuple: Option<TraitId>,
+  pub object: Option<TraitId>,
 }
 
 impl<'core> Charter<'core, '_> {
@@ -197,6 +204,8 @@ impl<'core> Charter<'core, '_> {
       Builtin::BoundExclusive => set(&mut builtins.bound_exclusive, struct_id),
       Builtin::BoundInclusive => set(&mut builtins.bound_inclusive, struct_id),
       Builtin::Advance => set(&mut builtins.advance, fn_id),
+      Builtin::Tuple => set(&mut builtins.tuple, trait_id),
+      Builtin::Object => set(&mut builtins.object, trait_id),
     }
   }
 }

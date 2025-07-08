@@ -289,7 +289,7 @@ impl<'core> Resolver<'core, '_> {
     }
   }
 
-  pub(crate) fn resolve_impl_path(&mut self, path: &Path<'core>) -> (ImplType, TirImpl) {
+  pub(crate) fn resolve_impl_path(&mut self, path: &Path<'core>) -> (ImplType, TirImpl<'core>) {
     if let Some(ident) = path.as_ident() {
       if let Some(&i) = self.impl_param_lookup.get(&ident) {
         let ty = self.types.import_with(&self.sigs.generics[self.cur_generics], None, |t, sig| {

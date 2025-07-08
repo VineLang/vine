@@ -1,4 +1,6 @@
 
+use derive::Tuple;
+
 pub trait Eq[T] {
   #[builtin = "eq"]
   fn .eq(a: &T, b: &T) -> Bool;
@@ -8,13 +10,37 @@ pub trait Eq[T] {
 }
 
 pub mod Eq {
-  pub impl pair[A, B; Eq[A], Eq[B]]: Eq[(A, B)] {
-    fn eq(&(a0: A, b0: B), &(a1: A, b1: B)) -> Bool {
-      a0 == a1 && b0 == b1
+  pub impl unary[T; Eq[T]]: Eq[(T,)] {
+    fn eq(&(a: T,), &(b: T,)) -> Bool {
+      a == b
     }
 
-    fn ne(&(a0: A, b0: B), &(a1: A, b1: B)) -> Bool {
-      a0 != a1 || b0 != b1
+    fn ne(&(a: T,), &(b: T,)) -> Bool {
+      a != b
+    }
+  }
+
+  pub impl tuple[T, I, R; Tuple[T, I, R], Eq[I], Eq[R]]: Eq[T] {
+    fn eq(&a: &T, &b: &T) -> Bool {
+      let &(ai, ar) = &a as &(I, R);
+      let &(bi, br) = &b as &(I, R);
+      ai == bi && ar == br
+    }
+
+    fn ne(&a: &T, &b: &T) -> Bool {
+      let &(ai, ar) = &a as &(I, R);
+      let &(bi, br) = &b as &(I, R);
+      ai != bi || ar != br
+    }
+  }
+
+  pub impl ref[T; Eq[T]]: Eq[&T] {
+    fn eq(&&a: &&T, &&b: &&T) -> Bool {
+      a == b
+    }
+
+    fn ne(&&a: &&T, &&b: &&T) -> Bool {
+      a != b
     }
   }
 }
@@ -32,21 +58,51 @@ pub enum Ord {
 }
 
 pub mod Ord {
-  pub impl pair[A, B; Ord[A], Ord[B]]: Ord[(A, B)] {
-    fn cmp(&(a0: A, b0: B), &(a1: A, b1: B)) -> Ord {
-      match a0.cmp(&a1) {
+  pub impl unary[T; Ord[T]]: Ord[(T,)] {
+    fn cmp(&(a: T,), &(b: T,)) -> Ord {
+      Ord::cmp(&a, &b)
+    }
+
+    fn lt(&(a: T,), &(b: T,)) -> Bool {
+      a < b
+    }
+
+    fn le(&(a: T,), &(b: T,)) -> Bool {
+      a <= b
+    }
+  }
+
+  pub impl tuple[T, I, R; Tuple[T, I, R], Ord[I], Ord[R]]: Ord[T] {
+    fn cmp(&a: &T, &b: &T) -> Ord {
+      let &(ai, ar) = &a as &(I, R);
+      let &(bi, br) = &b as &(I, R);
+      match ai.cmp(&bi) {
         Ord::Lt { Ord::Lt }
         Ord::Gt { Ord::Gt }
-        Ord::Eq { b0.cmp(&b1) }
+        Ord::Eq { ar.cmp(&br) }
       }
     }
 
-    fn lt(x: &(A, B), y: &(A, B)) -> Bool {
-      Ord::lt_from_cmp(x, y)
+    fn lt(a: &T, b: &T) -> Bool {
+      Ord::lt_from_cmp(a, b)
     }
 
-    fn le(x: &(A, B), y: &(A, B)) -> Bool {
-      Ord::le_from_cmp(x, y)
+    fn le(a: &T, b: &T) -> Bool {
+      Ord::le_from_cmp(a, b)
+    }
+  }
+
+  pub impl ref[T; Ord[T]]: Ord[&T] {
+    fn cmp(&&a: &&T, &&b: &&T) -> Ord {
+      Ord::cmp(&a, &b)
+    }
+
+    fn lt(&&a: &&T, &&b: &&T) -> Bool {
+      a < b
+    }
+
+    fn le(&&a: &&T, &&b: &&T) -> Bool {
+      a <= b
     }
   }
 

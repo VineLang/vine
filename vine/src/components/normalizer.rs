@@ -67,7 +67,7 @@ struct Normalizer<'core, 'a> {
   generics: GenericsId,
 
   types: Types<'core>,
-  rels: Rels,
+  rels: Rels<'core>,
   locals: IdxVec<Local, VirLocal>,
   interfaces: IdxVec<InterfaceId, Interface>,
   stages: IdxVec<StageId, Option<Stage>>,
