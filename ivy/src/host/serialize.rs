@@ -120,6 +120,9 @@ struct Serializer<'host, 'ast, 'ivm> {
   current: Global<'ivm>,
   equivalences: BTreeMap<&'ast str, &'ast str>,
   registers: HashMap<&'ast str, Register>,
+  /// If `true` keeps [`Tree::BlackBox`] in the trees and allows arbitrary
+  /// extrinsic function labels. Use by pre-reduce step to handle things it
+  /// cannot or should not reduce at compile time.
   allow_inert: bool,
 }
 
