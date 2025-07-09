@@ -233,8 +233,8 @@ impl<'core, 'ctx, 'ivm, 'ext> Repl<'core, 'ctx, 'ivm, 'ext> {
       (node.1, node.2)
     }
 
-    let label_x = self.host.label_to_u16("x");
-    let label_ref = self.host.label_to_u16("ref");
+    let label_x = Host::label_to_u16("x", &mut self.host.comb_labels);
+    let label_ref = Host::label_to_u16("ref", &mut self.host.comb_labels);
 
     let mut cur = w.1;
     let mut wire;

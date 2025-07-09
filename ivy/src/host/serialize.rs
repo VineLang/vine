@@ -49,6 +49,7 @@ use std::{
 
 use ivm::{
   addr::Addr,
+  ext::OpaqueExtFn,
   global::{Global, LabelSet},
   instruction::{Instruction, Instructions, Register},
   port::{Port, Tag},
@@ -67,7 +68,7 @@ impl<'ivm> Host<'ivm> {
     self._insert_nets(nets, false);
   }
 
-  pub(crate) fn _insert_nets(self: &mut &'ivm mut Host<'ivm>, nets: &Nets, black_box: bool) {
+  pub(crate) fn _insert_nets(self: &mut &'ivm mut Host<'ivm>, nets: &Nets, allow_inert: bool) {
     let mut globals_vec = Vec::from_iter(nets.keys().map(|name| Global {
       name: name.clone(),
       labels: LabelSet::NONE,
@@ -96,7 +97,7 @@ impl<'ivm> Host<'ivm> {
       current: Default::default(),
       equivalences: Default::default(),
       registers: Default::default(),
-      black_box,
+      allow_inert,
     };
 
     for (i, net) in nets.values().enumerate() {
@@ -119,7 +120,10 @@ struct Serializer<'host, 'ast, 'ivm> {
   current: Global<'ivm>,
   equivalences: BTreeMap<&'ast str, &'ast str>,
   registers: HashMap<&'ast str, Register>,
-  black_box: bool,
+  /// If `true` keeps [`Tree::BlackBox`] in the trees and allows arbitrary
+  /// extrinsic function labels. Use by pre-reduce step to handle things it
+  /// cannot or should not reduce at compile time.
+  allow_inert: bool,
 }
 
 impl<'l, 'ast, 'ivm> Serializer<'l, 'ast, 'ivm> {
@@ -195,7 +199,7 @@ impl<'l, 'ast, 'ivm> Serializer<'l, 'ast, 'ivm> {
         self.push(Instruction::Nilary(to, Port::new_ext_val(self.host.new_f32(*num))))
       }
       Tree::Comb(label, a, b) => {
-        let label = self.host.label_to_u16(label);
+        let label = Host::label_to_u16(label, &mut self.host.comb_labels);
         let a = self.serialize_tree(a);
         let b = self.serialize_tree(b);
         self.push(Instruction::Binary(Tag::Comb, label, to, a, b));
@@ -203,8 +207,18 @@ impl<'l, 'ast, 'ivm> Serializer<'l, 'ast, 'ivm> {
       Tree::ExtFn(f, swap, a, b) => {
         let a = self.serialize_tree(a);
         let b = self.serialize_tree(b);
-        let ext_fn = self.host.instantiate_ext_fn(f, *swap);
-        self.push(Instruction::Binary(Tag::ExtFn, ext_fn.bits(), to, a, b));
+        match self.host.instantiate_ext_fn(f, *swap) {
+          Some(ext_fn) => {
+            self.push(Instruction::Binary(Tag::ExtFn, ext_fn.bits(), to, a, b));
+          }
+          None => {
+            if !self.allow_inert {
+              panic!("Unknown ext fn '{f}', set `allow_inert` to `true` to allow opaque ext fns");
+            }
+            let label = Host::label_to_u16(f, &mut self.host.opaque_ext_fn_labels);
+            self.push(Instruction::InertNode(OpaqueExtFn { label, swap: *swap }, to, a, b));
+          }
+        }
       }
       Tree::Global(name) => {
         let global = self.host.get_raw(name).expect("undefined global");
@@ -229,13 +243,13 @@ impl<'l, 'ast, 'ivm> Serializer<'l, 'ast, 'ivm> {
       }
       Tree::BlackBox(t) => {
         let from = self.serialize_tree(t);
-        self.push(Instruction::Inert(to, from));
+        self.push(Instruction::InertLink(to, from));
       }
     }
   }
 
   fn unbox(&mut self, mut tree: &'ast Tree) -> &'ast Tree {
-    if !self.black_box {
+    if !self.allow_inert {
       while let Tree::BlackBox(t) = tree {
         tree = t;
       }

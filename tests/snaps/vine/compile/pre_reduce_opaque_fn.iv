@@ -1,0 +1,23 @@
+
+:: { ::pre_reduce_opaque_fn::main:s1 }
+
+::std::unsafe::erase::drop:s1 {
+  fn(_ fn(w2 _))
+  fn(_ fn(w2 _)) = _
+}
+
+::pre_reduce_opaque_fn::main:s1 {
+  fn(_ fn(ref(w0 w0) _))
+  fn(_ w4) = ::pre_reduce_opaque_fn::foo:s1
+  fn(_ w5) = ::pre_reduce_opaque_fn::foo:s1
+  fn(_ fn(w4 fn(w5 w6))) = ::std::numeric::N32::add::add:s1
+  fn(_ fn(w6 _)) = ::std::unsafe::erase::drop:s1
+}
+
+::pre_reduce_opaque_fn::foo:s1 {
+  fn(_ n0)
+  1 = @custom_ext_fn(2 n0)
+}
+
+::std::numeric::N32::add::add:s1 { fn(_ fn(@n32_add(w5 w2) fn(w5 w2))) }
+

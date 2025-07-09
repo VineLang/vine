@@ -23,6 +23,7 @@
     "vine/examples/*.vi",
     "tests/programs/*.vi",
     "tests/programs/aoc_2024/*.vi",
+    "tests/programs/compile/*.vi",
     "vine/std/std.vi"
   ],
   "rust-analyzer.check.command": "clippy",

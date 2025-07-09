@@ -70,14 +70,15 @@ impl<'host, 'ctx, 'ivm, 'ext> Repl<'host, 'ctx, 'ivm, 'ext> {
       Tree::F32(value) => Port::new_ext_val(self.host.new_f32(value)),
       Tree::Global(name) => Port::new_global(self.host.get(&name).unwrap()),
       Tree::Comb(label, a, b) => {
-        let label = self.host.label_to_u16(label);
+        let label = Host::label_to_u16(label, &mut self.host.comb_labels);
         let n = unsafe { self.ivm.new_node(Tag::Comb, label) };
         self.inject_to(*a, n.1);
         self.inject_to(*b, n.2);
         n.0
       }
       Tree::ExtFn(f, swap, a, b) => {
-        let f = self.host.instantiate_ext_fn(&f, swap);
+        let f =
+          self.host.instantiate_ext_fn(&f, swap).unwrap_or_else(|| panic!("Unknown ext fn '{f}'"));
         let n = unsafe { self.ivm.new_node(Tag::ExtFn, f.bits()) };
         self.inject_to(*a, n.1);
         self.inject_to(*b, n.2);

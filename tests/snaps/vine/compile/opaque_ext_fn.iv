@@ -1,0 +1,16 @@
+
+:: { ::opaque_ext_fn::main:s1 }
+
+::std::unsafe::erase::drop:s1 {
+  fn(_ fn(w2 _))
+  fn(_ fn(w2 _)) = _
+}
+
+::opaque_ext_fn::main:s1 {
+  fn(_ fn(ref(w0 w0) _))
+  fn(_ fn(1 fn(2 w4))) = ::opaque_ext_fn::custom_ext_fn:s1
+  fn(_ fn(w4 _)) = ::std::unsafe::erase::drop:s1
+}
+
+::opaque_ext_fn::custom_ext_fn:s1 { fn(_ fn(@custom_ext_fn(w5 w2) fn(w5 w2))) }
+

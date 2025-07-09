@@ -1,6 +1,7 @@
 use core::fmt::{self, Debug};
 
 use crate::{
+  ext::OpaqueExtFn,
   ivm::IVM,
   port::{Port, Tag},
 };
@@ -67,7 +68,8 @@ pub enum Instruction<'ivm> {
   /// requirements.
   Binary(Tag, u16, Register, Register, Register),
 
-  Inert(Register, Register),
+  InertLink(Register, Register),
+  InertNode(OpaqueExtFn, Register, Register, Register),
 }
 
 /// A "register" of an [`Instruction`], used to identify pairs of ports to link.
@@ -144,11 +146,24 @@ impl<'ivm, 'ext> IVM<'ivm, 'ext> {
             self.link_register(p1, Port::new_wire(node.1));
             self.link_register(p2, Port::new_wire(node.2));
           }
-          Instruction::Inert(p0, p1) => {
+          Instruction::InertLink(p0, p1) => {
             let wires = self.new_wires();
             self.link_register(p0, Port::new_wire(wires.0 .0));
             self.link_register(p1, Port::new_wire(wires.1 .0));
-            self.inert.push((Port::new_wire(wires.0 .1), Port::new_wire(wires.1 .1)));
+            self.inert_links.push((Port::new_wire(wires.0 .1), Port::new_wire(wires.1 .1)));
+          }
+          Instruction::InertNode(label, p0, p1, p2) => {
+            let wire_prim = self.new_wire();
+            let (wire_aux0, wire_aux1) = self.new_wires();
+            self.link_register(p0, Port::new_wire(wire_prim.0));
+            self.link_register(p1, Port::new_wire(wire_aux0.0));
+            self.link_register(p2, Port::new_wire(wire_aux1.0));
+            self.inert_nodes.push((
+              label,
+              Port::new_wire(wire_prim.1),
+              Port::new_wire(wire_aux0.1),
+              Port::new_wire(wire_aux1.1),
+            ));
           }
         }
       }
