@@ -9,7 +9,7 @@ pub fn main(&io: &IO) {
   let possible = 0;
   let ways = N64::zero;
   while io.read_line() is Some(design) {
-    let count = (match_counts(design, patterns); _).pop_back().unwrap();
+    let count = match_counts(design, patterns).pop_back().unwrap();
     if count != N64::zero {
       possible += 1;
       ways += count;

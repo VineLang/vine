@@ -6,7 +6,7 @@ pub fn main(&io: &IO) {
 
   while io.read_line() is Some(line) && line.len() != 0 {
     let (name, value) = line.split_once(": ");
-    let value = (value.unwrap(); _)!.get(0).unwrap() == '1';
+    let value = value.unwrap()!.get(0).unwrap() == '1';
     unsafe::erase(map.insert(name, Wire::input(value)));
   }
 

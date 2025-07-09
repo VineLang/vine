@@ -9,32 +9,32 @@ let s: String = "hello world!";
 
 let io: IO = #io;
 let s: String = "hello world!";
-> s.starts_with(&(""; _))
+> s.starts_with(&"")
 true
 
 let io: IO = #io;
 let s: String = "hello world!";
-> s.starts_with(&("h"; _))
+> s.starts_with(&"h")
 true
 
 let io: IO = #io;
 let s: String = "hello world!";
-> s.starts_with(&("hello "; _))
+> s.starts_with(&"hello ")
 true
 
 let io: IO = #io;
 let s: String = "hello world!";
-> s.starts_with(&("world"; _))
+> s.starts_with(&"world")
 false
 
 let io: IO = #io;
 let s: String = "hello world!";
-> s.starts_with(&("held"; _))
+> s.starts_with(&"held")
 false
 
 let io: IO = #io;
 let s: String = "hello world!";
-> s.starts_with(&("hello world! hi"; _))
+> s.starts_with(&"hello world! hi")
 false
 
 let io: IO = #io;

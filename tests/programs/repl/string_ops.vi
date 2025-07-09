@@ -1,11 +1,11 @@
 let s = "hello world!";
 s.len()
-s.starts_with(&(""; _))
-s.starts_with(&("h"; _))
-s.starts_with(&("hello "; _))
-s.starts_with(&("world"; _))
-s.starts_with(&("held"; _))
-s.starts_with(&("hello world! hi"; _))
+s.starts_with(&"")
+s.starts_with(&"h")
+s.starts_with(&"hello ")
+s.starts_with(&"world")
+s.starts_with(&"held")
+s.starts_with(&"hello world! hi")
 "" == ""
 "" != ""
 "hello" == "hello"
