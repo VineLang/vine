@@ -14,7 +14,7 @@ use crate::{
   },
   structures::{
     ast::{Expr, Pat, Path, Span, StructItem},
-    chart::{DefId, DefPatternKind, DefTypeKind, DefValueKind, StructDef, StructId},
+    chart::{DefId, DefPatternKind, DefTypeKind, DefValueKind, GenericsId, StructDef, StructId},
     diag::Diag,
     signatures::StructSig,
     tir::{TirExpr, TirExprKind, TirPat, TirPatKind},
@@ -58,13 +58,14 @@ impl<'core> Charter<'core, '_> {
   pub(crate) fn chart_struct(
     &mut self,
     parent: DefId,
+    parent_generics: GenericsId,
     span: Span,
     vis: DefId,
     member_vis: DefId,
     struct_item: StructItem<'core>,
   ) -> DefId {
     let def = self.chart_child(parent, struct_item.name, member_vis, true);
-    let generics = self.chart_generics(def, struct_item.generics, false);
+    let generics = self.chart_generics(def, parent_generics, struct_item.generics, false);
     let data_vis = self.resolve_vis(parent, struct_item.data_vis);
     let struct_id = self.chart.structs.push(StructDef {
       span,

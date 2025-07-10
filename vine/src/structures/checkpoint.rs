@@ -248,7 +248,8 @@ impl<'core> Signatures<'core> {
   fn revert(&mut self, checkpoint: &Checkpoint) {
     let Signatures {
       imports,
-      generics,
+      type_params,
+      impl_params,
       concrete_consts,
       concrete_fns,
       type_aliases,
@@ -258,7 +259,8 @@ impl<'core> Signatures<'core> {
       impls,
     } = self;
     imports.truncate(checkpoint.imports.0);
-    generics.truncate(checkpoint.generics.0);
+    type_params.truncate(checkpoint.generics.0);
+    impl_params.truncate(checkpoint.generics.0);
     concrete_consts.truncate(checkpoint.concrete_consts.0);
     concrete_fns.truncate(checkpoint.concrete_fns.0);
     type_aliases.truncate(checkpoint.type_aliases.0);

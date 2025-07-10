@@ -16,7 +16,8 @@ use crate::{
   structures::{
     ast::{EnumItem, Expr, Pat, Path, Span, Variant},
     chart::{
-      DefId, DefPatternKind, DefTypeKind, DefValueKind, EnumDef, EnumId, EnumVariant, VariantId,
+      DefId, DefPatternKind, DefTypeKind, DefValueKind, EnumDef, EnumId, EnumVariant, GenericsId,
+      VariantId,
     },
     diag::Diag,
     signatures::EnumSig,
@@ -70,13 +71,14 @@ impl<'core> Charter<'core, '_> {
   pub(crate) fn chart_enum(
     &mut self,
     parent: DefId,
+    parent_generics: GenericsId,
     span: Span,
     vis: DefId,
     member_vis: DefId,
     enum_item: EnumItem<'core>,
   ) -> DefId {
     let def = self.chart_child(parent, enum_item.name, member_vis, true);
-    let generics = self.chart_generics(def, enum_item.generics, false);
+    let generics = self.chart_generics(def, parent_generics, enum_item.generics, false);
     let enum_id = self.chart.enums.next_index();
     let variants =
       IdxVec::from_iter(enum_item.variants.into_iter().enumerate().map(|(id, variant)| {

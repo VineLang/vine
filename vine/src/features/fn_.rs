@@ -134,13 +134,14 @@ impl<'core> Charter<'core, '_> {
   pub(crate) fn chart_fn(
     &mut self,
     parent: DefId,
+    parent_generics: GenericsId,
     span: Span,
     vis: DefId,
     member_vis: DefId,
     fn_item: FnItem<'core>,
   ) -> DefId {
     let def = self.chart_child(parent, fn_item.name, member_vis, true);
-    let generics = self.chart_generics(def, fn_item.generics, true);
+    let generics = self.chart_generics(def, parent_generics, fn_item.generics, true);
     let body = self.ensure_implemented(span, fn_item.body);
     let fn_id = self.chart.concrete_fns.push(ConcreteFnDef {
       span,
@@ -281,7 +282,7 @@ impl<'core> Resolver<'core, '_> {
   ) -> Result<TirExpr, Diag<'core>> {
     if let Some(args) = args {
       let generics_id = self.chart.fn_generics(fn_id);
-      let type_params_len = self.chart.generics[generics_id].type_params.len();
+      let type_params_len = self.sigs.type_params[generics_id].count;
       let type_params = self.types.new_vars(path.span, type_params_len);
       let sig = self.types.import(self.sigs.fn_sig(fn_id), Some(&type_params));
       if sig.params.len() != args.len() {

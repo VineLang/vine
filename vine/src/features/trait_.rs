@@ -7,10 +7,7 @@ use crate::{
     parser::{VineParser, BRACE},
   },
   structures::{
-    ast::{
-      Attr, ConstItem, FnItem, Generics, Ident, ImplParam, ItemKind, Path, Span, Trait, TraitItem,
-      TraitKind, Ty, TyKind, Vis,
-    },
+    ast::{Attr, ConstItem, FnItem, ItemKind, Span, TraitItem, Vis},
     chart::{
       ConstId, DefId, DefTraitKind, DefValueKind, FnId, GenericsDef, GenericsId, TraitConst,
       TraitConstId, TraitDef, TraitFn, TraitFnId, TraitId,
@@ -46,15 +43,16 @@ impl<'core> Charter<'core, '_> {
   pub(crate) fn chart_trait(
     &mut self,
     parent: DefId,
+    parent_generics: GenericsId,
     span: Span,
     vis: DefId,
     member_vis: DefId,
     trait_item: TraitItem<'core>,
   ) -> DefId {
     let def = self.chart_child(parent, trait_item.name, member_vis, true);
-    let generics = self.chart_generics(def, trait_item.generics, false);
-    let subitem_generics = self.chart_trait_subitem_generics(span, trait_item.name, generics);
+    let generics = self.chart_generics(def, parent_generics, trait_item.generics, false);
     let trait_id = self.chart.traits.next_index();
+    let subitem_generics = self.chart_trait_subitem_generics(span, trait_id, generics);
     let mut consts = IdxVec::new();
     let mut fns = IdxVec::new();
     for subitem in trait_item.items {
@@ -135,41 +133,18 @@ impl<'core> Charter<'core, '_> {
   fn chart_trait_subitem_generics(
     &mut self,
     span: Span,
-    trait_name: Ident<'core>,
-    generics: GenericsId,
+    trait_id: TraitId,
+    generics_id: GenericsId,
   ) -> GenericsId {
-    let generics = self.chart.generics[generics].clone();
+    let generics = self.chart.generics[generics_id].clone();
     self.chart.generics.push(GenericsDef {
-      impl_params: vec![ImplParam {
-        span,
-        name: None,
-        trait_: Trait {
-          span,
-          kind: Box::new(TraitKind::Path(Path {
-            span,
-            absolute: false,
-            segments: vec![trait_name],
-            generics: Some(Generics {
-              span,
-              types: generics
-                .type_params
-                .iter()
-                .map(|param| Ty {
-                  span,
-                  kind: Box::new(TyKind::Path(Path {
-                    span,
-                    absolute: false,
-                    segments: vec![param.name],
-                    generics: None,
-                  })),
-                })
-                .collect(),
-              impls: vec![],
-            }),
-          })),
-        },
-      }],
-      ..generics
+      span,
+      def: generics.def,
+      parent: Some(generics_id),
+      type_params: Vec::new(),
+      impl_params: Vec::new(),
+      impl_allowed: true,
+      trait_: Some(trait_id),
     })
   }
 }

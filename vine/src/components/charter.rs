@@ -22,15 +22,18 @@ impl<'core> Charter<'core, '_> {
         GenericsDef {
           span: Span::NONE,
           def: DefId::ROOT,
+          parent: None,
           type_params: Vec::new(),
           impl_params: Vec::new(),
+          impl_allowed: true,
+          trait_: None,
         },
       );
     }
     if self.chart.defs.is_empty() {
       self.new_def(self.core.ident("::"), "", None);
     }
-    self.chart_mod(DefId::ROOT, root, DefId::ROOT);
+    self.chart_mod_kind(DefId::ROOT, root, DefId::ROOT, GenericsId::NONE);
   }
 
   fn new_def(&mut self, name: Ident<'core>, path: &'core str, parent: Option<DefId>) -> DefId {
@@ -54,14 +57,26 @@ impl<'core> Charter<'core, '_> {
     })
   }
 
-  pub(crate) fn chart_mod(&mut self, vis: DefId, module: ModKind<'core>, def: DefId) {
+  pub(crate) fn chart_mod_kind(
+    &mut self,
+    vis: DefId,
+    module: ModKind<'core>,
+    def: DefId,
+    generics: GenericsId,
+  ) {
     let ModKind::Loaded(_, items) = module else { unreachable!("module not yet loaded") };
     for item in items {
-      self.chart_item(vis, item, def);
+      self.chart_item(vis, item, def, generics);
     }
   }
 
-  pub fn chart_item(&mut self, member_vis: DefId, mut item: Item<'core>, parent: DefId) {
+  pub fn chart_item(
+    &mut self,
+    member_vis: DefId,
+    mut item: Item<'core>,
+    parent: DefId,
+    parent_generics: GenericsId,
+  ) {
     let subitems = extract_subitems(&mut item);
 
     let span = item.span;
@@ -69,31 +84,37 @@ impl<'core> Charter<'core, '_> {
     let member_vis = vis.max(member_vis);
 
     let def = match item.kind {
-      ItemKind::Fn(fn_item) => Some(self.chart_fn(parent, span, vis, member_vis, fn_item)),
+      ItemKind::Mod(mod_item) => {
+        Some(self.chart_mod(parent, parent_generics, vis, member_vis, mod_item))
+      }
+
+      ItemKind::Fn(fn_item) => {
+        Some(self.chart_fn(parent, parent_generics, span, vis, member_vis, fn_item))
+      }
 
       ItemKind::Const(const_item) => {
-        Some(self.chart_const(parent, span, vis, member_vis, const_item))
+        Some(self.chart_const(parent, parent_generics, span, vis, member_vis, const_item))
       }
 
       ItemKind::Struct(struct_item) => {
-        Some(self.chart_struct(parent, span, vis, member_vis, struct_item))
+        Some(self.chart_struct(parent, parent_generics, span, vis, member_vis, struct_item))
       }
 
-      ItemKind::Enum(enum_item) => Some(self.chart_enum(parent, span, vis, member_vis, enum_item)),
+      ItemKind::Enum(enum_item) => {
+        Some(self.chart_enum(parent, parent_generics, span, vis, member_vis, enum_item))
+      }
 
-      ItemKind::Type(type_item) => Some(self.chart_type(parent, span, vis, member_vis, type_item)),
-
-      ItemKind::Mod(mod_item) => {
-        let def = self.chart_child(parent, mod_item.name, member_vis, true);
-        self.chart_mod(vis, mod_item.kind, def);
-        Some(def)
+      ItemKind::Type(type_item) => {
+        Some(self.chart_type(parent, parent_generics, span, vis, member_vis, type_item))
       }
 
       ItemKind::Trait(trait_item) => {
-        Some(self.chart_trait(parent, span, vis, member_vis, trait_item))
+        Some(self.chart_trait(parent, parent_generics, span, vis, member_vis, trait_item))
       }
 
-      ItemKind::Impl(impl_item) => Some(self.chart_impl(parent, span, vis, member_vis, impl_item)),
+      ItemKind::Impl(impl_item) => {
+        Some(self.chart_impl(parent, parent_generics, span, vis, member_vis, impl_item))
+      }
 
       ItemKind::Use(use_item) => {
         self.chart_use(parent, vis, use_item);
@@ -108,7 +129,7 @@ impl<'core> Charter<'core, '_> {
         if !matches!(subitem.vis, Vis::Private) {
           self.core.report(Diag::VisibleSubitem { span: item.span });
         }
-        self.chart_item(def, subitem, def);
+        self.chart_item(def, subitem, def, GenericsId::NONE);
       }
     }
 

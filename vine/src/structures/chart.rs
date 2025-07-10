@@ -120,8 +120,11 @@ new_idx!(pub GenericsId);
 pub struct GenericsDef<'core> {
   pub span: Span,
   pub def: DefId,
+  pub parent: Option<GenericsId>,
   pub type_params: Vec<TypeParam<'core>>,
   pub impl_params: Vec<ImplParam<'core>>,
+  pub impl_allowed: bool,
+  pub trait_: Option<TraitId>,
 }
 
 new_idx!(pub ConcreteConstId);

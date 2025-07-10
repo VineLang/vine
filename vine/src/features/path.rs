@@ -284,8 +284,8 @@ impl<'core> Resolver<'core, '_> {
 
   pub(crate) fn resolve_ty_path(&mut self, path: &Path<'core>, inference: bool) -> Type {
     if let Some(ident) = path.as_ident() {
-      if let Some(&i) = self.type_param_lookup.get(&ident) {
-        return self.types.new(TypeKind::Param(i, ident));
+      if let Some(&index) = self.sigs.type_params[self.cur_generics].lookup.get(&ident) {
+        return self.types.new(TypeKind::Param(index, Some(ident)));
       }
     }
     let resolved = self.resolve_path(self.cur_def, path, "type", |d| d.type_kind);
@@ -302,11 +302,10 @@ impl<'core> Resolver<'core, '_> {
 
   pub(crate) fn resolve_impl_path(&mut self, path: &Path<'core>) -> (ImplType, TirImpl<'core>) {
     if let Some(ident) = path.as_ident() {
-      if let Some(&i) = self.impl_param_lookup.get(&ident) {
-        let ty = self.types.import_with(&self.sigs.generics[self.cur_generics], None, |t, sig| {
-          t.transfer(&sig.impl_params[i])
-        });
-        return (ty, TirImpl::Param(i));
+      let impl_params = &self.sigs.impl_params[self.cur_generics];
+      if let Some(&index) = impl_params.lookup.get(&ident) {
+        let ty = self.types.import_with(&impl_params.types, None, |t, tys| t.transfer(&tys[index]));
+        return (ty, TirImpl::Param(index));
       }
     }
     match self.resolve_path(self.cur_def, path, "impl", |d| d.impl_kind) {

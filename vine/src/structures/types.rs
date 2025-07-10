@@ -84,7 +84,7 @@ impl Debug for Type {
 
 #[derive(Debug, Clone)]
 pub enum TypeKind<'core> {
-  Param(usize, Ident<'core>),
+  Param(usize, Option<Ident<'core>>),
   Tuple(Vec<Type>),
   Object(BTreeMap<Ident<'core>, Type>),
   Opaque(OpaqueTypeId, Vec<Type>),
@@ -457,7 +457,7 @@ impl<'core> Types<'core> {
               self._show_params(chart, params, str);
             }
             TypeKind::Param(_, name) => {
-              *str += name.0 .0;
+              *str += name.unwrap().0 .0;
             }
             TypeKind::Never => *str += "!",
             TypeKind::Error(_) => *str += "??",
@@ -705,7 +705,7 @@ impl ImplType {
   }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Default)]
 pub struct TypeCtx<'core, T> {
   pub types: Types<'core>,
   pub inner: T,

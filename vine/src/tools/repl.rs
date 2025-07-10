@@ -17,7 +17,7 @@ use crate::{
   },
   structures::{
     ast::{visit::VisitMut, Block, Ident, Span, Stmt},
-    chart::DefId,
+    chart::{DefId, GenericsId},
     core::Core,
     diag::Diag,
     resolutions::FragmentId,
@@ -166,7 +166,7 @@ impl<'core, 'ctx, 'ivm, 'ext> Repl<'core, 'ctx, 'ivm, 'ext> {
         let mut extractor = ExtractItems::default();
         extractor.visit(&mut *self.block);
         for item in extractor.items {
-          charter.chart_item(self.repl_mod, item, self.repl_mod);
+          charter.chart_item(self.repl_mod, item, self.repl_mod, GenericsId::NONE);
         }
       }
 

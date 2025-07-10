@@ -1,6 +1,9 @@
+use std::collections::HashMap;
+
 use vine_util::idx::IdxVec;
 
 use crate::structures::{
+  ast::Ident,
   chart::{
     ConcreteConstId, ConcreteFnId, ConstId, DefId, EnumId, FnId, GenericsId, ImplId, ImportId,
     StructId, TraitConstId, TraitFnId, TraitId, TypeAliasId, VariantId,
@@ -12,7 +15,8 @@ use crate::structures::{
 #[derive(Debug, Default)]
 pub struct Signatures<'core> {
   pub imports: IdxVec<ImportId, ImportState>,
-  pub generics: IdxVec<GenericsId, TypeCtx<'core, GenericsSig>>,
+  pub type_params: IdxVec<GenericsId, TypeParams<'core>>,
+  pub impl_params: IdxVec<GenericsId, ImplParams<'core>>,
   pub concrete_consts: IdxVec<ConcreteConstId, TypeCtx<'core, ConstSig>>,
   pub concrete_fns: IdxVec<ConcreteFnId, TypeCtx<'core, FnSig>>,
   pub type_aliases: IdxVec<TypeAliasId, TypeAliasState<'core>>,
@@ -37,9 +41,16 @@ pub enum TypeAliasState<'core> {
   Resolved(TypeCtx<'core, TypeAliasSig>),
 }
 
-#[derive(Debug)]
-pub struct GenericsSig {
-  pub impl_params: Vec<ImplType>,
+#[derive(Debug, Clone, Default)]
+pub struct TypeParams<'core> {
+  pub count: usize,
+  pub lookup: HashMap<Ident<'core>, usize>,
+}
+
+#[derive(Debug, Clone, Default)]
+pub struct ImplParams<'core> {
+  pub types: TypeCtx<'core, Vec<ImplType>>,
+  pub lookup: HashMap<Ident<'core>, usize>,
 }
 
 #[derive(Debug)]
@@ -92,12 +103,6 @@ impl<'core> Signatures<'core> {
       FnId::Concrete(fn_id) => &self.concrete_fns[fn_id],
       FnId::Abstract(trait_id, fn_id) => &self.traits[trait_id].fns[fn_id],
     }
-  }
-}
-
-impl<'core> TransferTypes<'core> for GenericsSig {
-  fn transfer(&self, t: &mut TypeTransfer<'core, '_>) -> Self {
-    Self { impl_params: t.transfer(&self.impl_params) }
   }
 }
 

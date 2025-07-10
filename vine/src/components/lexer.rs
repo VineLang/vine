@@ -11,6 +11,8 @@ pub enum Token {
   Dot,
   #[token("..")]
   DotDot,
+  #[token("...")]
+  DotDotDot,
   #[token("..=")]
   DotDotEq,
   #[token(",")]

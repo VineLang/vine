@@ -54,13 +54,14 @@ impl<'core> Charter<'core, '_> {
   pub(crate) fn chart_impl(
     &mut self,
     parent: DefId,
+    parent_generics: GenericsId,
     span: Span,
     vis: DefId,
     member_vis: DefId,
     impl_item: ImplItem<'core>,
   ) -> DefId {
     let def = self.chart_child(parent, impl_item.name, member_vis, true);
-    let generics = self.chart_generics(def, impl_item.generics, true);
+    let generics = self.chart_generics(def, parent_generics, impl_item.generics, true);
     let mut subitems = Vec::new();
     for subitem in impl_item.items {
       let span = subitem.span;
