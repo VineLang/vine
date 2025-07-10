@@ -11,7 +11,7 @@ pub fn main(&io: &IO) {
   }
 
   let fn at_wire(wire) {
-    map.at_or_insert[; _, unsafe::erase, _](wire, Wire::new())
+    map.at_or_insert[; _, _, unsafe::erase](wire, Wire::new())
   }
 
   while io.read_line() is Some(line) {

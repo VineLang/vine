@@ -108,7 +108,7 @@ mod Parser {
         self.skip_ws();
         let var = self.parse_var();
         self.expect_char('.');
-        self.scope.at_or_insert[; _, unsafe::erase, _](var, []).*.push_front([]);
+        self.scope.at_or_insert[; _, _, unsafe::erase](var, []).*.push_front([]);
         let body = self.parse_atom();
         let uses = self.scope.at(&var).unwrap().*.pop_front().unwrap();
         Term::Lambda(uses, body)
