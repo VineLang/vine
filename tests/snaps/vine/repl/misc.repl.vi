@@ -35,7 +35,7 @@ error input:1:1 - cannot find impl of trait `Concat[String, N32, ?86]`
 error input:1:1 - found several impls of trait `Drop[?83]`
 
 let io: IO = #io;
-> ([true, false]; _).show().as[String]
+> [true, false].show().as[String]
 "[true, false]"
 
 let io: IO = #io;
@@ -80,17 +80,17 @@ let l: List[I32] = [+1, +2, -13, +4];
 
 let io: IO = #io;
 let l: List[I32] = [+1, +2, -18, +4];
-> l.contains(&(+1; _))
+> l.contains(&+1)
 true
 
 let io: IO = #io;
 let l: List[I32] = [+1, +2, -18, +4];
-> l.contains(&(+4; _))
+> l.contains(&+4)
 true
 
 let io: IO = #io;
 let l: List[I32] = [+1, +2, -18, +4];
-> l.contains(&(+7; _))
+> l.contains(&+7)
 ::std::data::List::contains:0:s6
 
 let io: IO = #io;
@@ -281,14 +281,14 @@ error input:1:29 - expected type `{ a: N32, b: N32 }`; found `{ a: N32 }`
 
 let io: IO = #io;
 > do { let x; x = (x, x); }
-error input:1:17 - expected type `?1514`; found `(?1514, ?1514)`
+error input:1:17 - expected type `?1510`; found `(?1510, ?1510)`
 error input:1:10 - found several impls of trait `Fork[?1]`
 error input:1:10 - found several impls of trait `Drop[?1]`
 error input:1:10 - found several impls of trait `Fork[~?1]`
 error input:1:10 - found several impls of trait `Drop[~?1]`
-error input:1:10 - cannot drop `?1514`
-error input:1:10 - variable of type `?1514` read whilst uninitialized
-error input:1:10 - cannot fork `?1514`
+error input:1:10 - cannot drop `?1510`
+error input:1:10 - variable of type `?1510` read whilst uninitialized
+error input:1:10 - cannot fork `?1510`
 
 let io: IO = #io;
 > let (a: N32, b: N32);
@@ -332,17 +332,17 @@ error input:1:8 - found several impls of trait `Fork[?1]`
 error input:1:8 - found several impls of trait `Drop[?1]`
 error input:1:8 - found several impls of trait `Fork[~?1]`
 error input:1:8 - found several impls of trait `Drop[~?1]`
-error input:1:8 - found several impls of trait `Drop[?1628]`
+error input:1:8 - found several impls of trait `Drop[?1624]`
 error input:1:13 - found several impls of trait `Fork[?1]`
 error input:1:13 - found several impls of trait `Drop[?1]`
 error input:1:13 - found several impls of trait `Fork[~?1]`
 error input:1:13 - found several impls of trait `Drop[~?1]`
-error - found several impls of trait `Drop[?1628]`
+error - found several impls of trait `Drop[?1624]`
 error input:1:5 - found several impls of trait `Fork[?1]`
 error input:1:5 - found several impls of trait `Drop[?1]`
 error input:1:5 - found several impls of trait `Fork[~?1]`
 error input:1:5 - found several impls of trait `Drop[~?1]`
-error input:1:5 - variable of type `?1628` read whilst uninitialized
+error input:1:5 - variable of type `?1624` read whilst uninitialized
 
 let io: IO = #io;
 > Ok(true)?

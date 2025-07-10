@@ -1,8 +1,8 @@
 
 pub fn main(&io: &IO) {
-  io.println("{([1, 2, 3, 4]; _).show()}");
-  io.println("{(["abc", "def", "ghi"]; _).show()}");
-  io.println("{(['x', 'y', 'z']; _).show()}");
-  io.println("{([true, false]; _).show()}");
-  io.println("{([(1, 'a'), (2, 'b')]; _).show()}");
+  io.println("{[1, 2, 3, 4].show()}");
+  io.println("{["abc", "def", "ghi"].show()}");
+  io.println("{['x', 'y', 'z'].show()}");
+  io.println("{[true, false].show()}");
+  io.println("{[(1, 'a'), (2, 'b')].show()}");
 }

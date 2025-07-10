@@ -113,7 +113,7 @@ mod Region {
 mod Regions {
   pub impl to_string: Cast[Regions, String] {
     fn cast(Regions(array)) -> String {
-      (array.as[List]; _).show() as String
+      array.as[List].show() as String
     }
   }
 
