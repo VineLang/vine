@@ -253,7 +253,7 @@ impl<'core, 'a> Finder<'core, 'a> {
       let type_params = (0..self.chart.generics[generics].type_params.len())
         .map(|_| types.new_var(self.span))
         .collect::<Vec<_>>();
-      let ty = types.import(&self.sigs.impl_sig(candidate), Some(&type_params)).ty;
+      let ty = types.import(self.sigs.impl_sig(candidate), Some(&type_params)).ty;
       if types.unify_impl_type(&ty, query).is_success() {
         for result in self.find_impl_params(types, generics, type_params)? {
           found.push(TypeCtx { types: result.types, inner: TirImpl::Def(candidate, result.inner) });

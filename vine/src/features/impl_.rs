@@ -284,7 +284,7 @@ impl<'core> Resolver<'core, '_> {
   ) -> (ImplType, TirImpl<'core>) {
     let (type_params, impl_params) =
       self.resolve_generics(path, self.chart.impl_generics(id), true);
-    let ty = self.types.import(&self.sigs.impl_sig(id), Some(&type_params)).ty;
+    let ty = self.types.import(self.sigs.impl_sig(id), Some(&type_params)).ty;
     (ty, TirImpl::Def(id, impl_params))
   }
 }
