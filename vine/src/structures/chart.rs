@@ -204,7 +204,6 @@ pub struct TraitDef<'core> {
   pub def: DefId,
   pub name: Ident<'core>,
   pub generics: GenericsId,
-  pub subitem_generics: GenericsId,
   pub consts: IdxVec<TraitConstId, TraitConst<'core>>,
   pub fns: IdxVec<TraitFnId, TraitFn<'core>>,
 }
@@ -213,6 +212,7 @@ new_idx!(pub TraitConstId);
 #[derive(Debug, Clone)]
 pub struct TraitConst<'core> {
   pub name: Ident<'core>,
+  pub generics: GenericsId,
   pub ty: Ty<'core>,
 }
 
@@ -221,6 +221,7 @@ new_idx!(pub TraitFnId);
 pub struct TraitFn<'core> {
   pub method: bool,
   pub name: Ident<'core>,
+  pub generics: GenericsId,
   pub params: Vec<Pat<'core>>,
   pub ret_ty: Option<Ty<'core>>,
 }
@@ -266,14 +267,14 @@ impl<'core> Chart<'core> {
   pub fn fn_generics(&self, fn_id: FnId) -> GenericsId {
     match fn_id {
       FnId::Concrete(fn_id) => self.concrete_fns[fn_id].generics,
-      FnId::Abstract(trait_id, _) => self.traits[trait_id].subitem_generics,
+      FnId::Abstract(trait_id, fn_id) => self.traits[trait_id].fns[fn_id].generics,
     }
   }
 
   pub fn const_generics(&self, const_id: ConstId) -> GenericsId {
     match const_id {
       ConstId::Concrete(const_id) => self.concrete_consts[const_id].generics,
-      ConstId::Abstract(trait_id, _) => self.traits[trait_id].subitem_generics,
+      ConstId::Abstract(trait_id, const_id) => self.traits[trait_id].consts[const_id].generics,
     }
   }
 }

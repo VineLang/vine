@@ -12,17 +12,17 @@ use crate::{
       Block, Expr, ExprKind, Ident, Impl, ImplKind, Pat, PatKind, Path, Span, Target, Trait,
       TraitKind, Ty, TyKind,
     },
-    chart::{Chart, ConcreteFnId, DefId, DefTraitKind, FnId, GenericsId, OpaqueTypeId, TraitId},
+    chart::{Chart, ConcreteFnId, DefId, DefTraitKind, FnId, GenericsId, OpaqueTypeId},
     checkpoint::Checkpoint,
     core::Core,
     diag::{Diag, ErrorGuaranteed},
     resolutions::{FnRel, FnRelId, Fragment, FragmentId, Rels, Resolutions},
-    signatures::{ConstSig, FnSig, Signatures, TraitSig},
+    signatures::{FnSig, Signatures},
     tir::{
       ClosureId, Local, TargetId, Tir, TirClosure, TirExpr, TirExprKind, TirImpl, TirLocal, TirPat,
       TirPatKind,
     },
-    types::{ImplType, Type, TypeCtx, TypeKind, Types},
+    types::{ImplType, Type, TypeKind, Types},
   },
 };
 
@@ -259,7 +259,7 @@ impl<'core, 'a> Resolver<'core, 'a> {
     expected_sig: FnSig,
     found_sig: FnSig,
   ) {
-    let fake_receiver = types.new(TypeKind::Param(usize::MAX, Some(name))); // for nicer printing
+    let fake_receiver = types.new(TypeKind::Param(usize::MAX, name)); // for nicer printing
     let expected_ty = ImplType::Fn(fake_receiver, expected_sig.params, expected_sig.ret_ty);
     let found_ty = ImplType::Fn(fake_receiver, found_sig.params, found_sig.ret_ty);
     if types.unify_impl_type(&expected_ty, &found_ty).is_failure() {
@@ -269,22 +269,6 @@ impl<'core, 'a> Resolver<'core, 'a> {
         found: types.show_impl_type(chart, &found_ty),
       });
     }
-  }
-
-  fn resolve_trait_sig(&mut self, trait_id: TraitId) {
-    let trait_def = &self.chart.traits[trait_id];
-    self.initialize(trait_def.def, trait_def.generics);
-    let sig = TraitSig {
-      consts: IdxVec::from_iter(trait_def.consts.values().map(|trait_const| {
-        let ty = self.resolve_ty(&trait_const.ty, false);
-        TypeCtx { types: take(&mut self.types), inner: ConstSig { ty } }
-      })),
-      fns: IdxVec::from_iter(trait_def.fns.values().map(|trait_fn| {
-        let (params, ret_ty) = self._resolve_fn_sig(&trait_fn.params, &trait_fn.ret_ty);
-        TypeCtx { types: take(&mut self.types), inner: FnSig { params, ret_ty } }
-      })),
-    };
-    self.sigs.traits.push_to(trait_id, sig);
   }
 
   pub(crate) fn resolve_trait(&mut self, trait_: &Trait<'core>) -> ImplType {

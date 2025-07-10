@@ -66,7 +66,7 @@ impl<'core, 'a> Finder<'core, 'a> {
     for candidate in self.find_method_candidates(types, receiver, name) {
       let mut types = types.clone();
       let generics = self.chart.fn_generics(candidate);
-      let type_params = types.new_vars(self.span, self.sigs.type_params[generics].count);
+      let type_params = types.new_vars(self.span, self.sigs.type_params[generics].params.len());
       let candidate_receiver =
         types.import_with(self.sigs.fn_sig(candidate), Some(&type_params), |t, sig| {
           sig.params.first().map(|&ty| t.transfer(&ty))
@@ -250,7 +250,7 @@ impl<'core, 'a> Finder<'core, 'a> {
     for candidate in self.find_impl_candidates(types, query) {
       let mut types = types.clone();
       let generics = self.chart.impls[candidate].generics;
-      let type_params = (0..self.sigs.type_params[generics].count)
+      let type_params = (0..self.sigs.type_params[generics].params.len())
         .map(|_| types.new_var(self.span))
         .collect::<Vec<_>>();
       let ty = types.import(&self.sigs.impls[candidate], Some(&type_params)).ty;
@@ -406,7 +406,7 @@ impl<'core, 'a> Finder<'core, 'a> {
         Some((Inverted(false), TypeKind::Fn(fn_id))) => {
           let mut types = types.clone();
           let generics = self.chart.fn_generics(*fn_id);
-          let type_params = types.new_vars(self.span, self.sigs.type_params[generics].count);
+          let type_params = types.new_vars(self.span, self.sigs.type_params[generics].params.len());
           let sig = types.import(self.sigs.fn_sig(*fn_id), Some(&type_params));
           if types
             .unify_types(&sig.params, params, Inverted(false))

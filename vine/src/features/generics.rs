@@ -183,15 +183,15 @@ impl<'core> Resolver<'core, '_> {
     let generics_def = &self.chart.generics[generics_id];
     let mut type_params =
       generics_def.parent.map(|id| self.sigs.type_params[id].clone()).unwrap_or_default();
-    let base_index = type_params.count;
+    let base_index = type_params.params.len();
     for param in &generics_def.type_params {
       if let Some(&index) = type_params.lookup.get(&param.name) {
         if index < base_index {
           continue;
         }
       }
-      let index = type_params.count;
-      type_params.count += 1;
+      let index = type_params.params.len();
+      type_params.params.push(param.name);
       if type_params.lookup.insert(param.name, index).is_some() {
         self.core.report(Diag::DuplicateTypeParam { span: param.span });
       }
@@ -208,8 +208,11 @@ impl<'core> Resolver<'core, '_> {
 
     if let Some(trait_id) = generics_def.trait_ {
       let parent = generics_def.parent.unwrap();
-      let type_params = (0..self.sigs.type_params[parent].count)
-        .map(|index| self.types.new(TypeKind::Param(index, None)))
+      let type_params = self.sigs.type_params[parent]
+        .params
+        .iter()
+        .enumerate()
+        .map(|(index, &name)| self.types.new(TypeKind::Param(index, name)))
         .collect();
       impl_params.types.inner.push(ImplType::Trait(trait_id, type_params));
     }
@@ -217,7 +220,7 @@ impl<'core> Resolver<'core, '_> {
     for param in &generics_def.type_params {
       let index = self.sigs.type_params[generics_id].lookup[&param.name];
       let span = param.span;
-      let ty = self.types.new(TypeKind::Param(index, Some(param.name)));
+      let ty = self.types.new(TypeKind::Param(index, param.name));
       if param.flex.fork() {
         impl_params.types.inner.push(if let Some(fork) = self.chart.builtins.fork {
           ImplType::Trait(fork, vec![ty])
@@ -284,7 +287,7 @@ impl<'core> Resolver<'core, '_> {
         });
       }
     };
-    let type_param_count = self.sigs.type_params[generics_id].count;
+    let type_param_count = self.sigs.type_params[generics_id].params.len();
     let impl_param_count =
       // Things with no inference cannot have implementation parameters; skip
       // checking the signature as this may not have been resolved yet.

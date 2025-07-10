@@ -137,13 +137,13 @@ impl<'core, 'a> Specializer<'core, 'a> {
         Ok((self.specialize(fragment_id, impls), self._closure_stage(fragment_id, None)))
       }
       FnId::Abstract(_, fn_id) => {
-        assert_eq!(impls.len(), 1);
-        let impl_ = impls.pop().unwrap();
+        let impl_ = impls.remove(0);
         match impl_ {
-          ImplTree::Def(impl_id, impls) => {
+          ImplTree::Def(impl_id, mut inner_impls) => {
             let fn_id = self.resolutions.impls[impl_id].as_ref()?.fns[fn_id]?;
             let fragment_id = self.resolutions.fns[fn_id];
-            Ok((self.specialize(fragment_id, impls), self._closure_stage(fragment_id, None)))
+            inner_impls.append(&mut impls);
+            Ok((self.specialize(fragment_id, inner_impls), self._closure_stage(fragment_id, None)))
           }
           ImplTree::ForkClosure(fragment_id, impls, closure_id) => {
             match self._closure_interface(fragment_id, Some(closure_id)) {

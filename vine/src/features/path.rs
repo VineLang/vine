@@ -285,7 +285,7 @@ impl<'core> Resolver<'core, '_> {
   pub(crate) fn resolve_ty_path(&mut self, path: &Path<'core>, inference: bool) -> Type {
     if let Some(ident) = path.as_ident() {
       if let Some(&index) = self.sigs.type_params[self.cur_generics].lookup.get(&ident) {
-        return self.types.new(TypeKind::Param(index, Some(ident)));
+        return self.types.new(TypeKind::Param(index, ident));
       }
     }
     let resolved = self.resolve_path(self.cur_def, path, "type", |d| d.type_kind);

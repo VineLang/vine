@@ -43,7 +43,7 @@ pub enum TypeAliasState<'core> {
 
 #[derive(Debug, Clone, Default)]
 pub struct TypeParams<'core> {
-  pub count: usize,
+  pub params: Vec<Ident<'core>>,
   pub lookup: HashMap<Ident<'core>, usize>,
 }
 

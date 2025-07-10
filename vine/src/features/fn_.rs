@@ -282,7 +282,7 @@ impl<'core> Resolver<'core, '_> {
   ) -> Result<TirExpr, Diag<'core>> {
     if let Some(args) = args {
       let generics_id = self.chart.fn_generics(fn_id);
-      let type_params_len = self.sigs.type_params[generics_id].count;
+      let type_params_len = self.sigs.type_params[generics_id].params.len();
       let type_params = self.types.new_vars(path.span, type_params_len);
       let sig = self.types.import(self.sigs.fn_sig(fn_id), Some(&type_params));
       if sig.params.len() != args.len() {

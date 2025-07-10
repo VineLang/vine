@@ -158,10 +158,10 @@ diags! {
     ["trait items cannot have visibility"]
   ImplItemVis
     ["impl items cannot have visibility"]
-  TraitItemGen
-    ["trait items cannot have generics"]
-  ImplItemGen
-    ["impl items cannot have generics"]
+  TraitItemInheritGen
+    ["trait items always inherit generics"]
+  ImplItemInheritGen
+    ["impl items always inherit generics"]
   ImplItemMethod
     ["impl fns cannot be marked as methods; this is done at the trait level"]
   ImplementedTraitItem
@@ -240,6 +240,12 @@ diags! {
     ["missing else block"]
   MissingTerminalArm
     ["missing terminal arm in `when`"]
+  ExpectedImplItemTypeParams { expected: usize, found: usize }
+    ["expected impl item to have {expected} type parameters; found {found}"]
+  ExpectedImplItemImplParams { expected: usize, found: usize }
+    ["expected impl item to have {expected} impl parameters; found {found}"]
+  ExpectedImplItemImplParam { expected: String, found: String }
+    ["expected impl parameter of trait `{expected}`; found `{found}`"]
 }
 
 fn plural<'a>(n: usize, plural: &'a str, singular: &'a str) -> &'a str {
