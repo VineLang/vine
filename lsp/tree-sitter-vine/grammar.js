@@ -245,7 +245,7 @@ module.exports = grammar({
             "=",
             $._impl,
             optional(";"),
-          )
+          ),
         ),
       )),
 
