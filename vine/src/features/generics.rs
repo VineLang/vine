@@ -53,42 +53,36 @@ impl<'core> VineParser<'core, '_> {
 
   fn parse_generics<T, I>(
     &mut self,
-    mut parse_t: impl FnMut(&mut Self) -> Result<T, Diag<'core>>,
-    mut parse_i: impl FnMut(&mut Self) -> Result<I, Diag<'core>>,
+    parse_t: impl FnMut(&mut Self) -> Result<T, Diag<'core>>,
+    parse_i: impl FnMut(&mut Self) -> Result<I, Diag<'core>>,
   ) -> Result<Generics<T, I>, Diag<'core>> {
     let span = self.start_span();
     let mut types = Vec::new();
     let mut impls = Vec::new();
     if self.eat(Token::OpenBracket)? {
-      loop {
-        if self.eat(Token::Semi)? || self.check(Token::CloseBracket) {
-          break;
-        }
-        types.push(parse_t(self)?);
-        if self.eat(Token::Comma)? {
-          continue;
-        }
-        if self.eat(Token::Semi)? {
-          break;
-        }
-        if !self.check(Token::CloseBracket) {
-          self.unexpected()?;
-        }
-      }
-      loop {
-        if self.eat(Token::CloseBracket)? {
-          break;
-        }
-        impls.push(parse_i(self)?);
-        if self.eat(Token::Comma)? {
-          continue;
-        }
-        self.expect(Token::CloseBracket)?;
-        break;
-      }
+      self.parse_generics_section(&mut types, parse_t)?;
+      self.parse_generics_section(&mut impls, parse_i)?;
+      self.expect(Token::CloseBracket)?;
     }
     let span = self.end_span(span);
     Ok(Generics { span, types, impls })
+  }
+
+  fn parse_generics_section<T>(
+    &mut self,
+    section: &mut Vec<T>,
+    mut parse_t: impl FnMut(&mut Self) -> Result<T, Diag<'core>>,
+  ) -> Result<(), Diag<'core>> {
+    while !self.check(Token::Semi) && !self.check(Token::CloseBracket) {
+      section.push(parse_t(self)?);
+      if !self.eat(Token::Comma)? {
+        break;
+      }
+    }
+    if !self.check(Token::CloseBracket) {
+      self.expect(Token::Semi)?;
+    }
+    Ok(())
   }
 }
 
@@ -118,32 +112,39 @@ impl<'core: 'src, 'src> Formatter<'src> {
     fmt_t: impl Fn(&T) -> Doc<'src>,
     fmt_i: impl Fn(&I) -> Doc<'src>,
   ) -> Doc<'src> {
-    if generics.impls.is_empty() && generics.types.is_empty() {
+    let include_types = !generics.types.is_empty() || !generics.impls.is_empty();
+    let include_impls = !generics.impls.is_empty();
+    let sections = [
+      include_types.then(|| self.fmt_generics_section(&generics.types, fmt_t)),
+      include_impls.then(|| self.fmt_generics_section(&generics.impls, fmt_i)),
+    ];
+    if sections.iter().all(|x| x.is_none()) {
       Doc::EMPTY
     } else {
-      let trailing = || Doc::if_multi(",");
-      let sep = || Doc::concat([Doc(","), Doc::soft_line(" ")]);
       Doc::concat([
         Doc("["),
-        if generics.types.is_empty() {
-          Doc::EMPTY
-        } else {
-          Doc::group([Doc::interleave(generics.types.iter().map(fmt_t), sep()), trailing()])
-        },
-        if generics.impls.is_empty() {
-          Doc::EMPTY
-        } else {
-          Doc::concat([
-            Doc(";"),
-            Doc::group([
-              Doc::if_single(" "),
-              Doc::interleave(generics.impls.iter().map(fmt_i), sep()),
-              trailing(),
-            ]),
-          ])
-        },
+        Doc::group([
+          Doc::interleave(
+            sections.into_iter().flatten(),
+            Doc::concat([Doc(";"), Doc::soft_line(" ")]),
+          ),
+          Doc::if_multi(";"),
+        ]),
         Doc("]"),
       ])
+    }
+  }
+
+  fn fmt_generics_section<T>(&self, section: &[T], fmt_t: impl Fn(&T) -> Doc<'src>) -> Doc<'src> {
+    if section.is_empty() {
+      Doc::EMPTY
+    } else if let [element] = section {
+      fmt_t(element)
+    } else {
+      Doc::bare_group([Doc::interleave(
+        section.iter().map(fmt_t),
+        Doc::concat([Doc(","), Doc::soft_line(" ")]),
+      )])
     }
   }
 }

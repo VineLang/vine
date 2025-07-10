@@ -1,7 +1,7 @@
 use crate::{
   components::resolver::Resolver,
   structures::{
-    ast::{Expr, GenericArgs, Generics, Ident, Impl, Span, Ty},
+    ast::{Expr, GenericArgs, Ident, Span},
     chart::FnId,
     diag::{Diag, ErrorGuaranteed},
     resolutions::FnRel,
@@ -16,7 +16,7 @@ impl<'core: 'src, 'src> Formatter<'src> {
     &self,
     receiver: &Expr<'core>,
     name: &Ident<'core>,
-    generics: &Generics<Ty<'core>, Impl<'core>>,
+    generics: &GenericArgs<'core>,
     args: &Vec<Expr<'core>>,
   ) -> Doc<'src> {
     Doc::concat([
