@@ -14,19 +14,8 @@ pub mod I32 {
   pub const maximum: I32 = +0x7fffffff;
   pub const minimum: I32 = -0x7fffffff;
 
-  #[duplicate]
-  pub impl fork: Fork[I32] {
-    fn fork(&self: &I32) -> I32 {
-      unsafe::duplicate(&self)
-    }
-  }
-
-  #[erase]
-  pub impl drop: Drop[I32] {
-    fn drop(self: I32) {
-      unsafe::erase(self)
-    }
-  }
+  pub impl fork: Fork[I32] = unsafe::duplicate;
+  pub impl drop: Drop[I32] = unsafe::erase;
 
   pub impl add: Add[I32, I32, I32] {
     fn add(a: I32, b: I32) -> I32 {
@@ -114,17 +103,8 @@ pub mod I32 {
     }
   }
 
-  pub impl from_n32: Cast[N32, I32] {
-    fn cast(a: N32) -> I32 {
-      inline_ivy! (a <- a) -> I32 { a }
-    }
-  }
-
-  pub impl to_n32: Cast[I32, N32] {
-    fn cast(a: I32) -> N32 {
-      inline_ivy! (a <- a) -> N32 { a }
-    }
-  }
+  pub impl from_n32: Cast[N32, I32] = unsafe::transmute;
+  pub impl to_n32: Cast[I32, N32] = unsafe::transmute;
 
   pub impl to_string: Cast[I32, String] {
     fn cast(n: I32) -> String {
