@@ -5,8 +5,8 @@ use crate::{
   structures::{
     ast::{BinaryOp, ComparisonOp},
     chart::{
-      DefId, DefImplKind, DefTraitKind, DefTypeKind, DefValueKind, EnumId, FnId, ImplId,
-      OpaqueTypeId, StructId, TraitId, WithVis,
+      DefId, DefImplKind, DefTraitKind, DefTypeKind, DefValueKind, DirectImplId, EnumId, FnId,
+      ImplId, OpaqueTypeId, StructId, TraitId, WithVis,
     },
     diag::Diag,
   },
@@ -120,12 +120,12 @@ pub struct Builtins {
   pub cast: Option<FnId>,
   pub binary_ops: IntMap<BinaryOp, Option<FnId>>,
   pub comparison_ops: IntMap<ComparisonOp, Option<FnId>>,
-  pub bool_not: Option<ImplId>,
+  pub bool_not: Option<DirectImplId>,
 
   pub fork: Option<TraitId>,
   pub drop: Option<TraitId>,
-  pub duplicate: Option<ImplId>,
-  pub erase: Option<ImplId>,
+  pub duplicate: Option<DirectImplId>,
+  pub erase: Option<DirectImplId>,
 
   pub range: Option<StructId>,
   pub bound_exclusive: Option<StructId>,
@@ -171,8 +171,8 @@ impl<'core> Charter<'core, '_> {
       Some(WithVis { kind: DefTraitKind::Trait(id), .. }) => Some(id),
       _ => None,
     };
-    let impl_id = match def.impl_kind {
-      Some(WithVis { kind: DefImplKind::Impl(id), .. }) => Some(id),
+    let direct_impl_id = match def.impl_kind {
+      Some(WithVis { kind: DefImplKind::Impl(ImplId::Direct(id)), .. }) => Some(id),
       _ => None,
     };
 
@@ -194,9 +194,9 @@ impl<'core> Charter<'core, '_> {
       Builtin::Cast => set(&mut builtins.cast, fn_id),
       Builtin::Fork => set(&mut builtins.fork, trait_id),
       Builtin::Drop => set(&mut builtins.drop, trait_id),
-      Builtin::Duplicate => set(&mut builtins.duplicate, impl_id),
-      Builtin::Erase => set(&mut builtins.erase, impl_id),
-      Builtin::BoolNot => set(&mut builtins.bool_not, impl_id),
+      Builtin::Duplicate => set(&mut builtins.duplicate, direct_impl_id),
+      Builtin::Erase => set(&mut builtins.erase, direct_impl_id),
+      Builtin::BoolNot => set(&mut builtins.bool_not, direct_impl_id),
       Builtin::BinaryOp(op) => set(builtins.binary_ops.entry(op).or_default(), fn_id),
       Builtin::ComparisonOp(op) => set(builtins.comparison_ops.entry(op).or_default(), fn_id),
       Builtin::Range => set(&mut builtins.range, struct_id),
