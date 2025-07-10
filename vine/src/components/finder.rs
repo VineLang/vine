@@ -249,11 +249,11 @@ impl<'core, 'a> Finder<'core, 'a> {
 
     for candidate in self.find_impl_candidates(types, query) {
       let mut types = types.clone();
-      let generics = self.chart.impls[candidate].generics;
+      let generics = self.chart.impl_generics(candidate);
       let type_params = (0..self.sigs.type_params[generics].params.len())
         .map(|_| types.new_var(self.span))
         .collect::<Vec<_>>();
-      let ty = types.import(&self.sigs.impls[candidate], Some(&type_params)).ty;
+      let ty = types.import(self.sigs.impl_sig(candidate), Some(&type_params)).ty;
       if types.unify_impl_type(&ty, query).is_success() {
         for result in self.find_impl_params(types, generics, type_params)? {
           found.push(TypeCtx { types: result.types, inner: TirImpl::Def(candidate, result.inner) });
@@ -307,8 +307,8 @@ impl<'core, 'a> Finder<'core, 'a> {
       modules: HashSet::default(),
       consider_candidate: |self_: &Self, def: &Def| {
         if let Some(WithVis { vis, kind: DefImplKind::Impl(impl_id) }) = def.impl_kind {
-          if self_.chart.visible(vis, self_.source) && !self_.chart.impls[impl_id].manual {
-            let impl_sig = &self_.sigs.impls[impl_id];
+          if self_.chart.visible(vis, self_.source) && !self_.chart.impl_is_manual(impl_id) {
+            let impl_sig = self_.sigs.impl_sig(impl_id);
             if impl_sig.inner.ty.approx_eq(query) {
               candidates.insert(impl_id);
             }
@@ -376,7 +376,7 @@ impl<'core, 'a> Finder<'core, 'a> {
 
       if let Some(WithVis { kind: DefImplKind::Impl(impl_id), vis }) = def.impl_kind {
         if self.chart.visible(vis, self.source) {
-          let impl_sig = &self.sigs.impls[impl_id];
+          let impl_sig = &self.sigs.impl_sig(impl_id);
           if let ImplType::Trait(trait_id, _) = impl_sig.inner.ty {
             let trait_def = &self.chart.traits[trait_id];
             self.find_candidates_within(trait_def.def, search);
@@ -435,7 +435,10 @@ impl<'core, 'a> Finder<'core, 'a> {
           match types.kind(type_params[0]) {
             Some((Inverted(false), TypeKind::Fn(_))) => {
               if let Some(dup) = self.chart.builtins.duplicate {
-                found.push(TypeCtx { types: types.clone(), inner: TirImpl::Def(dup, vec![]) });
+                found.push(TypeCtx {
+                  types: types.clone(),
+                  inner: TirImpl::Def(ImplId::Direct(dup), vec![]),
+                });
               }
             }
             Some((Inverted(false), TypeKind::Closure(id, flex, ..))) if flex.fork() => {
@@ -448,7 +451,10 @@ impl<'core, 'a> Finder<'core, 'a> {
           match types.kind(type_params[0]) {
             Some((Inverted(false), TypeKind::Fn(_))) => {
               if let Some(erase) = self.chart.builtins.erase {
-                found.push(TypeCtx { types: types.clone(), inner: TirImpl::Def(erase, vec![]) });
+                found.push(TypeCtx {
+                  types: types.clone(),
+                  inner: TirImpl::Def(ImplId::Direct(erase), vec![]),
+                });
               }
             }
             Some((Inverted(false), TypeKind::Closure(id, flex, ..))) if flex.drop() => {

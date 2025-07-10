@@ -5,8 +5,8 @@ use vine_util::idx::IdxVec;
 use crate::structures::{
   ast::Ident,
   chart::{
-    ConcreteConstId, ConcreteFnId, ConstId, DefId, EnumId, FnId, GenericsId, ImplId, ImportId,
-    StructId, TraitConstId, TraitFnId, TraitId, TypeAliasId, VariantId,
+    ConcreteConstId, ConcreteFnId, ConstId, DefId, DirectImplId, EnumId, FnId, GenericsId, ImplId,
+    ImportId, IndirectImplId, StructId, TraitConstId, TraitFnId, TraitId, TypeAliasId, VariantId,
   },
   diag::ErrorGuaranteed,
   types::{ImplType, TransferTypes, Type, TypeCtx, TypeTransfer},
@@ -22,7 +22,8 @@ pub struct Signatures<'core> {
   pub type_aliases: IdxVec<TypeAliasId, TypeAliasState<'core>>,
   pub structs: IdxVec<StructId, TypeCtx<'core, StructSig>>,
   pub enums: IdxVec<EnumId, TypeCtx<'core, EnumSig>>,
-  pub impls: IdxVec<ImplId, TypeCtx<'core, ImplSig>>,
+  pub direct_impls: IdxVec<DirectImplId, TypeCtx<'core, ImplSig>>,
+  pub indirect_impls: IdxVec<IndirectImplId, TypeCtx<'core, ImplSig>>,
   pub traits: IdxVec<TraitId, TraitSig<'core>>,
 }
 
@@ -102,6 +103,13 @@ impl<'core> Signatures<'core> {
     match fn_id {
       FnId::Concrete(fn_id) => &self.concrete_fns[fn_id],
       FnId::Abstract(trait_id, fn_id) => &self.traits[trait_id].fns[fn_id],
+    }
+  }
+
+  pub fn impl_sig(&self, impl_id: ImplId) -> &TypeCtx<'core, ImplSig> {
+    match impl_id {
+      ImplId::Direct(impl_id) => &self.direct_impls[impl_id],
+      ImplId::Indirect(impl_id) => &self.indirect_impls[impl_id],
     }
   }
 }

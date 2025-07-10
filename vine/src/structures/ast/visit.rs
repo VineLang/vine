@@ -309,9 +309,10 @@ pub trait VisitMut<'core, 'a> {
       ItemKind::Trait(t) => {
         self.visit(&mut t.items);
       }
-      ItemKind::Impl(t) => {
-        self.visit(&mut t.items);
-      }
+      ItemKind::Impl(t) => match &mut t.kind {
+        super::ImplItemKind::Direct(items) => self.visit(items),
+        super::ImplItemKind::Indirect(impl_) => self.visit(impl_),
+      },
       ItemKind::Use(..) | ItemKind::Taken => {}
     }
   }

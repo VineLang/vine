@@ -2,18 +2,19 @@ use vine_util::{idx::IdxVec, new_idx};
 
 use crate::structures::{
   chart::{
-    Chart, ConcreteConstId, ConcreteFnId, ConstId, DefId, FnId, GenericsId, ImplId, TraitConstId,
-    TraitFnId,
+    Chart, ConcreteConstId, ConcreteFnId, ConstId, DefId, DirectImplId, FnId, GenericsId,
+    IndirectImplId, TraitConstId, TraitFnId,
   },
   diag::ErrorGuaranteed,
   tir::{Tir, TirImpl},
 };
 
 #[derive(Debug, Default)]
-pub struct Resolutions {
+pub struct Resolutions<'core> {
   pub consts: IdxVec<ConcreteConstId, FragmentId>,
   pub fns: IdxVec<ConcreteFnId, FragmentId>,
-  pub impls: IdxVec<ImplId, Result<ResolvedImpl, ErrorGuaranteed>>,
+  pub indirect_impls: IdxVec<IndirectImplId, TirImpl<'core>>,
+  pub direct_impls: IdxVec<DirectImplId, Result<ResolvedImpl, ErrorGuaranteed>>,
   pub main: Option<FragmentId>,
 }
 

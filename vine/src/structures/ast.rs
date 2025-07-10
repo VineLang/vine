@@ -105,7 +105,13 @@ pub struct ImplItem<'core> {
   pub name: Ident<'core>,
   pub generics: GenericParams<'core>,
   pub trait_: Trait<'core>,
-  pub items: Vec<Item<'core>>,
+  pub kind: ImplItemKind<'core>,
+}
+
+#[derive(Debug, Clone)]
+pub enum ImplItemKind<'core> {
+  Direct(Vec<Item<'core>>),
+  Indirect(Impl<'core>),
 }
 
 #[derive(Debug, Clone)]

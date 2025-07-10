@@ -2,7 +2,7 @@ use crate::{
   components::{distiller::Distiller, matcher::Row, resolver::Resolver},
   structures::{
     ast::{Expr, ExprKind, LogicalOp, Pat, Span},
-    chart::FnId,
+    chart::{FnId, ImplId},
     diag::Diag,
     resolutions::FnRel,
     tir::{TirExpr, TirExprKind, TirImpl},
@@ -54,7 +54,7 @@ impl<'core> Resolver<'core, '_> {
     let rel = self.builtin_fn(span, self.chart.builtins.not, "not", [inner.ty, return_ty])?;
     if let FnRel::Item(FnId::Abstract(..), impls) = &self.rels.fns[rel] {
       if let [TirImpl::Def(id, _)] = **impls {
-        if self.chart.builtins.bool_not == Some(id) {
+        if self.chart.builtins.bool_not.map(ImplId::Direct) == Some(id) {
           return Ok(TirExpr::new(span, return_ty, TirExprKind::Not(inner)));
         }
       }

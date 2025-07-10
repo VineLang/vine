@@ -7,7 +7,7 @@ use crate::{
   components::emitter::Emitter,
   structures::{
     ast::Ident,
-    chart::{Chart, ConstId, FnId, TraitFnId},
+    chart::{Chart, ConstId, FnId, ImplId, TraitFnId},
     checkpoint::Checkpoint,
     core::Core,
     diag::ErrorGuaranteed,
@@ -22,7 +22,7 @@ use crate::{
 pub struct Specializer<'core, 'a> {
   pub core: &'core Core<'core>,
   pub chart: &'a Chart<'core>,
-  pub resolutions: &'a Resolutions,
+  pub resolutions: &'a Resolutions<'core>,
   pub specs: &'a mut Specializations<'core>,
   pub fragments: &'a IdxVec<FragmentId, Fragment<'core>>,
   pub vir: &'a IdxVec<FragmentId, Vir<'core>>,
@@ -84,8 +84,8 @@ impl<'core, 'a> Specializer<'core, 'a> {
           | ImplTree::ForkClosure(..)
           | ImplTree::DropClosure(..)
           | ImplTree::Tuple(..) => unreachable!(),
-          ImplTree::Def(impl_id, impls) => {
-            let const_id = self.resolutions.impls[impl_id].as_ref()?.consts[const_id]?;
+          ImplTree::Direct(impl_id, impls) => {
+            let const_id = self.resolutions.direct_impls[impl_id].as_ref()?.consts[const_id]?;
             Ok(self.specialize(self.resolutions.consts[const_id], impls))
           }
           ImplTree::Object(ident, _) => Ok(self.object_key(ident)),
@@ -109,7 +109,7 @@ impl<'core, 'a> Specializer<'core, 'a> {
         let impl_ = self.instantiate(fragment_id, args, impl_);
         match impl_ {
           ImplTree::Error(err) => Err(err),
-          ImplTree::Def(..)
+          ImplTree::Direct(..)
           | ImplTree::ForkClosure(..)
           | ImplTree::DropClosure(..)
           | ImplTree::Tuple(..)
@@ -139,8 +139,8 @@ impl<'core, 'a> Specializer<'core, 'a> {
       FnId::Abstract(_, fn_id) => {
         let impl_ = impls.remove(0);
         match impl_ {
-          ImplTree::Def(impl_id, mut inner_impls) => {
-            let fn_id = self.resolutions.impls[impl_id].as_ref()?.fns[fn_id]?;
+          ImplTree::Direct(impl_id, mut inner_impls) => {
+            let fn_id = self.resolutions.direct_impls[impl_id].as_ref()?.fns[fn_id]?;
             let fragment_id = self.resolutions.fns[fn_id];
             inner_impls.append(&mut impls);
             Ok((self.specialize(fragment_id, inner_impls), self._closure_stage(fragment_id, None)))
@@ -229,20 +229,27 @@ impl<'core, 'a> Specializer<'core, 'a> {
     match impl_ {
       TirImpl::Error(err) => ImplTree::Error(*err),
       TirImpl::Param(i) => args[*i].clone(),
-      TirImpl::Def(id, impls) => {
+      TirImpl::Def(ImplId::Direct(id), impls) => {
         let impls =
           impls.iter().map(|i| self.instantiate(fragment_id, args, i)).collect::<Vec<_>>();
         if let Some(duplicate) = self.chart.builtins.duplicate {
-          if self.chart.impls[*id].duplicate && impls.iter().all(|i| self.duplicate_compatible(i)) {
-            return ImplTree::Def(duplicate, vec![]);
+          if self.chart.direct_impls[*id].duplicate
+            && impls.iter().all(|i| self.duplicate_compatible(i))
+          {
+            return ImplTree::Direct(duplicate, vec![]);
           }
         }
         if let Some(erase) = self.chart.builtins.erase {
-          if self.chart.impls[*id].erase && impls.iter().all(|i| self.erase_compatible(i)) {
-            return ImplTree::Def(erase, vec![]);
+          if self.chart.direct_impls[*id].erase && impls.iter().all(|i| self.erase_compatible(i)) {
+            return ImplTree::Direct(erase, vec![]);
           }
         }
-        ImplTree::Def(*id, impls)
+        ImplTree::Direct(*id, impls)
+      }
+      TirImpl::Def(ImplId::Indirect(id), impls) => {
+        let impls =
+          impls.iter().map(|i| self.instantiate(fragment_id, args, i)).collect::<Vec<_>>();
+        self.instantiate(fragment_id, &impls, &self.resolutions.indirect_impls[*id])
       }
       TirImpl::Fn(id, impls) => {
         ImplTree::Fn(*id, impls.iter().map(|i| self.instantiate(fragment_id, args, i)).collect())
@@ -257,9 +264,9 @@ impl<'core, 'a> Specializer<'core, 'a> {
 
   fn duplicate_compatible(&self, impl_: &ImplTree) -> bool {
     match impl_ {
-      ImplTree::Def(impl_id, _) => {
+      ImplTree::Direct(impl_id, _) => {
         self.chart.builtins.duplicate == Some(*impl_id)
-          || self.resolutions.impls[*impl_id].as_ref().is_ok_and(|i| !i.is_fork)
+          || self.resolutions.direct_impls[*impl_id].as_ref().is_ok_and(|i| !i.is_fork)
       }
       _ => false,
     }
@@ -267,9 +274,9 @@ impl<'core, 'a> Specializer<'core, 'a> {
 
   fn erase_compatible(&self, impl_: &ImplTree) -> bool {
     match impl_ {
-      ImplTree::Def(impl_id, _) => {
+      ImplTree::Direct(impl_id, _) => {
         self.chart.builtins.erase == Some(*impl_id)
-          || self.resolutions.impls[*impl_id].as_ref().is_ok_and(|i| !i.is_drop)
+          || self.resolutions.direct_impls[*impl_id].as_ref().is_ok_and(|i| !i.is_drop)
       }
       _ => false,
     }
