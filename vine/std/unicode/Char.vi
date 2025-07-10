@@ -6,31 +6,11 @@ use debug::Show;
 pub type Char;
 
 pub mod Char {
-  #[duplicate]
-  pub impl fork: Fork[Char] {
-    fn fork(&self: &Char) -> Char {
-      unsafe::duplicate(&self)
-    }
-  }
+  pub impl fork: Fork[Char] = unsafe::duplicate;
+  pub impl drop: Drop[Char] = unsafe::erase;
 
-  #[erase]
-  pub impl drop: Drop[Char] {
-    fn drop(self: Char) {
-      unsafe::erase(self)
-    }
-  }
-
-  pub impl from_n32: Cast[N32, Char] {
-    fn cast(n: N32) -> Char {
-      inline_ivy! (n <- n) -> Char { n }
-    }
-  }
-
-  pub impl to_n32: Cast[Char, N32] {
-    fn cast(c: Char) -> N32 {
-      inline_ivy! (c <- c) -> N32 { c }
-    }
-  }
+  pub impl from_n32: Cast[N32, Char] = unsafe::transmute;
+  pub impl to_n32: Cast[Char, N32] = unsafe::transmute;
 
   pub impl eq: Eq[Char] {
     fn eq(&a: &Char, &b: &Char) -> Bool {

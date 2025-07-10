@@ -247,17 +247,8 @@ pub mod Array {
 struct Node[T]((Node[T], Node[T]));
 
 mod Node {
-  pub impl leaf_to_node[T]: Cast[T, Node[T]] {
-    fn cast(value: T) -> Node[T] {
-      inline_ivy! (x <- value) -> Node[T] { x }
-    }
-  }
-
-  pub impl node_to_leaf[T]: Cast[Node[T], T] {
-    fn cast(value: Node[T]) -> T {
-      inline_ivy! (x <- value) -> T { x }
-    }
-  }
+  pub impl leaf_to_node[T]: Cast[T, Node[T]] = unsafe::transmute;
+  pub impl node_to_leaf[T]: Cast[Node[T], T] = unsafe::transmute;
 
   pub fn new[T+](len: N32, value: T) -> Node[T] {
     if len == 1 {

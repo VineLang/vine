@@ -6,19 +6,8 @@ use debug::Show;
 pub struct String(pub List[Char]);
 
 pub mod String {
-  #[duplicate]
-  pub impl fork: Fork[String] {
-    fn fork(&self: &String) -> String {
-      unsafe::duplicate(&self)
-    }
-  }
-
-  #[erase]
-  pub impl drop: Drop[String] {
-    fn drop(self: String) {
-      unsafe::erase(self)
-    }
-  }
+  pub impl fork: Fork[String] = unsafe::duplicate;
+  pub impl drop: Drop[String] = unsafe::erase;
 
   pub fn .len(&String(List(len, _, _))) -> N32 {
     len

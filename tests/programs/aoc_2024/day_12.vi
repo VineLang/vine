@@ -96,18 +96,8 @@ mod Region {
     }
   }
 
-  #[duplicate]
-  pub impl fork: Fork[Region] {
-    fn fork(&self: &Region) -> Region {
-      unsafe::duplicate(&self)
-    }
-  }
-
-  pub impl drop: Drop[Region] {
-    fn drop(self: Region) {
-      unsafe::erase(self)
-    }
-  }
+  pub impl fork: Fork[Region] = unsafe::duplicate;
+  pub impl drop: Drop[Region] = unsafe::erase;
 }
 
 mod Regions {
