@@ -72,7 +72,6 @@ impl<'core> Resolver<'core, '_> {
       Some(TypeAliasState::Resolving) => {
         // Cycle detected
         let alias_def = &self.chart.type_aliases[alias_id];
-        self.core.report(Diag::RecursiveTypeAlias { span: alias_def.ty.span });
         let slot = self.sigs.type_aliases.get_or_extend(alias_id);
         let error_type =
           self.types.error(self.core.report(Diag::RecursiveTypeAlias { span: alias_def.ty.span }));
