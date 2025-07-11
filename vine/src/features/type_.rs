@@ -6,7 +6,7 @@ use crate::{
     ast::{Path, Span, TypeItem},
     chart::{DefId, DefTypeKind, OpaqueTypeDef, OpaqueTypeId, TypeAliasDef, TypeAliasId},
     diag::Diag,
-    signatures::TypeAliasSig,
+    signatures::{TypeAliasSig, TypeAliasState},
     types::{Type, TypeKind},
   },
   tools::fmt::{doc::Doc, Formatter},
@@ -67,14 +67,31 @@ impl<'core> Charter<'core, '_> {
 
 impl<'core> Resolver<'core, '_> {
   pub(crate) fn resolve_type_alias(&mut self, alias_id: TypeAliasId) {
-    if let Some(Some(_)) = self.sigs.type_aliases.get(alias_id) {
-      return;
+    match self.sigs.type_aliases.get(alias_id) {
+      Some(TypeAliasState::Resolved(_)) => {}
+      Some(TypeAliasState::Resolving) => {
+        // Cycle detected
+        let alias_def = &self.chart.type_aliases[alias_id];
+        let slot = self.sigs.type_aliases.get_or_extend(alias_id);
+        let error_type =
+          self.types.error(self.core.report(Diag::RecursiveTypeAlias { span: alias_def.ty.span }));
+        *slot = TypeAliasState::Resolved(
+          self.types.export(|t| TypeAliasSig { ty: t.transfer(&error_type) }),
+        );
+      }
+      _ => {
+        let alias_def = &self.chart.type_aliases[alias_id];
+        let slot = self.sigs.type_aliases.get_or_extend(alias_id);
+        *slot = TypeAliasState::Resolving;
+
+        self.initialize(alias_def.def, alias_def.generics);
+        let ty = self.resolve_ty(&alias_def.ty, false);
+
+        let slot = self.sigs.type_aliases.get_or_extend(alias_id);
+        *slot =
+          TypeAliasState::Resolved(self.types.export(|t| TypeAliasSig { ty: t.transfer(&ty) }));
+      }
     }
-    let alias_def = &self.chart.type_aliases[alias_id];
-    self.initialize(alias_def.def, alias_def.generics);
-    let ty = self.resolve_ty(&alias_def.ty, false);
-    let slot = self.sigs.type_aliases.get_or_extend(alias_id);
-    *slot = Some(self.types.export(|t| TypeAliasSig { ty: t.transfer(&ty) }));
   }
 
   pub(crate) fn resolve_ty_path_alias(
@@ -87,10 +104,11 @@ impl<'core> Resolver<'core, '_> {
     let (type_params, _) = self.resolve_generics(path, generics_id, inference);
     Resolver::new(self.core, self.chart, self.sigs, self.resolutions, self.fragments)
       .resolve_type_alias(type_alias_id);
-    self
-      .types
-      .import(self.sigs.type_aliases[type_alias_id].as_ref().unwrap(), Some(&type_params))
-      .ty
+    let resolved_sig = match &self.sigs.type_aliases[type_alias_id] {
+      TypeAliasState::Resolved(sig) => sig,
+      _ => panic!("Type alias should be resolved at this point"),
+    };
+    self.types.import(resolved_sig, Some(&type_params)).ty
   }
 
   pub(crate) fn resolve_ty_path_opaque(

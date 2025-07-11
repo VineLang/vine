@@ -1,0 +1,13 @@
+// Test case for recursive type alias detection
+type A = A;
+
+// Test case for indirect recursion
+type B = C;
+type C = B;
+
+// Test case for self-referential with complex structure  
+type F = List[F];
+
+fn main() {
+    let x: A = 42;
+}
