@@ -11,7 +11,9 @@ use crate::{
     checkpoint::Checkpoint,
     core::Core,
     diag::ErrorGuaranteed,
-    resolutions::{FnRel, Fragment, FragmentId, Resolutions, ResolvedImplKind},
+    resolutions::{
+      Become, FnRel, Fragment, FragmentId, Resolutions, ResolvedImpl, ResolvedImplKind,
+    },
     specializations::{ImplTree, Spec, SpecId, SpecRels, Specializations},
     tir::{ClosureId, TirImpl},
     vir::{InterfaceKind, StageId, Vir},
@@ -254,14 +256,13 @@ impl<'core, 'a> Specializer<'core, 'a> {
       TirImpl::Def(id, impls) => {
         let impls =
           impls.iter().map(|i| self.instantiate(fragment_id, args, i)).collect::<Vec<_>>();
-        if let Some(duplicate) = self.chart.builtins.duplicate {
-          if self.chart.impls[*id].duplicate && impls.iter().all(|i| self.duplicate_compatible(i)) {
-            return ImplTree::Def(duplicate, vec![]);
-          }
-        }
-        if let Some(erase) = self.chart.builtins.erase {
-          if self.chart.impls[*id].erase && impls.iter().all(|i| self.erase_compatible(i)) {
-            return ImplTree::Def(erase, vec![]);
+        if let Ok(ResolvedImpl {
+          become_: Become::Resolved(Some((become_impl, indices))), ..
+        }) = &self.resolutions.impls[*id]
+        {
+          if indices.iter().all(|&i| matches!(impls[i], ImplTree::Def(id, _) if id == *become_impl))
+          {
+            return ImplTree::Def(*become_impl, vec![]);
           }
         }
         ImplTree::Def(*id, impls)
@@ -274,26 +275,6 @@ impl<'core, 'a> Specializer<'core, 'a> {
       TirImpl::DropClosure(id) => ImplTree::DropClosure(fragment_id, args.clone(), *id),
       TirImpl::Tuple(len) => ImplTree::Tuple(*len),
       TirImpl::Object(key, len) => ImplTree::Object(*key, *len),
-    }
-  }
-
-  fn duplicate_compatible(&self, impl_: &ImplTree) -> bool {
-    match impl_ {
-      ImplTree::Def(impl_id, _) => {
-        self.chart.builtins.duplicate == Some(*impl_id)
-          || self.resolutions.impls[*impl_id].as_ref().is_ok_and(|i| !i.is_fork)
-      }
-      _ => false,
-    }
-  }
-
-  fn erase_compatible(&self, impl_: &ImplTree) -> bool {
-    match impl_ {
-      ImplTree::Def(impl_id, _) => {
-        self.chart.builtins.erase == Some(*impl_id)
-          || self.resolutions.impls[*impl_id].as_ref().is_ok_and(|i| !i.is_drop)
-      }
-      _ => false,
     }
   }
 }

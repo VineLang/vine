@@ -3,7 +3,7 @@ use vine_util::{idx::IdxVec, new_idx};
 use crate::structures::{
   chart::{
     Chart, ConcreteConstId, ConcreteFnId, ConstId, DefId, FnId, GenericsId, ImplId, TraitConstId,
-    TraitFnId,
+    TraitFnId, TraitId,
   },
   diag::ErrorGuaranteed,
   tir::{Tir, TirImpl},
@@ -19,9 +19,16 @@ pub struct Resolutions<'core> {
 
 #[derive(Debug)]
 pub struct ResolvedImpl<'core> {
-  pub is_fork: bool,
-  pub is_drop: bool,
   pub kind: ResolvedImplKind<'core>,
+  pub trait_id: TraitId,
+  pub become_: Become,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+pub enum Become {
+  Unresolved,
+  Resolving,
+  Resolved(Option<(ImplId, Vec<usize>)>),
 }
 
 #[derive(Debug)]

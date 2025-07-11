@@ -17,7 +17,7 @@ use crate::{
       TraitConstId, TraitFnId, TraitId,
     },
     diag::{Diag, ErrorGuaranteed},
-    resolutions::{ResolvedImpl, ResolvedImplKind},
+    resolutions::{Become, ResolvedImpl, ResolvedImplKind},
     signatures::ImplSig,
     tir::TirImpl,
     types::{ImplType, Type, TypeCtx, TypeKind},
@@ -111,8 +111,7 @@ impl<'core> Charter<'core, '_> {
       trait_: impl_item.trait_,
       kind,
       manual: false,
-      duplicate: false,
-      erase: false,
+      become_: None,
     });
     self.define_impl(span, def, vis, DefImplKind::Impl(impl_id));
     def
@@ -124,7 +123,7 @@ impl<'core> Charter<'core, '_> {
     parent_def: DefId,
     parent_generics: GenericsId,
     span: Span,
-    attrs: Vec<Attr>,
+    attrs: Vec<Attr<'core>>,
     mut fn_item: FnItem<'core>,
   ) -> ImplSubitem<'core> {
     if fn_item.method {
@@ -157,7 +156,7 @@ impl<'core> Charter<'core, '_> {
     parent_def: DefId,
     parent_generics: GenericsId,
     span: Span,
-    attrs: Vec<Attr>,
+    attrs: Vec<Attr<'core>>,
     mut const_item: ConstItem<'core>,
   ) -> ImplSubitem<'core> {
     if const_item.generics.inherit {
@@ -219,20 +218,89 @@ impl<'core> Resolver<'core, '_> {
             ResolvedImplKind::Indirect(self.resolve_impl_type(impl_, &ty))
           }
         };
-        let is_fork = self.chart.builtins.fork == Some(*trait_id);
-        let is_drop = self.chart.builtins.drop == Some(*trait_id);
-        Ok(ResolvedImpl { kind, is_fork, is_drop })
+        Ok(ResolvedImpl { kind, trait_id: *trait_id, become_: Become::Unresolved })
       }
       ImplType::Fn(..) => Err(self.core.report(Diag::CannotImplFn { span })),
       ImplType::Error(err) => Err(*err),
     };
-    if impl_def.duplicate && resolved.as_ref().is_ok_and(|i| !i.is_fork) {
-      self.core.report(Diag::BadDuplicateAttr { span });
-    }
-    if impl_def.erase && resolved.as_ref().is_ok_and(|i| !i.is_drop) {
-      self.core.report(Diag::BadEraseAttr { span });
-    }
     self.resolutions.impls.push_to(impl_id, resolved);
+  }
+
+  pub(crate) fn resolve_impl_become(&mut self, impl_id: ImplId) -> Become {
+    let impl_def = &self.chart.impls[impl_id];
+    let Ok(resolved) = &mut self.resolutions.impls[impl_id] else { return Become::Resolved(None) };
+    let Become::Unresolved = resolved.become_ else { return resolved.become_.clone() };
+    resolved.become_ = Become::Resolving;
+    let trait_id = resolved.trait_id;
+    let become_ = match self._resolve_impl_become(impl_id, trait_id, impl_def) {
+      Ok(become_) => Become::Resolved(become_),
+      Err(diag) => {
+        self.core.report(diag);
+        Become::Resolved(None)
+      }
+    };
+    let Ok(resolved) = &mut self.resolutions.impls[impl_id] else { return Become::Resolved(None) };
+    resolved.become_ = become_.clone();
+    become_
+  }
+
+  fn _resolve_impl_become(
+    &mut self,
+    impl_id: ImplId,
+    trait_id: TraitId,
+    impl_def: &ImplDef<'core>,
+  ) -> Result<Option<(ImplId, Vec<usize>)>, Diag<'core>> {
+    let necessary_params = self.sigs.impl_params[impl_def.generics]
+      .types
+      .inner
+      .iter()
+      .enumerate()
+      .filter_map(|(i, x)| matches!(x, ImplType::Trait(t, _) if t == &trait_id).then_some(i))
+      .collect();
+    Ok(match &impl_def.become_ {
+      Some(become_path) => {
+        if let Some(args) = &become_path.generics {
+          Err(Diag::GenericBecomeAttr { span: args.span })?
+        }
+        let DefImplKind::Impl(become_id) =
+          self.resolve_path(impl_def.def, become_path, "impl", |d| d.impl_kind)?;
+        if self.resolutions.impls[become_id].as_ref().map_err(|&e| e)?.trait_id != trait_id {
+          Err(Diag::BecomeOtherTrait { span: become_path.span })?
+        }
+        if !self.sigs.impl_params[self.chart.impls[become_id].generics].types.inner.is_empty() {
+          Err(Diag::BecomeGenericImpl { span: become_path.span })?
+        }
+        Some((become_id, necessary_params))
+      }
+      None => match &self.resolutions.impls[impl_id].as_ref().unwrap().kind {
+        ResolvedImplKind::Direct { .. } => self.sigs.impl_params[impl_def.generics]
+          .types
+          .inner
+          .is_empty()
+          .then_some((impl_id, Vec::new())),
+        ResolvedImplKind::Indirect(impl_) => {
+          self.resolve_tir_impl_become(&impl_.clone(), None).map(|id| (id, necessary_params))
+        }
+      },
+    })
+  }
+
+  fn resolve_tir_impl_become(
+    &mut self,
+    impl_: &TirImpl,
+    fallback: Option<ImplId>,
+  ) -> Option<ImplId> {
+    match impl_ {
+      TirImpl::Def(impl_id, args) => match self.resolve_impl_become(*impl_id) {
+        Become::Resolved(Some((impl_id, indices))) => indices
+          .into_iter()
+          .all(|i| self.resolve_tir_impl_become(&args[i], Some(impl_id)) == Some(impl_id))
+          .then_some(impl_id),
+        Become::Resolving => fallback,
+        _ => None,
+      },
+      _ => None,
+    }
   }
 
   fn resolve_impl_subitem_fn(

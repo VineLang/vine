@@ -230,10 +230,16 @@ diags! {
     ["variable of type `{ty}` read whilst uninitialized"]
   BadManualAttr
     ["the `#[manual]` attribute can only be applied to an impl"]
-  BadDuplicateAttr
-    ["the `#[duplicate]` attribute can only be applied to an impl of the `Fork trait"]
-  BadEraseAttr
-    ["the `#[erase]` attribute can only be applied to an impl of the `Drop` trait"]
+  BadBecomeAttr
+    ["the `#[become]` attribute can only be applied to an impl"]
+  DuplicateBecomeAttr
+    ["the `#[become]` attribute can only be applied to an impl once"]
+  GenericBecomeAttr
+    ["generic arguments cannot be supplied here"]
+  BecomeOtherTrait
+    ["can only `#[become]` an impl of the same trait"]
+  BecomeGenericImpl
+    ["can only `#[become]` an impl with no impl parameters"]
   InvalidCommand
     ["invalid command; type `/help` for a list of commands"]
   MissingElse

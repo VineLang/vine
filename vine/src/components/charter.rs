@@ -136,7 +136,7 @@ impl<'core> Charter<'core, '_> {
     self.chart_attrs(def, item.attrs);
   }
 
-  pub(crate) fn chart_attrs(&mut self, def: Option<DefId>, attrs: Vec<Attr>) {
+  pub(crate) fn chart_attrs(&mut self, def: Option<DefId>, attrs: Vec<Attr<'core>>) {
     for attr in attrs {
       let span = attr.span;
       let impl_id = def.and_then(|id| match self.chart.defs[id].impl_kind {
@@ -159,19 +159,17 @@ impl<'core> Charter<'core, '_> {
           };
           self.chart.impls[impl_id].manual = true;
         }
-        AttrKind::Duplicate => {
+        AttrKind::Become(path) => {
           let Some(impl_id) = impl_id else {
-            self.core.report(Diag::BadDuplicateAttr { span });
+            self.core.report(Diag::BadBecomeAttr { span });
             continue;
           };
-          self.chart.impls[impl_id].duplicate = true;
-        }
-        AttrKind::Erase => {
-          let Some(impl_id) = impl_id else {
-            self.core.report(Diag::BadEraseAttr { span });
+          let impl_ = &mut self.chart.impls[impl_id];
+          if impl_.become_.is_some() {
+            self.core.report(Diag::DuplicateBecomeAttr { span });
             continue;
-          };
-          self.chart.impls[impl_id].erase = true;
+          }
+          impl_.become_ = Some(path);
         }
       }
     }

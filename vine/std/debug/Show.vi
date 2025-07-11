@@ -121,7 +121,7 @@ pub mod Show {
     "\n" ++ String(List_::new(indent, ' '))
   }
 
-  #[erase]
+  #[become(unsafe::erase)]
   pub impl drop: Drop[Show] {
     fn drop(self: Show) {
       match self {

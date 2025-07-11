@@ -97,7 +97,7 @@ impl<'core, 'src> VineParser<'core, 'src> {
     })
   }
 
-  fn parse_attr(&mut self) -> Result<Attr, Diag<'core>> {
+  fn parse_attr(&mut self) -> Result<Attr<'core>, Diag<'core>> {
     let span = self.start_span();
     self.expect(Token::Hash)?;
     self.expect(Token::OpenBracket)?;
@@ -110,8 +110,12 @@ impl<'core, 'src> VineParser<'core, 'src> {
         AttrKind::Builtin(self.parse_builtin()?)
       }
       "manual" => AttrKind::Manual,
-      "duplicate" => AttrKind::Duplicate,
-      "erase" => AttrKind::Erase,
+      "become" => {
+        self.expect(Token::OpenParen)?;
+        let path = self.parse_path()?;
+        self.expect(Token::CloseParen)?;
+        AttrKind::Become(path)
+      }
       _ => Err(Diag::UnknownAttribute { span: ident_span })?,
     };
     self.expect(Token::CloseBracket)?;
