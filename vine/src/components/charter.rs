@@ -143,10 +143,6 @@ impl<'core> Charter<'core, '_> {
         Some(WithVis { vis: _, kind: DefImplKind::Impl(id) }) => Some(id),
         _ => None,
       });
-      let direct_impl_id = impl_id.and_then(|id| match id {
-        ImplId::Direct(direct_impl_id) => Some(direct_impl_id),
-        _ => None,
-      });
       match attr.kind {
         AttrKind::Builtin(builtin) => {
           if !self.chart_builtin(def, builtin) {
@@ -161,28 +157,21 @@ impl<'core> Charter<'core, '_> {
             self.core.report(Diag::BadManualAttr { span });
             continue;
           };
-          match impl_id {
-            ImplId::Direct(direct_impl_id) => {
-              self.chart.direct_impls[direct_impl_id].manual = true;
-            }
-            ImplId::Indirect(indirect_impl_id) => {
-              self.chart.indirect_impls[indirect_impl_id].manual = true;
-            }
-          }
+          self.chart.impls[impl_id].manual = true;
         }
         AttrKind::Duplicate => {
-          let Some(direct_impl_id) = direct_impl_id else {
+          let Some(impl_id) = impl_id else {
             self.core.report(Diag::BadDuplicateAttr { span });
             continue;
           };
-          self.chart.direct_impls[direct_impl_id].duplicate = true;
+          self.chart.impls[impl_id].duplicate = true;
         }
         AttrKind::Erase => {
-          let Some(direct_impl_id) = direct_impl_id else {
+          let Some(impl_id) = impl_id else {
             self.core.report(Diag::BadEraseAttr { span });
             continue;
           };
-          self.chart.direct_impls[direct_impl_id].erase = true;
+          self.chart.impls[impl_id].erase = true;
         }
       }
     }

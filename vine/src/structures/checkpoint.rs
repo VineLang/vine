@@ -6,8 +6,8 @@ use crate::{
   structures::{
     chart::{
       Chart, ConcreteConstId, ConcreteFnId, ConstId, Def, DefId, DefImplKind, DefPatternKind,
-      DefTraitKind, DefTypeKind, DefValueKind, DirectImplId, EnumId, FnId, GenericsId, ImplId,
-      ImportId, IndirectImplId, MemberKind, OpaqueTypeId, StructId, TraitId, TypeAliasId,
+      DefTraitKind, DefTypeKind, DefValueKind, EnumId, FnId, GenericsId, ImplId, ImportId,
+      MemberKind, OpaqueTypeId, StructId, TraitId, TypeAliasId,
     },
     resolutions::{FragmentId, Resolutions},
     signatures::Signatures,
@@ -27,8 +27,7 @@ pub struct Checkpoint {
   pub structs: StructId,
   pub enums: EnumId,
   pub traits: TraitId,
-  pub direct_impls: DirectImplId,
-  pub indirect_impls: IndirectImplId,
+  pub impls: ImplId,
   pub fragments: FragmentId,
   pub specs: SpecId,
 }
@@ -46,8 +45,7 @@ impl<'core> Compiler<'core> {
       structs: self.chart.structs.next_index(),
       enums: self.chart.enums.next_index(),
       traits: self.chart.traits.next_index(),
-      direct_impls: self.chart.direct_impls.next_index(),
-      indirect_impls: self.chart.indirect_impls.next_index(),
+      impls: self.chart.impls.next_index(),
       fragments: self.fragments.next_index(),
       specs: self.specs.specs.next_index(),
     }
@@ -79,8 +77,7 @@ impl<'core> Chart<'core> {
       structs,
       enums,
       traits,
-      direct_impls,
-      indirect_impls,
+      impls,
       builtins,
       main_mod,
     } = self;
@@ -95,8 +92,7 @@ impl<'core> Chart<'core> {
     structs.truncate(checkpoint.structs.0);
     enums.truncate(checkpoint.enums.0);
     traits.truncate(checkpoint.traits.0);
-    direct_impls.truncate(checkpoint.direct_impls.0);
-    indirect_impls.truncate(checkpoint.indirect_impls.0);
+    impls.truncate(checkpoint.impls.0);
 
     for def in defs.values_mut() {
       def.revert(checkpoint);
@@ -180,8 +176,7 @@ impl DefTraitKind {
 impl DefImplKind {
   fn after(&self, checkpoint: &Checkpoint) -> bool {
     match *self {
-      DefImplKind::Impl(ImplId::Direct(impl_id)) => impl_id >= checkpoint.direct_impls,
-      DefImplKind::Impl(ImplId::Indirect(impl_id)) => impl_id >= checkpoint.indirect_impls,
+      DefImplKind::Impl(impl_id) => impl_id >= checkpoint.impls,
     }
   }
 }
@@ -231,14 +226,14 @@ impl Builtins {
     revert_idx(result, checkpoint.enums);
     revert_fn(neg, checkpoint);
     revert_fn(not, checkpoint);
-    revert_idx(bool_not, checkpoint.direct_impls);
+    revert_idx(bool_not, checkpoint.impls);
     revert_fn(cast, checkpoint);
     binary_ops.values_mut().for_each(|op| revert_fn(op, checkpoint));
     comparison_ops.values_mut().for_each(|op| revert_fn(op, checkpoint));
     revert_idx(fork, checkpoint.traits);
     revert_idx(drop, checkpoint.traits);
-    revert_idx(duplicate, checkpoint.direct_impls);
-    revert_idx(erase, checkpoint.direct_impls);
+    revert_idx(duplicate, checkpoint.impls);
+    revert_idx(erase, checkpoint.impls);
     revert_idx(range, checkpoint.structs);
     revert_idx(bound_exclusive, checkpoint.structs);
     revert_idx(bound_inclusive, checkpoint.structs);
@@ -261,8 +256,7 @@ impl<'core> Signatures<'core> {
       structs,
       enums,
       traits,
-      direct_impls,
-      indirect_impls,
+      impls,
     } = self;
     imports.truncate(checkpoint.imports.0);
     type_params.truncate(checkpoint.generics.0);
@@ -273,18 +267,17 @@ impl<'core> Signatures<'core> {
     structs.truncate(checkpoint.structs.0);
     enums.truncate(checkpoint.enums.0);
     traits.truncate(checkpoint.traits.0);
-    direct_impls.truncate(checkpoint.direct_impls.0);
-    indirect_impls.truncate(checkpoint.indirect_impls.0);
+    impls.truncate(checkpoint.impls.0);
   }
 }
 
 impl<'core> Resolutions<'core> {
   fn revert(&mut self, checkpoint: &Checkpoint) {
-    let Resolutions { consts, fns, direct_impls, indirect_impls, main } = self;
+    let Resolutions { consts, fns, impls, main } = self;
     consts.truncate(checkpoint.concrete_consts.0);
     fns.truncate(checkpoint.concrete_fns.0);
-    direct_impls.truncate(checkpoint.direct_impls.0);
-    indirect_impls.truncate(checkpoint.indirect_impls.0);
+    impls.truncate(checkpoint.impls.0);
+    impls.truncate(checkpoint.impls.0);
     revert_idx(main, checkpoint.fragments);
   }
 }

@@ -7,7 +7,7 @@ use vine_util::{
 
 use crate::structures::{
   ast::Ident,
-  chart::{DirectImplId, FnId},
+  chart::{FnId, ImplId},
   diag::ErrorGuaranteed,
   resolutions::{ConstRelId, FnRelId, FragmentId},
   tir::ClosureId,
@@ -49,7 +49,7 @@ pub struct SpecRels {
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum ImplTree<'core> {
   Error(ErrorGuaranteed),
-  Direct(DirectImplId, Vec<ImplTree<'core>>),
+  Def(ImplId, Vec<ImplTree<'core>>),
   Fn(FnId, Vec<ImplTree<'core>>),
   Closure(FragmentId, Vec<ImplTree<'core>>, ClosureId),
   ForkClosure(FragmentId, Vec<ImplTree<'core>>, ClosureId),

@@ -19,8 +19,7 @@ pub struct Chart<'core> {
   pub structs: IdxVec<StructId, StructDef<'core>>,
   pub enums: IdxVec<EnumId, EnumDef<'core>>,
   pub traits: IdxVec<TraitId, TraitDef<'core>>,
-  pub direct_impls: IdxVec<DirectImplId, DirectImplDef<'core>>,
-  pub indirect_impls: IdxVec<IndirectImplId, IndirectImplDef<'core>>,
+  pub impls: IdxVec<ImplId, ImplDef<'core>>,
   pub builtins: Builtins,
   pub main_mod: Option<DefId>,
 }
@@ -98,12 +97,6 @@ pub enum DefTraitKind {
 #[derive(Debug, Clone, Copy)]
 pub enum DefImplKind {
   Impl(ImplId),
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub enum ImplId {
-  Direct(DirectImplId),
-  Indirect(IndirectImplId),
 }
 
 new_idx!(pub ImportId);
@@ -233,28 +226,23 @@ pub struct TraitFn<'core> {
   pub ret_ty: Option<Ty<'core>>,
 }
 
-new_idx!(pub DirectImplId);
+new_idx!(pub ImplId);
 #[derive(Debug, Clone)]
-pub struct DirectImplDef<'core> {
+pub struct ImplDef<'core> {
   pub span: Span,
   pub def: DefId,
   pub generics: GenericsId,
   pub trait_: Trait<'core>,
-  pub subitems: Vec<ImplSubitem<'core>>,
+  pub kind: ImplDefKind<'core>,
   pub manual: bool,
   pub duplicate: bool,
   pub erase: bool,
 }
 
-new_idx!(pub IndirectImplId);
 #[derive(Debug, Clone)]
-pub struct IndirectImplDef<'core> {
-  pub span: Span,
-  pub def: DefId,
-  pub generics: GenericsId,
-  pub trait_: Trait<'core>,
-  pub impl_: Impl<'core>,
-  pub manual: bool,
+pub enum ImplDefKind<'core> {
+  Direct(Vec<ImplSubitem<'core>>),
+  Indirect(Impl<'core>),
 }
 
 #[derive(Debug, Clone)]
@@ -293,20 +281,6 @@ impl<'core> Chart<'core> {
     match const_id {
       ConstId::Concrete(const_id) => self.concrete_consts[const_id].generics,
       ConstId::Abstract(trait_id, const_id) => self.traits[trait_id].consts[const_id].generics,
-    }
-  }
-
-  pub fn impl_is_manual(&self, impl_id: ImplId) -> bool {
-    match impl_id {
-      ImplId::Direct(impl_id) => self.direct_impls[impl_id].manual,
-      ImplId::Indirect(impl_id) => self.indirect_impls[impl_id].manual,
-    }
-  }
-
-  pub fn impl_generics(&self, impl_id: ImplId) -> GenericsId {
-    match impl_id {
-      ImplId::Direct(impl_id) => self.direct_impls[impl_id].generics,
-      ImplId::Indirect(impl_id) => self.indirect_impls[impl_id].generics,
     }
   }
 }

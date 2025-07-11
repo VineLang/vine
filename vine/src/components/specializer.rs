@@ -7,11 +7,11 @@ use crate::{
   components::emitter::Emitter,
   structures::{
     ast::Ident,
-    chart::{Chart, ConstId, FnId, ImplId, TraitFnId},
+    chart::{Chart, ConstId, FnId, TraitFnId},
     checkpoint::Checkpoint,
     core::Core,
     diag::ErrorGuaranteed,
-    resolutions::{FnRel, Fragment, FragmentId, Resolutions},
+    resolutions::{FnRel, Fragment, FragmentId, Resolutions, ResolvedImplKind},
     specializations::{ImplTree, Spec, SpecId, SpecRels, Specializations},
     tir::{ClosureId, TirImpl},
     vir::{InterfaceKind, StageId, Vir},
@@ -70,25 +70,33 @@ impl<'core, 'a> Specializer<'core, 'a> {
     args: &Vec<ImplTree<'core>>,
     (const_id, impls): &(ConstId, Vec<TirImpl<'core>>),
   ) -> Result<SpecId, ErrorGuaranteed> {
+    let mut impls = impls.iter().map(|x| self.instantiate(fragment_id, args, x)).collect();
     match *const_id {
-      ConstId::Concrete(const_id) => {
-        let impls = impls.iter().map(|x| self.instantiate(fragment_id, args, x)).collect();
-        Ok(self.specialize(self.resolutions.consts[const_id], impls))
-      }
+      ConstId::Concrete(const_id) => Ok(self.specialize(self.resolutions.consts[const_id], impls)),
       ConstId::Abstract(_, const_id) => {
-        let [impl_] = &**impls else { unreachable!() };
-        match self.instantiate(fragment_id, args, impl_) {
-          ImplTree::Error(err) => Err(err),
-          ImplTree::Fn(..)
-          | ImplTree::Closure(..)
-          | ImplTree::ForkClosure(..)
-          | ImplTree::DropClosure(..)
-          | ImplTree::Tuple(..) => unreachable!(),
-          ImplTree::Direct(impl_id, impls) => {
-            let const_id = self.resolutions.direct_impls[impl_id].as_ref()?.consts[const_id]?;
-            Ok(self.specialize(self.resolutions.consts[const_id], impls))
-          }
-          ImplTree::Object(ident, _) => Ok(self.object_key(ident)),
+        let mut impl_ = impls.remove(0);
+        loop {
+          break match impl_ {
+            ImplTree::Error(err) => Err(err),
+            ImplTree::Fn(..)
+            | ImplTree::Closure(..)
+            | ImplTree::ForkClosure(..)
+            | ImplTree::DropClosure(..)
+            | ImplTree::Tuple(..) => unreachable!(),
+            ImplTree::Def(impl_id, mut inner_impls) => {
+              match &self.resolutions.impls[impl_id].as_ref()?.kind {
+                ResolvedImplKind::Direct { consts, .. } => {
+                  inner_impls.append(&mut impls);
+                  Ok(self.specialize(self.resolutions.consts[consts[const_id]?], impls))
+                }
+                ResolvedImplKind::Indirect(next_impl) => {
+                  impl_ = self.instantiate(fragment_id, args, next_impl);
+                  continue;
+                }
+              }
+            }
+            ImplTree::Object(ident, _) => Ok(self.object_key(ident)),
+          };
         }
       }
     }
@@ -103,20 +111,20 @@ impl<'core, 'a> Specializer<'core, 'a> {
     match fn_rel {
       &FnRel::Item(fn_id, ref impls) => {
         let impls = impls.iter().map(|x| self.instantiate(fragment_id, args, x)).collect();
-        self.instantiate_fn_id(fn_id, impls)
+        self.instantiate_fn_id(fragment_id, args, fn_id, impls)
       }
       FnRel::Impl(impl_) => {
         let impl_ = self.instantiate(fragment_id, args, impl_);
         match impl_ {
           ImplTree::Error(err) => Err(err),
-          ImplTree::Direct(..)
+          ImplTree::Def(..)
           | ImplTree::ForkClosure(..)
           | ImplTree::DropClosure(..)
           | ImplTree::Tuple(..)
           | ImplTree::Object(..) => {
             unreachable!()
           }
-          ImplTree::Fn(fn_id, impls) => self.instantiate_fn_id(fn_id, impls),
+          ImplTree::Fn(fn_id, impls) => self.instantiate_fn_id(fragment_id, args, fn_id, impls),
           ImplTree::Closure(fragment_id, impls, closure_id) => Ok((
             self.specialize(fragment_id, impls),
             self._closure_stage(fragment_id, Some(closure_id)),
@@ -128,6 +136,8 @@ impl<'core, 'a> Specializer<'core, 'a> {
 
   fn instantiate_fn_id(
     &mut self,
+    fragment_id: FragmentId,
+    args: &Vec<ImplTree<'core>>,
     fn_id: FnId,
     mut impls: Vec<ImplTree<'core>>,
   ) -> Result<(SpecId, StageId), ErrorGuaranteed> {
@@ -137,37 +147,49 @@ impl<'core, 'a> Specializer<'core, 'a> {
         Ok((self.specialize(fragment_id, impls), self._closure_stage(fragment_id, None)))
       }
       FnId::Abstract(_, fn_id) => {
-        let impl_ = impls.remove(0);
-        match impl_ {
-          ImplTree::Direct(impl_id, mut inner_impls) => {
-            let fn_id = self.resolutions.direct_impls[impl_id].as_ref()?.fns[fn_id]?;
-            let fragment_id = self.resolutions.fns[fn_id];
-            inner_impls.append(&mut impls);
-            Ok((self.specialize(fragment_id, inner_impls), self._closure_stage(fragment_id, None)))
-          }
-          ImplTree::ForkClosure(fragment_id, impls, closure_id) => {
-            match self._closure_interface(fragment_id, Some(closure_id)) {
-              &InterfaceKind::Fn { fork: Some(stage), .. } => {
-                Ok((self.specialize(fragment_id, impls), stage))
+        let mut impl_ = impls.remove(0);
+        loop {
+          break match impl_ {
+            ImplTree::Def(impl_id, mut inner_impls) => {
+              match &self.resolutions.impls[impl_id].as_ref()?.kind {
+                ResolvedImplKind::Direct { fns, .. } => {
+                  inner_impls.append(&mut impls);
+                  let fragment_id = self.resolutions.fns[fns[fn_id]?];
+                  Ok((
+                    self.specialize(fragment_id, inner_impls),
+                    self._closure_stage(fragment_id, None),
+                  ))
+                }
+                ResolvedImplKind::Indirect(next_impl) => {
+                  impl_ = self.instantiate(fragment_id, args, next_impl);
+                  continue;
+                }
               }
-              _ => unreachable!(),
             }
-          }
-          ImplTree::DropClosure(fragment_id, impls, closure_id) => {
-            match self._closure_interface(fragment_id, Some(closure_id)) {
-              &InterfaceKind::Fn { drop: Some(stage), .. } => {
-                Ok((self.specialize(fragment_id, impls), stage))
+            ImplTree::ForkClosure(fragment_id, impls, closure_id) => {
+              match self._closure_interface(fragment_id, Some(closure_id)) {
+                &InterfaceKind::Fn { fork: Some(stage), .. } => {
+                  Ok((self.specialize(fragment_id, impls), stage))
+                }
+                _ => unreachable!(),
               }
-              _ => unreachable!(),
             }
-          }
-          ImplTree::Tuple(len) | ImplTree::Object(_, len) => match fn_id {
-            TraitFnId(0) => Ok((self.composite_deconstruct(len), StageId(0))),
-            TraitFnId(1) => Ok((self.composite_reconstruct(len), StageId(0))),
-            _ => unreachable!(),
-          },
-          ImplTree::Error(err) => Err(err),
-          ImplTree::Fn(..) | ImplTree::Closure(..) => unreachable!(),
+            ImplTree::DropClosure(fragment_id, impls, closure_id) => {
+              match self._closure_interface(fragment_id, Some(closure_id)) {
+                &InterfaceKind::Fn { drop: Some(stage), .. } => {
+                  Ok((self.specialize(fragment_id, impls), stage))
+                }
+                _ => unreachable!(),
+              }
+            }
+            ImplTree::Tuple(len) | ImplTree::Object(_, len) => match fn_id {
+              TraitFnId(0) => Ok((self.composite_deconstruct(len), StageId(0))),
+              TraitFnId(1) => Ok((self.composite_reconstruct(len), StageId(0))),
+              _ => unreachable!(),
+            },
+            ImplTree::Error(err) => Err(err),
+            ImplTree::Fn(..) | ImplTree::Closure(..) => unreachable!(),
+          };
         }
       }
     }
@@ -229,27 +251,20 @@ impl<'core, 'a> Specializer<'core, 'a> {
     match impl_ {
       TirImpl::Error(err) => ImplTree::Error(*err),
       TirImpl::Param(i) => args[*i].clone(),
-      TirImpl::Def(ImplId::Direct(id), impls) => {
+      TirImpl::Def(id, impls) => {
         let impls =
           impls.iter().map(|i| self.instantiate(fragment_id, args, i)).collect::<Vec<_>>();
         if let Some(duplicate) = self.chart.builtins.duplicate {
-          if self.chart.direct_impls[*id].duplicate
-            && impls.iter().all(|i| self.duplicate_compatible(i))
-          {
-            return ImplTree::Direct(duplicate, vec![]);
+          if self.chart.impls[*id].duplicate && impls.iter().all(|i| self.duplicate_compatible(i)) {
+            return ImplTree::Def(duplicate, vec![]);
           }
         }
         if let Some(erase) = self.chart.builtins.erase {
-          if self.chart.direct_impls[*id].erase && impls.iter().all(|i| self.erase_compatible(i)) {
-            return ImplTree::Direct(erase, vec![]);
+          if self.chart.impls[*id].erase && impls.iter().all(|i| self.erase_compatible(i)) {
+            return ImplTree::Def(erase, vec![]);
           }
         }
-        ImplTree::Direct(*id, impls)
-      }
-      TirImpl::Def(ImplId::Indirect(id), impls) => {
-        let impls =
-          impls.iter().map(|i| self.instantiate(fragment_id, args, i)).collect::<Vec<_>>();
-        self.instantiate(fragment_id, &impls, &self.resolutions.indirect_impls[*id])
+        ImplTree::Def(*id, impls)
       }
       TirImpl::Fn(id, impls) => {
         ImplTree::Fn(*id, impls.iter().map(|i| self.instantiate(fragment_id, args, i)).collect())
@@ -264,9 +279,9 @@ impl<'core, 'a> Specializer<'core, 'a> {
 
   fn duplicate_compatible(&self, impl_: &ImplTree) -> bool {
     match impl_ {
-      ImplTree::Direct(impl_id, _) => {
+      ImplTree::Def(impl_id, _) => {
         self.chart.builtins.duplicate == Some(*impl_id)
-          || self.resolutions.direct_impls[*impl_id].as_ref().is_ok_and(|i| !i.is_fork)
+          || self.resolutions.impls[*impl_id].as_ref().is_ok_and(|i| !i.is_fork)
       }
       _ => false,
     }
@@ -274,9 +289,9 @@ impl<'core, 'a> Specializer<'core, 'a> {
 
   fn erase_compatible(&self, impl_: &ImplTree) -> bool {
     match impl_ {
-      ImplTree::Direct(impl_id, _) => {
+      ImplTree::Def(impl_id, _) => {
         self.chart.builtins.erase == Some(*impl_id)
-          || self.resolutions.direct_impls[*impl_id].as_ref().is_ok_and(|i| !i.is_drop)
+          || self.resolutions.impls[*impl_id].as_ref().is_ok_and(|i| !i.is_drop)
       }
       _ => false,
     }
