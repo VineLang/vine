@@ -1,4 +1,6 @@
 
+use ops::Cast;
+
 pub fn duplicate[T](&value: &T) -> T {
   inline_ivy! (x <- value, x1 -> value) -> T {
     x2
@@ -37,4 +39,15 @@ pub fn move[T](&value: &T) -> T {
   let result = value;
   value = eraser;
   result
+}
+
+pub fn transmute[C, T](value: C) -> T {
+  inline_ivy! (value <- value) -> T { value }
+}
+
+#[manual]
+pub impl transmute[C, T]: Cast[C, T] {
+  fn cast(value: C) -> T {
+    unsafe::transmute(value)
+  }
 }
