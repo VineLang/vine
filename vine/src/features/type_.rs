@@ -68,7 +68,7 @@ impl<'core> Charter<'core, '_> {
 impl<'core> Resolver<'core, '_> {
   pub(crate) fn resolve_type_alias(&mut self, alias_id: TypeAliasId) {
     match self.sigs.type_aliases.get(alias_id) {
-      Some(TypeAliasState::Resolved(_)) => return,
+      Some(TypeAliasState::Resolved(_)) => {}
       Some(TypeAliasState::Resolving) => {
         // Cycle detected
         let alias_def = &self.chart.type_aliases[alias_id];
@@ -78,20 +78,20 @@ impl<'core> Resolver<'core, '_> {
         *slot = TypeAliasState::Resolved(
           self.types.export(|t| TypeAliasSig { ty: t.transfer(&error_type) }),
         );
-        return;
       }
-      _ => {}
+      _ => {
+        let alias_def = &self.chart.type_aliases[alias_id];
+        let slot = self.sigs.type_aliases.get_or_extend(alias_id);
+        *slot = TypeAliasState::Resolving;
+
+        self.initialize(alias_def.def, alias_def.generics);
+        let ty = self.resolve_ty(&alias_def.ty, false);
+
+        let slot = self.sigs.type_aliases.get_or_extend(alias_id);
+        *slot =
+          TypeAliasState::Resolved(self.types.export(|t| TypeAliasSig { ty: t.transfer(&ty) }));
+      }
     }
-
-    let alias_def = &self.chart.type_aliases[alias_id];
-    let slot = self.sigs.type_aliases.get_or_extend(alias_id);
-    *slot = TypeAliasState::Resolving;
-
-    self.initialize(alias_def.def, alias_def.generics);
-    let ty = self.resolve_ty(&alias_def.ty, false);
-
-    let slot = self.sigs.type_aliases.get_or_extend(alias_id);
-    *slot = TypeAliasState::Resolved(self.types.export(|t| TypeAliasSig { ty: t.transfer(&ty) }));
   }
 
   pub(crate) fn resolve_ty_path_alias(
