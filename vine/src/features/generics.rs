@@ -71,13 +71,13 @@ impl<'core> VineParser<'core, '_> {
     Ok(Generics { span, inherit, types, impls })
   }
 
-  fn parse_generics_section<T>(
+  fn parse_generics_section<E>(
     &mut self,
-    section: &mut Vec<T>,
-    mut parse_t: impl FnMut(&mut Self) -> Result<T, Diag<'core>>,
+    section: &mut Vec<E>,
+    mut parse_element: impl FnMut(&mut Self) -> Result<E, Diag<'core>>,
   ) -> Result<(), Diag<'core>> {
     while !self.check(Token::Semi) && !self.check(Token::CloseBracket) {
-      section.push(parse_t(self)?);
+      section.push(parse_element(self)?);
       if !self.eat(Token::Comma)? {
         break;
       }
@@ -144,14 +144,18 @@ impl<'core: 'src, 'src> Formatter<'src> {
     }
   }
 
-  fn fmt_generics_section<T>(&self, section: &[T], fmt_t: impl Fn(&T) -> Doc<'src>) -> Doc<'src> {
+  fn fmt_generics_section<E>(
+    &self,
+    section: &[E],
+    fmt_element: impl Fn(&E) -> Doc<'src>,
+  ) -> Doc<'src> {
     if section.is_empty() {
       Doc::EMPTY
     } else if let [element] = section {
-      fmt_t(element)
+      fmt_element(element)
     } else {
       Doc::bare_group([Doc::interleave(
-        section.iter().map(fmt_t),
+        section.iter().map(fmt_element),
         Doc::concat([Doc(","), Doc::soft_line(" ")]),
       )])
     }
