@@ -6,7 +6,7 @@ type B = C;
 type C = B;
 
 // Test case for self-referential with complex structure  
-type F = Array[F];
+type F = List[F];
 
 fn main() {
     let x: A = 42;
