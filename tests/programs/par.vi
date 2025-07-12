@@ -2,20 +2,13 @@
 use std::{ops::Cast, rng::Pcg32};
 
 trait Session[A, B] {
-  fn _fork(a: ~A) -> B;
-}
-
-mod Session {
-  pub fn fork[A, B, F; Session[A, B], fn F(A)](f: F) -> B {
-    let a;
-    let b = Session::_fork[A, B](~a);
-    f(a);
-    b
-  }
+  fn fork[F; fn F(A)](f: F) -> B;
 }
 
 impl nil_session: Session[(), ()] {
-  fn _fork(~()) -> () {}
+  fn fork[F; fn F(())](f: F) {
+    f(());
+  }
 }
 
 struct Channel[T, S]((T, S));
@@ -49,9 +42,9 @@ mod Channel {
 }
 
 impl channel_session[T, P, Q; Session[P, Q]]: Session[Recv[T, P], Send[T, Q]] {
-  fn _fork(~out: ~Recv[T, P]) -> Send[T, Q] {
+  fn fork[F; fn F(Channel[T, P])](f: F) -> Send[T, Q] {
     let value;
-    Channel(~value, Session::fork[P, Q, _](fn (s) { out = Channel(value, s) }))
+    Channel(~value, Session::fork[P, Q, _](fn (s) { f(Channel(value, s)) }))
   }
 }
 

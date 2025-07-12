@@ -47,6 +47,10 @@ impl<'src> Doc<'src> {
     Doc(DocKind::LazyGroup(Self::collect(docs)))
   }
 
+  pub fn bare_group(docs: impl IntoIterator<Item = Self>) -> Self {
+    Doc(DocKind::BareGroup(Self::collect(docs)))
+  }
+
   pub fn interleave(docs: impl IntoIterator<Item = Self>, sep: Self) -> Self {
     Doc(DocKind::Interleave(Self::collect(docs), Box::new(sep)))
   }
@@ -159,6 +163,7 @@ enum DocKind<'src> {
   Concat(Box<[Doc<'src>]>),
   Group(Box<[Doc<'src>]>),
   LazyGroup(Box<[Doc<'src>]>),
+  BareGroup(Box<[Doc<'src>]>),
   Indent(Box<[Doc<'src>]>),
   SoftLine(&'src str),
   IfMulti(&'src str),
@@ -173,7 +178,7 @@ impl<'src> DocKind<'src> {
       DocKind::String(s) => Measure::string(s),
       DocKind::SoftLine(s) | DocKind::IfSingle(s) => Measure::string(s),
       DocKind::IfMulti(_) => Measure::EMPTY,
-      DocKind::Concat(x) | DocKind::Group(x) | DocKind::LazyGroup(x) => {
+      DocKind::Concat(x) | DocKind::Group(x) | DocKind::LazyGroup(x) | DocKind::BareGroup(x) => {
         let mut measure = x.iter().fold(Measure::EMPTY, |a, b| a + b.measure);
         measure.leading = 0;
         measure
@@ -206,6 +211,10 @@ impl Writer {
       DocKind::LazyGroup(docs) => {
         let multi = doc.measure.leading >= self.remaining();
         self.write_all_maybe_indented(docs, multi);
+      }
+      DocKind::BareGroup(docs) => {
+        let multi = doc.measure.multi || doc.measure.width >= self.remaining();
+        self.write_all(docs, multi);
       }
       DocKind::SoftLine(s) => {
         if multi {

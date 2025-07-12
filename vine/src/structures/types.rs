@@ -705,7 +705,7 @@ impl ImplType {
   }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Default)]
 pub struct TypeCtx<'core, T> {
   pub types: Types<'core>,
   pub inner: T,

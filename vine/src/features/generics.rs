@@ -10,16 +10,16 @@ use crate::{
     },
     chart::{DefId, GenericsDef, GenericsId},
     diag::{Diag, ErrorGuaranteed},
-    signatures::GenericsSig,
+    signatures::ImplParams,
     tir::TirImpl,
-    types::{ImplType, Type, TypeCtx, TypeKind},
+    types::{ImplType, Type, TypeKind},
   },
   tools::fmt::{doc::Doc, Formatter},
 };
 
 impl<'core> VineParser<'core, '_> {
   pub(crate) fn parse_generic_params(&mut self) -> Result<GenericParams<'core>, Diag<'core>> {
-    self.parse_generics(Self::parse_type_param, Self::parse_impl_param)
+    self.parse_generics(true, Self::parse_type_param, Self::parse_impl_param)
   }
 
   fn parse_type_param(&mut self) -> Result<TypeParam<'core>, Diag<'core>> {
@@ -48,47 +48,44 @@ impl<'core> VineParser<'core, '_> {
   }
 
   pub(crate) fn parse_generic_args(&mut self) -> Result<GenericArgs<'core>, Diag<'core>> {
-    self.parse_generics(Self::parse_ty, Self::parse_impl)
+    self.parse_generics(false, Self::parse_ty, Self::parse_impl)
   }
 
   fn parse_generics<T, I>(
     &mut self,
-    mut parse_t: impl FnMut(&mut Self) -> Result<T, Diag<'core>>,
-    mut parse_i: impl FnMut(&mut Self) -> Result<I, Diag<'core>>,
+    can_inherit: bool,
+    parse_t: impl FnMut(&mut Self) -> Result<T, Diag<'core>>,
+    parse_i: impl FnMut(&mut Self) -> Result<I, Diag<'core>>,
   ) -> Result<Generics<T, I>, Diag<'core>> {
     let span = self.start_span();
+    let mut inherit = false;
     let mut types = Vec::new();
     let mut impls = Vec::new();
     if self.eat(Token::OpenBracket)? {
-      loop {
-        if self.eat(Token::Semi)? || self.check(Token::CloseBracket) {
-          break;
-        }
-        types.push(parse_t(self)?);
-        if self.eat(Token::Comma)? {
-          continue;
-        }
-        if self.eat(Token::Semi)? {
-          break;
-        }
-        if !self.check(Token::CloseBracket) {
-          self.unexpected()?;
-        }
-      }
-      loop {
-        if self.eat(Token::CloseBracket)? {
-          break;
-        }
-        impls.push(parse_i(self)?);
-        if self.eat(Token::Comma)? {
-          continue;
-        }
-        self.expect(Token::CloseBracket)?;
+      inherit = can_inherit && self.eat(Token::DotDotDot)?;
+      self.parse_generics_section(&mut types, parse_t)?;
+      self.parse_generics_section(&mut impls, parse_i)?;
+      self.expect(Token::CloseBracket)?;
+    }
+    let span = self.end_span(span);
+    Ok(Generics { span, inherit, types, impls })
+  }
+
+  fn parse_generics_section<E>(
+    &mut self,
+    section: &mut Vec<E>,
+    mut parse_element: impl FnMut(&mut Self) -> Result<E, Diag<'core>>,
+  ) -> Result<(), Diag<'core>> {
+    while !self.check(Token::Semi) && !self.check(Token::CloseBracket) {
+      section.push(parse_element(self)?);
+      if !self.eat(Token::Comma)? {
         break;
       }
     }
-    let span = self.end_span(span);
-    Ok(Generics { span, types, impls })
+    if !self.check(Token::CloseBracket) {
+      self.expect(Token::Semi)?;
+    }
+    Ok(())
   }
 }
 
@@ -118,32 +115,49 @@ impl<'core: 'src, 'src> Formatter<'src> {
     fmt_t: impl Fn(&T) -> Doc<'src>,
     fmt_i: impl Fn(&I) -> Doc<'src>,
   ) -> Doc<'src> {
-    if generics.impls.is_empty() && generics.types.is_empty() {
+    let include_types = !generics.types.is_empty() || !generics.impls.is_empty();
+    let include_impls = !generics.impls.is_empty();
+    let sections = [
+      include_types.then(|| self.fmt_generics_section(&generics.types, fmt_t)),
+      include_impls.then(|| self.fmt_generics_section(&generics.impls, fmt_i)),
+    ];
+    let has_sections = sections.iter().any(|x| x.is_some());
+    if !generics.inherit && !has_sections {
       Doc::EMPTY
     } else {
-      let trailing = || Doc::if_multi(",");
-      let sep = || Doc::concat([Doc(","), Doc::soft_line(" ")]);
       Doc::concat([
         Doc("["),
-        if generics.types.is_empty() {
-          Doc::EMPTY
-        } else {
-          Doc::group([Doc::interleave(generics.types.iter().map(fmt_t), sep()), trailing()])
-        },
-        if generics.impls.is_empty() {
-          Doc::EMPTY
-        } else {
-          Doc::concat([
-            Doc(";"),
-            Doc::group([
-              Doc::if_single(" "),
-              Doc::interleave(generics.impls.iter().map(fmt_i), sep()),
-              trailing(),
-            ]),
-          ])
-        },
+        Doc::group([
+          if generics.inherit {
+            Doc::concat([Doc("..."), if has_sections { Doc::soft_line(" ") } else { Doc::EMPTY }])
+          } else {
+            Doc::EMPTY
+          },
+          Doc::interleave(
+            sections.into_iter().flatten(),
+            Doc::concat([Doc(";"), Doc::soft_line(" ")]),
+          ),
+          Doc::if_multi(";"),
+        ]),
         Doc("]"),
       ])
+    }
+  }
+
+  fn fmt_generics_section<E>(
+    &self,
+    section: &[E],
+    fmt_element: impl Fn(&E) -> Doc<'src>,
+  ) -> Doc<'src> {
+    if section.is_empty() {
+      Doc::EMPTY
+    } else if let [element] = section {
+      fmt_element(element)
+    } else {
+      Doc::bare_group([Doc::interleave(
+        section.iter().map(fmt_element),
+        Doc::concat([Doc(","), Doc::soft_line(" ")]),
+      )])
     }
   }
 }
@@ -152,65 +166,98 @@ impl<'core> Charter<'core, '_> {
   pub(crate) fn chart_generics(
     &mut self,
     def: DefId,
-    mut generics: GenericParams<'core>,
+    parent: GenericsId,
+    generics: GenericParams<'core>,
     impl_allowed: bool,
   ) -> GenericsId {
-    if !impl_allowed && !generics.impls.is_empty() {
-      self.core.report(Diag::UnexpectedImplParam { span: generics.span });
-      generics.impls.clear();
-    }
     self.chart.generics.push(GenericsDef {
       span: generics.span,
       def,
+      parent: generics.inherit.then_some(parent),
       type_params: generics.types,
       impl_params: generics.impls,
+      impl_allowed,
+      trait_: None,
     })
   }
 }
 
 impl<'core> Resolver<'core, '_> {
-  pub(crate) fn resolve_generics_sig(&mut self, generics_id: GenericsId) {
+  pub(crate) fn resolve_type_params(&mut self, generics_id: GenericsId) {
+    let generics_def = &self.chart.generics[generics_id];
+    let mut type_params =
+      generics_def.parent.map(|id| self.sigs.type_params[id].clone()).unwrap_or_default();
+    let base_index = type_params.params.len();
+    for param in &generics_def.type_params {
+      if let Some(&index) = type_params.lookup.get(&param.name) {
+        if index < base_index {
+          continue;
+        }
+      }
+      let index = type_params.params.len();
+      type_params.params.push(param.name);
+      if type_params.lookup.insert(param.name, index).is_some() {
+        self.core.report(Diag::DuplicateTypeParam { span: param.span });
+      }
+    }
+    self.sigs.type_params.push_to(generics_id, type_params);
+  }
+
+  pub(crate) fn resolve_impl_params(&mut self, generics_id: GenericsId) {
     let generics_def = &self.chart.generics[generics_id];
     self.initialize(generics_def.def, generics_id);
-    let mut impl_params = vec![];
-    impl_params.extend(
-      generics_def
-        .type_params
+    let mut impl_params =
+      generics_def.parent.map(|id| self.sigs.impl_params[id].clone()).unwrap_or_default();
+    self.types = take(&mut impl_params.types.types);
+
+    if let Some(trait_id) = generics_def.trait_ {
+      let parent = generics_def.parent.unwrap();
+      let type_params = self.sigs.type_params[parent]
+        .params
         .iter()
         .enumerate()
-        .flat_map(|(i, param)| {
-          let span = param.span;
-          let ty = self.types.new(TypeKind::Param(i, param.name));
-          [
-            param.flex.fork().then(|| {
-              if let Some(fork) = self.chart.builtins.fork {
-                ImplType::Trait(fork, vec![ty])
-              } else {
-                ImplType::Error(self.core.report(Diag::MissingBuiltin { span, builtin: "Fork" }))
-              }
-            }),
-            param.flex.drop().then(|| {
-              if let Some(drop) = self.chart.builtins.drop {
-                ImplType::Trait(drop, vec![ty])
-              } else {
-                ImplType::Error(self.core.report(Diag::MissingBuiltin { span, builtin: "Drop" }))
-              }
-            }),
-          ]
-        })
-        .flatten(),
-    );
-    impl_params.extend(generics_def.impl_params.iter().map(|p| self.resolve_trait(&p.trait_)));
-    let types = take(&mut self.types);
-    self.sigs.generics.push_to(generics_id, TypeCtx { types, inner: GenericsSig { impl_params } });
-    if self.type_param_lookup.len() != generics_def.type_params.len() {
-      self.core.report(Diag::DuplicateTypeParam { span: generics_def.span });
+        .map(|(index, &name)| self.types.new(TypeKind::Param(index, name)))
+        .collect();
+      impl_params.types.inner.push(ImplType::Trait(trait_id, type_params));
     }
-    if self.impl_param_lookup.len()
-      != generics_def.impl_params.iter().filter(|x| x.name.is_some()).count()
-    {
-      self.core.report(Diag::DuplicateImplParam { span: generics_def.span });
+
+    for param in &generics_def.type_params {
+      let index = self.sigs.type_params[generics_id].lookup[&param.name];
+      let span = param.span;
+      let ty = self.types.new(TypeKind::Param(index, param.name));
+      if param.flex.fork() {
+        impl_params.types.inner.push(if let Some(fork) = self.chart.builtins.fork {
+          ImplType::Trait(fork, vec![ty])
+        } else {
+          ImplType::Error(self.core.report(Diag::MissingBuiltin { span, builtin: "Fork" }))
+        });
+      }
+      if param.flex.drop() {
+        impl_params.types.inner.push(if let Some(drop) = self.chart.builtins.drop {
+          ImplType::Trait(drop, vec![ty])
+        } else {
+          ImplType::Error(self.core.report(Diag::MissingBuiltin { span, builtin: "Drop" }))
+        });
+      }
     }
+
+    for param in &generics_def.impl_params {
+      let index = impl_params.types.inner.len();
+      impl_params.types.inner.push(self.resolve_trait(&param.trait_));
+      if let Some(name) = param.name {
+        if impl_params.lookup.insert(name, index).is_some() {
+          self.core.report(Diag::DuplicateImplParam { span: param.span });
+        }
+      }
+    }
+
+    if !generics_def.impl_allowed && !impl_params.types.inner.is_empty() {
+      impl_params = ImplParams::default();
+      self.core.report(Diag::UnexpectedImplParam { span: generics_def.span });
+    }
+
+    impl_params.types.types = take(&mut self.types);
+    self.sigs.impl_params.push_to(generics_id, impl_params);
   }
 
   pub fn resolve_generics(
@@ -226,13 +273,13 @@ impl<'core> Resolver<'core, '_> {
     &mut self,
     span: Span,
     args: Option<&GenericArgs<'core>>,
-    params_id: GenericsId,
+    generics_id: GenericsId,
     inference: bool,
     inferred_type_params: Option<Vec<Type>>,
   ) -> (Vec<Type>, Vec<TirImpl<'core>>) {
-    let _args = GenericArgs { span, types: Vec::new(), impls: Vec::new() };
+    let _args = GenericArgs::empty(span);
     let args = args.unwrap_or(&_args);
-    let params = &self.chart.generics[params_id];
+    let params = &self.chart.generics[generics_id];
     let check_count = |got, expected, kind| {
       if got != expected {
         self.core.report(Diag::BadGenericCount {
@@ -244,18 +291,18 @@ impl<'core> Resolver<'core, '_> {
         });
       }
     };
-    if !inference || !args.types.is_empty() {
-      check_count(args.types.len(), params.type_params.len(), "type");
-    }
+    let type_param_count = self.sigs.type_params[generics_id].params.len();
     let impl_param_count =
       // Things with no inference cannot have implementation parameters; skip
-      // checking the `GenericsSig` as this may not have been resolved yet.
-      if !inference { 0 } else { self.sigs.generics[params_id].inner.impl_params.len() };
+      // checking the signature as this may not have been resolved yet.
+      if !inference { 0 } else { self.sigs.impl_params[generics_id].types.inner.len() };
+    if !inference || !args.types.is_empty() {
+      check_count(args.types.len(), type_param_count, "type");
+    }
     if !args.impls.is_empty() {
       check_count(args.impls.len(), impl_param_count, "impl");
     }
     let has_impl_params = impl_param_count != 0;
-    let type_param_count = params.type_params.len();
     let type_params = if let Some(mut inferred) = inferred_type_params {
       for (inferred, ty) in inferred.iter_mut().zip(args.types.iter()) {
         let ty = self.resolve_ty(ty, inference);
@@ -279,7 +326,7 @@ impl<'core> Resolver<'core, '_> {
     };
     let impl_params = if has_impl_params {
       let impl_params_types =
-        self.types.import(&self.sigs.generics[params_id], Some(&type_params)).impl_params;
+        self.types.import(&self.sigs.impl_params[generics_id].types, Some(&type_params));
       if args.impls.is_empty() {
         impl_params_types.into_iter().map(|ty| self.find_impl(args.span, &ty)).collect()
       } else {

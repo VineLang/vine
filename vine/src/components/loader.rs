@@ -11,7 +11,7 @@ use crate::{
   structures::{
     ast::{
       visit::{VisitMut, Visitee},
-      Attr, AttrKind, Ident, Item, ItemKind, ModItem, ModKind, Span, Vis,
+      Attr, AttrKind, Generics, Ident, Item, ItemKind, ModItem, ModKind, Span, Vis,
     },
     core::Core,
     diag::{Diag, FileInfo},
@@ -46,6 +46,7 @@ impl<'core> Loader<'core> {
       attrs: Vec::new(),
       kind: ItemKind::Mod(ModItem {
         name: self.auto_mod_name(&path),
+        generics: Generics::empty(Span::NONE),
         kind: self.load_file(path, Span::NONE),
       }),
     };

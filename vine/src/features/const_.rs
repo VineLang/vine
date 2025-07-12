@@ -8,7 +8,7 @@ use crate::{
   },
   structures::{
     ast::{ConstItem, Path, Span},
-    chart::{ConcreteConstDef, ConcreteConstId, ConstId, DefId, DefValueKind},
+    chart::{ConcreteConstDef, ConcreteConstId, ConstId, DefId, DefValueKind, GenericsId},
     diag::Diag,
     resolutions::ConstRelId,
     signatures::ConstSig,
@@ -53,13 +53,14 @@ impl<'core> Charter<'core, '_> {
   pub(crate) fn chart_const(
     &mut self,
     parent: DefId,
+    parent_generics: GenericsId,
     span: Span,
     vis: DefId,
     member_vis: DefId,
     const_item: ConstItem<'core>,
   ) -> DefId {
     let def = self.chart_child(parent, const_item.name, member_vis, true);
-    let generics = self.chart_generics(def, const_item.generics, true);
+    let generics = self.chart_generics(def, parent_generics, const_item.generics, true);
     let value = self.ensure_implemented(span, const_item.value);
     let const_id = self.chart.concrete_consts.push(ConcreteConstDef {
       span,

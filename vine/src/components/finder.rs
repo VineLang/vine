@@ -66,7 +66,7 @@ impl<'core, 'a> Finder<'core, 'a> {
     for candidate in self.find_method_candidates(types, receiver, name) {
       let mut types = types.clone();
       let generics = self.chart.fn_generics(candidate);
-      let type_params = types.new_vars(self.span, self.chart.generics[generics].type_params.len());
+      let type_params = types.new_vars(self.span, self.sigs.type_params[generics].params.len());
       let candidate_receiver =
         types.import_with(self.sigs.fn_sig(candidate), Some(&type_params), |t, sig| {
           sig.params.first().map(|&ty| t.transfer(&ty))
@@ -236,11 +236,11 @@ impl<'core, 'a> Finder<'core, 'a> {
 
     self.find_auto_impls(types, query, &mut found)?;
 
-    let generics = &self.sigs.generics[self.generics];
-    for (i, ty) in generics.inner.impl_params.iter().enumerate() {
+    let impl_params = &self.sigs.impl_params[self.generics];
+    for (i, ty) in impl_params.types.inner.iter().enumerate() {
       if query.approx_eq(ty) {
         let mut types = types.clone();
-        let ty = types.import_with(generics, None, |t, _| t.transfer(ty));
+        let ty = types.import_with(&impl_params.types, None, |t, _| t.transfer(ty));
         if types.unify_impl_type(&ty, query).is_success() {
           found.push(TypeCtx { types, inner: TirImpl::Param(i) });
         }
@@ -250,7 +250,7 @@ impl<'core, 'a> Finder<'core, 'a> {
     for candidate in self.find_impl_candidates(types, query) {
       let mut types = types.clone();
       let generics = self.chart.impls[candidate].generics;
-      let type_params = (0..self.chart.generics[generics].type_params.len())
+      let type_params = (0..self.sigs.type_params[generics].params.len())
         .map(|_| types.new_var(self.span))
         .collect::<Vec<_>>();
       let ty = types.import(&self.sigs.impls[candidate], Some(&type_params)).ty;
@@ -270,7 +270,7 @@ impl<'core, 'a> Finder<'core, 'a> {
     generics: GenericsId,
     type_params: Vec<Type>,
   ) -> Result<impl Iterator<Item = TypeCtx<'core, Vec<TirImpl<'core>>>>, Timeout> {
-    let queries = types.import(&self.sigs.generics[generics], Some(&type_params)).impl_params;
+    let queries = types.import(&self.sigs.impl_params[generics].types, Some(&type_params));
     let results = self.find_subimpls(types, &queries)?;
     Ok(results.into_iter().map(|mut result| {
       result.inner.reverse();
@@ -406,8 +406,7 @@ impl<'core, 'a> Finder<'core, 'a> {
         Some((Inverted(false), TypeKind::Fn(fn_id))) => {
           let mut types = types.clone();
           let generics = self.chart.fn_generics(*fn_id);
-          let type_params =
-            types.new_vars(self.span, self.chart.generics[generics].type_params.len());
+          let type_params = types.new_vars(self.span, self.sigs.type_params[generics].params.len());
           let sig = types.import(self.sigs.fn_sig(*fn_id), Some(&type_params));
           if types
             .unify_types(&sig.params, params, Inverted(false))

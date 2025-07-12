@@ -12,17 +12,17 @@ use crate::{
       Block, Expr, ExprKind, Ident, Impl, ImplKind, Pat, PatKind, Path, Span, Target, Trait,
       TraitKind, Ty, TyKind,
     },
-    chart::{Chart, ConcreteFnId, DefId, DefTraitKind, FnId, GenericsId, OpaqueTypeId, TraitId},
+    chart::{Chart, ConcreteFnId, DefId, DefTraitKind, FnId, GenericsId, OpaqueTypeId},
     checkpoint::Checkpoint,
     core::Core,
     diag::{Diag, ErrorGuaranteed},
     resolutions::{FnRel, FnRelId, Fragment, FragmentId, Rels, Resolutions},
-    signatures::{ConstSig, FnSig, Signatures, TraitSig},
+    signatures::{FnSig, Signatures},
     tir::{
       ClosureId, Local, TargetId, Tir, TirClosure, TirExpr, TirExprKind, TirImpl, TirLocal, TirPat,
       TirPatKind,
     },
-    types::{ImplType, Type, TypeCtx, TypeKind, Types},
+    types::{ImplType, Type, TypeKind, Types},
   },
 };
 
@@ -37,9 +37,6 @@ pub struct Resolver<'core, 'a> {
   pub(crate) return_ty: Option<Type>,
   pub(crate) cur_def: DefId,
   pub(crate) cur_generics: GenericsId,
-
-  pub(crate) type_param_lookup: HashMap<Ident<'core>, usize>,
-  pub(crate) impl_param_lookup: HashMap<Ident<'core>, usize>,
 
   pub(crate) scope: HashMap<Ident<'core>, Vec<ScopeEntry>>,
   pub(crate) scope_depth: usize,
@@ -90,8 +87,6 @@ impl<'core, 'a> Resolver<'core, 'a> {
       targets: Default::default(),
       cur_def: DefId::ROOT,
       cur_generics: GenericsId::NONE,
-      type_param_lookup: Default::default(),
-      impl_param_lookup: Default::default(),
       scope: Default::default(),
       scope_depth: Default::default(),
       target_id: Default::default(),
@@ -108,6 +103,9 @@ impl<'core, 'a> Resolver<'core, 'a> {
     for id in self.chart.imports.keys_from(checkpoint.imports) {
       _ = self.resolve_import(id);
     }
+    for id in self.chart.generics.keys_from(checkpoint.generics) {
+      self.resolve_type_params(id);
+    }
     for id in self.chart.type_aliases.keys_from(checkpoint.type_aliases) {
       self.resolve_type_alias(id);
     }
@@ -121,7 +119,7 @@ impl<'core, 'a> Resolver<'core, 'a> {
       self.resolve_trait_sig(id);
     }
     for id in self.chart.generics.keys_from(checkpoint.generics) {
-      self.resolve_generics_sig(id);
+      self.resolve_impl_params(id);
     }
     for id in self.chart.concrete_consts.keys_from(checkpoint.concrete_consts) {
       self.resolve_const_sig(id);
@@ -176,7 +174,10 @@ impl<'core, 'a> Resolver<'core, 'a> {
     };
     let fn_id = self.resolve_path(DefId::ROOT, &path, "fn", |def| def.fn_id())?;
     let generics = &self.chart.generics[self.chart.fn_generics(fn_id)];
-    if !generics.type_params.is_empty() || !generics.impl_params.is_empty() {
+    if !generics.type_params.is_empty()
+      || !generics.impl_params.is_empty()
+      || generics.parent.is_some()
+    {
       Err(Diag::GenericMain { span })?
     }
     let FnId::Concrete(fn_id) = fn_id else { unreachable!() };
@@ -196,8 +197,6 @@ impl<'core, 'a> Resolver<'core, 'a> {
     self.targets.clear();
     self.types.reset();
 
-    self.type_param_lookup.clear();
-    self.impl_param_lookup.clear();
     self.scope.clear();
     debug_assert_eq!(self.scope_depth, 0);
     self.locals.clear();
@@ -206,13 +205,6 @@ impl<'core, 'a> Resolver<'core, 'a> {
 
     self.cur_def = def_id;
     self.cur_generics = generics_id;
-    let generics = &self.chart.generics[generics_id];
-    self
-      .type_param_lookup
-      .extend(generics.type_params.iter().enumerate().map(|(i, &p)| (p.name, i)));
-    self
-      .impl_param_lookup
-      .extend(generics.impl_params.iter().enumerate().filter_map(|(i, p)| Some((p.name?, i))));
   }
 
   #[allow(clippy::type_complexity)]
@@ -277,22 +269,6 @@ impl<'core, 'a> Resolver<'core, 'a> {
         found: types.show_impl_type(chart, &found_ty),
       });
     }
-  }
-
-  fn resolve_trait_sig(&mut self, trait_id: TraitId) {
-    let trait_def = &self.chart.traits[trait_id];
-    self.initialize(trait_def.def, trait_def.generics);
-    let sig = TraitSig {
-      consts: IdxVec::from_iter(trait_def.consts.values().map(|trait_const| {
-        let ty = self.resolve_ty(&trait_const.ty, false);
-        TypeCtx { types: take(&mut self.types), inner: ConstSig { ty } }
-      })),
-      fns: IdxVec::from_iter(trait_def.fns.values().map(|trait_fn| {
-        let (params, ret_ty) = self._resolve_fn_sig(&trait_fn.params, &trait_fn.ret_ty);
-        TypeCtx { types: take(&mut self.types), inner: FnSig { params, ret_ty } }
-      })),
-    };
-    self.sigs.traits.push_to(trait_id, sig);
   }
 
   pub(crate) fn resolve_trait(&mut self, trait_: &Trait<'core>) -> ImplType {
@@ -412,7 +388,7 @@ impl<'core, 'a> Resolver<'core, 'a> {
       def: self.cur_def,
       generics: self.cur_generics,
       path,
-      impl_params: self.sigs.generics[self.cur_generics].inner.impl_params.len(),
+      impl_params: self.sigs.impl_params[self.cur_generics].types.inner.len(),
       tir: Tir {
         span,
         types: take(&mut self.types),

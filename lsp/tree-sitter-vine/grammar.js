@@ -15,6 +15,7 @@ const delimited = (open, sep, close, inner) =>
 const generics = (ty, impl) =>
   seq(
     "[",
+    optional("..."),
     delimited("", ",", "", ty),
     optional(delimited(";", ",", "", impl)),
     "]",
@@ -212,6 +213,7 @@ module.exports = grammar({
         optional($.vis),
         "mod",
         $.ident,
+        optional($.generic_params),
         choice(
           seq("=", $.string, optional(";")),
           delimited("{", "", "}", $._item),

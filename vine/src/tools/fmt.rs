@@ -6,8 +6,8 @@ use crate::{
   components::parser::VineParser,
   structures::{
     ast::{
-      Expr, ExprKind, Flex, Impl, ImplKind, Item, ItemKind, ModItem, ModKind, Pat, PatKind, Span,
-      Stmt, StmtKind, Trait, TraitKind, Ty, TyKind, Vis,
+      Expr, ExprKind, Flex, Impl, ImplKind, Item, ItemKind, Pat, PatKind, Span, Stmt, StmtKind,
+      Trait, TraitKind, Ty, TyKind, Vis,
     },
     core::Core,
     diag::Diag,
@@ -52,21 +52,6 @@ impl<'core: 'src, 'src> Formatter<'src> {
         ItemKind::Taken => unreachable!(),
       },
     ]))
-  }
-
-  fn fmt_mod_item(&self, m: &ModItem<'core>) -> Doc<'src> {
-    Doc::concat([
-      Doc("mod "),
-      Doc(m.name),
-      match &m.kind {
-        ModKind::Loaded(span, items) => Doc::concat([
-          Doc(" "),
-          self.fmt_block_like(*span, items.iter().map(|x| (x.span, self.fmt_item(x)))),
-        ]),
-        ModKind::Unloaded(span, _) => Doc::concat([Doc(" = "), self.fmt_verbatim(*span), Doc(";")]),
-        ModKind::Error(_) => unreachable!(),
-      },
-    ])
   }
 
   pub(crate) fn fmt_vis(&self, vis: &Vis<'core>) -> Doc<'src> {

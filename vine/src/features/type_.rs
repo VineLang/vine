@@ -4,7 +4,9 @@ use crate::{
   components::{charter::Charter, lexer::Token, parser::VineParser, resolver::Resolver},
   structures::{
     ast::{Path, Span, TypeItem},
-    chart::{DefId, DefTypeKind, OpaqueTypeDef, OpaqueTypeId, TypeAliasDef, TypeAliasId},
+    chart::{
+      DefId, DefTypeKind, GenericsId, OpaqueTypeDef, OpaqueTypeId, TypeAliasDef, TypeAliasId,
+    },
     diag::Diag,
     signatures::{TypeAliasSig, TypeAliasState},
     types::{Type, TypeKind},
@@ -42,13 +44,14 @@ impl<'core> Charter<'core, '_> {
   pub(crate) fn chart_type(
     &mut self,
     parent: DefId,
+    parent_generics: GenericsId,
     span: Span,
     vis: DefId,
     member_vis: DefId,
     type_item: TypeItem<'core>,
   ) -> DefId {
     let def = self.chart_child(parent, type_item.name, member_vis, true);
-    let generics = self.chart_generics(def, type_item.generics, false);
+    let generics = self.chart_generics(def, parent_generics, type_item.generics, false);
     let kind = match type_item.ty {
       Some(ty) => {
         let alias_id = self.chart.type_aliases.push(TypeAliasDef { span, def, generics, ty });

@@ -82,6 +82,7 @@ pub struct Variant<'core> {
 #[derive(Debug, Clone)]
 pub struct ModItem<'core> {
   pub name: Ident<'core>,
+  pub generics: GenericParams<'core>,
   pub kind: ModKind<'core>,
 }
 
@@ -159,8 +160,15 @@ pub type GenericArgs<'core> = Generics<Ty<'core>, Impl<'core>>;
 #[derive(Debug, Clone)]
 pub struct Generics<T, I> {
   pub span: Span,
+  pub inherit: bool,
   pub types: Vec<T>,
   pub impls: Vec<I>,
+}
+
+impl<T, I> Generics<T, I> {
+  pub fn empty(span: Span) -> Self {
+    Generics { span, inherit: false, types: Vec::new(), impls: Vec::new() }
+  }
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -350,14 +358,6 @@ impl<'core> Path<'core> {
       }
     }
     None
-  }
-
-  pub fn take_generics(&mut self) -> GenericArgs<'core> {
-    self.generics.take().unwrap_or(Generics {
-      span: self.span,
-      types: Vec::new(),
-      impls: Vec::new(),
-    })
   }
 }
 
