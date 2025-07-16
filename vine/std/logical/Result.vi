@@ -64,7 +64,7 @@ pub mod Result {
     }
   }
 
-  #[duplicate]
+  #[become(unsafe::duplicate)]
   pub impl fork[T+, E+]: Fork[Result[T, E]] {
     fn fork(&self: &Result[T, E]) -> Result[T, E] {
       match &self {
@@ -74,7 +74,7 @@ pub mod Result {
     }
   }
 
-  #[erase]
+  #[become(unsafe::erase)]
   pub impl drop[T?, E?]: Drop[Result[T, E]] {
     fn drop(self: Result[T, E]) {
       match self {

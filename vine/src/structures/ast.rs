@@ -15,7 +15,7 @@ pub mod visit;
 pub struct Item<'core> {
   pub span: Span,
   pub vis: Vis<'core>,
-  pub attrs: Vec<Attr>,
+  pub attrs: Vec<Attr<'core>>,
   pub kind: ItemKind<'core>,
 }
 
@@ -105,7 +105,13 @@ pub struct ImplItem<'core> {
   pub name: Ident<'core>,
   pub generics: GenericParams<'core>,
   pub trait_: Trait<'core>,
-  pub items: Vec<Item<'core>>,
+  pub kind: ImplItemKind<'core>,
+}
+
+#[derive(Debug, Clone)]
+pub enum ImplItemKind<'core> {
+  Direct(Vec<Item<'core>>),
+  Indirect(Impl<'core>),
 }
 
 #[derive(Debug, Clone)]
@@ -140,18 +146,17 @@ pub enum Vis<'core> {
 }
 
 #[derive(Clone)]
-pub struct Attr {
+pub struct Attr<'core> {
   pub span: Span,
-  pub kind: AttrKind,
+  pub kind: AttrKind<'core>,
 }
 
 #[derive(Debug, Clone)]
-pub enum AttrKind {
+pub enum AttrKind<'core> {
   Builtin(Builtin),
   Main,
   Manual,
-  Duplicate,
-  Erase,
+  Become(Path<'core>),
 }
 
 pub type GenericParams<'core> = Generics<TypeParam<'core>, ImplParam<'core>>;
@@ -544,7 +549,7 @@ macro_rules! debug_kind {
   )*};
 }
 
-debug_kind!(Item<'_>, Attr, Stmt<'_>, Expr<'_>, Pat<'_>, Ty<'_>, Impl<'_>, Trait<'_>);
+debug_kind!(Item<'_>, Attr<'_>, Stmt<'_>, Expr<'_>, Pat<'_>, Ty<'_>, Impl<'_>, Trait<'_>);
 
 impl From<ErrorGuaranteed> for ExprKind<'_> {
   fn from(err: ErrorGuaranteed) -> Self {

@@ -231,7 +231,7 @@ module.exports = grammar({
       ),
 
     item_impl: $ =>
-      seq(
+      prec.right(seq(
         repeat($.attr),
         optional($.vis),
         "impl",
@@ -239,8 +239,15 @@ module.exports = grammar({
         optional($.generic_params),
         ":",
         $._trait,
-        delimited("{", "", "}", $._item),
-      ),
+        choice(
+          delimited("{", "", "}", $._item),
+          seq(
+            "=",
+            $._impl,
+            optional(";"),
+          ),
+        ),
+      )),
 
     item_use: $ =>
       prec.right(seq(
@@ -266,7 +273,8 @@ module.exports = grammar({
 
     vis: $ => seq("pub", optional(seq(".", $.ident))),
 
-    attr: $ => seq("#", "[", $.ident, optional(seq("=", $.string)), "]"),
+    attr: $ =>
+      seq("#", "[", $.ident, optional(choice(seq("=", $.string), seq("(", $.path, ")"))), "]"),
 
     generic_params: $ => generics($.ty_param, $.impl_param),
     ty_param: $ => seq($.ident, optional($.flex)),

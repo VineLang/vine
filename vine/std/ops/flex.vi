@@ -18,19 +18,19 @@ pub mod Fork {
     }
   }
 
-  #[duplicate]
+  #[become(unsafe::duplicate)]
   pub impl tuple_nil: Fork[()] {
     fn fork(&()) -> () {}
   }
 
-  #[duplicate]
+  #[become(unsafe::duplicate)]
   pub impl object_nil: Fork[{}] {
     fn fork(&{}) -> {} {
       {}
     }
   }
 
-  #[duplicate]
+  #[become(unsafe::duplicate)]
   pub impl composite[C, I, R; Composite[C, I, R], Fork[I], Fork[R]]: Fork[C] {
     fn fork(&composite: &C) -> C {
       let &(init, rest) = &composite as &(I, R);
@@ -44,17 +44,17 @@ pub mod Drop {
     fn drop(&_: &T) {}
   }
 
-  #[erase]
+  #[become(unsafe::erase)]
   pub impl tuple_nil: Drop[()] {
     fn drop(()) {}
   }
 
-  #[erase]
+  #[become(unsafe::erase)]
   pub impl object_nil: Drop[{}] {
     fn drop({}) {}
   }
 
-  #[erase]
+  #[become(unsafe::erase)]
   pub impl composite[C, I, R; Composite[C, I, R], Drop[I], Drop[R]]: Drop[C] {
     fn drop(composite: C) {
       (_, _) = composite as (I, R);

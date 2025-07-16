@@ -3,26 +3,41 @@ use vine_util::{idx::IdxVec, new_idx};
 use crate::structures::{
   chart::{
     Chart, ConcreteConstId, ConcreteFnId, ConstId, DefId, FnId, GenericsId, ImplId, TraitConstId,
-    TraitFnId,
+    TraitFnId, TraitId,
   },
   diag::ErrorGuaranteed,
   tir::{Tir, TirImpl},
 };
 
 #[derive(Debug, Default)]
-pub struct Resolutions {
+pub struct Resolutions<'core> {
   pub consts: IdxVec<ConcreteConstId, FragmentId>,
   pub fns: IdxVec<ConcreteFnId, FragmentId>,
-  pub impls: IdxVec<ImplId, Result<ResolvedImpl, ErrorGuaranteed>>,
+  pub impls: IdxVec<ImplId, Result<ResolvedImpl<'core>, ErrorGuaranteed>>,
   pub main: Option<FragmentId>,
 }
 
-#[derive(Debug, Default)]
-pub struct ResolvedImpl {
-  pub consts: IdxVec<TraitConstId, Result<ConcreteConstId, ErrorGuaranteed>>,
-  pub fns: IdxVec<TraitFnId, Result<ConcreteFnId, ErrorGuaranteed>>,
-  pub is_fork: bool,
-  pub is_drop: bool,
+#[derive(Debug)]
+pub struct ResolvedImpl<'core> {
+  pub kind: ResolvedImplKind<'core>,
+  pub trait_id: TraitId,
+  pub become_: Become,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+pub enum Become {
+  Unresolved,
+  Resolving,
+  Resolved(Option<(ImplId, Vec<usize>)>),
+}
+
+#[derive(Debug)]
+pub enum ResolvedImplKind<'core> {
+  Direct {
+    fns: IdxVec<TraitFnId, Result<ConcreteFnId, ErrorGuaranteed>>,
+    consts: IdxVec<TraitConstId, Result<ConcreteConstId, ErrorGuaranteed>>,
+  },
+  Indirect(TirImpl<'core>),
 }
 
 new_idx!(pub FragmentId);

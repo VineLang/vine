@@ -25,7 +25,7 @@ pub struct Compiler<'core> {
   pub loader: Loader<'core>,
   pub chart: Chart<'core>,
   pub sigs: Signatures<'core>,
-  pub resolutions: Resolutions,
+  pub resolutions: Resolutions<'core>,
   pub specs: Specializations<'core>,
   pub fragments: IdxVec<FragmentId, Fragment<'core>>,
   pub vir: IdxVec<FragmentId, Vir<'core>>,

@@ -271,7 +271,7 @@ impl<'core> Signatures<'core> {
   }
 }
 
-impl Resolutions {
+impl<'core> Resolutions<'core> {
   fn revert(&mut self, checkpoint: &Checkpoint) {
     let Resolutions { consts, fns, impls, main } = self;
     consts.truncate(checkpoint.concrete_consts.0);

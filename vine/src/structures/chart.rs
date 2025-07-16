@@ -4,7 +4,7 @@ use vine_util::{idx::IdxVec, new_idx};
 
 use crate::{
   features::builtin::Builtins,
-  structures::ast::{Block, Expr, Ident, ImplParam, Pat, Span, Trait, Ty, TypeParam},
+  structures::ast::{Block, Expr, Ident, Impl, ImplParam, Pat, Path, Span, Trait, Ty, TypeParam},
 };
 
 #[derive(Debug, Default)]
@@ -233,10 +233,15 @@ pub struct ImplDef<'core> {
   pub def: DefId,
   pub generics: GenericsId,
   pub trait_: Trait<'core>,
-  pub subitems: Vec<ImplSubitem<'core>>,
+  pub kind: ImplDefKind<'core>,
   pub manual: bool,
-  pub duplicate: bool,
-  pub erase: bool,
+  pub become_: Option<Path<'core>>,
+}
+
+#[derive(Debug, Clone)]
+pub enum ImplDefKind<'core> {
+  Direct(Vec<ImplSubitem<'core>>),
+  Indirect(Impl<'core>),
 }
 
 #[derive(Debug, Clone)]

@@ -6,19 +6,8 @@ use debug::Show;
 pub type Bool;
 
 pub mod Bool {
-  #[duplicate]
-  pub impl fork: Fork[Bool] {
-    fn fork(&self: &Bool) -> Bool {
-      unsafe::duplicate(&self)
-    }
-  }
-
-  #[erase]
-  pub impl drop: Drop[Bool] {
-    fn drop(self: Bool) {
-      unsafe::erase(self)
-    }
-  }
+  pub impl fork: Fork[Bool] = unsafe::duplicate;
+  pub impl drop: Drop[Bool] = unsafe::erase;
 
   pub impl and: And[Bool, Bool, Bool] {
     fn and(a: Bool, b: Bool) -> Bool {

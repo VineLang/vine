@@ -91,7 +91,7 @@ impl<'core> Charter<'core, '_> {
     trait_generics: GenericsId,
     fns: &mut IdxVec<TraitFnId, TraitFn<'core>>,
     span: Span,
-    attrs: Vec<Attr>,
+    attrs: Vec<Attr<'core>>,
     fn_item: FnItem<'core>,
   ) {
     if fn_item.body.is_some() {
@@ -120,7 +120,7 @@ impl<'core> Charter<'core, '_> {
     trait_generics: GenericsId,
     consts: &mut IdxVec<TraitConstId, TraitConst<'core>>,
     span: Span,
-    attrs: Vec<Attr>,
+    attrs: Vec<Attr<'core>>,
     const_item: ConstItem<'core>,
   ) {
     if const_item.value.is_some() {

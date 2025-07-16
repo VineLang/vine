@@ -31,7 +31,7 @@ pub struct Resolver<'core, 'a> {
   pub(crate) core: &'core Core<'core>,
   pub(crate) chart: &'a Chart<'core>,
   pub(crate) sigs: &'a mut Signatures<'core>,
-  pub(crate) resolutions: &'a mut Resolutions,
+  pub(crate) resolutions: &'a mut Resolutions<'core>,
   pub(crate) fragments: &'a mut IdxVec<FragmentId, Fragment<'core>>,
   pub(crate) types: Types<'core>,
   pub(crate) return_ty: Option<Type>,
@@ -72,7 +72,7 @@ impl<'core, 'a> Resolver<'core, 'a> {
     core: &'core Core<'core>,
     chart: &'a Chart<'core>,
     sigs: &'a mut Signatures<'core>,
-    resolutions: &'a mut Resolutions,
+    resolutions: &'a mut Resolutions<'core>,
     fragments: &'a mut IdxVec<FragmentId, Fragment<'core>>,
   ) -> Self {
     Resolver {
@@ -138,6 +138,9 @@ impl<'core, 'a> Resolver<'core, 'a> {
     }
     for id in self.chart.impls.keys_from(checkpoint.impls) {
       self.resolve_impl_def(id);
+    }
+    for id in self.chart.impls.keys_from(checkpoint.impls) {
+      self.resolve_impl_become(id);
     }
     if let Some(main_mod) = self.chart.main_mod {
       if main_mod >= checkpoint.defs {
