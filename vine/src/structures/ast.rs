@@ -111,7 +111,7 @@ pub struct ImplItem<'core> {
 #[derive(Debug, Clone)]
 pub enum ImplItemKind<'core> {
   Direct(Vec<Item<'core>>),
-  Indirect(Impl<'core>),
+  Indirect(Option<Impl<'core>>),
 }
 
 #[derive(Debug, Clone)]
@@ -156,6 +156,7 @@ pub enum AttrKind<'core> {
   Builtin(Builtin),
   Main,
   Manual,
+  Basic,
   Become(Path<'core>),
 }
 

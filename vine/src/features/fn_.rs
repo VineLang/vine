@@ -373,7 +373,7 @@ impl<'core> Resolver<'core, '_> {
     let args = args.iter().map(|arg| self.resolve_expr(arg)).collect::<Vec<_>>();
     let ret_ty = self.types.new_var(span);
     let impl_type = ImplType::Fn(func.ty, args.iter().map(|x| x.ty).collect(), ret_ty);
-    let impl_ = self.find_impl(span, &impl_type);
+    let impl_ = self.find_impl(span, &impl_type, false);
     let rel = self.rels.fns.push(FnRel::Impl(impl_));
     Ok(TirExpr::new(span, ret_ty, TirExprKind::Call(rel, Some(func), args)))
   }

@@ -184,7 +184,7 @@ pub mod Show {
     }
   }
 
-  #[manual]
+  #[basic]
   pub impl struct_[S, C; Struct[S, C], Show[C]]: Show[S] {
     fn show(&struct_: &S) -> Show {
       Show::Constructor(Struct::name, Show::show(&struct_ as &C))

@@ -137,7 +137,7 @@ impl<'core> Distiller<'core, '_> {
       return;
     };
     let mut finder = Finder::new(self.core, self.chart, self.sigs, self.def, self.generics, span);
-    let impl_ = finder.find_impl(&mut self.types, &ImplType::Trait(drop, vec![ty]));
+    let impl_ = finder.find_impl(&mut self.types, &ImplType::Trait(drop, vec![ty]), false);
     let fn_rel = self.rels.drop_rel(self.chart, impl_);
     let nil = Port { ty: self.types.nil(), kind: PortKind::Nil };
     stage.steps.push(Step::Call(fn_rel, None, vec![port], nil));

@@ -39,6 +39,6 @@ pub mod Pcg32 {
     rng
   }
 
-  pub impl fork: Fork[Pcg32] = Fork::struct_;
-  pub impl drop: Drop[Pcg32] = Drop::struct_;
+  pub impl fork: Fork[Pcg32];
+  pub impl drop: Drop[Pcg32];
 }

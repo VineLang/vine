@@ -4,8 +4,8 @@ use std::debug::Show;
 
 struct Pair[A, B]((A, B));
 
-impl show[A, B; Show[A], Show[B]]: Show[Pair[A, B]] = Show::struct_;
-impl drop[A?, B?]: Drop[Pair[A, B]] = Drop::struct_;
+impl show[A, B; Show[A], Show[B]]: Show[Pair[A, B]];
+impl drop[A?, B?]: Drop[Pair[A, B]];
 
 pub fn main(&io: &IO) {
   let the_greatest = {

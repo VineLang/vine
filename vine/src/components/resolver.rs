@@ -294,7 +294,7 @@ impl<'core, 'a> Resolver<'core, 'a> {
   pub(crate) fn resolve_impl_type(&mut self, impl_: &Impl<'core>, ty: &ImplType) -> TirImpl<'core> {
     let span = impl_.span;
     match &*impl_.kind {
-      ImplKind::Hole => self.find_impl(span, ty),
+      ImplKind::Hole => self.find_impl(span, ty, false),
       ImplKind::Path(path) => self.resolve_impl_path(path, ty),
       ImplKind::Fn(path) => self.resolve_impl_fn(path, ty),
       ImplKind::Error(err) => TirImpl::Error(*err),
@@ -305,9 +305,10 @@ impl<'core, 'a> Resolver<'core, 'a> {
     Finder::new(self.core, self.chart, self.sigs, self.cur_def, self.cur_generics, span)
   }
 
-  pub(crate) fn find_impl(&mut self, span: Span, ty: &ImplType) -> TirImpl<'core> {
-    Finder::new(self.core, self.chart, self.sigs, self.cur_def, self.cur_generics, span)
-      .find_impl(&mut self.types, ty)
+  pub(crate) fn find_impl(&mut self, span: Span, ty: &ImplType, basic: bool) -> TirImpl<'core> {
+    let mut finder =
+      Finder::new(self.core, self.chart, self.sigs, self.cur_def, self.cur_generics, span);
+    finder.find_impl(&mut self.types, ty, basic)
   }
 
   pub(crate) fn bind(&mut self, ident: Ident<'core>, binding: Binding) {

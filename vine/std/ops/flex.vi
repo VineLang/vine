@@ -38,7 +38,7 @@ pub mod Fork {
     }
   }
 
-  #[manual]
+  #[basic]
   #[become(unsafe::duplicate)]
   pub impl struct_[S, C; Struct[S, C], Fork[C]]: Fork[S] {
     fn fork(&struct_: &S) -> S {
@@ -70,7 +70,7 @@ pub mod Drop {
     }
   }
 
-  #[manual]
+  #[basic]
   #[become(unsafe::erase)]
   pub impl struct_[S, C; Struct[S, C], Drop[C]]: Drop[S] {
     fn drop(struct_: S) {

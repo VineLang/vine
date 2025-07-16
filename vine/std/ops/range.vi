@@ -24,8 +24,8 @@ pub mod Bound {
       }
     }
 
-    pub impl fork: Fork[Unbounded] = Fork::struct_;
-    pub impl drop: Drop[Unbounded] = Drop::struct_;
+    pub impl fork: Fork[Unbounded];
+    pub impl drop: Drop[Unbounded];
   }
 
   pub mod Inclusive {
@@ -38,8 +38,8 @@ pub mod Bound {
       }
     }
 
-    pub impl fork[T+]: Fork[Inclusive[T]] = Fork::struct_;
-    pub impl drop[T?]: Drop[Inclusive[T]] = Drop::struct_;
+    pub impl fork[T+]: Fork[Inclusive[T]];
+    pub impl drop[T?]: Drop[Inclusive[T]];
   }
 
   pub mod Exclusive {
@@ -52,8 +52,8 @@ pub mod Bound {
       }
     }
 
-    pub impl fork[T+]: Fork[Exclusive[T]] = Fork::struct_;
-    pub impl drop[T?]: Drop[Exclusive[T]] = Drop::struct_;
+    pub impl fork[T+]: Fork[Exclusive[T]];
+    pub impl drop[T?]: Drop[Exclusive[T]];
   }
 }
 
@@ -65,6 +65,6 @@ pub mod Range {
     start.left_of(&value) && end.right_of(&value)
   }
 
-  pub impl fork[B1+, B2+]: Fork[Range[B1, B2]] = Fork::struct_;
-  pub impl drop[B1?, B2?]: Drop[Range[B1, B2]] = Drop::struct_;
+  pub impl fork[B1+, B2+]: Fork[Range[B1, B2]];
+  pub impl drop[B1?, B2?]: Drop[Range[B1, B2]];
 }

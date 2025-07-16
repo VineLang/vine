@@ -235,13 +235,14 @@ pub struct ImplDef<'core> {
   pub trait_: Trait<'core>,
   pub kind: ImplDefKind<'core>,
   pub manual: bool,
+  pub basic: bool,
   pub become_: Option<Path<'core>>,
 }
 
 #[derive(Debug, Clone)]
 pub enum ImplDefKind<'core> {
   Direct(Vec<ImplSubitem<'core>>),
-  Indirect(Impl<'core>),
+  Indirect(Option<Impl<'core>>),
 }
 
 #[derive(Debug, Clone)]

@@ -21,6 +21,6 @@ pub mod Fused {
     }
   }
 
-  pub impl fork[I+]: Fork[Fused[I]] = Fork::struct_;
-  pub impl drop[I?]: Drop[Fused[I]] = Drop::struct_;
+  pub impl fork[I+]: Fork[Fused[I]];
+  pub impl drop[I?]: Drop[Fused[I]];
 }

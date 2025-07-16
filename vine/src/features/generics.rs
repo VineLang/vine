@@ -328,7 +328,7 @@ impl<'core> Resolver<'core, '_> {
       let impl_params_types =
         self.types.import(&self.sigs.impl_params[generics_id].types, Some(&type_params));
       if args.impls.is_empty() {
-        impl_params_types.into_iter().map(|ty| self.find_impl(args.span, &ty)).collect()
+        impl_params_types.into_iter().map(|ty| self.find_impl(args.span, &ty, false)).collect()
       } else {
         impl_params_types
           .into_iter()

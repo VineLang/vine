@@ -242,8 +242,7 @@ module.exports = grammar({
         choice(
           delimited("{", "", "}", $._item),
           seq(
-            "=",
-            $._impl,
+            optional(seq("=", $._impl)),
             optional(";"),
           ),
         ),
