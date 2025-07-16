@@ -263,15 +263,8 @@ pub mod Map[K, V; Ord[K]] {
       }
     }
 
-    pub impl fork[...]: Fork[Iter[K, V]] {
-      fn fork(&Iter[K, V](node, stack)) -> Iter[K, V] {
-        Iter(node.fork(), stack.fork())
-      }
-    }
-
-    pub impl drop[...]: Drop[Iter[K, V]] {
-      fn drop(Iter[K, V](_)) {}
-    }
+    pub impl fork[...]: Fork[Iter[K, V]] = Fork::struct_;
+    pub impl drop[...]: Drop[Iter[K, V]] = Drop::struct_;
   }
 
   pub fn .into_iter[...](self: Map[K, V]) -> IntoIter[K, V] {
@@ -302,15 +295,8 @@ pub mod Map[K, V; Ord[K]] {
       }
     }
 
-    pub impl fork[K+, V+]: Fork[IntoIter[K, V]] {
-      fn fork(&IntoIter[K, V](node, stack)) -> IntoIter[K, V] {
-        IntoIter(node.fork(), stack.fork())
-      }
-    }
-
-    pub impl drop[K?, V?]: Drop[IntoIter[K, V]] {
-      fn drop(IntoIter[K, V](_)) {}
-    }
+    pub impl fork[K+, V+]: Fork[Iter[K, V]] = Fork::struct_;
+    pub impl drop[K?, V?]: Drop[Iter[K, V]] = Drop::struct_;
   }
 
   pub impl to_list[...]: Cast[Map[K, V], List[(K, V)]] {

@@ -2,6 +2,11 @@
 use std::data::Map;
 use std::debug::Show;
 
+struct Pair[A, B]((A, B));
+
+impl show[A, B; Show[A], Show[B]]: Show[Pair[A, B]] = Show::struct_;
+impl drop[A?, B?]: Drop[Pair[A, B]] = Drop::struct_;
+
 pub fn main(&io: &IO) {
   let the_greatest = {
     a: {
@@ -32,7 +37,7 @@ pub fn main(&io: &IO) {
         [[[[[]]]], [[[], []]], [[[[]]]]],
         [[], [[[[], [[[[((), ((),), ((), ()), ((), (), ()))]]]]]], [], [], [[]]]],
       ],
-      b: (List::new(9, "Woah"), List::new(9, "Woah"!)),
+      b: Pair(List::new(9, "Woah"), List::new(9, "Woah"!)),
       c: [Some(Ok(true)), Some(Err(false)), None],
     },
   };

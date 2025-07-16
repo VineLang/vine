@@ -1,7 +1,7 @@
 
 use ops::Cast;
 use data::List as List_;
-use derive::{Object as Object_, Tuple as Tuple_};
+use derive::{Object as Object_, Struct, Tuple as Tuple_};
 
 pub trait Show[T] {
   fn .show(self: &T) -> Show;
@@ -181,6 +181,13 @@ pub mod Show {
         let &(init, rest) = &object as &(I, R);
         [(Show::Literal(Object_::key), init.show())] ++ rest.show_object()
       }
+    }
+  }
+
+  #[manual]
+  pub impl struct_[S, C; Struct[S, C], Show[C]]: Show[S] {
+    fn show(&struct_: &S) -> Show {
+      Show::Constructor(Struct::name, Show::show(&struct_ as &C))
     }
   }
 }

@@ -236,15 +236,8 @@ pub mod List {
       }
     }
 
-    pub impl fork[T]: Fork[Iter[T]] {
-      fn fork(&Iter[T](len, &buf, &full)) -> Iter[T] {
-        Iter(len, &buf, &full)
-      }
-    }
-
-    pub impl drop[T]: Drop[Iter[T]] {
-      fn drop(Iter[T](len, &_, &_)) {}
-    }
+    pub impl fork[T]: Fork[Iter[T]] = Fork::struct_;
+    pub impl drop[T]: Drop[Iter[T]] = Drop::struct_;
 
     pub fn .tail[T](&Iter[T](len, &buf, &(full_len, end))) -> &List[T] {
       full_len -= len;
@@ -273,15 +266,8 @@ pub mod List {
       }
     }
 
-    pub impl fork[T+]: Fork[IntoIter[T]] {
-      fn fork(&IntoIter[T](list)) -> IntoIter[T] {
-        IntoIter(list)
-      }
-    }
-
-    pub impl drop[T?]: Drop[IntoIter[T]] {
-      fn drop(IntoIter[T](_)) {}
-    }
+    pub impl fork[T+]: Fork[IntoIter[T]] = Fork::struct_;
+    pub impl drop[T?]: Drop[IntoIter[T]] = Drop::struct_;
 
     pub impl to_list[T]: Cast[IntoIter[T], List[T]] {
       fn cast(IntoIter[T](list)) -> List[T] {
