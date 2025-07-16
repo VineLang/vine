@@ -46,6 +46,8 @@ pub mod Fork {
       content as S
     }
   }
+
+  pub impl never: Fork[!] = unsafe::duplicate;
 }
 
 pub mod Drop {
@@ -77,4 +79,6 @@ pub mod Drop {
       _ = struct_ as C;
     }
   }
+
+  pub impl never: Drop[!] = unsafe::erase;
 }

@@ -199,6 +199,7 @@ pub trait VisitMut<'core, 'a> {
   fn _visit_type(&mut self, ty: &'a mut Ty<'core>) {
     match &mut *ty.kind {
       TyKind::Hole => {}
+      TyKind::Never => {}
       TyKind::Paren(t) | TyKind::Ref(t) | TyKind::Inverse(t) => self.visit_type(t),
       TyKind::Path(p) | TyKind::Fn(p) => self.visit(&mut p.generics),
       TyKind::Tuple(a) => {

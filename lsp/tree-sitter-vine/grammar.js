@@ -597,6 +597,7 @@ module.exports = grammar({
     _ty: $ =>
       choice(
         $.ty_hole,
+        $.ty_never,
         $.ty_paren,
         $.ty_fn,
         $.ty_tuple,
@@ -607,6 +608,7 @@ module.exports = grammar({
       ),
 
     ty_hole: $ => "_",
+    ty_never: $ => "!",
     ty_paren: $ => seq("(", $._ty, ")"),
     ty_fn: $ => seq("fn", $.path),
     ty_tuple: $ => tuple($._ty),
