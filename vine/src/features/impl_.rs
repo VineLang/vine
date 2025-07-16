@@ -424,11 +424,29 @@ impl<'core> Resolver<'core, '_> {
   pub(crate) fn resolve_impl_path_impl(
     &mut self,
     path: &Path<'core>,
-    id: ImplId,
-  ) -> (ImplType, TirImpl<'core>) {
-    let (type_params, impl_params) =
-      self.resolve_generics(path, self.chart.impls[id].generics, true);
-    let ty = self.types.import(&self.sigs.impls[id], Some(&type_params)).ty;
-    (ty, TirImpl::Def(id, impl_params))
+    impl_id: ImplId,
+    ty: &ImplType,
+  ) -> TirImpl<'core> {
+    let generics_id = self.chart.impls[impl_id].generics;
+    let type_params =
+      self.types.new_vars(path.span, self.sigs.type_params[generics_id].params.len());
+    let actual_ty = self.types.import(&self.sigs.impls[impl_id], Some(&type_params)).ty;
+    _ = self.types.unify_impl_type(&actual_ty, ty);
+    let (type_params, impl_params) = self._resolve_generics(
+      path.span,
+      path.generics.as_ref(),
+      generics_id,
+      true,
+      Some(type_params),
+    );
+    let actual_ty = self.types.import(&self.sigs.impls[impl_id], Some(&type_params)).ty;
+    if self.types.unify_impl_type(&actual_ty, ty).is_failure() {
+      self.core.report(Diag::ExpectedTypeFound {
+        span: path.span,
+        expected: self.types.show_impl_type(self.chart, ty),
+        found: self.types.show_impl_type(self.chart, &actual_ty),
+      });
+    }
+    TirImpl::Def(impl_id, impl_params)
   }
 }

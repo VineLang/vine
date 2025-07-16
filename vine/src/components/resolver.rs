@@ -295,30 +295,9 @@ impl<'core, 'a> Resolver<'core, 'a> {
     let span = impl_.span;
     match &*impl_.kind {
       ImplKind::Hole => self.find_impl(span, ty),
-      _ => {
-        let (found_ty, impl_) = self.resolve_impl(impl_);
-        if self.types.unify_impl_type(&found_ty, ty).is_failure() {
-          self.core.report(Diag::ExpectedTypeFound {
-            span,
-            expected: self.types.show_impl_type(self.chart, ty),
-            found: self.types.show_impl_type(self.chart, &found_ty),
-          });
-        }
-        impl_
-      }
-    }
-  }
-
-  fn resolve_impl(&mut self, impl_: &Impl<'core>) -> (ImplType, TirImpl<'core>) {
-    let span = impl_.span;
-    match &*impl_.kind {
-      ImplKind::Path(path) => self.resolve_impl_path(path),
-      ImplKind::Hole => {
-        let err = self.core.report(Diag::UnspecifiedImpl { span });
-        (ImplType::Error(err), TirImpl::Error(err))
-      }
-      ImplKind::Fn(path) => self.resolve_impl_fn(path),
-      ImplKind::Error(err) => (ImplType::Error(*err), TirImpl::Error(*err)),
+      ImplKind::Path(path) => self.resolve_impl_path(path, ty),
+      ImplKind::Fn(path) => self.resolve_impl_fn(path, ty),
+      ImplKind::Error(err) => TirImpl::Error(*err),
     }
   }
 
