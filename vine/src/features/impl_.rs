@@ -436,6 +436,7 @@ impl<'core> Resolver<'core, '_> {
     let type_params =
       self.types.new_vars(path.span, self.sigs.type_params[generics_id].params.len());
     let actual_ty = self.types.import(&self.sigs.impls[impl_id], Some(&type_params)).ty;
+    // just need inference; errors will be reported later
     _ = self.types.unify_impl_type(&actual_ty, ty);
     let (type_params, impl_params) = self._resolve_generics(
       path.span,
