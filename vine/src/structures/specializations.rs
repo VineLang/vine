@@ -21,7 +21,8 @@ pub struct Specializations<'core> {
 
   pub composite_deconstruct: IntMap<usize, SpecId>,
   pub composite_reconstruct: IntMap<usize, SpecId>,
-  pub object_key: HashMap<Ident<'core>, SpecId>,
+  pub ident_const: HashMap<Ident<'core>, SpecId>,
+  pub identity: Option<SpecId>,
 }
 
 impl<'core> Specializations<'core> {
@@ -56,6 +57,7 @@ pub enum ImplTree<'core> {
   DropClosure(FragmentId, Vec<ImplTree<'core>>, ClosureId),
   Tuple(usize),
   Object(Ident<'core>, usize),
+  Struct(Ident<'core>),
 }
 
 impl<'core> Spec<'core> {

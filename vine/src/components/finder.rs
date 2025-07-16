@@ -492,6 +492,20 @@ impl<'core, 'a> Finder<'core, 'a> {
             }
           }
         }
+        if Some(*trait_id) == self.chart.builtins.struct_ {
+          if let Some((Inverted(false), TypeKind::Struct(struct_id, struct_params))) =
+            types.kind(type_params[0])
+          {
+            let struct_ = &self.chart.structs[*struct_id];
+            if self.chart.visible(struct_.data_vis, self.source) {
+              let mut types = types.clone();
+              let content = types.import(&self.sigs.structs[*struct_id], Some(struct_params)).data;
+              if types.unify(content, type_params[1]).is_success() {
+                found.push(TypeCtx { types, inner: TirImpl::Struct(struct_.name) });
+              }
+            }
+          }
+        }
       }
       ImplType::Error(_) => {}
     }

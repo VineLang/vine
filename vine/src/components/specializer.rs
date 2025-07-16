@@ -97,7 +97,8 @@ impl<'core, 'a> Specializer<'core, 'a> {
                 }
               }
             }
-            ImplTree::Object(ident, _) => Ok(self.object_key(ident)),
+            ImplTree::Object(ident, _) => Ok(self.ident_const(ident)),
+            ImplTree::Struct(ident) => Ok(self.ident_const(ident)),
           };
         }
       }
@@ -123,7 +124,8 @@ impl<'core, 'a> Specializer<'core, 'a> {
           | ImplTree::ForkClosure(..)
           | ImplTree::DropClosure(..)
           | ImplTree::Tuple(..)
-          | ImplTree::Object(..) => {
+          | ImplTree::Object(..)
+          | ImplTree::Struct(..) => {
             unreachable!()
           }
           ImplTree::Fn(fn_id, impls) => self.instantiate_fn_id(fragment_id, args, fn_id, impls),
@@ -189,6 +191,7 @@ impl<'core, 'a> Specializer<'core, 'a> {
               TraitFnId(1) => Ok((self.composite_reconstruct(len), StageId(0))),
               _ => unreachable!(),
             },
+            ImplTree::Struct(_) => Ok((self.identity(), StageId(0))),
             ImplTree::Error(err) => Err(err),
             ImplTree::Fn(..) | ImplTree::Closure(..) => unreachable!(),
           };
@@ -215,11 +218,20 @@ impl<'core, 'a> Specializer<'core, 'a> {
     })
   }
 
-  fn object_key(&mut self, key: Ident<'core>) -> SpecId {
-    *self.specs.object_key.entry(key).or_insert_with(|| {
-      let path_owned = format!("::auto:object_key:{}", key.0 .0);
+  fn ident_const(&mut self, key: Ident<'core>) -> SpecId {
+    *self.specs.ident_const.entry(key).or_insert_with(|| {
+      let path_owned = format!("::auto:ident_const:{}", key.0 .0);
       let path = self.core.alloc_str(&path_owned);
-      self.nets.insert(path_owned, Emitter::object_key(key));
+      self.nets.insert(path_owned, Emitter::ident_const(key));
+      self.specs.specs.push(Some(Spec::synthetic(path)))
+    })
+  }
+
+  fn identity(&mut self) -> SpecId {
+    *self.specs.identity.get_or_insert_with(|| {
+      let path_owned = "::auto:identity".to_owned();
+      let path = self.core.alloc_str(&path_owned);
+      self.nets.insert(path_owned, Emitter::identity());
       self.specs.specs.push(Some(Spec::synthetic(path)))
     })
   }
@@ -275,6 +287,7 @@ impl<'core, 'a> Specializer<'core, 'a> {
       TirImpl::DropClosure(id) => ImplTree::DropClosure(fragment_id, args.clone(), *id),
       TirImpl::Tuple(len) => ImplTree::Tuple(*len),
       TirImpl::Object(key, len) => ImplTree::Object(*key, *len),
+      TirImpl::Struct(name) => ImplTree::Struct(*name),
     }
   }
 }

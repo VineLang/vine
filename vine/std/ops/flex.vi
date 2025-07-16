@@ -1,5 +1,5 @@
 
-use derive::Composite;
+use derive::{Composite, Struct};
 
 #[builtin = "Fork"]
 pub trait Fork[T] {
@@ -37,6 +37,15 @@ pub mod Fork {
       (init, rest) as C
     }
   }
+
+  #[manual]
+  #[become(unsafe::duplicate)]
+  pub impl struct_[S, C; Struct[S, C], Fork[C]]: Fork[S] {
+    fn fork(&struct_: &S) -> S {
+      let &content = &struct_ as &C;
+      content as S
+    }
+  }
 }
 
 pub mod Drop {
@@ -58,6 +67,14 @@ pub mod Drop {
   pub impl composite[C, I, R; Composite[C, I, R], Drop[I], Drop[R]]: Drop[C] {
     fn drop(composite: C) {
       (_, _) = composite as (I, R);
+    }
+  }
+
+  #[manual]
+  #[become(unsafe::erase)]
+  pub impl struct_[S, C; Struct[S, C], Drop[C]]: Drop[S] {
+    fn drop(struct_: S) {
+      _ = struct_ as C;
     }
   }
 }

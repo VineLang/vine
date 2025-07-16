@@ -176,6 +176,7 @@ pub enum TirImpl<'core> {
   DropClosure(ClosureId),
   Tuple(usize),
   Object(Ident<'core>, usize),
+  Struct(Ident<'core>),
 }
 
 impl TirExpr {

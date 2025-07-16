@@ -42,6 +42,7 @@ pub enum Builtin {
   Advance,
   Tuple,
   Object,
+  Struct,
 }
 
 impl<'core> VineParser<'core, '_> {
@@ -94,6 +95,7 @@ impl<'core> VineParser<'core, '_> {
       "advance" => Builtin::Advance,
       "Tuple" => Builtin::Tuple,
       "Object" => Builtin::Object,
+      "Struct" => Builtin::Struct,
       _ => Err(Diag::BadBuiltin { span })?,
     })
   }
@@ -136,6 +138,7 @@ pub struct Builtins {
 
   pub tuple: Option<TraitId>,
   pub object: Option<TraitId>,
+  pub struct_: Option<TraitId>,
 }
 
 impl<'core> Charter<'core, '_> {
@@ -206,6 +209,7 @@ impl<'core> Charter<'core, '_> {
       Builtin::Advance => set(&mut builtins.advance, fn_id),
       Builtin::Tuple => set(&mut builtins.tuple, trait_id),
       Builtin::Object => set(&mut builtins.object, trait_id),
+      Builtin::Struct => set(&mut builtins.struct_, trait_id),
     }
   }
 }

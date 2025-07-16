@@ -60,3 +60,24 @@ pub mod Composite {
     }
   }
 }
+
+#[builtin = "Struct"]
+pub trait Struct[Struct, Content] {
+  const name: String;
+  fn deconstruct(struct_: Struct) -> Content;
+  fn reconstruct(content: Content) -> Struct;
+}
+
+pub mod Struct {
+  pub impl cast_deconstruct[S, C; Struct[S, C]]: Cast[S, C] {
+    fn cast(struct_: S) -> C {
+      Struct::deconstruct(struct_)
+    }
+  }
+
+  pub impl cast_reconstruct[S, C; Struct[S, C]]: Cast[C, S] {
+    fn cast(content: C) -> S {
+      Struct::reconstruct(content)
+    }
+  }
+}
