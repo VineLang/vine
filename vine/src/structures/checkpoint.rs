@@ -277,7 +277,6 @@ impl<'core> Resolutions<'core> {
     consts.truncate(checkpoint.concrete_consts.0);
     fns.truncate(checkpoint.concrete_fns.0);
     impls.truncate(checkpoint.impls.0);
-    impls.truncate(checkpoint.impls.0);
     revert_idx(main, checkpoint.fragments);
   }
 }
