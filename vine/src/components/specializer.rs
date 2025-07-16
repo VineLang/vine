@@ -92,7 +92,7 @@ impl<'core, 'a> Specializer<'core, 'a> {
                   Ok(self.specialize(self.resolutions.consts[consts[const_id]?], impls))
                 }
                 ResolvedImplKind::Indirect(next_impl) => {
-                  impl_ = self.instantiate(fragment_id, args, next_impl);
+                  impl_ = self.instantiate(fragment_id, &inner_impls, next_impl);
                   continue;
                 }
               }
@@ -114,7 +114,7 @@ impl<'core, 'a> Specializer<'core, 'a> {
     match fn_rel {
       &FnRel::Item(fn_id, ref impls) => {
         let impls = impls.iter().map(|x| self.instantiate(fragment_id, args, x)).collect();
-        self.instantiate_fn_id(fragment_id, args, fn_id, impls)
+        self.instantiate_fn_id(fragment_id, fn_id, impls)
       }
       FnRel::Impl(impl_) => {
         let impl_ = self.instantiate(fragment_id, args, impl_);
@@ -128,7 +128,7 @@ impl<'core, 'a> Specializer<'core, 'a> {
           | ImplTree::Struct(..) => {
             unreachable!()
           }
-          ImplTree::Fn(fn_id, impls) => self.instantiate_fn_id(fragment_id, args, fn_id, impls),
+          ImplTree::Fn(fn_id, impls) => self.instantiate_fn_id(fragment_id, fn_id, impls),
           ImplTree::Closure(fragment_id, impls, closure_id) => Ok((
             self.specialize(fragment_id, impls),
             self._closure_stage(fragment_id, Some(closure_id)),
@@ -141,7 +141,6 @@ impl<'core, 'a> Specializer<'core, 'a> {
   fn instantiate_fn_id(
     &mut self,
     fragment_id: FragmentId,
-    args: &Vec<ImplTree<'core>>,
     fn_id: FnId,
     mut impls: Vec<ImplTree<'core>>,
   ) -> Result<(SpecId, StageId), ErrorGuaranteed> {
@@ -165,7 +164,7 @@ impl<'core, 'a> Specializer<'core, 'a> {
                   ))
                 }
                 ResolvedImplKind::Indirect(next_impl) => {
-                  impl_ = self.instantiate(fragment_id, args, next_impl);
+                  impl_ = self.instantiate(fragment_id, &inner_impls, next_impl);
                   continue;
                 }
               }
