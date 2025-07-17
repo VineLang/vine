@@ -21,15 +21,6 @@ pub mod Fused {
     }
   }
 
-  #[become(unsafe::duplicate)]
-  pub impl fork[I+]: Fork[Fused[I]] {
-    fn fork(&Fused[I](inner)) -> Fused[I] {
-      Fused(inner)
-    }
-  }
-
-  #[become(unsafe::erase)]
-  pub impl drop[I?]: Drop[Fused[I]] {
-    fn drop(Fused[I](_)) {}
-  }
+  pub impl fork[I+]: Fork[Fused[I]];
+  pub impl drop[I?]: Drop[Fused[I]];
 }

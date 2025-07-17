@@ -295,7 +295,7 @@ impl<'core, 'a> Emitter<'core, 'a> {
     }
   }
 
-  pub(crate) fn object_key(key: Ident<'core>) -> Net {
+  pub(crate) fn ident_const(key: Ident<'core>) -> Net {
     let str = key.0 .0;
     Net {
       root: Tree::n_ary(
@@ -309,6 +309,13 @@ impl<'core, 'a> Emitter<'core, 'a> {
           Tree::Var("x".into()),
         ],
       ),
+      pairs: vec![],
+    }
+  }
+
+  pub(crate) fn identity() -> Net {
+    Net {
+      root: Tree::n_ary("fn", [Tree::Erase, Tree::Var("x".into()), Tree::Var("x".into())]),
       pairs: vec![],
     }
   }

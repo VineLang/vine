@@ -159,6 +159,13 @@ impl<'core> Charter<'core, '_> {
           };
           self.chart.impls[impl_id].manual = true;
         }
+        AttrKind::Basic => {
+          let Some(impl_id) = impl_id else {
+            self.core.report(Diag::BadBasicAttr { span });
+            continue;
+          };
+          self.chart.impls[impl_id].basic = true;
+        }
         AttrKind::Become(path) => {
           let Some(impl_id) = impl_id else {
             self.core.report(Diag::BadBecomeAttr { span });

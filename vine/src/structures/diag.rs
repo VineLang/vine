@@ -230,6 +230,8 @@ diags! {
     ["variable of type `{ty}` read whilst uninitialized"]
   BadManualAttr
     ["the `#[manual]` attribute can only be applied to an impl"]
+  BadBasicAttr
+    ["the `#[basic]` attribute can only be applied to an impl"]
   BadBecomeAttr
     ["the `#[become]` attribute can only be applied to an impl"]
   DuplicateBecomeAttr

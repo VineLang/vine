@@ -300,20 +300,25 @@ impl<'core> Resolver<'core, '_> {
     }
   }
 
-  pub(crate) fn resolve_impl_path(&mut self, path: &Path<'core>) -> (ImplType, TirImpl<'core>) {
+  pub(crate) fn resolve_impl_path(&mut self, path: &Path<'core>, ty: &ImplType) -> TirImpl<'core> {
     if let Some(ident) = path.as_ident() {
       let impl_params = &self.sigs.impl_params[self.cur_generics];
       if let Some(&index) = impl_params.lookup.get(&ident) {
-        let ty = self.types.import_with(&impl_params.types, None, |t, tys| t.transfer(&tys[index]));
-        return (ty, TirImpl::Param(index));
+        let actual_ty =
+          self.types.import_with(&impl_params.types, None, |t, tys| t.transfer(&tys[index]));
+        if self.types.unify_impl_type(&actual_ty, ty).is_failure() {
+          self.core.report(Diag::ExpectedTypeFound {
+            span: path.span,
+            expected: self.types.show_impl_type(self.chart, ty),
+            found: self.types.show_impl_type(self.chart, &actual_ty),
+          });
+        }
+        return TirImpl::Param(index);
       }
     }
     match self.resolve_path(self.cur_def, path, "impl", |d| d.impl_kind) {
-      Ok(DefImplKind::Impl(id)) => self.resolve_impl_path_impl(path, id),
-      Err(diag) => {
-        let err = self.core.report(diag);
-        (ImplType::Error(err), TirImpl::Error(err))
-      }
+      Ok(DefImplKind::Impl(id)) => self.resolve_impl_path_impl(path, id, ty),
+      Err(diag) => TirImpl::Error(self.core.report(diag)),
     }
   }
 }

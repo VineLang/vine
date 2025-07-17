@@ -32,13 +32,13 @@ impl<'core> VineParser<'core, '_> {
     let generics = self.parse_generic_params()?;
     self.expect(Token::Colon)?;
     let trait_ = self.parse_trait()?;
-    let kind = if self.eat(Token::Eq)? {
-      let impl_ = self.parse_impl()?;
-      self.expect(Token::Semi)?;
-      ImplItemKind::Indirect(impl_)
-    } else {
+    let kind = if self.check(Token::OpenBrace) {
       let items = self.parse_delimited(BRACE, Self::parse_item)?;
       ImplItemKind::Direct(items)
+    } else {
+      let impl_ = self.eat_then(Token::Eq, Self::parse_impl)?;
+      self.expect(Token::Semi)?;
+      ImplItemKind::Indirect(impl_)
     };
     Ok(ImplItem { name, generics, trait_, kind })
   }
@@ -52,12 +52,15 @@ impl<'core: 'src, 'src> Formatter<'src> {
       self.fmt_generic_params(&i.generics),
       Doc(": "),
       self.fmt_trait(&i.trait_),
-      Doc(" "),
       match &i.kind {
-        ImplItemKind::Direct(items) => {
-          self.fmt_block_like(span, items.iter().map(|i| (i.span, self.fmt_item(i))))
+        ImplItemKind::Direct(items) => Doc::concat([
+          Doc(" "),
+          self.fmt_block_like(span, items.iter().map(|i| (i.span, self.fmt_item(i)))),
+        ]),
+        ImplItemKind::Indirect(Some(impl_)) => {
+          Doc::concat([Doc(" = "), self.fmt_impl(impl_), Doc(";")])
         }
-        ImplItemKind::Indirect(impl_) => Doc::concat([Doc("= "), self.fmt_impl(impl_), Doc(";")]),
+        ImplItemKind::Indirect(None) => Doc(";"),
       },
     ])
   }
@@ -111,6 +114,7 @@ impl<'core> Charter<'core, '_> {
       trait_: impl_item.trait_,
       kind,
       manual: false,
+      basic: false,
       become_: None,
     });
     self.define_impl(span, def, vis, DefImplKind::Impl(impl_id));
@@ -214,9 +218,10 @@ impl<'core> Resolver<'core, '_> {
             }
             ResolvedImplKind::Direct { fns, consts }
           }
-          ImplDefKind::Indirect(impl_) => {
-            ResolvedImplKind::Indirect(self.resolve_impl_type(impl_, &ty))
-          }
+          ImplDefKind::Indirect(impl_) => ResolvedImplKind::Indirect(match impl_ {
+            Some(impl_) => self.resolve_impl_type(impl_, &ty),
+            None => self.find_impl(span, &ty, true),
+          }),
         };
         Ok(ResolvedImpl { kind, trait_id: *trait_id, become_: Become::Unresolved })
       }
@@ -424,11 +429,30 @@ impl<'core> Resolver<'core, '_> {
   pub(crate) fn resolve_impl_path_impl(
     &mut self,
     path: &Path<'core>,
-    id: ImplId,
-  ) -> (ImplType, TirImpl<'core>) {
-    let (type_params, impl_params) =
-      self.resolve_generics(path, self.chart.impls[id].generics, true);
-    let ty = self.types.import(&self.sigs.impls[id], Some(&type_params)).ty;
-    (ty, TirImpl::Def(id, impl_params))
+    impl_id: ImplId,
+    ty: &ImplType,
+  ) -> TirImpl<'core> {
+    let generics_id = self.chart.impls[impl_id].generics;
+    let type_params =
+      self.types.new_vars(path.span, self.sigs.type_params[generics_id].params.len());
+    let actual_ty = self.types.import(&self.sigs.impls[impl_id], Some(&type_params)).ty;
+    // just need inference; errors will be reported later
+    _ = self.types.unify_impl_type(&actual_ty, ty);
+    let (type_params, impl_params) = self._resolve_generics(
+      path.span,
+      path.generics.as_ref(),
+      generics_id,
+      true,
+      Some(type_params),
+    );
+    let actual_ty = self.types.import(&self.sigs.impls[impl_id], Some(&type_params)).ty;
+    if self.types.unify_impl_type(&actual_ty, ty).is_failure() {
+      self.core.report(Diag::ExpectedTypeFound {
+        span: path.span,
+        expected: self.types.show_impl_type(self.chart, ty),
+        found: self.types.show_impl_type(self.chart, &actual_ty),
+      });
+    }
+    TirImpl::Def(impl_id, impl_params)
   }
 }

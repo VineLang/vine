@@ -24,17 +24,8 @@ pub mod Bound {
       }
     }
 
-    #[become(unsafe::duplicate)]
-    pub impl fork: Fork[Unbounded] {
-      fn fork(&Unbounded(())) -> Unbounded {
-        Unbounded(())
-      }
-    }
-
-    #[become(unsafe::erase)]
-    pub impl drop: Drop[Unbounded] {
-      fn drop(Unbounded(())) {}
-    }
+    pub impl fork: Fork[Unbounded];
+    pub impl drop: Drop[Unbounded];
   }
 
   pub mod Inclusive {
@@ -47,17 +38,8 @@ pub mod Bound {
       }
     }
 
-    #[become(unsafe::duplicate)]
-    pub impl fork[T+]: Fork[Inclusive[T]] {
-      fn fork(&Inclusive[T](bound)) -> Inclusive[T] {
-        Inclusive(bound)
-      }
-    }
-
-    #[become(unsafe::erase)]
-    pub impl drop[T?]: Drop[Inclusive[T]] {
-      fn drop(Inclusive[T](_)) {}
-    }
+    pub impl fork[T+]: Fork[Inclusive[T]];
+    pub impl drop[T?]: Drop[Inclusive[T]];
   }
 
   pub mod Exclusive {
@@ -70,17 +52,8 @@ pub mod Bound {
       }
     }
 
-    #[become(unsafe::duplicate)]
-    pub impl fork[T+]: Fork[Exclusive[T]] {
-      fn fork(&Exclusive[T](bound)) -> Exclusive[T] {
-        Exclusive(bound)
-      }
-    }
-
-    #[become(unsafe::erase)]
-    pub impl drop[T?]: Drop[Exclusive[T]] {
-      fn drop(Exclusive[T](_)) {}
-    }
+    pub impl fork[T+]: Fork[Exclusive[T]];
+    pub impl drop[T?]: Drop[Exclusive[T]];
   }
 }
 
@@ -92,15 +65,6 @@ pub mod Range {
     start.left_of(&value) && end.right_of(&value)
   }
 
-  #[become(unsafe::duplicate)]
-  pub impl fork[B1+, B2+]: Fork[Range[B1, B2]] {
-    fn fork(&Range[B1, B2](bounds)) -> Range[B1, B2] {
-      Range(bounds)
-    }
-  }
-
-  #[become(unsafe::erase)]
-  pub impl drop[B1?, B2?]: Drop[Range[B1, B2]] {
-    fn drop(Range[B1, B2](_)) {}
-  }
+  pub impl fork[B1+, B2+]: Fork[Range[B1, B2]];
+  pub impl drop[B1?, B2?]: Drop[Range[B1, B2]];
 }

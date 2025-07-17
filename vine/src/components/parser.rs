@@ -110,6 +110,7 @@ impl<'core, 'src> VineParser<'core, 'src> {
         AttrKind::Builtin(self.parse_builtin()?)
       }
       "manual" => AttrKind::Manual,
+      "basic" => AttrKind::Basic,
       "become" => {
         self.expect(Token::OpenParen)?;
         let path = self.parse_path()?;

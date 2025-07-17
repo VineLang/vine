@@ -294,31 +294,10 @@ impl<'core, 'a> Resolver<'core, 'a> {
   pub(crate) fn resolve_impl_type(&mut self, impl_: &Impl<'core>, ty: &ImplType) -> TirImpl<'core> {
     let span = impl_.span;
     match &*impl_.kind {
-      ImplKind::Hole => self.find_impl(span, ty),
-      _ => {
-        let (found_ty, impl_) = self.resolve_impl(impl_);
-        if self.types.unify_impl_type(&found_ty, ty).is_failure() {
-          self.core.report(Diag::ExpectedTypeFound {
-            span,
-            expected: self.types.show_impl_type(self.chart, ty),
-            found: self.types.show_impl_type(self.chart, &found_ty),
-          });
-        }
-        impl_
-      }
-    }
-  }
-
-  fn resolve_impl(&mut self, impl_: &Impl<'core>) -> (ImplType, TirImpl<'core>) {
-    let span = impl_.span;
-    match &*impl_.kind {
-      ImplKind::Path(path) => self.resolve_impl_path(path),
-      ImplKind::Hole => {
-        let err = self.core.report(Diag::UnspecifiedImpl { span });
-        (ImplType::Error(err), TirImpl::Error(err))
-      }
-      ImplKind::Fn(path) => self.resolve_impl_fn(path),
-      ImplKind::Error(err) => (ImplType::Error(*err), TirImpl::Error(*err)),
+      ImplKind::Hole => self.find_impl(span, ty, false),
+      ImplKind::Path(path) => self.resolve_impl_path(path, ty),
+      ImplKind::Fn(path) => self.resolve_impl_fn(path, ty),
+      ImplKind::Error(err) => TirImpl::Error(*err),
     }
   }
 
@@ -326,9 +305,10 @@ impl<'core, 'a> Resolver<'core, 'a> {
     Finder::new(self.core, self.chart, self.sigs, self.cur_def, self.cur_generics, span)
   }
 
-  pub(crate) fn find_impl(&mut self, span: Span, ty: &ImplType) -> TirImpl<'core> {
-    Finder::new(self.core, self.chart, self.sigs, self.cur_def, self.cur_generics, span)
-      .find_impl(&mut self.types, ty)
+  pub(crate) fn find_impl(&mut self, span: Span, ty: &ImplType, basic: bool) -> TirImpl<'core> {
+    let mut finder =
+      Finder::new(self.core, self.chart, self.sigs, self.cur_def, self.cur_generics, span);
+    finder.find_impl(&mut self.types, ty, basic)
   }
 
   pub(crate) fn bind(&mut self, ident: Ident<'core>, binding: Binding) {

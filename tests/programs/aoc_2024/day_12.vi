@@ -107,17 +107,8 @@ mod Regions {
     }
   }
 
-  pub impl fork: Fork[Regions] {
-    fn fork(&self: &Regions) -> Regions {
-      unsafe::duplicate(&self)
-    }
-  }
-
-  pub impl drop: Drop[Regions] {
-    fn drop(self: Regions) {
-      unsafe::erase(self)
-    }
-  }
+  pub impl fork: Fork[Regions];
+  pub impl drop: Drop[Regions];
 
   pub fn .new(&Regions(array)) -> N32 {
     let i = array.len();

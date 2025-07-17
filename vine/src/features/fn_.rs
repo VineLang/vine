@@ -334,19 +334,23 @@ impl<'core> Resolver<'core, '_> {
     )
   }
 
-  pub(crate) fn resolve_impl_fn(&mut self, path: &Path<'core>) -> (ImplType, TirImpl<'core>) {
+  pub(crate) fn resolve_impl_fn(&mut self, path: &Path<'core>, ty: &ImplType) -> TirImpl<'core> {
     match self.resolve_path(self.cur_def, path, "fn", |d| d.fn_id()) {
       Ok(fn_id) => {
         let (type_params, impl_params) =
           self.resolve_generics(path, self.chart.fn_generics(fn_id), true);
         let sig = self.types.import(self.sigs.fn_sig(fn_id), Some(&type_params));
-        let ty = ImplType::Fn(self.types.new(TypeKind::Fn(fn_id)), sig.params, sig.ret_ty);
-        (ty, TirImpl::Fn(fn_id, impl_params))
+        let actual_ty = ImplType::Fn(self.types.new(TypeKind::Fn(fn_id)), sig.params, sig.ret_ty);
+        if self.types.unify_impl_type(&actual_ty, ty).is_failure() {
+          self.core.report(Diag::ExpectedTypeFound {
+            span: path.span,
+            expected: self.types.show_impl_type(self.chart, ty),
+            found: self.types.show_impl_type(self.chart, &actual_ty),
+          });
+        }
+        TirImpl::Fn(fn_id, impl_params)
       }
-      Err(diag) => {
-        let err = self.core.report(diag);
-        (ImplType::Error(err), TirImpl::Error(err))
-      }
+      Err(diag) => TirImpl::Error(self.core.report(diag)),
     }
   }
 
@@ -369,7 +373,7 @@ impl<'core> Resolver<'core, '_> {
     let args = args.iter().map(|arg| self.resolve_expr(arg)).collect::<Vec<_>>();
     let ret_ty = self.types.new_var(span);
     let impl_type = ImplType::Fn(func.ty, args.iter().map(|x| x.ty).collect(), ret_ty);
-    let impl_ = self.find_impl(span, &impl_type);
+    let impl_ = self.find_impl(span, &impl_type, false);
     let rel = self.rels.fns.push(FnRel::Impl(impl_));
     Ok(TirExpr::new(span, ret_ty, TirExprKind::Call(rel, Some(func), args)))
   }

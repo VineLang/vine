@@ -141,7 +141,7 @@ impl<'core, 'a> Finder<'core, 'a> {
       [(fork, sub_ty), (drop, sub_ty), (fork, sub_ty.inverse()), (drop, sub_ty.inverse())].map(
         |(trait_, ty)| {
           let query = ImplType::Trait(trait_, vec![ty]);
-          let results = self._find_impl(&sub_types, &query).unwrap_or_default();
+          let results = self._find_impl(&sub_types, &query, false).unwrap_or_default();
           (query, results)
         },
       );
@@ -199,12 +199,17 @@ impl<'core, 'a> Finder<'core, 'a> {
     Ok(FlexImpls { inv, fork, drop, is_nil })
   }
 
-  pub fn find_impl(&mut self, types: &mut Types<'core>, query: &ImplType) -> TirImpl<'core> {
+  pub fn find_impl(
+    &mut self,
+    types: &mut Types<'core>,
+    query: &ImplType,
+    basic: bool,
+  ) -> TirImpl<'core> {
     let span = self.span;
     let TypeCtx { types: sub_types, inner: sub_query } = types.export(|t| t.transfer(query));
 
     let show_ty = || types.show_impl_type(self.chart, query);
-    let Ok(mut results) = self._find_impl(&sub_types, &sub_query) else {
+    let Ok(mut results) = self._find_impl(&sub_types, &sub_query, basic) else {
       return TirImpl::Error(self.core.report(Diag::SearchLimit { span, ty: show_ty() }));
     };
 
@@ -229,25 +234,28 @@ impl<'core, 'a> Finder<'core, 'a> {
     &mut self,
     types: &Types<'core>,
     query: &ImplType,
+    basic: bool,
   ) -> Result<Vec<TypeCtx<'core, TirImpl<'core>>>, Timeout> {
     self.step()?;
 
     let mut found = Vec::new();
 
-    self.find_auto_impls(types, query, &mut found)?;
+    if !basic {
+      self.find_auto_impls(types, query, &mut found)?;
 
-    let impl_params = &self.sigs.impl_params[self.generics];
-    for (i, ty) in impl_params.types.inner.iter().enumerate() {
-      if query.approx_eq(ty) {
-        let mut types = types.clone();
-        let ty = types.import_with(&impl_params.types, None, |t, _| t.transfer(ty));
-        if types.unify_impl_type(&ty, query).is_success() {
-          found.push(TypeCtx { types, inner: TirImpl::Param(i) });
+      let impl_params = &self.sigs.impl_params[self.generics];
+      for (i, ty) in impl_params.types.inner.iter().enumerate() {
+        if query.approx_eq(ty) {
+          let mut types = types.clone();
+          let ty = types.import_with(&impl_params.types, None, |t, _| t.transfer(ty));
+          if types.unify_impl_type(&ty, query).is_success() {
+            found.push(TypeCtx { types, inner: TirImpl::Param(i) });
+          }
         }
       }
     }
 
-    for candidate in self.find_impl_candidates(types, query) {
+    for candidate in self.find_impl_candidates(types, query, basic) {
       let mut types = types.clone();
       let generics = self.chart.impls[candidate].generics;
       let type_params = (0..self.sigs.type_params[generics].params.len())
@@ -289,7 +297,7 @@ impl<'core, 'a> Finder<'core, 'a> {
 
     let mut found = Vec::new();
 
-    let impls = self._find_impl(&types, query)?;
+    let impls = self._find_impl(&types, query, false)?;
     for impl_result in impls {
       let rest = self.find_subimpls(impl_result.types, rest_queries)?;
       found.extend(rest.into_iter().map(|mut subimpls_result| {
@@ -301,16 +309,24 @@ impl<'core, 'a> Finder<'core, 'a> {
     Ok(found)
   }
 
-  fn find_impl_candidates(&mut self, types: &Types<'core>, query: &ImplType) -> BTreeSet<ImplId> {
+  fn find_impl_candidates(
+    &mut self,
+    types: &Types<'core>,
+    query: &ImplType,
+    basic: bool,
+  ) -> BTreeSet<ImplId> {
     let mut candidates = BTreeSet::new();
     let search = &mut CandidateSearch {
       modules: HashSet::default(),
       consider_candidate: |self_: &Self, def: &Def| {
         if let Some(WithVis { vis, kind: DefImplKind::Impl(impl_id) }) = def.impl_kind {
-          if self_.chart.visible(vis, self_.source) && !self_.chart.impls[impl_id].manual {
-            let impl_sig = &self_.sigs.impls[impl_id];
-            if impl_sig.inner.ty.approx_eq(query) {
-              candidates.insert(impl_id);
+          if self_.chart.visible(vis, self_.source) {
+            let impl_ = &self_.chart.impls[impl_id];
+            if !impl_.manual && impl_.basic == basic {
+              let impl_sig = &self_.sigs.impls[impl_id];
+              if impl_sig.inner.ty.approx_eq(query) {
+                candidates.insert(impl_id);
+              }
             }
           }
         }
@@ -488,6 +504,20 @@ impl<'core, 'a> Finder<'core, 'a> {
                 .is_success()
               {
                 found.push(TypeCtx { types, inner: TirImpl::Object(key, entries.len()) });
+              }
+            }
+          }
+        }
+        if Some(*trait_id) == self.chart.builtins.struct_ {
+          if let Some((Inverted(false), TypeKind::Struct(struct_id, struct_params))) =
+            types.kind(type_params[0])
+          {
+            let struct_ = &self.chart.structs[*struct_id];
+            if self.chart.visible(struct_.data_vis, self.source) {
+              let mut types = types.clone();
+              let content = types.import(&self.sigs.structs[*struct_id], Some(struct_params)).data;
+              if types.unify(content, type_params[1]).is_success() {
+                found.push(TypeCtx { types, inner: TirImpl::Struct(struct_.name) });
               }
             }
           }
