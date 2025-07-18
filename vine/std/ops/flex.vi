@@ -1,5 +1,5 @@
 
-use derive::{Composite, Struct};
+use derive::{Composite, Enum, Struct, Variant};
 
 #[builtin = "Fork"]
 pub trait Fork[T] {
@@ -47,7 +47,25 @@ pub mod Fork {
     }
   }
 
+  #[basic]
+  #[become(unsafe::duplicate)]
+  pub impl enum_[E, V; Enum[E, V], Fork[V]]: Fork[E] {
+    fn fork(&self: &E) -> E {
+      Enum::match_ref(&self, fn (&variant) { Enum::reconstruct(variant) })
+    }
+  }
+
   pub impl never: Fork[!] = unsafe::duplicate;
+
+  #[become(unsafe::duplicate)]
+  pub impl variant[I+, R+]: Fork[Variant[I, R]] {
+    fn fork(&self: &Variant[I, R]) -> Variant[I, R] {
+      match &self {
+        &Variant::Init(init) { Variant::Init(init) }
+        &Variant::Rest(rest) { Variant::Rest(rest) }
+      }
+    }
+  }
 }
 
 pub mod Drop {
@@ -80,5 +98,23 @@ pub mod Drop {
     }
   }
 
+  #[basic]
+  #[become(unsafe::erase)]
+  pub impl enum_[E, V; Enum[E, V], Drop[V]]: Drop[E] {
+    fn drop(self: E) {
+      Enum::match_(self, fn (_) {})
+    }
+  }
+
   pub impl never: Drop[!] = unsafe::erase;
+
+  #[become(unsafe::erase)]
+  pub impl variant[I?, R?]: Drop[Variant[I, R]] {
+    fn drop(self: Variant[I, R]) {
+      match self {
+        Variant::Init(_) {}
+        Variant::Rest(_) {}
+      }
+    }
+  }
 }

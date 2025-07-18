@@ -43,6 +43,8 @@ pub enum Builtin {
   Tuple,
   Object,
   Struct,
+  Enum,
+  Variant,
 }
 
 impl<'core> VineParser<'core, '_> {
@@ -96,6 +98,8 @@ impl<'core> VineParser<'core, '_> {
       "Tuple" => Builtin::Tuple,
       "Object" => Builtin::Object,
       "Struct" => Builtin::Struct,
+      "Enum" => Builtin::Enum,
+      "Variant" => Builtin::Variant,
       _ => Err(Diag::BadBuiltin { span })?,
     })
   }
@@ -139,6 +143,8 @@ pub struct Builtins {
   pub tuple: Option<TraitId>,
   pub object: Option<TraitId>,
   pub struct_: Option<TraitId>,
+  pub enum_: Option<TraitId>,
+  pub variant: Option<EnumId>,
 }
 
 impl<'core> Charter<'core, '_> {
@@ -210,6 +216,8 @@ impl<'core> Charter<'core, '_> {
       Builtin::Tuple => set(&mut builtins.tuple, trait_id),
       Builtin::Object => set(&mut builtins.object, trait_id),
       Builtin::Struct => set(&mut builtins.struct_, trait_id),
+      Builtin::Enum => set(&mut builtins.enum_, trait_id),
+      Builtin::Variant => set(&mut builtins.variant, enum_id),
     }
   }
 }

@@ -528,6 +528,27 @@ impl<'core, 'a> Finder<'core, 'a> {
             }
           }
         }
+        if Some(*trait_id) == self.chart.builtins.enum_ {
+          if let Some(variant_enum) = self.chart.builtins.variant {
+            if let Some((Inverted(false), TypeKind::Enum(enum_id, enum_params))) =
+              types.kind(type_params[0])
+            {
+              let mut types = types.clone();
+              let sig = types.import(&self.sigs.enums[*enum_id], Some(enum_params));
+              let nil = types.nil();
+              let variants =
+                sig.variant_data.values().rfold(types.new(TypeKind::Never), |rest, init| {
+                  types.new(TypeKind::Enum(variant_enum, vec![init.unwrap_or(nil), rest]))
+                });
+              if types.unify(variants, type_params[1]).is_success() {
+                found.push(TypeCtx {
+                  types,
+                  inner: TirImpl::Synthetic(SyntheticImpl::Enum(*enum_id)),
+                });
+              }
+            }
+          }
+        }
       }
       ImplType::Error(_) => {}
     }

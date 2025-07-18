@@ -213,6 +213,8 @@ impl Builtins {
       tuple,
       object,
       struct_,
+      enum_,
+      variant,
     } = self;
     revert_idx(prelude, checkpoint.defs);
     revert_idx(bool, checkpoint.opaque_types);
@@ -243,6 +245,8 @@ impl Builtins {
     revert_idx(tuple, checkpoint.traits);
     revert_idx(object, checkpoint.traits);
     revert_idx(struct_, checkpoint.traits);
+    revert_idx(enum_, checkpoint.traits);
+    revert_idx(variant, checkpoint.enums);
   }
 }
 

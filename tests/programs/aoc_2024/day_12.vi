@@ -87,17 +87,9 @@ enum Region {
 }
 
 mod Region {
-  pub impl show: Show[Region] {
-    fn show(&self: &Region) -> Show {
-      match self {
-        Region::Root(x) { Show::Constructor("Root", x.show()) }
-        Region::Child(x) { Show::Constructor("Child", x.show()) }
-      }
-    }
-  }
-
-  pub impl fork: Fork[Region] = unsafe::duplicate;
-  pub impl drop: Drop[Region] = unsafe::erase;
+  pub impl show: Show[Region];
+  pub impl fork: Fork[Region];
+  pub impl drop: Drop[Region];
 }
 
 mod Regions {

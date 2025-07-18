@@ -103,23 +103,8 @@ enum Node {
 }
 
 mod Node {
-  pub impl fork: Fork[Node] {
-    fn fork(&self: &Node) -> Node {
-      match &self {
-        &Root(x) { Root(x) }
-        &Child(x) { Child(x) }
-      }
-    }
-  }
-
-  pub impl drop: Drop[Node] {
-    fn drop(self: Node) {
-      match self {
-        Root(_) {}
-        Child(_) {}
-      }
-    }
-  }
+  pub impl fork: Fork[Node];
+  pub impl drop: Drop[Node];
 }
 
 mod DisjointSet {

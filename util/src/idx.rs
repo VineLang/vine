@@ -162,8 +162,8 @@ impl<I: Idx, T> IdxVec<I, T> {
   }
 
   #[inline(always)]
-  pub fn keys(&self) -> impl Iterator<Item = I> + Clone {
-    (0..self.vec.len()).map(I::from)
+  pub fn keys(&self) -> RangeIter<I> {
+    (I::from(0)..I::from(self.vec.len())).iter()
   }
 
   #[inline(always)]
@@ -172,17 +172,17 @@ impl<I: Idx, T> IdxVec<I, T> {
   }
 
   #[inline(always)]
-  pub fn into_values(self) -> impl Iterator<Item = T> {
+  pub fn into_values(self) -> vec::IntoIter<T> {
     self.vec.into_iter()
   }
 
   #[inline(always)]
-  pub fn values(&self) -> impl Iterator<Item = &T> {
+  pub fn values(&self) -> slice::Iter<'_, T> {
     self.vec.iter()
   }
 
   #[inline(always)]
-  pub fn values_mut(&mut self) -> impl Iterator<Item = &mut T> {
+  pub fn values_mut(&mut self) -> slice::IterMut<'_, T> {
     self.vec.iter_mut()
   }
 
