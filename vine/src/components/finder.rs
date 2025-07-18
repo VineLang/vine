@@ -2,17 +2,20 @@ use std::collections::{BTreeSet, HashSet};
 
 use vine_util::idx::IntSet;
 
-use crate::structures::{
-  ast::{Ident, Span},
-  chart::{
-    Chart, Def, DefId, DefImplKind, DefTraitKind, DefValueKind, FnId, GenericsId, ImplId,
-    MemberKind, WithVis,
+use crate::{
+  components::synthesizer::SyntheticImpl,
+  structures::{
+    ast::{Ident, Span},
+    chart::{
+      Chart, Def, DefId, DefImplKind, DefTraitKind, DefValueKind, FnId, GenericsId, ImplId,
+      MemberKind, WithVis,
+    },
+    core::Core,
+    diag::{Diag, ErrorGuaranteed},
+    signatures::{ImportState, Signatures},
+    tir::TirImpl,
+    types::{ImplType, Inverted, Type, TypeCtx, TypeKind, Types},
   },
-  core::Core,
-  diag::{Diag, ErrorGuaranteed},
-  signatures::{ImportState, Signatures},
-  tir::TirImpl,
-  types::{ImplType, Inverted, Type, TypeCtx, TypeKind, Types},
 };
 
 pub struct Finder<'core, 'a> {
@@ -485,7 +488,8 @@ impl<'core, 'a> Finder<'core, 'a> {
                 .and(types.unify(rest, type_params[2]))
                 .is_success()
               {
-                found.push(TypeCtx { types, inner: TirImpl::Tuple(elements.len()) });
+                let impl_ = TirImpl::Synthetic(SyntheticImpl::Tuple(elements.len()));
+                found.push(TypeCtx { types, inner: impl_ });
               }
             }
           }
@@ -503,7 +507,8 @@ impl<'core, 'a> Finder<'core, 'a> {
                 .and(types.unify(rest, type_params[2]))
                 .is_success()
               {
-                found.push(TypeCtx { types, inner: TirImpl::Object(key, entries.len()) });
+                let impl_ = TirImpl::Synthetic(SyntheticImpl::Object(key, entries.len()));
+                found.push(TypeCtx { types, inner: impl_ });
               }
             }
           }
@@ -517,7 +522,8 @@ impl<'core, 'a> Finder<'core, 'a> {
               let mut types = types.clone();
               let content = types.import(&self.sigs.structs[*struct_id], Some(struct_params)).data;
               if types.unify(content, type_params[1]).is_success() {
-                found.push(TypeCtx { types, inner: TirImpl::Struct(struct_.name) });
+                let impl_ = TirImpl::Synthetic(SyntheticImpl::Struct(*struct_id));
+                found.push(TypeCtx { types, inner: impl_ });
               }
             }
           }

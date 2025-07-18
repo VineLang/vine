@@ -10,3 +10,4 @@ pub mod normalizer;
 pub mod parser;
 pub mod resolver;
 pub mod specializer;
+pub mod synthesizer;
