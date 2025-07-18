@@ -4,7 +4,7 @@ use vine_util::idx::IdxVec;
 use crate::{
   components::{
     analyzer::analyze, charter::Charter, distiller::Distiller, emitter::emit, loader::Loader,
-    normalizer::normalize, resolver::Resolver, specializer::Specializer,
+    normalizer::normalize, resolver::Resolver, specializer::Specializer, synthesizer::synthesize,
   },
   structures::{
     chart::Chart,
@@ -13,7 +13,7 @@ use crate::{
     diag::Diag,
     resolutions::{Fragment, FragmentId, Resolutions},
     signatures::Signatures,
-    specializations::Specializations,
+    specializations::{SpecKind, Specializations},
     template::Template,
     tir::ClosureId,
     vir::{InterfaceKind, Vir},
@@ -112,8 +112,13 @@ impl<'core> Compiler<'core> {
 
     for spec_id in self.specs.specs.keys_from(checkpoint.specs) {
       let spec = self.specs.specs[spec_id].as_ref().unwrap();
-      if let Some(fragment_id) = spec.fragment {
-        self.templates[fragment_id].instantiate(&mut nets, &self.specs, spec);
+      match &spec.kind {
+        SpecKind::Fragment(fragment_id) => {
+          self.templates[*fragment_id].instantiate(&mut nets, &self.specs, spec);
+        }
+        SpecKind::Synthetic(item) => {
+          synthesize(&mut nets, &self.chart, &self.specs, spec, *item);
+        }
       }
     }
 

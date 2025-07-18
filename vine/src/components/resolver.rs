@@ -543,6 +543,7 @@ impl<'core, 'a> Resolver<'core, 'a> {
     match &*ty.kind {
       TyKind::Error(e) => self.types.error(*e),
       TyKind::Hole => self.resolve_ty_hole(span, inference),
+      TyKind::Never => self.types.new(TypeKind::Never),
       TyKind::Paren(t) => self.resolve_ty(t, inference),
       TyKind::Tuple(tys) => self.resolve_ty_tuple(tys, inference),
       TyKind::Object(entries) => self.resolve_ty_object(entries, inference),

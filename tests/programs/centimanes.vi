@@ -35,23 +35,6 @@ pub fn main(&io: &IO) {
 }
 
 mod Centimanes {
-  pub impl fork: Fork[Centimanes] {
-    fn fork(&self: &Centimanes) -> Centimanes {
-      match &self {
-        &Gyges { Gyges }
-        &Cottus { Cottus }
-        &Briareus { Briareus }
-      }
-    }
-  }
-
-  pub impl drop: Drop[Centimanes] {
-    fn drop(self: Centimanes) {
-      match self {
-        Gyges {}
-        Cottus {}
-        Briareus {}
-      }
-    }
-  }
+  pub impl fork: Fork[Centimanes];
+  pub impl drop: Drop[Centimanes];
 }

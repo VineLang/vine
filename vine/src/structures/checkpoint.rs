@@ -213,6 +213,8 @@ impl Builtins {
       tuple,
       object,
       struct_,
+      enum_,
+      variant,
     } = self;
     revert_idx(prelude, checkpoint.defs);
     revert_idx(bool, checkpoint.opaque_types);
@@ -243,6 +245,8 @@ impl Builtins {
     revert_idx(tuple, checkpoint.traits);
     revert_idx(object, checkpoint.traits);
     revert_idx(struct_, checkpoint.traits);
+    revert_idx(enum_, checkpoint.traits);
+    revert_idx(variant, checkpoint.enums);
   }
 }
 
@@ -285,21 +289,11 @@ impl<'core> Resolutions<'core> {
 
 impl<'core> Specializations<'core> {
   fn revert(&mut self, checkpoint: &Checkpoint) {
-    let Specializations {
-      lookup,
-      specs,
-      composite_deconstruct,
-      composite_reconstruct,
-      ident_const,
-      identity,
-    } = self;
+    let Specializations { lookup, specs, synthetic } = self;
     specs.truncate(checkpoint.specs.0);
     lookup.truncate(checkpoint.fragments.0);
     lookup.values_mut().for_each(|map| map.retain(|_, s| *s < checkpoint.specs));
-    composite_deconstruct.retain(|_, s| *s < checkpoint.specs);
-    composite_reconstruct.retain(|_, s| *s < checkpoint.specs);
-    ident_const.retain(|_, s| *s < checkpoint.specs);
-    revert_idx(identity, checkpoint.specs);
+    synthetic.retain(|_, s| *s < checkpoint.specs);
   }
 }
 

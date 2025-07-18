@@ -8,42 +8,15 @@ error tests/programs/fail/is_not.vi:5:3 - missing else block
 error tests/programs/fail/is_not.vi:7:3 - cannot find `y` in `::is_not::main`
 error tests/programs/fail/is_not.vi:4:3 - cannot find impl of trait `Drop[??]`
 error tests/programs/fail/is_not.vi:5:3 - cannot find impl of trait `Drop[(??, ??)]`
-error tests/programs/fail/is_not.vi:2:13 - found several impls of trait `Fork[?2]`
-error tests/programs/fail/is_not.vi:2:13 - found several impls of trait `Drop[?2]`
-error tests/programs/fail/is_not.vi:2:13 - found several impls of trait `Fork[~?2]`
-error tests/programs/fail/is_not.vi:2:13 - found several impls of trait `Drop[~?2]`
-error tests/programs/fail/is_not.vi:3:11 - found several impls of trait `Fork[?2]`
-error tests/programs/fail/is_not.vi:3:11 - found several impls of trait `Drop[?2]`
-error tests/programs/fail/is_not.vi:3:11 - found several impls of trait `Fork[~?2]`
-error tests/programs/fail/is_not.vi:3:11 - found several impls of trait `Drop[~?2]`
-error tests/programs/fail/is_not.vi:4:13 - found several impls of trait `Fork[?2]`
-error tests/programs/fail/is_not.vi:4:13 - found several impls of trait `Drop[?2]`
-error tests/programs/fail/is_not.vi:4:13 - found several impls of trait `Fork[~?2]`
-error tests/programs/fail/is_not.vi:4:13 - found several impls of trait `Drop[~?2]`
-error tests/programs/fail/is_not.vi:5:11 - found several impls of trait `Fork[?2]`
-error tests/programs/fail/is_not.vi:5:11 - found several impls of trait `Drop[?2]`
-error tests/programs/fail/is_not.vi:5:11 - found several impls of trait `Fork[~?2]`
-error tests/programs/fail/is_not.vi:5:11 - found several impls of trait `Drop[~?2]`
-error tests/programs/fail/is_not.vi:6:14 - found several impls of trait `Fork[?2]`
-error tests/programs/fail/is_not.vi:6:14 - found several impls of trait `Drop[?2]`
-error tests/programs/fail/is_not.vi:6:14 - found several impls of trait `Fork[~?2]`
-error tests/programs/fail/is_not.vi:6:14 - found several impls of trait `Drop[~?2]`
-error tests/programs/fail/is_not.vi:3:3 - found several impls of trait `Fork[?2]`
-error tests/programs/fail/is_not.vi:3:3 - found several impls of trait `Drop[?2]`
-error tests/programs/fail/is_not.vi:3:3 - found several impls of trait `Fork[~?2]`
-error tests/programs/fail/is_not.vi:3:3 - found several impls of trait `Drop[~?2]`
-error tests/programs/fail/is_not.vi:4:3 - found several impls of trait `Fork[?2]`
-error tests/programs/fail/is_not.vi:4:3 - found several impls of trait `Drop[?2]`
-error tests/programs/fail/is_not.vi:4:3 - found several impls of trait `Fork[~?2]`
-error tests/programs/fail/is_not.vi:4:3 - found several impls of trait `Drop[~?2]`
-error tests/programs/fail/is_not.vi:5:3 - found several impls of trait `Fork[?2]`
-error tests/programs/fail/is_not.vi:5:3 - found several impls of trait `Drop[?2]`
-error tests/programs/fail/is_not.vi:5:3 - found several impls of trait `Fork[~?2]`
-error tests/programs/fail/is_not.vi:5:3 - found several impls of trait `Drop[~?2]`
-error tests/programs/fail/is_not.vi:6:3 - found several impls of trait `Fork[?2]`
-error tests/programs/fail/is_not.vi:6:3 - found several impls of trait `Drop[?2]`
-error tests/programs/fail/is_not.vi:6:3 - found several impls of trait `Fork[~?2]`
-error tests/programs/fail/is_not.vi:6:3 - found several impls of trait `Drop[~?2]`
+error tests/programs/fail/is_not.vi:2:13 - search limit reached when finding flex of type `?0`
+error tests/programs/fail/is_not.vi:3:11 - search limit reached when finding flex of type `?0`
+error tests/programs/fail/is_not.vi:4:13 - search limit reached when finding flex of type `?0`
+error tests/programs/fail/is_not.vi:5:11 - search limit reached when finding flex of type `?0`
+error tests/programs/fail/is_not.vi:6:14 - search limit reached when finding flex of type `?0`
+error tests/programs/fail/is_not.vi:3:3 - search limit reached when finding flex of type `?0`
+error tests/programs/fail/is_not.vi:4:3 - search limit reached when finding flex of type `?0`
+error tests/programs/fail/is_not.vi:5:3 - search limit reached when finding flex of type `?0`
+error tests/programs/fail/is_not.vi:6:3 - search limit reached when finding flex of type `?0`
 error tests/programs/fail/is_not.vi:2:1 - unconditional infinite loops are invalid
 error tests/programs/fail/is_not.vi:2:13 - cannot fork `?0`
 error tests/programs/fail/is_not.vi:3:11 - cannot drop `?0`

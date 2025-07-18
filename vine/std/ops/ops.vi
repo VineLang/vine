@@ -31,4 +31,10 @@ pub mod Cast {
       ref
     }
   }
+
+  pub impl never[T]: Cast[!, T] {
+    fn cast(_: !) -> T {
+      unsafe::eraser
+    }
+  }
 }

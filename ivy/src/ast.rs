@@ -28,6 +28,12 @@ pub struct Net {
   pub pairs: Vec<(Tree, Tree)>,
 }
 
+impl Net {
+  pub fn new(root: Tree) -> Self {
+    Net { root, pairs: Vec::new() }
+  }
+}
+
 #[derive(Debug, Default, Clone)]
 pub struct Nets(IndexMap<String, Net>);
 

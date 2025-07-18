@@ -6,7 +6,6 @@ use vine_util::idx::{Counter, IdxVec};
 use crate::{
   features::local::LocalEmissionState,
   structures::{
-    ast::Ident,
     chart::Chart,
     core::Core,
     resolutions::{ConstRelId, FnRelId},
@@ -252,71 +251,5 @@ impl<'core, 'a> Emitter<'core, 'a> {
   pub(crate) fn new_wire(&mut self) -> (Tree, Tree) {
     let label = format!("w{}", self.wires.next());
     (Tree::Var(label.clone()), Tree::Var(label))
-  }
-
-  pub(crate) fn composite_deconstruct(len: usize) -> Net {
-    Net {
-      root: if len == 1 {
-        Tree::n_ary(
-          "fn",
-          [
-            Tree::Erase,
-            Tree::Var("x".into()),
-            Tree::Comb("tup".into(), Box::new(Tree::Var("x".into())), Box::new(Tree::Erase)),
-          ],
-        )
-      } else {
-        Tree::n_ary("fn", [Tree::Erase, Tree::Var("x".into()), Tree::Var("x".into())])
-      },
-      pairs: vec![],
-    }
-  }
-
-  pub(crate) fn composite_reconstruct(len: usize) -> Net {
-    Net {
-      root: if len == 1 {
-        Tree::n_ary("fn", [Tree::Erase, Tree::Var("x".into()), Tree::Erase, Tree::Var("x".into())])
-      } else {
-        Tree::n_ary(
-          "fn",
-          [
-            Tree::Erase,
-            Tree::Var("x".into()),
-            Tree::Var("y".into()),
-            Tree::Comb(
-              "tup".into(),
-              Box::new(Tree::Var("x".into())),
-              Box::new(Tree::Var("y".into())),
-            ),
-          ],
-        )
-      },
-      pairs: vec![],
-    }
-  }
-
-  pub(crate) fn ident_const(key: Ident<'core>) -> Net {
-    let str = key.0 .0;
-    Net {
-      root: Tree::n_ary(
-        "tup",
-        [
-          Tree::N32(str.chars().count() as u32),
-          Tree::n_ary(
-            "tup",
-            str.chars().map(|c| Tree::N32(c as u32)).chain([Tree::Var("x".into())]),
-          ),
-          Tree::Var("x".into()),
-        ],
-      ),
-      pairs: vec![],
-    }
-  }
-
-  pub(crate) fn identity() -> Net {
-    Net {
-      root: Tree::n_ary("fn", [Tree::Erase, Tree::Var("x".into()), Tree::Var("x".into())]),
-      pairs: vec![],
-    }
   }
 }

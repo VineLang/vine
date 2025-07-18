@@ -255,6 +255,7 @@ impl<'core: 'src, 'src> Formatter<'src> {
     match &*ty.kind {
       TyKind::Error(_) => unreachable!(),
       TyKind::Hole => Doc("_"),
+      TyKind::Never => Doc("!"),
       TyKind::Paren(pat) => Doc::paren(self.fmt_ty(pat)),
       TyKind::Tuple(elements) => self.fmt_ty_tuple(elements),
       TyKind::Ref(ty) => self.fmt_ty_ref(ty),

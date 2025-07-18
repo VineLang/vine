@@ -4,17 +4,16 @@ use ivy::ast::Nets;
 use vine_util::idx::IdxVec;
 
 use crate::{
-  components::emitter::Emitter,
+  components::synthesizer::SyntheticItem,
   structures::{
-    ast::Ident,
-    chart::{Chart, ConstId, FnId, TraitFnId},
+    chart::{Chart, ConstId, FnId},
     checkpoint::Checkpoint,
     core::Core,
     diag::ErrorGuaranteed,
     resolutions::{
-      Become, FnRel, Fragment, FragmentId, Resolutions, ResolvedImpl, ResolvedImplKind,
+      Become, FnRel, Fragment, FragmentId, Rels, Resolutions, ResolvedImpl, ResolvedImplKind,
     },
-    specializations::{ImplTree, Spec, SpecId, SpecRels, Specializations},
+    specializations::{ImplTree, Spec, SpecId, SpecKind, SpecRels, Specializations},
     tir::{ClosureId, TirImpl},
     vir::{InterfaceKind, StageId, Vir},
   },
@@ -52,23 +51,34 @@ impl<'core, 'a> Specializer<'core, 'a> {
     entry.insert(spec_id);
     self.specs.specs.push_to(spec_id, None);
     let rels = &self.vir[id].rels;
-    let rels = SpecRels {
-      fns: IdxVec::from_iter(
-        rels.fns.values().map(|rel| self.instantiate_fn_rel(id, &impl_args, rel)),
-      ),
-      consts: IdxVec::from_iter(
-        rels.consts.values().map(|rel| self.instantiate_const_rel(id, &impl_args, rel)),
-      ),
-    };
+    let rels = self.instantiate_rels(Some(id), &impl_args, rels);
     let path = self.fragments[id].path;
-    let spec = Spec { fragment: Some(id), path, index, singular: impl_args.is_empty(), rels };
+    let spec =
+      Spec { path, index, singular: impl_args.is_empty(), rels, kind: SpecKind::Fragment(id) };
     self.specs.specs[spec_id] = Some(spec);
     spec_id
   }
 
+  fn instantiate_rels(
+    &mut self,
+    fragment_id: Option<FragmentId>,
+    args: &Vec<ImplTree<'core>>,
+    rels: &Rels<'core>,
+  ) -> SpecRels {
+    let rels = SpecRels {
+      fns: IdxVec::from_iter(
+        rels.fns.values().map(|rel| self.instantiate_fn_rel(fragment_id, args, rel)),
+      ),
+      consts: IdxVec::from_iter(
+        rels.consts.values().map(|rel| self.instantiate_const_rel(fragment_id, args, rel)),
+      ),
+    };
+    rels
+  }
+
   fn instantiate_const_rel(
     &mut self,
-    fragment_id: FragmentId,
+    fragment_id: Option<FragmentId>,
     args: &Vec<ImplTree<'core>>,
     (const_id, impls): &(ConstId, Vec<TirImpl<'core>>),
   ) -> Result<SpecId, ErrorGuaranteed> {
@@ -83,8 +93,7 @@ impl<'core, 'a> Specializer<'core, 'a> {
             ImplTree::Fn(..)
             | ImplTree::Closure(..)
             | ImplTree::ForkClosure(..)
-            | ImplTree::DropClosure(..)
-            | ImplTree::Tuple(..) => unreachable!(),
+            | ImplTree::DropClosure(..) => unreachable!(),
             ImplTree::Def(impl_id, mut inner_impls) => {
               match &self.resolutions.impls[impl_id].as_ref()?.kind {
                 ResolvedImplKind::Direct { consts, .. } => {
@@ -92,13 +101,15 @@ impl<'core, 'a> Specializer<'core, 'a> {
                   Ok(self.specialize(self.resolutions.consts[consts[const_id]?], impls))
                 }
                 ResolvedImplKind::Indirect(next_impl) => {
-                  impl_ = self.instantiate(fragment_id, &inner_impls, next_impl);
+                  impl_ = self.instantiate(None, &inner_impls, next_impl);
                   continue;
                 }
               }
             }
-            ImplTree::Object(ident, _) => Ok(self.ident_const(ident)),
-            ImplTree::Struct(ident) => Ok(self.ident_const(ident)),
+            ImplTree::Synthetic(impl_) => {
+              let item = impl_.const_(self.chart, const_id);
+              Ok(self.instantiate_synthetic_item(item, impls))
+            }
           };
         }
       }
@@ -107,14 +118,14 @@ impl<'core, 'a> Specializer<'core, 'a> {
 
   fn instantiate_fn_rel(
     &mut self,
-    fragment_id: FragmentId,
+    fragment_id: Option<FragmentId>,
     args: &Vec<ImplTree<'core>>,
     fn_rel: &FnRel<'core>,
   ) -> Result<(SpecId, StageId), ErrorGuaranteed> {
     match fn_rel {
       &FnRel::Item(fn_id, ref impls) => {
         let impls = impls.iter().map(|x| self.instantiate(fragment_id, args, x)).collect();
-        self.instantiate_fn_id(fragment_id, fn_id, impls)
+        self.instantiate_fn_id(fn_id, impls)
       }
       FnRel::Impl(impl_) => {
         let impl_ = self.instantiate(fragment_id, args, impl_);
@@ -123,12 +134,10 @@ impl<'core, 'a> Specializer<'core, 'a> {
           ImplTree::Def(..)
           | ImplTree::ForkClosure(..)
           | ImplTree::DropClosure(..)
-          | ImplTree::Tuple(..)
-          | ImplTree::Object(..)
-          | ImplTree::Struct(..) => {
+          | ImplTree::Synthetic(..) => {
             unreachable!()
           }
-          ImplTree::Fn(fn_id, impls) => self.instantiate_fn_id(fragment_id, fn_id, impls),
+          ImplTree::Fn(fn_id, impls) => self.instantiate_fn_id(fn_id, impls),
           ImplTree::Closure(fragment_id, impls, closure_id) => Ok((
             self.specialize(fragment_id, impls),
             self._closure_stage(fragment_id, Some(closure_id)),
@@ -140,7 +149,6 @@ impl<'core, 'a> Specializer<'core, 'a> {
 
   fn instantiate_fn_id(
     &mut self,
-    fragment_id: FragmentId,
     fn_id: FnId,
     mut impls: Vec<ImplTree<'core>>,
   ) -> Result<(SpecId, StageId), ErrorGuaranteed> {
@@ -164,7 +172,7 @@ impl<'core, 'a> Specializer<'core, 'a> {
                   ))
                 }
                 ResolvedImplKind::Indirect(next_impl) => {
-                  impl_ = self.instantiate(fragment_id, &inner_impls, next_impl);
+                  impl_ = self.instantiate(None, &inner_impls, next_impl);
                   continue;
                 }
               }
@@ -185,56 +193,42 @@ impl<'core, 'a> Specializer<'core, 'a> {
                 _ => unreachable!(),
               }
             }
-            ImplTree::Tuple(len) | ImplTree::Object(_, len) => match fn_id {
-              TraitFnId(0) => Ok((self.composite_deconstruct(len), StageId(0))),
-              TraitFnId(1) => Ok((self.composite_reconstruct(len), StageId(0))),
-              _ => unreachable!(),
-            },
-            ImplTree::Struct(_) => Ok((self.identity(), StageId(0))),
             ImplTree::Error(err) => Err(err),
             ImplTree::Fn(..) | ImplTree::Closure(..) => unreachable!(),
+            ImplTree::Synthetic(impl_) => {
+              let item = impl_.fn_(self.chart, fn_id);
+              Ok((self.instantiate_synthetic_item(item, impls), StageId(0)))
+            }
           };
         }
       }
     }
   }
 
-  fn composite_deconstruct(&mut self, len: usize) -> SpecId {
-    *self.specs.composite_deconstruct.entry(len).or_insert_with(|| {
-      let path_owned = format!("::auto:composite_deconstruct:{len}");
-      let path = self.core.alloc_str(&path_owned);
-      self.nets.insert(path_owned, Emitter::composite_deconstruct(len));
-      self.specs.specs.push(Some(Spec::synthetic(path)))
-    })
+  fn instantiate_synthetic_item(
+    &mut self,
+    item: SyntheticItem<'core>,
+    impls: Vec<ImplTree<'core>>,
+  ) -> SpecId {
+    let index = self.specs.synthetic.len();
+    match self.specs.synthetic.entry((item, impls)) {
+      Entry::Occupied(e) => *e.get(),
+      Entry::Vacant(entry) => {
+        let (_, impls) = entry.key().clone();
+        let spec_id = self.specs.specs.push(None);
+        entry.insert(spec_id);
+        let rels = self.instantiate_rels(None, &impls, &item.rels());
+        self.specs.specs[spec_id] = Some(Spec {
+          path: ":synthetic",
+          index,
+          singular: false,
+          rels,
+          kind: SpecKind::Synthetic(item),
+        });
+        spec_id
+      }
+    }
   }
-
-  fn composite_reconstruct(&mut self, len: usize) -> SpecId {
-    *self.specs.composite_reconstruct.entry(len).or_insert_with(|| {
-      let path_owned = format!("::auto:composite_reconstruct:{len}");
-      let path = self.core.alloc_str(&path_owned);
-      self.nets.insert(path_owned, Emitter::composite_reconstruct(len));
-      self.specs.specs.push(Some(Spec::synthetic(path)))
-    })
-  }
-
-  fn ident_const(&mut self, key: Ident<'core>) -> SpecId {
-    *self.specs.ident_const.entry(key).or_insert_with(|| {
-      let path_owned = format!("::auto:ident_const:{}", key.0 .0);
-      let path = self.core.alloc_str(&path_owned);
-      self.nets.insert(path_owned, Emitter::ident_const(key));
-      self.specs.specs.push(Some(Spec::synthetic(path)))
-    })
-  }
-
-  fn identity(&mut self) -> SpecId {
-    *self.specs.identity.get_or_insert_with(|| {
-      let path_owned = "::auto:identity".to_owned();
-      let path = self.core.alloc_str(&path_owned);
-      self.nets.insert(path_owned, Emitter::identity());
-      self.specs.specs.push(Some(Spec::synthetic(path)))
-    })
-  }
-
   fn _closure_stage(&self, fragment_id: FragmentId, closure_id: Option<ClosureId>) -> StageId {
     match self._closure_interface(fragment_id, closure_id) {
       InterfaceKind::Fn { call, .. } => *call,
@@ -257,7 +251,7 @@ impl<'core, 'a> Specializer<'core, 'a> {
 
   fn instantiate(
     &self,
-    fragment_id: FragmentId,
+    fragment_id: Option<FragmentId>,
     args: &Vec<ImplTree<'core>>,
     impl_: &TirImpl<'core>,
   ) -> ImplTree<'core> {
@@ -281,12 +275,10 @@ impl<'core, 'a> Specializer<'core, 'a> {
       TirImpl::Fn(id, impls) => {
         ImplTree::Fn(*id, impls.iter().map(|i| self.instantiate(fragment_id, args, i)).collect())
       }
-      TirImpl::Closure(id) => ImplTree::Closure(fragment_id, args.clone(), *id),
-      TirImpl::ForkClosure(id) => ImplTree::ForkClosure(fragment_id, args.clone(), *id),
-      TirImpl::DropClosure(id) => ImplTree::DropClosure(fragment_id, args.clone(), *id),
-      TirImpl::Tuple(len) => ImplTree::Tuple(*len),
-      TirImpl::Object(key, len) => ImplTree::Object(*key, *len),
-      TirImpl::Struct(name) => ImplTree::Struct(*name),
+      TirImpl::Closure(id) => ImplTree::Closure(fragment_id.unwrap(), args.clone(), *id),
+      TirImpl::ForkClosure(id) => ImplTree::ForkClosure(fragment_id.unwrap(), args.clone(), *id),
+      TirImpl::DropClosure(id) => ImplTree::DropClosure(fragment_id.unwrap(), args.clone(), *id),
+      TirImpl::Synthetic(synthetic) => ImplTree::Synthetic(*synthetic),
     }
   }
 }

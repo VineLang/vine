@@ -81,3 +81,30 @@ pub mod Struct {
     }
   }
 }
+
+#[builtin = "Enum"]
+pub trait Enum[Enum, Variants] {
+  const name: String;
+  const variant_names: List[String];
+  fn match_[F, T; fn F(Variants) -> T](enum_: Enum, f: F) -> T;
+  fn reconstruct(variant: Variants) -> Enum;
+}
+
+pub mod Enum {
+  pub fn match_ref[E, V, F, T; Enum[E, V], fn F(&V) -> T](&enum_: &E, f: F) -> T {
+    Enum::match_(
+      enum_,
+      fn (variant: V) {
+        let result = f(&variant);
+        enum_ = Enum::reconstruct(variant);
+        result
+      },
+    )
+  }
+}
+
+#[builtin = "Variant"]
+pub enum Variant[I, R] {
+  Init(I),
+  Rest(R),
+}

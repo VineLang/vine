@@ -2,12 +2,15 @@ use class::Classes;
 use ivy::ast::Net;
 use vine_util::{idx::IdxVec, new_idx};
 
-use crate::structures::{
-  ast::{Flex, Ident, LogicalOp, Span},
-  chart::{EnumId, FnId, ImplId, StructId, VariantId},
-  diag::ErrorGuaranteed,
-  resolutions::{ConstRelId, FnRelId, Rels},
-  types::{Type, Types},
+use crate::{
+  components::synthesizer::SyntheticImpl,
+  structures::{
+    ast::{Flex, LogicalOp, Span},
+    chart::{EnumId, FnId, ImplId, StructId, VariantId},
+    diag::ErrorGuaranteed,
+    resolutions::{ConstRelId, FnRelId, Rels},
+    types::{Type, Types},
+  },
 };
 
 new_idx!(pub TargetId);
@@ -174,9 +177,7 @@ pub enum TirImpl<'core> {
   Closure(ClosureId),
   ForkClosure(ClosureId),
   DropClosure(ClosureId),
-  Tuple(usize),
-  Object(Ident<'core>, usize),
-  Struct(Ident<'core>),
+  Synthetic(SyntheticImpl<'core>),
 }
 
 impl TirExpr {
