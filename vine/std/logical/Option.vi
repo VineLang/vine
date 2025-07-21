@@ -70,23 +70,6 @@ pub mod Option {
     }
   }
 
-  #[become(unsafe::duplicate)]
-  pub impl fork[T+]: Fork[Option[T]] {
-    fn fork(&self: &Option[T]) -> Option[T] {
-      match &self {
-        &Some(value) { Some(value) }
-        &None { None }
-      }
-    }
-  }
-
-  #[become(unsafe::erase)]
-  pub impl drop[T?]: Drop[Option[T]] {
-    fn drop(self: Option[T]) {
-      match self {
-        Some(_) {}
-        None {}
-      }
-    }
-  }
+  pub impl fork[T+]: Fork[Option[T]];
+  pub impl drop[T?]: Drop[Option[T]];
 }

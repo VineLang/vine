@@ -1,7 +1,7 @@
 
 use ops::Cast;
 use data::List as List_;
-use derive::{Object as Object_, Struct, Tuple as Tuple_};
+use derive::{Enum, Object as Object_, Struct, Tuple as Tuple_, Variant};
 
 pub trait Show[T] {
   fn .show(self: &T) -> Show;
@@ -121,18 +121,8 @@ pub mod Show {
     "\n" ++ String(List_::new(indent, ' '))
   }
 
-  #[become(unsafe::erase)]
-  pub impl drop: Drop[Show] {
-    fn drop(self: Show) {
-      match self {
-        Literal(_) {}
-        Constructor(_) {}
-        Tuple(_) {}
-        Object(_) {}
-        List(_) {}
-      }
-    }
-  }
+  pub impl fork: Fork[Show];
+  pub impl drop: Drop[Show];
 
   pub trait ShowTuple[T] {
     fn .show_tuple(&self: &T) -> List_[Show];
@@ -188,6 +178,35 @@ pub mod Show {
   pub impl struct_[S, C; Struct[S, C], Show[C]]: Show[S] {
     fn show(&struct_: &S) -> Show {
       Show::Constructor(Struct::name, Show::show(&struct_ as &C))
+    }
+  }
+
+  pub trait ShowVariant[V] {
+    fn .show_variant(&self: &V, variant_names: List_[String]) -> Show;
+  }
+
+  #[basic]
+  pub impl enum_[E, V; Enum[E, V], ShowVariant[V]]: Show[E] {
+    fn show(&enum_: &E) -> Show {
+      Enum::match_ref(&enum_, fn (&variant: &V) { variant.show_variant(Enum::variant_names) })
+    }
+  }
+
+  pub mod ShowVariant {
+    pub impl never: ShowVariant[!] {
+      fn show_variant(&never: &!, _: List_[String]) -> Show {
+        never as Show
+      }
+    }
+
+    pub impl variant[I, R; Show[I], ShowVariant[R]]: ShowVariant[Variant[I, R]] {
+      fn show_variant(&self: &Variant[I, R], variant_names: List_[String]) -> Show {
+        let (init_name, rest_names) = variant_names.head_tail().unwrap();
+        match &self {
+          &Variant::Init(init) { Show::Constructor(init_name, init.show()) }
+          &Variant::Rest(rest) { rest.show_variant(rest_names) }
+        }
+      }
     }
   }
 }

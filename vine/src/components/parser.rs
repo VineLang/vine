@@ -455,6 +455,9 @@ impl<'core, 'src> VineParser<'core, 'src> {
     if self.eat(Token::Hole)? {
       return Ok(TyKind::Hole);
     }
+    if self.eat(Token::Bang)? {
+      return Ok(TyKind::Never);
+    }
     if self.eat(Token::Fn)? {
       return Ok(TyKind::Fn(self.parse_path()?));
     }

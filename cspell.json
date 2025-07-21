@@ -48,6 +48,7 @@
     "readline",
     "rels",
     "repr",
+    "rfold",
     "rotr",
     "rustyline",
     "scrutinee",

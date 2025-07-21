@@ -55,32 +55,8 @@ pub mod Result {
     }
   }
 
-  pub impl show[T, E; Show[T], Show[E]]: Show[Result[T, E]] {
-    fn show(&self: &Result[T, E]) -> Show {
-      match &self {
-        &Ok(value) { Show::Constructor("Ok", value.show()) }
-        &Err(value) { Show::Constructor("Err", value.show()) }
-      }
-    }
-  }
+  pub impl show[T, E; Show[T], Show[E]]: Show[Result[T, E]];
 
-  #[become(unsafe::duplicate)]
-  pub impl fork[T+, E+]: Fork[Result[T, E]] {
-    fn fork(&self: &Result[T, E]) -> Result[T, E] {
-      match &self {
-        &Ok(value) { Ok(value) }
-        &Err(value) { Err(value) }
-      }
-    }
-  }
-
-  #[become(unsafe::erase)]
-  pub impl drop[T?, E?]: Drop[Result[T, E]] {
-    fn drop(self: Result[T, E]) {
-      match self {
-        Ok(_) {}
-        Err(_) {}
-      }
-    }
-  }
+  pub impl fork[T+, E+]: Fork[Result[T, E]];
+  pub impl drop[T?, E?]: Drop[Result[T, E]];
 }

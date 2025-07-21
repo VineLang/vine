@@ -79,10 +79,7 @@ let b: N32 = 2;
 let a: N32 = 3;
 > do { let { p } = x }
 error input:1:18 - expected type `{ p: ?320 }`; found `{ a: N32, b: N32, c: N32 }`
-error input:1:12 - found several impls of trait `Fork[?1]`
-error input:1:12 - found several impls of trait `Drop[?1]`
-error input:1:12 - found several impls of trait `Fork[~?1]`
-error input:1:12 - found several impls of trait `Drop[~?1]`
+error input:1:12 - search limit reached when finding flex of type `?320`
 error input:1:12 - cannot drop `?320`
 
 let io: IO = #io;

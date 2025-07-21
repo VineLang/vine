@@ -376,6 +376,7 @@ pub struct Ty<'core> {
 #[derive(Debug, Clone)]
 pub enum TyKind<'core> {
   Hole,
+  Never,
   Paren(Ty<'core>),
   Fn(Path<'core>),
   Tuple(Vec<Ty<'core>>),

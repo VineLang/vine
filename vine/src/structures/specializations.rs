@@ -1,28 +1,23 @@
 use std::collections::HashMap;
 
-use vine_util::{
-  idx::{IdxVec, IntMap},
-  new_idx,
-};
+use vine_util::{idx::IdxVec, new_idx};
 
-use crate::structures::{
-  ast::Ident,
-  chart::{FnId, ImplId},
-  diag::ErrorGuaranteed,
-  resolutions::{ConstRelId, FnRelId, FragmentId},
-  tir::ClosureId,
-  vir::StageId,
+use crate::{
+  components::synthesizer::{SyntheticImpl, SyntheticItem},
+  structures::{
+    chart::{FnId, ImplId},
+    diag::ErrorGuaranteed,
+    resolutions::{ConstRelId, FnRelId, FragmentId},
+    tir::ClosureId,
+    vir::StageId,
+  },
 };
 
 #[derive(Debug, Default)]
 pub struct Specializations<'core> {
   pub lookup: IdxVec<FragmentId, HashMap<Vec<ImplTree<'core>>, SpecId>>,
   pub specs: IdxVec<SpecId, Option<Spec<'core>>>,
-
-  pub composite_deconstruct: IntMap<usize, SpecId>,
-  pub composite_reconstruct: IntMap<usize, SpecId>,
-  pub ident_const: HashMap<Ident<'core>, SpecId>,
-  pub identity: Option<SpecId>,
+  pub synthetic: HashMap<(SyntheticItem<'core>, Vec<ImplTree<'core>>), SpecId>,
 }
 
 impl<'core> Specializations<'core> {
@@ -34,11 +29,17 @@ impl<'core> Specializations<'core> {
 new_idx!(pub SpecId);
 #[derive(Debug)]
 pub struct Spec<'core> {
-  pub fragment: Option<FragmentId>,
   pub path: &'core str,
   pub index: usize,
   pub singular: bool,
   pub rels: SpecRels,
+  pub kind: SpecKind<'core>,
+}
+
+#[derive(Debug)]
+pub enum SpecKind<'core> {
+  Fragment(FragmentId),
+  Synthetic(SyntheticItem<'core>),
 }
 
 #[derive(Debug, Default)]
@@ -55,13 +56,5 @@ pub enum ImplTree<'core> {
   Closure(FragmentId, Vec<ImplTree<'core>>, ClosureId),
   ForkClosure(FragmentId, Vec<ImplTree<'core>>, ClosureId),
   DropClosure(FragmentId, Vec<ImplTree<'core>>, ClosureId),
-  Tuple(usize),
-  Object(Ident<'core>, usize),
-  Struct(Ident<'core>),
-}
-
-impl<'core> Spec<'core> {
-  pub fn synthetic(path: &'core str) -> Self {
-    Spec { fragment: None, path, index: 0, singular: true, rels: Default::default() }
-  }
+  Synthetic(SyntheticImpl<'core>),
 }

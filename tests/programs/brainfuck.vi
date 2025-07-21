@@ -93,11 +93,4 @@ pub fn main(&io: &IO) {
   io.flush();
 }
 
-impl drop: Drop[Instruction] {
-  fn drop(self: Instruction) {
-    match self {
-      Loop(_) {}
-      _ {}
-    }
-  }
-}
+impl drop: Drop[Instruction];
