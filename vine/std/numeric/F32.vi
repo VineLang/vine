@@ -103,7 +103,7 @@ pub mod F32 {
     inline_ivy! (n <- n) -> N32 { out n = @f32_to_bits(0 out) }
   }
 
-  pub fn .from_bits(n: N32) -> F32 {
+  pub fn from_bits(n: N32) -> F32 {
     inline_ivy! (n <- n) -> F32 { out n = @f32_from_bits(0 out) }
   }
 
