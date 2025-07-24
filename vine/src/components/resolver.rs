@@ -508,7 +508,7 @@ impl<'core, 'a> Resolver<'core, 'a> {
     match &*pat.kind {
       PatKind::Error(e) => Err(*e)?,
       PatKind::Paren(p) => self._resolve_pat(p),
-      PatKind::Annotation(pat, ty) => self.resolve_pat_annotation(span, pat, ty),
+      PatKind::TypeAnnotation(pat, ty) => self.resolve_pat_annotation(span, pat, ty),
       PatKind::Path(path, data) => self.resolve_pat_path(span, path, data),
       PatKind::Hole => self.resolve_pat_hole(span),
       PatKind::Inverse(inner) => self.resolve_pat_inverse(span, inner),
@@ -523,7 +523,7 @@ impl<'core, 'a> Resolver<'core, 'a> {
     let span = pat.span;
     match &*pat.kind {
       PatKind::Paren(inner) => self.resolve_pat_sig(inner, inference),
-      PatKind::Annotation(_, ty) => self.resolve_ty(ty, inference),
+      PatKind::TypeAnnotation(_, ty) => self.resolve_ty(ty, inference),
       PatKind::Path(path, _) => self.resolve_pat_sig_path(span, path, inference),
       PatKind::Ref(inner) => self.resolve_pat_sig_ref(inner, inference),
       PatKind::Inverse(inner) => self.resolve_pat_sig_inverse(inner, inference),

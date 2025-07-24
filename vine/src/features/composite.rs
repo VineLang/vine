@@ -140,7 +140,7 @@ impl<'core> VineParser<'core, '_> {
       let mut pat = pat
         .unwrap_or_else(|| Pat { span: key.span, kind: Box::new(PatKind::Path(key.into(), None)) });
       if let Some(ty) = ty {
-        pat = Pat { span, kind: Box::new(PatKind::Annotation(pat, ty)) };
+        pat = Pat { span, kind: Box::new(PatKind::TypeAnnotation(pat, ty)) };
       }
       Ok((key, pat))
     })?))
@@ -200,7 +200,7 @@ impl<'core: 'src, 'src> Formatter<'src> {
   pub(crate) fn fmt_pat_object(&self, entries: &Vec<(Key<'core>, Pat<'core>)>) -> Doc<'src> {
     Doc::brace_comma_space(entries.iter().map(|(key, pat)| {
       let (pat, ty) = match &*pat.kind {
-        PatKind::Annotation(p, t) => (p, Some(t)),
+        PatKind::TypeAnnotation(p, t) => (p, Some(t)),
         _ => (pat, None),
       };
       let pat = if let PatKind::Path(path, None) = &*pat.kind {

@@ -243,7 +243,7 @@ impl<'core: 'src, 'src> Formatter<'src> {
       PatKind::Ref(pat) => self.fmt_pat_ref(pat),
       PatKind::Deref(pat) => self.fmt_pat_deref(pat),
       PatKind::Inverse(pat) => self.fmt_pat_inverse(pat),
-      PatKind::Annotation(pat, ty) => self.fmt_pat_annotation(pat, ty),
+      PatKind::TypeAnnotation(pat, ty) => self.fmt_pat_annotation(pat, ty),
       PatKind::Object(entries) => self.fmt_pat_object(entries),
       PatKind::Tuple(elements) => self.fmt_pat_tuple(elements),
     }

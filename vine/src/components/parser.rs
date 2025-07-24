@@ -453,7 +453,7 @@ impl<'core, 'src> VineParser<'core, 'src> {
   ) -> Result<Result<PatKind<'core>, Pat<'core>>, Diag<'core>> {
     if bp.permits(BP::Annotation) && self.eat(Token::Colon)? {
       let ty = self.parse_ty()?;
-      return Ok(Ok(PatKind::Annotation(lhs, ty)));
+      return Ok(Ok(PatKind::TypeAnnotation(lhs, ty)));
     }
     Ok(Err(lhs))
   }

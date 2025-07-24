@@ -382,7 +382,7 @@ pub struct Pat<'core> {
 pub enum PatKind<'core> {
   Hole,
   Paren(Pat<'core>),
-  Annotation(Pat<'core>, Ty<'core>),
+  TypeAnnotation(Pat<'core>, Ty<'core>),
   Path(Path<'core>, Option<Vec<Pat<'core>>>),
   Ref(Pat<'core>),
   Deref(Pat<'core>),

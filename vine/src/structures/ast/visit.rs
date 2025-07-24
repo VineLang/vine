@@ -183,7 +183,7 @@ pub trait VisitMut<'core, 'a> {
         self.visit(&mut p.generics);
         self.visit(a.as_deref_mut());
       }
-      PatKind::Annotation(p, t) => {
+      PatKind::TypeAnnotation(p, t) => {
         self.visit_pat(p);
         self.visit_type(t);
       }
