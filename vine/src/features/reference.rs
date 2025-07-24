@@ -67,10 +67,10 @@ impl<'core> VineParser<'core, '_> {
 
   pub(crate) fn parse_ty_ref(&mut self, span: usize) -> Result<TyKind<'core>, Diag<'core>> {
     if self.eat(Token::And)? {
-      Ok(TyKind::Ref(self.parse_ty()?))
+      Ok(TyKind::Ref(self.parse_ty_bp(BP::Prefix)?))
     } else {
       self.expect(Token::AndAnd)?;
-      let inner = self.parse_ty()?;
+      let inner = self.parse_ty_bp(BP::Prefix)?;
       let span = self.end_span(span + 1);
       Ok(TyKind::Ref(Ty { span, kind: Box::new(TyKind::Ref(inner)) }))
     }

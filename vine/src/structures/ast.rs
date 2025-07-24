@@ -216,6 +216,19 @@ pub enum Relation {
   Gt,
 }
 
+#[derive(Debug, Clone)]
+pub struct OriginAnnotation<'core> {
+  pub span: Span,
+  pub kind: OriginAnnotationKind,
+  pub name: Ident<'core>,
+}
+
+#[derive(Debug, Clone, Copy)]
+pub enum OriginAnnotationKind {
+  Source,
+  Dest,
+}
+
 #[derive(Debug, Clone, Copy)]
 pub struct TypeParam<'core> {
   pub span: Span,
@@ -383,6 +396,7 @@ pub enum PatKind<'core> {
   Hole,
   Paren(Pat<'core>),
   TypeAnnotation(Pat<'core>, Ty<'core>),
+  OriginAnnotation(Pat<'core>, OriginAnnotation<'core>),
   Path(Path<'core>, Option<Vec<Pat<'core>>>),
   Ref(Pat<'core>),
   Deref(Pat<'core>),
@@ -422,6 +436,7 @@ pub enum TyKind<'core> {
   Hole,
   Never,
   Paren(Ty<'core>),
+  OriginAnnotation(Ty<'core>, OriginAnnotation<'core>),
   Fn(Path<'core>),
   Tuple(Vec<Ty<'core>>),
   Object(Vec<(Key<'core>, Ty<'core>)>),

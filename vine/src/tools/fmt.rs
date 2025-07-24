@@ -6,8 +6,8 @@ use crate::{
   components::parser::VineParser,
   structures::{
     ast::{
-      Expr, ExprKind, Flex, Impl, ImplKind, Item, ItemKind, Pat, PatKind, Span, Stmt, StmtKind,
-      Trait, TraitKind, Ty, TyKind, Vis,
+      Expr, ExprKind, Flex, Impl, ImplKind, Item, ItemKind, OriginAnnotation, OriginAnnotationKind,
+      Pat, PatKind, Span, Stmt, StmtKind, Trait, TraitKind, Ty, TyKind, Vis,
     },
     core::Core,
     diag::Diag,
@@ -239,6 +239,9 @@ impl<'core: 'src, 'src> Formatter<'src> {
       PatKind::Error(_) => unreachable!(),
       PatKind::Hole => Doc("_"),
       PatKind::Paren(pat) => Doc::paren(self.fmt_pat(pat)),
+      PatKind::OriginAnnotation(pat, ann) => {
+        Doc::concat([self.fmt_pat(pat), self.fmt_origin_annotation(ann)])
+      }
       PatKind::Path(path, args) => self.fmt_pat_path(path, args),
       PatKind::Ref(pat) => self.fmt_pat_ref(pat),
       PatKind::Deref(pat) => self.fmt_pat_deref(pat),
@@ -255,6 +258,9 @@ impl<'core: 'src, 'src> Formatter<'src> {
       TyKind::Hole => Doc("_"),
       TyKind::Never => Doc("!"),
       TyKind::Paren(pat) => Doc::paren(self.fmt_ty(pat)),
+      TyKind::OriginAnnotation(ty, ann) => {
+        Doc::concat([self.fmt_ty(ty), self.fmt_origin_annotation(ann)])
+      }
       TyKind::Tuple(elements) => self.fmt_ty_tuple(elements),
       TyKind::Ref(ty) => self.fmt_ty_ref(ty),
       TyKind::Inverse(ty) => self.fmt_ty_inverse(ty),
@@ -273,5 +279,15 @@ impl<'core: 'src, 'src> Formatter<'src> {
 
   pub(crate) fn fmt_verbatim(&self, span: Span) -> Doc<'src> {
     Doc(&self.src[span.start..span.end])
+  }
+
+  fn fmt_origin_annotation(&self, ann: &OriginAnnotation<'core>) -> Doc<'src> {
+    Doc::concat([
+      match ann.kind {
+        OriginAnnotationKind::Source => Doc(" <"),
+        OriginAnnotationKind::Dest => Doc(" >"),
+      },
+      Doc(ann.name),
+    ])
   }
 }

@@ -5,7 +5,7 @@ use vine_util::parser::{Parser, ParserState};
 use crate::{
   components::lexer::Token,
   structures::{
-    ast::{Key, Sign},
+    ast::{Key, OriginAnnotation, OriginAnnotationKind, Sign},
     core::Core,
     diag::Diag,
   },
@@ -455,17 +455,37 @@ impl<'core, 'src> VineParser<'core, 'src> {
       let ty = self.parse_ty()?;
       return Ok(Ok(PatKind::TypeAnnotation(lhs, ty)));
     }
+    if bp.permits(BP::Annotation) {
+      if let Some(ann) = self.maybe_parse_origin_annotation()? {
+        return Ok(Ok(PatKind::OriginAnnotation(lhs, ann)));
+      }
+    }
     Ok(Err(lhs))
   }
 
   pub(crate) fn parse_ty(&mut self) -> Result<Ty<'core>, Diag<'core>> {
+    self.parse_ty_bp(BP::Min)
+  }
+
+  pub(crate) fn parse_ty_bp(&mut self, bp: BP) -> Result<Ty<'core>, Diag<'core>> {
     let span = self.start_span();
-    let kind = self._parse_ty(span)?;
+    let mut ty = self.parse_ty_prefix()?;
+    loop {
+      ty = match self.parse_ty_postfix(ty, bp)? {
+        Ok(kind) => Ty { span: self.end_span(span), kind: Box::new(kind) },
+        Err(pat) => return Ok(pat),
+      }
+    }
+  }
+
+  fn parse_ty_prefix(&mut self) -> Result<Ty<'core>, Diag<'core>> {
+    let span = self.start_span();
+    let kind = self._parse_ty_prefix(span)?;
     let span = self.end_span(span);
     Ok(Ty { span, kind: Box::new(kind) })
   }
 
-  fn _parse_ty(&mut self, span: usize) -> Result<TyKind<'core>, Diag<'core>> {
+  fn _parse_ty_prefix(&mut self, span: usize) -> Result<TyKind<'core>, Diag<'core>> {
     if self.eat(Token::Hole)? {
       return Ok(TyKind::Hole);
     }
@@ -485,12 +505,25 @@ impl<'core, 'src> VineParser<'core, 'src> {
       return self.parse_ty_ref(span);
     }
     if self.eat(Token::Tilde)? {
-      return Ok(TyKind::Inverse(self.parse_ty()?));
+      return Ok(TyKind::Inverse(self.parse_ty_bp(BP::Prefix)?));
     }
     if self.check(Token::ColonColon) || self.check(Token::Ident) {
       return Ok(TyKind::Path(self.parse_path()?));
     }
     self.unexpected()
+  }
+
+  fn parse_ty_postfix(
+    &mut self,
+    lhs: Ty<'core>,
+    bp: BP,
+  ) -> Result<Result<TyKind<'core>, Ty<'core>>, Diag<'core>> {
+    if bp.permits(BP::Annotation) {
+      if let Some(ann) = self.maybe_parse_origin_annotation()? {
+        return Ok(Ok(TyKind::OriginAnnotation(lhs, ann)));
+      }
+    }
+    Ok(Err(lhs))
   }
 
   pub(crate) fn parse_arrow_ty(&mut self) -> Result<Option<Ty<'core>>, Diag<'core>> {
@@ -580,6 +613,22 @@ impl<'core, 'src> VineParser<'core, 'src> {
     let expr = self.parse_expr()?;
     let semi = self.eat(Token::Semi)?;
     Ok(StmtKind::Expr(expr, semi))
+  }
+
+  fn maybe_parse_origin_annotation(
+    &mut self,
+  ) -> Result<Option<OriginAnnotation<'core>>, Diag<'core>> {
+    let span = self.start_span();
+    let kind = if self.eat(Token::Lt)? {
+      OriginAnnotationKind::Source
+    } else if self.eat(Token::Gt)? {
+      OriginAnnotationKind::Dest
+    } else {
+      return Ok(None);
+    };
+    let name = self.parse_ident()?;
+    let span = self.end_span(span);
+    Ok(Some(OriginAnnotation { span, kind, name }))
   }
 
   pub(crate) fn start_span(&self) -> usize {

@@ -507,7 +507,7 @@ impl<'core, 'a> Resolver<'core, 'a> {
     let span = pat.span;
     match &*pat.kind {
       PatKind::Error(e) => Err(*e)?,
-      PatKind::Paren(p) => self._resolve_pat(p),
+      PatKind::Paren(p) | PatKind::OriginAnnotation(p, _) => self._resolve_pat(p),
       PatKind::TypeAnnotation(pat, ty) => self.resolve_pat_annotation(span, pat, ty),
       PatKind::Path(path, data) => self.resolve_pat_path(span, path, data),
       PatKind::Hole => self.resolve_pat_hole(span),
@@ -522,7 +522,9 @@ impl<'core, 'a> Resolver<'core, 'a> {
   pub(crate) fn resolve_pat_sig(&mut self, pat: &Pat<'core>, inference: bool) -> Type {
     let span = pat.span;
     match &*pat.kind {
-      PatKind::Paren(inner) => self.resolve_pat_sig(inner, inference),
+      PatKind::Paren(inner) | PatKind::OriginAnnotation(inner, _) => {
+        self.resolve_pat_sig(inner, inference)
+      }
       PatKind::TypeAnnotation(_, ty) => self.resolve_ty(ty, inference),
       PatKind::Path(path, _) => self.resolve_pat_sig_path(span, path, inference),
       PatKind::Ref(inner) => self.resolve_pat_sig_ref(inner, inference),
@@ -542,7 +544,7 @@ impl<'core, 'a> Resolver<'core, 'a> {
       TyKind::Error(e) => self.types.error(*e),
       TyKind::Hole => self.resolve_ty_hole(span, inference),
       TyKind::Never => self.types.new(TypeKind::Never),
-      TyKind::Paren(t) => self.resolve_ty(t, inference),
+      TyKind::Paren(t) | TyKind::OriginAnnotation(t, _) => self.resolve_ty(t, inference),
       TyKind::Tuple(tys) => self.resolve_ty_tuple(tys, inference),
       TyKind::Object(entries) => self.resolve_ty_object(entries, inference),
       TyKind::Ref(inner) => self.resolve_ty_ref(inner, inference),

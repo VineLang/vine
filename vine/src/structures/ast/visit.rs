@@ -171,9 +171,11 @@ pub trait VisitMut<'core, 'a> {
   fn _visit_pat(&mut self, pat: &'a mut Pat<'core>) {
     match &mut *pat.kind {
       PatKind::Hole | PatKind::Error(_) => {}
-      PatKind::Paren(a) | PatKind::Ref(a) | PatKind::Deref(a) | PatKind::Inverse(a) => {
-        self.visit_pat(a)
-      }
+      PatKind::Paren(a)
+      | PatKind::Ref(a)
+      | PatKind::Deref(a)
+      | PatKind::Inverse(a)
+      | PatKind::OriginAnnotation(a, _) => self.visit_pat(a),
       PatKind::Tuple(a) => {
         for t in a {
           self.visit_pat(t);
@@ -199,7 +201,9 @@ pub trait VisitMut<'core, 'a> {
     match &mut *ty.kind {
       TyKind::Hole => {}
       TyKind::Never => {}
-      TyKind::Paren(t) | TyKind::Ref(t) | TyKind::Inverse(t) => self.visit_type(t),
+      TyKind::Paren(t) | TyKind::Ref(t) | TyKind::Inverse(t) | TyKind::OriginAnnotation(t, _) => {
+        self.visit_type(t)
+      }
       TyKind::Path(p) | TyKind::Fn(p) => self.visit(&mut p.generics),
       TyKind::Tuple(a) => {
         for t in a {
