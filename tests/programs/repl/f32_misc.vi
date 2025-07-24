@@ -1,0 +1,33 @@
+// 1) Specials / domain errors
++0.0.ln()
+-0.0.ln()
+-42.0.ln()
+F32::inf.ln()
+F32::neg_inf.ln()
+F32::nan.ln()
+F32::from_bits(0x7FC0_0001).ln()      // quiet NaN w/ payload
+// 2) Subnormals & very small positives
+F32::from_bits(0x0000_0001).ln()      // smallest subnormal
+F32::from_bits(0x0000_0002).ln()
+F32::from_bits(0x0040_0000).ln()
+F32::from_bits(0x007F_FFFF).ln()      // largest subnormal
+F32::from_bits(0x0080_0000).ln()      // FLT_MIN (smallest normal)
+// 3) Around 1.0 (cancellation-sensitive)
+1.0.ln()
+F32::from_bits(0x3F7F_FFFF).ln()
+F32::from_bits(0x3F80_0001).ln()
+F32::from_bits(0x3F7F_FFFE).ln()
+F32::from_bits(0x3F80_0002).ln()
+// 4) Nice reference values
+0.5.ln()
+2.0.ln()
+2.7182817.ln()                        // e (rounded in F32)
+3.1415927.ln()                        // π (rounded in F32)
+// 5) Range extremes & powers of two
+F32::from_bits(0x3080_0000).ln()      // 2^-30
+F32::from_bits(0x4E80_0000).ln()      // 2^30
+F32::from_bits(0x0100_0000).ln()      // FLT_MIN * 2
+F32::from_bits(0x7EFF_FFFF).ln()      // FLT_MAX / 2
+F32::from_bits(0x7F7F_FFFF).ln()      // FLT_MAX
+1.0e-10.ln()
+1.0e10.ln()

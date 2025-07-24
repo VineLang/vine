@@ -1,0 +1,129 @@
+
+let io: IO = #io;
+> // 1) Specials / domain errors
+
+let io: IO = #io;
+> +0.0.ln()
+-inf
+
+let io: IO = #io;
+> -0.0.ln()
+-inf
+
+let io: IO = #io;
+> -42.0.ln()
+NaN
+
+let io: IO = #io;
+> F32::inf.ln()
+::std::numeric::F32::inf
+
+let io: IO = #io;
+> F32::neg_inf.ln()
+NaN
+
+let io: IO = #io;
+> F32::nan.ln()
+::std::numeric::F32::nan
+
+let io: IO = #io;
+> F32::from_bits(0x7FC0_0001).ln()      // quiet NaN w/ payload
+NaN
+
+let io: IO = #io;
+> // 2) Subnormals & very small positives
+
+let io: IO = #io;
+> F32::from_bits(0x0000_0001).ln()      // smallest subnormal
+-103.27893
+
+let io: IO = #io;
+> F32::from_bits(0x0000_0002).ln()
+-102.585785
+
+let io: IO = #io;
+> F32::from_bits(0x0040_0000).ln()
+-88.02969
+
+let io: IO = #io;
+> F32::from_bits(0x007F_FFFF).ln()      // largest subnormal
+-87.33655
+
+let io: IO = #io;
+> F32::from_bits(0x0080_0000).ln()      // FLT_MIN (smallest normal)
+-87.33655
+
+let io: IO = #io;
+> // 3) Around 1.0 (cancellation-sensitive)
+
+let io: IO = #io;
+> 1.0.ln()
+0.0
+
+let io: IO = #io;
+> F32::from_bits(0x3F7F_FFFF).ln()
+-5.9604645e-8
+
+let io: IO = #io;
+> F32::from_bits(0x3F80_0001).ln()
+1.1920928e-7
+
+let io: IO = #io;
+> F32::from_bits(0x3F7F_FFFE).ln()
+-1.192093e-7
+
+let io: IO = #io;
+> F32::from_bits(0x3F80_0002).ln()
+2.3841855e-7
+
+let io: IO = #io;
+> // 4) Nice reference values
+
+let io: IO = #io;
+> 0.5.ln()
+-0.6931472
+
+let io: IO = #io;
+> 2.0.ln()
+0.6931472
+
+let io: IO = #io;
+> 2.7182817.ln()                        // e (rounded in F32)
+1.0
+
+let io: IO = #io;
+> 3.1415927.ln()                        // π (rounded in F32)
+1.1447299
+
+let io: IO = #io;
+> // 5) Range extremes & powers of two
+
+let io: IO = #io;
+> F32::from_bits(0x3080_0000).ln()      // 2^-30
+-20.794415
+
+let io: IO = #io;
+> F32::from_bits(0x4E80_0000).ln()      // 2^30
+20.794415
+
+let io: IO = #io;
+> F32::from_bits(0x0100_0000).ln()      // FLT_MIN * 2
+-86.643394
+
+let io: IO = #io;
+> F32::from_bits(0x7EFF_FFFF).ln()      // FLT_MAX / 2
+88.02969
+
+let io: IO = #io;
+> F32::from_bits(0x7F7F_FFFF).ln()      // FLT_MAX
+88.72284
+
+let io: IO = #io;
+> 1.0e-10.ln()
+-23.02585
+
+let io: IO = #io;
+> 1.0e10.ln()
+23.02585
+
+let io: IO = #io;
