@@ -70,6 +70,7 @@ impl<'ivm> Host<'ivm> {
       "f32_mul" => |a, b| new_f32(as_f32(a).mul(as_f32(b))),
       "f32_div" => |a, b| new_f32(as_f32(a).div(as_f32(b))),
       "f32_rem" => |a, b| new_f32(as_f32(a).rem_euclid(as_f32(b))),
+      "f32_sqrt" => |a, _b| new_f32(as_f32(a).sqrt()),
 
       "f32_eq" => |a, b| new_bool(as_f32(a) == as_f32(b)),
       "f32_ne" => |a, b| new_bool(as_f32(a) != as_f32(b)),
