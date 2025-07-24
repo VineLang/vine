@@ -69,7 +69,7 @@ let io: IO = #io;
 1.1920928e-7
 
 let io: IO = #io;
-> F32::from_bits(0x3F7F_FFFE).ln()
+> F32::from_bits(0x3F7F_FFFE).ln()  // cspell:disable-line
 -1.192093e-7
 
 let io: IO = #io;
