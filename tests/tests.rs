@@ -57,6 +57,7 @@ fn tests(t: &mut DynTester) {
     test_vi(t, "tests/programs/cyclist.vi", b"", ".txt", true);
     test_vi(t, "tests/programs/final_countdown.vi", b"", ".txt", true);
     test_vi(t, "tests/programs/find_primes.vi", b"", ".txt", true);
+    test_vi(t, "tests/programs/floats.vi", b"", ".txt", true);
     test_vi(t, "tests/programs/centimanes.vi", b"", ".txt", true);
     test_vi(t, "tests/programs/inverse.vi", b"", ".txt", true);
     test_vi(t, "tests/programs/lambda.vi", lambda_input, ".txt", true);
@@ -105,8 +106,6 @@ fn tests(t: &mut DynTester) {
     t.group("repl", |t| {
       test_vi_repl(t, "tests/programs/repl/advanced_repl.vi");
       test_vi_repl(t, "tests/programs/repl/basic_repl.vi");
-      test_vi_repl(t, "tests/programs/repl/f32_to_string.vi");
-      test_vi_repl(t, "tests/programs/repl/f32_misc.vi");
       test_vi_repl(t, "tests/programs/repl/i32_misc.vi");
       test_vi_repl(t, "tests/programs/repl/misc.vi");
       test_vi_repl(t, "tests/programs/repl/objects.vi");
