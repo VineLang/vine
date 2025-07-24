@@ -59,6 +59,10 @@ pub mod F32 {
     }
   }
 
+  pub fn .sqrt(f: F32) -> F32 {
+    inline_ivy! (f <- f) -> F32 { out f = @f32_sqrt(0 out) }
+  }
+
   pub impl neg: Neg[F32, F32] {
     fn neg(a: F32) -> F32 {
       inline_ivy! (a <- a) -> F32 { out a = @f32_sub$(-0.0 out) }
