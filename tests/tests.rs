@@ -106,6 +106,7 @@ fn tests(t: &mut DynTester) {
       test_vi_repl(t, "tests/programs/repl/advanced_repl.vi");
       test_vi_repl(t, "tests/programs/repl/basic_repl.vi");
       test_vi_repl(t, "tests/programs/repl/f32_to_string.vi");
+      test_vi_repl(t, "tests/programs/repl/f32_misc.vi");
       test_vi_repl(t, "tests/programs/repl/i32_misc.vi");
       test_vi_repl(t, "tests/programs/repl/misc.vi");
       test_vi_repl(t, "tests/programs/repl/objects.vi");
