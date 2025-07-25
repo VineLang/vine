@@ -1,10 +1,10 @@
 
-pub mod arithmetic = "./arithmetic.vi";
-pub mod bitwise = "./bitwise.vi";
-pub mod comparison = "./comparison.vi";
-pub mod flex = "./flex.vi";
-pub mod range = "./range.vi";
-pub mod vectorized = "./vectorized.vi";
+pub mod arithmetic;
+pub mod bitwise;
+pub mod comparison;
+pub mod flex;
+pub mod range;
+pub mod vectorized;
 
 pub trait Concat[A, B, O] {
   #[builtin = "concat"]

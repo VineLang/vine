@@ -60,7 +60,7 @@ impl<'core, 'ctx, 'ivm, 'ext> Repl<'core, 'ctx, 'ivm, 'ext> {
   ) -> Result<Self, Vec<Diag<'core>>> {
     let mut compiler = Compiler::new(core);
     for lib in libs {
-      compiler.loader.load_mod(lib);
+      compiler.loader.load_mod(&lib);
     }
 
     let mut repl_mod = DefId::default();

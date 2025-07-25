@@ -70,10 +70,10 @@ impl CompileArgs {
     let mut compiler = Compiler::new(core);
 
     if let Some(main) = self.main {
-      compiler.loader.load_main_mod(main);
+      compiler.loader.load_main_mod(&main);
     }
     for lib in self.libs {
-      compiler.loader.load_mod(lib);
+      compiler.loader.load_mod(&lib);
     }
 
     match compiler.compile(()) {

@@ -1,5 +1,3 @@
-use std::path::PathBuf;
-
 use vine_util::parser::Parser;
 
 use crate::{
@@ -19,19 +17,23 @@ use crate::{
 impl<'core> VineParser<'core, '_> {
   pub(crate) fn parse_mod_item(&mut self) -> Result<ModItem<'core>, Diag<'core>> {
     self.expect(Token::Mod)?;
+    let name_span = self.span();
     let name = self.parse_ident()?;
     let generics = self.parse_generic_params()?;
-    let kind = if self.eat(Token::Eq)? {
-      let span = self.start_span();
-      let path = self.parse_string()?;
-      let span = self.end_span(span);
-      self.expect(Token::Semi)?;
-      ModKind::Unloaded(span, PathBuf::from(path))
-    } else {
+    let kind = if self.check(Token::OpenBrace) {
       let span = self.start_span();
       let items = self.parse_delimited(BRACE, Self::parse_item)?;
       let span = self.end_span(span);
       ModKind::Loaded(span, items)
+    } else if self.eat(Token::Eq)? {
+      let path_span = self.start_span();
+      let path = self.parse_string()?;
+      let path_span = self.end_span(path_span);
+      self.expect(Token::Semi)?;
+      ModKind::Unloaded(path_span, Some(path))
+    } else {
+      self.expect(Token::Semi)?;
+      ModKind::Unloaded(name_span, None)
     };
     Ok(ModItem { name, generics, kind })
   }
@@ -48,7 +50,10 @@ impl<'core: 'src, 'src> Formatter<'src> {
           Doc(" "),
           self.fmt_block_like(*span, items.iter().map(|x| (x.span, self.fmt_item(x)))),
         ]),
-        ModKind::Unloaded(span, _) => Doc::concat([Doc(" = "), self.fmt_verbatim(*span), Doc(";")]),
+        ModKind::Unloaded(span, Some(_)) => {
+          Doc::concat([Doc(" = "), self.fmt_verbatim(*span), Doc(";")])
+        }
+        ModKind::Unloaded(_, None) => Doc::concat([Doc(";")]),
         ModKind::Error(_) => unreachable!(),
       },
     ])

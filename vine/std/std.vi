@@ -1,14 +1,14 @@
 
-pub mod data = "./data/data.vi";
-pub mod debug = "./debug/debug.vi";
-pub mod derive = "./derive.vi";
-pub mod logical = "./logical/logical.vi";
-pub mod numeric = "./numeric/numeric.vi";
-pub mod rng = "./rng/rng.vi";
-pub mod ops = "./ops/ops.vi";
-pub mod unicode = "./unicode/unicode.vi";
-pub mod unsafe = "./unsafe.vi";
-pub mod IO = "./IO.vi";
+pub mod data;
+pub mod debug;
+pub mod derive;
+pub mod logical;
+pub mod numeric;
+pub mod rng;
+pub mod ops;
+pub mod unicode;
+pub mod unsafe;
+pub mod IO;
 
 #[builtin = "prelude"]
 pub mod prelude {

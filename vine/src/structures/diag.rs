@@ -50,6 +50,10 @@ macro_rules! diags {
 diags! {
   FsError { path: PathBuf, err: io::Error }
     ["cannot read file `{path}`: {err}", path = path.display()]
+  DisallowedImplicitMod
+    ["implicit submodule paths are only allowed in files of the form `{{mod_name}}/{{mod_name}}.vi`"]
+  AmbiguousImplicitMod { name: &'core str }
+    ["ambiguous implicit submodule path; both `{name}.vi` and `{name}/{name}.vi` exist"]
   LexError
     ["lexing error"]
   UnexpectedToken { expected: TokenSet<Token>, found: Option<Token> }
