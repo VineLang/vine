@@ -1,10 +1,7 @@
 
 pub fn main(&io: &IO) {
   let fn print_option_n32(option: Option[N32]) {
-    io.println("  " ++ match option {
-      Some(val) { "Some({val})" }
-      None { "None" }
-    })
+    io.println("  {option.show()}")
   }
 
   let fn print_n32(val: N32) {
@@ -72,6 +69,13 @@ pub fn main(&io: &IO) {
   print_bool(None[N32] is Some(x) => x > 0);
   print_bool(Some(0) is Some(x) => x > 0);
   print_bool(Some(1) is Some(x) => x > 0);
+
+  io.println("take:");
+  let option = Some(3);
+  print_option_n32(option.take());
+  print_option_n32(option);
+  print_option_n32(option.take());
+  print_option_n32(option);
 
   io.println("unwrap:");
   print_n32(Some(42).unwrap());
