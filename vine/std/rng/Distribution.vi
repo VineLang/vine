@@ -1,0 +1,62 @@
+
+use std::unsafe::transmute;
+use std::derive::Tuple;
+
+pub trait Distribution[D, T] {
+  fn .sample_value[R; Rng[R]](self: &D, rng: &R) -> T;
+}
+
+pub struct Normal({ mean: F32, std_dev: F32, cached: Option[F32] });
+
+pub mod Normal {
+  pub fn new(mean: F32, std_dev: F32) -> Normal {
+    Normal({ mean, std_dev, cached: None })
+  }
+
+  // Use Marsaglia polar method
+  fn .gen_pair[R; Rng[R]](&Normal({ mean, std_dev, cached }), &rng: &R) -> (F32, F32) {
+    let (u, v, s) = loop {
+      let u = 2.0 * rng.random[R, F32]() - 1.0;
+      let v = 2.0 * rng.random[R, F32]() - 1.0;
+      let s = u * u + v * v;
+      if s >= 1.0 || s == 0.0 {
+        continue;
+      }
+      (u, v, s)
+    };
+
+    let factor = (-2.0 * s.ln() / s).sqrt();
+    let val1 = mean + std_dev * u * factor;
+    let val2 = mean + std_dev * v * factor;
+    (val1, val2)
+  }
+
+  pub impl f32: Distribution[Normal, F32] {
+    fn sample_value[R; Rng[R]](&self: &Normal, &rng: &R) -> F32 {
+      match self.cached.take() {
+        Some(cached) { cached }
+        None {
+          let (random1, random2) = self.gen_pair(&rng);
+          self.cached = Some(random2);
+          random1
+        }
+      }
+    }
+  }
+
+  pub impl tuple_nil: Distribution[Normal, ()] {
+    fn sample_value[R; Rng[R]](&self: &Normal, &rng: &R) -> () {
+      ()
+    }
+  }
+
+  pub impl tuple[T, I, R; Tuple[T, I, R], Distribution[Normal, I], Distribution[Normal, R]]: Distribution[
+    Normal, T;
+  ] {
+    fn sample_value[G; Rng[G]](&self: &Normal, &rng: &G) -> T {
+      (self.sample_value[_, I, _](&rng), self.sample_value[_, R, _](&rng)) as T
+    }
+  }
+
+  pub impl drop: Drop[Normal];
+}

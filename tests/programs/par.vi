@@ -156,7 +156,7 @@ fn start_playing(&io: &IO) -> Game {
 
 fn random_player(&rng: &Pcg32) -> Player {
   let fn random_move() {
-    if rng.gen_n32() & 1 == 0 {
+    if rng.random[_, N32]() & 1 == 0 {
       Move::Up
     } else {
       Move::Down

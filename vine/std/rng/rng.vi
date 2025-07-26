@@ -1,2 +1,41 @@
 
+pub mod Distribution;
 pub mod Pcg32;
+
+pub trait Rng[R] {
+  fn .next_n32(self: &R) -> N32;
+}
+
+pub mod Rng[R; Rng[R]] {
+  pub fn .random[... T; Random[T]](&self: &R) -> T {
+    Random::next[T, R](&self)
+  }
+
+  pub fn .sample[... T, D; Distribution[D, T]](&self: &R, &dist: &D) -> T {
+    dist.sample_value[D, T, R](&self)
+  }
+}
+
+pub trait Random[T] {
+  fn next[R; Rng[R]](&rng: &R) -> T;
+}
+
+pub mod Random {
+  pub impl n32: Random[N32] {
+    fn next[R; Rng[R]](&rng: &R) -> N32 {
+      rng.next_n32()
+    }
+  }
+
+  pub impl i32: Random[I32] {
+    fn next[R; Rng[R]](&rng: &R) -> I32 {
+      unsafe::transmute(rng.next_n32())
+    }
+  }
+
+  pub impl f32: Random[F32] {
+    fn next[R; Rng[R]](&rng: &R) -> F32 {
+      ((rng.next_n32() >> 8) as F32) * (1.0 / 16777216.0)
+    }
+  }
+}

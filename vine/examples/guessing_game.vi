@@ -17,7 +17,7 @@ pub fn main(&io: &IO) {
 
   let guesses = 0;
   let max = prompt_num("Enter a maximum number: ");
-  let num = 1 + rng.gen_n32() % max;
+  let num = 1 + rng.random[_, N32]() % max;
 
   io.println("I'm thinking of a number between 1 and {max}.");
 
