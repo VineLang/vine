@@ -11,7 +11,7 @@ pub fn main(&io: &IO) {
   let n = iterations;
   while n > 0 {
     n -= 1;
-    let num = rng.gen_n32();
+    let num = rng.random[_, N32]();
     map.insert(num, num * num);
   }
 
@@ -38,7 +38,7 @@ pub fn main(&io: &IO) {
   let n = iterations;
   while n > 0 {
     n -= 1;
-    let num = rng.gen_n32();
+    let num = rng.random[_, N32]();
     if map.get(&num) is Some(n) => n != num * num {
       io.println("missing {num}");
     }
@@ -48,7 +48,7 @@ pub fn main(&io: &IO) {
   let n = iterations;
   while n > 0 {
     n -= 1;
-    let num = rng.gen_n32();
+    let num = rng.random[_, N32]();
     if map.remove(&num) is Some(n) => n != num * num {
       io.println("missing {num}");
     }

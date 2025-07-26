@@ -1,11 +1,14 @@
 
-use std::rng::Pcg32;
+use std::rng::{Distribution::Normal, Pcg32};
 
 pub fn main(&io: &IO) {
   let i = 0;
   let rng = Pcg32::default;
+  let normal = Normal::new(-2.0, 2.0);
   while i < 100 {
-    io.println("{rng.gen_n32()}");
+    io.println("{rng.random[_, N32]()}");
+    io.println("{rng.random[_, F32]()}");
+    io.println("{rng.sample[_, F32, _](&normal)}");
     i += 1;
   }
 }

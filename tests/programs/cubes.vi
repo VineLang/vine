@@ -22,10 +22,7 @@ pub fn main(&io: &IO) {
   let n = 100;
   while n > 0 {
     n -= 1
-    let x = rng.gen_n32() as F32;
-    if rng.gen_n32() % 2 == 0 {
-      x = -x;
-    }
+    let x = rng.random[_, F32]() * 1.0e10;
     let root = cube_root(x);
     io.println("{x} -> {root}");
   }

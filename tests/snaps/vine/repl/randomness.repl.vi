@@ -18,7 +18,7 @@ let io: IO = #io;
 let rng: Pcg32 = ::std::rng::Pcg32::default;
 let nums: List[N32] = [];
 let len: N32 = 20;
-> while len != 0 { len -= 1; nums ++= [rng.gen_n32() % 100] }
+> while len != 0 { len -= 1; nums ++= [rng.random[_, N32]() % 100] }
 
 let io: IO = #io;
 let rng: Pcg32 = Pcg32(N64(949325415, 3618180105), N64(4150755663, 335903614));
@@ -38,7 +38,7 @@ let rng: Pcg32 = Pcg32(N64(949325415, 3618180105), N64(4150755663, 335903614));
 let nums: List[N32] = [22, 33, 78, 11, 79, 27, 26, 64, 57, 3, 76, 88, 72, 42, 10, 4, 35, 61, 36, 41];
 let str: String = "";
 let len: N32 = 100;
-> while len != 0 { len -= 1; str ++= String([' ' + rng.gen_n32() % 95]) }
+> while len != 0 { len -= 1; str ++= String([' ' + rng.random[_, N32]() % 95]) }
 
 let io: IO = #io;
 let rng: Pcg32 = Pcg32(N64(1981671147, 2381229249), N64(4150755663, 335903614));
