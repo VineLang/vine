@@ -1,2 +1,2 @@
 
-pub mod Pcg32 = "./Pcg32.vi";
+pub mod Pcg32;

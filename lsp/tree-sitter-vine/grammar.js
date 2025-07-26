@@ -215,7 +215,7 @@ module.exports = grammar({
         $.ident,
         optional($.generic_params),
         choice(
-          seq("=", $.string, optional(";")),
+          seq(optional(seq("=", $.string)), optional(";")),
           delimited("{", "", "}", $._item),
         ),
       )),

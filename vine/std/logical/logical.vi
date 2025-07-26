@@ -1,4 +1,4 @@
 
-pub mod Bool = "./Bool.vi";
-pub mod Option = "./Option.vi";
-pub mod Result = "./Result.vi";
+pub mod Bool;
+pub mod Option;
+pub mod Result;

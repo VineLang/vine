@@ -1,7 +1,6 @@
 use std::{
   collections::BTreeMap,
   fmt::{self, Debug, Display, Write},
-  path::PathBuf,
 };
 
 use ivy::ast::Net;
@@ -89,7 +88,7 @@ pub struct ModItem<'core> {
 #[derive(Debug, Clone)]
 pub enum ModKind<'core> {
   Loaded(Span, Vec<Item<'core>>),
-  Unloaded(Span, PathBuf),
+  Unloaded(Span, Option<String>),
   Error(ErrorGuaranteed),
 }
 
