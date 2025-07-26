@@ -37,10 +37,17 @@ pub fn main(&io: &IO) {
     1.0e10,
   ];
 
-  for f in interesting_floats.into_iter() {
+  for &f in interesting_floats.iter() {
     io.println("f = {f}");
     io.println("ln(f) = {f.ln()}");
     io.println("sqrt(f) = {f.sqrt()}");
+    io.println("exp(f) = {f.exp()}");
     io.println("");
+  }
+
+  for &f1 in interesting_floats.iter() {
+    for &f2 in interesting_floats.iter() {
+      io.println("{f1 ** f2}");
+    }
   }
 }
