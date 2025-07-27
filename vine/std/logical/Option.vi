@@ -61,6 +61,12 @@ pub mod Option {
     }
   }
 
+  pub fn .take[T](&self: &Option[T]) -> Option[T] {
+    let result = self;
+    self = None;
+    result
+  }
+
   pub impl show[T; Show[T]]: Show[Option[T]] {
     fn show(&self: &Option[T]) -> Show {
       match &self {
