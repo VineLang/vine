@@ -1,0 +1,178 @@
+
+use ops::{Cast, arithmetic::{Add, Div, Mul, Neg, Pow, Rem, Sub}, comparison::{Eq, Le, Lt}};
+use debug::Show;
+
+#[builtin = "F32"]
+pub type F32;
+
+pub mod F32 {
+  mod common;
+  pub mod exp;
+  pub mod ln;
+  pub mod parse;
+  pub mod pow_f32;
+  pub mod to_string;
+
+  pub const nan: F32 = inline_ivy! () -> F32 { +NaN };
+  pub const inf: F32 = inline_ivy! () -> F32 { +inf };
+  pub const neg_inf: F32 = inline_ivy! () -> F32 { -inf };
+
+  pub impl fork: Fork[F32] = unsafe::duplicate;
+  pub impl drop: Drop[F32] = unsafe::erase;
+
+  pub impl add: Add[F32, F32, F32] {
+    fn add(a: F32, b: F32) -> F32 {
+      inline_ivy! (a <- a, b <- b) -> F32 { out a = @f32_add(b out) }
+    }
+  }
+
+  pub impl sub: Sub[F32, F32, F32] {
+    fn sub(a: F32, b: F32) -> F32 {
+      inline_ivy! (a <- a, b <- b) -> F32 { out a = @f32_sub(b out) }
+    }
+  }
+
+  pub impl mul: Mul[F32, F32, F32] {
+    fn mul(a: F32, b: F32) -> F32 {
+      inline_ivy! (a <- a, b <- b) -> F32 { out a = @f32_mul(b out) }
+    }
+  }
+
+  pub impl pow_n32: Pow[F32, N32, F32] {
+    fn pow(base: F32, exp: N32) -> F32 {
+      Pow::pow_by_squaring(base, exp)
+    }
+  }
+
+  pub impl pow_i32: Pow[F32, I32, F32] {
+    fn pow(base: F32, exp: I32) -> F32 {
+      if exp < +0 {
+        1.0 / (base ** (-exp as N32))
+      } else {
+        base ** (exp as N32)
+      }
+    }
+  }
+
+  pub impl div: Div[F32, F32, F32] {
+    fn div(a: F32, b: F32) -> F32 {
+      inline_ivy! (a <- a, b <- b) -> F32 { out a = @f32_div(b out) }
+    }
+  }
+
+  pub impl rem: Rem[F32, F32, F32] {
+    fn rem(a: F32, b: F32) -> F32 {
+      inline_ivy! (a <- a, b <- b) -> F32 { out a = @f32_rem(b out) }
+    }
+  }
+
+  pub fn .sqrt(f: F32) -> F32 {
+    inline_ivy! (f <- f) -> F32 { out f = @f32_sqrt(0 out) }
+  }
+
+  pub impl neg: Neg[F32, F32] {
+    fn neg(a: F32) -> F32 {
+      inline_ivy! (a <- a) -> F32 { out a = @f32_sub$(-0.0 out) }
+    }
+  }
+
+  pub impl eq: Eq[F32] {
+    fn eq(&a: &F32, &b: &F32) -> Bool {
+      inline_ivy! (a <- a, b <- b) -> Bool { out a = @f32_eq(b out) }
+    }
+
+    fn ne(&a: &F32, &b: &F32) -> Bool {
+      inline_ivy! (a <- a, b <- b) -> Bool { out a = @f32_ne(b out) }
+    }
+  }
+
+  pub impl lt: Lt[F32] {
+    fn lt(&a: &F32, &b: &F32) -> Bool {
+      inline_ivy! (a <- a, b <- b) -> Bool { out a = @f32_lt(b out) }
+    }
+  }
+
+  pub impl le: Le[F32] {
+    fn le(&a: &F32, &b: &F32) -> Bool {
+      inline_ivy! (a <- a, b <- b) -> Bool { out a = @f32_le(b out) }
+    }
+  }
+
+  pub fn .min(a: F32, b: F32) -> F32 {
+    if a < b {
+      a
+    } else {
+      b
+    }
+  }
+
+  pub fn .max(a: F32, b: F32) -> F32 {
+    if a < b {
+      b
+    } else {
+      a
+    }
+  }
+
+  pub impl from_n32: Cast[N32, F32] {
+    fn cast(n: N32) -> F32 {
+      inline_ivy! (n <- n) -> F32 { out n = @n32_to_f32(0 out) }
+    }
+  }
+
+  pub impl to_n32: Cast[F32, N32] {
+    fn cast(n: F32) -> N32 {
+      inline_ivy! (n <- n) -> N32 { out n = @f32_to_n32(0 out) }
+    }
+  }
+
+  pub impl from_i32: Cast[I32, F32] {
+    fn cast(n: I32) -> F32 {
+      when {
+        n < +0 { -(-n as N32 as F32) }
+        _ { n as N32 as F32 }
+      }
+    }
+  }
+
+  pub impl to_i32: Cast[F32, I32] {
+    fn cast(f: F32) -> I32 {
+      when {
+        f.is_negative() { -(-f as N32 as I32) }
+        _ { f as N32 as I32 }
+      }
+    }
+  }
+
+  pub fn .to_bits(n: F32) -> N32 {
+    inline_ivy! (n <- n) -> N32 { out n = @f32_to_bits(0 out) }
+  }
+
+  pub fn from_bits(n: N32) -> F32 {
+    inline_ivy! (n <- n) -> F32 { out n = @f32_from_bits(0 out) }
+  }
+
+  pub fn .is_nan(f: F32) -> Bool {
+    f != f
+  }
+
+  pub fn .is_negative(f: F32) -> Bool {
+    f.to_bits() & 0x80000000 != 0
+  }
+
+  pub fn .abs(f: F32) -> F32 {
+    if f.is_negative() {
+      -f
+    } else {
+      f
+    }
+  }
+
+  pub impl show: Show[F32] {
+    fn show(&self: &F32) -> Show {
+      Show::Literal("{self}")
+    }
+  }
+
+  pub const PI: F32 = 3.14159265358979323846264338327950288;
+}

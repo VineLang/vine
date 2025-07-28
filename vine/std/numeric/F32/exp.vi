@@ -1,0 +1,106 @@
+
+// origin: FreeBSD /usr/src/lib/msun/src/e_expf.c */
+//
+// Conversion to float by Ian Lance Taylor, Cygnus Support, ian@cygnus.com.
+//
+// ====================================================
+// Copyright (C) 1993 by Sun Microsystems, Inc. All rights reserved.
+//
+// Developed at SunPro, a Sun Microsystems, Inc. business.
+// Permission to use, copy, modify, and distribute this
+// software is freely granted, provided that this notice
+// is preserved.
+// ====================================================
+//
+// Derived from Rust's libm crate (src/math/expf.rs), licensed MIT OR Apache-2.0.
+// Copyright (c) 2018-2025 The libm Developers.
+//
+// Ported to Vine by Nils Cremer, 2025/07.
+
+const LN2_HI: F32 = 6.9314575195e-01;
+const LN2_LO: F32 = 1.4286067653e-06;
+// 0x3fb8aa3b
+const INV_LN2: F32 = 1.4426950216;
+// Domain [-0.34568, 0.34568], range ~[-4.278e-9, 4.447e-9]:
+// |x*(exp(x)+1)/(exp(x)-1) - p(x)| < 2**-27.74
+// 0xaaaa8f.0p-26
+const P1: F32 = 1.6666625440e-1;
+const P2: F32 = -2.7667332906e-3;
+
+pub fn .exp(x: F32) -> F32 {
+  // 0x1p127f === 2 ^ 127
+  let x1p127 = F32::from_bits(0x7f000000);
+  // 0x1p-126f === 2 ^ -126
+  let x1p_126 = F32::from_bits(0x800000);
+  let negative = x.is_negative();
+  // high word of |x|
+  let bits = x.to_bits() & 0x7fffffff;
+
+  // special cases
+  if bits >= 0x42aeac50 {
+    // if |x| >= -87.33655f or NaN
+    if bits > 0x7f800000 {
+      // NaN
+      return x;
+    }
+    if (bits >= 0x42b17218) && (!negative) {
+      // x >= 88.722839f
+      // overflow
+      x *= x1p127;
+      return x;
+    }
+    if negative {
+      // NOTE: original code raises underflow exception
+      if bits >= 0x42cff1b5 {
+        // x <= -103.972084f
+        return 0.0;
+      }
+    }
+  }
+
+  // argument reduction
+  let k: I32;
+  let hi: F32;
+  let lo: F32;
+  when {
+    bits > 0x3eb17218 {
+      // if |x| > 0.5 ln2
+      k = when {
+        bits > 0x3f851592 {
+          if negative {
+            (INV_LN2 * x - 0.5) as I32
+          } else {
+            (INV_LN2 * x + 0.5) as I32
+          }
+        }
+        negative { -1 }
+        _ { +1 }
+      }
+      let kf = k as F32;
+      // k*ln2hi is exact here
+      hi = x - kf * LN2_HI;
+      lo = kf * LN2_LO;
+      x = hi - lo;
+    }
+    bits > 0x39000000 {
+      // |x| > 2**-14
+      k = +0;
+      hi = x;
+      lo = 0.0;
+    }
+    _ {
+      // NOTE: original code raises inexact exception
+      return 1.0 + x;
+    }
+  }
+
+  // x is now in primary range
+  let xx = x * x;
+  let c = x - xx * (P1 + xx * P2);
+  let y = 1.0 + (x * c / (2.0 - c) - lo + hi);
+  if k == +0 {
+    y
+  } else {
+    common::scalbn(y, k)
+  }
+}

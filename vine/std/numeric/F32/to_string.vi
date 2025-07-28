@@ -1,0 +1,106 @@
+
+const SIG_DIGITS: N32 = 7;
+
+pub impl to_string: Cast[F32, String] {
+  fn cast(x: F32) -> String {
+    when {
+      x.is_nan() {
+        return "NaN";
+      }
+      x == F32::inf {
+        return "inf";
+      }
+      x == F32::neg_inf {
+        return "-inf";
+      }
+    }
+
+    let neg = x.is_negative();
+    x = x.abs();
+    if x == 0.0 {
+      return if neg {
+        "-0"
+      } else {
+        "0"
+      };
+    }
+
+    // Normalize to [1, 10)
+    let exp10 = +0;
+    if x > 1.0e+5 {
+      while x >= 10.0 {
+        x /= 10.0;
+        exp10 += +1;
+      }
+    }
+    if x < 1.0e-5 {
+      while x < 1.0 {
+        x *= 10.0;
+        exp10 -= +1;
+      }
+    }
+
+    // Collect digits
+    let digits = List::new(SIG_DIGITS, 0);
+    let frac = x;
+    let i = 0;
+    while i < SIG_DIGITS {
+      let d = frac as N32;
+      *digits.at(i).unwrap() = d;
+      frac = (frac - d as F32) * 10.0;
+      i += 1;
+    }
+
+    // Round last digit
+    if frac > 5.0 || (frac == 5.0 && (digits.get(SIG_DIGITS - 1).unwrap() % 2 == 1)) {
+      // carry
+      let i = SIG_DIGITS - 1;
+      loop {
+        if digits.get(i).unwrap() < 9 {
+          *digits.at(i).unwrap() += 1;
+          break;
+        } else {
+          *digits.at(i).unwrap() = 0;
+          i -= 1;
+          if i < 0 {
+            // 9.999... -> 10.000...
+            // shift normalization
+            let j = SIG_DIGITS - 1;
+            while j > 0 {
+              *digits.at(j).unwrap() = digits.get(j - 1).unwrap();
+              j -= 1;
+            }
+            *digits.at(0).unwrap() = 1;
+            exp10 += +1;
+            break;
+          }
+        }
+      }
+    }
+
+    // Build string
+    let chars = [];
+    if neg {
+      chars.push_back('-');
+    }
+    chars ++= (digits.get(0).unwrap() as String)!;
+    // Trim trailing zeros in fractional part
+    let frac_len = SIG_DIGITS - 1;
+    while frac_len > 0 && digits.get(frac_len).unwrap() == 0 {
+      frac_len -= 1;
+    }
+    if frac_len > 0 {
+      chars.push_back('.');
+      let i = 1;
+      while i <= frac_len {
+        chars.push_back('0' + digits.get(i).unwrap());
+        i += 1;
+      }
+    }
+    if exp10 == +0 {
+      String(chars)
+    } else {
+      String(chars) ++ "e" ++ exp10 as String
+    }
+  }
+}

@@ -1,0 +1,53 @@
+// FIX(#110): formatting is currently disabled in dprint.json to keep the comments in this file.
+// Enable formatting again once #110 is fixed.
+pub fn main(&io: &IO) {
+  let interesting_floats = [
+    // 1) Specials / domain errors
+    +0.0,
+    -0.0,
+    -42.0,
+    F32::inf,
+    F32::neg_inf,
+    F32::nan,
+    F32::from_bits(0x7FC0_0001),      // quiet NaN w/ payload
+    // 2) Subnormals & very small positives
+    F32::from_bits(0x0000_0001),      // smallest subnormal
+    F32::from_bits(0x0000_0002),
+    F32::from_bits(0x0040_0000),
+    F32::from_bits(0x007F_FFFF),      // largest subnormal
+    F32::from_bits(0x0080_0000),      // FLT_MIN (smallest normal)
+    // 3) Around 1.0 (cancellation-sensitive)
+    1.0,
+    F32::from_bits(0x3F7F_FFFF),
+    F32::from_bits(0x3F80_0001),
+    F32::from_bits(0x3F7F_FFFE),  // cspell:disable-line
+    F32::from_bits(0x3F80_0002),
+    // 4) Nice reference values
+    0.5,
+    2.0,
+    2.7182817,                        // e (rounded in F32)
+    3.1415927,                        // π (rounded in F32)
+    // 5) Range extremes & powers of two
+    F32::from_bits(0x3080_0000),      // 2^-30
+    F32::from_bits(0x4E80_0000),      // 2^30
+    F32::from_bits(0x0100_0000),      // FLT_MIN * 2
+    F32::from_bits(0x7EFF_FFFF),      // FLT_MAX / 2
+    F32::from_bits(0x7F7F_FFFF),      // FLT_MAX
+    1.0e-10,
+    1.0e10,
+  ];
+
+  for &f in interesting_floats.iter() {
+    io.println("f = {f}");
+    io.println("ln(f) = {f.ln()}");
+    io.println("sqrt(f) = {f.sqrt()}");
+    io.println("exp(f) = {f.exp()}");
+    io.println("");
+  }
+
+  for &f1 in interesting_floats.iter() {
+    for &f2 in interesting_floats.iter() {
+      io.println("{f1 ** f2}");
+    }
+  }
+}

@@ -1,0 +1,98 @@
+
+// Derived from Rust's libm crate (src/math/generic/scalbn.rs), licensed MIT OR Apache-2.0.
+// Copyright (c) 2018-2025 The libm Developers.
+//
+// Ported to Vine by Nils Cremer, 2025/07.
+
+// The bitwidth of the float type
+const BITS: N32 = 32;
+
+// The bitwidth of the significand
+const SIG_BITS: N32 = 23;
+
+// The bitwidth of the exponent
+const EXP_BITS: N32 = 8;
+
+// The saturated (maximum bitpattern) value of the exponent, i.e. the infinite
+// representation.
+//
+// This shifted fully right, use `EXP_MASK` for the shifted value.
+const EXP_SAT: N32 = (1 << EXP_BITS) - 1;
+
+// The exponent bias value
+const EXP_BIAS: N32 = EXP_SAT >> 1;
+
+// Maximum unbiased exponent value.
+const EXP_MAX: I32 = EXP_BIAS as I32;
+
+// Minimum *NORMAL* unbiased exponent value.
+const EXP_MIN: I32 = -(EXP_MAX - +1);
+
+// Minimum subnormal exponent value.
+const EXP_MIN_SUBNORM: I32 = EXP_MIN - SIG_BITS as I32;
+
+// A mask for the significand
+const SIG_MASK: N32 = (1 << SIG_BITS) - 1;
+
+// Calculates x * 2^n while keeping precision and handling edge cases.
+pub fn scalbn(x: F32, n: I32) -> F32 {
+  // Bits including the implicit bit
+  let sig_total_bits = SIG_BITS + 1;
+
+  // 2 ^ Emax, maximum positive with null significand (0x1p1023 for f64)
+  let f_exp_max = from_parts(false, EXP_BIAS << 1, 0);
+
+  // 2 ^ Emin, minimum positive normal with null significand (0x1p-1022 for f64)
+  let f_exp_min = from_parts(false, 1, 0);
+
+  // 2 ^ sig_total_bits, multiplier to normalize subnormals (0x1p53 for f64)
+  let f_pow_subnorm = from_parts(false, sig_total_bits + EXP_BIAS, 0);
+
+  when {
+    n > EXP_MAX {
+      // Worse case positive `n`: `x`  is the minimum subnormal value, the result is `F::MAX`.
+      // This can be reached by three scaling multiplications (two here and one final).
+      x *= f_exp_max;
+      n -= EXP_MAX;
+      if n > EXP_MAX {
+        x *= f_exp_max;
+        n -= EXP_MAX;
+        if n > EXP_MAX {
+          n = EXP_MAX;
+        }
+      }
+    }
+    n < EXP_MIN {
+      // `mul` s.t. `!(x * mul).is_subnormal() ∀ x`
+      let mul = f_exp_min * f_pow_subnorm;
+      let add = -EXP_MIN - sig_total_bits as I32;
+
+      // Worse case negative `n`: `x`  is the maximum positive value, the result is `F::MIN`.
+      // This must be reachable by three scaling multiplications (two here and one final).
+
+      x *= mul;
+      n += add;
+
+      if n < EXP_MIN {
+        x *= mul;
+        n += add;
+
+        if n < EXP_MIN {
+          n = EXP_MIN;
+        }
+      }
+    }
+  }
+
+  let scale = from_parts(false, (EXP_BIAS as I32 + n) as N32, 0);
+  x * scale
+}
+
+fn from_parts(negative: Bool, exponent: N32, significand: N32) -> F32 {
+  let sign = if negative {
+    1
+  } else {
+    0
+  };
+  F32::from_bits((sign << (BITS - 1)) | ((exponent & EXP_SAT) << SIG_BITS) | (significand & SIG_MASK))
+}
