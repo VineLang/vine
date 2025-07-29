@@ -29,16 +29,15 @@ pub fn main(&io: &IO) {
   }
 
   let price = 0;
-  let i = 0;
+
   let &Regions(array) = &regions;
-  while i < array.len() {
-    match array.at(i).unwrap() {
-      &Region::Root(a, p) {
+  for i in 0..array.len() {
+    match array.get(i).unwrap() {
+      Region::Root(a, p) {
         price += a * (a * 4 - p * 2);
       }
-      &_ {}
+      _ {}
     }
-    i += 1;
   }
 
   io.println("Part 1: {price}");

@@ -173,8 +173,7 @@ pub fn main(&io: &IO) {
   let p1 = Pcg32::seeded("Alice");
   let p2 = Pcg32::seeded("Bob");
   let p3 = Pcg32::seeded("Charlie");
-  let i = 0;
-  while i < 10 {
+  for _ in 0..10 {
     let winner = start_playing(&io).send((
       random_player(&p1),
       random_player(&p2),
@@ -185,6 +184,5 @@ pub fn main(&io: &IO) {
       Winner::Second { "Bob wins!\n" }
       Winner::Third { "Charlie wins!\n" }
     });
-    i += 1;
   }
 }

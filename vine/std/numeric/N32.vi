@@ -11,10 +11,10 @@ use debug::Show;
 pub type N32;
 
 pub mod N32 {
+  pub const maximum: N32 = 0xffffffff;
+
   pub impl fork: Fork[N32] = unsafe::duplicate;
   pub impl drop: Drop[N32] = unsafe::erase;
-
-  pub const maximum: N32 = 0xffffffff;
 
   pub impl add: Add[N32, N32, N32] {
     fn add(a: N32, b: N32) -> N32 {
@@ -123,7 +123,7 @@ pub mod N32 {
       None
     } else {
       let num = 0;
-      while len != 0 {
+      for _ in 0..len {
         let List::Buf(char, tail) = chars;
         chars = tail;
         if !('0' <= char <= '9') {
@@ -132,7 +132,6 @@ pub mod N32 {
         }
         num *= 10;
         num += char - '0';
-        len -= 1;
       }
       unsafe::erase(chars);
       Some(num)

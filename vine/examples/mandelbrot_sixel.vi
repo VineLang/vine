@@ -12,8 +12,7 @@ const adjusted_scale: F32 = scale / width as F32;
 pub fn main(&io: &IO) {
   io.print_bytes([27, 80, 113]);
 
-  let c = 0;
-  while c <= 100 {
+  for c in 0..101 {
     io.print_char('#');
     io.print(c as String);
     io.print_char(';');
@@ -24,18 +23,15 @@ pub fn main(&io: &IO) {
     io.print(c as String);
     io.print_char(';');
     io.print(c as String);
-    c += 1;
   }
 
-  let j = 0;
   let row = 1;
-  while j < height {
+  for j in 0..height {
     let last_color = 0;
     let count = 0;
     io.print("#0");
 
-    let i = 0;
-    while i < width {
+    for i in 0..width {
       let pos = (i as F32 + 0.5, j as F32 + 0.5) - (width as F32, height as F32) / 2.0;
       let (x, y) = center + pos * scale / width as F32;
       let color = mandelbrot(x, y);
@@ -51,8 +47,6 @@ pub fn main(&io: &IO) {
         count += 1;
       }
       last_color = color;
-
-      i += 1;
     }
 
     io.print_char('!');
@@ -67,8 +61,6 @@ pub fn main(&io: &IO) {
       row = row;
       '$'
     });
-
-    j += 1;
   }
   io.print_bytes([27, 92]);
   io.flush();

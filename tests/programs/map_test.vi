@@ -8,9 +8,7 @@ pub fn main(&io: &IO) {
   let map = Map::empty[N32, _];
 
   let rng = Pcg32::seeded(seed);
-  let n = iterations;
-  while n > 0 {
-    n -= 1;
+  for _ in 0..iterations {
     let num = rng.gen_n32();
     map.insert(num, num * num);
   }
@@ -35,9 +33,7 @@ pub fn main(&io: &IO) {
   integrity_check(iterations);
 
   let rng = Pcg32::seeded(seed);
-  let n = iterations;
-  while n > 0 {
-    n -= 1;
+  for _ in 0..iterations {
     let num = rng.gen_n32();
     if map.get(&num) is Some(n) => n != num * num {
       io.println("missing {num}");
@@ -45,14 +41,12 @@ pub fn main(&io: &IO) {
   }
 
   let rng = Pcg32::seeded(seed);
-  let n = iterations;
-  while n > 0 {
-    n -= 1;
+  for n in 0..iterations {
     let num = rng.gen_n32();
     if map.remove(&num) is Some(n) => n != num * num {
       io.println("missing {num}");
     }
-    if n % 100 == 0 {
+    if (n - 1) % 100 == 0 {
       integrity_check(n);
     }
   }

@@ -162,9 +162,8 @@ pub mod String {
 
   pub fn .repeat(self: String, count: N32) -> String {
     let out = "";
-    while count != 0 {
+    for _ in 0..count {
       out ++= self;
-      count -= 1;
     }
     out
   }

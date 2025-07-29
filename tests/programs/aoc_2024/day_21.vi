@@ -21,10 +21,8 @@ pub fn main(&io: &IO) {
   io.println("Part 1: {sum}");
 
   let c = base_cost_func();
-  let i = 0;
-  while i < 25 {
+  for _ in 0..25 {
     c = cost_func(c, 6, 1);
-    i += 1;
   }
   c = cost_func(c, 12, 0);
 
@@ -134,10 +132,8 @@ fn base_cost_func() -> CostFunc {
 
 fn cost_func(c: CostFunc, size: N32, dead_row: N32) -> CostFunc {
   let o = Array::new(size, Array::new(size, unsafe::eraser[N64]));
-  let from = 0;
-  while from < size {
-    let to = 0;
-    while to < size {
+  for from in 0..size {
+    for to in 0..size {
       let fn test(horiz: Bool) {
         let cost = N64::zero;
         let fx = from % 3;
@@ -182,9 +178,7 @@ fn cost_func(c: CostFunc, size: N32, dead_row: N32) -> CostFunc {
       }
       let cost = test(true).min(test(false));
       *(*o.at(from).unwrap()).at(to).unwrap() = cost;
-      to += 1;
     }
-    from += 1;
   }
   o
 }
