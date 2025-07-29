@@ -69,17 +69,13 @@ pub fn main(&io: &IO) {
   }
 
   let i = 0;
-  let y = 0;
-  while y < size {
-    let x = 0;
-    while x < size {
+  for y in 0..size {
+    for x in 0..size {
       if (*grid.at(y).unwrap()).get(x).unwrap() == N32::maximum {
         i += 1;
         remove_data(x, y);
       }
-      x += 1;
     }
-    y += 1;
   }
 
   let data_rev = data.reversed();

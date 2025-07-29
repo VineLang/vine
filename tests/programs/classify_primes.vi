@@ -2,8 +2,7 @@
 const max: N32 = 1000;
 
 pub fn main(&io: &IO) {
-  let n = 2;
-  while n < max {
+  for n in 2..max {
     let d = 2;
     let class = while d * d <= n {
       if n % d == 0 {
@@ -14,6 +13,5 @@ pub fn main(&io: &IO) {
       "prime"
     };
     io.println("{n}: {class}");
-    n += 1;
   }
 }

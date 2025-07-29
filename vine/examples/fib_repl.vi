@@ -12,8 +12,7 @@ pub fn main(&io: &IO) {
 pub fn fib(n: N32) -> N32 {
   let a = 0;
   let b = 1;
-  while n != 0 {
-    n -= 1;
+  for _ in 0..n {
     (a, b) = (b, a + b);
   }
   a

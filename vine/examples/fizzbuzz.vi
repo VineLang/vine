@@ -2,10 +2,8 @@
 const end: N32 = 100;
 
 pub fn main(&io: &IO) {
-  let n = 1;
-  while n <= end {
+  for n in 1..(end + 1) {
     io.println(message(n));
-    n += 1;
   }
 }
 

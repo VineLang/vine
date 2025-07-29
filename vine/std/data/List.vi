@@ -17,9 +17,8 @@ pub mod List {
 
   pub fn new[T*](len: N32, value: T) -> List[T] {
     let list = [];
-    while len > 0 {
+    for _ in 0..len {
       list.push_back(value);
-      len -= 1;
     }
     list
   }
@@ -29,10 +28,9 @@ pub mod List {
       let &_ = buf;
       return None;
     }
-    while i != 0 {
+    for _ in 0..i {
       let &Buf(_, *tail) = buf;
       buf = tail;
-      i -= 1;
     }
     let &Buf(*head, _) = buf;
     Some(head)
@@ -81,13 +79,12 @@ pub mod List {
     let len = l;
     let cur;
     let result = ~cur;
-    while l != 0 {
+    for _ in 0..l {
       let Buf(head, tail) = buf;
       buf = tail;
       let next;
       ~cur = Buf(f(head), ~next);
       ~next = ~cur;
-      l -= 1;
     }
     unsafe::erase(buf);
     List(len, result, cur)
@@ -143,10 +140,9 @@ pub mod List {
 
   pub fn .insert[T](&List[T](len, *buf, _), i: N32, el: T) {
     len += 1;
-    while i != 0 {
+    for _ in 0..i {
       let &Buf(_, *tail) = buf;
       buf = tail;
-      i -= 1;
     }
     let &buf = buf;
     buf = Buf(el, buf);

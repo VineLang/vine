@@ -10,9 +10,8 @@ pub fn main(&io: &IO) {
   while io.read_line() is Some(secret) {
     let (a, b, c, d) = (0, 0, 0, 0);
     let secret = N32::parse(secret).unwrap();
-    let i = 0;
     let last_price = 0;
-    while i < black_box(2000) {
+    for i in 0..black_box(2000) {
       evolve(&secret);
       let price = secret % 10;
       (a, b, c, d) = (b, c, d, price - last_price);
@@ -24,7 +23,6 @@ pub fn main(&io: &IO) {
           last_changed = buyer;
         }
       }
-      i += 1;
     }
     part1 += secret as N64;
     buyer += 1;

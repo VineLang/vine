@@ -198,7 +198,7 @@ pub mod N64 {
       None
     } else {
       let num = 0 as N64;
-      while len != 0 {
+      for _ in 0..len {
         let List::Buf(char, tail) = chars;
         chars = tail;
         if !('0' <= char <= '9') {
@@ -207,7 +207,6 @@ pub mod N64 {
         }
         num *= 10 as N64;
         num += (char - '0') as N64;
-        len -= 1;
       }
       unsafe::erase(chars);
       Some(num)

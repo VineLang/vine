@@ -11,16 +11,12 @@ const adjusted_scale: F32 = scale / width as F32;
 
 pub fn main(&io: &IO) {
   io.print_bytes([0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, width, width >> 8, height, height >> 8, 8, 32]);
-  let j = 0;
-  while j < height {
-    let i = 0;
-    while i < width {
+  for j in 0..height {
+    for i in 0..width {
       let pos = (i as F32 + 0.5, j as F32 + 0.5) - (width as F32, height as F32) / 2.0;
       let (x, y) = center + pos * scale / width as F32;
       io.print_byte(mandelbrot(x, y));
-      i += 1;
     }
-    j += 1;
   }
 }
 

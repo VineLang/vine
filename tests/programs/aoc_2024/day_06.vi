@@ -49,19 +49,15 @@ pub fn main(&io: &IO) {
 fn clear(&grid: &Array[Array[Char]], &spaces: &List[(N32, N32)]) {
   let height = grid.len();
   let width = (*grid.at(0).unwrap()).len();
-  let y = 0;
-  while y < height {
+  for y in 0..height {
     let &row = grid.at(y).unwrap();
-    let x = 0;
-    while x < width {
+    for x in 0..width {
       let &cell = row.at(x).unwrap();
       if cell == 'X' {
         spaces ++= [(x, y)];
         cell = '.';
       }
-      x += 1;
     }
-    y += 1;
   }
 }
 

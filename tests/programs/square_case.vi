@@ -8,10 +8,8 @@ pub fn main(&io: &IO) {
 }
 
 fn squares(&io: &IO, len: N32) {
-  let i = 0;
-  while i < len {
+  for _ in 0..len {
     io.print_char('□');
-    i += 1;
   }
   io.print_char('\n');
 }

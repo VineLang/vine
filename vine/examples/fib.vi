@@ -2,12 +2,10 @@
 const end: N32 = 32;
 
 pub fn main(&io: &IO) {
-  let n = 0;
   let a = 0;
   let b = 1;
-  while n <= end {
+  for n in 0..(end + 1) {
     io.println("fib({n}) = {a}");
     (a, b) = (b, a + b);
-    n += 1;
   }
 }

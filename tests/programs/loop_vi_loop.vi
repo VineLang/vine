@@ -1,12 +1,8 @@
 
 pub fn main(&io: &IO) {
-  let i = 0;
   let n = 0;
-  while i < 5 {
-    i = i + 1;
-    let j = 0;
-    while j < 5 {
-      j = j + 1;
+  for i in 0..5 {
+    for j in 0..5 {
       n = n + 1;
       io.println("{n}");
     }

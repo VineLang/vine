@@ -2,15 +2,11 @@
 const end: N32 = 10_000;
 
 pub fn main(&io: &IO) {
-  let n = 1;
-  while n < end {
-    n += 1;
-    let d = 2;
-    let prime = while d < n {
+  for n in 2..(end + 1) {
+    let prime = for d in 2..n {
       if n % d == 0 {
         break false;
       }
-      d += 1;
     } else {
       true
     };
