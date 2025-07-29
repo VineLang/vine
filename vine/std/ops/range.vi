@@ -1,5 +1,8 @@
 
 use comparison::Ord;
+use data::Iterator;
+use ops::arithmetic::{Add, Sub};
+use numeric::N64;
 
 pub trait Bound[B, T] {
   fn .left_of(self: &B, value: &T) -> Bool;
@@ -63,6 +66,44 @@ pub struct Range[B1, B2](pub (B1, B2));
 pub mod Range {
   pub fn .contains[B1, B2, T; Bound[B1, T], Bound[B2, T]](&Range[B1, B2](start, end), &value: &T) -> Bool {
     start.left_of(&value) && end.right_of(&value)
+  }
+
+  use Bound::{Exclusive, Inclusive};
+
+  pub trait Step[T] {
+    fn .step(x: T) -> T;
+  }
+
+  pub mod Step {
+    pub impl n32: Step[N32] {
+      fn step(x: N32) -> N32 {
+        x + 1
+      }
+    }
+
+    pub impl i32: Step[I32] {
+      fn step(x: I32) -> I32 {
+        x + +1
+      }
+    }
+
+    pub impl n64: Step[N64] {
+      fn step(x: N64) -> N64 {
+        x + N64::one
+      }
+    }
+  }
+
+  pub impl iterator[T*; Ord[T], Step[T]]: Iterator[Range[Inclusive[T], Exclusive[T]], T] {
+    fn advance(Range[Inclusive[T], Exclusive[T]](Inclusive[T](start), end)) -> Option[
+      (T, Range[Inclusive[T], Exclusive[T]]);
+    ] {
+      if end.right_of(&start) {
+        Some(start, Range(Inclusive(start.step()), end))
+      } else {
+        None
+      }
+    }
   }
 
   pub impl fork[B1+, B2+]: Fork[Range[B1, B2]];
