@@ -41,12 +41,14 @@ pub fn main(&io: &IO) {
   }
 
   let rng = Pcg32::seeded(seed);
-  for n in 0..iterations {
+  let n = iterations;
+  while n > 0 {
+    n -= 1;
     let num = rng.gen_n32();
     if map.remove(&num) is Some(n) => n != num * num {
       io.println("missing {num}");
     }
-    if (n - 1) % 100 == 0 {
+    if n % 100 == 0 {
       integrity_check(n);
     }
   }
