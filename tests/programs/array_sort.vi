@@ -1,0 +1,32 @@
+
+use std::data::Array;
+use std::debug::Show;
+use std::sorting;
+
+pub fn main(&io: &IO) {
+  let a = Array::new[N32](0, 0);
+  a.push_back(4);
+  a.push_back(1);
+  a.push_back(3);
+  a.push_back(2);
+  a.push_back(16);
+  a.push_back(9);
+  a.push_back(10);
+  a.push_back(14);
+  a.push_back(8);
+  a.push_back(7);
+
+  let str = "";
+  a.for_each(fn* (n: N32) {
+    str = str ++ "{n} "
+  });
+  io.println("unsorted: {str}");
+
+  sorting::sort(&a);
+
+  let str = "";
+  a.for_each(fn* (n: N32) {
+    str = str ++ "{n} ";
+  });
+  io.println("sorted:   {str}");
+}
