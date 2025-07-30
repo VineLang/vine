@@ -4,7 +4,7 @@ use std::debug::Show;
 use std::ops::Cast;
 use std::ops::comparison::Ord;
 
-// Smoothsort is a sorting algorithm by Edsger Dijkstra.
+// Smooth sort is a sorting algorithm by Dijkstra.
 // It is O(n) for mostly-sorted data, and O(n log n) in the worst case.
 // This implementation is based on Keith Schwartz's at
 // https://www.keithschwarz.com/smoothsort/
@@ -116,7 +116,7 @@ fn add_to_heap[T; Ord[T], Fork[T], Drop[T]](
     }
   }
 
-  // if it's final, rectify the whole forest, otherwise just rebalance the heap
+  // if it's final, rectify the whole forest, otherwise just re-balance the heap
   if isLast {
     // copies of the bitset and smallest tree are on purpose here
     rectify(&data, i + 1, trees0, trees1, smallestTree, &ln);
@@ -143,7 +143,7 @@ fn rectify[T; Ord[T], Fork[T], Drop[T]](
       break;
     }
 
-    // if we arn't order 0 or 1, we have two children; find the largest
+    // if we aren't order 0 or 1, we have two children; find the largest
     let toCompare = i;
 
     if smallestTree > 1 {
@@ -229,7 +229,7 @@ fn remove_from_heap[T; Ord[T], Fork[T], Drop[T]](
     }
   }
 
-  // otherwise, make two subheaps of order k-2 and k-1
+  // otherwise, make two sub-heaps of order k-2 and k-1
   let heapOrder = smallestTree
   trees0 = trees0 & 0xfffffffe;
   shift_left(&trees0, &trees1, 2);
