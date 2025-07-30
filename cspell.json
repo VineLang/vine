@@ -46,6 +46,7 @@
     "proto",
     "readback",
     "readline",
+    "rebalance",
     "rels",
     "repr",
     "rfold",
