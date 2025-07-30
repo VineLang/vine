@@ -17,9 +17,7 @@ pub fn main(&io: &IO) {
   a.push_back(7);
 
   let str = "";
-  a.for_each(fn* (n: N32) {
-    str = str ++ "{n} "
-  });
+  a.for_each(fn* (n: N32) { str = str ++ "{n} " });
   io.println("unsorted: {str}");
 
   sorting::sort(&a);

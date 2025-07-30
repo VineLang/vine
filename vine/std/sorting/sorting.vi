@@ -14,7 +14,7 @@ pub fn sort[T; Ord[T], Fork[T], Drop[T]](&data: &Array[T]) {
   let prev_idx: N32 = 0;
   let prev_two = Array::new[N32](2, 1);
   let leonardo_numbers = Array::new[N32](2, 1);
-  let index = 0
+  let index = 0;
   while index < 44 {
     let next = prev_two.get(0).unwrap() + prev_two.get(1).unwrap() + 1;
     prev_idx = 1 - prev_idx;
@@ -24,11 +24,14 @@ pub fn sort[T; Ord[T], Fork[T], Drop[T]](&data: &Array[T]) {
   }
 
   // convert the array into an implicit forest of Leonardo heaps
-  let trees0: N32 = 0       // bitset of which trees are present
-  let trees1: N32 = 0       // enough for 46 trees
-  let smallestTree: N32 = 0 // index of the smallest tree
+  let trees0: N32 = 0;
+  // bitset of which trees are present
+  let trees1: N32 = 0;
+  // enough for 46 trees
+  let smallestTree: N32 = 0;
+  // index of the smallest tree
 
-  let i: N32 = 0
+  let i: N32 = 0;
   while i < data.len() {
     add_to_heap(&data, i, &trees0, &trees1, &smallestTree, &leonardo_numbers)
     i += 1;
@@ -68,8 +71,8 @@ fn add_to_heap[T; Ord[T], Fork[T], Drop[T]](
   &trees0: &N32,
   &trees1: &N32,
   &smallestTree: &N32,
-  &ln: &Array[N32]) {
-
+  &ln: &Array[N32],
+) {
   if !is_set(trees0, trees1, 0) {
     // case 0: there are no elements in the heap; add a tree of order 1
     trees0 = trees0 | 1;
@@ -96,16 +99,14 @@ fn add_to_heap[T; Ord[T], Fork[T], Drop[T]](
   }
 
   // check if the new tree is in its final position
-  let isLast = false
+  let isLast = false;
   if smallestTree == 0 {
     if (i + 1) == data.len() {
       isLast = true
     }
   } else {
     if smallestTree == 1 {
-      if
-        (i + 1) == data.len() ||
-        ((i + 2) == data.len() && is_set(trees0, trees1, 1)) {
+      if (i + 1) == data.len() || ((i + 2) == data.len() && is_set(trees0, trees1, 1)) {
         isLast = true
       }
     } else {
@@ -131,7 +132,8 @@ fn rectify[T; Ord[T], Fork[T], Drop[T]](
   trees0: N32,
   trees1: N32,
   smallestTree: N32,
-  &ln: &Array[N32]) {
+  &ln: &Array[N32],
+) {
   let i = len - 1;
   let lastHeapSize: N32;
 
@@ -163,8 +165,10 @@ fn rectify[T; Ord[T], Fork[T], Drop[T]](
     }
 
     // otherwise, swap values and change to the prior heap
-    (*data.at(i).unwrap(), *data.at(priorHeap).unwrap()) =
-      (data.get(priorHeap).unwrap(), data.get(i).unwrap())
+    (*data.at(i).unwrap(), *data.at(priorHeap).unwrap()) = (
+      data.get(priorHeap).unwrap(),
+      data.get(i).unwrap(),
+    )
     i = priorHeap
 
     // adjust the bitmap
@@ -201,8 +205,10 @@ fn rebalance[T; Ord[T], Fork[T], Drop[T]](&data: &Array[T], i: N32, size: N32, &
       return;
     }
 
-    (*data.at(i).unwrap(), *data.at(largerChild).unwrap()) =
-      (data.get(largerChild).unwrap(), data.get(i).unwrap())
+    (*data.at(i).unwrap(), *data.at(largerChild).unwrap()) = (
+      data.get(largerChild).unwrap(),
+      data.get(i).unwrap(),
+    )
     i = largerChild
     size = childSize
   }
@@ -214,8 +220,8 @@ fn remove_from_heap[T; Ord[T], Fork[T], Drop[T]](
   &trees0: &N32,
   &trees1: &N32,
   &smallestTree: &N32,
-  &ln: &Array[N32]) {
-
+  &ln: &Array[N32],
+) {
   // if the last heap is of order zero or one, it's already in place
   if smallestTree <= 1 {
     // look for the next tree
@@ -230,7 +236,7 @@ fn remove_from_heap[T; Ord[T], Fork[T], Drop[T]](
   }
 
   // otherwise, make two sub-heaps of order k-2 and k-1
-  let heapOrder = smallestTree
+  let heapOrder = smallestTree;
   trees0 = trees0 & 0xfffffffe;
   shift_left(&trees0, &trees1, 2);
   trees0 = trees0 | 0b11;
