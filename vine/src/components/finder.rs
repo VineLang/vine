@@ -532,6 +532,16 @@ impl<'core, 'a> Finder<'core, 'a> {
                 found.push(TypeCtx { types, inner: impl_ });
               }
             }
+          } else if let Some((inv, TypeKind::Tuple(rest))) = types.kind(type_params[2]) {
+            let len = 1 + rest.len();
+            let init = type_params[1];
+            let rest = rest.iter().map(|t| t.invert_if(inv));
+            let mut types = types.clone();
+            let tuple = types.new(TypeKind::Tuple([init].into_iter().chain(rest).collect()));
+            if types.unify(tuple, type_params[0]).is_success() {
+              let impl_ = TirImpl::Synthetic(SyntheticImpl::Tuple(len));
+              found.push(TypeCtx { types, inner: impl_ });
+            }
           }
         }
         if Some(*trait_id) == self.chart.builtins.object {
