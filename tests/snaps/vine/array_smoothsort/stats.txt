@@ -1,8 +1,6 @@
 
 Interactions
   Total               35_405
-    Depth             10_079
-    Breadth                3
   Annihilate          15_531
   Commute                 10
   Copy                 4_484
@@ -12,6 +10,10 @@ Interactions
   Branch               2_392
 
 Memory
-  Heap                11_568 B
-  Allocated          708_400 B
-  Freed              708_400 B
+  Heap                11_024 B
+  Allocated          705_296 B
+  Freed              705_296 B
+
+Performance
+  Time                    16 ms
+  Speed            2_086_255 IPS

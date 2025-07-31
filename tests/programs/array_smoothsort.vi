@@ -1,5 +1,5 @@
 
-use std::{data::Array, data::Iterator, debug::Show, ops::comparison::Ord};
+use std::{data::{Array, Iterator}, debug::Show, ops::comparison::Ord};
 
 pub fn main(&io: &IO) {
   let a = [4, 1, 3, 2, 16, 9, 10, 14, 8, 7] as Array;
@@ -176,7 +176,7 @@ fn rebalance[T; Ord[T]](&data: &Array[T], i: N32, size: N32, &ln: &Array[N32]) {
       (second, size - 2)
     } else {
       (first, size - 1)
-    }
+    };
 
     if data.at(larger_child).unwrap() < data.at(i).unwrap() {
       // we're done
@@ -226,7 +226,14 @@ fn remove_from_heap[T; Ord[T]](
   shift_right(&all_but_last_trees0, &all_but_last_trees1, 1);
   let all_but_last_smallest = smallest_tree + 1;
 
-  rectify(&data, left_heap + 1, all_but_last_trees0, all_but_last_trees1, all_but_last_smallest, &ln);
+  rectify(
+    &data,
+    left_heap + 1,
+    all_but_last_trees0,
+    all_but_last_trees1,
+    all_but_last_smallest,
+    &ln,
+  );
   rectify(&data, right_heap + 1, trees0, trees1, smallest_tree, &ln);
 }
 
