@@ -47,6 +47,7 @@ fn tests(t: &mut DynTester) {
 
     test_vi(t, "tests/programs/array_from_list.vi", b"", ".txt", false);
     test_vi(t, "tests/programs/array_order.vi", b"", ".txt", true);
+    test_vi(t, "tests/programs/array_smoothsort.vi", b"", ".txt", true);
     test_vi(t, "tests/programs/array_to_list.vi", b"", ".txt", false);
     test_vi(t, "tests/programs/basic_diverge.vi", b"", ".txt", true);
     test_vi(t, "tests/programs/brainfuck.vi", brainfuck_input, ".txt", true);
