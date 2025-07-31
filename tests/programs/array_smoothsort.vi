@@ -22,11 +22,9 @@ pub fn smooth_sort[T; Ord[T]](&data: &Array[T]) {
   let prev: N32 = 1;
   let cur: N32 = 1;
 
-  let index = 0;
-  while index < 44 {
+  for _ in 0..44 {
     (prev, cur) = (cur, prev + cur + 1);
     leonardo_numbers.push_back(cur);
-    index += 1;
   }
 
   // convert the array into an implicit forest of Leonardo heaps
@@ -34,14 +32,12 @@ pub fn smooth_sort[T; Ord[T]](&data: &Array[T]) {
   let trees1 = 0;
   let smallest_tree = 0;
 
-  let i: N32 = 0;
-  while i < data.len() {
+  for i in 0..data.len() {
     add_to_heap(&data, i, &trees0, &trees1, &smallest_tree, &leonardo_numbers)
-    i += 1;
   }
 
   // dequeue in reverse order
-  i = data.len();
+  let i = data.len();
   while i > 0 {
     remove_from_heap(&data, i, &trees0, &trees1, &smallest_tree, &leonardo_numbers);
     i -= 1;
