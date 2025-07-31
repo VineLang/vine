@@ -6,7 +6,6 @@ pub mod logical;
 pub mod numeric;
 pub mod ops;
 pub mod rng;
-pub mod sorting;
 pub mod unicode;
 pub mod unsafe;
 pub mod IO;
