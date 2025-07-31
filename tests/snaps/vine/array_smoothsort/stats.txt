@@ -1,19 +1,17 @@
 
 Interactions
-  Total               35_405
-  Annihilate          15_531
+  Total               36_101
+    Depth             10_299
+    Breadth                3
+  Annihilate          16_051
   Commute                 10
   Copy                 4_484
-  Erase                4_397
-  Expand               2_652
+  Erase                4_485
+  Expand               2_740
   Call                 5_939
   Branch               2_392
 
 Memory
-  Heap                11_024 B
-  Allocated          705_296 B
-  Freed              705_296 B
-
-Performance
-  Time                    16 ms
-  Speed            2_086_255 IPS
+  Heap                11_648 B
+  Allocated          725_040 B
+  Freed              725_040 B
