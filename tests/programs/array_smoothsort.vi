@@ -1,0 +1,253 @@
+
+use std::{data::{Array, Iterator}, debug::Show, ops::comparison::Ord};
+
+pub fn main(&io: &IO) {
+  let a = [4, 1, 3, 2, 16, 9, 10, 14, 8, 7] as Array;
+
+  io.println("unsorted: {a.as[List].show()}");
+
+  smooth_sort(&a);
+
+  io.println("sorted:   {a.as[List].show()}");
+}
+
+// Smooth sort is a sorting algorithm by Dijkstra.
+// It is O(n) for mostly-sorted data, and O(n log n) in the worst case.
+// This implementation is based on Keith Schwartz's at
+// https://www.keithschwarz.com/smoothsort/
+
+pub fn smooth_sort[T; Ord[T]](&data: &Array[T]) {
+  // compute all the Leonardo numbers that can fit in 32 bits
+  let leonardo_numbers = [1, 1] as Array;
+  let prev: N32 = 1;
+  let cur: N32 = 1;
+
+  for _ in 0..44 {
+    (prev, cur) = (cur, prev + cur + 1);
+    leonardo_numbers.push_back(cur);
+  }
+
+  // A 64-bit bitmap of which trees are present in the forest
+  let trees0 = 0;
+  let trees1 = 0;
+
+  // The order of the rightmost tree in the forest
+  let smallest_tree = 0;
+
+  // Add a value to the forest
+  let fn add_to_heap(i: N32) {
+    if !is_set(trees0, trees1, 0) {
+      // case 0: there are no elements in the heap; add a tree of order 1
+      trees0 = trees0 | 1;
+      smallest_tree = 1;
+    } else {
+      // case 1: the last two heaps have sizes that differ by one; merge them
+      if is_set(trees0, trees1, 0) && is_set(trees0, trees1, 1) {
+        shift_right(&trees0, &trees1, 2);
+        trees0 = trees0 | 1;
+        smallest_tree = smallest_tree + 2;
+      } else {
+        // case 2: the last heap is of order 1; add a heap of order 0
+        if smallest_tree == 1 {
+          shift_left(&trees0, &trees1, 1);
+          trees0 = trees0 | 1;
+          smallest_tree = 0;
+        } else {
+          // case 3: add a heap of order 1
+          shift_left(&trees0, &trees1, smallest_tree - 1);
+          trees0 = trees0 | 1;
+          smallest_tree = 1;
+        }
+      }
+    }
+
+    // check if the new tree is in its final position
+    let is_last = false;
+    if smallest_tree == 0 {
+      if (i + 1) == data.len() {
+        is_last = true
+      }
+    } else {
+      if smallest_tree == 1 {
+        if (i + 1) == data.len() || ((i + 2) == data.len() && is_set(trees0, trees1, 1)) {
+          is_last = true
+        }
+      } else {
+        // the heap is final if there's no room for another leonardo tree
+        if (data.len() - (i + 1)) < (leonardo_numbers.get(smallest_tree - 1).unwrap() + 1) {
+          is_last = true
+        }
+      }
+    }
+
+    // if it's final, rectify the whole forest, otherwise just re-balance the heap
+    if is_last {
+      // copies of the bitset and smallest tree are on purpose here
+      rectify(i + 1, trees0, trees1, smallest_tree);
+    } else {
+      rebalance(i, smallest_tree);
+    }
+  }
+
+  // Rebalance an individual tree
+  let fn rebalance(i: N32, size: N32) {
+    while size > 1 {
+      let first = first_child(i, size);
+      let second = second_child(i);
+
+      let (larger_child, child_size) = if data.at(first).unwrap() < data.at(second).unwrap() {
+        (second, size - 2)
+      } else {
+        (first, size - 1)
+      };
+
+      if data.at(larger_child).unwrap() < data.at(i).unwrap() {
+        // we're done
+        return;
+      }
+
+      swap(data.at(i).unwrap(), data.at(larger_child).unwrap());
+      i = larger_child
+      size = child_size
+    }
+  }
+
+  let fn rectify(len: N32, trees0: N32, trees1: N32, smallest_tree: N32) {
+    let i = len - 1;
+    let last_heap_size: N32;
+
+    loop {
+      last_heap_size = smallest_tree;
+
+      // if this is the first heap in the forest, we're done
+      if i == leonardo_numbers.get(last_heap_size).unwrap() - 1 {
+        break;
+      }
+
+      // if we aren't order 0 or 1, we have two children; find the largest
+      let to_compare = i;
+
+      if smallest_tree > 1 {
+        let larger_child = larger_child(i, smallest_tree);
+        if data.at(to_compare).unwrap() < data.at(larger_child).unwrap() {
+          to_compare = larger_child;
+        }
+      }
+
+      // get the index of the prior heap by backing up the size of the current
+      let prior_heap = i - leonardo_numbers.get(last_heap_size).unwrap();
+
+      // if we've run out of trees, or the new tree's root is smaller,
+      // the new node is in the right heap
+      if data.at(to_compare).unwrap() >= data.at(prior_heap).unwrap() {
+        break;
+      }
+
+      // otherwise, swap values and change to the prior heap
+      swap(data.at(i).unwrap(), data.at(prior_heap).unwrap());
+      i = prior_heap
+
+      // adjust the bitmap
+      loop {
+        shift_right(&trees0, &trees1, 1);
+        smallest_tree += 1;
+
+        if (trees0 & 1) != 1 {
+          continue;
+        }
+      }
+      continue;
+    }
+
+    rebalance(i, last_heap_size);
+  }
+
+  // Dequeue the largest value from the forest
+  let fn remove_from_heap(len: N32) {
+    // if the last heap is of order zero or one, it's already in place
+    if smallest_tree <= 1 {
+      // look for the next tree
+      loop {
+        shift_right(&trees0, &trees1, 1);
+        smallest_tree += 1;
+
+        if trees0 == 0 && trees1 == 0 || trees0 & 1 == 1 {
+          return;
+        }
+        continue;
+      }
+    }
+
+    // otherwise, make two sub-heaps of order k-2 and k-1
+    let heap_order = smallest_tree;
+    trees0 = trees0 & 0xfffffffe;
+    shift_left(&trees0, &trees1, 2);
+    trees0 = trees0 | 0b11;
+    smallest_tree -= 2;
+
+    let left_heap = first_child(len - 1, heap_order);
+    let right_heap = second_child(len - 1);
+
+    let all_but_last_trees0 = trees0;
+    let all_but_last_trees1 = trees1;
+    shift_right(&all_but_last_trees0, &all_but_last_trees1, 1);
+    let all_but_last_smallest = smallest_tree + 1;
+
+    rectify(left_heap + 1, all_but_last_trees0, all_but_last_trees1, all_but_last_smallest);
+    rectify(right_heap + 1, trees0, trees1, smallest_tree);
+  }
+
+  let fn first_child(i: N32, size: N32) -> N32 {
+    second_child(i) - leonardo_numbers.get(size - 2).unwrap()
+  }
+
+  let fn second_child(i: N32) -> N32 {
+    i - 1
+  }
+
+  let fn swap(&a: &T, &b: &T) {
+    (a, b) = (b, a);
+  }
+
+  let fn larger_child(i: N32, size: N32) -> N32 {
+    let first = first_child(i, size);
+    let second = second_child(i);
+    if &data.at(first).unwrap() < &data.at(second).unwrap() {
+      second
+    } else {
+      first
+    }
+  }
+
+  let fn is_set(trees0: N32, trees1: N32, index: N32) -> Bool {
+    if index < 32 {
+      (trees0 & (1 << index)) != 0
+    } else {
+      (trees1 & (1 << (index - 32))) != 0
+    }
+  }
+
+  let fn shift_left(&trees0: &N32, &trees1: &N32, n: N32) {
+    trees1 = trees1 << n;
+    trees1 = trees1 | (trees0 >> (32 - n));
+    trees0 = trees0 << n;
+  }
+
+  let fn shift_right(&trees0: &N32, &trees1: &N32, n: N32) {
+    trees0 = trees0 >> n;
+    trees0 = trees0 | (trees1 << (32 - n))
+    trees1 = trees1 >> n;
+  }
+
+  // convert the array into an implicit forest of Leonardo heaps
+  for i in 0..data.len() {
+    add_to_heap(i);
+  }
+
+  // dequeue in reverse order
+  let i = data.len();
+  while i > 0 {
+    remove_from_heap(i);
+    i -= 1;
+  }
+}
