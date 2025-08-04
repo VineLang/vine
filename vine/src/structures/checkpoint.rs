@@ -52,8 +52,18 @@ impl<'core> Compiler<'core> {
   }
 
   pub fn revert(&mut self, checkpoint: &Checkpoint) {
-    let Compiler { core: _, loader: _, chart, sigs, resolutions, specs, fragments, vir, templates } =
-      self;
+    let Compiler {
+      core: _,
+      config: _,
+      loader: _,
+      chart,
+      sigs,
+      resolutions,
+      specs,
+      fragments,
+      vir,
+      templates,
+    } = self;
     chart.revert(checkpoint);
     sigs.revert(checkpoint);
     resolutions.revert(checkpoint);

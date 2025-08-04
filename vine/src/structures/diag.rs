@@ -258,6 +258,10 @@ diags! {
     ["expected impl item to have {expected} impl parameters; found {found}"]
   ExpectedImplItemImplParam { expected: String, found: String }
     ["expected impl parameter of trait `{expected}`; found `{found}`"]
+  UnknownCfg { name: Ident<'core> }
+    ["no configuration value named `{name}`"]
+  BadCfgType { name: Ident<'core>, kind: &'static str }
+    ["expected `{name}` to be a {kind} configuration value"]
 }
 
 fn plural<'a>(n: usize, plural: &'a str, singular: &'a str) -> &'a str {

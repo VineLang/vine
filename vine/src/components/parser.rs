@@ -117,6 +117,12 @@ impl<'core, 'src> VineParser<'core, 'src> {
         self.expect(Token::CloseParen)?;
         AttrKind::Become(path)
       }
+      "cfg" => {
+        self.expect(Token::OpenParen)?;
+        let cfg = self.parse_cfg()?;
+        self.expect(Token::CloseParen)?;
+        AttrKind::Cfg(cfg)
+      }
       _ => Err(Diag::UnknownAttribute { span: ident_span })?,
     };
     self.expect(Token::CloseBracket)?;
@@ -649,7 +655,7 @@ impl BP {
     }
   }
 
-  fn permits(self, other: Self) -> bool {
+  pub(crate) fn permits(self, other: Self) -> bool {
     other >= self
   }
 }

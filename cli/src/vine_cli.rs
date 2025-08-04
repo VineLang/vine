@@ -13,6 +13,7 @@ use ivy::{ast::Nets, host::Host};
 use rustyline::DefaultEditor;
 use vine::{
   compiler::Compiler,
+  features::cfg::Config,
   structures::core::{Core, CoreArenas},
   tools::repl::Repl,
 };
@@ -67,7 +68,7 @@ impl CompileArgs {
 
     let arenas = CoreArenas::default();
     let core = &Core::new(&arenas);
-    let mut compiler = Compiler::new(core);
+    let mut compiler = Compiler::new(core, Config::default());
 
     if let Some(main) = self.main {
       compiler.loader.load_main_mod(&main);
@@ -173,7 +174,7 @@ impl VineReplCommand {
     let mut ivm = IVM::new(&heap, &extrinsics);
     let arenas = CoreArenas::default();
     let core = &Core::new(&arenas);
-    let mut repl = match Repl::new(host, &mut ivm, core, self.libs) {
+    let mut repl = match Repl::new(host, &mut ivm, core, Config::default(), self.libs) {
       Ok(repl) => repl,
       Err(diags) => {
         eprintln!("{}", core.print_diags(&diags));

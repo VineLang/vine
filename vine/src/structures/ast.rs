@@ -157,6 +157,25 @@ pub enum AttrKind<'core> {
   Manual,
   Basic,
   Become(Path<'core>),
+  Cfg(Cfg<'core>),
+}
+
+#[derive(Debug, Clone)]
+pub struct Cfg<'core> {
+  pub span: Span,
+  pub kind: Box<CfgKind<'core>>,
+}
+
+#[derive(Debug, Clone)]
+pub enum CfgKind<'core> {
+  Bool(Ident<'core>),
+  Str(Ident<'core>, bool, String),
+  StrPred(Ident<'core>, String),
+  Paren(Cfg<'core>),
+  Literal(bool),
+  And(Cfg<'core>, Cfg<'core>),
+  Or(Cfg<'core>, Cfg<'core>),
+  Not(Cfg<'core>),
 }
 
 pub type GenericParams<'core> = Generics<TypeParam<'core>, ImplParam<'core>>;

@@ -82,6 +82,9 @@ impl<'core> Charter<'core, '_> {
     let kind = match impl_item.kind {
       ImplItemKind::Direct(items) => {
         for subitem in items {
+          if !self.enabled(&subitem.attrs) {
+            continue;
+          }
           let span = subitem.span;
           if !matches!(subitem.vis, Vis::Private) {
             self.core.report(Diag::ImplItemVis { span });

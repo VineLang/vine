@@ -6,6 +6,7 @@ use crate::{
     analyzer::analyze, charter::Charter, distiller::Distiller, emitter::emit, loader::Loader,
     normalizer::normalize, resolver::Resolver, specializer::Specializer, synthesizer::synthesize,
   },
+  features::cfg::Config,
   structures::{
     chart::Chart,
     checkpoint::Checkpoint,
@@ -22,6 +23,7 @@ use crate::{
 
 pub struct Compiler<'core> {
   pub core: &'core Core<'core>,
+  pub config: Config<'core>,
   pub loader: Loader<'core>,
   pub chart: Chart<'core>,
   pub sigs: Signatures<'core>,
@@ -33,9 +35,10 @@ pub struct Compiler<'core> {
 }
 
 impl<'core> Compiler<'core> {
-  pub fn new(core: &'core Core<'core>) -> Self {
+  pub fn new(core: &'core Core<'core>, config: Config<'core>) -> Self {
     Compiler {
       core,
+      config,
       loader: Loader::new(core),
       chart: Chart::default(),
       sigs: Signatures::default(),
@@ -65,7 +68,7 @@ impl<'core> Compiler<'core> {
 
     let chart = &mut self.chart;
 
-    let mut charter = Charter { core, chart };
+    let mut charter = Charter { core, chart, config: &self.config };
     charter.chart_root(root);
     hooks.chart(&mut charter);
 

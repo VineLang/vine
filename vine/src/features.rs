@@ -2,6 +2,7 @@ pub mod annotation;
 pub mod block;
 pub mod builtin;
 pub mod cast;
+pub mod cfg;
 pub mod coerce;
 pub mod composite;
 pub mod condition;

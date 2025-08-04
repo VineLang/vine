@@ -1,10 +1,13 @@
 use std::mem::replace;
 
-use crate::structures::{
-  ast::{visit::VisitMut, Attr, AttrKind, Ident, Item, ItemKind, ModKind, Span, Vis},
-  chart::Chart,
-  core::Core,
-  diag::{Diag, ErrorGuaranteed},
+use crate::{
+  features::cfg::Config,
+  structures::{
+    ast::{visit::VisitMut, Attr, AttrKind, Ident, Item, ItemKind, ModKind, Span, Vis},
+    chart::Chart,
+    core::Core,
+    diag::{Diag, ErrorGuaranteed},
+  },
 };
 
 use crate::structures::chart::*;
@@ -12,6 +15,7 @@ use crate::structures::chart::*;
 pub struct Charter<'core, 'a> {
   pub core: &'core Core<'core>,
   pub chart: &'a mut Chart<'core>,
+  pub config: &'a Config<'core>,
 }
 
 impl<'core> Charter<'core, '_> {
@@ -77,6 +81,10 @@ impl<'core> Charter<'core, '_> {
     parent: DefId,
     parent_generics: GenericsId,
   ) {
+    if !self.enabled(&item.attrs) {
+      return;
+    }
+
     let subitems = extract_subitems(&mut item);
 
     let span = item.span;
@@ -178,6 +186,7 @@ impl<'core> Charter<'core, '_> {
           }
           impl_.become_ = Some(path);
         }
+        AttrKind::Cfg(_) => {}
       }
     }
   }

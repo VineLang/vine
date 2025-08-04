@@ -5,6 +5,7 @@ use tower_lsp::{jsonrpc::Result, lsp_types::*, Client, LanguageServer, LspServic
 
 use vine::{
   compiler::Compiler,
+  features::cfg::Config,
   structures::{
     core::{Core, CoreArenas},
     diag::Diag,
@@ -21,7 +22,7 @@ impl Backend {
   fn refresh(&self) -> impl Future<Output = ()> + Send + '_ {
     let arenas = &CoreArenas::default();
     let core = &Core::new(arenas);
-    let mut compiler = Compiler::new(core);
+    let mut compiler = Compiler::new(core, Config::default());
 
     for glob in &self.entrypoints {
       for entry in glob::glob(glob).unwrap() {

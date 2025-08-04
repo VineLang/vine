@@ -15,6 +15,7 @@ use crate::{
     parser::VineParser,
     resolver::Resolver,
   },
+  features::cfg::Config,
   structures::{
     ast::{visit::VisitMut, Block, Ident, Span, Stmt},
     chart::{DefId, GenericsId},
@@ -56,9 +57,10 @@ impl<'core, 'ctx, 'ivm, 'ext> Repl<'core, 'ctx, 'ivm, 'ext> {
     mut host: &'ivm mut Host<'ivm>,
     ivm: &'ctx mut IVM<'ivm, 'ext>,
     core: &'core Core<'core>,
+    config: Config<'core>,
     libs: Vec<PathBuf>,
   ) -> Result<Self, Vec<Diag<'core>>> {
-    let mut compiler = Compiler::new(core);
+    let mut compiler = Compiler::new(core, config);
     for lib in libs {
       compiler.loader.load_mod(&lib);
     }
