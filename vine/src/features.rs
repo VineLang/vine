@@ -7,6 +7,7 @@ pub mod coerce;
 pub mod composite;
 pub mod condition;
 pub mod const_;
+pub mod debug;
 pub mod do_;
 pub mod enum_;
 pub mod fn_;

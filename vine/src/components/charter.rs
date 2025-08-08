@@ -151,6 +151,10 @@ impl<'core> Charter<'core, '_> {
         Some(WithVis { vis: _, kind: DefImplKind::Impl(id) }) => Some(id),
         _ => None,
       });
+      let concrete_fn_id = def.and_then(|id| match self.chart.defs[id].value_kind {
+        Some(WithVis { vis: _, kind: DefValueKind::Fn(FnId::Concrete(id)) }) => Some(id),
+        _ => None,
+      });
       match attr.kind {
         AttrKind::Builtin(builtin) => {
           if !self.chart_builtin(def, builtin) {
@@ -185,6 +189,13 @@ impl<'core> Charter<'core, '_> {
             continue;
           }
           impl_.become_ = Some(path);
+        }
+        AttrKind::Frameless => {
+          let Some(concrete_fn_id) = concrete_fn_id else {
+            self.core.report(Diag::BadFramelessAttr { span });
+            continue;
+          };
+          self.chart.concrete_fns[concrete_fn_id].frameless = true;
         }
         AttrKind::Cfg(_) => {}
       }

@@ -213,6 +213,7 @@ impl<'core, 'r> Distiller<'core, 'r> {
   }
 
   pub(crate) fn distill_expr_nil(&mut self, stage: &mut Stage, expr: &TirExpr) {
+    let span = expr.span;
     match &*expr.kind {
       TirExprKind![!nil] => self.distill_expr_nil_coerce_value(stage, expr),
       TirExprKind::Return(value) => self.distill_return(stage, value),
@@ -222,7 +223,7 @@ impl<'core, 'r> Distiller<'core, 'r> {
         self.distill_expr_nil_assign(stage, *inverse, space, value)
       }
       TirExprKind::CallAssign(func, lhs, rhs) => {
-        self.distill_expr_nil_call_assign(stage, *func, lhs, rhs)
+        self.distill_expr_nil_call_assign(stage, span, *func, lhs, rhs)
       }
     }
   }
@@ -259,7 +260,7 @@ impl<'core, 'r> Distiller<'core, 'r> {
       TirExprKind::I32(i) => self.distill_expr_value_i32(ty, *i),
       TirExprKind::F32(f) => self.distill_expr_value_f32(ty, *f),
       TirExprKind::Char(c) => self.distill_expr_value_char(ty, *c),
-      TirExprKind::Const(id) => self.distill_expr_value_const(ty, *id),
+      TirExprKind::Const(id) => self.distill_expr_value_const(stage, span, ty, *id),
       TirExprKind::Fn => self.distill_expr_value_fn(ty),
       TirExprKind::Struct(struct_id, inner) => {
         self.distill_expr_value_struct(stage, span, ty, *struct_id, inner)

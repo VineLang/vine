@@ -21,7 +21,7 @@ struct Backend {
 impl Backend {
   fn refresh(&self) -> impl Future<Output = ()> + Send + '_ {
     let arenas = &CoreArenas::default();
-    let core = &Core::new(arenas);
+    let core = &Core::new(arenas, true);
     let mut compiler = Compiler::new(core, Config::default());
 
     for glob in &self.entrypoints {

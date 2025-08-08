@@ -1,10 +1,12 @@
 use std::mem::take;
 
+use ivy::ast::Tree;
 use vine_util::parser::Parser;
 
 use crate::{
   components::{
-    charter::Charter, distiller::Distiller, lexer::Token, parser::VineParser, resolver::Resolver,
+    charter::Charter, distiller::Distiller, emitter::Emitter, lexer::Token, parser::VineParser,
+    resolver::Resolver,
   },
   structures::{
     ast::{ConstItem, Path, Span},
@@ -14,7 +16,7 @@ use crate::{
     signatures::ConstSig,
     tir::{TirExpr, TirExprKind},
     types::{Type, TypeCtx},
-    vir::{Port, PortKind},
+    vir::{Port, Stage, Step},
   },
   tools::fmt::{doc::Doc, Formatter},
 };
@@ -88,7 +90,8 @@ impl<'core> Resolver<'core, '_> {
     self.initialize(const_def.def, const_def.generics);
     let ty = self.types.import(&self.sigs.concrete_consts[const_id], None).ty;
     let root = self.resolve_expr_type(&const_def.value, ty);
-    let fragment = self.finish_fragment(const_def.span, self.chart.defs[const_def.def].path, root);
+    let fragment =
+      self.finish_fragment(const_def.span, self.chart.defs[const_def.def].path, root, false);
     let fragment_id = self.fragments.push(fragment);
     self.resolutions.consts.push_to(const_id, fragment_id);
   }
@@ -108,7 +111,28 @@ impl<'core> Resolver<'core, '_> {
 }
 
 impl<'core> Distiller<'core, '_> {
-  pub(crate) fn distill_expr_value_const(&mut self, ty: Type, id: ConstRelId) -> Port {
-    Port { ty, kind: PortKind::ConstRel(id) }
+  pub(crate) fn distill_expr_value_const(
+    &mut self,
+    stage: &mut Stage,
+    span: Span,
+    ty: Type,
+    id: ConstRelId,
+  ) -> Port {
+    let wire = stage.new_wire(span, ty);
+    stage.steps.push(Step::Const(span, id, wire.neg));
+    wire.pos
+  }
+}
+
+impl<'core> Emitter<'core, '_> {
+  pub(crate) fn emit_const(&mut self, span: &Span, rel: &ConstRelId, out: &Port) {
+    let rel = self.emit_const_rel(*rel);
+    let out = self.emit_port(out);
+    if self.core.debug {
+      let dbg = self.tap_debug_call(*span);
+      self.pairs.push((rel, Tree::n_ary("dbg", [dbg, out])));
+    } else {
+      self.pairs.push((rel, out));
+    }
   }
 }

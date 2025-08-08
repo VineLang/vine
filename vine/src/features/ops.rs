@@ -169,13 +169,14 @@ impl<'core> Distiller<'core, '_> {
   pub(crate) fn distill_expr_nil_call_assign(
     &mut self,
     stage: &mut Stage,
+    span: Span,
     func: FnRelId,
     lhs: &TirExpr,
     rhs: &TirExpr,
   ) {
     let rhs = self.distill_expr_value(stage, rhs);
     let (lhs, out) = self.distill_expr_place(stage, lhs);
-    stage.steps.push(Step::Call(func, None, vec![lhs, rhs], out));
+    stage.steps.push(Step::Call(span, func, None, vec![lhs, rhs], out));
   }
 
   pub(crate) fn distill_expr_value_call_compare(
@@ -204,7 +205,7 @@ impl<'core> Distiller<'core, '_> {
         )
       };
       let result = stage.new_wire(span, ty);
-      stage.steps.push(Step::Call(*func, None, vec![lhs.unwrap(), rhs], result.neg));
+      stage.steps.push(Step::Call(span, *func, None, vec![lhs.unwrap(), rhs], result.neg));
       last_result = if first {
         result.pos
       } else {

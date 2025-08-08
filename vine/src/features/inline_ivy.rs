@@ -117,6 +117,11 @@ impl<'core> Distiller<'core, '_> {
 
 impl<'core> Emitter<'core, '_> {
   pub(crate) fn emit_inline_ivy(&mut self, binds: &Vec<(String, Port)>, out: &Port, net: &Net) {
+    if net.pairs.is_empty() && matches!(&net.root, Tree::Var(var) if var == "debug") {
+      let pair = (self.emit_port(out), self.tap_debug());
+      self.pairs.push(pair);
+      return;
+    }
     for (var, port) in binds {
       let port = self.emit_port(port);
       self.pairs.push((Tree::Var(var.clone()), port));

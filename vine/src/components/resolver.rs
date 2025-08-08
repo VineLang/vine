@@ -234,7 +234,7 @@ impl<'core, 'a> Resolver<'core, 'a> {
       ty: self.types.new(TypeKind::Ref(ty)),
       kind: Box::new(TirExprKind::Ref(root)),
     };
-    let fragment = self.finish_fragment(span, path, root);
+    let fragment = self.finish_fragment(span, path, root, false);
     let fragment_id = self.fragments.push(fragment);
     let mut bindings =
       Vec::from_iter(take(&mut self.scope).into_iter().filter_map(|(name, entries)| {
@@ -363,6 +363,7 @@ impl<'core, 'a> Resolver<'core, 'a> {
     span: Span,
     path: &'core str,
     root: TirExpr,
+    frameless: bool,
   ) -> Fragment<'core> {
     Fragment {
       def: self.cur_def,
@@ -377,6 +378,7 @@ impl<'core, 'a> Resolver<'core, 'a> {
         rels: take(&mut self.rels),
         root,
       },
+      frameless,
     }
   }
 

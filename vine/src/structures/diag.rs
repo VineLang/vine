@@ -260,6 +260,8 @@ diags! {
     ["no configuration value named `{name}`"]
   BadCfgType { name: Ident<'core>, kind: &'static str }
     ["expected `{name}` to be a {kind} configuration value"]
+  BadFramelessAttr
+    ["the `#[frameless]` attribute can only be applied to an fn"]
 }
 
 fn plural<'a>(n: usize, plural: &'a str, singular: &'a str) -> &'a str {

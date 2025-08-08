@@ -151,6 +151,7 @@ impl<'core> Charter<'core, '_> {
       params: fn_item.params,
       ret_ty: fn_item.ret,
       body,
+      frameless: false,
     });
     self.define_value(span, def, vis, DefValueKind::Fn(FnId::Concrete(fn_id)));
     self.chart_attrs(Some(def), attrs);

@@ -158,6 +158,7 @@ pub enum AttrKind<'core> {
   Basic,
   Become(Path<'core>),
   Cfg(Cfg<'core>),
+  Frameless,
 }
 
 #[derive(Debug, Clone)]

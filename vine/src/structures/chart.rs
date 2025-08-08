@@ -147,6 +147,7 @@ pub struct ConcreteFnDef<'core> {
   pub params: Vec<Pat<'core>>,
   pub ret_ty: Option<Ty<'core>>,
   pub body: Block<'core>,
+  pub frameless: bool,
 }
 
 new_idx!(pub OpaqueTypeId);

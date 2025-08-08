@@ -48,6 +48,7 @@ pub struct Fragment<'core> {
   pub generics: GenericsId,
   pub impl_params: usize,
   pub tir: Tir<'core>,
+  pub frameless: bool,
 }
 
 new_idx!(pub ConstRelId);

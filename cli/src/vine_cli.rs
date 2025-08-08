@@ -58,6 +58,8 @@ pub struct CompileArgs {
   libs: Vec<PathBuf>,
   #[arg(long)]
   no_std: bool,
+  #[arg(long)]
+  debug: bool,
 }
 
 impl CompileArgs {
@@ -67,7 +69,7 @@ impl CompileArgs {
     }
 
     let arenas = CoreArenas::default();
-    let core = &Core::new(&arenas);
+    let core = &Core::new(&arenas, self.debug);
     let mut compiler = Compiler::new(core, Config::default());
 
     if let Some(main) = self.main {
@@ -158,6 +160,8 @@ pub struct VineReplCommand {
   no_std: bool,
   #[arg(long)]
   echo: bool,
+  #[arg(long)]
+  debug: bool,
 }
 
 impl VineReplCommand {
@@ -173,7 +177,7 @@ impl VineReplCommand {
 
     let mut ivm = IVM::new(&heap, &extrinsics);
     let arenas = CoreArenas::default();
-    let core = &Core::new(&arenas);
+    let core = &Core::new(&arenas, self.debug);
     let mut repl = match Repl::new(host, &mut ivm, core, Config::default(), self.libs) {
       Ok(repl) => repl,
       Err(diags) => {
@@ -212,7 +216,7 @@ impl VineFmtCommand {
     let mut src = String::new();
     stdin().read_to_string(&mut src)?;
     let arenas = CoreArenas::default();
-    let core = &Core::new(&arenas);
+    let core = &Core::new(&arenas, false);
     println!("{}", core.fmt(&src).unwrap());
     Ok(())
   }

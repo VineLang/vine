@@ -15,6 +15,7 @@ pub mod prelude {
   pub use ::std::{
     IO,
     data::List,
+    debug::{debug, dbg, dbg_msg},
     logical::{Bool, Option::{Option, None, Some}, Result::{Result, Err, Ok}},
     numeric::{F32, I32, N32},
     ops::flex::{Drop, Fork},
@@ -24,5 +25,9 @@ pub mod prelude {
 
   pub fn black_box[T](value: T) -> T {
     inline_ivy! (value <- value) -> T { #[value] }
+  }
+
+  pub fn swap[T](&a: &T, &b: &T) {
+    (a, b) = (b, a);
   }
 }

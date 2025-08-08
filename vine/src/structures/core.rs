@@ -20,15 +20,17 @@ pub struct Core<'core> {
   interner: StringInterner<'core>,
   pub(crate) diags: RefCell<Vec<Diag<'core>>>,
   pub(crate) files: RefCell<Vec<FileInfo>>,
+  pub debug: bool,
 }
 
 impl<'core> Core<'core> {
-  pub fn new(arenas: &'core CoreArenas) -> Self {
+  pub fn new(arenas: &'core CoreArenas, debug: bool) -> Self {
     Core {
       arenas,
       interner: StringInterner::new(&arenas.bytes),
       diags: Default::default(),
       files: Default::default(),
+      debug,
     }
   }
 

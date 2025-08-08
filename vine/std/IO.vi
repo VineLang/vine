@@ -4,11 +4,19 @@ pub type IO;
 
 pub mod IO {
   pub fn .println(&io: &IO, str: String) {
-    io.print(str);
+    debug::synchronize_io(&io);
+    io._print(str);
     io.print_char('\n');
+    debug::synchronize_io(&io);
   }
 
   pub fn .print(&io: &IO, str: String) {
+    debug::synchronize_io(&io);
+    io._print(str);
+    debug::synchronize_io(&io);
+  }
+
+  pub.std fn ._print(&io: &IO, str: String) {
     for char in str!.into_iter() {
       io.print_char(char);
     }
@@ -83,6 +91,12 @@ pub mod IO {
       byte
       io0 = dup(io1 io2)
       io1 = @io_read_byte(default dup(byte @seq$(io2 io3))) 
+    }
+  }
+
+  pub.std fn .synchronize(&io0: &IO, &io1: &IO) {
+    inline_ivy! (i0 <- io0, i1 <- io1, o0 -> io0, o1 -> io1) -> () { _
+      i0 = @seq(i1 dup(o0 o1))
     }
   }
 }

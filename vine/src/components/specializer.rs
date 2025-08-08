@@ -223,7 +223,7 @@ impl<'core, 'a> Specializer<'core, 'a> {
     match self.specs.synthetic.entry((item, impls)) {
       Entry::Occupied(e) => *e.get(),
       Entry::Vacant(entry) => {
-        let (_, impls) = entry.key().clone();
+        let (item, impls) = entry.key().clone();
         let spec_id = self.specs.specs.push(None);
         entry.insert(spec_id);
         let rels = self.instantiate_rels(None, &impls, &item.rels());
@@ -238,6 +238,7 @@ impl<'core, 'a> Specializer<'core, 'a> {
       }
     }
   }
+
   fn _closure_stage(&self, fragment_id: FragmentId, closure_id: Option<ClosureId>) -> StageId {
     match self._closure_interface(fragment_id, closure_id) {
       InterfaceKind::Fn { call, .. } => *call,

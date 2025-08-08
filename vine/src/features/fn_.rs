@@ -151,6 +151,7 @@ impl<'core> Charter<'core, '_> {
       params: fn_item.params,
       ret_ty: fn_item.ret,
       body,
+      frameless: false,
     });
     self.define_value(span, def, vis, DefValueKind::Fn(FnId::Concrete(fn_id)));
     def
@@ -183,7 +184,8 @@ impl<'core> Resolver<'core, '_> {
     let (ty, closure_id) =
       self.resolve_closure(span, Flex::None, &fn_def.params, &fn_def.ret_ty, &fn_def.body, false);
     let root = TirExpr { span, ty, kind: Box::new(TirExprKind::Closure(closure_id)) };
-    let fragment = self.finish_fragment(span, self.chart.defs[fn_def.def].path, root);
+    let fragment =
+      self.finish_fragment(span, self.chart.defs[fn_def.def].path, root, fn_def.frameless);
     let fragment_id = self.fragments.push(fragment);
     self.resolutions.fns.push_to(fn_id, fragment_id);
   }
@@ -506,7 +508,7 @@ impl<'core> Distiller<'core, '_> {
     let receiver = receiver.as_ref().map(|r| self.distill_expr_value(stage, r));
     let args = args.iter().map(|s| self.distill_expr_value(stage, s)).collect::<Vec<_>>();
     let wire = stage.new_wire(span, ty);
-    stage.steps.push(Step::Call(rel, receiver, args, wire.neg));
+    stage.steps.push(Step::Call(span, rel, receiver, args, wire.neg));
     wire.pos
   }
 
@@ -523,9 +525,19 @@ impl<'core> Distiller<'core, '_> {
 }
 
 impl<'core> Emitter<'core, '_> {
-  pub(crate) fn emit_call(&mut self, rel: FnRelId, recv: &Option<Port>, args: &[Port], ret: &Port) {
+  pub(crate) fn emit_call(
+    &mut self,
+    span: Span,
+    rel: FnRelId,
+    recv: &Option<Port>,
+    args: &[Port],
+    ret: &Port,
+  ) {
     let func = self.emit_fn_rel(rel);
-    let recv = recv.as_ref().map(|p| self.emit_port(p)).unwrap_or(Tree::Erase);
+    let mut recv = recv.as_ref().map(|p| self.emit_port(p)).unwrap_or(Tree::Erase);
+    if self.core.debug {
+      recv = Tree::Comb("dbg".into(), Box::new(self.tap_debug_call(span)), Box::new(recv));
+    }
     let pair = (
       func,
       Tree::n_ary(

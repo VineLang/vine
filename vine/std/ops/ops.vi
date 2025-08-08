@@ -41,5 +41,5 @@ pub mod Cast {
 
 #[builtin = "Fn"]
 pub trait Fn[F, P, R] {
-  fn call(f: F, params: P) -> R;
+  fn .call(f: F, params: P) -> R;
 }
