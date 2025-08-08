@@ -91,7 +91,7 @@ true
 let io: IO = #io;
 let l: List[I32] = [+1, +2, -18, +4];
 > l.contains(&+7)
-::std::data::List::contains:0:s6
+false
 
 let io: IO = #io;
 let l: List[I32] = [+1, +2, -18, +4];
@@ -304,7 +304,7 @@ let x: (~N32, ~N32) = (#ivy(n0), #ivy(n1));
 let io: IO = #io;
 let a: N32 = #ivy(n0);
 let b: N32 = #ivy(n1);
-let x: (~N32, ~N32) = (::std::unsafe::eraser, ::std::unsafe::eraser);
+let x: (~N32, ~N32) = (#ivy(_), #ivy(_));
 let y: { a: ~N32, b: ~N32 } = { a: #ivy(n0), b: #ivy(n1) };
 > ~x = (1, 2);
 
@@ -328,7 +328,7 @@ error input:1:5 - cannot infer type
 error input:1:8 - search limit reached when finding flex of type `?1642`
 error input:1:8 - search limit reached when finding impl of trait `Drop[?1642]`
 error input:1:13 - search limit reached when finding flex of type `?1642`
-error - search limit reached when finding impl of trait `Drop[?1642]`
+error input:1:1 - search limit reached when finding impl of trait `Drop[?1642]`
 error input:1:5 - search limit reached when finding flex of type `?1642`
 error input:1:5 - variable of type `?1642` read whilst uninitialized
 
@@ -377,7 +377,7 @@ let io: IO = #io;
 
 let io: IO = #io;
 > F32::inf.abs()
-::std::numeric::F32::inf
+inf
 
 let io: IO = #io;
 > F32::neg_inf.abs()
@@ -385,7 +385,7 @@ inf
 
 let io: IO = #io;
 > F32::nan.abs()
-::std::numeric::F32::nan
+NaN
 
 let io: IO = #io;
 > do { match Some(1) { Some(_) {} } }

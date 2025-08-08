@@ -6,16 +6,16 @@ let io: IO = #io;
 > let rng = Pcg32::default
 
 let io: IO = #io;
-let rng: Pcg32 = ::std::rng::Pcg32::default;
+let rng: Pcg32 = Pcg32(N64(3505598835, 1297702388), N64(4150755663, 335903614));
 > let nums: List[N32] = []
 
 let io: IO = #io;
-let rng: Pcg32 = ::std::rng::Pcg32::default;
+let rng: Pcg32 = Pcg32(N64(3505598835, 1297702388), N64(4150755663, 335903614));
 let nums: List[N32] = [];
 > let len = 20
 
 let io: IO = #io;
-let rng: Pcg32 = ::std::rng::Pcg32::default;
+let rng: Pcg32 = Pcg32(N64(3505598835, 1297702388), N64(4150755663, 335903614));
 let nums: List[N32] = [];
 let len: N32 = 20;
 > while len != 0 { len -= 1; nums ++= [rng.gen_n32() % 100] }

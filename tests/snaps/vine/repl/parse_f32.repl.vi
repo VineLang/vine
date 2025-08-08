@@ -77,11 +77,11 @@ Some(0.0)
 
 let io: IO = #io;
 > F32::parse("inf")
-Some(::std::numeric::F32::inf)
+Some(inf)
 
 let io: IO = #io;
 > F32::parse("+inf")
-Some(::std::numeric::F32::inf)
+Some(inf)
 
 let io: IO = #io;
 > F32::parse("-inf")
@@ -89,11 +89,11 @@ Some(-inf)
 
 let io: IO = #io;
 > F32::parse("nan")
-Some(::std::numeric::F32::nan)
+Some(NaN)
 
 let io: IO = #io;
 > F32::parse("NaN")
-Some(::std::numeric::F32::nan)
+Some(NaN)
 
 let io: IO = #io;
 > F32::parse("  9.81")
