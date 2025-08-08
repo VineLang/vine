@@ -12,6 +12,6 @@ Interactions
   Branch              75_487
 
 Memory
-  Heap             1_680_224 B
+  Heap             1_680_240 B
   Allocated       22_284_352 B
   Freed           22_284_352 B

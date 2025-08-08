@@ -12,6 +12,6 @@ Interactions
   Branch              50_409
 
 Memory
-  Heap               258_624 B
+  Heap               259_280 B
   Allocated       16_667_680 B
   Freed           16_667_680 B

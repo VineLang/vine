@@ -12,6 +12,6 @@ Interactions
   Branch           4_891_594
 
 Memory
-  Heap            18_201_184 B
+  Heap            18_206_784 B
   Allocated    3_248_199_600 B
   Freed        3_248_199_600 B
