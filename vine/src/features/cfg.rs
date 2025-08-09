@@ -1,4 +1,4 @@
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 
 use vine_util::parser::Parser;
 
@@ -27,8 +27,6 @@ impl<'core> Config<'core> {
 
 pub enum ConfigValue {
   Bool(bool),
-  Str(String),
-  StrPred(HashSet<String>),
 }
 
 impl<'core> VineParser<'core, '_> {
@@ -48,19 +46,9 @@ impl<'core> VineParser<'core, '_> {
     }
   }
 
-  fn parse_cfg_prefix(&mut self, bp: BP) -> Result<CfgKind<'core>, Diag<'core>> {
+  fn parse_cfg_prefix(&mut self, _: BP) -> Result<CfgKind<'core>, Diag<'core>> {
     if self.check(Token::Ident) {
       let name = self.parse_ident()?;
-      if bp.permits(BP::Comparison) {
-        if self.eat(Token::EqEq)? {
-          let str = self.parse_string()?;
-          return Ok(CfgKind::Str(name, false, str));
-        }
-        if self.eat(Token::Ne)? {
-          let str = self.parse_string()?;
-          return Ok(CfgKind::Str(name, true, str));
-        }
-      }
       return Ok(CfgKind::Bool(name));
     }
 
@@ -112,17 +100,6 @@ impl<'core> Charter<'core, '_> {
     match &*cfg.kind {
       CfgKind::Bool(name) => match self.get_cfg(span, *name)? {
         ConfigValue::Bool(bool) => Ok(*bool),
-        _ => Err(self.core.report(Diag::BadCfgType { span, name: *name, kind: "boolean" })),
-      },
-      CfgKind::Str(name, inv, str) => match self.get_cfg(span, *name)? {
-        ConfigValue::Str(value) => Ok((value == str) ^ inv),
-        _ => Err(self.core.report(Diag::BadCfgType { span, name: *name, kind: "string" })),
-      },
-      CfgKind::StrPred(name, str) => match self.get_cfg(span, *name)? {
-        ConfigValue::StrPred(set) => Ok(set.contains(str)),
-        _ => {
-          Err(self.core.report(Diag::BadCfgType { span, name: *name, kind: "string predicate" }))
-        }
       },
       CfgKind::Paren(cfg) => self.eval_cfg(cfg),
       CfgKind::Literal(bool) => Ok(*bool),

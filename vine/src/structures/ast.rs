@@ -170,8 +170,6 @@ pub struct Cfg<'core> {
 #[derive(Debug, Clone)]
 pub enum CfgKind<'core> {
   Bool(Ident<'core>),
-  Str(Ident<'core>, bool, String),
-  StrPred(Ident<'core>, String),
   Paren(Cfg<'core>),
   Literal(bool),
   And(Cfg<'core>, Cfg<'core>),
