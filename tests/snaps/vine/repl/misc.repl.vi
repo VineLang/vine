@@ -281,11 +281,11 @@ error input:1:29 - expected type `{ a: N32, b: N32 }`; found `{ a: N32 }`
 
 let io: IO = #io;
 > do { let x; x = (x, x); }
-error input:1:17 - expected type `?1510`; found `(?1510, ?1510)`
-error input:1:10 - search limit reached when finding flex of type `?1510`
-error input:1:10 - cannot drop `?1510`
-error input:1:10 - variable of type `?1510` read whilst uninitialized
-error input:1:10 - cannot fork `?1510`
+error input:1:17 - expected type `?1528`; found `(?1528, ?1528)`
+error input:1:10 - search limit reached when finding flex of type `?1528`
+error input:1:10 - cannot drop `?1528`
+error input:1:10 - variable of type `?1528` read whilst uninitialized
+error input:1:10 - cannot fork `?1528`
 
 let io: IO = #io;
 > let (a: N32, b: N32);
@@ -325,12 +325,12 @@ let y: { a: ~N32, b: ~N32 };
 let io: IO = #io;
 > let x; x.a; x.a
 error input:1:5 - cannot infer type
-error input:1:8 - search limit reached when finding flex of type `?1624`
-error input:1:8 - search limit reached when finding impl of trait `Drop[?1624]`
-error input:1:13 - search limit reached when finding flex of type `?1624`
-error - search limit reached when finding impl of trait `Drop[?1624]`
-error input:1:5 - search limit reached when finding flex of type `?1624`
-error input:1:5 - variable of type `?1624` read whilst uninitialized
+error input:1:8 - search limit reached when finding flex of type `?1642`
+error input:1:8 - search limit reached when finding impl of trait `Drop[?1642]`
+error input:1:13 - search limit reached when finding flex of type `?1642`
+error - search limit reached when finding impl of trait `Drop[?1642]`
+error input:1:5 - search limit reached when finding flex of type `?1642`
+error input:1:5 - variable of type `?1642` read whilst uninitialized
 
 let io: IO = #io;
 > Ok(true)?

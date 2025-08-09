@@ -216,8 +216,6 @@ diags! {
     ["unconditional infinite loops are invalid"]
   NonExhaustiveMatch
     ["match arms do not cover all possible cases"]
-  CannotImplFn
-    ["cannot directly implement the fn trait"]
   AmbiguousPolyformicComposite
     ["composite expression in polyformic position has elements of mixed forms"]
   FlexSearchLimit { ty: String }

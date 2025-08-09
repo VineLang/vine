@@ -211,6 +211,7 @@ impl Builtins {
       cast,
       binary_ops,
       comparison_ops,
+      fn_,
       fork,
       drop,
       duplicate,
@@ -243,6 +244,7 @@ impl Builtins {
     revert_fn(cast, checkpoint);
     binary_ops.values_mut().for_each(|op| revert_fn(op, checkpoint));
     comparison_ops.values_mut().for_each(|op| revert_fn(op, checkpoint));
+    revert_idx(fn_, checkpoint.traits);
     revert_idx(fork, checkpoint.traits);
     revert_idx(drop, checkpoint.traits);
     revert_idx(duplicate, checkpoint.impls);

@@ -30,6 +30,8 @@ pub enum SyntheticItem<'core> {
   EnumVariantNames(EnumId),
   EnumMatch(EnumId),
   EnumReconstruct(EnumId),
+  FnFromCall(usize),
+  CallFromFn(usize),
 }
 
 struct Synthesizer<'core, 'a> {
@@ -92,6 +94,8 @@ impl<'core> Synthesizer<'core, '_> {
       SyntheticItem::EnumVariantNames(enum_id) => self.synthesize_enum_variant_names(enum_id),
       SyntheticItem::EnumMatch(enum_id) => self.synthesize_enum_match(enum_id),
       SyntheticItem::EnumReconstruct(enum_id) => self.synthesize_enum_reconstruct(enum_id),
+      SyntheticItem::FnFromCall(params) => self.synthesize_fn_from_call(params),
+      SyntheticItem::CallFromFn(params) => self.synthesize_call_from_fn(params),
     };
     self.nets.insert(stage, net);
   }
@@ -136,12 +140,7 @@ impl<'core> Synthesizer<'core, '_> {
   }
 
   fn synthesize_enum_match(&mut self, enum_id: EnumId) -> Net {
-    let fn_ = match self.spec.rels.fns[FnRelId(0)] {
-      Ok((spec_id, stage_id)) => {
-        Tree::Global(global_name(self.specs.specs[spec_id].as_ref().unwrap(), stage_id))
-      }
-      Err(_) => Tree::Erase,
-    };
+    let fn_ = self.fn_rel(FnRelId(0));
     let f = self.new_wire();
     let t = self.new_wire();
     Net::new(Tree::n_ary(
@@ -210,6 +209,32 @@ impl<'core> Synthesizer<'core, '_> {
     cur_net
   }
 
+  fn synthesize_fn_from_call(&mut self, params: usize) -> Net {
+    let recv = self.new_wire();
+    let params = (0..params).map(|_| self.new_wire()).collect::<(Vec<_>, Vec<_>)>();
+    let ret = self.new_wire();
+    Net {
+      root: Tree::n_ary("fn", [recv.0].into_iter().chain(params.0).chain([ret.0])),
+      pairs: vec![(
+        self.fn_rel(FnRelId(0)),
+        Tree::n_ary("fn", [Tree::Erase, recv.1, Tree::n_ary("tup", params.1), ret.1]),
+      )],
+    }
+  }
+
+  fn synthesize_call_from_fn(&mut self, params: usize) -> Net {
+    let recv = self.new_wire();
+    let params = (0..params).map(|_| self.new_wire()).collect::<(Vec<_>, Vec<_>)>();
+    let ret = self.new_wire();
+    Net {
+      root: Tree::n_ary("fn", [Tree::Erase, recv.1, Tree::n_ary("tup", params.1), ret.1]),
+      pairs: vec![(
+        self.fn_rel(FnRelId(0)),
+        Tree::n_ary("fn", [recv.0].into_iter().chain(params.0).chain([ret.0])),
+      )],
+    }
+  }
+
   fn enum_(
     &mut self,
     enum_id: EnumId,
@@ -256,6 +281,15 @@ impl<'core> Synthesizer<'core, '_> {
       cur = self.enum_(variant_enum, VariantId(1), |_| Some(cur));
     }
     cur
+  }
+
+  fn fn_rel(&self, id: FnRelId) -> Tree {
+    match self.spec.rels.fns[id] {
+      Ok((spec_id, stage_id)) => {
+        Tree::Global(global_name(self.specs.specs[spec_id].as_ref().unwrap(), stage_id))
+      }
+      Err(_) => Tree::Erase,
+    }
   }
 }
 
@@ -309,8 +343,18 @@ impl<'core> SyntheticItem<'core> {
       | SyntheticItem::EnumVariantNames(_)
       | SyntheticItem::EnumReconstruct(_) => Rels::default(),
       SyntheticItem::EnumMatch(_) => {
-        Rels { consts: IdxVec::new(), fns: IdxVec::from([FnRel::Impl(TirImpl::Param(0))]) }
+        Rels { consts: IdxVec::new(), fns: IdxVec::from([FnRel::Impl(TirImpl::Param(0), 1)]) }
       }
+      SyntheticItem::CallFromFn(params) => {
+        Rels { consts: IdxVec::new(), fns: IdxVec::from([FnRel::Impl(TirImpl::Param(0), params)]) }
+      }
+      SyntheticItem::FnFromCall(_) => Rels {
+        consts: IdxVec::new(),
+        fns: IdxVec::from([FnRel::Item(
+          FnId::Abstract(TraitId(usize::MAX), TraitFnId(0)),
+          vec![TirImpl::Param(0)],
+        )]),
+      },
     }
   }
 }

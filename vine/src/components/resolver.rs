@@ -191,7 +191,7 @@ impl<'core, 'a> Resolver<'core, 'a> {
     let nil = self.types.nil();
     let expected = FnSig { params: vec![io_ref], ret_ty: nil };
     let found = self.types.import(&self.sigs.concrete_fns[fn_id], None);
-    Self::expect_fn_sig(self.core, self.chart, &mut self.types, span, main_ident, expected, found);
+    Self::expect_fn_sig(self.core, self.chart, &mut self.types, span, expected, found);
     Ok(fn_id)
   }
 
@@ -258,23 +258,20 @@ impl<'core, 'a> Resolver<'core, 'a> {
     chart: &Chart<'core>,
     types: &mut Types<'core>,
     span: Span,
-    name: Ident<'core>,
     expected_sig: FnSig,
     found_sig: FnSig,
   ) {
-    let fake_receiver = types.new(TypeKind::Param(usize::MAX, name)); // for nicer printing
-    let expected_ty = ImplType::Fn(fake_receiver, expected_sig.params, expected_sig.ret_ty);
-    let found_ty = ImplType::Fn(fake_receiver, found_sig.params, found_sig.ret_ty);
-    if types.unify_impl_type(&expected_ty, &found_ty).is_failure() {
+    if types.unify_fn_sig(&expected_sig, &found_sig).is_failure() {
       core.report(Diag::ExpectedTypeFound {
         span,
-        expected: types.show_impl_type(chart, &expected_ty),
-        found: types.show_impl_type(chart, &found_ty),
+        expected: types.show_fn_sig(chart, &expected_sig),
+        found: types.show_fn_sig(chart, &found_sig),
       });
     }
   }
 
   pub(crate) fn resolve_trait(&mut self, trait_: &Trait<'core>) -> ImplType {
+    let span = trait_.span;
     match &*trait_.kind {
       TraitKind::Path(path) => {
         match self.resolve_path(self.cur_def, path, "trait", |d| d.trait_kind) {
@@ -286,7 +283,7 @@ impl<'core, 'a> Resolver<'core, 'a> {
           Err(diag) => ImplType::Error(self.core.report(diag)),
         }
       }
-      TraitKind::Fn(receiver, params, ret) => self.resolve_trait_fn(receiver, params, ret),
+      TraitKind::Fn(receiver, params, ret) => self.resolve_trait_fn(span, receiver, params, ret),
       TraitKind::Error(e) => ImplType::Error(*e),
     }
   }
@@ -296,7 +293,7 @@ impl<'core, 'a> Resolver<'core, 'a> {
     match &*impl_.kind {
       ImplKind::Hole => self.find_impl(span, ty, false),
       ImplKind::Path(path) => self.resolve_impl_path(path, ty),
-      ImplKind::Fn(path) => self.resolve_impl_fn(path, ty),
+      ImplKind::Fn(path) => self.resolve_impl_fn(span, path, ty),
       ImplKind::Error(err) => TirImpl::Error(*err),
     }
   }

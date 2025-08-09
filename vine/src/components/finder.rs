@@ -421,35 +421,45 @@ impl<'core, 'a> Finder<'core, 'a> {
     found: &mut Vec<TypeCtx<'core, TirImpl<'core>>>,
   ) -> Result<(), Timeout> {
     match query {
-      ImplType::Fn(receiver, params, ret) => match types.kind(*receiver) {
-        Some((Inverted(false), TypeKind::Fn(fn_id))) => {
-          let mut types = types.clone();
-          let generics = self.chart.fn_generics(*fn_id);
-          let type_params = types.new_vars(self.span, self.sigs.type_params[generics].params.len());
-          let sig = types.import(self.sigs.fn_sig(*fn_id), Some(&type_params));
-          if types
-            .unify_types(&sig.params, params, Inverted(false))
-            .and(types.unify(sig.ret_ty, *ret))
-            .is_success()
-          {
-            for result in self.find_impl_params(types, generics, type_params)? {
-              found.push(TypeCtx { types: result.types, inner: TirImpl::Fn(*fn_id, result.inner) });
-            }
-          }
-        }
-        Some((Inverted(false), TypeKind::Closure(closure_id, _, closure_params, closure_ret))) => {
-          let mut types = types.clone();
-          if types
-            .unify_types(closure_params, params, Inverted(false))
-            .and(types.unify(*closure_ret, *ret))
-            .is_success()
-          {
-            found.push(TypeCtx { types, inner: TirImpl::Closure(*closure_id) });
-          }
-        }
-        _ => {}
-      },
       ImplType::Trait(trait_id, type_params) => {
+        if Some(*trait_id) == self.chart.builtins.fn_ {
+          let [receiver, params, ret] = **type_params else { unreachable!() };
+          match types.kind(receiver) {
+            Some((Inverted(false), TypeKind::Fn(fn_id))) => {
+              let mut types = types.clone();
+              let generics = self.chart.fn_generics(*fn_id);
+              let type_params =
+                types.new_vars(self.span, self.sigs.type_params[generics].params.len());
+              let sig = types.import(self.sigs.fn_sig(*fn_id), Some(&type_params));
+              let param_count = sig.params.len();
+              let sig_params = types.new(TypeKind::Tuple(sig.params));
+              if types.unify(sig_params, params).and(types.unify(sig.ret_ty, ret)).is_success() {
+                for result in self.find_impl_params(types, generics, type_params)? {
+                  found.push(TypeCtx {
+                    types: result.types,
+                    inner: TirImpl::Fn(*fn_id, result.inner, param_count),
+                  });
+                }
+              }
+            }
+            Some((
+              Inverted(false),
+              TypeKind::Closure(closure_id, _, closure_params, closure_ret),
+            )) => {
+              let param_count = closure_params.len();
+              let mut types = types.clone();
+              let closure_params = types.new(TypeKind::Tuple(closure_params.clone()));
+              if types
+                .unify(closure_params, params)
+                .and(types.unify(*closure_ret, ret))
+                .is_success()
+              {
+                found.push(TypeCtx { types, inner: TirImpl::Closure(*closure_id, param_count) });
+              }
+            }
+            _ => {}
+          }
+        }
         if Some(*trait_id) == self.chart.builtins.fork {
           match types.kind(type_params[0]) {
             Some((Inverted(false), TypeKind::Fn(_))) => {

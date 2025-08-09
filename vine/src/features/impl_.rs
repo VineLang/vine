@@ -228,7 +228,6 @@ impl<'core> Resolver<'core, '_> {
         };
         Ok(ResolvedImpl { kind, trait_id: *trait_id, become_: Become::Unresolved })
       }
-      ImplType::Fn(..) => Err(self.core.report(Diag::CannotImplFn { span })),
       ImplType::Error(err) => Err(*err),
     };
     self.resolutions.impls.push_to(impl_id, resolved);
@@ -335,7 +334,7 @@ impl<'core> Resolver<'core, '_> {
     let expected =
       self.types.import(&self.sigs.traits[trait_id].fns[trait_fn_id], Some(&type_params));
     let found = self.types.import(&self.sigs.concrete_fns[fn_id], None);
-    Self::expect_fn_sig(self.core, self.chart, &mut self.types, span, name, expected, found);
+    Self::expect_fn_sig(self.core, self.chart, &mut self.types, span, expected, found);
     Ok(fn_id)
   }
 

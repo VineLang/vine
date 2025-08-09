@@ -61,7 +61,7 @@ pub struct Rels<'core> {
 #[derive(Debug, Clone)]
 pub enum FnRel<'core> {
   Item(FnId, Vec<TirImpl<'core>>),
-  Impl(TirImpl<'core>),
+  Impl(TirImpl<'core>, usize),
 }
 
 impl<'core> Rels<'core> {
