@@ -186,7 +186,7 @@ fn test_vi_repl(t: &mut DynTester, path: &'static str) {
   let name = Path::file_stem(path.as_ref()).unwrap().to_str().unwrap();
   t.test(name, move || {
     let input = fs::read_to_string(path).unwrap();
-    let (stdout, stderr) = exec(VINE, &["repl", "--echo", "--debug"], input.as_bytes(), true);
+    let (stdout, stderr) = exec(VINE, &["repl", "--echo"], input.as_bytes(), true);
     assert_empty_stderr(&stderr);
     test_snapshot(&["vine", "repl", &format!("{name}.repl.vi")], &stdout);
   });

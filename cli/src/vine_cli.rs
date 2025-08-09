@@ -161,7 +161,7 @@ pub struct VineReplCommand {
   #[arg(long)]
   echo: bool,
   #[arg(long)]
-  debug: bool,
+  no_debug: bool,
 }
 
 impl VineReplCommand {
@@ -177,7 +177,7 @@ impl VineReplCommand {
 
     let mut ivm = IVM::new(&heap, &extrinsics);
     let arenas = CoreArenas::default();
-    let core = &Core::new(&arenas, self.debug);
+    let core = &Core::new(&arenas, !self.no_debug);
     let mut repl = match Repl::new(host, &mut ivm, core, Config::default(), self.libs) {
       Ok(repl) => repl,
       Err(diags) => {
