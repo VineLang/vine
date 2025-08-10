@@ -37,7 +37,8 @@ pub struct FlexImpls<'core> {
 }
 
 struct CandidateSearch<F> {
-  modules: IntSet<DefId>,
+  mods: IntSet<DefId>,
+  defs: IntSet<DefId>,
   consider_candidate: F,
 }
 
@@ -96,7 +97,8 @@ impl<'core, 'a> Finder<'core, 'a> {
   ) -> BTreeSet<FnId> {
     let mut candidates = BTreeSet::new();
     let search = &mut CandidateSearch {
-      modules: HashSet::default(),
+      mods: HashSet::default(),
+      defs: HashSet::default(),
       consider_candidate: |self_: &Self, def: &Def| {
         if def.name == name {
           if let Some(WithVis { kind: DefValueKind::Fn(fn_kind), vis }) = def.value_kind {
@@ -111,7 +113,7 @@ impl<'core, 'a> Finder<'core, 'a> {
     self.find_general_candidates(search);
 
     if let Some(def_id) = types.get_mod(self.chart, receiver) {
-      self.find_candidates_within(def_id, search);
+      self.consider_mod(search, def_id);
     }
 
     candidates
@@ -320,7 +322,8 @@ impl<'core, 'a> Finder<'core, 'a> {
   ) -> BTreeSet<ImplId> {
     let mut candidates = BTreeSet::new();
     let search = &mut CandidateSearch {
-      modules: HashSet::default(),
+      mods: HashSet::default(),
+      defs: HashSet::default(),
       consider_candidate: |self_: &Self, def: &Def| {
         if let Some(WithVis { vis, kind: DefImplKind::Impl(impl_id) }) = def.impl_kind {
           if self_.chart.visible(vis, self_.source) {
@@ -339,10 +342,10 @@ impl<'core, 'a> Finder<'core, 'a> {
     self.find_general_candidates(search);
 
     if let ImplType::Trait(trait_id, params) = query {
-      self.find_candidates_within(self.chart.traits[*trait_id].def, search);
+      self.consider_mod(search, self.chart.traits[*trait_id].def);
       for &param in params {
         if let Some(mod_id) = types.get_mod(self.chart, param) {
-          self.find_candidates_within(mod_id, search);
+          self.consider_mod(search, mod_id);
         }
       }
     }
@@ -352,54 +355,81 @@ impl<'core, 'a> Finder<'core, 'a> {
 
   fn find_general_candidates(&mut self, search: &mut CandidateSearch<impl FnMut(&Self, &Def<'_>)>) {
     for &ancestor in &self.chart.defs[self.source].ancestors {
-      self.find_candidates_within(ancestor, search);
+      self.consider_mod(search, ancestor);
     }
     if let Some(prelude) = self.chart.builtins.prelude {
-      self.find_candidates_within(prelude, search);
+      self.consider_mod(search, prelude);
     }
   }
 
-  fn find_candidates_within<F: FnMut(&Self, &Def)>(
+  fn consider_mod<F: FnMut(&Self, &Def)>(
     &mut self,
-    mod_id: DefId,
     search: &mut CandidateSearch<F>,
+    mod_id: DefId,
   ) {
-    if !search.modules.insert(mod_id) {
+    if !search.mods.insert(mod_id) {
       return;
     }
 
-    for member in &self.chart.defs[mod_id].all_members {
-      if !self.chart.visible(member.vis, self.source) {
-        continue;
+    self.consider_def(search, mod_id);
+
+    for member in &self.chart.defs[mod_id].named_members {
+      self.consider_member(search, member);
+    }
+  }
+
+  fn consider_member<F: FnMut(&Self, &Def)>(
+    &mut self,
+    search: &mut CandidateSearch<F>,
+    member: &WithVis<MemberKind>,
+  ) {
+    if !self.chart.visible(member.vis, self.source) {
+      return;
+    }
+
+    let def_id = match member.kind {
+      MemberKind::Child(def_id) => Some(def_id),
+      MemberKind::Import(import_id) => match self.sigs.imports[import_id] {
+        ImportState::Resolved(Ok(def_id)) => Some(def_id),
+        _ => None,
+      },
+    };
+
+    if let Some(def_id) = def_id {
+      self.consider_def(search, def_id);
+    }
+  }
+
+  fn consider_def<F: FnMut(&Self, &Def<'_>)>(
+    &mut self,
+    search: &mut CandidateSearch<F>,
+    def_id: DefId,
+  ) {
+    if !search.defs.insert(def_id) {
+      return;
+    }
+
+    let def = &self.chart.defs[def_id];
+
+    for member in &def.implicit_members {
+      self.consider_member(search, member);
+    }
+
+    (search.consider_candidate)(self, def);
+
+    if let Some(WithVis { kind: DefTraitKind::Trait(trait_id), vis }) = def.trait_kind {
+      if self.chart.visible(vis, self.source) {
+        let trait_def = &self.chart.traits[trait_id];
+        self.consider_mod(search, trait_def.def);
       }
+    }
 
-      let def_id = match member.kind {
-        MemberKind::Child(def_id) => Some(def_id),
-        MemberKind::Import(import_id) => match self.sigs.imports[import_id] {
-          ImportState::Resolved(Ok(def_id)) => Some(def_id),
-          _ => None,
-        },
-      };
-      let Some(def_id) = def_id else { continue };
-
-      let def = &self.chart.defs[def_id];
-
-      (search.consider_candidate)(self, def);
-
-      if let Some(WithVis { kind: DefTraitKind::Trait(trait_id), vis }) = def.trait_kind {
-        if self.chart.visible(vis, self.source) {
+    if let Some(WithVis { kind: DefImplKind::Impl(impl_id), vis }) = def.impl_kind {
+      if self.chart.visible(vis, self.source) {
+        let impl_sig = &self.sigs.impls[impl_id];
+        if let ImplType::Trait(trait_id, _) = impl_sig.inner.ty {
           let trait_def = &self.chart.traits[trait_id];
-          self.find_candidates_within(trait_def.def, search);
-        }
-      }
-
-      if let Some(WithVis { kind: DefImplKind::Impl(impl_id), vis }) = def.impl_kind {
-        if self.chart.visible(vis, self.source) {
-          let impl_sig = &self.sigs.impls[impl_id];
-          if let ImplType::Trait(trait_id, _) = impl_sig.inner.ty {
-            let trait_def = &self.chart.traits[trait_id];
-            self.find_candidates_within(trait_def.def, search);
-          }
+          self.consider_mod(search, trait_def.def);
         }
       }
     }

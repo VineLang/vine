@@ -45,8 +45,9 @@ impl<'core> Charter<'core, '_> {
     self.chart.defs.push(Def {
       name,
       path,
-      members: Default::default(),
-      all_members: Default::default(),
+      members_lookup: Default::default(),
+      named_members: Default::default(),
+      implicit_members: Default::default(),
       parent,
       ancestors: parent
         .iter()
@@ -215,10 +216,10 @@ impl<'core> Charter<'core, '_> {
       return parent;
     }
     let mut new = false;
-    let member = parent_def.members.entry(name).or_insert_with(|| {
+    let member = parent_def.members_lookup.entry(name).or_insert_with(|| {
       new = true;
       let member = WithVis { vis, kind: MemberKind::Child(next_def_id) };
-      parent_def.all_members.push(member);
+      parent_def.named_members.push(member);
       member
     });
     let child = match member.kind {

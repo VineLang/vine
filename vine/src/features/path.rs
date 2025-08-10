@@ -174,7 +174,7 @@ impl<'core> Resolver<'core, '_> {
   ) -> Result<Option<DefId>, Diag<'core>> {
     let def = &self.chart.defs[base];
 
-    if let Some(member) = def.members.get(&ident) {
+    if let Some(member) = def.members_lookup.get(&ident) {
       let vis = member.vis;
       let result = match member.kind {
         MemberKind::Child(result) => result,

@@ -123,17 +123,18 @@ pub struct UseItem<'core> {
 pub struct UseTree<'core> {
   pub span: Span,
   pub aliases: Vec<Ident<'core>>,
+  pub implicit: bool,
   pub children: BTreeMap<Ident<'core>, UseTree<'core>>,
 }
 
 impl<'core> UseTree<'core> {
   pub fn empty(span: Span) -> Self {
-    UseTree { span, aliases: Vec::new(), children: BTreeMap::new() }
+    UseTree { span, aliases: Vec::new(), implicit: false, children: BTreeMap::new() }
   }
 
   pub fn prune(&mut self) -> bool {
     self.children.retain(|_, tree| tree.prune());
-    !self.aliases.is_empty() || !self.children.is_empty()
+    self.implicit || !self.aliases.is_empty() || !self.children.is_empty()
   }
 }
 

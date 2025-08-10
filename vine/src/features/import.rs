@@ -46,8 +46,12 @@ impl<'core> VineParser<'core, '_> {
       let ident = self.parse_ident()?;
       if cur_name == Some(ident) {
         if self.eat(Token::As)? {
-          let alias = self.parse_ident()?;
-          tree.aliases.push(alias);
+          if self.eat(Token::Hole)? {
+            tree.implicit = true;
+          } else {
+            let alias = self.parse_ident()?;
+            tree.aliases.push(alias);
+          }
         } else {
           tree.aliases.push(ident);
         }
@@ -57,8 +61,12 @@ impl<'core> VineParser<'core, '_> {
           let is_group = self.check(Token::OpenBrace);
           self.parse_use_tree(is_group.then_some(ident), child)?;
         } else if self.eat(Token::As)? {
-          let alias = self.parse_ident()?;
-          child.aliases.push(alias);
+          if self.eat(Token::Hole)? {
+            child.implicit = true;
+          } else {
+            let alias = self.parse_ident()?;
+            child.aliases.push(alias);
+          }
         } else {
           child.aliases.push(ident);
         }
@@ -81,17 +89,21 @@ impl<'core: 'src, 'src> Formatter<'src> {
 
   pub(crate) fn fmt_use_tree(name: Option<Ident<'core>>, tree: &UseTree<'core>) -> Doc<'src> {
     let prefix = name.iter().map(|&name| Doc::concat([Doc(name), Doc("::")]));
-    let aliases = tree.aliases.iter().map(|&alias| {
-      if Some(alias) == name {
-        Doc(alias)
-      } else {
-        Doc::concat([Doc(name.unwrap()), Doc(" as "), Doc(alias)])
-      }
-    });
+    let aliases =
+      tree.implicit.then(|| Doc::concat([Doc(name.unwrap()), Doc(" as _")])).into_iter().chain(
+        tree.aliases.iter().map(|&alias| {
+          if Some(alias) == name {
+            Doc(alias)
+          } else {
+            Doc::concat([Doc(name.unwrap()), Doc(" as "), Doc(alias)])
+          }
+        }),
+      );
+    let aliases_len = tree.implicit as usize + tree.aliases.len();
     let children = tree.children.iter().map(|(&name, child)| Self::fmt_use_tree(Some(name), child));
-    let len = aliases.len() + children.len();
+    let len = aliases_len + children.len();
     if len == 1 {
-      if aliases.len() == 1 {
+      if aliases_len == 1 {
         Doc::concat(aliases)
       } else {
         Doc::concat(prefix.chain(children))
@@ -124,13 +136,16 @@ impl<'core> Charter<'core, '_> {
     let import = self.chart.imports.push(ImportDef { span, def: def_id, parent, ident });
     let def = &mut self.chart.defs[def_id];
     let member = WithVis { vis, kind: MemberKind::Import(import) };
-    def.all_members.push(member);
+    def.named_members.push(member);
     for name in use_tree.aliases {
-      if let Entry::Vacant(e) = def.members.entry(name) {
+      if let Entry::Vacant(e) = def.members_lookup.entry(name) {
         e.insert(member);
       } else {
         self.core.report(Diag::DuplicateItem { span, name });
       }
+    }
+    if use_tree.implicit {
+      def.implicit_members.push(member);
     }
     for (ident, child) in use_tree.children {
       self.chart_use_tree(def_id, vis, ImportParent::Import(import), ident, child);
