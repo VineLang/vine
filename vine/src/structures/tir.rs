@@ -118,8 +118,6 @@ pub enum TirExprKind {
   #[class(value)]
   N32(u32),
   #[class(value)]
-  I32(i32),
-  #[class(value)]
   F32(f32),
   #[class(value)]
   Char(char),

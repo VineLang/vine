@@ -303,7 +303,7 @@ pub enum ExprKind<'core> {
   ObjectField(Expr<'core>, Key<'core>),
   Method(Expr<'core>, Ident<'core>, GenericArgs<'core>, Vec<Expr<'core>>),
   Call(Expr<'core>, Vec<Expr<'core>>),
-  Neg(Expr<'core>),
+  Sign(Sign, Expr<'core>),
   BinaryOp(BinaryOp, Expr<'core>, Expr<'core>),
   Bool(bool),
   Not(Expr<'core>),
@@ -317,7 +317,6 @@ pub enum ExprKind<'core> {
   RangeExclusive(Option<Expr<'core>>, Option<Expr<'core>>),
   RangeInclusive(Option<Expr<'core>>, Expr<'core>),
   N32(u32),
-  I32(i32),
   F32(f32),
   Char(char),
   String(StringSegment, Vec<(Expr<'core>, StringSegment)>),
@@ -343,6 +342,12 @@ pub enum Target<'core> {
 pub struct StringSegment {
   pub content: String,
   pub span: Span,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub enum Sign {
+  Pos,
+  Neg,
 }
 
 #[derive(Clone)]

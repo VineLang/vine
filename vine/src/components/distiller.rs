@@ -257,7 +257,6 @@ impl<'core, 'r> Distiller<'core, 'r> {
       TirExprKind::Try(ok, err, result) => self.distill_try(stage, span, ty, *ok, *err, result),
       TirExprKind::Local(local) => self.distill_expr_value_local(stage, span, ty, *local),
       TirExprKind::N32(n) => self.distill_expr_value_n32(ty, *n),
-      TirExprKind::I32(i) => self.distill_expr_value_i32(ty, *i),
       TirExprKind::F32(f) => self.distill_expr_value_f32(ty, *f),
       TirExprKind::Char(c) => self.distill_expr_value_char(ty, *c),
       TirExprKind::Const(id) => self.distill_expr_value_const(stage, span, ty, *id),

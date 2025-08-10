@@ -205,6 +205,7 @@ impl Builtins {
       string,
       option,
       result,
+      pos,
       neg,
       not,
       bool_not,
@@ -238,6 +239,7 @@ impl Builtins {
     revert_idx(string, checkpoint.structs);
     revert_idx(option, checkpoint.enums);
     revert_idx(result, checkpoint.enums);
+    revert_fn(pos, checkpoint);
     revert_fn(neg, checkpoint);
     revert_fn(not, checkpoint);
     revert_idx(bool_not, checkpoint.impls);

@@ -39,7 +39,7 @@ pub fn main(&io: &IO) {
           let (X, Y) = other_pos;
           let dir = (pos - other_pos) / N32::gcd(x.diff(X), y.diff(Y));
           check_dir(pos, dir);
-          check_dir(pos - dir, -dir);
+          check_dir(pos - dir, (0, 0) - dir);
         }
         antennas.push_back(pos);
       }

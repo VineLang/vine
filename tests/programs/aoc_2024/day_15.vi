@@ -35,9 +35,9 @@ pub fn main(&io: &IO) {
     for char in line!.into_iter() {
       instructions ++= [char];
       let dir = when {
-        char == '<' { (-(1), 0) }
+        char == '<' { (0 - 1, 0) }
         char == '>' { (1, 0) }
-        char == '^' { (0, -(1)) }
+        char == '^' { (0, 0 - 1) }
         _ { (0, 1) }
       };
       let target_pos = robot + dir;
@@ -87,7 +87,7 @@ pub fn main(&io: &IO) {
   for char in instructions.into_iter() {
     if char == '<' || char == '>' {
       let dir = if char == '<' {
-        (-(1), 0)
+        (0 - 1, 0)
       } else {
         (1, 0)
       };
@@ -118,7 +118,7 @@ pub fn main(&io: &IO) {
       }
     } else {
       let dir_y = if char == '^' {
-        -(1)
+        -1 as N32
       } else {
         1
       };

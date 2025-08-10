@@ -455,7 +455,7 @@ impl<'core, 'a> Resolver<'core, 'a> {
       }
       ExprKind::Call(func, args) => self.resolve_expr_call(span, func, args),
       ExprKind::Not(inner) => self.resolve_expr_not(span, inner),
-      ExprKind::Neg(inner) => self.resolve_expr_neg(span, inner),
+      ExprKind::Sign(sign, inner) => self.resolve_expr_sign(span, *sign, inner),
       ExprKind::BinaryOp(op, lhs, rhs) => self.resolve_expr_binary_op(span, *op, lhs, rhs),
       ExprKind::BinaryOpAssign(op, lhs, rhs) => {
         self.resolve_expr_binary_op_assign(span, *op, lhs, rhs)
@@ -469,7 +469,6 @@ impl<'core, 'a> Resolver<'core, 'a> {
         self.resolve_expr_range(span, start.as_ref(), Some(end), true)
       }
       ExprKind::N32(value) => self.resolve_expr_n32(span, *value),
-      ExprKind::I32(value) => self.resolve_expr_i32(span, *value),
       ExprKind::F32(value) => self.resolve_expr_f32(span, *value),
       ExprKind::Char(char) => self.resolve_expr_char(span, *char),
       ExprKind::String(init, rest) => self.resolve_expr_string(span, init, rest),

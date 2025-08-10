@@ -43,6 +43,11 @@ pub trait Rem[A, B, O] {
   fn .rem(a: A, b: B) -> O;
 }
 
+pub trait Pos[A, O] {
+  #[builtin = "pos"]
+  fn .pos(a: A) -> O;
+}
+
 pub trait Neg[A, O] {
   #[builtin = "neg"]
   fn .neg(a: A) -> O;

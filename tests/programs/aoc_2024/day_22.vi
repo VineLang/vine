@@ -17,7 +17,10 @@ pub fn main(&io: &IO) {
       (a, b, c, d) = (b, c, d, price - last_price);
       last_price = price;
       if i >= 4 {
-        let &(bananas, last_changed) = map.at_or_insert(((a * 20 + b) * 20 + c) * 20 + d, (0, -(1)));
+        let &(bananas, last_changed) = map.at_or_insert(
+          ((a * 20 + b) * 20 + c) * 20 + d,
+          (0, N32::maximum),
+        );
         if last_changed != buyer {
           bananas += price;
           last_changed = buyer;

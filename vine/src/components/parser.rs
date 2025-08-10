@@ -4,7 +4,11 @@ use vine_util::parser::{Parser, ParserState};
 
 use crate::{
   components::lexer::Token,
-  structures::{ast::Key, core::Core, diag::Diag},
+  structures::{
+    ast::{Key, Sign},
+    core::Core,
+    diag::Diag,
+  },
 };
 
 use crate::structures::ast::{
@@ -198,8 +202,11 @@ impl<'core, 'src> VineParser<'core, 'src> {
     if self.eat(Token::Tilde)? {
       return Ok(Some(ExprKind::Inverse(self.parse_expr_bp(BP::Prefix)?, false)));
     }
+    if self.eat(Token::Plus)? {
+      return Ok(Some(ExprKind::Sign(Sign::Pos, self.parse_expr_bp(BP::Prefix)?)));
+    }
     if self.eat(Token::Minus)? {
-      return Ok(Some(ExprKind::Neg(self.parse_expr_bp(BP::Prefix)?)));
+      return Ok(Some(ExprKind::Sign(Sign::Neg, self.parse_expr_bp(BP::Prefix)?)));
     }
     if self.eat(Token::Bang)? {
       return Ok(Some(ExprKind::Not(self.parse_expr_bp(BP::Prefix)?)));
