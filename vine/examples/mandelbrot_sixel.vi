@@ -1,5 +1,5 @@
 
-use std::ops::vectorized::{add, div_scalar, mul_scalar, sub};
+use std::ops::elementwise;
 
 const max_iter: N32 = 50;
 const width: N32 = black_box(512);

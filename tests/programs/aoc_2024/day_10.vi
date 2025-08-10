@@ -1,5 +1,5 @@
 
-use std::{data::Iterator::Fused, ops::vectorized::or};
+use std::{data::Iterator::Fused, ops::elementwise};
 
 pub fn main(&io: &IO) {
   let input = io.full_input();

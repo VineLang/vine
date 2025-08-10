@@ -1,5 +1,5 @@
 
-use std::ops::vectorized::{and, or};
+use std::ops::elementwise;
 use std::data::Array;
 
 pub fn main(&io: &IO) {

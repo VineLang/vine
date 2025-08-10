@@ -1,0 +1,241 @@
+
+use arithmetic::{Add, Div, Mul, Neg, Pos, Sub};
+use bitwise::{And, Or, Xor};
+use derive::Tuple;
+
+pub use binary::{add as _, and as _, div as _, mul as _, or as _, sub as _, xor as _};
+pub use unary::{add_scalar as _, div_scalar as _, mul_scalar as _, neg as _, sub_scalar as _};
+
+pub mod binary[C1, I1, R1, C2, I2, R2, C3, I3, R3; Tuple[C1, I1, R1], Tuple[C2, I2, R2]] {
+  pub mod add[...] {
+    pub impl add_tuple_singleton[I1, I2, I3; Add[I1, I2, I3]]: Add[(I1,), (I2,), (I3,)] {
+      fn add((x,): (I1,), (y,): (I2,)) -> (I3,) {
+        (x + y,)
+      }
+    }
+
+    pub impl add[... ; Add[I1, I2, I3], Add[R1, R2, R3], Tuple[C3, I3, R3]]: Add[C1, C2, C3] {
+      fn add(c1: C1, c2: C2) -> C3 {
+        let (i1, r1) = c1 as (I1, R1);
+        let (i2, r2) = c2 as (I2, R2);
+        (i1 + i2, r1 + r2) as C3
+      }
+    }
+
+    pub use {add as _, add_tuple_singleton as _};
+  }
+
+  pub mod sub[...] {
+    pub impl sub_tuple_singleton[I1, I2, I3; Sub[I1, I2, I3]]: Sub[(I1,), (I2,), (I3,)] {
+      fn sub((x,): (I1,), (y,): (I2,)) -> (I3,) {
+        (x - y,)
+      }
+    }
+
+    pub impl sub[... ; Sub[I1, I2, I3], Sub[R1, R2, R3], Tuple[C3, I3, R3]]: Sub[C1, C2, C3] {
+      fn sub(c1: C1, c2: C2) -> C3 {
+        let (i1, r1) = c1 as (I1, R1);
+        let (i2, r2) = c2 as (I2, R2);
+        (i1 - i2, r1 - r2) as C3
+      }
+    }
+
+    pub use {sub as _, sub_tuple_singleton as _};
+  }
+
+  pub mod mul[...] {
+    pub impl mul_tuple_singleton[I1, I2, I3; Mul[I1, I2, I3]]: Mul[(I1,), (I2,), (I3,)] {
+      fn mul((x,): (I1,), (y,): (I2,)) -> (I3,) {
+        (x * y,)
+      }
+    }
+
+    pub impl mul[... ; Mul[I1, I2, I3], Mul[R1, R2, R3], Tuple[C3, I3, R3]]: Mul[C1, C2, C3] {
+      fn mul(c1: C1, c2: C2) -> C3 {
+        let (i1, r1) = c1 as (I1, R1);
+        let (i2, r2) = c2 as (I2, R2);
+        (i1 * i2, r1 * r2) as C3
+      }
+    }
+
+    pub use {mul as _, mul_tuple_singleton as _};
+  }
+
+  pub mod div[...] {
+    pub use div as _;
+
+    pub impl div_tuple_singleton[I1, I2, I3; Div[I1, I2, I3]]: Div[(I1,), (I2,), (I3,)] {
+      fn div((x,): (I1,), (y,): (I2,)) -> (I3,) {
+        (x / y,)
+      }
+    }
+
+    pub impl div[... ; Div[I1, I2, I3], Div[R1, R2, R3], Tuple[C3, I3, R3]]: Div[C1, C2, C3] {
+      fn div(c1: C1, c2: C2) -> C3 {
+        let (i1, r1) = c1 as (I1, R1);
+        let (i2, r2) = c2 as (I2, R2);
+        (i1 / i2, r1 / r2) as C3
+      }
+    }
+
+    pub use {div as _, div_tuple_singleton as _};
+  }
+
+  pub mod and[...] {
+    pub impl and_tuple_singleton[I1, I2, I3; And[I1, I2, I3]]: And[(I1,), (I2,), (I3,)] {
+      fn and((x,): (I1,), (y,): (I2,)) -> (I3,) {
+        (x & y,)
+      }
+    }
+
+    pub impl and[... ; And[I1, I2, I3], And[R1, R2, R3], Tuple[C3, I3, R3]]: And[C1, C2, C3] {
+      fn and(c1: C1, c2: C2) -> C3 {
+        let (i1, r1) = c1 as (I1, R1);
+        let (i2, r2) = c2 as (I2, R2);
+        (i1 & i2, r1 & r2) as C3
+      }
+    }
+
+    pub use {and as _, and_tuple_singleton as _};
+  }
+
+  pub mod or[...] {
+    pub impl or_tuple_singleton[I1, I2, I3; Or[I1, I2, I3]]: Or[(I1,), (I2,), (I3,)] {
+      fn or((x,): (I1,), (y,): (I2,)) -> (I3,) {
+        (x | y,)
+      }
+    }
+
+    pub impl or[... ; Or[I1, I2, I3], Or[R1, R2, R3], Tuple[C3, I3, R3]]: Or[C1, C2, C3] {
+      fn or(c1: C1, c2: C2) -> C3 {
+        let (i1, r1) = c1 as (I1, R1);
+        let (i2, r2) = c2 as (I2, R2);
+        (i1 | i2, r1 | r2) as C3
+      }
+    }
+
+    pub use {or as _, or_tuple_singleton as _};
+  }
+
+  pub mod xor[...] {
+    pub impl xor_tuple_singleton[I1, I2, I3; Xor[I1, I2, I3]]: Xor[(I1,), (I2,), (I3,)] {
+      fn xor((x,): (I1,), (y,): (I2,)) -> (I3,) {
+        (x ^ y,)
+      }
+    }
+
+    pub impl xor[... ; Xor[I1, I2, I3], Xor[R1, R2, R3], Tuple[C3, I3, R3]]: Xor[C1, C2, C3] {
+      fn xor(c1: C1, c2: C2) -> C3 {
+        let (i1, r1) = c1 as (I1, R1);
+        let (i2, r2) = c2 as (I2, R2);
+        (i1 ^ i2, r1 ^ r2) as C3
+      }
+    }
+
+    pub use {xor as _, xor_tuple_singleton as _};
+  }
+}
+
+pub mod unary[C1, I1, R1, C2, I2, R2; Tuple[C1, I1, R1]] {
+  pub mod neg[...] {
+    pub impl neg_tuple_singleton[I1, I2; Neg[I1, I2]]: Neg[(I1,), (I2,)] {
+      fn neg((x,): (I1,)) -> (I2,) {
+        (-x,)
+      }
+    }
+
+    pub impl neg[... ; Neg[I1, I2], Neg[R1, R2], Tuple[C2, I2, R2]]: Neg[C1, C2] {
+      fn neg(c: C1) -> C2 {
+        let (i, r) = c as (I1, R1);
+        (-i, -r) as C2
+      }
+    }
+
+    pub use {neg as _, neg_tuple_singleton as _};
+  }
+
+  pub mod pos[...] {
+    pub impl pos_tuple_singleton[I1, I2; Pos[I1, I2]]: Pos[(I1,), (I2,)] {
+      fn pos((x,): (I1,)) -> (I2,) {
+        (+x,)
+      }
+    }
+
+    pub impl pos[... ; Pos[I1, I2], Pos[R1, R2], Tuple[C2, I2, R2]]: Pos[C1, C2] {
+      fn pos(c: C1) -> C2 {
+        let (i, r) = c as (I1, R1);
+        (+i, +r) as C2
+      }
+    }
+
+    pub use {pos as _, pos_tuple_singleton as _};
+  }
+
+  pub mod add_scalar[...] {
+    pub impl add_scalar_tuple_singleton[I1, I2, S; Add[I1, S, I2]]: Add[(I1,), S, (I2,)] {
+      fn add((x,): (I1,), s: S) -> (I2,) {
+        (x + s,)
+      }
+    }
+
+    pub impl add_scalar[... S+; Add[I1, S, I2], Add[R1, S, R2], Tuple[C2, I2, R2]]: Add[C1, S, C2] {
+      fn add(c: C1, s: S) -> C2 {
+        let (i, r) = c as (I1, R1);
+        (i + s, r + s) as C2
+      }
+    }
+
+    pub use {add_scalar as _, add_scalar_tuple_singleton as _};
+  }
+
+  pub mod sub_scalar[...] {
+    pub impl sub_scalar_tuple_singleton[I1, I2, S; Sub[I1, S, I2]]: Sub[(I1,), S, (I2,)] {
+      fn sub((x,): (I1,), s: S) -> (I2,) {
+        (x - s,)
+      }
+    }
+
+    pub impl sub_scalar[... S+; Sub[I1, S, I2], Sub[R1, S, R2], Tuple[C2, I2, R2]]: Sub[C1, S, C2] {
+      fn sub(c: C1, s: S) -> C2 {
+        let (i, r) = c as (I1, R1);
+        (i - s, r - s) as C2
+      }
+    }
+
+    pub use {sub_scalar as _, sub_scalar_tuple_singleton as _};
+  }
+
+  pub mod mul_scalar[...] {
+    pub impl mul_scalar_tuple_singleton[I1, I2, S; Mul[I1, S, I2]]: Mul[(I1,), S, (I2,)] {
+      fn mul((x,): (I1,), s: S) -> (I2,) {
+        (x * s,)
+      }
+    }
+
+    pub impl mul_scalar[... S+; Mul[I1, S, I2], Mul[R1, S, R2], Tuple[C2, I2, R2]]: Mul[C1, S, C2] {
+      fn mul(c: C1, s: S) -> C2 {
+        let (i, r) = c as (I1, R1);
+        (i * s, r * s) as C2
+      }
+    }
+
+    pub use {mul_scalar as _, mul_scalar_tuple_singleton as _};
+  }
+
+  pub mod div_scalar[...] {
+    pub impl div_scalar_tuple_singleton[I1, I2, S; Div[I1, S, I2]]: Div[(I1,), S, (I2,)] {
+      fn div((x,): (I1,), s: S) -> (I2,) {
+        (x / s,)
+      }
+    }
+
+    pub impl div_scalar[... S+; Div[I1, S, I2], Div[R1, S, R2], Tuple[C2, I2, R2]]: Div[C1, S, C2] {
+      fn div(c: C1, s: S) -> C2 {
+        let (i, r) = c as (I1, R1);
+        (i / s, r / s) as C2
+      }
+    }
+
+    pub use {div_scalar as _, div_scalar_tuple_singleton as _};
+  }
+}
