@@ -116,11 +116,11 @@ impl<'core> Chart<'core> {
 
 impl<'core> Def<'core> {
   fn revert(&mut self, checkpoint: &Checkpoint) {
-    self.members.retain(|_, member| match member.kind {
+    self.members_lookup.retain(|_, member| match member.kind {
       MemberKind::Child(id) => id < checkpoint.defs,
       MemberKind::Import(id) => id < checkpoint.imports,
     });
-    self.all_members.retain(|member| match member.kind {
+    self.named_members.retain(|member| match member.kind {
       MemberKind::Child(id) => id < checkpoint.defs,
       MemberKind::Import(id) => id < checkpoint.imports,
     });

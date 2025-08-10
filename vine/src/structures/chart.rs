@@ -30,8 +30,9 @@ pub struct Def<'core> {
   pub name: Ident<'core>,
   pub path: &'core str,
 
-  pub members: HashMap<Ident<'core>, WithVis<MemberKind>>,
-  pub all_members: Vec<WithVis<MemberKind>>,
+  pub members_lookup: HashMap<Ident<'core>, WithVis<MemberKind>>,
+  pub named_members: Vec<WithVis<MemberKind>>,
+  pub implicit_members: Vec<WithVis<MemberKind>>,
 
   pub parent: Option<DefId>,
   pub ancestors: Vec<DefId>,
