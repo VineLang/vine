@@ -1,5 +1,5 @@
 
-use std::{data::Array, ops::vectorized::add};
+use std::{data::Array, ops::vectorized::{add, sub}};
 
 const cutoff: N32 = 50;
 
@@ -40,7 +40,7 @@ pub fn main(&io: &IO) {
 
   let path = [start];
   let cur = start;
-  let prev = (-(1), -(1));
+  let prev = (N32::maximum, N32::maximum);
 
   while !eq(cur, end) {
     let next = (0, 0);
@@ -50,9 +50,9 @@ pub fn main(&io: &IO) {
       }
     }
     check(cur + (1, 0));
-    check(cur + (-(1), 0));
+    check(cur - (1, 0));
     check(cur + (0, 1));
-    check(cur + (0, -(1)));
+    check(cur - (0, 1));
     path.push_back(next);
     prev = cur;
     cur = next;

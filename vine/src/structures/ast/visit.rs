@@ -49,14 +49,13 @@ pub trait VisitMut<'core, 'a> {
       ExprKind::Hole
       | ExprKind::Bool(_)
       | ExprKind::N32(_)
-      | ExprKind::I32(_)
       | ExprKind::F32(_)
       | ExprKind::Char(_)
       | ExprKind::Error(_) => {}
       ExprKind::Paren(a)
       | ExprKind::Ref(a, _)
       | ExprKind::Deref(a, _)
-      | ExprKind::Neg(a)
+      | ExprKind::Sign(_, a)
       | ExprKind::Not(a)
       | ExprKind::TupleField(a, _)
       | ExprKind::ObjectField(a, _)

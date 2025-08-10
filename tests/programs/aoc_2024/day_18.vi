@@ -1,5 +1,5 @@
 
-use std::{data::Array, ops::vectorized::add};
+use std::{data::Array, ops::vectorized::{add, sub}};
 
 const config: (N32, N32) = (7, 12);
 // const config: (N32, N32) = (71, 1024);
@@ -62,9 +62,9 @@ pub fn main(&io: &IO) {
       }
     }
     connect(1, 0);
-    connect(-(1), 0);
+    connect(-1 as N32, 0);
     connect(0, 1);
-    connect(0, -(1));
+    connect(0, -1 as N32);
     *(*blocked.at(y).unwrap()).at(x).unwrap() = false;
   }
 
@@ -173,8 +173,8 @@ fn pathfind(grid: Array[Array[N32]], size: N32, iters: N32) -> N32 {
         }
         visit(pos + (1, 0));
         visit(pos + (0, 1));
-        visit(pos + (-(1), 0));
-        visit(pos + (0, -(1)));
+        visit(pos - (1, 0));
+        visit(pos - (0, 1));
       }
     }
     cur = next;

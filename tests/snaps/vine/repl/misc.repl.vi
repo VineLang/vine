@@ -111,12 +111,12 @@ let a: Array[N32] = Array(5, Node(Node(Node(Node(#ivy(0)), Node(#ivy(4))), Node(
 
 let io: IO = #io;
 let a: Array[N32] = Array(5, Node(Node(Node(Node(#ivy(0)), Node(#ivy(4))), Node(#ivy(2))), Node(Node(#ivy(1)), Node(#ivy(3)))));
-> -a.fold_front(0, fn* (a: N32, b: N32) { a - b })
+> 0 - a.fold_front(0, fn* (a: N32, b: N32) { a - b })
 10
 
 let io: IO = #io;
 let a: Array[N32] = Array(5, Node(Node(Node(Node(#ivy(0)), Node(#ivy(4))), Node(#ivy(2))), Node(Node(#ivy(1)), Node(#ivy(3)))));
-> -a.fold_back(5, fn* (a: N32, b: N32) { a - b })
+> 0 - a.fold_back(5, fn* (a: N32, b: N32) { a - b })
 5
 
 let io: IO = #io;
@@ -281,11 +281,11 @@ error input:1:29 - expected type `{ a: N32, b: N32 }`; found `{ a: N32 }`
 
 let io: IO = #io;
 > do { let x; x = (x, x); }
-error input:1:17 - expected type `?1528`; found `(?1528, ?1528)`
-error input:1:10 - search limit reached when finding flex of type `?1528`
-error input:1:10 - cannot drop `?1528`
-error input:1:10 - variable of type `?1528` read whilst uninitialized
-error input:1:10 - cannot fork `?1528`
+error input:1:17 - expected type `?1571`; found `(?1571, ?1571)`
+error input:1:10 - search limit reached when finding flex of type `?1571`
+error input:1:10 - cannot drop `?1571`
+error input:1:10 - variable of type `?1571` read whilst uninitialized
+error input:1:10 - cannot fork `?1571`
 
 let io: IO = #io;
 > let (a: N32, b: N32);
@@ -325,12 +325,12 @@ let y: { a: ~N32, b: ~N32 };
 let io: IO = #io;
 > let x; x.a; x.a
 error input:1:5 - cannot infer type
-error input:1:8 - search limit reached when finding flex of type `?1642`
-error input:1:8 - search limit reached when finding impl of trait `Drop[?1642]`
-error input:1:13 - search limit reached when finding flex of type `?1642`
-error input:1:1 - search limit reached when finding impl of trait `Drop[?1642]`
-error input:1:5 - search limit reached when finding flex of type `?1642`
-error input:1:5 - variable of type `?1642` read whilst uninitialized
+error input:1:8 - search limit reached when finding flex of type `?1685`
+error input:1:8 - search limit reached when finding impl of trait `Drop[?1685]`
+error input:1:13 - search limit reached when finding flex of type `?1685`
+error input:1:1 - search limit reached when finding impl of trait `Drop[?1685]`
+error input:1:5 - search limit reached when finding flex of type `?1685`
+error input:1:5 - variable of type `?1685` read whilst uninitialized
 
 let io: IO = #io;
 > Ok(true)?
@@ -368,7 +368,7 @@ let x: (N32, F32, (List[Option[Result[Bool, String]]], Array[N32]), ((), ((),), 
 > /clear x
 
 let io: IO = #io;
-> -8765.123e-8.abs()
+> (-8765.123e-8).abs()
 8.765123e-5
 
 let io: IO = #io;
@@ -413,5 +413,9 @@ let io: IO = #io;
 let io: IO = #io;
 > let Ok(n: N32) = Err("abc") else match { Err(e) { "error: {e}" } }; "{n}"
 "error: abc"
+
+let io: IO = #io;
+> 1+2
+3
 
 let io: IO = #io;

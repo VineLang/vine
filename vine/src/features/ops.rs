@@ -1,7 +1,7 @@
 use crate::{
   components::{distiller::Distiller, resolver::Resolver},
   structures::{
-    ast::{BinaryOp, ComparisonOp, Expr, Span},
+    ast::{BinaryOp, ComparisonOp, Expr, Sign, Span},
     diag::Diag,
     resolutions::FnRelId,
     tir::{TirExpr, TirExprKind},
@@ -25,8 +25,14 @@ impl<'core: 'src, 'src> Formatter<'src> {
     ])
   }
 
-  pub(crate) fn fmt_expr_neg(&self, expr: &Expr<'core>) -> Doc<'src> {
-    Doc::concat([Doc("-"), self.fmt_expr(expr)])
+  pub(crate) fn fmt_expr_sign(&self, sign: Sign, expr: &Expr<'core>) -> Doc<'src> {
+    Doc::concat([
+      Doc(match sign {
+        Sign::Pos => "+",
+        Sign::Neg => "-",
+      }),
+      self.fmt_expr(expr),
+    ])
   }
 
   pub(crate) fn fmt_expr_binary_op(
@@ -71,14 +77,18 @@ impl<'core> Resolver<'core, '_> {
     Ok(TirExpr::new(span, self.types.nil(), TirExprKind::Assign(dir, space, value)))
   }
 
-  pub(crate) fn resolve_expr_neg(
+  pub(crate) fn resolve_expr_sign(
     &mut self,
     span: Span,
+    sign: Sign,
     inner: &Expr<'core>,
   ) -> Result<TirExpr, Diag<'core>> {
     let inner = self.resolve_expr(inner);
     let return_ty = self.types.new_var(span);
-    let rel = self.builtin_fn(span, self.chart.builtins.neg, "neg", [inner.ty, return_ty])?;
+    let rel = match sign {
+      Sign::Pos => self.builtin_fn(span, self.chart.builtins.pos, "pos", [inner.ty, return_ty])?,
+      Sign::Neg => self.builtin_fn(span, self.chart.builtins.neg, "neg", [inner.ty, return_ty])?,
+    };
     Ok(TirExpr::new(span, return_ty, TirExprKind::Call(rel, None, vec![inner])))
   }
 

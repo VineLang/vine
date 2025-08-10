@@ -24,8 +24,8 @@ l.contains(&+7)
 /clear l
 let a = Array::from_fn(5, do { let x = 0; (fn* () { let n = x; x += 1; n }) });
 a.for_each(fn* (v: N32) { io.println("{v}")})
--a.fold_front(0, fn* (a: N32, b: N32) { a - b })
--a.fold_back(5, fn* (a: N32, b: N32) { a - b })
+0 - a.fold_front(0, fn* (a: N32, b: N32) { a - b })
+0 - a.fold_back(5, fn* (a: N32, b: N32) { a - b })
 a.get(3)
 a.at(5)
 /clear a
@@ -81,7 +81,7 @@ let x = (1, 2.0, ([Some(Ok(true)), Some(Err("hi")), None], [1, 2, 3] as Array), 
 x.fork()
 x.drop()
 /clear x
--8765.123e-8.abs()
+(-8765.123e-8).abs()
 8765.123e-8.abs()
 F32::inf.abs()
 F32::neg_inf.abs()
@@ -93,3 +93,4 @@ let x = x + 1
 match (Some(1), 2) { (None, _) { None } x { Some(x) } }
 let Ok(n) = Ok(46) else match { Err(e: String) { "error: {e}" } }; "{n}"
 let Ok(n: N32) = Err("abc") else match { Err(e) { "error: {e}" } }; "{n}"
+1+2

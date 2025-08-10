@@ -220,7 +220,7 @@ impl<'core: 'src, 'src> Formatter<'src> {
         self.fmt_expr_method(receiver, name, generics, args)
       }
       ExprKind::Call(func, args) => self.fmt_expr_call(func, args),
-      ExprKind::Neg(expr) => self.fmt_expr_neg(expr),
+      ExprKind::Sign(sign, expr) => self.fmt_expr_sign(*sign, expr),
       ExprKind::Bool(bool) => self.fmt_expr_bool(*bool),
       ExprKind::Not(expr) => self.fmt_expr_not(expr),
       ExprKind::Is(expr, pat) => self.fmt_expr_is(expr, pat),
@@ -228,9 +228,7 @@ impl<'core: 'src, 'src> Formatter<'src> {
       ExprKind::ComparisonOp(init, cmps) => self.fmt_expr_comparison_op(init, cmps),
       ExprKind::BinaryOp(op, lhs, rhs) => self.fmt_expr_binary_op(op, lhs, rhs),
       ExprKind::BinaryOpAssign(op, lhs, rhs) => self.fmt_expr_binary_op_assign(op, lhs, rhs),
-      ExprKind::N32(_) | ExprKind::I32(_) | ExprKind::F32(_) | ExprKind::Char(_) => {
-        self.fmt_verbatim(expr.span)
-      }
+      ExprKind::N32(_) | ExprKind::F32(_) | ExprKind::Char(_) => self.fmt_verbatim(expr.span),
       ExprKind::String(init, rest) => self.fmt_expr_string(init, rest),
       ExprKind::InlineIvy(binds, ty, net_span, _) => self.fmt_expr_inline_ivy(binds, ty, net_span),
     }

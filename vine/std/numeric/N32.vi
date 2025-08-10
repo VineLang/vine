@@ -1,7 +1,7 @@
 
 use ops::{
   Cast,
-  arithmetic::{Add, Div, Mul, Neg, Pow, Rem, Sub},
+  arithmetic::{Add, Div, Mul, Neg, Pos, Pow, Rem, Sub},
   bitwise::{And, Not, Or, Shl, Shr, Xor},
   comparison::{Eq, Ord},
 };
@@ -52,9 +52,15 @@ pub mod N32 {
     }
   }
 
-  pub impl neg: Neg[N32, N32] {
-    fn neg(a: N32) -> N32 {
-      inline_ivy! (a <- a) -> N32 { out a = @n32_sub$(0 out) }
+  pub impl pos: Pos[N32, I32] {
+    fn pos(a: N32) -> I32 {
+      a as I32
+    }
+  }
+
+  pub impl neg: Neg[N32, I32] {
+    fn neg(a: N32) -> I32 {
+      -(a as I32)
     }
   }
 

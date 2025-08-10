@@ -1,5 +1,5 @@
 
-use ops::{Cast, arithmetic::{Add, Div, Mul, Neg, Pow, Rem, Sub}, comparison::{Eq, Le, Lt}};
+use ops::{Cast, arithmetic::{Add, Div, Mul, Neg, Pos, Pow, Rem, Sub}, comparison::{Eq, Le, Lt}};
 use debug::Show;
 
 #[builtin = "F32"]
@@ -56,6 +56,12 @@ pub mod F32 {
   pub impl rem: Rem[F32, F32, F32] {
     fn rem(a: F32, b: F32) -> F32 {
       inline_ivy! (a <- a, b <- b) -> F32 { out a = @f32_rem(b out) }
+    }
+  }
+
+  pub impl pos: Pos[F32, F32] {
+    fn pos(a: F32) -> F32 {
+      a
     }
   }
 

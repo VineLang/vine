@@ -64,7 +64,7 @@ fn clear(&grid: &Array[Array[Char]], &spaces: &List[(N32, N32)]) {
 fn walk(&grid: &Array[Array[Char]], pos: (N32, N32)) -> (Bool, N32) {
   let height = grid.len();
   let width = (*grid.at(0).unwrap()).len();
-  let dir = (0, -(1));
+  let dir = (0, -1 as N32);
   let distinct = 1;
   let repeat = 0;
 
@@ -77,7 +77,7 @@ fn walk(&grid: &Array[Array[Char]], pos: (N32, N32)) -> (Bool, N32) {
     let &cell = (*grid.at(y).unwrap()).at(x).unwrap();
     if cell == '#' {
       let (x, y) = dir;
-      dir = (-y, x);
+      dir = (0 - y, x);
       continue;
     }
     if cell == 'X' {

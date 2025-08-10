@@ -19,10 +19,10 @@ pub fn main(&io: &IO) {
       row.push_back((
         char != '#',
         [
-          (-(1), unsafe::eraser),
-          (-(1), unsafe::eraser),
-          (-(1), unsafe::eraser),
-          (-(1), unsafe::eraser),
+          (N32::maximum, unsafe::eraser),
+          (N32::maximum, unsafe::eraser),
+          (N32::maximum, unsafe::eraser),
+          (N32::maximum, unsafe::eraser),
         ],
         false,
       ));
@@ -103,7 +103,7 @@ fn delta(dir: N32) -> (N32, N32) {
   let x = if dir & 2 == 0 {
     1
   } else {
-    -(1)
+    -1 as N32
   };
   if dir & 1 == 0 {
     (x, 0)
