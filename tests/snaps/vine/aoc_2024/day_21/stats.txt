@@ -12,6 +12,6 @@ Interactions
   Branch             104_976
 
 Memory
-  Heap             2_909_728 B
-  Allocated       31_619_152 B
-  Freed           31_619_152 B
+  Heap             2_910_944 B
+  Allocated       31_701_488 B
+  Freed           31_701_488 B

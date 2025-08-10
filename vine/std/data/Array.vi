@@ -57,9 +57,10 @@ pub mod Array {
   }
 
   pub fn .for_each[T, F*; fn F(T)](self: Array[T], f: F) {
+    let f = debug::with_state(f);
     self.fold_front(
       f,
-      fn* (f: F, value) {
+      fn* (f: debug::WithState[F], value) {
         f(value);
         f
       },

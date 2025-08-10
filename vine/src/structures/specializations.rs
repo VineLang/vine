@@ -52,8 +52,8 @@ pub struct SpecRels {
 pub enum ImplTree<'core> {
   Error(ErrorGuaranteed),
   Def(ImplId, Vec<ImplTree<'core>>),
-  Fn(FnId, Vec<ImplTree<'core>>),
-  Closure(FragmentId, Vec<ImplTree<'core>>, ClosureId),
+  Fn(FnId, Vec<ImplTree<'core>>, usize),
+  Closure(FragmentId, Vec<ImplTree<'core>>, ClosureId, usize),
   ForkClosure(FragmentId, Vec<ImplTree<'core>>, ClosureId),
   DropClosure(FragmentId, Vec<ImplTree<'core>>, ClosureId),
   Synthetic(SyntheticImpl<'core>),

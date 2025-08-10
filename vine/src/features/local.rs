@@ -157,8 +157,10 @@ impl<'core> Emitter<'core, '_> {
       state.past.push((Vec::new(), Vec::new()));
     }
     let first = &mut state.past[0];
-    first.0.append(&mut state.spaces);
-    first.1.append(&mut state.values);
+    state.spaces.append(&mut first.0);
+    first.0 = state.spaces;
+    state.values.append(&mut first.1);
+    first.1 = state.values;
     if local.is_nil {
       for port in state.past.into_iter().flat_map(|(x, y)| [x, y]).flatten() {
         self.pairs.push((port, Tree::Erase));

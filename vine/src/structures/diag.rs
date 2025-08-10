@@ -216,8 +216,6 @@ diags! {
     ["unconditional infinite loops are invalid"]
   NonExhaustiveMatch
     ["match arms do not cover all possible cases"]
-  CannotImplFn
-    ["cannot directly implement the fn trait"]
   AmbiguousPolyformicComposite
     ["composite expression in polyformic position has elements of mixed forms"]
   FlexSearchLimit { ty: String }
@@ -258,6 +256,12 @@ diags! {
     ["expected impl item to have {expected} impl parameters; found {found}"]
   ExpectedImplItemImplParam { expected: String, found: String }
     ["expected impl parameter of trait `{expected}`; found `{found}`"]
+  UnknownCfg { name: Ident<'core> }
+    ["no configuration value named `{name}`"]
+  BadCfgType { name: Ident<'core>, kind: &'static str }
+    ["expected `{name}` to be a {kind} configuration value"]
+  BadFramelessAttr
+    ["the `#[frameless]` attribute can only be applied to an fn"]
 }
 
 fn plural<'a>(n: usize, plural: &'a str, singular: &'a str) -> &'a str {

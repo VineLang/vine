@@ -151,6 +151,7 @@ impl<'core> Charter<'core, '_> {
       params: fn_item.params,
       ret_ty: fn_item.ret,
       body,
+      frameless: false,
     });
     self.define_value(span, def, vis, DefValueKind::Fn(FnId::Concrete(fn_id)));
     def
@@ -183,7 +184,8 @@ impl<'core> Resolver<'core, '_> {
     let (ty, closure_id) =
       self.resolve_closure(span, Flex::None, &fn_def.params, &fn_def.ret_ty, &fn_def.body, false);
     let root = TirExpr { span, ty, kind: Box::new(TirExprKind::Closure(closure_id)) };
-    let fragment = self.finish_fragment(span, self.chart.defs[fn_def.def].path, root);
+    let fragment =
+      self.finish_fragment(span, self.chart.defs[fn_def.def].path, root, fn_def.frameless);
     let fragment_id = self.fragments.push(fragment);
     self.resolutions.fns.push_to(fn_id, fragment_id);
   }
@@ -320,27 +322,43 @@ impl<'core> Resolver<'core, '_> {
 
   pub(crate) fn resolve_trait_fn(
     &mut self,
+    span: Span,
     receiver: &Ty<'core>,
     params: &Vec<Ty<'core>>,
     ret: &Option<Ty<'core>>,
   ) -> ImplType {
-    ImplType::Fn(
-      self.resolve_ty(receiver, false),
-      params.iter().map(|p| self.resolve_ty(p, false)).collect(),
-      match ret {
-        Some(ret) => self.resolve_ty(ret, false),
-        None => self.types.nil(),
-      },
-    )
+    let Some(fn_) = self.chart.builtins.fn_ else {
+      return ImplType::Error(self.core.report(Diag::MissingBuiltin { span, builtin: "Fn" }));
+    };
+    let receiver = self.resolve_ty(receiver, false);
+    let params = params.iter().map(|p| self.resolve_ty(p, false)).collect();
+    let ret = match ret {
+      Some(ret) => self.resolve_ty(ret, false),
+      None => self.types.nil(),
+    };
+    ImplType::Trait(fn_, vec![receiver, self.types.new(TypeKind::Tuple(params)), ret])
   }
 
-  pub(crate) fn resolve_impl_fn(&mut self, path: &Path<'core>, ty: &ImplType) -> TirImpl<'core> {
+  pub(crate) fn resolve_impl_fn(
+    &mut self,
+    span: Span,
+    path: &Path<'core>,
+    ty: &ImplType,
+  ) -> TirImpl<'core> {
+    let Some(fn_) = self.chart.builtins.fn_ else {
+      return TirImpl::Error(self.core.report(Diag::MissingBuiltin { span, builtin: "Fn" }));
+    };
     match self.resolve_path(self.cur_def, path, "fn", |d| d.fn_id()) {
       Ok(fn_id) => {
         let (type_params, impl_params) =
           self.resolve_generics(path, self.chart.fn_generics(fn_id), true);
         let sig = self.types.import(self.sigs.fn_sig(fn_id), Some(&type_params));
-        let actual_ty = ImplType::Fn(self.types.new(TypeKind::Fn(fn_id)), sig.params, sig.ret_ty);
+        let param_count = sig.params.len();
+        let receiver = self.types.new(TypeKind::Fn(fn_id));
+        let actual_ty = ImplType::Trait(
+          fn_,
+          vec![receiver, self.types.new(TypeKind::Tuple(sig.params)), sig.ret_ty],
+        );
         if self.types.unify_impl_type(&actual_ty, ty).is_failure() {
           self.core.report(Diag::ExpectedTypeFound {
             span: path.span,
@@ -348,7 +366,7 @@ impl<'core> Resolver<'core, '_> {
             found: self.types.show_impl_type(self.chart, &actual_ty),
           });
         }
-        TirImpl::Fn(fn_id, impl_params)
+        TirImpl::Fn(fn_id, impl_params, param_count)
       }
       Err(diag) => TirImpl::Error(self.core.report(diag)),
     }
@@ -370,11 +388,16 @@ impl<'core> Resolver<'core, '_> {
     func: TirExpr,
     args: &[Expr<'core>],
   ) -> Result<TirExpr, Diag<'core>> {
+    let Some(fn_) = self.chart.builtins.fn_ else {
+      Err(Diag::MissingBuiltin { span, builtin: "Fn" })?
+    };
     let args = args.iter().map(|arg| self.resolve_expr(arg)).collect::<Vec<_>>();
     let ret_ty = self.types.new_var(span);
-    let impl_type = ImplType::Fn(func.ty, args.iter().map(|x| x.ty).collect(), ret_ty);
+    let arg_tys = args.iter().map(|x| x.ty).collect();
+    let impl_type =
+      ImplType::Trait(fn_, vec![func.ty, self.types.new(TypeKind::Tuple(arg_tys)), ret_ty]);
     let impl_ = self.find_impl(span, &impl_type, false);
-    let rel = self.rels.fns.push(FnRel::Impl(impl_));
+    let rel = self.rels.fns.push(FnRel::Impl(impl_, args.len()));
     Ok(TirExpr::new(span, ret_ty, TirExprKind::Call(rel, Some(func), args)))
   }
 
@@ -485,7 +508,7 @@ impl<'core> Distiller<'core, '_> {
     let receiver = receiver.as_ref().map(|r| self.distill_expr_value(stage, r));
     let args = args.iter().map(|s| self.distill_expr_value(stage, s)).collect::<Vec<_>>();
     let wire = stage.new_wire(span, ty);
-    stage.steps.push(Step::Call(rel, receiver, args, wire.neg));
+    stage.steps.push(Step::Call(span, rel, receiver, args, wire.neg));
     wire.pos
   }
 
@@ -502,9 +525,19 @@ impl<'core> Distiller<'core, '_> {
 }
 
 impl<'core> Emitter<'core, '_> {
-  pub(crate) fn emit_call(&mut self, rel: FnRelId, recv: &Option<Port>, args: &[Port], ret: &Port) {
+  pub(crate) fn emit_call(
+    &mut self,
+    span: Span,
+    rel: FnRelId,
+    recv: &Option<Port>,
+    args: &[Port],
+    ret: &Port,
+  ) {
     let func = self.emit_fn_rel(rel);
-    let recv = recv.as_ref().map(|p| self.emit_port(p)).unwrap_or(Tree::Erase);
+    let mut recv = recv.as_ref().map(|p| self.emit_port(p)).unwrap_or(Tree::Erase);
+    if self.core.debug {
+      recv = Tree::Comb("dbg".into(), Box::new(self.tap_debug_call(span)), Box::new(recv));
+    }
     let pair = (
       func,
       Tree::n_ary(

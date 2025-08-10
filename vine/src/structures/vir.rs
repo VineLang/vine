@@ -135,7 +135,8 @@ pub enum Step {
 
   Link(Port, Port),
 
-  Call(FnRelId, Option<Port>, Vec<Port>, Port),
+  Call(Span, FnRelId, Option<Port>, Vec<Port>, Port),
+  Const(Span, ConstRelId, Port),
   Composite(Port, Vec<Port>),
   Struct(StructId, Port, Port),
   Enum(EnumId, VariantId, Port, Option<Port>),
@@ -168,9 +169,9 @@ impl Step {
         Ports::Transfer(transfer.data.as_ref())
       }
       Step::Diverge(_, None) => Ports::Zero([]),
-      Step::Enum(_, _, a, None) => Ports::One([a]),
+      Step::Const(_, _, a) | Step::Enum(_, _, a, None) => Ports::One([a]),
       Step::Link(a, b) | Step::Struct(_, a, b) | Step::Enum(_, _, a, Some(b)) => Ports::Two([a, b]),
-      Step::Call(_, f, a, r) => Ports::Fn(f.as_ref().into_iter().chain(a).chain([r])),
+      Step::Call(_, _, f, a, r) => Ports::Fn(f.as_ref().into_iter().chain(a).chain([r])),
       Step::Composite(port, ports) | Step::List(port, ports) => {
         Ports::Tuple([port].into_iter().chain(ports))
       }
@@ -220,7 +221,6 @@ impl Port {
 #[derive(Debug, Clone)]
 pub enum PortKind {
   Nil,
-  ConstRel(ConstRelId),
   N32(u32),
   F32(f32),
   Wire(Span, WireId),

@@ -82,6 +82,9 @@ impl<'core> Charter<'core, '_> {
     let kind = match impl_item.kind {
       ImplItemKind::Direct(items) => {
         for subitem in items {
+          if !self.enabled(&subitem.attrs) {
+            continue;
+          }
           let span = subitem.span;
           if !matches!(subitem.vis, Vis::Private) {
             self.core.report(Diag::ImplItemVis { span });
@@ -148,6 +151,7 @@ impl<'core> Charter<'core, '_> {
       params: fn_item.params,
       ret_ty: fn_item.ret,
       body,
+      frameless: false,
     });
     self.define_value(span, def, vis, DefValueKind::Fn(FnId::Concrete(fn_id)));
     self.chart_attrs(Some(def), attrs);
@@ -225,7 +229,6 @@ impl<'core> Resolver<'core, '_> {
         };
         Ok(ResolvedImpl { kind, trait_id: *trait_id, become_: Become::Unresolved })
       }
-      ImplType::Fn(..) => Err(self.core.report(Diag::CannotImplFn { span })),
       ImplType::Error(err) => Err(*err),
     };
     self.resolutions.impls.push_to(impl_id, resolved);
@@ -332,7 +335,7 @@ impl<'core> Resolver<'core, '_> {
     let expected =
       self.types.import(&self.sigs.traits[trait_id].fns[trait_fn_id], Some(&type_params));
     let found = self.types.import(&self.sigs.concrete_fns[fn_id], None);
-    Self::expect_fn_sig(self.core, self.chart, &mut self.types, span, name, expected, found);
+    Self::expect_fn_sig(self.core, self.chart, &mut self.types, span, expected, found);
     Ok(fn_id)
   }
 

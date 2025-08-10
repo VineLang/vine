@@ -12,6 +12,6 @@ Interactions
   Branch               1_587
 
 Memory
-  Heap                21_568 B
+  Heap                21_584 B
   Allocated          798_576 B
   Freed              798_576 B

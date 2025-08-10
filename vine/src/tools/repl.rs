@@ -15,6 +15,7 @@ use crate::{
     parser::VineParser,
     resolver::Resolver,
   },
+  features::cfg::Config,
   structures::{
     ast::{visit::VisitMut, Block, Ident, Span, Stmt},
     chart::{DefId, GenericsId},
@@ -56,9 +57,10 @@ impl<'core, 'ctx, 'ivm, 'ext> Repl<'core, 'ctx, 'ivm, 'ext> {
     mut host: &'ivm mut Host<'ivm>,
     ivm: &'ctx mut IVM<'ivm, 'ext>,
     core: &'core Core<'core>,
+    config: Config<'core>,
     libs: Vec<PathBuf>,
   ) -> Result<Self, Vec<Diag<'core>>> {
-    let mut compiler = Compiler::new(core);
+    let mut compiler = Compiler::new(core, config);
     for lib in libs {
       compiler.loader.load_mod(&lib);
     }
@@ -92,7 +94,7 @@ impl<'core, 'ctx, 'ivm, 'ext> Repl<'core, 'ctx, 'ivm, 'ext> {
   }
 
   pub fn exec(&mut self, input: &str) -> Result<(), Vec<Diag<'core>>> {
-    let command = match self.parse_input(input) {
+    let (span, command) = match self.parse_input(input) {
       Ok(command) => command,
       Err(diag) => {
         self.core.report(diag);
@@ -108,11 +110,11 @@ impl<'core, 'ctx, 'ivm, 'ext> Repl<'core, 'ctx, 'ivm, 'ext> {
       ReplCommand::Scope => {
         self.print_scope();
       }
-      ReplCommand::Clear(vars) => self.run(vec![], vars)?,
+      ReplCommand::Clear(vars) => self.run(span, vec![], vars)?,
       ReplCommand::Set(option) => match option {
         ReplOption::ShowScope(bool) => self.options.show_scope = bool,
       },
-      ReplCommand::Run(stmts) => self.run(stmts, vec![])?,
+      ReplCommand::Run(stmts) => self.run(span, stmts, vec![])?,
     }
 
     Ok(())
@@ -120,10 +122,11 @@ impl<'core, 'ctx, 'ivm, 'ext> Repl<'core, 'ctx, 'ivm, 'ext> {
 
   pub fn run(
     &mut self,
+    span: Span,
     stmts: Vec<Stmt<'core>>,
     clear: Vec<Ident<'core>>,
   ) -> Result<(), Vec<Diag<'core>>> {
-    let mut block = Block { span: Span::NONE, stmts };
+    let mut block = Block { span, stmts };
 
     self.compiler.loader.load_deps(".".as_ref(), &mut block);
 
@@ -237,6 +240,23 @@ impl<'core, 'ctx, 'ivm, 'ext> Repl<'core, 'ctx, 'ivm, 'ext> {
     let label_ref = Host::label_to_u16("ref", &mut self.host.comb_labels);
 
     let mut cur = w.1;
+
+    if self.core.debug {
+      let label_dbg = Host::label_to_u16("dbg", &mut self.host.comb_labels);
+      let label_tup = Host::label_to_u16("tup", &mut self.host.comb_labels);
+
+      let dbg;
+      (dbg, cur) = make_node(self.ivm, label_dbg, cur);
+      let (dbg_in, dbg_out) = make_node(self.ivm, label_ref, dbg);
+      self.ivm.link_wire(dbg_out, Port::ERASE);
+      let (io, dbg_in) = make_node(self.ivm, label_tup, dbg_in);
+      self.ivm.link_wire(io, Port::new_ext_val(self.host.new_io()));
+      let (len, dbg_in) = make_node(self.ivm, label_tup, dbg_in);
+      self.ivm.link_wire(len, Port::new_ext_val(self.host.new_n32(0)));
+      let (buf, end) = make_node(self.ivm, label_tup, dbg_in);
+      self.ivm.link_wire_wire(buf, end);
+    }
+
     let mut wire;
     for entry in take(&mut self.scope) {
       if let Some(port) = entry.value {
@@ -287,11 +307,14 @@ impl<'core, 'ctx, 'ivm, 'ext> Repl<'core, 'ctx, 'ivm, 'ext> {
     Ok(())
   }
 
-  fn parse_input(&mut self, line: &str) -> Result<ReplCommand<'core>, Diag<'core>> {
+  fn parse_input(&mut self, line: &str) -> Result<(Span, ReplCommand<'core>), Diag<'core>> {
     let file = self.compiler.loader.add_file(None, "input".into(), line);
     let mut parser = VineParser { core: self.core, state: ParserState::new(line), file };
     parser.bump()?;
-    parser.parse_repl_command()
+    let span = parser.start_span();
+    let command = parser.parse_repl_command()?;
+    let span = parser.end_span(span);
+    Ok((span, command))
   }
 
   pub fn print_scope(&mut self) {

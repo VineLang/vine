@@ -8,56 +8,72 @@ use crate::{
   structures::{
     chart::Chart,
     core::Core,
-    resolutions::{ConstRelId, FnRelId},
+    resolutions::{ConstRelId, FnRelId, Fragment},
+    specializations::Specializations,
     template::{Template, TemplateStage, TemplateStageRels},
     tir::Local,
     vir::{Header, Interface, InterfaceKind, Port, PortKind, Stage, StageId, Step, Transfer, Vir},
   },
 };
 
-pub fn emit<'core>(core: &'core Core<'core>, chart: &Chart<'core>, vir: &Vir<'core>) -> Template {
+pub fn emit<'core>(
+  core: &'core Core<'core>,
+  chart: &Chart<'core>,
+  fragment: &Fragment<'core>,
+  vir: &Vir<'core>,
+  specs: &mut Specializations<'core>,
+) -> Template {
   let mut emitter = Emitter {
     core,
     chart,
+    fragment,
     vir,
+    specs,
     locals: BTreeMap::new(),
     pairs: Vec::new(),
     wire_offset: 0,
     wires: Counter::default(),
     rels: TemplateStageRels::default(),
+    debug: None,
   };
 
-  let stages = IdxVec::from_iter(vir.stages.values().map(|stage| {
-    let interface = &vir.interfaces[stage.interface];
-    (interface.incoming != 0 && !interface.inline()).then(|| {
-      emitter.wire_offset = 0;
-      emitter.wires.0 = stage.wires.0 .0;
-      let root = emitter.emit_interface(interface, false);
-      let root = emitter.emit_header(&stage.header, root);
-      emitter._emit_stage(stage);
-      for (local, state) in take(&mut emitter.locals) {
-        emitter.finish_local(&vir.locals[local], state);
-      }
-      let net = Net { root, pairs: take(&mut emitter.pairs) };
-      TemplateStage { net, rels: take(&mut emitter.rels) }
-    })
-  }));
-
-  Template { stages }
+  Template { stages: IdxVec::from_iter(vir.stages.values().map(|stage| emitter.emit_stage(stage))) }
 }
 
 pub(crate) struct Emitter<'core, 'a> {
   pub(crate) core: &'core Core<'core>,
   pub(crate) chart: &'a Chart<'core>,
+  pub(crate) fragment: &'a Fragment<'core>,
   pub(crate) vir: &'a Vir<'core>,
+  pub(crate) specs: &'a mut Specializations<'core>,
   pub(crate) locals: BTreeMap<Local, LocalEmissionState>,
   pub(crate) pairs: Vec<(Tree, Tree)>,
   pub(crate) wire_offset: usize,
   pub(crate) wires: Counter<usize>,
   pub(crate) rels: TemplateStageRels,
+  pub(crate) debug: Option<(Tree, Tree)>,
 }
 
 impl<'core, 'a> Emitter<'core, 'a> {
+  pub fn emit_stage(&mut self, stage: &Stage) -> Option<TemplateStage> {
+    let interface = &self.vir.interfaces[stage.interface];
+    (interface.incoming != 0 && !interface.inline()).then(|| {
+      self.wire_offset = 0;
+      self.wires.0 = stage.wires.0 .0;
+      let root = self.emit_interface(interface, false);
+      let root = self.emit_header(&stage.header, root);
+      self._emit_stage(stage);
+      for (local, state) in take(&mut self.locals) {
+        self.finish_local(&self.vir.locals[local], state);
+      }
+      if self.core.debug {
+        self.pairs.push(self.debug.take().unwrap());
+      }
+      let net = Net { root, pairs: take(&mut self.pairs) };
+      TemplateStage { net, rels: take(&mut self.rels) }
+    })
+  }
+
   pub fn emit_transfer(&mut self, transfer: &Transfer) {
     let interface = &self.vir.interfaces[transfer.interface];
     if interface.inline() {
@@ -65,7 +81,13 @@ impl<'core, 'a> Emitter<'core, 'a> {
       return self.inline_stage(&self.vir.stages[stage]);
     }
 
-    let target = self.emit_interface(interface, true);
+    let mut target = self.emit_interface(interface, true);
+
+    if self.core.debug
+      && !matches!(interface.kind, InterfaceKind::Fn { .. } | InterfaceKind::Inspect(..))
+    {
+      target = Tree::Comb("dbg".into(), Box::new(self.tap_debug()), Box::new(target));
+    }
 
     let pair = match &interface.kind {
       InterfaceKind::Unconditional(stage) => (self.emit_stage_rel(*stage), target),
@@ -149,7 +171,10 @@ impl<'core, 'a> Emitter<'core, 'a> {
         self.emit_link(a, b);
       }
       Step::Struct(id, a, b) => self.emit_struct(*id, a, b),
-      Step::Call(rel, recv, args, ret) => self.emit_call(*rel, recv, args, ret),
+      Step::Call(span, rel, recv, args, ret) => self.emit_call(*span, *rel, recv, args, ret),
+      Step::Const(span, rel, out) => {
+        self.emit_const(span, rel, out);
+      }
       Step::Composite(port, tuple) => self.emit_composite(port, tuple),
       Step::Ref(reference, value, space) => self.emit_ref(reference, value, space),
       Step::Enum(enum_id, variant_id, port, fields) => {
@@ -217,33 +242,34 @@ impl<'core, 'a> Emitter<'core, 'a> {
       PortKind::N32(n) => Tree::N32(n),
       PortKind::F32(f) => Tree::F32(f),
       PortKind::Wire(_, w) => Tree::Var(format!("w{}", self.wire_offset + w.0)),
-      PortKind::ConstRel(rel) => self.emit_const_rel(rel),
     }
   }
 
   fn emit_header(&mut self, header: &Header, root: Tree) -> Tree {
     match header {
-      Header::None => root,
-      Header::Match(None) => root,
+      Header::None | Header::Match(None) => self.with_debug(root),
       Header::Match(Some(data)) => {
-        Tree::Comb("enum".into(), Box::new(self.emit_port(data)), Box::new(root))
+        Tree::Comb("enum".into(), Box::new(self.emit_port(data)), Box::new(self.with_debug(root)))
       }
       Header::Fn(params, result) => Tree::n_ary(
         "fn",
-        [root].into_iter().chain(params.iter().chain([result]).map(|port| self.emit_port(port))),
+        [self.with_debug(root)]
+          .into_iter()
+          .chain(params.iter().chain([result]).map(|port| self.emit_port(port))),
       ),
       Header::Fork(former, latter) => Tree::n_ary(
         "fn",
         [
-          Tree::Erase,
+          self.with_debug(Tree::Erase),
           Tree::Comb("ref".into(), Box::new(root), Box::new(self.emit_port(latter))),
           self.emit_port(former),
         ],
       ),
-      Header::Drop => Tree::n_ary("fn", [Tree::Erase, root, Tree::Erase]),
+      Header::Drop => Tree::n_ary("fn", [self.with_debug(Tree::Erase), root, Tree::Erase]),
       Header::Entry(ports) => {
         assert_eq!(root, Tree::Erase);
-        Tree::n_ary("x", ports.iter().map(|port| self.emit_port(port)))
+        let inner = Tree::n_ary("x", ports.iter().map(|port| self.emit_port(port)));
+        self.with_debug(inner)
       }
     }
   }

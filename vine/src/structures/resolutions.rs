@@ -48,6 +48,7 @@ pub struct Fragment<'core> {
   pub generics: GenericsId,
   pub impl_params: usize,
   pub tir: Tir<'core>,
+  pub frameless: bool,
 }
 
 new_idx!(pub ConstRelId);
@@ -61,7 +62,7 @@ pub struct Rels<'core> {
 #[derive(Debug, Clone)]
 pub enum FnRel<'core> {
   Item(FnId, Vec<TirImpl<'core>>),
-  Impl(TirImpl<'core>),
+  Impl(TirImpl<'core>, usize),
 }
 
 impl<'core> Rels<'core> {

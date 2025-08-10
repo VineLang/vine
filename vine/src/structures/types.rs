@@ -15,6 +15,7 @@ use crate::structures::{
   chart::{Chart, DefId, EnumId, FnId, OpaqueTypeId, StructId, TraitId},
   core::Core,
   diag::{Diag, ErrorGuaranteed},
+  signatures::FnSig,
   tir::ClosureId,
 };
 
@@ -152,7 +153,6 @@ impl<'core> Default for TypeState<'core> {
 #[derive(Debug, Clone)]
 pub enum ImplType {
   Trait(TraitId, Vec<Type>),
-  Fn(Type, Vec<Type>, Type),
   Error(ErrorGuaranteed),
 }
 
@@ -307,11 +307,12 @@ impl<'core> Types<'core> {
       (ImplType::Trait(i, a), ImplType::Trait(j, b)) if i == j => {
         self.unify_types(a, b, Inverted(false))
       }
-      (ImplType::Fn(a, p, x), ImplType::Fn(b, q, y)) => {
-        self.unify(*a, *b).and(self.unify_types(p, q, Inverted(false))).and(self.unify(*x, *y))
-      }
       _ => Failure,
     }
+  }
+
+  pub fn unify_fn_sig(&mut self, a: &FnSig, b: &FnSig) -> UnifyResult {
+    self.unify_types(&a.params, &b.params, Inverted(false)).and(self.unify(a.ret_ty, b.ret_ty))
   }
 
   fn occurs(&self, var: Type, ty: Type) -> bool {
@@ -493,18 +494,19 @@ impl<'core> Types<'core> {
         str += chart.traits[*trait_id].name.0 .0;
         self._show_params(chart, params, &mut str);
       }
-      ImplType::Fn(receiver, params, ret) => {
-        str += "fn ";
-        self._show(chart, *receiver, &mut str);
-        str += "(";
-        self._show_comma_separated(chart, params, &mut str);
-        str += ")";
-        if !matches!(self.kind(*ret), Some((_, TypeKind::Tuple(els))) if els.is_empty()) {
-          str += " -> ";
-          self._show(chart, *ret, &mut str);
-        }
-      }
       ImplType::Error(_) => str += "??",
+    }
+    str
+  }
+
+  pub fn show_fn_sig(&self, chart: &Chart, sig: &FnSig) -> String {
+    let mut str = String::new();
+    str += "fn (";
+    self._show_comma_separated(chart, &sig.params, &mut str);
+    str += ")";
+    if !matches!(self.kind(sig.ret_ty), Some((_, TypeKind::Tuple(els))) if els.is_empty()) {
+      str += " -> ";
+      self._show(chart, sig.ret_ty, &mut str);
     }
     str
   }
@@ -690,16 +692,12 @@ impl ImplType {
   pub fn approx_eq(&self, other: &ImplType) -> bool {
     match (self, other) {
       (ImplType::Trait(i, _), ImplType::Trait(j, _)) => i == j,
-      (ImplType::Fn(_, p, _), ImplType::Fn(_, q, _)) => p.len() == q.len(),
       _ => false,
     }
   }
-  fn map(&self, mut f: impl FnMut(Type) -> Type) -> Self {
+  fn map(&self, f: impl FnMut(Type) -> Type) -> Self {
     match self {
       ImplType::Trait(def, ts) => ImplType::Trait(*def, ts.iter().copied().map(f).collect()),
-      ImplType::Fn(receiver, params, ret) => {
-        ImplType::Fn(f(*receiver), params.iter().copied().map(&mut f).collect(), f(*ret))
-      }
       ImplType::Error(e) => ImplType::Error(*e),
     }
   }

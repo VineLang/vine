@@ -1,7 +1,7 @@
 
 Interactions
   Total               38_782
-    Depth             13_151
+    Depth             13_233
     Breadth                2
   Annihilate          15_519
   Commute              3_307
@@ -13,5 +13,5 @@ Interactions
 
 Memory
   Heap                16_816 B
-  Allocated          787_936 B
-  Freed              787_936 B
+  Allocated          789_248 B
+  Freed              789_248 B

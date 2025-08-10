@@ -4,8 +4,9 @@ use ivy::ast::{Net, Nets, Tree};
 use vine_util::idx::{Counter, IdxVec};
 
 use crate::structures::{
-  ast::Ident,
-  chart::{Chart, EnumId, StructId, TraitConstId, TraitFnId, VariantId},
+  ast::{Ident, Span},
+  chart::{Chart, EnumId, FnId, StructId, TraitConstId, TraitFnId, TraitId, VariantId},
+  core::Core,
   resolutions::{FnRel, FnRelId, Rels},
   specializations::{Spec, Specializations},
   template::global_name,
@@ -21,7 +22,7 @@ pub enum SyntheticImpl<'core> {
   Enum(EnumId),
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum SyntheticItem<'core> {
   CompositeDeconstruct(usize),
   CompositeReconstruct(usize),
@@ -30,10 +31,14 @@ pub enum SyntheticItem<'core> {
   EnumVariantNames(EnumId),
   EnumMatch(EnumId),
   EnumReconstruct(EnumId),
+  FnFromCall(usize),
+  CallFromFn(usize),
+  Frame(&'core str, Span),
 }
 
 struct Synthesizer<'core, 'a> {
   nets: &'a mut Nets,
+  core: &'core Core<'core>,
   chart: &'a Chart<'core>,
   specs: &'a Specializations<'core>,
   spec: &'a Spec<'core>,
@@ -43,13 +48,22 @@ struct Synthesizer<'core, 'a> {
 
 pub fn synthesize<'core>(
   nets: &mut Nets,
+  core: &'core Core<'core>,
   chart: &Chart<'core>,
   specs: &Specializations<'core>,
   spec: &Spec<'core>,
-  item: SyntheticItem<'core>,
+  item: &SyntheticItem<'core>,
 ) {
-  Synthesizer { nets, chart, specs, spec, var_id: Counter::default(), stages: Counter::default() }
-    .synthesize(item);
+  Synthesizer {
+    nets,
+    core,
+    chart,
+    specs,
+    spec,
+    var_id: Counter::default(),
+    stages: Counter::default(),
+  }
+  .synthesize(item);
 }
 
 impl<'core> Synthesizer<'core, '_> {
@@ -82,9 +96,9 @@ impl<'core> Synthesizer<'core, '_> {
     self.list(str.chars(), |_, char| Tree::N32(char as u32))
   }
 
-  fn synthesize(&mut self, item: SyntheticItem<'core>) {
+  fn synthesize(&mut self, item: &SyntheticItem<'core>) {
     let stage = self.new_stage();
-    let net = match item {
+    let net = match *item {
       SyntheticItem::CompositeDeconstruct(len) => self.synthesize_composite_deconstruct(len),
       SyntheticItem::CompositeReconstruct(len) => self.synthesize_composite_reconstruct(len),
       SyntheticItem::Ident(ident) => self.synthesize_ident(ident),
@@ -92,6 +106,9 @@ impl<'core> Synthesizer<'core, '_> {
       SyntheticItem::EnumVariantNames(enum_id) => self.synthesize_enum_variant_names(enum_id),
       SyntheticItem::EnumMatch(enum_id) => self.synthesize_enum_match(enum_id),
       SyntheticItem::EnumReconstruct(enum_id) => self.synthesize_enum_reconstruct(enum_id),
+      SyntheticItem::FnFromCall(params) => self.synthesize_fn_from_call(params),
+      SyntheticItem::CallFromFn(params) => self.synthesize_call_from_fn(params),
+      SyntheticItem::Frame(path, span) => self.synthesize_frame(path, span),
     };
     self.nets.insert(stage, net);
   }
@@ -99,9 +116,9 @@ impl<'core> Synthesizer<'core, '_> {
   fn synthesize_composite_deconstruct(&mut self, len: usize) -> Net {
     let x = self.new_wire();
     Net::new(if len == 1 {
-      Tree::n_ary("fn", [Tree::Erase, x.0, Tree::n_ary("tup", [x.1, Tree::Erase])])
+      Tree::n_ary("fn", [self.fn_receiver(), x.0, Tree::n_ary("tup", [x.1, Tree::Erase])])
     } else {
-      Tree::n_ary("fn", [Tree::Erase, x.0, x.1])
+      Tree::n_ary("fn", [self.fn_receiver(), x.0, x.1])
     })
   }
 
@@ -109,19 +126,20 @@ impl<'core> Synthesizer<'core, '_> {
     let x = self.new_wire();
     let y = self.new_wire();
     Net::new(if len == 1 {
-      Tree::n_ary("fn", [Tree::Erase, x.0, Tree::Erase, x.1])
+      Tree::n_ary("fn", [self.fn_receiver(), x.0, Tree::Erase, x.1])
     } else {
-      Tree::n_ary("fn", [Tree::Erase, x.0, y.0, Tree::n_ary("tup", [x.1, y.1])])
+      Tree::n_ary("fn", [self.fn_receiver(), x.0, y.0, Tree::n_ary("tup", [x.1, y.1])])
     })
   }
 
   fn synthesize_ident(&mut self, ident: Ident<'core>) -> Net {
-    Net::new(self.string(ident.0 .0))
+    let str = self.string(ident.0 .0);
+    Net::new(str)
   }
 
   fn synthesize_identity(&mut self) -> Net {
     let x = self.new_wire();
-    Net::new(Tree::n_ary("fn", [Tree::Erase, x.0, x.1]))
+    Net::new(Tree::n_ary("fn", [self.fn_receiver(), x.0, x.1]))
   }
 
   fn new_stage(&mut self) -> String {
@@ -130,24 +148,20 @@ impl<'core> Synthesizer<'core, '_> {
   }
 
   fn synthesize_enum_variant_names(&mut self, enum_id: EnumId) -> Net {
-    Net::new(
-      self.list(self.chart.enums[enum_id].variants.values().map(|x| x.name.0 .0), Self::string),
-    )
+    let names =
+      self.list(self.chart.enums[enum_id].variants.values().map(|x| x.name.0 .0), Self::string);
+    Net::new(names)
   }
 
   fn synthesize_enum_match(&mut self, enum_id: EnumId) -> Net {
-    let fn_ = match self.spec.rels.fns[FnRelId(0)] {
-      Ok((spec_id, stage_id)) => {
-        Tree::Global(global_name(self.specs.specs[spec_id].as_ref().unwrap(), stage_id))
-      }
-      Err(_) => Tree::Erase,
-    };
+    let fn_ = self.fn_rel(FnRelId(0));
     let f = self.new_wire();
     let t = self.new_wire();
+    let dbg = self.new_wire();
     Net::new(Tree::n_ary(
       "fn",
       [
-        Tree::Erase,
+        Tree::n_ary("dbg", self.core.debug.then_some(dbg.0).into_iter().chain([Tree::Erase])),
         self.match_enum(
           enum_id,
           |self_, variant_id| {
@@ -155,21 +169,29 @@ impl<'core> Synthesizer<'core, '_> {
             let data = self_.new_wire();
             let f = self_.new_wire();
             let t = self_.new_wire();
+            let dbg = self_.new_wire();
             Net {
               root: Tree::n_ary(
                 "enum",
-                has_data.then_some(data.0).into_iter().chain([Tree::n_ary("x", [f.0, t.0])]),
+                has_data.then_some(data.0).into_iter().chain([Tree::n_ary(
+                  "x",
+                  self_.core.debug.then_some(dbg.0).into_iter().chain([f.0, t.0]),
+                )]),
               ),
               pairs: Vec::from([(
                 fn_.clone(),
                 Tree::n_ary(
                   "fn",
-                  [f.1, self_.variant(variant_id, has_data.then_some(data.1)), t.1],
+                  [
+                    Tree::n_ary("dbg", self_.core.debug.then_some(dbg.1).into_iter().chain([f.1])),
+                    self_.variant(variant_id, has_data.then_some(data.1)),
+                    t.1,
+                  ],
                 ),
               )]),
             }
           },
-          Tree::n_ary("x", [f.0, t.0]),
+          Tree::n_ary("x", self.core.debug.then_some(dbg.1).into_iter().chain([f.0, t.0])),
         ),
         f.1,
         t.1,
@@ -208,6 +230,53 @@ impl<'core> Synthesizer<'core, '_> {
       }
     }
     cur_net
+  }
+
+  fn synthesize_fn_from_call(&mut self, params: usize) -> Net {
+    let (fn_, call) = self._fn_call(params);
+    Net { root: fn_, pairs: vec![(self.fn_rel(FnRelId(0)), call)] }
+  }
+
+  fn synthesize_call_from_fn(&mut self, params: usize) -> Net {
+    let (fn_, call) = self._fn_call(params);
+    Net { root: call, pairs: vec![(self.fn_rel(FnRelId(0)), fn_)] }
+  }
+
+  fn _fn_call(&mut self, params: usize) -> (Tree, Tree) {
+    let dbg = if self.core.debug {
+      let wire = self.new_wire();
+      (Some(wire.0).into_iter(), Some(wire.1).into_iter())
+    } else {
+      (None.into_iter(), None.into_iter())
+    };
+    let recv = self.new_wire();
+    let params = (0..params).map(|_| self.new_wire()).collect::<(Vec<_>, Vec<_>)>();
+    let ret = self.new_wire();
+    (
+      Tree::n_ary(
+        "fn",
+        [Tree::n_ary("dbg", dbg.0.chain([recv.0]))].into_iter().chain(params.0).chain([ret.0]),
+      ),
+      Tree::n_ary(
+        "fn",
+        [
+          Tree::n_ary("dbg", dbg.1.chain([Tree::Erase])),
+          recv.1,
+          Tree::n_ary("tup", params.1),
+          ret.1,
+        ],
+      ),
+    )
+  }
+
+  fn synthesize_frame(&mut self, path: &str, span: Span) -> Net {
+    let path = self.list(path[2..].split("::").collect::<Vec<_>>(), Self::string);
+    let files = self.core.files.borrow();
+    let pos = files[span.file].get_pos(span.start);
+    let file = self.string(pos.file);
+    let line = Tree::N32(pos.line as u32 + 1);
+    let col = Tree::N32(pos.col as u32 + 1);
+    Net::new(Tree::n_ary("tup", [col, file, line, path]))
   }
 
   fn enum_(
@@ -257,6 +326,28 @@ impl<'core> Synthesizer<'core, '_> {
     }
     cur
   }
+
+  fn fn_rel(&self, id: FnRelId) -> Tree {
+    match self.spec.rels.fns[id] {
+      Ok((spec_id, stage_id)) => {
+        Tree::Global(global_name(self.specs.specs[spec_id].as_ref().unwrap(), stage_id))
+      }
+      Err(_) => Tree::Erase,
+    }
+  }
+
+  fn fn_receiver(&mut self) -> Tree {
+    if self.core.debug {
+      let w = self.new_wire();
+      Tree::Comb(
+        "dbg".into(),
+        Box::new(Tree::Comb("ref".into(), Box::new(w.0), Box::new(w.1))),
+        Box::new(Tree::Erase),
+      )
+    } else {
+      Tree::Erase
+    }
+  }
 }
 
 impl<'core> SyntheticImpl<'core> {
@@ -300,17 +391,28 @@ impl<'core> SyntheticImpl<'core> {
 }
 
 impl<'core> SyntheticItem<'core> {
-  pub fn rels(self) -> Rels<'core> {
+  pub fn rels(&self) -> Rels<'core> {
     match self {
       SyntheticItem::CompositeDeconstruct(_)
       | SyntheticItem::CompositeReconstruct(_)
       | SyntheticItem::Ident(_)
       | SyntheticItem::Identity
       | SyntheticItem::EnumVariantNames(_)
-      | SyntheticItem::EnumReconstruct(_) => Rels::default(),
+      | SyntheticItem::EnumReconstruct(_)
+      | SyntheticItem::Frame(..) => Rels::default(),
       SyntheticItem::EnumMatch(_) => {
-        Rels { consts: IdxVec::new(), fns: IdxVec::from([FnRel::Impl(TirImpl::Param(0))]) }
+        Rels { consts: IdxVec::new(), fns: IdxVec::from([FnRel::Impl(TirImpl::Param(0), 1)]) }
       }
+      SyntheticItem::CallFromFn(params) => {
+        Rels { consts: IdxVec::new(), fns: IdxVec::from([FnRel::Impl(TirImpl::Param(0), *params)]) }
+      }
+      SyntheticItem::FnFromCall(_) => Rels {
+        consts: IdxVec::new(),
+        fns: IdxVec::from([FnRel::Item(
+          FnId::Abstract(TraitId(usize::MAX), TraitFnId(0)),
+          vec![TirImpl::Param(0)],
+        )]),
+      },
     }
   }
 }

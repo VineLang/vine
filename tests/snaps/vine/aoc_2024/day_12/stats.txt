@@ -12,6 +12,6 @@ Interactions
   Branch              14_290
 
 Memory
-  Heap                88_096 B
-  Allocated        4_772_272 B
-  Freed            4_772_272 B
+  Heap                88_080 B
+  Allocated        4_767_104 B
+  Freed            4_767_104 B

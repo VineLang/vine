@@ -127,18 +127,19 @@ impl<'core, 'a> Specializer<'core, 'a> {
         let impls = impls.iter().map(|x| self.instantiate(fragment_id, args, x)).collect();
         self.instantiate_fn_id(fn_id, impls)
       }
-      FnRel::Impl(impl_) => {
+      FnRel::Impl(impl_, params) => {
         let impl_ = self.instantiate(fragment_id, args, impl_);
         match impl_ {
           ImplTree::Error(err) => Err(err),
-          ImplTree::Def(..)
-          | ImplTree::ForkClosure(..)
-          | ImplTree::DropClosure(..)
-          | ImplTree::Synthetic(..) => {
+          impl_ @ ImplTree::Def(..) => Ok((
+            self.instantiate_synthetic_item(SyntheticItem::FnFromCall(*params), vec![impl_]),
+            StageId(0),
+          )),
+          ImplTree::ForkClosure(..) | ImplTree::DropClosure(..) | ImplTree::Synthetic(..) => {
             unreachable!()
           }
-          ImplTree::Fn(fn_id, impls) => self.instantiate_fn_id(fn_id, impls),
-          ImplTree::Closure(fragment_id, impls, closure_id) => Ok((
+          ImplTree::Fn(fn_id, impls, _) => self.instantiate_fn_id(fn_id, impls),
+          ImplTree::Closure(fragment_id, impls, closure_id, _) => Ok((
             self.specialize(fragment_id, impls),
             self._closure_stage(fragment_id, Some(closure_id)),
           )),
@@ -194,7 +195,15 @@ impl<'core, 'a> Specializer<'core, 'a> {
               }
             }
             ImplTree::Error(err) => Err(err),
-            ImplTree::Fn(..) | ImplTree::Closure(..) => unreachable!(),
+            impl_ @ (ImplTree::Fn(..) | ImplTree::Closure(..)) => {
+              let (ImplTree::Fn(.., params) | ImplTree::Closure(.., params)) = impl_ else {
+                unreachable!()
+              };
+              Ok((
+                self.instantiate_synthetic_item(SyntheticItem::CallFromFn(params), vec![impl_]),
+                StageId(0),
+              ))
+            }
             ImplTree::Synthetic(impl_) => {
               let item = impl_.fn_(self.chart, fn_id);
               Ok((self.instantiate_synthetic_item(item, impls), StageId(0)))
@@ -214,7 +223,7 @@ impl<'core, 'a> Specializer<'core, 'a> {
     match self.specs.synthetic.entry((item, impls)) {
       Entry::Occupied(e) => *e.get(),
       Entry::Vacant(entry) => {
-        let (_, impls) = entry.key().clone();
+        let (item, impls) = entry.key().clone();
         let spec_id = self.specs.specs.push(None);
         entry.insert(spec_id);
         let rels = self.instantiate_rels(None, &impls, &item.rels());
@@ -229,6 +238,7 @@ impl<'core, 'a> Specializer<'core, 'a> {
       }
     }
   }
+
   fn _closure_stage(&self, fragment_id: FragmentId, closure_id: Option<ClosureId>) -> StageId {
     match self._closure_interface(fragment_id, closure_id) {
       InterfaceKind::Fn { call, .. } => *call,
@@ -272,10 +282,14 @@ impl<'core, 'a> Specializer<'core, 'a> {
         }
         ImplTree::Def(*id, impls)
       }
-      TirImpl::Fn(id, impls) => {
-        ImplTree::Fn(*id, impls.iter().map(|i| self.instantiate(fragment_id, args, i)).collect())
+      TirImpl::Fn(id, impls, params) => ImplTree::Fn(
+        *id,
+        impls.iter().map(|i| self.instantiate(fragment_id, args, i)).collect(),
+        *params,
+      ),
+      TirImpl::Closure(id, params) => {
+        ImplTree::Closure(fragment_id.unwrap(), args.clone(), *id, *params)
       }
-      TirImpl::Closure(id) => ImplTree::Closure(fragment_id.unwrap(), args.clone(), *id),
       TirImpl::ForkClosure(id) => ImplTree::ForkClosure(fragment_id.unwrap(), args.clone(), *id),
       TirImpl::DropClosure(id) => ImplTree::DropClosure(fragment_id.unwrap(), args.clone(), *id),
       TirImpl::Synthetic(synthetic) => ImplTree::Synthetic(*synthetic),

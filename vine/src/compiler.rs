@@ -6,6 +6,10 @@ use crate::{
     analyzer::analyze, charter::Charter, distiller::Distiller, emitter::emit, loader::Loader,
     normalizer::normalize, resolver::Resolver, specializer::Specializer, synthesizer::synthesize,
   },
+  features::{
+    cfg::{Config, ConfigValue},
+    debug::debug_main,
+  },
   structures::{
     chart::Chart,
     checkpoint::Checkpoint,
@@ -22,6 +26,7 @@ use crate::{
 
 pub struct Compiler<'core> {
   pub core: &'core Core<'core>,
+  pub config: Config<'core>,
   pub loader: Loader<'core>,
   pub chart: Chart<'core>,
   pub sigs: Signatures<'core>,
@@ -33,9 +38,11 @@ pub struct Compiler<'core> {
 }
 
 impl<'core> Compiler<'core> {
-  pub fn new(core: &'core Core<'core>) -> Self {
+  pub fn new(core: &'core Core<'core>, mut config: Config<'core>) -> Self {
+    config.insert(core.ident("debug"), ConfigValue::Bool(core.debug));
     Compiler {
       core,
+      config,
       loader: Loader::new(core),
       chart: Chart::default(),
       sigs: Signatures::default(),
@@ -65,7 +72,7 @@ impl<'core> Compiler<'core> {
 
     let chart = &mut self.chart;
 
-    let mut charter = Charter { core, chart };
+    let mut charter = Charter { core, chart, config: &self.config };
     charter.chart_root(root);
     hooks.chart(&mut charter);
 
@@ -81,7 +88,7 @@ impl<'core> Compiler<'core> {
       hooks.distill(fragment_id, &mut vir);
       let mut vir = normalize(core, chart, &self.sigs, fragment, &vir);
       analyze(self.core, fragment.tir.span, &mut vir);
-      let template = emit(core, chart, &vir);
+      let template = emit(core, chart, fragment, &vir, &mut self.specs);
       self.vir.push_to(fragment_id, vir);
       self.templates.push_to(fragment_id, template);
     }
@@ -107,7 +114,14 @@ impl<'core> Compiler<'core> {
       let func = vir.closures[ClosureId(0)];
       let InterfaceKind::Fn { call, .. } = vir.interfaces[func].kind else { unreachable!() };
       let global = format!("{path}:s{}", call.0);
-      nets.insert("::".into(), Net { root: Tree::Global(global), pairs: Vec::new() });
+      nets.insert(
+        "::".into(),
+        if self.core.debug {
+          debug_main(Tree::Global(global))
+        } else {
+          Net::new(Tree::Global(global))
+        },
+      );
     }
 
     for spec_id in self.specs.specs.keys_from(checkpoint.specs) {
@@ -117,7 +131,7 @@ impl<'core> Compiler<'core> {
           self.templates[*fragment_id].instantiate(&mut nets, &self.specs, spec);
         }
         SpecKind::Synthetic(item) => {
-          synthesize(&mut nets, &self.chart, &self.specs, spec, *item);
+          synthesize(&mut nets, self.core, &self.chart, &self.specs, spec, item);
         }
       }
     }

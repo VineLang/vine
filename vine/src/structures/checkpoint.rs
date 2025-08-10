@@ -52,8 +52,18 @@ impl<'core> Compiler<'core> {
   }
 
   pub fn revert(&mut self, checkpoint: &Checkpoint) {
-    let Compiler { core: _, loader: _, chart, sigs, resolutions, specs, fragments, vir, templates } =
-      self;
+    let Compiler {
+      core: _,
+      config: _,
+      loader: _,
+      chart,
+      sigs,
+      resolutions,
+      specs,
+      fragments,
+      vir,
+      templates,
+    } = self;
     chart.revert(checkpoint);
     sigs.revert(checkpoint);
     resolutions.revert(checkpoint);
@@ -201,6 +211,7 @@ impl Builtins {
       cast,
       binary_ops,
       comparison_ops,
+      fn_,
       fork,
       drop,
       duplicate,
@@ -233,6 +244,7 @@ impl Builtins {
     revert_fn(cast, checkpoint);
     binary_ops.values_mut().for_each(|op| revert_fn(op, checkpoint));
     comparison_ops.values_mut().for_each(|op| revert_fn(op, checkpoint));
+    revert_idx(fn_, checkpoint.traits);
     revert_idx(fork, checkpoint.traits);
     revert_idx(drop, checkpoint.traits);
     revert_idx(duplicate, checkpoint.impls);

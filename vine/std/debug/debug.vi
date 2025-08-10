@@ -1,2 +1,138 @@
 
+use std::ops::{Cast, Fn};
+
 pub mod Show;
+
+#[cfg(!debug)]
+pub mod debug {
+  pub const enabled: Bool = false;
+
+  pub fn log[T; Cast[T, String]](msg: T) {
+    _ = msg as String;
+  }
+
+  pub fn backtrace() -> Option[&List[Frame]] {
+    None
+  }
+
+  pub fn error[T; Cast[T, String]](msg: T) {
+    _ = msg as String;
+  }
+
+  pub fn .dbg[T; Show[T]](value: T) -> T {
+    value
+  }
+
+  pub fn .dbg_msg[T; Show[T]](value: T, msg: String) -> T {
+    value
+  }
+
+  pub.std fn synchronize_io(_: &IO) {}
+
+  pub fn with_state[F](f: F) -> WithState[F] {
+    WithState(f)
+  }
+
+  pub struct WithState[F](F);
+
+  pub mod WithState {
+    pub impl fork[F+]: Fork[WithState[F]];
+    pub impl drop[F?]: Drop[WithState[F]];
+
+    pub impl call[F, P, R; Fn[F, P, R]]: Fn[WithState[F], P, R] {
+      fn call(WithState[F](f), params: P) -> R {
+        f.call(params)
+      }
+    }
+  }
+}
+
+#[cfg(debug)]
+pub mod debug {
+  pub const enabled: Bool = true;
+
+  struct DebugState({ io: IO, stack: List[Frame] });
+
+  mod DebugState {
+    fn new(io: IO) -> DebugState {
+      DebugState({ io, stack: [] })
+    }
+  }
+
+  fn debug_state() -> &DebugState {
+    inline_ivy! () -> &DebugState { debug }
+  }
+
+  #[frameless]
+  pub fn log[T; Cast[T, String]](msg: T) {
+    let &state = debug_state();
+    let frame = state.stack.get(0).unwrap();
+    state.io._print("[{frame.file}:{frame.line}:{frame.col}] {msg}\n")
+  }
+
+  #[frameless]
+  pub fn backtrace() -> Option[&List[Frame]] {
+    Some(debug_state().*.stack.&)
+  }
+
+  #[frameless]
+  pub fn error[T; Cast[T, String]](msg: T) {
+    let &state = debug_state();
+    state.io._print("ERROR: {msg}\n");
+    for frame in state.stack.into_iter() {
+      state.io._print("  @ {frame}\n");
+    }
+  }
+
+  #[frameless]
+  pub fn .dbg[T; Show[T]](value: T) -> T {
+    log(value.show())
+    value
+  }
+
+  #[frameless]
+  pub fn .dbg_msg[T; Show[T]](value: T, msg: String) -> T {
+    log("{msg} {value.show()}");
+    value
+  }
+
+  pub.std fn synchronize_io(&io: &IO) {
+    let &state = debug_state();
+    io.synchronize(&state.io);
+  }
+
+  #[frameless]
+  pub fn with_state[F](f: F) -> WithState[F] {
+    WithState(debug_state(), f)
+  }
+
+  pub struct WithState[F]((&DebugState, F));
+
+  pub mod WithState {
+    pub impl fork[F+]: Fork[WithState[F]];
+    pub impl drop[F?]: Drop[WithState[F]];
+
+    pub impl call[F, P, R; Fn[F, P, R]]: Fn[WithState[F], P, R] {
+      #[frameless]
+      fn call(WithState[F](state, f), params: P) -> R {
+        swap(debug_state(), state);
+        let ret = f.call(params);
+        swap(debug_state(), state);
+        ret
+      }
+    }
+  }
+}
+
+pub struct Frame(pub { path: List[String], file: String, line: N32, col: N32 });
+
+pub mod Frame {
+  pub impl fork: Fork[Frame];
+  pub impl drop: Drop[Frame];
+
+  pub impl to_string: Cast[Frame, String] {
+    fn cast(Frame({ path, file, line, col })) -> String {
+      "{path.join("::")} ({file}:{line}:{col})"
+    }
+  }
+}
