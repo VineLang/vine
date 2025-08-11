@@ -100,7 +100,7 @@ module.exports = grammar({
     source_file: $ => repeat($._stmt),
 
     ident: $ => new RustRegex("\\p{ID_Start}\\p{ID_Continue}*|_\\p{ID_Continue}+"),
-    num: $ => new RustRegex("[+-]?\\d[\\d\\w]*(\\.\\d+([eE][+-]?\\d+)?)?"),
+    num: $ => new RustRegex("\\d[\\d\\w]*(\\.\\d+([eE][+-]?\\d+)?)?"),
 
     line_comment: $ => seq("//", optional(new RustRegex("[^\\S\\n]+")), $.line_comment_content),
     line_comment_content: $ => new RustRegex(".*"),
@@ -362,7 +362,7 @@ module.exports = grammar({
         $.expr_tuple,
         $.expr_object,
         $.expr_list,
-        $.expr_neg,
+        $.expr_sign,
         $.expr_bool,
         $.expr_not,
         $.expr_is,
@@ -448,7 +448,7 @@ module.exports = grammar({
 
     expr_list: $ => delimited("[", ",", "]", $._expr),
 
-    expr_neg: $ => prec(BP.Prefix, seq("-", $._expr)),
+    expr_sign: $ => prec(BP.Prefix, seq(choice("+", "-"), $._expr)),
 
     expr_bool: $ => choice("true", "false"),
 
