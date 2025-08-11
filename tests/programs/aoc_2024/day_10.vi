@@ -1,5 +1,5 @@
 
-use std::{data::Iterator::Fused, ops::vectorized::or};
+use std::{data::Iterator::Fused, ops::elementwise};
 
 pub fn main(&io: &IO) {
   let input = io.full_input();
@@ -56,12 +56,9 @@ pub fn main(&io: &IO) {
   io.println("Ratings: {ratings}");
 }
 
-type Set32 = N32;
-type Set64 = (Set32, Set32);
-type Set128 = (Set64, Set64);
-type Set = (Set128, Set128);
+type Set = (N32, N32, N32, N32, N32, N32, N32, N32);
 
-const zero_set: Set = (((0, 0), (0, 0)), ((0, 0), (0, 0)));
+const zero_set: Set = (0, 0, 0, 0, 0, 0, 0, 0);
 
 fn set(n: N32) -> Set {
   let x = 1 << n;
@@ -74,11 +71,11 @@ fn set(n: N32) -> Set {
   }
   let x = f(n & 32, x, 0);
   let x = f(n & 64, x, (0, 0));
-  let x = f(n & 128, x, ((0, 0), (0, 0)));
-  x
+  let (((a, b), (c, d)), ((e, f), (g, h))) = f(n & 128, x, ((0, 0), (0, 0)));
+  (a, b, c, d, e, f, g, h)
 }
 
-fn count(s: Set) -> N32 {
+fn count((a, b, c, d, e, f, g, h): Set) -> N32 {
   let fn c32(x: N32) {
     let n = 0;
     while x != 0 {
@@ -87,14 +84,7 @@ fn count(s: Set) -> N32 {
     }
     n
   }
-  let fn c64((a, b)) {
-    c32(a) + c32(b)
-  }
-  let fn c128((a, b)) {
-    c64(a) + c64(b)
-  }
-  let (x, y) = s;
-  c128(x) + c128(y)
+  c32(a) + c32(b) + c32(c) + c32(d) + c32(e) + c32(f) + c32(g) + c32(h)
 }
 
 struct Channel[M]((M, ~M));

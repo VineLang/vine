@@ -263,7 +263,7 @@ module.exports = grammar({
         seq(
           $.ident,
           optional(choice(
-            seq("as", $.ident),
+            seq("as", choice("_", $.ident)),
             seq("::", $.use_tree),
           )),
         ),

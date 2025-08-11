@@ -1,0 +1,352 @@
+
+use arithmetic::{Add, Div, Mul, Neg, Pos, Pow, Rem, Sub};
+use bitwise::{And, Not, Or, Xor};
+use derive::Tuple;
+
+pub use binary as _;
+pub mod binary {
+  pub use singleton_singleton as _;
+  pub mod singleton_singleton[A, B, O] {
+    pub use add as _;
+    pub impl add[... ; Add[A, B, O]]: Add[(A,), (B,), (O,)] {
+      fn add((a: A,), (b: B,)) -> (O,) {
+        (a + b,)
+      }
+    }
+
+    pub use sub as _;
+    pub impl sub[... ; Sub[A, B, O]]: Sub[(A,), (B,), (O,)] {
+      fn sub((a: A,), (b: B,)) -> (O,) {
+        (a - b,)
+      }
+    }
+
+    pub use mul as _;
+    pub impl mul[... ; Mul[A, B, O]]: Mul[(A,), (B,), (O,)] {
+      fn mul((a: A,), (b: B,)) -> (O,) {
+        (a * b,)
+      }
+    }
+
+    pub use div as _;
+    pub impl div[... ; Div[A, B, O]]: Div[(A,), (B,), (O,)] {
+      fn div((a: A,), (b: B,)) -> (O,) {
+        (a / b,)
+      }
+    }
+
+    pub use rem as _;
+    pub impl rem[... ; Rem[A, B, O]]: Rem[(A,), (B,), (O,)] {
+      fn rem((a: A,), (b: B,)) -> (O,) {
+        (a % b,)
+      }
+    }
+
+    pub use pow as _;
+    pub impl pow[... ; Pow[A, B, O]]: Pow[(A,), (B,), (O,)] {
+      fn pow((a: A,), (b: B,)) -> (O,) {
+        (a ** b,)
+      }
+    }
+
+    pub use and as _;
+    pub impl and[... ; And[A, B, O]]: And[(A,), (B,), (O,)] {
+      fn and((a: A,), (b: B,)) -> (O,) {
+        (a & b,)
+      }
+    }
+
+    pub use or as _;
+    pub impl or[... ; Or[A, B, O]]: Or[(A,), (B,), (O,)] {
+      fn or((a: A,), (b: B,)) -> (O,) {
+        (a | b,)
+      }
+    }
+
+    pub use xor as _;
+    pub impl xor[... ; Xor[A, B, O]]: Xor[(A,), (B,), (O,)] {
+      fn xor((a: A,), (b: B,)) -> (O,) {
+        (a ^ b,)
+      }
+    }
+  }
+
+  pub use tuple_tuple as _;
+  pub mod tuple_tuple[A, AI, AR, B, BI, BR, O, OI, OR; Tuple[A, AI, AR], Tuple[B, BI, BR]] {
+    pub use add as _;
+    pub impl add[... ; Add[AI, BI, OI], Add[AR, BR, OR], Tuple[O, OI, OR]]: Add[A, B, O] {
+      fn add(a: A, b: B) -> O {
+        let (ai, ar) = a as (AI, AR);
+        let (bi, br) = b as (BI, BR);
+        (ai + bi, ar + br) as O
+      }
+    }
+
+    pub use sub as _;
+    pub impl sub[... ; Sub[AI, BI, OI], Sub[AR, BR, OR], Tuple[O, OI, OR]]: Sub[A, B, O] {
+      fn sub(a: A, b: B) -> O {
+        let (ai, ar) = a as (AI, AR);
+        let (bi, br) = b as (BI, BR);
+        (ai - bi, ar - br) as O
+      }
+    }
+
+    pub use mul as _;
+    pub impl mul[... ; Mul[AI, BI, OI], Mul[AR, BR, OR], Tuple[O, OI, OR]]: Mul[A, B, O] {
+      fn mul(a: A, b: B) -> O {
+        let (ai, ar) = a as (AI, AR);
+        let (bi, br) = b as (BI, BR);
+        (ai * bi, ar * br) as O
+      }
+    }
+
+    pub use div as _;
+    pub impl div[... ; Div[AI, BI, OI], Div[AR, BR, OR], Tuple[O, OI, OR]]: Div[A, B, O] {
+      fn div(a: A, b: B) -> O {
+        let (ai, ar) = a as (AI, AR);
+        let (bi, br) = b as (BI, BR);
+        (ai / bi, ar / br) as O
+      }
+    }
+
+    pub use rem as _;
+    pub impl rem[... ; Rem[AI, BI, OI], Rem[AR, BR, OR], Tuple[O, OI, OR]]: Rem[A, B, O] {
+      fn rem(a: A, b: B) -> O {
+        let (ai, ar) = a as (AI, AR);
+        let (bi, br) = b as (BI, BR);
+        (ai % bi, ar % br) as O
+      }
+    }
+
+    pub use pow as _;
+    pub impl pow[... ; Pow[AI, BI, OI], Pow[AR, BR, OR], Tuple[O, OI, OR]]: Pow[A, B, O] {
+      fn pow(a: A, b: B) -> O {
+        let (ai, ar) = a as (AI, AR);
+        let (bi, br) = b as (BI, BR);
+        (ai ** bi, ar ** br) as O
+      }
+    }
+
+    pub use and as _;
+    pub impl and[... ; And[AI, BI, OI], And[AR, BR, OR], Tuple[O, OI, OR]]: And[A, B, O] {
+      fn and(a: A, b: B) -> O {
+        let (ai, ar) = a as (AI, AR);
+        let (bi, br) = b as (BI, BR);
+        (ai & bi, ar & br) as O
+      }
+    }
+
+    pub use or as _;
+    pub impl or[... ; Or[AI, BI, OI], Or[AR, BR, OR], Tuple[O, OI, OR]]: Or[A, B, O] {
+      fn or(a: A, b: B) -> O {
+        let (ai, ar) = a as (AI, AR);
+        let (bi, br) = b as (BI, BR);
+        (ai | bi, ar | br) as O
+      }
+    }
+
+    pub use xor as _;
+    pub impl xor[... ; Xor[AI, BI, OI], Xor[AR, BR, OR], Tuple[O, OI, OR]]: Xor[A, B, O] {
+      fn xor(a: A, b: B) -> O {
+        let (ai, ar) = a as (AI, AR);
+        let (bi, br) = b as (BI, BR);
+        (ai ^ bi, ar ^ br) as O
+      }
+    }
+  }
+
+  pub use singleton_scalar as _;
+  pub mod singleton_scalar[A, B, O] {
+    pub use add as _;
+    pub impl add[... ; Add[A, B, O]]: Add[(A,), B, (O,)] {
+      fn add((a: A,), b: B) -> (O,) {
+        (a + b,)
+      }
+    }
+
+    pub use sub as _;
+    pub impl sub[... ; Sub[A, B, O]]: Sub[(A,), B, (O,)] {
+      fn sub((a: A,), b: B) -> (O,) {
+        (a - b,)
+      }
+    }
+
+    pub use mul as _;
+    pub impl mul[... ; Mul[A, B, O]]: Mul[(A,), B, (O,)] {
+      fn mul((a: A,), b: B) -> (O,) {
+        (a * b,)
+      }
+    }
+
+    pub use div as _;
+    pub impl div[... ; Div[A, B, O]]: Div[(A,), B, (O,)] {
+      fn div((a: A,), b: B) -> (O,) {
+        (a / b,)
+      }
+    }
+
+    pub use rem as _;
+    pub impl rem[... ; Rem[A, B, O]]: Rem[(A,), B, (O,)] {
+      fn rem((a: A,), b: B) -> (O,) {
+        (a % b,)
+      }
+    }
+
+    pub use pow as _;
+    pub impl pow[... ; Pow[A, B, O]]: Pow[(A,), B, (O,)] {
+      fn pow((a: A,), b: B) -> (O,) {
+        (a ** b,)
+      }
+    }
+
+    pub use and as _;
+    pub impl and[... ; And[A, B, O]]: And[(A,), B, (O,)] {
+      fn and((a: A,), b: B) -> (O,) {
+        (a & b,)
+      }
+    }
+
+    pub use or as _;
+    pub impl or[... ; Or[A, B, O]]: Or[(A,), B, (O,)] {
+      fn or((a: A,), b: B) -> (O,) {
+        (a | b,)
+      }
+    }
+
+    pub use xor as _;
+    pub impl xor[... ; Xor[A, B, O]]: Xor[(A,), B, (O,)] {
+      fn xor((a: A,), b: B) -> (O,) {
+        (a ^ b,)
+      }
+    }
+  }
+
+  pub use tuple_scalar as _;
+  pub mod tuple_scalar[A, AI, AR, B+, O, OI, OR; Tuple[A, AI, AR]] {
+    pub use add as _;
+    pub impl add[... ; Add[AI, B, OI], Add[AR, B, OR], Tuple[O, OI, OR]]: Add[A, B, O] {
+      fn add(a: A, b: B) -> O {
+        let (ai, ar) = a as (AI, AR);
+        (ai + b, ar + b) as O
+      }
+    }
+
+    pub use sub as _;
+    pub impl sub[... ; Sub[AI, B, OI], Sub[AR, B, OR], Tuple[O, OI, OR]]: Sub[A, B, O] {
+      fn sub(a: A, b: B) -> O {
+        let (ai, ar) = a as (AI, AR);
+        (ai - b, ar - b) as O
+      }
+    }
+
+    pub use mul as _;
+    pub impl mul[... ; Mul[AI, B, OI], Mul[AR, B, OR], Tuple[O, OI, OR]]: Mul[A, B, O] {
+      fn mul(a: A, b: B) -> O {
+        let (ai, ar) = a as (AI, AR);
+        (ai * b, ar * b) as O
+      }
+    }
+
+    pub use div as _;
+    pub impl div[... ; Div[AI, B, OI], Div[AR, B, OR], Tuple[O, OI, OR]]: Div[A, B, O] {
+      fn div(a: A, b: B) -> O {
+        let (ai, ar) = a as (AI, AR);
+        (ai / b, ar / b) as O
+      }
+    }
+
+    pub use rem as _;
+    pub impl rem[... ; Rem[AI, B, OI], Rem[AR, B, OR], Tuple[O, OI, OR]]: Rem[A, B, O] {
+      fn rem(a: A, b: B) -> O {
+        let (ai, ar) = a as (AI, AR);
+        (ai % b, ar % b) as O
+      }
+    }
+
+    pub use pow as _;
+    pub impl pow[... ; Pow[AI, B, OI], Pow[AR, B, OR], Tuple[O, OI, OR]]: Pow[A, B, O] {
+      fn pow(a: A, b: B) -> O {
+        let (ai, ar) = a as (AI, AR);
+        (ai ** b, ar ** b) as O
+      }
+    }
+
+    pub use and as _;
+    pub impl and[... ; And[AI, B, OI], And[AR, B, OR], Tuple[O, OI, OR]]: And[A, B, O] {
+      fn and(a: A, b: B) -> O {
+        let (ai, ar) = a as (AI, AR);
+        (ai & b, ar & b) as O
+      }
+    }
+
+    pub use or as _;
+    pub impl or[... ; Or[AI, B, OI], Or[AR, B, OR], Tuple[O, OI, OR]]: Or[A, B, O] {
+      fn or(a: A, b: B) -> O {
+        let (ai, ar) = a as (AI, AR);
+        (ai | b, ar | b) as O
+      }
+    }
+
+    pub use xor as _;
+    pub impl xor[... ; Xor[AI, B, OI], Xor[AR, B, OR], Tuple[O, OI, OR]]: Xor[A, B, O] {
+      fn xor(a: A, b: B) -> O {
+        let (ai, ar) = a as (AI, AR);
+        (ai ^ b, ar ^ b) as O
+      }
+    }
+  }
+}
+
+pub use unary as _;
+pub mod unary {
+  pub use singleton as _;
+  pub mod singleton[A, O] {
+    pub use pos as _;
+    pub impl pos[... ; Pos[A, O]]: Pos[(A,), (O,)] {
+      fn pos((a: A,)) -> (O,) {
+        (+a,)
+      }
+    }
+
+    pub use neg as _;
+    pub impl neg[... ; Neg[A, O]]: Neg[(A,), (O,)] {
+      fn neg((a: A,)) -> (O,) {
+        (-a,)
+      }
+    }
+
+    pub use not as _;
+    pub impl not[... ; Not[A, O]]: Not[(A,), (O,)] {
+      fn not((a: A,)) -> (O,) {
+        (!a,)
+      }
+    }
+  }
+
+  pub use tuple as _;
+  pub mod tuple[A, AI, AR, O, OI, OR; Tuple[A, AI, AR]] {
+    pub use pos as _;
+    pub impl pos[... ; Pos[AI, OI], Pos[AR, OR], Tuple[O, OI, OR]]: Pos[A, O] {
+      fn pos(a: A) -> O {
+        let (ai, ar) = a as (AI, AR);
+        (+ai, +ar) as O
+      }
+    }
+
+    pub use neg as _;
+    pub impl neg[... ; Neg[AI, OI], Neg[AR, OR], Tuple[O, OI, OR]]: Neg[A, O] {
+      fn neg(a: A) -> O {
+        let (ai, ar) = a as (AI, AR);
+        (-ai, -ar) as O
+      }
+    }
+
+    pub use not as _;
+    pub impl not[... ; Not[AI, OI], Not[AR, OR], Tuple[O, OI, OR]]: Not[A, O] {
+      fn not(a: A) -> O {
+        let (ai, ar) = a as (AI, AR);
+        (!ai, !ar) as O
+      }
+    }
+  }
+}

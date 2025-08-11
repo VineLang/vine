@@ -4,8 +4,8 @@
   "words": [
     "allocs",
     "bitflags",
-    "builtins",
     "brainfuck",
+    "builtins",
     "centimanes",
     "cfgs",
     "cmps",
@@ -19,6 +19,7 @@
     "dprint",
     "dyntest",
     "Eisel",
+    "elementwise",
     "extrinsics",
     "fizzbuzz",
     "frameless",

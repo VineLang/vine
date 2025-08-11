@@ -1,5 +1,5 @@
 
-use std::{data::Array, ops::vectorized::{add, sub}};
+use std::{data::Array, ops::elementwise};
 
 const cutoff: N32 = 50;
 

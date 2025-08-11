@@ -4,7 +4,7 @@ pub mod bitwise;
 pub mod comparison;
 pub mod flex;
 pub mod range;
-pub mod vectorized;
+pub mod elementwise;
 
 pub trait Concat[A, B, O] {
   #[builtin = "concat"]
