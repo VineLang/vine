@@ -1,241 +1,352 @@
 
-use arithmetic::{Add, Div, Mul, Neg, Pos, Sub};
-use bitwise::{And, Or, Xor};
+use arithmetic::{Add, Div, Mul, Neg, Pos, Pow, Rem, Sub};
+use bitwise::{And, Not, Or, Xor};
 use derive::Tuple;
 
-pub use binary::{add as _, and as _, div as _, mul as _, or as _, sub as _, xor as _};
-pub use unary::{add_scalar as _, div_scalar as _, mul_scalar as _, neg as _, sub_scalar as _};
-
-pub mod binary[C1, I1, R1, C2, I2, R2, C3, I3, R3; Tuple[C1, I1, R1], Tuple[C2, I2, R2]] {
-  pub mod add[...] {
-    pub impl add_tuple_singleton[I1, I2, I3; Add[I1, I2, I3]]: Add[(I1,), (I2,), (I3,)] {
-      fn add((x,): (I1,), (y,): (I2,)) -> (I3,) {
-        (x + y,)
+pub use binary as _;
+pub mod binary {
+  pub use singleton_singleton as _;
+  pub mod singleton_singleton[A, B, O] {
+    pub use add as _;
+    pub impl add[... ; Add[A, B, O]]: Add[(A,), (B,), (O,)] {
+      fn add((a: A,), (b: B,)) -> (O,) {
+        (a + b,)
       }
     }
 
-    pub impl add[... ; Add[I1, I2, I3], Add[R1, R2, R3], Tuple[C3, I3, R3]]: Add[C1, C2, C3] {
-      fn add(c1: C1, c2: C2) -> C3 {
-        let (i1, r1) = c1 as (I1, R1);
-        let (i2, r2) = c2 as (I2, R2);
-        (i1 + i2, r1 + r2) as C3
+    pub use sub as _;
+    pub impl sub[... ; Sub[A, B, O]]: Sub[(A,), (B,), (O,)] {
+      fn sub((a: A,), (b: B,)) -> (O,) {
+        (a - b,)
       }
     }
 
-    pub use {add as _, add_tuple_singleton as _};
-  }
-
-  pub mod sub[...] {
-    pub impl sub_tuple_singleton[I1, I2, I3; Sub[I1, I2, I3]]: Sub[(I1,), (I2,), (I3,)] {
-      fn sub((x,): (I1,), (y,): (I2,)) -> (I3,) {
-        (x - y,)
+    pub use mul as _;
+    pub impl mul[... ; Mul[A, B, O]]: Mul[(A,), (B,), (O,)] {
+      fn mul((a: A,), (b: B,)) -> (O,) {
+        (a * b,)
       }
     }
 
-    pub impl sub[... ; Sub[I1, I2, I3], Sub[R1, R2, R3], Tuple[C3, I3, R3]]: Sub[C1, C2, C3] {
-      fn sub(c1: C1, c2: C2) -> C3 {
-        let (i1, r1) = c1 as (I1, R1);
-        let (i2, r2) = c2 as (I2, R2);
-        (i1 - i2, r1 - r2) as C3
-      }
-    }
-
-    pub use {sub as _, sub_tuple_singleton as _};
-  }
-
-  pub mod mul[...] {
-    pub impl mul_tuple_singleton[I1, I2, I3; Mul[I1, I2, I3]]: Mul[(I1,), (I2,), (I3,)] {
-      fn mul((x,): (I1,), (y,): (I2,)) -> (I3,) {
-        (x * y,)
-      }
-    }
-
-    pub impl mul[... ; Mul[I1, I2, I3], Mul[R1, R2, R3], Tuple[C3, I3, R3]]: Mul[C1, C2, C3] {
-      fn mul(c1: C1, c2: C2) -> C3 {
-        let (i1, r1) = c1 as (I1, R1);
-        let (i2, r2) = c2 as (I2, R2);
-        (i1 * i2, r1 * r2) as C3
-      }
-    }
-
-    pub use {mul as _, mul_tuple_singleton as _};
-  }
-
-  pub mod div[...] {
     pub use div as _;
-
-    pub impl div_tuple_singleton[I1, I2, I3; Div[I1, I2, I3]]: Div[(I1,), (I2,), (I3,)] {
-      fn div((x,): (I1,), (y,): (I2,)) -> (I3,) {
-        (x / y,)
+    pub impl div[... ; Div[A, B, O]]: Div[(A,), (B,), (O,)] {
+      fn div((a: A,), (b: B,)) -> (O,) {
+        (a / b,)
       }
     }
 
-    pub impl div[... ; Div[I1, I2, I3], Div[R1, R2, R3], Tuple[C3, I3, R3]]: Div[C1, C2, C3] {
-      fn div(c1: C1, c2: C2) -> C3 {
-        let (i1, r1) = c1 as (I1, R1);
-        let (i2, r2) = c2 as (I2, R2);
-        (i1 / i2, r1 / r2) as C3
+    pub use rem as _;
+    pub impl rem[... ; Rem[A, B, O]]: Rem[(A,), (B,), (O,)] {
+      fn rem((a: A,), (b: B,)) -> (O,) {
+        (a % b,)
       }
     }
 
-    pub use {div as _, div_tuple_singleton as _};
+    pub use pow as _;
+    pub impl pow[... ; Pow[A, B, O]]: Pow[(A,), (B,), (O,)] {
+      fn pow((a: A,), (b: B,)) -> (O,) {
+        (a ** b,)
+      }
+    }
+
+    pub use and as _;
+    pub impl and[... ; And[A, B, O]]: And[(A,), (B,), (O,)] {
+      fn and((a: A,), (b: B,)) -> (O,) {
+        (a & b,)
+      }
+    }
+
+    pub use or as _;
+    pub impl or[... ; Or[A, B, O]]: Or[(A,), (B,), (O,)] {
+      fn or((a: A,), (b: B,)) -> (O,) {
+        (a | b,)
+      }
+    }
+
+    pub use xor as _;
+    pub impl xor[... ; Xor[A, B, O]]: Xor[(A,), (B,), (O,)] {
+      fn xor((a: A,), (b: B,)) -> (O,) {
+        (a ^ b,)
+      }
+    }
   }
 
-  pub mod and[...] {
-    pub impl and_tuple_singleton[I1, I2, I3; And[I1, I2, I3]]: And[(I1,), (I2,), (I3,)] {
-      fn and((x,): (I1,), (y,): (I2,)) -> (I3,) {
-        (x & y,)
+  pub use tuple_tuple as _;
+  pub mod tuple_tuple[A, AI, AR, B, BI, BR, O, OI, OR; Tuple[A, AI, AR], Tuple[B, BI, BR]] {
+    pub use add as _;
+    pub impl add[... ; Add[AI, BI, OI], Add[AR, BR, OR], Tuple[O, OI, OR]]: Add[A, B, O] {
+      fn add(a: A, b: B) -> O {
+        let (ai, ar) = a as (AI, AR);
+        let (bi, br) = b as (BI, BR);
+        (ai + bi, ar + br) as O
       }
     }
 
-    pub impl and[... ; And[I1, I2, I3], And[R1, R2, R3], Tuple[C3, I3, R3]]: And[C1, C2, C3] {
-      fn and(c1: C1, c2: C2) -> C3 {
-        let (i1, r1) = c1 as (I1, R1);
-        let (i2, r2) = c2 as (I2, R2);
-        (i1 & i2, r1 & r2) as C3
+    pub use sub as _;
+    pub impl sub[... ; Sub[AI, BI, OI], Sub[AR, BR, OR], Tuple[O, OI, OR]]: Sub[A, B, O] {
+      fn sub(a: A, b: B) -> O {
+        let (ai, ar) = a as (AI, AR);
+        let (bi, br) = b as (BI, BR);
+        (ai - bi, ar - br) as O
       }
     }
 
-    pub use {and as _, and_tuple_singleton as _};
+    pub use mul as _;
+    pub impl mul[... ; Mul[AI, BI, OI], Mul[AR, BR, OR], Tuple[O, OI, OR]]: Mul[A, B, O] {
+      fn mul(a: A, b: B) -> O {
+        let (ai, ar) = a as (AI, AR);
+        let (bi, br) = b as (BI, BR);
+        (ai * bi, ar * br) as O
+      }
+    }
+
+    pub use div as _;
+    pub impl div[... ; Div[AI, BI, OI], Div[AR, BR, OR], Tuple[O, OI, OR]]: Div[A, B, O] {
+      fn div(a: A, b: B) -> O {
+        let (ai, ar) = a as (AI, AR);
+        let (bi, br) = b as (BI, BR);
+        (ai / bi, ar / br) as O
+      }
+    }
+
+    pub use rem as _;
+    pub impl rem[... ; Rem[AI, BI, OI], Rem[AR, BR, OR], Tuple[O, OI, OR]]: Rem[A, B, O] {
+      fn rem(a: A, b: B) -> O {
+        let (ai, ar) = a as (AI, AR);
+        let (bi, br) = b as (BI, BR);
+        (ai % bi, ar % br) as O
+      }
+    }
+
+    pub use pow as _;
+    pub impl pow[... ; Pow[AI, BI, OI], Pow[AR, BR, OR], Tuple[O, OI, OR]]: Pow[A, B, O] {
+      fn pow(a: A, b: B) -> O {
+        let (ai, ar) = a as (AI, AR);
+        let (bi, br) = b as (BI, BR);
+        (ai ** bi, ar ** br) as O
+      }
+    }
+
+    pub use and as _;
+    pub impl and[... ; And[AI, BI, OI], And[AR, BR, OR], Tuple[O, OI, OR]]: And[A, B, O] {
+      fn and(a: A, b: B) -> O {
+        let (ai, ar) = a as (AI, AR);
+        let (bi, br) = b as (BI, BR);
+        (ai & bi, ar & br) as O
+      }
+    }
+
+    pub use or as _;
+    pub impl or[... ; Or[AI, BI, OI], Or[AR, BR, OR], Tuple[O, OI, OR]]: Or[A, B, O] {
+      fn or(a: A, b: B) -> O {
+        let (ai, ar) = a as (AI, AR);
+        let (bi, br) = b as (BI, BR);
+        (ai | bi, ar | br) as O
+      }
+    }
+
+    pub use xor as _;
+    pub impl xor[... ; Xor[AI, BI, OI], Xor[AR, BR, OR], Tuple[O, OI, OR]]: Xor[A, B, O] {
+      fn xor(a: A, b: B) -> O {
+        let (ai, ar) = a as (AI, AR);
+        let (bi, br) = b as (BI, BR);
+        (ai ^ bi, ar ^ br) as O
+      }
+    }
   }
 
-  pub mod or[...] {
-    pub impl or_tuple_singleton[I1, I2, I3; Or[I1, I2, I3]]: Or[(I1,), (I2,), (I3,)] {
-      fn or((x,): (I1,), (y,): (I2,)) -> (I3,) {
-        (x | y,)
+  pub use singleton_scalar as _;
+  pub mod singleton_scalar[A, B, O] {
+    pub use add as _;
+    pub impl add[... ; Add[A, B, O]]: Add[(A,), B, (O,)] {
+      fn add((a: A,), b: B) -> (O,) {
+        (a + b,)
       }
     }
 
-    pub impl or[... ; Or[I1, I2, I3], Or[R1, R2, R3], Tuple[C3, I3, R3]]: Or[C1, C2, C3] {
-      fn or(c1: C1, c2: C2) -> C3 {
-        let (i1, r1) = c1 as (I1, R1);
-        let (i2, r2) = c2 as (I2, R2);
-        (i1 | i2, r1 | r2) as C3
+    pub use sub as _;
+    pub impl sub[... ; Sub[A, B, O]]: Sub[(A,), B, (O,)] {
+      fn sub((a: A,), b: B) -> (O,) {
+        (a - b,)
       }
     }
 
-    pub use {or as _, or_tuple_singleton as _};
+    pub use mul as _;
+    pub impl mul[... ; Mul[A, B, O]]: Mul[(A,), B, (O,)] {
+      fn mul((a: A,), b: B) -> (O,) {
+        (a * b,)
+      }
+    }
+
+    pub use div as _;
+    pub impl div[... ; Div[A, B, O]]: Div[(A,), B, (O,)] {
+      fn div((a: A,), b: B) -> (O,) {
+        (a / b,)
+      }
+    }
+
+    pub use rem as _;
+    pub impl rem[... ; Rem[A, B, O]]: Rem[(A,), B, (O,)] {
+      fn rem((a: A,), b: B) -> (O,) {
+        (a % b,)
+      }
+    }
+
+    pub use pow as _;
+    pub impl pow[... ; Pow[A, B, O]]: Pow[(A,), B, (O,)] {
+      fn pow((a: A,), b: B) -> (O,) {
+        (a ** b,)
+      }
+    }
+
+    pub use and as _;
+    pub impl and[... ; And[A, B, O]]: And[(A,), B, (O,)] {
+      fn and((a: A,), b: B) -> (O,) {
+        (a & b,)
+      }
+    }
+
+    pub use or as _;
+    pub impl or[... ; Or[A, B, O]]: Or[(A,), B, (O,)] {
+      fn or((a: A,), b: B) -> (O,) {
+        (a | b,)
+      }
+    }
+
+    pub use xor as _;
+    pub impl xor[... ; Xor[A, B, O]]: Xor[(A,), B, (O,)] {
+      fn xor((a: A,), b: B) -> (O,) {
+        (a ^ b,)
+      }
+    }
   }
 
-  pub mod xor[...] {
-    pub impl xor_tuple_singleton[I1, I2, I3; Xor[I1, I2, I3]]: Xor[(I1,), (I2,), (I3,)] {
-      fn xor((x,): (I1,), (y,): (I2,)) -> (I3,) {
-        (x ^ y,)
+  pub use tuple_scalar as _;
+  pub mod tuple_scalar[A, AI, AR, B+, O, OI, OR; Tuple[A, AI, AR]] {
+    pub use add as _;
+    pub impl add[... ; Add[AI, B, OI], Add[AR, B, OR], Tuple[O, OI, OR]]: Add[A, B, O] {
+      fn add(a: A, b: B) -> O {
+        let (ai, ar) = a as (AI, AR);
+        (ai + b, ar + b) as O
       }
     }
 
-    pub impl xor[... ; Xor[I1, I2, I3], Xor[R1, R2, R3], Tuple[C3, I3, R3]]: Xor[C1, C2, C3] {
-      fn xor(c1: C1, c2: C2) -> C3 {
-        let (i1, r1) = c1 as (I1, R1);
-        let (i2, r2) = c2 as (I2, R2);
-        (i1 ^ i2, r1 ^ r2) as C3
+    pub use sub as _;
+    pub impl sub[... ; Sub[AI, B, OI], Sub[AR, B, OR], Tuple[O, OI, OR]]: Sub[A, B, O] {
+      fn sub(a: A, b: B) -> O {
+        let (ai, ar) = a as (AI, AR);
+        (ai - b, ar - b) as O
       }
     }
 
-    pub use {xor as _, xor_tuple_singleton as _};
+    pub use mul as _;
+    pub impl mul[... ; Mul[AI, B, OI], Mul[AR, B, OR], Tuple[O, OI, OR]]: Mul[A, B, O] {
+      fn mul(a: A, b: B) -> O {
+        let (ai, ar) = a as (AI, AR);
+        (ai * b, ar * b) as O
+      }
+    }
+
+    pub use div as _;
+    pub impl div[... ; Div[AI, B, OI], Div[AR, B, OR], Tuple[O, OI, OR]]: Div[A, B, O] {
+      fn div(a: A, b: B) -> O {
+        let (ai, ar) = a as (AI, AR);
+        (ai / b, ar / b) as O
+      }
+    }
+
+    pub use rem as _;
+    pub impl rem[... ; Rem[AI, B, OI], Rem[AR, B, OR], Tuple[O, OI, OR]]: Rem[A, B, O] {
+      fn rem(a: A, b: B) -> O {
+        let (ai, ar) = a as (AI, AR);
+        (ai % b, ar % b) as O
+      }
+    }
+
+    pub use pow as _;
+    pub impl pow[... ; Pow[AI, B, OI], Pow[AR, B, OR], Tuple[O, OI, OR]]: Pow[A, B, O] {
+      fn pow(a: A, b: B) -> O {
+        let (ai, ar) = a as (AI, AR);
+        (ai ** b, ar ** b) as O
+      }
+    }
+
+    pub use and as _;
+    pub impl and[... ; And[AI, B, OI], And[AR, B, OR], Tuple[O, OI, OR]]: And[A, B, O] {
+      fn and(a: A, b: B) -> O {
+        let (ai, ar) = a as (AI, AR);
+        (ai & b, ar & b) as O
+      }
+    }
+
+    pub use or as _;
+    pub impl or[... ; Or[AI, B, OI], Or[AR, B, OR], Tuple[O, OI, OR]]: Or[A, B, O] {
+      fn or(a: A, b: B) -> O {
+        let (ai, ar) = a as (AI, AR);
+        (ai | b, ar | b) as O
+      }
+    }
+
+    pub use xor as _;
+    pub impl xor[... ; Xor[AI, B, OI], Xor[AR, B, OR], Tuple[O, OI, OR]]: Xor[A, B, O] {
+      fn xor(a: A, b: B) -> O {
+        let (ai, ar) = a as (AI, AR);
+        (ai ^ b, ar ^ b) as O
+      }
+    }
   }
 }
 
-pub mod unary[C1, I1, R1, C2, I2, R2; Tuple[C1, I1, R1]] {
-  pub mod neg[...] {
-    pub impl neg_tuple_singleton[I1, I2; Neg[I1, I2]]: Neg[(I1,), (I2,)] {
-      fn neg((x,): (I1,)) -> (I2,) {
-        (-x,)
+pub use unary as _;
+pub mod unary {
+  pub use singleton as _;
+  pub mod singleton[A, O] {
+    pub use pos as _;
+    pub impl pos[... ; Pos[A, O]]: Pos[(A,), (O,)] {
+      fn pos((a: A,)) -> (O,) {
+        (+a,)
       }
     }
 
-    pub impl neg[... ; Neg[I1, I2], Neg[R1, R2], Tuple[C2, I2, R2]]: Neg[C1, C2] {
-      fn neg(c: C1) -> C2 {
-        let (i, r) = c as (I1, R1);
-        (-i, -r) as C2
+    pub use neg as _;
+    pub impl neg[... ; Neg[A, O]]: Neg[(A,), (O,)] {
+      fn neg((a: A,)) -> (O,) {
+        (-a,)
       }
     }
 
-    pub use {neg as _, neg_tuple_singleton as _};
+    pub use not as _;
+    pub impl not[... ; Not[A, O]]: Not[(A,), (O,)] {
+      fn not((a: A,)) -> (O,) {
+        (!a,)
+      }
+    }
   }
 
-  pub mod pos[...] {
-    pub impl pos_tuple_singleton[I1, I2; Pos[I1, I2]]: Pos[(I1,), (I2,)] {
-      fn pos((x,): (I1,)) -> (I2,) {
-        (+x,)
+  pub use tuple as _;
+  pub mod tuple[A, AI, AR, O, OI, OR; Tuple[A, AI, AR]] {
+    pub use pos as _;
+    pub impl pos[... ; Pos[AI, OI], Pos[AR, OR], Tuple[O, OI, OR]]: Pos[A, O] {
+      fn pos(a: A) -> O {
+        let (ai, ar) = a as (AI, AR);
+        (+ai, +ar) as O
       }
     }
 
-    pub impl pos[... ; Pos[I1, I2], Pos[R1, R2], Tuple[C2, I2, R2]]: Pos[C1, C2] {
-      fn pos(c: C1) -> C2 {
-        let (i, r) = c as (I1, R1);
-        (+i, +r) as C2
+    pub use neg as _;
+    pub impl neg[... ; Neg[AI, OI], Neg[AR, OR], Tuple[O, OI, OR]]: Neg[A, O] {
+      fn neg(a: A) -> O {
+        let (ai, ar) = a as (AI, AR);
+        (-ai, -ar) as O
       }
     }
 
-    pub use {pos as _, pos_tuple_singleton as _};
-  }
-
-  pub mod add_scalar[...] {
-    pub impl add_scalar_tuple_singleton[I1, I2, S; Add[I1, S, I2]]: Add[(I1,), S, (I2,)] {
-      fn add((x,): (I1,), s: S) -> (I2,) {
-        (x + s,)
+    pub use not as _;
+    pub impl not[... ; Not[AI, OI], Not[AR, OR], Tuple[O, OI, OR]]: Not[A, O] {
+      fn not(a: A) -> O {
+        let (ai, ar) = a as (AI, AR);
+        (!ai, !ar) as O
       }
     }
-
-    pub impl add_scalar[... S+; Add[I1, S, I2], Add[R1, S, R2], Tuple[C2, I2, R2]]: Add[C1, S, C2] {
-      fn add(c: C1, s: S) -> C2 {
-        let (i, r) = c as (I1, R1);
-        (i + s, r + s) as C2
-      }
-    }
-
-    pub use {add_scalar as _, add_scalar_tuple_singleton as _};
-  }
-
-  pub mod sub_scalar[...] {
-    pub impl sub_scalar_tuple_singleton[I1, I2, S; Sub[I1, S, I2]]: Sub[(I1,), S, (I2,)] {
-      fn sub((x,): (I1,), s: S) -> (I2,) {
-        (x - s,)
-      }
-    }
-
-    pub impl sub_scalar[... S+; Sub[I1, S, I2], Sub[R1, S, R2], Tuple[C2, I2, R2]]: Sub[C1, S, C2] {
-      fn sub(c: C1, s: S) -> C2 {
-        let (i, r) = c as (I1, R1);
-        (i - s, r - s) as C2
-      }
-    }
-
-    pub use {sub_scalar as _, sub_scalar_tuple_singleton as _};
-  }
-
-  pub mod mul_scalar[...] {
-    pub impl mul_scalar_tuple_singleton[I1, I2, S; Mul[I1, S, I2]]: Mul[(I1,), S, (I2,)] {
-      fn mul((x,): (I1,), s: S) -> (I2,) {
-        (x * s,)
-      }
-    }
-
-    pub impl mul_scalar[... S+; Mul[I1, S, I2], Mul[R1, S, R2], Tuple[C2, I2, R2]]: Mul[C1, S, C2] {
-      fn mul(c: C1, s: S) -> C2 {
-        let (i, r) = c as (I1, R1);
-        (i * s, r * s) as C2
-      }
-    }
-
-    pub use {mul_scalar as _, mul_scalar_tuple_singleton as _};
-  }
-
-  pub mod div_scalar[...] {
-    pub impl div_scalar_tuple_singleton[I1, I2, S; Div[I1, S, I2]]: Div[(I1,), S, (I2,)] {
-      fn div((x,): (I1,), s: S) -> (I2,) {
-        (x / s,)
-      }
-    }
-
-    pub impl div_scalar[... S+; Div[I1, S, I2], Div[R1, S, R2], Tuple[C2, I2, R2]]: Div[C1, S, C2] {
-      fn div(c: C1, s: S) -> C2 {
-        let (i, r) = c as (I1, R1);
-        (i / s, r / s) as C2
-      }
-    }
-
-    pub use {div_scalar as _, div_scalar_tuple_singleton as _};
   }
 }
