@@ -1,7 +1,12 @@
 use vine_util::parser::Parse;
 
 use crate::{
-  components::{charter::Charter, lexer::Token, parser::Parser, resolver::Resolver},
+  components::{
+    charter::{ChartedItem, Charter},
+    lexer::Token,
+    parser::Parser,
+    resolver::Resolver,
+  },
   structures::{
     ast::{ItemKind, Path, Span, TypeItem},
     chart::{
@@ -50,22 +55,22 @@ impl Charter<'_> {
     vis: VisId,
     member_vis: VisId,
     type_item: TypeItem,
-  ) -> DefId {
+  ) -> ChartedItem {
     let def = self.chart_child(parent, span, type_item.name.clone(), member_vis, true);
     let generics = self.chart_generics(def, parent_generics, type_item.generics, false);
     let name = type_item.name;
-    let kind = match type_item.ty {
+    match type_item.ty {
       Some(ty) => {
         let alias_id = self.chart.type_aliases.push(TypeAliasDef { span, def, name, generics, ty });
-        DefTypeKind::Alias(alias_id)
+        self.define_type(span, def, vis, DefTypeKind::Alias(alias_id));
+        ChartedItem::TypeAlias(def, alias_id)
       }
       None => {
         let opaque_id = self.chart.opaque_types.push(OpaqueTypeDef { span, def, name, generics });
-        DefTypeKind::Opaque(opaque_id)
+        self.define_type(span, def, vis, DefTypeKind::Opaque(opaque_id));
+        ChartedItem::OpaqueType(def, opaque_id)
       }
-    };
-    self.define_type(span, def, vis, kind);
-    def
+    }
   }
 }
 
