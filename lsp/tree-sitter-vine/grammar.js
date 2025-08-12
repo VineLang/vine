@@ -277,7 +277,7 @@ module.exports = grammar({
         repeat($.attr),
         optional($.vis),
         "impl",
-        $.ident,
+        optional($.ident),
         optional($.generic_params),
         ":",
         $._trait,

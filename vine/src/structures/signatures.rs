@@ -5,8 +5,9 @@ use vine_util::idx::IdxVec;
 use crate::structures::{
   ast::Ident,
   chart::{
-    ConcreteConstId, ConcreteFnId, ConstId, DefId, EnumId, FnId, GenericsId, ImplId, ImportId,
-    MemberKind, StructId, TraitConstId, TraitFnId, TraitId, TypeAliasId, VariantId,
+    Binding, ConcreteConstId, ConcreteFnId, ConstId, DefId, DefImplKind, EnumId, FnId, GenericsId,
+    ImplId, ImportId, MemberKind, StructId, TraitConstId, TraitFnId, TraitId, TypeAliasId,
+    VariantId,
   },
   diag::ErrorGuaranteed,
   types::{ImplType, TransferTypes, Type, TypeCtx, TypeTransfer},
@@ -22,6 +23,7 @@ pub struct Signatures {
   pub type_aliases: IdxVec<TypeAliasId, TypeAliasState>,
   pub structs: IdxVec<StructId, TypeCtx<StructSig>>,
   pub enums: IdxVec<EnumId, TypeCtx<EnumSig>>,
+  pub def_impls: IdxVec<DefId, HashMap<TraitId, Binding<DefImplKind>>>,
   pub impls: IdxVec<ImplId, TypeCtx<ImplSig>>,
   pub traits: IdxVec<TraitId, TraitSig>,
 }

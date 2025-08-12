@@ -100,7 +100,7 @@ impl Charter<'_> {
     self.define_pattern(span, def, data_vis, DefPatternKind::Struct(struct_id));
     let ty_kind = DefTypeKind::Struct(struct_id);
     self.define_type(span, def, vis, ty_kind);
-    self.chart_flex_impls(def, generics, vis, member_vis, ty_kind, struct_item.flex);
+    self.chart_flex_impls(def, generics, vis, ty_kind, struct_item.flex);
     ChartedItem::Struct(def, struct_id)
   }
 }
