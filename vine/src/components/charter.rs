@@ -105,53 +105,50 @@ impl Charter<'_> {
     let vis = self.resolve_vis(parent, item.vis);
     let member_vis = vis.max(member_vis);
 
-    let def = match item.kind {
+    let charted_item = match item.kind {
       ItemKind::OuterMod => {
         self.chart.defs[parent].spans.push(item.name_span);
-        Some(parent)
+        ChartedItem::Mod(parent)
       }
 
       ItemKind::Mod(mod_item) => {
-        Some(self.chart_mod(parent, parent_generics, span, vis, member_vis, mod_item))
+        self.chart_mod(parent, parent_generics, span, vis, member_vis, mod_item)
       }
 
       ItemKind::Fn(fn_item) => {
-        Some(self.chart_fn(parent, parent_generics, span, vis, member_vis, fn_item))
+        self.chart_fn(parent, parent_generics, span, vis, member_vis, fn_item)
       }
 
       ItemKind::Const(const_item) => {
-        Some(self.chart_const(parent, parent_generics, span, vis, member_vis, const_item))
+        self.chart_const(parent, parent_generics, span, vis, member_vis, const_item)
       }
 
       ItemKind::Struct(struct_item) => {
-        Some(self.chart_struct(parent, parent_generics, span, vis, member_vis, struct_item))
+        self.chart_struct(parent, parent_generics, span, vis, member_vis, struct_item)
       }
 
       ItemKind::Enum(enum_item) => {
-        Some(self.chart_enum(parent, parent_generics, span, vis, member_vis, enum_item))
+        self.chart_enum(parent, parent_generics, span, vis, member_vis, enum_item)
       }
 
       ItemKind::Type(type_item) => {
-        Some(self.chart_type(parent, parent_generics, span, vis, member_vis, type_item))
+        self.chart_type(parent, parent_generics, span, vis, member_vis, type_item)
       }
 
       ItemKind::Trait(trait_item) => {
-        Some(self.chart_trait(parent, parent_generics, span, vis, member_vis, trait_item))
+        self.chart_trait(parent, parent_generics, span, vis, member_vis, trait_item)
       }
 
       ItemKind::Impl(impl_item) => {
-        Some(self.chart_impl(parent, parent_generics, span, vis, member_vis, impl_item))
+        self.chart_impl(parent, parent_generics, span, vis, member_vis, impl_item)
       }
 
-      ItemKind::Use(use_item) => {
-        self.chart_use(parent, vis, use_item);
-        None
-      }
+      ItemKind::Use(use_item) => self.chart_use(parent, vis, use_item),
 
-      ItemKind::Taken => None,
+      ItemKind::Taken => ChartedItem::None,
     };
 
-    if let Some(def) = def {
+    if let Some(def) = charted_item.def() {
       for subitem in subitems {
         if !matches!(subitem.vis, Vis::Private) {
           self.diags.error(Diag::VisibleSubitem { span: subitem.name_span });
@@ -164,23 +161,23 @@ impl Charter<'_> {
       self.annotations.record_docs(span, item.docs);
     }
 
-    self.chart_attrs(def, item.attrs);
+    self.chart_attrs(charted_item, item.attrs);
   }
 
-  pub(crate) fn chart_attrs(&mut self, def: Option<DefId>, attrs: Vec<Attr>) {
+  pub(crate) fn chart_attrs(&mut self, item: ChartedItem, attrs: Vec<Attr>) {
     for attr in attrs {
       let span = attr.span;
-      let impl_id = def.and_then(|id| match self.chart.defs[id].impl_kind {
-        Some(Binding { kind: DefImplKind::Impl(id), .. }) => Some(id),
+      let impl_id = match item {
+        ChartedItem::Impl(_, id) => Some(id),
         _ => None,
-      });
-      let concrete_fn_id = def.and_then(|id| match self.chart.defs[id].value_kind {
-        Some(Binding { kind: DefValueKind::Fn(FnId::Concrete(id)), .. }) => Some(id),
+      };
+      let concrete_fn_id = match item {
+        ChartedItem::Fn(_, FnId::Concrete(id)) => Some(id),
         _ => None,
-      });
+      };
       match attr.kind {
         AttrKind::Builtin(builtin) => {
-          if !self.chart_builtin(def, builtin) {
+          if !self.chart_builtin(item, builtin) {
             self.diags.error(Diag::BadBuiltin { span });
           }
         }
@@ -350,6 +347,38 @@ impl Charter<'_> {
       def.impl_kind = Some(Binding { span, vis, kind });
     } else {
       self.diags.error(Diag::DuplicateItem { span, name: def.name.clone() });
+    }
+  }
+}
+
+#[derive(Debug, Clone, Copy)]
+pub enum ChartedItem {
+  None,
+  Import,
+  Mod(DefId),
+  Const(DefId, ConstId),
+  Fn(DefId, FnId),
+  OpaqueType(DefId, OpaqueTypeId),
+  TypeAlias(DefId, TypeAliasId),
+  Struct(DefId, StructId),
+  Enum(DefId, EnumId),
+  Trait(DefId, TraitId),
+  Impl(DefId, ImplId),
+}
+
+impl ChartedItem {
+  pub fn def(&self) -> Option<DefId> {
+    match self {
+      ChartedItem::None | ChartedItem::Import => None,
+      ChartedItem::Mod(def_id)
+      | ChartedItem::Const(def_id, _)
+      | ChartedItem::Fn(def_id, _)
+      | ChartedItem::OpaqueType(def_id, _)
+      | ChartedItem::TypeAlias(def_id, _)
+      | ChartedItem::Struct(def_id, _)
+      | ChartedItem::Enum(def_id, _)
+      | ChartedItem::Trait(def_id, _)
+      | ChartedItem::Impl(def_id, _) => Some(*def_id),
     }
   }
 }

@@ -5,7 +5,7 @@ use vine_util::{idx::IdxVec, parser::Parse};
 
 use crate::{
   components::{
-    charter::Charter,
+    charter::{ChartedItem, Charter},
     distiller::Distiller,
     emitter::Emitter,
     finder::Finder,
@@ -73,7 +73,7 @@ impl Charter<'_> {
     vis: VisId,
     member_vis: VisId,
     enum_item: EnumItem,
-  ) -> DefId {
+  ) -> ChartedItem {
     let def = self.chart_child(parent, span, enum_item.name.clone(), member_vis, true);
     let generics = self.chart_generics(def, parent_generics, enum_item.generics, false);
     let enum_id = self.chart.enums.next_index();
@@ -90,7 +90,7 @@ impl Charter<'_> {
     let ty_kind = DefTypeKind::Enum(enum_id);
     self.define_type(span, def, vis, ty_kind);
     self.chart_flex_impls(def, generics, vis, member_vis, ty_kind, enum_item.flex);
-    def
+    ChartedItem::Enum(def, enum_id)
   }
 }
 

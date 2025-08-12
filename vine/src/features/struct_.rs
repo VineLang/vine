@@ -7,7 +7,7 @@ use vine_util::{
 
 use crate::{
   components::{
-    charter::Charter,
+    charter::{ChartedItem, Charter},
     distiller::{Distiller, Poly},
     emitter::Emitter,
     finder::Finder,
@@ -84,7 +84,7 @@ impl Charter<'_> {
     vis: VisId,
     member_vis: VisId,
     struct_item: StructItem,
-  ) -> DefId {
+  ) -> ChartedItem {
     let def = self.chart_child(parent, span, struct_item.name.clone(), member_vis, true);
     let generics = self.chart_generics(def, parent_generics, struct_item.generics, false);
     let data_vis = self.resolve_vis(parent, struct_item.data_vis);
@@ -101,7 +101,7 @@ impl Charter<'_> {
     let ty_kind = DefTypeKind::Struct(struct_id);
     self.define_type(span, def, vis, ty_kind);
     self.chart_flex_impls(def, generics, vis, member_vis, ty_kind, struct_item.flex);
-    def
+    ChartedItem::Struct(def, struct_id)
   }
 }
 

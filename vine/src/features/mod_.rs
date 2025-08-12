@@ -2,7 +2,7 @@ use vine_util::parser::Parse;
 
 use crate::{
   components::{
-    charter::Charter,
+    charter::{ChartedItem, Charter},
     lexer::Token,
     parser::{BRACE, Parser},
   },
@@ -73,12 +73,12 @@ impl Charter<'_> {
     vis: VisId,
     member_vis: VisId,
     mod_item: ModItem,
-  ) -> DefId {
+  ) -> ChartedItem {
     let def = self.chart_child(parent, span, mod_item.name, member_vis, true);
     let generics = self.chart_generics(def, parent_generics, mod_item.generics, true);
     let ModKind::Loaded(inner_span, _, _) = mod_item.kind else { unreachable!() };
     self.annotations.definitions.entry(span).or_default().insert(inner_span);
     self.chart_mod_kind(vis, mod_item.kind, def, generics);
-    def
+    ChartedItem::Mod(def)
   }
 }
