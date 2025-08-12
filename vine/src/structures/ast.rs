@@ -110,7 +110,7 @@ pub struct TraitItem {
 
 #[derive(Debug, Clone)]
 pub struct ImplItem {
-  pub name: Ident,
+  pub name: Option<Ident>,
   pub generics: GenericParams,
   pub trait_: Trait,
   pub kind: ImplItemKind,

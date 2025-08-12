@@ -68,7 +68,7 @@ impl Charter<'_> {
       type_kind: None,
       pattern_kind: None,
       trait_kind: None,
-      impl_kind: None,
+      impl_kinds: Vec::new(),
     })
   }
 
@@ -343,11 +343,7 @@ impl Charter<'_> {
 
   pub(crate) fn define_impl(&mut self, span: Span, def: DefId, vis: VisId, kind: DefImplKind) {
     let def = &mut self.chart.defs[def];
-    if def.impl_kind.is_none() {
-      def.impl_kind = Some(Binding { span, vis, kind });
-    } else {
-      self.diags.error(Diag::DuplicateItem { span, name: def.name.clone() });
-    }
+    def.impl_kinds.push(Binding { span, vis, kind });
   }
 }
 

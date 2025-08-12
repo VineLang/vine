@@ -252,10 +252,10 @@ impl<'a> CandidateSetBuilder<'a> {
         if let Some(Binding { vis, kind: DefTraitKind::Trait(trait_id), .. }) = def.trait_kind {
           f(self, vis, (self.chart.traits[trait_id].def, Level::Within))
         }
-        if let Some(Binding { vis, kind: DefImplKind::Impl(impl_id), .. }) = def.impl_kind
-          && let ImplType::Trait(trait_id, _) = &self.sigs.impls[impl_id].inner.ty
-        {
-          f(self, vis, (self.chart.traits[*trait_id].def, Level::Within))
+        for &Binding { vis, kind: DefImplKind::Impl(impl_id), .. } in &def.impl_kinds {
+          if let ImplType::Trait(trait_id, _) = &self.sigs.impls[impl_id].inner.ty {
+            f(self, vis, (self.chart.traits[*trait_id].def, Level::Within))
+          }
         }
         for binding in &def.implicit_members {
           if let Some(member) = self.sigs.get_member(binding.kind) {
@@ -296,14 +296,14 @@ impl<'a> CandidateSetBuilder<'a> {
       set.methods.entry(def.name.clone()).or_default().entry(fn_id).or_default().insert(vis);
     }
 
-    if let Some(Binding { vis, kind: DefImplKind::Impl(impl_id), .. }) = def.impl_kind
-      && let ImplType::Trait(trait_id, _) = &self.sigs.impls[impl_id].inner.ty
-    {
-      let impl_ = &self.chart.impls[impl_id];
-      if !impl_.manual {
-        let set = self.sets.get_mut(set);
-        let key = (*trait_id, impl_.basic);
-        set.impls.entry(key).or_default().entry(impl_id).or_default().insert(vis);
+    for &Binding { vis, kind: DefImplKind::Impl(impl_id), .. } in &def.impl_kinds {
+      if let ImplType::Trait(trait_id, _) = &self.sigs.impls[impl_id].inner.ty {
+        let impl_ = &self.chart.impls[impl_id];
+        if !impl_.manual {
+          let set = self.sets.get_mut(set);
+          let key = (*trait_id, impl_.basic);
+          set.impls.entry(key).or_default().entry(impl_id).or_default().insert(vis);
+        }
       }
     }
   }

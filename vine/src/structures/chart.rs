@@ -49,7 +49,7 @@ pub struct Def {
   pub type_kind: Option<Binding<DefTypeKind>>,
   pub pattern_kind: Option<Binding<DefPatternKind>>,
   pub trait_kind: Option<Binding<DefTraitKind>>,
-  pub impl_kind: Option<Binding<DefImplKind>>,
+  pub impl_kinds: Vec<Binding<DefImplKind>>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
@@ -253,13 +253,14 @@ new_idx!(pub ImplId);
 #[derive(Debug, Clone)]
 pub struct ImplDef {
   pub span: Span,
-  pub name: Ident,
+  pub name: Option<Ident>,
   pub def: DefId,
   pub generics: GenericsId,
   pub kind: ImplDefKind,
   pub manual: bool,
   pub basic: bool,
   pub become_: Option<Path>,
+  pub vis: VisId,
 }
 
 #[derive(Debug, Clone)]
