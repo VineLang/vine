@@ -4,6 +4,490 @@ pub trait Iterator[Self, Item] {
   fn .advance(self: Self) -> Option[(Item, Self)];
 }
 
+pub mod Iterator {
+  pub const empty[T]: Empty[T] = Empty();
+
+  pub struct Empty[T](());
+
+  pub mod Empty {
+    pub impl fork[T]: Fork[Empty[T]];
+    pub impl drop[T]: Drop[Empty[T]];
+
+    pub impl iterator[T]: Iterator[Empty[T], T] {
+      fn advance(Empty[T]()) -> Option[(T, Empty[T])] {
+        None
+      }
+    }
+  }
+
+  pub fn one[T](value: T) -> One[T] {
+    One(Some(value))
+  }
+
+  pub struct One[T](Option[T]);
+
+  pub mod One {
+    pub impl fork[T+]: Fork[One[T]];
+    pub impl drop[T?]: Drop[One[T]];
+
+    pub impl iterator[T]: Iterator[One[T], T] {
+      fn advance(One[T](value)) -> Option[(T, One[T])] {
+        Option::map(value, fn? (value) { (value, One(None)) })
+      }
+    }
+  }
+
+  pub fn from_next[T, F*; fn F() -> Option[T]](f: F) -> FromNext[F] {
+    FromNext(f)
+  }
+
+  pub struct FromNext[F](F);
+
+  pub mod FromNext {
+    pub impl fork[F+]: Fork[FromNext[F]];
+    pub impl drop[F?]: Drop[FromNext[F]];
+
+    pub impl iterator[T, F*; fn F() -> Option[T]]: Iterator[FromNext[F], T] {
+      fn advance(FromNext[F](f)) -> Option[(T, FromNext[F])] {
+        if f() is Some(value) {
+          Some(value, FromNext(f))
+        } else {
+          None
+        }
+      }
+    }
+  }
+
+  pub fn .map[I, T, U, F*; Iterator[I, T], fn F(T) -> U](iter: I, f: F) -> Map[I, F] {
+    Map(iter, f)
+  }
+
+  pub struct Map[I, F]((I, F));
+
+  pub mod Map {
+    pub impl fork[I+, F+]: Fork[Map[I, F]];
+    pub impl drop[I?, F?]: Drop[Map[I, F]];
+
+    pub impl iterator[I, T, U, F*; Iterator[I, T], fn F(T) -> U]: Iterator[Map[I, F], U] {
+      fn advance(Map[I, F](iter, f)) -> Option[(U, Map[I, F])] {
+        match iter.advance() {
+          Some(value, iter) { Some(f(value), iter.map(f)) }
+          None { None }
+        }
+      }
+    }
+  }
+
+  pub fn .filter[I, T, F*; Iterator[I, T], Drop[T], fn F(&T) -> Bool](iter: I, f: F) -> Filter[I, F] {
+    Filter(iter, f)
+  }
+
+  pub struct Filter[I, F]((I, F));
+
+  pub mod Filter {
+    pub impl fork[I+, F+]: Fork[Filter[I, F]];
+    pub impl drop[I?, F?]: Drop[Filter[I, F]];
+
+    pub impl iterator[I, T, F*; Iterator[I, T], Drop[T], fn F(&T) -> Bool]: Iterator[
+      Filter[I, F], T;
+    ] {
+      fn advance(Filter[I, F](iter, f)) -> Option[(T, Filter[I, F])] {
+        loop {
+          match iter.advance() {
+            Some(value, _iter) {
+              iter = _iter;
+              if f(&value) {
+                Some(value, Filter(iter, f))
+              } else {
+                continue;
+              }
+            }
+            None { None }
+          }
+        }
+      }
+    }
+  }
+
+  pub fn .filter_map[I, T, U, F*; Iterator[I, T], fn F(T) -> Option[U]](iter: I, f: F) -> FilterMap[
+    I, F;
+  ] {
+    FilterMap(iter, f)
+  }
+
+  pub struct FilterMap[I, F]((I, F));
+
+  pub mod FilterMap {
+    pub impl fork[I+, F+]: Fork[FilterMap[I, F]];
+    pub impl drop[I?, F?]: Drop[FilterMap[I, F]];
+
+    pub impl iterator[I, T, U, F*; Iterator[I, T], fn F(T) -> Option[U]]: Iterator[
+      FilterMap[I, F], U;
+    ] {
+      fn advance(FilterMap[I, F](iter, f)) -> Option[(U, FilterMap[I, F])] {
+        loop {
+          match iter.advance() {
+            Some(value, _iter) {
+              iter = _iter;
+              if f(value) is Some(value) {
+                Some(value, FilterMap(iter, f))
+              } else {
+                continue;
+              }
+            }
+            None { None }
+          }
+        }
+      }
+    }
+  }
+
+  pub fn .skip[I, T; Iterator[I, T], Drop[T]](iter: I, count: N32) -> Skip[I] {
+    Skip(iter, count)
+  }
+
+  pub struct Skip[I]((I, N32));
+
+  pub mod Skip {
+    pub impl fork[I+]: Fork[Skip[I]];
+    pub impl drop[I?]: Drop[Skip[I]];
+
+    pub impl iterator[I, T; Iterator[I, T], Drop[T]]: Iterator[Skip[I], T] {
+      fn advance(Skip[I](iter, count)) -> Option[(T, Skip[I])] {
+        while count != 0 {
+          count -= 1;
+          if iter.advance() is Some(_, _iter) {
+            iter = _iter;
+          } else {
+            return None;
+          }
+        }
+        Option::map(iter.advance(), fn? ((value, iter)) { (value, Skip(iter, 0)) })
+      }
+    }
+  }
+
+  pub fn .skip_while[I, T, F*; Iterator[I, T], Drop[T], fn F(&T) -> Bool](iter: I, f: F) -> SkipWhile[
+    I, F;
+  ] {
+    SkipWhile(iter, Some(f))
+  }
+
+  pub struct SkipWhile[I, F]((I, Option[F]));
+
+  pub mod SkipWhile {
+    pub impl fork[I+, F+]: Fork[SkipWhile[I, F]];
+    pub impl drop[I?, F?]: Drop[SkipWhile[I, F]];
+
+    pub impl iterator[I?, T, F*; Iterator[I, T], Drop[T], fn F(&T) -> Bool]: Iterator[
+      SkipWhile[I, F], T;
+    ] {
+      fn advance(SkipWhile[I, F](iter, f)) -> Option[(T, SkipWhile[I, F])] {
+        if f is Some(f) {
+          while iter.advance() is Some(value, _iter) {
+            iter = _iter;
+            if !f(&value) {
+              break Some(value, SkipWhile(iter, None));
+            }
+          } else {
+            None
+          }
+        } else {
+          Option::map(iter.advance(), fn? ((value, iter)) { (value, SkipWhile(iter, None)) })
+        }
+      }
+    }
+  }
+
+  pub fn .take[I?, T; Iterator[I, T]](iter: I, count: N32) -> Take[I] {
+    Take(iter, count)
+  }
+
+  pub struct Take[I]((I, N32));
+
+  pub mod Take {
+    pub impl fork[I+]: Fork[Take[I]];
+    pub impl drop[I?]: Drop[Take[I]];
+
+    pub impl iterator[I?, T; Iterator[I, T]]: Iterator[Take[I], T] {
+      fn advance(Take[I](iter, count)) -> Option[(T, Take[I])] {
+        if count != 0 && iter.advance() is Some(value, iter) {
+          Some(value, Take(iter, count - 1))
+        } else {
+          None
+        }
+      }
+    }
+  }
+
+  pub fn .take_while[I?, T, F*; Iterator[I, T], fn F(&T) -> Bool](iter: I, f: F) -> TakeWhile[I, F] {
+    TakeWhile(iter, f)
+  }
+
+  pub struct TakeWhile[I, F]((I, F));
+
+  pub mod TakeWhile {
+    pub impl fork[I+, F+]: Fork[TakeWhile[I, F]];
+    pub impl drop[I?, F?]: Drop[TakeWhile[I, F]];
+
+    pub impl iterator[I?, T, F*; Iterator[I, T], Drop[T], fn F(&T) -> Bool]: Iterator[
+      TakeWhile[I, F], T;
+    ] {
+      fn advance(TakeWhile[I, F](iter, f)) -> Option[(T, TakeWhile[I, F])] {
+        if iter.advance() is Some(value, iter) && f(&value) {
+          Some((value, TakeWhile(iter, f)))
+        } else {
+          None
+        }
+      }
+    }
+  }
+
+  pub fn .map_while[I?, T, U, F*; Iterator[I, T], fn F(T) -> Option[U]](iter: I, f: F) -> MapWhile[
+    I, F;
+  ] {
+    MapWhile(iter, f)
+  }
+
+  pub struct MapWhile[I, F]((I, F));
+
+  pub mod MapWhile {
+    pub impl fork[I+, F+]: Fork[MapWhile[I, F]];
+    pub impl drop[I?, F?]: Drop[MapWhile[I, F]];
+
+    pub impl iterator[I?, T, U, F*; Iterator[I, T], fn F(T) -> Option[U]]: Iterator[
+      MapWhile[I, F], U;
+    ] {
+      fn advance(MapWhile[I, F](iter, f)) -> Option[(U, MapWhile[I, F])] {
+        if iter.advance() is Some(value, iter) && f(value) is Some(value) {
+          Some((value, MapWhile(iter, f)))
+        } else {
+          None
+        }
+      }
+    }
+  }
+
+  pub fn .zip[I?, T, J?, U; Iterator[I, T], Drop[T], Iterator[J, U]](i: I, j: J) -> Zip[I, J] {
+    Zip(i, j)
+  }
+
+  pub struct Zip[I, J]((I, J));
+
+  pub mod Zip {
+    pub impl fork[I+, J+]: Fork[Zip[I, J]];
+    pub impl drop[I?, J?]: Drop[Zip[I, J]];
+
+    pub impl iterator[I?, T, J?, U; Iterator[I, T], Drop[T], Iterator[J, U]]: Iterator[
+      Zip[I, J], (T, U);
+    ] {
+      fn advance(Zip[I, J](i, j)) -> Option[((T, U), Zip[I, J])] {
+        if i.advance() is Some((t, i)) && j.advance() is Some((u, j)) {
+          Some((t, u), Zip(i, j))
+        } else {
+          None
+        }
+      }
+    }
+  }
+
+  pub fn .flatten[I, J, T; Iterator[I, J], Iterator[J, T]](iter: I) -> Flatten[I, J] {
+    Flatten(None, iter)
+  }
+
+  pub struct Flatten[I, J]((Option[J], I));
+
+  pub mod Flatten {
+    pub impl fork[I+, J+]: Fork[Flatten[I, J]];
+    pub impl drop[I?, J?]: Drop[Flatten[I, J]];
+
+    pub impl iterator[I, J, T; Iterator[I, J], Iterator[J, T]]: Iterator[Flatten[I, J], T] {
+      fn advance(Flatten[I, J](j, i)) -> Option[(T, Flatten[I, J])] {
+        if j is Some(j) && j.advance() is Some(t, j) {
+          Some(t, Flatten(Some(j), i))
+        } else {
+          while i.advance() is Some(j, _i) {
+            i = _i;
+            if j.advance() is Some(t, j) {
+              break Some(t, Flatten(Some(j), i));
+            }
+          } else {
+            None
+          }
+        }
+      }
+    }
+  }
+
+  pub fn .flat_map[I, T, J, U, F*; Iterator[I, T], fn F(T) -> J, Iterator[J, T]](iter: I, f: F) -> Flatten[
+    Map[I, F], J;
+  ] {
+    iter.map(f).flatten()
+  }
+
+  pub impl concat[I, J, T; Iterator[I, T], Iterator[J, T]]: ops::Concat[I, J, Concat[I, J]] {
+    fn concat(i: I, j: J) -> Concat[I, J] {
+      Concat(Some(i), j)
+    }
+  }
+
+  pub struct Concat[I, J]((Option[I], J));
+
+  pub mod Concat {
+    pub impl fork[I+, J+]: Fork[Concat[I, J]];
+    pub impl drop[I?, J?]: Drop[Concat[I, J]];
+
+    pub impl iterator[I, J, T; Iterator[I, T], Iterator[J, T]]: Iterator[Concat[I, J], T] {
+      fn advance(Concat[I, J](i, j)) -> Option[(T, Concat[I, J])] {
+        when {
+          i is Some(i) && i.advance() is Some(value, i) { Some(value, Concat(Some(i), j)) }
+          j.advance() is Some(value, j) { Some(value, Concat(None, j)) }
+          _ { None }
+        }
+      }
+    }
+  }
+
+  pub fn .enumerate[I, T; Iterator[I, T]](iter: I) -> Map[I, Enumerate] {
+    iter.map(Enumerate(&0))
+  }
+
+  pub struct Enumerate(&N32);
+
+  pub mod Enumerate {
+    pub impl fork: Fork[Enumerate];
+    pub impl drop: Drop[Enumerate];
+
+    pub impl call[T]: fn Enumerate(T) -> (N32, T) {
+      fn call(Enumerate(&index), (value: T,)) -> (N32, T) {
+        let result = (index, value);
+        index += 1;
+        result
+      }
+    }
+  }
+
+  pub fn .inspect[I, T, F*; Iterator[I, T], fn F(&T)](iter: I, f: F) -> Map[I, Inspect[F]] {
+    iter.map(Inspect(f))
+  }
+
+  pub struct Inspect[F](F);
+
+  pub mod Inspect {
+    pub impl fork[F+]: Fork[Inspect[F]];
+    pub impl drop[F?]: Drop[Inspect[F]];
+
+    pub impl Inspect[T, F*; fn F(&T)]: fn Inspect[F](T) -> T {
+      fn call(Inspect[F](f), (value: T,)) -> T {
+        f(&value);
+        value
+      }
+    }
+  }
+
+  pub fn .forked[I, T; Iterator[I, &T], Fork[T]](iter: I) -> Map[I, fn Fork::fork] {
+    iter.map(Fork::fork)
+  }
+
+  pub fn .count[I, T; Iterator[I, T], Drop[T]](iter: I) -> N32 {
+    let len = 0;
+    for _ in iter {
+      len += 1;
+    }
+    len
+  }
+
+  pub fn .find[I?, T, F*; Iterator[I, T], Drop[T], fn F(&T) -> Bool](iter: I, f: F) -> Option[T] {
+    for value in iter {
+      if f(&value) {
+        break Some(value);
+      }
+    } else {
+      None
+    }
+  }
+
+  pub fn .find_map[I?, T, U, F*; Iterator[I, T], fn F(T) -> Option[U]](iter: I, f: F) -> Option[U] {
+    for value in iter {
+      if f(value) is Some(value) {
+        break Some(value);
+      }
+    } else {
+      None
+    }
+  }
+
+  pub fn .for_each[I, T, F*; Iterator[I, T], fn F(T)](iter: I, f: F) {
+    for value in iter {
+      f(value);
+    }
+  }
+
+  pub fn .fold[I, T, U, F*; Iterator[I, T], fn F(U, T) -> U](iter: I, init: U, f: F) -> U {
+    let current = init;
+    for value in iter {
+      current = f(current, value);
+    }
+    current
+  }
+
+  pub fn .reduce[I, T, F*; Iterator[I, T], fn F(T, T) -> T](iter: I, f: F) -> Option[T] {
+    match iter.advance() {
+      Some(value, iter) { Some(iter.fold(value, f)) }
+      None { None }
+    }
+  }
+
+  pub fn .all[I?, T, F*; Iterator[I, T], fn F(T) -> Bool](iter: I, f: F) -> Bool {
+    for value in iter {
+      if !f(value) {
+        break false;
+      }
+    } else {
+      true
+    }
+  }
+
+  pub fn .any[I?, T, F*; Iterator[I, T], fn F(T) -> Bool](iter: I, f: F) -> Bool {
+    for value in iter {
+      if f(value) {
+        break true;
+      }
+    } else {
+      false
+    }
+  }
+
+  pub fn .nth[I?, T; Iterator[I, T], Drop[T]](iter: I, index: N32) -> Option[T] {
+    for value in iter {
+      if index == 0 {
+        break Some(value);
+      } else {
+        index -= 1;
+      }
+    } else {
+      None
+    }
+  }
+
+  pub fn .last[I?, T; Iterator[I, T], Drop[T]](iter: I) -> Option[T] {
+    if iter.advance() is Some(current, iter) {
+      for value in iter {
+        current = value;
+      }
+      Some(current)
+    } else {
+      None
+    }
+  }
+
+  pub use Collect::collect as _;
+}
+
+pub trait Collect[C, T] {
+  fn .collect[I; Iterator[I, T]](iter: I) -> C;
+}
+
 pub struct Fused[I](pub Option[I]);
 
 pub mod Fused {

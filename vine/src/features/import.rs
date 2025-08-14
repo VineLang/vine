@@ -136,7 +136,9 @@ impl<'core> Charter<'core, '_> {
     let import = self.chart.imports.push(ImportDef { span, def: def_id, parent, ident });
     let def = &mut self.chart.defs[def_id];
     let member = WithVis { vis, kind: MemberKind::Import(import) };
-    def.named_members.push(member);
+    if !use_tree.aliases.is_empty() {
+      def.named_members.push(member);
+    }
     for name in use_tree.aliases {
       if let Entry::Vacant(e) = def.members_lookup.entry(name) {
         e.insert(member);
