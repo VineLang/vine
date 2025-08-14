@@ -98,7 +98,7 @@ impl<'core, 'a> Specializer<'core, 'a> {
               match &self.resolutions.impls[impl_id].as_ref()?.kind {
                 ResolvedImplKind::Direct { consts, .. } => {
                   inner_impls.append(&mut impls);
-                  Ok(self.specialize(self.resolutions.consts[consts[const_id]?], impls))
+                  Ok(self.specialize(self.resolutions.consts[consts[const_id]?], inner_impls))
                 }
                 ResolvedImplKind::Indirect(next_impl) => {
                   impl_ = self.instantiate(None, &inner_impls, next_impl);
