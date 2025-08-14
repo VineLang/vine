@@ -5,7 +5,7 @@ const default_size: N32 = 46;
 const default_seed: String = "Conway's Game of Life";
 
 pub fn main(&io: &IO) {
-  let signal = Pipe::new[Stream[Signal]];
+  let signal = Pipe::empty[Stream[Signal]];
 
   let rng;
 
@@ -238,7 +238,7 @@ pub mod Recv {
 
 pub struct Pipe[T]((Send[T], Recv[T]));
 pub mod Pipe {
-  pub const new[T]: Pipe[T] = do {
+  pub const empty[T]: Pipe[T] = do {
     let stream;
     Pipe(Send(~stream), Recv(stream))
   };
@@ -255,7 +255,7 @@ pub mod Pipe {
 
   pub fn .tap[T](&pipe: &Pipe[T]) -> Tap[T] {
     let Pipe(send_a, recv_a) = pipe;
-    let Pipe(send_b, recv_b) = Pipe::new;
+    let Pipe(send_b, recv_b) = Pipe::empty;
     pipe = Pipe(send_a, recv_b);
     Tap(recv_a, send_b)
   }
@@ -267,12 +267,12 @@ pub mod Pipe {
 }
 
 pub impl channel_send_recv[T]: Channel[Send[T], Recv[T]] {
-  const pair: (Send[T], Recv[T]) = Pipe::new!;
+  const pair: (Send[T], Recv[T]) = Pipe::empty!;
 }
 
 pub impl channel_recv_send[T]: Channel[Recv[T], Send[T]] {
   const pair: (Recv[T], Send[T]) = do {
-    let Pipe(send, recv) = Pipe::new;
+    let Pipe(send, recv) = Pipe::empty;
     (recv, send)
   };
 }
@@ -296,7 +296,7 @@ pub mod Tap {
   pub impl fork[T]: Fork[Tap[T]] {
     fn fork(&tap: &Tap[T]) -> Tap[T] {
       let Tap(recv_a, send_c) = tap;
-      let Pipe(send_b, recv_b) = Pipe::new;
+      let Pipe(send_b, recv_b) = Pipe::empty;
       tap = Tap(recv_b, send_c);
       Tap(recv_a, send_b)
     }
@@ -312,8 +312,8 @@ pub mod Tap {
 pub struct Exchange[T]((Send[T], Recv[T]));
 pub mod Exchange {
   pub const pair[T]: (Exchange[T], Exchange[T]) = do {
-    let Pipe(send_a, recv_a) = Pipe::new;
-    let Pipe(send_b, recv_b) = Pipe::new;
+    let Pipe(send_a, recv_a) = Pipe::empty;
+    let Pipe(send_b, recv_b) = Pipe::empty;
     (Exchange(send_a, recv_b), Exchange(send_b, recv_a))
   };
 
