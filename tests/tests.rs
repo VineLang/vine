@@ -22,6 +22,7 @@ fn tests(t: &mut DynTester) {
   let fib_repl_input_vi = b"1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n21\n100\n999999\n\nabc\n";
   let guessing_game_input = b"a seed\na maximum number\n100\n50\n75\n63\n56\n60\n58\n57";
   let lambda_input = b"(\\2.((2 2) 2))(\\f.\\x.(f(f x)))\n(\\a.\\b.b)((\\x.(x x))(\\x.(x x)))";
+  let life_input = b"step 100\nstep 418\n\n\n\n\n\n\n";
 
   t.group("ivy", |t| {
     test_iv(t, "ivy/examples/cat.iv", b"meow\n", ".txt");
@@ -68,6 +69,7 @@ fn tests(t: &mut DynTester) {
     test_vi(t, "tests/programs/centimanes.vi", b"", ".txt", true, false);
     test_vi(t, "tests/programs/inverse.vi", b"", ".txt", true, false);
     test_vi(t, "tests/programs/lambda.vi", lambda_input, ".txt", true, false);
+    test_vi(t, "tests/programs/life.vi", life_input, ".txt", true, false);
     test_vi(t, "tests/programs/logic.vi", b"", ".txt", true, false);
     test_vi(t, "tests/programs/loop_break_continue.vi", b"", ".txt", true, false);
     test_vi(t, "tests/programs/loop_vi_loop.vi", b"", ".txt", true, false);

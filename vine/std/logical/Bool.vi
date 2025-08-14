@@ -73,4 +73,6 @@ pub mod Bool {
       Show::Literal("{self}")
     }
   }
+
+  pub impl to_n32: Cast[Bool, N32] = unsafe::transmute;
 }

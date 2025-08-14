@@ -1,0 +1,366 @@
+
+use std::rng::Pcg32;
+
+const default_size: N32 = 46;
+const default_seed: String = "Conway's Game of Life";
+
+pub fn main(&io: &IO) {
+  let signal = Pipe::new[Stream[Signal]];
+
+  let rng;
+
+  let fn seed(seed: String) {
+    rng = Pcg32::seeded(seed);
+    signal.pipe_stream(&Signal::Init(&rng));
+  }
+
+  let fn resize(width: N32, height: N32) {
+    signal.pipe_stream(&Signal::Stop);
+    construct_torus(
+      width,
+      height,
+      fn* (i, j, neighbors) {
+        cell(i == width - 1, signal.tap(), neighbors);
+      },
+    );
+    signal.pipe_stream(&Signal::Init(&rng));
+  }
+
+  let fn advance(steps: N32) {
+    signal.pipe_stream(&Signal::Advance(steps));
+  }
+
+  let fn display() {
+    io.print("\x1b[H\x1b[2J");
+    signal.pipe_stream(&Signal::Display(&io));
+  }
+
+  let fn run_cmd(cmd: String) {
+    let (name, args) = cmd.split_once(" ");
+    when {
+      name == "size" && args is Some(args) && args.split_once(" ") is (w, Some(h)) {
+        if N32::parse(w) is Some(w) && N32::parse(h) is Some(h) {
+          resize(w, h);
+        }
+      }
+      name == "seed" {
+        seed(args.unwrap_or(default_seed));
+      }
+      name == "step" && args is Some(arg) {
+        if N32::parse(arg) is Some(steps) {
+          advance(steps);
+        }
+      }
+      _ { advance(1) }
+    }
+  }
+
+  seed(default_seed);
+  resize(default_size, default_size);
+  display();
+
+  while io.prompt("> ") is Some(cmd) {
+    run_cmd(cmd);
+    display();
+  }
+
+  signal.close_stream();
+}
+
+pub fn cell(
+  line_end: Bool,
+  signal: Tap[Stream[Signal]],
+  TorusNeighbors[Exchange[Stream[Bool]]]({ nw, n, ne, w, e, sw, s, se }),
+) {
+  let alive = false;
+  loop {
+    match signal.tap_stream() {
+      &Signal::Init(&rng) {
+        alive = rng.gen_n32() & 1 == 1;
+        continue;
+      }
+      &Signal::Advance(steps) {
+        for _ in 0..steps {
+          let neighbors;
+          neighbors = nw.exchange_stream(alive) as N32;
+          neighbors += n.exchange_stream(alive) as N32;
+          neighbors += ne.exchange_stream(alive) as N32;
+          neighbors += w.exchange_stream(alive) as N32;
+          neighbors += e.exchange_stream(alive) as N32;
+          neighbors += sw.exchange_stream(alive) as N32;
+          neighbors += s.exchange_stream(alive) as N32;
+          neighbors += se.exchange_stream(alive) as N32;
+
+          alive = if alive {
+            2 <= neighbors <= 3
+          } else {
+            neighbors == 3
+          };
+        }
+
+        continue;
+      }
+      &Signal::Display(&io) {
+        io.print(if alive {
+          "[]"
+        } else {
+          "  "
+        });
+
+        if line_end {
+          io.print_char('\n');
+        }
+
+        continue;
+      }
+      &Signal::Stop {}
+    }
+  }
+  nw.close_stream();
+  n.close_stream();
+  ne.close_stream();
+  w.close_stream();
+  e.close_stream();
+  sw.close_stream();
+  s.close_stream();
+  se.close_stream();
+}
+
+pub struct RingNeighbors[P, N]((P, N));
+
+pub fn construct_ring[P, N, F*; fn F(N32, RingNeighbors[P, N]), Channel[N, P]](len: N32, f: F) {
+  let &chan = circular();
+  for i in 0..len {
+    let (prev, next);
+    prev = chan;
+    (next, chan) = Channel::pair[N, P];
+    f(i, RingNeighbors(prev, next));
+  }
+}
+
+pub struct TorusOrthoNeighbors[N, S, W, E]({ n: N, s: S, w: W, e: E });
+
+pub fn construct_torus_ortho[
+  N, S, W, E, F*;
+  fn F(N32, N32, TorusOrthoNeighbors[N, S, W, E]), Channel[S, N], Channel[E, W];
+](width: N32, height: N32, f: F) {
+  construct_ring(
+    height,
+    fn* (j, RingNeighbors[Recv[Stream[N]], Send[Stream[N]]](north, south)) {
+      construct_ring(
+        width,
+        fn* (i, RingNeighbors[W, E](w, e)) {
+          let n = north.recv_stream();
+          let (s, s_) = Channel::pair[S, N];
+          south.send_stream(s_);
+          f(i, j, TorusOrthoNeighbors({ n, s, w, e }));
+        },
+      )
+      north.close_stream();
+      south.close_stream();
+    },
+  )
+}
+
+pub struct TorusNeighbors[T]({ nw: T, n: T, ne: T, w: T, e: T, sw: T, s: T, se: T });
+
+pub fn construct_torus[T, F*; fn F(N32, N32, TorusNeighbors[T]), Channel[T, T]](
+  width: N32,
+  height: N32,
+  f: F,
+) {
+  type N[T] = (Recv[T], T, Recv[T]);
+  type S[T] = (Send[T], T, Send[T]);
+  type W[T] = (T, T, T);
+  type E[T] = (T, T, T);
+
+  construct_torus_ortho(
+    width,
+    height,
+    fn* (i, j, TorusOrthoNeighbors[N[T], S[T], W[T], E[T]]({ n, s, w, e })) {
+      let (w_se, w, sw) = w;
+      let (se, e, e_sw) = e;
+      let (n_w, n, n_e) = n;
+      let (s_nw, s, s_ne) = s;
+      let nw = n_w.recv();
+      let ne = n_e.recv();
+      s_nw.send(w_se);
+      s_ne.send(e_sw);
+      f(i, j, TorusNeighbors({ nw, n, ne, w, e, sw, s, se }));
+    },
+  )
+}
+
+pub enum Signal {
+  Init(&Pcg32),
+  Advance(N32),
+  Display(&IO),
+  Stop,
+}
+
+pub mod Signal {
+  pub impl drop: Drop[Signal];
+}
+
+pub struct Stream[T]((T, Stream[T]));
+
+pub struct Send[T](~T);
+pub mod Send {
+  pub fn .send[T](Send[T](~send), data: T) {
+    send = data;
+  }
+
+  pub fn .send_stream[T](&Send[Stream[T]](~send), data: T) {
+    send = Stream(data, send);
+  }
+
+  pub fn .close_stream[T](Send[Stream[T]](send)) {
+    unsafe::erase(send);
+  }
+}
+
+pub struct Recv[T](T);
+pub mod Recv {
+  pub fn .recv[T](Recv[T](recv)) -> T {
+    recv
+  }
+
+  pub fn .recv_stream[T](&Recv[Stream[T]](recv)) -> T {
+    let data;
+    Stream(data, recv) = recv;
+    data
+  }
+
+  pub fn .close_stream[T](Recv[Stream[T]](recv)) {
+    unsafe::erase(recv);
+  }
+}
+
+pub struct Pipe[T]((Send[T], Recv[T]));
+pub mod Pipe {
+  pub const new[T]: Pipe[T] = do {
+    let stream;
+    Pipe(Send(~stream), Recv(stream))
+  };
+
+  pub fn .pipe[T](Pipe[T](send, recv), &data: &T) {
+    send.send(data);
+    data = recv.recv();
+  }
+
+  pub fn .pipe_stream[T](&Pipe[Stream[T]](send, recv), &data: &T) {
+    send.send_stream(data);
+    data = recv.recv_stream();
+  }
+
+  pub fn .tap[T](&pipe: &Pipe[T]) -> Tap[T] {
+    let Pipe(send_a, recv_a) = pipe;
+    let Pipe(send_b, recv_b) = Pipe::new;
+    pipe = Pipe(send_a, recv_b);
+    Tap(recv_a, send_b)
+  }
+
+  pub fn .close_stream[T](Pipe[Stream[T]](send, recv)) {
+    send.close_stream();
+    recv.close_stream();
+  }
+}
+
+pub impl channel_send_recv[T]: Channel[Send[T], Recv[T]] {
+  const pair: (Send[T], Recv[T]) = Pipe::new!;
+}
+
+pub impl channel_recv_send[T]: Channel[Recv[T], Send[T]] {
+  const pair: (Recv[T], Send[T]) = do {
+    let Pipe(send, recv) = Pipe::new;
+    (recv, send)
+  };
+}
+
+pub struct Tap[T]((Recv[T], Send[T]));
+pub mod Tap {
+  pub fn .tap[T](Tap[T](recv, send)) -> &T {
+    let data = recv.recv();
+    let ref = &data;
+    send.send(data);
+    ref
+  }
+
+  pub fn .tap_stream[T](&Tap[Stream[T]](recv, send)) -> &T {
+    let data = recv.recv_stream();
+    let ref = &data;
+    send.send_stream(data);
+    ref
+  }
+
+  pub impl fork[T]: Fork[Tap[T]] {
+    fn fork(&tap: &Tap[T]) -> Tap[T] {
+      let Tap(recv_a, send_c) = tap;
+      let Pipe(send_b, recv_b) = Pipe::new;
+      tap = Tap(recv_b, send_c);
+      Tap(recv_a, send_b)
+    }
+  }
+
+  pub impl drop[T]: Drop[Tap[T]] {
+    fn drop(Tap[T](Recv(recv), Send(~send))) {
+      send = recv;
+    }
+  }
+}
+
+pub struct Exchange[T]((Send[T], Recv[T]));
+pub mod Exchange {
+  pub const pair[T]: (Exchange[T], Exchange[T]) = do {
+    let Pipe(send_a, recv_a) = Pipe::new;
+    let Pipe(send_b, recv_b) = Pipe::new;
+    (Exchange(send_a, recv_b), Exchange(send_b, recv_a))
+  };
+
+  pub fn .exchange[T](Exchange[T](send, recv), data: T) -> T {
+    send.send(data);
+    recv.recv()
+  }
+
+  pub fn .exchange_stream[T](&Exchange[Stream[T]](send, recv), data: T) -> T {
+    send.send_stream(data);
+    recv.recv_stream()
+  }
+
+  pub fn .close_stream[T](Exchange[Stream[T]](send, recv)) {
+    send.close_stream();
+    recv.close_stream();
+  }
+
+  pub impl channel[T]: Channel[Exchange[T], Exchange[T]] {
+    const pair: (Exchange[T], Exchange[T]) = Exchange::pair;
+  }
+}
+
+pub trait Channel[A, B] {
+  const pair: (A, B);
+}
+
+pub mod Channel {
+  use std::derive::Tuple;
+
+  pub impl nil: Channel[(), ()] {
+    const pair: ((), ()) = ((), ());
+  }
+
+  pub impl tuple[
+    A, AI, AR, B, BI, BR;
+    Tuple[A, AI, AR], Tuple[B, BI, BR], Channel[AI, BI], Channel[AR, BR];
+  ]: Channel[A, B] {
+    const pair: (A, B) = do {
+      let (ai, bi) = Channel::pair[AI, BI];
+      let (ar, br) = Channel::pair[AR, BR];
+      ((ai, ar) as A, (bi, br) as B)
+    };
+  }
+}
+
+fn circular[T]() -> &T {
+  let x;
+  &(~x; ~x)
+}
