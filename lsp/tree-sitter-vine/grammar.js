@@ -17,7 +17,7 @@ const generics = (ty, impl) =>
     "[",
     optional("..."),
     delimited("", ",", "", ty),
-    optional(delimited(";", ",", "", impl)),
+    optional(delimited(";", ",", optional(";"), impl)),
     "]",
   );
 
