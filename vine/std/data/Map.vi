@@ -295,8 +295,8 @@ pub mod Map[K, V; Ord[K]] {
       }
     }
 
-    pub impl fork[K+, V+]: Fork[Iter[K, V]];
-    pub impl drop[K?, V?]: Drop[Iter[K, V]];
+    pub impl fork[K+, V+]: Fork[IntoIter[K, V]];
+    pub impl drop[K?, V?]: Drop[IntoIter[K, V]];
   }
 
   pub impl to_list[...]: Cast[Map[K, V], List[(K, V)]] {
