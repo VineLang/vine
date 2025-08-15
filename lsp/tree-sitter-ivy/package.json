@@ -1,0 +1,12 @@
+{
+  "name": "tree-sitter-ivy",
+  "devDependencies": {
+    "prebuildify": "^6.0.1",
+    "tree-sitter-cli": "^0.25.3",
+    "tree-sitter": "^0.21.1"
+  },
+  "scripts": {
+    "prestart": "tree-sitter build --wasm",
+    "start": "tree-sitter playground"
+  }
+}

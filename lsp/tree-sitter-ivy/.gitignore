@@ -1,0 +1,11 @@
+node_modules/
+src/
+*.a
+*.so
+*.so.*
+*.dylib
+*.dll
+*.pc
+*.wasm
+*.obj
+*.o
