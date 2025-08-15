@@ -1,57 +1,68 @@
 {
-  description = "Dev environment + build for vine";
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs?ref=nixos-unstable";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    flake-utils.url = "github:numtide/flake-utils";
     rust-overlay = {
       url = "github:oxalica/rust-overlay";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    crane.url = "github:ipetkov/crane";
+    typsitter.url = "github:TendrilsCompute/typsitter/eb04f70ac94badc2e846e06ff1f3356b1ce32023";
   };
 
   outputs =
-    { nixpkgs, rust-overlay, ... }:
-    let
-      supportedSystems = [
-        "x86_64-linux"
-        "aarch64-linux"
-        "x86_64-darwin"
-        "aarch64-darwin"
-      ];
-      forAllSystems = nixpkgs.lib.genAttrs supportedSystems;
-      pkgs =
-        system:
-        (import nixpkgs {
+    {
+      self,
+      nixpkgs,
+      flake-utils,
+      rust-overlay,
+      crane,
+      typsitter,
+    }:
+    flake-utils.lib.eachDefaultSystem (
+      system:
+      let
+        pkgs = import nixpkgs {
           inherit system;
           overlays = [ rust-overlay.overlays.default ];
-        });
-    in rec {
-      formatter = forAllSystems (system: with (pkgs system); nixfmt-rfc-style);
+        };
 
-      packages = forAllSystems (
-        system:
-        with (pkgs system);
-        let
-          rustPlatform = makeRustPlatform rec {
-            cargo = rust-bin.fromRustupToolchainFile ./rust-toolchain.toml;
-            rustc = cargo;
-          };
-        in
-        {
-          default = rustPlatform.buildRustPackage rec {
-            src = lib.cleanSource ./.;
-            pname = "vine";
-            version = "0.1";
-            VINE_STD_PATH = "${src}/vine/std";
-            cargoLock = {
-              lockFile = "${src}/Cargo.lock";
-              outputHashes = {
-                "class-0.1.0" = "sha256-ye8DqeDRXsNpTWpGGlvWxSSc1AiXOLud99dHpB/VhZg=";
-              };
-            };
-          };
-        }
-      );
+        craneLib = (crane.mkLib pkgs).overrideToolchain (
+          pkgs: pkgs.rust-bin.fromRustupToolchainFile ./rust-toolchain.toml
+        );
 
-      checks = packages;
-    };
+        vineConfig = rec {
+          src = pkgs.lib.cleanSource ./.;
+          pname = "vine";
+          version = "0.0.0";
+          VINE_STD_PATH = "${src}/vine/std";
+          cargoLock = "${src}/Cargo.lock";
+        };
+
+        vine = craneLib.buildPackage (
+          vineConfig
+          // {
+            cargoArtifacts = craneLib.buildDepsOnly vineConfig;
+          }
+        );
+      in
+      rec {
+        formatter = pkgs.nixfmt-tree;
+
+        packages = {
+          default = vine;
+          typsitter = typsitter.packages.${system}.default;
+        };
+
+        checks = packages;
+
+        devShells.default = craneLib.devShell {
+          name = "vine-dev";
+          nativeBuildInputs = [
+            pkgs.nushell
+            pkgs.emscripten
+          ];
+        };
+      }
+    );
 }

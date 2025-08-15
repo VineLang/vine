@@ -12,10 +12,10 @@ const delimited = (open, sep, close, inner) =>
     ...close ? [close] : [],
   );
 
-const generics = (ty, impl) =>
+const generics = (inherit, ty, impl) =>
   seq(
     "[",
-    optional("..."),
+    ...inherit ? [optional("...")] : [],
     delimited("", ",", "", ty),
     optional(delimited(";", ",", optional(";"), impl)),
     "]",
@@ -275,11 +275,11 @@ module.exports = grammar({
     attr: $ =>
       seq("#", "[", $.ident, optional(choice(seq("=", $.string), seq("(", $._expr, ")"))), "]"),
 
-    generic_params: $ => generics($.ty_param, $.impl_param),
+    generic_params: $ => generics(true, $.ty_param, $.impl_param),
     ty_param: $ => seq($.ident, optional($.flex)),
     impl_param: $ => seq(optional(seq($.ident, ":")), $._trait),
 
-    generic_args: $ => generics($._ty, $._impl),
+    generic_args: $ => generics(false, $._ty, $._impl),
 
     flex: $ => choice("+", "?", "*"),
 
@@ -340,6 +340,7 @@ module.exports = grammar({
 
     _expr: $ =>
       choice(
+        "...",
         $.expr_hole,
         $.expr_paren,
         $.expr_path,
@@ -557,6 +558,7 @@ module.exports = grammar({
 
     _pat: $ =>
       choice(
+        "...",
         $.pat_hole,
         $.pat_paren,
         $.pat_annotation,
@@ -596,6 +598,7 @@ module.exports = grammar({
 
     _ty: $ =>
       choice(
+        "...",
         $.ty_hole,
         $.ty_never,
         $.ty_paren,
