@@ -134,7 +134,7 @@ impl<'core> Synthesizer<'core, '_> {
 
   fn synthesize_ident(&mut self, ident: Ident<'core>) -> Net {
     let str = self.string(ident.0 .0);
-    Net::new(str)
+    self.const_(str)
   }
 
   fn synthesize_identity(&mut self) -> Net {
@@ -150,7 +150,7 @@ impl<'core> Synthesizer<'core, '_> {
   fn synthesize_enum_variant_names(&mut self, enum_id: EnumId) -> Net {
     let names =
       self.list(self.chart.enums[enum_id].variants.values().map(|x| x.name.0 .0), Self::string);
-    Net::new(names)
+    self.const_(names)
   }
 
   fn synthesize_enum_match(&mut self, enum_id: EnumId) -> Net {
@@ -206,7 +206,7 @@ impl<'core> Synthesizer<'core, '_> {
       let mut prev_net = Some(cur_net);
       let out = self.new_wire();
       let match_ = self.match_enum(
-        enum_id,
+        self.chart.builtins.variant.unwrap(),
         |self_, v| {
           let data = self_.new_wire();
           if v.0 == 0 {
@@ -224,7 +224,7 @@ impl<'core> Synthesizer<'core, '_> {
         out.0,
       );
       if variant_id.0 == 0 {
-        cur_net = Net::new(Tree::n_ary("fn", [Tree::Erase, match_, out.1]));
+        cur_net = Net::new(Tree::n_ary("fn", [self.fn_receiver(), match_, out.1]));
       } else {
         cur_net = Net::new(Tree::n_ary("enum", [match_, out.1]));
       }
@@ -346,6 +346,15 @@ impl<'core> Synthesizer<'core, '_> {
       )
     } else {
       Tree::Erase
+    }
+  }
+
+  fn const_(&mut self, value: Tree) -> Net {
+    if self.core.debug {
+      let w = self.new_wire();
+      Net::new(Tree::n_ary("dbg", [Tree::n_ary("ref", [w.0, w.1]), value]))
+    } else {
+      Net::new(value)
     }
   }
 }
