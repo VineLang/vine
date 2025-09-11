@@ -12,10 +12,10 @@ const delimited = (open, sep, close, inner) =>
     ...close ? [close] : [],
   );
 
-const generics = (ty, impl) =>
+const generics = (inherit, ty, impl) =>
   seq(
     "[",
-    optional("..."),
+    ...inherit ? [optional("...")] : [],
     delimited("", ",", "", ty),
     optional(delimited(";", ",", optional(";"), impl)),
     "]",
@@ -275,11 +275,11 @@ module.exports = grammar({
     attr: $ =>
       seq("#", "[", $.ident, optional(choice(seq("=", $.string), seq("(", $._expr, ")"))), "]"),
 
-    generic_params: $ => generics($.ty_param, $.impl_param),
+    generic_params: $ => generics(true, $.ty_param, $.impl_param),
     ty_param: $ => seq($.ident, optional($.flex)),
     impl_param: $ => seq(optional(seq($.ident, ":")), $._trait),
 
-    generic_args: $ => generics($._ty, $._impl),
+    generic_args: $ => generics(false, $._ty, $._impl),
 
     flex: $ => choice("+", "?", "*"),
 
@@ -340,6 +340,7 @@ module.exports = grammar({
 
     _expr: $ =>
       choice(
+        "...",
         $.expr_hole,
         $.expr_paren,
         $.expr_path,
@@ -371,7 +372,7 @@ module.exports = grammar({
         $.num,
         $.char,
         $.string,
-        $.expr_inlineivy,
+        $.expr_inline_ivy,
         $.expr_chain,
         $.expr_binary_op,
         $.expr_logical_op,
@@ -461,13 +462,15 @@ module.exports = grammar({
     expr_range: $ =>
       prec.left(BP.Range, seq(optional($._expr), choice("..", "..="), optional($._expr))),
 
-    expr_inlineivy: $ =>
+    expr_inline_ivy: $ =>
       seq(
         "inline_ivy!",
         delimited("(", ",", ")", seq($.ident, choice("<-", "->"), $._expr)),
         optional($.block_ty),
-        new RustRegex("\\{[^\\{\\}]+\\}"),
+        $.inline_ivy,
       ),
+
+    inline_ivy: $ => new RustRegex("\\{[^\\{\\}]+\\}"),
 
     expr_chain: $ => prec(BP.Max, seq($._expr, $._chain)),
 
@@ -557,6 +560,7 @@ module.exports = grammar({
 
     _pat: $ =>
       choice(
+        "...",
         $.pat_hole,
         $.pat_paren,
         $.pat_annotation,
@@ -596,6 +600,7 @@ module.exports = grammar({
 
     _ty: $ =>
       choice(
+        "...",
         $.ty_hole,
         $.ty_never,
         $.ty_paren,

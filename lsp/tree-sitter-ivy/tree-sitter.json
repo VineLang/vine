@@ -1,0 +1,18 @@
+{
+  "$schema": "https://tree-sitter.github.io/tree-sitter/assets/schemas/config.schema.json",
+  "grammars": [
+    {
+      "name": "ivy",
+      "camelcase": "Ivy",
+      "title": "Ivy",
+      "scope": "source.ivy",
+      "file-types": ["iv"],
+      "injection-regex": "^ivy$",
+      "class-name": "TreeSitterIvy",
+      "highlights": ["queries/highlights.scm"]
+    }
+  ],
+  "metadata": {
+    "version": "0.0.0"
+  }
+}

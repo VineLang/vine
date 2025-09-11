@@ -9,7 +9,8 @@
       "file-types": ["vi"],
       "injection-regex": "^vine$",
       "class-name": "TreeSitterVine",
-      "highlights": ["queries/highlights.scm"]
+      "highlights": ["queries/highlights.scm"],
+      "injections": ["queries/injections.scm"]
     }
   ],
   "metadata": {
