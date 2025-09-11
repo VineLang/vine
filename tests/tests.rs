@@ -78,6 +78,7 @@ fn tests(t: &mut DynTester) {
     test_vi(t, "tests/programs/map_test.vi", b"", ".txt", false, false);
     test_vi(t, "tests/programs/map_ops.vi", b"", ".txt", true, false);
     test_vi(t, "tests/programs/maybe_set.vi", b"", ".txt", true, false);
+    test_vi(t, "tests/programs/nothing_lasts_forever.vi", b"", ".txt", true, false);
     test_vi(t, "tests/programs/no_return.vi", b"", ".txt", true, false);
     test_vi(t, "tests/programs/option_party.vi", b"", ".txt", true, false);
     test_vi(t, "tests/programs/par.vi", b"", ".txt", true, false);
