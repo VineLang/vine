@@ -1,4 +1,6 @@
-# Extrinsics
+#import "/lib.typ": *
+
+= Extrinsics <extrinsics>
 
 Extrinsics are how programs running in the IVM interact with the outside world.
 
@@ -17,11 +19,11 @@ branches. Extrinsic branches are the only way for the interaction net to inspect
 extrinsic values.
 
 Currently, there is a fixed set of extrinsics built-in to IVM. In the future,
-this will be extensible ([#54](https://github.com/VineLang/vine/issues/54)).
+this will be extensible (#issue(54)).
 
-## Extrinsic Value Types
+== Extrinsic Value Types
 
-### `N32`
+=== `N32`
 
 An `N32` extrinsic value represents a 32-bit natural number. They can be written
 as integer literals in Ivy programs.
@@ -29,33 +31,33 @@ as integer literals in Ivy programs.
 Vine's `N32`, `Char`, and `Bool` types are all represented by `N32` extrinsic
 values.
 
-### `F32`
+=== `F32`
 
 An `F32` extrinsic value represents a 32-bit floating-point number. They can be
 written as float literals in Ivy programs.
 
-### `IO`
+=== `IO` <extrinsic-io>
 
 An `IO` extrinsic value represents an IO handle, and can be used to perform IO.
 `IO` values cannot be written in Ivy programs. When an Ivy program is run, the
 `::main` net is connected to an `IO` value. This is the only way to obtain an
 `IO` value.
 
-## Extrinsic Functions
+== Extrinsic Functions
 
-### General Arithmetic
+=== General Arithmetic
 
 The `@add`/`@sub`/`@mul`/`@div`/`@rem` extrinsic functions perform arithmetic on
 `N32` or `F32` values. They input two values and output one. If both inputs are
 `N32`s, the output will be an `N32`; otherwise, the output is an `F32`.
 
-### Comparisons
+=== Comparisons
 
 The `@eq`/`@ne`/`@lt`/`@le` extrinsic functions take two `N32` or two `F32`
 values and return an `N32` value representing the result of the comparison (`1`
 for true, and `0` for false).
 
-### Specialized Arithmetic
+=== Specialized Arithmetic
 
 The
 `@n32_shl`/`@n32_shr`/`@n32_rotl`/`@n32_rotr`/`@n32_and`/`@n32_or`/`@n32_xor`
@@ -65,7 +67,7 @@ output an `N32` value.
 The `@n32_add_high`/`@n32_mul_high` extrinsic functions return the 32
 most-significant bits of the 64-bit result of an operation on two `N32` values.
 
-### IO
+=== IO
 
 The `@io_print_char` extrinsic functions takes an `IO` value and an `N32` value
 representing a Unicode scalar value, prints the character to stdout, and returns

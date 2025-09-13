@@ -1,15 +1,18 @@
-# Ivy Overview
+#import "/lib.typ": *
 
-An Ivy program consists of a series of named global nets. The name of a global
-net must start with `::`, and may contain arbitrary identifier characters or
-additional `::`s (e.g. `::foo::bar`).
+= Ivy Overview <ivy>
+
+An Ivy program consists of a series of named global nets.
+The name of a global net must start with `::`,
+and may contain arbitrary identifier characters or additional `::`s (e.g. `::foo::bar`).
 
 Ivy nets are specified with a syntax based on the
-[interaction calculus](https://en.wikipedia.org/wiki/Interaction_nets#Interaction_calculus);
-each net has a root tree, attached to its singular free port; any number of
-pairs of trees; and a wiring specified by pairs of variables.
+#link("https://en.wikipedia.org/wiki/Interaction_nets#Interaction_calculus")[interaction calculus];;
+each net has a root tree, attached to its singular free port;
+any number of pairs of trees;
+and a wiring specified by pairs of variables.
 
-```rs
+```iv
 // definition of the net `::main` (which is the entrypoint of the program)
 ::main {
   fn(io _) // <-- the root tree, a combinator with label `fn`
@@ -27,4 +30,4 @@ pairs of trees; and a wiring specified by pairs of variables.
 //           ^^-- external value node
 ```
 
-Ivy programs run on the [IVM](./ivm.md).
+Ivy programs run on the @ivm[IVM].

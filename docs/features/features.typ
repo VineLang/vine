@@ -1,4 +1,21 @@
-# Vine Language Features
+#import "/lib.typ": *
 
-An overview of Vine's language features, from [the usual](./usual.md) to
-[the bizarre](./inverse.md).
+= Vine Language Features
+
+An overview of Vine's language features, from @usual[the usual] to
+@inverse[the bizarre].
+
+#let children = (
+  "usual.typ",
+  "modules.typ",
+  "variables.typ",
+  "types/types.typ",
+  "patterns.typ",
+  "conditions.typ",
+  "methods.typ",
+  "traits/traits.typ",
+  "io.typ",
+  "values_spaces_places.typ",
+  "references.typ",
+  "inverse.typ",
+)

@@ -1,38 +1,40 @@
-# Ivy's Interaction System
+#import "/lib.typ": *
+
+= Ivy's Interaction System <interaction-system>
 
 Ivy's interaction system is based on the symmetric interaction combinators, with
 various extensions.
 
-## Agent Types
+== Agent Types
 
-### Combinators
+=== Combinators
 
 Ivy has a (theoretically) unlimited number of binary combinator agent types,
-each identified with a *label*. Two combinators of the same label annihilate,
+each identified with a _label_. Two combinators of the same label annihilate,
 whilst two combinators of different labels commute.
 
 Ivy also has an eraser agent, which is a nilary combinator.
 
-### Globals
+=== Globals
 
-Ivy programs are structured as a collection of named *global nets*. Each global
-net corresponds to a nilary *global agent*. A global agent expands into the
+Ivy programs are structured as a collection of named _global nets_. Each global
+net corresponds to a nilary _global agent_. A global agent expands into the
 corresponding global net when necessary during interaction.
 
-### Extrinsics
+=== Extrinsics
 
-*Extrinsic agents* represent entities and operations external to the interaction
+_Extrinsic agents_ represent entities and operations external to the interaction
 net.
 
-- *extrinsic values* are nilary agents that represent external entities
-- *extrinsic functions* are binary agents that represent external operations
-- *extrinsic branches* are ternary agents that represent a boolean query on an
+- _extrinsic values_ are nilary agents that represent external entities
+- _extrinsic functions_ are binary agents that represent external operations
+- _extrinsic branches_ are ternary agents that represent a boolean query on an
   external entity
 
 Extrinsics are discussed in more detail on the
-[corresponding page](./extrinsics.md).
+@extrinsics[corresponding page].
 
-## Interaction Rules
+== Interaction Rules
 
 Ivy has 7 categories of interaction rules:
 
@@ -47,17 +49,17 @@ Ivy has 7 categories of interaction rules:
 For combinator agents, the Annihilate, Commute, Copy, and Erase rules behave
 equivalently to the standard rules for symmetric interaction combinators.
 
-### Annihilate
+=== Annihilate
 
 When two non-nilary agents of the same type interact, they annihilate. The wires
 previously connected to their auxiliary ports are linked together.
 
-### Commute
+=== Commute
 
 When two non-nilary agents of different types interact, they commute,
 analogously to interaction combinators.
 
-### Copy
+=== Copy
 
 When a nilary agent and a non-nilary agent of certain types interact, the nilary
 agent is copied to each of the non-nilary agent's auxiliary wires. This happens
@@ -70,24 +72,24 @@ when:
   of a label that does not appear in the global net (or any global net
   transitively referenced)
 
-### Erase
+=== Erase
 
 When two nilary agents interact, they are erased, unless one is an extrinsic
 value and the other is a global agent.
 
-### Expand
+=== Expand <expand>
 
 When a global agent interacts with another agent, it is expanded (unless the
 Copy or Erase rules above apply). The global agent is simply replaced with the
 corresponding global net (and the other agent is untouched).
 
-### Call
+=== Call <call>
 
 When an extrinsic value interacts with an extrinsic function, the associated
 operation is performed on the associated entity, and some extrinsic value is
 returned.
 
-### Branch
+=== Branch
 
 When an extrinsic value interacts with an extrinsic branch, the associated query
 is performed on the associated entity. Based on the boolean result, one of the
