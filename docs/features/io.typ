@@ -1,9 +1,11 @@
-# IO
+#import "/lib.typ": *
 
-All IO in Vine is done by calling functions on an IO handle, passed in to `main`
+= IO <io>
+
+All IO in Vine is done by calling functions on an IO handle, passed in to #fn[`main`]
 at the start of the program. For example, here is a basic `cat` program:
 
-```rs
+```vi
 use std::option::Option::Some;
 
 pub fn main(&io: &IO) {
@@ -15,7 +17,7 @@ pub fn main(&io: &IO) {
 
 Any function that needs to do IO must take a reference to this handle.
 
-```rs
+```vi
 use std::option::Option::Some;
 
 pub fn main(&io: &IO) {

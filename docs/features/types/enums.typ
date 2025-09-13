@@ -1,9 +1,11 @@
-# Enums
+#import "/lib.typ": *
 
-An enum is a type with a fixed set of *variants*. An enum value is one of those
+= Enums <enums>
+
+An enum is a type with a fixed set of _variants_. An enum value is one of those
 variants.
 
-```rs
+```vi
 enum Weekday {
   Monday,
   Tuesday,
@@ -27,7 +29,7 @@ mood // ":)"
 
 Like structs, enum variants can wrap content:
 
-```rs
+```vi
 enum Shape {
   Point,
   Circle(F32),
@@ -42,7 +44,7 @@ let z = Shape::Rect({ width: 4.0, height: 6.0 }); // z: Shape
 Pattern matching can be used to branch on the variant of the enum and access its
 content.
 
-```rs
+```vi
 fn perimeter(shape: Shape) -> F32 {
   match shape {
     Shape::Point {
@@ -62,13 +64,13 @@ perimeter(Shape::Circle(1.0)) // 6.28
 perimeter(Shape::Rect({ width: 4.0, height: 6.0 })) // 20.0
 ```
 
-Pattern matching is discussed further in the [Patterns](../patterns.md) section.
+Pattern matching is discussed further in the @patterns[Patterns] section.
 
-## Standard Enums
+== Standard Enums
 
-The standard library defines the enum types `Option[T]` and `Result[T, E]`:
+The standard library defines the enum types #ty[`Option[T]`] and #ty[`Result[T, E]`]:
 
-```rs
+```vi
 enum Option[T] {
   Some(T),
   None,

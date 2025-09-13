@@ -1,10 +1,12 @@
-# Composite Types
+#import "/lib.typ": *
+
+= Composite Types <composite>
 
 A composite type is a fixed-sized, heterogenous collection of values.
 
-There are two kinds of composite types: *tuples* and *objects*.
+There are two kinds of composite types: _tuples_ and _objects_.
 
-```rs
+```vi
 // tuple
 let a = (1, 'a', 4.6); // a: (N32, Char, F32)
 
@@ -14,7 +16,7 @@ let b = { p: false, q: "xyz" }; // b: { p: Bool, r: String }
 
 The values of a tuple are accessed by their index.
 
-```rs
+```vi
 let a = (1, 'a', 4.6);
 a.0 // 1
 a.1 // 'a'
@@ -26,7 +28,7 @@ a.2 // 46.0
 
 The values of an object are accessed by their key.
 
-```rs
+```vi
 let b = { p: false, q: "xyz" };
 b.p // false
 b.q // "xyz"

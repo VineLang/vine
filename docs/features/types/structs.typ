@@ -1,37 +1,39 @@
-# Structs
+#import "/lib.typ": *
 
-A *struct* creates a new type that wraps some *content*.
+= Structs <structs>
 
-```rs
+A _struct_ creates a new type that wraps some _content_.
+
+```vi
 // define a struct named `Id` with content type `N32`
 struct Id(N32);
 ```
 
 Structs can be constructed by specifying their content:
 
-```rs
+```vi
 let id = Id(46); // id: Id
 ```
 
 A struct type is distinct from its content type:
 
-```rs
+```vi
 let id: Id = 46; // error; expected type `Id`, found type `N32`
 let num: N32 = Id(46); // error; expected type `N32`, found type `Id`
 ```
 
-To access the content of a struct, one can use the unwrap operator, `!`:
+To access the content of a struct, one can use the unwrap operator, #op[`!`]:
 
-```rs
+```vi
 let id = Id(46);
 let num = id!; // num: N32
 num // 46
 ```
 
-Structs are also *nominal*; a struct type is distinct from any other struct
+Structs are also _nominal_; a struct type is distinct from any other struct
 type, even one with the same content:
 
-```rs
+```vi
 struct Foo(String);
 struct Bar(String);
 let foo: Foo = Bar("foo"); // error: expected type `Foo`, found type `Bar`
@@ -40,7 +42,7 @@ let foo: Foo = Bar("foo"); // error: expected type `Foo`, found type `Bar`
 It's often useful to have struct types which wrap multiple fields; this can be
 accomplished by having the content be a composite type:
 
-```rs
+```vi
 struct Point((N32, N32));
 let p = Point((1, 2));
 // for tuples, the inner set of parentheses can be omitted:
@@ -55,7 +57,7 @@ p.0 // 1
 p.1 // 2
 ```
 
-```rs
+```vi
 struct Place({
   latitude: F32,
   longitude: F32,
@@ -77,7 +79,7 @@ magnetic_north_pole.longitude // 162.867
 
 Struct types can also be generic.
 
-```rs
+```vi
 struct Pair[T]((T, T));
 
 let u = Pair(1, 2); // u: Pair[N32]
@@ -92,7 +94,7 @@ let y = Box({ value: "abc" }); // y: Box[String]
 By default, the content of a struct is private to the module the struct was
 defined in:
 
-```rs
+```vi
 mod points {
   pub struct Point((N32, N32));
   
@@ -106,7 +108,7 @@ origin.0 // error; content of `Point` is private
 
 The content can be made public by giving it a visibility of `pub`:
 
-```rs
+```vi
 mod points {
   pub struct Point(pub (N32, N32));
   //               ^-- visibility of the content

@@ -1,3 +1,10 @@
-# Traits
+#import "/lib.typ": *
 
-A *trait* defines functionality that can be shared between types.
+= Traits
+
+A _trait_ defines functionality that can be shared between types.
+
+#let children = (
+  "intro.typ",
+  "standard.typ",
+)

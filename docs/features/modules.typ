@@ -1,9 +1,11 @@
-# Modules
+#import "/lib.typ": *
 
-Vine programs are structured into *modules*. Every Vine file is a module.
-Modules consist of a collection of *items*.
+= Modules
 
-```rs
+Vine programs are structured into _modules_. Every Vine file is a module.
+Modules consist of a collection of _items_.
+
+```vi
 // main.vi
 
 // function item named `main`
@@ -15,14 +17,14 @@ pub fn main(&io: &IO) {
 const answer: N32 = 42;
 ```
 
-Every item has a *visibility*, which determines where they can be accessed. By
+Every item has a _visibility_, which determines where they can be accessed. By
 default, items are private, and can only be accessed within the module they were
 defined in. Items can be made public with the `pub` keyword; public items can be
 accessed anywhere.
 
-Modules can have *submodules*.
+Modules can have _submodules_.
 
-```rs
+```vi
 // main.vi
 
 mod messages {
@@ -38,14 +40,14 @@ pub fn main(&io: &IO) {
 
 Submodules can be included from a separate file:
 
-```rs
+```vi
 // messages.vi
 
 pub const greeting: String = "Hello, world!";
 pub const farewell: String = "Goodbye, world!";
 ```
 
-```rs
+```vi
 // main.vi
 
 mod messages = "./messages.vi";
@@ -58,7 +60,7 @@ pub fn main(&io: &IO) {
 
 Items from other modules can be imported with a `use` item:
 
-```rs
+```vi
 // main.vi
 
 mod messages = "./messages.vi";

@@ -1,27 +1,29 @@
-# Patterns
+#import "/lib.typ": *
 
-*Patterns* appear in:
+= Patterns <patterns>
 
-- `let` bindings (`let pattern = ...`)
-- `fn` parameters (`fn foo(pattern: ...) { ... }`)
-- `match` arms (`match foo { pattern { ... } }`)
-- [`is` expressions](./conditions.md#the-is-operator) (`foo is pattern`)
+_Patterns_ appear in:
+
+- #vi[`let`] bindings (#vi[`let pattern = ...`])
+- #vi[`fn`] parameters (#vi[`fn foo(pattern: ...) { ... }`])
+- #vi[`match`] arms (#vi[`match foo { pattern { ... } }`])
+- @is[#op[`is`] expressions] (#vi[`foo is pattern`])
 
 Patterns are used to declare variables, unwrap data, and match values.
 
-## Complete Patterns
+== Complete Patterns
 
-Variables are declared using *variable patterns*.
+Variables are declared using _variable patterns_.
 
-```rs
+```vi
 let x = 1; // here, `x` is a variable pattern
 ```
 
 Variable patterns are often subpatterns of other patterns.
 
-*Composite patterns* unwrap composite types:
+_Composite patterns_ unwrap composite types:
 
-```rs
+```vi
 // tuple pattern
 let tuple = (1, 2);
 let (x, y) = tuple; // here, `(x, y)` is a tuple pattern
@@ -30,7 +32,7 @@ x // 1
 y // 2
 ```
 
-```rs
+```vi
 // object pattern
 let object = { a: 1, b: 2.0 };
 let { a, b: float } = object;
@@ -38,9 +40,9 @@ a // 1
 float // 2.0
 ```
 
-*Struct* patterns unwrap structs:
+_Struct_ patterns unwrap structs:
 
-```rs
+```vi
 // struct pattern
 struct Foo(N32);
 let foo = Foo(123);
@@ -48,7 +50,7 @@ let Foo(x) = foo; // `Foo(x)` is a struct pattern
 x // 123
 ```
 
-```rs
+```vi
 // struct pattern with tuple subpattern
 struct Point((N32, N32));
 let p = Point((1, 2));
@@ -62,7 +64,7 @@ x // 123
 y // "abc"
 ```
 
-```rs
+```vi
 // struct pattern with object subpattern
 struct Place({ latitude: F32, longitude: F32 });
 let magnetic_north_pole = Place({ latitude: 86.494, longitude: 162.867 });
@@ -73,30 +75,30 @@ longitude // 162.867
 
 The `_` pattern discards the matched value.
 
-```rs
+```vi
 let tuple = (1, 2);
 let (x, _) = tuple; // discard the second field
 x // 1
 ```
 
-These are all *complete patterns*, because they match all values of their type.
+These are all _complete patterns_, because they match all values of their type.
 Only complete patterns can be used in `let` bindings and `fn` parameters.
 
 Other kinds of complete patterns include:
 
-- [reference/dereference patterns](./references)
-- [inverse patterns](./inverse)
+- @references[reference/dereference patterns]
+- @inverse[inverse patterns]
 
-## Incomplete Patterns
+== Incomplete Patterns
 
-*Enum patterns* match values of an enum type. They are *incomplete patterns*,
+_Enum patterns_ match values of an enum type. They are _incomplete patterns_,
 because they do not match all values of their type; they only match one variant
 of the enum. Any pattern with incomplete subpatterns is also incomplete.
 
 Incomplete patterns can be used in `match` expressions to perform pattern
 matching. For example:
 
-```rs
+```vi
 fn display(score: Option[N32]) -> String {
   match score {
     Some(value) { "score: {value}" }
@@ -109,4 +111,4 @@ display(None) // "no score"
 ```
 
 Incomplete patterns can also be used with the
-[`is` operator](./conditions.md#the-is-operator).
+@is[`is` operator].
