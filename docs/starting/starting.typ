@@ -1,4 +1,11 @@
-# Getting Started
+#import "/lib.typ": *
 
-Let's get started! Once you've [installed Vine](./installation.md), we'll take a
-look at a basic [Hello, world!](./hello-world.md) program.
+= Getting Started <foo>
+
+Let's get started! Once you've @installation[installed Vine], we'll take a
+look at a basic @hello-world[Hello, world!] program.
+
+#let children = (
+  "installation.typ",
+  "hello_world.typ",
+)

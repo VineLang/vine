@@ -1,13 +1,15 @@
-# Statistics
+#import "/lib.typ": *
+
+= Statistics <statistics>
 
 The IVM collects various statistics during execution. The Vine and Ivy CLIs
 display these statistics after running a program.
 
 Let's take a look at a sample stat block, section by section.
 
-### Interactions
+=== Interactions
 
-```
+```iv
 Interactions
   Total           11_106_946
   Annihilate       4_319_083
@@ -25,11 +27,11 @@ universal way; the same program will always have the exact same interaction
 count, no matter what machine it is run on.
 
 The other numbers break down the
-[various types of interactions](./interaction-system.md).
+@interaction-system[various types of interactions].
 
-### Memory
+=== Memory
 
-```
+```iv
 Memory
   Heap                   784 B
   Allocated      242_850_688 B
@@ -53,9 +55,9 @@ These numbers are deterministic when the program is executed sequentially, but
 can vary when executed in parallel (since the OS's thread scheduling is
 non-deterministic).
 
-### Performance
+=== Performance
 
-```
+```vi
 Performance
   Time                   175 ms
   Speed           63_375_794 IPS
@@ -66,13 +68,13 @@ Performance
 `Speed` is the speed of the execution, measured in IPS (interactions per
 second), and equal to `Interactions / Time`.
 
-## Parallel Statistics
+== Parallel Statistics
 
 Some statistics only apply to parallel execution.
 
-### Workload
+=== Workload
 
-```
+```vi
 Workload
   Workers                 16
   Active                  16
@@ -91,9 +93,9 @@ interactions performed by each active worker.
 
 `Moved` is the number of active pairs that were moved between workers.
 
-### Performance
+=== Performance
 
-```
+```vi
 Performance
   Time                    19 ms
   Speed          569_167_395 IPS

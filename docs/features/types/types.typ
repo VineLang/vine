@@ -1,12 +1,23 @@
-# Types
+#import "/lib.typ": *
 
-Vine is statically typed. Every expression has a type, like `Bool` or
-`List[N32]`. Type parameters are written in square brackets.
+= Types
+
+Vine is statically typed. Every expression has a type, like #ty[`Bool`] or
+#ty[`List[N32]`]. Type parameters are written in square brackets.
 
 Types fall in to several categories:
 
-- [primitive types](./primitives.md) are fundamental types defined by the
+- @primitive-types[primitive types] are fundamental types defined by the
   compiler
-- [standard types](./standard.md) are commonly-used types defined by the
+- @standard-types[standard types] are commonly-used types defined by the
   standard library
-- [structs](./structs.md) and [enums](./enums.md) are user-defined types
+- @structs[structs] and @enums[enums] are user-defined types
+
+#let children = (
+  "primitives.typ",
+  "standard.typ",
+  "composite.typ",
+  "structs.typ",
+  "enums.typ",
+)
+

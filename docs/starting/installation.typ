@@ -1,8 +1,10 @@
-# Installation
+#import "/lib.typ": *
 
-Make sure you have [Rust](https://www.rust-lang.org/tools/install) installed.
+= Installation <installation>
 
-```sh
+Make sure you have #link("https://www.rust-lang.org/tools/install")[Rust] installed.
+
+```nu
 # clone the Vine repository
 git clone https://github.com/VineLang/vine
 cd ./vine
@@ -22,12 +24,12 @@ Hello, world!
 
 Head over to the next page to learn more about what just happened.
 
-## Optional: Vine VSCode Extension
+== Optional: Vine VSCode Extension
 
-Make sure you have [Node.js](https://nodejs.org/en/download/package-manager)
+Make sure you have #link("https://nodejs.org/en/download/package-manager")[Node.js]
 installed.
 
-```sh
+```nu
 cd lsp/client
 npm i
 ```
@@ -38,9 +40,9 @@ Then, run "Developer: Install Extension from Location..." and select the
 You can check that it's working by opening one of the example files and making a
 syntax error. When you save, you should see an error appear.
 
-## Optional: Vine Workspace Configuration
+== Optional: Vine Workspace Configuration
 
-### LSP
+=== LSP
 
 ```json
 // .vscode/settings.json
@@ -52,9 +54,9 @@ syntax error. When you save, you should see an error appear.
 
 Make sure you reload the window after changing this file.
 
-### Formatter
+=== Formatter
 
-Make sure you have [`dprint`](https://dprint.dev/install/) installed.
+Make sure you have #link("https://dprint.dev/install/")[`dprint`] installed.
 
 ```json
 // dprint.json
