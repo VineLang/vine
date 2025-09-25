@@ -3,6 +3,7 @@ pub mod chart;
 pub mod checkpoint;
 pub mod core;
 pub mod diag;
+pub mod origins;
 pub mod resolutions;
 pub mod signatures;
 pub mod specializations;
