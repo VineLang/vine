@@ -13,15 +13,15 @@ new_idx!(pub Origin; n => ["o{n}"]);
 
 #[derive(Default, Debug, Clone)]
 pub struct Origins {
-  origins: IdxVec<Origin, OriginFacts>,
-  delta: Vec<Delta>,
-  inconsistent: bool,
+  pub origins: IdxVec<Origin, OriginFacts>,
+  pub delta: Vec<Delta>,
+  pub inconsistent: bool,
 }
 
 #[derive(Default, Debug, Clone)]
 pub struct OriginFacts {
-  relations: IntMap<Origin, Relation>,
-  joins: IntMap<Origin, Origin>,
+  pub relations: IntMap<Origin, Relation>,
+  pub joins: IntMap<Origin, Origin>,
 }
 
 #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
@@ -133,6 +133,16 @@ impl Origins {
 
   pub fn relation(&self, a: Origin, b: Origin) -> Option<Relation> {
     self.origins[a].relations.get(&b).copied()
+  }
+
+  pub fn import(&mut self, other: &Origins) -> impl Fn(Origin) -> Origin {
+    assert!(!other.inconsistent);
+    let base = self.origins.len();
+    self.origins.vec.extend(other.origins.values().map(|facts| OriginFacts {
+      relations: facts.relations.iter().map(|(&a, &rel)| (Origin(a.0 + base), rel)).collect(),
+      joins: facts.joins.iter().map(|(&a, &b)| (Origin(a.0 + base), Origin(b.0 + base))).collect(),
+    }));
+    move |a| Origin(a.0 + base)
   }
 }
 
