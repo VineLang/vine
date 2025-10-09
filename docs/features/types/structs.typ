@@ -30,8 +30,9 @@ let num = id!; // num: N32
 num // 46
 ```
 
-Structs are also _nominal_; a struct type is distinct from any other struct
-type, even one with the same content:
+Structs are also _nominal_;
+  a struct type is distinct from any other struct type,
+  even one with the same content:
 
 ```vi
 struct Foo(String);
@@ -39,8 +40,8 @@ struct Bar(String);
 let foo: Foo = Bar("foo"); // error: expected type `Foo`, found type `Bar`
 ```
 
-It's often useful to have struct types which wrap multiple fields; this can be
-accomplished by having the content be a composite type:
+It's often useful to have struct types which wrap multiple fields;
+  this can be accomplished by having the content be a composite type:
 
 ```vi
 struct Point((N32, N32));
@@ -91,8 +92,7 @@ let x = Box({ value: 46 }); // x: Box[N32]
 let y = Box({ value: "abc" }); // y: Box[String]
 ```
 
-By default, the content of a struct is private to the module the struct was
-defined in:
+By default, the content of a struct is private to the module the struct was defined in:
 
 ```vi
 mod points {

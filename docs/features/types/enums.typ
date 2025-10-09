@@ -2,8 +2,8 @@
 
 = Enums <enums>
 
-An enum is a type with a fixed set of _variants_. An enum value is one of those
-variants.
+An enum is a type with a fixed set of _variants_.
+An enum value is one of those variants.
 
 ```vi
 enum Weekday {
@@ -41,8 +41,7 @@ let y = Shape::Circle(1.0); // y: Shape
 let z = Shape::Rect({ width: 4.0, height: 6.0 }); // z: Shape
 ```
 
-Pattern matching can be used to branch on the variant of the enum and access its
-content.
+Pattern matching can be used to branch on the variant of the enum and access its content.
 
 ```vi
 fn perimeter(shape: Shape) -> F32 {
@@ -81,3 +80,5 @@ enum Result[T, E] {
   Err(E),
 }
 ```
+
+#todo[maybe write more about `Option` and `Result`]

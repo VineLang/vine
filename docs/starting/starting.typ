@@ -2,8 +2,9 @@
 
 = Getting Started <foo>
 
-Let's get started! Once you've @installation[installed Vine], we'll take a
-look at a basic @hello-world[Hello, world!] program.
+Let's get started!
+Once you've @installation[installed Vine],
+  we'll take a look at a basic @hello-world[Hello, world!] program.
 
 #let children = (
   "installation.typ",

@@ -2,8 +2,8 @@
 
 = Statistics <statistics>
 
-The IVM collects various statistics during execution. The Vine and Ivy CLIs
-display these statistics after running a program.
+The IVM collects various statistics during execution.
+The Vine and Ivy CLIs display these statistics after running a program.
 
 Let's take a look at a sample stat block, section by section.
 
@@ -21,13 +21,13 @@ Interactions
   Branch             275_619
 ```
 
-`Total` shows the total number of interactions performed in the execution of the
-program. This measures how much "work" was done, in a deterministic and
-universal way; the same program will always have the exact same interaction
-count, no matter what machine it is run on.
+`Total` shows the total number of interactions performed in the execution of the program.
+This measures how much "work" was done,
+  in a deterministic and universal way;
+  the same program will always have the exact same interaction count,
+  no matter what machine it is run on.
 
-The other numbers break down the
-@interaction-system[various types of interactions].
+The other numbers break down the @interaction-system[various types of interactions].
 
 === Memory
 
@@ -38,22 +38,21 @@ Memory
   Freed          242_850_688 B
 ```
 
-`Heap` shows the greatest size of the runtime's heap over the course of the
-program, measured in bytes. In this case, it never needed to use more than a
-kilobyte of heap space throughout the entire program.
+`Heap` shows the greatest size of the runtime's heap over the course of the program, measured in bytes.
+In this case, it never needed to use more than a kilobyte of heap space throughout the entire program.
 
-`Allocated` shows the total number of bytes allocated through the program, and
-`Freed` shows the total number of bytes freed. These numbers should always
-match; if they differ, that indicates that there was a vicious circle in the
-interaction net.
+`Allocated` shows the total number of bytes allocated through the program,
+  and `Freed` shows the total number of bytes freed.
+These numbers should always match;
+  if they differ, that indicates that there was a vicious circle in the interaction net.
 
-In this case, `Allocated` and `Freed` are much greater than `Heap`; this shows
-that the evaluator was reusing its memory buffer very effectively. (This is very
-common for the IVM.)
+In this case, `Allocated` and `Freed` are much greater than `Heap`;
+  this shows that the evaluator was reusing its memory buffer very effectively.
+(This is very common for the IVM.)
 
-These numbers are deterministic when the program is executed sequentially, but
-can vary when executed in parallel (since the OS's thread scheduling is
-non-deterministic).
+These numbers are deterministic when the program is executed sequentially,
+  but can vary when executed in parallel
+  (since the OS's thread scheduling is non-deterministic).
 
 === Performance
 
@@ -65,8 +64,9 @@ Performance
 
 `Time` is the amount of time elapsed over the execution of the program.
 
-`Speed` is the speed of the execution, measured in IPS (interactions per
-second), and equal to `Interactions / Time`.
+`Speed` is the speed of the execution,
+  measured in IPS (interactions per second),
+  and equal to `Interactions / Time`.
 
 == Parallel Statistics
 
@@ -88,8 +88,8 @@ Workload
 
 `Active` is the number of worker threads that were used.
 
-`Minimum`, `Average`, and `Maximum` describe the statistics of the number of
-interactions performed by each active worker.
+`Minimum`, `Average`, and `Maximum` describe the statistics of
+  the number of interactions performed by each active worker.
 
 `Moved` is the number of active pairs that were moved between workers.
 
@@ -107,5 +107,5 @@ Performance
 
 `Working` is the total of the amounts of time each worker was active.
 
-`Rate` is the average speed of an individual worker, and equal to
-`Interactions / Working`.
+`Rate` is the average speed of an individual worker,
+  and equal to `Interactions / Working`.

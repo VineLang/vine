@@ -32,11 +32,11 @@ do {
 }
 ```
 
-Note that comparison chains do not short-circuit; all of the subexpressions are
-evaluated exactly once.
+Note that comparison chains do not short-circuit;
+  all of the subexpressions are evaluated exactly once.
 
-All of the comparison operators can be chained. As a contrived example, these
-are equivalent:
+All of the comparison operators can be chained.
+As a contrived example, these are equivalent:
 
 ```vi
 1 == 1 < 2 <= 3 > 0 != 5 // true
@@ -45,8 +45,7 @@ are equivalent:
 
 == The #op[`is`] Operator <is>
 
-The `is` operator checks if an expression matches some pattern, and returns a
-boolean.
+The `is` operator checks if an expression matches some pattern, and returns a boolean.
 
 ```vi
 let option = Some(1);
@@ -55,7 +54,7 @@ option is None; // false
 ```
 
 Any variables bound by the patterns are in scope in subsequent *true-paths*
-including #op[`&&`] chains, then-blocks of an #vi[`if`], and the body of a #vi[`while`].
+  including #op[`&&`] chains, then-blocks of an #vi[`if`], and the body of a #vi[`while`].
 
 ```vi
 let option = Some(1);
@@ -81,9 +80,9 @@ option is Some(value) || value > 0
 
 == Implication
 
-In logic, the statement "P implies Q" is true if, whenever P is true, Q is also
-true. This is equivalent to "P is false, or Q is true". Vine has an implication
-operator, #op[`=>`], with the same semantics.
+In logic, the statement "P implies Q" is true if, whenever P is true, Q is also true.
+This is equivalent to "P is false, or Q is true".
+Vine has an implication operator, #op[`=>`], with the same semantics.
 
 ```vi
 true => true // true
@@ -92,8 +91,8 @@ false => true // true
 false => false // true
 ```
 
-The implies operator also continues the true-path; variables bound in the
-left-hand side are in scope in the right-hand side:
+The implies operator also continues the true-path;
+  variables bound in the left-hand side are in scope in the right-hand side:
 
 ```vi
 let x = Some(1);
@@ -105,9 +104,10 @@ y is Some(value) => value > 0 // true
 y is Some(value) => value == 0 // true
 ```
 
-A common pattern in other languages is to write
-#expr[`value == null || validate(value)`] to validate a nullable value. In Vine, this
-is written with the implication operator:
+A common pattern in other languages
+  is to write `value == null || validate(value)`
+  to validate a nullable value.
+In Vine, this is written with the implication operator:
 
 ```vi
 value is Some(value) => validate(value)
