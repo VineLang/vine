@@ -11,8 +11,8 @@ let x = 1; // x: N32
 let r = &x; // r: &N32
 ```
 
-`r` is now a reference to the place that `x` evaluated to. It is of type #ty[`&N32`],
-the type representing references to #ty[`N32`]s.
+`r` is now a reference to the place that `x` evaluated to.
+It is of type #ty[`&N32`], the type representing references to #ty[`N32`]s.
 
 References can be unwrapped using the #ty[`&`] reference pattern.
 
@@ -46,8 +46,7 @@ x.push_back(4); // equivalent to: `List::push_back(&x, 4)` (note the reference!)
 x // [1, 2, 3, 4]
 ```
 
-References are also useful when a function only needs to access part of a data
-structure:
+References are also useful when a function only needs to access part of a data structure:
 
 ```vi
 // Inefficient
@@ -75,13 +74,12 @@ x // [1, 2, 3, 4]
 e // false
 ```
 
-(This is why #vi[`List::len`] takes its receiver by reference, despite not needing to
-mutate it.)
+(This is why #vi[`List::len`] takes its receiver by reference,
+  despite not needing to mutate it.)
 
 == Dereference Operator
 
-The place contained in a reference can also be accessed with the #vi[`*`] dereference
-operator:
+The place contained in a reference can also be accessed with the #vi[`*`] dereference operator:
 
 ```vi
 let x = 1;
@@ -89,10 +87,6 @@ let r = &x;
 *r = 2;
 x // 2
 ```
-
-(Note that there are currently some bugs/limitations with this; if you have a
-reference stored in a variable, it is preferred to use reference patterns
-instead.)
 
 This can be useful when a function returns a reference:
 
@@ -112,9 +106,9 @@ x // [1, 2, 4]
 
 == Dereference Pattern
 
-The #op[`*`] dereference _pattern_ takes a value pattern of type #ty[`&T`], and yields a
-place pattern of type #ty[`T`]. This can be used, for example, to "split" a reference
-to a struct into references to its fields.
+The #op[`*`] dereference _pattern_ takes a value pattern of type #ty[`&T`],
+  and yields a place pattern of type #ty[`T`].
+This can be used, for example, to "split" a reference to a struct into references to its fields.
 
 ```vi
 struct Pair(N32, N32);

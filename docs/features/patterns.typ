@@ -21,7 +21,7 @@ let x = 1; // here, `x` is a variable pattern
 
 Variable patterns are often subpatterns of other patterns.
 
-_Composite patterns_ unwrap composite types:
+_Composite patterns_ unwrap @composite[composite types]:
 
 ```vi
 // tuple pattern
@@ -40,20 +40,22 @@ a // 1
 float // 2.0
 ```
 
-_Struct_ patterns unwrap structs:
+_Struct_ patterns unwrap @structs[structs]:
 
 ```vi
-// struct pattern
 struct Foo(N32);
 let foo = Foo(123);
-let Foo(x) = foo; // `Foo(x)` is a struct pattern
+
+// struct pattern
+let Foo(x) = foo;
 x // 123
 ```
 
 ```vi
-// struct pattern with tuple subpattern
 struct Point((N32, N32));
 let p = Point((1, 2));
+
+// struct pattern with tuple subpattern
 let Point((x, y)) = p;
 x // 123
 y // "abc"
@@ -65,9 +67,10 @@ y // "abc"
 ```
 
 ```vi
-// struct pattern with object subpattern
 struct Place({ latitude: F32, longitude: F32 });
 let magnetic_north_pole = Place({ latitude: 86.494, longitude: 162.867 });
+
+// struct pattern with object subpattern
 let Place({ latitude, longitude }) = magnetic_north_pole;
 latitude // 86.494
 longitude // 162.867
@@ -83,6 +86,7 @@ x // 1
 
 These are all _complete patterns_, because they match all values of their type.
 Only complete patterns can be used in `let` bindings and `fn` parameters.
+#todo[talk about let/else somewhere?]
 
 Other kinds of complete patterns include:
 
@@ -91,12 +95,13 @@ Other kinds of complete patterns include:
 
 == Incomplete Patterns
 
-_Enum patterns_ match values of an enum type. They are _incomplete patterns_,
-because they do not match all values of their type; they only match one variant
-of the enum. Any pattern with incomplete subpatterns is also incomplete.
+_Enum patterns_ match values of an @enums[enum type].
+They are _incomplete patterns_, because they do not match all values of their type;
+  they only match one variant of the enum.
+Any pattern with incomplete subpatterns is also incomplete.
 
-Incomplete patterns can be used in `match` expressions to perform pattern
-matching. For example:
+Incomplete patterns can be used in `match` expressions to perform pattern matching.
+For example:
 
 ```vi
 fn display(score: Option[N32]) -> String {
@@ -110,5 +115,4 @@ display(Some(123)) // "score: 123"
 display(None) // "no score"
 ```
 
-Incomplete patterns can also be used with the
-@is[`is` operator].
+Incomplete patterns can also be used with the @is[`is` operator].

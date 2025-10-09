@@ -2,7 +2,10 @@
 
 = Modules
 
-Vine programs are structured into _modules_. Every Vine file is a module.
+#todo[consider rephrasing]
+
+Vine programs are structured into _modules_.
+Every Vine file is a module.
 Modules consist of a collection of _items_.
 
 ```vi
@@ -17,10 +20,11 @@ pub fn main(&io: &IO) {
 const answer: N32 = 42;
 ```
 
-Every item has a _visibility_, which determines where they can be accessed. By
-default, items are private, and can only be accessed within the module they were
-defined in. Items can be made public with the `pub` keyword; public items can be
-accessed anywhere.
+Every item has a _visibility_, which determines where they can be accessed.
+By default, items are private,
+  and can only be accessed within the module they were defined in.
+Items can be made public with the `pub` keyword;
+  public items can be accessed anywhere.
 
 Modules can have _submodules_.
 
@@ -72,3 +76,10 @@ pub fn main(&io: &IO) {
   io.println(farewell);
 }
 ```
+
+#todo[visibility between private and public]
+
+#todo[implicit submodule paths]
+
+#todo[module collapse (?)]
+

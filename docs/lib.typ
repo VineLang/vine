@@ -2,6 +2,8 @@
 #import "deps/hyptyp/hyptyp.typ"
 #import "deps/typsitter/typsitter.typ"
 
+#import hyptyp: t
+
 #let theme(theme, fg, fgl, bg, ..x) = {
   let comment = color.mix(space: rgb, (fg, 50%), (bg, 50%))
   let keyword = color.mix(space: oklab, (theme, 80%), (fg, 20%));
@@ -64,4 +66,28 @@
 #let fn = vi_.with("fn ", "() {}")
 #let op = vi_.with("1 ", " 1")
 #let vstr = vi_.with("\"", "\"")
+
+#let todo-counter = counter("todo")
+#let todo = (desc) => [
+  #context {
+    let id = "todo-" + str(todo-counter.get().at(0))
+    [#t.span(class: "todo", id: id)[\[TODO: #desc\]] #metadata((id: id, desc: desc)) <todo>]
+  }
+  #todo-counter.step()
+]
+
+#let todos = context {
+  let todos = query(<todo>)
+  if todos != () {
+    [=== TODO]
+    list(
+      ..for todo in todos {
+       ([
+        #link(hyptyp.slug.at(todo.location()) + "#" + todo.value.id)[#todo.value.desc]
+        (#raw(hyptyp.slug.at(todo.location())))
+      ],)
+      }
+    )
+  }
+}
 

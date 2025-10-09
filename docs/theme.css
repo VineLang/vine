@@ -26,3 +26,10 @@ code.ts {
   background: none;
 }
 
+.todo {
+  color: red;
+  font-style: italic;
+  &:target {
+    font-weight: bold;
+  }
+}

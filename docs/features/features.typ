@@ -9,6 +9,7 @@ An overview of Vine's language features, from @usual[the usual] to
   "usual.typ",
   "modules.typ",
   "variables.typ",
+  "control_flow.typ",
   "types/types.typ",
   "patterns.typ",
   "conditions.typ",

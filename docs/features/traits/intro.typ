@@ -2,8 +2,8 @@
 
 = Using Traits
 
-A _trait_ defines functionality that can be shared between types. For example,
-one could define an `Equal` trait to represent equality.
+A _trait_ defines functionality that can be shared between types.
+For example, one could define an `Equal` trait to represent equality.
 
 ```vi
 trait Equal[T] {
@@ -11,11 +11,12 @@ trait Equal[T] {
 }
 ```
 
-The `Equal` trait is generic on a type #ty[`T`], and has a single method, #fn[`equal`],
-which tests for equality between two values of type #ty[`T`].
+The `Equal` trait is generic on a type #ty[`T`],
+  and has a single method, #fn[`equal`],
+  which tests for equality between two values of type #ty[`T`].
 
-Traits only define the signature of their methods, so to actually call these
-methods, the trait has to be _implemented_.
+Traits only define the signature of their methods,
+  so to actually call these methods, the trait has to be _implemented_.
 
 ```vi
 struct Color({ r: N32, g: N32, b: N32 });
@@ -30,16 +31,15 @@ impl equal_color: Equal[Color] {
 }
 ```
 
-Now, we've defined an implementation named `equal_color` of the trait `Equal`
-for the type #ty[`Color`], so we can now call the #fn[`equal`] method on #ty[`Color`]s:
+Now, we've defined an implementation named `equal_color` of the trait `Equal` for the type #ty[`Color`],
+  so we can now call the #fn[`equal`] method on #ty[`Color`]s:
 
 ```vi
 red.equal(blue) // false
 red.equal(red) // true
 ```
 
-If we wanted to use this method on other types, we could create more
-implementations.
+If we wanted to use this method on other types, we could create more implementations.
 
 ```vi
 impl equal_bool: Equal[Bool] {
@@ -49,15 +49,14 @@ impl equal_bool: Equal[Bool] {
 }
 ```
 
-(Most of the time, the names of implementations don't matter, but they are used
-to disambiguate if multiple implementations could apply.)
+(Most of the time, the names of implementations don't matter,
+  but they are used to disambiguate if multiple implementations could apply.)
 
 == Implementation Parameters
 
-The advantage of using traits instead of just defining individual functions for
-types is that, with traits, one can abstract over any type that has an
-implementation of a certain trait. For example, we could write a `not_equal`
-function:
+The advantage of using traits instead of just defining individual functions for types is that,
+  with traits, one can abstract over any type that has an implementation of a certain trait.
+For example, we could write a `not_equal` function:
 
 ```vi
 fn not_equal[T; Equal[T]](a: T, b: T) -> Bool {
@@ -65,11 +64,12 @@ fn not_equal[T; Equal[T]](a: T, b: T) -> Bool {
 }
 ```
 
-The #fn[`not_equal`] function takes one type parameter, #ty[`T`], and one _implementation
-parameter_, of the trait #vi[`Equal[T]`]. (The semicolon inside the generic
-parameters separates the type parameters from the implementation parameters.)
-Since `a` and `b` are of type #ty[`T`], and there is an implementation of #vi[`Equal[T]`],
-`equal` can be called on `a` and `b`.
+The #fn[`not_equal`] function takes one type parameter, #ty[`T`],
+  and one _implementation parameter_, of the trait #vi[`Equal[T]`].
+(The semicolon inside the generic parameters separates the type parameters from the implementation parameters.)
+Since `a` and `b` are of type #ty[`T`],
+  and there is an implementation of #vi[`Equal[T]`],
+  `equal` can be called on `a` and `b`.
 
 We can then call this function on any types that we've implemented `Equal` for.
 
@@ -78,12 +78,11 @@ not_equal(red, blue) // true
 not_equal(true, true) // false
 ```
 
-Without traits, we would have to manually implement this function for every type
-we created an #fn[`equal`] method for.
+Without traits, we would have to manually implement this function
+  for every type we created an #fn[`equal`] method for.
 
-Implementations themselves can also be generic and take implementation
-parameters. This allows us to implement #vi[`Equal[List[T]]`] for any #ty[`T`] where
-#vi[`Equal[T]`] is implemented:
+Implementations themselves can also be generic and take implementation parameters.
+This allows us to implement #vi[`Equal[List[T]]`] for any #ty[`T`] where #vi[`Equal[T]`] is implemented:
 
 ```vi
 impl equal_list[T; Equal[T]]: Equal[List[T]] {
@@ -101,9 +100,10 @@ impl equal_list[T; Equal[T]]: Equal[List[T]] {
 }
 ```
 
-The signature of `equal_list` says that for any type #ty[`T`], if there is an
-implementation of #vi[`Equal[T]`], then `equal_list` implements #vi[`Equal[List[T]]`]. We
-can thus now check equality for lists of colors or lists of booleans:
+The signature of `equal_list` says that for any type #ty[`T`],
+  if there is an implementation of #vi[`Equal[T]`],
+  then `equal_list` implements #vi[`Equal[List[T]]`].
+We can thus now check equality for lists of colors or lists of booleans:
 
 ```vi
 [red, green, blue].equal([red, blue, green]) // false
@@ -116,3 +116,5 @@ We can even check equality for lists of lists of colors!
 [[red, blue], [green, red]].equal([[red, blue], [green, red]]) // true
 [[], [red]].equal([[red], []]) // false
 ```
+
+#todo[note that std has `Eq`]

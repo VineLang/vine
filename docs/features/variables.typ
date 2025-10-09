@@ -20,12 +20,12 @@ x = 5; // assign `5` to `x`
 x // 5
 ```
 
-Using a variable with no value will currently lead to unexpected behavior. In
-the future, this will be a type error.
+Using a variable with no value will currently lead to unexpected behavior.
+In the future, this will be a type error. #todo[it's the future]
 
-(Note that, in more advanced uses of the #vi[`let`] statement, declaring a variable
-with an initializer is not always equivalent to declaring it no initializer and
-then assigning to it.)
+(Note that, in more advanced uses of the #vi[`let`] statement,
+  declaring a variable with an initializer is not always equivalent
+  to declaring it no initializer and then assigning to it.)
 
 All variables have a type, which is inferred by default.
 
@@ -43,8 +43,9 @@ let y: String = 5; // error!
 
 == Shadowing
 
-Declaring a variable with the same name as a variable already in scope *shadows*
-the previous variable, making it inaccessible for the duration of the scope.
+Declaring a variable with the same name as a variable already in scope
+  _shadows_ the previous variable,
+  making it inaccessible for the duration of the scope.
 
 ```vi
 let x = 1;
@@ -53,11 +54,10 @@ let x = "abc";
 x // "abc"
 ```
 
-This is different from reassigning the variable in a number of ways; for one,
-the new variable can have a different type (like in the above example).
+This is different from reassigning the variable in a number of ways;
+  for one, the new variable can have a different type (like in the above example).
 
-Variables shadowed within a block will no longer be shadowed after the end of
-the block.
+Variables shadowed within a block will no longer be shadowed after the end of the block.
 
 ```vi
 let x = 1;

@@ -2,8 +2,9 @@
 
 = The Usual <usual>
 
-Vine has the usual complement of standard programming language features,
-including:
+#todo[reconsider page]
+
+Vine has the usual complement of standard programming language features, including:
 
 - @n32[integers]: #expr[`1 + 2 * 3`]
 - @f32[floats]: #expr[`1.0 + 2.0 * 3.0`]
@@ -16,12 +17,12 @@ including:
 - basic control flow:
   - #vi[`if condition { ... } else { ... }`]
   - #vi[`while condition { ... }`]
-  - #vi[`loop { ... }`] (loops until #vi[`break`])
+  - #vi[`loop { ... }`] (loops until #vi[`break`]) #todo[update]
   - #vi[`return value`]
   - #vi[`break`], #vi[`continue`]
   - loop labels: #vi[`while.label ... { ... break.label ... }`]
 
 (Try some of these snippets in the `vine repl`!)
 
-Many of Vine's features are influenced by Rust, and it has a similar
-expression-oriented syntax, type system, and module system.
+Many of Vine's features are influenced by Rust,
+  and it has a similar expression-oriented syntax, type system, and module system.

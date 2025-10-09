@@ -24,30 +24,30 @@ You should see something like the following:
 Hello, world!
 
 Interactions
-  Total                  297
-  Annihilate             159
+  Total                  358
+  Annihilate             185
   Commute                  0
-  Copy                    17
-  Erase                   34
-  Expand                  46
-  Call                    27
+  Copy                    27
+  Erase                   54
+  Expand                  37
+  Call                    41
   Branch                  14
 
 Memory
-  Heap                   480 B
-  Allocated            6_016 B
-  Freed                6_016 B
+  Heap                   720 B
+  Allocated            7_440 B
+  Freed                7_440 B
 
 Performance
   Time                     0 ms
-  Speed            8_054_237 IPS
+  Speed            6_979_645 IPS
 ```
 
 At the top, notice that it successfully printed `Hello, world!`.
 
-At the bottom, you'll also see several @statistics[_statistics_]
-printed out. You don't need to worry about them for now. If you want to disable
-them, you can use `--no-stats`.
+At the bottom, you'll also see several @statistics[_statistics_] printed out.
+You don't need to worry about them for now.
+If you want to disable them, you can use `--no-stats`.
 
 Let's break down what just happened.
 
@@ -69,5 +69,5 @@ Let's break down what just happened.
 
 We'll go into this in more detail in future chapters.
 
-Every Vine program must contain a #vi[`pub fn main(&io: &IO) { ... }`] ("a public
-function `main` that takes a reference to IO").
+Every Vine program must contain a #vi[`pub fn main(&io: &IO) { ... }`]
+  ("a public function `main` that takes a reference to IO").
