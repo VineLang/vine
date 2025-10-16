@@ -4,19 +4,11 @@ pub type IO;
 
 pub mod IO {
   pub fn .println(&io: &IO, str: String) {
-    debug::synchronize_io(&io);
-    io._print(str);
+    io.print(str);
     io.print_char('\n');
-    debug::synchronize_io(&io);
   }
 
   pub fn .print(&io: &IO, str: String) {
-    debug::synchronize_io(&io);
-    io._print(str);
-    debug::synchronize_io(&io);
-  }
-
-  pub.std fn ._print(&io: &IO, str: String) {
     for char in str.into_iter() {
       io.print_char(char);
     }
