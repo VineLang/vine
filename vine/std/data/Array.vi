@@ -267,12 +267,6 @@ mod Node {
     }
   }
 
-  pub fn .swap[T](&Node(l, r): &Node[T], x: N32) {
-    if x == 0 {
-      (l, r) = (r, l);
-    }
-  }
-
   pub fn .reverse[T](&self: &Node[T], len: N32) {
     if len > 1 {
       let &Node(left, right) = &self;

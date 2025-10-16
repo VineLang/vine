@@ -8,6 +8,7 @@ pub mod ops;
 pub mod rng;
 pub mod unicode;
 pub mod unsafe;
+pub mod util;
 pub mod IO;
 
 #[builtin = "prelude"]
@@ -21,13 +22,6 @@ pub mod prelude {
     ops::flex::{Drop, Fork},
     unicode::{Char, String},
     unsafe,
+    util::{black_box, replace, swap},
   };
-
-  pub fn black_box[T](value: T) -> T {
-    inline_ivy! (value <- value) -> T { #[value] }
-  }
-
-  pub fn swap[T](&a: &T, &b: &T) {
-    (a, b) = (b, a);
-  }
 }

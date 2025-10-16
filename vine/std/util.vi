@@ -1,0 +1,13 @@
+
+pub fn black_box[T](value: T) -> T {
+  inline_ivy! (value <- value) -> T { #[value] }
+}
+
+pub fn swap[T](&a: &T, &b: &T) {
+  (a, b) = (b, a);
+}
+
+pub fn replace[T](&a: &T, b: T) -> T {
+  swap(&a, &b);
+  b
+}
