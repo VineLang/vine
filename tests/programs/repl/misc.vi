@@ -94,3 +94,4 @@ match (Some(1), 2) { (None, _) { None } x { Some(x) } }
 let Ok(n) = Ok(46) else match { Err(e: String) { "error: {e}" } }; "{n}"
 let Ok(n: N32) = Err("abc") else match { Err(e) { "error: {e}" } }; "{n}"
 1+2
+for i in 0..10 { if i % 2 == 1 { continue } io.println("{i}") }

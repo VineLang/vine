@@ -419,3 +419,11 @@ let io: IO = #io;
 3
 
 let io: IO = #io;
+> for i in 0..10 { if i % 2 == 1 { continue } io.println("{i}") }
+0
+2
+4
+6
+8
+
+let io: IO;

@@ -1,0 +1,1 @@
+error tests/programs/fail/continue_what.vi:10:9 - invalid continue target
