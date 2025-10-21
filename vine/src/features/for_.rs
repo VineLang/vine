@@ -78,7 +78,7 @@ impl<'core> Resolver<'core, '_> {
     let result = self.bind_target(
       label,
       [Target::AnyLoop, Target::For],
-      TargetInfo { id: target_id, break_ty: ty, continue_: false },
+      TargetInfo { id: target_id, break_ty: ty, continue_: true },
       |self_| {
         self_.enter_scope();
         let iter = self_.resolve_expr(iter);
