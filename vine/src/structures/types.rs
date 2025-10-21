@@ -353,6 +353,7 @@ impl<'core> Types<'core> {
     match self.kind(ty) {
       Some((_, TypeKind::Tuple(elements))) => elements.is_empty(),
       Some((_, TypeKind::Object(entries))) => entries.is_empty(),
+      Some((_, TypeKind::Error(_))) => true,
       _ => false,
     }
   }
