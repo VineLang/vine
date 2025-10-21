@@ -201,7 +201,7 @@ impl<'core> Analyzer<'core, '_> {
 
   fn process_local(&mut self, local: Local, declared: Vec<StageId>) {
     let info = &self.locals[local];
-    if info.is_nil {
+    if info.self_dual {
       return;
     }
     let inv = info.inv;
