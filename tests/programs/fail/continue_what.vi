@@ -1,0 +1,14 @@
+
+pub fn main(&io: &IO) {}
+
+pub fn what(foo: Bool) {
+  do {
+    if foo {
+      if foo {
+        return;
+      } else {
+        continue;
+      }
+    }
+  }
+}

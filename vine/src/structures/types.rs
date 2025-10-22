@@ -197,7 +197,7 @@ impl<'core> Types<'core> {
     let b = self.find_mut(b);
 
     if a.idx() == b.idx() {
-      return UnifyResult::from_bool(a.inverse() == b.inverse());
+      return UnifyResult::from_bool(a.inverse() == b.inverse() || self.self_dual(a));
     }
 
     let (a_node, b_node) = self.types.get2_mut(a.idx(), b.idx()).unwrap();
@@ -349,10 +349,11 @@ impl<'core> Types<'core> {
     state.kind().map(|(inv, kind)| (inv ^ ty.inv(), kind))
   }
 
-  pub(crate) fn is_nil(&self, ty: Type) -> bool {
+  pub(crate) fn self_dual(&self, ty: Type) -> bool {
     match self.kind(ty) {
-      Some((_, TypeKind::Tuple(elements))) => elements.is_empty(),
-      Some((_, TypeKind::Object(entries))) => entries.is_empty(),
+      Some((_, TypeKind::Tuple(elements))) => elements.iter().all(|&x| self.self_dual(x)),
+      Some((_, TypeKind::Object(entries))) => entries.values().all(|&x| self.self_dual(x)),
+      Some((_, TypeKind::Error(_))) => true,
       _ => false,
     }
   }

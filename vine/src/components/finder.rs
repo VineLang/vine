@@ -33,7 +33,7 @@ pub struct FlexImpls<'core> {
   pub inv: Inverted,
   pub fork: Option<TirImpl<'core>>,
   pub drop: Option<TirImpl<'core>>,
-  pub is_nil: bool,
+  pub self_dual: bool,
 }
 
 struct CandidateSearch<F> {
@@ -169,9 +169,9 @@ impl<'core, 'a> Finder<'core, 'a> {
 
     let pos_flex = pos_fork.is_some() || pos_drop.is_some();
     let neg_flex = neg_fork.is_some() || neg_drop.is_some();
-    let is_nil = types.is_nil(ty);
+    let self_dual = types.self_dual(ty);
 
-    if pos_flex && neg_flex && !is_nil {
+    if pos_flex && neg_flex && !self_dual {
       Err(Diag::BiFlexible { span, ty: types.show(self.chart, ty) })?
     }
 
@@ -201,7 +201,7 @@ impl<'core, 'a> Finder<'core, 'a> {
       assert!(!unify_result.is_failure());
     }
 
-    Ok(FlexImpls { inv, fork, drop, is_nil })
+    Ok(FlexImpls { inv, fork, drop, self_dual })
   }
 
   pub fn find_impl(
