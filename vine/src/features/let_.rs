@@ -55,7 +55,7 @@ impl<'core: 'src, 'src> Formatter<'src> {
         Some(LetElse::Block(b)) => Doc::concat([Doc(" else "), self.fmt_block(b, false)]),
         Some(LetElse::Match(a)) => Doc::concat([
           Doc(" else match "),
-          Doc::brace_comma(
+          Doc::brace_multiline(
             a.iter()
               .map(|(p, b)| Doc::concat([self.fmt_pat(p), Doc(" "), self.fmt_block(b, false)])),
           ),
