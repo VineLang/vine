@@ -191,15 +191,11 @@ pub fn construct_torus[T, F*; fn F(N32, N32, TorusNeighbors[T]), Channel[T, T]](
   )
 }
 
-pub enum Signal {
+pub enum? Signal {
   Init(&Pcg32),
   Advance(N32),
   Display(&IO),
   Stop,
-}
-
-pub mod Signal {
-  pub impl drop: Drop[Signal];
 }
 
 pub struct Stream[T]((T, Stream[T]));

@@ -3,7 +3,7 @@
 
 use numeric::N64;
 
-pub struct Pcg32((N64, N64));
+pub struct* Pcg32((N64, N64));
 
 pub mod Pcg32 {
   pub fn new(state: N64, increment: N64) -> Pcg32 {
@@ -38,7 +38,4 @@ pub mod Pcg32 {
     }
     rng
   }
-
-  pub impl fork: Fork[Pcg32];
-  pub impl drop: Drop[Pcg32];
 }

@@ -243,7 +243,7 @@ pub mod List {
     }
   }
 
-  pub struct IntoIter[T](List[T]);
+  pub struct* IntoIter[T](List[T]);
 
   pub fn .into_iter[T](self: List[T]) -> IntoIter[T] {
     IntoIter(self)
@@ -261,9 +261,6 @@ pub mod List {
         }
       }
     }
-
-    pub impl fork[T+]: Fork[IntoIter[T]];
-    pub impl drop[T?]: Drop[IntoIter[T]];
 
     pub impl to_list[T]: Cast[IntoIter[T], List[T]] {
       fn cast(IntoIter[T](list)) -> List[T] {

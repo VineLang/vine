@@ -2,7 +2,7 @@
 use debug::Show;
 
 #[builtin = "Option"]
-pub enum Option[T] {
+pub enum* Option[T] {
   Some(T),
   None,
 }
@@ -78,7 +78,4 @@ pub mod Option {
       }
     }
   }
-
-  pub impl fork[T+]: Fork[Option[T]];
-  pub impl drop[T?]: Drop[Option[T]];
 }

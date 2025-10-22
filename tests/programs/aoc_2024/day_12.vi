@@ -78,17 +78,15 @@ pub fn main(&io: &IO) {
   io.println("Part 2: {bulk}");
 }
 
-struct Regions(Array[Region]);
+struct* Regions(Array[Region]);
 
-enum Region {
+enum* Region {
   Root((N32, N32)),
   Child(N32),
 }
 
 mod Region {
   pub impl show: Show[Region];
-  pub impl fork: Fork[Region];
-  pub impl drop: Drop[Region];
 }
 
 mod Regions {
@@ -97,9 +95,6 @@ mod Regions {
       array.as[List].show() as String
     }
   }
-
-  pub impl fork: Fork[Regions];
-  pub impl drop: Drop[Regions];
 
   pub fn .new(&Regions(array)) -> N32 {
     let i = array.len();

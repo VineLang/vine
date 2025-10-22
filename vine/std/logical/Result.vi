@@ -2,7 +2,7 @@
 use debug::Show;
 
 #[builtin = "Result"]
-pub enum Result[T, E] {
+pub enum* Result[T, E] {
   Ok(T),
   Err(E),
 }
@@ -56,7 +56,4 @@ pub mod Result {
   }
 
   pub impl show[T, E; Show[T], Show[E]]: Show[Result[T, E]];
-
-  pub impl fork[T+, E+]: Fork[Result[T, E]];
-  pub impl drop[T?, E?]: Drop[Result[T, E]];
 }

@@ -48,7 +48,7 @@ impl channel_session[T, P, Q; Session[P, Q]]: Session[Recv[T, P], Send[T, Q]] {
   }
 }
 
-enum Move {
+enum+ Move {
   Up,
   Down,
 }
@@ -59,15 +59,6 @@ mod Move {
       match self {
         Up { "Up" }
         Down { "Down" }
-      }
-    }
-  }
-
-  pub impl fork: Fork[Move] {
-    fn fork(&self: &Move) -> Move {
-      match &self {
-        &Up { Up }
-        &Down { Down }
       }
     }
   }

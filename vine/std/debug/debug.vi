@@ -33,12 +33,9 @@ pub mod debug {
     WithState(f)
   }
 
-  pub struct WithState[F](F);
+  pub struct* WithState[F](F);
 
   pub mod WithState {
-    pub impl fork[F+]: Fork[WithState[F]];
-    pub impl drop[F?]: Drop[WithState[F]];
-
     pub impl call[F, P, R; Fn[F, P, R]]: Fn[WithState[F], P, R] {
       fn call(WithState[F](f), params: P) -> R {
         f.call(params)
@@ -106,12 +103,9 @@ pub mod debug {
     WithState(debug_state(), f)
   }
 
-  pub struct WithState[F]((&DebugState, F));
+  pub struct* WithState[F]((&DebugState, F));
 
   pub mod WithState {
-    pub impl fork[F+]: Fork[WithState[F]];
-    pub impl drop[F?]: Drop[WithState[F]];
-
     pub impl call[F, P, R; Fn[F, P, R]]: Fn[WithState[F], P, R] {
       #[frameless]
       fn call(WithState[F](state, f), params: P) -> R {
@@ -124,12 +118,9 @@ pub mod debug {
   }
 }
 
-pub struct Frame(pub { path: List[String], file: String, line: N32, col: N32 });
+pub struct* Frame(pub { path: List[String], file: String, line: N32, col: N32 });
 
 pub mod Frame {
-  pub impl fork: Fork[Frame];
-  pub impl drop: Drop[Frame];
-
   pub impl to_string: Cast[Frame, String] {
     fn cast(Frame({ path, file, line, col })) -> String {
       "{path.join("::")} ({file}:{line}:{col})"

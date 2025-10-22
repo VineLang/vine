@@ -3,12 +3,9 @@ use ops::{Cast, Concat, comparison::{Eq, Ord}};
 use debug::Show;
 
 #[builtin = "String"]
-pub struct String(pub List[Char]);
+pub struct* String(pub List[Char]);
 
 pub mod String {
-  pub impl fork: Fork[String] = unsafe::duplicate;
-  pub impl drop: Drop[String] = unsafe::erase;
-
   pub fn .len(&String(List(len, _, _))) -> N32 {
     len
   }
