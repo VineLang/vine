@@ -31,10 +31,11 @@ use crate::{
 impl<'core> VineParser<'core, '_> {
   pub(crate) fn parse_enum_item(&mut self) -> Result<EnumItem<'core>, Diag<'core>> {
     self.expect(Token::Enum)?;
+    let flex = self.parse_flex()?;
     let name = self.parse_ident()?;
     let generics = self.parse_generic_params()?;
     let variants = self.parse_delimited(BRACE_COMMA, Self::parse_variant)?;
-    Ok(EnumItem { name, generics, variants })
+    Ok(EnumItem { flex, name, generics, variants })
   }
 
   fn parse_variant(&mut self) -> Result<Variant<'core>, Diag<'core>> {
@@ -53,7 +54,9 @@ impl<'core> VineParser<'core, '_> {
 impl<'core: 'src, 'src> Formatter<'src> {
   pub(crate) fn fmt_enum_item(&self, e: &EnumItem<'core>) -> Doc<'src> {
     Doc::concat([
-      Doc("enum "),
+      Doc("enum"),
+      self.fmt_flex(e.flex),
+      Doc(" "),
       Doc(e.name),
       self.fmt_generic_params(&e.generics),
       Doc(" "),
@@ -90,7 +93,9 @@ impl<'core> Charter<'core, '_> {
       }));
     let enum_def = EnumDef { span, def, name: enum_item.name, generics, variants };
     self.chart.enums.push_to(enum_id, enum_def);
-    self.define_type(span, def, vis, DefTypeKind::Enum(enum_id));
+    let ty_kind = DefTypeKind::Enum(enum_id);
+    self.define_type(span, def, vis, ty_kind);
+    self.chart_flex_impls(def, generics, span, vis, member_vis, ty_kind, enum_item.flex);
     def
   }
 }

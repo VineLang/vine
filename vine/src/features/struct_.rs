@@ -27,6 +27,7 @@ use crate::{
 impl<'core> VineParser<'core, '_> {
   pub(crate) fn parse_struct_item(&mut self) -> Result<StructItem<'core>, Diag<'core>> {
     self.expect(Token::Struct)?;
+    let flex = self.parse_flex()?;
     let name = self.parse_ident()?;
     let generics = self.parse_generic_params()?;
     self.expect(Token::OpenParen)?;
@@ -34,14 +35,16 @@ impl<'core> VineParser<'core, '_> {
     let data = self.parse_ty()?;
     self.expect(Token::CloseParen)?;
     self.eat(Token::Semi)?;
-    Ok(StructItem { name, generics, data_vis, data })
+    Ok(StructItem { flex, name, generics, data_vis, data })
   }
 }
 
 impl<'core: 'src, 'src> Formatter<'src> {
   pub(crate) fn fmt_struct_item(&self, s: &StructItem<'core>) -> Doc<'src> {
     Doc::concat([
-      Doc("struct "),
+      Doc("struct"),
+      self.fmt_flex(s.flex),
+      Doc(" "),
       Doc(s.name),
       self.fmt_generic_params(&s.generics),
       Doc::paren(Doc::concat([self.fmt_vis(&s.data_vis), self.fmt_ty(&s.data)])),
@@ -77,7 +80,9 @@ impl<'core> Charter<'core, '_> {
     });
     self.define_value(span, def, data_vis, DefValueKind::Struct(struct_id));
     self.define_pattern(span, def, data_vis, DefPatternKind::Struct(struct_id));
-    self.define_type(span, def, vis, DefTypeKind::Struct(struct_id));
+    let ty_kind = DefTypeKind::Struct(struct_id);
+    self.define_type(span, def, vis, ty_kind);
+    self.chart_flex_impls(def, generics, span, vis, member_vis, ty_kind, struct_item.flex);
     def
   }
 }

@@ -59,6 +59,7 @@ pub struct TypeItem<'core> {
 
 #[derive(Debug, Clone)]
 pub struct StructItem<'core> {
+  pub flex: Flex,
   pub name: Ident<'core>,
   pub generics: GenericParams<'core>,
   pub data_vis: Vis<'core>,
@@ -67,6 +68,7 @@ pub struct StructItem<'core> {
 
 #[derive(Debug, Clone)]
 pub struct EnumItem<'core> {
+  pub flex: Flex,
   pub name: Ident<'core>,
   pub generics: GenericParams<'core>,
   pub variants: Vec<Variant<'core>>,
@@ -209,7 +211,7 @@ pub struct ImplParam<'core> {
   pub trait_: Trait<'core>,
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Flex {
   None,
   Fork,
