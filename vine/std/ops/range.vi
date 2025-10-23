@@ -11,11 +11,11 @@ pub trait Bound[B, T] {
 
 pub mod Bound {
   #[builtin = "BoundUnbounded"]
-  pub struct Unbounded(pub ());
+  pub struct* Unbounded(pub ());
   #[builtin = "BoundInclusive"]
-  pub struct Inclusive[T](pub T);
+  pub struct* Inclusive[T](pub T);
   #[builtin = "BoundExclusive"]
-  pub struct Exclusive[T](pub T);
+  pub struct* Exclusive[T](pub T);
 
   pub mod Unbounded {
     pub impl bound[T]: Bound[Unbounded, T] {
@@ -26,9 +26,6 @@ pub mod Bound {
         true
       }
     }
-
-    pub impl fork: Fork[Unbounded];
-    pub impl drop: Drop[Unbounded];
   }
 
   pub mod Inclusive {
@@ -40,9 +37,6 @@ pub mod Bound {
         value <= bound
       }
     }
-
-    pub impl fork[T+]: Fork[Inclusive[T]];
-    pub impl drop[T?]: Drop[Inclusive[T]];
   }
 
   pub mod Exclusive {
@@ -54,14 +48,11 @@ pub mod Bound {
         value < bound
       }
     }
-
-    pub impl fork[T+]: Fork[Exclusive[T]];
-    pub impl drop[T?]: Drop[Exclusive[T]];
   }
 }
 
 #[builtin = "Range"]
-pub struct Range[B1, B2](pub (B1, B2));
+pub struct* Range[B1, B2](pub (B1, B2));
 
 pub mod Range {
   pub fn .contains[B1, B2, T; Bound[B1, T], Bound[B2, T]](&Range[B1, B2](start, end), &value: &T) -> Bool {
@@ -105,7 +96,4 @@ pub mod Range {
       }
     }
   }
-
-  pub impl fork[B1+, B2+]: Fork[Range[B1, B2]];
-  pub impl drop[B1?, B2?]: Drop[Range[B1, B2]];
 }

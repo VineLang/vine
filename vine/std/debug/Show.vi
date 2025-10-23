@@ -7,7 +7,7 @@ pub trait Show[T] {
   fn .show(self: &T) -> Show;
 }
 
-pub enum Show {
+pub enum* Show {
   Literal(String),
   Constructor((String, Show)),
   Tuple(List_[Show]),
@@ -120,9 +120,6 @@ pub mod Show {
   fn newline(indent: N32) -> String {
     "\n" ++ String(List_::new(indent, ' '))
   }
-
-  pub impl fork: Fork[Show];
-  pub impl drop: Drop[Show];
 
   pub trait ShowTuple[T] {
     fn .show_tuple(&self: &T) -> List_[Show];

@@ -3,7 +3,7 @@ use std::mem::replace;
 use crate::{
   features::cfg::Config,
   structures::{
-    ast::{visit::VisitMut, Attr, AttrKind, Ident, Item, ItemKind, ModKind, Span, Vis},
+    ast::{visit::VisitMut, Attr, AttrKind, Flex, Ident, Item, ItemKind, ModKind, Span, Vis},
     chart::Chart,
     core::Core,
     diag::{Diag, ErrorGuaranteed},
@@ -30,6 +30,7 @@ impl<'core> Charter<'core, '_> {
           type_params: Vec::new(),
           impl_params: Vec::new(),
           impl_allowed: true,
+          global_flex: Flex::None,
           trait_: None,
         },
       );

@@ -1,5 +1,5 @@
 
-enum Instruction {
+enum? Instruction {
   Inc,
   Dec,
   Left,
@@ -92,5 +92,3 @@ pub fn main(&io: &IO) {
   run(&program);
   io.flush();
 }
-
-impl drop: Drop[Instruction];

@@ -6,7 +6,8 @@ use crate::{
   components::{charter::Charter, lexer::Token, parser::VineParser, resolver::Resolver},
   structures::{
     ast::{
-      GenericArgs, GenericParams, Generics, ImplParam, Path, Span, Trait, TraitKind, TypeParam,
+      Flex, GenericArgs, GenericParams, Generics, ImplParam, Path, Span, Trait, TraitKind,
+      TypeParam,
     },
     chart::{DefId, GenericsDef, GenericsId},
     diag::{Diag, ErrorGuaranteed},
@@ -170,6 +171,17 @@ impl<'core> Charter<'core, '_> {
     generics: GenericParams<'core>,
     impl_allowed: bool,
   ) -> GenericsId {
+    self._chart_generics(def, parent, generics, impl_allowed, Flex::None)
+  }
+
+  pub(crate) fn _chart_generics(
+    &mut self,
+    def: DefId,
+    parent: GenericsId,
+    generics: GenericParams<'core>,
+    impl_allowed: bool,
+    global_flex: Flex,
+  ) -> GenericsId {
     self.chart.generics.push(GenericsDef {
       span: generics.span,
       def,
@@ -177,6 +189,7 @@ impl<'core> Charter<'core, '_> {
       type_params: generics.types,
       impl_params: generics.impls,
       impl_allowed,
+      global_flex,
       trait_: None,
     })
   }
@@ -238,6 +251,22 @@ impl<'core> Resolver<'core, '_> {
         } else {
           ImplType::Error(self.core.report(Diag::MissingBuiltin { span, builtin: "Drop" }))
         });
+      }
+    }
+
+    if generics_def.global_flex != Flex::None {
+      for (index, &name) in self.sigs.type_params[generics_id].params.iter().enumerate() {
+        let ty = self.types.new(TypeKind::Param(index, name));
+        if generics_def.global_flex.fork() {
+          if let Some(fork) = self.chart.builtins.fork {
+            impl_params.types.inner.push(ImplType::Trait(fork, vec![ty]));
+          }
+        }
+        if generics_def.global_flex.drop() {
+          if let Some(drop) = self.chart.builtins.drop {
+            impl_params.types.inner.push(ImplType::Trait(drop, vec![ty]));
+          }
+        }
       }
     }
 

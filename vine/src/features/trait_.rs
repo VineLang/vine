@@ -10,7 +10,7 @@ use crate::{
     resolver::Resolver,
   },
   structures::{
-    ast::{Attr, ConstItem, FnItem, GenericParams, ItemKind, Span, TraitItem, Vis},
+    ast::{Attr, ConstItem, Flex, FnItem, GenericParams, ItemKind, Span, TraitItem, Vis},
     chart::{
       ConstId, DefId, DefTraitKind, DefValueKind, FnId, GenericsDef, GenericsId, TraitConst,
       TraitConstId, TraitDef, TraitFn, TraitFnId, TraitId,
@@ -157,6 +157,7 @@ impl<'core> Charter<'core, '_> {
       type_params: generics.types,
       impl_params: generics.impls,
       impl_allowed: true,
+      global_flex: Flex::None,
       trait_: Some(trait_id),
     })
   }

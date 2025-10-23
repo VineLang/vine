@@ -10,11 +10,14 @@ use crate::{
     resolver::Resolver,
   },
   structures::{
-    ast::{Attr, ConstItem, FnItem, ImplItem, ImplItemKind, ItemKind, Path, Span, Vis},
+    ast::{
+      Attr, ConstItem, Flex, FnItem, GenericParams, ImplItem, ImplItemKind, ItemKind, Path, Span,
+      Vis,
+    },
     chart::{
       ConcreteConstDef, ConcreteConstId, ConcreteFnDef, ConcreteFnId, ConstId, DefId, DefImplKind,
-      DefValueKind, FnId, GenericsId, ImplDef, ImplDefKind, ImplId, ImplSubitem, ImplSubitemKind,
-      TraitConstId, TraitFnId, TraitId,
+      DefTypeKind, DefValueKind, FnId, GenericsId, ImplDef, ImplDefKind, ImplId, ImplSubitem,
+      ImplSubitemKind, TraitConstId, TraitFnId, TraitId,
     },
     diag::{Diag, ErrorGuaranteed},
     resolutions::{Become, ResolvedImpl, ResolvedImplKind},
@@ -106,15 +109,14 @@ impl<'core> Charter<'core, '_> {
             }
           }
         }
-        ImplDefKind::Direct(subitems)
+        ImplDefKind::Direct(impl_item.trait_, subitems)
       }
-      ImplItemKind::Indirect(impl_) => ImplDefKind::Indirect(impl_),
+      ImplItemKind::Indirect(impl_) => ImplDefKind::Indirect(impl_item.trait_, impl_),
     };
     let impl_id = self.chart.impls.push(ImplDef {
       span,
       def,
       generics,
-      trait_: impl_item.trait_,
       kind,
       manual: false,
       basic: false,
@@ -185,15 +187,96 @@ impl<'core> Charter<'core, '_> {
     self.chart_attrs(Some(def), attrs);
     ImplSubitem { span, name: const_item.name, kind: ImplSubitemKind::Const(const_id) }
   }
+
+  pub fn chart_flex_impls(
+    &mut self,
+    ty_def: DefId,
+    ty_generics: GenericsId,
+    span: Span,
+    vis: DefId,
+    member_vis: DefId,
+    ty: DefTypeKind,
+    flex: Flex,
+  ) {
+    if flex.fork() {
+      let def = self.chart_child(ty_def, self.core.ident("fork"), member_vis, false);
+      let _generic_params = GenericParams { inherit: true, ..GenericParams::empty(span) };
+      let generics = self._chart_generics(def, ty_generics, _generic_params, true, Flex::Fork);
+      let impl_ = self.chart.impls.push(ImplDef {
+        span,
+        def,
+        generics,
+        kind: ImplDefKind::IndirectFork(ty),
+        manual: false,
+        basic: false,
+        become_: None,
+      });
+      self.define_impl(span, def, vis, DefImplKind::Impl(impl_));
+    }
+    if flex.drop() {
+      let def = self.chart_child(ty_def, self.core.ident("drop"), member_vis, false);
+      let _generic_params = GenericParams { inherit: true, ..GenericParams::empty(span) };
+      let generics = self._chart_generics(def, ty_generics, _generic_params, true, Flex::Drop);
+      let impl_ = self.chart.impls.push(ImplDef {
+        span,
+        def,
+        generics,
+        kind: ImplDefKind::IndirectDrop(ty),
+        manual: false,
+        basic: false,
+        become_: None,
+      });
+      self.define_impl(span, def, vis, DefImplKind::Impl(impl_));
+    }
+  }
 }
 
 impl<'core> Resolver<'core, '_> {
   pub(crate) fn resolve_impl_sig(&mut self, impl_id: ImplId) {
     let impl_def = &self.chart.impls[impl_id];
+    let span = impl_def.span;
     self.initialize(impl_def.def, impl_def.generics);
-    let ty = self.resolve_trait(&impl_def.trait_);
+    let ty = match &impl_def.kind {
+      ImplDefKind::Direct(trait_, _) | ImplDefKind::Indirect(trait_, _) => {
+        self.resolve_trait(trait_)
+      }
+      ImplDefKind::IndirectFork(ty) => {
+        self.resolve_flex_impl_ty(span, *ty, self.chart.builtins.fork, "Fork")
+      }
+      ImplDefKind::IndirectDrop(ty) => {
+        self.resolve_flex_impl_ty(span, *ty, self.chart.builtins.drop, "Drop")
+      }
+    };
     let types = take(&mut self.types);
     self.sigs.impls.push_to(impl_id, TypeCtx { types, inner: ImplSig { ty } });
+  }
+
+  fn resolve_flex_impl_ty(
+    &mut self,
+    span: Span,
+    ty: DefTypeKind,
+    trait_id: Option<TraitId>,
+    builtin: &'static str,
+  ) -> ImplType {
+    if let Some(trait_id) = trait_id {
+      let params = Vec::from_iter(
+        self.sigs.type_params[self.cur_generics]
+          .params
+          .iter()
+          .enumerate()
+          .map(|(i, &name)| self.types.new(TypeKind::Param(i, name))),
+      );
+      ImplType::Trait(
+        trait_id,
+        vec![match ty {
+          DefTypeKind::Struct(struct_id) => self.types.new(TypeKind::Struct(struct_id, params)),
+          DefTypeKind::Enum(enum_id) => self.types.new(TypeKind::Enum(enum_id, params)),
+          _ => unreachable!(),
+        }],
+      )
+    } else {
+      ImplType::Error(self.core.report(Diag::MissingBuiltin { span, builtin }))
+    }
   }
 
   pub(crate) fn resolve_impl_def(&mut self, impl_id: ImplId) {
@@ -204,7 +287,7 @@ impl<'core> Resolver<'core, '_> {
     let resolved = match &ty {
       ImplType::Trait(trait_id, type_params) => {
         let kind = match &impl_def.kind {
-          ImplDefKind::Direct(subitems) => {
+          ImplDefKind::Direct(_, subitems) => {
             let fns = IdxVec::from_iter(self.sigs.traits[*trait_id].fns.keys().map(|fn_id| {
               self.resolve_impl_subitem_fn(span, subitems, type_params, *trait_id, fn_id)
             }));
@@ -222,10 +305,14 @@ impl<'core> Resolver<'core, '_> {
             }
             ResolvedImplKind::Direct { fns, consts }
           }
-          ImplDefKind::Indirect(impl_) => ResolvedImplKind::Indirect(match impl_ {
-            Some(impl_) => self.resolve_impl_type(impl_, &ty),
-            None => self.find_impl(span, &ty, true),
-          }),
+          ImplDefKind::Indirect(_, Some(impl_)) => {
+            ResolvedImplKind::Indirect(self.resolve_impl_type(impl_, &ty))
+          }
+          ImplDefKind::Indirect(_, None)
+          | ImplDefKind::IndirectFork(_)
+          | ImplDefKind::IndirectDrop(_) => {
+            ResolvedImplKind::Indirect(self.find_impl(span, &ty, true))
+          }
         };
         Ok(ResolvedImpl { kind, trait_id: *trait_id, become_: Become::Unresolved })
       }

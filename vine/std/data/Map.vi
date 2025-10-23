@@ -271,7 +271,7 @@ pub mod Map[K, V; Ord[K]] {
     IntoIter(self, [])
   }
 
-  pub struct IntoIter[K, V]((Map[K, V], List[((K, V), Map[K, V])]));
+  pub struct* IntoIter[K, V]((Map[K, V], List[((K, V), Map[K, V])]));
 
   pub mod IntoIter[K, V] {
     pub impl iterator[...]: Iterator[IntoIter[K, V], (K, V)] {
@@ -294,9 +294,6 @@ pub mod Map[K, V; Ord[K]] {
         }
       }
     }
-
-    pub impl fork[K+, V+]: Fork[IntoIter[K, V]];
-    pub impl drop[K?, V?]: Drop[IntoIter[K, V]];
   }
 
   pub impl to_list[...]: Cast[Map[K, V], List[(K, V)]] {
