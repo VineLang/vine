@@ -92,7 +92,7 @@ impl Resolver<'_> {
     let def = self._resolve_path(base, path)?;
     let def = &self.chart.defs[def];
     match f(def) {
-      Some(Binding { vis, kind }) => {
+      Some(Binding { vis, kind, .. }) => {
         if self.chart.visible(vis, base) {
           Ok(kind)
         } else {

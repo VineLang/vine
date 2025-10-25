@@ -7,7 +7,7 @@ use crate::{
     parser::{BRACE, VineParser},
   },
   structures::{
-    ast::{ModItem, ModKind},
+    ast::{ModItem, ModKind, Span},
     chart::{DefId, GenericsId, VisId},
     diag::Diag,
   },
@@ -65,11 +65,12 @@ impl Charter<'_> {
     &mut self,
     parent: DefId,
     parent_generics: GenericsId,
+    span: Span,
     vis: VisId,
     member_vis: VisId,
     mod_item: ModItem,
   ) -> DefId {
-    let def = self.chart_child(parent, mod_item.name, member_vis, true);
+    let def = self.chart_child(parent, span, mod_item.name, member_vis, true);
     let generics = self.chart_generics(def, parent_generics, mod_item.generics, true);
     self.chart_mod_kind(vis, mod_item.kind, def, generics);
     def

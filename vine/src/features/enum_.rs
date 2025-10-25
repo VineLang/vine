@@ -80,13 +80,13 @@ impl Charter<'_> {
     member_vis: VisId,
     enum_item: EnumItem,
   ) -> DefId {
-    let def = self.chart_child(parent, enum_item.name.clone(), member_vis, true);
+    let def = self.chart_child(parent, span, enum_item.name.clone(), member_vis, true);
     let generics = self.chart_generics(def, parent_generics, enum_item.generics, false);
     let enum_id = self.chart.enums.next_index();
     let variants =
       IdxVec::from_iter(enum_item.variants.into_iter().enumerate().map(|(id, variant)| {
         let variant_id = VariantId(id);
-        let def = self.chart_child(def, variant.name.clone(), vis, true);
+        let def = self.chart_child(def, span, variant.name.clone(), vis, true);
         self.define_value(span, def, vis, DefValueKind::Enum(enum_id, variant_id));
         self.define_pattern(span, def, vis, DefPatternKind::Enum(enum_id, variant_id));
         EnumVariant { span, def, name: variant.name, data: variant.data }

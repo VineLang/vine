@@ -152,7 +152,7 @@ impl Charter<'_> {
     let span = use_tree.span;
     let import = self.chart.imports.push(ImportDef { span, def: def_id, parent, ident });
     let def = &mut self.chart.defs[def_id];
-    let member = Binding { vis, kind: MemberKind::Import(import) };
+    let member = Binding { span, vis, kind: MemberKind::Import(import) };
     if !use_tree.aliases.is_empty() {
       def.named_members.push(member);
     }

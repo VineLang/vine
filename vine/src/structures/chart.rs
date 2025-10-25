@@ -55,6 +55,7 @@ pub enum VisId {
 
 #[derive(Debug, Clone, Copy)]
 pub struct Binding<T> {
+  pub span: Span,
   pub vis: VisId,
   pub kind: T,
 }
@@ -308,7 +309,9 @@ impl Chart {
 impl Def {
   pub fn fn_id(&self) -> Option<Binding<FnId>> {
     match self.value_kind {
-      Some(Binding { vis, kind: DefValueKind::Fn(fn_id) }) => Some(Binding { vis, kind: fn_id }),
+      Some(Binding { span, vis, kind: DefValueKind::Fn(fn_id) }) => {
+        Some(Binding { span, vis, kind: fn_id })
+      }
       _ => None,
     }
   }

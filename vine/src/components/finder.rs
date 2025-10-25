@@ -109,7 +109,7 @@ impl<'a> Finder<'a> {
       defs: HashSet::default(),
       consider_candidate: |self_: &Self, def: &Def| {
         if def.name == name
-          && let Some(Binding { kind: DefValueKind::Fn(fn_kind), vis }) = def.value_kind
+          && let Some(Binding { kind: DefValueKind::Fn(fn_kind), vis, .. }) = def.value_kind
           && self_.chart.visible(vis, self_.source)
           && self_.chart.fn_is_method(fn_kind)
         {
@@ -333,7 +333,7 @@ impl<'a> Finder<'a> {
       mods: HashSet::default(),
       defs: HashSet::default(),
       consider_candidate: |self_: &Self, def: &Def| {
-        if let Some(Binding { vis, kind: DefImplKind::Impl(impl_id) }) = def.impl_kind
+        if let Some(Binding { vis, kind: DefImplKind::Impl(impl_id), .. }) = def.impl_kind
           && self_.chart.visible(vis, self_.source)
         {
           let impl_ = &self_.chart.impls[impl_id];
@@ -425,14 +425,14 @@ impl<'a> Finder<'a> {
 
     (search.consider_candidate)(self, def);
 
-    if let Some(Binding { kind: DefTraitKind::Trait(trait_id), vis }) = def.trait_kind
+    if let Some(Binding { kind: DefTraitKind::Trait(trait_id), vis, .. }) = def.trait_kind
       && self.chart.visible(vis, self.source)
     {
       let trait_def = &self.chart.traits[trait_id];
       self.consider_mod(search, trait_def.def);
     }
 
-    if let Some(Binding { kind: DefImplKind::Impl(impl_id), vis }) = def.impl_kind
+    if let Some(Binding { kind: DefImplKind::Impl(impl_id), vis, .. }) = def.impl_kind
       && self.chart.visible(vis, self.source)
     {
       let impl_sig = &self.sigs.impls[impl_id];
