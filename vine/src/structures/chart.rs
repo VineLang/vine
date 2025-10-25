@@ -143,6 +143,7 @@ new_idx!(pub ConcreteConstId);
 pub struct ConcreteConstDef {
   pub span: Span,
   pub def: DefId,
+  pub name: Ident,
   pub generics: GenericsId,
   pub ty: Ty,
   pub value: Expr,
@@ -153,6 +154,7 @@ new_idx!(pub ConcreteFnId);
 pub struct ConcreteFnDef {
   pub span: Span,
   pub def: DefId,
+  pub name: Ident,
   pub generics: GenericsId,
   pub method: bool,
   pub params: Vec<Pat>,

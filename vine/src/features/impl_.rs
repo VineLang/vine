@@ -148,6 +148,7 @@ impl Charter<'_> {
     let fn_id = self.chart.concrete_fns.push(ConcreteFnDef {
       span,
       def,
+      name: fn_item.name.clone(),
       generics,
       method: fn_item.method,
       params: fn_item.params,
@@ -179,6 +180,7 @@ impl Charter<'_> {
     let const_id = self.chart.concrete_consts.push(ConcreteConstDef {
       span,
       def,
+      name: const_item.name.clone(),
       generics,
       ty: const_item.ty,
       value,
