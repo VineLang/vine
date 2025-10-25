@@ -68,8 +68,8 @@ impl CompileArgs {
       self.libs.push(std_path())
     }
 
-    let arenas = CoreArenas::default();
-    let core = &Core::new(&arenas, self.debug);
+    let arenas = &CoreArenas::default();
+    let core = &Core::new(arenas, self.debug);
     let mut compiler = Compiler::new(core, Config::default());
 
     if let Some(main) = self.main {

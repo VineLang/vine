@@ -1,6 +1,9 @@
+use std::collections::{BTreeMap, BTreeSet};
+
 use vine_util::{idx::IdxVec, new_idx};
 
 use crate::structures::{
+  ast::Span,
   chart::{
     Chart, ConcreteConstId, ConcreteFnId, ConstId, DefId, FnId, GenericsId, ImplId, TraitConstId,
     TraitFnId, TraitId,
@@ -15,6 +18,8 @@ pub struct Resolutions<'core> {
   pub fns: IdxVec<ConcreteFnId, FragmentId>,
   pub impls: IdxVec<ImplId, Result<ResolvedImpl<'core>, ErrorGuaranteed>>,
   pub main: Option<FragmentId>,
+  pub definitions: BTreeMap<Span, BTreeSet<Span>>,
+  pub references: BTreeMap<Span, BTreeSet<Span>>,
 }
 
 #[derive(Debug)]
@@ -63,6 +68,13 @@ pub struct Rels<'core> {
 pub enum FnRel<'core> {
   Item(FnId, Vec<TirImpl<'core>>),
   Impl(TirImpl<'core>, usize),
+}
+
+impl<'core> Resolutions<'core> {
+  pub fn record_reference(&mut self, ref_span: Span, def_span: Span) {
+    self.references.entry(def_span).or_default().insert(ref_span);
+    self.definitions.entry(ref_span).or_default().insert(def_span);
+  }
 }
 
 impl<'core> Rels<'core> {

@@ -57,7 +57,7 @@ impl<'core> Loader<'core> {
   }
 
   pub(crate) fn add_file(&mut self, path: Option<PathBuf>, name: String, src: &str) -> usize {
-    let mut files = self.core.files.borrow_mut();
+    let mut files = self.core.files.write().unwrap();
     let file = files.len();
     files.push(FileInfo::new(path, name, src));
     file

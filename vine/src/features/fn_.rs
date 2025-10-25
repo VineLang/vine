@@ -10,7 +10,7 @@ use crate::{
     emitter::Emitter,
     lexer::Token,
     parser::{VineParser, BP},
-    resolver::{Binding, Resolver},
+    resolver::{Resolver, ScopeBinding},
   },
   structures::{
     ast::{Block, Expr, ExprKind, Flex, FnItem, LetFnStmt, Pat, Path, Span, Stmt, StmtKind, Ty},
@@ -140,12 +140,13 @@ impl<'core> Charter<'core, '_> {
     member_vis: DefId,
     fn_item: FnItem<'core>,
   ) -> DefId {
-    let def = self.chart_child(parent, fn_item.name, member_vis, true);
+    let def = self.chart_child(parent, span, fn_item.name, member_vis, true);
     let generics = self.chart_generics(def, parent_generics, fn_item.generics, true);
     let body = self.ensure_implemented(span, fn_item.body);
     let fn_id = self.chart.concrete_fns.push(ConcreteFnDef {
       span,
       def,
+      name: fn_item.name,
       generics,
       method: fn_item.method,
       params: fn_item.params,
@@ -216,7 +217,7 @@ impl<'core> Resolver<'core, '_> {
             Vec::from_iter(let_fn.params.iter().map(|p| self.resolve_pat_sig(p, true)));
           let ret = self.resolve_arrow_ty(span, &let_fn.ret, true);
           let ty = self.types.new(TypeKind::Closure(id, let_fn.flex, param_tys.clone(), ret));
-          self.bind(let_fn.name, Binding::Closure(id, ty));
+          self.bind(let_fn.name, ScopeBinding::Closure(id, ty));
           let_fns.push((span, id, param_tys, ret, let_fn));
         }
         StmtKind::Empty | StmtKind::Item(_) => {}

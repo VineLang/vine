@@ -2,15 +2,17 @@
 
 use std::{
   alloc::{alloc, Layout},
-  cell::{Cell, UnsafeCell},
   ptr::{self, NonNull},
   slice, str,
+  sync::Mutex,
 };
 
 pub struct BytesArena {
-  cur: Cell<*mut [u8]>,
-  chunks: UnsafeCell<Vec<*mut [u8]>>,
+  cur: Mutex<*mut [u8]>,
+  chunks: Mutex<Vec<*mut [u8]>>,
 }
+
+unsafe impl Sync for BytesArena {}
 
 const PAGE: usize = 1024;
 const HUGE_PAGE: usize = 2 * 1024 * 1024;
@@ -18,7 +20,7 @@ const HUGE_PAGE: usize = 2 * 1024 * 1024;
 impl Default for BytesArena {
   fn default() -> Self {
     Self {
-      cur: Cell::new(ptr::slice_from_raw_parts_mut(NonNull::dangling().as_ptr(), 0)),
+      cur: Mutex::new(ptr::slice_from_raw_parts_mut(NonNull::dangling().as_ptr(), 0)),
       chunks: Default::default(),
     }
   }
@@ -40,28 +42,26 @@ impl BytesArena {
   fn alloc_raw(&self, len: usize) -> *mut u8 {
     unsafe {
       self.reserve(len);
-      let ptr = self.cur.get() as *mut u8;
-      self.cur.set(ptr::slice_from_raw_parts_mut(
-        (self.cur.get() as *mut u8).add(len),
-        self.cur.get().len() - len,
-      ));
+      let mut cur = self.cur.lock().unwrap();
+      let ptr = *cur as *mut u8;
+      *cur = ptr::slice_from_raw_parts_mut((*cur as *mut u8).add(len), cur.len() - len);
       ptr
     }
   }
 
   pub fn reserve(&self, len: usize) {
-    if len >= self.cur.get().len() {
+    if len >= self.cur.lock().unwrap().len() {
       self.grow(len)
     }
   }
 
   fn grow(&self, len: usize) {
     unsafe {
-      let chunks = &mut *self.chunks.get();
+      let chunks = &mut *self.chunks.lock().unwrap();
       let size = chunks.last().map(|x| (x.len() * 2).min(HUGE_PAGE)).unwrap_or(PAGE).max(len);
       let chunk = alloc(Layout::array::<u8>(size).unwrap());
       let chunk = ptr::slice_from_raw_parts_mut(chunk, size);
-      self.cur.set(chunk);
+      *self.cur.lock().unwrap() = chunk;
       chunks.push(chunk);
     }
   }
@@ -69,7 +69,7 @@ impl BytesArena {
 
 impl Drop for BytesArena {
   fn drop(&mut self) {
-    for ptr in self.chunks.get_mut().iter_mut() {
+    for ptr in self.chunks.get_mut().unwrap().iter_mut() {
       unsafe { ptr::drop_in_place(ptr as *mut *mut [u8] as *mut Box<[u8]>) };
     }
   }

@@ -4,12 +4,12 @@ use crate::{
   components::{
     lexer::Token,
     parser::{VineParser, PATH},
-    resolver::{Binding, Resolver},
+    resolver::{Resolver, ScopeBinding},
   },
   structures::{
     ast::{Expr, ExprKind, Ident, Pat, PatKind, Path, Span},
     chart::{
-      Def, DefId, DefImplKind, DefPatternKind, DefTypeKind, DefValueKind, MemberKind, WithVis,
+      Binding, Def, DefId, DefImplKind, DefPatternKind, DefTypeKind, DefValueKind, MemberKind,
     },
     diag::Diag,
     tir::{TirExpr, TirExprKind, TirImpl, TirLocal, TirPat, TirPatKind},
@@ -94,12 +94,13 @@ impl<'core> Resolver<'core, '_> {
     base: DefId,
     path: &Path<'core>,
     desc: &'static str,
-    f: impl FnOnce(&Def) -> Option<WithVis<T>>,
+    f: impl FnOnce(&Def) -> Option<Binding<T>>,
   ) -> Result<T, Diag<'core>> {
     let def = self._resolve_path(base, path)?;
     let def = &self.chart.defs[def];
     match f(def) {
-      Some(WithVis { vis, kind }) => {
+      Some(Binding { span, vis, kind }) => {
+        self.resolutions.record_reference(path.span, span);
         if self.chart.visible(vis, base) {
           Ok(kind)
         } else {
@@ -205,8 +206,8 @@ impl<'core> Resolver<'core, '_> {
     if let Some(ident) = path.as_ident() {
       if let Some(bind) = self.scope.get(&ident).and_then(|x| x.last()) {
         let expr = match bind.binding {
-          Binding::Local(local, _, ty) => TirExpr::new(span, ty, TirExprKind::Local(local)),
-          Binding::Closure(id, ty) => TirExpr::new(span, ty, TirExprKind::Closure(id)),
+          ScopeBinding::Local(local, _, ty) => TirExpr::new(span, ty, TirExprKind::Local(local)),
+          ScopeBinding::Closure(id, ty) => TirExpr::new(span, ty, TirExprKind::Closure(id)),
         };
         return if let Some(args) = args {
           self._resolve_expr_call(span, expr, args)
@@ -253,7 +254,7 @@ impl<'core> Resolver<'core, '_> {
         if let (Some(ident), None) = (path.as_ident(), data) {
           let ty = self.types.new_var(span);
           let local = self.locals.push(TirLocal { span, ty });
-          self.bind(ident, Binding::Local(local, span, ty));
+          self.bind(ident, ScopeBinding::Local(local, span, ty));
           Ok(TirPat::new(span, ty, TirPatKind::Local(local)))
         } else {
           Err(diag)?

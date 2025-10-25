@@ -1,9 +1,9 @@
 use std::{
-  cell::Ref,
   fmt::{self, Display, Write},
   io,
   mem::take,
   path::PathBuf,
+  sync::RwLockReadGuard,
 };
 
 use vine_util::lexer::TokenSet;
@@ -274,20 +274,20 @@ fn plural<'a>(n: usize, plural: &'a str, singular: &'a str) -> &'a str {
 
 impl<'core> Core<'core> {
   pub(crate) fn report(&self, diag: Diag<'core>) -> ErrorGuaranteed {
-    self.diags.borrow_mut().push(diag);
+    self.diags.write().unwrap().push(diag);
     ErrorGuaranteed(())
   }
 
-  pub fn files(&self) -> Ref<'_, Vec<FileInfo>> {
-    self.files.borrow()
+  pub fn files(&self) -> RwLockReadGuard<'_, Vec<FileInfo>> {
+    self.files.read().unwrap()
   }
 
   pub fn has_diags(&self) -> bool {
-    !self.diags.borrow().is_empty()
+    !self.diags.read().unwrap().is_empty()
   }
 
   pub fn take_diags(&self) -> Vec<Diag<'core>> {
-    take(&mut *self.diags.borrow_mut())
+    take(&mut *self.diags.write().unwrap())
   }
 
   pub fn bail(&self) -> Result<(), Vec<Diag<'core>>> {
@@ -314,7 +314,7 @@ impl<'core> Core<'core> {
   }
 
   pub fn show_span(&self, span: Span) -> Option<String> {
-    (span != Span::NONE).then(|| format!("{}", self.files.borrow()[span.file].get_pos(span.start)))
+    (span != Span::NONE).then(|| format!("{}", self.files()[span.file].get_pos(span.start)))
   }
 }
 
@@ -336,13 +336,14 @@ impl From<ErrorGuaranteed> for Diag<'_> {
 pub struct FileInfo {
   pub path: Option<PathBuf>,
   pub name: String,
-  line_starts: Vec<usize>,
+  pub src: String,
+  pub line_starts: Vec<usize>,
 }
 
 impl FileInfo {
   pub fn new(path: Option<PathBuf>, name: String, src: &str) -> Self {
     let line_starts = src.lines().map(|x| x.as_ptr() as usize - src.as_ptr() as usize).collect();
-    FileInfo { path, name, line_starts }
+    FileInfo { path, name, src: src.to_owned(), line_starts }
   }
 }
 

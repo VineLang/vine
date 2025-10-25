@@ -1,4 +1,5 @@
 use std::{
+  cmp::{Ordering, Reverse},
   collections::BTreeMap,
   fmt::{self, Debug, Display, Write},
 };
@@ -525,11 +526,23 @@ impl Display for Ident<'_> {
   }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Span {
   pub file: usize,
   pub start: usize,
   pub end: usize,
+}
+
+impl Ord for Span {
+  fn cmp(&self, other: &Self) -> Ordering {
+    (self.file, self.start, Reverse(self.end)).cmp(&(other.file, other.start, Reverse(other.end)))
+  }
+}
+
+impl PartialOrd for Span {
+  fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+    Some(self.cmp(other))
+  }
 }
 
 impl Span {

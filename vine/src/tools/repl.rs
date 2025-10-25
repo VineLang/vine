@@ -70,7 +70,13 @@ impl<'core, 'ctx, 'ivm, 'ext> Repl<'core, 'ctx, 'ivm, 'ext> {
     struct InitHooks<'a>(&'a mut DefId);
     impl Hooks<'_> for InitHooks<'_> {
       fn chart(&mut self, charter: &mut Charter) {
-        *self.0 = charter.chart_child(DefId::ROOT, charter.core.ident("repl"), DefId::ROOT, true);
+        *self.0 = charter.chart_child(
+          DefId::ROOT,
+          Span::NONE,
+          charter.core.ident("repl"),
+          DefId::ROOT,
+          true,
+        );
       }
     }
     host.insert_nets(&nets);
