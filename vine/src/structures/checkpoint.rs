@@ -5,6 +5,7 @@ use crate::{
   components::loader::FileId,
   features::builtin::Builtins,
   structures::{
+    annotations::Annotations,
     chart::{
       Chart, ConcreteConstId, ConcreteFnId, ConstId, Def, DefId, DefImplKind, DefPatternKind,
       DefTraitKind, DefTypeKind, DefValueKind, EnumId, FnId, GenericsId, ImplId, ImportId,
@@ -64,6 +65,7 @@ impl Compiler {
       chart,
       sigs,
       resolutions,
+      annotations,
       specs,
       fragments,
       vir,
@@ -73,6 +75,7 @@ impl Compiler {
     chart.revert(checkpoint);
     sigs.revert(checkpoint);
     resolutions.revert(checkpoint);
+    annotations.revert(checkpoint);
     specs.revert(checkpoint);
     loader.revert(checkpoint);
     diags.revert(checkpoint);
@@ -316,6 +319,23 @@ impl Resolutions {
     fns.truncate(checkpoint.concrete_fns.0);
     impls.truncate(checkpoint.impls.0);
     revert_idx(main, checkpoint.fragments);
+  }
+}
+
+impl Annotations {
+  fn revert(&mut self, checkpoint: &Checkpoint) {
+    let Annotations { references, definitions, hovers } = self;
+    for map in [references, definitions] {
+      map.retain(|k, v| {
+        if k.file < checkpoint.files {
+          v.retain(|s| s.file < checkpoint.files);
+          true
+        } else {
+          false
+        }
+      });
+    }
+    hovers.retain(|k, _| k.file < checkpoint.files);
   }
 }
 

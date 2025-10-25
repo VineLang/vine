@@ -367,7 +367,7 @@ impl<'src> VineParser<'src> {
       if self.check(Token::OpenBracket) || self.check(Token::OpenParen) {
         let generics = self.parse_generic_args()?;
         let args = self.parse_exprs()?;
-        return Ok(Ok(ExprKind::Method(lhs, ident, generics, args)));
+        return Ok(Ok(ExprKind::Method(lhs, ident_span, ident, generics, args)));
       } else {
         return Ok(Ok(ExprKind::ObjectField(lhs, Key { span: ident_span, ident })));
       }

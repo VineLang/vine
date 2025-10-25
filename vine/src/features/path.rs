@@ -92,7 +92,8 @@ impl Resolver<'_> {
     let def = self._resolve_path(base, path)?;
     let def = &self.chart.defs[def];
     match f(def) {
-      Some(Binding { vis, kind, .. }) => {
+      Some(Binding { span, vis, kind }) => {
+        self.annotations.record_reference(path.span, span);
         if self.chart.visible(vis, base) {
           Ok(kind)
         } else {
@@ -207,10 +208,16 @@ impl Resolver<'_> {
     if let Some(ident) = path.as_ident()
       && let Some(bind) = self.scope.get(&ident).and_then(|x| x.last())
     {
-      let expr = match bind.binding {
-        ScopeBinding::Local(local, _, ty) => TirExpr::new(span, ty, TirExprKind::Local(local)),
-        ScopeBinding::Closure(id, ty) => TirExpr::new(span, ty, TirExprKind::Closure(id)),
+      let (expr, source_span, ty) = match bind.binding {
+        ScopeBinding::Local(local, source_span, ty) => {
+          let hover = format!("let {ident}: {};", self.types.show(self.chart, ty));
+          self.annotations.hovers.insert(span, hover);
+          (TirExprKind::Local(local), source_span, ty)
+        }
+        ScopeBinding::Closure(id, source_span, ty) => (TirExprKind::Closure(id), source_span, ty),
       };
+      let expr = TirExpr::new(span, ty, expr);
+      self.annotations.record_reference(span, source_span);
       return if let Some(args) = args {
         self._resolve_expr_call(span, expr, args)
       } else {

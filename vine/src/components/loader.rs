@@ -63,7 +63,7 @@ impl Loader {
     Ident(str::from_utf8(path.file_stem().unwrap().as_encoded_bytes()).unwrap().into())
   }
 
-  pub(crate) fn add_file(&mut self, path: Option<PathBuf>, name: String, src: &str) -> FileId {
+  pub(crate) fn add_file(&mut self, path: Option<PathBuf>, name: String, src: String) -> FileId {
     self.files.push(FileInfo::new(path, name, src))
   }
 
@@ -87,7 +87,7 @@ impl Loader {
     span: Span,
     diags: &mut Diags,
   ) -> Result<ModKind, Diag> {
-    let ((src, file), path) = match (base, spec) {
+    let (file, path) = match (base, spec) {
       (None, ModSpec::Explicit(path)) => {
         let mut path = path.to_owned();
         (self.read_file(&mut path, span)?, path)
@@ -116,12 +116,12 @@ impl Loader {
       (None, ModSpec::Implicit(_)) => unreachable!(),
     };
 
-    let mut items = VineParser::parse(&src, file)?;
+    let mut items = VineParser::parse(&self.files[file].src, file)?;
     self.load_deps(&path, &mut items, diags);
     Ok(ModKind::Loaded(span, items))
   }
 
-  fn read_file(&mut self, path: &mut PathBuf, span: Span) -> Result<(String, FileId), Diag> {
+  fn read_file(&mut self, path: &mut PathBuf, span: Span) -> Result<FileId, Diag> {
     self._read_file(path).map_err(|err| Diag::FsError {
       span,
       path: path.strip_prefix(&self.cwd).unwrap_or(&*path).to_owned(),
@@ -129,12 +129,11 @@ impl Loader {
     })
   }
 
-  fn _read_file(&mut self, path: &mut PathBuf) -> Result<(String, FileId), io::Error> {
+  fn _read_file(&mut self, path: &mut PathBuf) -> Result<FileId, io::Error> {
     let src = fs::read_to_string(&*path)?;
     *path = path.canonicalize()?;
     let name = path.strip_prefix(&self.cwd).unwrap_or(path).display().to_string();
-    let file = self.add_file(Some(path.clone()), name, &src);
-    Ok((src, file))
+    Ok(self.add_file(Some(path.clone()), name, src))
   }
 
   pub(crate) fn load_deps<'t>(

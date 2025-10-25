@@ -128,7 +128,7 @@ pub trait VisitMut<'a> {
           self.visit_expr(t);
         }
       }
-      ExprKind::Method(a, _, b, c) => {
+      ExprKind::Method(a, _, _, b, c) => {
         self.visit_expr(a);
         self.visit(b);
         self.visit(c);

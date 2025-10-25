@@ -8,6 +8,7 @@ use vine_util::{
 use crate::{
   components::finder::Finder,
   structures::{
+    annotations::Annotations,
     ast::{
       Block, Expr, ExprKind, Ident, Impl, ImplKind, Pat, PatKind, Path, Span, Target, Trait,
       TraitKind, Ty, TyKind,
@@ -31,6 +32,7 @@ pub struct Resolver<'a> {
   pub(crate) sigs: &'a mut Signatures,
   pub(crate) diags: &'a mut Diags,
   pub(crate) resolutions: &'a mut Resolutions,
+  pub(crate) annotations: &'a mut Annotations,
   pub(crate) fragments: &'a mut IdxVec<FragmentId, Fragment>,
   pub(crate) types: Types,
   pub(crate) return_ty: Option<Type>,
@@ -63,7 +65,7 @@ pub(crate) struct TargetInfo {
 #[derive(Debug, Clone, Copy)]
 pub(crate) enum ScopeBinding {
   Local(Local, Span, Type),
-  Closure(ClosureId, Type),
+  Closure(ClosureId, Span, Type),
 }
 
 impl<'a> Resolver<'a> {
@@ -72,6 +74,7 @@ impl<'a> Resolver<'a> {
     sigs: &'a mut Signatures,
     diags: &'a mut Diags,
     resolutions: &'a mut Resolutions,
+    annotations: &'a mut Annotations,
     fragments: &'a mut IdxVec<FragmentId, Fragment>,
   ) -> Self {
     Resolver {
@@ -79,6 +82,7 @@ impl<'a> Resolver<'a> {
       sigs,
       diags,
       resolutions,
+      annotations,
       fragments,
       types: Types::default(),
       locals: Default::default(),
@@ -439,8 +443,8 @@ impl<'a> Resolver<'a> {
       ExprKind::Fn(flex, params, ret, body) => self.resolve_expr_fn(span, flex, params, ret, body),
       ExprKind::Ref(inner, _) => self.resolve_expr_ref(span, inner),
       ExprKind::List(elements) => self.resolve_expr_list(span, elements),
-      ExprKind::Method(receiver, name, generics, args) => {
-        self.resolve_method(span, receiver, name.clone(), generics, args)
+      ExprKind::Method(receiver, name_span, name, generics, args) => {
+        self.resolve_method(span, receiver, *name_span, name.clone(), generics, args)
       }
       ExprKind::Call(func, args) => self.resolve_expr_call(span, func, args),
       ExprKind::Not(inner) => self.resolve_expr_not(span, inner),
