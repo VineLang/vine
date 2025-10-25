@@ -54,7 +54,7 @@ impl Charter<'_> {
     member_vis: VisId,
     trait_item: TraitItem,
   ) -> DefId {
-    let def = self.chart_child(parent, trait_item.name.clone(), member_vis, true);
+    let def = self.chart_child(parent, span, trait_item.name.clone(), member_vis, true);
     let generics = self.chart_generics(def, parent_generics, trait_item.generics, false);
     let trait_id = self.chart.traits.next_index();
     let mut consts = IdxVec::new();
@@ -109,7 +109,7 @@ impl Charter<'_> {
       params: fn_item.params,
       ret_ty: fn_item.ret,
     });
-    let def = self.chart_child(def, fn_item.name, vis, true);
+    let def = self.chart_child(def, span, fn_item.name, vis, true);
     let kind = DefValueKind::Fn(FnId::Abstract(trait_id, trait_fn_id));
     self.define_value(span, def, vis, kind);
     self.chart_attrs(Some(def), attrs);
@@ -133,7 +133,7 @@ impl Charter<'_> {
       self.chart_trait_subitem_generics(span, def, trait_id, trait_generics, const_item.generics);
     let trait_const_id =
       consts.push(TraitConst { name: const_item.name.clone(), generics, ty: const_item.ty });
-    let def = self.chart_child(def, const_item.name, vis, true);
+    let def = self.chart_child(def, span, const_item.name, vis, true);
     let kind = DefValueKind::Const(ConstId::Abstract(trait_id, trait_const_id));
     self.define_value(span, def, vis, kind);
     self.chart_attrs(Some(def), attrs);
