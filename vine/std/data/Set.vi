@@ -1,0 +1,394 @@
+
+use data::Iterator;
+use debug::Show;
+use ops::{Cast, comparison::Ord};
+
+pub struct Set[T]((N32, SetData[T]));
+
+type SetData[T] = (Set[T], T, Set[T]);
+
+pub mod Set[T; Ord[T]] {
+  pub const empty[T]: Set[T] = Set(0, unsafe::eraser);
+
+  fn new[T](left: Set[T], value: T, right: Set[T]) -> Set[T] {
+    Set(left.len() + right.len() + 1, (left, value, right))
+  }
+
+  pub impl from_list[... T?]: Cast[List[T], Set[T]] {
+    fn cast(entries: List[T]) -> Set[T] {
+      let set = Set::empty[T];
+      for value in entries.into_iter() {
+        set.insert(value);
+      }
+      set
+    }
+  }
+
+  pub fn .clear[... T?](&self: &Set[T]) {
+    self = Set::empty;
+  }
+
+  pub fn .len[T](&Set[T](len, _)) -> N32 {
+    len
+  }
+
+  pub fn .insert[...](&Set[T](len, data), new: T) -> Option[T] {
+    if len == 0 {
+      len = 1;
+      unsafe::erase(data);
+      data = (empty, new, empty);
+      None
+    } else {
+      let &(left, value, right) = &data;
+      let old;
+      match new.cmp(&value) {
+        Ord::Lt {
+          old = left.insert(new);
+          len = size(&data);
+          balance_right(&data);
+        }
+        Ord::Eq {
+          old = Some(value);
+          value = new;
+        }
+        Ord::Gt {
+          old = right.insert(new);
+          len = size(&data);
+          balance_left(&data);
+        }
+      }
+      old
+    }
+  }
+
+  pub fn .has[...](&Set[T](len, data), &key: &T) -> Bool {
+    if len == 0 {
+      false
+    } else {
+      let &(left, value, right) = &data;
+      match key.cmp(&value) {
+        Ord::Lt { left.has(&key) }
+        Ord::Eq { true }
+        Ord::Gt { right.has(&key) }
+      }
+    }
+  }
+
+  pub fn .at_eq[...](&Set[T](len, data), &key: &T) -> Option[&T] {
+    if len == 0 {
+      None
+    } else {
+      let &(left, value, right) = &data;
+      match key.cmp(&value) {
+        Ord::Lt { left.at_eq(&key) }
+        Ord::Eq { Some(&value) }
+        Ord::Gt { right.at_eq(&key) }
+      }
+    }
+  }
+
+  pub fn .get_eq[... T+](&self: &Set[T], key: &T) -> Option[T] {
+    self.at_eq(key).as_forked()
+  }
+
+  pub fn .at_le[...](&Set[T](len, data), &key: &T) -> Option[&T] {
+    if len == 0 {
+      None
+    } else {
+      let &(left, value, right) = &data;
+      match key.cmp(&value) {
+        Ord::Lt { left.at_le(&key) }
+        Ord::Eq { Some(&value) }
+        Ord::Gt {
+          if right.at_le(&key) is Some(value) {
+            Some(value)
+          } else {
+            Some(&value)
+          }
+        }
+      }
+    }
+  }
+
+  pub fn .get_le[... T+](&self: &Set[T], &key: &T) -> Option[T] {
+    self.at_le(&key).as_forked()
+  }
+
+  pub fn .at_ge[...](&Set[T](len, data), &key: &T) -> Option[&T] {
+    if len == 0 {
+      None
+    } else {
+      let &(left, value, right) = &data;
+      match key.cmp(&value) {
+        Ord::Lt {
+          if left.at_ge(&key) is Some(value) {
+            Some(value)
+          } else {
+            Some(&value)
+          }
+        }
+        Ord::Eq { Some(&value) }
+        Ord::Gt { right.at_ge(&key) }
+      }
+    }
+  }
+
+  pub fn .get_ge[... T+](&self: &Set[T], &key: &T) -> Option[T] {
+    self.at_ge(&key).as_forked()
+  }
+
+  pub fn .remove[... T](&Set[T](len, data), &key: &T) -> Option[T] {
+    if len == 0 {
+      None
+    } else {
+      let (left, value, right) = data;
+      let old;
+      match key.cmp(&value) {
+        Ord::Lt {
+          old = left.remove(&key);
+          data = (left, value, right);
+          len = Set::size(&data);
+          balance_left(&data);
+        }
+        Ord::Eq {
+          old = Some(value);
+          len -= 1;
+          data = merge_balanced(left, right);
+        }
+        Ord::Gt {
+          old = right.remove(&key);
+          data = (left, value, right);
+          len = Set::size(&data);
+          balance_right(&data);
+        }
+      }
+      old
+    }
+  }
+
+  pub fn .remove_min[...](&self: &Set[T]) -> Option[T] {
+    if self.len() == 0 {
+      None
+    } else {
+      Some(self._remove_min())
+    }
+  }
+
+  pub fn .remove_max[...](&self: &Set[T]) -> Option[T] {
+    if self.len() == 0 {
+      None
+    } else {
+      Some(self._remove_max())
+    }
+  }
+
+  fn ._remove_min[T](&Set[T](len, data)) -> T {
+    len -= 1;
+    let &(left, value, right) = &data;
+    if left.len() == 0 {
+      let Set(_, right) = unsafe::move(&right);
+      unsafe::erase(data);
+      data = right;
+      unsafe::move(&value)
+    } else {
+      let min = left._remove_min();
+      balance_left(&data);
+      min
+    }
+  }
+
+  fn ._remove_max[T](&Set[T](len, data)) -> T {
+    len -= 1;
+    let &(left, value, right) = &data;
+    if right.len() == 0 {
+      let Set(_, left) = unsafe::move(&left);
+      unsafe::erase(data);
+      data = left;
+      unsafe::move(&value)
+    } else {
+      let max = right._remove_max();
+      balance_right(&data);
+      max
+    }
+  }
+
+  pub fn .iter[...](&self: &Set[T]) -> Iter[T] {
+    Iter(&self, [])
+  }
+
+  pub struct Iter[T]((&Set[T], List[&(T, Set[T])]));
+
+  pub mod Iter[T] {
+    pub impl iterator[...]: Iterator[Iter[T], &T] {
+      fn advance(Iter[T](node, stack)) -> Option[(&T, Iter[T])] {
+        loop {
+          let &Set(len, data) = node;
+          if len == 0 {
+            break;
+          }
+          let &(left, value, right) = &data;
+          stack.push_front(&(value, right));
+          node = &left;
+          continue;
+        }
+        if stack.head_tail() is Some(&(value, node), stack) {
+          Some(&value, Iter(&node, stack))
+        } else {
+          None
+        }
+      }
+    }
+
+    pub impl fork[...]: Fork[Iter[T]];
+    pub impl drop[...]: Drop[Iter[T]];
+  }
+
+  pub fn .into_iter[...](self: Set[T]) -> IntoIter[T] {
+    IntoIter(self, [])
+  }
+
+  pub struct* IntoIter[T]((Set[T], List[(T, Set[T])]));
+
+  pub mod IntoIter[T] {
+    pub impl iterator[...]: Iterator[IntoIter[T], T] {
+      fn advance(IntoIter[T](node, stack)) -> Option[(T, IntoIter[T])] {
+        loop {
+          let Set(len, data) = node;
+          if len == 0 {
+            unsafe::erase(data);
+            break;
+          }
+          let (left, value, right) = data;
+          stack.push_front((value, right));
+          node = left;
+          continue;
+        }
+        if stack.head_tail() is Some((value, node), stack) {
+          Some(value, IntoIter(node, stack))
+        } else {
+          None
+        }
+      }
+    }
+  }
+
+  pub impl to_list[...]: Cast[Set[T], List[T]] {
+    fn cast(Set[T](len, data)) -> List[T] {
+      if len == 0 {
+        unsafe::erase(data);
+        []
+      } else {
+        let (left, value, right) = data;
+        left as List ++ [value] ++ right as List
+      }
+    }
+  }
+
+  pub impl show[... ; Show[T]]: Show[Set[T]] {
+    fn show(&self: &Set[T]) -> Show {
+      let entries = [];
+      for &value in self.iter() {
+        entries.push_back(value.show());
+      }
+      Show::Constructor("Set", Show::Tuple(entries))
+    }
+  }
+
+  // TODO(#118): make private once tests can be written inline
+  pub fn .balanced[...](&Set[T](len, data)) -> Bool {
+    if len == 0 {
+      true
+    } else {
+      let &(left, _, right) = &data;
+      let x = is_balanced(&left, &right) && is_balanced(&right, &left);
+      x && left.balanced() && right.balanced()
+    }
+  }
+
+  #[become(unsafe::duplicate)]
+  pub impl fork[T+]: Fork[Set[T]] {
+    fn fork(&Set[T](len, data)) -> Set[T] {
+      if len == 0 {
+        Set::empty
+      } else {
+        Set(len, data.fork())
+      }
+    }
+  }
+
+  #[become(unsafe::erase)]
+  pub impl drop[T?]: Drop[Set[T]] {
+    fn drop(Set[T](len, data)) {
+      if len == 0 {
+        unsafe::erase(data);
+      } else {
+        _ = data;
+      }
+    }
+  }
+}
+
+fn balance_left[T](&data: &SetData[T]) {
+  let (l, e, r) = data;
+  data = if is_balanced(&l, &r) {
+    (l, e, r)
+  } else {
+    let Set(_, (rl, re, rr)) = r;
+    if is_single(&rl, &rr) {
+      (Set::new(l, e, rl), re, rr)
+    } else {
+      let Set(_, (rll, rle, rlr)) = rl;
+      (Set::new(l, e, rll), rle, Set::new(rlr, re, rr))
+    }
+  }
+}
+
+fn balance_right[T](&data: &SetData[T]) {
+  let (l, e, r) = data;
+  data = if is_balanced(&r, &l) {
+    (l, e, r)
+  } else {
+    let Set(_, (ll, le, lr)) = l;
+    if is_single(&lr, &ll) {
+      (ll, le, Set::new(lr, e, r))
+    } else {
+      let Set(_, (lrl, lre, lrr)) = lr;
+      (Set::new(ll, le, lrl), lre, Set::new(lrr, e, r))
+    }
+  }
+}
+
+fn merge_balanced[T](left: Set[T], right: Set[T]) -> SetData[T] {
+  when {
+    left.len() == 0 {
+      unsafe::erase(left);
+      let Set(_, data) = right;
+      data
+    }
+    right.len() == 0 {
+      let Set(_, data) = left;
+      unsafe::erase(right);
+      data
+    }
+    left.len() > right.len() {
+      let value = left._remove_max();
+      (left, value, right)
+    }
+    _ {
+      let value = right._remove_min();
+      (left, value, right)
+    }
+  }
+}
+
+fn is_balanced[T](&Set[T](a, _), &Set[T](b, _)) -> Bool {
+  3 * a + 2 >= b
+}
+
+fn is_single[T](&Set[T](a, _), &Set[T](b, _)) -> Bool {
+  a <= 2 * b
+}
+
+fn size[T](&(Set(l, _), _, Set(r, _)): &SetData[T]) -> N32 {
+  l + r + 1
+}
