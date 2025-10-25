@@ -214,7 +214,7 @@ impl<'src> Formatter<'src> {
       ExprKind::List(elements) => self.fmt_expr_list(elements),
       ExprKind::TupleField(expr, index) => self.fmt_expr_tuple_field(expr, *index),
       ExprKind::ObjectField(expr, key) => self.fmt_expr_object_field(expr, key),
-      ExprKind::Method(receiver, name, generics, args) => {
+      ExprKind::Method(receiver, _, name, generics, args) => {
         self.fmt_expr_method(receiver, name, generics, args)
       }
       ExprKind::Call(func, args) => self.fmt_expr_call(func, args),

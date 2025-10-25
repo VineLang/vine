@@ -106,8 +106,15 @@ impl Resolver<'_> {
   ) -> Type {
     let generics_id = self.chart.type_aliases[type_alias_id].generics;
     let (type_params, _) = self.resolve_generics(path, generics_id, inference);
-    Resolver::new(self.chart, self.sigs, self.diags, self.resolutions, self.fragments)
-      .resolve_type_alias(type_alias_id);
+    Resolver::new(
+      self.chart,
+      self.sigs,
+      self.diags,
+      self.resolutions,
+      self.annotations,
+      self.fragments,
+    )
+    .resolve_type_alias(type_alias_id);
     let resolved_sig = match &self.sigs.type_aliases[type_alias_id] {
       TypeAliasState::Resolved(sig) => sig,
       _ => panic!("Type alias should be resolved at this point"),

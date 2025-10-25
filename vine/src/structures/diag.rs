@@ -337,13 +337,14 @@ impl From<ErrorGuaranteed> for Diag {
 pub struct FileInfo {
   pub path: Option<PathBuf>,
   pub name: String,
-  line_starts: Vec<usize>,
+  pub src: String,
+  pub line_starts: Vec<usize>,
 }
 
 impl FileInfo {
-  pub fn new(path: Option<PathBuf>, name: String, src: &str) -> Self {
+  pub fn new(path: Option<PathBuf>, name: String, src: String) -> Self {
     let line_starts = src.lines().map(|x| x.as_ptr() as usize - src.as_ptr() as usize).collect();
-    FileInfo { path, name, line_starts }
+    FileInfo { path, name, src, line_starts }
   }
 }
 
