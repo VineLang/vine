@@ -61,12 +61,13 @@ impl Charter<'_> {
     member_vis: VisId,
     const_item: ConstItem,
   ) -> DefId {
-    let def = self.chart_child(parent, const_item.name, member_vis, true);
+    let def = self.chart_child(parent, const_item.name.clone(), member_vis, true);
     let generics = self.chart_generics(def, parent_generics, const_item.generics, true);
     let value = self.ensure_implemented(span, const_item.value);
     let const_id = self.chart.concrete_consts.push(ConcreteConstDef {
       span,
       def,
+      name: const_item.name,
       generics,
       ty: const_item.ty,
       value,

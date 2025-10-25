@@ -140,12 +140,13 @@ impl Charter<'_> {
     member_vis: VisId,
     fn_item: FnItem,
   ) -> DefId {
-    let def = self.chart_child(parent, fn_item.name, member_vis, true);
+    let def = self.chart_child(parent, fn_item.name.clone(), member_vis, true);
     let generics = self.chart_generics(def, parent_generics, fn_item.generics, true);
     let body = self.ensure_implemented(span, fn_item.body);
     let fn_id = self.chart.concrete_fns.push(ConcreteFnDef {
       span,
       def,
+      name: fn_item.name,
       generics,
       method: fn_item.method,
       params: fn_item.params,
