@@ -29,7 +29,10 @@ impl<'core> Resolver<'core, '_> {
     let ok = self.types.new_var(span);
     let err = self.types.new_var(span);
     let result_ty = self.types.new(TypeKind::Enum(result_id, vec![ok, err]));
-    let result = self.resolve_expr_type(result, result_ty);
+    let result = self.resolve_expr(result);
+    if let Some(err) = self.expect_type(result.span, result.ty, result_ty) {
+      Err(err)?
+    }
     let return_ok = self.types.new_var(span);
     let return_result = self.types.new(TypeKind::Enum(result_id, vec![return_ok, err]));
     if let Some(return_ty) = &self.return_ty {

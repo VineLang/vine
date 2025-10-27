@@ -1,0 +1,24 @@
+
+use std::data::Map;
+
+pub struct* Literal(I32);
+pub struct* Clause(List[Literal]);
+
+pub fn main(&io: &IO) {}
+
+pub mod Clause {
+  pub fn .evaluate(&self: &Clause) -> Result[Bool, String] {
+    for &literal in self!.iter() {
+      if literal.evaluate()? {
+        return Ok(true);
+      }
+    }
+    Ok(false)
+  }
+}
+
+pub mod Literal {
+  pub fn .evaluate(&self: &Literal) -> Bool {
+    true
+  }
+}

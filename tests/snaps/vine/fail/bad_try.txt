@@ -1,0 +1,1 @@
+error tests/programs/fail/bad_try.vi:12:10 - expected type `Result[?26, ?27]`; found `Bool`

@@ -110,6 +110,7 @@ fn tests(t: &mut DynTester) {
 
     t.group("fail", |t| {
       test_vi_fail(t, "tests/programs/fail/atypical.vi");
+      test_vi_fail(t, "tests/programs/fail/bad_try.vi");
       test_vi_fail(t, "tests/programs/fail/continue_what.vi");
       test_vi_fail(t, "tests/programs/fail/hallo_world.vi");
       test_vi_fail(t, "tests/programs/fail/informal.vi");
