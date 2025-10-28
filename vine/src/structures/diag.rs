@@ -6,13 +6,13 @@ use std::{
   path::PathBuf,
 };
 
-use vine_util::lexer::TokenSet;
+use vine_util::{idx::IdxVec, lexer::TokenSet};
 
 use crate::{
   components::lexer::{StrToken, Token},
   structures::{
     ast::{BinaryOp, Ident, Span},
-    core::Core,
+    core::{Core, FileId},
   },
 };
 
@@ -278,7 +278,7 @@ impl<'core> Core<'core> {
     ErrorGuaranteed(())
   }
 
-  pub fn files(&self) -> Ref<'_, Vec<FileInfo>> {
+  pub fn files(&self) -> Ref<'_, IdxVec<FileId, FileInfo>> {
     self.files.borrow()
   }
 

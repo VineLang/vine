@@ -12,6 +12,7 @@ use crate::{
   },
   structures::{
     ast::{Expr, ExprKind, Span, StringSegment},
+    core::FileId,
     diag::Diag,
     tir::{TirExpr, TirExprKind},
     types::{Type, TypeKind},
@@ -73,7 +74,7 @@ impl<'core, 'src> VineParser<'core, 'src> {
 
 struct StringParser<'src> {
   state: ParserState<'src, StrToken>,
-  file: usize,
+  file: FileId,
 }
 
 impl<'src> Parser<'src> for StringParser<'src> {

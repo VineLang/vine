@@ -9,19 +9,19 @@ use crate::{
       Expr, ExprKind, Flex, Impl, ImplKind, Item, ItemKind, Pat, PatKind, Span, Stmt, StmtKind,
       Trait, TraitKind, Ty, TyKind, Vis,
     },
-    core::Core,
+    core::{Core, FileId},
     diag::Diag,
   },
 };
 
 impl<'core> Core<'core> {
   pub fn fmt(&'core self, src: &str) -> Result<String, Diag<'core>> {
-    let ast = VineParser::parse(self, src, 0)?;
+    let ast = VineParser::parse(self, src, FileId(0))?;
     let fmt = Formatter { src };
     let doc = Doc::concat_vec(
       fmt.line_break_separated(
-        Span { file: 0, start: 0, end: src.len() },
-        [(Span { file: 0, start: 0, end: 0 }, Doc::EMPTY)]
+        Span { file: FileId(0), start: 0, end: src.len() },
+        [(Span { file: FileId(0), start: 0, end: 0 }, Doc::EMPTY)]
           .into_iter()
           .chain(ast.iter().map(|x| (x.span, fmt.fmt_item(x)))),
       ),

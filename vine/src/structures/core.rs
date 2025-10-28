@@ -3,7 +3,7 @@ use std::{
   fmt::{self, Debug},
 };
 
-use vine_util::{arena::BytesArena, interner::StringInterner};
+use vine_util::{arena::BytesArena, idx::IdxVec, interner::StringInterner, new_idx};
 
 use crate::structures::{
   ast::Ident,
@@ -15,11 +15,13 @@ pub struct CoreArenas {
   bytes: BytesArena,
 }
 
+new_idx!(pub FileId);
+
 pub struct Core<'core> {
   arenas: &'core CoreArenas,
   interner: StringInterner<'core>,
   pub(crate) diags: RefCell<Vec<Diag<'core>>>,
-  pub(crate) files: RefCell<Vec<FileInfo>>,
+  pub(crate) files: RefCell<IdxVec<FileId, FileInfo>>,
   pub debug: bool,
 }
 

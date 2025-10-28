@@ -6,7 +6,7 @@ use crate::{
   components::lexer::Token,
   structures::{
     ast::{Key, Sign},
-    core::Core,
+    core::{Core, FileId},
     diag::Diag,
   },
 };
@@ -19,7 +19,7 @@ use crate::structures::ast::{
 pub struct VineParser<'core, 'src> {
   pub(crate) core: &'core Core<'core>,
   pub(crate) state: ParserState<'src, Token>,
-  pub(crate) file: usize,
+  pub(crate) file: FileId,
 }
 
 impl<'core, 'src> Parser<'src> for VineParser<'core, 'src> {
@@ -47,7 +47,7 @@ impl<'core, 'src> VineParser<'core, 'src> {
   pub fn parse(
     core: &'core Core<'core>,
     src: &'src str,
-    file: usize,
+    file: FileId,
   ) -> Result<Vec<Item<'core>>, Diag<'core>> {
     let mut parser = VineParser { core, state: ParserState::new(src), file };
     parser.bump()?;

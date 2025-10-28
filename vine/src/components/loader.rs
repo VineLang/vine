@@ -13,7 +13,7 @@ use crate::{
       visit::{VisitMut, Visitee},
       Attr, AttrKind, Generics, Ident, Item, ItemKind, ModItem, ModKind, Span, Vis,
     },
-    core::Core,
+    core::{Core, FileId},
     diag::{Diag, FileInfo},
   },
 };
@@ -56,11 +56,8 @@ impl<'core> Loader<'core> {
     self.core.ident(str::from_utf8(path.file_stem().unwrap().as_encoded_bytes()).unwrap())
   }
 
-  pub(crate) fn add_file(&mut self, path: Option<PathBuf>, name: String, src: &str) -> usize {
-    let mut files = self.core.files.borrow_mut();
-    let file = files.len();
-    files.push(FileInfo::new(path, name, src));
-    file
+  pub(crate) fn add_file(&mut self, path: Option<PathBuf>, name: String, src: &str) -> FileId {
+    self.core.files.borrow_mut().push(FileInfo::new(path, name, src))
   }
 
   fn load_file(
@@ -116,7 +113,7 @@ impl<'core> Loader<'core> {
     Ok(ModKind::Loaded(span, items))
   }
 
-  fn read_file(&mut self, path: &mut PathBuf, span: Span) -> Result<(String, usize), Diag<'core>> {
+  fn read_file(&mut self, path: &mut PathBuf, span: Span) -> Result<(String, FileId), Diag<'core>> {
     self._read_file(path).map_err(|err| Diag::FsError {
       span,
       path: path.strip_prefix(&self.cwd).unwrap_or(&*path).to_owned(),
@@ -124,7 +121,7 @@ impl<'core> Loader<'core> {
     })
   }
 
-  fn _read_file(&mut self, path: &mut PathBuf) -> Result<(String, usize), io::Error> {
+  fn _read_file(&mut self, path: &mut PathBuf) -> Result<(String, FileId), io::Error> {
     let src = fs::read_to_string(&*path)?;
     *path = path.canonicalize()?;
     let name = path.strip_prefix(&self.cwd).unwrap_or(path).display().to_string();

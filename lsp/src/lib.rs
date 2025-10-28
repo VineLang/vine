@@ -54,7 +54,7 @@ impl Backend {
       diags.next();
     }
     let futures = FuturesUnordered::new();
-    for (i, file) in core.files().iter().enumerate() {
+    for (i, file) in core.files().iter() {
       let mut out = Vec::new();
       while diags.peek().is_some_and(|x| x.span().is_some_and(|x| x.file == i)) {
         let diag = diags.next().unwrap();

@@ -6,7 +6,10 @@ use std::{
 use ivy::ast::Net;
 use vine_util::{idx, interner::Interned};
 
-use crate::{features::builtin::Builtin, structures::diag::ErrorGuaranteed};
+use crate::{
+  features::builtin::Builtin,
+  structures::{core::FileId, diag::ErrorGuaranteed},
+};
 
 pub mod visit;
 
@@ -527,13 +530,13 @@ impl Display for Ident<'_> {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Span {
-  pub file: usize,
+  pub file: FileId,
   pub start: usize,
   pub end: usize,
 }
 
 impl Span {
-  pub const NONE: Span = Span { file: usize::MAX, start: 0, end: 0 };
+  pub const NONE: Span = Span { file: FileId(usize::MAX), start: 0, end: 0 };
 }
 
 impl Display for Path<'_> {
