@@ -72,7 +72,7 @@ impl Resolver<'_> {
     let ty = self.resolve_arrow_ty(span, ty, true);
     let target_id = self.target_id.next();
     let arms = self.bind_target(
-      label,
+      label.clone(),
       [Target::When],
       TargetInfo { id: target_id, break_ty: ty, continue_: true },
       |self_| {

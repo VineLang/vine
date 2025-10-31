@@ -38,7 +38,7 @@ impl<'src> Formatter<'src> {
   pub(crate) fn fmt_const_item(&self, c: &ConstItem) -> Doc<'src> {
     Doc::concat([
       Doc("const "),
-      Doc(c.name),
+      Doc(c.name.clone()),
       self.fmt_generic_params(&c.generics),
       Doc(": "),
       self.fmt_ty(&c.ty),

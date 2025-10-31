@@ -163,7 +163,7 @@ impl<'a> Resolver<'a> {
   fn _resolve_main(&mut self, main_mod: DefId) -> Result<ConcreteFnId, Diag> {
     self.types.reset();
     let span = Span::NONE;
-    let main_mod_name = self.chart.defs[main_mod].name;
+    let main_mod_name = self.chart.defs[main_mod].name.clone();
     let main_ident = self.core.ident("main");
     let path = Path {
       span,
@@ -435,23 +435,25 @@ impl<'a> Resolver<'a> {
     match &*expr.kind {
       ExprKind::Error(e) => Err(*e)?,
       ExprKind::Paren(e) => self._resolve_expr(e),
-      ExprKind::Do(label, ty, block) => self.resolve_expr_do(span, *label, ty, block),
+      ExprKind::Do(label, ty, block) => self.resolve_expr_do(span, label.clone(), ty, block),
       ExprKind::Assign(dir, space, value) => self.resolve_expr_assign(span, *dir, space, value),
       ExprKind::Match(scrutinee, ty, arms) => self.resolve_match(span, scrutinee, ty, arms),
       ExprKind::If(cond, ty, then, else_) => self.resolve_expr_if(span, cond, ty, then, else_),
-      ExprKind::When(label, ty, arms, leg) => self.resolve_expr_when(span, *label, ty, arms, leg),
+      ExprKind::When(label, ty, arms, leg) => {
+        self.resolve_expr_when(span, label.clone(), ty, arms, leg)
+      }
       ExprKind::While(label, cond, ty, block, else_) => {
-        self.resolve_expr_while(span, *label, cond, ty, block, else_)
+        self.resolve_expr_while(span, label.clone(), cond, ty, block, else_)
       }
       ExprKind::For(label, pat, iter, ty, block, else_) => {
-        self.resolve_expr_for(span, *label, pat, iter, ty, block, else_)
+        self.resolve_expr_for(span, label.clone(), pat, iter, ty, block, else_)
       }
-      ExprKind::Loop(label, ty, block) => self.resolve_expr_loop(span, *label, ty, block),
+      ExprKind::Loop(label, ty, block) => self.resolve_expr_loop(span, label.clone(), ty, block),
       ExprKind::Fn(flex, params, ret, body) => self.resolve_expr_fn(span, flex, params, ret, body),
       ExprKind::Ref(inner, _) => self.resolve_expr_ref(span, inner),
       ExprKind::List(elements) => self.resolve_expr_list(span, elements),
       ExprKind::Method(receiver, name, generics, args) => {
-        self.resolve_method(span, receiver, *name, generics, args)
+        self.resolve_method(span, receiver, name.clone(), generics, args)
       }
       ExprKind::Call(func, args) => self.resolve_expr_call(span, func, args),
       ExprKind::Not(inner) => self.resolve_expr_not(span, inner),

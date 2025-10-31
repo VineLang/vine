@@ -61,7 +61,11 @@ impl<'src> Formatter<'src> {
     Doc::concat([
       Doc("inline_ivy! "),
       Doc::paren_comma(binds.iter().map(|(var, value, expr)| {
-        Doc::concat([Doc(*var), Doc(if *value { " <- " } else { " -> " }), self.fmt_expr(expr)])
+        Doc::concat([
+          Doc(var.clone()),
+          Doc(if *value { " <- " } else { " -> " }),
+          self.fmt_expr(expr),
+        ])
       })),
       Doc(" -> "),
       self.fmt_ty(ty),
@@ -80,7 +84,7 @@ impl Resolver<'_> {
     net: &Net,
   ) -> Result<TirExpr, Diag> {
     let binds = Vec::from_iter(
-      binds.iter().map(|(name, value, expr)| (name.0 .0.into(), *value, self.resolve_expr(expr))),
+      binds.iter().map(|(name, value, expr)| (name.0.clone(), *value, self.resolve_expr(expr))),
     );
     let ty = self.resolve_ty(ty, true);
     Ok(TirExpr::new(span, ty, TirExprKind::InlineIvy(binds, net.clone())))

@@ -57,12 +57,12 @@ impl<'src> Formatter<'src> {
       Doc("enum"),
       self.fmt_flex(e.flex),
       Doc(" "),
-      Doc(e.name),
+      Doc(e.name.clone()),
       self.fmt_generic_params(&e.generics),
       Doc(" "),
       Doc::brace_comma_multiline(e.variants.iter().map(|v| {
         Doc::concat([
-          Doc(v.name),
+          Doc(v.name.clone()),
           if let Some(data) = &v.data { Doc::paren(self.fmt_ty(data)) } else { Doc("") },
         ])
       })),
@@ -80,13 +80,13 @@ impl Charter<'_> {
     member_vis: DefId,
     enum_item: EnumItem,
   ) -> DefId {
-    let def = self.chart_child(parent, enum_item.name, member_vis, true);
+    let def = self.chart_child(parent, enum_item.name.clone(), member_vis, true);
     let generics = self.chart_generics(def, parent_generics, enum_item.generics, false);
     let enum_id = self.chart.enums.next_index();
     let variants =
       IdxVec::from_iter(enum_item.variants.into_iter().enumerate().map(|(id, variant)| {
         let variant_id = VariantId(id);
-        let def = self.chart_child(def, variant.name, vis, true);
+        let def = self.chart_child(def, variant.name.clone(), vis, true);
         self.define_value(span, def, vis, DefValueKind::Enum(enum_id, variant_id));
         self.define_pattern(span, def, vis, DefPatternKind::Enum(enum_id, variant_id));
         EnumVariant { span, def, name: variant.name, data: variant.data }

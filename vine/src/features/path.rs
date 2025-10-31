@@ -48,11 +48,11 @@ impl<'src> Formatter<'src> {
       docs.push(Doc("::"));
     }
     let mut first = true;
-    for &seg in &path.segments {
+    for seg in &path.segments {
       if !first {
         docs.push(Doc("::"));
       }
-      docs.push(Doc(seg));
+      docs.push(Doc(seg.clone()));
       first = false;
     }
     if let Some(generics) = &path.generics {
@@ -112,11 +112,11 @@ impl Resolver<'_> {
     let mut base = if path.absolute {
       DefId::ROOT
     } else {
-      let initial = *segments.next().unwrap();
-      self.resolve_initial(path.span, source, initial)?
+      let initial = segments.next().unwrap();
+      self.resolve_initial(path.span, source, initial.clone())?
     };
-    for &segment in segments {
-      base = self.resolve_segment(path.span, source, base, segment)?;
+    for segment in segments {
+      base = self.resolve_segment(path.span, source, base, segment.clone())?;
     }
     Ok(base)
   }
@@ -129,7 +129,7 @@ impl Resolver<'_> {
   ) -> Result<DefId, Diag> {
     let mut cur = base;
     loop {
-      if let Some(resolved) = self._resolve_segment(span, base, cur, ident)? {
+      if let Some(resolved) = self._resolve_segment(span, base, cur, ident.clone())? {
         return Ok(resolved);
       }
       if let Some(parent) = self.chart.defs[cur].parent {
@@ -139,7 +139,7 @@ impl Resolver<'_> {
       }
     }
     if let Some(prelude) = self.chart.builtins.prelude {
-      if let Some(resolved) = self._resolve_segment(span, base, prelude, ident)? {
+      if let Some(resolved) = self._resolve_segment(span, base, prelude, ident.clone())? {
         return Ok(resolved);
       }
     }
@@ -153,7 +153,7 @@ impl Resolver<'_> {
     base: DefId,
     ident: Ident,
   ) -> Result<DefId, Diag> {
-    let resolved = self._resolve_segment(span, source, base, ident)?;
+    let resolved = self._resolve_segment(span, source, base, ident.clone())?;
     resolved.ok_or(Diag::CannotResolve { span, module: self.chart.defs[base].path, ident })
   }
 

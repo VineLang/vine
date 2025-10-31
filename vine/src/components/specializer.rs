@@ -291,7 +291,7 @@ impl<'a> Specializer<'a> {
       }
       TirImpl::ForkClosure(id) => ImplTree::ForkClosure(fragment_id.unwrap(), args.clone(), *id),
       TirImpl::DropClosure(id) => ImplTree::DropClosure(fragment_id.unwrap(), args.clone(), *id),
-      TirImpl::Synthetic(synthetic) => ImplTree::Synthetic(*synthetic),
+      TirImpl::Synthetic(synthetic) => ImplTree::Synthetic(synthetic.clone()),
     }
   }
 }

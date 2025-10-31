@@ -1,7 +1,6 @@
 pub mod arena;
 pub mod bicycle;
 pub mod idx;
-pub mod interner;
 pub mod lexer;
 pub mod parser;
 

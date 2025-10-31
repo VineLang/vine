@@ -112,7 +112,7 @@ impl VineParser<'_> {
       let value = if self_.eat(Token::Colon)? {
         self_.parse_expr()?
       } else {
-        Expr { span: key.span, kind: Box::new(ExprKind::Path(key.into(), None)) }
+        Expr { span: key.span, kind: Box::new(ExprKind::Path(key.clone().into(), None)) }
       };
       Ok((key, value))
     })?))
@@ -134,8 +134,10 @@ impl VineParser<'_> {
         (None, None)
       };
       let span = self_.end_span(span);
-      let mut pat = pat
-        .unwrap_or_else(|| Pat { span: key.span, kind: Box::new(PatKind::Path(key.into(), None)) });
+      let mut pat = pat.unwrap_or_else(|| Pat {
+        span: key.span,
+        kind: Box::new(PatKind::Path(key.clone().into(), None)),
+      });
       if let Some(ty) = ty {
         pat = Pat { span, kind: Box::new(PatKind::Annotation(pat, ty)) };
       }
@@ -182,16 +184,16 @@ impl<'src> Formatter<'src> {
       if let ExprKind::Path(path, None) = &*expr.kind {
         if let Some(i) = path.as_ident() {
           if key.ident == i {
-            return Doc(key.ident);
+            return Doc(key.ident.clone());
           }
         }
       }
-      Doc::concat([Doc(key.ident), Doc(": "), self.fmt_expr(expr)])
+      Doc::concat([Doc(key.ident.clone()), Doc(": "), self.fmt_expr(expr)])
     }))
   }
 
   pub(crate) fn fmt_expr_object_field(&self, expr: &Expr, key: &Key) -> Doc<'src> {
-    Doc::concat([self.fmt_expr(expr), Doc("."), Doc(key.ident)])
+    Doc::concat([self.fmt_expr(expr), Doc("."), Doc(key.ident.clone())])
   }
 
   pub(crate) fn fmt_pat_object(&self, entries: &[(Key, Pat)]) -> Doc<'src> {
@@ -214,19 +216,23 @@ impl<'src> Formatter<'src> {
         Some(pat)
       };
       match (pat, ty) {
-        (None, None) => Doc(key.ident),
-        (Some(pat), None) => Doc::concat([Doc(key.ident), Doc(": "), self.fmt_pat(pat)]),
-        (None, Some(ty)) => Doc::concat([Doc(key.ident), Doc(":: "), self.fmt_ty(ty)]),
-        (Some(pat), Some(ty)) => {
-          Doc::concat([Doc(key.ident), Doc(": "), self.fmt_pat(pat), Doc(": "), self.fmt_ty(ty)])
-        }
+        (None, None) => Doc(key.ident.clone()),
+        (Some(pat), None) => Doc::concat([Doc(key.ident.clone()), Doc(": "), self.fmt_pat(pat)]),
+        (None, Some(ty)) => Doc::concat([Doc(key.ident.clone()), Doc(":: "), self.fmt_ty(ty)]),
+        (Some(pat), Some(ty)) => Doc::concat([
+          Doc(key.ident.clone()),
+          Doc(": "),
+          self.fmt_pat(pat),
+          Doc(": "),
+          self.fmt_ty(ty),
+        ]),
       }
     }))
   }
 
   pub(crate) fn fmt_ty_object(&self, entries: &[(Key, Ty)]) -> Doc<'src> {
     Doc::brace_comma_space(
-      entries.iter().map(|(k, t)| Doc::concat([Doc(k.ident), Doc(": "), self.fmt_ty(t)])),
+      entries.iter().map(|(k, t)| Doc::concat([Doc(k.ident.clone()), Doc(": "), self.fmt_ty(t)])),
     )
   }
 }
@@ -265,7 +271,8 @@ impl Resolver<'_> {
     entries: &[(Key, Expr)],
   ) -> Result<TirExpr, Diag> {
     let object = self._build_object(entries, Self::resolve_expr)?;
-    let ty = self.types.new(TypeKind::Object(object.iter().map(|(&i, x)| (i, x.ty)).collect()));
+    let ty =
+      self.types.new(TypeKind::Object(object.iter().map(|(i, x)| (i.clone(), x.ty)).collect()));
     Ok(TirExpr::new(span, ty, TirExprKind::Composite(object.into_values().collect())))
   }
 
@@ -275,7 +282,8 @@ impl Resolver<'_> {
     entries: &[(Key, Pat)],
   ) -> Result<TirPat, Diag> {
     let object = self._build_object(entries, |self_, pat| self_.resolve_pat(pat))?;
-    let ty = self.types.new(TypeKind::Object(object.iter().map(|(&i, x)| (i, x.ty)).collect()));
+    let ty =
+      self.types.new(TypeKind::Object(object.iter().map(|(i, x)| (i.clone(), x.ty)).collect()));
     Ok(TirPat::new(span, ty, TirPatKind::Composite(object.into_values().collect())))
   }
 
@@ -295,7 +303,7 @@ impl Resolver<'_> {
     let mut object = BTreeMap::new();
     let mut duplicate = Ok(());
     for (key, value) in entries {
-      let old = object.insert(key.ident, f(self, value));
+      let old = object.insert(key.ident.clone(), f(self, value));
       if old.is_some() {
         duplicate = Err(self.core.report(Diag::DuplicateKey { span: key.span }));
       }
@@ -312,7 +320,7 @@ impl Resolver<'_> {
     let mut fields = BTreeMap::new();
     let mut duplicate = Ok(());
     for (key, value) in entries {
-      let old = fields.insert(key.ident, f(self, value));
+      let old = fields.insert(key.ident.clone(), f(self, value));
       if old.is_some() {
         duplicate = Err(self.core.report(Diag::DuplicateKey { span: key.span }));
       }
@@ -359,10 +367,12 @@ impl Resolver<'_> {
   ) -> Result<TirExpr, Diag> {
     let object = self.resolve_expr(object);
     let (ty, index, fields) =
-      self.object_field(span, object.ty, key.ident).ok_or_else(|| Diag::MissingObjectField {
-        span: key.span,
-        ty: self.types.show(self.chart, object.ty),
-        key: key.ident,
+      self.object_field(span, object.ty, key.ident.clone()).ok_or_else(|| {
+        Diag::MissingObjectField {
+          span: key.span,
+          ty: self.types.show(self.chart, object.ty),
+          key: key.ident.clone(),
+        }
       })?;
     Ok(TirExpr::new(span, ty, TirExprKind::Field(object, index, fields)))
   }
@@ -372,7 +382,7 @@ impl Resolver<'_> {
       (inv, TypeKind::Object(entries)) => entries
         .iter()
         .enumerate()
-        .find(|&(_, (&k, _))| k == key)
+        .find(|&(_, (k, _))| *k == key)
         .map(|(i, (_, t))| (t.invert_if(inv), i, entries.values().copied().collect())),
       (inv, TypeKind::Struct(struct_id, type_params)) => {
         let struct_id = *struct_id;

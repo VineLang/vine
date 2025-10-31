@@ -29,7 +29,7 @@ impl<'src> Formatter<'src> {
   pub(crate) fn fmt_type_item(&self, t: &TypeItem) -> Doc<'src> {
     Doc::concat([
       Doc("type "),
-      Doc(t.name),
+      Doc(t.name.clone()),
       self.fmt_generic_params(&t.generics),
       match &t.ty {
         Some(ty) => Doc::concat([Doc(" = "), self.fmt_ty(ty)]),
@@ -50,7 +50,7 @@ impl Charter<'_> {
     member_vis: DefId,
     type_item: TypeItem,
   ) -> DefId {
-    let def = self.chart_child(parent, type_item.name, member_vis, true);
+    let def = self.chart_child(parent, type_item.name.clone(), member_vis, true);
     let generics = self.chart_generics(def, parent_generics, type_item.generics, false);
     let kind = match type_item.ty {
       Some(ty) => {

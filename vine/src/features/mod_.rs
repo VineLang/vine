@@ -43,7 +43,7 @@ impl<'src> Formatter<'src> {
   pub(crate) fn fmt_mod_item(&self, m: &ModItem) -> Doc<'src> {
     Doc::concat([
       Doc("mod "),
-      Doc(m.name),
+      Doc(m.name.clone()),
       self.fmt_generic_params(&m.generics),
       match &m.kind {
         ModKind::Loaded(span, items) => Doc::concat([

@@ -51,7 +51,7 @@ impl<'src> Formatter<'src> {
   pub(crate) fn fmt_impl_item(&self, span: Span, i: &ImplItem) -> Doc<'src> {
     Doc::concat([
       Doc("impl "),
-      Doc(i.name),
+      Doc(i.name.clone()),
       self.fmt_generic_params(&i.generics),
       Doc(": "),
       self.fmt_trait(&i.trait_),
@@ -142,7 +142,7 @@ impl Charter<'_> {
       self.core.report(Diag::ImplItemInheritGen { span });
     }
     fn_item.generics.inherit = true;
-    let def = self.chart_child(parent_def, fn_item.name, vis, false);
+    let def = self.chart_child(parent_def, fn_item.name.clone(), vis, false);
     let generics = self.chart_generics(def, parent_generics, fn_item.generics, true);
     let body = self.ensure_implemented(span, fn_item.body);
     let fn_id = self.chart.concrete_fns.push(ConcreteFnDef {
@@ -173,7 +173,7 @@ impl Charter<'_> {
       self.core.report(Diag::ImplItemInheritGen { span });
     }
     const_item.generics.inherit = true;
-    let def = self.chart_child(parent_def, const_item.name, vis, false);
+    let def = self.chart_child(parent_def, const_item.name.clone(), vis, false);
     let generics = self.chart_generics(def, parent_generics, const_item.generics, true);
     let value = self.ensure_implemented(span, const_item.value);
     let const_id = self.chart.concrete_consts.push(ConcreteConstDef {
@@ -264,7 +264,7 @@ impl Resolver<'_> {
           .params
           .iter()
           .enumerate()
-          .map(|(i, &name)| self.types.new(TypeKind::Param(i, name))),
+          .map(|(i, name)| self.types.new(TypeKind::Param(i, name.clone()))),
       );
       ImplType::Trait(
         trait_id,
@@ -300,7 +300,9 @@ impl Resolver<'_> {
               if trait_def.consts.values().all(|x| x.name != item.name)
                 && trait_def.fns.values().all(|x| x.name != item.name)
               {
-                self.core.report(Diag::ExtraneousImplItem { span: item.span, name: item.name });
+                self
+                  .core
+                  .report(Diag::ExtraneousImplItem { span: item.span, name: item.name.clone() });
               }
             }
             ResolvedImplKind::Direct { fns, consts }
@@ -407,7 +409,7 @@ impl Resolver<'_> {
     trait_fn_id: TraitFnId,
   ) -> Result<ConcreteFnId, ErrorGuaranteed> {
     let trait_fn = &self.chart.traits[trait_id].fns[trait_fn_id];
-    let name = trait_fn.name;
+    let name = trait_fn.name.clone();
     let trait_generics = trait_fn.generics;
     let Some(subitem) = subitems.iter().find(|i| i.name == name) else {
       return Err(self.core.report(Diag::IncompleteImpl { span, name }));
@@ -435,7 +437,7 @@ impl Resolver<'_> {
     trait_const_id: TraitConstId,
   ) -> Result<ConcreteConstId, ErrorGuaranteed> {
     let trait_const = &self.chart.traits[trait_id].consts[trait_const_id];
-    let name = trait_const.name;
+    let name = trait_const.name.clone();
     let trait_generics = trait_const.generics;
     let Some(subitem) = subitems.iter().find(|i| i.name == name) else {
       return Err(self.core.report(Diag::IncompleteImpl { span, name }));
@@ -482,10 +484,13 @@ impl Resolver<'_> {
       Err(self.core.report(Diag::ExpectedImplItemTypeParams { span, expected, found }))?;
     }
 
-    let type_params =
-      Vec::from_iter(type_params.iter().copied().chain((impl_params..impl_params + expected).map(
-        |i| self.types.new(TypeKind::Param(i, self.sigs.type_params[impl_item_generics].params[i])),
-      )));
+    let type_params = Vec::from_iter(type_params.iter().copied().chain(
+      (impl_params..impl_params + expected).map(|i| {
+        self
+          .types
+          .new(TypeKind::Param(i, self.sigs.type_params[impl_item_generics].params[i].clone()))
+      }),
+    ));
 
     let impl_params = self.sigs.impl_params[impl_generics].types.inner.len();
     let impl_item_params = self.sigs.impl_params[impl_item_generics].types.inner.len();

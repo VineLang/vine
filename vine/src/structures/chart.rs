@@ -103,7 +103,7 @@ pub enum DefImplKind {
 }
 
 new_idx!(pub ImportId);
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone)]
 pub struct ImportDef {
   pub span: Span,
   pub def: DefId,

@@ -84,9 +84,9 @@ impl Resolver<'_> {
       }
       StmtKind::Return(_) | StmtKind::Break(..) | StmtKind::Continue(..) => {
         let stmt = match &stmt.kind {
-          StmtKind::Break(label, value) => self.resolve_expr_break(stmt.span, *label, value),
+          StmtKind::Break(label, value) => self.resolve_expr_break(stmt.span, label.clone(), value),
           StmtKind::Return(value) => self.resolve_expr_return(stmt.span, value),
-          StmtKind::Continue(label) => self.resolve_expr_continue(stmt.span, *label),
+          StmtKind::Continue(label) => self.resolve_expr_continue(stmt.span, label.clone()),
           _ => unreachable!(),
         };
         let mut stmt = stmt.unwrap_or_else(|diag| self.error_expr(span, diag));

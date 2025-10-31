@@ -86,7 +86,6 @@ impl Loader {
         if !implicit_path_valid(base) {
           Err(Diag::DisallowedImplicitMod { span })?
         }
-        let name = name.0 .0;
         let mut path_1 = base.parent().unwrap().join(format!("{name}.vi"));
         let mut path_2 = base.parent().unwrap().join(format!("{name}/{name}.vi"));
         match (self.read_file(&mut path_1, span), self.read_file(&mut path_2, span)) {
@@ -142,7 +141,7 @@ impl VisitMut<'_> for LoadDeps<'_> {
           Some(self.base),
           match &*path {
             Some(path) => ModSpec::Explicit(path.as_ref()),
-            None => ModSpec::Implicit(module.name),
+            None => ModSpec::Implicit(module.name.clone()),
           },
           item.span,
         );

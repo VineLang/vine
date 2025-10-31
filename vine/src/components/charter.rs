@@ -217,7 +217,7 @@ impl Charter<'_> {
       return parent;
     }
     let mut new = false;
-    let member = parent_def.members_lookup.entry(name).or_insert_with(|| {
+    let member = parent_def.members_lookup.entry(name.clone()).or_insert_with(|| {
       new = true;
       let member = WithVis { vis, kind: MemberKind::Child(next_def_id) };
       parent_def.named_members.push(member);
@@ -226,7 +226,9 @@ impl Charter<'_> {
     let child = match member.kind {
       MemberKind::Child(child) => child,
       MemberKind::Import(i) => {
-        self.core.report(Diag::DuplicateItem { span: self.chart.imports[i].span, name });
+        self
+          .core
+          .report(Diag::DuplicateItem { span: self.chart.imports[i].span, name: name.clone() });
         new = true;
         next_def_id
       }
@@ -270,7 +272,7 @@ impl Charter<'_> {
     if def.value_kind.is_none() {
       def.value_kind = Some(WithVis { vis, kind });
     } else {
-      self.core.report(Diag::DuplicateItem { span, name: def.name });
+      self.core.report(Diag::DuplicateItem { span, name: def.name.clone() });
     }
   }
 
@@ -279,7 +281,7 @@ impl Charter<'_> {
     if def.type_kind.is_none() {
       def.type_kind = Some(WithVis { vis, kind });
     } else {
-      self.core.report(Diag::DuplicateItem { span, name: def.name });
+      self.core.report(Diag::DuplicateItem { span, name: def.name.clone() });
     }
   }
 
@@ -294,7 +296,7 @@ impl Charter<'_> {
     if def.pattern_kind.is_none() {
       def.pattern_kind = Some(WithVis { vis, kind });
     } else {
-      self.core.report(Diag::DuplicateItem { span, name: def.name });
+      self.core.report(Diag::DuplicateItem { span, name: def.name.clone() });
     }
   }
 
@@ -303,7 +305,7 @@ impl Charter<'_> {
     if def.trait_kind.is_none() {
       def.trait_kind = Some(WithVis { vis, kind });
     } else {
-      self.core.report(Diag::DuplicateItem { span, name: def.name });
+      self.core.report(Diag::DuplicateItem { span, name: def.name.clone() });
     }
   }
 
@@ -312,7 +314,7 @@ impl Charter<'_> {
     if def.impl_kind.is_none() {
       def.impl_kind = Some(WithVis { vis, kind });
     } else {
-      self.core.report(Diag::DuplicateItem { span, name: def.name });
+      self.core.report(Diag::DuplicateItem { span, name: def.name.clone() });
     }
   }
 }

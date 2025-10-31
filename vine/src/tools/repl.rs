@@ -174,7 +174,7 @@ impl<'ctx, 'ivm, 'ext> Repl<'ctx, 'ivm, 'ext> {
           self.path,
           self.repl_mod,
           self.types.clone(),
-          self.scope.iter().map(|entry| (entry.name, entry.span, entry.ty)),
+          self.scope.iter().map(|entry| (entry.name.clone(), entry.span, entry.ty)),
           self.block,
         );
         *self.fragment = Some(fragment);
@@ -322,7 +322,7 @@ impl<'ctx, 'ivm, 'ext> Repl<'ctx, 'ivm, 'ext> {
     }));
     for (i, (value, space)) in (0..self.scope.len()).zip(trees) {
       let entry = &self.scope[i];
-      let ident = entry.name.0 .0;
+      let ident = entry.name.0.clone();
       let ty = entry.ty;
       let value = value.map(|tree| self.show_tree(ty, &tree));
       let space = space.map(|tree| self.show_tree(ty.inverse(), &tree));

@@ -534,9 +534,9 @@ impl<'a> Finder<'a> {
         if Some(*trait_id) == self.chart.builtins.object {
           if let Some((inv, TypeKind::Object(entries))) = types.kind(type_params[0]) {
             let mut iter = entries.iter();
-            if let Some((&key, &init)) = iter.next() {
+            if let Some((key, &init)) = iter.next() {
               let init = init.invert_if(inv);
-              let rest = iter.map(|(&k, &t)| (k, t.invert_if(inv))).collect();
+              let rest = iter.map(|(k, &t)| (k.clone(), t.invert_if(inv))).collect();
               let mut types = types.clone();
               let rest = types.new(TypeKind::Object(rest));
               if types
@@ -544,7 +544,7 @@ impl<'a> Finder<'a> {
                 .and(types.unify(rest, type_params[2]))
                 .is_success()
               {
-                let impl_ = TirImpl::Synthetic(SyntheticImpl::Object(key, entries.len()));
+                let impl_ = TirImpl::Synthetic(SyntheticImpl::Object(key.clone(), entries.len()));
                 found.push(TypeCtx { types, inner: impl_ });
               }
             }

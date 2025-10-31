@@ -152,7 +152,7 @@ impl<'src> From<String> for Doc<'src> {
 
 impl<'src> From<Ident> for Doc<'src> {
   fn from(value: Ident) -> Self {
-    Doc(value.0 .0)
+    Doc(value.0)
   }
 }
 

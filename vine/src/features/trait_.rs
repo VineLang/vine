@@ -36,7 +36,7 @@ impl<'src> Formatter<'src> {
   pub(crate) fn fmt_trait_item(&self, span: Span, t: &TraitItem) -> Doc<'src> {
     Doc::concat([
       Doc("trait "),
-      Doc(t.name),
+      Doc(t.name.clone()),
       self.fmt_generic_params(&t.generics),
       Doc(" "),
       self.fmt_block_like(span, t.items.iter().map(|i| (i.span, self.fmt_item(i)))),
@@ -54,7 +54,7 @@ impl Charter<'_> {
     member_vis: DefId,
     trait_item: TraitItem,
   ) -> DefId {
-    let def = self.chart_child(parent, trait_item.name, member_vis, true);
+    let def = self.chart_child(parent, trait_item.name.clone(), member_vis, true);
     let generics = self.chart_generics(def, parent_generics, trait_item.generics, false);
     let trait_id = self.chart.traits.next_index();
     let mut consts = IdxVec::new();
@@ -104,7 +104,7 @@ impl Charter<'_> {
       self.chart_trait_subitem_generics(span, def, trait_id, trait_generics, fn_item.generics);
     let trait_fn_id = fns.push(TraitFn {
       method: fn_item.method,
-      name: fn_item.name,
+      name: fn_item.name.clone(),
       generics,
       params: fn_item.params,
       ret_ty: fn_item.ret,
@@ -132,7 +132,7 @@ impl Charter<'_> {
     let generics =
       self.chart_trait_subitem_generics(span, def, trait_id, trait_generics, const_item.generics);
     let trait_const_id =
-      consts.push(TraitConst { name: const_item.name, generics, ty: const_item.ty });
+      consts.push(TraitConst { name: const_item.name.clone(), generics, ty: const_item.ty });
     let def = self.chart_child(def, const_item.name, vis, true);
     let kind = DefValueKind::Const(ConstId::Abstract(trait_id, trait_const_id));
     self.define_value(span, def, vis, kind);

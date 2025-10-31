@@ -59,7 +59,7 @@ impl<'src> Formatter<'src> {
     match vis {
       Vis::Private => Doc::EMPTY,
       Vis::Public => Doc("pub "),
-      Vis::PublicTo(_, name) => Doc::concat([Doc("pub."), Doc(*name), Doc(" ")]),
+      Vis::PublicTo(_, name) => Doc::concat([Doc("pub."), Doc(name.clone()), Doc(" ")]),
     }
   }
 
@@ -144,8 +144,8 @@ impl<'src> Formatter<'src> {
       StmtKind::Expr(expr, true) => Doc::concat([self.fmt_expr(expr), Doc(";")]),
       StmtKind::Item(item) => self.fmt_item(item),
       StmtKind::Return(expr) => self.fmt_stmt_return(expr),
-      StmtKind::Break(label, expr) => self.fmt_stmt_break(*label, expr),
-      StmtKind::Continue(label) => self.fmt_stmt_continue(*label),
+      StmtKind::Break(label, expr) => self.fmt_stmt_break(label.clone(), expr),
+      StmtKind::Continue(label) => self.fmt_stmt_continue(label.clone()),
       StmtKind::Empty => Doc::EMPTY,
     }
   }
@@ -190,17 +190,17 @@ impl<'src> Formatter<'src> {
       ExprKind::Paren(p) => Doc::paren(self.fmt_expr(p)),
       ExprKind::Hole => Doc("_"),
       ExprKind::Path(path, args) => self.fmt_expr_path(path, args),
-      ExprKind::Do(label, ty, body) => self.fmt_expr_do(*label, ty, body),
+      ExprKind::Do(label, ty, body) => self.fmt_expr_do(label.clone(), ty, body),
       ExprKind::Assign(inverted, space, value) => self.fmt_expr_assign(*inverted, space, value),
       ExprKind::Match(expr, ty, arms) => self.fmt_expr_match(expr, ty, arms),
       ExprKind::If(cond, ty, then, else_) => self.fmt_expr_if(cond, ty, then, else_),
-      ExprKind::When(label, ty, arms, leg) => self.fmt_expr_when(*label, ty, arms, leg),
+      ExprKind::When(label, ty, arms, leg) => self.fmt_expr_when(label.clone(), ty, arms, leg),
       ExprKind::While(label, cond, ty, body, else_) => {
-        self.fmt_expr_while(*label, cond, ty, body, else_)
+        self.fmt_expr_while(label.clone(), cond, ty, body, else_)
       }
-      ExprKind::Loop(label, ty, body) => self.fmt_expr_loop(*label, ty, body),
+      ExprKind::Loop(label, ty, body) => self.fmt_expr_loop(label.clone(), ty, body),
       ExprKind::For(label, pat, expr, ty, block, else_) => {
-        self.fmt_expr_for(*label, pat, expr, ty, block, else_)
+        self.fmt_expr_for(label.clone(), pat, expr, ty, block, else_)
       }
       ExprKind::Fn(flex, params, ty, body) => self.fmt_expr_fn(flex, params, ty, body),
       ExprKind::Ref(expr, postfix) => self.fmt_expr_ref(expr, *postfix),

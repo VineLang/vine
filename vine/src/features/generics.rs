@@ -100,11 +100,11 @@ impl<'src> Formatter<'src> {
   }
 
   fn fmt_type_param(&self, param: &TypeParam) -> Doc<'src> {
-    Doc::concat([Doc(param.name), self.fmt_flex(param.flex)])
+    Doc::concat([Doc(param.name.clone()), self.fmt_flex(param.flex)])
   }
 
   fn fmt_impl_param(&self, param: &ImplParam) -> Doc<'src> {
-    match param.name {
+    match param.name.clone() {
       Some(name) => Doc::concat([Doc(name), Doc(": "), self.fmt_trait(&param.trait_)]),
       None => self.fmt_trait(&param.trait_),
     }
@@ -208,8 +208,8 @@ impl Resolver<'_> {
         }
       }
       let index = type_params.params.len();
-      type_params.params.push(param.name);
-      if type_params.lookup.insert(param.name, index).is_some() {
+      type_params.params.push(param.name.clone());
+      if type_params.lookup.insert(param.name.clone(), index).is_some() {
         self.core.report(Diag::DuplicateTypeParam { span: param.span });
       }
     }
@@ -229,7 +229,7 @@ impl Resolver<'_> {
         .params
         .iter()
         .enumerate()
-        .map(|(index, &name)| self.types.new(TypeKind::Param(index, name)))
+        .map(|(index, name)| self.types.new(TypeKind::Param(index, name.clone())))
         .collect();
       impl_params.types.inner.push(ImplType::Trait(trait_id, type_params));
     }
@@ -237,7 +237,7 @@ impl Resolver<'_> {
     for param in &generics_def.type_params {
       let index = self.sigs.type_params[generics_id].lookup[&param.name];
       let span = param.span;
-      let ty = self.types.new(TypeKind::Param(index, param.name));
+      let ty = self.types.new(TypeKind::Param(index, param.name.clone()));
       if param.flex.fork() {
         impl_params.types.inner.push(if let Some(fork) = self.chart.builtins.fork {
           ImplType::Trait(fork, vec![ty])
@@ -255,8 +255,8 @@ impl Resolver<'_> {
     }
 
     if generics_def.global_flex != Flex::None {
-      for (index, &name) in self.sigs.type_params[generics_id].params.iter().enumerate() {
-        let ty = self.types.new(TypeKind::Param(index, name));
+      for (index, name) in self.sigs.type_params[generics_id].params.iter().enumerate() {
+        let ty = self.types.new(TypeKind::Param(index, name.clone()));
         if generics_def.global_flex.fork() {
           if let Some(fork) = self.chart.builtins.fork {
             impl_params.types.inner.push(ImplType::Trait(fork, vec![ty]));
@@ -273,7 +273,7 @@ impl Resolver<'_> {
     for param in &generics_def.impl_params {
       let index = impl_params.types.inner.len();
       impl_params.types.inner.push(self.resolve_trait(&param.trait_));
-      if let Some(name) = param.name {
+      if let Some(name) = param.name.clone() {
         if impl_params.lookup.insert(name, index).is_some() {
           self.core.report(Diag::DuplicateImplParam { span: param.span });
         }

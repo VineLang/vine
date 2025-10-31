@@ -4,7 +4,7 @@ use std::{
 };
 
 use ivy::ast::Net;
-use vine_util::{idx, interner::Interned};
+use vine_util::idx;
 
 use crate::{
   features::builtin::Builtin,
@@ -200,7 +200,7 @@ impl<T, I> Generics<T, I> {
   }
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone)]
 pub struct TypeParam {
   pub span: Span,
   pub name: Ident,
@@ -330,10 +330,10 @@ pub enum ExprKind {
   Error(ErrorGuaranteed),
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone)]
 pub struct Label(pub Option<Ident>);
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum Target {
   AnyLoop,
   Label(Ident),
@@ -387,8 +387,8 @@ pub struct Path {
 impl Path {
   pub fn as_ident(&self) -> Option<Ident> {
     if self.generics.is_none() {
-      if let [ident] = self.segments[..] {
-        return Some(ident);
+      if let [ident] = &self.segments[..] {
+        return Some(ident.clone());
       }
     }
     None
@@ -513,10 +513,10 @@ impl ComparisonOp {
   }
 }
 
-#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct Ident(pub Interned<'static, str>);
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub struct Ident(pub String);
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone)]
 pub struct Key {
   pub span: Span,
   pub ident: Ident,
@@ -524,7 +524,7 @@ pub struct Key {
 
 impl Display for Ident {
   fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-    write!(f, "{}", self.0 .0)
+    write!(f, "{}", self.0)
   }
 }
 

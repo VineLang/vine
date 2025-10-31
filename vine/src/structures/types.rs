@@ -412,7 +412,7 @@ impl Types {
                   if !first {
                     *str += ", ";
                   }
-                  *str += key.0 .0;
+                  *str += &key.0;
                   *str += ": ";
                   self._show(chart, val, str);
                   first = false;
@@ -433,7 +433,7 @@ impl Types {
                 FnId::Abstract(trait_id, fn_id) => {
                   *str += chart.defs[chart.traits[*trait_id].def].path;
                   *str += "::";
-                  *str += chart.traits[*trait_id].fns[*fn_id].name.0 .0;
+                  *str += &chart.traits[*trait_id].fns[*fn_id].name.0;
                 }
               }
             }
@@ -443,19 +443,19 @@ impl Types {
               *str += ">";
             }
             TypeKind::Opaque(type_id, params) => {
-              *str += chart.opaque_types[*type_id].name.0 .0;
+              *str += &chart.opaque_types[*type_id].name.0;
               self._show_params(chart, params, str);
             }
             TypeKind::Struct(struct_id, params) => {
-              *str += chart.structs[*struct_id].name.0 .0;
+              *str += &chart.structs[*struct_id].name.0;
               self._show_params(chart, params, str);
             }
             TypeKind::Enum(enum_id, params) => {
-              *str += chart.enums[*enum_id].name.0 .0;
+              *str += &chart.enums[*enum_id].name.0;
               self._show_params(chart, params, str);
             }
             TypeKind::Param(_, name) => {
-              *str += name.0 .0;
+              *str += &name.0;
             }
             TypeKind::Never => *str += "!",
             TypeKind::Error(_) => *str += "??",
@@ -488,7 +488,7 @@ impl Types {
     let mut str = String::new();
     match ty {
       ImplType::Trait(trait_id, params) => {
-        str += chart.traits[*trait_id].name.0 .0;
+        str += &chart.traits[*trait_id].name.0;
         self._show_params(chart, params, &mut str);
       }
       ImplType::Error(_) => str += "??",
@@ -646,7 +646,9 @@ impl TypeKind {
   fn map(&self, mut f: impl FnMut(Type) -> Type) -> Self {
     match self {
       TypeKind::Tuple(els) => TypeKind::Tuple(els.iter().copied().map(f).collect()),
-      TypeKind::Object(els) => TypeKind::Object(els.iter().map(|(&k, &v)| (k, f(v))).collect()),
+      TypeKind::Object(els) => {
+        TypeKind::Object(els.iter().map(|(k, &v)| (k.clone(), f(v))).collect())
+      }
       TypeKind::Opaque(i, els) => TypeKind::Opaque(*i, els.iter().copied().map(f).collect()),
       TypeKind::Struct(i, els) => TypeKind::Struct(*i, els.iter().copied().map(f).collect()),
       TypeKind::Enum(i, els) => TypeKind::Enum(*i, els.iter().copied().map(f).collect()),
@@ -655,7 +657,7 @@ impl TypeKind {
       TypeKind::Closure(i, x, p, r) => {
         TypeKind::Closure(*i, *x, p.iter().copied().map(&mut f).collect(), f(*r))
       }
-      TypeKind::Param(i, n) => TypeKind::Param(*i, *n),
+      TypeKind::Param(i, n) => TypeKind::Param(*i, n.clone()),
       TypeKind::Never => TypeKind::Never,
       TypeKind::Error(err) => TypeKind::Error(*err),
     }

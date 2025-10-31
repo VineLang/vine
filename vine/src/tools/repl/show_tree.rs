@@ -91,7 +91,7 @@ impl<'ctx, 'ivm, 'ext> Repl<'ctx, 'ivm, 'ext> {
         }
       }
       (TypeKind::Struct(struct_id, args), tree) => {
-        let name = self.compiler.chart.structs[*struct_id].name;
+        let name = self.compiler.chart.structs[*struct_id].name.clone();
         let args = args.clone();
         let data = self.types.import(&self.compiler.sigs.structs[*struct_id], Some(&args)).data;
         let data = self.show_tree(data, tree);
@@ -123,7 +123,7 @@ impl<'ctx, 'ivm, 'ext> Repl<'ctx, 'ivm, 'ext> {
         }
         let (variant_id, mut tree) = active_variant?;
         let variant = &enum_def.variants[variant_id];
-        let name = variant.name;
+        let name = variant.name.clone();
         let enum_id = *enum_id;
         let args = args.clone();
         let data =

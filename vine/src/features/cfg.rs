@@ -94,7 +94,7 @@ impl Charter<'_> {
   pub fn eval_cfg(&self, cfg: &Cfg) -> Result<bool, ErrorGuaranteed> {
     let span = cfg.span;
     match &*cfg.kind {
-      CfgKind::Bool(name) => match self.get_cfg(span, *name)? {
+      CfgKind::Bool(name) => match self.get_cfg(span, name.clone())? {
         ConfigValue::Bool(bool) => Ok(*bool),
       },
       CfgKind::Paren(cfg) => self.eval_cfg(cfg),

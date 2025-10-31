@@ -3,7 +3,7 @@ use std::{
   fmt::{self, Debug},
 };
 
-use vine_util::{arena::BytesArena, idx::IdxVec, interner::StringInterner, new_idx};
+use vine_util::{arena::BytesArena, idx::IdxVec, new_idx};
 
 use crate::structures::{
   ast::Ident,
@@ -19,7 +19,6 @@ new_idx!(pub FileId);
 
 pub struct Core {
   arenas: &'static CoreArenas,
-  interner: StringInterner<'static>,
   pub(crate) diags: RefCell<Vec<Diag>>,
   pub(crate) files: RefCell<IdxVec<FileId, FileInfo>>,
   pub debug: bool,
@@ -29,7 +28,6 @@ impl Core {
   pub fn new(debug: bool) -> &'static Self {
     Box::leak(Box::new(Core {
       arenas: Box::leak(Box::new(CoreArenas::default())),
-      interner: StringInterner::new(&Box::leak(Box::new(CoreArenas::default())).bytes),
       diags: Default::default(),
       files: Default::default(),
       debug,
@@ -37,7 +35,7 @@ impl Core {
   }
 
   pub fn ident(&self, str: &str) -> Ident {
-    Ident(self.interner.intern(str))
+    Ident(str.to_owned())
   }
 
   pub fn alloc_str(&self, str: &str) -> &str {

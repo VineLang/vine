@@ -22,7 +22,7 @@ impl<'src> Formatter<'src> {
     Doc::concat([
       self.fmt_expr(receiver),
       Doc("."),
-      Doc(*name),
+      Doc(name.clone()),
       self.fmt_generic_args(generics),
       Doc::paren_comma(args.iter().map(|x| self.fmt_expr(x))),
     ])
@@ -93,7 +93,7 @@ impl Resolver<'_> {
     receiver: Type,
     name: Ident,
   ) -> Result<(FnId, TypeCtx<Vec<Type>>), ErrorGuaranteed> {
-    let mut results = self.finder(span).find_method(&self.types, receiver, name);
+    let mut results = self.finder(span).find_method(&self.types, receiver, name.clone());
     if results.len() == 1 {
       Ok(results.pop().unwrap())
     } else {

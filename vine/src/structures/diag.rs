@@ -52,7 +52,7 @@ diags! {
     ["cannot read file `{path}`: {err}", path = path.display()]
   DisallowedImplicitMod
     ["implicit submodule paths are only allowed in files of the form `{{mod_name}}/{{mod_name}}.vi`"]
-  AmbiguousImplicitMod { name: &'static str }
+  AmbiguousImplicitMod { name: Ident }
     ["ambiguous implicit submodule path; both `{name}.vi` and `{name}/{name}.vi` exist"]
   LexError
     ["lexing error"]

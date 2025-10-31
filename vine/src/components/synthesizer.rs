@@ -14,7 +14,7 @@ use crate::structures::{
   vir::StageId,
 };
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum SyntheticImpl {
   Tuple(usize),
   Object(Ident, usize),
@@ -99,7 +99,7 @@ impl Synthesizer<'_> {
 
   fn synthesize(&mut self, item: &SyntheticItem) {
     let stage = self.new_stage();
-    let net = match *item {
+    let net = match item.clone() {
       SyntheticItem::CompositeDeconstruct(len) => self.synthesize_composite_deconstruct(len),
       SyntheticItem::CompositeReconstruct(len) => self.synthesize_composite_reconstruct(len),
       SyntheticItem::Ident(ident) => self.synthesize_ident(ident),
@@ -135,7 +135,7 @@ impl Synthesizer<'_> {
   }
 
   fn synthesize_ident(&mut self, ident: Ident) -> Net {
-    let str = self.string(ident.0 .0);
+    let str = self.string(&ident.0);
     self.const_(str)
   }
 
@@ -151,7 +151,7 @@ impl Synthesizer<'_> {
 
   fn synthesize_enum_variant_names(&mut self, enum_id: EnumId) -> Net {
     let names =
-      self.list(self.chart.enums[enum_id].variants.values().map(|x| x.name.0 .0), Self::string);
+      self.list(self.chart.enums[enum_id].variants.values().map(|x| &*x.name.0), Self::string);
     self.const_(names)
   }
 
@@ -394,11 +394,11 @@ impl SyntheticImpl {
         _ => unreachable!(),
       },
       SyntheticImpl::Struct(struct_id) => match const_id {
-        TraitConstId(0) => SyntheticItem::Ident(chart.structs[struct_id].name),
+        TraitConstId(0) => SyntheticItem::Ident(chart.structs[struct_id].name.clone()),
         _ => unreachable!(),
       },
       SyntheticImpl::Enum(enum_id) => match const_id {
-        TraitConstId(0) => SyntheticItem::Ident(chart.enums[enum_id].name),
+        TraitConstId(0) => SyntheticItem::Ident(chart.enums[enum_id].name.clone()),
         TraitConstId(1) => SyntheticItem::EnumVariantNames(enum_id),
         _ => unreachable!(),
       },

@@ -40,7 +40,7 @@ impl VineParser<'_> {
     if self.check(Token::Ident) {
       let span = self.span();
       let ident = self.parse_ident()?;
-      if cur_name == Some(ident) {
+      if cur_name.as_ref() == Some(&ident) {
         if self.eat(Token::As)? {
           if self.eat(Token::Hole)? {
             tree.implicit = true;
@@ -52,7 +52,7 @@ impl VineParser<'_> {
           tree.aliases.push(ident);
         }
       } else {
-        let child = tree.children.entry(ident).or_insert(UseTree::empty(span));
+        let child = tree.children.entry(ident.clone()).or_insert(UseTree::empty(span));
         if self.eat(Token::ColonColon)? {
           let is_group = self.check(Token::OpenBrace);
           self.parse_use_tree(is_group.then_some(ident), child)?;
@@ -68,7 +68,7 @@ impl VineParser<'_> {
         }
       }
     } else {
-      self.parse_delimited(BRACE_COMMA, |self_| self_.parse_use_tree(cur_name, tree))?;
+      self.parse_delimited(BRACE_COMMA, |self_| self_.parse_use_tree(cur_name.clone(), tree))?;
     }
     Ok(())
   }
@@ -84,19 +84,21 @@ impl<'src> Formatter<'src> {
   }
 
   pub(crate) fn fmt_use_tree(name: Option<Ident>, tree: &UseTree) -> Doc<'src> {
-    let prefix = name.iter().map(|&name| Doc::concat([Doc(name), Doc("::")]));
-    let aliases =
-      tree.implicit.then(|| Doc::concat([Doc(name.unwrap()), Doc(" as _")])).into_iter().chain(
-        tree.aliases.iter().map(|&alias| {
-          if Some(alias) == name {
-            Doc(alias)
-          } else {
-            Doc::concat([Doc(name.unwrap()), Doc(" as "), Doc(alias)])
-          }
-        }),
-      );
+    let prefix = name.iter().map(|name| Doc::concat([Doc(name.clone()), Doc("::")]));
+    let aliases = tree
+      .implicit
+      .then(|| Doc::concat([Doc(name.clone().unwrap()), Doc(" as _")]))
+      .into_iter()
+      .chain(tree.aliases.iter().map(|alias| {
+        if Some(alias) == name.as_ref() {
+          Doc(alias.clone())
+        } else {
+          Doc::concat([Doc(name.clone().unwrap()), Doc(" as "), Doc(alias.clone())])
+        }
+      }));
     let aliases_len = tree.implicit as usize + tree.aliases.len();
-    let children = tree.children.iter().map(|(&name, child)| Self::fmt_use_tree(Some(name), child));
+    let children =
+      tree.children.iter().map(|(name, child)| Self::fmt_use_tree(Some(name.clone()), child));
     let len = aliases_len + children.len();
     if len == 1 {
       if aliases_len == 1 {
@@ -136,7 +138,7 @@ impl Charter<'_> {
       def.named_members.push(member);
     }
     for name in use_tree.aliases {
-      if let Entry::Vacant(e) = def.members_lookup.entry(name) {
+      if let Entry::Vacant(e) = def.members_lookup.entry(name.clone()) {
         e.insert(member);
       } else {
         self.core.report(Diag::DuplicateItem { span, name });
@@ -160,7 +162,7 @@ impl Resolver<'_> {
       ImportState::Resolving => Err(self.core.report(Diag::CircularImport { span: import.span })),
       ImportState::Unresolved => {
         *state = ImportState::Resolving;
-        let import = *import;
+        let import = import.clone();
         let resolved = self._resolve_import(import);
         self.sigs.imports[import_id] = ImportState::Resolved(resolved);
         resolved

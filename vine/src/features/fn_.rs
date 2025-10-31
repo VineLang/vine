@@ -69,7 +69,7 @@ impl<'src> Formatter<'src> {
     Doc::concat([
       Doc("fn "),
       Doc(if f.method { "." } else { "" }),
-      Doc(f.name),
+      Doc(f.name.clone()),
       self.fmt_generic_params(&f.generics),
       Doc::paren_comma(params.iter().map(|p| self.fmt_pat(p))),
       self.fmt_return_ty(f.ret.as_ref()),
@@ -85,7 +85,7 @@ impl<'src> Formatter<'src> {
       Doc("let fn"),
       self.fmt_flex(d.flex),
       Doc(" "),
-      Doc(d.name),
+      Doc(d.name.clone()),
       Doc::paren_comma(d.params.iter().map(|p| self.fmt_pat(p))),
       self.fmt_return_ty(d.ret.as_ref()),
       Doc(" "),
@@ -209,7 +209,7 @@ impl Resolver<'_> {
             Vec::from_iter(let_fn.params.iter().map(|p| self.resolve_pat_sig(p, true)));
           let ret = self.resolve_arrow_ty(span, &let_fn.ret, true);
           let ty = self.types.new(TypeKind::Closure(id, let_fn.flex, param_tys.clone(), ret));
-          self.bind(let_fn.name, Binding::Closure(id, ty));
+          self.bind(let_fn.name.clone(), Binding::Closure(id, ty));
           let_fns.push((span, id, param_tys, ret, let_fn));
         }
         StmtKind::Empty | StmtKind::Item(_) => {}
