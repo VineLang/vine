@@ -125,13 +125,13 @@ impl<'ctx, 'ivm, 'ext> Repl<'ctx, 'ivm, 'ext> {
 
     self.compiler.loader.load_deps(".".as_ref(), &mut block);
 
-    let path = self.core.alloc_str(&format!("::repl::{}", self.line));
+    let path = format!("::repl::{}", self.line);
     let mut fragment = None;
     let mut ty = None;
     let mut bindings = Vec::new();
 
     let nets = self.compiler.compile(ExecHooks {
-      path,
+      path: path.clone(),
       repl_mod: self.repl_mod,
       scope: &mut self.scope,
       block: &mut block,
@@ -148,7 +148,7 @@ impl<'ctx, 'ivm, 'ext> Repl<'ctx, 'ivm, 'ext> {
     self.line += 1;
 
     struct ExecHooks<'ivm, 'a> {
-      path: &'static str,
+      path: String,
       repl_mod: DefId,
       scope: &'a mut Vec<ScopeEntry<'ivm>>,
       block: &'a mut Block,
@@ -171,7 +171,7 @@ impl<'ctx, 'ivm, 'ext> Repl<'ctx, 'ivm, 'ext> {
       fn resolve(&mut self, resolver: &mut Resolver<'_>) {
         let (fragment, ty, mut bindings) = resolver._resolve_repl(
           self.block.span,
-          self.path,
+          self.path.clone(),
           self.repl_mod,
           self.types.clone(),
           self.scope.iter().map(|entry| (entry.name.clone(), entry.span, entry.ty)),
@@ -287,7 +287,7 @@ impl<'ctx, 'ivm, 'ext> Repl<'ctx, 'ivm, 'ext> {
     }));
     self.ivm.link_wire(binds.unwrap(), Port::ERASE);
 
-    self.ivm.execute(&self.host.get(path).unwrap().instructions, Port::new_wire(root));
+    self.ivm.execute(&self.host.get(&path).unwrap().instructions, Port::new_wire(root));
     self.ivm.normalize();
 
     let tree = self.host.read(self.ivm, &PortRef::new_wire(&result));

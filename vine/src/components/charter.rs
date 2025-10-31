@@ -36,12 +36,12 @@ impl Charter<'_> {
       );
     }
     if self.chart.defs.is_empty() {
-      self.new_def(self.core.ident("::"), "", None);
+      self.new_def(self.core.ident("::"), "".into(), None);
     }
     self.chart_mod_kind(DefId::ROOT, root, DefId::ROOT, GenericsId::NONE);
   }
 
-  fn new_def(&mut self, name: Ident, path: &'static str, parent: Option<DefId>) -> DefId {
+  fn new_def(&mut self, name: Ident, path: String, parent: Option<DefId>) -> DefId {
     let id = self.chart.defs.next_index();
     self.chart.defs.push(Def {
       name,
@@ -236,7 +236,6 @@ impl Charter<'_> {
     member.vis = member.vis.min(vis);
     if new {
       let path = format!("{}::{}", parent_def.path, name);
-      let path = self.core.alloc_str(&path);
       self.new_def(name, path, Some(parent));
     }
     child

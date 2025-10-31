@@ -29,7 +29,7 @@ impl Specializations {
 new_idx!(pub SpecId);
 #[derive(Debug)]
 pub struct Spec {
-  pub path: &'static str,
+  pub path: String,
   pub index: usize,
   pub singular: bool,
   pub rels: SpecRels,

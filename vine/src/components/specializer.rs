@@ -52,7 +52,7 @@ impl<'a> Specializer<'a> {
     self.specs.specs.push_to(spec_id, None);
     let rels = &self.vir[id].rels;
     let rels = self.instantiate_rels(Some(id), &impl_args, rels);
-    let path = self.fragments[id].path;
+    let path = self.fragments[id].path.clone();
     let spec =
       Spec { path, index, singular: impl_args.is_empty(), rels, kind: SpecKind::Fragment(id) };
     self.specs.specs[spec_id] = Some(spec);
@@ -227,7 +227,7 @@ impl<'a> Specializer<'a> {
         entry.insert(spec_id);
         let rels = self.instantiate_rels(None, &impls, &item.rels());
         self.specs.specs[spec_id] = Some(Spec {
-          path: ":synthetic",
+          path: ":synthetic".into(),
           index,
           singular: false,
           rels,

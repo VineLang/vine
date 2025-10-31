@@ -109,7 +109,7 @@ impl Compiler {
     core.bail()?;
 
     if let Some(main) = self.resolutions.main {
-      let path = self.fragments[main].path;
+      let path = &self.fragments[main].path;
       let vir = &self.vir[main];
       let func = vir.closures[ClosureId(0)];
       let InterfaceKind::Fn { call, .. } = vir.interfaces[func].kind else { unreachable!() };

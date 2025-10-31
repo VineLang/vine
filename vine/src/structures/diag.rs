@@ -72,7 +72,7 @@ diags! {
     ["unknown attribute"]
   BadBuiltin
     ["bad builtin"]
-  CannotResolve { ident: Ident, module: &'static str }
+  CannotResolve { ident: Ident, module: String }
     ["cannot find `{ident}` in `{module}`"]
   BadPatternPath
     ["invalid pattern; this path is not a struct or enum variant"]
@@ -106,9 +106,9 @@ diags! {
     ["invalid method; function takes no parameters"]
   ExpectedTypeFound { expected: String, found: String }
     ["expected type `{expected}`; found `{found}`"]
-  PathNoAssociated { desc: &'static str, path: &'static str }
+  PathNoAssociated { desc: &'static str, path: String }
     ["no {desc} associated with `{path}`"]
-  BadGenericCount { path: &'static str, expected: usize, got: usize, kind: &'static str }
+  BadGenericCount { path: String, expected: usize, got: usize, kind: &'static str }
     ["`{path}` expects {expected} {kind} parameter{}; was passed {got}", plural(*expected, "s", "")]
   MissingTupleField { ty: String, i: usize }
     ["type `{ty}` has no field `{i}`"]
@@ -138,13 +138,13 @@ diags! {
     ["expected a value of type `{ty}` to break with"]
   NoMethods { ty: String }
     ["type `{ty}` has no methods"]
-  BadMethodReceiver { base_path: &'static str, ident: Ident }
+  BadMethodReceiver { base_path: String, ident: Ident }
     ["`{base_path}::{ident}` cannot be used as a method; it does not take `{base_path}` as its first parameter"]
-  Invisible { module: &'static str, ident: Ident, vis: &'static str }
+  Invisible { module: String, ident: Ident, vis: String }
     ["`{module}::{ident}` is only visible within `{vis}`"]
   BadVis
     ["invalid visibility; expected the name of an ancestor module"]
-  InvisibleAssociated { desc: &'static str, path: &'static str, vis: &'static str }
+  InvisibleAssociated { desc: &'static str, path: String, vis: String }
     ["the {desc} `{path}` is only visible within `{vis}`"]
   VisibleSubitem
     ["subitems must be private"]
@@ -204,7 +204,7 @@ diags! {
     ["expected data subpattern"]
   ExpectedDataExpr
     ["constructor expects data"]
-  StructDataInvisible { ty: String, vis: &'static str }
+  StructDataInvisible { ty: String, vis: String }
     ["the data of `{ty}` is only visible within `{vis}`"]
   TryBadReturnType { tried: String, ret: String }
     ["cannot try `{tried}` in a function returning `{ret}`"]

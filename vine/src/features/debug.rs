@@ -22,23 +22,26 @@ impl Emitter<'_> {
       return self.tap_debug();
     }
     let len = self.specs.synthetic.len();
-    let index =
-      match self.specs.synthetic.entry((SyntheticItem::Frame(self.fragment.path, span), vec![])) {
-        Entry::Occupied(e) => self.specs.specs[*e.get()].as_ref().unwrap().index,
-        Entry::Vacant(entry) => {
-          let (item, _) = entry.key().clone();
-          let spec_id = self.specs.specs.push(None);
-          entry.insert(spec_id);
-          self.specs.specs[spec_id] = Some(Spec {
-            path: ":synthetic",
-            index: len,
-            singular: false,
-            rels: SpecRels::default(),
-            kind: SpecKind::Synthetic(item),
-          });
-          len
-        }
-      };
+    let index = match self
+      .specs
+      .synthetic
+      .entry((SyntheticItem::Frame(self.fragment.path.clone(), span), vec![]))
+    {
+      Entry::Occupied(e) => self.specs.specs[*e.get()].as_ref().unwrap().index,
+      Entry::Vacant(entry) => {
+        let (item, _) = entry.key().clone();
+        let spec_id = self.specs.specs.push(None);
+        entry.insert(spec_id);
+        self.specs.specs[spec_id] = Some(Spec {
+          path: ":synthetic".into(),
+          index: len,
+          singular: false,
+          rels: SpecRels::default(),
+          kind: SpecKind::Synthetic(item),
+        });
+        len
+      }
+    };
     let w = self.new_wire();
     let io = self.new_wire();
     let len = self.new_wire();

@@ -98,12 +98,12 @@ impl Resolver<'_> {
           Err(Diag::InvisibleAssociated {
             span: path.span,
             desc,
-            path: def.path,
-            vis: self.chart.defs[vis].path,
+            path: def.path.clone(),
+            vis: self.chart.defs[vis].path.clone(),
           })
         }
       }
-      None => Err(Diag::PathNoAssociated { span: path.span, desc, path: def.path }),
+      None => Err(Diag::PathNoAssociated { span: path.span, desc, path: def.path.clone() }),
     }
   }
 
@@ -143,7 +143,7 @@ impl Resolver<'_> {
         return Ok(resolved);
       }
     }
-    Err(Diag::CannotResolve { span, module: self.chart.defs[base].path, ident })
+    Err(Diag::CannotResolve { span, module: self.chart.defs[base].path.clone(), ident })
   }
 
   pub(crate) fn resolve_segment(
@@ -154,7 +154,7 @@ impl Resolver<'_> {
     ident: Ident,
   ) -> Result<DefId, Diag> {
     let resolved = self._resolve_segment(span, source, base, ident.clone())?;
-    resolved.ok_or(Diag::CannotResolve { span, module: self.chart.defs[base].path, ident })
+    resolved.ok_or(Diag::CannotResolve { span, module: self.chart.defs[base].path.clone(), ident })
   }
 
   fn _resolve_segment(
@@ -177,9 +177,9 @@ impl Resolver<'_> {
       } else {
         Err(Diag::Invisible {
           span,
-          module: self.chart.defs[base].path,
+          module: self.chart.defs[base].path.clone(),
           ident,
-          vis: self.chart.defs[vis].path,
+          vis: self.chart.defs[vis].path.clone(),
         })
       }
     } else {

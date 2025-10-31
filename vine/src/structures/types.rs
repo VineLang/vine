@@ -428,10 +428,10 @@ impl Types {
               *str += "fn ";
               match fn_id {
                 FnId::Concrete(fn_id) => {
-                  *str += chart.defs[chart.concrete_fns[*fn_id].def].path;
+                  *str += &chart.defs[chart.concrete_fns[*fn_id].def].path;
                 }
                 FnId::Abstract(trait_id, fn_id) => {
-                  *str += chart.defs[chart.traits[*trait_id].def].path;
+                  *str += &chart.defs[chart.traits[*trait_id].def].path;
                   *str += "::";
                   *str += &chart.traits[*trait_id].fns[*fn_id].name.0;
                 }

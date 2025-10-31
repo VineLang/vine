@@ -30,7 +30,7 @@ new_idx!(pub DefId);
 #[derive(Debug)]
 pub struct Def {
   pub name: Ident,
-  pub path: &'static str,
+  pub path: String,
 
   pub members_lookup: HashMap<Ident, WithVis<MemberKind>>,
   pub named_members: Vec<WithVis<MemberKind>>,

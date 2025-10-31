@@ -43,7 +43,7 @@ pub enum ResolvedImplKind {
 new_idx!(pub FragmentId);
 #[derive(Debug)]
 pub struct Fragment {
-  pub path: &'static str,
+  pub path: String,
   pub def: DefId,
   pub generics: GenericsId,
   pub impl_params: usize,

@@ -90,8 +90,12 @@ impl Resolver<'_> {
     self.initialize(const_def.def, const_def.generics);
     let ty = self.types.import(&self.sigs.concrete_consts[const_id], None).ty;
     let root = self.resolve_expr_type(&const_def.value, ty);
-    let fragment =
-      self.finish_fragment(const_def.span, self.chart.defs[const_def.def].path, root, false);
+    let fragment = self.finish_fragment(
+      const_def.span,
+      self.chart.defs[const_def.def].path.clone(),
+      root,
+      false,
+    );
     let fragment_id = self.fragments.push(fragment);
     self.resolutions.consts.push_to(const_id, fragment_id);
   }

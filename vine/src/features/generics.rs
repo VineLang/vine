@@ -313,7 +313,7 @@ impl Resolver<'_> {
       if got != expected {
         self.core.report(Diag::BadGenericCount {
           span,
-          path: self.chart.defs[params.def].path,
+          path: self.chart.defs[params.def].path.clone(),
           expected,
           got,
           kind,

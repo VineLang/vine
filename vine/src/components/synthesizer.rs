@@ -33,7 +33,7 @@ pub enum SyntheticItem {
   EnumReconstruct(EnumId),
   FnFromCall(usize),
   CallFromFn(usize),
-  Frame(&'static str, Span),
+  Frame(String, Span),
   DebugState,
 }
 
@@ -271,7 +271,7 @@ impl Synthesizer<'_> {
     )
   }
 
-  fn synthesize_frame(&mut self, path: &str, span: Span) -> Net {
+  fn synthesize_frame(&mut self, path: String, span: Span) -> Net {
     let path = self.list(path[2..].split("::").collect::<Vec<_>>(), Self::string);
     let files = self.core.files.borrow();
     let pos = files[span.file].get_pos(span.start);

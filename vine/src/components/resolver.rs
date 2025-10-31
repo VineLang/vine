@@ -214,7 +214,7 @@ impl<'a> Resolver<'a> {
   pub(crate) fn _resolve_repl(
     &mut self,
     span: Span,
-    path: &'static str,
+    path: String,
     def_id: DefId,
     types: Types,
     locals: impl Iterator<Item = (Ident, Span, Type)>,
@@ -361,7 +361,7 @@ impl<'a> Resolver<'a> {
   pub(crate) fn finish_fragment(
     &mut self,
     span: Span,
-    path: &'static str,
+    path: String,
     root: TirExpr,
     frameless: bool,
   ) -> Fragment {

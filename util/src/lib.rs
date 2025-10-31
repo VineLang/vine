@@ -1,4 +1,3 @@
-pub mod arena;
 pub mod bicycle;
 pub mod idx;
 pub mod lexer;

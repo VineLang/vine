@@ -196,7 +196,7 @@ impl Resolver<'_> {
       self.core.report(Diag::StructDataInvisible {
         span,
         ty: self.types.show(self.chart, ty),
-        vis: self.chart.defs[vis].path,
+        vis: self.chart.defs[vis].path.clone(),
       });
     }
     self.types.import(&self.sigs.structs[struct_id], Some(type_params)).data

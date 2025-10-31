@@ -181,7 +181,7 @@ impl Resolver<'_> {
       self.resolve_closure(span, Flex::None, &fn_def.params, &fn_def.ret_ty, &fn_def.body, false);
     let root = TirExpr { span, ty, kind: Box::new(TirExprKind::Closure(closure_id)) };
     let fragment =
-      self.finish_fragment(span, self.chart.defs[fn_def.def].path, root, fn_def.frameless);
+      self.finish_fragment(span, self.chart.defs[fn_def.def].path.clone(), root, fn_def.frameless);
     let fragment_id = self.fragments.push(fragment);
     self.resolutions.fns.push_to(fn_id, fragment_id);
   }
