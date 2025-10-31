@@ -1,10 +1,11 @@
 use std::{
-  cell::UnsafeCell,
   cmp::Ordering,
   fmt::{self, Debug},
   hash::{Hash, Hasher},
+  mem::transmute,
   ops::Deref,
   ptr,
+  sync::Mutex,
 };
 
 use hashbrown::HashMap;
@@ -13,7 +14,7 @@ use crate::arena::BytesArena;
 
 pub struct StringInterner<'a> {
   arena: &'a BytesArena,
-  strs: UnsafeCell<HashMap<&'static str, ()>>,
+  strs: Mutex<HashMap<&'static str, ()>>,
 }
 
 impl<'a> StringInterner<'a> {
@@ -22,9 +23,13 @@ impl<'a> StringInterner<'a> {
   }
 
   pub fn intern(&self, str: &str) -> Interned<'a, str> {
-    let strs = unsafe { &mut *self.strs.get().cast::<HashMap<&'a str, ()>>() };
+    let mut strs = self.strs.lock().unwrap();
     Interned(
-      strs.raw_entry_mut().from_key(str).or_insert_with(|| (self.arena.alloc_str(str), ())).0,
+      strs
+        .raw_entry_mut()
+        .from_key(str)
+        .or_insert_with(|| (unsafe { transmute::<&str, &str>(self.arena.alloc_str(str)) }, ()))
+        .0,
       (),
     )
   }

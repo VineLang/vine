@@ -67,7 +67,7 @@ impl<'core> Charter<'core, '_> {
     member_vis: DefId,
     struct_item: StructItem<'core>,
   ) -> DefId {
-    let def = self.chart_child(parent, struct_item.name, member_vis, true);
+    let def = self.chart_child(parent, span, struct_item.name, member_vis, true);
     let generics = self.chart_generics(def, parent_generics, struct_item.generics, false);
     let data_vis = self.resolve_vis(parent, struct_item.data_vis);
     let struct_id = self.chart.structs.push(StructDef {

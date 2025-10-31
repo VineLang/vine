@@ -51,7 +51,7 @@ pub struct Resolver<'core, 'a> {
 #[derive(Debug)]
 pub(crate) struct ScopeEntry {
   pub(crate) depth: usize,
-  pub(crate) binding: Binding,
+  pub(crate) binding: ScopeBinding,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -62,7 +62,7 @@ pub(crate) struct TargetInfo {
 }
 
 #[derive(Debug, Clone, Copy)]
-pub(crate) enum Binding {
+pub(crate) enum ScopeBinding {
   Local(Local, Span, Type),
   Closure(ClosureId, Type),
 }
@@ -224,7 +224,7 @@ impl<'core, 'a> Resolver<'core, 'a> {
     self.types = types;
     for (name, span, ty) in locals {
       let local = self.locals.push(TirLocal { span, ty });
-      let binding = Binding::Local(local, span, ty);
+      let binding = ScopeBinding::Local(local, span, ty);
       self.scope.insert(name, vec![ScopeEntry { depth: 0, binding }]);
     }
     let ty = self.types.new_var(block.span);
@@ -240,7 +240,7 @@ impl<'core, 'a> Resolver<'core, 'a> {
       Vec::from_iter(take(&mut self.scope).into_iter().filter_map(|(name, entries)| {
         let entry = entries.first()?;
         if entry.depth == 0 {
-          if let Binding::Local(local, span, ty) = entry.binding {
+          if let ScopeBinding::Local(local, span, ty) = entry.binding {
             Some((local, name, span, ty))
           } else {
             None
@@ -308,7 +308,7 @@ impl<'core, 'a> Resolver<'core, 'a> {
     finder.find_impl(&mut self.types, ty, basic)
   }
 
-  pub(crate) fn bind(&mut self, ident: Ident<'core>, binding: Binding) {
+  pub(crate) fn bind(&mut self, ident: Ident<'core>, binding: ScopeBinding) {
     let stack = self.scope.entry(ident).or_default();
     let top = stack.last_mut();
     if top.as_ref().is_some_and(|x| x.depth == self.scope_depth) {

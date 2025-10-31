@@ -79,7 +79,7 @@ impl<'core> Charter<'core, '_> {
     member_vis: DefId,
     impl_item: ImplItem<'core>,
   ) -> DefId {
-    let def = self.chart_child(parent, impl_item.name, member_vis, true);
+    let def = self.chart_child(parent, span, impl_item.name, member_vis, true);
     let generics = self.chart_generics(def, parent_generics, impl_item.generics, true);
     let mut subitems = Vec::new();
     let kind = match impl_item.kind {
@@ -142,12 +142,13 @@ impl<'core> Charter<'core, '_> {
       self.core.report(Diag::ImplItemInheritGen { span });
     }
     fn_item.generics.inherit = true;
-    let def = self.chart_child(parent_def, fn_item.name, vis, false);
+    let def = self.chart_child(parent_def, span, fn_item.name, vis, false);
     let generics = self.chart_generics(def, parent_generics, fn_item.generics, true);
     let body = self.ensure_implemented(span, fn_item.body);
     let fn_id = self.chart.concrete_fns.push(ConcreteFnDef {
       span,
       def,
+      name: fn_item.name,
       generics,
       method: fn_item.method,
       params: fn_item.params,
@@ -173,12 +174,13 @@ impl<'core> Charter<'core, '_> {
       self.core.report(Diag::ImplItemInheritGen { span });
     }
     const_item.generics.inherit = true;
-    let def = self.chart_child(parent_def, const_item.name, vis, false);
+    let def = self.chart_child(parent_def, span, const_item.name, vis, false);
     let generics = self.chart_generics(def, parent_generics, const_item.generics, true);
     let value = self.ensure_implemented(span, const_item.value);
     let const_id = self.chart.concrete_consts.push(ConcreteConstDef {
       span,
       def,
+      name: const_item.name,
       generics,
       ty: const_item.ty,
       value,
@@ -199,7 +201,7 @@ impl<'core> Charter<'core, '_> {
     flex: Flex,
   ) {
     if flex.fork() {
-      let def = self.chart_child(ty_def, self.core.ident("fork"), member_vis, false);
+      let def = self.chart_child(ty_def, span, self.core.ident("fork"), member_vis, false);
       let _generic_params = GenericParams { inherit: true, ..GenericParams::empty(span) };
       let generics = self._chart_generics(def, ty_generics, _generic_params, true, Flex::Fork);
       let impl_ = self.chart.impls.push(ImplDef {
@@ -214,7 +216,7 @@ impl<'core> Charter<'core, '_> {
       self.define_impl(span, def, vis, DefImplKind::Impl(impl_));
     }
     if flex.drop() {
-      let def = self.chart_child(ty_def, self.core.ident("drop"), member_vis, false);
+      let def = self.chart_child(ty_def, span, self.core.ident("drop"), member_vis, false);
       let _generic_params = GenericParams { inherit: true, ..GenericParams::empty(span) };
       let generics = self._chart_generics(def, ty_generics, _generic_params, true, Flex::Drop);
       let impl_ = self.chart.impls.push(ImplDef {

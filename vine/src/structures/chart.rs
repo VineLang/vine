@@ -32,22 +32,23 @@ pub struct Def<'core> {
   pub name: Ident<'core>,
   pub path: &'core str,
 
-  pub members_lookup: HashMap<Ident<'core>, WithVis<MemberKind>>,
-  pub named_members: Vec<WithVis<MemberKind>>,
-  pub implicit_members: Vec<WithVis<MemberKind>>,
+  pub members_lookup: HashMap<Ident<'core>, Binding<MemberKind>>,
+  pub named_members: Vec<Binding<MemberKind>>,
+  pub implicit_members: Vec<Binding<MemberKind>>,
 
   pub parent: Option<DefId>,
   pub ancestors: Vec<DefId>,
 
-  pub value_kind: Option<WithVis<DefValueKind>>,
-  pub type_kind: Option<WithVis<DefTypeKind>>,
-  pub pattern_kind: Option<WithVis<DefPatternKind>>,
-  pub trait_kind: Option<WithVis<DefTraitKind>>,
-  pub impl_kind: Option<WithVis<DefImplKind>>,
+  pub value_kind: Option<Binding<DefValueKind>>,
+  pub type_kind: Option<Binding<DefTypeKind>>,
+  pub pattern_kind: Option<Binding<DefPatternKind>>,
+  pub trait_kind: Option<Binding<DefTraitKind>>,
+  pub impl_kind: Option<Binding<DefImplKind>>,
 }
 
 #[derive(Debug, Clone, Copy)]
-pub struct WithVis<T> {
+pub struct Binding<T> {
+  pub span: Span,
   pub vis: DefId,
   pub kind: T,
 }
@@ -136,6 +137,7 @@ new_idx!(pub ConcreteConstId);
 pub struct ConcreteConstDef<'core> {
   pub span: Span,
   pub def: DefId,
+  pub name: Ident<'core>,
   pub generics: GenericsId,
   pub ty: Ty<'core>,
   pub value: Expr<'core>,
@@ -146,6 +148,7 @@ new_idx!(pub ConcreteFnId);
 pub struct ConcreteFnDef<'core> {
   pub span: Span,
   pub def: DefId,
+  pub name: Ident<'core>,
   pub generics: GenericsId,
   pub method: bool,
   pub params: Vec<Pat<'core>>,
@@ -292,9 +295,11 @@ impl<'core> Chart<'core> {
 }
 
 impl<'core> Def<'core> {
-  pub fn fn_id(&self) -> Option<WithVis<FnId>> {
+  pub fn fn_id(&self) -> Option<Binding<FnId>> {
     match self.value_kind {
-      Some(WithVis { vis, kind: DefValueKind::Fn(fn_id) }) => Some(WithVis { vis, kind: fn_id }),
+      Some(Binding { span, vis, kind: DefValueKind::Fn(fn_id) }) => {
+        Some(Binding { span, vis, kind: fn_id })
+      }
       _ => None,
     }
   }
