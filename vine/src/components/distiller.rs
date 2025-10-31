@@ -21,10 +21,10 @@ use crate::structures::{
 };
 
 #[derive(Debug)]
-pub struct Distiller<'core, 'r> {
-  pub(crate) core: &'core Core<'core>,
-  pub(crate) chart: &'r Chart<'core>,
-  pub(crate) sigs: &'r Signatures<'core>,
+pub struct Distiller<'r> {
+  pub(crate) core: &'static Core,
+  pub(crate) chart: &'r Chart,
+  pub(crate) sigs: &'r Signatures,
 
   pub(crate) layers: IdxVec<LayerId, Option<Layer>>,
   pub(crate) interfaces: IdxVec<InterfaceId, Option<Interface>>,
@@ -36,8 +36,8 @@ pub struct Distiller<'core, 'r> {
 
   pub(crate) def: DefId,
   pub(crate) generics: GenericsId,
-  pub(crate) types: Types<'core>,
-  pub(crate) rels: Rels<'core>,
+  pub(crate) types: Types,
+  pub(crate) rels: Rels,
   pub(crate) locals: IdxVec<Local, TirLocal>,
 }
 
@@ -62,12 +62,8 @@ pub(crate) enum Poly<T = Port> {
   Space(T),
 }
 
-impl<'core, 'r> Distiller<'core, 'r> {
-  pub fn new(
-    core: &'core Core<'core>,
-    chart: &'r Chart<'core>,
-    sigs: &'r Signatures<'core>,
-  ) -> Self {
+impl<'r> Distiller<'r> {
+  pub fn new(core: &'static Core, chart: &'r Chart, sigs: &'r Signatures) -> Self {
     Distiller {
       core,
       chart,
@@ -86,7 +82,7 @@ impl<'core, 'r> Distiller<'core, 'r> {
     }
   }
 
-  pub fn distill_fragment(&mut self, fragment: &Fragment<'core>) -> Vir<'core> {
+  pub fn distill_fragment(&mut self, fragment: &Fragment) -> Vir {
     self.def = fragment.def;
     self.generics = fragment.generics;
     self.locals = fragment.tir.locals.clone();

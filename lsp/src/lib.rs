@@ -7,10 +7,7 @@ use tower_lsp::{jsonrpc::Result, lsp_types::*, Client, LanguageServer, LspServic
 use vine::{
   compiler::Compiler,
   features::cfg::Config,
-  structures::{
-    core::{Core, CoreArenas},
-    diag::Diag,
-  },
+  structures::{core::Core, diag::Diag},
 };
 
 #[derive(Debug)]
@@ -22,8 +19,7 @@ struct Backend {
 
 impl Backend {
   fn refresh(&self) -> impl Future<Output = ()> + Send + '_ {
-    let arenas = &CoreArenas::default();
-    let core = &Core::new(arenas, true);
+    let core = Core::new(true);
     let mut compiler = Compiler::new(core, Config::default());
 
     for glob in &self.entrypoints {
@@ -45,8 +41,8 @@ impl Backend {
 
   fn report(
     &self,
-    core: &Core<'_>,
-    mut diags: Vec<Diag<'_>>,
+    core: &'static Core,
+    mut diags: Vec<Diag>,
   ) -> impl Future<Output = ()> + Send + '_ {
     diags.sort_by_key(|d| Some(d.span()?.file));
     let mut diags = diags.into_iter().peekable();

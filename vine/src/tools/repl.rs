@@ -32,34 +32,34 @@ use crate::{
 mod command;
 mod show_tree;
 
-pub struct Repl<'core, 'ctx, 'ivm, 'ext> {
+pub struct Repl<'ctx, 'ivm, 'ext> {
   host: &'ivm mut Host<'ivm>,
   ivm: &'ctx mut IVM<'ivm, 'ext>,
-  core: &'core Core<'core>,
-  compiler: Compiler<'core>,
+  core: &'static Core,
+  compiler: Compiler,
   repl_mod: DefId,
   line: usize,
-  scope: Vec<ScopeEntry<'core, 'ivm>>,
-  types: Types<'core>,
+  scope: Vec<ScopeEntry<'ivm>>,
+  types: Types,
   pub options: ReplOptions,
 }
 
-struct ScopeEntry<'core, 'ivm> {
-  name: Ident<'core>,
+struct ScopeEntry<'ivm> {
+  name: Ident,
   span: Span,
   ty: Type,
   value: Option<Port<'ivm>>,
   space: Option<Port<'ivm>>,
 }
 
-impl<'core, 'ctx, 'ivm, 'ext> Repl<'core, 'ctx, 'ivm, 'ext> {
+impl<'ctx, 'ivm, 'ext> Repl<'ctx, 'ivm, 'ext> {
   pub fn new(
     mut host: &'ivm mut Host<'ivm>,
     ivm: &'ctx mut IVM<'ivm, 'ext>,
-    core: &'core Core<'core>,
-    config: Config<'core>,
+    core: &'static Core,
+    config: Config,
     libs: Vec<PathBuf>,
-  ) -> Result<Self, Vec<Diag<'core>>> {
+  ) -> Result<Self, Vec<Diag>> {
     let mut compiler = Compiler::new(core, config);
     for lib in libs {
       compiler.loader.load_mod(&lib);
@@ -68,7 +68,7 @@ impl<'core, 'ctx, 'ivm, 'ext> Repl<'core, 'ctx, 'ivm, 'ext> {
     let mut repl_mod = DefId::default();
     let nets = compiler.compile(InitHooks(&mut repl_mod))?;
     struct InitHooks<'a>(&'a mut DefId);
-    impl Hooks<'_> for InitHooks<'_> {
+    impl Hooks for InitHooks<'_> {
       fn chart(&mut self, charter: &mut Charter) {
         *self.0 = charter.chart_child(DefId::ROOT, charter.core.ident("repl"), DefId::ROOT, true);
       }
@@ -93,7 +93,7 @@ impl<'core, 'ctx, 'ivm, 'ext> Repl<'core, 'ctx, 'ivm, 'ext> {
     Ok(Repl { host, ivm, core, compiler, repl_mod, line, scope, types, options })
   }
 
-  pub fn exec(&mut self, input: &str) -> Result<(), Vec<Diag<'core>>> {
+  pub fn exec(&mut self, input: &str) -> Result<(), Vec<Diag>> {
     let (span, command) = match self.parse_input(input) {
       Ok(command) => command,
       Err(diag) => {
@@ -120,12 +120,7 @@ impl<'core, 'ctx, 'ivm, 'ext> Repl<'core, 'ctx, 'ivm, 'ext> {
     Ok(())
   }
 
-  pub fn run(
-    &mut self,
-    span: Span,
-    stmts: Vec<Stmt<'core>>,
-    clear: Vec<Ident<'core>>,
-  ) -> Result<(), Vec<Diag<'core>>> {
+  pub fn run(&mut self, span: Span, stmts: Vec<Stmt>, clear: Vec<Ident>) -> Result<(), Vec<Diag>> {
     let mut block = Block { span, stmts };
 
     self.compiler.loader.load_deps(".".as_ref(), &mut block);
@@ -152,20 +147,20 @@ impl<'core, 'ctx, 'ivm, 'ext> Repl<'core, 'ctx, 'ivm, 'ext> {
 
     self.line += 1;
 
-    struct ExecHooks<'core, 'ivm, 'a> {
-      path: &'core str,
+    struct ExecHooks<'ivm, 'a> {
+      path: &'static str,
       repl_mod: DefId,
-      scope: &'a mut Vec<ScopeEntry<'core, 'ivm>>,
-      block: &'a mut Block<'core>,
-      types: &'a mut Types<'core>,
+      scope: &'a mut Vec<ScopeEntry<'ivm>>,
+      block: &'a mut Block,
+      types: &'a mut Types,
       fragment: &'a mut Option<FragmentId>,
       ty: &'a mut Option<Type>,
-      bindings: &'a mut Vec<(Local, Ident<'core>, Span, Type)>,
-      clear: Vec<Ident<'core>>,
+      bindings: &'a mut Vec<(Local, Ident, Span, Type)>,
+      clear: Vec<Ident>,
     }
 
-    impl<'core> Hooks<'core> for ExecHooks<'core, '_, '_> {
-      fn chart(&mut self, charter: &mut Charter<'core, '_>) {
+    impl Hooks for ExecHooks<'_, '_> {
+      fn chart(&mut self, charter: &mut Charter<'_>) {
         let mut extractor = ExtractItems::default();
         extractor.visit(&mut *self.block);
         for item in extractor.items {
@@ -173,7 +168,7 @@ impl<'core, 'ctx, 'ivm, 'ext> Repl<'core, 'ctx, 'ivm, 'ext> {
         }
       }
 
-      fn resolve(&mut self, resolver: &mut Resolver<'core, '_>) {
+      fn resolve(&mut self, resolver: &mut Resolver<'_>) {
         let (fragment, ty, mut bindings) = resolver._resolve_repl(
           self.block.span,
           self.path,
@@ -307,7 +302,7 @@ impl<'core, 'ctx, 'ivm, 'ext> Repl<'core, 'ctx, 'ivm, 'ext> {
     Ok(())
   }
 
-  fn parse_input(&mut self, line: &str) -> Result<(Span, ReplCommand<'core>), Diag<'core>> {
+  fn parse_input(&mut self, line: &str) -> Result<(Span, ReplCommand), Diag> {
     let file = self.compiler.loader.add_file(None, "input".into(), line);
     let mut parser = VineParser { core: self.core, state: ParserState::new(line), file };
     parser.bump()?;

@@ -12,7 +12,7 @@ use crate::{
   },
 };
 
-impl<'core> Distiller<'core, '_> {
+impl Distiller<'_> {
   pub(crate) fn distill_expr_value_coerce_poly(
     &mut self,
     stage: &mut Stage,

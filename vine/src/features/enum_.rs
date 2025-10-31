@@ -28,8 +28,8 @@ use crate::{
   tools::fmt::{doc::Doc, Formatter},
 };
 
-impl<'core> VineParser<'core, '_> {
-  pub(crate) fn parse_enum_item(&mut self) -> Result<EnumItem<'core>, Diag<'core>> {
+impl VineParser<'_> {
+  pub(crate) fn parse_enum_item(&mut self) -> Result<EnumItem, Diag> {
     self.expect(Token::Enum)?;
     let flex = self.parse_flex()?;
     let name = self.parse_ident()?;
@@ -38,7 +38,7 @@ impl<'core> VineParser<'core, '_> {
     Ok(EnumItem { flex, name, generics, variants })
   }
 
-  fn parse_variant(&mut self) -> Result<Variant<'core>, Diag<'core>> {
+  fn parse_variant(&mut self) -> Result<Variant, Diag> {
     let name = self.parse_ident()?;
     let data = if self.eat(Token::OpenParen)? {
       let ty = self.parse_ty()?;
@@ -51,8 +51,8 @@ impl<'core> VineParser<'core, '_> {
   }
 }
 
-impl<'core: 'src, 'src> Formatter<'src> {
-  pub(crate) fn fmt_enum_item(&self, e: &EnumItem<'core>) -> Doc<'src> {
+impl<'src> Formatter<'src> {
+  pub(crate) fn fmt_enum_item(&self, e: &EnumItem) -> Doc<'src> {
     Doc::concat([
       Doc("enum"),
       self.fmt_flex(e.flex),
@@ -70,7 +70,7 @@ impl<'core: 'src, 'src> Formatter<'src> {
   }
 }
 
-impl<'core> Charter<'core, '_> {
+impl Charter<'_> {
   pub(crate) fn chart_enum(
     &mut self,
     parent: DefId,
@@ -78,7 +78,7 @@ impl<'core> Charter<'core, '_> {
     span: Span,
     vis: DefId,
     member_vis: DefId,
-    enum_item: EnumItem<'core>,
+    enum_item: EnumItem,
   ) -> DefId {
     let def = self.chart_child(parent, enum_item.name, member_vis, true);
     let generics = self.chart_generics(def, parent_generics, enum_item.generics, false);
@@ -100,7 +100,7 @@ impl<'core> Charter<'core, '_> {
   }
 }
 
-impl<'core> Resolver<'core, '_> {
+impl Resolver<'_> {
   pub(crate) fn resolve_enum_sig(&mut self, enum_id: EnumId) {
     let enum_def = &self.chart.enums[enum_id];
     self.initialize(enum_def.def, enum_def.generics);
@@ -116,11 +116,11 @@ impl<'core> Resolver<'core, '_> {
   pub(crate) fn resolve_expr_path_enum(
     &mut self,
     span: Span,
-    path: &Path<'core>,
+    path: &Path,
     enum_id: EnumId,
     variant_id: VariantId,
-    args: &Option<Vec<Expr<'core>>>,
-  ) -> Result<TirExpr, Diag<'core>> {
+    args: &Option<Vec<Expr>>,
+  ) -> Result<TirExpr, Diag> {
     let (type_params, _) = self.resolve_generics(path, self.chart.enums[enum_id].generics, true);
     let data_ty =
       self.types.import_with(&self.sigs.enums[enum_id], Some(&type_params), |t, sig| {
@@ -155,11 +155,11 @@ impl<'core> Resolver<'core, '_> {
   pub(crate) fn resolve_pat_path_enum(
     &mut self,
     span: Span,
-    path: &Path<'core>,
-    data: &Option<Vec<Pat<'core>>>,
+    path: &Path,
+    data: &Option<Vec<Pat>>,
     enum_id: EnumId,
     variant: VariantId,
-  ) -> Result<TirPat, Diag<'core>> {
+  ) -> Result<TirPat, Diag> {
     let data = data.as_ref().map(|args| {
       if let [data] = &**args {
         self.resolve_pat(data)
@@ -191,14 +191,14 @@ impl<'core> Resolver<'core, '_> {
     Ok(TirPat::new(span, ty, TirPatKind::Enum(enum_id, variant, data)))
   }
 
-  pub(crate) fn resolve_pat_sig_path_enum(&mut self, path: &Path<'core>, enum_id: EnumId) -> Type {
+  pub(crate) fn resolve_pat_sig_path_enum(&mut self, path: &Path, enum_id: EnumId) -> Type {
     let (type_params, _) = self.resolve_generics(path, self.chart.enums[enum_id].generics, false);
     self.types.new(TypeKind::Enum(enum_id, type_params))
   }
 
   pub(crate) fn resolve_ty_path_enum(
     &mut self,
-    path: &Path<'core>,
+    path: &Path,
     inference: bool,
     enum_id: EnumId,
   ) -> Type {
@@ -208,7 +208,7 @@ impl<'core> Resolver<'core, '_> {
   }
 }
 
-impl<'core> Distiller<'core, '_> {
+impl Distiller<'_> {
   pub(crate) fn distill_expr_value_enum(
     &mut self,
     stage: &mut Stage,
@@ -225,7 +225,7 @@ impl<'core> Distiller<'core, '_> {
   }
 }
 
-impl<'core> Matcher<'core, '_, '_> {
+impl Matcher<'_, '_> {
   pub(crate) fn match_enum<'p>(
     &mut self,
     layer: &mut Layer,
@@ -275,7 +275,7 @@ impl<'core> Matcher<'core, '_, '_> {
   }
 }
 
-impl<'core> Emitter<'core, '_> {
+impl Emitter<'_> {
   pub(crate) fn emit_enum(
     &mut self,
     enum_id: EnumId,

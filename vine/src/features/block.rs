@@ -16,8 +16,8 @@ use crate::{
   tools::fmt::{doc::Doc, Formatter},
 };
 
-impl<'core> VineParser<'core, '_> {
-  pub(crate) fn parse_block(&mut self) -> Result<Block<'core>, Diag<'core>> {
+impl VineParser<'_> {
+  pub(crate) fn parse_block(&mut self) -> Result<Block, Diag> {
     let span = self.start_span();
     let stmts = self.parse_delimited(BRACE, Self::parse_stmt)?;
     let span = self.end_span(span);
@@ -25,8 +25,8 @@ impl<'core> VineParser<'core, '_> {
   }
 }
 
-impl<'core: 'src, 'src> Formatter<'src> {
-  pub(crate) fn fmt_block(&self, block: &Block<'core>, force_open: bool) -> Doc<'src> {
+impl<'src> Formatter<'src> {
+  pub(crate) fn fmt_block(&self, block: &Block, force_open: bool) -> Doc<'src> {
     if !force_open {
       if let [stmt] = &*block.stmts {
         if matches!(stmt.kind, StmtKind::Expr(_, false)) {
@@ -43,25 +43,20 @@ impl<'core: 'src, 'src> Formatter<'src> {
   }
 }
 
-impl<'core> Resolver<'core, '_> {
-  pub(crate) fn resolve_block_nil(&mut self, block: &Block<'core>) -> TirExpr {
+impl Resolver<'_> {
+  pub(crate) fn resolve_block_nil(&mut self, block: &Block) -> TirExpr {
     let nil = self.types.nil();
     self.resolve_block_type(block, nil)
   }
 
-  pub(crate) fn resolve_block_type(&mut self, block: &Block<'core>, ty: Type) -> TirExpr {
+  pub(crate) fn resolve_block_type(&mut self, block: &Block, ty: Type) -> TirExpr {
     self.enter_scope();
     let block = self.resolve_stmts_type(block.span, &block.stmts, ty);
     self.exit_scope();
     block
   }
 
-  pub(crate) fn resolve_stmts_type(
-    &mut self,
-    span: Span,
-    stmts: &[Stmt<'core>],
-    ty: Type,
-  ) -> TirExpr {
+  pub(crate) fn resolve_stmts_type(&mut self, span: Span, stmts: &[Stmt], ty: Type) -> TirExpr {
     let [stmt, rest @ ..] = stmts else {
       let nil = self.types.nil();
       let kind = if self.types.unify(ty, nil).is_failure() {
@@ -111,7 +106,7 @@ impl<'core> Resolver<'core, '_> {
   }
 }
 
-impl<'core> Distiller<'core, '_> {
+impl Distiller<'_> {
   pub(crate) fn distill_seq(
     &mut self,
     stage: &mut Stage,

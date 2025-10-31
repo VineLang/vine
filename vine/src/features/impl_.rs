@@ -28,8 +28,8 @@ use crate::{
   tools::fmt::{doc::Doc, Formatter},
 };
 
-impl<'core> VineParser<'core, '_> {
-  pub(crate) fn parse_impl_item(&mut self) -> Result<ImplItem<'core>, Diag<'core>> {
+impl VineParser<'_> {
+  pub(crate) fn parse_impl_item(&mut self) -> Result<ImplItem, Diag> {
     self.expect(Token::Impl)?;
     let name = self.parse_ident()?;
     let generics = self.parse_generic_params()?;
@@ -47,8 +47,8 @@ impl<'core> VineParser<'core, '_> {
   }
 }
 
-impl<'core: 'src, 'src> Formatter<'src> {
-  pub(crate) fn fmt_impl_item(&self, span: Span, i: &ImplItem<'core>) -> Doc<'src> {
+impl<'src> Formatter<'src> {
+  pub(crate) fn fmt_impl_item(&self, span: Span, i: &ImplItem) -> Doc<'src> {
     Doc::concat([
       Doc("impl "),
       Doc(i.name),
@@ -69,7 +69,7 @@ impl<'core: 'src, 'src> Formatter<'src> {
   }
 }
 
-impl<'core> Charter<'core, '_> {
+impl Charter<'_> {
   pub(crate) fn chart_impl(
     &mut self,
     parent: DefId,
@@ -77,7 +77,7 @@ impl<'core> Charter<'core, '_> {
     span: Span,
     vis: DefId,
     member_vis: DefId,
-    impl_item: ImplItem<'core>,
+    impl_item: ImplItem,
   ) -> DefId {
     let def = self.chart_child(parent, impl_item.name, member_vis, true);
     let generics = self.chart_generics(def, parent_generics, impl_item.generics, true);
@@ -132,9 +132,9 @@ impl<'core> Charter<'core, '_> {
     parent_def: DefId,
     parent_generics: GenericsId,
     span: Span,
-    attrs: Vec<Attr<'core>>,
-    mut fn_item: FnItem<'core>,
-  ) -> ImplSubitem<'core> {
+    attrs: Vec<Attr>,
+    mut fn_item: FnItem,
+  ) -> ImplSubitem {
     if fn_item.method {
       self.core.report(Diag::ImplItemMethod { span });
     }
@@ -166,9 +166,9 @@ impl<'core> Charter<'core, '_> {
     parent_def: DefId,
     parent_generics: GenericsId,
     span: Span,
-    attrs: Vec<Attr<'core>>,
-    mut const_item: ConstItem<'core>,
-  ) -> ImplSubitem<'core> {
+    attrs: Vec<Attr>,
+    mut const_item: ConstItem,
+  ) -> ImplSubitem {
     if const_item.generics.inherit {
       self.core.report(Diag::ImplItemInheritGen { span });
     }
@@ -231,7 +231,7 @@ impl<'core> Charter<'core, '_> {
   }
 }
 
-impl<'core> Resolver<'core, '_> {
+impl Resolver<'_> {
   pub(crate) fn resolve_impl_sig(&mut self, impl_id: ImplId) {
     let impl_def = &self.chart.impls[impl_id];
     let span = impl_def.span;
@@ -343,8 +343,8 @@ impl<'core> Resolver<'core, '_> {
     &mut self,
     impl_id: ImplId,
     trait_id: TraitId,
-    impl_def: &ImplDef<'core>,
-  ) -> Result<Option<(ImplId, Vec<usize>)>, Diag<'core>> {
+    impl_def: &ImplDef,
+  ) -> Result<Option<(ImplId, Vec<usize>)>, Diag> {
     let necessary_params = self.sigs.impl_params[impl_def.generics]
       .types
       .inner
@@ -401,7 +401,7 @@ impl<'core> Resolver<'core, '_> {
   fn resolve_impl_subitem_fn(
     &mut self,
     span: Span,
-    subitems: &[ImplSubitem<'core>],
+    subitems: &[ImplSubitem],
     type_params: &[Type],
     trait_id: TraitId,
     trait_fn_id: TraitFnId,
@@ -429,7 +429,7 @@ impl<'core> Resolver<'core, '_> {
   fn resolve_impl_subitem_const(
     &mut self,
     span: Span,
-    subitems: &[ImplSubitem<'core>],
+    subitems: &[ImplSubitem],
     type_params: &[Type],
     trait_id: TraitId,
     trait_const_id: TraitConstId,
@@ -518,10 +518,10 @@ impl<'core> Resolver<'core, '_> {
 
   pub(crate) fn resolve_impl_path_impl(
     &mut self,
-    path: &Path<'core>,
+    path: &Path,
     impl_id: ImplId,
     ty: &ImplType,
-  ) -> TirImpl<'core> {
+  ) -> TirImpl {
     let generics_id = self.chart.impls[impl_id].generics;
     let type_params =
       self.types.new_vars(path.span, self.sigs.type_params[generics_id].params.len());

@@ -17,35 +17,35 @@ pub struct CoreArenas {
 
 new_idx!(pub FileId);
 
-pub struct Core<'core> {
-  arenas: &'core CoreArenas,
-  interner: StringInterner<'core>,
-  pub(crate) diags: RefCell<Vec<Diag<'core>>>,
+pub struct Core {
+  arenas: &'static CoreArenas,
+  interner: StringInterner<'static>,
+  pub(crate) diags: RefCell<Vec<Diag>>,
   pub(crate) files: RefCell<IdxVec<FileId, FileInfo>>,
   pub debug: bool,
 }
 
-impl<'core> Core<'core> {
-  pub fn new(arenas: &'core CoreArenas, debug: bool) -> Self {
-    Core {
-      arenas,
-      interner: StringInterner::new(&arenas.bytes),
+impl Core {
+  pub fn new(debug: bool) -> &'static Self {
+    Box::leak(Box::new(Core {
+      arenas: Box::leak(Box::new(CoreArenas::default())),
+      interner: StringInterner::new(&Box::leak(Box::new(CoreArenas::default())).bytes),
       diags: Default::default(),
       files: Default::default(),
       debug,
-    }
+    }))
   }
 
-  pub fn ident(&self, str: &str) -> Ident<'core> {
+  pub fn ident(&self, str: &str) -> Ident {
     Ident(self.interner.intern(str))
   }
 
-  pub fn alloc_str(&self, str: &str) -> &'core str {
+  pub fn alloc_str(&self, str: &str) -> &str {
     self.arenas.bytes.alloc_str(str)
   }
 }
 
-impl<'core> Debug for Core<'core> {
+impl Debug for Core {
   fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
     write!(f, "Core {{ .. }}")
   }

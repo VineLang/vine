@@ -14,8 +14,8 @@ use crate::{
   tools::fmt::{doc::Doc, Formatter},
 };
 
-impl<'core> VineParser<'core, '_> {
-  pub(crate) fn parse_type_item(&mut self) -> Result<TypeItem<'core>, Diag<'core>> {
+impl VineParser<'_> {
+  pub(crate) fn parse_type_item(&mut self) -> Result<TypeItem, Diag> {
     self.expect(Token::Type)?;
     let name = self.parse_ident()?;
     let generics = self.parse_generic_params()?;
@@ -25,8 +25,8 @@ impl<'core> VineParser<'core, '_> {
   }
 }
 
-impl<'core: 'src, 'src> Formatter<'src> {
-  pub(crate) fn fmt_type_item(&self, t: &TypeItem<'core>) -> Doc<'src> {
+impl<'src> Formatter<'src> {
+  pub(crate) fn fmt_type_item(&self, t: &TypeItem) -> Doc<'src> {
     Doc::concat([
       Doc("type "),
       Doc(t.name),
@@ -40,7 +40,7 @@ impl<'core: 'src, 'src> Formatter<'src> {
   }
 }
 
-impl<'core> Charter<'core, '_> {
+impl Charter<'_> {
   pub(crate) fn chart_type(
     &mut self,
     parent: DefId,
@@ -48,7 +48,7 @@ impl<'core> Charter<'core, '_> {
     span: Span,
     vis: DefId,
     member_vis: DefId,
-    type_item: TypeItem<'core>,
+    type_item: TypeItem,
   ) -> DefId {
     let def = self.chart_child(parent, type_item.name, member_vis, true);
     let generics = self.chart_generics(def, parent_generics, type_item.generics, false);
@@ -68,7 +68,7 @@ impl<'core> Charter<'core, '_> {
   }
 }
 
-impl<'core> Resolver<'core, '_> {
+impl Resolver<'_> {
   pub(crate) fn resolve_type_alias(&mut self, alias_id: TypeAliasId) {
     match self.sigs.type_aliases.get(alias_id) {
       Some(TypeAliasState::Resolved(_)) => {}
@@ -99,7 +99,7 @@ impl<'core> Resolver<'core, '_> {
 
   pub(crate) fn resolve_ty_path_alias(
     &mut self,
-    path: &Path<'core>,
+    path: &Path,
     inference: bool,
     type_alias_id: TypeAliasId,
   ) -> Type {
@@ -116,7 +116,7 @@ impl<'core> Resolver<'core, '_> {
 
   pub(crate) fn resolve_ty_path_opaque(
     &mut self,
-    path: &Path<'core>,
+    path: &Path,
     inference: bool,
     opaque_id: OpaqueTypeId,
   ) -> Type {

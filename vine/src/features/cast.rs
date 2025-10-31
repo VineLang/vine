@@ -8,13 +8,8 @@ use crate::{
   tools::fmt::{doc::Doc, Formatter},
 };
 
-impl<'core: 'src, 'src> Formatter<'src> {
-  pub(crate) fn fmt_expr_cast(
-    &self,
-    expr: &Expr<'core>,
-    ty: &Ty<'core>,
-    postfix: bool,
-  ) -> Doc<'src> {
+impl<'src> Formatter<'src> {
+  pub(crate) fn fmt_expr_cast(&self, expr: &Expr, ty: &Ty, postfix: bool) -> Doc<'src> {
     if postfix {
       Doc::concat([self.fmt_expr(expr), Doc(".as["), self.fmt_ty(ty), Doc("]")])
     } else {
@@ -23,13 +18,13 @@ impl<'core: 'src, 'src> Formatter<'src> {
   }
 }
 
-impl<'core> Resolver<'core, '_> {
+impl Resolver<'_> {
   pub(crate) fn resolve_expr_cast(
     &mut self,
     span: Span,
-    inner: &Expr<'core>,
-    to: &Ty<'core>,
-  ) -> Result<TirExpr, Diag<'core>> {
+    inner: &Expr,
+    to: &Ty,
+  ) -> Result<TirExpr, Diag> {
     let inner = self.resolve_expr(inner);
     let to_ty = self.resolve_ty(to, true);
     let rel = self.builtin_fn(span, self.chart.builtins.cast, "cast", [inner.ty, to_ty])?;

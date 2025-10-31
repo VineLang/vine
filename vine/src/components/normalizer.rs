@@ -16,13 +16,13 @@ use crate::structures::{
   },
 };
 
-pub fn normalize<'core>(
-  core: &'core Core<'core>,
-  chart: &Chart<'core>,
-  sigs: &Signatures<'core>,
-  fragment: &Fragment<'core>,
-  source: &Vir<'core>,
-) -> Vir<'core> {
+pub fn normalize(
+  core: &'static Core,
+  chart: &Chart,
+  sigs: &Signatures,
+  fragment: &Fragment,
+  source: &Vir,
+) -> Vir {
   let mut normalizer = Normalizer {
     core,
     chart,
@@ -57,17 +57,17 @@ pub fn normalize<'core>(
 }
 
 #[derive(Debug)]
-struct Normalizer<'core, 'a> {
-  core: &'core Core<'core>,
-  chart: &'a Chart<'core>,
-  sigs: &'a Signatures<'core>,
+struct Normalizer<'a> {
+  core: &'static Core,
+  chart: &'a Chart,
+  sigs: &'a Signatures,
 
-  source: &'a Vir<'core>,
+  source: &'a Vir,
   def: DefId,
   generics: GenericsId,
 
-  types: Types<'core>,
-  rels: Rels<'core>,
+  types: Types,
+  rels: Rels,
   locals: IdxVec<Local, VirLocal>,
   interfaces: IdxVec<InterfaceId, Interface>,
   stages: IdxVec<StageId, Option<Stage>>,
@@ -76,7 +76,7 @@ struct Normalizer<'core, 'a> {
   final_transfers: IdxVec<LayerId, Option<Transfer>>,
 }
 
-impl<'core> Normalizer<'core, '_> {
+impl Normalizer<'_> {
   fn normalize_layer(&mut self, layer: &Layer) {
     for &stage in &layer.stages {
       let source = &self.source.stages[stage];

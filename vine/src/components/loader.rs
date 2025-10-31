@@ -18,18 +18,18 @@ use crate::{
   },
 };
 
-pub struct Loader<'core> {
-  core: &'core Core<'core>,
+pub struct Loader {
+  core: &'static Core,
   cwd: PathBuf,
-  root: Vec<Item<'core>>,
+  root: Vec<Item>,
 }
 
-impl<'core> Loader<'core> {
-  pub fn new(core: &'core Core<'core>) -> Self {
+impl Loader {
+  pub fn new(core: &'static Core) -> Self {
     Self { core, cwd: current_dir().unwrap(), root: Vec::new() }
   }
 
-  pub fn finish(&mut self) -> ModKind<'core> {
+  pub fn finish(&mut self) -> ModKind {
     ModKind::Loaded(Span::NONE, take(&mut self.root))
   }
 
@@ -52,7 +52,7 @@ impl<'core> Loader<'core> {
     self.root.push(module);
   }
 
-  fn auto_mod_name(&self, path: &Path) -> Ident<'core> {
+  fn auto_mod_name(&self, path: &Path) -> Ident {
     self.core.ident(str::from_utf8(path.file_stem().unwrap().as_encoded_bytes()).unwrap())
   }
 
@@ -60,12 +60,7 @@ impl<'core> Loader<'core> {
     self.core.files.borrow_mut().push(FileInfo::new(path, name, src))
   }
 
-  fn load_file(
-    &mut self,
-    base: Option<&Path>,
-    spec: ModSpec<'core, '_>,
-    span: Span,
-  ) -> ModKind<'core> {
+  fn load_file(&mut self, base: Option<&Path>, spec: ModSpec<'_>, span: Span) -> ModKind {
     match self._load_file(base, spec, span) {
       Ok(mod_) => mod_,
       Err(diag) => ModKind::Error(self.core.report(diag)),
@@ -75,9 +70,9 @@ impl<'core> Loader<'core> {
   fn _load_file(
     &mut self,
     base: Option<&Path>,
-    spec: ModSpec<'core, '_>,
+    spec: ModSpec<'_>,
     span: Span,
-  ) -> Result<ModKind<'core>, Diag<'core>> {
+  ) -> Result<ModKind, Diag> {
     let ((src, file), path) = match (base, spec) {
       (None, ModSpec::Explicit(path)) => {
         let mut path = path.to_owned();
@@ -113,7 +108,7 @@ impl<'core> Loader<'core> {
     Ok(ModKind::Loaded(span, items))
   }
 
-  fn read_file(&mut self, path: &mut PathBuf, span: Span) -> Result<(String, FileId), Diag<'core>> {
+  fn read_file(&mut self, path: &mut PathBuf, span: Span) -> Result<(String, FileId), Diag> {
     self._read_file(path).map_err(|err| Diag::FsError {
       span,
       path: path.strip_prefix(&self.cwd).unwrap_or(&*path).to_owned(),
@@ -129,18 +124,18 @@ impl<'core> Loader<'core> {
     Ok((src, file))
   }
 
-  pub(crate) fn load_deps<'t>(&mut self, base: &Path, visitee: impl Visitee<'core, 't>) {
+  pub(crate) fn load_deps<'t>(&mut self, base: &Path, visitee: impl Visitee<'t>) {
     LoadDeps { loader: self, base }.visit(visitee);
   }
 }
 
-struct LoadDeps<'core, 'a> {
-  loader: &'a mut Loader<'core>,
+struct LoadDeps<'a> {
+  loader: &'a mut Loader,
   base: &'a Path,
 }
 
-impl<'core> VisitMut<'core, '_> for LoadDeps<'core, '_> {
-  fn visit_item<'a>(&'a mut self, item: &mut Item<'core>) {
+impl VisitMut<'_> for LoadDeps<'_> {
+  fn visit_item<'a>(&'a mut self, item: &mut Item) {
     if let ItemKind::Mod(module) = &mut item.kind {
       if let ModKind::Unloaded(_, path) = &mut module.kind {
         module.kind = self.loader.load_file(
@@ -158,9 +153,9 @@ impl<'core> VisitMut<'core, '_> for LoadDeps<'core, '_> {
   }
 }
 
-enum ModSpec<'core, 'a> {
+enum ModSpec<'a> {
   Explicit(&'a Path),
-  Implicit(Ident<'core>),
+  Implicit(Ident),
 }
 
 fn implicit_path_valid(path: &Path) -> bool {

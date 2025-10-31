@@ -84,10 +84,10 @@ impl Debug for Type {
 }
 
 #[derive(Debug, Clone)]
-pub enum TypeKind<'core> {
-  Param(usize, Ident<'core>),
+pub enum TypeKind {
+  Param(usize, Ident),
   Tuple(Vec<Type>),
-  Object(BTreeMap<Ident<'core>, Type>),
+  Object(BTreeMap<Ident, Type>),
   Opaque(OpaqueTypeId, Vec<Type>),
   Struct(StructId, Vec<Type>),
   Enum(EnumId, Vec<Type>),
@@ -100,9 +100,9 @@ pub enum TypeKind<'core> {
 
 /// A node in the union-find tree for the unification of type variables.
 #[derive(Debug, Clone)]
-enum TypeNode<'core> {
+enum TypeNode {
   Root {
-    state: TypeState<'core>,
+    state: TypeState,
     // The size of the tree rooted at this node.
     size: usize,
   },
@@ -113,8 +113,8 @@ use TypeNode::*;
 
 #[derive(Debug, Clone)]
 /// The state of a type variable.
-enum TypeState<'core> {
-  Known(Inverted, TypeKind<'core>),
+enum TypeState {
+  Known(Inverted, TypeKind),
   /// Not yet inferred; if unable to infer, an error should be issued at the
   /// given `Span`.
   Unknown(Span),
@@ -125,15 +125,15 @@ enum TypeState<'core> {
 
 use TypeState::*;
 
-impl<'core> TypeState<'core> {
-  fn kind(&self) -> Option<(Inverted, &TypeKind<'core>)> {
+impl TypeState {
+  fn kind(&self) -> Option<(Inverted, &TypeKind)> {
     match self {
       Known(inverted, type_kind) => Some((*inverted, type_kind)),
       _ => None,
     }
   }
 
-  fn take_kind(&mut self) -> Option<(Inverted, TypeKind<'core>)> {
+  fn take_kind(&mut self) -> Option<(Inverted, TypeKind)> {
     match self {
       Known(..) => {
         let Known(inverted, kind) = take(self) else { unreachable!() };
@@ -144,7 +144,7 @@ impl<'core> TypeState<'core> {
   }
 }
 
-impl<'core> Default for TypeState<'core> {
+impl Default for TypeState {
   fn default() -> Self {
     TypeState::Unknown(Span::NONE)
   }
@@ -157,15 +157,15 @@ pub enum ImplType {
 }
 
 #[derive(Debug, Default, Clone)]
-pub struct Types<'core> {
-  types: IdxVec<TypeIdx, TypeNode<'core>>,
+pub struct Types {
+  types: IdxVec<TypeIdx, TypeNode>,
   error: Option<Type>,
   nil: Option<Type>,
 }
 
-impl<'core> Types<'core> {
+impl Types {
   #[allow(clippy::new_ret_no_self)]
-  pub fn new(&mut self, kind: TypeKind<'core>) -> Type {
+  pub fn new(&mut self, kind: TypeKind) -> Type {
     self.types.push(Root { state: Known(Inverted(false), kind), size: 1 }).into()
   }
 
@@ -288,8 +288,8 @@ impl<'core> Types<'core> {
 
   pub fn unify_objects(
     &mut self,
-    a: &BTreeMap<Ident<'core>, Type>,
-    b: &BTreeMap<Ident<'core>, Type>,
+    a: &BTreeMap<Ident, Type>,
+    b: &BTreeMap<Ident, Type>,
     inv: Inverted,
   ) -> UnifyResult {
     UnifyResult::from_bool(a.len() == b.len()).and(UnifyResult::all(a.iter().map(|(k, &a)| {
@@ -343,7 +343,7 @@ impl<'core> Types<'core> {
     root
   }
 
-  pub(crate) fn kind(&self, ty: Type) -> Option<(Inverted, &TypeKind<'core>)> {
+  pub(crate) fn kind(&self, ty: Type) -> Option<(Inverted, &TypeKind)> {
     let ty = self.find(ty);
     let Root { state, .. } = &self.types[ty.idx()] else { unreachable!() };
     state.kind().map(|(inv, kind)| (inv ^ ty.inv(), kind))
@@ -358,14 +358,10 @@ impl<'core> Types<'core> {
     }
   }
 
-  pub(crate) fn force_kind(
-    &mut self,
-    core: &Core<'core>,
-    ty: Type,
-  ) -> (Inverted, &TypeKind<'core>) {
+  pub(crate) fn force_kind(&mut self, core: &'static Core, ty: Type) -> (Inverted, &TypeKind) {
     let ty = self.find_mut(ty);
     let Root { state, .. } = &mut self.types[ty.idx()] else { unreachable!() };
-    const ERROR: &TypeKind<'static> = &TypeKind::Error(ErrorGuaranteed::new_unchecked());
+    const ERROR: &TypeKind = &TypeKind::Error(ErrorGuaranteed::new_unchecked());
     match state {
       Known(inverted, kind) => (*inverted ^ ty.inv(), kind),
       Unknown(span) => {
@@ -477,7 +473,7 @@ impl<'core> Types<'core> {
     }
   }
 
-  fn _show_comma_separated(&self, chart: &Chart<'_>, tys: &[Type], str: &mut String) {
+  fn _show_comma_separated(&self, chart: &Chart, tys: &[Type], str: &mut String) {
     let mut first = true;
     for &ty in tys {
       if !first {
@@ -512,19 +508,15 @@ impl<'core> Types<'core> {
     str
   }
 
-  pub fn import<T: TransferTypes<'core>>(
-    &mut self,
-    source: &TypeCtx<'core, T>,
-    params: Option<&[Type]>,
-  ) -> T {
+  pub fn import<T: TransferTypes>(&mut self, source: &TypeCtx<T>, params: Option<&[Type]>) -> T {
     self.import_with(source, params, |t, value| t.transfer(value))
   }
 
   pub fn import_with<T, U>(
     &mut self,
-    source: &TypeCtx<'core, T>,
+    source: &TypeCtx<T>,
     params: Option<&[Type]>,
-    f: impl FnOnce(&mut TypeTransfer<'core, '_>, &T) -> U,
+    f: impl FnOnce(&mut TypeTransfer<'_>, &T) -> U,
   ) -> U {
     f(
       &mut TypeTransfer { mapping: HashMap::default(), source: &source.types, dest: self, params },
@@ -532,10 +524,7 @@ impl<'core> Types<'core> {
     )
   }
 
-  pub fn export<'ctx, T>(
-    &'ctx self,
-    f: impl FnOnce(&mut TypeTransfer<'core, '_>) -> T,
-  ) -> TypeCtx<'core, T> {
+  pub fn export<'ctx, T>(&'ctx self, f: impl FnOnce(&mut TypeTransfer<'_>) -> T) -> TypeCtx<T> {
     let mut types = Types::default();
     let mut export =
       TypeTransfer { mapping: HashMap::default(), source: self, dest: &mut types, params: None };
@@ -608,15 +597,15 @@ impl UnifyResult {
   }
 }
 
-pub struct TypeTransfer<'core, 'ctx> {
+pub struct TypeTransfer<'ctx> {
   mapping: IntMap<TypeIdx, Type>,
-  source: &'ctx Types<'core>,
-  dest: &'ctx mut Types<'core>,
+  source: &'ctx Types,
+  dest: &'ctx mut Types,
   params: Option<&'ctx [Type]>,
 }
 
-impl<'core, 'ctx> TypeTransfer<'core, 'ctx> {
-  pub fn transfer<T: TransferTypes<'core>>(&mut self, t: &T) -> T {
+impl<'ctx> TypeTransfer<'ctx> {
+  pub fn transfer<T: TransferTypes>(&mut self, t: &T) -> T {
     t.transfer(self)
   }
 
@@ -653,7 +642,7 @@ impl<'core, 'ctx> TypeTransfer<'core, 'ctx> {
   }
 }
 
-impl<'core> TypeKind<'core> {
+impl TypeKind {
   fn map(&self, mut f: impl FnMut(Type) -> Type) -> Self {
     match self {
       TypeKind::Tuple(els) => TypeKind::Tuple(els.iter().copied().map(f).collect()),
@@ -705,41 +694,41 @@ impl ImplType {
 }
 
 #[derive(Debug, Clone, Default)]
-pub struct TypeCtx<'core, T> {
-  pub types: Types<'core>,
+pub struct TypeCtx<T> {
+  pub types: Types,
   pub inner: T,
 }
 
-pub trait TransferTypes<'core> {
-  fn transfer(&self, t: &mut TypeTransfer<'core, '_>) -> Self;
+pub trait TransferTypes {
+  fn transfer(&self, t: &mut TypeTransfer<'_>) -> Self;
 }
 
-impl<'core> TransferTypes<'core> for Type {
-  fn transfer(&self, t: &mut TypeTransfer<'core, '_>) -> Self {
+impl TransferTypes for Type {
+  fn transfer(&self, t: &mut TypeTransfer<'_>) -> Self {
     t.transfer_type(*self)
   }
 }
 
-impl<'core> TransferTypes<'core> for ImplType {
-  fn transfer(&self, t: &mut TypeTransfer<'core, '_>) -> Self {
+impl TransferTypes for ImplType {
+  fn transfer(&self, t: &mut TypeTransfer<'_>) -> Self {
     t.transfer_impl_type(self)
   }
 }
 
-impl<'core, T: TransferTypes<'core>> TransferTypes<'core> for Option<T> {
-  fn transfer(&self, t: &mut TypeTransfer<'core, '_>) -> Self {
+impl<T: TransferTypes> TransferTypes for Option<T> {
+  fn transfer(&self, t: &mut TypeTransfer<'_>) -> Self {
     self.as_ref().map(|value| t.transfer(value))
   }
 }
 
-impl<'core, T: TransferTypes<'core>> TransferTypes<'core> for Vec<T> {
-  fn transfer(&self, t: &mut TypeTransfer<'core, '_>) -> Self {
+impl<T: TransferTypes> TransferTypes for Vec<T> {
+  fn transfer(&self, t: &mut TypeTransfer<'_>) -> Self {
     self.iter().map(|value| t.transfer(value)).collect()
   }
 }
 
-impl<'core, I: Idx, T: TransferTypes<'core>> TransferTypes<'core> for IdxVec<I, T> {
-  fn transfer(&self, t: &mut TypeTransfer<'core, '_>) -> Self {
+impl<I: Idx, T: TransferTypes> TransferTypes for IdxVec<I, T> {
+  fn transfer(&self, t: &mut TypeTransfer<'_>) -> Self {
     t.transfer(&self.vec).into()
   }
 }

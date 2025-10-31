@@ -16,12 +16,12 @@ use crate::{
   },
 };
 
-pub fn emit<'core>(
-  core: &'core Core<'core>,
-  chart: &Chart<'core>,
-  fragment: &Fragment<'core>,
-  vir: &Vir<'core>,
-  specs: &mut Specializations<'core>,
+pub fn emit(
+  core: &'static Core,
+  chart: &Chart,
+  fragment: &Fragment,
+  vir: &Vir,
+  specs: &mut Specializations,
 ) -> Template {
   let mut emitter = Emitter {
     core,
@@ -40,12 +40,12 @@ pub fn emit<'core>(
   Template { stages: IdxVec::from_iter(vir.stages.values().map(|stage| emitter.emit_stage(stage))) }
 }
 
-pub(crate) struct Emitter<'core, 'a> {
-  pub(crate) core: &'core Core<'core>,
-  pub(crate) chart: &'a Chart<'core>,
-  pub(crate) fragment: &'a Fragment<'core>,
-  pub(crate) vir: &'a Vir<'core>,
-  pub(crate) specs: &'a mut Specializations<'core>,
+pub(crate) struct Emitter<'a> {
+  pub(crate) core: &'static Core,
+  pub(crate) chart: &'a Chart,
+  pub(crate) fragment: &'a Fragment,
+  pub(crate) vir: &'a Vir,
+  pub(crate) specs: &'a mut Specializations,
   pub(crate) locals: BTreeMap<Local, LocalEmissionState>,
   pub(crate) pairs: Vec<(Tree, Tree)>,
   pub(crate) wire_offset: usize,
@@ -54,7 +54,7 @@ pub(crate) struct Emitter<'core, 'a> {
   pub(crate) debug: Option<(Tree, Tree)>,
 }
 
-impl<'core, 'a> Emitter<'core, 'a> {
+impl<'a> Emitter<'a> {
   pub fn emit_stage(&mut self, stage: &Stage) -> Option<TemplateStage> {
     let interface = &self.vir.interfaces[stage.interface];
     (interface.incoming != 0 && !interface.inline()).then(|| {

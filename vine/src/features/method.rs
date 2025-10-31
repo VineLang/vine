@@ -11,13 +11,13 @@ use crate::{
   tools::fmt::{doc::Doc, Formatter},
 };
 
-impl<'core: 'src, 'src> Formatter<'src> {
+impl<'src> Formatter<'src> {
   pub(crate) fn fmt_expr_method(
     &self,
-    receiver: &Expr<'core>,
-    name: &Ident<'core>,
-    generics: &GenericArgs<'core>,
-    args: &Vec<Expr<'core>>,
+    receiver: &Expr,
+    name: &Ident,
+    generics: &GenericArgs,
+    args: &Vec<Expr>,
   ) -> Doc<'src> {
     Doc::concat([
       self.fmt_expr(receiver),
@@ -29,15 +29,15 @@ impl<'core: 'src, 'src> Formatter<'src> {
   }
 }
 
-impl<'core> Resolver<'core, '_> {
+impl Resolver<'_> {
   pub(crate) fn resolve_method(
     &mut self,
     span: Span,
-    receiver: &Expr<'core>,
-    name: Ident<'core>,
-    generics: &GenericArgs<'core>,
-    args: &[Expr<'core>],
-  ) -> Result<TirExpr, Diag<'core>> {
+    receiver: &Expr,
+    name: Ident,
+    generics: &GenericArgs,
+    args: &[Expr],
+  ) -> Result<TirExpr, Diag> {
     let receiver = self.resolve_expr(receiver);
     let mut args = args.iter().map(|arg| self.resolve_expr(arg)).collect::<Vec<_>>();
     let (fn_id, type_params) = self.find_method(span, receiver.ty, name)?;
@@ -91,8 +91,8 @@ impl<'core> Resolver<'core, '_> {
     &mut self,
     span: Span,
     receiver: Type,
-    name: Ident<'core>,
-  ) -> Result<(FnId, TypeCtx<'core, Vec<Type>>), ErrorGuaranteed> {
+    name: Ident,
+  ) -> Result<(FnId, TypeCtx<Vec<Type>>), ErrorGuaranteed> {
     let mut results = self.finder(span).find_method(&self.types, receiver, name);
     if results.len() == 1 {
       Ok(results.pop().unwrap())

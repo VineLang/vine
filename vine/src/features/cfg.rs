@@ -15,12 +15,12 @@ use crate::{
 };
 
 #[derive(Default)]
-pub struct Config<'core> {
-  values: HashMap<Ident<'core>, ConfigValue>,
+pub struct Config {
+  values: HashMap<Ident, ConfigValue>,
 }
 
-impl<'core> Config<'core> {
-  pub fn insert(&mut self, name: Ident<'core>, value: ConfigValue) {
+impl Config {
+  pub fn insert(&mut self, name: Ident, value: ConfigValue) {
     self.values.insert(name, value);
   }
 }
@@ -29,12 +29,12 @@ pub enum ConfigValue {
   Bool(bool),
 }
 
-impl<'core> VineParser<'core, '_> {
-  pub(crate) fn parse_cfg(&mut self) -> Result<Cfg<'core>, Diag<'core>> {
+impl VineParser<'_> {
+  pub(crate) fn parse_cfg(&mut self) -> Result<Cfg, Diag> {
     self.parse_cfg_bp(BP::Min)
   }
 
-  fn parse_cfg_bp(&mut self, bp: BP) -> Result<Cfg<'core>, Diag<'core>> {
+  fn parse_cfg_bp(&mut self, bp: BP) -> Result<Cfg, Diag> {
     let span = self.start_span();
     let kind = self.parse_cfg_prefix(bp)?;
     let mut cfg = Cfg { span: self.end_span(span), kind: Box::new(kind) };
@@ -46,7 +46,7 @@ impl<'core> VineParser<'core, '_> {
     }
   }
 
-  fn parse_cfg_prefix(&mut self, _: BP) -> Result<CfgKind<'core>, Diag<'core>> {
+  fn parse_cfg_prefix(&mut self, _: BP) -> Result<CfgKind, Diag> {
     if self.check(Token::Ident) {
       let name = self.parse_ident()?;
       return Ok(CfgKind::Bool(name));
@@ -68,11 +68,7 @@ impl<'core> VineParser<'core, '_> {
     self.unexpected()
   }
 
-  fn parse_cfg_postfix(
-    &mut self,
-    lhs: Cfg<'core>,
-    bp: BP,
-  ) -> Result<Result<CfgKind<'core>, Cfg<'core>>, Diag<'core>> {
+  fn parse_cfg_postfix(&mut self, lhs: Cfg, bp: BP) -> Result<Result<CfgKind, Cfg>, Diag> {
     if bp.permits(BP::LogicalAnd) && self.eat(Token::AndAnd)? {
       let rhs = self.parse_cfg_bp(BP::LogicalAnd)?;
       return Ok(Ok(CfgKind::And(lhs, rhs)));
@@ -87,15 +83,15 @@ impl<'core> VineParser<'core, '_> {
   }
 }
 
-impl<'core> Charter<'core, '_> {
-  pub fn enabled(&self, attrs: &[Attr<'core>]) -> bool {
+impl Charter<'_> {
+  pub fn enabled(&self, attrs: &[Attr]) -> bool {
     attrs.iter().all(|attr| match &attr.kind {
       AttrKind::Cfg(cfg) => self.eval_cfg(cfg) == Ok(true),
       _ => true,
     })
   }
 
-  pub fn eval_cfg(&self, cfg: &Cfg<'core>) -> Result<bool, ErrorGuaranteed> {
+  pub fn eval_cfg(&self, cfg: &Cfg) -> Result<bool, ErrorGuaranteed> {
     let span = cfg.span;
     match &*cfg.kind {
       CfgKind::Bool(name) => match self.get_cfg(span, *name)? {
@@ -117,7 +113,7 @@ impl<'core> Charter<'core, '_> {
     }
   }
 
-  pub fn get_cfg(&self, span: Span, name: Ident<'core>) -> Result<&ConfigValue, ErrorGuaranteed> {
+  pub fn get_cfg(&self, span: Span, name: Ident) -> Result<&ConfigValue, ErrorGuaranteed> {
     self.config.values.get(&name).ok_or_else(|| self.core.report(Diag::UnknownCfg { span, name }))
   }
 }

@@ -25,8 +25,8 @@ use crate::{
   tools::fmt::{doc::Doc, Formatter},
 };
 
-impl<'core> VineParser<'core, '_> {
-  pub(crate) fn parse_fn_item(&mut self) -> Result<FnItem<'core>, Diag<'core>> {
+impl VineParser<'_> {
+  pub(crate) fn parse_fn_item(&mut self) -> Result<FnItem, Diag> {
     self.expect(Token::Fn)?;
     let method = self.eat(Token::Dot)?;
     let name = self.parse_ident()?;
@@ -37,7 +37,7 @@ impl<'core> VineParser<'core, '_> {
     Ok(FnItem { method, name, generics, params, ret, body })
   }
 
-  pub(crate) fn parse_expr_fn(&mut self) -> Result<ExprKind<'core>, Diag<'core>> {
+  pub(crate) fn parse_expr_fn(&mut self) -> Result<ExprKind, Diag> {
     self.expect(Token::Fn)?;
     let flex = self.parse_flex()?;
     let params = self.parse_pats()?;
@@ -46,13 +46,13 @@ impl<'core> VineParser<'core, '_> {
     Ok(ExprKind::Fn(flex, params, ty, body))
   }
 
-  pub(crate) fn parse_stmt_return(&mut self) -> Result<StmtKind<'core>, Diag<'core>> {
+  pub(crate) fn parse_stmt_return(&mut self) -> Result<StmtKind, Diag> {
     let expr = self.maybe_parse_expr_bp(BP::Min)?;
     self.eat(Token::Semi)?;
     Ok(StmtKind::Return(expr))
   }
 
-  pub(crate) fn _parse_stmt_let_fn(&mut self) -> Result<StmtKind<'core>, Diag<'core>> {
+  pub(crate) fn _parse_stmt_let_fn(&mut self) -> Result<StmtKind, Diag> {
     self.expect(Token::Fn)?;
     let flex = self.parse_flex()?;
     let name = self.parse_ident()?;
@@ -63,8 +63,8 @@ impl<'core> VineParser<'core, '_> {
   }
 }
 
-impl<'core: 'src, 'src> Formatter<'src> {
-  pub(crate) fn fmt_fn_item(&self, f: &FnItem<'core>) -> Doc<'src> {
+impl<'src> Formatter<'src> {
+  pub(crate) fn fmt_fn_item(&self, f: &FnItem) -> Doc<'src> {
     let params = &f.params;
     Doc::concat([
       Doc("fn "),
@@ -80,7 +80,7 @@ impl<'core: 'src, 'src> Formatter<'src> {
     ])
   }
 
-  pub(crate) fn fmt_stmt_let_fn(&self, d: &LetFnStmt<'core>) -> Doc<'src> {
+  pub(crate) fn fmt_stmt_let_fn(&self, d: &LetFnStmt) -> Doc<'src> {
     Doc::concat([
       Doc("let fn"),
       self.fmt_flex(d.flex),
@@ -96,9 +96,9 @@ impl<'core: 'src, 'src> Formatter<'src> {
   pub(crate) fn fmt_expr_fn(
     &self,
     flex: &Flex,
-    params: &Vec<Pat<'core>>,
-    ty: &Option<Ty<'core>>,
-    body: &Block<'core>,
+    params: &Vec<Pat>,
+    ty: &Option<Ty>,
+    body: &Block,
   ) -> Doc<'src> {
     Doc::concat([
       Doc("fn"),
@@ -111,18 +111,18 @@ impl<'core: 'src, 'src> Formatter<'src> {
     ])
   }
 
-  pub(crate) fn fmt_expr_call(&self, func: &Expr<'core>, args: &Vec<Expr<'core>>) -> Doc<'src> {
+  pub(crate) fn fmt_expr_call(&self, func: &Expr, args: &Vec<Expr>) -> Doc<'src> {
     Doc::concat([self.fmt_expr(func), Doc::paren_comma(args.iter().map(|x| self.fmt_expr(x)))])
   }
 
-  pub(crate) fn fmt_stmt_return(&self, expr: &Option<Expr<'core>>) -> Doc<'src> {
+  pub(crate) fn fmt_stmt_return(&self, expr: &Option<Expr>) -> Doc<'src> {
     match expr {
       Some(expr) => Doc::concat([Doc("return "), self.fmt_expr(expr), Doc(";")]),
       None => Doc("return;"),
     }
   }
 
-  fn fmt_return_ty(&self, r: Option<&Ty<'core>>) -> Doc<'src> {
+  fn fmt_return_ty(&self, r: Option<&Ty>) -> Doc<'src> {
     match r {
       Some(t) => Doc::concat([Doc(" -> "), self.fmt_ty(t)]),
       None => Doc::EMPTY,
@@ -130,7 +130,7 @@ impl<'core: 'src, 'src> Formatter<'src> {
   }
 }
 
-impl<'core> Charter<'core, '_> {
+impl Charter<'_> {
   pub(crate) fn chart_fn(
     &mut self,
     parent: DefId,
@@ -138,7 +138,7 @@ impl<'core> Charter<'core, '_> {
     span: Span,
     vis: DefId,
     member_vis: DefId,
-    fn_item: FnItem<'core>,
+    fn_item: FnItem,
   ) -> DefId {
     let def = self.chart_child(parent, fn_item.name, member_vis, true);
     let generics = self.chart_generics(def, parent_generics, fn_item.generics, true);
@@ -158,7 +158,7 @@ impl<'core> Charter<'core, '_> {
   }
 }
 
-impl<'core> Resolver<'core, '_> {
+impl Resolver<'_> {
   pub(crate) fn resolve_fn_sig(&mut self, fn_id: ConcreteFnId) {
     let fn_def = &self.chart.concrete_fns[fn_id];
     self.initialize(fn_def.def, fn_def.generics);
@@ -167,11 +167,7 @@ impl<'core> Resolver<'core, '_> {
     self.sigs.concrete_fns.push_to(fn_id, TypeCtx { types, inner: FnSig { params, ret_ty } });
   }
 
-  pub(crate) fn _resolve_fn_sig(
-    &mut self,
-    params: &[Pat<'core>],
-    ret: &Option<Ty<'core>>,
-  ) -> (Vec<Type>, Type) {
+  pub(crate) fn _resolve_fn_sig(&mut self, params: &[Pat], ret: &Option<Ty>) -> (Vec<Type>, Type) {
     let params = params.iter().map(|p| self.resolve_pat_sig(p, false)).collect();
     let ret = ret.as_ref().map(|t| self.resolve_ty(t, false)).unwrap_or(self.types.nil());
     (params, ret)
@@ -194,18 +190,15 @@ impl<'core> Resolver<'core, '_> {
     &mut self,
     span: Span,
     flex: &Flex,
-    params: &Vec<Pat<'core>>,
-    ret: &Option<Ty<'core>>,
-    body: &Block<'core>,
-  ) -> Result<TirExpr, Diag<'core>> {
+    params: &Vec<Pat>,
+    ret: &Option<Ty>,
+    body: &Block,
+  ) -> Result<TirExpr, Diag> {
     let (ty, closure_id) = self.resolve_closure(span, *flex, params, ret, body, true);
     Ok(TirExpr::new(span, ty, TirExprKind::Closure(closure_id)))
   }
 
-  pub(crate) fn resolve_stmts_let_fn_group<'s>(
-    &mut self,
-    mut stmts: &'s [Stmt<'core>],
-  ) -> &'s [Stmt<'core>] {
+  pub(crate) fn resolve_stmts_let_fn_group<'s>(&mut self, mut stmts: &'s [Stmt]) -> &'s [Stmt] {
     let mut let_fns = Vec::new();
     while let [stmt, rest @ ..] = stmts {
       match &stmt.kind {
@@ -247,9 +240,9 @@ impl<'core> Resolver<'core, '_> {
     &mut self,
     span: Span,
     flex: Flex,
-    params: &[Pat<'core>],
-    ret: &Option<Ty<'core>>,
-    body: &Block<'core>,
+    params: &[Pat],
+    ret: &Option<Ty>,
+    body: &Block,
     inferred_ret: bool,
   ) -> (Type, ClosureId) {
     let id = self.closures.push(None);
@@ -278,10 +271,10 @@ impl<'core> Resolver<'core, '_> {
   pub(crate) fn resolve_expr_path_fn(
     &mut self,
     span: Span,
-    path: &Path<'core>,
+    path: &Path,
     fn_id: FnId,
-    args: &Option<Vec<Expr<'core>>>,
-  ) -> Result<TirExpr, Diag<'core>> {
+    args: &Option<Vec<Expr>>,
+  ) -> Result<TirExpr, Diag> {
     if let Some(args) = args {
       let generics_id = self.chart.fn_generics(fn_id);
       let type_params_len = self.sigs.type_params[generics_id].params.len();
@@ -313,7 +306,7 @@ impl<'core> Resolver<'core, '_> {
     }
   }
 
-  pub(crate) fn resolve_ty_fn(&mut self, path: &Path<'core>) -> Type {
+  pub(crate) fn resolve_ty_fn(&mut self, path: &Path) -> Type {
     match self.resolve_path(self.cur_def, path, "fn", |d| d.fn_id()) {
       Ok(fn_id) => self.types.new(TypeKind::Fn(fn_id)),
       Err(diag) => self.types.error(self.core.report(diag)),
@@ -323,9 +316,9 @@ impl<'core> Resolver<'core, '_> {
   pub(crate) fn resolve_trait_fn(
     &mut self,
     span: Span,
-    receiver: &Ty<'core>,
-    params: &Vec<Ty<'core>>,
-    ret: &Option<Ty<'core>>,
+    receiver: &Ty,
+    params: &Vec<Ty>,
+    ret: &Option<Ty>,
   ) -> ImplType {
     let Some(fn_) = self.chart.builtins.fn_ else {
       return ImplType::Error(self.core.report(Diag::MissingBuiltin { span, builtin: "Fn" }));
@@ -339,12 +332,7 @@ impl<'core> Resolver<'core, '_> {
     ImplType::Trait(fn_, vec![receiver, self.types.new(TypeKind::Tuple(params)), ret])
   }
 
-  pub(crate) fn resolve_impl_fn(
-    &mut self,
-    span: Span,
-    path: &Path<'core>,
-    ty: &ImplType,
-  ) -> TirImpl<'core> {
+  pub(crate) fn resolve_impl_fn(&mut self, span: Span, path: &Path, ty: &ImplType) -> TirImpl {
     let Some(fn_) = self.chart.builtins.fn_ else {
       return TirImpl::Error(self.core.report(Diag::MissingBuiltin { span, builtin: "Fn" }));
     };
@@ -375,9 +363,9 @@ impl<'core> Resolver<'core, '_> {
   pub(crate) fn resolve_expr_call(
     &mut self,
     span: Span,
-    func: &Expr<'core>,
-    args: &[Expr<'core>],
-  ) -> Result<TirExpr, Diag<'core>> {
+    func: &Expr,
+    args: &[Expr],
+  ) -> Result<TirExpr, Diag> {
     let func = self.resolve_expr(func);
     self._resolve_expr_call(span, func, args)
   }
@@ -386,8 +374,8 @@ impl<'core> Resolver<'core, '_> {
     &mut self,
     span: Span,
     func: TirExpr,
-    args: &[Expr<'core>],
-  ) -> Result<TirExpr, Diag<'core>> {
+    args: &[Expr],
+  ) -> Result<TirExpr, Diag> {
     let Some(fn_) = self.chart.builtins.fn_ else {
       Err(Diag::MissingBuiltin { span, builtin: "Fn" })?
     };
@@ -404,8 +392,8 @@ impl<'core> Resolver<'core, '_> {
   pub(crate) fn resolve_expr_return(
     &mut self,
     span: Span,
-    value: &Option<Expr<'core>>,
-  ) -> Result<TirExpr, Diag<'core>> {
+    value: &Option<Expr>,
+  ) -> Result<TirExpr, Diag> {
     let nil = self.types.nil();
     if let Some(ty) = &self.return_ty {
       let ty = *ty;
@@ -425,8 +413,8 @@ impl<'core> Resolver<'core, '_> {
   }
 }
 
-impl<'core> Distiller<'core, '_> {
-  pub(crate) fn distill_closures(&mut self, fragment: &Fragment<'core>) {
+impl Distiller<'_> {
+  pub(crate) fn distill_closures(&mut self, fragment: &Fragment) {
     for id in fragment.tir.closures.keys() {
       self.closures.push_to(id, self.interfaces.push(None));
     }
@@ -524,7 +512,7 @@ impl<'core> Distiller<'core, '_> {
   }
 }
 
-impl<'core> Emitter<'core, '_> {
+impl Emitter<'_> {
   pub(crate) fn emit_call(
     &mut self,
     span: Span,

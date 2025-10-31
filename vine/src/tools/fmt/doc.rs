@@ -150,8 +150,8 @@ impl<'src> From<String> for Doc<'src> {
   }
 }
 
-impl<'core: 'src, 'src> From<Ident<'core>> for Doc<'src> {
-  fn from(value: Ident<'core>) -> Self {
+impl<'src> From<Ident> for Doc<'src> {
+  fn from(value: Ident) -> Self {
     Doc(value.0 .0)
   }
 }

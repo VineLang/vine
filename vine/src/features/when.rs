@@ -17,8 +17,8 @@ use crate::{
   tools::fmt::{doc::Doc, Formatter},
 };
 
-impl<'core> VineParser<'core, '_> {
-  pub(crate) fn parse_expr_when(&mut self) -> Result<ExprKind<'core>, Diag<'core>> {
+impl VineParser<'_> {
+  pub(crate) fn parse_expr_when(&mut self) -> Result<ExprKind, Diag> {
     self.expect(Token::When)?;
     let label = self.parse_label()?;
     let ty = self.parse_arrow_ty()?;
@@ -35,13 +35,13 @@ impl<'core> VineParser<'core, '_> {
   }
 }
 
-impl<'core: 'src, 'src> Formatter<'src> {
+impl<'src> Formatter<'src> {
   pub(crate) fn fmt_expr_when(
     &self,
-    label: Label<'core>,
-    ty: &Option<Ty<'core>>,
-    arms: &Vec<(Expr<'core>, Block<'core>)>,
-    leg: &Option<Block<'core>>,
+    label: Label,
+    ty: &Option<Ty>,
+    arms: &Vec<(Expr, Block)>,
+    leg: &Option<Block>,
   ) -> Doc<'src> {
     Doc::concat([
       Doc("when"),
@@ -60,15 +60,15 @@ impl<'core: 'src, 'src> Formatter<'src> {
   }
 }
 
-impl<'core> Resolver<'core, '_> {
+impl Resolver<'_> {
   pub(crate) fn resolve_expr_when(
     &mut self,
     span: Span,
-    label: Label<'core>,
-    ty: &Option<Ty<'core>>,
-    arms: &Vec<(Expr<'core>, Block<'core>)>,
-    leg: &Option<Block<'core>>,
-  ) -> Result<TirExpr, Diag<'core>> {
+    label: Label,
+    ty: &Option<Ty>,
+    arms: &Vec<(Expr, Block)>,
+    leg: &Option<Block>,
+  ) -> Result<TirExpr, Diag> {
     let ty = self.resolve_arrow_ty(span, ty, true);
     let target_id = self.target_id.next();
     let arms = self.bind_target(
@@ -104,7 +104,7 @@ impl<'core> Resolver<'core, '_> {
   }
 }
 
-impl<'core> Distiller<'core, '_> {
+impl Distiller<'_> {
   pub(crate) fn distill_when(
     &mut self,
     stage: &mut Stage,

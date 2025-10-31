@@ -24,21 +24,21 @@ use crate::{
   },
 };
 
-pub struct Compiler<'core> {
-  pub core: &'core Core<'core>,
-  pub config: Config<'core>,
-  pub loader: Loader<'core>,
-  pub chart: Chart<'core>,
-  pub sigs: Signatures<'core>,
-  pub resolutions: Resolutions<'core>,
-  pub specs: Specializations<'core>,
-  pub fragments: IdxVec<FragmentId, Fragment<'core>>,
-  pub vir: IdxVec<FragmentId, Vir<'core>>,
+pub struct Compiler {
+  pub core: &'static Core,
+  pub config: Config,
+  pub loader: Loader,
+  pub chart: Chart,
+  pub sigs: Signatures,
+  pub resolutions: Resolutions,
+  pub specs: Specializations,
+  pub fragments: IdxVec<FragmentId, Fragment>,
+  pub vir: IdxVec<FragmentId, Vir>,
   pub templates: IdxVec<FragmentId, Template>,
 }
 
-impl<'core> Compiler<'core> {
-  pub fn new(core: &'core Core<'core>, mut config: Config<'core>) -> Self {
+impl Compiler {
+  pub fn new(core: &'static Core, mut config: Config) -> Self {
     config.insert(core.ident("debug"), ConfigValue::Bool(core.debug));
     Compiler {
       core,
@@ -54,7 +54,7 @@ impl<'core> Compiler<'core> {
     }
   }
 
-  pub fn compile(&mut self, hooks: impl Hooks<'core>) -> Result<Nets, Vec<Diag<'core>>> {
+  pub fn compile(&mut self, hooks: impl Hooks) -> Result<Nets, Vec<Diag>> {
     let checkpoint = self.checkpoint();
     self._compile(hooks, &checkpoint).inspect_err(|_| {
       self.revert(&checkpoint);
@@ -63,9 +63,9 @@ impl<'core> Compiler<'core> {
 
   fn _compile(
     &mut self,
-    mut hooks: impl Hooks<'core>,
+    mut hooks: impl Hooks,
     checkpoint: &Checkpoint,
-  ) -> Result<Nets, Vec<Diag<'core>>> {
+  ) -> Result<Nets, Vec<Diag>> {
     let core = self.core;
     let root = self.loader.finish();
     core.bail()?;
@@ -140,10 +140,10 @@ impl<'core> Compiler<'core> {
   }
 }
 
-pub trait Hooks<'core> {
-  fn chart(&mut self, _charter: &mut Charter<'core, '_>) {}
-  fn resolve(&mut self, _resolver: &mut Resolver<'core, '_>) {}
+pub trait Hooks {
+  fn chart(&mut self, _charter: &mut Charter<'_>) {}
+  fn resolve(&mut self, _resolver: &mut Resolver<'_>) {}
   fn distill(&mut self, _fragment_id: FragmentId, _vir: &mut Vir) {}
 }
 
-impl<'core> Hooks<'core> for () {}
+impl Hooks for () {}

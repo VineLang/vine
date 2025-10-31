@@ -14,7 +14,7 @@ use crate::{
   },
 };
 
-impl<'core, 'r> Distiller<'core, 'r> {
+impl<'r> Distiller<'r> {
   pub fn distill_pattern_match(
     &mut self,
     span: Span,
@@ -94,13 +94,13 @@ impl<'p> Row<'p> {
 }
 
 #[derive(Debug)]
-pub(crate) struct Matcher<'core, 'd, 'r> {
+pub(crate) struct Matcher<'d, 'r> {
   pub(crate) span: Span,
   exhaustive: bool,
-  pub(crate) distiller: &'d mut Distiller<'core, 'r>,
+  pub(crate) distiller: &'d mut Distiller<'r>,
 }
 
-impl<'core, 'd, 'r> Matcher<'core, 'd, 'r> {
+impl<'d, 'r> Matcher<'d, 'r> {
   pub(crate) fn distill_rows<'p>(
     &mut self,
     layer: &mut Layer,

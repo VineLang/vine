@@ -22,8 +22,8 @@ use crate::{
   tools::fmt::{doc::Doc, Formatter},
 };
 
-impl<'core> VineParser<'core, '_> {
-  pub(crate) fn parse_trait_item(&mut self) -> Result<TraitItem<'core>, Diag<'core>> {
+impl VineParser<'_> {
+  pub(crate) fn parse_trait_item(&mut self) -> Result<TraitItem, Diag> {
     self.expect(Token::Trait)?;
     let name = self.parse_ident()?;
     let generics = self.parse_generic_params()?;
@@ -32,8 +32,8 @@ impl<'core> VineParser<'core, '_> {
   }
 }
 
-impl<'core: 'src, 'src> Formatter<'src> {
-  pub(crate) fn fmt_trait_item(&self, span: Span, t: &TraitItem<'core>) -> Doc<'src> {
+impl<'src> Formatter<'src> {
+  pub(crate) fn fmt_trait_item(&self, span: Span, t: &TraitItem) -> Doc<'src> {
     Doc::concat([
       Doc("trait "),
       Doc(t.name),
@@ -44,7 +44,7 @@ impl<'core: 'src, 'src> Formatter<'src> {
   }
 }
 
-impl<'core> Charter<'core, '_> {
+impl Charter<'_> {
   pub(crate) fn chart_trait(
     &mut self,
     parent: DefId,
@@ -52,7 +52,7 @@ impl<'core> Charter<'core, '_> {
     span: Span,
     vis: DefId,
     member_vis: DefId,
-    trait_item: TraitItem<'core>,
+    trait_item: TraitItem,
   ) -> DefId {
     let def = self.chart_child(parent, trait_item.name, member_vis, true);
     let generics = self.chart_generics(def, parent_generics, trait_item.generics, false);
@@ -92,10 +92,10 @@ impl<'core> Charter<'core, '_> {
     def: DefId,
     trait_id: TraitId,
     trait_generics: GenericsId,
-    fns: &mut IdxVec<TraitFnId, TraitFn<'core>>,
+    fns: &mut IdxVec<TraitFnId, TraitFn>,
     span: Span,
-    attrs: Vec<Attr<'core>>,
-    fn_item: FnItem<'core>,
+    attrs: Vec<Attr>,
+    fn_item: FnItem,
   ) {
     if fn_item.body.is_some() {
       self.core.report(Diag::ImplementedTraitItem { span });
@@ -121,10 +121,10 @@ impl<'core> Charter<'core, '_> {
     def: DefId,
     trait_id: TraitId,
     trait_generics: GenericsId,
-    consts: &mut IdxVec<TraitConstId, TraitConst<'core>>,
+    consts: &mut IdxVec<TraitConstId, TraitConst>,
     span: Span,
-    attrs: Vec<Attr<'core>>,
-    const_item: ConstItem<'core>,
+    attrs: Vec<Attr>,
+    const_item: ConstItem,
   ) {
     if const_item.value.is_some() {
       self.core.report(Diag::ImplementedTraitItem { span });
@@ -145,7 +145,7 @@ impl<'core> Charter<'core, '_> {
     def: DefId,
     trait_id: TraitId,
     trait_generics: GenericsId,
-    generics: GenericParams<'core>,
+    generics: GenericParams,
   ) -> GenericsId {
     if generics.inherit {
       self.core.report(Diag::TraitItemInheritGen { span });
@@ -163,7 +163,7 @@ impl<'core> Charter<'core, '_> {
   }
 }
 
-impl<'core> Resolver<'core, '_> {
+impl Resolver<'_> {
   pub(crate) fn resolve_trait_sig(&mut self, trait_id: TraitId) {
     let trait_def = &self.chart.traits[trait_id];
     let sig = TraitSig {

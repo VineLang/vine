@@ -18,8 +18,8 @@ use crate::{
   tools::fmt::{doc::Doc, Formatter},
 };
 
-impl<'core> VineParser<'core, '_> {
-  pub(crate) fn parse_use_item(&mut self) -> Result<UseItem<'core>, Diag<'core>> {
+impl VineParser<'_> {
+  pub(crate) fn parse_use_item(&mut self) -> Result<UseItem, Diag> {
     self.expect(Token::Use)?;
     let absolute = self.eat(Token::ColonColon)?;
     let span = self.start_span();
@@ -36,11 +36,7 @@ impl<'core> VineParser<'core, '_> {
     Ok(UseItem { absolute, tree })
   }
 
-  fn parse_use_tree(
-    &mut self,
-    cur_name: Option<Ident<'core>>,
-    tree: &mut UseTree<'core>,
-  ) -> Result<(), Diag<'core>> {
+  fn parse_use_tree(&mut self, cur_name: Option<Ident>, tree: &mut UseTree) -> Result<(), Diag> {
     if self.check(Token::Ident) {
       let span = self.span();
       let ident = self.parse_ident()?;
@@ -78,8 +74,8 @@ impl<'core> VineParser<'core, '_> {
   }
 }
 
-impl<'core: 'src, 'src> Formatter<'src> {
-  pub(crate) fn fmt_use_item(&self, u: &UseItem<'core>) -> Doc<'src> {
+impl<'src> Formatter<'src> {
+  pub(crate) fn fmt_use_item(&self, u: &UseItem) -> Doc<'src> {
     Doc::concat([
       Doc(if u.absolute { "use ::" } else { "use " }),
       Self::fmt_use_tree(None, &u.tree),
@@ -87,7 +83,7 @@ impl<'core: 'src, 'src> Formatter<'src> {
     ])
   }
 
-  pub(crate) fn fmt_use_tree(name: Option<Ident<'core>>, tree: &UseTree<'core>) -> Doc<'src> {
+  pub(crate) fn fmt_use_tree(name: Option<Ident>, tree: &UseTree) -> Doc<'src> {
     let prefix = name.iter().map(|&name| Doc::concat([Doc(name), Doc("::")]));
     let aliases =
       tree.implicit.then(|| Doc::concat([Doc(name.unwrap()), Doc(" as _")])).into_iter().chain(
@@ -116,8 +112,8 @@ impl<'core: 'src, 'src> Formatter<'src> {
   }
 }
 
-impl<'core> Charter<'core, '_> {
-  pub(crate) fn chart_use(&mut self, parent: DefId, vis: DefId, use_item: UseItem<'core>) {
+impl Charter<'_> {
+  pub(crate) fn chart_use(&mut self, parent: DefId, vis: DefId, use_item: UseItem) {
     let import_parent = if use_item.absolute { ImportParent::Root } else { ImportParent::Scope };
     for (ident, use_tree) in use_item.tree.children {
       self.chart_use_tree(parent, vis, import_parent, ident, use_tree);
@@ -129,8 +125,8 @@ impl<'core> Charter<'core, '_> {
     def_id: DefId,
     vis: DefId,
     parent: ImportParent,
-    ident: Ident<'core>,
-    use_tree: UseTree<'core>,
+    ident: Ident,
+    use_tree: UseTree,
   ) {
     let span = use_tree.span;
     let import = self.chart.imports.push(ImportDef { span, def: def_id, parent, ident });
@@ -155,7 +151,7 @@ impl<'core> Charter<'core, '_> {
   }
 }
 
-impl<'core> Resolver<'core, '_> {
+impl Resolver<'_> {
   pub(crate) fn resolve_import(&mut self, import_id: ImportId) -> Result<DefId, ErrorGuaranteed> {
     let import = &self.chart.imports[import_id];
     let state = self.sigs.imports.get_or_extend_with(import_id, || ImportState::Unresolved);
@@ -172,7 +168,7 @@ impl<'core> Resolver<'core, '_> {
     }
   }
 
-  fn _resolve_import(&mut self, import: ImportDef<'core>) -> Result<DefId, ErrorGuaranteed> {
+  fn _resolve_import(&mut self, import: ImportDef) -> Result<DefId, ErrorGuaranteed> {
     let ImportDef { span, def, parent, ident, .. } = import;
     match parent {
       ImportParent::Root => self.resolve_segment(span, def, DefId::ROOT, ident),

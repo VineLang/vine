@@ -18,8 +18,8 @@ use crate::{
   tools::fmt::{doc::Doc, Formatter},
 };
 
-impl<'core> VineParser<'core, '_> {
-  pub(crate) fn parse_path(&mut self) -> Result<Path<'core>, Diag<'core>> {
+impl VineParser<'_> {
+  pub(crate) fn parse_path(&mut self) -> Result<Path, Diag> {
     let span = self.start_span();
     let absolute = self.eat(Token::ColonColon)?;
     let segments = self.parse_delimited(PATH, Self::parse_ident)?;
@@ -28,21 +28,21 @@ impl<'core> VineParser<'core, '_> {
     Ok(Path { span, absolute, segments, generics })
   }
 
-  pub(crate) fn parse_expr_path(&mut self) -> Result<ExprKind<'core>, Diag<'core>> {
+  pub(crate) fn parse_expr_path(&mut self) -> Result<ExprKind, Diag> {
     let path = self.parse_path()?;
     let args = self.check_then(Token::OpenParen, Self::parse_exprs)?;
     Ok(ExprKind::Path(path, args))
   }
 
-  pub(crate) fn parse_pat_path(&mut self) -> Result<PatKind<'core>, Diag<'core>> {
+  pub(crate) fn parse_pat_path(&mut self) -> Result<PatKind, Diag> {
     let path = self.parse_path()?;
     let data = self.check_then(Token::OpenParen, Self::parse_pats)?;
     Ok(PatKind::Path(path, data))
   }
 }
 
-impl<'core: 'src, 'src> Formatter<'src> {
-  pub(crate) fn fmt_path(&self, path: &Path<'core>) -> Doc<'src> {
+impl<'src> Formatter<'src> {
+  pub(crate) fn fmt_path(&self, path: &Path) -> Doc<'src> {
     let mut docs = Vec::<Doc>::new();
     if path.absolute {
       docs.push(Doc("::"));
@@ -61,11 +61,7 @@ impl<'core: 'src, 'src> Formatter<'src> {
     Doc::concat_vec(docs)
   }
 
-  pub(crate) fn fmt_expr_path(
-    &self,
-    path: &Path<'core>,
-    args: &Option<Vec<Expr<'core>>>,
-  ) -> Doc<'src> {
+  pub(crate) fn fmt_expr_path(&self, path: &Path, args: &Option<Vec<Expr>>) -> Doc<'src> {
     match args {
       Some(args) => {
         Doc::concat([self.fmt_path(path), Doc::paren_comma(args.iter().map(|x| self.fmt_expr(x)))])
@@ -74,11 +70,7 @@ impl<'core: 'src, 'src> Formatter<'src> {
     }
   }
 
-  pub(crate) fn fmt_pat_path(
-    &self,
-    path: &Path<'core>,
-    args: &Option<Vec<Pat<'core>>>,
-  ) -> Doc<'src> {
+  pub(crate) fn fmt_pat_path(&self, path: &Path, args: &Option<Vec<Pat>>) -> Doc<'src> {
     match args {
       Some(args) => {
         Doc::concat([self.fmt_path(path), Doc::paren_comma(args.iter().map(|x| self.fmt_pat(x)))])
@@ -88,14 +80,14 @@ impl<'core: 'src, 'src> Formatter<'src> {
   }
 }
 
-impl<'core> Resolver<'core, '_> {
+impl Resolver<'_> {
   pub fn resolve_path<T>(
     &mut self,
     base: DefId,
-    path: &Path<'core>,
+    path: &Path,
     desc: &'static str,
     f: impl FnOnce(&Def) -> Option<WithVis<T>>,
-  ) -> Result<T, Diag<'core>> {
+  ) -> Result<T, Diag> {
     let def = self._resolve_path(base, path)?;
     let def = &self.chart.defs[def];
     match f(def) {
@@ -115,7 +107,7 @@ impl<'core> Resolver<'core, '_> {
     }
   }
 
-  fn _resolve_path(&mut self, source: DefId, path: &Path<'core>) -> Result<DefId, Diag<'core>> {
+  fn _resolve_path(&mut self, source: DefId, path: &Path) -> Result<DefId, Diag> {
     let mut segments = path.segments.iter();
     let mut base = if path.absolute {
       DefId::ROOT
@@ -133,8 +125,8 @@ impl<'core> Resolver<'core, '_> {
     &mut self,
     span: Span,
     base: DefId,
-    ident: Ident<'core>,
-  ) -> Result<DefId, Diag<'core>> {
+    ident: Ident,
+  ) -> Result<DefId, Diag> {
     let mut cur = base;
     loop {
       if let Some(resolved) = self._resolve_segment(span, base, cur, ident)? {
@@ -159,8 +151,8 @@ impl<'core> Resolver<'core, '_> {
     span: Span,
     source: DefId,
     base: DefId,
-    ident: Ident<'core>,
-  ) -> Result<DefId, Diag<'core>> {
+    ident: Ident,
+  ) -> Result<DefId, Diag> {
     let resolved = self._resolve_segment(span, source, base, ident)?;
     resolved.ok_or(Diag::CannotResolve { span, module: self.chart.defs[base].path, ident })
   }
@@ -170,8 +162,8 @@ impl<'core> Resolver<'core, '_> {
     span: Span,
     source: DefId,
     base: DefId,
-    ident: Ident<'core>,
-  ) -> Result<Option<DefId>, Diag<'core>> {
+    ident: Ident,
+  ) -> Result<Option<DefId>, Diag> {
     let def = &self.chart.defs[base];
 
     if let Some(member) = def.members_lookup.get(&ident) {
@@ -197,11 +189,11 @@ impl<'core> Resolver<'core, '_> {
 
   pub(crate) fn resolve_expr_path(
     &mut self,
-    expr: &Expr<'core>,
+    expr: &Expr,
     span: Span,
-    path: &Path<'core>,
-    args: &Option<Vec<Expr<'core>>>,
-  ) -> Result<TirExpr, Diag<'core>> {
+    path: &Path,
+    args: &Option<Vec<Expr>>,
+  ) -> Result<TirExpr, Diag> {
     if let Some(ident) = path.as_ident() {
       if let Some(bind) = self.scope.get(&ident).and_then(|x| x.last()) {
         let expr = match bind.binding {
@@ -238,9 +230,9 @@ impl<'core> Resolver<'core, '_> {
   pub(crate) fn resolve_pat_path(
     &mut self,
     span: Span,
-    path: &Path<'core>,
-    data: &Option<Vec<Pat<'core>>>,
-  ) -> Result<TirPat, Diag<'core>> {
+    path: &Path,
+    data: &Option<Vec<Pat>>,
+  ) -> Result<TirPat, Diag> {
     let resolved = self.resolve_path(self.cur_def, path, "pattern", |d| d.pattern_kind);
     match resolved {
       Ok(DefPatternKind::Struct(struct_id)) => {
@@ -262,12 +254,7 @@ impl<'core> Resolver<'core, '_> {
     }
   }
 
-  pub(crate) fn resolve_pat_sig_path(
-    &mut self,
-    span: Span,
-    path: &Path<'core>,
-    inference: bool,
-  ) -> Type {
+  pub(crate) fn resolve_pat_sig_path(&mut self, span: Span, path: &Path, inference: bool) -> Type {
     let resolved = self.resolve_path(self.cur_def, path, "pattern", |d| d.pattern_kind);
     match resolved {
       Ok(DefPatternKind::Struct(struct_id)) => self.resolve_pat_sig_path_struct(path, struct_id),
@@ -282,7 +269,7 @@ impl<'core> Resolver<'core, '_> {
     }
   }
 
-  pub(crate) fn resolve_ty_path(&mut self, path: &Path<'core>, inference: bool) -> Type {
+  pub(crate) fn resolve_ty_path(&mut self, path: &Path, inference: bool) -> Type {
     if let Some(ident) = path.as_ident() {
       if let Some(&index) = self.sigs.type_params[self.cur_generics].lookup.get(&ident) {
         return self.types.new(TypeKind::Param(index, ident));
@@ -300,7 +287,7 @@ impl<'core> Resolver<'core, '_> {
     }
   }
 
-  pub(crate) fn resolve_impl_path(&mut self, path: &Path<'core>, ty: &ImplType) -> TirImpl<'core> {
+  pub(crate) fn resolve_impl_path(&mut self, path: &Path, ty: &ImplType) -> TirImpl {
     if let Some(ident) = path.as_ident() {
       let impl_params = &self.sigs.impl_params[self.cur_generics];
       if let Some(&index) = impl_params.lookup.get(&ident) {

@@ -11,12 +11,7 @@ use clap::{Args, CommandFactory, Parser};
 use ivm::{ext::Extrinsics, heap::Heap, IVM};
 use ivy::{ast::Nets, host::Host};
 use rustyline::DefaultEditor;
-use vine::{
-  compiler::Compiler,
-  features::cfg::Config,
-  structures::core::{Core, CoreArenas},
-  tools::repl::Repl,
-};
+use vine::{compiler::Compiler, features::cfg::Config, structures::core::Core, tools::repl::Repl};
 use vine_lsp::lsp;
 
 use super::{Optimizations, RunArgs};
@@ -68,8 +63,7 @@ impl CompileArgs {
       self.libs.push(std_path())
     }
 
-    let arenas = CoreArenas::default();
-    let core = &Core::new(&arenas, self.debug);
+    let core = Core::new(self.debug);
     let mut compiler = Compiler::new(core, Config::default());
 
     if let Some(main) = self.main {
@@ -176,8 +170,7 @@ impl VineReplCommand {
     host.register_default_extrinsics(&mut extrinsics);
 
     let mut ivm = IVM::new(&heap, &extrinsics);
-    let arenas = CoreArenas::default();
-    let core = &Core::new(&arenas, !self.no_debug);
+    let core = Core::new(!self.no_debug);
     let mut repl = match Repl::new(host, &mut ivm, core, Config::default(), self.libs) {
       Ok(repl) => repl,
       Err(diags) => {
@@ -215,8 +208,7 @@ impl VineFmtCommand {
   pub fn execute(self) -> Result<()> {
     let mut src = String::new();
     stdin().read_to_string(&mut src)?;
-    let arenas = CoreArenas::default();
-    let core = &Core::new(&arenas, false);
+    let core = Core::new(false);
     println!("{}", core.fmt(&src).unwrap());
     Ok(())
   }

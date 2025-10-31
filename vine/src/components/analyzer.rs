@@ -19,7 +19,7 @@ use crate::{
 
 pub mod effect;
 
-pub fn analyze<'core>(core: &'core Core<'core>, span: Span, vir: &mut Vir) {
+pub fn analyze(core: &'static Core, span: Span, vir: &mut Vir) {
   Analyzer {
     core,
     infinite_loop: false,
@@ -40,8 +40,8 @@ pub fn analyze<'core>(core: &'core Core<'core>, span: Span, vir: &mut Vir) {
 }
 
 #[derive(Debug)]
-struct Analyzer<'core, 'a> {
-  core: &'core Core<'core>,
+struct Analyzer<'a> {
+  core: &'static Core,
   infinite_loop: bool,
   span: Span,
   locals: &'a IdxVec<Local, VirLocal>,
@@ -64,7 +64,7 @@ impl EffectVar {
   pub const PASS: Self = EffectVar(0);
 }
 
-impl<'core> Analyzer<'core, '_> {
+impl Analyzer<'_> {
   fn analyze(&mut self) {
     self.sweep(InterfaceId(0));
 

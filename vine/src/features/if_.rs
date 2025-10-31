@@ -12,8 +12,8 @@ use crate::{
   tools::fmt::{doc::Doc, Formatter},
 };
 
-impl<'core> VineParser<'core, '_> {
-  pub(crate) fn parse_expr_if(&mut self) -> Result<ExprKind<'core>, Diag<'core>> {
+impl VineParser<'_> {
+  pub(crate) fn parse_expr_if(&mut self) -> Result<ExprKind, Diag> {
     self.expect(Token::If)?;
     let cond = self.parse_expr()?;
     let ty = self.parse_arrow_ty()?;
@@ -23,13 +23,13 @@ impl<'core> VineParser<'core, '_> {
   }
 }
 
-impl<'core: 'src, 'src> Formatter<'src> {
+impl<'src> Formatter<'src> {
   pub(crate) fn fmt_expr_if(
     &self,
-    cond: &Expr<'core>,
-    ty: &Option<Ty<'core>>,
-    then: &Block<'core>,
-    else_: &Option<Block<'core>>,
+    cond: &Expr,
+    ty: &Option<Ty>,
+    then: &Block,
+    else_: &Option<Block>,
   ) -> Doc<'src> {
     Doc::concat([
       Doc("if "),
@@ -45,15 +45,15 @@ impl<'core: 'src, 'src> Formatter<'src> {
   }
 }
 
-impl<'core> Resolver<'core, '_> {
+impl Resolver<'_> {
   pub(crate) fn resolve_expr_if(
     &mut self,
     span: Span,
-    cond: &Expr<'core>,
-    ty: &Option<Ty<'core>>,
-    then: &Block<'core>,
-    else_: &Option<Block<'core>>,
-  ) -> Result<TirExpr, Diag<'core>> {
+    cond: &Expr,
+    ty: &Option<Ty>,
+    then: &Block,
+    else_: &Option<Block>,
+  ) -> Result<TirExpr, Diag> {
     let ty = self.resolve_arrow_ty(span, ty, true);
     self.enter_scope();
     let cond = self.resolve_scoped_cond(cond);
@@ -68,7 +68,7 @@ impl<'core> Resolver<'core, '_> {
   }
 }
 
-impl<'core> Distiller<'core, '_> {
+impl Distiller<'_> {
   pub(crate) fn distill_if(
     &mut self,
     stage: &mut Stage,

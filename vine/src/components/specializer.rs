@@ -20,17 +20,17 @@ use crate::{
 };
 
 #[derive(Debug)]
-pub struct Specializer<'core, 'a> {
-  pub core: &'core Core<'core>,
-  pub chart: &'a Chart<'core>,
-  pub resolutions: &'a Resolutions<'core>,
-  pub specs: &'a mut Specializations<'core>,
-  pub fragments: &'a IdxVec<FragmentId, Fragment<'core>>,
-  pub vir: &'a IdxVec<FragmentId, Vir<'core>>,
+pub struct Specializer<'a> {
+  pub core: &'static Core,
+  pub chart: &'a Chart,
+  pub resolutions: &'a Resolutions,
+  pub specs: &'a mut Specializations,
+  pub fragments: &'a IdxVec<FragmentId, Fragment>,
+  pub vir: &'a IdxVec<FragmentId, Vir>,
   pub nets: &'a mut Nets,
 }
 
-impl<'core, 'a> Specializer<'core, 'a> {
+impl<'a> Specializer<'a> {
   pub fn specialize_since(&mut self, checkpoint: &Checkpoint) {
     for fragment_id in self.fragments.keys_from(checkpoint.fragments) {
       if self.fragments[fragment_id].impl_params == 0 {
@@ -39,7 +39,7 @@ impl<'core, 'a> Specializer<'core, 'a> {
     }
   }
 
-  fn specialize(&mut self, id: FragmentId, impl_args: Vec<ImplTree<'core>>) -> SpecId {
+  fn specialize(&mut self, id: FragmentId, impl_args: Vec<ImplTree>) -> SpecId {
     let spec_id = self.specs.specs.next_index();
     let lookup = self.specs.lookup.get_or_extend(id);
     let index = lookup.len();
@@ -62,8 +62,8 @@ impl<'core, 'a> Specializer<'core, 'a> {
   fn instantiate_rels(
     &mut self,
     fragment_id: Option<FragmentId>,
-    args: &Vec<ImplTree<'core>>,
-    rels: &Rels<'core>,
+    args: &Vec<ImplTree>,
+    rels: &Rels,
   ) -> SpecRels {
     let rels = SpecRels {
       fns: IdxVec::from_iter(
@@ -79,8 +79,8 @@ impl<'core, 'a> Specializer<'core, 'a> {
   fn instantiate_const_rel(
     &mut self,
     fragment_id: Option<FragmentId>,
-    args: &Vec<ImplTree<'core>>,
-    (const_id, impls): &(ConstId, Vec<TirImpl<'core>>),
+    args: &Vec<ImplTree>,
+    (const_id, impls): &(ConstId, Vec<TirImpl>),
   ) -> Result<SpecId, ErrorGuaranteed> {
     let mut impls = impls.iter().map(|x| self.instantiate(fragment_id, args, x)).collect();
     match *const_id {
@@ -119,8 +119,8 @@ impl<'core, 'a> Specializer<'core, 'a> {
   fn instantiate_fn_rel(
     &mut self,
     fragment_id: Option<FragmentId>,
-    args: &Vec<ImplTree<'core>>,
-    fn_rel: &FnRel<'core>,
+    args: &Vec<ImplTree>,
+    fn_rel: &FnRel,
   ) -> Result<(SpecId, StageId), ErrorGuaranteed> {
     match fn_rel {
       &FnRel::Item(fn_id, ref impls) => {
@@ -151,7 +151,7 @@ impl<'core, 'a> Specializer<'core, 'a> {
   fn instantiate_fn_id(
     &mut self,
     fn_id: FnId,
-    mut impls: Vec<ImplTree<'core>>,
+    mut impls: Vec<ImplTree>,
   ) -> Result<(SpecId, StageId), ErrorGuaranteed> {
     if self.chart.builtins.debug_state == Some(fn_id) {
       return Ok((self.instantiate_synthetic_item(SyntheticItem::DebugState, vec![]), StageId(0)));
@@ -217,11 +217,7 @@ impl<'core, 'a> Specializer<'core, 'a> {
     }
   }
 
-  fn instantiate_synthetic_item(
-    &mut self,
-    item: SyntheticItem<'core>,
-    impls: Vec<ImplTree<'core>>,
-  ) -> SpecId {
+  fn instantiate_synthetic_item(&mut self, item: SyntheticItem, impls: Vec<ImplTree>) -> SpecId {
     let index = self.specs.synthetic.len();
     match self.specs.synthetic.entry((item, impls)) {
       Entry::Occupied(e) => *e.get(),
@@ -265,9 +261,9 @@ impl<'core, 'a> Specializer<'core, 'a> {
   fn instantiate(
     &self,
     fragment_id: Option<FragmentId>,
-    args: &Vec<ImplTree<'core>>,
-    impl_: &TirImpl<'core>,
-  ) -> ImplTree<'core> {
+    args: &Vec<ImplTree>,
+    impl_: &TirImpl,
+  ) -> ImplTree {
     match impl_ {
       TirImpl::Error(err) => ImplTree::Error(*err),
       TirImpl::Param(i) => args[*i].clone(),

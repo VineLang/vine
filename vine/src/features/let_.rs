@@ -17,8 +17,8 @@ use crate::{
   tools::fmt::{doc::Doc, Formatter},
 };
 
-impl<'core> VineParser<'core, '_> {
-  pub(crate) fn parse_stmt_let(&mut self) -> Result<StmtKind<'core>, Diag<'core>> {
+impl VineParser<'_> {
+  pub(crate) fn parse_stmt_let(&mut self) -> Result<StmtKind, Diag> {
     self.expect(Token::Let)?;
     if self.check(Token::Fn) {
       return self._parse_stmt_let_fn();
@@ -41,8 +41,8 @@ impl<'core> VineParser<'core, '_> {
   }
 }
 
-impl<'core: 'src, 'src> Formatter<'src> {
-  pub(crate) fn fmt_stmt_let(&self, stmt: &LetStmt<'core>) -> Doc<'src> {
+impl<'src> Formatter<'src> {
+  pub(crate) fn fmt_stmt_let(&self, stmt: &LetStmt) -> Doc<'src> {
     Doc::concat([
       Doc("let "),
       self.fmt_pat(&stmt.bind),
@@ -66,13 +66,13 @@ impl<'core: 'src, 'src> Formatter<'src> {
   }
 }
 
-impl<'core> Resolver<'core, '_> {
+impl Resolver<'_> {
   pub(crate) fn resolve_stmts_let(
     &mut self,
     span: Span,
     ty: Type,
-    stmt: &LetStmt<'core>,
-    rest: &[Stmt<'core>],
+    stmt: &LetStmt,
+    rest: &[Stmt],
   ) -> TirExprKind {
     let init = stmt.init.as_ref().map(|init| self.resolve_expr(init));
     match &stmt.else_ {
@@ -114,7 +114,7 @@ impl<'core> Resolver<'core, '_> {
   }
 }
 
-impl<'core> Distiller<'core, '_> {
+impl Distiller<'_> {
   pub(crate) fn distill_let(
     &mut self,
     stage: &mut Stage,

@@ -10,7 +10,7 @@ use crate::{
   },
 };
 
-impl<'core> Emitter<'core, '_> {
+impl Emitter<'_> {
   pub(crate) fn tap_debug(&mut self) -> Tree {
     let w = self.new_wire();
     let debug = self.debug.as_mut().unwrap();

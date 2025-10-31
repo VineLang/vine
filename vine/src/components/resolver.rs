@@ -27,24 +27,24 @@ use crate::{
 };
 
 #[derive(Debug)]
-pub struct Resolver<'core, 'a> {
-  pub(crate) core: &'core Core<'core>,
-  pub(crate) chart: &'a Chart<'core>,
-  pub(crate) sigs: &'a mut Signatures<'core>,
-  pub(crate) resolutions: &'a mut Resolutions<'core>,
-  pub(crate) fragments: &'a mut IdxVec<FragmentId, Fragment<'core>>,
-  pub(crate) types: Types<'core>,
+pub struct Resolver<'a> {
+  pub(crate) core: &'static Core,
+  pub(crate) chart: &'a Chart,
+  pub(crate) sigs: &'a mut Signatures,
+  pub(crate) resolutions: &'a mut Resolutions,
+  pub(crate) fragments: &'a mut IdxVec<FragmentId, Fragment>,
+  pub(crate) types: Types,
   pub(crate) return_ty: Option<Type>,
   pub(crate) cur_def: DefId,
   pub(crate) cur_generics: GenericsId,
 
-  pub(crate) scope: HashMap<Ident<'core>, Vec<ScopeEntry>>,
+  pub(crate) scope: HashMap<Ident, Vec<ScopeEntry>>,
   pub(crate) scope_depth: usize,
   pub(crate) locals: IdxVec<Local, TirLocal>,
-  pub(crate) targets: HashMap<Target<'core>, Vec<TargetInfo>>,
+  pub(crate) targets: HashMap<Target, Vec<TargetInfo>>,
   pub(crate) target_id: Counter<TargetId>,
 
-  pub(crate) rels: Rels<'core>,
+  pub(crate) rels: Rels,
   pub(crate) closures: IdxVec<ClosureId, Option<TirClosure>>,
 }
 
@@ -67,13 +67,13 @@ pub(crate) enum Binding {
   Closure(ClosureId, Type),
 }
 
-impl<'core, 'a> Resolver<'core, 'a> {
+impl<'a> Resolver<'a> {
   pub fn new(
-    core: &'core Core<'core>,
-    chart: &'a Chart<'core>,
-    sigs: &'a mut Signatures<'core>,
-    resolutions: &'a mut Resolutions<'core>,
-    fragments: &'a mut IdxVec<FragmentId, Fragment<'core>>,
+    core: &'static Core,
+    chart: &'a Chart,
+    sigs: &'a mut Signatures,
+    resolutions: &'a mut Resolutions,
+    fragments: &'a mut IdxVec<FragmentId, Fragment>,
   ) -> Self {
     Resolver {
       core,
@@ -160,7 +160,7 @@ impl<'core, 'a> Resolver<'core, 'a> {
     }
   }
 
-  fn _resolve_main(&mut self, main_mod: DefId) -> Result<ConcreteFnId, Diag<'core>> {
+  fn _resolve_main(&mut self, main_mod: DefId) -> Result<ConcreteFnId, Diag> {
     self.types.reset();
     let span = Span::NONE;
     let main_mod_name = self.chart.defs[main_mod].name;
@@ -214,12 +214,12 @@ impl<'core, 'a> Resolver<'core, 'a> {
   pub(crate) fn _resolve_repl<'l>(
     &mut self,
     span: Span,
-    path: &'core str,
+    path: &'static str,
     def_id: DefId,
-    types: Types<'core>,
-    locals: impl Iterator<Item = (Ident<'core>, Span, Type)>,
-    block: &Block<'core>,
-  ) -> (FragmentId, Type, Vec<(Local, Ident<'core>, Span, Type)>) {
+    types: Types,
+    locals: impl Iterator<Item = (Ident, Span, Type)>,
+    block: &Block,
+  ) -> (FragmentId, Type, Vec<(Local, Ident, Span, Type)>) {
     self.initialize(def_id, GenericsId::NONE);
     self.types = types;
     for (name, span, ty) in locals {
@@ -254,9 +254,9 @@ impl<'core, 'a> Resolver<'core, 'a> {
   }
 
   pub(crate) fn expect_fn_sig(
-    core: &Core<'core>,
-    chart: &Chart<'core>,
-    types: &mut Types<'core>,
+    core: &'static Core,
+    chart: &Chart,
+    types: &mut Types,
     span: Span,
     expected_sig: FnSig,
     found_sig: FnSig,
@@ -270,7 +270,7 @@ impl<'core, 'a> Resolver<'core, 'a> {
     }
   }
 
-  pub(crate) fn resolve_trait(&mut self, trait_: &Trait<'core>) -> ImplType {
+  pub(crate) fn resolve_trait(&mut self, trait_: &Trait) -> ImplType {
     let span = trait_.span;
     match &*trait_.kind {
       TraitKind::Path(path) => {
@@ -288,7 +288,7 @@ impl<'core, 'a> Resolver<'core, 'a> {
     }
   }
 
-  pub(crate) fn resolve_impl_type(&mut self, impl_: &Impl<'core>, ty: &ImplType) -> TirImpl<'core> {
+  pub(crate) fn resolve_impl_type(&mut self, impl_: &Impl, ty: &ImplType) -> TirImpl {
     let span = impl_.span;
     match &*impl_.kind {
       ImplKind::Hole => self.find_impl(span, ty, false),
@@ -298,17 +298,17 @@ impl<'core, 'a> Resolver<'core, 'a> {
     }
   }
 
-  pub(crate) fn finder(&self, span: Span) -> Finder<'core, '_> {
+  pub(crate) fn finder(&self, span: Span) -> Finder<'_> {
     Finder::new(self.core, self.chart, self.sigs, self.cur_def, self.cur_generics, span)
   }
 
-  pub(crate) fn find_impl(&mut self, span: Span, ty: &ImplType, basic: bool) -> TirImpl<'core> {
+  pub(crate) fn find_impl(&mut self, span: Span, ty: &ImplType, basic: bool) -> TirImpl {
     let mut finder =
       Finder::new(self.core, self.chart, self.sigs, self.cur_def, self.cur_generics, span);
     finder.find_impl(&mut self.types, ty, basic)
   }
 
-  pub(crate) fn bind(&mut self, ident: Ident<'core>, binding: Binding) {
+  pub(crate) fn bind(&mut self, ident: Ident, binding: Binding) {
     let stack = self.scope.entry(ident).or_default();
     let top = stack.last_mut();
     if top.as_ref().is_some_and(|x| x.depth == self.scope_depth) {
@@ -331,12 +331,12 @@ impl<'core, 'a> Resolver<'core, 'a> {
     }
   }
 
-  pub(crate) fn error_expr(&mut self, span: Span, diag: Diag<'core>) -> TirExpr {
+  pub(crate) fn error_expr(&mut self, span: Span, diag: Diag) -> TirExpr {
     let err = self.core.report(diag);
     TirExpr { span, ty: self.types.error(err), kind: Box::new(TirExprKind::Error(err)) }
   }
 
-  pub(crate) fn error_pat(&mut self, span: Span, diag: Diag<'core>) -> TirPat {
+  pub(crate) fn error_pat(&mut self, span: Span, diag: Diag) -> TirPat {
     let err = self.core.report(diag);
     TirPat { span, ty: self.types.error(err), kind: Box::new(TirPatKind::Error(err)) }
   }
@@ -361,10 +361,10 @@ impl<'core, 'a> Resolver<'core, 'a> {
   pub(crate) fn finish_fragment(
     &mut self,
     span: Span,
-    path: &'core str,
+    path: &'static str,
     root: TirExpr,
     frameless: bool,
-  ) -> Fragment<'core> {
+  ) -> Fragment {
     Fragment {
       def: self.cur_def,
       generics: self.cur_generics,
@@ -405,7 +405,7 @@ impl<'core, 'a> Resolver<'core, 'a> {
     fn_id: Option<FnId>,
     name: &'static str,
     type_params: [Type; N],
-  ) -> Result<FnRelId, Diag<'core>> {
+  ) -> Result<FnRelId, Diag> {
     if let Some(fn_id) = fn_id {
       let (_, impl_params) = self._resolve_generics(
         span,
@@ -420,17 +420,17 @@ impl<'core, 'a> Resolver<'core, 'a> {
     }
   }
 
-  pub(crate) fn resolve_expr_type(&mut self, expr: &Expr<'core>, ty: Type) -> TirExpr {
+  pub(crate) fn resolve_expr_type(&mut self, expr: &Expr, ty: Type) -> TirExpr {
     let expr = self.resolve_expr(expr);
     self.expect_type(expr.span, expr.ty, ty);
     expr
   }
 
-  pub(crate) fn resolve_expr(&mut self, expr: &Expr<'core>) -> TirExpr {
+  pub(crate) fn resolve_expr(&mut self, expr: &Expr) -> TirExpr {
     self._resolve_expr(expr).unwrap_or_else(|diag| self.error_expr(expr.span, diag))
   }
 
-  pub(crate) fn _resolve_expr(&mut self, expr: &Expr<'core>) -> Result<TirExpr, Diag<'core>> {
+  pub(crate) fn _resolve_expr(&mut self, expr: &Expr) -> Result<TirExpr, Diag> {
     let span = expr.span;
     match &*expr.kind {
       ExprKind::Error(e) => Err(*e)?,
@@ -490,7 +490,7 @@ impl<'core, 'a> Resolver<'core, 'a> {
     }
   }
 
-  pub(crate) fn resolve_pat_type(&mut self, pat: &Pat<'core>, ty: Type) -> TirPat {
+  pub(crate) fn resolve_pat_type(&mut self, pat: &Pat, ty: Type) -> TirPat {
     let span = pat.span;
     let pat = self.resolve_pat(pat);
     match self.expect_type(pat.span, pat.ty, ty) {
@@ -499,11 +499,11 @@ impl<'core, 'a> Resolver<'core, 'a> {
     }
   }
 
-  pub(crate) fn resolve_pat(&mut self, pat: &Pat<'core>) -> TirPat {
+  pub(crate) fn resolve_pat(&mut self, pat: &Pat) -> TirPat {
     self._resolve_pat(pat).unwrap_or_else(|diag| self.error_pat(pat.span, diag))
   }
 
-  pub(crate) fn _resolve_pat(&mut self, pat: &Pat<'core>) -> Result<TirPat, Diag<'core>> {
+  pub(crate) fn _resolve_pat(&mut self, pat: &Pat) -> Result<TirPat, Diag> {
     let span = pat.span;
     match &*pat.kind {
       PatKind::Error(e) => Err(*e)?,
@@ -519,7 +519,7 @@ impl<'core, 'a> Resolver<'core, 'a> {
     }
   }
 
-  pub(crate) fn resolve_pat_sig(&mut self, pat: &Pat<'core>, inference: bool) -> Type {
+  pub(crate) fn resolve_pat_sig(&mut self, pat: &Pat, inference: bool) -> Type {
     let span = pat.span;
     match &*pat.kind {
       PatKind::Paren(inner) => self.resolve_pat_sig(inner, inference),
@@ -536,7 +536,7 @@ impl<'core, 'a> Resolver<'core, 'a> {
     }
   }
 
-  pub(crate) fn resolve_ty(&mut self, ty: &Ty<'core>, inference: bool) -> Type {
+  pub(crate) fn resolve_ty(&mut self, ty: &Ty, inference: bool) -> Type {
     let span = ty.span;
     match &*ty.kind {
       TyKind::Error(e) => self.types.error(*e),
@@ -552,12 +552,7 @@ impl<'core, 'a> Resolver<'core, 'a> {
     }
   }
 
-  pub(crate) fn resolve_arrow_ty(
-    &mut self,
-    span: Span,
-    ty: &Option<Ty<'core>>,
-    inference: bool,
-  ) -> Type {
+  pub(crate) fn resolve_arrow_ty(&mut self, span: Span, ty: &Option<Ty>, inference: bool) -> Type {
     match ty {
       Some(ty) => self.resolve_ty(ty, inference),
       None => {

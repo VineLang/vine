@@ -9,19 +9,19 @@ use crate::{
   tools::fmt::{doc::Doc, Formatter},
 };
 
-impl<'core: 'src, 'src> Formatter<'src> {
-  pub(crate) fn fmt_expr_place(&self, v: &Expr<'core>, s: &Expr<'core>) -> Doc<'src> {
+impl<'src> Formatter<'src> {
+  pub(crate) fn fmt_expr_place(&self, v: &Expr, s: &Expr) -> Doc<'src> {
     Doc::concat([Doc("("), self.fmt_expr(v), Doc("; "), self.fmt_expr(s), Doc(")")])
   }
 }
 
-impl<'core> Resolver<'core, '_> {
+impl Resolver<'_> {
   pub(crate) fn resolve_expr_place(
     &mut self,
     span: Span,
-    value: &Expr<'core>,
-    space: &Expr<'core>,
-  ) -> Result<TirExpr, Diag<'core>> {
+    value: &Expr,
+    space: &Expr,
+  ) -> Result<TirExpr, Diag> {
     let value = self.resolve_expr(value);
     let space = self.resolve_expr(space);
     let ty = if self.types.unify(value.ty, space.ty).is_failure() {
@@ -37,7 +37,7 @@ impl<'core> Resolver<'core, '_> {
   }
 }
 
-impl<'core> Distiller<'core, '_> {
+impl Distiller<'_> {
   pub(crate) fn distill_expr_place_place(
     &mut self,
     stage: &mut Stage,

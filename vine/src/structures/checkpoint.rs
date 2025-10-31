@@ -32,7 +32,7 @@ pub struct Checkpoint {
   pub specs: SpecId,
 }
 
-impl<'core> Compiler<'core> {
+impl Compiler {
   pub fn checkpoint(&self) -> Checkpoint {
     Checkpoint {
       defs: self.chart.defs.next_index(),
@@ -74,7 +74,7 @@ impl<'core> Compiler<'core> {
   }
 }
 
-impl<'core> Chart<'core> {
+impl Chart {
   fn revert(&mut self, checkpoint: &Checkpoint) {
     let Chart {
       defs,
@@ -114,7 +114,7 @@ impl<'core> Chart<'core> {
   }
 }
 
-impl<'core> Def<'core> {
+impl Def {
   fn revert(&mut self, checkpoint: &Checkpoint) {
     self.members_lookup.retain(|_, member| match member.kind {
       MemberKind::Child(id) => id < checkpoint.defs,
@@ -266,7 +266,7 @@ impl Builtins {
   }
 }
 
-impl<'core> Signatures<'core> {
+impl Signatures {
   fn revert(&mut self, checkpoint: &Checkpoint) {
     let Signatures {
       imports,
@@ -293,7 +293,7 @@ impl<'core> Signatures<'core> {
   }
 }
 
-impl<'core> Resolutions<'core> {
+impl Resolutions {
   fn revert(&mut self, checkpoint: &Checkpoint) {
     let Resolutions { consts, fns, impls, main } = self;
     consts.truncate(checkpoint.concrete_consts.0);
@@ -303,7 +303,7 @@ impl<'core> Resolutions<'core> {
   }
 }
 
-impl<'core> Specializations<'core> {
+impl Specializations {
   fn revert(&mut self, checkpoint: &Checkpoint) {
     let Specializations { lookup, specs, synthetic } = self;
     specs.truncate(checkpoint.specs.0);

@@ -14,125 +14,125 @@ use crate::{
 pub mod visit;
 
 #[derive(Clone)]
-pub struct Item<'core> {
+pub struct Item {
   pub span: Span,
-  pub vis: Vis<'core>,
-  pub attrs: Vec<Attr<'core>>,
-  pub kind: ItemKind<'core>,
+  pub vis: Vis,
+  pub attrs: Vec<Attr>,
+  pub kind: ItemKind,
 }
 
 #[derive(Debug, Clone)]
-pub enum ItemKind<'core> {
-  Fn(FnItem<'core>),
-  Const(ConstItem<'core>),
-  Struct(StructItem<'core>),
-  Enum(EnumItem<'core>),
-  Type(TypeItem<'core>),
-  Mod(ModItem<'core>),
-  Trait(TraitItem<'core>),
-  Impl(ImplItem<'core>),
-  Use(UseItem<'core>),
+pub enum ItemKind {
+  Fn(FnItem),
+  Const(ConstItem),
+  Struct(StructItem),
+  Enum(EnumItem),
+  Type(TypeItem),
+  Mod(ModItem),
+  Trait(TraitItem),
+  Impl(ImplItem),
+  Use(UseItem),
   Taken,
 }
 
 #[derive(Debug, Clone)]
-pub struct FnItem<'core> {
+pub struct FnItem {
   pub method: bool,
-  pub name: Ident<'core>,
-  pub generics: GenericParams<'core>,
-  pub params: Vec<Pat<'core>>,
-  pub ret: Option<Ty<'core>>,
-  pub body: Option<Block<'core>>,
+  pub name: Ident,
+  pub generics: GenericParams,
+  pub params: Vec<Pat>,
+  pub ret: Option<Ty>,
+  pub body: Option<Block>,
 }
 
 #[derive(Debug, Clone)]
-pub struct ConstItem<'core> {
-  pub name: Ident<'core>,
-  pub generics: GenericParams<'core>,
-  pub ty: Ty<'core>,
-  pub value: Option<Expr<'core>>,
+pub struct ConstItem {
+  pub name: Ident,
+  pub generics: GenericParams,
+  pub ty: Ty,
+  pub value: Option<Expr>,
 }
 
 #[derive(Debug, Clone)]
-pub struct TypeItem<'core> {
-  pub name: Ident<'core>,
-  pub generics: GenericParams<'core>,
-  pub ty: Option<Ty<'core>>,
+pub struct TypeItem {
+  pub name: Ident,
+  pub generics: GenericParams,
+  pub ty: Option<Ty>,
 }
 
 #[derive(Debug, Clone)]
-pub struct StructItem<'core> {
+pub struct StructItem {
   pub flex: Flex,
-  pub name: Ident<'core>,
-  pub generics: GenericParams<'core>,
-  pub data_vis: Vis<'core>,
-  pub data: Ty<'core>,
+  pub name: Ident,
+  pub generics: GenericParams,
+  pub data_vis: Vis,
+  pub data: Ty,
 }
 
 #[derive(Debug, Clone)]
-pub struct EnumItem<'core> {
+pub struct EnumItem {
   pub flex: Flex,
-  pub name: Ident<'core>,
-  pub generics: GenericParams<'core>,
-  pub variants: Vec<Variant<'core>>,
+  pub name: Ident,
+  pub generics: GenericParams,
+  pub variants: Vec<Variant>,
 }
 
 #[derive(Debug, Clone)]
-pub struct Variant<'core> {
-  pub name: Ident<'core>,
-  pub data: Option<Ty<'core>>,
+pub struct Variant {
+  pub name: Ident,
+  pub data: Option<Ty>,
 }
 
 #[derive(Debug, Clone)]
-pub struct ModItem<'core> {
-  pub name: Ident<'core>,
-  pub generics: GenericParams<'core>,
-  pub kind: ModKind<'core>,
+pub struct ModItem {
+  pub name: Ident,
+  pub generics: GenericParams,
+  pub kind: ModKind,
 }
 
 #[derive(Debug, Clone)]
-pub enum ModKind<'core> {
-  Loaded(Span, Vec<Item<'core>>),
+pub enum ModKind {
+  Loaded(Span, Vec<Item>),
   Unloaded(Span, Option<String>),
   Error(ErrorGuaranteed),
 }
 
 #[derive(Debug, Clone)]
-pub struct TraitItem<'core> {
-  pub name: Ident<'core>,
-  pub generics: GenericParams<'core>,
-  pub items: Vec<Item<'core>>,
+pub struct TraitItem {
+  pub name: Ident,
+  pub generics: GenericParams,
+  pub items: Vec<Item>,
 }
 
 #[derive(Debug, Clone)]
-pub struct ImplItem<'core> {
-  pub name: Ident<'core>,
-  pub generics: GenericParams<'core>,
-  pub trait_: Trait<'core>,
-  pub kind: ImplItemKind<'core>,
+pub struct ImplItem {
+  pub name: Ident,
+  pub generics: GenericParams,
+  pub trait_: Trait,
+  pub kind: ImplItemKind,
 }
 
 #[derive(Debug, Clone)]
-pub enum ImplItemKind<'core> {
-  Direct(Vec<Item<'core>>),
-  Indirect(Option<Impl<'core>>),
+pub enum ImplItemKind {
+  Direct(Vec<Item>),
+  Indirect(Option<Impl>),
 }
 
 #[derive(Debug, Clone)]
-pub struct UseItem<'core> {
+pub struct UseItem {
   pub absolute: bool,
-  pub tree: UseTree<'core>,
+  pub tree: UseTree,
 }
 
 #[derive(Debug, Clone)]
-pub struct UseTree<'core> {
+pub struct UseTree {
   pub span: Span,
-  pub aliases: Vec<Ident<'core>>,
+  pub aliases: Vec<Ident>,
   pub implicit: bool,
-  pub children: BTreeMap<Ident<'core>, UseTree<'core>>,
+  pub children: BTreeMap<Ident, UseTree>,
 }
 
-impl<'core> UseTree<'core> {
+impl UseTree {
   pub fn empty(span: Span) -> Self {
     UseTree { span, aliases: Vec::new(), implicit: false, children: BTreeMap::new() }
   }
@@ -144,47 +144,47 @@ impl<'core> UseTree<'core> {
 }
 
 #[derive(Debug, Clone)]
-pub enum Vis<'core> {
+pub enum Vis {
   Private,
   Public,
-  PublicTo(Span, Ident<'core>),
+  PublicTo(Span, Ident),
 }
 
 #[derive(Clone)]
-pub struct Attr<'core> {
+pub struct Attr {
   pub span: Span,
-  pub kind: AttrKind<'core>,
+  pub kind: AttrKind,
 }
 
 #[derive(Debug, Clone)]
-pub enum AttrKind<'core> {
+pub enum AttrKind {
   Builtin(Builtin),
   Main,
   Manual,
   Basic,
-  Become(Path<'core>),
-  Cfg(Cfg<'core>),
+  Become(Path),
+  Cfg(Cfg),
   Frameless,
 }
 
 #[derive(Debug, Clone)]
-pub struct Cfg<'core> {
+pub struct Cfg {
   pub span: Span,
-  pub kind: Box<CfgKind<'core>>,
+  pub kind: Box<CfgKind>,
 }
 
 #[derive(Debug, Clone)]
-pub enum CfgKind<'core> {
-  Bool(Ident<'core>),
-  Paren(Cfg<'core>),
+pub enum CfgKind {
+  Bool(Ident),
+  Paren(Cfg),
   Literal(bool),
-  And(Cfg<'core>, Cfg<'core>),
-  Or(Cfg<'core>, Cfg<'core>),
-  Not(Cfg<'core>),
+  And(Cfg, Cfg),
+  Or(Cfg, Cfg),
+  Not(Cfg),
 }
 
-pub type GenericParams<'core> = Generics<TypeParam<'core>, ImplParam<'core>>;
-pub type GenericArgs<'core> = Generics<Ty<'core>, Impl<'core>>;
+pub type GenericParams = Generics<TypeParam, ImplParam>;
+pub type GenericArgs = Generics<Ty, Impl>;
 
 #[derive(Debug, Clone)]
 pub struct Generics<T, I> {
@@ -201,17 +201,17 @@ impl<T, I> Generics<T, I> {
 }
 
 #[derive(Debug, Clone, Copy)]
-pub struct TypeParam<'core> {
+pub struct TypeParam {
   pub span: Span,
-  pub name: Ident<'core>,
+  pub name: Ident,
   pub flex: Flex,
 }
 
 #[derive(Debug, Clone)]
-pub struct ImplParam<'core> {
+pub struct ImplParam {
   pub span: Span,
-  pub name: Option<Ident<'core>>,
-  pub trait_: Trait<'core>,
+  pub name: Option<Ident>,
+  pub trait_: Trait,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -233,110 +233,110 @@ impl Flex {
 }
 
 #[derive(Debug, Clone)]
-pub struct Block<'core> {
+pub struct Block {
   pub span: Span,
-  pub stmts: Vec<Stmt<'core>>,
+  pub stmts: Vec<Stmt>,
 }
 
 #[derive(Clone)]
-pub struct Stmt<'core> {
+pub struct Stmt {
   pub span: Span,
-  pub kind: StmtKind<'core>,
+  pub kind: StmtKind,
 }
 
 #[derive(Debug, Clone)]
-pub enum StmtKind<'core> {
-  Let(LetStmt<'core>),
-  LetFn(LetFnStmt<'core>),
-  Expr(Expr<'core>, bool),
-  Item(Item<'core>),
-  Return(Option<Expr<'core>>),
-  Break(Target<'core>, Option<Expr<'core>>),
-  Continue(Target<'core>),
+pub enum StmtKind {
+  Let(LetStmt),
+  LetFn(LetFnStmt),
+  Expr(Expr, bool),
+  Item(Item),
+  Return(Option<Expr>),
+  Break(Target, Option<Expr>),
+  Continue(Target),
   Empty,
 }
 
 #[derive(Debug, Clone)]
-pub struct LetStmt<'core> {
-  pub bind: Pat<'core>,
-  pub init: Option<Expr<'core>>,
-  pub else_: Option<LetElse<'core>>,
+pub struct LetStmt {
+  pub bind: Pat,
+  pub init: Option<Expr>,
+  pub else_: Option<LetElse>,
 }
 
 #[derive(Debug, Clone)]
-pub enum LetElse<'core> {
-  Block(Block<'core>),
-  Match(Vec<(Pat<'core>, Block<'core>)>),
+pub enum LetElse {
+  Block(Block),
+  Match(Vec<(Pat, Block)>),
 }
 
 #[derive(Debug, Clone)]
-pub struct LetFnStmt<'core> {
+pub struct LetFnStmt {
   pub flex: Flex,
-  pub name: Ident<'core>,
-  pub params: Vec<Pat<'core>>,
-  pub ret: Option<Ty<'core>>,
-  pub body: Block<'core>,
+  pub name: Ident,
+  pub params: Vec<Pat>,
+  pub ret: Option<Ty>,
+  pub body: Block,
 }
 
 #[derive(Clone)]
-pub struct Expr<'core> {
+pub struct Expr {
   pub span: Span,
-  pub kind: Box<ExprKind<'core>>,
+  pub kind: Box<ExprKind>,
 }
 
 #[derive(Debug, Clone)]
-pub enum ExprKind<'core> {
+pub enum ExprKind {
   Hole,
-  Paren(Expr<'core>),
-  Path(Path<'core>, Option<Vec<Expr<'core>>>),
-  Do(Label<'core>, Option<Ty<'core>>, Block<'core>),
-  Assign(bool, Expr<'core>, Expr<'core>),
-  Match(Expr<'core>, Option<Ty<'core>>, Vec<(Pat<'core>, Block<'core>)>),
-  If(Expr<'core>, Option<Ty<'core>>, Block<'core>, Option<Block<'core>>),
-  When(Label<'core>, Option<Ty<'core>>, Vec<(Expr<'core>, Block<'core>)>, Option<Block<'core>>),
-  While(Label<'core>, Expr<'core>, Option<Ty<'core>>, Block<'core>, Option<Block<'core>>),
-  Loop(Label<'core>, Option<Ty<'core>>, Block<'core>),
-  For(Label<'core>, Pat<'core>, Expr<'core>, Option<Ty<'core>>, Block<'core>, Option<Block<'core>>),
-  Fn(Flex, Vec<Pat<'core>>, Option<Ty<'core>>, Block<'core>),
-  Ref(Expr<'core>, bool),
-  Deref(Expr<'core>, bool),
-  Inverse(Expr<'core>, bool),
-  Place(Expr<'core>, Expr<'core>),
-  Tuple(Vec<Expr<'core>>),
-  Object(Vec<(Key<'core>, Expr<'core>)>),
-  List(Vec<Expr<'core>>),
-  TupleField(Expr<'core>, usize),
-  ObjectField(Expr<'core>, Key<'core>),
-  Method(Expr<'core>, Ident<'core>, GenericArgs<'core>, Vec<Expr<'core>>),
-  Call(Expr<'core>, Vec<Expr<'core>>),
-  Sign(Sign, Expr<'core>),
-  BinaryOp(BinaryOp, Expr<'core>, Expr<'core>),
+  Paren(Expr),
+  Path(Path, Option<Vec<Expr>>),
+  Do(Label, Option<Ty>, Block),
+  Assign(bool, Expr, Expr),
+  Match(Expr, Option<Ty>, Vec<(Pat, Block)>),
+  If(Expr, Option<Ty>, Block, Option<Block>),
+  When(Label, Option<Ty>, Vec<(Expr, Block)>, Option<Block>),
+  While(Label, Expr, Option<Ty>, Block, Option<Block>),
+  Loop(Label, Option<Ty>, Block),
+  For(Label, Pat, Expr, Option<Ty>, Block, Option<Block>),
+  Fn(Flex, Vec<Pat>, Option<Ty>, Block),
+  Ref(Expr, bool),
+  Deref(Expr, bool),
+  Inverse(Expr, bool),
+  Place(Expr, Expr),
+  Tuple(Vec<Expr>),
+  Object(Vec<(Key, Expr)>),
+  List(Vec<Expr>),
+  TupleField(Expr, usize),
+  ObjectField(Expr, Key),
+  Method(Expr, Ident, GenericArgs, Vec<Expr>),
+  Call(Expr, Vec<Expr>),
+  Sign(Sign, Expr),
+  BinaryOp(BinaryOp, Expr, Expr),
   Bool(bool),
-  Not(Expr<'core>),
-  Is(Expr<'core>, Pat<'core>),
-  LogicalOp(LogicalOp, Expr<'core>, Expr<'core>),
-  ComparisonOp(Expr<'core>, Vec<(ComparisonOp, Expr<'core>)>),
-  BinaryOpAssign(BinaryOp, Expr<'core>, Expr<'core>),
-  Cast(Expr<'core>, Ty<'core>, bool),
-  Unwrap(Expr<'core>),
-  Try(Expr<'core>),
-  RangeExclusive(Option<Expr<'core>>, Option<Expr<'core>>),
-  RangeInclusive(Option<Expr<'core>>, Expr<'core>),
+  Not(Expr),
+  Is(Expr, Pat),
+  LogicalOp(LogicalOp, Expr, Expr),
+  ComparisonOp(Expr, Vec<(ComparisonOp, Expr)>),
+  BinaryOpAssign(BinaryOp, Expr, Expr),
+  Cast(Expr, Ty, bool),
+  Unwrap(Expr),
+  Try(Expr),
+  RangeExclusive(Option<Expr>, Option<Expr>),
+  RangeInclusive(Option<Expr>, Expr),
   N32(u32),
   F32(f32),
   Char(char),
-  String(StringSegment, Vec<(Expr<'core>, StringSegment)>),
-  InlineIvy(Vec<(Ident<'core>, bool, Expr<'core>)>, Ty<'core>, Span, Net),
+  String(StringSegment, Vec<(Expr, StringSegment)>),
+  InlineIvy(Vec<(Ident, bool, Expr)>, Ty, Span, Net),
   Error(ErrorGuaranteed),
 }
 
 #[derive(Debug, Clone, Copy)]
-pub struct Label<'core>(pub Option<Ident<'core>>);
+pub struct Label(pub Option<Ident>);
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub enum Target<'core> {
+pub enum Target {
   AnyLoop,
-  Label(Ident<'core>),
+  Label(Ident),
   Do,
   Loop,
   While,
@@ -357,35 +357,35 @@ pub enum Sign {
 }
 
 #[derive(Clone)]
-pub struct Pat<'core> {
+pub struct Pat {
   pub span: Span,
-  pub kind: Box<PatKind<'core>>,
+  pub kind: Box<PatKind>,
 }
 
 #[derive(Debug, Clone)]
-pub enum PatKind<'core> {
+pub enum PatKind {
   Hole,
-  Paren(Pat<'core>),
-  Annotation(Pat<'core>, Ty<'core>),
-  Path(Path<'core>, Option<Vec<Pat<'core>>>),
-  Ref(Pat<'core>),
-  Deref(Pat<'core>),
-  Inverse(Pat<'core>),
-  Tuple(Vec<Pat<'core>>),
-  Object(Vec<(Key<'core>, Pat<'core>)>),
+  Paren(Pat),
+  Annotation(Pat, Ty),
+  Path(Path, Option<Vec<Pat>>),
+  Ref(Pat),
+  Deref(Pat),
+  Inverse(Pat),
+  Tuple(Vec<Pat>),
+  Object(Vec<(Key, Pat)>),
   Error(ErrorGuaranteed),
 }
 
 #[derive(Debug, Clone)]
-pub struct Path<'core> {
+pub struct Path {
   pub span: Span,
   pub absolute: bool,
-  pub segments: Vec<Ident<'core>>,
-  pub generics: Option<GenericArgs<'core>>,
+  pub segments: Vec<Ident>,
+  pub generics: Option<GenericArgs>,
 }
 
-impl<'core> Path<'core> {
-  pub fn as_ident(&self) -> Option<Ident<'core>> {
+impl Path {
+  pub fn as_ident(&self) -> Option<Ident> {
     if self.generics.is_none() {
       if let [ident] = self.segments[..] {
         return Some(ident);
@@ -396,49 +396,49 @@ impl<'core> Path<'core> {
 }
 
 #[derive(Clone)]
-pub struct Ty<'core> {
+pub struct Ty {
   pub span: Span,
-  pub kind: Box<TyKind<'core>>,
+  pub kind: Box<TyKind>,
 }
 
 #[derive(Debug, Clone)]
-pub enum TyKind<'core> {
+pub enum TyKind {
   Hole,
   Never,
-  Paren(Ty<'core>),
-  Fn(Path<'core>),
-  Tuple(Vec<Ty<'core>>),
-  Object(Vec<(Key<'core>, Ty<'core>)>),
-  Ref(Ty<'core>),
-  Inverse(Ty<'core>),
-  Path(Path<'core>),
+  Paren(Ty),
+  Fn(Path),
+  Tuple(Vec<Ty>),
+  Object(Vec<(Key, Ty)>),
+  Ref(Ty),
+  Inverse(Ty),
+  Path(Path),
   Error(ErrorGuaranteed),
 }
 
 #[derive(Clone)]
-pub struct Impl<'core> {
+pub struct Impl {
   pub span: Span,
-  pub kind: Box<ImplKind<'core>>,
+  pub kind: Box<ImplKind>,
 }
 
 #[derive(Debug, Clone)]
-pub enum ImplKind<'core> {
+pub enum ImplKind {
   Hole,
-  Path(Path<'core>),
-  Fn(Path<'core>),
+  Path(Path),
+  Fn(Path),
   Error(ErrorGuaranteed),
 }
 
 #[derive(Clone)]
-pub struct Trait<'core> {
+pub struct Trait {
   pub span: Span,
-  pub kind: Box<TraitKind<'core>>,
+  pub kind: Box<TraitKind>,
 }
 
 #[derive(Debug, Clone)]
-pub enum TraitKind<'core> {
-  Path(Path<'core>),
-  Fn(Ty<'core>, Vec<Ty<'core>>, Option<Ty<'core>>),
+pub enum TraitKind {
+  Path(Path),
+  Fn(Ty, Vec<Ty>, Option<Ty>),
   Error(ErrorGuaranteed),
 }
 
@@ -514,15 +514,15 @@ impl ComparisonOp {
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct Ident<'core>(pub Interned<'core, str>);
+pub struct Ident(pub Interned<'static, str>);
 
 #[derive(Debug, Clone, Copy)]
-pub struct Key<'core> {
+pub struct Key {
   pub span: Span,
-  pub ident: Ident<'core>,
+  pub ident: Ident,
 }
 
-impl Display for Ident<'_> {
+impl Display for Ident {
   fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
     write!(f, "{}", self.0 .0)
   }
@@ -539,7 +539,7 @@ impl Span {
   pub const NONE: Span = Span { file: FileId(usize::MAX), start: 0, end: 0 };
 }
 
-impl Display for Path<'_> {
+impl Display for Path {
   fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
     if self.absolute {
       f.write_str("::")?;
@@ -554,13 +554,13 @@ impl Display for Path<'_> {
   }
 }
 
-impl<'core> From<Key<'core>> for Path<'core> {
-  fn from(key: Key<'core>) -> Self {
+impl From<Key> for Path {
+  fn from(key: Key) -> Self {
     Path { span: key.span, absolute: false, segments: Vec::from([key.ident]), generics: None }
   }
 }
 
-impl Debug for Ident<'_> {
+impl Debug for Ident {
   fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
     f.write_char('`')?;
     f.write_str(&self.0)?;
@@ -579,39 +579,39 @@ macro_rules! debug_kind {
   )*};
 }
 
-debug_kind!(Item<'_>, Attr<'_>, Stmt<'_>, Expr<'_>, Pat<'_>, Ty<'_>, Impl<'_>, Trait<'_>);
+debug_kind!(Item, Attr, Stmt, Expr, Pat, Ty, Impl, Trait);
 
-impl From<ErrorGuaranteed> for ExprKind<'_> {
+impl From<ErrorGuaranteed> for ExprKind {
   fn from(err: ErrorGuaranteed) -> Self {
     ExprKind::Error(err)
   }
 }
 
-impl From<ErrorGuaranteed> for PatKind<'_> {
+impl From<ErrorGuaranteed> for PatKind {
   fn from(err: ErrorGuaranteed) -> Self {
     PatKind::Error(err)
   }
 }
 
-impl From<ErrorGuaranteed> for TyKind<'_> {
+impl From<ErrorGuaranteed> for TyKind {
   fn from(err: ErrorGuaranteed) -> Self {
     TyKind::Error(err)
   }
 }
 
-impl From<ErrorGuaranteed> for Expr<'_> {
+impl From<ErrorGuaranteed> for Expr {
   fn from(err: ErrorGuaranteed) -> Self {
     Expr { span: Span::NONE, kind: Box::new(err.into()) }
   }
 }
 
-impl From<ErrorGuaranteed> for Stmt<'_> {
+impl From<ErrorGuaranteed> for Stmt {
   fn from(err: ErrorGuaranteed) -> Self {
     Stmt { span: Span::NONE, kind: StmtKind::Expr(err.into(), false) }
   }
 }
 
-impl From<ErrorGuaranteed> for Block<'_> {
+impl From<ErrorGuaranteed> for Block {
   fn from(err: ErrorGuaranteed) -> Self {
     Block { span: Span::NONE, stmts: Vec::from([err.into()]) }
   }

@@ -18,25 +18,25 @@ use crate::{
   tools::fmt::{doc::Doc, Formatter},
 };
 
-impl<'core> VineParser<'core, '_> {
-  pub(crate) fn parse_expr_list(&mut self) -> Result<ExprKind<'core>, Diag<'core>> {
+impl VineParser<'_> {
+  pub(crate) fn parse_expr_list(&mut self) -> Result<ExprKind, Diag> {
     let elements = self.parse_delimited(BRACKET_COMMA, Self::parse_expr)?;
     Ok(ExprKind::List(elements))
   }
 }
 
-impl<'core: 'src, 'src> Formatter<'src> {
-  pub(crate) fn fmt_expr_list(&self, elements: &Vec<Expr<'core>>) -> Doc<'src> {
+impl<'src> Formatter<'src> {
+  pub(crate) fn fmt_expr_list(&self, elements: &Vec<Expr>) -> Doc<'src> {
     Doc::bracket_comma(elements.iter().map(|x| self.fmt_expr(x)))
   }
 }
 
-impl<'core> Resolver<'core, '_> {
+impl Resolver<'_> {
   pub(crate) fn resolve_expr_list(
     &mut self,
     span: Span,
-    elements: &Vec<Expr<'core>>,
-  ) -> Result<TirExpr, Diag<'core>> {
+    elements: &Vec<Expr>,
+  ) -> Result<TirExpr, Diag> {
     let ty = self.types.new_var(span);
     let elements =
       Vec::from_iter(elements.iter().map(|element| self.resolve_expr_type(element, ty)));
@@ -51,7 +51,7 @@ impl<'core> Resolver<'core, '_> {
   }
 }
 
-impl<'core> Distiller<'core, '_> {
+impl Distiller<'_> {
   pub(crate) fn distill_expr_value_list(
     &mut self,
     stage: &mut Stage,
@@ -63,7 +63,7 @@ impl<'core> Distiller<'core, '_> {
   }
 }
 
-impl<'core> Emitter<'core, '_> {
+impl Emitter<'_> {
   pub(crate) fn emit_list(&mut self, port: &Port, list: &[Port]) {
     let end = self.new_wire();
     let buf = Tree::n_ary("tup", list.iter().map(|p| self.emit_port(p)).chain([end.0]));

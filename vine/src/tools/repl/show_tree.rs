@@ -7,7 +7,7 @@ use crate::structures::{
 
 use super::Repl;
 
-impl<'core, 'ctx, 'ivm, 'ext> Repl<'core, 'ctx, 'ivm, 'ext> {
+impl<'ctx, 'ivm, 'ext> Repl<'ctx, 'ivm, 'ext> {
   pub(super) fn show_tree(&mut self, ty: Type, tree: &Tree) -> String {
     self._show(ty, tree).unwrap_or_else(|| format!("#ivy({tree})"))
   }
@@ -165,10 +165,7 @@ impl<'core, 'ctx, 'ivm, 'ext> Repl<'core, 'ctx, 'ivm, 'ext> {
     &mut self,
     tys: impl IntoIterator<Item = Type, IntoIter: DoubleEndedIterator>,
     tree: &Tree,
-  ) -> Option<Vec<String>>
-  where
-    'core: 'a,
-  {
+  ) -> Option<Vec<String>> {
     let mut tys = tys.into_iter();
     let mut tup = Vec::new();
     let mut tree = tree;

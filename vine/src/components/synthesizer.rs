@@ -15,45 +15,45 @@ use crate::structures::{
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub enum SyntheticImpl<'core> {
+pub enum SyntheticImpl {
   Tuple(usize),
-  Object(Ident<'core>, usize),
+  Object(Ident, usize),
   Struct(StructId),
   Enum(EnumId),
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub enum SyntheticItem<'core> {
+pub enum SyntheticItem {
   CompositeDeconstruct(usize),
   CompositeReconstruct(usize),
-  Ident(Ident<'core>),
+  Ident(Ident),
   Identity,
   EnumVariantNames(EnumId),
   EnumMatch(EnumId),
   EnumReconstruct(EnumId),
   FnFromCall(usize),
   CallFromFn(usize),
-  Frame(&'core str, Span),
+  Frame(&'static str, Span),
   DebugState,
 }
 
-struct Synthesizer<'core, 'a> {
+struct Synthesizer<'a> {
   nets: &'a mut Nets,
-  core: &'core Core<'core>,
-  chart: &'a Chart<'core>,
-  specs: &'a Specializations<'core>,
-  spec: &'a Spec<'core>,
+  core: &'static Core,
+  chart: &'a Chart,
+  specs: &'a Specializations,
+  spec: &'a Spec,
   var_id: Counter<usize>,
   stages: Counter<StageId>,
 }
 
-pub fn synthesize<'core>(
+pub fn synthesize(
   nets: &mut Nets,
-  core: &'core Core<'core>,
-  chart: &Chart<'core>,
-  specs: &Specializations<'core>,
-  spec: &Spec<'core>,
-  item: &SyntheticItem<'core>,
+  core: &'static Core,
+  chart: &Chart,
+  specs: &Specializations,
+  spec: &Spec,
+  item: &SyntheticItem,
 ) {
   Synthesizer {
     nets,
@@ -67,7 +67,7 @@ pub fn synthesize<'core>(
   .synthesize(item);
 }
 
-impl<'core> Synthesizer<'core, '_> {
+impl Synthesizer<'_> {
   fn new_wire(&mut self) -> (Tree, Tree) {
     let var = format!("s{}", self.var_id.next());
     (Tree::Var(var.clone()), Tree::Var(var))
@@ -97,7 +97,7 @@ impl<'core> Synthesizer<'core, '_> {
     self.list(str.chars(), |_, char| Tree::N32(char as u32))
   }
 
-  fn synthesize(&mut self, item: &SyntheticItem<'core>) {
+  fn synthesize(&mut self, item: &SyntheticItem) {
     let stage = self.new_stage();
     let net = match *item {
       SyntheticItem::CompositeDeconstruct(len) => self.synthesize_composite_deconstruct(len),
@@ -134,7 +134,7 @@ impl<'core> Synthesizer<'core, '_> {
     })
   }
 
-  fn synthesize_ident(&mut self, ident: Ident<'core>) -> Net {
+  fn synthesize_ident(&mut self, ident: Ident) -> Net {
     let str = self.string(ident.0 .0);
     self.const_(str)
   }
@@ -366,8 +366,8 @@ impl<'core> Synthesizer<'core, '_> {
   }
 }
 
-impl<'core> SyntheticImpl<'core> {
-  pub fn fn_(self, _: &Chart<'core>, fn_id: TraitFnId) -> SyntheticItem<'core> {
+impl SyntheticImpl {
+  pub fn fn_(self, _: &Chart, fn_id: TraitFnId) -> SyntheticItem {
     match self {
       SyntheticImpl::Tuple(len) | SyntheticImpl::Object(_, len) => match fn_id {
         TraitFnId(0) => SyntheticItem::CompositeDeconstruct(len),
@@ -386,7 +386,7 @@ impl<'core> SyntheticImpl<'core> {
     }
   }
 
-  pub fn const_(self, chart: &Chart<'core>, const_id: TraitConstId) -> SyntheticItem<'core> {
+  pub fn const_(self, chart: &Chart, const_id: TraitConstId) -> SyntheticItem {
     match self {
       SyntheticImpl::Tuple(_) => unreachable!(),
       SyntheticImpl::Object(key, _) => match const_id {
@@ -406,8 +406,8 @@ impl<'core> SyntheticImpl<'core> {
   }
 }
 
-impl<'core> SyntheticItem<'core> {
-  pub fn rels(&self) -> Rels<'core> {
+impl SyntheticItem {
+  pub fn rels(&self) -> Rels {
     match self {
       SyntheticItem::CompositeDeconstruct(_)
       | SyntheticItem::CompositeReconstruct(_)

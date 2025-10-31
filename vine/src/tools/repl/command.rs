@@ -8,12 +8,12 @@ use crate::{
   },
 };
 
-pub enum ReplCommand<'core> {
+pub enum ReplCommand {
   Help,
   Scope,
-  Clear(Vec<Ident<'core>>),
+  Clear(Vec<Ident>),
   Set(ReplOption),
-  Run(Vec<Stmt<'core>>),
+  Run(Vec<Stmt>),
 }
 
 pub struct ReplOptions {
@@ -39,8 +39,8 @@ pub const HELP: &str = "
 /set show_scope [bool]  enable/disable printing the scope before each command
 ";
 
-impl<'core, 'src> VineParser<'core, 'src> {
-  pub(super) fn parse_repl_command(&mut self) -> Result<ReplCommand<'core>, Diag<'core>> {
+impl<'src> VineParser<'src> {
+  pub(super) fn parse_repl_command(&mut self) -> Result<ReplCommand, Diag> {
     Ok(if self.eat(Token::Slash)? {
       let span = self.span();
       let command = self.expect(Token::Ident)?;
@@ -73,7 +73,7 @@ impl<'core, 'src> VineParser<'core, 'src> {
     })
   }
 
-  fn parse_bool(&mut self) -> Result<bool, Diag<'core>> {
+  fn parse_bool(&mut self) -> Result<bool, Diag> {
     if self.eat(Token::True)? {
       Ok(true)
     } else if self.eat(Token::False)? {

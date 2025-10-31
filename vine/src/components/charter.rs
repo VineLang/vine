@@ -12,14 +12,14 @@ use crate::{
 
 use crate::structures::chart::*;
 
-pub struct Charter<'core, 'a> {
-  pub core: &'core Core<'core>,
-  pub chart: &'a mut Chart<'core>,
-  pub config: &'a Config<'core>,
+pub struct Charter<'a> {
+  pub core: &'static Core,
+  pub chart: &'a mut Chart,
+  pub config: &'a Config,
 }
 
-impl<'core> Charter<'core, '_> {
-  pub fn chart_root(&mut self, root: ModKind<'core>) {
+impl Charter<'_> {
+  pub fn chart_root(&mut self, root: ModKind) {
     if self.chart.generics.is_empty() {
       self.chart.generics.push_to(
         GenericsId::NONE,
@@ -41,7 +41,7 @@ impl<'core> Charter<'core, '_> {
     self.chart_mod_kind(DefId::ROOT, root, DefId::ROOT, GenericsId::NONE);
   }
 
-  fn new_def(&mut self, name: Ident<'core>, path: &'core str, parent: Option<DefId>) -> DefId {
+  fn new_def(&mut self, name: Ident, path: &'static str, parent: Option<DefId>) -> DefId {
     let id = self.chart.defs.next_index();
     self.chart.defs.push(Def {
       name,
@@ -66,7 +66,7 @@ impl<'core> Charter<'core, '_> {
   pub(crate) fn chart_mod_kind(
     &mut self,
     vis: DefId,
-    module: ModKind<'core>,
+    module: ModKind,
     def: DefId,
     generics: GenericsId,
   ) {
@@ -79,7 +79,7 @@ impl<'core> Charter<'core, '_> {
   pub fn chart_item(
     &mut self,
     member_vis: DefId,
-    mut item: Item<'core>,
+    mut item: Item,
     parent: DefId,
     parent_generics: GenericsId,
   ) {
@@ -146,7 +146,7 @@ impl<'core> Charter<'core, '_> {
     self.chart_attrs(def, item.attrs);
   }
 
-  pub(crate) fn chart_attrs(&mut self, def: Option<DefId>, attrs: Vec<Attr<'core>>) {
+  pub(crate) fn chart_attrs(&mut self, def: Option<DefId>, attrs: Vec<Attr>) {
     for attr in attrs {
       let span = attr.span;
       let impl_id = def.and_then(|id| match self.chart.defs[id].impl_kind {
@@ -207,7 +207,7 @@ impl<'core> Charter<'core, '_> {
   pub(crate) fn chart_child(
     &mut self,
     parent: DefId,
-    name: Ident<'core>,
+    name: Ident,
     vis: DefId,
     collapse: bool,
   ) -> DefId {
@@ -317,7 +317,7 @@ impl<'core> Charter<'core, '_> {
   }
 }
 
-fn extract_subitems<'core>(item: &mut Item<'core>) -> Vec<Item<'core>> {
+fn extract_subitems(item: &mut Item) -> Vec<Item> {
   let mut visitor = ExtractItems::default();
   if !matches!(item.kind, ItemKind::Mod(_) | ItemKind::Trait(_) | ItemKind::Impl(_)) {
     visitor._visit_item(item);
@@ -326,12 +326,12 @@ fn extract_subitems<'core>(item: &mut Item<'core>) -> Vec<Item<'core>> {
 }
 
 #[derive(Default)]
-pub struct ExtractItems<'core> {
-  pub items: Vec<Item<'core>>,
+pub struct ExtractItems {
+  pub items: Vec<Item>,
 }
 
-impl<'core> VisitMut<'core, '_> for ExtractItems<'core> {
-  fn visit_item(&mut self, item: &mut Item<'core>) {
+impl VisitMut<'_> for ExtractItems {
+  fn visit_item(&mut self, item: &mut Item) {
     self.items.push(replace(
       item,
       Item { span: Span::NONE, vis: Vis::Private, attrs: vec![], kind: ItemKind::Taken },

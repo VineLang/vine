@@ -12,25 +12,20 @@ use crate::{
   tools::fmt::{doc::Doc, Formatter},
 };
 
-impl<'core: 'src, 'src> Formatter<'src> {
+impl<'src> Formatter<'src> {
   pub(crate) fn fmt_expr_bool(&self, bool: bool) -> Doc<'src> {
     Doc(if bool { "true" } else { "false" })
   }
 
-  pub(crate) fn fmt_expr_not(&self, expr: &Expr<'core>) -> Doc<'src> {
+  pub(crate) fn fmt_expr_not(&self, expr: &Expr) -> Doc<'src> {
     Doc::concat([Doc("!"), self.fmt_expr(expr)])
   }
 
-  pub(crate) fn fmt_expr_is(&self, expr: &Expr<'core>, pat: &Pat<'core>) -> Doc<'src> {
+  pub(crate) fn fmt_expr_is(&self, expr: &Expr, pat: &Pat) -> Doc<'src> {
     Doc::concat([self.fmt_expr(expr), Doc(" is "), self.fmt_pat(pat)])
   }
 
-  pub(crate) fn fmt_expr_logical_op(
-    &self,
-    op: &LogicalOp,
-    lhs: &Expr<'core>,
-    rhs: &Expr<'core>,
-  ) -> Doc<'src> {
+  pub(crate) fn fmt_expr_logical_op(&self, op: &LogicalOp, lhs: &Expr, rhs: &Expr) -> Doc<'src> {
     Doc::concat([
       self.fmt_expr(lhs),
       Doc(match op {
@@ -43,12 +38,8 @@ impl<'core: 'src, 'src> Formatter<'src> {
   }
 }
 
-impl<'core> Resolver<'core, '_> {
-  pub(crate) fn resolve_expr_not(
-    &mut self,
-    span: Span,
-    inner: &Expr<'core>,
-  ) -> Result<TirExpr, Diag<'core>> {
+impl Resolver<'_> {
+  pub(crate) fn resolve_expr_not(&mut self, span: Span, inner: &Expr) -> Result<TirExpr, Diag> {
     let inner = self.resolve_expr(inner);
     let return_ty = self.types.new_var(span);
     let rel = self.builtin_fn(span, self.chart.builtins.not, "not", [inner.ty, return_ty])?;
@@ -62,14 +53,14 @@ impl<'core> Resolver<'core, '_> {
     Ok(TirExpr::new(span, return_ty, TirExprKind::Call(rel, None, vec![inner])))
   }
 
-  pub(crate) fn resolve_cond(&mut self, cond: &Expr<'core>) -> TirExpr {
+  pub(crate) fn resolve_cond(&mut self, cond: &Expr) -> TirExpr {
     self.enter_scope();
     let result = self.resolve_scoped_cond(cond);
     self.exit_scope();
     result
   }
 
-  pub(crate) fn resolve_scoped_cond(&mut self, cond: &Expr<'core>) -> TirExpr {
+  pub(crate) fn resolve_scoped_cond(&mut self, cond: &Expr) -> TirExpr {
     match self._resolve_scoped_cond(cond) {
       Ok(kind) => {
         let ty = self.bool(cond.span);
@@ -79,10 +70,7 @@ impl<'core> Resolver<'core, '_> {
     }
   }
 
-  pub(crate) fn _resolve_scoped_cond(
-    &mut self,
-    cond: &Expr<'core>,
-  ) -> Result<TirExprKind, Diag<'core>> {
+  pub(crate) fn _resolve_scoped_cond(&mut self, cond: &Expr) -> Result<TirExprKind, Diag> {
     let span = cond.span;
     Ok(match &*cond.kind {
       ExprKind::Error(err) => Err(*err)?,
@@ -121,7 +109,7 @@ impl<'core> Resolver<'core, '_> {
   }
 }
 
-impl<'core> Distiller<'core, '_> {
+impl Distiller<'_> {
   pub(crate) fn distill_cond_bool(
     &mut self,
     stage: &mut Stage,

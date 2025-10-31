@@ -13,17 +13,17 @@ use crate::structures::{
 };
 
 #[derive(Debug, Default)]
-pub struct Signatures<'core> {
+pub struct Signatures {
   pub imports: IdxVec<ImportId, ImportState>,
-  pub type_params: IdxVec<GenericsId, TypeParams<'core>>,
-  pub impl_params: IdxVec<GenericsId, ImplParams<'core>>,
-  pub concrete_consts: IdxVec<ConcreteConstId, TypeCtx<'core, ConstSig>>,
-  pub concrete_fns: IdxVec<ConcreteFnId, TypeCtx<'core, FnSig>>,
-  pub type_aliases: IdxVec<TypeAliasId, TypeAliasState<'core>>,
-  pub structs: IdxVec<StructId, TypeCtx<'core, StructSig>>,
-  pub enums: IdxVec<EnumId, TypeCtx<'core, EnumSig>>,
-  pub impls: IdxVec<ImplId, TypeCtx<'core, ImplSig>>,
-  pub traits: IdxVec<TraitId, TraitSig<'core>>,
+  pub type_params: IdxVec<GenericsId, TypeParams>,
+  pub impl_params: IdxVec<GenericsId, ImplParams>,
+  pub concrete_consts: IdxVec<ConcreteConstId, TypeCtx<ConstSig>>,
+  pub concrete_fns: IdxVec<ConcreteFnId, TypeCtx<FnSig>>,
+  pub type_aliases: IdxVec<TypeAliasId, TypeAliasState>,
+  pub structs: IdxVec<StructId, TypeCtx<StructSig>>,
+  pub enums: IdxVec<EnumId, TypeCtx<EnumSig>>,
+  pub impls: IdxVec<ImplId, TypeCtx<ImplSig>>,
+  pub traits: IdxVec<TraitId, TraitSig>,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -34,23 +34,23 @@ pub enum ImportState {
 }
 
 #[derive(Debug, Default)]
-pub enum TypeAliasState<'core> {
+pub enum TypeAliasState {
   #[default]
   Unresolved,
   Resolving,
-  Resolved(TypeCtx<'core, TypeAliasSig>),
+  Resolved(TypeCtx<TypeAliasSig>),
 }
 
 #[derive(Debug, Clone, Default)]
-pub struct TypeParams<'core> {
-  pub params: Vec<Ident<'core>>,
-  pub lookup: HashMap<Ident<'core>, usize>,
+pub struct TypeParams {
+  pub params: Vec<Ident>,
+  pub lookup: HashMap<Ident, usize>,
 }
 
 #[derive(Debug, Clone, Default)]
-pub struct ImplParams<'core> {
-  pub types: TypeCtx<'core, Vec<ImplType>>,
-  pub lookup: HashMap<Ident<'core>, usize>,
+pub struct ImplParams {
+  pub types: TypeCtx<Vec<ImplType>>,
+  pub lookup: HashMap<Ident, usize>,
 }
 
 #[derive(Debug)]
@@ -80,9 +80,9 @@ pub struct EnumSig {
 }
 
 #[derive(Debug)]
-pub struct TraitSig<'core> {
-  pub consts: IdxVec<TraitConstId, TypeCtx<'core, ConstSig>>,
-  pub fns: IdxVec<TraitFnId, TypeCtx<'core, FnSig>>,
+pub struct TraitSig {
+  pub consts: IdxVec<TraitConstId, TypeCtx<ConstSig>>,
+  pub fns: IdxVec<TraitFnId, TypeCtx<FnSig>>,
 }
 
 #[derive(Debug)]
@@ -90,15 +90,15 @@ pub struct ImplSig {
   pub ty: ImplType,
 }
 
-impl<'core> Signatures<'core> {
-  pub fn const_sig(&self, const_id: ConstId) -> &TypeCtx<'core, ConstSig> {
+impl Signatures {
+  pub fn const_sig(&self, const_id: ConstId) -> &TypeCtx<ConstSig> {
     match const_id {
       ConstId::Concrete(const_id) => &self.concrete_consts[const_id],
       ConstId::Abstract(trait_id, const_id) => &self.traits[trait_id].consts[const_id],
     }
   }
 
-  pub fn fn_sig(&self, fn_id: FnId) -> &TypeCtx<'core, FnSig> {
+  pub fn fn_sig(&self, fn_id: FnId) -> &TypeCtx<FnSig> {
     match fn_id {
       FnId::Concrete(fn_id) => &self.concrete_fns[fn_id],
       FnId::Abstract(trait_id, fn_id) => &self.traits[trait_id].fns[fn_id],
@@ -106,38 +106,38 @@ impl<'core> Signatures<'core> {
   }
 }
 
-impl<'core> TransferTypes<'core> for ConstSig {
-  fn transfer(&self, t: &mut TypeTransfer<'core, '_>) -> Self {
+impl TransferTypes for ConstSig {
+  fn transfer(&self, t: &mut TypeTransfer<'_>) -> Self {
     Self { ty: t.transfer(&self.ty) }
   }
 }
 
-impl<'core> TransferTypes<'core> for FnSig {
-  fn transfer(&self, t: &mut TypeTransfer<'core, '_>) -> Self {
+impl TransferTypes for FnSig {
+  fn transfer(&self, t: &mut TypeTransfer<'_>) -> Self {
     Self { params: t.transfer(&self.params), ret_ty: t.transfer(&self.ret_ty) }
   }
 }
 
-impl<'core> TransferTypes<'core> for TypeAliasSig {
-  fn transfer(&self, t: &mut TypeTransfer<'core, '_>) -> Self {
+impl TransferTypes for TypeAliasSig {
+  fn transfer(&self, t: &mut TypeTransfer<'_>) -> Self {
     Self { ty: t.transfer(&self.ty) }
   }
 }
 
-impl<'core> TransferTypes<'core> for StructSig {
-  fn transfer(&self, t: &mut TypeTransfer<'core, '_>) -> Self {
+impl TransferTypes for StructSig {
+  fn transfer(&self, t: &mut TypeTransfer<'_>) -> Self {
     Self { data: t.transfer(&self.data) }
   }
 }
 
-impl<'core> TransferTypes<'core> for EnumSig {
-  fn transfer(&self, t: &mut TypeTransfer<'core, '_>) -> Self {
+impl TransferTypes for EnumSig {
+  fn transfer(&self, t: &mut TypeTransfer<'_>) -> Self {
     Self { variant_data: t.transfer(&self.variant_data) }
   }
 }
 
-impl<'core> TransferTypes<'core> for ImplSig {
-  fn transfer(&self, t: &mut TypeTransfer<'core, '_>) -> Self {
+impl TransferTypes for ImplSig {
+  fn transfer(&self, t: &mut TypeTransfer<'_>) -> Self {
     Self { ty: t.transfer(&self.ty) }
   }
 }

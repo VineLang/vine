@@ -13,7 +13,7 @@ use crate::{
   },
 };
 
-impl<'core> Distiller<'core, '_> {
+impl Distiller<'_> {
   pub(crate) fn distill_expr_value_local(
     &mut self,
     stage: &mut Stage,
@@ -92,7 +92,7 @@ pub(crate) struct LocalEmissionState {
   values: Vec<Tree>,
 }
 
-impl<'core> Emitter<'core, '_> {
+impl Emitter<'_> {
   fn local(&mut self, local: Local) -> &mut LocalEmissionState {
     self.locals.entry(local).or_insert_with(|| LocalEmissionState {
       inv: self.vir.locals[local].inv,

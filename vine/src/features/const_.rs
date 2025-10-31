@@ -21,8 +21,8 @@ use crate::{
   tools::fmt::{doc::Doc, Formatter},
 };
 
-impl<'core> VineParser<'core, '_> {
-  pub(crate) fn parse_const_item(&mut self) -> Result<ConstItem<'core>, Diag<'core>> {
+impl VineParser<'_> {
+  pub(crate) fn parse_const_item(&mut self) -> Result<ConstItem, Diag> {
     self.expect(Token::Const)?;
     let name = self.parse_ident()?;
     let generics = self.parse_generic_params()?;
@@ -34,8 +34,8 @@ impl<'core> VineParser<'core, '_> {
   }
 }
 
-impl<'core: 'src, 'src> Formatter<'src> {
-  pub(crate) fn fmt_const_item(&self, c: &ConstItem<'core>) -> Doc<'src> {
+impl<'src> Formatter<'src> {
+  pub(crate) fn fmt_const_item(&self, c: &ConstItem) -> Doc<'src> {
     Doc::concat([
       Doc("const "),
       Doc(c.name),
@@ -51,7 +51,7 @@ impl<'core: 'src, 'src> Formatter<'src> {
   }
 }
 
-impl<'core> Charter<'core, '_> {
+impl Charter<'_> {
   pub(crate) fn chart_const(
     &mut self,
     parent: DefId,
@@ -59,7 +59,7 @@ impl<'core> Charter<'core, '_> {
     span: Span,
     vis: DefId,
     member_vis: DefId,
-    const_item: ConstItem<'core>,
+    const_item: ConstItem,
   ) -> DefId {
     let def = self.chart_child(parent, const_item.name, member_vis, true);
     let generics = self.chart_generics(def, parent_generics, const_item.generics, true);
@@ -76,7 +76,7 @@ impl<'core> Charter<'core, '_> {
   }
 }
 
-impl<'core> Resolver<'core, '_> {
+impl Resolver<'_> {
   pub(crate) fn resolve_const_sig(&mut self, const_id: ConcreteConstId) {
     let const_def = &self.chart.concrete_consts[const_id];
     self.initialize(const_def.def, const_def.generics);
@@ -99,9 +99,9 @@ impl<'core> Resolver<'core, '_> {
   pub(crate) fn resolve_expr_path_const(
     &mut self,
     span: Span,
-    path: &Path<'core>,
+    path: &Path,
     const_id: ConstId,
-  ) -> Result<TirExpr, Diag<'core>> {
+  ) -> Result<TirExpr, Diag> {
     let (type_params, impl_params) =
       self.resolve_generics(path, self.chart.const_generics(const_id), true);
     let ty = self.types.import(self.sigs.const_sig(const_id), Some(&type_params)).ty;
@@ -110,7 +110,7 @@ impl<'core> Resolver<'core, '_> {
   }
 }
 
-impl<'core> Distiller<'core, '_> {
+impl Distiller<'_> {
   pub(crate) fn distill_expr_value_const(
     &mut self,
     stage: &mut Stage,
@@ -124,7 +124,7 @@ impl<'core> Distiller<'core, '_> {
   }
 }
 
-impl<'core> Emitter<'core, '_> {
+impl Emitter<'_> {
   pub(crate) fn emit_const(&mut self, span: &Span, rel: &ConstRelId, out: &Port) {
     let rel = self.emit_const_rel(*rel);
     let out = self.emit_port(out);
