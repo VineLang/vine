@@ -211,7 +211,7 @@ impl<'a> Resolver<'a> {
   }
 
   #[allow(clippy::type_complexity)]
-  pub(crate) fn _resolve_repl<'l>(
+  pub(crate) fn _resolve_repl(
     &mut self,
     span: Span,
     path: &'static str,

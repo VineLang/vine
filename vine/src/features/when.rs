@@ -40,7 +40,7 @@ impl<'src> Formatter<'src> {
     &self,
     label: Label,
     ty: &Option<Ty>,
-    arms: &Vec<(Expr, Block)>,
+    arms: &[(Expr, Block)],
     leg: &Option<Block>,
   ) -> Doc<'src> {
     Doc::concat([
@@ -66,7 +66,7 @@ impl Resolver<'_> {
     span: Span,
     label: Label,
     ty: &Option<Ty>,
-    arms: &Vec<(Expr, Block)>,
+    arms: &[(Expr, Block)],
     leg: &Option<Block>,
   ) -> Result<TirExpr, Diag> {
     let ty = self.resolve_arrow_ty(span, ty, true);

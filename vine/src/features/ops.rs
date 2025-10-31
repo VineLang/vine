@@ -46,7 +46,7 @@ impl<'src> Formatter<'src> {
   pub(crate) fn fmt_expr_comparison_op(
     &self,
     init: &Expr,
-    cmps: &Vec<(ComparisonOp, Expr)>,
+    cmps: &[(ComparisonOp, Expr)],
   ) -> Doc<'src> {
     Doc::concat([self.fmt_expr(init)].into_iter().chain(
       cmps.iter().flat_map(|(op, x)| [Doc(" "), Doc(op.as_str()), Doc(" "), self.fmt_expr(x)]),
@@ -115,7 +115,7 @@ impl Resolver<'_> {
     &mut self,
     span: Span,
     init: &Expr,
-    cmps: &Vec<(ComparisonOp, Expr)>,
+    cmps: &[(ComparisonOp, Expr)],
   ) -> Result<TirExpr, Diag> {
     let init = self.resolve_expr(init);
     let mut err = Ok(());

@@ -54,7 +54,7 @@ impl VineParser<'_> {
 impl<'src> Formatter<'src> {
   pub(crate) fn fmt_expr_inline_ivy(
     &self,
-    binds: &Vec<(Ident, bool, Expr)>,
+    binds: &[(Ident, bool, Expr)],
     ty: &Ty,
     net_span: &Span,
   ) -> Doc<'src> {
@@ -75,7 +75,7 @@ impl Resolver<'_> {
   pub(crate) fn resolve_inline_ivy(
     &mut self,
     span: Span,
-    binds: &Vec<(Ident, bool, Expr)>,
+    binds: &[(Ident, bool, Expr)],
     ty: &Ty,
     net: &Net,
   ) -> Result<TirExpr, Diag> {

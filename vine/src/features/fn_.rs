@@ -96,7 +96,7 @@ impl<'src> Formatter<'src> {
   pub(crate) fn fmt_expr_fn(
     &self,
     flex: &Flex,
-    params: &Vec<Pat>,
+    params: &[Pat],
     ty: &Option<Ty>,
     body: &Block,
   ) -> Doc<'src> {
@@ -111,7 +111,7 @@ impl<'src> Formatter<'src> {
     ])
   }
 
-  pub(crate) fn fmt_expr_call(&self, func: &Expr, args: &Vec<Expr>) -> Doc<'src> {
+  pub(crate) fn fmt_expr_call(&self, func: &Expr, args: &[Expr]) -> Doc<'src> {
     Doc::concat([self.fmt_expr(func), Doc::paren_comma(args.iter().map(|x| self.fmt_expr(x)))])
   }
 
@@ -190,7 +190,7 @@ impl Resolver<'_> {
     &mut self,
     span: Span,
     flex: &Flex,
-    params: &Vec<Pat>,
+    params: &[Pat],
     ret: &Option<Ty>,
     body: &Block,
   ) -> Result<TirExpr, Diag> {
@@ -317,7 +317,7 @@ impl Resolver<'_> {
     &mut self,
     span: Span,
     receiver: &Ty,
-    params: &Vec<Ty>,
+    params: &[Ty],
     ret: &Option<Ty>,
   ) -> ImplType {
     let Some(fn_) = self.chart.builtins.fn_ else {

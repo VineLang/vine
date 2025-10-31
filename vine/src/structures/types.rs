@@ -524,7 +524,7 @@ impl Types {
     )
   }
 
-  pub fn export<'ctx, T>(&'ctx self, f: impl FnOnce(&mut TypeTransfer<'_>) -> T) -> TypeCtx<T> {
+  pub fn export<T>(&self, f: impl FnOnce(&mut TypeTransfer<'_>) -> T) -> TypeCtx<T> {
     let mut types = Types::default();
     let mut export =
       TypeTransfer { mapping: HashMap::default(), source: self, dest: &mut types, params: None };

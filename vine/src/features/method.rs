@@ -17,7 +17,7 @@ impl<'src> Formatter<'src> {
     receiver: &Expr,
     name: &Ident,
     generics: &GenericArgs,
-    args: &Vec<Expr>,
+    args: &[Expr],
   ) -> Doc<'src> {
     Doc::concat([
       self.fmt_expr(receiver),

@@ -161,7 +161,7 @@ impl VineParser<'_> {
 }
 
 impl<'src> Formatter<'src> {
-  pub(crate) fn fmt_expr_tuple(&self, t: &Vec<Expr>) -> Doc<'src> {
+  pub(crate) fn fmt_expr_tuple(&self, t: &[Expr]) -> Doc<'src> {
     Doc::tuple(t.iter().map(|x| self.fmt_expr(x)))
   }
 
@@ -169,15 +169,15 @@ impl<'src> Formatter<'src> {
     Doc::concat([self.fmt_expr(expr), Doc("."), Doc(format!("{index}"))])
   }
 
-  pub(crate) fn fmt_pat_tuple(&self, t: &Vec<Pat>) -> Doc<'src> {
+  pub(crate) fn fmt_pat_tuple(&self, t: &[Pat]) -> Doc<'src> {
     Doc::tuple(t.iter().map(|x| self.fmt_pat(x)))
   }
 
-  pub(crate) fn fmt_ty_tuple(&self, elements: &Vec<Ty>) -> Doc<'src> {
+  pub(crate) fn fmt_ty_tuple(&self, elements: &[Ty]) -> Doc<'src> {
     Doc::tuple(elements.iter().map(|x| self.fmt_ty(x)))
   }
 
-  pub(crate) fn fmt_expr_object(&self, entries: &Vec<(Key, Expr)>) -> Doc<'src> {
+  pub(crate) fn fmt_expr_object(&self, entries: &[(Key, Expr)]) -> Doc<'src> {
     Doc::brace_comma_space(entries.iter().map(|(key, expr)| {
       if let ExprKind::Path(path, None) = &*expr.kind {
         if let Some(i) = path.as_ident() {
@@ -194,7 +194,7 @@ impl<'src> Formatter<'src> {
     Doc::concat([self.fmt_expr(expr), Doc("."), Doc(key.ident)])
   }
 
-  pub(crate) fn fmt_pat_object(&self, entries: &Vec<(Key, Pat)>) -> Doc<'src> {
+  pub(crate) fn fmt_pat_object(&self, entries: &[(Key, Pat)]) -> Doc<'src> {
     Doc::brace_comma_space(entries.iter().map(|(key, pat)| {
       let (pat, ty) = match &*pat.kind {
         PatKind::Annotation(p, t) => (p, Some(t)),
@@ -224,7 +224,7 @@ impl<'src> Formatter<'src> {
     }))
   }
 
-  pub(crate) fn fmt_ty_object(&self, entries: &Vec<(Key, Ty)>) -> Doc<'src> {
+  pub(crate) fn fmt_ty_object(&self, entries: &[(Key, Ty)]) -> Doc<'src> {
     Doc::brace_comma_space(
       entries.iter().map(|(k, t)| Doc::concat([Doc(k.ident), Doc(": "), self.fmt_ty(t)])),
     )
@@ -262,7 +262,7 @@ impl Resolver<'_> {
   pub(crate) fn resolve_expr_object(
     &mut self,
     span: Span,
-    entries: &Vec<(Key, Expr)>,
+    entries: &[(Key, Expr)],
   ) -> Result<TirExpr, Diag> {
     let object = self._build_object(entries, Self::resolve_expr)?;
     let ty = self.types.new(TypeKind::Object(object.iter().map(|(&i, x)| (i, x.ty)).collect()));
@@ -272,28 +272,24 @@ impl Resolver<'_> {
   pub(crate) fn resolve_pat_object(
     &mut self,
     span: Span,
-    entries: &Vec<(Key, Pat)>,
+    entries: &[(Key, Pat)],
   ) -> Result<TirPat, Diag> {
     let object = self._build_object(entries, |self_, pat| self_.resolve_pat(pat))?;
     let ty = self.types.new(TypeKind::Object(object.iter().map(|(&i, x)| (i, x.ty)).collect()));
     Ok(TirPat::new(span, ty, TirPatKind::Composite(object.into_values().collect())))
   }
 
-  pub(crate) fn resolve_pat_sig_object(
-    &mut self,
-    entries: &Vec<(Key, Pat)>,
-    inference: bool,
-  ) -> Type {
+  pub(crate) fn resolve_pat_sig_object(&mut self, entries: &[(Key, Pat)], inference: bool) -> Type {
     self._build_object_type(entries, |self_, pat| self_.resolve_pat_sig(pat, inference))
   }
 
-  pub(crate) fn resolve_ty_object(&mut self, entries: &Vec<(Key, Ty)>, inference: bool) -> Type {
+  pub(crate) fn resolve_ty_object(&mut self, entries: &[(Key, Ty)], inference: bool) -> Type {
     self._build_object_type(entries, |self_, t| self_.resolve_ty(t, inference))
   }
 
   fn _build_object<T, U>(
     &mut self,
-    entries: &Vec<(Key, T)>,
+    entries: &[(Key, T)],
     mut f: impl FnMut(&mut Self, &T) -> U,
   ) -> Result<BTreeMap<Ident, U>, ErrorGuaranteed> {
     let mut object = BTreeMap::new();
@@ -310,7 +306,7 @@ impl Resolver<'_> {
 
   fn _build_object_type<T>(
     &mut self,
-    entries: &Vec<(Key, T)>,
+    entries: &[(Key, T)],
     mut f: impl FnMut(&mut Self, &T) -> Type,
   ) -> Type {
     let mut fields = BTreeMap::new();

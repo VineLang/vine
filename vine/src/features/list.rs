@@ -26,7 +26,7 @@ impl VineParser<'_> {
 }
 
 impl<'src> Formatter<'src> {
-  pub(crate) fn fmt_expr_list(&self, elements: &Vec<Expr>) -> Doc<'src> {
+  pub(crate) fn fmt_expr_list(&self, elements: &[Expr]) -> Doc<'src> {
     Doc::bracket_comma(elements.iter().map(|x| self.fmt_expr(x)))
   }
 }
@@ -35,7 +35,7 @@ impl Resolver<'_> {
   pub(crate) fn resolve_expr_list(
     &mut self,
     span: Span,
-    elements: &Vec<Expr>,
+    elements: &[Expr],
   ) -> Result<TirExpr, Diag> {
     let ty = self.types.new_var(span);
     let elements =

@@ -151,7 +151,7 @@ impl<'src> Formatter<'src> {
   pub(crate) fn fmt_expr_string(
     &self,
     init: &StringSegment,
-    rest: &Vec<(Expr, StringSegment)>,
+    rest: &[(Expr, StringSegment)],
   ) -> Doc<'src> {
     Doc::concat(
       [self.fmt_verbatim(init.span)].into_iter().chain(
@@ -173,7 +173,7 @@ impl Resolver<'_> {
     &mut self,
     span: Span,
     init: &StringSegment,
-    rest: &Vec<(Expr, StringSegment)>,
+    rest: &[(Expr, StringSegment)],
   ) -> Result<TirExpr, Diag> {
     let string_ty = if let Some(string) = self.chart.builtins.string {
       self.types.new(TypeKind::Struct(string, Vec::new()))

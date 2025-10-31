@@ -37,7 +37,7 @@ impl<'src> Formatter<'src> {
     &self,
     expr: &Expr,
     ty: &Option<Ty>,
-    arms: &Vec<(Pat, Block)>,
+    arms: &[(Pat, Block)],
   ) -> Doc<'src> {
     Doc::concat([
       Doc("match "),
@@ -59,7 +59,7 @@ impl Resolver<'_> {
     span: Span,
     scrutinee: &Expr,
     ty: &Option<Ty>,
-    arms: &Vec<(Pat, Block)>,
+    arms: &[(Pat, Block)],
   ) -> Result<TirExpr, Diag> {
     let scrutinee = self.resolve_expr(scrutinee);
     let ty = self.resolve_arrow_ty(span, ty, true);

@@ -161,7 +161,7 @@ impl<'ctx, 'ivm, 'ext> Repl<'ctx, 'ivm, 'ext> {
     })
   }
 
-  fn show_tuple<'a>(
+  fn show_tuple(
     &mut self,
     tys: impl IntoIterator<Item = Type, IntoIter: DoubleEndedIterator>,
     tree: &Tree,
