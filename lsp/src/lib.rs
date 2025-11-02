@@ -19,8 +19,8 @@ struct Backend {
 
 impl Backend {
   fn refresh(&self) -> impl Future<Output = ()> + Send + '_ {
-    let core = Core::new(true);
-    let mut compiler = Compiler::new(core, Config::default());
+    let core = Core::new();
+    let mut compiler = Compiler::new(core, true, Config::default());
 
     for glob in &self.entrypoints {
       for entry in glob::glob(glob).unwrap() {

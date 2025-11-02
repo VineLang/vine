@@ -45,11 +45,13 @@ struct Synthesizer<'a> {
   spec: &'a Spec,
   var_id: Counter<usize>,
   stages: Counter<StageId>,
+  debug: bool,
 }
 
 pub fn synthesize(
   nets: &mut Nets,
   core: &'static Core,
+  debug: bool,
   chart: &Chart,
   specs: &Specializations,
   spec: &Spec,
@@ -58,6 +60,7 @@ pub fn synthesize(
   Synthesizer {
     nets,
     core,
+    debug,
     chart,
     specs,
     spec,
@@ -163,7 +166,7 @@ impl Synthesizer<'_> {
     Net::new(Tree::n_ary(
       "fn",
       [
-        Tree::n_ary("dbg", self.core.debug.then_some(dbg.0).into_iter().chain([Tree::Erase])),
+        Tree::n_ary("dbg", self.debug.then_some(dbg.0).into_iter().chain([Tree::Erase])),
         self.match_enum(
           enum_id,
           |self_, variant_id| {
@@ -177,7 +180,7 @@ impl Synthesizer<'_> {
                 "enum",
                 has_data.then_some(data.0).into_iter().chain([Tree::n_ary(
                   "x",
-                  self_.core.debug.then_some(dbg.0).into_iter().chain([f.0, t.0]),
+                  self_.debug.then_some(dbg.0).into_iter().chain([f.0, t.0]),
                 )]),
               ),
               pairs: Vec::from([(
@@ -185,7 +188,7 @@ impl Synthesizer<'_> {
                 Tree::n_ary(
                   "fn",
                   [
-                    Tree::n_ary("dbg", self_.core.debug.then_some(dbg.1).into_iter().chain([f.1])),
+                    Tree::n_ary("dbg", self_.debug.then_some(dbg.1).into_iter().chain([f.1])),
                     self_.variant(variant_id, has_data.then_some(data.1)),
                     t.1,
                   ],
@@ -193,7 +196,7 @@ impl Synthesizer<'_> {
               )]),
             }
           },
-          Tree::n_ary("x", self.core.debug.then_some(dbg.1).into_iter().chain([f.0, t.0])),
+          Tree::n_ary("x", self.debug.then_some(dbg.1).into_iter().chain([f.0, t.0])),
         ),
         f.1,
         t.1,
@@ -245,7 +248,7 @@ impl Synthesizer<'_> {
   }
 
   fn _fn_call(&mut self, params: usize) -> (Tree, Tree) {
-    let dbg = if self.core.debug {
+    let dbg = if self.debug {
       let wire = self.new_wire();
       (Some(wire.0).into_iter(), Some(wire.1).into_iter())
     } else {
@@ -344,7 +347,7 @@ impl Synthesizer<'_> {
   }
 
   fn fn_receiver(&mut self) -> Tree {
-    if self.core.debug {
+    if self.debug {
       let w = self.new_wire();
       Tree::Comb(
         "dbg".into(),
@@ -357,7 +360,7 @@ impl Synthesizer<'_> {
   }
 
   fn const_(&mut self, value: Tree) -> Net {
-    if self.core.debug {
+    if self.debug {
       let w = self.new_wire();
       Net::new(Tree::n_ary("dbg", [Tree::n_ary("ref", [w.0, w.1]), value]))
     } else {

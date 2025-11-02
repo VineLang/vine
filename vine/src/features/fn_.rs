@@ -523,7 +523,7 @@ impl Emitter<'_> {
   ) {
     let func = self.emit_fn_rel(rel);
     let mut recv = recv.as_ref().map(|p| self.emit_port(p)).unwrap_or(Tree::Erase);
-    if self.core.debug {
+    if self.debug {
       recv = Tree::Comb("dbg".into(), Box::new(self.tap_debug_call(span)), Box::new(recv));
     }
     let pair = (

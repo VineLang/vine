@@ -57,10 +57,11 @@ impl<'ctx, 'ivm, 'ext> Repl<'ctx, 'ivm, 'ext> {
     mut host: &'ivm mut Host<'ivm>,
     ivm: &'ctx mut IVM<'ivm, 'ext>,
     core: &'static Core,
+    debug: bool,
     config: Config,
     libs: Vec<PathBuf>,
   ) -> Result<Self, Vec<Diag>> {
-    let mut compiler = Compiler::new(core, config);
+    let mut compiler = Compiler::new(core, debug, config);
     for lib in libs {
       compiler.loader.load_mod(&lib);
     }
@@ -236,7 +237,7 @@ impl<'ctx, 'ivm, 'ext> Repl<'ctx, 'ivm, 'ext> {
 
     let mut cur = w.1;
 
-    if self.core.debug {
+    if self.compiler.debug {
       let label_dbg = Host::label_to_u16("dbg", &mut self.host.comb_labels);
       let label_tup = Host::label_to_u16("tup", &mut self.host.comb_labels);
 

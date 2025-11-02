@@ -27,6 +27,7 @@ use crate::{
 pub struct Compiler {
   pub core: &'static Core,
   pub config: Config,
+  pub debug: bool,
   pub loader: Loader,
   pub chart: Chart,
   pub sigs: Signatures,
@@ -38,11 +39,12 @@ pub struct Compiler {
 }
 
 impl Compiler {
-  pub fn new(core: &'static Core, mut config: Config) -> Self {
-    config.insert(core.ident("debug"), ConfigValue::Bool(core.debug));
+  pub fn new(core: &'static Core, debug: bool, mut config: Config) -> Self {
+    config.insert(core.ident("debug"), ConfigValue::Bool(debug));
     Compiler {
       core,
       config,
+      debug,
       loader: Loader::new(core),
       chart: Chart::default(),
       sigs: Signatures::default(),
@@ -88,7 +90,7 @@ impl Compiler {
       hooks.distill(fragment_id, &mut vir);
       let mut vir = normalize(core, chart, &self.sigs, fragment, &vir);
       analyze(self.core, fragment.tir.span, &mut vir);
-      let template = emit(core, chart, fragment, &vir, &mut self.specs);
+      let template = emit(core, self.debug, chart, fragment, &vir, &mut self.specs);
       self.vir.push_to(fragment_id, vir);
       self.templates.push_to(fragment_id, template);
     }
@@ -116,11 +118,7 @@ impl Compiler {
       let global = format!("{path}:s{}", call.0);
       nets.insert(
         "::".into(),
-        if self.core.debug {
-          debug_main(Tree::Global(global))
-        } else {
-          Net::new(Tree::Global(global))
-        },
+        if self.debug { debug_main(Tree::Global(global)) } else { Net::new(Tree::Global(global)) },
       );
     }
 
@@ -131,7 +129,7 @@ impl Compiler {
           self.templates[*fragment_id].instantiate(&mut nets, &self.specs, spec);
         }
         SpecKind::Synthetic(item) => {
-          synthesize(&mut nets, self.core, &self.chart, &self.specs, spec, item);
+          synthesize(&mut nets, self.core, self.debug, &self.chart, &self.specs, spec, item);
         }
       }
     }

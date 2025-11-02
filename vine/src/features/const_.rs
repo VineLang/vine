@@ -132,7 +132,7 @@ impl Emitter<'_> {
   pub(crate) fn emit_const(&mut self, span: &Span, rel: &ConstRelId, out: &Port) {
     let rel = self.emit_const_rel(*rel);
     let out = self.emit_port(out);
-    if self.core.debug {
+    if self.debug {
       let dbg = self.tap_debug_call(*span);
       self.pairs.push((rel, Tree::n_ary("dbg", [dbg, out])));
     } else {

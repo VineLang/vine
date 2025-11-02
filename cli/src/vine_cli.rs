@@ -63,8 +63,8 @@ impl CompileArgs {
       self.libs.push(std_path())
     }
 
-    let core = Core::new(self.debug);
-    let mut compiler = Compiler::new(core, Config::default());
+    let core = Core::new();
+    let mut compiler = Compiler::new(core, self.debug, Config::default());
 
     if let Some(main) = self.main {
       compiler.loader.load_main_mod(&main);
@@ -170,14 +170,15 @@ impl VineReplCommand {
     host.register_default_extrinsics(&mut extrinsics);
 
     let mut ivm = IVM::new(&heap, &extrinsics);
-    let core = Core::new(!self.no_debug);
-    let mut repl = match Repl::new(host, &mut ivm, core, Config::default(), self.libs) {
-      Ok(repl) => repl,
-      Err(diags) => {
-        eprintln!("{}", core.print_diags(&diags));
-        exit(1);
-      }
-    };
+    let core = Core::new();
+    let mut repl =
+      match Repl::new(host, &mut ivm, core, !self.no_debug, Config::default(), self.libs) {
+        Ok(repl) => repl,
+        Err(diags) => {
+          eprintln!("{}", core.print_diags(&diags));
+          exit(1);
+        }
+      };
     let mut rl = DefaultEditor::new()?;
     loop {
       println!();
@@ -208,7 +209,7 @@ impl VineFmtCommand {
   pub fn execute(self) -> Result<()> {
     let mut src = String::new();
     stdin().read_to_string(&mut src)?;
-    let core = Core::new(false);
+    let core = Core::new();
     println!("{}", core.fmt(&src).unwrap());
     Ok(())
   }

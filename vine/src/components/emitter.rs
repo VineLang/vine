@@ -18,6 +18,7 @@ use crate::{
 
 pub fn emit(
   core: &'static Core,
+  debug: bool,
   chart: &Chart,
   fragment: &Fragment,
   vir: &Vir,
@@ -34,7 +35,8 @@ pub fn emit(
     wire_offset: 0,
     wires: Counter::default(),
     rels: TemplateStageRels::default(),
-    debug: None,
+    debug_state: None,
+    debug,
   };
 
   Template { stages: IdxVec::from_iter(vir.stages.values().map(|stage| emitter.emit_stage(stage))) }
@@ -51,7 +53,8 @@ pub(crate) struct Emitter<'a> {
   pub(crate) wire_offset: usize,
   pub(crate) wires: Counter<usize>,
   pub(crate) rels: TemplateStageRels,
-  pub(crate) debug: Option<(Tree, Tree)>,
+  pub(crate) debug: bool,
+  pub(crate) debug_state: Option<(Tree, Tree)>,
 }
 
 impl<'a> Emitter<'a> {
@@ -66,8 +69,8 @@ impl<'a> Emitter<'a> {
       for (local, state) in take(&mut self.locals) {
         self.finish_local(&self.vir.locals[local], state);
       }
-      if self.core.debug {
-        self.pairs.push(self.debug.take().unwrap());
+      if self.debug {
+        self.pairs.push(self.debug_state.take().unwrap());
       }
       let net = Net { root, pairs: take(&mut self.pairs) };
       TemplateStage { net, rels: take(&mut self.rels) }
@@ -83,7 +86,7 @@ impl<'a> Emitter<'a> {
 
     let mut target = self.emit_interface(interface, true);
 
-    if self.core.debug
+    if self.debug
       && !matches!(interface.kind, InterfaceKind::Fn { .. } | InterfaceKind::Inspect(..))
     {
       target = Tree::Comb("dbg".into(), Box::new(self.tap_debug()), Box::new(target));
