@@ -34,6 +34,7 @@ pub enum SyntheticItem<'core> {
   FnFromCall(usize),
   CallFromFn(usize),
   Frame(&'core str, Span),
+  DebugState,
 }
 
 struct Synthesizer<'core, 'a> {
@@ -109,6 +110,7 @@ impl<'core> Synthesizer<'core, '_> {
       SyntheticItem::FnFromCall(params) => self.synthesize_fn_from_call(params),
       SyntheticItem::CallFromFn(params) => self.synthesize_call_from_fn(params),
       SyntheticItem::Frame(path, span) => self.synthesize_frame(path, span),
+      SyntheticItem::DebugState => self.synthesize_debug_state(),
     };
     self.nets.insert(stage, net);
   }
@@ -279,6 +281,11 @@ impl<'core> Synthesizer<'core, '_> {
     Net::new(Tree::n_ary("tup", [col, file, line, path]))
   }
 
+  fn synthesize_debug_state(&mut self) -> Net {
+    let w = self.new_wire();
+    Net::new(Tree::n_ary("fn", [Tree::n_ary("dbg", [w.0, Tree::Erase]), w.1]))
+  }
+
   fn enum_(
     &mut self,
     enum_id: EnumId,
@@ -408,7 +415,8 @@ impl<'core> SyntheticItem<'core> {
       | SyntheticItem::Identity
       | SyntheticItem::EnumVariantNames(_)
       | SyntheticItem::EnumReconstruct(_)
-      | SyntheticItem::Frame(..) => Rels::default(),
+      | SyntheticItem::Frame(..)
+      | SyntheticItem::DebugState => Rels::default(),
       SyntheticItem::EnumMatch(_) => {
         Rels { consts: IdxVec::new(), fns: IdxVec::from([FnRel::Impl(TirImpl::Param(0), 1)]) }
       }

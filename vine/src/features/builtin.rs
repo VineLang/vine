@@ -47,6 +47,7 @@ pub enum Builtin {
   Struct,
   Enum,
   Variant,
+  DebugState,
 }
 
 impl<'core> VineParser<'core, '_> {
@@ -104,6 +105,7 @@ impl<'core> VineParser<'core, '_> {
       "Struct" => Builtin::Struct,
       "Enum" => Builtin::Enum,
       "Variant" => Builtin::Variant,
+      "debug_state" => Builtin::DebugState,
       _ => Err(Diag::BadBuiltin { span })?,
     })
   }
@@ -151,6 +153,8 @@ pub struct Builtins {
   pub struct_: Option<TraitId>,
   pub enum_: Option<TraitId>,
   pub variant: Option<EnumId>,
+
+  pub debug_state: Option<FnId>,
 }
 
 impl<'core> Charter<'core, '_> {
@@ -226,6 +230,7 @@ impl<'core> Charter<'core, '_> {
       Builtin::Struct => set(&mut builtins.struct_, trait_id),
       Builtin::Enum => set(&mut builtins.enum_, trait_id),
       Builtin::Variant => set(&mut builtins.variant, enum_id),
+      Builtin::DebugState => set(&mut builtins.debug_state, fn_id),
     }
   }
 }

@@ -227,6 +227,7 @@ impl Builtins {
       struct_,
       enum_,
       variant,
+      debug_state,
     } = self;
     revert_idx(prelude, checkpoint.defs);
     revert_idx(bool, checkpoint.opaque_types);
@@ -261,6 +262,7 @@ impl Builtins {
     revert_idx(struct_, checkpoint.traits);
     revert_idx(enum_, checkpoint.traits);
     revert_idx(variant, checkpoint.enums);
+    revert_fn(debug_state, checkpoint);
   }
 }
 
