@@ -153,6 +153,9 @@ impl<'core, 'a> Specializer<'core, 'a> {
     fn_id: FnId,
     mut impls: Vec<ImplTree<'core>>,
   ) -> Result<(SpecId, StageId), ErrorGuaranteed> {
+    if self.chart.builtins.debug_state == Some(fn_id) {
+      return Ok((self.instantiate_synthetic_item(SyntheticItem::DebugState, vec![]), StageId(0)));
+    }
     match fn_id {
       FnId::Concrete(fn_id) => {
         let fragment_id = self.resolutions.fns[fn_id];

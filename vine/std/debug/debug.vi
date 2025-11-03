@@ -56,8 +56,9 @@ pub mod debug {
     }
   }
 
+  #[builtin = "debug_state"]
   fn debug_state() -> &DebugState {
-    inline_ivy! () -> &DebugState { debug }
+    unsafe::eraser
   }
 
   #[frameless]
