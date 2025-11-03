@@ -8,8 +8,9 @@ pub mod ops;
 pub mod rng;
 pub mod unicode;
 pub mod unsafe;
-pub mod util;
 pub mod IO;
+
+mod util;
 
 #[builtin = "prelude"]
 pub mod prelude {
