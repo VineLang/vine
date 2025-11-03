@@ -205,10 +205,6 @@ pub fn smooth_sort[T; Ord[T]](&data: &Array[T]) {
     i - 1
   }
 
-  let fn swap(&a: &T, &b: &T) {
-    (a, b) = (b, a);
-  }
-
   let fn larger_child(i: N32, size: N32) -> N32 {
     let first = first_child(i, size);
     let second = second_child(i);
