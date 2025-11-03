@@ -51,7 +51,3 @@ pub impl transmute[C, T]: Cast[C, T] {
     unsafe::transmute(value)
   }
 }
-
-pub fn forget[T](x: T) {
-  inline_ivy! (x <- x) -> () { _ forget(x y) = #[y] }
-}
