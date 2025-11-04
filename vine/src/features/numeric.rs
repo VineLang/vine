@@ -11,8 +11,8 @@ use crate::{
   },
 };
 
-impl<'core> VineParser<'core, '_> {
-  pub(crate) fn parse_expr_numeric(&mut self) -> Result<ExprKind<'core>, Diag<'core>> {
+impl VineParser<'_> {
+  pub(crate) fn parse_expr_numeric(&mut self) -> Result<ExprKind, Diag> {
     let span = self.span();
     let token = self.expect(Token::Num)?;
     if token.contains('.') {
@@ -23,19 +23,19 @@ impl<'core> VineParser<'core, '_> {
   }
 }
 
-impl<'core> Resolver<'core, '_> {
-  pub(crate) fn resolve_expr_n32(&mut self, span: Span, n: u32) -> Result<TirExpr, Diag<'core>> {
+impl Resolver<'_> {
+  pub(crate) fn resolve_expr_n32(&mut self, span: Span, n: u32) -> Result<TirExpr, Diag> {
     let ty = self.builtin_ty(span, "N32", self.chart.builtins.n32);
     Ok(TirExpr::new(span, ty, TirExprKind::N32(n)))
   }
 
-  pub(crate) fn resolve_expr_f32(&mut self, span: Span, n: f32) -> Result<TirExpr, Diag<'core>> {
+  pub(crate) fn resolve_expr_f32(&mut self, span: Span, n: f32) -> Result<TirExpr, Diag> {
     let ty = self.builtin_ty(span, "F32", self.chart.builtins.f32);
     Ok(TirExpr::new(span, ty, TirExprKind::F32(n)))
   }
 }
 
-impl<'core> Distiller<'core, '_> {
+impl Distiller<'_> {
   pub(crate) fn distill_expr_value_n32(&mut self, ty: Type, n: u32) -> Port {
     Port { ty, kind: PortKind::N32(n) }
   }

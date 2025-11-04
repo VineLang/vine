@@ -11,10 +11,10 @@ use crate::{
     debug::debug_main,
   },
   structures::{
+    ast::Ident,
     chart::Chart,
     checkpoint::Checkpoint,
-    core::Core,
-    diag::Diag,
+    diag::{Diag, Diags},
     resolutions::{Fragment, FragmentId, Resolutions},
     signatures::Signatures,
     specializations::{SpecKind, Specializations},
@@ -24,26 +24,27 @@ use crate::{
   },
 };
 
-pub struct Compiler<'core> {
-  pub core: &'core Core<'core>,
-  pub config: Config<'core>,
-  pub loader: Loader<'core>,
-  pub chart: Chart<'core>,
-  pub sigs: Signatures<'core>,
-  pub resolutions: Resolutions<'core>,
-  pub specs: Specializations<'core>,
-  pub fragments: IdxVec<FragmentId, Fragment<'core>>,
-  pub vir: IdxVec<FragmentId, Vir<'core>>,
+pub struct Compiler {
+  pub config: Config,
+  pub debug: bool,
+  pub loader: Loader,
+  pub chart: Chart,
+  pub sigs: Signatures,
+  pub resolutions: Resolutions,
+  pub specs: Specializations,
+  pub fragments: IdxVec<FragmentId, Fragment>,
+  pub vir: IdxVec<FragmentId, Vir>,
   pub templates: IdxVec<FragmentId, Template>,
+  pub diags: Diags,
 }
 
-impl<'core> Compiler<'core> {
-  pub fn new(core: &'core Core<'core>, mut config: Config<'core>) -> Self {
-    config.insert(core.ident("debug"), ConfigValue::Bool(core.debug));
+impl Compiler {
+  pub fn new(debug: bool, mut config: Config) -> Self {
+    config.insert(Ident("debug".into()), ConfigValue::Bool(debug));
     Compiler {
-      core,
       config,
-      loader: Loader::new(core),
+      debug,
+      loader: Loader::default(),
       chart: Chart::default(),
       sigs: Signatures::default(),
       resolutions: Resolutions::default(),
@@ -51,10 +52,11 @@ impl<'core> Compiler<'core> {
       fragments: IdxVec::new(),
       vir: IdxVec::new(),
       templates: IdxVec::new(),
+      diags: Diags::default(),
     }
   }
 
-  pub fn compile(&mut self, hooks: impl Hooks<'core>) -> Result<Nets, Vec<Diag<'core>>> {
+  pub fn compile(&mut self, hooks: impl Hooks) -> Result<Nets, Vec<Diag>> {
     let checkpoint = self.checkpoint();
     self._compile(hooks, &checkpoint).inspect_err(|_| {
       self.revert(&checkpoint);
@@ -63,32 +65,36 @@ impl<'core> Compiler<'core> {
 
   fn _compile(
     &mut self,
-    mut hooks: impl Hooks<'core>,
+    mut hooks: impl Hooks,
     checkpoint: &Checkpoint,
-  ) -> Result<Nets, Vec<Diag<'core>>> {
-    let core = self.core;
+  ) -> Result<Nets, Vec<Diag>> {
     let root = self.loader.finish();
-    core.bail()?;
+    self.diags.bail()?;
 
     let chart = &mut self.chart;
 
-    let mut charter = Charter { core, chart, config: &self.config };
+    let mut charter = Charter { chart, config: &self.config, diags: &mut self.diags };
     charter.chart_root(root);
     hooks.chart(&mut charter);
 
-    let mut resolver =
-      Resolver::new(core, chart, &mut self.sigs, &mut self.resolutions, &mut self.fragments);
+    let mut resolver = Resolver::new(
+      chart,
+      &mut self.sigs,
+      &mut self.diags,
+      &mut self.resolutions,
+      &mut self.fragments,
+    );
     resolver.resolve_since(checkpoint);
     hooks.resolve(&mut resolver);
 
-    let mut distiller = Distiller::new(core, chart, &self.sigs);
+    let mut distiller = Distiller::new(chart, &self.sigs, &mut self.diags);
     for fragment_id in self.fragments.keys_from(checkpoint.fragments) {
       let fragment = &self.fragments[fragment_id];
       let mut vir = distiller.distill_fragment(fragment);
       hooks.distill(fragment_id, &mut vir);
-      let mut vir = normalize(core, chart, &self.sigs, fragment, &vir);
-      analyze(self.core, fragment.tir.span, &mut vir);
-      let template = emit(core, chart, fragment, &vir, &mut self.specs);
+      let mut vir = normalize(chart, &self.sigs, distiller.diags, fragment, &vir);
+      analyze(distiller.diags, fragment.tir.span, &mut vir);
+      let template = emit(self.debug, chart, distiller.diags, fragment, &vir, &mut self.specs);
       self.vir.push_to(fragment_id, vir);
       self.templates.push_to(fragment_id, template);
     }
@@ -96,7 +102,6 @@ impl<'core> Compiler<'core> {
     let mut nets = Nets::default();
 
     let mut specializer = Specializer {
-      core,
       chart,
       resolutions: &self.resolutions,
       fragments: &self.fragments,
@@ -106,21 +111,17 @@ impl<'core> Compiler<'core> {
     };
     specializer.specialize_since(checkpoint);
 
-    core.bail()?;
+    self.diags.bail()?;
 
     if let Some(main) = self.resolutions.main {
-      let path = self.fragments[main].path;
+      let path = &self.fragments[main].path;
       let vir = &self.vir[main];
       let func = vir.closures[ClosureId(0)];
       let InterfaceKind::Fn { call, .. } = vir.interfaces[func].kind else { unreachable!() };
       let global = format!("{path}:s{}", call.0);
       nets.insert(
         "::".into(),
-        if self.core.debug {
-          debug_main(Tree::Global(global))
-        } else {
-          Net::new(Tree::Global(global))
-        },
+        if self.debug { debug_main(Tree::Global(global)) } else { Net::new(Tree::Global(global)) },
       );
     }
 
@@ -131,7 +132,7 @@ impl<'core> Compiler<'core> {
           self.templates[*fragment_id].instantiate(&mut nets, &self.specs, spec);
         }
         SpecKind::Synthetic(item) => {
-          synthesize(&mut nets, self.core, &self.chart, &self.specs, spec, item);
+          synthesize(&mut nets, self.debug, &self.loader, &self.chart, &self.specs, spec, item);
         }
       }
     }
@@ -140,10 +141,10 @@ impl<'core> Compiler<'core> {
   }
 }
 
-pub trait Hooks<'core> {
-  fn chart(&mut self, _charter: &mut Charter<'core, '_>) {}
-  fn resolve(&mut self, _resolver: &mut Resolver<'core, '_>) {}
+pub trait Hooks {
+  fn chart(&mut self, _charter: &mut Charter<'_>) {}
+  fn resolve(&mut self, _resolver: &mut Resolver<'_>) {}
   fn distill(&mut self, _fragment_id: FragmentId, _vir: &mut Vir) {}
 }
 
-impl<'core> Hooks<'core> for () {}
+impl Hooks for () {}

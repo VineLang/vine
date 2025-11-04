@@ -13,8 +13,8 @@ use crate::{
   tools::fmt::{doc::Doc, Formatter},
 };
 
-impl<'core: 'src, 'src> Formatter<'src> {
-  pub(crate) fn fmt_expr_inverse(&self, expr: &Expr<'core>, postfix: bool) -> Doc<'src> {
+impl<'src> Formatter<'src> {
+  pub(crate) fn fmt_expr_inverse(&self, expr: &Expr, postfix: bool) -> Doc<'src> {
     if postfix {
       Doc::concat([self.fmt_expr(expr), Doc(".~")])
     } else {
@@ -22,46 +22,38 @@ impl<'core: 'src, 'src> Formatter<'src> {
     }
   }
 
-  pub(crate) fn fmt_pat_inverse(&self, pat: &Pat<'core>) -> Doc<'src> {
+  pub(crate) fn fmt_pat_inverse(&self, pat: &Pat) -> Doc<'src> {
     Doc::concat([Doc("~"), self.fmt_pat(pat)])
   }
 
-  pub(crate) fn fmt_ty_inverse(&self, ty: &Ty<'core>) -> Doc<'src> {
+  pub(crate) fn fmt_ty_inverse(&self, ty: &Ty) -> Doc<'src> {
     Doc::concat([Doc("~"), self.fmt_ty(ty)])
   }
 }
 
-impl<'core> Resolver<'core, '_> {
-  pub(crate) fn resolve_expr_inverse(
-    &mut self,
-    span: Span,
-    inner: &Expr<'core>,
-  ) -> Result<TirExpr, Diag<'core>> {
+impl Resolver<'_> {
+  pub(crate) fn resolve_expr_inverse(&mut self, span: Span, inner: &Expr) -> Result<TirExpr, Diag> {
     let inner = self.resolve_expr(inner);
     Ok(TirExpr::new(span, inner.ty.inverse(), TirExprKind::Inverse(inner)))
   }
 
-  pub(crate) fn resolve_pat_inverse(
-    &mut self,
-    span: Span,
-    inner: &Pat<'core>,
-  ) -> Result<TirPat, Diag<'core>> {
+  pub(crate) fn resolve_pat_inverse(&mut self, span: Span, inner: &Pat) -> Result<TirPat, Diag> {
     let inner = self.resolve_pat(inner);
     Ok(TirPat::new(span, inner.ty.inverse(), TirPatKind::Inverse(inner)))
   }
 
-  pub(crate) fn resolve_pat_sig_inverse(&mut self, inner: &Pat<'core>, inference: bool) -> Type {
+  pub(crate) fn resolve_pat_sig_inverse(&mut self, inner: &Pat, inference: bool) -> Type {
     let inner = self.resolve_pat_sig(inner, inference);
     inner.inverse()
   }
 
-  pub(crate) fn resolve_ty_inverse(&mut self, inner: &Ty<'core>, inference: bool) -> Type {
+  pub(crate) fn resolve_ty_inverse(&mut self, inner: &Ty, inference: bool) -> Type {
     let inner = self.resolve_ty(inner, inference);
     inner.inverse()
   }
 }
 
-impl<'core> Distiller<'core, '_> {
+impl Distiller<'_> {
   pub(crate) fn distill_expr_value_inverse(&mut self, stage: &mut Stage, inner: &TirExpr) -> Port {
     self.distill_expr_space(stage, inner)
   }

@@ -18,11 +18,11 @@ new_idx!(pub Local; n => ["l{n}"]);
 new_idx!(pub ClosureId; n => ["c{n}"]);
 
 #[derive(Debug, Clone)]
-pub struct Tir<'core> {
+pub struct Tir {
   pub span: Span,
-  pub types: Types<'core>,
+  pub types: Types,
   pub locals: IdxVec<Local, TirLocal>,
-  pub rels: Rels<'core>,
+  pub rels: Rels,
   pub closures: IdxVec<ClosureId, TirClosure>,
   pub root: TirExpr,
 }
@@ -167,15 +167,15 @@ pub enum TirPatKind {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub enum TirImpl<'core> {
+pub enum TirImpl {
   Error(ErrorGuaranteed),
   Param(usize),
-  Def(ImplId, Vec<TirImpl<'core>>),
-  Fn(FnId, Vec<TirImpl<'core>>, usize),
+  Def(ImplId, Vec<TirImpl>),
+  Fn(FnId, Vec<TirImpl>, usize),
   Closure(ClosureId, usize),
   ForkClosure(ClosureId),
   DropClosure(ClosureId),
-  Synthetic(SyntheticImpl<'core>),
+  Synthetic(SyntheticImpl),
 }
 
 impl TirExpr {

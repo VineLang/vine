@@ -9,12 +9,12 @@ use crate::{
   },
 };
 
-impl<'core> Resolver<'core, '_> {
-  pub(crate) fn resolve_expr_hole(&mut self, span: Span) -> Result<TirExpr, Diag<'core>> {
+impl Resolver<'_> {
+  pub(crate) fn resolve_expr_hole(&mut self, span: Span) -> Result<TirExpr, Diag> {
     Ok(TirExpr::new(span, self.types.new_var(span), TirExprKind::Hole))
   }
 
-  pub(crate) fn resolve_pat_hole(&mut self, span: Span) -> Result<TirPat, Diag<'core>> {
+  pub(crate) fn resolve_pat_hole(&mut self, span: Span) -> Result<TirPat, Diag> {
     Ok(TirPat::new(span, self.types.new_var(span), TirPatKind::Hole))
   }
 
@@ -22,12 +22,12 @@ impl<'core> Resolver<'core, '_> {
     if inference {
       self.types.new_var(span)
     } else {
-      self.types.error(self.core.report(Diag::ItemTypeHole { span }))
+      self.types.error(self.diags.report(Diag::ItemTypeHole { span }))
     }
   }
 }
 
-impl<'core> Distiller<'core, '_> {
+impl Distiller<'_> {
   pub(crate) fn distill_expr_space_hole(
     &mut self,
     stage: &mut Stage,

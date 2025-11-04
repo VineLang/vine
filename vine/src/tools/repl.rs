@@ -15,11 +15,9 @@ use crate::{
     parser::VineParser,
     resolver::Resolver,
   },
-  features::cfg::Config,
   structures::{
     ast::{visit::VisitMut, Block, Ident, Span, Stmt},
     chart::{DefId, GenericsId},
-    core::Core,
     diag::Diag,
     resolutions::FragmentId,
     tir::Local,
@@ -32,45 +30,42 @@ use crate::{
 mod command;
 mod show_tree;
 
-pub struct Repl<'core, 'ctx, 'ivm, 'ext> {
+pub struct Repl<'ctx, 'ivm, 'ext, 'comp> {
   host: &'ivm mut Host<'ivm>,
   ivm: &'ctx mut IVM<'ivm, 'ext>,
-  core: &'core Core<'core>,
-  compiler: Compiler<'core>,
+  compiler: &'comp mut Compiler,
   repl_mod: DefId,
   line: usize,
-  scope: Vec<ScopeEntry<'core, 'ivm>>,
-  types: Types<'core>,
+  scope: Vec<ScopeEntry<'ivm>>,
+  types: Types,
   pub options: ReplOptions,
 }
 
-struct ScopeEntry<'core, 'ivm> {
-  name: Ident<'core>,
+struct ScopeEntry<'ivm> {
+  name: Ident,
   span: Span,
   ty: Type,
   value: Option<Port<'ivm>>,
   space: Option<Port<'ivm>>,
 }
 
-impl<'core, 'ctx, 'ivm, 'ext> Repl<'core, 'ctx, 'ivm, 'ext> {
+impl<'ctx, 'ivm, 'ext, 'comp> Repl<'ctx, 'ivm, 'ext, 'comp> {
   pub fn new(
     mut host: &'ivm mut Host<'ivm>,
     ivm: &'ctx mut IVM<'ivm, 'ext>,
-    core: &'core Core<'core>,
-    config: Config<'core>,
+    compiler: &'comp mut Compiler,
     libs: Vec<PathBuf>,
-  ) -> Result<Self, Vec<Diag<'core>>> {
-    let mut compiler = Compiler::new(core, config);
+  ) -> Result<Self, Vec<Diag>> {
     for lib in libs {
-      compiler.loader.load_mod(&lib);
+      compiler.loader.load_mod(&lib, &mut compiler.diags);
     }
 
     let mut repl_mod = DefId::default();
     let nets = compiler.compile(InitHooks(&mut repl_mod))?;
     struct InitHooks<'a>(&'a mut DefId);
-    impl Hooks<'_> for InitHooks<'_> {
+    impl Hooks for InitHooks<'_> {
       fn chart(&mut self, charter: &mut Charter) {
-        *self.0 = charter.chart_child(DefId::ROOT, charter.core.ident("repl"), DefId::ROOT, true);
+        *self.0 = charter.chart_child(DefId::ROOT, Ident("repl".into()), DefId::ROOT, true);
       }
     }
     host.insert_nets(&nets);
@@ -79,7 +74,7 @@ impl<'core, 'ctx, 'ivm, 'ext> Repl<'core, 'ctx, 'ivm, 'ext> {
     let mut scope = Vec::new();
     if let Some(io_type) = compiler.chart.builtins.io {
       scope.push(ScopeEntry {
-        name: core.ident("io"),
+        name: Ident("io".into()),
         span: Span::NONE,
         ty: types.new(TypeKind::Opaque(io_type, vec![])),
         value: Some(Port::new_ext_val(host.new_io())),
@@ -90,15 +85,15 @@ impl<'core, 'ctx, 'ivm, 'ext> Repl<'core, 'ctx, 'ivm, 'ext> {
     let line = 0;
     let options = ReplOptions::default();
 
-    Ok(Repl { host, ivm, core, compiler, repl_mod, line, scope, types, options })
+    Ok(Repl { host, ivm, compiler, repl_mod, line, scope, types, options })
   }
 
-  pub fn exec(&mut self, input: &str) -> Result<(), Vec<Diag<'core>>> {
+  pub fn exec(&mut self, input: &str) -> Result<(), Vec<Diag>> {
     let (span, command) = match self.parse_input(input) {
       Ok(command) => command,
       Err(diag) => {
-        self.core.report(diag);
-        self.core.bail()?;
+        self.compiler.diags.report(diag);
+        self.compiler.diags.bail()?;
         unreachable!()
       }
     };
@@ -120,23 +115,18 @@ impl<'core, 'ctx, 'ivm, 'ext> Repl<'core, 'ctx, 'ivm, 'ext> {
     Ok(())
   }
 
-  pub fn run(
-    &mut self,
-    span: Span,
-    stmts: Vec<Stmt<'core>>,
-    clear: Vec<Ident<'core>>,
-  ) -> Result<(), Vec<Diag<'core>>> {
+  pub fn run(&mut self, span: Span, stmts: Vec<Stmt>, clear: Vec<Ident>) -> Result<(), Vec<Diag>> {
     let mut block = Block { span, stmts };
 
-    self.compiler.loader.load_deps(".".as_ref(), &mut block);
+    self.compiler.loader.load_deps(".".as_ref(), &mut block, &mut self.compiler.diags);
 
-    let path = self.core.alloc_str(&format!("::repl::{}", self.line));
+    let path = format!("::repl::{}", self.line);
     let mut fragment = None;
     let mut ty = None;
     let mut bindings = Vec::new();
 
     let nets = self.compiler.compile(ExecHooks {
-      path,
+      path: path.clone(),
       repl_mod: self.repl_mod,
       scope: &mut self.scope,
       block: &mut block,
@@ -152,20 +142,20 @@ impl<'core, 'ctx, 'ivm, 'ext> Repl<'core, 'ctx, 'ivm, 'ext> {
 
     self.line += 1;
 
-    struct ExecHooks<'core, 'ivm, 'a> {
-      path: &'core str,
+    struct ExecHooks<'ivm, 'a> {
+      path: String,
       repl_mod: DefId,
-      scope: &'a mut Vec<ScopeEntry<'core, 'ivm>>,
-      block: &'a mut Block<'core>,
-      types: &'a mut Types<'core>,
+      scope: &'a mut Vec<ScopeEntry<'ivm>>,
+      block: &'a mut Block,
+      types: &'a mut Types,
       fragment: &'a mut Option<FragmentId>,
       ty: &'a mut Option<Type>,
-      bindings: &'a mut Vec<(Local, Ident<'core>, Span, Type)>,
-      clear: Vec<Ident<'core>>,
+      bindings: &'a mut Vec<(Local, Ident, Span, Type)>,
+      clear: Vec<Ident>,
     }
 
-    impl<'core> Hooks<'core> for ExecHooks<'core, '_, '_> {
-      fn chart(&mut self, charter: &mut Charter<'core, '_>) {
+    impl Hooks for ExecHooks<'_, '_> {
+      fn chart(&mut self, charter: &mut Charter<'_>) {
         let mut extractor = ExtractItems::default();
         extractor.visit(&mut *self.block);
         for item in extractor.items {
@@ -173,13 +163,13 @@ impl<'core, 'ctx, 'ivm, 'ext> Repl<'core, 'ctx, 'ivm, 'ext> {
         }
       }
 
-      fn resolve(&mut self, resolver: &mut Resolver<'core, '_>) {
+      fn resolve(&mut self, resolver: &mut Resolver<'_>) {
         let (fragment, ty, mut bindings) = resolver._resolve_repl(
           self.block.span,
-          self.path,
+          self.path.clone(),
           self.repl_mod,
           self.types.clone(),
-          self.scope.iter().map(|entry| (entry.name, entry.span, entry.ty)),
+          self.scope.iter().map(|entry| (entry.name.clone(), entry.span, entry.ty)),
           self.block,
         );
         *self.fragment = Some(fragment);
@@ -241,7 +231,7 @@ impl<'core, 'ctx, 'ivm, 'ext> Repl<'core, 'ctx, 'ivm, 'ext> {
 
     let mut cur = w.1;
 
-    if self.core.debug {
+    if self.compiler.debug {
       let label_dbg = Host::label_to_u16("dbg", &mut self.host.comb_labels);
       let label_tup = Host::label_to_u16("tup", &mut self.host.comb_labels);
 
@@ -292,7 +282,7 @@ impl<'core, 'ctx, 'ivm, 'ext> Repl<'core, 'ctx, 'ivm, 'ext> {
     }));
     self.ivm.link_wire(binds.unwrap(), Port::ERASE);
 
-    self.ivm.execute(&self.host.get(path).unwrap().instructions, Port::new_wire(root));
+    self.ivm.execute(&self.host.get(&path).unwrap().instructions, Port::new_wire(root));
     self.ivm.normalize();
 
     let tree = self.host.read(self.ivm, &PortRef::new_wire(&result));
@@ -307,9 +297,9 @@ impl<'core, 'ctx, 'ivm, 'ext> Repl<'core, 'ctx, 'ivm, 'ext> {
     Ok(())
   }
 
-  fn parse_input(&mut self, line: &str) -> Result<(Span, ReplCommand<'core>), Diag<'core>> {
+  fn parse_input(&mut self, line: &str) -> Result<(Span, ReplCommand), Diag> {
     let file = self.compiler.loader.add_file(None, "input".into(), line);
-    let mut parser = VineParser { core: self.core, state: ParserState::new(line), file };
+    let mut parser = VineParser { state: ParserState::new(line), file };
     parser.bump()?;
     let span = parser.start_span();
     let command = parser.parse_repl_command()?;
@@ -327,7 +317,7 @@ impl<'core, 'ctx, 'ivm, 'ext> Repl<'core, 'ctx, 'ivm, 'ext> {
     }));
     for (i, (value, space)) in (0..self.scope.len()).zip(trees) {
       let entry = &self.scope[i];
-      let ident = entry.name.0 .0;
+      let ident = entry.name.0.clone();
       let ty = entry.ty;
       let value = value.map(|tree| self.show_tree(ty, &tree));
       let space = space.map(|tree| self.show_tree(ty.inverse(), &tree));
@@ -339,5 +329,9 @@ impl<'core, 'ctx, 'ivm, 'ext> Repl<'core, 'ctx, 'ivm, 'ext> {
         (Some(value), Some(space)) => println!("let &{ident}: &{ty} = &({value}; ~{space});"),
       }
     }
+  }
+
+  pub fn print_diags(&self, diags: &[Diag]) -> String {
+    self.compiler.loader.print_diags(diags)
   }
 }

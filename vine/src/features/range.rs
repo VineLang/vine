@@ -15,11 +15,8 @@ use crate::{
   tools::fmt::{doc::Doc, Formatter},
 };
 
-impl<'core> VineParser<'core, '_> {
-  pub(crate) fn _parse_expr_range(
-    &mut self,
-    left_bound: Option<Expr<'core>>,
-  ) -> Result<ExprKind<'core>, Diag<'core>> {
+impl VineParser<'_> {
+  pub(crate) fn _parse_expr_range(&mut self, left_bound: Option<Expr>) -> Result<ExprKind, Diag> {
     if self.eat(Token::DotDot)? {
       let right_bound = self.maybe_parse_expr_bp(BP::Range)?;
       return Ok(ExprKind::RangeExclusive(left_bound, right_bound));
@@ -32,12 +29,8 @@ impl<'core> VineParser<'core, '_> {
   }
 }
 
-impl<'core: 'src, 'src> Formatter<'src> {
-  pub(crate) fn fmt_expr_range_inclusive(
-    &self,
-    start: &Option<Expr<'core>>,
-    end: &Expr<'core>,
-  ) -> Doc<'src> {
+impl<'src> Formatter<'src> {
+  pub(crate) fn fmt_expr_range_inclusive(&self, start: &Option<Expr>, end: &Expr) -> Doc<'src> {
     let mut docs = vec![];
     if let Some(start) = start {
       docs.push(self.fmt_expr(start));
@@ -49,8 +42,8 @@ impl<'core: 'src, 'src> Formatter<'src> {
 
   pub(crate) fn fmt_expr_range_exclusive(
     &self,
-    start: &Option<Expr<'core>>,
-    end: &Option<Expr<'core>>,
+    start: &Option<Expr>,
+    end: &Option<Expr>,
   ) -> Doc<'src> {
     let mut docs = vec![];
     if let Some(start) = start {
@@ -64,14 +57,14 @@ impl<'core: 'src, 'src> Formatter<'src> {
   }
 }
 
-impl<'core> Resolver<'core, '_> {
+impl Resolver<'_> {
   pub(crate) fn resolve_expr_range(
     &mut self,
     span: Span,
-    start: Option<&Expr<'core>>,
-    end: Option<&Expr<'core>>,
+    start: Option<&Expr>,
+    end: Option<&Expr>,
     end_inclusive: bool,
-  ) -> Result<TirExpr, Diag<'core>> {
+  ) -> Result<TirExpr, Diag> {
     let bound_value_ty = self.types.new_var(span);
     let left_bound = self.resolve_range_bound(span, bound_value_ty, start, true)?;
     let right_bound = self.resolve_range_bound(span, bound_value_ty, end, end_inclusive)?;
@@ -97,9 +90,9 @@ impl<'core> Resolver<'core, '_> {
     &mut self,
     span: Span,
     bound_value_ty: Type,
-    bound_value: Option<&Expr<'core>>,
+    bound_value: Option<&Expr>,
     inclusive: bool,
-  ) -> Result<TirExpr, Diag<'core>> {
+  ) -> Result<TirExpr, Diag> {
     match bound_value {
       Some(bound) => {
         let bound = self.resolve_expr_type(bound, bound_value_ty);

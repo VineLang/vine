@@ -20,8 +20,8 @@ use crate::{
   tools::fmt::{doc::Doc, Formatter},
 };
 
-impl<'core> VineParser<'core, '_> {
-  pub(crate) fn parse_expr_for(&mut self) -> Result<ExprKind<'core>, Diag<'core>> {
+impl VineParser<'_> {
+  pub(crate) fn parse_expr_for(&mut self) -> Result<ExprKind, Diag> {
     self.expect(Token::For)?;
     let label = self.parse_label()?;
     let pat = self.parse_pat()?;
@@ -34,15 +34,15 @@ impl<'core> VineParser<'core, '_> {
   }
 }
 
-impl<'core: 'src, 'src> Formatter<'src> {
+impl<'src> Formatter<'src> {
   pub(crate) fn fmt_expr_for(
     &self,
-    label: Label<'core>,
-    pat: &Pat<'core>,
-    expr: &Expr<'core>,
-    ty: &Option<Ty<'core>>,
-    block: &Block<'core>,
-    else_: &Option<Block<'core>>,
+    label: Label,
+    pat: &Pat,
+    expr: &Expr,
+    ty: &Option<Ty>,
+    block: &Block,
+    else_: &Option<Block>,
   ) -> Doc<'src> {
     Doc::concat([
       Doc("for"),
@@ -62,17 +62,17 @@ impl<'core: 'src, 'src> Formatter<'src> {
   }
 }
 
-impl<'core> Resolver<'core, '_> {
+impl Resolver<'_> {
   pub(crate) fn resolve_expr_for(
     &mut self,
     span: Span,
-    label: Label<'core>,
-    pat: &Pat<'core>,
-    iter: &Expr<'core>,
-    ty: &Option<Ty<'core>>,
-    block: &Block<'core>,
-    else_: &Option<Block<'core>>,
-  ) -> Result<TirExpr, Diag<'core>> {
+    label: Label,
+    pat: &Pat,
+    iter: &Expr,
+    ty: &Option<Ty>,
+    block: &Block,
+    else_: &Option<Block>,
+  ) -> Result<TirExpr, Diag> {
     let ty = self.resolve_arrow_ty(span, ty, true);
     let target_id = self.target_id.next();
     let result = self.bind_target(
@@ -90,9 +90,9 @@ impl<'core> Resolver<'core, '_> {
         let else_ = else_.as_ref().map(|b| self_.resolve_block_type(b, ty));
         let nil = self_.types.nil();
         if else_.is_none() && self_.types.unify(ty, nil).is_failure() {
-          self_.core.report(Diag::MissingElse { span });
+          self_.diags.report(Diag::MissingElse { span });
         }
-        Result::<_, Diag<'core>>::Ok((rel, pat, iter, block, else_))
+        Result::<_, Diag>::Ok((rel, pat, iter, block, else_))
       },
     );
     let (rel, pat, iter, block, else_) = result?;
@@ -100,7 +100,7 @@ impl<'core> Resolver<'core, '_> {
   }
 }
 
-impl<'core> Distiller<'core, '_> {
+impl Distiller<'_> {
   pub(crate) fn distill_for(
     &mut self,
     stage: &mut Stage,
@@ -114,7 +114,7 @@ impl<'core> Distiller<'core, '_> {
     else_: &Option<TirExpr>,
   ) -> Port {
     let Some(option_enum) = self.chart.builtins.option else {
-      let err = self.core.report(Diag::MissingBuiltin { span, builtin: "Option" });
+      let err = self.diags.report(Diag::MissingBuiltin { span, builtin: "Option" });
       return Port::error(result_ty, err);
     };
 

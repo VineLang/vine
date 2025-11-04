@@ -10,18 +10,17 @@ use crate::{
       Chart, Def, DefId, DefImplKind, DefTraitKind, DefValueKind, FnId, GenericsId, ImplId,
       MemberKind, WithVis,
     },
-    core::Core,
-    diag::{Diag, ErrorGuaranteed},
+    diag::{Diag, Diags, ErrorGuaranteed},
     signatures::{ImportState, Signatures},
     tir::TirImpl,
     types::{ImplType, Inverted, Type, TypeCtx, TypeKind, Types},
   },
 };
 
-pub struct Finder<'core, 'a> {
-  core: &'core Core<'core>,
-  chart: &'a Chart<'core>,
-  sigs: &'a Signatures<'core>,
+pub struct Finder<'a> {
+  chart: &'a Chart,
+  sigs: &'a Signatures,
+  diags: &'a mut Diags,
   source: DefId,
   generics: GenericsId,
   span: Span,
@@ -29,10 +28,10 @@ pub struct Finder<'core, 'a> {
 }
 
 #[derive(Debug, Default)]
-pub struct FlexImpls<'core> {
+pub struct FlexImpls {
   pub inv: Inverted,
-  pub fork: Option<TirImpl<'core>>,
-  pub drop: Option<TirImpl<'core>>,
+  pub fork: Option<TirImpl>,
+  pub drop: Option<TirImpl>,
   pub self_dual: bool,
 }
 
@@ -47,24 +46,24 @@ const STEPS_LIMIT: u32 = 1_000;
 #[derive(Debug, Default, Clone, Copy)]
 struct Timeout;
 
-impl<'core, 'a> Finder<'core, 'a> {
+impl<'a> Finder<'a> {
   pub fn new(
-    core: &'core Core<'core>,
-    chart: &'a Chart<'core>,
-    sigs: &'a Signatures<'core>,
+    chart: &'a Chart,
+    sigs: &'a Signatures,
+    diags: &'a mut Diags,
     source: DefId,
     generics: GenericsId,
     span: Span,
   ) -> Self {
-    Finder { core, chart, sigs, source, generics, span, steps: 0 }
+    Finder { chart, sigs, diags, source, generics, span, steps: 0 }
   }
 
   pub fn find_method(
     &mut self,
-    types: &Types<'core>,
+    types: &Types,
     receiver: Type,
     name: Ident,
-  ) -> Vec<(FnId, TypeCtx<'core, Vec<Type>>)> {
+  ) -> Vec<(FnId, TypeCtx<Vec<Type>>)> {
     let mut found = Vec::new();
 
     for candidate in self.find_method_candidates(types, receiver, name) {
@@ -91,7 +90,7 @@ impl<'core, 'a> Finder<'core, 'a> {
 
   fn find_method_candidates(
     &mut self,
-    types: &Types<'core>,
+    types: &Types,
     receiver: Type,
     name: Ident,
   ) -> BTreeSet<FnId> {
@@ -119,19 +118,11 @@ impl<'core, 'a> Finder<'core, 'a> {
     candidates
   }
 
-  pub fn find_flex(
-    &mut self,
-    types: &mut Types<'core>,
-    ty: Type,
-  ) -> Result<FlexImpls<'core>, ErrorGuaranteed> {
-    self._find_flex(types, ty).map_err(|diag| self.core.report(diag))
+  pub fn find_flex(&mut self, types: &mut Types, ty: Type) -> Result<FlexImpls, ErrorGuaranteed> {
+    self._find_flex(types, ty).map_err(|diag| self.diags.report(diag))
   }
 
-  fn _find_flex(
-    &mut self,
-    types: &mut Types<'core>,
-    ty: Type,
-  ) -> Result<FlexImpls<'core>, Diag<'core>> {
+  fn _find_flex(&mut self, types: &mut Types, ty: Type) -> Result<FlexImpls, Diag> {
     let span = self.span;
     let TypeCtx { types: sub_types, inner: sub_ty } = types.export(|t| t.transfer(&ty));
 
@@ -159,7 +150,7 @@ impl<'core, 'a> Finder<'core, 'a> {
     let [pos_fork, pos_drop, neg_fork, neg_drop] = results.map(|(query, mut results)| {
       if results.len() > 1 {
         let diag = Diag::AmbiguousImpl { span, ty: sub_types.show_impl_type(self.chart, &query) };
-        error = Err(self.core.report(diag));
+        error = Err(self.diags.report(diag));
         None
       } else {
         results.pop()
@@ -204,26 +195,21 @@ impl<'core, 'a> Finder<'core, 'a> {
     Ok(FlexImpls { inv, fork, drop, self_dual })
   }
 
-  pub fn find_impl(
-    &mut self,
-    types: &mut Types<'core>,
-    query: &ImplType,
-    basic: bool,
-  ) -> TirImpl<'core> {
+  pub fn find_impl(&mut self, types: &mut Types, query: &ImplType, basic: bool) -> TirImpl {
     let span = self.span;
     let TypeCtx { types: sub_types, inner: sub_query } = types.export(|t| t.transfer(query));
 
     let show_ty = || types.show_impl_type(self.chart, query);
     let Ok(mut results) = self._find_impl(&sub_types, &sub_query, basic) else {
-      return TirImpl::Error(self.core.report(Diag::SearchLimit { span, ty: show_ty() }));
+      return TirImpl::Error(self.diags.report(Diag::SearchLimit { span, ty: show_ty() }));
     };
 
     if results.is_empty() {
-      return TirImpl::Error(self.core.report(Diag::CannotFindImpl { span, ty: show_ty() }));
+      return TirImpl::Error(self.diags.report(Diag::CannotFindImpl { span, ty: show_ty() }));
     }
 
     if results.len() > 1 {
-      return TirImpl::Error(self.core.report(Diag::AmbiguousImpl { span, ty: show_ty() }));
+      return TirImpl::Error(self.diags.report(Diag::AmbiguousImpl { span, ty: show_ty() }));
     }
 
     let result = results.pop().unwrap();
@@ -237,10 +223,10 @@ impl<'core, 'a> Finder<'core, 'a> {
 
   fn _find_impl(
     &mut self,
-    types: &Types<'core>,
+    types: &Types,
     query: &ImplType,
     basic: bool,
-  ) -> Result<Vec<TypeCtx<'core, TirImpl<'core>>>, Timeout> {
+  ) -> Result<Vec<TypeCtx<TirImpl>>, Timeout> {
     self.step()?;
 
     let mut found = Vec::new();
@@ -279,10 +265,10 @@ impl<'core, 'a> Finder<'core, 'a> {
 
   fn find_impl_params(
     &mut self,
-    mut types: Types<'core>,
+    mut types: Types,
     generics: GenericsId,
     type_params: Vec<Type>,
-  ) -> Result<impl Iterator<Item = TypeCtx<'core, Vec<TirImpl<'core>>>>, Timeout> {
+  ) -> Result<impl Iterator<Item = TypeCtx<Vec<TirImpl>>>, Timeout> {
     let queries = types.import(&self.sigs.impl_params[generics].types, Some(&type_params));
     let results = self.find_subimpls(types, &queries)?;
     Ok(results.into_iter().map(|mut result| {
@@ -293,9 +279,9 @@ impl<'core, 'a> Finder<'core, 'a> {
 
   fn find_subimpls(
     &mut self,
-    types: Types<'core>,
+    types: Types,
     queries: &[ImplType],
-  ) -> Result<Vec<TypeCtx<'core, Vec<TirImpl<'core>>>>, Timeout> {
+  ) -> Result<Vec<TypeCtx<Vec<TirImpl>>>, Timeout> {
     let [query, rest_queries @ ..] = queries else {
       return Ok(vec![(TypeCtx { types, inner: vec![] })]);
     };
@@ -316,7 +302,7 @@ impl<'core, 'a> Finder<'core, 'a> {
 
   fn find_impl_candidates(
     &mut self,
-    types: &Types<'core>,
+    types: &Types,
     query: &ImplType,
     basic: bool,
   ) -> BTreeSet<ImplId> {
@@ -353,7 +339,7 @@ impl<'core, 'a> Finder<'core, 'a> {
     candidates
   }
 
-  fn find_general_candidates(&mut self, search: &mut CandidateSearch<impl FnMut(&Self, &Def<'_>)>) {
+  fn find_general_candidates(&mut self, search: &mut CandidateSearch<impl FnMut(&Self, &Def)>) {
     for &ancestor in &self.chart.defs[self.source].ancestors {
       self.consider_mod(search, ancestor);
     }
@@ -400,7 +386,7 @@ impl<'core, 'a> Finder<'core, 'a> {
     }
   }
 
-  fn consider_def<F: FnMut(&Self, &Def<'_>)>(
+  fn consider_def<F: FnMut(&Self, &Def)>(
     &mut self,
     search: &mut CandidateSearch<F>,
     def_id: DefId,
@@ -446,9 +432,9 @@ impl<'core, 'a> Finder<'core, 'a> {
 
   fn find_auto_impls(
     &mut self,
-    types: &Types<'core>,
+    types: &Types,
     query: &ImplType,
-    found: &mut Vec<TypeCtx<'core, TirImpl<'core>>>,
+    found: &mut Vec<TypeCtx<TirImpl>>,
   ) -> Result<(), Timeout> {
     match query {
       ImplType::Trait(trait_id, type_params) => {
@@ -547,9 +533,9 @@ impl<'core, 'a> Finder<'core, 'a> {
         if Some(*trait_id) == self.chart.builtins.object {
           if let Some((inv, TypeKind::Object(entries))) = types.kind(type_params[0]) {
             let mut iter = entries.iter();
-            if let Some((&key, &init)) = iter.next() {
+            if let Some((key, &init)) = iter.next() {
               let init = init.invert_if(inv);
-              let rest = iter.map(|(&k, &t)| (k, t.invert_if(inv))).collect();
+              let rest = iter.map(|(k, &t)| (k.clone(), t.invert_if(inv))).collect();
               let mut types = types.clone();
               let rest = types.new(TypeKind::Object(rest));
               if types
@@ -557,7 +543,7 @@ impl<'core, 'a> Finder<'core, 'a> {
                 .and(types.unify(rest, type_params[2]))
                 .is_success()
               {
-                let impl_ = TirImpl::Synthetic(SyntheticImpl::Object(key, entries.len()));
+                let impl_ = TirImpl::Synthetic(SyntheticImpl::Object(key.clone(), entries.len()));
                 found.push(TypeCtx { types, inner: impl_ });
               }
             }

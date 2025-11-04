@@ -3,48 +3,48 @@ use crate::structures::ast::{
   ModKind, Pat, PatKind, Stmt, StmtKind, Trait, TraitKind, Ty, TyKind,
 };
 
-pub trait VisitMut<'core, 'a> {
-  fn visit_expr(&mut self, expr: &'a mut Expr<'core>) {
+pub trait VisitMut<'a> {
+  fn visit_expr(&mut self, expr: &'a mut Expr) {
     self._visit_expr(expr);
   }
 
-  fn visit_pat(&mut self, pat: &'a mut Pat<'core>) {
+  fn visit_pat(&mut self, pat: &'a mut Pat) {
     self._visit_pat(pat);
   }
 
-  fn visit_type(&mut self, ty: &'a mut Ty<'core>) {
+  fn visit_type(&mut self, ty: &'a mut Ty) {
     self._visit_type(ty);
   }
 
-  fn visit_impl(&mut self, ty: &'a mut Impl<'core>) {
+  fn visit_impl(&mut self, ty: &'a mut Impl) {
     self._visit_impl(ty);
   }
 
-  fn visit_trait(&mut self, trait_: &'a mut Trait<'core>) {
+  fn visit_trait(&mut self, trait_: &'a mut Trait) {
     self._visit_trait(trait_);
   }
 
-  fn visit_stmt(&mut self, stmt: &'a mut Stmt<'core>) {
+  fn visit_stmt(&mut self, stmt: &'a mut Stmt) {
     self._visit_stmt(stmt)
   }
 
-  fn visit_item(&mut self, item: &'a mut Item<'core>) {
+  fn visit_item(&mut self, item: &'a mut Item) {
     self._visit_item(item);
   }
 
-  fn visit_block(&mut self, block: &'a mut Block<'core>) {
+  fn visit_block(&mut self, block: &'a mut Block) {
     self._visit_block(block);
   }
 
-  fn visit_generic_params(&mut self, generics: &'a mut GenericParams<'core>) {
+  fn visit_generic_params(&mut self, generics: &'a mut GenericParams) {
     self._visit_generic_params(generics);
   }
 
-  fn visit_generic_args(&mut self, generics: &'a mut GenericArgs<'core>) {
+  fn visit_generic_args(&mut self, generics: &'a mut GenericArgs) {
     self._visit_generic_args(generics);
   }
 
-  fn _visit_expr(&mut self, expr: &'a mut Expr<'core>) {
+  fn _visit_expr(&mut self, expr: &'a mut Expr) {
     match &mut *expr.kind {
       ExprKind::Hole
       | ExprKind::Bool(_)
@@ -168,7 +168,7 @@ pub trait VisitMut<'core, 'a> {
     }
   }
 
-  fn _visit_pat(&mut self, pat: &'a mut Pat<'core>) {
+  fn _visit_pat(&mut self, pat: &'a mut Pat) {
     match &mut *pat.kind {
       PatKind::Hole | PatKind::Error(_) => {}
       PatKind::Paren(a) | PatKind::Ref(a) | PatKind::Deref(a) | PatKind::Inverse(a) => {
@@ -195,7 +195,7 @@ pub trait VisitMut<'core, 'a> {
     }
   }
 
-  fn _visit_type(&mut self, ty: &'a mut Ty<'core>) {
+  fn _visit_type(&mut self, ty: &'a mut Ty) {
     match &mut *ty.kind {
       TyKind::Hole => {}
       TyKind::Never => {}
@@ -215,14 +215,14 @@ pub trait VisitMut<'core, 'a> {
     }
   }
 
-  fn _visit_impl(&mut self, impl_: &'a mut Impl<'core>) {
+  fn _visit_impl(&mut self, impl_: &'a mut Impl) {
     match &mut *impl_.kind {
       ImplKind::Hole | ImplKind::Error(_) => {}
       ImplKind::Path(p) | ImplKind::Fn(p) => self.visit(&mut p.generics),
     }
   }
 
-  fn _visit_trait(&mut self, trait_: &'a mut Trait<'core>) {
+  fn _visit_trait(&mut self, trait_: &'a mut Trait) {
     match &mut *trait_.kind {
       TraitKind::Error(_) => {}
       TraitKind::Path(p) => self.visit(&mut p.generics),
@@ -234,7 +234,7 @@ pub trait VisitMut<'core, 'a> {
     }
   }
 
-  fn _visit_stmt(&mut self, stmt: &'a mut Stmt<'core>) {
+  fn _visit_stmt(&mut self, stmt: &'a mut Stmt) {
     match &mut stmt.kind {
       StmtKind::Let(l) => {
         if let Some(init) = &mut l.init {
@@ -272,7 +272,7 @@ pub trait VisitMut<'core, 'a> {
     }
   }
 
-  fn _visit_item(&mut self, item: &'a mut Item<'core>) {
+  fn _visit_item(&mut self, item: &'a mut Item) {
     match &mut item.kind {
       ItemKind::Fn(f) => {
         for p in &mut f.params {
@@ -317,92 +317,92 @@ pub trait VisitMut<'core, 'a> {
     }
   }
 
-  fn _visit_block(&mut self, block: &'a mut Block<'core>) {
+  fn _visit_block(&mut self, block: &'a mut Block) {
     for stmt in &mut block.stmts {
       self.visit_stmt(stmt);
     }
   }
 
-  fn _visit_generic_params(&mut self, generics: &'a mut GenericParams<'core>) {
+  fn _visit_generic_params(&mut self, generics: &'a mut GenericParams) {
     self.visit(generics.impls.iter_mut().map(|x| &mut x.trait_));
   }
 
-  fn _visit_generic_args(&mut self, generics: &'a mut GenericArgs<'core>) {
+  fn _visit_generic_args(&mut self, generics: &'a mut GenericArgs) {
     self.visit(&mut generics.types);
     self.visit(&mut generics.impls);
   }
 
-  fn visit(&mut self, visitee: impl Visitee<'core, 'a>) {
+  fn visit(&mut self, visitee: impl Visitee<'a>) {
     visitee.visit(self);
   }
 }
 
-pub trait Visitee<'core, 't>: Sized {
-  fn visit(self, visitor: &mut (impl VisitMut<'core, 't> + ?Sized));
+pub trait Visitee<'t>: Sized {
+  fn visit(self, visitor: &mut (impl VisitMut<'t> + ?Sized));
 }
 
-impl<'core: 't, 't> Visitee<'core, 't> for &'t mut Expr<'core> {
-  fn visit(self, visitor: &mut (impl VisitMut<'core, 't> + ?Sized)) {
+impl<'t> Visitee<'t> for &'t mut Expr {
+  fn visit(self, visitor: &mut (impl VisitMut<'t> + ?Sized)) {
     visitor.visit_expr(self)
   }
 }
 
-impl<'core: 't, 't> Visitee<'core, 't> for &'t mut Pat<'core> {
-  fn visit(self, visitor: &mut (impl VisitMut<'core, 't> + ?Sized)) {
+impl<'t> Visitee<'t> for &'t mut Pat {
+  fn visit(self, visitor: &mut (impl VisitMut<'t> + ?Sized)) {
     visitor.visit_pat(self)
   }
 }
 
-impl<'core: 't, 't> Visitee<'core, 't> for &'t mut Ty<'core> {
-  fn visit(self, visitor: &mut (impl VisitMut<'core, 't> + ?Sized)) {
+impl<'t> Visitee<'t> for &'t mut Ty {
+  fn visit(self, visitor: &mut (impl VisitMut<'t> + ?Sized)) {
     visitor.visit_type(self)
   }
 }
 
-impl<'core: 't, 't> Visitee<'core, 't> for &'t mut Impl<'core> {
-  fn visit(self, visitor: &mut (impl VisitMut<'core, 't> + ?Sized)) {
+impl<'t> Visitee<'t> for &'t mut Impl {
+  fn visit(self, visitor: &mut (impl VisitMut<'t> + ?Sized)) {
     visitor.visit_impl(self)
   }
 }
 
-impl<'core: 't, 't> Visitee<'core, 't> for &'t mut Trait<'core> {
-  fn visit(self, visitor: &mut (impl VisitMut<'core, 't> + ?Sized)) {
+impl<'t> Visitee<'t> for &'t mut Trait {
+  fn visit(self, visitor: &mut (impl VisitMut<'t> + ?Sized)) {
     visitor.visit_trait(self)
   }
 }
 
-impl<'core: 't, 't> Visitee<'core, 't> for &'t mut Stmt<'core> {
-  fn visit(self, visitor: &mut (impl VisitMut<'core, 't> + ?Sized)) {
+impl<'t> Visitee<'t> for &'t mut Stmt {
+  fn visit(self, visitor: &mut (impl VisitMut<'t> + ?Sized)) {
     visitor.visit_stmt(self)
   }
 }
 
-impl<'core: 't, 't> Visitee<'core, 't> for &'t mut Item<'core> {
-  fn visit(self, visitor: &mut (impl VisitMut<'core, 't> + ?Sized)) {
+impl<'t> Visitee<'t> for &'t mut Item {
+  fn visit(self, visitor: &mut (impl VisitMut<'t> + ?Sized)) {
     visitor.visit_item(self)
   }
 }
 
-impl<'core: 't, 't> Visitee<'core, 't> for &'t mut Block<'core> {
-  fn visit(self, visitor: &mut (impl VisitMut<'core, 't> + ?Sized)) {
+impl<'t> Visitee<'t> for &'t mut Block {
+  fn visit(self, visitor: &mut (impl VisitMut<'t> + ?Sized)) {
     visitor.visit_block(self)
   }
 }
 
-impl<'core: 't, 't> Visitee<'core, 't> for &'t mut GenericArgs<'core> {
-  fn visit(self, visitor: &mut (impl VisitMut<'core, 't> + ?Sized)) {
+impl<'t> Visitee<'t> for &'t mut GenericArgs {
+  fn visit(self, visitor: &mut (impl VisitMut<'t> + ?Sized)) {
     visitor.visit_generic_args(self)
   }
 }
 
-impl<'core: 't, 't> Visitee<'core, 't> for &'t mut GenericParams<'core> {
-  fn visit(self, visitor: &mut (impl VisitMut<'core, 't> + ?Sized)) {
+impl<'t> Visitee<'t> for &'t mut GenericParams {
+  fn visit(self, visitor: &mut (impl VisitMut<'t> + ?Sized)) {
     visitor.visit_generic_params(self)
   }
 }
 
-impl<'core: 't, 't, I: IntoIterator<Item = T>, T: Visitee<'core, 't>> Visitee<'core, 't> for I {
-  fn visit(self, visitor: &mut (impl VisitMut<'core, 't> + ?Sized)) {
+impl<'t, I: IntoIterator<Item = T>, T: Visitee<'t>> Visitee<'t> for I {
+  fn visit(self, visitor: &mut (impl VisitMut<'t> + ?Sized)) {
     for item in self {
       visitor.visit(item)
     }

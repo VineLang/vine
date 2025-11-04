@@ -6,6 +6,8 @@ use std::{
   str,
 };
 
+use vine_util::{idx::IdxVec, new_idx};
+
 use crate::{
   components::parser::VineParser,
   structures::{
@@ -13,32 +15,36 @@ use crate::{
       visit::{VisitMut, Visitee},
       Attr, AttrKind, Generics, Ident, Item, ItemKind, ModItem, ModKind, Span, Vis,
     },
-    core::Core,
-    diag::{Diag, FileInfo},
+    checkpoint::Checkpoint,
+    diag::{Diag, Diags, FileInfo},
   },
 };
 
-pub struct Loader<'core> {
-  core: &'core Core<'core>,
+new_idx!(pub FileId);
+
+pub struct Loader {
   cwd: PathBuf,
-  root: Vec<Item<'core>>,
+  root: Vec<Item>,
+  pub files: IdxVec<FileId, FileInfo>,
 }
 
-impl<'core> Loader<'core> {
-  pub fn new(core: &'core Core<'core>) -> Self {
-    Self { core, cwd: current_dir().unwrap(), root: Vec::new() }
+impl Default for Loader {
+  fn default() -> Self {
+    Self { cwd: current_dir().unwrap(), root: Vec::new(), files: Default::default() }
   }
+}
 
-  pub fn finish(&mut self) -> ModKind<'core> {
+impl Loader {
+  pub fn finish(&mut self) -> ModKind {
     ModKind::Loaded(Span::NONE, take(&mut self.root))
   }
 
-  pub fn load_main_mod(&mut self, path: &Path) {
-    self.load_mod(path);
+  pub fn load_main_mod(&mut self, path: &Path, diags: &mut Diags) {
+    self.load_mod(path, diags);
     self.root.last_mut().unwrap().attrs.push(Attr { span: Span::NONE, kind: AttrKind::Main });
   }
 
-  pub fn load_mod(&mut self, path: &Path) {
+  pub fn load_mod(&mut self, path: &Path, diags: &mut Diags) {
     let module = Item {
       span: Span::NONE,
       vis: Vis::Public,
@@ -46,41 +52,40 @@ impl<'core> Loader<'core> {
       kind: ItemKind::Mod(ModItem {
         name: self.auto_mod_name(path),
         generics: Generics::empty(Span::NONE),
-        kind: self.load_file(None, ModSpec::Explicit(path), Span::NONE),
+        kind: self.load_file(None, ModSpec::Explicit(path), Span::NONE, diags),
       }),
     };
     self.root.push(module);
   }
 
-  fn auto_mod_name(&self, path: &Path) -> Ident<'core> {
-    self.core.ident(str::from_utf8(path.file_stem().unwrap().as_encoded_bytes()).unwrap())
+  fn auto_mod_name(&self, path: &Path) -> Ident {
+    Ident(str::from_utf8(path.file_stem().unwrap().as_encoded_bytes()).unwrap().into())
   }
 
-  pub(crate) fn add_file(&mut self, path: Option<PathBuf>, name: String, src: &str) -> usize {
-    let mut files = self.core.files.borrow_mut();
-    let file = files.len();
-    files.push(FileInfo::new(path, name, src));
-    file
+  pub(crate) fn add_file(&mut self, path: Option<PathBuf>, name: String, src: &str) -> FileId {
+    self.files.push(FileInfo::new(path, name, src))
   }
 
   fn load_file(
     &mut self,
     base: Option<&Path>,
-    spec: ModSpec<'core, '_>,
+    spec: ModSpec<'_>,
     span: Span,
-  ) -> ModKind<'core> {
-    match self._load_file(base, spec, span) {
+    diags: &mut Diags,
+  ) -> ModKind {
+    match self._load_file(base, spec, span, diags) {
       Ok(mod_) => mod_,
-      Err(diag) => ModKind::Error(self.core.report(diag)),
+      Err(diag) => ModKind::Error(diags.report(diag)),
     }
   }
 
   fn _load_file(
     &mut self,
     base: Option<&Path>,
-    spec: ModSpec<'core, '_>,
+    spec: ModSpec<'_>,
     span: Span,
-  ) -> Result<ModKind<'core>, Diag<'core>> {
+    diags: &mut Diags,
+  ) -> Result<ModKind, Diag> {
     let ((src, file), path) = match (base, spec) {
       (None, ModSpec::Explicit(path)) => {
         let mut path = path.to_owned();
@@ -94,7 +99,6 @@ impl<'core> Loader<'core> {
         if !implicit_path_valid(base) {
           Err(Diag::DisallowedImplicitMod { span })?
         }
-        let name = name.0 .0;
         let mut path_1 = base.parent().unwrap().join(format!("{name}.vi"));
         let mut path_2 = base.parent().unwrap().join(format!("{name}/{name}.vi"));
         match (self.read_file(&mut path_1, span), self.read_file(&mut path_2, span)) {
@@ -102,8 +106,8 @@ impl<'core> Loader<'core> {
           (Ok(info), Err(_)) => (info, path_1),
           (Err(_), Ok(info)) => (info, path_2),
           (Err(diag_1), Err(diag_2)) => {
-            let err = self.core.report(diag_1);
-            self.core.report(diag_2);
+            let err = diags.report(diag_1);
+            diags.report(diag_2);
             Err(err)?
           }
         }
@@ -111,12 +115,12 @@ impl<'core> Loader<'core> {
       (None, ModSpec::Implicit(_)) => unreachable!(),
     };
 
-    let mut items = VineParser::parse(self.core, &src, file)?;
-    self.load_deps(&path, &mut items);
+    let mut items = VineParser::parse(&src, file)?;
+    self.load_deps(&path, &mut items, diags);
     Ok(ModKind::Loaded(span, items))
   }
 
-  fn read_file(&mut self, path: &mut PathBuf, span: Span) -> Result<(String, usize), Diag<'core>> {
+  fn read_file(&mut self, path: &mut PathBuf, span: Span) -> Result<(String, FileId), Diag> {
     self._read_file(path).map_err(|err| Diag::FsError {
       span,
       path: path.strip_prefix(&self.cwd).unwrap_or(&*path).to_owned(),
@@ -124,7 +128,7 @@ impl<'core> Loader<'core> {
     })
   }
 
-  fn _read_file(&mut self, path: &mut PathBuf) -> Result<(String, usize), io::Error> {
+  fn _read_file(&mut self, path: &mut PathBuf) -> Result<(String, FileId), io::Error> {
     let src = fs::read_to_string(&*path)?;
     *path = path.canonicalize()?;
     let name = path.strip_prefix(&self.cwd).unwrap_or(path).display().to_string();
@@ -132,27 +136,38 @@ impl<'core> Loader<'core> {
     Ok((src, file))
   }
 
-  pub(crate) fn load_deps<'t>(&mut self, base: &Path, visitee: impl Visitee<'core, 't>) {
-    LoadDeps { loader: self, base }.visit(visitee);
+  pub(crate) fn load_deps<'t>(
+    &mut self,
+    base: &Path,
+    visitee: impl Visitee<'t>,
+    diags: &mut Diags,
+  ) {
+    LoadDeps { loader: self, base, diags }.visit(visitee);
+  }
+
+  pub(crate) fn revert(&mut self, checkpoint: &Checkpoint) {
+    self.files.truncate(checkpoint.files.0);
   }
 }
 
-struct LoadDeps<'core, 'a> {
-  loader: &'a mut Loader<'core>,
+struct LoadDeps<'a> {
+  loader: &'a mut Loader,
   base: &'a Path,
+  diags: &'a mut Diags,
 }
 
-impl<'core> VisitMut<'core, '_> for LoadDeps<'core, '_> {
-  fn visit_item<'a>(&'a mut self, item: &mut Item<'core>) {
+impl VisitMut<'_> for LoadDeps<'_> {
+  fn visit_item(&mut self, item: &mut Item) {
     if let ItemKind::Mod(module) = &mut item.kind {
       if let ModKind::Unloaded(_, path) = &mut module.kind {
         module.kind = self.loader.load_file(
           Some(self.base),
           match &*path {
             Some(path) => ModSpec::Explicit(path.as_ref()),
-            None => ModSpec::Implicit(module.name),
+            None => ModSpec::Implicit(module.name.clone()),
           },
           item.span,
+          self.diags,
         );
         return;
       }
@@ -161,9 +176,9 @@ impl<'core> VisitMut<'core, '_> for LoadDeps<'core, '_> {
   }
 }
 
-enum ModSpec<'core, 'a> {
+enum ModSpec<'a> {
   Explicit(&'a Path),
-  Implicit(Ident<'core>),
+  Implicit(Ident),
 }
 
 fn implicit_path_valid(path: &Path) -> bool {

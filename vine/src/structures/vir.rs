@@ -11,8 +11,7 @@ use crate::{
   structures::{
     ast::Span,
     chart::{Chart, DefId, EnumId, GenericsId, StructId, VariantId},
-    core::Core,
-    diag::ErrorGuaranteed,
+    diag::{Diags, ErrorGuaranteed},
     resolutions::{ConstRelId, FnRelId, Rels},
     signatures::Signatures,
     tir::{ClosureId, Local},
@@ -30,10 +29,10 @@ impl LayerId {
 }
 
 #[derive(Debug, Clone)]
-pub struct Vir<'core> {
-  pub types: Types<'core>,
+pub struct Vir {
+  pub types: Types,
   pub locals: IdxVec<Local, VirLocal>,
-  pub rels: Rels<'core>,
+  pub rels: Rels,
   pub layers: IdxVec<LayerId, Layer>,
   pub interfaces: IdxVec<InterfaceId, Interface>,
   pub stages: IdxVec<StageId, Stage>,
@@ -340,19 +339,19 @@ pub struct VirLocal {
 }
 
 impl VirLocal {
-  pub fn new<'core>(
-    core: &'core Core<'core>,
-    chart: &Chart<'core>,
-    sigs: &Signatures<'core>,
+  pub fn new(
+    chart: &Chart,
+    sigs: &Signatures,
+    diags: &mut Diags,
     def: DefId,
     generics: GenericsId,
-    types: &mut Types<'core>,
-    rels: &mut Rels<'core>,
+    types: &mut Types,
+    rels: &mut Rels,
     span: Span,
     ty: Type,
   ) -> VirLocal {
     let flex =
-      Finder::new(core, chart, sigs, def, generics, span).find_flex(types, ty).unwrap_or_default();
+      Finder::new(chart, sigs, diags, def, generics, span).find_flex(types, ty).unwrap_or_default();
     VirLocal {
       span,
       ty,

@@ -16,8 +16,8 @@ use crate::{
   tools::fmt::{doc::Doc, Formatter},
 };
 
-impl<'core> VineParser<'core, '_> {
-  pub(crate) fn parse_expr_do(&mut self) -> Result<ExprKind<'core>, Diag<'core>> {
+impl VineParser<'_> {
+  pub(crate) fn parse_expr_do(&mut self) -> Result<ExprKind, Diag> {
     self.expect(Token::Do)?;
     let label = self.parse_label()?;
     let ty = self.parse_arrow_ty()?;
@@ -26,13 +26,8 @@ impl<'core> VineParser<'core, '_> {
   }
 }
 
-impl<'core: 'src, 'src> Formatter<'src> {
-  pub(crate) fn fmt_expr_do(
-    &self,
-    label: Label<'core>,
-    ty: &Option<Ty<'core>>,
-    body: &Block<'core>,
-  ) -> Doc<'src> {
+impl<'src> Formatter<'src> {
+  pub(crate) fn fmt_expr_do(&self, label: Label, ty: &Option<Ty>, body: &Block) -> Doc<'src> {
     Doc::concat([
       Doc("do"),
       self.fmt_label(label),
@@ -43,14 +38,14 @@ impl<'core: 'src, 'src> Formatter<'src> {
   }
 }
 
-impl<'core> Resolver<'core, '_> {
+impl Resolver<'_> {
   pub(crate) fn resolve_expr_do(
     &mut self,
     span: Span,
-    label: Label<'core>,
-    ty: &Option<Ty<'core>>,
-    block: &Block<'core>,
-  ) -> Result<TirExpr, Diag<'core>> {
+    label: Label,
+    ty: &Option<Ty>,
+    block: &Block,
+  ) -> Result<TirExpr, Diag> {
     let ty = self.resolve_arrow_ty(span, ty, true);
     let target_id = self.target_id.next();
     let block = self.bind_target(
@@ -63,7 +58,7 @@ impl<'core> Resolver<'core, '_> {
   }
 }
 
-impl<'core> Distiller<'core, '_> {
+impl Distiller<'_> {
   pub(crate) fn distill_do(
     &mut self,
     stage: &mut Stage,

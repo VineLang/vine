@@ -3,10 +3,9 @@ use std::mem::transmute;
 use vine_util::parser::{Parser, ParserState};
 
 use crate::{
-  components::lexer::Token,
+  components::{lexer::Token, loader::FileId},
   structures::{
     ast::{Key, Sign},
-    core::Core,
     diag::Diag,
   },
 };
@@ -16,15 +15,14 @@ use crate::structures::ast::{
   ItemKind, LogicalOp, Pat, PatKind, Span, Stmt, StmtKind, Trait, TraitKind, Ty, TyKind, Vis,
 };
 
-pub struct VineParser<'core, 'src> {
-  pub(crate) core: &'core Core<'core>,
+pub struct VineParser<'src> {
   pub(crate) state: ParserState<'src, Token>,
-  pub(crate) file: usize,
+  pub(crate) file: FileId,
 }
 
-impl<'core, 'src> Parser<'src> for VineParser<'core, 'src> {
+impl<'src> Parser<'src> for VineParser<'src> {
   type Token = Token;
-  type Error = Diag<'core>;
+  type Error = Diag;
 
   fn state(&mut self) -> &mut ParserState<'src, Self::Token> {
     &mut self.state
@@ -34,7 +32,7 @@ impl<'core, 'src> Parser<'src> for VineParser<'core, 'src> {
     Diag::LexError { span: self.span() }
   }
 
-  fn unexpected_error(&self) -> Diag<'core> {
+  fn unexpected_error(&self) -> Diag {
     Diag::UnexpectedToken {
       span: self.span(),
       expected: self.state.expected,
@@ -43,13 +41,9 @@ impl<'core, 'src> Parser<'src> for VineParser<'core, 'src> {
   }
 }
 
-impl<'core, 'src> VineParser<'core, 'src> {
-  pub fn parse(
-    core: &'core Core<'core>,
-    src: &'src str,
-    file: usize,
-  ) -> Result<Vec<Item<'core>>, Diag<'core>> {
-    let mut parser = VineParser { core, state: ParserState::new(src), file };
+impl<'src> VineParser<'src> {
+  pub fn parse(src: &'src str, file: FileId) -> Result<Vec<Item>, Diag> {
+    let mut parser = VineParser { state: ParserState::new(src), file };
     parser.bump()?;
     let mut items = Vec::new();
     while parser.state.token.is_some() {
@@ -58,11 +52,11 @@ impl<'core, 'src> VineParser<'core, 'src> {
     Ok(items)
   }
 
-  pub(crate) fn parse_item(&mut self) -> Result<Item<'core>, Diag<'core>> {
+  pub(crate) fn parse_item(&mut self) -> Result<Item, Diag> {
     self.maybe_parse_item()?.ok_or_else(|| self.unexpected_error())
   }
 
-  fn maybe_parse_item(&mut self) -> Result<Option<Item<'core>>, Diag<'core>> {
+  fn maybe_parse_item(&mut self) -> Result<Option<Item>, Diag> {
     let span = self.start_span();
     let mut attrs = Vec::new();
     while self.check(Token::Hash) {
@@ -86,7 +80,7 @@ impl<'core, 'src> VineParser<'core, 'src> {
     Ok(Some(Item { vis, span, attrs, kind }))
   }
 
-  pub(crate) fn parse_vis(&mut self) -> Result<Vis<'core>, Diag<'core>> {
+  pub(crate) fn parse_vis(&mut self) -> Result<Vis, Diag> {
     Ok(if self.eat(Token::Pub)? {
       if self.eat(Token::Dot)? {
         let span = self.start_span();
@@ -101,7 +95,7 @@ impl<'core, 'src> VineParser<'core, 'src> {
     })
   }
 
-  fn parse_attr(&mut self) -> Result<Attr<'core>, Diag<'core>> {
+  fn parse_attr(&mut self) -> Result<Attr, Diag> {
     let span = self.start_span();
     self.expect(Token::Hash)?;
     self.expect(Token::OpenBracket)?;
@@ -135,12 +129,12 @@ impl<'core, 'src> VineParser<'core, 'src> {
     Ok(Attr { span, kind })
   }
 
-  pub fn parse_ident(&mut self) -> Result<Ident<'core>, Diag<'core>> {
+  pub fn parse_ident(&mut self) -> Result<Ident, Diag> {
     let token = self.expect(Token::Ident)?;
-    Ok(self.core.ident(token))
+    Ok(Ident(token.into()))
   }
 
-  pub(crate) fn parse_flex(&mut self) -> Result<Flex, Diag<'core>> {
+  pub(crate) fn parse_flex(&mut self) -> Result<Flex, Diag> {
     if self.eat(Token::Plus)? {
       Ok(Flex::Fork)
     } else if self.eat(Token::Question)? {
@@ -152,15 +146,15 @@ impl<'core, 'src> VineParser<'core, 'src> {
     }
   }
 
-  pub(crate) fn parse_exprs(&mut self) -> Result<Vec<Expr<'core>>, Diag<'core>> {
+  pub(crate) fn parse_exprs(&mut self) -> Result<Vec<Expr>, Diag> {
     self.parse_delimited(PAREN_COMMA, Self::parse_expr)
   }
 
-  pub(crate) fn parse_expr(&mut self) -> Result<Expr<'core>, Diag<'core>> {
+  pub(crate) fn parse_expr(&mut self) -> Result<Expr, Diag> {
     self.parse_expr_bp(BP::Min)
   }
 
-  pub(crate) fn maybe_parse_expr_bp(&mut self, bp: BP) -> Result<Option<Expr<'core>>, Diag<'core>> {
+  pub(crate) fn maybe_parse_expr_bp(&mut self, bp: BP) -> Result<Option<Expr>, Diag> {
     let span = self.start_span();
     let Some(mut expr) = self.maybe_parse_expr_prefix()? else {
       return Ok(None);
@@ -173,14 +167,14 @@ impl<'core, 'src> VineParser<'core, 'src> {
     }
   }
 
-  pub(crate) fn parse_expr_bp(&mut self, bp: BP) -> Result<Expr<'core>, Diag<'core>> {
+  pub(crate) fn parse_expr_bp(&mut self, bp: BP) -> Result<Expr, Diag> {
     match self.maybe_parse_expr_bp(bp)? {
       Some(expr) => Ok(expr),
       None => self.unexpected(),
     }
   }
 
-  fn maybe_parse_expr_prefix(&mut self) -> Result<Option<Expr<'core>>, Diag<'core>> {
+  fn maybe_parse_expr_prefix(&mut self) -> Result<Option<Expr>, Diag> {
     let span = self.start_span();
     let Some(kind) = self._maybe_parse_expr_prefix(span)? else {
       return Ok(None);
@@ -189,10 +183,7 @@ impl<'core, 'src> VineParser<'core, 'src> {
     Ok(Some(Expr { span, kind: Box::new(kind) }))
   }
 
-  fn _maybe_parse_expr_prefix(
-    &mut self,
-    span: usize,
-  ) -> Result<Option<ExprKind<'core>>, Diag<'core>> {
+  fn _maybe_parse_expr_prefix(&mut self, span: usize) -> Result<Option<ExprKind>, Diag> {
     if self.check(Token::And) || self.check(Token::AndAnd) {
       return Ok(Some(self.parse_expr_ref(span)?));
     }
@@ -274,11 +265,7 @@ impl<'core, 'src> VineParser<'core, 'src> {
     Ok(None)
   }
 
-  fn parse_expr_postfix(
-    &mut self,
-    lhs: Expr<'core>,
-    bp: BP,
-  ) -> Result<Result<ExprKind<'core>, Expr<'core>>, Diag<'core>> {
+  fn parse_expr_postfix(&mut self, lhs: Expr, bp: BP) -> Result<Result<ExprKind, Expr>, Diag> {
     for &(lbp, associativity, token, op) in BINARY_OP_TABLE {
       let rbp = match associativity {
         Associativity::Left => lbp.inc(),
@@ -395,15 +382,15 @@ impl<'core, 'src> VineParser<'core, 'src> {
     Ok(Err(lhs))
   }
 
-  pub(crate) fn parse_pats(&mut self) -> Result<Vec<Pat<'core>>, Diag<'core>> {
+  pub(crate) fn parse_pats(&mut self) -> Result<Vec<Pat>, Diag> {
     self.parse_delimited(PAREN_COMMA, Self::parse_pat)
   }
 
-  pub(crate) fn parse_pat(&mut self) -> Result<Pat<'core>, Diag<'core>> {
+  pub(crate) fn parse_pat(&mut self) -> Result<Pat, Diag> {
     self.parse_pat_bp(BP::Min)
   }
 
-  pub(crate) fn parse_pat_bp(&mut self, bp: BP) -> Result<Pat<'core>, Diag<'core>> {
+  pub(crate) fn parse_pat_bp(&mut self, bp: BP) -> Result<Pat, Diag> {
     let span = self.start_span();
     let mut pat = self.parse_pat_prefix()?;
     loop {
@@ -414,14 +401,14 @@ impl<'core, 'src> VineParser<'core, 'src> {
     }
   }
 
-  fn parse_pat_prefix(&mut self) -> Result<Pat<'core>, Diag<'core>> {
+  fn parse_pat_prefix(&mut self) -> Result<Pat, Diag> {
     let span = self.start_span();
     let kind = self._parse_pat_prefix(span)?;
     let span = self.end_span(span);
     Ok(Pat { span, kind: Box::new(kind) })
   }
 
-  fn _parse_pat_prefix(&mut self, span: usize) -> Result<PatKind<'core>, Diag<'core>> {
+  fn _parse_pat_prefix(&mut self, span: usize) -> Result<PatKind, Diag> {
     if self.eat(Token::Hole)? {
       return Ok(PatKind::Hole);
     }
@@ -446,11 +433,7 @@ impl<'core, 'src> VineParser<'core, 'src> {
     self.unexpected()
   }
 
-  fn parse_pat_postfix(
-    &mut self,
-    lhs: Pat<'core>,
-    bp: BP,
-  ) -> Result<Result<PatKind<'core>, Pat<'core>>, Diag<'core>> {
+  fn parse_pat_postfix(&mut self, lhs: Pat, bp: BP) -> Result<Result<PatKind, Pat>, Diag> {
     if bp.permits(BP::Annotation) && self.eat(Token::Colon)? {
       let ty = self.parse_ty()?;
       return Ok(Ok(PatKind::Annotation(lhs, ty)));
@@ -458,14 +441,14 @@ impl<'core, 'src> VineParser<'core, 'src> {
     Ok(Err(lhs))
   }
 
-  pub(crate) fn parse_ty(&mut self) -> Result<Ty<'core>, Diag<'core>> {
+  pub(crate) fn parse_ty(&mut self) -> Result<Ty, Diag> {
     let span = self.start_span();
     let kind = self._parse_ty(span)?;
     let span = self.end_span(span);
     Ok(Ty { span, kind: Box::new(kind) })
   }
 
-  fn _parse_ty(&mut self, span: usize) -> Result<TyKind<'core>, Diag<'core>> {
+  fn _parse_ty(&mut self, span: usize) -> Result<TyKind, Diag> {
     if self.eat(Token::Hole)? {
       return Ok(TyKind::Hole);
     }
@@ -493,18 +476,18 @@ impl<'core, 'src> VineParser<'core, 'src> {
     self.unexpected()
   }
 
-  pub(crate) fn parse_arrow_ty(&mut self) -> Result<Option<Ty<'core>>, Diag<'core>> {
+  pub(crate) fn parse_arrow_ty(&mut self) -> Result<Option<Ty>, Diag> {
     self.eat_then(Token::ThinArrow, Self::parse_ty)
   }
 
-  pub(crate) fn parse_impl(&mut self) -> Result<Impl<'core>, Diag<'core>> {
+  pub(crate) fn parse_impl(&mut self) -> Result<Impl, Diag> {
     let span = self.start_span();
     let kind = self._parse_impl()?;
     let span = self.end_span(span);
     Ok(Impl { span, kind: Box::new(kind) })
   }
 
-  fn _parse_impl(&mut self) -> Result<ImplKind<'core>, Diag<'core>> {
+  fn _parse_impl(&mut self) -> Result<ImplKind, Diag> {
     if self.eat(Token::Hole)? {
       return Ok(ImplKind::Hole);
     }
@@ -517,14 +500,14 @@ impl<'core, 'src> VineParser<'core, 'src> {
     self.unexpected()
   }
 
-  pub(crate) fn parse_trait(&mut self) -> Result<Trait<'core>, Diag<'core>> {
+  pub(crate) fn parse_trait(&mut self) -> Result<Trait, Diag> {
     let span = self.start_span();
     let kind = self._parse_trait()?;
     let span = self.end_span(span);
     Ok(Trait { span, kind: Box::new(kind) })
   }
 
-  fn _parse_trait(&mut self) -> Result<TraitKind<'core>, Diag<'core>> {
+  fn _parse_trait(&mut self) -> Result<TraitKind, Diag> {
     if self.check(Token::ColonColon) || self.check(Token::Ident) {
       return Ok(TraitKind::Path(self.parse_path()?));
     }
@@ -537,14 +520,14 @@ impl<'core, 'src> VineParser<'core, 'src> {
     self.unexpected()
   }
 
-  pub(crate) fn parse_stmt(&mut self) -> Result<Stmt<'core>, Diag<'core>> {
+  pub(crate) fn parse_stmt(&mut self) -> Result<Stmt, Diag> {
     let span = self.start_span();
     let kind = self._parse_stmt()?;
     let span = self.end_span(span);
     Ok(Stmt { span, kind })
   }
 
-  fn _parse_stmt(&mut self) -> Result<StmtKind<'core>, Diag<'core>> {
+  fn _parse_stmt(&mut self) -> Result<StmtKind, Diag> {
     if self.check(Token::Let) {
       return self.parse_stmt_let();
     }

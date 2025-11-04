@@ -50,8 +50,8 @@ pub enum Builtin {
   DebugState,
 }
 
-impl<'core> VineParser<'core, '_> {
-  pub(crate) fn parse_builtin(&mut self) -> Result<Builtin, Diag<'core>> {
+impl VineParser<'_> {
+  pub(crate) fn parse_builtin(&mut self) -> Result<Builtin, Diag> {
     let span = self.start_span();
     let builtin = self.parse_string()?;
     let span = self.end_span(span);
@@ -157,7 +157,7 @@ pub struct Builtins {
   pub debug_state: Option<FnId>,
 }
 
-impl<'core> Charter<'core, '_> {
+impl Charter<'_> {
   pub(crate) fn chart_builtin(&mut self, def_id: Option<DefId>, builtin: Builtin) -> bool {
     let Some(def_id) = def_id else { return false };
     let def = &mut self.chart.defs[def_id];

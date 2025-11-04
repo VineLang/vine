@@ -16,12 +16,12 @@ use crate::{
   tools::fmt::{doc::Doc, Formatter},
 };
 
-impl<'core> VineParser<'core, '_> {
-  pub(crate) fn parse_label(&mut self) -> Result<Label<'core>, Diag<'core>> {
+impl VineParser<'_> {
+  pub(crate) fn parse_label(&mut self) -> Result<Label, Diag> {
     Ok(Label(self.eat_then(Token::Dot, Self::parse_ident)?))
   }
 
-  pub(crate) fn parse_target(&mut self) -> Result<Target<'core>, Diag<'core>> {
+  pub(crate) fn parse_target(&mut self) -> Result<Target, Diag> {
     Ok(if self.eat(Token::Dot)? {
       if self.eat(Token::Do)? {
         Target::Do
@@ -41,22 +41,22 @@ impl<'core> VineParser<'core, '_> {
     })
   }
 
-  pub(crate) fn parse_stmt_break(&mut self) -> Result<StmtKind<'core>, Diag<'core>> {
+  pub(crate) fn parse_stmt_break(&mut self) -> Result<StmtKind, Diag> {
     let target = self.parse_target()?;
     let expr = self.maybe_parse_expr_bp(BP::Min)?;
     self.eat(Token::Semi)?;
     Ok(StmtKind::Break(target, expr))
   }
 
-  pub(crate) fn parse_stmt_continue(&mut self) -> Result<StmtKind<'core>, Diag<'core>> {
+  pub(crate) fn parse_stmt_continue(&mut self) -> Result<StmtKind, Diag> {
     let target = self.parse_target()?;
     self.eat(Token::Semi)?;
     Ok(StmtKind::Continue(target))
   }
 }
 
-impl<'core: 'src, 'src> Formatter<'src> {
-  pub(crate) fn fmt_label(&self, label: Label<'core>) -> Doc<'src> {
+impl<'src> Formatter<'src> {
+  pub(crate) fn fmt_label(&self, label: Label) -> Doc<'src> {
     if let Some(label) = label.0 {
       Doc::concat([Doc("."), Doc(label)])
     } else {
@@ -64,7 +64,7 @@ impl<'core: 'src, 'src> Formatter<'src> {
     }
   }
 
-  pub(crate) fn fmt_target(&self, target: Target<'core>) -> Doc<'src> {
+  pub(crate) fn fmt_target(&self, target: Target) -> Doc<'src> {
     match target {
       Target::AnyLoop => Doc(""),
       Target::Label(label) => Doc::concat([Doc("."), Doc(label)]),
@@ -76,11 +76,7 @@ impl<'core: 'src, 'src> Formatter<'src> {
     }
   }
 
-  pub(crate) fn fmt_stmt_break(
-    &self,
-    target: Target<'core>,
-    expr: &Option<Expr<'core>>,
-  ) -> Doc<'src> {
+  pub(crate) fn fmt_stmt_break(&self, target: Target, expr: &Option<Expr>) -> Doc<'src> {
     match expr {
       Some(expr) => Doc::concat([
         Doc("break"),
@@ -93,16 +89,16 @@ impl<'core: 'src, 'src> Formatter<'src> {
     }
   }
 
-  pub(crate) fn fmt_stmt_continue(&self, target: Target<'core>) -> Doc<'src> {
+  pub(crate) fn fmt_stmt_continue(&self, target: Target) -> Doc<'src> {
     Doc::concat([Doc("continue"), self.fmt_target(target), Doc(";")])
   }
 }
 
-impl<'core> Resolver<'core, '_> {
+impl Resolver<'_> {
   pub(crate) fn bind_target<T>(
     &mut self,
-    label: Label<'core>,
-    targets: impl IntoIterator<IntoIter: Clone, Item = Target<'core>>,
+    label: Label,
+    targets: impl IntoIterator<IntoIter: Clone, Item = Target>,
     kind: TargetInfo,
     f: impl FnOnce(&mut Self) -> T,
   ) -> T {
@@ -120,9 +116,9 @@ impl<'core> Resolver<'core, '_> {
   pub(crate) fn resolve_expr_break(
     &mut self,
     span: Span,
-    target: Target<'core>,
-    value: &Option<Expr<'core>>,
-  ) -> Result<TirExpr, Diag<'core>> {
+    target: Target,
+    value: &Option<Expr>,
+  ) -> Result<TirExpr, Diag> {
     let nil = self.types.nil();
     match self.targets.get(&target).and_then(|x| x.last()) {
       Some(&target) => {
@@ -130,7 +126,7 @@ impl<'core> Resolver<'core, '_> {
           Some(value) => Some(self.resolve_expr_type(value, target.break_ty)),
           None => {
             if self.types.unify(target.break_ty, nil).is_failure() {
-              self.core.report(Diag::MissingBreakExpr {
+              self.diags.report(Diag::MissingBreakExpr {
                 span,
                 ty: self.types.show(self.chart, target.break_ty),
               });
@@ -152,8 +148,8 @@ impl<'core> Resolver<'core, '_> {
   pub(crate) fn resolve_expr_continue(
     &mut self,
     span: Span,
-    target: Target<'core>,
-  ) -> Result<TirExpr, Diag<'core>> {
+    target: Target,
+  ) -> Result<TirExpr, Diag> {
     match self.targets.get(&target).and_then(|x| x.last()) {
       Some(target) if target.continue_ => {
         Ok(TirExpr::new(span, self.types.new_var(span), TirExprKind::Continue(target.id)))
@@ -163,7 +159,7 @@ impl<'core> Resolver<'core, '_> {
   }
 }
 
-impl<'core> Distiller<'core, '_> {
+impl Distiller<'_> {
   pub(crate) fn distill_break(
     &mut self,
     stage: &mut Stage,

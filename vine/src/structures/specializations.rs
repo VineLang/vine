@@ -14,32 +14,32 @@ use crate::{
 };
 
 #[derive(Debug, Default)]
-pub struct Specializations<'core> {
-  pub lookup: IdxVec<FragmentId, HashMap<Vec<ImplTree<'core>>, SpecId>>,
-  pub specs: IdxVec<SpecId, Option<Spec<'core>>>,
-  pub synthetic: HashMap<(SyntheticItem<'core>, Vec<ImplTree<'core>>), SpecId>,
+pub struct Specializations {
+  pub lookup: IdxVec<FragmentId, HashMap<Vec<ImplTree>, SpecId>>,
+  pub specs: IdxVec<SpecId, Option<Spec>>,
+  pub synthetic: HashMap<(SyntheticItem, Vec<ImplTree>), SpecId>,
 }
 
-impl<'core> Specializations<'core> {
-  pub fn spec(&self, spec_id: SpecId) -> &Spec<'core> {
+impl Specializations {
+  pub fn spec(&self, spec_id: SpecId) -> &Spec {
     self.specs[spec_id].as_ref().unwrap()
   }
 }
 
 new_idx!(pub SpecId);
 #[derive(Debug)]
-pub struct Spec<'core> {
-  pub path: &'core str,
+pub struct Spec {
+  pub path: String,
   pub index: usize,
   pub singular: bool,
   pub rels: SpecRels,
-  pub kind: SpecKind<'core>,
+  pub kind: SpecKind,
 }
 
 #[derive(Debug)]
-pub enum SpecKind<'core> {
+pub enum SpecKind {
   Fragment(FragmentId),
-  Synthetic(SyntheticItem<'core>),
+  Synthetic(SyntheticItem),
 }
 
 #[derive(Debug, Default)]
@@ -49,12 +49,12 @@ pub struct SpecRels {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub enum ImplTree<'core> {
+pub enum ImplTree {
   Error(ErrorGuaranteed),
-  Def(ImplId, Vec<ImplTree<'core>>),
-  Fn(FnId, Vec<ImplTree<'core>>, usize),
-  Closure(FragmentId, Vec<ImplTree<'core>>, ClosureId, usize),
-  ForkClosure(FragmentId, Vec<ImplTree<'core>>, ClosureId),
-  DropClosure(FragmentId, Vec<ImplTree<'core>>, ClosureId),
-  Synthetic(SyntheticImpl<'core>),
+  Def(ImplId, Vec<ImplTree>),
+  Fn(FnId, Vec<ImplTree>, usize),
+  Closure(FragmentId, Vec<ImplTree>, ClosureId, usize),
+  ForkClosure(FragmentId, Vec<ImplTree>, ClosureId),
+  DropClosure(FragmentId, Vec<ImplTree>, ClosureId),
+  Synthetic(SyntheticImpl),
 }

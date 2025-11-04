@@ -11,8 +11,8 @@ use crate::{
   },
   structures::{
     ast::{
-      Attr, ConstItem, Flex, FnItem, GenericParams, ImplItem, ImplItemKind, ItemKind, Path, Span,
-      Vis,
+      Attr, ConstItem, Flex, FnItem, GenericParams, Ident, ImplItem, ImplItemKind, ItemKind, Path,
+      Span, Vis,
     },
     chart::{
       ConcreteConstDef, ConcreteConstId, ConcreteFnDef, ConcreteFnId, ConstId, DefId, DefImplKind,
@@ -28,8 +28,8 @@ use crate::{
   tools::fmt::{doc::Doc, Formatter},
 };
 
-impl<'core> VineParser<'core, '_> {
-  pub(crate) fn parse_impl_item(&mut self) -> Result<ImplItem<'core>, Diag<'core>> {
+impl VineParser<'_> {
+  pub(crate) fn parse_impl_item(&mut self) -> Result<ImplItem, Diag> {
     self.expect(Token::Impl)?;
     let name = self.parse_ident()?;
     let generics = self.parse_generic_params()?;
@@ -47,11 +47,11 @@ impl<'core> VineParser<'core, '_> {
   }
 }
 
-impl<'core: 'src, 'src> Formatter<'src> {
-  pub(crate) fn fmt_impl_item(&self, span: Span, i: &ImplItem<'core>) -> Doc<'src> {
+impl<'src> Formatter<'src> {
+  pub(crate) fn fmt_impl_item(&self, span: Span, i: &ImplItem) -> Doc<'src> {
     Doc::concat([
       Doc("impl "),
-      Doc(i.name),
+      Doc(i.name.clone()),
       self.fmt_generic_params(&i.generics),
       Doc(": "),
       self.fmt_trait(&i.trait_),
@@ -69,7 +69,7 @@ impl<'core: 'src, 'src> Formatter<'src> {
   }
 }
 
-impl<'core> Charter<'core, '_> {
+impl Charter<'_> {
   pub(crate) fn chart_impl(
     &mut self,
     parent: DefId,
@@ -77,7 +77,7 @@ impl<'core> Charter<'core, '_> {
     span: Span,
     vis: DefId,
     member_vis: DefId,
-    impl_item: ImplItem<'core>,
+    impl_item: ImplItem,
   ) -> DefId {
     let def = self.chart_child(parent, impl_item.name, member_vis, true);
     let generics = self.chart_generics(def, parent_generics, impl_item.generics, true);
@@ -90,7 +90,7 @@ impl<'core> Charter<'core, '_> {
           }
           let span = subitem.span;
           if !matches!(subitem.vis, Vis::Private) {
-            self.core.report(Diag::ImplItemVis { span });
+            self.diags.report(Diag::ImplItemVis { span });
           }
           match subitem.kind {
             ItemKind::Const(const_item) => subitems.push(self.chart_impl_const(
@@ -105,7 +105,7 @@ impl<'core> Charter<'core, '_> {
               subitems.push(self.chart_impl_fn(vis, def, generics, span, subitem.attrs, fn_item))
             }
             _ => {
-              self.core.report(Diag::InvalidImplItem { span });
+              self.diags.report(Diag::InvalidImplItem { span });
             }
           }
         }
@@ -132,17 +132,17 @@ impl<'core> Charter<'core, '_> {
     parent_def: DefId,
     parent_generics: GenericsId,
     span: Span,
-    attrs: Vec<Attr<'core>>,
-    mut fn_item: FnItem<'core>,
-  ) -> ImplSubitem<'core> {
+    attrs: Vec<Attr>,
+    mut fn_item: FnItem,
+  ) -> ImplSubitem {
     if fn_item.method {
-      self.core.report(Diag::ImplItemMethod { span });
+      self.diags.report(Diag::ImplItemMethod { span });
     }
     if fn_item.generics.inherit {
-      self.core.report(Diag::ImplItemInheritGen { span });
+      self.diags.report(Diag::ImplItemInheritGen { span });
     }
     fn_item.generics.inherit = true;
-    let def = self.chart_child(parent_def, fn_item.name, vis, false);
+    let def = self.chart_child(parent_def, fn_item.name.clone(), vis, false);
     let generics = self.chart_generics(def, parent_generics, fn_item.generics, true);
     let body = self.ensure_implemented(span, fn_item.body);
     let fn_id = self.chart.concrete_fns.push(ConcreteFnDef {
@@ -166,14 +166,14 @@ impl<'core> Charter<'core, '_> {
     parent_def: DefId,
     parent_generics: GenericsId,
     span: Span,
-    attrs: Vec<Attr<'core>>,
-    mut const_item: ConstItem<'core>,
-  ) -> ImplSubitem<'core> {
+    attrs: Vec<Attr>,
+    mut const_item: ConstItem,
+  ) -> ImplSubitem {
     if const_item.generics.inherit {
-      self.core.report(Diag::ImplItemInheritGen { span });
+      self.diags.report(Diag::ImplItemInheritGen { span });
     }
     const_item.generics.inherit = true;
-    let def = self.chart_child(parent_def, const_item.name, vis, false);
+    let def = self.chart_child(parent_def, const_item.name.clone(), vis, false);
     let generics = self.chart_generics(def, parent_generics, const_item.generics, true);
     let value = self.ensure_implemented(span, const_item.value);
     let const_id = self.chart.concrete_consts.push(ConcreteConstDef {
@@ -199,7 +199,7 @@ impl<'core> Charter<'core, '_> {
     flex: Flex,
   ) {
     if flex.fork() {
-      let def = self.chart_child(ty_def, self.core.ident("fork"), member_vis, false);
+      let def = self.chart_child(ty_def, Ident("fork".into()), member_vis, false);
       let _generic_params = GenericParams { inherit: true, ..GenericParams::empty(span) };
       let generics = self._chart_generics(def, ty_generics, _generic_params, true, Flex::Fork);
       let impl_ = self.chart.impls.push(ImplDef {
@@ -214,7 +214,7 @@ impl<'core> Charter<'core, '_> {
       self.define_impl(span, def, vis, DefImplKind::Impl(impl_));
     }
     if flex.drop() {
-      let def = self.chart_child(ty_def, self.core.ident("drop"), member_vis, false);
+      let def = self.chart_child(ty_def, Ident("drop".into()), member_vis, false);
       let _generic_params = GenericParams { inherit: true, ..GenericParams::empty(span) };
       let generics = self._chart_generics(def, ty_generics, _generic_params, true, Flex::Drop);
       let impl_ = self.chart.impls.push(ImplDef {
@@ -231,7 +231,7 @@ impl<'core> Charter<'core, '_> {
   }
 }
 
-impl<'core> Resolver<'core, '_> {
+impl Resolver<'_> {
   pub(crate) fn resolve_impl_sig(&mut self, impl_id: ImplId) {
     let impl_def = &self.chart.impls[impl_id];
     let span = impl_def.span;
@@ -264,7 +264,7 @@ impl<'core> Resolver<'core, '_> {
           .params
           .iter()
           .enumerate()
-          .map(|(i, &name)| self.types.new(TypeKind::Param(i, name))),
+          .map(|(i, name)| self.types.new(TypeKind::Param(i, name.clone()))),
       );
       ImplType::Trait(
         trait_id,
@@ -275,7 +275,7 @@ impl<'core> Resolver<'core, '_> {
         }],
       )
     } else {
-      ImplType::Error(self.core.report(Diag::MissingBuiltin { span, builtin }))
+      ImplType::Error(self.diags.report(Diag::MissingBuiltin { span, builtin }))
     }
   }
 
@@ -300,7 +300,9 @@ impl<'core> Resolver<'core, '_> {
               if trait_def.consts.values().all(|x| x.name != item.name)
                 && trait_def.fns.values().all(|x| x.name != item.name)
               {
-                self.core.report(Diag::ExtraneousImplItem { span: item.span, name: item.name });
+                self
+                  .diags
+                  .report(Diag::ExtraneousImplItem { span: item.span, name: item.name.clone() });
               }
             }
             ResolvedImplKind::Direct { fns, consts }
@@ -330,7 +332,7 @@ impl<'core> Resolver<'core, '_> {
     let become_ = match self._resolve_impl_become(impl_id, trait_id, impl_def) {
       Ok(become_) => Become::Resolved(become_),
       Err(diag) => {
-        self.core.report(diag);
+        self.diags.report(diag);
         Become::Resolved(None)
       }
     };
@@ -343,8 +345,8 @@ impl<'core> Resolver<'core, '_> {
     &mut self,
     impl_id: ImplId,
     trait_id: TraitId,
-    impl_def: &ImplDef<'core>,
-  ) -> Result<Option<(ImplId, Vec<usize>)>, Diag<'core>> {
+    impl_def: &ImplDef,
+  ) -> Result<Option<(ImplId, Vec<usize>)>, Diag> {
     let necessary_params = self.sigs.impl_params[impl_def.generics]
       .types
       .inner
@@ -401,20 +403,20 @@ impl<'core> Resolver<'core, '_> {
   fn resolve_impl_subitem_fn(
     &mut self,
     span: Span,
-    subitems: &[ImplSubitem<'core>],
+    subitems: &[ImplSubitem],
     type_params: &[Type],
     trait_id: TraitId,
     trait_fn_id: TraitFnId,
   ) -> Result<ConcreteFnId, ErrorGuaranteed> {
     let trait_fn = &self.chart.traits[trait_id].fns[trait_fn_id];
-    let name = trait_fn.name;
+    let name = trait_fn.name.clone();
     let trait_generics = trait_fn.generics;
     let Some(subitem) = subitems.iter().find(|i| i.name == name) else {
-      return Err(self.core.report(Diag::IncompleteImpl { span, name }));
+      return Err(self.diags.report(Diag::IncompleteImpl { span, name }));
     };
     let span = subitem.span;
     let ImplSubitemKind::Fn(fn_id) = subitem.kind else {
-      return Err(self.core.report(Diag::WrongImplSubitemKind { span, expected: "fn" }));
+      return Err(self.diags.report(Diag::WrongImplSubitemKind { span, expected: "fn" }));
     };
     let impl_generics = self.chart.concrete_fns[fn_id].generics;
     let type_params =
@@ -422,27 +424,27 @@ impl<'core> Resolver<'core, '_> {
     let expected =
       self.types.import(&self.sigs.traits[trait_id].fns[trait_fn_id], Some(&type_params));
     let found = self.types.import(&self.sigs.concrete_fns[fn_id], None);
-    Self::expect_fn_sig(self.core, self.chart, &mut self.types, span, expected, found);
+    Self::expect_fn_sig(self.diags, self.chart, &mut self.types, span, expected, found);
     Ok(fn_id)
   }
 
   fn resolve_impl_subitem_const(
     &mut self,
     span: Span,
-    subitems: &[ImplSubitem<'core>],
+    subitems: &[ImplSubitem],
     type_params: &[Type],
     trait_id: TraitId,
     trait_const_id: TraitConstId,
   ) -> Result<ConcreteConstId, ErrorGuaranteed> {
     let trait_const = &self.chart.traits[trait_id].consts[trait_const_id];
-    let name = trait_const.name;
+    let name = trait_const.name.clone();
     let trait_generics = trait_const.generics;
     let Some(subitem) = subitems.iter().find(|i| i.name == name) else {
-      return Err(self.core.report(Diag::IncompleteImpl { span, name }));
+      return Err(self.diags.report(Diag::IncompleteImpl { span, name }));
     };
     let span = subitem.span;
     let ImplSubitemKind::Const(const_id) = subitem.kind else {
-      return Err(self.core.report(Diag::WrongImplSubitemKind { span, expected: "const" }));
+      return Err(self.diags.report(Diag::WrongImplSubitemKind { span, expected: "const" }));
     };
     let impl_generics = self.chart.concrete_consts[const_id].generics;
     let type_params =
@@ -452,7 +454,7 @@ impl<'core> Resolver<'core, '_> {
     let const_sig = &self.sigs.concrete_consts[const_id];
     let found_ty = self.types.import(const_sig, None).ty;
     if self.types.unify(expected_ty, found_ty).is_failure() {
-      self.core.report(Diag::ExpectedTypeFound {
+      self.diags.report(Diag::ExpectedTypeFound {
         span,
         expected: self.types.show(self.chart, expected_ty),
         found: self.types.show(self.chart, found_ty),
@@ -479,13 +481,16 @@ impl<'core> Resolver<'core, '_> {
     let expected = trait_item_params - trait_params;
     let found = impl_item_params - impl_params;
     if found != expected {
-      Err(self.core.report(Diag::ExpectedImplItemTypeParams { span, expected, found }))?;
+      Err(self.diags.report(Diag::ExpectedImplItemTypeParams { span, expected, found }))?;
     }
 
-    let type_params =
-      Vec::from_iter(type_params.iter().copied().chain((impl_params..impl_params + expected).map(
-        |i| self.types.new(TypeKind::Param(i, self.sigs.type_params[impl_item_generics].params[i])),
-      )));
+    let type_params = Vec::from_iter(type_params.iter().copied().chain(
+      (impl_params..impl_params + expected).map(|i| {
+        self
+          .types
+          .new(TypeKind::Param(i, self.sigs.type_params[impl_item_generics].params[i].clone()))
+      }),
+    ));
 
     let impl_params = self.sigs.impl_params[impl_generics].types.inner.len();
     let impl_item_params = self.sigs.impl_params[impl_item_generics].types.inner.len();
@@ -495,7 +500,7 @@ impl<'core> Resolver<'core, '_> {
     let expected = trait_item_params - trait_params;
     let found = impl_item_params - impl_params;
     if found != expected {
-      Err(self.core.report(Diag::ExpectedImplItemImplParams { span, expected, found }))?;
+      Err(self.diags.report(Diag::ExpectedImplItemImplParams { span, expected, found }))?;
     }
 
     let trait_item_params =
@@ -506,7 +511,7 @@ impl<'core> Resolver<'core, '_> {
       trait_item_params[trait_params..].iter().zip(&impl_item_params[impl_params..])
     {
       if self.types.unify_impl_type(expected, found).is_failure() {
-        Err(self.core.report(Diag::ExpectedImplItemImplParam {
+        Err(self.diags.report(Diag::ExpectedImplItemImplParam {
           span,
           expected: self.types.show_impl_type(self.chart, expected),
           found: self.types.show_impl_type(self.chart, found),
@@ -518,10 +523,10 @@ impl<'core> Resolver<'core, '_> {
 
   pub(crate) fn resolve_impl_path_impl(
     &mut self,
-    path: &Path<'core>,
+    path: &Path,
     impl_id: ImplId,
     ty: &ImplType,
-  ) -> TirImpl<'core> {
+  ) -> TirImpl {
     let generics_id = self.chart.impls[impl_id].generics;
     let type_params =
       self.types.new_vars(path.span, self.sigs.type_params[generics_id].params.len());
@@ -537,7 +542,7 @@ impl<'core> Resolver<'core, '_> {
     );
     let actual_ty = self.types.import(&self.sigs.impls[impl_id], Some(&type_params)).ty;
     if self.types.unify_impl_type(&actual_ty, ty).is_failure() {
-      self.core.report(Diag::ExpectedTypeFound {
+      self.diags.report(Diag::ExpectedTypeFound {
         span: path.span,
         expected: self.types.show_impl_type(self.chart, ty),
         found: self.types.show_impl_type(self.chart, &actual_ty),

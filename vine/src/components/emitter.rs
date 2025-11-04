@@ -7,7 +7,7 @@ use crate::{
   features::local::LocalEmissionState,
   structures::{
     chart::Chart,
-    core::Core,
+    diag::Diags,
     resolutions::{ConstRelId, FnRelId, Fragment},
     specializations::Specializations,
     template::{Template, TemplateStage, TemplateStageRels},
@@ -16,16 +16,17 @@ use crate::{
   },
 };
 
-pub fn emit<'core>(
-  core: &'core Core<'core>,
-  chart: &Chart<'core>,
-  fragment: &Fragment<'core>,
-  vir: &Vir<'core>,
-  specs: &mut Specializations<'core>,
+pub fn emit(
+  debug: bool,
+  chart: &Chart,
+  diags: &mut Diags,
+  fragment: &Fragment,
+  vir: &Vir,
+  specs: &mut Specializations,
 ) -> Template {
   let mut emitter = Emitter {
-    core,
     chart,
+    diags,
     fragment,
     vir,
     specs,
@@ -34,27 +35,29 @@ pub fn emit<'core>(
     wire_offset: 0,
     wires: Counter::default(),
     rels: TemplateStageRels::default(),
-    debug: None,
+    debug_state: None,
+    debug,
   };
 
   Template { stages: IdxVec::from_iter(vir.stages.values().map(|stage| emitter.emit_stage(stage))) }
 }
 
-pub(crate) struct Emitter<'core, 'a> {
-  pub(crate) core: &'core Core<'core>,
-  pub(crate) chart: &'a Chart<'core>,
-  pub(crate) fragment: &'a Fragment<'core>,
-  pub(crate) vir: &'a Vir<'core>,
-  pub(crate) specs: &'a mut Specializations<'core>,
+pub(crate) struct Emitter<'a> {
+  pub(crate) chart: &'a Chart,
+  pub(crate) diags: &'a mut Diags,
+  pub(crate) fragment: &'a Fragment,
+  pub(crate) vir: &'a Vir,
+  pub(crate) specs: &'a mut Specializations,
   pub(crate) locals: BTreeMap<Local, LocalEmissionState>,
   pub(crate) pairs: Vec<(Tree, Tree)>,
   pub(crate) wire_offset: usize,
   pub(crate) wires: Counter<usize>,
   pub(crate) rels: TemplateStageRels,
-  pub(crate) debug: Option<(Tree, Tree)>,
+  pub(crate) debug: bool,
+  pub(crate) debug_state: Option<(Tree, Tree)>,
 }
 
-impl<'core, 'a> Emitter<'core, 'a> {
+impl<'a> Emitter<'a> {
   pub fn emit_stage(&mut self, stage: &Stage) -> Option<TemplateStage> {
     let interface = &self.vir.interfaces[stage.interface];
     (interface.incoming != 0 && !interface.inline()).then(|| {
@@ -66,8 +69,8 @@ impl<'core, 'a> Emitter<'core, 'a> {
       for (local, state) in take(&mut self.locals) {
         self.finish_local(&self.vir.locals[local], state);
       }
-      if self.core.debug {
-        self.pairs.push(self.debug.take().unwrap());
+      if self.debug {
+        self.pairs.push(self.debug_state.take().unwrap());
       }
       let net = Net { root, pairs: take(&mut self.pairs) };
       TemplateStage { net, rels: take(&mut self.rels) }
@@ -83,7 +86,7 @@ impl<'core, 'a> Emitter<'core, 'a> {
 
     let mut target = self.emit_interface(interface, true);
 
-    if self.core.debug
+    if self.debug
       && !matches!(interface.kind, InterfaceKind::Fn { .. } | InterfaceKind::Inspect(..))
     {
       target = Tree::Comb("dbg".into(), Box::new(self.tap_debug()), Box::new(target));

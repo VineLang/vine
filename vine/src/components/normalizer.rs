@@ -5,7 +5,7 @@ use vine_util::{idx::IdxVec, unwrap_idx_vec};
 use crate::structures::{
   ast::Span,
   chart::{Chart, DefId, GenericsId},
-  core::Core,
+  diag::Diags,
   resolutions::{Fragment, Rels},
   signatures::Signatures,
   tir::Local,
@@ -16,17 +16,17 @@ use crate::structures::{
   },
 };
 
-pub fn normalize<'core>(
-  core: &'core Core<'core>,
-  chart: &Chart<'core>,
-  sigs: &Signatures<'core>,
-  fragment: &Fragment<'core>,
-  source: &Vir<'core>,
-) -> Vir<'core> {
+pub fn normalize(
+  chart: &Chart,
+  sigs: &Signatures,
+  diags: &mut Diags,
+  fragment: &Fragment,
+  source: &Vir,
+) -> Vir {
   let mut normalizer = Normalizer {
-    core,
     chart,
     sigs,
+    diags,
     source,
     def: fragment.def,
     generics: fragment.generics,
@@ -57,17 +57,17 @@ pub fn normalize<'core>(
 }
 
 #[derive(Debug)]
-struct Normalizer<'core, 'a> {
-  core: &'core Core<'core>,
-  chart: &'a Chart<'core>,
-  sigs: &'a Signatures<'core>,
+struct Normalizer<'a> {
+  chart: &'a Chart,
+  sigs: &'a Signatures,
+  diags: &'a mut Diags,
 
-  source: &'a Vir<'core>,
+  source: &'a Vir,
   def: DefId,
   generics: GenericsId,
 
-  types: Types<'core>,
-  rels: Rels<'core>,
+  types: Types,
+  rels: Rels,
   locals: IdxVec<Local, VirLocal>,
   interfaces: IdxVec<InterfaceId, Interface>,
   stages: IdxVec<StageId, Option<Stage>>,
@@ -76,7 +76,7 @@ struct Normalizer<'core, 'a> {
   final_transfers: IdxVec<LayerId, Option<Transfer>>,
 }
 
-impl<'core> Normalizer<'core, '_> {
+impl Normalizer<'_> {
   fn normalize_layer(&mut self, layer: &Layer) {
     for &stage in &layer.stages {
       let source = &self.source.stages[stage];
@@ -118,8 +118,9 @@ impl<'core> Normalizer<'core, '_> {
             wires: source.wires,
           };
           for (&wire, &(span, ty)) in &open_wires {
-            let Self { core, chart, sigs, def, generics, ref mut types, ref mut rels, .. } = *self;
-            let vir_local = VirLocal::new(core, chart, sigs, def, generics, types, rels, span, ty);
+            let Self { chart, sigs, def, generics, ref mut types, ref mut rels, .. } = *self;
+            let vir_local =
+              VirLocal::new(chart, sigs, self.diags, def, generics, types, rels, span, ty);
             let local = self.locals.push(vir_local);
             stage.declarations.push(local);
             stage.local_barrier_write_to(local, Port { ty, kind: PortKind::Wire(span, wire) });

@@ -14,8 +14,7 @@ use rustyline::DefaultEditor;
 use vine::{
   compiler::Compiler,
   features::cfg::Config,
-  structures::core::{Core, CoreArenas},
-  tools::repl::Repl,
+  tools::{fmt::Formatter, repl::Repl},
 };
 use vine_lsp::lsp;
 
@@ -68,21 +67,19 @@ impl CompileArgs {
       self.libs.push(std_path())
     }
 
-    let arenas = CoreArenas::default();
-    let core = &Core::new(&arenas, self.debug);
-    let mut compiler = Compiler::new(core, Config::default());
+    let mut compiler = Compiler::new(self.debug, Config::default());
 
     if let Some(main) = self.main {
-      compiler.loader.load_main_mod(&main);
+      compiler.loader.load_main_mod(&main, &mut compiler.diags);
     }
     for lib in self.libs {
-      compiler.loader.load_mod(&lib);
+      compiler.loader.load_mod(&lib, &mut compiler.diags);
     }
 
     match compiler.compile(()) {
       Ok(nets) => nets,
       Err(diags) => {
-        eprintln!("{}", core.print_diags(&diags));
+        eprintln!("{}", compiler.loader.print_diags(&diags));
         exit(1);
       }
     }
@@ -176,12 +173,11 @@ impl VineReplCommand {
     host.register_default_extrinsics(&mut extrinsics);
 
     let mut ivm = IVM::new(&heap, &extrinsics);
-    let arenas = CoreArenas::default();
-    let core = &Core::new(&arenas, !self.no_debug);
-    let mut repl = match Repl::new(host, &mut ivm, core, Config::default(), self.libs) {
+    let mut compiler = Compiler::new(!self.no_debug, Config::default());
+    let mut repl = match Repl::new(host, &mut ivm, &mut compiler, self.libs) {
       Ok(repl) => repl,
       Err(diags) => {
-        eprintln!("{}", core.print_diags(&diags));
+        eprintln!("{}", compiler.loader.print_diags(&diags));
         exit(1);
       }
     };
@@ -198,7 +194,7 @@ impl VineReplCommand {
           }
           _ = rl.add_history_entry(&line);
           if let Err(diags) = repl.exec(&line) {
-            println!("{}", core.print_diags(&diags))
+            println!("{}", repl.print_diags(&diags))
           }
         }
         Err(_) => break,
@@ -215,9 +211,7 @@ impl VineFmtCommand {
   pub fn execute(self) -> Result<()> {
     let mut src = String::new();
     stdin().read_to_string(&mut src)?;
-    let arenas = CoreArenas::default();
-    let core = &Core::new(&arenas, false);
-    println!("{}", core.fmt(&src).unwrap());
+    println!("{}", Formatter::fmt(&src).unwrap());
     Ok(())
   }
 }

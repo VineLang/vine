@@ -11,18 +11,14 @@ use crate::{
   tools::fmt::{doc::Doc, Formatter},
 };
 
-impl<'core: 'src, 'src> Formatter<'src> {
-  pub(crate) fn fmt_expr_try(&self, expr: &Expr<'core>) -> Doc<'src> {
+impl<'src> Formatter<'src> {
+  pub(crate) fn fmt_expr_try(&self, expr: &Expr) -> Doc<'src> {
     Doc::concat([self.fmt_expr(expr), Doc("?")])
   }
 }
 
-impl<'core> Resolver<'core, '_> {
-  pub(crate) fn resolve_expr_try(
-    &mut self,
-    span: Span,
-    result: &Expr<'core>,
-  ) -> Result<TirExpr, Diag<'core>> {
+impl Resolver<'_> {
+  pub(crate) fn resolve_expr_try(&mut self, span: Span, result: &Expr) -> Result<TirExpr, Diag> {
     let Some(result_id) = self.chart.builtins.result else {
       Err(Diag::MissingBuiltin { span, builtin: "Result" })?
     };
@@ -37,7 +33,7 @@ impl<'core> Resolver<'core, '_> {
     let return_result = self.types.new(TypeKind::Enum(result_id, vec![return_ok, err]));
     if let Some(return_ty) = &self.return_ty {
       if self.types.unify(*return_ty, return_result).is_failure() {
-        self.core.report(Diag::TryBadReturnType {
+        self.diags.report(Diag::TryBadReturnType {
           span,
           tried: self.types.show(self.chart, result_ty),
           ret: self.types.show(self.chart, *return_ty),
@@ -50,7 +46,7 @@ impl<'core> Resolver<'core, '_> {
   }
 }
 
-impl<'core> Distiller<'core, '_> {
+impl Distiller<'_> {
   pub(crate) fn distill_try(
     &mut self,
     stage: &mut Stage,

@@ -10,29 +10,29 @@ use crate::{
 };
 
 #[derive(Debug, Default)]
-pub struct Chart<'core> {
-  pub defs: IdxVec<DefId, Def<'core>>,
-  pub imports: IdxVec<ImportId, ImportDef<'core>>,
-  pub generics: IdxVec<GenericsId, GenericsDef<'core>>,
-  pub concrete_consts: IdxVec<ConcreteConstId, ConcreteConstDef<'core>>,
-  pub concrete_fns: IdxVec<ConcreteFnId, ConcreteFnDef<'core>>,
-  pub opaque_types: IdxVec<OpaqueTypeId, OpaqueTypeDef<'core>>,
-  pub type_aliases: IdxVec<TypeAliasId, TypeAliasDef<'core>>,
-  pub structs: IdxVec<StructId, StructDef<'core>>,
-  pub enums: IdxVec<EnumId, EnumDef<'core>>,
-  pub traits: IdxVec<TraitId, TraitDef<'core>>,
-  pub impls: IdxVec<ImplId, ImplDef<'core>>,
+pub struct Chart {
+  pub defs: IdxVec<DefId, Def>,
+  pub imports: IdxVec<ImportId, ImportDef>,
+  pub generics: IdxVec<GenericsId, GenericsDef>,
+  pub concrete_consts: IdxVec<ConcreteConstId, ConcreteConstDef>,
+  pub concrete_fns: IdxVec<ConcreteFnId, ConcreteFnDef>,
+  pub opaque_types: IdxVec<OpaqueTypeId, OpaqueTypeDef>,
+  pub type_aliases: IdxVec<TypeAliasId, TypeAliasDef>,
+  pub structs: IdxVec<StructId, StructDef>,
+  pub enums: IdxVec<EnumId, EnumDef>,
+  pub traits: IdxVec<TraitId, TraitDef>,
+  pub impls: IdxVec<ImplId, ImplDef>,
   pub builtins: Builtins,
   pub main_mod: Option<DefId>,
 }
 
 new_idx!(pub DefId);
 #[derive(Debug)]
-pub struct Def<'core> {
-  pub name: Ident<'core>,
-  pub path: &'core str,
+pub struct Def {
+  pub name: Ident,
+  pub path: String,
 
-  pub members_lookup: HashMap<Ident<'core>, WithVis<MemberKind>>,
+  pub members_lookup: HashMap<Ident, WithVis<MemberKind>>,
   pub named_members: Vec<WithVis<MemberKind>>,
   pub implicit_members: Vec<WithVis<MemberKind>>,
 
@@ -103,12 +103,12 @@ pub enum DefImplKind {
 }
 
 new_idx!(pub ImportId);
-#[derive(Debug, Clone, Copy)]
-pub struct ImportDef<'core> {
+#[derive(Debug, Clone)]
+pub struct ImportDef {
   pub span: Span,
   pub def: DefId,
   pub parent: ImportParent,
-  pub ident: Ident<'core>,
+  pub ident: Ident,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -120,12 +120,12 @@ pub enum ImportParent {
 
 new_idx!(pub GenericsId);
 #[derive(Debug, Clone)]
-pub struct GenericsDef<'core> {
+pub struct GenericsDef {
   pub span: Span,
   pub def: DefId,
   pub parent: Option<GenericsId>,
-  pub type_params: Vec<TypeParam<'core>>,
-  pub impl_params: Vec<ImplParam<'core>>,
+  pub type_params: Vec<TypeParam>,
+  pub impl_params: Vec<ImplParam>,
   pub impl_allowed: bool,
   pub global_flex: Flex,
   pub trait_: Option<TraitId>,
@@ -133,128 +133,128 @@ pub struct GenericsDef<'core> {
 
 new_idx!(pub ConcreteConstId);
 #[derive(Debug, Clone)]
-pub struct ConcreteConstDef<'core> {
+pub struct ConcreteConstDef {
   pub span: Span,
   pub def: DefId,
   pub generics: GenericsId,
-  pub ty: Ty<'core>,
-  pub value: Expr<'core>,
+  pub ty: Ty,
+  pub value: Expr,
 }
 
 new_idx!(pub ConcreteFnId);
 #[derive(Debug, Clone)]
-pub struct ConcreteFnDef<'core> {
+pub struct ConcreteFnDef {
   pub span: Span,
   pub def: DefId,
   pub generics: GenericsId,
   pub method: bool,
-  pub params: Vec<Pat<'core>>,
-  pub ret_ty: Option<Ty<'core>>,
-  pub body: Block<'core>,
+  pub params: Vec<Pat>,
+  pub ret_ty: Option<Ty>,
+  pub body: Block,
   pub frameless: bool,
 }
 
 new_idx!(pub OpaqueTypeId);
 #[derive(Debug, Clone)]
-pub struct OpaqueTypeDef<'core> {
+pub struct OpaqueTypeDef {
   pub span: Span,
   pub def: DefId,
   pub generics: GenericsId,
-  pub name: Ident<'core>,
+  pub name: Ident,
 }
 
 new_idx!(pub TypeAliasId);
 #[derive(Debug, Clone)]
-pub struct TypeAliasDef<'core> {
+pub struct TypeAliasDef {
   pub span: Span,
   pub def: DefId,
   pub generics: GenericsId,
-  pub ty: Ty<'core>,
+  pub ty: Ty,
 }
 
 new_idx!(pub StructId);
 #[derive(Debug, Clone)]
-pub struct StructDef<'core> {
+pub struct StructDef {
   pub span: Span,
   pub def: DefId,
   pub generics: GenericsId,
-  pub name: Ident<'core>,
+  pub name: Ident,
   pub data_vis: DefId,
-  pub data: Ty<'core>,
+  pub data: Ty,
 }
 
 new_idx!(pub EnumId);
 #[derive(Debug, Clone)]
-pub struct EnumDef<'core> {
+pub struct EnumDef {
   pub span: Span,
   pub def: DefId,
   pub generics: GenericsId,
-  pub name: Ident<'core>,
-  pub variants: IdxVec<VariantId, EnumVariant<'core>>,
+  pub name: Ident,
+  pub variants: IdxVec<VariantId, EnumVariant>,
 }
 
 new_idx!(pub VariantId);
 #[derive(Debug, Clone)]
-pub struct EnumVariant<'core> {
+pub struct EnumVariant {
   pub span: Span,
   pub def: DefId,
-  pub name: Ident<'core>,
-  pub data: Option<Ty<'core>>,
+  pub name: Ident,
+  pub data: Option<Ty>,
 }
 
 new_idx!(pub TraitId);
 #[derive(Debug, Clone)]
-pub struct TraitDef<'core> {
+pub struct TraitDef {
   pub span: Span,
   pub def: DefId,
-  pub name: Ident<'core>,
+  pub name: Ident,
   pub generics: GenericsId,
-  pub consts: IdxVec<TraitConstId, TraitConst<'core>>,
-  pub fns: IdxVec<TraitFnId, TraitFn<'core>>,
+  pub consts: IdxVec<TraitConstId, TraitConst>,
+  pub fns: IdxVec<TraitFnId, TraitFn>,
 }
 
 new_idx!(pub TraitConstId);
 #[derive(Debug, Clone)]
-pub struct TraitConst<'core> {
-  pub name: Ident<'core>,
+pub struct TraitConst {
+  pub name: Ident,
   pub generics: GenericsId,
-  pub ty: Ty<'core>,
+  pub ty: Ty,
 }
 
 new_idx!(pub TraitFnId);
 #[derive(Debug, Clone)]
-pub struct TraitFn<'core> {
+pub struct TraitFn {
   pub method: bool,
-  pub name: Ident<'core>,
+  pub name: Ident,
   pub generics: GenericsId,
-  pub params: Vec<Pat<'core>>,
-  pub ret_ty: Option<Ty<'core>>,
+  pub params: Vec<Pat>,
+  pub ret_ty: Option<Ty>,
 }
 
 new_idx!(pub ImplId);
 #[derive(Debug, Clone)]
-pub struct ImplDef<'core> {
+pub struct ImplDef {
   pub span: Span,
   pub def: DefId,
   pub generics: GenericsId,
-  pub kind: ImplDefKind<'core>,
+  pub kind: ImplDefKind,
   pub manual: bool,
   pub basic: bool,
-  pub become_: Option<Path<'core>>,
+  pub become_: Option<Path>,
 }
 
 #[derive(Debug, Clone)]
-pub enum ImplDefKind<'core> {
-  Direct(Trait<'core>, Vec<ImplSubitem<'core>>),
-  Indirect(Trait<'core>, Option<Impl<'core>>),
+pub enum ImplDefKind {
+  Direct(Trait, Vec<ImplSubitem>),
+  Indirect(Trait, Option<Impl>),
   IndirectFork(DefTypeKind),
   IndirectDrop(DefTypeKind),
 }
 
 #[derive(Debug, Clone)]
-pub struct ImplSubitem<'core> {
+pub struct ImplSubitem {
   pub span: Span,
-  pub name: Ident<'core>,
+  pub name: Ident,
   pub kind: ImplSubitemKind,
 }
 
@@ -264,7 +264,7 @@ pub enum ImplSubitemKind {
   Fn(ConcreteFnId),
 }
 
-impl<'core> Chart<'core> {
+impl Chart {
   pub fn visible(&self, vis: DefId, from: DefId) -> bool {
     vis == from || vis < from && self.defs[from].ancestors.contains(&vis)
   }
@@ -291,7 +291,7 @@ impl<'core> Chart<'core> {
   }
 }
 
-impl<'core> Def<'core> {
+impl Def {
   pub fn fn_id(&self) -> Option<WithVis<FnId>> {
     match self.value_kind {
       Some(WithVis { vis, kind: DefValueKind::Fn(fn_id) }) => Some(WithVis { vis, kind: fn_id }),

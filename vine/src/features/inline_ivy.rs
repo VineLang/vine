@@ -22,8 +22,8 @@ use crate::{
   tools::fmt::{doc::Doc, Formatter},
 };
 
-impl<'core> VineParser<'core, '_> {
-  pub(crate) fn parse_inline_ivy(&mut self) -> Result<ExprKind<'core>, Diag<'core>> {
+impl VineParser<'_> {
+  pub(crate) fn parse_inline_ivy(&mut self) -> Result<ExprKind, Diag> {
     let span = self.span();
     self.bump()?;
     let binds = self.parse_delimited(PAREN_COMMA, |self_| {
@@ -51,17 +51,21 @@ impl<'core> VineParser<'core, '_> {
   }
 }
 
-impl<'core: 'src, 'src> Formatter<'src> {
+impl<'src> Formatter<'src> {
   pub(crate) fn fmt_expr_inline_ivy(
     &self,
-    binds: &Vec<(Ident<'core>, bool, Expr<'core>)>,
-    ty: &Ty<'core>,
+    binds: &[(Ident, bool, Expr)],
+    ty: &Ty,
     net_span: &Span,
   ) -> Doc<'src> {
     Doc::concat([
       Doc("inline_ivy! "),
       Doc::paren_comma(binds.iter().map(|(var, value, expr)| {
-        Doc::concat([Doc(*var), Doc(if *value { " <- " } else { " -> " }), self.fmt_expr(expr)])
+        Doc::concat([
+          Doc(var.clone()),
+          Doc(if *value { " <- " } else { " -> " }),
+          self.fmt_expr(expr),
+        ])
       })),
       Doc(" -> "),
       self.fmt_ty(ty),
@@ -71,23 +75,23 @@ impl<'core: 'src, 'src> Formatter<'src> {
   }
 }
 
-impl<'core> Resolver<'core, '_> {
+impl Resolver<'_> {
   pub(crate) fn resolve_inline_ivy(
     &mut self,
     span: Span,
-    binds: &Vec<(Ident<'core>, bool, Expr<'core>)>,
-    ty: &Ty<'core>,
+    binds: &[(Ident, bool, Expr)],
+    ty: &Ty,
     net: &Net,
-  ) -> Result<TirExpr, Diag<'core>> {
+  ) -> Result<TirExpr, Diag> {
     let binds = Vec::from_iter(
-      binds.iter().map(|(name, value, expr)| (name.0 .0.into(), *value, self.resolve_expr(expr))),
+      binds.iter().map(|(name, value, expr)| (name.0.clone(), *value, self.resolve_expr(expr))),
     );
     let ty = self.resolve_ty(ty, true);
     Ok(TirExpr::new(span, ty, TirExprKind::InlineIvy(binds, net.clone())))
   }
 }
 
-impl<'core> Distiller<'core, '_> {
+impl Distiller<'_> {
   pub(crate) fn distill_expr_value_inline_ivy(
     &mut self,
     stage: &mut Stage,
@@ -115,7 +119,7 @@ impl<'core> Distiller<'core, '_> {
   }
 }
 
-impl<'core> Emitter<'core, '_> {
+impl Emitter<'_> {
   pub(crate) fn emit_inline_ivy(&mut self, binds: &Vec<(String, Port)>, out: &Port, net: &Net) {
     for (var, port) in binds {
       let port = self.emit_port(port);

@@ -14,8 +14,8 @@ use crate::{
   tools::fmt::{doc::Doc, Formatter},
 };
 
-impl<'core> VineParser<'core, '_> {
-  pub(crate) fn parse_type_item(&mut self) -> Result<TypeItem<'core>, Diag<'core>> {
+impl VineParser<'_> {
+  pub(crate) fn parse_type_item(&mut self) -> Result<TypeItem, Diag> {
     self.expect(Token::Type)?;
     let name = self.parse_ident()?;
     let generics = self.parse_generic_params()?;
@@ -25,11 +25,11 @@ impl<'core> VineParser<'core, '_> {
   }
 }
 
-impl<'core: 'src, 'src> Formatter<'src> {
-  pub(crate) fn fmt_type_item(&self, t: &TypeItem<'core>) -> Doc<'src> {
+impl<'src> Formatter<'src> {
+  pub(crate) fn fmt_type_item(&self, t: &TypeItem) -> Doc<'src> {
     Doc::concat([
       Doc("type "),
-      Doc(t.name),
+      Doc(t.name.clone()),
       self.fmt_generic_params(&t.generics),
       match &t.ty {
         Some(ty) => Doc::concat([Doc(" = "), self.fmt_ty(ty)]),
@@ -40,7 +40,7 @@ impl<'core: 'src, 'src> Formatter<'src> {
   }
 }
 
-impl<'core> Charter<'core, '_> {
+impl Charter<'_> {
   pub(crate) fn chart_type(
     &mut self,
     parent: DefId,
@@ -48,9 +48,9 @@ impl<'core> Charter<'core, '_> {
     span: Span,
     vis: DefId,
     member_vis: DefId,
-    type_item: TypeItem<'core>,
+    type_item: TypeItem,
   ) -> DefId {
-    let def = self.chart_child(parent, type_item.name, member_vis, true);
+    let def = self.chart_child(parent, type_item.name.clone(), member_vis, true);
     let generics = self.chart_generics(def, parent_generics, type_item.generics, false);
     let kind = match type_item.ty {
       Some(ty) => {
@@ -68,7 +68,7 @@ impl<'core> Charter<'core, '_> {
   }
 }
 
-impl<'core> Resolver<'core, '_> {
+impl Resolver<'_> {
   pub(crate) fn resolve_type_alias(&mut self, alias_id: TypeAliasId) {
     match self.sigs.type_aliases.get(alias_id) {
       Some(TypeAliasState::Resolved(_)) => {}
@@ -77,7 +77,7 @@ impl<'core> Resolver<'core, '_> {
         let alias_def = &self.chart.type_aliases[alias_id];
         let slot = self.sigs.type_aliases.get_or_extend(alias_id);
         let error_type =
-          self.types.error(self.core.report(Diag::RecursiveTypeAlias { span: alias_def.ty.span }));
+          self.types.error(self.diags.report(Diag::RecursiveTypeAlias { span: alias_def.ty.span }));
         *slot = TypeAliasState::Resolved(
           self.types.export(|t| TypeAliasSig { ty: t.transfer(&error_type) }),
         );
@@ -99,13 +99,13 @@ impl<'core> Resolver<'core, '_> {
 
   pub(crate) fn resolve_ty_path_alias(
     &mut self,
-    path: &Path<'core>,
+    path: &Path,
     inference: bool,
     type_alias_id: TypeAliasId,
   ) -> Type {
     let generics_id = self.chart.type_aliases[type_alias_id].generics;
     let (type_params, _) = self.resolve_generics(path, generics_id, inference);
-    Resolver::new(self.core, self.chart, self.sigs, self.resolutions, self.fragments)
+    Resolver::new(self.chart, self.sigs, self.diags, self.resolutions, self.fragments)
       .resolve_type_alias(type_alias_id);
     let resolved_sig = match &self.sigs.type_aliases[type_alias_id] {
       TypeAliasState::Resolved(sig) => sig,
@@ -116,7 +116,7 @@ impl<'core> Resolver<'core, '_> {
 
   pub(crate) fn resolve_ty_path_opaque(
     &mut self,
-    path: &Path<'core>,
+    path: &Path,
     inference: bool,
     opaque_id: OpaqueTypeId,
   ) -> Type {

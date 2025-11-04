@@ -22,8 +22,8 @@ use crate::{
   tools::fmt::{doc::Doc, Formatter},
 };
 
-impl<'core> VineParser<'core, '_> {
-  pub(crate) fn parse_expr_paren(&mut self) -> Result<ExprKind<'core>, Diag<'core>> {
+impl VineParser<'_> {
+  pub(crate) fn parse_expr_paren(&mut self) -> Result<ExprKind, Diag> {
     self.expect(Token::OpenParen)?;
     if self.eat(Token::CloseParen)? {
       return Ok(ExprKind::Tuple(vec![]));
@@ -53,7 +53,7 @@ impl<'core> VineParser<'core, '_> {
     Ok(ExprKind::Tuple(exprs))
   }
 
-  pub(crate) fn parse_pat_paren(&mut self) -> Result<PatKind<'core>, Diag<'core>> {
+  pub(crate) fn parse_pat_paren(&mut self) -> Result<PatKind, Diag> {
     let mut tuple = false;
     let mut pats = self.parse_delimited(PAREN_COMMA, |self_| {
       let expr = self_.parse_pat()?;
@@ -69,7 +69,7 @@ impl<'core> VineParser<'core, '_> {
     }
   }
 
-  pub(crate) fn parse_ty_paren(&mut self) -> Result<TyKind<'core>, Diag<'core>> {
+  pub(crate) fn parse_ty_paren(&mut self) -> Result<TyKind, Diag> {
     let mut tuple = false;
     let mut types = self.parse_delimited(PAREN_COMMA, |self_| {
       let expr = self_.parse_ty()?;
@@ -85,10 +85,7 @@ impl<'core> VineParser<'core, '_> {
     }
   }
 
-  pub(crate) fn _parse_expr_tuple_field(
-    &mut self,
-    lhs: Expr<'core>,
-  ) -> Result<ExprKind<'core>, Diag<'core>> {
+  pub(crate) fn _parse_expr_tuple_field(&mut self, lhs: Expr) -> Result<ExprKind, Diag> {
     let num_span = self.span();
     let num = self.expect(Token::Num)?;
     if let Some((i, j)) = num.split_once(".") {
@@ -109,19 +106,19 @@ impl<'core> VineParser<'core, '_> {
     }
   }
 
-  pub(crate) fn parse_expr_object(&mut self) -> Result<ExprKind<'core>, Diag<'core>> {
+  pub(crate) fn parse_expr_object(&mut self) -> Result<ExprKind, Diag> {
     Ok(ExprKind::Object(self.parse_delimited(BRACE_COMMA, |self_| {
       let key = self_.parse_key()?;
       let value = if self_.eat(Token::Colon)? {
         self_.parse_expr()?
       } else {
-        Expr { span: key.span, kind: Box::new(ExprKind::Path(key.into(), None)) }
+        Expr { span: key.span, kind: Box::new(ExprKind::Path(key.clone().into(), None)) }
       };
       Ok((key, value))
     })?))
   }
 
-  pub(crate) fn parse_pat_object(&mut self) -> Result<PatKind<'core>, Diag<'core>> {
+  pub(crate) fn parse_pat_object(&mut self) -> Result<PatKind, Diag> {
     Ok(PatKind::Object(self.parse_delimited(BRACE_COMMA, |self_| {
       let span = self_.start_span();
       let key = self_.parse_key()?;
@@ -137,8 +134,10 @@ impl<'core> VineParser<'core, '_> {
         (None, None)
       };
       let span = self_.end_span(span);
-      let mut pat = pat
-        .unwrap_or_else(|| Pat { span: key.span, kind: Box::new(PatKind::Path(key.into(), None)) });
+      let mut pat = pat.unwrap_or_else(|| Pat {
+        span: key.span,
+        kind: Box::new(PatKind::Path(key.clone().into(), None)),
+      });
       if let Some(ty) = ty {
         pat = Pat { span, kind: Box::new(PatKind::Annotation(pat, ty)) };
       }
@@ -146,7 +145,7 @@ impl<'core> VineParser<'core, '_> {
     })?))
   }
 
-  pub(crate) fn parse_ty_object(&mut self) -> Result<TyKind<'core>, Diag<'core>> {
+  pub(crate) fn parse_ty_object(&mut self) -> Result<TyKind, Diag> {
     Ok(TyKind::Object(self.parse_delimited(BRACE_COMMA, |self_| {
       let key = self_.parse_key()?;
       self_.expect(Token::Colon)?;
@@ -155,7 +154,7 @@ impl<'core> VineParser<'core, '_> {
     })?))
   }
 
-  fn parse_key(&mut self) -> Result<Key<'core>, Diag<'core>> {
+  fn parse_key(&mut self) -> Result<Key, Diag> {
     let span = self.start_span();
     let ident = self.parse_ident()?;
     let span = self.end_span(span);
@@ -163,41 +162,41 @@ impl<'core> VineParser<'core, '_> {
   }
 }
 
-impl<'core: 'src, 'src> Formatter<'src> {
-  pub(crate) fn fmt_expr_tuple(&self, t: &Vec<Expr<'core>>) -> Doc<'src> {
+impl<'src> Formatter<'src> {
+  pub(crate) fn fmt_expr_tuple(&self, t: &[Expr]) -> Doc<'src> {
     Doc::tuple(t.iter().map(|x| self.fmt_expr(x)))
   }
 
-  pub(crate) fn fmt_expr_tuple_field(&self, expr: &Expr<'core>, index: usize) -> Doc<'src> {
+  pub(crate) fn fmt_expr_tuple_field(&self, expr: &Expr, index: usize) -> Doc<'src> {
     Doc::concat([self.fmt_expr(expr), Doc("."), Doc(format!("{index}"))])
   }
 
-  pub(crate) fn fmt_pat_tuple(&self, t: &Vec<Pat<'core>>) -> Doc<'src> {
+  pub(crate) fn fmt_pat_tuple(&self, t: &[Pat]) -> Doc<'src> {
     Doc::tuple(t.iter().map(|x| self.fmt_pat(x)))
   }
 
-  pub(crate) fn fmt_ty_tuple(&self, elements: &Vec<Ty<'core>>) -> Doc<'src> {
+  pub(crate) fn fmt_ty_tuple(&self, elements: &[Ty]) -> Doc<'src> {
     Doc::tuple(elements.iter().map(|x| self.fmt_ty(x)))
   }
 
-  pub(crate) fn fmt_expr_object(&self, entries: &Vec<(Key<'core>, Expr<'core>)>) -> Doc<'src> {
+  pub(crate) fn fmt_expr_object(&self, entries: &[(Key, Expr)]) -> Doc<'src> {
     Doc::brace_comma_space(entries.iter().map(|(key, expr)| {
       if let ExprKind::Path(path, None) = &*expr.kind {
         if let Some(i) = path.as_ident() {
           if key.ident == i {
-            return Doc(key.ident);
+            return Doc(key.ident.clone());
           }
         }
       }
-      Doc::concat([Doc(key.ident), Doc(": "), self.fmt_expr(expr)])
+      Doc::concat([Doc(key.ident.clone()), Doc(": "), self.fmt_expr(expr)])
     }))
   }
 
-  pub(crate) fn fmt_expr_object_field(&self, expr: &Expr<'core>, key: &Key<'core>) -> Doc<'src> {
-    Doc::concat([self.fmt_expr(expr), Doc("."), Doc(key.ident)])
+  pub(crate) fn fmt_expr_object_field(&self, expr: &Expr, key: &Key) -> Doc<'src> {
+    Doc::concat([self.fmt_expr(expr), Doc("."), Doc(key.ident.clone())])
   }
 
-  pub(crate) fn fmt_pat_object(&self, entries: &Vec<(Key<'core>, Pat<'core>)>) -> Doc<'src> {
+  pub(crate) fn fmt_pat_object(&self, entries: &[(Key, Pat)]) -> Doc<'src> {
     Doc::brace_comma_space(entries.iter().map(|(key, pat)| {
       let (pat, ty) = match &*pat.kind {
         PatKind::Annotation(p, t) => (p, Some(t)),
@@ -217,51 +216,51 @@ impl<'core: 'src, 'src> Formatter<'src> {
         Some(pat)
       };
       match (pat, ty) {
-        (None, None) => Doc(key.ident),
-        (Some(pat), None) => Doc::concat([Doc(key.ident), Doc(": "), self.fmt_pat(pat)]),
-        (None, Some(ty)) => Doc::concat([Doc(key.ident), Doc(":: "), self.fmt_ty(ty)]),
-        (Some(pat), Some(ty)) => {
-          Doc::concat([Doc(key.ident), Doc(": "), self.fmt_pat(pat), Doc(": "), self.fmt_ty(ty)])
-        }
+        (None, None) => Doc(key.ident.clone()),
+        (Some(pat), None) => Doc::concat([Doc(key.ident.clone()), Doc(": "), self.fmt_pat(pat)]),
+        (None, Some(ty)) => Doc::concat([Doc(key.ident.clone()), Doc(":: "), self.fmt_ty(ty)]),
+        (Some(pat), Some(ty)) => Doc::concat([
+          Doc(key.ident.clone()),
+          Doc(": "),
+          self.fmt_pat(pat),
+          Doc(": "),
+          self.fmt_ty(ty),
+        ]),
       }
     }))
   }
 
-  pub(crate) fn fmt_ty_object(&self, entries: &Vec<(Key<'core>, Ty<'core>)>) -> Doc<'src> {
+  pub(crate) fn fmt_ty_object(&self, entries: &[(Key, Ty)]) -> Doc<'src> {
     Doc::brace_comma_space(
-      entries.iter().map(|(k, t)| Doc::concat([Doc(k.ident), Doc(": "), self.fmt_ty(t)])),
+      entries.iter().map(|(k, t)| Doc::concat([Doc(k.ident.clone()), Doc(": "), self.fmt_ty(t)])),
     )
   }
 }
 
-impl<'core> Resolver<'core, '_> {
+impl Resolver<'_> {
   pub(crate) fn resolve_expr_tuple(
     &mut self,
     span: Span,
-    elements: &[Expr<'core>],
-  ) -> Result<TirExpr, Diag<'core>> {
+    elements: &[Expr],
+  ) -> Result<TirExpr, Diag> {
     let elements = elements.iter().map(|x| self.resolve_expr(x)).collect::<Vec<_>>();
     let ty = self.types.new(TypeKind::Tuple(elements.iter().map(|x| x.ty).collect()));
     Ok(TirExpr::new(span, ty, TirExprKind::Composite(elements)))
   }
 
-  pub(crate) fn resolve_pat_tuple(
-    &mut self,
-    span: Span,
-    elements: &[Pat<'core>],
-  ) -> Result<TirPat, Diag<'core>> {
+  pub(crate) fn resolve_pat_tuple(&mut self, span: Span, elements: &[Pat]) -> Result<TirPat, Diag> {
     let elements = Vec::from_iter(elements.iter().map(|element| self.resolve_pat(element)));
     let ty = self.types.new(TypeKind::Tuple(elements.iter().map(|x| x.ty).collect()));
     Ok(TirPat::new(span, ty, TirPatKind::Composite(elements)))
   }
 
-  pub(crate) fn resolve_pat_sig_tuple(&mut self, elements: &[Pat<'core>], inference: bool) -> Type {
+  pub(crate) fn resolve_pat_sig_tuple(&mut self, elements: &[Pat], inference: bool) -> Type {
     let elements =
       elements.iter().map(|element| self.resolve_pat_sig(element, inference)).collect();
     self.types.new(TypeKind::Tuple(elements))
   }
 
-  pub(crate) fn resolve_ty_tuple(&mut self, tys: &[Ty<'core>], inference: bool) -> Type {
+  pub(crate) fn resolve_ty_tuple(&mut self, tys: &[Ty], inference: bool) -> Type {
     let tys = tys.iter().map(|arg| self.resolve_ty(arg, inference)).collect();
     self.types.new(TypeKind::Tuple(tys))
   }
@@ -269,50 +268,44 @@ impl<'core> Resolver<'core, '_> {
   pub(crate) fn resolve_expr_object(
     &mut self,
     span: Span,
-    entries: &Vec<(Key<'core>, Expr<'core>)>,
-  ) -> Result<TirExpr, Diag<'core>> {
+    entries: &[(Key, Expr)],
+  ) -> Result<TirExpr, Diag> {
     let object = self._build_object(entries, Self::resolve_expr)?;
-    let ty = self.types.new(TypeKind::Object(object.iter().map(|(&i, x)| (i, x.ty)).collect()));
+    let ty =
+      self.types.new(TypeKind::Object(object.iter().map(|(i, x)| (i.clone(), x.ty)).collect()));
     Ok(TirExpr::new(span, ty, TirExprKind::Composite(object.into_values().collect())))
   }
 
   pub(crate) fn resolve_pat_object(
     &mut self,
     span: Span,
-    entries: &Vec<(Key<'core>, Pat<'core>)>,
-  ) -> Result<TirPat, Diag<'core>> {
+    entries: &[(Key, Pat)],
+  ) -> Result<TirPat, Diag> {
     let object = self._build_object(entries, |self_, pat| self_.resolve_pat(pat))?;
-    let ty = self.types.new(TypeKind::Object(object.iter().map(|(&i, x)| (i, x.ty)).collect()));
+    let ty =
+      self.types.new(TypeKind::Object(object.iter().map(|(i, x)| (i.clone(), x.ty)).collect()));
     Ok(TirPat::new(span, ty, TirPatKind::Composite(object.into_values().collect())))
   }
 
-  pub(crate) fn resolve_pat_sig_object(
-    &mut self,
-    entries: &Vec<(Key<'core>, Pat<'core>)>,
-    inference: bool,
-  ) -> Type {
+  pub(crate) fn resolve_pat_sig_object(&mut self, entries: &[(Key, Pat)], inference: bool) -> Type {
     self._build_object_type(entries, |self_, pat| self_.resolve_pat_sig(pat, inference))
   }
 
-  pub(crate) fn resolve_ty_object(
-    &mut self,
-    entries: &Vec<(Key<'core>, Ty<'core>)>,
-    inference: bool,
-  ) -> Type {
+  pub(crate) fn resolve_ty_object(&mut self, entries: &[(Key, Ty)], inference: bool) -> Type {
     self._build_object_type(entries, |self_, t| self_.resolve_ty(t, inference))
   }
 
   fn _build_object<T, U>(
     &mut self,
-    entries: &Vec<(Key<'core>, T)>,
+    entries: &[(Key, T)],
     mut f: impl FnMut(&mut Self, &T) -> U,
-  ) -> Result<BTreeMap<Ident<'core>, U>, ErrorGuaranteed> {
+  ) -> Result<BTreeMap<Ident, U>, ErrorGuaranteed> {
     let mut object = BTreeMap::new();
     let mut duplicate = Ok(());
     for (key, value) in entries {
-      let old = object.insert(key.ident, f(self, value));
+      let old = object.insert(key.ident.clone(), f(self, value));
       if old.is_some() {
-        duplicate = Err(self.core.report(Diag::DuplicateKey { span: key.span }));
+        duplicate = Err(self.diags.report(Diag::DuplicateKey { span: key.span }));
       }
     }
     duplicate?;
@@ -321,15 +314,15 @@ impl<'core> Resolver<'core, '_> {
 
   fn _build_object_type<T>(
     &mut self,
-    entries: &Vec<(Key<'core>, T)>,
+    entries: &[(Key, T)],
     mut f: impl FnMut(&mut Self, &T) -> Type,
   ) -> Type {
     let mut fields = BTreeMap::new();
     let mut duplicate = Ok(());
     for (key, value) in entries {
-      let old = fields.insert(key.ident, f(self, value));
+      let old = fields.insert(key.ident.clone(), f(self, value));
       if old.is_some() {
-        duplicate = Err(self.core.report(Diag::DuplicateKey { span: key.span }));
+        duplicate = Err(self.diags.report(Diag::DuplicateKey { span: key.span }));
       }
     }
     if let Err(err) = duplicate {
@@ -342,9 +335,9 @@ impl<'core> Resolver<'core, '_> {
   pub(crate) fn resolve_expr_tuple_field(
     &mut self,
     span: Span,
-    tuple: &Expr<'core>,
+    tuple: &Expr,
     index: usize,
-  ) -> Result<TirExpr, Diag<'core>> {
+  ) -> Result<TirExpr, Diag> {
     let tuple = self.resolve_expr(tuple);
     let (ty, fields) = self.tuple_field(span, tuple.ty, index).ok_or_else(|| {
       Diag::MissingTupleField { span, ty: self.types.show(self.chart, tuple.ty), i: index }
@@ -353,7 +346,7 @@ impl<'core> Resolver<'core, '_> {
   }
 
   fn tuple_field(&mut self, span: Span, ty: Type, index: usize) -> Option<(Type, Vec<Type>)> {
-    match self.types.force_kind(self.core, ty) {
+    match self.types.force_kind(self.diags, ty) {
       (inv, TypeKind::Tuple(tuple)) => Some((tuple.get(index)?.invert_if(inv), tuple.clone())),
       (inv, TypeKind::Struct(struct_id, type_params)) => {
         let struct_id = *struct_id;
@@ -369,30 +362,27 @@ impl<'core> Resolver<'core, '_> {
   pub(crate) fn resolve_expr_object_field(
     &mut self,
     span: Span,
-    object: &Expr<'core>,
-    key: &Key<'core>,
-  ) -> Result<TirExpr, Diag<'core>> {
+    object: &Expr,
+    key: &Key,
+  ) -> Result<TirExpr, Diag> {
     let object = self.resolve_expr(object);
     let (ty, index, fields) =
-      self.object_field(span, object.ty, key.ident).ok_or_else(|| Diag::MissingObjectField {
-        span: key.span,
-        ty: self.types.show(self.chart, object.ty),
-        key: key.ident,
+      self.object_field(span, object.ty, key.ident.clone()).ok_or_else(|| {
+        Diag::MissingObjectField {
+          span: key.span,
+          ty: self.types.show(self.chart, object.ty),
+          key: key.ident.clone(),
+        }
       })?;
     Ok(TirExpr::new(span, ty, TirExprKind::Field(object, index, fields)))
   }
 
-  fn object_field(
-    &mut self,
-    span: Span,
-    ty: Type,
-    key: Ident<'core>,
-  ) -> Option<(Type, usize, Vec<Type>)> {
-    match self.types.force_kind(self.core, ty) {
+  fn object_field(&mut self, span: Span, ty: Type, key: Ident) -> Option<(Type, usize, Vec<Type>)> {
+    match self.types.force_kind(self.diags, ty) {
       (inv, TypeKind::Object(entries)) => entries
         .iter()
         .enumerate()
-        .find(|&(_, (&k, _))| k == key)
+        .find(|&(_, (k, _))| *k == key)
         .map(|(i, (_, t))| (t.invert_if(inv), i, entries.values().copied().collect())),
       (inv, TypeKind::Struct(struct_id, type_params)) => {
         let struct_id = *struct_id;
@@ -406,7 +396,7 @@ impl<'core> Resolver<'core, '_> {
   }
 }
 
-impl<'core> Distiller<'core, '_> {
+impl Distiller<'_> {
   pub(crate) fn distill_expr_value_composite(
     &mut self,
     stage: &mut Stage,
@@ -460,7 +450,7 @@ impl<'core> Distiller<'core, '_> {
           ps.push(p);
           qs.push(q);
         }
-        _ => new_acc = Poly::Error(self.core.report(Diag::AmbiguousPolyformicComposite { span })),
+        _ => new_acc = Poly::Error(self.diags.report(Diag::AmbiguousPolyformicComposite { span })),
       }
       acc = Some(new_acc);
     }
@@ -563,12 +553,12 @@ impl<'core> Distiller<'core, '_> {
         stage.steps.push(Step::Composite(place.1, pos));
         Poly::Place((value, space))
       }
-      Poly::Space(_) => Poly::Error(self.core.report(Diag::SpaceField { span })),
+      Poly::Space(_) => Poly::Error(self.diags.report(Diag::SpaceField { span })),
     }
   }
 }
 
-impl<'core> Matcher<'core, '_, '_> {
+impl Matcher<'_, '_> {
   pub(crate) fn match_composite<'p>(
     &mut self,
     layer: &mut Layer,
@@ -599,7 +589,7 @@ impl<'core> Matcher<'core, '_, '_> {
   }
 }
 
-impl<'core> Emitter<'core, '_> {
+impl Emitter<'_> {
   pub(crate) fn emit_composite(&mut self, port: &Port, tuple: &[Port]) {
     let pair = (self.emit_port(port), Tree::n_ary("tup", tuple.iter().map(|p| self.emit_port(p))));
     self.pairs.push(pair)

@@ -10,10 +10,10 @@ use crate::{
   },
 };
 
-impl<'core> Emitter<'core, '_> {
+impl Emitter<'_> {
   pub(crate) fn tap_debug(&mut self) -> Tree {
     let w = self.new_wire();
-    let debug = self.debug.as_mut().unwrap();
+    let debug = self.debug_state.as_mut().unwrap();
     Tree::Comb("ref".into(), Box::new(replace(&mut debug.0, w.0)), Box::new(w.1))
   }
 
@@ -22,29 +22,32 @@ impl<'core> Emitter<'core, '_> {
       return self.tap_debug();
     }
     let len = self.specs.synthetic.len();
-    let index =
-      match self.specs.synthetic.entry((SyntheticItem::Frame(self.fragment.path, span), vec![])) {
-        Entry::Occupied(e) => self.specs.specs[*e.get()].as_ref().unwrap().index,
-        Entry::Vacant(entry) => {
-          let (item, _) = entry.key().clone();
-          let spec_id = self.specs.specs.push(None);
-          entry.insert(spec_id);
-          self.specs.specs[spec_id] = Some(Spec {
-            path: ":synthetic",
-            index: len,
-            singular: false,
-            rels: SpecRels::default(),
-            kind: SpecKind::Synthetic(item),
-          });
-          len
-        }
-      };
+    let index = match self
+      .specs
+      .synthetic
+      .entry((SyntheticItem::Frame(self.fragment.path.clone(), span), vec![]))
+    {
+      Entry::Occupied(e) => self.specs.specs[*e.get()].as_ref().unwrap().index,
+      Entry::Vacant(entry) => {
+        let (item, _) = entry.key().clone();
+        let spec_id = self.specs.specs.push(None);
+        entry.insert(spec_id);
+        self.specs.specs[spec_id] = Some(Spec {
+          path: ":synthetic".into(),
+          index: len,
+          singular: false,
+          rels: SpecRels::default(),
+          kind: SpecKind::Synthetic(item),
+        });
+        len
+      }
+    };
     let w = self.new_wire();
     let io = self.new_wire();
     let len = self.new_wire();
     let buf = self.new_wire();
     let end = self.new_wire();
-    let debug = self.debug.as_mut().unwrap();
+    let debug = self.debug_state.as_mut().unwrap();
     let val = replace(&mut debug.0, w.0);
     self.pairs.push((
       val,
@@ -85,10 +88,10 @@ impl<'core> Emitter<'core, '_> {
   }
 
   pub fn with_debug(&mut self, inner: Tree) -> Tree {
-    if self.core.debug {
+    if self.debug {
       let i = self.new_wire();
       let o = self.new_wire();
-      self.debug = Some((i.0, o.0));
+      self.debug_state = Some((i.0, o.0));
       Tree::Comb(
         "dbg".into(),
         Box::new(Tree::Comb("ref".into(), Box::new(i.1), Box::new(o.1))),

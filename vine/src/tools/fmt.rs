@@ -3,25 +3,28 @@ pub mod doc;
 use doc::{Doc, Writer};
 
 use crate::{
-  components::parser::VineParser,
+  components::{loader::FileId, parser::VineParser},
   structures::{
     ast::{
       Expr, ExprKind, Flex, Impl, ImplKind, Item, ItemKind, Pat, PatKind, Span, Stmt, StmtKind,
       Trait, TraitKind, Ty, TyKind, Vis,
     },
-    core::Core,
     diag::Diag,
   },
 };
 
-impl<'core> Core<'core> {
-  pub fn fmt(&'core self, src: &str) -> Result<String, Diag<'core>> {
-    let ast = VineParser::parse(self, src, 0)?;
+pub struct Formatter<'src> {
+  src: &'src str,
+}
+
+impl<'src> Formatter<'src> {
+  pub fn fmt(src: &str) -> Result<String, Diag> {
+    let ast = VineParser::parse(src, FileId(0))?;
     let fmt = Formatter { src };
     let doc = Doc::concat_vec(
       fmt.line_break_separated(
-        Span { file: 0, start: 0, end: src.len() },
-        [(Span { file: 0, start: 0, end: 0 }, Doc::EMPTY)]
+        Span { file: FileId(0), start: 0, end: src.len() },
+        [(Span { file: FileId(0), start: 0, end: 0 }, Doc::EMPTY)]
           .into_iter()
           .chain(ast.iter().map(|x| (x.span, fmt.fmt_item(x)))),
       ),
@@ -30,14 +33,8 @@ impl<'core> Core<'core> {
     writer.write_doc(&doc, false);
     Ok(writer.out)
   }
-}
 
-pub struct Formatter<'src> {
-  src: &'src str,
-}
-
-impl<'core: 'src, 'src> Formatter<'src> {
-  pub(crate) fn fmt_item(&self, item: &Item<'core>) -> Doc<'src> {
+  pub(crate) fn fmt_item(&self, item: &Item) -> Doc<'src> {
     Doc::concat(item.attrs.iter().flat_map(|x| [self.fmt_verbatim(x.span), Doc::LINE]).chain([
       self.fmt_vis(&item.vis),
       match &item.kind {
@@ -55,11 +52,11 @@ impl<'core: 'src, 'src> Formatter<'src> {
     ]))
   }
 
-  pub(crate) fn fmt_vis(&self, vis: &Vis<'core>) -> Doc<'src> {
+  pub(crate) fn fmt_vis(&self, vis: &Vis) -> Doc<'src> {
     match vis {
       Vis::Private => Doc::EMPTY,
       Vis::Public => Doc("pub "),
-      Vis::PublicTo(_, name) => Doc::concat([Doc("pub."), Doc(*name), Doc(" ")]),
+      Vis::PublicTo(_, name) => Doc::concat([Doc("pub."), Doc(name.clone()), Doc(" ")]),
     }
   }
 
@@ -136,7 +133,7 @@ impl<'core: 'src, 'src> Formatter<'src> {
     }
   }
 
-  pub(crate) fn fmt_stmt(&self, stmt: &Stmt<'core>) -> Doc<'src> {
+  pub(crate) fn fmt_stmt(&self, stmt: &Stmt) -> Doc<'src> {
     match &stmt.kind {
       StmtKind::Let(l) => self.fmt_stmt_let(l),
       StmtKind::LetFn(d) => self.fmt_stmt_let_fn(d),
@@ -144,8 +141,8 @@ impl<'core: 'src, 'src> Formatter<'src> {
       StmtKind::Expr(expr, true) => Doc::concat([self.fmt_expr(expr), Doc(";")]),
       StmtKind::Item(item) => self.fmt_item(item),
       StmtKind::Return(expr) => self.fmt_stmt_return(expr),
-      StmtKind::Break(label, expr) => self.fmt_stmt_break(*label, expr),
-      StmtKind::Continue(label) => self.fmt_stmt_continue(*label),
+      StmtKind::Break(label, expr) => self.fmt_stmt_break(label.clone(), expr),
+      StmtKind::Continue(label) => self.fmt_stmt_continue(label.clone()),
       StmtKind::Empty => Doc::EMPTY,
     }
   }
@@ -159,7 +156,7 @@ impl<'core: 'src, 'src> Formatter<'src> {
     })
   }
 
-  pub(crate) fn fmt_impl(&self, impl_: &Impl<'core>) -> Doc<'src> {
+  pub(crate) fn fmt_impl(&self, impl_: &Impl) -> Doc<'src> {
     match &*impl_.kind {
       ImplKind::Error(_) => unreachable!(),
       ImplKind::Hole => Doc("_"),
@@ -168,7 +165,7 @@ impl<'core: 'src, 'src> Formatter<'src> {
     }
   }
 
-  pub(crate) fn fmt_trait(&self, trait_: &Trait<'core>) -> Doc<'src> {
+  pub(crate) fn fmt_trait(&self, trait_: &Trait) -> Doc<'src> {
     match &*trait_.kind {
       TraitKind::Error(_) => unreachable!(),
       TraitKind::Path(path) => self.fmt_path(path),
@@ -184,23 +181,23 @@ impl<'core: 'src, 'src> Formatter<'src> {
     }
   }
 
-  pub(crate) fn fmt_expr(&self, expr: &Expr<'core>) -> Doc<'src> {
+  pub(crate) fn fmt_expr(&self, expr: &Expr) -> Doc<'src> {
     match &*expr.kind {
       ExprKind::Error(_) => unreachable!(),
       ExprKind::Paren(p) => Doc::paren(self.fmt_expr(p)),
       ExprKind::Hole => Doc("_"),
       ExprKind::Path(path, args) => self.fmt_expr_path(path, args),
-      ExprKind::Do(label, ty, body) => self.fmt_expr_do(*label, ty, body),
+      ExprKind::Do(label, ty, body) => self.fmt_expr_do(label.clone(), ty, body),
       ExprKind::Assign(inverted, space, value) => self.fmt_expr_assign(*inverted, space, value),
       ExprKind::Match(expr, ty, arms) => self.fmt_expr_match(expr, ty, arms),
       ExprKind::If(cond, ty, then, else_) => self.fmt_expr_if(cond, ty, then, else_),
-      ExprKind::When(label, ty, arms, leg) => self.fmt_expr_when(*label, ty, arms, leg),
+      ExprKind::When(label, ty, arms, leg) => self.fmt_expr_when(label.clone(), ty, arms, leg),
       ExprKind::While(label, cond, ty, body, else_) => {
-        self.fmt_expr_while(*label, cond, ty, body, else_)
+        self.fmt_expr_while(label.clone(), cond, ty, body, else_)
       }
-      ExprKind::Loop(label, ty, body) => self.fmt_expr_loop(*label, ty, body),
+      ExprKind::Loop(label, ty, body) => self.fmt_expr_loop(label.clone(), ty, body),
       ExprKind::For(label, pat, expr, ty, block, else_) => {
-        self.fmt_expr_for(*label, pat, expr, ty, block, else_)
+        self.fmt_expr_for(label.clone(), pat, expr, ty, block, else_)
       }
       ExprKind::Fn(flex, params, ty, body) => self.fmt_expr_fn(flex, params, ty, body),
       ExprKind::Ref(expr, postfix) => self.fmt_expr_ref(expr, *postfix),
@@ -235,7 +232,7 @@ impl<'core: 'src, 'src> Formatter<'src> {
     }
   }
 
-  pub(crate) fn fmt_pat(&self, pat: &Pat<'core>) -> Doc<'src> {
+  pub(crate) fn fmt_pat(&self, pat: &Pat) -> Doc<'src> {
     match &*pat.kind {
       PatKind::Error(_) => unreachable!(),
       PatKind::Hole => Doc("_"),
@@ -250,7 +247,7 @@ impl<'core: 'src, 'src> Formatter<'src> {
     }
   }
 
-  pub(crate) fn fmt_ty(&self, ty: &Ty<'core>) -> Doc<'src> {
+  pub(crate) fn fmt_ty(&self, ty: &Ty) -> Doc<'src> {
     match &*ty.kind {
       TyKind::Error(_) => unreachable!(),
       TyKind::Hole => Doc("_"),
@@ -265,7 +262,7 @@ impl<'core: 'src, 'src> Formatter<'src> {
     }
   }
 
-  pub(crate) fn fmt_arrow_ty(&self, ty: &Option<Ty<'core>>) -> Doc<'src> {
+  pub(crate) fn fmt_arrow_ty(&self, ty: &Option<Ty>) -> Doc<'src> {
     match ty {
       Some(ty) => Doc::concat([Doc(" -> "), self.fmt_ty(ty)]),
       None => Doc(""),

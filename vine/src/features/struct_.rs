@@ -24,8 +24,8 @@ use crate::{
   tools::fmt::{doc::Doc, Formatter},
 };
 
-impl<'core> VineParser<'core, '_> {
-  pub(crate) fn parse_struct_item(&mut self) -> Result<StructItem<'core>, Diag<'core>> {
+impl VineParser<'_> {
+  pub(crate) fn parse_struct_item(&mut self) -> Result<StructItem, Diag> {
     self.expect(Token::Struct)?;
     let flex = self.parse_flex()?;
     let name = self.parse_ident()?;
@@ -39,25 +39,25 @@ impl<'core> VineParser<'core, '_> {
   }
 }
 
-impl<'core: 'src, 'src> Formatter<'src> {
-  pub(crate) fn fmt_struct_item(&self, s: &StructItem<'core>) -> Doc<'src> {
+impl<'src> Formatter<'src> {
+  pub(crate) fn fmt_struct_item(&self, s: &StructItem) -> Doc<'src> {
     Doc::concat([
       Doc("struct"),
       self.fmt_flex(s.flex),
       Doc(" "),
-      Doc(s.name),
+      Doc(s.name.clone()),
       self.fmt_generic_params(&s.generics),
       Doc::paren(Doc::concat([self.fmt_vis(&s.data_vis), self.fmt_ty(&s.data)])),
       Doc(";"),
     ])
   }
 
-  pub(crate) fn fmt_expr_unwrap(&self, expr: &Expr<'core>) -> Doc<'src> {
+  pub(crate) fn fmt_expr_unwrap(&self, expr: &Expr) -> Doc<'src> {
     Doc::concat([self.fmt_expr(expr), Doc("!")])
   }
 }
 
-impl<'core> Charter<'core, '_> {
+impl Charter<'_> {
   pub(crate) fn chart_struct(
     &mut self,
     parent: DefId,
@@ -65,9 +65,9 @@ impl<'core> Charter<'core, '_> {
     span: Span,
     vis: DefId,
     member_vis: DefId,
-    struct_item: StructItem<'core>,
+    struct_item: StructItem,
   ) -> DefId {
-    let def = self.chart_child(parent, struct_item.name, member_vis, true);
+    let def = self.chart_child(parent, struct_item.name.clone(), member_vis, true);
     let generics = self.chart_generics(def, parent_generics, struct_item.generics, false);
     let data_vis = self.resolve_vis(parent, struct_item.data_vis);
     let struct_id = self.chart.structs.push(StructDef {
@@ -87,7 +87,7 @@ impl<'core> Charter<'core, '_> {
   }
 }
 
-impl<'core> Resolver<'core, '_> {
+impl Resolver<'_> {
   pub(crate) fn resolve_struct_sig(&mut self, struct_id: StructId) {
     let struct_def = &self.chart.structs[struct_id];
     self.initialize(struct_def.def, struct_def.generics);
@@ -98,12 +98,12 @@ impl<'core> Resolver<'core, '_> {
 
   pub(crate) fn resolve_expr_path_struct(
     &mut self,
-    expr: &Expr<'core>,
+    expr: &Expr,
     span: Span,
-    path: &Path<'core>,
+    path: &Path,
     struct_id: StructId,
-    args: &Option<Vec<Expr<'core>>>,
-  ) -> Result<TirExpr, Diag<'core>> {
+    args: &Option<Vec<Expr>>,
+  ) -> Result<TirExpr, Diag> {
     let (type_params, _) =
       self.resolve_generics(path, self.chart.structs[struct_id].generics, true);
     let data_ty = self.types.import(&self.sigs.structs[struct_id], Some(&type_params)).data;
@@ -117,7 +117,7 @@ impl<'core> Resolver<'core, '_> {
       self.error_expr(span, Diag::ExpectedDataExpr { span })
     };
     if self.types.unify(data.ty, data_ty).is_failure() {
-      self.core.report(Diag::ExpectedTypeFound {
+      self.diags.report(Diag::ExpectedTypeFound {
         span: expr.span,
         expected: self.types.show(self.chart, data_ty),
         found: self.types.show(self.chart, data.ty),
@@ -130,10 +130,10 @@ impl<'core> Resolver<'core, '_> {
   pub(crate) fn resolve_pat_path_struct(
     &mut self,
     span: Span,
-    path: &Path<'core>,
-    data: &Option<Vec<Pat<'core>>>,
+    path: &Path,
+    data: &Option<Vec<Pat>>,
     struct_id: StructId,
-  ) -> Result<TirPat, Diag<'core>> {
+  ) -> Result<TirPat, Diag> {
     let data = match data {
       Some(args) => {
         if let [data] = &**args {
@@ -152,11 +152,7 @@ impl<'core> Resolver<'core, '_> {
     Ok(TirPat::new(span, ty, TirPatKind::Struct(struct_id, data)))
   }
 
-  pub(crate) fn resolve_pat_sig_path_struct(
-    &mut self,
-    path: &Path<'core>,
-    struct_id: StructId,
-  ) -> Type {
+  pub(crate) fn resolve_pat_sig_path_struct(&mut self, path: &Path, struct_id: StructId) -> Type {
     let (type_params, _) =
       self.resolve_generics(path, self.chart.structs[struct_id].generics, false);
     self.types.new(TypeKind::Struct(struct_id, type_params))
@@ -164,7 +160,7 @@ impl<'core> Resolver<'core, '_> {
 
   pub(crate) fn resolve_ty_path_struct(
     &mut self,
-    path: &Path<'core>,
+    path: &Path,
     inference: bool,
     struct_id: StructId,
   ) -> Type {
@@ -173,14 +169,10 @@ impl<'core> Resolver<'core, '_> {
     self.types.new(TypeKind::Struct(struct_id, type_params))
   }
 
-  pub(crate) fn resolve_expr_unwrap(
-    &mut self,
-    span: Span,
-    inner: &Expr<'core>,
-  ) -> Result<TirExpr, Diag<'core>> {
+  pub(crate) fn resolve_expr_unwrap(&mut self, span: Span, inner: &Expr) -> Result<TirExpr, Diag> {
     let inner = self.resolve_expr(inner);
 
-    let (struct_id, data_ty) = match self.types.force_kind(self.core, inner.ty) {
+    let (struct_id, data_ty) = match self.types.force_kind(self.diags, inner.ty) {
       (inv, TypeKind::Struct(struct_id, type_params)) => {
         let struct_id = *struct_id;
         let type_params = &type_params.clone();
@@ -201,17 +193,17 @@ impl<'core> Resolver<'core, '_> {
   ) -> Type {
     let vis = self.chart.structs[struct_id].data_vis;
     if !self.chart.visible(vis, self.cur_def) {
-      self.core.report(Diag::StructDataInvisible {
+      self.diags.report(Diag::StructDataInvisible {
         span,
         ty: self.types.show(self.chart, ty),
-        vis: self.chart.defs[vis].path,
+        vis: self.chart.defs[vis].path.clone(),
       });
     }
     self.types.import(&self.sigs.structs[struct_id], Some(type_params)).data
   }
 }
 
-impl<'core> Distiller<'core, '_> {
+impl Distiller<'_> {
   pub(crate) fn distill_expr_value_struct(
     &mut self,
     stage: &mut Stage,
@@ -405,7 +397,7 @@ impl<'core> Distiller<'core, '_> {
   }
 }
 
-impl<'core> Matcher<'core, '_, '_> {
+impl Matcher<'_, '_> {
   pub(crate) fn match_struct<'p>(
     &mut self,
     layer: &mut Layer,
@@ -432,7 +424,7 @@ impl<'core> Matcher<'core, '_, '_> {
   }
 }
 
-impl<'core> Emitter<'core, '_> {
+impl Emitter<'_> {
   pub(crate) fn emit_struct(&mut self, _struct_id: StructId, a: &Port, b: &Port) {
     let a = self.emit_port(a);
     let b = self.emit_port(b);

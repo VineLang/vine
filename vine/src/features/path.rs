@@ -18,8 +18,8 @@ use crate::{
   tools::fmt::{doc::Doc, Formatter},
 };
 
-impl<'core> VineParser<'core, '_> {
-  pub(crate) fn parse_path(&mut self) -> Result<Path<'core>, Diag<'core>> {
+impl VineParser<'_> {
+  pub(crate) fn parse_path(&mut self) -> Result<Path, Diag> {
     let span = self.start_span();
     let absolute = self.eat(Token::ColonColon)?;
     let segments = self.parse_delimited(PATH, Self::parse_ident)?;
@@ -28,31 +28,31 @@ impl<'core> VineParser<'core, '_> {
     Ok(Path { span, absolute, segments, generics })
   }
 
-  pub(crate) fn parse_expr_path(&mut self) -> Result<ExprKind<'core>, Diag<'core>> {
+  pub(crate) fn parse_expr_path(&mut self) -> Result<ExprKind, Diag> {
     let path = self.parse_path()?;
     let args = self.check_then(Token::OpenParen, Self::parse_exprs)?;
     Ok(ExprKind::Path(path, args))
   }
 
-  pub(crate) fn parse_pat_path(&mut self) -> Result<PatKind<'core>, Diag<'core>> {
+  pub(crate) fn parse_pat_path(&mut self) -> Result<PatKind, Diag> {
     let path = self.parse_path()?;
     let data = self.check_then(Token::OpenParen, Self::parse_pats)?;
     Ok(PatKind::Path(path, data))
   }
 }
 
-impl<'core: 'src, 'src> Formatter<'src> {
-  pub(crate) fn fmt_path(&self, path: &Path<'core>) -> Doc<'src> {
+impl<'src> Formatter<'src> {
+  pub(crate) fn fmt_path(&self, path: &Path) -> Doc<'src> {
     let mut docs = Vec::<Doc>::new();
     if path.absolute {
       docs.push(Doc("::"));
     }
     let mut first = true;
-    for &seg in &path.segments {
+    for seg in &path.segments {
       if !first {
         docs.push(Doc("::"));
       }
-      docs.push(Doc(seg));
+      docs.push(Doc(seg.clone()));
       first = false;
     }
     if let Some(generics) = &path.generics {
@@ -61,11 +61,7 @@ impl<'core: 'src, 'src> Formatter<'src> {
     Doc::concat_vec(docs)
   }
 
-  pub(crate) fn fmt_expr_path(
-    &self,
-    path: &Path<'core>,
-    args: &Option<Vec<Expr<'core>>>,
-  ) -> Doc<'src> {
+  pub(crate) fn fmt_expr_path(&self, path: &Path, args: &Option<Vec<Expr>>) -> Doc<'src> {
     match args {
       Some(args) => {
         Doc::concat([self.fmt_path(path), Doc::paren_comma(args.iter().map(|x| self.fmt_expr(x)))])
@@ -74,11 +70,7 @@ impl<'core: 'src, 'src> Formatter<'src> {
     }
   }
 
-  pub(crate) fn fmt_pat_path(
-    &self,
-    path: &Path<'core>,
-    args: &Option<Vec<Pat<'core>>>,
-  ) -> Doc<'src> {
+  pub(crate) fn fmt_pat_path(&self, path: &Path, args: &Option<Vec<Pat>>) -> Doc<'src> {
     match args {
       Some(args) => {
         Doc::concat([self.fmt_path(path), Doc::paren_comma(args.iter().map(|x| self.fmt_pat(x)))])
@@ -88,14 +80,14 @@ impl<'core: 'src, 'src> Formatter<'src> {
   }
 }
 
-impl<'core> Resolver<'core, '_> {
+impl Resolver<'_> {
   pub fn resolve_path<T>(
     &mut self,
     base: DefId,
-    path: &Path<'core>,
+    path: &Path,
     desc: &'static str,
     f: impl FnOnce(&Def) -> Option<WithVis<T>>,
-  ) -> Result<T, Diag<'core>> {
+  ) -> Result<T, Diag> {
     let def = self._resolve_path(base, path)?;
     let def = &self.chart.defs[def];
     match f(def) {
@@ -106,25 +98,25 @@ impl<'core> Resolver<'core, '_> {
           Err(Diag::InvisibleAssociated {
             span: path.span,
             desc,
-            path: def.path,
-            vis: self.chart.defs[vis].path,
+            path: def.path.clone(),
+            vis: self.chart.defs[vis].path.clone(),
           })
         }
       }
-      None => Err(Diag::PathNoAssociated { span: path.span, desc, path: def.path }),
+      None => Err(Diag::PathNoAssociated { span: path.span, desc, path: def.path.clone() }),
     }
   }
 
-  fn _resolve_path(&mut self, source: DefId, path: &Path<'core>) -> Result<DefId, Diag<'core>> {
+  fn _resolve_path(&mut self, source: DefId, path: &Path) -> Result<DefId, Diag> {
     let mut segments = path.segments.iter();
     let mut base = if path.absolute {
       DefId::ROOT
     } else {
-      let initial = *segments.next().unwrap();
-      self.resolve_initial(path.span, source, initial)?
+      let initial = segments.next().unwrap();
+      self.resolve_initial(path.span, source, initial.clone())?
     };
-    for &segment in segments {
-      base = self.resolve_segment(path.span, source, base, segment)?;
+    for segment in segments {
+      base = self.resolve_segment(path.span, source, base, segment.clone())?;
     }
     Ok(base)
   }
@@ -133,11 +125,11 @@ impl<'core> Resolver<'core, '_> {
     &mut self,
     span: Span,
     base: DefId,
-    ident: Ident<'core>,
-  ) -> Result<DefId, Diag<'core>> {
+    ident: Ident,
+  ) -> Result<DefId, Diag> {
     let mut cur = base;
     loop {
-      if let Some(resolved) = self._resolve_segment(span, base, cur, ident)? {
+      if let Some(resolved) = self._resolve_segment(span, base, cur, ident.clone())? {
         return Ok(resolved);
       }
       if let Some(parent) = self.chart.defs[cur].parent {
@@ -147,11 +139,11 @@ impl<'core> Resolver<'core, '_> {
       }
     }
     if let Some(prelude) = self.chart.builtins.prelude {
-      if let Some(resolved) = self._resolve_segment(span, base, prelude, ident)? {
+      if let Some(resolved) = self._resolve_segment(span, base, prelude, ident.clone())? {
         return Ok(resolved);
       }
     }
-    Err(Diag::CannotResolve { span, module: self.chart.defs[base].path, ident })
+    Err(Diag::CannotResolve { span, module: self.chart.defs[base].path.clone(), ident })
   }
 
   pub(crate) fn resolve_segment(
@@ -159,10 +151,10 @@ impl<'core> Resolver<'core, '_> {
     span: Span,
     source: DefId,
     base: DefId,
-    ident: Ident<'core>,
-  ) -> Result<DefId, Diag<'core>> {
-    let resolved = self._resolve_segment(span, source, base, ident)?;
-    resolved.ok_or(Diag::CannotResolve { span, module: self.chart.defs[base].path, ident })
+    ident: Ident,
+  ) -> Result<DefId, Diag> {
+    let resolved = self._resolve_segment(span, source, base, ident.clone())?;
+    resolved.ok_or(Diag::CannotResolve { span, module: self.chart.defs[base].path.clone(), ident })
   }
 
   fn _resolve_segment(
@@ -170,8 +162,8 @@ impl<'core> Resolver<'core, '_> {
     span: Span,
     source: DefId,
     base: DefId,
-    ident: Ident<'core>,
-  ) -> Result<Option<DefId>, Diag<'core>> {
+    ident: Ident,
+  ) -> Result<Option<DefId>, Diag> {
     let def = &self.chart.defs[base];
 
     if let Some(member) = def.members_lookup.get(&ident) {
@@ -185,9 +177,9 @@ impl<'core> Resolver<'core, '_> {
       } else {
         Err(Diag::Invisible {
           span,
-          module: self.chart.defs[base].path,
+          module: self.chart.defs[base].path.clone(),
           ident,
-          vis: self.chart.defs[vis].path,
+          vis: self.chart.defs[vis].path.clone(),
         })
       }
     } else {
@@ -197,11 +189,11 @@ impl<'core> Resolver<'core, '_> {
 
   pub(crate) fn resolve_expr_path(
     &mut self,
-    expr: &Expr<'core>,
+    expr: &Expr,
     span: Span,
-    path: &Path<'core>,
-    args: &Option<Vec<Expr<'core>>>,
-  ) -> Result<TirExpr, Diag<'core>> {
+    path: &Path,
+    args: &Option<Vec<Expr>>,
+  ) -> Result<TirExpr, Diag> {
     if let Some(ident) = path.as_ident() {
       if let Some(bind) = self.scope.get(&ident).and_then(|x| x.last()) {
         let expr = match bind.binding {
@@ -238,9 +230,9 @@ impl<'core> Resolver<'core, '_> {
   pub(crate) fn resolve_pat_path(
     &mut self,
     span: Span,
-    path: &Path<'core>,
-    data: &Option<Vec<Pat<'core>>>,
-  ) -> Result<TirPat, Diag<'core>> {
+    path: &Path,
+    data: &Option<Vec<Pat>>,
+  ) -> Result<TirPat, Diag> {
     let resolved = self.resolve_path(self.cur_def, path, "pattern", |d| d.pattern_kind);
     match resolved {
       Ok(DefPatternKind::Struct(struct_id)) => {
@@ -262,12 +254,7 @@ impl<'core> Resolver<'core, '_> {
     }
   }
 
-  pub(crate) fn resolve_pat_sig_path(
-    &mut self,
-    span: Span,
-    path: &Path<'core>,
-    inference: bool,
-  ) -> Type {
+  pub(crate) fn resolve_pat_sig_path(&mut self, span: Span, path: &Path, inference: bool) -> Type {
     let resolved = self.resolve_path(self.cur_def, path, "pattern", |d| d.pattern_kind);
     match resolved {
       Ok(DefPatternKind::Struct(struct_id)) => self.resolve_pat_sig_path_struct(path, struct_id),
@@ -276,13 +263,13 @@ impl<'core> Resolver<'core, '_> {
         if inference {
           self.types.new_var(span)
         } else {
-          self.types.error(self.core.report(Diag::ItemTypeHole { span }))
+          self.types.error(self.diags.report(Diag::ItemTypeHole { span }))
         }
       }
     }
   }
 
-  pub(crate) fn resolve_ty_path(&mut self, path: &Path<'core>, inference: bool) -> Type {
+  pub(crate) fn resolve_ty_path(&mut self, path: &Path, inference: bool) -> Type {
     if let Some(ident) = path.as_ident() {
       if let Some(&index) = self.sigs.type_params[self.cur_generics].lookup.get(&ident) {
         return self.types.new(TypeKind::Param(index, ident));
@@ -296,18 +283,18 @@ impl<'core> Resolver<'core, '_> {
       Ok(DefTypeKind::Alias(type_alias_id)) => {
         self.resolve_ty_path_alias(path, inference, type_alias_id)
       }
-      Err(diag) => self.types.error(self.core.report(diag)),
+      Err(diag) => self.types.error(self.diags.report(diag)),
     }
   }
 
-  pub(crate) fn resolve_impl_path(&mut self, path: &Path<'core>, ty: &ImplType) -> TirImpl<'core> {
+  pub(crate) fn resolve_impl_path(&mut self, path: &Path, ty: &ImplType) -> TirImpl {
     if let Some(ident) = path.as_ident() {
       let impl_params = &self.sigs.impl_params[self.cur_generics];
       if let Some(&index) = impl_params.lookup.get(&ident) {
         let actual_ty =
           self.types.import_with(&impl_params.types, None, |t, tys| t.transfer(&tys[index]));
         if self.types.unify_impl_type(&actual_ty, ty).is_failure() {
-          self.core.report(Diag::ExpectedTypeFound {
+          self.diags.report(Diag::ExpectedTypeFound {
             span: path.span,
             expected: self.types.show_impl_type(self.chart, ty),
             found: self.types.show_impl_type(self.chart, &actual_ty),
@@ -318,7 +305,7 @@ impl<'core> Resolver<'core, '_> {
     }
     match self.resolve_path(self.cur_def, path, "impl", |d| d.impl_kind) {
       Ok(DefImplKind::Impl(id)) => self.resolve_impl_path_impl(path, id, ty),
-      Err(diag) => TirImpl::Error(self.core.report(diag)),
+      Err(diag) => TirImpl::Error(self.diags.report(diag)),
     }
   }
 }

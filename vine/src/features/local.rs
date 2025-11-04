@@ -13,7 +13,7 @@ use crate::{
   },
 };
 
-impl<'core> Distiller<'core, '_> {
+impl Distiller<'_> {
   pub(crate) fn distill_expr_value_local(
     &mut self,
     stage: &mut Stage,
@@ -92,7 +92,7 @@ pub(crate) struct LocalEmissionState {
   values: Vec<Tree>,
 }
 
-impl<'core> Emitter<'core, '_> {
+impl Emitter<'_> {
   fn local(&mut self, local: Local) -> &mut LocalEmissionState {
     self.locals.entry(local).or_insert_with(|| LocalEmissionState {
       inv: self.vir.locals[local].inv,
@@ -182,7 +182,7 @@ impl<'core> Emitter<'core, '_> {
               self.pairs.push((drop_tree, Tree::n_ary("fn", [Tree::Erase, source, Tree::Erase])));
             }
             None => {
-              self.core.report(Diag::CannotDrop {
+              self.diags.report(Diag::CannotDrop {
                 span: local.span,
                 ty: self.vir.types.show(self.chart, local.ty),
               });
@@ -192,7 +192,7 @@ impl<'core> Emitter<'core, '_> {
         }
       } else {
         let source = source.unwrap_or_else(|| {
-          self.core.report(Diag::UninitializedVariable {
+          self.diags.report(Diag::UninitializedVariable {
             span: local.span,
             ty: self.vir.types.show(self.chart, local.ty),
           });
@@ -218,7 +218,7 @@ impl<'core> Emitter<'core, '_> {
               self.pairs.push((source, sink));
             }
             None => {
-              self.core.report(Diag::CannotFork {
+              self.diags.report(Diag::CannotFork {
                 span: local.span,
                 ty: self.vir.types.show(self.chart, local.ty),
               });

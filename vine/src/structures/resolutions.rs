@@ -10,16 +10,16 @@ use crate::structures::{
 };
 
 #[derive(Debug, Default)]
-pub struct Resolutions<'core> {
+pub struct Resolutions {
   pub consts: IdxVec<ConcreteConstId, FragmentId>,
   pub fns: IdxVec<ConcreteFnId, FragmentId>,
-  pub impls: IdxVec<ImplId, Result<ResolvedImpl<'core>, ErrorGuaranteed>>,
+  pub impls: IdxVec<ImplId, Result<ResolvedImpl, ErrorGuaranteed>>,
   pub main: Option<FragmentId>,
 }
 
 #[derive(Debug)]
-pub struct ResolvedImpl<'core> {
-  pub kind: ResolvedImplKind<'core>,
+pub struct ResolvedImpl {
+  pub kind: ResolvedImplKind,
   pub trait_id: TraitId,
   pub become_: Become,
 }
@@ -32,46 +32,46 @@ pub enum Become {
 }
 
 #[derive(Debug)]
-pub enum ResolvedImplKind<'core> {
+pub enum ResolvedImplKind {
   Direct {
     fns: IdxVec<TraitFnId, Result<ConcreteFnId, ErrorGuaranteed>>,
     consts: IdxVec<TraitConstId, Result<ConcreteConstId, ErrorGuaranteed>>,
   },
-  Indirect(TirImpl<'core>),
+  Indirect(TirImpl),
 }
 
 new_idx!(pub FragmentId);
 #[derive(Debug)]
-pub struct Fragment<'core> {
-  pub path: &'core str,
+pub struct Fragment {
+  pub path: String,
   pub def: DefId,
   pub generics: GenericsId,
   pub impl_params: usize,
-  pub tir: Tir<'core>,
+  pub tir: Tir,
   pub frameless: bool,
 }
 
 new_idx!(pub ConstRelId);
 new_idx!(pub FnRelId);
 #[derive(Debug, Clone, Default)]
-pub struct Rels<'core> {
-  pub consts: IdxVec<ConstRelId, (ConstId, Vec<TirImpl<'core>>)>,
-  pub fns: IdxVec<FnRelId, FnRel<'core>>,
+pub struct Rels {
+  pub consts: IdxVec<ConstRelId, (ConstId, Vec<TirImpl>)>,
+  pub fns: IdxVec<FnRelId, FnRel>,
 }
 
 #[derive(Debug, Clone)]
-pub enum FnRel<'core> {
-  Item(FnId, Vec<TirImpl<'core>>),
-  Impl(TirImpl<'core>, usize),
+pub enum FnRel {
+  Item(FnId, Vec<TirImpl>),
+  Impl(TirImpl, usize),
 }
 
-impl<'core> Rels<'core> {
-  pub fn fork_rel(&mut self, chart: &Chart<'core>, impl_: TirImpl<'core>) -> FnRelId {
+impl Rels {
+  pub fn fork_rel(&mut self, chart: &Chart, impl_: TirImpl) -> FnRelId {
     let fork = chart.builtins.fork.unwrap();
     self.fns.push(FnRel::Item(FnId::Abstract(fork, TraitFnId(0)), vec![impl_]))
   }
 
-  pub fn drop_rel(&mut self, chart: &Chart<'core>, impl_: TirImpl<'core>) -> FnRelId {
+  pub fn drop_rel(&mut self, chart: &Chart, impl_: TirImpl) -> FnRelId {
     let drop = chart.builtins.drop.unwrap();
     self.fns.push(FnRel::Item(FnId::Abstract(drop, TraitFnId(0)), vec![impl_]))
   }

@@ -14,8 +14,7 @@ use crate::{
     },
     chart::{Chart, ConcreteFnId, DefId, DefTraitKind, FnId, GenericsId, OpaqueTypeId},
     checkpoint::Checkpoint,
-    core::Core,
-    diag::{Diag, ErrorGuaranteed},
+    diag::{Diag, Diags, ErrorGuaranteed},
     resolutions::{FnRel, FnRelId, Fragment, FragmentId, Rels, Resolutions},
     signatures::{FnSig, Signatures},
     tir::{
@@ -27,24 +26,24 @@ use crate::{
 };
 
 #[derive(Debug)]
-pub struct Resolver<'core, 'a> {
-  pub(crate) core: &'core Core<'core>,
-  pub(crate) chart: &'a Chart<'core>,
-  pub(crate) sigs: &'a mut Signatures<'core>,
-  pub(crate) resolutions: &'a mut Resolutions<'core>,
-  pub(crate) fragments: &'a mut IdxVec<FragmentId, Fragment<'core>>,
-  pub(crate) types: Types<'core>,
+pub struct Resolver<'a> {
+  pub(crate) chart: &'a Chart,
+  pub(crate) sigs: &'a mut Signatures,
+  pub(crate) diags: &'a mut Diags,
+  pub(crate) resolutions: &'a mut Resolutions,
+  pub(crate) fragments: &'a mut IdxVec<FragmentId, Fragment>,
+  pub(crate) types: Types,
   pub(crate) return_ty: Option<Type>,
   pub(crate) cur_def: DefId,
   pub(crate) cur_generics: GenericsId,
 
-  pub(crate) scope: HashMap<Ident<'core>, Vec<ScopeEntry>>,
+  pub(crate) scope: HashMap<Ident, Vec<ScopeEntry>>,
   pub(crate) scope_depth: usize,
   pub(crate) locals: IdxVec<Local, TirLocal>,
-  pub(crate) targets: HashMap<Target<'core>, Vec<TargetInfo>>,
+  pub(crate) targets: HashMap<Target, Vec<TargetInfo>>,
   pub(crate) target_id: Counter<TargetId>,
 
-  pub(crate) rels: Rels<'core>,
+  pub(crate) rels: Rels,
   pub(crate) closures: IdxVec<ClosureId, Option<TirClosure>>,
 }
 
@@ -67,18 +66,18 @@ pub(crate) enum Binding {
   Closure(ClosureId, Type),
 }
 
-impl<'core, 'a> Resolver<'core, 'a> {
+impl<'a> Resolver<'a> {
   pub fn new(
-    core: &'core Core<'core>,
-    chart: &'a Chart<'core>,
-    sigs: &'a mut Signatures<'core>,
-    resolutions: &'a mut Resolutions<'core>,
-    fragments: &'a mut IdxVec<FragmentId, Fragment<'core>>,
+    chart: &'a Chart,
+    sigs: &'a mut Signatures,
+    diags: &'a mut Diags,
+    resolutions: &'a mut Resolutions,
+    fragments: &'a mut IdxVec<FragmentId, Fragment>,
   ) -> Self {
     Resolver {
-      core,
       chart,
       sigs,
+      diags,
       resolutions,
       fragments,
       types: Types::default(),
@@ -155,16 +154,16 @@ impl<'core, 'a> Resolver<'core, 'a> {
         self.resolutions.main = Some(self.resolutions.fns[main_mod]);
       }
       Err(diag) => {
-        self.core.report(diag);
+        self.diags.report(diag);
       }
     }
   }
 
-  fn _resolve_main(&mut self, main_mod: DefId) -> Result<ConcreteFnId, Diag<'core>> {
+  fn _resolve_main(&mut self, main_mod: DefId) -> Result<ConcreteFnId, Diag> {
     self.types.reset();
     let span = Span::NONE;
-    let main_mod_name = self.chart.defs[main_mod].name;
-    let main_ident = self.core.ident("main");
+    let main_mod_name = self.chart.defs[main_mod].name.clone();
+    let main_ident = Ident("main".into());
     let path = Path {
       span,
       absolute: true,
@@ -191,7 +190,7 @@ impl<'core, 'a> Resolver<'core, 'a> {
     let nil = self.types.nil();
     let expected = FnSig { params: vec![io_ref], ret_ty: nil };
     let found = self.types.import(&self.sigs.concrete_fns[fn_id], None);
-    Self::expect_fn_sig(self.core, self.chart, &mut self.types, span, expected, found);
+    Self::expect_fn_sig(self.diags, self.chart, &mut self.types, span, expected, found);
     Ok(fn_id)
   }
 
@@ -211,15 +210,15 @@ impl<'core, 'a> Resolver<'core, 'a> {
   }
 
   #[allow(clippy::type_complexity)]
-  pub(crate) fn _resolve_repl<'l>(
+  pub(crate) fn _resolve_repl(
     &mut self,
     span: Span,
-    path: &'core str,
+    path: String,
     def_id: DefId,
-    types: Types<'core>,
-    locals: impl Iterator<Item = (Ident<'core>, Span, Type)>,
-    block: &Block<'core>,
-  ) -> (FragmentId, Type, Vec<(Local, Ident<'core>, Span, Type)>) {
+    types: Types,
+    locals: impl Iterator<Item = (Ident, Span, Type)>,
+    block: &Block,
+  ) -> (FragmentId, Type, Vec<(Local, Ident, Span, Type)>) {
     self.initialize(def_id, GenericsId::NONE);
     self.types = types;
     for (name, span, ty) in locals {
@@ -254,15 +253,15 @@ impl<'core, 'a> Resolver<'core, 'a> {
   }
 
   pub(crate) fn expect_fn_sig(
-    core: &Core<'core>,
-    chart: &Chart<'core>,
-    types: &mut Types<'core>,
+    diags: &mut Diags,
+    chart: &Chart,
+    types: &mut Types,
     span: Span,
     expected_sig: FnSig,
     found_sig: FnSig,
   ) {
     if types.unify_fn_sig(&expected_sig, &found_sig).is_failure() {
-      core.report(Diag::ExpectedTypeFound {
+      diags.report(Diag::ExpectedTypeFound {
         span,
         expected: types.show_fn_sig(chart, &expected_sig),
         found: types.show_fn_sig(chart, &found_sig),
@@ -270,7 +269,7 @@ impl<'core, 'a> Resolver<'core, 'a> {
     }
   }
 
-  pub(crate) fn resolve_trait(&mut self, trait_: &Trait<'core>) -> ImplType {
+  pub(crate) fn resolve_trait(&mut self, trait_: &Trait) -> ImplType {
     let span = trait_.span;
     match &*trait_.kind {
       TraitKind::Path(path) => {
@@ -280,7 +279,7 @@ impl<'core, 'a> Resolver<'core, 'a> {
               self.resolve_generics(path, self.chart.traits[trait_id].generics, false);
             ImplType::Trait(trait_id, type_params)
           }
-          Err(diag) => ImplType::Error(self.core.report(diag)),
+          Err(diag) => ImplType::Error(self.diags.report(diag)),
         }
       }
       TraitKind::Fn(receiver, params, ret) => self.resolve_trait_fn(span, receiver, params, ret),
@@ -288,7 +287,7 @@ impl<'core, 'a> Resolver<'core, 'a> {
     }
   }
 
-  pub(crate) fn resolve_impl_type(&mut self, impl_: &Impl<'core>, ty: &ImplType) -> TirImpl<'core> {
+  pub(crate) fn resolve_impl_type(&mut self, impl_: &Impl, ty: &ImplType) -> TirImpl {
     let span = impl_.span;
     match &*impl_.kind {
       ImplKind::Hole => self.find_impl(span, ty, false),
@@ -298,17 +297,13 @@ impl<'core, 'a> Resolver<'core, 'a> {
     }
   }
 
-  pub(crate) fn finder(&self, span: Span) -> Finder<'core, '_> {
-    Finder::new(self.core, self.chart, self.sigs, self.cur_def, self.cur_generics, span)
-  }
-
-  pub(crate) fn find_impl(&mut self, span: Span, ty: &ImplType, basic: bool) -> TirImpl<'core> {
+  pub(crate) fn find_impl(&mut self, span: Span, ty: &ImplType, basic: bool) -> TirImpl {
     let mut finder =
-      Finder::new(self.core, self.chart, self.sigs, self.cur_def, self.cur_generics, span);
+      Finder::new(self.chart, self.sigs, self.diags, self.cur_def, self.cur_generics, span);
     finder.find_impl(&mut self.types, ty, basic)
   }
 
-  pub(crate) fn bind(&mut self, ident: Ident<'core>, binding: Binding) {
+  pub(crate) fn bind(&mut self, ident: Ident, binding: Binding) {
     let stack = self.scope.entry(ident).or_default();
     let top = stack.last_mut();
     if top.as_ref().is_some_and(|x| x.depth == self.scope_depth) {
@@ -331,13 +326,13 @@ impl<'core, 'a> Resolver<'core, 'a> {
     }
   }
 
-  pub(crate) fn error_expr(&mut self, span: Span, diag: Diag<'core>) -> TirExpr {
-    let err = self.core.report(diag);
+  pub(crate) fn error_expr(&mut self, span: Span, diag: Diag) -> TirExpr {
+    let err = self.diags.report(diag);
     TirExpr { span, ty: self.types.error(err), kind: Box::new(TirExprKind::Error(err)) }
   }
 
-  pub(crate) fn error_pat(&mut self, span: Span, diag: Diag<'core>) -> TirPat {
-    let err = self.core.report(diag);
+  pub(crate) fn error_pat(&mut self, span: Span, diag: Diag) -> TirPat {
+    let err = self.diags.report(diag);
     TirPat { span, ty: self.types.error(err), kind: Box::new(TirPatKind::Error(err)) }
   }
 
@@ -348,7 +343,7 @@ impl<'core, 'a> Resolver<'core, 'a> {
     expected: Type,
   ) -> Option<ErrorGuaranteed> {
     if self.types.unify(found, expected).is_failure() {
-      Some(self.core.report(Diag::ExpectedTypeFound {
+      Some(self.diags.report(Diag::ExpectedTypeFound {
         span,
         expected: self.types.show(self.chart, expected),
         found: self.types.show(self.chart, found),
@@ -361,10 +356,10 @@ impl<'core, 'a> Resolver<'core, 'a> {
   pub(crate) fn finish_fragment(
     &mut self,
     span: Span,
-    path: &'core str,
+    path: String,
     root: TirExpr,
     frameless: bool,
-  ) -> Fragment<'core> {
+  ) -> Fragment {
     Fragment {
       def: self.cur_def,
       generics: self.cur_generics,
@@ -391,7 +386,7 @@ impl<'core, 'a> Resolver<'core, 'a> {
     if let Some(id) = builtin {
       self.types.new(TypeKind::Opaque(id, vec![]))
     } else {
-      self.types.error(self.core.report(Diag::MissingBuiltin { span, builtin: name }))
+      self.types.error(self.diags.report(Diag::MissingBuiltin { span, builtin: name }))
     }
   }
 
@@ -405,7 +400,7 @@ impl<'core, 'a> Resolver<'core, 'a> {
     fn_id: Option<FnId>,
     name: &'static str,
     type_params: [Type; N],
-  ) -> Result<FnRelId, Diag<'core>> {
+  ) -> Result<FnRelId, Diag> {
     if let Some(fn_id) = fn_id {
       let (_, impl_params) = self._resolve_generics(
         span,
@@ -420,38 +415,40 @@ impl<'core, 'a> Resolver<'core, 'a> {
     }
   }
 
-  pub(crate) fn resolve_expr_type(&mut self, expr: &Expr<'core>, ty: Type) -> TirExpr {
+  pub(crate) fn resolve_expr_type(&mut self, expr: &Expr, ty: Type) -> TirExpr {
     let expr = self.resolve_expr(expr);
     self.expect_type(expr.span, expr.ty, ty);
     expr
   }
 
-  pub(crate) fn resolve_expr(&mut self, expr: &Expr<'core>) -> TirExpr {
+  pub(crate) fn resolve_expr(&mut self, expr: &Expr) -> TirExpr {
     self._resolve_expr(expr).unwrap_or_else(|diag| self.error_expr(expr.span, diag))
   }
 
-  pub(crate) fn _resolve_expr(&mut self, expr: &Expr<'core>) -> Result<TirExpr, Diag<'core>> {
+  pub(crate) fn _resolve_expr(&mut self, expr: &Expr) -> Result<TirExpr, Diag> {
     let span = expr.span;
     match &*expr.kind {
       ExprKind::Error(e) => Err(*e)?,
       ExprKind::Paren(e) => self._resolve_expr(e),
-      ExprKind::Do(label, ty, block) => self.resolve_expr_do(span, *label, ty, block),
+      ExprKind::Do(label, ty, block) => self.resolve_expr_do(span, label.clone(), ty, block),
       ExprKind::Assign(dir, space, value) => self.resolve_expr_assign(span, *dir, space, value),
       ExprKind::Match(scrutinee, ty, arms) => self.resolve_match(span, scrutinee, ty, arms),
       ExprKind::If(cond, ty, then, else_) => self.resolve_expr_if(span, cond, ty, then, else_),
-      ExprKind::When(label, ty, arms, leg) => self.resolve_expr_when(span, *label, ty, arms, leg),
+      ExprKind::When(label, ty, arms, leg) => {
+        self.resolve_expr_when(span, label.clone(), ty, arms, leg)
+      }
       ExprKind::While(label, cond, ty, block, else_) => {
-        self.resolve_expr_while(span, *label, cond, ty, block, else_)
+        self.resolve_expr_while(span, label.clone(), cond, ty, block, else_)
       }
       ExprKind::For(label, pat, iter, ty, block, else_) => {
-        self.resolve_expr_for(span, *label, pat, iter, ty, block, else_)
+        self.resolve_expr_for(span, label.clone(), pat, iter, ty, block, else_)
       }
-      ExprKind::Loop(label, ty, block) => self.resolve_expr_loop(span, *label, ty, block),
+      ExprKind::Loop(label, ty, block) => self.resolve_expr_loop(span, label.clone(), ty, block),
       ExprKind::Fn(flex, params, ret, body) => self.resolve_expr_fn(span, flex, params, ret, body),
       ExprKind::Ref(inner, _) => self.resolve_expr_ref(span, inner),
       ExprKind::List(elements) => self.resolve_expr_list(span, elements),
       ExprKind::Method(receiver, name, generics, args) => {
-        self.resolve_method(span, receiver, *name, generics, args)
+        self.resolve_method(span, receiver, name.clone(), generics, args)
       }
       ExprKind::Call(func, args) => self.resolve_expr_call(span, func, args),
       ExprKind::Not(inner) => self.resolve_expr_not(span, inner),
@@ -490,7 +487,7 @@ impl<'core, 'a> Resolver<'core, 'a> {
     }
   }
 
-  pub(crate) fn resolve_pat_type(&mut self, pat: &Pat<'core>, ty: Type) -> TirPat {
+  pub(crate) fn resolve_pat_type(&mut self, pat: &Pat, ty: Type) -> TirPat {
     let span = pat.span;
     let pat = self.resolve_pat(pat);
     match self.expect_type(pat.span, pat.ty, ty) {
@@ -499,11 +496,11 @@ impl<'core, 'a> Resolver<'core, 'a> {
     }
   }
 
-  pub(crate) fn resolve_pat(&mut self, pat: &Pat<'core>) -> TirPat {
+  pub(crate) fn resolve_pat(&mut self, pat: &Pat) -> TirPat {
     self._resolve_pat(pat).unwrap_or_else(|diag| self.error_pat(pat.span, diag))
   }
 
-  pub(crate) fn _resolve_pat(&mut self, pat: &Pat<'core>) -> Result<TirPat, Diag<'core>> {
+  pub(crate) fn _resolve_pat(&mut self, pat: &Pat) -> Result<TirPat, Diag> {
     let span = pat.span;
     match &*pat.kind {
       PatKind::Error(e) => Err(*e)?,
@@ -519,7 +516,7 @@ impl<'core, 'a> Resolver<'core, 'a> {
     }
   }
 
-  pub(crate) fn resolve_pat_sig(&mut self, pat: &Pat<'core>, inference: bool) -> Type {
+  pub(crate) fn resolve_pat_sig(&mut self, pat: &Pat, inference: bool) -> Type {
     let span = pat.span;
     match &*pat.kind {
       PatKind::Paren(inner) => self.resolve_pat_sig(inner, inference),
@@ -530,13 +527,13 @@ impl<'core, 'a> Resolver<'core, 'a> {
       PatKind::Tuple(elements) => self.resolve_pat_sig_tuple(elements, inference),
       PatKind::Object(entries) => self.resolve_pat_sig_object(entries, inference),
       PatKind::Hole | PatKind::Deref(_) => {
-        self.types.error(self.core.report(Diag::ItemTypeHole { span }))
+        self.types.error(self.diags.report(Diag::ItemTypeHole { span }))
       }
       PatKind::Error(e) => self.types.error(*e),
     }
   }
 
-  pub(crate) fn resolve_ty(&mut self, ty: &Ty<'core>, inference: bool) -> Type {
+  pub(crate) fn resolve_ty(&mut self, ty: &Ty, inference: bool) -> Type {
     let span = ty.span;
     match &*ty.kind {
       TyKind::Error(e) => self.types.error(*e),
@@ -552,12 +549,7 @@ impl<'core, 'a> Resolver<'core, 'a> {
     }
   }
 
-  pub(crate) fn resolve_arrow_ty(
-    &mut self,
-    span: Span,
-    ty: &Option<Ty<'core>>,
-    inference: bool,
-  ) -> Type {
+  pub(crate) fn resolve_arrow_ty(&mut self, span: Span, ty: &Option<Ty>, inference: bool) -> Type {
     match ty {
       Some(ty) => self.resolve_ty(ty, inference),
       None => {

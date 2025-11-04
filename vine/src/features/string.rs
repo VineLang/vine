@@ -7,6 +7,7 @@ use crate::{
     distiller::Distiller,
     emitter::Emitter,
     lexer::{StrToken, Token},
+    loader::FileId,
     parser::VineParser,
     resolver::Resolver,
   },
@@ -20,8 +21,8 @@ use crate::{
   tools::fmt::{doc::Doc, Formatter},
 };
 
-impl<'core, 'src> VineParser<'core, 'src> {
-  pub(crate) fn parse_string(&mut self) -> Result<String, Diag<'core>> {
+impl<'src> VineParser<'src> {
+  pub(crate) fn parse_string(&mut self) -> Result<String, Diag> {
     if !self.check(Token::DoubleQuote) {
       self.unexpected()?;
     }
@@ -33,7 +34,7 @@ impl<'core, 'src> VineParser<'core, 'src> {
     }
   }
 
-  pub(crate) fn parse_expr_string(&mut self) -> Result<ExprKind<'core>, Diag<'core>> {
+  pub(crate) fn parse_expr_string(&mut self) -> Result<ExprKind, Diag> {
     if !self.check(Token::DoubleQuote) {
       self.unexpected()?;
     }
@@ -51,7 +52,7 @@ impl<'core, 'src> VineParser<'core, 'src> {
     Ok(ExprKind::String(init, rest))
   }
 
-  fn parse_string_segment(&mut self) -> Result<(StringSegment, bool), Diag<'core>> {
+  fn parse_string_segment(&mut self) -> Result<(StringSegment, bool), Diag> {
     let span = self.start_span();
     let file = self.file;
     let (content, interpolation) = self.switch(
@@ -63,7 +64,7 @@ impl<'core, 'src> VineParser<'core, 'src> {
     Ok((StringSegment { content, span }, interpolation))
   }
 
-  pub(crate) fn parse_expr_char(&mut self) -> Result<ExprKind<'core>, Diag<'core>> {
+  pub(crate) fn parse_expr_char(&mut self) -> Result<ExprKind, Diag> {
     let file = self.file;
     let char =
       self.switch(|state| StringParser { state, file }, StringParser::parse_char, |e| e)?;
@@ -73,12 +74,12 @@ impl<'core, 'src> VineParser<'core, 'src> {
 
 struct StringParser<'src> {
   state: ParserState<'src, StrToken>,
-  file: usize,
+  file: FileId,
 }
 
 impl<'src> Parser<'src> for StringParser<'src> {
   type Token = StrToken;
-  type Error = Diag<'static>;
+  type Error = Diag;
 
   fn state(&mut self) -> &mut ParserState<'src, Self::Token> {
     &mut self.state
@@ -94,7 +95,7 @@ impl<'src> Parser<'src> for StringParser<'src> {
 }
 
 impl<'src> StringParser<'src> {
-  fn parse_string_segment(&mut self) -> Result<(String, bool), Diag<'static>> {
+  fn parse_string_segment(&mut self) -> Result<(String, bool), Diag> {
     let mut segment = String::new();
     while !matches!(self.state.token, None | Some(StrToken::DoubleQuote | StrToken::OpenBrace)) {
       segment.push(self.cur_char()?);
@@ -106,7 +107,7 @@ impl<'src> StringParser<'src> {
     Ok((segment, matches!(self.state.token, Some(StrToken::OpenBrace))))
   }
 
-  fn parse_char(&mut self) -> Result<char, Diag<'static>> {
+  fn parse_char(&mut self) -> Result<char, Diag> {
     if matches!(self.state.token, None | Some(StrToken::SingleQuote)) {
       self.unexpected()?;
     }
@@ -118,7 +119,7 @@ impl<'src> StringParser<'src> {
     Ok(char)
   }
 
-  fn cur_char(&self) -> Result<char, Diag<'static>> {
+  fn cur_char(&self) -> Result<char, Diag> {
     let str = self.state.lexer.slice();
     Ok(match self.state.token.unwrap() {
       StrToken::DoubleQuote => '"',
@@ -146,11 +147,11 @@ fn decode_hex(hex: &str) -> u32 {
   hex.chars().fold(0, |n, c| n * 16 + c.to_digit(16).unwrap())
 }
 
-impl<'core: 'src, 'src> Formatter<'src> {
+impl<'src> Formatter<'src> {
   pub(crate) fn fmt_expr_string(
     &self,
     init: &StringSegment,
-    rest: &Vec<(Expr<'core>, StringSegment)>,
+    rest: &[(Expr, StringSegment)],
   ) -> Doc<'src> {
     Doc::concat(
       [self.fmt_verbatim(init.span)].into_iter().chain(
@@ -162,12 +163,8 @@ impl<'core: 'src, 'src> Formatter<'src> {
   }
 }
 
-impl<'core> Resolver<'core, '_> {
-  pub(crate) fn resolve_expr_char(
-    &mut self,
-    span: Span,
-    char: char,
-  ) -> Result<TirExpr, Diag<'core>> {
+impl Resolver<'_> {
+  pub(crate) fn resolve_expr_char(&mut self, span: Span, char: char) -> Result<TirExpr, Diag> {
     let ty = self.builtin_ty(span, "Char", self.chart.builtins.char);
     Ok(TirExpr::new(span, ty, TirExprKind::Char(char)))
   }
@@ -176,12 +173,12 @@ impl<'core> Resolver<'core, '_> {
     &mut self,
     span: Span,
     init: &StringSegment,
-    rest: &Vec<(Expr<'core>, StringSegment)>,
-  ) -> Result<TirExpr, Diag<'core>> {
+    rest: &[(Expr, StringSegment)],
+  ) -> Result<TirExpr, Diag> {
     let string_ty = if let Some(string) = self.chart.builtins.string {
       self.types.new(TypeKind::Struct(string, Vec::new()))
     } else {
-      self.types.error(self.core.report(Diag::MissingBuiltin { span, builtin: "String" }))
+      self.types.error(self.diags.report(Diag::MissingBuiltin { span, builtin: "String" }))
     };
     let rest = rest
       .iter()
@@ -202,7 +199,7 @@ impl<'core> Resolver<'core, '_> {
   }
 }
 
-impl<'core> Distiller<'core, '_> {
+impl Distiller<'_> {
   pub(crate) fn distill_expr_value_char(&mut self, ty: Type, char: char) -> Port {
     Port { ty, kind: PortKind::N32(char as u32) }
   }
@@ -223,7 +220,7 @@ impl<'core> Distiller<'core, '_> {
   }
 }
 
-impl<'core> Emitter<'core, '_> {
+impl Emitter<'_> {
   pub(crate) fn emit_string(&mut self, port: &Port, init: &str, rest: &Vec<(Port, String)>) {
     let const_len = init.chars().count() + rest.iter().map(|x| x.1.chars().count()).sum::<usize>();
     let len = self.new_wire();

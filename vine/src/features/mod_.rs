@@ -14,8 +14,8 @@ use crate::{
   tools::fmt::{doc::Doc, Formatter},
 };
 
-impl<'core> VineParser<'core, '_> {
-  pub(crate) fn parse_mod_item(&mut self) -> Result<ModItem<'core>, Diag<'core>> {
+impl VineParser<'_> {
+  pub(crate) fn parse_mod_item(&mut self) -> Result<ModItem, Diag> {
     self.expect(Token::Mod)?;
     let name_span = self.span();
     let name = self.parse_ident()?;
@@ -39,11 +39,11 @@ impl<'core> VineParser<'core, '_> {
   }
 }
 
-impl<'core: 'src, 'src> Formatter<'src> {
-  pub(crate) fn fmt_mod_item(&self, m: &ModItem<'core>) -> Doc<'src> {
+impl<'src> Formatter<'src> {
+  pub(crate) fn fmt_mod_item(&self, m: &ModItem) -> Doc<'src> {
     Doc::concat([
       Doc("mod "),
-      Doc(m.name),
+      Doc(m.name.clone()),
       self.fmt_generic_params(&m.generics),
       match &m.kind {
         ModKind::Loaded(span, items) => Doc::concat([
@@ -60,14 +60,14 @@ impl<'core: 'src, 'src> Formatter<'src> {
   }
 }
 
-impl<'core> Charter<'core, '_> {
+impl Charter<'_> {
   pub(crate) fn chart_mod(
     &mut self,
     parent: DefId,
     parent_generics: GenericsId,
     vis: DefId,
     member_vis: DefId,
-    mod_item: ModItem<'core>,
+    mod_item: ModItem,
   ) -> DefId {
     let def = self.chart_child(parent, mod_item.name, member_vis, true);
     let generics = self.chart_generics(def, parent_generics, mod_item.generics, true);

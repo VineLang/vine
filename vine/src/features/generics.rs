@@ -18,12 +18,12 @@ use crate::{
   tools::fmt::{doc::Doc, Formatter},
 };
 
-impl<'core> VineParser<'core, '_> {
-  pub(crate) fn parse_generic_params(&mut self) -> Result<GenericParams<'core>, Diag<'core>> {
+impl VineParser<'_> {
+  pub(crate) fn parse_generic_params(&mut self) -> Result<GenericParams, Diag> {
     self.parse_generics(true, Self::parse_type_param, Self::parse_impl_param)
   }
 
-  fn parse_type_param(&mut self) -> Result<TypeParam<'core>, Diag<'core>> {
+  fn parse_type_param(&mut self) -> Result<TypeParam, Diag> {
     let span = self.start_span();
     let name = self.parse_ident()?;
     let flex = self.parse_flex()?;
@@ -31,7 +31,7 @@ impl<'core> VineParser<'core, '_> {
     Ok(TypeParam { span, name, flex })
   }
 
-  fn parse_impl_param(&mut self) -> Result<ImplParam<'core>, Diag<'core>> {
+  fn parse_impl_param(&mut self) -> Result<ImplParam, Diag> {
     let span = self.start_span();
     let (name, trait_) = if self.check(Token::Ident) {
       let path = self.parse_path()?;
@@ -48,16 +48,16 @@ impl<'core> VineParser<'core, '_> {
     Ok(ImplParam { span, name, trait_ })
   }
 
-  pub(crate) fn parse_generic_args(&mut self) -> Result<GenericArgs<'core>, Diag<'core>> {
+  pub(crate) fn parse_generic_args(&mut self) -> Result<GenericArgs, Diag> {
     self.parse_generics(false, Self::parse_ty, Self::parse_impl)
   }
 
   fn parse_generics<T, I>(
     &mut self,
     can_inherit: bool,
-    parse_t: impl FnMut(&mut Self) -> Result<T, Diag<'core>>,
-    parse_i: impl FnMut(&mut Self) -> Result<I, Diag<'core>>,
-  ) -> Result<Generics<T, I>, Diag<'core>> {
+    parse_t: impl FnMut(&mut Self) -> Result<T, Diag>,
+    parse_i: impl FnMut(&mut Self) -> Result<I, Diag>,
+  ) -> Result<Generics<T, I>, Diag> {
     let span = self.start_span();
     let mut inherit = false;
     let mut types = Vec::new();
@@ -75,8 +75,8 @@ impl<'core> VineParser<'core, '_> {
   fn parse_generics_section<E>(
     &mut self,
     section: &mut Vec<E>,
-    mut parse_element: impl FnMut(&mut Self) -> Result<E, Diag<'core>>,
-  ) -> Result<(), Diag<'core>> {
+    mut parse_element: impl FnMut(&mut Self) -> Result<E, Diag>,
+  ) -> Result<(), Diag> {
     while !self.check(Token::Semi) && !self.check(Token::CloseBracket) {
       section.push(parse_element(self)?);
       if !self.eat(Token::Comma)? {
@@ -90,21 +90,21 @@ impl<'core> VineParser<'core, '_> {
   }
 }
 
-impl<'core: 'src, 'src> Formatter<'src> {
-  pub(crate) fn fmt_generic_params(&self, generics: &GenericParams<'core>) -> Doc<'src> {
+impl<'src> Formatter<'src> {
+  pub(crate) fn fmt_generic_params(&self, generics: &GenericParams) -> Doc<'src> {
     self.fmt_generics(generics, |p| self.fmt_type_param(p), |p| self.fmt_impl_param(p))
   }
 
-  pub(crate) fn fmt_generic_args(&self, generics: &GenericArgs<'core>) -> Doc<'src> {
+  pub(crate) fn fmt_generic_args(&self, generics: &GenericArgs) -> Doc<'src> {
     self.fmt_generics(generics, |t| self.fmt_ty(t), |p| self.fmt_impl(p))
   }
 
-  fn fmt_type_param(&self, param: &TypeParam<'core>) -> Doc<'src> {
-    Doc::concat([Doc(param.name), self.fmt_flex(param.flex)])
+  fn fmt_type_param(&self, param: &TypeParam) -> Doc<'src> {
+    Doc::concat([Doc(param.name.clone()), self.fmt_flex(param.flex)])
   }
 
-  fn fmt_impl_param(&self, param: &ImplParam<'core>) -> Doc<'src> {
-    match param.name {
+  fn fmt_impl_param(&self, param: &ImplParam) -> Doc<'src> {
+    match param.name.clone() {
       Some(name) => Doc::concat([Doc(name), Doc(": "), self.fmt_trait(&param.trait_)]),
       None => self.fmt_trait(&param.trait_),
     }
@@ -163,12 +163,12 @@ impl<'core: 'src, 'src> Formatter<'src> {
   }
 }
 
-impl<'core> Charter<'core, '_> {
+impl Charter<'_> {
   pub(crate) fn chart_generics(
     &mut self,
     def: DefId,
     parent: GenericsId,
-    generics: GenericParams<'core>,
+    generics: GenericParams,
     impl_allowed: bool,
   ) -> GenericsId {
     self._chart_generics(def, parent, generics, impl_allowed, Flex::None)
@@ -178,7 +178,7 @@ impl<'core> Charter<'core, '_> {
     &mut self,
     def: DefId,
     parent: GenericsId,
-    generics: GenericParams<'core>,
+    generics: GenericParams,
     impl_allowed: bool,
     global_flex: Flex,
   ) -> GenericsId {
@@ -195,7 +195,7 @@ impl<'core> Charter<'core, '_> {
   }
 }
 
-impl<'core> Resolver<'core, '_> {
+impl Resolver<'_> {
   pub(crate) fn resolve_type_params(&mut self, generics_id: GenericsId) {
     let generics_def = &self.chart.generics[generics_id];
     let mut type_params =
@@ -208,9 +208,9 @@ impl<'core> Resolver<'core, '_> {
         }
       }
       let index = type_params.params.len();
-      type_params.params.push(param.name);
-      if type_params.lookup.insert(param.name, index).is_some() {
-        self.core.report(Diag::DuplicateTypeParam { span: param.span });
+      type_params.params.push(param.name.clone());
+      if type_params.lookup.insert(param.name.clone(), index).is_some() {
+        self.diags.report(Diag::DuplicateTypeParam { span: param.span });
       }
     }
     self.sigs.type_params.push_to(generics_id, type_params);
@@ -229,7 +229,7 @@ impl<'core> Resolver<'core, '_> {
         .params
         .iter()
         .enumerate()
-        .map(|(index, &name)| self.types.new(TypeKind::Param(index, name)))
+        .map(|(index, name)| self.types.new(TypeKind::Param(index, name.clone())))
         .collect();
       impl_params.types.inner.push(ImplType::Trait(trait_id, type_params));
     }
@@ -237,26 +237,26 @@ impl<'core> Resolver<'core, '_> {
     for param in &generics_def.type_params {
       let index = self.sigs.type_params[generics_id].lookup[&param.name];
       let span = param.span;
-      let ty = self.types.new(TypeKind::Param(index, param.name));
+      let ty = self.types.new(TypeKind::Param(index, param.name.clone()));
       if param.flex.fork() {
         impl_params.types.inner.push(if let Some(fork) = self.chart.builtins.fork {
           ImplType::Trait(fork, vec![ty])
         } else {
-          ImplType::Error(self.core.report(Diag::MissingBuiltin { span, builtin: "Fork" }))
+          ImplType::Error(self.diags.report(Diag::MissingBuiltin { span, builtin: "Fork" }))
         });
       }
       if param.flex.drop() {
         impl_params.types.inner.push(if let Some(drop) = self.chart.builtins.drop {
           ImplType::Trait(drop, vec![ty])
         } else {
-          ImplType::Error(self.core.report(Diag::MissingBuiltin { span, builtin: "Drop" }))
+          ImplType::Error(self.diags.report(Diag::MissingBuiltin { span, builtin: "Drop" }))
         });
       }
     }
 
     if generics_def.global_flex != Flex::None {
-      for (index, &name) in self.sigs.type_params[generics_id].params.iter().enumerate() {
-        let ty = self.types.new(TypeKind::Param(index, name));
+      for (index, name) in self.sigs.type_params[generics_id].params.iter().enumerate() {
+        let ty = self.types.new(TypeKind::Param(index, name.clone()));
         if generics_def.global_flex.fork() {
           if let Some(fork) = self.chart.builtins.fork {
             impl_params.types.inner.push(ImplType::Trait(fork, vec![ty]));
@@ -273,16 +273,16 @@ impl<'core> Resolver<'core, '_> {
     for param in &generics_def.impl_params {
       let index = impl_params.types.inner.len();
       impl_params.types.inner.push(self.resolve_trait(&param.trait_));
-      if let Some(name) = param.name {
+      if let Some(name) = param.name.clone() {
         if impl_params.lookup.insert(name, index).is_some() {
-          self.core.report(Diag::DuplicateImplParam { span: param.span });
+          self.diags.report(Diag::DuplicateImplParam { span: param.span });
         }
       }
     }
 
     if !generics_def.impl_allowed && !impl_params.types.inner.is_empty() {
       impl_params = ImplParams::default();
-      self.core.report(Diag::UnexpectedImplParam { span: generics_def.span });
+      self.diags.report(Diag::UnexpectedImplParam { span: generics_def.span });
     }
 
     impl_params.types.types = take(&mut self.types);
@@ -291,29 +291,29 @@ impl<'core> Resolver<'core, '_> {
 
   pub fn resolve_generics(
     &mut self,
-    path: &Path<'core>,
+    path: &Path,
     params_id: GenericsId,
     inference: bool,
-  ) -> (Vec<Type>, Vec<TirImpl<'core>>) {
+  ) -> (Vec<Type>, Vec<TirImpl>) {
     self._resolve_generics(path.span, path.generics.as_ref(), params_id, inference, None)
   }
 
   pub(crate) fn _resolve_generics(
     &mut self,
     span: Span,
-    args: Option<&GenericArgs<'core>>,
+    args: Option<&GenericArgs>,
     generics_id: GenericsId,
     inference: bool,
     inferred_type_params: Option<Vec<Type>>,
-  ) -> (Vec<Type>, Vec<TirImpl<'core>>) {
+  ) -> (Vec<Type>, Vec<TirImpl>) {
     let _args = GenericArgs::empty(span);
     let args = args.unwrap_or(&_args);
     let params = &self.chart.generics[generics_id];
-    let check_count = |got, expected, kind| {
+    let mut check_count = |got, expected, kind| {
       if got != expected {
-        self.core.report(Diag::BadGenericCount {
+        self.diags.report(Diag::BadGenericCount {
           span,
-          path: self.chart.defs[params.def].path,
+          path: self.chart.defs[params.def].path.clone(),
           expected,
           got,
           kind,

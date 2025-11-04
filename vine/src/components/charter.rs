@@ -5,21 +5,20 @@ use crate::{
   structures::{
     ast::{visit::VisitMut, Attr, AttrKind, Flex, Ident, Item, ItemKind, ModKind, Span, Vis},
     chart::Chart,
-    core::Core,
-    diag::{Diag, ErrorGuaranteed},
+    diag::{Diag, Diags, ErrorGuaranteed},
   },
 };
 
 use crate::structures::chart::*;
 
-pub struct Charter<'core, 'a> {
-  pub core: &'core Core<'core>,
-  pub chart: &'a mut Chart<'core>,
-  pub config: &'a Config<'core>,
+pub struct Charter<'a> {
+  pub chart: &'a mut Chart,
+  pub config: &'a Config,
+  pub diags: &'a mut Diags,
 }
 
-impl<'core> Charter<'core, '_> {
-  pub fn chart_root(&mut self, root: ModKind<'core>) {
+impl Charter<'_> {
+  pub fn chart_root(&mut self, root: ModKind) {
     if self.chart.generics.is_empty() {
       self.chart.generics.push_to(
         GenericsId::NONE,
@@ -36,12 +35,12 @@ impl<'core> Charter<'core, '_> {
       );
     }
     if self.chart.defs.is_empty() {
-      self.new_def(self.core.ident("::"), "", None);
+      self.new_def(Ident("::".into()), "".into(), None);
     }
     self.chart_mod_kind(DefId::ROOT, root, DefId::ROOT, GenericsId::NONE);
   }
 
-  fn new_def(&mut self, name: Ident<'core>, path: &'core str, parent: Option<DefId>) -> DefId {
+  fn new_def(&mut self, name: Ident, path: String, parent: Option<DefId>) -> DefId {
     let id = self.chart.defs.next_index();
     self.chart.defs.push(Def {
       name,
@@ -66,7 +65,7 @@ impl<'core> Charter<'core, '_> {
   pub(crate) fn chart_mod_kind(
     &mut self,
     vis: DefId,
-    module: ModKind<'core>,
+    module: ModKind,
     def: DefId,
     generics: GenericsId,
   ) {
@@ -79,7 +78,7 @@ impl<'core> Charter<'core, '_> {
   pub fn chart_item(
     &mut self,
     member_vis: DefId,
-    mut item: Item<'core>,
+    mut item: Item,
     parent: DefId,
     parent_generics: GenericsId,
   ) {
@@ -137,7 +136,7 @@ impl<'core> Charter<'core, '_> {
     if let Some(def) = def {
       for subitem in subitems {
         if !matches!(subitem.vis, Vis::Private) {
-          self.core.report(Diag::VisibleSubitem { span: item.span });
+          self.diags.report(Diag::VisibleSubitem { span: item.span });
         }
         self.chart_item(def, subitem, def, GenericsId::NONE);
       }
@@ -146,7 +145,7 @@ impl<'core> Charter<'core, '_> {
     self.chart_attrs(def, item.attrs);
   }
 
-  pub(crate) fn chart_attrs(&mut self, def: Option<DefId>, attrs: Vec<Attr<'core>>) {
+  pub(crate) fn chart_attrs(&mut self, def: Option<DefId>, attrs: Vec<Attr>) {
     for attr in attrs {
       let span = attr.span;
       let impl_id = def.and_then(|id| match self.chart.defs[id].impl_kind {
@@ -160,7 +159,7 @@ impl<'core> Charter<'core, '_> {
       match attr.kind {
         AttrKind::Builtin(builtin) => {
           if !self.chart_builtin(def, builtin) {
-            self.core.report(Diag::BadBuiltin { span });
+            self.diags.report(Diag::BadBuiltin { span });
           }
         }
         AttrKind::Main => {
@@ -168,33 +167,33 @@ impl<'core> Charter<'core, '_> {
         }
         AttrKind::Manual => {
           let Some(impl_id) = impl_id else {
-            self.core.report(Diag::BadManualAttr { span });
+            self.diags.report(Diag::BadManualAttr { span });
             continue;
           };
           self.chart.impls[impl_id].manual = true;
         }
         AttrKind::Basic => {
           let Some(impl_id) = impl_id else {
-            self.core.report(Diag::BadBasicAttr { span });
+            self.diags.report(Diag::BadBasicAttr { span });
             continue;
           };
           self.chart.impls[impl_id].basic = true;
         }
         AttrKind::Become(path) => {
           let Some(impl_id) = impl_id else {
-            self.core.report(Diag::BadBecomeAttr { span });
+            self.diags.report(Diag::BadBecomeAttr { span });
             continue;
           };
           let impl_ = &mut self.chart.impls[impl_id];
           if impl_.become_.is_some() {
-            self.core.report(Diag::DuplicateBecomeAttr { span });
+            self.diags.report(Diag::DuplicateBecomeAttr { span });
             continue;
           }
           impl_.become_ = Some(path);
         }
         AttrKind::Frameless => {
           let Some(concrete_fn_id) = concrete_fn_id else {
-            self.core.report(Diag::BadFramelessAttr { span });
+            self.diags.report(Diag::BadFramelessAttr { span });
             continue;
           };
           self.chart.concrete_fns[concrete_fn_id].frameless = true;
@@ -207,7 +206,7 @@ impl<'core> Charter<'core, '_> {
   pub(crate) fn chart_child(
     &mut self,
     parent: DefId,
-    name: Ident<'core>,
+    name: Ident,
     vis: DefId,
     collapse: bool,
   ) -> DefId {
@@ -217,7 +216,7 @@ impl<'core> Charter<'core, '_> {
       return parent;
     }
     let mut new = false;
-    let member = parent_def.members_lookup.entry(name).or_insert_with(|| {
+    let member = parent_def.members_lookup.entry(name.clone()).or_insert_with(|| {
       new = true;
       let member = WithVis { vis, kind: MemberKind::Child(next_def_id) };
       parent_def.named_members.push(member);
@@ -226,7 +225,9 @@ impl<'core> Charter<'core, '_> {
     let child = match member.kind {
       MemberKind::Child(child) => child,
       MemberKind::Import(i) => {
-        self.core.report(Diag::DuplicateItem { span: self.chart.imports[i].span, name });
+        self
+          .diags
+          .report(Diag::DuplicateItem { span: self.chart.imports[i].span, name: name.clone() });
         new = true;
         next_def_id
       }
@@ -234,7 +235,6 @@ impl<'core> Charter<'core, '_> {
     member.vis = member.vis.min(vis);
     if new {
       let path = format!("{}::{}", parent_def.path, name);
-      let path = self.core.alloc_str(&path);
       self.new_def(name, path, Some(parent));
     }
     child
@@ -250,7 +250,7 @@ impl<'core> Charter<'core, '_> {
         {
           ancestor
         } else {
-          self.core.report(Diag::BadVis { span });
+          self.diags.report(Diag::BadVis { span });
           DefId::ROOT
         }
       }
@@ -262,7 +262,7 @@ impl<'core> Charter<'core, '_> {
     span: Span,
     option: Option<T>,
   ) -> T {
-    option.unwrap_or_else(|| self.core.report(Diag::MissingImplementation { span }).into())
+    option.unwrap_or_else(|| self.diags.report(Diag::MissingImplementation { span }).into())
   }
 
   pub(crate) fn define_value(&mut self, span: Span, def: DefId, vis: DefId, kind: DefValueKind) {
@@ -270,7 +270,7 @@ impl<'core> Charter<'core, '_> {
     if def.value_kind.is_none() {
       def.value_kind = Some(WithVis { vis, kind });
     } else {
-      self.core.report(Diag::DuplicateItem { span, name: def.name });
+      self.diags.report(Diag::DuplicateItem { span, name: def.name.clone() });
     }
   }
 
@@ -279,7 +279,7 @@ impl<'core> Charter<'core, '_> {
     if def.type_kind.is_none() {
       def.type_kind = Some(WithVis { vis, kind });
     } else {
-      self.core.report(Diag::DuplicateItem { span, name: def.name });
+      self.diags.report(Diag::DuplicateItem { span, name: def.name.clone() });
     }
   }
 
@@ -294,7 +294,7 @@ impl<'core> Charter<'core, '_> {
     if def.pattern_kind.is_none() {
       def.pattern_kind = Some(WithVis { vis, kind });
     } else {
-      self.core.report(Diag::DuplicateItem { span, name: def.name });
+      self.diags.report(Diag::DuplicateItem { span, name: def.name.clone() });
     }
   }
 
@@ -303,7 +303,7 @@ impl<'core> Charter<'core, '_> {
     if def.trait_kind.is_none() {
       def.trait_kind = Some(WithVis { vis, kind });
     } else {
-      self.core.report(Diag::DuplicateItem { span, name: def.name });
+      self.diags.report(Diag::DuplicateItem { span, name: def.name.clone() });
     }
   }
 
@@ -312,12 +312,12 @@ impl<'core> Charter<'core, '_> {
     if def.impl_kind.is_none() {
       def.impl_kind = Some(WithVis { vis, kind });
     } else {
-      self.core.report(Diag::DuplicateItem { span, name: def.name });
+      self.diags.report(Diag::DuplicateItem { span, name: def.name.clone() });
     }
   }
 }
 
-fn extract_subitems<'core>(item: &mut Item<'core>) -> Vec<Item<'core>> {
+fn extract_subitems(item: &mut Item) -> Vec<Item> {
   let mut visitor = ExtractItems::default();
   if !matches!(item.kind, ItemKind::Mod(_) | ItemKind::Trait(_) | ItemKind::Impl(_)) {
     visitor._visit_item(item);
@@ -326,12 +326,12 @@ fn extract_subitems<'core>(item: &mut Item<'core>) -> Vec<Item<'core>> {
 }
 
 #[derive(Default)]
-pub struct ExtractItems<'core> {
-  pub items: Vec<Item<'core>>,
+pub struct ExtractItems {
+  pub items: Vec<Item>,
 }
 
-impl<'core> VisitMut<'core, '_> for ExtractItems<'core> {
-  fn visit_item(&mut self, item: &mut Item<'core>) {
+impl VisitMut<'_> for ExtractItems {
+  fn visit_item(&mut self, item: &mut Item) {
     self.items.push(replace(
       item,
       Item { span: Span::NONE, vis: Vis::Private, attrs: vec![], kind: ItemKind::Taken },

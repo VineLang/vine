@@ -18,8 +18,8 @@ use crate::{
   tools::fmt::{doc::Doc, Formatter},
 };
 
-impl<'core> VineParser<'core, '_> {
-  pub(crate) fn parse_expr_match(&mut self) -> Result<ExprKind<'core>, Diag<'core>> {
+impl VineParser<'_> {
+  pub(crate) fn parse_expr_match(&mut self) -> Result<ExprKind, Diag> {
     self.expect(Token::Match)?;
     let scrutinee = self.parse_expr()?;
     let ty = self.parse_arrow_ty()?;
@@ -32,12 +32,12 @@ impl<'core> VineParser<'core, '_> {
   }
 }
 
-impl<'core: 'src, 'src> Formatter<'src> {
+impl<'src> Formatter<'src> {
   pub(crate) fn fmt_expr_match(
     &self,
-    expr: &Expr<'core>,
-    ty: &Option<Ty<'core>>,
-    arms: &Vec<(Pat<'core>, Block<'core>)>,
+    expr: &Expr,
+    ty: &Option<Ty>,
+    arms: &[(Pat, Block)],
   ) -> Doc<'src> {
     Doc::concat([
       Doc("match "),
@@ -53,14 +53,14 @@ impl<'core: 'src, 'src> Formatter<'src> {
   }
 }
 
-impl<'core> Resolver<'core, '_> {
+impl Resolver<'_> {
   pub(crate) fn resolve_match(
     &mut self,
     span: Span,
-    scrutinee: &Expr<'core>,
-    ty: &Option<Ty<'core>>,
-    arms: &Vec<(Pat<'core>, Block<'core>)>,
-  ) -> Result<TirExpr, Diag<'core>> {
+    scrutinee: &Expr,
+    ty: &Option<Ty>,
+    arms: &[(Pat, Block)],
+  ) -> Result<TirExpr, Diag> {
     let scrutinee = self.resolve_expr(scrutinee);
     let ty = self.resolve_arrow_ty(span, ty, true);
     let arms = Vec::from_iter(arms.iter().map(|(pat, block)| {
@@ -74,7 +74,7 @@ impl<'core> Resolver<'core, '_> {
   }
 }
 
-impl<'core> Distiller<'core, '_> {
+impl Distiller<'_> {
   pub(crate) fn distill_match(
     &mut self,
     stage: &mut Stage,

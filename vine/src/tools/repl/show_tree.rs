@@ -7,7 +7,7 @@ use crate::structures::{
 
 use super::Repl;
 
-impl<'core, 'ctx, 'ivm, 'ext> Repl<'core, 'ctx, 'ivm, 'ext> {
+impl<'ctx, 'ivm, 'ext, 'comp> Repl<'ctx, 'ivm, 'ext, 'comp> {
   pub(super) fn show_tree(&mut self, ty: Type, tree: &Tree) -> String {
     self._show(ty, tree).unwrap_or_else(|| format!("#ivy({tree})"))
   }
@@ -91,7 +91,7 @@ impl<'core, 'ctx, 'ivm, 'ext> Repl<'core, 'ctx, 'ivm, 'ext> {
         }
       }
       (TypeKind::Struct(struct_id, args), tree) => {
-        let name = self.compiler.chart.structs[*struct_id].name;
+        let name = self.compiler.chart.structs[*struct_id].name.clone();
         let args = args.clone();
         let data = self.types.import(&self.compiler.sigs.structs[*struct_id], Some(&args)).data;
         let data = self.show_tree(data, tree);
@@ -123,7 +123,7 @@ impl<'core, 'ctx, 'ivm, 'ext> Repl<'core, 'ctx, 'ivm, 'ext> {
         }
         let (variant_id, mut tree) = active_variant?;
         let variant = &enum_def.variants[variant_id];
-        let name = variant.name;
+        let name = variant.name.clone();
         let enum_id = *enum_id;
         let args = args.clone();
         let data =
@@ -161,14 +161,11 @@ impl<'core, 'ctx, 'ivm, 'ext> Repl<'core, 'ctx, 'ivm, 'ext> {
     })
   }
 
-  fn show_tuple<'a>(
+  fn show_tuple(
     &mut self,
     tys: impl IntoIterator<Item = Type, IntoIter: DoubleEndedIterator>,
     tree: &Tree,
-  ) -> Option<Vec<String>>
-  where
-    'core: 'a,
-  {
+  ) -> Option<Vec<String>> {
     let mut tys = tys.into_iter();
     let mut tup = Vec::new();
     let mut tree = tree;

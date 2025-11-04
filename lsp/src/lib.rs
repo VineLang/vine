@@ -5,12 +5,8 @@ use tokio::sync::RwLock;
 use tower_lsp::{jsonrpc::Result, lsp_types::*, Client, LanguageServer, LspService, Server};
 
 use vine::{
-  compiler::Compiler,
-  features::cfg::Config,
-  structures::{
-    core::{Core, CoreArenas},
-    diag::Diag,
-  },
+  compiler::Compiler, components::loader::Loader, features::cfg::Config, structures::diag::Diag,
+  tools::fmt::Formatter,
 };
 
 #[derive(Debug)]
@@ -22,14 +18,12 @@ struct Backend {
 
 impl Backend {
   fn refresh(&self) -> impl Future<Output = ()> + Send + '_ {
-    let arenas = &CoreArenas::default();
-    let core = &Core::new(arenas, true);
-    let mut compiler = Compiler::new(core, Config::default());
+    let mut compiler = Compiler::new(true, Config::default());
 
     for glob in &self.entrypoints {
       for entry in glob::glob(glob).unwrap() {
         let e = entry.unwrap();
-        compiler.loader.load_mod(&e);
+        compiler.loader.load_mod(&e, &mut compiler.diags);
       }
     }
 
@@ -40,21 +34,17 @@ impl Backend {
     };
     eprintln!("compiled in {:?}", start.elapsed());
 
-    self.report(core, diags)
+    self.report(&compiler.loader, diags)
   }
 
-  fn report(
-    &self,
-    core: &Core<'_>,
-    mut diags: Vec<Diag<'_>>,
-  ) -> impl Future<Output = ()> + Send + '_ {
+  fn report(&self, loader: &Loader, mut diags: Vec<Diag>) -> impl Future<Output = ()> + Send + '_ {
     diags.sort_by_key(|d| Some(d.span()?.file));
     let mut diags = diags.into_iter().peekable();
     while diags.peek().is_some_and(|x| x.span().is_none()) {
       diags.next();
     }
     let futures = FuturesUnordered::new();
-    for (i, file) in core.files().iter().enumerate() {
+    for (i, file) in loader.files.iter() {
       let mut out = Vec::new();
       while diags.peek().is_some_and(|x| x.span().is_some_and(|x| x.file == i)) {
         let diag = diags.next().unwrap();
@@ -141,10 +131,7 @@ impl LanguageServer for Backend {
       }
     };
 
-    let arenas = CoreArenas::default();
-    let core = Core::new(&arenas, false);
-
-    let Ok(formatted) = core.fmt(&src) else {
+    let Ok(formatted) = Formatter::fmt(&src) else {
       return Ok(None);
     };
     if formatted == src {

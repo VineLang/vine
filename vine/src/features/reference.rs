@@ -20,8 +20,8 @@ use crate::{
   tools::fmt::{doc::Doc, Formatter},
 };
 
-impl<'core> VineParser<'core, '_> {
-  pub(crate) fn parse_expr_ref(&mut self, span: usize) -> Result<ExprKind<'core>, Diag<'core>> {
+impl VineParser<'_> {
+  pub(crate) fn parse_expr_ref(&mut self, span: usize) -> Result<ExprKind, Diag> {
     if self.eat(Token::And)? {
       Ok(ExprKind::Ref(self.parse_expr_bp(BP::Prefix)?, false))
     } else {
@@ -32,7 +32,7 @@ impl<'core> VineParser<'core, '_> {
     }
   }
 
-  pub(crate) fn parse_expr_deref(&mut self, span: usize) -> Result<ExprKind<'core>, Diag<'core>> {
+  pub(crate) fn parse_expr_deref(&mut self, span: usize) -> Result<ExprKind, Diag> {
     if self.eat(Token::Star)? {
       Ok(ExprKind::Deref(self.parse_expr_bp(BP::Prefix)?, false))
     } else {
@@ -43,7 +43,7 @@ impl<'core> VineParser<'core, '_> {
     }
   }
 
-  pub(crate) fn parse_pat_ref(&mut self, span: usize) -> Result<PatKind<'core>, Diag<'core>> {
+  pub(crate) fn parse_pat_ref(&mut self, span: usize) -> Result<PatKind, Diag> {
     if self.eat(Token::And)? {
       Ok(PatKind::Ref(self.parse_pat_bp(BP::Prefix)?))
     } else {
@@ -54,7 +54,7 @@ impl<'core> VineParser<'core, '_> {
     }
   }
 
-  pub(crate) fn parse_pat_deref(&mut self, span: usize) -> Result<PatKind<'core>, Diag<'core>> {
+  pub(crate) fn parse_pat_deref(&mut self, span: usize) -> Result<PatKind, Diag> {
     if self.eat(Token::Star)? {
       Ok(PatKind::Deref(self.parse_pat_bp(BP::Prefix)?))
     } else {
@@ -65,7 +65,7 @@ impl<'core> VineParser<'core, '_> {
     }
   }
 
-  pub(crate) fn parse_ty_ref(&mut self, span: usize) -> Result<TyKind<'core>, Diag<'core>> {
+  pub(crate) fn parse_ty_ref(&mut self, span: usize) -> Result<TyKind, Diag> {
     if self.eat(Token::And)? {
       Ok(TyKind::Ref(self.parse_ty()?))
     } else {
@@ -77,8 +77,8 @@ impl<'core> VineParser<'core, '_> {
   }
 }
 
-impl<'core: 'src, 'src> Formatter<'src> {
-  pub(crate) fn fmt_expr_ref(&self, expr: &Expr<'core>, postfix: bool) -> Doc<'src> {
+impl<'src> Formatter<'src> {
+  pub(crate) fn fmt_expr_ref(&self, expr: &Expr, postfix: bool) -> Doc<'src> {
     if postfix {
       Doc::concat([self.fmt_expr(expr), Doc(".&")])
     } else {
@@ -86,7 +86,7 @@ impl<'core: 'src, 'src> Formatter<'src> {
     }
   }
 
-  pub(crate) fn fmt_expr_deref(&self, expr: &Expr<'core>, postfix: bool) -> Doc<'src> {
+  pub(crate) fn fmt_expr_deref(&self, expr: &Expr, postfix: bool) -> Doc<'src> {
     if postfix {
       Doc::concat([self.fmt_expr(expr), Doc(".*")])
     } else {
@@ -94,72 +94,56 @@ impl<'core: 'src, 'src> Formatter<'src> {
     }
   }
 
-  pub(crate) fn fmt_pat_ref(&self, pat: &Pat<'core>) -> Doc<'src> {
+  pub(crate) fn fmt_pat_ref(&self, pat: &Pat) -> Doc<'src> {
     Doc::concat([Doc("&"), self.fmt_pat(pat)])
   }
 
-  pub(crate) fn fmt_pat_deref(&self, pat: &Pat<'core>) -> Doc<'src> {
+  pub(crate) fn fmt_pat_deref(&self, pat: &Pat) -> Doc<'src> {
     Doc::concat([Doc("*"), self.fmt_pat(pat)])
   }
 
-  pub(crate) fn fmt_ty_ref(&self, ty: &Ty<'core>) -> Doc<'src> {
+  pub(crate) fn fmt_ty_ref(&self, ty: &Ty) -> Doc<'src> {
     Doc::concat([Doc("&"), self.fmt_ty(ty)])
   }
 }
 
-impl<'core> Resolver<'core, '_> {
-  pub(crate) fn resolve_expr_ref(
-    &mut self,
-    span: Span,
-    inner: &Expr<'core>,
-  ) -> Result<TirExpr, Diag<'core>> {
+impl Resolver<'_> {
+  pub(crate) fn resolve_expr_ref(&mut self, span: Span, inner: &Expr) -> Result<TirExpr, Diag> {
     let inner = self.resolve_expr(inner);
     Ok(TirExpr::new(span, self.types.new(TypeKind::Ref(inner.ty)), TirExprKind::Ref(inner)))
   }
 
-  pub(crate) fn resolve_expr_deref(
-    &mut self,
-    span: Span,
-    inner: &Expr<'core>,
-  ) -> Result<TirExpr, Diag<'core>> {
+  pub(crate) fn resolve_expr_deref(&mut self, span: Span, inner: &Expr) -> Result<TirExpr, Diag> {
     let ty = self.types.new_var(span);
     let ref_ty = self.types.new(TypeKind::Ref(ty));
     let inner = self.resolve_expr_type(inner, ref_ty);
     Ok(TirExpr::new(span, ty, TirExprKind::Deref(inner)))
   }
 
-  pub(crate) fn resolve_pat_ref(
-    &mut self,
-    span: Span,
-    inner: &Pat<'core>,
-  ) -> Result<TirPat, Diag<'core>> {
+  pub(crate) fn resolve_pat_ref(&mut self, span: Span, inner: &Pat) -> Result<TirPat, Diag> {
     let inner = self.resolve_pat(inner);
     Ok(TirPat::new(span, self.types.new(TypeKind::Ref(inner.ty)), TirPatKind::Ref(inner)))
   }
 
-  pub(crate) fn resolve_pat_sig_ref(&mut self, inner: &Pat<'core>, inference: bool) -> Type {
+  pub(crate) fn resolve_pat_sig_ref(&mut self, inner: &Pat, inference: bool) -> Type {
     let inner = self.resolve_pat_sig(inner, inference);
     self.types.new(TypeKind::Ref(inner))
   }
 
-  pub(crate) fn resolve_pat_deref(
-    &mut self,
-    span: Span,
-    inner: &Pat<'core>,
-  ) -> Result<TirPat, Diag<'core>> {
+  pub(crate) fn resolve_pat_deref(&mut self, span: Span, inner: &Pat) -> Result<TirPat, Diag> {
     let ty = self.types.new_var(span);
     let ref_ty = self.types.new(TypeKind::Ref(ty));
     let inner = self.resolve_pat_type(inner, ref_ty);
     Ok(TirPat::new(span, ty, TirPatKind::Deref(inner)))
   }
 
-  pub(crate) fn resolve_ty_ref(&mut self, inner: &Ty<'core>, inference: bool) -> Type {
+  pub(crate) fn resolve_ty_ref(&mut self, inner: &Ty, inference: bool) -> Type {
     let inner = self.resolve_ty(inner, inference);
     self.types.new(TypeKind::Ref(inner))
   }
 }
 
-impl<'core> Distiller<'core, '_> {
+impl Distiller<'_> {
   pub(crate) fn distill_expr_value_ref(
     &mut self,
     stage: &mut Stage,
@@ -229,7 +213,7 @@ impl<'core> Distiller<'core, '_> {
   }
 }
 
-impl<'core> Matcher<'core, '_, '_> {
+impl Matcher<'_, '_> {
   pub(crate) fn match_ref<'p>(
     &mut self,
     layer: &mut Layer,
@@ -251,7 +235,7 @@ impl<'core> Matcher<'core, '_, '_> {
   }
 }
 
-impl<'core> Emitter<'core, '_> {
+impl Emitter<'_> {
   pub(crate) fn emit_ref(&mut self, reference: &Port, value: &Port, space: &Port) {
     let pair = (
       self.emit_port(reference),

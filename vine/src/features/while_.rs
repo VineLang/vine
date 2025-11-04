@@ -17,8 +17,8 @@ use crate::{
   tools::fmt::{doc::Doc, Formatter},
 };
 
-impl<'core> VineParser<'core, '_> {
-  pub(crate) fn parse_expr_while(&mut self) -> Result<ExprKind<'core>, Diag<'core>> {
+impl VineParser<'_> {
+  pub(crate) fn parse_expr_while(&mut self) -> Result<ExprKind, Diag> {
     self.expect(Token::While)?;
     let label = self.parse_label()?;
     let cond = self.parse_expr()?;
@@ -29,14 +29,14 @@ impl<'core> VineParser<'core, '_> {
   }
 }
 
-impl<'core: 'src, 'src> Formatter<'src> {
+impl<'src> Formatter<'src> {
   pub(crate) fn fmt_expr_while(
     &self,
-    label: Label<'core>,
-    cond: &Expr<'core>,
-    ty: &Option<Ty<'core>>,
-    body: &Block<'core>,
-    else_: &Option<Block<'core>>,
+    label: Label,
+    cond: &Expr,
+    ty: &Option<Ty>,
+    body: &Block,
+    else_: &Option<Block>,
   ) -> Doc<'src> {
     Doc::concat([
       Doc("while"),
@@ -54,16 +54,16 @@ impl<'core: 'src, 'src> Formatter<'src> {
   }
 }
 
-impl<'core> Resolver<'core, '_> {
+impl Resolver<'_> {
   pub(crate) fn resolve_expr_while(
     &mut self,
     span: Span,
-    label: Label<'core>,
-    cond: &Expr<'core>,
-    ty: &Option<Ty<'core>>,
-    block: &Block<'core>,
-    else_: &Option<Block<'core>>,
-  ) -> Result<TirExpr, Diag<'core>> {
+    label: Label,
+    cond: &Expr,
+    ty: &Option<Ty>,
+    block: &Block,
+    else_: &Option<Block>,
+  ) -> Result<TirExpr, Diag> {
     let ty = self.resolve_arrow_ty(span, ty, true);
     let target_id = self.target_id.next();
     let (cond, block, else_) = self.bind_target(
@@ -78,7 +78,7 @@ impl<'core> Resolver<'core, '_> {
         let else_ = else_.as_ref().map(|b| self_.resolve_block_type(b, ty));
         let nil = self_.types.nil();
         if else_.is_none() && self_.types.unify(ty, nil).is_failure() {
-          self_.core.report(Diag::MissingElse { span });
+          self_.diags.report(Diag::MissingElse { span });
         }
         (cond, block, else_)
       },
@@ -87,7 +87,7 @@ impl<'core> Resolver<'core, '_> {
   }
 }
 
-impl<'core> Distiller<'core, '_> {
+impl Distiller<'_> {
   pub(crate) fn distill_while(
     &mut self,
     stage: &mut Stage,

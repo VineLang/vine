@@ -2,6 +2,7 @@ use vine_util::idx::Idx;
 
 use crate::{
   compiler::Compiler,
+  components::loader::FileId,
   features::builtin::Builtins,
   structures::{
     chart::{
@@ -30,9 +31,11 @@ pub struct Checkpoint {
   pub impls: ImplId,
   pub fragments: FragmentId,
   pub specs: SpecId,
+  pub files: FileId,
+  pub diags: usize,
 }
 
-impl<'core> Compiler<'core> {
+impl Compiler {
   pub fn checkpoint(&self) -> Checkpoint {
     Checkpoint {
       defs: self.chart.defs.next_index(),
@@ -48,14 +51,16 @@ impl<'core> Compiler<'core> {
       impls: self.chart.impls.next_index(),
       fragments: self.fragments.next_index(),
       specs: self.specs.specs.next_index(),
+      files: self.loader.files.next_index(),
+      diags: self.diags.0.len(),
     }
   }
 
   pub fn revert(&mut self, checkpoint: &Checkpoint) {
     let Compiler {
-      core: _,
+      debug: _,
       config: _,
-      loader: _,
+      loader,
       chart,
       sigs,
       resolutions,
@@ -63,18 +68,21 @@ impl<'core> Compiler<'core> {
       fragments,
       vir,
       templates,
+      diags,
     } = self;
     chart.revert(checkpoint);
     sigs.revert(checkpoint);
     resolutions.revert(checkpoint);
     specs.revert(checkpoint);
+    loader.revert(checkpoint);
+    diags.revert(checkpoint);
     fragments.truncate(checkpoint.fragments.0);
     vir.truncate(checkpoint.fragments.0);
     templates.truncate(checkpoint.fragments.0);
   }
 }
 
-impl<'core> Chart<'core> {
+impl Chart {
   fn revert(&mut self, checkpoint: &Checkpoint) {
     let Chart {
       defs,
@@ -114,7 +122,7 @@ impl<'core> Chart<'core> {
   }
 }
 
-impl<'core> Def<'core> {
+impl Def {
   fn revert(&mut self, checkpoint: &Checkpoint) {
     self.members_lookup.retain(|_, member| match member.kind {
       MemberKind::Child(id) => id < checkpoint.defs,
@@ -266,7 +274,7 @@ impl Builtins {
   }
 }
 
-impl<'core> Signatures<'core> {
+impl Signatures {
   fn revert(&mut self, checkpoint: &Checkpoint) {
     let Signatures {
       imports,
@@ -293,7 +301,7 @@ impl<'core> Signatures<'core> {
   }
 }
 
-impl<'core> Resolutions<'core> {
+impl Resolutions {
   fn revert(&mut self, checkpoint: &Checkpoint) {
     let Resolutions { consts, fns, impls, main } = self;
     consts.truncate(checkpoint.concrete_consts.0);
@@ -303,7 +311,7 @@ impl<'core> Resolutions<'core> {
   }
 }
 
-impl<'core> Specializations<'core> {
+impl Specializations {
   fn revert(&mut self, checkpoint: &Checkpoint) {
     let Specializations { lookup, specs, synthetic } = self;
     specs.truncate(checkpoint.specs.0);

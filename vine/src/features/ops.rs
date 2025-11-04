@@ -11,13 +11,8 @@ use crate::{
   tools::fmt::{doc::Doc, Formatter},
 };
 
-impl<'core: 'src, 'src> Formatter<'src> {
-  pub(crate) fn fmt_expr_assign(
-    &self,
-    inverted: bool,
-    space: &Expr<'core>,
-    value: &Expr<'core>,
-  ) -> Doc<'src> {
+impl<'src> Formatter<'src> {
+  pub(crate) fn fmt_expr_assign(&self, inverted: bool, space: &Expr, value: &Expr) -> Doc<'src> {
     Doc::concat([
       self.fmt_expr(space),
       Doc(if inverted { " ~= " } else { " = " }),
@@ -25,7 +20,7 @@ impl<'core: 'src, 'src> Formatter<'src> {
     ])
   }
 
-  pub(crate) fn fmt_expr_sign(&self, sign: Sign, expr: &Expr<'core>) -> Doc<'src> {
+  pub(crate) fn fmt_expr_sign(&self, sign: Sign, expr: &Expr) -> Doc<'src> {
     Doc::concat([
       Doc(match sign {
         Sign::Pos => "+",
@@ -35,28 +30,23 @@ impl<'core: 'src, 'src> Formatter<'src> {
     ])
   }
 
-  pub(crate) fn fmt_expr_binary_op(
-    &self,
-    op: &BinaryOp,
-    lhs: &Expr<'core>,
-    rhs: &Expr<'core>,
-  ) -> Doc<'src> {
+  pub(crate) fn fmt_expr_binary_op(&self, op: &BinaryOp, lhs: &Expr, rhs: &Expr) -> Doc<'src> {
     Doc::concat([self.fmt_expr(lhs), Doc(" "), Doc(op.as_str()), Doc(" "), self.fmt_expr(rhs)])
   }
 
   pub(crate) fn fmt_expr_binary_op_assign(
     &self,
     op: &BinaryOp,
-    lhs: &Expr<'core>,
-    rhs: &Expr<'core>,
+    lhs: &Expr,
+    rhs: &Expr,
   ) -> Doc<'src> {
     Doc::concat([self.fmt_expr(lhs), Doc(" "), Doc(op.as_str()), Doc("= "), self.fmt_expr(rhs)])
   }
 
   pub(crate) fn fmt_expr_comparison_op(
     &self,
-    init: &Expr<'core>,
-    cmps: &Vec<(ComparisonOp, Expr<'core>)>,
+    init: &Expr,
+    cmps: &[(ComparisonOp, Expr)],
   ) -> Doc<'src> {
     Doc::concat([self.fmt_expr(init)].into_iter().chain(
       cmps.iter().flat_map(|(op, x)| [Doc(" "), Doc(op.as_str()), Doc(" "), self.fmt_expr(x)]),
@@ -64,14 +54,14 @@ impl<'core: 'src, 'src> Formatter<'src> {
   }
 }
 
-impl<'core> Resolver<'core, '_> {
+impl Resolver<'_> {
   pub(crate) fn resolve_expr_assign(
     &mut self,
     span: Span,
     dir: bool,
-    space: &Expr<'core>,
-    value: &Expr<'core>,
-  ) -> Result<TirExpr, Diag<'core>> {
+    space: &Expr,
+    value: &Expr,
+  ) -> Result<TirExpr, Diag> {
     let space = self.resolve_expr(space);
     let value = self.resolve_expr_type(value, space.ty);
     Ok(TirExpr::new(span, self.types.nil(), TirExprKind::Assign(dir, space, value)))
@@ -81,8 +71,8 @@ impl<'core> Resolver<'core, '_> {
     &mut self,
     span: Span,
     sign: Sign,
-    inner: &Expr<'core>,
-  ) -> Result<TirExpr, Diag<'core>> {
+    inner: &Expr,
+  ) -> Result<TirExpr, Diag> {
     let inner = self.resolve_expr(inner);
     let return_ty = self.types.new_var(span);
     let rel = match sign {
@@ -96,9 +86,9 @@ impl<'core> Resolver<'core, '_> {
     &mut self,
     span: Span,
     op: BinaryOp,
-    lhs: &Expr<'core>,
-    rhs: &Expr<'core>,
-  ) -> Result<TirExpr, Diag<'core>> {
+    lhs: &Expr,
+    rhs: &Expr,
+  ) -> Result<TirExpr, Diag> {
     let lhs = self.resolve_expr(lhs);
     let rhs = self.resolve_expr(rhs);
     let return_ty = self.types.new_var(span);
@@ -111,9 +101,9 @@ impl<'core> Resolver<'core, '_> {
     &mut self,
     span: Span,
     op: BinaryOp,
-    lhs: &Expr<'core>,
-    rhs: &Expr<'core>,
-  ) -> Result<TirExpr, Diag<'core>> {
+    lhs: &Expr,
+    rhs: &Expr,
+  ) -> Result<TirExpr, Diag> {
     let lhs = self.resolve_expr(lhs);
     let rhs = self.resolve_expr(rhs);
     let fn_id = self.chart.builtins.binary_ops.get(&op).copied().flatten();
@@ -124,9 +114,9 @@ impl<'core> Resolver<'core, '_> {
   pub(crate) fn resolve_expr_comparison_op(
     &mut self,
     span: Span,
-    init: &Expr<'core>,
-    cmps: &Vec<(ComparisonOp, Expr<'core>)>,
-  ) -> Result<TirExpr, Diag<'core>> {
+    init: &Expr,
+    cmps: &[(ComparisonOp, Expr)],
+  ) -> Result<TirExpr, Diag> {
     let init = self.resolve_expr(init);
     let mut err = Ok(());
     let mut ty = init.ty;
@@ -134,7 +124,7 @@ impl<'core> Resolver<'core, '_> {
     for (_, expr) in cmps.iter() {
       let other = self.resolve_expr(expr);
       if self.types.unify(ty, other.ty).is_failure() {
-        err = Err(self.core.report(Diag::CannotCompare {
+        err = Err(self.diags.report(Diag::CannotCompare {
           span,
           lhs: self.types.show(self.chart, ty),
           rhs: self.types.show(self.chart, other.ty),
@@ -157,7 +147,7 @@ impl<'core> Resolver<'core, '_> {
   }
 }
 
-impl<'core> Distiller<'core, '_> {
+impl Distiller<'_> {
   pub(crate) fn distill_expr_nil_assign(
     &mut self,
     stage: &mut Stage,

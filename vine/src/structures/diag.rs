@@ -1,5 +1,4 @@
 use std::{
-  cell::Ref,
   fmt::{self, Display, Write},
   io,
   mem::take,
@@ -9,12 +8,46 @@ use std::{
 use vine_util::lexer::TokenSet;
 
 use crate::{
-  components::lexer::{StrToken, Token},
+  components::{
+    lexer::{StrToken, Token},
+    loader::Loader,
+  },
   structures::{
     ast::{BinaryOp, Ident, Span},
-    core::Core,
+    checkpoint::Checkpoint,
   },
 };
+
+#[derive(Default, Debug)]
+pub struct Diags(pub(crate) Vec<Diag>);
+
+impl Diags {
+  pub(crate) fn report(&mut self, diag: Diag) -> ErrorGuaranteed {
+    self.0.push(diag);
+    ErrorGuaranteed(())
+  }
+
+  pub fn has_diags(&self) -> bool {
+    !self.0.is_empty()
+  }
+
+  pub fn take_diags(&mut self) -> Vec<Diag> {
+    take(&mut self.0)
+  }
+
+  pub fn bail(&mut self) -> Result<(), Vec<Diag>> {
+    let diags = self.take_diags();
+    if diags.is_empty() {
+      Ok(())
+    } else {
+      Err(diags)
+    }
+  }
+
+  pub(crate) fn revert(&mut self, checkpoint: &Checkpoint) {
+    self.0.truncate(checkpoint.diags);
+  }
+}
 
 macro_rules! diags {
   ($(
@@ -22,12 +55,12 @@ macro_rules! diags {
       [$($fmt:tt)*]
   )*) => {
     #[derive(Debug)]
-    pub enum Diag<'core> {
+    pub enum Diag {
       $( $name { span: Span, $($($field: $ty),*)? },)*
       Guaranteed(ErrorGuaranteed),
     }
 
-    impl<'core> Diag<'core> {
+    impl Diag {
       pub fn span(&self) -> Option<Span> {
         match self {
           $( Self::$name { span, .. } => Some(*span), )*
@@ -36,7 +69,7 @@ macro_rules! diags {
       }
     }
 
-    impl<'core> Display for Diag<'core> {
+    impl Display for Diag {
       fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
           $( Self::$name { span: _, $($($field),*)? } => write!(f, $($fmt)*),)*
@@ -52,7 +85,7 @@ diags! {
     ["cannot read file `{path}`: {err}", path = path.display()]
   DisallowedImplicitMod
     ["implicit submodule paths are only allowed in files of the form `{{mod_name}}/{{mod_name}}.vi`"]
-  AmbiguousImplicitMod { name: &'core str }
+  AmbiguousImplicitMod { name: Ident }
     ["ambiguous implicit submodule path; both `{name}.vi` and `{name}/{name}.vi` exist"]
   LexError
     ["lexing error"]
@@ -72,11 +105,11 @@ diags! {
     ["unknown attribute"]
   BadBuiltin
     ["bad builtin"]
-  CannotResolve { ident: Ident<'core>, module: &'core str }
+  CannotResolve { ident: Ident, module: String }
     ["cannot find `{ident}` in `{module}`"]
   BadPatternPath
     ["invalid pattern; this path is not a struct or enum variant"]
-  DuplicateItem { name: Ident<'core> }
+  DuplicateItem { name: Ident }
     ["duplicate definition of `{name}`"]
   ExpectedSpaceFoundValueExpr
     ["expected a space expression; found a value expression"]
@@ -106,13 +139,13 @@ diags! {
     ["invalid method; function takes no parameters"]
   ExpectedTypeFound { expected: String, found: String }
     ["expected type `{expected}`; found `{found}`"]
-  PathNoAssociated { desc: &'static str, path: &'core str }
+  PathNoAssociated { desc: &'static str, path: String }
     ["no {desc} associated with `{path}`"]
-  BadGenericCount { path: &'core str, expected: usize, got: usize, kind: &'static str }
+  BadGenericCount { path: String, expected: usize, got: usize, kind: &'static str }
     ["`{path}` expects {expected} {kind} parameter{}; was passed {got}", plural(*expected, "s", "")]
   MissingTupleField { ty: String, i: usize }
     ["type `{ty}` has no field `{i}`"]
-  MissingObjectField { ty: String, key: Ident<'core> }
+  MissingObjectField { ty: String, key: Ident }
     ["type `{ty}` has no field `{key}`"]
   SpaceField
     ["cannot access a field of a space expression"]
@@ -138,13 +171,13 @@ diags! {
     ["expected a value of type `{ty}` to break with"]
   NoMethods { ty: String }
     ["type `{ty}` has no methods"]
-  BadMethodReceiver { base_path: &'core str, ident: Ident<'core> }
+  BadMethodReceiver { base_path: String, ident: Ident }
     ["`{base_path}::{ident}` cannot be used as a method; it does not take `{base_path}` as its first parameter"]
-  Invisible { module: &'core str, ident: Ident<'core>, vis: &'core str }
+  Invisible { module: String, ident: Ident, vis: String }
     ["`{module}::{ident}` is only visible within `{vis}`"]
   BadVis
     ["invalid visibility; expected the name of an ancestor module"]
-  InvisibleAssociated { desc: &'static str, path: &'core str, vis: &'core str }
+  InvisibleAssociated { desc: &'static str, path: String, vis: String }
     ["the {desc} `{path}` is only visible within `{vis}`"]
   VisibleSubitem
     ["subitems must be private"]
@@ -172,11 +205,11 @@ diags! {
     ["trait items cannot have implementations"]
   UnexpectedImplArgs
     ["impl arguments are not allowed in types or patterns"]
-  ExtraneousImplItem { name: Ident<'core> }
+  ExtraneousImplItem { name: Ident }
     ["no item `{name}` exists in trait"]
   UnspecifiedImpl
     ["impl parameters must be explicitly specified"]
-  IncompleteImpl { name: Ident<'core> }
+  IncompleteImpl { name: Ident }
     ["missing implementation of `{name}`"]
   WrongImplSubitemKind { expected: &'static str }
     ["expected a {expected}"]
@@ -190,9 +223,9 @@ diags! {
     ["found several impls of trait `{ty}`"]
   SearchLimit { ty: String }
     ["search limit reached when finding impl of trait `{ty}`"]
-  NoMethod { ty: String, name: Ident<'core> }
+  NoMethod { ty: String, name: Ident }
     ["type `{ty}` has no method `{name}`"]
-  AmbiguousMethod { ty: String, name: Ident<'core> }
+  AmbiguousMethod { ty: String, name: Ident }
     ["multiple methods named `{name}` for `{ty}`"]
   CircularImport
     ["circular import"]
@@ -204,7 +237,7 @@ diags! {
     ["expected data subpattern"]
   ExpectedDataExpr
     ["constructor expects data"]
-  StructDataInvisible { ty: String, vis: &'core str }
+  StructDataInvisible { ty: String, vis: String }
     ["the data of `{ty}` is only visible within `{vis}`"]
   TryBadReturnType { tried: String, ret: String }
     ["cannot try `{tried}` in a function returning `{ret}`"]
@@ -256,9 +289,9 @@ diags! {
     ["expected impl item to have {expected} impl parameters; found {found}"]
   ExpectedImplItemImplParam { expected: String, found: String }
     ["expected impl parameter of trait `{expected}`; found `{found}`"]
-  UnknownCfg { name: Ident<'core> }
+  UnknownCfg { name: Ident }
     ["no configuration value named `{name}`"]
-  BadCfgType { name: Ident<'core>, kind: &'static str }
+  BadCfgType { name: Ident, kind: &'static str }
     ["expected `{name}` to be a {kind} configuration value"]
   BadFramelessAttr
     ["the `#[frameless]` attribute can only be applied to an fn"]
@@ -272,34 +305,8 @@ fn plural<'a>(n: usize, plural: &'a str, singular: &'a str) -> &'a str {
   }
 }
 
-impl<'core> Core<'core> {
-  pub(crate) fn report(&self, diag: Diag<'core>) -> ErrorGuaranteed {
-    self.diags.borrow_mut().push(diag);
-    ErrorGuaranteed(())
-  }
-
-  pub fn files(&self) -> Ref<'_, Vec<FileInfo>> {
-    self.files.borrow()
-  }
-
-  pub fn has_diags(&self) -> bool {
-    !self.diags.borrow().is_empty()
-  }
-
-  pub fn take_diags(&self) -> Vec<Diag<'core>> {
-    take(&mut *self.diags.borrow_mut())
-  }
-
-  pub fn bail(&self) -> Result<(), Vec<Diag<'core>>> {
-    let diags = self.take_diags();
-    if diags.is_empty() {
-      Ok(())
-    } else {
-      Err(diags)
-    }
-  }
-
-  pub fn print_diags(&self, diags: &[Diag<'core>]) -> String {
+impl Loader {
+  pub fn print_diags(&self, diags: &[Diag]) -> String {
     let mut err = String::new();
     for diag in diags.iter() {
       if let Some(span) = diag.span() {
@@ -314,7 +321,7 @@ impl<'core> Core<'core> {
   }
 
   pub fn show_span(&self, span: Span) -> Option<String> {
-    (span != Span::NONE).then(|| format!("{}", self.files.borrow()[span.file].get_pos(span.start)))
+    (span != Span::NONE).then(|| format!("{}", self.files[span.file].get_pos(span.start)))
   }
 }
 
@@ -327,7 +334,7 @@ impl ErrorGuaranteed {
   }
 }
 
-impl From<ErrorGuaranteed> for Diag<'_> {
+impl From<ErrorGuaranteed> for Diag {
   fn from(value: ErrorGuaranteed) -> Self {
     Diag::Guaranteed(value)
   }
@@ -366,7 +373,7 @@ impl Display for Pos<'_> {
   }
 }
 
-impl<T> From<ErrorGuaranteed> for Result<T, Diag<'_>> {
+impl<T> From<ErrorGuaranteed> for Result<T, Diag> {
   fn from(value: ErrorGuaranteed) -> Self {
     Err(value.into())
   }
