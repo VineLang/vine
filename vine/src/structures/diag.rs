@@ -1,17 +1,16 @@
 use std::{
-  cell::Ref,
   fmt::{self, Display, Write},
   io,
   mem::take,
   path::PathBuf,
 };
 
-use vine_util::{idx::IdxVec, lexer::TokenSet};
+use vine_util::lexer::TokenSet;
 
 use crate::{
   components::{
     lexer::{StrToken, Token},
-    loader::{FileId, Loader},
+    loader::Loader,
   },
   structures::{
     ast::{BinaryOp, Ident, Span},
@@ -307,10 +306,6 @@ fn plural<'a>(n: usize, plural: &'a str, singular: &'a str) -> &'a str {
 }
 
 impl Loader {
-  pub fn files(&self) -> Ref<'_, IdxVec<FileId, FileInfo>> {
-    self.files.borrow()
-  }
-
   pub fn print_diags(&self, diags: &[Diag]) -> String {
     let mut err = String::new();
     for diag in diags.iter() {
@@ -326,7 +321,7 @@ impl Loader {
   }
 
   pub fn show_span(&self, span: Span) -> Option<String> {
-    (span != Span::NONE).then(|| format!("{}", self.files()[span.file].get_pos(span.start)))
+    (span != Span::NONE).then(|| format!("{}", self.files[span.file].get_pos(span.start)))
   }
 }
 

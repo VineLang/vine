@@ -278,8 +278,7 @@ impl Synthesizer<'_> {
 
   fn synthesize_frame(&mut self, path: String, span: Span) -> Net {
     let path = self.list(path[2..].split("::").collect::<Vec<_>>(), Self::string);
-    let files = self.loader.files.borrow();
-    let pos = files[span.file].get_pos(span.start);
+    let pos = self.loader.files[span.file].get_pos(span.start);
     let file = self.string(pos.file);
     let line = Tree::N32(pos.line as u32 + 1);
     let col = Tree::N32(pos.col as u32 + 1);

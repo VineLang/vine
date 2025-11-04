@@ -51,7 +51,7 @@ impl Compiler {
       impls: self.chart.impls.next_index(),
       fragments: self.fragments.next_index(),
       specs: self.specs.specs.next_index(),
-      files: self.loader.files.borrow().next_index(),
+      files: self.loader.files.next_index(),
       diags: self.diags.0.len(),
     }
   }

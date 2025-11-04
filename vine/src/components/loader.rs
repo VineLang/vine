@@ -1,5 +1,4 @@
 use std::{
-  cell::RefCell,
   env::current_dir,
   fs, io,
   mem::take,
@@ -26,7 +25,7 @@ new_idx!(pub FileId);
 pub struct Loader {
   cwd: PathBuf,
   root: Vec<Item>,
-  pub(crate) files: RefCell<IdxVec<FileId, FileInfo>>,
+  pub files: IdxVec<FileId, FileInfo>,
 }
 
 impl Default for Loader {
@@ -64,7 +63,7 @@ impl Loader {
   }
 
   pub(crate) fn add_file(&mut self, path: Option<PathBuf>, name: String, src: &str) -> FileId {
-    self.files.borrow_mut().push(FileInfo::new(path, name, src))
+    self.files.push(FileInfo::new(path, name, src))
   }
 
   fn load_file(
@@ -147,7 +146,7 @@ impl Loader {
   }
 
   pub(crate) fn revert(&mut self, checkpoint: &Checkpoint) {
-    self.files.borrow_mut().truncate(checkpoint.files.0);
+    self.files.truncate(checkpoint.files.0);
   }
 }
 
