@@ -13,11 +13,14 @@ use crate::{
     lexer::{StrToken, Token},
     loader::{FileId, Loader},
   },
-  structures::ast::{BinaryOp, Ident, Span},
+  structures::{
+    ast::{BinaryOp, Ident, Span},
+    checkpoint::Checkpoint,
+  },
 };
 
 #[derive(Default, Debug)]
-pub struct Diags(Vec<Diag>);
+pub struct Diags(pub(crate) Vec<Diag>);
 
 impl Diags {
   pub(crate) fn report(&mut self, diag: Diag) -> ErrorGuaranteed {
@@ -40,6 +43,10 @@ impl Diags {
     } else {
       Err(diags)
     }
+  }
+
+  pub(crate) fn revert(&mut self, checkpoint: &Checkpoint) {
+    self.0.truncate(checkpoint.diags);
   }
 }
 

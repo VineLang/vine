@@ -2,6 +2,7 @@ use vine_util::idx::Idx;
 
 use crate::{
   compiler::Compiler,
+  components::loader::FileId,
   features::builtin::Builtins,
   structures::{
     chart::{
@@ -30,6 +31,8 @@ pub struct Checkpoint {
   pub impls: ImplId,
   pub fragments: FragmentId,
   pub specs: SpecId,
+  pub files: FileId,
+  pub diags: usize,
 }
 
 impl Compiler {
@@ -48,6 +51,8 @@ impl Compiler {
       impls: self.chart.impls.next_index(),
       fragments: self.fragments.next_index(),
       specs: self.specs.specs.next_index(),
+      files: self.loader.files.borrow().next_index(),
+      diags: self.diags.0.len(),
     }
   }
 
@@ -55,7 +60,7 @@ impl Compiler {
     let Compiler {
       debug: _,
       config: _,
-      loader: _,
+      loader,
       chart,
       sigs,
       resolutions,
@@ -63,12 +68,14 @@ impl Compiler {
       fragments,
       vir,
       templates,
-      diags: _,
+      diags,
     } = self;
     chart.revert(checkpoint);
     sigs.revert(checkpoint);
     resolutions.revert(checkpoint);
     specs.revert(checkpoint);
+    loader.revert(checkpoint);
+    diags.revert(checkpoint);
     fragments.truncate(checkpoint.fragments.0);
     vir.truncate(checkpoint.fragments.0);
     templates.truncate(checkpoint.fragments.0);

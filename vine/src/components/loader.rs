@@ -16,6 +16,7 @@ use crate::{
       visit::{VisitMut, Visitee},
       Attr, AttrKind, Generics, Ident, Item, ItemKind, ModItem, ModKind, Span, Vis,
     },
+    checkpoint::Checkpoint,
     diag::{Diag, Diags, FileInfo},
   },
 };
@@ -143,6 +144,10 @@ impl Loader {
     diags: &mut Diags,
   ) {
     LoadDeps { loader: self, base, diags }.visit(visitee);
+  }
+
+  pub(crate) fn revert(&mut self, checkpoint: &Checkpoint) {
+    self.files.borrow_mut().truncate(checkpoint.files.0);
   }
 }
 
