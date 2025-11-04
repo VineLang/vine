@@ -50,7 +50,7 @@ impl<'core> Charter<'core, '_> {
     member_vis: DefId,
     type_item: TypeItem<'core>,
   ) -> DefId {
-    let def = self.chart_child(parent, type_item.name, member_vis, true);
+    let def = self.chart_child(parent, span, type_item.name, member_vis, true);
     let generics = self.chart_generics(def, parent_generics, type_item.generics, false);
     let kind = match type_item.ty {
       Some(ty) => {

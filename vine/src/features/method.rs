@@ -40,7 +40,8 @@ impl<'core> Resolver<'core, '_> {
   ) -> Result<TirExpr, Diag<'core>> {
     let receiver = self.resolve_expr(receiver);
     let mut args = args.iter().map(|arg| self.resolve_expr(arg)).collect::<Vec<_>>();
-    let (fn_id, type_params) = self.find_method(span, receiver.ty, name)?;
+    let (fn_span, fn_id, type_params) = self.find_method(span, receiver.ty, name)?;
+    self.resolutions.record_reference(span, fn_span);
     let type_params = self.types.import(&type_params, None);
     let sig = self.types.import(self.sigs.fn_sig(fn_id), Some(&type_params));
     if sig.params.len() != args.len() + 1 {
@@ -92,7 +93,7 @@ impl<'core> Resolver<'core, '_> {
     span: Span,
     receiver: Type,
     name: Ident<'core>,
-  ) -> Result<(FnId, TypeCtx<'core, Vec<Type>>), ErrorGuaranteed> {
+  ) -> Result<(Span, FnId, TypeCtx<'core, Vec<Type>>), ErrorGuaranteed> {
     let mut results = self.finder(span).find_method(&self.types, receiver, name);
     if results.len() == 1 {
       Ok(results.pop().unwrap())

@@ -273,7 +273,7 @@ impl<'core> Synthesizer<'core, '_> {
 
   fn synthesize_frame(&mut self, path: &str, span: Span) -> Net {
     let path = self.list(path[2..].split("::").collect::<Vec<_>>(), Self::string);
-    let files = self.core.files.borrow();
+    let files = self.core.files.read().unwrap();
     let pos = files[span.file].get_pos(span.start);
     let file = self.string(pos.file);
     let line = Tree::N32(pos.line as u32 + 1);

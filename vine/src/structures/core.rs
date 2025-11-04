@@ -1,6 +1,6 @@
 use std::{
-  cell::RefCell,
   fmt::{self, Debug},
+  sync::RwLock,
 };
 
 use vine_util::{arena::BytesArena, interner::StringInterner};
@@ -18,8 +18,8 @@ pub struct CoreArenas {
 pub struct Core<'core> {
   arenas: &'core CoreArenas,
   interner: StringInterner<'core>,
-  pub(crate) diags: RefCell<Vec<Diag<'core>>>,
-  pub(crate) files: RefCell<Vec<FileInfo>>,
+  pub(crate) diags: RwLock<Vec<Diag<'core>>>,
+  pub files: RwLock<Vec<FileInfo>>,
   pub debug: bool,
 }
 

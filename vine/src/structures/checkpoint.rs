@@ -295,11 +295,13 @@ impl<'core> Signatures<'core> {
 
 impl<'core> Resolutions<'core> {
   fn revert(&mut self, checkpoint: &Checkpoint) {
-    let Resolutions { consts, fns, impls, main } = self;
+    let Resolutions { consts, fns, impls, main, references, definitions } = self;
     consts.truncate(checkpoint.concrete_consts.0);
     fns.truncate(checkpoint.concrete_fns.0);
     impls.truncate(checkpoint.impls.0);
     revert_idx(main, checkpoint.fragments);
+    references.clear();
+    definitions.clear();
   }
 }
 
