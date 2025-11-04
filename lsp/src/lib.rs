@@ -1,6 +1,7 @@
-use std::{future::Future, time::Instant};
+use std::{collections::HashMap, future::Future, sync::Arc, time::Instant};
 
 use futures::{stream::FuturesUnordered, StreamExt};
+use tokio::sync::RwLock;
 use tower_lsp::{jsonrpc::Result, lsp_types::*, Client, LanguageServer, LspService, Server};
 
 use vine::{
@@ -16,6 +17,7 @@ use vine::{
 struct Backend {
   client: Client,
   entrypoints: Vec<String>,
+  docs: Arc<RwLock<HashMap<Url, String>>>,
 }
 
 impl Backend {
@@ -88,6 +90,7 @@ impl LanguageServer for Backend {
       server_info: None,
       capabilities: ServerCapabilities {
         text_document_sync: Some(TextDocumentSyncCapability::Kind(TextDocumentSyncKind::FULL)),
+        document_formatting_provider: Some(OneOf::Left(true)),
         workspace: Some(WorkspaceServerCapabilities {
           workspace_folders: Some(WorkspaceFoldersServerCapabilities {
             supported: Some(true),
@@ -108,6 +111,51 @@ impl LanguageServer for Backend {
     self.refresh().await
   }
 
+  async fn did_open(&self, params: DidOpenTextDocumentParams) {
+    let uri = params.text_document.uri;
+    let text = params.text_document.text;
+
+    self.docs.write().await.insert(uri, text);
+  }
+
+  async fn did_change(&self, params: DidChangeTextDocumentParams) {
+    let uri = params.text_document.uri;
+    if let Some(change) = params.content_changes.into_iter().last() {
+      self.docs.write().await.insert(uri, change.text);
+    }
+  }
+
+  async fn did_close(&self, params: DidCloseTextDocumentParams) {
+    let uri = params.text_document.uri;
+    self.docs.write().await.remove(&uri);
+  }
+
+  async fn formatting(&self, params: DocumentFormattingParams) -> Result<Option<Vec<TextEdit>>> {
+    let uri = params.text_document.uri;
+
+    let src = {
+      let docs = self.docs.read().await;
+      match docs.get(&uri) {
+        Some(text) => text.clone(),
+        None => return Ok(None),
+      }
+    };
+
+    let arenas = CoreArenas::default();
+    let core = Core::new(&arenas, false);
+
+    let Ok(formatted) = core.fmt(&src) else {
+      return Ok(None);
+    };
+    if formatted == src {
+      return Ok(Some(vec![]));
+    }
+    Ok(Some(vec![TextEdit {
+      range: Range { start: Position::new(0, 0), end: Position::new(u32::MAX, u32::MAX) },
+      new_text: formatted,
+    }]))
+  }
+
   async fn shutdown(&self) -> Result<()> {
     Ok(())
   }
@@ -119,6 +167,10 @@ pub async fn lsp(entrypoints: Vec<String>) {
   let stdin = tokio::io::stdin();
   let stdout = tokio::io::stdout();
 
-  let (service, socket) = LspService::new(|client| Backend { client, entrypoints });
+  let (service, socket) = LspService::new(|client| Backend {
+    client,
+    entrypoints,
+    docs: Arc::new(RwLock::new(HashMap::new())),
+  });
   Server::new(stdin, stdout, socket).serve(service).await;
 }
