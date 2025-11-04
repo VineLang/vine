@@ -7,7 +7,7 @@ use crate::{
   structures::{
     ast::Span,
     chart::{EnumId, StructId, VariantId},
-    diag::Diag,
+    diag::{Diag, Diags},
     tir::{Local, TirPat, TirPatKind},
     types::{Inverted, Type, TypeKind},
     vir::{InterfaceId, Layer, Port, Stage, Step, Transfer},
@@ -31,7 +31,7 @@ impl<'r> Distiller<'r> {
     let mut matcher = Matcher { span, exhaustive: true, distiller: self };
     matcher.distill_rows(layer, stage, vars, rows);
     if !matcher.exhaustive {
-      self.core.report(Diag::NonExhaustiveMatch { span });
+      self.diags.report(Diag::NonExhaustiveMatch { span });
     }
   }
 }

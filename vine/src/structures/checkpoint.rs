@@ -64,6 +64,7 @@ impl Compiler {
       fragments,
       vir,
       templates,
+      diags: _,
     } = self;
     chart.revert(checkpoint);
     sigs.revert(checkpoint);

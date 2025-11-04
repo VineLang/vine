@@ -126,7 +126,7 @@ impl Resolver<'_> {
           Some(value) => Some(self.resolve_expr_type(value, target.break_ty)),
           None => {
             if self.types.unify(target.break_ty, nil).is_failure() {
-              self.core.report(Diag::MissingBreakExpr {
+              self.diags.report(Diag::MissingBreakExpr {
                 span,
                 ty: self.types.show(self.chart, target.break_ty),
               });

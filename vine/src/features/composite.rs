@@ -305,7 +305,7 @@ impl Resolver<'_> {
     for (key, value) in entries {
       let old = object.insert(key.ident.clone(), f(self, value));
       if old.is_some() {
-        duplicate = Err(self.core.report(Diag::DuplicateKey { span: key.span }));
+        duplicate = Err(self.diags.report(Diag::DuplicateKey { span: key.span }));
       }
     }
     duplicate?;
@@ -322,7 +322,7 @@ impl Resolver<'_> {
     for (key, value) in entries {
       let old = fields.insert(key.ident.clone(), f(self, value));
       if old.is_some() {
-        duplicate = Err(self.core.report(Diag::DuplicateKey { span: key.span }));
+        duplicate = Err(self.diags.report(Diag::DuplicateKey { span: key.span }));
       }
     }
     if let Err(err) = duplicate {
@@ -346,7 +346,7 @@ impl Resolver<'_> {
   }
 
   fn tuple_field(&mut self, span: Span, ty: Type, index: usize) -> Option<(Type, Vec<Type>)> {
-    match self.types.force_kind(self.core, ty) {
+    match self.types.force_kind(self.diags, ty) {
       (inv, TypeKind::Tuple(tuple)) => Some((tuple.get(index)?.invert_if(inv), tuple.clone())),
       (inv, TypeKind::Struct(struct_id, type_params)) => {
         let struct_id = *struct_id;
@@ -378,7 +378,7 @@ impl Resolver<'_> {
   }
 
   fn object_field(&mut self, span: Span, ty: Type, key: Ident) -> Option<(Type, usize, Vec<Type>)> {
-    match self.types.force_kind(self.core, ty) {
+    match self.types.force_kind(self.diags, ty) {
       (inv, TypeKind::Object(entries)) => entries
         .iter()
         .enumerate()
@@ -450,7 +450,7 @@ impl Distiller<'_> {
           ps.push(p);
           qs.push(q);
         }
-        _ => new_acc = Poly::Error(self.core.report(Diag::AmbiguousPolyformicComposite { span })),
+        _ => new_acc = Poly::Error(self.diags.report(Diag::AmbiguousPolyformicComposite { span })),
       }
       acc = Some(new_acc);
     }
@@ -553,7 +553,7 @@ impl Distiller<'_> {
         stage.steps.push(Step::Composite(place.1, pos));
         Poly::Place((value, space))
       }
-      Poly::Space(_) => Poly::Error(self.core.report(Diag::SpaceField { span })),
+      Poly::Space(_) => Poly::Error(self.diags.report(Diag::SpaceField { span })),
     }
   }
 }

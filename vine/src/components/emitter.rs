@@ -8,6 +8,7 @@ use crate::{
   structures::{
     chart::Chart,
     core::Core,
+    diag::Diags,
     resolutions::{ConstRelId, FnRelId, Fragment},
     specializations::Specializations,
     template::{Template, TemplateStage, TemplateStageRels},
@@ -20,6 +21,7 @@ pub fn emit(
   core: &'static Core,
   debug: bool,
   chart: &Chart,
+  diags: &mut Diags,
   fragment: &Fragment,
   vir: &Vir,
   specs: &mut Specializations,
@@ -27,6 +29,7 @@ pub fn emit(
   let mut emitter = Emitter {
     core,
     chart,
+    diags,
     fragment,
     vir,
     specs,
@@ -45,6 +48,7 @@ pub fn emit(
 pub(crate) struct Emitter<'a> {
   pub(crate) core: &'static Core,
   pub(crate) chart: &'a Chart,
+  pub(crate) diags: &'a mut Diags,
   pub(crate) fragment: &'a Fragment,
   pub(crate) vir: &'a Vir,
   pub(crate) specs: &'a mut Specializations,

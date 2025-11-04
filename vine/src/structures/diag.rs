@@ -13,11 +13,35 @@ use crate::{
     lexer::{StrToken, Token},
     loader::{FileId, Loader},
   },
-  structures::{
-    ast::{BinaryOp, Ident, Span},
-    core::Core,
-  },
+  structures::ast::{BinaryOp, Ident, Span},
 };
+
+#[derive(Default, Debug)]
+pub struct Diags(Vec<Diag>);
+
+impl Diags {
+  pub(crate) fn report(&mut self, diag: Diag) -> ErrorGuaranteed {
+    self.0.push(diag);
+    ErrorGuaranteed(())
+  }
+
+  pub fn has_diags(&self) -> bool {
+    !self.0.is_empty()
+  }
+
+  pub fn take_diags(&mut self) -> Vec<Diag> {
+    take(&mut self.0)
+  }
+
+  pub fn bail(&mut self) -> Result<(), Vec<Diag>> {
+    let diags = self.take_diags();
+    if diags.is_empty() {
+      Ok(())
+    } else {
+      Err(diags)
+    }
+  }
+}
 
 macro_rules! diags {
   ($(
@@ -272,30 +296,6 @@ fn plural<'a>(n: usize, plural: &'a str, singular: &'a str) -> &'a str {
     singular
   } else {
     plural
-  }
-}
-
-impl Core {
-  pub(crate) fn report(&self, diag: Diag) -> ErrorGuaranteed {
-    self.diags.borrow_mut().push(diag);
-    ErrorGuaranteed(())
-  }
-
-  pub fn has_diags(&self) -> bool {
-    !self.diags.borrow().is_empty()
-  }
-
-  pub fn take_diags(&self) -> Vec<Diag> {
-    take(&mut *self.diags.borrow_mut())
-  }
-
-  pub fn bail(&self) -> Result<(), Vec<Diag>> {
-    let diags = self.take_diags();
-    if diags.is_empty() {
-      Ok(())
-    } else {
-      Err(diags)
-    }
   }
 }
 

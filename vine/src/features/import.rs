@@ -141,7 +141,7 @@ impl Charter<'_> {
       if let Entry::Vacant(e) = def.members_lookup.entry(name.clone()) {
         e.insert(member);
       } else {
-        self.core.report(Diag::DuplicateItem { span, name });
+        self.diags.report(Diag::DuplicateItem { span, name });
       }
     }
     if use_tree.implicit {
@@ -159,7 +159,7 @@ impl Resolver<'_> {
     let state = self.sigs.imports.get_or_extend_with(import_id, || ImportState::Unresolved);
     match state {
       ImportState::Resolved(resolved) => *resolved,
-      ImportState::Resolving => Err(self.core.report(Diag::CircularImport { span: import.span })),
+      ImportState::Resolving => Err(self.diags.report(Diag::CircularImport { span: import.span })),
       ImportState::Unresolved => {
         *state = ImportState::Resolving;
         let import = import.clone();
@@ -180,6 +180,6 @@ impl Resolver<'_> {
         self.resolve_segment(span, def, parent, ident)
       }
     }
-    .map_err(|diag| self.core.report(diag))
+    .map_err(|diag| self.diags.report(diag))
   }
 }

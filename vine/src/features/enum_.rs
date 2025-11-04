@@ -143,7 +143,7 @@ impl Resolver<'_> {
       }),
       None => {
         if data.is_some() {
-          self.core.report(Diag::EnumVariantNoData { span });
+          self.diags.report(Diag::EnumVariantNoData { span });
         }
         None
       }

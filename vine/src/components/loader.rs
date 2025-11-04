@@ -17,7 +17,7 @@ use crate::{
       Attr, AttrKind, Generics, Ident, Item, ItemKind, ModItem, ModKind, Span, Vis,
     },
     core::Core,
-    diag::{Diag, FileInfo},
+    diag::{Diag, Diags, FileInfo},
   },
 };
 
@@ -39,12 +39,12 @@ impl Loader {
     ModKind::Loaded(Span::NONE, take(&mut self.root))
   }
 
-  pub fn load_main_mod(&mut self, path: &Path) {
-    self.load_mod(path);
+  pub fn load_main_mod(&mut self, path: &Path, diags: &mut Diags) {
+    self.load_mod(path, diags);
     self.root.last_mut().unwrap().attrs.push(Attr { span: Span::NONE, kind: AttrKind::Main });
   }
 
-  pub fn load_mod(&mut self, path: &Path) {
+  pub fn load_mod(&mut self, path: &Path, diags: &mut Diags) {
     let module = Item {
       span: Span::NONE,
       vis: Vis::Public,
@@ -52,7 +52,7 @@ impl Loader {
       kind: ItemKind::Mod(ModItem {
         name: self.auto_mod_name(path),
         generics: Generics::empty(Span::NONE),
-        kind: self.load_file(None, ModSpec::Explicit(path), Span::NONE),
+        kind: self.load_file(None, ModSpec::Explicit(path), Span::NONE, diags),
       }),
     };
     self.root.push(module);
@@ -66,10 +66,16 @@ impl Loader {
     self.files.borrow_mut().push(FileInfo::new(path, name, src))
   }
 
-  fn load_file(&mut self, base: Option<&Path>, spec: ModSpec<'_>, span: Span) -> ModKind {
-    match self._load_file(base, spec, span) {
+  fn load_file(
+    &mut self,
+    base: Option<&Path>,
+    spec: ModSpec<'_>,
+    span: Span,
+    diags: &mut Diags,
+  ) -> ModKind {
+    match self._load_file(base, spec, span, diags) {
       Ok(mod_) => mod_,
-      Err(diag) => ModKind::Error(self.core.report(diag)),
+      Err(diag) => ModKind::Error(diags.report(diag)),
     }
   }
 
@@ -78,6 +84,7 @@ impl Loader {
     base: Option<&Path>,
     spec: ModSpec<'_>,
     span: Span,
+    diags: &mut Diags,
   ) -> Result<ModKind, Diag> {
     let ((src, file), path) = match (base, spec) {
       (None, ModSpec::Explicit(path)) => {
@@ -99,8 +106,8 @@ impl Loader {
           (Ok(info), Err(_)) => (info, path_1),
           (Err(_), Ok(info)) => (info, path_2),
           (Err(diag_1), Err(diag_2)) => {
-            let err = self.core.report(diag_1);
-            self.core.report(diag_2);
+            let err = diags.report(diag_1);
+            diags.report(diag_2);
             Err(err)?
           }
         }
@@ -109,7 +116,7 @@ impl Loader {
     };
 
     let mut items = VineParser::parse(self.core, &src, file)?;
-    self.load_deps(&path, &mut items);
+    self.load_deps(&path, &mut items, diags);
     Ok(ModKind::Loaded(span, items))
   }
 
@@ -129,14 +136,20 @@ impl Loader {
     Ok((src, file))
   }
 
-  pub(crate) fn load_deps<'t>(&mut self, base: &Path, visitee: impl Visitee<'t>) {
-    LoadDeps { loader: self, base }.visit(visitee);
+  pub(crate) fn load_deps<'t>(
+    &mut self,
+    base: &Path,
+    visitee: impl Visitee<'t>,
+    diags: &mut Diags,
+  ) {
+    LoadDeps { loader: self, base, diags }.visit(visitee);
   }
 }
 
 struct LoadDeps<'a> {
   loader: &'a mut Loader,
   base: &'a Path,
+  diags: &'a mut Diags,
 }
 
 impl VisitMut<'_> for LoadDeps<'_> {
@@ -150,6 +163,7 @@ impl VisitMut<'_> for LoadDeps<'_> {
             None => ModSpec::Implicit(module.name.clone()),
           },
           item.span,
+          self.diags,
         );
         return;
       }

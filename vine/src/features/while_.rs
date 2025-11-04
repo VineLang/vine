@@ -78,7 +78,7 @@ impl Resolver<'_> {
         let else_ = else_.as_ref().map(|b| self_.resolve_block_type(b, ty));
         let nil = self_.types.nil();
         if else_.is_none() && self_.types.unify(ty, nil).is_failure() {
-          self_.core.report(Diag::MissingElse { span });
+          self_.diags.report(Diag::MissingElse { span });
         }
         (cond, block, else_)
       },

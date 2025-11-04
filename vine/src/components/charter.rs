@@ -6,7 +6,7 @@ use crate::{
     ast::{visit::VisitMut, Attr, AttrKind, Flex, Ident, Item, ItemKind, ModKind, Span, Vis},
     chart::Chart,
     core::Core,
-    diag::{Diag, ErrorGuaranteed},
+    diag::{Diag, Diags, ErrorGuaranteed},
   },
 };
 
@@ -16,6 +16,7 @@ pub struct Charter<'a> {
   pub core: &'static Core,
   pub chart: &'a mut Chart,
   pub config: &'a Config,
+  pub diags: &'a mut Diags,
 }
 
 impl Charter<'_> {
@@ -137,7 +138,7 @@ impl Charter<'_> {
     if let Some(def) = def {
       for subitem in subitems {
         if !matches!(subitem.vis, Vis::Private) {
-          self.core.report(Diag::VisibleSubitem { span: item.span });
+          self.diags.report(Diag::VisibleSubitem { span: item.span });
         }
         self.chart_item(def, subitem, def, GenericsId::NONE);
       }
@@ -160,7 +161,7 @@ impl Charter<'_> {
       match attr.kind {
         AttrKind::Builtin(builtin) => {
           if !self.chart_builtin(def, builtin) {
-            self.core.report(Diag::BadBuiltin { span });
+            self.diags.report(Diag::BadBuiltin { span });
           }
         }
         AttrKind::Main => {
@@ -168,33 +169,33 @@ impl Charter<'_> {
         }
         AttrKind::Manual => {
           let Some(impl_id) = impl_id else {
-            self.core.report(Diag::BadManualAttr { span });
+            self.diags.report(Diag::BadManualAttr { span });
             continue;
           };
           self.chart.impls[impl_id].manual = true;
         }
         AttrKind::Basic => {
           let Some(impl_id) = impl_id else {
-            self.core.report(Diag::BadBasicAttr { span });
+            self.diags.report(Diag::BadBasicAttr { span });
             continue;
           };
           self.chart.impls[impl_id].basic = true;
         }
         AttrKind::Become(path) => {
           let Some(impl_id) = impl_id else {
-            self.core.report(Diag::BadBecomeAttr { span });
+            self.diags.report(Diag::BadBecomeAttr { span });
             continue;
           };
           let impl_ = &mut self.chart.impls[impl_id];
           if impl_.become_.is_some() {
-            self.core.report(Diag::DuplicateBecomeAttr { span });
+            self.diags.report(Diag::DuplicateBecomeAttr { span });
             continue;
           }
           impl_.become_ = Some(path);
         }
         AttrKind::Frameless => {
           let Some(concrete_fn_id) = concrete_fn_id else {
-            self.core.report(Diag::BadFramelessAttr { span });
+            self.diags.report(Diag::BadFramelessAttr { span });
             continue;
           };
           self.chart.concrete_fns[concrete_fn_id].frameless = true;
@@ -227,7 +228,7 @@ impl Charter<'_> {
       MemberKind::Child(child) => child,
       MemberKind::Import(i) => {
         self
-          .core
+          .diags
           .report(Diag::DuplicateItem { span: self.chart.imports[i].span, name: name.clone() });
         new = true;
         next_def_id
@@ -251,7 +252,7 @@ impl Charter<'_> {
         {
           ancestor
         } else {
-          self.core.report(Diag::BadVis { span });
+          self.diags.report(Diag::BadVis { span });
           DefId::ROOT
         }
       }
@@ -263,7 +264,7 @@ impl Charter<'_> {
     span: Span,
     option: Option<T>,
   ) -> T {
-    option.unwrap_or_else(|| self.core.report(Diag::MissingImplementation { span }).into())
+    option.unwrap_or_else(|| self.diags.report(Diag::MissingImplementation { span }).into())
   }
 
   pub(crate) fn define_value(&mut self, span: Span, def: DefId, vis: DefId, kind: DefValueKind) {
@@ -271,7 +272,7 @@ impl Charter<'_> {
     if def.value_kind.is_none() {
       def.value_kind = Some(WithVis { vis, kind });
     } else {
-      self.core.report(Diag::DuplicateItem { span, name: def.name.clone() });
+      self.diags.report(Diag::DuplicateItem { span, name: def.name.clone() });
     }
   }
 
@@ -280,7 +281,7 @@ impl Charter<'_> {
     if def.type_kind.is_none() {
       def.type_kind = Some(WithVis { vis, kind });
     } else {
-      self.core.report(Diag::DuplicateItem { span, name: def.name.clone() });
+      self.diags.report(Diag::DuplicateItem { span, name: def.name.clone() });
     }
   }
 
@@ -295,7 +296,7 @@ impl Charter<'_> {
     if def.pattern_kind.is_none() {
       def.pattern_kind = Some(WithVis { vis, kind });
     } else {
-      self.core.report(Diag::DuplicateItem { span, name: def.name.clone() });
+      self.diags.report(Diag::DuplicateItem { span, name: def.name.clone() });
     }
   }
 
@@ -304,7 +305,7 @@ impl Charter<'_> {
     if def.trait_kind.is_none() {
       def.trait_kind = Some(WithVis { vis, kind });
     } else {
-      self.core.report(Diag::DuplicateItem { span, name: def.name.clone() });
+      self.diags.report(Diag::DuplicateItem { span, name: def.name.clone() });
     }
   }
 
@@ -313,7 +314,7 @@ impl Charter<'_> {
     if def.impl_kind.is_none() {
       def.impl_kind = Some(WithVis { vis, kind });
     } else {
-      self.core.report(Diag::DuplicateItem { span, name: def.name.clone() });
+      self.diags.report(Diag::DuplicateItem { span, name: def.name.clone() });
     }
   }
 }

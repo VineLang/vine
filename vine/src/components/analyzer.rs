@@ -9,8 +9,7 @@ use crate::{
   components::analyzer::effect::Effect,
   structures::{
     ast::Span,
-    core::Core,
-    diag::Diag,
+    diag::{Diag, Diags},
     tir::Local,
     types::Inverted,
     vir::{Interface, InterfaceId, InterfaceKind, Invocation, Stage, StageId, Step, Vir, VirLocal},
@@ -19,9 +18,9 @@ use crate::{
 
 pub mod effect;
 
-pub fn analyze(core: &'static Core, span: Span, vir: &mut Vir) {
+pub fn analyze(diags: &mut Diags, span: Span, vir: &mut Vir) {
   Analyzer {
-    core,
+    diags,
     infinite_loop: false,
     span,
     locals: &vir.locals,
@@ -41,7 +40,6 @@ pub fn analyze(core: &'static Core, span: Span, vir: &mut Vir) {
 
 #[derive(Debug)]
 struct Analyzer<'a> {
-  core: &'static Core,
   infinite_loop: bool,
   span: Span,
   locals: &'a IdxVec<Local, VirLocal>,
@@ -55,6 +53,7 @@ struct Analyzer<'a> {
   dirty: Vec<EffectVar>,
   local_declarations: IntMap<Local, Vec<StageId>>,
   disconnects: Vec<(StageId, EffectVar, EffectVar)>,
+  diags: &'a mut Diags,
 }
 
 new_idx!(pub EffectVar; n => ["e{n}"]);
@@ -253,7 +252,7 @@ impl Analyzer<'_> {
         let exterior = self.effects[interface.exterior.unwrap()];
         if interior == Effect::Never || exterior == Effect::Never {
           if !self.infinite_loop {
-            self.core.report(Diag::InfiniteLoop { span: self.span });
+            self.diags.report(Diag::InfiniteLoop { span: self.span });
             self.infinite_loop = true;
           }
           continue;

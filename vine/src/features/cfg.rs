@@ -84,14 +84,14 @@ impl VineParser<'_> {
 }
 
 impl Charter<'_> {
-  pub fn enabled(&self, attrs: &[Attr]) -> bool {
+  pub fn enabled(&mut self, attrs: &[Attr]) -> bool {
     attrs.iter().all(|attr| match &attr.kind {
       AttrKind::Cfg(cfg) => self.eval_cfg(cfg) == Ok(true),
       _ => true,
     })
   }
 
-  pub fn eval_cfg(&self, cfg: &Cfg) -> Result<bool, ErrorGuaranteed> {
+  pub fn eval_cfg(&mut self, cfg: &Cfg) -> Result<bool, ErrorGuaranteed> {
     let span = cfg.span;
     match &*cfg.kind {
       CfgKind::Bool(name) => match self.get_cfg(span, name.clone())? {
@@ -113,7 +113,7 @@ impl Charter<'_> {
     }
   }
 
-  pub fn get_cfg(&self, span: Span, name: Ident) -> Result<&ConfigValue, ErrorGuaranteed> {
-    self.config.values.get(&name).ok_or_else(|| self.core.report(Diag::UnknownCfg { span, name }))
+  pub fn get_cfg(&mut self, span: Span, name: Ident) -> Result<&ConfigValue, ErrorGuaranteed> {
+    self.config.values.get(&name).ok_or_else(|| self.diags.report(Diag::UnknownCfg { span, name }))
   }
 }

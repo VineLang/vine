@@ -309,7 +309,7 @@ impl Resolver<'_> {
   pub(crate) fn resolve_ty_fn(&mut self, path: &Path) -> Type {
     match self.resolve_path(self.cur_def, path, "fn", |d| d.fn_id()) {
       Ok(fn_id) => self.types.new(TypeKind::Fn(fn_id)),
-      Err(diag) => self.types.error(self.core.report(diag)),
+      Err(diag) => self.types.error(self.diags.report(diag)),
     }
   }
 
@@ -321,7 +321,7 @@ impl Resolver<'_> {
     ret: &Option<Ty>,
   ) -> ImplType {
     let Some(fn_) = self.chart.builtins.fn_ else {
-      return ImplType::Error(self.core.report(Diag::MissingBuiltin { span, builtin: "Fn" }));
+      return ImplType::Error(self.diags.report(Diag::MissingBuiltin { span, builtin: "Fn" }));
     };
     let receiver = self.resolve_ty(receiver, false);
     let params = params.iter().map(|p| self.resolve_ty(p, false)).collect();
@@ -334,7 +334,7 @@ impl Resolver<'_> {
 
   pub(crate) fn resolve_impl_fn(&mut self, span: Span, path: &Path, ty: &ImplType) -> TirImpl {
     let Some(fn_) = self.chart.builtins.fn_ else {
-      return TirImpl::Error(self.core.report(Diag::MissingBuiltin { span, builtin: "Fn" }));
+      return TirImpl::Error(self.diags.report(Diag::MissingBuiltin { span, builtin: "Fn" }));
     };
     match self.resolve_path(self.cur_def, path, "fn", |d| d.fn_id()) {
       Ok(fn_id) => {
@@ -348,7 +348,7 @@ impl Resolver<'_> {
           vec![receiver, self.types.new(TypeKind::Tuple(sig.params)), sig.ret_ty],
         );
         if self.types.unify_impl_type(&actual_ty, ty).is_failure() {
-          self.core.report(Diag::ExpectedTypeFound {
+          self.diags.report(Diag::ExpectedTypeFound {
             span: path.span,
             expected: self.types.show_impl_type(self.chart, ty),
             found: self.types.show_impl_type(self.chart, &actual_ty),
@@ -356,7 +356,7 @@ impl Resolver<'_> {
         }
         TirImpl::Fn(fn_id, impl_params, param_count)
       }
-      Err(diag) => TirImpl::Error(self.core.report(diag)),
+      Err(diag) => TirImpl::Error(self.diags.report(diag)),
     }
   }
 
@@ -401,7 +401,9 @@ impl Resolver<'_> {
         Some(value) => Some(self.resolve_expr_type(value, ty)),
         None => {
           if self.types.unify(ty, nil).is_failure() {
-            self.core.report(Diag::MissingReturnExpr { span, ty: self.types.show(self.chart, ty) });
+            self
+              .diags
+              .report(Diag::MissingReturnExpr { span, ty: self.types.show(self.chart, ty) });
           }
           None
         }

@@ -26,7 +26,7 @@ impl Backend {
     for glob in &self.entrypoints {
       for entry in glob::glob(glob).unwrap() {
         let e = entry.unwrap();
-        compiler.loader.load_mod(&e);
+        compiler.loader.load_mod(&e, &mut compiler.diags);
       }
     }
 

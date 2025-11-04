@@ -210,7 +210,7 @@ impl Resolver<'_> {
       let index = type_params.params.len();
       type_params.params.push(param.name.clone());
       if type_params.lookup.insert(param.name.clone(), index).is_some() {
-        self.core.report(Diag::DuplicateTypeParam { span: param.span });
+        self.diags.report(Diag::DuplicateTypeParam { span: param.span });
       }
     }
     self.sigs.type_params.push_to(generics_id, type_params);
@@ -242,14 +242,14 @@ impl Resolver<'_> {
         impl_params.types.inner.push(if let Some(fork) = self.chart.builtins.fork {
           ImplType::Trait(fork, vec![ty])
         } else {
-          ImplType::Error(self.core.report(Diag::MissingBuiltin { span, builtin: "Fork" }))
+          ImplType::Error(self.diags.report(Diag::MissingBuiltin { span, builtin: "Fork" }))
         });
       }
       if param.flex.drop() {
         impl_params.types.inner.push(if let Some(drop) = self.chart.builtins.drop {
           ImplType::Trait(drop, vec![ty])
         } else {
-          ImplType::Error(self.core.report(Diag::MissingBuiltin { span, builtin: "Drop" }))
+          ImplType::Error(self.diags.report(Diag::MissingBuiltin { span, builtin: "Drop" }))
         });
       }
     }
@@ -275,14 +275,14 @@ impl Resolver<'_> {
       impl_params.types.inner.push(self.resolve_trait(&param.trait_));
       if let Some(name) = param.name.clone() {
         if impl_params.lookup.insert(name, index).is_some() {
-          self.core.report(Diag::DuplicateImplParam { span: param.span });
+          self.diags.report(Diag::DuplicateImplParam { span: param.span });
         }
       }
     }
 
     if !generics_def.impl_allowed && !impl_params.types.inner.is_empty() {
       impl_params = ImplParams::default();
-      self.core.report(Diag::UnexpectedImplParam { span: generics_def.span });
+      self.diags.report(Diag::UnexpectedImplParam { span: generics_def.span });
     }
 
     impl_params.types.types = take(&mut self.types);
@@ -309,9 +309,9 @@ impl Resolver<'_> {
     let _args = GenericArgs::empty(span);
     let args = args.unwrap_or(&_args);
     let params = &self.chart.generics[generics_id];
-    let check_count = |got, expected, kind| {
+    let mut check_count = |got, expected, kind| {
       if got != expected {
-        self.core.report(Diag::BadGenericCount {
+        self.diags.report(Diag::BadGenericCount {
           span,
           path: self.chart.defs[params.def].path.clone(),
           expected,

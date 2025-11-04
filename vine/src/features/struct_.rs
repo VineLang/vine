@@ -117,7 +117,7 @@ impl Resolver<'_> {
       self.error_expr(span, Diag::ExpectedDataExpr { span })
     };
     if self.types.unify(data.ty, data_ty).is_failure() {
-      self.core.report(Diag::ExpectedTypeFound {
+      self.diags.report(Diag::ExpectedTypeFound {
         span: expr.span,
         expected: self.types.show(self.chart, data_ty),
         found: self.types.show(self.chart, data.ty),
@@ -172,7 +172,7 @@ impl Resolver<'_> {
   pub(crate) fn resolve_expr_unwrap(&mut self, span: Span, inner: &Expr) -> Result<TirExpr, Diag> {
     let inner = self.resolve_expr(inner);
 
-    let (struct_id, data_ty) = match self.types.force_kind(self.core, inner.ty) {
+    let (struct_id, data_ty) = match self.types.force_kind(self.diags, inner.ty) {
       (inv, TypeKind::Struct(struct_id, type_params)) => {
         let struct_id = *struct_id;
         let type_params = &type_params.clone();
@@ -193,7 +193,7 @@ impl Resolver<'_> {
   ) -> Type {
     let vis = self.chart.structs[struct_id].data_vis;
     if !self.chart.visible(vis, self.cur_def) {
-      self.core.report(Diag::StructDataInvisible {
+      self.diags.report(Diag::StructDataInvisible {
         span,
         ty: self.types.show(self.chart, ty),
         vis: self.chart.defs[vis].path.clone(),

@@ -11,7 +11,7 @@ use crate::{
       MemberKind, WithVis,
     },
     core::Core,
-    diag::{Diag, ErrorGuaranteed},
+    diag::{Diag, Diags, ErrorGuaranteed},
     signatures::{ImportState, Signatures},
     tir::TirImpl,
     types::{ImplType, Inverted, Type, TypeCtx, TypeKind, Types},
@@ -22,6 +22,7 @@ pub struct Finder<'a> {
   core: &'static Core,
   chart: &'a Chart,
   sigs: &'a Signatures,
+  diags: &'a mut Diags,
   source: DefId,
   generics: GenericsId,
   span: Span,
@@ -52,11 +53,12 @@ impl<'a> Finder<'a> {
     core: &'static Core,
     chart: &'a Chart,
     sigs: &'a Signatures,
+    diags: &'a mut Diags,
     source: DefId,
     generics: GenericsId,
     span: Span,
   ) -> Self {
-    Finder { core, chart, sigs, source, generics, span, steps: 0 }
+    Finder { core, chart, sigs, diags, source, generics, span, steps: 0 }
   }
 
   pub fn find_method(
@@ -120,7 +122,7 @@ impl<'a> Finder<'a> {
   }
 
   pub fn find_flex(&mut self, types: &mut Types, ty: Type) -> Result<FlexImpls, ErrorGuaranteed> {
-    self._find_flex(types, ty).map_err(|diag| self.core.report(diag))
+    self._find_flex(types, ty).map_err(|diag| self.diags.report(diag))
   }
 
   fn _find_flex(&mut self, types: &mut Types, ty: Type) -> Result<FlexImpls, Diag> {
@@ -151,7 +153,7 @@ impl<'a> Finder<'a> {
     let [pos_fork, pos_drop, neg_fork, neg_drop] = results.map(|(query, mut results)| {
       if results.len() > 1 {
         let diag = Diag::AmbiguousImpl { span, ty: sub_types.show_impl_type(self.chart, &query) };
-        error = Err(self.core.report(diag));
+        error = Err(self.diags.report(diag));
         None
       } else {
         results.pop()
@@ -202,15 +204,15 @@ impl<'a> Finder<'a> {
 
     let show_ty = || types.show_impl_type(self.chart, query);
     let Ok(mut results) = self._find_impl(&sub_types, &sub_query, basic) else {
-      return TirImpl::Error(self.core.report(Diag::SearchLimit { span, ty: show_ty() }));
+      return TirImpl::Error(self.diags.report(Diag::SearchLimit { span, ty: show_ty() }));
     };
 
     if results.is_empty() {
-      return TirImpl::Error(self.core.report(Diag::CannotFindImpl { span, ty: show_ty() }));
+      return TirImpl::Error(self.diags.report(Diag::CannotFindImpl { span, ty: show_ty() }));
     }
 
     if results.len() > 1 {
-      return TirImpl::Error(self.core.report(Diag::AmbiguousImpl { span, ty: show_ty() }));
+      return TirImpl::Error(self.diags.report(Diag::AmbiguousImpl { span, ty: show_ty() }));
     }
 
     let result = results.pop().unwrap();

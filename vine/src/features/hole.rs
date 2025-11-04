@@ -22,7 +22,7 @@ impl Resolver<'_> {
     if inference {
       self.types.new_var(span)
     } else {
-      self.types.error(self.core.report(Diag::ItemTypeHole { span }))
+      self.types.error(self.diags.report(Diag::ItemTypeHole { span }))
     }
   }
 }

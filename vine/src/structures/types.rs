@@ -14,7 +14,7 @@ use crate::structures::{
   ast::{Flex, Ident, Span},
   chart::{Chart, DefId, EnumId, FnId, OpaqueTypeId, StructId, TraitId},
   core::Core,
-  diag::{Diag, ErrorGuaranteed},
+  diag::{Diag, Diags, ErrorGuaranteed},
   signatures::FnSig,
   tir::ClosureId,
 };
@@ -358,14 +358,14 @@ impl Types {
     }
   }
 
-  pub(crate) fn force_kind(&mut self, core: &'static Core, ty: Type) -> (Inverted, &TypeKind) {
+  pub(crate) fn force_kind(&mut self, diags: &mut Diags, ty: Type) -> (Inverted, &TypeKind) {
     let ty = self.find_mut(ty);
     let Root { state, .. } = &mut self.types[ty.idx()] else { unreachable!() };
     const ERROR: &TypeKind = &TypeKind::Error(ErrorGuaranteed::new_unchecked());
     match state {
       Known(inverted, kind) => (*inverted ^ ty.inv(), kind),
       Unknown(span) => {
-        let err = core.report(Diag::CannotInfer { span: *span });
+        let err = diags.report(Diag::CannotInfer { span: *span });
         *state = InferenceFailed(err);
         (Inverted(false), ERROR)
       }

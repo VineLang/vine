@@ -59,7 +59,7 @@ impl<'ctx, 'ivm, 'ext, 'comp> Repl<'ctx, 'ivm, 'ext, 'comp> {
     libs: Vec<PathBuf>,
   ) -> Result<Self, Vec<Diag>> {
     for lib in libs {
-      compiler.loader.load_mod(&lib);
+      compiler.loader.load_mod(&lib, &mut compiler.diags);
     }
 
     let mut repl_mod = DefId::default();
@@ -94,8 +94,8 @@ impl<'ctx, 'ivm, 'ext, 'comp> Repl<'ctx, 'ivm, 'ext, 'comp> {
     let (span, command) = match self.parse_input(input) {
       Ok(command) => command,
       Err(diag) => {
-        self.core.report(diag);
-        self.core.bail()?;
+        self.compiler.diags.report(diag);
+        self.compiler.diags.bail()?;
         unreachable!()
       }
     };
@@ -120,7 +120,7 @@ impl<'ctx, 'ivm, 'ext, 'comp> Repl<'ctx, 'ivm, 'ext, 'comp> {
   pub fn run(&mut self, span: Span, stmts: Vec<Stmt>, clear: Vec<Ident>) -> Result<(), Vec<Diag>> {
     let mut block = Block { span, stmts };
 
-    self.compiler.loader.load_deps(".".as_ref(), &mut block);
+    self.compiler.loader.load_deps(".".as_ref(), &mut block, &mut self.compiler.diags);
 
     let path = format!("::repl::{}", self.line);
     let mut fragment = None;

@@ -77,7 +77,7 @@ impl Resolver<'_> {
         let alias_def = &self.chart.type_aliases[alias_id];
         let slot = self.sigs.type_aliases.get_or_extend(alias_id);
         let error_type =
-          self.types.error(self.core.report(Diag::RecursiveTypeAlias { span: alias_def.ty.span }));
+          self.types.error(self.diags.report(Diag::RecursiveTypeAlias { span: alias_def.ty.span }));
         *slot = TypeAliasState::Resolved(
           self.types.export(|t| TypeAliasSig { ty: t.transfer(&error_type) }),
         );
@@ -105,7 +105,7 @@ impl Resolver<'_> {
   ) -> Type {
     let generics_id = self.chart.type_aliases[type_alias_id].generics;
     let (type_params, _) = self.resolve_generics(path, generics_id, inference);
-    Resolver::new(self.core, self.chart, self.sigs, self.resolutions, self.fragments)
+    Resolver::new(self.core, self.chart, self.sigs, self.diags, self.resolutions, self.fragments)
       .resolve_type_alias(type_alias_id);
     let resolved_sig = match &self.sigs.type_aliases[type_alias_id] {
       TypeAliasState::Resolved(sig) => sig,

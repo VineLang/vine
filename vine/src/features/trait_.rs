@@ -66,7 +66,7 @@ impl Charter<'_> {
       let span = subitem.span;
       let attrs = subitem.attrs;
       if !matches!(subitem.vis, Vis::Private) {
-        self.core.report(Diag::TraitItemVis { span });
+        self.diags.report(Diag::TraitItemVis { span });
       }
       match subitem.kind {
         ItemKind::Fn(item) => {
@@ -76,7 +76,7 @@ impl Charter<'_> {
           self.chart_trait_const(vis, def, trait_id, generics, &mut consts, span, attrs, item);
         }
         _ => {
-          self.core.report(Diag::InvalidTraitItem { span });
+          self.diags.report(Diag::InvalidTraitItem { span });
         }
       }
     }
@@ -98,7 +98,7 @@ impl Charter<'_> {
     fn_item: FnItem,
   ) {
     if fn_item.body.is_some() {
-      self.core.report(Diag::ImplementedTraitItem { span });
+      self.diags.report(Diag::ImplementedTraitItem { span });
     }
     let generics =
       self.chart_trait_subitem_generics(span, def, trait_id, trait_generics, fn_item.generics);
@@ -127,7 +127,7 @@ impl Charter<'_> {
     const_item: ConstItem,
   ) {
     if const_item.value.is_some() {
-      self.core.report(Diag::ImplementedTraitItem { span });
+      self.diags.report(Diag::ImplementedTraitItem { span });
     }
     let generics =
       self.chart_trait_subitem_generics(span, def, trait_id, trait_generics, const_item.generics);
@@ -148,7 +148,7 @@ impl Charter<'_> {
     generics: GenericParams,
   ) -> GenericsId {
     if generics.inherit {
-      self.core.report(Diag::TraitItemInheritGen { span });
+      self.diags.report(Diag::TraitItemInheritGen { span });
     }
     self.chart.generics.push(GenericsDef {
       span,

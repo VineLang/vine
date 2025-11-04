@@ -33,7 +33,7 @@ impl Resolver<'_> {
     let return_result = self.types.new(TypeKind::Enum(result_id, vec![return_ok, err]));
     if let Some(return_ty) = &self.return_ty {
       if self.types.unify(*return_ty, return_result).is_failure() {
-        self.core.report(Diag::TryBadReturnType {
+        self.diags.report(Diag::TryBadReturnType {
           span,
           tried: self.types.show(self.chart, result_ty),
           ret: self.types.show(self.chart, *return_ty),

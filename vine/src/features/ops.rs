@@ -124,7 +124,7 @@ impl Resolver<'_> {
     for (_, expr) in cmps.iter() {
       let other = self.resolve_expr(expr);
       if self.types.unify(ty, other.ty).is_failure() {
-        err = Err(self.core.report(Diag::CannotCompare {
+        err = Err(self.diags.report(Diag::CannotCompare {
           span,
           lhs: self.types.show(self.chart, ty),
           rhs: self.types.show(self.chart, other.ty),

@@ -182,7 +182,7 @@ impl Emitter<'_> {
               self.pairs.push((drop_tree, Tree::n_ary("fn", [Tree::Erase, source, Tree::Erase])));
             }
             None => {
-              self.core.report(Diag::CannotDrop {
+              self.diags.report(Diag::CannotDrop {
                 span: local.span,
                 ty: self.vir.types.show(self.chart, local.ty),
               });
@@ -192,7 +192,7 @@ impl Emitter<'_> {
         }
       } else {
         let source = source.unwrap_or_else(|| {
-          self.core.report(Diag::UninitializedVariable {
+          self.diags.report(Diag::UninitializedVariable {
             span: local.span,
             ty: self.vir.types.show(self.chart, local.ty),
           });
@@ -218,7 +218,7 @@ impl Emitter<'_> {
               self.pairs.push((source, sink));
             }
             None => {
-              self.core.report(Diag::CannotFork {
+              self.diags.report(Diag::CannotFork {
                 span: local.span,
                 ty: self.vir.types.show(self.chart, local.ty),
               });

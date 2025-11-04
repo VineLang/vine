@@ -6,6 +6,7 @@ use crate::structures::{
   ast::Span,
   chart::{Chart, DefId, GenericsId},
   core::Core,
+  diag::Diags,
   resolutions::{Fragment, Rels},
   signatures::Signatures,
   tir::Local,
@@ -20,6 +21,7 @@ pub fn normalize(
   core: &'static Core,
   chart: &Chart,
   sigs: &Signatures,
+  diags: &mut Diags,
   fragment: &Fragment,
   source: &Vir,
 ) -> Vir {
@@ -27,6 +29,7 @@ pub fn normalize(
     core,
     chart,
     sigs,
+    diags,
     source,
     def: fragment.def,
     generics: fragment.generics,
@@ -61,6 +64,7 @@ struct Normalizer<'a> {
   core: &'static Core,
   chart: &'a Chart,
   sigs: &'a Signatures,
+  diags: &'a mut Diags,
 
   source: &'a Vir,
   def: DefId,
@@ -119,7 +123,8 @@ impl Normalizer<'_> {
           };
           for (&wire, &(span, ty)) in &open_wires {
             let Self { core, chart, sigs, def, generics, ref mut types, ref mut rels, .. } = *self;
-            let vir_local = VirLocal::new(core, chart, sigs, def, generics, types, rels, span, ty);
+            let vir_local =
+              VirLocal::new(core, chart, sigs, self.diags, def, generics, types, rels, span, ty);
             let local = self.locals.push(vir_local);
             stage.declarations.push(local);
             stage.local_barrier_write_to(local, Port { ty, kind: PortKind::Wire(span, wire) });

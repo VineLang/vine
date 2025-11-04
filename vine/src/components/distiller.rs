@@ -9,7 +9,7 @@ use crate::structures::{
   ast::Span,
   chart::{Chart, DefId, GenericsId},
   core::Core,
-  diag::{Diag, ErrorGuaranteed},
+  diag::{Diag, Diags, ErrorGuaranteed},
   resolutions::{Fragment, Rels},
   signatures::Signatures,
   tir::{ClosureId, Local, TargetId, TirExpr, TirExprKind, TirLocal, TirPat, TirPatKind},
@@ -25,6 +25,7 @@ pub struct Distiller<'r> {
   pub(crate) core: &'static Core,
   pub(crate) chart: &'r Chart,
   pub(crate) sigs: &'r Signatures,
+  pub(crate) diags: &'r mut Diags,
 
   pub(crate) layers: IdxVec<LayerId, Option<Layer>>,
   pub(crate) interfaces: IdxVec<InterfaceId, Option<Interface>>,
@@ -63,11 +64,17 @@ pub(crate) enum Poly<T = Port> {
 }
 
 impl<'r> Distiller<'r> {
-  pub fn new(core: &'static Core, chart: &'r Chart, sigs: &'r Signatures) -> Self {
+  pub fn new(
+    core: &'static Core,
+    chart: &'r Chart,
+    sigs: &'r Signatures,
+    diags: &'r mut Diags,
+  ) -> Self {
     Distiller {
       core,
       chart,
       sigs,
+      diags,
       layers: Default::default(),
       interfaces: Default::default(),
       stages: Default::default(),
@@ -98,7 +105,7 @@ impl<'r> Distiller<'r> {
     debug_assert!(self.returns.is_empty());
     let locals = IdxVec::from_iter(take(&mut self.locals).into_iter().map(|(_, local)| {
       let Self { core, chart, sigs, def, generics, ref mut types, ref mut rels, .. } = *self;
-      VirLocal::new(core, chart, sigs, def, generics, types, rels, local.span, local.ty)
+      VirLocal::new(core, chart, sigs, self.diags, def, generics, types, rels, local.span, local.ty)
     }));
     Vir {
       types: take(&mut self.types),
@@ -379,10 +386,10 @@ impl<'r> Distiller<'r> {
     match &*pat.kind {
       TirPatKind::Error(err) => Port::error(ty.inverse(), *err),
       TirPatKind![!complete] => {
-        Port::error(ty.inverse(), self.core.report(Diag::ExpectedCompletePat { span }))
+        Port::error(ty.inverse(), self.diags.report(Diag::ExpectedCompletePat { span }))
       }
       TirPatKind::Deref(..) => {
-        Port::error(ty.inverse(), self.core.report(Diag::DerefNonPlacePat { span }))
+        Port::error(ty.inverse(), self.diags.report(Diag::DerefNonPlacePat { span }))
       }
       TirPatKind::Hole => self.distill_pat_value_hole(stage, span, ty),
       TirPatKind::Struct(struct_id, inner) => {
@@ -403,10 +410,10 @@ impl<'r> Distiller<'r> {
     match &*pat.kind {
       TirPatKind::Error(err) => Port::error(ty, *err),
       TirPatKind![!complete] => {
-        Port::error(ty, self.core.report(Diag::ExpectedCompletePat { span }))
+        Port::error(ty, self.diags.report(Diag::ExpectedCompletePat { span }))
       }
-      TirPatKind::Deref(..) => Port::error(ty, self.core.report(Diag::DerefNonPlacePat { span })),
-      TirPatKind::Ref(..) => Port::error(ty, self.core.report(Diag::RefSpacePat { span })),
+      TirPatKind::Deref(..) => Port::error(ty, self.diags.report(Diag::DerefNonPlacePat { span })),
+      TirPatKind::Ref(..) => Port::error(ty, self.diags.report(Diag::RefSpacePat { span })),
       TirPatKind::Hole => self.distill_pat_space_hole(stage, span, ty),
       TirPatKind::Struct(struct_id, inner) => {
         self.distill_pat_space_struct(stage, span, ty, *struct_id, inner)
@@ -425,7 +432,7 @@ impl<'r> Distiller<'r> {
     match &*pat.kind {
       TirPatKind::Error(err) => (Port::error(ty.inverse(), *err), Port::error(ty, *err)),
       TirPatKind![!complete] => {
-        let err = self.core.report(Diag::ExpectedCompletePat { span });
+        let err = self.diags.report(Diag::ExpectedCompletePat { span });
         (Port::error(ty.inverse(), err), Port::error(ty, err))
       }
       TirPatKind::Hole => self.distill_pat_place_hole(stage, span, ty),

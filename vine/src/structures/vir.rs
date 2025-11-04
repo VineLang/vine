@@ -12,7 +12,7 @@ use crate::{
     ast::Span,
     chart::{Chart, DefId, EnumId, GenericsId, StructId, VariantId},
     core::Core,
-    diag::ErrorGuaranteed,
+    diag::{Diags, ErrorGuaranteed},
     resolutions::{ConstRelId, FnRelId, Rels},
     signatures::Signatures,
     tir::{ClosureId, Local},
@@ -344,6 +344,7 @@ impl VirLocal {
     core: &'static Core,
     chart: &Chart,
     sigs: &Signatures,
+    diags: &mut Diags,
     def: DefId,
     generics: GenericsId,
     types: &mut Types,
@@ -351,8 +352,9 @@ impl VirLocal {
     span: Span,
     ty: Type,
   ) -> VirLocal {
-    let flex =
-      Finder::new(core, chart, sigs, def, generics, span).find_flex(types, ty).unwrap_or_default();
+    let flex = Finder::new(core, chart, sigs, diags, def, generics, span)
+      .find_flex(types, ty)
+      .unwrap_or_default();
     VirLocal {
       span,
       ty,

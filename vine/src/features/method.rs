@@ -1,5 +1,5 @@
 use crate::{
-  components::resolver::Resolver,
+  components::{finder::Finder, resolver::Resolver},
   structures::{
     ast::{Expr, GenericArgs, Ident, Span},
     chart::FnId,
@@ -63,7 +63,7 @@ impl Resolver<'_> {
     }
     let (receiver_place, receiver_ty) = match sig.params.first().copied() {
       None => return Err(Diag::NilaryMethod { span }),
-      Some(receiver) => match self.types.force_kind(self.core, receiver) {
+      Some(receiver) => match self.types.force_kind(self.diags, receiver) {
         (_, TypeKind::Error(e)) => return Err((*e).into()),
         (Inverted(false), TypeKind::Ref(receiver)) => (true, *receiver),
         _ => (false, receiver),
@@ -93,11 +93,21 @@ impl Resolver<'_> {
     receiver: Type,
     name: Ident,
   ) -> Result<(FnId, TypeCtx<Vec<Type>>), ErrorGuaranteed> {
-    let mut results = self.finder(span).find_method(&self.types, receiver, name.clone());
+    let mut finder = Finder::new(
+      self.core,
+      self.chart,
+      self.sigs,
+      self.diags,
+      self.cur_def,
+      self.cur_generics,
+      span,
+    );
+    let mut results = finder.find_method(&self.types, receiver, name.clone());
+
     if results.len() == 1 {
       Ok(results.pop().unwrap())
     } else {
-      Err(self.core.report(if results.is_empty() {
+      Err(self.diags.report(if results.is_empty() {
         Diag::NoMethod { span, ty: self.types.show(self.chart, receiver), name }
       } else {
         Diag::AmbiguousMethod { span, ty: self.types.show(self.chart, receiver), name }

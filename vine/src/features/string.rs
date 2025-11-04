@@ -178,7 +178,7 @@ impl Resolver<'_> {
     let string_ty = if let Some(string) = self.chart.builtins.string {
       self.types.new(TypeKind::Struct(string, Vec::new()))
     } else {
-      self.types.error(self.core.report(Diag::MissingBuiltin { span, builtin: "String" }))
+      self.types.error(self.diags.report(Diag::MissingBuiltin { span, builtin: "String" }))
     };
     let rest = rest
       .iter()

@@ -15,7 +15,7 @@ use crate::{
     chart::{Chart, ConcreteFnId, DefId, DefTraitKind, FnId, GenericsId, OpaqueTypeId},
     checkpoint::Checkpoint,
     core::Core,
-    diag::{Diag, ErrorGuaranteed},
+    diag::{Diag, Diags, ErrorGuaranteed},
     resolutions::{FnRel, FnRelId, Fragment, FragmentId, Rels, Resolutions},
     signatures::{FnSig, Signatures},
     tir::{
@@ -31,6 +31,7 @@ pub struct Resolver<'a> {
   pub(crate) core: &'static Core,
   pub(crate) chart: &'a Chart,
   pub(crate) sigs: &'a mut Signatures,
+  pub(crate) diags: &'a mut Diags,
   pub(crate) resolutions: &'a mut Resolutions,
   pub(crate) fragments: &'a mut IdxVec<FragmentId, Fragment>,
   pub(crate) types: Types,
@@ -72,6 +73,7 @@ impl<'a> Resolver<'a> {
     core: &'static Core,
     chart: &'a Chart,
     sigs: &'a mut Signatures,
+    diags: &'a mut Diags,
     resolutions: &'a mut Resolutions,
     fragments: &'a mut IdxVec<FragmentId, Fragment>,
   ) -> Self {
@@ -79,6 +81,7 @@ impl<'a> Resolver<'a> {
       core,
       chart,
       sigs,
+      diags,
       resolutions,
       fragments,
       types: Types::default(),
@@ -155,7 +158,7 @@ impl<'a> Resolver<'a> {
         self.resolutions.main = Some(self.resolutions.fns[main_mod]);
       }
       Err(diag) => {
-        self.core.report(diag);
+        self.diags.report(diag);
       }
     }
   }
@@ -191,7 +194,7 @@ impl<'a> Resolver<'a> {
     let nil = self.types.nil();
     let expected = FnSig { params: vec![io_ref], ret_ty: nil };
     let found = self.types.import(&self.sigs.concrete_fns[fn_id], None);
-    Self::expect_fn_sig(self.core, self.chart, &mut self.types, span, expected, found);
+    Self::expect_fn_sig(self.diags, self.chart, &mut self.types, span, expected, found);
     Ok(fn_id)
   }
 
@@ -254,7 +257,7 @@ impl<'a> Resolver<'a> {
   }
 
   pub(crate) fn expect_fn_sig(
-    core: &'static Core,
+    diags: &mut Diags,
     chart: &Chart,
     types: &mut Types,
     span: Span,
@@ -262,7 +265,7 @@ impl<'a> Resolver<'a> {
     found_sig: FnSig,
   ) {
     if types.unify_fn_sig(&expected_sig, &found_sig).is_failure() {
-      core.report(Diag::ExpectedTypeFound {
+      diags.report(Diag::ExpectedTypeFound {
         span,
         expected: types.show_fn_sig(chart, &expected_sig),
         found: types.show_fn_sig(chart, &found_sig),
@@ -280,7 +283,7 @@ impl<'a> Resolver<'a> {
               self.resolve_generics(path, self.chart.traits[trait_id].generics, false);
             ImplType::Trait(trait_id, type_params)
           }
-          Err(diag) => ImplType::Error(self.core.report(diag)),
+          Err(diag) => ImplType::Error(self.diags.report(diag)),
         }
       }
       TraitKind::Fn(receiver, params, ret) => self.resolve_trait_fn(span, receiver, params, ret),
@@ -298,13 +301,20 @@ impl<'a> Resolver<'a> {
     }
   }
 
-  pub(crate) fn finder(&self, span: Span) -> Finder<'_> {
-    Finder::new(self.core, self.chart, self.sigs, self.cur_def, self.cur_generics, span)
+  pub(crate) fn finder(&mut self, span: Span) -> Finder<'_> {
+    Finder::new(self.core, self.chart, self.sigs, self.diags, self.cur_def, self.cur_generics, span)
   }
 
   pub(crate) fn find_impl(&mut self, span: Span, ty: &ImplType, basic: bool) -> TirImpl {
-    let mut finder =
-      Finder::new(self.core, self.chart, self.sigs, self.cur_def, self.cur_generics, span);
+    let mut finder = Finder::new(
+      self.core,
+      self.chart,
+      self.sigs,
+      self.diags,
+      self.cur_def,
+      self.cur_generics,
+      span,
+    );
     finder.find_impl(&mut self.types, ty, basic)
   }
 
@@ -332,12 +342,12 @@ impl<'a> Resolver<'a> {
   }
 
   pub(crate) fn error_expr(&mut self, span: Span, diag: Diag) -> TirExpr {
-    let err = self.core.report(diag);
+    let err = self.diags.report(diag);
     TirExpr { span, ty: self.types.error(err), kind: Box::new(TirExprKind::Error(err)) }
   }
 
   pub(crate) fn error_pat(&mut self, span: Span, diag: Diag) -> TirPat {
-    let err = self.core.report(diag);
+    let err = self.diags.report(diag);
     TirPat { span, ty: self.types.error(err), kind: Box::new(TirPatKind::Error(err)) }
   }
 
@@ -348,7 +358,7 @@ impl<'a> Resolver<'a> {
     expected: Type,
   ) -> Option<ErrorGuaranteed> {
     if self.types.unify(found, expected).is_failure() {
-      Some(self.core.report(Diag::ExpectedTypeFound {
+      Some(self.diags.report(Diag::ExpectedTypeFound {
         span,
         expected: self.types.show(self.chart, expected),
         found: self.types.show(self.chart, found),
@@ -391,7 +401,7 @@ impl<'a> Resolver<'a> {
     if let Some(id) = builtin {
       self.types.new(TypeKind::Opaque(id, vec![]))
     } else {
-      self.types.error(self.core.report(Diag::MissingBuiltin { span, builtin: name }))
+      self.types.error(self.diags.report(Diag::MissingBuiltin { span, builtin: name }))
     }
   }
 
@@ -532,7 +542,7 @@ impl<'a> Resolver<'a> {
       PatKind::Tuple(elements) => self.resolve_pat_sig_tuple(elements, inference),
       PatKind::Object(entries) => self.resolve_pat_sig_object(entries, inference),
       PatKind::Hole | PatKind::Deref(_) => {
-        self.types.error(self.core.report(Diag::ItemTypeHole { span }))
+        self.types.error(self.diags.report(Diag::ItemTypeHole { span }))
       }
       PatKind::Error(e) => self.types.error(*e),
     }

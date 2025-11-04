@@ -25,7 +25,7 @@ impl Distiller<'_> {
       Poly::Value(value) => value,
       Poly::Place(place) => self.coerce_place_value(span, stage, place),
       Poly::Space(_) => {
-        Port::error(ty, self.core.report(Diag::ExpectedValueFoundSpaceExpr { span }))
+        Port::error(ty, self.diags.report(Diag::ExpectedValueFoundSpaceExpr { span }))
       }
     }
   }
@@ -40,7 +40,7 @@ impl Distiller<'_> {
     match self.distill_expr_poly(stage, expr) {
       Poly::Error(err) => Port::error(ty.inverse(), err),
       Poly::Value(_) => {
-        Port::error(ty.inverse(), self.core.report(Diag::ExpectedSpaceFoundValueExpr { span }))
+        Port::error(ty.inverse(), self.diags.report(Diag::ExpectedSpaceFoundValueExpr { span }))
       }
       Poly::Place(place) => self.coerce_place_space(span, stage, place),
       Poly::Space(space) => space,
@@ -93,7 +93,8 @@ impl Distiller<'_> {
     inv: Inverted,
   ) -> Port {
     let ty = value.ty.invert_if(inv);
-    let mut finder = Finder::new(self.core, self.chart, self.sigs, self.def, self.generics, span);
+    let mut finder =
+      Finder::new(self.core, self.chart, self.sigs, self.diags, self.def, self.generics, span);
     let flex = match finder.find_flex(&mut self.types, value.ty) {
       Ok(flex) => flex,
       Err(err) => return Port::error(ty, err),
@@ -113,7 +114,7 @@ impl Distiller<'_> {
         }
         None => {
           let diag = Diag::CannotFork { span, ty: self.types.show(self.chart, ty) };
-          Port::error(ty, self.core.report(diag))
+          Port::error(ty, self.diags.report(diag))
         }
       },
       Inverted(true) => match flex.drop {
@@ -125,7 +126,7 @@ impl Distiller<'_> {
         }
         None => {
           let diag = Diag::CannotFork { span, ty: self.types.show(self.chart, ty.inverse()) };
-          Port::error(ty, self.core.report(diag))
+          Port::error(ty, self.diags.report(diag))
         }
       },
     }
@@ -133,10 +134,11 @@ impl Distiller<'_> {
 
   pub(crate) fn drop(&mut self, span: Span, stage: &mut Stage, ty: Type, port: Port) {
     let Some(drop) = self.chart.builtins.drop else {
-      self.core.report(Diag::MissingBuiltin { span, builtin: "Drop" });
+      self.diags.report(Diag::MissingBuiltin { span, builtin: "Drop" });
       return;
     };
-    let mut finder = Finder::new(self.core, self.chart, self.sigs, self.def, self.generics, span);
+    let mut finder =
+      Finder::new(self.core, self.chart, self.sigs, self.diags, self.def, self.generics, span);
     let impl_ = finder.find_impl(&mut self.types, &ImplType::Trait(drop, vec![ty]), false);
     let fn_rel = self.rels.drop_rel(self.chart, impl_);
     let nil = Port { ty: self.types.nil(), kind: PortKind::Nil };
