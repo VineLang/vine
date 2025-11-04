@@ -6,6 +6,7 @@ use tower_lsp::{jsonrpc::Result, lsp_types::*, Client, LanguageServer, LspServic
 
 use vine::{
   compiler::Compiler, components::loader::Loader, features::cfg::Config, structures::diag::Diag,
+  tools::fmt::Formatter,
 };
 
 #[derive(Debug)]
@@ -130,10 +131,7 @@ impl LanguageServer for Backend {
       }
     };
 
-    let arenas = CoreArenas::default();
-    let core = Core::new(&arenas, false);
-
-    let Ok(formatted) = core.fmt(&src) else {
+    let Ok(formatted) = Formatter::fmt(&src) else {
       return Ok(None);
     };
     if formatted == src {
