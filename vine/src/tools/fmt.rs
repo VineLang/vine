@@ -3,13 +3,13 @@ pub mod doc;
 use doc::{Doc, Writer};
 
 use crate::{
-  components::parser::VineParser,
+  components::{loader::FileId, parser::VineParser},
   structures::{
     ast::{
       Expr, ExprKind, Flex, Impl, ImplKind, Item, ItemKind, Pat, PatKind, Span, Stmt, StmtKind,
       Trait, TraitKind, Ty, TyKind, Vis,
     },
-    core::{Core, FileId},
+    core::Core,
     diag::Diag,
   },
 };

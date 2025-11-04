@@ -3,10 +3,10 @@ use std::mem::transmute;
 use vine_util::parser::{Parser, ParserState};
 
 use crate::{
-  components::lexer::Token,
+  components::{lexer::Token, loader::FileId},
   structures::{
     ast::{Key, Sign},
-    core::{Core, FileId},
+    core::Core,
     diag::Diag,
   },
 };

@@ -1,10 +1,13 @@
 use std::{
+  cell::RefCell,
   env::current_dir,
   fs, io,
   mem::take,
   path::{Path, PathBuf},
   str,
 };
+
+use vine_util::{idx::IdxVec, new_idx};
 
 use crate::{
   components::parser::VineParser,
@@ -13,20 +16,23 @@ use crate::{
       visit::{VisitMut, Visitee},
       Attr, AttrKind, Generics, Ident, Item, ItemKind, ModItem, ModKind, Span, Vis,
     },
-    core::{Core, FileId},
+    core::Core,
     diag::{Diag, FileInfo},
   },
 };
+
+new_idx!(pub FileId);
 
 pub struct Loader {
   core: &'static Core,
   cwd: PathBuf,
   root: Vec<Item>,
+  pub(crate) files: RefCell<IdxVec<FileId, FileInfo>>,
 }
 
 impl Loader {
   pub fn new(core: &'static Core) -> Self {
-    Self { core, cwd: current_dir().unwrap(), root: Vec::new() }
+    Self { core, cwd: current_dir().unwrap(), root: Vec::new(), files: Default::default() }
   }
 
   pub fn finish(&mut self) -> ModKind {
@@ -57,7 +63,7 @@ impl Loader {
   }
 
   pub(crate) fn add_file(&mut self, path: Option<PathBuf>, name: String, src: &str) -> FileId {
-    self.core.files.borrow_mut().push(FileInfo::new(path, name, src))
+    self.files.borrow_mut().push(FileInfo::new(path, name, src))
   }
 
   fn load_file(&mut self, base: Option<&Path>, spec: ModSpec<'_>, span: Span) -> ModKind {

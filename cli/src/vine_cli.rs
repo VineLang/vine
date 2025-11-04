@@ -76,7 +76,7 @@ impl CompileArgs {
     match compiler.compile(()) {
       Ok(nets) => nets,
       Err(diags) => {
-        eprintln!("{}", core.print_diags(&diags));
+        eprintln!("{}", compiler.loader.print_diags(&diags));
         exit(1);
       }
     }
@@ -171,14 +171,14 @@ impl VineReplCommand {
 
     let mut ivm = IVM::new(&heap, &extrinsics);
     let core = Core::new();
-    let mut repl =
-      match Repl::new(host, &mut ivm, core, !self.no_debug, Config::default(), self.libs) {
-        Ok(repl) => repl,
-        Err(diags) => {
-          eprintln!("{}", core.print_diags(&diags));
-          exit(1);
-        }
-      };
+    let mut compiler = Compiler::new(core, !self.no_debug, Config::default());
+    let mut repl = match Repl::new(host, &mut ivm, &mut compiler, self.libs) {
+      Ok(repl) => repl,
+      Err(diags) => {
+        eprintln!("{}", compiler.loader.print_diags(&diags));
+        exit(1);
+      }
+    };
     let mut rl = DefaultEditor::new()?;
     loop {
       println!();
@@ -192,7 +192,7 @@ impl VineReplCommand {
           }
           _ = rl.add_history_entry(&line);
           if let Err(diags) = repl.exec(&line) {
-            println!("{}", core.print_diags(&diags))
+            println!("{}", repl.print_diags(&diags))
           }
         }
         Err(_) => break,

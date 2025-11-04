@@ -7,7 +7,7 @@ use crate::structures::{
 
 use super::Repl;
 
-impl<'ctx, 'ivm, 'ext> Repl<'ctx, 'ivm, 'ext> {
+impl<'ctx, 'ivm, 'ext, 'comp> Repl<'ctx, 'ivm, 'ext, 'comp> {
   pub(super) fn show_tree(&mut self, ty: Type, tree: &Tree) -> String {
     self._show(ty, tree).unwrap_or_else(|| format!("#ivy({tree})"))
   }

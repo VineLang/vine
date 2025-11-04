@@ -129,7 +129,7 @@ impl Compiler {
           self.templates[*fragment_id].instantiate(&mut nets, &self.specs, spec);
         }
         SpecKind::Synthetic(item) => {
-          synthesize(&mut nets, self.core, self.debug, &self.chart, &self.specs, spec, item);
+          synthesize(&mut nets, self.debug, &self.loader, &self.chart, &self.specs, spec, item);
         }
       }
     }

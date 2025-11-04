@@ -15,7 +15,6 @@ use crate::{
     parser::VineParser,
     resolver::Resolver,
   },
-  features::cfg::Config,
   structures::{
     ast::{visit::VisitMut, Block, Ident, Span, Stmt},
     chart::{DefId, GenericsId},
@@ -32,11 +31,11 @@ use crate::{
 mod command;
 mod show_tree;
 
-pub struct Repl<'ctx, 'ivm, 'ext> {
+pub struct Repl<'ctx, 'ivm, 'ext, 'comp> {
   host: &'ivm mut Host<'ivm>,
   ivm: &'ctx mut IVM<'ivm, 'ext>,
   core: &'static Core,
-  compiler: Compiler,
+  compiler: &'comp mut Compiler,
   repl_mod: DefId,
   line: usize,
   scope: Vec<ScopeEntry<'ivm>>,
@@ -52,16 +51,13 @@ struct ScopeEntry<'ivm> {
   space: Option<Port<'ivm>>,
 }
 
-impl<'ctx, 'ivm, 'ext> Repl<'ctx, 'ivm, 'ext> {
+impl<'ctx, 'ivm, 'ext, 'comp> Repl<'ctx, 'ivm, 'ext, 'comp> {
   pub fn new(
     mut host: &'ivm mut Host<'ivm>,
     ivm: &'ctx mut IVM<'ivm, 'ext>,
-    core: &'static Core,
-    debug: bool,
-    config: Config,
+    compiler: &'comp mut Compiler,
     libs: Vec<PathBuf>,
   ) -> Result<Self, Vec<Diag>> {
-    let mut compiler = Compiler::new(core, debug, config);
     for lib in libs {
       compiler.loader.load_mod(&lib);
     }
@@ -80,7 +76,7 @@ impl<'ctx, 'ivm, 'ext> Repl<'ctx, 'ivm, 'ext> {
     let mut scope = Vec::new();
     if let Some(io_type) = compiler.chart.builtins.io {
       scope.push(ScopeEntry {
-        name: core.ident("io"),
+        name: compiler.core.ident("io"),
         span: Span::NONE,
         ty: types.new(TypeKind::Opaque(io_type, vec![])),
         value: Some(Port::new_ext_val(host.new_io())),
@@ -91,7 +87,7 @@ impl<'ctx, 'ivm, 'ext> Repl<'ctx, 'ivm, 'ext> {
     let line = 0;
     let options = ReplOptions::default();
 
-    Ok(Repl { host, ivm, core, compiler, repl_mod, line, scope, types, options })
+    Ok(Repl { host, ivm, core: compiler.core, compiler, repl_mod, line, scope, types, options })
   }
 
   pub fn exec(&mut self, input: &str) -> Result<(), Vec<Diag>> {
@@ -335,5 +331,9 @@ impl<'ctx, 'ivm, 'ext> Repl<'ctx, 'ivm, 'ext> {
         (Some(value), Some(space)) => println!("let &{ident}: &{ty} = &({value}; ~{space});"),
       }
     }
+  }
+
+  pub fn print_diags(&self, diags: &[Diag]) -> String {
+    self.compiler.loader.print_diags(diags)
   }
 }

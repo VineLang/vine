@@ -7,12 +7,12 @@ use crate::{
     distiller::Distiller,
     emitter::Emitter,
     lexer::{StrToken, Token},
+    loader::FileId,
     parser::VineParser,
     resolver::Resolver,
   },
   structures::{
     ast::{Expr, ExprKind, Span, StringSegment},
-    core::FileId,
     diag::Diag,
     tir::{TirExpr, TirExprKind},
     types::{Type, TypeKind},

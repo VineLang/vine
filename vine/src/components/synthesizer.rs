@@ -3,15 +3,17 @@ use std::mem::take;
 use ivy::ast::{Net, Nets, Tree};
 use vine_util::idx::{Counter, IdxVec};
 
-use crate::structures::{
-  ast::{Ident, Span},
-  chart::{Chart, EnumId, FnId, StructId, TraitConstId, TraitFnId, TraitId, VariantId},
-  core::Core,
-  resolutions::{FnRel, FnRelId, Rels},
-  specializations::{Spec, Specializations},
-  template::global_name,
-  tir::TirImpl,
-  vir::StageId,
+use crate::{
+  components::loader::Loader,
+  structures::{
+    ast::{Ident, Span},
+    chart::{Chart, EnumId, FnId, StructId, TraitConstId, TraitFnId, TraitId, VariantId},
+    resolutions::{FnRel, FnRelId, Rels},
+    specializations::{Spec, Specializations},
+    template::global_name,
+    tir::TirImpl,
+    vir::StageId,
+  },
 };
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -39,7 +41,7 @@ pub enum SyntheticItem {
 
 struct Synthesizer<'a> {
   nets: &'a mut Nets,
-  core: &'static Core,
+  loader: &'a Loader,
   chart: &'a Chart,
   specs: &'a Specializations,
   spec: &'a Spec,
@@ -50,8 +52,8 @@ struct Synthesizer<'a> {
 
 pub fn synthesize(
   nets: &mut Nets,
-  core: &'static Core,
   debug: bool,
+  loader: &Loader,
   chart: &Chart,
   specs: &Specializations,
   spec: &Spec,
@@ -59,8 +61,8 @@ pub fn synthesize(
 ) {
   Synthesizer {
     nets,
-    core,
     debug,
+    loader,
     chart,
     specs,
     spec,
@@ -276,7 +278,7 @@ impl Synthesizer<'_> {
 
   fn synthesize_frame(&mut self, path: String, span: Span) -> Net {
     let path = self.list(path[2..].split("::").collect::<Vec<_>>(), Self::string);
-    let files = self.core.files.borrow();
+    let files = self.loader.files.borrow();
     let pos = files[span.file].get_pos(span.start);
     let file = self.string(pos.file);
     let line = Tree::N32(pos.line as u32 + 1);

@@ -7,8 +7,7 @@ use ivy::ast::Net;
 use vine_util::idx;
 
 use crate::{
-  features::builtin::Builtin,
-  structures::{core::FileId, diag::ErrorGuaranteed},
+  components::loader::FileId, features::builtin::Builtin, structures::diag::ErrorGuaranteed,
 };
 
 pub mod visit;

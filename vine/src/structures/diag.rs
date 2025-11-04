@@ -9,10 +9,13 @@ use std::{
 use vine_util::{idx::IdxVec, lexer::TokenSet};
 
 use crate::{
-  components::lexer::{StrToken, Token},
+  components::{
+    lexer::{StrToken, Token},
+    loader::{FileId, Loader},
+  },
   structures::{
     ast::{BinaryOp, Ident, Span},
-    core::{Core, FileId},
+    core::Core,
   },
 };
 
@@ -278,10 +281,6 @@ impl Core {
     ErrorGuaranteed(())
   }
 
-  pub fn files(&self) -> Ref<'_, IdxVec<FileId, FileInfo>> {
-    self.files.borrow()
-  }
-
   pub fn has_diags(&self) -> bool {
     !self.diags.borrow().is_empty()
   }
@@ -297,6 +296,12 @@ impl Core {
     } else {
       Err(diags)
     }
+  }
+}
+
+impl Loader {
+  pub fn files(&self) -> Ref<'_, IdxVec<FileId, FileInfo>> {
+    self.files.borrow()
   }
 
   pub fn print_diags(&self, diags: &[Diag]) -> String {
@@ -314,7 +319,7 @@ impl Core {
   }
 
   pub fn show_span(&self, span: Span) -> Option<String> {
-    (span != Span::NONE).then(|| format!("{}", self.files.borrow()[span.file].get_pos(span.start)))
+    (span != Span::NONE).then(|| format!("{}", self.files()[span.file].get_pos(span.start)))
   }
 }
 
