@@ -14,7 +14,6 @@ use crate::{
     },
     chart::{Chart, ConcreteFnId, DefId, DefTraitKind, FnId, GenericsId, OpaqueTypeId},
     checkpoint::Checkpoint,
-    core::Core,
     diag::{Diag, Diags, ErrorGuaranteed},
     resolutions::{FnRel, FnRelId, Fragment, FragmentId, Rels, Resolutions},
     signatures::{FnSig, Signatures},
@@ -28,7 +27,6 @@ use crate::{
 
 #[derive(Debug)]
 pub struct Resolver<'a> {
-  pub(crate) core: &'static Core,
   pub(crate) chart: &'a Chart,
   pub(crate) sigs: &'a mut Signatures,
   pub(crate) diags: &'a mut Diags,
@@ -70,7 +68,6 @@ pub(crate) enum Binding {
 
 impl<'a> Resolver<'a> {
   pub fn new(
-    core: &'static Core,
     chart: &'a Chart,
     sigs: &'a mut Signatures,
     diags: &'a mut Diags,
@@ -78,7 +75,6 @@ impl<'a> Resolver<'a> {
     fragments: &'a mut IdxVec<FragmentId, Fragment>,
   ) -> Self {
     Resolver {
-      core,
       chart,
       sigs,
       diags,
@@ -167,7 +163,7 @@ impl<'a> Resolver<'a> {
     self.types.reset();
     let span = Span::NONE;
     let main_mod_name = self.chart.defs[main_mod].name.clone();
-    let main_ident = self.core.ident("main");
+    let main_ident = Ident("main".into());
     let path = Path {
       span,
       absolute: true,
@@ -301,20 +297,9 @@ impl<'a> Resolver<'a> {
     }
   }
 
-  pub(crate) fn finder(&mut self, span: Span) -> Finder<'_> {
-    Finder::new(self.core, self.chart, self.sigs, self.diags, self.cur_def, self.cur_generics, span)
-  }
-
   pub(crate) fn find_impl(&mut self, span: Span, ty: &ImplType, basic: bool) -> TirImpl {
-    let mut finder = Finder::new(
-      self.core,
-      self.chart,
-      self.sigs,
-      self.diags,
-      self.cur_def,
-      self.cur_generics,
-      span,
-    );
+    let mut finder =
+      Finder::new(self.chart, self.sigs, self.diags, self.cur_def, self.cur_generics, span);
     finder.find_impl(&mut self.types, ty, basic)
   }
 

@@ -8,7 +8,6 @@ use crate::{
   structures::{
     chart::{Chart, ConstId, FnId},
     checkpoint::Checkpoint,
-    core::Core,
     diag::ErrorGuaranteed,
     resolutions::{
       Become, FnRel, Fragment, FragmentId, Rels, Resolutions, ResolvedImpl, ResolvedImplKind,
@@ -21,7 +20,6 @@ use crate::{
 
 #[derive(Debug)]
 pub struct Specializer<'a> {
-  pub core: &'static Core,
   pub chart: &'a Chart,
   pub resolutions: &'a Resolutions,
   pub specs: &'a mut Specializations,

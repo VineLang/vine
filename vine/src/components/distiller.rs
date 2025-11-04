@@ -8,7 +8,6 @@ use vine_util::{
 use crate::structures::{
   ast::Span,
   chart::{Chart, DefId, GenericsId},
-  core::Core,
   diag::{Diag, Diags, ErrorGuaranteed},
   resolutions::{Fragment, Rels},
   signatures::Signatures,
@@ -22,7 +21,6 @@ use crate::structures::{
 
 #[derive(Debug)]
 pub struct Distiller<'r> {
-  pub(crate) core: &'static Core,
   pub(crate) chart: &'r Chart,
   pub(crate) sigs: &'r Signatures,
   pub(crate) diags: &'r mut Diags,
@@ -64,14 +62,8 @@ pub(crate) enum Poly<T = Port> {
 }
 
 impl<'r> Distiller<'r> {
-  pub fn new(
-    core: &'static Core,
-    chart: &'r Chart,
-    sigs: &'r Signatures,
-    diags: &'r mut Diags,
-  ) -> Self {
+  pub fn new(chart: &'r Chart, sigs: &'r Signatures, diags: &'r mut Diags) -> Self {
     Distiller {
-      core,
       chart,
       sigs,
       diags,
@@ -104,8 +96,8 @@ impl<'r> Distiller<'r> {
     self.targets.clear();
     debug_assert!(self.returns.is_empty());
     let locals = IdxVec::from_iter(take(&mut self.locals).into_iter().map(|(_, local)| {
-      let Self { core, chart, sigs, def, generics, ref mut types, ref mut rels, .. } = *self;
-      VirLocal::new(core, chart, sigs, self.diags, def, generics, types, rels, local.span, local.ty)
+      let Self { chart, sigs, def, generics, ref mut types, ref mut rels, .. } = *self;
+      VirLocal::new(chart, sigs, self.diags, def, generics, types, rels, local.span, local.ty)
     }));
     Vir {
       types: take(&mut self.types),

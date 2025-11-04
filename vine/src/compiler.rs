@@ -11,9 +11,9 @@ use crate::{
     debug::debug_main,
   },
   structures::{
+    ast::Ident,
     chart::Chart,
     checkpoint::Checkpoint,
-    core::Core,
     diag::{Diag, Diags},
     resolutions::{Fragment, FragmentId, Resolutions},
     signatures::Signatures,
@@ -25,7 +25,6 @@ use crate::{
 };
 
 pub struct Compiler {
-  pub core: &'static Core,
   pub config: Config,
   pub debug: bool,
   pub loader: Loader,
@@ -40,13 +39,12 @@ pub struct Compiler {
 }
 
 impl Compiler {
-  pub fn new(core: &'static Core, debug: bool, mut config: Config) -> Self {
-    config.insert(core.ident("debug"), ConfigValue::Bool(debug));
+  pub fn new(debug: bool, mut config: Config) -> Self {
+    config.insert(Ident("debug".into()), ConfigValue::Bool(debug));
     Compiler {
-      core,
       config,
       debug,
-      loader: Loader::new(core),
+      loader: Loader::default(),
       chart: Chart::default(),
       sigs: Signatures::default(),
       resolutions: Resolutions::default(),
@@ -70,18 +68,16 @@ impl Compiler {
     mut hooks: impl Hooks,
     checkpoint: &Checkpoint,
   ) -> Result<Nets, Vec<Diag>> {
-    let core = self.core;
     let root = self.loader.finish();
     self.diags.bail()?;
 
     let chart = &mut self.chart;
 
-    let mut charter = Charter { core, chart, config: &self.config, diags: &mut self.diags };
+    let mut charter = Charter { chart, config: &self.config, diags: &mut self.diags };
     charter.chart_root(root);
     hooks.chart(&mut charter);
 
     let mut resolver = Resolver::new(
-      core,
       chart,
       &mut self.sigs,
       &mut self.diags,
@@ -91,15 +87,14 @@ impl Compiler {
     resolver.resolve_since(checkpoint);
     hooks.resolve(&mut resolver);
 
-    let mut distiller = Distiller::new(core, chart, &self.sigs, &mut self.diags);
+    let mut distiller = Distiller::new(chart, &self.sigs, &mut self.diags);
     for fragment_id in self.fragments.keys_from(checkpoint.fragments) {
       let fragment = &self.fragments[fragment_id];
       let mut vir = distiller.distill_fragment(fragment);
       hooks.distill(fragment_id, &mut vir);
-      let mut vir = normalize(core, chart, &self.sigs, distiller.diags, fragment, &vir);
+      let mut vir = normalize(chart, &self.sigs, distiller.diags, fragment, &vir);
       analyze(distiller.diags, fragment.tir.span, &mut vir);
-      let template =
-        emit(core, self.debug, chart, distiller.diags, fragment, &vir, &mut self.specs);
+      let template = emit(self.debug, chart, distiller.diags, fragment, &vir, &mut self.specs);
       self.vir.push_to(fragment_id, vir);
       self.templates.push_to(fragment_id, template);
     }
@@ -107,7 +102,6 @@ impl Compiler {
     let mut nets = Nets::default();
 
     let mut specializer = Specializer {
-      core,
       chart,
       resolutions: &self.resolutions,
       fragments: &self.fragments,

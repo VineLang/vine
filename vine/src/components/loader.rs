@@ -16,7 +16,6 @@ use crate::{
       visit::{VisitMut, Visitee},
       Attr, AttrKind, Generics, Ident, Item, ItemKind, ModItem, ModKind, Span, Vis,
     },
-    core::Core,
     diag::{Diag, Diags, FileInfo},
   },
 };
@@ -24,17 +23,18 @@ use crate::{
 new_idx!(pub FileId);
 
 pub struct Loader {
-  core: &'static Core,
   cwd: PathBuf,
   root: Vec<Item>,
   pub(crate) files: RefCell<IdxVec<FileId, FileInfo>>,
 }
 
-impl Loader {
-  pub fn new(core: &'static Core) -> Self {
-    Self { core, cwd: current_dir().unwrap(), root: Vec::new(), files: Default::default() }
+impl Default for Loader {
+  fn default() -> Self {
+    Self { cwd: current_dir().unwrap(), root: Vec::new(), files: Default::default() }
   }
+}
 
+impl Loader {
   pub fn finish(&mut self) -> ModKind {
     ModKind::Loaded(Span::NONE, take(&mut self.root))
   }
@@ -59,7 +59,7 @@ impl Loader {
   }
 
   fn auto_mod_name(&self, path: &Path) -> Ident {
-    self.core.ident(str::from_utf8(path.file_stem().unwrap().as_encoded_bytes()).unwrap())
+    Ident(str::from_utf8(path.file_stem().unwrap().as_encoded_bytes()).unwrap().into())
   }
 
   pub(crate) fn add_file(&mut self, path: Option<PathBuf>, name: String, src: &str) -> FileId {
@@ -115,7 +115,7 @@ impl Loader {
       (None, ModSpec::Implicit(_)) => unreachable!(),
     };
 
-    let mut items = VineParser::parse(self.core, &src, file)?;
+    let mut items = VineParser::parse(&src, file)?;
     self.load_deps(&path, &mut items, diags);
     Ok(ModKind::Loaded(span, items))
   }

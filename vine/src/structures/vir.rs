@@ -11,7 +11,6 @@ use crate::{
   structures::{
     ast::Span,
     chart::{Chart, DefId, EnumId, GenericsId, StructId, VariantId},
-    core::Core,
     diag::{Diags, ErrorGuaranteed},
     resolutions::{ConstRelId, FnRelId, Rels},
     signatures::Signatures,
@@ -341,7 +340,6 @@ pub struct VirLocal {
 
 impl VirLocal {
   pub fn new(
-    core: &'static Core,
     chart: &Chart,
     sigs: &Signatures,
     diags: &mut Diags,
@@ -352,9 +350,8 @@ impl VirLocal {
     span: Span,
     ty: Type,
   ) -> VirLocal {
-    let flex = Finder::new(core, chart, sigs, diags, def, generics, span)
-      .find_flex(types, ty)
-      .unwrap_or_default();
+    let flex =
+      Finder::new(chart, sigs, diags, def, generics, span).find_flex(types, ty).unwrap_or_default();
     VirLocal {
       span,
       ty,

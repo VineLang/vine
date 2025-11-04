@@ -7,7 +7,7 @@ use crate::{
   structures::{
     ast::Span,
     chart::{EnumId, StructId, VariantId},
-    diag::{Diag, Diags},
+    diag::Diag,
     tir::{Local, TirPat, TirPatKind},
     types::{Inverted, Type, TypeKind},
     vir::{InterfaceId, Layer, Port, Stage, Step, Transfer},

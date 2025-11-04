@@ -5,10 +5,7 @@ use tokio::sync::RwLock;
 use tower_lsp::{jsonrpc::Result, lsp_types::*, Client, LanguageServer, LspService, Server};
 
 use vine::{
-  compiler::Compiler,
-  components::loader::Loader,
-  features::cfg::Config,
-  structures::{core::Core, diag::Diag},
+  compiler::Compiler, components::loader::Loader, features::cfg::Config, structures::diag::Diag,
 };
 
 #[derive(Debug)]
@@ -20,8 +17,7 @@ struct Backend {
 
 impl Backend {
   fn refresh(&self) -> impl Future<Output = ()> + Send + '_ {
-    let core = Core::new();
-    let mut compiler = Compiler::new(core, true, Config::default());
+    let mut compiler = Compiler::new(true, Config::default());
 
     for glob in &self.entrypoints {
       for entry in glob::glob(glob).unwrap() {

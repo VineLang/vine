@@ -11,7 +11,11 @@ use clap::{Args, CommandFactory, Parser};
 use ivm::{ext::Extrinsics, heap::Heap, IVM};
 use ivy::{ast::Nets, host::Host};
 use rustyline::DefaultEditor;
-use vine::{compiler::Compiler, features::cfg::Config, structures::core::Core, tools::repl::Repl};
+use vine::{
+  compiler::Compiler,
+  features::cfg::Config,
+  tools::{fmt::Formatter, repl::Repl},
+};
 use vine_lsp::lsp;
 
 use super::{Optimizations, RunArgs};
@@ -63,8 +67,7 @@ impl CompileArgs {
       self.libs.push(std_path())
     }
 
-    let core = Core::new();
-    let mut compiler = Compiler::new(core, self.debug, Config::default());
+    let mut compiler = Compiler::new(self.debug, Config::default());
 
     if let Some(main) = self.main {
       compiler.loader.load_main_mod(&main, &mut compiler.diags);
@@ -170,8 +173,7 @@ impl VineReplCommand {
     host.register_default_extrinsics(&mut extrinsics);
 
     let mut ivm = IVM::new(&heap, &extrinsics);
-    let core = Core::new();
-    let mut compiler = Compiler::new(core, !self.no_debug, Config::default());
+    let mut compiler = Compiler::new(!self.no_debug, Config::default());
     let mut repl = match Repl::new(host, &mut ivm, &mut compiler, self.libs) {
       Ok(repl) => repl,
       Err(diags) => {
@@ -209,8 +211,7 @@ impl VineFmtCommand {
   pub fn execute(self) -> Result<()> {
     let mut src = String::new();
     stdin().read_to_string(&mut src)?;
-    let core = Core::new();
-    println!("{}", core.fmt(&src).unwrap());
+    println!("{}", Formatter::fmt(&src).unwrap());
     Ok(())
   }
 }

@@ -6,7 +6,6 @@ use crate::{
   components::{lexer::Token, loader::FileId},
   structures::{
     ast::{Key, Sign},
-    core::Core,
     diag::Diag,
   },
 };
@@ -17,7 +16,6 @@ use crate::structures::ast::{
 };
 
 pub struct VineParser<'src> {
-  pub(crate) core: &'static Core,
   pub(crate) state: ParserState<'src, Token>,
   pub(crate) file: FileId,
 }
@@ -44,8 +42,8 @@ impl<'src> Parser<'src> for VineParser<'src> {
 }
 
 impl<'src> VineParser<'src> {
-  pub fn parse(core: &'static Core, src: &'src str, file: FileId) -> Result<Vec<Item>, Diag> {
-    let mut parser = VineParser { core, state: ParserState::new(src), file };
+  pub fn parse(src: &'src str, file: FileId) -> Result<Vec<Item>, Diag> {
+    let mut parser = VineParser { state: ParserState::new(src), file };
     parser.bump()?;
     let mut items = Vec::new();
     while parser.state.token.is_some() {
@@ -133,7 +131,7 @@ impl<'src> VineParser<'src> {
 
   pub fn parse_ident(&mut self) -> Result<Ident, Diag> {
     let token = self.expect(Token::Ident)?;
-    Ok(self.core.ident(token))
+    Ok(Ident(token.into()))
   }
 
   pub(crate) fn parse_flex(&mut self) -> Result<Flex, Diag> {

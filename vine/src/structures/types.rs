@@ -13,7 +13,6 @@ use vine_util::{
 use crate::structures::{
   ast::{Flex, Ident, Span},
   chart::{Chart, DefId, EnumId, FnId, OpaqueTypeId, StructId, TraitId},
-  core::Core,
   diag::{Diag, Diags, ErrorGuaranteed},
   signatures::FnSig,
   tir::ClosureId,

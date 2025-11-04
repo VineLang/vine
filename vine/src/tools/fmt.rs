@@ -9,14 +9,17 @@ use crate::{
       Expr, ExprKind, Flex, Impl, ImplKind, Item, ItemKind, Pat, PatKind, Span, Stmt, StmtKind,
       Trait, TraitKind, Ty, TyKind, Vis,
     },
-    core::Core,
     diag::Diag,
   },
 };
 
-impl Core {
-  pub fn fmt(&'static self, src: &str) -> Result<String, Diag> {
-    let ast = VineParser::parse(self, src, FileId(0))?;
+pub struct Formatter<'src> {
+  src: &'src str,
+}
+
+impl<'src> Formatter<'src> {
+  pub fn fmt(src: &str) -> Result<String, Diag> {
+    let ast = VineParser::parse(src, FileId(0))?;
     let fmt = Formatter { src };
     let doc = Doc::concat_vec(
       fmt.line_break_separated(
@@ -30,13 +33,7 @@ impl Core {
     writer.write_doc(&doc, false);
     Ok(writer.out)
   }
-}
 
-pub struct Formatter<'src> {
-  src: &'src str,
-}
-
-impl<'src> Formatter<'src> {
   pub(crate) fn fmt_item(&self, item: &Item) -> Doc<'src> {
     Doc::concat(item.attrs.iter().flat_map(|x| [self.fmt_verbatim(x.span), Doc::LINE]).chain([
       self.fmt_vis(&item.vis),

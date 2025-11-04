@@ -5,7 +5,6 @@ use vine_util::{idx::IdxVec, unwrap_idx_vec};
 use crate::structures::{
   ast::Span,
   chart::{Chart, DefId, GenericsId},
-  core::Core,
   diag::Diags,
   resolutions::{Fragment, Rels},
   signatures::Signatures,
@@ -18,7 +17,6 @@ use crate::structures::{
 };
 
 pub fn normalize(
-  core: &'static Core,
   chart: &Chart,
   sigs: &Signatures,
   diags: &mut Diags,
@@ -26,7 +24,6 @@ pub fn normalize(
   source: &Vir,
 ) -> Vir {
   let mut normalizer = Normalizer {
-    core,
     chart,
     sigs,
     diags,
@@ -61,7 +58,6 @@ pub fn normalize(
 
 #[derive(Debug)]
 struct Normalizer<'a> {
-  core: &'static Core,
   chart: &'a Chart,
   sigs: &'a Signatures,
   diags: &'a mut Diags,
@@ -122,9 +118,9 @@ impl Normalizer<'_> {
             wires: source.wires,
           };
           for (&wire, &(span, ty)) in &open_wires {
-            let Self { core, chart, sigs, def, generics, ref mut types, ref mut rels, .. } = *self;
+            let Self { chart, sigs, def, generics, ref mut types, ref mut rels, .. } = *self;
             let vir_local =
-              VirLocal::new(core, chart, sigs, self.diags, def, generics, types, rels, span, ty);
+              VirLocal::new(chart, sigs, self.diags, def, generics, types, rels, span, ty);
             let local = self.locals.push(vir_local);
             stage.declarations.push(local);
             stage.local_barrier_write_to(local, Port { ty, kind: PortKind::Wire(span, wire) });

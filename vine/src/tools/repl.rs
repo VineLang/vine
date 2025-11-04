@@ -18,7 +18,6 @@ use crate::{
   structures::{
     ast::{visit::VisitMut, Block, Ident, Span, Stmt},
     chart::{DefId, GenericsId},
-    core::Core,
     diag::Diag,
     resolutions::FragmentId,
     tir::Local,
@@ -34,7 +33,6 @@ mod show_tree;
 pub struct Repl<'ctx, 'ivm, 'ext, 'comp> {
   host: &'ivm mut Host<'ivm>,
   ivm: &'ctx mut IVM<'ivm, 'ext>,
-  core: &'static Core,
   compiler: &'comp mut Compiler,
   repl_mod: DefId,
   line: usize,
@@ -67,7 +65,7 @@ impl<'ctx, 'ivm, 'ext, 'comp> Repl<'ctx, 'ivm, 'ext, 'comp> {
     struct InitHooks<'a>(&'a mut DefId);
     impl Hooks for InitHooks<'_> {
       fn chart(&mut self, charter: &mut Charter) {
-        *self.0 = charter.chart_child(DefId::ROOT, charter.core.ident("repl"), DefId::ROOT, true);
+        *self.0 = charter.chart_child(DefId::ROOT, Ident("repl".into()), DefId::ROOT, true);
       }
     }
     host.insert_nets(&nets);
@@ -76,7 +74,7 @@ impl<'ctx, 'ivm, 'ext, 'comp> Repl<'ctx, 'ivm, 'ext, 'comp> {
     let mut scope = Vec::new();
     if let Some(io_type) = compiler.chart.builtins.io {
       scope.push(ScopeEntry {
-        name: compiler.core.ident("io"),
+        name: Ident("io".into()),
         span: Span::NONE,
         ty: types.new(TypeKind::Opaque(io_type, vec![])),
         value: Some(Port::new_ext_val(host.new_io())),
@@ -87,7 +85,7 @@ impl<'ctx, 'ivm, 'ext, 'comp> Repl<'ctx, 'ivm, 'ext, 'comp> {
     let line = 0;
     let options = ReplOptions::default();
 
-    Ok(Repl { host, ivm, core: compiler.core, compiler, repl_mod, line, scope, types, options })
+    Ok(Repl { host, ivm, compiler, repl_mod, line, scope, types, options })
   }
 
   pub fn exec(&mut self, input: &str) -> Result<(), Vec<Diag>> {
@@ -301,7 +299,7 @@ impl<'ctx, 'ivm, 'ext, 'comp> Repl<'ctx, 'ivm, 'ext, 'comp> {
 
   fn parse_input(&mut self, line: &str) -> Result<(Span, ReplCommand), Diag> {
     let file = self.compiler.loader.add_file(None, "input".into(), line);
-    let mut parser = VineParser { core: self.core, state: ParserState::new(line), file };
+    let mut parser = VineParser { state: ParserState::new(line), file };
     parser.bump()?;
     let span = parser.start_span();
     let command = parser.parse_repl_command()?;

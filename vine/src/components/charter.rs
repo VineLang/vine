@@ -5,7 +5,6 @@ use crate::{
   structures::{
     ast::{visit::VisitMut, Attr, AttrKind, Flex, Ident, Item, ItemKind, ModKind, Span, Vis},
     chart::Chart,
-    core::Core,
     diag::{Diag, Diags, ErrorGuaranteed},
   },
 };
@@ -13,7 +12,6 @@ use crate::{
 use crate::structures::chart::*;
 
 pub struct Charter<'a> {
-  pub core: &'static Core,
   pub chart: &'a mut Chart,
   pub config: &'a Config,
   pub diags: &'a mut Diags,
@@ -37,7 +35,7 @@ impl Charter<'_> {
       );
     }
     if self.chart.defs.is_empty() {
-      self.new_def(self.core.ident("::"), "".into(), None);
+      self.new_def(Ident("::".into()), "".into(), None);
     }
     self.chart_mod_kind(DefId::ROOT, root, DefId::ROOT, GenericsId::NONE);
   }

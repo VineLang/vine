@@ -7,7 +7,6 @@ use crate::{
   features::local::LocalEmissionState,
   structures::{
     chart::Chart,
-    core::Core,
     diag::Diags,
     resolutions::{ConstRelId, FnRelId, Fragment},
     specializations::Specializations,
@@ -18,7 +17,6 @@ use crate::{
 };
 
 pub fn emit(
-  core: &'static Core,
   debug: bool,
   chart: &Chart,
   diags: &mut Diags,
@@ -27,7 +25,6 @@ pub fn emit(
   specs: &mut Specializations,
 ) -> Template {
   let mut emitter = Emitter {
-    core,
     chart,
     diags,
     fragment,
@@ -46,7 +43,6 @@ pub fn emit(
 }
 
 pub(crate) struct Emitter<'a> {
-  pub(crate) core: &'static Core,
   pub(crate) chart: &'a Chart,
   pub(crate) diags: &'a mut Diags,
   pub(crate) fragment: &'a Fragment,

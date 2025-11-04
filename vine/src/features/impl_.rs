@@ -11,8 +11,8 @@ use crate::{
   },
   structures::{
     ast::{
-      Attr, ConstItem, Flex, FnItem, GenericParams, ImplItem, ImplItemKind, ItemKind, Path, Span,
-      Vis,
+      Attr, ConstItem, Flex, FnItem, GenericParams, Ident, ImplItem, ImplItemKind, ItemKind, Path,
+      Span, Vis,
     },
     chart::{
       ConcreteConstDef, ConcreteConstId, ConcreteFnDef, ConcreteFnId, ConstId, DefId, DefImplKind,
@@ -199,7 +199,7 @@ impl Charter<'_> {
     flex: Flex,
   ) {
     if flex.fork() {
-      let def = self.chart_child(ty_def, self.core.ident("fork"), member_vis, false);
+      let def = self.chart_child(ty_def, Ident("fork".into()), member_vis, false);
       let _generic_params = GenericParams { inherit: true, ..GenericParams::empty(span) };
       let generics = self._chart_generics(def, ty_generics, _generic_params, true, Flex::Fork);
       let impl_ = self.chart.impls.push(ImplDef {
@@ -214,7 +214,7 @@ impl Charter<'_> {
       self.define_impl(span, def, vis, DefImplKind::Impl(impl_));
     }
     if flex.drop() {
-      let def = self.chart_child(ty_def, self.core.ident("drop"), member_vis, false);
+      let def = self.chart_child(ty_def, Ident("drop".into()), member_vis, false);
       let _generic_params = GenericParams { inherit: true, ..GenericParams::empty(span) };
       let generics = self._chart_generics(def, ty_generics, _generic_params, true, Flex::Drop);
       let impl_ = self.chart.impls.push(ImplDef {

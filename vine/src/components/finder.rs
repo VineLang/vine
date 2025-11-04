@@ -10,7 +10,6 @@ use crate::{
       Chart, Def, DefId, DefImplKind, DefTraitKind, DefValueKind, FnId, GenericsId, ImplId,
       MemberKind, WithVis,
     },
-    core::Core,
     diag::{Diag, Diags, ErrorGuaranteed},
     signatures::{ImportState, Signatures},
     tir::TirImpl,
@@ -19,7 +18,6 @@ use crate::{
 };
 
 pub struct Finder<'a> {
-  core: &'static Core,
   chart: &'a Chart,
   sigs: &'a Signatures,
   diags: &'a mut Diags,
@@ -50,7 +48,6 @@ struct Timeout;
 
 impl<'a> Finder<'a> {
   pub fn new(
-    core: &'static Core,
     chart: &'a Chart,
     sigs: &'a Signatures,
     diags: &'a mut Diags,
@@ -58,7 +55,7 @@ impl<'a> Finder<'a> {
     generics: GenericsId,
     span: Span,
   ) -> Self {
-    Finder { core, chart, sigs, diags, source, generics, span, steps: 0 }
+    Finder { chart, sigs, diags, source, generics, span, steps: 0 }
   }
 
   pub fn find_method(
