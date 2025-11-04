@@ -144,17 +144,16 @@ impl LanguageServer for Backend {
     let arenas = CoreArenas::default();
     let core = Core::new(&arenas, false);
 
-    if let Ok(formatted) = core.fmt(&src) {
-      if formatted == src {
-        return Ok(Some(vec![]));
-      }
-      return Ok(Some(vec![TextEdit {
-        range: Range { start: Position::new(0, 0), end: Position::new(u32::MAX, u32::MAX) },
-        new_text: formatted,
-      }]));
+    let Ok(formatted) = core.fmt(&src) else {
+      return Ok(None);
+    };
+    if formatted == src {
+      return Ok(Some(vec![]));
     }
-
-    Ok(None)
+    Ok(Some(vec![TextEdit {
+      range: Range { start: Position::new(0, 0), end: Position::new(u32::MAX, u32::MAX) },
+      new_text: formatted,
+    }]))
   }
 
   async fn shutdown(&self) -> Result<()> {
