@@ -30,7 +30,7 @@ a.get(3)
 a.at(5)
 /clear a
 [1,2,3,4,5,6,7,8,9].as[Array].reversed().as[List]
-List::new(100, "")
+List::new(10, "")
 2 ** 10
 4 + 4 ** 3 ** 2 / 2
 12.34 ** -5

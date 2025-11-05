@@ -1,161 +1,161 @@
 
-let io: IO = #io;
+let io: IO = <IO>;
 > F32::parse("0")
-Some(0.0)
+Some(≈+0.0)
 
-let io: IO = #io;
+let io: IO = <IO>;
 > F32::parse("-0")
-Some(-0.0)
+Some(≈-0.0)
 
-let io: IO = #io;
+let io: IO = <IO>;
 > F32::parse("42")
-Some(42.0)
+Some(≈+42.00000)
 
-let io: IO = #io;
+let io: IO = <IO>;
 > F32::parse("3.14")
-Some(3.14)
+Some(≈+3.14000)
 
-let io: IO = #io;
+let io: IO = <IO>;
 > F32::parse("-0.001")
-Some(-0.001)
+Some(≈-0.00100)
 
-let io: IO = #io;
+let io: IO = <IO>;
 > F32::parse(".5")
-Some(0.5)
+Some(≈+0.50000)
 
-let io: IO = #io;
+let io: IO = <IO>;
 > F32::parse("5.")
-Some(5.0)
+Some(≈+5.00000)
 
-let io: IO = #io;
+let io: IO = <IO>;
 > F32::parse("000123.4500")
-Some(123.45)
+Some(≈+123.44999)
 
-let io: IO = #io;
+let io: IO = <IO>;
 > F32::parse("-000.000")
-Some(-0.0)
+Some(≈-0.0)
 
-let io: IO = #io;
+let io: IO = <IO>;
 > F32::parse("+7.2")
-Some(7.2)
+Some(≈+7.19999)
 
-let io: IO = #io;
+let io: IO = <IO>;
 > F32::parse("+.8")
-Some(0.8)
+Some(≈+0.80000)
 
-let io: IO = #io;
+let io: IO = <IO>;
 > F32::parse("-.0")
-Some(-0.0)
+Some(≈-0.0)
 
-let io: IO = #io;
+let io: IO = <IO>;
 > F32::parse("1e3")
-Some(1000.0)
+Some(≈+1000.00000)
 
-let io: IO = #io;
+let io: IO = <IO>;
 > F32::parse("-2.5E-4")
-Some(-0.00025)
+Some(≈-0.00025)
 
-let io: IO = #io;
+let io: IO = <IO>;
 > F32::parse(".1e+1")
-Some(1.0)
+Some(≈+1.00000)
 
-let io: IO = #io;
+let io: IO = <IO>;
 > F32::parse("0.1")
-Some(0.1)
+Some(≈+0.10000)
 
-let io: IO = #io;
+let io: IO = <IO>;
 > F32::parse("16777219")              // 2²⁴ + 3 → rounds to even 16777220
-Some(16777220.0)
+Some(≈+1.67772e+7)
 
-let io: IO = #io;
+let io: IO = <IO>;
 > F32::parse("1e39")
-Some(inf)
+Some(≈+inf)
 
-let io: IO = #io;
+let io: IO = <IO>;
 > F32::parse("1e-9999")
-Some(0.0)
+Some(≈+0.0)
 
-let io: IO = #io;
+let io: IO = <IO>;
 > F32::parse("inf")
-Some(inf)
+Some(≈+inf)
 
-let io: IO = #io;
+let io: IO = <IO>;
 > F32::parse("+inf")
-Some(inf)
+Some(≈+inf)
 
-let io: IO = #io;
+let io: IO = <IO>;
 > F32::parse("-inf")
-Some(-inf)
+Some(≈-inf)
 
-let io: IO = #io;
+let io: IO = <IO>;
 > F32::parse("nan")
-Some(NaN)
+Some(≈NaN)
 
-let io: IO = #io;
+let io: IO = <IO>;
 > F32::parse("NaN")
-Some(NaN)
+Some(≈NaN)
 
-let io: IO = #io;
+let io: IO = <IO>;
 > F32::parse("  9.81")
 None
 
-let io: IO = #io;
+let io: IO = <IO>;
 > F32::parse("-2.0\n")
 None
 
-let io: IO = #io;
+let io: IO = <IO>;
 > F32::parse("1,23")
 None
 
-let io: IO = #io;
+let io: IO = <IO>;
 > F32::parse("12 345.6")
 None
 
-let io: IO = #io;
+let io: IO = <IO>;
 > F32::parse("")
 None
 
-let io: IO = #io;
+let io: IO = <IO>;
 > F32::parse(".")
 None
 
-let io: IO = #io;
+let io: IO = <IO>;
 > F32::parse("1e")
 None
 
-let io: IO = #io;
+let io: IO = <IO>;
 > F32::parse("e5")
 None
 
-let io: IO = #io;
+let io: IO = <IO>;
 > F32::parse("-")
 None
 
-let io: IO = #io;
+let io: IO = <IO>;
 > F32::parse("3.1.4")
 None
 
-let io: IO = #io;
+let io: IO = <IO>;
 > // Test cases the current implementation cannot handle
 
-let io: IO = #io;
+let io: IO = <IO>;
 > F32::parse("6.0221408e23")
-Some(6.022141e23)
+Some(≈+6.02214e+23)
 
-let io: IO = #io;
+let io: IO = <IO>;
 > F32::parse("3.4028234663852886e38") // f32::MAX
-Some(3.3465944e31)
+Some(≈+3.34659e+31)
 
-let io: IO = #io;
+let io: IO = <IO>;
 > F32::parse("1.1754943508222875e-38")// smallest *normal* +
-Some(0.0)
+Some(≈+0.0)
 
-let io: IO = #io;
+let io: IO = <IO>;
 > F32::parse("1.401298464324817e-45") // smallest *sub-normal* +
-Some(0.0)
+Some(≈+0.0)
 
-let io: IO = #io;
+let io: IO = <IO>;
 > F32::parse("1.0000000596046448")    // halfway between 1 and next float
-Some(2.4709658e-7)
+Some(≈+2.47096e-7)
 
-let io: IO = #io;
+let io: IO = <IO>;
