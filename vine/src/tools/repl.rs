@@ -1,7 +1,7 @@
 use std::{mem::take, path::PathBuf};
 
 use ivm::{
-  port::{Port, PortRef, Tag},
+  port::{Port, Tag},
   wire::Wire,
   IVM,
 };
@@ -28,7 +28,7 @@ use crate::{
 };
 
 mod command;
-mod show_tree;
+mod show;
 
 pub struct Repl<'ctx, 'ivm, 'ext, 'comp> {
   host: &'ivm mut Host<'ivm>,
@@ -285,9 +285,9 @@ impl<'ctx, 'ivm, 'ext, 'comp> Repl<'ctx, 'ivm, 'ext, 'comp> {
     self.ivm.execute(&self.host.get(&path).unwrap().instructions, Port::new_wire(root));
     self.ivm.normalize();
 
-    let tree = self.host.read(self.ivm, &PortRef::new_wire(&result));
-    let output = self.show_tree(ty, &tree);
-    self.ivm.link_wire_wire(result, destroy);
+    let mut result = Port::new_wire(result);
+    let output = self.show(ty, &mut result);
+    self.ivm.link_wire(destroy, result);
     self.ivm.normalize();
 
     if output != "()" {
@@ -308,21 +308,19 @@ impl<'ctx, 'ivm, 'ext, 'comp> Repl<'ctx, 'ivm, 'ext, 'comp> {
   }
 
   pub fn print_scope(&mut self) {
-    let mut reader = self.host.reader(self.ivm);
-    let trees = Vec::from_iter(self.scope.iter().map(|entry| {
-      (
-        entry.value.as_ref().map(|p| reader.read_port(p)),
-        entry.space.as_ref().map(|p| reader.read_port(p)),
-      )
-    }));
-    for (i, (value, space)) in (0..self.scope.len()).zip(trees) {
-      let entry = &self.scope[i];
+    for i in 0..self.scope.len() {
+      let entry = &mut self.scope[i];
       let ident = entry.name.0.clone();
       let ty = entry.ty;
-      let value = value.map(|tree| self.show_tree(ty, &tree));
-      let space = space.map(|tree| self.show_tree(ty.inverse(), &tree));
+      let mut value = entry.value.take();
+      let mut space = entry.space.take();
+      let value_str = value.as_mut().map(|port| self.show(ty, port));
+      let space_str = space.as_mut().map(|port| self.show(ty.inverse(), port));
+      let entry = &mut self.scope[i];
+      entry.value = value;
+      entry.space = space;
       let ty = self.types.show(&self.compiler.chart, ty);
-      match (value, space) {
+      match (value_str, space_str) {
         (None, None) => println!("let {ident}: {ty};"),
         (Some(value), None) => println!("let {ident}: {ty} = {value};"),
         (None, Some(space)) => println!("let ~{ident}: ~{ty} = {space};"),
