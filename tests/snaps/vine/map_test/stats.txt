@@ -11,5 +11,5 @@ Interactions
 
 Memory
   Heap             5_888_496 B
-  Allocated      529_339_968 B
-  Freed          529_339_968 B
+  Allocated      529_267_536 B
+  Freed          529_267_536 B

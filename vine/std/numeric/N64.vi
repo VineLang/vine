@@ -30,54 +30,36 @@ pub mod N64 {
   }
 
   pub impl add: Add[N64, N64, N64] {
-    fn add(a: N64, b: N64) -> N64 {
-      inline_ivy! (a <- a, b <- b) -> N64 {
-        tup(l h)
-        a = tup(dup(al0 al1) ah)
-        b = tup(dup(bl0 bl1) bh)
-        al0 = @n32_add(bl0 l)
-        al1 = @n32_add_high(bl1 c)
-        ah = @n32_add(bh @n32_add(c h))
-      }
+    fn add(N64(a_lo, a_hi), N64(b_lo, b_hi)) -> N64 {
+      let lo = a_lo + b_lo;
+      let carry = N32::add_high(a_lo, b_lo);
+      let hi = a_hi + b_hi + carry;
+      N64(lo, hi)
     }
   }
 
   pub impl sub: Sub[N64, N64, N64] {
-    fn sub(a: N64, b: N64) -> N64 {
-      inline_ivy! (a <- a, b <- b) -> N64 {
-        tup(l h)
-        a = tup(dup(al0 al1) ah)
-        b = tup(dup(bl0 bl1) bh)
-        al0 = @n32_sub(bl0 l)
-        al1 = @n32_lt(bl1 c)
-        ah = @n32_sub(bh @n32_sub(c h))
-      }
+    fn sub(N64(a_lo, a_hi), N64(b_lo, b_hi)) -> N64 {
+      let lo = a_lo - b_lo;
+      let borrow = (a_lo < b_lo) as N32;
+      let hi = a_hi - b_hi - borrow;
+      N64(lo, hi)
     }
   }
 
   pub impl mul: Mul[N64, N64, N64] {
-    fn mul(a: N64, b: N64) -> N64 {
-      inline_ivy! (a <- a, b <- b) -> N64 {
-        tup(l h)
-        a = tup(dup(al0 dup(al1 al2)) ah)
-        b = tup(dup(bl0 dup(bl1 bl2)) bh)
-        al0 = @n32_mul(bl0 l)
-        al1 = @n32_mul_high(bl1 ll)
-        al2 = @n32_mul(bh lh)
-        bl2 = @n32_mul(ah hl)
-        lh = @n32_add(hl @n32_add(ll h))
-      }
+    fn mul(N64(a_lo, a_hi), N64(b_lo, b_hi)) -> N64 {
+      let lo = a_lo * b_lo;
+      let ll = N32::mul_high(a_lo, b_lo);
+      let lh = a_lo * b_hi;
+      let hl = a_hi * b_lo;
+      let hi = ll + lh + hl;
+      N64(lo, hi)
     }
   }
 
   pub fn .mul_n32_n32(a: N32, b: N32) -> N64 {
-    inline_ivy! (a <- a, b <- b) -> N64 {
-      tup(l h)
-      a = dup(a0 a1)
-      b = dup(b0 b1)
-      a0 = @n32_mul(b0 l)
-      a1 = @n32_mul_high(b1 h)
-    }
+    N64(a * b, N32::mul_high(a, b))
   }
 
   pub impl div_n32: Div[N64, N32, N64] {

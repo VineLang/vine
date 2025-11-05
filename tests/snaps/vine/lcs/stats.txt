@@ -13,5 +13,5 @@ Interactions
 
 Memory
   Heap         1_143_618_432 B
-  Allocated    6_086_398_912 B
-  Freed        6_086_398_912 B
+  Allocated    6_086_270_896 B
+  Freed        6_086_270_896 B

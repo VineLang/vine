@@ -1,0 +1,10 @@
+use std::numeric::N64;
+"{4 as N64 + 7 as N64}"
+"{N64::parse("111111111111").unwrap() + N64::parse("222222222222").unwrap()}"
+"{43 as N64 - 2 as N64}"
+"{N64::parse("33333333333333").unwrap() - N64::parse("11111111111111").unwrap()}"
+"{4 as N64 * 9 as N64}"
+"{N64::parse("16372383123").unwrap() * N64::parse("200").unwrap()}"
+"{100 as N64 / 24}"
+"{N64::parse("16372383123").unwrap() / 200}"
+"{N64::parse("16372383123").unwrap() % 200}"
