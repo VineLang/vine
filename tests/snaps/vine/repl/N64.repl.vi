@@ -1,0 +1,41 @@
+
+let io: IO = #io;
+> use std::numeric::N64;
+
+let io: IO = #io;
+> "{4 as N64 + 7 as N64}"
+"11"
+
+let io: IO = #io;
+> "{N64::parse("111111111111").unwrap() + N64::parse("222222222222").unwrap()}"
+"333333333333"
+
+let io: IO = #io;
+> "{43 as N64 - 2 as N64}"
+"41"
+
+let io: IO = #io;
+> "{N64::parse("33333333333333").unwrap() - N64::parse("11111111111111").unwrap()}"
+"22222222222222"
+
+let io: IO = #io;
+> "{4 as N64 * 9 as N64}"
+"36"
+
+let io: IO = #io;
+> "{N64::parse("16372383123").unwrap() * N64::parse("200").unwrap()}"
+"3274476624600"
+
+let io: IO = #io;
+> "{100 as N64 / 24}"
+"4"
+
+let io: IO = #io;
+> "{N64::parse("16372383123").unwrap() / 200}"
+"81861915"
+
+let io: IO = #io;
+> "{N64::parse("16372383123").unwrap() % 200}"
+"123"
+
+let io: IO = #io;

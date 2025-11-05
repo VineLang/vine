@@ -12,6 +12,6 @@ Interactions
   Branch               2_351
 
 Memory
-  Heap                28_304 B
-  Allocated          927_232 B
-  Freed              927_232 B
+  Heap                28_288 B
+  Allocated          925_520 B
+  Freed              925_520 B
