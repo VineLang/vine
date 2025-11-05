@@ -122,26 +122,18 @@ pub mod N32 {
   }
 
   pub fn parse(str: String) -> Option[N32] {
-    let List(len, chars, _end) = str as List;
-    unsafe::erase(_end);
-    if len == 0 {
-      unsafe::erase(chars);
-      None
-    } else {
-      let num = 0;
-      for _ in 0..len {
-        let List::Buf(char, tail) = chars;
-        chars = tail;
-        if !('0' <= char <= '9') {
-          unsafe::erase(chars);
-          return None;
-        }
-        num *= 10;
-        num += char - '0';
-      }
-      unsafe::erase(chars);
-      Some(num)
+    if str.len() == 0 {
+      return None;
     }
+    let num = 0;
+    for digit in str.into_iter() {
+      if !('0' <= digit <= '9') {
+        return None;
+      }
+      num *= 10;
+      num += digit - '0';
+    }
+    Some(num)
   }
 
   pub fn .rotate_left(a: N32, b: N32) -> N32 {

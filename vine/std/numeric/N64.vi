@@ -173,26 +173,18 @@ pub mod N64 {
   }
 
   pub fn parse(str: String) -> Option[N64] {
-    let List(len, chars, _end) = str as List;
-    unsafe::erase(_end);
-    if len == 0 {
-      unsafe::erase(chars);
-      None
-    } else {
-      let num = 0 as N64;
-      for _ in 0..len {
-        let List::Buf(char, tail) = chars;
-        chars = tail;
-        if !('0' <= char <= '9') {
-          unsafe::erase(chars);
-          return None;
-        }
-        num *= 10 as N64;
-        num += (char - '0') as N64;
-      }
-      unsafe::erase(chars);
-      Some(num)
+    if str.len() == 0 {
+      return None;
     }
+    let num = 0 as N64;
+    for digit in str.into_iter() {
+      if !('0' <= digit <= '9') {
+        return None;
+      }
+      num *= 10 as N64;
+      num += (digit - '0') as N64;
+    }
+    Some(num)
   }
 
   pub impl to_string: Cast[N64, String] {
