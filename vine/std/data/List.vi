@@ -186,6 +186,21 @@ pub mod List {
     }
   }
 
+  pub fn .trim_back_where[T?, F*; fn F(&T) -> Bool](&self: &List[T], pred: F) {
+    let trimmed = [];
+    let ~trimming = true;
+    for elem in self.into_iter() {
+      let matches = pred(&elem);
+      if !~trimming {
+        trimmed.push_back(elem);
+      }
+      if !matches {
+        ~trimming = false;
+      }
+    }
+    self = trimmed;
+  }
+
   pub impl show[T; Show[T]]: Show[List[T]] {
     fn show(&self: &List[T]) -> Show {
       let entries = [];

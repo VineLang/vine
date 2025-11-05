@@ -88,17 +88,8 @@ pub mod String {
   }
 
   pub fn .trim_back(String(chars)) -> String {
-    let trimmed_chars = [];
-    let ~trailing_whitespace = true;
-    for char in chars.into_iter() {
-      if !~trailing_whitespace {
-        trimmed_chars.push_back(char);
-      }
-      if !char.is_whitespace() {
-        ~trailing_whitespace = false;
-      }
-    }
-    String(trimmed_chars)
+    chars.trim_back_where(fn* (&c: &Char) { c.is_whitespace() });
+    String(chars)
   }
 
   pub fn .trim(self: String) -> String {

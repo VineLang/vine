@@ -51,7 +51,7 @@ pub trait Ord[T] {
   fn .le(a: &T, b: &T) -> Bool;
 }
 
-pub enum Ord {
+pub enum* Ord {
   Lt,
   Eq,
   Gt,

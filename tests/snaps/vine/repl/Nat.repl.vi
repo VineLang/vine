@@ -1,0 +1,143 @@
+
+let io: IO = #io;
+> 
+
+let io: IO = #io;
+> use std::numeric::Nat;
+
+let io: IO = #io;
+> use std::debug::Show;
+
+let io: IO = #io;
+> 0 as Nat
+Nat([])
+
+let io: IO = #io;
+> 123 as Nat
+Nat([123])
+
+let io: IO = #io;
+> 
+
+let io: IO = #io;
+> 42 as Nat + 4 as Nat
+Nat([46])
+
+let io: IO = #io;
+> "{Nat::parse("1111111111111111111111111111").unwrap() + Nat::parse("55555555555555555555").unwrap()}"
+"1111111166666666666666666666"
+
+let io: IO = #io;
+> Nat::from_parts([N32::maximum, N32::maximum, N32::maximum, N32::maximum]) + Nat::from_parts([N32::maximum, N32::maximum])
+Nat([4294967294, 4294967295, 1, 0, 1])
+
+let io: IO = #io;
+> 
+
+let io: IO = #io;
+> 100 as Nat - 42 as Nat
+Nat([58])
+
+let io: IO = #io;
+> 100 as Nat - 0 as Nat
+Nat([100])
+
+let io: IO = #io;
+> 0 as Nat - 100 as Nat
+Nat([])
+
+let io: IO = #io;
+> Nat::parse("1111111111111111111111111111").unwrap() - Nat::parse("1111111111111111111111111111").unwrap()
+Nat([])
+
+let io: IO = #io;
+> "{Nat::parse("6666666666666666666666666666").unwrap() - Nat::parse("2222222222222").unwrap()}"
+"6666666666666664444444444444"
+
+let io: IO = #io;
+> 
+
+let io: IO = #io;
+> "{(0 as Nat).div_rem_n32(1).show()}"
+"(0, 0)"
+
+let io: IO = #io;
+> "{(0 as Nat).div_rem_n32(123_456_789).show()}"
+"(0, 0)"
+
+let io: IO = #io;
+> "{(5 as Nat).div_rem_n32(1).show()}"
+"(5, 0)"
+
+let io: IO = #io;
+> "{(5 as Nat).div_rem_n32(2).show()}"
+"(2, 1)"
+
+let io: IO = #io;
+> "{(5 as Nat).div_rem_n32(10).show()}"
+"(0, 5)"
+
+let io: IO = #io;
+> "{(123 as Nat).div_rem_n32(10).show()}"
+"(12, 3)"
+
+let io: IO = #io;
+> "{(123 as Nat).div_rem_n32(124).show()}"
+"(0, 123)"
+
+let io: IO = #io;
+> "{(124 as Nat).div_rem_n32(124).show()}"
+"(1, 0)"
+
+let io: IO = #io;
+> "{(1 as Nat).div_rem_n32(10).show()}"
+"(0, 1)"
+
+let io: IO = #io;
+> "{(1 as Nat).div_rem_n32(4_294_967_295).show()}"
+"(0, 1)"
+
+let io: IO = #io;
+> "{Nat::parse("4_294_967_296").unwrap().div_rem_n32(2).show()}"
+"(2147483648, 0)"
+
+let io: IO = #io;
+> "{Nat::parse("4_294_967_297").unwrap().div_rem_n32(2).show()}"
+"(2147483648, 1)"
+
+let io: IO = #io;
+> "{Nat::parse("4_294_967_296").unwrap().div_rem_n32(4_294_967_295).show()}"
+"(1, 1)"
+
+let io: IO = #io;
+> "{Nat::parse("4_294_967_301").unwrap().div_rem_n32(4_294_967_295).show()}"
+"(1, 6)"
+
+let io: IO = #io;
+> "{Nat::parse("18_446_744_073_709_551_615").unwrap().div_rem_n32(10).show()}"
+"(1844674407370955161, 5)"
+
+let io: IO = #io;
+> "{Nat::parse("18_446_744_073_709_551_615").unwrap().div_rem_n32(4_294_967_295).show()}"
+"(4294967297, 0)"
+
+let io: IO = #io;
+> "{Nat::parse("12_345_678_901_234_567_890").unwrap().div_rem_n32(10).show()}"
+"(1234567890123456789, 0)"
+
+let io: IO = #io;
+> "{Nat::parse("98_765_432_109_876_543_210").unwrap().div_rem_n32(4_000_000_000).show()}"
+"(24691358027, 1876543210)"
+
+let io: IO = #io;
+> "{Nat::parse("1_000_000_000_000_000_000").unwrap().div_rem_n32(3).show()}"
+"(333333333333333333, 1)"
+
+let io: IO = #io;
+> 
+
+let io: IO = #io;
+> Nat::from_parts([1, 1]) * (1 as Nat)
+Nat([1, 1])
+
+let io: IO = #io;
