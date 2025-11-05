@@ -1,5 +1,4 @@
 
-use debug::Show;
 
 #[builtin = "Result"]
 pub enum* Result[T, E] {

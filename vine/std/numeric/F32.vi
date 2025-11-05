@@ -1,6 +1,5 @@
 
 use ops::{Cast, arithmetic::{Add, Div, Mul, Neg, Pos, Pow, Rem, Sub}, comparison::{Eq, Le, Lt}};
-use debug::Show;
 
 #[builtin = "F32"]
 pub type F32;

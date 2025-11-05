@@ -1,5 +1,5 @@
 
-use std::{data::Array, debug::Show, ops::Cast};
+use std::{data::Array, ops::Cast};
 
 pub fn main(&io: &IO) {
   let regions = Regions(Array::empty);

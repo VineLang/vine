@@ -1,4 +1,3 @@
-use std::debug::Show;
 struct Foo((N32, F32, Char, String)); impl show_foo: Show[Foo];
 Foo(1, 1.1, '1', "11")
 struct Bar(()); impl show_bar: Show[Bar];

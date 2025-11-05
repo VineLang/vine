@@ -1,8 +1,5 @@
 
 let io: IO = <IO>;
-> use std::debug::Show;
-
-let io: IO = <IO>;
 > struct Foo((N32, F32, Char, String)); impl show_foo: Show[Foo];
 
 let io: IO = <IO>;
