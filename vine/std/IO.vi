@@ -17,7 +17,7 @@ pub mod IO {
   }
 
   pub.std fn ._print(&io: &IO, str: String) {
-    for char in str!.into_iter() {
+    for char in str.into_iter() {
       io.print_char(char);
     }
   }

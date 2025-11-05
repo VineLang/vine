@@ -9,7 +9,7 @@ pub fn main(&io: &IO) {
     let heights = List::new(5, 1);
     while io.read_line() is Some(line) && line.len() != 0 {
       let i = 0;
-      for char in line!.into_iter() {
+      for char in line.into_iter() {
         if char == on {
           *heights.at(i).unwrap() += 1;
         }
