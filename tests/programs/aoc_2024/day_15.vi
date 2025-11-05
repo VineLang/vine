@@ -7,7 +7,7 @@ pub fn main(&io: &IO) {
   let initial = (0, 0);
   while io.read_line() is Some(line) && line.len() != 0 {
     let x = 0;
-    for &char in line!.iter() {
+    for &char in line.iter() {
       if char == '@' {
         initial = (x, y);
         char = '.';
@@ -32,7 +32,7 @@ pub fn main(&io: &IO) {
   let instructions = [];
   let robot = initial;
   while io.read_line() is Some(line) {
-    for char in line!.into_iter() {
+    for char in line.into_iter() {
       instructions ++= [char];
       let dir = when {
         char == '<' { (0 - 1, 0) }

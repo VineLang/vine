@@ -7,7 +7,7 @@ pub fn main(&io: &IO) {
   let end = (0, 0);
   while io.read_line() is Some(line) {
     let row = [];
-    for char in line!.into_iter() {
+    for char in line.into_iter() {
       when {
         char == 'S' {
           start = (row.len(), grid.len());

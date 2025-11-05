@@ -11,7 +11,7 @@ pub fn main(&io: &IO) {
   let y = 0;
   for &row in grid.iter() {
     let x = 0;
-    for &cell in row!.iter() {
+    for &cell in row.iter() {
       if cell == '^' {
         guard_pos = (x, y);
         cell = 'X';

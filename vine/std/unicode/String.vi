@@ -49,8 +49,8 @@ pub mod String {
     let prefix = "";
     let suffix = self;
     while suffix.len() >= sep.len() {
-      let iter = suffix!.iter();
-      for &a in sep!.iter() {
+      let iter = suffix.iter();
+      for &a in sep.iter() {
         let (&b, _iter) = iter.advance().unwrap();
         iter = _iter;
         if a != b {
@@ -72,8 +72,8 @@ pub mod String {
     if self.len() < prefix.len() {
       return Err(prefix);
     }
-    let iter = self!.iter();
-    for &a in prefix!.iter() {
+    let iter = self.iter();
+    for &a in prefix.iter() {
       let (&b, _iter) = iter.advance().unwrap();
       iter = _iter;
       if a != b {
@@ -110,8 +110,8 @@ pub mod String {
     if self.len() < prefix.len() {
       return false;
     }
-    let self_iter = self!.iter();
-    for &a in prefix!.iter() {
+    let self_iter = self.iter();
+    for &a in prefix.iter() {
       let (&b, _self_iter) = self_iter.advance().unwrap();
       self_iter = _self_iter;
       if a != b {
@@ -175,6 +175,14 @@ pub mod String {
     fn cast(String(chars)) -> List[Char] {
       chars
     }
+  }
+
+  pub fn .iter(&String(chars)) -> List::Iter[Char] {
+    chars.iter()
+  }
+
+  pub fn .into_iter(String(chars)) -> List::IntoIter[Char] {
+    chars.into_iter()
   }
 
   pub impl show: Show[String] {
