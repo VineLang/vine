@@ -207,6 +207,12 @@ pub mod Show {
       }
     }
   }
+
+  pub impl ref[T; Show[T]]: Show[&T] {
+    fn show(&&value: &&T) -> Show {
+      Show::Constructor("&", value.show())
+    }
+  }
 }
 
 #[builtin = "show_to_string"]

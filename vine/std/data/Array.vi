@@ -1,5 +1,5 @@
 
-use std::ops::Cast;
+use std::{debug::Show, ops::Cast};
 
 pub struct Array[T]((N32, Node[T]));
 
@@ -241,6 +241,12 @@ pub mod Array {
       } else {
         Node::drop(len, node)
       }
+    }
+  }
+
+  pub impl show[T; Show[T]]: Show[Array[T]] {
+    fn show(&self: &Array[T]) -> Show {
+      Show::Constructor("Array", self.&.as[&List].*.show())
     }
   }
 }
