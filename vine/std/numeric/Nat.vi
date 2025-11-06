@@ -112,13 +112,16 @@ pub mod Nat {
       loop {
         when {
           !borrow {
-            result ++= remaining;
+            if remaining.len() != 0 {
+              ~trim = false;
+              result ++= remaining;
+            }
             break;
           }
           remaining.pop_front() is Some(num) {
             let diff = num - borrow as N32;
             add_part(diff);
-            let borrow = num == 0;
+            borrow = num == 0;
             continue;
           }
           _ {
