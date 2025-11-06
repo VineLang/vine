@@ -32,15 +32,15 @@ use std::ops::comparison::Ord;
 //                             print(f"{a} = {b}")
 // 
 //             for b in [-0x7FFFFFFF, -1, +1, +2, 0x7FFFFFFF]:
-//                 b_str = f"+{b}" if b > 0 else f"{b}"
 //                 q, r = divmod(a, b)
 //                 if (a < 0) != (b < 0) and r != 0:
 //                     q += 1
 //                     r -= b
-//                 r_str = f"+{r}" if r > 0 else f"{r}"
-//                 print(f"{a} / {b_str} = {q}")
-//                 print(f"{a} % {b_str} = {r_str}")
-//                 print(f"{a}.div_rem_n32({b_str}) = ({q}, {r_str})")
+//                 print(f"{a} / {b} = {q}")
+//                 print(f"{a} % {b} = {r}")
+//                 q_show = f"+{q}" if q > 0 else f"{q}"
+//                 r_show = f"+{r}" if r > 0 else f"{r}"
+//                 print(f"{a}.div_rem_i32({b}) = ({q_show}, {r_show})")
 // ```
 
 pub fn main(&io: &IO) {
@@ -69,7 +69,7 @@ pub fn main(&io: &IO) {
         for b in [I32::minimum, -1, +1, +2, I32::maximum].into_iter() {
           io.println("{a} / {b} = {a / b}");
           io.println("{a} % {b} = {a % b}");
-          io.println("{a}.div_rem_n32({b}) = {a.div_rem_n32(b).show()}");
+          io.println("{a}.div_rem_i32({b}) = {a.div_rem_i32(b).show()}");
         }
       }
     }

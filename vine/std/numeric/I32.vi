@@ -113,17 +113,21 @@ pub mod I32 {
 
   pub impl to_string: Cast[I32, String] {
     fn cast(n: I32) -> String {
-      when {
-        n > +0 { "+{n as N32}" }
-        n < +0 { "-{-n as N32}" }
-        _ { "0" }
+      if n >= +0 {
+        "{n as N32}"
+      } else {
+        "-{-n as N32}"
       }
     }
   }
 
   pub impl show: Show[I32] {
     fn show(&self: &I32) -> Show {
-      Show::Literal("{self}")
+      if self > +0 {
+        Show::Literal("+{self}")
+      } else {
+        Show::Literal("{self}")
+      }
     }
   }
 

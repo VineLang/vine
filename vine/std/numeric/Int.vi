@@ -20,6 +20,14 @@ pub mod Int {
     (sign, magnitude)
   }
 
+  pub fn .sign(Int(sign, _)) -> Bool {
+    sign
+  }
+
+  pub fn .abs(Int(sign, magnitude)) -> Nat {
+    magnitude
+  }
+
   pub impl add: Add[Int, Int, Int] {
     fn add(Int(a_sign, a_mag), Int(b_sign, b_mag)) -> Int {
       if a_sign == b_sign {
@@ -50,7 +58,7 @@ pub mod Int {
     }
   }
 
-  pub impl mul_n32: Mul[Int, N32, Int] {
+  pub impl mul_i32: Mul[Int, N32, Int] {
     fn mul(Int(a_sign, a_mag), n: N32) -> Int {
       Int(a_sign && n != 0, a_mag * n)
     }
@@ -78,7 +86,7 @@ pub mod Int {
     }
   }
 
-  pub impl rem_n32: Rem[Int, I32, I32] {
+  pub impl rem_i32: Rem[Int, I32, I32] {
     fn rem(Int(a_sign, a_mag), d: I32) -> I32 {
       let r = a_mag % (d.abs() as N32);
       if a_sign {
@@ -89,7 +97,7 @@ pub mod Int {
     }
   }
 
-  pub fn .div_rem_n32(Int(a_sign, a_mag), d: I32) -> (Int, I32) {
+  pub fn .div_rem_i32(Int(a_sign, a_mag), d: I32) -> (Int, I32) {
     let d_sign = d < +0;
     let d = d.abs() as N32;
     let (q, r) = a_mag.div_rem_n32(d);
@@ -223,7 +231,11 @@ pub mod Int {
 
   pub impl show: Show[Int] {
     fn show(&self: &Int) -> Show {
-      Show::Literal("{self}")
+      if self.sign() || self.abs() == Nat::zero {
+        Show::Literal("{self}")
+      } else {
+        Show::Literal("+{self}")
+      }
     }
   }
 }
