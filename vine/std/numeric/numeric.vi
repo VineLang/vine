@@ -3,3 +3,4 @@ pub mod F32;
 pub mod I32;
 pub mod N32;
 pub mod N64;
+pub mod Nat;

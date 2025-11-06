@@ -1,0 +1,325 @@
+
+use std::ops::arithmetic::{Add, Div, Mul, Rem, Sub};
+use std::ops::{Cast, comparison::{Eq, Ord}};
+use std::data::Iterator::Fused;
+use std::debug::Show;
+
+pub struct* Nat(List[N32]);
+
+pub mod Nat {
+  pub const zero: Nat = Nat([]);
+  pub const one: Nat = Nat([1]);
+
+  pub fn from_parts(parts: List[N32]) -> Nat {
+    parts.trim_back_where(fn* (&n: &N32) { n == 0 });
+    Nat(parts)
+  }
+
+  pub fn .to_parts(Nat(parts)) -> List[N32] {
+    parts
+  }
+
+  pub impl add: Add[Nat, Nat, Nat] {
+    fn add(Nat(a), Nat(b)) -> Nat {
+      let result = [];
+      let carry = 0;
+      let remaining = loop {
+        match (a.pop_front(), b.pop_front()) {
+          (Some(a_num), Some(b_num)) {
+            let lo = a_num + b_num;
+            let sum = lo + carry;
+            carry = N32::add_high(a_num, b_num) + N32::add_high(lo, carry);
+            result.push_back(sum);
+            continue;
+          }
+          (None, Some(b_num)) {
+            result.push_back(b_num + carry);
+            carry = N32::add_high(b_num, carry);
+            b
+          }
+          (Some(a_num), None) {
+            result.push_back(a_num + carry);
+            carry = N32::add_high(a_num, carry);
+            a
+          }
+          (None, None) { [] }
+        }
+      };
+      loop {
+        when {
+          carry == 0 {
+            result ++= remaining;
+            break;
+          }
+          remaining.pop_front() is Some(num) {
+            let sum = num + carry;
+            carry = N32::add_high(num, carry);
+            result.push_back(sum);
+            continue;
+          }
+          _ {
+            result.push_back(carry);
+            break;
+          }
+        }
+      }
+      Nat(result)
+    }
+  }
+
+  pub impl sub: Sub[Nat, Nat, Nat] {
+    fn sub(Nat(a), Nat(b)) -> Nat {
+      let result = [];
+      let borrow = false;
+      let ~trim = true;
+
+      let fn add_part(part: N32) {
+        if !~trim {
+          result.push_back(part);
+        }
+        if part != 0 {
+          ~trim = false;
+        }
+      }
+
+      let remaining = loop {
+        match (a.pop_front(), b.pop_front()) {
+          (Some(a_num), Some(b_num)) {
+            let diff = a_num - b_num - borrow as N32;
+            borrow = if borrow {
+              a_num <= b_num
+            } else {
+              a_num < b_num
+            };
+
+            add_part(diff);
+            continue;
+          }
+          (None, Some(b_num)) {
+            // underflow
+            return Nat::zero;
+          }
+          (Some(a_num), None) {
+            let diff = a_num - borrow as N32;
+            add_part(diff);
+
+            borrow = a_num < borrow as N32;
+            a
+          }
+          (None, None) { [] }
+        }
+      };
+      loop {
+        when {
+          !borrow {
+            if remaining.len() != 0 {
+              ~trim = false;
+              result ++= remaining;
+            }
+            break;
+          }
+          remaining.pop_front() is Some(num) {
+            let diff = num - borrow as N32;
+            add_part(diff);
+            borrow = num == 0;
+            continue;
+          }
+          _ {
+            // underflow
+            return Nat::zero;
+          }
+        }
+      }
+      Nat(result)
+    }
+  }
+
+  pub impl mul_n32: Mul[Nat, N32, Nat] {
+    fn mul(Nat(a), n: N32) -> Nat {
+      if n == 0 {
+        return 0 as Nat;
+      }
+      let carry = 0;
+      let result = [];
+      for num in a.into_iter() {
+        let N64(lo, hi) = N64::mul_n32_n32(num, n);
+        hi += N32::add_high(lo, carry);
+        lo += carry;
+        result.push_back(lo);
+        carry = hi;
+      }
+      if carry != 0 {
+        result.push_back(carry);
+      }
+      Nat(result)
+    }
+  }
+
+  pub impl mul: Mul[Nat, Nat, Nat] {
+    fn mul(a: Nat, b: Nat) -> Nat {
+      if a == Nat::zero || b == Nat::zero {
+        return Nat::zero;
+      }
+      let leading = [];
+      let current = Nat::zero;
+      for a_num in a!.into_iter() {
+        let prod = b * a_num;
+        current += prod;
+        leading.push_back(current!.pop_front().unwrap_or(0));
+      }
+      Nat(leading ++ current!)
+    }
+  }
+
+  pub impl div_n32: Div[Nat, N32, Nat] {
+    fn div(a: Nat, d: N32) -> Nat {
+      a.div_rem_n32(d).0
+    }
+  }
+
+  pub impl rem_n32: Rem[Nat, N32, N32] {
+    fn rem(a: Nat, d: N32) -> N32 {
+      a.div_rem_n32(d).1
+    }
+  }
+
+  pub fn .div_rem_n32(a: Nat, d: N32) -> (Nat, N32) {
+    if d == 0 {
+      debug::error("Division by zero");
+      return unsafe::eraser;
+    }
+
+    let nums = a!.reversed();
+
+    let Some(leading_num) = nums.pop_front() else {
+      return (Nat::zero, 0);
+    };
+    let q = [];
+    let (qi, rem) = leading_num.div_rem(d);
+    if qi != 0 {
+      q.push_front(qi);
+    }
+
+    for a_num in nums.into_iter() {
+      let cur = N64(a_num, rem);
+
+      let (qi, ri) = N64::div_rem_n32(cur, d);
+
+      q.push_front(qi as N32);
+      rem = ri;
+    }
+
+    (Nat(q), rem)
+  }
+
+  pub impl from_n32: Cast[N32, Nat] {
+    fn cast(n: N32) -> Nat {
+      if n == 0 {
+        Nat([])
+      } else {
+        Nat([n])
+      }
+    }
+  }
+
+  pub impl to_n32: Cast[Nat, N32] {
+    fn cast(Nat(parts)) -> N32 {
+      parts.pop_front().unwrap_or(0)
+    }
+  }
+
+  pub impl from_n64: Cast[N64, Nat] {
+    fn cast(N64(lo, hi)) -> Nat {
+      when {
+        lo == 0 && hi == 0 { Nat([]) }
+        hi == 0 { Nat([lo]) }
+        _ { Nat([lo, hi]) }
+      }
+    }
+  }
+
+  pub impl to_n64: Cast[Nat, N64] {
+    fn cast(Nat(parts)) -> N64 {
+      let lo = parts.pop_front().unwrap_or(0);
+      let hi = parts.pop_front().unwrap_or(0);
+      N64(lo, hi)
+    }
+  }
+
+  pub impl eq: Eq[Nat] {
+    fn eq(&Nat(a), &Nat(b)) -> Bool {
+      a == b
+    }
+
+    fn ne(&Nat(a), &Nat(b)) -> Bool {
+      a != b
+    }
+  }
+
+  pub impl ord: Ord[Nat] {
+    fn cmp(&Nat(a), &Nat(b)) -> Ord {
+      when {
+        a.len() < b.len() { Ord::Lt }
+        a.len() > b.len() { Ord::Gt }
+        _ {
+          let ord = Ord::Eq;
+          for (x, y) in a.into_iter().zip(b.into_iter()) {
+            ord = match x.cmp(&y) {
+              Ord::Lt { Ord::Lt }
+              Ord::Eq { ord }
+              Ord::Gt { Ord::Gt }
+            }
+          }
+          ord
+        }
+      }
+    }
+
+    fn lt(&a: &Nat, &b: &Nat) -> Bool {
+      a.cmp(&b) is Ord::Lt
+    }
+
+    fn le(&Nat(a), &Nat(b)) -> Bool {
+      !(a.cmp(&b) is Ord::Gt)
+    }
+  }
+
+  pub fn parse(str: String) -> Option[Nat] {
+    if str.len() == 0 {
+      return None;
+    }
+    let num = 0 as Nat;
+    for digit in str.into_iter() {
+      if digit == '_' {
+        continue;
+      }
+      if !('0' <= digit <= '9') {
+        return None;
+      }
+      num *= 10;
+      num += (digit - '0') as Nat;
+    }
+    Some(num)
+  }
+
+  pub impl to_string: Cast[Nat, String] {
+    fn cast(n: Nat) -> String {
+      if n == Nat::zero {
+        return "0";
+      }
+      let str = "";
+      while n != Nat::zero {
+        let (q, r) = n.div_rem_n32(10);
+        str = ('0' + r) as String ++ str;
+        n = q;
+      }
+      str
+    }
+  }
+
+  pub impl show: Show[Nat] {
+    fn show(&self: &Nat) -> Show {
+      Show::Literal("{self}")
+    }
+  }
+}

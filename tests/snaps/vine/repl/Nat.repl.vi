@@ -1,0 +1,155 @@
+
+let io: IO = <IO>;
+> 
+
+let io: IO = <IO>;
+> use std::numeric::Nat;
+
+let io: IO = <IO>;
+> use std::debug::Show;
+
+let io: IO = <IO>;
+> 0 as Nat
+0
+
+let io: IO = <IO>;
+> 123 as Nat
+123
+
+let io: IO = <IO>;
+> 
+
+let io: IO = <IO>;
+> 42 as Nat + 4 as Nat
+46
+
+let io: IO = <IO>;
+> Nat::parse("1111111111111111111111111111").unwrap() + Nat::parse("55555555555555555555").unwrap()
+1111111166666666666666666666
+
+let io: IO = <IO>;
+> Nat::from_parts([N32::maximum, N32::maximum, N32::maximum, N32::maximum]) + Nat::from_parts([N32::maximum, N32::maximum])
+340282366920938463481821351505477763070
+
+let io: IO = <IO>;
+> Nat::parse("18446744073709551615").unwrap() + Nat::parse("18446744073709551617").unwrap()
+36893488147419103232
+
+let io: IO = <IO>;
+> 
+
+let io: IO = <IO>;
+> 100 as Nat - 42 as Nat
+58
+
+let io: IO = <IO>;
+> 100 as Nat - 0 as Nat
+100
+
+let io: IO = <IO>;
+> 0 as Nat - 100 as Nat
+0
+
+let io: IO = <IO>;
+> Nat::parse("1111111111111111111111111111").unwrap() - Nat::parse("1111111111111111111111111111").unwrap()
+0
+
+let io: IO = <IO>;
+> Nat::parse("6666666666666666666666666666").unwrap() - Nat::parse("2222222222222").unwrap()
+6666666666666664444444444444
+
+let io: IO = <IO>;
+> 
+
+let io: IO = <IO>;
+> (0 as Nat).div_rem_n32(1)
+(0, 0)
+
+let io: IO = <IO>;
+> (0 as Nat).div_rem_n32(123_456_789)
+(0, 0)
+
+let io: IO = <IO>;
+> (5 as Nat).div_rem_n32(1)
+(5, 0)
+
+let io: IO = <IO>;
+> (5 as Nat).div_rem_n32(2)
+(2, 1)
+
+let io: IO = <IO>;
+> (5 as Nat).div_rem_n32(10)
+(0, 5)
+
+let io: IO = <IO>;
+> (123 as Nat).div_rem_n32(10)
+(12, 3)
+
+let io: IO = <IO>;
+> (123 as Nat).div_rem_n32(124)
+(0, 123)
+
+let io: IO = <IO>;
+> (124 as Nat).div_rem_n32(124)
+(1, 0)
+
+let io: IO = <IO>;
+> (1 as Nat).div_rem_n32(10)
+(0, 1)
+
+let io: IO = <IO>;
+> (1 as Nat).div_rem_n32(4_294_967_295)
+(0, 1)
+
+let io: IO = <IO>;
+> Nat::parse("4_294_967_296").unwrap().div_rem_n32(2)
+(2147483648, 0)
+
+let io: IO = <IO>;
+> Nat::parse("4_294_967_297").unwrap().div_rem_n32(2)
+(2147483648, 1)
+
+let io: IO = <IO>;
+> Nat::parse("4_294_967_296").unwrap().div_rem_n32(4_294_967_295)
+(1, 1)
+
+let io: IO = <IO>;
+> Nat::parse("4_294_967_301").unwrap().div_rem_n32(4_294_967_295)
+(1, 6)
+
+let io: IO = <IO>;
+> Nat::parse("18_446_744_073_709_551_615").unwrap().div_rem_n32(10)
+(1844674407370955161, 5)
+
+let io: IO = <IO>;
+> Nat::parse("18_446_744_073_709_551_615").unwrap().div_rem_n32(4_294_967_295)
+(4294967297, 0)
+
+let io: IO = <IO>;
+> Nat::parse("12_345_678_901_234_567_890").unwrap().div_rem_n32(10)
+(1234567890123456789, 0)
+
+let io: IO = <IO>;
+> Nat::parse("98_765_432_109_876_543_210").unwrap().div_rem_n32(4_000_000_000)
+(24691358027, 1876543210)
+
+let io: IO = <IO>;
+> Nat::parse("1_000_000_000_000_000_000").unwrap().div_rem_n32(3)
+(333333333333333333, 1)
+
+let io: IO = <IO>;
+> 
+
+let io: IO = <IO>;
+> Nat::from_parts([1, 1]) * (1 as Nat)
+4294967297
+
+let io: IO = <IO>;
+> Nat::parse("4294967298").unwrap() * 4294967295
+18446744078004518910
+
+let io: IO = <IO>;
+> Nat::parse("4294967296").unwrap() * Nat::parse("4294967296").unwrap()
+18446744073709551616
+
+let io: IO = <IO>;

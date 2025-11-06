@@ -1,0 +1,40 @@
+
+use std::numeric::Nat;
+use std::debug::Show;
+0 as Nat
+123 as Nat
+
+42 as Nat + 4 as Nat
+Nat::parse("1111111111111111111111111111").unwrap() + Nat::parse("55555555555555555555").unwrap()
+Nat::from_parts([N32::maximum, N32::maximum, N32::maximum, N32::maximum]) + Nat::from_parts([N32::maximum, N32::maximum])
+Nat::parse("18446744073709551615").unwrap() + Nat::parse("18446744073709551617").unwrap()
+
+100 as Nat - 42 as Nat
+100 as Nat - 0 as Nat
+0 as Nat - 100 as Nat
+Nat::parse("1111111111111111111111111111").unwrap() - Nat::parse("1111111111111111111111111111").unwrap()
+Nat::parse("6666666666666666666666666666").unwrap() - Nat::parse("2222222222222").unwrap()
+
+(0 as Nat).div_rem_n32(1)
+(0 as Nat).div_rem_n32(123_456_789)
+(5 as Nat).div_rem_n32(1)
+(5 as Nat).div_rem_n32(2)
+(5 as Nat).div_rem_n32(10)
+(123 as Nat).div_rem_n32(10)
+(123 as Nat).div_rem_n32(124)
+(124 as Nat).div_rem_n32(124)
+(1 as Nat).div_rem_n32(10)
+(1 as Nat).div_rem_n32(4_294_967_295)
+Nat::parse("4_294_967_296").unwrap().div_rem_n32(2)
+Nat::parse("4_294_967_297").unwrap().div_rem_n32(2)
+Nat::parse("4_294_967_296").unwrap().div_rem_n32(4_294_967_295)
+Nat::parse("4_294_967_301").unwrap().div_rem_n32(4_294_967_295)
+Nat::parse("18_446_744_073_709_551_615").unwrap().div_rem_n32(10)
+Nat::parse("18_446_744_073_709_551_615").unwrap().div_rem_n32(4_294_967_295)
+Nat::parse("12_345_678_901_234_567_890").unwrap().div_rem_n32(10)
+Nat::parse("98_765_432_109_876_543_210").unwrap().div_rem_n32(4_000_000_000)
+Nat::parse("1_000_000_000_000_000_000").unwrap().div_rem_n32(3)
+
+Nat::from_parts([1, 1]) * (1 as Nat)
+Nat::parse("4294967298").unwrap() * 4294967295
+Nat::parse("4294967296").unwrap() * Nat::parse("4294967296").unwrap()
