@@ -196,20 +196,31 @@ impl<'a> Finder<'a> {
   }
 
   pub fn find_impl(&mut self, types: &mut Types, query: &ImplType, basic: bool) -> TirImpl {
+    self
+      .try_find_impl(types, query, basic)
+      .unwrap_or_else(|err| TirImpl::Error(self.diags.report(err)))
+  }
+
+  pub fn try_find_impl(
+    &mut self,
+    types: &mut Types,
+    query: &ImplType,
+    basic: bool,
+  ) -> Result<TirImpl, Diag> {
     let span = self.span;
     let TypeCtx { types: sub_types, inner: sub_query } = types.export(|t| t.transfer(query));
 
     let show_ty = || types.show_impl_type(self.chart, query);
     let Ok(mut results) = self._find_impl(&sub_types, &sub_query, basic) else {
-      return TirImpl::Error(self.diags.report(Diag::SearchLimit { span, ty: show_ty() }));
+      return Err(Diag::SearchLimit { span, ty: show_ty() });
     };
 
     if results.is_empty() {
-      return TirImpl::Error(self.diags.report(Diag::CannotFindImpl { span, ty: show_ty() }));
+      return Err(Diag::CannotFindImpl { span, ty: show_ty() });
     }
 
     if results.len() > 1 {
-      return TirImpl::Error(self.diags.report(Diag::AmbiguousImpl { span, ty: show_ty() }));
+      return Err(Diag::AmbiguousImpl { span, ty: show_ty() });
     }
 
     let result = results.pop().unwrap();
@@ -218,7 +229,7 @@ impl<'a> Finder<'a> {
     let unify_result = types.unify_impl_type(query, &result_ty);
     assert!(!unify_result.is_failure());
 
-    result.inner
+    Ok(result.inner)
   }
 
   fn _find_impl(

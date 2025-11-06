@@ -1,53 +1,53 @@
 
-let io: IO = #io;
+let io: IO = <IO>;
 > let x = { a: 1, c: 3, b: 2 }
 
-let io: IO = #io;
+let io: IO = <IO>;
 let x: { a: N32, b: N32, c: N32 } = { a: 1, b: 2, c: 3 };
 > (x.a, x.b, x.c)
 (1, 2, 3)
 
-let io: IO = #io;
+let io: IO = <IO>;
 let x: { a: N32, b: N32, c: N32 } = { a: 1, b: 2, c: 3 };
 > (x.c, x.b, x.a)
 (3, 2, 1)
 
-let io: IO = #io;
+let io: IO = <IO>;
 let x: { a: N32, b: N32, c: N32 } = { a: 1, b: 2, c: 3 };
 > let y = { x }
 
-let io: IO = #io;
+let io: IO = <IO>;
 let x: { a: N32, b: N32, c: N32 } = { a: 1, b: 2, c: 3 };
 let y: { x: { a: N32, b: N32, c: N32 } } = { x: { a: 1, b: 2, c: 3 } };
 > let z = { y }
 
-let io: IO = #io;
+let io: IO = <IO>;
 let x: { a: N32, b: N32, c: N32 } = { a: 1, b: 2, c: 3 };
 let y: { x: { a: N32, b: N32, c: N32 } } = { x: { a: 1, b: 2, c: 3 } };
 let z: { y: { x: { a: N32, b: N32, c: N32 } } } = { y: { x: { a: 1, b: 2, c: 3 } } };
 > z.y.x.a
 1
 
-let io: IO = #io;
+let io: IO = <IO>;
 let x: { a: N32, b: N32, c: N32 } = { a: 1, b: 2, c: 3 };
 let y: { x: { a: N32, b: N32, c: N32 } } = { x: { a: 1, b: 2, c: 3 } };
 let z: { y: { x: { a: N32, b: N32, c: N32 } } } = { y: { x: { a: 1, b: 2, c: 3 } } };
 > z.y.x.a += y.x.b
 
-let io: IO = #io;
+let io: IO = <IO>;
 let x: { a: N32, b: N32, c: N32 } = { a: 1, b: 2, c: 3 };
 let y: { x: { a: N32, b: N32, c: N32 } } = { x: { a: 1, b: 2, c: 3 } };
 let z: { y: { x: { a: N32, b: N32, c: N32 } } } = { y: { x: { a: 3, b: 2, c: 3 } } };
 > let { y: { x: o } } = z
 
-let io: IO = #io;
+let io: IO = <IO>;
 let x: { a: N32, b: N32, c: N32 } = { a: 1, b: 2, c: 3 };
 let y: { x: { a: N32, b: N32, c: N32 } } = { x: { a: 1, b: 2, c: 3 } };
 let z: { y: { x: { a: N32, b: N32, c: N32 } } } = { y: { x: { a: 3, b: 2, c: 3 } } };
 let o: { a: N32, b: N32, c: N32 } = { a: 3, b: 2, c: 3 };
 > let { c, b, a } = o
 
-let io: IO = #io;
+let io: IO = <IO>;
 let x: { a: N32, b: N32, c: N32 } = { a: 1, b: 2, c: 3 };
 let y: { x: { a: N32, b: N32, c: N32 } } = { x: { a: 1, b: 2, c: 3 } };
 let z: { y: { x: { a: N32, b: N32, c: N32 } } } = { y: { x: { a: 3, b: 2, c: 3 } } };
@@ -58,7 +58,7 @@ let a: N32 = 3;
 > a + b + c
 8
 
-let io: IO = #io;
+let io: IO = <IO>;
 let x: { a: N32, b: N32, c: N32 } = { a: 1, b: 2, c: 3 };
 let y: { x: { a: N32, b: N32, c: N32 } } = { x: { a: 1, b: 2, c: 3 } };
 let z: { y: { x: { a: N32, b: N32, c: N32 } } } = { y: { x: { a: 3, b: 2, c: 3 } } };
@@ -69,7 +69,7 @@ let a: N32 = 3;
 > x.p
 error input:1:3 - type `{ a: N32, b: N32, c: N32 }` has no field `p`
 
-let io: IO = #io;
+let io: IO = <IO>;
 let x: { a: N32, b: N32, c: N32 } = { a: 1, b: 2, c: 3 };
 let y: { x: { a: N32, b: N32, c: N32 } } = { x: { a: 1, b: 2, c: 3 } };
 let z: { y: { x: { a: N32, b: N32, c: N32 } } } = { y: { x: { a: 3, b: 2, c: 3 } } };
@@ -78,11 +78,11 @@ let c: N32 = 3;
 let b: N32 = 2;
 let a: N32 = 3;
 > do { let { p } = x }
-error input:1:18 - expected type `{ p: ?320 }`; found `{ a: N32, b: N32, c: N32 }`
-error input:1:12 - search limit reached when finding flex of type `?320`
-error input:1:12 - cannot drop `?320`
+error input:1:18 - expected type `{ p: ?487 }`; found `{ a: N32, b: N32, c: N32 }`
+error input:1:12 - search limit reached when finding flex of type `?487`
+error input:1:12 - cannot drop `?487`
 
-let io: IO = #io;
+let io: IO = <IO>;
 let x: { a: N32, b: N32, c: N32 } = { a: 1, b: 2, c: 3 };
 let y: { x: { a: N32, b: N32, c: N32 } } = { x: { a: 1, b: 2, c: 3 } };
 let z: { y: { x: { a: N32, b: N32, c: N32 } } } = { y: { x: { a: 3, b: 2, c: 3 } } };
@@ -93,7 +93,7 @@ let a: N32 = 3;
 > z = { Y: y }
 error input:1:5 - expected type `{ y: { x: { a: N32, b: N32, c: N32 } } }`; found `{ Y: { x: { a: N32, b: N32, c: N32 } } }`
 
-let io: IO = #io;
+let io: IO = <IO>;
 let x: { a: N32, b: N32, c: N32 } = { a: 1, b: 2, c: 3 };
 let y: { x: { a: N32, b: N32, c: N32 } } = { x: { a: 1, b: 2, c: 3 } };
 let z: { y: { x: { a: N32, b: N32, c: N32 } } } = { y: { x: { a: 3, b: 2, c: 3 } } };
@@ -104,7 +104,7 @@ let a: N32 = 3;
 > z = { y: 1 }
 error input:1:5 - expected type `{ y: { x: { a: N32, b: N32, c: N32 } } }`; found `{ y: N32 }`
 
-let io: IO = #io;
+let io: IO = <IO>;
 let x: { a: N32, b: N32, c: N32 } = { a: 1, b: 2, c: 3 };
 let y: { x: { a: N32, b: N32, c: N32 } } = { x: { a: 1, b: 2, c: 3 } };
 let z: { y: { x: { a: N32, b: N32, c: N32 } } } = { y: { x: { a: 3, b: 2, c: 3 } } };

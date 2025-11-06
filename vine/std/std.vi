@@ -17,7 +17,7 @@ pub mod prelude {
   pub use ::std::{
     IO,
     data::List,
-    debug::{debug, dbg, dbg_msg},
+    debug::{debug, Show, dbg, dbg_msg},
     logical::{Bool, Option::{Option, None, Some}, Result::{Result, Err, Ok}},
     numeric::{F32, I32, N32},
     ops::flex::{Drop, Fork},

@@ -1,5 +1,4 @@
 
-use debug::Show;
 
 #[builtin = "Option"]
 pub enum* Option[T] {

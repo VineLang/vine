@@ -1,6 +1,5 @@
 
 use ops::{Cast, Concat, comparison::{Eq, Ord}};
-use debug::Show;
 
 #[builtin = "String"]
 pub struct* String(pub List[Char]);

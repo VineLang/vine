@@ -5,7 +5,6 @@ use ops::{
   bitwise::{And, Or, Shl, Shr, Xor},
   comparison::{Eq, Ord},
 };
-use debug::Show;
 
 pub struct N64(pub (N32, N32));
 

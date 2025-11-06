@@ -1,41 +1,41 @@
 
-let io: IO = #io;
+let io: IO = <IO>;
 > let x = 0
 
-let io: IO = #io;
+let io: IO = <IO>;
 let x: N32 = 0;
 > while x < 1000 { x = x * 3 + 7 }
 
-let io: IO = #io;
+let io: IO = <IO>;
 let x: N32 = 2548;
 > mod fib_repl = "vine/examples/fib_repl.vi";
 
-let io: IO = #io;
+let io: IO = <IO>;
 let x: N32 = 2548;
 > use fib_repl::fib;
 
-let io: IO = #io;
+let io: IO = <IO>;
 let x: N32 = 2548;
 > x = 8
 
-let io: IO = #io;
+let io: IO = <IO>;
 let x: N32 = 8;
 > x = fib(x)
 
-let io: IO = #io;
+let io: IO = <IO>;
 let x: N32 = 21;
 > x = fib(x)
 
-let io: IO = #io;
+let io: IO = <IO>;
 let x: N32 = 10946;
 > x = fib(x)
 
-let io: IO = #io;
+let io: IO = <IO>;
 let x: N32 = 2326745473;
 > io.println("Hello, world!")
 Hello, world!
 
-let io: IO = #io;
+let io: IO = <IO>;
 let x: N32 = 2326745473;
 > /help
 
@@ -47,7 +47,7 @@ let x: N32 = 2326745473;
 /set show_scope [bool]  enable/disable printing the scope before each command
 
 
-let io: IO = #io;
+let io: IO = <IO>;
 let x: N32 = 2326745473;
 > /set show_scope false
 
@@ -55,4 +55,4 @@ let x: N32 = 2326745473;
 
 > /set show_scope true
 
-let io: IO = #io;
+let io: IO = <IO>;

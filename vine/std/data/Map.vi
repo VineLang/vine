@@ -1,6 +1,5 @@
 
 use data::Iterator;
-use debug::Show;
 use ops::{Cast, comparison::Ord};
 
 pub struct Map[K, V]((N32, MapData[K, V]));

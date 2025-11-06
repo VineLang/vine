@@ -1,6 +1,5 @@
 
 use ops::{Cast, arithmetic::{Add, Div, Mul, Neg, Pos, Pow, Rem, Sub}, comparison::{Eq, Le, Lt}};
-use debug::Show;
 
 #[builtin = "F32"]
 pub type F32;
@@ -176,7 +175,7 @@ pub mod F32 {
 
   pub impl show: Show[F32] {
     fn show(&self: &F32) -> Show {
-      Show::Literal("{self}")
+      Show::Literal("≈{self}")
     }
   }
 

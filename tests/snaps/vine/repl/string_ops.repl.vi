@@ -1,158 +1,159 @@
 
-let io: IO = #io;
+let io: IO = <IO>;
 > let s = "hello world!";
 
-let io: IO = #io;
+let io: IO = <IO>;
 let s: String = "hello world!";
 > s.len()
 12
 
-let io: IO = #io;
+let io: IO = <IO>;
 let s: String = "hello world!";
 > s.starts_with(&"")
 true
 
-let io: IO = #io;
+let io: IO = <IO>;
 let s: String = "hello world!";
 > s.starts_with(&"h")
 true
 
-let io: IO = #io;
+let io: IO = <IO>;
 let s: String = "hello world!";
 > s.starts_with(&"hello ")
 true
 
-let io: IO = #io;
+let io: IO = <IO>;
 let s: String = "hello world!";
 > s.starts_with(&"world")
 false
 
-let io: IO = #io;
+let io: IO = <IO>;
 let s: String = "hello world!";
 > s.starts_with(&"held")
 false
 
-let io: IO = #io;
+let io: IO = <IO>;
 let s: String = "hello world!";
 > s.starts_with(&"hello world! hi")
 false
 
-let io: IO = #io;
+let io: IO = <IO>;
 let s: String = "hello world!";
 > "" == ""
 true
 
-let io: IO = #io;
+let io: IO = <IO>;
 let s: String = "hello world!";
 > "" != ""
 false
 
-let io: IO = #io;
+let io: IO = <IO>;
 let s: String = "hello world!";
 > "hello" == "hello"
 true
 
-let io: IO = #io;
+let io: IO = <IO>;
 let s: String = "hello world!";
 > "hello" != "hello"
 false
 
-let io: IO = #io;
+let io: IO = <IO>;
 let s: String = "hello world!";
 > "hello" == "world"
 false
 
-let io: IO = #io;
+let io: IO = <IO>;
 let s: String = "hello world!";
 > "hello" != "world"
 true
 
-let io: IO = #io;
+let io: IO = <IO>;
 let s: String = "hello world!";
 > "hello" == "hello world"
 false
 
-let io: IO = #io;
+let io: IO = <IO>;
 let s: String = "hello world!";
 > "world" == "hello world"
 false
 
-let io: IO = #io;
+let io: IO = <IO>;
 let s: String = "hello world!";
 > let x = "hi";
 
-let io: IO = #io;
+let io: IO = <IO>;
 let s: String = "hello world!";
 let x: String = "hi";
 > x == "xy"
 false
 
-let io: IO = #io;
+let io: IO = <IO>;
 let s: String = "hello world!";
 let x: String = "hi";
 > x == "hi"
 true
 
-let io: IO = #io;
+let io: IO = <IO>;
 let s: String = "hello world!";
 let x: String = "hi";
 > x
 "hi"
 
-let io: IO = #io;
+let io: IO = <IO>;
 let s: String = "hello world!";
 let x: String = "hi";
 > "   hi   ".trim_front()
 "hi   "
 
-let io: IO = #io;
+let io: IO = <IO>;
 let s: String = "hello world!";
 let x: String = "hi";
 > "   hi   ".trim_back()
 "   hi"
 
-let io: IO = #io;
+let io: IO = <IO>;
 let s: String = "hello world!";
 let x: String = "hi";
 > "   hi   ".trim()
 "hi"
 
-let io: IO = #io;
+let io: IO = <IO>;
 let s: String = "hello world!";
 let x: String = "hi";
 > "\n\n\n\n\t\thello    \n\t    world\n\n\n \t\n".trim()
-"hello    \n\t    world"
+"hello    
+	    world"
 
-let io: IO = #io;
+let io: IO = <IO>;
 let s: String = "hello world!";
 let x: String = "hi";
 > "".trim()
 ""
 
-let io: IO = #io;
+let io: IO = <IO>;
 let s: String = "hello world!";
 let x: String = "hi";
 > "hi".trim()
 "hi"
 
-let io: IO = #io;
+let io: IO = <IO>;
 let s: String = "hello world!";
 let x: String = "hi";
 > "abcdefg".split_at(3)
 ("abc", "defg")
 
-let io: IO = #io;
+let io: IO = <IO>;
 let s: String = "hello world!";
 let x: String = "hi";
 > "abcdefg".split_at(0)
 ("", "abcdefg")
 
-let io: IO = #io;
+let io: IO = <IO>;
 let s: String = "hello world!";
 let x: String = "hi";
 > "abcdefg".split_at(7)
 ("abcdefg", "")
 
-let io: IO = #io;
+let io: IO = <IO>;
 let s: String = "hello world!";
 let x: String = "hi";

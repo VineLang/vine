@@ -1,6 +1,5 @@
 
 use std::data::Map;
-use std::debug::Show;
 
 struct? Pair[A, B]((A, B));
 

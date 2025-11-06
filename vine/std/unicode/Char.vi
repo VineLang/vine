@@ -1,6 +1,5 @@
 
 use ops::{Cast, arithmetic::{Add, Sub}, comparison::{Eq, Ord}};
-use debug::Show;
 
 #[builtin = "Char"]
 pub type Char;

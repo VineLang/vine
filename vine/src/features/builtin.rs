@@ -48,6 +48,8 @@ pub enum Builtin {
   Enum,
   Variant,
   DebugState,
+  Show,
+  ShowToString,
 }
 
 impl VineParser<'_> {
@@ -106,6 +108,8 @@ impl VineParser<'_> {
       "Enum" => Builtin::Enum,
       "Variant" => Builtin::Variant,
       "debug_state" => Builtin::DebugState,
+      "Show" => Builtin::Show,
+      "show_to_string" => Builtin::ShowToString,
       _ => Err(Diag::BadBuiltin { span })?,
     })
   }
@@ -155,6 +159,9 @@ pub struct Builtins {
   pub variant: Option<EnumId>,
 
   pub debug_state: Option<FnId>,
+
+  pub show: Option<TraitId>,
+  pub show_to_string: Option<FnId>,
 }
 
 impl Charter<'_> {
@@ -231,6 +238,8 @@ impl Charter<'_> {
       Builtin::Enum => set(&mut builtins.enum_, trait_id),
       Builtin::Variant => set(&mut builtins.variant, enum_id),
       Builtin::DebugState => set(&mut builtins.debug_state, fn_id),
+      Builtin::Show => set(&mut builtins.show, trait_id),
+      Builtin::ShowToString => set(&mut builtins.show_to_string, fn_id),
     }
   }
 }

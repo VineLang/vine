@@ -5,7 +5,6 @@ use ops::{
   bitwise::{And, Not, Or, Shl, Shr, Xor},
   comparison::{Eq, Ord},
 };
-use debug::Show;
 
 #[builtin = "N32"]
 pub type N32;

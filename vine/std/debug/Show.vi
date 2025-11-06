@@ -3,6 +3,7 @@ use ops::Cast;
 use data::List as List_;
 use derive::{Enum, Object as Object_, Struct, Tuple as Tuple_, Variant};
 
+#[builtin = "Show"]
 pub trait Show[T] {
   fn .show(self: &T) -> Show;
 }
@@ -206,4 +207,15 @@ pub mod Show {
       }
     }
   }
+
+  pub impl ref[T; Show[T]]: Show[&T] {
+    fn show(&&value: &&T) -> Show {
+      Show::Constructor("&", value.show())
+    }
+  }
+}
+
+#[builtin = "show_to_string"]
+fn show_to_string[T; Show[T]](&value: &T) -> String {
+  "{value.show()}"
 }

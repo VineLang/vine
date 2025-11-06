@@ -1,6 +1,5 @@
 use std::collections::hash_map::Entry;
 
-use ivy::ast::Nets;
 use vine_util::idx::IdxVec;
 
 use crate::{
@@ -25,7 +24,6 @@ pub struct Specializer<'a> {
   pub specs: &'a mut Specializations,
   pub fragments: &'a IdxVec<FragmentId, Fragment>,
   pub vir: &'a IdxVec<FragmentId, Vir>,
-  pub nets: &'a mut Nets,
 }
 
 impl<'a> Specializer<'a> {
@@ -146,7 +144,7 @@ impl<'a> Specializer<'a> {
     }
   }
 
-  fn instantiate_fn_id(
+  pub(crate) fn instantiate_fn_id(
     &mut self,
     fn_id: FnId,
     mut impls: Vec<ImplTree>,
@@ -256,7 +254,7 @@ impl<'a> Specializer<'a> {
     &vir.interfaces[interface_id].kind
   }
 
-  fn instantiate(
+  pub(crate) fn instantiate(
     &self,
     fragment_id: Option<FragmentId>,
     args: &Vec<ImplTree>,

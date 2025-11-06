@@ -1,7 +1,6 @@
 
 use data::Iterator::{Iterator, Collect};
 use ops::{Cast, Concat, comparison::{Eq, Ord}, range::{Bound, Range}};
-use debug::Show;
 
 #[builtin = "List"]
 pub struct List[T](pub.std (N32, Buf[T], ~Buf[T]));

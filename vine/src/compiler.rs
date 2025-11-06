@@ -99,30 +99,39 @@ impl Compiler {
       self.templates.push_to(fragment_id, template);
     }
 
-    let mut nets = Nets::default();
-
     let mut specializer = Specializer {
       chart,
       resolutions: &self.resolutions,
       fragments: &self.fragments,
       specs: &mut self.specs,
       vir: &self.vir,
-      nets: &mut nets,
     };
     specializer.specialize_since(checkpoint);
 
     self.diags.bail()?;
 
+    Ok(self.nets_from(checkpoint))
+  }
+
+  pub fn nets_from(&mut self, checkpoint: &Checkpoint) -> Nets {
+    let mut nets = Nets::default();
+
     if let Some(main) = self.resolutions.main {
-      let path = &self.fragments[main].path;
-      let vir = &self.vir[main];
-      let func = vir.closures[ClosureId(0)];
-      let InterfaceKind::Fn { call, .. } = vir.interfaces[func].kind else { unreachable!() };
-      let global = format!("{path}:s{}", call.0);
-      nets.insert(
-        "::".into(),
-        if self.debug { debug_main(Tree::Global(global)) } else { Net::new(Tree::Global(global)) },
-      );
+      if main >= checkpoint.fragments {
+        let path = &self.fragments[main].path;
+        let vir = &self.vir[main];
+        let func = vir.closures[ClosureId(0)];
+        let InterfaceKind::Fn { call, .. } = vir.interfaces[func].kind else { unreachable!() };
+        let global = format!("{path}:s{}", call.0);
+        nets.insert(
+          "::".into(),
+          if self.debug {
+            debug_main(Tree::Global(global))
+          } else {
+            Net::new(Tree::Global(global))
+          },
+        );
+      }
     }
 
     for spec_id in self.specs.specs.keys_from(checkpoint.specs) {
@@ -136,8 +145,7 @@ impl Compiler {
         }
       }
     }
-
-    Ok(nets)
+    nets
   }
 }
 

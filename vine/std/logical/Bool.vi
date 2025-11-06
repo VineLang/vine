@@ -1,6 +1,5 @@
 
 use ops::{Cast, bitwise::{And, Not, Or, Xor}, comparison::{Eq, Ord}};
-use debug::Show;
 
 #[builtin = "Bool"]
 pub type Bool;

@@ -243,6 +243,12 @@ pub mod Array {
       }
     }
   }
+
+  pub impl show[T; Show[T]]: Show[Array[T]] {
+    fn show(&self: &Array[T]) -> Show {
+      Show::Constructor("Array", self.&.as[&List].*.show())
+    }
+  }
 }
 
 struct Node[T]((Node[T], Node[T]));
