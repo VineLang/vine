@@ -1,6 +1,6 @@
 
 use std::ops::arithmetic::{Add, Div, Mul, Rem, Sub};
-use std::ops::bitwise::{And, Or, Xor};
+use std::ops::bitwise::{And, Or, Shl, Shr, Xor};
 use std::ops::{Cast, comparison::{Eq, Ord}};
 
 pub struct* Nat(List[N32]);
@@ -255,6 +255,46 @@ pub mod Nat {
         ~trim = false;
       }
       Nat(result ++ a ++ b)
+    }
+  }
+
+  pub impl shl: Shl[Nat, N32, Nat] {
+    fn shl(Nat(a), b: N32) -> Nat {
+      let (leading_zeros, rem) = b.div_rem(32);
+      if rem != 0 {
+        let carry = 0;
+        for &num in a.iter() {
+          let new_carry = num >> (32 - rem);
+          num = num << rem | carry;
+          carry = new_carry;
+        }
+        if carry != 0 {
+          a.push_back(carry);
+        }
+      }
+      Nat(List::new(leading_zeros, 0) ++ a)
+    }
+  }
+
+  pub impl shr: Shr[Nat, N32, Nat] {
+    fn shr(Nat(a), b: N32) -> Nat {
+      let (trim_parts, rem) = b.div_rem(32);
+      while trim_parts > 0 && a.pop_front() is Some(_) {
+        trim_parts -= 1;
+      }
+
+      if b != 0 && a.pop_front() is Some(carry) {
+        carry = carry >> rem;
+        for &num in a.iter() {
+          let new_carry = num >> rem;
+          num = num << (32 - rem) | carry;
+          carry = new_carry;
+        }
+        if carry != 0 {
+          a.push_back(carry);
+        }
+      }
+      Nat(a)
     }
   }
 

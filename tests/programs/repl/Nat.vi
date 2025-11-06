@@ -35,6 +35,24 @@ Nat::parse("12_345_678_901_234_567_890").unwrap().div_rem_n32(10)
 Nat::parse("98_765_432_109_876_543_210").unwrap().div_rem_n32(4_000_000_000)
 Nat::parse("1_000_000_000_000_000_000").unwrap().div_rem_n32(3)
 
+1 as Nat << 1
+10 as Nat << 3
+Nat::parse("123456789123456789").unwrap() << 0
+0x80000000 as Nat << 1
+0xffffffff as Nat << 1
+(Nat::from_parts([0xffffffff, 0x80000000]) << 2).to_parts()
+(Nat::from_parts([1, 2, 3, 4]) << 64).to_parts()
+(Nat::from_parts([1, 2, 3, 4]) << 65).to_parts()
+
+1 as Nat >> 1
+2 as Nat >> 1
+0x80000000 as Nat >> 3
+Nat::parse("123456789123456789").unwrap() >> 0
+(Nat::from_parts([0x00010000, 0xffffffff]) >> 4).to_parts()
+(Nat::from_parts([1, 2, 3, 1]) >> 63).to_parts()
+(Nat::from_parts([1, 2, 3, 1]) >> 64).to_parts()
+(Nat::from_parts([1, 2, 3, 1]) >> 65).to_parts()
+
 Nat::from_parts([1, 1]) * (1 as Nat)
 Nat::parse("4294967298").unwrap() * 4294967295
 Nat::parse("4294967296").unwrap() * Nat::parse("4294967296").unwrap()
