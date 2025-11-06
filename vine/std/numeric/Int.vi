@@ -58,7 +58,7 @@ pub mod Int {
     }
   }
 
-  pub impl mul_i32: Mul[Int, N32, Int] {
+  pub impl mul_n32: Mul[Int, N32, Int] {
     fn mul(Int(a_sign, a_mag), n: N32) -> Int {
       Int(a_sign && n != 0, a_mag * n)
     }
