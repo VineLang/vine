@@ -21,6 +21,17 @@ use std::numeric::Nat;
 //                         print(f"{a} + {b} = {a + b}")
 //                         print(f"{a} - {b} = {max(a - b, 0)}")
 //                         print(f"{a} * {b} = {a * b}")
+// 
+// edges = [0, 2**32 - 1]
+// for a0 in edges:
+//     for a1 in edges:
+//         a = a1 << 32 | a0
+//         for b0 in edges:
+//             for b1 in edges:
+//                 b = b1 << 32 | b0
+//                 print(f"{a} & {b} = {a & b}")
+//                 print(f"{a} | {b} = {a | b}")
+//                 print(f"{a} ^ {b} = {a ^ b}")
 // ```
 
 pub fn main(&io: &IO) {
@@ -44,6 +55,21 @@ pub fn main(&io: &IO) {
               io.println("{a} * {b} = {a * b}");
             }
           }
+        }
+      }
+    }
+  }
+
+  let edges = [0, N32::maximum];
+  for a0 in edges.into_iter() {
+    for a1 in edges.into_iter() {
+      let a = Nat::from_parts([a0, a1]);
+      for b0 in edges.into_iter() {
+        for b1 in edges.into_iter() {
+          let b = Nat::from_parts([b0, b1]);
+          io.println("{a} & {b} = {a & b}");
+          io.println("{a} | {b} = {a | b}");
+          io.println("{a} ^ {b} = {a ^ b}");
         }
       }
     }
