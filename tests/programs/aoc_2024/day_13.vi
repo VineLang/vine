@@ -5,7 +5,7 @@ pub fn main(&io: &IO) {
 
   let machines = input.split("\n\n");
 
-  let offset = 10 as N64 ** 13;
+  let offset = 10[N64] ** 13;
 
   let part1 = 0;
   let part2 = N64::zero;
@@ -40,7 +40,7 @@ pub fn main(&io: &IO) {
     let x = a * ax as N64 + b * bx as N64;
     let y = a * ay as N64 + b * by as N64;
     if x == px && y == py {
-      part2 += a * 3 as N64 + b;
+      part2 += a * 3[N64] + b;
     }
   }
 

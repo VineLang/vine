@@ -1,8 +1,8 @@
 
 
 pub fn main(&io: &IO) {
-  let part1 = 0 as N64;
-  let part2 = 0 as N64;
+  let part1 = 0[N64];
+  let part2 = 0[N64];
   while io.read_line() is Some(line) {
     let (goal, rest) = line.split_once(": ");
     let goal = N64::parse(goal).unwrap();
