@@ -1,8 +1,7 @@
 
 use std::ops::arithmetic::{Add, Div, Mul, Rem, Sub};
+use std::ops::bitwise::{And, Or, Xor};
 use std::ops::{Cast, comparison::{Eq, Ord}};
-use std::data::Iterator::Fused;
-use std::debug::Show;
 
 pub struct* Nat(List[N32]);
 
@@ -210,6 +209,53 @@ pub mod Nat {
     }
 
     (Nat(q), rem)
+  }
+
+  pub impl and: And[Nat, Nat, Nat] {
+    fn and(a: Nat, b: Nat) -> Nat {
+      let ~trim = true;
+      let result = [];
+      for (a, b) in a!.into_iter().zip(b!.into_iter()) {
+        let num = a & b;
+        if !~trim {
+          result.push_back(num);
+        }
+        if num != 0 {
+          ~trim = false;
+        }
+      }
+      Nat(result)
+    }
+  }
+
+  pub impl or: Or[Nat, Nat, Nat] {
+    fn or(Nat(a), Nat(b)) -> Nat {
+      let result = [];
+      while a.len() != 0 && b.len() != 0 {
+        result.push_back(a.pop_front().unwrap() | b.pop_front().unwrap());
+      }
+      Nat(result ++ a ++ b)
+    }
+  }
+
+  pub impl xor: Xor[Nat, Nat, Nat] {
+    fn xor(Nat(a), Nat(b)) -> Nat {
+      let ~trim = true;
+      let result = [];
+      while a.len() != 0 && b.len() != 0 {
+        let num = a.pop_front().unwrap() ^ b.pop_front().unwrap();
+        if !~trim {
+          result.push_back(num);
+        }
+        if num != 0 {
+          ~trim = false;
+        }
+      }
+      if a.len() != 0 || b.len() != 0 {
+        ~trim = false;
+      }
+      Nat(result ++ a ++ b)
+    }
   }
 
   pub impl from_n32: Cast[N32, Nat] {
