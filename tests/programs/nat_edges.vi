@@ -1,5 +1,4 @@
 
-use std::numeric::Nat;
 
 // Compared against the following python script:
 //

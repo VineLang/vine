@@ -1,5 +1,4 @@
 
-use std::numeric::Nat;
 use std::debug::Show;
 0 as Nat
 123 as Nat

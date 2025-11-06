@@ -1,5 +1,4 @@
 
-use std::numeric::N64;
 
 pub fn main(&io: &IO) {
   let part1 = 0 as N64;

@@ -3,9 +3,6 @@ let io: IO = <IO>;
 > 
 
 let io: IO = <IO>;
-> use std::numeric::Nat;
-
-let io: IO = <IO>;
 > use std::debug::Show;
 
 let io: IO = <IO>;

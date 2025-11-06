@@ -1,5 +1,5 @@
 
-use std::{data::Array, numeric::N64};
+use std::data::Array;
 
 pub fn main(&io: &IO) {
   let patterns = io.read_line().unwrap().split(", ");

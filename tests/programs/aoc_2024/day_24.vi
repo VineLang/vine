@@ -1,5 +1,5 @@
 
-use std::{data::{Array, Map}, numeric::N64};
+use std::data::{Array, Map};
 
 pub fn main(&io: &IO) {
   let map = Map::empty[String, _];

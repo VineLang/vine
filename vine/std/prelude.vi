@@ -4,7 +4,7 @@ pub use std::{
   data::List,
   debug::{debug, Show, dbg, dbg_msg},
   logical::{Bool, Option::{Option, None, Some}, Result::{Result, Err, Ok}},
-  numeric::{F32, I32, N32},
+  numeric::{F32, I32, Int, N32, N64, Nat},
   ops::flex::{Drop, Fork},
   unicode::{Char, String},
   unsafe,

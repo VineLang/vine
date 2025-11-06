@@ -1,8 +1,5 @@
 
 let io: IO = <IO>;
-> use std::numeric::N64;
-
-let io: IO = <IO>;
 > 4 as N64 + 7 as N64
 11
 
