@@ -1,0 +1,77 @@
+
+use std::numeric::{Int, Nat};
+use std::ops::comparison::Ord;
+
+// Compared against the following python script:
+//
+// ```python
+// edges = [0, 1, 2**32 - 1]
+// 
+// for a_sign in [False, True]:
+//     for a0 in edges:
+//         for a1 in edges:
+//             a = a0 | a1 << 32
+//             if a_sign:
+//                 a = -a
+// 
+//             for b_sign in [False, True]:
+//                 for b0 in edges:
+//                     for b1 in edges:
+//                         b = b0 | b1 << 32
+//                         if b_sign:
+//                             b = -b
+// 
+//                         print(f"{a} + {b} = {a + b}")
+//                         print(f"{a} - {b} = {a - b}")
+//                         print(f"{a} * {b} = {a * b}")
+//                         if a < b:
+//                             print(f"{a} < {b}")
+//                         elif a > b:
+//                             print(f"{a} > {b}")
+//                         else:
+//                             print(f"{a} = {b}")
+// 
+//             for b in [-0x7FFFFFFF, -1, +1, +2, 0x7FFFFFFF]:
+//                 q, r = divmod(a, b)
+//                 if (a < 0) != (b < 0) and r != 0:
+//                     q += 1
+//                     r -= b
+//                 print(f"{a} / {b} = {q}")
+//                 print(f"{a} % {b} = {r}")
+//                 q_show = f"+{q}" if q > 0 else f"{q}"
+//                 r_show = f"+{r}" if r > 0 else f"{r}"
+//                 print(f"{a}.div_rem_i32({b}) = ({q_show}, {r_show})")
+// ```
+
+pub fn main(&io: &IO) {
+  let edges = [0, 1, N32::maximum];
+
+  for a_sign in [false, true].into_iter() {
+    for a0 in edges.into_iter() {
+      for a1 in edges.into_iter() {
+        let a = Int::from_parts(a_sign, Nat::from_parts([a0, a1]));
+        for b_sign in [false, true].into_iter() {
+          for b0 in edges.into_iter() {
+            for b1 in edges.into_iter() {
+              let b = Int::from_parts(b_sign, Nat::from_parts([b0, b1]));
+              io.println("{a} + {b} = {a + b}");
+              io.println("{a} - {b} = {a - b}");
+              io.println("{a} * {b} = {a * b}");
+              match a.cmp(&b) {
+                Ord::Lt { io.println("{a} < {b}") }
+                Ord::Eq { io.println("{a} = {b}") }
+                Ord::Gt { io.println("{a} > {b}") }
+              }
+            }
+          }
+        }
+
+        for b in [I32::minimum, -1, +1, +2, I32::maximum].into_iter() {
+          io.println("{a} / {b} = {a / b}");
+          io.println("{a} % {b} = {a % b}");
+          io.println("{a}.div_rem_i32({b}) = {a.div_rem_i32(b).show()}");
+        }
+      }
+    }
+  }
+}

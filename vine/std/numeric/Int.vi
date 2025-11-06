@@ -1,0 +1,241 @@
+
+use std::ops::arithmetic::{Add, Div, Mul, Neg, Rem, Sub};
+use std::ops::bitwise::{And, Or, Xor};
+use std::ops::{Cast, comparison::{Eq, Ord}};
+
+pub struct* Int((Bool, Nat));
+
+pub mod Int {
+  pub const zero: Int = Int(false, Nat::zero);
+
+  pub fn from_parts(negative: Bool, magnitude: Nat) -> Int {
+    if negative && magnitude == Nat::zero {
+      Int::zero
+    } else {
+      Int(negative, magnitude)
+    }
+  }
+
+  pub fn .to_parts(Int(sign, magnitude)) -> (Bool, Nat) {
+    (sign, magnitude)
+  }
+
+  pub fn .sign(Int(sign, _)) -> Bool {
+    sign
+  }
+
+  pub fn .abs(Int(sign, magnitude)) -> Nat {
+    magnitude
+  }
+
+  pub impl add: Add[Int, Int, Int] {
+    fn add(Int(a_sign, a_mag), Int(b_sign, b_mag)) -> Int {
+      if a_sign == b_sign {
+        Int(a_sign, a_mag + b_mag)
+      } else {
+        match a_mag.cmp(&b_mag) {
+          Ord::Lt { Int(b_sign, b_mag - a_mag) }
+          Ord::Eq { Int::zero }
+          Ord::Gt { Int(a_sign, a_mag - b_mag) }
+        }
+      }
+    }
+  }
+
+  pub impl sub: Sub[Int, Int, Int] {
+    fn sub(a: Int, b: Int) -> Int {
+      a + -b
+    }
+  }
+
+  pub impl neg: Neg[Int, Int] {
+    fn neg(Int(sign, magnitude)) -> Int {
+      if magnitude == Nat::zero {
+        Int(sign, magnitude)
+      } else {
+        Int(!sign, magnitude)
+      }
+    }
+  }
+
+  pub impl mul_n32: Mul[Int, N32, Int] {
+    fn mul(Int(a_sign, a_mag), n: N32) -> Int {
+      Int(a_sign && n != 0, a_mag * n)
+    }
+  }
+
+  pub impl mul: Mul[Int, Int, Int] {
+    fn mul(Int(a_sign, a_mag), Int(b_sign, b_mag)) -> Int {
+      if a_mag == Nat::zero || b_mag == Nat::zero {
+        return Int::zero;
+      }
+      Int(a_sign != b_sign, a_mag * b_mag)
+    }
+  }
+
+  pub impl div_i32: Div[Int, I32, Int] {
+    fn div(Int(a_sign, a_mag), d: I32) -> Int {
+      let d_sign = d < +0;
+      let d = d.abs() as N32;
+      let q = a_mag / d;
+      if q == Nat::zero {
+        Int::zero
+      } else {
+        Int(a_sign != d_sign, q)
+      }
+    }
+  }
+
+  pub impl rem_i32: Rem[Int, I32, I32] {
+    fn rem(Int(a_sign, a_mag), d: I32) -> I32 {
+      let r = a_mag % (d.abs() as N32);
+      if a_sign {
+        -r
+      } else {
+        r as I32
+      }
+    }
+  }
+
+  pub fn .div_rem_i32(Int(a_sign, a_mag), d: I32) -> (Int, I32) {
+    let d_sign = d < +0;
+    let d = d.abs() as N32;
+    let (q, r) = a_mag.div_rem_n32(d);
+    let r = if a_sign {
+      -r
+    } else {
+      r as I32
+    };
+    let q = if q == Nat::zero {
+      Int::zero
+    } else {
+      Int(a_sign != d_sign, q)
+    };
+    (q, r)
+  }
+
+  pub impl from_nat: Cast[Nat, Int] {
+    fn cast(n: Nat) -> Int {
+      Int(false, n)
+    }
+  }
+
+  pub impl to_nat: Cast[Int, Nat] {
+    fn cast(Int(_, magnitude)) -> Nat {
+      magnitude
+    }
+  }
+
+  pub impl from_n32: Cast[N32, Int] {
+    fn cast(n: N32) -> Int {
+      Int(false, n as Nat)
+    }
+  }
+
+  pub impl to_n32: Cast[Int, N32] {
+    fn cast(Int(sign, magnitude)) -> N32 {
+      magnitude as N32
+    }
+  }
+
+  pub impl from_i32: Cast[I32, Int] {
+    fn cast(n: I32) -> Int {
+      Int(n < +0, n.abs() as N32 as Nat)
+    }
+  }
+
+  pub impl to_i32: Cast[Int, I32] {
+    fn cast(Int(sign, magnitude)) -> I32 {
+      if sign {
+        -(magnitude as N32)
+      } else {
+        magnitude as N32 as I32
+      }
+    }
+  }
+
+  pub impl from_n64: Cast[N64, Int] {
+    fn cast(n: N64) -> Int {
+      n as Nat as Int
+    }
+  }
+
+  pub impl to_n64: Cast[Int, N64] {
+    fn cast(Int(_, magnitude)) -> N64 {
+      let parts = magnitude.to_parts();
+      let lo = parts.pop_front().unwrap_or(0);
+      let hi = parts.pop_front().unwrap_or(0);
+      N64(lo, hi)
+    }
+  }
+
+  pub impl eq: Eq[Int] {
+    fn eq(&Int(a), &Int(b)) -> Bool {
+      a == b
+    }
+
+    fn ne(&Int(a), &Int(b)) -> Bool {
+      a != b
+    }
+  }
+
+  pub impl ord: Ord[Int] {
+    fn cmp(&Int(a_sign, a_mag), &Int(b_sign, b_mag)) -> Ord {
+      when {
+        a_sign && !b_sign { Ord::Lt }
+        !a_sign && b_sign { Ord::Gt }
+        _ {
+          let cmp = a_mag.cmp(&b_mag);
+          if a_sign {
+            -cmp
+          } else {
+            cmp
+          }
+        }
+      }
+    }
+
+    fn lt(&a: &Int, &b: &Int) -> Bool {
+      a.cmp(&b) is Ord::Lt
+    }
+
+    fn le(&Int(a), &Int(b)) -> Bool {
+      !(a.cmp(&b) is Ord::Gt)
+    }
+  }
+
+  pub fn parse(str: String) -> Option[Int] {
+    if str!.pop_front() is Some(prefix) {
+      if prefix == '-' {
+        Nat::parse(str).map(fn? (x: Nat) { -(x as Int) })
+      } else {
+        if prefix != '+' {
+          str!.push_front(prefix);
+        }
+        Nat::parse(str).map(fn? (x: Nat) { x as Int })
+      }
+    } else {
+      None
+    }
+  }
+
+  pub impl to_string: Cast[Int, String] {
+    fn cast(Int(sign, magnitude)) -> String {
+      if sign {
+        "-{magnitude}"
+      } else {
+        "{magnitude}"
+      }
+    }
+  }
+
+  pub impl show: Show[Int] {
+    fn show(&self: &Int) -> Show {
+      if self.sign() || self.abs() == Nat::zero {
+        Show::Literal("{self}")
+      } else {
+        Show::Literal("+{self}")
+      }
+    }
+  }
+}

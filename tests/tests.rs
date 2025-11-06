@@ -66,6 +66,7 @@ fn tests(t: &mut DynTester) {
     test_vi(t, "tests/programs/cubes.vi", b"", ".txt", true, false);
     test_vi(t, "tests/programs/cyclist.vi", b"", ".txt", true, false);
     test_vi(t, "tests/programs/final_countdown.vi", b"", ".txt", true, false);
+    test_vi(t, "tests/programs/int_edges.vi", b"", ".txt", false, false);
     test_vi(t, "tests/programs/find_primes.vi", b"", ".txt", true, false);
     test_vi(t, "tests/programs/inverse.vi", b"", ".txt", true, false);
     test_vi(t, "tests/programs/iterator_party.vi", b"", ".txt", false, true);

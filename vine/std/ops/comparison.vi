@@ -1,5 +1,6 @@
 
 use derive::Tuple;
+use ops::arithmetic::Neg;
 
 pub trait Eq[T] {
   #[builtin = "eq"]
@@ -58,6 +59,16 @@ pub enum* Ord {
 }
 
 pub mod Ord {
+  pub impl neg: Neg[Ord, Ord] {
+    fn neg(a: Ord) -> Ord {
+      match a {
+        Ord::Lt { Ord::Gt }
+        Ord::Eq { Ord::Eq }
+        Ord::Gt { Ord::Lt }
+      }
+    }
+  }
+
   pub impl unary[T; Ord[T]]: Ord[(T,)] {
     fn cmp(&(a: T,), &(b: T,)) -> Ord {
       Ord::cmp(&a, &b)
