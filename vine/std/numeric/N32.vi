@@ -51,6 +51,10 @@ pub mod N32 {
     }
   }
 
+  pub fn .div_rem(a: N32, b: N32) -> (N32, N32) {
+    (a / b, a % b)
+  }
+
   pub impl pos: Pos[N32, I32] {
     fn pos(a: N32) -> I32 {
       a as I32
@@ -126,6 +130,9 @@ pub mod N32 {
     }
     let num = 0;
     for digit in str.into_iter() {
+      if digit == '_' {
+        continue;
+      }
       if !('0' <= digit <= '9') {
         return None;
       }

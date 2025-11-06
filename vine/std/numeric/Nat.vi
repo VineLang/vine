@@ -28,7 +28,7 @@ pub mod Nat {
           (Some(a_num), Some(b_num)) {
             let lo = a_num + b_num;
             let sum = lo + carry;
-            carry = N32::add_high(a_num, b_num) + N32::add_high(sum, carry);
+            carry = N32::add_high(a_num, b_num) + N32::add_high(lo, carry);
             result.push_back(sum);
             continue;
           }
@@ -72,6 +72,16 @@ pub mod Nat {
       let result = [];
       let borrow = false;
       let ~trim = true;
+
+      let fn add_part(part: N32) {
+        if !~trim {
+          result.push_back(part);
+        }
+        if part != 0 {
+          ~trim = false;
+        }
+      }
+
       let remaining = loop {
         match (a.pop_front(), b.pop_front()) {
           (Some(a_num), Some(b_num)) {
@@ -82,12 +92,7 @@ pub mod Nat {
               a_num < b_num
             };
 
-            if !~trim {
-              result.push_back(diff);
-            }
-            if diff != 0 {
-              ~trim = false;
-            }
+            add_part(diff);
             continue;
           }
           (None, Some(b_num)) {
@@ -96,12 +101,7 @@ pub mod Nat {
           }
           (Some(a_num), None) {
             let diff = a_num - borrow as N32;
-            if !~trim {
-              result.push_back(diff);
-            }
-            if diff != 0 {
-              ~trim = false;
-            }
+            add_part(diff);
 
             borrow = a_num < borrow as N32;
             a
@@ -117,17 +117,12 @@ pub mod Nat {
           }
           remaining.pop_front() is Some(num) {
             let diff = num - borrow as N32;
-            if !~trim {
-              result.push_back(diff);
-            }
-            if diff != 0 {
-              ~trim = false;
-            }
+            add_part(diff);
             let borrow = num == 0;
             continue;
           }
           _ {
-            // Underflow
+            // underflow
             return Nat::zero;
           }
         }
@@ -145,7 +140,9 @@ pub mod Nat {
       let result = [];
       for num in a.into_iter() {
         let N64(lo, hi) = N64::mul_n32_n32(num, n);
-        result.push_back(lo + carry);
+        hi += N32::add_high(lo, carry);
+        lo += carry;
+        result.push_back(lo);
         carry = hi;
       }
       if carry != 0 {
@@ -165,7 +162,7 @@ pub mod Nat {
       for a_num in a!.into_iter() {
         let prod = b * a_num;
         current += prod;
-        leading.push_back(current!.pop_front().unwrap());
+        leading.push_back(current!.pop_front().unwrap_or(0));
       }
       Nat(leading ++ current!)
     }
@@ -186,7 +183,7 @@ pub mod Nat {
   pub fn .div_rem_n32(a: Nat, d: N32) -> (Nat, N32) {
     if d == 0 {
       debug::error("Division by zero");
-      unsafe::eraser
+      return unsafe::eraser;
     }
 
     let nums = a!.reversed();
@@ -195,7 +192,7 @@ pub mod Nat {
       return (Nat::zero, 0);
     };
     let q = [];
-    let (N64(qi, _), rem) = N64::div_rem_n32(leading_num as N64, d);
+    let (qi, rem) = leading_num.div_rem(d);
     if qi != 0 {
       q.push_front(qi);
     }
@@ -219,6 +216,30 @@ pub mod Nat {
       } else {
         Nat([n])
       }
+    }
+  }
+
+  pub impl to_n32: Cast[Nat, N32] {
+    fn cast(Nat(parts)) -> N32 {
+      parts.pop_front().unwrap_or(0)
+    }
+  }
+
+  pub impl from_n64: Cast[N64, Nat] {
+    fn cast(N64(lo, hi)) -> Nat {
+      when {
+        lo == 0 && hi == 0 { Nat([]) }
+        hi == 0 { Nat([lo]) }
+        _ { Nat([lo, hi]) }
+      }
+    }
+  }
+
+  pub impl to_n64: Cast[Nat, N64] {
+    fn cast(Nat(parts)) -> N64 {
+      let lo = parts.pop_front().unwrap_or(0);
+      let hi = parts.pop_front().unwrap_or(0);
+      N64(lo, hi)
     }
   }
 

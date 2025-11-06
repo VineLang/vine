@@ -7,6 +7,7 @@ use std::debug::Show;
 42 as Nat + 4 as Nat
 "{Nat::parse("1111111111111111111111111111").unwrap() + Nat::parse("55555555555555555555").unwrap()}"
 Nat::from_parts([N32::maximum, N32::maximum, N32::maximum, N32::maximum]) + Nat::from_parts([N32::maximum, N32::maximum])
+"{Nat::parse("18446744073709551615").unwrap() + Nat::parse("18446744073709551617").unwrap()}"
 
 100 as Nat - 42 as Nat
 100 as Nat - 0 as Nat
@@ -35,3 +36,5 @@ Nat::parse("1111111111111111111111111111").unwrap() - Nat::parse("11111111111111
 "{Nat::parse("1_000_000_000_000_000_000").unwrap().div_rem_n32(3).show()}"
 
 Nat::from_parts([1, 1]) * (1 as Nat)
+"{Nat::parse("4294967298").unwrap() * 4294967295}"
+"{Nat::parse("4294967296").unwrap() * Nat::parse("4294967296").unwrap()}"

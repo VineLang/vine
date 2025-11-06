@@ -29,7 +29,11 @@ let io: IO = #io;
 
 let io: IO = #io;
 > Nat::from_parts([N32::maximum, N32::maximum, N32::maximum, N32::maximum]) + Nat::from_parts([N32::maximum, N32::maximum])
-Nat([4294967294, 4294967295, 1, 0, 1])
+Nat([4294967294, 4294967295, 0, 0, 1])
+
+let io: IO = #io;
+> "{Nat::parse("18446744073709551615").unwrap() + Nat::parse("18446744073709551617").unwrap()}"
+"36893488147419103232"
 
 let io: IO = #io;
 > 
@@ -139,5 +143,13 @@ let io: IO = #io;
 let io: IO = #io;
 > Nat::from_parts([1, 1]) * (1 as Nat)
 Nat([1, 1])
+
+let io: IO = #io;
+> "{Nat::parse("4294967298").unwrap() * 4294967295}"
+"18446744078004518910"
+
+let io: IO = #io;
+> "{Nat::parse("4294967296").unwrap() * Nat::parse("4294967296").unwrap()}"
+"18446744073709551616"
 
 let io: IO = #io;

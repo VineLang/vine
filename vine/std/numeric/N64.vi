@@ -177,6 +177,9 @@ pub mod N64 {
     }
     let num = 0 as N64;
     for digit in str.into_iter() {
+      if digit == '_' {
+        continue;
+      }
       if !('0' <= digit <= '9') {
         return None;
       }
