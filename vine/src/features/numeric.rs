@@ -83,8 +83,6 @@ impl Distiller<'_> {
 
 impl Emitter<'_> {
   pub(crate) fn emit_nat(&mut self, n: &Nat) -> Tree {
-    let end = self.new_wire();
-    let buf = Tree::n_ary("tup", n.0.iter().map(|&n| Tree::N32(n)).chain([end.0]));
-    Tree::n_ary("tup", [Tree::N32(n.0.len() as u32), buf, end.1])
+    self.build_list(&n.0, |_, &n| Tree::N32(n))
   }
 }

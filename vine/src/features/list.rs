@@ -65,10 +65,28 @@ impl Distiller<'_> {
 
 impl Emitter<'_> {
   pub(crate) fn emit_list(&mut self, port: &Port, list: &[Port]) {
+    let port = self.emit_port(port);
+    let list = self.build_list(list, Self::emit_port);
+    self.pairs.push((port, list))
+  }
+
+  pub(crate) fn build_list<T>(
+    &mut self,
+    iter: impl IntoIterator<Item = T, IntoIter: DoubleEndedIterator>,
+    f: fn(&mut Self, T) -> Tree,
+  ) -> Tree {
+    let mut len = 0;
     let end = self.new_wire();
-    let buf = Tree::n_ary("tup", list.iter().map(|p| self.emit_port(p)).chain([end.0]));
-    let list = Tree::n_ary("tup", [Tree::N32(list.len() as u32), buf, end.1]);
-    let pair = (self.emit_port(port), list);
-    self.pairs.push(pair)
+    let buf = Tree::n_ary(
+      "tup",
+      iter
+        .into_iter()
+        .map(|t| {
+          len += 1;
+          f(self, t)
+        })
+        .chain([end.0]),
+    );
+    Tree::n_ary("tup", [Tree::N32(len), buf, end.1])
   }
 }
