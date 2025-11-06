@@ -3,6 +3,7 @@ use std::ops::arithmetic::{Add, Div, Mul, Rem, Sub};
 use std::ops::bitwise::{And, Or, Shl, Shr, Xor};
 use std::ops::{Cast, comparison::{Eq, Ord}};
 
+#[builtin = "Nat"]
 pub struct* Nat(List[N32]);
 
 pub mod Nat {
@@ -329,6 +330,12 @@ pub mod Nat {
       let lo = parts.pop_front().unwrap_or(0);
       let hi = parts.pop_front().unwrap_or(0);
       N64(lo, hi)
+    }
+  }
+
+  pub impl to_i32: Cast[Nat, I32] {
+    fn cast(nat: Nat) -> I32 {
+      nat as N32 as I32
     }
   }
 

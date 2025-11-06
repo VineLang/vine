@@ -165,6 +165,9 @@ pub trait VisitMut<'a> {
         self.visit(start.as_mut());
         self.visit(end);
       }
+      ExprKind::Nat(_, _, t) => {
+        self.visit(t);
+      }
     }
   }
 

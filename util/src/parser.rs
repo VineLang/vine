@@ -1,6 +1,9 @@
 use logos::Lexer;
 
-use crate::lexer::{Token, TokenSet};
+use crate::{
+  lexer::{Token, TokenSet},
+  nat::Nat,
+};
 
 pub struct ParserState<'src, T: Token> {
   pub lexer: Lexer<'src, T>,
@@ -109,12 +112,7 @@ pub trait Parser<'src> {
     err: impl Fn(&'src str) -> Self::Error,
   ) -> Result<u32, Self::Error> {
     let bytes = token.as_bytes(); // all valid ascii
-    let (radix, bytes) = match bytes {
-      [b'0', b'b', b @ ..] => (2, b),
-      [b'0', b'o', b @ ..] => (8, b),
-      [b'0', b'x', b @ ..] => (16, b),
-      b => (10, b),
-    };
+    let (radix, bytes) = Self::extract_radix(bytes);
     let mut num = 0u32;
     let err = || err(token);
     for &byte in bytes {
@@ -125,6 +123,36 @@ pub trait Parser<'src> {
       num = num.checked_mul(radix).and_then(|x| x.checked_add(digit)).ok_or_else(err)?;
     }
     Ok(num)
+  }
+
+  fn parse_nat_like(
+    &mut self,
+    token: &'src str,
+    err: impl Fn(&'src str) -> Self::Error,
+  ) -> Result<Nat, Self::Error> {
+    let bytes = token.as_bytes(); // all valid ascii
+    let (radix, bytes) = Self::extract_radix(bytes);
+    let mut num = Nat::ZERO;
+    let err = || err(token);
+    for &byte in bytes {
+      if byte == b'_' {
+        continue;
+      }
+      let digit = (byte as char).to_digit(radix).ok_or_else(err)?;
+      num.mul_u32(radix);
+      num.add_u32(digit);
+    }
+    Ok(num)
+  }
+
+  fn extract_radix(bytes: &[u8]) -> (u32, &[u8]) {
+    let (radix, bytes) = match bytes {
+      [b'0', b'b', b @ ..] => (2, b),
+      [b'0', b'o', b @ ..] => (8, b),
+      [b'0', b'x', b @ ..] => (16, b),
+      b => (10, b),
+    };
+    (radix, bytes)
   }
 
   fn parse_f32_like(

@@ -3,7 +3,9 @@ use std::collections::BTreeMap;
 use ivy::ast::Net;
 use vine_util::{
   idx::{Counter, IdxVec},
-  multi_iter, new_idx,
+  multi_iter,
+  nat::Nat,
+  new_idx,
 };
 
 use crate::{
@@ -222,6 +224,7 @@ pub enum PortKind {
   Nil,
   N32(u32),
   F32(f32),
+  Nat(Nat),
   Wire(Span, WireId),
   Error(ErrorGuaranteed),
 }
