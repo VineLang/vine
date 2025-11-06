@@ -283,7 +283,7 @@ pub mod Nat {
         trim_parts -= 1;
       }
 
-      if b != 0 && a.pop_front() is Some(carry) {
+      if rem != 0 && a.pop_front() is Some(carry) {
         carry = carry >> rem;
         for &num in a.iter() {
           let new_carry = num >> rem;

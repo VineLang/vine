@@ -196,6 +196,10 @@ let io: IO = <IO>;
 [4026535936, 268435455]
 
 let io: IO = <IO>;
+> Nat::parse("18446744073709551616").unwrap()>>32
+4294967296
+
+let io: IO = <IO>;
 > (Nat::from_parts([1, 2, 3, 1]) >> 63).to_parts()
 [6, 2]
 
