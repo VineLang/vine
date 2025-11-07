@@ -1,41 +1,62 @@
 
 let io: IO = <IO>;
-> use std::numeric::N64;
-
-let io: IO = <IO>;
-> 4 as N64 + 7 as N64
+> 4[N64] + 7[N64]
 11
 
 let io: IO = <IO>;
-> N64::parse("111111111111").unwrap() + N64::parse("222222222222").unwrap()
+> 111111111111[N64] + 222222222222[N64]
 333333333333
 
 let io: IO = <IO>;
-> 43 as N64 - 2 as N64
+> 43[N64] - 2[N64]
 41
 
 let io: IO = <IO>;
-> N64::parse("33333333333333").unwrap() - N64::parse("11111111111111").unwrap()
+> 33333333333333[N64] - 11111111111111[N64]
 22222222222222
 
 let io: IO = <IO>;
-> 4 as N64 * 9 as N64
+> 4[N64] * 9[N64]
 36
 
 let io: IO = <IO>;
-> N64::parse("16372383123").unwrap() * N64::parse("200").unwrap()
+> 16372383123[N64] * 200[N64]
 3274476624600
 
 let io: IO = <IO>;
-> 100 as N64 / 24
+> 100[N64] / 24
 4
 
 let io: IO = <IO>;
-> N64::parse("16372383123").unwrap() / 200
+> 16372383123[N64] / 200
 81861915
 
 let io: IO = <IO>;
-> N64::parse("16372383123").unwrap() % 200
+> 16372383123[N64] % 200
 123
+
+let io: IO = <IO>;
+> N64::parse("")
+None
+
+let io: IO = <IO>;
+> N64::parse("0")
+Some(0)
+
+let io: IO = <IO>;
+> N64::parse("123")
+Some(123)
+
+let io: IO = <IO>;
+> N64::parse("12345678901234567890")
+Some(12345678901234567890)
+
+let io: IO = <IO>;
+> N64::parse("123abc")
+None
+
+let io: IO = <IO>;
+> N64::parse("123456789_123456789")
+Some(123456789123456789)
 
 let io: IO = <IO>;

@@ -175,7 +175,7 @@ pub mod N64 {
     if str.len() == 0 {
       return None;
     }
-    let num = 0 as N64;
+    let num = 0[N64];
     for digit in str.into_iter() {
       if digit == '_' {
         continue;
@@ -183,7 +183,7 @@ pub mod N64 {
       if !('0' <= digit <= '9') {
         return None;
       }
-      num *= 10 as N64;
+      num *= 10[N64];
       num += (digit - '0') as N64;
     }
     Some(num)

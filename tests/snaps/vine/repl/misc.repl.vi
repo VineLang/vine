@@ -1,6 +1,6 @@
 
 let io: IO = <IO>;
-> use std::{data::Array, numeric::N64};
+> use std::data::Array;
 
 let io: IO = <IO>;
 > fn _foo() {}
@@ -218,19 +218,19 @@ let io: IO = <IO>;
 None
 
 let io: IO = <IO>;
-> (3 as N64 ** 33) as String
+> (3[N64] ** 33) as String
 "5559060566555523"
 
 let io: IO = <IO>;
-> (3 as N64 ** 33).log_n32(3)
+> (3[N64] ** 33).log_n32(3)
 32
 
 let io: IO = <IO>;
-> ((3 as N64 ** 33) - 1 as N64).log_n32(3)
+> ((3[N64] ** 33) - 1[N64]).log_n32(3)
 32
 
 let io: IO = <IO>;
-> ((3 as N64 ** 33) + 1 as N64).log_n32(3)
+> ((3[N64] ** 33) + 1[N64]).log_n32(3)
 32
 
 let io: IO = <IO>;

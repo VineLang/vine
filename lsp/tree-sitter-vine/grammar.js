@@ -371,7 +371,7 @@ module.exports = grammar({
         $.expr_is,
         $.expr_cast,
         $.expr_range,
-        $.num,
+        $.expr_num,
         $.char,
         $.string,
         $.expr_inline_ivy,
@@ -381,6 +381,8 @@ module.exports = grammar({
         $.expr_comparison_op,
         $.expr_binary_op_assign,
       ),
+
+    expr_num: $ => prec.right(seq($.num, optional(seq("[", $._ty, "]")))),
 
     expr_hole: $ => "_",
 

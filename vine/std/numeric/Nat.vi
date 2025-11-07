@@ -3,6 +3,7 @@ use std::ops::arithmetic::{Add, Div, Mul, Rem, Sub};
 use std::ops::bitwise::{And, Or, Shl, Shr, Xor};
 use std::ops::{Cast, comparison::{Eq, Ord}};
 
+#[builtin = "Nat"]
 pub struct* Nat(List[N32]);
 
 pub mod Nat {
@@ -136,7 +137,7 @@ pub mod Nat {
   pub impl mul_n32: Mul[Nat, N32, Nat] {
     fn mul(Nat(a), n: N32) -> Nat {
       if n == 0 {
-        return 0 as Nat;
+        return 0[Nat];
       }
       let carry = 0;
       let result = [];
@@ -374,7 +375,7 @@ pub mod Nat {
     if str.len() == 0 {
       return None;
     }
-    let num = 0 as Nat;
+    let num = 0[Nat];
     for digit in str.into_iter() {
       if digit == '_' {
         continue;

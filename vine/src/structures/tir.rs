@@ -1,6 +1,6 @@
 use class::Classes;
 use ivy::ast::Net;
-use vine_util::{idx::IdxVec, new_idx};
+use vine_util::{idx::IdxVec, nat::Nat, new_idx};
 
 use crate::{
   components::synthesizer::SyntheticImpl,
@@ -119,6 +119,8 @@ pub enum TirExprKind {
   N32(u32),
   #[class(value)]
   F32(f32),
+  #[class(value)]
+  Nat(Nat),
   #[class(value)]
   Char(char),
   #[class(value)]

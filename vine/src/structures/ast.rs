@@ -4,7 +4,7 @@ use std::{
 };
 
 use ivy::ast::Net;
-use vine_util::idx;
+use vine_util::{idx, nat::Nat};
 
 use crate::{
   components::loader::FileId, features::builtin::Builtin, structures::diag::ErrorGuaranteed,
@@ -323,6 +323,7 @@ pub enum ExprKind {
   RangeInclusive(Option<Expr>, Expr),
   N32(u32),
   F32(f32),
+  Nat(Span, Nat, Ty),
   Char(char),
   String(StringSegment, Vec<(Expr, StringSegment)>),
   InlineIvy(Vec<(Ident, bool, Expr)>, Ty, Span, Net),
