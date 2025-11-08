@@ -76,10 +76,6 @@ pub mod N64 {
   pub fn .div_rem_n32(N64(al, ah), d: N32) -> (N64, N32) {
     let qh = ah / d;
     ah %= d;
-    if ah > d {
-      qh = ah / d;
-      ah %= d;
-    }
     let ql = 0;
     while ah != 0 {
       let m = (N32::maximum / d) * ah;
