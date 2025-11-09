@@ -366,7 +366,7 @@ pub mod Nat {
       a.cmp(&b) is Ord::Lt
     }
 
-    fn le(&Nat(a), &Nat(b)) -> Bool {
+    fn le(&a: &Nat, &b: &Nat) -> Bool {
       !(a.cmp(&b) is Ord::Gt)
     }
   }
