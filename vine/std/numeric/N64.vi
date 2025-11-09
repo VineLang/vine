@@ -112,7 +112,7 @@ pub mod N64 {
       if bits & 32 != 0 {
         N64(0, al << bits)
       } else {
-        N64(al << bits, ah << bits | al >> (0 - bits))
+        N64(al << bits, ah << bits | al >> (31 - bits) >> 1)
       }
     }
   }
@@ -122,7 +122,7 @@ pub mod N64 {
       if bits & 32 != 0 {
         N64(ah >> bits, 0)
       } else {
-        N64(al >> bits | ah << (0 - bits), ah >> bits)
+        N64(al >> bits | ah << (31 - bits) << 1, ah >> bits)
       }
     }
   }

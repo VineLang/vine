@@ -36,6 +36,18 @@ let io: IO = <IO>;
 123
 
 let io: IO = <IO>;
+> 1[N64] << 0
+1
+
+let io: IO = <IO>;
+> 1[N64] >> 0
+1
+
+let io: IO = <IO>;
+> N64(0, 2) >> 1
+4294967296
+
+let io: IO = <IO>;
 > N64::parse("")
 None
 
