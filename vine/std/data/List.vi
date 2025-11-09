@@ -22,6 +22,14 @@ pub mod List {
     list
   }
 
+  pub fn from_fn[T, F*; fn F() -> T](len: N32, f: F) -> List[T] {
+    let list = [];
+    for _ in 0..len {
+      list.push_back(f());
+    }
+    list
+  }
+
   pub fn .at[T](&List[T](len, *buf, _), i: N32) -> Option[&T] {
     if i >= len {
       let &_ = buf;
@@ -211,23 +219,67 @@ pub mod List {
     }
   }
 
-  pub fn .sort_by[T, F*; fn F(&T, &T) -> Bool](&self: &List[T], cmp: F) {
-    let output = [];
-    for a in self.into_iter() {
-      let left = [];
-      while output.pop_front() is Some(b) {
-        if cmp(&a, &b) {
-          output.push_front(b);
-          break;
-        } else {
-          left.push_back(b);
-        }
-      }
-      output = left ++ [a] ++ output;
+  pub fn .sort[T; Ord[T]](&list: &List[T]) {
+    if list.len() > 1 {
+      let len = list.len();
+      let sorted = list.sort_prefix(len);
+      unsafe::erase(list);
+      list = sorted;
     }
-    self = output;
   }
 
+  fn .sort_prefix[T; Ord[T]](&list: &List[T], n: N32) -> List[T] {
+    if n == 1 {
+      [list.pop_front().unwrap()]
+    } else {
+      merge(sort_prefix(&list, n / 2), sort_prefix(&list, (n + 1) / 2))
+    }
+  }
+
+  fn merge[T; Ord[T]](a: List[T], b: List[T]) -> List[T] {
+    if a.len() == 0 || b.len() == 0 {
+      return a ++ b;
+    }
+    let out = [];
+    let x = a.pop_front().unwrap();
+    let y = b.pop_front().unwrap();
+
+    loop {
+      if y < x {
+        out.push_back(y);
+        if b.head_tail() is Some(y_, b_) {
+          y = y_;
+          b = b_;
+          continue;
+        } else {
+          out ++ [x] ++ a
+        }
+      } else {
+        out.push_back(x);
+        if a.head_tail() is Some(x_, a_) {
+          x = x_;
+          a = a_;
+          continue;
+        } else {
+          out ++ [y] ++ b
+        }
+      }
+    }
+  }
+
+  pub fn .is_sorted[T; Ord[T]](&list: &List[T]) -> Bool {
+    let iter = list.iter();
+    let Some(prev, iter) = iter.advance() else {
+      return true;
+    };
+    for next in iter {
+      if prev > next {
+        return false;
+      }
+      prev = next;
+    }
+    true
+  }
   pub struct Iter[T]((N32, &Buf[T], &(N32, ~Buf[T])));
 
   pub fn .iter[T](&List[T](len, buf, end)) -> Iter[T] {

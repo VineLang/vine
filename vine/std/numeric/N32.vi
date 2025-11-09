@@ -150,14 +150,6 @@ pub mod N32 {
     inline_ivy! (a <- a, b <- b) -> N32 { out a = @n32_rotr(b out) }
   }
 
-  pub fn ascending(&a: &N32, &b: &N32) -> Bool {
-    a < b
-  }
-
-  pub fn descending(&a: &N32, &b: &N32) -> Bool {
-    b < a
-  }
-
   pub impl ord: Ord[N32] {
     fn lt(&a: &N32, &b: &N32) -> Bool {
       inline_ivy! (a <- a, b <- b) -> Bool { out a = @n32_lt(b out) }
