@@ -247,3 +247,14 @@ let io: IO = <IO>;
 18446744073709551616
 
 let io: IO = <IO>;
+> 
+
+let io: IO = <IO>;
+> Nat::from_parts([2]) < Nat::from_parts([1, 2])
+true
+
+let io: IO = <IO>;
+> Nat::from_parts([2]) <= Nat::from_parts([1, 2])
+true
+
+let io: IO = <IO>;
