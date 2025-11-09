@@ -31,7 +31,7 @@ pub mod N64 {
   pub impl add: Add[N64, N64, N64] {
     fn add(N64(a_lo, a_hi), N64(b_lo, b_hi)) -> N64 {
       let lo = a_lo + b_lo;
-      let carry = N32::add_high(a_lo, b_lo);
+      let carry = N32::add_high(a_lo, b_lo) as N32;
       let hi = a_hi + b_hi + carry;
       N64(lo, hi)
     }
@@ -80,9 +80,7 @@ pub mod N64 {
     while ah != 0 {
       let m = (N32::maximum / d) * ah;
       ql += m;
-      let N64(l, h) = N64(al, ah) - N64::mul_n32_n32(m, d);
-      al = l;
-      ah = h;
+      N64(al, ah) -= N64::mul_n32_n32(m, d);
     }
     ql += al / d;
     al %= d;
