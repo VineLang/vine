@@ -59,6 +59,8 @@ pub enum* Ord {
 }
 
 pub mod Ord {
+  pub impl show: Show[Ord];
+
   pub impl neg: Neg[Ord, Ord] {
     fn neg(a: Ord) -> Ord {
       match a {
