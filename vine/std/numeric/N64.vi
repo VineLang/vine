@@ -117,6 +117,18 @@ pub mod N64 {
     (N64(ql, qh), al)
   }
 
+  pub impl div: Div[N64, N64, N64] {
+    fn div(a: N64, d: N64) -> N64 {
+      a.div_rem(d).0
+    }
+  }
+
+  pub impl rem: Rem[N64, N64, N64] {
+    fn rem(a: N64, d: N64) -> N64 {
+      a.div_rem(d).1
+    }
+  }
+
   // Division by Knuth style long division.
   pub fn .div_rem(a: N64, d: N64) -> (N64, N64) {
     if d == 0[N64] {
