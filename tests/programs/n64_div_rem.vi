@@ -1,0 +1,18 @@
+
+use std::rng::Pcg32;
+
+pub fn main(&io: &IO) {
+  let rng = Pcg32::seeded("N64::div_rem");
+  for _ in 0..1000 {
+    let a = N64(rng.gen_n32(), rng.gen_n32());
+    let b = N64(rng.gen_n32(), rng.gen_n32()) >> rng.gen_n32();
+    if b != 0[N64] {
+      let (q, r) = a.div_rem(b);
+      if r >= b || a != q * b + r {
+        io.println("fail: {a} / {b} != {q} rem {r}");
+      } else {
+        io.println("pass: {a} / {b} = {q} rem {r}");
+      }
+    }
+  }
+}

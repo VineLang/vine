@@ -26,11 +26,28 @@ pub mod N64 {
     }
   }
 
+  pub.numeric fn .lo(N64(lo, _)) -> N32 {
+    lo
+  }
+
+  pub.numeric fn .hi(N64(_, hi)) -> N32 {
+    hi
+  }
+
   pub impl add: Add[N64, N64, N64] {
     fn add(N64(a_lo, a_hi), N64(b_lo, b_hi)) -> N64 {
       let lo = a_lo + b_lo;
       let carry = N32::add_high(a_lo, b_lo) as N32;
       let hi = a_hi + b_hi + carry;
+      N64(lo, hi)
+    }
+  }
+
+  pub impl add_n32: Add[N64, N32, N64] {
+    fn add(N64(a_lo, a_hi), b: N32) -> N64 {
+      let lo = a_lo + b;
+      let carry = N32::add_high(a_lo, b) as N32;
+      let hi = a_hi + carry;
       N64(lo, hi)
     }
   }
@@ -44,6 +61,15 @@ pub mod N64 {
     }
   }
 
+  pub impl sub_n32: Sub[N64, N32, N64] {
+    fn sub(N64(a_lo, a_hi), b: N32) -> N64 {
+      let lo = a_lo - b;
+      let borrow = (a_lo < b) as N32;
+      let hi = a_hi - borrow;
+      N64(lo, hi)
+    }
+  }
+
   pub impl mul: Mul[N64, N64, N64] {
     fn mul(N64(a_lo, a_hi), N64(b_lo, b_hi)) -> N64 {
       let lo = a_lo * b_lo;
@@ -52,6 +78,12 @@ pub mod N64 {
       let hl = a_hi * b_lo;
       let hi = ll + lh + hl;
       N64(lo, hi)
+    }
+  }
+
+  pub impl mul_n32: Mul[N64, N32, N64] {
+    fn mul(N64(a_lo, a_hi), b: N32) -> N64 {
+      N64(a_lo * b, N32::mul_high(a_lo, b) + a_hi * b)
     }
   }
 
@@ -83,6 +115,57 @@ pub mod N64 {
     ql += al / d;
     al %= d;
     (N64(ql, qh), al)
+  }
+
+  pub impl div: Div[N64, N64, N64] {
+    fn div(a: N64, d: N64) -> N64 {
+      a.div_rem(d).0
+    }
+  }
+
+  pub impl rem: Rem[N64, N64, N64] {
+    fn rem(a: N64, d: N64) -> N64 {
+      a.div_rem(d).1
+    }
+  }
+
+  // Division by Knuth style long division.
+  pub fn .div_rem(a: N64, d: N64) -> (N64, N64) {
+    if d == 0[N64] {
+      debug::error("Division by zero");
+      return unsafe::eraser;
+    }
+    if a < d {
+      return (0[N64], a);
+    }
+
+    if d.hi() == 0 {
+      let (q, r32) = a.div_rem_n32(d as N32);
+      return (q, r32 as N64);
+    }
+
+    let shift = d.hi().leading_zeros();
+
+    let d_norm = d << shift;
+    let N64(d_norm_lo, d_norm_hi) = d_norm;
+
+    let N64(a_norm_lo, a_norm_mid) = a << shift;
+    let a_norm_hi = a.hi() >> (31 - shift) >> 1;
+
+    let top = N64(a_norm_mid, a_norm_hi);
+    let (quot, rem) = top.div_rem_n32(d_norm_hi);
+
+    while quot.hi() != 0 || quot * d_norm_lo > N64(a_norm_lo, rem) {
+      quot -= 1;
+      if N32::add_high(rem, d_norm_hi) {
+        break;
+      }
+      rem += d_norm_hi;
+    }
+
+    let rem_norm = N64(a_norm_lo, a_norm_mid) - d_norm * quot as N32;
+    let rem = rem_norm >> shift;
+    (quot, rem)
   }
 
   pub impl and: And[N64, N64, N64] {
