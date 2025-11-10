@@ -23,7 +23,7 @@ pub struct RunArgs {
   no_stats: bool,
   #[arg(long, short, default_value = "0")]
   workers: usize,
-  #[arg(long)]
+  #[arg(long, alias = "depth", short = 'd')]
   breadth_first: bool,
 }
 
