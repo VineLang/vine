@@ -26,10 +26,10 @@ pub fn main(&io: &IO) {
   }
   c = cost_func(c, 12, 0);
 
-  let sum = N64::zero;
+  let sum = 0[N64];
   for line in lines.into_iter() {
     let orig = line;
-    let cost = N64::zero;
+    let cost = 0[N64];
     let last = 2;
     for char in line.into_iter() {
       let fn pos(x: Char) {
@@ -127,7 +127,7 @@ fn pos_diff(a: N32, b: N32) -> N32 {
 type CostFunc = Array[Array[N64]];
 
 fn base_cost_func() -> CostFunc {
-  Array::new(6, Array::new(6, N64::one))
+  Array::new(6, Array::new(6, 1[N64]))
 }
 
 fn cost_func(c: CostFunc, size: N32, dead_row: N32) -> CostFunc {
@@ -135,7 +135,7 @@ fn cost_func(c: CostFunc, size: N32, dead_row: N32) -> CostFunc {
   for from in 0..size {
     for to in 0..size {
       let fn test(horiz: Bool) {
-        let cost = N64::zero;
+        let cost = 0[N64];
         let fx = from % 3;
         let fy = from / 3;
         let tx = to % 3;

@@ -7,9 +7,6 @@ use std::ops::{Cast, comparison::{Eq, Ord}};
 pub struct* Nat(List[N32]);
 
 pub mod Nat {
-  pub const zero: Nat = Nat([]);
-  pub const one: Nat = Nat([1]);
-
   pub fn from_parts(parts: List[N32]) -> Nat {
     parts.trim_back_where(fn* (&n: &N32) { n == 0 });
     Nat(parts)
@@ -21,116 +18,67 @@ pub mod Nat {
 
   pub impl add: Add[Nat, Nat, Nat] {
     fn add(Nat(a), Nat(b)) -> Nat {
-      let result = [];
-      let carry = 0;
-      let remaining = loop {
-        match (a.pop_front(), b.pop_front()) {
-          (Some(a_num), Some(b_num)) {
-            let lo = a_num + b_num;
-            let sum = lo + carry;
-            carry = N32::add_high(a_num, b_num) + N32::add_high(lo, carry);
-            result.push_back(sum);
-            continue;
-          }
-          (None, Some(b_num)) {
-            result.push_back(b_num + carry);
-            carry = N32::add_high(b_num, carry);
-            b
-          }
-          (Some(a_num), None) {
-            result.push_back(a_num + carry);
-            carry = N32::add_high(a_num, carry);
-            a
-          }
-          (None, None) { [] }
-        }
-      };
-      loop {
-        when {
-          carry == 0 {
-            result ++= remaining;
-            break;
-          }
-          remaining.pop_front() is Some(num) {
-            let sum = num + carry;
-            carry = N32::add_high(num, carry);
-            result.push_back(sum);
-            continue;
-          }
-          _ {
-            result.push_back(carry);
-            break;
-          }
-        }
+      if a.len() < b.len() {
+        swap(&a, &b);
       }
-      Nat(result)
+
+      let result = [];
+      let carry = false;
+      for b in b.into_iter() {
+        let a = a.pop_front().unwrap();
+        let ab = a + b;
+        result.push_back(ab + carry as N32);
+        carry = N32::add_high(a, b) | N32::add_high(ab, carry as N32);
+      }
+      while carry {
+        let a = a.pop_front().unwrap_or(0);
+        result.push_back(a + 1);
+        carry = a == N32::maximum;
+      }
+
+      Nat(result ++ a)
     }
   }
 
   pub impl sub: Sub[Nat, Nat, Nat] {
     fn sub(Nat(a), Nat(b)) -> Nat {
-      let result = [];
-      let borrow = false;
-      let ~trim = true;
+      if a.len() < b.len() {
+        // underflow
+        return 0[Nat];
+      }
 
-      let fn add_part(part: N32) {
+      let result = [];
+      let ~trim = true;
+      let fn push(n: N32) {
         if !~trim {
-          result.push_back(part);
+          result.push_back(n);
         }
-        if part != 0 {
+        if n != 0 {
           ~trim = false;
         }
       }
 
-      let remaining = loop {
-        match (a.pop_front(), b.pop_front()) {
-          (Some(a_num), Some(b_num)) {
-            let diff = a_num - b_num - borrow as N32;
-            borrow = if borrow {
-              a_num <= b_num
-            } else {
-              a_num < b_num
-            };
-
-            add_part(diff);
-            continue;
-          }
-          (None, Some(b_num)) {
-            // underflow
-            return Nat::zero;
-          }
-          (Some(a_num), None) {
-            let diff = a_num - borrow as N32;
-            add_part(diff);
-
-            borrow = a_num < borrow as N32;
-            a
-          }
-          (None, None) { [] }
-        }
-      };
-      loop {
-        when {
-          !borrow {
-            if remaining.len() != 0 {
-              ~trim = false;
-              result ++= remaining;
-            }
-            break;
-          }
-          remaining.pop_front() is Some(num) {
-            let diff = num - borrow as N32;
-            add_part(diff);
-            borrow = num == 0;
-            continue;
-          }
-          _ {
-            // underflow
-            return Nat::zero;
-          }
-        }
+      let borrow = false;
+      for b in b.into_iter() {
+        let a = a.pop_front().unwrap();
+        let ab = a - b;
+        push(ab - borrow as N32);
+        borrow = (a < b) | (ab < borrow as N32);
       }
-      Nat(result)
+      while borrow {
+        let Some(a) = a.pop_front() else {
+          // underflow
+          return 0[Nat];
+        };
+        push(a - 1);
+        borrow = a == 0;
+      }
+
+      if a.len() != 0 {
+        ~trim = false;
+      }
+
+      Nat(result ++ a)
     }
   }
 
@@ -143,7 +91,7 @@ pub mod Nat {
       let result = [];
       for num in a.into_iter() {
         let N64(lo, hi) = N64::mul_n32_n32(num, n);
-        hi += N32::add_high(lo, carry);
+        hi += N32::add_high(lo, carry) as N32;
         lo += carry;
         result.push_back(lo);
         carry = hi;
@@ -157,11 +105,14 @@ pub mod Nat {
 
   pub impl mul: Mul[Nat, Nat, Nat] {
     fn mul(a: Nat, b: Nat) -> Nat {
-      if a == Nat::zero || b == Nat::zero {
-        return Nat::zero;
+      if a == 0[Nat] || b == 0[Nat] {
+        return 0[Nat];
+      }
+      if a!.len() > b!.len() {
+        swap(&a, &b);
       }
       let leading = [];
-      let current = Nat::zero;
+      let current = 0[Nat];
       for a_num in a!.into_iter() {
         let prod = b * a_num;
         current += prod;
@@ -192,7 +143,7 @@ pub mod Nat {
     let nums = a!.reversed();
 
     let Some(leading_num) = nums.pop_front() else {
-      return (Nat::zero, 0);
+      return (0[Nat], 0);
     };
     let q = [];
     let (qi, rem) = leading_num.div_rem(d);
@@ -391,11 +342,11 @@ pub mod Nat {
 
   pub impl to_string: Cast[Nat, String] {
     fn cast(n: Nat) -> String {
-      if n == Nat::zero {
+      if n == 0[Nat] {
         return "0";
       }
       let str = "";
-      while n != Nat::zero {
+      while n != 0[Nat] {
         let (q, r) = n.div_rem_n32(10);
         str = ('0' + r) as String ++ str;
         n = q;

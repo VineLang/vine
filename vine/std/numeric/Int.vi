@@ -6,11 +6,9 @@ use std::ops::{Cast, comparison::{Eq, Ord}};
 pub struct* Int((Bool, Nat));
 
 pub mod Int {
-  pub const zero: Int = Int(false, Nat::zero);
-
   pub fn from_parts(negative: Bool, magnitude: Nat) -> Int {
-    if negative && magnitude == Nat::zero {
-      Int::zero
+    if negative && magnitude == 0[Nat] {
+      0[Int]
     } else {
       Int(negative, magnitude)
     }
@@ -35,7 +33,7 @@ pub mod Int {
       } else {
         match a_mag.cmp(&b_mag) {
           Ord::Lt { Int(b_sign, b_mag - a_mag) }
-          Ord::Eq { Int::zero }
+          Ord::Eq { 0[Int] }
           Ord::Gt { Int(a_sign, a_mag - b_mag) }
         }
       }
@@ -50,7 +48,7 @@ pub mod Int {
 
   pub impl neg: Neg[Int, Int] {
     fn neg(Int(sign, magnitude)) -> Int {
-      if magnitude == Nat::zero {
+      if magnitude == 0[Nat] {
         Int(sign, magnitude)
       } else {
         Int(!sign, magnitude)
@@ -66,8 +64,8 @@ pub mod Int {
 
   pub impl mul: Mul[Int, Int, Int] {
     fn mul(Int(a_sign, a_mag), Int(b_sign, b_mag)) -> Int {
-      if a_mag == Nat::zero || b_mag == Nat::zero {
-        return Int::zero;
+      if a_mag == 0[Nat] || b_mag == 0[Nat] {
+        return 0[Int];
       }
       Int(a_sign != b_sign, a_mag * b_mag)
     }
@@ -78,8 +76,8 @@ pub mod Int {
       let d_sign = d < +0;
       let d = d.abs() as N32;
       let q = a_mag / d;
-      if q == Nat::zero {
-        Int::zero
+      if q == 0[Nat] {
+        0[Int]
       } else {
         Int(a_sign != d_sign, q)
       }
@@ -106,8 +104,8 @@ pub mod Int {
     } else {
       r as I32
     };
-    let q = if q == Nat::zero {
-      Int::zero
+    let q = if q == 0[Nat] {
+      0[Int]
     } else {
       Int(a_sign != d_sign, q)
     };
@@ -231,7 +229,7 @@ pub mod Int {
 
   pub impl show: Show[Int] {
     fn show(&self: &Int) -> Show {
-      if self.sign() || self.abs() == Nat::zero {
+      if self.sign() || self.abs() == 0[Nat] {
         Show::Literal("{self}")
       } else {
         Show::Literal("+{self}")

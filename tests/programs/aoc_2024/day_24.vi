@@ -30,16 +30,16 @@ pub fn main(&io: &IO) {
     (*at_wire(wire_out)).set(out);
   }
 
-  let part1 = N64::zero;
+  let part1 = 0[N64];
   let &~n = &part1;
   let i = 0;
   loop {
     let wire = ['z', '0' + i / 10, '0' + i % 10] as String;
     if map.at(&wire) is Some(&wire) {
       let bit = if wire.get() {
-        N64::one
+        1[N64]
       } else {
-        N64::zero
+        0[N64]
       };
       ~n ~= (~n << 1) | bit;
       i += 1;

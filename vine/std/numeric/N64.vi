@@ -9,8 +9,6 @@ use ops::{
 pub struct N64(pub (N32, N32));
 
 pub mod N64 {
-  pub const zero: N64 = N64(0, 0);
-  pub const one: N64 = N64(1, 0);
   pub const maximum: N64 = N64(N32::maximum, N32::maximum);
 
   pub impl fork: Fork[N64] = unsafe::duplicate;
@@ -31,7 +29,7 @@ pub mod N64 {
   pub impl add: Add[N64, N64, N64] {
     fn add(N64(a_lo, a_hi), N64(b_lo, b_hi)) -> N64 {
       let lo = a_lo + b_lo;
-      let carry = N32::add_high(a_lo, b_lo);
+      let carry = N32::add_high(a_lo, b_lo) as N32;
       let hi = a_hi + b_hi + carry;
       N64(lo, hi)
     }
@@ -80,9 +78,7 @@ pub mod N64 {
     while ah != 0 {
       let m = (N32::maximum / d) * ah;
       ql += m;
-      let N64(l, h) = N64(al, ah) - N64::mul_n32_n32(m, d);
-      al = l;
-      ah = h;
+      N64(al, ah) -= N64::mul_n32_n32(m, d);
     }
     ql += al / d;
     al %= d;
@@ -187,9 +183,9 @@ pub mod N64 {
 
   pub impl to_string: Cast[N64, String] {
     fn cast(n: N64) -> String {
-      if n != N64::zero {
+      if n != 0[N64] {
         let str = "";
-        while n != N64::zero {
+        while n != 0[N64] {
           let (q, r) = N64::div_rem_n32(n, 10);
           str = ['0' + r] as String ++ str;
           n = q;

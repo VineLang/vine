@@ -22,7 +22,7 @@ fn part1(input: String) -> N64 {
     id += 1;
   }
 
-  let sum = N64::zero;
+  let sum = 0[N64];
   let pos = 0;
   let remaining = used;
 
@@ -70,7 +70,7 @@ fn part2(input: String) -> N64 {
     id += 1;
   }
 
-  let sum = N64::zero;
+  let sum = 0[N64];
   for (id, len, orig_pos) in files.into_iter() {
     let iter = spaces.iter();
     let pos = orig_pos;

@@ -4,7 +4,7 @@ use std::data::Map;
 pub fn main(&io: &IO) {
   let map = Map::empty[N32, _];
 
-  let part1 = N64::zero;
+  let part1 = 0[N64];
 
   let buyer = 0;
   while io.read_line() is Some(secret) {

@@ -8,7 +8,7 @@ pub fn main(&io: &IO) {
   let offset = 10[N64] ** 13;
 
   let part1 = 0;
-  let part2 = N64::zero;
+  let part2 = 0[N64];
   for machine in machines.into_iter() {
     let (_, r) = machine.split_once("+");
     let (ax, r) = r.unwrap().split_once(", Y+");
