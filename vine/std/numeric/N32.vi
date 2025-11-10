@@ -255,10 +255,10 @@ pub mod N32 {
   }
 
   pub fn .leading_zeros(n: N32) -> N32 {
-    let zeros = 0;
-    while n & 0x8000_0000 == 0 {
-      zeros += 1;
-      n <<= 1;
+    let zeros = 32;
+    while n != 0 {
+      zeros -= 1;
+      n >>= 1;
     }
     zeros
   }

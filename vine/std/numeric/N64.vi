@@ -26,11 +26,11 @@ pub mod N64 {
     }
   }
 
-  pub fn .low_32(N64(lo, _)) -> N32 {
+  pub.numeric fn .lo(N64(lo, _)) -> N32 {
     lo
   }
 
-  pub fn .high_32(N64(_, hi)) -> N32 {
+  pub.numeric fn .hi(N64(_, hi)) -> N32 {
     hi
   }
 
@@ -39,6 +39,15 @@ pub mod N64 {
       let lo = a_lo + b_lo;
       let carry = N32::add_high(a_lo, b_lo) as N32;
       let hi = a_hi + b_hi + carry;
+      N64(lo, hi)
+    }
+  }
+
+  pub impl add_n32: Add[N64, N32, N64] {
+    fn add(N64(a_lo, a_hi), b: N32) -> N64 {
+      let lo = a_lo + b;
+      let carry = N32::add_high(a_lo, b) as N32;
+      let hi = a_hi + carry;
       N64(lo, hi)
     }
   }
@@ -52,6 +61,15 @@ pub mod N64 {
     }
   }
 
+  pub impl sub_n32: Sub[N64, N32, N64] {
+    fn sub(N64(a_lo, a_hi), b: N32) -> N64 {
+      let lo = a_lo - b;
+      let borrow = (a_lo < b) as N32;
+      let hi = a_hi - borrow;
+      N64(lo, hi)
+    }
+  }
+
   pub impl mul: Mul[N64, N64, N64] {
     fn mul(N64(a_lo, a_hi), N64(b_lo, b_hi)) -> N64 {
       let lo = a_lo * b_lo;
@@ -60,6 +78,12 @@ pub mod N64 {
       let hl = a_hi * b_lo;
       let hi = ll + lh + hl;
       N64(lo, hi)
+    }
+  }
+
+  pub impl mul_n32: Mul[N64, N32, N64] {
+    fn mul(N64(a_lo, a_hi), b: N32) -> N64 {
+      N64(a_lo * b, N32::mul_high(a_lo, b) + a_hi * b)
     }
   }
 
@@ -103,49 +127,32 @@ pub mod N64 {
       return (0[N64], a);
     }
 
-    let d_hi = d.high_32();
-    if d_hi == 0 {
+    if d.hi() == 0 {
       let (q, r32) = a.div_rem_n32(d as N32);
       return (q, r32 as N64);
     }
 
-    let shift = d_hi.leading_zeros();
+    let shift = d.hi().leading_zeros();
 
     let d_norm = d << shift;
     let N64(d_norm_lo, d_norm_hi) = d_norm;
 
     let N64(a_norm_lo, a_norm_mid) = a << shift;
-    let a_hi = a.high_32();
-    let a_norm_hi = if shift == 0 {
-      0
-    } else {
-      a_hi >> (32 - shift)
-    };
+    let a_norm_hi = a.hi() >> (31 - shift) >> 1;
 
     let top = N64(a_norm_mid, a_norm_hi);
     let (quot, rem) = top.div_rem_n32(d_norm_hi);
-    let rem = rem as N64;
 
-    while quot.high_32() != 0 || quot * (d_norm_lo as N64) > N64(a_norm_lo, rem as N32) {
-      quot -= 1[N64];
-      rem += d_norm_hi as N64;
-      if rem.high_32() != 0 {
+    while quot.hi() != 0 || quot * d_norm_lo > N64(a_norm_lo, rem) {
+      quot -= 1;
+      if N32::add_high(rem, d_norm_hi) {
         break;
       }
+      rem += d_norm_hi;
     }
 
-    let quot32 = quot as N32;
-    let N64(p0_lo, p0_hi) = mul_n32_n32(quot32, d_norm_lo);
-    let N64(p1_lo, p1_hi) = mul_n32_n32(quot32, d_norm_hi);
-
-    let N64(prod1_lo, carry_to2) = p0_hi as N64 + p1_lo as N64;
-    let prod2_lo = p1_hi + carry_to2;
-
-    let borrow = (a_norm_lo < p0_lo) as N32;
-    a_norm_lo = a_norm_lo - p0_lo;
-    a_norm_mid = a_norm_mid - prod1_lo - borrow;
-
-    let rem = N64(a_norm_lo, a_norm_mid) >> shift;
+    let rem_norm = N64(a_norm_lo, a_norm_mid) - d_norm * quot as N32;
+    let rem = rem_norm >> shift;
     (quot, rem)
   }
 
