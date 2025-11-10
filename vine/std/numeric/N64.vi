@@ -9,8 +9,6 @@ use ops::{
 pub struct N64(pub (N32, N32));
 
 pub mod N64 {
-  pub const zero: N64 = N64(0, 0);
-  pub const one: N64 = N64(1, 0);
   pub const maximum: N64 = N64(N32::maximum, N32::maximum);
 
   pub impl fork: Fork[N64] = unsafe::duplicate;
@@ -185,9 +183,9 @@ pub mod N64 {
 
   pub impl to_string: Cast[N64, String] {
     fn cast(n: N64) -> String {
-      if n != N64::zero {
+      if n != 0[N64] {
         let str = "";
-        while n != N64::zero {
+        while n != 0[N64] {
           let (q, r) = N64::div_rem_n32(n, 10);
           str = ['0' + r] as String ++ str;
           n = q;

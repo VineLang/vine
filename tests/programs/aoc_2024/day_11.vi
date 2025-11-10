@@ -10,7 +10,7 @@ pub fn main(&io: &IO) {
   let input = input.split(" ");
   for stone in input.into_iter() {
     let stone = N32::parse(stone).unwrap() as N64;
-    stones.insert(stone, N64::one);
+    stones.insert(stone, 1[N64]);
   }
 
   for i in 1..(max + 1) {
@@ -22,12 +22,12 @@ pub fn main(&io: &IO) {
 fn blink(&io: &IO, old: Map[N64, N64]) -> Map[N64, N64] {
   let new = Map::empty[N64, _];
   let fn add_stones(number: N64, count: N64) {
-    let &c = new.at_or_insert(number, N64::zero);
+    let &c = new.at_or_insert(number, 0[N64]);
     c += count;
   }
   for (number, count) in old.into_iter() {
-    if number == N64::zero {
-      add_stones(N64::one, count);
+    if number == 0[N64] {
+      add_stones(1[N64], count);
     } else {
       let digits = number.log_n32(10) + 1;
       if digits % 2 == 0 {
@@ -44,7 +44,7 @@ fn blink(&io: &IO, old: Map[N64, N64]) -> Map[N64, N64] {
 }
 
 fn count(&stones: &Map[N64, N64]) -> N64 {
-  let n = N64::zero;
+  let n = 0[N64];
   for &(_, count) in stones.iter() {
     n += count;
   }

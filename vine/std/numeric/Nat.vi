@@ -7,9 +7,6 @@ use std::ops::{Cast, comparison::{Eq, Ord}};
 pub struct* Nat(List[N32]);
 
 pub mod Nat {
-  pub const zero: Nat = Nat([]);
-  pub const one: Nat = Nat([1]);
-
   pub fn from_parts(parts: List[N32]) -> Nat {
     parts.trim_back_where(fn* (&n: &N32) { n == 0 });
     Nat(parts)
@@ -115,7 +112,7 @@ pub mod Nat {
         swap(&a, &b);
       }
       let leading = [];
-      let current = Nat::zero;
+      let current = 0[Nat];
       for a_num in a!.into_iter() {
         let prod = b * a_num;
         current += prod;
@@ -146,7 +143,7 @@ pub mod Nat {
     let nums = a!.reversed();
 
     let Some(leading_num) = nums.pop_front() else {
-      return (Nat::zero, 0);
+      return (0[Nat], 0);
     };
     let q = [];
     let (qi, rem) = leading_num.div_rem(d);
@@ -345,11 +342,11 @@ pub mod Nat {
 
   pub impl to_string: Cast[Nat, String] {
     fn cast(n: Nat) -> String {
-      if n == Nat::zero {
+      if n == 0[Nat] {
         return "0";
       }
       let str = "";
-      while n != Nat::zero {
+      while n != 0[Nat] {
         let (q, r) = n.div_rem_n32(10);
         str = ('0' + r) as String ++ str;
         n = q;

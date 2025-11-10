@@ -79,7 +79,7 @@ pub mod Range {
 
     pub impl n64: Step[N64] {
       fn step(x: N64) -> N64 {
-        x + N64::one
+        x + 1[N64]
       }
     }
   }
