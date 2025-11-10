@@ -1,0 +1,27 @@
+
+use std::rng::Pcg32;
+
+pub fn main(&io: &IO) {
+  let rng = Pcg32::seeded("Nat::div_rem ");
+  let fn gen_nat() {
+    let parts = [];
+    for _ in 0..8 {
+      parts.push_back(rng.gen_n32());
+    }
+    Nat::from_parts(parts)
+  }
+
+  for i in 0..1000 {
+    let a = gen_nat();
+    let b = gen_nat() >> (rng.gen_n32() & 255);
+
+    if b != 0[Nat] {
+      let (q, r) = a.div_rem(b);
+      if r >= b || a != q * b + r {
+        io.println("fail: {a}, {b}, {q}, {r}");
+      } else {
+        io.println("pass");
+      }
+    }
+  }
+}
