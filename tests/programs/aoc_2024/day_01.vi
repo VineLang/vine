@@ -12,8 +12,8 @@ pub fn main(&io: &IO) {
   let left = lines.map(fn* ((left, _)) { left });
   let right = lines.map(fn* ((_, right)) { right });
 
-  left.sort_by(N32::ascending);
-  right.sort_by(N32::ascending);
+  left.sort();
+  right.sort();
 
   let total_dist = 0;
   let iter_a = left.into_iter();

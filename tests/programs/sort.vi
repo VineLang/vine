@@ -1,0 +1,31 @@
+
+use std::{ops::comparison::Ord, rng::Pcg32};
+
+pub fn main(&io: &IO) {
+  let i = 0;
+  let rng = Pcg32::seeded("Nils made me seed this");
+  let list = List::from_fn(
+    100_000,
+    fn* () {
+      i += 1;
+      (rng.gen_n32() % 100, i)
+    },
+  );
+  list.sort[; ord_first]();
+  io.println("{list.is_sorted()}");
+}
+
+#[manual]
+impl ord_first[T, U; Ord[T]]: Ord[(T, U)] {
+  fn cmp(&(a: T, _: U), &(b: T, _: U)) -> Ord {
+    a.cmp(&b)
+  }
+
+  fn le(&(a: T, _: U), &(b: T, _: U)) -> Bool {
+    a.le(&b)
+  }
+
+  fn lt(&(a: T, _: U), &(b: T, _: U)) -> Bool {
+    a.lt(&b)
+  }
+}

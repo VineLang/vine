@@ -90,6 +90,7 @@ fn tests(t: &mut DynTester) {
     test_vi(t, "tests/programs/primenesses.vi", b"", ".txt", true, false);
     test_vi(t, "tests/programs/segmented_sieve.vi", b"", ".txt", false, false);
     test_vi(t, "tests/programs/sieve.vi", b"", ".txt", false, false);
+    test_vi(t, "tests/programs/sort.vi", b"", ".txt", true, false);
     test_vi(t, "tests/programs/so_random.vi", b"", ".txt", true, false);
     test_vi(t, "tests/programs/specializations.vi", b"", ".txt", true, false);
     test_vi(t, "tests/programs/square_case.vi", b"", ".txt", true, false);
