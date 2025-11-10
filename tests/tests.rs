@@ -80,6 +80,7 @@ fn tests(t: &mut DynTester) {
     test_vi(t, "tests/programs/map_test.vi", b"", ".txt", false, false);
     test_vi(t, "tests/programs/map_ops.vi", b"", ".txt", true, false);
     test_vi(t, "tests/programs/maybe_set.vi", b"", ".txt", true, false);
+    test_vi(t, "tests/programs/n64_div_rem.vi", b"", ".txt", false, false);
     test_vi(t, "tests/programs/nat_edges.vi", b"", ".txt", false, false);
     test_vi(t, "tests/programs/nothing_lasts_forever.vi", b"", ".txt", true, false);
     test_vi(t, "tests/programs/no_return.vi", b"", ".txt", true, false);
