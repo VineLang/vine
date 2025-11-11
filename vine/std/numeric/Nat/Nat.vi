@@ -403,12 +403,15 @@ pub mod Nat {
     b >>= b_zeros;
     let common_zeros = N32::min(a_zeros, b_zeros);
 
-    while !b.is_zero() {
+    loop {
       if a > b {
         (a, b) = (b, a);
       }
       b -= a;
-      b >>= b.trailing_zeros();
+      if !b.is_zero() {
+        b >>= b.trailing_zeros();
+        continue;
+      }
     }
     a << common_zeros
   }
