@@ -7,6 +7,8 @@ use std::ops::{Cast, comparison::{Eq, Ord}};
 pub struct* Nat(List[N32]);
 
 pub mod Nat {
+  pub mod div_rem;
+
   pub fn from_parts(parts: List[N32]) -> Nat {
     parts.trim_back_where(fn* (&n: &N32) { n == 0 });
     Nat(parts)
@@ -173,66 +175,6 @@ pub mod Nat {
     fn rem(a: Nat, d: Nat) -> Nat {
       a.div_rem(d).1
     }
-  }
-
-  pub fn .div_rem(a: Nat, d: Nat) -> (Nat, Nat) {
-    if d == 0[Nat] {
-      debug::error("Division by zero");
-      return unsafe::eraser;
-    }
-    if a < d {
-      return (0[Nat], a);
-    }
-
-    if d!.len() == 1 {
-      let (q, r) = a.div_rem_n32(d as N32);
-      return (q, r as Nat);
-    }
-
-    let a_len = a!.len();
-    let d_len = d!.len();
-    let q_digits = a_len - d_len + 1;
-
-    let shift = d!.iter().last().unwrap().*.leading_zeros();
-    if shift > 0 {
-      d <<= shift;
-      a <<= shift;
-    }
-
-    let q = [];
-
-    let d_hi = d!.get(d_len - 1).unwrap();
-    let d_hi2 = d!.get(d_len - 2).unwrap();
-
-    for i in 0..q_digits {
-      // TODO: Store a in big endian to make more efficient
-      let a_hi = a!.get(a_len - i).unwrap_or(0);
-      let a_mid = a!.get(a_len - i - 1).unwrap_or(0);
-      let a_lo = a!.get(a_len - i - 2).unwrap_or(0);
-
-      let (q_est, r_est) = N64(a_mid, a_hi).div_rem_n32(d_hi);
-      let r_est = r_est as N64;
-
-      while q_est.hi() != 0 || q_est * d_hi2 > N64(a_lo, r_est as N32) {
-        q_est -= 1[N64];
-        r_est += d_hi;
-        if r_est.hi() != 0 {
-          break;
-        }
-      }
-
-      // TODO: fuse comparison and subtraction and implicitly handle zeros.
-      let prod = (d * q_est as N32) << (32 * (q_digits - i - 1));
-      if prod > a {
-        q_est -= 1;
-        prod -= d;
-      }
-      a -= prod;
-
-      q.push_front(q_est as N32);
-    }
-
-    (Nat::from_parts(q), a >> shift)
   }
 
   pub impl and: And[Nat, Nat, Nat] {
