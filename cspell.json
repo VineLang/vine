@@ -69,6 +69,7 @@
     "subpatterns",
     "underflows",
     "unpark",
+    "unnormalized",
     "vecs",
     "visitee",
     "whnf",
