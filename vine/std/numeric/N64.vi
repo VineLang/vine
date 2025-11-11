@@ -35,7 +35,7 @@ pub mod N64 {
   }
 
   pub fn .is_zero(&N64(lo, hi)) -> Bool {
-    lo == 0 && hi == 0
+    lo | hi == 0
   }
 
   pub impl add: Add[N64, N64, N64] {
