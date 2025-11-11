@@ -34,7 +34,7 @@ mod BigEndianNat {
 
 // Knuth style long division
 pub fn .div_rem(a: Nat, d: Nat) -> (Nat, Nat) {
-  if d == 0[Nat] {
+  if d.is_zero() {
     debug::error("Division by zero");
     return unsafe::eraser;
   }
