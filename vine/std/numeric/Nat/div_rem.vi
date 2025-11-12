@@ -16,7 +16,7 @@ mod BigEndianNat {
   }
 
   pub impl shl: Shl[BigEndianNat, N32, BigEndianNat] {
-    // Only works for 0 <= n <= 31
+    // Only works for 1 <= n <= 31
     // Does not create new parts for overflow
     fn shl(BigEndianNat(parts), n: N32) -> BigEndianNat {
       let result = [];
@@ -55,7 +55,7 @@ pub fn .div_rem(a: Nat, d: Nat) -> (Nat, Nat) {
   let q_digits = a!.len() - d!.len();
 
   // Normalize such that the MSB of the divisor is set. This means the estimate for the quotient is
-  // at most 2 off,
+  // at most 2 off.
   let shift = d!.get(0).unwrap().leading_zeros();
   if shift > 0 {
     d <<= shift;
@@ -72,14 +72,14 @@ pub fn .div_rem(a: Nat, d: Nat) -> (Nat, Nat) {
     let a_mid = a!.get(0).unwrap();
     let a_lo = a!.get(1).unwrap();
 
-    // Estimate the question with the two most significant digits of the numerator and the most
+    // Estimate the quotient with the two most significant digits of the numerator and the most
     // significant digit of the divisor.
     let (q_est, r_est) = N64(a_mid, a_hi).div_rem_n32(d_hi);
     let r_est = r_est as N64;
 
     // Do correction step if we detect the guess to be off (executed at most twice).
     while q_est.hi() != 0 || q_est * d_hi2 > N64(a_lo, r_est as N32) {
-      q_est -= 1[N64];
+      q_est -= 1;
       r_est += d_hi;
       if r_est.hi() != 0 {
         break;
@@ -90,14 +90,11 @@ pub fn .div_rem(a: Nat, d: Nat) -> (Nat, Nat) {
     // Multiply the guess by the divisor and subtract that from the numerator.
     let ~borrow;
     let underflow = a_hi < ~borrow;
-    a_hi -= ~borrow;
 
     for (&a_num, &d_num) in a!.iter().zip(d!.iter()) {
       let &borrow = &~borrow;
       let N64(prod, new_borrow) = N64::mul_n32_n32(d_num, q_est) + borrow;
-      if (a_num < prod) {
-        new_borrow += 1;
-      }
+      new_borrow += (a_num < prod) as N32;
       borrow = new_borrow;
       a_num -= prod;
     }
@@ -109,7 +106,6 @@ pub fn .div_rem(a: Nat, d: Nat) -> (Nat, Nat) {
       q_est -= 1;
 
       let ~carry: Bool;
-      a_hi += ~carry as N32;
 
       for (&a_num, &d_num) in a!.iter().zip(d!.iter()) {
         let &carry = &~carry;
