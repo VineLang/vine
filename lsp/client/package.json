@@ -5,13 +5,20 @@
     "vscode": "^1.85.0"
   },
   "devDependencies": {
+    "@types/emscripten": "^1.41.5",
     "@types/node": "^22.9.0",
     "@types/vscode": "^1.95.0",
     "typescript": "^5.6.3"
   },
   "dependencies": {
-    "vscode-languageclient": "^9.0.1"
+    "vscode-languageclient": "^9.0.1",
+    "web-tree-sitter": "^0.25.10"
   },
+  "files": [
+    "dist",
+    "../tree-sitter-vine/tree-sitter-vine.wasm",
+    "../tree-sitter-vine/queries/highlights.scm"
+  ],
   "scripts": {
     "postinstall": "tsc"
   },
@@ -43,11 +50,6 @@
     ],
     "grammars": [
       {
-        "language": "vine",
-        "scopeName": "source.vine",
-        "path": "src/vine-grammar.json"
-      },
-      {
         "language": "ivy",
         "scopeName": "source.ivy",
         "path": "src/ivy-grammar.json"
@@ -74,7 +76,9 @@
           "items": {
             "type": "string"
           },
-          "default": ["vine"]
+          "default": [
+            "vine"
+          ]
         },
         "vine.entrypoints": {
           "type": "array",
@@ -83,6 +87,11 @@
           }
         }
       }
+    }
+  },
+  "configurationDefaults": {
+    "vine": {
+      "editor.semanticHighlighting.enabled": true
     }
   }
 }
