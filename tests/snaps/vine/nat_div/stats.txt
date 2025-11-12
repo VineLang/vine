@@ -1,6 +1,6 @@
 
 Interactions
-  Total            9_823_027
+  Total            9_822_180
     Depth            106_689
     Breadth               92
   Annihilate       4_079_027
@@ -8,10 +8,10 @@ Interactions
   Copy             1_742_045
   Erase            1_070_247
   Expand             640_232
-  Call             1_788_210
+  Call             1_787_363
   Branch             397_008
 
 Memory
   Heap             9_297_472 B
-  Allocated      209_369_920 B
-  Freed          209_369_920 B
+  Allocated      209_356_368 B
+  Freed          209_356_368 B
