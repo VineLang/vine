@@ -1,4 +1,3 @@
-import * as path from "path";
 import * as vscode from "vscode";
 import { LanguageClient } from "vscode-languageclient/node";
 import { Language, Parser, Query, Tree } from "web-tree-sitter";
@@ -31,81 +30,22 @@ const capturesToTokenTypeIndex = Object.fromEntries(
 
 const legend = new vscode.SemanticTokensLegend(Object.values(captureToTokenType));
 
-let parsed_trees: Map<string, Tree> = new Map();
+let parsedTrees: Map<string, Tree> = new Map();
 
 // Use to signal to VS Code that semantic tokens change on each document edit.
 // Otherwise VS Code bundles multiple edits / key strokes and only update the semantic token
-// sporadically. Since we provide syntax highlighting throuhg the semantic tokens, we want them to
+// sporadically. Since we provide syntax highlighting through the semantic tokens, we want them to
 // update on each key stroke.
 const changeEmitter = new vscode.EventEmitter<void>();
 
 module.exports = { activate, deactivate };
 
 async function activate(context: vscode.ExtensionContext) {
-  // Start tree sitter syntax highlighting
-  await Parser.init();
+  activateLsp(context);
+  await activateHighlighting(context);
+}
 
-  const wasmPath = context.asAbsolutePath(
-    path.join("..", "tree-sitter-vine", "tree-sitter-vine.wasm"),
-  );
-  language = await Language.load(wasmPath);
-
-  parser = new Parser();
-  parser.setLanguage(language);
-
-  const highlightsPath = context.asAbsolutePath(
-    path.join("..", "tree-sitter-vine", "queries", "highlights.scm"),
-  );
-
-  const highlightsText = (await vscode.workspace.fs.readFile(
-    vscode.Uri.file(highlightsPath),
-  )).toString();
-
-  highlightQuery = new Query(language, highlightsText);
-
-  context.subscriptions.push(
-    vscode.languages.registerDocumentSemanticTokensProvider(
-      { language: "vine" },
-      new TreeSitterSemanticTokensProvider(changeEmitter.event),
-      legend,
-    ),
-  );
-
-  // Tracking of files for incremental parsing
-  context.subscriptions.push(
-    vscode.workspace.onDidOpenTextDocument(async (doc) => {
-      if (doc.languageId !== "vine") return;
-      parsed_trees.set(doc.uri.toString(), parser.parse(doc.getText()));
-    }),
-  );
-  context.subscriptions.push(
-    vscode.workspace.onDidCloseTextDocument(async (doc) => {
-      if (doc.languageId !== "vine") return;
-      parsed_trees.delete(doc.uri.toString());
-    }),
-  );
-  context.subscriptions.push(
-    vscode.workspace.onDidChangeTextDocument(async (e) => {
-      if (e.document.languageId !== "vine") return;
-      const doc = e.document;
-
-      const uri = doc.uri.toString();
-      let tree = parsed_trees.get(uri);
-
-      if (tree === undefined) {
-        tree = parser.parse(doc.getText());
-      } else {
-        applyChanges(tree, e.contentChanges);
-        const newTree = parser.parse(doc.getText(), tree);
-        tree.delete();
-        tree = newTree;
-      }
-      parsed_trees.set(uri, tree);
-      changeEmitter.fire();
-    }),
-  );
-
-  // Start LSP
+function activateLsp(context: vscode.ExtensionContext) {
   context.subscriptions.push(vscode.commands.registerCommand("vine.restartServer", restartServer));
 
   const config = vscode.workspace.getConfiguration("vine");
@@ -140,77 +80,108 @@ async function activate(context: vscode.ExtensionContext) {
   }
 }
 
+async function activateHighlighting(context: vscode.ExtensionContext) {
+  await Parser.init();
+
+  const wasmPath = context.asAbsolutePath("dist/tree-sitter-vine.wasm");
+  language = await Language.load(wasmPath);
+
+  parser = new Parser();
+  parser.setLanguage(language);
+
+  const highlightsPath = context.asAbsolutePath("dist/highlights.scm");
+
+  const highlightsText = (await vscode.workspace.fs.readFile(
+    vscode.Uri.file(highlightsPath),
+  )).toString();
+
+  highlightQuery = new Query(language, highlightsText);
+
+  context.subscriptions.push(
+    vscode.languages.registerDocumentSemanticTokensProvider(
+      { language: "vine" },
+      new TreeSitterSemanticTokensProvider(changeEmitter.event),
+      legend,
+    ),
+  );
+
+  // Tracking of files for incremental parsing
+  context.subscriptions.push(
+    vscode.workspace.onDidCloseTextDocument(async (doc) => {
+      if (doc.languageId !== "vine") return;
+      parsedTrees.delete(doc.uri.toString());
+    }),
+  );
+  context.subscriptions.push(
+    vscode.workspace.onDidChangeTextDocument(async (e) => {
+      if (e.document.languageId !== "vine") return;
+      const doc = e.document;
+
+      const uri = doc.uri.toString();
+      let tree = parsedTrees.get(uri);
+
+      if (tree === undefined) {
+        tree = parser.parse(doc.getText());
+      } else {
+        applyChanges(tree, e.contentChanges);
+        const newTree = parser.parse(doc.getText(), tree);
+        tree.delete();
+        tree = newTree;
+      }
+      parsedTrees.set(uri, tree);
+      changeEmitter.fire();
+    }),
+  );
+}
+
 function deactivate() {
   return client?.stop();
 }
 
 function applyChanges(tree: Tree, changes: readonly vscode.TextDocumentContentChangeEvent[]) {
   // Apply changes from end to front of the file so that positions stay valid.
-  for (
-    const change of [...changes].sort((a, b) =>
-      (b.range.start.line - a.range.start.line)
-      || (b.range.start.character - a.range.start.character)
-    )
-  ) {
-    const startIndex = change.rangeOffset;
-    const oldEndIndex = change.rangeOffset + change.rangeLength;
-    const newEndIndex = change.rangeOffset + change.text.length;
+  changes = [...changes].sort((a, b) =>
+    (b.range.start.line - a.range.start.line)
+    || (b.range.start.character - a.range.start.character)
+  );
 
-    const startPosition = {
-      row: change.range.start.line,
-      column: change.range.start.character,
-    };
-    const oldEndPosition = {
-      row: change.range.end.line,
-      column: change.range.end.character,
-    };
-
-    // Compute new end position from inserted text
-    const newText = change.text;
-    const newLines = newText.split(/\r\n|\r|\n/);
-
-    let newEndRow: number;
-    let newEndColumn: number;
-
-    if (newLines.length === 1) {
-      newEndRow = startPosition.row;
-      newEndColumn = startPosition.column + newLines[0].length;
-    } else {
-      newEndRow = startPosition.row + newLines.length - 1;
-      newEndColumn = newLines[newLines.length - 1].length;
-    }
-
-    const newEndPosition = { row: newEndRow, column: newEndColumn };
+  for (const change of changes) {
+    const insertedLines = change.text.split(/\r\n|\r|\n/);
 
     tree.edit({
-      startIndex,
-      oldEndIndex,
-      newEndIndex,
-      startPosition,
-      oldEndPosition,
-      newEndPosition,
+      startIndex: change.rangeOffset,
+      oldEndIndex: change.rangeOffset + change.rangeLength,
+      newEndIndex: change.rangeOffset + change.text.length,
+      startPosition: {
+        row: change.range.start.line,
+        column: change.range.start.character,
+      },
+      oldEndPosition: {
+        row: change.range.end.line,
+        column: change.range.end.character,
+      },
+      newEndPosition: {
+        row: change.range.start.line,
+        column: insertedLines.length === 1
+          ? change.range.start.character + insertedLines[0].length
+          : insertedLines[insertedLines.length - 1].length,
+      },
     });
   }
 }
 
 class TreeSitterSemanticTokensProvider implements vscode.DocumentSemanticTokensProvider {
-  onDidChangeSemanticTokens: vscode.Event<void>;
-
-  constructor(onDidChangeSemanticTokens: vscode.Event<void>) {
-    this.onDidChangeSemanticTokens = onDidChangeSemanticTokens;
-  }
+  constructor(public onDidChangeSemanticTokens: vscode.Event<void>) {}
 
   async provideDocumentSemanticTokens(
     doc: vscode.TextDocument,
     _token: vscode.CancellationToken,
   ): Promise<vscode.SemanticTokens> {
-    let semanticTokens: vscode.SemanticTokens;
-
-    let tree = parsed_trees.get(doc.uri.toString());
+    let tree = parsedTrees.get(doc.uri.toString());
     if (tree === undefined) {
       const source = doc.getText();
       tree = parser.parse(source);
-      parsed_trees.set(doc.uri.toString(), tree);
+      parsedTrees.set(doc.uri.toString(), tree);
     }
 
     const builder = new vscode.SemanticTokensBuilder(legend);
@@ -225,12 +196,7 @@ class TreeSitterSemanticTokensProvider implements vscode.DocumentSemanticTokensP
       const length = doc.offsetAt(new vscode.Position(end.row, end.column))
         - doc.offsetAt(new vscode.Position(start.row, start.column));
 
-      builder.push(
-        start.row,
-        start.column,
-        length,
-        tokenType,
-      );
+      builder.push(start.row, start.column, length, tokenType);
     }
 
     return builder.build();

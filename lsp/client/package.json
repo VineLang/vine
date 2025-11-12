@@ -1,8 +1,17 @@
 {
-  "name": "vine-vscode",
-  "version": "0.1.0",
+  "name": "vine",
+  "displayName": "Vine",
+  "description": "Language support for the Vine programming language",
+  "publisher": "vinelang",
+  "version": "0.0.0",
+  "repository": "https://github.com/VineLang/vine",
+  "icon": "assets/vine.png",
+  "galleryBanner": {
+    "color": "#151820",
+    "theme": "dark"
+  },
   "engines": {
-    "vscode": "^1.85.0"
+    "vscode": "^1.95.0"
   },
   "devDependencies": {
     "@types/emscripten": "^1.41.5",
@@ -14,13 +23,9 @@
     "vscode-languageclient": "^9.0.1",
     "web-tree-sitter": "^0.25.10"
   },
-  "files": [
-    "dist",
-    "../tree-sitter-vine/tree-sitter-vine.wasm",
-    "../tree-sitter-vine/queries/highlights.scm"
-  ],
   "scripts": {
-    "postinstall": "tsc"
+    "build-tree-sitter": "cd ../tree-sitter-vine; npm i; tree-sitter generate; tree-sitter build --wasm; cp queries/highlights.scm tree-sitter-vine.wasm ../client/dist",
+    "build": "npm run build-tree-sitter; tsc"
   },
   "main": "dist/extension.js",
   "contributes": {
@@ -87,11 +92,11 @@
           }
         }
       }
-    }
-  },
-  "configurationDefaults": {
-    "vine": {
-      "editor.semanticHighlighting.enabled": true
+    },
+    "configurationDefaults": {
+      "[vine]": {
+        "editor.semanticHighlighting.enabled": true
+      }
     }
   }
 }
