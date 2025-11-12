@@ -1,0 +1,124 @@
+
+// Nat stored unnormalized (can have leading zero) and big endian
+struct? BigEndianNat(List[N32]);
+
+mod BigEndianNat {
+  pub impl from_nat: Cast[Nat, BigEndianNat] {
+    fn cast(n: Nat) -> BigEndianNat {
+      BigEndianNat(n.to_parts().reversed())
+    }
+  }
+
+  pub impl to_nat: Cast[BigEndianNat, Nat] {
+    fn cast(BigEndianNat(parts)) -> Nat {
+      Nat::from_parts(parts.reversed())
+    }
+  }
+
+  pub impl shl: Shl[BigEndianNat, N32, BigEndianNat] {
+    // Only works for 1 <= n <= 31
+    // Does not create new parts for overflow
+    fn shl(BigEndianNat(parts), n: N32) -> BigEndianNat {
+      let result = [];
+      if parts.pop_front() is Some(part) {
+        for next in parts.into_iter() {
+          result.push_back(part << n | next >> (32 - n));
+          part = next;
+        }
+        result.push_back(part << n);
+      }
+      BigEndianNat(result)
+    }
+  }
+}
+
+// Knuth style long division
+pub fn .div_rem(a: Nat, d: Nat) -> (Nat, Nat) {
+  if d == 0[Nat] {
+    debug::error("Division by zero");
+    return unsafe::eraser;
+  }
+  if a < d {
+    return (0[Nat], a);
+  }
+
+  if d!.len() == 1 {
+    let (q, r) = a.div_rem_n32(d as N32);
+    return (q, r as Nat);
+  }
+
+  let a = a as BigEndianNat;
+  // Add one more leading zero for potential overflow of the shift
+  a!.push_front(0);
+  let d = d as BigEndianNat;
+
+  let q_digits = a!.len() - d!.len();
+
+  // Normalize such that the MSB of the divisor is set. This means the estimate for the quotient is
+  // at most 2 off.
+  let shift = d!.get(0).unwrap().leading_zeros();
+  if shift > 0 {
+    d <<= shift;
+    a <<= shift;
+  }
+
+  let q = [];
+
+  let d_hi = d!.get(0).unwrap();
+  let d_hi2 = d!.get(1).unwrap();
+
+  for i in 0..q_digits {
+    let a_hi = a!.pop_front().unwrap();
+    let a_mid = a!.get(0).unwrap();
+    let a_lo = a!.get(1).unwrap();
+
+    // Estimate the quotient with the two most significant digits of the numerator and the most
+    // significant digit of the divisor.
+    let (q_est, r_est) = N64(a_mid, a_hi).div_rem_n32(d_hi);
+    let r_est = r_est as N64;
+
+    // Do correction step if we detect the guess to be off (executed at most twice).
+    while q_est.hi() != 0 || q_est * d_hi2 > N64(a_lo, r_est as N32) {
+      q_est -= 1;
+      r_est += d_hi;
+      if r_est.hi() != 0 {
+        break;
+      }
+    }
+    let q_est = q_est as N32;
+
+    // Multiply the guess by the divisor and subtract that from the numerator.
+    let ~borrow;
+    let underflow = a_hi < ~borrow;
+
+    for (&a_num, &d_num) in a!.iter().zip(d!.iter()) {
+      let &borrow = &~borrow;
+      let N64(prod, new_borrow) = N64::mul_n32_n32(d_num, q_est) + borrow;
+      new_borrow += (a_num < prod) as N32;
+      borrow = new_borrow;
+      a_num -= prod;
+    }
+    ~borrow = 0;
+
+    // There is a (very small) chance that the guess was still one off. This can be detected by the
+    // overflow of the subtraction. In this case, we add back the divisor once.
+    if underflow {
+      q_est -= 1;
+
+      let ~carry: Bool;
+
+      for (&a_num, &d_num) in a!.iter().zip(d!.iter()) {
+        let &carry = &~carry;
+        let d_carry = d_num + carry as N32;
+        carry = N32::add_high(d_num, carry as N32) | N32::add_high(a_num, d_carry);
+        a_num += d_carry;
+      }
+      ~carry = false;
+    }
+
+    q.push_front(q_est as N32);
+  }
+
+  // We need to shift back the remainder according to the normalization we applied.
+  (Nat::from_parts(q), a as Nat >> shift)
+}

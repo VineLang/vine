@@ -7,6 +7,8 @@ use std::ops::{Cast, comparison::{Eq, Ord}};
 pub struct* Nat(List[N32]);
 
 pub mod Nat {
+  pub mod div_rem;
+
   pub fn from_parts(parts: List[N32]) -> Nat {
     parts.trim_back_where(fn* (&n: &N32) { n == 0 });
     Nat(parts)
@@ -161,6 +163,18 @@ pub mod Nat {
     }
 
     (Nat(q), rem)
+  }
+
+  pub impl div: Div[Nat, Nat, Nat] {
+    fn div(a: Nat, d: Nat) -> Nat {
+      a.div_rem(d).0
+    }
+  }
+
+  pub impl rem: Rem[Nat, Nat, Nat] {
+    fn rem(a: Nat, d: Nat) -> Nat {
+      a.div_rem(d).1
+    }
   }
 
   pub impl and: And[Nat, Nat, Nat] {

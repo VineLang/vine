@@ -40,6 +40,14 @@ Nat::from_parts([N32::maximum, N32::maximum, N32::maximum, N32::maximum]) + Nat:
 98_765_432_109_876_543_210[Nat].div_rem_n32(4_000_000_000)
 1_000_000_000_000_000_000[Nat].div_rem_n32(3)
 
+0[Nat].div_rem(123456789[Nat])
+42[Nat].div_rem(100[Nat])
+555555555555555555555555123456789[Nat].div_rem(1000000000[Nat]) // single limb short path
+76350665206209593115122189013[Nat].div_rem(121036734064[Nat]) // correction used once, no add-back
+(1[Nat] << 100).div_rem(1[Nat] << 63) // no normalization
+3489603096812281287860038236174996985899336074804695101976560109467622092404[Nat].div_rem(5173245046327638136212214[Nat]) // correction loop is done twice
+Nat::from_parts([0, 0, 1 << 31, N32::maximum >> 1]).div_rem(Nat::from_parts([1, 0, 1 << 31])) // requires add-back because prod is bigger than the remainder
+
 1[Nat] << 1
 10[Nat] << 3
 123456789123456789 << 0
