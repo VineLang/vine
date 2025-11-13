@@ -405,7 +405,7 @@ pub mod Nat {
 
     loop {
       if a > b {
-        (a, b) = (b, a);
+        swap(&a, &b);
       }
       b -= a;
       if !b.is_zero() {
