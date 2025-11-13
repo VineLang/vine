@@ -34,6 +34,10 @@ pub mod N64 {
     hi
   }
 
+  pub fn .is_zero(&N64(lo, hi)) -> Bool {
+    lo | hi == 0
+  }
+
   pub impl add: Add[N64, N64, N64] {
     fn add(N64(a_lo, a_hi), N64(b_lo, b_hi)) -> N64 {
       let lo = a_lo + b_lo;
@@ -131,7 +135,7 @@ pub mod N64 {
 
   // Division by Knuth style long division.
   pub fn .div_rem(a: N64, d: N64) -> (N64, N64) {
-    if d == 0[N64] {
+    if d.is_zero() {
       debug::error("Division by zero");
       return unsafe::eraser;
     }
@@ -266,9 +270,9 @@ pub mod N64 {
 
   pub impl to_string: Cast[N64, String] {
     fn cast(n: N64) -> String {
-      if n != 0[N64] {
+      if !n.is_zero() {
         let str = "";
-        while n != 0[N64] {
+        while !n.is_zero() {
           let (q, r) = N64::div_rem_n32(n, 10);
           str = ['0' + r] as String ++ str;
           n = q;

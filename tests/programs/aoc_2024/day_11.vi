@@ -26,7 +26,7 @@ fn blink(&io: &IO, old: Map[N64, N64]) -> Map[N64, N64] {
     c += count;
   }
   for (number, count) in old.into_iter() {
-    if number == 0[N64] {
+    if number.is_zero() {
       add_stones(1[N64], count);
     } else {
       let digits = number.log_n32(10) + 1;

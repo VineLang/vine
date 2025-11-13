@@ -18,6 +18,10 @@ pub mod Nat {
     parts
   }
 
+  pub fn .is_zero(&Nat(parts)) -> Bool {
+    parts.len() == 0
+  }
+
   pub impl add: Add[Nat, Nat, Nat] {
     fn add(Nat(a), Nat(b)) -> Nat {
       if a.len() < b.len() {
@@ -107,7 +111,7 @@ pub mod Nat {
 
   pub impl mul: Mul[Nat, Nat, Nat] {
     fn mul(a: Nat, b: Nat) -> Nat {
-      if a == 0[Nat] || b == 0[Nat] {
+      if a.is_zero() || b.is_zero() {
         return 0[Nat];
       }
       if a!.len() > b!.len() {
@@ -356,11 +360,11 @@ pub mod Nat {
 
   pub impl to_string: Cast[Nat, String] {
     fn cast(n: Nat) -> String {
-      if n == 0[Nat] {
+      if n.is_zero() {
         return "0";
       }
       let str = "";
-      while n != 0[Nat] {
+      while !n.is_zero() {
         let (q, r) = n.div_rem_n32(10);
         str = ('0' + r) as String ++ str;
         n = q;
