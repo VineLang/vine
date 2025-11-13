@@ -270,9 +270,9 @@ pub mod N64 {
 
   pub impl to_string: Cast[N64, String] {
     fn cast(n: N64) -> String {
-      if n != 0[N64] {
+      if !n.is_zero() {
         let str = "";
-        while n != 0[N64] {
+        while !n.is_zero() {
           let (q, r) = N64::div_rem_n32(n, 10);
           str = ['0' + r] as String ++ str;
           n = q;

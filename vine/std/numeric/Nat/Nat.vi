@@ -364,7 +364,7 @@ pub mod Nat {
         return "0";
       }
       let str = "";
-      while n != 0[Nat] {
+      while !n.is_zero() {
         let (q, r) = n.div_rem_n32(10);
         str = ('0' + r) as String ++ str;
         n = q;
