@@ -2,8 +2,8 @@
   "name": "tree-sitter-vine",
   "devDependencies": {
     "prebuildify": "^6.0.1",
-    "tree-sitter-cli": "^0.25.3",
-    "tree-sitter": "^0.21.1"
+    "tree-sitter": "^0.25.0",
+    "tree-sitter-cli": "^0.25.10"
   },
   "scripts": {
     "prestart": "tree-sitter build --wasm",
