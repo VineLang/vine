@@ -378,4 +378,41 @@ pub mod Nat {
       Show::Literal("{self}")
     }
   }
+
+  pub fn .trailing_zeros(&Nat(parts)) -> N32 {
+    let zeros = 0;
+    for &part in parts.iter() {
+      zeros += N32::trailing_zeros(part);
+      if part != 0 {
+        break;
+      }
+    }
+    zeros
+  }
+
+  pub fn .gcd(a: Nat, b: Nat) -> Nat {
+    if a.is_zero() {
+      return b;
+    }
+    if b.is_zero() {
+      return a;
+    }
+    let a_zeros = a.trailing_zeros();
+    a >>= a_zeros;
+    let b_zeros = b.trailing_zeros();
+    b >>= b_zeros;
+    let common_zeros = N32::min(a_zeros, b_zeros);
+
+    loop {
+      if a > b {
+        swap(&a, &b);
+      }
+      b -= a;
+      if !b.is_zero() {
+        b >>= b.trailing_zeros();
+        continue;
+      }
+    }
+    a << common_zeros
+  }
 }

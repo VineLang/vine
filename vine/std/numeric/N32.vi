@@ -254,4 +254,16 @@ pub mod N32 {
     }
     zeros
   }
+
+  pub fn .trailing_zeros(n: N32) -> N32 {
+    if n == 0 {
+      return 32;
+    }
+    let zeros = 0;
+    while n & 1 == 0 {
+      zeros += 1;
+      n >>= 1;
+    }
+    zeros
+  }
 }

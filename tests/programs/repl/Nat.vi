@@ -73,3 +73,13 @@ Nat::from_parts([1, 1]) * 1[Nat]
 
 Nat::from_parts([2]) < Nat::from_parts([1, 2])
 Nat::from_parts([2]) <= Nat::from_parts([1, 2])
+
+0[Nat].gcd(123456789123456789123456789123456789[Nat])
+123456789123456789123456789123456789[Nat].gcd(0[Nat])
+42[Nat].gcd(42[Nat])
+48[Nat].gcd(18[Nat])
+35[Nat].gcd(64[Nat])
+(1[Nat] << 200).gcd(1[Nat] << 150)
+((1[Nat] << 200) * 45[Nat]).gcd((1[Nat] << 150) * 75[Nat])
+((1[Nat] << 200) + 6[Nat]).gcd((1[Nat] << 180) + 6[Nat])
+((1[Nat] << 128) - 1[Nat]).gcd((1[Nat] << 64) - 1[Nat])
