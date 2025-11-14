@@ -167,7 +167,7 @@ impl<I: Idx, T> IdxVec<I, T> {
   }
 
   #[inline(always)]
-  pub fn keys_from(&self, index: I) -> impl Iterator<Item = I> + Clone {
+  pub fn keys_from(&self, index: I) -> impl Iterator<Item = I> + Clone + use<I, T> {
     (index..I::from(self.vec.len())).iter()
   }
 

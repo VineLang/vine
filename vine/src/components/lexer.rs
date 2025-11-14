@@ -220,6 +220,6 @@ impl TokenTrait for StrToken {
   }
 
   unsafe fn from_u8(value: u8) -> Self {
-    transmute(value)
+    unsafe { transmute(value) }
   }
 }

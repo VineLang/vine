@@ -1,6 +1,6 @@
 [package]
 name = "tests"
-edition = "2021"
+edition = "2024"
 publish = false
 
 [[test]]

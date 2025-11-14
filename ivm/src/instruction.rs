@@ -117,13 +117,15 @@ impl<'ivm, 'ext> IVM<'ivm, 'ext> {
   /// `register.index() < self.registers.len()`
   #[inline]
   unsafe fn link_register(&mut self, register: Register, port: Port<'ivm>) {
-    debug_assert!(register.index() < self.registers.len());
-    let register = &mut *(&mut *self.registers as *mut [_] as *mut Option<Port<'ivm>>)
-      .byte_offset(register.byte_offset as isize);
-    if let Some(got) = register.take() {
-      self.link(port, got);
-    } else {
-      *register = Some(port);
+    unsafe {
+      debug_assert!(register.index() < self.registers.len());
+      let register = &mut *(&mut *self.registers as *mut [_] as *mut Option<Port<'ivm>>)
+        .byte_offset(register.byte_offset as isize);
+      if let Some(got) = register.take() {
+        self.link(port, got);
+      } else {
+        *register = Some(port);
+      }
     }
   }
 

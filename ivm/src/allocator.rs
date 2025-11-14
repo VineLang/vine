@@ -44,8 +44,10 @@ impl<'ivm, 'ext> IVM<'ivm, 'ext> {
   /// requirements.
   #[inline(always)]
   pub unsafe fn new_node(&mut self, tag: Tag, label: u16) -> (Port<'ivm>, Wire<'ivm>, Wire<'ivm>) {
-    let addr = self.alloc_node();
-    (Port::new(tag, label, addr), Wire::from_addr(addr), Wire::from_addr(addr.other_half()))
+    unsafe {
+      let addr = self.alloc_node();
+      (Port::new(tag, label, addr), Wire::from_addr(addr), Wire::from_addr(addr.other_half()))
+    }
   }
 
   /// Allocates a new wire, returning both of its ends.
