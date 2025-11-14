@@ -90,7 +90,7 @@ pub enum InterfaceKind {
 }
 
 impl InterfaceKind {
-  pub fn stages(&self) -> impl Iterator<Item = StageId> {
+  pub fn stages(&self) -> impl Iterator<Item = StageId> + use<> {
     multi_iter! { Stages { Zero, One, Two, Vec, Fn } }
     match self {
       InterfaceKind::Unconditional(a) => Stages::One([*a]),

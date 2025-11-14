@@ -1,10 +1,10 @@
-use std::collections::{hash_map::Entry, HashMap};
+use std::collections::{HashMap, hash_map::Entry};
 
 use ivm::{
+  IVM,
   addr::Addr,
   port::{Port, PortRef, Tag},
   wire::Wire,
-  IVM,
 };
 
 use crate::{ast::Tree, host::Host};

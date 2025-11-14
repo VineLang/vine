@@ -5,7 +5,7 @@ use crate::{
     diag::Diag,
     tir::TirPat,
   },
-  tools::fmt::{doc::Doc, Formatter},
+  tools::fmt::{Formatter, doc::Doc},
 };
 
 impl Resolver<'_> {

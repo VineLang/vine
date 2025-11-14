@@ -117,13 +117,15 @@ impl<'ivm, 'ext> IVM<'ivm, 'ext> {
   /// `register.index() < self.registers.len()`
   #[inline]
   unsafe fn link_register(&mut self, register: Register, port: Port<'ivm>) {
-    debug_assert!(register.index() < self.registers.len());
-    let register = &mut *(&mut *self.registers as *mut [_] as *mut Option<Port<'ivm>>)
-      .byte_offset(register.byte_offset as isize);
-    if let Some(got) = register.take() {
-      self.link(port, got);
-    } else {
-      *register = Some(port);
+    unsafe {
+      debug_assert!(register.index() < self.registers.len());
+      let register = &mut *(&mut *self.registers as *mut [_] as *mut Option<Port<'ivm>>)
+        .byte_offset(register.byte_offset as isize);
+      if let Some(got) = register.take() {
+        self.link(port, got);
+      } else {
+        *register = Some(port);
+      }
     }
   }
 
@@ -148,9 +150,9 @@ impl<'ivm, 'ext> IVM<'ivm, 'ext> {
           }
           Instruction::InertLink(p0, p1) => {
             let wires = self.new_wires();
-            self.link_register(p0, Port::new_wire(wires.0 .0));
-            self.link_register(p1, Port::new_wire(wires.1 .0));
-            self.inert_links.push((Port::new_wire(wires.0 .1), Port::new_wire(wires.1 .1)));
+            self.link_register(p0, Port::new_wire(wires.0.0));
+            self.link_register(p1, Port::new_wire(wires.1.0));
+            self.inert_links.push((Port::new_wire(wires.0.1), Port::new_wire(wires.1.1)));
           }
           Instruction::InertNode(label, p0, p1, p2) => {
             let wire_prim = self.new_wire();

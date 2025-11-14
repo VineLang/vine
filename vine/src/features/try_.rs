@@ -8,7 +8,7 @@ use crate::{
     types::{Type, TypeKind},
     vir::{Port, Stage, Step},
   },
-  tools::fmt::{doc::Doc, Formatter},
+  tools::fmt::{Formatter, doc::Doc},
 };
 
 impl<'src> Formatter<'src> {

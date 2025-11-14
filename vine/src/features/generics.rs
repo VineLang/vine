@@ -15,7 +15,7 @@ use crate::{
     tir::TirImpl,
     types::{ImplType, Type, TypeKind},
   },
-  tools::fmt::{doc::Doc, Formatter},
+  tools::fmt::{Formatter, doc::Doc},
 };
 
 impl VineParser<'_> {
@@ -202,10 +202,10 @@ impl Resolver<'_> {
       generics_def.parent.map(|id| self.sigs.type_params[id].clone()).unwrap_or_default();
     let base_index = type_params.params.len();
     for param in &generics_def.type_params {
-      if let Some(&index) = type_params.lookup.get(&param.name) {
-        if index < base_index {
-          continue;
-        }
+      if let Some(&index) = type_params.lookup.get(&param.name)
+        && index < base_index
+      {
+        continue;
       }
       let index = type_params.params.len();
       type_params.params.push(param.name.clone());
@@ -257,15 +257,15 @@ impl Resolver<'_> {
     if generics_def.global_flex != Flex::None {
       for (index, name) in self.sigs.type_params[generics_id].params.iter().enumerate() {
         let ty = self.types.new(TypeKind::Param(index, name.clone()));
-        if generics_def.global_flex.fork() {
-          if let Some(fork) = self.chart.builtins.fork {
-            impl_params.types.inner.push(ImplType::Trait(fork, vec![ty]));
-          }
+        if generics_def.global_flex.fork()
+          && let Some(fork) = self.chart.builtins.fork
+        {
+          impl_params.types.inner.push(ImplType::Trait(fork, vec![ty]));
         }
-        if generics_def.global_flex.drop() {
-          if let Some(drop) = self.chart.builtins.drop {
-            impl_params.types.inner.push(ImplType::Trait(drop, vec![ty]));
-          }
+        if generics_def.global_flex.drop()
+          && let Some(drop) = self.chart.builtins.drop
+        {
+          impl_params.types.inner.push(ImplType::Trait(drop, vec![ty]));
         }
       }
     }
@@ -273,10 +273,10 @@ impl Resolver<'_> {
     for param in &generics_def.impl_params {
       let index = impl_params.types.inner.len();
       impl_params.types.inner.push(self.resolve_trait(&param.trait_));
-      if let Some(name) = param.name.clone() {
-        if impl_params.lookup.insert(name, index).is_some() {
-          self.diags.report(Diag::DuplicateImplParam { span: param.span });
-        }
+      if let Some(name) = param.name.clone()
+        && impl_params.lookup.insert(name, index).is_some()
+      {
+        self.diags.report(Diag::DuplicateImplParam { span: param.span });
       }
     }
 

@@ -128,7 +128,7 @@ impl Display for Stats {
         for (label, value) in lines {
           f.write_char('\n')?;
           f.write_str(label)?;
-          if let Some((mut value, unit)) = value {
+          if let &Some((mut value, unit)) = value {
             let value_width = measure_int(value);
             for _ in 0..(max_label_width + 2 + max_value_width - label.len() - value_width) {
               f.write_char(' ')?;

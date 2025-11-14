@@ -10,7 +10,7 @@ use crate::{
     emitter::Emitter,
     lexer::Token,
     matcher::{MatchVar, MatchVarForm, MatchVarKind, Matcher, Row, VarId},
-    parser::{VineParser, BRACE_COMMA},
+    parser::{BRACE_COMMA, VineParser},
     resolver::Resolver,
   },
   structures::{
@@ -25,7 +25,7 @@ use crate::{
     types::{Type, TypeCtx, TypeKind},
     vir::{Header, Interface, InterfaceKind, Layer, Port, Stage, Step, Transfer},
   },
-  tools::fmt::{doc::Doc, Formatter},
+  tools::fmt::{Formatter, doc::Doc},
 };
 
 impl VineParser<'_> {

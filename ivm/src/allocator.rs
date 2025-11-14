@@ -44,8 +44,10 @@ impl<'ivm, 'ext> IVM<'ivm, 'ext> {
   /// requirements.
   #[inline(always)]
   pub unsafe fn new_node(&mut self, tag: Tag, label: u16) -> (Port<'ivm>, Wire<'ivm>, Wire<'ivm>) {
-    let addr = self.alloc_node();
-    (Port::new(tag, label, addr), Wire::from_addr(addr), Wire::from_addr(addr.other_half()))
+    unsafe {
+      let addr = self.alloc_node();
+      (Port::new(tag, label, addr), Wire::from_addr(addr), Wire::from_addr(addr.other_half()))
+    }
   }
 
   /// Allocates a new wire, returning both of its ends.
@@ -73,7 +75,7 @@ impl<'ivm, 'ext> IVM<'ivm, 'ext> {
   pub(crate) fn free_wire(&mut self, wire: Wire<'ivm>) {
     self.stats.mem_free += 1;
     unsafe {
-      let free = Word::from_bits(u64::MAX & !0b111);
+      let free = Word::from_bits(!0b111);
       let addr = wire.addr();
       addr.as_word().store(free);
       if addr.other_half().as_word().load() == free {

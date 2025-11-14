@@ -112,7 +112,7 @@ impl NonZeroWord {
   #[cfg(not(miri))]
   #[inline(always)]
   pub const unsafe fn new_unchecked(word: Word) -> Self {
-    NonZeroWord(NonZeroU64::new_unchecked(word.0))
+    unsafe { NonZeroWord(NonZeroU64::new_unchecked(word.0)) }
   }
 
   #[cfg(miri)]

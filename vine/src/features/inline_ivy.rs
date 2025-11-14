@@ -9,7 +9,7 @@ use crate::{
     distiller::Distiller,
     emitter::Emitter,
     lexer::Token,
-    parser::{VineParser, PAREN_COMMA},
+    parser::{PAREN_COMMA, VineParser},
     resolver::Resolver,
   },
   structures::{
@@ -19,7 +19,7 @@ use crate::{
     types::Type,
     vir::{Port, Stage, Step},
   },
-  tools::fmt::{doc::Doc, Formatter},
+  tools::fmt::{Formatter, doc::Doc},
 };
 
 impl VineParser<'_> {

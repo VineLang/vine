@@ -9,7 +9,7 @@ use crate::{
     distiller::{Distiller, Return},
     emitter::Emitter,
     lexer::Token,
-    parser::{VineParser, BP},
+    parser::{BP, VineParser},
     resolver::{Binding, Resolver},
   },
   structures::{
@@ -22,7 +22,7 @@ use crate::{
     types::{ImplType, Type, TypeCtx, TypeKind},
     vir::{Header, Interface, InterfaceKind, Port, PortKind, Stage, Step, Transfer},
   },
-  tools::fmt::{doc::Doc, Formatter},
+  tools::fmt::{Formatter, doc::Doc},
 };
 
 impl VineParser<'_> {
@@ -250,11 +250,7 @@ impl Resolver<'_> {
     self.enter_scope();
     let params = params.iter().map(|p| self.resolve_pat(p)).collect::<Vec<_>>();
     let ret_ty = ret.as_ref().map(|t| self.resolve_ty(t, true)).unwrap_or_else(|| {
-      if inferred_ret {
-        self.types.new_var(body.span)
-      } else {
-        self.types.nil()
-      }
+      if inferred_ret { self.types.new_var(body.span) } else { self.types.nil() }
     });
     let old_return_ty = self.return_ty.replace(ret_ty);
     let body = self.resolve_block_type(body, ret_ty);

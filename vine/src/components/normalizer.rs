@@ -1,4 +1,4 @@
-use std::collections::{btree_map::Entry, BTreeMap};
+use std::collections::{BTreeMap, btree_map::Entry};
 
 use vine_util::{idx::IdxVec, unwrap_idx_vec};
 
@@ -193,11 +193,7 @@ impl Normalizer<'_> {
       Step::Transfer(transfer) => {
         let interface = &self.source.interfaces[transfer.interface];
         let sub_layer = &self.source.layers[interface.layer];
-        if sub_layer.parent.is_some() {
-          self.layer_divergence(sub_layer)
-        } else {
-          LayerId::NONE
-        }
+        if sub_layer.parent.is_some() { self.layer_divergence(sub_layer) } else { LayerId::NONE }
       }
       _ => LayerId::NONE,
     }

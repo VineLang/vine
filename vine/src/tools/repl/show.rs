@@ -1,9 +1,9 @@
 use std::mem::replace;
 
 use ivm::{
+  IVM,
   port::{Port, Tag},
   wire::Wire,
-  IVM,
 };
 use ivy::{ast::Tree, host::Host};
 

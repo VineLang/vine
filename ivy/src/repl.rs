@@ -1,10 +1,10 @@
 use std::fmt::{self, Display};
 
-use indexmap::{map::Entry, IndexMap};
+use indexmap::{IndexMap, map::Entry};
 use ivm::{
+  IVM,
   port::{Port, Tag},
   wire::Wire,
-  IVM,
 };
 use vine_util::parser::{Parser, ParserState};
 

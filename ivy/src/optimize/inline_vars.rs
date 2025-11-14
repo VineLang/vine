@@ -1,5 +1,5 @@
 use std::{
-  collections::{hash_map::Entry, HashMap},
+  collections::{HashMap, hash_map::Entry},
   mem::take,
 };
 
@@ -14,23 +14,25 @@ impl InlineVars {
   //! Remove all `var = tree` pairs, inlining the `tree` into the usage of
   //! `var`.
   pub fn apply(&mut self, net: &mut Net) {
-    net.pairs.retain_mut(|pair| loop {
-      match pair {
-        (Tree::Var(v), t) | (t, Tree::Var(v)) => {
-          let v = take(v);
-          let t = take(t);
-          match self.mappings.entry(v) {
-            Entry::Vacant(e) => {
-              e.insert(t);
-              break false;
-            }
-            Entry::Occupied(e) => {
-              *pair = (e.remove(), t);
+    net.pairs.retain_mut(|pair| {
+      loop {
+        match pair {
+          (Tree::Var(v), t) | (t, Tree::Var(v)) => {
+            let v = take(v);
+            let t = take(t);
+            match self.mappings.entry(v) {
+              Entry::Vacant(e) => {
+                e.insert(t);
+                break false;
+              }
+              Entry::Occupied(e) => {
+                *pair = (e.remove(), t);
+              }
             }
           }
+          (Tree::Erase, Tree::Erase) => break false,
+          _ => break true,
         }
-        (Tree::Erase, Tree::Erase) => break false,
-        _ => break true,
       }
     });
 

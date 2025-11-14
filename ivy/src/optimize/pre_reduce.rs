@@ -1,9 +1,9 @@
 use std::{
-  collections::{hash_map::Entry, HashMap},
+  collections::{HashMap, hash_map::Entry},
   mem::take,
 };
 
-use ivm::{ext::Extrinsics, heap::Heap, port::Port, IVM};
+use ivm::{IVM, ext::Extrinsics, heap::Heap, port::Port};
 
 use crate::{
   ast::{Net, Nets, Tree},

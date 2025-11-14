@@ -62,7 +62,7 @@ impl<'a> Emitter<'a> {
     let interface = &self.vir.interfaces[stage.interface];
     (interface.incoming != 0 && !interface.inline()).then(|| {
       self.wire_offset = 0;
-      self.wires.0 = stage.wires.0 .0;
+      self.wires.0 = stage.wires.0.0;
       let root = self.emit_interface(interface, false);
       let root = self.emit_header(&stage.header, root);
       self._emit_stage(stage);
@@ -116,7 +116,7 @@ impl<'a> Emitter<'a> {
   fn inline_stage(&mut self, stage: &Stage) {
     let prev_wire_offset = self.wire_offset;
     self.wire_offset = self.wires.peek_next();
-    self.wires.0 += stage.wires.0 .0;
+    self.wires.0 += stage.wires.0.0;
     self._emit_stage(stage);
     self.wire_offset = prev_wire_offset;
   }

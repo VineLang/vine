@@ -5,7 +5,7 @@ use crate::{
   components::{
     distiller::Distiller,
     emitter::Emitter,
-    parser::{VineParser, BRACKET_COMMA},
+    parser::{BRACKET_COMMA, VineParser},
     resolver::Resolver,
   },
   structures::{
@@ -15,7 +15,7 @@ use crate::{
     types::{Type, TypeKind},
     vir::{Port, Stage, Step},
   },
-  tools::fmt::{doc::Doc, Formatter},
+  tools::fmt::{Formatter, doc::Doc},
 };
 
 impl VineParser<'_> {

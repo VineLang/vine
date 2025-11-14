@@ -80,7 +80,7 @@ impl<'ivm> Port<'ivm> {
   /// The bits of `word` must comply with the restrictions of a `Port`.
   #[inline(always)]
   pub(crate) const unsafe fn from_bits(word: Word) -> Self {
-    Self(NonZeroWord::new_unchecked(word), PhantomData)
+    unsafe { Self(NonZeroWord::new_unchecked(word), PhantomData) }
   }
 
   /// Constructs a port from its bit representation, if its tag is valid.
@@ -90,11 +90,7 @@ impl<'ivm> Port<'ivm> {
   /// or have an invalid tag.
   #[inline(always)]
   pub(crate) unsafe fn option_from_bits(word: Word) -> Option<Self> {
-    if word.bits() & 0b111 == 0 {
-      None
-    } else {
-      Some(Self::from_bits(word))
-    }
+    unsafe { if word.bits() & 0b111 == 0 { None } else { Some(Self::from_bits(word)) } }
   }
 
   /// Constructs a new port from its components.
@@ -103,11 +99,13 @@ impl<'ivm> Port<'ivm> {
   /// `label` and `addr` must comply with the requirements of `tag`.
   #[inline(always)]
   pub unsafe fn new(tag: Tag, label: u16, addr: Addr) -> Self {
-    let port = Port::from_bits(
-      Word::from_ptr(addr.0).map_bits(|addr| label as (u64) << 48 | addr | tag as u64),
-    );
-    debug_assert_eq!(port.addr(), addr);
-    port
+    unsafe {
+      let port = Port::from_bits(
+        Word::from_ptr(addr.0).map_bits(|addr| label as (u64) << 48 | addr | tag as u64),
+      );
+      debug_assert_eq!(port.addr(), addr);
+      port
+    }
   }
 
   /// Accesses the tag of this port.
@@ -166,8 +164,10 @@ impl<'ivm> Port<'ivm> {
   /// This port must be [`Tag::ExtFn`].
   #[inline(always)]
   pub unsafe fn as_ext_fn(&self) -> ExtFn<'ivm> {
-    debug_assert_eq!(self.tag(), Tag::ExtFn);
-    transmute::<u16, ExtFn>(self.label())
+    unsafe {
+      debug_assert_eq!(self.tag(), Tag::ExtFn);
+      transmute::<u16, ExtFn>(self.label())
+    }
   }
 
   /// Get the address of this port, interpreted as an [`Wire`].
@@ -176,8 +176,10 @@ impl<'ivm> Port<'ivm> {
   /// This port must be [`Tag::Wire`].
   #[inline(always)]
   pub unsafe fn as_wire(self) -> Wire<'ivm> {
-    debug_assert_eq!(self.tag(), Tag::Wire);
-    Wire::from_addr(self.addr())
+    unsafe {
+      debug_assert_eq!(self.tag(), Tag::Wire);
+      Wire::from_addr(self.addr())
+    }
   }
 
   /// Get the value of this port, interpreted as an [`ExtVal`].
@@ -196,8 +198,10 @@ impl<'ivm> Port<'ivm> {
   /// This port must be [`Tag::ExtVal`].
   #[inline(always)]
   pub unsafe fn as_global(&self) -> &'ivm Global<'ivm> {
-    debug_assert_eq!(self.tag(), Tag::Global);
-    self.addr().as_global()
+    unsafe {
+      debug_assert_eq!(self.tag(), Tag::Global);
+      self.addr().as_global()
+    }
   }
 
   /// Get the wires leaving the aux ports of this node.
@@ -207,7 +211,7 @@ impl<'ivm> Port<'ivm> {
   /// [`Tag::ExtVal`], or [`Tag::Branch`].
   #[inline(always)]
   pub unsafe fn aux(self) -> (Wire<'ivm>, Wire<'ivm>) {
-    (Wire::from_addr(self.addr()), Wire::from_addr(self.addr().other_half()))
+    unsafe { (Wire::from_addr(self.addr()), Wire::from_addr(self.addr().other_half())) }
   }
 
   /// Get the wires leaving the aux ports of this node.
@@ -217,10 +221,12 @@ impl<'ivm> Port<'ivm> {
   /// [`Tag::ExtVal`], or [`Tag::Branch`].
   #[inline(always)]
   pub unsafe fn aux_ref(&self) -> (WireRef<'_, 'ivm>, WireRef<'_, 'ivm>) {
-    (
-      WireRef::from_wire(Wire::from_addr(self.addr())),
-      WireRef::from_wire(Wire::from_addr(self.addr().other_half())),
-    )
+    unsafe {
+      (
+        WireRef::from_wire(Wire::from_addr(self.addr())),
+        WireRef::from_wire(Wire::from_addr(self.addr().other_half())),
+      )
+    }
   }
 }
 

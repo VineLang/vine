@@ -141,14 +141,14 @@ impl<'ivm, 'ext> IVM<'ivm, 'ext> {
   fn call(&mut self, f: Port<'ivm>, lhs: Port<'ivm>) {
     let ext_fn = unsafe { f.as_ext_fn() };
     let (rhs_wire, out) = unsafe { f.aux() };
-    if let Some(rhs) = rhs_wire.load_target() {
-      if rhs.tag() == Tag::ExtVal {
-        self.stats.call += 1;
-        self.free_wire(rhs_wire);
-        let result = unsafe { self.extrinsics.call(ext_fn, lhs.as_ext_val(), rhs.as_ext_val()) };
-        self.link_wire(out, Port::new_ext_val(result));
-        return;
-      }
+    if let Some(rhs) = rhs_wire.load_target()
+      && rhs.tag() == Tag::ExtVal
+    {
+      self.stats.call += 1;
+      self.free_wire(rhs_wire);
+      let result = unsafe { self.extrinsics.call(ext_fn, lhs.as_ext_val(), rhs.as_ext_val()) };
+      self.link_wire(out, Port::new_ext_val(result));
+      return;
     }
     let new_fn = unsafe { self.new_node(Tag::ExtFn, ext_fn.swap().bits()) };
     self.link_wire(rhs_wire, new_fn.0);

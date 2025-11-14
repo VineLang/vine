@@ -5,7 +5,7 @@ use crate::{
     diag::Diag,
     tir::{TirExpr, TirExprKind},
   },
-  tools::fmt::{doc::Doc, Formatter},
+  tools::fmt::{Formatter, doc::Doc},
 };
 
 impl<'src> Formatter<'src> {

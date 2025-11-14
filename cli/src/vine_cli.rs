@@ -1,6 +1,6 @@
 use std::{
   env, fs,
-  io::{self, stdin, Read},
+  io::{self, Read, stdin},
   path::PathBuf,
   process::exit,
 };
@@ -8,7 +8,7 @@ use std::{
 use anyhow::Result;
 use clap::{Args, CommandFactory, Parser};
 
-use ivm::{ext::Extrinsics, heap::Heap, IVM};
+use ivm::{IVM, ext::Extrinsics, heap::Heap};
 use ivy::{ast::Nets, host::Host};
 use rustyline::DefaultEditor;
 use vine::{

@@ -1,9 +1,9 @@
 use std::{mem::take, path::PathBuf};
 
 use ivm::{
+  IVM,
   port::{Port, Tag},
   wire::Wire,
-  IVM,
 };
 use ivy::host::Host;
 use vine_util::parser::{Parser, ParserState};
@@ -16,7 +16,7 @@ use crate::{
     resolver::Resolver,
   },
   structures::{
-    ast::{visit::VisitMut, Block, Ident, Span, Stmt},
+    ast::{Block, Ident, Span, Stmt, visit::VisitMut},
     chart::{DefId, GenericsId},
     diag::Diag,
     resolutions::FragmentId,
@@ -24,7 +24,7 @@ use crate::{
     types::{Type, TypeKind, Types},
     vir::{Header, Interface, InterfaceKind, Layer, StageId, Step, Transfer, Vir},
   },
-  tools::repl::command::{ReplCommand, ReplOption, ReplOptions, HELP},
+  tools::repl::command::{HELP, ReplCommand, ReplOption, ReplOptions},
 };
 
 mod command;

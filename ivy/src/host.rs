@@ -1,8 +1,8 @@
 use std::{borrow::Cow, collections::HashMap};
 
 use indexmap::{
-  map::{raw_entry_v1::RawEntryMut, RawEntryApiV1},
   IndexMap,
+  map::{RawEntryApiV1, raw_entry_v1::RawEntryMut},
 };
 
 use ivm::{

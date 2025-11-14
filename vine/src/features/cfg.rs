@@ -6,7 +6,7 @@ use crate::{
   components::{
     charter::Charter,
     lexer::Token,
-    parser::{VineParser, BP},
+    parser::{BP, VineParser},
   },
   structures::{
     ast::{Attr, AttrKind, Cfg, CfgKind, Ident, Span},

@@ -6,7 +6,7 @@ use crate::{
     tir::{TirExpr, TirExprKind},
     vir::{Port, Stage},
   },
-  tools::fmt::{doc::Doc, Formatter},
+  tools::fmt::{Formatter, doc::Doc},
 };
 
 impl<'src> Formatter<'src> {

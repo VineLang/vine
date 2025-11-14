@@ -99,12 +99,12 @@ impl<'a> Finder<'a> {
       mods: HashSet::default(),
       defs: HashSet::default(),
       consider_candidate: |self_: &Self, def: &Def| {
-        if def.name == name {
-          if let Some(WithVis { kind: DefValueKind::Fn(fn_kind), vis }) = def.value_kind {
-            if self_.chart.visible(vis, self_.source) && self_.chart.fn_is_method(fn_kind) {
-              candidates.insert(fn_kind);
-            }
-          }
+        if def.name == name
+          && let Some(WithVis { kind: DefValueKind::Fn(fn_kind), vis }) = def.value_kind
+          && self_.chart.visible(vis, self_.source)
+          && self_.chart.fn_is_method(fn_kind)
+        {
+          candidates.insert(fn_kind);
         }
       },
     };
@@ -176,15 +176,15 @@ impl<'a> Finder<'a> {
       )
     });
 
-    if let (Some(fork_ty), Some(drop_ty)) = (fork_ty, drop_ty) {
-      if types.unify(fork_ty, drop_ty).is_failure() {
-        Err(Diag::IncompatibleForkDropInference {
-          span,
-          ty: types.show(self.chart, ty.invert_if(inv)),
-          fork_ty: types.show(self.chart, fork_ty.invert_if(inv)),
-          drop_ty: types.show(self.chart, drop_ty.invert_if(inv)),
-        })?
-      }
+    if let (Some(fork_ty), Some(drop_ty)) = (fork_ty, drop_ty)
+      && types.unify(fork_ty, drop_ty).is_failure()
+    {
+      Err(Diag::IncompatibleForkDropInference {
+        span,
+        ty: types.show(self.chart, ty.invert_if(inv)),
+        fork_ty: types.show(self.chart, fork_ty.invert_if(inv)),
+        drop_ty: types.show(self.chart, drop_ty.invert_if(inv)),
+      })?
     }
 
     if let Some(new_ty) = fork_ty.or(drop_ty) {
@@ -322,14 +322,14 @@ impl<'a> Finder<'a> {
       mods: HashSet::default(),
       defs: HashSet::default(),
       consider_candidate: |self_: &Self, def: &Def| {
-        if let Some(WithVis { vis, kind: DefImplKind::Impl(impl_id) }) = def.impl_kind {
-          if self_.chart.visible(vis, self_.source) {
-            let impl_ = &self_.chart.impls[impl_id];
-            if !impl_.manual && impl_.basic == basic {
-              let impl_sig = &self_.sigs.impls[impl_id];
-              if impl_sig.inner.ty.approx_eq(query) {
-                candidates.insert(impl_id);
-              }
+        if let Some(WithVis { vis, kind: DefImplKind::Impl(impl_id) }) = def.impl_kind
+          && self_.chart.visible(vis, self_.source)
+        {
+          let impl_ = &self_.chart.impls[impl_id];
+          if !impl_.manual && impl_.basic == basic {
+            let impl_sig = &self_.sigs.impls[impl_id];
+            if impl_sig.inner.ty.approx_eq(query) {
+              candidates.insert(impl_id);
             }
           }
         }
@@ -414,31 +414,27 @@ impl<'a> Finder<'a> {
 
     (search.consider_candidate)(self, def);
 
-    if let Some(WithVis { kind: DefTraitKind::Trait(trait_id), vis }) = def.trait_kind {
-      if self.chart.visible(vis, self.source) {
-        let trait_def = &self.chart.traits[trait_id];
-        self.consider_mod(search, trait_def.def);
-      }
+    if let Some(WithVis { kind: DefTraitKind::Trait(trait_id), vis }) = def.trait_kind
+      && self.chart.visible(vis, self.source)
+    {
+      let trait_def = &self.chart.traits[trait_id];
+      self.consider_mod(search, trait_def.def);
     }
 
-    if let Some(WithVis { kind: DefImplKind::Impl(impl_id), vis }) = def.impl_kind {
-      if self.chart.visible(vis, self.source) {
-        let impl_sig = &self.sigs.impls[impl_id];
-        if let ImplType::Trait(trait_id, _) = impl_sig.inner.ty {
-          let trait_def = &self.chart.traits[trait_id];
-          self.consider_mod(search, trait_def.def);
-        }
+    if let Some(WithVis { kind: DefImplKind::Impl(impl_id), vis }) = def.impl_kind
+      && self.chart.visible(vis, self.source)
+    {
+      let impl_sig = &self.sigs.impls[impl_id];
+      if let ImplType::Trait(trait_id, _) = impl_sig.inner.ty {
+        let trait_def = &self.chart.traits[trait_id];
+        self.consider_mod(search, trait_def.def);
       }
     }
   }
 
   fn step(&mut self) -> Result<(), Timeout> {
     self.steps += 1;
-    if self.steps > STEPS_LIMIT {
-      Err(Timeout)
-    } else {
-      Ok(())
-    }
+    if self.steps > STEPS_LIMIT { Err(Timeout) } else { Ok(()) }
   }
 
   fn find_auto_impls(
@@ -541,59 +537,50 @@ impl<'a> Finder<'a> {
             }
           }
         }
-        if Some(*trait_id) == self.chart.builtins.object {
-          if let Some((inv, TypeKind::Object(entries))) = types.kind(type_params[0]) {
-            let mut iter = entries.iter();
-            if let Some((key, &init)) = iter.next() {
-              let init = init.invert_if(inv);
-              let rest = iter.map(|(k, &t)| (k.clone(), t.invert_if(inv))).collect();
-              let mut types = types.clone();
-              let rest = types.new(TypeKind::Object(rest));
-              if types
-                .unify(init, type_params[1])
-                .and(types.unify(rest, type_params[2]))
-                .is_success()
-              {
-                let impl_ = TirImpl::Synthetic(SyntheticImpl::Object(key.clone(), entries.len()));
-                found.push(TypeCtx { types, inner: impl_ });
-              }
-            }
-          }
-        }
-        if Some(*trait_id) == self.chart.builtins.struct_ {
-          if let Some((Inverted(false), TypeKind::Struct(struct_id, struct_params))) =
-            types.kind(type_params[0])
-          {
-            let struct_ = &self.chart.structs[*struct_id];
-            if self.chart.visible(struct_.data_vis, self.source) {
-              let mut types = types.clone();
-              let content = types.import(&self.sigs.structs[*struct_id], Some(struct_params)).data;
-              if types.unify(content, type_params[1]).is_success() {
-                let impl_ = TirImpl::Synthetic(SyntheticImpl::Struct(*struct_id));
-                found.push(TypeCtx { types, inner: impl_ });
-              }
-            }
-          }
-        }
-        if Some(*trait_id) == self.chart.builtins.enum_ {
-          if let Some(variant_enum) = self.chart.builtins.variant {
-            if let Some((Inverted(false), TypeKind::Enum(enum_id, enum_params))) =
-              types.kind(type_params[0])
+        if Some(*trait_id) == self.chart.builtins.object
+          && let Some((inv, TypeKind::Object(entries))) = types.kind(type_params[0])
+        {
+          let mut iter = entries.iter();
+          if let Some((key, &init)) = iter.next() {
+            let init = init.invert_if(inv);
+            let rest = iter.map(|(k, &t)| (k.clone(), t.invert_if(inv))).collect();
+            let mut types = types.clone();
+            let rest = types.new(TypeKind::Object(rest));
+            if types.unify(init, type_params[1]).and(types.unify(rest, type_params[2])).is_success()
             {
-              let mut types = types.clone();
-              let sig = types.import(&self.sigs.enums[*enum_id], Some(enum_params));
-              let nil = types.nil();
-              let variants =
-                sig.variant_data.values().rfold(types.new(TypeKind::Never), |rest, init| {
-                  types.new(TypeKind::Enum(variant_enum, vec![init.unwrap_or(nil), rest]))
-                });
-              if types.unify(variants, type_params[1]).is_success() {
-                found.push(TypeCtx {
-                  types,
-                  inner: TirImpl::Synthetic(SyntheticImpl::Enum(*enum_id)),
-                });
-              }
+              let impl_ = TirImpl::Synthetic(SyntheticImpl::Object(key.clone(), entries.len()));
+              found.push(TypeCtx { types, inner: impl_ });
             }
+          }
+        }
+        if Some(*trait_id) == self.chart.builtins.struct_
+          && let Some((Inverted(false), TypeKind::Struct(struct_id, struct_params))) =
+            types.kind(type_params[0])
+        {
+          let struct_ = &self.chart.structs[*struct_id];
+          if self.chart.visible(struct_.data_vis, self.source) {
+            let mut types = types.clone();
+            let content = types.import(&self.sigs.structs[*struct_id], Some(struct_params)).data;
+            if types.unify(content, type_params[1]).is_success() {
+              let impl_ = TirImpl::Synthetic(SyntheticImpl::Struct(*struct_id));
+              found.push(TypeCtx { types, inner: impl_ });
+            }
+          }
+        }
+        if Some(*trait_id) == self.chart.builtins.enum_
+          && let Some(variant_enum) = self.chart.builtins.variant
+          && let Some((Inverted(false), TypeKind::Enum(enum_id, enum_params))) =
+            types.kind(type_params[0])
+        {
+          let mut types = types.clone();
+          let sig = types.import(&self.sigs.enums[*enum_id], Some(enum_params));
+          let nil = types.nil();
+          let variants =
+            sig.variant_data.values().rfold(types.new(TypeKind::Never), |rest, init| {
+              types.new(TypeKind::Enum(variant_enum, vec![init.unwrap_or(nil), rest]))
+            });
+          if types.unify(variants, type_params[1]).is_success() {
+            found.push(TypeCtx { types, inner: TirImpl::Synthetic(SyntheticImpl::Enum(*enum_id)) });
           }
         }
       }

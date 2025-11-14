@@ -1,7 +1,7 @@
 use std::{fmt::Debug, mem::transmute};
 
 use logos::Logos;
-use vine_util::lexer::{lex_block_comment, Token as TokenTrait};
+use vine_util::lexer::{Token as TokenTrait, lex_block_comment};
 
 #[derive(Logos, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[logos(skip r"[ \t\r\n\f]+")]
@@ -220,6 +220,6 @@ impl TokenTrait for StrToken {
   }
 
   unsafe fn from_u8(value: u8) -> Self {
-    transmute(value)
+    unsafe { transmute(value) }
   }
 }
