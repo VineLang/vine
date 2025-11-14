@@ -6,7 +6,7 @@ use crate::{
   components::{
     charter::Charter,
     lexer::Token,
-    parser::{VineParser, BRACE},
+    parser::{BRACE, VineParser},
     resolver::Resolver,
   },
   structures::{
@@ -19,7 +19,7 @@ use crate::{
     signatures::{ConstSig, FnSig, TraitSig},
     types::TypeCtx,
   },
-  tools::fmt::{doc::Doc, Formatter},
+  tools::fmt::{Formatter, doc::Doc},
 };
 
 impl VineParser<'_> {

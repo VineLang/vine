@@ -8,7 +8,7 @@ use crate::{
     tir::{TirExpr, TirExprKind},
     types::{Inverted, Type, TypeCtx, TypeKind},
   },
-  tools::fmt::{doc::Doc, Formatter},
+  tools::fmt::{Formatter, doc::Doc},
 };
 
 impl<'src> Formatter<'src> {

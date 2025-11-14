@@ -5,7 +5,7 @@ use clap::{Args, CommandFactory, Parser};
 use clap_complete::generate;
 use rustyline::DefaultEditor;
 
-use ivm::{ext::Extrinsics, heap::Heap, IVM};
+use ivm::{IVM, ext::Extrinsics, heap::Heap};
 use ivy::{host::Host, parser::IvyParser, repl::Repl};
 
 use crate::{Optimizations, RunArgs};

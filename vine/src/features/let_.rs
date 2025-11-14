@@ -4,7 +4,7 @@ use crate::{
   components::{
     distiller::Distiller,
     lexer::Token,
-    parser::{VineParser, BRACE},
+    parser::{BRACE, VineParser},
     resolver::Resolver,
   },
   structures::{
@@ -14,7 +14,7 @@ use crate::{
     types::Type,
     vir::{Port, Stage, Step},
   },
-  tools::fmt::{doc::Doc, Formatter},
+  tools::fmt::{Formatter, doc::Doc},
 };
 
 impl VineParser<'_> {

@@ -3,7 +3,7 @@ use vine_util::parser::Parser;
 use crate::{
   components::{
     lexer::Token,
-    parser::{VineParser, PATH},
+    parser::{PATH, VineParser},
     resolver::{Binding, Resolver},
   },
   structures::{
@@ -15,7 +15,7 @@ use crate::{
     tir::{TirExpr, TirExprKind, TirImpl, TirLocal, TirPat, TirPatKind},
     types::{ImplType, Type, TypeKind},
   },
-  tools::fmt::{doc::Doc, Formatter},
+  tools::fmt::{Formatter, doc::Doc},
 };
 
 impl VineParser<'_> {
@@ -210,11 +210,7 @@ impl Resolver<'_> {
     match self.resolve_path(self.cur_def, path, "value", |d| d.value_kind) {
       Ok(DefValueKind::Const(const_id)) => {
         let expr = self.resolve_expr_path_const(span, path, const_id)?;
-        if let Some(args) = args {
-          self._resolve_expr_call(span, expr, args)
-        } else {
-          Ok(expr)
-        }
+        if let Some(args) = args { self._resolve_expr_call(span, expr, args) } else { Ok(expr) }
       }
       Ok(DefValueKind::Fn(fn_id)) => self.resolve_expr_path_fn(span, path, fn_id, args),
       Ok(DefValueKind::Struct(struct_id)) => {

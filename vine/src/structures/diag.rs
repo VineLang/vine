@@ -37,11 +37,7 @@ impl Diags {
 
   pub fn bail(&mut self) -> Result<(), Vec<Diag>> {
     let diags = self.take_diags();
-    if diags.is_empty() {
-      Ok(())
-    } else {
-      Err(diags)
-    }
+    if diags.is_empty() { Ok(()) } else { Err(diags) }
   }
 
   pub(crate) fn revert(&mut self, checkpoint: &Checkpoint) {
@@ -298,11 +294,7 @@ diags! {
 }
 
 fn plural<'a>(n: usize, plural: &'a str, singular: &'a str) -> &'a str {
-  if n == 1 {
-    singular
-  } else {
-    plural
-  }
+  if n == 1 { singular } else { plural }
 }
 
 impl Loader {

@@ -1,6 +1,6 @@
 use clap::Args;
 
-use ivm::{ext::Extrinsics, heap::Heap, IVM};
+use ivm::{IVM, ext::Extrinsics, heap::Heap};
 use ivy::{ast::Nets, host::Host, optimize::Optimizer};
 
 #[derive(Debug, Default, Args)]

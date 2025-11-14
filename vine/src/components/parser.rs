@@ -639,11 +639,7 @@ pub(crate) enum BP {
 
 impl BP {
   const fn inc(self) -> Self {
-    if self as u8 == BP::Max as u8 {
-      self
-    } else {
-      unsafe { transmute::<u8, BP>(self as u8 + 1) }
-    }
+    if self as u8 == BP::Max as u8 { self } else { unsafe { transmute::<u8, BP>(self as u8 + 1) } }
   }
 
   pub(crate) fn permits(self, other: Self) -> bool {

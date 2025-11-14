@@ -9,7 +9,7 @@ use std::{
   thread::{self, JoinHandle},
 };
 
-use dyntest::{dyntest, DynTester};
+use dyntest::{DynTester, dyntest};
 
 #[cfg(not(rust_analyzer))]
 dyntest!(tests);

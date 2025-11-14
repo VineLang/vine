@@ -11,7 +11,7 @@ use crate::{
     signatures::{TypeAliasSig, TypeAliasState},
     types::{Type, TypeKind},
   },
-  tools::fmt::{doc::Doc, Formatter},
+  tools::fmt::{Formatter, doc::Doc},
 };
 
 impl VineParser<'_> {

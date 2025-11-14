@@ -17,7 +17,7 @@ use crate::{
     types::{Type, TypeKind},
     vir::{Port, PortKind, Stage, Step, Transfer},
   },
-  tools::fmt::{doc::Doc, Formatter},
+  tools::fmt::{Formatter, doc::Doc},
 };
 
 impl VineParser<'_> {

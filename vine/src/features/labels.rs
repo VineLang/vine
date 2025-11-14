@@ -4,7 +4,7 @@ use crate::{
   components::{
     distiller::Distiller,
     lexer::Token,
-    parser::{VineParser, BP},
+    parser::{BP, VineParser},
     resolver::{Resolver, TargetInfo},
   },
   structures::{
@@ -13,7 +13,7 @@ use crate::{
     tir::{TargetId, TirExpr, TirExprKind},
     vir::{Port, PortKind, Stage, Step, Transfer},
   },
-  tools::fmt::{doc::Doc, Formatter},
+  tools::fmt::{Formatter, doc::Doc},
 };
 
 impl VineParser<'_> {
@@ -57,11 +57,7 @@ impl VineParser<'_> {
 
 impl<'src> Formatter<'src> {
   pub(crate) fn fmt_label(&self, label: Label) -> Doc<'src> {
-    if let Some(label) = label.0 {
-      Doc::concat([Doc("."), Doc(label)])
-    } else {
-      Doc("")
-    }
+    if let Some(label) = label.0 { Doc::concat([Doc("."), Doc(label)]) } else { Doc("") }
   }
 
   pub(crate) fn fmt_target(&self, target: Target) -> Doc<'src> {

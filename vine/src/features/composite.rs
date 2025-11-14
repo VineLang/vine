@@ -9,7 +9,7 @@ use crate::{
     emitter::Emitter,
     lexer::Token,
     matcher::{MatchVar, MatchVarForm, MatchVarKind, Matcher, Row, VarId},
-    parser::{VineParser, BRACE_COMMA, PAREN_COMMA},
+    parser::{BRACE_COMMA, PAREN_COMMA, VineParser},
     resolver::Resolver,
   },
   structures::{
@@ -19,7 +19,7 @@ use crate::{
     types::{Inverted, Type, TypeKind},
     vir::{Layer, Port, Stage, Step},
   },
-  tools::fmt::{doc::Doc, Formatter},
+  tools::fmt::{Formatter, doc::Doc},
 };
 
 impl VineParser<'_> {
@@ -204,11 +204,7 @@ impl<'src> Formatter<'src> {
       };
       let pat = if let PatKind::Path(path, None) = &*pat.kind {
         if let Some(i) = path.as_ident() {
-          if key.ident == i {
-            None
-          } else {
-            Some(pat)
-          }
+          if key.ident == i { None } else { Some(pat) }
         } else {
           Some(pat)
         }
@@ -529,11 +525,7 @@ impl Distiller<'_> {
         let wire = stage.new_wire(span, ty);
         let mut neg = Some(wire.neg);
         let ports = Vec::from_iter(fields.iter().enumerate().map(|(i, &ty)| {
-          if i == index {
-            neg.take().unwrap()
-          } else {
-            self.drop_space(span, stage, ty)
-          }
+          if i == index { neg.take().unwrap() } else { self.drop_space(span, stage, ty) }
         }));
         stage.steps.push(Step::Composite(value, ports));
         Poly::Value(wire.pos)

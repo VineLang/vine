@@ -3,7 +3,7 @@ use vine_util::parser::Parser;
 use crate::{
   components::{
     lexer::Token,
-    parser::{VineParser, BP},
+    parser::{BP, VineParser},
     resolver::Resolver,
   },
   structures::{
@@ -12,7 +12,7 @@ use crate::{
     tir::{TirExpr, TirExprKind},
     types::{Type, TypeKind},
   },
-  tools::fmt::{doc::Doc, Formatter},
+  tools::fmt::{Formatter, doc::Doc},
 };
 
 impl VineParser<'_> {

@@ -12,8 +12,8 @@ use crate::{
   components::parser::VineParser,
   structures::{
     ast::{
-      visit::{VisitMut, Visitee},
       Attr, AttrKind, Generics, Ident, Item, ItemKind, ModItem, ModKind, Span, Vis,
+      visit::{VisitMut, Visitee},
     },
     checkpoint::Checkpoint,
     diag::{Diag, Diags, FileInfo},

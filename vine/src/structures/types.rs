@@ -1,5 +1,5 @@
 use std::{
-  collections::{hash_map::Entry, BTreeMap, HashMap},
+  collections::{BTreeMap, HashMap, hash_map::Entry},
   fmt::{self, Debug, Write},
   mem::take,
   ops::{BitXor, BitXorAssign},
@@ -39,11 +39,7 @@ impl Type {
   }
 
   pub fn invert_if(self, inv: Inverted) -> Type {
-    if inv.0 {
-      self.inverse()
-    } else {
-      self
-    }
+    if inv.0 { self.inverse() } else { self }
   }
 
   pub fn inverse(self) -> Type {
@@ -292,11 +288,7 @@ impl Types {
     inv: Inverted,
   ) -> UnifyResult {
     UnifyResult::from_bool(a.len() == b.len()).and(UnifyResult::all(a.iter().map(|(k, &a)| {
-      if let Some(&b) = b.get(k) {
-        self.unify(a, b.invert_if(inv))
-      } else {
-        Failure
-      }
+      if let Some(&b) = b.get(k) { self.unify(a, b.invert_if(inv)) } else { Failure }
     })))
   }
 
@@ -580,11 +572,7 @@ impl UnifyResult {
   }
 
   pub fn from_bool(b: bool) -> Self {
-    if b {
-      Success
-    } else {
-      Failure
-    }
+    if b { Success } else { Failure }
   }
 
   pub fn is_success(self) -> bool {

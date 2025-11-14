@@ -15,7 +15,7 @@ use crate::{
     tir::TirImpl,
     types::{ImplType, Type, TypeKind},
   },
-  tools::fmt::{doc::Doc, Formatter},
+  tools::fmt::{Formatter, doc::Doc},
 };
 
 impl VineParser<'_> {

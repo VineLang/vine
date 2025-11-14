@@ -9,7 +9,7 @@ use crate::{
     types::Type,
     vir::{Interface, InterfaceKind, Layer, Port, PortKind, Stage, Transfer},
   },
-  tools::fmt::{doc::Doc, Formatter},
+  tools::fmt::{Formatter, doc::Doc},
 };
 
 impl<'src> Formatter<'src> {
@@ -217,9 +217,5 @@ fn swap<T>((a, b): (T, T)) -> (T, T) {
 }
 
 fn swap_if<T>(bool: bool, (a, b): (T, T)) -> (T, T) {
-  if bool {
-    (b, a)
-  } else {
-    (a, b)
-  }
+  if bool { (b, a) } else { (a, b) }
 }

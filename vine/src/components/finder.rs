@@ -434,11 +434,7 @@ impl<'a> Finder<'a> {
 
   fn step(&mut self) -> Result<(), Timeout> {
     self.steps += 1;
-    if self.steps > STEPS_LIMIT {
-      Err(Timeout)
-    } else {
-      Ok(())
-    }
+    if self.steps > STEPS_LIMIT { Err(Timeout) } else { Ok(()) }
   }
 
   fn find_auto_impls(

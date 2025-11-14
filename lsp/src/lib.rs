@@ -1,8 +1,8 @@
 use std::{collections::HashMap, future::Future, sync::Arc, time::Instant};
 
-use futures::{stream::FuturesUnordered, StreamExt};
+use futures::{StreamExt, stream::FuturesUnordered};
 use tokio::sync::RwLock;
-use tower_lsp::{jsonrpc::Result, lsp_types::*, Client, LanguageServer, LspService, Server};
+use tower_lsp::{Client, LanguageServer, LspService, Server, jsonrpc::Result, lsp_types::*};
 
 use vine::{
   compiler::Compiler, components::loader::Loader, features::cfg::Config, structures::diag::Diag,

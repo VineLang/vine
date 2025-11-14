@@ -6,7 +6,7 @@ use crate::{
   components::{
     charter::Charter,
     lexer::Token,
-    parser::{VineParser, BRACE_COMMA},
+    parser::{BRACE_COMMA, VineParser},
     resolver::Resolver,
   },
   structures::{
@@ -15,7 +15,7 @@ use crate::{
     diag::{Diag, ErrorGuaranteed},
     signatures::ImportState,
   },
-  tools::fmt::{doc::Doc, Formatter},
+  tools::fmt::{Formatter, doc::Doc},
 };
 
 impl VineParser<'_> {
@@ -101,11 +101,7 @@ impl<'src> Formatter<'src> {
       tree.children.iter().map(|(name, child)| Self::fmt_use_tree(Some(name.clone()), child));
     let len = aliases_len + children.len();
     if len == 1 {
-      if aliases_len == 1 {
-        Doc::concat(aliases)
-      } else {
-        Doc::concat(prefix.chain(children))
-      }
+      if aliases_len == 1 { Doc::concat(aliases) } else { Doc::concat(prefix.chain(children)) }
     } else {
       Doc::concat(
         prefix.chain([Doc::brace_comma(aliases.chain(children).collect::<Vec<_>>().into_iter())]),

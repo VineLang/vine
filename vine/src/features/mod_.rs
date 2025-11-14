@@ -4,14 +4,14 @@ use crate::{
   components::{
     charter::Charter,
     lexer::Token,
-    parser::{VineParser, BRACE},
+    parser::{BRACE, VineParser},
   },
   structures::{
     ast::{ModItem, ModKind},
     chart::{DefId, GenericsId},
     diag::Diag,
   },
-  tools::fmt::{doc::Doc, Formatter},
+  tools::fmt::{Formatter, doc::Doc},
 };
 
 impl VineParser<'_> {

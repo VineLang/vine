@@ -3,7 +3,7 @@ use std::mem::replace;
 use crate::{
   features::cfg::Config,
   structures::{
-    ast::{visit::VisitMut, Attr, AttrKind, Flex, Ident, Item, ItemKind, ModKind, Span, Vis},
+    ast::{Attr, AttrKind, Flex, Ident, Item, ItemKind, ModKind, Span, Vis, visit::VisitMut},
     chart::Chart,
     diag::{Diag, Diags, ErrorGuaranteed},
   },

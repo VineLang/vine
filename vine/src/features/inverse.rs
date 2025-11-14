@@ -10,7 +10,7 @@ use crate::{
     types::Type,
     vir::{Port, Stage},
   },
-  tools::fmt::{doc::Doc, Formatter},
+  tools::fmt::{Formatter, doc::Doc},
 };
 
 impl<'src> Formatter<'src> {

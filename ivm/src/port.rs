@@ -90,13 +90,7 @@ impl<'ivm> Port<'ivm> {
   /// or have an invalid tag.
   #[inline(always)]
   pub(crate) unsafe fn option_from_bits(word: Word) -> Option<Self> {
-    unsafe {
-      if word.bits() & 0b111 == 0 {
-        None
-      } else {
-        Some(Self::from_bits(word))
-      }
-    }
+    unsafe { if word.bits() & 0b111 == 0 { None } else { Some(Self::from_bits(word)) } }
   }
 
   /// Constructs a new port from its components.
