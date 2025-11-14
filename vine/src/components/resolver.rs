@@ -141,10 +141,10 @@ impl<'a> Resolver<'a> {
     for id in self.chart.impls.keys_from(checkpoint.impls) {
       self.resolve_impl_become(id);
     }
-    if let Some(main_mod) = self.chart.main_mod {
-      if main_mod >= checkpoint.defs {
-        self.resolve_main(main_mod);
-      }
+    if let Some(main_mod) = self.chart.main_mod
+      && main_mod >= checkpoint.defs
+    {
+      self.resolve_main(main_mod);
     }
   }
 

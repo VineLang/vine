@@ -43,12 +43,11 @@ impl Resolver<'_> {
     let inner = self.resolve_expr(inner);
     let return_ty = self.types.new_var(span);
     let rel = self.builtin_fn(span, self.chart.builtins.not, "not", [inner.ty, return_ty])?;
-    if let FnRel::Item(FnId::Abstract(..), impls) = &self.rels.fns[rel] {
-      if let [TirImpl::Def(id, _)] = **impls {
-        if self.chart.builtins.bool_not == Some(id) {
-          return Ok(TirExpr::new(span, return_ty, TirExprKind::Not(inner)));
-        }
-      }
+    if let FnRel::Item(FnId::Abstract(..), impls) = &self.rels.fns[rel]
+      && let [TirImpl::Def(id, _)] = **impls
+      && self.chart.builtins.bool_not == Some(id)
+    {
+      return Ok(TirExpr::new(span, return_ty, TirExprKind::Not(inner)));
     }
     Ok(TirExpr::new(span, return_ty, TirExprKind::Call(rel, None, vec![inner])))
   }

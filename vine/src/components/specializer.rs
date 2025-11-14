@@ -61,15 +61,14 @@ impl<'a> Specializer<'a> {
     args: &Vec<ImplTree>,
     rels: &Rels,
   ) -> SpecRels {
-    let rels = SpecRels {
+    SpecRels {
       fns: IdxVec::from_iter(
         rels.fns.values().map(|rel| self.instantiate_fn_rel(fragment_id, args, rel)),
       ),
       consts: IdxVec::from_iter(
         rels.consts.values().map(|rel| self.instantiate_const_rel(fragment_id, args, rel)),
       ),
-    };
-    rels
+    }
   }
 
   fn instantiate_const_rel(
@@ -266,14 +265,11 @@ impl<'a> Specializer<'a> {
       TirImpl::Def(id, impls) => {
         let impls =
           impls.iter().map(|i| self.instantiate(fragment_id, args, i)).collect::<Vec<_>>();
-        if let Ok(ResolvedImpl {
-          become_: Become::Resolved(Some((become_impl, indices))), ..
-        }) = &self.resolutions.impls[*id]
+        if let Ok(ResolvedImpl { become_: Become::Resolved(Some((become_impl, indices))), .. }) =
+          &self.resolutions.impls[*id]
+          && indices.iter().all(|&i| matches!(impls[i], ImplTree::Def(id, _) if id == *become_impl))
         {
-          if indices.iter().all(|&i| matches!(impls[i], ImplTree::Def(id, _) if id == *become_impl))
-          {
-            return ImplTree::Def(*become_impl, vec![]);
-          }
+          return ImplTree::Def(*become_impl, vec![]);
         }
         ImplTree::Def(*id, impls)
       }

@@ -602,10 +602,10 @@ impl<'ctx> TypeTransfer<'ctx> {
       Entry::Occupied(e) => (*e.get()).invert_if(old.inv()),
       Entry::Vacant(e) => {
         let old_kind = self.source.kind(old.idx().into());
-        if let Some(params) = self.params {
-          if let Some((inv, TypeKind::Param(p, _))) = old_kind {
-            return params[*p].invert_if(inv ^ old.inv());
-          }
+        if let Some(params) = self.params
+          && let Some((inv, TypeKind::Param(p, _))) = old_kind
+        {
+          return params[*p].invert_if(inv ^ old.inv());
         }
         let new = self.dest.new_var(match self.source.types[old.idx()] {
           Root { state: Unknown(span), .. } => span,

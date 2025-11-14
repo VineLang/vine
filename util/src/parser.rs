@@ -88,16 +88,16 @@ pub trait Parser<'src> {
     }
     let mut items = Vec::new();
     loop {
-      if let Some(close) = delims.close {
-        if self.check(close) {
-          break;
-        }
+      if let Some(close) = delims.close
+        && self.check(close)
+      {
+        break;
       }
       items.push(parse_el(self)?);
-      if let Some(separator) = delims.separator {
-        if !self.eat(separator)? {
-          break;
-        }
+      if let Some(separator) = delims.separator
+        && !self.eat(separator)?
+      {
+        break;
       }
     }
     if let Some(close) = delims.close {

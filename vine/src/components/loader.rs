@@ -158,19 +158,19 @@ struct LoadDeps<'a> {
 
 impl VisitMut<'_> for LoadDeps<'_> {
   fn visit_item(&mut self, item: &mut Item) {
-    if let ItemKind::Mod(module) = &mut item.kind {
-      if let ModKind::Unloaded(_, path) = &mut module.kind {
-        module.kind = self.loader.load_file(
-          Some(self.base),
-          match &*path {
-            Some(path) => ModSpec::Explicit(path.as_ref()),
-            None => ModSpec::Implicit(module.name.clone()),
-          },
-          item.span,
-          self.diags,
-        );
-        return;
-      }
+    if let ItemKind::Mod(module) = &mut item.kind
+      && let ModKind::Unloaded(_, path) = &mut module.kind
+    {
+      module.kind = self.loader.load_file(
+        Some(self.base),
+        match &*path {
+          Some(path) => ModSpec::Explicit(path.as_ref()),
+          None => ModSpec::Implicit(module.name.clone()),
+        },
+        item.span,
+        self.diags,
+      );
+      return;
     }
     self._visit_item(item);
   }

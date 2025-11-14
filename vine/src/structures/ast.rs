@@ -386,10 +386,10 @@ pub struct Path {
 
 impl Path {
   pub fn as_ident(&self) -> Option<Ident> {
-    if self.generics.is_none() {
-      if let [ident] = &self.segments[..] {
-        return Some(ident.clone());
-      }
+    if self.generics.is_none()
+      && let [ident] = &self.segments[..]
+    {
+      return Some(ident.clone());
     }
     None
   }

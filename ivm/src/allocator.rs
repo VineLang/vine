@@ -75,7 +75,7 @@ impl<'ivm, 'ext> IVM<'ivm, 'ext> {
   pub(crate) fn free_wire(&mut self, wire: Wire<'ivm>) {
     self.stats.mem_free += 1;
     unsafe {
-      let free = Word::from_bits(u64::MAX & !0b111);
+      let free = Word::from_bits(!0b111);
       let addr = wire.addr();
       addr.as_word().store(free);
       if addr.other_half().as_word().load() == free {

@@ -181,12 +181,11 @@ impl<'src> Formatter<'src> {
 
   pub(crate) fn fmt_expr_object(&self, entries: &[(Key, Expr)]) -> Doc<'src> {
     Doc::brace_comma_space(entries.iter().map(|(key, expr)| {
-      if let ExprKind::Path(path, None) = &*expr.kind {
-        if let Some(i) = path.as_ident() {
-          if key.ident == i {
-            return Doc(key.ident.clone());
-          }
-        }
+      if let ExprKind::Path(path, None) = &*expr.kind
+        && let Some(i) = path.as_ident()
+        && key.ident == i
+      {
+        return Doc(key.ident.clone());
       }
       Doc::concat([Doc(key.ident.clone()), Doc(": "), self.fmt_expr(expr)])
     }))

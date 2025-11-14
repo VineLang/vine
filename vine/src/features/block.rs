@@ -27,17 +27,16 @@ impl VineParser<'_> {
 
 impl<'src> Formatter<'src> {
   pub(crate) fn fmt_block(&self, block: &Block, force_open: bool) -> Doc<'src> {
-    if !force_open {
-      if let [stmt] = &*block.stmts {
-        if matches!(stmt.kind, StmtKind::Expr(_, false)) {
-          let str = " ";
-          return Doc::concat([
-            Doc("{"),
-            Doc::group([Doc::if_single(str), self.fmt_stmt(stmt), Doc::if_single(" ")]),
-            Doc("}"),
-          ]);
-        }
-      }
+    if !force_open
+      && let [stmt] = &*block.stmts
+      && matches!(stmt.kind, StmtKind::Expr(_, false))
+    {
+      let str = " ";
+      return Doc::concat([
+        Doc("{"),
+        Doc::group([Doc::if_single(str), self.fmt_stmt(stmt), Doc::if_single(" ")]),
+        Doc("}"),
+      ]);
     }
     self.fmt_block_like(block.span, block.stmts.iter().map(|x| (x.span, self.fmt_stmt(x))))
   }

@@ -138,10 +138,10 @@ impl Resolver<'_> {
         break;
       }
     }
-    if let Some(prelude) = self.chart.builtins.prelude {
-      if let Some(resolved) = self._resolve_segment(span, base, prelude, ident.clone())? {
-        return Ok(resolved);
-      }
+    if let Some(prelude) = self.chart.builtins.prelude
+      && let Some(resolved) = self._resolve_segment(span, base, prelude, ident.clone())?
+    {
+      return Ok(resolved);
     }
     Err(Diag::CannotResolve { span, module: self.chart.defs[base].path.clone(), ident })
   }
@@ -194,18 +194,18 @@ impl Resolver<'_> {
     path: &Path,
     args: &Option<Vec<Expr>>,
   ) -> Result<TirExpr, Diag> {
-    if let Some(ident) = path.as_ident() {
-      if let Some(bind) = self.scope.get(&ident).and_then(|x| x.last()) {
-        let expr = match bind.binding {
-          Binding::Local(local, _, ty) => TirExpr::new(span, ty, TirExprKind::Local(local)),
-          Binding::Closure(id, ty) => TirExpr::new(span, ty, TirExprKind::Closure(id)),
-        };
-        return if let Some(args) = args {
-          self._resolve_expr_call(span, expr, args)
-        } else {
-          Ok(expr)
-        };
-      }
+    if let Some(ident) = path.as_ident()
+      && let Some(bind) = self.scope.get(&ident).and_then(|x| x.last())
+    {
+      let expr = match bind.binding {
+        Binding::Local(local, _, ty) => TirExpr::new(span, ty, TirExprKind::Local(local)),
+        Binding::Closure(id, ty) => TirExpr::new(span, ty, TirExprKind::Closure(id)),
+      };
+      return if let Some(args) = args {
+        self._resolve_expr_call(span, expr, args)
+      } else {
+        Ok(expr)
+      };
     }
     match self.resolve_path(self.cur_def, path, "value", |d| d.value_kind) {
       Ok(DefValueKind::Const(const_id)) => {
@@ -266,10 +266,10 @@ impl Resolver<'_> {
   }
 
   pub(crate) fn resolve_ty_path(&mut self, path: &Path, inference: bool) -> Type {
-    if let Some(ident) = path.as_ident() {
-      if let Some(&index) = self.sigs.type_params[self.cur_generics].lookup.get(&ident) {
-        return self.types.new(TypeKind::Param(index, ident));
-      }
+    if let Some(ident) = path.as_ident()
+      && let Some(&index) = self.sigs.type_params[self.cur_generics].lookup.get(&ident)
+    {
+      return self.types.new(TypeKind::Param(index, ident));
     }
     let resolved = self.resolve_path(self.cur_def, path, "type", |d| d.type_kind);
     match resolved {
