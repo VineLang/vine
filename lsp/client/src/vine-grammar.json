@@ -1,20 +1,20 @@
 {
   "name": "vine",
   "patterns": [
-    { "include": "#single-comment" },
-    { "include": "#multi-comment" }
+    { "include": "#line-comment" },
+    { "include": "#block-comment" }
   ],
   "scopeName": "source.vine",
   "repository": {
-    "single-comment": {
+    "line-comment": {
       "match": "//.*",
       "name": "comment.line.double-slash.vine"
     },
-    "multi-comment": {
+    "block-comment": {
       "begin": "/\\*",
       "end": "\\*/",
       "name": "comment.block.vine",
-      "patterns": [{ "include": "#multi-comment" }]
+      "patterns": [{ "include": "#block-comment" }]
     }
   }
 }
