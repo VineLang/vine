@@ -3,8 +3,7 @@
 
 #import "img.typ"
 
-#include "deps/typsitter-langs/base/langs.typ"
-#include "deps/typsitter-langs/vine/langs.typ"
+#include "deps/typsitter-langs/langs.typ"
 
 #show: typsitter.register(pdf-theme, html_support: true)
 #show raw: set block(inset: 10pt, radius: 2pt, width: 100%, breakable: false)
