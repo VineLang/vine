@@ -4,7 +4,7 @@
 
 Make sure you have #link("https://www.rust-lang.org/tools/install")[Rust] installed.
 
-```nu
+```bash
 # clone the Vine repository
 git clone https://github.com/VineLang/vine
 cd ./vine
@@ -28,7 +28,7 @@ Head over to the next page to learn more about what just happened.
 
 Make sure you have #link("https://nodejs.org/en/download/package-manager")[Node.js] installed.
 
-```nu
+```bash
 cd lsp/client
 npm i
 ```
