@@ -12,11 +12,11 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     typsitter = {
-      url = "github:TendrilsCompute/typsitter/6d20389c532961aa6c8f6a72405078cc1be0d9a5";
+      url = "github:TendrilsCompute/typsitter";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     hyptyp = {
-      url = "github:TendrilsCompute/hyptyp/9244b8a8a9c6acf65512ab846375f728d4d3d126";
+      url = "github:TendrilsCompute/hyptyp";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };

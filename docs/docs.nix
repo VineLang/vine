@@ -8,17 +8,12 @@
   grammars,
 }:
 let
-  typsitter-base = pkgs.callPackage typsitter.lib.typsitterMkDerivation {
+  typsitter-langs = pkgs.callPackage typsitter.lib.typsitterMkDerivation {
     typsitterGrammars = {
       inherit (typsitter.lib.typsitterDefaultGrammars pkgs)
-        nu
+        bash
         json
         ;
-    };
-  };
-
-  typsitter-vine = pkgs.callPackage typsitter.lib.typsitterMkDerivation {
-    typsitterGrammars = {
       vine = grammars.packages.tree-sitter-vine;
       ivy = grammars.packages.tree-sitter-ivy;
     };
@@ -46,12 +41,8 @@ let
         src = typsitter.lib.src;
       }
       {
-        dest = "docs/deps/typsitter-langs/base";
-        src = typsitter-base;
-      }
-      {
-        dest = "docs/deps/typsitter-langs/vine";
-        src = typsitter-vine;
+        dest = "docs/deps/typsitter-langs/";
+        src = typsitter-langs;
       }
       {
         dest = "docs/deps/hyptyp";
@@ -71,7 +62,7 @@ let
 in
 {
   packages = {
-    inherit typsitter-base typsitter-vine;
+    inherit typsitter-langs;
     docs = hyptypLib.buildHyptypProject buildArgs;
     docs-pdf = typixLib.buildTypstProject buildArgs;
   };
