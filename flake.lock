@@ -77,11 +77,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1757803571,
-        "narHash": "sha256-B3zRpyYnJxbrgzK0ols7TbTF2f3/1TnLpds6EDwSQK4=",
+        "lastModified": 1763238904,
+        "narHash": "sha256-UW6FxKrHQ+8r2X78izD9+RngpO142nOz9X2B+JaUYCs=",
         "owner": "TendrilsCompute",
         "repo": "hyptyp",
-        "rev": "9244b8a8a9c6acf65512ab846375f728d4d3d126",
+        "rev": "6c2b773b538ce8ad5e70b495839ee6b7f9a174c6",
         "type": "github"
       },
       "original": {
