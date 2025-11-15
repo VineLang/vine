@@ -58,6 +58,11 @@
         "language": "ivy",
         "scopeName": "source.ivy",
         "path": "src/ivy-grammar.json"
+      },
+      {
+        "language": "vine",
+        "scopeName": "source.vine",
+        "path": "src/vine-grammar.json"
       }
     ],
     "commands": [
