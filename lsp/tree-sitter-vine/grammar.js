@@ -96,6 +96,38 @@ module.exports = grammar({
     $._impl,
   ],
 
+  reserved: {
+    global: _ => [
+      "pub",
+      "mod",
+      "use",
+      "as",
+      "fn",
+      "struct",
+      "enum",
+      "type",
+      "trait",
+      "impl",
+      "match",
+      "let",
+      "const",
+      "in",
+      "is",
+      "return",
+      "do",
+      "loop",
+      "while",
+      "for",
+      "break",
+      "continue",
+      "if",
+      "when",
+      "else",
+      "true",
+      "false",
+    ],
+  },
+
   rules: {
     source_file: $ => repeat($._stmt),
 

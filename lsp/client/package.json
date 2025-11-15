@@ -1,19 +1,31 @@
 {
-  "name": "vine-vscode",
-  "version": "0.1.0",
+  "name": "vine",
+  "displayName": "Vine",
+  "description": "Language support for the Vine programming language",
+  "publisher": "vinelang",
+  "version": "0.0.0",
+  "repository": "https://github.com/VineLang/vine",
+  "icon": "assets/vine.png",
+  "galleryBanner": {
+    "color": "#151820",
+    "theme": "dark"
+  },
   "engines": {
-    "vscode": "^1.85.0"
+    "vscode": "^1.95.0"
   },
   "devDependencies": {
+    "@types/emscripten": "^1.41.5",
     "@types/node": "^22.9.0",
     "@types/vscode": "^1.95.0",
     "typescript": "^5.6.3"
   },
   "dependencies": {
-    "vscode-languageclient": "^9.0.1"
+    "vscode-languageclient": "^9.0.1",
+    "web-tree-sitter": "^0.25.10"
   },
   "scripts": {
-    "postinstall": "tsc"
+    "build-tree-sitter": "cd ../tree-sitter-vine; npm i; tree-sitter generate; tree-sitter build --wasm; cp queries/highlights.scm tree-sitter-vine.wasm ../client/dist",
+    "build": "npm run build-tree-sitter; tsc"
   },
   "main": "dist/extension.js",
   "contributes": {
@@ -43,11 +55,6 @@
     ],
     "grammars": [
       {
-        "language": "vine",
-        "scopeName": "source.vine",
-        "path": "src/vine-grammar.json"
-      },
-      {
         "language": "ivy",
         "scopeName": "source.ivy",
         "path": "src/ivy-grammar.json"
@@ -74,7 +81,9 @@
           "items": {
             "type": "string"
           },
-          "default": ["vine"]
+          "default": [
+            "vine"
+          ]
         },
         "vine.entrypoints": {
           "type": "array",
@@ -82,6 +91,11 @@
             "type": "string"
           }
         }
+      }
+    },
+    "configurationDefaults": {
+      "[vine]": {
+        "editor.semanticHighlighting.enabled": true
       }
     }
   }
