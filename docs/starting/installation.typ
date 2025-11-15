@@ -24,24 +24,17 @@ Hello, world!
 
 Head over to the next page to learn more about what just happened.
 
-== Optional: Vine VSCode Extension
+== Optional: VSCode Extension
 
-Make sure you have #link("https://nodejs.org/en/download/package-manager")[Node.js] installed.
+Install the #link("https://marketplace.visualstudio.com/items?itemName=VineLang.vine")[Vine extension] from the VSCode Marketplace.
 
-```bash
-cd lsp/client
-npm i
+For VSCode forks, check the latest version on the marketplace and download
 ```
+https://marketplace.visualstudio.com/_apis/public/gallery/publishers/vinelang/vsextensions/vine/<VERSION>/vspackage
+```
+You can then install this with "Extensions: Install from VSIX".
 
-Then, run "Developer: Install Extension from Location..."
-  and select the `lsp/client` directory.
-
-You can check that it's working by opening one of the example files and making a syntax error.
-When you save, you should see an error appear.
-
-== Optional: Vine Workspace Configuration
-
-=== LSP
+=== LSP Configuration
 
 ```json
 // .vscode/settings.json
@@ -53,7 +46,51 @@ When you save, you should see an error appear.
 
 Make sure you reload the window after changing this file.
 
-=== Formatter
+== Optional: Helix Configuration
+
+```toml
+# ~/.config/helix/languages.toml
+
+[[language]]
+name = "vine"
+scope = "source.vine"
+file-types = ["vi"]
+language-servers = ["vine"]
+formatter = { command = "vine", args = ["fmt"] }
+grammar = "vine"
+auto-format = true
+comment-tokens = ["//"]
+
+[[grammar]]
+name = "vine"
+source.path = "/absolute/path/to/vine/lsp/tree-sitter-vine/"
+```
+
+To build the tree sitter grammar,
+  make sure you have #link("https://nodejs.org/en/download/package-manager")[Node.js] installed,
+  and run
+
+```bash
+cd lsp/tree-sitter/vine
+npm i
+npx tree-sitter generate
+hx --grammar build
+ln -s /absolute/path/to/vine/lsp/tree-sitter-vine/queries ~/.config/helix/runtime/queries/vine
+```
+
+=== LSP Configuration
+
+```toml
+# .helix/languages.toml
+
+[language-server.vine]
+command = "vine"
+# list all of your top-level Vine programs (globs are supported)
+args = ["lsp", "--", "src/main.vi"]
+
+```
+
+== Optional: `dprint` Configuration
 
 Make sure you have #link("https://dprint.dev/install/")[`dprint`] installed.
 
@@ -71,5 +108,3 @@ Make sure you have #link("https://dprint.dev/install/")[`dprint`] installed.
   "plugins": ["https://plugins.dprint.dev/exec-0.5.0.json"]
 }
 ```
-
-#todo[helix configuration]
