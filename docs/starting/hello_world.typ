@@ -14,7 +14,7 @@ pub fn main(&io: &IO) {
 
 We can run this with:
 
-```nu
+```bash
 vine run vine/examples/hello_world.vi
 ```
 

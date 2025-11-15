@@ -13,7 +13,7 @@ See
 #link("https://github.com/VineLang/vine/tree/main/vine/examples/")[`vine/examples/`]
 for examples of Vine.
 
-```nu
+```bash
 cargo run -r --bin vine run vine/examples/$NAME.vi
 ```
 
