@@ -95,7 +95,7 @@ impl Resolver<'_> {
   ) -> Result<(FnId, TypeCtx<Vec<Type>>), ErrorGuaranteed> {
     let mut finder =
       Finder::new(self.chart, self.sigs, self.diags, self.cur_def, self.cur_generics, span);
-    let mut results = finder.find_method(&self.types, receiver, name.clone());
+    let mut results = finder.find_method(&self.types, receiver, name.clone())?;
 
     if results.len() == 1 {
       Ok(results.pop().unwrap())

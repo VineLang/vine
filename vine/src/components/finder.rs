@@ -43,8 +43,17 @@ struct CandidateSearch<F> {
 
 const STEPS_LIMIT: u32 = 1_000;
 
-#[derive(Debug, Default, Clone, Copy)]
-struct Timeout;
+#[derive(Debug, Clone, Copy)]
+enum Error {
+  Timeout,
+  Guaranteed(ErrorGuaranteed),
+}
+
+impl From<ErrorGuaranteed> for Error {
+  fn from(err: ErrorGuaranteed) -> Self {
+    Error::Guaranteed(err)
+  }
+}
 
 impl<'a> Finder<'a> {
   pub fn new(
@@ -63,10 +72,10 @@ impl<'a> Finder<'a> {
     types: &Types,
     receiver: Type,
     name: Ident,
-  ) -> Vec<(FnId, TypeCtx<Vec<Type>>)> {
+  ) -> Result<Vec<(FnId, TypeCtx<Vec<Type>>)>, ErrorGuaranteed> {
     let mut found = Vec::new();
 
-    for candidate in self.find_method_candidates(types, receiver, name) {
+    for candidate in self.find_method_candidates(types, receiver, name)? {
       let mut types = types.clone();
       let generics = self.chart.fn_generics(candidate);
       let type_params = types.new_vars(self.span, self.sigs.type_params[generics].params.len());
@@ -85,7 +94,7 @@ impl<'a> Finder<'a> {
       }
     }
 
-    found
+    Ok(found)
   }
 
   fn find_method_candidates(
@@ -93,7 +102,7 @@ impl<'a> Finder<'a> {
     types: &Types,
     receiver: Type,
     name: Ident,
-  ) -> BTreeSet<FnId> {
+  ) -> Result<BTreeSet<FnId>, ErrorGuaranteed> {
     let mut candidates = BTreeSet::new();
     let search = &mut CandidateSearch {
       mods: HashSet::default(),
@@ -111,11 +120,11 @@ impl<'a> Finder<'a> {
 
     self.find_general_candidates(search);
 
-    if let Some(def_id) = types.get_mod(self.chart, receiver) {
+    if let Some(def_id) = types.get_mod(self.chart, receiver)? {
       self.consider_mod(search, def_id);
     }
 
-    candidates
+    Ok(candidates)
   }
 
   pub fn find_flex(&mut self, types: &mut Types, ty: Type) -> Result<FlexImpls, ErrorGuaranteed> {
@@ -211,8 +220,10 @@ impl<'a> Finder<'a> {
     let TypeCtx { types: sub_types, inner: sub_query } = types.export(|t| t.transfer(query));
 
     let show_ty = || types.show_impl_type(self.chart, query);
-    let Ok(mut results) = self._find_impl(&sub_types, &sub_query, basic) else {
-      return Err(Diag::SearchLimit { span, ty: show_ty() });
+    let mut results = match self._find_impl(&sub_types, &sub_query, basic) {
+      Ok(results) => results,
+      Err(Error::Timeout) => Err(Diag::SearchLimit { span, ty: show_ty() })?,
+      Err(Error::Guaranteed(err)) => Err(err)?,
     };
 
     if results.is_empty() {
@@ -237,7 +248,7 @@ impl<'a> Finder<'a> {
     types: &Types,
     query: &ImplType,
     basic: bool,
-  ) -> Result<Vec<TypeCtx<TirImpl>>, Timeout> {
+  ) -> Result<Vec<TypeCtx<TirImpl>>, Error> {
     self.step()?;
 
     let mut found = Vec::new();
@@ -257,7 +268,7 @@ impl<'a> Finder<'a> {
       }
     }
 
-    for candidate in self.find_impl_candidates(types, query, basic) {
+    for candidate in self.find_impl_candidates(types, query, basic)? {
       let mut types = types.clone();
       let generics = self.chart.impls[candidate].generics;
       let type_params = (0..self.sigs.type_params[generics].params.len())
@@ -279,7 +290,7 @@ impl<'a> Finder<'a> {
     mut types: Types,
     generics: GenericsId,
     type_params: Vec<Type>,
-  ) -> Result<impl Iterator<Item = TypeCtx<Vec<TirImpl>>>, Timeout> {
+  ) -> Result<impl Iterator<Item = TypeCtx<Vec<TirImpl>>>, Error> {
     let queries = types.import(&self.sigs.impl_params[generics].types, Some(&type_params));
     let results = self.find_subimpls(types, &queries)?;
     Ok(results.into_iter().map(|mut result| {
@@ -292,7 +303,7 @@ impl<'a> Finder<'a> {
     &mut self,
     types: Types,
     queries: &[ImplType],
-  ) -> Result<Vec<TypeCtx<Vec<TirImpl>>>, Timeout> {
+  ) -> Result<Vec<TypeCtx<Vec<TirImpl>>>, Error> {
     let [query, rest_queries @ ..] = queries else {
       return Ok(vec![(TypeCtx { types, inner: vec![] })]);
     };
@@ -316,7 +327,7 @@ impl<'a> Finder<'a> {
     types: &Types,
     query: &ImplType,
     basic: bool,
-  ) -> BTreeSet<ImplId> {
+  ) -> Result<BTreeSet<ImplId>, ErrorGuaranteed> {
     let mut candidates = BTreeSet::new();
     let search = &mut CandidateSearch {
       mods: HashSet::default(),
@@ -341,13 +352,13 @@ impl<'a> Finder<'a> {
     if let ImplType::Trait(trait_id, params) = query {
       self.consider_mod(search, self.chart.traits[*trait_id].def);
       for &param in params {
-        if let Some(mod_id) = types.get_mod(self.chart, param) {
+        if let Some(mod_id) = types.get_mod(self.chart, param)? {
           self.consider_mod(search, mod_id);
         }
       }
     }
 
-    candidates
+    Ok(candidates)
   }
 
   fn find_general_candidates(&mut self, search: &mut CandidateSearch<impl FnMut(&Self, &Def)>) {
@@ -432,9 +443,9 @@ impl<'a> Finder<'a> {
     }
   }
 
-  fn step(&mut self) -> Result<(), Timeout> {
+  fn step(&mut self) -> Result<(), Error> {
     self.steps += 1;
-    if self.steps > STEPS_LIMIT { Err(Timeout) } else { Ok(()) }
+    if self.steps > STEPS_LIMIT { Err(Error::Timeout) } else { Ok(()) }
   }
 
   fn find_auto_impls(
@@ -442,7 +453,7 @@ impl<'a> Finder<'a> {
     types: &Types,
     query: &ImplType,
     found: &mut Vec<TypeCtx<TirImpl>>,
-  ) -> Result<(), Timeout> {
+  ) -> Result<(), Error> {
     match query {
       ImplType::Trait(trait_id, type_params) => {
         if Some(*trait_id) == self.chart.builtins.fn_ {

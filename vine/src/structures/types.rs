@@ -525,19 +525,20 @@ impl Types {
     TypeCtx { types, inner }
   }
 
-  pub fn get_mod(&self, chart: &Chart, ty: Type) -> Option<DefId> {
-    match self.kind(ty).as_ref()?.1 {
-      TypeKind::Opaque(id, _) => Some(chart.opaque_types[*id].def),
-      TypeKind::Struct(id, _) => Some(chart.structs[*id].def),
-      TypeKind::Enum(id, _) => Some(chart.enums[*id].def),
-      TypeKind::Ref(inner) => self.get_mod(chart, *inner),
-      TypeKind::Fn(..)
-      | TypeKind::Closure(..)
-      | TypeKind::Param(..)
-      | TypeKind::Tuple(..)
-      | TypeKind::Object(..)
-      | TypeKind::Never
-      | TypeKind::Error(_) => None,
+  pub fn get_mod(&self, chart: &Chart, ty: Type) -> Result<Option<DefId>, ErrorGuaranteed> {
+    match self.kind(ty).as_ref() {
+      Some((_, TypeKind::Opaque(id, _))) => Ok(Some(chart.opaque_types[*id].def)),
+      Some((_, TypeKind::Struct(id, _))) => Ok(Some(chart.structs[*id].def)),
+      Some((_, TypeKind::Enum(id, _))) => Ok(Some(chart.enums[*id].def)),
+      Some((_, TypeKind::Ref(inner))) => self.get_mod(chart, *inner),
+      Some((_, TypeKind::Fn(..)))
+      | Some((_, TypeKind::Closure(..)))
+      | Some((_, TypeKind::Param(..)))
+      | Some((_, TypeKind::Tuple(..)))
+      | Some((_, TypeKind::Object(..)))
+      | Some((_, TypeKind::Never))
+      | None => Ok(None),
+      Some((_, TypeKind::Error(err))) => Err(*err),
     }
   }
 
