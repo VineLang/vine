@@ -5,6 +5,8 @@ use ops::{Cast, arithmetic::{Add, Div, Mul, Neg, Pos, Pow, Rem, Sub}, comparison
 pub type F32;
 
 pub mod F32 {
+  pub mod parse;
+
   pub const nan: F32 = inline_ivy! () -> F32 { +NaN };
   pub const inf: F32 = inline_ivy! () -> F32 { +inf };
   pub const neg_inf: F32 = inline_ivy! () -> F32 { -inf };
@@ -112,6 +114,10 @@ pub mod F32 {
     inline_ivy! (n <- n) -> F32 { out n = @f32_from_bits(0 out) }
   }
 
+  pub fn from_parts(negative: Bool, exp: N32, mantissa: N32) -> F32 {
+    F32::from_bits(negative as N32 << 31 | exp << 23 | mantissa)
+  }
+
   pub fn .is_nan(f: F32) -> Bool {
     f != f
   }
@@ -176,80 +182,6 @@ pub mod F32 {
   pub impl show: Show[F32] {
     fn show(&self: &F32) -> Show {
       Show::Literal("≈{self}")
-    }
-  }
-
-  // This is not a IEEE-754 compliant parser.
-  // * For large and small absolute values, the result is not necessarily the closest representable value.
-  // * For strings with 10 or more significant digits, the result is likely completely wrong.
-  // TODO: implement fall-back parsing with arbitrary precision
-  // TODO: implement Eisel-Lemire algorithm for fast parsing of most cases
-  pub fn parse(str: String) -> Option[F32] {
-    let prefix = match str!.pop_front() {
-      Some(char) { char }
-      None {
-        return None;
-      }
-    };
-    let is_negative = when {
-      prefix == '-' { true }
-      prefix == '+' { false }
-      _ {
-        str!.push_front(prefix);
-        false
-      }
-    };
-
-    let value = when {
-      str == "NaN" || str == "nan" { F32::nan }
-      str == "inf" { F32::inf }
-      _ {
-        let mantissa = 0;
-        let next_char = str!.pop_front();
-        let num_digits = 0;
-        while next_char is Some(char) && ('0' <= char <= '9') {
-          mantissa = mantissa * 10 + (char - '0') as N32;
-          num_digits += 1;
-          next_char = str!.pop_front();
-        }
-        let exponent = +0;
-        if next_char is Some(char) && char == '.' {
-          next_char = str!.pop_front();
-          while next_char is Some(char) && ('0' <= char <= '9') {
-            mantissa = mantissa * 10 + (char - '0') as N32;
-            num_digits += 1;
-            exponent -= +1;
-            next_char = str!.pop_front();
-          }
-        }
-        if num_digits == 0 {
-          return None;
-        }
-        if next_char is Some(char) {
-          if char != 'e' && char != 'E' {
-            return None;
-          }
-          match I32::parse(str) {
-            Some(exp) {
-              exponent += exp;
-            }
-            None {
-              return None;
-            }
-          }
-        }
-        if exponent < +0 {
-          mantissa as F32 / (10.0 ** (-exponent as N32))
-        } else {
-          mantissa as F32 * (10.0 ** exponent as N32)
-        }
-      }
-    };
-
-    if is_negative {
-      Some(-value)
-    } else {
-      Some(value)
     }
   }
 }

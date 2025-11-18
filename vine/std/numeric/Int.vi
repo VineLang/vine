@@ -1,5 +1,5 @@
 
-use std::ops::arithmetic::{Add, Div, Mul, Neg, Rem, Sub};
+use std::ops::arithmetic::{Add, Div, Mul, Neg, Pow, Rem, Sub};
 use std::ops::bitwise::{And, Or, Xor};
 use std::ops::{Cast, comparison::{Eq, Ord}};
 
@@ -72,6 +72,12 @@ pub mod Int {
         return 0[Int];
       }
       Int(a_sign != b_sign, a_mag * b_mag)
+    }
+  }
+
+  pub impl pow_n32: Pow[Int, N32, Int] {
+    fn pow(base: Int, exp: N32) -> Int {
+      Pow::pow_by_squaring(base, exp)
     }
   }
 
