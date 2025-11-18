@@ -141,13 +141,13 @@ pub mod N32 {
     if n != 0 {
       let chars = [];
       while n != 0 {
-        let char = n & 15;
-        let char = if char < 10 {
-          '0' + char
+        let nibble = n & 15;
+        let nibble = if nibble < 10 {
+          '0' + nibble
         } else {
-          'a' - 10 + char
+          'a' - 10 + nibble
         };
-        chars.push_front(char);
+        chars.push_front(nibble);
         n >>= 4;
       }
       "0x" ++ String(chars)
