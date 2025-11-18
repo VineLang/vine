@@ -48,3 +48,7 @@ let io: IO = <IO>;
 1.19317212e-9
 
 let io: IO = <IO>;
+> 0.000000000000000000000009999999995  // triggers overflow edge case
+1.0e-23
+
+let io: IO = <IO>;
