@@ -41,14 +41,9 @@ error tests/programs/fail/atypical.vi:4:8 - cannot drop `?0`
 error tests/programs/fail/atypical.vi:4:11 - cannot drop `(?1, ??, ??)`
 error tests/programs/fail/atypical.vi:12:3 - search limit reached when finding impl of trait `Drop[?29]`
 error tests/programs/fail/atypical.vi:13:14 - search limit reached when finding impl of trait `Drop[?34]`
-error tests/programs/fail/atypical.vi:14:3 - cannot find impl of trait `Drop[??]`
-error tests/programs/fail/atypical.vi:16:3 - cannot find impl of trait `Drop[??]`
-error tests/programs/fail/atypical.vi:17:3 - cannot find impl of trait `Drop[??]`
 error tests/programs/fail/atypical.vi:22:7 - expected a complete pattern
 error tests/programs/fail/atypical.vi:23:4 - search limit reached when finding impl of trait `Drop[?73]`
 error tests/programs/fail/atypical.vi:28:14 - search limit reached when finding impl of trait `Drop[?83]`
-error tests/programs/fail/atypical.vi:30:3 - cannot find impl of trait `Drop[??]`
-error tests/programs/fail/atypical.vi:32:3 - cannot find impl of trait `Drop[??]`
 error tests/programs/fail/atypical.vi:10:8 - search limit reached when finding flex of type `?19`
 error tests/programs/fail/atypical.vi:10:11 - search limit reached when finding flex of type `?20`
 error tests/programs/fail/atypical.vi:18:14 - search limit reached when finding flex of type `?54`

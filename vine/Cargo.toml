@@ -18,3 +18,4 @@ vine-util = { path = "../util" }
 absolute_paths = "warn"
 large_enum_variant = "allow"
 too_many_arguments = "allow"
+type_complexity = "allow"
