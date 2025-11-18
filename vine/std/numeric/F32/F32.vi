@@ -115,8 +115,16 @@ pub mod F32 {
     inline_ivy! (n <- n) -> F32 { out n = @f32_from_bits(0 out) }
   }
 
-  pub fn from_parts(negative: Bool, exp: N32, mantissa: N32) -> F32 {
-    F32::from_bits(negative as N32 << 31 | exp << 23 | mantissa)
+  pub fn from_parts(negative: Bool, raw_exp: N32, mantissa: N32) -> F32 {
+    F32::from_bits(negative as N32 << 31 | raw_exp << 23 | mantissa)
+  }
+
+  pub fn .to_parts(f: F32) -> { negative: Bool, raw_exp: N32, mantissa: N32 } {
+    let bits = f.to_bits();
+    let negative = (bits >> 31) == 1;
+    let raw_exp = (bits >> 23) & 0xff;
+    let mantissa = bits & 0x7FFFFF;
+    { negative, raw_exp, mantissa }
   }
 
   pub fn .is_nan(f: F32) -> Bool {

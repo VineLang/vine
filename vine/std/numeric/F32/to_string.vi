@@ -13,8 +13,8 @@ pub impl to_string: Cast[F32, String] {
       return "-inf";
     }
 
-    let bits = f.to_bits();
-    let negative = (bits >> 31) == 1;
+    let { negative, raw_exp, mantissa } = f.to_parts();
+
     if f == 0.0 {
       if negative {
         return "-0.0";
@@ -22,9 +22,6 @@ pub impl to_string: Cast[F32, String] {
         return "0.0";
       }
     }
-
-    let raw_exp = (bits >> 23) & 0xff;
-    let mantissa = bits & 0x7FFFFF;
 
     let exp = raw_exp as I32 - +127 - +23;
 
