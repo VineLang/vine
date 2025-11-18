@@ -1,5 +1,5 @@
 
-use std::ops::arithmetic::{Add, Div, Mul, Rem, Sub};
+use std::ops::arithmetic::{Add, Div, Mul, Pow, Rem, Sub};
 use std::ops::bitwise::{And, Or, Shl, Shr, Xor};
 use std::ops::{Cast, comparison::{Eq, Ord}};
 
@@ -20,6 +20,24 @@ pub mod Nat {
 
   pub fn .is_zero(&Nat(parts)) -> Bool {
     parts.len() == 0
+  }
+
+  pub impl add_n32: Add[Nat, N32, Nat] {
+    fn add(Nat(a), n: N32) -> Nat {
+      let carry = n;
+      for &a_num in a.iter() {
+        let new_carry = N32::add_high(a_num, carry) as N32;
+        a_num += carry;
+        carry = new_carry;
+        if new_carry == 0 {
+          break;
+        }
+      }
+      if carry != 0 {
+        a.push_back(carry);
+      }
+      Nat(a)
+    }
   }
 
   pub impl add: Add[Nat, Nat, Nat] {
@@ -125,6 +143,12 @@ pub mod Nat {
         leading.push_back(current!.pop_front().unwrap_or(0));
       }
       Nat(leading ++ current!)
+    }
+  }
+
+  pub impl pow_n32: Pow[Nat, N32, Nat] {
+    fn pow(base: Nat, exp: N32) -> Nat {
+      Pow::pow_by_squaring(base, exp)
     }
   }
 

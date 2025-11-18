@@ -1,0 +1,175 @@
+
+use ops::comparison::Ord;
+
+// TODO: implement Eisel-Lemire algorithm for fast parsing of most cases
+pub fn parse(str: String) -> Option[F32] {
+  let prefix = match str!.pop_front() {
+    Some(char) { char }
+    None {
+      return None;
+    }
+  };
+  let is_negative = when {
+    prefix == '-' { true }
+    prefix == '+' { false }
+    _ {
+      str!.push_front(prefix);
+      false
+    }
+  };
+
+  let value = when {
+    str == "NaN" || str == "nan" { F32::nan }
+    str == "inf" { F32::inf }
+    _ {
+      let mantissa = 0[Nat];
+      let next_char = str!.pop_front();
+      let seen_digit = false;
+      while next_char is Some(char) && ('0' <= char <= '9') {
+        mantissa = mantissa * 10 + (char - '0') as N32;
+        seen_digit = true;
+        next_char = str!.pop_front();
+      }
+      let exp10 = +0;
+      if next_char is Some(char) && char == '.' {
+        next_char = str!.pop_front();
+        while next_char is Some(char) && ('0' <= char <= '9') {
+          mantissa = mantissa * 10 + (char - '0') as N32;
+          seen_digit = true;
+          exp10 -= +1;
+          next_char = str!.pop_front();
+        }
+      }
+      if !seen_digit {
+        return None;
+      }
+      if next_char is Some(char) {
+        if char != 'e' && char != 'E' {
+          return None;
+        }
+        let Some(exp) = I32::parse(str) else {
+          return None;
+        };
+        exp10 += exp;
+      }
+
+      if mantissa.is_zero() {
+        0.0
+      } else {
+        Rational::from_decimal(mantissa, exp10) as F32
+      }
+    }
+  };
+
+  if is_negative {
+    Some(-value)
+  } else {
+    Some(value)
+  }
+}
+
+struct Rational({ num: Nat, den: Nat, exp: I32 });
+
+mod Rational {
+  pub fn from_decimal(mantissa: Nat, exp10: I32) -> Rational {
+    if exp10 >= +0 {
+      Rational({ num: mantissa * 5[Nat] ** (exp10 as N32), den: 1[Nat], exp: exp10 })
+    } else {
+      Rational({ num: mantissa, den: 5[Nat] ** (-exp10 as N32), exp: exp10 })
+    }
+  }
+
+  // Normalizes the fraction to [1, 2).
+  // Does not terminate on zero.
+  fn .normalize(&Rational({ num, den, exp })) {
+    let den_shift = den << 1;
+    while num >= den_shift {
+      den = den_shift;
+      den_shift <<= 1;
+      exp += +1;
+    }
+
+    while num < den {
+      num <<= 1;
+      exp -= +1;
+    }
+  }
+
+  // Does not terminate on zero
+  pub impl to_f32: Cast[Rational, F32] {
+    fn cast(self: Rational) -> F32 {
+      self.normalize();
+      let Rational({ num, den, exp }) = self;
+
+      if exp > +127 {
+        return F32::inf;
+      }
+      if exp < -150 {
+        return 0.0;
+      }
+
+      if exp >= -126 {
+        // Normal range
+        let (q, r) = (num << 23).div_rem(den);
+        let mantissa = q as N32;
+
+        // Round mantissa
+        match (r << 1).cmp(&den) {
+          Ord::Gt {
+            mantissa += 1;
+          }
+          Ord::Eq {
+            if mantissa & 1 == 1 {
+              mantissa += 1;
+            }
+          }
+          _ {}
+        };
+
+        // If mantissa was rounded up to 2.0, shift by one to stay in [1, 2) range
+        if mantissa == (1 << 24) {
+          mantissa >>= 1;
+          exp += +1;
+          // Number can overflow when rounding up
+          if exp > +127 {
+            return F32::inf;
+          }
+        }
+        // clear implicit 1
+        mantissa &= ((1 << 23) - 1);
+        return F32::from_parts(false, (exp + +127) as N32, mantissa);
+      }
+
+      // Subnormal float
+      if exp == -150 {
+        // In some edge cases, exp can be -150 but the value still rounds up to 2^-149.
+        den <<= 1;
+      } else {
+        num <<= (exp + +149) as N32;
+      }
+      let (q, r) = num.div_rem(den);
+      let mantissa = q as N32;
+
+      // round to nearest, ties-to-even
+      match (r << 1).cmp(&den) {
+        Ord::Gt {
+          mantissa += 1;
+        }
+        Ord::Eq {
+          if mantissa & 1 == 1 {
+            mantissa += 1;
+          }
+        }
+        _ {}
+      }
+
+      if mantissa == 0 {
+        return 0.0;
+      }
+
+      // rounding can push a subnormal to the smallest normal (mantissa == 1 << 23). This still
+      // works as it just sets the lowest bit of the exponent.
+      F32::from_parts(false, 0, mantissa)
+    }
+  }
+}

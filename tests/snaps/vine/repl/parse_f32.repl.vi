@@ -60,20 +60,32 @@ let io: IO = <IO>;
 Some(≈+1.00000)
 
 let io: IO = <IO>;
-> F32::parse("0.1")
-Some(≈+0.10000)
+> F32::parse("0.1").unwrap().to_bits().to_hex()
+"0x3dcccccd"
 
 let io: IO = <IO>;
-> F32::parse("16777219")              // 2²⁴ + 3 → rounds to even 16777220
+> F32::parse("0.2").unwrap().to_bits().to_hex()
+"0x3e4ccccd"
+
+let io: IO = <IO>;
+> F32::parse("0.3").unwrap().to_bits().to_hex()
+"0x3e99999a"
+
+let io: IO = <IO>;
+> F32::parse("1e10").unwrap().to_bits().to_hex()
+"0x501502f9"
+
+let io: IO = <IO>;
+> F32::parse("1e-10").unwrap().to_bits().to_hex()
+"0x2edbe6ff"
+
+let io: IO = <IO>;
+> F32::parse("16777219")  // 2²⁴ + 3 → rounds to even 16777220
 Some(≈+1.67772e+7)
 
 let io: IO = <IO>;
 > F32::parse("1e39")
 Some(≈+inf)
-
-let io: IO = <IO>;
-> F32::parse("1e-9999")
-Some(≈+0.0)
 
 let io: IO = <IO>;
 > F32::parse("inf")
@@ -136,26 +148,63 @@ let io: IO = <IO>;
 None
 
 let io: IO = <IO>;
-> // Test cases the current implementation cannot handle
-
-let io: IO = <IO>;
 > F32::parse("6.0221408e23")
 Some(≈+6.02214e+23)
 
 let io: IO = <IO>;
 > F32::parse("3.4028234663852886e38") // f32::MAX
-Some(≈+3.34659e+31)
+Some(≈+3.40282e+38)
 
 let io: IO = <IO>;
-> F32::parse("1.1754943508222875e-38")// smallest *normal* +
-Some(≈+0.0)
+> F32::parse("1.1754943508222875e-38").unwrap().to_bits().to_hex()  // smallest normal
+"0x800000"
 
 let io: IO = <IO>;
-> F32::parse("1.401298464324817e-45") // smallest *sub-normal* +
-Some(≈+0.0)
+> F32::parse("1.401298464324817e-45").unwrap().to_bits().to_hex()  // smallest subnormal
+"0x1"
 
 let io: IO = <IO>;
-> F32::parse("1.0000000596046448")    // halfway between 1 and next float
-Some(≈+2.47096e-7)
+> F32::parse("1.1754942e-38").unwrap().to_bits().to_hex()  // largest subnormal
+"0x7fffff"
+
+let io: IO = <IO>;
+> F32::parse("1.000000059604644775390625").unwrap().to_bits().to_hex()  // halfway between 1 and next float
+"0x3f800000"
+
+let io: IO = <IO>;
+> F32::parse("1.000000059604644775390626").unwrap().to_bits().to_hex()
+"0x3f800001"
+
+let io: IO = <IO>;
+> F32::parse("1e-46").unwrap().to_bits().to_hex()  // underflows to +0
+"0x0"
+
+let io: IO = <IO>;
+> F32::parse("-1e-46").unwrap().to_bits().to_hex()  // underflows to -0
+"0x80000000"
+
+let io: IO = <IO>;
+> F32::parse("3.5e38")  // overflows to +inf
+Some(≈+inf)
+
+let io: IO = <IO>;
+> F32::parse("123456789012345678901234567890")
+Some(≈+1.23456e+29)
+
+let io: IO = <IO>;
+> F32::parse("0.123456789012345678901234567890")
+Some(≈+0.12345)
+
+let io: IO = <IO>;
+> F32::parse("1.2345678901234567890e+20")
+Some(≈+1.23456e+20)
+
+let io: IO = <IO>;
+> F32::parse("9.9999999999999999999e+38")  // should overflow to +∞
+Some(≈+inf)
+
+let io: IO = <IO>;
+> F32::parse("1.0000000000000000001e-45")  // just above min subnormal
+Some(≈+1.40129e-45)
 
 let io: IO = <IO>;
