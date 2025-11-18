@@ -133,7 +133,7 @@ pub mod F32 {
 
   pub impl show: Show[F32] {
     fn show(&self: &F32) -> Show {
-      Show::Literal("≈{self}")
+      Show::Literal("{self}")
     }
   }
 }
