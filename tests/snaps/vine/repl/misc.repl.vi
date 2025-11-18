@@ -250,6 +250,14 @@ let io: IO = <IO>;
 error input:1:1 - function expects 1 argument; was passed 2
 
 let io: IO = <IO>;
+> 123.to_binary()
+"0b1111011"
+
+let io: IO = <IO>;
+> 123.to_hex()
+"0x7b"
+
+let io: IO = <IO>;
 > let x = [[1]];
 
 let io: IO = <IO>;
@@ -281,11 +289,11 @@ error input:1:29 - expected type `{ a: N32, b: N32 }`; found `{ a: N32 }`
 
 let io: IO = <IO>;
 > do { let x; x = (x, x); }
-error input:1:17 - expected type `?1528`; found `(?1528, ?1528)`
-error input:1:10 - search limit reached when finding flex of type `?1528`
-error input:1:10 - cannot drop `?1528`
-error input:1:10 - variable of type `?1528` read whilst uninitialized
-error input:1:10 - cannot fork `?1528`
+error input:1:17 - expected type `?1546`; found `(?1546, ?1546)`
+error input:1:10 - search limit reached when finding flex of type `?1546`
+error input:1:10 - cannot drop `?1546`
+error input:1:10 - variable of type `?1546` read whilst uninitialized
+error input:1:10 - cannot fork `?1546`
 
 let io: IO = <IO>;
 > let (a: N32, b: N32);
@@ -325,12 +333,12 @@ let y: { a: ~N32, b: ~N32 };
 let io: IO = <IO>;
 > let x; x.a; x.a
 error input:1:5 - cannot infer type
-error input:1:8 - search limit reached when finding flex of type `?1656`
-error input:1:8 - search limit reached when finding impl of trait `Drop[?1656]`
-error input:1:13 - search limit reached when finding flex of type `?1656`
-error input:1:1 - search limit reached when finding impl of trait `Drop[?1656]`
-error input:1:5 - search limit reached when finding flex of type `?1656`
-error input:1:5 - variable of type `?1656` read whilst uninitialized
+error input:1:8 - search limit reached when finding flex of type `?1674`
+error input:1:8 - search limit reached when finding impl of trait `Drop[?1674]`
+error input:1:13 - search limit reached when finding flex of type `?1674`
+error input:1:1 - search limit reached when finding impl of trait `Drop[?1674]`
+error input:1:5 - search limit reached when finding flex of type `?1674`
+error input:1:5 - variable of type `?1674` read whilst uninitialized
 
 let io: IO = <IO>;
 > Ok(true)?

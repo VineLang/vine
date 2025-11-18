@@ -108,8 +108,8 @@ pub mod N32 {
       if n != 0 {
         let chars = [];
         while n != 0 {
-          chars = ['0' + n % 10] ++ chars;
-          n = n / 10;
+          chars.push_front('0' + n % 10);
+          n /= 10;
         }
         String(chars)
       } else {
@@ -121,6 +121,38 @@ pub mod N32 {
   pub impl show: Show[N32] {
     fn show(&n: &N32) -> Show {
       Show::Literal("{n}")
+    }
+  }
+
+  pub fn .to_binary(n: N32) -> String {
+    if n != 0 {
+      let chars = [];
+      while n != 0 {
+        chars.push_front('0' + (n & 1));
+        n >>= 1;
+      }
+      "0b" ++ String(chars)
+    } else {
+      "0b0"
+    }
+  }
+
+  pub fn .to_hex(n: N32) -> String {
+    if n != 0 {
+      let chars = [];
+      while n != 0 {
+        let nibble = n & 15;
+        let nibble = if nibble < 10 {
+          '0' + nibble
+        } else {
+          'a' - 10 + nibble
+        };
+        chars.push_front(nibble);
+        n >>= 4;
+      }
+      "0x" ++ String(chars)
+    } else {
+      "0x0"
     }
   }
 
