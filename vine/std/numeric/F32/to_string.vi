@@ -1,0 +1,118 @@
+
+use ops::comparison::Ord;
+
+pub impl to_string: Cast[F32, String] {
+  fn cast(f: F32) -> String {
+    if f.is_nan() {
+      return "NaN";
+    }
+    if f == F32::inf {
+      return "inf";
+    }
+    if f == F32::neg_inf {
+      return "-inf";
+    }
+
+    let bits = f.to_bits();
+    let negative = (bits >> 31) == 1;
+    if f == 0.0 {
+      if negative {
+        return "-0.0";
+      } else {
+        return "0.0";
+      }
+    }
+
+    let raw_exp = (bits >> 23) & 0xff;
+    let mantissa = bits & 0x7FFFFF;
+
+    let exp = raw_exp as I32 - +127 - +23;
+
+    if raw_exp == 0 {
+      // Subnormal
+      exp += +1;
+    } else {
+      // Set implicit 1 bit in mantissa
+      mantissa |= 1 << 23;
+    }
+
+    let num = mantissa as Nat;
+    let den = 1[Nat];
+
+    if exp >= +0 {
+      num <<= exp as N32;
+    } else {
+      den <<= -exp as N32;
+    }
+
+    let exp10 = +0;
+
+    // Scale fraction to range [1, 10)
+    let den_times_10 = den * 10;
+    while num >= den_times_10 {
+      den = den_times_10;
+      den_times_10 *= 10;
+      exp10 += +1;
+    }
+
+    while num < den {
+      num *= 10;
+      exp10 -= +1;
+    }
+
+    // Generate 9 decimal digits. This is always enough to represent a decimal value that round
+    // trips to the exact F32 value.
+    let digits = [];
+    for _ in 0..8 {
+      let (digit, rem) = num.div_rem(den);
+      num = rem * 10;
+      digits.push_front(digit as N32);
+    }
+    // last digit
+    let (last_digit, rem) = num.div_rem(den);
+    let last_digit = last_digit as N32;
+    digits.push_front(last_digit);
+
+    // Round correctly
+    let carry = match (rem * 2).cmp(&den) {
+      Ord::Gt { true }
+      Ord::Eq { (last_digit & 1) == 1 }
+      _ { false }
+    };
+    if carry {
+      for &digit in digits.iter() {
+        digit += 1;
+        if digit == 10 {
+          digit = 0;
+        } else {
+          carry = false;
+          break;
+        }
+      }
+    }
+    if carry {
+      digits = [1];
+      exp10 += +1;
+    } else {
+      digits.drop_while(fn* (&digit: &N32) { digit == 0 });
+    }
+    digits.reverse();
+
+    let chars = [];
+    if negative {
+      chars.push_back('-');
+    }
+    // The string should have at least one digit before and after the decimal point.
+    chars ++= ['0' + digits.pop_front().unwrap_or(0), '.', '0' + digits.pop_front().unwrap_or(0)];
+    for digit in digits.into_iter() {
+      chars.push_back('0' + digit);
+    }
+
+    if exp10 != +0 {
+      chars.push_back('e');
+      chars ++= (exp10 as String)!;
+    }
+
+    String(chars)
+  }
+}
