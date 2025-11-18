@@ -11,7 +11,7 @@ let io: IO = <IO>;
 
 let io: IO = <IO>;
 > 1.0.as[String]
-"+1.00000"
+"1.0"
 
 let io: IO = <IO>;
 > ((1,2),(3,4)).0
@@ -151,15 +151,15 @@ let io: IO = <IO>;
 
 let io: IO = <IO>;
 > 12.34 ** -5
-≈+3.49481e-6
+3.49481479e-6
 
 let io: IO = <IO>;
 > 12.34 ** +0
-≈+1.00000
+1.0
 
 let io: IO = <IO>;
 > 12.34 ** +3
-≈+1879.08093
+1.87908093e3
 
 let io: IO = <IO>;
 > 1024.log(2)
@@ -365,14 +365,14 @@ let io: IO = <IO>;
 let io: IO = <IO>;
 let x: (N32, F32, (List[Option[Result[Bool, String]]], Array[N32]), ((), ((),), ((), ()))) = (
   1,
-  ≈+2.00000,
+  2.0,
   ([Some(Ok(true)), Some(Err("hi")), None], Array([1, 2, 3])),
   ((), ((),), ((), ())),
 );
 > x.fork()
 (
   1,
-  ≈+2.00000,
+  2.0,
   ([Some(Ok(true)), Some(Err("hi")), None], Array([1, 2, 3])),
   ((), ((),), ((), ())),
 )
@@ -380,7 +380,7 @@ let x: (N32, F32, (List[Option[Result[Bool, String]]], Array[N32]), ((), ((),), 
 let io: IO = <IO>;
 let x: (N32, F32, (List[Option[Result[Bool, String]]], Array[N32]), ((), ((),), ((), ()))) = (
   1,
-  ≈+2.00000,
+  2.0,
   ([Some(Ok(true)), Some(Err("hi")), None], Array([1, 2, 3])),
   ((), ((),), ((), ())),
 );
@@ -389,7 +389,7 @@ let x: (N32, F32, (List[Option[Result[Bool, String]]], Array[N32]), ((), ((),), 
 let io: IO = <IO>;
 let x: (N32, F32, (List[Option[Result[Bool, String]]], Array[N32]), ((), ((),), ((), ()))) = (
   1,
-  ≈+2.00000,
+  2.0,
   ([Some(Ok(true)), Some(Err("hi")), None], Array([1, 2, 3])),
   ((), ((),), ((), ())),
 );
@@ -397,23 +397,23 @@ let x: (N32, F32, (List[Option[Result[Bool, String]]], Array[N32]), ((), ((),), 
 
 let io: IO = <IO>;
 > (-8765.123e-8).abs()
-≈+0.00008
+8.76512277e-5
 
 let io: IO = <IO>;
 > 8765.123e-8.abs()
-≈+0.00008
+8.76512277e-5
 
 let io: IO = <IO>;
 > F32::inf.abs()
-≈+inf
+inf
 
 let io: IO = <IO>;
 > F32::neg_inf.abs()
-≈+inf
+inf
 
 let io: IO = <IO>;
 > F32::nan.abs()
-≈NaN
+NaN
 
 let io: IO = <IO>;
 > do { match Some(1) { Some(_) {} } }

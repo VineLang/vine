@@ -6,6 +6,7 @@ pub type F32;
 
 pub mod F32 {
   pub mod parse;
+  pub mod to_string;
 
   pub const nan: F32 = inline_ivy! () -> F32 { +NaN };
   pub const inf: F32 = inline_ivy! () -> F32 { +inf };
@@ -114,8 +115,16 @@ pub mod F32 {
     inline_ivy! (n <- n) -> F32 { out n = @f32_from_bits(0 out) }
   }
 
-  pub fn from_parts(negative: Bool, exp: N32, mantissa: N32) -> F32 {
-    F32::from_bits(negative as N32 << 31 | exp << 23 | mantissa)
+  pub fn from_parts(negative: Bool, raw_exp: N32, mantissa: N32) -> F32 {
+    F32::from_bits(negative as N32 << 31 | raw_exp << 23 | mantissa)
+  }
+
+  pub fn .to_parts(f: F32) -> { negative: Bool, raw_exp: N32, mantissa: N32 } {
+    let bits = f.to_bits();
+    let negative = (bits >> 31) == 1;
+    let raw_exp = (bits >> 23) & 0xff;
+    let mantissa = bits & 0x7FFFFF;
+    { negative, raw_exp, mantissa }
   }
 
   pub fn .is_nan(f: F32) -> Bool {
@@ -130,58 +139,9 @@ pub mod F32 {
     }
   }
 
-  pub impl to_string: Cast[F32, String] {
-    fn cast(f: F32) -> String {
-      when {
-        f.is_nan() { "NaN" }
-        f == F32::inf { "+inf" }
-        f == F32::neg_inf { "-inf" }
-        f == 0.0 {
-          if 1.0 / f > 0.0 {
-            "+0.0"
-          } else {
-            "-0.0"
-          }
-        }
-        _ {
-          let sign = if f < 0.0 {
-            f = -f;
-            "-"
-          } else {
-            "+"
-          };
-          let exp = when {
-            f > 1.0e+5 {
-              let exp = 0;
-              while f >= 10.0 {
-                f /= 10.0;
-                exp += 1;
-              }
-              "e+{exp}"
-            }
-            f < 1.0e-5 {
-              let exp = 0;
-              while f <= 1.0 {
-                f *= 10.0;
-                exp += 1;
-              }
-              "e-{exp}"
-            }
-            _ { "" }
-          };
-          let int = f as N32;
-          f -= int as F32;
-          let dec = ((f + 1.0) * 1.0e+5) as N32 as String;
-          dec!.at(0).unwrap().* = '.';
-          "{sign}{int}{dec}{exp}"
-        }
-      }
-    }
-  }
-
   pub impl show: Show[F32] {
     fn show(&self: &F32) -> Show {
-      Show::Literal("≈{self}")
+      Show::Literal("{self}")
     }
   }
 }

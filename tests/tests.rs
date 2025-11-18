@@ -65,6 +65,7 @@ fn tests(t: &mut DynTester) {
     test_vi(t, "tests/programs/cond_diverge.vi", b"", ".txt", true, false);
     test_vi(t, "tests/programs/cubes.vi", b"", ".txt", true, false);
     test_vi(t, "tests/programs/cyclist.vi", b"", ".txt", true, false);
+    test_vi(t, "tests/programs/f32_roundabout.vi", b"", ".txt", false, false);
     test_vi(t, "tests/programs/final_countdown.vi", b"", ".txt", true, false);
     test_vi(t, "tests/programs/int_edges.vi", b"", ".txt", false, false);
     test_vi(t, "tests/programs/find_primes.vi", b"", ".txt", true, false);

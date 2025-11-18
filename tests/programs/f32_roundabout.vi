@@ -1,0 +1,17 @@
+
+use std::rng::Pcg32;
+
+pub fn main(&io: &IO) {
+  let rng = Pcg32::seeded("we're going round and round");
+  for _ in 0..1000 {
+    let f = F32::from_bits(rng.gen_n32());
+    let f_string = f as String;
+    let f_round_trip = F32::parse(f_string).unwrap();
+    if f == f_round_trip || (f.is_nan() && f_round_trip.is_nan()) {
+      io.print("pass: ");
+    } else {
+      io.print("fail: ");
+    }
+    io.println("{f.to_bits().to_hex()} -> {f_string} -> {f_round_trip.to_bits().to_hex()}");
+  }
+}
