@@ -40,7 +40,8 @@ F32::parse("3.4028234663852886e38") // f32::MAX
 F32::parse("1.1754943508222875e-38").unwrap().to_bits().to_hex()  // smallest normal
 F32::parse("1.401298464324817e-45").unwrap().to_bits().to_hex()  // smallest subnormal
 F32::parse("1.1754942e-38").unwrap().to_bits().to_hex()  // largest subnormal
-F32::parse("1.0000000596046448").unwrap().to_bits().to_hex()  // halfway between 1 and next float
+F32::parse("1.000000059604644775390625").unwrap().to_bits().to_hex()  // halfway between 1 and next float
+F32::parse("1.000000059604644775390626").unwrap().to_bits().to_hex()
 F32::parse("1e-46").unwrap().to_bits().to_hex()  // underflows to +0
 F32::parse("-1e-46").unwrap().to_bits().to_hex()  // underflows to -0
 F32::parse("3.5e38")  // overflows to +inf
