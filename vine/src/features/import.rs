@@ -11,7 +11,7 @@ use crate::{
   },
   structures::{
     ast::{Ident, UseItem, UseTree},
-    chart::{DefId, ImportDef, ImportId, ImportParent, MemberKind, VisId, WithVis},
+    chart::{Binding, DefId, ImportDef, ImportId, ImportParent, MemberKind, VisId},
     diag::{Diag, ErrorGuaranteed},
     signatures::ImportState,
   },
@@ -152,7 +152,7 @@ impl Charter<'_> {
     let span = use_tree.span;
     let import = self.chart.imports.push(ImportDef { span, def: def_id, parent, ident });
     let def = &mut self.chart.defs[def_id];
-    let member = WithVis { vis, kind: MemberKind::Import(import) };
+    let member = Binding { vis, kind: MemberKind::Import(import) };
     if !use_tree.aliases.is_empty() {
       def.named_members.push(member);
     }

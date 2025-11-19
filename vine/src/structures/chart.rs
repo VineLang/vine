@@ -33,18 +33,18 @@ pub struct Def {
   pub name: Ident,
   pub path: String,
 
-  pub members_lookup: HashMap<Ident, WithVis<MemberKind>>,
-  pub named_members: Vec<WithVis<MemberKind>>,
-  pub implicit_members: Vec<WithVis<MemberKind>>,
+  pub members_lookup: HashMap<Ident, Binding<MemberKind>>,
+  pub named_members: Vec<Binding<MemberKind>>,
+  pub implicit_members: Vec<Binding<MemberKind>>,
 
   pub parent: Option<DefId>,
   pub ancestors: Vec<DefId>,
 
-  pub value_kind: Option<WithVis<DefValueKind>>,
-  pub type_kind: Option<WithVis<DefTypeKind>>,
-  pub pattern_kind: Option<WithVis<DefPatternKind>>,
-  pub trait_kind: Option<WithVis<DefTraitKind>>,
-  pub impl_kind: Option<WithVis<DefImplKind>>,
+  pub value_kind: Option<Binding<DefValueKind>>,
+  pub type_kind: Option<Binding<DefTypeKind>>,
+  pub pattern_kind: Option<Binding<DefPatternKind>>,
+  pub trait_kind: Option<Binding<DefTraitKind>>,
+  pub impl_kind: Option<Binding<DefImplKind>>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
@@ -54,7 +54,7 @@ pub enum VisId {
 }
 
 #[derive(Debug, Clone, Copy)]
-pub struct WithVis<T> {
+pub struct Binding<T> {
   pub vis: VisId,
   pub kind: T,
 }
@@ -306,9 +306,9 @@ impl Chart {
 }
 
 impl Def {
-  pub fn fn_id(&self) -> Option<WithVis<FnId>> {
+  pub fn fn_id(&self) -> Option<Binding<FnId>> {
     match self.value_kind {
-      Some(WithVis { vis, kind: DefValueKind::Fn(fn_id) }) => Some(WithVis { vis, kind: fn_id }),
+      Some(Binding { vis, kind: DefValueKind::Fn(fn_id) }) => Some(Binding { vis, kind: fn_id }),
       _ => None,
     }
   }
