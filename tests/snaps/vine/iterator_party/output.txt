@@ -1,252 +1,252 @@
---- concat, empty, one, from_next ---
-0
-1
-2
-3
---- map, filter, flat_map, enumerate, for_each ---
-0: 1
-1: 10
-2: 19
-3: 28
-4: 37
-5: 46
-6: 55
-7: 64
-8: 73
-9: 82
-10: 107
-11: 132
-12: 157
-13: 182
-14: 207
-15: 232
-16: 257
-17: 282
-18: 307
-19: 332
-20: 357
-21: 382
-22: 407
-23: 432
-24: 457
-25: 482
-26: 507
-27: 532
-28: 557
-29: 582
-30: 607
-31: 632
-32: 657
-33: 682
-34: 707
-35: 756
-36: 805
-37: 854
-38: 903
-39: 952
-40: 1001
-41: 1050
-42: 1099
-43: 1148
-44: 1197
-45: 1246
-46: 1295
-47: 1344
-48: 1393
-49: 1442
-50: 1491
-51: 1540
-52: 1589
-53: 1638
-54: 1687
-55: 1736
-56: 1785
-57: 1834
-58: 1883
-59: 1932
-60: 1981
-61: 2030
-62: 2079
-63: 2128
-64: 2177
-65: 2226
-66: 2275
-67: 2324
-68: 2373
-69: 2422
-70: 2471
-71: 2520
-72: 2569
-73: 2618
-74: 2667
-75: 2716
-76: 2765
-77: 2814
-78: 2863
-79: 2912
-80: 2961
-81: 3010
-82: 3059
-83: 3108
-84: 3189
-85: 3270
-86: 3351
-87: 3432
-88: 3513
-89: 3594
-90: 3675
-91: 3756
-92: 3837
-93: 3918
-94: 3999
-95: 4080
-96: 4161
-97: 4242
-98: 4323
-99: 4404
-100: 4485
-101: 4566
-102: 4647
-103: 4728
-104: 4809
-105: 4890
-106: 4971
-107: 5052
-108: 5133
-109: 5214
-110: 5295
-111: 5376
-112: 5457
-113: 5538
-114: 5619
-115: 5700
-116: 5781
-117: 5862
-118: 5943
-119: 6024
-120: 6105
-121: 6186
-122: 6267
-123: 6348
-124: 6429
-125: 6510
-126: 6591
-127: 6672
-128: 6753
-129: 6834
-130: 6915
-131: 6996
-132: 7077
-133: 7158
-134: 7239
-135: 7320
-136: 7401
-137: 7482
-138: 7563
-139: 7644
-140: 7725
-141: 7806
-142: 7887
-143: 7968
-144: 8049
-145: 8130
-146: 8211
-147: 8292
-148: 8373
-149: 8454
-150: 8535
-151: 8616
-152: 8697
-153: 8778
-154: 8859
-155: 8940
-156: 9021
-157: 9102
-158: 9183
-159: 9264
-160: 9345
-161: 9426
-162: 9507
-163: 9588
-164: 9669
---- take, inspect ---
+[tests/programs/iterator_party.vi:5:3] --- concat, empty, one, from_next ---
+[tests/programs/iterator_party.vi:9:5] 0
+[tests/programs/iterator_party.vi:9:5] 1
+[tests/programs/iterator_party.vi:9:5] 2
+[tests/programs/iterator_party.vi:9:5] 3
+[tests/programs/iterator_party.vi:12:3] --- map, filter, flat_map, enumerate, for_each ---
+[tests/programs/iterator_party.vi:24:5] 0: 1
+[tests/programs/iterator_party.vi:24:5] 1: 10
+[tests/programs/iterator_party.vi:24:5] 2: 19
+[tests/programs/iterator_party.vi:24:5] 3: 28
+[tests/programs/iterator_party.vi:24:5] 4: 37
+[tests/programs/iterator_party.vi:24:5] 5: 46
+[tests/programs/iterator_party.vi:24:5] 6: 55
+[tests/programs/iterator_party.vi:24:5] 7: 64
+[tests/programs/iterator_party.vi:24:5] 8: 73
+[tests/programs/iterator_party.vi:24:5] 9: 82
+[tests/programs/iterator_party.vi:24:5] 10: 107
+[tests/programs/iterator_party.vi:24:5] 11: 132
+[tests/programs/iterator_party.vi:24:5] 12: 157
+[tests/programs/iterator_party.vi:24:5] 13: 182
+[tests/programs/iterator_party.vi:24:5] 14: 207
+[tests/programs/iterator_party.vi:24:5] 15: 232
+[tests/programs/iterator_party.vi:24:5] 16: 257
+[tests/programs/iterator_party.vi:24:5] 17: 282
+[tests/programs/iterator_party.vi:24:5] 18: 307
+[tests/programs/iterator_party.vi:24:5] 19: 332
+[tests/programs/iterator_party.vi:24:5] 20: 357
+[tests/programs/iterator_party.vi:24:5] 21: 382
+[tests/programs/iterator_party.vi:24:5] 22: 407
+[tests/programs/iterator_party.vi:24:5] 23: 432
+[tests/programs/iterator_party.vi:24:5] 24: 457
+[tests/programs/iterator_party.vi:24:5] 25: 482
+[tests/programs/iterator_party.vi:24:5] 26: 507
+[tests/programs/iterator_party.vi:24:5] 27: 532
+[tests/programs/iterator_party.vi:24:5] 28: 557
+[tests/programs/iterator_party.vi:24:5] 29: 582
+[tests/programs/iterator_party.vi:24:5] 30: 607
+[tests/programs/iterator_party.vi:24:5] 31: 632
+[tests/programs/iterator_party.vi:24:5] 32: 657
+[tests/programs/iterator_party.vi:24:5] 33: 682
+[tests/programs/iterator_party.vi:24:5] 34: 707
+[tests/programs/iterator_party.vi:24:5] 35: 756
+[tests/programs/iterator_party.vi:24:5] 36: 805
+[tests/programs/iterator_party.vi:24:5] 37: 854
+[tests/programs/iterator_party.vi:24:5] 38: 903
+[tests/programs/iterator_party.vi:24:5] 39: 952
+[tests/programs/iterator_party.vi:24:5] 40: 1001
+[tests/programs/iterator_party.vi:24:5] 41: 1050
+[tests/programs/iterator_party.vi:24:5] 42: 1099
+[tests/programs/iterator_party.vi:24:5] 43: 1148
+[tests/programs/iterator_party.vi:24:5] 44: 1197
+[tests/programs/iterator_party.vi:24:5] 45: 1246
+[tests/programs/iterator_party.vi:24:5] 46: 1295
+[tests/programs/iterator_party.vi:24:5] 47: 1344
+[tests/programs/iterator_party.vi:24:5] 48: 1393
+[tests/programs/iterator_party.vi:24:5] 49: 1442
+[tests/programs/iterator_party.vi:24:5] 50: 1491
+[tests/programs/iterator_party.vi:24:5] 51: 1540
+[tests/programs/iterator_party.vi:24:5] 52: 1589
+[tests/programs/iterator_party.vi:24:5] 53: 1638
+[tests/programs/iterator_party.vi:24:5] 54: 1687
+[tests/programs/iterator_party.vi:24:5] 55: 1736
+[tests/programs/iterator_party.vi:24:5] 56: 1785
+[tests/programs/iterator_party.vi:24:5] 57: 1834
+[tests/programs/iterator_party.vi:24:5] 58: 1883
+[tests/programs/iterator_party.vi:24:5] 59: 1932
+[tests/programs/iterator_party.vi:24:5] 60: 1981
+[tests/programs/iterator_party.vi:24:5] 61: 2030
+[tests/programs/iterator_party.vi:24:5] 62: 2079
+[tests/programs/iterator_party.vi:24:5] 63: 2128
+[tests/programs/iterator_party.vi:24:5] 64: 2177
+[tests/programs/iterator_party.vi:24:5] 65: 2226
+[tests/programs/iterator_party.vi:24:5] 66: 2275
+[tests/programs/iterator_party.vi:24:5] 67: 2324
+[tests/programs/iterator_party.vi:24:5] 68: 2373
+[tests/programs/iterator_party.vi:24:5] 69: 2422
+[tests/programs/iterator_party.vi:24:5] 70: 2471
+[tests/programs/iterator_party.vi:24:5] 71: 2520
+[tests/programs/iterator_party.vi:24:5] 72: 2569
+[tests/programs/iterator_party.vi:24:5] 73: 2618
+[tests/programs/iterator_party.vi:24:5] 74: 2667
+[tests/programs/iterator_party.vi:24:5] 75: 2716
+[tests/programs/iterator_party.vi:24:5] 76: 2765
+[tests/programs/iterator_party.vi:24:5] 77: 2814
+[tests/programs/iterator_party.vi:24:5] 78: 2863
+[tests/programs/iterator_party.vi:24:5] 79: 2912
+[tests/programs/iterator_party.vi:24:5] 80: 2961
+[tests/programs/iterator_party.vi:24:5] 81: 3010
+[tests/programs/iterator_party.vi:24:5] 82: 3059
+[tests/programs/iterator_party.vi:24:5] 83: 3108
+[tests/programs/iterator_party.vi:24:5] 84: 3189
+[tests/programs/iterator_party.vi:24:5] 85: 3270
+[tests/programs/iterator_party.vi:24:5] 86: 3351
+[tests/programs/iterator_party.vi:24:5] 87: 3432
+[tests/programs/iterator_party.vi:24:5] 88: 3513
+[tests/programs/iterator_party.vi:24:5] 89: 3594
+[tests/programs/iterator_party.vi:24:5] 90: 3675
+[tests/programs/iterator_party.vi:24:5] 91: 3756
+[tests/programs/iterator_party.vi:24:5] 92: 3837
+[tests/programs/iterator_party.vi:24:5] 93: 3918
+[tests/programs/iterator_party.vi:24:5] 94: 3999
+[tests/programs/iterator_party.vi:24:5] 95: 4080
+[tests/programs/iterator_party.vi:24:5] 96: 4161
+[tests/programs/iterator_party.vi:24:5] 97: 4242
+[tests/programs/iterator_party.vi:24:5] 98: 4323
+[tests/programs/iterator_party.vi:24:5] 99: 4404
+[tests/programs/iterator_party.vi:24:5] 100: 4485
+[tests/programs/iterator_party.vi:24:5] 101: 4566
+[tests/programs/iterator_party.vi:24:5] 102: 4647
+[tests/programs/iterator_party.vi:24:5] 103: 4728
+[tests/programs/iterator_party.vi:24:5] 104: 4809
+[tests/programs/iterator_party.vi:24:5] 105: 4890
+[tests/programs/iterator_party.vi:24:5] 106: 4971
+[tests/programs/iterator_party.vi:24:5] 107: 5052
+[tests/programs/iterator_party.vi:24:5] 108: 5133
+[tests/programs/iterator_party.vi:24:5] 109: 5214
+[tests/programs/iterator_party.vi:24:5] 110: 5295
+[tests/programs/iterator_party.vi:24:5] 111: 5376
+[tests/programs/iterator_party.vi:24:5] 112: 5457
+[tests/programs/iterator_party.vi:24:5] 113: 5538
+[tests/programs/iterator_party.vi:24:5] 114: 5619
+[tests/programs/iterator_party.vi:24:5] 115: 5700
+[tests/programs/iterator_party.vi:24:5] 116: 5781
+[tests/programs/iterator_party.vi:24:5] 117: 5862
+[tests/programs/iterator_party.vi:24:5] 118: 5943
+[tests/programs/iterator_party.vi:24:5] 119: 6024
+[tests/programs/iterator_party.vi:24:5] 120: 6105
+[tests/programs/iterator_party.vi:24:5] 121: 6186
+[tests/programs/iterator_party.vi:24:5] 122: 6267
+[tests/programs/iterator_party.vi:24:5] 123: 6348
+[tests/programs/iterator_party.vi:24:5] 124: 6429
+[tests/programs/iterator_party.vi:24:5] 125: 6510
+[tests/programs/iterator_party.vi:24:5] 126: 6591
+[tests/programs/iterator_party.vi:24:5] 127: 6672
+[tests/programs/iterator_party.vi:24:5] 128: 6753
+[tests/programs/iterator_party.vi:24:5] 129: 6834
+[tests/programs/iterator_party.vi:24:5] 130: 6915
+[tests/programs/iterator_party.vi:24:5] 131: 6996
+[tests/programs/iterator_party.vi:24:5] 132: 7077
+[tests/programs/iterator_party.vi:24:5] 133: 7158
+[tests/programs/iterator_party.vi:24:5] 134: 7239
+[tests/programs/iterator_party.vi:24:5] 135: 7320
+[tests/programs/iterator_party.vi:24:5] 136: 7401
+[tests/programs/iterator_party.vi:24:5] 137: 7482
+[tests/programs/iterator_party.vi:24:5] 138: 7563
+[tests/programs/iterator_party.vi:24:5] 139: 7644
+[tests/programs/iterator_party.vi:24:5] 140: 7725
+[tests/programs/iterator_party.vi:24:5] 141: 7806
+[tests/programs/iterator_party.vi:24:5] 142: 7887
+[tests/programs/iterator_party.vi:24:5] 143: 7968
+[tests/programs/iterator_party.vi:24:5] 144: 8049
+[tests/programs/iterator_party.vi:24:5] 145: 8130
+[tests/programs/iterator_party.vi:24:5] 146: 8211
+[tests/programs/iterator_party.vi:24:5] 147: 8292
+[tests/programs/iterator_party.vi:24:5] 148: 8373
+[tests/programs/iterator_party.vi:24:5] 149: 8454
+[tests/programs/iterator_party.vi:24:5] 150: 8535
+[tests/programs/iterator_party.vi:24:5] 151: 8616
+[tests/programs/iterator_party.vi:24:5] 152: 8697
+[tests/programs/iterator_party.vi:24:5] 153: 8778
+[tests/programs/iterator_party.vi:24:5] 154: 8859
+[tests/programs/iterator_party.vi:24:5] 155: 8940
+[tests/programs/iterator_party.vi:24:5] 156: 9021
+[tests/programs/iterator_party.vi:24:5] 157: 9102
+[tests/programs/iterator_party.vi:24:5] 158: 9183
+[tests/programs/iterator_party.vi:24:5] 159: 9264
+[tests/programs/iterator_party.vi:24:5] 160: 9345
+[tests/programs/iterator_party.vi:24:5] 161: 9426
+[tests/programs/iterator_party.vi:24:5] 162: 9507
+[tests/programs/iterator_party.vi:24:5] 163: 9588
+[tests/programs/iterator_party.vi:24:5] 164: 9669
+[tests/programs/iterator_party.vi:27:3] --- take, inspect ---
 [tests/programs/iterator_party.vi:28:48] 0
-0
+[tests/programs/iterator_party.vi:30:5] 0
 [tests/programs/iterator_party.vi:28:48] 1
-1
+[tests/programs/iterator_party.vi:30:5] 1
 [tests/programs/iterator_party.vi:28:48] 2
-2
+[tests/programs/iterator_party.vi:30:5] 2
 [tests/programs/iterator_party.vi:28:48] 3
-3
+[tests/programs/iterator_party.vi:30:5] 3
 [tests/programs/iterator_party.vi:28:48] 4
-4
+[tests/programs/iterator_party.vi:30:5] 4
 [tests/programs/iterator_party.vi:28:48] 5
-5
+[tests/programs/iterator_party.vi:30:5] 5
 [tests/programs/iterator_party.vi:28:48] 6
-6
+[tests/programs/iterator_party.vi:30:5] 6
 [tests/programs/iterator_party.vi:28:48] 7
-7
+[tests/programs/iterator_party.vi:30:5] 7
 [tests/programs/iterator_party.vi:28:48] 8
-8
+[tests/programs/iterator_party.vi:30:5] 8
 [tests/programs/iterator_party.vi:28:48] 9
-9
---- take_while ---
+[tests/programs/iterator_party.vi:30:5] 9
+[tests/programs/iterator_party.vi:32:3] --- take_while ---
 [tests/programs/iterator_party.vi:28:48] 0
-0
+[tests/programs/iterator_party.vi:34:5] 0
 [tests/programs/iterator_party.vi:28:48] 1
-1
+[tests/programs/iterator_party.vi:34:5] 1
 [tests/programs/iterator_party.vi:28:48] 2
-2
+[tests/programs/iterator_party.vi:34:5] 2
 [tests/programs/iterator_party.vi:28:48] 3
-3
+[tests/programs/iterator_party.vi:34:5] 3
 [tests/programs/iterator_party.vi:28:48] 4
-4
+[tests/programs/iterator_party.vi:34:5] 4
 [tests/programs/iterator_party.vi:28:48] 5
-5
+[tests/programs/iterator_party.vi:34:5] 5
 [tests/programs/iterator_party.vi:28:48] 6
-6
+[tests/programs/iterator_party.vi:34:5] 6
 [tests/programs/iterator_party.vi:28:48] 7
-7
+[tests/programs/iterator_party.vi:34:5] 7
 [tests/programs/iterator_party.vi:28:48] 8
-8
+[tests/programs/iterator_party.vi:34:5] 8
 [tests/programs/iterator_party.vi:28:48] 9
-9
+[tests/programs/iterator_party.vi:34:5] 9
 [tests/programs/iterator_party.vi:28:48] 10
---- skip, skip_while ---
+[tests/programs/iterator_party.vi:37:3] --- skip, skip_while ---
 [tests/programs/iterator_party.vi:39:5] 10
 [tests/programs/iterator_party.vi:39:5] 11
 [tests/programs/iterator_party.vi:39:5] 12
 [tests/programs/iterator_party.vi:39:5] 13
 [tests/programs/iterator_party.vi:39:5] 14
 [tests/programs/iterator_party.vi:39:5] 15
-15
-16
-17
-18
-19
---- zip, inspect ---
-5, 3
+[tests/programs/iterator_party.vi:43:5] 15
+[tests/programs/iterator_party.vi:43:5] 16
+[tests/programs/iterator_party.vi:43:5] 17
+[tests/programs/iterator_party.vi:43:5] 18
+[tests/programs/iterator_party.vi:43:5] 19
+[tests/programs/iterator_party.vi:46:3] --- zip, inspect ---
+[tests/programs/iterator_party.vi:48:5] 5, 3
 [tests/programs/iterator_party.vi:49:45] x: 0
 [tests/programs/iterator_party.vi:50:45] y: 0
-(0, 0)
+[tests/programs/iterator_party.vi:52:7] (0, 0)
 [tests/programs/iterator_party.vi:49:45] x: 1
 [tests/programs/iterator_party.vi:50:45] y: 1
-(1, 1)
+[tests/programs/iterator_party.vi:52:7] (1, 1)
 [tests/programs/iterator_party.vi:49:45] x: 2
 [tests/programs/iterator_party.vi:50:45] y: 2
-(2, 2)
+[tests/programs/iterator_party.vi:52:7] (2, 2)
 [tests/programs/iterator_party.vi:49:45] x: 3
-3, 5
+[tests/programs/iterator_party.vi:48:5] 3, 5
 [tests/programs/iterator_party.vi:49:45] x: 0
 [tests/programs/iterator_party.vi:50:45] y: 0
-(0, 0)
+[tests/programs/iterator_party.vi:52:7] (0, 0)
 [tests/programs/iterator_party.vi:49:45] x: 1
 [tests/programs/iterator_party.vi:50:45] y: 1
-(1, 1)
+[tests/programs/iterator_party.vi:52:7] (1, 1)
 [tests/programs/iterator_party.vi:49:45] x: 2
 [tests/programs/iterator_party.vi:50:45] y: 2
-(2, 2)
---- filter, all, count, any, reduce ---
+[tests/programs/iterator_party.vi:52:7] (2, 2)
+[tests/programs/iterator_party.vi:56:3] --- filter, all, count, any, reduce ---
 [tests/programs/iterator_party.vi:59:7] 2?
 [tests/programs/iterator_party.vi:59:7] 3?
 [tests/programs/iterator_party.vi:61:9] 2
@@ -587,7 +587,7 @@
 [tests/programs/iterator_party.vi:59:7] 45?
 [tests/programs/iterator_party.vi:61:9] 2
 [tests/programs/iterator_party.vi:61:9] 3
-14
+[tests/programs/iterator_party.vi:57:3] 14
 [tests/programs/iterator_party.vi:68:7] 2?
 [tests/programs/iterator_party.vi:68:7] 3?
 [tests/programs/iterator_party.vi:70:9] 2
@@ -928,24 +928,13 @@
 [tests/programs/iterator_party.vi:68:7] 45?
 [tests/programs/iterator_party.vi:70:9] 2
 [tests/programs/iterator_party.vi:70:9] 3
-Some(281)
---- inspect, nth, last, collect ---
+[tests/programs/iterator_party.vi:66:3] Some(281)
+[tests/programs/iterator_party.vi:76:3] --- inspect, nth, last, collect ---
 [tests/programs/iterator_party.vi:77:47] 0
 [tests/programs/iterator_party.vi:77:47] 1
 [tests/programs/iterator_party.vi:77:47] 2
 [tests/programs/iterator_party.vi:77:47] 3
-Some(3)
-[tests/programs/iterator_party.vi:77:47] 0
-[tests/programs/iterator_party.vi:77:47] 1
-[tests/programs/iterator_party.vi:77:47] 2
-[tests/programs/iterator_party.vi:77:47] 3
-[tests/programs/iterator_party.vi:77:47] 4
-[tests/programs/iterator_party.vi:77:47] 5
-[tests/programs/iterator_party.vi:77:47] 6
-[tests/programs/iterator_party.vi:77:47] 7
-[tests/programs/iterator_party.vi:77:47] 8
-[tests/programs/iterator_party.vi:77:47] 9
-Some(9)
+[tests/programs/iterator_party.vi:78:3] Some(3)
 [tests/programs/iterator_party.vi:77:47] 0
 [tests/programs/iterator_party.vi:77:47] 1
 [tests/programs/iterator_party.vi:77:47] 2
@@ -956,11 +945,22 @@ Some(9)
 [tests/programs/iterator_party.vi:77:47] 7
 [tests/programs/iterator_party.vi:77:47] 8
 [tests/programs/iterator_party.vi:77:47] 9
-[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
---- fold ---
-(((((_, 0), 1), 2), 3), 4)
---- filter_map, map_while, forked, collect, find, find_map ---
-[
+[tests/programs/iterator_party.vi:79:3] Some(9)
+[tests/programs/iterator_party.vi:77:47] 0
+[tests/programs/iterator_party.vi:77:47] 1
+[tests/programs/iterator_party.vi:77:47] 2
+[tests/programs/iterator_party.vi:77:47] 3
+[tests/programs/iterator_party.vi:77:47] 4
+[tests/programs/iterator_party.vi:77:47] 5
+[tests/programs/iterator_party.vi:77:47] 6
+[tests/programs/iterator_party.vi:77:47] 7
+[tests/programs/iterator_party.vi:77:47] 8
+[tests/programs/iterator_party.vi:77:47] 9
+[tests/programs/iterator_party.vi:80:3] [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+[tests/programs/iterator_party.vi:82:3] --- fold ---
+[tests/programs/iterator_party.vi:83:3] (((((_, 0), 1), 2), 3), 4)
+[tests/programs/iterator_party.vi:85:3] --- filter_map, map_while, forked, collect, find, find_map ---
+[tests/programs/iterator_party.vi:95:3] [
   [0, 1, 0, 2, 0, 1, 6],
   [1, 3, 1, 3, 1, 2],
   [2, 5, 1, 5, 4, 4],
@@ -973,7 +973,7 @@ Some(9)
   [9],
   [],
 ]
-[
+[tests/programs/iterator_party.vi:100:3] [
   [0, 1, 0, 2, 0, 1, 6],
   [1, 3, 1, 3, 1, 2],
   [2, 5, 1, 5, 4, 4],
@@ -986,7 +986,7 @@ Some(9)
   [9],
   [],
 ]
-[
+[tests/programs/iterator_party.vi:106:3] [
   Some([6]),
   Some([1, 2, 4, 8]),
   Some([1, 2, 4, 8]),
@@ -999,7 +999,7 @@ Some(9)
   Some([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]),
   None,
 ]
-[
+[tests/programs/iterator_party.vi:111:3] [
   Some(6),
   Some(2),
   Some(4),

@@ -27,8 +27,6 @@ pub mod debug {
     value
   }
 
-  pub.std fn synchronize_io(_: &IO) {}
-
   pub fn with_state[F](f: F) -> WithState[F] {
     WithState(f)
   }
@@ -65,7 +63,7 @@ pub mod debug {
   pub fn log[T; Cast[T, String]](msg: T) {
     let &state = debug_state();
     let frame = state.stack.get(0).unwrap();
-    state.io._print("[{frame.file}:{frame.line}:{frame.col}] {msg}\n")
+    state.io.print("[{frame.file}:{frame.line}:{frame.col}] {msg}\n")
   }
 
   #[frameless]
@@ -76,9 +74,9 @@ pub mod debug {
   #[frameless]
   pub fn error[T; Cast[T, String]](msg: T) {
     let &state = debug_state();
-    state.io._print("ERROR: {msg}\n");
+    state.io.print("ERROR: {msg}\n");
     for frame in state.stack.into_iter() {
-      state.io._print("  @ {frame}\n");
+      state.io.print("  @ {frame}\n");
     }
   }
 
@@ -92,11 +90,6 @@ pub mod debug {
   pub fn .dbg_msg[T; Show[T]](value: T, msg: String) -> T {
     log("{msg} {value.show()}");
     value
-  }
-
-  pub.std fn synchronize_io(&io: &IO) {
-    let &state = debug_state();
-    io.synchronize(&state.io);
   }
 
   #[frameless]
