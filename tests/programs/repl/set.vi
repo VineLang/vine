@@ -1,0 +1,14 @@
+use std::data::Set;
+let s = Set::empty[N32]
+s.insert(1)
+s.insert(2)
+s.insert(1)
+s.insert(1000)
+s.insert(46)
+s.insert(5)
+s.get_le(&50)
+s.get_ge(&50)
+s.get_ge(&46)
+s.get_le(&46)
+s.remove_min()
+s.remove_max()

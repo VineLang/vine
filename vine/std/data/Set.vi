@@ -290,7 +290,7 @@ pub mod Set[T; Ord[T]] {
       for &value in self.iter() {
         entries.push_back(value.show());
       }
-      Show::Constructor("Set", Show::Tuple(entries))
+      Show::Constructor("Set", Show::List(entries))
     }
   }
 
