@@ -1,0 +1,12 @@
+use std::data::MinHeap;
+let heap = MinHeap::empty[N32];
+heap.insert(2); heap as List
+heap.pop()
+heap.pop()
+heap.peek()
+heap.insert(3);
+heap.peek()
+heap as List
+heap.insert(1); heap as List
+heap.peek()
+heap as List

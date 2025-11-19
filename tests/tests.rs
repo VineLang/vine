@@ -67,8 +67,9 @@ fn tests(t: &mut DynTester) {
     test_vi(t, "tests/programs/cyclist.vi", b"", ".txt", true, false);
     test_vi(t, "tests/programs/f32_roundabout.vi", b"", ".txt", false, false);
     test_vi(t, "tests/programs/final_countdown.vi", b"", ".txt", true, false);
-    test_vi(t, "tests/programs/int_edges.vi", b"", ".txt", false, false);
     test_vi(t, "tests/programs/find_primes.vi", b"", ".txt", true, false);
+    test_vi(t, "tests/programs/heap.vi", b"", ".txt", true, false);
+    test_vi(t, "tests/programs/int_edges.vi", b"", ".txt", false, false);
     test_vi(t, "tests/programs/inverse.vi", b"", ".txt", true, false);
     test_vi(t, "tests/programs/iterator_party.vi", b"", ".txt", false, true);
     test_vi(t, "tests/programs/lambda.vi", lambda_input, ".txt", true, false);
@@ -130,6 +131,7 @@ fn tests(t: &mut DynTester) {
       test_vi_repl(t, "tests/programs/repl/advanced_repl.vi");
       test_vi_repl(t, "tests/programs/repl/basic_repl.vi");
       test_vi_repl(t, "tests/programs/repl/f32_to_string.vi");
+      test_vi_repl(t, "tests/programs/repl/heap.vi");
       test_vi_repl(t, "tests/programs/repl/i32_misc.vi");
       test_vi_repl(t, "tests/programs/repl/misc.vi");
       test_vi_repl(t, "tests/programs/repl/N64.vi");

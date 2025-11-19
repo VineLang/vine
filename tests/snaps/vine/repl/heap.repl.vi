@@ -1,0 +1,58 @@
+
+let io: IO = <IO>;
+> use std::data::MinHeap;
+
+let io: IO = <IO>;
+> let heap = MinHeap::empty[N32];
+
+let io: IO = <IO>;
+let heap: MinHeap[N32] = <MinHeap[N32]>;
+> heap.insert(2); heap as List
+[2]
+
+let io: IO = <IO>;
+let heap: MinHeap[N32] = <MinHeap[N32]>;
+> heap.pop()
+Some(2)
+
+let io: IO = <IO>;
+let heap: MinHeap[N32] = <MinHeap[N32]>;
+> heap.pop()
+None
+
+let io: IO = <IO>;
+let heap: MinHeap[N32] = <MinHeap[N32]>;
+> heap.peek()
+None
+
+let io: IO = <IO>;
+let heap: MinHeap[N32] = <MinHeap[N32]>;
+> heap.insert(3);
+
+let io: IO = <IO>;
+let heap: MinHeap[N32] = <MinHeap[N32]>;
+> heap.peek()
+Some(&(3))
+
+let io: IO = <IO>;
+let heap: MinHeap[N32] = <MinHeap[N32]>;
+> heap as List
+[3]
+
+let io: IO = <IO>;
+let heap: MinHeap[N32] = <MinHeap[N32]>;
+> heap.insert(1); heap as List
+[1, 3]
+
+let io: IO = <IO>;
+let heap: MinHeap[N32] = <MinHeap[N32]>;
+> heap.peek()
+Some(&(1))
+
+let io: IO = <IO>;
+let heap: MinHeap[N32] = <MinHeap[N32]>;
+> heap as List
+[1, 3]
+
+let io: IO = <IO>;
+let heap: MinHeap[N32] = <MinHeap[N32]>;

@@ -1,0 +1,300 @@
+adding 1
+adding 49
+popping
+adding 122
+adding 59
+popping
+adding 59
+adding 97
+popping
+adding 125
+adding 43
+popping
+adding 96
+adding 61
+popping
+adding 19
+adding 103
+popping
+adding 93
+adding 0
+popping
+adding 109
+adding 78
+popping
+adding 25
+adding 127
+popping
+adding 22
+adding 120
+popping
+adding 23
+adding 105
+popping
+adding 104
+adding 6
+popping
+adding 109
+adding 91
+popping
+adding 75
+adding 68
+popping
+adding 48
+adding 33
+popping
+adding 76
+adding 93
+popping
+adding 44
+adding 60
+popping
+adding 1
+adding 106
+popping
+adding 52
+adding 119
+popping
+adding 54
+adding 90
+popping
+adding 99
+adding 64
+popping
+adding 30
+adding 47
+popping
+adding 56
+adding 38
+popping
+adding 72
+adding 81
+popping
+adding 87
+adding 117
+popping
+adding 1
+adding 79
+popping
+adding 34
+adding 12
+popping
+adding 91
+adding 54
+popping
+adding 66
+adding 100
+popping
+adding 36
+adding 113
+popping
+adding 69
+adding 112
+popping
+adding 100
+adding 5
+popping
+adding 108
+adding 57
+popping
+adding 73
+adding 20
+popping
+adding 77
+adding 74
+popping
+adding 109
+adding 108
+popping
+adding 81
+adding 96
+popping
+adding 115
+adding 90
+popping
+adding 52
+adding 64
+popping
+adding 55
+adding 14
+popping
+adding 96
+adding 104
+popping
+adding 91
+adding 98
+popping
+adding 69
+adding 107
+popping
+adding 18
+adding 110
+popping
+adding 20
+adding 106
+popping
+adding 107
+adding 104
+popping
+adding 108
+adding 9
+popping
+adding 54
+adding 122
+popping
+adding 59
+adding 8
+popping
+adding 41
+adding 82
+popping
+popping
+popping
+adding 66
+popping
+popping
+adding 118
+popping
+popping
+adding 58
+popping
+popping
+adding 31
+popping
+popping
+adding 73
+popping
+popping
+adding 32
+popping
+popping
+adding 108
+popping
+popping
+adding 59
+popping
+popping
+adding 4
+popping
+popping
+adding 88
+popping
+popping
+adding 19
+popping
+popping
+adding 38
+popping
+popping
+adding 45
+popping
+popping
+adding 22
+popping
+popping
+adding 0
+popping
+popping
+adding 18
+popping
+popping
+adding 117
+popping
+popping
+adding 49
+popping
+popping
+adding 0
+popping
+popping
+adding 29
+popping
+popping
+adding 16
+popping
+popping
+adding 96
+popping
+popping
+adding 83
+popping
+popping
+adding 16
+popping
+popping
+adding 68
+popping
+popping
+adding 117
+popping
+popping
+adding 17
+popping
+popping
+adding 44
+popping
+popping
+adding 47
+popping
+popping
+adding 92
+popping
+popping
+adding 85
+popping
+popping
+adding 74
+popping
+popping
+adding 5
+popping
+popping
+adding 5
+popping
+popping
+adding 34
+popping
+popping
+adding 3
+popping
+popping
+adding 0
+popping
+popping
+adding 11
+popping
+popping
+adding 48
+popping
+popping
+adding 83
+popping
+popping
+adding 17
+popping
+popping
+adding 88
+popping
+popping
+adding 101
+popping
+popping
+adding 12
+popping
+popping
+adding 4
+popping
+popping
+adding 5
+popping
+popping
+adding 32
+popping
+popping
+adding 33
+popping
+popping
+adding 14
+popping
+popping
+adding 56
