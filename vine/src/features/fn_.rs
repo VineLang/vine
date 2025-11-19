@@ -10,7 +10,7 @@ use crate::{
     emitter::Emitter,
     lexer::Token,
     parser::{BP, VineParser},
-    resolver::{Binding, Resolver},
+    resolver::{Resolver, ScopeBinding},
   },
   structures::{
     ast::{Block, Expr, ExprKind, Flex, FnItem, LetFnStmt, Pat, Path, Span, Stmt, StmtKind, Ty},
@@ -210,7 +210,7 @@ impl Resolver<'_> {
             Vec::from_iter(let_fn.params.iter().map(|p| self.resolve_pat_sig(p, true)));
           let ret = self.resolve_arrow_ty(span, &let_fn.ret, true);
           let ty = self.types.new(TypeKind::Closure(id, let_fn.flex, param_tys.clone(), ret));
-          self.bind(let_fn.name.clone(), Binding::Closure(id, ty));
+          self.bind(let_fn.name.clone(), ScopeBinding::Closure(id, ty));
           let_fns.push((span, id, param_tys, ret, let_fn));
         }
         StmtKind::Empty | StmtKind::Item(_) => {}
