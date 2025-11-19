@@ -8,13 +8,9 @@ pub fn main(&io: &IO) {
   map.insert(123456, "one hundred twenty three thousand four hundred fifty six");
   map.insert(1, "one");
 
-  let key = 4;
-  io.println("{map.contains_key(&key)}");
-  key = 42;
-  io.println("{map.contains_key(&key)}");
-  key = 123456;
-  io.println("{map.contains_key(&key)}");
+  io.println("{map.has(&4)}");
+  io.println("{map.has(&42)}");
+  io.println("{map.has(&123456)}");
 
-  let lengths = map.map_values(fn* (s: String) { s.len() });
-  io.println("{lengths.show()}")
+  io.println("{map.show()}")
 }

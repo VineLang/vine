@@ -2,80 +2,53 @@
 use data::Iterator;
 use ops::{Cast, comparison::Ord};
 
-pub struct Map[K, V]((N32, MapData[K, V]));
+pub struct* Map[K, V](Set[(K, V)]);
 
-type MapData[K, V] = (Map[K, V], (K, V), Map[K, V]);
+impl ord_entry[K, V; Ord[K]]: Ord[(K, V)] {
+  fn cmp(&(a: K, _: V), &(b: K, _: V)) -> Ord {
+    a.cmp(&b)
+  }
+
+  fn le(&(a: K, _: V), &(b: K, _: V)) -> Bool {
+    a.le(&b)
+  }
+
+  fn lt(&(a: K, _: V), &(b: K, _: V)) -> Bool {
+    a.lt(&b)
+  }
+}
 
 pub mod Map[K, V; Ord[K]] {
-  pub const empty[K, V]: Map[K, V] = Map(0, unsafe::eraser);
-
-  fn new[K, V](left: Map[K, V], entry: (K, V), right: Map[K, V]) -> Map[K, V] {
-    Map(left.len() + right.len() + 1, (left, entry, right))
-  }
+  pub const empty[K, V]: Map[K, V] = Map(Set::empty);
 
   pub impl from_list[... K?, V?]: Cast[List[(K, V)], Map[K, V]] {
     fn cast(entries: List[(K, V)]) -> Map[K, V] {
-      let map = Map::empty[K, V];
-      for (key, value) in entries.into_iter() {
-        map.insert(key, value);
-      }
-      map
+      Map(entries as Set)
     }
   }
 
   pub fn .clear[... K?, V?](&self: &Map[K, V]) {
-    self = Map::empty;
+    self!.clear();
   }
 
-  pub fn .len[K, V](&Map[K, V](len, _)) -> N32 {
-    len
+  pub fn .len[K, V](&self: &Map[K, V]) -> N32 {
+    self!.len()
   }
 
-  pub fn .insert[... K?](&Map[K, V](len, data), key: K, value: V) -> Option[V] {
-    if len == 0 {
-      len = 1;
-      unsafe::erase(data);
-      data = (empty, (key, value), empty);
-      None
-    } else {
-      let &(left, (cur_key, cur_value), right) = &data;
-      let old;
-      match key.cmp(&cur_key) {
-        Ord::Lt {
-          old = left.insert(key, value);
-          len = size(&data);
-          balance_right(&data);
-        }
-        Ord::Eq {
-          old = Some(cur_value);
-          cur_key = key;
-          cur_value = value;
-        }
-        Ord::Gt {
-          old = right.insert(key, value);
-          len = size(&data);
-          balance_left(&data);
-        }
-      }
-      old
-    }
+  pub fn .insert[... K?](&self: &Map[K, V], key: K, value: V) -> Option[V] {
+    Option::map(self!.insert((key, value)), fn? ((_, v)) { v })
   }
 
-  pub fn .at[...](&Map[K, V](len, data), &key: &K) -> Option[&V] {
-    if len == 0 {
-      None
-    } else {
-      let &(left, (cur_key, cur_value), right) = &data;
-      match key.cmp(&cur_key) {
-        Ord::Lt { left.at(&key) }
-        Ord::Eq { Some(&cur_value) }
-        Ord::Gt { right.at(&key) }
-      }
-    }
+  pub fn .has[...](&self: &Map[K, V], &key: &K) -> Bool {
+    self!.has(&(key, *unsafe::eraser))
   }
 
-  pub fn .get[... V+](&self: &Map[K, V], key: &K) -> Option[V] {
-    self.at(key).as_forked()
+  pub fn .at[...](&self: &Map[K, V], &key: &K) -> Option[&V] {
+    Option::map(self!.at_eq(&(key, *unsafe::eraser)), fn? (&(_, v)) { &v })
+  }
+
+  pub fn .get[... V+](&self: &Map[K, V], &key: &K) -> Option[V] {
+    Option::map(self!.at_eq(&(key, *unsafe::eraser)), fn? (&(_, v)) { v })
   }
 
   pub fn .at_or_insert[... K?, V?](&self: &Map[K, V], key: K, value: V) -> &V {
@@ -91,174 +64,44 @@ pub mod Map[K, V; Ord[K]] {
     self.at_or_insert(key, value).*
   }
 
-  pub fn .at_le[...](&Map[K, V](len, data), &key: &K) -> Option[&(K, V)] {
-    if len == 0 {
-      None
-    } else {
-      let &(left, (cur_key, cur_value), right) = &data;
-      match key.cmp(&cur_key) {
-        Ord::Lt { left.at_le(&key) }
-        Ord::Eq { Some(&(cur_key, cur_value)) }
-        Ord::Gt {
-          if right.at_le(&key) is Some(entry) {
-            Some(entry)
-          } else {
-            Some(&(cur_key, cur_value))
-          }
-        }
-      }
-    }
+  pub fn .at_le[...](&self: &Map[K, V], &key: &K) -> Option[&(K, V)] {
+    self!.at_le(&(key, *unsafe::eraser))
   }
 
   pub fn .get_le[... K+, V+](&self: &Map[K, V], &key: &K) -> Option[(K, V)] {
-    self.at_le(&key).as_forked()
+    self!.get_le(&(key, *unsafe::eraser))
   }
 
-  pub fn .at_ge[...](&Map[K, V](len, data), &key: &K) -> Option[&(K, V)] {
-    if len == 0 {
-      None
-    } else {
-      let &(left, (cur_key, cur_value), right) = &data;
-      match key.cmp(&cur_key) {
-        Ord::Lt {
-          if left.at_ge(&key) is Some(entry) {
-            Some(entry)
-          } else {
-            Some(&(cur_key, cur_value))
-          }
-        }
-        Ord::Eq { Some(&(cur_key, cur_value)) }
-        Ord::Gt { right.at_ge(&key) }
-      }
-    }
+  pub fn .at_ge[...](&self: &Map[K, V], &key: &K) -> Option[&(K, V)] {
+    self!.at_ge(&(key, *unsafe::eraser))
   }
 
   pub fn .get_ge[... K+, V+](&self: &Map[K, V], &key: &K) -> Option[(K, V)] {
-    self.at_ge(&key).as_forked()
+    self!.get_ge(&(key, *unsafe::eraser))
   }
 
-  pub fn .remove[... K?](&Map[K, V](len, data), &key: &K) -> Option[V] {
-    if len == 0 {
-      None
-    } else {
-      let (left, (cur_key, cur_value), right) = data;
-      let old;
-      match key.cmp(&cur_key) {
-        Ord::Lt {
-          old = left.remove(&key);
-          data = (left, (cur_key, cur_value), right)
-          len = Map::size(&data);
-          balance_left(&data);
-        }
-        Ord::Eq {
-          old = Some(cur_value);
-          len -= 1;
-          data = merge_balanced(left, right);
-        }
-        Ord::Gt {
-          old = right.remove(&key);
-          data = (left, (cur_key, cur_value), right)
-          len = Map::size(&data);
-          balance_right(&data);
-        }
-      }
-      old
-    }
+  pub fn .remove[... K?](&self: &Map[K, V], &key: &K) -> Option[V] {
+    Option::map(self!.remove(&(key, *unsafe::eraser)), fn? ((_, v)) { v })
   }
 
   pub fn .remove_min[...](&self: &Map[K, V]) -> Option[(K, V)] {
-    if self.len() == 0 {
-      None
-    } else {
-      Some(self._remove_min())
-    }
+    self!.remove_min()
   }
 
   pub fn .remove_max[...](&self: &Map[K, V]) -> Option[(K, V)] {
-    if self.len() == 0 {
-      None
-    } else {
-      Some(self._remove_max())
-    }
-  }
-
-  fn ._remove_min[K, V](&Map[K, V](len, data)) -> (K, V) {
-    len -= 1;
-    let &(left, entry, right) = &data;
-    if left.len() == 0 {
-      let Map(_, right) = unsafe::move(&right);
-      unsafe::erase(data);
-      data = right;
-      unsafe::move(&entry)
-    } else {
-      let min = left._remove_min();
-      balance_left(&data);
-      min
-    }
-  }
-
-  fn ._remove_max[K, V](&Map[K, V](len, data)) -> (K, V) {
-    len -= 1;
-    let &(left, entry, right) = &data;
-    if right.len() == 0 {
-      let Map(_, left) = unsafe::move(&left);
-      unsafe::erase(data);
-      data = left;
-      unsafe::move(&entry)
-    } else {
-      let max = right._remove_max();
-      balance_right(&data);
-      max
-    }
-  }
-
-  pub fn .contains_key[...](&Map[K, V](len, data), &key: &K) -> Bool {
-    if len == 0 {
-      false
-    } else {
-      let &(left, (cur_key, cur_value), right) = &data;
-      match key.cmp(&cur_key) {
-        Ord::Lt { left.contains_key(&key) }
-        Ord::Eq { true }
-        Ord::Gt { right.contains_key(&key) }
-      }
-    }
-  }
-
-  pub fn .map_values[... U, F*; fn F(V) -> U](Map[K, V](len, data), f: F) -> Map[K, U] {
-    if len == 0 {
-      unsafe::erase(data);
-      Map::empty[K, U]
-    } else {
-      let (left, (key, value), right) = data;
-      Map(len, (left.map_values(f), (key, f(value)), right.map_values(f)))
-    }
+    self!.remove_max()
   }
 
   pub fn .iter[...](&self: &Map[K, V]) -> Iter[K, V] {
-    Iter(&self, [])
+    Iter(self!.iter())
   }
 
-  pub struct Iter[K, V]((&Map[K, V], List[&((K, V), Map[K, V])]));
+  pub struct Iter[K, V](Set::Iter[(K, V)]);
 
   pub mod Iter[K, V] {
     pub impl iterator[...]: Iterator[Iter[K, V], &(K, V)] {
-      fn advance(Iter[K, V](node, stack)) -> Option[(&(K, V), Iter[K, V])] {
-        loop {
-          let &Map(len, data) = node;
-          if len == 0 {
-            break;
-          }
-          let &(left, entry, right) = &data;
-          stack.push_front(&(entry, right));
-          node = &left;
-          continue;
-        }
-        if stack.head_tail() is Some(&(entry, node), stack) {
-          Some(&entry, Iter(&node, stack))
-        } else {
-          None
-        }
+      fn advance(self: Iter[K, V]) -> Option[(&(K, V), Iter[K, V])] {
+        unsafe::transmute(self!.advance())
       }
     }
 
@@ -267,43 +110,22 @@ pub mod Map[K, V; Ord[K]] {
   }
 
   pub fn .into_iter[...](self: Map[K, V]) -> IntoIter[K, V] {
-    IntoIter(self, [])
+    IntoIter(self!.into_iter())
   }
 
-  pub struct* IntoIter[K, V]((Map[K, V], List[((K, V), Map[K, V])]));
+  pub struct* IntoIter[K, V](Set::IntoIter[(K, V)]);
 
   pub mod IntoIter[K, V] {
     pub impl iterator[...]: Iterator[IntoIter[K, V], (K, V)] {
-      fn advance(IntoIter[K, V](node, stack)) -> Option[((K, V), IntoIter[K, V])] {
-        loop {
-          let Map(len, data) = node;
-          if len == 0 {
-            unsafe::erase(data);
-            break;
-          }
-          let (left, entry, right) = data;
-          stack.push_front((entry, right));
-          node = left;
-          continue;
-        }
-        if stack.head_tail() is Some((entry, node), stack) {
-          Some(entry, IntoIter(node, stack))
-        } else {
-          None
-        }
+      fn advance(self: IntoIter[K, V]) -> Option[((K, V), IntoIter[K, V])] {
+        unsafe::transmute(self!.advance())
       }
     }
   }
 
   pub impl to_list[...]: Cast[Map[K, V], List[(K, V)]] {
-    fn cast(Map[K, V](len, data)) -> List[(K, V)] {
-      if len == 0 {
-        unsafe::erase(data);
-        []
-      } else {
-        let (left, entry, right) = data;
-        left as List ++ [entry] ++ right as List
-      }
+    fn cast(self: Map[K, V]) -> List[(K, V)] {
+      self! as List
     }
   }
 
@@ -318,100 +140,7 @@ pub mod Map[K, V; Ord[K]] {
   }
 
   // TODO(#118): make private once tests can be written inline
-  pub fn .balanced[...](&Map[K, V](len, data)) -> Bool {
-    if len == 0 {
-      true
-    } else {
-      let &(left, _, right) = &data;
-      let x = is_balanced(&left, &right) && is_balanced(&right, &left);
-      x && left.balanced() && right.balanced()
-    }
+  pub fn .balanced[...](&self: &Map[K, V]) -> Bool {
+    self!.balanced()
   }
-
-  #[become(unsafe::duplicate)]
-  pub impl fork[K+, V+]: Fork[Map[K, V]] {
-    fn fork(&Map[K, V](len, data)) -> Map[K, V] {
-      if len == 0 {
-        Map::empty
-      } else {
-        Map(len, data.fork())
-      }
-    }
-  }
-
-  #[become(unsafe::erase)]
-  pub impl drop[K?, V?]: Drop[Map[K, V]] {
-    fn drop(Map[K, V](len, data)) {
-      if len == 0 {
-        unsafe::erase(data);
-      } else {
-        _ = data;
-      }
-    }
-  }
-}
-
-fn balance_left[K, V](&data: &MapData[K, V]) {
-  let (l, e, r) = data;
-  data = if is_balanced(&l, &r) {
-    (l, e, r)
-  } else {
-    let Map(_, (rl, re, rr)) = r;
-    if is_single(&rl, &rr) {
-      (Map::new(l, e, rl), re, rr)
-    } else {
-      let Map(_, (rll, rle, rlr)) = rl;
-      (Map::new(l, e, rll), rle, Map::new(rlr, re, rr))
-    }
-  }
-}
-
-fn balance_right[K, V](&data: &MapData[K, V]) {
-  let (l, e, r) = data;
-  data = if is_balanced(&r, &l) {
-    (l, e, r)
-  } else {
-    let Map(_, (ll, le, lr)) = l;
-    if is_single(&lr, &ll) {
-      (ll, le, Map::new(lr, e, r))
-    } else {
-      let Map(_, (lrl, lre, lrr)) = lr;
-      (Map::new(ll, le, lrl), lre, Map::new(lrr, e, r))
-    }
-  }
-}
-
-fn merge_balanced[K, V](left: Map[K, V], right: Map[K, V]) -> MapData[K, V] {
-  when {
-    left.len() == 0 {
-      unsafe::erase(left);
-      let Map(_, data) = right;
-      data
-    }
-    right.len() == 0 {
-      let Map(_, data) = left;
-      unsafe::erase(right);
-      data
-    }
-    left.len() > right.len() {
-      let entry = left._remove_max();
-      (left, entry, right)
-    }
-    _ {
-      let entry = right._remove_min();
-      (left, entry, right)
-    }
-  }
-}
-
-fn is_balanced[K, V](&Map[K, V](a, _), &Map[K, V](b, _)) -> Bool {
-  3 * a + 2 >= b
-}
-
-fn is_single[K, V](&Map[K, V](a, _), &Map[K, V](b, _)) -> Bool {
-  a <= 2 * b
-}
-
-fn size[K, V](&(Map(l, _), _, Map(r, _)): &MapData[K, V]) -> N32 {
-  l + r + 1
 }
