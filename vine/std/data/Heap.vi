@@ -1,30 +1,30 @@
 
 use ops::{Cast, comparison::Ord};
 
-pub struct MinHeap[T]((N32, Node[T]));
+pub struct Heap[T]((N32, Node[T]));
 
-pub mod MinHeap[T; Ord[T]] {
-  pub const empty[T]: MinHeap[T] = MinHeap(0, unsafe::eraser);
+pub mod Heap[T; Ord[T]] {
+  pub const empty[T]: Heap[T] = Heap(0, unsafe::eraser);
 
-  pub fn .single[T](value: T) -> MinHeap[T] {
-    MinHeap(1, Node::new(value))
+  pub fn .single[T](value: T) -> Heap[T] {
+    Heap(1, Node::new(value))
   }
 
-  pub fn .insert[...](&self: &MinHeap[T], value: T) {
-    self = MinHeap::single(value).merge(self);
+  pub fn .insert[...](&self: &Heap[T], value: T) {
+    self = Heap::single(value).merge(self);
   }
 
-  pub fn .pop[...](&MinHeap[T](rank, node)) -> Option[T] {
+  pub fn .pop[...](&Heap[T](rank, node)) -> Option[T] {
     if rank == 0 {
       None
     } else {
       let Node(value, left, right) = node;
-      MinHeap(rank, node) = left.merge(right);
+      Heap(rank, node) = left.merge(right);
       Some(value)
     }
   }
 
-  pub fn .peek[...](&MinHeap[T](rank, *node)) -> Option[&T] {
+  pub fn .peek[...](&Heap[T](rank, *node)) -> Option[&T] {
     if rank == 0 {
       None
     } else {
@@ -33,15 +33,15 @@ pub mod MinHeap[T; Ord[T]] {
     }
   }
 
-  fn .rank[T](&MinHeap[T](rank, _)) -> N32 {
+  fn .rank[T](&Heap[T](rank, _)) -> N32 {
     rank
   }
 
-  fn .value[T](&MinHeap[T](_, Node(value, _, _))) -> &T {
+  fn .value[T](&Heap[T](_, Node(value, _, _))) -> &T {
     &value
   }
 
-  fn .merge[...](self: MinHeap[T], other: MinHeap[T]) -> MinHeap[T] {
+  fn .merge[...](self: Heap[T], other: Heap[T]) -> Heap[T] {
     if self.rank() == 0 {
       unsafe::erase(self);
       return other;
@@ -53,30 +53,30 @@ pub mod MinHeap[T; Ord[T]] {
     if self.value() > other.value() {
       swap(&self, &other);
     }
-    let MinHeap(_, Node(value, left, right)) = self;
+    let Heap(_, Node(value, left, right)) = self;
     let merged = right.merge(other);
     let (new_left, new_right) = if left.rank() >= merged.rank() {
       (left, merged)
     } else {
       (merged, left)
     };
-    MinHeap(new_right.rank() + 1, Node(value, new_left, new_right))
+    Heap(new_right.rank() + 1, Node(value, new_left, new_right))
   }
 
   #[become(unsafe::duplicate)]
-  pub impl fork[T+]: Fork[MinHeap[T]] {
-    fn fork(&MinHeap[T](rank, node)) -> MinHeap[T] {
+  pub impl fork[T+]: Fork[Heap[T]] {
+    fn fork(&Heap[T](rank, node)) -> Heap[T] {
       if rank == 0 {
-        MinHeap::empty
+        Heap::empty
       } else {
-        MinHeap(rank, node.fork())
+        Heap(rank, node.fork())
       }
     }
   }
 
   #[become(unsafe::erase)]
-  pub impl drop[T?]: Drop[MinHeap[T]] {
-    fn drop(MinHeap[T](rank, node)) {
+  pub impl drop[T?]: Drop[Heap[T]] {
+    fn drop(Heap[T](rank, node)) {
       if rank == 0 {
         unsafe::erase(node);
       } else {
@@ -85,8 +85,8 @@ pub mod MinHeap[T; Ord[T]] {
     }
   }
 
-  pub impl to_list[...]: Cast[MinHeap[T], List[T]] {
-    fn cast(self: MinHeap[T]) -> List[T] {
+  pub impl to_list[...]: Cast[Heap[T], List[T]] {
+    fn cast(self: Heap[T]) -> List[T] {
       let list = [];
       while self.pop() is Some(value) {
         list.push_back(value);
@@ -97,11 +97,11 @@ pub mod MinHeap[T; Ord[T]] {
   }
 }
 
-struct Node[T]((T, MinHeap[T], MinHeap[T]));
+struct Node[T]((T, Heap[T], Heap[T]));
 
 mod Node[T; Ord[T]] {
   pub fn new[T](value: T) -> Node[T] {
-    Node(value, MinHeap::empty[T], MinHeap::empty[T])
+    Node(value, Heap::empty[T], Heap::empty[T])
   }
 
   #[become(unsafe::duplicate)]

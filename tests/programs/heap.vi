@@ -1,9 +1,9 @@
 
-use std::data::MinHeap;
+use std::data::Heap;
 use std::rng::Pcg32;
 
 pub fn main(&io: &IO) {
-  let heap = MinHeap::empty[N32];
+  let heap = Heap::empty[N32];
   let list = [];
 
   let rng = Pcg32::seeded("heat");

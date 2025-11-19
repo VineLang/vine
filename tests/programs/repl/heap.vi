@@ -1,5 +1,5 @@
-use std::data::MinHeap;
-let heap = MinHeap::empty[N32];
+use std::data::Heap;
+let heap = Heap::empty[N32];
 heap.insert(2); heap as List
 heap.pop()
 heap.pop()
