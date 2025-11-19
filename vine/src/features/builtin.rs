@@ -5,8 +5,8 @@ use crate::{
   structures::{
     ast::{BinaryOp, ComparisonOp},
     chart::{
-      DefId, DefImplKind, DefTraitKind, DefTypeKind, DefValueKind, EnumId, FnId, ImplId,
-      OpaqueTypeId, StructId, TraitId, WithVis,
+      Binding, DefId, DefImplKind, DefTraitKind, DefTypeKind, DefValueKind, EnumId, FnId, ImplId,
+      OpaqueTypeId, StructId, TraitId,
     },
     diag::Diag,
   },
@@ -181,27 +181,27 @@ impl Charter<'_> {
       }
     }
     let opaque_type_id = match def.type_kind {
-      Some(WithVis { kind: DefTypeKind::Opaque(id), .. }) => Some(id),
+      Some(Binding { kind: DefTypeKind::Opaque(id), .. }) => Some(id),
       _ => None,
     };
     let struct_id = match def.type_kind {
-      Some(WithVis { kind: DefTypeKind::Struct(id), .. }) => Some(id),
+      Some(Binding { kind: DefTypeKind::Struct(id), .. }) => Some(id),
       _ => None,
     };
     let enum_id = match def.type_kind {
-      Some(WithVis { kind: DefTypeKind::Enum(id), .. }) => Some(id),
+      Some(Binding { kind: DefTypeKind::Enum(id), .. }) => Some(id),
       _ => None,
     };
     let fn_id = match def.value_kind {
-      Some(WithVis { kind: DefValueKind::Fn(kind), .. }) => Some(kind),
+      Some(Binding { kind: DefValueKind::Fn(kind), .. }) => Some(kind),
       _ => None,
     };
     let trait_id = match def.trait_kind {
-      Some(WithVis { kind: DefTraitKind::Trait(id), .. }) => Some(id),
+      Some(Binding { kind: DefTraitKind::Trait(id), .. }) => Some(id),
       _ => None,
     };
     let impl_id = match def.impl_kind {
-      Some(WithVis { kind: DefImplKind::Impl(id), .. }) => Some(id),
+      Some(Binding { kind: DefImplKind::Impl(id), .. }) => Some(id),
       _ => None,
     };
 

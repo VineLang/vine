@@ -9,8 +9,8 @@ use crate::{
   structures::{
     ast::{Expr, ExprKind, Ident, Pat, PatKind, Path, Span},
     chart::{
-      Def, DefId, DefImplKind, DefPatternKind, DefTypeKind, DefValueKind, MemberKind, VisId,
-      WithVis,
+      Binding, Def, DefId, DefImplKind, DefPatternKind, DefTypeKind, DefValueKind, MemberKind,
+      VisId,
     },
     diag::Diag,
     tir::{TirExpr, TirExprKind, TirImpl, TirLocal, TirPat, TirPatKind},
@@ -87,12 +87,12 @@ impl Resolver<'_> {
     base: DefId,
     path: &Path,
     desc: &'static str,
-    f: impl FnOnce(&Def) -> Option<WithVis<T>>,
+    f: impl FnOnce(&Def) -> Option<Binding<T>>,
   ) -> Result<T, Diag> {
     let def = self._resolve_path(base, path)?;
     let def = &self.chart.defs[def];
     match f(def) {
-      Some(WithVis { vis, kind }) => {
+      Some(Binding { vis, kind }) => {
         if self.chart.visible(vis, base) {
           Ok(kind)
         } else {
