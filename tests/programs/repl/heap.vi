@@ -1,7 +1,9 @@
 use std::data::Heap;
 let heap = Heap::empty[N32];
 heap.insert(2); heap as List
+heap.is_empty()
 heap.pop()
+heap.is_empty()
 heap.pop()
 heap.peek()
 heap.insert(3);

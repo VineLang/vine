@@ -12,8 +12,18 @@ let heap: Heap[N32] = <Heap[N32]>;
 
 let io: IO = <IO>;
 let heap: Heap[N32] = <Heap[N32]>;
+> heap.is_empty()
+false
+
+let io: IO = <IO>;
+let heap: Heap[N32] = <Heap[N32]>;
 > heap.pop()
 Some(2)
+
+let io: IO = <IO>;
+let heap: Heap[N32] = <Heap[N32]>;
+> heap.is_empty()
+true
 
 let io: IO = <IO>;
 let heap: Heap[N32] = <Heap[N32]>;

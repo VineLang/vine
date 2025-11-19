@@ -33,6 +33,10 @@ pub mod Heap[T; Ord[T]] {
     }
   }
 
+  pub fn .is_empty[T](&Heap[T](rank, _)) -> Bool {
+    rank == 0
+  }
+
   fn .rank[T](&Heap[T](rank, _)) -> N32 {
     rank
   }
