@@ -1,7 +1,7 @@
 
-use std::ops::arithmetic::{Add, Div, Mul, Neg, Pow, Rem, Sub};
-use std::ops::bitwise::{And, Or, Xor};
-use std::ops::{Cast, comparison::{Eq, Ord}};
+use #std::ops::arithmetic::{Add, Div, Mul, Neg, Pow, Rem, Sub};
+use #std::ops::bitwise::{And, Or, Xor};
+use #std::ops::{Cast, comparison::{Eq, Ord}};
 
 pub struct* Int((Bool, Nat));
 

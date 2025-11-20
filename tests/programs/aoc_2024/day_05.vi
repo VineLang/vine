@@ -1,6 +1,6 @@
 
-use std::ops::elementwise;
-use std::data::Array;
+use #std::ops::elementwise;
+use #std::data::Array;
 
 pub fn main(&io: &IO) {
   let masks = Array::new(100, ((0, 0), (0, 0)));

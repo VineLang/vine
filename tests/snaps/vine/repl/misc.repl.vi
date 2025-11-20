@@ -1,6 +1,6 @@
 
 let io: IO = <IO>;
-> use std::data::Array;
+> use #std::data::Array;
 
 let io: IO = <IO>;
 > fn _foo() {}

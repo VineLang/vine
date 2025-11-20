@@ -1,5 +1,5 @@
 
-use std::ops::comparison::Ord;
+use #std::ops::comparison::Ord;
 
 // Compared against the following python script:
 //

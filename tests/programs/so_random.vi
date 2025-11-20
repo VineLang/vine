@@ -1,5 +1,5 @@
 
-use std::rng::Pcg32;
+use #std::rng::Pcg32;
 
 pub fn main(&io: &IO) {
   let rng = Pcg32::default;
