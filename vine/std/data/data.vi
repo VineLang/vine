@@ -1,7 +1,7 @@
 
 pub mod Array;
+pub mod Heap;
 pub mod Iterator;
 pub mod List;
 pub mod Map;
-pub mod Heap;
 pub mod Set;
