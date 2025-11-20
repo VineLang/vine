@@ -6,68 +6,68 @@ let io: IO = <IO>;
 > let heap = Heap::empty[N32];
 
 let io: IO = <IO>;
-let heap: Heap[N32] = <Heap[N32]>;
+let heap: Heap[N32] = Heap([]);
 > heap.insert(2); heap as List
 [2]
 
 let io: IO = <IO>;
-let heap: Heap[N32] = <Heap[N32]>;
+let heap: Heap[N32] = Heap([2]);
 > heap.is_empty()
 false
 
 let io: IO = <IO>;
-let heap: Heap[N32] = <Heap[N32]>;
+let heap: Heap[N32] = Heap([2]);
 > heap.pop()
 Some(2)
 
 let io: IO = <IO>;
-let heap: Heap[N32] = <Heap[N32]>;
+let heap: Heap[N32] = Heap([]);
 > heap.is_empty()
 true
 
 let io: IO = <IO>;
-let heap: Heap[N32] = <Heap[N32]>;
+let heap: Heap[N32] = Heap([]);
 > heap.pop()
 None
 
 let io: IO = <IO>;
-let heap: Heap[N32] = <Heap[N32]>;
+let heap: Heap[N32] = Heap([]);
 > heap.peek()
 None
 
 let io: IO = <IO>;
-let heap: Heap[N32] = <Heap[N32]>;
+let heap: Heap[N32] = Heap([]);
 > heap.insert(3);
 
 let io: IO = <IO>;
-let heap: Heap[N32] = <Heap[N32]>;
+let heap: Heap[N32] = Heap([3]);
 > heap.peek()
 Some(&(3))
 
 let io: IO = <IO>;
-let heap: Heap[N32] = <Heap[N32]>;
+let heap: Heap[N32] = Heap([3]);
 > heap as List
 [3]
 
 let io: IO = <IO>;
-let heap: Heap[N32] = <Heap[N32]>;
+let heap: Heap[N32] = Heap([3]);
 > heap.insert(1); heap as List
 [1, 3]
 
 let io: IO = <IO>;
-let heap: Heap[N32] = <Heap[N32]>;
+let heap: Heap[N32] = Heap([1, 3]);
 > heap.peek()
 Some(&(1))
 
 let io: IO = <IO>;
-let heap: Heap[N32] = <Heap[N32]>;
+let heap: Heap[N32] = Heap([1, 3]);
 > heap.into_iter().collect[List, _, _]()
 [1, 3]
 
 let io: IO = <IO>;
-let heap: Heap[N32] = <Heap[N32]>;
+let heap: Heap[N32] = Heap([1, 3]);
 > heap as List
 [1, 3]
 
 let io: IO = <IO>;
-let heap: Heap[N32] = <Heap[N32]>;
+let heap: Heap[N32] = Heap([1, 3]);

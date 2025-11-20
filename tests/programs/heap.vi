@@ -40,6 +40,8 @@ pub fn main(&io: &IO) {
     compare();
   }
 
+  io.println("{heap.show()}");
+
   for _ in 0..50 {
     pop();
     compare();

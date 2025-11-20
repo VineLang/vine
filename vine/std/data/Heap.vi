@@ -118,6 +118,21 @@ pub mod Heap[T; Ord[T]] {
       }
     }
   }
+
+  pub impl show[T; Show[T]]: Show[Heap[T]] {
+    fn show(&self: &Heap[T]) -> Show {
+      Show::Constructor("Heap", Show::List(self._show()))
+    }
+  }
+
+  fn ._show[T; Show[T]](&Heap[T](rank, node)) -> List[Show] {
+    if rank == 0 {
+      []
+    } else {
+      let &Node(value, left, right) = &node;
+      [value.show()] ++ left._show() ++ right._show()
+    }
+  }
 }
 
 struct Node[T]((T, Heap[T], Heap[T]));
