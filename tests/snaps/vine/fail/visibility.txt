@@ -1,4 +1,4 @@
-error tests/programs/fail/visibility.vi:18:1 - subitems must be private
+error tests/programs/fail/visibility.vi:22:3 - subitems must be private
 error tests/programs/fail/visibility.vi:26:7 - invalid visibility; expected the name of an ancestor module
 error tests/programs/fail/visibility.vi:27:8 - `::visibility::lib::a::b` is only visible within `::visibility::lib::a`
 error tests/programs/fail/visibility.vi:28:5 - `::visibility::lib::c` is only visible within `::visibility::lib`
