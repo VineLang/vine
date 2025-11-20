@@ -3,11 +3,13 @@ use ops::{Cast, comparison::Ord};
 
 pub struct Heap[T]((N32, Node[T]));
 
+struct Node[T]((T, Heap[T], Heap[T]));
+
 pub mod Heap[T; Ord[T]] {
   pub const empty[T]: Heap[T] = Heap(0, unsafe::eraser);
 
-  pub fn .single[T](value: T) -> Heap[T] {
-    Heap(1, Node::new(value))
+  pub fn single[T](value: T) -> Heap[T] {
+    Heap(1, Node(value, Heap::empty, Heap::empty))
   }
 
   pub fn .insert[...](&self: &Heap[T], value: T) {
@@ -82,7 +84,8 @@ pub mod Heap[T; Ord[T]] {
       if rank == 0 {
         Heap::empty
       } else {
-        Heap(rank, node.fork())
+        let &Node(value, left, right) = &node;
+        Heap(rank, Node(value, left, right))
       }
     }
   }
@@ -93,7 +96,7 @@ pub mod Heap[T; Ord[T]] {
       if rank == 0 {
         unsafe::erase(node);
       } else {
-        _ = node;
+        Node(_, _, _) = node;
       }
     }
   }
@@ -141,25 +144,5 @@ pub mod Heap[T; Ord[T]] {
       let &Node(value, left, right) = &node;
       [value.show()] ++ left._show() ++ right._show()
     }
-  }
-}
-
-struct Node[T]((T, Heap[T], Heap[T]));
-
-mod Node[T; Ord[T]] {
-  pub fn new[T](value: T) -> Node[T] {
-    Node(value, Heap::empty[T], Heap::empty[T])
-  }
-
-  #[become(unsafe::duplicate)]
-  pub impl fork[T+]: Fork[Node[T]] {
-    fn fork(&Node[T](value, left, right)) -> Node[T] {
-      Node(value, left.fork(), right.fork())
-    }
-  }
-
-  #[become(unsafe::erase)]
-  pub impl drop[T?]: Drop[Node[T]] {
-    fn drop(Node[T](value, left, right)) {}
   }
 }
