@@ -1,5 +1,5 @@
 
-use #std::ops::{Cast, Fn};
+use ops::{Cast, Fn};
 
 pub mod Show;
 
