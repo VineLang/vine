@@ -11,4 +11,5 @@ heap.peek()
 heap as List
 heap.insert(1); heap as List
 heap.peek()
+heap.into_iter().collect[List, _, _]()
 heap as List
