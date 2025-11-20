@@ -1,4 +1,5 @@
 
+use ops::comparison::Eq;
 
 #[builtin = "Option"]
 pub enum* Option[T] {
@@ -67,6 +68,20 @@ pub mod Option {
     let result = self;
     self = None;
     result
+  }
+
+  pub impl eq[T; Eq[T]]: Eq[Option[T]] {
+    fn eq(a: &Option[T], b: &Option[T]) -> Bool {
+      match (a, b) {
+        (&None, &None) { true }
+        (&Some(a), &Some(b)) { a == b }
+        _ { false }
+      }
+    }
+
+    fn ne(a: &Option[T], b: &Option[T]) -> Bool {
+      !(a == b)
+    }
   }
 
   pub impl show[T; Show[T]]: Show[Option[T]] {

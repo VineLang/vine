@@ -1,0 +1,147 @@
+
+use ops::{Cast, comparison::Ord};
+
+pub struct Heap[T]((N32, Node[T]));
+
+struct Node[T]((T, Heap[T], Heap[T]));
+
+pub mod Heap[T; Ord[T]] {
+  pub const empty[T]: Heap[T] = Heap(0, unsafe::eraser);
+
+  pub fn single[T](value: T) -> Heap[T] {
+    Heap(1, Node(value, Heap::empty, Heap::empty))
+  }
+
+  pub fn .insert[...](&self: &Heap[T], value: T) {
+    self = Heap::single(value).merge(self);
+  }
+
+  pub fn .pop[...](&Heap[T](rank, node)) -> Option[T] {
+    if rank == 0 {
+      None
+    } else {
+      let Node(value, left, right) = node;
+      Heap(rank, node) = left.merge(right);
+      Some(value)
+    }
+  }
+
+  pub fn .peek[...](&Heap[T](rank, *node)) -> Option[&T] {
+    if rank == 0 {
+      None
+    } else {
+      let &Node(*value, _, _) = node;
+      Some(value)
+    }
+  }
+
+  pub fn .is_empty[T](&Heap[T](rank, _)) -> Bool {
+    rank == 0
+  }
+
+  fn .rank[T](&Heap[T](rank, _)) -> N32 {
+    rank
+  }
+
+  fn .value[T](&Heap[T](_, Node(value, _, _))) -> &T {
+    &value
+  }
+
+  pub fn .count[T](&Heap[T](rank, node)) -> N32 {
+    if rank == 0 {
+      0
+    } else {
+      let &Node(_, left, right) = &node;
+      1 + Heap::count(&left) + Heap::count(&right)
+    }
+  }
+
+  fn .merge[...](self: Heap[T], other: Heap[T]) -> Heap[T] {
+    if self.rank() == 0 {
+      unsafe::erase(self);
+      return other;
+    }
+    if other.rank() == 0 {
+      unsafe::erase(other);
+      return self;
+    }
+    if self.value() > other.value() {
+      swap(&self, &other);
+    }
+    let &Heap(rank, Node(value, left, right)) = &self;
+    right = right.merge(other);
+    if right.rank() > left.rank() {
+      swap(&left, &right);
+    }
+    rank = right.rank() + 1;
+    self
+  }
+
+  #[become(unsafe::duplicate)]
+  pub impl fork[T+]: Fork[Heap[T]] {
+    fn fork(&Heap[T](rank, node)) -> Heap[T] {
+      if rank == 0 {
+        Heap::empty
+      } else {
+        let &Node(value, left, right) = &node;
+        Heap(rank, Node(value, left, right))
+      }
+    }
+  }
+
+  #[become(unsafe::erase)]
+  pub impl drop[T?]: Drop[Heap[T]] {
+    fn drop(Heap[T](rank, node)) {
+      if rank == 0 {
+        unsafe::erase(node);
+      } else {
+        Node(_, _, _) = node;
+      }
+    }
+  }
+
+  pub impl to_list[...]: Cast[Heap[T], List[T]] {
+    fn cast(self: Heap[T]) -> List[T] {
+      let list = [];
+      while self.pop() is Some(value) {
+        list.push_back(value);
+      }
+      unsafe::erase(self);
+      list
+    }
+  }
+
+  pub struct* IntoIter[T](Heap[T]);
+
+  pub fn .into_iter[...](self: Heap[T]) -> IntoIter[T] {
+    IntoIter(self)
+  }
+
+  pub mod IntoIter[...] {
+    pub impl iterator[...]: Iterator[IntoIter[T], T] {
+      fn advance(IntoIter[T](heap)) -> Option[(T, IntoIter[T])] {
+        if heap.pop() is Some(value) {
+          Some(value, IntoIter(heap))
+        } else {
+          unsafe::erase(heap);
+          None
+        }
+      }
+    }
+  }
+
+  pub impl show[T; Show[T]]: Show[Heap[T]] {
+    fn show(&self: &Heap[T]) -> Show {
+      Show::Constructor("Heap", Show::List(self._show()))
+    }
+  }
+
+  fn ._show[T; Show[T]](&Heap[T](rank, node)) -> List[Show] {
+    if rank == 0 {
+      []
+    } else {
+      let &Node(value, left, right) = &node;
+      [value.show()] ++ left._show() ++ right._show()
+    }
+  }
+}

@@ -1,0 +1,53 @@
+
+use std::data::Heap;
+use std::rng::Pcg32;
+
+pub fn main(&io: &IO) {
+  let heap = Heap::empty[N32];
+  let list = [];
+
+  let rng = Pcg32::seeded("heat");
+
+  let fn add() {
+    let num = rng.gen_n32() & 127;
+    io.println("adding {num}");
+    heap.insert(num);
+    list.push_back(num);
+    list.sort();
+  }
+
+  let fn pop() {
+    io.println("popping");
+    let heap_value = heap.pop();
+    let list_value = list.pop_front();
+    if heap_value != list_value {
+      io.println("error, popped values differ: {heap_value.show()} != {list_value.show()}");
+    }
+  }
+
+  let fn compare() {
+    if heap as List != list {
+      io.println("error, elements differ: {(heap as List).show()} != {list.show()}");
+    }
+  }
+
+  for _ in 0..50 {
+    add();
+    compare();
+    add();
+    compare();
+    pop();
+    compare();
+  }
+
+  io.println("{heap.show()}");
+
+  for _ in 0..50 {
+    pop();
+    compare();
+    pop();
+    compare();
+    add();
+    compare();
+  }
+}
