@@ -136,7 +136,7 @@ impl Charter<'_> {
     if let Some(def) = def {
       for subitem in subitems {
         if !matches!(subitem.vis, Vis::Private) {
-          self.diags.report(Diag::VisibleSubitem { span: item.span });
+          self.diags.report(Diag::VisibleSubitem { span: subitem.span });
         }
         self.chart_item(def, subitem, def, GenericsId::NONE);
       }
