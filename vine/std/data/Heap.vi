@@ -68,14 +68,13 @@ pub mod Heap[T; Ord[T]] {
     if self.value() > other.value() {
       swap(&self, &other);
     }
-    let Heap(_, Node(value, left, right)) = self;
-    let merged = right.merge(other);
-    let (new_left, new_right) = if left.rank() >= merged.rank() {
-      (left, merged)
-    } else {
-      (merged, left)
-    };
-    Heap(new_right.rank() + 1, Node(value, new_left, new_right))
+    let &Heap(rank, Node(value, left, right)) = &self;
+    right = right.merge(other);
+    if right.rank() > left.rank() {
+      swap(&left, &right);
+    }
+    rank = right.rank() + 1;
+    self
   }
 
   #[become(unsafe::duplicate)]

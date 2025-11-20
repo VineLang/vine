@@ -12,6 +12,6 @@ Interactions
   Branch             168_970
 
 Memory
-  Heap             1_721_248 B
+  Heap             1_712_304 B
   Allocated       61_386_304 B
   Freed           61_386_304 B
