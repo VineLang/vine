@@ -1,8 +1,8 @@
-error tests/programs/fail/atypical.vi:3:19 - no type associated with `::atypical::foo`
+error tests/programs/fail/atypical.vi:3:19 - no type associated with `#atypical::foo`
 error tests/programs/fail/atypical.vi:3:24 - types in item signatures cannot be elided
 error tests/programs/fail/atypical.vi:5:12 - types in item signatures cannot be elided
 error tests/programs/fail/atypical.vi:4:8 - types in item signatures cannot be elided
-error tests/programs/fail/atypical.vi:4:14 - `::atypical::Foo` expects 1 type parameter; was passed 0
+error tests/programs/fail/atypical.vi:4:14 - `#atypical::Foo` expects 1 type parameter; was passed 0
 error tests/programs/fail/atypical.vi:5:21 - no function to return from
 error tests/programs/fail/atypical.vi:7:16 - expected type `N32`; found `F32`
 error tests/programs/fail/atypical.vi:8:16 - expected type `F32`; found `N32`
@@ -17,9 +17,9 @@ error tests/programs/fail/atypical.vi:16:3 - function expects 1 argument; was pa
 error tests/programs/fail/atypical.vi:17:3 - cannot compare `N32` and `F32`
 error tests/programs/fail/atypical.vi:17:3 - cannot compare `F32` and `N32`
 error tests/programs/fail/atypical.vi:17:3 - cannot compare `N32` and `F32`
-error tests/programs/fail/atypical.vi:18:21 - no value associated with `::atypical::Foo`
+error tests/programs/fail/atypical.vi:18:21 - no value associated with `#atypical::Foo`
 error tests/programs/fail/atypical.vi:18:13 - expected type `(N32, N32)`; found `(?54,)`
-error tests/programs/fail/atypical.vi:19:12 - no type associated with `::atypical::foo`
+error tests/programs/fail/atypical.vi:19:12 - no type associated with `#atypical::foo`
 error tests/programs/fail/atypical.vi:20:14 - expected type `T`; found `N32`
 error tests/programs/fail/atypical.vi:21:14 - expected type `U`; found `T`
 error tests/programs/fail/atypical.vi:22:17 - expected type `Ay`; found `N32`

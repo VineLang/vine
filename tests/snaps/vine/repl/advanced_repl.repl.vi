@@ -15,7 +15,7 @@ Bar()
 
 let io: IO = <IO>;
 > use #std::option::Option::{Some,None};
-error input:1:10 - cannot find `option` in `::std`
+error input:1:11 - cannot find `option` in `#std`
 
 let io: IO = <IO>;
 > Some([None, Some(1, 2)])
@@ -31,7 +31,7 @@ let io: IO = <IO>;
 
 let io: IO = <IO>;
 > use #std::result::Result::{Ok, Err};
-error input:1:10 - cannot find `result` in `::std`
+error input:1:11 - cannot find `result` in `#std`
 
 let io: IO = <IO>;
 > [Ok(1234), Err("oh no")]

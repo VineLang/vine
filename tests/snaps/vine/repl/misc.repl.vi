@@ -455,3 +455,7 @@ let io: IO = <IO>;
 8
 
 let io: IO = <IO>;
+> #std::IO::println(&io, "hi")
+hi
+
+let io: IO = <IO>;
