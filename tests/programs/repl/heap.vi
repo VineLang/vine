@@ -6,10 +6,14 @@ heap.pop()
 heap.is_empty()
 heap.pop()
 heap.peek()
+heap.count()
 heap.insert(3);
 heap.peek()
 heap as List
+heap.count()
 heap.insert(1); heap as List
+heap.insert(4);
+heap.count()
 heap.peek()
 heap.into_iter().collect[List, _, _]()
 heap as List

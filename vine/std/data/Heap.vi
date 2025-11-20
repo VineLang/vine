@@ -45,6 +45,15 @@ pub mod Heap[T; Ord[T]] {
     &value
   }
 
+  pub fn .count[T](&Heap[T](rank, node)) -> N32 {
+    if rank == 0 {
+      0
+    } else {
+      let &Node(_, left, right) = &node;
+      1 + Heap::count(&left) + Heap::count(&right)
+    }
+  }
+
   fn .merge[...](self: Heap[T], other: Heap[T]) -> Heap[T] {
     if self.rank() == 0 {
       unsafe::erase(self);
