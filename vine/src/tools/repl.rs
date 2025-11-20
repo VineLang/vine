@@ -17,7 +17,7 @@ use crate::{
   },
   structures::{
     ast::{Block, Ident, Span, Stmt, visit::VisitMut},
-    chart::{DefId, GenericsId},
+    chart::{DefId, GenericsId, VisId},
     diag::Diag,
     resolutions::FragmentId,
     tir::Local,
@@ -65,7 +65,7 @@ impl<'ctx, 'ivm, 'ext, 'comp> Repl<'ctx, 'ivm, 'ext, 'comp> {
     struct InitHooks<'a>(&'a mut DefId);
     impl Hooks for InitHooks<'_> {
       fn chart(&mut self, charter: &mut Charter) {
-        *self.0 = charter.chart_child(DefId::ROOT, Ident("repl".into()), DefId::ROOT, true);
+        *self.0 = charter.chart_child(DefId::ROOT, Ident("repl".into()), VisId::Pub, true);
       }
     }
     host.insert_nets(&nets);
@@ -162,7 +162,7 @@ impl<'ctx, 'ivm, 'ext, 'comp> Repl<'ctx, 'ivm, 'ext, 'comp> {
         let mut extractor = ExtractItems::default();
         extractor.visit(&mut *self.block);
         for item in extractor.items {
-          charter.chart_item(self.repl_mod, item, self.repl_mod, GenericsId::NONE);
+          charter.chart_item(VisId::Def(self.repl_mod), item, self.repl_mod, GenericsId::NONE);
         }
       }
 

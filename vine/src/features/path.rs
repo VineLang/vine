@@ -9,7 +9,8 @@ use crate::{
   structures::{
     ast::{Expr, ExprKind, Ident, Pat, PatKind, Path, Span},
     chart::{
-      Def, DefId, DefImplKind, DefPatternKind, DefTypeKind, DefValueKind, MemberKind, WithVis,
+      Def, DefId, DefImplKind, DefPatternKind, DefTypeKind, DefValueKind, MemberKind, VisId,
+      WithVis,
     },
     diag::Diag,
     tir::{TirExpr, TirExprKind, TirImpl, TirLocal, TirPat, TirPatKind},
@@ -95,11 +96,12 @@ impl Resolver<'_> {
         if self.chart.visible(vis, base) {
           Ok(kind)
         } else {
+          let VisId::Def(vis_def) = vis else { unreachable!() };
           Err(Diag::InvisibleAssociated {
             span: path.span,
             desc,
             path: def.path.clone(),
-            vis: self.chart.defs[vis].path.clone(),
+            vis: self.chart.defs[vis_def].path.clone(),
           })
         }
       }
@@ -175,11 +177,12 @@ impl Resolver<'_> {
       if self.chart.visible(vis, source) {
         Ok(Some(result))
       } else {
+        let VisId::Def(vis_def) = vis else { unreachable!() };
         Err(Diag::Invisible {
           span,
           module: self.chart.defs[base].path.clone(),
           ident,
-          vis: self.chart.defs[vis].path.clone(),
+          vis: self.chart.defs[vis_def].path.clone(),
         })
       }
     } else {

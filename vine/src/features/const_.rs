@@ -10,7 +10,7 @@ use crate::{
   },
   structures::{
     ast::{ConstItem, Path, Span},
-    chart::{ConcreteConstDef, ConcreteConstId, ConstId, DefId, DefValueKind, GenericsId},
+    chart::{ConcreteConstDef, ConcreteConstId, ConstId, DefId, DefValueKind, GenericsId, VisId},
     diag::Diag,
     resolutions::ConstRelId,
     signatures::ConstSig,
@@ -57,8 +57,8 @@ impl Charter<'_> {
     parent: DefId,
     parent_generics: GenericsId,
     span: Span,
-    vis: DefId,
-    member_vis: DefId,
+    vis: VisId,
+    member_vis: VisId,
     const_item: ConstItem,
   ) -> DefId {
     let def = self.chart_child(parent, const_item.name, member_vis, true);

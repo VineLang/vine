@@ -11,7 +11,7 @@ use crate::{
   },
   structures::{
     ast::{Ident, UseItem, UseTree},
-    chart::{DefId, ImportDef, ImportId, ImportParent, MemberKind, WithVis},
+    chart::{DefId, ImportDef, ImportId, ImportParent, MemberKind, VisId, WithVis},
     diag::{Diag, ErrorGuaranteed},
     signatures::ImportState,
   },
@@ -111,7 +111,7 @@ impl<'src> Formatter<'src> {
 }
 
 impl Charter<'_> {
-  pub(crate) fn chart_use(&mut self, parent: DefId, vis: DefId, use_item: UseItem) {
+  pub(crate) fn chart_use(&mut self, parent: DefId, vis: VisId, use_item: UseItem) {
     let import_parent = if use_item.absolute { ImportParent::Root } else { ImportParent::Scope };
     for (ident, use_tree) in use_item.tree.children {
       self.chart_use_tree(parent, vis, import_parent, ident, use_tree);
@@ -121,7 +121,7 @@ impl Charter<'_> {
   pub(crate) fn chart_use_tree(
     &mut self,
     def_id: DefId,
-    vis: DefId,
+    vis: VisId,
     parent: ImportParent,
     ident: Ident,
     use_tree: UseTree,

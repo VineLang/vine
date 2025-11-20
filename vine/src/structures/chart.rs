@@ -46,9 +46,15 @@ pub struct Def {
   pub impl_kind: Option<WithVis<DefImplKind>>,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+pub enum VisId {
+  Pub,
+  Def(DefId),
+}
+
 #[derive(Debug, Clone, Copy)]
 pub struct WithVis<T> {
-  pub vis: DefId,
+  pub vis: VisId,
   pub kind: T,
 }
 
@@ -179,7 +185,7 @@ pub struct StructDef {
   pub def: DefId,
   pub generics: GenericsId,
   pub name: Ident,
-  pub data_vis: DefId,
+  pub data_vis: VisId,
   pub data: Ty,
 }
 
@@ -265,8 +271,11 @@ pub enum ImplSubitemKind {
 }
 
 impl Chart {
-  pub fn visible(&self, vis: DefId, from: DefId) -> bool {
-    vis == from || vis < from && self.defs[from].ancestors.contains(&vis)
+  pub fn visible(&self, vis: VisId, from: DefId) -> bool {
+    match vis {
+      VisId::Pub => true,
+      VisId::Def(vis) => vis == from || vis < from && self.defs[from].ancestors.contains(&vis),
+    }
   }
 
   pub fn fn_is_method(&self, fn_id: FnId) -> bool {
