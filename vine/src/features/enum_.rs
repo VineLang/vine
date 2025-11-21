@@ -14,7 +14,7 @@ use crate::{
     resolver::Resolver,
   },
   structures::{
-    ast::{EnumItem, Expr, Pat, Path, Span, Variant},
+    ast::{EnumItem, Expr, ItemKind, Pat, Path, Span, Variant},
     chart::{
       DefId, DefPatternKind, DefTypeKind, DefValueKind, EnumDef, EnumId, EnumVariant, GenericsId,
       VariantId, VisId,
@@ -29,13 +29,14 @@ use crate::{
 };
 
 impl VineParser<'_> {
-  pub(crate) fn parse_enum_item(&mut self) -> Result<EnumItem, Diag> {
+  pub(crate) fn parse_enum_item(&mut self) -> Result<(Span, ItemKind), Diag> {
     self.expect(Token::Enum)?;
     let flex = self.parse_flex()?;
+    let name_span = self.span();
     let name = self.parse_ident()?;
     let generics = self.parse_generic_params()?;
     let variants = self.parse_delimited(BRACE_COMMA, Self::parse_variant)?;
-    Ok(EnumItem { flex, name, generics, variants })
+    Ok((name_span, ItemKind::Enum(EnumItem { flex, name, generics, variants })))
   }
 
   fn parse_variant(&mut self) -> Result<Variant, Diag> {

@@ -29,8 +29,9 @@ use crate::{
 };
 
 impl VineParser<'_> {
-  pub(crate) fn parse_impl_item(&mut self) -> Result<ImplItem, Diag> {
+  pub(crate) fn parse_impl_item(&mut self) -> Result<(Span, ItemKind), Diag> {
     self.expect(Token::Impl)?;
+    let name_span = self.span();
     let name = self.parse_ident()?;
     let generics = self.parse_generic_params()?;
     self.expect(Token::Colon)?;
@@ -43,7 +44,7 @@ impl VineParser<'_> {
       self.expect(Token::Semi)?;
       ImplItemKind::Indirect(impl_)
     };
-    Ok(ImplItem { name, generics, trait_, kind })
+    Ok((name_span, ItemKind::Impl(ImplItem { name, generics, trait_, kind })))
   }
 }
 
@@ -88,7 +89,7 @@ impl Charter<'_> {
           if !self.enabled(&subitem.attrs) {
             continue;
           }
-          let span = subitem.span;
+          let span = subitem.name_span;
           if !matches!(subitem.vis, Vis::Private) {
             self.diags.report(Diag::ImplItemVis { span });
           }

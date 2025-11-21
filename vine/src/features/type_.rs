@@ -3,7 +3,7 @@ use vine_util::parser::Parser;
 use crate::{
   components::{charter::Charter, lexer::Token, parser::VineParser, resolver::Resolver},
   structures::{
-    ast::{Path, Span, TypeItem},
+    ast::{ItemKind, Path, Span, TypeItem},
     chart::{
       DefId, DefTypeKind, GenericsId, OpaqueTypeDef, OpaqueTypeId, TypeAliasDef, TypeAliasId, VisId,
     },
@@ -15,13 +15,14 @@ use crate::{
 };
 
 impl VineParser<'_> {
-  pub(crate) fn parse_type_item(&mut self) -> Result<TypeItem, Diag> {
+  pub(crate) fn parse_type_item(&mut self) -> Result<(Span, ItemKind), Diag> {
     self.expect(Token::Type)?;
+    let name_span = self.span();
     let name = self.parse_ident()?;
     let generics = self.parse_generic_params()?;
     let ty = self.eat_then(Token::Eq, Self::parse_ty)?;
     self.eat(Token::Semi)?;
-    Ok(TypeItem { name, generics, ty })
+    Ok((name_span, ItemKind::Type(TypeItem { name, generics, ty })))
   }
 }
 

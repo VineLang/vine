@@ -7,7 +7,7 @@ use crate::{
     parser::{BRACE, VineParser},
   },
   structures::{
-    ast::{ModItem, ModKind, Span},
+    ast::{ItemKind, ModItem, ModKind, Span},
     chart::{DefId, GenericsId, VisId},
     diag::Diag,
   },
@@ -15,7 +15,7 @@ use crate::{
 };
 
 impl VineParser<'_> {
-  pub(crate) fn parse_mod_item(&mut self) -> Result<ModItem, Diag> {
+  pub(crate) fn parse_mod_item(&mut self) -> Result<(Span, ItemKind), Diag> {
     self.expect(Token::Mod)?;
     let name_span = self.span();
     let name = self.parse_ident()?;
@@ -35,7 +35,7 @@ impl VineParser<'_> {
       self.expect(Token::Semi)?;
       ModKind::Unloaded(name_span, None)
     };
-    Ok(ModItem { name, generics, kind })
+    Ok((name_span, ItemKind::Mod(ModItem { name, generics, kind })))
   }
 }
 

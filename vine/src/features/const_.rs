@@ -9,7 +9,7 @@ use crate::{
     resolver::Resolver,
   },
   structures::{
-    ast::{ConstItem, Path, Span},
+    ast::{ConstItem, ItemKind, Path, Span},
     chart::{ConcreteConstDef, ConcreteConstId, ConstId, DefId, DefValueKind, GenericsId, VisId},
     diag::Diag,
     resolutions::ConstRelId,
@@ -22,15 +22,16 @@ use crate::{
 };
 
 impl VineParser<'_> {
-  pub(crate) fn parse_const_item(&mut self) -> Result<ConstItem, Diag> {
+  pub(crate) fn parse_const_item(&mut self) -> Result<(Span, ItemKind), Diag> {
     self.expect(Token::Const)?;
+    let name_span = self.span();
     let name = self.parse_ident()?;
     let generics = self.parse_generic_params()?;
     self.expect(Token::Colon)?;
     let ty = self.parse_ty()?;
     let value = self.eat_then(Token::Eq, Self::parse_expr)?;
     self.expect(Token::Semi)?;
-    Ok(ConstItem { name, generics, ty, value })
+    Ok((name_span, ItemKind::Const(ConstItem { name, generics, ty, value })))
   }
 }
 

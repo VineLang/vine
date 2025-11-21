@@ -94,7 +94,7 @@ impl Charter<'_> {
 
     let subitems = extract_subitems(&mut item);
 
-    let span = item.span;
+    let span = item.name_span;
     let vis = self.resolve_vis(parent, item.vis);
     let member_vis = vis.max(member_vis);
 
@@ -142,7 +142,7 @@ impl Charter<'_> {
     if let Some(def) = def {
       for subitem in subitems {
         if !matches!(subitem.vis, Vis::Private) {
-          self.diags.report(Diag::VisibleSubitem { span: subitem.span });
+          self.diags.report(Diag::VisibleSubitem { span: subitem.name_span });
         }
         self.chart_item(VisId::Def(def), subitem, def, GenericsId::NONE);
       }
@@ -338,7 +338,13 @@ impl VisitMut<'_> for ExtractItems {
   fn visit_item(&mut self, item: &mut Item) {
     self.items.push(replace(
       item,
-      Item { span: Span::NONE, vis: Vis::Private, attrs: vec![], kind: ItemKind::Taken },
+      Item {
+        span: Span::NONE,
+        name_span: Span::NONE,
+        vis: Vis::Private,
+        attrs: vec![],
+        kind: ItemKind::Taken,
+      },
     ));
   }
 }

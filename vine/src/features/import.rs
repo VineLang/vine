@@ -10,7 +10,7 @@ use crate::{
     resolver::Resolver,
   },
   structures::{
-    ast::{Ident, UseItem, UseTree},
+    ast::{Ident, ItemKind, Span, UseItem, UseTree},
     chart::{Binding, DefId, ImportDef, ImportId, ImportParent, MemberKind, VisId},
     diag::{Diag, ErrorGuaranteed},
     signatures::ImportState,
@@ -19,8 +19,9 @@ use crate::{
 };
 
 impl VineParser<'_> {
-  pub(crate) fn parse_use_item(&mut self) -> Result<UseItem, Diag> {
+  pub(crate) fn parse_use_item(&mut self) -> Result<(Span, ItemKind), Diag> {
     self.expect(Token::Use)?;
+    let span = self.start_span();
     let mut relative = BTreeMap::new();
     let mut absolute = BTreeMap::new();
     self.parse_delimited(
@@ -40,10 +41,11 @@ impl VineParser<'_> {
         )
       },
     )?;
+    let span = self.end_span(span);
     self.eat(Token::Semi)?;
     relative.retain(|_, tree| tree.prune());
     absolute.retain(|_, tree| tree.prune());
-    Ok(UseItem { relative, absolute })
+    Ok((span, ItemKind::Use(UseItem { relative, absolute })))
   }
 
   fn parse_use_tree(&mut self, map: &mut BTreeMap<Ident, UseTree>) -> Result<(), Diag> {

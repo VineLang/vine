@@ -13,7 +13,9 @@ use crate::{
     resolver::{Resolver, ScopeBinding},
   },
   structures::{
-    ast::{Block, Expr, ExprKind, Flex, FnItem, LetFnStmt, Pat, Path, Span, Stmt, StmtKind, Ty},
+    ast::{
+      Block, Expr, ExprKind, Flex, FnItem, ItemKind, LetFnStmt, Pat, Path, Span, Stmt, StmtKind, Ty,
+    },
     chart::{ConcreteFnDef, ConcreteFnId, DefId, DefValueKind, FnId, GenericsId, VisId},
     diag::Diag,
     resolutions::{FnRel, FnRelId, Fragment},
@@ -26,15 +28,16 @@ use crate::{
 };
 
 impl VineParser<'_> {
-  pub(crate) fn parse_fn_item(&mut self) -> Result<FnItem, Diag> {
+  pub(crate) fn parse_fn_item(&mut self) -> Result<(Span, ItemKind), Diag> {
     self.expect(Token::Fn)?;
     let method = self.eat(Token::Dot)?;
+    let name_span = self.span();
     let name = self.parse_ident()?;
     let generics = self.parse_generic_params()?;
     let params = self.parse_pats()?;
     let ret = self.parse_arrow_ty()?;
     let body = (!self.eat(Token::Semi)?).then(|| self.parse_block()).transpose()?;
-    Ok(FnItem { method, name, generics, params, ret, body })
+    Ok((name_span, ItemKind::Fn(FnItem { method, name, generics, params, ret, body })))
   }
 
   pub(crate) fn parse_expr_fn(&mut self) -> Result<ExprKind, Diag> {

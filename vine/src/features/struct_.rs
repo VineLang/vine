@@ -13,7 +13,7 @@ use crate::{
     resolver::Resolver,
   },
   structures::{
-    ast::{Expr, Pat, Path, Span, StructItem},
+    ast::{Expr, ItemKind, Pat, Path, Span, StructItem},
     chart::{
       DefId, DefPatternKind, DefTypeKind, DefValueKind, GenericsId, StructDef, StructId, VisId,
     },
@@ -27,9 +27,10 @@ use crate::{
 };
 
 impl VineParser<'_> {
-  pub(crate) fn parse_struct_item(&mut self) -> Result<StructItem, Diag> {
+  pub(crate) fn parse_struct_item(&mut self) -> Result<(Span, ItemKind), Diag> {
     self.expect(Token::Struct)?;
     let flex = self.parse_flex()?;
+    let name_span = self.span();
     let name = self.parse_ident()?;
     let generics = self.parse_generic_params()?;
     self.expect(Token::OpenParen)?;
@@ -37,7 +38,7 @@ impl VineParser<'_> {
     let data = self.parse_ty()?;
     self.expect(Token::CloseParen)?;
     self.eat(Token::Semi)?;
-    Ok(StructItem { flex, name, generics, data_vis, data })
+    Ok((name_span, ItemKind::Struct(StructItem { flex, name, generics, data_vis, data })))
   }
 }
 
