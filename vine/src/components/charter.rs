@@ -51,6 +51,7 @@ impl Charter<'_> {
     self.chart.defs.push(Def {
       name,
       path,
+      spans: Vec::new(),
       members_lookup: Default::default(),
       named_members: Default::default(),
       implicit_members: Default::default(),
@@ -240,6 +241,9 @@ impl Charter<'_> {
     if new {
       let path = format!("{}::{}", parent_def.path, name);
       self.new_def(name, path, Some(parent));
+    }
+    if span != Span::NONE {
+      self.chart.defs[child].spans.push(span);
     }
     child
   }
