@@ -76,7 +76,12 @@ impl Compiler {
 
     let chart = &mut self.chart;
 
-    let mut charter = Charter { chart, config: &self.config, diags: &mut self.diags };
+    let mut charter = Charter {
+      chart,
+      config: &self.config,
+      diags: &mut self.diags,
+      annotations: &mut self.annotations,
+    };
     charter.chart(root);
     hooks.chart(&mut charter);
 
