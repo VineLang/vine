@@ -112,17 +112,20 @@ impl<'a> Resolver<'a> {
     for id in self.chart.type_aliases.keys_from(checkpoint.type_aliases) {
       self.resolve_type_alias(id);
     }
+    for id in self.chart.opaque_types.keys_from(checkpoint.opaque_types) {
+      self.resolve_opaque_type(id);
+    }
     for id in self.chart.structs.keys_from(checkpoint.structs) {
       self.resolve_struct_sig(id);
     }
     for id in self.chart.enums.keys_from(checkpoint.enums) {
       self.resolve_enum_sig(id);
     }
-    for id in self.chart.traits.keys_from(checkpoint.traits) {
-      self.resolve_trait_sig(id);
-    }
     for id in self.chart.generics.keys_from(checkpoint.generics) {
       self.resolve_impl_params(id);
+    }
+    for id in self.chart.traits.keys_from(checkpoint.traits) {
+      self.resolve_trait_sig(id);
     }
     for id in self.chart.concrete_consts.keys_from(checkpoint.concrete_consts) {
       self.resolve_const_sig(id);
@@ -315,9 +318,15 @@ impl<'a> Resolver<'a> {
 
   pub(crate) fn exit_scope(&mut self) {
     self.scope_depth -= 1;
-    for stack in self.scope.values_mut() {
+    for (ident, stack) in self.scope.iter_mut() {
       if stack.last().is_some_and(|x| x.depth > self.scope_depth) {
-        stack.pop();
+        let old = stack.pop().unwrap();
+        let (span, ty) = match old.binding {
+          ScopeBinding::Local(_, span, ty) => (span, ty),
+          ScopeBinding::Closure(_, span, ty) => (span, ty),
+        };
+        let hover = format!("let {}: {};", ident.0, self.types.show(self.chart, ty));
+        self.annotations.hovers.insert(span, hover);
       }
     }
   }

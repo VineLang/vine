@@ -209,11 +209,7 @@ impl Resolver<'_> {
       && let Some(bind) = self.scope.get(&ident).and_then(|x| x.last())
     {
       let (expr, source_span, ty) = match bind.binding {
-        ScopeBinding::Local(local, source_span, ty) => {
-          let hover = format!("let {ident}: {};", self.types.show(self.chart, ty));
-          self.annotations.hovers.insert(span, hover);
-          (TirExprKind::Local(local), source_span, ty)
-        }
+        ScopeBinding::Local(local, source_span, ty) => (TirExprKind::Local(local), source_span, ty),
         ScopeBinding::Closure(id, source_span, ty) => (TirExprKind::Closure(id), source_span, ty),
       };
       let expr = TirExpr::new(span, ty, expr);

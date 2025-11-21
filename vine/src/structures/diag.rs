@@ -137,6 +137,8 @@ diags! {
     ["invalid method; function takes no parameters"]
   ExpectedTypeFound { expected: String, found: String }
     ["expected type `{expected}`; found `{found}`"]
+  ExpectedTypeFnFound { expected: String, found: String }
+    ["expected type `fn {expected}`; found `fn {found}`"]
   PathNoAssociated { desc: &'static str, path: String }
     ["no {desc} associated with `{path}`"]
   BadGenericCount { path: String, expected: usize, got: usize, kind: &'static str }

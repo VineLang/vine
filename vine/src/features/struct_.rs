@@ -95,6 +95,13 @@ impl Resolver<'_> {
     let struct_def = &self.chart.structs[struct_id];
     self.initialize(struct_def.def, struct_def.generics);
     let data = self.resolve_ty(&struct_def.data, false);
+    let hover = format!(
+      "struct {}{}({});",
+      struct_def.name,
+      self.show_generics(self.cur_generics, false),
+      self.types.show(self.chart, data)
+    );
+    self.annotations.hovers.insert(struct_def.span, hover);
     let types = take(&mut self.types);
     self.sigs.structs.push_to(struct_id, TypeCtx { types, inner: StructSig { data } });
   }

@@ -167,8 +167,18 @@ impl Resolver<'_> {
     let fn_def = &self.chart.concrete_fns[fn_id];
     self.initialize(fn_def.def, fn_def.generics);
     let (params, ret_ty) = self._resolve_fn_sig(&fn_def.params, &fn_def.ret_ty);
+    let sig = FnSig { params, ret_ty };
+
+    let hover = format!(
+      "fn {}{}{};",
+      fn_def.name,
+      self.show_generics(self.cur_generics, true),
+      self.types.show_fn_sig(self.chart, &sig),
+    );
+    self.annotations.hovers.insert(fn_def.span, hover);
+
     let types = take(&mut self.types);
-    self.sigs.concrete_fns.push_to(fn_id, TypeCtx { types, inner: FnSig { params, ret_ty } });
+    self.sigs.concrete_fns.push_to(fn_id, TypeCtx { types, inner: sig });
   }
 
   pub(crate) fn _resolve_fn_sig(&mut self, params: &[Pat], ret: &Option<Ty>) -> (Vec<Type>, Type) {
@@ -348,7 +358,7 @@ impl Resolver<'_> {
           vec![receiver, self.types.new(TypeKind::Tuple(sig.params)), sig.ret_ty],
         );
         if self.types.unify_impl_type(&actual_ty, ty).is_failure() {
-          self.diags.report(Diag::ExpectedTypeFound {
+          self.diags.report(Diag::ExpectedTypeFnFound {
             span: path.span,
             expected: self.types.show_impl_type(self.chart, ty),
             found: self.types.show_impl_type(self.chart, &actual_ty),

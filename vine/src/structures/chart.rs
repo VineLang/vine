@@ -170,8 +170,8 @@ new_idx!(pub OpaqueTypeId);
 pub struct OpaqueTypeDef {
   pub span: Span,
   pub def: DefId,
-  pub generics: GenericsId,
   pub name: Ident,
+  pub generics: GenericsId,
 }
 
 new_idx!(pub TypeAliasId);
@@ -179,6 +179,7 @@ new_idx!(pub TypeAliasId);
 pub struct TypeAliasDef {
   pub span: Span,
   pub def: DefId,
+  pub name: Ident,
   pub generics: GenericsId,
   pub ty: Ty,
 }
@@ -227,6 +228,7 @@ pub struct TraitDef {
 new_idx!(pub TraitConstId);
 #[derive(Debug, Clone)]
 pub struct TraitConst {
+  pub span: Span,
   pub name: Ident,
   pub generics: GenericsId,
   pub ty: Ty,
@@ -235,6 +237,7 @@ pub struct TraitConst {
 new_idx!(pub TraitFnId);
 #[derive(Debug, Clone)]
 pub struct TraitFn {
+  pub span: Span,
   pub method: bool,
   pub name: Ident,
   pub generics: GenericsId,
@@ -246,6 +249,7 @@ new_idx!(pub ImplId);
 #[derive(Debug, Clone)]
 pub struct ImplDef {
   pub span: Span,
+  pub name: Ident,
   pub def: DefId,
   pub generics: GenericsId,
   pub kind: ImplDefKind,

@@ -110,6 +110,9 @@ impl Resolver<'_> {
       .values()
       .map(|variant| variant.data.as_ref().map(|ty| self.resolve_ty(ty, false)))
       .collect();
+    let hover =
+      format!("enum {}{} {{ ... }}", enum_def.name, self.show_generics(self.cur_generics, false),);
+    self.annotations.hovers.insert(enum_def.span, hover);
     let types = take(&mut self.types);
     self.sigs.enums.push_to(enum_id, TypeCtx { types, inner: EnumSig { variant_data } });
   }

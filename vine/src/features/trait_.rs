@@ -104,6 +104,7 @@ impl Charter<'_> {
     let generics =
       self.chart_trait_subitem_generics(span, def, trait_id, trait_generics, fn_item.generics);
     let trait_fn_id = fns.push(TraitFn {
+      span,
       method: fn_item.method,
       name: fn_item.name.clone(),
       generics,
@@ -133,7 +134,7 @@ impl Charter<'_> {
     let generics =
       self.chart_trait_subitem_generics(span, def, trait_id, trait_generics, const_item.generics);
     let trait_const_id =
-      consts.push(TraitConst { name: const_item.name.clone(), generics, ty: const_item.ty });
+      consts.push(TraitConst { span, name: const_item.name.clone(), generics, ty: const_item.ty });
     let def = self.chart_child(def, span, const_item.name, vis, true);
     let kind = DefValueKind::Const(ConstId::Abstract(trait_id, trait_const_id));
     self.define_value(span, def, vis, kind);
@@ -171,14 +172,39 @@ impl Resolver<'_> {
       consts: IdxVec::from_iter(trait_def.consts.values().map(|trait_const| {
         self.initialize(trait_def.def, trait_const.generics);
         let ty = self.resolve_ty(&trait_const.ty, false);
+
+        let hover = format!(
+          "const {}::{}{}: {};",
+          trait_def.name,
+          trait_const.name,
+          self.show_generics(self.cur_generics, true),
+          self.types.show(self.chart, ty),
+        );
+        self.annotations.hovers.insert(trait_const.span, hover);
+
         TypeCtx { types: take(&mut self.types), inner: ConstSig { ty } }
       })),
       fns: IdxVec::from_iter(trait_def.fns.values().map(|trait_fn| {
         self.initialize(trait_def.def, trait_fn.generics);
         let (params, ret_ty) = self._resolve_fn_sig(&trait_fn.params, &trait_fn.ret_ty);
-        TypeCtx { types: take(&mut self.types), inner: FnSig { params, ret_ty } }
+        let sig = FnSig { params, ret_ty };
+
+        let hover = format!(
+          "fn {}::{}{}{};",
+          trait_def.name,
+          trait_fn.name,
+          self.show_generics(self.cur_generics, true),
+          self.types.show_fn_sig(self.chart, &sig),
+        );
+        self.annotations.hovers.insert(trait_fn.span, hover);
+
+        TypeCtx { types: take(&mut self.types), inner: sig }
       })),
     };
     self.sigs.traits.push_to(trait_id, sig);
+
+    let hover =
+      format!("trait {}{};", trait_def.name, self.show_generics(trait_def.generics, true));
+    self.annotations.hovers.insert(trait_def.span, hover);
   }
 }
