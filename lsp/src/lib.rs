@@ -1,5 +1,6 @@
 use std::{
   collections::{BTreeMap, HashMap},
+  path::PathBuf,
   time::Instant,
 };
 
@@ -23,13 +24,14 @@ struct Backend {
   entrypoints: Vec<String>,
   docs: RwLock<HashMap<Url, String>>,
   lsp: RwLock<Lsp>,
+  checkpoint: Checkpoint,
 }
 
 impl Backend {
   async fn refresh(&self) {
     let mut lsp = self.lsp.write().await;
     let lsp = &mut *lsp;
-    lsp.compiler.revert(&Checkpoint::default());
+    lsp.compiler.revert(&self.checkpoint);
 
     for glob in &self.entrypoints {
       for entry in glob::glob(glob).unwrap() {
@@ -335,16 +337,28 @@ impl LanguageServer for Backend {
 
 #[allow(clippy::absolute_paths)]
 #[tokio::main]
-pub async fn lsp(entrypoints: Vec<String>) {
+pub async fn lsp(libs: Vec<PathBuf>, entrypoints: Vec<String>) -> std::result::Result<(), String> {
   let stdin = tokio::io::stdin();
   let stdout = tokio::io::stdout();
 
-  let compiler = Compiler::new(true, Config::default());
+  let mut compiler = Compiler::new(true, Config::default());
+  for lib in libs {
+    compiler.loader.load_mod(&lib, &mut compiler.diags);
+  }
+
+  if let Err(diags) = compiler.compile(()) {
+    return Err(compiler.loader.print_diags(&diags));
+  }
+
+  let checkpoint = compiler.checkpoint();
+
   let (service, socket) = LspService::new(|client| Backend {
     client,
     entrypoints,
     docs: RwLock::new(HashMap::new()),
     lsp: RwLock::new(Lsp { compiler }),
+    checkpoint,
   });
   Server::new(stdin, stdout, socket).serve(service).await;
+  Ok(())
 }
