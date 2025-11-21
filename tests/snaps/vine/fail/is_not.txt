@@ -15,7 +15,7 @@ error tests/programs/fail/is_not.vi:3:3 - search limit reached when finding flex
 error tests/programs/fail/is_not.vi:4:3 - search limit reached when finding flex of type `?0`
 error tests/programs/fail/is_not.vi:5:3 - search limit reached when finding flex of type `?0`
 error tests/programs/fail/is_not.vi:6:3 - search limit reached when finding flex of type `?0`
-error tests/programs/fail/is_not.vi:2:1 - unconditional infinite loops are invalid
+error tests/programs/fail/is_not.vi:2:8 - unconditional infinite loops are invalid
 error tests/programs/fail/is_not.vi:2:13 - cannot fork `?0`
 error tests/programs/fail/is_not.vi:3:11 - cannot drop `?0`
 error tests/programs/fail/is_not.vi:4:13 - cannot drop `?0`

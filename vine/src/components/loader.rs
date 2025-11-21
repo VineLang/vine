@@ -168,7 +168,7 @@ impl VisitMut<'_> for LoadDeps<'_> {
           Some(path) => ModSpec::Explicit(path.as_ref()),
           None => ModSpec::Implicit(module.name.clone()),
         },
-        item.span,
+        item.name_span,
         self.diags,
       );
       return;

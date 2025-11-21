@@ -23,12 +23,13 @@ use crate::{
 };
 
 impl VineParser<'_> {
-  pub(crate) fn parse_trait_item(&mut self) -> Result<TraitItem, Diag> {
+  pub(crate) fn parse_trait_item(&mut self) -> Result<(Span, ItemKind), Diag> {
     self.expect(Token::Trait)?;
+    let name_span = self.span();
     let name = self.parse_ident()?;
     let generics = self.parse_generic_params()?;
     let items = self.parse_delimited(BRACE, Self::parse_item)?;
-    Ok(TraitItem { name, generics, items })
+    Ok((name_span, ItemKind::Trait(TraitItem { name, generics, items })))
   }
 }
 
@@ -63,7 +64,7 @@ impl Charter<'_> {
       if !self.enabled(&subitem.attrs) {
         continue;
       }
-      let span = subitem.span;
+      let span = subitem.name_span;
       let attrs = subitem.attrs;
       if !matches!(subitem.vis, Vis::Private) {
         self.diags.report(Diag::TraitItemVis { span });

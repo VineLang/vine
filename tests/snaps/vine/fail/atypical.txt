@@ -48,7 +48,7 @@ error tests/programs/fail/atypical.vi:10:8 - search limit reached when finding f
 error tests/programs/fail/atypical.vi:10:11 - search limit reached when finding flex of type `?20`
 error tests/programs/fail/atypical.vi:18:14 - search limit reached when finding flex of type `?54`
 error tests/programs/fail/atypical.vi:24:8 - search limit reached when finding flex of type `?77`
-error tests/programs/fail/atypical.vi:6:1 - unconditional infinite loops are invalid
+error tests/programs/fail/atypical.vi:6:8 - unconditional infinite loops are invalid
 error tests/programs/fail/atypical.vi:6:19 - cannot drop `IO`
 error tests/programs/fail/atypical.vi:10:8 - cannot drop `?19`
 error tests/programs/fail/atypical.vi:10:11 - cannot drop `?20`

@@ -12,7 +12,7 @@ use crate::{
 
 use crate::structures::ast::{
   Attr, AttrKind, BinaryOp, ComparisonOp, Expr, ExprKind, Flex, Ident, Impl, ImplKind, Item,
-  ItemKind, LogicalOp, Pat, PatKind, Span, Stmt, StmtKind, Trait, TraitKind, Ty, TyKind, Vis,
+  LogicalOp, Pat, PatKind, Span, Stmt, StmtKind, Trait, TraitKind, Ty, TyKind, Vis,
 };
 
 pub struct VineParser<'src> {
@@ -63,21 +63,21 @@ impl<'src> VineParser<'src> {
       attrs.push(self.parse_attr()?);
     }
     let vis = self.parse_vis()?;
-    let kind = match () {
-      _ if self.check(Token::Fn) => ItemKind::Fn(self.parse_fn_item()?),
-      _ if self.check(Token::Const) => ItemKind::Const(self.parse_const_item()?),
-      _ if self.check(Token::Struct) => ItemKind::Struct(self.parse_struct_item()?),
-      _ if self.check(Token::Enum) => ItemKind::Enum(self.parse_enum_item()?),
-      _ if self.check(Token::Type) => ItemKind::Type(self.parse_type_item()?),
-      _ if self.check(Token::Mod) => ItemKind::Mod(self.parse_mod_item()?),
-      _ if self.check(Token::Trait) => ItemKind::Trait(self.parse_trait_item()?),
-      _ if self.check(Token::Impl) => ItemKind::Impl(self.parse_impl_item()?),
-      _ if self.check(Token::Use) => ItemKind::Use(self.parse_use_item()?),
-      _ if span == self.start_span() => return Ok(None),
+    let (name_span, kind) = match () {
+      _ if self.check(Token::Fn) => self.parse_fn_item()?,
+      _ if self.check(Token::Const) => self.parse_const_item()?,
+      _ if self.check(Token::Struct) => self.parse_struct_item()?,
+      _ if self.check(Token::Enum) => self.parse_enum_item()?,
+      _ if self.check(Token::Type) => self.parse_type_item()?,
+      _ if self.check(Token::Mod) => self.parse_mod_item()?,
+      _ if self.check(Token::Trait) => self.parse_trait_item()?,
+      _ if self.check(Token::Impl) => self.parse_impl_item()?,
+      _ if self.check(Token::Use) => self.parse_use_item()?,
+      _ if attrs.is_empty() => return Ok(None),
       _ => self.unexpected()?,
     };
     let span = self.end_span(span);
-    Ok(Some(Item { vis, span, attrs, kind }))
+    Ok(Some(Item { span, vis, name_span, attrs, kind }))
   }
 
   pub(crate) fn parse_vis(&mut self) -> Result<Vis, Diag> {

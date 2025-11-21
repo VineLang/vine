@@ -15,6 +15,7 @@ pub mod visit;
 #[derive(Clone)]
 pub struct Item {
   pub span: Span,
+  pub name_span: Span,
   pub vis: Vis,
   pub attrs: Vec<Attr>,
   pub kind: ItemKind,
