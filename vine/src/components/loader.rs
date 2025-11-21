@@ -116,7 +116,9 @@ impl Loader {
       (None, ModSpec::Implicit(_)) => unreachable!(),
     };
 
-    let mut items = VineParser::parse(&self.files[file].src, file)?;
+    let src = &self.files[file].src;
+    let mut items = VineParser::parse(src, file)?;
+    let span = Span { file, start: 0, end: src.len() };
     self.load_deps(&path, &mut items, diags);
     Ok(ModKind::Loaded(span, items))
   }

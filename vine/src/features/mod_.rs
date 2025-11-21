@@ -72,6 +72,8 @@ impl Charter<'_> {
   ) -> DefId {
     let def = self.chart_child(parent, span, mod_item.name, member_vis, true);
     let generics = self.chart_generics(def, parent_generics, mod_item.generics, true);
+    let ModKind::Loaded(inner_span, _) = mod_item.kind else { unreachable!() };
+    self.annotations.definitions.entry(span).or_default().insert(inner_span);
     self.chart_mod_kind(vis, mod_item.kind, def, generics);
     def
   }

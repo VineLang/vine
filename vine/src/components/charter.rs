@@ -4,6 +4,7 @@ use crate::{
   components::loader::Module,
   features::cfg::Config,
   structures::{
+    annotations::Annotations,
     ast::{Attr, AttrKind, Flex, Ident, Item, ItemKind, ModKind, Span, Vis, visit::VisitMut},
     chart::Chart,
     diag::{Diag, Diags, ErrorGuaranteed},
@@ -16,6 +17,7 @@ pub struct Charter<'a> {
   pub chart: &'a mut Chart,
   pub config: &'a Config,
   pub diags: &'a mut Diags,
+  pub annotations: &'a mut Annotations,
 }
 
 impl Charter<'_> {
