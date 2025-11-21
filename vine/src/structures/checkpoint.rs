@@ -98,6 +98,7 @@ impl Chart {
       impls,
       builtins,
       main_mod,
+      top_level,
     } = self;
 
     defs.truncate(checkpoint.defs.0);
@@ -119,6 +120,7 @@ impl Chart {
     builtins.revert(checkpoint);
 
     revert_idx(main_mod, checkpoint.defs);
+    top_level.retain(|_, v| *v < checkpoint.defs);
   }
 }
 

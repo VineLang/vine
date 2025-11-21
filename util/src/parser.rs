@@ -99,6 +99,9 @@ pub trait Parser<'src> {
       {
         break;
       }
+      if delims.separator.is_none() && delims.close.is_none() {
+        break;
+      }
     }
     if let Some(close) = delims.close {
       self.expect(close)?;

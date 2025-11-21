@@ -1,6 +1,6 @@
 
 let io: IO = <IO>;
-> use std::rng::Pcg32;
+> use #std::rng::Pcg32;
 
 let io: IO = <IO>;
 > let rng = Pcg32::default

@@ -30,7 +30,7 @@ mod p {
   };
 }
 
-use visibility::circular;
+use #visibility::circular;
 
 // good
 mod q {

@@ -12,7 +12,7 @@ use crate::{
   components::parser::VineParser,
   structures::{
     ast::{
-      Attr, AttrKind, Generics, Ident, Item, ItemKind, ModItem, ModKind, Span, Vis,
+      Ident, Item, ItemKind, ModKind, Span,
       visit::{VisitMut, Visitee},
     },
     checkpoint::Checkpoint,
@@ -24,38 +24,39 @@ new_idx!(pub FileId);
 
 pub struct Loader {
   cwd: PathBuf,
-  root: Vec<Item>,
+  modules: Vec<Module>,
   pub files: IdxVec<FileId, FileInfo>,
+}
+
+pub struct Module {
+  pub name: Ident,
+  pub main: bool,
+  pub kind: ModKind,
 }
 
 impl Default for Loader {
   fn default() -> Self {
-    Self { cwd: current_dir().unwrap(), root: Vec::new(), files: Default::default() }
+    Self { cwd: current_dir().unwrap(), modules: Vec::new(), files: Default::default() }
   }
 }
 
 impl Loader {
-  pub fn finish(&mut self) -> ModKind {
-    ModKind::Loaded(Span::NONE, take(&mut self.root))
+  pub fn finish(&mut self) -> Vec<Module> {
+    take(&mut self.modules)
   }
 
   pub fn load_main_mod(&mut self, path: &Path, diags: &mut Diags) {
-    self.load_mod(path, diags);
-    self.root.last_mut().unwrap().attrs.push(Attr { span: Span::NONE, kind: AttrKind::Main });
+    self._load_mod(path, diags, true);
   }
 
   pub fn load_mod(&mut self, path: &Path, diags: &mut Diags) {
-    let module = Item {
-      span: Span::NONE,
-      vis: Vis::Public,
-      attrs: Vec::new(),
-      kind: ItemKind::Mod(ModItem {
-        name: self.auto_mod_name(path),
-        generics: Generics::empty(Span::NONE),
-        kind: self.load_file(None, ModSpec::Explicit(path), Span::NONE, diags),
-      }),
-    };
-    self.root.push(module);
+    self._load_mod(path, diags, false);
+  }
+
+  fn _load_mod(&mut self, path: &Path, diags: &mut Diags, main: bool) {
+    let name = self.auto_mod_name(path);
+    let kind = self.load_file(None, ModSpec::Explicit(path), Span::NONE, diags);
+    self.modules.push(Module { name, main, kind });
   }
 
   fn auto_mod_name(&self, path: &Path) -> Ident {

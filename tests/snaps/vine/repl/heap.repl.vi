@@ -1,6 +1,6 @@
 
 let io: IO = <IO>;
-> use std::data::Heap;
+> use #std::data::Heap;
 
 let io: IO = <IO>;
 > let heap = Heap::empty[N32];

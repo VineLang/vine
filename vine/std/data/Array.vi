@@ -1,5 +1,5 @@
 
-use std::ops::Cast;
+use ops::Cast;
 
 pub struct Array[T]((N32, Node[T]));
 

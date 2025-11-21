@@ -5,7 +5,7 @@ use crate::{
   structures::{
     ast::{Path, Span, TypeItem},
     chart::{
-      DefId, DefTypeKind, GenericsId, OpaqueTypeDef, OpaqueTypeId, TypeAliasDef, TypeAliasId,
+      DefId, DefTypeKind, GenericsId, OpaqueTypeDef, OpaqueTypeId, TypeAliasDef, TypeAliasId, VisId,
     },
     diag::Diag,
     signatures::{TypeAliasSig, TypeAliasState},
@@ -46,8 +46,8 @@ impl Charter<'_> {
     parent: DefId,
     parent_generics: GenericsId,
     span: Span,
-    vis: DefId,
-    member_vis: DefId,
+    vis: VisId,
+    member_vis: VisId,
     type_item: TypeItem,
   ) -> DefId {
     let def = self.chart_child(parent, type_item.name.clone(), member_vis, true);

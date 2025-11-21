@@ -1,5 +1,5 @@
 
-use std::{data::{Array, Map}, ops::elementwise};
+use #std::{data::{Array, Map}, ops::elementwise};
 
 pub fn main(&io: &IO) {
   let grid = [];

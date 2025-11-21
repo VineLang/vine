@@ -84,7 +84,7 @@ impl<'a> Resolver<'a> {
       locals: Default::default(),
       return_ty: None,
       targets: Default::default(),
-      cur_def: DefId::ROOT,
+      cur_def: DefId::NONE,
       cur_generics: GenericsId::NONE,
       scope: Default::default(),
       scope_depth: Default::default(),
@@ -164,17 +164,9 @@ impl<'a> Resolver<'a> {
     let span = Span::NONE;
     let main_mod_name = self.chart.defs[main_mod].name.clone();
     let main_ident = Ident("main".into());
-    let path = Path {
-      span,
-      absolute: true,
-      segments: if main_mod_name == main_ident {
-        vec![main_ident]
-      } else {
-        vec![main_mod_name, main_ident]
-      },
-      generics: None,
-    };
-    let fn_id = self.resolve_path(DefId::ROOT, &path, "fn", |def| def.fn_id())?;
+    let path =
+      Path { span, absolute: true, segments: vec![main_mod_name, main_ident], generics: None };
+    let fn_id = self.resolve_path(DefId::NONE, &path, "fn", |def| def.fn_id())?;
     let generics = &self.chart.generics[self.chart.fn_generics(fn_id)];
     if !generics.type_params.is_empty()
       || !generics.impl_params.is_empty()

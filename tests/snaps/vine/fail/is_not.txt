@@ -1,11 +1,11 @@
 error tests/programs/fail/is_not.vi:2:13 - types in item signatures cannot be elided
-error tests/programs/fail/is_not.vi:3:23 - cannot find `y` in `::is_not::main`
-error tests/programs/fail/is_not.vi:4:18 - cannot find `y` in `::is_not::main`
-error tests/programs/fail/is_not.vi:5:16 - cannot find `y` in `::is_not::main`
-error tests/programs/fail/is_not.vi:5:26 - cannot find `y` in `::is_not::main`
-error tests/programs/fail/is_not.vi:5:29 - cannot find `z` in `::is_not::main`
+error tests/programs/fail/is_not.vi:3:23 - cannot find `y` in `#is_not::main`
+error tests/programs/fail/is_not.vi:4:18 - cannot find `y` in `#is_not::main`
+error tests/programs/fail/is_not.vi:5:16 - cannot find `y` in `#is_not::main`
+error tests/programs/fail/is_not.vi:5:26 - cannot find `y` in `#is_not::main`
+error tests/programs/fail/is_not.vi:5:29 - cannot find `z` in `#is_not::main`
 error tests/programs/fail/is_not.vi:5:3 - missing else block
-error tests/programs/fail/is_not.vi:7:3 - cannot find `y` in `::is_not::main`
+error tests/programs/fail/is_not.vi:7:3 - cannot find `y` in `#is_not::main`
 error tests/programs/fail/is_not.vi:2:13 - search limit reached when finding flex of type `?0`
 error tests/programs/fail/is_not.vi:3:11 - search limit reached when finding flex of type `?0`
 error tests/programs/fail/is_not.vi:4:13 - search limit reached when finding flex of type `?0`

@@ -1,5 +1,5 @@
 
-use std::{ops::comparison::Ord, rng::Pcg32};
+use #std::{ops::comparison::Ord, rng::Pcg32};
 
 pub fn main(&io: &IO) {
   let i = 0;

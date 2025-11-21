@@ -1,5 +1,5 @@
 
-use std::data::Array;
+use #std::data::Array;
 
 pub fn main(&io: &IO) {
   let a = Array::new(1000000, 0);

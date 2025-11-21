@@ -3,7 +3,7 @@ let io: IO = <IO>;
 > 
 
 let io: IO = <IO>;
-> use std::debug::Show;
+> use #std::debug::Show;
 
 let io: IO = <IO>;
 > 0[Nat]

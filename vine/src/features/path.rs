@@ -9,7 +9,8 @@ use crate::{
   structures::{
     ast::{Expr, ExprKind, Ident, Pat, PatKind, Path, Span},
     chart::{
-      Def, DefId, DefImplKind, DefPatternKind, DefTypeKind, DefValueKind, MemberKind, WithVis,
+      Def, DefId, DefImplKind, DefPatternKind, DefTypeKind, DefValueKind, MemberKind, VisId,
+      WithVis,
     },
     diag::Diag,
     tir::{TirExpr, TirExprKind, TirImpl, TirLocal, TirPat, TirPatKind},
@@ -21,7 +22,7 @@ use crate::{
 impl VineParser<'_> {
   pub(crate) fn parse_path(&mut self) -> Result<Path, Diag> {
     let span = self.start_span();
-    let absolute = self.eat(Token::ColonColon)?;
+    let absolute = self.eat(Token::Hash)?;
     let segments = self.parse_delimited(PATH, Self::parse_ident)?;
     let generics = self.check_then(Token::OpenBracket, Self::parse_generic_args)?;
     let span = self.end_span(span);
@@ -45,7 +46,7 @@ impl<'src> Formatter<'src> {
   pub(crate) fn fmt_path(&self, path: &Path) -> Doc<'src> {
     let mut docs = Vec::<Doc>::new();
     if path.absolute {
-      docs.push(Doc("::"));
+      docs.push(Doc("#"));
     }
     let mut first = true;
     for seg in &path.segments {
@@ -95,11 +96,12 @@ impl Resolver<'_> {
         if self.chart.visible(vis, base) {
           Ok(kind)
         } else {
+          let VisId::Def(vis_def) = vis else { unreachable!() };
           Err(Diag::InvisibleAssociated {
             span: path.span,
             desc,
             path: def.path.clone(),
-            vis: self.chart.defs[vis].path.clone(),
+            vis: self.chart.defs[vis_def].path.clone(),
           })
         }
       }
@@ -109,11 +111,11 @@ impl Resolver<'_> {
 
   fn _resolve_path(&mut self, source: DefId, path: &Path) -> Result<DefId, Diag> {
     let mut segments = path.segments.iter();
+    let initial = segments.next().unwrap();
     let mut base = if path.absolute {
-      DefId::ROOT
+      self.resolve_absolute(path.span, initial.clone())?
     } else {
-      let initial = segments.next().unwrap();
-      self.resolve_initial(path.span, source, initial.clone())?
+      self.resolve_local(path.span, source, initial.clone())?
     };
     for segment in segments {
       base = self.resolve_segment(path.span, source, base, segment.clone())?;
@@ -121,7 +123,14 @@ impl Resolver<'_> {
     Ok(base)
   }
 
-  pub(crate) fn resolve_initial(
+  pub(crate) fn resolve_absolute(&mut self, span: Span, ident: Ident) -> Result<DefId, Diag> {
+    match self.chart.top_level.get(&ident) {
+      Some(&def) => Ok(def),
+      None => Err(Diag::CannotResolveAbsolute { span, ident }),
+    }
+  }
+
+  pub(crate) fn resolve_local(
     &mut self,
     span: Span,
     base: DefId,
@@ -175,11 +184,12 @@ impl Resolver<'_> {
       if self.chart.visible(vis, source) {
         Ok(Some(result))
       } else {
+        let VisId::Def(vis_def) = vis else { unreachable!() };
         Err(Diag::Invisible {
           span,
           module: self.chart.defs[base].path.clone(),
           ident,
-          vis: self.chart.defs[vis].path.clone(),
+          vis: self.chart.defs[vis_def].path.clone(),
         })
       }
     } else {

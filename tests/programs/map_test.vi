@@ -1,5 +1,5 @@
 
-use std::{data::Map, rng::Pcg32};
+use #std::{data::Map, rng::Pcg32};
 
 const iterations: N32 = 4600;
 const seed: String = "dubiously charged umbrella";

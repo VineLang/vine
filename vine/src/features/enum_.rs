@@ -17,7 +17,7 @@ use crate::{
     ast::{EnumItem, Expr, Pat, Path, Span, Variant},
     chart::{
       DefId, DefPatternKind, DefTypeKind, DefValueKind, EnumDef, EnumId, EnumVariant, GenericsId,
-      VariantId,
+      VariantId, VisId,
     },
     diag::Diag,
     signatures::EnumSig,
@@ -76,8 +76,8 @@ impl Charter<'_> {
     parent: DefId,
     parent_generics: GenericsId,
     span: Span,
-    vis: DefId,
-    member_vis: DefId,
+    vis: VisId,
+    member_vis: VisId,
     enum_item: EnumItem,
   ) -> DefId {
     let def = self.chart_child(parent, enum_item.name.clone(), member_vis, true);

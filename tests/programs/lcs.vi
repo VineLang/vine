@@ -1,5 +1,5 @@
 
-use std::{ops::comparison::Eq, rng::Pcg32};
+use #std::{ops::comparison::Eq, rng::Pcg32};
 
 pub fn main(&io: &IO) {
   let x = [];

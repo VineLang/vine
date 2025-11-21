@@ -14,7 +14,9 @@ use crate::{
   },
   structures::{
     ast::{Expr, Pat, Path, Span, StructItem},
-    chart::{DefId, DefPatternKind, DefTypeKind, DefValueKind, GenericsId, StructDef, StructId},
+    chart::{
+      DefId, DefPatternKind, DefTypeKind, DefValueKind, GenericsId, StructDef, StructId, VisId,
+    },
     diag::Diag,
     signatures::StructSig,
     tir::{TirExpr, TirExprKind, TirPat, TirPatKind},
@@ -63,8 +65,8 @@ impl Charter<'_> {
     parent: DefId,
     parent_generics: GenericsId,
     span: Span,
-    vis: DefId,
-    member_vis: DefId,
+    vis: VisId,
+    member_vis: VisId,
     struct_item: StructItem,
   ) -> DefId {
     let def = self.chart_child(parent, struct_item.name.clone(), member_vis, true);
@@ -193,10 +195,11 @@ impl Resolver<'_> {
   ) -> Type {
     let vis = self.chart.structs[struct_id].data_vis;
     if !self.chart.visible(vis, self.cur_def) {
+      let VisId::Def(vis_def) = vis else { unreachable!() };
       self.diags.report(Diag::StructDataInvisible {
         span,
         ty: self.types.show(self.chart, ty),
-        vis: self.chart.defs[vis].path.clone(),
+        vis: self.chart.defs[vis_def].path.clone(),
       });
     }
     self.types.import(&self.sigs.structs[struct_id], Some(type_params)).data

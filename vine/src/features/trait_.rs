@@ -13,7 +13,7 @@ use crate::{
     ast::{Attr, ConstItem, Flex, FnItem, GenericParams, ItemKind, Span, TraitItem, Vis},
     chart::{
       ConstId, DefId, DefTraitKind, DefValueKind, FnId, GenericsDef, GenericsId, TraitConst,
-      TraitConstId, TraitDef, TraitFn, TraitFnId, TraitId,
+      TraitConstId, TraitDef, TraitFn, TraitFnId, TraitId, VisId,
     },
     diag::Diag,
     signatures::{ConstSig, FnSig, TraitSig},
@@ -50,8 +50,8 @@ impl Charter<'_> {
     parent: DefId,
     parent_generics: GenericsId,
     span: Span,
-    vis: DefId,
-    member_vis: DefId,
+    vis: VisId,
+    member_vis: VisId,
     trait_item: TraitItem,
   ) -> DefId {
     let def = self.chart_child(parent, trait_item.name.clone(), member_vis, true);
@@ -88,7 +88,7 @@ impl Charter<'_> {
 
   fn chart_trait_fn(
     &mut self,
-    vis: DefId,
+    vis: VisId,
     def: DefId,
     trait_id: TraitId,
     trait_generics: GenericsId,
@@ -117,7 +117,7 @@ impl Charter<'_> {
 
   fn chart_trait_const(
     &mut self,
-    vis: DefId,
+    vis: VisId,
     def: DefId,
     trait_id: TraitId,
     trait_generics: GenericsId,

@@ -1,5 +1,5 @@
 
-use std::data::Map;
+use #std::data::Map;
 
 pub fn main(&io: &IO) {
   while io.prompt("> ") is Some(line) {

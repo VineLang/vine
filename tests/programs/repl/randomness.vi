@@ -1,4 +1,4 @@
-use std::rng::Pcg32;
+use #std::rng::Pcg32;
 let rng = Pcg32::default
 let nums: List[N32] = []
 let len = 20

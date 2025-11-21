@@ -288,26 +288,31 @@ module.exports = grammar({
         optional($.vis),
         "use",
         optional("::"),
-        delimited("", ",", "", $.use_tree),
+        delimited(
+          "",
+          ",",
+          "",
+          choice(
+            seq(optional("#"), $.use_tree),
+            delimited("{", ",", "}", seq(optional("#"), $.use_tree)),
+          ),
+        ),
         optional(";"),
       )),
 
     use_tree: $ =>
-      prec.right(choice(
-        seq(
-          $.ident,
-          optional(choice(
-            seq("as", choice("_", $.ident)),
-            seq("::", $.use_tree),
-          )),
-        ),
-        delimited("{", ",", "}", $.use_tree),
+      prec.right(seq(
+        $.ident,
+        optional(choice(
+          seq("as", choice("_", $.ident)),
+          seq("::", choice($.use_tree, delimited("{", ",", "}", $.use_tree))),
+        )),
       )),
 
     vis: $ => seq("pub", optional(seq(".", $.ident))),
 
     attr: $ =>
-      seq("#", "[", $.ident, optional(choice(seq("=", $.string), seq("(", $._expr, ")"))), "]"),
+      seq("#[", $.ident, optional(choice(seq("=", $.string), seq("(", $._expr, ")"))), "]"),
 
     generic_params: $ => generics(true, $.ty_param, $.impl_param),
     ty_param: $ => seq($.ident, optional($.flex)),

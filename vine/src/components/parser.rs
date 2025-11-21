@@ -59,7 +59,7 @@ impl<'src> VineParser<'src> {
   fn maybe_parse_item(&mut self) -> Result<Option<Item>, Diag> {
     let span = self.start_span();
     let mut attrs = Vec::new();
-    while self.check(Token::Hash) {
+    while self.check(Token::HashBracket) {
       attrs.push(self.parse_attr()?);
     }
     let vis = self.parse_vis()?;
@@ -97,8 +97,7 @@ impl<'src> VineParser<'src> {
 
   fn parse_attr(&mut self) -> Result<Attr, Diag> {
     let span = self.start_span();
-    self.expect(Token::Hash)?;
-    self.expect(Token::OpenBracket)?;
+    self.expect(Token::HashBracket)?;
     let ident_span = self.start_span();
     let ident = self.expect(Token::Ident)?;
     let ident_span = self.end_span(ident_span);
@@ -220,7 +219,7 @@ impl<'src> VineParser<'src> {
     if self.eat(Token::False)? {
       return Ok(Some(ExprKind::Bool(false)));
     }
-    if self.check(Token::Ident) || self.check(Token::ColonColon) {
+    if self.check(Token::Ident) || self.check(Token::Hash) {
       return Ok(Some(self.parse_expr_path()?));
     }
     if self.check(Token::OpenParen) {
@@ -412,7 +411,7 @@ impl<'src> VineParser<'src> {
     if self.eat(Token::Hole)? {
       return Ok(PatKind::Hole);
     }
-    if self.check(Token::Ident) || self.check(Token::ColonColon) {
+    if self.check(Token::Ident) || self.check(Token::Hash) {
       return self.parse_pat_path();
     }
     if self.check(Token::And) || self.check(Token::AndAnd) {
@@ -470,7 +469,7 @@ impl<'src> VineParser<'src> {
     if self.eat(Token::Tilde)? {
       return Ok(TyKind::Inverse(self.parse_ty()?));
     }
-    if self.check(Token::ColonColon) || self.check(Token::Ident) {
+    if self.check(Token::Ident) || self.check(Token::Hash) {
       return Ok(TyKind::Path(self.parse_path()?));
     }
     self.unexpected()
@@ -491,7 +490,7 @@ impl<'src> VineParser<'src> {
     if self.eat(Token::Hole)? {
       return Ok(ImplKind::Hole);
     }
-    if self.check(Token::ColonColon) || self.check(Token::Ident) {
+    if self.check(Token::Ident) || self.check(Token::Hash) {
       return Ok(ImplKind::Path(self.parse_path()?));
     }
     if self.eat(Token::Fn)? {
@@ -508,7 +507,7 @@ impl<'src> VineParser<'src> {
   }
 
   fn _parse_trait(&mut self) -> Result<TraitKind, Diag> {
-    if self.check(Token::ColonColon) || self.check(Token::Ident) {
+    if self.check(Token::Ident) || self.check(Token::Hash) {
       return Ok(TraitKind::Path(self.parse_path()?));
     }
     if self.eat(Token::Fn)? {

@@ -17,12 +17,12 @@ use crate::{
   },
   structures::{
     ast::{Block, Ident, Span, Stmt, visit::VisitMut},
-    chart::{DefId, GenericsId},
+    chart::{DefId, GenericsId, VisId},
     diag::Diag,
     resolutions::FragmentId,
     tir::Local,
     types::{Type, TypeKind, Types},
-    vir::{Header, Interface, InterfaceKind, Layer, StageId, Step, Transfer, Vir},
+    vir::{Header, Interface, InterfaceId, InterfaceKind, Layer, StageId, Step, Transfer, Vir},
   },
   tools::repl::command::{HELP, ReplCommand, ReplOption, ReplOptions},
 };
@@ -65,7 +65,7 @@ impl<'ctx, 'ivm, 'ext, 'comp> Repl<'ctx, 'ivm, 'ext, 'comp> {
     struct InitHooks<'a>(&'a mut DefId);
     impl Hooks for InitHooks<'_> {
       fn chart(&mut self, charter: &mut Charter) {
-        *self.0 = charter.chart_child(DefId::ROOT, Ident("repl".into()), DefId::ROOT, true);
+        *self.0 = charter.new_def(Ident("repl".into()), "<repl>".into(), None);
       }
     }
     host.insert_nets(&nets);
@@ -120,10 +120,11 @@ impl<'ctx, 'ivm, 'ext, 'comp> Repl<'ctx, 'ivm, 'ext, 'comp> {
 
     self.compiler.loader.load_deps(".".as_ref(), &mut block, &mut self.compiler.diags);
 
-    let path = format!("::repl::{}", self.line);
+    let path = format!(":repl::{}", self.line);
     let mut fragment = None;
     let mut ty = None;
     let mut bindings = Vec::new();
+    let mut interface = None;
 
     let nets = self.compiler.compile(ExecHooks {
       path: path.clone(),
@@ -134,6 +135,7 @@ impl<'ctx, 'ivm, 'ext, 'comp> Repl<'ctx, 'ivm, 'ext, 'comp> {
       fragment: &mut fragment,
       ty: &mut ty,
       bindings: &mut bindings,
+      interface: &mut interface,
       clear,
     })?;
 
@@ -151,6 +153,7 @@ impl<'ctx, 'ivm, 'ext, 'comp> Repl<'ctx, 'ivm, 'ext, 'comp> {
       fragment: &'a mut Option<FragmentId>,
       ty: &'a mut Option<Type>,
       bindings: &'a mut Vec<(Local, Ident, Span, Type)>,
+      interface: &'a mut Option<InterfaceId>,
       clear: Vec<Ident>,
     }
 
@@ -159,7 +162,7 @@ impl<'ctx, 'ivm, 'ext, 'comp> Repl<'ctx, 'ivm, 'ext, 'comp> {
         let mut extractor = ExtractItems::default();
         extractor.visit(&mut *self.block);
         for item in extractor.items {
-          charter.chart_item(self.repl_mod, item, self.repl_mod, GenericsId::NONE);
+          charter.chart_item(VisId::Def(self.repl_mod), item, self.repl_mod, GenericsId::NONE);
         }
       }
 
@@ -207,6 +210,7 @@ impl<'ctx, 'ivm, 'ext, 'comp> Repl<'ctx, 'ivm, 'ext, 'comp> {
 
           ports.reverse();
           stage.header = Header::Entry(ports);
+          *self.interface = Some(interface);
         }
       }
     }
@@ -265,7 +269,7 @@ impl<'ctx, 'ivm, 'ext, 'comp> Repl<'ctx, 'ivm, 'ext, 'comp> {
     let mut binds = Some(binds);
     let vir = &self.compiler.vir[fragment];
     self.types = vir.types.clone();
-    let wires = &vir.interfaces.last().unwrap().wires;
+    let wires = &vir.interfaces[interface.unwrap()].wires;
     self.scope = Vec::from_iter(bindings.into_iter().map(|(local, name, span, ty)| {
       let (value, _, space) = wires.get(&local).copied().unwrap_or_default();
       let value = value.then(|| {

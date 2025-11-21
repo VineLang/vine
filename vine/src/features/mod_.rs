@@ -8,7 +8,7 @@ use crate::{
   },
   structures::{
     ast::{ModItem, ModKind},
-    chart::{DefId, GenericsId},
+    chart::{DefId, GenericsId, VisId},
     diag::Diag,
   },
   tools::fmt::{Formatter, doc::Doc},
@@ -65,8 +65,8 @@ impl Charter<'_> {
     &mut self,
     parent: DefId,
     parent_generics: GenericsId,
-    vis: DefId,
-    member_vis: DefId,
+    vis: VisId,
+    member_vis: VisId,
     mod_item: ModItem,
   ) -> DefId {
     let def = self.chart_child(parent, mod_item.name, member_vis, true);

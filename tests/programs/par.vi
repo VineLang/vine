@@ -1,5 +1,5 @@
 
-use std::{ops::Cast, rng::Pcg32};
+use #std::{ops::Cast, rng::Pcg32};
 
 trait Session[A, B] {
   fn fork[F; fn F(A)](f: F) -> B;
