@@ -148,12 +148,7 @@ impl<'src> Formatter<'src> {
   }
 
   pub(crate) fn fmt_flex(&self, flex: Flex) -> Doc<'src> {
-    Doc(match flex {
-      Flex::None => "",
-      Flex::Fork => "+",
-      Flex::Drop => "?",
-      Flex::Full => "*",
-    })
+    Doc(flex.sigil())
   }
 
   pub(crate) fn fmt_impl(&self, impl_: &Impl) -> Doc<'src> {

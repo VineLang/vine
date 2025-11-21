@@ -237,6 +237,15 @@ impl Flex {
   pub fn drop(self) -> bool {
     matches!(self, Flex::Drop | Flex::Full)
   }
+
+  pub fn sigil(self) -> &'static str {
+    match self {
+      Flex::None => "",
+      Flex::Fork => "+",
+      Flex::Drop => "?",
+      Flex::Full => "*",
+    }
+  }
 }
 
 #[derive(Debug, Clone)]

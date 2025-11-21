@@ -428,10 +428,9 @@ impl Types {
                 }
               }
             }
-            TypeKind::Closure(closure_id, ..) => {
-              *str += "<local fn ";
-              write!(*str, "{}", closure_id.0).unwrap();
-              *str += ">";
+            TypeKind::Closure(closure_id, flex, params, ret) => {
+              write!(*str, "fn{} <{}>", flex.sigil(), closure_id.0).unwrap();
+              self._show_fn_sig(chart, params, *ret, str);
             }
             TypeKind::Opaque(type_id, params) => {
               *str += &chart.opaque_types[*type_id].name.0;
@@ -488,15 +487,19 @@ impl Types {
   }
 
   pub fn show_fn_sig(&self, chart: &Chart, sig: &FnSig) -> String {
-    let mut str = String::new();
-    str += "fn (";
-    self._show_comma_separated(chart, &sig.params, &mut str);
-    str += ")";
-    if !matches!(self.kind(sig.ret_ty), Some((_, TypeKind::Tuple(els))) if els.is_empty()) {
-      str += " -> ";
-      self._show(chart, sig.ret_ty, &mut str);
-    }
+    let mut str = "fn ".to_owned();
+    self._show_fn_sig(chart, &sig.params, sig.ret_ty, &mut str);
     str
+  }
+
+  pub fn _show_fn_sig(&self, chart: &Chart, params: &[Type], ret: Type, str: &mut String) {
+    *str += "(";
+    self._show_comma_separated(chart, params, str);
+    *str += ")";
+    if !matches!(self.kind(ret), Some((_, TypeKind::Tuple(els))) if els.is_empty()) {
+      *str += " -> ";
+      self._show(chart, ret, str);
+    }
   }
 
   pub fn import<T: TransferTypes>(&mut self, source: &TypeCtx<T>, params: Option<&[Type]>) -> T {
