@@ -74,7 +74,7 @@ impl Compiler {
     let chart = &mut self.chart;
 
     let mut charter = Charter { chart, config: &self.config, diags: &mut self.diags };
-    charter.chart_root(root);
+    charter.chart(root);
     hooks.chart(&mut charter);
 
     let mut resolver = Resolver::new(
@@ -123,7 +123,7 @@ impl Compiler {
       let vir = &self.vir[main];
       let func = vir.closures[ClosureId(0)];
       let InterfaceKind::Fn { call, .. } = vir.interfaces[func].kind else { unreachable!() };
-      let global = format!("{path}:s{}", call.0);
+      let global = format!("::{}:s{}", &path[1..], call.0);
       nets.insert(
         "::".into(),
         if self.debug { debug_main(Tree::Global(global)) } else { Net::new(Tree::Global(global)) },

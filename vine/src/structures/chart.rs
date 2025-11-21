@@ -24,6 +24,7 @@ pub struct Chart {
   pub impls: IdxVec<ImplId, ImplDef>,
   pub builtins: Builtins,
   pub main_mod: Option<DefId>,
+  pub top_level: HashMap<Ident, DefId>,
 }
 
 new_idx!(pub DefId);
@@ -119,8 +120,8 @@ pub struct ImportDef {
 
 #[derive(Debug, Clone, Copy)]
 pub enum ImportParent {
-  Root,
-  Scope,
+  Absolute,
+  Local,
   Import(ImportId),
 }
 
@@ -274,7 +275,9 @@ impl Chart {
   pub fn visible(&self, vis: VisId, from: DefId) -> bool {
     match vis {
       VisId::Pub => true,
-      VisId::Def(vis) => vis == from || vis < from && self.defs[from].ancestors.contains(&vis),
+      VisId::Def(vis) => {
+        vis == from || from != DefId::NONE && vis < from && self.defs[from].ancestors.contains(&vis)
+      }
     }
   }
 
@@ -310,7 +313,7 @@ impl Def {
 }
 
 impl DefId {
-  pub const ROOT: Self = Self(0);
+  pub const NONE: Self = Self(usize::MAX);
 }
 
 impl GenericsId {

@@ -65,7 +65,7 @@ impl<'ctx, 'ivm, 'ext, 'comp> Repl<'ctx, 'ivm, 'ext, 'comp> {
     struct InitHooks<'a>(&'a mut DefId);
     impl Hooks for InitHooks<'_> {
       fn chart(&mut self, charter: &mut Charter) {
-        *self.0 = charter.chart_child(DefId::ROOT, Ident("repl".into()), VisId::Pub, true);
+        *self.0 = charter.new_def(Ident("repl".into()), "<repl>".into(), None);
       }
     }
     host.insert_nets(&nets);
@@ -120,7 +120,7 @@ impl<'ctx, 'ivm, 'ext, 'comp> Repl<'ctx, 'ivm, 'ext, 'comp> {
 
     self.compiler.loader.load_deps(".".as_ref(), &mut block, &mut self.compiler.diags);
 
-    let path = format!("::repl::{}", self.line);
+    let path = format!(":repl::{}", self.line);
     let mut fragment = None;
     let mut ty = None;
     let mut bindings = Vec::new();

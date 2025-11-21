@@ -37,6 +37,8 @@ pub enum Token {
   At,
   #[token("#")]
   Hash,
+  #[token("#[")]
+  HashBracket,
   #[token("+")]
   Plus,
   #[token("++")]

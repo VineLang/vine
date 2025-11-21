@@ -1,6 +1,7 @@
 use std::mem::replace;
 
 use crate::{
+  components::loader::Module,
   features::cfg::Config,
   structures::{
     ast::{Attr, AttrKind, Flex, Ident, Item, ItemKind, ModKind, Span, Vis, visit::VisitMut},
@@ -18,13 +19,13 @@ pub struct Charter<'a> {
 }
 
 impl Charter<'_> {
-  pub fn chart_root(&mut self, root: ModKind) {
+  pub fn chart(&mut self, modules: Vec<Module>) {
     if self.chart.generics.is_empty() {
       self.chart.generics.push_to(
         GenericsId::NONE,
         GenericsDef {
           span: Span::NONE,
-          def: DefId::ROOT,
+          def: DefId::NONE,
           parent: None,
           type_params: Vec::new(),
           impl_params: Vec::new(),
@@ -34,13 +35,18 @@ impl Charter<'_> {
         },
       );
     }
-    if self.chart.defs.is_empty() {
-      self.new_def(Ident("::".into()), "".into(), None);
+    for module in modules {
+      let path = format!("#{}", module.name);
+      let def = self.new_def(module.name.clone(), path, None);
+      self.chart.top_level.insert(module.name.clone(), def);
+      self.chart_mod_kind(VisId::Pub, module.kind, def, GenericsId::NONE);
+      if module.main {
+        self.chart.main_mod = Some(def);
+      }
     }
-    self.chart_mod_kind(VisId::Pub, root, DefId::ROOT, GenericsId::NONE);
   }
 
-  fn new_def(&mut self, name: Ident, path: String, parent: Option<DefId>) -> DefId {
+  pub(crate) fn new_def(&mut self, name: Ident, path: String, parent: Option<DefId>) -> DefId {
     let id = self.chart.defs.next_index();
     self.chart.defs.push(Def {
       name,
@@ -162,9 +168,6 @@ impl Charter<'_> {
             self.diags.report(Diag::BadBuiltin { span });
           }
         }
-        AttrKind::Main => {
-          self.chart.main_mod = def;
-        }
         AttrKind::Manual => {
           let Some(impl_id) = impl_id else {
             self.diags.report(Diag::BadManualAttr { span });
@@ -212,7 +215,7 @@ impl Charter<'_> {
   ) -> DefId {
     let next_def_id = self.chart.defs.next_index();
     let parent_def = &mut self.chart.defs[parent];
-    if collapse && parent_def.name == name {
+    if collapse && parent_def.name == name && parent_def.ancestors.len() > 1 {
       return parent;
     }
     let mut new = false;

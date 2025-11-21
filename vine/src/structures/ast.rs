@@ -119,13 +119,14 @@ pub enum ImplItemKind {
 
 #[derive(Debug, Clone)]
 pub struct UseItem {
-  pub absolute: bool,
-  pub tree: UseTree,
+  pub relative: BTreeMap<Ident, UseTree>,
+  pub absolute: BTreeMap<Ident, UseTree>,
 }
 
 #[derive(Debug, Clone)]
 pub struct UseTree {
   pub span: Span,
+  pub absolute: bool,
   pub aliases: Vec<Ident>,
   pub implicit: bool,
   pub children: BTreeMap<Ident, UseTree>,
@@ -133,7 +134,13 @@ pub struct UseTree {
 
 impl UseTree {
   pub fn empty(span: Span) -> Self {
-    UseTree { span, aliases: Vec::new(), implicit: false, children: BTreeMap::new() }
+    UseTree {
+      span,
+      absolute: false,
+      aliases: Vec::new(),
+      implicit: false,
+      children: BTreeMap::new(),
+    }
   }
 
   pub fn prune(&mut self) -> bool {
@@ -158,7 +165,6 @@ pub struct Attr {
 #[derive(Debug, Clone)]
 pub enum AttrKind {
   Builtin(Builtin),
-  Main,
   Manual,
   Basic,
   Become(Path),
