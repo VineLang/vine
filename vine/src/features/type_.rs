@@ -53,14 +53,14 @@ impl Charter<'_> {
   ) -> DefId {
     let def = self.chart_child(parent, span, type_item.name.clone(), member_vis, true);
     let generics = self.chart_generics(def, parent_generics, type_item.generics, false);
+    let name = type_item.name;
     let kind = match type_item.ty {
       Some(ty) => {
-        let alias_id = self.chart.type_aliases.push(TypeAliasDef { span, def, generics, ty });
+        let alias_id = self.chart.type_aliases.push(TypeAliasDef { span, def, name, generics, ty });
         DefTypeKind::Alias(alias_id)
       }
       None => {
-        let opaque_id =
-          self.chart.opaque_types.push(OpaqueTypeDef { span, def, generics, name: type_item.name });
+        let opaque_id = self.chart.opaque_types.push(OpaqueTypeDef { span, def, name, generics });
         DefTypeKind::Opaque(opaque_id)
       }
     };
@@ -91,11 +91,26 @@ impl Resolver<'_> {
         self.initialize(alias_def.def, alias_def.generics);
         let ty = self.resolve_ty(&alias_def.ty, false);
 
+        let hover = format!(
+          "type {}{} = {};",
+          alias_def.name,
+          self.show_generics(self.cur_generics, false),
+          self.types.show(self.chart, ty),
+        );
+        self.annotations.hovers.insert(alias_def.span, hover);
+
         let slot = self.sigs.type_aliases.get_or_extend(alias_id);
         *slot =
           TypeAliasState::Resolved(self.types.export(|t| TypeAliasSig { ty: t.transfer(&ty) }));
       }
     }
+  }
+
+  pub(crate) fn resolve_opaque_type(&mut self, opaque_id: OpaqueTypeId) {
+    let opaque_def = &self.chart.opaque_types[opaque_id];
+    let hover =
+      format!("type {}{};", opaque_def.name, self.show_generics(opaque_def.generics, false),);
+    self.annotations.hovers.insert(opaque_def.span, hover);
   }
 
   pub(crate) fn resolve_ty_path_alias(

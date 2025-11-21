@@ -83,6 +83,15 @@ impl Resolver<'_> {
     let const_def = &self.chart.concrete_consts[const_id];
     self.initialize(const_def.def, const_def.generics);
     let ty = self.resolve_ty(&const_def.ty, false);
+
+    let hover = format!(
+      "const {}{}: {};",
+      const_def.name,
+      self.show_generics(self.cur_generics, true),
+      self.types.show(self.chart, ty),
+    );
+    self.annotations.hovers.insert(const_def.span, hover);
+
     let types = take(&mut self.types);
     self.sigs.concrete_consts.push_to(const_id, TypeCtx { types, inner: ConstSig { ty } });
   }

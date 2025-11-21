@@ -487,7 +487,7 @@ impl Types {
   }
 
   pub fn show_fn_sig(&self, chart: &Chart, sig: &FnSig) -> String {
-    let mut str = "fn ".to_owned();
+    let mut str = String::new();
     self._show_fn_sig(chart, &sig.params, sig.ret_ty, &mut str);
     str
   }

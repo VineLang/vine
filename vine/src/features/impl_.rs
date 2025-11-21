@@ -80,7 +80,7 @@ impl Charter<'_> {
     member_vis: VisId,
     impl_item: ImplItem,
   ) -> DefId {
-    let def = self.chart_child(parent, span, impl_item.name, member_vis, true);
+    let def = self.chart_child(parent, span, impl_item.name.clone(), member_vis, true);
     let generics = self.chart_generics(def, parent_generics, impl_item.generics, true);
     let mut subitems = Vec::new();
     let kind = match impl_item.kind {
@@ -116,6 +116,7 @@ impl Charter<'_> {
     };
     let impl_id = self.chart.impls.push(ImplDef {
       span,
+      name: impl_item.name,
       def,
       generics,
       kind,
@@ -202,11 +203,13 @@ impl Charter<'_> {
     flex: Flex,
   ) {
     if flex.fork() {
-      let def = self.chart_child(ty_def, span, Ident("fork".into()), member_vis, false);
+      let name = Ident("fork".into());
+      let def = self.chart_child(ty_def, span, name.clone(), member_vis, false);
       let _generic_params = GenericParams { inherit: true, ..GenericParams::empty(span) };
       let generics = self._chart_generics(def, ty_generics, _generic_params, true, Flex::Fork);
       let impl_ = self.chart.impls.push(ImplDef {
         span,
+        name,
         def,
         generics,
         kind: ImplDefKind::IndirectFork(ty),
@@ -217,11 +220,13 @@ impl Charter<'_> {
       self.define_impl(span, def, vis, DefImplKind::Impl(impl_));
     }
     if flex.drop() {
-      let def = self.chart_child(ty_def, span, Ident("drop".into()), member_vis, false);
+      let name = Ident("drop".into());
+      let def = self.chart_child(ty_def, span, name.clone(), member_vis, false);
       let _generic_params = GenericParams { inherit: true, ..GenericParams::empty(span) };
       let generics = self._chart_generics(def, ty_generics, _generic_params, true, Flex::Drop);
       let impl_ = self.chart.impls.push(ImplDef {
         span,
+        name,
         def,
         generics,
         kind: ImplDefKind::IndirectDrop(ty),
@@ -250,7 +255,16 @@ impl Resolver<'_> {
         self.resolve_flex_impl_ty(span, *ty, self.chart.builtins.drop, "Drop")
       }
     };
+
+    let hover = format!(
+      "impl {}{}: {};",
+      impl_def.name,
+      self.show_generics(self.cur_generics, true),
+      self.types.show_impl_type(self.chart, &ty)
+    );
+
     let types = take(&mut self.types);
+    self.annotations.hovers.insert(impl_def.span, hover);
     self.sigs.impls.push_to(impl_id, TypeCtx { types, inner: ImplSig { ty } });
   }
 
