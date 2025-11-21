@@ -184,8 +184,13 @@ impl Resolver<'_> {
       ImportState::Unresolved => {
         *state = ImportState::Resolving;
         let import = import.clone();
+        let span = import.span;
         let resolved = self._resolve_import(import);
         self.sigs.imports[import_id] = ImportState::Resolved(resolved);
+        if let Ok(def) = resolved {
+          let spans = &self.chart.defs[def].spans;
+          self.annotations.definitions.entry(span).or_default().extend(spans);
+        }
         resolved
       }
     }

@@ -32,6 +32,7 @@ new_idx!(pub DefId);
 pub struct Def {
   pub name: Ident,
   pub path: String,
+  pub spans: Vec<Span>,
 
   pub members_lookup: HashMap<Ident, Binding<MemberKind>>,
   pub named_members: Vec<Binding<MemberKind>>,
