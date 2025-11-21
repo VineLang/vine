@@ -454,4 +454,4 @@ let io: IO = <IO>;
 6
 8
 
-let io: IO;
+let io: IO = <IO>;

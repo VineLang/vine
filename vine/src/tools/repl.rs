@@ -22,7 +22,7 @@ use crate::{
     resolutions::FragmentId,
     tir::Local,
     types::{Type, TypeKind, Types},
-    vir::{Header, Interface, InterfaceKind, Layer, StageId, Step, Transfer, Vir},
+    vir::{Header, Interface, InterfaceId, InterfaceKind, Layer, StageId, Step, Transfer, Vir},
   },
   tools::repl::command::{HELP, ReplCommand, ReplOption, ReplOptions},
 };
@@ -124,6 +124,7 @@ impl<'ctx, 'ivm, 'ext, 'comp> Repl<'ctx, 'ivm, 'ext, 'comp> {
     let mut fragment = None;
     let mut ty = None;
     let mut bindings = Vec::new();
+    let mut interface = None;
 
     let nets = self.compiler.compile(ExecHooks {
       path: path.clone(),
@@ -134,6 +135,7 @@ impl<'ctx, 'ivm, 'ext, 'comp> Repl<'ctx, 'ivm, 'ext, 'comp> {
       fragment: &mut fragment,
       ty: &mut ty,
       bindings: &mut bindings,
+      interface: &mut interface,
       clear,
     })?;
 
@@ -151,6 +153,7 @@ impl<'ctx, 'ivm, 'ext, 'comp> Repl<'ctx, 'ivm, 'ext, 'comp> {
       fragment: &'a mut Option<FragmentId>,
       ty: &'a mut Option<Type>,
       bindings: &'a mut Vec<(Local, Ident, Span, Type)>,
+      interface: &'a mut Option<InterfaceId>,
       clear: Vec<Ident>,
     }
 
@@ -207,6 +210,7 @@ impl<'ctx, 'ivm, 'ext, 'comp> Repl<'ctx, 'ivm, 'ext, 'comp> {
 
           ports.reverse();
           stage.header = Header::Entry(ports);
+          *self.interface = Some(interface);
         }
       }
     }
@@ -265,7 +269,7 @@ impl<'ctx, 'ivm, 'ext, 'comp> Repl<'ctx, 'ivm, 'ext, 'comp> {
     let mut binds = Some(binds);
     let vir = &self.compiler.vir[fragment];
     self.types = vir.types.clone();
-    let wires = &vir.interfaces.last().unwrap().wires;
+    let wires = &vir.interfaces[interface.unwrap()].wires;
     self.scope = Vec::from_iter(bindings.into_iter().map(|(local, name, span, ty)| {
       let (value, _, space) = wires.get(&local).copied().unwrap_or_default();
       let value = value.then(|| {
