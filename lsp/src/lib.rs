@@ -163,6 +163,22 @@ impl Lsp {
     Some(refs.iter().map(|&x| self.span_to_location(x)).collect())
   }
 
+  fn occurrences(&self, params: DocumentHighlightParams) -> Option<Vec<DocumentHighlight>> {
+    let span = self.document_position_to_span(params.text_document_position_params)?;
+    let file = span.file;
+    let span = self.get_def(span).map(|x| x.1).unwrap_or(span);
+    let (span, refs) = self.lookup_span(&self.compiler.annotations.references, span)?;
+    Some(
+      refs
+        .iter()
+        .copied()
+        .chain([span])
+        .filter(|span| span.file == file)
+        .map(|span| DocumentHighlight { range: self.span_to_range(span), kind: None })
+        .collect(),
+    )
+  }
+
   fn hover(&self, params: HoverParams) -> Option<Hover> {
     let span = self.document_position_to_span(params.text_document_position_params)?;
     let (span, hover) =
@@ -279,6 +295,7 @@ impl LanguageServer for Backend {
         workspace_symbol_provider: Some(OneOf::Left(true)),
         definition_provider: Some(OneOf::Left(true)),
         references_provider: Some(OneOf::Left(true)),
+        document_highlight_provider: Some(OneOf::Left(true)),
         hover_provider: Some(HoverProviderCapability::Simple(true)),
         ..ServerCapabilities::default()
       },
@@ -332,6 +349,13 @@ impl LanguageServer for Backend {
 
   async fn references(&self, params: ReferenceParams) -> Result<Option<Vec<Location>>> {
     Ok(self.lsp.read().await.references(params))
+  }
+
+  async fn document_highlight(
+    &self,
+    params: DocumentHighlightParams,
+  ) -> Result<Option<Vec<DocumentHighlight>>> {
+    Ok(self.lsp.read().await.occurrences(params))
   }
 
   async fn hover(&self, params: HoverParams) -> Result<Option<Hover>> {
