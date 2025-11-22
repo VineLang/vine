@@ -224,6 +224,9 @@ impl Charter<'_> {
     let next_def_id = self.chart.defs.next_index();
     let parent_def = &mut self.chart.defs[parent];
     if collapse && parent_def.name == name && parent_def.ancestors.len() > 1 {
+      if span != Span::NONE {
+        parent_def.spans.push(span);
+      }
       return parent;
     }
     let mut new = false;
