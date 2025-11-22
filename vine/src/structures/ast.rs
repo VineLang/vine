@@ -17,6 +17,7 @@ pub mod visit;
 pub struct Item {
   pub span: Span,
   pub name_span: Span,
+  pub docs: Vec<String>,
   pub vis: Vis,
   pub attrs: Vec<Attr>,
   pub kind: ItemKind,

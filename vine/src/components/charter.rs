@@ -151,6 +151,10 @@ impl Charter<'_> {
       }
     }
 
+    if !item.docs.is_empty() {
+      self.annotations.record_docs(span, item.docs);
+    }
+
     self.chart_attrs(def, item.attrs);
   }
 
@@ -347,6 +351,7 @@ impl VisitMut<'_> for ExtractItems {
       Item {
         span: Span::NONE,
         name_span: Span::NONE,
+        docs: Vec::new(),
         vis: Vis::Private,
         attrs: vec![],
         kind: ItemKind::Taken,
