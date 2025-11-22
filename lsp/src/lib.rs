@@ -247,19 +247,21 @@ impl Lsp {
     }
   }
 
-  fn position_to_byte(&self, file: FileId, position: Position) -> usize {
-    self.compiler.loader.files[file].line_starts[position.line as usize]
-      + position.character as usize
+  fn position_to_byte(&self, file: FileId, position: Position) -> Option<usize> {
+    Some(
+      self.compiler.loader.files[file].line_starts.get(position.line as usize)?
+        + position.character as usize,
+    )
   }
 
-  fn position_to_span(&self, file: FileId, position: Position) -> Span {
-    let byte = self.position_to_byte(file, position);
-    Span { file, start: byte, end: byte }
+  fn position_to_span(&self, file: FileId, position: Position) -> Option<Span> {
+    let byte = self.position_to_byte(file, position)?;
+    Some(Span { file, start: byte, end: byte })
   }
 
   fn document_position_to_span(&self, doc_pos: TextDocumentPositionParams) -> Option<Span> {
     let file = self.uri_to_file_id(doc_pos.text_document.uri)?;
-    Some(self.position_to_span(file, doc_pos.position))
+    self.position_to_span(file, doc_pos.position)
   }
 
   fn span_to_location(&self, span: Span) -> Location {
