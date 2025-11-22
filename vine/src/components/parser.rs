@@ -58,6 +58,10 @@ impl<'src> VineParser<'src> {
 
   fn maybe_parse_item(&mut self) -> Result<Option<Item>, Diag> {
     let span = self.start_span();
+    let mut doc = Vec::new();
+    while self.check(Token::DocComment) {
+      doc.push(self.expect(Token::DocComment)?.to_owned());
+    }
     let mut attrs = Vec::new();
     while self.check(Token::HashBracket) {
       attrs.push(self.parse_attr()?);
@@ -77,7 +81,7 @@ impl<'src> VineParser<'src> {
       _ => self.unexpected()?,
     };
     let span = self.end_span(span);
-    Ok(Some(Item { span, vis, name_span, attrs, kind }))
+    Ok(Some(Item { span, vis, name_span, docs: doc, attrs, kind }))
   }
 
   pub(crate) fn parse_vis(&mut self) -> Result<Vis, Diag> {

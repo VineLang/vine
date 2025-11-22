@@ -264,7 +264,7 @@ impl Resolver<'_> {
     );
 
     let types = take(&mut self.types);
-    self.annotations.record_hover(impl_def.span, hover);
+    self.annotations.record_signature(impl_def.span, hover);
     self.sigs.impls.push_to(impl_id, TypeCtx { types, inner: ImplSig { ty } });
   }
 

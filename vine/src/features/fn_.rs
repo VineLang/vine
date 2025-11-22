@@ -175,7 +175,7 @@ impl Resolver<'_> {
       self.show_generics(self.cur_generics, true),
       self.types.show_fn_sig(self.chart, &sig),
     );
-    self.annotations.record_hover(fn_def.span, hover);
+    self.annotations.record_signature(fn_def.span, hover);
 
     let types = take(&mut self.types);
     self.sigs.concrete_fns.push_to(fn_id, TypeCtx { types, inner: sig });

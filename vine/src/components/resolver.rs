@@ -326,7 +326,7 @@ impl<'a> Resolver<'a> {
           ScopeBinding::Closure(_, span, ty) => (span, ty),
         };
         let hover = format!("let {}: {};", ident.0, self.types.show(self.chart, ty));
-        self.annotations.record_hover(span, hover);
+        self.annotations.record_signature(span, hover);
       }
     }
   }

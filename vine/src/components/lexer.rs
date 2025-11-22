@@ -173,6 +173,8 @@ pub enum Token {
   DoubleQuote,
   #[token(r#"'"#)]
   SingleQuote,
+  #[regex(r#"///.*"#)]
+  DocComment,
 
   #[regex("//.*", logos::skip)]
   #[token("/*", lex_block_comment)]

@@ -161,7 +161,7 @@ impl Lsp {
 
   fn hover(&self, params: HoverParams) -> Option<Hover> {
     let span = self.document_position_to_span(params.text_document_position_params)?;
-    let (span, hovers) =
+    let (span, hover) =
       self.lookup_span(&self.compiler.annotations.hovers, span).or_else(|| {
         let (_, defs) = self.lookup_span(&self.compiler.annotations.definitions, span)?;
         if defs.len() == 1 {
@@ -170,13 +170,23 @@ impl Lsp {
           None
         }
       })?;
+    let mut str = String::new();
+    if !hover.signatures.is_empty() {
+      str += "```vine\n";
+      for sig in &hover.signatures {
+        str += sig;
+        str += "\n";
+      }
+      str += "```\n";
+    }
+    for doc in &hover.docs {
+      let doc = doc.strip_prefix("///").unwrap();
+      let doc = doc.strip_prefix(" ").unwrap_or(doc);
+      str += doc;
+      str += "\n";
+    }
     Some(Hover {
-      contents: HoverContents::Array(Vec::from_iter(hovers.iter().map(|line| {
-        MarkedString::LanguageString(LanguageString {
-          language: "vine".into(),
-          value: line.clone(),
-        })
-      }))),
+      contents: HoverContents::Markup(MarkupContent { kind: MarkupKind::Markdown, value: str }),
       range: Some(self.span_to_range(span)),
     })
   }
@@ -238,13 +248,18 @@ impl Lsp {
 #[tower_lsp::async_trait]
 impl LanguageServer for Backend {
   async fn initialize(&self, params: InitializeParams) -> Result<InitializeResult> {
-    assert!(params.capabilities.general.is_some_and(|x| {
+    let supports_utf8 = params.capabilities.general.is_some_and(|x| {
       x.position_encodings.is_some_and(|x| x.contains(&PositionEncodingKind::UTF8))
-    }));
+    });
     Ok(InitializeResult {
       server_info: None,
       capabilities: ServerCapabilities {
-        position_encoding: Some(PositionEncodingKind::UTF8),
+        position_encoding: Some(if supports_utf8 {
+          PositionEncodingKind::UTF8
+        } else {
+          // TODO(#411): handle properly
+          PositionEncodingKind::UTF16
+        }),
         text_document_sync: Some(TextDocumentSyncCapability::Kind(TextDocumentSyncKind::FULL)),
         document_formatting_provider: Some(OneOf::Left(true)),
         workspace: Some(WorkspaceServerCapabilities {

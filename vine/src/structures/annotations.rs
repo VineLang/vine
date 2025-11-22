@@ -6,7 +6,13 @@ use crate::structures::ast::Span;
 pub struct Annotations {
   pub definitions: BTreeMap<Span, BTreeSet<Span>>,
   pub references: BTreeMap<Span, BTreeSet<Span>>,
-  pub hovers: BTreeMap<Span, Vec<String>>,
+  pub hovers: BTreeMap<Span, Hover>,
+}
+
+#[derive(Default, Debug, Clone)]
+pub struct Hover {
+  pub docs: Vec<String>,
+  pub signatures: Vec<String>,
 }
 
 impl Annotations {
@@ -15,7 +21,11 @@ impl Annotations {
     self.definitions.entry(ref_span).or_default().insert(def_span);
   }
 
-  pub fn record_hover(&mut self, span: Span, hover: String) {
-    self.hovers.entry(span).or_default().push(hover);
+  pub fn record_signature(&mut self, span: Span, signature: String) {
+    self.hovers.entry(span).or_default().signatures.push(signature);
+  }
+
+  pub fn record_docs(&mut self, span: Span, doc: Vec<String>) {
+    self.hovers.entry(span).or_default().docs.extend(doc);
   }
 }

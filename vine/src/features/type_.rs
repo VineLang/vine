@@ -97,7 +97,7 @@ impl Resolver<'_> {
           self.show_generics(self.cur_generics, false),
           self.types.show(self.chart, ty),
         );
-        self.annotations.record_hover(alias_def.span, hover);
+        self.annotations.record_signature(alias_def.span, hover);
 
         let slot = self.sigs.type_aliases.get_or_extend(alias_id);
         *slot =
@@ -110,7 +110,7 @@ impl Resolver<'_> {
     let opaque_def = &self.chart.opaque_types[opaque_id];
     let hover =
       format!("type {}{};", opaque_def.name, self.show_generics(opaque_def.generics, false),);
-    self.annotations.record_hover(opaque_def.span, hover);
+    self.annotations.record_signature(opaque_def.span, hover);
   }
 
   pub(crate) fn resolve_ty_path_alias(
