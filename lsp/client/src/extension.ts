@@ -13,7 +13,7 @@ const captureToTokenType: Record<string, string> = {
   "operator": "operator",
   "string": "string",
   "constant.numeric": "number",
-  "constant.character.escape": "string",
+  "constant.character.escape": "constant.character.escape",
   "comment": "comment",
   "function": "function",
   "namespace": "namespace",

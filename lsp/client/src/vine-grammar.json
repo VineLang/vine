@@ -1,0 +1,87 @@
+{
+  "name": "vine",
+  "patterns": [
+    { "include": "#line-comment" },
+    { "include": "#block-comment" },
+    { "include": "#keyword" },
+    { "include": "#ident" },
+    { "include": "#num" },
+    { "include": "#operator" },
+    { "include": "#punctuation" },
+    { "include": "#block" },
+    { "include": "#string" },
+    { "include": "#char" }
+  ],
+  "scopeName": "source.vine",
+  "repository": {
+    "line-comment": {
+      "match": "//.*",
+      "name": "comment.line.double-slash.vine"
+    },
+    "block-comment": {
+      "begin": "/\\*",
+      "end": "\\*/",
+      "name": "comment.block.vine",
+      "patterns": [{ "include": "#block-comment" }]
+    },
+    "num": {
+      "match": "\\d[\\d\\w]*(\\.\\d+([eE][+-]?\\d+)?)?",
+      "name": "constant.numeric.vine"
+    },
+    "ident": {
+      "match": "\\p{ID_Start}\\p{ID_Continue}*|_\\p{ID_Continue}+"
+    },
+    "operator": {
+      "match": "[/%?~^-]|&&?|\\|\\|?|\\+\\+?|\\*\\*?|==?|!=?|<[<=-]?|>[>=]?|[-=]>|\\.\\.=?",
+      "name": "keyword.operator.vine"
+    },
+    "punctuation": {
+      "match": "[.,;#\\[\\]()_]|::?|\\.\\.\\.",
+      "name": "punctuation.vine"
+    },
+    "keyword": {
+      "match": "\\b(?:pub|mod|use|as|fn|struct|enum|type|trait|impl|match|let|const|in|is|return|do|loop|while|for|break|continue|if|when|else|true|false|inline_ivy!)\\b",
+      "name": "keyword.vine"
+    },
+    "block": {
+      "begin": "\\{",
+      "beginCaptures": {
+        "0": { "name": "punctuation.vine" }
+      },
+      "end": "}",
+      "endCaptures": {
+        "0": { "name": "punctuation.vine" }
+      },
+      "patterns": [
+        { "include": "$self" }
+      ]
+    },
+    "string": {
+      "begin": "\"",
+      "beginCaptures": {
+        "0": { "name": "string.quoted.double.vine" }
+      },
+      "end": "\"",
+      "endCaptures": {
+        "0": { "name": "string.quoted.double.vine" }
+      },
+      "patterns": [
+        { "include": "#escapes" },
+        { "include": "#block" },
+        { "match": "[^\\\\\"{]", "name": "string.quoted.double.vine" }
+      ]
+    },
+    "char": {
+      "name": "string.quoted.single.char.vine",
+      "begin": "'",
+      "end": "'",
+      "patterns": [
+        { "include": "#escapes" }
+      ]
+    },
+    "escapes": {
+      "match": "\\\\(?:[\\\\\"'{ntr0]|x[0-7][0-9a-fA-F]|u\\{[0-9a-fA-F]{1,6}})",
+      "name": "constant.character.escape.vine"
+    }
+  }
+}
