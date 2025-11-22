@@ -289,6 +289,7 @@ pub enum LetElse {
 #[derive(Debug, Clone)]
 pub struct LetFnStmt {
   pub flex: Flex,
+  pub name_span: Span,
   pub name: Ident,
   pub params: Vec<Pat>,
   pub ret: Option<Ty>,

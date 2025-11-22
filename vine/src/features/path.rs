@@ -213,7 +213,7 @@ impl Resolver<'_> {
         ScopeBinding::Closure(id, source_span, ty) => (TirExprKind::Closure(id), source_span, ty),
       };
       let expr = TirExpr::new(span, ty, expr);
-      self.annotations.record_reference(span, source_span);
+      self.annotations.record_reference(path.span, source_span);
       return if let Some(args) = args {
         self._resolve_expr_call(span, expr, args)
       } else {

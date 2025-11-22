@@ -58,11 +58,12 @@ impl VineParser<'_> {
   pub(crate) fn _parse_stmt_let_fn(&mut self) -> Result<StmtKind, Diag> {
     self.expect(Token::Fn)?;
     let flex = self.parse_flex()?;
+    let name_span = self.span();
     let name = self.parse_ident()?;
     let params = self.parse_pats()?;
     let ret = self.parse_arrow_ty()?;
     let body = self.parse_block()?;
-    Ok(StmtKind::LetFn(LetFnStmt { flex, name, params, ret, body }))
+    Ok(StmtKind::LetFn(LetFnStmt { flex, name_span, name, params, ret, body }))
   }
 }
 
@@ -223,7 +224,7 @@ impl Resolver<'_> {
             Vec::from_iter(let_fn.params.iter().map(|p| self.resolve_pat_sig(p, true)));
           let ret = self.resolve_arrow_ty(span, &let_fn.ret, true);
           let ty = self.types.new(TypeKind::Closure(id, let_fn.flex, param_tys.clone(), ret));
-          self.bind(let_fn.name.clone(), ScopeBinding::Closure(id, span, ty));
+          self.bind(let_fn.name.clone(), ScopeBinding::Closure(id, let_fn.name_span, ty));
           let_fns.push((span, id, param_tys, ret, let_fn));
         }
         StmtKind::Empty | StmtKind::Item(_) => {}
