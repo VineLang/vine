@@ -582,10 +582,9 @@ impl<'a> Finder<'a> {
         {
           let mut types = types.clone();
           let sig = types.import(&self.sigs.enums[*enum_id], Some(enum_params));
-          let nil = types.nil();
           let variants =
             sig.variant_data.values().rfold(types.new(TypeKind::Never), |rest, init| {
-              types.new(TypeKind::Enum(variant_enum, vec![init.unwrap_or(nil), rest]))
+              types.new(TypeKind::Enum(variant_enum, vec![*init, rest]))
             });
           if types.unify(variants, type_params[1]).is_success() {
             found.push(TypeCtx { types, inner: TirImpl::Synthetic(SyntheticImpl::Enum(*enum_id)) });

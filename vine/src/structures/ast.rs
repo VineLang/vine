@@ -82,7 +82,7 @@ pub struct EnumItem {
 #[derive(Debug, Clone)]
 pub struct Variant {
   pub name: Ident,
-  pub data: Option<Ty>,
+  pub data: Ty,
 }
 
 #[derive(Debug, Clone)]

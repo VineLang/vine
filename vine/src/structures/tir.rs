@@ -102,7 +102,7 @@ pub enum TirExprKind {
   #[class(poly, value, place, space)]
   Struct(StructId, TirExpr),
   #[class(value)]
-  Enum(EnumId, VariantId, Option<TirExpr>),
+  Enum(EnumId, VariantId, TirExpr),
   #[class(value, cond)]
   Bool(bool),
   #[class(value, cond)]
@@ -153,7 +153,7 @@ pub enum TirPatKind {
   #[class(value, place, space, complete, incomplete)]
   Struct(StructId, TirPat),
   #[class(value, place, space, incomplete)]
-  Enum(EnumId, VariantId, Option<TirPat>),
+  Enum(EnumId, VariantId, TirPat),
   #[class(value, place, space, complete)]
   Local(Local),
   #[class(value, place, complete, incomplete)]

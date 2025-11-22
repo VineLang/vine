@@ -356,12 +356,12 @@ impl<'r> Distiller<'r> {
 
   pub(crate) fn distill_pat_nil(&mut self, stage: &mut Stage, pat: &TirPat) {
     match &*pat.kind {
-      TirPatKind::Hole | TirPatKind::Enum(_, _, None) | TirPatKind::Error(_) => {}
+      TirPatKind::Hole | TirPatKind::Error(_) => {}
       TirPatKind::Composite(els) => {
         els.iter().for_each(|e| self.distill_pat_nil(stage, e));
       }
       TirPatKind::Struct(_, inner)
-      | TirPatKind::Enum(_, _, Some(inner))
+      | TirPatKind::Enum(_, _, inner)
       | TirPatKind::Ref(inner)
       | TirPatKind::Deref(inner)
       | TirPatKind::Inverse(inner) => {

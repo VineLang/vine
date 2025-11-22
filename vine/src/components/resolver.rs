@@ -490,7 +490,7 @@ impl<'a> Resolver<'a> {
       ExprKind::Tuple(elements) => self.resolve_expr_tuple(span, elements),
       ExprKind::Object(entries) => self.resolve_expr_object(span, entries),
       ExprKind::Unwrap(inner) => self.resolve_expr_unwrap(span, inner),
-      ExprKind::Path(path, args) => self.resolve_expr_path(expr, span, path, args),
+      ExprKind::Path(path, args) => self.resolve_expr_path(span, path, args),
     }
   }
 

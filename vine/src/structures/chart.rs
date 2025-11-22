@@ -211,7 +211,7 @@ pub struct EnumVariant {
   pub span: Span,
   pub def: DefId,
   pub name: Ident,
-  pub data: Option<Ty>,
+  pub data: Ty,
 }
 
 new_idx!(pub TraitId);

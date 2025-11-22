@@ -61,7 +61,7 @@ pub(crate) struct MatchVar {
 pub(crate) enum MatchVarKind {
   Local(Local, MatchVarForm),
   Composite(Vec<VarId>),
-  Enum(EnumId, VariantId, Option<VarId>),
+  Enum(EnumId, VariantId, VarId),
   Struct(StructId, VarId),
   Ref(Local),
 }
@@ -259,7 +259,7 @@ impl<'d, 'r> Matcher<'d, 'r> {
         stage.steps.push(Step::Struct(*struct_id, wire.neg, content));
       }
       MatchVarKind::Enum(enum_id, variant_id, content) => {
-        let content = content.map(|v| self.take_var(stage, vars, &vars[v]));
+        let content = self.take_var(stage, vars, &vars[*content]);
         stage.steps.push(Step::Enum(*enum_id, *variant_id, wire.neg, content));
       }
     }

@@ -231,8 +231,6 @@ diags! {
     ["circular import"]
   UnwrapNonStruct
     ["only struct types can be unwrapped"]
-  EnumVariantNoData
-    ["this enum variant has no data"]
   ExpectedDataSubpattern
     ["expected data subpattern"]
   ExpectedDataExpr

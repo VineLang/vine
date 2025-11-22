@@ -108,7 +108,6 @@ impl Resolver<'_> {
 
   pub(crate) fn resolve_expr_path_struct(
     &mut self,
-    expr: &Expr,
     span: Span,
     path: &Path,
     struct_id: StructId,
@@ -128,7 +127,7 @@ impl Resolver<'_> {
     };
     if self.types.unify(data.ty, data_ty).is_failure() {
       self.diags.report(Diag::ExpectedTypeFound {
-        span: expr.span,
+        span: data.span,
         expected: self.types.show(self.chart, data_ty),
         found: self.types.show(self.chart, data.ty),
       });
