@@ -342,15 +342,15 @@ pub mod Nat {
   pub impl ord: Ord[Nat] {
     fn cmp(&Nat(a), &Nat(b)) -> Ord {
       when {
-        a.len() < b.len() { Ord::Lt }
-        a.len() > b.len() { Ord::Gt }
+        a.len() < b.len() { Ord::Lt() }
+        a.len() > b.len() { Ord::Gt() }
         _ {
-          let ord = Ord::Eq;
+          let ord = Ord::Eq();
           for (x, y) in a.into_iter().zip(b.into_iter()) {
             ord = match x.cmp(&y) {
-              Ord::Lt { Ord::Lt }
-              Ord::Eq { ord }
-              Ord::Gt { Ord::Gt }
+              Ord::Lt() { Ord::Lt() }
+              Ord::Eq() { ord }
+              Ord::Gt() { Ord::Gt() }
             }
           }
           ord
@@ -359,17 +359,17 @@ pub mod Nat {
     }
 
     fn lt(&a: &Nat, &b: &Nat) -> Bool {
-      a.cmp(&b) is Ord::Lt
+      a.cmp(&b) is Ord::Lt()
     }
 
     fn le(&a: &Nat, &b: &Nat) -> Bool {
-      !(a.cmp(&b) is Ord::Gt)
+      !(a.cmp(&b) is Ord::Gt())
     }
   }
 
   pub fn parse(str: String) -> Option[Nat] {
     if str.len() == 0 {
-      return None;
+      return None();
     }
     let num = 0[Nat];
     for digit in str.into_iter() {
@@ -377,7 +377,7 @@ pub mod Nat {
         continue;
       }
       if !('0' <= digit <= '9') {
-        return None;
+        return None();
       }
       num *= 10;
       num += (digit - '0') as Nat;

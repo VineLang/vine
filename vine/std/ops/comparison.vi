@@ -53,9 +53,9 @@ pub trait Ord[T] {
 }
 
 pub enum* Ord {
-  Lt,
-  Eq,
-  Gt,
+  Lt(()),
+  Eq(()),
+  Gt(()),
 }
 
 pub mod Ord {
@@ -64,9 +64,9 @@ pub mod Ord {
   pub impl neg: Neg[Ord, Ord] {
     fn neg(a: Ord) -> Ord {
       match a {
-        Ord::Lt { Ord::Gt }
-        Ord::Eq { Ord::Eq }
-        Ord::Gt { Ord::Lt }
+        Ord::Lt() { Ord::Gt() }
+        Ord::Eq() { Ord::Eq() }
+        Ord::Gt() { Ord::Lt() }
       }
     }
   }
@@ -90,9 +90,9 @@ pub mod Ord {
       let &(ai, ar) = &a as &(I, R);
       let &(bi, br) = &b as &(I, R);
       match ai.cmp(&bi) {
-        Ord::Lt { Ord::Lt }
-        Ord::Gt { Ord::Gt }
-        Ord::Eq { ar.cmp(&br) }
+        Ord::Lt() { Ord::Lt() }
+        Ord::Gt() { Ord::Gt() }
+        Ord::Eq() { ar.cmp(&br) }
       }
     }
 
@@ -128,18 +128,18 @@ pub mod Ord {
   }
 
   pub fn lt_from_cmp[T; Ord[T]](&a: &T, &b: &T) -> Bool {
-    a.cmp(&b) is Ord::Lt
+    a.cmp(&b) is Ord::Lt()
   }
 
   pub fn le_from_cmp[T; Ord[T]](&a: &T, &b: &T) -> Bool {
-    !(a.cmp(&b) is Ord::Gt)
+    !(a.cmp(&b) is Ord::Gt())
   }
 
   pub fn cmp_from_lt[T; Ord[T]](&a: &T, &b: &T) -> Ord {
     when {
-      a < b { Ord::Lt }
-      a > b { Ord::Gt }
-      _ { Ord::Eq }
+      a < b { Ord::Lt() }
+      a > b { Ord::Gt() }
+      _ { Ord::Eq() }
     }
   }
 }

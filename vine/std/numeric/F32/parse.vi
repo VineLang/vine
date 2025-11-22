@@ -5,8 +5,8 @@ use ops::comparison::Ord;
 pub fn parse(str: String) -> Option[F32] {
   let prefix = match str!.pop_front() {
     Some(char) { char }
-    None {
-      return None;
+    None() {
+      return None();
     }
   };
   let is_negative = when {
@@ -41,14 +41,14 @@ pub fn parse(str: String) -> Option[F32] {
         }
       }
       if !seen_digit {
-        return None;
+        return None();
       }
       if next_char is Some(char) {
         if char != 'e' && char != 'E' {
-          return None;
+          return None();
         }
         let Some(exp) = I32::parse(str) else {
-          return None;
+          return None();
         };
         exp10 += exp;
       }
@@ -115,10 +115,10 @@ mod Rational {
 
         // Round mantissa
         match (r << 1).cmp(&den) {
-          Ord::Gt {
+          Ord::Gt() {
             mantissa += 1;
           }
-          Ord::Eq {
+          Ord::Eq() {
             if mantissa & 1 == 1 {
               mantissa += 1;
             }
@@ -152,10 +152,10 @@ mod Rational {
 
       // round to nearest, ties-to-even
       match (r << 1).cmp(&den) {
-        Ord::Gt {
+        Ord::Gt() {
           mantissa += 1;
         }
-        Ord::Eq {
+        Ord::Eq() {
           if mantissa & 1 == 1 {
             mantissa += 1;
           }

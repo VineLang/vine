@@ -49,24 +49,24 @@ impl channel_session[T, P, Q; Session[P, Q]]: Session[Recv[T, P], Send[T, Q]] {
 }
 
 enum+ Move {
-  Up,
-  Down,
+  Up(()),
+  Down(()),
 }
 
 mod Move {
   pub impl to_string: Cast[Move, String] {
     fn cast(self: Move) -> String {
       match self {
-        Up { "Up" }
-        Down { "Down" }
+        Up() { "Up" }
+        Down() { "Down" }
       }
     }
   }
 }
 
 enum Outcome {
-  Win,
-  Loss,
+  Win(()),
+  Loss(()),
   Draw(Round),
 }
 
@@ -74,9 +74,9 @@ type Round = Send[Move, Recv[Outcome, ()]];
 type Player = Recv[Move, Send[Outcome, ()]];
 
 enum Winner {
-  First,
-  Second,
-  Third,
+  First(()),
+  Second(()),
+  Third(()),
 }
 
 type Game = Send[(Player, Player, Player), Recv[Winner, ()]];
@@ -98,24 +98,24 @@ fn start_playing(&io: &IO) -> Game {
       io.println("{move1} {move2} {move3}");
 
       let fn win1() {
-        outcome1.send1(Win);
-        outcome2.send1(Loss);
-        outcome3.send1(Loss);
-        winner.send1(First);
+        outcome1.send1(Win());
+        outcome2.send1(Loss());
+        outcome3.send1(Loss());
+        winner.send1(First());
       }
 
       let fn win2() {
-        outcome1.send1(Loss);
-        outcome2.send1(Win);
-        outcome3.send1(Loss);
-        winner.send1(Second);
+        outcome1.send1(Loss());
+        outcome2.send1(Win());
+        outcome3.send1(Loss());
+        winner.send1(Second());
       }
 
       let fn win3() {
-        outcome1.send1(Loss);
-        outcome2.send1(Loss);
-        outcome3.send1(Win);
-        winner.send1(Third);
+        outcome1.send1(Loss());
+        outcome2.send1(Loss());
+        outcome3.send1(Win());
+        winner.send1(Third());
       }
 
       let fn draw() {
@@ -126,17 +126,17 @@ fn start_playing(&io: &IO) -> Game {
       }
 
       match (move1, move2, move3) {
-        (Up, Down, Down) { win1() }
-        (Down, Up, Up) { win1() }
-        (Down, Up, Down) { win2() }
-        (Up, Down, Up) { win2() }
-        (Down, Down, Up) { win3() }
-        (Up, Up, Down) { win3() }
-        (Up, Up, Up) {
+        (Up(), Down(), Down()) { win1() }
+        (Down(), Up(), Up()) { win1() }
+        (Down(), Up(), Down()) { win2() }
+        (Up(), Down(), Up()) { win2() }
+        (Down(), Down(), Up()) { win3() }
+        (Up(), Up(), Down()) { win3() }
+        (Up(), Up(), Up()) {
           draw();
           continue;
         }
-        (Down, Down, Down) {
+        (Down(), Down(), Down()) {
           draw();
           continue;
         }
@@ -148,9 +148,9 @@ fn start_playing(&io: &IO) -> Game {
 fn random_player(&rng: &Pcg32) -> Player {
   let fn random_move() {
     if rng.gen_n32() & 1 == 0 {
-      Move::Up
+      Move::Up()
     } else {
-      Move::Down
+      Move::Down()
     }
   }
   Session::fork[Round, _, _](fn (round: Round) {
@@ -171,9 +171,9 @@ pub fn main(&io: &IO) {
       random_player(&p3),
     )).recv1();
     io.println(match winner {
-      Winner::First { "Alice wins!\n" }
-      Winner::Second { "Bob wins!\n" }
-      Winner::Third { "Charlie wins!\n" }
+      Winner::First() { "Alice wins!\n" }
+      Winner::Second() { "Bob wins!\n" }
+      Winner::Third() { "Charlie wins!\n" }
     });
   }
 }

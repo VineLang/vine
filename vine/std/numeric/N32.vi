@@ -158,7 +158,7 @@ pub mod N32 {
 
   pub fn parse(str: String) -> Option[N32] {
     if str.len() == 0 {
-      return None;
+      return None();
     }
     let num = 0;
     for digit in str.into_iter() {
@@ -166,7 +166,7 @@ pub mod N32 {
         continue;
       }
       if !('0' <= digit <= '9') {
-        return None;
+        return None();
       }
       num *= 10;
       num += digit - '0';

@@ -142,7 +142,7 @@ pub mod I32 {
         N32::parse(str).map(fn? (x: N32) { x as I32 })
       }
     } else {
-      None
+      None()
     }
   }
 

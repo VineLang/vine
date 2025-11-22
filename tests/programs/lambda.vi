@@ -68,7 +68,7 @@ pub mod Term {
     let err;
     let parser = Parser({ scope: Map::empty, chars: source as List, error: ~err });
     let term = parser.parse_term();
-    ~parser.error = None;
+    ~parser.error = None();
     unsafe::erase(parser);
     if err is Some(error) {
       unsafe::erase(term);

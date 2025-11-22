@@ -28,12 +28,12 @@ true
 let io: IO = <IO>;
 let heap: Heap[N32] = Heap([]);
 > heap.pop()
-None
+None()
 
 let io: IO = <IO>;
 let heap: Heap[N32] = Heap([]);
 > heap.peek()
-None
+None()
 
 let io: IO = <IO>;
 let heap: Heap[N32] = Heap([]);

@@ -72,8 +72,8 @@ pub impl to_string: Cast[F32, String] {
 
     // Round correctly
     let carry = match (rem * 2).cmp(&den) {
-      Ord::Gt { true }
-      Ord::Eq { (last_digit & 1) == 1 }
+      Ord::Gt() { true }
+      Ord::Eq() { (last_digit & 1) == 1 }
       _ { false }
     };
     if carry {

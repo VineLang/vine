@@ -57,9 +57,9 @@ pub fn main(&io: &IO) {
               io.println("{a} - {b} = {a - b}");
               io.println("{a} * {b} = {a * b}");
               match a.cmp(&b) {
-                Ord::Lt { io.println("{a} < {b}") }
-                Ord::Eq { io.println("{a} = {b}") }
-                Ord::Gt { io.println("{a} > {b}") }
+                Ord::Lt() { io.println("{a} < {b}") }
+                Ord::Eq() { io.println("{a} = {b}") }
+                Ord::Gt() { io.println("{a} > {b}") }
               }
             }
           }

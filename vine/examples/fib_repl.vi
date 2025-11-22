@@ -4,7 +4,7 @@ pub fn main(&io: &IO) {
     let num = N32::parse(line);
     io.println(match num {
       Some(num) { fib(num) as String }
-      None { "invalid number" }
+      None() { "invalid number" }
     });
   }
 }

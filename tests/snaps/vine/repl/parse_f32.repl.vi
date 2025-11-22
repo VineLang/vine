@@ -109,43 +109,43 @@ Some(NaN)
 
 let io: IO = <IO>;
 > F32::parse("  9.81")
-None
+None()
 
 let io: IO = <IO>;
 > F32::parse("-2.0\n")
-None
+None()
 
 let io: IO = <IO>;
 > F32::parse("1,23")
-None
+None()
 
 let io: IO = <IO>;
 > F32::parse("12 345.6")
-None
+None()
 
 let io: IO = <IO>;
 > F32::parse("")
-None
+None()
 
 let io: IO = <IO>;
 > F32::parse(".")
-None
+None()
 
 let io: IO = <IO>;
 > F32::parse("1e")
-None
+None()
 
 let io: IO = <IO>;
 > F32::parse("e5")
-None
+None()
 
 let io: IO = <IO>;
 > F32::parse("-")
-None
+None()
 
 let io: IO = <IO>;
 > F32::parse("3.1.4")
-None
+None()
 
 let io: IO = <IO>;
 > F32::parse("6.0221408e23")

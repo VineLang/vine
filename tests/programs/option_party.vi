@@ -17,12 +17,12 @@ pub fn main(&io: &IO) {
   }
 
   io.println("map:");
-  print_option_n32(None.map(fn? (x: N32) { x + 1 }));
+  print_option_n32(None().map(fn? (x: N32) { x + 1 }));
   print_option_n32(Some(0).map(fn? (x: N32) { x + 1 }));
   print_option_n32(Some(100).map(fn? (x: N32) { x + 1 }));
 
   io.println("increment_option:");
-  let option = None;
+  let option = None();
   increment_option(&option);
   print_option_n32(option);
   option = Some(0);
@@ -32,41 +32,41 @@ pub fn main(&io: &IO) {
   print_option_n32(option);
 
   io.println("flatten:");
-  print_option_n32(None.flatten());
-  print_option_n32(Some(None).flatten());
+  print_option_n32(None().flatten());
+  print_option_n32(Some(None()).flatten());
   print_option_n32(Some(Some(123)).flatten());
 
   io.println("add_options:");
-  print_option_n32(add_options(None, None));
-  print_option_n32(add_options(Some(1), None));
-  print_option_n32(add_options(None, Some(2)));
+  print_option_n32(add_options(None(), None()));
+  print_option_n32(add_options(Some(1), None()));
+  print_option_n32(add_options(None(), Some(2)));
   print_option_n32(add_options(Some(1), Some(2)));
 
   io.println("or:");
-  print_option_n32(None.or[N32](None));
-  print_option_n32(Some(1).or(None));
-  print_option_n32(None.or(Some(2)));
+  print_option_n32(None().or[N32](None()));
+  print_option_n32(Some(1).or(None()));
+  print_option_n32(None().or(Some(2)));
   print_option_n32(Some(1).or(Some(2)));
 
   io.println("unwrap_or:");
-  print_n32(None.unwrap_or(0));
+  print_n32(None().unwrap_or(0));
   print_n32(Some(1).unwrap_or(0));
 
   io.println("is_some:");
-  print_bool(None[()] is Some(_));
+  print_bool(None[()]() is Some(_));
   print_bool(Some(()) is Some(_));
 
   io.println("is_none:");
-  print_bool(None[()] is None);
-  print_bool(Some(()) is None);
+  print_bool(None[()]() is None());
+  print_bool(Some(()) is None());
 
   io.println("is_some_and:");
-  print_bool(None[N32] is Some(x) && x > 0);
+  print_bool(None[N32]() is Some(x) && x > 0);
   print_bool(Some(0) is Some(x) && x > 0);
   print_bool(Some(1) is Some(x) && x > 0);
 
   io.println("is_some_implies:");
-  print_bool(None[N32] is Some(x) => x > 0);
+  print_bool(None[N32]() is Some(x) => x > 0);
   print_bool(Some(0) is Some(x) => x > 0);
   print_bool(Some(1) is Some(x) => x > 0);
 
@@ -79,14 +79,14 @@ pub fn main(&io: &IO) {
 
   io.println("unwrap:");
   print_n32(Some(42).unwrap());
-  print_n32(None.unwrap());
+  print_n32(None().unwrap());
   io.println("io will never work again :(");
 }
 
 fn increment_option(&option: &Option[N32]) {
   match option.as_ref() {
     Some(&x) { x += 1 }
-    None {}
+    None() {}
   }
 }
 

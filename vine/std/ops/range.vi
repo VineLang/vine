@@ -91,7 +91,7 @@ pub mod Range {
       if end.right_of(&start) {
         Some(start, Range(Inclusive(start.step()), end))
       } else {
-        None
+        None()
       }
     }
   }

@@ -93,7 +93,7 @@ let io: IO = <IO>;
 
 let io: IO = <IO>;
 > N64::parse("")
-None
+None()
 
 let io: IO = <IO>;
 > N64::parse("0")
@@ -109,7 +109,7 @@ Some(12345678901234567890)
 
 let io: IO = <IO>;
 > N64::parse("123abc")
-None
+None()
 
 let io: IO = <IO>;
 > N64::parse("123456789_123456789")

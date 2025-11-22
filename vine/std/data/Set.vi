@@ -37,21 +37,21 @@ pub mod Set[T; Ord[T]] {
       len = 1;
       unsafe::erase(data);
       data = (empty, new, empty);
-      None
+      None()
     } else {
       let &(left, value, right) = &data;
       let old;
       match new.cmp(&value) {
-        Ord::Lt {
+        Ord::Lt() {
           old = left.insert(new);
           len = size(&data);
           balance_right(&data);
         }
-        Ord::Eq {
+        Ord::Eq() {
           old = Some(value);
           value = new;
         }
-        Ord::Gt {
+        Ord::Gt() {
           old = right.insert(new);
           len = size(&data);
           balance_left(&data);
@@ -67,22 +67,22 @@ pub mod Set[T; Ord[T]] {
     } else {
       let &(left, value, right) = &data;
       match key.cmp(&value) {
-        Ord::Lt { left.has(&key) }
-        Ord::Eq { true }
-        Ord::Gt { right.has(&key) }
+        Ord::Lt() { left.has(&key) }
+        Ord::Eq() { true }
+        Ord::Gt() { right.has(&key) }
       }
     }
   }
 
   pub fn .at_eq[...](&Set[T](len, data), &key: &T) -> Option[&T] {
     if len == 0 {
-      None
+      None()
     } else {
       let &(left, value, right) = &data;
       match key.cmp(&value) {
-        Ord::Lt { left.at_eq(&key) }
-        Ord::Eq { Some(&value) }
-        Ord::Gt { right.at_eq(&key) }
+        Ord::Lt() { left.at_eq(&key) }
+        Ord::Eq() { Some(&value) }
+        Ord::Gt() { right.at_eq(&key) }
       }
     }
   }
@@ -93,13 +93,13 @@ pub mod Set[T; Ord[T]] {
 
   pub fn .at_le[...](&Set[T](len, data), &key: &T) -> Option[&T] {
     if len == 0 {
-      None
+      None()
     } else {
       let &(left, value, right) = &data;
       match key.cmp(&value) {
-        Ord::Lt { left.at_le(&key) }
-        Ord::Eq { Some(&value) }
-        Ord::Gt {
+        Ord::Lt() { left.at_le(&key) }
+        Ord::Eq() { Some(&value) }
+        Ord::Gt() {
           if right.at_le(&key) is Some(value) {
             Some(value)
           } else {
@@ -116,19 +116,19 @@ pub mod Set[T; Ord[T]] {
 
   pub fn .at_ge[...](&Set[T](len, data), &key: &T) -> Option[&T] {
     if len == 0 {
-      None
+      None()
     } else {
       let &(left, value, right) = &data;
       match key.cmp(&value) {
-        Ord::Lt {
+        Ord::Lt() {
           if left.at_ge(&key) is Some(value) {
             Some(value)
           } else {
             Some(&value)
           }
         }
-        Ord::Eq { Some(&value) }
-        Ord::Gt { right.at_ge(&key) }
+        Ord::Eq() { Some(&value) }
+        Ord::Gt() { right.at_ge(&key) }
       }
     }
   }
@@ -139,23 +139,23 @@ pub mod Set[T; Ord[T]] {
 
   pub fn .remove[... T](&Set[T](len, data), &key: &T) -> Option[T] {
     if len == 0 {
-      None
+      None()
     } else {
       let (left, value, right) = data;
       let old;
       match key.cmp(&value) {
-        Ord::Lt {
+        Ord::Lt() {
           old = left.remove(&key);
           data = (left, value, right);
           len = Set::size(&data);
           balance_left(&data);
         }
-        Ord::Eq {
+        Ord::Eq() {
           old = Some(value);
           len -= 1;
           data = merge_balanced(left, right);
         }
-        Ord::Gt {
+        Ord::Gt() {
           old = right.remove(&key);
           data = (left, value, right);
           len = Set::size(&data);
@@ -168,7 +168,7 @@ pub mod Set[T; Ord[T]] {
 
   pub fn .remove_min[...](&self: &Set[T]) -> Option[T] {
     if self.len() == 0 {
-      None
+      None()
     } else {
       Some(self._remove_min())
     }
@@ -176,7 +176,7 @@ pub mod Set[T; Ord[T]] {
 
   pub fn .remove_max[...](&self: &Set[T]) -> Option[T] {
     if self.len() == 0 {
-      None
+      None()
     } else {
       Some(self._remove_max())
     }
@@ -234,7 +234,7 @@ pub mod Set[T; Ord[T]] {
         if stack.head_tail() is Some(&(value, node), stack) {
           Some(&value, Iter(&node, stack))
         } else {
-          None
+          None()
         }
       }
     }
@@ -266,7 +266,7 @@ pub mod Set[T; Ord[T]] {
         if stack.head_tail() is Some((value, node), stack) {
           Some(value, IntoIter(node, stack))
         } else {
-          None
+          None()
         }
       }
     }

@@ -15,7 +15,7 @@ pub fn main(&io: &IO) {
   }
 
   let fn resize(width: N32, height: N32) {
-    signal.pipe_stream(&Signal::Stop);
+    signal.pipe_stream(&Signal::Stop());
     construct_torus(
       width,
       height,
@@ -113,7 +113,7 @@ pub fn cell(
 
         continue;
       }
-      &Signal::Stop {}
+      &Signal::Stop() {}
     }
   }
   nw.close_stream();
@@ -195,7 +195,7 @@ pub enum? Signal {
   Init(&Pcg32),
   Advance(N32),
   Display(&IO),
-  Stop,
+  Stop(()),
 }
 
 pub struct Stream[T]((T, Stream[T]));

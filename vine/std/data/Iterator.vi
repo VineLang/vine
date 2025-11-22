@@ -15,7 +15,7 @@ pub mod Iterator[I, T; Iterator[I, T]] {
 
     pub impl iterator[T]: Iterator[Empty[T], T] {
       fn advance(Empty[T]()) -> Option[(T, Empty[T])] {
-        None
+        None()
       }
     }
   }
@@ -29,7 +29,7 @@ pub mod Iterator[I, T; Iterator[I, T]] {
   pub mod One {
     pub impl iterator[T]: Iterator[One[T], T] {
       fn advance(One[T](value)) -> Option[(T, One[T])] {
-        Option::map(value, fn? (value) { (value, One(None)) })
+        Option::map(value, fn? (value) { (value, One(None())) })
       }
     }
   }
@@ -46,7 +46,7 @@ pub mod Iterator[I, T; Iterator[I, T]] {
         if f() is Some(value) {
           Some(value, FromNext(f))
         } else {
-          None
+          None()
         }
       }
     }
@@ -63,7 +63,7 @@ pub mod Iterator[I, T; Iterator[I, T]] {
       fn advance(Map[I, F](iter, f)) -> Option[(U, Map[I, F])] {
         match iter.advance() {
           Some(value, iter) { Some(f(value), iter.map(f)) }
-          None { None }
+          None() { None() }
         }
       }
     }
@@ -88,7 +88,7 @@ pub mod Iterator[I, T; Iterator[I, T]] {
                 continue;
               }
             }
-            None { None }
+            None() { None() }
           }
         }
       }
@@ -114,7 +114,7 @@ pub mod Iterator[I, T; Iterator[I, T]] {
                 continue;
               }
             }
-            None { None }
+            None() { None() }
           }
         }
       }
@@ -135,7 +135,7 @@ pub mod Iterator[I, T; Iterator[I, T]] {
           if iter.advance() is Some(_, _iter) {
             iter = _iter;
           } else {
-            return None;
+            return None();
           }
         }
         Option::map(iter.advance(), fn? ((value, iter)) { (value, Skip(iter, 0)) })
@@ -156,13 +156,13 @@ pub mod Iterator[I, T; Iterator[I, T]] {
           while iter.advance() is Some(value, _iter) {
             iter = _iter;
             if !f(&value) {
-              break Some(value, SkipWhile(iter, None));
+              break Some(value, SkipWhile(iter, None()));
             }
           } else {
-            None
+            None()
           }
         } else {
-          Option::map(iter.advance(), fn? ((value, iter)) { (value, SkipWhile(iter, None)) })
+          Option::map(iter.advance(), fn? ((value, iter)) { (value, SkipWhile(iter, None())) })
         }
       }
     }
@@ -180,7 +180,7 @@ pub mod Iterator[I, T; Iterator[I, T]] {
         if count != 0 && iter.advance() is Some(value, iter) {
           Some(value, Take(iter, count - 1))
         } else {
-          None
+          None()
         }
       }
     }
@@ -198,7 +198,7 @@ pub mod Iterator[I, T; Iterator[I, T]] {
         if iter.advance() is Some(value, iter) && f(&value) {
           Some((value, TakeWhile(iter, f)))
         } else {
-          None
+          None()
         }
       }
     }
@@ -216,7 +216,7 @@ pub mod Iterator[I, T; Iterator[I, T]] {
         if iter.advance() is Some(value, iter) && f(value) is Some(value) {
           Some((value, MapWhile(iter, f)))
         } else {
-          None
+          None()
         }
       }
     }
@@ -234,14 +234,14 @@ pub mod Iterator[I, T; Iterator[I, T]] {
         if i.advance() is Some((t, i)) && j.advance() is Some((u, j)) {
           Some((t, u), Zip(i, j))
         } else {
-          None
+          None()
         }
       }
     }
   }
 
   pub fn .flatten[I, J, T; Iterator[I, J], Iterator[J, T]](iter: I) -> Flatten[I, J] {
-    Flatten(None, iter)
+    Flatten(None(), iter)
   }
 
   pub struct* Flatten[I, J]((Option[J], I));
@@ -258,7 +258,7 @@ pub mod Iterator[I, T; Iterator[I, T]] {
               break Some(t, Flatten(Some(j), i));
             }
           } else {
-            None
+            None()
           }
         }
       }
@@ -284,8 +284,8 @@ pub mod Iterator[I, T; Iterator[I, T]] {
       fn advance(Concat[I, J](i, j)) -> Option[(T, Concat[I, J])] {
         when {
           i is Some(i) && i.advance() is Some(value, i) { Some(value, Concat(Some(i), j)) }
-          j.advance() is Some(value, j) { Some(value, Concat(None, j)) }
-          _ { None }
+          j.advance() is Some(value, j) { Some(value, Concat(None(), j)) }
+          _ { None() }
         }
       }
     }
@@ -340,7 +340,7 @@ pub mod Iterator[I, T; Iterator[I, T]] {
         break Some(value);
       }
     } else {
-      None
+      None()
     }
   }
 
@@ -350,7 +350,7 @@ pub mod Iterator[I, T; Iterator[I, T]] {
         break Some(value);
       }
     } else {
-      None
+      None()
     }
   }
 
@@ -371,7 +371,7 @@ pub mod Iterator[I, T; Iterator[I, T]] {
   pub fn .reduce[... F*; fn F(T, T) -> T](iter: I, f: F) -> Option[T] {
     match iter.advance() {
       Some(value, iter) { Some(iter.fold(value, f)) }
-      None { None }
+      None() { None() }
     }
   }
 
@@ -403,7 +403,7 @@ pub mod Iterator[I, T; Iterator[I, T]] {
         index -= 1;
       }
     } else {
-      None
+      None()
     }
   }
 
@@ -414,7 +414,7 @@ pub mod Iterator[I, T; Iterator[I, T]] {
       }
       Some(current)
     } else {
-      None
+      None()
     }
   }
 
@@ -437,8 +437,8 @@ pub mod Fused {
       inner = Some(iter);
       Some(value)
     } else {
-      inner = None;
-      None
+      inner = None();
+      None()
     }
   }
 }

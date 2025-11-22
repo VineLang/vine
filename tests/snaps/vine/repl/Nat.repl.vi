@@ -30,7 +30,7 @@ Some(123456789012345678901234567890)
 
 let io: IO = <IO>;
 > Nat::parse("123abc")
-None
+None()
 
 let io: IO = <IO>;
 > Nat::parse("123456789_123456789")

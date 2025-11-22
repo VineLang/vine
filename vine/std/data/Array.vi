@@ -104,7 +104,7 @@ pub mod Array {
   pub fn .at[T](&Array[T](len, *node), i: N32) -> Option[&T] {
     if i >= len {
       let &_ = node;
-      return None;
+      return None();
     }
     let size = len;
     while size > 1 {
@@ -155,7 +155,7 @@ pub mod Array {
 
   pub fn .pop_back[T](&Array[T](len, *node)) -> Option[T] {
     when {
-      len == 0 { None }
+      len == 0 { None() }
       len == 1 {
         len = 0;
         Some(unsafe::move(node) as T)
@@ -187,7 +187,7 @@ pub mod Array {
 
   pub fn .pop_front[T](&Array[T](len, *node)) -> Option[T] {
     when {
-      len == 0 { None }
+      len == 0 { None() }
       len == 1 {
         len = 0;
         Some(unsafe::move(node) as T)

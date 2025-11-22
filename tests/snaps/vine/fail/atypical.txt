@@ -22,13 +22,13 @@ error tests/programs/fail/atypical.vi:18:13 - expected type `(N32, N32)`; found 
 error tests/programs/fail/atypical.vi:19:12 - no type associated with `#atypical::foo`
 error tests/programs/fail/atypical.vi:20:14 - expected type `T`; found `N32`
 error tests/programs/fail/atypical.vi:21:14 - expected type `U`; found `T`
-error tests/programs/fail/atypical.vi:22:17 - expected type `Ay`; found `N32`
-error tests/programs/fail/atypical.vi:23:4 - cannot find impl of trait `Add[String, N32, ?73]`
-error tests/programs/fail/atypical.vi:24:7 - expected type `N32`; found `&?77`
+error tests/programs/fail/atypical.vi:22:19 - expected type `Ay`; found `N32`
+error tests/programs/fail/atypical.vi:23:4 - cannot find impl of trait `Add[String, N32, ?75]`
+error tests/programs/fail/atypical.vi:24:7 - expected type `N32`; found `&?79`
 error tests/programs/fail/atypical.vi:25:3 - invalid continue target
 error tests/programs/fail/atypical.vi:26:3 - invalid break target
 error tests/programs/fail/atypical.vi:27:10 - expected type `()`; found `F32`
-error tests/programs/fail/atypical.vi:28:14 - cannot find impl of trait `Add[~N32, ~N32, ?83]`
+error tests/programs/fail/atypical.vi:28:14 - cannot find impl of trait `Add[~N32, ~N32, ?85]`
 error tests/programs/fail/atypical.vi:29:3 - cannot find impl of trait `Add[N32, F32, N32]`
 error tests/programs/fail/atypical.vi:30:3 - type `N32` has no method `parse`
 error tests/programs/fail/atypical.vi:31:3 - invalid break target
@@ -42,12 +42,12 @@ error tests/programs/fail/atypical.vi:4:11 - cannot drop `(?1, ??, ??)`
 error tests/programs/fail/atypical.vi:12:3 - search limit reached when finding impl of trait `Drop[?29]`
 error tests/programs/fail/atypical.vi:13:14 - search limit reached when finding impl of trait `Drop[?34]`
 error tests/programs/fail/atypical.vi:22:7 - expected a complete pattern
-error tests/programs/fail/atypical.vi:23:4 - search limit reached when finding impl of trait `Drop[?73]`
-error tests/programs/fail/atypical.vi:28:14 - search limit reached when finding impl of trait `Drop[?83]`
+error tests/programs/fail/atypical.vi:23:4 - search limit reached when finding impl of trait `Drop[?75]`
+error tests/programs/fail/atypical.vi:28:14 - search limit reached when finding impl of trait `Drop[?85]`
 error tests/programs/fail/atypical.vi:10:8 - search limit reached when finding flex of type `?19`
 error tests/programs/fail/atypical.vi:10:11 - search limit reached when finding flex of type `?20`
 error tests/programs/fail/atypical.vi:18:14 - search limit reached when finding flex of type `?54`
-error tests/programs/fail/atypical.vi:24:8 - search limit reached when finding flex of type `?77`
+error tests/programs/fail/atypical.vi:24:8 - search limit reached when finding flex of type `?79`
 error tests/programs/fail/atypical.vi:6:8 - unconditional infinite loops are invalid
 error tests/programs/fail/atypical.vi:6:19 - cannot drop `IO`
 error tests/programs/fail/atypical.vi:10:8 - cannot drop `?19`

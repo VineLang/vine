@@ -36,7 +36,7 @@ pub fn main(&io: &IO) {
         [[], [[[[], [[[[((), ((),), ((), ()), ((), (), ()))]]]]]], [], [], [[]]]],
       ],
       b: Pair(List::new(9, "Woah"), List::new(9, "Woah"!)),
-      c: [Some(Ok(true)), Some(Err(false)), None],
+      c: [Some(Ok(true)), Some(Err(false)), None()],
     },
   };
   io.println("{the_greatest.show()}");

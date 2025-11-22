@@ -72,7 +72,7 @@ let io: IO = <IO>;
 let io: IO = <IO>;
 let l: List[I32] = [+1, +2, -13, +4];
 > l.find(fn* (&x: &I32) { x == +7 })
-None
+None()
 
 let io: IO = <IO>;
 let l: List[I32] = [+1, +2, -13, +4];
@@ -127,7 +127,7 @@ Some(3)
 let io: IO = <IO>;
 let a: Array[N32] = Array([0, 1, 2, 3, 4]);
 > a.at(5)
-None
+None()
 
 let io: IO = <IO>;
 let a: Array[N32] = Array([0, 1, 2, 3, 4]);
@@ -207,15 +207,15 @@ let io: IO = <IO>;
 
 let io: IO = <IO>;
 > N64::parse("")
-None
+None()
 
 let io: IO = <IO>;
 > N64::parse("one")
-None
+None()
 
 let io: IO = <IO>;
 > N64::parse("1.0")
-None
+None()
 
 let io: IO = <IO>;
 > (3[N64] ** 33) as String
@@ -277,7 +277,7 @@ let x: List[List[N32]] = [[2]];
 let io: IO = <IO>;
 let x: List[List[N32]] = [[2]];
 > x.at(3)
-None
+None()
 
 let io: IO = <IO>;
 let x: List[List[N32]] = [[2]];
@@ -360,20 +360,20 @@ let io: IO = <IO>;
 error input:1:35 - cannot try `Result[?3, N32]` in a function returning `Result[N32, String]`
 
 let io: IO = <IO>;
-> let x = (1, 2.0, ([Some(Ok(true)), Some(Err("hi")), None], [1, 2, 3] as Array), ((), ((),), ((), ())));
+> let x = (1, 2.0, ([Some(Ok(true)), Some(Err("hi")), None()], [1, 2, 3] as Array), ((), ((),), ((), ())));
 
 let io: IO = <IO>;
 let x: (N32, F32, (List[Option[Result[Bool, String]]], Array[N32]), ((), ((),), ((), ()))) = (
   1,
   2.0,
-  ([Some(Ok(true)), Some(Err("hi")), None], Array([1, 2, 3])),
+  ([Some(Ok(true)), Some(Err("hi")), None()], Array([1, 2, 3])),
   ((), ((),), ((), ())),
 );
 > x.fork()
 (
   1,
   2.0,
-  ([Some(Ok(true)), Some(Err("hi")), None], Array([1, 2, 3])),
+  ([Some(Ok(true)), Some(Err("hi")), None()], Array([1, 2, 3])),
   ((), ((),), ((), ())),
 )
 
@@ -381,7 +381,7 @@ let io: IO = <IO>;
 let x: (N32, F32, (List[Option[Result[Bool, String]]], Array[N32]), ((), ((),), ((), ()))) = (
   1,
   2.0,
-  ([Some(Ok(true)), Some(Err("hi")), None], Array([1, 2, 3])),
+  ([Some(Ok(true)), Some(Err("hi")), None()], Array([1, 2, 3])),
   ((), ((),), ((), ())),
 );
 > x.drop()
@@ -390,7 +390,7 @@ let io: IO = <IO>;
 let x: (N32, F32, (List[Option[Result[Bool, String]]], Array[N32]), ((), ((),), ((), ()))) = (
   1,
   2.0,
-  ([Some(Ok(true)), Some(Err("hi")), None], Array([1, 2, 3])),
+  ([Some(Ok(true)), Some(Err("hi")), None()], Array([1, 2, 3])),
   ((), ((),), ((), ())),
 );
 > /clear x
@@ -431,7 +431,7 @@ let x: N32 = 2;
 > /clear x
 
 let io: IO = <IO>;
-> match (Some(1), 2) { (None, _) { None } x { Some(x) } }
+> match (Some(1), 2) { (None(), _) { None() } x { Some(x) } }
 Some(Some(1), 2)
 
 let io: IO = <IO>;
