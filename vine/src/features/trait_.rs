@@ -180,7 +180,7 @@ impl Resolver<'_> {
           self.show_generics(self.cur_generics, true),
           self.types.show(self.chart, ty),
         );
-        self.annotations.hovers.insert(trait_const.span, hover);
+        self.annotations.record_hover(trait_const.span, hover);
 
         TypeCtx { types: take(&mut self.types), inner: ConstSig { ty } }
       })),
@@ -196,7 +196,7 @@ impl Resolver<'_> {
           self.show_generics(self.cur_generics, true),
           self.types.show_fn_sig(self.chart, &sig),
         );
-        self.annotations.hovers.insert(trait_fn.span, hover);
+        self.annotations.record_hover(trait_fn.span, hover);
 
         TypeCtx { types: take(&mut self.types), inner: sig }
       })),
@@ -205,6 +205,6 @@ impl Resolver<'_> {
 
     let hover =
       format!("trait {}{};", trait_def.name, self.show_generics(trait_def.generics, true));
-    self.annotations.hovers.insert(trait_def.span, hover);
+    self.annotations.record_hover(trait_def.span, hover);
   }
 }
