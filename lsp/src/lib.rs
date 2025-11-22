@@ -189,7 +189,7 @@ impl Lsp {
       })?;
     let mut str = String::new();
     if !hover.signatures.is_empty() {
-      str += "```vine\n";
+      str += "```vi\n";
       for sig in &hover.signatures {
         str += sig;
         str += "\n";
