@@ -1,9 +1,9 @@
 
 // https://en.wikipedia.org/wiki/Hecatoncheires
 enum* Centimanes {
-  Gyges(()),
-  Cottus(()),
-  Briareus(()),
+  Gyges(),
+  Cottus(),
+  Briareus(),
 }
 
 use Centimanes::Gyges;

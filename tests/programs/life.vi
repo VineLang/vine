@@ -195,7 +195,7 @@ pub enum? Signal {
   Init(&Pcg32),
   Advance(N32),
   Display(&IO),
-  Stop(()),
+  Stop(),
 }
 
 pub struct Stream[T]((T, Stream[T]));

@@ -54,11 +54,11 @@ pub fn main(&io: &IO) {
 
   io.println("is_some:");
   print_bool(None[()]() is Some(_));
-  print_bool(Some(()) is Some(_));
+  print_bool(Some() is Some(_));
 
   io.println("is_none:");
   print_bool(None[()]() is None());
-  print_bool(Some(()) is None());
+  print_bool(Some() is None());
 
   io.println("is_some_and:");
   print_bool(None[N32]() is Some(x) && x > 0);

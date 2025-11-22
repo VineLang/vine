@@ -49,8 +49,8 @@ impl channel_session[T, P, Q; Session[P, Q]]: Session[Recv[T, P], Send[T, Q]] {
 }
 
 enum+ Move {
-  Up(()),
-  Down(()),
+  Up(),
+  Down(),
 }
 
 mod Move {
@@ -65,8 +65,8 @@ mod Move {
 }
 
 enum Outcome {
-  Win(()),
-  Loss(()),
+  Win(),
+  Loss(),
   Draw(Round),
 }
 
@@ -74,9 +74,9 @@ type Round = Send[Move, Recv[Outcome, ()]];
 type Player = Recv[Move, Send[Outcome, ()]];
 
 enum Winner {
-  First(()),
-  Second(()),
-  Third(()),
+  First(),
+  Second(),
+  Third(),
 }
 
 type Game = Send[(Player, Player, Player), Recv[Winner, ()]];

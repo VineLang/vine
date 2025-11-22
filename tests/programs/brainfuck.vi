@@ -1,11 +1,11 @@
 
 enum? Instruction {
-  Inc(()),
-  Dec(()),
-  Left(()),
-  Right(()),
-  Input(()),
-  Output(()),
+  Inc(),
+  Dec(),
+  Left(),
+  Right(),
+  Input(),
+  Output(),
   Loop(List[Instruction]),
 }
 

@@ -11,9 +11,9 @@ pub fn main(&io: &IO) {
 }
 
 pub enum Term {
-  Lambda((List[~Term], Term)),
-  Apply((Term, Term)),
-  Spine((String, List[Term])),
+  Lambda(List[~Term], Term),
+  Apply(Term, Term),
+  Spine(String, List[Term]),
 }
 
 pub mod Term {
