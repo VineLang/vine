@@ -35,21 +35,26 @@ impl<'src> Formatter<'src> {
   }
 
   pub(crate) fn fmt_item(&self, item: &Item) -> Doc<'src> {
-    Doc::concat(item.attrs.iter().flat_map(|x| [self.fmt_verbatim(x.span), Doc::LINE]).chain([
-      self.fmt_vis(&item.vis),
-      match &item.kind {
-        ItemKind::Fn(f) => self.fmt_fn_item(f),
-        ItemKind::Const(c) => self.fmt_const_item(c),
-        ItemKind::Struct(s) => self.fmt_struct_item(s),
-        ItemKind::Enum(e) => self.fmt_enum_item(e),
-        ItemKind::Type(t) => self.fmt_type_item(t),
-        ItemKind::Mod(m) => self.fmt_mod_item(m),
-        ItemKind::Trait(t) => self.fmt_trait_item(item.span, t),
-        ItemKind::Impl(i) => self.fmt_impl_item(item.span, i),
-        ItemKind::Use(u) => self.fmt_use_item(u),
-        ItemKind::Taken => unreachable!(),
-      },
-    ]))
+    Doc::concat(
+      [].into_iter()
+        .chain(item.docs.iter().flat_map(|d| [Doc(d.clone()), Doc::LINE]))
+        .chain(item.attrs.iter().flat_map(|x| [self.fmt_verbatim(x.span), Doc::LINE]))
+        .chain([
+          self.fmt_vis(&item.vis),
+          match &item.kind {
+            ItemKind::Fn(f) => self.fmt_fn_item(f),
+            ItemKind::Const(c) => self.fmt_const_item(c),
+            ItemKind::Struct(s) => self.fmt_struct_item(s),
+            ItemKind::Enum(e) => self.fmt_enum_item(e),
+            ItemKind::Type(t) => self.fmt_type_item(t),
+            ItemKind::Mod(m) => self.fmt_mod_item(m),
+            ItemKind::Trait(t) => self.fmt_trait_item(item.span, t),
+            ItemKind::Impl(i) => self.fmt_impl_item(item.span, i),
+            ItemKind::Use(u) => self.fmt_use_item(u),
+            ItemKind::Taken => unreachable!(),
+          },
+        ]),
+    )
   }
 
   pub(crate) fn fmt_vis(&self, vis: &Vis) -> Doc<'src> {
@@ -148,12 +153,7 @@ impl<'src> Formatter<'src> {
   }
 
   pub(crate) fn fmt_flex(&self, flex: Flex) -> Doc<'src> {
-    Doc(match flex {
-      Flex::None => "",
-      Flex::Fork => "+",
-      Flex::Drop => "?",
-      Flex::Full => "*",
-    })
+    Doc(flex.sigil())
   }
 
   pub(crate) fn fmt_impl(&self, impl_: &Impl) -> Doc<'src> {
@@ -214,7 +214,7 @@ impl<'src> Formatter<'src> {
       ExprKind::List(elements) => self.fmt_expr_list(elements),
       ExprKind::TupleField(expr, index) => self.fmt_expr_tuple_field(expr, *index),
       ExprKind::ObjectField(expr, key) => self.fmt_expr_object_field(expr, key),
-      ExprKind::Method(receiver, name, generics, args) => {
+      ExprKind::Method(receiver, _, name, generics, args) => {
         self.fmt_expr_method(receiver, name, generics, args)
       }
       ExprKind::Call(func, args) => self.fmt_expr_call(func, args),

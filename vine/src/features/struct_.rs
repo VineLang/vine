@@ -13,7 +13,7 @@ use crate::{
     resolver::Resolver,
   },
   structures::{
-    ast::{Expr, Pat, Path, Span, StructItem},
+    ast::{Expr, ItemKind, Pat, Path, Span, StructItem},
     chart::{
       DefId, DefPatternKind, DefTypeKind, DefValueKind, GenericsId, StructDef, StructId, VisId,
     },
@@ -27,9 +27,10 @@ use crate::{
 };
 
 impl VineParser<'_> {
-  pub(crate) fn parse_struct_item(&mut self) -> Result<StructItem, Diag> {
+  pub(crate) fn parse_struct_item(&mut self) -> Result<(Span, ItemKind), Diag> {
     self.expect(Token::Struct)?;
     let flex = self.parse_flex()?;
+    let name_span = self.span();
     let name = self.parse_ident()?;
     let generics = self.parse_generic_params()?;
     self.expect(Token::OpenParen)?;
@@ -37,7 +38,7 @@ impl VineParser<'_> {
     let data = self.parse_ty()?;
     self.expect(Token::CloseParen)?;
     self.eat(Token::Semi)?;
-    Ok(StructItem { flex, name, generics, data_vis, data })
+    Ok((name_span, ItemKind::Struct(StructItem { flex, name, generics, data_vis, data })))
   }
 }
 
@@ -69,7 +70,7 @@ impl Charter<'_> {
     member_vis: VisId,
     struct_item: StructItem,
   ) -> DefId {
-    let def = self.chart_child(parent, struct_item.name.clone(), member_vis, true);
+    let def = self.chart_child(parent, span, struct_item.name.clone(), member_vis, true);
     let generics = self.chart_generics(def, parent_generics, struct_item.generics, false);
     let data_vis = self.resolve_vis(parent, struct_item.data_vis);
     let struct_id = self.chart.structs.push(StructDef {
@@ -94,6 +95,13 @@ impl Resolver<'_> {
     let struct_def = &self.chart.structs[struct_id];
     self.initialize(struct_def.def, struct_def.generics);
     let data = self.resolve_ty(&struct_def.data, false);
+    let hover = format!(
+      "struct {}{}({});",
+      struct_def.name,
+      self.show_generics(self.cur_generics, false),
+      self.types.show(self.chart, data)
+    );
+    self.annotations.record_signature(struct_def.span, hover);
     let types = take(&mut self.types);
     self.sigs.structs.push_to(struct_id, TypeCtx { types, inner: StructSig { data } });
   }

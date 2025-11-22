@@ -1,3 +1,4 @@
+pub mod annotations;
 pub mod ast;
 pub mod chart;
 pub mod checkpoint;

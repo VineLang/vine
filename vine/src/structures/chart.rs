@@ -32,19 +32,20 @@ new_idx!(pub DefId);
 pub struct Def {
   pub name: Ident,
   pub path: String,
+  pub spans: Vec<Span>,
 
-  pub members_lookup: HashMap<Ident, WithVis<MemberKind>>,
-  pub named_members: Vec<WithVis<MemberKind>>,
-  pub implicit_members: Vec<WithVis<MemberKind>>,
+  pub members_lookup: HashMap<Ident, Binding<MemberKind>>,
+  pub named_members: Vec<Binding<MemberKind>>,
+  pub implicit_members: Vec<Binding<MemberKind>>,
 
   pub parent: Option<DefId>,
   pub ancestors: Vec<DefId>,
 
-  pub value_kind: Option<WithVis<DefValueKind>>,
-  pub type_kind: Option<WithVis<DefTypeKind>>,
-  pub pattern_kind: Option<WithVis<DefPatternKind>>,
-  pub trait_kind: Option<WithVis<DefTraitKind>>,
-  pub impl_kind: Option<WithVis<DefImplKind>>,
+  pub value_kind: Option<Binding<DefValueKind>>,
+  pub type_kind: Option<Binding<DefTypeKind>>,
+  pub pattern_kind: Option<Binding<DefPatternKind>>,
+  pub trait_kind: Option<Binding<DefTraitKind>>,
+  pub impl_kind: Option<Binding<DefImplKind>>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
@@ -54,7 +55,8 @@ pub enum VisId {
 }
 
 #[derive(Debug, Clone, Copy)]
-pub struct WithVis<T> {
+pub struct Binding<T> {
+  pub span: Span,
   pub vis: VisId,
   pub kind: T,
 }
@@ -143,6 +145,7 @@ new_idx!(pub ConcreteConstId);
 pub struct ConcreteConstDef {
   pub span: Span,
   pub def: DefId,
+  pub name: Ident,
   pub generics: GenericsId,
   pub ty: Ty,
   pub value: Expr,
@@ -153,6 +156,7 @@ new_idx!(pub ConcreteFnId);
 pub struct ConcreteFnDef {
   pub span: Span,
   pub def: DefId,
+  pub name: Ident,
   pub generics: GenericsId,
   pub method: bool,
   pub params: Vec<Pat>,
@@ -166,8 +170,8 @@ new_idx!(pub OpaqueTypeId);
 pub struct OpaqueTypeDef {
   pub span: Span,
   pub def: DefId,
-  pub generics: GenericsId,
   pub name: Ident,
+  pub generics: GenericsId,
 }
 
 new_idx!(pub TypeAliasId);
@@ -175,6 +179,7 @@ new_idx!(pub TypeAliasId);
 pub struct TypeAliasDef {
   pub span: Span,
   pub def: DefId,
+  pub name: Ident,
   pub generics: GenericsId,
   pub ty: Ty,
 }
@@ -223,6 +228,7 @@ pub struct TraitDef {
 new_idx!(pub TraitConstId);
 #[derive(Debug, Clone)]
 pub struct TraitConst {
+  pub span: Span,
   pub name: Ident,
   pub generics: GenericsId,
   pub ty: Ty,
@@ -231,6 +237,7 @@ pub struct TraitConst {
 new_idx!(pub TraitFnId);
 #[derive(Debug, Clone)]
 pub struct TraitFn {
+  pub span: Span,
   pub method: bool,
   pub name: Ident,
   pub generics: GenericsId,
@@ -242,6 +249,7 @@ new_idx!(pub ImplId);
 #[derive(Debug, Clone)]
 pub struct ImplDef {
   pub span: Span,
+  pub name: Ident,
   pub def: DefId,
   pub generics: GenericsId,
   pub kind: ImplDefKind,
@@ -304,9 +312,11 @@ impl Chart {
 }
 
 impl Def {
-  pub fn fn_id(&self) -> Option<WithVis<FnId>> {
+  pub fn fn_id(&self) -> Option<Binding<FnId>> {
     match self.value_kind {
-      Some(WithVis { vis, kind: DefValueKind::Fn(fn_id) }) => Some(WithVis { vis, kind: fn_id }),
+      Some(Binding { span, vis, kind: DefValueKind::Fn(fn_id) }) => {
+        Some(Binding { span, vis, kind: fn_id })
+      }
       _ => None,
     }
   }

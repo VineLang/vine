@@ -9,7 +9,7 @@ use crate::{
     resolver::Resolver,
   },
   structures::{
-    ast::{ConstItem, Path, Span},
+    ast::{ConstItem, ItemKind, Path, Span},
     chart::{ConcreteConstDef, ConcreteConstId, ConstId, DefId, DefValueKind, GenericsId, VisId},
     diag::Diag,
     resolutions::ConstRelId,
@@ -22,15 +22,16 @@ use crate::{
 };
 
 impl VineParser<'_> {
-  pub(crate) fn parse_const_item(&mut self) -> Result<ConstItem, Diag> {
+  pub(crate) fn parse_const_item(&mut self) -> Result<(Span, ItemKind), Diag> {
     self.expect(Token::Const)?;
+    let name_span = self.span();
     let name = self.parse_ident()?;
     let generics = self.parse_generic_params()?;
     self.expect(Token::Colon)?;
     let ty = self.parse_ty()?;
     let value = self.eat_then(Token::Eq, Self::parse_expr)?;
     self.expect(Token::Semi)?;
-    Ok(ConstItem { name, generics, ty, value })
+    Ok((name_span, ItemKind::Const(ConstItem { name, generics, ty, value })))
   }
 }
 
@@ -61,12 +62,13 @@ impl Charter<'_> {
     member_vis: VisId,
     const_item: ConstItem,
   ) -> DefId {
-    let def = self.chart_child(parent, const_item.name, member_vis, true);
+    let def = self.chart_child(parent, span, const_item.name.clone(), member_vis, true);
     let generics = self.chart_generics(def, parent_generics, const_item.generics, true);
     let value = self.ensure_implemented(span, const_item.value);
     let const_id = self.chart.concrete_consts.push(ConcreteConstDef {
       span,
       def,
+      name: const_item.name,
       generics,
       ty: const_item.ty,
       value,
@@ -81,6 +83,15 @@ impl Resolver<'_> {
     let const_def = &self.chart.concrete_consts[const_id];
     self.initialize(const_def.def, const_def.generics);
     let ty = self.resolve_ty(&const_def.ty, false);
+
+    let hover = format!(
+      "const {}{}: {};",
+      const_def.name,
+      self.show_generics(self.cur_generics, true),
+      self.types.show(self.chart, ty),
+    );
+    self.annotations.record_signature(const_def.span, hover);
+
     let types = take(&mut self.types);
     self.sigs.concrete_consts.push_to(const_id, TypeCtx { types, inner: ConstSig { ty } });
   }

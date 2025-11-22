@@ -302,7 +302,7 @@ impl<'ctx, 'ivm, 'ext, 'comp> Repl<'ctx, 'ivm, 'ext, 'comp> {
   }
 
   fn parse_input(&mut self, line: &str) -> Result<(Span, ReplCommand), Diag> {
-    let file = self.compiler.loader.add_file(None, "input".into(), line);
+    let file = self.compiler.loader.add_file(None, "input".into(), line.into());
     let mut parser = VineParser { state: ParserState::new(line), file };
     parser.bump()?;
     let span = parser.start_span();

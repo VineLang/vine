@@ -3,7 +3,7 @@ use vine_util::parser::Parser;
 use crate::{
   components::{charter::Charter, lexer::Token, parser::VineParser, resolver::Resolver},
   structures::{
-    ast::{Path, Span, TypeItem},
+    ast::{ItemKind, Path, Span, TypeItem},
     chart::{
       DefId, DefTypeKind, GenericsId, OpaqueTypeDef, OpaqueTypeId, TypeAliasDef, TypeAliasId, VisId,
     },
@@ -15,13 +15,14 @@ use crate::{
 };
 
 impl VineParser<'_> {
-  pub(crate) fn parse_type_item(&mut self) -> Result<TypeItem, Diag> {
+  pub(crate) fn parse_type_item(&mut self) -> Result<(Span, ItemKind), Diag> {
     self.expect(Token::Type)?;
+    let name_span = self.span();
     let name = self.parse_ident()?;
     let generics = self.parse_generic_params()?;
     let ty = self.eat_then(Token::Eq, Self::parse_ty)?;
     self.eat(Token::Semi)?;
-    Ok(TypeItem { name, generics, ty })
+    Ok((name_span, ItemKind::Type(TypeItem { name, generics, ty })))
   }
 }
 
@@ -50,16 +51,16 @@ impl Charter<'_> {
     member_vis: VisId,
     type_item: TypeItem,
   ) -> DefId {
-    let def = self.chart_child(parent, type_item.name.clone(), member_vis, true);
+    let def = self.chart_child(parent, span, type_item.name.clone(), member_vis, true);
     let generics = self.chart_generics(def, parent_generics, type_item.generics, false);
+    let name = type_item.name;
     let kind = match type_item.ty {
       Some(ty) => {
-        let alias_id = self.chart.type_aliases.push(TypeAliasDef { span, def, generics, ty });
+        let alias_id = self.chart.type_aliases.push(TypeAliasDef { span, def, name, generics, ty });
         DefTypeKind::Alias(alias_id)
       }
       None => {
-        let opaque_id =
-          self.chart.opaque_types.push(OpaqueTypeDef { span, def, generics, name: type_item.name });
+        let opaque_id = self.chart.opaque_types.push(OpaqueTypeDef { span, def, name, generics });
         DefTypeKind::Opaque(opaque_id)
       }
     };
@@ -90,11 +91,26 @@ impl Resolver<'_> {
         self.initialize(alias_def.def, alias_def.generics);
         let ty = self.resolve_ty(&alias_def.ty, false);
 
+        let hover = format!(
+          "type {}{} = {};",
+          alias_def.name,
+          self.show_generics(self.cur_generics, false),
+          self.types.show(self.chart, ty),
+        );
+        self.annotations.record_signature(alias_def.span, hover);
+
         let slot = self.sigs.type_aliases.get_or_extend(alias_id);
         *slot =
           TypeAliasState::Resolved(self.types.export(|t| TypeAliasSig { ty: t.transfer(&ty) }));
       }
     }
+  }
+
+  pub(crate) fn resolve_opaque_type(&mut self, opaque_id: OpaqueTypeId) {
+    let opaque_def = &self.chart.opaque_types[opaque_id];
+    let hover =
+      format!("type {}{};", opaque_def.name, self.show_generics(opaque_def.generics, false),);
+    self.annotations.record_signature(opaque_def.span, hover);
   }
 
   pub(crate) fn resolve_ty_path_alias(
@@ -105,8 +121,15 @@ impl Resolver<'_> {
   ) -> Type {
     let generics_id = self.chart.type_aliases[type_alias_id].generics;
     let (type_params, _) = self.resolve_generics(path, generics_id, inference);
-    Resolver::new(self.chart, self.sigs, self.diags, self.resolutions, self.fragments)
-      .resolve_type_alias(type_alias_id);
+    Resolver::new(
+      self.chart,
+      self.sigs,
+      self.diags,
+      self.resolutions,
+      self.annotations,
+      self.fragments,
+    )
+    .resolve_type_alias(type_alias_id);
     let resolved_sig = match &self.sigs.type_aliases[type_alias_id] {
       TypeAliasState::Resolved(sig) => sig,
       _ => panic!("Type alias should be resolved at this point"),

@@ -1,4 +1,5 @@
 use std::{
+  cmp::{Ordering, Reverse},
   collections::BTreeMap,
   fmt::{self, Debug, Display, Write},
 };
@@ -15,6 +16,8 @@ pub mod visit;
 #[derive(Clone)]
 pub struct Item {
   pub span: Span,
+  pub name_span: Span,
+  pub docs: Vec<String>,
   pub vis: Vis,
   pub attrs: Vec<Attr>,
   pub kind: ItemKind,
@@ -235,6 +238,15 @@ impl Flex {
   pub fn drop(self) -> bool {
     matches!(self, Flex::Drop | Flex::Full)
   }
+
+  pub fn sigil(self) -> &'static str {
+    match self {
+      Flex::None => "",
+      Flex::Fork => "+",
+      Flex::Drop => "?",
+      Flex::Full => "*",
+    }
+  }
 }
 
 #[derive(Debug, Clone)]
@@ -277,6 +289,7 @@ pub enum LetElse {
 #[derive(Debug, Clone)]
 pub struct LetFnStmt {
   pub flex: Flex,
+  pub name_span: Span,
   pub name: Ident,
   pub params: Vec<Pat>,
   pub ret: Option<Ty>,
@@ -312,7 +325,7 @@ pub enum ExprKind {
   List(Vec<Expr>),
   TupleField(Expr, usize),
   ObjectField(Expr, Key),
-  Method(Expr, Ident, GenericArgs, Vec<Expr>),
+  Method(Expr, Span, Ident, GenericArgs, Vec<Expr>),
   Call(Expr, Vec<Expr>),
   Sign(Sign, Expr),
   BinaryOp(BinaryOp, Expr, Expr),
@@ -534,11 +547,23 @@ impl Display for Ident {
   }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Span {
   pub file: FileId,
   pub start: usize,
   pub end: usize,
+}
+
+impl Ord for Span {
+  fn cmp(&self, other: &Self) -> Ordering {
+    (self.file, self.start, Reverse(self.end)).cmp(&(other.file, other.start, Reverse(other.end)))
+  }
+}
+
+impl PartialOrd for Span {
+  fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+    Some(self.cmp(other))
+  }
 }
 
 impl Span {

@@ -32,9 +32,8 @@
     "languages": [
       {
         "id": "vine",
-        "extensions": [
-          ".vi"
-        ],
+        "extensions": [".vi"],
+        "aliases": ["vi"],
         "configuration": "src/vine-config.json",
         "icon": {
           "dark": "assets/vine.png",
@@ -43,9 +42,8 @@
       },
       {
         "id": "ivy",
-        "extensions": [
-          ".iv"
-        ],
+        "extensions": [".iv"],
+        "aliases": ["iv"],
         "configuration": "src/ivy-config.json",
         "icon": {
           "dark": "assets/ivy.png",
@@ -54,6 +52,11 @@
       }
     ],
     "grammars": [
+      {
+        "language": "vine",
+        "scopeName": "source.vine",
+        "path": "src/vine-grammar.json"
+      },
       {
         "language": "ivy",
         "scopeName": "source.ivy",

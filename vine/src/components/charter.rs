@@ -4,6 +4,7 @@ use crate::{
   components::loader::Module,
   features::cfg::Config,
   structures::{
+    annotations::Annotations,
     ast::{Attr, AttrKind, Flex, Ident, Item, ItemKind, ModKind, Span, Vis, visit::VisitMut},
     chart::Chart,
     diag::{Diag, Diags, ErrorGuaranteed},
@@ -16,6 +17,7 @@ pub struct Charter<'a> {
   pub chart: &'a mut Chart,
   pub config: &'a Config,
   pub diags: &'a mut Diags,
+  pub annotations: &'a mut Annotations,
 }
 
 impl Charter<'_> {
@@ -51,6 +53,7 @@ impl Charter<'_> {
     self.chart.defs.push(Def {
       name,
       path,
+      spans: Vec::new(),
       members_lookup: Default::default(),
       named_members: Default::default(),
       implicit_members: Default::default(),
@@ -94,13 +97,13 @@ impl Charter<'_> {
 
     let subitems = extract_subitems(&mut item);
 
-    let span = item.span;
+    let span = item.name_span;
     let vis = self.resolve_vis(parent, item.vis);
     let member_vis = vis.max(member_vis);
 
     let def = match item.kind {
       ItemKind::Mod(mod_item) => {
-        Some(self.chart_mod(parent, parent_generics, vis, member_vis, mod_item))
+        Some(self.chart_mod(parent, parent_generics, span, vis, member_vis, mod_item))
       }
 
       ItemKind::Fn(fn_item) => {
@@ -142,10 +145,14 @@ impl Charter<'_> {
     if let Some(def) = def {
       for subitem in subitems {
         if !matches!(subitem.vis, Vis::Private) {
-          self.diags.report(Diag::VisibleSubitem { span: subitem.span });
+          self.diags.report(Diag::VisibleSubitem { span: subitem.name_span });
         }
         self.chart_item(VisId::Def(def), subitem, def, GenericsId::NONE);
       }
+    }
+
+    if !item.docs.is_empty() {
+      self.annotations.record_docs(span, item.docs);
     }
 
     self.chart_attrs(def, item.attrs);
@@ -155,11 +162,11 @@ impl Charter<'_> {
     for attr in attrs {
       let span = attr.span;
       let impl_id = def.and_then(|id| match self.chart.defs[id].impl_kind {
-        Some(WithVis { vis: _, kind: DefImplKind::Impl(id) }) => Some(id),
+        Some(Binding { kind: DefImplKind::Impl(id), .. }) => Some(id),
         _ => None,
       });
       let concrete_fn_id = def.and_then(|id| match self.chart.defs[id].value_kind {
-        Some(WithVis { vis: _, kind: DefValueKind::Fn(FnId::Concrete(id)) }) => Some(id),
+        Some(Binding { kind: DefValueKind::Fn(FnId::Concrete(id)), .. }) => Some(id),
         _ => None,
       });
       match attr.kind {
@@ -209,6 +216,7 @@ impl Charter<'_> {
   pub(crate) fn chart_child(
     &mut self,
     parent: DefId,
+    span: Span,
     name: Ident,
     vis: VisId,
     collapse: bool,
@@ -216,12 +224,15 @@ impl Charter<'_> {
     let next_def_id = self.chart.defs.next_index();
     let parent_def = &mut self.chart.defs[parent];
     if collapse && parent_def.name == name && parent_def.ancestors.len() > 1 {
+      if span != Span::NONE {
+        parent_def.spans.push(span);
+      }
       return parent;
     }
     let mut new = false;
     let member = parent_def.members_lookup.entry(name.clone()).or_insert_with(|| {
       new = true;
-      let member = WithVis { vis, kind: MemberKind::Child(next_def_id) };
+      let member = Binding { span, vis, kind: MemberKind::Child(next_def_id) };
       parent_def.named_members.push(member);
       member
     });
@@ -239,6 +250,9 @@ impl Charter<'_> {
     if new {
       let path = format!("{}::{}", parent_def.path, name);
       self.new_def(name, path, Some(parent));
+    }
+    if span != Span::NONE {
+      self.chart.defs[child].spans.push(span);
     }
     child
   }
@@ -271,7 +285,7 @@ impl Charter<'_> {
   pub(crate) fn define_value(&mut self, span: Span, def: DefId, vis: VisId, kind: DefValueKind) {
     let def = &mut self.chart.defs[def];
     if def.value_kind.is_none() {
-      def.value_kind = Some(WithVis { vis, kind });
+      def.value_kind = Some(Binding { span, vis, kind });
     } else {
       self.diags.report(Diag::DuplicateItem { span, name: def.name.clone() });
     }
@@ -280,7 +294,7 @@ impl Charter<'_> {
   pub(crate) fn define_type(&mut self, span: Span, def: DefId, vis: VisId, kind: DefTypeKind) {
     let def = &mut self.chart.defs[def];
     if def.type_kind.is_none() {
-      def.type_kind = Some(WithVis { vis, kind });
+      def.type_kind = Some(Binding { span, vis, kind });
     } else {
       self.diags.report(Diag::DuplicateItem { span, name: def.name.clone() });
     }
@@ -295,7 +309,7 @@ impl Charter<'_> {
   ) {
     let def = &mut self.chart.defs[def];
     if def.pattern_kind.is_none() {
-      def.pattern_kind = Some(WithVis { vis, kind });
+      def.pattern_kind = Some(Binding { span, vis, kind });
     } else {
       self.diags.report(Diag::DuplicateItem { span, name: def.name.clone() });
     }
@@ -304,7 +318,7 @@ impl Charter<'_> {
   pub(crate) fn define_trait(&mut self, span: Span, def: DefId, vis: VisId, kind: DefTraitKind) {
     let def = &mut self.chart.defs[def];
     if def.trait_kind.is_none() {
-      def.trait_kind = Some(WithVis { vis, kind });
+      def.trait_kind = Some(Binding { span, vis, kind });
     } else {
       self.diags.report(Diag::DuplicateItem { span, name: def.name.clone() });
     }
@@ -313,7 +327,7 @@ impl Charter<'_> {
   pub(crate) fn define_impl(&mut self, span: Span, def: DefId, vis: VisId, kind: DefImplKind) {
     let def = &mut self.chart.defs[def];
     if def.impl_kind.is_none() {
-      def.impl_kind = Some(WithVis { vis, kind });
+      def.impl_kind = Some(Binding { span, vis, kind });
     } else {
       self.diags.report(Diag::DuplicateItem { span, name: def.name.clone() });
     }
@@ -337,7 +351,14 @@ impl VisitMut<'_> for ExtractItems {
   fn visit_item(&mut self, item: &mut Item) {
     self.items.push(replace(
       item,
-      Item { span: Span::NONE, vis: Vis::Private, attrs: vec![], kind: ItemKind::Taken },
+      Item {
+        span: Span::NONE,
+        name_span: Span::NONE,
+        docs: Vec::new(),
+        vis: Vis::Private,
+        attrs: vec![],
+        kind: ItemKind::Taken,
+      },
     ));
   }
 }

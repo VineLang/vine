@@ -1,19 +1,25 @@
 
+/// A special primitive type used to interact with the outside world.
+/// Values of this type cannot be explicitly constructed; instead,
+/// an IO handle is passed in to `main` at the start of the program.
 #[builtin = "IO"]
 pub type IO;
 
 pub mod IO {
+  /// Prints the given string to stdout with a trailing newline.
   pub fn .println(&io: &IO, str: String) {
     io.print(str);
     io.print_char('\n');
   }
 
+  /// Prints the given string to stdout without a trailing newline.
   pub fn .print(&io: &IO, str: String) {
     for char in str.into_iter() {
       io.print_char(char);
     }
   }
 
+  /// Prints the given character to stdout.
   pub fn .print_char(&io: &IO, char: Char) {
     inline_ivy! (io0 <- io, io1 -> io, char <- char) -> () { _
       io0 = @io_print_char(char io1) 
@@ -32,18 +38,21 @@ pub mod IO {
     }
   }
 
+  /// Flushes any buffered output to stdout.
   pub fn .flush(&io: &IO) {
     inline_ivy! (io0 <- io, io1 -> io) -> () { _
       io0 = @io_flush(0 io1) 
     }
   }
 
+  /// Prints a supplied prompt and then waits for a line of input in response.
   pub fn .prompt(&io: &IO, msg: String) -> Option[String] {
     io.print(msg);
     io.flush();
     io.read_line()
   }
 
+  /// Reads a line from stdin.
   pub fn .read_line(&io: &IO) -> Option[String] {
     let byte = io.read_byte('\0');
     if byte != '\0' {
@@ -65,6 +74,7 @@ pub mod IO {
     }
   }
 
+  /// Reads all of the input from stdin as a string.
   pub fn .full_input(&io: &IO) -> String {
     let chars = [];
     loop {
@@ -92,6 +102,13 @@ pub mod IO {
     }
   }
 
+  /// Waits for pending IO operations to complete and then returns `true`.
+  /// This is useful for creating infinite IO loops.
+  /// ```vi
+  /// while io.forever() {
+  ///   io.println("hi!");
+  /// }
+  /// ```
   pub fn .forever(&io: &IO) -> Bool {
     inline_ivy! (io0 <- io, io1 -> io) -> Bool {
       signal

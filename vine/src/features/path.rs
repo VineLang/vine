@@ -4,13 +4,13 @@ use crate::{
   components::{
     lexer::Token,
     parser::{PATH, VineParser},
-    resolver::{Binding, Resolver},
+    resolver::{Resolver, ScopeBinding},
   },
   structures::{
     ast::{Expr, ExprKind, Ident, Pat, PatKind, Path, Span},
     chart::{
-      Def, DefId, DefImplKind, DefPatternKind, DefTypeKind, DefValueKind, MemberKind, VisId,
-      WithVis,
+      Binding, Def, DefId, DefImplKind, DefPatternKind, DefTypeKind, DefValueKind, MemberKind,
+      VisId,
     },
     diag::Diag,
     tir::{TirExpr, TirExprKind, TirImpl, TirLocal, TirPat, TirPatKind},
@@ -87,12 +87,13 @@ impl Resolver<'_> {
     base: DefId,
     path: &Path,
     desc: &'static str,
-    f: impl FnOnce(&Def) -> Option<WithVis<T>>,
+    f: impl FnOnce(&Def) -> Option<Binding<T>>,
   ) -> Result<T, Diag> {
     let def = self._resolve_path(base, path)?;
     let def = &self.chart.defs[def];
     match f(def) {
-      Some(WithVis { vis, kind }) => {
+      Some(Binding { span, vis, kind }) => {
+        self.annotations.record_reference(path.span, span);
         if self.chart.visible(vis, base) {
           Ok(kind)
         } else {
@@ -207,10 +208,12 @@ impl Resolver<'_> {
     if let Some(ident) = path.as_ident()
       && let Some(bind) = self.scope.get(&ident).and_then(|x| x.last())
     {
-      let expr = match bind.binding {
-        Binding::Local(local, _, ty) => TirExpr::new(span, ty, TirExprKind::Local(local)),
-        Binding::Closure(id, ty) => TirExpr::new(span, ty, TirExprKind::Closure(id)),
+      let (expr, source_span, ty) = match bind.binding {
+        ScopeBinding::Local(local, source_span, ty) => (TirExprKind::Local(local), source_span, ty),
+        ScopeBinding::Closure(id, source_span, ty) => (TirExprKind::Closure(id), source_span, ty),
       };
+      let expr = TirExpr::new(span, ty, expr);
+      self.annotations.record_reference(path.span, source_span);
       return if let Some(args) = args {
         self._resolve_expr_call(span, expr, args)
       } else {
@@ -251,7 +254,7 @@ impl Resolver<'_> {
         if let (Some(ident), None) = (path.as_ident(), data) {
           let ty = self.types.new_var(span);
           let local = self.locals.push(TirLocal { span, ty });
-          self.bind(ident, Binding::Local(local, span, ty));
+          self.bind(ident, ScopeBinding::Local(local, span, ty));
           Ok(TirPat::new(span, ty, TirPatKind::Local(local)))
         } else {
           Err(diag)?

@@ -10,10 +10,12 @@ use crate::{
     emitter::Emitter,
     lexer::Token,
     parser::{BP, VineParser},
-    resolver::{Binding, Resolver},
+    resolver::{Resolver, ScopeBinding},
   },
   structures::{
-    ast::{Block, Expr, ExprKind, Flex, FnItem, LetFnStmt, Pat, Path, Span, Stmt, StmtKind, Ty},
+    ast::{
+      Block, Expr, ExprKind, Flex, FnItem, ItemKind, LetFnStmt, Pat, Path, Span, Stmt, StmtKind, Ty,
+    },
     chart::{ConcreteFnDef, ConcreteFnId, DefId, DefValueKind, FnId, GenericsId, VisId},
     diag::Diag,
     resolutions::{FnRel, FnRelId, Fragment},
@@ -26,15 +28,16 @@ use crate::{
 };
 
 impl VineParser<'_> {
-  pub(crate) fn parse_fn_item(&mut self) -> Result<FnItem, Diag> {
+  pub(crate) fn parse_fn_item(&mut self) -> Result<(Span, ItemKind), Diag> {
     self.expect(Token::Fn)?;
     let method = self.eat(Token::Dot)?;
+    let name_span = self.span();
     let name = self.parse_ident()?;
     let generics = self.parse_generic_params()?;
     let params = self.parse_pats()?;
     let ret = self.parse_arrow_ty()?;
     let body = (!self.eat(Token::Semi)?).then(|| self.parse_block()).transpose()?;
-    Ok(FnItem { method, name, generics, params, ret, body })
+    Ok((name_span, ItemKind::Fn(FnItem { method, name, generics, params, ret, body })))
   }
 
   pub(crate) fn parse_expr_fn(&mut self) -> Result<ExprKind, Diag> {
@@ -55,11 +58,12 @@ impl VineParser<'_> {
   pub(crate) fn _parse_stmt_let_fn(&mut self) -> Result<StmtKind, Diag> {
     self.expect(Token::Fn)?;
     let flex = self.parse_flex()?;
+    let name_span = self.span();
     let name = self.parse_ident()?;
     let params = self.parse_pats()?;
     let ret = self.parse_arrow_ty()?;
     let body = self.parse_block()?;
-    Ok(StmtKind::LetFn(LetFnStmt { flex, name, params, ret, body }))
+    Ok(StmtKind::LetFn(LetFnStmt { flex, name_span, name, params, ret, body }))
   }
 }
 
@@ -140,12 +144,13 @@ impl Charter<'_> {
     member_vis: VisId,
     fn_item: FnItem,
   ) -> DefId {
-    let def = self.chart_child(parent, fn_item.name, member_vis, true);
+    let def = self.chart_child(parent, span, fn_item.name.clone(), member_vis, true);
     let generics = self.chart_generics(def, parent_generics, fn_item.generics, true);
     let body = self.ensure_implemented(span, fn_item.body);
     let fn_id = self.chart.concrete_fns.push(ConcreteFnDef {
       span,
       def,
+      name: fn_item.name,
       generics,
       method: fn_item.method,
       params: fn_item.params,
@@ -163,8 +168,18 @@ impl Resolver<'_> {
     let fn_def = &self.chart.concrete_fns[fn_id];
     self.initialize(fn_def.def, fn_def.generics);
     let (params, ret_ty) = self._resolve_fn_sig(&fn_def.params, &fn_def.ret_ty);
+    let sig = FnSig { params, ret_ty };
+
+    let hover = format!(
+      "fn {}{}{};",
+      fn_def.name,
+      self.show_generics(self.cur_generics, true),
+      self.types.show_fn_sig(self.chart, &sig),
+    );
+    self.annotations.record_signature(fn_def.span, hover);
+
     let types = take(&mut self.types);
-    self.sigs.concrete_fns.push_to(fn_id, TypeCtx { types, inner: FnSig { params, ret_ty } });
+    self.sigs.concrete_fns.push_to(fn_id, TypeCtx { types, inner: sig });
   }
 
   pub(crate) fn _resolve_fn_sig(&mut self, params: &[Pat], ret: &Option<Ty>) -> (Vec<Type>, Type) {
@@ -209,7 +224,7 @@ impl Resolver<'_> {
             Vec::from_iter(let_fn.params.iter().map(|p| self.resolve_pat_sig(p, true)));
           let ret = self.resolve_arrow_ty(span, &let_fn.ret, true);
           let ty = self.types.new(TypeKind::Closure(id, let_fn.flex, param_tys.clone(), ret));
-          self.bind(let_fn.name.clone(), Binding::Closure(id, ty));
+          self.bind(let_fn.name.clone(), ScopeBinding::Closure(id, let_fn.name_span, ty));
           let_fns.push((span, id, param_tys, ret, let_fn));
         }
         StmtKind::Empty | StmtKind::Item(_) => {}
@@ -344,7 +359,7 @@ impl Resolver<'_> {
           vec![receiver, self.types.new(TypeKind::Tuple(sig.params)), sig.ret_ty],
         );
         if self.types.unify_impl_type(&actual_ty, ty).is_failure() {
-          self.diags.report(Diag::ExpectedTypeFound {
+          self.diags.report(Diag::ExpectedTypeFnFound {
             span: path.span,
             expected: self.types.show_impl_type(self.chart, ty),
             found: self.types.show_impl_type(self.chart, &actual_ty),
