@@ -163,9 +163,11 @@ impl Lsp {
     let span = self.document_position_to_span(params.text_document_position_params)?;
     let (span, hover) =
       self.lookup_span(&self.compiler.annotations.hovers, span).or_else(|| {
-        let (_, defs) = self.lookup_span(&self.compiler.annotations.definitions, span)?;
+        let (span, defs) = self.lookup_span(&self.compiler.annotations.definitions, span)?;
         if defs.len() == 1 {
-          self.lookup_span(&self.compiler.annotations.hovers, *defs.iter().next().unwrap())
+          let (_, hover) =
+            self.lookup_span(&self.compiler.annotations.hovers, *defs.iter().next().unwrap())?;
+          Some((span, hover))
         } else {
           None
         }
