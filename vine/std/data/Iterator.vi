@@ -196,7 +196,7 @@ pub mod Iterator[I, T; Iterator[I, T]] {
     pub impl iterator[... I?, T?, F*; fn F(&T) -> Bool]: Iterator[TakeWhile[I, F], T] {
       fn advance(TakeWhile[I, F](iter, f)) -> Option[(T, TakeWhile[I, F])] {
         if iter.advance() is Some(value, iter) && f(&value) {
-          Some((value, TakeWhile(iter, f)))
+          Some(value, TakeWhile(iter, f))
         } else {
           None()
         }
@@ -214,7 +214,7 @@ pub mod Iterator[I, T; Iterator[I, T]] {
     pub impl iterator[... I?, U, F*; fn F(T) -> Option[U]]: Iterator[MapWhile[I, F], U] {
       fn advance(MapWhile[I, F](iter, f)) -> Option[(U, MapWhile[I, F])] {
         if iter.advance() is Some(value, iter) && f(value) is Some(value) {
-          Some((value, MapWhile(iter, f)))
+          Some(value, MapWhile(iter, f))
         } else {
           None()
         }
@@ -231,7 +231,7 @@ pub mod Iterator[I, T; Iterator[I, T]] {
   pub mod Zip[...] {
     pub impl iterator[... I?, T?, J?, U; Iterator[J, U]]: Iterator[Zip[I, J], (T, U)] {
       fn advance(Zip[I, J](i, j)) -> Option[((T, U), Zip[I, J])] {
-        if i.advance() is Some((t, i)) && j.advance() is Some((u, j)) {
+        if i.advance() is Some(t, i) && j.advance() is Some(u, j) {
           Some((t, u), Zip(i, j))
         } else {
           None()

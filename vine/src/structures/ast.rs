@@ -68,7 +68,7 @@ pub struct StructItem {
   pub name: Ident,
   pub generics: GenericParams,
   pub data_vis: Vis,
-  pub data: Ty,
+  pub data: Vec<Ty>,
 }
 
 #[derive(Debug, Clone)]
@@ -82,7 +82,7 @@ pub struct EnumItem {
 #[derive(Debug, Clone)]
 pub struct Variant {
   pub name: Ident,
-  pub data: Ty,
+  pub data: Vec<Ty>,
 }
 
 #[derive(Debug, Clone)]

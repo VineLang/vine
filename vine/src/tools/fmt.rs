@@ -58,10 +58,14 @@ impl<'src> Formatter<'src> {
   }
 
   pub(crate) fn fmt_vis(&self, vis: &Vis) -> Doc<'src> {
+    Doc::concat([self._fmt_vis(vis), Doc(if !matches!(vis, Vis::Private) { " " } else { "" })])
+  }
+
+  pub(crate) fn _fmt_vis(&self, vis: &Vis) -> Doc<'src> {
     match vis {
       Vis::Private => Doc::EMPTY,
-      Vis::Public => Doc("pub "),
-      Vis::PublicTo(_, name) => Doc::concat([Doc("pub."), Doc(name.clone()), Doc(" ")]),
+      Vis::Public => Doc("pub"),
+      Vis::PublicTo(_, name) => Doc::concat([Doc("pub."), Doc(name.clone())]),
     }
   }
 

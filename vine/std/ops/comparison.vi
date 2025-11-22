@@ -53,9 +53,9 @@ pub trait Ord[T] {
 }
 
 pub enum* Ord {
-  Lt(()),
-  Eq(()),
-  Gt(()),
+  Lt(),
+  Eq(),
+  Gt(),
 }
 
 pub mod Ord {

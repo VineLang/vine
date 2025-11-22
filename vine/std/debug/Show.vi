@@ -10,7 +10,7 @@ pub trait Show[T] {
 
 pub enum* Show {
   Literal(String),
-  Constructor((String, Show)),
+  Constructor(String, Show),
   Tuple(List_[Show]),
   Object(List_[(Show, Show)]),
   List(List_[Show]),

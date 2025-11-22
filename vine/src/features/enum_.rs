@@ -10,7 +10,7 @@ use crate::{
     emitter::Emitter,
     lexer::Token,
     matcher::{MatchVar, MatchVarForm, MatchVarKind, Matcher, Row, VarId},
-    parser::{BRACE_COMMA, VineParser},
+    parser::{BRACE_COMMA, PAREN_COMMA, VineParser},
     resolver::Resolver,
   },
   structures::{
@@ -41,9 +41,7 @@ impl VineParser<'_> {
 
   fn parse_variant(&mut self) -> Result<Variant, Diag> {
     let name = self.parse_ident()?;
-    self.expect(Token::OpenParen)?;
-    let data = self.parse_ty()?;
-    self.expect(Token::CloseParen)?;
+    let data = self.parse_delimited(PAREN_COMMA, Self::parse_ty)?;
     Ok(Variant { name, data })
   }
 }
@@ -57,11 +55,9 @@ impl<'src> Formatter<'src> {
       Doc(e.name.clone()),
       self.fmt_generic_params(&e.generics),
       Doc(" "),
-      Doc::brace_comma_multiline(
-        e.variants
-          .iter()
-          .map(|v| Doc::concat([Doc(v.name.clone()), Doc::paren(self.fmt_ty(&v.data))])),
-      ),
+      Doc::brace_comma_multiline(e.variants.iter().map(|v| {
+        Doc::concat([Doc(v.name.clone()), Doc::paren_comma(v.data.iter().map(|t| self.fmt_ty(t)))])
+      })),
     ])
   }
 }
@@ -100,9 +96,10 @@ impl Resolver<'_> {
   pub(crate) fn resolve_enum_sig(&mut self, enum_id: EnumId) {
     let enum_def = &self.chart.enums[enum_id];
     self.initialize(enum_def.def, enum_def.generics);
-    let variant_data = IdxVec::from_iter(
-      enum_def.variants.values().map(|variant| self.resolve_ty(&variant.data, false)),
-    );
+    let variant_data = IdxVec::from_iter(enum_def.variants.values().map(|variant| {
+      let mut data = variant.data.iter().map(|t| self.resolve_ty(t, false)).collect::<Vec<_>>();
+      if data.len() == 1 { data.pop().unwrap() } else { self.types.new(TypeKind::Tuple(data)) }
+    }));
     let variant_is_nil = variant_data.values().map(|&ty| self.types.self_dual(ty)).collect();
     let hover =
       format!("enum {}{} {{ ... }}", enum_def.name, self.show_generics(self.cur_generics, false),);

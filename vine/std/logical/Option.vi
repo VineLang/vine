@@ -4,7 +4,7 @@ use ops::comparison::Eq;
 #[builtin = "Option"]
 pub enum* Option[T] {
   Some(T),
-  None(()),
+  None(),
 }
 
 pub mod Option {

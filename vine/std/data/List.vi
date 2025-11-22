@@ -3,9 +3,9 @@ use data::Iterator::{Iterator, Collect};
 use ops::{Cast, Concat, comparison::{Eq, Ord}, range::{Bound, Range}};
 
 #[builtin = "List"]
-pub struct List[T](pub.std (N32, Buf[T], ~Buf[T]));
+pub struct List[T](pub.std N32, Buf[T], ~Buf[T]);
 
-pub.std struct Buf[T](pub.std (T, Buf[T]));
+pub.std struct Buf[T](pub.std T, Buf[T]);
 
 pub mod List {
   pub const empty[T]: List[T] = [];

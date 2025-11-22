@@ -6,7 +6,7 @@ use ops::{
   comparison::{Eq, Ord},
 };
 
-pub struct N64(pub (N32, N32));
+pub struct N64(pub N32, N32);
 
 pub mod N64 {
   pub const maximum: N64 = N64(N32::maximum, N32::maximum);

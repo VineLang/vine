@@ -6,7 +6,7 @@ use ops::{
   comparison::{Eq, Ord},
 };
 
-pub struct* Int((Bool, Nat));
+pub struct* Int(Bool, Nat);
 
 pub mod Int {
   pub fn from_parts(negative: Bool, magnitude: Nat) -> Int {
