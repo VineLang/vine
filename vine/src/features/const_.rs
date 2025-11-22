@@ -90,7 +90,7 @@ impl Resolver<'_> {
       self.show_generics(self.cur_generics, true),
       self.types.show(self.chart, ty),
     );
-    self.annotations.hovers.insert(const_def.span, hover);
+    self.annotations.record_hover(const_def.span, hover);
 
     let types = take(&mut self.types);
     self.sigs.concrete_consts.push_to(const_id, TypeCtx { types, inner: ConstSig { ty } });

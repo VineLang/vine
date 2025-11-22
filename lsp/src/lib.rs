@@ -161,19 +161,22 @@ impl Lsp {
 
   fn hover(&self, params: HoverParams) -> Option<Hover> {
     let span = self.document_position_to_span(params.text_document_position_params)?;
-    let (span, hint) = self.lookup_span(&self.compiler.annotations.hovers, span).or_else(|| {
-      let (_, defs) = self.lookup_span(&self.compiler.annotations.definitions, span)?;
-      if defs.len() == 1 {
-        self.lookup_span(&self.compiler.annotations.hovers, *defs.iter().next().unwrap())
-      } else {
-        None
-      }
-    })?;
+    let (span, hovers) =
+      self.lookup_span(&self.compiler.annotations.hovers, span).or_else(|| {
+        let (_, defs) = self.lookup_span(&self.compiler.annotations.definitions, span)?;
+        if defs.len() == 1 {
+          self.lookup_span(&self.compiler.annotations.hovers, *defs.iter().next().unwrap())
+        } else {
+          None
+        }
+      })?;
     Some(Hover {
-      contents: HoverContents::Scalar(MarkedString::LanguageString(LanguageString {
-        language: "vine".into(),
-        value: hint.clone(),
-      })),
+      contents: HoverContents::Array(Vec::from_iter(hovers.iter().map(|line| {
+        MarkedString::LanguageString(LanguageString {
+          language: "vine".into(),
+          value: line.clone(),
+        })
+      }))),
       range: Some(self.span_to_range(span)),
     })
   }
