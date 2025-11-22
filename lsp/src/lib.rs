@@ -155,7 +155,11 @@ impl Lsp {
 
   fn references(&self, params: ReferenceParams) -> Option<Vec<Location>> {
     let span = self.document_position_to_span(params.text_document_position)?;
-    let (_, refs) = self.lookup_span(&self.compiler.annotations.references, span)?;
+    let (_, refs) =
+      self.lookup_span(&self.compiler.annotations.references, span).or_else(|| {
+        let (_, def) = self.get_def(span)?;
+        self.lookup_span(&self.compiler.annotations.references, def)
+      })?;
     Some(refs.iter().map(|&x| self.span_to_location(x)).collect())
   }
 
@@ -163,14 +167,9 @@ impl Lsp {
     let span = self.document_position_to_span(params.text_document_position_params)?;
     let (span, hover) =
       self.lookup_span(&self.compiler.annotations.hovers, span).or_else(|| {
-        let (span, defs) = self.lookup_span(&self.compiler.annotations.definitions, span)?;
-        if defs.len() == 1 {
-          let (_, hover) =
-            self.lookup_span(&self.compiler.annotations.hovers, *defs.iter().next().unwrap())?;
-          Some((span, hover))
-        } else {
-          None
-        }
+        let (span, def) = self.get_def(span)?;
+        let (_, hover) = self.lookup_span(&self.compiler.annotations.hovers, def)?;
+        Some((span, hover))
       })?;
     let mut str = String::new();
     if !hover.signatures.is_empty() {
@@ -197,6 +196,11 @@ impl Lsp {
     let (&found, value) = map.range(..=&span).next_back()?;
     (found.file == span.file && found.start <= span.start && found.end >= span.end)
       .then_some((found, value))
+  }
+
+  fn get_def(&self, span: Span) -> Option<(Span, Span)> {
+    let (span, defs) = self.lookup_span(&self.compiler.annotations.definitions, span)?;
+    (defs.len() == 1).then(|| (span, *defs.iter().next().unwrap()))
   }
 
   fn file_to_uri(&self, file: FileId) -> Url {
