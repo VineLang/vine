@@ -1,7 +1,10 @@
 
-use std::ops::arithmetic::{Add, Div, Mul, Pow, Rem, Sub};
-use std::ops::bitwise::{And, Or, Shl, Shr, Xor};
-use std::ops::{Cast, comparison::{Eq, Ord}};
+use ops::{
+  Cast,
+  arithmetic::{Add, Div, Mul, Pow, Rem, Sub},
+  bitwise::{And, Or, Shl, Shr, Xor},
+  comparison::{Eq, Ord},
+};
 
 #[builtin = "Nat"]
 pub struct* Nat(List[N32]);

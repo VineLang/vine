@@ -1,5 +1,5 @@
 
-use std::data::Array;
+use #std::data::Array;
 
 const width: N32 = 11;
 const height: N32 = 7;

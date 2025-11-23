@@ -1,6 +1,7 @@
 use std::mem::replace;
 
 use crate::{
+  components::loader::Module,
   features::cfg::Config,
   structures::{
     ast::{Attr, AttrKind, Flex, Ident, Item, ItemKind, ModKind, Span, Vis, visit::VisitMut},
@@ -18,13 +19,13 @@ pub struct Charter<'a> {
 }
 
 impl Charter<'_> {
-  pub fn chart_root(&mut self, root: ModKind) {
+  pub fn chart(&mut self, modules: Vec<Module>) {
     if self.chart.generics.is_empty() {
       self.chart.generics.push_to(
         GenericsId::NONE,
         GenericsDef {
           span: Span::NONE,
-          def: DefId::ROOT,
+          def: DefId::NONE,
           parent: None,
           type_params: Vec::new(),
           impl_params: Vec::new(),
@@ -34,13 +35,18 @@ impl Charter<'_> {
         },
       );
     }
-    if self.chart.defs.is_empty() {
-      self.new_def(Ident("::".into()), "".into(), None);
+    for module in modules {
+      let path = format!("#{}", module.name);
+      let def = self.new_def(module.name.clone(), path, None);
+      self.chart.top_level.insert(module.name.clone(), def);
+      self.chart_mod_kind(VisId::Pub, module.kind, def, GenericsId::NONE);
+      if module.main {
+        self.chart.main_mod = Some(def);
+      }
     }
-    self.chart_mod_kind(DefId::ROOT, root, DefId::ROOT, GenericsId::NONE);
   }
 
-  fn new_def(&mut self, name: Ident, path: String, parent: Option<DefId>) -> DefId {
+  pub(crate) fn new_def(&mut self, name: Ident, path: String, parent: Option<DefId>) -> DefId {
     let id = self.chart.defs.next_index();
     self.chart.defs.push(Def {
       name,
@@ -64,7 +70,7 @@ impl Charter<'_> {
 
   pub(crate) fn chart_mod_kind(
     &mut self,
-    vis: DefId,
+    vis: VisId,
     module: ModKind,
     def: DefId,
     generics: GenericsId,
@@ -77,7 +83,7 @@ impl Charter<'_> {
 
   pub fn chart_item(
     &mut self,
-    member_vis: DefId,
+    member_vis: VisId,
     mut item: Item,
     parent: DefId,
     parent_generics: GenericsId,
@@ -138,7 +144,7 @@ impl Charter<'_> {
         if !matches!(subitem.vis, Vis::Private) {
           self.diags.report(Diag::VisibleSubitem { span: subitem.span });
         }
-        self.chart_item(def, subitem, def, GenericsId::NONE);
+        self.chart_item(VisId::Def(def), subitem, def, GenericsId::NONE);
       }
     }
 
@@ -161,9 +167,6 @@ impl Charter<'_> {
           if !self.chart_builtin(def, builtin) {
             self.diags.report(Diag::BadBuiltin { span });
           }
-        }
-        AttrKind::Main => {
-          self.chart.main_mod = def;
         }
         AttrKind::Manual => {
           let Some(impl_id) = impl_id else {
@@ -207,12 +210,12 @@ impl Charter<'_> {
     &mut self,
     parent: DefId,
     name: Ident,
-    vis: DefId,
+    vis: VisId,
     collapse: bool,
   ) -> DefId {
     let next_def_id = self.chart.defs.next_index();
     let parent_def = &mut self.chart.defs[parent];
-    if collapse && parent_def.name == name {
+    if collapse && parent_def.name == name && parent_def.ancestors.len() > 1 {
       return parent;
     }
     let mut new = false;
@@ -240,18 +243,18 @@ impl Charter<'_> {
     child
   }
 
-  pub(crate) fn resolve_vis(&mut self, base: DefId, vis: Vis) -> DefId {
+  pub(crate) fn resolve_vis(&mut self, base: DefId, vis: Vis) -> VisId {
     match vis {
-      Vis::Private => base,
-      Vis::Public => DefId::ROOT,
+      Vis::Private => VisId::Def(base),
+      Vis::Public => VisId::Pub,
       Vis::PublicTo(span, name) => {
         let ancestors = &self.chart.defs[base].ancestors;
         if let Some(&ancestor) = ancestors.iter().rev().find(|&&a| self.chart.defs[a].name == name)
         {
-          ancestor
+          VisId::Def(ancestor)
         } else {
           self.diags.report(Diag::BadVis { span });
-          DefId::ROOT
+          VisId::Pub
         }
       }
     }
@@ -265,7 +268,7 @@ impl Charter<'_> {
     option.unwrap_or_else(|| self.diags.report(Diag::MissingImplementation { span }).into())
   }
 
-  pub(crate) fn define_value(&mut self, span: Span, def: DefId, vis: DefId, kind: DefValueKind) {
+  pub(crate) fn define_value(&mut self, span: Span, def: DefId, vis: VisId, kind: DefValueKind) {
     let def = &mut self.chart.defs[def];
     if def.value_kind.is_none() {
       def.value_kind = Some(WithVis { vis, kind });
@@ -274,7 +277,7 @@ impl Charter<'_> {
     }
   }
 
-  pub(crate) fn define_type(&mut self, span: Span, def: DefId, vis: DefId, kind: DefTypeKind) {
+  pub(crate) fn define_type(&mut self, span: Span, def: DefId, vis: VisId, kind: DefTypeKind) {
     let def = &mut self.chart.defs[def];
     if def.type_kind.is_none() {
       def.type_kind = Some(WithVis { vis, kind });
@@ -287,7 +290,7 @@ impl Charter<'_> {
     &mut self,
     span: Span,
     def: DefId,
-    vis: DefId,
+    vis: VisId,
     kind: DefPatternKind,
   ) {
     let def = &mut self.chart.defs[def];
@@ -298,7 +301,7 @@ impl Charter<'_> {
     }
   }
 
-  pub(crate) fn define_trait(&mut self, span: Span, def: DefId, vis: DefId, kind: DefTraitKind) {
+  pub(crate) fn define_trait(&mut self, span: Span, def: DefId, vis: VisId, kind: DefTraitKind) {
     let def = &mut self.chart.defs[def];
     if def.trait_kind.is_none() {
       def.trait_kind = Some(WithVis { vis, kind });
@@ -307,7 +310,7 @@ impl Charter<'_> {
     }
   }
 
-  pub(crate) fn define_impl(&mut self, span: Span, def: DefId, vis: DefId, kind: DefImplKind) {
+  pub(crate) fn define_impl(&mut self, span: Span, def: DefId, vis: VisId, kind: DefImplKind) {
     let def = &mut self.chart.defs[def];
     if def.impl_kind.is_none() {
       def.impl_kind = Some(WithVis { vis, kind });

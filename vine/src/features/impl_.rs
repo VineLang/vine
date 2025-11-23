@@ -17,7 +17,7 @@ use crate::{
     chart::{
       ConcreteConstDef, ConcreteConstId, ConcreteFnDef, ConcreteFnId, ConstId, DefId, DefImplKind,
       DefTypeKind, DefValueKind, FnId, GenericsId, ImplDef, ImplDefKind, ImplId, ImplSubitem,
-      ImplSubitemKind, TraitConstId, TraitFnId, TraitId,
+      ImplSubitemKind, TraitConstId, TraitFnId, TraitId, VisId,
     },
     diag::{Diag, ErrorGuaranteed},
     resolutions::{Become, ResolvedImpl, ResolvedImplKind},
@@ -75,8 +75,8 @@ impl Charter<'_> {
     parent: DefId,
     parent_generics: GenericsId,
     span: Span,
-    vis: DefId,
-    member_vis: DefId,
+    vis: VisId,
+    member_vis: VisId,
     impl_item: ImplItem,
   ) -> DefId {
     let def = self.chart_child(parent, impl_item.name, member_vis, true);
@@ -128,7 +128,7 @@ impl Charter<'_> {
 
   fn chart_impl_fn(
     &mut self,
-    vis: DefId,
+    vis: VisId,
     parent_def: DefId,
     parent_generics: GenericsId,
     span: Span,
@@ -162,7 +162,7 @@ impl Charter<'_> {
 
   fn chart_impl_const(
     &mut self,
-    vis: DefId,
+    vis: VisId,
     parent_def: DefId,
     parent_generics: GenericsId,
     span: Span,
@@ -193,8 +193,8 @@ impl Charter<'_> {
     ty_def: DefId,
     ty_generics: GenericsId,
     span: Span,
-    vis: DefId,
-    member_vis: DefId,
+    vis: VisId,
+    member_vis: VisId,
     ty: DefTypeKind,
     flex: Flex,
   ) {

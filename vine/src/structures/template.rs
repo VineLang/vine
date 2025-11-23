@@ -56,7 +56,11 @@ impl TemplateStage {
 }
 
 pub fn global_name(spec: &Spec, stage_id: StageId) -> String {
-  let mut str = spec.path.to_owned();
+  let mut str = if spec.path.starts_with("#") {
+    format!("::{}", &spec.path[1..])
+  } else {
+    spec.path.to_owned()
+  };
   if !spec.singular {
     write!(str, ":{}", spec.index).unwrap();
   }

@@ -103,6 +103,8 @@ diags! {
     ["bad builtin"]
   CannotResolve { ident: Ident, module: String }
     ["cannot find `{ident}` in `{module}`"]
+  CannotResolveAbsolute { ident: Ident }
+    ["cannot find `#{ident}`"]
   BadPatternPath
     ["invalid pattern; this path is not a struct or enum variant"]
   DuplicateItem { name: Ident }

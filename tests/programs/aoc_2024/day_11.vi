@@ -1,5 +1,5 @@
 
-use std::data::Map;
+use #std::data::Map;
 
 const max: N32 = 75;
 

@@ -14,7 +14,7 @@ use crate::{
   },
   structures::{
     ast::{Block, Expr, ExprKind, Flex, FnItem, LetFnStmt, Pat, Path, Span, Stmt, StmtKind, Ty},
-    chart::{ConcreteFnDef, ConcreteFnId, DefId, DefValueKind, FnId, GenericsId},
+    chart::{ConcreteFnDef, ConcreteFnId, DefId, DefValueKind, FnId, GenericsId, VisId},
     diag::Diag,
     resolutions::{FnRel, FnRelId, Fragment},
     signatures::FnSig,
@@ -136,8 +136,8 @@ impl Charter<'_> {
     parent: DefId,
     parent_generics: GenericsId,
     span: Span,
-    vis: DefId,
-    member_vis: DefId,
+    vis: VisId,
+    member_vis: VisId,
     fn_item: FnItem,
   ) -> DefId {
     let def = self.chart_child(parent, fn_item.name, member_vis, true);

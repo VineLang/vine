@@ -1,5 +1,5 @@
 
-use std::rng::Pcg32;
+use #std::rng::Pcg32;
 
 const default_size: N32 = 46;
 const default_seed: String = "Conway's Game of Life";
@@ -338,7 +338,7 @@ pub trait Channel[A, B] {
 }
 
 pub mod Channel {
-  use std::derive::Tuple;
+  use #std::derive::Tuple;
 
   pub impl nil: Channel[(), ()] {
     const pair: ((), ()) = ((), ());
