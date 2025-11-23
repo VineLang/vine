@@ -186,8 +186,9 @@ impl Resolver<'_> {
       })),
       fns: IdxVec::from_iter(trait_def.fns.values().map(|trait_fn| {
         self.initialize(trait_def.def, trait_fn.generics);
+        let names = trait_fn.params.iter().map(|x| self.param_name(x)).collect();
         let (params, ret_ty) = self._resolve_fn_sig(&trait_fn.params, &trait_fn.ret_ty);
-        let sig = FnSig { params, ret_ty };
+        let sig = FnSig { names, param_tys: params, ret_ty };
 
         let hover = format!(
           "fn {}::{}{}{};",

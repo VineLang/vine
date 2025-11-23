@@ -187,7 +187,8 @@ impl<'a> Resolver<'a> {
     let io = self.builtin_ty(span, "IO", self.chart.builtins.io);
     let io_ref = self.types.new(TypeKind::Ref(io));
     let nil = self.types.nil();
-    let expected = FnSig { params: vec![io_ref], ret_ty: nil };
+    let expected =
+      FnSig { names: vec![Some(Ident("io".into()))], param_tys: vec![io_ref], ret_ty: nil };
     let found = self.types.import(&self.sigs.concrete_fns[fn_id], None);
     Self::expect_fn_sig(self.diags, self.chart, &mut self.types, span, expected, found);
     Ok(fn_id)

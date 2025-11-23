@@ -81,7 +81,7 @@ impl<'a> Finder<'a> {
       let type_params = types.new_vars(self.span, self.sigs.type_params[generics].params.len());
       let candidate_receiver =
         types.import_with(self.sigs.fn_sig(candidate), Some(&type_params), |t, sig| {
-          sig.params.first().map(|&ty| t.transfer(&ty))
+          sig.param_tys.first().map(|&ty| t.transfer(&ty))
         });
       if let Some(candidate_receiver) = candidate_receiver {
         let candidate_receiver = match types.kind(candidate_receiver) {
@@ -465,8 +465,8 @@ impl<'a> Finder<'a> {
               let type_params =
                 types.new_vars(self.span, self.sigs.type_params[generics].params.len());
               let sig = types.import(self.sigs.fn_sig(*fn_id), Some(&type_params));
-              let param_count = sig.params.len();
-              let sig_params = types.new(TypeKind::Tuple(sig.params));
+              let param_count = sig.param_tys.len();
+              let sig_params = types.new(TypeKind::Tuple(sig.param_tys));
               if types.unify(sig_params, params).and(types.unify(sig.ret_ty, ret)).is_success() {
                 for result in self.find_impl_params(types, generics, type_params)? {
                   found.push(TypeCtx {
@@ -476,16 +476,13 @@ impl<'a> Finder<'a> {
                 }
               }
             }
-            Some((
-              Inverted(false),
-              TypeKind::Closure(closure_id, _, closure_params, closure_ret),
-            )) => {
-              let param_count = closure_params.len();
+            Some((Inverted(false), TypeKind::Closure(closure_id, _, closure_sig))) => {
+              let param_count = closure_sig.param_tys.len();
               let mut types = types.clone();
-              let closure_params = types.new(TypeKind::Tuple(closure_params.clone()));
+              let closure_params = types.new(TypeKind::Tuple(closure_sig.param_tys.clone()));
               if types
                 .unify(closure_params, params)
-                .and(types.unify(*closure_ret, ret))
+                .and(types.unify(closure_sig.ret_ty, ret))
                 .is_success()
               {
                 found.push(TypeCtx { types, inner: TirImpl::Closure(*closure_id, param_count) });

@@ -87,7 +87,7 @@ pub enum TypeKind {
   Struct(StructId, Vec<Type>),
   Enum(EnumId, Vec<Type>),
   Fn(FnId),
-  Closure(ClosureId, Flex, Vec<Type>, Type),
+  Closure(ClosureId, Flex, FnSig),
   Ref(Type),
   Never,
   Error(ErrorGuaranteed),
@@ -245,9 +245,9 @@ impl Types {
         self.unify_types(a, b, Inverted(false))
       }
       (TypeKind::Fn(i), TypeKind::Fn(j)) if *i == *j => Success,
-      (TypeKind::Closure(i, _, p, r), TypeKind::Closure(j, _, q, s)) if *i == *j => {
-        self.unify_types(p, q, Inverted(false)).and(self.unify(*r, *s))
-      }
+      (TypeKind::Closure(i, _, x), TypeKind::Closure(j, _, y)) if *i == *j => self
+        .unify_types(&x.param_tys, &y.param_tys, Inverted(false))
+        .and(self.unify(x.ret_ty, y.ret_ty)),
       (TypeKind::Ref(a), TypeKind::Ref(b)) => self.unify(*a, *b),
       (TypeKind::Never, TypeKind::Never) => Success,
       _ => Failure,
@@ -303,7 +303,9 @@ impl Types {
   }
 
   pub fn unify_fn_sig(&mut self, a: &FnSig, b: &FnSig) -> UnifyResult {
-    self.unify_types(&a.params, &b.params, Inverted(false)).and(self.unify(a.ret_ty, b.ret_ty))
+    self
+      .unify_types(&a.param_tys, &b.param_tys, Inverted(false))
+      .and(self.unify(a.ret_ty, b.ret_ty))
   }
 
   fn occurs(&self, var: Type, ty: Type) -> bool {
@@ -428,9 +430,9 @@ impl Types {
                 }
               }
             }
-            TypeKind::Closure(closure_id, flex, params, ret) => {
+            TypeKind::Closure(closure_id, flex, sig) => {
               write!(*str, "fn{} <{}>", flex.sigil(), closure_id.0).unwrap();
-              self._show_fn_sig(chart, params, *ret, str);
+              self._show_fn_sig(chart, sig, str);
             }
             TypeKind::Opaque(type_id, params) => {
               *str += &chart.opaque_types[*type_id].name.0;
@@ -488,18 +490,31 @@ impl Types {
 
   pub fn show_fn_sig(&self, chart: &Chart, sig: &FnSig) -> String {
     let mut str = String::new();
-    self._show_fn_sig(chart, &sig.params, sig.ret_ty, &mut str);
+    self._show_fn_sig(chart, sig, &mut str);
     str
   }
 
-  pub fn _show_fn_sig(&self, chart: &Chart, params: &[Type], ret: Type, str: &mut String) {
+  fn _show_fn_sig(&self, chart: &Chart, sig: &FnSig, str: &mut String) {
+    let ret = sig.ret_ty;
     *str += "(";
-    self._show_comma_separated(chart, params, str);
+    let mut first = true;
+    for (name, &ty) in sig.names.iter().zip(&sig.param_tys) {
+      if !first {
+        *str += ", ";
+      }
+      *str += match name {
+        Some(name) => &name.0,
+        None => "...",
+      };
+      *str += ": ";
+      self._show(chart, ty, str);
+      first = false;
+    }
     *str += ")";
     if !matches!(self.kind(ret), Some((_, TypeKind::Tuple(els))) if els.is_empty()) {
       *str += " -> ";
       self._show(chart, ret, str);
-    }
+    };
   }
 
   pub fn import<T: TransferTypes>(&mut self, source: &TypeCtx<T>, params: Option<&[Type]>) -> T {
@@ -645,9 +660,15 @@ impl TypeKind {
       TypeKind::Enum(i, els) => TypeKind::Enum(*i, els.iter().copied().map(f).collect()),
       TypeKind::Ref(t) => TypeKind::Ref(f(*t)),
       TypeKind::Fn(i) => TypeKind::Fn(*i),
-      TypeKind::Closure(i, x, p, r) => {
-        TypeKind::Closure(*i, *x, p.iter().copied().map(&mut f).collect(), f(*r))
-      }
+      TypeKind::Closure(i, x, s) => TypeKind::Closure(
+        *i,
+        *x,
+        FnSig {
+          names: s.names.clone(),
+          param_tys: s.param_tys.iter().copied().map(&mut f).collect(),
+          ret_ty: f(s.ret_ty),
+        },
+      ),
       TypeKind::Param(i, n) => TypeKind::Param(*i, n.clone()),
       TypeKind::Never => TypeKind::Never,
       TypeKind::Error(err) => TypeKind::Error(*err),
@@ -666,7 +687,9 @@ impl TypeKind {
       | TypeKind::Struct(_, els)
       | TypeKind::Enum(_, els) => Children::Vec(els.iter().copied()),
       TypeKind::Object(els) => Children::Object(els.values().copied()),
-      TypeKind::Closure(_, _, p, r) => Children::Closure(p.iter().copied().chain([*r])),
+      TypeKind::Closure(_, _, s) => {
+        Children::Closure(s.param_tys.iter().copied().chain([s.ret_ty]))
+      }
     }
   }
 }

@@ -58,9 +58,10 @@ pub struct ConstSig {
   pub ty: Type,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct FnSig {
-  pub params: Vec<Type>,
+  pub names: Vec<Option<Ident>>,
+  pub param_tys: Vec<Type>,
   pub ret_ty: Type,
 }
 
@@ -114,7 +115,11 @@ impl TransferTypes for ConstSig {
 
 impl TransferTypes for FnSig {
   fn transfer(&self, t: &mut TypeTransfer<'_>) -> Self {
-    Self { params: t.transfer(&self.params), ret_ty: t.transfer(&self.ret_ty) }
+    Self {
+      names: self.names.clone(),
+      param_tys: t.transfer(&self.param_tys),
+      ret_ty: t.transfer(&self.ret_ty),
+    }
   }
 }
 

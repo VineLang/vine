@@ -45,10 +45,10 @@ impl Resolver<'_> {
     self.annotations.record_reference(name_span, fn_span);
     let type_params = self.types.import(&type_params, None);
     let sig = self.types.import(self.sigs.fn_sig(fn_id), Some(&type_params));
-    if sig.params.len() != args.len() + 1 {
-      return Err(Diag::BadArgCount { span, expected: sig.params.len(), got: args.len() + 1 });
+    if sig.param_tys.len() != args.len() + 1 {
+      return Err(Diag::BadArgCount { span, expected: sig.param_tys.len(), got: args.len() + 1 });
     }
-    for (arg, ty) in args.iter().zip(sig.params.iter().skip(1)) {
+    for (arg, ty) in args.iter().zip(sig.param_tys.iter().skip(1)) {
       // just need inference; errors will be reported later
       _ = self.types.unify(arg.ty, *ty);
     }
@@ -60,10 +60,10 @@ impl Resolver<'_> {
       Some(type_params),
     );
     let sig = self.types.import(self.sigs.fn_sig(fn_id), Some(&type_params));
-    for (arg, ty) in args.iter().zip(sig.params.iter().skip(1)) {
+    for (arg, ty) in args.iter().zip(sig.param_tys.iter().skip(1)) {
       self.expect_type(arg.span, arg.ty, *ty);
     }
-    let (receiver_place, receiver_ty) = match sig.params.first().copied() {
+    let (receiver_place, receiver_ty) = match sig.param_tys.first().copied() {
       None => return Err(Diag::NilaryMethod { span }),
       Some(receiver) => match self.types.force_kind(self.diags, receiver) {
         (_, TypeKind::Error(e)) => return Err((*e).into()),
