@@ -10,7 +10,7 @@ pub fn main(&io: &IO) {
 
   let grid = input.split_trim("\n");
 
-  let width = (*grid.at(0).unwrap()).len();
+  let width = (*grid.at(0).assume()).len();
   let height = grid.len();
 
   let fn check_antinode((x: N32, y: N32)) {

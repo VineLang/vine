@@ -6,7 +6,7 @@ pub fn main(&io: &IO) {
 
   while io.read_line() is Some(line) and line.len() != 0 {
     let (name, value) = line.split_once(": ");
-    let value = value.unwrap()!.get(0).unwrap() == '1';
+    let value = value.assume()!.get(0).assume() == '1';
     unsafe::erase(map.insert(name, Wire::input(value)));
   }
 
@@ -16,12 +16,12 @@ pub fn main(&io: &IO) {
 
   while io.read_line() is Some(line) {
     let pieces = line.split(" ");
-    let wire_a = unsafe::move(pieces.at(0).unwrap());
-    let wire_b = unsafe::move(pieces.at(2).unwrap());
-    let wire_out = unsafe::move(pieces.at(4).unwrap());
+    let wire_a = unsafe::move(pieces.at(0).assume());
+    let wire_b = unsafe::move(pieces.at(2).assume());
+    let wire_out = unsafe::move(pieces.at(4).assume());
     let a = (*at_wire(wire_a)).get();
     let b = (*at_wire(wire_b)).get();
-    let op = (*pieces.at(1).unwrap())!.get(0).unwrap();
+    let op = (*pieces.at(1).assume())!.get(0).assume();
     let out = when {
       op == 'A' { a & b }
       op == 'O' { a | b }

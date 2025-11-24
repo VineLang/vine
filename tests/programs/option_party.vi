@@ -77,9 +77,9 @@ pub fn main(&io: &IO) {
   print_option_n32(option.take());
   print_option_n32(option);
 
-  io.println("unwrap:");
-  print_n32(Some(42).unwrap());
-  print_n32(None().unwrap());
+  io.println("assume:");
+  print_n32(Some(42).assume());
+  print_n32(None().assume());
   io.println("io will never work again :(");
 }
 

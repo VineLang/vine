@@ -62,7 +62,7 @@ pub mod debug {
   #[frameless]
   pub fn log[T; Cast[T, String]](msg: T) {
     let &state = debug_state();
-    let frame = state.stack.get(0).unwrap();
+    let frame = state.stack.get(0).assume();
     state.io.print("[{frame.file}:{frame.line}:{frame.col}] {msg}\n")
   }
 

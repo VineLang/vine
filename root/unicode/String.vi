@@ -50,7 +50,7 @@ pub mod String {
     while suffix.len() >= sep.len() {
       let iter = suffix.iter();
       for &a in sep.iter() {
-        let (&b, _iter) = iter.advance().unwrap();
+        let (&b, _iter) = iter.advance().assume();
         iter = _iter;
         if a != b {
           break;
@@ -73,7 +73,7 @@ pub mod String {
     }
     let iter = self.iter();
     for &a in prefix.iter() {
-      let (&b, _iter) = iter.advance().unwrap();
+      let (&b, _iter) = iter.advance().assume();
       iter = _iter;
       if a != b {
         return Err(self);
@@ -102,7 +102,7 @@ pub mod String {
     }
     let self_iter = self.iter();
     for &a in prefix.iter() {
-      let (&b, _self_iter) = self_iter.advance().unwrap();
+      let (&b, _self_iter) = self_iter.advance().assume();
       self_iter = _self_iter;
       if a != b {
         break false;

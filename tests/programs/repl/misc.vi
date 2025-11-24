@@ -17,7 +17,7 @@ fn _foo() {}
 List::empty[Bool].filter(fn* (&x) { x })
 let l = [+1,+2,-13,+4];
 l.find(fn* (&x: &I32) { x == +7 })
-*l.find(fn* (&x: &I32) { x < +0 }).unwrap() -= +5;
+*l.find(fn* (&x: &I32) { x < +0 }).assume() -= +5;
 l.contains(&+1)
 l.contains(&+4)
 l.contains(&+7)
@@ -46,7 +46,7 @@ List::new(10, "")
 99.sqrt()
 100.sqrt()
 101.sqrt()
-(N64::parse("1234567890123456789000").unwrap() + N64::parse("46").unwrap()) as String
+(N64::parse("1234567890123456789000").assume() + N64::parse("46").assume()) as String
 N64::parse("")
 N64::parse("one")
 N64::parse("1.0")
@@ -61,9 +61,9 @@ N64::parse("1.0")
 123.to_binary()
 123.to_hex()
 let x = [[1]];
-(*x.at(0).unwrap()).get(0)
-x.at(0).unwrap().*.at(0).unwrap().* = 2
-~x.at(0).unwrap().*.at(0).unwrap().*.~
+(*x.at(0).assume()).get(0)
+x.at(0).assume().*.at(0).assume().* = 2
+~x.at(0).assume().*.at(0).assume().*.~
 x.at(3)
 /clear x
 let _: { a: N32, b: N32 } = { a: 1 }

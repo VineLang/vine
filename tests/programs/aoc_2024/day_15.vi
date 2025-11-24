@@ -22,7 +22,7 @@ pub fn main(&io: &IO) {
   let initial_grid = grid;
 
   let fn get((x, y)) {
-    (*grid.at(y).unwrap()).at(x).unwrap()
+    (*grid.at(y).assume()).at(x).assume()
   }
 
   let fn show_grid() {
@@ -172,7 +172,7 @@ pub fn main(&io: &IO) {
     }
   }
 
-  let width = (*grid.at(0).unwrap()).len();
+  let width = (*grid.at(0).assume()).len();
   let height = grid.len();
 
   let part2 = 0;

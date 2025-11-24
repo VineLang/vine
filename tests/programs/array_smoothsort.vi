@@ -74,7 +74,7 @@ pub fn smooth_sort[T; Ord[T]](&data: &Array[T]) {
         }
       } else {
         // the heap is final if there's no room for another leonardo tree
-        if (data.len() - (i + 1)) < (leonardo_numbers.get(smallest_tree - 1).unwrap() + 1) {
+        if (data.len() - (i + 1)) < (leonardo_numbers.get(smallest_tree - 1).assume() + 1) {
           is_last = true
         }
       }
@@ -95,18 +95,18 @@ pub fn smooth_sort[T; Ord[T]](&data: &Array[T]) {
       let first = first_child(i, size);
       let second = second_child(i);
 
-      let (larger_child, child_size) = if data.at(first).unwrap() < data.at(second).unwrap() {
+      let (larger_child, child_size) = if data.at(first).assume() < data.at(second).assume() {
         (second, size - 2)
       } else {
         (first, size - 1)
       };
 
-      if data.at(larger_child).unwrap() < data.at(i).unwrap() {
+      if data.at(larger_child).assume() < data.at(i).assume() {
         // we're done
         return;
       }
 
-      swap(data.at(i).unwrap(), data.at(larger_child).unwrap());
+      swap(data.at(i).assume(), data.at(larger_child).assume());
       i = larger_child
       size = child_size
     }
@@ -120,7 +120,7 @@ pub fn smooth_sort[T; Ord[T]](&data: &Array[T]) {
       last_heap_size = smallest_tree;
 
       // if this is the first heap in the forest, we're done
-      if i == leonardo_numbers.get(last_heap_size).unwrap() - 1 {
+      if i == leonardo_numbers.get(last_heap_size).assume() - 1 {
         break;
       }
 
@@ -129,22 +129,22 @@ pub fn smooth_sort[T; Ord[T]](&data: &Array[T]) {
 
       if smallest_tree > 1 {
         let larger_child = larger_child(i, smallest_tree);
-        if data.at(to_compare).unwrap() < data.at(larger_child).unwrap() {
+        if data.at(to_compare).assume() < data.at(larger_child).assume() {
           to_compare = larger_child;
         }
       }
 
       // get the index of the prior heap by backing up the size of the current
-      let prior_heap = i - leonardo_numbers.get(last_heap_size).unwrap();
+      let prior_heap = i - leonardo_numbers.get(last_heap_size).assume();
 
       // if we've run out of trees, or the new tree's root is smaller,
       // the new node is in the right heap
-      if data.at(to_compare).unwrap() >= data.at(prior_heap).unwrap() {
+      if data.at(to_compare).assume() >= data.at(prior_heap).assume() {
         break;
       }
 
       // otherwise, swap values and change to the prior heap
-      swap(data.at(i).unwrap(), data.at(prior_heap).unwrap());
+      swap(data.at(i).assume(), data.at(prior_heap).assume());
       i = prior_heap
 
       // adjust the bitmap
@@ -198,7 +198,7 @@ pub fn smooth_sort[T; Ord[T]](&data: &Array[T]) {
   }
 
   let fn first_child(i: N32, size: N32) -> N32 {
-    second_child(i) - leonardo_numbers.get(size - 2).unwrap()
+    second_child(i) - leonardo_numbers.get(size - 2).assume()
   }
 
   let fn second_child(i: N32) -> N32 {
@@ -208,7 +208,7 @@ pub fn smooth_sort[T; Ord[T]](&data: &Array[T]) {
   let fn larger_child(i: N32, size: N32) -> N32 {
     let first = first_child(i, size);
     let second = second_child(i);
-    if &data.at(first).unwrap() < &data.at(second).unwrap() {
+    if &data.at(first).assume() < &data.at(second).assume() {
       second
     } else {
       first

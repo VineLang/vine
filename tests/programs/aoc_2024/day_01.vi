@@ -4,8 +4,8 @@ pub fn main(&io: &IO) {
 
   let lines = input.split_trim("\n").map(fn* (line: String) {
     let parts = line.split("   ");
-    let left = N32::parse(parts.pop_front().unwrap()).unwrap();
-    let right = N32::parse(parts.pop_front().unwrap()).unwrap();
+    let left = N32::parse(parts.pop_front().assume()).assume();
+    let right = N32::parse(parts.pop_front().assume()).assume();
     (left, right)
   });
 
@@ -19,7 +19,7 @@ pub fn main(&io: &IO) {
   let iter_a = left.into_iter();
   let iter_b = right.into_iter();
   for a in iter_a {
-    let (b, _iter_b) = iter_b.advance().unwrap();
+    let (b, _iter_b) = iter_b.advance().assume();
     iter_b = _iter_b;
     total_dist += if a > b {
       a - b

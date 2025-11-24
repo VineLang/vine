@@ -89,7 +89,7 @@ mod Parser {
   pub fn .parse_term(&self: &Parser) -> Term {
     let term = self.parse_atom();
     self.skip_ws();
-    while self.chars.len() != 0 and self.chars.get(0).unwrap() != ')' {
+    while self.chars.len() != 0 and self.chars.get(0).assume() != ')' {
       term = Term::Apply(term, self.parse_atom());
       self.skip_ws();
     }
@@ -101,7 +101,7 @@ mod Parser {
     if self.chars.len() == 0 {
       return self.error("expected term");
     }
-    let char = self.chars.get(0).unwrap();
+    let char = self.chars.get(0).assume();
     when {
       char == '\\' {
         self.chars.pop_front();
@@ -110,7 +110,7 @@ mod Parser {
         self.expect_char('.');
         self.scope.at_or_insert[; _, _, unsafe::erase](var, []).*.push_front([]);
         let body = self.parse_atom();
-        let uses = self.scope.at(&var).unwrap().*.pop_front().unwrap();
+        let uses = self.scope.at(&var).assume().*.pop_front().assume();
         Term::Lambda(uses, body)
       }
       char == '(' {
@@ -123,7 +123,7 @@ mod Parser {
         let var = self.parse_var();
         if self.scope.at(&var) is Some(&binds) and binds.len() != 0 {
           let term;
-          binds.at(0).unwrap().*.push_back(~term);
+          binds.at(0).assume().*.push_back(~term);
           term
         } else {
           self.error("unbound variable `{var}`")
@@ -152,7 +152,7 @@ mod Parser {
   }
 
   fn .skip_ws(&self: &Parser) {
-    while self.chars.len() != 0 and self.chars.get(0).unwrap().is_whitespace() {
+    while self.chars.len() != 0 and self.chars.get(0).assume().is_whitespace() {
       self.chars.pop_front();
     }
   }

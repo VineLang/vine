@@ -32,7 +32,7 @@ pub fn main(&io: &IO) {
 
   let &Regions(array) = &regions;
   for i in 0..array.len() {
-    match array.get(i).unwrap() {
+    match array.get(i).assume() {
       Region::Root(a, p) {
         price += a * (a * 4 - p * 2);
       }
@@ -115,7 +115,7 @@ mod Regions {
   pub fn .get_area(&self: &Regions, i: N32) -> N32 {
     let i = self.find(i);
     let &Regions(array) = &self;
-    match array.at(i).unwrap() {
+    match array.at(i).assume() {
       &Region::Root(a, _) { a }
       _ { unsafe::unreachable(()) }
     }
@@ -123,7 +123,7 @@ mod Regions {
 
   pub fn .union_found(&Regions(array), i: N32, j: N32) -> N32 {
     if i == j {
-      match array.at(i).unwrap() {
+      match array.at(i).assume() {
         &Region::Root(_, p) {
           p += 1;
         }
@@ -131,8 +131,8 @@ mod Regions {
       }
       i
     } else {
-      let &r = array.at(i).unwrap();
-      let &s = array.at(j).unwrap();
+      let &r = array.at(i).assume();
+      let &s = array.at(j).assume();
       match (r, s) {
         (Region::Root(ra, rp), Region::Root(sa, sp)) {
           let a = ra + sa;

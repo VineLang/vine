@@ -6,16 +6,16 @@ pub fn main(&io: &IO) {
 
   let fn read_value() {
     let (_, rest) = input.split_once(": ");
-    let (value, rest) = rest.unwrap().split_once("\n");
-    input = rest.unwrap();
+    let (value, rest) = rest.assume().split_once("\n");
+    input = rest.assume();
     value
   }
 
-  let a = N32::parse(read_value()).unwrap();
-  let b = N32::parse(read_value()).unwrap();
-  let c = N32::parse(read_value()).unwrap();
+  let a = N32::parse(read_value()).assume();
+  let b = N32::parse(read_value()).assume();
+  let c = N32::parse(read_value()).assume();
 
-  let program = read_value().split(",").map(fn* (x) { N32::parse(x).unwrap() });
+  let program = read_value().split(",").map(fn* (x) { N32::parse(x).assume() });
   let program = program as Array;
 
   let output = [];
@@ -24,8 +24,8 @@ pub fn main(&io: &IO) {
   let steps = 100;
   while ip < program.len() and steps != 0 {
     steps -= 1;
-    let &opcode = program.at(ip).unwrap();
-    let &operand = program.at(ip + 1).unwrap();
+    let &opcode = program.at(ip).assume();
+    let &operand = program.at(ip + 1).assume();
     let fn combo() {
       when {
         operand == 4 { a }

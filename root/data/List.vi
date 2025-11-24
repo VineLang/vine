@@ -230,7 +230,7 @@ pub mod List {
 
   fn .sort_prefix[T; Ord[T]](&list: &List[T], n: N32) -> List[T] {
     if n == 1 {
-      [list.pop_front().unwrap()]
+      [list.pop_front().assume()]
     } else {
       merge(sort_prefix(&list, n / 2), sort_prefix(&list, (n + 1) / 2))
     }
@@ -241,8 +241,8 @@ pub mod List {
       return a ++ b;
     }
     let out = [];
-    let x = a.pop_front().unwrap();
-    let y = b.pop_front().unwrap();
+    let x = a.pop_front().assume();
+    let y = b.pop_front().assume();
 
     loop {
       if y < x {
@@ -365,7 +365,7 @@ pub mod List {
       let a_iter = a.iter();
       let b_iter = b.iter();
       for &a in a_iter {
-        let (&b, _b_iter) = b_iter.advance().unwrap();
+        let (&b, _b_iter) = b_iter.advance().assume();
         b_iter = _b_iter;
         if a != b {
           break false;

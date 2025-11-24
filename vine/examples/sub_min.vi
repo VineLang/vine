@@ -17,5 +17,5 @@ pub fn sub_min(&list: &List[N32]) {
     val -= ~min;
   }
 
-  ~min = min_acc.unwrap();
+  ~min = min_acc.assume();
 }

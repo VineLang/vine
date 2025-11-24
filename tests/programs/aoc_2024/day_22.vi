@@ -9,7 +9,7 @@ pub fn main(&io: &IO) {
   let buyer = 0;
   while io.read_line() is Some(secret) {
     let (a, b, c, d) = (0, 0, 0, 0);
-    let secret = N32::parse(secret).unwrap();
+    let secret = N32::parse(secret).assume();
     let last_price = 0;
     for i in 0..black_box(2000) {
       evolve(&secret);

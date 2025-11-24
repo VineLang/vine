@@ -6,9 +6,9 @@ pub fn main(&io: &IO) {
 
   while io.read_line() is Some(line) {
     let String(chars) = line;
-    let a = (chars.pop_front().unwrap() - 'a') * 26 + (chars.pop_front().unwrap() - 'a');
+    let a = (chars.pop_front().assume() - 'a') * 26 + (chars.pop_front().assume() - 'a');
     chars.pop_front();
-    let b = (chars.pop_front().unwrap() - 'a') * 26 + (chars.pop_front().unwrap() - 'a');
+    let b = (chars.pop_front().assume() - 'a') * 26 + (chars.pop_front().assume() - 'a');
     if a > b {
       (b, a) = (a, b)
     }
@@ -48,7 +48,7 @@ pub fn main(&io: &IO) {
   ) {
     if tips.len() != 0 {
       if clique.len() >= best.len() {
-        best = clique ++ [tips.get(0).unwrap()];
+        best = clique ++ [tips.get(0).assume()];
       }
       while tips.pop_front() is Some(x) {
         let out = [];

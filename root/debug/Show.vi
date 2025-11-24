@@ -43,7 +43,7 @@ pub mod Show {
         when {
           tuple.len() == 0 { (2, "()") }
           tuple.len() == 1 {
-            let (width, inner) = tuple.pop_front().unwrap()._format(max_width, indent);
+            let (width, inner) = tuple.pop_front().assume()._format(max_width, indent);
             (width + 3, "({inner},)")
           }
           _ {
@@ -199,7 +199,7 @@ pub mod Show {
 
     pub impl variant[I, R; Show[I], ShowVariant[R]]: ShowVariant[Variant[I, R]] {
       fn show_variant(&self: &Variant[I, R], variant_names: List_[String]) -> Show {
-        let (init_name, rest_names) = variant_names.head_tail().unwrap();
+        let (init_name, rest_names) = variant_names.head_tail().assume();
         match &self {
           &Variant::Init(init) { Show::Constructor(init_name, init.show()) }
           &Variant::Rest(rest) { rest.show_variant(rest_names) }

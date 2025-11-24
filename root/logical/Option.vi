@@ -54,11 +54,11 @@ pub mod Option {
     }
   }
 
-  pub fn .unwrap[T](self: Option[T]) -> T {
+  pub fn .assume[T](self: Option[T]) -> T {
     match self {
       Some(val) { val }
       None() {
-        debug::error("`Option::unwrap` called on `None()`");
+        debug::error("`Option::assume` called on `None()`");
         unsafe::unreachable(())
       }
     }

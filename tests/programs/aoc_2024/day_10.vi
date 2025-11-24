@@ -125,7 +125,7 @@ fn check(Channel[Char](i, ~o), recv: Char) -> N32 {
 struct Neighbors[M]((Channel[M], Channel[M], Channel[M], Channel[M]));
 
 fn cross[M*, F*; fn F(Char, Neighbors[M])](grid: List[List[Char]], f: F, d: M) {
-  let width = (*grid.at(0).unwrap()).len();
+  let width = (*grid.at(0).assume()).len();
   let north = List::new[; unsafe::duplicate, unsafe::erase](width, neglect_channel(d));
   for row in grid.into_iter() {
     let west = neglect_channel(d);
@@ -133,7 +133,7 @@ fn cross[M*, F*; fn F(Char, Neighbors[M])](grid: List[List[Char]], f: F, d: M) {
       let north = Fused::new(north.iter());
       for cell in row.into_iter() {
         let (w, e) = foo_channel(&west);
-        let (n, s) = foo_channel(north.next().unwrap());
+        let (n, s) = foo_channel(north.next().assume());
         f(cell, Neighbors(n, s, e, w));
       }
     }

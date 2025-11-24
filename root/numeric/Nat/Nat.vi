@@ -52,7 +52,7 @@ pub mod Nat {
       let result = [];
       let carry = false;
       for b in b.into_iter() {
-        let a = a.pop_front().unwrap();
+        let a = a.pop_front().assume();
         let ab = a + b;
         result.push_back(ab + carry as N32);
         carry = N32::add_high(a, b) | N32::add_high(ab, carry as N32);
@@ -87,7 +87,7 @@ pub mod Nat {
 
       let borrow = false;
       for b in b.into_iter() {
-        let a = a.pop_front().unwrap();
+        let a = a.pop_front().assume();
         let ab = a - b;
         push(ab - borrow as N32);
         borrow = (a < b) | (ab < borrow as N32);
@@ -229,7 +229,7 @@ pub mod Nat {
     fn bit_or(Nat(a), Nat(b)) -> Nat {
       let result = [];
       while a.len() != 0 and b.len() != 0 {
-        result.push_back(a.pop_front().unwrap() | b.pop_front().unwrap());
+        result.push_back(a.pop_front().assume() | b.pop_front().assume());
       }
       Nat(result ++ a ++ b)
     }
@@ -240,7 +240,7 @@ pub mod Nat {
       let ~trim = true;
       let result = [];
       while a.len() != 0 and b.len() != 0 {
-        let num = a.pop_front().unwrap() ^ b.pop_front().unwrap();
+        let num = a.pop_front().assume() ^ b.pop_front().assume();
         if !~trim {
           result.push_back(num);
         }

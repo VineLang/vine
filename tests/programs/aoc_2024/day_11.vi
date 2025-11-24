@@ -4,12 +4,12 @@ use #root::data::Map;
 const max: N32 = 75;
 
 pub fn main(&io: &IO) {
-  let input = io.read_line().unwrap();
+  let input = io.read_line().assume();
 
   let stones = Map::empty[N64, _];
   let input = input.split(" ");
   for stone in input.into_iter() {
-    let stone = N32::parse(stone).unwrap() as N64;
+    let stone = N32::parse(stone).assume() as N64;
     stones.insert(stone, 1[N64]);
   }
 

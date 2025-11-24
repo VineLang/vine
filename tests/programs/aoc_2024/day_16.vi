@@ -36,9 +36,9 @@ pub fn main(&io: &IO) {
 
   let fn try_insert(dist: N32, pos: (N32, N32), dir) {
     let (x, y) = pos;
-    let &(passable, dirs, _) = (*grid.at(y).unwrap()).at(x).unwrap();
+    let &(passable, dirs, _) = (*grid.at(y).assume()).at(x).assume();
     if passable {
-      let &(min_dist, used) = dirs.at(dir).unwrap();
+      let &(min_dist, used) = dirs.at(dir).assume();
       if dist < min_dist {
         ~used = false;
         min_dist = dist;
@@ -60,8 +60,8 @@ pub fn main(&io: &IO) {
   while !done and pq.remove_min() is Some(dist, heads) {
     for (pos, dir) in heads.into_iter() {
       let (px, py) = pos;
-      let &(_, dirs, counted) = (*grid.at(py).unwrap()).at(px).unwrap();
-      let &(min_dist, ~used) = dirs.at(dir).unwrap();
+      let &(_, dirs, counted) = (*grid.at(py).assume()).at(px).assume();
+      let &(min_dist, ~used) = dirs.at(dir).assume();
       if dist <= min_dist {
         min_dist = dist;
         let (ex, ey) = end;

@@ -48,7 +48,7 @@ pub mod Array {
       let ~ins;
       let (node, outs) = Node::unzip_with(len, ~ins, fn* (f: F) { (f(), f) });
       let outs = Array(len, outs);
-      outs.pop_back().unwrap();
+      outs.pop_back().assume();
       outs.push_front(f);
       let Array(_, outs) = outs;
       ~ins = outs;
@@ -74,7 +74,7 @@ pub mod Array {
     } else {
       let ~ins;
       let zipped = Array(len, Node::zip_with(len, ~ins, node, f));
-      let out = zipped.pop_back().unwrap();
+      let out = zipped.pop_back().assume();
       zipped.push_front(initial);
       let Array(_, node) = zipped;
       ~ins = node;
@@ -89,7 +89,7 @@ pub mod Array {
     } else {
       let ~ins;
       let zipped = Array(len, Node::zip_with(len, ~ins, node, f));
-      let out = zipped.pop_front().unwrap();
+      let out = zipped.pop_front().assume();
       zipped.push_back(initial);
       let Array(_, node) = zipped;
       ~ins = node;
