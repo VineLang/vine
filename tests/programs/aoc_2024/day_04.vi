@@ -121,9 +121,9 @@ struct Neighbors[M]((
 
 fn diamond[T*, M*, F*; fn F(T, Neighbors[M])](grid: List[List[T]], f: F, d: M) {
   let width = (*grid.at(0).assume()).len();
-  let north = List::new[; unsafe::duplicate, unsafe::erase](width, neglect_channel(d));
-  let north_west = List::new[; unsafe::duplicate, unsafe::erase](width, neglect_channel(d));
-  let north_east = List::new[; unsafe::duplicate, unsafe::erase](width, neglect_channel(d));
+  let north = List::from_fn(width, fn* () { neglect_channel(d) });
+  let north_west = List::from_fn(width, fn* () { neglect_channel(d) });
+  let north_east = List::from_fn(width, fn* () { neglect_channel(d) });
   for row in grid.into_iter() {
     let west = neglect_channel(d);
     do {

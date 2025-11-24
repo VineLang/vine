@@ -126,7 +126,7 @@ struct Neighbors[M]((Channel[M], Channel[M], Channel[M], Channel[M]));
 
 fn cross[M*, F*; fn F(Char, Neighbors[M])](grid: List[List[Char]], f: F, d: M) {
   let width = (*grid.at(0).assume()).len();
-  let north = List::new[; unsafe::duplicate, unsafe::erase](width, neglect_channel(d));
+  let north = List::from_fn(width, fn* () { neglect_channel(d) });
   for row in grid.into_iter() {
     let west = neglect_channel(d);
     do {
