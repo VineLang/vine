@@ -61,7 +61,7 @@ impl<'ctx, 'ivm, 'ext, 'comp> Repl<'ctx, 'ivm, 'ext, 'comp> {
     }
 
     let mut repl_mod = DefId::default();
-    let nets = compiler.compile(false, InitHooks(&mut repl_mod))?;
+    let nets = compiler.compile(InitHooks(&mut repl_mod))?;
     struct InitHooks<'a>(&'a mut DefId);
     impl Hooks for InitHooks<'_> {
       fn chart(&mut self, charter: &mut Charter) {
@@ -126,6 +126,7 @@ impl<'ctx, 'ivm, 'ext, 'comp> Repl<'ctx, 'ivm, 'ext, 'comp> {
     let mut bindings = Vec::new();
     let mut interface = None;
 
+    let checkpoint = self.compiler.checkpoint();
     let hooks = ExecHooks {
       path: path.clone(),
       repl_mod: self.repl_mod,
@@ -138,7 +139,9 @@ impl<'ctx, 'ivm, 'ext, 'comp> Repl<'ctx, 'ivm, 'ext, 'comp> {
       interface: &mut interface,
       clear,
     };
-    let nets = self.compiler.compile(true, hooks)?;
+    let nets = self.compiler.compile(hooks).inspect_err(|_| {
+      self.compiler.revert(&checkpoint);
+    })?;
 
     let fragment = fragment.unwrap();
     let ty = ty.unwrap();

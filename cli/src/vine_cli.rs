@@ -76,7 +76,7 @@ impl CompileArgs {
       compiler.loader.load_mod(&lib, &mut compiler.diags);
     }
 
-    match compiler.compile(false, ()) {
+    match compiler.compile(()) {
       Ok(nets) => nets,
       Err(diags) => {
         eprintln!("{}", compiler.loader.print_diags(&diags));

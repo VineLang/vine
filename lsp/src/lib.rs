@@ -41,7 +41,7 @@ impl Backend {
     }
 
     let start = Instant::now();
-    let mut diags = match lsp.compiler.compile(false, ()) {
+    let mut diags = match lsp.compiler.compile(()) {
       Ok(_) => Vec::new(),
       Err(diags) => diags,
     };
@@ -403,7 +403,7 @@ pub async fn lsp(libs: Vec<PathBuf>, entrypoints: Vec<String>) -> std::result::R
     compiler.loader.load_mod(&lib, &mut compiler.diags);
   }
 
-  if let Err(diags) = compiler.compile(false, ()) {
+  if let Err(diags) = compiler.compile(()) {
     return Err(compiler.loader.print_diags(&diags));
   }
 

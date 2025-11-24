@@ -59,13 +59,9 @@ impl Compiler {
     }
   }
 
-  pub fn compile(&mut self, revert: bool, hooks: impl Hooks) -> Result<Nets, Vec<Diag>> {
+  pub fn compile(&mut self, hooks: impl Hooks) -> Result<Nets, Vec<Diag>> {
     let checkpoint = self.checkpoint();
-    self._compile(hooks, &checkpoint).inspect_err(|_| {
-      if revert {
-        self.revert(&checkpoint);
-      }
-    })
+    self._compile(hooks, &checkpoint)
   }
 
   fn _compile(
