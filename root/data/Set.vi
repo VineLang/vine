@@ -88,7 +88,7 @@ pub mod Set[T; Ord[T]] {
   }
 
   pub fn .get_eq[... T+](&self: &Set[T], key: &T) -> Option[T] {
-    self.at_eq(key).as_forked()
+    self.at_eq(key).as_fork()
   }
 
   pub fn .at_le[...](&Set[T](len, data), &key: &T) -> Option[&T] {
@@ -111,7 +111,7 @@ pub mod Set[T; Ord[T]] {
   }
 
   pub fn .get_le[... T+](&self: &Set[T], &key: &T) -> Option[T] {
-    self.at_le(&key).as_forked()
+    self.at_le(&key).as_fork()
   }
 
   pub fn .at_ge[...](&Set[T](len, data), &key: &T) -> Option[&T] {
@@ -134,7 +134,7 @@ pub mod Set[T; Ord[T]] {
   }
 
   pub fn .get_ge[... T+](&self: &Set[T], &key: &T) -> Option[T] {
-    self.at_ge(&key).as_forked()
+    self.at_ge(&key).as_fork()
   }
 
   pub fn .remove[... T](&Set[T](len, data), &key: &T) -> Option[T] {

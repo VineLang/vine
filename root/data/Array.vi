@@ -115,7 +115,7 @@ pub mod Array {
   }
 
   pub fn .get[T+](&self: &Array[T], i: N32) -> Option[T] {
-    self.at(i).as_forked()
+    self.at(i).as_fork()
   }
 
   pub fn .push_back[T](&Array[T](len, *node), value: T) {

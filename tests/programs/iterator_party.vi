@@ -104,12 +104,12 @@ pub fn main(&io: &IO) {
   }");
   nums.reverse();
   debug::log("{
-    (0..11).map(fn* (i: N32) {
-      nums.iter().find(fn* (&&l: &&List[N32]) { l.len() > i }).as_forked()
-    }).collect[List, _, _]().show()
+    (0..11).map(fn* (i: N32) { nums.iter().find(fn* (&&l: &&List[N32]) { l.len() > i }).as_fork() }).collect[
+      List, _, _;
+    ]().show()
   }")
   debug::log("{
-    (0..11).map(fn* (i: N32) { nums.iter().find_map(fn* (&l: &List[N32]) { l.at(i) }).as_forked() }).collect[
+    (0..11).map(fn* (i: N32) { nums.iter().find_map(fn* (&l: &List[N32]) { l.at(i) }).as_fork() }).collect[
       List, _, _;
     ]().show()
   }")

@@ -44,7 +44,7 @@ pub mod List {
   }
 
   pub fn .get[T+](&self: &List[T], i: N32) -> Option[T] {
-    self.at(i).as_forked()
+    self.at(i).as_fork()
   }
 
   pub fn .slice[T?, B1?, B2?; Bound[B1, N32], Bound[B2, N32]](
