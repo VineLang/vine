@@ -29,7 +29,7 @@ pub mod Result {
     }
   }
 
-  pub fn .and_then[T, U, E, F?; fn F(T) -> Result[U, E]](self: Result[T, E], f: F) -> Result[U, E] {
+  pub fn .flat_map[T, U, E, F?; fn F(T) -> Result[U, E]](self: Result[T, E], f: F) -> Result[U, E] {
     self.map(f).flatten()
   }
 

@@ -36,7 +36,7 @@ pub mod Option {
     }
   }
 
-  pub fn .and_then[T, U, F?; fn F(T) -> Option[U]](self: Option[T], f: F) -> Option[U] {
+  pub fn .flat_map[T, U, F?; fn F(T) -> Option[U]](self: Option[T], f: F) -> Option[U] {
     self.map(f).flatten()
   }
 

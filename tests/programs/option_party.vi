@@ -91,5 +91,5 @@ fn increment_option(&option: &Option[N32]) {
 }
 
 fn add_options(a: Option[N32], b: Option[N32]) -> Option[N32] {
-  a.and_then(fn? (a: N32) { b.map(fn? (b: N32) { a + b }) })
+  a.flat_map(fn? (a: N32) { b.map(fn? (b: N32) { a + b }) })
 }
