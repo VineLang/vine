@@ -10,10 +10,13 @@ use crate::{
     emitter::Emitter,
     lexer::Token,
     parser::{BP, VineParser},
-    resolver::{Binding, Resolver},
+    resolver::{Resolver, ScopeBinding},
   },
   structures::{
-    ast::{Block, Expr, ExprKind, Flex, FnItem, LetFnStmt, Pat, Path, Span, Stmt, StmtKind, Ty},
+    ast::{
+      Block, Expr, ExprKind, Flex, FnItem, Ident, ItemKind, LetFnStmt, Pat, PatKind, Path, Span,
+      Stmt, StmtKind, Ty,
+    },
     chart::{ConcreteFnDef, ConcreteFnId, DefId, DefValueKind, FnId, GenericsId, VisId},
     diag::Diag,
     resolutions::{FnRel, FnRelId, Fragment},
@@ -26,15 +29,16 @@ use crate::{
 };
 
 impl VineParser<'_> {
-  pub(crate) fn parse_fn_item(&mut self) -> Result<FnItem, Diag> {
+  pub(crate) fn parse_fn_item(&mut self) -> Result<(Span, ItemKind), Diag> {
     self.expect(Token::Fn)?;
     let method = self.eat(Token::Dot)?;
+    let name_span = self.span();
     let name = self.parse_ident()?;
     let generics = self.parse_generic_params()?;
     let params = self.parse_pats()?;
     let ret = self.parse_arrow_ty()?;
     let body = (!self.eat(Token::Semi)?).then(|| self.parse_block()).transpose()?;
-    Ok(FnItem { method, name, generics, params, ret, body })
+    Ok((name_span, ItemKind::Fn(FnItem { method, name, generics, params, ret, body })))
   }
 
   pub(crate) fn parse_expr_fn(&mut self) -> Result<ExprKind, Diag> {
@@ -55,11 +59,12 @@ impl VineParser<'_> {
   pub(crate) fn _parse_stmt_let_fn(&mut self) -> Result<StmtKind, Diag> {
     self.expect(Token::Fn)?;
     let flex = self.parse_flex()?;
+    let name_span = self.span();
     let name = self.parse_ident()?;
     let params = self.parse_pats()?;
     let ret = self.parse_arrow_ty()?;
     let body = self.parse_block()?;
-    Ok(StmtKind::LetFn(LetFnStmt { flex, name, params, ret, body }))
+    Ok(StmtKind::LetFn(LetFnStmt { flex, name_span, name, params, ret, body }))
   }
 }
 
@@ -140,12 +145,13 @@ impl Charter<'_> {
     member_vis: VisId,
     fn_item: FnItem,
   ) -> DefId {
-    let def = self.chart_child(parent, fn_item.name, member_vis, true);
+    let def = self.chart_child(parent, span, fn_item.name.clone(), member_vis, true);
     let generics = self.chart_generics(def, parent_generics, fn_item.generics, true);
     let body = self.ensure_implemented(span, fn_item.body);
     let fn_id = self.chart.concrete_fns.push(ConcreteFnDef {
       span,
       def,
+      name: fn_item.name,
       generics,
       method: fn_item.method,
       params: fn_item.params,
@@ -162,9 +168,20 @@ impl Resolver<'_> {
   pub(crate) fn resolve_fn_sig(&mut self, fn_id: ConcreteFnId) {
     let fn_def = &self.chart.concrete_fns[fn_id];
     self.initialize(fn_def.def, fn_def.generics);
+    let names = fn_def.params.iter().map(|x| self.param_name(x)).collect();
     let (params, ret_ty) = self._resolve_fn_sig(&fn_def.params, &fn_def.ret_ty);
+    let sig = FnSig { names, param_tys: params, ret_ty };
+
+    let hover = format!(
+      "fn {}{}{};",
+      fn_def.name,
+      self.show_generics(self.cur_generics, true),
+      self.types.show_fn_sig(self.chart, &sig),
+    );
+    self.annotations.record_signature(fn_def.span, hover);
+
     let types = take(&mut self.types);
-    self.sigs.concrete_fns.push_to(fn_id, TypeCtx { types, inner: FnSig { params, ret_ty } });
+    self.sigs.concrete_fns.push_to(fn_id, TypeCtx { types, inner: sig });
   }
 
   pub(crate) fn _resolve_fn_sig(&mut self, params: &[Pat], ret: &Option<Ty>) -> (Vec<Type>, Type) {
@@ -205,31 +222,30 @@ impl Resolver<'_> {
         StmtKind::LetFn(let_fn) => {
           let span = stmt.span;
           let id = self.closures.push(None);
-          let param_tys =
-            Vec::from_iter(let_fn.params.iter().map(|p| self.resolve_pat_sig(p, true)));
-          let ret = self.resolve_arrow_ty(span, &let_fn.ret, true);
-          let ty = self.types.new(TypeKind::Closure(id, let_fn.flex, param_tys.clone(), ret));
-          self.bind(let_fn.name.clone(), Binding::Closure(id, ty));
-          let_fns.push((span, id, param_tys, ret, let_fn));
+          let names = let_fn.params.iter().map(|x| self.param_name(x)).collect();
+          let params = Vec::from_iter(let_fn.params.iter().map(|p| self.resolve_pat_sig(p, true)));
+          let ret_ty = self.resolve_arrow_ty(span, &let_fn.ret, true);
+          let sig = FnSig { names, param_tys: params.clone(), ret_ty };
+          let ty = self.types.new(TypeKind::Closure(id, let_fn.flex, sig));
+          self.bind(let_fn.name.clone(), ScopeBinding::Closure(id, let_fn.name_span, ty));
+          let_fns.push((span, id, ty, params, ret_ty, let_fn));
         }
         StmtKind::Empty | StmtKind::Item(_) => {}
         _ => break,
       }
       stmts = rest;
     }
-    for (span, id, param_tys, ret, let_fn) in let_fns {
+    for (span, id, ty, param_tys, ret_ty, let_fn) in let_fns {
       let old_targets = take(&mut self.targets);
-      let old_return_ty = self.return_ty.replace(ret);
+      let old_return_ty = self.return_ty.replace(ret_ty);
       self.enter_scope();
       let params = Vec::from_iter(
         let_fn.params.iter().zip(&param_tys).map(|(p, &ty)| self.resolve_pat_type(p, ty)),
       );
-      let body = self.resolve_block_type(&let_fn.body, ret);
+      let body = self.resolve_block_type(&let_fn.body, ret_ty);
       self.exit_scope();
       self.targets = old_targets;
       self.return_ty = old_return_ty;
-      let param_tys = params.iter().map(|x| x.ty).collect();
-      let ty = self.types.new(TypeKind::Closure(id, let_fn.flex, param_tys, ret));
       let closure = TirClosure { span, ty, flex: let_fn.flex, params, body };
       self.closures[id] = Some(closure);
     }
@@ -248,6 +264,7 @@ impl Resolver<'_> {
     let id = self.closures.push(None);
     let old_targets = take(&mut self.targets);
     self.enter_scope();
+    let names = params.iter().map(|x| self.param_name(x)).collect();
     let params = params.iter().map(|p| self.resolve_pat(p)).collect::<Vec<_>>();
     let ret_ty = ret.as_ref().map(|t| self.resolve_ty(t, true)).unwrap_or_else(|| {
       if inferred_ret { self.types.new_var(body.span) } else { self.types.nil() }
@@ -258,7 +275,8 @@ impl Resolver<'_> {
     self.targets = old_targets;
     self.return_ty = old_return_ty;
     let param_tys = params.iter().map(|x| x.ty).collect();
-    let ty = self.types.new(TypeKind::Closure(id, flex, param_tys, ret_ty));
+    let sig = FnSig { names, param_tys, ret_ty };
+    let ty = self.types.new(TypeKind::Closure(id, flex, sig));
     let closure = TirClosure { span, ty, flex, params, body };
     self.closures[id] = Some(closure);
     (ty, id)
@@ -276,14 +294,14 @@ impl Resolver<'_> {
       let type_params_len = self.sigs.type_params[generics_id].params.len();
       let type_params = self.types.new_vars(path.span, type_params_len);
       let sig = self.types.import(self.sigs.fn_sig(fn_id), Some(&type_params));
-      if sig.params.len() != args.len() {
+      if sig.param_tys.len() != args.len() {
         for arg in args {
           _ = self.resolve_expr(arg);
         }
-        Err(Diag::BadArgCount { span, expected: sig.params.len(), got: args.len() })?
+        Err(Diag::BadArgCount { span, expected: sig.param_tys.len(), got: args.len() })?
       }
       let args = args.iter().map(|arg| self.resolve_expr(arg)).collect::<Vec<_>>();
-      for (arg, ty) in args.iter().zip(sig.params) {
+      for (arg, ty) in args.iter().zip(sig.param_tys) {
         // just need inference; errors will be reported later
         _ = self.types.unify(arg.ty, ty);
       }
@@ -291,7 +309,7 @@ impl Resolver<'_> {
       let (type_params, impl_params) =
         self._resolve_generics(path.span, generics, generics_id, true, Some(type_params));
       let sig = self.types.import(self.sigs.fn_sig(fn_id), Some(&type_params));
-      for (arg, ty) in args.iter().zip(sig.params) {
+      for (arg, ty) in args.iter().zip(sig.param_tys) {
         self.expect_type(arg.span, arg.ty, ty);
       }
       let rel = self.rels.fns.push(FnRel::Item(fn_id, impl_params));
@@ -337,14 +355,14 @@ impl Resolver<'_> {
         let (type_params, impl_params) =
           self.resolve_generics(path, self.chart.fn_generics(fn_id), true);
         let sig = self.types.import(self.sigs.fn_sig(fn_id), Some(&type_params));
-        let param_count = sig.params.len();
+        let param_count = sig.param_tys.len();
         let receiver = self.types.new(TypeKind::Fn(fn_id));
         let actual_ty = ImplType::Trait(
           fn_,
-          vec![receiver, self.types.new(TypeKind::Tuple(sig.params)), sig.ret_ty],
+          vec![receiver, self.types.new(TypeKind::Tuple(sig.param_tys)), sig.ret_ty],
         );
         if self.types.unify_impl_type(&actual_ty, ty).is_failure() {
-          self.diags.report(Diag::ExpectedTypeFound {
+          self.diags.report(Diag::ExpectedTypeFnFound {
             span: path.span,
             expected: self.types.show_impl_type(self.chart, ty),
             found: self.types.show_impl_type(self.chart, &actual_ty),
@@ -407,6 +425,22 @@ impl Resolver<'_> {
       Ok(TirExpr::new(span, self.types.new_var(span), TirExprKind::Return(value)))
     } else {
       Err(Diag::NoReturn { span })?
+    }
+  }
+
+  pub(crate) fn param_name(&self, param: &Pat) -> Option<Ident> {
+    match &*param.kind {
+      PatKind::Path(path, None) => path.as_ident(),
+      PatKind::Paren(pat)
+      | PatKind::Annotation(pat, _)
+      | PatKind::Ref(pat)
+      | PatKind::Deref(pat)
+      | PatKind::Inverse(pat) => self.param_name(pat),
+      PatKind::Hole
+      | PatKind::Path(_, Some(_))
+      | PatKind::Tuple(_)
+      | PatKind::Object(_)
+      | PatKind::Error(_) => None,
     }
   }
 }

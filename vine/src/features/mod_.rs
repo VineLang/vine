@@ -7,7 +7,7 @@ use crate::{
     parser::{BRACE, VineParser},
   },
   structures::{
-    ast::{ModItem, ModKind},
+    ast::{ItemKind, ModItem, ModKind, Span},
     chart::{DefId, GenericsId, VisId},
     diag::Diag,
   },
@@ -15,7 +15,7 @@ use crate::{
 };
 
 impl VineParser<'_> {
-  pub(crate) fn parse_mod_item(&mut self) -> Result<ModItem, Diag> {
+  pub(crate) fn parse_mod_item(&mut self) -> Result<(Span, ItemKind), Diag> {
     self.expect(Token::Mod)?;
     let name_span = self.span();
     let name = self.parse_ident()?;
@@ -35,7 +35,7 @@ impl VineParser<'_> {
       self.expect(Token::Semi)?;
       ModKind::Unloaded(name_span, None)
     };
-    Ok(ModItem { name, generics, kind })
+    Ok((name_span, ItemKind::Mod(ModItem { name, generics, kind })))
   }
 }
 
@@ -65,12 +65,15 @@ impl Charter<'_> {
     &mut self,
     parent: DefId,
     parent_generics: GenericsId,
+    span: Span,
     vis: VisId,
     member_vis: VisId,
     mod_item: ModItem,
   ) -> DefId {
-    let def = self.chart_child(parent, mod_item.name, member_vis, true);
+    let def = self.chart_child(parent, span, mod_item.name, member_vis, true);
     let generics = self.chart_generics(def, parent_generics, mod_item.generics, true);
+    let ModKind::Loaded(inner_span, _) = mod_item.kind else { unreachable!() };
+    self.annotations.definitions.entry(span).or_default().insert(inner_span);
     self.chart_mod_kind(vis, mod_item.kind, def, generics);
     def
   }

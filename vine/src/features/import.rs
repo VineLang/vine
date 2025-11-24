@@ -10,8 +10,8 @@ use crate::{
     resolver::Resolver,
   },
   structures::{
-    ast::{Ident, UseItem, UseTree},
-    chart::{DefId, ImportDef, ImportId, ImportParent, MemberKind, VisId, WithVis},
+    ast::{Ident, ItemKind, Span, UseItem, UseTree},
+    chart::{Binding, DefId, ImportDef, ImportId, ImportParent, MemberKind, VisId},
     diag::{Diag, ErrorGuaranteed},
     signatures::ImportState,
   },
@@ -19,8 +19,9 @@ use crate::{
 };
 
 impl VineParser<'_> {
-  pub(crate) fn parse_use_item(&mut self) -> Result<UseItem, Diag> {
+  pub(crate) fn parse_use_item(&mut self) -> Result<(Span, ItemKind), Diag> {
     self.expect(Token::Use)?;
+    let span = self.start_span();
     let mut relative = BTreeMap::new();
     let mut absolute = BTreeMap::new();
     self.parse_delimited(
@@ -40,10 +41,11 @@ impl VineParser<'_> {
         )
       },
     )?;
+    let span = self.end_span(span);
     self.eat(Token::Semi)?;
     relative.retain(|_, tree| tree.prune());
     absolute.retain(|_, tree| tree.prune());
-    Ok(UseItem { relative, absolute })
+    Ok((span, ItemKind::Use(UseItem { relative, absolute })))
   }
 
   fn parse_use_tree(&mut self, map: &mut BTreeMap<Ident, UseTree>) -> Result<(), Diag> {
@@ -152,7 +154,7 @@ impl Charter<'_> {
     let span = use_tree.span;
     let import = self.chart.imports.push(ImportDef { span, def: def_id, parent, ident });
     let def = &mut self.chart.defs[def_id];
-    let member = WithVis { vis, kind: MemberKind::Import(import) };
+    let member = Binding { span, vis, kind: MemberKind::Import(import) };
     if !use_tree.aliases.is_empty() {
       def.named_members.push(member);
     }
@@ -182,8 +184,13 @@ impl Resolver<'_> {
       ImportState::Unresolved => {
         *state = ImportState::Resolving;
         let import = import.clone();
+        let span = import.span;
         let resolved = self._resolve_import(import);
         self.sigs.imports[import_id] = ImportState::Resolved(resolved);
+        if let Ok(def) = resolved {
+          let spans = &self.chart.defs[def].spans;
+          self.annotations.definitions.entry(span).or_default().extend(spans);
+        }
         resolved
       }
     }

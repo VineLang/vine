@@ -8,6 +8,7 @@ use vine_util::{
 use crate::{
   components::finder::Finder,
   structures::{
+    annotations::Annotations,
     ast::{
       Block, Expr, ExprKind, Ident, Impl, ImplKind, Pat, PatKind, Path, Span, Target, Trait,
       TraitKind, Ty, TyKind,
@@ -31,6 +32,7 @@ pub struct Resolver<'a> {
   pub(crate) sigs: &'a mut Signatures,
   pub(crate) diags: &'a mut Diags,
   pub(crate) resolutions: &'a mut Resolutions,
+  pub(crate) annotations: &'a mut Annotations,
   pub(crate) fragments: &'a mut IdxVec<FragmentId, Fragment>,
   pub(crate) types: Types,
   pub(crate) return_ty: Option<Type>,
@@ -50,7 +52,7 @@ pub struct Resolver<'a> {
 #[derive(Debug)]
 pub(crate) struct ScopeEntry {
   pub(crate) depth: usize,
-  pub(crate) binding: Binding,
+  pub(crate) binding: ScopeBinding,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -61,9 +63,9 @@ pub(crate) struct TargetInfo {
 }
 
 #[derive(Debug, Clone, Copy)]
-pub(crate) enum Binding {
+pub(crate) enum ScopeBinding {
   Local(Local, Span, Type),
-  Closure(ClosureId, Type),
+  Closure(ClosureId, Span, Type),
 }
 
 impl<'a> Resolver<'a> {
@@ -72,6 +74,7 @@ impl<'a> Resolver<'a> {
     sigs: &'a mut Signatures,
     diags: &'a mut Diags,
     resolutions: &'a mut Resolutions,
+    annotations: &'a mut Annotations,
     fragments: &'a mut IdxVec<FragmentId, Fragment>,
   ) -> Self {
     Resolver {
@@ -79,6 +82,7 @@ impl<'a> Resolver<'a> {
       sigs,
       diags,
       resolutions,
+      annotations,
       fragments,
       types: Types::default(),
       locals: Default::default(),
@@ -108,17 +112,20 @@ impl<'a> Resolver<'a> {
     for id in self.chart.type_aliases.keys_from(checkpoint.type_aliases) {
       self.resolve_type_alias(id);
     }
+    for id in self.chart.opaque_types.keys_from(checkpoint.opaque_types) {
+      self.resolve_opaque_type(id);
+    }
     for id in self.chart.structs.keys_from(checkpoint.structs) {
       self.resolve_struct_sig(id);
     }
     for id in self.chart.enums.keys_from(checkpoint.enums) {
       self.resolve_enum_sig(id);
     }
-    for id in self.chart.traits.keys_from(checkpoint.traits) {
-      self.resolve_trait_sig(id);
-    }
     for id in self.chart.generics.keys_from(checkpoint.generics) {
       self.resolve_impl_params(id);
+    }
+    for id in self.chart.traits.keys_from(checkpoint.traits) {
+      self.resolve_trait_sig(id);
     }
     for id in self.chart.concrete_consts.keys_from(checkpoint.concrete_consts) {
       self.resolve_const_sig(id);
@@ -180,7 +187,8 @@ impl<'a> Resolver<'a> {
     let io = self.builtin_ty(span, "IO", self.chart.builtins.io);
     let io_ref = self.types.new(TypeKind::Ref(io));
     let nil = self.types.nil();
-    let expected = FnSig { params: vec![io_ref], ret_ty: nil };
+    let expected =
+      FnSig { names: vec![Some(Ident("io".into()))], param_tys: vec![io_ref], ret_ty: nil };
     let found = self.types.import(&self.sigs.concrete_fns[fn_id], None);
     Self::expect_fn_sig(self.diags, self.chart, &mut self.types, span, expected, found);
     Ok(fn_id)
@@ -215,7 +223,7 @@ impl<'a> Resolver<'a> {
     self.types = types;
     for (name, span, ty) in locals {
       let local = self.locals.push(TirLocal { span, ty });
-      let binding = Binding::Local(local, span, ty);
+      let binding = ScopeBinding::Local(local, span, ty);
       self.scope.insert(name, vec![ScopeEntry { depth: 0, binding }]);
     }
     let ty = self.types.new_var(block.span);
@@ -231,7 +239,7 @@ impl<'a> Resolver<'a> {
       Vec::from_iter(take(&mut self.scope).into_iter().filter_map(|(name, entries)| {
         let entry = entries.first()?;
         if entry.depth == 0 {
-          if let Binding::Local(local, span, ty) = entry.binding {
+          if let ScopeBinding::Local(local, span, ty) = entry.binding {
             Some((local, name, span, ty))
           } else {
             None
@@ -295,7 +303,7 @@ impl<'a> Resolver<'a> {
     finder.find_impl(&mut self.types, ty, basic)
   }
 
-  pub(crate) fn bind(&mut self, ident: Ident, binding: Binding) {
+  pub(crate) fn bind(&mut self, ident: Ident, binding: ScopeBinding) {
     let stack = self.scope.entry(ident).or_default();
     let top = stack.last_mut();
     if top.as_ref().is_some_and(|x| x.depth == self.scope_depth) {
@@ -311,9 +319,15 @@ impl<'a> Resolver<'a> {
 
   pub(crate) fn exit_scope(&mut self) {
     self.scope_depth -= 1;
-    for stack in self.scope.values_mut() {
+    for (ident, stack) in self.scope.iter_mut() {
       if stack.last().is_some_and(|x| x.depth > self.scope_depth) {
-        stack.pop();
+        let old = stack.pop().unwrap();
+        let (span, ty) = match old.binding {
+          ScopeBinding::Local(_, span, ty) => (span, ty),
+          ScopeBinding::Closure(_, span, ty) => (span, ty),
+        };
+        let hover = format!("let {}: {};", ident.0, self.types.show(self.chart, ty));
+        self.annotations.record_signature(span, hover);
       }
     }
   }
@@ -439,8 +453,8 @@ impl<'a> Resolver<'a> {
       ExprKind::Fn(flex, params, ret, body) => self.resolve_expr_fn(span, flex, params, ret, body),
       ExprKind::Ref(inner, _) => self.resolve_expr_ref(span, inner),
       ExprKind::List(elements) => self.resolve_expr_list(span, elements),
-      ExprKind::Method(receiver, name, generics, args) => {
-        self.resolve_method(span, receiver, name.clone(), generics, args)
+      ExprKind::Method(receiver, name_span, name, generics, args) => {
+        self.resolve_method(span, receiver, *name_span, name.clone(), generics, args)
       }
       ExprKind::Call(func, args) => self.resolve_expr_call(span, func, args),
       ExprKind::Not(inner) => self.resolve_expr_not(span, inner),

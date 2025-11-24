@@ -14,7 +14,7 @@ use crate::{
     resolver::Resolver,
   },
   structures::{
-    ast::{EnumItem, Expr, Pat, Path, Span, Variant},
+    ast::{EnumItem, Expr, ItemKind, Pat, Path, Span, Variant},
     chart::{
       DefId, DefPatternKind, DefTypeKind, DefValueKind, EnumDef, EnumId, EnumVariant, GenericsId,
       VariantId, VisId,
@@ -29,13 +29,14 @@ use crate::{
 };
 
 impl VineParser<'_> {
-  pub(crate) fn parse_enum_item(&mut self) -> Result<EnumItem, Diag> {
+  pub(crate) fn parse_enum_item(&mut self) -> Result<(Span, ItemKind), Diag> {
     self.expect(Token::Enum)?;
     let flex = self.parse_flex()?;
+    let name_span = self.span();
     let name = self.parse_ident()?;
     let generics = self.parse_generic_params()?;
     let variants = self.parse_delimited(BRACE_COMMA, Self::parse_variant)?;
-    Ok(EnumItem { flex, name, generics, variants })
+    Ok((name_span, ItemKind::Enum(EnumItem { flex, name, generics, variants })))
   }
 
   fn parse_variant(&mut self) -> Result<Variant, Diag> {
@@ -80,13 +81,13 @@ impl Charter<'_> {
     member_vis: VisId,
     enum_item: EnumItem,
   ) -> DefId {
-    let def = self.chart_child(parent, enum_item.name.clone(), member_vis, true);
+    let def = self.chart_child(parent, span, enum_item.name.clone(), member_vis, true);
     let generics = self.chart_generics(def, parent_generics, enum_item.generics, false);
     let enum_id = self.chart.enums.next_index();
     let variants =
       IdxVec::from_iter(enum_item.variants.into_iter().enumerate().map(|(id, variant)| {
         let variant_id = VariantId(id);
-        let def = self.chart_child(def, variant.name.clone(), vis, true);
+        let def = self.chart_child(def, span, variant.name.clone(), vis, true);
         self.define_value(span, def, vis, DefValueKind::Enum(enum_id, variant_id));
         self.define_pattern(span, def, vis, DefPatternKind::Enum(enum_id, variant_id));
         EnumVariant { span, def, name: variant.name, data: variant.data }
@@ -109,6 +110,9 @@ impl Resolver<'_> {
       .values()
       .map(|variant| variant.data.as_ref().map(|ty| self.resolve_ty(ty, false)))
       .collect();
+    let hover =
+      format!("enum {}{} {{ ... }}", enum_def.name, self.show_generics(self.cur_generics, false),);
+    self.annotations.record_signature(enum_def.span, hover);
     let types = take(&mut self.types);
     self.sigs.enums.push_to(enum_id, TypeCtx { types, inner: EnumSig { variant_data } });
   }

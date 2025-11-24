@@ -11,6 +11,7 @@ use crate::{
     debug::debug_main,
   },
   structures::{
+    annotations::Annotations,
     ast::Ident,
     chart::Chart,
     checkpoint::Checkpoint,
@@ -31,6 +32,7 @@ pub struct Compiler {
   pub chart: Chart,
   pub sigs: Signatures,
   pub resolutions: Resolutions,
+  pub annotations: Annotations,
   pub specs: Specializations,
   pub fragments: IdxVec<FragmentId, Fragment>,
   pub vir: IdxVec<FragmentId, Vir>,
@@ -48,6 +50,7 @@ impl Compiler {
       chart: Chart::default(),
       sigs: Signatures::default(),
       resolutions: Resolutions::default(),
+      annotations: Annotations::default(),
       specs: Specializations::default(),
       fragments: IdxVec::new(),
       vir: IdxVec::new(),
@@ -58,9 +61,7 @@ impl Compiler {
 
   pub fn compile(&mut self, hooks: impl Hooks) -> Result<Nets, Vec<Diag>> {
     let checkpoint = self.checkpoint();
-    self._compile(hooks, &checkpoint).inspect_err(|_| {
-      self.revert(&checkpoint);
-    })
+    self._compile(hooks, &checkpoint)
   }
 
   fn _compile(
@@ -73,7 +74,12 @@ impl Compiler {
 
     let chart = &mut self.chart;
 
-    let mut charter = Charter { chart, config: &self.config, diags: &mut self.diags };
+    let mut charter = Charter {
+      chart,
+      config: &self.config,
+      diags: &mut self.diags,
+      annotations: &mut self.annotations,
+    };
     charter.chart(root);
     hooks.chart(&mut charter);
 
@@ -82,6 +88,7 @@ impl Compiler {
       &mut self.sigs,
       &mut self.diags,
       &mut self.resolutions,
+      &mut self.annotations,
       &mut self.fragments,
     );
     resolver.resolve_since(checkpoint);

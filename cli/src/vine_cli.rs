@@ -218,6 +218,8 @@ impl VineFmtCommand {
 
 #[derive(Debug, Args)]
 pub struct VineLspCommand {
+  #[arg(long)]
+  libs: Vec<PathBuf>,
   entrypoints: Vec<String>,
   #[arg(long)]
   no_std: bool,
@@ -226,9 +228,12 @@ pub struct VineLspCommand {
 impl VineLspCommand {
   pub fn execute(mut self) -> Result<()> {
     if !self.no_std {
-      self.entrypoints.push(std_path().display().to_string());
+      self.libs.push(std_path());
+    };
+    if let Err(err) = lsp(self.libs, self.entrypoints) {
+      eprintln!("{err}");
+      exit(1);
     }
-    lsp(self.entrypoints);
     Ok(())
   }
 }

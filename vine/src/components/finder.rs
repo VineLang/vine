@@ -1,4 +1,4 @@
-use std::collections::{BTreeSet, HashSet};
+use std::collections::{BTreeMap, BTreeSet, HashSet};
 
 use vine_util::idx::IntSet;
 
@@ -7,8 +7,8 @@ use crate::{
   structures::{
     ast::{Ident, Span},
     chart::{
-      Chart, Def, DefId, DefImplKind, DefTraitKind, DefValueKind, FnId, GenericsId, ImplId,
-      MemberKind, WithVis,
+      Binding, Chart, Def, DefId, DefImplKind, DefTraitKind, DefValueKind, FnId, GenericsId,
+      ImplId, MemberKind,
     },
     diag::{Diag, Diags, ErrorGuaranteed},
     signatures::{ImportState, Signatures},
@@ -72,16 +72,16 @@ impl<'a> Finder<'a> {
     types: &Types,
     receiver: Type,
     name: Ident,
-  ) -> Result<Vec<(FnId, TypeCtx<Vec<Type>>)>, ErrorGuaranteed> {
+  ) -> Result<Vec<(Span, FnId, TypeCtx<Vec<Type>>)>, ErrorGuaranteed> {
     let mut found = Vec::new();
 
-    for candidate in self.find_method_candidates(types, receiver, name)? {
+    for (candidate, span) in self.find_method_candidates(types, receiver, name)? {
       let mut types = types.clone();
       let generics = self.chart.fn_generics(candidate);
       let type_params = types.new_vars(self.span, self.sigs.type_params[generics].params.len());
       let candidate_receiver =
         types.import_with(self.sigs.fn_sig(candidate), Some(&type_params), |t, sig| {
-          sig.params.first().map(|&ty| t.transfer(&ty))
+          sig.param_tys.first().map(|&ty| t.transfer(&ty))
         });
       if let Some(candidate_receiver) = candidate_receiver {
         let candidate_receiver = match types.kind(candidate_receiver) {
@@ -89,7 +89,7 @@ impl<'a> Finder<'a> {
           _ => candidate_receiver,
         };
         if types.unify(receiver, candidate_receiver).is_success() {
-          found.push((candidate, TypeCtx { types, inner: type_params }));
+          found.push((span, candidate, TypeCtx { types, inner: type_params }));
         }
       }
     }
@@ -102,18 +102,18 @@ impl<'a> Finder<'a> {
     types: &Types,
     receiver: Type,
     name: Ident,
-  ) -> Result<BTreeSet<FnId>, ErrorGuaranteed> {
-    let mut candidates = BTreeSet::new();
+  ) -> Result<BTreeMap<FnId, Span>, ErrorGuaranteed> {
+    let mut candidates = BTreeMap::new();
     let search = &mut CandidateSearch {
       mods: HashSet::default(),
       defs: HashSet::default(),
       consider_candidate: |self_: &Self, def: &Def| {
         if def.name == name
-          && let Some(WithVis { kind: DefValueKind::Fn(fn_kind), vis }) = def.value_kind
+          && let Some(Binding { span, vis, kind: DefValueKind::Fn(fn_kind), .. }) = def.value_kind
           && self_.chart.visible(vis, self_.source)
           && self_.chart.fn_is_method(fn_kind)
         {
-          candidates.insert(fn_kind);
+          candidates.insert(fn_kind, span);
         }
       },
     };
@@ -333,7 +333,7 @@ impl<'a> Finder<'a> {
       mods: HashSet::default(),
       defs: HashSet::default(),
       consider_candidate: |self_: &Self, def: &Def| {
-        if let Some(WithVis { vis, kind: DefImplKind::Impl(impl_id) }) = def.impl_kind
+        if let Some(Binding { vis, kind: DefImplKind::Impl(impl_id), .. }) = def.impl_kind
           && self_.chart.visible(vis, self_.source)
         {
           let impl_ = &self_.chart.impls[impl_id];
@@ -389,7 +389,7 @@ impl<'a> Finder<'a> {
   fn consider_member<F: FnMut(&Self, &Def)>(
     &mut self,
     search: &mut CandidateSearch<F>,
-    member: &WithVis<MemberKind>,
+    member: &Binding<MemberKind>,
   ) {
     if !self.chart.visible(member.vis, self.source) {
       return;
@@ -425,14 +425,14 @@ impl<'a> Finder<'a> {
 
     (search.consider_candidate)(self, def);
 
-    if let Some(WithVis { kind: DefTraitKind::Trait(trait_id), vis }) = def.trait_kind
+    if let Some(Binding { kind: DefTraitKind::Trait(trait_id), vis, .. }) = def.trait_kind
       && self.chart.visible(vis, self.source)
     {
       let trait_def = &self.chart.traits[trait_id];
       self.consider_mod(search, trait_def.def);
     }
 
-    if let Some(WithVis { kind: DefImplKind::Impl(impl_id), vis }) = def.impl_kind
+    if let Some(Binding { kind: DefImplKind::Impl(impl_id), vis, .. }) = def.impl_kind
       && self.chart.visible(vis, self.source)
     {
       let impl_sig = &self.sigs.impls[impl_id];
@@ -465,8 +465,8 @@ impl<'a> Finder<'a> {
               let type_params =
                 types.new_vars(self.span, self.sigs.type_params[generics].params.len());
               let sig = types.import(self.sigs.fn_sig(*fn_id), Some(&type_params));
-              let param_count = sig.params.len();
-              let sig_params = types.new(TypeKind::Tuple(sig.params));
+              let param_count = sig.param_tys.len();
+              let sig_params = types.new(TypeKind::Tuple(sig.param_tys));
               if types.unify(sig_params, params).and(types.unify(sig.ret_ty, ret)).is_success() {
                 for result in self.find_impl_params(types, generics, type_params)? {
                   found.push(TypeCtx {
@@ -476,16 +476,13 @@ impl<'a> Finder<'a> {
                 }
               }
             }
-            Some((
-              Inverted(false),
-              TypeKind::Closure(closure_id, _, closure_params, closure_ret),
-            )) => {
-              let param_count = closure_params.len();
+            Some((Inverted(false), TypeKind::Closure(closure_id, _, closure_sig))) => {
+              let param_count = closure_sig.param_tys.len();
               let mut types = types.clone();
-              let closure_params = types.new(TypeKind::Tuple(closure_params.clone()));
+              let closure_params = types.new(TypeKind::Tuple(closure_sig.param_tys.clone()));
               if types
                 .unify(closure_params, params)
-                .and(types.unify(*closure_ret, ret))
+                .and(types.unify(closure_sig.ret_ty, ret))
                 .is_success()
               {
                 found.push(TypeCtx { types, inner: TirImpl::Closure(*closure_id, param_count) });

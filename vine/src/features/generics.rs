@@ -373,4 +373,36 @@ impl Resolver<'_> {
     };
     (type_params, impl_params)
   }
+
+  pub(crate) fn show_generics(&self, generics: GenericsId, impl_params: bool) -> String {
+    let type_params = &self.sigs.type_params[generics];
+    let _impl_params = Default::default();
+    let impl_params = if impl_params { &self.sigs.impl_params[generics] } else { &_impl_params };
+    if type_params.params.is_empty() && impl_params.types.inner.is_empty() {
+      return "".into();
+    }
+    let mut str = String::new();
+    str += "[";
+    let mut first = true;
+    for param in &type_params.params {
+      if !first {
+        str += ", ";
+      }
+      first = false;
+      str += &param.0;
+    }
+    if !impl_params.types.inner.is_empty() {
+      str += "; ";
+      first = true;
+      for ty in &impl_params.types.inner {
+        if !first {
+          str += ", ";
+        }
+        first = false;
+        str += &impl_params.types.types.show_impl_type(self.chart, ty);
+      }
+    }
+    str += "]";
+    str
+  }
 }

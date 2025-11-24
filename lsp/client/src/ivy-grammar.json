@@ -1,8 +1,8 @@
 {
   "name": "ivy",
   "patterns": [
-    { "include": "#single-comment" },
-    { "include": "#multi-comment" },
+    { "include": "#line-comment" },
+    { "include": "#block-comment" },
     { "include": "#global" },
     { "include": "#comb" },
     { "include": "#var" },
@@ -11,11 +11,11 @@
   ],
   "scopeName": "source.ivy",
   "repository": {
-    "single-comment": {
+    "line-comment": {
       "match": "//.*",
       "name": "comment.line.double-slash.ivy"
     },
-    "multi-comment": {
+    "block-comment": {
       "begin": "/\\*",
       "end": "\\*/",
       "name": "comment.block.ivy",

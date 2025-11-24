@@ -126,7 +126,8 @@ impl<'ctx, 'ivm, 'ext, 'comp> Repl<'ctx, 'ivm, 'ext, 'comp> {
     let mut bindings = Vec::new();
     let mut interface = None;
 
-    let nets = self.compiler.compile(ExecHooks {
+    let checkpoint = self.compiler.checkpoint();
+    let hooks = ExecHooks {
       path: path.clone(),
       repl_mod: self.repl_mod,
       scope: &mut self.scope,
@@ -137,6 +138,9 @@ impl<'ctx, 'ivm, 'ext, 'comp> Repl<'ctx, 'ivm, 'ext, 'comp> {
       bindings: &mut bindings,
       interface: &mut interface,
       clear,
+    };
+    let nets = self.compiler.compile(hooks).inspect_err(|_| {
+      self.compiler.revert(&checkpoint);
     })?;
 
     let fragment = fragment.unwrap();
@@ -302,7 +306,7 @@ impl<'ctx, 'ivm, 'ext, 'comp> Repl<'ctx, 'ivm, 'ext, 'comp> {
   }
 
   fn parse_input(&mut self, line: &str) -> Result<(Span, ReplCommand), Diag> {
-    let file = self.compiler.loader.add_file(None, "input".into(), line);
+    let file = self.compiler.loader.add_file(None, "input".into(), line.into());
     let mut parser = VineParser { state: ParserState::new(line), file };
     parser.bump()?;
     let span = parser.start_span();

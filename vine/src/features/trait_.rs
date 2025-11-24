@@ -23,12 +23,13 @@ use crate::{
 };
 
 impl VineParser<'_> {
-  pub(crate) fn parse_trait_item(&mut self) -> Result<TraitItem, Diag> {
+  pub(crate) fn parse_trait_item(&mut self) -> Result<(Span, ItemKind), Diag> {
     self.expect(Token::Trait)?;
+    let name_span = self.span();
     let name = self.parse_ident()?;
     let generics = self.parse_generic_params()?;
     let items = self.parse_delimited(BRACE, Self::parse_item)?;
-    Ok(TraitItem { name, generics, items })
+    Ok((name_span, ItemKind::Trait(TraitItem { name, generics, items })))
   }
 }
 
@@ -54,7 +55,7 @@ impl Charter<'_> {
     member_vis: VisId,
     trait_item: TraitItem,
   ) -> DefId {
-    let def = self.chart_child(parent, trait_item.name.clone(), member_vis, true);
+    let def = self.chart_child(parent, span, trait_item.name.clone(), member_vis, true);
     let generics = self.chart_generics(def, parent_generics, trait_item.generics, false);
     let trait_id = self.chart.traits.next_index();
     let mut consts = IdxVec::new();
@@ -63,7 +64,7 @@ impl Charter<'_> {
       if !self.enabled(&subitem.attrs) {
         continue;
       }
-      let span = subitem.span;
+      let span = subitem.name_span;
       let attrs = subitem.attrs;
       if !matches!(subitem.vis, Vis::Private) {
         self.diags.report(Diag::TraitItemVis { span });
@@ -103,13 +104,14 @@ impl Charter<'_> {
     let generics =
       self.chart_trait_subitem_generics(span, def, trait_id, trait_generics, fn_item.generics);
     let trait_fn_id = fns.push(TraitFn {
+      span,
       method: fn_item.method,
       name: fn_item.name.clone(),
       generics,
       params: fn_item.params,
       ret_ty: fn_item.ret,
     });
-    let def = self.chart_child(def, fn_item.name, vis, true);
+    let def = self.chart_child(def, span, fn_item.name, vis, true);
     let kind = DefValueKind::Fn(FnId::Abstract(trait_id, trait_fn_id));
     self.define_value(span, def, vis, kind);
     self.chart_attrs(Some(def), attrs);
@@ -132,8 +134,8 @@ impl Charter<'_> {
     let generics =
       self.chart_trait_subitem_generics(span, def, trait_id, trait_generics, const_item.generics);
     let trait_const_id =
-      consts.push(TraitConst { name: const_item.name.clone(), generics, ty: const_item.ty });
-    let def = self.chart_child(def, const_item.name, vis, true);
+      consts.push(TraitConst { span, name: const_item.name.clone(), generics, ty: const_item.ty });
+    let def = self.chart_child(def, span, const_item.name, vis, true);
     let kind = DefValueKind::Const(ConstId::Abstract(trait_id, trait_const_id));
     self.define_value(span, def, vis, kind);
     self.chart_attrs(Some(def), attrs);
@@ -170,14 +172,40 @@ impl Resolver<'_> {
       consts: IdxVec::from_iter(trait_def.consts.values().map(|trait_const| {
         self.initialize(trait_def.def, trait_const.generics);
         let ty = self.resolve_ty(&trait_const.ty, false);
+
+        let hover = format!(
+          "const {}::{}{}: {};",
+          trait_def.name,
+          trait_const.name,
+          self.show_generics(self.cur_generics, true),
+          self.types.show(self.chart, ty),
+        );
+        self.annotations.record_signature(trait_const.span, hover);
+
         TypeCtx { types: take(&mut self.types), inner: ConstSig { ty } }
       })),
       fns: IdxVec::from_iter(trait_def.fns.values().map(|trait_fn| {
         self.initialize(trait_def.def, trait_fn.generics);
+        let names = trait_fn.params.iter().map(|x| self.param_name(x)).collect();
         let (params, ret_ty) = self._resolve_fn_sig(&trait_fn.params, &trait_fn.ret_ty);
-        TypeCtx { types: take(&mut self.types), inner: FnSig { params, ret_ty } }
+        let sig = FnSig { names, param_tys: params, ret_ty };
+
+        let hover = format!(
+          "fn {}::{}{}{};",
+          trait_def.name,
+          trait_fn.name,
+          self.show_generics(self.cur_generics, true),
+          self.types.show_fn_sig(self.chart, &sig),
+        );
+        self.annotations.record_signature(trait_fn.span, hover);
+
+        TypeCtx { types: take(&mut self.types), inner: sig }
       })),
     };
     self.sigs.traits.push_to(trait_id, sig);
+
+    let hover =
+      format!("trait {}{};", trait_def.name, self.show_generics(trait_def.generics, true));
+    self.annotations.record_signature(trait_def.span, hover);
   }
 }
