@@ -14,7 +14,7 @@ pub mod IO {
 
   /// Prints the given string to stdout without a trailing newline.
   pub fn .print(&io: &IO, str: String) {
-    for char in str.into_iter() {
+    for char in str.iter() {
       io.print_char(char);
     }
   }
@@ -27,7 +27,7 @@ pub mod IO {
   }
 
   pub fn .print_bytes(&io: &IO, bytes: List[N32]) {
-    for byte in bytes.into_iter() {
+    for byte in bytes.iter() {
       io.print_byte(byte);
     }
   }

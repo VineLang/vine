@@ -5,7 +5,7 @@ pub fn main(&io: &IO) {
   let lines = io.full_input().split_trim("\n");
 
   let sum = 0;
-  for line in lines.into_iter() {
+  for line in lines.iter() {
     let fn test_seed(seed: N32) {
       let line = control_string('A', line, seed, control_numeric);
       let line = control_string('A', line, 0, control_directional);
@@ -27,11 +27,11 @@ pub fn main(&io: &IO) {
   c = cost_func(c, 12, 0);
 
   let sum = 0[N64];
-  for line in lines.into_iter() {
+  for line in lines.iter() {
     let orig = line;
     let cost = 0[N64];
     let last = 2;
-    for char in line.into_iter() {
+    for char in line.iter() {
       let fn pos(x: Char) {
         when {
           x == '0' { 1 }
@@ -53,7 +53,7 @@ pub fn main(&io: &IO) {
 
 fn control_string[F*; fn F(Char, Char, Bool) -> String](cur: Char, string: String, seed: N32, f: F) -> String {
   let out = "";
-  for next in string.into_iter() {
+  for next in string.iter() {
     out ++= f(cur, next, seed & 1 != 0);
     cur = next;
     seed /= 2;

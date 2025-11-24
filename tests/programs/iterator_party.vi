@@ -15,7 +15,7 @@ pub fn main(&io: &IO) {
   let iter_ref = 0..10;
   let iter_ref = iter_ref.map(fn* (x: N32) { x * x });
   let iter_ref = iter_ref.filter(fn* (&x: &N32) { x % 2 != 0 });
-  let iter_ref = iter_ref.flat_map(fn* (x: N32) { List::new(x, x).into_iter() });
+  let iter_ref = iter_ref.flat_map(fn* (x: N32) { List::new(x, x).iter() });
   let acc = 0;
   let iter_ref = iter_ref.map(fn* (x: N32) {
     acc += x;
@@ -46,7 +46,7 @@ pub fn main(&io: &IO) {
   }
 
   debug::log("--- zip, inspect ---");
-  for (a, b) in [(5, 3), (3, 5)].into_iter() {
+  for (a, b) in [(5, 3), (3, 5)].iter() {
     debug::log("{a}, {b}");
     let a = (0..a).inspect(fn* (&x: &N32) { debug::log("x: {x}") });
     let b = (0..b).inspect(fn* (&y: &N32) { debug::log("y: {y}") });

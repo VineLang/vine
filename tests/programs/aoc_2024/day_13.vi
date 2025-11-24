@@ -9,7 +9,7 @@ pub fn main(&io: &IO) {
 
   let part1 = 0;
   let part2 = 0[N64];
-  for machine in machines.into_iter() {
+  for machine in machines.iter() {
     let (_, r) = machine.split_once("+");
     let (ax, r) = r.assume().split_once(", Y+");
     let (ay, r) = r.assume().split_once("\nButton B: X+");

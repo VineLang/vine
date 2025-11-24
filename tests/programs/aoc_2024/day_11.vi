@@ -8,7 +8,7 @@ pub fn main(&io: &IO) {
 
   let stones = Map::empty[N64, _];
   let input = input.split(" ");
-  for stone in input.into_iter() {
+  for stone in input.iter() {
     let stone = N32::parse(stone).assume() as N64;
     stones.insert(stone, 1[N64]);
   }
@@ -25,7 +25,7 @@ fn blink(&io: &IO, old: Map[N64, N64]) -> Map[N64, N64] {
     let &c = new.at_or_insert(number, 0[N64]);
     c += count;
   }
-  for (number, count) in old.into_iter() {
+  for (number, count) in old.iter() {
     if number.is_zero() {
       add_stones(1[N64], count);
     } else {

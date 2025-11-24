@@ -171,8 +171,8 @@ pub mod String {
     chars.iter_ref()
   }
 
-  pub fn .into_iter(String(chars)) -> List::IntoIter[Char] {
-    chars.into_iter()
+  pub fn .iter(String(chars)) -> List::Iter[Char] {
+    chars.iter()
   }
 
   pub impl show: Show[String] {

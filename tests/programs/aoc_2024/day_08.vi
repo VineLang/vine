@@ -27,13 +27,13 @@ pub fn main(&io: &IO) {
   }
 
   let y = 0;
-  for row in grid.into_iter() {
+  for row in grid.iter() {
     let x = 0;
-    for frequency in row.into_iter() {
+    for frequency in row.iter() {
       if frequency != '.' {
         let &antennas = antennas.at_or_insert(frequency, []);
         let pos = (x, y);
-        for other_pos in antennas.into_iter() {
+        for other_pos in antennas.iter() {
           check_antinode(pos + pos - other_pos);
           check_antinode(other_pos + other_pos - pos);
           let (X, Y) = other_pos;

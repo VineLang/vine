@@ -52,7 +52,7 @@ pub fn main(&io: &IO) {
       }
       while tips.pop_front() is Some(x) {
         let out = [];
-        for y in tips.into_iter() {
+        for y in tips.iter() {
           if graph.at(&x) is Some(&m) and m.at(&y) is Some(&_) {
             out ++= [y];
           }

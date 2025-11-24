@@ -17,7 +17,7 @@ pub mod Set[T; Ord[T]] {
   pub impl from_list[... T?]: Cast[List[T], Set[T]] {
     fn cast(entries: List[T]) -> Set[T] {
       let set = Set::empty[T];
-      for value in entries.into_iter() {
+      for value in entries.iter() {
         set.insert(value);
       }
       set
@@ -243,15 +243,15 @@ pub mod Set[T; Ord[T]] {
     pub impl drop[...]: Drop[IterRef[T]];
   }
 
-  pub fn .into_iter[...](self: Set[T]) -> IntoIter[T] {
-    IntoIter(self, [])
+  pub fn .iter[...](self: Set[T]) -> Iter[T] {
+    Iter(self, [])
   }
 
-  pub struct* IntoIter[T]((Set[T], List[(T, Set[T])]));
+  pub struct* Iter[T]((Set[T], List[(T, Set[T])]));
 
-  pub mod IntoIter[T] {
-    pub impl iterator[...]: Iterator[IntoIter[T], T] {
-      fn advance(IntoIter[T](node, stack)) -> Option[(T, IntoIter[T])] {
+  pub mod Iter[T] {
+    pub impl iterator[...]: Iterator[Iter[T], T] {
+      fn advance(Iter[T](node, stack)) -> Option[(T, Iter[T])] {
         loop {
           let Set(len, data) = node;
           if len == 0 {
@@ -264,7 +264,7 @@ pub mod Set[T; Ord[T]] {
           continue;
         }
         if stack.head_tail() is Some((value, node), stack) {
-          Some(value, IntoIter(node, stack))
+          Some(value, Iter(node, stack))
         } else {
           None()
         }

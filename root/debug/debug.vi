@@ -75,7 +75,7 @@ pub mod debug {
   pub fn error[T; Cast[T, String]](msg: T) {
     let &state = debug_state();
     state.io.print("ERROR: {msg}\n");
-    for frame in state.stack.into_iter() {
+    for frame in state.stack.iter() {
       state.io.print("  @ {frame}\n");
     }
   }

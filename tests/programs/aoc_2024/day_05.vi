@@ -32,7 +32,7 @@ pub fn main(&io: &IO) {
       }
       let out = [];
       let pending = [];
-      for num in nums.into_iter() {
+      for num in nums.iter() {
         let mask = masks.get(num).assume() & nums_mask;
         if is_empty(mask) {
           process(num, &(out, pending, nums_mask));
@@ -47,7 +47,7 @@ pub fn main(&io: &IO) {
         set_bit(&nums_mask, num, false);
         let ~future;
         let &future_state = unsafe::move(&~future);
-        let iter_ref = pending.into_iter();
+        let iter_ref = pending.iter();
         pending = [];
         for (n, mask) in iter_ref {
           set_bit(&mask, num, false);

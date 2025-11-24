@@ -36,7 +36,7 @@ pub fn main(&io: &IO) {
   io.println("{map.len()}");
 
   let part2 = 0;
-  for (_, (bananas, _)) in map.into_iter() {
+  for (_, (bananas, _)) in map.iter() {
     part2 = part2.max(bananas);
   }
 

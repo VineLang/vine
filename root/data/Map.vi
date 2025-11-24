@@ -109,15 +109,15 @@ pub mod Map[K, V; Ord[K]] {
     pub impl drop[...]: Drop[IterRef[K, V]];
   }
 
-  pub fn .into_iter[...](self: Map[K, V]) -> IntoIter[K, V] {
-    IntoIter(self!.into_iter())
+  pub fn .iter[...](self: Map[K, V]) -> Iter[K, V] {
+    Iter(self!.iter())
   }
 
-  pub struct* IntoIter[K, V](Set::IntoIter[(K, V)]);
+  pub struct* Iter[K, V](Set::Iter[(K, V)]);
 
-  pub mod IntoIter[K, V] {
-    pub impl iterator[...]: Iterator[IntoIter[K, V], (K, V)] {
-      fn advance(self: IntoIter[K, V]) -> Option[((K, V), IntoIter[K, V])] {
+  pub mod Iter[K, V] {
+    pub impl iterator[...]: Iterator[Iter[K, V], (K, V)] {
+      fn advance(self: Iter[K, V]) -> Option[((K, V), Iter[K, V])] {
         unsafe::transmute(self!.advance())
       }
     }

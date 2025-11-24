@@ -19,7 +19,7 @@ fn get_muls(input: String) -> N32 {
   segments.pop_front();
 
   let sum = 0;
-  for segment in segments.into_iter() {
+  for segment in segments.iter() {
     if segment.split_once(")") is (args, Some(_)) {
       if args.split_once(",") is (first, Some(second)) {
         if N32::parse(first) is Some(a) {

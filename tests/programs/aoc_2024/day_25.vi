@@ -9,7 +9,7 @@ pub fn main(&io: &IO) {
     let heights = List::new(5, 1);
     while io.read_line() is Some(line) and line.len() != 0 {
       let i = 0;
-      for char in line.into_iter() {
+      for char in line.iter() {
         if char == on {
           *heights.at(i).assume() += 1;
         }
@@ -24,9 +24,9 @@ pub fn main(&io: &IO) {
   }
 
   let sum = 0;
-  for key in keys.into_iter() {
+  for key in keys.iter() {
     let n = 0;
-    for lock in locks.into_iter() {
+    for lock in locks.iter() {
       if fits(lock, key) {
         n += 1;
       }

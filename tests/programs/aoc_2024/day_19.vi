@@ -28,7 +28,7 @@ fn match_counts(design: String, patterns: List[String]) -> Array[N64] {
     tail!.pop_front();
     let array = match_counts(tail, patterns);
     let total = 0[N64];
-    for pat in patterns.into_iter() {
+    for pat in patterns.iter() {
       if design.strip_prefix(&pat) is Ok(remaining) {
         total += array.get(remaining.len()).assume();
       }

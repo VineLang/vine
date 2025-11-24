@@ -38,18 +38,18 @@
 pub fn main(&io: &IO) {
   let edges = [0, 1, N32::maximum - 1, N32::maximum];
 
-  for a0 in edges.into_iter() {
-    for a1 in edges.into_iter() {
-      for a2 in edges.into_iter() {
+  for a0 in edges.iter() {
+    for a1 in edges.iter() {
+      for a2 in edges.iter() {
         let a = Nat::from_parts([a0, a1, a2]);
 
-        for b0 in edges.into_iter() {
+        for b0 in edges.iter() {
           if b0 != 0 {
             io.println("{a}.div_rem_n32({b0}) = {a.div_rem_n32(b0).show()}");
           }
 
-          for b1 in edges.into_iter() {
-            for b2 in edges.into_iter() {
+          for b1 in edges.iter() {
+            for b2 in edges.iter() {
               let b = Nat::from_parts([b0, b1, b2]);
               io.println("{a} + {b} = {a + b}");
               io.println("{a} - {b} = {a - b}");
@@ -65,11 +65,11 @@ pub fn main(&io: &IO) {
   }
 
   let edges = [0, N32::maximum];
-  for a0 in edges.into_iter() {
-    for a1 in edges.into_iter() {
+  for a0 in edges.iter() {
+    for a1 in edges.iter() {
       let a = Nat::from_parts([a0, a1]);
-      for b0 in edges.into_iter() {
-        for b1 in edges.into_iter() {
+      for b0 in edges.iter() {
+        for b1 in edges.iter() {
           let b = Nat::from_parts([b0, b1]);
           io.println("{a} & {b} = {a & b}");
           io.println("{a} | {b} = {a | b}");

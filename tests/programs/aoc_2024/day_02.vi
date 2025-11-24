@@ -7,7 +7,7 @@ pub fn main(&io: &IO) {
   let safe_count = 0;
   let dampened_safe_count = 0;
 
-  for line in lines.into_iter() {
+  for line in lines.iter() {
     let report = line.split(" ").map(fn* (x) { N32::parse(x).assume() });
     when {
       is_safe(report) {
@@ -27,7 +27,7 @@ pub fn main(&io: &IO) {
 fn is_safe(report: List[N32]) -> Bool {
   let last = None[N32]();
   let order = None[Bool]();
-  for level in report.into_iter() {
+  for level in report.iter() {
     if last is Some(last) {
       let diff = if last > level {
         last - level

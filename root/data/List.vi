@@ -99,7 +99,7 @@ pub mod List {
 
   pub fn .filter[T?, F*; fn F(&T) -> Bool](self: List[T], pred: F) -> List[T] {
     let result = [];
-    for value in self.into_iter() {
+    for value in self.iter() {
       if pred(&value) {
         result.push_back(value);
       }
@@ -172,7 +172,7 @@ pub mod List {
   pub fn .join[T; Cast[T, String]](list: List[T], sep: String) -> String {
     if list.head_tail() is Some(head, tail) {
       let str = "{head}";
-      for val in tail.into_iter() {
+      for val in tail.iter() {
         str ++= "{sep}{val}";
       }
       str
@@ -197,7 +197,7 @@ pub mod List {
   pub fn .trim_back_where[T?, F*; fn F(&T) -> Bool](&self: &List[T], pred: F) {
     let trimmed = [];
     let ~trimming = true;
-    for elem in self.into_iter() {
+    for elem in self.iter() {
       let matches = pred(&elem);
       if !~trimming {
         trimmed.push_back(elem);
@@ -309,18 +309,18 @@ pub mod List {
     }
   }
 
-  pub struct* IntoIter[T](List[T]);
+  pub struct* Iter[T](List[T]);
 
-  pub fn .into_iter[T](self: List[T]) -> IntoIter[T] {
-    IntoIter(self)
+  pub fn .iter[T](self: List[T]) -> Iter[T] {
+    Iter(self)
   }
 
-  pub mod IntoIter {
-    pub impl iterator[T]: Iterator[IntoIter[T], T] {
-      fn advance(IntoIter[T](List(len, buf, end))) -> Option[(T, IntoIter[T])] {
+  pub mod Iter {
+    pub impl iterator[T]: Iterator[Iter[T], T] {
+      fn advance(Iter[T](List(len, buf, end))) -> Option[(T, Iter[T])] {
         if len != 0 {
           let Buf(head, tail) = buf;
-          Some(head, IntoIter(List(len - 1, tail, end)))
+          Some(head, Iter(List(len - 1, tail, end)))
         } else {
           unsafe::erase((buf, end));
           None()
@@ -328,8 +328,8 @@ pub mod List {
       }
     }
 
-    pub impl to_list[T]: Cast[IntoIter[T], List[T]] {
-      fn cast(IntoIter[T](list)) -> List[T] {
+    pub impl to_list[T]: Cast[Iter[T], List[T]] {
+      fn cast(Iter[T](list)) -> List[T] {
         list
       }
     }
@@ -347,7 +347,7 @@ pub mod List {
 
   pub fn .reversed[T](self: List[T]) -> List[T] {
     let reversed = [];
-    for value in self.into_iter() {
+    for value in self.iter() {
       reversed.push_front(value);
     }
     reversed
@@ -427,7 +427,7 @@ pub mod List {
   #[become(unsafe::erase)]
   pub impl drop[T?]: Drop[List[T]] {
     fn drop(self: List[T]) {
-      for _ in self.into_iter() {}
+      for _ in self.iter() {}
     }
   }
 }

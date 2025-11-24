@@ -12,7 +12,7 @@ pub fn main(&io: &IO) {
     grid ++= [line];
     let cur = [];
     let west = ('#', 0);
-    for char in line.into_iter() {
+    for char in line.iter() {
       let i = regions.new();
       if west is (c, j) and c == char {
         let j = regions.find(j);

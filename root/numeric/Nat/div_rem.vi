@@ -21,7 +21,7 @@ mod BigEndianNat {
     fn shl(BigEndianNat(parts), n: N32) -> BigEndianNat {
       let result = [];
       if parts.pop_front() is Some(part) {
-        for next in parts.into_iter() {
+        for next in parts.iter() {
           result.push_back(part << n | next >> (32 - n));
           part = next;
         }

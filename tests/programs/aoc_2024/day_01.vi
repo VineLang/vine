@@ -16,8 +16,8 @@ pub fn main(&io: &IO) {
   right.sort();
 
   let total_dist = 0;
-  let iter_a = left.into_iter();
-  let iter_b = right.into_iter();
+  let iter_a = left.iter();
+  let iter_b = right.iter();
   for a in iter_a {
     let (b, _iter_b) = iter_b.advance().assume();
     iter_b = _iter_b;
@@ -31,9 +31,9 @@ pub fn main(&io: &IO) {
   io.println("Total Distance: {total_dist}");
 
   let similarity = 0;
-  for a in left.into_iter() {
+  for a in left.iter() {
     let count = 0;
-    for b in right.into_iter() {
+    for b in right.iter() {
       if a == b {
         count += 1;
       }

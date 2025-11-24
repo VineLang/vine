@@ -51,7 +51,7 @@ pub mod Nat {
 
       let result = [];
       let carry = false;
-      for b in b.into_iter() {
+      for b in b.iter() {
         let a = a.pop_front().assume();
         let ab = a + b;
         result.push_back(ab + carry as N32);
@@ -86,7 +86,7 @@ pub mod Nat {
       }
 
       let borrow = false;
-      for b in b.into_iter() {
+      for b in b.iter() {
         let a = a.pop_front().assume();
         let ab = a - b;
         push(ab - borrow as N32);
@@ -116,7 +116,7 @@ pub mod Nat {
       }
       let carry = 0;
       let result = [];
-      for num in a.into_iter() {
+      for num in a.iter() {
         let N64(lo, hi) = N64::mul_n32_n32(num, n);
         hi += N32::add_high(lo, carry) as N32;
         lo += carry;
@@ -140,7 +140,7 @@ pub mod Nat {
       }
       let leading = [];
       let current = 0[Nat];
-      for a_num in a!.into_iter() {
+      for a_num in a!.iter() {
         let prod = b * a_num;
         current += prod;
         leading.push_back(current!.pop_front().or_use(0));
@@ -184,7 +184,7 @@ pub mod Nat {
       q.push_front(qi);
     }
 
-    for a_num in nums.into_iter() {
+    for a_num in nums.iter() {
       let cur = N64(a_num, rem);
 
       let (qi, ri) = N64::div_rem_n32(cur, d);
@@ -212,7 +212,7 @@ pub mod Nat {
     fn bit_and(a: Nat, b: Nat) -> Nat {
       let ~trim = true;
       let result = [];
-      for (a, b) in a!.into_iter().zip(b!.into_iter()) {
+      for (a, b) in a!.iter().zip(b!.iter()) {
         let num = a & b;
         if !~trim {
           result.push_back(num);
@@ -346,7 +346,7 @@ pub mod Nat {
         a.len() > b.len() { Ord::Gt() }
         _ {
           let ord = Ord::Eq();
-          for (x, y) in a.into_iter().zip(b.into_iter()) {
+          for (x, y) in a.iter().zip(b.iter()) {
             ord = match x.cmp(&y) {
               Ord::Lt() { Ord::Lt() }
               Ord::Eq() { ord }
@@ -372,7 +372,7 @@ pub mod Nat {
       return None();
     }
     let num = 0[Nat];
-    for digit in str.into_iter() {
+    for digit in str.iter() {
       if digit == '_' {
         continue;
       }

@@ -47,7 +47,7 @@ pub mod Term {
           var
         } else {
           let out = "({var}";
-          for arg in args.into_iter() {
+          for arg in args.iter() {
             out ++= " " ++ arg.print_normal(depth);
           }
           out ++ ")"
@@ -58,7 +58,7 @@ pub mod Term {
   }
 
   fn bind(uses: List[~Term], term: Term) {
-    for ~out in uses.into_iter() {
+    for ~out in uses.iter() {
       out = unsafe::duplicate(&term);
     }
     unsafe::erase(term);
