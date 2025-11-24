@@ -241,22 +241,19 @@ impl Resolver<'_> {
     path: &Path,
     data: &Option<Vec<Pat>>,
   ) -> Result<TirPat, Diag> {
-    let resolved = self.resolve_path(self.cur_def, path, "pattern", |d| d.pattern_kind);
-    match resolved {
-      Ok(DefPatternKind::Struct(struct_id)) => {
-        self.resolve_pat_path_struct(span, path, data, struct_id)
-      }
-      Ok(DefPatternKind::Enum(enum_id, variant)) => {
-        self.resolve_pat_path_enum(span, path, data, enum_id, variant)
-      }
-      Err(diag) => {
-        if let (Some(ident), None) = (path.as_ident(), data) {
-          let ty = self.types.new_var(span);
-          let local = self.locals.push(TirLocal { span, ty });
-          self.bind(ident, ScopeBinding::Local(local, span, ty));
-          Ok(TirPat::new(span, ty, TirPatKind::Local(local)))
-        } else {
-          Err(diag)?
+    if let (Some(ident), None) = (path.as_ident(), data) {
+      let ty = self.types.new_var(span);
+      let local = self.locals.push(TirLocal { span, ty });
+      self.bind(ident, ScopeBinding::Local(local, span, ty));
+      Ok(TirPat::new(span, ty, TirPatKind::Local(local)))
+    } else {
+      let resolved = self.resolve_path(self.cur_def, path, "pattern", |d| d.pattern_kind)?;
+      match resolved {
+        DefPatternKind::Struct(struct_id) => {
+          self.resolve_pat_path_struct(span, path, data, struct_id)
+        }
+        DefPatternKind::Enum(enum_id, variant) => {
+          self.resolve_pat_path_enum(span, path, data, enum_id, variant)
         }
       }
     }
