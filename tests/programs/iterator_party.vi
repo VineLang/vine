@@ -4,42 +4,44 @@ use #root::data::Iterator;
 pub fn main(&io: &IO) {
   debug::log("--- concat, empty, one, from_next ---");
   let list = [1, 2, 3];
-  let iter = Iterator::one(0) ++ Iterator::empty ++ Iterator::from_next(fn* () { list.pop_front() });
-  for x in iter {
+  let iter_ref = Iterator::one(0) ++ Iterator::empty ++ Iterator::from_next(fn* () {
+    list.pop_front()
+  });
+  for x in iter_ref {
     debug::log("{x}");
   }
 
   debug::log("--- map, filter, flat_map, enumerate, for_each ---");
-  let iter = 0..10;
-  let iter = iter.map(fn* (x: N32) { x * x });
-  let iter = iter.filter(fn* (&x: &N32) { x % 2 != 0 });
-  let iter = iter.flat_map(fn* (x: N32) { List::new(x, x).into_iter() });
+  let iter_ref = 0..10;
+  let iter_ref = iter_ref.map(fn* (x: N32) { x * x });
+  let iter_ref = iter_ref.filter(fn* (&x: &N32) { x % 2 != 0 });
+  let iter_ref = iter_ref.flat_map(fn* (x: N32) { List::new(x, x).into_iter() });
   let acc = 0;
-  let iter = iter.map(fn* (x: N32) {
+  let iter_ref = iter_ref.map(fn* (x: N32) {
     acc += x;
     acc
   });
-  let iter = iter.enumerate();
-  iter.for_each(fn* ((i: N32, x: N32)) {
+  let iter_ref = iter_ref.enumerate();
+  iter_ref.for_each(fn* ((i: N32, x: N32)) {
     debug::log("{i}: {x}");
   });
 
   debug::log("--- take, inspect ---");
-  let iter = (0..100).inspect(fn* (&x: &N32) { debug::log("{x}") });
-  for x in iter.take(10) {
+  let iter_ref = (0..100).inspect(fn* (&x: &N32) { debug::log("{x}") });
+  for x in iter_ref.take(10) {
     debug::log("{x}");
   }
   debug::log("--- take_while ---");
-  for x in iter.take_while(fn* (&x: &N32) { x < 10 }) {
+  for x in iter_ref.take_while(fn* (&x: &N32) { x < 10 }) {
     debug::log("{x}");
   }
 
   debug::log("--- skip, skip_while ---");
-  let iter = (0..20).skip(10).skip_while(fn* (&x: &N32) {
+  let iter_ref = (0..20).skip(10).skip_while(fn* (&x: &N32) {
     debug::log("{x}");
     x < 15
   });
-  for x in iter {
+  for x in iter_ref {
     debug::log("{x}");
   }
 
@@ -74,10 +76,10 @@ pub fn main(&io: &IO) {
   }");
 
   debug::log("--- inspect, nth, last, collect ---");
-  let iter = (0..10).inspect(fn* (&n: &N32) { debug::log("{n}") });
-  debug::log("{iter.nth(3).show()}");
-  debug::log("{iter.last().show()}");
-  debug::log("{iter.collect[List, _, _]().show()}");
+  let iter_ref = (0..10).inspect(fn* (&n: &N32) { debug::log("{n}") });
+  debug::log("{iter_ref.nth(3).show()}");
+  debug::log("{iter_ref.last().show()}");
+  debug::log("{iter_ref.collect[List, _, _]().show()}");
 
   debug::log("--- fold ---");
   debug::log("{(0..5).fold("_", fn* (a: String, b: N32) { "({a}, {b})" })}");
@@ -94,23 +96,23 @@ pub fn main(&io: &IO) {
   ];
   debug::log("{
     (0..11).map(fn* (i: N32) {
-      nums.iter().filter_map(fn* (&l: &List[N32]) { l.at(i) }).forked().collect[List, _, _]()
+      nums.iter_ref().filter_map(fn* (&l: &List[N32]) { l.at(i) }).forked().collect[List, _, _]()
     }).collect[List, _, _]().show()
   }");
   debug::log("{
     (0..11).map(fn* (i: N32) {
-      nums.iter().map_while(fn* (&l: &List[N32]) { l.at(i) }).forked().collect[List, _, _]()
+      nums.iter_ref().map_while(fn* (&l: &List[N32]) { l.at(i) }).forked().collect[List, _, _]()
     }).collect[List, _, _]().show()
   }");
   nums.reverse();
   debug::log("{
-    (0..11).map(fn* (i: N32) { nums.iter().find(fn* (&&l: &&List[N32]) { l.len() > i }).as_fork() }).collect[
-      List, _, _;
-    ]().show()
+    (0..11).map(fn* (i: N32) {
+      nums.iter_ref().find(fn* (&&l: &&List[N32]) { l.len() > i }).as_fork()
+    }).collect[List, _, _]().show()
   }")
   debug::log("{
-    (0..11).map(fn* (i: N32) { nums.iter().find_map(fn* (&l: &List[N32]) { l.at(i) }).as_fork() }).collect[
-      List, _, _;
-    ]().show()
+    (0..11).map(fn* (i: N32) {
+      nums.iter_ref().find_map(fn* (&l: &List[N32]) { l.at(i) }).as_fork()
+    }).collect[List, _, _]().show()
   }")
 }

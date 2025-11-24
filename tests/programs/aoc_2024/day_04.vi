@@ -127,9 +127,9 @@ fn diamond[T*, M*, F*; fn F(T, Neighbors[M])](grid: List[List[T]], f: F, d: M) {
   for row in grid.into_iter() {
     let west = neglect_channel(d);
     do {
-      let north = Fused::new(north.iter());
-      let north_west = Fused::new(north_west.iter());
-      let ~north_east = Fused::new(north_east.iter());
+      let north = Fused::new(north.iter_ref());
+      let north_west = Fused::new(north_west.iter_ref());
+      let ~north_east = Fused::new(north_east.iter_ref());
       for cell in row.into_iter() {
         let (w, e) = foo_channel(&west);
         let (n, s) = foo_channel(north.next().assume());

@@ -7,7 +7,7 @@ pub fn main(&io: &IO) {
   let initial = (0, 0);
   while io.read_line() is Some(line) and line.len() != 0 {
     let x = 0;
-    for &char in line.iter() {
+    for &char in line.iter_ref() {
       if char == '@' {
         initial = (x, y);
         char = '.';

@@ -72,9 +72,9 @@ fn part2(input: String) -> N64 {
 
   let sum = 0[N64];
   for (id, len, orig_pos) in files.into_iter() {
-    let iter = spaces.iter();
+    let iter_ref = spaces.iter_ref();
     let pos = orig_pos;
-    for &(start, empty) in iter {
+    for &(start, empty) in iter_ref {
       if start > orig_pos {
         break;
       }

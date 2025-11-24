@@ -28,7 +28,7 @@ pub mod Nat {
   pub impl add_n32: Add[Nat, N32, Nat] {
     fn add(Nat(a), n: N32) -> Nat {
       let carry = n;
-      for &a_num in a.iter() {
+      for &a_num in a.iter_ref() {
         let new_carry = N32::add_high(a_num, carry) as N32;
         a_num += carry;
         carry = new_carry;
@@ -260,7 +260,7 @@ pub mod Nat {
       let (leading_zeros, rem) = b.div_rem(32);
       if rem != 0 {
         let carry = 0;
-        for &num in a.iter() {
+        for &num in a.iter_ref() {
           let new_carry = num >> (32 - rem);
           num = num << rem | carry;
           carry = new_carry;
@@ -282,7 +282,7 @@ pub mod Nat {
 
       if rem != 0 and a.pop_front() is Some(carry) {
         carry = carry >> rem;
-        for &num in a.iter() {
+        for &num in a.iter_ref() {
           let new_carry = num >> rem;
           num = num << (32 - rem) | carry;
           carry = new_carry;
@@ -408,7 +408,7 @@ pub mod Nat {
 
   pub fn .trailing_zeros(&Nat(parts)) -> N32 {
     let zeros = 0;
-    for &part in parts.iter() {
+    for &part in parts.iter_ref() {
       zeros += N32::trailing_zeros(part);
       if part != 0 {
         break;

@@ -77,7 +77,7 @@ pub impl to_string: Cast[F32, String] {
       _ { false }
     };
     if carry {
-      for &digit in digits.iter() {
+      for &digit in digits.iter_ref() {
         digit += 1;
         if digit == 10 {
           digit = 0;

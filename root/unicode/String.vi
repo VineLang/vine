@@ -48,15 +48,15 @@ pub mod String {
     let prefix = "";
     let suffix = self;
     while suffix.len() >= sep.len() {
-      let iter = suffix.iter();
-      for &a in sep.iter() {
-        let (&b, _iter) = iter.advance().assume();
-        iter = _iter;
+      let iter_ref = suffix.iter_ref();
+      for &a in sep.iter_ref() {
+        let (&b, _iter) = iter_ref.advance().assume();
+        iter_ref = _iter;
         if a != b {
           break;
         }
       } else {
-        return (prefix, Some(String(unsafe::move(iter.tail()))));
+        return (prefix, Some(String(unsafe::move(iter_ref.tail()))));
       }
       if suffix!.pop_front() is Some(char) {
         prefix ++= String([char]);
@@ -71,15 +71,15 @@ pub mod String {
     if self.len() < prefix.len() {
       return Err(prefix);
     }
-    let iter = self.iter();
-    for &a in prefix.iter() {
-      let (&b, _iter) = iter.advance().assume();
-      iter = _iter;
+    let iter_ref = self.iter_ref();
+    for &a in prefix.iter_ref() {
+      let (&b, _iter) = iter_ref.advance().assume();
+      iter_ref = _iter;
       if a != b {
         return Err(self);
       }
     }
-    Ok(String(unsafe::move(iter.tail())))
+    Ok(String(unsafe::move(iter_ref.tail())))
   }
 
   pub fn .trim_front(String(chars)) -> String {
@@ -100,8 +100,8 @@ pub mod String {
     if self.len() < prefix.len() {
       return false;
     }
-    let self_iter = self.iter();
-    for &a in prefix.iter() {
+    let self_iter = self.iter_ref();
+    for &a in prefix.iter_ref() {
       let (&b, _self_iter) = self_iter.advance().assume();
       self_iter = _self_iter;
       if a != b {
@@ -167,8 +167,8 @@ pub mod String {
     }
   }
 
-  pub fn .iter(&String(chars)) -> List::Iter[Char] {
-    chars.iter()
+  pub fn .iter_ref(&String(chars)) -> List::IterRef[Char] {
+    chars.iter_ref()
   }
 
   pub fn .into_iter(String(chars)) -> List::IntoIter[Char] {

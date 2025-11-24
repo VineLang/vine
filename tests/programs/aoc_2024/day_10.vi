@@ -130,7 +130,7 @@ fn cross[M*, F*; fn F(Char, Neighbors[M])](grid: List[List[Char]], f: F, d: M) {
   for row in grid.into_iter() {
     let west = neglect_channel(d);
     do {
-      let north = Fused::new(north.iter());
+      let north = Fused::new(north.iter_ref());
       for cell in row.into_iter() {
         let (w, e) = foo_channel(&west);
         let (n, s) = foo_channel(north.next().assume());

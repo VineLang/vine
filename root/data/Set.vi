@@ -212,15 +212,15 @@ pub mod Set[T; Ord[T]] {
     }
   }
 
-  pub fn .iter[...](&self: &Set[T]) -> Iter[T] {
-    Iter(&self, [])
+  pub fn .iter_ref[...](&self: &Set[T]) -> IterRef[T] {
+    IterRef(&self, [])
   }
 
-  pub struct Iter[T]((&Set[T], List[&(T, Set[T])]));
+  pub struct IterRef[T]((&Set[T], List[&(T, Set[T])]));
 
-  pub mod Iter[T] {
-    pub impl iterator[...]: Iterator[Iter[T], &T] {
-      fn advance(Iter[T](node, stack)) -> Option[(&T, Iter[T])] {
+  pub mod IterRef[T] {
+    pub impl iterator[...]: Iterator[IterRef[T], &T] {
+      fn advance(IterRef[T](node, stack)) -> Option[(&T, IterRef[T])] {
         loop {
           let &Set(len, data) = node;
           if len == 0 {
@@ -232,15 +232,15 @@ pub mod Set[T; Ord[T]] {
           continue;
         }
         if stack.head_tail() is Some(&(value, node), stack) {
-          Some(&value, Iter(&node, stack))
+          Some(&value, IterRef(&node, stack))
         } else {
           None()
         }
       }
     }
 
-    pub impl fork[...]: Fork[Iter[T]];
-    pub impl drop[...]: Drop[Iter[T]];
+    pub impl fork[...]: Fork[IterRef[T]];
+    pub impl drop[...]: Drop[IterRef[T]];
   }
 
   pub fn .into_iter[...](self: Set[T]) -> IntoIter[T] {
@@ -287,7 +287,7 @@ pub mod Set[T; Ord[T]] {
   pub impl show[... ; Show[T]]: Show[Set[T]] {
     fn show(&self: &Set[T]) -> Show {
       let entries = [];
-      for &value in self.iter() {
+      for &value in self.iter_ref() {
         entries.push_back(value.show());
       }
       Show::Constructor("Set", Show::List(entries))

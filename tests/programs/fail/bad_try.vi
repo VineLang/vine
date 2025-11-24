@@ -8,7 +8,7 @@ pub fn main(&io: &IO) {}
 
 pub mod Clause {
   pub fn .evaluate(&self: &Clause) -> Result[Bool, String] {
-    for &literal in self!.iter() {
+    for &literal in self!.iter_ref() {
       if literal.evaluate().try {
         return Ok(true);
       }

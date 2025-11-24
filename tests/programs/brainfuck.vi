@@ -44,7 +44,7 @@ pub fn main(&io: &IO) {
   let tape_right = [];
 
   let fn run(&instructions: &List[Instruction]) {
-    for &instruction in instructions.iter() {
+    for &instruction in instructions.iter_ref() {
       match &instruction {
         &Inc() { inc() }
         &Dec() { dec() }
