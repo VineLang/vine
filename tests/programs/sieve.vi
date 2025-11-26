@@ -1,5 +1,5 @@
 
-use #std::data::Array;
+use #root::data::Array;
 
 const max: N32 = 100_000;
 

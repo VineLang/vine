@@ -1,4 +1,4 @@
-use #std::data::Set;
+use #root::data::Set;
 let s = Set::empty[N32]
 s.insert(1)
 s.insert(2)

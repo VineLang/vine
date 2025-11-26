@@ -1,5 +1,5 @@
 
-use #std::data::Map;
+use #root::data::Map;
 
 pub struct* Literal(I32);
 pub struct* Clause(List[Literal]);

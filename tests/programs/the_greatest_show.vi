@@ -1,5 +1,5 @@
 
-use #std::data::Map;
+use #root::data::Map;
 
 struct? Pair[A, B]((A, B));
 

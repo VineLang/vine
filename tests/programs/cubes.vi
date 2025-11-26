@@ -1,5 +1,5 @@
 
-use #std::rng::Pcg32;
+use #root::rng::Pcg32;
 
 fn cube_root(x: F32) -> F32 {
   if x == 0.0 {

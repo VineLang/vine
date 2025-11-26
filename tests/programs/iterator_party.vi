@@ -1,5 +1,5 @@
 
-use #std::data::Iterator;
+use #root::data::Iterator;
 
 pub fn main(&io: &IO) {
   debug::log("--- concat, empty, one, from_next ---");

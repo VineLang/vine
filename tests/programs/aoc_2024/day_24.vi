@@ -1,5 +1,5 @@
 
-use #std::data::{Array, Map};
+use #root::data::{Array, Map};
 
 pub fn main(&io: &IO) {
   let map = Map::empty[String, _];

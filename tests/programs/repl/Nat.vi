@@ -1,5 +1,5 @@
 
-use #std::debug::Show;
+use #root::debug::Show;
 0[Nat]
 123[Nat]
 

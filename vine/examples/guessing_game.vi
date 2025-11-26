@@ -1,5 +1,5 @@
 
-use #std::rng::Pcg32;
+use #root::rng::Pcg32;
 
 pub fn main(&io: &IO) {
   let seed = io.prompt("Enter a seed: ").unwrap();

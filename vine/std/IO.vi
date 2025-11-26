@@ -96,7 +96,7 @@ pub mod IO {
     }
   }
 
-  pub.std fn .synchronize(&io0: &IO, &io1: &IO) {
+  pub.root fn .synchronize(&io0: &IO, &io1: &IO) {
     inline_ivy! (i0 <- io0, i1 <- io1, o0 -> io0, o1 -> io1) -> () { _
       i0 = @seq(i1 dup(o0 o1))
     }
