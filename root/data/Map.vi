@@ -10,11 +10,11 @@ impl ord_entry[K, V; Ord[K]]: Ord[(K, V)] {
   }
 
   fn le(&(a: K, _: V), &(b: K, _: V)) -> Bool {
-    a.le(&b)
+    a <= b
   }
 
   fn lt(&(a: K, _: V), &(b: K, _: V)) -> Bool {
-    a.lt(&b)
+    a < b
   }
 }
 

@@ -1,30 +1,30 @@
 
 pub trait BitAnd[A, B, O] {
   #[builtin = "and"]
-  fn .bit_and(a: A, b: B) -> O;
+  fn bit_and(a: A, b: B) -> O;
 }
 
 pub trait BitOr[A, B, O] {
   #[builtin = "or"]
-  fn .bit_or(a: A, b: B) -> O;
+  fn bit_or(a: A, b: B) -> O;
 }
 
 pub trait BitXor[A, B, O] {
   #[builtin = "xor"]
-  fn .bit_xor(a: A, b: B) -> O;
+  fn bit_xor(a: A, b: B) -> O;
 }
 
 pub trait Shl[A, B, O] {
   #[builtin = "shl"]
-  fn .shl(a: A, b: B) -> O;
+  fn shl(a: A, b: B) -> O;
 }
 
 pub trait Shr[A, B, O] {
   #[builtin = "shr"]
-  fn .shr(a: A, b: B) -> O;
+  fn shr(a: A, b: B) -> O;
 }
 
 pub trait Not[A, O] {
   #[builtin = "not"]
-  fn .not(a: A) -> O;
+  fn not(a: A) -> O;
 }
