@@ -1,17 +1,19 @@
 
+Error: the net did not return its `IO` handle
+
 Interactions
   Total               12_549
     Depth                925
     Breadth               13
-  Annihilate           6_585
+  Annihilate           6_589
   Commute                  5
-  Copy                   876
-  Erase                1_876
+  Copy                   873
+  Erase                1_875
   Expand               1_171
   Call                 1_496
   Branch                 540
 
 Memory
-  Heap                31_392 B
-  Allocated          264_112 B
-  Freed              264_112 B
+  Heap                31_408 B
+  Allocated          264_192 B
+  Freed              264_192 B
