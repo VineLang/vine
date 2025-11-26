@@ -1,15 +1,19 @@
-use ivy::ast::{Net, Nets, Tree};
+use ivy::ast::{Nets, Tree};
 use vine_util::idx::IdxVec;
 
 use crate::{
   components::{
-    analyzer::analyze, charter::Charter, distiller::Distiller, emitter::emit, loader::Loader,
-    normalizer::normalize, resolver::Resolver, specializer::Specializer, synthesizer::synthesize,
+    analyzer::analyze,
+    charter::Charter,
+    distiller::Distiller,
+    emitter::{emit, main_net},
+    loader::Loader,
+    normalizer::normalize,
+    resolver::Resolver,
+    specializer::Specializer,
+    synthesizer::synthesize,
   },
-  features::{
-    cfg::{Config, ConfigValue},
-    debug::debug_main,
-  },
+  features::cfg::{Config, ConfigValue},
   structures::{
     annotations::Annotations,
     ast::Ident,
@@ -132,10 +136,7 @@ impl Compiler {
       let func = vir.closures[ClosureId(0)];
       let InterfaceKind::Fn { call, .. } = vir.interfaces[func].kind else { unreachable!() };
       let global = format!("::{}:s{}", &path[1..], call.0);
-      nets.insert(
-        "::".into(),
-        if self.debug { debug_main(Tree::Global(global)) } else { Net::new(Tree::Global(global)) },
-      );
+      nets.insert("::".into(), main_net(self.debug, Tree::Global(global)));
     }
 
     for spec_id in self.specs.specs.keys_from(checkpoint.specs) {

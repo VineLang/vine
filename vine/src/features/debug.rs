@@ -103,30 +103,54 @@ impl Emitter<'_> {
   }
 }
 
-pub(crate) fn debug_main(main: Tree) -> Net {
+pub(crate) fn main_net_debug(main: Tree) -> Net {
   Net {
-    root: Tree::n_ary("dup", [Tree::Var("io0".into()), Tree::Var("io1".into())]),
+    root: Tree::n_ary(
+      "x",
+      [
+        Tree::n_ary("dup", [Tree::Var("io0".into()), Tree::Var("io1".into())]),
+        Tree::Var("io3".into()),
+      ],
+    ),
     pairs: vec![(
       main,
       Tree::n_ary(
         "fn",
         [
           Tree::n_ary(
-            "ref",
+            "dbg",
             [
               Tree::n_ary(
-                "tup",
+                "ref",
                 [
-                  Tree::Var("io0".into()),
-                  Tree::N32(0),
-                  Tree::Var("x".into()),
-                  Tree::Var("x".into()),
+                  Tree::n_ary(
+                    "tup",
+                    [
+                      Tree::Var("io0".into()),
+                      Tree::N32(0),
+                      Tree::Var("x".into()),
+                      Tree::Var("x".into()),
+                    ],
+                  ),
+                  Tree::n_ary("tup", [Tree::Var("io2".into()), Tree::Erase]),
                 ],
               ),
               Tree::Erase,
             ],
           ),
-          Tree::Var("io1".into()),
+          Tree::n_ary(
+            "ref",
+            [
+              Tree::Var("io1".into()),
+              Tree::ExtFn(
+                "seq".into(),
+                false,
+                Box::new(Tree::Var("io2".into())),
+                Box::new(Tree::Var("io3".into())),
+              ),
+            ],
+          ),
+          Tree::Erase,
         ],
       ),
     )],

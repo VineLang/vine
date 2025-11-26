@@ -3,8 +3,7 @@ use std::time::Instant;
 
 use crate::{
   allocator::Allocator,
-  ext::{ExtVal, Extrinsics, OpaqueExtFn},
-  global::Global,
+  ext::{Extrinsics, OpaqueExtFn},
   heap::Heap,
   port::Port,
   stats::Stats,
@@ -55,15 +54,6 @@ impl<'ivm, 'ext> IVM<'ivm, 'ext> {
       inert_nodes: Vec::new(),
       stats: Stats::default(),
     }
-  }
-
-  /// Boots this IVM from the `main` global, connecting it to `root` (usually an
-  /// IO handle).
-  ///
-  /// This does not start any processing; [`IVM::normalize`] must be called to
-  /// do that.
-  pub fn boot(&mut self, main: &'ivm Global<'ivm>, root: ExtVal<'ivm>) {
-    self.link(Port::new_global(main), Port::new_ext_val(root));
   }
 
   /// Normalize all nets in this IVM.
