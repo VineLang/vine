@@ -41,7 +41,7 @@
             src = lib.cleanSource ./.;
             pname = "vine";
             version = "0.1";
-            VINE_STD_PATH = "${src}/vine/std";
+            VINE_ROOT_PATH = "${src}/root";
             cargoLock = {
               lockFile = "${src}/Cargo.lock";
               outputHashes = {

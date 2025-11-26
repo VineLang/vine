@@ -56,15 +56,15 @@ pub struct CompileArgs {
   #[arg(long = "lib")]
   libs: Vec<PathBuf>,
   #[arg(long)]
-  no_std: bool,
+  no_root: bool,
   #[arg(long)]
   debug: bool,
 }
 
 impl CompileArgs {
   fn compile(mut self) -> Nets {
-    if !self.no_std {
-      self.libs.push(std_path())
+    if !self.no_root {
+      self.libs.push(root_path())
     }
 
     let mut compiler = Compiler::new(self.debug, Config::default());
@@ -86,19 +86,19 @@ impl CompileArgs {
   }
 }
 
-fn std_path() -> PathBuf {
+fn root_path() -> PathBuf {
   let mut path = PathBuf::new();
-  let compile_time_std_path = option_env!("VINE_STD_PATH");
-  let runtime_std_path = env::var("VINE_STD_PATH").ok();
+  let compile_time_root_path = option_env!("VINE_ROOT_PATH");
+  let runtime_root_path = env::var("VINE_ROOT_PATH").ok();
 
-  match runtime_std_path.as_deref().or(compile_time_std_path) {
-    Some(std_path) => {
-      path.push(std_path);
-      path.push("std.vi");
+  match runtime_root_path.as_deref().or(compile_time_root_path) {
+    Some(root_path) => {
+      path.push(root_path);
+      path.push("root.vi");
     }
     None => {
       path.push(env!("CARGO_MANIFEST_DIR"));
-      path.push("../vine/std/std.vi");
+      path.push("../root/root.vi");
     }
   }
   path
@@ -154,7 +154,7 @@ pub struct VineReplCommand {
   #[arg(long)]
   libs: Vec<PathBuf>,
   #[arg(long)]
-  no_std: bool,
+  no_root: bool,
   #[arg(long)]
   echo: bool,
   #[arg(long)]
@@ -163,8 +163,8 @@ pub struct VineReplCommand {
 
 impl VineReplCommand {
   pub fn execute(mut self) -> Result<()> {
-    if !self.no_std {
-      self.libs.push(std_path())
+    if !self.no_root {
+      self.libs.push(root_path())
     }
 
     let host = &mut Host::default();
@@ -222,13 +222,13 @@ pub struct VineLspCommand {
   libs: Vec<PathBuf>,
   entrypoints: Vec<String>,
   #[arg(long)]
-  no_std: bool,
+  no_root: bool,
 }
 
 impl VineLspCommand {
   pub fn execute(mut self) -> Result<()> {
-    if !self.no_std {
-      self.libs.push(std_path());
+    if !self.no_root {
+      self.libs.push(root_path());
     };
     if let Err(err) = lsp(self.libs, self.entrypoints) {
       eprintln!("{err}");
