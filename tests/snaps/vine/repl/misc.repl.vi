@@ -460,6 +460,6 @@ hi
 
 let io: IO = <IO>;
 > Some(123) is None
-error input:1:14 - expected data subpattern
+error input:1:14 - expected content subpattern
 
 let io: IO = <IO>;
