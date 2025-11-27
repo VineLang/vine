@@ -9,6 +9,7 @@ use crate::{
     chart::Chart,
     diag::Diags,
     resolutions::{ConstRelId, FnRelId, Fragment},
+    signatures::Signatures,
     specializations::Specializations,
     template::{Template, TemplateStage, TemplateStageRels},
     tir::Local,
@@ -19,6 +20,7 @@ use crate::{
 pub fn emit(
   debug: bool,
   chart: &Chart,
+  sigs: &Signatures,
   diags: &mut Diags,
   fragment: &Fragment,
   vir: &Vir,
@@ -26,6 +28,7 @@ pub fn emit(
 ) -> Template {
   let mut emitter = Emitter {
     chart,
+    sigs,
     diags,
     fragment,
     vir,
@@ -44,6 +47,7 @@ pub fn emit(
 
 pub(crate) struct Emitter<'a> {
   pub(crate) chart: &'a Chart,
+  pub(crate) sigs: &'a Signatures,
   pub(crate) diags: &'a mut Diags,
   pub(crate) fragment: &'a Fragment,
   pub(crate) vir: &'a Vir,
@@ -251,9 +255,16 @@ impl<'a> Emitter<'a> {
 
   fn emit_header(&mut self, header: &Header, root: Tree) -> Tree {
     match header {
-      Header::None | Header::Match(None) => self.with_debug(root),
-      Header::Match(Some(data)) => {
-        Tree::Comb("enum".into(), Box::new(self.emit_port(data)), Box::new(self.with_debug(root)))
+      Header::None => self.with_debug(root),
+      Header::Match(enum_id, variant_id, data) => {
+        let data = self.emit_port(data);
+        let data = if self.sigs.enums[*enum_id].inner.variant_is_nil[*variant_id] {
+          self.pairs.push((data, Tree::Erase));
+          None
+        } else {
+          Some(data)
+        };
+        Tree::n_ary("enum", data.into_iter().chain([self.with_debug(root)]))
       }
       Header::Fn(params, result) => Tree::n_ary(
         "fn",

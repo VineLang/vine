@@ -1,11 +1,11 @@
 
 enum? Instruction {
-  Inc,
-  Dec,
-  Left,
-  Right,
-  Input,
-  Output,
+  Inc(),
+  Dec(),
+  Left(),
+  Right(),
+  Input(),
+  Output(),
   Loop(List[Instruction]),
 }
 
@@ -19,12 +19,12 @@ pub fn main(&io: &IO) {
     while source!.pop_front() is Some(char) {
       instructions ++= [
         when {
-          char == '+' { Inc }
-          char == '-' { Dec }
-          char == '<' { Left }
-          char == '>' { Right }
-          char == ',' { Input }
-          char == '.' { Output }
+          char == '+' { Inc() }
+          char == '-' { Dec() }
+          char == '<' { Left() }
+          char == '>' { Right() }
+          char == ',' { Input() }
+          char == '.' { Output() }
           char == '[' { Loop(parse()) }
           char == ']' {
             break;
@@ -46,12 +46,12 @@ pub fn main(&io: &IO) {
   let fn run(&instructions: &List[Instruction]) {
     for &instruction in instructions.iter() {
       match &instruction {
-        &Inc { inc() }
-        &Dec { dec() }
-        &Left { left() }
-        &Right { right() }
-        &Input { input() }
-        &Output { output() }
+        &Inc() { inc() }
+        &Dec() { dec() }
+        &Left() { left() }
+        &Right() { right() }
+        &Input() { input() }
+        &Output() { output() }
         &Loop(instructions) { loop_(&instructions) }
       }
     }

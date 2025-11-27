@@ -19,7 +19,7 @@ pub fn main[T, U](io: IO) {
   let foo: foo = foo;
   let x: T = 0;
   let x: U = x;
-  let Ay::Yay = 0;
+  let Ay::Yay() = 0;
   (loop { break "x" } + 1);
   let &x: N32 = loop { continue };
   continue;
@@ -34,7 +34,7 @@ pub fn main[T, U](io: IO) {
 }
 
 // correct utilities
-enum Ay { Yay, Nay }
-struct Thing((N32, N32));
+enum Ay { Yay(), Nay() }
+struct Thing(N32, N32);
 fn rec[T](x: T) -> T { rec(x) }
 fn noop() {}

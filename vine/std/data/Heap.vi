@@ -18,7 +18,7 @@ pub mod Heap[T; Ord[T]] {
 
   pub fn .pop[...](&Heap[T](rank, node)) -> Option[T] {
     if rank == 0 {
-      None
+      None()
     } else {
       let Node(value, left, right) = node;
       Heap(rank, node) = left.merge(right);
@@ -28,7 +28,7 @@ pub mod Heap[T; Ord[T]] {
 
   pub fn .peek[...](&Heap[T](rank, *node)) -> Option[&T] {
     if rank == 0 {
-      None
+      None()
     } else {
       let &Node(*value, _, _) = node;
       Some(value)
@@ -124,7 +124,7 @@ pub mod Heap[T; Ord[T]] {
           Some(value, IntoIter(heap))
         } else {
           unsafe::erase(heap);
-          None
+          None()
         }
       }
     }

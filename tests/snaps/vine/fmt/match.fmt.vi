@@ -1,7 +1,7 @@
 
 pub fn main(&io: &IO) {
   let Some(x) = Some(-4) else match {
-    None {}
+    None() {}
   };
   let Ok(y) = Ok(3) else match {
     Err(err) {
@@ -9,7 +9,7 @@ pub fn main(&io: &IO) {
     }
   };
 
-  match None {
+  match None() {
     Some(_) {
       return;
     }

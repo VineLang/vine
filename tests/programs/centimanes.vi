@@ -1,9 +1,9 @@
 
 // https://en.wikipedia.org/wiki/Hecatoncheires
 enum* Centimanes {
-  Gyges,
-  Cottus,
-  Briareus,
+  Gyges(),
+  Cottus(),
+  Briareus(),
 }
 
 use Centimanes::Gyges;
@@ -20,7 +20,7 @@ fn .furiosity(&arms: &List[Centimanes]) -> N32 {
   let non_furious_arms = [];
   for arm in arms.into_iter() {
     match arm {
-      Cottus { furiosity += 1 }
+      Cottus() { furiosity += 1 }
       arm { non_furious_arms.push_back(arm) }
     }
   }
@@ -29,7 +29,7 @@ fn .furiosity(&arms: &List[Centimanes]) -> N32 {
 }
 
 pub fn main(&io: &IO) {
-  let arms = List::new(100, Gyges) ++ List::new(100, Cottus) ++ List::new(100, Briareus);
+  let arms = List::new(100, Gyges()) ++ List::new(100, Cottus()) ++ List::new(100, Briareus());
   io.println("{arms.furiosity()} furious arms");
   io.println("{arms.len()} non-furious arms");
 }

@@ -299,7 +299,7 @@ pub trait VisitMut<'a> {
         ModKind::Unloaded(..) | ModKind::Error(_) => {}
       },
       ItemKind::Struct(s) => {
-        self.visit_type(&mut s.data);
+        self.visit(&mut s.data);
       }
       ItemKind::Enum(e) => {
         for v in &mut e.variants {

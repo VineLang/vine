@@ -64,7 +64,7 @@ pub mod String {
         break;
       }
     }
-    (prefix ++ suffix, None)
+    (prefix ++ suffix, None())
   }
 
   pub fn .strip_prefix(self: String, &prefix: &String) -> Result[String, String] {

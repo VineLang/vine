@@ -41,6 +41,6 @@
         ['W', 'o', 'a', 'h'],
       ],
     ),
-    c: [Some(Ok(true)), Some(Err(false)), None],
+    c: [Some(Ok(true)), Some(Err(false)), None()],
   },
 }

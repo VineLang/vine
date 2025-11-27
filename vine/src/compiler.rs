@@ -101,7 +101,8 @@ impl Compiler {
       hooks.distill(fragment_id, &mut vir);
       let mut vir = normalize(chart, &self.sigs, distiller.diags, fragment, &vir);
       analyze(distiller.diags, fragment.tir.span, &mut vir);
-      let template = emit(self.debug, chart, distiller.diags, fragment, &vir, &mut self.specs);
+      let template =
+        emit(self.debug, chart, &self.sigs, distiller.diags, fragment, &vir, &mut self.specs);
       self.vir.push_to(fragment_id, vir);
       self.templates.push_to(fragment_id, template);
     }
@@ -144,7 +145,16 @@ impl Compiler {
           self.templates[*fragment_id].instantiate(&mut nets, &self.specs, spec);
         }
         SpecKind::Synthetic(item) => {
-          synthesize(&mut nets, self.debug, &self.loader, &self.chart, &self.specs, spec, item);
+          synthesize(
+            &mut nets,
+            self.debug,
+            &self.loader,
+            &self.chart,
+            &self.sigs,
+            &self.specs,
+            spec,
+            item,
+          );
         }
       }
     }

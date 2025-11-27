@@ -213,8 +213,7 @@ module.exports = grammar({
         optional($.generic_params),
         "(",
         optional($.vis),
-        $._ty,
-        ")",
+        delimited("", ",", ")", $._ty),
         optional(";"),
       )),
 
@@ -228,7 +227,7 @@ module.exports = grammar({
         optional($.generic_params),
         delimited("{", ",", "}", $.enum_variant),
       ),
-    enum_variant: $ => seq($.ident, optional(seq("(", $._ty, ")"))),
+    enum_variant: $ => seq($.ident, delimited("(", ",", ")", $._ty)),
 
     item_type: $ =>
       prec.right(seq(

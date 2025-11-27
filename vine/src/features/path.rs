@@ -200,7 +200,6 @@ impl Resolver<'_> {
 
   pub(crate) fn resolve_expr_path(
     &mut self,
-    expr: &Expr,
     span: Span,
     path: &Path,
     args: &Option<Vec<Expr>>,
@@ -227,7 +226,7 @@ impl Resolver<'_> {
       }
       Ok(DefValueKind::Fn(fn_id)) => self.resolve_expr_path_fn(span, path, fn_id, args),
       Ok(DefValueKind::Struct(struct_id)) => {
-        self.resolve_expr_path_struct(expr, span, path, struct_id, args)
+        self.resolve_expr_path_struct(span, path, struct_id, args)
       }
       Ok(DefValueKind::Enum(enum_id, variant_id)) => {
         self.resolve_expr_path_enum(span, path, enum_id, variant_id, args)

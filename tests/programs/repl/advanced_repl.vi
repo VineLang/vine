@@ -1,10 +1,8 @@
-struct Foo((N32, F32, Char, String)); impl show_foo: Show[Foo];
+struct Foo(N32, F32, Char, String); impl show_foo: Show[Foo];
 Foo(1, 1.1, '1', "11")
-struct Bar(()); impl show_bar: Show[Bar];
+struct Bar(); impl show_bar: Show[Bar];
 Bar()
-use #std::option::Option::{Some,None};
-Some([None, Some(1, 2)])
+Some([None(), Some(1, 2)])
 (1, (2, 3, (4, 5, 6, (7, 8, 9, 10))))
 (((),()),((),()))
-use #std::result::Result::{Ok, Err};
 [Ok(1234), Err("oh no")]

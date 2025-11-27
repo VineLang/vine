@@ -79,7 +79,7 @@ Ok(true)?
 fn foo() -> N32 { Ok(123)? }
 fn foo() -> Result[N32, String] { Ok(123)? }
 fn foo() -> Result[N32, String] { Err(123)? }
-let x = (1, 2.0, ([Some(Ok(true)), Some(Err("hi")), None], [1, 2, 3] as Array), ((), ((),), ((), ())));
+let x = (1, 2.0, ([Some(Ok(true)), Some(Err("hi")), None()], [1, 2, 3] as Array), ((), ((),), ((), ())));
 x.fork()
 x.drop()
 /clear x
@@ -92,9 +92,10 @@ do { match Some(1) { Some(_) {} } }
 let x = 1
 let x = x + 1
 /clear x
-match (Some(1), 2) { (None, _) { None } x { Some(x) } }
+match (Some(1), 2) { (None(), _) { None() } x { Some(x) } }
 let Ok(n) = Ok(46) else match { Err(e: String) { "error: {e}" } }; "{n}"
 let Ok(n: N32) = Err("abc") else match { Err(e) { "error: {e}" } }; "{n}"
 1+2
 for i in 0..10 { if i % 2 == 1 { continue } io.println("{i}") }
 #std::IO::println(&io, "hi")
+Some(123) is None

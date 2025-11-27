@@ -4,35 +4,35 @@ use ops::comparison::Eq;
 #[builtin = "Option"]
 pub enum* Option[T] {
   Some(T),
-  None,
+  None(),
 }
 
 pub mod Option {
   pub fn .map[T, U, F?; fn F(T) -> U](self: Option[T], f: F) -> Option[U] {
     match self {
       Some(val) { Some(f(val)) }
-      None { None }
+      None() { None() }
     }
   }
 
   pub fn .as_ref[T](&self: &Option[T]) -> Option[&T] {
     match &self {
       &Some(val) { Some(&val) }
-      &None { None }
+      &None() { None() }
     }
   }
 
   pub fn .as_forked[T+](self: Option[&T]) -> Option[T] {
     match self {
       Some(&val) { Some(val) }
-      None { None }
+      None() { None() }
     }
   }
 
   pub fn .flatten[T](self: Option[Option[T]]) -> Option[T] {
     match self {
       Some(Some(val)) { Some(val) }
-      _ { None }
+      _ { None() }
     }
   }
 
@@ -42,7 +42,7 @@ pub mod Option {
 
   pub fn .or[T?](self: Option[T], default: Option[T]) -> Option[T] {
     match self {
-      None { default }
+      None() { default }
       x { x }
     }
   }
@@ -50,15 +50,15 @@ pub mod Option {
   pub fn .unwrap_or[T?](self: Option[T], default: T) -> T {
     match self {
       Some(val) { val }
-      None { default }
+      None() { default }
     }
   }
 
   pub fn .unwrap[T](self: Option[T]) -> T {
     match self {
       Some(val) { val }
-      None {
-        debug::error("`Option::unwrap` called on `None`");
+      None() {
+        debug::error("`Option::unwrap` called on `None()`");
         unsafe::unreachable(())
       }
     }
@@ -66,14 +66,14 @@ pub mod Option {
 
   pub fn .take[T](&self: &Option[T]) -> Option[T] {
     let result = self;
-    self = None;
+    self = None();
     result
   }
 
   pub impl eq[T; Eq[T]]: Eq[Option[T]] {
     fn eq(a: &Option[T], b: &Option[T]) -> Bool {
       match (a, b) {
-        (&None, &None) { true }
+        (&None(), &None()) { true }
         (&Some(a), &Some(b)) { a == b }
         _ { false }
       }
@@ -84,12 +84,5 @@ pub mod Option {
     }
   }
 
-  pub impl show[T; Show[T]]: Show[Option[T]] {
-    fn show(&self: &Option[T]) -> Show {
-      match &self {
-        &Some(value) { Show::Constructor("Some", value.show()) }
-        &None { Show::Literal("None") }
-      }
-    }
-  }
+  pub impl show[T; Show[T]]: Show[Option[T]];
 }

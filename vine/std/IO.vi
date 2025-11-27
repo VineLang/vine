@@ -70,7 +70,7 @@ pub mod IO {
         String(chars)
       })
     } else {
-      None
+      None()
     }
   }
 

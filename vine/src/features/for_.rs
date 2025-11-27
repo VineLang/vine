@@ -125,6 +125,7 @@ impl Distiller<'_> {
     let iter_ty = iter.ty;
     let tuple_ty = self.types.new(TypeKind::Tuple(vec![value_ty, iter_ty]));
     let option_ty = self.types.new(TypeKind::Enum(option_enum, vec![tuple_ty]));
+    let nil_ty = self.types.nil();
     let some_variant = VariantId(0);
     let none_variant = VariantId(1);
     let iter_local = self.new_local(stage, span, iter_ty);
@@ -154,14 +155,14 @@ impl Distiller<'_> {
             kind: Box::new(TirPatKind::Enum(
               option_enum,
               some_variant,
-              Some(TirPat {
+              TirPat {
                 span,
                 ty: tuple_ty,
                 kind: Box::new(TirPatKind::Composite(vec![
                   TirPat { span, ty: value_ty, kind: Box::new(TirPatKind::Local(value_local)) },
                   TirPat { span, ty: iter_ty, kind: Box::new(TirPatKind::Local(inner_iter_local)) },
                 ])),
-              }),
+              },
             )),
           }),
           some_stage.interface,
@@ -170,7 +171,11 @@ impl Distiller<'_> {
           Some(&TirPat {
             span,
             ty: option_ty,
-            kind: Box::new(TirPatKind::Enum(option_enum, none_variant, None)),
+            kind: Box::new(TirPatKind::Enum(
+              option_enum,
+              none_variant,
+              TirPat { span, ty: nil_ty, kind: Box::new(TirPatKind::Composite(Vec::new())) },
+            )),
           }),
           none_stage.interface,
         ),

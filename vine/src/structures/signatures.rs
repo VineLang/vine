@@ -77,7 +77,8 @@ pub struct StructSig {
 
 #[derive(Debug)]
 pub struct EnumSig {
-  pub variant_data: IdxVec<VariantId, Option<Type>>,
+  pub variant_data: IdxVec<VariantId, Type>,
+  pub variant_is_nil: IdxVec<VariantId, bool>,
 }
 
 #[derive(Debug)]
@@ -137,7 +138,10 @@ impl TransferTypes for StructSig {
 
 impl TransferTypes for EnumSig {
   fn transfer(&self, t: &mut TypeTransfer<'_>) -> Self {
-    Self { variant_data: t.transfer(&self.variant_data) }
+    Self {
+      variant_data: t.transfer(&self.variant_data),
+      variant_is_nil: self.variant_is_nil.clone(),
+    }
   }
 }
 

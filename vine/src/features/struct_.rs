@@ -1,6 +1,9 @@
 use std::mem::take;
 
-use vine_util::{idx::IdxVec, parser::Parser};
+use vine_util::{
+  idx::IdxVec,
+  parser::{Delimiters, Parser},
+};
 
 use crate::{
   components::{
@@ -9,11 +12,11 @@ use crate::{
     emitter::Emitter,
     lexer::Token,
     matcher::{MatchVar, MatchVarForm, MatchVarKind, Matcher, Row, VarId},
-    parser::VineParser,
+    parser::{PAREN_COMMA, VineParser},
     resolver::Resolver,
   },
   structures::{
-    ast::{Expr, ItemKind, Pat, Path, Span, StructItem},
+    ast::{Expr, ItemKind, Pat, Path, Span, StructItem, Vis},
     chart::{
       DefId, DefPatternKind, DefTypeKind, DefValueKind, GenericsId, StructDef, StructId, VisId,
     },
@@ -35,8 +38,7 @@ impl VineParser<'_> {
     let generics = self.parse_generic_params()?;
     self.expect(Token::OpenParen)?;
     let data_vis = self.parse_vis()?;
-    let data = self.parse_ty()?;
-    self.expect(Token::CloseParen)?;
+    let data = self.parse_delimited(Delimiters { open: None, ..PAREN_COMMA }, Self::parse_ty)?;
     self.eat(Token::Semi)?;
     Ok((name_span, ItemKind::Struct(StructItem { flex, name, generics, data_vis, data })))
   }
@@ -50,7 +52,18 @@ impl<'src> Formatter<'src> {
       Doc(" "),
       Doc(s.name.clone()),
       self.fmt_generic_params(&s.generics),
-      Doc::paren(Doc::concat([self.fmt_vis(&s.data_vis), self.fmt_ty(&s.data)])),
+      Doc("("),
+      self._fmt_vis(&s.data_vis),
+      Doc::delimited(
+        ")",
+        if !matches!(s.data_vis, Vis::Private) { " " } else { "" },
+        ")",
+        false,
+        false,
+        true,
+        false,
+        s.data.iter().map(|t| self.fmt_ty(t)),
+      ),
       Doc(";"),
     ])
   }
@@ -94,7 +107,9 @@ impl Resolver<'_> {
   pub(crate) fn resolve_struct_sig(&mut self, struct_id: StructId) {
     let struct_def = &self.chart.structs[struct_id];
     self.initialize(struct_def.def, struct_def.generics);
-    let data = self.resolve_ty(&struct_def.data, false);
+    let mut data = struct_def.data.iter().map(|t| self.resolve_ty(t, false)).collect::<Vec<_>>();
+    let data =
+      if data.len() == 1 { data.pop().unwrap() } else { self.types.new(TypeKind::Tuple(data)) };
     let hover = format!(
       "struct {}{}({});",
       struct_def.name,
@@ -108,7 +123,6 @@ impl Resolver<'_> {
 
   pub(crate) fn resolve_expr_path_struct(
     &mut self,
-    expr: &Expr,
     span: Span,
     path: &Path,
     struct_id: StructId,
@@ -128,7 +142,7 @@ impl Resolver<'_> {
     };
     if self.types.unify(data.ty, data_ty).is_failure() {
       self.diags.report(Diag::ExpectedTypeFound {
-        span: expr.span,
+        span: data.span,
         expected: self.types.show(self.chart, data_ty),
         found: self.types.show(self.chart, data.ty),
       });

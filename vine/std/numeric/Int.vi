@@ -6,7 +6,7 @@ use ops::{
   comparison::{Eq, Ord},
 };
 
-pub struct* Int((Bool, Nat));
+pub struct* Int(Bool, Nat);
 
 pub mod Int {
   pub fn from_parts(negative: Bool, magnitude: Nat) -> Int {
@@ -39,9 +39,9 @@ pub mod Int {
         Int(a_sign, a_mag + b_mag)
       } else {
         match a_mag.cmp(&b_mag) {
-          Ord::Lt { Int(b_sign, b_mag - a_mag) }
-          Ord::Eq { 0[Int] }
-          Ord::Gt { Int(a_sign, a_mag - b_mag) }
+          Ord::Lt() { Int(b_sign, b_mag - a_mag) }
+          Ord::Eq() { 0[Int] }
+          Ord::Gt() { Int(a_sign, a_mag - b_mag) }
         }
       }
     }
@@ -193,8 +193,8 @@ pub mod Int {
   pub impl ord: Ord[Int] {
     fn cmp(&Int(a_sign, a_mag), &Int(b_sign, b_mag)) -> Ord {
       when {
-        a_sign && !b_sign { Ord::Lt }
-        !a_sign && b_sign { Ord::Gt }
+        a_sign && !b_sign { Ord::Lt() }
+        !a_sign && b_sign { Ord::Gt() }
         _ {
           let cmp = a_mag.cmp(&b_mag);
           if a_sign {
@@ -207,11 +207,11 @@ pub mod Int {
     }
 
     fn lt(&a: &Int, &b: &Int) -> Bool {
-      a.cmp(&b) is Ord::Lt
+      a.cmp(&b) is Ord::Lt()
     }
 
     fn le(&Int(a), &Int(b)) -> Bool {
-      !(a.cmp(&b) is Ord::Gt)
+      !(a.cmp(&b) is Ord::Gt())
     }
   }
 
@@ -226,7 +226,7 @@ pub mod Int {
         Nat::parse(str).map(fn? (x: Nat) { x as Int })
       }
     } else {
-      None
+      None()
     }
   }
 

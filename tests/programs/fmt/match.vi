@@ -1,9 +1,9 @@
 
 pub fn main(&io: &IO) {
-  let Some(x) = Some(-4) else match { None {}};
+  let Some(x) = Some(-4) else match { None() {}};
   let Ok(y) = Ok(3) else match { Err(err) { return; }};
 
-  match None {
+  match None() {
     Some(_) { return; }
          _  { return; }
   }

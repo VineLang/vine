@@ -72,7 +72,7 @@ impl Distiller<'_> {
       kind: Box::new(TirPatKind::Enum(
         result_id,
         variant_id,
-        Some(TirPat { span, ty: content_ty, kind: Box::new(TirPatKind::Local(local)) }),
+        TirPat { span, ty: content_ty, kind: Box::new(TirPatKind::Local(local)) },
       )),
     };
 
@@ -96,7 +96,7 @@ impl Distiller<'_> {
     let ret = self.returns.last().unwrap();
     let err = err_stage.local_read_barrier(err_local, span, err_ty);
     let result = err_stage.new_wire(span, ret.ty);
-    err_stage.steps.push(Step::Enum(result_id, err_variant, result.neg, Some(err)));
+    err_stage.steps.push(Step::Enum(result_id, err_variant, result.neg, err));
     err_stage.local_barrier_write_to(ret.local, result.pos);
     err_stage.steps.push(Step::Diverge(ret.layer, None));
     self.finish_stage(err_stage);

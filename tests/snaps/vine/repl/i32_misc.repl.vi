@@ -97,11 +97,11 @@ let io: IO = <IO>;
 
 let io: IO = <IO>;
 > I32::parse("")
-None
+None()
 
 let io: IO = <IO>;
 > I32::parse("=0")
-None
+None()
 
 let io: IO = <IO>;
 > I32::parse("+0")
@@ -121,10 +121,10 @@ Some(-123)
 
 let io: IO = <IO>;
 > I32::parse("+a")
-None
+None()
 
 let io: IO = <IO>;
 > I32::parse("a4321")
-None
+None()
 
 let io: IO = <IO>;

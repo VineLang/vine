@@ -81,7 +81,7 @@ pub fn main(&io: &IO) {
 struct* Regions(Array[Region]);
 
 enum* Region {
-  Root((N32, N32)),
+  Root(N32, N32),
   Child(N32),
 }
 

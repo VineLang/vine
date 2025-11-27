@@ -121,7 +121,7 @@ pub struct Stage {
 pub enum Header {
   #[default]
   None,
-  Match(Option<Port>),
+  Match(EnumId, VariantId, Port),
   Fn(Vec<Port>, Port),
   Fork(Port, Port),
   Drop,
@@ -140,7 +140,7 @@ pub enum Step {
   Const(Span, ConstRelId, Port),
   Composite(Port, Vec<Port>),
   Struct(StructId, Port, Port),
-  Enum(EnumId, VariantId, Port, Option<Port>),
+  Enum(EnumId, VariantId, Port, Port),
   Ref(Port, Port, Port),
   ExtFn(&'static str, bool, Port, Port, Port),
   List(Port, Vec<Port>),
@@ -150,10 +150,10 @@ pub enum Step {
 
 impl Header {
   pub fn ports(&self) -> impl Iterator<Item = &Port> {
-    multi_iter!(Ports { Zero, Two, Opt, Fn, Vec });
+    multi_iter!(Ports { Zero, One, Two, Fn, Vec });
     match self {
       Header::None | Header::Drop => Ports::Zero([]),
-      Header::Match(a) => Ports::Opt(a),
+      Header::Match(_, _, a) => Ports::One([a]),
       Header::Fn(params, ret) => Ports::Fn(params.iter().chain([ret])),
       Header::Fork(a, b) => Ports::Two([a, b]),
       Header::Entry(ports) => Ports::Vec(ports),
@@ -170,8 +170,8 @@ impl Step {
         Ports::Transfer(transfer.data.as_ref())
       }
       Step::Diverge(_, None) => Ports::Zero([]),
-      Step::Const(_, _, a) | Step::Enum(_, _, a, None) => Ports::One([a]),
-      Step::Link(a, b) | Step::Struct(_, a, b) | Step::Enum(_, _, a, Some(b)) => Ports::Two([a, b]),
+      Step::Const(_, _, a) => Ports::One([a]),
+      Step::Link(a, b) | Step::Struct(_, a, b) | Step::Enum(_, _, a, b) => Ports::Two([a, b]),
       Step::Call(_, _, f, a, r) => Ports::Fn(f.as_ref().into_iter().chain(a).chain([r])),
       Step::Composite(port, ports) | Step::List(port, ports) => {
         Ports::Tuple([port].into_iter().chain(ports))

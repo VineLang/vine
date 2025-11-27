@@ -6,7 +6,7 @@ use ops::{
   comparison::{Eq, Ord},
 };
 
-pub struct N64(pub (N32, N32));
+pub struct N64(pub N32, N32);
 
 pub mod N64 {
   pub const maximum: N64 = N64(N32::maximum, N32::maximum);
@@ -252,7 +252,7 @@ pub mod N64 {
 
   pub fn parse(str: String) -> Option[N64] {
     if str.len() == 0 {
-      return None;
+      return None();
     }
     let num = 0[N64];
     for digit in str.into_iter() {
@@ -260,7 +260,7 @@ pub mod N64 {
         continue;
       }
       if !('0' <= digit <= '9') {
-        return None;
+        return None();
       }
       num *= 10[N64];
       num += (digit - '0') as N64;

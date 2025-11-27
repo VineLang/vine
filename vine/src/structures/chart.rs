@@ -192,7 +192,7 @@ pub struct StructDef {
   pub generics: GenericsId,
   pub name: Ident,
   pub data_vis: VisId,
-  pub data: Ty,
+  pub data: Vec<Ty>,
 }
 
 new_idx!(pub EnumId);
@@ -211,7 +211,7 @@ pub struct EnumVariant {
   pub span: Span,
   pub def: DefId,
   pub name: Ident,
-  pub data: Option<Ty>,
+  pub data: Vec<Ty>,
 }
 
 new_idx!(pub TraitId);

@@ -231,14 +231,12 @@ diags! {
     ["circular import"]
   UnwrapNonStruct
     ["only struct types can be unwrapped"]
-  EnumVariantNoData
-    ["this enum variant has no data"]
   ExpectedDataSubpattern
-    ["expected data subpattern"]
+    ["expected content subpattern"]
   ExpectedDataExpr
-    ["constructor expects data"]
+    ["constructor expects content"]
   StructDataInvisible { ty: String, vis: String }
-    ["the data of `{ty}` is only visible within `{vis}`"]
+    ["the content of `{ty}` is only visible within `{vis}`"]
   TryBadReturnType { tried: String, ret: String }
     ["cannot try `{tried}` in a function returning `{ret}`"]
   MissingBlockExpr { ty: String }

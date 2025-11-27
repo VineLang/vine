@@ -9,6 +9,7 @@ use crate::{
     ast::{Ident, Span},
     chart::{Chart, EnumId, FnId, StructId, TraitConstId, TraitFnId, TraitId, VariantId},
     resolutions::{FnRel, FnRelId, Rels},
+    signatures::Signatures,
     specializations::{Spec, Specializations},
     template::global_name,
     tir::TirImpl,
@@ -43,6 +44,7 @@ struct Synthesizer<'a> {
   nets: &'a mut Nets,
   loader: &'a Loader,
   chart: &'a Chart,
+  sigs: &'a Signatures,
   specs: &'a Specializations,
   spec: &'a Spec,
   var_id: Counter<usize>,
@@ -55,6 +57,7 @@ pub fn synthesize(
   debug: bool,
   loader: &Loader,
   chart: &Chart,
+  sigs: &Signatures,
   specs: &Specializations,
   spec: &Spec,
   item: &SyntheticItem,
@@ -64,6 +67,7 @@ pub fn synthesize(
     debug,
     loader,
     chart,
+    sigs,
     specs,
     spec,
     var_id: Counter::default(),
@@ -172,7 +176,7 @@ impl Synthesizer<'_> {
         self.match_enum(
           enum_id,
           |self_, variant_id| {
-            let has_data = self_.chart.enums[enum_id].variants[variant_id].data.is_some();
+            let has_data = !self_.sigs.enums[enum_id].inner.variant_is_nil[variant_id];
             let data = self_.new_wire();
             let f = self_.new_wire();
             let t = self_.new_wire();
@@ -208,8 +212,8 @@ impl Synthesizer<'_> {
 
   fn synthesize_enum_reconstruct(&mut self, enum_id: EnumId) -> Net {
     let mut cur_net = Net::new(Tree::Erase);
-    for (variant_id, variant) in self.chart.enums[enum_id].variants.iter().rev() {
-      let has_data = variant.data.is_some();
+    for (variant_id, is_nil) in self.sigs.enums[enum_id].inner.variant_is_nil.iter().rev() {
+      let has_data = !*is_nil;
       let mut prev_net = Some(cur_net);
       let out = self.new_wire();
       let match_ = self.match_enum(

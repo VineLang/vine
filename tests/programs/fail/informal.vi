@@ -1,10 +1,10 @@
 
-enum IO { I, O }
+enum IO { I(), O() }
 
 pub fn main(*io) {
   1 + 1 = 2;
   ~_ = _;
   _ += ~1;
   let ~&_ = ~&_;
-  let IO::I = io;
+  let IO::I() = io;
 }

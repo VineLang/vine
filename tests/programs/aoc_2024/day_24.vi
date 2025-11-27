@@ -52,7 +52,7 @@ pub fn main(&io: &IO) {
   unsafe::erase(map);
 }
 
-struct Wire((~Bool, Bool));
+struct Wire(~Bool, Bool);
 
 mod Wire {
   pub fn new() -> Wire {
