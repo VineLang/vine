@@ -459,3 +459,7 @@ let io: IO = <IO>;
 hi
 
 let io: IO = <IO>;
+> Some(123) is None
+error input:1:14 - expected data subpattern
+
+let io: IO = <IO>;

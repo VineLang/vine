@@ -98,3 +98,4 @@ let Ok(n: N32) = Err("abc") else match { Err(e) { "error: {e}" } }; "{n}"
 1+2
 for i in 0..10 { if i % 2 == 1 { continue } io.println("{i}") }
 #std::IO::println(&io, "hi")
+Some(123) is None
