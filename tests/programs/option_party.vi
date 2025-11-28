@@ -42,11 +42,11 @@ pub fn main(&io: &IO) {
   print_option_n32(add_options(None(), Some(2)));
   print_option_n32(add_options(Some(1), Some(2)));
 
-  io.println("or:");
-  print_option_n32(None().or[N32](None()));
-  print_option_n32(Some(1).or(None()));
-  print_option_n32(None().or(Some(2)));
-  print_option_n32(Some(1).or(Some(2)));
+  io.println("or_option:");
+  print_option_n32(None().or_option[N32](None()));
+  print_option_n32(Some(1).or_option(None()));
+  print_option_n32(None().or_option(Some(2)));
+  print_option_n32(Some(1).or_option(Some(2)));
 
   io.println("unwrap_or:");
   print_n32(None().unwrap_or(0));

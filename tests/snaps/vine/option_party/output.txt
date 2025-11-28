@@ -15,7 +15,7 @@ add_options:
   None()
   None()
   Some(3)
-or:
+or_option:
   None()
   Some(1)
   Some(2)

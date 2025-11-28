@@ -40,7 +40,7 @@ pub mod Option {
     self.map(f).flatten()
   }
 
-  pub fn .or[T?](self: Option[T], default: Option[T]) -> Option[T] {
+  pub fn .or_option[T?](self: Option[T], default: Option[T]) -> Option[T] {
     match self {
       None() { default }
       x { x }

@@ -1,17 +1,17 @@
 
-pub trait And[A, B, O] {
+pub trait BitAnd[A, B, O] {
   #[builtin = "and"]
-  fn .and(a: A, b: B) -> O;
+  fn .bit_and(a: A, b: B) -> O;
 }
 
-pub trait Or[A, B, O] {
+pub trait BitOr[A, B, O] {
   #[builtin = "or"]
-  fn .or(a: A, b: B) -> O;
+  fn .bit_or(a: A, b: B) -> O;
 }
 
-pub trait Xor[A, B, O] {
+pub trait BitXor[A, B, O] {
   #[builtin = "xor"]
-  fn .xor(a: A, b: B) -> O;
+  fn .bit_xor(a: A, b: B) -> O;
 }
 
 pub trait Shl[A, B, O] {

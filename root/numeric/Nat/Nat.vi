@@ -2,7 +2,7 @@
 use ops::{
   Cast,
   arithmetic::{Add, Div, Mul, Pow, Rem, Sub},
-  bitwise::{And, Or, Shl, Shr, Xor},
+  bitwise::{BitAnd, BitOr, BitXor, Shl, Shr},
   comparison::{Eq, Ord},
 };
 
@@ -208,8 +208,8 @@ pub mod Nat {
     }
   }
 
-  pub impl and: And[Nat, Nat, Nat] {
-    fn and(a: Nat, b: Nat) -> Nat {
+  pub impl bit_and: BitAnd[Nat, Nat, Nat] {
+    fn bit_and(a: Nat, b: Nat) -> Nat {
       let ~trim = true;
       let result = [];
       for (a, b) in a!.into_iter().zip(b!.into_iter()) {
@@ -225,8 +225,8 @@ pub mod Nat {
     }
   }
 
-  pub impl or: Or[Nat, Nat, Nat] {
-    fn or(Nat(a), Nat(b)) -> Nat {
+  pub impl bit_or: BitOr[Nat, Nat, Nat] {
+    fn bit_or(Nat(a), Nat(b)) -> Nat {
       let result = [];
       while a.len() != 0 && b.len() != 0 {
         result.push_back(a.pop_front().unwrap() | b.pop_front().unwrap());
@@ -235,8 +235,8 @@ pub mod Nat {
     }
   }
 
-  pub impl xor: Xor[Nat, Nat, Nat] {
-    fn xor(Nat(a), Nat(b)) -> Nat {
+  pub impl bit_xor: BitXor[Nat, Nat, Nat] {
+    fn bit_xor(Nat(a), Nat(b)) -> Nat {
       let ~trim = true;
       let result = [];
       while a.len() != 0 && b.len() != 0 {

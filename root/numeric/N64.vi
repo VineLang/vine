@@ -2,7 +2,7 @@
 use ops::{
   Cast,
   arithmetic::{Add, Div, Mul, Pow, Rem, Sub},
-  bitwise::{And, Or, Shl, Shr, Xor},
+  bitwise::{BitAnd, BitOr, BitXor, Shl, Shr},
   comparison::{Eq, Ord},
 };
 
@@ -172,20 +172,20 @@ pub mod N64 {
     (quot, rem)
   }
 
-  pub impl and: And[N64, N64, N64] {
-    fn and(N64(al, ah), N64(bl, bh)) -> N64 {
+  pub impl bit_and: BitAnd[N64, N64, N64] {
+    fn bit_and(N64(al, ah), N64(bl, bh)) -> N64 {
       N64(al & bl, ah & bh)
     }
   }
 
-  pub impl or: Or[N64, N64, N64] {
-    fn or(N64(al, ah), N64(bl, bh)) -> N64 {
+  pub impl bit_or: BitOr[N64, N64, N64] {
+    fn bit_or(N64(al, ah), N64(bl, bh)) -> N64 {
       N64(al | bl, ah | bh)
     }
   }
 
-  pub impl xor: Xor[N64, N64, N64] {
-    fn xor(N64(al, ah), N64(bl, bh)) -> N64 {
+  pub impl bit_xor: BitXor[N64, N64, N64] {
+    fn bit_xor(N64(al, ah), N64(bl, bh)) -> N64 {
       N64(al ^ bl, ah ^ bh)
     }
   }

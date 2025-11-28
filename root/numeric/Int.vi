@@ -2,7 +2,7 @@
 use ops::{
   Cast,
   arithmetic::{Add, Div, Mul, Neg, Pow, Rem, Sub},
-  bitwise::{And, Or, Xor},
+  bitwise::{BitAnd, BitOr, BitXor},
   comparison::{Eq, Ord},
 };
 
