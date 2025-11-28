@@ -35,7 +35,7 @@ pub struct RunArgs {
 }
 
 impl RunArgs {
-  pub fn run(self, nets: Nets) {
+  pub fn run(self, nets: Nets, debug_hint: bool) {
     let mut host = &mut Host::default();
     let heap = Heap::new();
     let mut extrinsics = Extrinsics::default();
@@ -62,10 +62,13 @@ impl RunArgs {
       out.tag() != Tag::ExtVal || unsafe { out.as_ext_val() }.bits() != host.new_io().bits();
     let vicious = ivm.stats.mem_free < ivm.stats.mem_alloc;
     if no_io {
-      eprintln!("\nError: the net did not return its `IO` handle")
+      eprintln!("\nError: the net did not return its `IO` handle");
+      if debug_hint {
+        eprintln!("  hint: try running the program in `--debug` mode to see error messages");
+      }
     }
     if vicious {
-      eprintln!("\nError: the net created a vicious circle")
+      eprintln!("\nError: the net created a vicious circle");
     }
 
     if !self.no_stats {
