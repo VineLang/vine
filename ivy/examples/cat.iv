@@ -1,18 +1,16 @@
 
-:: { ::main }
-
-::main {
-  fn(dup(io0 io1) _)
+:: {
+  x(dup(io0 io1) io2)
   io0 = @io_read_byte(0 dup(byte0 byte1))
-  byte0 = ?(::main::a ::main::b tup(byte1 io1))
+  byte0 = ?(::a ::b x(byte1 x(io1 io2)))
 }
 
-::main::a {
-  tup(_ @io_flush(0 _))
+::a {
+  x(_ x(@io_flush(0 io) io))
 }
 
-::main::b {
-  tup(byte io0)
+::b {
+  x(byte x(io0 io2))
   io0 = @io_print_byte(byte io1)
-  ::main = fn(io1 _)
+  :: = x(io1 io2)
 }

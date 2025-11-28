@@ -1,5 +1,8 @@
 
-:: { ::pre_reduce_opaque_fn::main:s1 }
+:: {
+  x(io0 io1)
+  ::pre_reduce_opaque_fn::main:s1 = fn(_ fn(ref(io0 io1) _))
+}
 
 ::root::unsafe::erase::drop:s1 {
   fn(_ fn(w2 _))

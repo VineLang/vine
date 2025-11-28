@@ -1,18 +1,25 @@
 
-:: { ::main }
+:: {
+  x(io0 io1)
+  ::main = fn(ref(io0 io1) _)
+}
 
 ::main {
-  fn(io0 _)
+  fn(ref(io0 io3) _)
   io0 = @io_print_byte(62 @io_print_byte(32 @io_flush(0 io1)))
   ::read_num = fn(ref(io1 io2) dup(n0 n1))
-  n0 = ?(_ ::main::cont fn(io2 fn(n1 _)))
+  n0 = ?(::main::end ::main::cont fn(ref(io2 io3) fn(n1 _)))
 }
 
 ::main::cont {
-  fn(io0 fn(n _))
+  fn(ref(io0 io2) fn(n _))
   ::fib = fn(n f)
   ::print_num = fn(ref(io0 io1) f)
-  ::main = fn(io1 _)
+  ::main = fn(ref(io1 io2) _)
+}
+
+::main::end {
+  fn(ref(io io) _)
 }
 
 ::fib {

@@ -1,16 +1,14 @@
 
 
-:: { ::main }
-
-::main {
-  fn(io _)
-  ::loop = tup(io 1)
+:: {
+  x(io0 io1)
+  ::loop = x(x(io0 io1) 1)
 }
 
 ::end { 1_000_000 }
 
 ::loop {
-  tup(io0 dup(dup(n0 n1) dup(n2 n3)))
+  x(x(io0 io3) dup(dup(n0 n1) dup(n2 n3)))
   n0 = @n32_rem(3 d3)
   n1 = @n32_rem(5 d5)
 
@@ -23,7 +21,11 @@
   io1 = @io_print_byte(10 @io_flush(0 io2))
   
   n3 = @n32_add(1 dup(m0 m1))
-  m0 = @n32_lt$(::end ?(::loop _ tup(io2 m1)))
+  m0 = @n32_lt$(::end ?(::loop ::stop x(x(io2 io3) m1)))
+}
+
+::stop {
+  x(x(io io) _)
 }
 
 ::fizz {

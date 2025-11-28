@@ -119,9 +119,10 @@ impl VineRunCommand {
     if self.compile.main.is_none() {
       panic!("must supply main")
     }
+    let debug = self.compile.debug;
     let mut nets = self.compile.compile();
     self.optimizations.apply(&mut nets);
-    self.run_args.run(nets);
+    self.run_args.run(nets, !debug);
     Ok(())
   }
 }

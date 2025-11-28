@@ -4,7 +4,7 @@ use ivy::ast::{Net, Tree};
 use vine_util::idx::{Counter, IdxVec};
 
 use crate::{
-  features::local::LocalEmissionState,
+  features::{debug::main_net_debug, local::LocalEmissionState},
   structures::{
     chart::Chart,
     diag::Diags,
@@ -292,5 +292,26 @@ impl<'a> Emitter<'a> {
   pub(crate) fn new_wire(&mut self) -> (Tree, Tree) {
     let label = format!("w{}", self.wires.next());
     (Tree::Var(label.clone()), Tree::Var(label))
+  }
+}
+
+pub(crate) fn main_net(debug: bool, main: Tree) -> Net {
+  if debug {
+    main_net_debug(main)
+  } else {
+    Net {
+      root: Tree::n_ary("x", [Tree::Var("io0".into()), Tree::Var("io1".into())]),
+      pairs: vec![(
+        main,
+        Tree::n_ary(
+          "fn",
+          [
+            Tree::Erase,
+            Tree::n_ary("ref", [Tree::Var("io0".into()), Tree::Var("io1".into())]),
+            Tree::Erase,
+          ],
+        ),
+      )],
+    }
   }
 }
