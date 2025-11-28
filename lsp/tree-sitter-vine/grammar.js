@@ -76,9 +76,9 @@ const BINARY_OP_TABLE = [
 
 /** @type {[number, "left" | "right", string][]} */
 const LOGICAL_OP_TABLE = [
-  [BP.LogicalImplies, "right", "=>"],
-  [BP.LogicalOr, "right", "||"],
-  [BP.LogicalAnd, "right", "&&"],
+  [BP.LogicalImplies, "right", "impl"],
+  [BP.LogicalOr, "right", "or"],
+  [BP.LogicalAnd, "right", "and"],
 ];
 
 module.exports = grammar({
@@ -125,6 +125,9 @@ module.exports = grammar({
       "else",
       "true",
       "false",
+      "and",
+      "or",
+      "try",
     ],
   },
 
@@ -571,7 +574,7 @@ module.exports = grammar({
       ),
 
     chain_unwrap: $ => "!",
-    chain_try: $ => "?",
+    chain_try: $ => seq(".", "try"),
     chain_field: $ => prec.right(seq(".", choice(new RustRegex("\\d+"), $.ident))),
     _chain_call: $ => $.exprs,
     chain_method: $ => seq(".", $.ident, optional($.generic_args), $.exprs),
