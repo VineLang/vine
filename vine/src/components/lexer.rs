@@ -76,9 +76,9 @@ pub enum Token {
   #[token(">=")]
   Ge,
   #[token("->")]
-  ThinArrow,
+  RightArrow,
   #[token("<-")]
-  ThinLeftArrow,
+  LeftArrow,
   #[token("<<")]
   Shl,
   #[token(">>")]

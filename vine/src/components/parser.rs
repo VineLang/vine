@@ -479,7 +479,7 @@ impl<'src> VineParser<'src> {
   }
 
   pub(crate) fn parse_arrow_ty(&mut self) -> Result<Option<Ty>, Diag> {
-    self.eat_then(Token::ThinArrow, Self::parse_ty)
+    self.eat_then(Token::RightArrow, Self::parse_ty)
   }
 
   pub(crate) fn parse_impl(&mut self) -> Result<Impl, Diag> {
