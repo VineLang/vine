@@ -47,7 +47,7 @@ pub mod Option {
     }
   }
 
-  pub fn .unwrap_or[T?](self: Option[T], default: T) -> T {
+  pub fn .or_use[T?](self: Option[T], default: T) -> T {
     match self {
       Some(val) { val }
       None() { default }

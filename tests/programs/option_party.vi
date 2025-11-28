@@ -48,9 +48,9 @@ pub fn main(&io: &IO) {
   print_option_n32(None().or_option(Some(2)));
   print_option_n32(Some(1).or_option(Some(2)));
 
-  io.println("unwrap_or:");
-  print_n32(None().unwrap_or(0));
-  print_n32(Some(1).unwrap_or(0));
+  io.println("or_use:");
+  print_n32(None().or_use(0));
+  print_n32(Some(1).or_use(0));
 
   io.println("is_some:");
   print_bool(None[()]() is Some(_));

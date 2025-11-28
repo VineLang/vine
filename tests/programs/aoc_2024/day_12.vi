@@ -48,14 +48,14 @@ pub fn main(&io: &IO) {
   let y = 0;
   let north = [];
   while y <= height {
-    let south = grid.pop_front().unwrap_or("") as List;
+    let south = grid.pop_front().or_use("") as List;
     let s = south;
     let x = 0;
     let nw = '#';
     let sw = '#';
     while x <= width {
-      let ne = north.pop_front().unwrap_or('#');
-      let se = s.pop_front().unwrap_or('#');
+      let ne = north.pop_front().or_use('#');
+      let se = s.pop_front().or_use('#');
       let fn check_corner(x: N32, y: N32, a: Char, b: Char, c: Char, d: Char) {
         if a != '#' and (b != a != d or a == b == d != c) {
           let i = x + y * width;

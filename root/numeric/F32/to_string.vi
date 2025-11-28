@@ -100,7 +100,7 @@ pub impl to_string: Cast[F32, String] {
       chars.push_back('-');
     }
     // The string should have at least one digit before and after the decimal point.
-    chars ++= ['0' + digits.pop_front().unwrap_or(0), '.', '0' + digits.pop_front().unwrap_or(0)];
+    chars ++= ['0' + digits.pop_front().or_use(0), '.', '0' + digits.pop_front().or_use(0)];
     for digit in digits.into_iter() {
       chars.push_back('0' + digit);
     }

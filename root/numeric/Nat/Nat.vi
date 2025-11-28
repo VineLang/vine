@@ -58,7 +58,7 @@ pub mod Nat {
         carry = N32::add_high(a, b) | N32::add_high(ab, carry as N32);
       }
       while carry {
-        let a = a.pop_front().unwrap_or(0);
+        let a = a.pop_front().or_use(0);
         result.push_back(a + 1);
         carry = a == N32::maximum;
       }
@@ -143,7 +143,7 @@ pub mod Nat {
       for a_num in a!.into_iter() {
         let prod = b * a_num;
         current += prod;
-        leading.push_back(current!.pop_front().unwrap_or(0));
+        leading.push_back(current!.pop_front().or_use(0));
       }
       Nat(leading ++ current!)
     }
@@ -307,7 +307,7 @@ pub mod Nat {
 
   pub impl to_n32: Cast[Nat, N32] {
     fn cast(Nat(parts)) -> N32 {
-      parts.pop_front().unwrap_or(0)
+      parts.pop_front().or_use(0)
     }
   }
 
@@ -323,8 +323,8 @@ pub mod Nat {
 
   pub impl to_n64: Cast[Nat, N64] {
     fn cast(Nat(parts)) -> N64 {
-      let lo = parts.pop_front().unwrap_or(0);
-      let hi = parts.pop_front().unwrap_or(0);
+      let lo = parts.pop_front().or_use(0);
+      let hi = parts.pop_front().or_use(0);
       N64(lo, hi)
     }
   }
