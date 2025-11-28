@@ -341,22 +341,22 @@ error input:1:5 - search limit reached when finding flex of type `?1674`
 error input:1:5 - variable of type `?1674` read whilst uninitialized
 
 let io: IO = <IO>;
-> Ok(true)?
+> Ok(true).try
 error input:1:1 - no function to return from
 
 let io: IO = <IO>;
-> fn foo() -> N32 { Ok(123)? }
+> fn foo() -> N32 { Ok(123).try }
 error input:1:19 - cannot try `Result[N32, ?2]` in a function returning `N32`
 error input:1:19 - search limit reached when finding flex of type `?2`
 error input:1:19 - search limit reached when finding flex of type `Result[N32, ?2]`
 error input:1:19 - search limit reached when finding flex of type `?2`
 
 let io: IO = <IO>;
-> fn foo() -> Result[N32, String] { Ok(123)? }
+> fn foo() -> Result[N32, String] { Ok(123).try }
 error input:1:35 - expected type `Result[N32, String]`; found `N32`
 
 let io: IO = <IO>;
-> fn foo() -> Result[N32, String] { Err(123)? }
+> fn foo() -> Result[N32, String] { Err(123).try }
 error input:1:35 - cannot try `Result[?3, N32]` in a function returning `Result[N32, String]`
 
 let io: IO = <IO>;

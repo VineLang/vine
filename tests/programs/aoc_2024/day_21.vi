@@ -76,7 +76,7 @@ fn control_numeric(from: Char, to: Char, horiz: Bool) -> String {
   let fy = from / 3;
   let tx = to % 3;
   let ty = to / 3;
-  horiz = (horiz || (fx == 0 && ty == 0)) && !(fy == 0 && tx == 0);
+  horiz = (horiz or (fx == 0 and ty == 0)) and !(fy == 0 and tx == 0);
   let str = "";
   if horiz {
     str ++= ">".repeat(pos_diff(tx, fx));
@@ -165,7 +165,7 @@ fn cost_func(c: CostFunc, size: N32, dead_row: N32) -> CostFunc {
             fy -= 1;
           }
         }
-        let horiz = (horiz || fx == 0 && ty == dead_row) && !(fy == dead_row && tx == 0);
+        let horiz = (horiz or fx == 0 and ty == dead_row) and !(fy == dead_row and tx == 0);
         if horiz {
           do_horiz();
           do_vert();

@@ -1,6 +1,6 @@
 
 use arithmetic::{Add, Div, Mul, Neg, Pos, Pow, Rem, Sub};
-use bitwise::{And, Not, Or, Xor};
+use bitwise::{BitAnd, BitOr, BitXor, Not};
 use derive::Tuple;
 
 pub use binary as _;
@@ -49,23 +49,23 @@ pub mod binary {
       }
     }
 
-    pub use and as _;
-    pub impl and[... ; And[A, B, O]]: And[(A,), (B,), (O,)] {
-      fn and((a: A,), (b: B,)) -> (O,) {
+    pub use bit_and as _;
+    pub impl bit_and[... ; BitAnd[A, B, O]]: BitAnd[(A,), (B,), (O,)] {
+      fn bit_and((a: A,), (b: B,)) -> (O,) {
         (a & b,)
       }
     }
 
-    pub use or as _;
-    pub impl or[... ; Or[A, B, O]]: Or[(A,), (B,), (O,)] {
-      fn or((a: A,), (b: B,)) -> (O,) {
+    pub use bit_or as _;
+    pub impl bit_or[... ; BitOr[A, B, O]]: BitOr[(A,), (B,), (O,)] {
+      fn bit_or((a: A,), (b: B,)) -> (O,) {
         (a | b,)
       }
     }
 
-    pub use xor as _;
-    pub impl xor[... ; Xor[A, B, O]]: Xor[(A,), (B,), (O,)] {
-      fn xor((a: A,), (b: B,)) -> (O,) {
+    pub use bit_xor as _;
+    pub impl bit_xor[... ; BitXor[A, B, O]]: BitXor[(A,), (B,), (O,)] {
+      fn bit_xor((a: A,), (b: B,)) -> (O,) {
         (a ^ b,)
       }
     }
@@ -127,27 +127,31 @@ pub mod binary {
       }
     }
 
-    pub use and as _;
-    pub impl and[... ; And[AI, BI, OI], And[AR, BR, OR], Tuple[O, OI, OR]]: And[A, B, O] {
-      fn and(a: A, b: B) -> O {
+    pub use bit_and as _;
+    pub impl bit_and[... ; BitAnd[AI, BI, OI], BitAnd[AR, BR, OR], Tuple[O, OI, OR]]: BitAnd[
+      A, B, O;
+    ] {
+      fn bit_and(a: A, b: B) -> O {
         let (ai, ar) = a as (AI, AR);
         let (bi, br) = b as (BI, BR);
         (ai & bi, ar & br) as O
       }
     }
 
-    pub use or as _;
-    pub impl or[... ; Or[AI, BI, OI], Or[AR, BR, OR], Tuple[O, OI, OR]]: Or[A, B, O] {
-      fn or(a: A, b: B) -> O {
+    pub use bit_or as _;
+    pub impl bit_or[... ; BitOr[AI, BI, OI], BitOr[AR, BR, OR], Tuple[O, OI, OR]]: BitOr[A, B, O] {
+      fn bit_or(a: A, b: B) -> O {
         let (ai, ar) = a as (AI, AR);
         let (bi, br) = b as (BI, BR);
         (ai | bi, ar | br) as O
       }
     }
 
-    pub use xor as _;
-    pub impl xor[... ; Xor[AI, BI, OI], Xor[AR, BR, OR], Tuple[O, OI, OR]]: Xor[A, B, O] {
-      fn xor(a: A, b: B) -> O {
+    pub use bit_xor as _;
+    pub impl bit_xor[... ; BitXor[AI, BI, OI], BitXor[AR, BR, OR], Tuple[O, OI, OR]]: BitXor[
+      A, B, O;
+    ] {
+      fn bit_xor(a: A, b: B) -> O {
         let (ai, ar) = a as (AI, AR);
         let (bi, br) = b as (BI, BR);
         (ai ^ bi, ar ^ br) as O
@@ -199,23 +203,23 @@ pub mod binary {
       }
     }
 
-    pub use and as _;
-    pub impl and[... ; And[A, B, O]]: And[(A,), B, (O,)] {
-      fn and((a: A,), b: B) -> (O,) {
+    pub use bit_and as _;
+    pub impl bit_and[... ; BitAnd[A, B, O]]: BitAnd[(A,), B, (O,)] {
+      fn bit_and((a: A,), b: B) -> (O,) {
         (a & b,)
       }
     }
 
-    pub use or as _;
-    pub impl or[... ; Or[A, B, O]]: Or[(A,), B, (O,)] {
-      fn or((a: A,), b: B) -> (O,) {
+    pub use bit_or as _;
+    pub impl bit_or[... ; BitOr[A, B, O]]: BitOr[(A,), B, (O,)] {
+      fn bit_or((a: A,), b: B) -> (O,) {
         (a | b,)
       }
     }
 
-    pub use xor as _;
-    pub impl xor[... ; Xor[A, B, O]]: Xor[(A,), B, (O,)] {
-      fn xor((a: A,), b: B) -> (O,) {
+    pub use bit_xor as _;
+    pub impl bit_xor[... ; BitXor[A, B, O]]: BitXor[(A,), B, (O,)] {
+      fn bit_xor((a: A,), b: B) -> (O,) {
         (a ^ b,)
       }
     }
@@ -271,25 +275,25 @@ pub mod binary {
       }
     }
 
-    pub use and as _;
-    pub impl and[... ; And[AI, B, OI], And[AR, B, OR], Tuple[O, OI, OR]]: And[A, B, O] {
-      fn and(a: A, b: B) -> O {
+    pub use bit_and as _;
+    pub impl bit_and[... ; BitAnd[AI, B, OI], BitAnd[AR, B, OR], Tuple[O, OI, OR]]: BitAnd[A, B, O] {
+      fn bit_and(a: A, b: B) -> O {
         let (ai, ar) = a as (AI, AR);
         (ai & b, ar & b) as O
       }
     }
 
-    pub use or as _;
-    pub impl or[... ; Or[AI, B, OI], Or[AR, B, OR], Tuple[O, OI, OR]]: Or[A, B, O] {
-      fn or(a: A, b: B) -> O {
+    pub use bit_or as _;
+    pub impl bit_or[... ; BitOr[AI, B, OI], BitOr[AR, B, OR], Tuple[O, OI, OR]]: BitOr[A, B, O] {
+      fn bit_or(a: A, b: B) -> O {
         let (ai, ar) = a as (AI, AR);
         (ai | b, ar | b) as O
       }
     }
 
-    pub use xor as _;
-    pub impl xor[... ; Xor[AI, B, OI], Xor[AR, B, OR], Tuple[O, OI, OR]]: Xor[A, B, O] {
-      fn xor(a: A, b: B) -> O {
+    pub use bit_xor as _;
+    pub impl bit_xor[... ; BitXor[AI, B, OI], BitXor[AR, B, OR], Tuple[O, OI, OR]]: BitXor[A, B, O] {
+      fn bit_xor(a: A, b: B) -> O {
         let (ai, ar) = a as (AI, AR);
         (ai ^ b, ar ^ b) as O
       }

@@ -177,7 +177,7 @@ pub mod Iterator[I, T; Iterator[I, T]] {
   pub mod Take[...] {
     pub impl iterator[... I?]: Iterator[Take[I], T] {
       fn advance(Take[I](iter, count)) -> Option[(T, Take[I])] {
-        if count != 0 && iter.advance() is Some(value, iter) {
+        if count != 0 and iter.advance() is Some(value, iter) {
           Some(value, Take(iter, count - 1))
         } else {
           None()
@@ -195,7 +195,7 @@ pub mod Iterator[I, T; Iterator[I, T]] {
   pub mod TakeWhile[...] {
     pub impl iterator[... I?, T?, F*; fn F(&T) -> Bool]: Iterator[TakeWhile[I, F], T] {
       fn advance(TakeWhile[I, F](iter, f)) -> Option[(T, TakeWhile[I, F])] {
-        if iter.advance() is Some(value, iter) && f(&value) {
+        if iter.advance() is Some(value, iter) and f(&value) {
           Some(value, TakeWhile(iter, f))
         } else {
           None()
@@ -213,7 +213,7 @@ pub mod Iterator[I, T; Iterator[I, T]] {
   pub mod MapWhile[...] {
     pub impl iterator[... I?, U, F*; fn F(T) -> Option[U]]: Iterator[MapWhile[I, F], U] {
       fn advance(MapWhile[I, F](iter, f)) -> Option[(U, MapWhile[I, F])] {
-        if iter.advance() is Some(value, iter) && f(value) is Some(value) {
+        if iter.advance() is Some(value, iter) and f(value) is Some(value) {
           Some(value, MapWhile(iter, f))
         } else {
           None()
@@ -231,7 +231,7 @@ pub mod Iterator[I, T; Iterator[I, T]] {
   pub mod Zip[...] {
     pub impl iterator[... I?, T?, J?, U; Iterator[J, U]]: Iterator[Zip[I, J], (T, U)] {
       fn advance(Zip[I, J](i, j)) -> Option[((T, U), Zip[I, J])] {
-        if i.advance() is Some(t, i) && j.advance() is Some(u, j) {
+        if i.advance() is Some(t, i) and j.advance() is Some(u, j) {
           Some((t, u), Zip(i, j))
         } else {
           None()
@@ -249,7 +249,7 @@ pub mod Iterator[I, T; Iterator[I, T]] {
   pub mod Flatten {
     pub impl iterator[I, J, T; Iterator[I, J], Iterator[J, T]]: Iterator[Flatten[I, J], T] {
       fn advance(Flatten[I, J](j, i)) -> Option[(T, Flatten[I, J])] {
-        if j is Some(j) && j.advance() is Some(t, j) {
+        if j is Some(j) and j.advance() is Some(t, j) {
           Some(t, Flatten(Some(j), i))
         } else {
           while i.advance() is Some(j, _i) {
@@ -283,7 +283,7 @@ pub mod Iterator[I, T; Iterator[I, T]] {
     pub impl iterator[... J; Iterator[J, T]]: Iterator[Concat[I, J], T] {
       fn advance(Concat[I, J](i, j)) -> Option[(T, Concat[I, J])] {
         when {
-          i is Some(i) && i.advance() is Some(value, i) { Some(value, Concat(Some(i), j)) }
+          i is Some(i) and i.advance() is Some(value, i) { Some(value, Concat(Some(i), j)) }
           j.advance() is Some(value, j) { Some(value, Concat(None(), j)) }
           _ { None() }
         }
@@ -433,7 +433,7 @@ pub mod Fused {
   }
 
   pub fn .next[I, T; Iterator[I, T]](&Fused[I](inner)) -> Option[T] {
-    if inner is Some(iter) && iter.advance() is Some(value, iter) {
+    if inner is Some(iter) and iter.advance() is Some(value, iter) {
       inner = Some(iter);
       Some(value)
     } else {

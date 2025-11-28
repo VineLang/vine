@@ -29,7 +29,7 @@ pub fn main(&io: &IO) {
     let b = N32::diff(ax * py, ay * px) / det;
     let x = ax * a + bx * b;
     let y = ay * a + by * b;
-    if x == px && y == py {
+    if x == px and y == py {
       part1 += a * 3 + b;
     }
 
@@ -39,7 +39,7 @@ pub fn main(&io: &IO) {
     let (b, _) = N64::diff(ax as N64 * py, ay as N64 * px).div_rem_n32(det);
     let x = a * ax as N64 + b * bx as N64;
     let y = a * ay as N64 + b * by as N64;
-    if x == px && y == py {
+    if x == px and y == py {
       part2 += a * 3[N64] + b;
     }
   }

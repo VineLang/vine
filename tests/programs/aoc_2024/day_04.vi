@@ -22,7 +22,7 @@ pub fn main(&io: &IO) {
           s.send('X');
           se.send('X');
         }
-        char == 'M' || char == 'A' {
+        char == 'M' or char == 'A' {
           let recv = if char == 'M' {
             'X'
           } else {
@@ -55,7 +55,9 @@ pub fn main(&io: &IO) {
         let ne = ne.send('A');
         let sw = sw.send('A');
         let se = se.send('A');
-        if ((nw == 'M' && se == 'S') || (nw == 'S' && se == 'M')) && ((sw == 'M' && ne == 'S') || (sw == 'S' && ne == 'M')) {
+        if ((nw == 'M' and se == 'S') or (nw == 'S' and se == 'M')) and ((sw == 'M' and ne == 'S') or (
+          sw == 'S' and ne == 'M'
+        )) {
           matches += 1;
         }
       } else {

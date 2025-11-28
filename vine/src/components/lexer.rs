@@ -24,13 +24,13 @@ pub enum Token {
   #[token("::")]
   ColonColon,
   #[token("&")]
-  And,
+  Amp,
   #[token("&&")]
-  AndAnd,
+  AmpAmp,
   #[token("|")]
-  Or,
+  Pipe,
   #[token("||")]
-  OrOr,
+  PipePipe,
   #[token("^")]
   Caret,
   #[token("@")]
@@ -75,12 +75,10 @@ pub enum Token {
   Le,
   #[token(">=")]
   Ge,
-  #[token("=>")]
-  ThickArrow,
   #[token("->")]
-  ThinArrow,
+  RightArrow,
   #[token("<-")]
-  ThinLeftArrow,
+  LeftArrow,
   #[token("<<")]
   Shl,
   #[token(">>")]
@@ -164,6 +162,12 @@ pub enum Token {
   True,
   #[token("false")]
   False,
+  #[token("and")]
+  And,
+  #[token("or")]
+  Or,
+  #[token("try")]
+  Try,
 
   #[regex(r"\p{ID_Start}\p{ID_Continue}*|_\p{ID_Continue}+")]
   Ident,

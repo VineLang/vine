@@ -26,6 +26,9 @@
 ((ident) @keyword (#eq? @keyword "else"))     "else"     @keyword
 ((ident) @keyword (#eq? @keyword "true"))     "true"     @keyword
 ((ident) @keyword (#eq? @keyword "false"))    "false"    @keyword
+((ident) @keyword (#eq? @keyword "and"))      "and"      @keyword
+((ident) @keyword (#eq? @keyword "or"))       "or"       @keyword
+((ident) @keyword (#eq? @keyword "try"))      "try"      @keyword
 
 "inline_ivy!" @keyword
 
@@ -49,10 +52,7 @@
 
 [
   "&"
-  "&&"
   "|"
-  "||"
-  "=>"
   "^"
   "+"
   "++"

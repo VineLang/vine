@@ -9,29 +9,29 @@ pub fn main(&io: &IO) {
   }
 
   print_bool(true);
-  print_bool(true && true);
-  print_bool(true || true);
-  print_bool(true || false);
-  print_bool(false || true);
-  print_bool(true => true);
-  print_bool(false => true);
-  print_bool(false => false);
+  print_bool(true and true);
+  print_bool(true or true);
+  print_bool(true or false);
+  print_bool(false or true);
+  print_bool(true impl true);
+  print_bool(false impl true);
+  print_bool(false impl false);
   print_bool(!false);
   print_bool(!!true);
   io.println("---");
   print_bool(false);
-  print_bool(false || false);
-  print_bool(true && false);
-  print_bool(false && true);
-  print_bool(false && false);
-  print_bool(true => false);
+  print_bool(false or false);
+  print_bool(true and false);
+  print_bool(false and true);
+  print_bool(false and false);
+  print_bool(true impl false);
   print_bool(!true);
   print_bool(!!false);
 
   // Test short-circuiting behavior; `unsafe::eraser` is an eraser node,
   // so would erase `io` if it was evaluated.
   io.println("---");
-  print_bool(true || unsafe::eraser);
-  print_bool(false => unsafe::eraser);
-  print_bool(false && unsafe::eraser);
+  print_bool(true or unsafe::eraser);
+  print_bool(false impl unsafe::eraser);
+  print_bool(false and unsafe::eraser);
 }

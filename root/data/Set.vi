@@ -300,8 +300,8 @@ pub mod Set[T; Ord[T]] {
       true
     } else {
       let &(left, _, right) = &data;
-      let x = is_balanced(&left, &right) && is_balanced(&right, &left);
-      x && left.balanced() && right.balanced()
+      let x = is_balanced(&left, &right) and is_balanced(&right, &left);
+      x and left.balanced() and right.balanced()
     }
   }
 

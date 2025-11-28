@@ -69,12 +69,12 @@ impl VineParser<'_> {
   }
 
   fn parse_cfg_postfix(&mut self, lhs: Cfg, bp: BP) -> Result<Result<CfgKind, Cfg>, Diag> {
-    if bp.permits(BP::LogicalAnd) && self.eat(Token::AndAnd)? {
+    if bp.permits(BP::LogicalAnd) && self.eat(Token::And)? {
       let rhs = self.parse_cfg_bp(BP::LogicalAnd)?;
       return Ok(Ok(CfgKind::And(lhs, rhs)));
     }
 
-    if bp.permits(BP::LogicalOr) && self.eat(Token::OrOr)? {
+    if bp.permits(BP::LogicalOr) && self.eat(Token::Or)? {
       let rhs = self.parse_cfg_bp(BP::LogicalOr)?;
       return Ok(Ok(CfgKind::Or(lhs, rhs)));
     }

@@ -17,7 +17,7 @@ pub fn main(&io: &IO) {
 
     if b != 0[Nat] {
       let (q, r) = a.div_rem(b);
-      if r >= b || a != q * b + r {
+      if r >= b or a != q * b + r {
         io.println("fail: {a}, {b}, {q}, {r}");
       } else {
         io.println("pass");

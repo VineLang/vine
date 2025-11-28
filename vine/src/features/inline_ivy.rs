@@ -28,14 +28,14 @@ impl VineParser<'_> {
     self.bump()?;
     let binds = self.parse_delimited(PAREN_COMMA, |self_| {
       let var = self_.parse_ident()?;
-      let value = self_.eat(Token::ThinLeftArrow)?;
+      let value = self_.eat(Token::LeftArrow)?;
       if !value {
-        self_.expect(Token::ThinArrow)?;
+        self_.expect(Token::RightArrow)?;
       }
       let expr = self_.parse_expr()?;
       Ok((var, value, expr))
     })?;
-    self.expect(Token::ThinArrow)?;
+    self.expect(Token::RightArrow)?;
     let ty = self.parse_ty()?;
     if !self.check(Token::OpenBrace) {
       self.unexpected()?;

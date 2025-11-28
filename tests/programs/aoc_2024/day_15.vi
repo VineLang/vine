@@ -5,7 +5,7 @@ pub fn main(&io: &IO) {
   let grid = Array::empty;
   let y = 0;
   let initial = (0, 0);
-  while io.read_line() is Some(line) && line.len() != 0 {
+  while io.read_line() is Some(line) and line.len() != 0 {
     let x = 0;
     for &char in line.iter() {
       if char == '@' {
@@ -85,7 +85,7 @@ pub fn main(&io: &IO) {
   let robot = initial * (2, 1);
 
   for char in instructions.into_iter() {
-    if char == '<' || char == '>' {
+    if char == '<' or char == '>' {
       let dir = if char == '<' {
         (0 - 1, 0)
       } else {
@@ -144,7 +144,7 @@ pub fn main(&io: &IO) {
               new_front.push_back((pos_x, '['));
               new_front.push_back((pos_x + 1, ']'));
               let carry = '.';
-              if front.len() != 0 && front.at(0) is Some(&(p, c)) && p == pos_x + 1 {
+              if front.len() != 0 and front.at(0) is Some(&(p, c)) and p == pos_x + 1 {
                 front.pop_front();
                 carry = c;
               }

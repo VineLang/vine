@@ -78,7 +78,7 @@ pub fn .div_rem(a: Nat, d: Nat) -> (Nat, Nat) {
     let r_est = r_est as N64;
 
     // Do correction step if we detect the guess to be off (executed at most twice).
-    while q_est.hi() != 0 || q_est * d_hi2 > N64(a_lo, r_est as N32) {
+    while q_est.hi() != 0 or q_est * d_hi2 > N64(a_lo, r_est as N32) {
       q_est -= 1;
       r_est += d_hi;
       if r_est.hi() != 0 {

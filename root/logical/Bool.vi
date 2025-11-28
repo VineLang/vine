@@ -1,5 +1,5 @@
 
-use ops::{Cast, bitwise::{And, Not, Or, Xor}, comparison::{Eq, Ord}};
+use ops::{Cast, bitwise::{BitAnd, BitOr, BitXor, Not}, comparison::{Eq, Ord}};
 
 #[builtin = "Bool"]
 pub type Bool;
@@ -8,20 +8,20 @@ pub mod Bool {
   pub impl fork: Fork[Bool] = unsafe::duplicate;
   pub impl drop: Drop[Bool] = unsafe::erase;
 
-  pub impl and: And[Bool, Bool, Bool] {
-    fn and(a: Bool, b: Bool) -> Bool {
+  pub impl bit_and: BitAnd[Bool, Bool, Bool] {
+    fn bit_and(a: Bool, b: Bool) -> Bool {
       inline_ivy! (a <- a, b <- b) -> Bool { out a = @n32_and(b out) }
     }
   }
 
-  pub impl or: Or[Bool, Bool, Bool] {
-    fn or(a: Bool, b: Bool) -> Bool {
+  pub impl bit_or: BitOr[Bool, Bool, Bool] {
+    fn bit_or(a: Bool, b: Bool) -> Bool {
       inline_ivy! (a <- a, b <- b) -> Bool { out a = @n32_or(b out) }
     }
   }
 
-  pub impl xor: Xor[Bool, Bool, Bool] {
-    fn xor(a: Bool, b: Bool) -> Bool {
+  pub impl bit_xor: BitXor[Bool, Bool, Bool] {
+    fn bit_xor(a: Bool, b: Bool) -> Bool {
       inline_ivy! (a <- a, b <- b) -> Bool { out a = @n32_xor(b out) }
     }
   }

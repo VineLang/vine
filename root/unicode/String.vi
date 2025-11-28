@@ -30,11 +30,11 @@ pub mod String {
     loop {
       let (found, remaining) = self.split_once(sep);
       let empty = found.len() == 0;
-      start = empty && start;
-      if !start && !~end {
+      start = empty and start;
+      if !start and !~end {
         list ++= [found];
       }
-      ~end ~= empty && ~end;
+      ~end ~= empty and ~end;
       if remaining is Some(remaining) {
         self = remaining;
         continue;

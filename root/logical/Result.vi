@@ -33,7 +33,7 @@ pub mod Result {
     self.map(f).flatten()
   }
 
-  pub fn .or[T?, E?](self: Result[T, E], default: Result[T, E]) -> Result[T, E] {
+  pub fn .or_result[T?, E?](self: Result[T, E], default: Result[T, E]) -> Result[T, E] {
     match self {
       Err(_) { default }
       x { x }

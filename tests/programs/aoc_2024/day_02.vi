@@ -37,7 +37,7 @@ fn is_safe(report: List[N32]) -> Bool {
       if !(1 <= diff <= 3) {
         break false;
       }
-      if order is Some(order) && order != (last > level) {
+      if order is Some(order) and order != (last > level) {
         break false;
       }
       order = Some(last > level);

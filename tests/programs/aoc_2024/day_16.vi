@@ -57,7 +57,7 @@ pub fn main(&io: &IO) {
   let part1 = 0;
   let part2 = 0;
   let done = false;
-  while !done && pq.remove_min() is Some(dist, heads) {
+  while !done and pq.remove_min() is Some(dist, heads) {
     for (pos, dir) in heads.into_iter() {
       let (px, py) = pos;
       let &(_, dirs, counted) = (*grid.at(py).unwrap()).at(px).unwrap();
@@ -65,7 +65,7 @@ pub fn main(&io: &IO) {
       if dist <= min_dist {
         min_dist = dist;
         let (ex, ey) = end;
-        if px == ex && py == ey {
+        if px == ex and py == ey {
           used = true;
           done = true;
           part1 = dist;
@@ -77,7 +77,7 @@ pub fn main(&io: &IO) {
           used |= try_insert(dist + 1000, pos, dir_l);
           used |= try_insert(dist + 1000, pos, dir_r);
         }
-        if used && !counted {
+        if used and !counted {
           part2 += 1;
           counted = true;
         }

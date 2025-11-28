@@ -187,7 +187,7 @@ impl<'src> VineParser<'src> {
   }
 
   fn _maybe_parse_expr_prefix(&mut self, span: usize) -> Result<Option<ExprKind>, Diag> {
-    if self.check(Token::And) || self.check(Token::AndAnd) {
+    if self.check(Token::Amp) || self.check(Token::AmpAmp) {
       return Ok(Some(self.parse_expr_ref(span)?));
     }
     if self.check(Token::Star) || self.check(Token::StarStar) {
@@ -283,17 +283,17 @@ impl<'src> VineParser<'src> {
       }
     }
 
-    if bp.permits(BP::LogicalAnd) && self.eat(Token::AndAnd)? {
+    if bp.permits(BP::LogicalAnd) && self.eat(Token::And)? {
       let rhs = self.parse_expr_bp(BP::LogicalAnd)?;
       return Ok(Ok(ExprKind::LogicalOp(LogicalOp::And, lhs, rhs)));
     }
 
-    if bp.permits(BP::LogicalOr) && self.eat(Token::OrOr)? {
+    if bp.permits(BP::LogicalOr) && self.eat(Token::Or)? {
       let rhs = self.parse_expr_bp(BP::LogicalOr)?;
       return Ok(Ok(ExprKind::LogicalOp(LogicalOp::Or, lhs, rhs)));
     }
 
-    if bp.permits(BP::LogicalImplies) && self.eat(Token::ThickArrow)? {
+    if bp.permits(BP::LogicalImplies) && self.eat(Token::Impl)? {
       let rhs = self.parse_expr_bp(BP::LogicalImplies)?;
       return Ok(Ok(ExprKind::LogicalOp(LogicalOp::Implies, lhs, rhs)));
     }
@@ -339,16 +339,12 @@ impl<'src> VineParser<'src> {
       return Ok(Ok(ExprKind::Unwrap(lhs)));
     }
 
-    if self.eat(Token::Question)? {
-      return Ok(Ok(ExprKind::Try(lhs)));
-    }
-
     if bp.permits(BP::Range) && (self.check(Token::DotDot) || self.check(Token::DotDotEq)) {
       return Ok(Ok(self._parse_expr_range(Some(lhs))?));
     }
 
     if self.eat(Token::Dot)? {
-      if self.eat(Token::And)? {
+      if self.eat(Token::Amp)? {
         return Ok(Ok(ExprKind::Ref(lhs, true)));
       }
       if self.eat(Token::Star)? {
@@ -356,6 +352,9 @@ impl<'src> VineParser<'src> {
       }
       if self.eat(Token::Tilde)? {
         return Ok(Ok(ExprKind::Inverse(lhs, true)));
+      }
+      if self.eat(Token::Try)? {
+        return Ok(Ok(ExprKind::Try(lhs)));
       }
       if self.eat(Token::As)? {
         self.expect(Token::OpenBracket)?;
@@ -418,7 +417,7 @@ impl<'src> VineParser<'src> {
     if self.check(Token::Ident) || self.check(Token::Hash) {
       return self.parse_pat_path();
     }
-    if self.check(Token::And) || self.check(Token::AndAnd) {
+    if self.check(Token::Amp) || self.check(Token::AmpAmp) {
       return self.parse_pat_ref(span);
     }
     if self.check(Token::Star) || self.check(Token::StarStar) {
@@ -467,7 +466,7 @@ impl<'src> VineParser<'src> {
     if self.check(Token::OpenBrace) {
       return self.parse_ty_object();
     }
-    if self.check(Token::And) || self.check(Token::AndAnd) {
+    if self.check(Token::Amp) || self.check(Token::AmpAmp) {
       return self.parse_ty_ref(span);
     }
     if self.eat(Token::Tilde)? {
@@ -480,7 +479,7 @@ impl<'src> VineParser<'src> {
   }
 
   pub(crate) fn parse_arrow_ty(&mut self) -> Result<Option<Ty>, Diag> {
-    self.eat_then(Token::ThinArrow, Self::parse_ty)
+    self.eat_then(Token::RightArrow, Self::parse_ty)
   }
 
   pub(crate) fn parse_impl(&mut self) -> Result<Impl, Diag> {
@@ -652,9 +651,9 @@ impl BP {
 
 #[rustfmt::skip]
 const BINARY_OP_TABLE: &[(BP, Associativity, Token, BinaryOp)] = &[
-  (BP::BitOr,          Associativity::Left, Token::Or,       BinaryOp::BitOr),
+  (BP::BitOr,          Associativity::Left, Token::Pipe,       BinaryOp::BitOr),
   (BP::BitXor,         Associativity::Left, Token::Caret,    BinaryOp::BitXor),
-  (BP::BitAnd,         Associativity::Left, Token::And,      BinaryOp::BitAnd),
+  (BP::BitAnd,         Associativity::Left, Token::Amp,      BinaryOp::BitAnd),
   (BP::BitShift,       Associativity::Left, Token::Shl,      BinaryOp::Shl),
   (BP::BitShift,       Associativity::Left, Token::Shr,      BinaryOp::Shr),
   (BP::Additive,       Associativity::Left, Token::Plus,     BinaryOp::Add),

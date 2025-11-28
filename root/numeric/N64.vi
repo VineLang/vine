@@ -2,7 +2,7 @@
 use ops::{
   Cast,
   arithmetic::{Add, Div, Mul, Pow, Rem, Sub},
-  bitwise::{And, Or, Shl, Shr, Xor},
+  bitwise::{BitAnd, BitOr, BitXor, Shl, Shr},
   comparison::{Eq, Ord},
 };
 
@@ -159,7 +159,7 @@ pub mod N64 {
     let top = N64(a_norm_mid, a_norm_hi);
     let (quot, rem) = top.div_rem_n32(d_norm_hi);
 
-    while quot.hi() != 0 || quot * d_norm_lo > N64(a_norm_lo, rem) {
+    while quot.hi() != 0 or quot * d_norm_lo > N64(a_norm_lo, rem) {
       quot -= 1;
       if N32::add_high(rem, d_norm_hi) {
         break;
@@ -172,20 +172,20 @@ pub mod N64 {
     (quot, rem)
   }
 
-  pub impl and: And[N64, N64, N64] {
-    fn and(N64(al, ah), N64(bl, bh)) -> N64 {
+  pub impl bit_and: BitAnd[N64, N64, N64] {
+    fn bit_and(N64(al, ah), N64(bl, bh)) -> N64 {
       N64(al & bl, ah & bh)
     }
   }
 
-  pub impl or: Or[N64, N64, N64] {
-    fn or(N64(al, ah), N64(bl, bh)) -> N64 {
+  pub impl bit_or: BitOr[N64, N64, N64] {
+    fn bit_or(N64(al, ah), N64(bl, bh)) -> N64 {
       N64(al | bl, ah | bh)
     }
   }
 
-  pub impl xor: Xor[N64, N64, N64] {
-    fn xor(N64(al, ah), N64(bl, bh)) -> N64 {
+  pub impl bit_xor: BitXor[N64, N64, N64] {
+    fn bit_xor(N64(al, ah), N64(bl, bh)) -> N64 {
       N64(al ^ bl, ah ^ bh)
     }
   }
@@ -212,21 +212,21 @@ pub mod N64 {
 
   pub impl eq: Eq[N64] {
     fn eq(&N64(al, ah), &N64(bl, bh)) -> Bool {
-      al == bl && ah == bh
+      al == bl and ah == bh
     }
 
     fn ne(&N64(al, ah), &N64(bl, bh)) -> Bool {
-      al != bl || ah != bh
+      al != bl or ah != bh
     }
   }
 
   pub impl ord: Ord[N64] {
     fn lt(&N64(al, ah), &N64(bl, bh)) -> Bool {
-      ah < bh || ah == bh && al < bl
+      ah < bh or ah == bh and al < bl
     }
 
     fn le(&N64(al, ah), &N64(bl, bh)) -> Bool {
-      ah < bh || ah == bh && al <= bl
+      ah < bh or ah == bh and al <= bl
     }
 
     fn cmp(a: &N64, b: &N64) -> Ord {

@@ -22,7 +22,7 @@ pub fn main(&io: &IO) {
 
   let ip = 0;
   let steps = 100;
-  while ip < program.len() && steps != 0 {
+  while ip < program.len() and steps != 0 {
     steps -= 1;
     let &opcode = program.at(ip).unwrap();
     let &operand = program.at(ip + 1).unwrap();

@@ -42,11 +42,11 @@ pub fn main(&io: &IO) {
   print_option_n32(add_options(None(), Some(2)));
   print_option_n32(add_options(Some(1), Some(2)));
 
-  io.println("or:");
-  print_option_n32(None().or[N32](None()));
-  print_option_n32(Some(1).or(None()));
-  print_option_n32(None().or(Some(2)));
-  print_option_n32(Some(1).or(Some(2)));
+  io.println("or_option:");
+  print_option_n32(None().or_option[N32](None()));
+  print_option_n32(Some(1).or_option(None()));
+  print_option_n32(None().or_option(Some(2)));
+  print_option_n32(Some(1).or_option(Some(2)));
 
   io.println("unwrap_or:");
   print_n32(None().unwrap_or(0));
@@ -61,14 +61,14 @@ pub fn main(&io: &IO) {
   print_bool(Some() is None());
 
   io.println("is_some_and:");
-  print_bool(None[N32]() is Some(x) && x > 0);
-  print_bool(Some(0) is Some(x) && x > 0);
-  print_bool(Some(1) is Some(x) && x > 0);
+  print_bool(None[N32]() is Some(x) and x > 0);
+  print_bool(Some(0) is Some(x) and x > 0);
+  print_bool(Some(1) is Some(x) and x > 0);
 
   io.println("is_some_implies:");
-  print_bool(None[N32]() is Some(x) => x > 0);
-  print_bool(Some(0) is Some(x) => x > 0);
-  print_bool(Some(1) is Some(x) => x > 0);
+  print_bool(None[N32]() is Some(x) impl x > 0);
+  print_bool(Some(0) is Some(x) impl x > 0);
+  print_bool(Some(1) is Some(x) impl x > 0);
 
   io.println("take:");
   let option = Some(3);

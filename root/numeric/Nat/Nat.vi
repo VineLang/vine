@@ -2,7 +2,7 @@
 use ops::{
   Cast,
   arithmetic::{Add, Div, Mul, Pow, Rem, Sub},
-  bitwise::{And, Or, Shl, Shr, Xor},
+  bitwise::{BitAnd, BitOr, BitXor, Shl, Shr},
   comparison::{Eq, Ord},
 };
 
@@ -132,7 +132,7 @@ pub mod Nat {
 
   pub impl mul: Mul[Nat, Nat, Nat] {
     fn mul(a: Nat, b: Nat) -> Nat {
-      if a.is_zero() || b.is_zero() {
+      if a.is_zero() or b.is_zero() {
         return 0[Nat];
       }
       if a!.len() > b!.len() {
@@ -208,8 +208,8 @@ pub mod Nat {
     }
   }
 
-  pub impl and: And[Nat, Nat, Nat] {
-    fn and(a: Nat, b: Nat) -> Nat {
+  pub impl bit_and: BitAnd[Nat, Nat, Nat] {
+    fn bit_and(a: Nat, b: Nat) -> Nat {
       let ~trim = true;
       let result = [];
       for (a, b) in a!.into_iter().zip(b!.into_iter()) {
@@ -225,21 +225,21 @@ pub mod Nat {
     }
   }
 
-  pub impl or: Or[Nat, Nat, Nat] {
-    fn or(Nat(a), Nat(b)) -> Nat {
+  pub impl bit_or: BitOr[Nat, Nat, Nat] {
+    fn bit_or(Nat(a), Nat(b)) -> Nat {
       let result = [];
-      while a.len() != 0 && b.len() != 0 {
+      while a.len() != 0 and b.len() != 0 {
         result.push_back(a.pop_front().unwrap() | b.pop_front().unwrap());
       }
       Nat(result ++ a ++ b)
     }
   }
 
-  pub impl xor: Xor[Nat, Nat, Nat] {
-    fn xor(Nat(a), Nat(b)) -> Nat {
+  pub impl bit_xor: BitXor[Nat, Nat, Nat] {
+    fn bit_xor(Nat(a), Nat(b)) -> Nat {
       let ~trim = true;
       let result = [];
-      while a.len() != 0 && b.len() != 0 {
+      while a.len() != 0 and b.len() != 0 {
         let num = a.pop_front().unwrap() ^ b.pop_front().unwrap();
         if !~trim {
           result.push_back(num);
@@ -248,7 +248,7 @@ pub mod Nat {
           ~trim = false;
         }
       }
-      if a.len() != 0 || b.len() != 0 {
+      if a.len() != 0 or b.len() != 0 {
         ~trim = false;
       }
       Nat(result ++ a ++ b)
@@ -276,11 +276,11 @@ pub mod Nat {
   pub impl shr: Shr[Nat, N32, Nat] {
     fn shr(Nat(a), b: N32) -> Nat {
       let (trim_parts, rem) = b.div_rem(32);
-      while trim_parts > 0 && a.pop_front() is Some(_) {
+      while trim_parts > 0 and a.pop_front() is Some(_) {
         trim_parts -= 1;
       }
 
-      if rem != 0 && a.pop_front() is Some(carry) {
+      if rem != 0 and a.pop_front() is Some(carry) {
         carry = carry >> rem;
         for &num in a.iter() {
           let new_carry = num >> rem;
@@ -314,7 +314,7 @@ pub mod Nat {
   pub impl from_n64: Cast[N64, Nat] {
     fn cast(N64(lo, hi)) -> Nat {
       when {
-        lo == 0 && hi == 0 { Nat([]) }
+        lo == 0 and hi == 0 { Nat([]) }
         hi == 0 { Nat([lo]) }
         _ { Nat([lo, hi]) }
       }

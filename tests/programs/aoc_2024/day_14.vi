@@ -8,7 +8,7 @@ const height: N32 = 7;
 
 pub fn main(&io: &IO) {
   let robots = [];
-  while io.read_line() is Some(line) && line.len() != 0 {
+  while io.read_line() is Some(line) and line.len() != 0 {
     let (_, r) = line.split_once("p=");
     let (px, r) = r.unwrap().split_once(",");
     let (py, r) = r.unwrap().split_once(" v=");
