@@ -29,9 +29,9 @@ impl<'src> Formatter<'src> {
     Doc::concat([
       self.fmt_expr(lhs),
       Doc(match op {
-        LogicalOp::And => " && ",
-        LogicalOp::Or => " || ",
-        LogicalOp::Implies => " => ",
+        LogicalOp::And => " and ",
+        LogicalOp::Or => " or ",
+        LogicalOp::Implies => " impl ",
       }),
       self.fmt_expr(rhs),
     ])

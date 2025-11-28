@@ -13,7 +13,7 @@ use crate::{
 
 impl<'src> Formatter<'src> {
   pub(crate) fn fmt_expr_try(&self, expr: &Expr) -> Doc<'src> {
-    Doc::concat([self.fmt_expr(expr), Doc("?")])
+    Doc::concat([self.fmt_expr(expr), Doc(".try")])
   }
 }
 
