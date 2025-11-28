@@ -283,17 +283,17 @@ impl<'src> VineParser<'src> {
       }
     }
 
-    if bp.permits(BP::LogicalAnd) && self.eat(Token::AmpAmp)? {
+    if bp.permits(BP::LogicalAnd) && self.eat(Token::And)? {
       let rhs = self.parse_expr_bp(BP::LogicalAnd)?;
       return Ok(Ok(ExprKind::LogicalOp(LogicalOp::And, lhs, rhs)));
     }
 
-    if bp.permits(BP::LogicalOr) && self.eat(Token::PipePipe)? {
+    if bp.permits(BP::LogicalOr) && self.eat(Token::Or)? {
       let rhs = self.parse_expr_bp(BP::LogicalOr)?;
       return Ok(Ok(ExprKind::LogicalOp(LogicalOp::Or, lhs, rhs)));
     }
 
-    if bp.permits(BP::LogicalImplies) && self.eat(Token::ThickArrow)? {
+    if bp.permits(BP::LogicalImplies) && self.eat(Token::Impl)? {
       let rhs = self.parse_expr_bp(BP::LogicalImplies)?;
       return Ok(Ok(ExprKind::LogicalOp(LogicalOp::Implies, lhs, rhs)));
     }
@@ -339,10 +339,6 @@ impl<'src> VineParser<'src> {
       return Ok(Ok(ExprKind::Unwrap(lhs)));
     }
 
-    if self.eat(Token::Question)? {
-      return Ok(Ok(ExprKind::Try(lhs)));
-    }
-
     if bp.permits(BP::Range) && (self.check(Token::DotDot) || self.check(Token::DotDotEq)) {
       return Ok(Ok(self._parse_expr_range(Some(lhs))?));
     }
@@ -356,6 +352,9 @@ impl<'src> VineParser<'src> {
       }
       if self.eat(Token::Tilde)? {
         return Ok(Ok(ExprKind::Inverse(lhs, true)));
+      }
+      if self.eat(Token::Try)? {
+        return Ok(Ok(ExprKind::Try(lhs)));
       }
       if self.eat(Token::As)? {
         self.expect(Token::OpenBracket)?;
