@@ -164,6 +164,12 @@ pub enum Token {
   True,
   #[token("false")]
   False,
+  #[token("and")]
+  And,
+  #[token("or")]
+  Or,
+  #[token("try")]
+  Try,
 
   #[regex(r"\p{ID_Start}\p{ID_Continue}*|_\p{ID_Continue}+")]
   Ident,
