@@ -24,13 +24,13 @@ pub enum Token {
   #[token("::")]
   ColonColon,
   #[token("&")]
-  And,
+  Amp,
   #[token("&&")]
-  AndAnd,
+  AmpAmp,
   #[token("|")]
-  Or,
+  Pipe,
   #[token("||")]
-  OrOr,
+  PipePipe,
   #[token("^")]
   Caret,
   #[token("@")]

@@ -187,7 +187,7 @@ impl<'src> VineParser<'src> {
   }
 
   fn _maybe_parse_expr_prefix(&mut self, span: usize) -> Result<Option<ExprKind>, Diag> {
-    if self.check(Token::And) || self.check(Token::AndAnd) {
+    if self.check(Token::Amp) || self.check(Token::AmpAmp) {
       return Ok(Some(self.parse_expr_ref(span)?));
     }
     if self.check(Token::Star) || self.check(Token::StarStar) {
@@ -283,12 +283,12 @@ impl<'src> VineParser<'src> {
       }
     }
 
-    if bp.permits(BP::LogicalAnd) && self.eat(Token::AndAnd)? {
+    if bp.permits(BP::LogicalAnd) && self.eat(Token::AmpAmp)? {
       let rhs = self.parse_expr_bp(BP::LogicalAnd)?;
       return Ok(Ok(ExprKind::LogicalOp(LogicalOp::And, lhs, rhs)));
     }
 
-    if bp.permits(BP::LogicalOr) && self.eat(Token::OrOr)? {
+    if bp.permits(BP::LogicalOr) && self.eat(Token::PipePipe)? {
       let rhs = self.parse_expr_bp(BP::LogicalOr)?;
       return Ok(Ok(ExprKind::LogicalOp(LogicalOp::Or, lhs, rhs)));
     }
@@ -348,7 +348,7 @@ impl<'src> VineParser<'src> {
     }
 
     if self.eat(Token::Dot)? {
-      if self.eat(Token::And)? {
+      if self.eat(Token::Amp)? {
         return Ok(Ok(ExprKind::Ref(lhs, true)));
       }
       if self.eat(Token::Star)? {
@@ -418,7 +418,7 @@ impl<'src> VineParser<'src> {
     if self.check(Token::Ident) || self.check(Token::Hash) {
       return self.parse_pat_path();
     }
-    if self.check(Token::And) || self.check(Token::AndAnd) {
+    if self.check(Token::Amp) || self.check(Token::AmpAmp) {
       return self.parse_pat_ref(span);
     }
     if self.check(Token::Star) || self.check(Token::StarStar) {
@@ -467,7 +467,7 @@ impl<'src> VineParser<'src> {
     if self.check(Token::OpenBrace) {
       return self.parse_ty_object();
     }
-    if self.check(Token::And) || self.check(Token::AndAnd) {
+    if self.check(Token::Amp) || self.check(Token::AmpAmp) {
       return self.parse_ty_ref(span);
     }
     if self.eat(Token::Tilde)? {
@@ -652,9 +652,9 @@ impl BP {
 
 #[rustfmt::skip]
 const BINARY_OP_TABLE: &[(BP, Associativity, Token, BinaryOp)] = &[
-  (BP::BitOr,          Associativity::Left, Token::Or,       BinaryOp::BitOr),
+  (BP::BitOr,          Associativity::Left, Token::Pipe,       BinaryOp::BitOr),
   (BP::BitXor,         Associativity::Left, Token::Caret,    BinaryOp::BitXor),
-  (BP::BitAnd,         Associativity::Left, Token::And,      BinaryOp::BitAnd),
+  (BP::BitAnd,         Associativity::Left, Token::Amp,      BinaryOp::BitAnd),
   (BP::BitShift,       Associativity::Left, Token::Shl,      BinaryOp::Shl),
   (BP::BitShift,       Associativity::Left, Token::Shr,      BinaryOp::Shr),
   (BP::Additive,       Associativity::Left, Token::Plus,     BinaryOp::Add),

@@ -22,10 +22,10 @@ use crate::{
 
 impl VineParser<'_> {
   pub(crate) fn parse_expr_ref(&mut self, span: usize) -> Result<ExprKind, Diag> {
-    if self.eat(Token::And)? {
+    if self.eat(Token::Amp)? {
       Ok(ExprKind::Ref(self.parse_expr_bp(BP::Prefix)?, false))
     } else {
-      self.expect(Token::AndAnd)?;
+      self.expect(Token::AmpAmp)?;
       let inner = self.parse_expr_bp(BP::Prefix)?;
       let span = self.end_span(span + 1);
       Ok(ExprKind::Ref(Expr { span, kind: Box::new(ExprKind::Ref(inner, false)) }, false))
@@ -44,10 +44,10 @@ impl VineParser<'_> {
   }
 
   pub(crate) fn parse_pat_ref(&mut self, span: usize) -> Result<PatKind, Diag> {
-    if self.eat(Token::And)? {
+    if self.eat(Token::Amp)? {
       Ok(PatKind::Ref(self.parse_pat_bp(BP::Prefix)?))
     } else {
-      self.expect(Token::AndAnd)?;
+      self.expect(Token::AmpAmp)?;
       let inner = self.parse_pat_bp(BP::Prefix)?;
       let span = self.end_span(span + 1);
       Ok(PatKind::Ref(Pat { span, kind: Box::new(PatKind::Ref(inner)) }))
@@ -66,10 +66,10 @@ impl VineParser<'_> {
   }
 
   pub(crate) fn parse_ty_ref(&mut self, span: usize) -> Result<TyKind, Diag> {
-    if self.eat(Token::And)? {
+    if self.eat(Token::Amp)? {
       Ok(TyKind::Ref(self.parse_ty()?))
     } else {
-      self.expect(Token::AndAnd)?;
+      self.expect(Token::AmpAmp)?;
       let inner = self.parse_ty()?;
       let span = self.end_span(span + 1);
       Ok(TyKind::Ref(Ty { span, kind: Box::new(TyKind::Ref(inner)) }))
