@@ -1,5 +1,5 @@
 
-use #std::data::Iterator::Fused;
+use #root::data::Iterator::Fused;
 
 pub fn main(&io: &IO) {
   let lines = [];

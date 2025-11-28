@@ -18,13 +18,13 @@
     "editor.defaultFormatter": "dprint.dprint"
   },
   "vine.cli": ["cargo", "run", "--bin", "vine", "--release", "--"],
-  "vine.lspOptions": ["--no-std"],
+  "vine.lspOptions": ["--no-root"],
   "vine.entrypoints": [
     "vine/examples/*.vi",
     "tests/programs/*.vi",
     "tests/programs/aoc_2024/*.vi",
     "tests/programs/compile/*.vi",
-    "vine/std/std.vi"
+    "root/root.vi"
   ],
   "rust-analyzer.check.command": "clippy",
   "editor.formatOnSave": true,

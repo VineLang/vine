@@ -1,4 +1,4 @@
-use #std::data::Array;
+use #root::data::Array;
 fn _foo() {}
 1.as[String]
 1.0.as[String]
@@ -97,5 +97,5 @@ let Ok(n) = Ok(46) else match { Err(e: String) { "error: {e}" } }; "{n}"
 let Ok(n: N32) = Err("abc") else match { Err(e) { "error: {e}" } }; "{n}"
 1+2
 for i in 0..10 { if i % 2 == 1 { continue } io.println("{i}") }
-#std::IO::println(&io, "hi")
+#root::IO::println(&io, "hi")
 Some(123) is None

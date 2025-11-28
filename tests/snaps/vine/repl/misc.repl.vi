@@ -1,6 +1,6 @@
 
 let io: IO = <IO>;
-> use #std::data::Array;
+> use #root::data::Array;
 
 let io: IO = <IO>;
 > fn _foo() {}
@@ -455,7 +455,7 @@ let io: IO = <IO>;
 8
 
 let io: IO = <IO>;
-> #std::IO::println(&io, "hi")
+> #root::IO::println(&io, "hi")
 hi
 
 let io: IO = <IO>;

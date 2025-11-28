@@ -1,5 +1,5 @@
 
-use #std::data::Array;
+use #root::data::Array;
 
 pub fn main(&io: &IO) {
   let lines = io.full_input().split_trim("\n");

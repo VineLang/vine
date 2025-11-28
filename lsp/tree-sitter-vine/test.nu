@@ -3,7 +3,7 @@ tree-sitter generate
 
 let success = (
   ls
-    ../../vine/std/**/*.vi
+    ../../root/**/*.vi
     ../../vine/examples/*.vi
     ../../tests/programs/*.vi
     ../../tests/programs/aoc_2024/*.vi
