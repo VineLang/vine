@@ -159,7 +159,7 @@ pub mod N64 {
     let top = N64(a_norm_mid, a_norm_hi);
     let (quot, rem) = top.div_rem_n32(d_norm_hi);
 
-    while quot.hi() != 0 || quot * d_norm_lo > N64(a_norm_lo, rem) {
+    while quot.hi() != 0 or quot * d_norm_lo > N64(a_norm_lo, rem) {
       quot -= 1;
       if N32::add_high(rem, d_norm_hi) {
         break;
@@ -212,21 +212,21 @@ pub mod N64 {
 
   pub impl eq: Eq[N64] {
     fn eq(&N64(al, ah), &N64(bl, bh)) -> Bool {
-      al == bl && ah == bh
+      al == bl and ah == bh
     }
 
     fn ne(&N64(al, ah), &N64(bl, bh)) -> Bool {
-      al != bl || ah != bh
+      al != bl or ah != bh
     }
   }
 
   pub impl ord: Ord[N64] {
     fn lt(&N64(al, ah), &N64(bl, bh)) -> Bool {
-      ah < bh || ah == bh && al < bl
+      ah < bh or ah == bh and al < bl
     }
 
     fn le(&N64(al, ah), &N64(bl, bh)) -> Bool {
-      ah < bh || ah == bh && al <= bl
+      ah < bh or ah == bh and al <= bl
     }
 
     fn cmp(a: &N64, b: &N64) -> Ord {

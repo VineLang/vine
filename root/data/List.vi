@@ -56,13 +56,13 @@ pub mod List {
     let i = 0;
     let slice = [];
 
-    while !start.left_of(&i) && self.pop_front() is Some(_) {
+    while !start.left_of(&i) and self.pop_front() is Some(_) {
       i += 1;
     }
     if end.right_of(&end_index) {
       return self;
     }
-    while end.right_of(&i) && self.pop_front() is Some(value) {
+    while end.right_of(&i) and self.pop_front() is Some(value) {
       slice.push_back(value);
       i += 1;
     }
@@ -74,7 +74,7 @@ pub mod List {
       return (self, []);
     }
     let prefix = [];
-    while i != 0 && self.pop_front() is Some(value) {
+    while i != 0 and self.pop_front() is Some(value) {
       prefix.push_back(value);
       i -= 1;
     }
@@ -237,7 +237,7 @@ pub mod List {
   }
 
   fn merge[T; Ord[T]](a: List[T], b: List[T]) -> List[T] {
-    if a.len() == 0 || b.len() == 0 {
+    if a.len() == 0 or b.len() == 0 {
       return a ++ b;
     }
     let out = [];

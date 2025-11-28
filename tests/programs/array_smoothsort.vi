@@ -42,7 +42,7 @@ pub fn smooth_sort[T; Ord[T]](&data: &Array[T]) {
       smallest_tree = 1;
     } else {
       // case 1: the last two heaps have sizes that differ by one; merge them
-      if is_set(trees0, trees1, 0) && is_set(trees0, trees1, 1) {
+      if is_set(trees0, trees1, 0) and is_set(trees0, trees1, 1) {
         shift_right(&trees0, &trees1, 2);
         trees0 = trees0 | 1;
         smallest_tree = smallest_tree + 2;
@@ -69,7 +69,7 @@ pub fn smooth_sort[T; Ord[T]](&data: &Array[T]) {
       }
     } else {
       if smallest_tree == 1 {
-        if (i + 1) == data.len() || ((i + 2) == data.len() && is_set(trees0, trees1, 1)) {
+        if (i + 1) == data.len() or ((i + 2) == data.len() and is_set(trees0, trees1, 1)) {
           is_last = true
         }
       } else {
@@ -171,7 +171,7 @@ pub fn smooth_sort[T; Ord[T]](&data: &Array[T]) {
         shift_right(&trees0, &trees1, 1);
         smallest_tree += 1;
 
-        if trees0 == 0 && trees1 == 0 || trees0 & 1 == 1 {
+        if trees0 == 0 and trees1 == 0 or trees0 & 1 == 1 {
           return;
         }
         continue;

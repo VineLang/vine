@@ -14,11 +14,11 @@ pub fn main(&io: &IO) {
     let west = ('#', 0);
     for char in line.into_iter() {
       let i = regions.new();
-      if west is (c, j) && c == char {
+      if west is (c, j) and c == char {
         let j = regions.find(j);
         i = regions.union_found(i, j);
       }
-      if north.pop_front() is Some(c, j) && c == char {
+      if north.pop_front() is Some(c, j) and c == char {
         let j = regions.find(j);
         i = regions.union_found(i, j);
       }
@@ -57,7 +57,7 @@ pub fn main(&io: &IO) {
       let ne = north.pop_front().unwrap_or('#');
       let se = s.pop_front().unwrap_or('#');
       let fn check_corner(x: N32, y: N32, a: Char, b: Char, c: Char, d: Char) {
-        if a != '#' && (b != a != d || a == b == d != c) {
+        if a != '#' and (b != a != d or a == b == d != c) {
           let i = x + y * width;
           let a = regions.get_area(i);
           bulk += a;

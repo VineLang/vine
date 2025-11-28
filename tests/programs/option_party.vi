@@ -61,14 +61,14 @@ pub fn main(&io: &IO) {
   print_bool(Some() is None());
 
   io.println("is_some_and:");
-  print_bool(None[N32]() is Some(x) && x > 0);
-  print_bool(Some(0) is Some(x) && x > 0);
-  print_bool(Some(1) is Some(x) && x > 0);
+  print_bool(None[N32]() is Some(x) and x > 0);
+  print_bool(Some(0) is Some(x) and x > 0);
+  print_bool(Some(1) is Some(x) and x > 0);
 
   io.println("is_some_implies:");
-  print_bool(None[N32]() is Some(x) => x > 0);
-  print_bool(Some(0) is Some(x) => x > 0);
-  print_bool(Some(1) is Some(x) => x > 0);
+  print_bool(None[N32]() is Some(x) impl x > 0);
+  print_bool(Some(0) is Some(x) impl x > 0);
+  print_bool(Some(1) is Some(x) impl x > 0);
 
   io.println("take:");
   let option = Some(3);

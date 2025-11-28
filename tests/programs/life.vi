@@ -38,15 +38,15 @@ pub fn main(&io: &IO) {
   let fn run_cmd(cmd: String) {
     let (name, args) = cmd.split_once(" ");
     when {
-      name == "size" && args is Some(args) && args.split_once(" ") is (w, Some(h)) {
-        if N32::parse(w) is Some(w) && N32::parse(h) is Some(h) {
+      name == "size" and args is Some(args) and args.split_once(" ") is (w, Some(h)) {
+        if N32::parse(w) is Some(w) and N32::parse(h) is Some(h) {
           resize(w, h);
         }
       }
       name == "seed" {
         seed(args.unwrap_or(default_seed));
       }
-      name == "step" && args is Some(arg) {
+      name == "step" and args is Some(arg) {
         if N32::parse(arg) is Some(steps) {
           advance(steps);
         }

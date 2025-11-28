@@ -24,11 +24,11 @@ pub fn main(&io: &IO) {
         let triangle_tips = [];
         let a_out = a_out;
         while a_out.remove_min() is Some(c, _) {
-          let bool = graph.at(&b) is Some(&b) && b.at(&c) is Some(&_);
+          let bool = graph.at(&b) is Some(&b) and b.at(&c) is Some(&_);
           if bool {
             triangle_tips ++= [c];
             triangles += 1;
-            if a / 26 == 19 || b / 26 == 19 || c / 26 == 19 {
+            if a / 26 == 19 or b / 26 == 19 or c / 26 == 19 {
               t_triangles += 1;
             }
           }
@@ -53,7 +53,7 @@ pub fn main(&io: &IO) {
       while tips.pop_front() is Some(x) {
         let out = [];
         for y in tips.into_iter() {
-          if graph.at(&x) is Some(&m) && m.at(&y) is Some(&_) {
+          if graph.at(&x) is Some(&m) and m.at(&y) is Some(&_) {
             out ++= [y];
           }
         }

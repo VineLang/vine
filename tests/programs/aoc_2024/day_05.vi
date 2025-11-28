@@ -5,7 +5,7 @@ use #root::data::Array;
 pub fn main(&io: &IO) {
   let masks = Array::new(100, ((0, 0), (0, 0)));
 
-  while io.read_line() is Some(line) && line.len() != 0 {
+  while io.read_line() is Some(line) and line.len() != 0 {
     let (left, right) = line.split_once("|");
     let a = N32::parse(left).unwrap();
     let b = N32::parse(right.unwrap()).unwrap();

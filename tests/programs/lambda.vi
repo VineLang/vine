@@ -89,7 +89,7 @@ mod Parser {
   pub fn .parse_term(&self: &Parser) -> Term {
     let term = self.parse_atom();
     self.skip_ws();
-    while self.chars.len() != 0 && self.chars.get(0).unwrap() != ')' {
+    while self.chars.len() != 0 and self.chars.get(0).unwrap() != ')' {
       term = Term::Apply(term, self.parse_atom());
       self.skip_ws();
     }
@@ -121,7 +121,7 @@ mod Parser {
       }
       _ {
         let var = self.parse_var();
-        if self.scope.at(&var) is Some(&binds) && binds.len() != 0 {
+        if self.scope.at(&var) is Some(&binds) and binds.len() != 0 {
           let term;
           binds.at(0).unwrap().*.push_back(~term);
           term
@@ -134,7 +134,7 @@ mod Parser {
 
   fn .parse_var(&self: &Parser) -> String {
     let chars = [];
-    while self.chars.len() != 0 && self.chars.get(0) is Some(char) && char.is_alphanumeric() {
+    while self.chars.len() != 0 and self.chars.get(0) is Some(char) and char.is_alphanumeric() {
       self.chars.pop_front();
       chars.push_back(char);
     }
@@ -146,13 +146,13 @@ mod Parser {
 
   fn .expect_char(&self: &Parser, char: Char) {
     self.skip_ws();
-    if !(self.chars.pop_front() is Some(c) && c == char) {
+    if !(self.chars.pop_front() is Some(c) and c == char) {
       return self.error("expected `{String([char])}`");
     }
   }
 
   fn .skip_ws(&self: &Parser) {
-    while self.chars.len() != 0 && self.chars.get(0).unwrap().is_whitespace() {
+    while self.chars.len() != 0 and self.chars.get(0).unwrap().is_whitespace() {
       self.chars.pop_front();
     }
   }

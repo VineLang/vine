@@ -10,7 +10,7 @@ pub struct* Int(Bool, Nat);
 
 pub mod Int {
   pub fn from_parts(negative: Bool, magnitude: Nat) -> Int {
-    if negative && magnitude.is_zero() {
+    if negative and magnitude.is_zero() {
       0[Int]
     } else {
       Int(negative, magnitude)
@@ -65,13 +65,13 @@ pub mod Int {
 
   pub impl mul_n32: Mul[Int, N32, Int] {
     fn mul(Int(a_sign, a_mag), n: N32) -> Int {
-      Int(a_sign && n != 0, a_mag * n)
+      Int(a_sign and n != 0, a_mag * n)
     }
   }
 
   pub impl mul: Mul[Int, Int, Int] {
     fn mul(Int(a_sign, a_mag), Int(b_sign, b_mag)) -> Int {
-      if a_mag.is_zero() || b_mag.is_zero() {
+      if a_mag.is_zero() or b_mag.is_zero() {
         return 0[Int];
       }
       Int(a_sign != b_sign, a_mag * b_mag)
@@ -193,8 +193,8 @@ pub mod Int {
   pub impl ord: Ord[Int] {
     fn cmp(&Int(a_sign, a_mag), &Int(b_sign, b_mag)) -> Ord {
       when {
-        a_sign && !b_sign { Ord::Lt() }
-        !a_sign && b_sign { Ord::Gt() }
+        a_sign and !b_sign { Ord::Lt() }
+        !a_sign and b_sign { Ord::Gt() }
         _ {
           let cmp = a_mag.cmp(&b_mag);
           if a_sign {
@@ -242,7 +242,7 @@ pub mod Int {
 
   pub impl show: Show[Int] {
     fn show(&self: &Int) -> Show {
-      if self.sign() || self.abs().is_zero() {
+      if self.sign() or self.abs().is_zero() {
         Show::Literal("{self}")
       } else {
         Show::Literal("+{self}")

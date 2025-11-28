@@ -13,7 +13,7 @@ pub fn main(&io: &IO) {
 }
 
 pub fn lcs[T*; Eq[T]](a: List[T], b: List[T]) -> N32 {
-  if a.len() == 0 || b.len() == 0 {
+  if a.len() == 0 or b.len() == 0 {
     return 0;
   }
 

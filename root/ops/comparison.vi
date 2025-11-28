@@ -25,13 +25,13 @@ pub mod Eq {
     fn eq(&a: &T, &b: &T) -> Bool {
       let &(ai, ar) = &a as &(I, R);
       let &(bi, br) = &b as &(I, R);
-      ai == bi && ar == br
+      ai == bi and ar == br
     }
 
     fn ne(&a: &T, &b: &T) -> Bool {
       let &(ai, ar) = &a as &(I, R);
       let &(bi, br) = &b as &(I, R);
-      ai != bi || ar != br
+      ai != bi or ar != br
     }
   }
 

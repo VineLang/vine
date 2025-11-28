@@ -71,7 +71,7 @@ fn walk(&grid: &Array[Array[Char]], pos: (N32, N32)) -> (Bool, N32) {
   let looped = while repeat < 3 * distinct {
     let new_pos = pos + dir;
     let (x, y) = new_pos;
-    if x >= width || y >= height {
+    if x >= width or y >= height {
       break false;
     }
     let &cell = (*grid.at(y).unwrap()).at(x).unwrap();
