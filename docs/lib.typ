@@ -4,7 +4,7 @@
 
 #import hyptyp: t
 
-#let theme(theme, fg, fgl, bg, ..x) = {
+#let theme(theme, fg, fgl, bg) = {
   let comment = color.mix(space: rgb, (fg, 50%), (bg, 50%))
   let keyword = color.mix(space: oklab, (theme, 80%), (fg, 20%));
   let vague = fgl;

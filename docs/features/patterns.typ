@@ -43,7 +43,7 @@ float // 2.0
 _Struct_ patterns unwrap @structs[structs]:
 
 ```vi
-struct Foo(N32);
+struct* Foo(N32);
 let foo = Foo(123);
 
 // struct pattern
@@ -52,7 +52,7 @@ x // 123
 ```
 
 ```vi
-struct Point((N32, N32));
+struct* Point((N32, N32));
 let p = Point((1, 2));
 
 // struct pattern with tuple subpattern
@@ -67,7 +67,7 @@ y // "abc"
 ```
 
 ```vi
-struct Place({ latitude: F32, longitude: F32 });
+struct* Place({ latitude: F32, longitude: F32 });
 let magnetic_north_pole = Place({ latitude: 86.494, longitude: 162.867 });
 
 // struct pattern with object subpattern
@@ -86,7 +86,6 @@ x // 1
 
 These are all _complete patterns_, because they match all values of their type.
 Only complete patterns can be used in `let` bindings and `fn` parameters.
-#todo[talk about let/else somewhere?]
 
 Other kinds of complete patterns include:
 
@@ -107,12 +106,12 @@ For example:
 fn display(score: Option[N32]) -> String {
   match score {
     Some(value) { "score: {value}" }
-    None { "no score" }
+    None() { "no score" }
   }
 }
 
 display(Some(123)) // "score: 123"
-display(None) // "no score"
+display(None()) // "no score"
 ```
 
 Incomplete patterns can also be used with the @is[`is` operator].

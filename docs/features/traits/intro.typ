@@ -3,7 +3,15 @@
 = Using Traits
 
 A _trait_ defines functionality that can be shared between types.
-For example, one could define an `Equal` trait to represent equality.
+For example, one could define
+  an `Equal` trait#footnote[
+    Note that the standard library defines an
+      @comparison-traits[`Eq` trait]
+      similar to the `Equal` trait we've written,
+      and this is what underlies the #op[`==`] operator.
+  ]
+  to represent equality.
+
 
 ```vi
 trait Equal[T] {
@@ -19,14 +27,14 @@ Traits only define the signature of their methods,
   so to actually call these methods, the trait has to be _implemented_.
 
 ```vi
-struct Color({ r: N32, g: N32, b: N32 });
+struct* Color({ r: N32, g: N32, b: N32 });
 const red: Color = Color({ r: 255, g: 0, b: 0 });
 const green: Color = Color({ r: 0, g: 255, b: 0 });
 const blue: Color = Color({ r: 0, g: 0, b: 255 });
 
 impl equal_color: Equal[Color] {
   fn equal(x: Color, y: Color) -> Bool {
-    x.r == y.r && x.g == y.g && x.b == y.b
+    x.r == y.r and x.g == y.g and x.b == y.b
   }
 }
 ```
@@ -44,7 +52,7 @@ If we wanted to use this method on other types, we could create more implementat
 ```vi
 impl equal_bool: Equal[Bool] {
   fn equal(x: Bool, y: Bool) -> Bool {
-    x && y || !x && !y
+    x and y or !x and !y
   }
 }
 ```
@@ -90,7 +98,7 @@ impl equal_list[T; Equal[T]]: Equal[List[T]] {
     if x.len() != y.len() {
       return false;
     }
-    while x.pop_front() is Some(a) && y.pop_front() is Some(b) {
+    while x.pop_front() is Some(a) and y.pop_front() is Some(b) {
       if not_equal(a, b) {
         return false;
       }
@@ -117,4 +125,3 @@ We can even check equality for lists of lists of colors!
 [[], [red]].equal([[red], []]) // false
 ```
 
-#todo[note that std has `Eq`]

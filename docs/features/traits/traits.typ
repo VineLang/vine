@@ -1,6 +1,6 @@
 #import "/lib.typ": *
 
-= Traits
+= Traits <traits>
 
 A _trait_ defines functionality that can be shared between types.
 

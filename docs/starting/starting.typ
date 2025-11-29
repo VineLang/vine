@@ -1,6 +1,6 @@
 #import "/lib.typ": *
 
-= Getting Started <foo>
+= Getting Started
 
 Let's get started!
 Once you've @installation[installed Vine],

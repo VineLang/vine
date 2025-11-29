@@ -65,7 +65,7 @@ The type #ty[`Bool`] describes booleans.
 
 The two #ty[`Bool`] values can be written as literals (#expr[`true`], #expr[`false`]).
 
-`Bool`s support the usual short-circuiting logical operators (#op[`&&`], #op[`||`], #op[`!`])
+`Bool`s support the usual short-circuiting logical operators (#op[`and`], #op[`or`], #op[`!`])
   and non-short-circuiting ("bitwise") operators (#op[`&`], #op[`|`], #op[`^`]).
 
 Expressions that evaluate to booleans are called @conditions[conditions].

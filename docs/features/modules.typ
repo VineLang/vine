@@ -2,9 +2,7 @@
 
 = Modules
 
-#todo[consider rephrasing]
-
-Vine programs are structured into _modules_.
+Vine programs are comrpised of _modules_.
 Every Vine file is a module.
 Modules consist of a collection of _items_.
 
@@ -26,6 +24,8 @@ By default, items are private,
 Items can be made public with the `pub` keyword;
   public items can be accessed anywhere.
 
+== Submodules
+
 Modules can have _submodules_.
 
 ```vi
@@ -42,14 +42,7 @@ pub fn main(&io: &IO) {
 }
 ```
 
-Submodules can be included from a separate file:
-
-```vi
-// messages.vi
-
-pub const greeting: String = "Hello, world!";
-pub const farewell: String = "Goodbye, world!";
-```
+A submodule can be included from a separate file by specifying its path:
 
 ```vi
 // main.vi
@@ -61,6 +54,43 @@ pub fn main(&io: &IO) {
   io.println(messages::farewell);
 }
 ```
+
+```vi
+// messages.vi
+
+pub const greeting: String = "Hello, world!";
+pub const farewell: String = "Goodbye, world!";
+```
+
+It is idiomatic for modules which have children
+  to have a path `<name>/<name>.vi`,
+  and for their children to be at path `<name>/<child>.vi`
+  (or `<name>/<child>/<child>.vi` if it also has children).
+When this convention is followed,
+  submodule paths can be omitted,
+  and will be found automatically.
+
+```vi
+// main/main.vi
+
+mod messages; // automatically refers to `main/messages.vi`
+
+use messages::{greeting, farewell};
+
+pub fn main(&io: &IO) {
+  io.println(greeting);
+  io.println(farewell);
+}
+```
+
+```vi
+// main/messages.vi
+
+pub const greeting: String = "Hello, world!";
+pub const farewell: String = "Goodbye, world!";
+```
+
+== Imports
 
 Items from other modules can be imported with a `use` item:
 
@@ -76,10 +106,3 @@ pub fn main(&io: &IO) {
   io.println(farewell);
 }
 ```
-
-#todo[visibility between private and public]
-
-#todo[implicit submodule paths]
-
-#todo[module collapse (?)]
-

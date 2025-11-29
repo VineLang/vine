@@ -13,28 +13,28 @@ The `Cast` trait is also used in string interpolation to cast interpolated value
 == Arithmetic Operators
 
 Implementations of
-  the `Add`, `Sub`, `Mul`, `Div`, `Rem`, and `Neg` traits (from #vi[`std::ops::arithmetic`])
+  the `Add`, `Sub`, `Mul`, `Div`, `Rem`, and `Neg` traits (from #vi[`#root::ops::arithmetic`])
   control the behavior of
   the #op[`+`], #op[`-`], #op[`*`], #op[`/`], #op[`%`], and unary #op[`-`] operators.
 
 The standard library defines implementations of these traits for all numeric types.
 
 One can opt-in to element-wise arithmetic on pairs (#expr[`(1, 2) + (3, 4) == (4, 6)`])
-by importing the implementations from #vi[`std::ops::elementwise`].
+by importing the implementations from #vi[`#root::ops::elementwise`].
 
 == Bitwise Operators
 
 Implementations of
-  the `And`, `Or`, `Xor`, `Not`, `Shl`, and `Shr` traits (from #vi[`std::ops::bitwise`])
+  the `And`, `Or`, `Xor`, `Not`, `Shl`, and `Shr` traits (from #vi[`#root::ops::bitwise`])
   control the behavior of
   the #op[`&`], #op[`|`], #op[`^`], #op[`!`], #op[`<<`], and #op[`>>`] operators.
 
 The standard library defines implementations of these traits for all integer types,
   and implementations of the first four for booleans.
 
-(The logical operators #op[`&&`], #op[`||`], and #op[`=>`] cannot be overloaded.)
+(The logical operators #op[`and`], #op[`or`], and #op[`impl`] cannot be overloaded.)
 
-== Comparison Operators
+== Comparison Operators <comparison-traits>
 
 Implementations of the `Eq` trait control the behavior of the #op[`==`] and #op[`!=`] operators.
 

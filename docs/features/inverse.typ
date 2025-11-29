@@ -2,7 +2,13 @@
 
 = The Inverse <inverse>
 
-#todo[rewrite etc.]
+*Note*:
+This page is *bad* and _should feel bad_.
+It is left here for posterity.
+The inverse operator is a _niche, low-level_ feature,
+  and is not explained well here. 
+
+#t.hr()
 
 Vine's concept of the _inverse_ is not something seen in other programming languages,
   as it is a concept that is only possible due to the unique properties of interaction nets.
@@ -216,7 +222,7 @@ fn sub_min(&list: &List[N32]) {
 
   let it = list.iter();
   while it.next() is Some(&val) {
-    if min_acc is Some(m) => val < m {
+    if min_acc is Some(m) impl val < m {
       min_acc = Some(val);
     }
   }
@@ -266,7 +272,7 @@ fn sub_min(&list: &List[N32]) {
   let it = list.iter();
   while it.next() is Some(&val) {
     // as we iterate over the list, we update `min_acc` as usual
-    if min_acc is Some(m) => val < m {
+    if min_acc is Some(m) impl val < m {
       min_acc = Some(val);
     }
     

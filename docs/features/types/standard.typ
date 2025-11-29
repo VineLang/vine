@@ -48,11 +48,10 @@ Arrays are optimized for fast random access.
 Accessing an arbitrary value in the array is `O(log(n))`.
 
 Elements can be added and removed from either the front or the back with
-  #fn[`push_front`]/#fn[`pop_front`]/#fn[`push_back`]/#fn[`pop_back`] (`O(log(n))`).
+  #fn[`.push_front`] / #fn[`.pop_front`] / #fn[`.push_back`] / #fn[`.pop_back`] (`O(log(n))`).
 
 `Array`s can be converted to and from lists with
-  #expr[`Array::to_list`]/#expr[`Array::from_list`] (`O(n)`).
-#todo[it's actually cast]
+  #expr[`array as List`] and #expr[`list as Array`] (`O(n)`).
 
 == `Map`
 
@@ -62,7 +61,20 @@ Maps are sorted by their key,
   and can be efficiently iterated over using #fn[`.iter`] and #fn[`.into_iter`].
 
 Inserting, accessing, and removing a value by key can be done with
-  #fn[`.insert`]/#fn[`.get`]/#fn[`.remove`] (`O(log(n))`).
+  #fn[`.insert`] / #fn[`.get`] / #fn[`.remove`] (`O(log(n))`).
 
-The maximum/minimum key-value pair can be removed with
-  #fn[`.remove_max`]/#fn[`.remove_min`] (`O(log(n))`).
+The minimum / maximum key-value pair can be removed with
+  #fn[`.remove_min`] / #fn[`.remove_max`] (`O(log(n))`).
+
+== `Set`
+
+The generic type #ty[`Set[T]`] describes sets of elements of type #ty[`T`].
+
+Sets are sorted by their key,
+  and can be efficiently iterated over using #fn[`.iter`] and #fn[`.into_iter`].
+
+Inserting, checking for, and removing a value can be done with
+  #fn[`.insert`] / #fn[`.has`] / #fn[`.remove`] (`O(log(n))`).
+
+The minimum / maximum value pair can be removed with
+  #fn[`.remove_min`] / #fn[`.remove_max`] (`O(log(n))`).

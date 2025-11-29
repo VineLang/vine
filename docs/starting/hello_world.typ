@@ -5,7 +5,7 @@
 Let's run our first Vine program!
 
 ```vi
-// vine/examples/hello_world.vi
+// hello_world.vi
 
 pub fn main(&io: &IO) {
   io.println("Hello, world!");
@@ -15,7 +15,7 @@ pub fn main(&io: &IO) {
 We can run this with:
 
 ```bash
-vine run vine/examples/hello_world.vi
+vine run hello_world.vi
 ```
 
 You should see something like the following:
@@ -24,23 +24,23 @@ You should see something like the following:
 Hello, world!
 
 Interactions
-  Total                  358
-  Annihilate             185
+  Total                  341
+  Annihilate             180
   Commute                  0
-  Copy                    27
-  Erase                   54
-  Expand                  37
+  Copy                    23
+  Erase                   47
+  Expand                  36
   Call                    41
   Branch                  14
 
 Memory
-  Heap                   720 B
-  Allocated            7_440 B
-  Freed                7_440 B
+  Heap                   640 B
+  Allocated            7_216 B
+  Freed                7_216 B
 
 Performance
   Time                     0 ms
-  Speed            6_979_645 IPS
+  Speed           10_740_157 IPS
 ```
 
 At the top, notice that it successfully printed `Hello, world!`.

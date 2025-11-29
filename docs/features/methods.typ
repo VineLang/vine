@@ -27,8 +27,7 @@ Method candidates include:
 
 - any method that is in scope
 - any method defined in the module of the receiver type
-
-#todo[discuss traits?]
+- any method defined by a candidate @traits[trait]
 
 This means that if you define a custom type,
   and declare methods in its module,
@@ -36,7 +35,7 @@ This means that if you define a custom type,
   without needing to explicitly import them:
 
 ```vi
-enum Shape {
+enum* Shape {
   Circle(F32),
   Rect({ width: F32, height: F32 }),
 }

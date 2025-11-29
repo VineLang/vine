@@ -20,12 +20,16 @@ x = 5; // assign `5` to `x`
 x // 5
 ```
 
-Using a variable with no value will currently lead to unexpected behavior.
-In the future, this will be a type error. #todo[it's the future]
-
 (Note that, in more advanced uses of the #vi[`let`] statement,
   declaring a variable with an initializer is not always equivalent
   to declaring it no initializer and then assigning to it.)
+
+Using a variable with no value is an error.
+
+```vi
+let x;
+x // error!
+```
 
 All variables have a type, which is inferred by default.
 

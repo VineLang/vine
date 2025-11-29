@@ -76,20 +76,35 @@ If this form does not match the form of the expression's position,
 
 === Coercion
 
-There are two rules for coercion.
+There are three rules for coercion:
 
-- When a place is coerced to a value,
-    the resulting value is a copy of the place's value;
-    the other copy is put into the place's space.
-
-- When a place is coerced to a space,
+- If `Fork[T]` is implemented,
+    when a place of type `T` is coerced to a value,
+    the value is `Fork::fork(&place)`.
+- If `Drop[T]` is implemented,
+    when a place of type `T` is coerced to a space,
     the resulting space is the place's space;
-    the place's value is discarded.
+    the place's value is dropped.
+- If `Drop[T]` is implemented,
+    when a value of type `T` is coerced to a place,
+    the resulting place is a combination of the value
+    and a space that drops the updated value.
 
-#todo[update coercion rules for fork drop]
+// In code:
+// ```vi
+// fn place_to_value[T; Fork[T]](&place: &T) -> T {
+//   Fork::fork(&place)
+// }
+//
+// fn place_to_space[T; Drop[T]](&place: &T) -> ~T {
+//   let &(value; space) = &place;
+//   Drop::drop(value)
+//   ~space
+// }
+//
+// fn value_to_place[T; Drop[T]](value: T) -> &T {
+//   &(value; |> t { Drop::drop(t) })
+// }
+// ```
 
-These two rules result in the behavior described in the first section.
-
-Values and spaces cannot be coerced.
-It is an error to have a value expression in a non-value position,
-  or a space expression in a non-space position.
+These rules result in the behavior described in the first section.

@@ -20,7 +20,6 @@ Extrinsic branches are the only way for the interaction net to inspect extrinsic
 
 Currently, there is a fixed set of extrinsics built-in to IVM.
 In the future, this will be extensible (#issue(54)).
-#todo[we're halfway there]
 
 == Extrinsic Value Types
 

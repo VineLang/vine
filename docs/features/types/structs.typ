@@ -6,8 +6,11 @@ A _struct_ creates a new type that wraps some _content_.
 
 ```vi
 // define a struct named `Id` with content type `N32`
-struct Id(N32);
+struct* Id(N32);
 ```
+
+(The `*` specifies that the struct can be freely copied and deleted.
+Most of this time, this is what you want; see @flex[flexibility] for more detail.)
 
 Structs can be constructed by specifying their content:
 
@@ -35,8 +38,8 @@ Structs are also _nominal_;
   even one with the same content:
 
 ```vi
-struct Foo(String);
-struct Bar(String);
+struct* Foo(String);
+struct* Bar(String);
 let foo: Foo = Bar("foo"); // error: expected type `Foo`, found type `Bar`
 ```
 
@@ -44,7 +47,7 @@ It's often useful to have struct types which wrap multiple fields;
   this can be accomplished by having the content be a composite type:
 
 ```vi
-struct Point((N32, N32));
+struct* Point((N32, N32));
 let p = Point((1, 2));
 // for tuples, the inner set of parentheses can be omitted:
 let p = Point(1, 2);
@@ -59,7 +62,7 @@ p.1 // 2
 ```
 
 ```vi
-struct Place({
+struct* Place({
   latitude: F32,
   longitude: F32,
 });
@@ -81,12 +84,12 @@ magnetic_north_pole.longitude // 162.867
 Struct types can also be generic.
 
 ```vi
-struct Pair[T]((T, T));
+struct* Pair[T]((T, T));
 
 let u = Pair(1, 2); // u: Pair[N32]
 let v = Pair(true, false); // v: Pair[Bool]
 
-struct Box[T]({ value: T })
+struct* Box[T]({ value: T })
 
 let x = Box({ value: 46 }); // x: Box[N32]
 let y = Box({ value: "abc" }); // y: Box[String]
@@ -96,7 +99,7 @@ By default, the content of a struct is private to the module the struct was defi
 
 ```vi
 mod points {
-  pub struct Point((N32, N32));
+  pub struct* Point((N32, N32));
   
   pub const origin: Point = Point(0, 0);
 }
@@ -110,7 +113,7 @@ The content can be made public by giving it a visibility of `pub`:
 
 ```vi
 mod points {
-  pub struct Point(pub (N32, N32));
+  pub struct* Point(pub (N32, N32));
   //               ^-- visibility of the content
   
   pub const origin: Point = Point(0, 0);

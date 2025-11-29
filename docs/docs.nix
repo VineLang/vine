@@ -13,6 +13,7 @@ let
       inherit (typsitter.lib.typsitterDefaultGrammars pkgs)
         bash
         json
+        toml
         ;
       vine = grammars.packages.tree-sitter-vine;
       ivy = grammars.packages.tree-sitter-ivy;

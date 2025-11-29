@@ -8,12 +8,12 @@ Conditions include:
 
 - the usual:
   - boolean literals (#expr[`true`], #expr[`false`])
-  - short-circuiting logical operators (#op[`&&`], #op[`||`], #op[`!`])
+  - short-circuiting logical operators (#op[`and`], #op[`or`], #op[`!`])
   - non-short-circuiting ("bitwise") operators (#op[`&`], #op[`|`], #op[`^`])
   - comparison operators (#op[`==`], #op[`!=`], #op[`<`], #op[`<=`], #op[`>`], #op[`>=`])
 - comparison chains
 - the #op[`is`] operator
-- the implication operator (#op[`=>`])
+- the implication operator (#op[`impl`])
 
 == Comparison Chains
 
@@ -43,23 +43,23 @@ As a contrived example, these are equivalent:
 (1 == 1) & (1 < 2) & (2 <= 3) & (3 > 0) & (0 != 5) // true
 ```
 
-== The #op[`is`] Operator <is>
+== The `is` Operator <is>
 
-The `is` operator checks if an expression matches some pattern, and returns a boolean.
+The #op[`is`] operator checks if an expression matches some pattern, and returns a boolean.
 
 ```vi
 let option = Some(1);
 option is Some(_); // true
-option is None; // false
+option is None(); // false
 ```
 
 Any variables bound by the patterns are in scope in subsequent *true-paths*
-  including #op[`&&`] chains, then-blocks of an #vi[`if`], and the body of a #vi[`while`].
+  including #op[`and`] chains, then-blocks of an #vi[`if`], and the body of a #vi[`while`].
 
 ```vi
 let option = Some(1);
 
-option is Some(value) && value > 0; // true
+option is Some(value) and value > 0; // true
 
 if option is Some(value) {
   value; // 1
@@ -68,27 +68,27 @@ if option is Some(value) {
 }
 ```
 
-A true-path is broken by negation (#op[`!`]) and disjunction (#op[`||`]).
+A true-path is broken by negation (#op[`!`]) and disjunction (#op[`or`]).
 
 ```vi
 // invalid:
-!(option is Some(value)) && value > 0
+!(option is Some(value)) and value > 0
 
 // invalid:
-option is Some(value) || value > 0
+option is Some(value) or value > 0
 ```
 
 == Implication
 
 In logic, the statement "P implies Q" is true if, whenever P is true, Q is also true.
 This is equivalent to "P is false, or Q is true".
-Vine has an implication operator, #op[`=>`], with the same semantics.
+Vine has an implication operator, #op[`impl`], with the same semantics.
 
 ```vi
-true => true // true
-true => false // false
-false => true // true
-false => false // true
+true impl true // true
+true impl false // false
+false impl true // true
+false impl false // true
 ```
 
 The implies operator also continues the true-path;
@@ -96,12 +96,12 @@ The implies operator also continues the true-path;
 
 ```vi
 let x = Some(1);
-x is Some(value) => value > 0 // true
-x is Some(value) => value == 0 // false
+x is Some(value) impl value > 0 // true
+x is Some(value) impl value == 0 // false
 
 let y = None;
-y is Some(value) => value > 0 // true
-y is Some(value) => value == 0 // true
+y is Some(value) impl value > 0 // true
+y is Some(value) impl value == 0 // true
 ```
 
 A common pattern in other languages
@@ -110,5 +110,5 @@ A common pattern in other languages
 In Vine, this is written with the implication operator:
 
 ```vi
-value is Some(value) => validate(value)
+value is Some(value) impl validate(value)
 ```

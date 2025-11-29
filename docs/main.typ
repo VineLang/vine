@@ -10,7 +10,7 @@
 
 #show: it => context if target() == "paged" {
   set page(numbering: "1")
-  show raw.where(block: false): box.with(outset: (y: 2pt), inset: (x: 2pt), radius: 2pt, fill: c5)
+  show raw.where(block: false): box.with(outset: (y: 2pt), inset: (x: 2pt), radius: 2pt, fill: dawn-white)
   it
 } else {
   it
@@ -22,7 +22,7 @@
 #show ref: it => {
   let el = it.element
   if target() != "html" and el != none {
-    show: underline.with(stroke: ca)
+    show: underline.with(stroke: theme-dim)
     show: link.with(el.location())
     it.supplement
     " (page "
