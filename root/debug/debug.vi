@@ -130,7 +130,7 @@ pub struct* Frame(pub { path: List[String], file: String, line: N32, col: N32 })
 pub mod Frame {
   pub impl to_string: Cast[Frame, String] {
     fn cast(Frame({ path, file, line, col })) -> String {
-      "{path.join("::")} ({file}:{line}:{col})"
+      "#{path.join("::")} ({file}:{line}:{col})"
     }
   }
 }
