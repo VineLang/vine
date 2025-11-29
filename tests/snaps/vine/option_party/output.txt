@@ -20,7 +20,7 @@ or_option:
   Some(1)
   Some(2)
   Some(1)
-unwrap_or:
+or_use:
   0
   1
 is_some:
@@ -42,5 +42,5 @@ take:
   None()
   None()
   None()
-unwrap:
+assume:
   42

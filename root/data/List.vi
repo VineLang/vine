@@ -44,7 +44,7 @@ pub mod List {
   }
 
   pub fn .get[T+](&self: &List[T], i: N32) -> Option[T] {
-    self.at(i).as_forked()
+    self.at(i).as_fork()
   }
 
   pub fn .slice[T?, B1?, B2?; Bound[B1, N32], Bound[B2, N32]](
@@ -99,7 +99,7 @@ pub mod List {
 
   pub fn .filter[T?, F*; fn F(&T) -> Bool](self: List[T], pred: F) -> List[T] {
     let result = [];
-    for value in self.into_iter() {
+    for value in self.iter() {
       if pred(&value) {
         result.push_back(value);
       }
@@ -156,7 +156,7 @@ pub mod List {
   }
 
   pub fn .find[T, F*; fn F(&T) -> Bool](&self: &List[T], pred: F) -> Option[&T] {
-    for &value in self.iter() {
+    for &value in self.iter_ref() {
       if pred(&value) {
         break Some(&value);
       }
@@ -172,7 +172,7 @@ pub mod List {
   pub fn .join[T; Cast[T, String]](list: List[T], sep: String) -> String {
     if list.head_tail() is Some(head, tail) {
       let str = "{head}";
-      for val in tail.into_iter() {
+      for val in tail.iter() {
         str ++= "{sep}{val}";
       }
       str
@@ -197,7 +197,7 @@ pub mod List {
   pub fn .trim_back_where[T?, F*; fn F(&T) -> Bool](&self: &List[T], pred: F) {
     let trimmed = [];
     let ~trimming = true;
-    for elem in self.into_iter() {
+    for elem in self.iter() {
       let matches = pred(&elem);
       if !~trimming {
         trimmed.push_back(elem);
@@ -212,7 +212,7 @@ pub mod List {
   pub impl show[T; Show[T]]: Show[List[T]] {
     fn show(&self: &List[T]) -> Show {
       let entries = [];
-      for &value in self.iter() {
+      for &value in self.iter_ref() {
         entries.push_back(value.show());
       }
       Show::List(entries)
@@ -230,7 +230,7 @@ pub mod List {
 
   fn .sort_prefix[T; Ord[T]](&list: &List[T], n: N32) -> List[T] {
     if n == 1 {
-      [list.pop_front().unwrap()]
+      [list.pop_front().assume()]
     } else {
       merge(sort_prefix(&list, n / 2), sort_prefix(&list, (n + 1) / 2))
     }
@@ -241,8 +241,8 @@ pub mod List {
       return a ++ b;
     }
     let out = [];
-    let x = a.pop_front().unwrap();
-    let y = b.pop_front().unwrap();
+    let x = a.pop_front().assume();
+    let y = b.pop_front().assume();
 
     loop {
       if y < x {
@@ -268,11 +268,11 @@ pub mod List {
   }
 
   pub fn .is_sorted[T; Ord[T]](&list: &List[T]) -> Bool {
-    let iter = list.iter();
-    let Some(prev, iter) = iter.advance() else {
+    let iter_ref = list.iter_ref();
+    let Some(prev, iter_ref) = iter_ref.advance() else {
       return true;
     };
-    for next in iter {
+    for next in iter_ref {
       if prev > next {
         return false;
       }
@@ -280,28 +280,29 @@ pub mod List {
     }
     true
   }
-  pub struct Iter[T]((N32, &Buf[T], &(N32, ~Buf[T])));
 
-  pub fn .iter[T](&List[T](len, buf, end)) -> Iter[T] {
-    Iter(len, &buf, &(len, end))
+  pub struct IterRef[T]((N32, &Buf[T], &(N32, ~Buf[T])));
+
+  pub fn .iter_ref[T](&List[T](len, buf, end)) -> IterRef[T] {
+    IterRef(len, &buf, &(len, end))
   }
 
-  pub mod Iter {
-    pub impl iterator[T]: Iterator[Iter[T], &T] {
-      fn advance(Iter[T](len, &buf, &full)) -> Option[(&T, Iter[T])] {
+  pub mod IterRef {
+    pub impl iterator[T]: Iterator[IterRef[T], &T] {
+      fn advance(IterRef[T](len, &buf, &full)) -> Option[(&T, IterRef[T])] {
         if len != 0 {
           let &Buf(head, tail) = &buf;
-          Some(&head, Iter(len - 1, &tail, &full))
+          Some(&head, IterRef(len - 1, &tail, &full))
         } else {
           None()
         }
       }
     }
 
-    pub impl fork[T]: Fork[Iter[T]];
-    pub impl drop[T]: Drop[Iter[T]];
+    pub impl fork[T]: Fork[IterRef[T]];
+    pub impl drop[T]: Drop[IterRef[T]];
 
-    pub fn .tail[T](&Iter[T](len, &buf, &(full_len, end))) -> &List[T] {
+    pub fn .tail[T](&IterRef[T](len, &buf, &(full_len, end))) -> &List[T] {
       full_len -= len;
       let ref = &List(len, buf, end);
       full_len += len;
@@ -309,18 +310,18 @@ pub mod List {
     }
   }
 
-  pub struct* IntoIter[T](List[T]);
+  pub struct* Iter[T](List[T]);
 
-  pub fn .into_iter[T](self: List[T]) -> IntoIter[T] {
-    IntoIter(self)
+  pub fn .iter[T](self: List[T]) -> Iter[T] {
+    Iter(self)
   }
 
-  pub mod IntoIter {
-    pub impl iterator[T]: Iterator[IntoIter[T], T] {
-      fn advance(IntoIter[T](List(len, buf, end))) -> Option[(T, IntoIter[T])] {
+  pub mod Iter {
+    pub impl iterator[T]: Iterator[Iter[T], T] {
+      fn advance(Iter[T](List(len, buf, end))) -> Option[(T, Iter[T])] {
         if len != 0 {
           let Buf(head, tail) = buf;
-          Some(head, IntoIter(List(len - 1, tail, end)))
+          Some(head, Iter(List(len - 1, tail, end)))
         } else {
           unsafe::erase((buf, end));
           None()
@@ -328,17 +329,17 @@ pub mod List {
       }
     }
 
-    pub impl to_list[T]: Cast[IntoIter[T], List[T]] {
-      fn cast(IntoIter[T](list)) -> List[T] {
+    pub impl to_list[T]: Cast[Iter[T], List[T]] {
+      fn cast(Iter[T](list)) -> List[T] {
         list
       }
     }
   }
 
   pub impl collect[T]: Collect[List[T], T] {
-    fn collect[I; Iterator[I, T]](iter: I) -> List[T] {
+    fn collect[I; Iterator[I, T]](iter_ref: I) -> List[T] {
       let list = [];
-      for value in iter {
+      for value in iter_ref {
         list.push_back(value);
       }
       list
@@ -347,7 +348,7 @@ pub mod List {
 
   pub fn .reversed[T](self: List[T]) -> List[T] {
     let reversed = [];
-    for value in self.into_iter() {
+    for value in self.iter() {
       reversed.push_front(value);
     }
     reversed
@@ -362,10 +363,10 @@ pub mod List {
       if a.len() != b.len() {
         return false;
       }
-      let a_iter = a.iter();
-      let b_iter = b.iter();
+      let a_iter = a.iter_ref();
+      let b_iter = b.iter_ref();
       for &a in a_iter {
-        let (&b, _b_iter) = b_iter.advance().unwrap();
+        let (&b, _b_iter) = b_iter.advance().assume();
         b_iter = _b_iter;
         if a != b {
           break false;
@@ -382,8 +383,8 @@ pub mod List {
 
   pub impl ord[T; Ord[T]]: Ord[List[T]] {
     fn cmp(&a: &List[T], &b: &List[T]) -> Ord {
-      let a_iter = a.iter();
-      let b_iter = b.iter();
+      let a_iter = a.iter_ref();
+      let b_iter = b.iter_ref();
       let ord = loop {
         match (a_iter.advance(), b_iter.advance()) {
           (None(), None()) { Ord::Eq() }
@@ -417,7 +418,7 @@ pub mod List {
   pub impl fork[T+]: Fork[List[T]] {
     fn fork(&self: &List[T]) -> List[T] {
       let out = [];
-      for &value in self.iter() {
+      for &value in self.iter_ref() {
         out.push_back(value);
       }
       out
@@ -427,7 +428,7 @@ pub mod List {
   #[become(unsafe::erase)]
   pub impl drop[T?]: Drop[List[T]] {
     fn drop(self: List[T]) {
-      for _ in self.into_iter() {}
+      for _ in self.iter() {}
     }
   }
 }

@@ -125,15 +125,15 @@ fn check(Channel[Char](i, ~o), recv: Char) -> N32 {
 struct Neighbors[M]((Channel[M], Channel[M], Channel[M], Channel[M]));
 
 fn cross[M*, F*; fn F(Char, Neighbors[M])](grid: List[List[Char]], f: F, d: M) {
-  let width = (*grid.at(0).unwrap()).len();
-  let north = List::new[; unsafe::duplicate, unsafe::erase](width, neglect_channel(d));
-  for row in grid.into_iter() {
+  let width = (*grid.at(0).assume()).len();
+  let north = List::from_fn(width, fn* () { neglect_channel(d) });
+  for row in grid.iter() {
     let west = neglect_channel(d);
     do {
-      let north = Fused::new(north.iter());
-      for cell in row.into_iter() {
+      let north = Fused::new(north.iter_ref());
+      for cell in row.iter() {
         let (w, e) = foo_channel(&west);
-        let (n, s) = foo_channel(north.next().unwrap());
+        let (n, s) = foo_channel(north.next().assume());
         f(cell, Neighbors(n, s, e, w));
       }
     }
@@ -143,7 +143,7 @@ fn cross[M*, F*; fn F(Char, Neighbors[M])](grid: List[List[Char]], f: F, d: M) {
 }
 
 fn drop_all[M*](c: List[Channel[M]], d: M) {
-  for c in c.into_iter() {
+  for c in c.iter() {
     c.send(d);
   }
 }

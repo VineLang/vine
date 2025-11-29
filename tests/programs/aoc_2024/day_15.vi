@@ -7,7 +7,7 @@ pub fn main(&io: &IO) {
   let initial = (0, 0);
   while io.read_line() is Some(line) and line.len() != 0 {
     let x = 0;
-    for &char in line.iter() {
+    for &char in line.iter_ref() {
       if char == '@' {
         initial = (x, y);
         char = '.';
@@ -22,7 +22,7 @@ pub fn main(&io: &IO) {
   let initial_grid = grid;
 
   let fn get((x, y)) {
-    (*grid.at(y).unwrap()).at(x).unwrap()
+    (*grid.at(y).assume()).at(x).assume()
   }
 
   let fn show_grid() {
@@ -32,7 +32,7 @@ pub fn main(&io: &IO) {
   let instructions = [];
   let robot = initial;
   while io.read_line() is Some(line) {
-    for char in line.into_iter() {
+    for char in line.iter() {
       instructions ++= [char];
       let dir = when {
         char == '<' { (0 - 1, 0) }
@@ -55,9 +55,9 @@ pub fn main(&io: &IO) {
 
   let part1 = 0;
   let y = 0;
-  for row in grid.as[List].into_iter() {
+  for row in grid.as[List].iter() {
     let x = 0;
-    for char in row.as[List].into_iter() {
+    for char in row.as[List].iter() {
       if char == 'O' {
         part1 += y * 100 + x;
       }
@@ -72,7 +72,7 @@ pub fn main(&io: &IO) {
 
   grid = initial_grid.as[List].map(fn* (row: Array[Char]) {
     let new_row = [];
-    for char in row.as[List].into_iter() {
+    for char in row.as[List].iter() {
       if char == 'O' {
         new_row ++= "[]" as List;
       } else {
@@ -84,7 +84,7 @@ pub fn main(&io: &IO) {
 
   let robot = initial * (2, 1);
 
-  for char in instructions.into_iter() {
+  for char in instructions.iter() {
     if char == '<' or char == '>' {
       let dir = if char == '<' {
         (0 - 1, 0)
@@ -172,14 +172,14 @@ pub fn main(&io: &IO) {
     }
   }
 
-  let width = (*grid.at(0).unwrap()).len();
+  let width = (*grid.at(0).assume()).len();
   let height = grid.len();
 
   let part2 = 0;
   let y = 0;
-  for row in grid.as[List].into_iter() {
+  for row in grid.as[List].iter() {
     let x = 0;
-    for char in row.as[List].into_iter() {
+    for char in row.as[List].iter() {
       if char == '[' {
         part2 += y * 100 + x;
       }

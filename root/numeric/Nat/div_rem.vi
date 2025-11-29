@@ -21,7 +21,7 @@ mod BigEndianNat {
     fn shl(BigEndianNat(parts), n: N32) -> BigEndianNat {
       let result = [];
       if parts.pop_front() is Some(part) {
-        for next in parts.into_iter() {
+        for next in parts.iter() {
           result.push_back(part << n | next >> (32 - n));
           part = next;
         }
@@ -56,7 +56,7 @@ pub fn .div_rem(a: Nat, d: Nat) -> (Nat, Nat) {
 
   // Normalize such that the MSB of the divisor is set. This means the estimate for the quotient is
   // at most 2 off.
-  let shift = d!.get(0).unwrap().leading_zeros();
+  let shift = d!.get(0).assume().leading_zeros();
   if shift > 0 {
     d <<= shift;
     a <<= shift;
@@ -64,13 +64,13 @@ pub fn .div_rem(a: Nat, d: Nat) -> (Nat, Nat) {
 
   let q = [];
 
-  let d_hi = d!.get(0).unwrap();
-  let d_hi2 = d!.get(1).unwrap();
+  let d_hi = d!.get(0).assume();
+  let d_hi2 = d!.get(1).assume();
 
   for i in 0..q_digits {
-    let a_hi = a!.pop_front().unwrap();
-    let a_mid = a!.get(0).unwrap();
-    let a_lo = a!.get(1).unwrap();
+    let a_hi = a!.pop_front().assume();
+    let a_mid = a!.get(0).assume();
+    let a_lo = a!.get(1).assume();
 
     // Estimate the quotient with the two most significant digits of the numerator and the most
     // significant digit of the divisor.
@@ -91,7 +91,7 @@ pub fn .div_rem(a: Nat, d: Nat) -> (Nat, Nat) {
     let ~borrow;
     let underflow = a_hi < ~borrow;
 
-    for (&a_num, &d_num) in a!.iter().zip(d!.iter()) {
+    for (&a_num, &d_num) in a!.iter_ref().zip(d!.iter_ref()) {
       let &borrow = &~borrow;
       let N64(prod, new_borrow) = N64::mul_n32_n32(d_num, q_est) + borrow;
       new_borrow += (a_num < prod) as N32;
@@ -107,7 +107,7 @@ pub fn .div_rem(a: Nat, d: Nat) -> (Nat, Nat) {
 
       let ~carry: Bool;
 
-      for (&a_num, &d_num) in a!.iter().zip(d!.iter()) {
+      for (&a_num, &d_num) in a!.iter_ref().zip(d!.iter_ref()) {
         let &carry = &~carry;
         let d_carry = d_num + carry as N32;
         carry = N32::add_high(d_num, carry as N32) | N32::add_high(a_num, d_carry);

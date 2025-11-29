@@ -10,11 +10,11 @@ impl ord_entry[K, V; Ord[K]]: Ord[(K, V)] {
   }
 
   fn le(&(a: K, _: V), &(b: K, _: V)) -> Bool {
-    a.le(&b)
+    a <= b
   }
 
   fn lt(&(a: K, _: V), &(b: K, _: V)) -> Bool {
-    a.lt(&b)
+    a < b
   }
 }
 
@@ -54,7 +54,7 @@ pub mod Map[K, V; Ord[K]] {
   pub fn .at_or_insert[... K?, V?](&self: &Map[K, V], key: K, value: V) -> &V {
     let ~insert;
     let old = self.insert(key, ~insert);
-    let value = old.unwrap_or(value);
+    let value = old.or_use(value);
     let ref = &value;
     ~insert = value;
     ref
@@ -92,32 +92,32 @@ pub mod Map[K, V; Ord[K]] {
     self!.remove_max()
   }
 
-  pub fn .iter[...](&self: &Map[K, V]) -> Iter[K, V] {
-    Iter(self!.iter())
+  pub fn .iter_ref[...](&self: &Map[K, V]) -> IterRef[K, V] {
+    IterRef(self!.iter_ref())
   }
 
-  pub struct Iter[K, V](Set::Iter[(K, V)]);
+  pub struct IterRef[K, V](Set::IterRef[(K, V)]);
 
-  pub mod Iter[K, V] {
-    pub impl iterator[...]: Iterator[Iter[K, V], &(K, V)] {
-      fn advance(self: Iter[K, V]) -> Option[(&(K, V), Iter[K, V])] {
+  pub mod IterRef[K, V] {
+    pub impl iterator[...]: Iterator[IterRef[K, V], &(K, V)] {
+      fn advance(self: IterRef[K, V]) -> Option[(&(K, V), IterRef[K, V])] {
         unsafe::transmute(self!.advance())
       }
     }
 
-    pub impl fork[...]: Fork[Iter[K, V]];
-    pub impl drop[...]: Drop[Iter[K, V]];
+    pub impl fork[...]: Fork[IterRef[K, V]];
+    pub impl drop[...]: Drop[IterRef[K, V]];
   }
 
-  pub fn .into_iter[...](self: Map[K, V]) -> IntoIter[K, V] {
-    IntoIter(self!.into_iter())
+  pub fn .iter[...](self: Map[K, V]) -> Iter[K, V] {
+    Iter(self!.iter())
   }
 
-  pub struct* IntoIter[K, V](Set::IntoIter[(K, V)]);
+  pub struct* Iter[K, V](Set::Iter[(K, V)]);
 
-  pub mod IntoIter[K, V] {
-    pub impl iterator[...]: Iterator[IntoIter[K, V], (K, V)] {
-      fn advance(self: IntoIter[K, V]) -> Option[((K, V), IntoIter[K, V])] {
+  pub mod Iter[K, V] {
+    pub impl iterator[...]: Iterator[Iter[K, V], (K, V)] {
+      fn advance(self: Iter[K, V]) -> Option[((K, V), Iter[K, V])] {
         unsafe::transmute(self!.advance())
       }
     }
@@ -132,7 +132,7 @@ pub mod Map[K, V; Ord[K]] {
   pub impl show[... ; Show[K], Show[V]]: Show[Map[K, V]] {
     fn show(&self: &Map[K, V]) -> Show {
       let entries = [];
-      for &(key, value) in self.iter() {
+      for &(key, value) in self.iter_ref() {
         entries.push_back((key.show(), value.show()));
       }
       Show::Constructor("Map", Show::Object(entries))

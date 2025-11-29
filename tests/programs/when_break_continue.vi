@@ -1,9 +1,9 @@
 
 pub fn main(&io: &IO) {
-  for a in [false, true].into_iter() {
-    for b in [false, true].into_iter() {
-      for c in [false, true].into_iter() {
-        for d in [false, true].into_iter() {
+  for a in [false, true].iter() {
+    for b in [false, true].iter() {
+      for c in [false, true].iter() {
+        for d in [false, true].iter() {
           run(&io, a, b, c, d);
         }
       }

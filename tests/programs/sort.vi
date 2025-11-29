@@ -22,10 +22,10 @@ impl ord_first[T, U; Ord[T]]: Ord[(T, U)] {
   }
 
   fn le(&(a: T, _: U), &(b: T, _: U)) -> Bool {
-    a.le(&b)
+    a <= b
   }
 
   fn lt(&(a: T, _: U), &(b: T, _: U)) -> Bool {
-    a.lt(&b)
+    a < b
   }
 }

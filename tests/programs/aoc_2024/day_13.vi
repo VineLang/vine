@@ -9,20 +9,20 @@ pub fn main(&io: &IO) {
 
   let part1 = 0;
   let part2 = 0[N64];
-  for machine in machines.into_iter() {
+  for machine in machines.iter() {
     let (_, r) = machine.split_once("+");
-    let (ax, r) = r.unwrap().split_once(", Y+");
-    let (ay, r) = r.unwrap().split_once("\nButton B: X+");
-    let (bx, r) = r.unwrap().split_once(", Y+");
-    let (by, r) = r.unwrap().split_once("\nPrize: X=");
-    let (px, r) = r.unwrap().split_once(", Y=");
-    let (py, _) = r.unwrap().split_once("\n");
-    let ax = N32::parse(ax).unwrap();
-    let ay = N32::parse(ay).unwrap();
-    let bx = N32::parse(bx).unwrap();
-    let by = N32::parse(by).unwrap();
-    let px = N32::parse(px).unwrap();
-    let py = N32::parse(py).unwrap();
+    let (ax, r) = r.assume().split_once(", Y+");
+    let (ay, r) = r.assume().split_once("\nButton B: X+");
+    let (bx, r) = r.assume().split_once(", Y+");
+    let (by, r) = r.assume().split_once("\nPrize: X=");
+    let (px, r) = r.assume().split_once(", Y=");
+    let (py, _) = r.assume().split_once("\n");
+    let ax = N32::parse(ax).assume();
+    let ay = N32::parse(ay).assume();
+    let bx = N32::parse(bx).assume();
+    let by = N32::parse(by).assume();
+    let px = N32::parse(px).assume();
+    let py = N32::parse(py).assume();
 
     let det = N32::diff(ax * by, ay * bx);
     let a = N32::diff(by * px, bx * py) / det;

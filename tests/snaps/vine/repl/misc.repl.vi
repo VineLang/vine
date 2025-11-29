@@ -76,7 +76,7 @@ None()
 
 let io: IO = <IO>;
 let l: List[I32] = [+1, +2, -13, +4];
-> *l.find(fn* (&x: &I32) { x < +0 }).unwrap() -= +5;
+> *l.find(fn* (&x: &I32) { x < +0 }).assume() -= +5;
 
 let io: IO = <IO>;
 let l: List[I32] = [+1, +2, -18, +4];
@@ -202,7 +202,7 @@ let io: IO = <IO>;
 10
 
 let io: IO = <IO>;
-> (N64::parse("1234567890123456789000").unwrap() + N64::parse("46").unwrap()) as String
+> (N64::parse("1234567890123456789000").assume() + N64::parse("46").assume()) as String
 "17082781258626382390"
 
 let io: IO = <IO>;
@@ -262,16 +262,16 @@ let io: IO = <IO>;
 
 let io: IO = <IO>;
 let x: List[List[N32]] = [[1]];
-> (*x.at(0).unwrap()).get(0)
+> (*x.at(0).assume()).get(0)
 Some(1)
 
 let io: IO = <IO>;
 let x: List[List[N32]] = [[1]];
-> x.at(0).unwrap().*.at(0).unwrap().* = 2
+> x.at(0).assume().*.at(0).assume().* = 2
 
 let io: IO = <IO>;
 let x: List[List[N32]] = [[2]];
-> ~x.at(0).unwrap().*.at(0).unwrap().*.~
+> ~x.at(0).assume().*.at(0).assume().*.~
 2
 
 let io: IO = <IO>;

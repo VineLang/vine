@@ -18,7 +18,7 @@ use Centimanes::Briareus;
 fn .furiosity(&arms: &List[Centimanes]) -> N32 {
   let furiosity = 0;
   let non_furious_arms = [];
-  for arm in arms.into_iter() {
+  for arm in arms.iter() {
     match arm {
       Cottus() { furiosity += 1 }
       arm { non_furious_arms.push_back(arm) }

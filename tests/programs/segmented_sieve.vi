@@ -16,7 +16,7 @@ pub fn main(&io: &IO) {
       primes.push_back(n);
       let i = n * n;
       while i <= sqrt {
-        *array.at(i - offset).unwrap() = false;
+        *array.at(i - offset).assume() = false;
         i += n;
       }
     }
@@ -24,10 +24,10 @@ pub fn main(&io: &IO) {
   while offset < max {
     let top = N32::min(offset + sqrt, max);
     let array = Array::new(top - offset, true);
-    for prime in primes.into_iter() {
+    for prime in primes.iter() {
       let i = N32::max(prime * prime, ((offset - 1) / prime + 1) * prime);
       while i < top {
-        *array.at(i - offset).unwrap() = false;
+        *array.at(i - offset).assume() = false;
         i += prime;
       }
     }

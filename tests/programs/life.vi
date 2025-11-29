@@ -44,7 +44,7 @@ pub fn main(&io: &IO) {
         }
       }
       name == "seed" {
-        seed(args.unwrap_or(default_seed));
+        seed(args.or_use(default_seed));
       }
       name == "step" and args is Some(arg) {
         if N32::parse(arg) is Some(steps) {

@@ -43,7 +43,7 @@ pub mod Show {
         when {
           tuple.len() == 0 { (2, "()") }
           tuple.len() == 1 {
-            let (width, inner) = tuple.pop_front().unwrap()._format(max_width, indent);
+            let (width, inner) = tuple.pop_front().assume()._format(max_width, indent);
             (width + 3, "({inner},)")
           }
           _ {
@@ -92,7 +92,7 @@ pub mod Show {
     let total_width = 0;
     let str = "";
     let first = true;
-    for entry in entries.into_iter() {
+    for entry in entries.iter() {
       total_width += 2;
       if multiline {
         str ++= newline(indent + 2);
@@ -101,7 +101,7 @@ pub mod Show {
           str ++= ", ";
         }
       }
-      for show in process_entry(entry).into_iter() {
+      for show in process_entry(entry).iter() {
         let (width, show_str) = show._format(max_width, indent + 2);
         total_width += width;
         str ++= show_str;
@@ -199,7 +199,7 @@ pub mod Show {
 
     pub impl variant[I, R; Show[I], ShowVariant[R]]: ShowVariant[Variant[I, R]] {
       fn show_variant(&self: &Variant[I, R], variant_names: List_[String]) -> Show {
-        let (init_name, rest_names) = variant_names.head_tail().unwrap();
+        let (init_name, rest_names) = variant_names.head_tail().assume();
         match &self {
           &Variant::Init(init) { Show::Constructor(init_name, init.show()) }
           &Variant::Rest(rest) { rest.show_variant(rest_names) }

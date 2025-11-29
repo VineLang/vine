@@ -7,49 +7,49 @@ pub fn main(&io: &IO) {
 
   while io.read_line() is Some(line) and line.len() != 0 {
     let (left, right) = line.split_once("|");
-    let a = N32::parse(left).unwrap();
-    let b = N32::parse(right.unwrap()).unwrap();
-    set_bit(masks.at(b).unwrap(), a, true);
+    let a = N32::parse(left).assume();
+    let b = N32::parse(right.assume()).assume();
+    set_bit(masks.at(b).assume(), a, true);
   }
 
   let part1 = 0;
   let part2 = 0;
   while io.read_line() is Some(line) {
-    let nums = line.split(",").map(fn* (x) { N32::parse(x).unwrap() });
+    let nums = line.split(",").map(fn* (x) { N32::parse(x).assume() });
     let good = true;
-    let middle = nums.get(nums.len() / 2).unwrap();
+    let middle = nums.get(nums.len() / 2).assume();
     let mask = ((0, 0), (0, 0));
-    for &num in nums.iter() {
+    for &num in nums.iter_ref() {
       good &= !get_bit(mask, num);
-      mask |= masks.get(num).unwrap();
+      mask |= masks.get(num).assume();
     }
     if good {
       part1 += middle;
     } else {
       let nums_mask = ((0, 0), (0, 0));
-      for &num in nums.iter() {
+      for &num in nums.iter_ref() {
         set_bit(&nums_mask, num, true);
       }
       let out = [];
       let pending = [];
-      for num in nums.into_iter() {
-        let mask = masks.get(num).unwrap() & nums_mask;
+      for num in nums.iter() {
+        let mask = masks.get(num).assume() & nums_mask;
         if is_empty(mask) {
           process(num, &(out, pending, nums_mask));
         } else {
           pending ++= [(num, mask)];
         }
       }
-      part2 += out.get(out.len() / 2).unwrap();
+      part2 += out.get(out.len() / 2).assume();
 
       fn process(num: N32, &(out: List[N32], pending: List[(N32, Mask)], nums_mask: Mask)) {
         out ++= [num];
         set_bit(&nums_mask, num, false);
         let ~future;
         let &future_state = unsafe::move(&~future);
-        let iter = pending.into_iter();
+        let iter_ref = pending.iter();
         pending = [];
-        for (n, mask) in iter {
+        for (n, mask) in iter_ref {
           set_bit(&mask, num, false);
           if is_empty(mask) {
             process(n, &future_state);

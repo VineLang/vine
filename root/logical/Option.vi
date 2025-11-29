@@ -22,7 +22,7 @@ pub mod Option {
     }
   }
 
-  pub fn .as_forked[T+](self: Option[&T]) -> Option[T] {
+  pub fn .as_fork[T+](self: Option[&T]) -> Option[T] {
     match self {
       Some(&val) { Some(val) }
       None() { None() }
@@ -36,7 +36,7 @@ pub mod Option {
     }
   }
 
-  pub fn .and_then[T, U, F?; fn F(T) -> Option[U]](self: Option[T], f: F) -> Option[U] {
+  pub fn .flat_map[T, U, F?; fn F(T) -> Option[U]](self: Option[T], f: F) -> Option[U] {
     self.map(f).flatten()
   }
 
@@ -47,18 +47,18 @@ pub mod Option {
     }
   }
 
-  pub fn .unwrap_or[T?](self: Option[T], default: T) -> T {
+  pub fn .or_use[T?](self: Option[T], default: T) -> T {
     match self {
       Some(val) { val }
       None() { default }
     }
   }
 
-  pub fn .unwrap[T](self: Option[T]) -> T {
+  pub fn .assume[T](self: Option[T]) -> T {
     match self {
       Some(val) { val }
       None() {
-        debug::error("`Option::unwrap` called on `None()`");
+        debug::error("`Option::assume` called on `None()`");
         unsafe::unreachable(())
       }
     }

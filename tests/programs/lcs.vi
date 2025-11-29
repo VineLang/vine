@@ -18,12 +18,12 @@ pub fn lcs[T*; Eq[T]](a: List[T], b: List[T]) -> N32 {
   }
 
   let row = List::new(b.len(), 0);
-  for a_elem in a.into_iter() {
+  for a_elem in a.iter() {
     let prev_row_entry = 0;
     let prev_new_entry = 0;
     let new_row = [];
-    for b_elem in b.into_iter() {
-      let row_entry = row.pop_front().unwrap();
+    for b_elem in b.iter() {
+      let row_entry = row.pop_front().assume();
       let new_entry = if a_elem == b_elem {
         prev_row_entry + 1
       } else {
@@ -36,5 +36,5 @@ pub fn lcs[T*; Eq[T]](a: List[T], b: List[T]) -> N32 {
     row = new_row;
   }
 
-  row.get(b.len() - 1).unwrap()
+  row.get(b.len() - 1).assume()
 }

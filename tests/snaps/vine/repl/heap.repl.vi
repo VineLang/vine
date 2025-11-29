@@ -80,7 +80,7 @@ Some(&(1))
 
 let io: IO = <IO>;
 let heap: Heap[N32] = Heap([1, 3, 4]);
-> heap.into_iter().collect[List, _, _]()
+> heap.iter().collect[List, _, _]()
 [1, 3, 4]
 
 let io: IO = <IO>;

@@ -12,7 +12,7 @@ enum? Instruction {
 use Instruction::{Dec, Inc, Input, Left, Loop, Output, Right};
 
 pub fn main(&io: &IO) {
-  let source = io.read_line().unwrap_or("");
+  let source = io.read_line().or_use("");
 
   let fn parse() -> List[Instruction] {
     let instructions = [];
@@ -44,7 +44,7 @@ pub fn main(&io: &IO) {
   let tape_right = [];
 
   let fn run(&instructions: &List[Instruction]) {
-    for &instruction in instructions.iter() {
+    for &instruction in instructions.iter_ref() {
       match &instruction {
         &Inc() { inc() }
         &Dec() { dec() }
@@ -67,12 +67,12 @@ pub fn main(&io: &IO) {
 
   let fn left() {
     tape_right.push_front(tape_head);
-    tape_head = tape_left.pop_front().unwrap_or(0);
+    tape_head = tape_left.pop_front().or_use(0);
   }
 
   let fn right() {
     tape_left.push_front(tape_head);
-    tape_head = tape_right.pop_front().unwrap_or(0);
+    tape_head = tape_right.pop_front().or_use(0);
   }
 
   let fn input() {

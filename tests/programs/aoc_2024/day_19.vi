@@ -2,14 +2,14 @@
 use #root::data::Array;
 
 pub fn main(&io: &IO) {
-  let patterns = io.read_line().unwrap().split(", ");
+  let patterns = io.read_line().assume().split(", ");
 
   io.read_line();
 
   let possible = 0;
   let ways = 0[N64];
   while io.read_line() is Some(design) {
-    let count = match_counts(design, patterns).pop_back().unwrap();
+    let count = match_counts(design, patterns).pop_back().assume();
     if count != 0[N64] {
       possible += 1;
       ways += count;
@@ -28,9 +28,9 @@ fn match_counts(design: String, patterns: List[String]) -> Array[N64] {
     tail!.pop_front();
     let array = match_counts(tail, patterns);
     let total = 0[N64];
-    for pat in patterns.into_iter() {
+    for pat in patterns.iter() {
       if design.strip_prefix(&pat) is Ok(remaining) {
-        total += array.get(remaining.len()).unwrap();
+        total += array.get(remaining.len()).assume();
       }
     }
     array.push_back(total);

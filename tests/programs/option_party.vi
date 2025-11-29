@@ -48,9 +48,9 @@ pub fn main(&io: &IO) {
   print_option_n32(None().or_option(Some(2)));
   print_option_n32(Some(1).or_option(Some(2)));
 
-  io.println("unwrap_or:");
-  print_n32(None().unwrap_or(0));
-  print_n32(Some(1).unwrap_or(0));
+  io.println("or_use:");
+  print_n32(None().or_use(0));
+  print_n32(Some(1).or_use(0));
 
   io.println("is_some:");
   print_bool(None[()]() is Some(_));
@@ -77,9 +77,9 @@ pub fn main(&io: &IO) {
   print_option_n32(option.take());
   print_option_n32(option);
 
-  io.println("unwrap:");
-  print_n32(Some(42).unwrap());
-  print_n32(None().unwrap());
+  io.println("assume:");
+  print_n32(Some(42).assume());
+  print_n32(None().assume());
   io.println("io will never work again :(");
 }
 
@@ -91,5 +91,5 @@ fn increment_option(&option: &Option[N32]) {
 }
 
 fn add_options(a: Option[N32], b: Option[N32]) -> Option[N32] {
-  a.and_then(fn? (a: N32) { b.map(fn? (b: N32) { a + b }) })
+  a.flat_map(fn? (a: N32) { b.map(fn? (b: N32) { a + b }) })
 }

@@ -8,12 +8,12 @@ pub mod elementwise;
 
 pub trait Concat[A, B, O] {
   #[builtin = "concat"]
-  fn .concat(a: A, b: B) -> O;
+  fn concat(a: A, b: B) -> O;
 }
 
 pub trait Cast[C, T] {
   #[builtin = "cast"]
-  fn .cast(value: C) -> T;
+  fn cast(value: C) -> T;
 }
 
 pub mod Cast {

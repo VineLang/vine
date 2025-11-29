@@ -5,13 +5,13 @@ pub fn main(&io: &IO) {
   let part2 = 0[N64];
   while io.read_line() is Some(line) {
     let (goal, rest) = line.split_once(": ");
-    let goal = N64::parse(goal).unwrap();
-    let nums = rest.unwrap().split(" ");
-    let results = [N32::parse(nums.pop_front().unwrap()).unwrap() as N64];
+    let goal = N64::parse(goal).assume();
+    let nums = rest.assume().split(" ");
+    let results = [N32::parse(nums.pop_front().assume()).assume() as N64];
     let results2 = [];
-    for num in nums.into_iter() {
+    for num in nums.iter() {
       let pow = 10 ** num.len();
-      let num = N32::parse(num).unwrap() as N64;
+      let num = N32::parse(num).assume() as N64;
       let add = results.map(fn* (x: N64) { x + num });
       let mul = results.map(fn* (x: N64) { x * num });
       let add2 = results2.map(fn* (x: N64) { x + num });
@@ -21,14 +21,14 @@ pub fn main(&io: &IO) {
       results2 = add2 ++ mul2 ++ concat;
     }
     do {
-      for num in results.into_iter() {
+      for num in results.iter() {
         if num == goal {
           part1 += goal;
           part2 += goal;
           break.do;
         }
       }
-      for num in results2.into_iter() {
+      for num in results2.iter() {
         if num == goal {
           part2 += goal;
           break.do;

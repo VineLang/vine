@@ -15,5 +15,5 @@ heap.insert(1); heap as List
 heap.insert(4);
 heap.count()
 heap.peek()
-heap.into_iter().collect[List, _, _]()
+heap.iter().collect[List, _, _]()
 heap as List

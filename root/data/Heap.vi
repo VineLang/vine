@@ -111,17 +111,17 @@ pub mod Heap[T; Ord[T]] {
     }
   }
 
-  pub struct* IntoIter[T](Heap[T]);
+  pub struct* Iter[T](Heap[T]);
 
-  pub fn .into_iter[...](self: Heap[T]) -> IntoIter[T] {
-    IntoIter(self)
+  pub fn .iter[...](self: Heap[T]) -> Iter[T] {
+    Iter(self)
   }
 
-  pub mod IntoIter[...] {
-    pub impl iterator[...]: Iterator[IntoIter[T], T] {
-      fn advance(IntoIter[T](heap)) -> Option[(T, IntoIter[T])] {
+  pub mod Iter[...] {
+    pub impl iterator[...]: Iterator[Iter[T], T] {
+      fn advance(Iter[T](heap)) -> Option[(T, Iter[T])] {
         if heap.pop() is Some(value) {
-          Some(value, IntoIter(heap))
+          Some(value, Iter(heap))
         } else {
           unsafe::erase(heap);
           None()

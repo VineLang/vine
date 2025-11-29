@@ -45,13 +45,13 @@ use #root::ops::comparison::Ord;
 pub fn main(&io: &IO) {
   let edges = [0, 1, N32::maximum];
 
-  for a_sign in [false, true].into_iter() {
-    for a0 in edges.into_iter() {
-      for a1 in edges.into_iter() {
+  for a_sign in [false, true].iter() {
+    for a0 in edges.iter() {
+      for a1 in edges.iter() {
         let a = Int::from_parts(a_sign, Nat::from_parts([a0, a1]));
-        for b_sign in [false, true].into_iter() {
-          for b0 in edges.into_iter() {
-            for b1 in edges.into_iter() {
+        for b_sign in [false, true].iter() {
+          for b0 in edges.iter() {
+            for b1 in edges.iter() {
               let b = Int::from_parts(b_sign, Nat::from_parts([b0, b1]));
               io.println("{a} + {b} = {a + b}");
               io.println("{a} - {b} = {a - b}");
@@ -65,7 +65,7 @@ pub fn main(&io: &IO) {
           }
         }
 
-        for b in [I32::minimum, -1, +1, +2, I32::maximum].into_iter() {
+        for b in [I32::minimum, -1, +1, +2, I32::maximum].iter() {
           io.println("{a} / {b} = {a / b}");
           io.println("{a} % {b} = {a % b}");
           io.println("{a}.div_rem_i32({b}) = {a.div_rem_i32(b).show()}");

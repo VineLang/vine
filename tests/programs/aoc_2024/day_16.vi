@@ -7,7 +7,7 @@ pub fn main(&io: &IO) {
   let end = (0, 0);
   while io.read_line() is Some(line) {
     let row = [];
-    for char in line.into_iter() {
+    for char in line.iter() {
       when {
         char == 'S' {
           start = (row.len(), grid.len());
@@ -36,9 +36,9 @@ pub fn main(&io: &IO) {
 
   let fn try_insert(dist: N32, pos: (N32, N32), dir) {
     let (x, y) = pos;
-    let &(passable, dirs, _) = (*grid.at(y).unwrap()).at(x).unwrap();
+    let &(passable, dirs, _) = (*grid.at(y).assume()).at(x).assume();
     if passable {
-      let &(min_dist, used) = dirs.at(dir).unwrap();
+      let &(min_dist, used) = dirs.at(dir).assume();
       if dist < min_dist {
         ~used = false;
         min_dist = dist;
@@ -58,10 +58,10 @@ pub fn main(&io: &IO) {
   let part2 = 0;
   let done = false;
   while !done and pq.remove_min() is Some(dist, heads) {
-    for (pos, dir) in heads.into_iter() {
+    for (pos, dir) in heads.iter() {
       let (px, py) = pos;
-      let &(_, dirs, counted) = (*grid.at(py).unwrap()).at(px).unwrap();
-      let &(min_dist, ~used) = dirs.at(dir).unwrap();
+      let &(_, dirs, counted) = (*grid.at(py).assume()).at(px).assume();
+      let &(min_dist, ~used) = dirs.at(dir).assume();
       if dist <= min_dist {
         min_dist = dist;
         let (ex, ey) = end;
@@ -85,9 +85,9 @@ pub fn main(&io: &IO) {
     }
   }
 
-  for row in grid.as[List].into_iter() {
-    for (_, dirs, _) in row.as[List].into_iter() {
-      for x in dirs.into_iter() {
+  for row in grid.as[List].iter() {
+    for (_, dirs, _) in row.as[List].iter() {
+      for x in dirs.iter() {
         let (_, ~used) = x;
         used = false;
       }

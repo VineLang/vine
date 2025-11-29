@@ -10,18 +10,18 @@ pub fn main(&io: &IO) {
   let robots = [];
   while io.read_line() is Some(line) and line.len() != 0 {
     let (_, r) = line.split_once("p=");
-    let (px, r) = r.unwrap().split_once(",");
-    let (py, r) = r.unwrap().split_once(" v=");
-    let (vx, r) = r.unwrap().split_once(",");
-    let vy = r.unwrap();
-    let px = N32::parse(px).unwrap();
-    let py = N32::parse(py).unwrap();
+    let (px, r) = r.assume().split_once(",");
+    let (py, r) = r.assume().split_once(" v=");
+    let (vx, r) = r.assume().split_once(",");
+    let vy = r.assume();
+    let px = N32::parse(px).assume();
+    let py = N32::parse(py).assume();
     let fn parse_signed(x: String, m: N32) {
-      if x!.get(0).unwrap() == '-' {
+      if x!.get(0).assume() == '-' {
         x!.pop_front();
-        m - N32::parse(x).unwrap()
+        m - N32::parse(x).assume()
       } else {
-        N32::parse(x).unwrap()
+        N32::parse(x).assume()
       }
     }
     let vx = parse_signed(vx, width);
@@ -34,7 +34,7 @@ pub fn main(&io: &IO) {
   let b = 0;
   let c = 0;
   let d = 0;
-  for (px, py, vx, vy) in robots.into_iter() {
+  for (px, py, vx, vy) in robots.iter() {
     let x = (px + vx * 100) % width;
     let y = (py + vy * 100) % height;
     when {
@@ -72,12 +72,12 @@ pub fn main(&io: &IO) {
     }
     io.println("\x1b[2J\x1b[H");
     let grid = Array::new(height, Array::new(width, '.'));
-    for (px, py, vx, vy) in robots.into_iter() {
+    for (px, py, vx, vy) in robots.iter() {
       let x = (px + vx * i) % width;
       let y = (py + vy * i) % height;
-      *(*grid.at(y).unwrap()).at(x).unwrap() = '#';
+      *(*grid.at(y).assume()).at(x).assume() = '#';
     }
-    for line in grid.as[List].into_iter() {
+    for line in grid.as[List].iter() {
       io.println(line as List as String);
     }
     io.println("{i}");

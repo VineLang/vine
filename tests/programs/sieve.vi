@@ -13,7 +13,7 @@ pub fn main(&io: &IO) {
       io.println("{n}");
       let i = n * n;
       while i < max {
-        *array.at(i - offset).unwrap() = false;
+        *array.at(i - offset).assume() = false;
         i += n;
       }
     }

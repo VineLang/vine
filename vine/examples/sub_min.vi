@@ -9,7 +9,7 @@ pub fn sub_min(&list: &List[N32]) {
   let ~min: N32;
   let min_acc = None[N32]();
 
-  for &val in list.iter() {
+  for &val in list.iter_ref() {
     if min_acc is Some(m) impl val < m {
       min_acc = Some(val);
     }
@@ -17,5 +17,5 @@ pub fn sub_min(&list: &List[N32]) {
     val -= ~min;
   }
 
-  ~min = min_acc.unwrap();
+  ~min = min_acc.assume();
 }

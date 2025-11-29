@@ -60,23 +60,23 @@ let io: IO = <IO>;
 Some(1.0)
 
 let io: IO = <IO>;
-> F32::parse("0.1").unwrap().to_bits().to_hex()
+> F32::parse("0.1").assume().to_bits().to_hex()
 "0x3dcccccd"
 
 let io: IO = <IO>;
-> F32::parse("0.2").unwrap().to_bits().to_hex()
+> F32::parse("0.2").assume().to_bits().to_hex()
 "0x3e4ccccd"
 
 let io: IO = <IO>;
-> F32::parse("0.3").unwrap().to_bits().to_hex()
+> F32::parse("0.3").assume().to_bits().to_hex()
 "0x3e99999a"
 
 let io: IO = <IO>;
-> F32::parse("1e10").unwrap().to_bits().to_hex()
+> F32::parse("1e10").assume().to_bits().to_hex()
 "0x501502f9"
 
 let io: IO = <IO>;
-> F32::parse("1e-10").unwrap().to_bits().to_hex()
+> F32::parse("1e-10").assume().to_bits().to_hex()
 "0x2edbe6ff"
 
 let io: IO = <IO>;
@@ -156,31 +156,31 @@ let io: IO = <IO>;
 Some(3.40282347e38)
 
 let io: IO = <IO>;
-> F32::parse("1.1754943508222875e-38").unwrap().to_bits().to_hex()  // smallest normal
+> F32::parse("1.1754943508222875e-38").assume().to_bits().to_hex()  // smallest normal
 "0x800000"
 
 let io: IO = <IO>;
-> F32::parse("1.401298464324817e-45").unwrap().to_bits().to_hex()  // smallest subnormal
+> F32::parse("1.401298464324817e-45").assume().to_bits().to_hex()  // smallest subnormal
 "0x1"
 
 let io: IO = <IO>;
-> F32::parse("1.1754942e-38").unwrap().to_bits().to_hex()  // largest subnormal
+> F32::parse("1.1754942e-38").assume().to_bits().to_hex()  // largest subnormal
 "0x7fffff"
 
 let io: IO = <IO>;
-> F32::parse("1.000000059604644775390625").unwrap().to_bits().to_hex()  // halfway between 1 and next float
+> F32::parse("1.000000059604644775390625").assume().to_bits().to_hex()  // halfway between 1 and next float
 "0x3f800000"
 
 let io: IO = <IO>;
-> F32::parse("1.000000059604644775390626").unwrap().to_bits().to_hex()
+> F32::parse("1.000000059604644775390626").assume().to_bits().to_hex()
 "0x3f800001"
 
 let io: IO = <IO>;
-> F32::parse("1e-46").unwrap().to_bits().to_hex()  // underflows to +0
+> F32::parse("1e-46").assume().to_bits().to_hex()  // underflows to +0
 "0x0"
 
 let io: IO = <IO>;
-> F32::parse("-1e-46").unwrap().to_bits().to_hex()  // underflows to -0
+> F32::parse("-1e-46").assume().to_bits().to_hex()  // underflows to -0
 "0x80000000"
 
 let io: IO = <IO>;
