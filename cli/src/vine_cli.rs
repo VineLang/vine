@@ -152,7 +152,7 @@ impl VineBuildCommand {
 
 #[derive(Debug, Args)]
 pub struct VineReplCommand {
-  #[arg(long)]
+  #[arg(long = "lib")]
   libs: Vec<PathBuf>,
   #[arg(long)]
   no_root: bool,
@@ -219,7 +219,7 @@ impl VineFmtCommand {
 
 #[derive(Debug, Args)]
 pub struct VineLspCommand {
-  #[arg(long)]
+  #[arg(long = "lib")]
   libs: Vec<PathBuf>,
   entrypoints: Vec<String>,
   #[arg(long)]

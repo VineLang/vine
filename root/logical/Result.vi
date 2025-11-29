@@ -47,10 +47,10 @@ pub mod Result {
     }
   }
 
-  pub fn .assume[T, E](self: Result[T, E]) -> T {
+  pub fn .assume[T, E; Show[E]](self: Result[T, E]) -> T {
     match self {
       Ok(val) { val }
-      Err(err) { unsafe::unreachable(err) }
+      Err(err) { debug::error_with("`Result::assume` called on `Err({err.show()})`", err) }
     }
   }
 

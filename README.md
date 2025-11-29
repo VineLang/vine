@@ -17,8 +17,6 @@ If you're curious to learn more, take a look at the
 [Vine Docs](https://vine.dev/docs/), and join the
 [Vine Discord server](https://discord.gg/bgUPV8KjDv).
 
-(Vine is still under heavy development; many things will change.)
-
 ## Sub-Projects
 
 Vine compiles to [Ivy](./ivy/), a low-level interaction-combinator programming

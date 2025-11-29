@@ -81,7 +81,7 @@ fn tests(t: &mut DynTester) {
     test_vi(t, "tests/programs/nat_edges.vi", b"", ".txt", false, false, false);
     test_vi(t, "tests/programs/nothing_lasts_forever.vi", b"", ".txt", true, false, true);
     test_vi(t, "tests/programs/no_return.vi", b"", ".txt", true, false, false);
-    test_vi(t, "tests/programs/option_party.vi", b"", ".txt", true, false, true);
+    test_vi(t, "tests/programs/option_party.vi", b"", ".txt", false, true, true);
     test_vi(t, "tests/programs/par.vi", b"", ".txt", true, false, false);
     test_vi(t, "tests/programs/pretty_div.vi", b"", ".txt", true, false, false);
     test_vi(t, "tests/programs/primenesses.vi", b"", ".txt", true, false, false);

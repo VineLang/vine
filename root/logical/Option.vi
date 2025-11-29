@@ -57,10 +57,7 @@ pub mod Option {
   pub fn .assume[T](self: Option[T]) -> T {
     match self {
       Some(val) { val }
-      None() {
-        debug::error("`Option::assume` called on `None()`");
-        unsafe::unreachable(())
-      }
+      None() { debug::error("`Option::assume` called on `None()`") }
     }
   }
 

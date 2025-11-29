@@ -15,8 +15,14 @@ pub mod debug {
     None()
   }
 
-  pub fn error[T; Cast[T, String]](msg: T) {
+  pub fn error[M, T; Cast[M, String]](msg: M) -> T {
     _ = msg as String;
+    unsafe::eraser
+  }
+
+  pub fn error_with[M, T, U; Cast[M, String]](msg: M, ctx: T) -> U {
+    unsafe::erase(ctx);
+    debug::error(msg)
   }
 
   pub fn .dbg[T; Show[T]](value: T) -> T {
@@ -72,12 +78,19 @@ pub mod debug {
   }
 
   #[frameless]
-  pub fn error[T; Cast[T, String]](msg: T) {
+  pub fn error[M, T; Cast[M, String]](msg: M) -> T {
     let &state = debug_state();
     state.io.print("ERROR: {msg}\n");
     for frame in state.stack.iter() {
       state.io.print("  @ {frame}\n");
     }
+    unsafe::eraser
+  }
+
+  #[frameless]
+  pub fn error_with[M, T, U; Cast[M, String]](msg: M, ctx: T) -> U {
+    unsafe::erase(ctx);
+    debug::error(msg)
   }
 
   #[frameless]
@@ -117,7 +130,7 @@ pub struct* Frame(pub { path: List[String], file: String, line: N32, col: N32 })
 pub mod Frame {
   pub impl to_string: Cast[Frame, String] {
     fn cast(Frame({ path, file, line, col })) -> String {
-      "{path.join("::")} ({file}:{line}:{col})"
+      "#{path.join("::")} ({file}:{line}:{col})"
     }
   }
 }

@@ -1,0 +1,35 @@
+
+:root {
+  --theme: light-dark(#169646, #46c676);
+
+  --white: #d6dde0;
+  --dawn: #bdc3c7;
+  --dusk: #252830;
+  --black: #151820;
+}
+
+@media(prefers-color-scheme: light) {
+  img.logo {
+    filter: url("data:image/svg+xml;charset=utf-8;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxmaWx0ZXIgaWQ9IngiPjxmZUNvbG9yTWF0cml4IGluPSJTb3VyY2VHcmFwaGljIiB0eXBlPSJtYXRyaXgiIGNvbG9yLWludGVycG9sYXRpb24tZmlsdGVycz0ic1JHQiIgdmFsdWVzPSIwIDAgMCAwIC4wODcgMCAwIDAgMCAuNTg5IDAgMCAwIDAgLjI3NSAwIDAgMCAxIDAiIC8+PC9maWx0ZXI+PC9zdmc+#x");
+  }
+}
+
+#sidebar a.logo {
+  display: flex;
+  justify-content: center;
+
+  height: 8rem;
+  margin-top: -.666rem;
+}
+
+code.ts {
+  background: none;
+}
+
+.todo {
+  color: red;
+  font-style: italic;
+  &:target {
+    font-weight: bold;
+  }
+}

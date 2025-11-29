@@ -117,7 +117,7 @@ mod Regions {
     let &Regions(array) = &self;
     match array.at(i).assume() {
       &Region::Root(a, _) { a }
-      _ { unsafe::unreachable(()) }
+      _ { debug::error("unreachable") }
     }
   }
 
@@ -127,7 +127,7 @@ mod Regions {
         &Region::Root(_, p) {
           p += 1;
         }
-        _ { unsafe::unreachable(()) }
+        _ { debug::error("unreachable") }
       }
       i
     } else {
@@ -147,7 +147,7 @@ mod Regions {
             i
           }
         }
-        _ { unsafe::unreachable(()) }
+        _ { debug::error("unreachable") }
       }
     }
   }
