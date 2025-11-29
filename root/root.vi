@@ -1,4 +1,7 @@
 
+/// Vine's standard library.
+mod;
+
 pub mod data;
 pub mod debug;
 pub mod derive;

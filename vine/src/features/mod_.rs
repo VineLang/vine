@@ -16,7 +16,11 @@ use crate::{
 
 impl VineParser<'_> {
   pub(crate) fn parse_mod_item(&mut self) -> Result<(Span, ItemKind), Diag> {
+    let mod_span = self.span();
     self.expect(Token::Mod)?;
+    if self.eat(Token::Semi)? {
+      return Ok((mod_span, ItemKind::Attrs));
+    }
     let name_span = self.span();
     let name = self.parse_ident()?;
     let generics = self.parse_generic_params()?;
