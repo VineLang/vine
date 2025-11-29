@@ -46,17 +46,38 @@
 
         vineConfig = rec {
           name = "vine";
-          src = pkgs.lib.cleanSource ./.;
-          VINE_ROOT_PATH = "${src}/root";
+          src = pkgs.lib.fileset.toSource {
+            root = ./.;
+            fileset = pkgs.lib.fileset.unions [
+              ./Cargo.toml
+              ./Cargo.lock
+              ./util
+              ./ivm
+              ./ivy
+              ./vine
+              ./lsp
+              ./cli
+              ./tests/Cargo.toml
+            ];
+          };
+          VINE_ROOT_PATH = "../lib/root";
           cargoLock = "${src}/Cargo.lock";
+          doCheck = false;
         };
 
-        vine = craneLib.buildPackage (
+        vineNoRoot = craneLib.buildPackage (
           vineConfig
           // {
             cargoArtifacts = craneLib.buildDepsOnly vineConfig;
           }
         );
+
+        vine = pkgs.runCommand "vine" { } ''
+          mkdir $out
+          cp -r ${vineNoRoot}/* $out
+          mkdir $out/lib
+          cp -r ${./root} $out/lib/root
+        '';
 
         grammars = import ./lsp/grammars.nix {
           inherit (pkgs)

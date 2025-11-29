@@ -87,7 +87,8 @@ impl CompileArgs {
 }
 
 fn root_path() -> PathBuf {
-  let mut path = PathBuf::new();
+  let mut path = env::current_exe().unwrap();
+  path.pop();
   let compile_time_root_path = option_env!("VINE_ROOT_PATH");
   let runtime_root_path = env::var("VINE_ROOT_PATH").ok();
 
