@@ -191,12 +191,12 @@ impl Charter<'_> {
     &mut self,
     ty_def: DefId,
     ty_generics: GenericsId,
-    span: Span,
     vis: VisId,
     member_vis: VisId,
     ty: DefTypeKind,
     flex: Flex,
   ) {
+    let span = Span::NONE;
     if flex.fork() {
       let name = Ident("fork".into());
       let def = self.chart_child(ty_def, span, name.clone(), member_vis, false);

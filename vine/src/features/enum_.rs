@@ -87,7 +87,7 @@ impl Charter<'_> {
     self.chart.enums.push_to(enum_id, enum_def);
     let ty_kind = DefTypeKind::Enum(enum_id);
     self.define_type(span, def, vis, ty_kind);
-    self.chart_flex_impls(def, generics, span, vis, member_vis, ty_kind, enum_item.flex);
+    self.chart_flex_impls(def, generics, vis, member_vis, ty_kind, enum_item.flex);
     def
   }
 }
