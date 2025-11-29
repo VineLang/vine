@@ -37,7 +37,7 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: pages deploy result --project-name vine-dev --branch ${{ github.ref_name }}
-          
+
       - uses: actions/configure-pages@v3
         if: github.ref_name == 'main'
 
@@ -45,7 +45,7 @@ jobs:
         if: github.ref_name == 'main'
         with:
           path: "result"
-      
+
       - id: deployment
-        if: github.ref_name == 'main' 
+        if: github.ref_name == 'main'
         uses: actions/deploy-pages@v4
