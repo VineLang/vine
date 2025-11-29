@@ -280,6 +280,7 @@ pub mod List {
     }
     true
   }
+
   pub struct IterRef[T]((N32, &Buf[T], &(N32, ~Buf[T])));
 
   pub fn .iter_ref[T](&List[T](len, buf, end)) -> IterRef[T] {
