@@ -136,8 +136,7 @@ pub mod N64 {
   // Division by Knuth style long division.
   pub fn .div_rem(a: N64, d: N64) -> (N64, N64) {
     if d.is_zero() {
-      debug::error("Division by zero");
-      return unsafe::eraser;
+      return debug::error("Division by zero");
     }
     if a < d {
       return (0[N64], a);

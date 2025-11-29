@@ -134,7 +134,7 @@ mod DisjointSet {
           a
         }
       }
-      _ { unsafe::unreachable(()) }
+      _ { debug::error("unreachable") }
     }
   }
 }

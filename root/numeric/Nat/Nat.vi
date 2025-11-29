@@ -169,8 +169,7 @@ pub mod Nat {
 
   pub fn .div_rem_n32(a: Nat, d: N32) -> (Nat, N32) {
     if d == 0 {
-      debug::error("Division by zero");
-      return unsafe::eraser;
+      return debug::error("Division by zero");
     }
 
     let nums = a!.reversed();

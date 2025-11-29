@@ -30,11 +30,6 @@ pub impl erase[T]: Drop[T] {
   }
 }
 
-pub fn unreachable[T, U](ignored: T) -> U {
-  unsafe::erase(ignored)
-  eraser
-}
-
 pub fn move[T](&value: &T) -> T {
   let result = value;
   value = eraser;
