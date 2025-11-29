@@ -94,16 +94,11 @@ impl Charter<'_> {
             self.diags.report(Diag::ImplItemVis { span });
           }
           match subitem.kind {
-            ItemKind::Const(const_item) => subitems.push(self.chart_impl_const(
-              vis,
-              def,
-              generics,
-              span,
-              subitem.attrs,
-              const_item,
-            )),
+            ItemKind::Const(const_item) => {
+              subitems.push(self.chart_impl_const(def, generics, span, subitem.attrs, const_item))
+            }
             ItemKind::Fn(fn_item) => {
-              subitems.push(self.chart_impl_fn(vis, def, generics, span, subitem.attrs, fn_item))
+              subitems.push(self.chart_impl_fn(def, generics, span, subitem.attrs, fn_item))
             }
             _ => {
               self.diags.report(Diag::InvalidImplItem { span });
@@ -130,7 +125,6 @@ impl Charter<'_> {
 
   fn chart_impl_fn(
     &mut self,
-    vis: VisId,
     parent_def: DefId,
     parent_generics: GenericsId,
     span: Span,
@@ -144,6 +138,7 @@ impl Charter<'_> {
       self.diags.report(Diag::ImplItemInheritGen { span });
     }
     fn_item.generics.inherit = true;
+    let vis = VisId::Def(parent_def);
     let def = self.chart_child(parent_def, span, fn_item.name.clone(), vis, false);
     let generics = self.chart_generics(def, parent_generics, fn_item.generics, true);
     let body = self.ensure_implemented(span, fn_item.body);
@@ -165,7 +160,6 @@ impl Charter<'_> {
 
   fn chart_impl_const(
     &mut self,
-    vis: VisId,
     parent_def: DefId,
     parent_generics: GenericsId,
     span: Span,
@@ -176,6 +170,7 @@ impl Charter<'_> {
       self.diags.report(Diag::ImplItemInheritGen { span });
     }
     const_item.generics.inherit = true;
+    let vis = VisId::Def(parent_def);
     let def = self.chart_child(parent_def, span, const_item.name.clone(), vis, false);
     let generics = self.chart_generics(def, parent_generics, const_item.generics, true);
     let value = self.ensure_implemented(span, const_item.value);
