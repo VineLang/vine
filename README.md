@@ -1,5 +1,5 @@
 <h1 align="center">
-  <img src="https://vine.dev/favicon-1024.png" width="128" align="center">
+  <img src="./docs/img/favicon-1024.png" width="128" align="center">
   <p>The Vine Programming Language</p>
 </h1>
 
