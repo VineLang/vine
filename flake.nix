@@ -44,13 +44,13 @@
           pkgs: pkgs.rust-bin.fromRustupToolchainFile ./rust-toolchain.toml
         );
 
-        vineConfig = rec {
-          name = "vine";
+        vineConfig = {
+          pname = "vine";
+          version = "0.0.0";
           src = pkgs.lib.fileset.toSource {
             root = ./.;
             fileset = pkgs.lib.fileset.unions [
               ./Cargo.toml
-              ./Cargo.lock
               ./util
               ./ivm
               ./ivy
@@ -61,7 +61,11 @@
             ];
           };
           VINE_ROOT_PATH = "../lib/root";
-          cargoLock = "${src}/Cargo.lock";
+          cargoLock = ./Cargo.lock;
+          outputHashes = {
+            "git+https://github.com/tjjfvi/class?rev=99738e6#99738e67dd8fb3b97d65e6fc59b92f04c11519a4" =
+              "sha256-ye8DqeDRXsNpTWpGGlvWxSSc1AiXOLud99dHpB/VhZg=";
+          };
           doCheck = false;
         };
 
