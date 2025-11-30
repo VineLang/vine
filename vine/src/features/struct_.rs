@@ -110,11 +110,17 @@ impl Resolver<'_> {
     let mut data = struct_def.data.iter().map(|t| self.resolve_ty(t, false)).collect::<Vec<_>>();
     let data =
       if data.len() == 1 { data.pop().unwrap() } else { self.types.new(TypeKind::Tuple(data)) };
+    let _ty: String;
     let hover = format!(
       "struct {}{}({});",
       struct_def.name,
       self.show_generics(self.cur_generics, false),
-      self.types.show(self.chart, data)
+      if matches!(struct_def.data_vis, VisId::Pub) {
+        _ty = self.types.show(self.chart, data);
+        &_ty
+      } else {
+        "..."
+      }
     );
     self.annotations.record_signature(struct_def.span, hover);
     let types = take(&mut self.types);
