@@ -104,6 +104,7 @@ pub enum ModKind {
 pub struct TraitItem {
   pub name: Ident,
   pub generics: GenericParams,
+  pub items_span: Span,
   pub items: Vec<Item>,
 }
 
@@ -117,7 +118,7 @@ pub struct ImplItem {
 
 #[derive(Debug, Clone)]
 pub enum ImplItemKind {
-  Direct(Vec<Item>),
+  Direct(Span, Vec<Item>),
   Indirect(Option<Impl>),
 }
 

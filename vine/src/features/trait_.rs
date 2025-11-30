@@ -28,19 +28,21 @@ impl VineParser<'_> {
     let name_span = self.span();
     let name = self.parse_ident()?;
     let generics = self.parse_generic_params()?;
+    let items_span = self.start_span();
     let items = self.parse_delimited(BRACE, Self::parse_item)?;
-    Ok((name_span, ItemKind::Trait(TraitItem { name, generics, items })))
+    let items_span = self.end_span(items_span);
+    Ok((name_span, ItemKind::Trait(TraitItem { name, generics, items_span, items })))
   }
 }
 
 impl<'src> Formatter<'src> {
-  pub(crate) fn fmt_trait_item(&self, span: Span, t: &TraitItem) -> Doc<'src> {
+  pub(crate) fn fmt_trait_item(&self, t: &TraitItem) -> Doc<'src> {
     Doc::concat([
       Doc("trait "),
       Doc(t.name.clone()),
       self.fmt_generic_params(&t.generics),
       Doc(" "),
-      self.fmt_block_like(span, t.items.iter().map(|i| (i.span, self.fmt_item(i)))),
+      self.fmt_block_like(t.items_span, t.items.iter().map(|i| (i.span, self.fmt_item(i)))),
     ])
   }
 }

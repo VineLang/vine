@@ -37,8 +37,10 @@ impl VineParser<'_> {
     self.expect(Token::Colon)?;
     let trait_ = self.parse_trait()?;
     let kind = if self.check(Token::OpenBrace) {
+      let span = self.start_span();
       let items = self.parse_delimited(BRACE, Self::parse_item)?;
-      ImplItemKind::Direct(items)
+      let span = self.end_span(span);
+      ImplItemKind::Direct(span, items)
     } else {
       let impl_ = self.eat_then(Token::Eq, Self::parse_impl)?;
       self.expect(Token::Semi)?;
@@ -49,7 +51,7 @@ impl VineParser<'_> {
 }
 
 impl<'src> Formatter<'src> {
-  pub(crate) fn fmt_impl_item(&self, span: Span, i: &ImplItem) -> Doc<'src> {
+  pub(crate) fn fmt_impl_item(&self, i: &ImplItem) -> Doc<'src> {
     Doc::concat([
       Doc("impl "),
       Doc(i.name.clone()),
@@ -57,9 +59,9 @@ impl<'src> Formatter<'src> {
       Doc(": "),
       self.fmt_trait(&i.trait_),
       match &i.kind {
-        ImplItemKind::Direct(items) => Doc::concat([
+        ImplItemKind::Direct(span, items) => Doc::concat([
           Doc(" "),
-          self.fmt_block_like(span, items.iter().map(|i| (i.span, self.fmt_item(i)))),
+          self.fmt_block_like(*span, items.iter().map(|i| (i.span, self.fmt_item(i)))),
         ]),
         ImplItemKind::Indirect(Some(impl_)) => {
           Doc::concat([Doc(" = "), self.fmt_impl(impl_), Doc(";")])
@@ -84,7 +86,7 @@ impl Charter<'_> {
     let generics = self.chart_generics(def, parent_generics, impl_item.generics, true);
     let mut subitems = Vec::new();
     let kind = match impl_item.kind {
-      ImplItemKind::Direct(items) => {
+      ImplItemKind::Direct(_, items) => {
         for subitem in items {
           if !self.enabled(&subitem.attrs) {
             continue;
