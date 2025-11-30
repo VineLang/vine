@@ -1,5 +1,5 @@
 
-use ops::{Cast, comparison::Ord};
+use ops::{Cast, Concat, comparison::Ord};
 
 pub struct Heap[T]((N32, Node[T]));
 
@@ -13,7 +13,7 @@ pub mod Heap[T; Ord[T]] {
   }
 
   pub fn .insert[...](&self: &Heap[T], value: T) {
-    self = Heap::single(value).merge(self);
+    self ++= Heap::single(value);
   }
 
   pub fn .pop[...](&Heap[T](rank, node)) -> Option[T] {
@@ -21,7 +21,7 @@ pub mod Heap[T; Ord[T]] {
       None()
     } else {
       let Node(value, left, right) = node;
-      Heap(rank, node) = left.merge(right);
+      Heap(rank, node) = left ++ right;
       Some(value)
     }
   }
@@ -56,25 +56,27 @@ pub mod Heap[T; Ord[T]] {
     }
   }
 
-  fn .merge[...](self: Heap[T], other: Heap[T]) -> Heap[T] {
-    if self.rank() == 0 {
-      unsafe::erase(self);
-      return other;
+  pub impl merge[...]: Concat[Heap[T], Heap[T], Heap[T]] {
+    fn concat(self: Heap[T], other: Heap[T]) -> Heap[T] {
+      if self.rank() == 0 {
+        unsafe::erase(self);
+        return other;
+      }
+      if other.rank() == 0 {
+        unsafe::erase(other);
+        return self;
+      }
+      if self.value() > other.value() {
+        swap(&self, &other);
+      }
+      let &Heap(rank, Node(value, left, right)) = &self;
+      right ++= other;
+      if right.rank() > left.rank() {
+        swap(&left, &right);
+      }
+      rank = right.rank() + 1;
+      self
     }
-    if other.rank() == 0 {
-      unsafe::erase(other);
-      return self;
-    }
-    if self.value() > other.value() {
-      swap(&self, &other);
-    }
-    let &Heap(rank, Node(value, left, right)) = &self;
-    right = right.merge(other);
-    if right.rank() > left.rank() {
-      swap(&left, &right);
-    }
-    rank = right.rank() + 1;
-    self
   }
 
   #[become(unsafe::duplicate)]
