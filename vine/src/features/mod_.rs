@@ -28,7 +28,7 @@ impl VineParser<'_> {
       let span = self.start_span();
       let items = self.parse_delimited(BRACE, Self::parse_item)?;
       let span = self.end_span(span);
-      ModKind::Loaded(span, items)
+      ModKind::Loaded(span, None, items)
     } else if self.eat(Token::Eq)? {
       let path_span = self.start_span();
       let path = self.parse_string()?;
@@ -50,7 +50,7 @@ impl<'src> Formatter<'src> {
       Doc(m.name.clone()),
       self.fmt_generic_params(&m.generics),
       match &m.kind {
-        ModKind::Loaded(span, items) => Doc::concat([
+        ModKind::Loaded(span, _, items) => Doc::concat([
           Doc(" "),
           self.fmt_block_like(*span, items.iter().map(|x| (x.span, self.fmt_item(x)))),
         ]),
@@ -76,7 +76,7 @@ impl Charter<'_> {
   ) -> DefId {
     let def = self.chart_child(parent, span, mod_item.name, member_vis, true);
     let generics = self.chart_generics(def, parent_generics, mod_item.generics, true);
-    let ModKind::Loaded(inner_span, _) = mod_item.kind else { unreachable!() };
+    let ModKind::Loaded(inner_span, _, _) = mod_item.kind else { unreachable!() };
     self.annotations.definitions.entry(span).or_default().insert(inner_span);
     self.chart_mod_kind(vis, mod_item.kind, def, generics);
     def

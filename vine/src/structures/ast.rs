@@ -95,7 +95,7 @@ pub struct ModItem {
 
 #[derive(Debug, Clone)]
 pub enum ModKind {
-  Loaded(Span, Vec<Item>),
+  Loaded(Span, Option<FileId>, Vec<Item>),
   Unloaded(Span, Option<String>),
   Error(ErrorGuaranteed),
 }

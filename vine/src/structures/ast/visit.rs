@@ -285,7 +285,7 @@ pub trait VisitMut<'a> {
         self.visit(&mut c.value);
       }
       ItemKind::Mod(m) => match &mut m.kind {
-        ModKind::Loaded(_, items) => {
+        ModKind::Loaded(_, _, items) => {
           for item in items {
             self.visit_item(item);
           }

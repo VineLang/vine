@@ -3,6 +3,7 @@ use std::collections::HashMap;
 use vine_util::{idx::IdxVec, new_idx};
 
 use crate::{
+  components::loader::FileId,
   features::builtin::Builtins,
   structures::ast::{
     Block, Expr, Flex, Ident, Impl, ImplParam, Pat, Path, Span, Trait, Ty, TypeParam,
@@ -32,6 +33,7 @@ new_idx!(pub DefId);
 pub struct Def {
   pub name: Ident,
   pub path: String,
+  pub file: Option<FileId>,
   pub spans: Vec<Span>,
 
   pub members_lookup: HashMap<Ident, Binding<MemberKind>>,
