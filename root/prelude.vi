@@ -1,4 +1,19 @@
 
+/// The prelude, which defines items that are in scope without needing to be
+/// explicitly imported.
+///
+/// The prelude includes:
+/// - `IO`
+/// - numeric types (`N32`, `N64`, `Nat`, `I32`, `Int`, `F32`)
+/// - `List`, `Char`, and `String`
+/// - logical types (`Bool`, `Option`, `Result`)
+///   and their variants (`None`, `Some`, `Ok`, `Err`)
+/// - the `Fork` and `Drop` traits
+/// - core utility functions (`black_box`, `replace`, `swap`)
+/// - the `debug` module, the `Show` trait, and the `.dbg`/`.dbg_msg` methods
+/// - the `unsafe` module
+mod;
+
 pub use #root::{
   IO,
   data::List,

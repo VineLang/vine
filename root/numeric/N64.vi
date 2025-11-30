@@ -6,6 +6,12 @@ use ops::{
   comparison::{Eq, Ord},
 };
 
+/// Natural numbers represented with 64 bits of precision.
+/// ```vi
+/// let x = 123456789[N64] + 9876543210[N64];
+/// x // 9999999999
+/// ```
+/// `N64` values are always in the range `[0, 2^64) = [0, 18_446_744_073_709_551_616)`.
 pub struct N64(pub N32, N32);
 
 pub mod N64 {

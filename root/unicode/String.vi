@@ -1,10 +1,16 @@
 
 use ops::{Cast, Concat, comparison::{Eq, Ord}};
 
+/// A Unicode string, represented as a list of characters.
+/// ```vi
+/// let string = "12 + 34 = {12 + 34}";
+/// string // "12 + 34 = 46"
+/// ```
 #[builtin = "String"]
 pub struct* String(pub List[Char]);
 
 pub mod String {
+  /// The length (number of characters) of the string.
   pub fn .len(&String(List(len, _, _))) -> N32 {
     len
   }

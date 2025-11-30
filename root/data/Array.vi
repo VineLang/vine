@@ -1,6 +1,13 @@
 
 use ops::Cast;
 
+/// A contiguous, indexed collection of `T`.
+///
+/// Values can be efficiently accessed by index, and added/removed from the
+/// beginning/end of the array.
+///
+/// Iterating over all of the values is less efficient; if this is being done
+/// regularly, consider using a `List[T]` instead.
 pub struct Array[T]((N32, Node[T]));
 
 pub mod Array {
@@ -10,6 +17,11 @@ pub mod Array {
     Array(1, value as Node)
   }
 
+  /// Create an array containing `len` copies of `value`.
+  ///
+  /// ```vi
+  /// Array::new(6, ".") // Array([".", ".", ".", ".", ".", "."])
+  /// ```
   pub fn new[T*](len: N32, value: T) -> Array[T] {
     if len == 0 {
       Array::empty
@@ -18,6 +30,11 @@ pub mod Array {
     }
   }
 
+  /// Convert a list to an array, preserving the order of values. `O(n)`
+  /// ```vi
+  /// let array = [1, 2, 3] as Array;
+  /// array // Array([1, 2, 3])
+  /// ```
   pub impl from_list[T]: Cast[List[T], Array[T]] {
     fn cast(List[T](len, buf, _end)) -> Array[T] {
       unsafe::erase(_end);
@@ -34,6 +51,14 @@ pub mod Array {
     }
   }
 
+  /// Convert a list to an array, preserving the order of values. `O(n)`
+  /// ```vi
+  /// let array = Array::empty;
+  /// array.push_back(1);
+  /// array.push_back(2);
+  /// array.push_back(3);
+  /// array as List // [1, 2, 3]
+  /// ```
   pub impl to_list[T]: Cast[Array[T], List[T]] {
     fn cast(self: Array[T]) -> List[T] {
       let end;
@@ -41,6 +66,13 @@ pub mod Array {
     }
   }
 
+  /// Create an array with the given length, where each value is produced
+  /// in order by calling the function. `O(n)`
+  /// ```vi
+  /// let i = 0;
+  /// let array = Array::from_fn(3, fn* () { i += 1; i });
+  /// array // Array([1, 2, 3])
+  /// ```
   pub fn from_fn[T, F*; fn F() -> T](len: N32, f: F) -> Array[T] {
     if len == 0 {
       Array::empty
@@ -56,6 +88,7 @@ pub mod Array {
     }
   }
 
+  /// Iterate over the values of the array in order.
   pub fn .for_each[T, F*; fn F(T)](self: Array[T], f: F) {
     let f = debug::with_state(f);
     self.fold_front(
@@ -67,6 +100,14 @@ pub mod Array {
     );
   }
 
+  /// Fold over the array, starting from the front.
+  /// ```vi
+  /// let array = Array([1, 2, 3]);
+  /// let str = array.fold_front("initial", fn* (str: String, value: N32) {
+  ///   "f({str}, {value})"
+  /// });
+  /// str // "f(f(f(initial, 1), 2), 3)"
+  /// ```
   pub fn .fold_front[T, U, F*; fn F(U, T) -> U](Array[T](len, node), initial: U, f: F) -> U {
     if len == 0 {
       unsafe::erase(node);
@@ -82,6 +123,14 @@ pub mod Array {
     }
   }
 
+  /// Fold over the array, starting from the back.
+  /// ```vi
+  /// let array = Array([1, 2, 3]);
+  /// let str = array.back("initial", fn* (value: N32, str: String) {
+  ///   "f({value}, {str})"
+  /// });
+  /// str // "f(1, f(2, f(3, initial)))"
+  /// ```
   pub fn .fold_back[T, U, F*; fn F(U, T) -> U](Array[T](len, node), initial: U, f: F) -> U {
     if len == 0 {
       unsafe::erase(node);
@@ -97,10 +146,22 @@ pub mod Array {
     }
   }
 
+  /// The length of the array. `O(1)`
+  /// ```vi
+  /// let array = [1, 2, 3] as Array;
+  /// array.len() // 3
+  /// ```
   pub fn .len[T](&self: &Array[T]) -> N32 {
     self.0
   }
 
+  /// Access the `i`th element of the array. `O(log n)`
+  /// ```vi
+  /// let array = ["a", "b", "C"] as Array;
+  /// array.at(1) // Some(&"b")
+  /// array.at(2).assume().* = "c";
+  /// array // Array(["a", "b", "c"])
+  /// ```
   pub fn .at[T](&Array[T](len, *node), i: N32) -> Option[&T] {
     if i >= len {
       let &_ = node;
@@ -114,10 +175,23 @@ pub mod Array {
     Some(node as &T)
   }
 
+  /// Get the `i`th element of the array. `O(log n)`
+  /// ```vi
+  /// let array = ["a", "b", "c"] as Array;
+  /// array.get(0) // Some("a")
+  /// array.get(1) // Some("b")
+  /// array.get(3) // None
+  /// ```
   pub fn .get[T+](&self: &Array[T], i: N32) -> Option[T] {
     self.at(i).as_fork()
   }
 
+  /// Append a value to the end of the array. `O(log n)`
+  /// ```vi
+  /// let array = [1, 2, 3] as Array;
+  /// array.push_back(4);
+  /// array // Array([1, 2, 3, 4])
+  /// ```
   pub fn .push_back[T](&Array[T](len, *node), value: T) {
     if len == 0 {
       let &node = node;
@@ -134,6 +208,12 @@ pub mod Array {
     len += 1;
   }
 
+  /// Append a value to the beginning of the array. `O(log n)`
+  /// ```vi
+  /// let array = [1, 2, 3] as Array;
+  /// array.push_front(0);
+  /// array // Array([0, 1, 2, 3])
+  /// ```
   pub fn .push_front[T](&Array[T](len, *node), value: T) {
     if len == 0 {
       let &node = node;
@@ -153,6 +233,12 @@ pub mod Array {
     len += 1;
   }
 
+  /// Remove the last value from the array. `O(log n)`
+  /// ```vi
+  /// let array = [1, 2, 3] as Array;
+  /// array.pop_back() // Some(3)
+  /// array // Array([1, 2])
+  /// ```
   pub fn .pop_back[T](&Array[T](len, *node)) -> Option[T] {
     when {
       len == 0 { None() }
@@ -185,6 +271,12 @@ pub mod Array {
     }
   }
 
+  /// Remove the first value from the array. `O(log n)`
+  /// ```vi
+  /// let array = [1, 2, 3] as Array;
+  /// array.pop_front() // Some(1)
+  /// array // Array([2, 3])
+  /// ```
   pub fn .pop_front[T](&Array[T](len, *node)) -> Option[T] {
     when {
       len == 0 { None() }
@@ -213,10 +305,21 @@ pub mod Array {
     }
   }
 
+  /// Reverse the elements of the array. `O(n)`
+  /// ```vi
+  /// let array = [1, 2, 3] as Array;
+  /// array.reverse();
+  /// array // Array([3, 2, 1])
+  /// ```
   pub fn .reverse[T](&Array[T](len, node)) {
     node.reverse(len)
   }
 
+  /// Returns an array with the elements reversed. `O(n)`
+  /// ```vi
+  /// let array = [1, 2, 3] as Array;
+  /// array.reversed() // Array([3, 2, 1])
+  /// ```
   pub fn .reversed[T](self: Array[T]) -> Array[T] {
     self.reverse();
     self
@@ -251,6 +354,17 @@ pub mod Array {
   }
 }
 
+/// The internal tree structure of an array.
+///
+/// Whether this is a leaf or branch node is stored out of band in the length
+/// of the array. If this is a leaf node, the content is actually `T`. If this
+/// is a branch node, the left child stores the even indices, and the right
+/// child stores the odd indices.
+///
+/// For example, the array `[0, 1, 2, 3, 4, 5, 6]` would be represented as:
+/// ```vi
+/// Array(5, Node(Node(Node(0, 4), Node(2, 6)), Node(Node(1, 5), 3)))
+/// ```
 struct Node[T]((Node[T], Node[T]));
 
 mod Node {
