@@ -455,3 +455,7 @@ let io: IO = <IO>;
 error input:1:14 - expected content subpattern
 
 let io: IO = <IO>;
+> do { let list = [1, 3]; list.insert(1, 2); list.insert(100, 4); list }
+[1, 2, 3, 4]
+
+let io: IO = <IO>;

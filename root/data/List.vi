@@ -145,14 +145,15 @@ pub mod List {
     list = [el] ++ list;
   }
 
-  pub fn .insert[T](&List[T](len, *buf, _), i: N32, el: T) {
-    len += 1;
-    for _ in 0..i {
-      let &Buf(_, *tail) = buf;
-      buf = tail;
+  pub fn .insert[T](&list: &List[T], i: N32, el: T) {
+    assert i < list.len() else {
+      list.push_back(el);
     }
-    let &buf = buf;
-    buf = Buf(el, buf);
+    let front = [];
+    for _ in 0..i {
+      front.push_back(list.pop_front().assume());
+    }
+    list = front ++ [el] ++ list;
   }
 
   pub fn .find[T, F*; fn F(&T) -> Bool](&self: &List[T], pred: F) -> Option[&T] {
