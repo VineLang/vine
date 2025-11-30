@@ -33,3 +33,7 @@ code.ts {
     font-weight: bold;
   }
 }
+
+#sidebar {
+  scrollbar-gutter: stable;
+}

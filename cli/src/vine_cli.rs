@@ -14,7 +14,7 @@ use rustyline::DefaultEditor;
 use vine::{
   compiler::Compiler,
   features::cfg::Config,
-  tools::{fmt::Formatter, repl::Repl},
+  tools::{doc::document, fmt::Formatter, repl::Repl},
 };
 use vine_lsp::lsp;
 
@@ -34,6 +34,9 @@ pub enum VineCommand {
 
   #[command(about = "Generate shell completion scripts")]
   Completion(VineCompletionCommand),
+
+  #[command(hide = true)]
+  Doc(VineDocCommand),
 }
 
 impl VineCommand {
@@ -45,6 +48,7 @@ impl VineCommand {
       VineCommand::Fmt(fmt) => fmt.execute(),
       VineCommand::Lsp(lsp) => lsp.execute(),
       VineCommand::Completion(completion) => completion.execute(),
+      VineCommand::Doc(doc) => doc.execute(),
     }
   }
 }
@@ -52,7 +56,7 @@ impl VineCommand {
 #[derive(Debug, Args)]
 pub struct CompileArgs {
   #[arg()]
-  main: Option<PathBuf>,
+  main: PathBuf,
   #[arg(long = "lib")]
   libs: Vec<PathBuf>,
   #[arg(long)]
@@ -62,20 +66,23 @@ pub struct CompileArgs {
 }
 
 impl CompileArgs {
-  fn compile(mut self) -> Nets {
+  fn initialize(mut self) -> Compiler {
     if !self.no_root {
       self.libs.push(root_path())
     }
 
     let mut compiler = Compiler::new(self.debug, Config::default());
 
-    if let Some(main) = self.main {
-      compiler.loader.load_main_mod(&main, &mut compiler.diags);
-    }
+    compiler.loader.load_main_mod(&self.main, &mut compiler.diags);
     for lib in self.libs {
       compiler.loader.load_mod(&lib, &mut compiler.diags);
     }
 
+    compiler
+  }
+
+  fn compile(self) -> Nets {
+    let mut compiler = self.initialize();
     match compiler.compile(()) {
       Ok(nets) => nets,
       Err(diags) => {
@@ -117,9 +124,6 @@ pub struct VineRunCommand {
 
 impl VineRunCommand {
   pub fn execute(self) -> Result<()> {
-    if self.compile.main.is_none() {
-      panic!("must supply main")
-    }
     let debug = self.compile.debug;
     let mut nets = self.compile.compile();
     self.optimizations.apply(&mut nets);
@@ -253,6 +257,29 @@ impl VineCompletionCommand {
     let cmd_name = cmd.get_name().to_string();
     clap_complete::generate(shell, &mut cmd, cmd_name, &mut io::stdout());
 
+    Ok(())
+  }
+}
+
+#[derive(Debug, Args)]
+pub struct VineDocCommand {
+  #[command(flatten)]
+  compile: CompileArgs,
+  output: PathBuf,
+}
+
+impl VineDocCommand {
+  pub fn execute(self) -> Result<()> {
+    let mut compiler = self.compile.initialize();
+    let result = compiler.compile(());
+    if document(&compiler, &self.output).is_err() {
+      if let Err(diags) = result {
+        eprintln!("{}", compiler.loader.print_diags(&diags));
+      } else {
+        eprintln!("could not build docs");
+      }
+      exit(1);
+    }
     Ok(())
   }
 }

@@ -37,6 +37,7 @@
 }
 
 #hyptyp.resource("/theme.css", read("theme.css"))
+#hyptyp.resource("/root.css", read("root.css"))
 #hyptyp.resource("/typsitter.css", {
   typsitter.theme-css(dark-theme)
   "@media (prefers-color-scheme: light) {\n"
@@ -48,12 +49,12 @@
 
 #img.resources
 
-#show: hyptyp.show-site(
-  root: "docs.typ",
+#let site = root-docs => hyptyp.show-site(
+  root: if root-docs { "root/root.typ" } else { "docs.typ" },
 
-  root-slug: "/docs/",
+  root-slug: if root-docs { "/root/" } else { "/docs/" },
 
-  path-to-slug: site => path => "/docs" + (hyptyp.defaults.path-to-slug)(site)(path),
+  path-to-slug: site => path => if root-docs { "" } else { "/docs" } + (hyptyp.defaults.path-to-slug)(site)(path),
 
   sidebar-header: site => _ => [
     #t.a(class: "logo", href: "/")[#t.img(class: "logo", src: "/logo.svg")]
@@ -62,6 +63,20 @@
   head-extra: site => _ => {
     t.link(rel: "stylesheet", href: "/typsitter.css")
     t.link(rel: "stylesheet", href: "/theme.css")
+    if root-docs {
+      t.link(rel: "stylesheet", href: "/root.css")
+    }
     img.icons
   }
-)
+)([])
+
+#context if target() == "html" {
+  t.html([
+    #for root-docs in (false, true) {
+      site(root-docs)
+    }
+  ])
+} else {
+  site(false)
+}
+

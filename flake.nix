@@ -92,7 +92,7 @@
             ;
         };
 
-        docs = pkgs.callPackage ./docs/docs.nix {
+        docs = import ./docs/docs.nix {
           inherit
             system
             pkgs
@@ -101,6 +101,7 @@
             typsitter
             hyptyp
             grammars
+            vineNoRoot
             ;
         };
       in
