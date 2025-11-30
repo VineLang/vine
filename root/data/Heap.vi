@@ -102,6 +102,16 @@ pub mod Heap[T; Ord[T]] {
     }
   }
 
+  pub impl from_list[...]: Cast[List[T], Heap[T]] {
+    fn cast(list: List[T]) -> Heap[T] {
+      let heap = Heap::empty;
+      for value in list.iter() {
+        heap.insert(value);
+      }
+      heap
+    }
+  }
+
   pub impl to_list[...]: Cast[Heap[T], List[T]] {
     fn cast(self: Heap[T]) -> List[T] {
       let list = [];

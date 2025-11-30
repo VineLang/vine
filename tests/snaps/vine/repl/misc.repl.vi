@@ -459,3 +459,7 @@ let io: IO = <IO>;
 [1, 2, 3, 4]
 
 let io: IO = <IO>;
+> [1, 8, 2, 4, 6] as #root::data::Heap as List
+[1, 2, 4, 6, 8]
+
+let io: IO = <IO>;
