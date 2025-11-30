@@ -687,11 +687,11 @@ checksum = "49f1f14873335454500d59611f1cf4a4b0f786f9ac11f4312a78e4cf2566695b"
 
 [[package]]
 name = "ivm"
-version = "0.1.0"
+version = "0.0.0"
 
 [[package]]
 name = "ivy"
-version = "0.1.0"
+version = "0.0.0"
 dependencies = [
  "indexmap",
  "ivm",
@@ -1376,7 +1376,7 @@ checksum = "0b928f33d975fc6ad9f86c8f283853ad26bdd5b10b7f1542aa2fa15e2289105a"
 
 [[package]]
 name = "vine"
-version = "0.1.0"
+version = "0.0.0"
 dependencies = [
  "bitflags 2.6.0",
  "class",
@@ -1390,7 +1390,7 @@ dependencies = [
 
 [[package]]
 name = "vine-cli"
-version = "0.1.0"
+version = "0.0.0"
 dependencies = [
  "anyhow",
  "clap",
@@ -1405,7 +1405,7 @@ dependencies = [
 
 [[package]]
 name = "vine-lsp"
-version = "0.1.0"
+version = "0.0.0"
 dependencies = [
  "futures",
  "glob",
@@ -1416,7 +1416,7 @@ dependencies = [
 
 [[package]]
 name = "vine-util"
-version = "0.1.0"
+version = "0.0.0"
 dependencies = [
  "hashbrown 0.14.5",
  "logos",
