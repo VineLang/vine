@@ -4,6 +4,7 @@
 
 #let children = (
   "usual.typ",
+  "root.typ",
   "modules.typ",
   "variables.typ",
   "control_flow/control_flow.typ",
