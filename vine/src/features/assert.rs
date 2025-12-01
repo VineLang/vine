@@ -45,8 +45,7 @@ impl Resolver<'_> {
     let expr = self.resolve_scoped_cond(&stmt.expr);
     let rest = self.resolve_stmts_type(span, rest, ty);
     self.exit_scope();
-    let else_ =
-      if let Some(else_) = &stmt.else_ { Some(self.resolve_block_type(else_, ty)) } else { None };
+    let else_ = stmt.else_.as_ref().map(|else_| self.resolve_block_type(else_, ty));
     TirExprKind::If(expr, rest, else_)
   }
 }
