@@ -93,10 +93,10 @@ pub mod Nat {
         borrow = (a < b) | (ab < borrow as N32);
       }
       while borrow {
-        let Some(a) = a.pop_front() else {
+        assert a.pop_front() is Some(a) else {
           // underflow
           return 0[Nat];
-        };
+        }
         push(a - 1);
         borrow = a == 0;
       }
@@ -174,9 +174,9 @@ pub mod Nat {
 
     let nums = a!.reversed();
 
-    let Some(leading_num) = nums.pop_front() else {
+    assert nums.pop_front() is Some(leading_num) else {
       return (0[Nat], 0);
-    };
+    }
     let q = [];
     let (qi, rem) = leading_num.div_rem(d);
     if qi != 0 {

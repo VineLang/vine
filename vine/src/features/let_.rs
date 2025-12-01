@@ -43,26 +43,28 @@ impl VineParser<'_> {
 
 impl<'src> Formatter<'src> {
   pub(crate) fn fmt_stmt_let(&self, stmt: &LetStmt) -> Doc<'src> {
-    Doc::concat([
-      Doc("let "),
-      self.fmt_pat(&stmt.bind),
-      match &stmt.init {
-        Some(e) => Doc::concat([Doc(" = "), self.fmt_expr(e)]),
-        None => Doc::EMPTY,
-      },
-      match &stmt.else_ {
-        None => Doc::EMPTY,
-        Some(LetElse::Block(b)) => Doc::concat([Doc(" else "), self.fmt_block(b, false)]),
-        Some(LetElse::Match(a)) => Doc::concat([
-          Doc(" else match "),
-          Doc::brace_multiline(
-            a.iter()
-              .map(|(p, b)| Doc::concat([self.fmt_pat(p), Doc(" "), self.fmt_block(b, false)])),
-          ),
-        ]),
-      },
-      Doc(";"),
-    ])
+    if let Some(LetElse::Block(else_)) = &stmt.else_ {
+      Doc::concat([
+        Doc("assert "),
+        match &stmt.init {
+          Some(e) => Doc::concat([self.fmt_expr(e), Doc(" is ")]),
+          None => Doc::EMPTY,
+        },
+        self.fmt_pat(&stmt.bind),
+        Doc(" else "),
+        self.fmt_block(else_, false),
+      ])
+    } else {
+      Doc::concat([
+        Doc("let "),
+        self.fmt_pat(&stmt.bind),
+        match &stmt.init {
+          Some(e) => Doc::concat([Doc(" = "), self.fmt_expr(e)]),
+          None => Doc::EMPTY,
+        },
+        Doc(";"),
+      ])
+    }
   }
 }
 

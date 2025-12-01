@@ -47,9 +47,9 @@ pub fn parse(str: String) -> Option[F32] {
         if char != 'e' and char != 'E' {
           return None();
         }
-        let Some(exp) = I32::parse(str) else {
+        assert I32::parse(str) is Some(exp) else {
           return None();
-        };
+        }
         exp10 += exp;
       }
 

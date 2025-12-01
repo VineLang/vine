@@ -269,9 +269,9 @@ pub mod List {
 
   pub fn .is_sorted[T; Ord[T]](&list: &List[T]) -> Bool {
     let iter_ref = list.iter_ref();
-    let Some(prev, iter_ref) = iter_ref.advance() else {
+    assert iter_ref.advance() is Some(prev, iter_ref) else {
       return true;
-    };
+    }
     for next in iter_ref {
       if prev > next {
         return false;
