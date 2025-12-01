@@ -343,6 +343,7 @@ module.exports = grammar({
           ),
         ),
         $.stmt_expr,
+        $.stmt_assert,
         $.stmt_let,
         $.stmt_let_fn,
       ),
@@ -351,6 +352,15 @@ module.exports = grammar({
 
     stmt_expr: $ => prec.right(seq($._expr, optional(";"))),
 
+    stmt_assert: $ =>
+      prec.right(seq(
+        "assert",
+        $._expr,
+        optional(
+          seq("else", $.block),
+        ),
+      )),
+
     stmt_let: $ =>
       prec.right(seq(
         "let",
@@ -358,10 +368,6 @@ module.exports = grammar({
         optional(seq(
           "=",
           $._expr,
-          optional(choice(
-            seq("else", $.block),
-            seq("else", "match", delimited("{", "", "}", $.match_arm)),
-          )),
         )),
         optional(";"),
       )),
