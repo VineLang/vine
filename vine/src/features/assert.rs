@@ -15,7 +15,8 @@ impl VineParser<'_> {
   pub(crate) fn parse_stmt_assert(&mut self) -> Result<StmtKind, Diag> {
     self.expect(Token::Assert)?;
     let expr = self.parse_expr()?;
-    let else_ = self.eat_then(Token::Else, Self::parse_block)?;
+    self.expect(Token::Else)?;
+    let else_ = self.parse_block()?;
     Ok(StmtKind::Assert(AssertStmt { expr, else_ }))
   }
 }
@@ -25,10 +26,8 @@ impl<'src> Formatter<'src> {
     Doc::concat([
       Doc("assert "),
       self.fmt_expr(&stmt.expr),
-      match &stmt.else_ {
-        Some(b) => Doc::concat([Doc(" else "), self.fmt_block(b, false)]),
-        None => Doc::EMPTY,
-      },
+      Doc(" else "),
+      self.fmt_block(&stmt.else_, false),
     ])
   }
 }
@@ -45,7 +44,7 @@ impl Resolver<'_> {
     let expr = self.resolve_scoped_cond(&stmt.expr);
     let rest = self.resolve_stmts_type(span, rest, ty);
     self.exit_scope();
-    let else_ = stmt.else_.as_ref().map(|else_| self.resolve_block_type(else_, ty));
-    TirExprKind::If(expr, rest, else_)
+    let else_ = self.resolve_block_type(&stmt.else_, ty);
+    TirExprKind::If(expr, rest, Some(else_))
   }
 }

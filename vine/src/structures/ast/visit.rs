@@ -241,9 +241,7 @@ pub trait VisitMut<'a> {
     match &mut stmt.kind {
       StmtKind::Assert(a) => {
         self.visit_expr(&mut a.expr);
-        if let Some(b) = &mut a.else_ {
-          self.visit(b)
-        }
+        self.visit(&mut a.else_);
       }
       StmtKind::Let(l) => {
         if let Some(init) = &mut l.init {

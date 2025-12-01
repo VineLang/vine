@@ -356,9 +356,8 @@ module.exports = grammar({
       prec.right(seq(
         "assert",
         $._expr,
-        optional(
-          seq("else", $.block),
-        ),
+        "else",
+        $.block,
       )),
 
     stmt_let: $ =>

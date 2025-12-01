@@ -283,7 +283,7 @@ pub struct LetStmt {
 #[derive(Debug, Clone)]
 pub struct AssertStmt {
   pub expr: Expr,
-  pub else_: Option<Block>,
+  pub else_: Block,
 }
 
 #[derive(Debug, Clone)]
