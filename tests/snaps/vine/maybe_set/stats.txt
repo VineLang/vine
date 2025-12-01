@@ -1,8 +1,6 @@
 
 Interactions
   Total                  261
-    Depth                131
-    Breadth                1
   Annihilate             131
   Commute                  0
   Copy                    21
@@ -10,6 +8,11 @@ Interactions
   Expand                  28
   Call                    27
   Branch                  10
+
+Parallelism
+  Depth                  131
+  Breadth                  1
+  Speedup                 30 cB
 
 Memory
   Heap                   976 B

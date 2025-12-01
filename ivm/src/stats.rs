@@ -64,6 +64,10 @@ impl Stats {
   pub fn breadth(&self) -> u64 {
     self.interactions().checked_div(self.depth).unwrap_or(0)
   }
+
+  pub fn speedup(&self) -> u64 {
+    ((self.interactions() as f64 / self.depth as f64).log10() * 100.0).round() as u64
+  }
 }
 
 // This code is very complex, as it avoids doing any allocation. Premature
@@ -76,13 +80,7 @@ impl Display for Stats {
     match &[
       Option::<&[_]>::Some(&[
         ("Interactions", None),
-        ("  Total", Some((self.interactions(), ""))), //
-      ]),
-      (self.depth != 0).then_some(&[
-        ("    Depth", Some((self.depth, ""))),       //
-        ("    Breadth", Some((self.breadth(), ""))), //
-      ]),
-      Some(&[
+        ("  Total", Some((self.interactions(), ""))),
         ("  Annihilate", Some((self.annihilate, ""))),
         ("  Commute", Some((self.commute, ""))),
         ("  Copy", Some((self.copy, ""))),
@@ -90,6 +88,13 @@ impl Display for Stats {
         ("  Expand", Some((self.expand, ""))),
         ("  Call", Some((self.call, ""))),
         ("  Branch", Some((self.branch, ""))),
+        ("", None),
+      ]),
+      (self.depth != 0).then_some(&[
+        ("Parallelism", None),
+        ("  Depth", Some((self.depth, ""))),
+        ("  Breadth", Some((self.breadth(), ""))),
+        ("  Speedup", Some((self.speedup(), "cB"))),
         ("", None),
       ]),
       (self.workers_used != 0).then_some(&[
