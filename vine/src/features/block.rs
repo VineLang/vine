@@ -68,6 +68,7 @@ impl Resolver<'_> {
       return TirExpr { span, ty, kind: Box::new(kind) };
     };
     let kind = match &stmt.kind {
+      StmtKind::Assert(stmt) => self.resolve_stmts_assert(span, ty, stmt, rest),
       StmtKind::Let(stmt) => self.resolve_stmts_let(span, ty, stmt, rest),
       StmtKind::LetFn(_) => {
         let rest = self.resolve_stmts_let_fn_group(stmts);

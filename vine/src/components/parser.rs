@@ -530,6 +530,9 @@ impl<'src> VineParser<'src> {
   }
 
   fn _parse_stmt(&mut self) -> Result<StmtKind, Diag> {
+    if self.check(Token::Assert) {
+      return self.parse_stmt_assert();
+    }
     if self.check(Token::Let) {
       return self.parse_stmt_let();
     }

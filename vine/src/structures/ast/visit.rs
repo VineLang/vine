@@ -239,6 +239,12 @@ pub trait VisitMut<'a> {
 
   fn _visit_stmt(&mut self, stmt: &'a mut Stmt) {
     match &mut stmt.kind {
+      StmtKind::Assert(a) => {
+        self.visit_expr(&mut a.expr);
+        if let Some(b) = &mut a.else_ {
+          self.visit(b)
+        }
+      }
       StmtKind::Let(l) => {
         if let Some(init) = &mut l.init {
           self.visit_expr(init);

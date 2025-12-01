@@ -263,6 +263,7 @@ pub struct Stmt {
 
 #[derive(Debug, Clone)]
 pub enum StmtKind {
+  Assert(AssertStmt),
   Let(LetStmt),
   LetFn(LetFnStmt),
   Expr(Expr, bool),
@@ -284,6 +285,12 @@ pub struct LetStmt {
 pub enum LetElse {
   Block(Block),
   Match(Vec<(Pat, Block)>),
+}
+
+#[derive(Debug, Clone)]
+pub struct AssertStmt {
+  pub expr: Expr,
+  pub else_: Option<Block>,
 }
 
 #[derive(Debug, Clone)]
