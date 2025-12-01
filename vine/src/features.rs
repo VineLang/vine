@@ -1,4 +1,5 @@
 pub mod annotation;
+pub mod assert;
 pub mod block;
 pub mod builtin;
 pub mod cast;

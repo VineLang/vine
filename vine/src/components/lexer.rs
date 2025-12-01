@@ -154,6 +154,8 @@ pub enum Token {
   Continue,
   #[token("if")]
   If,
+  #[token("assert")]
+  Assert,
   #[token("when")]
   When,
   #[token("else")]

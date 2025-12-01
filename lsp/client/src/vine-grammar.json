@@ -40,7 +40,7 @@
       "name": "punctuation.vine"
     },
     "keyword": {
-      "match": "\\b(?:pub|mod|use|as|fn|struct|enum|type|trait|impl|match|let|const|in|is|return|do|loop|while|for|break|continue|if|when|else|true|false|and|or|try|inline_ivy!)\\b",
+      "match": "\\b(?:pub|mod|use|as|fn|struct|enum|type|trait|impl|match|let|assert|const|in|is|return|do|loop|while|for|break|continue|if|when|else|true|false|and|or|try|inline_ivy!)\\b",
       "name": "keyword.vine"
     },
     "block": {

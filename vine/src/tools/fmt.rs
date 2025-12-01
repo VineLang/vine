@@ -144,6 +144,7 @@ impl<'src> Formatter<'src> {
 
   pub(crate) fn fmt_stmt(&self, stmt: &Stmt) -> Doc<'src> {
     match &stmt.kind {
+      StmtKind::Assert(a) => self.fmt_stmt_assert(a),
       StmtKind::Let(l) => self.fmt_stmt_let(l),
       StmtKind::LetFn(d) => self.fmt_stmt_let_fn(d),
       StmtKind::Expr(expr, false) => self.fmt_expr(expr),

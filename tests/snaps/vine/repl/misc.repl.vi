@@ -435,14 +435,6 @@ let io: IO = <IO>;
 Some(Some(1), 2)
 
 let io: IO = <IO>;
-> let Ok(n) = Ok(46) else match { Err(e: String) { "error: {e}" } }; "{n}"
-"46"
-
-let io: IO = <IO>;
-> let Ok(n: N32) = Err("abc") else match { Err(e) { "error: {e}" } }; "{n}"
-"error: abc"
-
-let io: IO = <IO>;
 > 1+2
 3
 
