@@ -278,13 +278,6 @@ pub enum StmtKind {
 pub struct LetStmt {
   pub bind: Pat,
   pub init: Option<Expr>,
-  pub else_: Option<LetElse>,
-}
-
-#[derive(Debug, Clone)]
-pub enum LetElse {
-  Block(Block),
-  Match(Vec<(Pat, Block)>),
 }
 
 #[derive(Debug, Clone)]
