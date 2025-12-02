@@ -16,10 +16,10 @@ use crate::{
   features::cfg::{Config, ConfigValue},
   structures::{
     annotations::Annotations,
-    ast::Ident,
-    chart::Chart,
+    ast::{Ident, Span},
+    chart::{Chart, VisId},
     checkpoint::Checkpoint,
-    diag::{Diags, ErrorGuaranteed},
+    diag::{Diag, Diags, ErrorGuaranteed},
     resolutions::{Fragment, FragmentId, Resolutions},
     signatures::Signatures,
     specializations::{SpecKind, Specializations},
@@ -119,6 +119,17 @@ impl Compiler {
       vir: &self.vir,
     };
     specializer.specialize_since(checkpoint);
+
+    for def in self.chart.defs.values() {
+      for member in &def.named_members {
+        if member.span != Span::NONE
+          && !matches!(member.vis, VisId::Pub)
+          && !self.annotations.references.contains_key(&member.span)
+        {
+          self.diags.warn(Diag::UnusedItem { span: member.span });
+        }
+      }
+    }
 
     self.diags.bail()?;
 

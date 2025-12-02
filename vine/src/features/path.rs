@@ -180,7 +180,10 @@ impl Resolver<'_> {
       let vis = member.vis;
       let result = match member.kind {
         MemberKind::Child(result) => result,
-        MemberKind::Import(import) => self.resolve_import(import)?,
+        MemberKind::Import(import) => {
+          self.annotations.references.entry(member.span).or_default().insert(span);
+          self.resolve_import(import)?
+        }
       };
       if self.chart.visible(vis, source) {
         Ok(Some(result))

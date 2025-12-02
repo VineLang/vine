@@ -291,6 +291,8 @@ diags! {
     ["the `#[frameless]` attribute can only be applied to an fn"]
   UnusedVariable
     ["unused variable"]
+  UnusedItem
+    ["unused item"]
 }
 
 fn plural<'a>(n: usize, plural: &'a str, singular: &'a str) -> &'a str {

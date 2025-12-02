@@ -121,6 +121,7 @@ impl Charter<'_> {
       basic: false,
       become_: None,
     });
+    self.annotations.record_reference(span, span);
     self.define_impl(span, def, vis, DefImplKind::Impl(impl_id));
     def
   }
@@ -157,6 +158,7 @@ impl Charter<'_> {
     });
     self.define_value(span, def, vis, DefValueKind::Fn(FnId::Concrete(fn_id)));
     self.chart_attrs(Some(def), attrs);
+    self.annotations.record_reference(span, span);
     ImplSubitem { span, name: fn_item.name, kind: ImplSubitemKind::Fn(fn_id) }
   }
 
@@ -186,6 +188,7 @@ impl Charter<'_> {
     });
     self.define_value(span, def, vis, DefValueKind::Const(ConstId::Concrete(const_id)));
     self.chart_attrs(Some(def), attrs);
+    self.annotations.record_reference(span, span);
     ImplSubitem { span, name: const_item.name, kind: ImplSubitemKind::Const(const_id) }
   }
 
