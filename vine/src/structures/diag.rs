@@ -19,20 +19,22 @@ use crate::{
 };
 
 #[derive(Default, Debug)]
-pub struct Diags(pub(crate) Vec<Diag>);
+pub struct Diags {
+  pub(crate) errors: Vec<Diag>,
+}
 
 impl Diags {
   pub(crate) fn error(&mut self, diag: Diag) -> ErrorGuaranteed {
-    self.0.push(diag);
+    self.errors.push(diag);
     ErrorGuaranteed(())
   }
 
   pub fn has_diags(&self) -> bool {
-    !self.0.is_empty()
+    !self.errors.is_empty()
   }
 
   pub fn take_diags(&mut self) -> Vec<Diag> {
-    take(&mut self.0)
+    take(&mut self.errors)
   }
 
   pub fn bail(&mut self) -> Result<(), Vec<Diag>> {
@@ -41,7 +43,7 @@ impl Diags {
   }
 
   pub(crate) fn revert(&mut self, checkpoint: &Checkpoint) {
-    self.0.truncate(checkpoint.diags);
+    self.errors.truncate(checkpoint.diags);
   }
 }
 

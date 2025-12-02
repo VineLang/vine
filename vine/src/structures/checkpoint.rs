@@ -53,7 +53,7 @@ impl Compiler {
       fragments: self.fragments.next_index(),
       specs: self.specs.specs.next_index(),
       files: self.loader.files.next_index(),
-      diags: self.diags.0.len(),
+      diags: self.diags.errors.len(),
     }
   }
 
