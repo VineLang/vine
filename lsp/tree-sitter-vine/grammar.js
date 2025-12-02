@@ -110,6 +110,7 @@ module.exports = grammar({
       "impl",
       "match",
       "let",
+      "assert",
       "const",
       "in",
       "is",
