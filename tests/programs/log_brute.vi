@@ -1,0 +1,16 @@
+
+use #root::rng::Pcg32;
+
+pub fn main(&io: &IO) {
+  let rng = Pcg32::seeded("how many logs could a log calculator calculate if a log calculator could calculate logs");
+  for _ in 0..100_000 {
+    let n = N64(rng.gen_n32(), rng.gen_n32()) >> rng.gen_n32();
+    let b = rng.gen_n32() >> rng.gen_n32();
+    assert n > 0[N64] and b > 1 else {}
+    let e = n.log_n32(b);
+    let b = b as Nat;
+    assert b ** e <= n as Nat < b ** (e + 1) else {
+      io.println("error: {n}.log_n32({b}) = {e}");
+    }
+  }
+}
