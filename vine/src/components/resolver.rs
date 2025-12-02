@@ -161,7 +161,7 @@ impl<'a> Resolver<'a> {
         self.resolutions.main = Some(self.resolutions.fns[main_mod]);
       }
       Err(diag) => {
-        self.diags.report(diag);
+        self.diags.error(diag);
       }
     }
   }
@@ -261,7 +261,7 @@ impl<'a> Resolver<'a> {
     found_sig: FnSig,
   ) {
     if types.unify_fn_sig(&expected_sig, &found_sig).is_failure() {
-      diags.report(Diag::ExpectedTypeFound {
+      diags.error(Diag::ExpectedTypeFound {
         span,
         expected: types.show_fn_sig(chart, &expected_sig),
         found: types.show_fn_sig(chart, &found_sig),
@@ -279,7 +279,7 @@ impl<'a> Resolver<'a> {
               self.resolve_generics(path, self.chart.traits[trait_id].generics, false);
             ImplType::Trait(trait_id, type_params)
           }
-          Err(diag) => ImplType::Error(self.diags.report(diag)),
+          Err(diag) => ImplType::Error(self.diags.error(diag)),
         }
       }
       TraitKind::Fn(receiver, params, ret) => self.resolve_trait_fn(span, receiver, params, ret),
@@ -333,12 +333,12 @@ impl<'a> Resolver<'a> {
   }
 
   pub(crate) fn error_expr(&mut self, span: Span, diag: Diag) -> TirExpr {
-    let err = self.diags.report(diag);
+    let err = self.diags.error(diag);
     TirExpr { span, ty: self.types.error(err), kind: Box::new(TirExprKind::Error(err)) }
   }
 
   pub(crate) fn error_pat(&mut self, span: Span, diag: Diag) -> TirPat {
-    let err = self.diags.report(diag);
+    let err = self.diags.error(diag);
     TirPat { span, ty: self.types.error(err), kind: Box::new(TirPatKind::Error(err)) }
   }
 
@@ -349,7 +349,7 @@ impl<'a> Resolver<'a> {
     expected: Type,
   ) -> Option<ErrorGuaranteed> {
     if self.types.unify(found, expected).is_failure() {
-      Some(self.diags.report(Diag::ExpectedTypeFound {
+      Some(self.diags.error(Diag::ExpectedTypeFound {
         span,
         expected: self.types.show(self.chart, expected),
         found: self.types.show(self.chart, found),
@@ -392,7 +392,7 @@ impl<'a> Resolver<'a> {
     if let Some(id) = builtin {
       self.types.new(TypeKind::Opaque(id, vec![]))
     } else {
-      self.types.error(self.diags.report(Diag::MissingBuiltin { span, builtin: name }))
+      self.types.error(self.diags.error(Diag::MissingBuiltin { span, builtin: name }))
     }
   }
 
@@ -534,7 +534,7 @@ impl<'a> Resolver<'a> {
       PatKind::Tuple(elements) => self.resolve_pat_sig_tuple(elements, inference),
       PatKind::Object(entries) => self.resolve_pat_sig_object(entries, inference),
       PatKind::Hole | PatKind::Deref(_) => {
-        self.types.error(self.diags.report(Diag::ItemTypeHole { span }))
+        self.types.error(self.diags.error(Diag::ItemTypeHole { span }))
       }
       PatKind::Error(e) => self.types.error(*e),
     }

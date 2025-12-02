@@ -128,7 +128,7 @@ impl<'a> Finder<'a> {
   }
 
   pub fn find_flex(&mut self, types: &mut Types, ty: Type) -> Result<FlexImpls, ErrorGuaranteed> {
-    self._find_flex(types, ty).map_err(|diag| self.diags.report(diag))
+    self._find_flex(types, ty).map_err(|diag| self.diags.error(diag))
   }
 
   fn _find_flex(&mut self, types: &mut Types, ty: Type) -> Result<FlexImpls, Diag> {
@@ -159,7 +159,7 @@ impl<'a> Finder<'a> {
     let [pos_fork, pos_drop, neg_fork, neg_drop] = results.map(|(query, mut results)| {
       if results.len() > 1 {
         let diag = Diag::AmbiguousImpl { span, ty: sub_types.show_impl_type(self.chart, &query) };
-        error = Err(self.diags.report(diag));
+        error = Err(self.diags.error(diag));
         None
       } else {
         results.pop()
@@ -207,7 +207,7 @@ impl<'a> Finder<'a> {
   pub fn find_impl(&mut self, types: &mut Types, query: &ImplType, basic: bool) -> TirImpl {
     self
       .try_find_impl(types, query, basic)
-      .unwrap_or_else(|err| TirImpl::Error(self.diags.report(err)))
+      .unwrap_or_else(|err| TirImpl::Error(self.diags.error(err)))
   }
 
   pub fn try_find_impl(

@@ -22,7 +22,7 @@ use crate::{
 pub struct Diags(pub(crate) Vec<Diag>);
 
 impl Diags {
-  pub(crate) fn report(&mut self, diag: Diag) -> ErrorGuaranteed {
+  pub(crate) fn error(&mut self, diag: Diag) -> ErrorGuaranteed {
     self.0.push(diag);
     ErrorGuaranteed(())
   }

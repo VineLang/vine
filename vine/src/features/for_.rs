@@ -90,7 +90,7 @@ impl Resolver<'_> {
         let else_ = else_.as_ref().map(|b| self_.resolve_block_type(b, ty));
         let nil = self_.types.nil();
         if else_.is_none() && self_.types.unify(ty, nil).is_failure() {
-          self_.diags.report(Diag::MissingElse { span });
+          self_.diags.error(Diag::MissingElse { span });
         }
         Result::<_, Diag>::Ok((rel, pat, iter, block, else_))
       },
@@ -114,7 +114,7 @@ impl Distiller<'_> {
     else_: &Option<TirExpr>,
   ) -> Port {
     let Some(option_enum) = self.chart.builtins.option else {
-      let err = self.diags.report(Diag::MissingBuiltin { span, builtin: "Option" });
+      let err = self.diags.error(Diag::MissingBuiltin { span, builtin: "Option" });
       return Port::error(result_ty, err);
     };
 

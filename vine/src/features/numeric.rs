@@ -50,7 +50,7 @@ impl Resolver<'_> {
 
   pub(crate) fn resolve_expr_nat(&mut self, span: Span, n: &Nat, ty: &Ty) -> Result<TirExpr, Diag> {
     let Some(nat_ty) = self.chart.builtins.nat else {
-      Err(self.diags.report(Diag::MissingBuiltin { span, builtin: "Nat" }))?
+      Err(self.diags.error(Diag::MissingBuiltin { span, builtin: "Nat" }))?
     };
     let nat_ty = self.types.new(TypeKind::Struct(nat_ty, vec![]));
     let ty = self.resolve_ty(ty, true);

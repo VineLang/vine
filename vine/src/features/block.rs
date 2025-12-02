@@ -60,7 +60,7 @@ impl Resolver<'_> {
       let nil = self.types.nil();
       let kind = if self.types.unify(ty, nil).is_failure() {
         TirExprKind::Error(
-          self.diags.report(Diag::MissingBlockExpr { span, ty: self.types.show(self.chart, ty) }),
+          self.diags.error(Diag::MissingBlockExpr { span, ty: self.types.show(self.chart, ty) }),
         )
       } else {
         TirExprKind::Composite(Vec::new())

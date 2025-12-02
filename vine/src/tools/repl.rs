@@ -92,7 +92,7 @@ impl<'ctx, 'ivm, 'ext, 'comp> Repl<'ctx, 'ivm, 'ext, 'comp> {
     let (span, command) = match self.parse_input(input) {
       Ok(command) => command,
       Err(diag) => {
-        self.compiler.diags.report(diag);
+        self.compiler.diags.error(diag);
         self.compiler.diags.bail()?;
         unreachable!()
       }

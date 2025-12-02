@@ -358,7 +358,7 @@ impl Types {
     match state {
       Known(inverted, kind) => (*inverted ^ ty.inv(), kind),
       Unknown(span) => {
-        let err = diags.report(Diag::CannotInfer { span: *span });
+        let err = diags.error(Diag::CannotInfer { span: *span });
         *state = InferenceFailed(err);
         (Inverted(false), ERROR)
       }

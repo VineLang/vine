@@ -300,7 +300,7 @@ impl Resolver<'_> {
     for (key, value) in entries {
       let old = object.insert(key.ident.clone(), f(self, value));
       if old.is_some() {
-        duplicate = Err(self.diags.report(Diag::DuplicateKey { span: key.span }));
+        duplicate = Err(self.diags.error(Diag::DuplicateKey { span: key.span }));
       }
     }
     duplicate?;
@@ -317,7 +317,7 @@ impl Resolver<'_> {
     for (key, value) in entries {
       let old = fields.insert(key.ident.clone(), f(self, value));
       if old.is_some() {
-        duplicate = Err(self.diags.report(Diag::DuplicateKey { span: key.span }));
+        duplicate = Err(self.diags.error(Diag::DuplicateKey { span: key.span }));
       }
     }
     if let Err(err) = duplicate {
@@ -445,7 +445,7 @@ impl Distiller<'_> {
           ps.push(p);
           qs.push(q);
         }
-        _ => new_acc = Poly::Error(self.diags.report(Diag::AmbiguousPolyformicComposite { span })),
+        _ => new_acc = Poly::Error(self.diags.error(Diag::AmbiguousPolyformicComposite { span })),
       }
       acc = Some(new_acc);
     }
@@ -544,7 +544,7 @@ impl Distiller<'_> {
         stage.steps.push(Step::Composite(place.1, pos));
         Poly::Place((value, space))
       }
-      Poly::Space(_) => Poly::Error(self.diags.report(Diag::SpaceField { span })),
+      Poly::Space(_) => Poly::Error(self.diags.error(Diag::SpaceField { span })),
     }
   }
 }

@@ -379,10 +379,10 @@ impl<'r> Distiller<'r> {
     match &*pat.kind {
       TirPatKind::Error(err) => Port::error(ty.inverse(), *err),
       TirPatKind![!complete] => {
-        Port::error(ty.inverse(), self.diags.report(Diag::ExpectedCompletePat { span }))
+        Port::error(ty.inverse(), self.diags.error(Diag::ExpectedCompletePat { span }))
       }
       TirPatKind::Deref(..) => {
-        Port::error(ty.inverse(), self.diags.report(Diag::DerefNonPlacePat { span }))
+        Port::error(ty.inverse(), self.diags.error(Diag::DerefNonPlacePat { span }))
       }
       TirPatKind::Hole => self.distill_pat_value_hole(stage, span, ty),
       TirPatKind::Struct(struct_id, inner) => {
@@ -403,10 +403,10 @@ impl<'r> Distiller<'r> {
     match &*pat.kind {
       TirPatKind::Error(err) => Port::error(ty, *err),
       TirPatKind![!complete] => {
-        Port::error(ty, self.diags.report(Diag::ExpectedCompletePat { span }))
+        Port::error(ty, self.diags.error(Diag::ExpectedCompletePat { span }))
       }
-      TirPatKind::Deref(..) => Port::error(ty, self.diags.report(Diag::DerefNonPlacePat { span })),
-      TirPatKind::Ref(..) => Port::error(ty, self.diags.report(Diag::RefSpacePat { span })),
+      TirPatKind::Deref(..) => Port::error(ty, self.diags.error(Diag::DerefNonPlacePat { span })),
+      TirPatKind::Ref(..) => Port::error(ty, self.diags.error(Diag::RefSpacePat { span })),
       TirPatKind::Hole => self.distill_pat_space_hole(stage, span, ty),
       TirPatKind::Struct(struct_id, inner) => {
         self.distill_pat_space_struct(stage, span, ty, *struct_id, inner)
@@ -425,7 +425,7 @@ impl<'r> Distiller<'r> {
     match &*pat.kind {
       TirPatKind::Error(err) => (Port::error(ty.inverse(), *err), Port::error(ty, *err)),
       TirPatKind![!complete] => {
-        let err = self.diags.report(Diag::ExpectedCompletePat { span });
+        let err = self.diags.error(Diag::ExpectedCompletePat { span });
         (Port::error(ty.inverse(), err), Port::error(ty, err))
       }
       TirPatKind::Hole => self.distill_pat_place_hole(stage, span, ty),

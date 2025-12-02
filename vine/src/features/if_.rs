@@ -62,7 +62,7 @@ impl Resolver<'_> {
     let else_ = else_.as_ref().map(|leg| self.resolve_block_type(leg, ty));
     let nil = self.types.nil();
     if else_.is_none() && self.types.unify(ty, nil).is_failure() {
-      self.diags.report(Diag::MissingElse { span });
+      self.diags.error(Diag::MissingElse { span });
     }
     Ok(TirExpr::new(span, ty, TirExprKind::If(cond, then, else_)))
   }

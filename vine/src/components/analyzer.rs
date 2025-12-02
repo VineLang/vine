@@ -252,7 +252,7 @@ impl Analyzer<'_> {
         let exterior = self.effects[interface.exterior.unwrap()];
         if interior == Effect::Never || exterior == Effect::Never {
           if !self.infinite_loop {
-            self.diags.report(Diag::InfiniteLoop { span: self.span });
+            self.diags.error(Diag::InfiniteLoop { span: self.span });
             self.infinite_loop = true;
           }
           continue;

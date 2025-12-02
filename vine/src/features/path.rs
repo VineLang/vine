@@ -271,7 +271,7 @@ impl Resolver<'_> {
         if inference {
           self.types.new_var(span)
         } else {
-          self.types.error(self.diags.report(Diag::ItemTypeHole { span }))
+          self.types.error(self.diags.error(Diag::ItemTypeHole { span }))
         }
       }
     }
@@ -291,7 +291,7 @@ impl Resolver<'_> {
       Ok(DefTypeKind::Alias(type_alias_id)) => {
         self.resolve_ty_path_alias(path, inference, type_alias_id)
       }
-      Err(diag) => self.types.error(self.diags.report(diag)),
+      Err(diag) => self.types.error(self.diags.error(diag)),
     }
   }
 
@@ -302,7 +302,7 @@ impl Resolver<'_> {
         let actual_ty =
           self.types.import_with(&impl_params.types, None, |t, tys| t.transfer(&tys[index]));
         if self.types.unify_impl_type(&actual_ty, ty).is_failure() {
-          self.diags.report(Diag::ExpectedTypeFound {
+          self.diags.error(Diag::ExpectedTypeFound {
             span: path.span,
             expected: self.types.show_impl_type(self.chart, ty),
             found: self.types.show_impl_type(self.chart, &actual_ty),
@@ -313,7 +313,7 @@ impl Resolver<'_> {
     }
     match self.resolve_path(self.cur_def, path, "impl", |d| d.impl_kind) {
       Ok(DefImplKind::Impl(id)) => self.resolve_impl_path_impl(path, id, ty),
-      Err(diag) => TirImpl::Error(self.diags.report(diag)),
+      Err(diag) => TirImpl::Error(self.diags.error(diag)),
     }
   }
 }

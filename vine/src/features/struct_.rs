@@ -147,7 +147,7 @@ impl Resolver<'_> {
       self.error_expr(span, Diag::ExpectedDataExpr { span })
     };
     if self.types.unify(data.ty, data_ty).is_failure() {
-      self.diags.report(Diag::ExpectedTypeFound {
+      self.diags.error(Diag::ExpectedTypeFound {
         span: data.span,
         expected: self.types.show(self.chart, data_ty),
         found: self.types.show(self.chart, data.ty),
@@ -224,7 +224,7 @@ impl Resolver<'_> {
     let vis = self.chart.structs[struct_id].data_vis;
     if !self.chart.visible(vis, self.cur_def) {
       let VisId::Def(vis_def) = vis else { unreachable!() };
-      self.diags.report(Diag::StructDataInvisible {
+      self.diags.error(Diag::StructDataInvisible {
         span,
         ty: self.types.show(self.chart, ty),
         vis: self.chart.defs[vis_def].path.clone(),
