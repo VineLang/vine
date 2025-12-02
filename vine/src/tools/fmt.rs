@@ -51,7 +51,7 @@ impl<'src> Formatter<'src> {
             ItemKind::Trait(t) => self.fmt_trait_item(t),
             ItemKind::Impl(i) => self.fmt_impl_item(i),
             ItemKind::Use(u) => self.fmt_use_item(u),
-            ItemKind::Attrs => Doc("mod;"),
+            ItemKind::OuterMod => Doc("mod;"),
             ItemKind::Taken => unreachable!(),
           },
         ]),

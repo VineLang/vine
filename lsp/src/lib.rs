@@ -125,7 +125,7 @@ impl Lsp {
           ItemKind::Mod(i) => (SymbolKind::MODULE, i.name.clone()),
           ItemKind::Trait(i) => (SymbolKind::INTERFACE, i.name.clone()),
           ItemKind::Impl(i) => (SymbolKind::CLASS, i.name.clone()),
-          ItemKind::Use(_) | ItemKind::Attrs | ItemKind::Taken => return,
+          ItemKind::Use(_) | ItemKind::OuterMod | ItemKind::Taken => return,
         };
         let mut children = Vec::new();
         Visitor { symbols: &mut children, ..*self }._visit_item(item);

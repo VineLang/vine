@@ -19,7 +19,7 @@ impl VineParser<'_> {
     let mod_span = self.span();
     self.expect(Token::Mod)?;
     if self.eat(Token::Semi)? {
-      return Ok((mod_span, ItemKind::Attrs));
+      return Ok((mod_span, ItemKind::OuterMod));
     }
     let name_span = self.span();
     let name = self.parse_ident()?;

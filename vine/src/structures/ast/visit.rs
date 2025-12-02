@@ -310,7 +310,7 @@ pub trait VisitMut<'a> {
         super::ImplItemKind::Direct(_, items) => self.visit(items),
         super::ImplItemKind::Indirect(impl_) => self.visit(impl_),
       },
-      ItemKind::Use(..) | ItemKind::Attrs | ItemKind::Taken => {}
+      ItemKind::Use(..) | ItemKind::OuterMod | ItemKind::Taken => {}
     }
   }
 

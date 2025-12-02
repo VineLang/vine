@@ -106,7 +106,7 @@ impl Charter<'_> {
     let member_vis = vis.max(member_vis);
 
     let def = match item.kind {
-      ItemKind::Attrs => {
+      ItemKind::OuterMod => {
         self.chart.defs[parent].spans.push(item.name_span);
         Some(parent)
       }

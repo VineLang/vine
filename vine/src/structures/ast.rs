@@ -34,7 +34,7 @@ pub enum ItemKind {
   Trait(TraitItem),
   Impl(ImplItem),
   Use(UseItem),
-  Attrs,
+  OuterMod,
   Taken,
 }
 
