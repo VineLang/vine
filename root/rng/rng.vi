@@ -1,5 +1,5 @@
 
-/// Psuedo-random number generation utilities.
+/// Pseudo-random number generation utilities.
 ///
 /// Note that Vine programs are deterministic, so all RNGs require a seed.
 mod;

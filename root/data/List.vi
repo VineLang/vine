@@ -4,7 +4,7 @@ use ops::{Cast, Concat, comparison::{Eq, Ord}, range::{Bound, Range}};
 
 /// A linear collection of `T`.
 ///
-/// Lists are otpimized for fast concatenation and in-order iteration.
+/// Lists are optimized for fast concatenation and in-order iteration.
 /// Accessing the first value in a list is `O(1)`, but accessing an arbitrary
 /// value is `O(n)`.
 /// ```vi
