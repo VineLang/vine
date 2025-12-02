@@ -12,3 +12,18 @@ error tests/programs/fail/visibility.vi:21:24 - `#visibility::lib::y` is only vi
 error tests/programs/fail/visibility.vi:21:15 - `#visibility::lib::y` is only visible within `#visibility::lib`
 error tests/programs/fail/visibility.vi:21:7 - `#visibility::lib::y` is only visible within `#visibility::lib`
 error - `#visibility::main` is only visible within `#visibility`
+warn tests/programs/fail/visibility.vi:2:5 - unused item
+warn tests/programs/fail/visibility.vi:18:4 - unused item
+warn tests/programs/fail/visibility.vi:25:5 - unused item
+warn tests/programs/fail/visibility.vi:36:5 - unused item
+warn tests/programs/fail/visibility.vi:3:6 - unused item
+warn tests/programs/fail/visibility.vi:14:10 - unused item
+warn tests/programs/fail/visibility.vi:3:15 - unused item
+warn tests/programs/fail/visibility.vi:8:18 - unused item
+warn tests/programs/fail/visibility.vi:22:10 - unused item
+warn tests/programs/fail/visibility.vi:37:6 - unused item
+warn tests/programs/fail/visibility.vi:39:8 - unused item
+warn tests/programs/fail/visibility.vi:40:5 - unused item
+warn tests/programs/fail/visibility.vi:43:8 - unused item
+warn tests/programs/fail/visibility.vi:41:5 - unused item
+warn tests/programs/fail/visibility.vi:42:5 - unused item

@@ -1,5 +1,5 @@
 
-use #root::{data::Array, ops::elementwise};
+use #root::{data::Array, ops::elementwise as _};
 
 const cutoff: N32 = 50;
 

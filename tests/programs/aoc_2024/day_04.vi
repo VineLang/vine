@@ -80,10 +80,6 @@ mod Channel {
     out = value;
     got
   }
-
-  pub fn .get[M+](&Channel[M](i, _)) -> M {
-    i
-  }
 }
 
 fn relay(Channel[Char](ai, ~ao), Channel[Char](bi, ~bo), recv: Char, send: Char) {

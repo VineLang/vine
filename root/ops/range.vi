@@ -1,7 +1,6 @@
 
 use comparison::Ord;
 use data::Iterator;
-use ops::arithmetic::{Add, Sub};
 
 pub trait Bound[B, T] {
   fn .left_of(self: &B, value: &T) -> Bool;

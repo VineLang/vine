@@ -32,10 +32,6 @@ pub mod N64 {
     }
   }
 
-  pub.numeric fn .lo(N64(lo, _)) -> N32 {
-    lo
-  }
-
   pub.numeric fn .hi(N64(_, hi)) -> N32 {
     hi
   }

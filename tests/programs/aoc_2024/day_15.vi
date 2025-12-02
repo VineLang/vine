@@ -1,5 +1,5 @@
 
-use #root::{data::Array, ops::elementwise};
+use #root::{data::Array, ops::elementwise as _};
 
 pub fn main(&io: &IO) {
   let grid = Array::empty;

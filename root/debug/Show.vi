@@ -217,5 +217,7 @@ pub mod Show {
 
 #[builtin = "show_to_string"]
 fn show_to_string[T; Show[T]](&value: &T) -> String {
+  // silence unused item warning
+  show_to_string;
   "{value.show()}"
 }

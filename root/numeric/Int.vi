@@ -1,10 +1,5 @@
 
-use ops::{
-  Cast,
-  arithmetic::{Add, Div, Mul, Neg, Pow, Rem, Sub},
-  bitwise::{BitAnd, BitOr, BitXor},
-  comparison::{Eq, Ord},
-};
+use ops::{Cast, arithmetic::{Add, Div, Mul, Neg, Pow, Rem, Sub}, comparison::{Eq, Ord}};
 
 pub struct* Int(Bool, Nat);
 

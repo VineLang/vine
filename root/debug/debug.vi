@@ -58,12 +58,6 @@ pub mod debug {
 
   struct DebugState({ io: IO, stack: List[Frame] });
 
-  mod DebugState {
-    fn new(io: IO) -> DebugState {
-      DebugState({ io, stack: [] })
-    }
-  }
-
   #[builtin = "debug_state"]
   fn debug_state() -> &DebugState {
     unsafe::eraser

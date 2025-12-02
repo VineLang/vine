@@ -69,3 +69,5 @@ warn tests/programs/fail/atypical.vi:10:8 - unused variable
 warn tests/programs/fail/atypical.vi:10:11 - unused variable
 warn tests/programs/fail/atypical.vi:19:7 - unused variable
 warn tests/programs/fail/atypical.vi:6:19 - unused variable
+warn tests/programs/fail/atypical.vi:5:7 - unused item
+warn tests/programs/fail/atypical.vi:40:4 - unused item

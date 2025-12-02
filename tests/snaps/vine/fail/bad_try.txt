@@ -1,3 +1,4 @@
 error tests/programs/fail/bad_try.vi:12:10 - expected type `Result[?26, ?27]`; found `Bool`
 warn tests/programs/fail/bad_try.vi:7:14 - unused variable
 warn tests/programs/fail/bad_try.vi:21:21 - unused variable
+warn tests/programs/fail/bad_try.vi:2:18 - unused item

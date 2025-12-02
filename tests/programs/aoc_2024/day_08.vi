@@ -1,5 +1,5 @@
 
-use #root::{data::Map, ops::elementwise};
+use #root::{data::Map, ops::elementwise as _};
 
 pub fn main(&io: &IO) {
   let input = io.full_input();

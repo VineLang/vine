@@ -1,5 +1,5 @@
 
-use #root::{data::{Array, Map}, ops::elementwise};
+use #root::{data::{Array, Map}, ops::elementwise as _};
 
 pub fn main(&io: &IO) {
   let grid = [];
