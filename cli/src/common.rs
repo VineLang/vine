@@ -32,12 +32,19 @@ pub struct RunArgs {
   workers: usize,
   #[arg(long, alias = "depth", short = 'd')]
   breadth_first: bool,
+  #[arg(long, short)]
+  heap: Option<String>,
 }
 
 impl RunArgs {
   pub fn run(self, nets: Nets, debug_hint: bool) {
     let mut host = &mut Host::default();
-    let heap = Heap::new();
+    let heap = match self.heap {
+      Some(size) => {
+        Heap::with_size(parse_size(&size).expect("invalid size")).expect("heap allocation failed")
+      }
+      None => Heap::new(),
+    };
     let mut extrinsics = Extrinsics::default();
 
     host.register_default_extrinsics(&mut extrinsics);
@@ -78,5 +85,17 @@ impl RunArgs {
     if no_io || vicious {
       exit(1);
     }
+  }
+}
+
+fn parse_size(size: &str) -> Option<usize> {
+  if let Some(size) = size.strip_suffix("K") {
+    Some(size.parse::<usize>().ok()? << 10)
+  } else if let Some(size) = size.strip_suffix("M") {
+    Some(size.parse::<usize>().ok()? << 20)
+  } else if let Some(size) = size.strip_suffix("G") {
+    Some(size.parse::<usize>().ok()? << 30)
+  } else {
+    Some(size.parse::<usize>().ok()?)
   }
 }
