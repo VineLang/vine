@@ -6,10 +6,17 @@ use ops::{
   comparison::{Eq, Ord},
 };
 
+/// Natural numbers represented with 32 bits of precision.
+/// ```vi
+/// let x = 12 + 34;
+/// x // 46
+/// ```
+/// `N32` values are always in the range `[0, 2^32) = [0, 4_294_967_296)`.
 #[builtin = "N32"]
 pub type N32;
 
 pub mod N32 {
+  /// The maximum `N32` value, `2^32 - 1`.
   pub const maximum: N32 = 0xffffffff;
 
   pub impl fork: Fork[N32] = unsafe::duplicate;

@@ -67,6 +67,16 @@
 #let op = vi_.with("1 ", " 1")
 #let vstr = vi_.with("\"", "\"")
 
+#let src = (file, line: none) => {
+  let url = "https://github.com/VineLang/vine/tree/main/" + file
+  let label = file
+  if line != none {
+    url += "#L" + str(line)
+    label += ":" + str(line)
+  }
+  t.a(class: "src", href: url)[#raw(label)]
+}
+
 #let todo-counter = counter("todo")
 #let todo = (desc) => [
   #context {

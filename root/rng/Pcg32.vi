@@ -1,9 +1,21 @@
 
-// A PCG random number generator (XSH RR 64/32 (LCG) variant).
-
+/// A PCG random number generator (XSH RR 64/32 (LCG) variant).
 pub struct* Pcg32(N64, N64);
 
 pub mod Pcg32 {
+  /// A canonical Pcg32 instance.
+  pub const default: Pcg32 = new(0xcafef00d_d15ea5e5[N64], 0x14057b7e_f767814f[N64]);
+
+  /// Create a Pcg32 RNG based on a given seed string.
+  pub fn seeded(seed: String) -> Pcg32 {
+    let rng = Pcg32::default;
+    for char in seed.iter() {
+      rng.mix(char as N32)
+    }
+    rng
+  }
+
+  /// Create a new `Pcg32` from the internal state and increment values.
   pub fn new(state: N64, increment: N64) -> Pcg32 {
     increment |= 1[N64];
     state += increment;
@@ -12,10 +24,9 @@ pub mod Pcg32 {
     Pcg32(state, increment)
   }
 
-  pub const default: Pcg32 = new(0xcafef00d_d15ea5e5[N64], 0x14057b7e_f767814f[N64]);
-
   const multiplier: N64 = 0x5851f42d_4c957f2d[N64];
 
+  /// Generate a pseudo-random `N32`, updating the state of the RNG.
   pub fn .gen_n32(&Pcg32(state, increment)) -> N32 {
     let N64(lo, hi) = state;
     state *= multiplier;
@@ -23,17 +34,10 @@ pub mod Pcg32 {
     N32::rotate_right((hi >> 13) ^ (hi << 5) ^ (lo >> 27), hi >> 27)
   }
 
+  /// Modify the state of the RNG based on the provided `N32`.
   pub fn .mix(&Pcg32(state, increment), n: N32) {
     state ^= N64(0, n);
     state *= multiplier;
     state += increment;
-  }
-
-  pub fn seeded(seed: String) -> Pcg32 {
-    let rng = Pcg32::default;
-    for char in seed.iter() {
-      rng.mix(char as N32)
-    }
-    rng
   }
 }

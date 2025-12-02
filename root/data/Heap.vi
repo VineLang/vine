@@ -1,31 +1,50 @@
 
-use ops::{Cast, comparison::Ord};
+use ops::{Cast, Concat, comparison::Ord};
 
+/// A min-heap, which provides efficient access to the smallest value in the heap.
 pub struct Heap[T]((N32, Node[T]));
 
 struct Node[T]((T, Heap[T], Heap[T]));
 
 pub mod Heap[T; Ord[T]] {
+  /// The empty heap.
+  /// ```vi
+  /// Heap::empty // Heap([])
+  /// ```
   pub const empty[T]: Heap[T] = Heap(0, unsafe::eraser);
 
+  /// Create a heap containing a single element.
+  /// ```vi
+  /// Heap::single(46) // Heap([46])
+  /// ```
   pub fn single[T](value: T) -> Heap[T] {
     Heap(1, Node(value, Heap::empty, Heap::empty))
   }
 
+  /// Insert a value into the heap. `O(log n)`
+  /// ```vi
+  /// let heap = Heap::empty;
+  /// heap.insert(3);
+  /// heap.insert(1);
+  /// heap.insert(2);
+  /// heap as List // [1, 2, 3]
+  /// ```
   pub fn .insert[...](&self: &Heap[T], value: T) {
-    self = Heap::single(value).merge(self);
+    self ++= Heap::single(value);
   }
 
+  /// Remove the smallest value from the heap. `O(log n)`
   pub fn .pop[...](&Heap[T](rank, node)) -> Option[T] {
     if rank == 0 {
       None()
     } else {
       let Node(value, left, right) = node;
-      Heap(rank, node) = left.merge(right);
+      Heap(rank, node) = left ++ right;
       Some(value)
     }
   }
 
+  /// Peek at the smallest value in the heap. `O(1)`
   pub fn .peek[...](&Heap[T](rank, *node)) -> Option[&T] {
     if rank == 0 {
       None()
@@ -47,6 +66,7 @@ pub mod Heap[T; Ord[T]] {
     &value
   }
 
+  /// Count the number of elements in the heap. `O(n)`
   pub fn .count[T](&Heap[T](rank, node)) -> N32 {
     if rank == 0 {
       0
@@ -56,25 +76,34 @@ pub mod Heap[T; Ord[T]] {
     }
   }
 
-  fn .merge[...](self: Heap[T], other: Heap[T]) -> Heap[T] {
-    if self.rank() == 0 {
-      unsafe::erase(self);
-      return other;
+  /// Merge two heaps. `O(log n)`
+  /// ```vi
+  /// let a = [5, 3, 1] as Heap;
+  /// let b = [0, 4, 2] as Heap;
+  /// let merged = a ++ b;
+  /// merged as List // [0, 1, 2, 3, 4, 5]
+  /// ```
+  pub impl merge[...]: Concat[Heap[T], Heap[T], Heap[T]] {
+    fn concat(self: Heap[T], other: Heap[T]) -> Heap[T] {
+      if self.rank() == 0 {
+        unsafe::erase(self);
+        return other;
+      }
+      if other.rank() == 0 {
+        unsafe::erase(other);
+        return self;
+      }
+      if self.value() > other.value() {
+        swap(&self, &other);
+      }
+      let &Heap(rank, Node(value, left, right)) = &self;
+      right ++= other;
+      if right.rank() > left.rank() {
+        swap(&left, &right);
+      }
+      rank = right.rank() + 1;
+      self
     }
-    if other.rank() == 0 {
-      unsafe::erase(other);
-      return self;
-    }
-    if self.value() > other.value() {
-      swap(&self, &other);
-    }
-    let &Heap(rank, Node(value, left, right)) = &self;
-    right = right.merge(other);
-    if right.rank() > left.rank() {
-      swap(&left, &right);
-    }
-    rank = right.rank() + 1;
-    self
   }
 
   #[become(unsafe::duplicate)]
@@ -100,6 +129,34 @@ pub mod Heap[T; Ord[T]] {
     }
   }
 
+  /// Build a heap out of the elements of a list.
+  /// ```vi
+  /// let heap = [3, 1, 2] as Heap;
+  /// heap.pop() // Some(1)
+  /// heap.pop() // Some(2)
+  /// heap.pop() // Some(3)
+  /// heap.pop() // None
+  /// ```
+  pub impl from_list[...]: Cast[List[T], Heap[T]] {
+    fn cast(list: List[T]) -> Heap[T] {
+      let heap = Heap::empty;
+      for value in list.iter() {
+        heap.insert(value);
+      }
+      heap
+    }
+  }
+
+  /// Convert a heap to a list in ascending order.
+  /// ```vi
+  /// let heap = Heap::empty;
+  /// heap.insert(5);
+  /// heap.insert(3);
+  /// heap.insert(2);
+  /// heap.insert(4);
+  /// heap.insert(1);
+  /// heap as List // [1, 2, 3, 4, 5]
+  /// ```
   pub impl to_list[...]: Cast[Heap[T], List[T]] {
     fn cast(self: Heap[T]) -> List[T] {
       let list = [];
@@ -113,6 +170,18 @@ pub mod Heap[T; Ord[T]] {
 
   pub struct* Iter[T](Heap[T]);
 
+  /// Iterate over the elements of the heap in ascending order.
+  /// ```vi
+  /// let heap = [3, 1, 2];
+  /// for value in heap.iter() {
+  ///   io.println("{value}");
+  /// }
+  /// ```
+  /// ```
+  /// 1
+  /// 2
+  /// 3
+  /// ```
   pub fn .iter[...](self: Heap[T]) -> Iter[T] {
     Iter(self)
   }
@@ -130,6 +199,12 @@ pub mod Heap[T; Ord[T]] {
     }
   }
 
+  /// Display the heap. The first displayed value is the minimum value, but all
+  /// other values are displayed in an arbitrary order.
+  /// ```vi
+  /// let heap = [5, 2, 1, 3, 4] as Heap
+  /// "{heap.show()}" // Heap([1, 2, 5, 3, 4])
+  /// ```
   pub impl show[T; Show[T]]: Show[Heap[T]] {
     fn show(&self: &Heap[T]) -> Show {
       Show::Constructor("Heap", Show::List(self._show()))

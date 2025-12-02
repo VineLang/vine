@@ -285,7 +285,7 @@ pub trait VisitMut<'a> {
         self.visit(&mut c.value);
       }
       ItemKind::Mod(m) => match &mut m.kind {
-        ModKind::Loaded(_, items) => {
+        ModKind::Loaded(_, _, items) => {
           for item in items {
             self.visit_item(item);
           }
@@ -307,10 +307,10 @@ pub trait VisitMut<'a> {
         self.visit(&mut t.items);
       }
       ItemKind::Impl(t) => match &mut t.kind {
-        super::ImplItemKind::Direct(items) => self.visit(items),
+        super::ImplItemKind::Direct(_, items) => self.visit(items),
         super::ImplItemKind::Indirect(impl_) => self.visit(impl_),
       },
-      ItemKind::Use(..) | ItemKind::Taken => {}
+      ItemKind::Use(..) | ItemKind::OuterMod | ItemKind::Taken => {}
     }
   }
 

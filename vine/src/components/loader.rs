@@ -120,7 +120,7 @@ impl Loader {
     let mut items = VineParser::parse(src, file)?;
     let span = Span { file, start: 0, end: src.len() };
     self.load_deps(&path, &mut items, diags);
-    Ok(ModKind::Loaded(span, items))
+    Ok(ModKind::Loaded(span, Some(file), items))
   }
 
   fn read_file(&mut self, path: &mut PathBuf, span: Span) -> Result<FileId, Diag> {

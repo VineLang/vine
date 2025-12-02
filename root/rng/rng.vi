@@ -1,2 +1,7 @@
 
+/// Pseudo-random number generation utilities.
+///
+/// Note that Vine programs are deterministic, so all RNGs require a seed.
+mod;
+
 pub mod Pcg32;

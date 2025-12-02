@@ -1,7 +1,13 @@
 
-pub mod Array;
-pub mod Heap;
-pub mod Iterator;
+/// Data structures.
+mod;
+
 pub mod List;
+pub mod Array;
+
 pub mod Map;
 pub mod Set;
+
+pub mod Heap;
+
+pub mod Iterator;

@@ -44,19 +44,44 @@
           pkgs: pkgs.rust-bin.fromRustupToolchainFile ./rust-toolchain.toml
         );
 
-        vineConfig = rec {
-          name = "vine";
-          src = pkgs.lib.cleanSource ./.;
-          VINE_ROOT_PATH = "${src}/root";
-          cargoLock = "${src}/Cargo.lock";
+        vineConfig = {
+          pname = "vine";
+          version = "0.0.0";
+          src = pkgs.lib.fileset.toSource {
+            root = ./.;
+            fileset = pkgs.lib.fileset.unions [
+              ./Cargo.toml
+              ./util
+              ./ivm
+              ./ivy
+              ./vine
+              ./lsp
+              ./cli
+              ./tests/Cargo.toml
+            ];
+          };
+          VINE_ROOT_PATH = "../lib/root";
+          cargoLock = ./Cargo.lock;
+          outputHashes = {
+            "git+https://github.com/tjjfvi/class?rev=99738e6#99738e67dd8fb3b97d65e6fc59b92f04c11519a4" =
+              "sha256-ye8DqeDRXsNpTWpGGlvWxSSc1AiXOLud99dHpB/VhZg=";
+          };
+          doCheck = false;
         };
 
-        vine = craneLib.buildPackage (
+        vineNoRoot = craneLib.buildPackage (
           vineConfig
           // {
             cargoArtifacts = craneLib.buildDepsOnly vineConfig;
           }
         );
+
+        vine = pkgs.runCommand "vine" { } ''
+          mkdir $out
+          cp -r ${vineNoRoot}/* $out
+          mkdir $out/lib
+          cp -r ${./root} $out/lib/root
+        '';
 
         grammars = import ./lsp/grammars.nix {
           inherit (pkgs)
@@ -67,7 +92,7 @@
             ;
         };
 
-        docs = pkgs.callPackage ./docs/docs.nix {
+        docs = import ./docs/docs.nix {
           inherit
             system
             pkgs
@@ -76,6 +101,7 @@
             typsitter
             hyptyp
             grammars
+            vineNoRoot
             ;
         };
       in

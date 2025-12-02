@@ -53,6 +53,7 @@ impl Charter<'_> {
     self.chart.defs.push(Def {
       name,
       path,
+      file: None,
       spans: Vec::new(),
       members_lookup: Default::default(),
       named_members: Default::default(),
@@ -78,7 +79,10 @@ impl Charter<'_> {
     def: DefId,
     generics: GenericsId,
   ) {
-    let ModKind::Loaded(_, items) = module else { unreachable!("module not yet loaded") };
+    let ModKind::Loaded(_, file, items) = module else { unreachable!("module not yet loaded") };
+    if file.is_some() {
+      self.chart.defs[def].file = file;
+    }
     for item in items {
       self.chart_item(vis, item, def, generics);
     }
@@ -102,6 +106,11 @@ impl Charter<'_> {
     let member_vis = vis.max(member_vis);
 
     let def = match item.kind {
+      ItemKind::OuterMod => {
+        self.chart.defs[parent].spans.push(item.name_span);
+        Some(parent)
+      }
+
       ItemKind::Mod(mod_item) => {
         Some(self.chart_mod(parent, parent_generics, span, vis, member_vis, mod_item))
       }

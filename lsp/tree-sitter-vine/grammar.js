@@ -249,11 +249,16 @@ module.exports = grammar({
         repeat($.attr),
         optional($.vis),
         "mod",
-        $.ident,
-        optional($.generic_params),
         choice(
-          seq(optional(seq("=", $.string)), optional(";")),
-          delimited("{", "", "}", $._item),
+          seq(
+            $.ident,
+            optional($.generic_params),
+            choice(
+              seq(optional(seq("=", $.string)), optional(";")),
+              delimited("{", "", "}", $._item),
+            ),
+          ),
+          optional(";"),
         ),
       )),
 

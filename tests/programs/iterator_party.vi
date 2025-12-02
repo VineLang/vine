@@ -72,7 +72,7 @@ pub fn main(&io: &IO) {
         debug::log("{m}");
         n % m == 0
       })
-    }).reduce(N32::add::add).show()
+    }).reduce(fn* (a: N32, b: N32) { a + b }).show()
   }");
 
   debug::log("--- inspect, nth, last, collect ---");

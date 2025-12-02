@@ -6,6 +6,11 @@ use ops::{
   comparison::{Eq, Ord},
 };
 
+/// Arbitrary-precision natural numbers.
+/// ```vi
+/// let x = 12[Nat] + 34[Nat];
+/// x // 46
+/// ```
 #[builtin = "Nat"]
 pub struct* Nat(List[N32]);
 

@@ -1,4 +1,7 @@
 
+/// Debugging-related utilities.
+mod;
+
 use ops::{Cast, Fn};
 
 pub mod Show;
@@ -50,6 +53,7 @@ pub mod debug {
 
 #[cfg(debug)]
 pub mod debug {
+  /// Whether debug mode is enabled.
   pub const enabled: Bool = true;
 
   struct DebugState({ io: IO, stack: List[Frame] });

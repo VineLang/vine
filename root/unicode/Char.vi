@@ -1,6 +1,11 @@
 
 use ops::{Cast, arithmetic::{Add, Sub}, comparison::{Eq, Ord}};
 
+/// A Unicode scalar value, or "character".
+/// ```vi
+/// "Vine" as List[Char] // ['V', 'i', 'n', 'e']
+/// ['V', 'i', 'n', 'e'] as String // "Vine"
+/// ```
 #[builtin = "Char"]
 pub type Char;
 

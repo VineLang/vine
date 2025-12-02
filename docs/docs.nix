@@ -6,6 +6,7 @@
   pkgs,
   system,
   grammars,
+  vineNoRoot,
 }:
 let
   typsitter-langs = pkgs.callPackage typsitter.lib.typsitterMkDerivation {
@@ -23,6 +24,19 @@ let
   typixLib = typix.lib.${system};
 
   hyptypLib = hyptyp.lib.${system} typixLib;
+
+  docCmd = vine: out: "${vine} doc --debug --no-root root/root.vi ${out}";
+  rootDocs = pkgs.stdenvNoCC.mkDerivation {
+    name = "root-docs";
+    src = pkgs.lib.fileset.toSource {
+      root = ../.;
+      fileset = ../root;
+    };
+    nativeBuildInputs = [
+      vineNoRoot
+    ];
+    buildPhase = docCmd "vine" "$out";
+  };
 
   commonArgs = {
     typstSource = "docs/main.typ";
@@ -59,6 +73,12 @@ let
       root = ../.;
       fileset = ./.;
     };
+    virtualPaths = commonArgs.virtualPaths ++ [
+      {
+        dest = "docs/root";
+        src = "${rootDocs}/root";
+      }
+    ];
   };
 in
 {
@@ -70,10 +90,18 @@ in
 
   apps = {
     docs = flake-utils.lib.mkApp {
-      drv = hyptypLib.watchHyptypProject watchArgs;
+      drv =
+        let
+          typstWatcher = hyptypLib.watchHyptypProject watchArgs;
+        in
+        pkgs.writeShellScriptBin "watch-docs" ''
+          ${docCmd "${vineNoRoot}/bin/vine" "docs"}
+          ${pkgs.watchexec}/bin/watchexec -qw root "${docCmd "${vineNoRoot}/bin/vine" "docs"}" &
+          ${typstWatcher}/bin/${typstWatcher.name}
+        '';
     };
     docs-pdf = flake-utils.lib.mkApp {
-      drv = typixLib.watchTypstProject watchArgs;
+      drv = hyptypLib.watchHyptypProject watchArgs;
     };
   };
 }

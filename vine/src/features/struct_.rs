@@ -98,7 +98,7 @@ impl Charter<'_> {
     self.define_pattern(span, def, data_vis, DefPatternKind::Struct(struct_id));
     let ty_kind = DefTypeKind::Struct(struct_id);
     self.define_type(span, def, vis, ty_kind);
-    self.chart_flex_impls(def, generics, span, vis, member_vis, ty_kind, struct_item.flex);
+    self.chart_flex_impls(def, generics, vis, member_vis, ty_kind, struct_item.flex);
     def
   }
 }
@@ -110,11 +110,17 @@ impl Resolver<'_> {
     let mut data = struct_def.data.iter().map(|t| self.resolve_ty(t, false)).collect::<Vec<_>>();
     let data =
       if data.len() == 1 { data.pop().unwrap() } else { self.types.new(TypeKind::Tuple(data)) };
+    let _ty: String;
     let hover = format!(
       "struct {}{}({});",
       struct_def.name,
       self.show_generics(self.cur_generics, false),
-      self.types.show(self.chart, data)
+      if matches!(struct_def.data_vis, VisId::Pub) {
+        _ty = self.types.show(self.chart, data);
+        &_ty
+      } else {
+        "..."
+      }
     );
     self.annotations.record_signature(struct_def.span, hover);
     let types = take(&mut self.types);

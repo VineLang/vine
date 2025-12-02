@@ -34,6 +34,7 @@ pub enum ItemKind {
   Trait(TraitItem),
   Impl(ImplItem),
   Use(UseItem),
+  OuterMod,
   Taken,
 }
 
@@ -94,7 +95,7 @@ pub struct ModItem {
 
 #[derive(Debug, Clone)]
 pub enum ModKind {
-  Loaded(Span, Vec<Item>),
+  Loaded(Span, Option<FileId>, Vec<Item>),
   Unloaded(Span, Option<String>),
   Error(ErrorGuaranteed),
 }
@@ -103,6 +104,7 @@ pub enum ModKind {
 pub struct TraitItem {
   pub name: Ident,
   pub generics: GenericParams,
+  pub items_span: Span,
   pub items: Vec<Item>,
 }
 
@@ -116,7 +118,7 @@ pub struct ImplItem {
 
 #[derive(Debug, Clone)]
 pub enum ImplItemKind {
-  Direct(Vec<Item>),
+  Direct(Span, Vec<Item>),
   Indirect(Option<Impl>),
 }
 
