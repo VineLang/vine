@@ -32,7 +32,7 @@ pub struct RunArgs {
   workers: usize,
   #[arg(long, alias = "depth", short = 'd')]
   breadth_first: bool,
-  #[arg(long, short)]
+  #[arg(long, short = 'H')]
   heap: Option<String>,
 }
 
