@@ -18,12 +18,17 @@ use crate::{
 #[derive(Default, Debug)]
 pub struct Diags {
   pub errors: Vec<Diag>,
+  pub warnings: Vec<Diag>,
 }
 
 impl Diags {
   pub(crate) fn error(&mut self, diag: Diag) -> ErrorGuaranteed {
     self.errors.push(diag);
     ErrorGuaranteed(())
+  }
+
+  pub(crate) fn warn(&mut self, diag: Diag) {
+    self.warnings.push(diag);
   }
 
   pub fn bail(&mut self) -> Result<(), ErrorGuaranteed> {
@@ -283,6 +288,8 @@ diags! {
     ["expected `{name}` to be a {kind} configuration value"]
   BadFramelessAttr
     ["the `#[frameless]` attribute can only be applied to an fn"]
+  UnusedVariable
+    ["unused variable"]
 }
 
 fn plural<'a>(n: usize, plural: &'a str, singular: &'a str) -> &'a str {
@@ -297,6 +304,14 @@ impl Compiler {
         match self.show_span(span) {
           Some(span) => writeln!(err, "error {span} - {diag}").unwrap(),
           None => writeln!(err, "error - {diag}").unwrap(),
+        }
+      }
+    }
+    for diag in self.diags.warnings.iter() {
+      if let Some(span) = diag.span() {
+        match self.show_span(span) {
+          Some(span) => writeln!(err, "warn {span} - {diag}").unwrap(),
+          None => writeln!(err, "warn - {diag}").unwrap(),
         }
       }
     }

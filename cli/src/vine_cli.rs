@@ -201,6 +201,7 @@ impl VineReplCommand {
           _ = rl.add_history_entry(&line);
           let checkpoint = repl.compiler.checkpoint();
           if repl.exec(&line).is_err() {
+            repl.compiler.diags.warnings.clear();
             println!("{}", repl.compiler.format_diags());
             repl.compiler.revert(&checkpoint);
           }

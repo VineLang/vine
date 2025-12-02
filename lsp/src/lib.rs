@@ -45,29 +45,25 @@ impl Backend {
     _ = lsp.compiler.compile(());
     eprintln!("compiled in {:?}", start.elapsed());
 
-    let mut diags_by_file = HashMap::<FileId, Vec<&Diag>>::new();
+    let mut diags_by_file = HashMap::<FileId, (Vec<&Diag>, Vec<&Diag>)>::new();
     for diag in &lsp.compiler.diags.errors {
       let Some(span) = diag.span() else { continue };
-      diags_by_file.entry(span.file).or_default().push(diag);
+      diags_by_file.entry(span.file).or_default().0.push(diag);
+    }
+    for diag in &lsp.compiler.diags.warnings {
+      let Some(span) = diag.span() else { continue };
+      diags_by_file.entry(span.file).or_default().1.push(diag);
     }
 
     let futures = FuturesUnordered::new();
     for file_id in lsp.compiler.loader.files.keys() {
       let mut out = Vec::new();
-      if let Some(diags) = diags_by_file.get(&file_id) {
-        for diag in diags {
-          let span = diag.span().unwrap();
-          out.push(Diagnostic {
-            range: lsp.span_to_range(span),
-            severity: Some(DiagnosticSeverity::ERROR),
-            code: None,
-            code_description: None,
-            source: Some("vine".into()),
-            message: diag.to_string(),
-            related_information: None,
-            tags: None,
-            data: None,
-          });
+      if let Some((errors, warnings)) = diags_by_file.get(&file_id) {
+        for diag in errors {
+          out.push(lsp.diag_to_diagnostic(diag, DiagnosticSeverity::ERROR));
+        }
+        for diag in warnings {
+          out.push(lsp.diag_to_diagnostic(diag, DiagnosticSeverity::WARNING));
         }
       }
       let uri = lsp.file_to_uri(file_id);
@@ -266,6 +262,21 @@ impl Lsp {
 
   fn span_to_location(&self, span: Span) -> Location {
     Location { uri: self.file_to_uri(span.file), range: self.span_to_range(span) }
+  }
+
+  fn diag_to_diagnostic(&self, diag: &Diag, severity: DiagnosticSeverity) -> Diagnostic {
+    let span = diag.span().unwrap();
+    Diagnostic {
+      range: self.span_to_range(span),
+      severity: Some(severity),
+      code: None,
+      code_description: None,
+      source: Some("vine".into()),
+      message: diag.to_string(),
+      related_information: None,
+      tags: None,
+      data: None,
+    }
   }
 }
 
