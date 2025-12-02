@@ -85,8 +85,8 @@ impl CompileArgs {
     let mut compiler = self.initialize();
     match compiler.compile(()) {
       Ok(nets) => nets,
-      Err(diags) => {
-        eprintln!("{}", compiler.loader.print_diags(&diags));
+      Err(_) => {
+        eprintln!("{}", compiler.format_diags());
         exit(1);
       }
     }
@@ -182,8 +182,8 @@ impl VineReplCommand {
     let mut compiler = Compiler::new(!self.no_debug, Config::default());
     let mut repl = match Repl::new(host, &mut ivm, &mut compiler, self.libs) {
       Ok(repl) => repl,
-      Err(diags) => {
-        eprintln!("{}", compiler.loader.print_diags(&diags));
+      Err(_) => {
+        eprintln!("{}", compiler.format_diags());
         exit(1);
       }
     };
@@ -199,8 +199,10 @@ impl VineReplCommand {
             println!("> {line}");
           }
           _ = rl.add_history_entry(&line);
-          if let Err(diags) = repl.exec(&line) {
-            println!("{}", repl.print_diags(&diags))
+          let checkpoint = repl.compiler.checkpoint();
+          if repl.exec(&line).is_err() {
+            println!("{}", repl.compiler.format_diags());
+            repl.compiler.revert(&checkpoint);
           }
         }
         Err(_) => break,
@@ -273,8 +275,8 @@ impl VineDocCommand {
     let mut compiler = self.compile.initialize();
     let result = compiler.compile(());
     if document(&compiler, &self.output).is_err() {
-      if let Err(diags) = result {
-        eprintln!("{}", compiler.loader.print_diags(&diags));
+      if result.is_err() {
+        eprintln!("{}", compiler.format_diags());
       } else {
         eprintln!("could not build docs");
       }

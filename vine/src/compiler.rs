@@ -19,7 +19,7 @@ use crate::{
     ast::Ident,
     chart::Chart,
     checkpoint::Checkpoint,
-    diag::{Diag, Diags},
+    diag::{Diags, ErrorGuaranteed},
     resolutions::{Fragment, FragmentId, Resolutions},
     signatures::Signatures,
     specializations::{SpecKind, Specializations},
@@ -63,7 +63,7 @@ impl Compiler {
     }
   }
 
-  pub fn compile(&mut self, hooks: impl Hooks) -> Result<Nets, Vec<Diag>> {
+  pub fn compile(&mut self, hooks: impl Hooks) -> Result<Nets, ErrorGuaranteed> {
     let checkpoint = self.checkpoint();
     self._compile(hooks, &checkpoint)
   }
@@ -72,7 +72,7 @@ impl Compiler {
     &mut self,
     mut hooks: impl Hooks,
     checkpoint: &Checkpoint,
-  ) -> Result<Nets, Vec<Diag>> {
+  ) -> Result<Nets, ErrorGuaranteed> {
     let root = self.loader.finish();
     self.diags.bail()?;
 

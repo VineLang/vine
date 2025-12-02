@@ -15,6 +15,7 @@ use vine::{
   structures::{
     ast::{Item, ItemKind, Span, visit::VisitMut},
     checkpoint::Checkpoint,
+    diag::Diag,
   },
   tools::fmt::Formatter,
 };
@@ -41,36 +42,35 @@ impl Backend {
     }
 
     let start = Instant::now();
-    let mut diags = match lsp.compiler.compile(()) {
-      Ok(_) => Vec::new(),
-      Err(diags) => diags,
-    };
+    _ = lsp.compiler.compile(());
     eprintln!("compiled in {:?}", start.elapsed());
 
-    diags.sort_by_key(|d| Some(d.span()?.file));
-    let mut diags = diags.into_iter().peekable();
-    while diags.peek().is_some_and(|x| x.span().is_none()) {
-      diags.next();
+    let mut diags_by_file = HashMap::<FileId, Vec<&Diag>>::new();
+    for diag in &lsp.compiler.diags.errors {
+      let Some(span) = diag.span() else { continue };
+      diags_by_file.entry(span.file).or_default().push(diag);
     }
+
     let futures = FuturesUnordered::new();
-    for (i, file) in lsp.compiler.loader.files.iter() {
+    for file_id in lsp.compiler.loader.files.keys() {
       let mut out = Vec::new();
-      while diags.peek().is_some_and(|x| x.span().is_some_and(|x| x.file == i)) {
-        let diag = diags.next().unwrap();
-        let span = diag.span().unwrap();
-        out.push(Diagnostic {
-          range: lsp.span_to_range(span),
-          severity: Some(DiagnosticSeverity::ERROR),
-          code: None,
-          code_description: None,
-          source: Some("vine".into()),
-          message: diag.to_string(),
-          related_information: None,
-          tags: None,
-          data: None,
-        });
+      if let Some(diags) = diags_by_file.get(&file_id) {
+        for diag in diags {
+          let span = diag.span().unwrap();
+          out.push(Diagnostic {
+            range: lsp.span_to_range(span),
+            severity: Some(DiagnosticSeverity::ERROR),
+            code: None,
+            code_description: None,
+            source: Some("vine".into()),
+            message: diag.to_string(),
+            related_information: None,
+            tags: None,
+            data: None,
+          });
+        }
       }
-      let uri = Url::from_file_path(file.path.as_ref().unwrap()).unwrap();
+      let uri = lsp.file_to_uri(file_id);
       futures.push(self.client.publish_diagnostics(uri, out, None));
     }
     futures.collect::<()>().await;
@@ -403,8 +403,8 @@ pub async fn lsp(libs: Vec<PathBuf>, entrypoints: Vec<String>) -> std::result::R
     compiler.loader.load_mod(&lib, &mut compiler.diags);
   }
 
-  if let Err(diags) = compiler.compile(()) {
-    return Err(compiler.loader.print_diags(&diags));
+  if compiler.compile(()).is_err() {
+    return Err(compiler.format_diags());
   }
 
   let checkpoint = compiler.checkpoint();

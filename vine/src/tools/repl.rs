@@ -18,7 +18,7 @@ use crate::{
   structures::{
     ast::{Block, Ident, Span, Stmt, visit::VisitMut},
     chart::{DefId, GenericsId, VisId},
-    diag::Diag,
+    diag::{Diag, ErrorGuaranteed},
     resolutions::FragmentId,
     tir::Local,
     types::{Type, TypeKind, Types},
@@ -33,7 +33,7 @@ mod show;
 pub struct Repl<'ctx, 'ivm, 'ext, 'comp> {
   host: &'ivm mut Host<'ivm>,
   ivm: &'ctx mut IVM<'ivm, 'ext>,
-  compiler: &'comp mut Compiler,
+  pub compiler: &'comp mut Compiler,
   repl_mod: DefId,
   line: usize,
   scope: Vec<ScopeEntry<'ivm>>,
@@ -55,7 +55,7 @@ impl<'ctx, 'ivm, 'ext, 'comp> Repl<'ctx, 'ivm, 'ext, 'comp> {
     ivm: &'ctx mut IVM<'ivm, 'ext>,
     compiler: &'comp mut Compiler,
     libs: Vec<PathBuf>,
-  ) -> Result<Self, Vec<Diag>> {
+  ) -> Result<Self, ErrorGuaranteed> {
     for lib in libs {
       compiler.loader.load_mod(&lib, &mut compiler.diags);
     }
@@ -88,7 +88,7 @@ impl<'ctx, 'ivm, 'ext, 'comp> Repl<'ctx, 'ivm, 'ext, 'comp> {
     Ok(Repl { host, ivm, compiler, repl_mod, line, scope, types, options })
   }
 
-  pub fn exec(&mut self, input: &str) -> Result<(), Vec<Diag>> {
+  pub fn exec(&mut self, input: &str) -> Result<(), ErrorGuaranteed> {
     let (span, command) = match self.parse_input(input) {
       Ok(command) => command,
       Err(diag) => {
@@ -115,7 +115,12 @@ impl<'ctx, 'ivm, 'ext, 'comp> Repl<'ctx, 'ivm, 'ext, 'comp> {
     Ok(())
   }
 
-  pub fn run(&mut self, span: Span, stmts: Vec<Stmt>, clear: Vec<Ident>) -> Result<(), Vec<Diag>> {
+  pub fn run(
+    &mut self,
+    span: Span,
+    stmts: Vec<Stmt>,
+    clear: Vec<Ident>,
+  ) -> Result<(), ErrorGuaranteed> {
     let mut block = Block { span, stmts };
 
     self.compiler.loader.load_deps(".".as_ref(), &mut block, &mut self.compiler.diags);
@@ -126,7 +131,6 @@ impl<'ctx, 'ivm, 'ext, 'comp> Repl<'ctx, 'ivm, 'ext, 'comp> {
     let mut bindings = Vec::new();
     let mut interface = None;
 
-    let checkpoint = self.compiler.checkpoint();
     let hooks = ExecHooks {
       path: path.clone(),
       repl_mod: self.repl_mod,
@@ -139,9 +143,7 @@ impl<'ctx, 'ivm, 'ext, 'comp> Repl<'ctx, 'ivm, 'ext, 'comp> {
       interface: &mut interface,
       clear,
     };
-    let nets = self.compiler.compile(hooks).inspect_err(|_| {
-      self.compiler.revert(&checkpoint);
-    })?;
+    let nets = self.compiler.compile(hooks)?;
 
     let fragment = fragment.unwrap();
     let ty = ty.unwrap();
@@ -335,9 +337,5 @@ impl<'ctx, 'ivm, 'ext, 'comp> Repl<'ctx, 'ivm, 'ext, 'comp> {
         (Some(value), Some(space)) => println!("let &{ident}: &{ty} = &({value}; ~{space});"),
       }
     }
-  }
-
-  pub fn print_diags(&self, diags: &[Diag]) -> String {
-    self.compiler.loader.print_diags(diags)
   }
 }
