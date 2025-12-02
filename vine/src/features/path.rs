@@ -205,8 +205,9 @@ impl Resolver<'_> {
     args: &Option<Vec<Expr>>,
   ) -> Result<TirExpr, Diag> {
     if let Some(ident) = path.as_ident()
-      && let Some(bind) = self.scope.get(&ident).and_then(|x| x.last())
+      && let Some(bind) = self.scope.get_mut(&ident).and_then(|x| x.last_mut())
     {
+      bind.used = true;
       let (expr, source_span, ty) = match bind.binding {
         ScopeBinding::Local(local, source_span, ty) => (TirExprKind::Local(local), source_span, ty),
         ScopeBinding::Closure(id, source_span, ty) => (TirExprKind::Closure(id), source_span, ty),

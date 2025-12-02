@@ -1,4 +1,7 @@
-use std::{collections::HashMap, mem::take};
+use std::{
+  collections::{BTreeMap, HashMap},
+  mem::take,
+};
 
 use vine_util::{
   idx::{Counter, IdxVec},
@@ -39,7 +42,7 @@ pub struct Resolver<'a> {
   pub(crate) cur_def: DefId,
   pub(crate) cur_generics: GenericsId,
 
-  pub(crate) scope: HashMap<Ident, Vec<ScopeEntry>>,
+  pub(crate) scope: BTreeMap<Ident, Vec<ScopeEntry>>,
   pub(crate) scope_depth: usize,
   pub(crate) locals: IdxVec<Local, TirLocal>,
   pub(crate) targets: HashMap<Target, Vec<TargetInfo>>,
@@ -53,6 +56,7 @@ pub struct Resolver<'a> {
 pub(crate) struct ScopeEntry {
   pub(crate) depth: usize,
   pub(crate) binding: ScopeBinding,
+  pub(crate) used: bool,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -224,7 +228,7 @@ impl<'a> Resolver<'a> {
     for (name, span, ty) in locals {
       let local = self.locals.push(TirLocal { span, ty });
       let binding = ScopeBinding::Local(local, span, ty);
-      self.scope.insert(name, vec![ScopeEntry { depth: 0, binding }]);
+      self.scope.insert(name, vec![ScopeEntry { depth: 0, binding, used: true }]);
     }
     let ty = self.types.new_var(block.span);
     let root = self.resolve_stmts_type(block.span, &block.stmts, ty);
@@ -304,13 +308,18 @@ impl<'a> Resolver<'a> {
   }
 
   pub(crate) fn bind(&mut self, ident: Ident, binding: ScopeBinding) {
-    let stack = self.scope.entry(ident).or_default();
-    let top = stack.last_mut();
-    if top.as_ref().is_some_and(|x| x.depth == self.scope_depth) {
-      top.unwrap().binding = binding;
-    } else {
-      stack.push(ScopeEntry { depth: self.scope_depth, binding })
+    let stack = self.scope.entry(ident.clone()).or_default();
+    if stack.last().is_some_and(|x| x.depth == self.scope_depth) {
+      Self::finish_binding(
+        self.diags,
+        &self.types,
+        self.chart,
+        self.annotations,
+        &ident,
+        stack.pop().unwrap(),
+      );
     }
+    stack.push(ScopeEntry { depth: self.scope_depth, binding, used: false })
   }
 
   pub(crate) fn enter_scope(&mut self) {
@@ -321,14 +330,34 @@ impl<'a> Resolver<'a> {
     self.scope_depth -= 1;
     for (ident, stack) in self.scope.iter_mut() {
       if stack.last().is_some_and(|x| x.depth > self.scope_depth) {
-        let old = stack.pop().unwrap();
-        let (span, ty) = match old.binding {
-          ScopeBinding::Local(_, span, ty) => (span, ty),
-          ScopeBinding::Closure(_, span, ty) => (span, ty),
-        };
-        let hover = format!("let {}: {};", ident.0, self.types.show(self.chart, ty));
-        self.annotations.record_signature(span, hover);
+        Self::finish_binding(
+          self.diags,
+          &self.types,
+          self.chart,
+          self.annotations,
+          ident,
+          stack.pop().unwrap(),
+        );
       }
+    }
+  }
+
+  fn finish_binding(
+    diags: &mut Diags,
+    types: &Types,
+    chart: &Chart,
+    annotations: &mut Annotations,
+    ident: &Ident,
+    entry: ScopeEntry,
+  ) {
+    let (span, ty) = match entry.binding {
+      ScopeBinding::Local(_, span, ty) => (span, ty),
+      ScopeBinding::Closure(_, span, ty) => (span, ty),
+    };
+    let hover = format!("let {}: {};", ident.0, types.show(chart, ty));
+    annotations.record_signature(span, hover);
+    if !entry.used && !ident.0.starts_with("_") {
+      diags.warn(Diag::UnusedVariable { span });
     }
   }
 
