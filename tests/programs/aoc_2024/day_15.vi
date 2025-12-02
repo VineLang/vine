@@ -172,9 +172,6 @@ pub fn main(&io: &IO) {
     }
   }
 
-  let width = (*grid.at(0).assume()).len();
-  let height = grid.len();
-
   let part2 = 0;
   let y = 0;
   for row in grid.as[List].iter() {

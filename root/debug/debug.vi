@@ -32,7 +32,7 @@ pub mod debug {
     value
   }
 
-  pub fn .dbg_msg[T; Show[T]](value: T, msg: String) -> T {
+  pub fn .dbg_msg[T; Show[T]](value: T, _msg: String) -> T {
     value
   }
 

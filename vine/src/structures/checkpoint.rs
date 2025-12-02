@@ -33,7 +33,8 @@ pub struct Checkpoint {
   pub fragments: FragmentId,
   pub specs: SpecId,
   pub files: FileId,
-  pub diags: usize,
+  pub errors: usize,
+  pub warnings: usize,
 }
 
 impl Compiler {
@@ -53,7 +54,8 @@ impl Compiler {
       fragments: self.fragments.next_index(),
       specs: self.specs.specs.next_index(),
       files: self.loader.files.next_index(),
-      diags: self.diags.errors.len(),
+      errors: self.diags.errors.len(),
+      warnings: self.diags.warnings.len(),
     }
   }
 

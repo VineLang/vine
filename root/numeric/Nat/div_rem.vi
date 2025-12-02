@@ -66,7 +66,7 @@ pub fn .div_rem(a: Nat, d: Nat) -> (Nat, Nat) {
   let d_hi = d!.get(0).assume();
   let d_hi2 = d!.get(1).assume();
 
-  for i in 0..q_digits {
+  for _ in 0..q_digits {
     let a_hi = a!.pop_front().assume();
     let a_mid = a!.get(0).assume();
     let a_lo = a!.get(1).assume();

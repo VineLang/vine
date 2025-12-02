@@ -36,7 +36,8 @@ impl Diags {
   }
 
   pub(crate) fn revert(&mut self, checkpoint: &Checkpoint) {
-    self.errors.truncate(checkpoint.diags);
+    self.errors.truncate(checkpoint.errors);
+    self.warnings.truncate(checkpoint.warnings);
   }
 }
 

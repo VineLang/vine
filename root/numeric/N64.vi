@@ -27,7 +27,7 @@ pub mod N64 {
   }
 
   pub impl to_n32: Cast[N64, N32] {
-    fn cast(N64(lo, hi)) -> N32 {
+    fn cast(N64(lo, _)) -> N32 {
       lo
     }
   }

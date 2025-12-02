@@ -19,7 +19,7 @@ pub fn main(&io: &IO) {
     construct_torus(
       width,
       height,
-      fn* (i, j, neighbors) {
+      fn* (i, _, neighbors) {
         cell(i == width - 1, signal.tap(), neighbors);
       },
     );

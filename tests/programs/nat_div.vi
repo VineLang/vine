@@ -11,7 +11,7 @@ pub fn main(&io: &IO) {
     Nat::from_parts(parts)
   }
 
-  for i in 0..1000 {
+  for _ in 0..1000 {
     let a = gen_nat();
     let b = gen_nat() >> (rng.gen_n32() & 255);
 

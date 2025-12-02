@@ -1,7 +1,7 @@
 
 use #root::data::Iterator;
 
-pub fn main(&io: &IO) {
+pub fn main(_: &IO) {
   debug::log("--- concat, empty, one, from_next ---");
   let list = [1, 2, 3];
   let iter_ref = Iterator::one(0) ++ Iterator::empty ++ Iterator::from_next(fn* () {

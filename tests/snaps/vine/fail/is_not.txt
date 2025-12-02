@@ -22,3 +22,8 @@ error tests/programs/fail/is_not.vi:4:13 - cannot drop `?0`
 error tests/programs/fail/is_not.vi:5:11 - cannot drop `?0`
 error tests/programs/fail/is_not.vi:2:13 - variable of type `?0` read whilst uninitialized
 error tests/programs/fail/is_not.vi:6:14 - cannot drop `?0`
+warn tests/programs/fail/is_not.vi:3:11 - unused variable
+warn tests/programs/fail/is_not.vi:4:13 - unused variable
+warn tests/programs/fail/is_not.vi:5:11 - unused variable
+warn tests/programs/fail/is_not.vi:5:21 - unused variable
+warn tests/programs/fail/is_not.vi:6:14 - unused variable

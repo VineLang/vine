@@ -57,3 +57,15 @@ error tests/programs/fail/atypical.vi:18:14 - cannot drop `?54`
 error tests/programs/fail/atypical.vi:21:7 - cannot drop `U`
 error tests/programs/fail/atypical.vi:15:3 - variable of type `N32` read whilst uninitialized
 error tests/programs/fail/atypical.vi:24:17 - variable of type `N32` read whilst uninitialized
+warn tests/programs/fail/atypical.vi:4:8 - unused variable
+warn tests/programs/fail/atypical.vi:4:11 - unused variable
+warn tests/programs/fail/atypical.vi:7:7 - unused variable
+warn tests/programs/fail/atypical.vi:8:7 - unused variable
+warn tests/programs/fail/atypical.vi:9:7 - unused variable
+warn tests/programs/fail/atypical.vi:18:14 - unused variable
+warn tests/programs/fail/atypical.vi:21:7 - unused variable
+warn tests/programs/fail/atypical.vi:24:8 - unused variable
+warn tests/programs/fail/atypical.vi:10:8 - unused variable
+warn tests/programs/fail/atypical.vi:10:11 - unused variable
+warn tests/programs/fail/atypical.vi:19:7 - unused variable
+warn tests/programs/fail/atypical.vi:6:19 - unused variable

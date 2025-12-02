@@ -25,7 +25,7 @@ pub mod Int {
     sign
   }
 
-  pub fn .abs(Int(sign, magnitude)) -> Nat {
+  pub fn .abs(Int(_, magnitude)) -> Nat {
     magnitude
   }
 
@@ -144,7 +144,7 @@ pub mod Int {
   }
 
   pub impl to_n32: Cast[Int, N32] {
-    fn cast(Int(sign, magnitude)) -> N32 {
+    fn cast(Int(_, magnitude)) -> N32 {
       magnitude as N32
     }
   }
