@@ -223,7 +223,7 @@ let io: IO = <IO>;
 
 let io: IO = <IO>;
 > (3[N64] ** 33).log_n32(3)
-32
+33
 
 let io: IO = <IO>;
 > ((3[N64] ** 33) - 1[N64]).log_n32(3)
@@ -231,7 +231,7 @@ let io: IO = <IO>;
 
 let io: IO = <IO>;
 > ((3[N64] ** 33) + 1[N64]).log_n32(3)
-32
+33
 
 let io: IO = <IO>;
 > "1,2,3,4".split(",")
