@@ -24,7 +24,12 @@ impl Finder<'_> {
           let mut types = types.clone();
           let rest = types.new(TypeKind::Object(rest));
           let key = types.new(TypeKind::Key(key_ident.clone()));
-          if types.unify(key, key_ty).and(types.unify(init, init_ty)).and(types.unify(rest, rest_ty)).is_success() {
+          if types
+            .unify(key, key_ty)
+            .and(types.unify(init, init_ty))
+            .and(types.unify(rest, rest_ty))
+            .is_success()
+          {
             let impl_ = TirImpl::Synthetic(SyntheticImpl::Object(key_ident.clone(), entries.len()));
             found.push(TypeCtx { types, inner: impl_ });
           }
