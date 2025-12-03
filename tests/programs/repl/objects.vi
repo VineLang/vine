@@ -12,3 +12,7 @@ x.p
 do { let { p } = x }
 z = { Y: y }
 z = { y: 1 }
+use #root::ops::elementwise;
+{ a: 1, b: 2.0 } + { b: 3.0, a: 4 }
+(1, 2) + 10
+{ a: 1, b: 2 } + 10
