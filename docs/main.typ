@@ -56,9 +56,14 @@
 
   path-to-slug: site => path => if root-docs { "" } else { "/docs" } + (hyptyp.defaults.path-to-slug)(site)(path),
 
-  sidebar-header: site => _ => [
-    #t.a(class: "logo", href: "/")[#t.img(class: "logo", src: "/logo.svg")]
-  ],
+  sidebar-header: site => _ => {
+    if root-docs { 
+    t.a(class: "logo", href: "/docs/")[#t.img(class: "logo", src: "/logo.svg")]
+      t.p[#t.a( href: "/docs/features/root")[« About the Root Library]]
+    } else {
+      t.a(class: "logo", href: "/")[#t.img(class: "logo", src: "/logo.svg")]
+    }
+  },
 
   head-extra: site => _ => {
     t.link(rel: "stylesheet", href: "/typsitter.css")
