@@ -1,5 +1,5 @@
 use std::{
-  fmt::{self, Display, Write},
+  fmt::{self, Display},
   io,
   path::PathBuf,
 };
@@ -300,28 +300,6 @@ fn plural<'a>(n: usize, plural: &'a str, singular: &'a str) -> &'a str {
 }
 
 impl Compiler {
-  pub fn format_diags(&self) -> String {
-    let mut err = String::new();
-    for diag in self.diags.errors.iter() {
-      if let Some(span) = diag.span() {
-        match self.show_span(span) {
-          Some(span) => writeln!(err, "error {span} - {diag}").unwrap(),
-          None => writeln!(err, "error - {diag}").unwrap(),
-        }
-      }
-    }
-    for diag in self.diags.warnings.iter() {
-      if let Some(span) = diag.span() {
-        match self.show_span(span) {
-          Some(span) => writeln!(err, "warn {span} - {diag}").unwrap(),
-          None => writeln!(err, "warn - {diag}").unwrap(),
-        }
-      }
-    }
-    err.pop();
-    err
-  }
-
   pub fn show_span(&self, span: Span) -> Option<String> {
     (span != Span::NONE).then(|| format!("{}", self.loader.files[span.file].get_pos(span.start)))
   }

@@ -1,6 +1,6 @@
 use std::{
   env, fs,
-  io::{self, Read, stdin},
+  io::{self, IsTerminal, Read, stderr, stdin, stdout},
   path::PathBuf,
   process::exit,
 };
@@ -83,10 +83,11 @@ impl CompileArgs {
 
   fn compile(self) -> Nets {
     let mut compiler = self.initialize();
-    match compiler.compile(()) {
+    let result = compiler.compile(());
+    eprint_diags(&compiler);
+    match result {
       Ok(nets) => nets,
       Err(_) => {
-        eprintln!("{}", compiler.format_diags());
         exit(1);
       }
     }
@@ -183,7 +184,7 @@ impl VineReplCommand {
     let mut repl = match Repl::new(host, &mut ivm, &mut compiler, self.libs) {
       Ok(repl) => repl,
       Err(_) => {
-        eprintln!("{}", compiler.format_diags());
+        eprint_diags(&compiler);
         exit(1);
       }
     };
@@ -202,7 +203,7 @@ impl VineReplCommand {
           let checkpoint = repl.compiler.checkpoint();
           if repl.exec(&line).is_err() {
             repl.compiler.diags.warnings.clear();
-            println!("{}", repl.compiler.format_diags());
+            print_diags(repl.compiler);
             repl.compiler.revert(&checkpoint);
           }
         }
@@ -239,10 +240,7 @@ impl VineLspCommand {
     if !self.no_root {
       self.libs.push(root_path());
     };
-    if let Err(err) = lsp(self.libs, self.entrypoints) {
-      eprintln!("{err}");
-      exit(1);
-    }
+    lsp(self.libs, self.entrypoints);
     Ok(())
   }
 }
@@ -276,13 +274,69 @@ impl VineDocCommand {
     let mut compiler = self.compile.initialize();
     let result = compiler.compile(());
     if document(&compiler, &self.output).is_err() {
-      if result.is_err() {
-        eprintln!("{}", compiler.format_diags());
-      } else {
+      eprint_diags(&compiler);
+      if result.is_ok() {
         eprintln!("could not build docs");
       }
       exit(1);
     }
     Ok(())
   }
+}
+
+fn eprint_diags(compiler: &Compiler) {
+  _print_diags(stderr(), compiler).unwrap();
+}
+
+fn print_diags(compiler: &Compiler) {
+  _print_diags(stdout(), compiler).unwrap();
+}
+
+fn _print_diags(mut w: impl io::Write + IsTerminal, compiler: &Compiler) -> io::Result<()> {
+  let colorized = w.is_terminal();
+  macro_rules! ansi {
+    ($str:literal) => {
+      if colorized { concat!("\x1b[", $str, "m") } else { "" }
+    };
+  }
+  let bold = ansi!("1");
+  let red = ansi!("91");
+  let yellow = ansi!("33");
+  let grey = ansi!("2;39");
+  let reset = ansi!("0");
+  let underline = ansi!("4");
+  let errors = compiler.diags.errors.iter().map(|x| (red, "error", x));
+  let warnings = compiler.diags.warnings.iter().map(|x| (yellow, "warning", x));
+
+  for (color, severity, diag) in errors.chain(warnings) {
+    let Some(span) = diag.span() else { continue };
+    writeln!(w, "{color}{severity}{grey}:{reset} {bold}{diag}{reset}")?;
+    if let Some(span_str) = compiler.show_span(span) {
+      let file = &compiler.loader.files[span.file];
+      let start = file.get_pos(span.start);
+      let end = file.get_pos(span.end);
+      let line_width = (end.line + 1).ilog10() as usize + 1;
+      writeln!(w, " {:>line_width$}{grey} @ {span_str}", "")?;
+      for line in start.line..=end.line {
+        let line_start = file.line_starts[line];
+        let line_end = file.line_starts.get(line + 1).copied().unwrap_or(file.src.len());
+        let line_str = &file.src[line_start..line_end];
+        let line_str =
+          line_str.strip_suffix("\r\n").or(line_str.strip_suffix("\n")).unwrap_or(line_str);
+        let start = if line == start.line { start.col } else { 0 };
+        let end = if line == end.line { end.col } else { line_str.len() };
+        writeln!(
+          w,
+          " {grey}{:>line_width$} |{reset} {}{color}{underline}{}{reset}{}",
+          line + 1,
+          &line_str[..start],
+          &line_str[start..end],
+          &line_str[end..],
+        )?;
+      }
+    }
+    writeln!(w,)?;
+  }
+
+  Ok(())
 }

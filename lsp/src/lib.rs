@@ -405,17 +405,13 @@ impl LanguageServer for Backend {
 
 #[allow(clippy::absolute_paths)]
 #[tokio::main]
-pub async fn lsp(libs: Vec<PathBuf>, entrypoints: Vec<String>) -> std::result::Result<(), String> {
+pub async fn lsp(libs: Vec<PathBuf>, entrypoints: Vec<String>) {
   let stdin = tokio::io::stdin();
   let stdout = tokio::io::stdout();
 
   let mut compiler = Compiler::new(true, Config::default());
   for lib in libs {
     compiler.loader.load_mod(&lib, &mut compiler.diags);
-  }
-
-  if compiler.compile(()).is_err() {
-    return Err(compiler.format_diags());
   }
 
   let checkpoint = compiler.checkpoint();
@@ -428,5 +424,4 @@ pub async fn lsp(libs: Vec<PathBuf>, entrypoints: Vec<String>) -> std::result::R
     checkpoint,
   });
   Server::new(stdin, stdout, socket).serve(service).await;
-  Ok(())
 }
