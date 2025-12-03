@@ -19,6 +19,8 @@ Expressions can be interpolated into string literals using braces
 
 Strings can be concatenated with the #op[`++`] operator (`O(1)`).
 
+_See also @root-unicode-String[`#root::unicode::String`]._
+
 == `List` <list>
 
 The generic type #ty[`List[T]`] describes lists of values of type #ty[`T`].
@@ -40,6 +42,8 @@ Lists can be used as a stack by
   using #fn[`.push_front`] to push
   and #fn[`.pop_front`] to pop (both `O(1)`).
 
+_See also @root-data-List[`#root::data::List`]._
+
 == `Array`
 
 The generic type #ty[`Array[T]`] describes arrays of values of type #ty[`T`].
@@ -52,6 +56,8 @@ Elements can be added and removed from either the front or the back with
 
 `Array`s can be converted to and from lists with
   #expr[`array as List`] and #expr[`list as Array`] (`O(n)`).
+
+_See also @root-data-Array[`#root::data::Array`]._
 
 == `Map`
 
@@ -66,6 +72,8 @@ Inserting, accessing, and removing a value by key can be done with
 The minimum / maximum key-value pair can be removed with
   #fn[`.remove_min`] / #fn[`.remove_max`] (`O(log(n))`).
 
+_See also @root-data-Map[`#root::data::Map`]._
+
 == `Set`
 
 The generic type #ty[`Set[T]`] describes sets of elements of type #ty[`T`].
@@ -78,3 +86,6 @@ Inserting, checking for, and removing a value can be done with
 
 The minimum / maximum value pair can be removed with
   #fn[`.remove_min`] / #fn[`.remove_max`] (`O(log(n))`).
+
+_See also @root-data-Set[`#root::data::Set`]._
+
