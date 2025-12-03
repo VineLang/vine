@@ -173,3 +173,25 @@ let o: { a: N32, b: N32, c: N32 } = { a: 3, b: 2, c: 3 };
 let c: N32 = 3;
 let b: N32 = 2;
 let a: N32 = 3;
+> +(1, 2.0)
+(+1, 2.0)
+
+let io: IO = <IO>;
+let x: { a: N32, b: N32, c: N32 } = { a: 1, b: 2, c: 3 };
+let y: { x: { a: N32, b: N32, c: N32 } } = { x: { a: 1, b: 2, c: 3 } };
+let z: { y: { x: { a: N32, b: N32, c: N32 } } } = { y: { x: { a: 3, b: 2, c: 3 } } };
+let o: { a: N32, b: N32, c: N32 } = { a: 3, b: 2, c: 3 };
+let c: N32 = 3;
+let b: N32 = 2;
+let a: N32 = 3;
+> +{ a: 1, b: 2 }
+{ a: +1, b: +2 }
+
+let io: IO = <IO>;
+let x: { a: N32, b: N32, c: N32 } = { a: 1, b: 2, c: 3 };
+let y: { x: { a: N32, b: N32, c: N32 } } = { x: { a: 1, b: 2, c: 3 } };
+let z: { y: { x: { a: N32, b: N32, c: N32 } } } = { y: { x: { a: 3, b: 2, c: 3 } } };
+let o: { a: N32, b: N32, c: N32 } = { a: 3, b: 2, c: 3 };
+let c: N32 = 3;
+let b: N32 = 2;
+let a: N32 = 3;
