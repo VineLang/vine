@@ -69,6 +69,7 @@ fn tests(t: &mut DynTester) {
     test_vi(t, "tests/programs/lambda.vi", lambda_input, ".txt", true, false, false);
     test_vi(t, "tests/programs/lcs.vi", b"", ".txt", true, false, false);
     test_vi(t, "tests/programs/life.vi", life_input, ".txt", true, false, false);
+    test_vi(t, "tests/programs/log_brute.vi", b"", ".txt", false, false, false);
     test_vi(t, "tests/programs/logic.vi", b"", ".txt", true, false, false);
     test_vi(t, "tests/programs/loop_break_continue.vi", b"", ".txt", true, false, false);
     test_vi(t, "tests/programs/loop_vi_loop.vi", b"", ".txt", true, false, false);

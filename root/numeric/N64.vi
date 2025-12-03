@@ -303,7 +303,7 @@ pub mod N64 {
 
   pub fn .log_n32(n: N64, b: N32) -> N32 {
     let l = 0;
-    while b as N64 < n {
+    while b as N64 <= n {
       l += 1;
       let (d, _) = n.div_rem_n32(b);
       n = d;
