@@ -1,3 +1,4 @@
+
 use #root::derive::Object;
 
 pub fn main(&io: &IO) {
@@ -8,8 +9,8 @@ pub fn main(&io: &IO) {
   synthesize_omit_rest();
 }
 
-pub fn synthesize_full[; Object[{key: Nat}, .key, Nat, {}]]() {}
+pub fn synthesize_full[; Object[{ key: Nat }, .key, Nat, {}]]() {}
 pub fn synthesize_omit_object[O; Object[O, .key, Nat, {}]]() {}
-pub fn synthesize_omit_key[K; Object[{key: Nat}, K, Nat, {}]]() {}
-pub fn synthesize_omit_init[I; Object[{key: Nat}, .key, I, {}]]() {}
-pub fn synthesize_omit_rest[R; Object[{key: Nat}, .key, Nat, R]]() {}
+pub fn synthesize_omit_key[K; Object[{ key: Nat }, K, Nat, {}]]() {}
+pub fn synthesize_omit_init[I; Object[{ key: Nat }, .key, I, {}]]() {}
+pub fn synthesize_omit_rest[R; Object[{ key: Nat }, .key, Nat, R]]() {}
