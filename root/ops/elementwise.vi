@@ -6,9 +6,12 @@ use derive::{Composite, Singleton};
 pub use binary as _;
 pub mod binary {
   pub use singleton_singleton as _;
-  pub mod singleton_singleton[AS, A, BS, B, CS, C, K; Singleton[AS, K, A], Singleton[BS, K, B], Singleton[CS, K, C]] {
+  pub mod singleton_singleton[
+    AS, A, BS, B, CS, C, K;
+    Singleton[AS, K, A], Singleton[BS, K, B], Singleton[CS, K, C];
+  ] {
     pub use add as _;
-    pub impl add[...; Add[A, B, C]]: Add[AS, BS, CS] {
+    pub impl add[... ; Add[A, B, C]]: Add[AS, BS, CS] {
       fn add(a: AS, b: BS) -> CS {
         let a = a as A;
         let b = b as B;
@@ -17,7 +20,7 @@ pub mod binary {
     }
 
     pub use sub as _;
-    pub impl sub[...; Sub[A, B, C]]: Sub[AS, BS, CS] {
+    pub impl sub[... ; Sub[A, B, C]]: Sub[AS, BS, CS] {
       fn sub(a: AS, b: BS) -> CS {
         let a = a as A;
         let b = b as B;
@@ -26,7 +29,7 @@ pub mod binary {
     }
 
     pub use mul as _;
-    pub impl mul[...; Mul[A, B, C]]: Mul[AS, BS, CS] {
+    pub impl mul[... ; Mul[A, B, C]]: Mul[AS, BS, CS] {
       fn mul(a: AS, b: BS) -> CS {
         let a = a as A;
         let b = b as B;
@@ -35,7 +38,7 @@ pub mod binary {
     }
 
     pub use div as _;
-    pub impl div[...; Div[A, B, C]]: Div[AS, BS, CS] {
+    pub impl div[... ; Div[A, B, C]]: Div[AS, BS, CS] {
       fn div(a: AS, b: BS) -> CS {
         let a = a as A;
         let b = b as B;
@@ -44,7 +47,7 @@ pub mod binary {
     }
 
     pub use rem as _;
-    pub impl rem[...; Rem[A, B, C]]: Rem[AS, BS, CS] {
+    pub impl rem[... ; Rem[A, B, C]]: Rem[AS, BS, CS] {
       fn rem(a: AS, b: BS) -> CS {
         let a = a as A;
         let b = b as B;
@@ -53,7 +56,7 @@ pub mod binary {
     }
 
     pub use pow as _;
-    pub impl pow[...; Pow[A, B, C]]: Pow[AS, BS, CS] {
+    pub impl pow[... ; Pow[A, B, C]]: Pow[AS, BS, CS] {
       fn pow(a: AS, b: BS) -> CS {
         let a = a as A;
         let b = b as B;
@@ -62,7 +65,7 @@ pub mod binary {
     }
 
     pub use bit_and as _;
-    pub impl bit_and[...; BitAnd[A, B, C]]: BitAnd[AS, BS, CS] {
+    pub impl bit_and[... ; BitAnd[A, B, C]]: BitAnd[AS, BS, CS] {
       fn bit_and(a: AS, b: BS) -> CS {
         let a = a as A;
         let b = b as B;
@@ -71,7 +74,7 @@ pub mod binary {
     }
 
     pub use bit_or as _;
-    pub impl bit_or[...; BitOr[A, B, C]]: BitOr[AS, BS, CS] {
+    pub impl bit_or[... ; BitOr[A, B, C]]: BitOr[AS, BS, CS] {
       fn bit_or(a: AS, b: BS) -> CS {
         let a = a as A;
         let b = b as B;
@@ -80,7 +83,7 @@ pub mod binary {
     }
 
     pub use bit_xor as _;
-    pub impl bit_xor[...; BitXor[A, B, C]]: BitXor[AS, BS, CS] {
+    pub impl bit_xor[... ; BitXor[A, B, C]]: BitXor[AS, BS, CS] {
       fn bit_xor(a: AS, b: BS) -> CS {
         let a = a as A;
         let b = b as B;
@@ -90,7 +93,10 @@ pub mod binary {
   }
 
   pub use composite_composite as _;
-  pub mod composite_composite[A, AI, AR, B, BI, BR, K, O, OI, OR; Composite[A, K, AI, AR], Composite[B, K, BI, BR]] {
+  pub mod composite_composite[
+    A, AI, AR, B, BI, BR, K, O, OI, OR;
+    Composite[A, K, AI, AR], Composite[B, K, BI, BR];
+  ] {
     pub use add as _;
     pub impl add[... ; Add[AI, BI, OI], Add[AR, BR, OR], Composite[O, K, OI, OR]]: Add[A, B, O] {
       fn add(a: A, b: B) -> O {
@@ -157,7 +163,9 @@ pub mod binary {
     }
 
     pub use bit_or as _;
-    pub impl bit_or[... ; BitOr[AI, BI, OI], BitOr[AR, BR, OR], Composite[O, K, OI, OR]]: BitOr[A, B, O] {
+    pub impl bit_or[... ; BitOr[AI, BI, OI], BitOr[AR, BR, OR], Composite[O, K, OI, OR]]: BitOr[
+      A, B, O;
+    ] {
       fn bit_or(a: A, b: B) -> O {
         let (ai, ar) = a as (AI, AR);
         let (bi, br) = b as (BI, BR);
@@ -303,7 +311,9 @@ pub mod binary {
     }
 
     pub use bit_and as _;
-    pub impl bit_and[... ; BitAnd[AI, B, OI], BitAnd[AR, B, OR], Composite[O, K, OI, OR]]: BitAnd[A, B, O] {
+    pub impl bit_and[... ; BitAnd[AI, B, OI], BitAnd[AR, B, OR], Composite[O, K, OI, OR]]: BitAnd[
+      A, B, O;
+    ] {
       fn bit_and(a: A, b: B) -> O {
         let (ai, ar) = a as (AI, AR);
         (ai & b, ar & b) as O
@@ -311,7 +321,9 @@ pub mod binary {
     }
 
     pub use bit_or as _;
-    pub impl bit_or[... ; BitOr[AI, B, OI], BitOr[AR, B, OR], Composite[O, K, OI, OR]]: BitOr[A, B, O] {
+    pub impl bit_or[... ; BitOr[AI, B, OI], BitOr[AR, B, OR], Composite[O, K, OI, OR]]: BitOr[
+      A, B, O;
+    ] {
       fn bit_or(a: A, b: B) -> O {
         let (ai, ar) = a as (AI, AR);
         (ai | b, ar | b) as O
@@ -319,7 +331,9 @@ pub mod binary {
     }
 
     pub use bit_xor as _;
-    pub impl bit_xor[... ; BitXor[AI, B, OI], BitXor[AR, B, OR], Composite[O, K, OI, OR]]: BitXor[A, B, O] {
+    pub impl bit_xor[... ; BitXor[AI, B, OI], BitXor[AR, B, OR], Composite[O, K, OI, OR]]: BitXor[
+      A, B, O;
+    ] {
       fn bit_xor(a: A, b: B) -> O {
         let (ai, ar) = a as (AI, AR);
         (ai ^ b, ar ^ b) as O
