@@ -2,18 +2,16 @@ use std::collections::{BTreeMap, BTreeSet, HashSet};
 
 use vine_util::idx::IntSet;
 
-use crate::{
-  structures::{
-    ast::{Ident, Span},
-    chart::{
-      Binding, Chart, Def, DefId, DefImplKind, DefTraitKind, DefValueKind, FnId, GenericsId,
-      ImplId, MemberKind,
-    },
-    diag::{Diag, Diags, ErrorGuaranteed},
-    signatures::{ImportState, Signatures},
-    tir::TirImpl,
-    types::{ImplType, Inverted, Type, TypeCtx, TypeKind, Types},
+use crate::structures::{
+  ast::{Ident, Span},
+  chart::{
+    Binding, Chart, Def, DefId, DefImplKind, DefTraitKind, DefValueKind, FnId, GenericsId, ImplId,
+    MemberKind,
   },
+  diag::{Diag, Diags, ErrorGuaranteed},
+  signatures::{ImportState, Signatures},
+  tir::TirImpl,
+  types::{ImplType, Inverted, Type, TypeCtx, TypeKind, Types},
 };
 
 pub struct Finder<'a> {

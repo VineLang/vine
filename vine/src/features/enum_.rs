@@ -6,14 +6,14 @@ use vine_util::{idx::IdxVec, parser::Parser};
 use crate::{
   components::{
     charter::Charter,
-    finder::Finder,
     distiller::Distiller,
     emitter::Emitter,
-    synthesizer::SyntheticImpl,
+    finder::Finder,
     lexer::Token,
     matcher::{MatchVar, MatchVarForm, MatchVarKind, Matcher, Row, VarId},
     parser::{BRACE_COMMA, PAREN_COMMA, VineParser},
     resolver::Resolver,
+    synthesizer::SyntheticImpl,
   },
   structures::{
     ast::{EnumItem, Expr, ItemKind, Pat, Path, Span, Variant},
@@ -23,8 +23,8 @@ use crate::{
     },
     diag::Diag,
     signatures::EnumSig,
-    tir::{TirExpr, TirImpl, TirExprKind, TirPat, TirPatKind},
-    types::{Type, Inverted, Types, TypeCtx, TypeKind},
+    tir::{TirExpr, TirExprKind, TirImpl, TirPat, TirPatKind},
+    types::{Inverted, Type, TypeCtx, TypeKind, Types},
     vir::{Header, Interface, InterfaceKind, Layer, Port, Stage, Step, Transfer},
   },
   tools::fmt::{Formatter, doc::Doc},
@@ -291,20 +291,18 @@ impl Finder<'_> {
     types: &Types,
     found: &mut Vec<TypeCtx<TirImpl>>,
   ) {
-    if
-          let Some(variant_enum) = self.chart.builtins.variant
-          && let Some((Inverted(false), TypeKind::Enum(enum_id, enum_params))) =
-            types.kind(type_params[0])
-        {
-          let mut types = types.clone();
-          let sig = types.import(&self.sigs.enums[*enum_id], Some(enum_params));
-          let variants =
-            sig.variant_data.values().rfold(types.new(TypeKind::Never), |rest, init| {
-              types.new(TypeKind::Enum(variant_enum, vec![*init, rest]))
-            });
-          if types.unify(variants, type_params[1]).is_success() {
-            found.push(TypeCtx { types, inner: TirImpl::Synthetic(SyntheticImpl::Enum(*enum_id)) });
-          }
-        }
+    if let Some(variant_enum) = self.chart.builtins.variant
+      && let Some((Inverted(false), TypeKind::Enum(enum_id, enum_params))) =
+        types.kind(type_params[0])
+    {
+      let mut types = types.clone();
+      let sig = types.import(&self.sigs.enums[*enum_id], Some(enum_params));
+      let variants = sig.variant_data.values().rfold(types.new(TypeKind::Never), |rest, init| {
+        types.new(TypeKind::Enum(variant_enum, vec![*init, rest]))
+      });
+      if types.unify(variants, type_params[1]).is_success() {
+        found.push(TypeCtx { types, inner: TirImpl::Synthetic(SyntheticImpl::Enum(*enum_id)) });
+      }
+    }
   }
 }

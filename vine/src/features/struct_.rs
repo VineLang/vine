@@ -8,9 +8,9 @@ use vine_util::{
 use crate::{
   components::{
     charter::Charter,
-    finder::Finder,
     distiller::{Distiller, Poly},
     emitter::Emitter,
+    finder::Finder,
     lexer::Token,
     matcher::{MatchVar, MatchVarForm, MatchVarKind, Matcher, Row, VarId},
     parser::{PAREN_COMMA, VineParser},
@@ -24,8 +24,8 @@ use crate::{
     },
     diag::Diag,
     signatures::StructSig,
-    tir::{TirExpr, TirImpl, TirExprKind, TirPat, TirPatKind},
-    types::{Type, Types, Inverted, TypeCtx, TypeKind},
+    tir::{TirExpr, TirExprKind, TirImpl, TirPat, TirPatKind},
+    types::{Inverted, Type, TypeCtx, TypeKind, Types},
     vir::{Layer, Port, Stage, Step},
   },
   tools::fmt::{Formatter, doc::Doc},
