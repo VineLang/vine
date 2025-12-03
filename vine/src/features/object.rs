@@ -18,21 +18,22 @@ impl Finder<'_> {
     match types.kind(object_ty) {
       Some((inv, TypeKind::Object(entries))) => {
         let mut iter = entries.iter();
-        if let Some((key, &init)) = iter.next() {
+        if let Some((key_ident, &init)) = iter.next() {
           let init = init.invert_if(inv);
           let rest = iter.map(|(k, &t)| (k.clone(), t.invert_if(inv))).collect();
           let mut types = types.clone();
           let rest = types.new(TypeKind::Object(rest));
-          if types.unify(init, init_ty).and(types.unify(rest, rest_ty)).is_success() {
-            let impl_ = TirImpl::Synthetic(SyntheticImpl::Object(key.clone(), entries.len()));
+          let key = types.new(TypeKind::Key(key_ident.clone()));
+          if types.unify(key, key_ty).and(types.unify(init, init_ty)).and(types.unify(rest, rest_ty)).is_success() {
+            let impl_ = TirImpl::Synthetic(SyntheticImpl::Object(key_ident.clone(), entries.len()));
             found.push(TypeCtx { types, inner: impl_ });
           }
         }
       }
       None => {
-        if let Some((Inverted(false) /* ??? */, TypeKind::Key(key))) = types.kind(key_ty)
+        if let Some((Inverted(false), TypeKind::Key(key))) = types.kind(key_ty)
           && let Some((inv, TypeKind::Object(rest_entries))) = types.kind(rest_ty)
-          && !rest_entries.contains_key(key)
+          && rest_entries.first_key_value().is_none_or(|(k, _)| key < k)
         {
           let object_entries = rest_entries
             .iter()
