@@ -22,6 +22,45 @@ pub mod Object {
   pub use Composite::{cast_deconstruct, cast_reconstruct};
 }
 
+pub trait Singleton[Singleton, Key, Value] {
+  fn deconstruct(composite: Singleton) -> Value;
+  fn reconstruct(value: Value) -> Singleton;
+}
+
+pub mod Singleton {
+  pub impl tuple[A]: Singleton[(A,), (), A] {
+    fn deconstruct((a,): (A,)) -> A {
+      a
+    }
+
+    fn reconstruct(a: A) -> (A,) {
+      (a,)
+    }
+  }
+
+  pub impl object[O, K, I; Object[O, K, I, {}]]: Singleton[O, K, I] {
+    fn deconstruct(object: O) -> I {
+      Object::deconstruct(object).0
+    }
+
+    fn reconstruct(init: I) -> O {
+      Object::reconstruct(init, {})
+    }
+  }
+
+  pub impl cast_deconstruct[S, K, V; Singleton[S, K, V]]: Cast[S, V] {
+    fn cast(singleton: S) -> V {
+      Singleton::deconstruct(singleton)
+    }
+  }
+
+  pub impl cast_reconstruct[S, K, V; Singleton[S, K, V]]: Cast[V, S] {
+    fn cast(value: V) -> S {
+      Singleton::reconstruct[S, K, V](value)
+    }
+  }
+}
+
 pub trait Composite[Composite, Key, Init, Rest] {
   fn deconstruct(composite: Composite) -> (Init, Rest);
   fn reconstruct(init: Init, rest: Rest) -> Composite;
