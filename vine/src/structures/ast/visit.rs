@@ -3,6 +3,35 @@ use crate::structures::ast::{
   PatKind, Stmt, StmtKind, Trait, TraitKind, Ty, TyKind,
 };
 
+/// Mutably walks over the AST.
+///
+/// The default implementations of this trait do nothing other than recurse over
+/// the structure of the AST. The intent is that implementors of [`VisitMut`]
+/// should override methods corresponding to the portions of the AST they care
+/// about.
+///
+/// The default implementations are also exposed via methods prefixed with `_`,
+/// so that they can still be called to continue the recursion despite being
+/// overridden by implementors.
+///
+/// For example, if we want to perform some function over all items in the AST:
+/// ```rust
+/// use vine::structures::ast::{Item, visit::VisitMut};
+///
+/// struct ItemMapper<F: FnMut(&Item)> {
+///   f: F
+/// }
+///
+/// impl<F: FnMut(&Item)>  VisitMut<'_> for ItemMapper<F> {
+///   fn visit_item(&mut self, item: &mut Item) {
+///     // perform custom function over each item
+///     (self.f)(item);
+///
+///     // recurse into inner items
+///     self._visit_item(item);
+///   }
+/// }
+/// ```
 pub trait VisitMut<'a> {
   fn visit_expr(&mut self, expr: &'a mut Expr) {
     self._visit_expr(expr);
