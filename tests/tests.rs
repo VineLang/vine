@@ -142,6 +142,10 @@ fn tests(t: &mut DynTester) {
       test_vi_compile(t, "tests/programs/compile/opaque_ext_fn.vi");
       test_vi_compile(t, "tests/programs/compile/pre_reduce_opaque_fn.vi");
     });
+
+    t.group("auto_impl", |t| {
+      test_vi(t, "tests/programs/auto_impl/objects.vi", b"", ".txt", true, false, false);
+    });
   });
 }
 
