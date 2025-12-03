@@ -144,7 +144,7 @@ fn tests(t: &mut DynTester) {
     });
 
     t.group("auto_impl", |t| {
-      test_vi(t, "tests/programs/auto_impl/objects.vi", b"", ".txt", false, false, false);
+      test_vi(t, "tests/programs/auto_impl/object.vi", b"", ".txt", false, false, false);
     });
   });
 }
