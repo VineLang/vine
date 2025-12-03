@@ -1,73 +1,290 @@
-error tests/programs/fail/atypical.vi:3:19 - no type associated with `#atypical::foo`
-error tests/programs/fail/atypical.vi:3:24 - types in item signatures cannot be elided
-error tests/programs/fail/atypical.vi:5:12 - types in item signatures cannot be elided
-error tests/programs/fail/atypical.vi:4:8 - types in item signatures cannot be elided
-error tests/programs/fail/atypical.vi:4:14 - `#atypical::Foo` expects 1 type parameter; was passed 0
-error tests/programs/fail/atypical.vi:5:21 - no function to return from
-error tests/programs/fail/atypical.vi:7:16 - expected type `N32`; found `F32`
-error tests/programs/fail/atypical.vi:8:16 - expected type `F32`; found `N32`
-error tests/programs/fail/atypical.vi:9:23 - cannot find impl of trait `Add[(N32, N32), F32, ?13]`
-error tests/programs/fail/atypical.vi:10:16 - expected type `(?19, ?20)`; found `N32`
-error tests/programs/fail/atypical.vi:12:3 - cannot find impl of trait `Fn[N32, (), ?29]`
-error tests/programs/fail/atypical.vi:13:14 - cannot find impl of trait `Add[N32, ~N32, ?34]`
-error tests/programs/fail/atypical.vi:14:3 - type `N32` has no method `noop`
-error tests/programs/fail/atypical.vi:15:6 - expected type `Bool`; found `F32`
-error tests/programs/fail/atypical.vi:15:23 - expected type `N32`; found `String`
-error tests/programs/fail/atypical.vi:16:3 - function expects 1 argument; was passed 3
-error tests/programs/fail/atypical.vi:17:3 - cannot compare `N32` and `F32`
-error tests/programs/fail/atypical.vi:17:3 - cannot compare `F32` and `N32`
-error tests/programs/fail/atypical.vi:17:3 - cannot compare `N32` and `F32`
-error tests/programs/fail/atypical.vi:18:21 - no value associated with `#atypical::Foo`
-error tests/programs/fail/atypical.vi:18:13 - expected type `(N32, N32)`; found `(?54,)`
-error tests/programs/fail/atypical.vi:19:12 - no type associated with `#atypical::foo`
-error tests/programs/fail/atypical.vi:20:14 - expected type `T`; found `N32`
-error tests/programs/fail/atypical.vi:21:14 - expected type `U`; found `T`
-error tests/programs/fail/atypical.vi:22:19 - expected type `Ay`; found `N32`
-error tests/programs/fail/atypical.vi:23:4 - cannot find impl of trait `Add[String, N32, ?75]`
-error tests/programs/fail/atypical.vi:24:7 - expected type `N32`; found `&?79`
-error tests/programs/fail/atypical.vi:25:3 - invalid continue target
-error tests/programs/fail/atypical.vi:26:3 - invalid break target
-error tests/programs/fail/atypical.vi:27:10 - expected type `()`; found `F32`
-error tests/programs/fail/atypical.vi:28:14 - cannot find impl of trait `Add[~N32, ~N32, ?85]`
-error tests/programs/fail/atypical.vi:29:3 - cannot find impl of trait `Add[N32, F32, N32]`
-error tests/programs/fail/atypical.vi:30:3 - type `N32` has no method `parse`
-error tests/programs/fail/atypical.vi:31:3 - invalid break target
-error tests/programs/fail/atypical.vi:32:14 - invalid continue target
-error tests/programs/fail/atypical.vi:33:3 - expected type `()`; found `N32`
-error - main cannot be generic
-error tests/programs/fail/atypical.vi:4:8 - search limit reached when finding flex of type `?0`
-error tests/programs/fail/atypical.vi:4:11 - search limit reached when finding flex of type `(?1, ??, ??)`
-error tests/programs/fail/atypical.vi:4:8 - cannot drop `?0`
-error tests/programs/fail/atypical.vi:4:11 - cannot drop `(?1, ??, ??)`
-error tests/programs/fail/atypical.vi:12:3 - search limit reached when finding impl of trait `Drop[?29]`
-error tests/programs/fail/atypical.vi:13:14 - search limit reached when finding impl of trait `Drop[?34]`
-error tests/programs/fail/atypical.vi:22:7 - expected a complete pattern
-error tests/programs/fail/atypical.vi:23:4 - search limit reached when finding impl of trait `Drop[?75]`
-error tests/programs/fail/atypical.vi:28:14 - search limit reached when finding impl of trait `Drop[?85]`
-error tests/programs/fail/atypical.vi:10:8 - search limit reached when finding flex of type `?19`
-error tests/programs/fail/atypical.vi:10:11 - search limit reached when finding flex of type `?20`
-error tests/programs/fail/atypical.vi:18:14 - search limit reached when finding flex of type `?54`
-error tests/programs/fail/atypical.vi:24:8 - search limit reached when finding flex of type `?79`
-error tests/programs/fail/atypical.vi:6:8 - unconditional infinite loops are invalid
-error tests/programs/fail/atypical.vi:6:19 - cannot drop `IO`
-error tests/programs/fail/atypical.vi:10:8 - cannot drop `?19`
-error tests/programs/fail/atypical.vi:10:11 - cannot drop `?20`
-error tests/programs/fail/atypical.vi:11:7 - variable of type `N32` read whilst uninitialized
-error tests/programs/fail/atypical.vi:18:14 - cannot drop `?54`
-error tests/programs/fail/atypical.vi:21:7 - cannot drop `U`
-error tests/programs/fail/atypical.vi:15:3 - variable of type `N32` read whilst uninitialized
-error tests/programs/fail/atypical.vi:24:17 - variable of type `N32` read whilst uninitialized
-warn tests/programs/fail/atypical.vi:4:8 - unused variable
-warn tests/programs/fail/atypical.vi:4:11 - unused variable
-warn tests/programs/fail/atypical.vi:7:7 - unused variable
-warn tests/programs/fail/atypical.vi:8:7 - unused variable
-warn tests/programs/fail/atypical.vi:9:7 - unused variable
-warn tests/programs/fail/atypical.vi:18:14 - unused variable
-warn tests/programs/fail/atypical.vi:21:7 - unused variable
-warn tests/programs/fail/atypical.vi:24:8 - unused variable
-warn tests/programs/fail/atypical.vi:10:8 - unused variable
-warn tests/programs/fail/atypical.vi:10:11 - unused variable
-warn tests/programs/fail/atypical.vi:19:7 - unused variable
-warn tests/programs/fail/atypical.vi:6:19 - unused variable
-warn tests/programs/fail/atypical.vi:5:7 - unused item
-warn tests/programs/fail/atypical.vi:40:4 - unused item
+error: no type associated with `#atypical::foo`
+   @ tests/programs/fail/atypical.vi:3:19
+ 3 | type Foo[X] = (X, foo, _);
+
+error: types in item signatures cannot be elided
+   @ tests/programs/fail/atypical.vi:3:24
+ 3 | type Foo[X] = (X, foo, _);
+
+error: types in item signatures cannot be elided
+   @ tests/programs/fail/atypical.vi:5:12
+ 5 | const bar: _ = do { return };
+
+error: types in item signatures cannot be elided
+   @ tests/programs/fail/atypical.vi:4:8
+ 4 | fn foo(x, y: Foo) {}
+
+error: `#atypical::Foo` expects 1 type parameter; was passed 0
+   @ tests/programs/fail/atypical.vi:4:14
+ 4 | fn foo(x, y: Foo) {}
+
+error: no function to return from
+   @ tests/programs/fail/atypical.vi:5:21
+ 5 | const bar: _ = do { return };
+
+error: expected type `N32`; found `F32`
+   @ tests/programs/fail/atypical.vi:7:16
+ 7 |   let x: N32 = 0.0;
+
+error: expected type `F32`; found `N32`
+   @ tests/programs/fail/atypical.vi:8:16
+ 8 |   let x: F32 = 0;
+
+error: cannot find impl of trait `Add[(N32, N32), F32, ?13]`
+   @ tests/programs/fail/atypical.vi:9:23
+ 9 |   let x: (N32, N32) = (1, 2) + 0.0;
+
+error: expected type `(?19, ?20)`; found `N32`
+    @ tests/programs/fail/atypical.vi:10:16
+ 10 |   let (a, b) = 0;
+
+error: cannot find impl of trait `Fn[N32, (), ?29]`
+    @ tests/programs/fail/atypical.vi:12:3
+ 12 |   1();
+
+error: cannot find impl of trait `Add[N32, ~N32, ?34]`
+    @ tests/programs/fail/atypical.vi:13:14
+ 13 |   let x = 3; 2 + ~x;
+
+error: type `N32` has no method `noop`
+    @ tests/programs/fail/atypical.vi:14:3
+ 14 |   x.noop();
+
+error: expected type `Bool`; found `F32`
+    @ tests/programs/fail/atypical.vi:15:6
+ 15 |   if 0.0 { 0 } else { "" };
+
+error: expected type `N32`; found `String`
+    @ tests/programs/fail/atypical.vi:15:23
+ 15 |   if 0.0 { 0 } else { "" };
+
+error: function expects 1 argument; was passed 3
+    @ tests/programs/fail/atypical.vi:16:3
+ 16 |   main(1, 2, 3);
+
+error: cannot compare `N32` and `F32`
+    @ tests/programs/fail/atypical.vi:17:3
+ 17 |   0 < 0.0 < 0 < 0 < 0.0;
+
+error: cannot compare `F32` and `N32`
+    @ tests/programs/fail/atypical.vi:17:3
+ 17 |   0 < 0.0 < 0 < 0 < 0.0;
+
+error: cannot compare `N32` and `F32`
+    @ tests/programs/fail/atypical.vi:17:3
+ 17 |   0 < 0.0 < 0 < 0 < 0.0;
+
+error: no value associated with `#atypical::Foo`
+    @ tests/programs/fail/atypical.vi:18:21
+ 18 |   let Thing((x,)) = Foo(1);
+
+error: expected type `(N32, N32)`; found `(?54,)`
+    @ tests/programs/fail/atypical.vi:18:13
+ 18 |   let Thing((x,)) = Foo(1);
+
+error: no type associated with `#atypical::foo`
+    @ tests/programs/fail/atypical.vi:19:12
+ 19 |   let foo: foo = foo;
+
+error: expected type `T`; found `N32`
+    @ tests/programs/fail/atypical.vi:20:14
+ 20 |   let x: T = 0;
+
+error: expected type `U`; found `T`
+    @ tests/programs/fail/atypical.vi:21:14
+ 21 |   let x: U = x;
+
+error: expected type `Ay`; found `N32`
+    @ tests/programs/fail/atypical.vi:22:19
+ 22 |   let Ay::Yay() = 0;
+
+error: cannot find impl of trait `Add[String, N32, ?75]`
+    @ tests/programs/fail/atypical.vi:23:4
+ 23 |   (loop { break "x" } + 1);
+
+error: expected type `N32`; found `&?79`
+    @ tests/programs/fail/atypical.vi:24:7
+ 24 |   let &x: N32 = loop { continue };
+
+error: invalid continue target
+    @ tests/programs/fail/atypical.vi:25:3
+ 25 |   continue;
+
+error: invalid break target
+    @ tests/programs/fail/atypical.vi:26:3
+ 26 |   break;
+
+error: expected type `()`; found `F32`
+    @ tests/programs/fail/atypical.vi:27:10
+ 27 |   return 0.0;
+
+error: cannot find impl of trait `Add[~N32, ~N32, ?85]`
+    @ tests/programs/fail/atypical.vi:28:14
+ 28 |   let x = 1; ~x + ~x;
+
+error: cannot find impl of trait `Add[N32, F32, N32]`
+    @ tests/programs/fail/atypical.vi:29:3
+ 29 |   x += 1.0;
+
+error: type `N32` has no method `parse`
+    @ tests/programs/fail/atypical.vi:30:3
+ 30 |   x.parse();
+
+error: invalid break target
+    @ tests/programs/fail/atypical.vi:31:3
+ 31 |   break.stuff;
+
+error: invalid continue target
+    @ tests/programs/fail/atypical.vi:32:14
+ 32 |   do.stuff { continue.stuff };
+
+error: expected type `()`; found `N32`
+    @ tests/programs/fail/atypical.vi:33:3
+ 33 |   123
+
+error: main cannot be generic
+
+error: search limit reached when finding flex of type `?0`
+   @ tests/programs/fail/atypical.vi:4:8
+ 4 | fn foo(x, y: Foo) {}
+
+error: search limit reached when finding flex of type `(?1, ??, ??)`
+   @ tests/programs/fail/atypical.vi:4:11
+ 4 | fn foo(x, y: Foo) {}
+
+error: cannot drop `?0`
+   @ tests/programs/fail/atypical.vi:4:8
+ 4 | fn foo(x, y: Foo) {}
+
+error: cannot drop `(?1, ??, ??)`
+   @ tests/programs/fail/atypical.vi:4:11
+ 4 | fn foo(x, y: Foo) {}
+
+error: search limit reached when finding impl of trait `Drop[?29]`
+    @ tests/programs/fail/atypical.vi:12:3
+ 12 |   1();
+
+error: search limit reached when finding impl of trait `Drop[?34]`
+    @ tests/programs/fail/atypical.vi:13:14
+ 13 |   let x = 3; 2 + ~x;
+
+error: expected a complete pattern
+    @ tests/programs/fail/atypical.vi:22:7
+ 22 |   let Ay::Yay() = 0;
+
+error: search limit reached when finding impl of trait `Drop[?75]`
+    @ tests/programs/fail/atypical.vi:23:4
+ 23 |   (loop { break "x" } + 1);
+
+error: search limit reached when finding impl of trait `Drop[?85]`
+    @ tests/programs/fail/atypical.vi:28:14
+ 28 |   let x = 1; ~x + ~x;
+
+error: search limit reached when finding flex of type `?19`
+    @ tests/programs/fail/atypical.vi:10:8
+ 10 |   let (a, b) = 0;
+
+error: search limit reached when finding flex of type `?20`
+    @ tests/programs/fail/atypical.vi:10:11
+ 10 |   let (a, b) = 0;
+
+error: search limit reached when finding flex of type `?54`
+    @ tests/programs/fail/atypical.vi:18:14
+ 18 |   let Thing((x,)) = Foo(1);
+
+error: search limit reached when finding flex of type `?79`
+    @ tests/programs/fail/atypical.vi:24:8
+ 24 |   let &x: N32 = loop { continue };
+
+error: unconditional infinite loops are invalid
+   @ tests/programs/fail/atypical.vi:6:8
+ 6 | pub fn main[T, U](io: IO) {
+
+error: cannot drop `IO`
+   @ tests/programs/fail/atypical.vi:6:19
+ 6 | pub fn main[T, U](io: IO) {
+
+error: cannot drop `?19`
+    @ tests/programs/fail/atypical.vi:10:8
+ 10 |   let (a, b) = 0;
+
+error: cannot drop `?20`
+    @ tests/programs/fail/atypical.vi:10:11
+ 10 |   let (a, b) = 0;
+
+error: variable of type `N32` read whilst uninitialized
+    @ tests/programs/fail/atypical.vi:11:7
+ 11 |   let x; x + 1;
+
+error: cannot drop `?54`
+    @ tests/programs/fail/atypical.vi:18:14
+ 18 |   let Thing((x,)) = Foo(1);
+
+error: cannot drop `U`
+    @ tests/programs/fail/atypical.vi:21:7
+ 21 |   let x: U = x;
+
+error: variable of type `N32` read whilst uninitialized
+    @ tests/programs/fail/atypical.vi:15:3
+ 15 |   if 0.0 { 0 } else { "" };
+
+error: variable of type `N32` read whilst uninitialized
+    @ tests/programs/fail/atypical.vi:24:17
+ 24 |   let &x: N32 = loop { continue };
+
+warning: unused variable
+   @ tests/programs/fail/atypical.vi:4:8
+ 4 | fn foo(x, y: Foo) {}
+
+warning: unused variable
+   @ tests/programs/fail/atypical.vi:4:11
+ 4 | fn foo(x, y: Foo) {}
+
+warning: unused variable
+   @ tests/programs/fail/atypical.vi:7:7
+ 7 |   let x: N32 = 0.0;
+
+warning: unused variable
+   @ tests/programs/fail/atypical.vi:8:7
+ 8 |   let x: F32 = 0;
+
+warning: unused variable
+   @ tests/programs/fail/atypical.vi:9:7
+ 9 |   let x: (N32, N32) = (1, 2) + 0.0;
+
+warning: unused variable
+    @ tests/programs/fail/atypical.vi:18:14
+ 18 |   let Thing((x,)) = Foo(1);
+
+warning: unused variable
+    @ tests/programs/fail/atypical.vi:21:7
+ 21 |   let x: U = x;
+
+warning: unused variable
+    @ tests/programs/fail/atypical.vi:24:8
+ 24 |   let &x: N32 = loop { continue };
+
+warning: unused variable
+    @ tests/programs/fail/atypical.vi:10:8
+ 10 |   let (a, b) = 0;
+
+warning: unused variable
+    @ tests/programs/fail/atypical.vi:10:11
+ 10 |   let (a, b) = 0;
+
+warning: unused variable
+    @ tests/programs/fail/atypical.vi:19:7
+ 19 |   let foo: foo = foo;
+
+warning: unused variable
+   @ tests/programs/fail/atypical.vi:6:19
+ 6 | pub fn main[T, U](io: IO) {
+
+warning: unused item
+   @ tests/programs/fail/atypical.vi:5:7
+ 5 | const bar: _ = do { return };
+
+warning: unused item
+    @ tests/programs/fail/atypical.vi:40:4
+ 40 | fn noop() {}
+

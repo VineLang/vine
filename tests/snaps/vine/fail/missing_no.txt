@@ -1,1 +1,4 @@
-error tests/programs/fail/missing_no.vi:2:5 - cannot read file `tests/programs/fail/no.vi`: No such file or directory (os error 2)
+error: cannot read file `tests/programs/fail/no.vi`: No such file or directory (os error 2)
+   @ tests/programs/fail/missing_no.vi:2:5
+ 2 | mod missing = "no.vi";
+

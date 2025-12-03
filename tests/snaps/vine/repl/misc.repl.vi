@@ -31,8 +31,14 @@ let io: IO = <IO>;
 
 let io: IO = <IO>;
 > "abc" ++ 123
-error input:1:1 - cannot find impl of trait `Concat[String, N32, ?96]`
-error input:1:1 - search limit reached when finding impl of trait `Drop[?93]`
+error: cannot find impl of trait `Concat[String, N32, ?96]`
+   @ input:1:1
+ 1 | "abc" ++ 123
+
+error: search limit reached when finding impl of trait `Drop[?93]`
+   @ input:1:1
+ 1 | "abc" ++ 123
+
 
 let io: IO = <IO>;
 > [true, false].show().as[String]
@@ -251,7 +257,10 @@ let io: IO = <IO>;
 
 let io: IO = <IO>;
 > 123.show(2)
-error input:1:1 - function expects 1 argument; was passed 2
+error: function expects 1 argument; was passed 2
+   @ input:1:1
+ 1 | 123.show(2)
+
 
 let io: IO = <IO>;
 > 123.to_binary()
@@ -289,15 +298,33 @@ let x: List[List[N32]] = [[2]];
 
 let io: IO = <IO>;
 > let _: { a: N32, b: N32 } = { a: 1 }
-error input:1:29 - expected type `{ a: N32, b: N32 }`; found `{ a: N32 }`
+error: expected type `{ a: N32, b: N32 }`; found `{ a: N32 }`
+   @ input:1:29
+ 1 | let _: { a: N32, b: N32 } = { a: 1 }
+
 
 let io: IO = <IO>;
 > do { let x; x = (x, x); }
-error input:1:17 - expected type `?1599`; found `(?1599, ?1599)`
-error input:1:10 - search limit reached when finding flex of type `?1599`
-error input:1:10 - cannot drop `?1599`
-error input:1:10 - variable of type `?1599` read whilst uninitialized
-error input:1:10 - cannot fork `?1599`
+error: expected type `?1599`; found `(?1599, ?1599)`
+   @ input:1:17
+ 1 | do { let x; x = (x, x); }
+
+error: search limit reached when finding flex of type `?1599`
+   @ input:1:10
+ 1 | do { let x; x = (x, x); }
+
+error: cannot drop `?1599`
+   @ input:1:10
+ 1 | do { let x; x = (x, x); }
+
+error: variable of type `?1599` read whilst uninitialized
+   @ input:1:10
+ 1 | do { let x; x = (x, x); }
+
+error: cannot fork `?1599`
+   @ input:1:10
+ 1 | do { let x; x = (x, x); }
+
 
 let io: IO = <IO>;
 > let (a: N32, b: N32);
@@ -336,32 +363,74 @@ let y: { a: ~N32, b: ~N32 };
 
 let io: IO = <IO>;
 > let x; x.a; x.a
-error input:1:5 - cannot infer type
-error input:1:8 - search limit reached when finding flex of type `?1727`
-error input:1:8 - search limit reached when finding impl of trait `Drop[?1727]`
-error input:1:13 - search limit reached when finding flex of type `?1727`
-error input:1:1 - search limit reached when finding impl of trait `Drop[?1727]`
-error input:1:5 - search limit reached when finding flex of type `?1727`
-error input:1:5 - variable of type `?1727` read whilst uninitialized
+error: cannot infer type
+   @ input:1:5
+ 1 | let x; x.a; x.a
+
+error: search limit reached when finding flex of type `?1727`
+   @ input:1:8
+ 1 | let x; x.a; x.a
+
+error: search limit reached when finding impl of trait `Drop[?1727]`
+   @ input:1:8
+ 1 | let x; x.a; x.a
+
+error: search limit reached when finding flex of type `?1727`
+   @ input:1:13
+ 1 | let x; x.a; x.a
+
+error: search limit reached when finding impl of trait `Drop[?1727]`
+   @ input:1:1
+ 1 | let x; x.a; x.a
+
+error: search limit reached when finding flex of type `?1727`
+   @ input:1:5
+ 1 | let x; x.a; x.a
+
+error: variable of type `?1727` read whilst uninitialized
+   @ input:1:5
+ 1 | let x; x.a; x.a
+
 
 let io: IO = <IO>;
 > Ok(true).try
-error input:1:1 - no function to return from
+error: no function to return from
+   @ input:1:1
+ 1 | Ok(true).try
+
 
 let io: IO = <IO>;
 > fn foo() -> N32 { Ok(123).try }
-error input:1:19 - cannot try `Result[N32, ?2]` in a function returning `N32`
-error input:1:19 - search limit reached when finding flex of type `?2`
-error input:1:19 - search limit reached when finding flex of type `Result[N32, ?2]`
-error input:1:19 - search limit reached when finding flex of type `?2`
+error: cannot try `Result[N32, ?2]` in a function returning `N32`
+   @ input:1:19
+ 1 | fn foo() -> N32 { Ok(123).try }
+
+error: search limit reached when finding flex of type `?2`
+   @ input:1:19
+ 1 | fn foo() -> N32 { Ok(123).try }
+
+error: search limit reached when finding flex of type `Result[N32, ?2]`
+   @ input:1:19
+ 1 | fn foo() -> N32 { Ok(123).try }
+
+error: search limit reached when finding flex of type `?2`
+   @ input:1:19
+ 1 | fn foo() -> N32 { Ok(123).try }
+
 
 let io: IO = <IO>;
 > fn foo() -> Result[N32, String] { Ok(123).try }
-error input:1:35 - expected type `Result[N32, String]`; found `N32`
+error: expected type `Result[N32, String]`; found `N32`
+   @ input:1:35
+ 1 | fn foo() -> Result[N32, String] { Ok(123).try }
+
 
 let io: IO = <IO>;
 > fn foo() -> Result[N32, String] { Err(123).try }
-error input:1:35 - cannot try `Result[?3, N32]` in a function returning `Result[N32, String]`
+error: cannot try `Result[?3, N32]` in a function returning `Result[N32, String]`
+   @ input:1:35
+ 1 | fn foo() -> Result[N32, String] { Err(123).try }
+
 
 let io: IO = <IO>;
 > let x = (1, 2.0, ([Some(Ok(true)), Some(Err("hi")), None()], [1, 2, 3] as Array), ((), ((),), ((), ())));
@@ -421,7 +490,10 @@ NaN
 
 let io: IO = <IO>;
 > do { match Some(1) { Some(_) {} } }
-error input:1:6 - match arms do not cover all possible cases
+error: match arms do not cover all possible cases
+   @ input:1:6
+ 1 | do { match Some(1) { Some(_) {} } }
+
 
 let io: IO = <IO>;
 > let x = 1
@@ -456,7 +528,10 @@ hi
 
 let io: IO = <IO>;
 > Some(123) is None
-error input:1:14 - expected content subpattern
+error: expected content subpattern
+   @ input:1:14
+ 1 | Some(123) is None
+
 
 let io: IO = <IO>;
 > do { let list = [1, 3]; list.insert(1, 2); list.insert(100, 4); list }
