@@ -85,6 +85,7 @@ _See also @root-logical-Bool[`#root::logical::Bool`]._
 #ty[`IO`] is a special primitive type used to interact with the outside world.
 Values of this type cannot be explicitly constructed;
   instead, an #ty[`IO`] handle is passed in to #fn[`main`] at the start of the program.
+
 See the section on @io[IO] for more detail.
 
 _See also @root-IO[`#root::IO`]._
