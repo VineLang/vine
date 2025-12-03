@@ -431,6 +431,7 @@ pub enum TyKind {
   Tuple(Vec<Ty>),
   Object(Vec<(Key, Ty)>),
   Ref(Ty),
+  Key(Ident),
   Inverse(Ty),
   Path(Path),
   Error(ErrorGuaranteed),
