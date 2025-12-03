@@ -8,12 +8,14 @@ use vine_util::{
 use crate::{
   components::{
     charter::Charter,
+    finder::Finder,
     distiller::{Distiller, Poly},
     emitter::Emitter,
     lexer::Token,
     matcher::{MatchVar, MatchVarForm, MatchVarKind, Matcher, Row, VarId},
     parser::{PAREN_COMMA, VineParser},
     resolver::Resolver,
+    synthesizer::SyntheticImpl,
   },
   structures::{
     ast::{Expr, ItemKind, Pat, Path, Span, StructItem, Vis},
@@ -22,8 +24,8 @@ use crate::{
     },
     diag::Diag,
     signatures::StructSig,
-    tir::{TirExpr, TirExprKind, TirPat, TirPatKind},
-    types::{Type, TypeCtx, TypeKind},
+    tir::{TirExpr, TirImpl, TirExprKind, TirPat, TirPatKind},
+    types::{Type, Types, Inverted, TypeCtx, TypeKind},
     vir::{Layer, Port, Stage, Step},
   },
   tools::fmt::{Formatter, doc::Doc},
@@ -460,5 +462,28 @@ impl Emitter<'_> {
     let a = self.emit_port(a);
     let b = self.emit_port(b);
     self.pairs.push((a, b))
+  }
+}
+
+impl Finder<'_> {
+  pub(crate) fn find_auto_impls_struct(
+    &mut self,
+    type_params: &[Type],
+    types: &Types,
+    found: &mut Vec<TypeCtx<TirImpl>>,
+  ) {
+    if let Some((Inverted(false), TypeKind::Struct(struct_id, struct_params))) =
+      types.kind(type_params[0])
+    {
+      let struct_ = &self.chart.structs[*struct_id];
+      if self.chart.visible(struct_.data_vis, self.source) {
+        let mut types = types.clone();
+        let content = types.import(&self.sigs.structs[*struct_id], Some(struct_params)).data;
+        if types.unify(content, type_params[1]).is_success() {
+          let impl_ = TirImpl::Synthetic(SyntheticImpl::Struct(*struct_id));
+          found.push(TypeCtx { types, inner: impl_ });
+        }
+      }
+    }
   }
 }

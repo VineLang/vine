@@ -3,7 +3,6 @@ use std::collections::{BTreeMap, BTreeSet, HashSet};
 use vine_util::idx::IntSet;
 
 use crate::{
-  components::synthesizer::SyntheticImpl,
   structures::{
     ast::{Ident, Span},
     chart::{
@@ -18,13 +17,13 @@ use crate::{
 };
 
 pub struct Finder<'a> {
-  chart: &'a Chart,
-  sigs: &'a Signatures,
-  diags: &'a mut Diags,
-  source: DefId,
-  generics: GenericsId,
-  span: Span,
-  steps: u32,
+  pub(crate) chart: &'a Chart,
+  pub(crate) sigs: &'a Signatures,
+  pub(crate) diags: &'a mut Diags,
+  pub(crate) source: DefId,
+  pub(crate) generics: GenericsId,
+  pub(crate) span: Span,
+  pub(crate) steps: u32,
 }
 
 #[derive(Debug, Default)]
@@ -44,7 +43,7 @@ struct CandidateSearch<F> {
 const STEPS_LIMIT: u32 = 1_000;
 
 #[derive(Debug, Clone, Copy)]
-enum Error {
+pub(crate) enum Error {
   Timeout,
   Guaranteed(ErrorGuaranteed),
 }
@@ -285,7 +284,7 @@ impl<'a> Finder<'a> {
     Ok(found)
   }
 
-  fn find_impl_params(
+  pub(crate) fn find_impl_params(
     &mut self,
     mut types: Types,
     generics: GenericsId,
@@ -457,138 +456,25 @@ impl<'a> Finder<'a> {
     match query {
       ImplType::Trait(trait_id, type_params) => {
         if Some(*trait_id) == self.chart.builtins.fn_ {
-          let [receiver, params, ret] = **type_params else { unreachable!() };
-          match types.kind(receiver) {
-            Some((Inverted(false), TypeKind::Fn(fn_id))) => {
-              let mut types = types.clone();
-              let generics = self.chart.fn_generics(*fn_id);
-              let type_params =
-                types.new_vars(self.span, self.sigs.type_params[generics].params.len());
-              let sig = types.import(self.sigs.fn_sig(*fn_id), Some(&type_params));
-              let param_count = sig.param_tys.len();
-              let sig_params = types.new(TypeKind::Tuple(sig.param_tys));
-              if types.unify(sig_params, params).and(types.unify(sig.ret_ty, ret)).is_success() {
-                for result in self.find_impl_params(types, generics, type_params)? {
-                  found.push(TypeCtx {
-                    types: result.types,
-                    inner: TirImpl::Fn(*fn_id, result.inner, param_count),
-                  });
-                }
-              }
-            }
-            Some((Inverted(false), TypeKind::Closure(closure_id, _, closure_sig))) => {
-              let param_count = closure_sig.param_tys.len();
-              let mut types = types.clone();
-              let closure_params = types.new(TypeKind::Tuple(closure_sig.param_tys.clone()));
-              if types
-                .unify(closure_params, params)
-                .and(types.unify(closure_sig.ret_ty, ret))
-                .is_success()
-              {
-                found.push(TypeCtx { types, inner: TirImpl::Closure(*closure_id, param_count) });
-              }
-            }
-            _ => {}
-          }
+          self.find_auto_impls_fn(type_params, types, found)?;
         }
         if Some(*trait_id) == self.chart.builtins.fork {
-          match types.kind(type_params[0]) {
-            Some((Inverted(false), TypeKind::Fn(_))) => {
-              if let Some(dup) = self.chart.builtins.duplicate {
-                found.push(TypeCtx { types: types.clone(), inner: TirImpl::Def(dup, vec![]) });
-              }
-            }
-            Some((Inverted(false), TypeKind::Closure(id, flex, ..))) if flex.fork() => {
-              found.push(TypeCtx { types: types.clone(), inner: TirImpl::ForkClosure(*id) });
-            }
-            _ => {}
-          }
+          self.find_auto_impls_fork(type_params, types, found);
         }
         if Some(*trait_id) == self.chart.builtins.drop {
-          match types.kind(type_params[0]) {
-            Some((Inverted(false), TypeKind::Fn(_))) => {
-              if let Some(erase) = self.chart.builtins.erase {
-                found.push(TypeCtx { types: types.clone(), inner: TirImpl::Def(erase, vec![]) });
-              }
-            }
-            Some((Inverted(false), TypeKind::Closure(id, flex, ..))) if flex.drop() => {
-              found.push(TypeCtx { types: types.clone(), inner: TirImpl::DropClosure(*id) });
-            }
-            _ => {}
-          }
+          self.find_auto_impls_drop(type_params, types, found);
         }
         if Some(*trait_id) == self.chart.builtins.tuple {
-          if let Some((inv, TypeKind::Tuple(elements))) = types.kind(type_params[0]) {
-            if let [init, ref rest @ ..] = **elements {
-              let init = init.invert_if(inv);
-              let rest = rest.iter().map(|t| t.invert_if(inv)).collect();
-              let mut types = types.clone();
-              let rest = types.new(TypeKind::Tuple(rest));
-              if types
-                .unify(init, type_params[1])
-                .and(types.unify(rest, type_params[2]))
-                .is_success()
-              {
-                let impl_ = TirImpl::Synthetic(SyntheticImpl::Tuple(elements.len()));
-                found.push(TypeCtx { types, inner: impl_ });
-              }
-            }
-          } else if let Some((inv, TypeKind::Tuple(rest))) = types.kind(type_params[2]) {
-            let len = 1 + rest.len();
-            let init = type_params[1];
-            let rest = rest.iter().map(|t| t.invert_if(inv));
-            let mut types = types.clone();
-            let tuple = types.new(TypeKind::Tuple([init].into_iter().chain(rest).collect()));
-            if types.unify(tuple, type_params[0]).is_success() {
-              let impl_ = TirImpl::Synthetic(SyntheticImpl::Tuple(len));
-              found.push(TypeCtx { types, inner: impl_ });
-            }
-          }
+          self.find_auto_impls_tuple(type_params, types, found);
         }
-        if Some(*trait_id) == self.chart.builtins.object
-          && let Some((inv, TypeKind::Object(entries))) = types.kind(type_params[0])
-        {
-          let mut iter = entries.iter();
-          if let Some((key, &init)) = iter.next() {
-            let init = init.invert_if(inv);
-            let rest = iter.map(|(k, &t)| (k.clone(), t.invert_if(inv))).collect();
-            let mut types = types.clone();
-            let rest = types.new(TypeKind::Object(rest));
-            if types.unify(init, type_params[1]).and(types.unify(rest, type_params[2])).is_success()
-            {
-              let impl_ = TirImpl::Synthetic(SyntheticImpl::Object(key.clone(), entries.len()));
-              found.push(TypeCtx { types, inner: impl_ });
-            }
-          }
+        if Some(*trait_id) == self.chart.builtins.object {
+          self.find_auto_impls_object(type_params, types, found);
         }
-        if Some(*trait_id) == self.chart.builtins.struct_
-          && let Some((Inverted(false), TypeKind::Struct(struct_id, struct_params))) =
-            types.kind(type_params[0])
-        {
-          let struct_ = &self.chart.structs[*struct_id];
-          if self.chart.visible(struct_.data_vis, self.source) {
-            let mut types = types.clone();
-            let content = types.import(&self.sigs.structs[*struct_id], Some(struct_params)).data;
-            if types.unify(content, type_params[1]).is_success() {
-              let impl_ = TirImpl::Synthetic(SyntheticImpl::Struct(*struct_id));
-              found.push(TypeCtx { types, inner: impl_ });
-            }
-          }
+        if Some(*trait_id) == self.chart.builtins.struct_ {
+          self.find_auto_impls_struct(type_params, types, found);
         }
-        if Some(*trait_id) == self.chart.builtins.enum_
-          && let Some(variant_enum) = self.chart.builtins.variant
-          && let Some((Inverted(false), TypeKind::Enum(enum_id, enum_params))) =
-            types.kind(type_params[0])
-        {
-          let mut types = types.clone();
-          let sig = types.import(&self.sigs.enums[*enum_id], Some(enum_params));
-          let variants =
-            sig.variant_data.values().rfold(types.new(TypeKind::Never), |rest, init| {
-              types.new(TypeKind::Enum(variant_enum, vec![*init, rest]))
-            });
-          if types.unify(variants, type_params[1]).is_success() {
-            found.push(TypeCtx { types, inner: TirImpl::Synthetic(SyntheticImpl::Enum(*enum_id)) });
-          }
+        if Some(*trait_id) == self.chart.builtins.enum_ {
+          self.find_auto_impls_enum(type_params, types, found);
         }
       }
       ImplType::Error(_) => {}
