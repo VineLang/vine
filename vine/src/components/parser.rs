@@ -125,7 +125,7 @@ impl<'src> VineParser<'src> {
         AttrKind::Cfg(cfg)
       }
       "frameless" => AttrKind::Frameless,
-      "test" => AttrKind::Test,
+      "test" => AttrKind::Test(ident_span),
       _ => Err(Diag::UnknownAttribute { span: ident_span })?,
     };
     self.expect(Token::CloseBracket)?;

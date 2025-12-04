@@ -218,7 +218,7 @@ impl Charter<'_> {
           self.chart.concrete_fns[concrete_fn_id].frameless = true;
         }
         AttrKind::Cfg(_) => {}
-        AttrKind::Test => {
+        AttrKind::Test(_) => {
           let Some(concrete_fn_id) = concrete_fn_id else {
             self.diags.report(Diag::BadTestAttr { span });
             continue;
