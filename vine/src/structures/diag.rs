@@ -293,6 +293,8 @@ diags! {
     ["unused variable"]
   UnusedItem
     ["unused item"]
+  BadTestAttr
+    ["the `#[test]` attribute can only be applied to an fn"]
 }
 
 fn plural<'a>(n: usize, plural: &'a str, singular: &'a str) -> &'a str {

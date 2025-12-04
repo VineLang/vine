@@ -104,6 +104,7 @@ impl Chart {
       builtins,
       main_mod,
       top_level,
+      tests,
     } = self;
 
     defs.truncate(checkpoint.defs.0);
@@ -126,6 +127,7 @@ impl Chart {
 
     revert_idx(main_mod, checkpoint.defs);
     top_level.retain(|_, v| *v < checkpoint.defs);
+    tests.retain(|concrete_fn_id| *concrete_fn_id < checkpoint.concrete_fns);
   }
 }
 
