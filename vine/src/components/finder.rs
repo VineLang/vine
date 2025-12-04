@@ -38,7 +38,7 @@ struct CandidateSearch<F> {
   consider_candidate: F,
 }
 
-const STEPS_LIMIT: u32 = 1_000;
+const STEPS_LIMIT: u32 = 2_000;
 
 #[derive(Debug, Clone, Copy)]
 pub(crate) enum Error {
