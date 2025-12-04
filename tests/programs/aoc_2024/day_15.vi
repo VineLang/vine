@@ -1,5 +1,5 @@
 
-use #root::{data::Array, ops::elementwise};
+use #root::{data::Array, ops::elementwise as _};
 
 pub fn main(&io: &IO) {
   let grid = Array::empty;
@@ -171,9 +171,6 @@ pub fn main(&io: &IO) {
       }
     }
   }
-
-  let width = (*grid.at(0).assume()).len();
-  let height = grid.len();
 
   let part2 = 0;
   let y = 0;

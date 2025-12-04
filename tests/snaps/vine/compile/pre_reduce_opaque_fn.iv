@@ -12,15 +12,18 @@
 ::root::numeric::N32::add::add:s1 { fn(_ fn(@n32_add(w5 w2) fn(w5 w2))) }
 
 ::pre_reduce_opaque_fn::main:s1 {
-  fn(_ fn(ref(w0 w0) _))
-  fn(_ w4) = ::pre_reduce_opaque_fn::foo:s1
-  fn(_ w5) = ::pre_reduce_opaque_fn::foo:s1
-  fn(_ fn(w4 fn(w5 w6))) = ::root::numeric::N32::add::add:s1
-  fn(_ fn(w6 _)) = ::root::unsafe::erase::drop:s1
+  fn(_ fn(w0 _))
+  fn(_ fn(w0 _)) = ::root::ops::flex::Drop::ref::drop:s1
+  fn(_ w2) = ::pre_reduce_opaque_fn::foo:s1
+  fn(_ w3) = ::pre_reduce_opaque_fn::foo:s1
+  fn(_ fn(w2 fn(w3 w4))) = ::root::numeric::N32::add::add:s1
+  fn(_ fn(w4 _)) = ::root::unsafe::erase::drop:s1
 }
 
 ::pre_reduce_opaque_fn::foo:s1 {
   fn(_ n0)
   1 = @custom_ext_fn(2 n0)
 }
+
+::root::ops::flex::Drop::ref::drop:s1 { fn(_ fn(ref(w0 w0) _)) }
 

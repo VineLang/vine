@@ -76,7 +76,7 @@ impl Loader {
   ) -> ModKind {
     match self._load_file(base, spec, span, diags) {
       Ok(mod_) => mod_,
-      Err(diag) => ModKind::Error(diags.report(diag)),
+      Err(diag) => ModKind::Error(diags.error(diag)),
     }
   }
 
@@ -107,8 +107,8 @@ impl Loader {
           (Ok(info), Err(_)) => (info, path_1),
           (Err(_), Ok(info)) => (info, path_2),
           (Err(diag_1), Err(diag_2)) => {
-            let err = diags.report(diag_1);
-            diags.report(diag_2);
+            let err = diags.error(diag_1);
+            diags.error(diag_2);
             Err(err)?
           }
         }

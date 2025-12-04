@@ -134,7 +134,7 @@ impl Resolver<'_> {
       self.error_expr(span, Diag::ExpectedDataExpr { span })
     };
     if self.types.unify(data.ty, data_ty).is_failure() {
-      self.diags.report(Diag::ExpectedTypeFound {
+      self.diags.error(Diag::ExpectedTypeFound {
         span: data.span,
         expected: self.types.show(self.chart, data_ty),
         found: self.types.show(self.chart, data.ty),

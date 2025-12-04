@@ -15,6 +15,7 @@ use vine::{
   structures::{
     ast::{Item, ItemKind, Span, visit::VisitMut},
     checkpoint::Checkpoint,
+    diag::Diag,
   },
   tools::fmt::Formatter,
 };
@@ -41,36 +42,31 @@ impl Backend {
     }
 
     let start = Instant::now();
-    let mut diags = match lsp.compiler.compile(()) {
-      Ok(_) => Vec::new(),
-      Err(diags) => diags,
-    };
+    _ = lsp.compiler.compile(());
     eprintln!("compiled in {:?}", start.elapsed());
 
-    diags.sort_by_key(|d| Some(d.span()?.file));
-    let mut diags = diags.into_iter().peekable();
-    while diags.peek().is_some_and(|x| x.span().is_none()) {
-      diags.next();
+    let mut diags_by_file = HashMap::<FileId, (Vec<&Diag>, Vec<&Diag>)>::new();
+    for diag in &lsp.compiler.diags.errors {
+      let Some(span) = diag.span() else { continue };
+      diags_by_file.entry(span.file).or_default().0.push(diag);
     }
+    for diag in &lsp.compiler.diags.warnings {
+      let Some(span) = diag.span() else { continue };
+      diags_by_file.entry(span.file).or_default().1.push(diag);
+    }
+
     let futures = FuturesUnordered::new();
-    for (i, file) in lsp.compiler.loader.files.iter() {
+    for file_id in lsp.compiler.loader.files.keys() {
       let mut out = Vec::new();
-      while diags.peek().is_some_and(|x| x.span().is_some_and(|x| x.file == i)) {
-        let diag = diags.next().unwrap();
-        let span = diag.span().unwrap();
-        out.push(Diagnostic {
-          range: lsp.span_to_range(span),
-          severity: Some(DiagnosticSeverity::ERROR),
-          code: None,
-          code_description: None,
-          source: Some("vine".into()),
-          message: diag.to_string(),
-          related_information: None,
-          tags: None,
-          data: None,
-        });
+      if let Some((errors, warnings)) = diags_by_file.get(&file_id) {
+        for diag in errors {
+          out.push(lsp.diag_to_diagnostic(diag, DiagnosticSeverity::ERROR));
+        }
+        for diag in warnings {
+          out.push(lsp.diag_to_diagnostic(diag, DiagnosticSeverity::WARNING));
+        }
       }
-      let uri = Url::from_file_path(file.path.as_ref().unwrap()).unwrap();
+      let uri = lsp.file_to_uri(file_id);
       futures.push(self.client.publish_diagnostics(uri, out, None));
     }
     futures.collect::<()>().await;
@@ -267,6 +263,21 @@ impl Lsp {
   fn span_to_location(&self, span: Span) -> Location {
     Location { uri: self.file_to_uri(span.file), range: self.span_to_range(span) }
   }
+
+  fn diag_to_diagnostic(&self, diag: &Diag, severity: DiagnosticSeverity) -> Diagnostic {
+    let span = diag.span().unwrap();
+    Diagnostic {
+      range: self.span_to_range(span),
+      severity: Some(severity),
+      code: None,
+      code_description: None,
+      source: Some("vine".into()),
+      message: diag.to_string(),
+      related_information: None,
+      tags: None,
+      data: None,
+    }
+  }
 }
 
 #[tower_lsp::async_trait]
@@ -394,17 +405,13 @@ impl LanguageServer for Backend {
 
 #[allow(clippy::absolute_paths)]
 #[tokio::main]
-pub async fn lsp(libs: Vec<PathBuf>, entrypoints: Vec<String>) -> std::result::Result<(), String> {
+pub async fn lsp(libs: Vec<PathBuf>, entrypoints: Vec<String>) {
   let stdin = tokio::io::stdin();
   let stdout = tokio::io::stdout();
 
   let mut compiler = Compiler::new(true, Config::default());
   for lib in libs {
     compiler.loader.load_mod(&lib, &mut compiler.diags);
-  }
-
-  if let Err(diags) = compiler.compile(()) {
-    return Err(compiler.loader.print_diags(&diags));
   }
 
   let checkpoint = compiler.checkpoint();
@@ -417,5 +424,4 @@ pub async fn lsp(libs: Vec<PathBuf>, entrypoints: Vec<String>) -> std::result::R
     checkpoint,
   });
   Server::new(stdin, stdout, socket).serve(service).await;
-  Ok(())
 }

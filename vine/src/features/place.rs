@@ -25,7 +25,7 @@ impl Resolver<'_> {
     let value = self.resolve_expr(value);
     let space = self.resolve_expr(space);
     let ty = if self.types.unify(value.ty, space.ty).is_failure() {
-      self.types.error(self.diags.report(Diag::MismatchedValueSpaceTypes {
+      self.types.error(self.diags.error(Diag::MismatchedValueSpaceTypes {
         span,
         value: self.types.show(self.chart, value.ty),
         space: self.types.show(self.chart, space.ty),

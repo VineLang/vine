@@ -67,7 +67,10 @@ let c: N32 = 3;
 let b: N32 = 2;
 let a: N32 = 3;
 > x.p
-error input:1:3 - type `{ a: N32, b: N32, c: N32 }` has no field `p`
+error: type `{ a: N32, b: N32, c: N32 }` has no field `p`
+   @ input:1:3
+ 1 | x.p
+
 
 let io: IO = <IO>;
 let x: { a: N32, b: N32, c: N32 } = { a: 1, b: 2, c: 3 };
@@ -78,9 +81,18 @@ let c: N32 = 3;
 let b: N32 = 2;
 let a: N32 = 3;
 > do { let { p } = x }
-error input:1:18 - expected type `{ p: ?487 }`; found `{ a: N32, b: N32, c: N32 }`
-error input:1:12 - search limit reached when finding flex of type `?487`
-error input:1:12 - cannot drop `?487`
+error: expected type `{ p: ?487 }`; found `{ a: N32, b: N32, c: N32 }`
+   @ input:1:18
+ 1 | do { let { p } = x }
+
+error: search limit reached when finding flex of type `?487`
+   @ input:1:12
+ 1 | do { let { p } = x }
+
+error: cannot drop `?487`
+   @ input:1:12
+ 1 | do { let { p } = x }
+
 
 let io: IO = <IO>;
 let x: { a: N32, b: N32, c: N32 } = { a: 1, b: 2, c: 3 };
@@ -91,7 +103,10 @@ let c: N32 = 3;
 let b: N32 = 2;
 let a: N32 = 3;
 > z = { Y: y }
-error input:1:5 - expected type `{ y: { x: { a: N32, b: N32, c: N32 } } }`; found `{ Y: { x: { a: N32, b: N32, c: N32 } } }`
+error: expected type `{ y: { x: { a: N32, b: N32, c: N32 } } }`; found `{ Y: { x: { a: N32, b: N32, c: N32 } } }`
+   @ input:1:5
+ 1 | z = { Y: y }
+
 
 let io: IO = <IO>;
 let x: { a: N32, b: N32, c: N32 } = { a: 1, b: 2, c: 3 };
@@ -102,7 +117,10 @@ let c: N32 = 3;
 let b: N32 = 2;
 let a: N32 = 3;
 > z = { y: 1 }
-error input:1:5 - expected type `{ y: { x: { a: N32, b: N32, c: N32 } } }`; found `{ y: N32 }`
+error: expected type `{ y: { x: { a: N32, b: N32, c: N32 } } }`; found `{ y: N32 }`
+   @ input:1:5
+ 1 | z = { y: 1 }
+
 
 let io: IO = <IO>;
 let x: { a: N32, b: N32, c: N32 } = { a: 1, b: 2, c: 3 };

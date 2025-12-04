@@ -1,8 +1,8 @@
 
 pub fn main(&io: &IO) {
   let n = 0;
-  for i in 0..5 {
-    for j in 0..5 {
+  for _ in 0..5 {
+    for _ in 0..5 {
       n = n + 1;
       io.println("{n}");
     }

@@ -96,7 +96,7 @@ pub mod Heap[T; Ord[T]] {
       if self.value() > other.value() {
         swap(&self, &other);
       }
-      let &Heap(rank, Node(value, left, right)) = &self;
+      let &Heap(rank, Node(_, left, right)) = &self;
       right ++= other;
       if right.rank() > left.rank() {
         swap(&left, &right);

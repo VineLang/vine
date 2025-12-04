@@ -102,7 +102,7 @@ impl Resolver<'_> {
     if results.len() == 1 {
       Ok(results.pop().unwrap())
     } else {
-      Err(self.diags.report(if results.is_empty() {
+      Err(self.diags.error(if results.is_empty() {
         Diag::NoMethod { span, ty: self.types.show(self.chart, receiver), name }
       } else {
         Diag::AmbiguousMethod { span, ty: self.types.show(self.chart, receiver), name }

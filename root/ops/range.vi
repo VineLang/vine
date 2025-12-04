@@ -1,7 +1,6 @@
 
 use comparison::Ord;
 use data::Iterator;
-use ops::arithmetic::{Add, Sub};
 
 pub trait Bound[B, T] {
   fn .left_of(self: &B, value: &T) -> Bool;
@@ -18,10 +17,10 @@ pub mod Bound {
 
   pub mod Unbounded {
     pub impl bound[T]: Bound[Unbounded, T] {
-      fn left_of(self: &Unbounded, &_value: &T) -> Bool {
+      fn left_of(&Unbounded(), _: &T) -> Bool {
         true
       }
-      fn right_of(self: &Unbounded, &_value: &T) -> Bool {
+      fn right_of(&Unbounded(), _: &T) -> Bool {
         true
       }
     }

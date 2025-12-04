@@ -25,7 +25,7 @@ impl Distiller<'_> {
       Poly::Value(value) => value,
       Poly::Place(place) => self.coerce_place_value(span, stage, place),
       Poly::Space(_) => {
-        Port::error(ty, self.diags.report(Diag::ExpectedValueFoundSpaceExpr { span }))
+        Port::error(ty, self.diags.error(Diag::ExpectedValueFoundSpaceExpr { span }))
       }
     }
   }
@@ -40,7 +40,7 @@ impl Distiller<'_> {
     match self.distill_expr_poly(stage, expr) {
       Poly::Error(err) => Port::error(ty.inverse(), err),
       Poly::Value(_) => {
-        Port::error(ty.inverse(), self.diags.report(Diag::ExpectedSpaceFoundValueExpr { span }))
+        Port::error(ty.inverse(), self.diags.error(Diag::ExpectedSpaceFoundValueExpr { span }))
       }
       Poly::Place(place) => self.coerce_place_space(span, stage, place),
       Poly::Space(space) => space,
@@ -113,7 +113,7 @@ impl Distiller<'_> {
         }
         None => {
           let diag = Diag::CannotFork { span, ty: self.types.show(self.chart, ty) };
-          Port::error(ty, self.diags.report(diag))
+          Port::error(ty, self.diags.error(diag))
         }
       },
       Inverted(true) => match flex.drop {
@@ -125,7 +125,7 @@ impl Distiller<'_> {
         }
         None => {
           let diag = Diag::CannotFork { span, ty: self.types.show(self.chart, ty.inverse()) };
-          Port::error(ty, self.diags.report(diag))
+          Port::error(ty, self.diags.error(diag))
         }
       },
     }
@@ -133,7 +133,7 @@ impl Distiller<'_> {
 
   pub(crate) fn drop(&mut self, span: Span, stage: &mut Stage, ty: Type, port: Port) {
     let Some(drop) = self.chart.builtins.drop else {
-      self.diags.report(Diag::MissingBuiltin { span, builtin: "Drop" });
+      self.diags.error(Diag::MissingBuiltin { span, builtin: "Drop" });
       return;
     };
     let mut finder = Finder::new(self.chart, self.sigs, self.diags, self.def, self.generics, span);

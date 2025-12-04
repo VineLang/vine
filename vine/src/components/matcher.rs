@@ -31,7 +31,7 @@ impl<'r> Distiller<'r> {
     let mut matcher = Matcher { span, exhaustive: true, distiller: self };
     matcher.distill_rows(layer, stage, vars, rows);
     if !matcher.exhaustive {
-      self.diags.report(Diag::NonExhaustiveMatch { span });
+      self.diags.error(Diag::NonExhaustiveMatch { span });
     }
   }
 }

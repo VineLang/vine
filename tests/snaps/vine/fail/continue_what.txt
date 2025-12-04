@@ -1,1 +1,8 @@
-error tests/programs/fail/continue_what.vi:10:9 - invalid continue target
+error: invalid continue target
+    @ tests/programs/fail/continue_what.vi:10:9
+ 10 |         continue;
+
+warning: unused variable
+   @ tests/programs/fail/continue_what.vi:2:14
+ 2 | pub fn main(&io: &IO) {}
+

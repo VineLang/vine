@@ -1,17 +1,14 @@
 use std::{
-  fmt::{self, Display, Write},
+  fmt::{self, Display},
   io,
-  mem::take,
   path::PathBuf,
 };
 
 use vine_util::lexer::TokenSet;
 
 use crate::{
-  components::{
-    lexer::{StrToken, Token},
-    loader::Loader,
-  },
+  compiler::Compiler,
+  components::lexer::{StrToken, Token},
   structures::{
     ast::{BinaryOp, Ident, Span},
     checkpoint::Checkpoint,
@@ -19,29 +16,28 @@ use crate::{
 };
 
 #[derive(Default, Debug)]
-pub struct Diags(pub(crate) Vec<Diag>);
+pub struct Diags {
+  pub errors: Vec<Diag>,
+  pub warnings: Vec<Diag>,
+}
 
 impl Diags {
-  pub(crate) fn report(&mut self, diag: Diag) -> ErrorGuaranteed {
-    self.0.push(diag);
+  pub(crate) fn error(&mut self, diag: Diag) -> ErrorGuaranteed {
+    self.errors.push(diag);
     ErrorGuaranteed(())
   }
 
-  pub fn has_diags(&self) -> bool {
-    !self.0.is_empty()
+  pub(crate) fn warn(&mut self, diag: Diag) {
+    self.warnings.push(diag);
   }
 
-  pub fn take_diags(&mut self) -> Vec<Diag> {
-    take(&mut self.0)
-  }
-
-  pub fn bail(&mut self) -> Result<(), Vec<Diag>> {
-    let diags = self.take_diags();
-    if diags.is_empty() { Ok(()) } else { Err(diags) }
+  pub fn bail(&mut self) -> Result<(), ErrorGuaranteed> {
+    if self.errors.is_empty() { Ok(()) } else { Err(ErrorGuaranteed(())) }
   }
 
   pub(crate) fn revert(&mut self, checkpoint: &Checkpoint) {
-    self.0.truncate(checkpoint.diags);
+    self.errors.truncate(checkpoint.errors);
+    self.warnings.truncate(checkpoint.warnings);
   }
 }
 
@@ -293,29 +289,19 @@ diags! {
     ["expected `{name}` to be a {kind} configuration value"]
   BadFramelessAttr
     ["the `#[frameless]` attribute can only be applied to an fn"]
+  UnusedVariable
+    ["unused variable"]
+  UnusedItem
+    ["unused item"]
 }
 
 fn plural<'a>(n: usize, plural: &'a str, singular: &'a str) -> &'a str {
   if n == 1 { singular } else { plural }
 }
 
-impl Loader {
-  pub fn print_diags(&self, diags: &[Diag]) -> String {
-    let mut err = String::new();
-    for diag in diags.iter() {
-      if let Some(span) = diag.span() {
-        match self.show_span(span) {
-          Some(span) => writeln!(err, "error {span} - {diag}").unwrap(),
-          None => writeln!(err, "error - {diag}").unwrap(),
-        }
-      }
-    }
-    err.pop();
-    err
-  }
-
+impl Compiler {
   pub fn show_span(&self, span: Span) -> Option<String> {
-    (span != Span::NONE).then(|| format!("{}", self.files[span.file].get_pos(span.start)))
+    (span != Span::NONE).then(|| format!("{}", self.loader.files[span.file].get_pos(span.start)))
   }
 }
 

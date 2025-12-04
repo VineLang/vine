@@ -1,1 +1,16 @@
-error tests/programs/fail/bad_try.vi:12:10 - expected type `Result[?26, ?27]`; found `Bool`
+error: expected type `Result[?26, ?27]`; found `Bool`
+    @ tests/programs/fail/bad_try.vi:12:10
+ 12 |       if literal.evaluate().try {
+
+warning: unused variable
+   @ tests/programs/fail/bad_try.vi:7:14
+ 7 | pub fn main(&io: &IO) {}
+
+warning: unused variable
+    @ tests/programs/fail/bad_try.vi:21:21
+ 21 |   pub fn .evaluate(&self: &Literal) -> Bool {
+
+warning: unused item
+   @ tests/programs/fail/bad_try.vi:2:18
+ 2 | use #root::data::Map;
+

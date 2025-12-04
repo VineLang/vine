@@ -95,7 +95,7 @@ impl Resolver<'_> {
       None => {
         let nil = self.types.nil();
         if self.types.unify(ty, nil).is_failure() {
-          self.diags.report(Diag::MissingTerminalArm { span });
+          self.diags.error(Diag::MissingTerminalArm { span });
         }
         None
       }

@@ -180,7 +180,10 @@ impl Resolver<'_> {
       let vis = member.vis;
       let result = match member.kind {
         MemberKind::Child(result) => result,
-        MemberKind::Import(import) => self.resolve_import(import)?,
+        MemberKind::Import(import) => {
+          self.annotations.references.entry(member.span).or_default().insert(span);
+          self.resolve_import(import)?
+        }
       };
       if self.chart.visible(vis, source) {
         Ok(Some(result))
@@ -205,8 +208,9 @@ impl Resolver<'_> {
     args: &Option<Vec<Expr>>,
   ) -> Result<TirExpr, Diag> {
     if let Some(ident) = path.as_ident()
-      && let Some(bind) = self.scope.get(&ident).and_then(|x| x.last())
+      && let Some(bind) = self.scope.get_mut(&ident).and_then(|x| x.last_mut())
     {
+      bind.used = true;
       let (expr, source_span, ty) = match bind.binding {
         ScopeBinding::Local(local, source_span, ty) => (TirExprKind::Local(local), source_span, ty),
         ScopeBinding::Closure(id, source_span, ty) => (TirExprKind::Closure(id), source_span, ty),
@@ -271,7 +275,7 @@ impl Resolver<'_> {
         if inference {
           self.types.new_var(span)
         } else {
-          self.types.error(self.diags.report(Diag::ItemTypeHole { span }))
+          self.types.error(self.diags.error(Diag::ItemTypeHole { span }))
         }
       }
     }
@@ -291,7 +295,7 @@ impl Resolver<'_> {
       Ok(DefTypeKind::Alias(type_alias_id)) => {
         self.resolve_ty_path_alias(path, inference, type_alias_id)
       }
-      Err(diag) => self.types.error(self.diags.report(diag)),
+      Err(diag) => self.types.error(self.diags.error(diag)),
     }
   }
 
@@ -302,7 +306,7 @@ impl Resolver<'_> {
         let actual_ty =
           self.types.import_with(&impl_params.types, None, |t, tys| t.transfer(&tys[index]));
         if self.types.unify_impl_type(&actual_ty, ty).is_failure() {
-          self.diags.report(Diag::ExpectedTypeFound {
+          self.diags.error(Diag::ExpectedTypeFound {
             span: path.span,
             expected: self.types.show_impl_type(self.chart, ty),
             found: self.types.show_impl_type(self.chart, &actual_ty),
@@ -313,7 +317,7 @@ impl Resolver<'_> {
     }
     match self.resolve_path(self.cur_def, path, "impl", |d| d.impl_kind) {
       Ok(DefImplKind::Impl(id)) => self.resolve_impl_path_impl(path, id, ty),
-      Err(diag) => TirImpl::Error(self.diags.report(diag)),
+      Err(diag) => TirImpl::Error(self.diags.error(diag)),
     }
   }
 }

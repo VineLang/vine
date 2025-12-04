@@ -14,12 +14,12 @@ pub fn main(&io: &IO) {
   }
 
   for i in 1..(max + 1) {
-    stones = blink(&io, stones);
+    stones = blink(stones);
     io.println("{i}: {count(&stones)}");
   }
 }
 
-fn blink(&io: &IO, old: Map[N64, N64]) -> Map[N64, N64] {
+fn blink(old: Map[N64, N64]) -> Map[N64, N64] {
   let new = Map::empty[N64, _];
   let fn add_stones(number: N64, count: N64) {
     let &c = new.at_or_insert(number, 0[N64]);

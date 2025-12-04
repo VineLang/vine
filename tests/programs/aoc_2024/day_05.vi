@@ -1,5 +1,5 @@
 
-use #root::ops::elementwise;
+use #root::ops::elementwise as _;
 use #root::data::Array;
 
 pub fn main(&io: &IO) {

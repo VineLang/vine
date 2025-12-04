@@ -1,5 +1,5 @@
 
-use #root::{data::Array, ops::elementwise};
+use #root::{data::Array, ops::elementwise as _};
 
 const cutoff: N32 = 50;
 
@@ -57,8 +57,6 @@ pub fn main(&io: &IO) {
     prev = cur;
     cur = next;
   }
-
-  let time = path.len() - 1;
 
   let part1 = 0;
   let part2 = 0;

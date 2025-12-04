@@ -201,7 +201,10 @@ let io: IO = <IO>;
 
 let io: IO = <IO>;
 > 123456789123456789 << 0
-error input:1:1 - invalid numeric literal
+error: invalid numeric literal
+   @ input:1:1
+ 1 | 123456789123456789 << 0
+
 
 let io: IO = <IO>;
 > 0x80000000[Nat] << 1
@@ -240,7 +243,10 @@ let io: IO = <IO>;
 
 let io: IO = <IO>;
 > 123456789123456789 >> 0
-error input:1:1 - invalid numeric literal
+error: invalid numeric literal
+   @ input:1:1
+ 1 | 123456789123456789 >> 0
+
 
 let io: IO = <IO>;
 > (Nat::from_parts([0x00010000, 0xffffffff]) >> 4).to_parts()
@@ -248,7 +254,10 @@ let io: IO = <IO>;
 
 let io: IO = <IO>;
 > 18446744073709551616 >> 32
-error input:1:1 - invalid numeric literal
+error: invalid numeric literal
+   @ input:1:1
+ 1 | 18446744073709551616 >> 32
+
 
 let io: IO = <IO>;
 > (Nat::from_parts([1, 2, 3, 1]) >> 63).to_parts()

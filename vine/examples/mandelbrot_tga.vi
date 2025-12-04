@@ -1,13 +1,11 @@
 
-use #root::ops::elementwise;
+use #root::ops::elementwise as _;
 
 const max_iter: N32 = 64;
 const width: N32 = black_box(1024);
 const height: N32 = black_box(1024);
 const scale: F32 = 2.6;
 const center: (F32, F32) = (-0.8, 0.0);
-
-const adjusted_scale: F32 = scale / width as F32;
 
 pub fn main(&io: &IO) {
   io.print_bytes([0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, width, width >> 8, height, height >> 8, 8, 32]);

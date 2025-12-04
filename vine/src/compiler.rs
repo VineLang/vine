@@ -16,10 +16,10 @@ use crate::{
   features::cfg::{Config, ConfigValue},
   structures::{
     annotations::Annotations,
-    ast::Ident,
-    chart::Chart,
+    ast::{Ident, Span},
+    chart::{Chart, VisId},
     checkpoint::Checkpoint,
-    diag::{Diag, Diags},
+    diag::{Diag, Diags, ErrorGuaranteed},
     resolutions::{Fragment, FragmentId, Resolutions},
     signatures::Signatures,
     specializations::{SpecKind, Specializations},
@@ -63,7 +63,7 @@ impl Compiler {
     }
   }
 
-  pub fn compile(&mut self, hooks: impl Hooks) -> Result<Nets, Vec<Diag>> {
+  pub fn compile(&mut self, hooks: impl Hooks) -> Result<Nets, ErrorGuaranteed> {
     let checkpoint = self.checkpoint();
     self._compile(hooks, &checkpoint)
   }
@@ -72,7 +72,7 @@ impl Compiler {
     &mut self,
     mut hooks: impl Hooks,
     checkpoint: &Checkpoint,
-  ) -> Result<Nets, Vec<Diag>> {
+  ) -> Result<Nets, ErrorGuaranteed> {
     let root = self.loader.finish();
     self.diags.bail()?;
 
@@ -119,6 +119,17 @@ impl Compiler {
       vir: &self.vir,
     };
     specializer.specialize_since(checkpoint);
+
+    for def in self.chart.defs.values() {
+      for member in &def.named_members {
+        if member.span != Span::NONE
+          && !matches!(member.vis, VisId::Pub)
+          && !self.annotations.references.contains_key(&member.span)
+        {
+          self.diags.warn(Diag::UnusedItem { span: member.span });
+        }
+      }
+    }
 
     self.diags.bail()?;
 

@@ -114,6 +114,6 @@ impl Charter<'_> {
   }
 
   pub fn get_cfg(&mut self, span: Span, name: Ident) -> Result<&ConfigValue, ErrorGuaranteed> {
-    self.config.values.get(&name).ok_or_else(|| self.diags.report(Diag::UnknownCfg { span, name }))
+    self.config.values.get(&name).ok_or_else(|| self.diags.error(Diag::UnknownCfg { span, name }))
   }
 }

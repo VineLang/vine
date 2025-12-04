@@ -32,7 +32,7 @@ pub mod debug {
     value
   }
 
-  pub fn .dbg_msg[T; Show[T]](value: T, msg: String) -> T {
+  pub fn .dbg_msg[T; Show[T]](value: T, _msg: String) -> T {
     value
   }
 
@@ -57,12 +57,6 @@ pub mod debug {
   pub const enabled: Bool = true;
 
   struct DebugState({ io: IO, stack: List[Frame] });
-
-  mod DebugState {
-    fn new(io: IO) -> DebugState {
-      DebugState({ io, stack: [] })
-    }
-  }
 
   #[builtin = "debug_state"]
   fn debug_state() -> &DebugState {
