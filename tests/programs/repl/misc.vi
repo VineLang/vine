@@ -30,6 +30,7 @@ a.get(3)
 a.at(5)
 /clear a
 [1,2,3,4,5,6,7,8,9].as[Array].reversed().as[List]
+[1,2,3,4,5,6,7,8,9].as[Array].map(fn* (val: N32) { val * 2 })
 List::new(10, "")
 2 ** 10
 4 + 4 ** 3 ** 2 / 2

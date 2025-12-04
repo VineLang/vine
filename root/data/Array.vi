@@ -305,6 +305,20 @@ pub mod Array {
     }
   }
 
+  /// Map over the array, applying the function to each element.
+  /// ```vi
+  /// let array = [1, 2, 3] as Array;
+  /// array.map(fn* (val: N32) { val * 2 })  // Array([2, 4, 6])
+  /// ```
+  pub fn .map[T, U, F*; fn F(T) -> U](Array[T](len, node), f: F) -> Array[U] {
+    if len == 0 {
+      unsafe::erase(node);
+      Array::empty
+    } else {
+      Array(len, Node::map(node, len, f))
+    }
+  }
+
   /// Reverse the elements of the array. `O(n)`
   /// ```vi
   /// let array = [1, 2, 3] as Array;
@@ -384,6 +398,15 @@ mod Node {
       (&l, (len + 1) / 2)
     } else {
       (&r, len / 2)
+    }
+  }
+
+  pub fn .map[T, U, F*; fn F(T) -> U](node: Node[T], len: N32, f: F) -> Node[U] {
+    if len == 1 {
+      f(node as T) as Node
+    } else {
+      let Node(l, r) = node;
+      Node(map(l, (len + 1) / 2, f), map(r, len / 2, f))
     }
   }
 
