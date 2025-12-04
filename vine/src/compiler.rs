@@ -143,12 +143,7 @@ impl Compiler {
     if let Some(main) = self.resolutions.main
       && main >= checkpoint.fragments
     {
-      let path = &self.fragments[main].path;
-      let vir = &self.vir[main];
-      let func = vir.closures[ClosureId(0)];
-      let InterfaceKind::Fn { call, .. } = vir.interfaces[func].kind else { unreachable!() };
-      let global = format!("::{}:s{}", &path[1..], call.0);
-      nets.insert("::".into(), main_net(self.debug, Tree::Global(global)));
+      self.insert_main_net(&mut nets, main);
     }
 
     for spec_id in self.specs.specs.keys_from(checkpoint.specs) {
@@ -172,6 +167,15 @@ impl Compiler {
       }
     }
     nets
+  }
+
+  pub fn insert_main_net(&mut self, nets: &mut Nets, main: FragmentId) {
+    let path = &self.fragments[main].path;
+    let vir = &self.vir[main];
+    let func = vir.closures[ClosureId(0)];
+    let InterfaceKind::Fn { call, .. } = vir.interfaces[func].kind else { unreachable!() };
+    let global = format!("::{}:s{}", &path[1..], call.0);
+    nets.insert("::".into(), main_net(self.debug, Tree::Global(global)));
   }
 }
 

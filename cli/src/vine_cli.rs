@@ -146,19 +146,42 @@ pub struct VineTestCommand {
   optimizations: Optimizations,
   #[command(flatten)]
   run_args: RunArgs,
+
+  /// The test path to run. If not provided, all test paths in MAIN are printed.
+  test_path: Option<String>,
 }
 
 impl VineTestCommand {
   pub fn execute(mut self) -> Result<()> {
+    let debug = self.compile.debug;
     self.compile.test = true;
-    let (_, compiler) = self.compile.compile();
 
-    for concrete_fn_id in compiler.chart.tests {
-      let def_id = compiler.chart.concrete_fns[concrete_fn_id].def;
-      let path = &compiler.chart.defs[def_id].path;
+    let (mut nets, mut compiler) = self.compile.compile();
 
-      println!("{path}");
-    }
+    let Some(test_path) = self.test_path else {
+      for concrete_fn_id in compiler.chart.tests {
+        let def_id = compiler.chart.concrete_fns[concrete_fn_id].def;
+        let path = &compiler.chart.defs[def_id].path;
+
+        println!("{path}");
+      }
+
+      return Ok(());
+    };
+
+    let Some(test_concrete_fn_id) = compiler.chart.tests.iter().find(|concrete_fn_id| {
+      let def_id = compiler.chart.concrete_fns[**concrete_fn_id].def;
+      compiler.chart.defs[def_id].path == test_path
+    }) else {
+      eprintln!("test path {test_path:?} does not exist");
+      exit(1);
+    };
+
+    let main_fragment_id = compiler.resolutions.fns[*test_concrete_fn_id];
+    compiler.insert_main_net(&mut nets, main_fragment_id);
+
+    self.optimizations.apply(&mut nets);
+    self.run_args.run(nets, !debug);
 
     Ok(())
   }
