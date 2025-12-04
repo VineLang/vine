@@ -1,0 +1,12 @@
+
+#[cfg(test)]
+pub fn helper_fn(&io: &IO) {
+  io.println("the helper fn ran!");
+}
+
+#[test]
+pub fn test(&io: &IO) {
+  helper_fn(&io);
+}
+
+pub fn main(&io: &IO) {}

@@ -103,6 +103,10 @@ fn tests(t: &mut DynTester) {
       test_vi(t, leak(path), leak(input), ".txt", true, false, false);
     }
 
+    t.group("test", |t| {
+      test_vi_test(t, "tests/programs/test/basic.vi", "#basic::test");
+    });
+
     t.group("fmt", |t| {
       test_vi_fmt(t, "tests/programs/fmt/comment.vi");
       test_vi_fmt(t, "tests/programs/fmt/match.vi");
@@ -204,6 +208,15 @@ fn test_vi_repl(t: &mut DynTester, path: &'static str) {
     let (stdout, stderr) = exec(VINE, &["repl", "--echo"], input.as_bytes(), true);
     assert_empty_stderr(&stderr);
     test_snapshot(&["vine", "repl", &format!("{name}.repl.vi")], &stdout);
+  });
+}
+
+fn test_vi_test(t: &mut DynTester, path: &'static str, test: &'static str) {
+  let name = Path::file_stem(path.as_ref()).unwrap().to_str().unwrap();
+  t.test("test", move || {
+    let (stdout, stderr) = exec(VINE, &["test", "--no-stats", path, test], &[], true);
+    assert_empty_stderr(&stderr);
+    test_snapshot(&["vine", "test", &format!("{name}.{test}.txt")], &stdout);
   });
 }
 
