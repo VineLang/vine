@@ -18,12 +18,26 @@ pub struct Config {
   values: HashMap<Ident, ConfigValue>,
 }
 
-impl Default for Config {
-  fn default() -> Self {
-    let debug = (Ident("debug".into()), ConfigValue::Bool(false));
-    let test = (Ident("test".into()), ConfigValue::Bool(false));
+impl Config {
+  pub fn new(debug: bool, test: bool) -> Self {
+    let debug = (Ident("debug".into()), ConfigValue::Bool(debug));
+    let test = (Ident("test".into()), ConfigValue::Bool(test));
 
     Self { values: vec![debug, test].into_iter().collect() }
+  }
+
+  pub fn debug(&self) -> bool {
+    match self.values.get(&Ident("debug".into())) {
+      Some(ConfigValue::Bool(debug)) => *debug,
+      _ => false,
+    }
+  }
+
+  pub fn test(&self) -> bool {
+    match self.values.get(&Ident("test".into())) {
+      Some(ConfigValue::Bool(test)) => *test,
+      _ => false,
+    }
   }
 }
 
@@ -95,7 +109,7 @@ impl Charter<'_> {
   pub fn enabled(&mut self, attrs: &[Attr]) -> bool {
     attrs.iter().all(|attr| match &attr.kind {
       AttrKind::Cfg(cfg) => self.eval_cfg(cfg) == Ok(true),
-      AttrKind::Test(span) => self.eval_cfg(&Cfg::test(*span)) == Ok(true),
+      AttrKind::Test => self.config.test(),
       _ => true,
     })
   }

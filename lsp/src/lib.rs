@@ -409,7 +409,8 @@ pub async fn lsp(libs: Vec<PathBuf>, entrypoints: Vec<String>) {
   let stdin = tokio::io::stdin();
   let stdout = tokio::io::stdout();
 
-  let mut compiler = Compiler::new(true, Config::default());
+  let config = Config::new(true, true);
+  let mut compiler = Compiler::new(config);
   for lib in libs {
     compiler.loader.load_mod(&lib, &mut compiler.diags);
   }

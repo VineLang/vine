@@ -166,7 +166,6 @@ pub struct ConcreteFnDef {
   pub ret_ty: Option<Ty>,
   pub body: Block,
   pub frameless: bool,
-  pub test: bool,
 }
 
 new_idx!(pub OpaqueTypeId);

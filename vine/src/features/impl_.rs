@@ -155,7 +155,6 @@ impl Charter<'_> {
       ret_ty: fn_item.ret,
       body,
       frameless: false,
-      test: false,
     });
     self.define_value(span, def, vis, DefValueKind::Fn(FnId::Concrete(fn_id)));
     self.chart_attrs(Some(def), attrs);

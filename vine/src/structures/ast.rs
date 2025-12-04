@@ -175,19 +175,13 @@ pub enum AttrKind {
   Become(Path),
   Cfg(Cfg),
   Frameless,
-  Test(Span),
+  Test,
 }
 
 #[derive(Debug, Clone)]
 pub struct Cfg {
   pub span: Span,
   pub kind: Box<CfgKind>,
-}
-
-impl Cfg {
-  pub(crate) fn test(span: Span) -> Self {
-    Cfg { span, kind: Box::new(CfgKind::Bool(Ident("test".into()))) }
-  }
 }
 
 #[derive(Debug, Clone)]

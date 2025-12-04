@@ -13,7 +13,7 @@ use crate::{
     specializer::Specializer,
     synthesizer::synthesize,
   },
-  features::cfg::{Config, ConfigValue},
+  features::cfg::Config,
   structures::{
     annotations::Annotations,
     ast::{Ident, Span},
@@ -45,8 +45,9 @@ pub struct Compiler {
 }
 
 impl Compiler {
-  pub fn new(debug: bool, mut config: Config) -> Self {
-    config.insert(Ident("debug".into()), ConfigValue::Bool(debug));
+  pub fn new(config: Config) -> Self {
+    let debug = config.debug();
+
     Compiler {
       config,
       debug,
