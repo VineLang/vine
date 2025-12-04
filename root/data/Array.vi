@@ -312,7 +312,7 @@ pub mod Array {
   ///
   /// ```vi
   /// let array = [1, 2, 3] as Array;
-  /// array.map(fn* (val: N32) { val * 2 })  // Array([2, 4, 6])
+  /// array.map_unordered(fn* (val: N32) { val * 2 }) // Array([2, 4, 6])
   /// ```
   pub fn .map_unordered[T, U, F*; fn F(T) -> U](Array[T](len, node), f: F) -> Array[U] {
     if len == 0 {
