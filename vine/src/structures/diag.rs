@@ -239,6 +239,8 @@ diags! {
     ["expected a value of type `{ty}` to evaluate to"]
   GenericMain
     ["main cannot be generic"]
+  GenericTest
+    ["test cannot be generic"]
   InfiniteLoop
     ["unconditional infinite loops are invalid"]
   NonExhaustiveMatch
