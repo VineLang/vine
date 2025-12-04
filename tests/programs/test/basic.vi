@@ -9,4 +9,4 @@ pub fn test(&io: &IO) {
   helper_fn(&io);
 }
 
-pub fn main(&io: &IO) {}
+pub fn main(&_io: &IO) {}

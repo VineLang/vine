@@ -609,10 +609,10 @@ impl<'a> Resolver<'a> {
   pub(crate) fn resolve_test_fn(&mut self, concrete_fn_id: ConcreteFnId) {
     match self.expect_main_fn_sig(concrete_fn_id) {
       Err(Diag::GenericMain { span }) => {
-        self.diags.report(Diag::GenericTest { span });
+        self.diags.error(Diag::GenericTest { span });
       }
       Err(diag) => {
-        self.diags.report(diag);
+        self.diags.error(diag);
       }
       _ => {}
     }

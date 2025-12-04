@@ -16,7 +16,7 @@ use crate::{
   features::cfg::Config,
   structures::{
     annotations::Annotations,
-    ast::{Ident, Span},
+    ast::Span,
     chart::{Chart, VisId},
     checkpoint::Checkpoint,
     diag::{Diag, Diags, ErrorGuaranteed},

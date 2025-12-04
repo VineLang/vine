@@ -220,7 +220,7 @@ impl Charter<'_> {
         AttrKind::Cfg(_) => {}
         AttrKind::Test => {
           let Some(concrete_fn_id) = concrete_fn_id else {
-            self.diags.report(Diag::BadTestAttr { span });
+            self.diags.error(Diag::BadTestAttr { span });
             continue;
           };
 
