@@ -306,16 +306,20 @@ pub mod Array {
   }
 
   /// Map over the array, applying the function to each element.
+  ///
+  /// While the elements stay in the given order, the function is not necessarily applied to the
+  /// elements in that order.
+  ///
   /// ```vi
   /// let array = [1, 2, 3] as Array;
   /// array.map(fn* (val: N32) { val * 2 })  // Array([2, 4, 6])
   /// ```
-  pub fn .map[T, U, F*; fn F(T) -> U](Array[T](len, node), f: F) -> Array[U] {
+  pub fn .map_unordered[T, U, F*; fn F(T) -> U](Array[T](len, node), f: F) -> Array[U] {
     if len == 0 {
       unsafe::erase(node);
       Array::empty
     } else {
-      Array(len, Node::map(node, len, f))
+      Array(len, Node::map_unordered(node, len, f))
     }
   }
 
@@ -401,12 +405,12 @@ mod Node {
     }
   }
 
-  pub fn .map[T, U, F*; fn F(T) -> U](node: Node[T], len: N32, f: F) -> Node[U] {
+  pub fn .map_unordered[T, U, F*; fn F(T) -> U](node: Node[T], len: N32, f: F) -> Node[U] {
     if len == 1 {
       f(node as T) as Node
     } else {
       let Node(l, r) = node;
-      Node(map(l, (len + 1) / 2, f), map(r, len / 2, f))
+      Node(map_unordered(l, (len + 1) / 2, f), map_unordered(r, len / 2, f))
     }
   }
 
