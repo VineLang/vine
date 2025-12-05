@@ -226,8 +226,10 @@ impl Types {
       return Success;
     }
 
-    let a_kind = a_state.take_kind().unwrap();
-    let b_kind = b_state.take_kind().unwrap();
+    let a_kind = a_state.kind().unwrap();
+    let b_kind = b_state.kind().unwrap();
+    let a_kind = (a_kind.0, a_kind.1.clone());
+    let b_kind = (b_kind.0, b_kind.1.clone());
 
     let inverted = Inverted(a_kind.0 ^ a.inv() != b_kind.0 ^ b.inv());
 
