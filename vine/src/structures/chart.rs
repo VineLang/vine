@@ -26,6 +26,7 @@ pub struct Chart {
   pub builtins: Builtins,
   pub main_mod: Option<DefId>,
   pub top_level: HashMap<Ident, DefId>,
+  pub tests: Vec<ConcreteFnId>,
 }
 
 new_idx!(pub DefId);

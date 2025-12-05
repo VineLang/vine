@@ -175,6 +175,7 @@ pub enum AttrKind {
   Become(Path),
   Cfg(Cfg),
   Frameless,
+  Test,
 }
 
 #[derive(Debug, Clone)]

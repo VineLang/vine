@@ -41,10 +41,10 @@ impl Charter<'_> {
       let path = format!("#{}", module.name);
       let def = self.new_def(module.name.clone(), path, None);
       self.chart.top_level.insert(module.name.clone(), def);
-      self.chart_mod_kind(VisId::Pub, module.kind, def, GenericsId::NONE);
       if module.main {
         self.chart.main_mod = Some(def);
       }
+      self.chart_mod_kind(VisId::Pub, module.kind, def, GenericsId::NONE);
     }
   }
 
@@ -218,6 +218,17 @@ impl Charter<'_> {
           self.chart.concrete_fns[concrete_fn_id].frameless = true;
         }
         AttrKind::Cfg(_) => {}
+        AttrKind::Test => {
+          let Some(concrete_fn_id) = concrete_fn_id else {
+            self.diags.error(Diag::BadTestAttr { span });
+            continue;
+          };
+
+          let def_id = self.chart.concrete_fns[concrete_fn_id].def;
+          if self.chart.main_mod == Some(self.chart.defs[def_id].ancestors[0]) {
+            self.chart.tests.push(concrete_fn_id);
+          }
+        }
       }
     }
   }
