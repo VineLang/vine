@@ -414,6 +414,7 @@ pub async fn lsp(libs: Vec<PathBuf>, entrypoints: Vec<String>) {
     compiler.loader.load_mod(&lib, &mut compiler.diags);
   }
 
+  _ = compiler.compile(());
   let checkpoint = compiler.checkpoint();
 
   let (service, socket) = LspService::new(|client| Backend {
