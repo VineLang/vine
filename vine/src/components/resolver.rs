@@ -579,6 +579,7 @@ impl<'a> Resolver<'a> {
       TyKind::Tuple(tys) => self.resolve_ty_tuple(tys, inference),
       TyKind::Object(entries) => self.resolve_ty_object(entries, inference),
       TyKind::Ref(inner) => self.resolve_ty_ref(inner, inference),
+      TyKind::Key(ident) => self.types.new(TypeKind::Key(ident.clone())),
       TyKind::Inverse(inner) => self.resolve_ty_inverse(inner, inference),
       TyKind::Path(path) => self.resolve_ty_path(path, inference),
       TyKind::Fn(path) => self.resolve_ty_fn(path),

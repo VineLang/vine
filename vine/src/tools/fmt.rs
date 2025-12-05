@@ -262,6 +262,7 @@ impl<'src> Formatter<'src> {
       TyKind::Paren(pat) => Doc::paren(self.fmt_ty(pat)),
       TyKind::Tuple(elements) => self.fmt_ty_tuple(elements),
       TyKind::Ref(ty) => self.fmt_ty_ref(ty),
+      TyKind::Key(ident) => Doc::concat([Doc("."), Doc(ident.clone())]),
       TyKind::Inverse(ty) => self.fmt_ty_inverse(ty),
       TyKind::Path(path) => self.fmt_path(path),
       TyKind::Fn(path) => Doc::concat([Doc("fn "), self.fmt_path(path)]),

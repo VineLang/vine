@@ -8,10 +8,12 @@ use crate::{
     charter::Charter,
     distiller::Distiller,
     emitter::Emitter,
+    finder::Finder,
     lexer::Token,
     matcher::{MatchVar, MatchVarForm, MatchVarKind, Matcher, Row, VarId},
     parser::{BRACE_COMMA, PAREN_COMMA, VineParser},
     resolver::Resolver,
+    synthesizer::SyntheticImpl,
   },
   structures::{
     ast::{EnumItem, Expr, ItemKind, Pat, Path, Span, Variant},
@@ -21,8 +23,8 @@ use crate::{
     },
     diag::Diag,
     signatures::EnumSig,
-    tir::{TirExpr, TirExprKind, TirPat, TirPatKind},
-    types::{Type, TypeCtx, TypeKind},
+    tir::{TirExpr, TirExprKind, TirImpl, TirPat, TirPatKind},
+    types::{Inverted, Type, TypeCtx, TypeKind, Types},
     vir::{Header, Interface, InterfaceKind, Layer, Port, Stage, Step, Transfer},
   },
   tools::fmt::{Formatter, doc::Doc},
@@ -279,5 +281,28 @@ impl Emitter<'_> {
     );
     let pair = (self.emit_port(port), enum_);
     self.pairs.push(pair);
+  }
+}
+
+impl Finder<'_> {
+  pub(crate) fn find_auto_impls_enum(
+    &mut self,
+    type_params: &[Type],
+    types: &Types,
+    found: &mut Vec<TypeCtx<TirImpl>>,
+  ) {
+    if let Some(variant_enum) = self.chart.builtins.variant
+      && let Some((Inverted(false), TypeKind::Enum(enum_id, enum_params))) =
+        types.kind(type_params[0])
+    {
+      let mut types = types.clone();
+      let sig = types.import(&self.sigs.enums[*enum_id], Some(enum_params));
+      let variants = sig.variant_data.values().rfold(types.new(TypeKind::Never), |rest, init| {
+        types.new(TypeKind::Enum(variant_enum, vec![*init, rest]))
+      });
+      if types.unify(variants, type_params[1]).is_success() {
+        found.push(TypeCtx { types, inner: TirImpl::Synthetic(SyntheticImpl::Enum(*enum_id)) });
+      }
+    }
   }
 }

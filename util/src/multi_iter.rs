@@ -1,3 +1,22 @@
+/// Expands to an enum implementing [`Iterator`] with N variants and N generic
+/// parameters.
+///
+/// This is a similar to [`itertools::Either`], but supports a variable number
+/// of variants, and can be used effectively with an opaque return type:
+/// ```rust
+/// use vine_util::multi_iter;
+///
+/// fn numbers(num: &'static str) -> impl Iterator<Item = usize> {
+///   multi_iter! { Numbers { Zero, One, Two } }
+///   match num {
+///     "one" => Numbers::One([1]),
+///     "two" => Numbers::Two([1, 2]),
+///     _ => Numbers::Zero(std::iter::empty()),
+///   }
+/// }
+/// ```
+///
+/// [`itertools::Either`]: https://docs.rs/itertools/latest/itertools/enum.Either.html
 #[macro_export]
 macro_rules! multi_iter {
   ($Iter:ident { $($Variant:ident),* $(,)? }) => {

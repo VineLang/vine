@@ -31,7 +31,7 @@ pub mod Fork {
   }
 
   #[become(unsafe::duplicate)]
-  pub impl composite[C, I, R; Composite[C, I, R], Fork[I], Fork[R]]: Fork[C] {
+  pub impl composite[C, K, I, R; Composite[C, K, I, R], Fork[I], Fork[R]]: Fork[C] {
     fn fork(&composite: &C) -> C {
       let &(init, rest) = &composite as &(I, R);
       (init, rest) as C
@@ -84,7 +84,7 @@ pub mod Drop {
   }
 
   #[become(unsafe::erase)]
-  pub impl composite[C, I, R; Composite[C, I, R], Drop[I], Drop[R]]: Drop[C] {
+  pub impl composite[C, K, I, R; Composite[C, K, I, R], Drop[I], Drop[R]]: Drop[C] {
     fn drop(composite: C) {
       (_, _) = composite as (I, R);
     }

@@ -164,7 +164,7 @@ pub mod Show {
       }
     }
 
-    pub impl object[O, I, R; Object_[O, I, R], Show[I], ShowObject[R]]: ShowObject[O] {
+    pub impl object[O, K, I, R; Object_[O, K, I, R], Show[I], ShowObject[R]]: ShowObject[O] {
       fn show_object(&object: &O) -> List_[(Show, Show)] {
         let &(init, rest) = &object as &(I, R);
         [(Show::Literal(Object_::key), init.show())] ++ rest.show_object()

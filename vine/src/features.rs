@@ -13,6 +13,7 @@ pub mod do_;
 pub mod enum_;
 pub mod fn_;
 pub mod for_;
+pub mod fork_drop;
 pub mod generics;
 pub mod hole;
 pub mod if_;
