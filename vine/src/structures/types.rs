@@ -311,7 +311,7 @@ impl Types {
   }
 
   fn occurs(&self, var: Type, ty: Type) -> bool {
-    ty == var
+    ty.idx() == var.idx()
       || self.kind(ty).as_ref().is_some_and(|kind| kind.1.children().any(|t| self.occurs(var, t)))
   }
 
