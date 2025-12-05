@@ -26,6 +26,8 @@ Digits can be separated with underscores (#expr[`1_000_000`]).
 #ty[`N32`]s support the usual arithmetic and bitwise operators
 (#expr[`4 * 11 + 2`], #expr[`5 << 3 | 6`]).
 
+_See also @root-numeric-N32[`#root::numeric::N32`]._
+
 == `I32`
 
 The type #ty[`I32`] describes integers, represented with 32 bits of precision.
@@ -40,6 +42,8 @@ Digits can be separated with underscores (#expr[`+1_000_000`], #expr[`-1_000_000
 #ty[`I32`]s support the usual arithmetic and bitwise operators
   (#expr[`+4 * +12 + -2`], #expr[`+5 << +3 | +6`]).
 
+_See also @root-numeric-I32[`#root::numeric::I32`]._
+
 == `F32` <f32>
 
 The type #ty[`F32`] describes 32-bit floating-point numbers (following IEEE 754).
@@ -48,6 +52,8 @@ The type #ty[`F32`] describes 32-bit floating-point numbers (following IEEE 754)
 The decimal point is required.
 
 #ty[`F32`]s support the usual arithmetic operators (#expr[`3.6 * 12.3 + 1.72`]).
+
+_See also @root-numeric-F32[`#root::numeric::F32`]._
 
 == `Char`
 
@@ -58,6 +64,8 @@ The type #ty[`Char`] describes Unicode scalar values.
 
 #ty[`Char`]s support adding an #ty[`N32`], resulting in another #ty[`Char`] (#expr[`'a' + 4`]),
   as well as subtracting another #ty[`Char`], resulting in an #ty[`N32`] (#expr[`'G' - 'A'`]).
+
+_See also @root-unicode-Char[`#root::unicode::Char`]._
 
 == `Bool`
 
@@ -70,9 +78,14 @@ The two #ty[`Bool`] values can be written as literals (#expr[`true`], #expr[`fal
 
 Expressions that evaluate to booleans are called @conditions[conditions].
 
+_See also @root-logical-Bool[`#root::logical::Bool`]._
+
 == `IO`
 
 #ty[`IO`] is a special primitive type used to interact with the outside world.
 Values of this type cannot be explicitly constructed;
   instead, an #ty[`IO`] handle is passed in to #fn[`main`] at the start of the program.
+
 See the section on @io[IO] for more detail.
+
+_See also @root-IO[`#root::IO`]._

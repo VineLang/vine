@@ -2,7 +2,7 @@
 
 = The Root Library
 
-`#root` is Vine's standard library.
+@root[`#root`] is Vine's standard library.
 It provides:
 - types fundamental to Vine,
   including @root-numeric-N32[`N32`],
@@ -23,7 +23,7 @@ It provides:
   @root-debug[`debug`],
   and @root-rng[`rng`]
 
-See the @root[API Docs for `#root`] for more info.
+=== @root[API Docs for `#root`] 
 
 
 

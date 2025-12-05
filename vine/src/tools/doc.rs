@@ -86,7 +86,7 @@ impl<'a> Documenter<'a> {
       }
       let src = self.source_link(child);
       if child.children.is_empty() && child.src_file.is_none() {
-        writeln!(str, "\n== `{}`{src} <{}>\n", child.name, child.id).unwrap();
+        writeln!(str, "\n== #api_anchor_link(\"{}\"){src} <{}>\n", child.name, child.id).unwrap();
       } else {
         child_paths.push(self.output_tree(child, &dir, Some((id, tree.path))));
         writeln!(str, "\n== @{}[`{}`]{src}\n", child.id, child.name).unwrap();
