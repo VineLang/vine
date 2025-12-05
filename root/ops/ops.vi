@@ -2,9 +2,9 @@
 pub mod arithmetic;
 pub mod bitwise;
 pub mod comparison;
-pub mod flex;
-pub mod range;
 pub mod elementwise;
+pub mod flex;
+pub mod Range;
 
 pub trait Concat[A, B, O] {
   #[builtin = "concat"]
