@@ -312,7 +312,10 @@ impl Types {
 
   fn occurs(&self, var: Type, ty: Type) -> bool {
     ty.idx() == var.idx()
-      || self.kind(ty).as_ref().is_some_and(|kind| kind.1.children().any(|t| self.occurs(var, t)))
+      || self
+        .kind(ty)
+        .as_ref()
+        .is_some_and(|kind| kind.1.children().any(|t| self.occurs(var, self.find(t))))
   }
 
   fn find(&self, ty: Type) -> Type {
