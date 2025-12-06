@@ -1,0 +1,17 @@
+
+pub fn main(&io: &IO) {
+  let foo = None();
+  foo = if true {
+    Some(foo)
+  } else {
+    None()
+  };
+
+  let x;
+  x = (~x,);
+
+  let y;
+  let z;
+  y = z;
+  y = (z,);
+}
