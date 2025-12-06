@@ -212,8 +212,10 @@ pub mod Set[T; Ord[T]] {
     }
   }
 
-  pub fn .iter_ref[...](&self: &Set[T]) -> IterRef[T] {
-    IterRef(&self, [])
+  pub impl iter_ref[...]: Cast[&Set[T], IterRef[T]] {
+    fn cast(&self: &Set[T]) -> IterRef[T] {
+      IterRef(&self, [])
+    }
   }
 
   pub struct IterRef[T]((&Set[T], List[&(T, Set[T])]));
@@ -243,8 +245,10 @@ pub mod Set[T; Ord[T]] {
     pub impl drop[...]: Drop[IterRef[T]];
   }
 
-  pub fn .iter[...](self: Set[T]) -> Iter[T] {
-    Iter(self, [])
+  pub impl iter[...]: Cast[Set[T], Iter[T]] {
+    fn cast(self: Set[T]) -> Iter[T] {
+      Iter(self, [])
+    }
   }
 
   pub struct* Iter[T]((Set[T], List[(T, Set[T])]));

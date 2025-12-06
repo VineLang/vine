@@ -1,4 +1,6 @@
 
+use #root::ops::Cast;
+
 pub trait Iterator[Self, Item] {
   #[builtin = "advance"]
   fn .advance(self: Self) -> Option[(Item, Self)];
@@ -440,5 +442,21 @@ pub mod Fused {
       inner = None();
       None()
     }
+  }
+}
+
+pub trait Iterate[C, I, T] {
+  fn .iter(c: C) -> I;
+}
+
+pub mod Iterate {
+  pub impl iterate[C, I, T; Cast[C, I], Iterator[I, T]]: Iterate[C, I, T] {
+    fn iter(collection: C) -> I {
+      collection as I
+    }
+  }
+
+  pub fn .iter_ref[C, I, T; Iterate[&C, I, T]](&collection: &C) -> I {
+    iter(&collection)
   }
 }

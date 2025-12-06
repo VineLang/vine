@@ -173,12 +173,16 @@ pub mod String {
     }
   }
 
-  pub fn .iter_ref(&String(chars)) -> List::IterRef[Char] {
-    chars.iter_ref()
+  pub impl iter_ref: Cast[&String, List::IterRef[Char]] {
+    fn cast(&String(chars)) -> List::IterRef[Char] {
+      chars.iter_ref()
+    }
   }
 
-  pub fn .iter(String(chars)) -> List::Iter[Char] {
-    chars.iter()
+  pub impl iter: Cast[String, List::Iter[Char]] {
+    fn cast(String(chars)) -> List::Iter[Char] {
+      chars.iter()
+    }
   }
 
   pub impl show: Show[String] {

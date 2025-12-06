@@ -182,8 +182,10 @@ pub mod Heap[T; Ord[T]] {
   /// 2
   /// 3
   /// ```
-  pub fn .iter[...](self: Heap[T]) -> Iter[T] {
-    Iter(self)
+  pub impl iter[...]: Cast[Heap[T], Iter[T]] {
+    fn cast(self: Heap[T]) -> Iter[T] {
+      Iter(self)
+    }
   }
 
   pub mod Iter[...] {
