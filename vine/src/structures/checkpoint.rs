@@ -2,7 +2,10 @@ use vine_util::idx::Idx;
 
 use crate::{
   compiler::Compiler,
-  components::{finder::FinderCache, loader::FileId},
+  components::{
+    finder::{FinderCache, candidates::CandidateSetId},
+    loader::FileId,
+  },
   features::builtin::Builtins,
   structures::{
     annotations::Annotations,
@@ -33,6 +36,7 @@ pub struct Checkpoint {
   pub fragments: FragmentId,
   pub specs: SpecId,
   pub files: FileId,
+  pub candidate_sets: CandidateSetId,
   pub errors: usize,
   pub warnings: usize,
 }
@@ -54,6 +58,7 @@ impl Compiler {
       fragments: self.fragments.next_index(),
       specs: self.specs.specs.next_index(),
       files: self.loader.files.next_index(),
+      candidate_sets: self.finder_cache.candidates.sets.next_index(),
       errors: self.diags.errors.len(),
       warnings: self.diags.warnings.len(),
     }
@@ -372,5 +377,8 @@ fn revert_fn(builtin: &mut Option<FnId>, checkpoint: &Checkpoint) {
 }
 
 impl FinderCache {
-  pub(crate) fn revert(&mut self, checkpoint: &Checkpoint) {}
+  pub(crate) fn revert(&mut self, checkpoint: &Checkpoint) {
+    self.candidates.by_def.retain(|(def, _), _| *def < checkpoint.defs);
+    self.candidates.sets.truncate(checkpoint.candidate_sets.0);
+  }
 }

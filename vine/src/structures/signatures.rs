@@ -6,7 +6,7 @@ use crate::structures::{
   ast::Ident,
   chart::{
     ConcreteConstId, ConcreteFnId, ConstId, DefId, EnumId, FnId, GenericsId, ImplId, ImportId,
-    StructId, TraitConstId, TraitFnId, TraitId, TypeAliasId, VariantId,
+    MemberKind, StructId, TraitConstId, TraitFnId, TraitId, TypeAliasId, VariantId,
   },
   diag::ErrorGuaranteed,
   types::{ImplType, TransferTypes, Type, TypeCtx, TypeTransfer},
@@ -104,6 +104,16 @@ impl Signatures {
     match fn_id {
       FnId::Concrete(fn_id) => &self.concrete_fns[fn_id],
       FnId::Abstract(trait_id, fn_id) => &self.traits[trait_id].fns[fn_id],
+    }
+  }
+
+  pub fn get_member(&self, member: MemberKind) -> Option<DefId> {
+    match member {
+      MemberKind::Child(def_id) => Some(def_id),
+      MemberKind::Import(import_id) => match self.imports[import_id] {
+        ImportState::Resolved(Ok(def_id)) => Some(def_id),
+        _ => None,
+      },
     }
   }
 }

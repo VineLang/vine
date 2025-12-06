@@ -143,6 +143,7 @@ impl<'a> Resolver<'a> {
     for id in self.chart.impls.keys_from(checkpoint.impls) {
       self.resolve_impl_sig(id);
     }
+    self.finder_cache.candidates.build_since(checkpoint, self.chart, self.sigs);
     for id in self.chart.concrete_consts.keys_from(checkpoint.concrete_consts) {
       self.resolve_const_def(id);
     }

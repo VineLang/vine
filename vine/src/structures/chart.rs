@@ -29,7 +29,8 @@ pub struct Chart {
   pub tests: Vec<ConcreteFnId>,
 }
 
-new_idx!(pub DefId);
+new_idx!(pub DefId; n => ["d{n}"]);
+
 #[derive(Debug)]
 pub struct Def {
   pub name: Ident,
