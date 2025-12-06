@@ -17,7 +17,7 @@ pub mod Set[T; Ord[T]] {
   pub impl from_list[... T?]: Cast[List[T], Set[T]] {
     fn cast(entries: List[T]) -> Set[T] {
       let set = Set::empty[T];
-      for value in entries.iter() {
+      for value in entries {
         set.insert(value);
       }
       set
@@ -291,7 +291,7 @@ pub mod Set[T; Ord[T]] {
   pub impl show[... ; Show[T]]: Show[Set[T]] {
     fn show(&self: &Set[T]) -> Show {
       let entries = [];
-      for &value in self.iter_ref() {
+      for &value in &self {
         entries.push_back(value.show());
       }
       Show::Constructor("Set", Show::List(entries))

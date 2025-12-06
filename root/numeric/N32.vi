@@ -168,7 +168,7 @@ pub mod N32 {
       return None();
     }
     let num = 0;
-    for digit in str.iter() {
+    for digit in str {
       if digit == '_' {
         continue;
       }

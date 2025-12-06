@@ -446,6 +446,7 @@ pub mod Fused {
 }
 
 pub trait Iterate[C, I, T] {
+  #[builtin = "iter"]
   fn .iter(c: C) -> I;
 }
 

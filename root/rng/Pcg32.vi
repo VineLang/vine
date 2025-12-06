@@ -9,7 +9,7 @@ pub mod Pcg32 {
   /// Create a Pcg32 RNG based on a given seed string.
   pub fn seeded(seed: String) -> Pcg32 {
     let rng = Pcg32::default;
-    for char in seed.iter() {
+    for char in seed {
       rng.mix(char as N32)
     }
     rng

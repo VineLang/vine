@@ -17,7 +17,7 @@ use ops::{Cast, Concat, Range::{Range, Bound}, comparison::{Eq, Ord}};
 /// list // [0, 1, 2, 3, 4, 5, 6]
 /// list.pop_front() // Some(0)
 /// list // [1, 2, 3, 4, 5, 6]
-/// for value in list.iter() {
+/// for value in list {
 ///   io.println("{value}"); // prints 1, 2, 3, 4, 5, 6
 /// }
 /// ```
@@ -149,7 +149,7 @@ pub mod List {
 
   pub fn .filter[T?, F*; fn F(&T) -> Bool](self: List[T], pred: F) -> List[T] {
     let result = [];
-    for value in self.iter() {
+    for value in self {
       if pred(&value) {
         result.push_back(value);
       }
@@ -227,7 +227,7 @@ pub mod List {
   }
 
   pub fn .find[T, F*; fn F(&T) -> Bool](&self: &List[T], pred: F) -> Option[&T] {
-    for &value in self.iter_ref() {
+    for &value in &self {
       if pred(&value) {
         break Some(&value);
       }
@@ -243,7 +243,7 @@ pub mod List {
   pub fn .join[T; Cast[T, String]](list: List[T], sep: String) -> String {
     if list.head_tail() is Some(head, tail) {
       let str = "{head}";
-      for val in tail.iter() {
+      for val in tail {
         str ++= "{sep}{val}";
       }
       str
@@ -280,7 +280,7 @@ pub mod List {
   pub fn .trim_back_where[T?, F*; fn F(&T) -> Bool](&self: &List[T], pred: F) {
     let trimmed = [];
     let ~trimming = true;
-    for elem in self.iter() {
+    for elem in self {
       let matches = pred(&elem);
       if !~trimming {
         trimmed.push_back(elem);
@@ -295,7 +295,7 @@ pub mod List {
   pub impl show[T; Show[T]]: Show[List[T]] {
     fn show(&self: &List[T]) -> Show {
       let entries = [];
-      for &value in self.iter_ref() {
+      for &value in &self {
         entries.push_back(value.show());
       }
       Show::List(entries)
@@ -378,7 +378,7 @@ pub mod List {
   /// Iterate over the elements of the list.
   /// ```vi
   /// let list = [1, 0, 4, 6];
-  /// for value in list.iter() {
+  /// for value in list {
   ///   io.println("{list}");
   /// }
   /// ```
@@ -420,7 +420,7 @@ pub mod List {
   /// Iterate over the elements of the list by reference.
   /// ```vi
   /// let list = [0, 5, 3, 5];
-  /// for &value in list.iter_ref() {
+  /// for &value in &list {
   ///   value += 1;
   /// }
   /// list // [1. 6. 4. 6]
@@ -479,7 +479,7 @@ pub mod List {
   /// ```
   pub fn .reversed[T](self: List[T]) -> List[T] {
     let reversed = [];
-    for value in self.iter() {
+    for value in self {
       reversed.push_front(value);
     }
     reversed
@@ -555,7 +555,7 @@ pub mod List {
   pub impl fork[T+]: Fork[List[T]] {
     fn fork(&self: &List[T]) -> List[T] {
       let out = [];
-      for &value in self.iter_ref() {
+      for &value in &self {
         out.push_back(value);
       }
       out
@@ -565,7 +565,7 @@ pub mod List {
   #[become(unsafe::erase)]
   pub impl drop[T?]: Drop[List[T]] {
     fn drop(self: List[T]) {
-      for _ in self.iter() {}
+      for _ in self {}
     }
   }
 }
