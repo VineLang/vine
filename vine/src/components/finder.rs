@@ -1,4 +1,4 @@
-use std::collections::{BTreeMap, BTreeSet, HashSet};
+use std::collections::{BTreeSet, HashSet};
 
 use vine_util::idx::IntSet;
 
@@ -74,10 +74,10 @@ impl<'a> Finder<'a> {
     types: &Types,
     receiver: Type,
     name: Ident,
-  ) -> Result<Vec<(Span, FnId, TypeCtx<Vec<Type>>)>, ErrorGuaranteed> {
+  ) -> Result<Vec<(FnId, TypeCtx<Vec<Type>>)>, ErrorGuaranteed> {
     let mut found = Vec::new();
 
-    for (candidate, span) in self.find_method_candidates(types, receiver, name)? {
+    for candidate in self.find_method_candidates(types, receiver, name)? {
       let mut types = types.clone();
       let generics = self.chart.fn_generics(candidate);
       let type_params = types.new_vars(self.span, self.sigs.type_params[generics].params.len());
@@ -91,7 +91,7 @@ impl<'a> Finder<'a> {
           _ => candidate_receiver,
         };
         if types.unify(receiver, candidate_receiver).is_success() {
-          found.push((span, candidate, TypeCtx { types, inner: type_params }));
+          found.push((candidate, TypeCtx { types, inner: type_params }));
         }
       }
     }
@@ -104,18 +104,18 @@ impl<'a> Finder<'a> {
     types: &Types,
     receiver: Type,
     name: Ident,
-  ) -> Result<BTreeMap<FnId, Span>, ErrorGuaranteed> {
-    let mut candidates = BTreeMap::new();
+  ) -> Result<BTreeSet<FnId>, ErrorGuaranteed> {
+    let mut candidates = BTreeSet::new();
     let search = &mut CandidateSearch {
       mods: HashSet::default(),
       defs: HashSet::default(),
       consider_candidate: |self_: &Self, def: &Def| {
         if def.name == name
-          && let Some(Binding { span, vis, kind: DefValueKind::Fn(fn_kind), .. }) = def.value_kind
+          && let Some(Binding { vis, kind: DefValueKind::Fn(fn_kind), .. }) = def.value_kind
           && self_.chart.visible(vis, self_.source)
           && self_.chart.fn_is_method(fn_kind)
         {
-          candidates.insert(fn_kind, span);
+          candidates.insert(fn_kind);
         }
       },
     };

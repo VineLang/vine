@@ -312,6 +312,13 @@ impl Chart {
       ConstId::Abstract(trait_id, const_id) => self.traits[trait_id].consts[const_id].generics,
     }
   }
+
+  pub fn fn_span(&self, fn_id: FnId) -> Span {
+    match fn_id {
+      FnId::Concrete(fn_id) => self.concrete_fns[fn_id].span,
+      FnId::Abstract(trait_id, fn_id) => self.traits[trait_id].fns[fn_id].span,
+    }
+  }
 }
 
 impl Def {
