@@ -380,5 +380,6 @@ impl FinderCache {
   pub(crate) fn revert(&mut self, checkpoint: &Checkpoint) {
     self.candidates.by_def.retain(|(def, _), _| *def < checkpoint.defs);
     self.candidates.sets.truncate(checkpoint.candidate_sets.0);
+    self.candidates.checkpoint = self.candidates.checkpoint.min(checkpoint.defs);
   }
 }

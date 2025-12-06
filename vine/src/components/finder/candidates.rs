@@ -13,7 +13,6 @@ use crate::structures::{
   chart::{
     Binding, Chart, DefId, DefImplKind, DefTraitKind, DefValueKind, FnId, ImplId, TraitId, VisId,
   },
-  checkpoint::Checkpoint,
   signatures::Signatures,
   types::ImplType,
 };
@@ -22,6 +21,7 @@ use crate::structures::{
 pub struct CandidateSets {
   pub(crate) by_def: HashMap<(DefId, Level), CandidateSetHandle>,
   pub(crate) sets: IdxVec<CandidateSetId, CandidateSet>,
+  pub(crate) checkpoint: DefId,
   empty: CandidateSet,
 }
 
@@ -81,12 +81,11 @@ impl VisSet {
 }
 
 impl CandidateSets {
-  pub fn build_since(&mut self, checkpoint: &Checkpoint, chart: &Chart, sigs: &Signatures) {
+  pub fn build_since(&mut self, chart: &Chart, sigs: &Signatures) {
     CandidateSetBuilder {
       sets: self,
       chart,
       sigs,
-      checkpoint: checkpoint.defs,
       component_stack: Default::default(),
       children_stack: Default::default(),
       nodes: Default::default(),
@@ -168,7 +167,6 @@ pub struct CandidateSetBuilder<'a> {
   sets: &'a mut CandidateSets,
   chart: &'a Chart,
   sigs: &'a Signatures,
-  checkpoint: DefId,
   component_stack: Vec<Node>,
   children_stack: Vec<(VisId, Node)>,
   nodes: HashMap<Node, NodeState>,
@@ -184,14 +182,15 @@ type Node = (DefId, Level);
 
 impl<'a> CandidateSetBuilder<'a> {
   fn visit_all(&mut self) {
-    for def_id in self.chart.defs.keys_from(self.checkpoint) {
+    for def_id in self.chart.defs.keys_from(self.sets.checkpoint) {
       self.visit((def_id, Level::WithinAncestors));
     }
+    self.sets.checkpoint = self.chart.defs.next_index();
   }
 
   // Tarjan's strongly connected components algorithm
   fn visit(&mut self, node: Node) -> Option<usize> {
-    if node.0 < self.checkpoint {
+    if node.0 < self.sets.checkpoint {
       return None;
     }
     match self.nodes.entry(node) {

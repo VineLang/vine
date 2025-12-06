@@ -100,6 +100,7 @@ impl Compiler {
       &mut self.fragments,
       &mut self.finder_cache,
     );
+    hooks.pre_resolve(&mut resolver);
     resolver.resolve_since(checkpoint);
     hooks.resolve(&mut resolver);
 
@@ -186,6 +187,7 @@ impl Compiler {
 
 pub trait Hooks {
   fn chart(&mut self, _charter: &mut Charter<'_>) {}
+  fn pre_resolve(&mut self, _resolver: &mut Resolver<'_>) {}
   fn resolve(&mut self, _resolver: &mut Resolver<'_>) {}
   fn distill(&mut self, _fragment_id: FragmentId, _vir: &mut Vir) {}
 }
