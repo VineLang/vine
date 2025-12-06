@@ -311,6 +311,7 @@ impl Types {
   }
 
   fn occurs(&self, var: Type, ty: Type) -> bool {
+    debug_assert!(var == self.find(var) && ty == self.find(ty));
     ty.idx() == var.idx()
       || self
         .kind(ty)
