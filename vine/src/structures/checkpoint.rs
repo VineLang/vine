@@ -2,7 +2,7 @@ use vine_util::idx::Idx;
 
 use crate::{
   compiler::Compiler,
-  components::loader::FileId,
+  components::{finder::FinderCache, loader::FileId},
   features::builtin::Builtins,
   structures::{
     annotations::Annotations,
@@ -73,6 +73,7 @@ impl Compiler {
       vir,
       templates,
       diags,
+      finder_cache,
     } = self;
     chart.revert(checkpoint);
     sigs.revert(checkpoint);
@@ -81,6 +82,7 @@ impl Compiler {
     specs.revert(checkpoint);
     loader.revert(checkpoint);
     diags.revert(checkpoint);
+    finder_cache.revert(checkpoint);
     fragments.truncate(checkpoint.fragments.0);
     vir.truncate(checkpoint.fragments.0);
     templates.truncate(checkpoint.fragments.0);
@@ -367,4 +369,8 @@ fn revert_fn(builtin: &mut Option<FnId>, checkpoint: &Checkpoint) {
     Some(FnId::Abstract(trait_id, _)) if trait_id >= checkpoint.traits => *builtin = None,
     _ => {}
   }
+}
+
+impl FinderCache {
+  pub(crate) fn revert(&mut self, checkpoint: &Checkpoint) {}
 }

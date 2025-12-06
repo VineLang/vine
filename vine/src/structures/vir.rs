@@ -9,7 +9,10 @@ use vine_util::{
 };
 
 use crate::{
-  components::{analyzer::EffectVar, finder::Finder},
+  components::{
+    analyzer::EffectVar,
+    finder::{Finder, FinderCache},
+  },
   structures::{
     ast::Span,
     chart::{Chart, DefId, EnumId, GenericsId, StructId, VariantId},
@@ -346,6 +349,7 @@ impl VirLocal {
     chart: &Chart,
     sigs: &Signatures,
     diags: &mut Diags,
+    finder_cache: &mut FinderCache,
     def: DefId,
     generics: GenericsId,
     types: &mut Types,
@@ -353,8 +357,9 @@ impl VirLocal {
     span: Span,
     ty: Type,
   ) -> VirLocal {
-    let flex =
-      Finder::new(chart, sigs, diags, def, generics, span).find_flex(types, ty).unwrap_or_default();
+    let flex = Finder::new(chart, sigs, diags, finder_cache, def, generics, span)
+      .find_flex(types, ty)
+      .unwrap_or_default();
     VirLocal {
       span,
       ty,

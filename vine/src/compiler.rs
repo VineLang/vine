@@ -7,6 +7,7 @@ use crate::{
     charter::Charter,
     distiller::Distiller,
     emitter::{emit, main_net},
+    finder::FinderCache,
     loader::Loader,
     normalizer::normalize,
     resolver::Resolver,
@@ -41,6 +42,7 @@ pub struct Compiler {
   pub fragments: IdxVec<FragmentId, Fragment>,
   pub vir: IdxVec<FragmentId, Vir>,
   pub templates: IdxVec<FragmentId, Template>,
+  pub finder_cache: FinderCache,
   pub diags: Diags,
 }
 
@@ -60,6 +62,7 @@ impl Compiler {
       fragments: IdxVec::new(),
       vir: IdxVec::new(),
       templates: IdxVec::new(),
+      finder_cache: FinderCache::default(),
       diags: Diags::default(),
     }
   }
@@ -95,16 +98,18 @@ impl Compiler {
       &mut self.resolutions,
       &mut self.annotations,
       &mut self.fragments,
+      &mut self.finder_cache,
     );
     resolver.resolve_since(checkpoint);
     hooks.resolve(&mut resolver);
 
-    let mut distiller = Distiller::new(chart, &self.sigs, &mut self.diags);
+    let mut distiller = Distiller::new(chart, &self.sigs, &mut self.diags, &mut self.finder_cache);
     for fragment_id in self.fragments.keys_from(checkpoint.fragments) {
       let fragment = &self.fragments[fragment_id];
       let mut vir = distiller.distill_fragment(fragment);
       hooks.distill(fragment_id, &mut vir);
-      let mut vir = normalize(chart, &self.sigs, distiller.diags, fragment, &vir);
+      let mut vir =
+        normalize(chart, &self.sigs, distiller.diags, distiller.finder_cache, fragment, &vir);
       analyze(distiller.diags, fragment.tir.span, &mut vir);
       let template =
         emit(self.debug, chart, &self.sigs, distiller.diags, fragment, &vir, &mut self.specs);

@@ -128,6 +128,7 @@ impl Resolver<'_> {
       self.resolutions,
       self.annotations,
       self.fragments,
+      self.finder_cache,
     )
     .resolve_type_alias(type_alias_id);
     let resolved_sig = match &self.sigs.type_aliases[type_alias_id] {

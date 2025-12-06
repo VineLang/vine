@@ -39,6 +39,7 @@ impl<'ctx, 'ivm, 'ext, 'comp> Repl<'ctx, 'ivm, 'ext, 'comp> {
       &self.compiler.chart,
       &self.compiler.sigs,
       &mut self.compiler.diags,
+      &mut self.compiler.finder_cache,
       self.repl_mod,
       GenericsId::NONE,
       Span::NONE,

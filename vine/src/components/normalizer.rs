@@ -2,17 +2,20 @@ use std::collections::{BTreeMap, btree_map::Entry};
 
 use vine_util::{idx::IdxVec, unwrap_idx_vec};
 
-use crate::structures::{
-  ast::Span,
-  chart::{Chart, DefId, GenericsId},
-  diag::Diags,
-  resolutions::{Fragment, Rels},
-  signatures::Signatures,
-  tir::Local,
-  types::{Type, Types},
-  vir::{
-    Header, Interface, InterfaceId, InterfaceKind, Layer, LayerId, Port, PortKind, Stage, StageId,
-    Step, Transfer, Vir, VirLocal, WireId,
+use crate::{
+  components::finder::FinderCache,
+  structures::{
+    ast::Span,
+    chart::{Chart, DefId, GenericsId},
+    diag::Diags,
+    resolutions::{Fragment, Rels},
+    signatures::Signatures,
+    tir::Local,
+    types::{Type, Types},
+    vir::{
+      Header, Interface, InterfaceId, InterfaceKind, Layer, LayerId, Port, PortKind, Stage,
+      StageId, Step, Transfer, Vir, VirLocal, WireId,
+    },
   },
 };
 
@@ -20,6 +23,7 @@ pub fn normalize(
   chart: &Chart,
   sigs: &Signatures,
   diags: &mut Diags,
+  finder_cache: &mut FinderCache,
   fragment: &Fragment,
   source: &Vir,
 ) -> Vir {
@@ -28,6 +32,7 @@ pub fn normalize(
     sigs,
     diags,
     source,
+    finder_cache,
     def: fragment.def,
     generics: fragment.generics,
     types: source.types.clone(),
@@ -61,6 +66,7 @@ struct Normalizer<'a> {
   chart: &'a Chart,
   sigs: &'a Signatures,
   diags: &'a mut Diags,
+  finder_cache: &'a mut FinderCache,
 
   source: &'a Vir,
   def: DefId,
@@ -119,8 +125,18 @@ impl Normalizer<'_> {
           };
           for (&wire, &(span, ty)) in &open_wires {
             let Self { chart, sigs, def, generics, ref mut types, ref mut rels, .. } = *self;
-            let vir_local =
-              VirLocal::new(chart, sigs, self.diags, def, generics, types, rels, span, ty);
+            let vir_local = VirLocal::new(
+              chart,
+              sigs,
+              self.diags,
+              self.finder_cache,
+              def,
+              generics,
+              types,
+              rels,
+              span,
+              ty,
+            );
             let local = self.locals.push(vir_local);
             stage.declarations.push(local);
             stage.local_barrier_write_to(local, Port { ty, kind: PortKind::Wire(span, wire) });

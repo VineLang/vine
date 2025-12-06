@@ -18,11 +18,15 @@ pub struct Finder<'a> {
   pub(crate) chart: &'a Chart,
   pub(crate) sigs: &'a Signatures,
   pub(crate) diags: &'a mut Diags,
+  pub(crate) cache: &'a mut FinderCache,
   pub(crate) source: DefId,
   pub(crate) generics: GenericsId,
   pub(crate) span: Span,
   pub(crate) steps: u32,
 }
+
+#[derive(Default, Debug, Clone)]
+pub struct FinderCache {}
 
 #[derive(Debug, Default)]
 pub struct FlexImpls {
@@ -57,11 +61,12 @@ impl<'a> Finder<'a> {
     chart: &'a Chart,
     sigs: &'a Signatures,
     diags: &'a mut Diags,
+    cache: &'a mut FinderCache,
     source: DefId,
     generics: GenericsId,
     span: Span,
   ) -> Self {
-    Finder { chart, sigs, diags, source, generics, span, steps: 0 }
+    Finder { chart, sigs, diags, cache, source, generics, span, steps: 0 }
   }
 
   pub fn find_method(
