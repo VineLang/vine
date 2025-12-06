@@ -68,7 +68,7 @@ impl Resolver<'_> {
     span: Span,
     label: Label,
     pat: &Pat,
-    iter: &Expr,
+    collection: &Expr,
     ty: &Option<Ty>,
     block: &Block,
     else_: &Option<Block>,
@@ -81,8 +81,20 @@ impl Resolver<'_> {
       TargetInfo { id: target_id, break_ty: ty, continue_: true },
       |self_| {
         self_.enter_scope();
-        let iter = self_.resolve_expr(iter);
+        let collection = self_.resolve_expr(collection);
         let pat = self_.resolve_pat(pat);
+        let iter = if self_.chart.builtins.iter.is_some() {
+          let iter_ty = self_.types.new_var(span);
+          let rel = self_.builtin_fn(
+            span,
+            self_.chart.builtins.iter,
+            "iter",
+            [collection.ty, iter_ty, pat.ty],
+          )?;
+          TirExpr::new(span, iter_ty, TirExprKind::Call(rel, None, vec![collection]))
+        } else {
+          collection
+        };
         let rel =
           self_.builtin_fn(span, self_.chart.builtins.advance, "advance", [iter.ty, pat.ty])?;
         let block = self_.resolve_block_nil(block);

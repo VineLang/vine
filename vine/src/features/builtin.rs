@@ -43,6 +43,7 @@ pub enum Builtin {
   BoundInclusive,
   BoundExclusive,
   Advance,
+  Iter,
   Tuple,
   Object,
   Struct,
@@ -104,6 +105,7 @@ impl VineParser<'_> {
       "BoundInclusive" => Builtin::BoundInclusive,
       "BoundExclusive" => Builtin::BoundExclusive,
       "advance" => Builtin::Advance,
+      "iter" => Builtin::Iter,
       "Tuple" => Builtin::Tuple,
       "Object" => Builtin::Object,
       "Struct" => Builtin::Struct,
@@ -154,6 +156,7 @@ pub struct Builtins {
   pub bound_unbounded: Option<StructId>,
 
   pub advance: Option<FnId>,
+  pub iter: Option<FnId>,
 
   pub tuple: Option<TraitId>,
   pub object: Option<TraitId>,
@@ -236,6 +239,7 @@ impl Charter<'_> {
       Builtin::BoundExclusive => set(&mut builtins.bound_exclusive, struct_id),
       Builtin::BoundInclusive => set(&mut builtins.bound_inclusive, struct_id),
       Builtin::Advance => set(&mut builtins.advance, fn_id),
+      Builtin::Iter => set(&mut builtins.iter, fn_id),
       Builtin::Tuple => set(&mut builtins.tuple, trait_id),
       Builtin::Object => set(&mut builtins.object, trait_id),
       Builtin::Struct => set(&mut builtins.struct_, trait_id),
