@@ -1,0 +1,72 @@
+error: expected type `Option[?5]`; found `Option[Option[?5]]`
+   @ tests/programs/fail/occurs.vi:4:9
+ 4 |   foo = if true {
+ 5 |     Some(foo)
+ 6 |   } else {
+ 7 |     None()
+ 8 |   };
+
+error: expected type `?18`; found `(~?18,)`
+    @ tests/programs/fail/occurs.vi:11:7
+ 11 |   x = (~x,);
+
+error: expected type `?20`; found `(?20,)`
+    @ tests/programs/fail/occurs.vi:16:7
+ 16 |   y = (z,);
+
+error: search limit reached when finding flex of type `Option[?5]`
+   @ tests/programs/fail/occurs.vi:3:7
+ 3 |   let foo = None();
+
+error: search limit reached when finding flex of type `?18`
+    @ tests/programs/fail/occurs.vi:10:7
+ 10 |   let x;
+
+error: search limit reached when finding flex of type `?20`
+    @ tests/programs/fail/occurs.vi:13:7
+ 13 |   let y;
+
+error: search limit reached when finding flex of type `?20`
+    @ tests/programs/fail/occurs.vi:14:7
+ 14 |   let z;
+
+error: search limit reached when finding flex of type `Option[Option[?5]]`
+   @ tests/programs/fail/occurs.vi:4:9
+ 4 |   foo = if true {
+ 5 |     Some(foo)
+ 6 |   } else {
+ 7 |     None()
+ 8 |   };
+
+error: cannot drop `Option[?5]`
+   @ tests/programs/fail/occurs.vi:3:7
+ 3 |   let foo = None();
+
+error: cannot drop `?18`
+    @ tests/programs/fail/occurs.vi:10:7
+ 10 |   let x;
+
+error: cannot drop `?18`
+    @ tests/programs/fail/occurs.vi:10:7
+ 10 |   let x;
+
+error: cannot drop `?20`
+    @ tests/programs/fail/occurs.vi:13:7
+ 13 |   let y;
+
+error: cannot drop `?20`
+    @ tests/programs/fail/occurs.vi:13:7
+ 13 |   let y;
+
+error: variable of type `?20` read whilst uninitialized
+    @ tests/programs/fail/occurs.vi:14:7
+ 14 |   let z;
+
+error: cannot fork `?20`
+    @ tests/programs/fail/occurs.vi:14:7
+ 14 |   let z;
+
+warning: unused variable
+   @ tests/programs/fail/occurs.vi:2:14
+ 2 | pub fn main(&io: &IO) {
+
