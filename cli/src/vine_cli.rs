@@ -23,16 +23,18 @@ use super::{Optimizations, RunArgs};
 #[derive(Debug, Parser)]
 #[command(name = "vine", version, about = "Vine's CLI", propagate_version = true)]
 pub enum VineCommand {
-  #[command(about = "Build and run a Vine program")]
+  /// Build and run a Vine program
   Run(VineRunCommand),
-  #[command(about = "Compile a Vine program to Ivy")]
+  /// Compile a Vine program to Ivy
   Build(VineBuildCommand),
+  /// Run tests in a Vine program
+  Test(VineTestCommand),
 
   Fmt(VineFmtCommand),
   Repl(VineReplCommand),
   Lsp(VineLspCommand),
 
-  #[command(about = "Generate shell completion scripts")]
+  /// Generate shell completion scripts
   Completion(VineCompletionCommand),
 
   #[command(hide = true)]
@@ -44,6 +46,7 @@ impl VineCommand {
     match Self::parse() {
       VineCommand::Run(run) => run.execute(),
       VineCommand::Build(build) => build.execute(),
+      VineCommand::Test(test) => test.execute(),
       VineCommand::Repl(repl) => repl.execute(),
       VineCommand::Fmt(fmt) => fmt.execute(),
       VineCommand::Lsp(lsp) => lsp.execute(),
@@ -55,7 +58,6 @@ impl VineCommand {
 
 #[derive(Debug, Args)]
 pub struct CompileArgs {
-  #[arg()]
   main: PathBuf,
   #[arg(long = "lib")]
   libs: Vec<PathBuf>,
@@ -63,6 +65,8 @@ pub struct CompileArgs {
   no_root: bool,
   #[arg(long)]
   debug: bool,
+  #[arg(hide = true, long, default_value_t)]
+  test: bool,
 }
 
 impl CompileArgs {
@@ -71,7 +75,8 @@ impl CompileArgs {
       self.libs.push(root_path())
     }
 
-    let mut compiler = Compiler::new(self.debug, Config::default());
+    let config = Config::new(self.debug, self.test);
+    let mut compiler = Compiler::new(config);
 
     compiler.loader.load_main_mod(&self.main, &mut compiler.diags);
     for lib in self.libs {
@@ -81,12 +86,12 @@ impl CompileArgs {
     compiler
   }
 
-  fn compile(self) -> Nets {
+  fn compile(self) -> (Nets, Compiler) {
     let mut compiler = self.initialize();
     let result = compiler.compile(());
     eprint_diags(&compiler);
     match result {
-      Ok(nets) => nets,
+      Ok(nets) => (nets, compiler),
       Err(_) => {
         exit(1);
       }
@@ -126,9 +131,58 @@ pub struct VineRunCommand {
 impl VineRunCommand {
   pub fn execute(self) -> Result<()> {
     let debug = self.compile.debug;
-    let mut nets = self.compile.compile();
+    let (mut nets, _) = self.compile.compile();
     self.optimizations.apply(&mut nets);
     self.run_args.run(nets, !debug);
+    Ok(())
+  }
+}
+
+#[derive(Debug, Args)]
+pub struct VineTestCommand {
+  #[command(flatten)]
+  compile: CompileArgs,
+  #[command(flatten)]
+  optimizations: Optimizations,
+  #[command(flatten)]
+  run_args: RunArgs,
+
+  /// The test path to run. If not provided, all test paths in MAIN are printed.
+  test_path: Option<String>,
+}
+
+impl VineTestCommand {
+  pub fn execute(mut self) -> Result<()> {
+    let debug = self.compile.debug;
+    self.compile.test = true;
+
+    let (mut nets, mut compiler) = self.compile.compile();
+
+    let Some(test_path) = self.test_path else {
+      for concrete_fn_id in compiler.chart.tests {
+        let def_id = compiler.chart.concrete_fns[concrete_fn_id].def;
+        let path = &compiler.chart.defs[def_id].path;
+
+        println!("{path}");
+      }
+
+      return Ok(());
+    };
+
+    let Some(test_concrete_fn_id) = compiler.chart.tests.iter().find(|concrete_fn_id| {
+      let def_id = compiler.chart.concrete_fns[**concrete_fn_id].def;
+      compiler.chart.defs[def_id].path == test_path
+    }) else {
+      eprintln!("test path {test_path:?} does not exist");
+      exit(1);
+    };
+
+    let main_fragment_id = compiler.resolutions.fns[*test_concrete_fn_id];
+    compiler.insert_main_net(&mut nets, main_fragment_id);
+
+    self.optimizations.apply(&mut nets);
+    self.run_args.run(nets, !debug);
+
     Ok(())
   }
 }
@@ -145,7 +199,7 @@ pub struct VineBuildCommand {
 
 impl VineBuildCommand {
   pub fn execute(self) -> Result<()> {
-    let mut nets = self.compile.compile();
+    let (mut nets, _) = self.compile.compile();
     self.optimizations.apply(&mut nets);
     if let Some(out) = self.out {
       fs::write(out, nets.to_string())?;
@@ -180,7 +234,8 @@ impl VineReplCommand {
     host.register_default_extrinsics(&mut extrinsics);
 
     let mut ivm = IVM::new(&heap, &extrinsics);
-    let mut compiler = Compiler::new(!self.no_debug, Config::default());
+    let config = Config::new(!self.no_debug, false);
+    let mut compiler = Compiler::new(config);
     let mut repl = match Repl::new(host, &mut ivm, &mut compiler, self.libs) {
       Ok(repl) => repl,
       Err(_) => {

@@ -152,6 +152,9 @@ impl<'a> Resolver<'a> {
     for id in self.chart.impls.keys_from(checkpoint.impls) {
       self.resolve_impl_become(id);
     }
+    for id in &self.chart.tests {
+      self.resolve_test_fn(*id);
+    }
     if let Some(main_mod) = self.chart.main_mod
       && main_mod >= checkpoint.defs
     {
@@ -178,23 +181,8 @@ impl<'a> Resolver<'a> {
     let path =
       Path { span, absolute: true, segments: vec![main_mod_name, main_ident], generics: None };
     let fn_id = self.resolve_path(DefId::NONE, &path, "fn", |def| def.fn_id())?;
-    let generics = &self.chart.generics[self.chart.fn_generics(fn_id)];
-    if !generics.type_params.is_empty()
-      || !generics.impl_params.is_empty()
-      || generics.parent.is_some()
-    {
-      Err(Diag::GenericMain { span })?
-    }
     let FnId::Concrete(fn_id) = fn_id else { unreachable!() };
-    let fn_def = &self.chart.concrete_fns[fn_id];
-    let span = fn_def.span;
-    let io = self.builtin_ty(span, "IO", self.chart.builtins.io);
-    let io_ref = self.types.new(TypeKind::Ref(io));
-    let nil = self.types.nil();
-    let expected =
-      FnSig { names: vec![Some(Ident("io".into()))], param_tys: vec![io_ref], ret_ty: nil };
-    let found = self.types.import(&self.sigs.concrete_fns[fn_id], None);
-    Self::expect_fn_sig(self.diags, self.chart, &mut self.types, span, expected, found);
+    self.expect_entrypoint_sig(fn_id)?;
     Ok(fn_id)
   }
 
@@ -271,6 +259,26 @@ impl<'a> Resolver<'a> {
         found: types.show_fn_sig(chart, &found_sig),
       });
     }
+  }
+
+  pub(crate) fn expect_entrypoint_sig(&mut self, concrete_fn_id: ConcreteFnId) -> Result<(), Diag> {
+    let fn_def = &self.chart.concrete_fns[concrete_fn_id];
+    let generics = &self.chart.generics[fn_def.generics];
+    let span = fn_def.span;
+    if !generics.type_params.is_empty()
+      || !generics.impl_params.is_empty()
+      || generics.parent.is_some()
+    {
+      Err(Diag::GenericEntrypoint { span })?
+    }
+    let io = self.builtin_ty(span, "IO", self.chart.builtins.io);
+    let io_ref = self.types.new(TypeKind::Ref(io));
+    let nil = self.types.nil();
+    let expected =
+      FnSig { names: vec![Some(Ident("io".into()))], param_tys: vec![io_ref], ret_ty: nil };
+    let found = self.types.import(&self.sigs.concrete_fns[concrete_fn_id], None);
+    Self::expect_fn_sig(self.diags, self.chart, &mut self.types, span, expected, found);
+    Ok(())
   }
 
   pub(crate) fn resolve_trait(&mut self, trait_: &Trait) -> ImplType {
@@ -596,6 +604,12 @@ impl<'a> Resolver<'a> {
           self.types.nil()
         }
       }
+    }
+  }
+
+  pub(crate) fn resolve_test_fn(&mut self, concrete_fn_id: ConcreteFnId) {
+    if let Err(diag) = self.expect_entrypoint_sig(concrete_fn_id) {
+      self.diags.error(diag);
     }
   }
 }

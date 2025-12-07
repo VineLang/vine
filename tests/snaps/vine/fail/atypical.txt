@@ -142,7 +142,9 @@ error: expected type `()`; found `N32`
     @ tests/programs/fail/atypical.vi:33:3
  33 |   123
 
-error: main cannot be generic
+error: entrypoint cannot be generic
+   @ tests/programs/fail/atypical.vi:6:8
+ 6 | pub fn main[T, U](io: IO) {
 
 error: search limit reached when finding flex of type `?0`
    @ tests/programs/fail/atypical.vi:4:8
