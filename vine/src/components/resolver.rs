@@ -182,7 +182,7 @@ impl<'a> Resolver<'a> {
       Path { span, absolute: true, segments: vec![main_mod_name, main_ident], generics: None };
     let fn_id = self.resolve_path(DefId::NONE, &path, "fn", |def| def.fn_id())?;
     let FnId::Concrete(fn_id) = fn_id else { unreachable!() };
-    self.expect_main_fn_sig(fn_id)?;
+    self.expect_entrypoint_sig(fn_id)?;
     Ok(fn_id)
   }
 
@@ -261,7 +261,7 @@ impl<'a> Resolver<'a> {
     }
   }
 
-  pub(crate) fn expect_main_fn_sig(&mut self, concrete_fn_id: ConcreteFnId) -> Result<(), Diag> {
+  pub(crate) fn expect_entrypoint_sig(&mut self, concrete_fn_id: ConcreteFnId) -> Result<(), Diag> {
     let fn_def = &self.chart.concrete_fns[concrete_fn_id];
     let generics = &self.chart.generics[fn_def.generics];
     let span = fn_def.span;
@@ -269,7 +269,7 @@ impl<'a> Resolver<'a> {
       || !generics.impl_params.is_empty()
       || generics.parent.is_some()
     {
-      Err(Diag::GenericMain { span })?
+      Err(Diag::GenericEntrypoint { span })?
     }
     let io = self.builtin_ty(span, "IO", self.chart.builtins.io);
     let io_ref = self.types.new(TypeKind::Ref(io));
@@ -607,9 +607,9 @@ impl<'a> Resolver<'a> {
   }
 
   pub(crate) fn resolve_test_fn(&mut self, concrete_fn_id: ConcreteFnId) {
-    match self.expect_main_fn_sig(concrete_fn_id) {
-      Err(Diag::GenericMain { span }) => {
-        self.diags.error(Diag::GenericTest { span });
+    match self.expect_entrypoint_sig(concrete_fn_id) {
+      Err(Diag::GenericEntrypoint { span }) => {
+        self.diags.error(Diag::GenericEntrypoint { span });
       }
       Err(diag) => {
         self.diags.error(diag);

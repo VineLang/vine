@@ -29,14 +29,14 @@ impl Config {
   pub fn debug(&self) -> bool {
     match self.values.get(&Ident("debug".into())) {
       Some(ConfigValue::Bool(debug)) => *debug,
-      _ => false,
+      _ => unreachable!(),
     }
   }
 
   pub fn test(&self) -> bool {
     match self.values.get(&Ident("test".into())) {
       Some(ConfigValue::Bool(test)) => *test,
-      _ => false,
+      _ => unreachable!(),
     }
   }
 }

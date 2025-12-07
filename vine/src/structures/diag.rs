@@ -237,10 +237,8 @@ diags! {
     ["cannot try `{tried}` in a function returning `{ret}`"]
   MissingBlockExpr { ty: String }
     ["expected a value of type `{ty}` to evaluate to"]
-  GenericMain
-    ["main cannot be generic"]
-  GenericTest
-    ["test cannot be generic"]
+  GenericEntrypoint
+    ["entrypoint cannot be generic"]
   InfiniteLoop
     ["unconditional infinite loops are invalid"]
   NonExhaustiveMatch
@@ -290,13 +288,13 @@ diags! {
   BadCfgType { name: Ident, kind: &'static str }
     ["expected `{name}` to be a {kind} configuration value"]
   BadFramelessAttr
-    ["the `#[frameless]` attribute can only be applied to an fn"]
+    ["the `#[frameless]` attribute can only be applied to a function"]
   UnusedVariable
     ["unused variable"]
   UnusedItem
     ["unused item"]
   BadTestAttr
-    ["the `#[test]` attribute can only be applied to an fn"]
+    ["the `#[test]` attribute can only be applied to a function"]
 }
 
 fn plural<'a>(n: usize, plural: &'a str, singular: &'a str) -> &'a str {
