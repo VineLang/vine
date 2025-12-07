@@ -226,12 +226,14 @@ impl Types {
       return Success;
     }
 
-    let a_kind = a_state.take_kind().unwrap();
-    let b_kind = b_state.take_kind().unwrap();
+    let (a_inv, a_kind) = a_state.kind().unwrap();
+    let (b_inv, b_kind) = b_state.kind().unwrap();
+    let a_kind = a_kind.clone();
+    let b_kind = b_kind.clone();
 
-    let inverted = Inverted(a_kind.0 ^ a.inv() != b_kind.0 ^ b.inv());
+    let inverted = Inverted(a_inv ^ a.inv() != b_inv ^ b.inv());
 
-    let result = match (&a_kind.1, &b_kind.1) {
+    let result = match (&a_kind, &b_kind) {
       (TypeKind::Error(e), _) | (_, TypeKind::Error(e)) => Indeterminate(*e),
       (TypeKind::Tuple(a), TypeKind::Tuple(b)) => self.unify_types(a, b, inverted),
       (TypeKind::Object(a), TypeKind::Object(b)) => self.unify_objects(a, b, inverted),
@@ -257,8 +259,8 @@ impl Types {
     let Root { state: a_state, size: a_size } = &mut *a_node else { unreachable!() };
     let Root { state: b_state, size: b_size } = &mut *b_node else { unreachable!() };
 
-    *a_state = Known(a_kind.0, a_kind.1);
-    *b_state = Known(b_kind.0, b_kind.1);
+    *a_state = Known(a_inv, a_kind);
+    *b_state = Known(b_inv, b_kind);
 
     if result.is_success() {
       if a_size > b_size {
@@ -309,8 +311,12 @@ impl Types {
   }
 
   fn occurs(&self, var: Type, ty: Type) -> bool {
-    ty == var
-      || self.kind(ty).as_ref().is_some_and(|kind| kind.1.children().any(|t| self.occurs(var, t)))
+    debug_assert!(var == self.find(var) && ty == self.find(ty));
+    ty.idx() == var.idx()
+      || self
+        .kind(ty)
+        .as_ref()
+        .is_some_and(|kind| kind.1.children().any(|t| self.occurs(var, self.find(t))))
   }
 
   fn find(&self, ty: Type) -> Type {
