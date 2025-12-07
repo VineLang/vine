@@ -6,157 +6,157 @@ let io: IO;
 > /clear io
 
 > io.println(let "Hello, world!")
-error: expected one of {DotDot, DotDotEq, Amp, AmpAmp, Hash, Plus, Minus, Star, StarStar, Bang, Tilde, OpenBrace, OpenParen, CloseParen, OpenBracket, Hole, Fn, InlineIvy, Match, Do, Loop, While, For, If, When, True, False, Ident, Num, DoubleQuote, SingleQuote}; found Let
+error: expected `..`, `..=`, `&`, `&&`, `#`, `+`, `-`, `*`, `**`, `!`, `~`, `{`, `(`, `)`, `[`, `_`, `fn`, `inline_ivy!`, `match`, `do`, `loop`, `while`, `for`, `if`, `when`, `true`, `false`, an identifier, a numeric literal, a string literal, or a character literal; found `let`
    @ input:1:12
  1 | io.println(let "Hello, world!")
 
 
 > io.println("Hello, world!" let)
-error: expected one of {Dot, DotDot, DotDotEq, Comma, Amp, Pipe, Caret, Plus, PlusPlus, Minus, Star, StarStar, Slash, Percent, Bang, Tilde, Eq, EqEq, Ne, Lt, Gt, Le, Ge, Shl, Shr, OpenParen, CloseParen, As, Impl, Is, And, Or}; found Let
+error: expected `.`, `..`, `..=`, `,`, `&`, `|`, `^`, `+`, `++`, `-`, `*`, `**`, `/`, `%`, `!`, `~`, `=`, `==`, `!=`, `<`, `>`, `<=`, `>=`, `<<`, `>>`, `(`, `)`, `as`, `impl`, `is`, `and`, or `or`; found `let`
    @ input:1:28
  1 | io.println("Hello, world!" let)
 
 
 > io.println(Hello world!)
-error: expected one of {Dot, DotDot, DotDotEq, Comma, ColonColon, Amp, Pipe, Caret, Plus, PlusPlus, Minus, Star, StarStar, Slash, Percent, Bang, Tilde, Eq, EqEq, Ne, Lt, Gt, Le, Ge, Shl, Shr, OpenParen, CloseParen, OpenBracket, As, Impl, Is, And, Or}; found Ident
+error: expected `.`, `..`, `..=`, `,`, `::`, `&`, `|`, `^`, `+`, `++`, `-`, `*`, `**`, `/`, `%`, `!`, `~`, `=`, `==`, `!=`, `<`, `>`, `<=`, `>=`, `<<`, `>>`, `(`, `)`, `[`, `as`, `impl`, `is`, `and`, or `or`; found an identifier
    @ input:1:18
  1 | io.println(Hello world!)
 
 
 > let let: leet = leet
-error: expected one of {Amp, AmpAmp, Hash, Star, StarStar, Tilde, OpenBrace, OpenParen, Hole, Fn, Ident}; found Let
+error: expected `&`, `&&`, `#`, `*`, `**`, `~`, `{`, `(`, `_`, `fn`, or an identifier; found `let`
    @ input:1:5
  1 | let let: leet = leet
 
 
 > let leet: let = leet
-error: expected one of {Dot, Amp, AmpAmp, Hash, Bang, Tilde, OpenBrace, OpenParen, Hole, Fn, Ident}; found Let
+error: expected `.`, `&`, `&&`, `#`, `!`, `~`, `{`, `(`, `_`, `fn`, or an identifier; found `let`
    @ input:1:11
  1 | let leet: let = leet
 
 
 > let leet: leet = let
-error: expected one of {DotDot, DotDotEq, Amp, AmpAmp, Hash, Plus, Minus, Star, StarStar, Bang, Tilde, OpenBrace, OpenParen, OpenBracket, Hole, Fn, InlineIvy, Match, Do, Loop, While, For, If, When, True, False, Ident, Num, DoubleQuote, SingleQuote}; found Let
+error: expected `..`, `..=`, `&`, `&&`, `#`, `+`, `-`, `*`, `**`, `!`, `~`, `{`, `(`, `[`, `_`, `fn`, `inline_ivy!`, `match`, `do`, `loop`, `while`, `for`, `if`, `when`, `true`, `false`, an identifier, a numeric literal, a string literal, or a character literal; found `let`
    @ input:1:18
  1 | let leet: leet = let
 
 
 > as far as the eye can see
-error: expected one of {DotDot, DotDotEq, Semi, Amp, AmpAmp, Hash, HashBracket, Plus, Minus, Star, StarStar, Slash, Bang, Tilde, OpenBrace, OpenParen, OpenBracket, Hole, Pub, Mod, Use, Fn, Struct, Enum, Type, InlineIvy, Trait, Impl, Match, Let, Const, Return, Do, Loop, While, For, Break, Continue, If, Assert, When, True, False, Ident, Num, DoubleQuote, SingleQuote, DocComment, Eof}; found As
+error: expected `..`, `..=`, `;`, `&`, `&&`, `#`, `#[`, `+`, `-`, `*`, `**`, `/`, `!`, `~`, `{`, `(`, `[`, `_`, `pub`, `mod`, `use`, `fn`, `struct`, `enum`, `type`, `inline_ivy!`, `trait`, `impl`, `match`, `let`, `const`, `return`, `do`, `loop`, `while`, `for`, `break`, `continue`, `if`, `assert`, `when`, `true`, `false`, an identifier, a numeric literal, a string literal, a character literal, a doc comment, or eof; found `as`
    @ input:1:1
  1 | as far as the eye can see
 
 
 > mod mod { leet }
-error: expected one of {Semi, Ident}; found Mod
+error: expected `;` or an identifier; found `mod`
    @ input:1:5
  1 | mod mod { leet }
 
 
 > mod mood { let }
-error: expected one of {HashBracket, CloseBrace, Pub, Mod, Use, Fn, Struct, Enum, Type, Trait, Impl, Const, DocComment}; found Let
+error: expected `#[`, `}`, `pub`, `mod`, `use`, `fn`, `struct`, `enum`, `type`, `trait`, `impl`, `const`, or a doc comment; found `let`
    @ input:1:12
  1 | mod mood { let }
 
 
 > struct enum
-error: expected one of {Plus, Star, Question, Ident}; found Enum
+error: expected `+`, `*`, `?`, or an identifier; found `enum`
    @ input:1:8
  1 | struct enum
 
 
 > struct foo {}
-error: expected one of {OpenParen, OpenBracket}; found OpenBrace
+error: expected `(` or `[`; found `{`
    @ input:1:12
  1 | struct foo {}
 
 
 > struct foo(let)
-error: expected one of {Dot, Amp, AmpAmp, Hash, Bang, Tilde, OpenBrace, OpenParen, CloseParen, Hole, Pub, Fn, Ident}; found Let
+error: expected `.`, `&`, `&&`, `#`, `!`, `~`, `{`, `(`, `)`, `_`, `pub`, `fn`, or an identifier; found `let`
    @ input:1:12
  1 | struct foo(let)
 
 
 > enum foo { let }
-error: expected one of {CloseBrace, Ident}; found Let
+error: expected `}` or an identifier; found `let`
    @ input:1:12
  1 | enum foo { let }
 
 
 > enum foo { leet let }
-error: expected one of {OpenParen}; found Let
+error: expected `(`; found `let`
    @ input:1:17
  1 | enum foo { leet let }
 
 
 > enum foo { leet(let) }
-error: expected one of {Dot, Amp, AmpAmp, Hash, Bang, Tilde, OpenBrace, OpenParen, CloseParen, Hole, Fn, Ident}; found Let
+error: expected `.`, `&`, `&&`, `#`, `!`, `~`, `{`, `(`, `)`, `_`, `fn`, or an identifier; found `let`
    @ input:1:17
  1 | enum foo { leet(let) }
 
 
 > enum foo { leet(leet let) }
-error: expected one of {Comma, ColonColon, CloseParen, OpenBracket}; found Let
+error: expected `,`, `::`, `)`, or `[`; found `let`
    @ input:1:22
  1 | enum foo { leet(leet let) }
 
 
 > enum foo { leet() let }
-error: expected one of {Comma, CloseBrace}; found Let
+error: expected `,` or `}`; found `let`
    @ input:1:19
  1 | enum foo { leet() let }
 
 
 > match a { b { c }, d { e } }
-error: expected one of {Amp, AmpAmp, Hash, Star, StarStar, Tilde, OpenBrace, CloseBrace, OpenParen, Hole, Ident}; found Comma
+error: expected `&`, `&&`, `#`, `*`, `**`, `~`, `{`, `}`, `(`, `_`, or an identifier; found `,`
    @ input:1:18
  1 | match a { b { c }, d { e } }
 
 
 > when a { b { c }, d { e } }
-error: expected one of {Dot, RightArrow, OpenBrace}; found Ident
+error: expected `.`, `->`, or `{`; found an identifier
    @ input:1:6
  1 | when a { b { c }, d { e } }
 
 
 > when { b { c }, d { e } }
-error: expected one of {DotDot, DotDotEq, Amp, AmpAmp, Hash, Plus, Minus, Star, StarStar, Bang, Tilde, OpenBrace, CloseBrace, OpenParen, OpenBracket, Hole, Fn, InlineIvy, Match, Do, Loop, While, For, If, When, True, False, Ident, Num, DoubleQuote, SingleQuote}; found Comma
+error: expected `..`, `..=`, `&`, `&&`, `#`, `+`, `-`, `*`, `**`, `!`, `~`, `{`, `}`, `(`, `[`, `_`, `fn`, `inline_ivy!`, `match`, `do`, `loop`, `while`, `for`, `if`, `when`, `true`, `false`, an identifier, a numeric literal, a string literal, or a character literal; found `,`
    @ input:1:15
  1 | when { b { c }, d { e } }
 
 
 > { let x = 1 }
-error: expected one of {CloseBrace, Ident}; found Let
+error: expected `}` or an identifier; found `let`
    @ input:1:3
  1 | { let x = 1 }
 
 
 > do { x: 1 }
-error: expected one of {Dot, DotDot, DotDotEq, Semi, ColonColon, Amp, AmpAmp, Pipe, Caret, Hash, HashBracket, Plus, PlusPlus, Minus, Star, StarStar, Slash, Percent, Bang, Tilde, Eq, EqEq, Ne, Lt, Gt, Le, Ge, Shl, Shr, OpenBrace, CloseBrace, OpenParen, OpenBracket, Hole, Pub, Mod, Use, As, Fn, Struct, Enum, Type, InlineIvy, Trait, Impl, Match, Let, Const, Is, Return, Do, Loop, While, For, Break, Continue, If, Assert, When, True, False, And, Or, Ident, Num, DoubleQuote, SingleQuote, DocComment}; found Colon
+error: expected `.`, `..`, `..=`, `;`, `::`, `&`, `&&`, `|`, `^`, `#`, `#[`, `+`, `++`, `-`, `*`, `**`, `/`, `%`, `!`, `~`, `=`, `==`, `!=`, `<`, `>`, `<=`, `>=`, `<<`, `>>`, `{`, `}`, `(`, `[`, `_`, `pub`, `mod`, `use`, `as`, `fn`, `struct`, `enum`, `type`, `inline_ivy!`, `trait`, `impl`, `match`, `let`, `const`, `is`, `return`, `do`, `loop`, `while`, `for`, `break`, `continue`, `if`, `assert`, `when`, `true`, `false`, `and`, `or`, an identifier, a numeric literal, a string literal, a character literal, or a doc comment; found `:`
    @ input:1:7
  1 | do { x: 1 }
 
 
 > (fn hi() {})
-error: expected one of {Plus, Star, Question, OpenParen}; found Ident
+error: expected `+`, `*`, `?`, or `(`; found an identifier
    @ input:1:5
  1 | (fn hi() {})
 
 
 > (fn (!) {})
-error: expected one of {Amp, AmpAmp, Hash, Star, StarStar, Tilde, OpenBrace, OpenParen, CloseParen, Hole, Ident}; found Bang
+error: expected `&`, `&&`, `#`, `*`, `**`, `~`, `{`, `(`, `)`, `_`, or an identifier; found `!`
    @ input:1:6
  1 | (fn (!) {})
 
 
 > use
-error: expected one of {Hash, OpenBrace, Ident}; found Eof
+error: expected `#`, `{`, or an identifier; found eof
    @ input:1:4
  1 | use
 
 
 > use #
-error: expected one of {Ident}; found Eof
+error: expected an identifier; found eof
    @ input:1:6
  1 | use #
 
@@ -168,25 +168,25 @@ error: cannot find `#foo`
 
 
 > use #foo::
-error: expected one of {OpenBrace, Ident}; found Eof
+error: expected `{` or an identifier; found eof
    @ input:1:11
  1 | use #foo::
 
 
 > use #foo::{
-error: expected one of {CloseBrace, Ident}; found Eof
+error: expected `}` or an identifier; found eof
    @ input:1:12
  1 | use #foo::{
 
 
 > use #foo::{bar
-error: expected one of {Comma, ColonColon, CloseBrace, As}; found Eof
+error: expected `,`, `::`, `}`, or `as`; found eof
    @ input:1:15
  1 | use #foo::{bar
 
 
 > use #foo::{bar as _
-error: expected one of {Comma, CloseBrace}; found Eof
+error: expected `,` or `}`; found eof
    @ input:1:20
  1 | use #foo::{bar as _
 
