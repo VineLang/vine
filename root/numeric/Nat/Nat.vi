@@ -33,7 +33,7 @@ pub mod Nat {
   pub impl add_n32: Add[Nat, N32, Nat] {
     fn add(Nat(a), n: N32) -> Nat {
       let carry = n;
-      for &a_num in a.iter_ref() {
+      for &a_num in &a {
         let new_carry = N32::add_high(a_num, carry) as N32;
         a_num += carry;
         carry = new_carry;
@@ -56,7 +56,7 @@ pub mod Nat {
 
       let result = [];
       let carry = false;
-      for b in b.iter() {
+      for b in b {
         let a = a.pop_front().assume();
         let ab = a + b;
         result.push_back(ab + carry as N32);
@@ -91,7 +91,7 @@ pub mod Nat {
       }
 
       let borrow = false;
-      for b in b.iter() {
+      for b in b {
         let a = a.pop_front().assume();
         let ab = a - b;
         push(ab - borrow as N32);
@@ -121,7 +121,7 @@ pub mod Nat {
       }
       let carry = 0;
       let result = [];
-      for num in a.iter() {
+      for num in a {
         let N64(lo, hi) = N64::mul_n32_n32(num, n);
         hi += N32::add_high(lo, carry) as N32;
         lo += carry;
@@ -145,7 +145,7 @@ pub mod Nat {
       }
       let leading = [];
       let current = 0[Nat];
-      for a_num in a!.iter() {
+      for a_num in a! {
         let prod = b * a_num;
         current += prod;
         leading.push_back(current!.pop_front().or_use(0));
@@ -188,7 +188,7 @@ pub mod Nat {
       q.push_front(qi);
     }
 
-    for a_num in nums.iter() {
+    for a_num in nums {
       let cur = N64(a_num, rem);
 
       let (qi, ri) = N64::div_rem_n32(cur, d);
@@ -264,7 +264,7 @@ pub mod Nat {
       let (leading_zeros, rem) = b.div_rem(32);
       if rem != 0 {
         let carry = 0;
-        for &num in a.iter_ref() {
+        for &num in &a {
           let new_carry = num >> (32 - rem);
           num = num << rem | carry;
           carry = new_carry;
@@ -286,7 +286,7 @@ pub mod Nat {
 
       if rem != 0 and a.pop_front() is Some(carry) {
         carry = carry >> rem;
-        for &num in a.iter_ref() {
+        for &num in &a {
           let new_carry = num >> rem;
           num = num << (32 - rem) | carry;
           carry = new_carry;
@@ -376,7 +376,7 @@ pub mod Nat {
       return None();
     }
     let num = 0[Nat];
-    for digit in str.iter() {
+    for digit in str {
       if digit == '_' {
         continue;
       }
@@ -412,7 +412,7 @@ pub mod Nat {
 
   pub fn .trailing_zeros(&Nat(parts)) -> N32 {
     let zeros = 0;
-    for &part in parts.iter_ref() {
+    for &part in &parts {
       zeros += N32::trailing_zeros(part);
       if part != 0 {
         break;

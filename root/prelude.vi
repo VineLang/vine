@@ -16,7 +16,7 @@ mod;
 
 pub use #root::{
   IO,
-  data::List,
+  data::{Iterator::Iterate as _, List},
   debug::{debug, Show, dbg, dbg_msg},
   logical::{Bool, Option::{Option, None, Some}, Result::{Result, Err, Ok}},
   numeric::{F32, I32, Int, N32, N64, Nat},

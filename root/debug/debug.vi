@@ -79,7 +79,7 @@ pub mod debug {
   pub fn error[M, T; Cast[M, String]](msg: M) -> T {
     let &state = debug_state();
     state.io.print("ERROR: {msg}\n");
-    for frame in state.stack.iter() {
+    for frame in state.stack {
       state.io.print("  @ {frame}\n");
     }
     unsafe::eraser

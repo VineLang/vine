@@ -92,8 +92,10 @@ pub mod Map[K, V; Ord[K]] {
     self!.remove_max()
   }
 
-  pub fn .iter_ref[...](&self: &Map[K, V]) -> IterRef[K, V] {
-    IterRef(self!.iter_ref())
+  pub impl iter_ref[...]: Cast[&Map[K, V], IterRef[K, V]] {
+    fn cast(&self: &Map[K, V]) -> IterRef[K, V] {
+      IterRef(self!.iter_ref())
+    }
   }
 
   pub struct IterRef[K, V](Set::IterRef[(K, V)]);
@@ -109,8 +111,10 @@ pub mod Map[K, V; Ord[K]] {
     pub impl drop[...]: Drop[IterRef[K, V]];
   }
 
-  pub fn .iter[...](self: Map[K, V]) -> Iter[K, V] {
-    Iter(self!.iter())
+  pub impl iter[...]: Cast[Map[K, V], Iter[K, V]] {
+    fn cast(self: Map[K, V]) -> Iter[K, V] {
+      Iter(self!.iter())
+    }
   }
 
   pub struct* Iter[K, V](Set::Iter[(K, V)]);
@@ -132,7 +136,7 @@ pub mod Map[K, V; Ord[K]] {
   pub impl show[... ; Show[K], Show[V]]: Show[Map[K, V]] {
     fn show(&self: &Map[K, V]) -> Show {
       let entries = [];
-      for &(key, value) in self.iter_ref() {
+      for &(key, value) in &self {
         entries.push_back((key.show(), value.show()));
       }
       Show::Constructor("Map", Show::Object(entries))

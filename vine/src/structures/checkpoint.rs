@@ -240,6 +240,7 @@ impl Builtins {
       bound_inclusive,
       bound_unbounded,
       advance,
+      iter,
       tuple,
       object,
       struct_,
@@ -278,6 +279,7 @@ impl Builtins {
     revert_idx(bound_inclusive, checkpoint.structs);
     revert_idx(bound_unbounded, checkpoint.structs);
     revert_fn(advance, checkpoint);
+    revert_fn(iter, checkpoint);
     revert_idx(tuple, checkpoint.traits);
     revert_idx(object, checkpoint.traits);
     revert_idx(struct_, checkpoint.traits);

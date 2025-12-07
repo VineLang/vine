@@ -55,7 +55,7 @@ pub mod String {
     let suffix = self;
     while suffix.len() >= sep.len() {
       let iter_ref = suffix.iter_ref();
-      for &a in sep.iter_ref() {
+      for &a in &sep {
         let (&b, _iter) = iter_ref.advance().assume();
         iter_ref = _iter;
         if a != b {
@@ -78,7 +78,7 @@ pub mod String {
       return Err(prefix);
     }
     let iter_ref = self.iter_ref();
-    for &a in prefix.iter_ref() {
+    for &a in &prefix {
       let (&b, _iter) = iter_ref.advance().assume();
       iter_ref = _iter;
       if a != b {
@@ -107,7 +107,7 @@ pub mod String {
       return false;
     }
     let self_iter = self.iter_ref();
-    for &a in prefix.iter_ref() {
+    for &a in &prefix {
       let (&b, _self_iter) = self_iter.advance().assume();
       self_iter = _self_iter;
       if a != b {
@@ -173,12 +173,16 @@ pub mod String {
     }
   }
 
-  pub fn .iter_ref(&String(chars)) -> List::IterRef[Char] {
-    chars.iter_ref()
+  pub impl iter_ref: Cast[&String, List::IterRef[Char]] {
+    fn cast(&String(chars)) -> List::IterRef[Char] {
+      chars.iter_ref()
+    }
   }
 
-  pub fn .iter(String(chars)) -> List::Iter[Char] {
-    chars.iter()
+  pub impl iter: Cast[String, List::Iter[Char]] {
+    fn cast(String(chars)) -> List::Iter[Char] {
+      chars.iter()
+    }
   }
 
   pub impl show: Show[String] {

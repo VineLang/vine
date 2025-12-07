@@ -2,16 +2,16 @@
 Error: the net did not return its `IO` handle
 
 Interactions
-  Total               45_402
+  Total               45_620
   Annihilate          19_008
   Commute                 22
-  Copy                 1_726
-  Erase                3_911
+  Copy                 1_734
+  Erase                3_919
   Expand               1_562
-  Call                18_471
+  Call                18_673
   Branch                 702
 
 Memory
-  Heap               201_024 B
-  Allocated          952_304 B
-  Freed              952_304 B
+  Heap               203_744 B
+  Allocated          955_664 B
+  Freed              955_664 B

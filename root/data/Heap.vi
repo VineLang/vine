@@ -140,7 +140,7 @@ pub mod Heap[T; Ord[T]] {
   pub impl from_list[...]: Cast[List[T], Heap[T]] {
     fn cast(list: List[T]) -> Heap[T] {
       let heap = Heap::empty;
-      for value in list.iter() {
+      for value in list {
         heap.insert(value);
       }
       heap
@@ -173,7 +173,7 @@ pub mod Heap[T; Ord[T]] {
   /// Iterate over the elements of the heap in ascending order.
   /// ```vi
   /// let heap = [3, 1, 2];
-  /// for value in heap.iter() {
+  /// for value in heap {
   ///   io.println("{value}");
   /// }
   /// ```
@@ -182,8 +182,10 @@ pub mod Heap[T; Ord[T]] {
   /// 2
   /// 3
   /// ```
-  pub fn .iter[...](self: Heap[T]) -> Iter[T] {
-    Iter(self)
+  pub impl iter[...]: Cast[Heap[T], Iter[T]] {
+    fn cast(self: Heap[T]) -> Iter[T] {
+      Iter(self)
+    }
   }
 
   pub mod Iter[...] {
