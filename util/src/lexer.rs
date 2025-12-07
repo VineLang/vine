@@ -1,6 +1,5 @@
 use std::{
   fmt::{self, Debug, Display},
-  marker::PhantomData,
   ops::Range,
 };
 
@@ -122,68 +121,58 @@ pub trait Lex<'src> {
 
 pub trait Token: Copy + Eq + Debug {
   fn into_u8(self) -> u8;
-
-  /// ## Safety
-  /// `value` was returned by `Self::into_u8`
-  unsafe fn from_u8(value: u8) -> Self;
 }
 
-#[derive(Clone, Copy)]
-pub struct TokenSet<T: Token>(u128, PhantomData<T>);
+#[derive(Clone)]
+pub struct TokenSet<T: Token> {
+  bits: u128,
+  groups: usize,
+  values: Vec<T>,
+}
 
 impl<T: Token> Default for TokenSet<T> {
   fn default() -> Self {
-    Self(0, PhantomData)
+    Self { bits: 0, values: vec![], groups: 0 }
   }
 }
 
 impl<T: Token> TokenSet<T> {
   pub fn reset(&mut self) {
-    self.0 = 0;
+    self.bits = 0;
+    self.groups = 0;
+    self.values.clear();
   }
 
-  pub fn add(&mut self, kind: T) {
-    self.0 |= 1 << kind.into_u8();
-  }
-}
-
-impl<T: Token> IntoIterator for TokenSet<T> {
-  type Item = T;
-  type IntoIter = TokenSetIter<T>;
-
-  fn into_iter(self) -> Self::IntoIter {
-    TokenSetIter(self.0, PhantomData)
-  }
-}
-
-#[derive(Clone, Copy)]
-pub struct TokenSetIter<T: Token>(u128, PhantomData<T>);
-
-impl<T: Token> Iterator for TokenSetIter<T> {
-  type Item = T;
-
-  fn next(&mut self) -> Option<Self::Item> {
-    if self.0 == 0 {
-      None
-    } else {
-      let x = self.0.trailing_zeros() as u8;
-      self.0 ^= 1 << x;
-      Some(unsafe { T::from_u8(x) })
+  pub fn add(&mut self, token: T) {
+    if self.groups == 0 {
+      let bit = 1 << token.into_u8();
+      if self.bits & bit == 0 {
+        self.bits |= bit;
+        self.values.push(token);
+      }
     }
+  }
+
+  pub fn start_group(&mut self, token: T) {
+    self.add(token);
+    self.groups += 1;
+  }
+
+  pub fn end_group(&mut self) {
+    self.groups -= 1;
   }
 }
 
 impl<T: Token> Debug for TokenSet<T> {
   fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-    f.debug_set().entries(*self).finish()
+    f.debug_set().entries(&self.values).finish()
   }
 }
 
 impl<T: Token + Display> Display for TokenSet<T> {
   fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-    let len = self.0.count_ones() as usize;
-    let mut iter = self.into_iter();
-    match len {
+    let mut iter = self.values.iter().copied();
+    match self.values.len() {
       0 => f.write_str("[unknown]"),
       1 => write!(f, "{}", iter.next().unwrap()),
       2 => write!(f, "{} or {}", iter.next().unwrap(), iter.next().unwrap()),
@@ -192,7 +181,7 @@ impl<T: Token + Display> Display for TokenSet<T> {
           if i != 0 {
             f.write_str(", ")?;
           }
-          if i == len - 1 {
+          if i == self.values.len() - 1 {
             f.write_str("or ")?;
           }
           write!(f, "{value}")?;

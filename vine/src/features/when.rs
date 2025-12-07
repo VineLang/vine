@@ -24,7 +24,7 @@ impl Parser<'_> {
     let ty = self.parse_arrow_ty()?;
     self.expect(Token::OpenBrace)?;
     let mut arms = Vec::new();
-    while !self.check(Token::Hole) && !self.check(Token::CloseBrace) {
+    while !self.check(Token::CloseBrace) && !self.check(Token::Hole) {
       let cond = self.parse_expr()?;
       let then = self.parse_block()?;
       arms.push((cond, then));

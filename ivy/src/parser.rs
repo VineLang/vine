@@ -31,7 +31,10 @@ impl<'src> Parse<'src> for Parser<'src> {
   }
 
   fn unexpected_error(&self) -> ParseError<'src> {
-    ParseError::UnexpectedToken { expected: self.state.expected, found: self.state.lexer.slice() }
+    ParseError::UnexpectedToken {
+      expected: self.state.expected.clone(),
+      found: self.state.lexer.slice(),
+    }
   }
 }
 

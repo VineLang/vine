@@ -1,4 +1,4 @@
-use std::{fmt, mem::transmute};
+use std::fmt;
 
 use vine_util::lexer::{Lex, LexerState, Token as TokenTrait};
 
@@ -100,6 +100,14 @@ pub enum Token {
   DocComment,
 
   Eof,
+
+  // Fake token types for better error reporting
+  GroupExpr,
+  GroupExprPostfix,
+  GroupPat,
+  GroupTy,
+  GroupStmt,
+  GroupItem,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -312,10 +320,6 @@ impl TokenTrait for Token {
   fn into_u8(self) -> u8 {
     self as u8
   }
-
-  unsafe fn from_u8(value: u8) -> Self {
-    unsafe { transmute::<u8, Token>(value) }
-  }
 }
 
 impl fmt::Display for Token {
@@ -336,7 +340,7 @@ impl fmt::Display for Token {
       Token::Caret => "`^`",
       Token::At => "`@`",
       Token::Hash => "`#`",
-      Token::HashBracket => "`#[`",
+      Token::HashBracket => "`#[]`",
       Token::Plus => "`+`",
       Token::PlusPlus => "`++`",
       Token::Minus => "`-`",
@@ -411,6 +415,13 @@ impl fmt::Display for Token {
       Token::DocComment => "a doc comment",
 
       Token::Eof => "eof",
+
+      Token::GroupExpr => "an expression",
+      Token::GroupExprPostfix => "an operator",
+      Token::GroupPat => "a pattern",
+      Token::GroupTy => "a type",
+      Token::GroupStmt => "a statement",
+      Token::GroupItem => "an item",
     })
   }
 }

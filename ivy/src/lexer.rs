@@ -1,4 +1,4 @@
-use std::{fmt::Debug, mem::transmute};
+use std::fmt::Debug;
 
 use vine_util::lexer::{Lex, LexerState, Token as TokenTrait};
 
@@ -117,9 +117,5 @@ impl<'src> Lex<'src> for Lexer<'src> {
 impl TokenTrait for Token {
   fn into_u8(self) -> u8 {
     self as u8
-  }
-
-  unsafe fn from_u8(value: u8) -> Self {
-    unsafe { transmute::<u8, Token>(value) }
   }
 }
