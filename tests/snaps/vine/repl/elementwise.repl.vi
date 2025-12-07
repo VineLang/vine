@@ -1,0 +1,25 @@
+
+let io: IO = <IO>;
+> use #root::ops::elementwise;
+
+let io: IO = <IO>;
+> { a: 1, b: 2.0 } + { b: 3.0, a: 4 }
+{ a: 5, b: 5.0 }
+
+let io: IO = <IO>;
+> (1, 2) + 10
+(11, 12)
+
+let io: IO = <IO>;
+> { a: 1, b: 2 } + 10
+{ a: 11, b: 12 }
+
+let io: IO = <IO>;
+> +(1, 2.0)
+(+1, 2.0)
+
+let io: IO = <IO>;
+> +{ a: 1, b: 2 }
+{ a: +1, b: +2 }
+
+let io: IO = <IO>;
