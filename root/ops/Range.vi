@@ -83,7 +83,7 @@ pub mod Range {
     }
   }
 
-  pub impl iterator[T*; Ord[T], Step[T]]: Iterator[Range[Inclusive[T], Exclusive[T]], T] {
+  pub impl exclusive_iter[T*; Ord[T], Step[T]]: Iterator[Range[Inclusive[T], Exclusive[T]], T] {
     fn advance(Range[Inclusive[T], Exclusive[T]](Inclusive[T](start), end)) -> Option[
       (T, Range[Inclusive[T], Exclusive[T]]);
     ] {
@@ -91,6 +91,33 @@ pub mod Range {
         Some(start, Range(Inclusive(start.step()), end))
       } else {
         None()
+      }
+    }
+  }
+
+  pub impl inclusive_iter[T*; Ord[T], Step[T]]: Cast[
+    Range[Inclusive[T], Inclusive[T]], InclusiveIter[T];
+  ] {
+    fn cast(Range[Inclusive[T], Inclusive[T]](Inclusive(start), Inclusive(end))) -> InclusiveIter[T] {
+      InclusiveIter(Some(start, end))
+    }
+  }
+
+  pub struct InclusiveIter[T](Option[(T, T)]);
+
+  pub mod InclusiveIter {
+    pub impl iter[T*; Ord[T], Step[T]]: Iterator[InclusiveIter[T], T] {
+      fn advance(InclusiveIter[T](state)) -> Option[(T, InclusiveIter[T])] {
+        match state {
+          None() { None() }
+          Some(start, end) {
+            if start < end {
+              Some(start, InclusiveIter(Some(start.step(), end)))
+            } else {
+              Some(start, InclusiveIter(None()))
+            }
+          }
+        }
       }
     }
   }
