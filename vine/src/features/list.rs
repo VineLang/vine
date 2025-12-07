@@ -1,11 +1,11 @@
 use ivy::ast::Tree;
-use vine_util::parser::Parser;
+use vine_util::parser::Parse;
 
 use crate::{
   components::{
     distiller::Distiller,
     emitter::Emitter,
-    parser::{BRACKET_COMMA, VineParser},
+    parser::{BRACKET_COMMA, Parser},
     resolver::Resolver,
   },
   structures::{
@@ -18,7 +18,7 @@ use crate::{
   tools::fmt::{Formatter, doc::Doc},
 };
 
-impl VineParser<'_> {
+impl Parser<'_> {
   pub(crate) fn parse_expr_list(&mut self) -> Result<ExprKind, Diag> {
     let elements = self.parse_delimited(BRACKET_COMMA, Self::parse_expr)?;
     Ok(ExprKind::List(elements))

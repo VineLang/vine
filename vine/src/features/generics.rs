@@ -1,9 +1,9 @@
 use std::mem::take;
 
-use vine_util::{idx::RangeExt, parser::Parser};
+use vine_util::{idx::RangeExt, parser::Parse};
 
 use crate::{
-  components::{charter::Charter, lexer::Token, parser::VineParser, resolver::Resolver},
+  components::{charter::Charter, lexer::Token, parser::Parser, resolver::Resolver},
   structures::{
     ast::{
       Flex, GenericArgs, GenericParams, Generics, ImplParam, Path, Span, Trait, TraitKind,
@@ -18,7 +18,7 @@ use crate::{
   tools::fmt::{Formatter, doc::Doc},
 };
 
-impl VineParser<'_> {
+impl Parser<'_> {
   pub(crate) fn parse_generic_params(&mut self) -> Result<GenericParams, Diag> {
     self.parse_generics(true, Self::parse_type_param, Self::parse_impl_param)
   }

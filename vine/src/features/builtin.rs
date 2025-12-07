@@ -1,7 +1,7 @@
 use vine_util::idx::IntMap;
 
 use crate::{
-  components::{charter::Charter, parser::VineParser},
+  components::{charter::Charter, parser::Parser},
   structures::{
     ast::{BinaryOp, ComparisonOp},
     chart::{
@@ -54,7 +54,7 @@ pub enum Builtin {
   ShowToString,
 }
 
-impl VineParser<'_> {
+impl Parser<'_> {
   pub(crate) fn parse_builtin(&mut self) -> Result<Builtin, Diag> {
     let span = self.start_span();
     let builtin = self.parse_string()?;

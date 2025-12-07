@@ -1,15 +1,15 @@
 use ivy::{
   ast::{Net, Tree},
-  parser::IvyParser,
+  parser::Parser as IvyParser,
 };
-use vine_util::parser::Parser;
+use vine_util::parser::Parse;
 
 use crate::{
   components::{
     distiller::Distiller,
     emitter::Emitter,
     lexer::Token,
-    parser::{PAREN_COMMA, VineParser},
+    parser::{PAREN_COMMA, Parser},
     resolver::Resolver,
   },
   structures::{
@@ -22,7 +22,7 @@ use crate::{
   tools::fmt::{Formatter, doc::Doc},
 };
 
-impl VineParser<'_> {
+impl Parser<'_> {
   pub(crate) fn parse_inline_ivy(&mut self) -> Result<ExprKind, Diag> {
     let span = self.span();
     self.bump()?;

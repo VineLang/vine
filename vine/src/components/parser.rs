@@ -1,6 +1,6 @@
 use std::mem::transmute;
 
-use vine_util::parser::{Parser, ParserState};
+use vine_util::parser::{Parse, ParserState};
 
 use crate::{
   components::{lexer::Token, loader::FileId},
@@ -15,12 +15,12 @@ use crate::structures::ast::{
   LogicalOp, Pat, PatKind, Span, Stmt, StmtKind, Trait, TraitKind, Ty, TyKind, Vis,
 };
 
-pub struct VineParser<'src> {
+pub struct Parser<'src> {
   pub(crate) state: ParserState<'src, Token>,
   pub(crate) file: FileId,
 }
 
-impl<'src> Parser<'src> for VineParser<'src> {
+impl<'src> Parse<'src> for Parser<'src> {
   type Token = Token;
   type Error = Diag;
 
@@ -41,9 +41,9 @@ impl<'src> Parser<'src> for VineParser<'src> {
   }
 }
 
-impl<'src> VineParser<'src> {
+impl<'src> Parser<'src> {
   pub fn parse(src: &'src str, file: FileId) -> Result<Vec<Item>, Diag> {
-    let mut parser = VineParser { state: ParserState::new(src), file };
+    let mut parser = Parser { state: ParserState::new(src), file };
     parser.bump()?;
     let mut items = Vec::new();
     while parser.state.token.is_some() {

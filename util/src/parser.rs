@@ -19,7 +19,7 @@ impl<'src, T: Token> ParserState<'src, T> {
   }
 }
 
-pub trait Parser<'src> {
+pub trait Parse<'src> {
   type Token: Token;
   type Error;
 
@@ -166,7 +166,7 @@ pub trait Parser<'src> {
     token.parse::<f32>().map_err(|_| err(token))
   }
 
-  fn switch<'a, P: Parser<'src> + 'a, T>(
+  fn switch<'a, P: Parse<'src> + 'a, T>(
     &mut self,
     new: impl FnOnce(ParserState<'src, P::Token>) -> P,
     parse: impl FnOnce(&mut P) -> Result<T, P::Error>,

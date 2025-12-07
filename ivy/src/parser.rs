@@ -1,6 +1,6 @@
 use vine_util::{
   lexer::TokenSet,
-  parser::{Parser, ParserState},
+  parser::{Parse, ParserState},
 };
 
 use crate::{
@@ -8,7 +8,7 @@ use crate::{
   lexer::Token,
 };
 
-pub struct IvyParser<'src> {
+pub struct Parser<'src> {
   pub state: ParserState<'src, Token>,
 }
 
@@ -21,9 +21,7 @@ pub enum ParseError<'src> {
   InvalidExtFn(&'src str),
 }
 
-type Parse<'src, T = ()> = Result<T, ParseError<'src>>;
-
-impl<'src> Parser<'src> for IvyParser<'src> {
+impl<'src> Parse<'src> for Parser<'src> {
   type Token = Token;
   type Error = ParseError<'src>;
 
@@ -40,9 +38,9 @@ impl<'src> Parser<'src> for IvyParser<'src> {
   }
 }
 
-impl<'src> IvyParser<'src> {
-  pub fn parse(src: &'src str) -> Parse<'src, Nets> {
-    let mut parser = IvyParser { state: ParserState::new(src) };
+impl<'src> Parser<'src> {
+  pub fn parse(src: &'src str) -> Result<Nets, ParseError<'src>> {
+    let mut parser = Parser { state: ParserState::new(src) };
     parser.bump()?;
     let mut nets = Nets::default();
     while parser.state.token.is_some() {
@@ -53,17 +51,17 @@ impl<'src> IvyParser<'src> {
     Ok(nets)
   }
 
-  fn parse_n32(&mut self) -> Parse<'src, u32> {
+  fn parse_n32(&mut self) -> Result<u32, ParseError<'src>> {
     let token = self.expect(Token::N32)?;
     self.parse_u32_like(token, ParseError::InvalidNum)
   }
 
-  fn parse_f32(&mut self) -> Parse<'src, f32> {
+  fn parse_f32(&mut self) -> Result<f32, ParseError<'src>> {
     let token = self.expect(Token::F32)?;
     self.parse_f32_like(token, ParseError::InvalidNum)
   }
 
-  fn parse_net(&mut self) -> Parse<'src, Net> {
+  fn parse_net(&mut self) -> Result<Net, ParseError<'src>> {
     self.expect(Token::OpenBrace)?;
     let net = self.parse_net_inner()?;
     self.expect(Token::CloseBrace)?;
@@ -71,7 +69,7 @@ impl<'src> IvyParser<'src> {
   }
 
   #[doc(hidden)] // used by Vine to parse `inline_ivy!`
-  pub fn parse_net_inner(&mut self) -> Parse<'src, Net> {
+  pub fn parse_net_inner(&mut self) -> Result<Net, ParseError<'src>> {
     let root = self.parse_tree()?;
     let mut pairs = Vec::new();
     while !self.check(Token::CloseBrace) {
@@ -80,14 +78,14 @@ impl<'src> IvyParser<'src> {
     Ok(Net { root, pairs })
   }
 
-  pub(super) fn parse_pair(&mut self) -> Parse<'src, (Tree, Tree)> {
+  pub(super) fn parse_pair(&mut self) -> Result<(Tree, Tree), ParseError<'src>> {
     let a = self.parse_tree()?;
     self.expect(Token::Eq)?;
     let b = self.parse_tree()?;
     Ok((a, b))
   }
 
-  fn parse_tree(&mut self) -> Parse<'src, Tree> {
+  fn parse_tree(&mut self) -> Result<Tree, ParseError<'src>> {
     if self.check(Token::N32) {
       return Ok(Tree::N32(self.parse_n32()?));
     }

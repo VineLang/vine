@@ -1,12 +1,12 @@
 use std::mem::take;
 
-use vine_util::{idx::IdxVec, parser::Parser};
+use vine_util::{idx::IdxVec, parser::Parse};
 
 use crate::{
   components::{
     charter::Charter,
     lexer::Token,
-    parser::{BRACE, VineParser},
+    parser::{BRACE, Parser},
     resolver::Resolver,
   },
   structures::{
@@ -28,7 +28,7 @@ use crate::{
   tools::fmt::{Formatter, doc::Doc},
 };
 
-impl VineParser<'_> {
+impl Parser<'_> {
   pub(crate) fn parse_impl_item(&mut self) -> Result<(Span, ItemKind), Diag> {
     self.expect(Token::Impl)?;
     let name_span = self.span();

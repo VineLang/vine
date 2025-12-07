@@ -1,9 +1,9 @@
-use vine_util::parser::Parser;
+use vine_util::parser::Parse;
 
 use crate::{
   components::{
     distiller::Distiller,
-    parser::{BRACE, VineParser},
+    parser::{BRACE, Parser},
     resolver::Resolver,
   },
   structures::{
@@ -16,7 +16,7 @@ use crate::{
   tools::fmt::{Formatter, doc::Doc},
 };
 
-impl VineParser<'_> {
+impl Parser<'_> {
   pub(crate) fn parse_block(&mut self) -> Result<Block, Diag> {
     let span = self.start_span();
     let stmts = self.parse_delimited(BRACE, Self::parse_stmt)?;

@@ -1,7 +1,7 @@
-use vine_util::parser::Parser;
+use vine_util::parser::Parse;
 
 use crate::{
-  components::{distiller::Distiller, lexer::Token, parser::VineParser, resolver::Resolver},
+  components::{distiller::Distiller, lexer::Token, parser::Parser, resolver::Resolver},
   structures::{
     ast::{Block, Expr, ExprKind, Span, Ty},
     diag::Diag,
@@ -12,7 +12,7 @@ use crate::{
   tools::fmt::{Formatter, doc::Doc},
 };
 
-impl VineParser<'_> {
+impl Parser<'_> {
   pub(crate) fn parse_expr_if(&mut self) -> Result<ExprKind, Diag> {
     self.expect(Token::If)?;
     let cond = self.parse_expr()?;

@@ -2,7 +2,7 @@ use std::mem::take;
 
 use vine_util::{
   idx::IdxVec,
-  parser::{Delimiters, Parser},
+  parser::{Delimiters, Parse},
 };
 
 use crate::{
@@ -13,7 +13,7 @@ use crate::{
     finder::Finder,
     lexer::Token,
     matcher::{MatchVar, MatchVarForm, MatchVarKind, Matcher, Row, VarId},
-    parser::{PAREN_COMMA, VineParser},
+    parser::{PAREN_COMMA, Parser},
     resolver::Resolver,
     synthesizer::SyntheticImpl,
   },
@@ -31,7 +31,7 @@ use crate::{
   tools::fmt::{Formatter, doc::Doc},
 };
 
-impl VineParser<'_> {
+impl Parser<'_> {
   pub(crate) fn parse_struct_item(&mut self) -> Result<(Span, ItemKind), Diag> {
     self.expect(Token::Struct)?;
     let flex = self.parse_flex()?;

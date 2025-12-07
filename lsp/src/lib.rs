@@ -10,7 +10,7 @@ use tower_lsp::{Client, LanguageServer, LspService, Server, jsonrpc::Result, lsp
 
 use vine::{
   compiler::Compiler,
-  components::{loader::FileId, parser::VineParser},
+  components::{loader::FileId, parser::Parser},
   features::cfg::Config,
   structures::{
     ast::{Item, ItemKind, Span, visit::VisitMut},
@@ -105,7 +105,7 @@ impl Lsp {
 
   fn document_symbols(&self, params: DocumentSymbolParams) -> Option<DocumentSymbolResponse> {
     let file = self.uri_to_file_id(params.text_document.uri)?;
-    let ast = VineParser::parse(&self.compiler.loader.files[file].src, file).ok()?;
+    let ast = Parser::parse(&self.compiler.loader.files[file].src, file).ok()?;
     struct Visitor<'a> {
       lsp: &'a Lsp,
       symbols: &'a mut Vec<DocumentSymbol>,

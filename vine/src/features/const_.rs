@@ -1,11 +1,11 @@
 use std::mem::take;
 
 use ivy::ast::Tree;
-use vine_util::parser::Parser;
+use vine_util::parser::Parse;
 
 use crate::{
   components::{
-    charter::Charter, distiller::Distiller, emitter::Emitter, lexer::Token, parser::VineParser,
+    charter::Charter, distiller::Distiller, emitter::Emitter, lexer::Token, parser::Parser,
     resolver::Resolver,
   },
   structures::{
@@ -21,7 +21,7 @@ use crate::{
   tools::fmt::{Formatter, doc::Doc},
 };
 
-impl VineParser<'_> {
+impl Parser<'_> {
   pub(crate) fn parse_const_item(&mut self) -> Result<(Span, ItemKind), Diag> {
     self.expect(Token::Const)?;
     let name_span = self.span();

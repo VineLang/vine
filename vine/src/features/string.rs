@@ -1,6 +1,6 @@
 use ivy::ast::Tree;
 
-use vine_util::parser::{Parser, ParserState};
+use vine_util::parser::{Parse, ParserState};
 
 use crate::{
   components::{
@@ -8,7 +8,7 @@ use crate::{
     emitter::Emitter,
     lexer::{StrToken, Token},
     loader::FileId,
-    parser::VineParser,
+    parser::Parser,
     resolver::Resolver,
   },
   structures::{
@@ -21,7 +21,7 @@ use crate::{
   tools::fmt::{Formatter, doc::Doc},
 };
 
-impl<'src> VineParser<'src> {
+impl<'src> Parser<'src> {
   pub(crate) fn parse_string(&mut self) -> Result<String, Diag> {
     if !self.check(Token::DoubleQuote) {
       self.unexpected()?;
@@ -77,7 +77,7 @@ struct StringParser<'src> {
   file: FileId,
 }
 
-impl<'src> Parser<'src> for StringParser<'src> {
+impl<'src> Parse<'src> for StringParser<'src> {
   type Token = StrToken;
   type Error = Diag;
 

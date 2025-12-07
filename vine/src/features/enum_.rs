@@ -1,7 +1,7 @@
 use std::mem::take;
 
 use ivy::ast::Tree;
-use vine_util::{idx::IdxVec, parser::Parser};
+use vine_util::{idx::IdxVec, parser::Parse};
 
 use crate::{
   components::{
@@ -11,7 +11,7 @@ use crate::{
     finder::Finder,
     lexer::Token,
     matcher::{MatchVar, MatchVarForm, MatchVarKind, Matcher, Row, VarId},
-    parser::{BRACE_COMMA, PAREN_COMMA, VineParser},
+    parser::{BRACE_COMMA, PAREN_COMMA, Parser},
     resolver::Resolver,
     synthesizer::SyntheticImpl,
   },
@@ -30,7 +30,7 @@ use crate::{
   tools::fmt::{Formatter, doc::Doc},
 };
 
-impl VineParser<'_> {
+impl Parser<'_> {
   pub(crate) fn parse_enum_item(&mut self) -> Result<(Span, ItemKind), Diag> {
     self.expect(Token::Enum)?;
     let flex = self.parse_flex()?;

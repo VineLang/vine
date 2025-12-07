@@ -1,12 +1,12 @@
 use std::collections::{BTreeMap, hash_map::Entry};
 
-use vine_util::parser::{Delimiters, Parser};
+use vine_util::parser::{Delimiters, Parse};
 
 use crate::{
   components::{
     charter::Charter,
     lexer::Token,
-    parser::{BRACE_COMMA, VineParser},
+    parser::{BRACE_COMMA, Parser},
     resolver::Resolver,
   },
   structures::{
@@ -18,7 +18,7 @@ use crate::{
   tools::fmt::{Formatter, doc::Doc},
 };
 
-impl VineParser<'_> {
+impl Parser<'_> {
   pub(crate) fn parse_use_item(&mut self) -> Result<(Span, ItemKind), Diag> {
     self.expect(Token::Use)?;
     let span = self.start_span();

@@ -1,12 +1,12 @@
 use std::collections::HashMap;
 
-use vine_util::parser::Parser;
+use vine_util::parser::Parse;
 
 use crate::{
   components::{
     charter::Charter,
     lexer::Token,
-    parser::{BP, VineParser},
+    parser::{BP, Parser},
   },
   structures::{
     ast::{Attr, AttrKind, Cfg, CfgKind, Ident, Span},
@@ -51,7 +51,7 @@ pub enum ConfigValue {
   Bool(bool),
 }
 
-impl VineParser<'_> {
+impl Parser<'_> {
   pub(crate) fn parse_cfg(&mut self) -> Result<Cfg, Diag> {
     self.parse_cfg_bp(BP::Min)
   }

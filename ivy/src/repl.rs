@@ -6,12 +6,12 @@ use ivm::{
   port::{Port, Tag},
   wire::Wire,
 };
-use vine_util::parser::{Parser, ParserState};
+use vine_util::parser::{Parse, ParserState};
 
 use crate::{
   ast::Tree,
   host::Host,
-  parser::{IvyParser, ParseError},
+  parser::{ParseError, Parser},
 };
 
 pub struct Repl<'host, 'ctx, 'ivm, 'ext> {
@@ -27,7 +27,7 @@ impl<'host, 'ctx, 'ivm, 'ext> Repl<'host, 'ctx, 'ivm, 'ext> {
   }
 
   pub fn exec<'s>(&mut self, line: &'s str) -> Result<(), ParseError<'s>> {
-    let mut parser = IvyParser { state: ParserState::new(line) };
+    let mut parser = Parser { state: ParserState::new(line) };
     parser.bump()?;
     let mut pairs = Vec::new();
     while parser.state.token.is_some() {

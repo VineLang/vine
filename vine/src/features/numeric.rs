@@ -1,9 +1,9 @@
 use ivy::ast::Tree;
-use vine_util::{nat::Nat, parser::Parser};
+use vine_util::{nat::Nat, parser::Parse};
 
 use crate::{
   components::{
-    distiller::Distiller, emitter::Emitter, lexer::Token, parser::VineParser, resolver::Resolver,
+    distiller::Distiller, emitter::Emitter, lexer::Token, parser::Parser, resolver::Resolver,
   },
   structures::{
     ast::{ExprKind, Span, Ty},
@@ -15,7 +15,7 @@ use crate::{
   tools::fmt::{Formatter, doc::Doc},
 };
 
-impl VineParser<'_> {
+impl Parser<'_> {
   pub(crate) fn parse_expr_numeric(&mut self) -> Result<ExprKind, Diag> {
     let span = self.span();
     let token = self.expect(Token::Num)?;
