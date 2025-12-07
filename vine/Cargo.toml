@@ -4,11 +4,8 @@ version = "0.0.0"
 edition = "2024"
 
 [dependencies]
-bitflags = "2.6.0"
 class = { rev = "99738e6", git = "https://github.com/tjjfvi/class" }
-loaned = "0.1.2"
 logos = "0.14.0"
-slab = "0.4.9"
 
 ivm = { path = "../ivm" }
 ivy = { path = "../ivy" }

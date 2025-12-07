@@ -724,12 +724,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "643cb0b8d4fcc284004d5fd0d67ccf61dfffadb7f75e1e71bc420f4688a3a704"
 
 [[package]]
-name = "loaned"
-version = "0.1.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a4c980a418236e2d8f7c239f73e49afc38e7f71772fcd3fc723d95c3d93a7591"
-
-[[package]]
 name = "lock_api"
 version = "0.4.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1378,13 +1372,10 @@ checksum = "0b928f33d975fc6ad9f86c8f283853ad26bdd5b10b7f1542aa2fa15e2289105a"
 name = "vine"
 version = "0.0.0"
 dependencies = [
- "bitflags 2.6.0",
  "class",
  "ivm",
  "ivy",
- "loaned",
  "logos",
- "slab",
  "vine-util",
 ]
 
