@@ -82,7 +82,7 @@ diags! {
   LexError
     ["lexing error"]
   UnexpectedToken { expected: TokenSet<Token>, found: Token }
-    ["expected one of {expected:?}; found {found:?}"]
+    ["expected {expected}; found {found}"]
   UnexpectedEofString
     ["unexpected eof inside string"]
   MultiCharLiteral

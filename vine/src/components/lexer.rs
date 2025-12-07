@@ -1,4 +1,4 @@
-use std::mem::transmute;
+use std::{fmt, mem::transmute};
 
 use vine_util::lexer::{Lex, LexerState, Token as TokenTrait};
 
@@ -315,5 +315,102 @@ impl TokenTrait for Token {
 
   unsafe fn from_u8(value: u8) -> Self {
     unsafe { transmute::<u8, Token>(value) }
+  }
+}
+
+impl fmt::Display for Token {
+  fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    f.write_str(match self {
+      Token::Dot => "`.`",
+      Token::DotDot => "`..`",
+      Token::DotDotDot => "`...`",
+      Token::DotDotEq => "`..=`",
+      Token::Comma => "`,`",
+      Token::Semi => "`;`",
+      Token::Colon => "`:`",
+      Token::ColonColon => "`::`",
+      Token::Amp => "`&`",
+      Token::AmpAmp => "`&&`",
+      Token::Pipe => "`|`",
+      Token::PipePipe => "`||`",
+      Token::Caret => "`^`",
+      Token::At => "`@`",
+      Token::Hash => "`#`",
+      Token::HashBracket => "`#[`",
+      Token::Plus => "`+`",
+      Token::PlusPlus => "`++`",
+      Token::Minus => "`-`",
+      Token::Star => "`*`",
+      Token::StarStar => "`**`",
+      Token::Slash => "`/`",
+      Token::Percent => "`%`",
+      Token::Bang => "`!`",
+      Token::Question => "`?`",
+      Token::Dollar => "`$`",
+      Token::Tilde => "`~`",
+      Token::Eq => "`=`",
+      Token::EqEq => "`==`",
+      Token::Ne => "`!=`",
+      Token::Lt => "`<`",
+      Token::Gt => "`>`",
+      Token::Le => "`<=`",
+      Token::Ge => "`>=`",
+      Token::RightArrow => "`->`",
+      Token::LeftArrow => "`<-`",
+      Token::Shl => "`<<`",
+      Token::Shr => "`>>`",
+      Token::OpenBrace => "`{`",
+      Token::CloseBrace => "`}`",
+      Token::OpenParen => "`(`",
+      Token::CloseParen => "`)`",
+      Token::OpenBracket => "`[`",
+      Token::CloseBracket => "`]`",
+      Token::Hole => "`_`",
+
+      Token::Pub => "`pub`",
+      Token::Mod => "`mod`",
+      Token::Use => "`use`",
+      Token::As => "`as`",
+      Token::Fn => "`fn`",
+      Token::Pattern => "`pattern`",
+      Token::Struct => "`struct`",
+      Token::Enum => "`enum`",
+      Token::Type => "`type`",
+      Token::InlineIvy => "`inline_ivy!`",
+      Token::Trait => "`trait`",
+      Token::Impl => "`impl`",
+      Token::Match => "`match`",
+      Token::Let => "`let`",
+      Token::Dyn => "`dyn`",
+      Token::Const => "`const`",
+      Token::Defer => "`defer`",
+      Token::In => "`in`",
+      Token::Is => "`is`",
+      Token::Return => "`return`",
+      Token::Yield => "`yield`",
+      Token::Do => "`do`",
+      Token::Loop => "`loop`",
+      Token::While => "`while`",
+      Token::For => "`for`",
+      Token::Break => "`break`",
+      Token::Continue => "`continue`",
+      Token::If => "`if`",
+      Token::Assert => "`assert`",
+      Token::When => "`when`",
+      Token::Else => "`else`",
+      Token::True => "`true`",
+      Token::False => "`false`",
+      Token::And => "`and`",
+      Token::Or => "`or`",
+      Token::Try => "`try`",
+
+      Token::Ident => "an identifier",
+      Token::Num => "a numeric literal",
+      Token::DoubleQuote => "a string literal",
+      Token::SingleQuote => "a character literal",
+      Token::DocComment => "a doc comment",
+
+      Token::Eof => "eof",
+    })
   }
 }

@@ -1,5 +1,5 @@
 use std::{
-  fmt::{self, Debug},
+  fmt::{self, Debug, Display},
   marker::PhantomData,
   ops::Range,
 };
@@ -176,5 +176,29 @@ impl<T: Token> Iterator for TokenSetIter<T> {
 impl<T: Token> Debug for TokenSet<T> {
   fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
     f.debug_set().entries(*self).finish()
+  }
+}
+
+impl<T: Token + Display> Display for TokenSet<T> {
+  fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    let len = self.0.count_ones() as usize;
+    let mut iter = self.into_iter();
+    match len {
+      0 => f.write_str("[unknown]"),
+      1 => write!(f, "{}", iter.next().unwrap()),
+      2 => write!(f, "{} or {}", iter.next().unwrap(), iter.next().unwrap()),
+      _ => {
+        for (i, value) in iter.enumerate() {
+          if i != 0 {
+            f.write_str(", ")?;
+          }
+          if i == len - 1 {
+            f.write_str("or ")?;
+          }
+          write!(f, "{value}")?;
+        }
+        Ok(())
+      }
+    }
   }
 }
