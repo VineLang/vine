@@ -656,7 +656,7 @@ impl Finder<'_> {
           let object_entries = rest_entries
             .iter()
             .map(|(k, &t)| (k.clone(), t.invert_if(inv)))
-            .chain(vec![(key.clone(), init_ty)])
+            .chain([(key.clone(), init_ty)])
             .collect();
           let mut types = types.clone();
           let object = types.new(TypeKind::Object(object_entries));
