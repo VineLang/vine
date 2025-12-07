@@ -607,14 +607,8 @@ impl<'a> Resolver<'a> {
   }
 
   pub(crate) fn resolve_test_fn(&mut self, concrete_fn_id: ConcreteFnId) {
-    match self.expect_entrypoint_sig(concrete_fn_id) {
-      Err(Diag::GenericEntrypoint { span }) => {
-        self.diags.error(Diag::GenericEntrypoint { span });
-      }
-      Err(diag) => {
-        self.diags.error(diag);
-      }
-      _ => {}
+    if let Err(diag) = self.expect_entrypoint_sig(concrete_fn_id) {
+      self.diags.error(diag);
     }
   }
 }
