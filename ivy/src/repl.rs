@@ -6,11 +6,12 @@ use ivm::{
   port::{Port, Tag},
   wire::Wire,
 };
-use vine_util::parser::{Parse, ParserState};
+use vine_util::parser::Parse;
 
 use crate::{
   ast::Tree,
   host::Host,
+  lexer::{Lexer, Token},
   parser::{ParseError, Parser},
 };
 
@@ -27,10 +28,9 @@ impl<'host, 'ctx, 'ivm, 'ext> Repl<'host, 'ctx, 'ivm, 'ext> {
   }
 
   pub fn exec<'s>(&mut self, line: &'s str) -> Result<(), ParseError<'s>> {
-    let mut parser = Parser { state: ParserState::new(line) };
-    parser.bump()?;
+    let mut parser = Parser::new(Lexer::new(line))?;
     let mut pairs = Vec::new();
-    while parser.state.token.is_some() {
+    while !parser.check(Token::Eof) {
       pairs.push(parser.parse_pair()?);
     }
     for pair in pairs {

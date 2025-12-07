@@ -8,7 +8,7 @@ use vine_util::lexer::TokenSet;
 
 use crate::{
   compiler::Compiler,
-  components::lexer::{StrToken, Token},
+  components::lexer::Token,
   structures::{
     ast::{BinaryOp, Ident, Span},
     checkpoint::Checkpoint,
@@ -81,14 +81,18 @@ diags! {
     ["ambiguous implicit submodule path; both `{name}.vi` and `{name}/{name}.vi` exist"]
   LexError
     ["lexing error"]
-  UnexpectedToken { expected: TokenSet<Token>, found: Option<Token> }
+  UnexpectedToken { expected: TokenSet<Token>, found: Token }
     ["expected one of {expected:?}; found {found:?}"]
-  UnexpectedStringToken { found: Option<StrToken> }
-    ["unexpected token {found:?} inside string"]
+  UnexpectedEofString
+    ["unexpected eof inside string"]
+  MultiCharLiteral
+    ["character literals must contain exactly one character"]
   UnexpectedInterpolation
     ["unexpected interpolation"]
   InvalidNum
     ["invalid numeric literal"]
+  InvalidEscape
+    ["invalid escape"]
   InvalidUnicode
     ["invalid unicode escape"]
   InvalidIvy

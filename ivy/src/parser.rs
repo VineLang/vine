@@ -1,15 +1,15 @@
 use vine_util::{
-  lexer::TokenSet,
+  lexer::{Lex, TokenSet},
   parser::{Parse, ParserState},
 };
 
 use crate::{
   ast::{Net, Nets, Tree},
-  lexer::Token,
+  lexer::{Lexer, Token},
 };
 
 pub struct Parser<'src> {
-  pub state: ParserState<'src, Token>,
+  pub state: ParserState<'src, Lexer<'src>>,
 }
 
 #[derive(Debug, Clone)]
@@ -23,14 +23,11 @@ pub enum ParseError<'src> {
 
 impl<'src> Parse<'src> for Parser<'src> {
   type Token = Token;
+  type Lexer = Lexer<'src>;
   type Error = ParseError<'src>;
 
-  fn state(&mut self) -> &mut ParserState<'src, Self::Token> {
+  fn state(&mut self) -> &mut ParserState<'src, Lexer<'src>> {
     &mut self.state
-  }
-
-  fn lex_error(&self) -> Self::Error {
-    ParseError::LexError
   }
 
   fn unexpected_error(&self) -> ParseError<'src> {
@@ -39,11 +36,14 @@ impl<'src> Parse<'src> for Parser<'src> {
 }
 
 impl<'src> Parser<'src> {
+  pub fn new(lexer: Lexer<'src>) -> Result<Self, ParseError<'src>> {
+    Ok(Parser { state: ParserState::new(lexer)? })
+  }
+
   pub fn parse(src: &'src str) -> Result<Nets, ParseError<'src>> {
-    let mut parser = Parser { state: ParserState::new(src) };
-    parser.bump()?;
+    let mut parser = Parser::new(Lexer::new(src))?;
     let mut nets = Nets::default();
-    while parser.state.token.is_some() {
+    while !parser.check(Token::Eof) {
       let name = parser.expect(Token::Global)?.to_owned();
       let net = parser.parse_net()?;
       nets.insert(name, net);

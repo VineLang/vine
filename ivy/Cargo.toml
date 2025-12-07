@@ -6,6 +6,7 @@ edition = "2024"
 [dependencies]
 indexmap = "2.2.6"
 logos = "0.14.0"
+unicode-id-start = "1.4.0"
 
 ivm = { path = "../ivm" }
 vine-util = { path = "../util" }

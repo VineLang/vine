@@ -696,6 +696,7 @@ dependencies = [
  "indexmap",
  "ivm",
  "logos",
+ "unicode-id-start",
  "vine-util",
 ]
 
@@ -1315,6 +1316,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "unicode-id-start"
+version = "1.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "81b79ad29b5e19de4260020f8919b443b2ef0277d242ce532ec7b7a2cc8b6007"
+
+[[package]]
 name = "unicode-ident"
 version = "1.0.13"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1376,6 +1383,7 @@ dependencies = [
  "ivm",
  "ivy",
  "logos",
+ "unicode-id-start",
  "vine-util",
 ]
 

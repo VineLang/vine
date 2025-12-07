@@ -3,7 +3,10 @@ use std::mem::transmute;
 use vine_util::parser::{Parse, ParserState};
 
 use crate::{
-  components::{lexer::Token, loader::FileId},
+  components::{
+    lexer::{Lexer, Token},
+    loader::FileId,
+  },
   structures::{
     ast::{Key, Sign},
     diag::Diag,
@@ -16,20 +19,17 @@ use crate::structures::ast::{
 };
 
 pub struct Parser<'src> {
-  pub(crate) state: ParserState<'src, Token>,
   pub(crate) file: FileId,
+  pub(crate) state: ParserState<'src, Lexer<'src>>,
 }
 
 impl<'src> Parse<'src> for Parser<'src> {
   type Token = Token;
+  type Lexer = Lexer<'src>;
   type Error = Diag;
 
-  fn state(&mut self) -> &mut ParserState<'src, Self::Token> {
+  fn state(&mut self) -> &mut ParserState<'src, Lexer<'src>> {
     &mut self.state
-  }
-
-  fn lex_error(&self) -> Self::Error {
-    Diag::LexError { span: self.span() }
   }
 
   fn unexpected_error(&self) -> Diag {
@@ -42,11 +42,14 @@ impl<'src> Parse<'src> for Parser<'src> {
 }
 
 impl<'src> Parser<'src> {
-  pub fn parse(src: &'src str, file: FileId) -> Result<Vec<Item>, Diag> {
-    let mut parser = Parser { state: ParserState::new(src), file };
-    parser.bump()?;
+  pub fn new(lexer: Lexer<'src>) -> Result<Self, Diag> {
+    Ok(Parser { file: lexer.file, state: ParserState::new(lexer)? })
+  }
+
+  pub fn parse(file: FileId, src: &'src str) -> Result<Vec<Item>, Diag> {
+    let mut parser = Parser::new(Lexer::new(file, src))?;
     let mut items = Vec::new();
-    while parser.state.token.is_some() {
+    while !parser.check(Token::Eof) {
       items.push(parser.parse_item()?);
     }
     Ok(items)

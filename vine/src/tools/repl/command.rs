@@ -49,7 +49,7 @@ impl<'src> Parser<'src> {
         "scope" => ReplCommand::Scope,
         "clear" => {
           let mut vars = Vec::new();
-          while self.state.token.is_some() {
+          while !self.check(Token::Eof) {
             vars.push(self.parse_ident()?);
           }
           ReplCommand::Clear(vars)
@@ -66,7 +66,7 @@ impl<'src> Parser<'src> {
       }
     } else {
       let mut stmts = Vec::new();
-      while self.state.token.is_some() {
+      while !self.check(Token::Eof) {
         stmts.push(self.parse_stmt()?);
       }
       ReplCommand::Run(stmts)

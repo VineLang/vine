@@ -1,43 +1,48 @@
-use logos::Lexer;
-
 use crate::{
-  lexer::{Token, TokenSet},
+  lexer::{Lex, Token, TokenSet},
   nat::Nat,
 };
 
-pub struct ParserState<'src, T: Token> {
-  pub lexer: Lexer<'src, T>,
-  pub token: Option<T>,
+#[derive(Debug)]
+pub struct ParserState<'src, L: Lex<'src, Token: Token>> {
+  pub lexer: L,
+  pub token: L::Token,
   pub last_token_end: usize,
-  pub expected: TokenSet<T>,
+  pub expected: TokenSet<L::Token>,
 }
 
-impl<'src, T: Token> ParserState<'src, T> {
-  pub fn new(src: &'src str) -> Self {
-    let lexer = Lexer::new(src);
-    ParserState { lexer, token: None, last_token_end: 0, expected: TokenSet::default() }
+impl<'src, L: Lex<'src, Token: Token>> ParserState<'src, L> {
+  pub fn new(mut lexer: L) -> Result<Self, L::Error> {
+    Ok(ParserState { token: lexer.lex()?, lexer, last_token_end: 0, expected: TokenSet::default() })
   }
 }
 
 pub trait Parse<'src> {
   type Token: Token;
+  type Lexer: Lex<'src, Token = Self::Token, Error = Self::Error>;
   type Error;
 
-  fn state(&mut self) -> &mut ParserState<'src, Self::Token>;
+  fn state(&mut self) -> &mut ParserState<'src, Self::Lexer>;
 
-  fn lex_error(&self) -> Self::Error;
   fn unexpected_error(&self) -> Self::Error;
+
+  fn lexer<'a>(&'a mut self) -> &'a mut Self::Lexer
+  where
+    'src: 'a,
+  {
+    &mut self.state().lexer
+  }
 
   fn bump(&mut self) -> Result<(), Self::Error> {
     self.state().expected.reset();
-    self.state().last_token_end = self.state().lexer.span().end;
-    self.state().token = self.state().lexer.next().transpose().map_err(|_| self.lex_error())?;
+    self.state().last_token_end = self.lexer().range().end;
+    self.state().token = self.lexer().lex()?;
     Ok(())
   }
 
   fn check(&mut self, kind: Self::Token) -> bool {
     self.state().expected.add(kind);
-    self.state().token == Some(kind)
+    self.state().token == kind
   }
 
   fn eat(&mut self, kind: Self::Token) -> Result<bool, Self::Error> {
@@ -76,6 +81,11 @@ pub trait Parse<'src> {
 
   fn unexpected<T>(&self) -> Result<T, Self::Error> {
     Err(self.unexpected_error())
+  }
+
+  fn teleport(&mut self, offset: usize) -> Result<(), Self::Error> {
+    self.lexer().teleport(offset);
+    self.bump()
   }
 
   fn parse_delimited<T>(
@@ -164,22 +174,6 @@ pub trait Parse<'src> {
     err: impl Fn(&'src str) -> Self::Error,
   ) -> Result<f32, Self::Error> {
     token.parse::<f32>().map_err(|_| err(token))
-  }
-
-  fn switch<'a, P: Parse<'src> + 'a, T>(
-    &mut self,
-    new: impl FnOnce(ParserState<'src, P::Token>) -> P,
-    parse: impl FnOnce(&mut P) -> Result<T, P::Error>,
-    map_err: impl Fn(P::Error) -> Self::Error,
-  ) -> Result<T, Self::Error> {
-    let mut parser = new(ParserState::new(self.state().lexer.source()));
-    let start = self.state().lexer.span().end;
-    parser.state().lexer.bump(start);
-    parser.bump().map_err(&map_err)?;
-    let value = parse(&mut parser).map_err(&map_err)?;
-    self.state().lexer.bump(parser.state().lexer.span().end - start);
-    self.bump()?;
-    Ok(value)
   }
 }
 

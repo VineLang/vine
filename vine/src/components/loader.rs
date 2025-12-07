@@ -117,7 +117,7 @@ impl Loader {
     };
 
     let src = &self.files[file].src;
-    let mut items = Parser::parse(src, file)?;
+    let mut items = Parser::parse(file, src)?;
     let span = Span { file, start: 0, end: src.len() };
     self.load_deps(&path, &mut items, diags);
     Ok(ModKind::Loaded(span, Some(file), items))

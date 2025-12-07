@@ -1,6 +1,9 @@
 use std::collections::{BTreeMap, hash_map::Entry};
 
-use vine_util::parser::{Delimiters, Parse};
+use vine_util::{
+  lexer::Lex,
+  parser::{Delimiters, Parse},
+};
 
 use crate::{
   components::{
@@ -57,7 +60,7 @@ impl Parser<'_> {
         self.parse_use_tree(&mut tree.children)?;
       } else {
         self.parse_delimited(BRACE_COMMA, |self_| {
-          if self_.state.lexer.slice() == &*name.0 {
+          if self_.lexer().slice() == &*name.0 {
             self_.expect(Token::Ident)?;
             self_.parse_use_tree_alias(name.clone(), tree)?;
           } else {

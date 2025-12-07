@@ -1,8 +1,9 @@
 use ivy::{
   ast::{Net, Tree},
+  lexer::Lexer as IvyLexer,
   parser::Parser as IvyParser,
 };
-use vine_util::parser::Parse;
+use vine_util::{lexer::Lex, parser::Parse};
 
 use crate::{
   components::{
@@ -41,11 +42,11 @@ impl Parser<'_> {
       self.unexpected()?;
     }
     let net_span = self.start_span();
-    let net = self.switch(
-      |state| IvyParser { state },
-      IvyParser::parse_net_inner,
-      |_| Diag::InvalidIvy { span },
-    )?;
+    let mut ivy_lexer = IvyLexer::new(self.lexer().src());
+    ivy_lexer.teleport(self.lexer().offset());
+    let mut ivy_parser = IvyParser::new(ivy_lexer).map_err(|_| Diag::InvalidIvy { span })?;
+    let net = ivy_parser.parse_net_inner().map_err(|_| Diag::InvalidIvy { span })?;
+    self.teleport(ivy_parser.lexer().offset())?;
     let net_span = self.end_span(net_span);
     Ok(ExprKind::InlineIvy(binds, ty, net_span, net))
   }

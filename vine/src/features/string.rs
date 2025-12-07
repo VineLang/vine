@@ -1,14 +1,13 @@
 use ivy::ast::Tree;
 
-use vine_util::parser::{Parse, ParserState};
+use vine_util::{
+  lexer::{Lex, LexerState},
+  parser::Parse,
+};
 
 use crate::{
   components::{
-    distiller::Distiller,
-    emitter::Emitter,
-    lexer::{StrToken, Token},
-    loader::FileId,
-    parser::Parser,
+    distiller::Distiller, emitter::Emitter, lexer::Token, loader::FileId, parser::Parser,
     resolver::Resolver,
   },
   structures::{
@@ -54,97 +53,140 @@ impl<'src> Parser<'src> {
 
   fn parse_string_segment(&mut self) -> Result<(StringSegment, bool), Diag> {
     let span = self.start_span();
-    let file = self.file;
-    let (content, interpolation) = self.switch(
-      |state| StringParser { state, file },
-      StringParser::parse_string_segment,
-      |e| e,
-    )?;
+    let mut lexer = StrLexer::new(self.file, self.lexer().src());
+    lexer.teleport(self.lexer().range().end);
+    let mut content = String::new();
+    let interpolation = loop {
+      match lexer.lex()? {
+        StrToken::DoubleQuote => break false,
+        StrToken::OpenBrace => break true,
+        StrToken::SingleQuote => content.push('\''),
+        StrToken::Char(char) => content.push(char),
+        StrToken::Eof => Err(Diag::UnexpectedEofString { span: lexer.span() })?,
+      }
+    };
+    self.teleport(lexer.range().end)?;
     let span = self.end_span(span);
     Ok((StringSegment { content, span }, interpolation))
   }
 
   pub(crate) fn parse_expr_char(&mut self) -> Result<ExprKind, Diag> {
-    let file = self.file;
-    let char =
-      self.switch(|state| StringParser { state, file }, StringParser::parse_char, |e| e)?;
+    if !self.check(Token::SingleQuote) {
+      self.unexpected()?;
+    }
+    let span = self.start_span();
+    let mut lexer = StrLexer::new(self.file, self.lexer().src());
+    lexer.teleport(self.lexer().offset());
+    let mut content = String::new();
+    loop {
+      match lexer.lex()? {
+        StrToken::SingleQuote => break,
+        StrToken::OpenBrace => content.push('{'),
+        StrToken::DoubleQuote => content.push('"'),
+        StrToken::Char(char) => content.push(char),
+        StrToken::Eof => Err(Diag::UnexpectedEofString { span: lexer.span() })?,
+      }
+    }
+    self.teleport(lexer.offset())?;
+    let span = self.end_span(span);
+    let mut chars = content.chars();
+    let (Some(char), None) = (chars.next(), chars.next()) else {
+      Err(Diag::MultiCharLiteral { span })?
+    };
     Ok(ExprKind::Char(char))
   }
 }
 
-struct StringParser<'src> {
-  state: ParserState<'src, StrToken>,
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[repr(u8)]
+pub enum StrToken {
+  DoubleQuote,
+  SingleQuote,
+  OpenBrace,
+  Char(char),
+  Eof,
+}
+
+#[derive(Debug, Clone, Copy)]
+pub struct StrLexer<'src> {
   file: FileId,
+  state: LexerState<'src>,
 }
 
-impl<'src> Parse<'src> for StringParser<'src> {
-  type Token = StrToken;
-  type Error = Diag;
-
-  fn state(&mut self) -> &mut ParserState<'src, Self::Token> {
-    &mut self.state
-  }
-
-  fn lex_error(&self) -> Self::Error {
-    Diag::LexError { span: self.span() }
-  }
-
-  fn unexpected_error(&self) -> Self::Error {
-    Diag::UnexpectedStringToken { span: self.span(), found: self.state.token }
-  }
-}
-
-impl<'src> StringParser<'src> {
-  fn parse_string_segment(&mut self) -> Result<(String, bool), Diag> {
-    let mut segment = String::new();
-    while !matches!(self.state.token, None | Some(StrToken::DoubleQuote | StrToken::OpenBrace)) {
-      segment.push(self.cur_char()?);
-      self.bump()?;
-    }
-    if self.state.token.is_none() {
-      self.unexpected()?;
-    }
-    Ok((segment, matches!(self.state.token, Some(StrToken::OpenBrace))))
-  }
-
-  fn parse_char(&mut self) -> Result<char, Diag> {
-    if matches!(self.state.token, None | Some(StrToken::SingleQuote)) {
-      self.unexpected()?;
-    }
-    let char = self.cur_char().unwrap();
-    self.bump()?;
-    if !matches!(self.state.token, Some(StrToken::SingleQuote)) {
-      self.unexpected()?;
-    }
-    Ok(char)
-  }
-
-  fn cur_char(&self) -> Result<char, Diag> {
-    let str = self.state.lexer.slice();
-    Ok(match self.state.token.unwrap() {
-      StrToken::DoubleQuote => '"',
-      StrToken::SingleQuote => '\'',
-      StrToken::Literal => str.chars().next_back().unwrap(),
-      StrToken::Newline => '\n',
-      StrToken::Tab => '\t',
-      StrToken::CarriageReturn => '\r',
-      StrToken::Null => '\0',
-      StrToken::Ascii => char::from_u32(decode_hex(&str[2..])).unwrap(),
-      StrToken::Unicode => char::from_u32(decode_hex(&str[3..str.len() - 1]))
-        .ok_or(Diag::InvalidUnicode { span: self.span() })?,
-      StrToken::OpenBrace => '{',
-      StrToken::Char => str.chars().next().unwrap(),
-    })
+impl<'src> StrLexer<'src> {
+  fn new(file: FileId, src: &'src str) -> Self {
+    StrLexer { file, state: LexerState::new(src) }
   }
 
   fn span(&self) -> Span {
-    let span = self.state.lexer.span();
-    Span { file: self.file, start: span.start, end: span.end }
+    let range = self.range();
+    Span { file: self.file, start: range.start, end: range.end }
+  }
+
+  fn invalid_escape(&self) -> Diag {
+    Diag::InvalidEscape { span: self.span() }
   }
 }
 
-fn decode_hex(hex: &str) -> u32 {
-  hex.chars().fold(0, |n, c| n * 16 + c.to_digit(16).unwrap())
+impl<'src> Lex<'src> for StrLexer<'src> {
+  type Token = StrToken;
+  type Error = Diag;
+
+  fn state(&self) -> &LexerState<'src> {
+    &self.state
+  }
+
+  fn state_mut(&mut self) -> &mut LexerState<'src> {
+    &mut self.state
+  }
+
+  fn lex(&mut self) -> Result<Self::Token, Self::Error> {
+    self.start_token();
+    match self.char() {
+      Some('"') => self.bump_ok(StrToken::DoubleQuote),
+      Some('\'') => self.bump_ok(StrToken::SingleQuote),
+      Some('{') => self.bump_ok(StrToken::OpenBrace),
+      Some('\\') => match self.bump() {
+        Some('"') => self.bump_ok(StrToken::Char('"')),
+        Some('\'') => self.bump_ok(StrToken::Char('\'')),
+        Some('{') => self.bump_ok(StrToken::Char('{')),
+        Some('\\') => self.bump_ok(StrToken::Char('\\')),
+        Some('n') => self.bump_ok(StrToken::Char('\n')),
+        Some('t') => self.bump_ok(StrToken::Char('\t')),
+        Some('r') => self.bump_ok(StrToken::Char('\r')),
+        Some('0') => self.bump_ok(StrToken::Char('\0')),
+        Some('x') => {
+          let Some(digit_0) = self.bump().and_then(|c| c.to_digit(8)) else {
+            return Err(self.invalid_escape());
+          };
+          let Some(digit_1) = self.bump().and_then(|c| c.to_digit(16)) else {
+            return Err(self.invalid_escape());
+          };
+          self.bump_ok(StrToken::Char(char::from_u32(digit_0 << 4 | digit_1).unwrap()))
+        }
+        Some('u') => {
+          if self.bump() != Some('{') {
+            return Err(self.invalid_escape());
+          }
+          let start = self.offset();
+          self.bump_while(|c| c.is_ascii_hexdigit());
+          let end = self.offset();
+          if self.bump() != Some('}') {
+            return Err(self.invalid_escape());
+          }
+          let Some(char) =
+            u32::from_str_radix(&self.src()[start..end], 16).ok().and_then(char::from_u32)
+          else {
+            return Err(self.invalid_escape());
+          };
+          self.bump_ok(StrToken::Char(char))
+        }
+        _ => Err(self.invalid_escape())?,
+      },
+      Some(c) => self.bump_ok(StrToken::Char(c)),
+      None => Ok(StrToken::Eof),
+    }
+  }
 }
 
 impl<'src> Formatter<'src> {

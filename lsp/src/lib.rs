@@ -105,7 +105,7 @@ impl Lsp {
 
   fn document_symbols(&self, params: DocumentSymbolParams) -> Option<DocumentSymbolResponse> {
     let file = self.uri_to_file_id(params.text_document.uri)?;
-    let ast = Parser::parse(&self.compiler.loader.files[file].src, file).ok()?;
+    let ast = Parser::parse(file, &self.compiler.loader.files[file].src).ok()?;
     struct Visitor<'a> {
       lsp: &'a Lsp,
       symbols: &'a mut Vec<DocumentSymbol>,
