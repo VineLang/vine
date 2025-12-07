@@ -89,6 +89,7 @@ pub enum TypeKind {
   Fn(FnId),
   Closure(ClosureId, Flex, FnSig),
   Ref(Type),
+  Key(Ident),
   Never,
   Error(ErrorGuaranteed),
 }
@@ -251,6 +252,7 @@ impl Types {
         .unify_types(&x.param_tys, &y.param_tys, Inverted(false))
         .and(self.unify(x.ret_ty, y.ret_ty)),
       (TypeKind::Ref(a), TypeKind::Ref(b)) => self.unify(*a, *b),
+      (TypeKind::Key(a), TypeKind::Key(b)) if a == b => Success,
       (TypeKind::Never, TypeKind::Never) => Success,
       _ => Failure,
     };
@@ -423,6 +425,10 @@ impl Types {
               *str += "&";
               self._show(chart, *ty, str)
             }
+            TypeKind::Key(key) => {
+              *str += ".";
+              *str += &key.0;
+            }
             TypeKind::Fn(fn_id) => {
               *str += "fn ";
               match fn_id {
@@ -555,7 +561,8 @@ impl Types {
       Some((_, TypeKind::Struct(id, _))) => Ok(Some(chart.structs[*id].def)),
       Some((_, TypeKind::Enum(id, _))) => Ok(Some(chart.enums[*id].def)),
       Some((_, TypeKind::Ref(inner))) => self.get_mod(chart, *inner),
-      Some((_, TypeKind::Fn(..)))
+      Some((_, TypeKind::Key(..)))
+      | Some((_, TypeKind::Fn(..)))
       | Some((_, TypeKind::Closure(..)))
       | Some((_, TypeKind::Param(..)))
       | Some((_, TypeKind::Tuple(..)))
@@ -665,6 +672,7 @@ impl TypeKind {
       TypeKind::Struct(i, els) => TypeKind::Struct(*i, els.iter().copied().map(f).collect()),
       TypeKind::Enum(i, els) => TypeKind::Enum(*i, els.iter().copied().map(f).collect()),
       TypeKind::Ref(t) => TypeKind::Ref(f(*t)),
+      TypeKind::Key(k) => TypeKind::Key(k.clone()),
       TypeKind::Fn(i) => TypeKind::Fn(*i),
       TypeKind::Closure(i, x, s) => TypeKind::Closure(
         *i,
@@ -688,6 +696,7 @@ impl TypeKind {
         Children::Zero([])
       }
       TypeKind::Ref(t) => Children::One([*t]),
+      TypeKind::Key(_) => Children::Zero([]),
       TypeKind::Tuple(els)
       | TypeKind::Opaque(_, els)
       | TypeKind::Struct(_, els)

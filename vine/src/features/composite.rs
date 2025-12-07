@@ -7,16 +7,18 @@ use crate::{
   components::{
     distiller::{Distiller, Poly},
     emitter::Emitter,
+    finder::Finder,
     lexer::Token,
     matcher::{MatchVar, MatchVarForm, MatchVarKind, Matcher, Row, VarId},
     parser::{BRACE_COMMA, PAREN_COMMA, VineParser},
     resolver::Resolver,
+    synthesizer::SyntheticImpl,
   },
   structures::{
     ast::{Expr, ExprKind, Ident, Key, Pat, PatKind, Span, Ty, TyKind},
     diag::{Diag, ErrorGuaranteed},
-    tir::{TirExpr, TirExprKind, TirPat, TirPatKind},
-    types::{Inverted, Type, TypeKind},
+    tir::{TirExpr, TirExprKind, TirImpl, TirPat, TirPatKind},
+    types::{Inverted, Type, TypeCtx, TypeKind, Types},
     vir::{Layer, Port, Stage, Step},
   },
   tools::fmt::{Formatter, doc::Doc},
@@ -584,5 +586,88 @@ impl Emitter<'_> {
   pub(crate) fn emit_composite(&mut self, port: &Port, tuple: &[Port]) {
     let pair = (self.emit_port(port), Tree::n_ary("tup", tuple.iter().map(|p| self.emit_port(p))));
     self.pairs.push(pair)
+  }
+}
+
+impl Finder<'_> {
+  pub(crate) fn find_auto_impls_tuple(
+    &mut self,
+    type_params: &[Type],
+    types: &Types,
+    found: &mut Vec<TypeCtx<TirImpl>>,
+  ) {
+    if let Some((inv, TypeKind::Tuple(elements))) = types.kind(type_params[0]) {
+      if let [init, ref rest @ ..] = **elements {
+        let init = init.invert_if(inv);
+        let rest = rest.iter().map(|t| t.invert_if(inv)).collect();
+        let mut types = types.clone();
+        let rest = types.new(TypeKind::Tuple(rest));
+        if types.unify(init, type_params[1]).and(types.unify(rest, type_params[2])).is_success() {
+          let impl_ = TirImpl::Synthetic(SyntheticImpl::Tuple(elements.len()));
+          found.push(TypeCtx { types, inner: impl_ });
+        }
+      }
+    } else if let Some((inv, TypeKind::Tuple(rest))) = types.kind(type_params[2]) {
+      let len = 1 + rest.len();
+      let init = type_params[1];
+      let rest = rest.iter().map(|t| t.invert_if(inv));
+      let mut types = types.clone();
+      let tuple = types.new(TypeKind::Tuple([init].into_iter().chain(rest).collect()));
+      if types.unify(tuple, type_params[0]).is_success() {
+        let impl_ = TirImpl::Synthetic(SyntheticImpl::Tuple(len));
+        found.push(TypeCtx { types, inner: impl_ });
+      }
+    }
+  }
+
+  pub(crate) fn find_auto_impls_object(
+    &mut self,
+    type_params: &[Type],
+    types: &Types,
+    found: &mut Vec<TypeCtx<TirImpl>>,
+  ) {
+    let [object_ty, key_ty, init_ty, rest_ty] = *type_params else { unreachable!() };
+
+    match types.kind(object_ty) {
+      Some((inv, TypeKind::Object(entries))) => {
+        let mut iter = entries.iter();
+        if let Some((key_ident, &init)) = iter.next() {
+          let init = init.invert_if(inv);
+          let rest = iter.map(|(k, &t)| (k.clone(), t.invert_if(inv))).collect();
+          let mut types = types.clone();
+          let rest = types.new(TypeKind::Object(rest));
+          let key = types.new(TypeKind::Key(key_ident.clone()));
+          if types
+            .unify(key, key_ty)
+            .and(types.unify(init, init_ty))
+            .and(types.unify(rest, rest_ty))
+            .is_success()
+          {
+            let impl_ = TirImpl::Synthetic(SyntheticImpl::Object(key_ident.clone(), entries.len()));
+            found.push(TypeCtx { types, inner: impl_ });
+          }
+        }
+      }
+      None => {
+        if let Some((Inverted(false), TypeKind::Key(key))) = types.kind(key_ty)
+          && let Some((inv, TypeKind::Object(rest_entries))) = types.kind(rest_ty)
+          && rest_entries.first_key_value().is_none_or(|(k, _)| key < k)
+        {
+          let object_entries = rest_entries
+            .iter()
+            .map(|(k, &t)| (k.clone(), t.invert_if(inv)))
+            .chain([(key.clone(), init_ty)])
+            .collect();
+          let mut types = types.clone();
+          let object = types.new(TypeKind::Object(object_entries));
+          if types.unify(object, object_ty).is_success() {
+            let impl_ =
+              TirImpl::Synthetic(SyntheticImpl::Object(key.clone(), rest_entries.len() + 1));
+            found.push(TypeCtx { types, inner: impl_ });
+          }
+        }
+      }
+      _ => {}
+    }
   }
 }

@@ -460,6 +460,9 @@ impl<'src> VineParser<'src> {
     if self.eat(Token::Fn)? {
       return Ok(TyKind::Fn(self.parse_path()?));
     }
+    if self.eat(Token::Dot)? {
+      return Ok(TyKind::Key(self.parse_ident()?));
+    }
     if self.check(Token::OpenParen) {
       return self.parse_ty_paren();
     }

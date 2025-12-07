@@ -1,80 +1,104 @@
 
 use arithmetic::{Add, Div, Mul, Neg, Pos, Pow, Rem, Sub};
 use bitwise::{BitAnd, BitOr, BitXor, Not};
-use derive::Tuple;
+use derive::{Composite, Singleton};
 
 pub use binary as _;
 pub mod binary {
   pub use singleton_singleton as _;
-  pub mod singleton_singleton[A, B, O] {
+  pub mod singleton_singleton[
+    AS, A, BS, B, CS, C, K;
+    Singleton[AS, K, A], Singleton[BS, K, B], Singleton[CS, K, C];
+  ] {
     pub use add as _;
-    pub impl add[... ; Add[A, B, O]]: Add[(A,), (B,), (O,)] {
-      fn add((a: A,), (b: B,)) -> (O,) {
-        (a + b,)
+    pub impl add[... ; Add[A, B, C]]: Add[AS, BS, CS] {
+      fn add(a: AS, b: BS) -> CS {
+        let a = a as A;
+        let b = b as B;
+        (a + b) as CS
       }
     }
 
     pub use sub as _;
-    pub impl sub[... ; Sub[A, B, O]]: Sub[(A,), (B,), (O,)] {
-      fn sub((a: A,), (b: B,)) -> (O,) {
-        (a - b,)
+    pub impl sub[... ; Sub[A, B, C]]: Sub[AS, BS, CS] {
+      fn sub(a: AS, b: BS) -> CS {
+        let a = a as A;
+        let b = b as B;
+        (a - b) as CS
       }
     }
 
     pub use mul as _;
-    pub impl mul[... ; Mul[A, B, O]]: Mul[(A,), (B,), (O,)] {
-      fn mul((a: A,), (b: B,)) -> (O,) {
-        (a * b,)
+    pub impl mul[... ; Mul[A, B, C]]: Mul[AS, BS, CS] {
+      fn mul(a: AS, b: BS) -> CS {
+        let a = a as A;
+        let b = b as B;
+        (a * b) as CS
       }
     }
 
     pub use div as _;
-    pub impl div[... ; Div[A, B, O]]: Div[(A,), (B,), (O,)] {
-      fn div((a: A,), (b: B,)) -> (O,) {
-        (a / b,)
+    pub impl div[... ; Div[A, B, C]]: Div[AS, BS, CS] {
+      fn div(a: AS, b: BS) -> CS {
+        let a = a as A;
+        let b = b as B;
+        (a / b) as CS
       }
     }
 
     pub use rem as _;
-    pub impl rem[... ; Rem[A, B, O]]: Rem[(A,), (B,), (O,)] {
-      fn rem((a: A,), (b: B,)) -> (O,) {
-        (a % b,)
+    pub impl rem[... ; Rem[A, B, C]]: Rem[AS, BS, CS] {
+      fn rem(a: AS, b: BS) -> CS {
+        let a = a as A;
+        let b = b as B;
+        (a % b) as CS
       }
     }
 
     pub use pow as _;
-    pub impl pow[... ; Pow[A, B, O]]: Pow[(A,), (B,), (O,)] {
-      fn pow((a: A,), (b: B,)) -> (O,) {
-        (a ** b,)
+    pub impl pow[... ; Pow[A, B, C]]: Pow[AS, BS, CS] {
+      fn pow(a: AS, b: BS) -> CS {
+        let a = a as A;
+        let b = b as B;
+        (a ** b) as CS
       }
     }
 
     pub use bit_and as _;
-    pub impl bit_and[... ; BitAnd[A, B, O]]: BitAnd[(A,), (B,), (O,)] {
-      fn bit_and((a: A,), (b: B,)) -> (O,) {
-        (a & b,)
+    pub impl bit_and[... ; BitAnd[A, B, C]]: BitAnd[AS, BS, CS] {
+      fn bit_and(a: AS, b: BS) -> CS {
+        let a = a as A;
+        let b = b as B;
+        (a & b) as CS
       }
     }
 
     pub use bit_or as _;
-    pub impl bit_or[... ; BitOr[A, B, O]]: BitOr[(A,), (B,), (O,)] {
-      fn bit_or((a: A,), (b: B,)) -> (O,) {
-        (a | b,)
+    pub impl bit_or[... ; BitOr[A, B, C]]: BitOr[AS, BS, CS] {
+      fn bit_or(a: AS, b: BS) -> CS {
+        let a = a as A;
+        let b = b as B;
+        (a | b) as CS
       }
     }
 
     pub use bit_xor as _;
-    pub impl bit_xor[... ; BitXor[A, B, O]]: BitXor[(A,), (B,), (O,)] {
-      fn bit_xor((a: A,), (b: B,)) -> (O,) {
-        (a ^ b,)
+    pub impl bit_xor[... ; BitXor[A, B, C]]: BitXor[AS, BS, CS] {
+      fn bit_xor(a: AS, b: BS) -> CS {
+        let a = a as A;
+        let b = b as B;
+        (a ^ b) as CS
       }
     }
   }
 
-  pub use tuple_tuple as _;
-  pub mod tuple_tuple[A, AI, AR, B, BI, BR, O, OI, OR; Tuple[A, AI, AR], Tuple[B, BI, BR]] {
+  pub use composite_composite as _;
+  pub mod composite_composite[
+    A, AI, AR, B, BI, BR, K, O, OI, OR;
+    Composite[A, K, AI, AR], Composite[B, K, BI, BR];
+  ] {
     pub use add as _;
-    pub impl add[... ; Add[AI, BI, OI], Add[AR, BR, OR], Tuple[O, OI, OR]]: Add[A, B, O] {
+    pub impl add[... ; Add[AI, BI, OI], Add[AR, BR, OR], Composite[O, K, OI, OR]]: Add[A, B, O] {
       fn add(a: A, b: B) -> O {
         let (ai, ar) = a as (AI, AR);
         let (bi, br) = b as (BI, BR);
@@ -83,7 +107,7 @@ pub mod binary {
     }
 
     pub use sub as _;
-    pub impl sub[... ; Sub[AI, BI, OI], Sub[AR, BR, OR], Tuple[O, OI, OR]]: Sub[A, B, O] {
+    pub impl sub[... ; Sub[AI, BI, OI], Sub[AR, BR, OR], Composite[O, K, OI, OR]]: Sub[A, B, O] {
       fn sub(a: A, b: B) -> O {
         let (ai, ar) = a as (AI, AR);
         let (bi, br) = b as (BI, BR);
@@ -92,7 +116,7 @@ pub mod binary {
     }
 
     pub use mul as _;
-    pub impl mul[... ; Mul[AI, BI, OI], Mul[AR, BR, OR], Tuple[O, OI, OR]]: Mul[A, B, O] {
+    pub impl mul[... ; Mul[AI, BI, OI], Mul[AR, BR, OR], Composite[O, K, OI, OR]]: Mul[A, B, O] {
       fn mul(a: A, b: B) -> O {
         let (ai, ar) = a as (AI, AR);
         let (bi, br) = b as (BI, BR);
@@ -101,7 +125,7 @@ pub mod binary {
     }
 
     pub use div as _;
-    pub impl div[... ; Div[AI, BI, OI], Div[AR, BR, OR], Tuple[O, OI, OR]]: Div[A, B, O] {
+    pub impl div[... ; Div[AI, BI, OI], Div[AR, BR, OR], Composite[O, K, OI, OR]]: Div[A, B, O] {
       fn div(a: A, b: B) -> O {
         let (ai, ar) = a as (AI, AR);
         let (bi, br) = b as (BI, BR);
@@ -110,7 +134,7 @@ pub mod binary {
     }
 
     pub use rem as _;
-    pub impl rem[... ; Rem[AI, BI, OI], Rem[AR, BR, OR], Tuple[O, OI, OR]]: Rem[A, B, O] {
+    pub impl rem[... ; Rem[AI, BI, OI], Rem[AR, BR, OR], Composite[O, K, OI, OR]]: Rem[A, B, O] {
       fn rem(a: A, b: B) -> O {
         let (ai, ar) = a as (AI, AR);
         let (bi, br) = b as (BI, BR);
@@ -119,7 +143,7 @@ pub mod binary {
     }
 
     pub use pow as _;
-    pub impl pow[... ; Pow[AI, BI, OI], Pow[AR, BR, OR], Tuple[O, OI, OR]]: Pow[A, B, O] {
+    pub impl pow[... ; Pow[AI, BI, OI], Pow[AR, BR, OR], Composite[O, K, OI, OR]]: Pow[A, B, O] {
       fn pow(a: A, b: B) -> O {
         let (ai, ar) = a as (AI, AR);
         let (bi, br) = b as (BI, BR);
@@ -128,7 +152,7 @@ pub mod binary {
     }
 
     pub use bit_and as _;
-    pub impl bit_and[... ; BitAnd[AI, BI, OI], BitAnd[AR, BR, OR], Tuple[O, OI, OR]]: BitAnd[
+    pub impl bit_and[... ; BitAnd[AI, BI, OI], BitAnd[AR, BR, OR], Composite[O, K, OI, OR]]: BitAnd[
       A, B, O;
     ] {
       fn bit_and(a: A, b: B) -> O {
@@ -139,7 +163,9 @@ pub mod binary {
     }
 
     pub use bit_or as _;
-    pub impl bit_or[... ; BitOr[AI, BI, OI], BitOr[AR, BR, OR], Tuple[O, OI, OR]]: BitOr[A, B, O] {
+    pub impl bit_or[... ; BitOr[AI, BI, OI], BitOr[AR, BR, OR], Composite[O, K, OI, OR]]: BitOr[
+      A, B, O;
+    ] {
       fn bit_or(a: A, b: B) -> O {
         let (ai, ar) = a as (AI, AR);
         let (bi, br) = b as (BI, BR);
@@ -148,7 +174,7 @@ pub mod binary {
     }
 
     pub use bit_xor as _;
-    pub impl bit_xor[... ; BitXor[AI, BI, OI], BitXor[AR, BR, OR], Tuple[O, OI, OR]]: BitXor[
+    pub impl bit_xor[... ; BitXor[AI, BI, OI], BitXor[AR, BR, OR], Composite[O, K, OI, OR]]: BitXor[
       A, B, O;
     ] {
       fn bit_xor(a: A, b: B) -> O {
@@ -160,75 +186,84 @@ pub mod binary {
   }
 
   pub use singleton_scalar as _;
-  pub mod singleton_scalar[A, B, O] {
+  pub mod singleton_scalar[AS, A, B, OS, O, K; Singleton[AS, K, A]] {
     pub use add as _;
-    pub impl add[... ; Add[A, B, O]]: Add[(A,), B, (O,)] {
-      fn add((a: A,), b: B) -> (O,) {
-        (a + b,)
+    pub impl add[... ; Add[A, B, O], Singleton[OS, K, O]]: Add[AS, B, OS] {
+      fn add(a: AS, b: B) -> OS {
+        let a = a as A;
+        (a + b) as OS
       }
     }
 
     pub use sub as _;
-    pub impl sub[... ; Sub[A, B, O]]: Sub[(A,), B, (O,)] {
-      fn sub((a: A,), b: B) -> (O,) {
-        (a - b,)
+    pub impl sub[... ; Sub[A, B, O], Singleton[OS, K, O]]: Sub[AS, B, OS] {
+      fn sub(a: AS, b: B) -> OS {
+        let a = a as A;
+        (a - b) as OS
       }
     }
 
     pub use mul as _;
-    pub impl mul[... ; Mul[A, B, O]]: Mul[(A,), B, (O,)] {
-      fn mul((a: A,), b: B) -> (O,) {
-        (a * b,)
+    pub impl mul[... ; Mul[A, B, O], Singleton[OS, K, O]]: Mul[AS, B, OS] {
+      fn mul(a: AS, b: B) -> OS {
+        let a = a as A;
+        (a * b) as OS
       }
     }
 
     pub use div as _;
-    pub impl div[... ; Div[A, B, O]]: Div[(A,), B, (O,)] {
-      fn div((a: A,), b: B) -> (O,) {
-        (a / b,)
+    pub impl div[... ; Div[A, B, O], Singleton[OS, K, O]]: Div[AS, B, OS] {
+      fn div(a: AS, b: B) -> OS {
+        let a = a as A;
+        (a / b) as OS
       }
     }
 
     pub use rem as _;
-    pub impl rem[... ; Rem[A, B, O]]: Rem[(A,), B, (O,)] {
-      fn rem((a: A,), b: B) -> (O,) {
-        (a % b,)
+    pub impl rem[... ; Rem[A, B, O], Singleton[OS, K, O]]: Rem[AS, B, OS] {
+      fn rem(a: AS, b: B) -> OS {
+        let a = a as A;
+        (a % b) as OS
       }
     }
 
     pub use pow as _;
-    pub impl pow[... ; Pow[A, B, O]]: Pow[(A,), B, (O,)] {
-      fn pow((a: A,), b: B) -> (O,) {
-        (a ** b,)
+    pub impl pow[... ; Pow[A, B, O], Singleton[OS, K, O]]: Pow[AS, B, OS] {
+      fn pow(a: AS, b: B) -> OS {
+        let a = a as A;
+        (a ** b) as OS
       }
     }
 
     pub use bit_and as _;
-    pub impl bit_and[... ; BitAnd[A, B, O]]: BitAnd[(A,), B, (O,)] {
-      fn bit_and((a: A,), b: B) -> (O,) {
-        (a & b,)
+    pub impl bit_and[... ; BitAnd[A, B, O], Singleton[OS, K, O]]: BitAnd[AS, B, OS] {
+      fn bit_and(a: AS, b: B) -> OS {
+        let a = a as A;
+        (a & b) as OS
       }
     }
 
     pub use bit_or as _;
-    pub impl bit_or[... ; BitOr[A, B, O]]: BitOr[(A,), B, (O,)] {
-      fn bit_or((a: A,), b: B) -> (O,) {
-        (a | b,)
+    pub impl bit_or[... ; BitOr[A, B, O], Singleton[OS, K, O]]: BitOr[AS, B, OS] {
+      fn bit_or(a: AS, b: B) -> OS {
+        let a = a as A;
+        (a | b) as OS
       }
     }
 
     pub use bit_xor as _;
-    pub impl bit_xor[... ; BitXor[A, B, O]]: BitXor[(A,), B, (O,)] {
-      fn bit_xor((a: A,), b: B) -> (O,) {
-        (a ^ b,)
+    pub impl bit_xor[... ; BitXor[A, B, O], Singleton[OS, K, O]]: BitXor[AS, B, OS] {
+      fn bit_xor(a: AS, b: B) -> OS {
+        let a = a as A;
+        (a ^ b) as OS
       }
     }
   }
 
-  pub use tuple_scalar as _;
-  pub mod tuple_scalar[A, AI, AR, B+, O, OI, OR; Tuple[A, AI, AR]] {
+  pub use composite_scalar as _;
+  pub mod composite_scalar[A, AI, AR, B+, K, O, OI, OR; Composite[A, K, AI, AR]] {
     pub use add as _;
-    pub impl add[... ; Add[AI, B, OI], Add[AR, B, OR], Tuple[O, OI, OR]]: Add[A, B, O] {
+    pub impl add[... ; Add[AI, B, OI], Add[AR, B, OR], Composite[O, K, OI, OR]]: Add[A, B, O] {
       fn add(a: A, b: B) -> O {
         let (ai, ar) = a as (AI, AR);
         (ai + b, ar + b) as O
@@ -236,7 +271,7 @@ pub mod binary {
     }
 
     pub use sub as _;
-    pub impl sub[... ; Sub[AI, B, OI], Sub[AR, B, OR], Tuple[O, OI, OR]]: Sub[A, B, O] {
+    pub impl sub[... ; Sub[AI, B, OI], Sub[AR, B, OR], Composite[O, K, OI, OR]]: Sub[A, B, O] {
       fn sub(a: A, b: B) -> O {
         let (ai, ar) = a as (AI, AR);
         (ai - b, ar - b) as O
@@ -244,7 +279,7 @@ pub mod binary {
     }
 
     pub use mul as _;
-    pub impl mul[... ; Mul[AI, B, OI], Mul[AR, B, OR], Tuple[O, OI, OR]]: Mul[A, B, O] {
+    pub impl mul[... ; Mul[AI, B, OI], Mul[AR, B, OR], Composite[O, K, OI, OR]]: Mul[A, B, O] {
       fn mul(a: A, b: B) -> O {
         let (ai, ar) = a as (AI, AR);
         (ai * b, ar * b) as O
@@ -252,7 +287,7 @@ pub mod binary {
     }
 
     pub use div as _;
-    pub impl div[... ; Div[AI, B, OI], Div[AR, B, OR], Tuple[O, OI, OR]]: Div[A, B, O] {
+    pub impl div[... ; Div[AI, B, OI], Div[AR, B, OR], Composite[O, K, OI, OR]]: Div[A, B, O] {
       fn div(a: A, b: B) -> O {
         let (ai, ar) = a as (AI, AR);
         (ai / b, ar / b) as O
@@ -260,7 +295,7 @@ pub mod binary {
     }
 
     pub use rem as _;
-    pub impl rem[... ; Rem[AI, B, OI], Rem[AR, B, OR], Tuple[O, OI, OR]]: Rem[A, B, O] {
+    pub impl rem[... ; Rem[AI, B, OI], Rem[AR, B, OR], Composite[O, K, OI, OR]]: Rem[A, B, O] {
       fn rem(a: A, b: B) -> O {
         let (ai, ar) = a as (AI, AR);
         (ai % b, ar % b) as O
@@ -268,7 +303,7 @@ pub mod binary {
     }
 
     pub use pow as _;
-    pub impl pow[... ; Pow[AI, B, OI], Pow[AR, B, OR], Tuple[O, OI, OR]]: Pow[A, B, O] {
+    pub impl pow[... ; Pow[AI, B, OI], Pow[AR, B, OR], Composite[O, K, OI, OR]]: Pow[A, B, O] {
       fn pow(a: A, b: B) -> O {
         let (ai, ar) = a as (AI, AR);
         (ai ** b, ar ** b) as O
@@ -276,7 +311,9 @@ pub mod binary {
     }
 
     pub use bit_and as _;
-    pub impl bit_and[... ; BitAnd[AI, B, OI], BitAnd[AR, B, OR], Tuple[O, OI, OR]]: BitAnd[A, B, O] {
+    pub impl bit_and[... ; BitAnd[AI, B, OI], BitAnd[AR, B, OR], Composite[O, K, OI, OR]]: BitAnd[
+      A, B, O;
+    ] {
       fn bit_and(a: A, b: B) -> O {
         let (ai, ar) = a as (AI, AR);
         (ai & b, ar & b) as O
@@ -284,7 +321,9 @@ pub mod binary {
     }
 
     pub use bit_or as _;
-    pub impl bit_or[... ; BitOr[AI, B, OI], BitOr[AR, B, OR], Tuple[O, OI, OR]]: BitOr[A, B, O] {
+    pub impl bit_or[... ; BitOr[AI, B, OI], BitOr[AR, B, OR], Composite[O, K, OI, OR]]: BitOr[
+      A, B, O;
+    ] {
       fn bit_or(a: A, b: B) -> O {
         let (ai, ar) = a as (AI, AR);
         (ai | b, ar | b) as O
@@ -292,7 +331,9 @@ pub mod binary {
     }
 
     pub use bit_xor as _;
-    pub impl bit_xor[... ; BitXor[AI, B, OI], BitXor[AR, B, OR], Tuple[O, OI, OR]]: BitXor[A, B, O] {
+    pub impl bit_xor[... ; BitXor[AI, B, OI], BitXor[AR, B, OR], Composite[O, K, OI, OR]]: BitXor[
+      A, B, O;
+    ] {
       fn bit_xor(a: A, b: B) -> O {
         let (ai, ar) = a as (AI, AR);
         (ai ^ b, ar ^ b) as O
@@ -304,33 +345,36 @@ pub mod binary {
 pub use unary as _;
 pub mod unary {
   pub use singleton as _;
-  pub mod singleton[A, O] {
+  pub mod singleton[AS, A, OS, O, K; Singleton[AS, K, A]] {
     pub use pos as _;
-    pub impl pos[... ; Pos[A, O]]: Pos[(A,), (O,)] {
-      fn pos((a: A,)) -> (O,) {
-        (+a,)
+    pub impl pos[... ; Pos[A, O], Singleton[OS, K, O]]: Pos[AS, OS] {
+      fn pos(a: AS) -> OS {
+        let a = a as A;
+        (+a) as OS
       }
     }
 
     pub use neg as _;
-    pub impl neg[... ; Neg[A, O]]: Neg[(A,), (O,)] {
-      fn neg((a: A,)) -> (O,) {
-        (-a,)
+    pub impl neg[... ; Neg[A, O], Singleton[OS, K, O]]: Neg[AS, OS] {
+      fn neg(a: AS) -> OS {
+        let a = a as A;
+        (-a) as OS
       }
     }
 
     pub use not as _;
-    pub impl not[... ; Not[A, O]]: Not[(A,), (O,)] {
-      fn not((a: A,)) -> (O,) {
-        (!a,)
+    pub impl not[... ; Not[A, O], Singleton[OS, K, O]]: Not[AS, OS] {
+      fn not(a: AS) -> OS {
+        let a = a as A;
+        (!a) as OS
       }
     }
   }
 
-  pub use tuple as _;
-  pub mod tuple[A, AI, AR, O, OI, OR; Tuple[A, AI, AR]] {
+  pub use composite as _;
+  pub mod composite[A, AI, AR, O, OI, OR, K; Composite[A, K, AI, AR]] {
     pub use pos as _;
-    pub impl pos[... ; Pos[AI, OI], Pos[AR, OR], Tuple[O, OI, OR]]: Pos[A, O] {
+    pub impl pos[... ; Pos[AI, OI], Pos[AR, OR], Composite[O, K, OI, OR]]: Pos[A, O] {
       fn pos(a: A) -> O {
         let (ai, ar) = a as (AI, AR);
         (+ai, +ar) as O
@@ -338,7 +382,7 @@ pub mod unary {
     }
 
     pub use neg as _;
-    pub impl neg[... ; Neg[AI, OI], Neg[AR, OR], Tuple[O, OI, OR]]: Neg[A, O] {
+    pub impl neg[... ; Neg[AI, OI], Neg[AR, OR], Composite[O, K, OI, OR]]: Neg[A, O] {
       fn neg(a: A) -> O {
         let (ai, ar) = a as (AI, AR);
         (-ai, -ar) as O
@@ -346,7 +390,7 @@ pub mod unary {
     }
 
     pub use not as _;
-    pub impl not[... ; Not[AI, OI], Not[AR, OR], Tuple[O, OI, OR]]: Not[A, O] {
+    pub impl not[... ; Not[AI, OI], Not[AR, OR], Composite[O, K, OI, OR]]: Not[A, O] {
       fn not(a: A) -> O {
         let (ai, ar) = a as (AI, AR);
         (!ai, !ar) as O

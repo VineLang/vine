@@ -8,6 +8,7 @@ use crate::{
     charter::Charter,
     distiller::{Distiller, Return},
     emitter::Emitter,
+    finder::{Error as FinderError, Finder},
     lexer::Token,
     parser::{BP, VineParser},
     resolver::{Resolver, ScopeBinding},
@@ -22,7 +23,7 @@ use crate::{
     resolutions::{FnRel, FnRelId, Fragment},
     signatures::FnSig,
     tir::{ClosureId, TirClosure, TirExpr, TirExprKind, TirImpl},
-    types::{ImplType, Type, TypeCtx, TypeKind},
+    types::{ImplType, Inverted, Type, TypeCtx, TypeKind, Types},
     vir::{Header, Interface, InterfaceKind, Port, PortKind, Stage, Step, Transfer},
   },
   tools::fmt::{Formatter, doc::Doc},
@@ -564,5 +565,49 @@ impl Emitter<'_> {
       ),
     );
     self.pairs.push(pair)
+  }
+}
+
+impl Finder<'_> {
+  pub(crate) fn find_auto_impls_fn(
+    &mut self,
+    type_params: &[Type],
+    types: &Types,
+    found: &mut Vec<TypeCtx<TirImpl>>,
+  ) -> Result<(), FinderError> {
+    let [receiver, params, ret] = *type_params else { unreachable!() };
+    match types.kind(receiver) {
+      Some((Inverted(false), TypeKind::Fn(fn_id))) => {
+        let mut types = types.clone();
+        let generics = self.chart.fn_generics(*fn_id);
+        let type_params = types.new_vars(self.span, self.sigs.type_params[generics].params.len());
+        let sig = types.import(self.sigs.fn_sig(*fn_id), Some(&type_params));
+        let param_count = sig.param_tys.len();
+        let sig_params = types.new(TypeKind::Tuple(sig.param_tys));
+        if types.unify(sig_params, params).and(types.unify(sig.ret_ty, ret)).is_success() {
+          for result in self.find_impl_params(types, generics, type_params)? {
+            found.push(TypeCtx {
+              types: result.types,
+              inner: TirImpl::Fn(*fn_id, result.inner, param_count),
+            });
+          }
+        }
+      }
+      Some((Inverted(false), TypeKind::Closure(closure_id, _, closure_sig))) => {
+        let param_count = closure_sig.param_tys.len();
+        let mut types = types.clone();
+        let closure_params = types.new(TypeKind::Tuple(closure_sig.param_tys.clone()));
+        if types
+          .unify(closure_params, params)
+          .and(types.unify(closure_sig.ret_ty, ret))
+          .is_success()
+        {
+          found.push(TypeCtx { types, inner: TirImpl::Closure(*closure_id, param_count) });
+        }
+      }
+      _ => {}
+    }
+
+    Ok(())
   }
 }

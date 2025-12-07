@@ -11,6 +11,7 @@ pub mod const_;
 pub mod debug;
 pub mod do_;
 pub mod enum_;
+pub mod flex;
 pub mod fn_;
 pub mod for_;
 pub mod generics;
