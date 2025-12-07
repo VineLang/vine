@@ -216,7 +216,7 @@ fn test_vi_test(t: &mut DynTester, path: &'static str, test: &'static str) {
   t.test("test", move || {
     let (stdout, stderr) = exec(VINE, &["test", "--no-stats", path, test], &[], true);
     assert_empty_stderr(&stderr);
-    test_snapshot(&["vine", "test", &format!("{name}.{test}.txt")], &stdout);
+    test_snapshot(&["vine", "test", &format!("{name}/{test}/output.txt")], &stdout);
   });
 }
 
