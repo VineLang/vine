@@ -133,7 +133,7 @@ impl VineRunCommand {
     let debug = self.compile.debug;
     let (mut nets, _) = self.compile.compile();
     self.optimizations.apply(&mut nets);
-    self.run_args.run(nets, !debug);
+    self.run_args.run(nets).check(!debug);
     Ok(())
   }
 }

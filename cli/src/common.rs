@@ -5,6 +5,7 @@ use clap::Args;
 use ivm::{
   IVM,
   ext::Extrinsics,
+  stats::Stats,
   heap::Heap,
   port::{Port, Tag},
 };
@@ -37,7 +38,7 @@ pub struct RunArgs {
 }
 
 impl RunArgs {
-  pub fn run(self, nets: Nets, debug_hint: bool) {
+  pub fn run(self, nets: Nets) -> RunResult {
     let mut host = &mut Host::default();
     let heap = match self.heap {
       Some(size) => Heap::with_size(size).expect("heap allocation failed"),
@@ -63,24 +64,39 @@ impl RunArgs {
     }
 
     let out = ivm.follow(Port::new_wire(node.2));
-    let no_io =
-      out.tag() != Tag::ExtVal || unsafe { out.as_ext_val() }.bits() != host.new_io().bits();
-    let vicious = ivm.stats.mem_free < ivm.stats.mem_alloc;
-    if no_io {
+
+    RunResult {
+      stats: if self.no_stats { None } else { Some(ivm.stats) },
+      no_io: out.tag() != Tag::ExtVal || unsafe { out.as_ext_val() }.bits() != host.new_io().bits(),
+      vicious: ivm.stats.mem_free < ivm.stats.mem_alloc,
+    }
+  }
+}
+
+pub struct RunResult {
+  pub stats: Option<Stats>,
+  pub no_io: bool,
+  pub vicious: bool,
+}
+
+impl RunResult {
+  pub fn check(&self, debug_hint: bool) {
+    if self.no_io {
       eprintln!("\nError: the net did not return its `IO` handle");
       if debug_hint {
         eprintln!("  hint: try running the program in `--debug` mode to see error messages");
       }
     }
-    if vicious {
+
+    if self.vicious {
       eprintln!("\nError: the net created a vicious circle");
     }
 
-    if !self.no_stats {
-      eprintln!("{}", ivm.stats);
+    if let Some(stats) = &self.stats {
+      eprintln!("{}", stats);
     }
 
-    if no_io || vicious {
+    if self.no_io || self.vicious {
       exit(1);
     }
   }

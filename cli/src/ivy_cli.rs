@@ -45,7 +45,7 @@ impl IvyRunCommand {
   pub fn execute(self) -> Result<()> {
     let src_contents = fs::read_to_string(self.src.clone())?;
     let nets = IvyParser::parse(&src_contents).unwrap();
-    self.run_args.run(nets, false);
+    self.run_args.run(nets).check(false);
     Ok(())
   }
 }
