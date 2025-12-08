@@ -138,6 +138,10 @@ impl VineRunCommand {
   }
 }
 
+/// Runs entrypoints marked with the `#[test]` attribute.
+///
+/// The `debug` and `test` configuration options are always true when running
+/// tests.
 #[derive(Debug, Args)]
 pub struct VineTestCommand {
   #[command(flatten)]
@@ -147,41 +151,65 @@ pub struct VineTestCommand {
   #[command(flatten)]
   run_args: RunArgs,
 
-  /// The test path to run. If not provided, all test paths in MAIN are printed.
-  test_path: Option<String>,
+  /// If specified, only run tests containing this string in their paths.
+  /// If not provided, all tests are run.
+  test_filter: Option<String>,
 }
 
 impl VineTestCommand {
   pub fn execute(mut self) -> Result<()> {
-    let debug = self.compile.debug;
+    self.compile.debug = true;
     self.compile.test = true;
 
     let (mut nets, mut compiler) = self.compile.compile();
 
-    let Some(test_path) = self.test_path else {
-      for concrete_fn_id in compiler.chart.tests {
-        let def_id = compiler.chart.concrete_fns[concrete_fn_id].def;
-        let path = &compiler.chart.defs[def_id].path;
+    let test_fn_ids: Vec<_> = compiler
+      .chart
+      .tests
+      .iter()
+      .filter(|concrete_fn_id| {
+        self.test_filter.as_ref().is_none_or(|test_filter| {
+          let def_id = compiler.chart.concrete_fns[**concrete_fn_id].def;
+          let test_path = &compiler.chart.defs[def_id].path;
+          test_path.contains(test_filter)
+        })
+      })
+      .cloned()
+      .collect();
 
-        println!("{path}");
+    eprintln!("running {} tests", test_fn_ids.len());
+    eprintln!();
+
+    let mut failed = false;
+
+    // TODO: need to keep test entrypoints in order to run optimizer
+    // self.optimizations.apply(&mut nets);
+
+    for test_fn_id in test_fn_ids {
+      let def_id = compiler.chart.concrete_fns[test_fn_id].def;
+      let test_path = &compiler.chart.defs[def_id].path;
+      let main_fragment_id = compiler.resolutions.fns[test_fn_id];
+
+      eprint!("test {test_path} ... ");
+
+      compiler.insert_main_net(&mut nets, main_fragment_id);
+
+      let result = self.run_args.run_capturing_output(&nets);
+      if result.no_io {
+        eprintln!("FAILED");
+        if let Some(output) = &result.output {
+          eprintln!();
+          eprintln!("{}", String::from_utf8_lossy(output));
+        }
+      } else {
+        eprintln!("ok");
+        failed = true;
       }
+    }
 
-      return Ok(());
-    };
-
-    let Some(test_concrete_fn_id) = compiler.chart.tests.iter().find(|concrete_fn_id| {
-      let def_id = compiler.chart.concrete_fns[**concrete_fn_id].def;
-      compiler.chart.defs[def_id].path == test_path
-    }) else {
-      eprintln!("test path {test_path:?} does not exist");
+    if failed {
       exit(1);
-    };
-
-    let main_fragment_id = compiler.resolutions.fns[*test_concrete_fn_id];
-    compiler.insert_main_net(&mut nets, main_fragment_id);
-
-    self.optimizations.apply(&mut nets);
-    self.run_args.run(nets, !debug);
+    }
 
     Ok(())
   }
