@@ -1,13 +1,17 @@
-use std::process::exit;
+use std::{
+  io::{self, Read, Write},
+  process::exit,
+  sync::{Arc, Mutex},
+};
 
 use clap::Args;
 
 use ivm::{
   IVM,
   ext::Extrinsics,
-  stats::Stats,
   heap::Heap,
   port::{Port, Tag},
+  stats::Stats,
 };
 use ivy::{ast::Nets, host::Host, optimize::Optimizer};
 
@@ -38,7 +42,49 @@ pub struct RunArgs {
 }
 
 impl RunArgs {
-  pub fn run(self, nets: Nets) -> RunResult {
+  pub fn run(&self, nets: &Nets) -> RunResult {
+    self._run(nets, io::stdin, io::stdout)
+  }
+
+  /// Runs the `nets` with an empty stdin and capturing any writes to stdout.
+  pub fn run_capturing_output(&self, nets: &Nets) -> RunResult {
+    #[derive(Clone, Default)]
+    pub struct SharedWriter(pub Arc<Mutex<Vec<u8>>>);
+
+    impl Write for SharedWriter {
+      fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
+        let mut v = self.0.lock().unwrap();
+        v.extend_from_slice(buf);
+        Ok(buf.len())
+      }
+
+      fn flush(&mut self) -> io::Result<()> {
+        Ok(())
+      }
+    }
+
+    impl SharedWriter {
+      fn clone_vec(&self) -> Vec<u8> {
+        self.0.lock().unwrap().clone()
+      }
+    }
+
+    let input: &[u8] = &[];
+    let output = SharedWriter::default();
+
+    let mut result = self._run(nets, || input, || output.clone());
+    result.output = Some(output.clone_vec());
+
+    result
+  }
+
+  fn _run<R, W, FI, FO>(&self, nets: &Nets, io_input_fn: FI, io_output_fn: FO) -> RunResult
+  where
+    FI: Fn() -> R + Sync,
+    FO: Clone + Fn() -> W + Sync,
+    W: Write,
+    R: Read,
+  {
     let mut host = &mut Host::default();
     let heap = match self.heap {
       Some(size) => Heap::with_size(size).expect("heap allocation failed"),
@@ -46,8 +92,8 @@ impl RunArgs {
     };
     let mut extrinsics = Extrinsics::default();
 
-    host.register_default_extrinsics_with_stdio(&mut extrinsics);
-    host.insert_nets(&nets);
+    host.register_default_extrinsics(&mut extrinsics, io_input_fn, io_output_fn);
+    host.insert_nets(nets);
 
     let main = host.get("::").expect("missing main");
     let mut ivm = IVM::new(&heap, &extrinsics);
@@ -69,6 +115,7 @@ impl RunArgs {
       stats: if self.no_stats { None } else { Some(ivm.stats) },
       no_io: out.tag() != Tag::ExtVal || unsafe { out.as_ext_val() }.bits() != host.new_io().bits(),
       vicious: ivm.stats.mem_free < ivm.stats.mem_alloc,
+      output: None,
     }
   }
 }
@@ -77,6 +124,7 @@ pub struct RunResult {
   pub stats: Option<Stats>,
   pub no_io: bool,
   pub vicious: bool,
+  pub output: Option<Vec<u8>>,
 }
 
 impl RunResult {
