@@ -6,43 +6,43 @@ let io: IO;
 > /clear io
 
 > io.println(let "Hello, world!")
-error: expected `..`, `..=`, `&`, `&&`, `#`, `+`, `-`, `*`, `**`, `!`, `~`, `{`, `(`, `)`, `[`, `_`, `fn`, `inline_ivy!`, `match`, `do`, `loop`, `while`, `for`, `if`, `when`, `true`, `false`, an identifier, a numeric literal, a string literal, or a character literal; found `let`
+error: expected `)` or an expression; found `let`
    @ input:1:12
  1 | io.println(let "Hello, world!")
 
 
 > io.println("Hello, world!" let)
-error: expected `.`, `..`, `..=`, `,`, `&`, `|`, `^`, `+`, `++`, `-`, `*`, `**`, `/`, `%`, `!`, `~`, `=`, `==`, `!=`, `<`, `>`, `<=`, `>=`, `<<`, `>>`, `(`, `)`, `as`, `impl`, `is`, `and`, or `or`; found `let`
+error: expected an operator, `,`, or `)`; found `let`
    @ input:1:28
  1 | io.println("Hello, world!" let)
 
 
 > io.println(Hello world!)
-error: expected `.`, `..`, `..=`, `,`, `::`, `&`, `|`, `^`, `+`, `++`, `-`, `*`, `**`, `/`, `%`, `!`, `~`, `=`, `==`, `!=`, `<`, `>`, `<=`, `>=`, `<<`, `>>`, `(`, `)`, `[`, `as`, `impl`, `is`, `and`, or `or`; found an identifier
+error: expected `::`, `[`, `(`, an operator, `,`, or `)`; found an identifier
    @ input:1:18
  1 | io.println(Hello world!)
 
 
 > let let: leet = leet
-error: expected `&`, `&&`, `#`, `*`, `**`, `~`, `{`, `(`, `_`, `fn`, or an identifier; found `let`
+error: expected `fn` or a pattern; found `let`
    @ input:1:5
  1 | let let: leet = leet
 
 
 > let leet: let = leet
-error: expected `.`, `&`, `&&`, `#`, `!`, `~`, `{`, `(`, `_`, `fn`, or an identifier; found `let`
+error: expected a type; found `let`
    @ input:1:11
  1 | let leet: let = leet
 
 
 > let leet: leet = let
-error: expected `..`, `..=`, `&`, `&&`, `#`, `+`, `-`, `*`, `**`, `!`, `~`, `{`, `(`, `[`, `_`, `fn`, `inline_ivy!`, `match`, `do`, `loop`, `while`, `for`, `if`, `when`, `true`, `false`, an identifier, a numeric literal, a string literal, or a character literal; found `let`
+error: expected an expression; found `let`
    @ input:1:18
  1 | let leet: leet = let
 
 
 > as far as the eye can see
-error: expected `..`, `..=`, `;`, `&`, `&&`, `#`, `#[`, `+`, `-`, `*`, `**`, `/`, `!`, `~`, `{`, `(`, `[`, `_`, `pub`, `mod`, `use`, `fn`, `struct`, `enum`, `type`, `inline_ivy!`, `trait`, `impl`, `match`, `let`, `const`, `return`, `do`, `loop`, `while`, `for`, `break`, `continue`, `if`, `assert`, `when`, `true`, `false`, an identifier, a numeric literal, a string literal, a character literal, a doc comment, or eof; found `as`
+error: expected `/`, eof, an item, a statement, or an expression; found `as`
    @ input:1:1
  1 | as far as the eye can see
 
@@ -54,25 +54,25 @@ error: expected `;` or an identifier; found `mod`
 
 
 > mod mood { let }
-error: expected `#[`, `}`, `pub`, `mod`, `use`, `fn`, `struct`, `enum`, `type`, `trait`, `impl`, `const`, or a doc comment; found `let`
+error: expected `}` or an item; found `let`
    @ input:1:12
  1 | mod mood { let }
 
 
 > struct enum
-error: expected `+`, `*`, `?`, or an identifier; found `enum`
+error: expected `+`, `?`, `*`, or an identifier; found `enum`
    @ input:1:8
  1 | struct enum
 
 
 > struct foo {}
-error: expected `(` or `[`; found `{`
+error: expected `[` or `(`; found `{`
    @ input:1:12
  1 | struct foo {}
 
 
 > struct foo(let)
-error: expected `.`, `&`, `&&`, `#`, `!`, `~`, `{`, `(`, `)`, `_`, `pub`, `fn`, or an identifier; found `let`
+error: expected `pub`, `)`, or a type; found `let`
    @ input:1:12
  1 | struct foo(let)
 
@@ -90,13 +90,13 @@ error: expected `(`; found `let`
 
 
 > enum foo { leet(let) }
-error: expected `.`, `&`, `&&`, `#`, `!`, `~`, `{`, `(`, `)`, `_`, `fn`, or an identifier; found `let`
+error: expected `)` or a type; found `let`
    @ input:1:17
  1 | enum foo { leet(let) }
 
 
 > enum foo { leet(leet let) }
-error: expected `,`, `::`, `)`, or `[`; found `let`
+error: expected `::`, `[`, `,`, or `)`; found `let`
    @ input:1:22
  1 | enum foo { leet(leet let) }
 
@@ -108,7 +108,7 @@ error: expected `,` or `}`; found `let`
 
 
 > match a { b { c }, d { e } }
-error: expected `&`, `&&`, `#`, `*`, `**`, `~`, `{`, `}`, `(`, `_`, or an identifier; found `,`
+error: expected `}` or a pattern; found `,`
    @ input:1:18
  1 | match a { b { c }, d { e } }
 
@@ -120,7 +120,7 @@ error: expected `.`, `->`, or `{`; found an identifier
 
 
 > when { b { c }, d { e } }
-error: expected `..`, `..=`, `&`, `&&`, `#`, `+`, `-`, `*`, `**`, `!`, `~`, `{`, `}`, `(`, `[`, `_`, `fn`, `inline_ivy!`, `match`, `do`, `loop`, `while`, `for`, `if`, `when`, `true`, `false`, an identifier, a numeric literal, a string literal, or a character literal; found `,`
+error: expected `}`, `_`, or an expression; found `,`
    @ input:1:15
  1 | when { b { c }, d { e } }
 
@@ -132,25 +132,25 @@ error: expected `}` or an identifier; found `let`
 
 
 > do { x: 1 }
-error: expected `.`, `..`, `..=`, `;`, `::`, `&`, `&&`, `|`, `^`, `#`, `#[`, `+`, `++`, `-`, `*`, `**`, `/`, `%`, `!`, `~`, `=`, `==`, `!=`, `<`, `>`, `<=`, `>=`, `<<`, `>>`, `{`, `}`, `(`, `[`, `_`, `pub`, `mod`, `use`, `as`, `fn`, `struct`, `enum`, `type`, `inline_ivy!`, `trait`, `impl`, `match`, `let`, `const`, `is`, `return`, `do`, `loop`, `while`, `for`, `break`, `continue`, `if`, `assert`, `when`, `true`, `false`, `and`, `or`, an identifier, a numeric literal, a string literal, a character literal, or a doc comment; found `:`
+error: expected `::`, `[`, `(`, an operator, `;`, `}`, an item, a statement, or an expression; found `:`
    @ input:1:7
  1 | do { x: 1 }
 
 
 > (fn hi() {})
-error: expected `+`, `*`, `?`, or `(`; found an identifier
+error: expected `+`, `?`, `*`, or `(`; found an identifier
    @ input:1:5
  1 | (fn hi() {})
 
 
 > (fn (!) {})
-error: expected `&`, `&&`, `#`, `*`, `**`, `~`, `{`, `(`, `)`, `_`, or an identifier; found `!`
+error: expected `)` or a pattern; found `!`
    @ input:1:6
  1 | (fn (!) {})
 
 
 > use
-error: expected `#`, `{`, or an identifier; found eof
+error: expected `{`, `#`, or an identifier; found eof
    @ input:1:4
  1 | use
 
@@ -168,7 +168,7 @@ error: cannot find `#foo`
 
 
 > use #foo::
-error: expected `{` or an identifier; found eof
+error: expected an identifier or `{`; found eof
    @ input:1:11
  1 | use #foo::
 
@@ -180,7 +180,7 @@ error: expected `}` or an identifier; found eof
 
 
 > use #foo::{bar
-error: expected `,`, `::`, `}`, or `as`; found eof
+error: expected `::`, `as`, `,`, or `}`; found eof
    @ input:1:15
  1 | use #foo::{bar
 
