@@ -34,8 +34,8 @@ impl<'ivm> Host<'ivm> {
     io_input_fn: FI,
     io_output_fn: FO,
   ) where
-    FI: Fn() -> R + Sync + 'ivm,
-    FO: Clone + Fn() -> W + Sync + 'ivm,
+    FI: Copy + Fn() -> R + Sync + 'ivm,
+    FO: Copy + Fn() -> W + Sync + 'ivm,
     W: Write,
     R: Read,
   {
@@ -52,11 +52,6 @@ impl<'ivm> Host<'ivm> {
     let new_n32 = move |x: u32| ExtVal::new(n32, x);
     let new_f32 = move |x: f32| ExtVal::new(f32, x.to_bits());
     let new_bool = move |x: bool| new_n32(x as u32);
-
-    let io_print_char_output_fn = io_output_fn.clone();
-    let io_print_byte_output_fn = io_output_fn.clone();
-    let io_flush_output_fn = io_output_fn;
-    let io_read_byte_input_fn = io_input_fn;
 
     define_ext_fns!(self, extrinsics,
       "seq" => |a, _b| a,
@@ -108,24 +103,24 @@ impl<'ivm> Host<'ivm> {
 
       "io_print_char" => |a, b| {
         a.as_ty(&io);
-        write!((io_print_char_output_fn)(), "{}", char::try_from(as_n32(b)).unwrap()).unwrap();
+        write!((io_output_fn)(), "{}", char::try_from(as_n32(b)).unwrap()).unwrap();
         ExtVal::new(io, 0)
       },
       "io_print_byte" => |a, b| {
         a.as_ty(&io);
-        (io_print_byte_output_fn)().write_all(&[as_n32(b) as u8]).unwrap();
+        (io_output_fn)().write_all(&[as_n32(b) as u8]).unwrap();
         ExtVal::new(io, 0)
       },
       "io_flush" => |a, _b| {
         a.as_ty(&io);
-        (io_flush_output_fn)().flush().unwrap();
+        (io_output_fn)().flush().unwrap();
         ExtVal::new(io, 0)
       },
       "io_read_byte" => |a, b| {
         a.as_ty(&io);
         let default = as_n32(b) as u8;
         let mut buf = [default];
-        _ = (io_read_byte_input_fn)().read(&mut buf).unwrap();
+        _ = (io_input_fn)().read(&mut buf).unwrap();
         new_n32(buf[0] as u32)
       }
     );

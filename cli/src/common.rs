@@ -1,7 +1,7 @@
 use std::{
   io::{self, Read, Write},
   process::exit,
-  sync::{Arc, Mutex},
+  sync::{Mutex, MutexGuard},
 };
 
 use clap::Args;
@@ -48,13 +48,11 @@ impl RunArgs {
 
   /// Runs the `nets` with an empty stdin and capturing any writes to stdout.
   pub fn run_capturing_output(&self, nets: &Nets) -> RunResult {
-    #[derive(Clone, Default)]
-    pub struct SharedWriter(pub Arc<Mutex<Vec<u8>>>);
+    pub struct SharedWriter<'a>(pub MutexGuard<'a, Vec<u8>>);
 
-    impl Write for SharedWriter {
+    impl Write for SharedWriter<'_> {
       fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
-        let mut v = self.0.lock().unwrap();
-        v.extend_from_slice(buf);
+        self.0.extend_from_slice(buf);
         Ok(buf.len())
       }
 
@@ -63,28 +61,21 @@ impl RunArgs {
       }
     }
 
-    impl SharedWriter {
-      fn clone_vec(&self) -> Vec<u8> {
-        self.0.lock().unwrap().clone()
-      }
-    }
-
     let input: &[u8] = &[];
-    let output = SharedWriter::default();
+    let output = Mutex::default();
 
-    let mut result = self._run(nets, || input, || output.clone());
-    result.output = Some(output.clone_vec());
+    let mut result = self._run(nets, || input, || SharedWriter(output.lock().unwrap()));
+    result.output = Some(output.into_inner().unwrap());
 
     result
   }
 
-  fn _run<R, W, FI, FO>(&self, nets: &Nets, io_input_fn: FI, io_output_fn: FO) -> RunResult
-  where
-    FI: Fn() -> R + Sync,
-    FO: Clone + Fn() -> W + Sync,
-    W: Write,
-    R: Read,
-  {
+  fn _run<R: Read, W: Write>(
+    &self,
+    nets: &Nets,
+    io_input_fn: impl Copy + Fn() -> R + Sync,
+    io_output_fn: impl Copy + Fn() -> W + Sync,
+  ) -> RunResult {
     let mut host = &mut Host::default();
     let heap = match self.heap {
       Some(size) => Heap::with_size(size).expect("heap allocation failed"),
