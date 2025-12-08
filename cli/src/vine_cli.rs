@@ -163,6 +163,9 @@ impl VineTestCommand {
 
     let (mut nets, mut compiler) = self.compile.compile();
 
+    // TODO: need to keep test entrypoints in order to run optimizer
+    // self.optimizations.apply(&mut nets);
+
     let test_fn_ids: Vec<_> = compiler
       .chart
       .tests
@@ -181,9 +184,6 @@ impl VineTestCommand {
     eprintln!();
 
     let mut failed = false;
-
-    // TODO: need to keep test entrypoints in order to run optimizer
-    // self.optimizations.apply(&mut nets);
 
     for test_fn_id in test_fn_ids {
       let def_id = compiler.chart.concrete_fns[test_fn_id].def;

@@ -108,7 +108,7 @@ impl<'ivm> Host<'ivm> {
 
       "io_print_char" => |a, b| {
         a.as_ty(&io);
-        let _ = write!((io_print_char_output_fn)(), "{}", char::try_from(as_n32(b)).unwrap());
+        write!((io_print_char_output_fn)(), "{}", char::try_from(as_n32(b)).unwrap()).unwrap();
         ExtVal::new(io, 0)
       },
       "io_print_byte" => |a, b| {
