@@ -35,7 +35,7 @@ let l: List[N32] = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 let io: IO = <IO>;
 let l: List[N32] = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 > l.slice(5..=)
-error: expected one of {DotDot, DotDotEq, Amp, AmpAmp, Hash, Plus, Minus, Star, StarStar, Bang, Tilde, OpenBrace, OpenParen, OpenBracket, Hole, Fn, InlineIvy, Match, Do, Loop, While, For, If, When, True, False, Ident, Num, DoubleQuote, SingleQuote}; found Some(CloseParen)
+error: expected one of {DotDot, DotDotEq, Amp, AmpAmp, Hash, Plus, Minus, Star, StarStar, Bang, Tilde, OpenBrace, OpenParen, OpenBracket, Hole, Fn, InlineIvy, Match, Do, Loop, While, For, If, When, True, False, Ident, Num, DoubleQuote, SingleQuote}; found CloseParen
    @ input:1:13
  1 | l.slice(5..=)
 
@@ -43,7 +43,7 @@ error: expected one of {DotDot, DotDotEq, Amp, AmpAmp, Hash, Plus, Minus, Star, 
 let io: IO = <IO>;
 let l: List[N32] = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 > l.slice(..=)
-error: expected one of {DotDot, DotDotEq, Amp, AmpAmp, Hash, Plus, Minus, Star, StarStar, Bang, Tilde, OpenBrace, OpenParen, OpenBracket, Hole, Fn, InlineIvy, Match, Do, Loop, While, For, If, When, True, False, Ident, Num, DoubleQuote, SingleQuote}; found Some(CloseParen)
+error: expected one of {DotDot, DotDotEq, Amp, AmpAmp, Hash, Plus, Minus, Star, StarStar, Bang, Tilde, OpenBrace, OpenParen, OpenBracket, Hole, Fn, InlineIvy, Match, Do, Loop, While, For, If, When, True, False, Ident, Num, DoubleQuote, SingleQuote}; found CloseParen
    @ input:1:12
  1 | l.slice(..=)
 
