@@ -231,7 +231,7 @@ impl VineReplCommand {
     let host = &mut Host::default();
     let heap = Heap::new();
     let mut extrinsics = Extrinsics::default();
-    host.register_default_extrinsics(&mut extrinsics);
+    host.register_default_extrinsics_with_stdio(&mut extrinsics);
 
     let mut ivm = IVM::new(&heap, &extrinsics);
     let config = Config::new(!self.no_debug, false);

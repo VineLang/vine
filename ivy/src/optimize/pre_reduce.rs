@@ -18,7 +18,7 @@ pub fn pre_reduce(nets: &mut Nets) {
   let heap = &Heap::new();
   let mut host = &mut Host::default();
   let mut extrinsics = Extrinsics::default();
-  host.register_default_extrinsics(&mut extrinsics);
+  host.register_default_extrinsics_with_stdio(&mut extrinsics);
   host._insert_nets(nets, true);
 
   for (name, net) in nets.iter_mut() {

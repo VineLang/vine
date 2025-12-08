@@ -46,7 +46,7 @@ impl RunArgs {
     };
     let mut extrinsics = Extrinsics::default();
 
-    host.register_default_extrinsics(&mut extrinsics);
+    host.register_default_extrinsics_with_stdio(&mut extrinsics);
     host.insert_nets(&nets);
 
     let main = host.get("::").expect("missing main");

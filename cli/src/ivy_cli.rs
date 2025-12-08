@@ -83,7 +83,7 @@ impl IvyReplCommand {
     let heap = Heap::new();
     let mut extrinsics = Extrinsics::default();
 
-    host.register_default_extrinsics(&mut extrinsics);
+    host.register_default_extrinsics_with_stdio(&mut extrinsics);
     host.insert_nets(&nets);
 
     let mut ivm = IVM::new(&heap, &extrinsics);
