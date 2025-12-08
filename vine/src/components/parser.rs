@@ -376,9 +376,6 @@ impl<'src> Parser<'src> {
         self.expect(Token::CloseBracket)?;
         return Ok(Ok(ExprKind::Cast(lhs, ty, true)));
       }
-      if self.check(Token::Num) {
-        return Ok(Ok(self._parse_expr_tuple_field(lhs)?));
-      }
       let ident_span = self.span();
       let ident = self.parse_ident()?;
       if self.check(Token::OpenBracket) || self.check(Token::OpenParen) {
@@ -388,6 +385,10 @@ impl<'src> Parser<'src> {
       } else {
         return Ok(Ok(ExprKind::ObjectField(lhs, Key { span: ident_span, ident })));
       }
+    }
+
+    if self.check(Token::TupleKey) {
+      return Ok(Ok(self._parse_expr_tuple_field(lhs)?));
     }
 
     if self.check(Token::OpenParen) {

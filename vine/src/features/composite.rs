@@ -89,23 +89,9 @@ impl Parser<'_> {
 
   pub(crate) fn _parse_expr_tuple_field(&mut self, lhs: Expr) -> Result<ExprKind, Diag> {
     let num_span = self.span();
-    let num = self.expect(Token::Num)?;
-    if let Some((i, j)) = num.split_once(".") {
-      let i_span = Span { file: self.file, start: num_span.start, end: num_span.start + i.len() };
-      let j_span = Span { file: self.file, start: num_span.end - j.len(), end: num_span.end };
-      let i = self.parse_u32_like(i, |_| Diag::InvalidNum { span: i_span })? as usize;
-      let j = self.parse_u32_like(j, |_| Diag::InvalidNum { span: j_span })? as usize;
-      Ok(ExprKind::TupleField(
-        Expr {
-          span: Span { file: self.file, start: lhs.span.start, end: i_span.end },
-          kind: Box::new(ExprKind::TupleField(lhs, i)),
-        },
-        j,
-      ))
-    } else {
-      let i = self.parse_u32_like(num, |_| Diag::InvalidNum { span: num_span })? as usize;
-      Ok(ExprKind::TupleField(lhs, i))
-    }
+    let num = &self.expect(Token::TupleKey)?[1..];
+    let i = self.parse_u32_like(num, |_| Diag::InvalidNum { span: num_span })? as usize;
+    Ok(ExprKind::TupleField(lhs, i))
   }
 
   pub(crate) fn parse_expr_object(&mut self) -> Result<ExprKind, Diag> {

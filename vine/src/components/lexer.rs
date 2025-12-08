@@ -94,6 +94,7 @@ pub enum Token {
   Try,
 
   Ident,
+  TupleKey,
   Num,
   DoubleQuote,
   SingleQuote,
@@ -149,6 +150,11 @@ impl<'src> Lex<'src> for Lexer<'src> {
           Some('=') => self.bump_ok(Token::DotDotEq),
           _ => Ok(Token::DotDot),
         },
+        Some('0'..='9') => {
+          self.bump();
+          self.bump_while(|x| x.is_ascii_digit());
+          Ok(Token::TupleKey)
+        }
         _ => Ok(Token::Dot),
       },
       Some('#') => match self.bump() {
@@ -410,6 +416,7 @@ impl fmt::Display for Token {
 
       Token::Ident => "an identifier",
       Token::Num => "a numeric literal",
+      Token::TupleKey => "a tuple key",
       Token::DoubleQuote => "a string literal",
       Token::SingleQuote => "a character literal",
       Token::DocComment => "a doc comment",
