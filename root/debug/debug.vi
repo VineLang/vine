@@ -82,6 +82,7 @@ pub mod debug {
     for frame in state.stack.iter() {
       state.io.print("  @ {frame}\n");
     }
+    unsafe::erase(&state.io);
     unsafe::eraser
   }
 
