@@ -1,6 +1,6 @@
 use std::{
   collections::{HashMap, hash_map::Entry},
-  mem::replace,
+  mem::take,
 };
 
 use vine_util::{
@@ -119,7 +119,7 @@ impl CandidateSets {
   }
 
   fn get_mut<'a>(&self, handle: &'a mut CandidateSetHandle) -> &'a mut CandidateSet {
-    *handle = CandidateSetHandle::Set(self.get_owned(replace(handle, CandidateSetHandle::Empty)));
+    *handle = CandidateSetHandle::Set(self.get_owned(take(handle)));
     let CandidateSetHandle::Set(set) = handle else { unreachable!() };
     set
   }
@@ -317,9 +317,7 @@ impl VisSet {
         a.insert(vis);
       }
       (VisSet::Defs(a), VisId::Pub, VisSet::Defs(b)) => {
-        for &def in b {
-          a.insert(def);
-        }
+        a.extend(b);
       }
       (VisSet::Defs(a), VisId::Def(x), VisSet::Defs(b)) => {
         for &y in b {
