@@ -229,12 +229,10 @@ impl<'src> Lex<'src> for Lexer<'src> {
           Some('/') => {
             self.bump();
             self.bump_while(|c| c != '\n');
-            self.bump();
             Ok(Token::DocComment)
           }
           _ => {
             self.bump_while(|c| c != '\n');
-            self.bump();
             self.lex()
           }
         },
