@@ -10,12 +10,19 @@ use core::{
 
 use crate::{ivm::IVM, port::Tag, wire::Wire};
 
-type ExtFnClosure<'ivm> = Box<
-  dyn for<'a, 'ext> Fn(*const (), &'a mut IVM<'ivm, 'ext>, ExtVal<'ivm>, ExtVal<'ivm>, Wire<'ivm>),
->;
+pub trait ExtFnClosure<'ivm, C = OpaqueCtx>:
+  for<'a, 'ext> Fn(C, &'a mut IVM<'ivm, 'ext>, ExtVal<'ivm>, ExtVal<'ivm>, Wire<'ivm>)
+{
+}
+impl<'ivm, F, C> ExtFnClosure<'ivm, C> for F where
+  F: for<'a, 'ext> Fn(C, &'a mut IVM<'ivm, 'ext>, ExtVal<'ivm>, ExtVal<'ivm>, Wire<'ivm>)
+{
+}
+
+type OpaqueCtx = *const ();
 
 pub struct Extrinsics<'ivm> {
-  ext_fns: Vec<(*const (), ExtFnClosure<'ivm>)>,
+  ext_fns: Vec<(OpaqueCtx, Box<dyn ExtFnClosure<'ivm>>)>,
 
   /// Number of registered extrinsic types.
   ext_tys: u16,
@@ -26,6 +33,7 @@ pub struct Extrinsics<'ivm> {
   phantom: PhantomData<fn(&'ivm ()) -> &'ivm ()>,
 }
 
+// TODO: try removing this by changing the signature of `OpaqueCtx`.
 unsafe impl Send for Extrinsics<'_> {}
 unsafe impl Sync for Extrinsics<'_> {}
 
@@ -41,16 +49,13 @@ impl<'ivm> Extrinsics<'ivm> {
   pub const MAX_EXT_FN_COUNT: usize = 0x7FFF;
   pub const MAX_EXT_TY_COUNT: usize = 0x7FFF;
 
-  pub fn new_ext_fn(
-    &mut self,
-    f: impl for<'a, 'ext> Fn(&'ivm (), &'a mut IVM<'ivm, 'ext>, ExtVal<'ivm>, ExtVal<'ivm>, Wire<'ivm>),
-  ) -> ExtFn<'ivm> {
+  pub fn new_ext_fn(&mut self, f: impl ExtFnClosure<'ivm, &'ivm ()>) -> ExtFn<'ivm> {
     self.new_ext_fn_with_context(f, ())
   }
 
   pub fn new_ext_fn_with_context<C: 'ivm>(
     &mut self,
-    f: impl for<'a, 'ext> Fn(&'ivm C, &'a mut IVM<'ivm, 'ext>, ExtVal<'ivm>, ExtVal<'ivm>, Wire<'ivm>),
+    f: impl ExtFnClosure<'ivm, &'ivm C>,
     ctx: C,
   ) -> ExtFn<'ivm> {
     if self.ext_fns.len() >= Self::MAX_EXT_FN_COUNT {
@@ -93,7 +98,7 @@ impl<'ivm> Extrinsics<'ivm> {
     val.payload()
   }
 
-  pub fn get_ext_fn(&self, ext_fn: ExtFn<'ivm>) -> &(*const (), ExtFnClosure<'ivm>) {
+  pub fn get_ext_fn(&self, ext_fn: ExtFn<'ivm>) -> &(OpaqueCtx, Box<dyn ExtFnClosure<'ivm>>) {
     let ext_fn_idx = ext_fn.kind() as usize;
 
     self.ext_fns.get(ext_fn_idx).expect("unknown extrinsic function")
@@ -172,6 +177,10 @@ impl<'ivm> ExtTy<'ivm> {
 
   const fn id(self) -> u16 {
     self.0
+  }
+
+  const fn is_linear(self) -> bool {
+    self.0 & Self::LINEAR_BIT != 0
   }
 }
 
