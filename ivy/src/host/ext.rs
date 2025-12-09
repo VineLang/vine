@@ -3,13 +3,18 @@ use std::{
   ops::{Add, Div, Mul, Sub},
 };
 
-use ivm::ext::{ExtFn, ExtTy, ExtVal, Extrinsics};
+use ivm::{
+  ext::{ExtFn, ExtTy, ExtVal, Extrinsics},
+  port::Port,
+};
 
 use super::Host;
 
 macro_rules! define_ext_fns {
   ($self:ident, $ext:ident, $($name:expr => |$a:ident, $b:ident| $body:expr ),*) => {
-    $($self.register_ext_fn($name.into(), $ext.register_ext_fn(move |[$a, $b]| [$body]));)*
+    $($self.register_ext_fn($name.into(), $ext.new_ext_fn(move |_, ivm, $a, $b, out| {
+      ivm.link_wire(out, Port::new_ext_val($body));
+    }));)*
   };
 }
 
@@ -25,9 +30,9 @@ impl<'ivm> Host<'ivm> {
   }
 
   pub fn register_default_extrinsics(&mut self, extrinsics: &mut Extrinsics<'ivm>) {
-    let n32 = extrinsics.register_n32_ext_ty();
-    let f32 = extrinsics.register_light_ext_ty();
-    let io = extrinsics.register_light_ext_ty();
+    let n32 = extrinsics.n32_ext_ty();
+    let f32 = extrinsics.new_ext_ty(false);
+    let io = extrinsics.new_ext_ty(false);
 
     self.register_ext_ty("N32".into(), n32);
     self.register_ext_ty("F32".into(), f32);

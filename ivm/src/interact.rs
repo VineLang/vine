@@ -146,8 +146,15 @@ impl<'ivm, 'ext> IVM<'ivm, 'ext> {
     {
       self.stats.call += 1;
       self.free_wire(rhs_wire);
-      let result = unsafe { self.extrinsics.call(ext_fn, lhs.as_ext_val(), rhs.as_ext_val()) };
-      self.link_wire(out, Port::new_ext_val(result));
+      let (ctx, func) = self.extrinsics.get_ext_fn(ext_fn);
+      unsafe {
+        let (arg0, arg1) = if ext_fn.is_swapped() {
+          (rhs.as_ext_val(), lhs.as_ext_val())
+        } else {
+          (lhs.as_ext_val(), rhs.as_ext_val())
+        };
+        (func)(*ctx, self, arg0, arg1, out);
+      };
       return;
     }
     let new_fn = unsafe { self.new_node(Tag::ExtFn, ext_fn.swap().bits()) };

@@ -8,70 +8,95 @@ use core::{
   marker::PhantomData,
 };
 
-use crate::port::Tag;
+use crate::{ivm::IVM, port::Tag, wire::Wire};
 
-#[derive(Default)]
+type ExtFnClosure<'ivm> = Box<
+  dyn for<'a, 'ext> Fn(*const (), &'a mut IVM<'ivm, 'ext>, ExtVal<'ivm>, ExtVal<'ivm>, Wire<'ivm>),
+>;
+
 pub struct Extrinsics<'ivm> {
-  ext_fns: Vec<Box<dyn Fn(ExtVal<'ivm>, ExtVal<'ivm>) -> ExtVal<'ivm> + Sync + 'ivm>>,
+  ext_fns: Vec<(*const (), ExtFnClosure<'ivm>)>,
 
-  /// Number of registered light (unboxed) ext types
-  light_ext_ty: u16,
+  /// Number of registered extrinsic types.
+  ext_tys: u16,
 
-  n32_ext_ty: Option<ExtTy<'ivm>>,
+  /// An always-present extrinsic type of n32 numbers.
+  n32_ext_ty: ExtTy<'ivm>,
 
   phantom: PhantomData<fn(&'ivm ()) -> &'ivm ()>,
 }
 
-impl<'ivm> Extrinsics<'ivm> {
-  pub const MAX_EXT_FN_KIND_COUNT: usize = 0x7FFF;
-  pub const MAX_LIGHT_EXT_TY_COUNT: usize = 0x7FFF;
+unsafe impl Send for Extrinsics<'_> {}
+unsafe impl Sync for Extrinsics<'_> {}
 
-  pub fn register_ext_fn(
+impl Default for Extrinsics<'_> {
+  fn default() -> Self {
+    let n32_ext_ty = ExtTy::new(0, false);
+
+    Self { ext_fns: Vec::new(), ext_tys: 1, n32_ext_ty, phantom: PhantomData }
+  }
+}
+
+impl<'ivm> Extrinsics<'ivm> {
+  pub const MAX_EXT_FN_COUNT: usize = 0x7FFF;
+  pub const MAX_EXT_TY_COUNT: usize = 0x7FFF;
+
+  pub fn new_ext_fn(
     &mut self,
-    f: impl Fn([ExtVal<'ivm>; 2]) -> [ExtVal<'ivm>; 1] + Sync + 'ivm,
+    f: impl for<'a, 'ext> Fn(&'ivm (), &'a mut IVM<'ivm, 'ext>, ExtVal<'ivm>, ExtVal<'ivm>, Wire<'ivm>),
   ) -> ExtFn<'ivm> {
-    if self.ext_fns.len() >= Self::MAX_EXT_FN_KIND_COUNT {
+    self.new_ext_fn_with_context(f, ())
+  }
+
+  pub fn new_ext_fn_with_context<C: 'ivm>(
+    &mut self,
+    f: impl for<'a, 'ext> Fn(&'ivm C, &'a mut IVM<'ivm, 'ext>, ExtVal<'ivm>, ExtVal<'ivm>, Wire<'ivm>),
+    ctx: C,
+  ) -> ExtFn<'ivm> {
+    if self.ext_fns.len() >= Self::MAX_EXT_FN_COUNT {
       panic!("IVM reached maximum amount of registered extrinsic functions.");
     } else {
       let ext_fn = ExtFn(self.ext_fns.len() as u16, PhantomData);
-      self.ext_fns.push(Box::new(move |a, b| f([a, b])[0]));
+      let ctx = Box::into_raw(Box::new(ctx));
+      let f = Box::new(f)
+        as Box<
+          dyn for<'a, 'ext> Fn(
+            &'ivm C,
+            &'a mut IVM<'ivm, 'ext>,
+            ExtVal<'ivm>,
+            ExtVal<'ivm>,
+            Wire<'ivm>,
+          ),
+        >;
+      let f = unsafe { std::mem::transmute(f) };
+      self.ext_fns.push((ctx.cast(), f));
       ext_fn
     }
   }
 
-  pub fn register_light_ext_ty(&mut self) -> ExtTy<'ivm> {
-    if self.light_ext_ty as usize >= Self::MAX_LIGHT_EXT_TY_COUNT {
+  pub fn new_ext_ty(&mut self, linear: bool) -> ExtTy<'ivm> {
+    if self.ext_tys as usize >= Self::MAX_EXT_TY_COUNT {
       panic!("IVM reached maximum amount of registered extrinsic unboxed types.");
     } else {
-      let ext_ty = ExtTy::from_id_and_rc(self.light_ext_ty, false);
-      self.light_ext_ty += 1;
+      let ext_ty = ExtTy::new(self.ext_tys, linear);
+      self.ext_tys += 1;
       ext_ty
     }
   }
 
-  pub fn register_n32_ext_ty(&mut self) -> ExtTy<'ivm> {
-    let n32_ext_ty = self.register_light_ext_ty();
-    assert!(self.n32_ext_ty.replace(n32_ext_ty).is_none());
-    n32_ext_ty
-  }
-
-  pub fn call(
-    &self,
-    ext_fn: ExtFn<'ivm>,
-    mut arg0: ExtVal<'ivm>,
-    mut arg1: ExtVal<'ivm>,
-  ) -> ExtVal<'ivm> {
-    let closure =
-      self.ext_fns.get(ext_fn.kind() as usize).expect("ext_fn with given ID not found!");
-    if ext_fn.is_swapped() {
-      (arg0, arg1) = (arg1, arg0)
-    };
-    (closure)(arg0, arg1)
+  pub fn n32_ext_ty(&self) -> ExtTy<'ivm> {
+    self.n32_ext_ty
   }
 
   pub fn ext_val_as_n32(&self, val: ExtVal<'ivm>) -> u32 {
-    assert!(self.n32_ext_ty.is_some_and(move |x| val.ty() == x));
+    assert!(self.n32_ext_ty == val.ty());
     val.payload()
+  }
+
+  pub fn get_ext_fn(&self, ext_fn: ExtFn<'ivm>) -> &(*const (), ExtFnClosure<'ivm>) {
+    let ext_fn_idx = ext_fn.kind() as usize;
+
+    self.ext_fns.get(ext_fn_idx).expect("unknown extrinsic function")
   }
 }
 
@@ -106,6 +131,7 @@ impl<'ivm> ExtVal<'ivm> {
   pub const fn new(ty: ExtTy<'ivm>, payload: u32) -> Self {
     Self(payload as (u64) << 32 | ty.id() as (u64) << 16 | Tag::ExtVal as u64, PhantomData)
   }
+
   /// Accesses the type of this value.
   #[inline(always)]
   pub fn ty(&self) -> ExtTy<'ivm> {
@@ -132,13 +158,16 @@ impl<'ivm> Debug for ExtVal<'ivm> {
 }
 
 /// The type of an external value.
-/// The higher bit specifies whether it is reference-counted.
+///
+/// The highest bit specifies whether it is linear.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct ExtTy<'ivm>(u16, PhantomData<fn(&'ivm ()) -> &'ivm ()>);
 
 impl<'ivm> ExtTy<'ivm> {
-  fn from_id_and_rc(n: u16, rc: bool) -> Self {
-    Self(n | if rc { 0x8000 } else { 0 }, PhantomData)
+  const LINEAR_BIT: u16 = 0x8000;
+
+  fn new(ty_id: u16, linear: bool) -> Self {
+    Self(ty_id | if linear { Self::LINEAR_BIT } else { 0 }, PhantomData)
   }
 
   const fn id(self) -> u16 {
