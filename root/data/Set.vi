@@ -277,9 +277,9 @@ pub mod Set[T; Ord[T]] {
   }
 
   pub impl collect[T?; Ord[T]]: Collect[Set[T], T] {
-    fn collect[I; Iterator[I, T]](iter_ref: I) -> Set[T] {
+    fn collect[I; Iterator[I, T]](iter: I) -> Set[T] {
       let set = Set::empty;
-      for value in iter_ref {
+      for value in iter {
         set.insert(value);
       }
       set
