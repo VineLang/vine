@@ -2,7 +2,10 @@ use vine_util::idx::Idx;
 
 use crate::{
   compiler::Compiler,
-  components::loader::FileId,
+  components::{
+    finder::{FinderCache, candidates::CandidateSetId},
+    loader::FileId,
+  },
   features::builtin::Builtins,
   structures::{
     annotations::Annotations,
@@ -33,6 +36,7 @@ pub struct Checkpoint {
   pub fragments: FragmentId,
   pub specs: SpecId,
   pub files: FileId,
+  pub candidate_sets: CandidateSetId,
   pub errors: usize,
   pub warnings: usize,
 }
@@ -54,6 +58,7 @@ impl Compiler {
       fragments: self.fragments.next_index(),
       specs: self.specs.specs.next_index(),
       files: self.loader.files.next_index(),
+      candidate_sets: self.finder_cache.candidates.sets.next_index(),
       errors: self.diags.errors.len(),
       warnings: self.diags.warnings.len(),
     }
@@ -73,6 +78,7 @@ impl Compiler {
       vir,
       templates,
       diags,
+      finder_cache,
     } = self;
     chart.revert(checkpoint);
     sigs.revert(checkpoint);
@@ -81,6 +87,7 @@ impl Compiler {
     specs.revert(checkpoint);
     loader.revert(checkpoint);
     diags.revert(checkpoint);
+    finder_cache.revert(checkpoint);
     fragments.truncate(checkpoint.fragments.0);
     vir.truncate(checkpoint.fragments.0);
     templates.truncate(checkpoint.fragments.0);
@@ -366,5 +373,13 @@ fn revert_fn(builtin: &mut Option<FnId>, checkpoint: &Checkpoint) {
     Some(FnId::Concrete(fn_id)) if fn_id >= checkpoint.concrete_fns => *builtin = None,
     Some(FnId::Abstract(trait_id, _)) if trait_id >= checkpoint.traits => *builtin = None,
     _ => {}
+  }
+}
+
+impl FinderCache {
+  pub(crate) fn revert(&mut self, checkpoint: &Checkpoint) {
+    self.candidates.by_def.retain(|(def, _), _| *def < checkpoint.defs);
+    self.candidates.sets.truncate(checkpoint.candidate_sets.0);
+    self.candidates.checkpoint = self.candidates.checkpoint.min(checkpoint.defs);
   }
 }

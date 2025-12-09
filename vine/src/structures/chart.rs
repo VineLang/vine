@@ -29,7 +29,8 @@ pub struct Chart {
   pub tests: Vec<ConcreteFnId>,
 }
 
-new_idx!(pub DefId);
+new_idx!(pub DefId; n => ["d{n}"]);
+
 #[derive(Debug)]
 pub struct Def {
   pub name: Ident,
@@ -310,6 +311,13 @@ impl Chart {
     match const_id {
       ConstId::Concrete(const_id) => self.concrete_consts[const_id].generics,
       ConstId::Abstract(trait_id, const_id) => self.traits[trait_id].consts[const_id].generics,
+    }
+  }
+
+  pub fn fn_span(&self, fn_id: FnId) -> Span {
+    match fn_id {
+      FnId::Concrete(fn_id) => self.concrete_fns[fn_id].span,
+      FnId::Abstract(trait_id, fn_id) => self.traits[trait_id].fns[fn_id].span,
     }
   }
 }

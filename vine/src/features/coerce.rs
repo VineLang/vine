@@ -93,7 +93,15 @@ impl Distiller<'_> {
     inv: Inverted,
   ) -> Port {
     let ty = value.ty.invert_if(inv);
-    let mut finder = Finder::new(self.chart, self.sigs, self.diags, self.def, self.generics, span);
+    let mut finder = Finder::new(
+      self.chart,
+      self.sigs,
+      self.diags,
+      self.finder_cache,
+      self.def,
+      self.generics,
+      span,
+    );
     let flex = match finder.find_flex(&mut self.types, value.ty) {
       Ok(flex) => flex,
       Err(err) => return Port::error(ty, err),
@@ -136,7 +144,15 @@ impl Distiller<'_> {
       self.diags.error(Diag::MissingBuiltin { span, builtin: "Drop" });
       return;
     };
-    let mut finder = Finder::new(self.chart, self.sigs, self.diags, self.def, self.generics, span);
+    let mut finder = Finder::new(
+      self.chart,
+      self.sigs,
+      self.diags,
+      self.finder_cache,
+      self.def,
+      self.generics,
+      span,
+    );
     let impl_ = finder.find_impl(&mut self.types, &ImplType::Trait(drop, vec![ty]), false);
     let fn_rel = self.rels.drop_rel(self.chart, impl_);
     let nil = Port { ty: self.types.nil(), kind: PortKind::Nil };

@@ -5,17 +5,20 @@ use vine_util::{
   unwrap_idx_vec,
 };
 
-use crate::structures::{
-  ast::Span,
-  chart::{Chart, DefId, GenericsId},
-  diag::{Diag, Diags, ErrorGuaranteed},
-  resolutions::{Fragment, Rels},
-  signatures::Signatures,
-  tir::{ClosureId, Local, TargetId, TirExpr, TirExprKind, TirLocal, TirPat, TirPatKind},
-  types::{Type, Types},
-  vir::{
-    Header, Interface, InterfaceId, InterfaceKind, Layer, LayerId, Port, Stage, StageId, Step,
-    Transfer, Vir, VirLocal,
+use crate::{
+  components::finder::FinderCache,
+  structures::{
+    ast::Span,
+    chart::{Chart, DefId, GenericsId},
+    diag::{Diag, Diags, ErrorGuaranteed},
+    resolutions::{Fragment, Rels},
+    signatures::Signatures,
+    tir::{ClosureId, Local, TargetId, TirExpr, TirExprKind, TirLocal, TirPat, TirPatKind},
+    types::{Type, Types},
+    vir::{
+      Header, Interface, InterfaceId, InterfaceKind, Layer, LayerId, Port, Stage, StageId, Step,
+      Transfer, Vir, VirLocal,
+    },
   },
 };
 
@@ -24,6 +27,7 @@ pub struct Distiller<'r> {
   pub(crate) chart: &'r Chart,
   pub(crate) sigs: &'r Signatures,
   pub(crate) diags: &'r mut Diags,
+  pub(crate) finder_cache: &'r mut FinderCache,
 
   pub(crate) layers: IdxVec<LayerId, Option<Layer>>,
   pub(crate) interfaces: IdxVec<InterfaceId, Option<Interface>>,
@@ -62,11 +66,17 @@ pub(crate) enum Poly<T = Port> {
 }
 
 impl<'r> Distiller<'r> {
-  pub fn new(chart: &'r Chart, sigs: &'r Signatures, diags: &'r mut Diags) -> Self {
+  pub fn new(
+    chart: &'r Chart,
+    sigs: &'r Signatures,
+    diags: &'r mut Diags,
+    finder_cache: &'r mut FinderCache,
+  ) -> Self {
     Distiller {
       chart,
       sigs,
       diags,
+      finder_cache,
       layers: Default::default(),
       interfaces: Default::default(),
       stages: Default::default(),
@@ -97,7 +107,18 @@ impl<'r> Distiller<'r> {
     debug_assert!(self.returns.is_empty());
     let locals = IdxVec::from_iter(take(&mut self.locals).into_iter().map(|(_, local)| {
       let Self { chart, sigs, def, generics, ref mut types, ref mut rels, .. } = *self;
-      VirLocal::new(chart, sigs, self.diags, def, generics, types, rels, local.span, local.ty)
+      VirLocal::new(
+        chart,
+        sigs,
+        self.diags,
+        self.finder_cache,
+        def,
+        generics,
+        types,
+        rels,
+        local.span,
+        local.ty,
+      )
     }));
     Vir {
       types: take(&mut self.types),

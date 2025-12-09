@@ -41,8 +41,8 @@ impl Resolver<'_> {
   ) -> Result<TirExpr, Diag> {
     let receiver = self.resolve_expr(receiver);
     let mut args = args.iter().map(|arg| self.resolve_expr(arg)).collect::<Vec<_>>();
-    let (fn_span, fn_id, type_params) = self.find_method(span, receiver.ty, name)?;
-    self.annotations.record_reference(name_span, fn_span);
+    let (fn_id, type_params) = self.find_method(span, receiver.ty, name)?;
+    self.annotations.record_reference(name_span, self.chart.fn_span(fn_id));
     let type_params = self.types.import(&type_params, None);
     let sig = self.types.import(self.sigs.fn_sig(fn_id), Some(&type_params));
     if sig.param_tys.len() != args.len() + 1 {
@@ -94,9 +94,16 @@ impl Resolver<'_> {
     span: Span,
     receiver: Type,
     name: Ident,
-  ) -> Result<(Span, FnId, TypeCtx<Vec<Type>>), ErrorGuaranteed> {
-    let mut finder =
-      Finder::new(self.chart, self.sigs, self.diags, self.cur_def, self.cur_generics, span);
+  ) -> Result<(FnId, TypeCtx<Vec<Type>>), ErrorGuaranteed> {
+    let mut finder = Finder::new(
+      self.chart,
+      self.sigs,
+      self.diags,
+      self.finder_cache,
+      self.cur_def,
+      self.cur_generics,
+      span,
+    );
     let mut results = finder.find_method(&self.types, receiver, name.clone())?;
 
     if results.len() == 1 {

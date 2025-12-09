@@ -9,7 +9,7 @@ use vine_util::{
 };
 
 use crate::{
-  components::finder::Finder,
+  components::finder::{Finder, FinderCache},
   structures::{
     annotations::Annotations,
     ast::{
@@ -36,6 +36,7 @@ pub struct Resolver<'a> {
   pub(crate) diags: &'a mut Diags,
   pub(crate) resolutions: &'a mut Resolutions,
   pub(crate) annotations: &'a mut Annotations,
+  pub(crate) finder_cache: &'a mut FinderCache,
   pub(crate) fragments: &'a mut IdxVec<FragmentId, Fragment>,
   pub(crate) types: Types,
   pub(crate) return_ty: Option<Type>,
@@ -80,6 +81,7 @@ impl<'a> Resolver<'a> {
     resolutions: &'a mut Resolutions,
     annotations: &'a mut Annotations,
     fragments: &'a mut IdxVec<FragmentId, Fragment>,
+    finder_cache: &'a mut FinderCache,
   ) -> Self {
     Resolver {
       chart,
@@ -88,6 +90,7 @@ impl<'a> Resolver<'a> {
       resolutions,
       annotations,
       fragments,
+      finder_cache,
       types: Types::default(),
       locals: Default::default(),
       return_ty: None,
@@ -140,6 +143,7 @@ impl<'a> Resolver<'a> {
     for id in self.chart.impls.keys_from(checkpoint.impls) {
       self.resolve_impl_sig(id);
     }
+    self.finder_cache.candidates.build_since(self.chart, self.sigs);
     for id in self.chart.concrete_consts.keys_from(checkpoint.concrete_consts) {
       self.resolve_const_def(id);
     }
@@ -310,8 +314,15 @@ impl<'a> Resolver<'a> {
   }
 
   pub(crate) fn find_impl(&mut self, span: Span, ty: &ImplType, basic: bool) -> TirImpl {
-    let mut finder =
-      Finder::new(self.chart, self.sigs, self.diags, self.cur_def, self.cur_generics, span);
+    let mut finder = Finder::new(
+      self.chart,
+      self.sigs,
+      self.diags,
+      self.finder_cache,
+      self.cur_def,
+      self.cur_generics,
+      span,
+    );
     finder.find_impl(&mut self.types, ty, basic)
   }
 

@@ -18,6 +18,7 @@ use crate::{
   structures::{
     ast::{Block, Ident, Span, Stmt, visit::VisitMut},
     chart::{DefId, GenericsId, VisId},
+    checkpoint::Checkpoint,
     diag::{Diag, ErrorGuaranteed},
     resolutions::FragmentId,
     tir::Local,
@@ -142,6 +143,7 @@ impl<'ctx, 'ivm, 'ext, 'comp> Repl<'ctx, 'ivm, 'ext, 'comp> {
       bindings: &mut bindings,
       interface: &mut interface,
       clear,
+      extracted_items: false,
     };
     let nets = self.compiler.compile(hooks)?;
 
@@ -161,6 +163,7 @@ impl<'ctx, 'ivm, 'ext, 'comp> Repl<'ctx, 'ivm, 'ext, 'comp> {
       bindings: &'a mut Vec<(Local, Ident, Span, Type)>,
       interface: &'a mut Option<InterfaceId>,
       clear: Vec<Ident>,
+      extracted_items: bool,
     }
 
     impl Hooks for ExecHooks<'_, '_> {
@@ -169,6 +172,13 @@ impl<'ctx, 'ivm, 'ext, 'comp> Repl<'ctx, 'ivm, 'ext, 'comp> {
         extractor.visit(&mut *self.block);
         for item in extractor.items {
           charter.chart_item(VisId::Def(self.repl_mod), item, self.repl_mod, GenericsId::NONE);
+          self.extracted_items = true;
+        }
+      }
+
+      fn pre_resolve(&mut self, resolver: &mut Resolver<'_>) {
+        if self.extracted_items {
+          resolver.finder_cache.revert(&Checkpoint::default());
         }
       }
 

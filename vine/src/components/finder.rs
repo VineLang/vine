@@ -1,27 +1,36 @@
-use std::collections::{BTreeMap, BTreeSet, HashSet};
-
-use vine_util::idx::IntSet;
-
-use crate::structures::{
-  ast::{Ident, Span},
-  chart::{
-    Binding, Chart, Def, DefId, DefImplKind, DefTraitKind, DefValueKind, FnId, GenericsId, ImplId,
-    MemberKind,
-  },
-  diag::{Diag, Diags, ErrorGuaranteed},
-  signatures::{ImportState, Signatures},
-  tir::TirImpl,
-  types::{ImplType, Inverted, Type, TypeCtx, TypeKind, Types},
+use std::{
+  collections::{BTreeSet, HashMap},
+  hash::Hash,
 };
+
+use crate::{
+  components::finder::candidates::{CandidateSets, VisSet},
+  structures::{
+    ast::{Ident, Span},
+    chart::{Chart, DefId, FnId, GenericsId, ImplId},
+    diag::{Diag, Diags, ErrorGuaranteed},
+    signatures::Signatures,
+    tir::TirImpl,
+    types::{ImplType, Inverted, Type, TypeCtx, TypeKind, Types},
+  },
+};
+
+pub(crate) mod candidates;
 
 pub struct Finder<'a> {
   pub(crate) chart: &'a Chart,
   pub(crate) sigs: &'a Signatures,
   pub(crate) diags: &'a mut Diags,
+  pub(crate) cache: &'a mut FinderCache,
   pub(crate) source: DefId,
   pub(crate) generics: GenericsId,
   pub(crate) span: Span,
   pub(crate) steps: u32,
+}
+
+#[derive(Default, Debug, Clone)]
+pub struct FinderCache {
+  pub(crate) candidates: CandidateSets,
 }
 
 #[derive(Debug, Default)]
@@ -30,12 +39,6 @@ pub struct FlexImpls {
   pub fork: Option<TirImpl>,
   pub drop: Option<TirImpl>,
   pub self_dual: bool,
-}
-
-struct CandidateSearch<F> {
-  mods: IntSet<DefId>,
-  defs: IntSet<DefId>,
-  consider_candidate: F,
 }
 
 const STEPS_LIMIT: u32 = 2_000;
@@ -57,11 +60,12 @@ impl<'a> Finder<'a> {
     chart: &'a Chart,
     sigs: &'a Signatures,
     diags: &'a mut Diags,
+    cache: &'a mut FinderCache,
     source: DefId,
     generics: GenericsId,
     span: Span,
   ) -> Self {
-    Finder { chart, sigs, diags, source, generics, span, steps: 0 }
+    Finder { chart, sigs, diags, cache, source, generics, span, steps: 0 }
   }
 
   pub fn find_method(
@@ -69,10 +73,10 @@ impl<'a> Finder<'a> {
     types: &Types,
     receiver: Type,
     name: Ident,
-  ) -> Result<Vec<(Span, FnId, TypeCtx<Vec<Type>>)>, ErrorGuaranteed> {
+  ) -> Result<Vec<(FnId, TypeCtx<Vec<Type>>)>, ErrorGuaranteed> {
     let mut found = Vec::new();
 
-    for (candidate, span) in self.find_method_candidates(types, receiver, name)? {
+    for candidate in self.find_method_candidates(types, receiver, name)? {
       let mut types = types.clone();
       let generics = self.chart.fn_generics(candidate);
       let type_params = types.new_vars(self.span, self.sigs.type_params[generics].params.len());
@@ -86,7 +90,7 @@ impl<'a> Finder<'a> {
           _ => candidate_receiver,
         };
         if types.unify(receiver, candidate_receiver).is_success() {
-          found.push((span, candidate, TypeCtx { types, inner: type_params }));
+          found.push((candidate, TypeCtx { types, inner: type_params }));
         }
       }
     }
@@ -99,29 +103,15 @@ impl<'a> Finder<'a> {
     types: &Types,
     receiver: Type,
     name: Ident,
-  ) -> Result<BTreeMap<FnId, Span>, ErrorGuaranteed> {
-    let mut candidates = BTreeMap::new();
-    let search = &mut CandidateSearch {
-      mods: HashSet::default(),
-      defs: HashSet::default(),
-      consider_candidate: |self_: &Self, def: &Def| {
-        if def.name == name
-          && let Some(Binding { span, vis, kind: DefValueKind::Fn(fn_kind), .. }) = def.value_kind
-          && self_.chart.visible(vis, self_.source)
-          && self_.chart.fn_is_method(fn_kind)
-        {
-          candidates.insert(fn_kind, span);
-        }
-      },
-    };
-
-    self.find_general_candidates(search);
+  ) -> Result<BTreeSet<FnId>, ErrorGuaranteed> {
+    let mut found = BTreeSet::new();
+    self.get_candidates(&mut found, self.general_candidates().methods.get(&name));
 
     if let Some(def_id) = types.get_mod(self.chart, receiver)? {
-      self.consider_mod(search, def_id);
+      self.get_candidates(&mut found, self.cache.candidates.get_within(def_id).methods.get(&name));
     }
 
-    Ok(candidates)
+    Ok(found)
   }
 
   pub fn find_flex(&mut self, types: &mut Types, ty: Type) -> Result<FlexImpls, ErrorGuaranteed> {
@@ -325,119 +315,23 @@ impl<'a> Finder<'a> {
     query: &ImplType,
     basic: bool,
   ) -> Result<BTreeSet<ImplId>, ErrorGuaranteed> {
-    let mut candidates = BTreeSet::new();
-    let search = &mut CandidateSearch {
-      mods: HashSet::default(),
-      defs: HashSet::default(),
-      consider_candidate: |self_: &Self, def: &Def| {
-        if let Some(Binding { vis, kind: DefImplKind::Impl(impl_id), .. }) = def.impl_kind
-          && self_.chart.visible(vis, self_.source)
-        {
-          let impl_ = &self_.chart.impls[impl_id];
-          if !impl_.manual && impl_.basic == basic {
-            let impl_sig = &self_.sigs.impls[impl_id];
-            if impl_sig.inner.ty.approx_eq(query) {
-              candidates.insert(impl_id);
-            }
-          }
-        }
-      },
-    };
-
-    self.find_general_candidates(search);
+    let mut found = BTreeSet::new();
 
     if let ImplType::Trait(trait_id, params) = query {
-      self.consider_mod(search, self.chart.traits[*trait_id].def);
+      let key = &(*trait_id, basic);
+      self.get_candidates(&mut found, self.general_candidates().impls.get(key));
+
+      let trait_def = self.chart.traits[*trait_id].def;
+      self.get_candidates(&mut found, self.cache.candidates.get_within(trait_def).impls.get(key));
+
       for &param in params {
         if let Some(mod_id) = types.get_mod(self.chart, param)? {
-          self.consider_mod(search, mod_id);
+          self.get_candidates(&mut found, self.cache.candidates.get_within(mod_id).impls.get(key));
         }
       }
     }
 
-    Ok(candidates)
-  }
-
-  fn find_general_candidates(&mut self, search: &mut CandidateSearch<impl FnMut(&Self, &Def)>) {
-    for &ancestor in &self.chart.defs[self.source].ancestors {
-      self.consider_mod(search, ancestor);
-    }
-    if let Some(prelude) = self.chart.builtins.prelude {
-      self.consider_mod(search, prelude);
-    }
-  }
-
-  fn consider_mod<F: FnMut(&Self, &Def)>(
-    &mut self,
-    search: &mut CandidateSearch<F>,
-    mod_id: DefId,
-  ) {
-    if !search.mods.insert(mod_id) {
-      return;
-    }
-
-    self.consider_def(search, mod_id);
-
-    for member in &self.chart.defs[mod_id].named_members {
-      self.consider_member(search, member);
-    }
-  }
-
-  fn consider_member<F: FnMut(&Self, &Def)>(
-    &mut self,
-    search: &mut CandidateSearch<F>,
-    member: &Binding<MemberKind>,
-  ) {
-    if !self.chart.visible(member.vis, self.source) {
-      return;
-    }
-
-    let def_id = match member.kind {
-      MemberKind::Child(def_id) => Some(def_id),
-      MemberKind::Import(import_id) => match self.sigs.imports[import_id] {
-        ImportState::Resolved(Ok(def_id)) => Some(def_id),
-        _ => None,
-      },
-    };
-
-    if let Some(def_id) = def_id {
-      self.consider_def(search, def_id);
-    }
-  }
-
-  fn consider_def<F: FnMut(&Self, &Def)>(
-    &mut self,
-    search: &mut CandidateSearch<F>,
-    def_id: DefId,
-  ) {
-    if !search.defs.insert(def_id) {
-      return;
-    }
-
-    let def = &self.chart.defs[def_id];
-
-    for member in &def.implicit_members {
-      self.consider_member(search, member);
-    }
-
-    (search.consider_candidate)(self, def);
-
-    if let Some(Binding { kind: DefTraitKind::Trait(trait_id), vis, .. }) = def.trait_kind
-      && self.chart.visible(vis, self.source)
-    {
-      let trait_def = &self.chart.traits[trait_id];
-      self.consider_mod(search, trait_def.def);
-    }
-
-    if let Some(Binding { kind: DefImplKind::Impl(impl_id), vis, .. }) = def.impl_kind
-      && self.chart.visible(vis, self.source)
-    {
-      let impl_sig = &self.sigs.impls[impl_id];
-      if let ImplType::Trait(trait_id, _) = impl_sig.inner.ty {
-        let trait_def = &self.chart.traits[trait_id];
-        self.consider_mod(search, trait_def.def);
-      }
-    }
+    Ok(found)
   }
 
   fn step(&mut self) -> Result<(), Error> {
@@ -478,5 +372,28 @@ impl<'a> Finder<'a> {
       ImplType::Error(_) => {}
     }
     Ok(())
+  }
+
+  fn general_candidates(&self) -> &candidates::CandidateSet {
+    self.cache.candidates.get_within_ancestors(self.source)
+  }
+
+  fn get_candidates<T: Copy + Hash + Ord>(
+    &self,
+    set: &mut BTreeSet<T>,
+    map: Option<&HashMap<T, VisSet>>,
+  ) {
+    if let Some(map) = map {
+      let ancestors = &self.chart.defs[self.source].ancestors;
+      for (&key, vis) in map {
+        if let VisSet::Defs(defs) = vis
+          && !ancestors.iter().any(|x| defs.contains(x))
+        {
+          continue;
+        }
+
+        set.insert(key);
+      }
+    }
   }
 }
