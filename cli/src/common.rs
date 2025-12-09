@@ -1,4 +1,8 @@
-use std::process::exit;
+use std::{
+  io::{self, Read, Write},
+  process::exit,
+  sync::{Mutex, MutexGuard},
+};
 
 use clap::Args;
 
@@ -7,6 +11,7 @@ use ivm::{
   ext::Extrinsics,
   heap::Heap,
   port::{Port, Tag},
+  stats::Stats,
 };
 use ivy::{ast::Nets, host::Host, optimize::Optimizer};
 
@@ -37,7 +42,40 @@ pub struct RunArgs {
 }
 
 impl RunArgs {
-  pub fn run(self, nets: Nets, debug_hint: bool) {
+  pub fn run(&self, nets: &Nets) -> RunResult {
+    self._run(nets, io::stdin, io::stdout)
+  }
+
+  /// Runs the `nets` with an empty stdin and capturing any writes to stdout.
+  pub fn run_capturing_output(&self, nets: &Nets) -> RunResult {
+    pub struct SharedWriter<'a>(pub MutexGuard<'a, Vec<u8>>);
+
+    impl Write for SharedWriter<'_> {
+      fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
+        self.0.extend_from_slice(buf);
+        Ok(buf.len())
+      }
+
+      fn flush(&mut self) -> io::Result<()> {
+        Ok(())
+      }
+    }
+
+    let input: &[u8] = &[];
+    let output = Mutex::default();
+
+    let mut result = self._run(nets, || input, || SharedWriter(output.lock().unwrap()));
+    result.output = Some(output.into_inner().unwrap());
+
+    result
+  }
+
+  fn _run<R: Read, W: Write>(
+    &self,
+    nets: &Nets,
+    io_input_fn: impl Copy + Fn() -> R + Sync,
+    io_output_fn: impl Copy + Fn() -> W + Sync,
+  ) -> RunResult {
     let mut host = &mut Host::default();
     let heap = match self.heap {
       Some(size) => Heap::with_size(size).expect("heap allocation failed"),
@@ -45,8 +83,8 @@ impl RunArgs {
     };
     let mut extrinsics = Extrinsics::default();
 
-    host.register_default_extrinsics(&mut extrinsics);
-    host.insert_nets(&nets);
+    host.register_default_extrinsics(&mut extrinsics, io_input_fn, io_output_fn);
+    host.insert_nets(nets);
 
     let main = host.get("::").expect("missing main");
     let mut ivm = IVM::new(&heap, &extrinsics);
@@ -63,24 +101,41 @@ impl RunArgs {
     }
 
     let out = ivm.follow(Port::new_wire(node.2));
-    let no_io =
-      out.tag() != Tag::ExtVal || unsafe { out.as_ext_val() }.bits() != host.new_io().bits();
-    let vicious = ivm.stats.mem_free < ivm.stats.mem_alloc;
-    if no_io {
+
+    RunResult {
+      stats: if self.no_stats { None } else { Some(ivm.stats) },
+      no_io: out.tag() != Tag::ExtVal || unsafe { out.as_ext_val() }.bits() != host.new_io().bits(),
+      vicious: ivm.stats.mem_free < ivm.stats.mem_alloc,
+      output: None,
+    }
+  }
+}
+
+pub struct RunResult {
+  pub stats: Option<Stats>,
+  pub no_io: bool,
+  pub vicious: bool,
+  pub output: Option<Vec<u8>>,
+}
+
+impl RunResult {
+  pub fn check(&self, debug_hint: bool) {
+    if self.no_io {
       eprintln!("\nError: the net did not return its `IO` handle");
       if debug_hint {
         eprintln!("  hint: try running the program in `--debug` mode to see error messages");
       }
     }
-    if vicious {
+
+    if self.vicious {
       eprintln!("\nError: the net created a vicious circle");
     }
 
-    if !self.no_stats {
-      eprintln!("{}", ivm.stats);
+    if let Some(stats) = &self.stats {
+      eprintln!("{}", stats);
     }
 
-    if no_io || vicious {
+    if self.no_io || self.vicious {
       exit(1);
     }
   }

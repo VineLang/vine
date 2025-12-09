@@ -45,7 +45,7 @@ impl IvyRunCommand {
   pub fn execute(self) -> Result<()> {
     let src_contents = fs::read_to_string(self.src.clone())?;
     let nets = IvyParser::parse(&src_contents).unwrap();
-    self.run_args.run(nets, false);
+    self.run_args.run(&nets).check(false);
     Ok(())
   }
 }
@@ -83,7 +83,7 @@ impl IvyReplCommand {
     let heap = Heap::new();
     let mut extrinsics = Extrinsics::default();
 
-    host.register_default_extrinsics(&mut extrinsics);
+    host.register_default_extrinsics_with_stdio(&mut extrinsics);
     host.insert_nets(&nets);
 
     let mut ivm = IVM::new(&heap, &extrinsics);
