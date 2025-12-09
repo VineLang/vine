@@ -12,5 +12,8 @@ pub fn main(&io: &IO) {
   io.println("{map.has(&42)}");
   io.println("{map.has(&123456)}");
 
+  map.keys().for_each(fn* (&k: &N32) { io.println("{k}") });
+  map.values().for_each(fn* (&v: &String) { io.println("{v}") });
+
   io.println("{map.show()}")
 }

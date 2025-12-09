@@ -127,6 +127,34 @@ pub mod Map[K, V; Ord[K]] {
     }
   }
 
+  pub fn .keys[...](&self: &Map[K, V]) -> Iterator::Map[IterRef[K, V], Key] {
+    self.iter_ref().map(Key())
+  }
+
+  pub struct* Key();
+
+  pub mod Key {
+    pub impl call[K, V]: fn Key(&(K, V)) -> &K {
+      fn call(Key(), (&(key: K, _: V),)) -> &K {
+        &key
+      }
+    }
+  }
+
+  pub fn .values[...](&self: &Map[K, V]) -> Iterator::Map[IterRef[K, V], Value] {
+    self.iter_ref().map(Value())
+  }
+
+  pub struct* Value();
+
+  pub mod Value {
+    pub impl call[K, V]: fn Value(&(K, V)) -> &V {
+      fn call(Value(), (&(_: K, value: V),)) -> &V {
+        &value
+      }
+    }
+  }
+
   pub impl to_list[...]: Cast[Map[K, V], List[(K, V)]] {
     fn cast(self: Map[K, V]) -> List[(K, V)] {
       self! as List
