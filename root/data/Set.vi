@@ -1,5 +1,5 @@
 
-use data::Iterator;
+use data::Iterator::{Iterator, Collect};
 use debug::Show;
 use ops::{Cast, comparison::Ord};
 
@@ -273,6 +273,16 @@ pub mod Set[T; Ord[T]] {
           None()
         }
       }
+    }
+  }
+
+  pub impl collect[T?; Ord[T]]: Collect[Set[T], T] {
+    fn collect[I; Iterator[I, T]](iter: I) -> Set[T] {
+      let set = Set::empty;
+      for value in iter {
+        set.insert(value);
+      }
+      set
     }
   }
 

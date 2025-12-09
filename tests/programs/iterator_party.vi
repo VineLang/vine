@@ -1,5 +1,5 @@
 
-use #root::data::Iterator;
+use #root::data::{Iterator, Set};
 
 pub fn main(_: &IO) {
   debug::log("--- concat, empty, one, from_next ---");
@@ -80,6 +80,7 @@ pub fn main(_: &IO) {
   debug::log("{iter_ref.nth(3).show()}");
   debug::log("{iter_ref.last().show()}");
   debug::log("{iter_ref.collect[List, _, _]().show()}");
+  debug::log("{[0, 1, 2, 3, 4, 1, 3].iter().collect[Set[N32], _, _]().show()}");
 
   debug::log("--- fold ---");
   debug::log("{(0..5).fold("_", fn* (a: String, b: N32) { "({a}, {b})" })}");
