@@ -146,10 +146,10 @@ impl<'ivm, 'ext> IVM<'ivm, 'ext> {
       let (out0, out1) = unsafe { f.aux() };
       self.stats.call += 1;
 
-      let (ctx, func) = self.extrinsics.get_ext_1to2_fn(ext_fn);
+      let func = self.extrinsics.get_ext_1to2_fn(ext_fn);
       unsafe {
         let arg = lhs.as_ext_val();
-        (func)(*ctx, self, arg, out0, out1);
+        (func)(self, arg, out0, out1);
       };
       return;
     }
@@ -160,14 +160,14 @@ impl<'ivm, 'ext> IVM<'ivm, 'ext> {
     {
       self.stats.call += 1;
       self.free_wire(rhs_wire);
-      let (ctx, func) = self.extrinsics.get_ext_2to1_fn(ext_fn);
+      let func = self.extrinsics.get_ext_2to1_fn(ext_fn);
       unsafe {
         let (arg0, arg1) = if ext_fn.is_swapped() {
           (rhs.as_ext_val(), lhs.as_ext_val())
         } else {
           (lhs.as_ext_val(), rhs.as_ext_val())
         };
-        (func)(*ctx, self, arg0, arg1, out);
+        (func)(self, arg0, arg1, out);
       };
       return;
     }
