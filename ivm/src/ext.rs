@@ -10,29 +10,38 @@ use core::{
 
 use crate::{ivm::IVM, port::Tag, wire::Wire};
 
-pub trait Ext2to1Fn<'ivm, C = OpaqueCtx>:
-  for<'a, 'ext> Fn(C, &'a mut IVM<'ivm, 'ext>, ExtVal<'ivm>, ExtVal<'ivm>, Wire<'ivm>)
+/// A trait alias for (ExtVal, ExtVal) -> ExtVal extrinsic functions.
+pub trait Ext2to1Fn<'ivm>:
+  for<'a, 'ext> Fn(&'a mut IVM<'ivm, 'ext>, ExtVal<'ivm>, ExtVal<'ivm>, Wire<'ivm>)
+  + Send
+  + Sync
+  + 'ivm
 {
 }
-impl<'ivm, F, C> Ext2to1Fn<'ivm, C> for F where
-  F: for<'a, 'ext> Fn(C, &'a mut IVM<'ivm, 'ext>, ExtVal<'ivm>, ExtVal<'ivm>, Wire<'ivm>)
+impl<'ivm, F> Ext2to1Fn<'ivm> for F where
+  F: for<'a, 'ext> Fn(&'a mut IVM<'ivm, 'ext>, ExtVal<'ivm>, ExtVal<'ivm>, Wire<'ivm>)
+    + Send
+    + Sync
+    + 'ivm
 {
 }
 
-pub trait Ext1to2Fn<'ivm, C = OpaqueCtx>:
-  for<'a, 'ext> Fn(C, &'a mut IVM<'ivm, 'ext>, ExtVal<'ivm>, Wire<'ivm>, Wire<'ivm>)
+/// A trait alias for ExtVal -> (ExtVal, ExtVal) extrinsic functions.
+pub trait Ext1to2Fn<'ivm>:
+  for<'a, 'ext> Fn(&'a mut IVM<'ivm, 'ext>, ExtVal<'ivm>, Wire<'ivm>, Wire<'ivm>) + Send + Sync + 'ivm
 {
 }
-impl<'ivm, F, C> Ext1to2Fn<'ivm, C> for F where
-  F: for<'a, 'ext> Fn(C, &'a mut IVM<'ivm, 'ext>, ExtVal<'ivm>, Wire<'ivm>, Wire<'ivm>)
+impl<'ivm, F> Ext1to2Fn<'ivm> for F where
+  F: for<'a, 'ext> Fn(&'a mut IVM<'ivm, 'ext>, ExtVal<'ivm>, Wire<'ivm>, Wire<'ivm>)
+    + Send
+    + Sync
+    + 'ivm
 {
 }
-
-type OpaqueCtx = *const ();
 
 pub struct Extrinsics<'ivm> {
-  ext_1to2_fns: Vec<(OpaqueCtx, Box<dyn Ext1to2Fn<'ivm>>)>,
-  ext_2to1_fns: Vec<(OpaqueCtx, Box<dyn Ext2to1Fn<'ivm>>)>,
+  ext_1to2_fns: Vec<Box<dyn Ext1to2Fn<'ivm>>>,
+  ext_2to1_fns: Vec<Box<dyn Ext2to1Fn<'ivm>>>,
 
   /// Number of registered extrinsic types.
   ext_tys: u16,
@@ -42,11 +51,6 @@ pub struct Extrinsics<'ivm> {
 
   phantom: PhantomData<fn(&'ivm ()) -> &'ivm ()>,
 }
-
-// TODO: try removing this by changing the signature of `OpaqueCtx`.
-// this is currently needed because `*const ()` is not `Send` or `Sync`.
-unsafe impl Send for Extrinsics<'_> {}
-unsafe impl Sync for Extrinsics<'_> {}
 
 impl Default for Extrinsics<'_> {
   fn default() -> Self {
@@ -66,44 +70,24 @@ impl<'ivm> Extrinsics<'ivm> {
   pub const MAX_EXT_FN_COUNT: usize = 0x3FFF;
   pub const MAX_EXT_TY_COUNT: usize = 0x7FFF;
 
-  pub fn new_1to2_ext_fn(&mut self, f: impl Ext1to2Fn<'ivm, &'ivm ()>) -> ExtFn<'ivm> {
-    self.new_1to2_ext_fn_with_context(f, ())
-  }
-
-  pub fn new_1to2_ext_fn_with_context<C: 'ivm>(
-    &mut self,
-    f: impl Ext1to2Fn<'ivm, &'ivm C>,
-    ctx: C,
-  ) -> ExtFn<'ivm> {
+  pub fn new_1to2_ext_fn(&mut self, f: impl Ext1to2Fn<'ivm>) -> ExtFn<'ivm> {
     if self.ext_1to2_fns.len() >= Self::MAX_EXT_FN_COUNT {
       panic!("IVM reached maximum amount of registered extrinsic functions.");
     } else {
       let ext_fn = ExtFn::new_1to2(self.ext_1to2_fns.len());
-      let ctx = Box::into_raw(Box::new(ctx));
-      let f = Box::new(f) as Box<dyn Ext1to2Fn<'ivm, &'ivm C>>;
-      let f = unsafe { std::mem::transmute(f) };
-      self.ext_1to2_fns.push((ctx.cast(), f));
+      let f = Box::new(f) as Box<dyn Ext1to2Fn<'ivm>>;
+      self.ext_1to2_fns.push(f);
       ext_fn
     }
   }
 
-  pub fn new_2to1_ext_fn(&mut self, f: impl Ext2to1Fn<'ivm, &'ivm ()>) -> ExtFn<'ivm> {
-    self.new_2to1_ext_fn_with_context(f, ())
-  }
-
-  pub fn new_2to1_ext_fn_with_context<C: 'ivm>(
-    &mut self,
-    f: impl Ext2to1Fn<'ivm, &'ivm C>,
-    ctx: C,
-  ) -> ExtFn<'ivm> {
+  pub fn new_2to1_ext_fn(&mut self, f: impl Ext2to1Fn<'ivm>) -> ExtFn<'ivm> {
     if self.ext_2to1_fns.len() >= Self::MAX_EXT_FN_COUNT {
       panic!("IVM reached maximum amount of registered extrinsic functions.");
     } else {
       let ext_fn = ExtFn::new_2to1(self.ext_2to1_fns.len());
-      let ctx = Box::into_raw(Box::new(ctx));
-      let f = Box::new(f) as Box<dyn Ext2to1Fn<'ivm, &'ivm C>>;
-      let f = unsafe { std::mem::transmute(f) };
-      self.ext_2to1_fns.push((ctx.cast(), f));
+      let f = Box::new(f) as Box<dyn Ext2to1Fn<'ivm>>;
+      self.ext_2to1_fns.push(f);
       ext_fn
     }
   }
@@ -127,11 +111,11 @@ impl<'ivm> Extrinsics<'ivm> {
     val.payload()
   }
 
-  pub fn get_ext_1to2_fn(&self, ext_fn: ExtFn<'ivm>) -> &(OpaqueCtx, Box<dyn Ext1to2Fn<'ivm>>) {
+  pub fn get_ext_1to2_fn(&self, ext_fn: ExtFn<'ivm>) -> &dyn Ext1to2Fn<'ivm> {
     self.ext_1to2_fns.get(ext_fn.index()).expect("unknown extrinsic function")
   }
 
-  pub fn get_ext_2to1_fn(&self, ext_fn: ExtFn<'ivm>) -> &(OpaqueCtx, Box<dyn Ext2to1Fn<'ivm>>) {
+  pub fn get_ext_2to1_fn(&self, ext_fn: ExtFn<'ivm>) -> &dyn Ext2to1Fn<'ivm> {
     self.ext_2to1_fns.get(ext_fn.index()).expect("unknown extrinsic function")
   }
 }
