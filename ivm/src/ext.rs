@@ -11,14 +11,14 @@ use core::{
 use crate::{ivm::IVM, port::Tag, wire::Wire};
 
 /// A trait alias for (ExtVal, ExtVal) -> ExtVal extrinsic functions.
-pub trait Ext2to1Fn<'ivm>:
+pub trait ExtMergeFn<'ivm>:
   for<'a, 'ext> Fn(&'a mut IVM<'ivm, 'ext>, ExtVal<'ivm>, ExtVal<'ivm>, Wire<'ivm>)
   + Send
   + Sync
   + 'ivm
 {
 }
-impl<'ivm, F> Ext2to1Fn<'ivm> for F where
+impl<'ivm, F> ExtMergeFn<'ivm> for F where
   F: for<'a, 'ext> Fn(&'a mut IVM<'ivm, 'ext>, ExtVal<'ivm>, ExtVal<'ivm>, Wire<'ivm>)
     + Send
     + Sync
@@ -27,11 +27,11 @@ impl<'ivm, F> Ext2to1Fn<'ivm> for F where
 }
 
 /// A trait alias for ExtVal -> (ExtVal, ExtVal) extrinsic functions.
-pub trait Ext1to2Fn<'ivm>:
+pub trait ExtSplitFn<'ivm>:
   for<'a, 'ext> Fn(&'a mut IVM<'ivm, 'ext>, ExtVal<'ivm>, Wire<'ivm>, Wire<'ivm>) + Send + Sync + 'ivm
 {
 }
-impl<'ivm, F> Ext1to2Fn<'ivm> for F where
+impl<'ivm, F> ExtSplitFn<'ivm> for F where
   F: for<'a, 'ext> Fn(&'a mut IVM<'ivm, 'ext>, ExtVal<'ivm>, Wire<'ivm>, Wire<'ivm>)
     + Send
     + Sync
@@ -40,8 +40,8 @@ impl<'ivm, F> Ext1to2Fn<'ivm> for F where
 }
 
 pub struct Extrinsics<'ivm> {
-  ext_1to2_fns: Vec<Box<dyn Ext1to2Fn<'ivm>>>,
-  ext_2to1_fns: Vec<Box<dyn Ext2to1Fn<'ivm>>>,
+  ext_split_fns: Vec<Box<dyn ExtSplitFn<'ivm>>>,
+  ext_merge_fns: Vec<Box<dyn ExtMergeFn<'ivm>>>,
 
   /// Number of registered extrinsic types.
   ext_tys: u16,
@@ -57,8 +57,8 @@ impl Default for Extrinsics<'_> {
     let n32_ext_ty = ExtTy::new(0, false);
 
     Self {
-      ext_1to2_fns: Vec::new(),
-      ext_2to1_fns: Vec::new(),
+      ext_split_fns: Vec::new(),
+      ext_merge_fns: Vec::new(),
       ext_tys: 1,
       n32_ext_ty,
       phantom: PhantomData,
@@ -70,24 +70,24 @@ impl<'ivm> Extrinsics<'ivm> {
   pub const MAX_EXT_FN_COUNT: usize = 0x3FFF;
   pub const MAX_EXT_TY_COUNT: usize = 0x7FFF;
 
-  pub fn new_1to2_ext_fn(&mut self, f: impl Ext1to2Fn<'ivm>) -> ExtFn<'ivm> {
-    if self.ext_1to2_fns.len() >= Self::MAX_EXT_FN_COUNT {
+  pub fn new_split_ext_fn(&mut self, f: impl ExtSplitFn<'ivm>) -> ExtFn<'ivm> {
+    if self.ext_split_fns.len() >= Self::MAX_EXT_FN_COUNT {
       panic!("IVM reached maximum amount of registered extrinsic functions.");
     } else {
-      let ext_fn = ExtFn::new_1to2(self.ext_1to2_fns.len());
-      let f = Box::new(f) as Box<dyn Ext1to2Fn<'ivm>>;
-      self.ext_1to2_fns.push(f);
+      let ext_fn = ExtFn::new_split(self.ext_split_fns.len());
+      let f = Box::new(f) as Box<dyn ExtSplitFn<'ivm>>;
+      self.ext_split_fns.push(f);
       ext_fn
     }
   }
 
-  pub fn new_2to1_ext_fn(&mut self, f: impl Ext2to1Fn<'ivm>) -> ExtFn<'ivm> {
-    if self.ext_2to1_fns.len() >= Self::MAX_EXT_FN_COUNT {
+  pub fn new_merge_ext_fn(&mut self, f: impl ExtMergeFn<'ivm>) -> ExtFn<'ivm> {
+    if self.ext_merge_fns.len() >= Self::MAX_EXT_FN_COUNT {
       panic!("IVM reached maximum amount of registered extrinsic functions.");
     } else {
-      let ext_fn = ExtFn::new_2to1(self.ext_2to1_fns.len());
-      let f = Box::new(f) as Box<dyn Ext2to1Fn<'ivm>>;
-      self.ext_2to1_fns.push(f);
+      let ext_fn = ExtFn::new_merge(self.ext_merge_fns.len());
+      let f = Box::new(f) as Box<dyn ExtMergeFn<'ivm>>;
+      self.ext_merge_fns.push(f);
       ext_fn
     }
   }
@@ -111,12 +111,12 @@ impl<'ivm> Extrinsics<'ivm> {
     val.payload()
   }
 
-  pub fn get_ext_1to2_fn(&self, ext_fn: ExtFn<'ivm>) -> &dyn Ext1to2Fn<'ivm> {
-    self.ext_1to2_fns.get(ext_fn.index()).expect("unknown extrinsic function")
+  pub fn get_ext_split_fn(&self, ext_fn: ExtFn<'ivm>) -> &dyn ExtSplitFn<'ivm> {
+    self.ext_split_fns.get(ext_fn.index()).expect("unknown extrinsic function")
   }
 
-  pub fn get_ext_2to1_fn(&self, ext_fn: ExtFn<'ivm>) -> &dyn Ext2to1Fn<'ivm> {
-    self.ext_2to1_fns.get(ext_fn.index()).expect("unknown extrinsic function")
+  pub fn get_ext_merge_fn(&self, ext_fn: ExtFn<'ivm>) -> &dyn ExtMergeFn<'ivm> {
+    self.ext_merge_fns.get(ext_fn.index()).expect("unknown extrinsic function")
   }
 }
 
@@ -202,25 +202,25 @@ impl<'ivm> ExtTy<'ivm> {
 /// A type uniquely identifying an extrinsic function.
 ///
 /// The highest bit denotes whether the function arguments are swapped.
-/// The middle 14 bits denote an index in one of `ext_1to2_fns` or
-/// `ext_2to1_fns`. The lowest bit denotes which of `ext_1to2_fns` or
-/// `ext_2to1_fns` the index applies to.
+/// The middle 14 bits denote an index in one of `ext_split_fns` or
+/// `ext_merge_fns`. The lowest bit denotes which of `ext_split_fns` or
+/// `ext_merge_fns` the index applies to.
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct ExtFn<'ivm>(u16, PhantomData<fn(&'ivm ()) -> &'ivm ()>);
 
 impl<'ivm> ExtFn<'ivm> {
   const SWAP_BIT: u16 = 0x8000;
-  const IS_2TO1_BIT: u16 = 1;
+  const MERGE_BIT: u16 = 1;
 
   #[inline(always)]
-  pub fn new_1to2(id: usize) -> Self {
+  pub fn new_split(id: usize) -> Self {
     let bits = (id << 1) as u16;
     Self(bits, PhantomData)
   }
 
   #[inline(always)]
-  pub fn new_2to1(id: usize) -> Self {
-    let bits = (id << 1) as u16 | Self::IS_2TO1_BIT;
+  pub fn new_merge(id: usize) -> Self {
+    let bits = (id << 1) as u16 | Self::MERGE_BIT;
     Self(bits, PhantomData)
   }
 
@@ -235,8 +235,8 @@ impl<'ivm> ExtFn<'ivm> {
   }
 
   #[inline(always)]
-  pub fn is_2to1(&self) -> bool {
-    self.0 & Self::IS_2TO1_BIT != 0
+  pub fn is_merge(&self) -> bool {
+    self.0 & Self::MERGE_BIT != 0
   }
 
   #[inline(always)]
