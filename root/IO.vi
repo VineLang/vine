@@ -54,15 +54,15 @@ pub mod IO {
 
   /// Reads a line from stdin.
   pub fn .read_line(&io: &IO) -> Option[String] {
-    let byte = io.read_byte('\0');
+    let byte = io.read_byte();
     if byte != '\0' {
       Some(if byte == '\n' {
         ""
       } else {
         let chars = [byte];
         loop {
-          byte = io.read_byte('\n');
-          if byte != '\n' {
+          byte = io.read_byte();
+          if byte != '\n' and byte != '\0' {
             chars ++= [byte];
             continue;
           }
@@ -78,7 +78,7 @@ pub mod IO {
   pub fn .full_input(&io: &IO) -> String {
     let chars = [];
     loop {
-      let byte = io.read_byte('\0');
+      let byte = io.read_byte();
       if byte == '\0' {
         String(chars)
       } else {
@@ -88,11 +88,10 @@ pub mod IO {
     }
   }
 
-  pub fn .read_byte(&io: &IO, default: Char) -> Char {
-    inline_ivy! (io0 <- io, io3 -> io, default <- default) -> Char {
+  pub fn .read_byte(&io: &IO) -> Char {
+    inline_ivy! (io0 <- io, io1 -> io) -> Char {
       byte
-      io0 = dup(io1 io2)
-      io1 = @io_read_byte(default dup(byte @seq$(io2 io3))) 
+      io0 = @io_read_byte(byte io1)
     }
   }
 

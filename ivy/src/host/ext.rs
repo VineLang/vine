@@ -12,7 +12,7 @@ use super::Host;
 
 macro_rules! define_ext_fns {
   ($self:ident, $ext:ident, $($name:expr => |$a:ident, $b:ident| $body:expr ),*) => {
-    $($self.register_ext_fn($name.into(), $ext.new_ext_fn(move |_, ivm, $a, $b, out| {
+    $($self.register_ext_fn($name.into(), $ext.new_2to1_ext_fn(move |_, ivm, $a, $b, out| {
       ivm.link_wire(out, Port::new_ext_val($body));
     }));)*
   };
@@ -106,14 +106,19 @@ impl<'ivm> Host<'ivm> {
         a.as_ty(&io);
         io::stdout().flush().unwrap();
         ExtVal::new(io, 0)
-      },
-      "io_read_byte" => |a, b| {
-        a.as_ty(&io);
-        let default = as_n32(b) as u8;
-        let mut buf = [default];
-        _ = io::stdin().read(&mut buf).unwrap();
-        new_n32(buf[0] as u32)
       }
+    );
+
+    self.register_ext_fn(
+      "io_read_byte".into(),
+      extrinsics.new_1to2_ext_fn(move |_, ivm, ioin, byteout, ioout| {
+        ioin.as_ty(&io);
+        let mut buf = [0];
+        _ = io::stdin().read(&mut buf).unwrap();
+
+        ivm.link_wire(ioout, Port::new_ext_val(ExtVal::new(io, 0)));
+        ivm.link_wire(byteout, Port::new_ext_val(new_n32(buf[0] as u32)));
+      }),
     );
   }
 }

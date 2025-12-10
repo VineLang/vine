@@ -10,19 +10,29 @@ use core::{
 
 use crate::{ivm::IVM, port::Tag, wire::Wire};
 
-pub trait ExtFnClosure<'ivm, C = OpaqueCtx>:
+pub trait Ext2to1Fn<'ivm, C = OpaqueCtx>:
   for<'a, 'ext> Fn(C, &'a mut IVM<'ivm, 'ext>, ExtVal<'ivm>, ExtVal<'ivm>, Wire<'ivm>)
 {
 }
-impl<'ivm, F, C> ExtFnClosure<'ivm, C> for F where
+impl<'ivm, F, C> Ext2to1Fn<'ivm, C> for F where
   F: for<'a, 'ext> Fn(C, &'a mut IVM<'ivm, 'ext>, ExtVal<'ivm>, ExtVal<'ivm>, Wire<'ivm>)
+{
+}
+
+pub trait Ext1to2Fn<'ivm, C = OpaqueCtx>:
+  for<'a, 'ext> Fn(C, &'a mut IVM<'ivm, 'ext>, ExtVal<'ivm>, Wire<'ivm>, Wire<'ivm>)
+{
+}
+impl<'ivm, F, C> Ext1to2Fn<'ivm, C> for F where
+  F: for<'a, 'ext> Fn(C, &'a mut IVM<'ivm, 'ext>, ExtVal<'ivm>, Wire<'ivm>, Wire<'ivm>)
 {
 }
 
 type OpaqueCtx = *const ();
 
 pub struct Extrinsics<'ivm> {
-  ext_fns: Vec<(OpaqueCtx, Box<dyn ExtFnClosure<'ivm>>)>,
+  ext_1to2_fns: Vec<(OpaqueCtx, Box<dyn Ext1to2Fn<'ivm>>)>,
+  ext_2to1_fns: Vec<(OpaqueCtx, Box<dyn Ext2to1Fn<'ivm>>)>,
 
   /// Number of registered extrinsic types.
   ext_tys: u16,
@@ -34,6 +44,7 @@ pub struct Extrinsics<'ivm> {
 }
 
 // TODO: try removing this by changing the signature of `OpaqueCtx`.
+// this is currently needed because `*const ()` is not `Send` or `Sync`.
 unsafe impl Send for Extrinsics<'_> {}
 unsafe impl Sync for Extrinsics<'_> {}
 
@@ -41,40 +52,58 @@ impl Default for Extrinsics<'_> {
   fn default() -> Self {
     let n32_ext_ty = ExtTy::new(0, false);
 
-    Self { ext_fns: Vec::new(), ext_tys: 1, n32_ext_ty, phantom: PhantomData }
+    Self {
+      ext_1to2_fns: Vec::new(),
+      ext_2to1_fns: Vec::new(),
+      ext_tys: 1,
+      n32_ext_ty,
+      phantom: PhantomData,
+    }
   }
 }
 
 impl<'ivm> Extrinsics<'ivm> {
-  pub const MAX_EXT_FN_COUNT: usize = 0x7FFF;
+  pub const MAX_EXT_FN_COUNT: usize = 0x3FFF;
   pub const MAX_EXT_TY_COUNT: usize = 0x7FFF;
 
-  pub fn new_ext_fn(&mut self, f: impl ExtFnClosure<'ivm, &'ivm ()>) -> ExtFn<'ivm> {
-    self.new_ext_fn_with_context(f, ())
+  pub fn new_1to2_ext_fn(&mut self, f: impl Ext1to2Fn<'ivm, &'ivm ()>) -> ExtFn<'ivm> {
+    self.new_1to2_ext_fn_with_context(f, ())
   }
 
-  pub fn new_ext_fn_with_context<C: 'ivm>(
+  pub fn new_1to2_ext_fn_with_context<C: 'ivm>(
     &mut self,
-    f: impl ExtFnClosure<'ivm, &'ivm C>,
+    f: impl Ext1to2Fn<'ivm, &'ivm C>,
     ctx: C,
   ) -> ExtFn<'ivm> {
-    if self.ext_fns.len() >= Self::MAX_EXT_FN_COUNT {
+    if self.ext_1to2_fns.len() >= Self::MAX_EXT_FN_COUNT {
       panic!("IVM reached maximum amount of registered extrinsic functions.");
     } else {
-      let ext_fn = ExtFn(self.ext_fns.len() as u16, PhantomData);
+      let ext_fn = ExtFn::new_1to2(self.ext_1to2_fns.len());
       let ctx = Box::into_raw(Box::new(ctx));
-      let f = Box::new(f)
-        as Box<
-          dyn for<'a, 'ext> Fn(
-            &'ivm C,
-            &'a mut IVM<'ivm, 'ext>,
-            ExtVal<'ivm>,
-            ExtVal<'ivm>,
-            Wire<'ivm>,
-          ),
-        >;
+      let f = Box::new(f) as Box<dyn Ext1to2Fn<'ivm, &'ivm C>>;
       let f = unsafe { std::mem::transmute(f) };
-      self.ext_fns.push((ctx.cast(), f));
+      self.ext_1to2_fns.push((ctx.cast(), f));
+      ext_fn
+    }
+  }
+
+  pub fn new_2to1_ext_fn(&mut self, f: impl Ext2to1Fn<'ivm, &'ivm ()>) -> ExtFn<'ivm> {
+    self.new_2to1_ext_fn_with_context(f, ())
+  }
+
+  pub fn new_2to1_ext_fn_with_context<C: 'ivm>(
+    &mut self,
+    f: impl Ext2to1Fn<'ivm, &'ivm C>,
+    ctx: C,
+  ) -> ExtFn<'ivm> {
+    if self.ext_2to1_fns.len() >= Self::MAX_EXT_FN_COUNT {
+      panic!("IVM reached maximum amount of registered extrinsic functions.");
+    } else {
+      let ext_fn = ExtFn::new_2to1(self.ext_2to1_fns.len());
+      let ctx = Box::into_raw(Box::new(ctx));
+      let f = Box::new(f) as Box<dyn Ext2to1Fn<'ivm, &'ivm C>>;
+      let f = unsafe { std::mem::transmute(f) };
+      self.ext_2to1_fns.push((ctx.cast(), f));
       ext_fn
     }
   }
@@ -98,10 +127,12 @@ impl<'ivm> Extrinsics<'ivm> {
     val.payload()
   }
 
-  pub fn get_ext_fn(&self, ext_fn: ExtFn<'ivm>) -> &(OpaqueCtx, Box<dyn ExtFnClosure<'ivm>>) {
-    let ext_fn_idx = ext_fn.kind() as usize;
+  pub fn get_ext_1to2_fn(&self, ext_fn: ExtFn<'ivm>) -> &(OpaqueCtx, Box<dyn Ext1to2Fn<'ivm>>) {
+    self.ext_1to2_fns.get(ext_fn.index()).expect("unknown extrinsic function")
+  }
 
-    self.ext_fns.get(ext_fn_idx).expect("unknown extrinsic function")
+  pub fn get_ext_2to1_fn(&self, ext_fn: ExtFn<'ivm>) -> &(OpaqueCtx, Box<dyn Ext2to1Fn<'ivm>>) {
+    self.ext_2to1_fns.get(ext_fn.index()).expect("unknown extrinsic function")
   }
 }
 
@@ -179,19 +210,35 @@ impl<'ivm> ExtTy<'ivm> {
     self.0
   }
 
-  const fn is_linear(self) -> bool {
-    self.0 & Self::LINEAR_BIT != 0
-  }
+  // const fn is_linear(self) -> bool {
+  //   self.0 & Self::LINEAR_BIT != 0
+  // }
 }
 
-/// A reference to an external function. The lower 15 bits are an [`ExtFnKind`],
-/// determining the logic of the function, and the top bit denotes whether the
-/// parameters to the function have been swapped.
+/// A type uniquely identifying an extrinsic function.
+///
+/// The highest bit denotes whether the function arguments are swapped.
+/// The middle 14 bits denote an index in one of `ext_1to2_fns` or
+/// `ext_2to1_fns`. The lowest bit denotes which of `ext_1to2_fns` or
+/// `ext_2to1_fns` the index applies to.
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct ExtFn<'ivm>(u16, PhantomData<fn(&'ivm ()) -> &'ivm ()>);
 
 impl<'ivm> ExtFn<'ivm> {
   const SWAP_BIT: u16 = 0x8000;
+  const IS_2TO1_BIT: u16 = 1;
+
+  #[inline(always)]
+  pub fn new_1to2(id: usize) -> Self {
+    let bits = (id << 1) as u16;
+    Self(bits, PhantomData)
+  }
+
+  #[inline(always)]
+  pub fn new_2to1(id: usize) -> Self {
+    let bits = (id << 1) as u16 | Self::IS_2TO1_BIT;
+    Self(bits, PhantomData)
+  }
 
   #[inline(always)]
   pub fn bits(&self) -> u16 {
@@ -199,18 +246,23 @@ impl<'ivm> ExtFn<'ivm> {
   }
 
   #[inline(always)]
-  pub fn kind(&self) -> u16 {
-    self.0 & !Self::SWAP_BIT
-  }
-
-  #[inline(always)]
   pub fn is_swapped(&self) -> bool {
-    (self.0 >> 15) == 1
+    self.0 & Self::SWAP_BIT != 0
   }
 
   #[inline(always)]
-  pub fn swap(&self) -> Self {
-    Self(self.0 ^ Self::SWAP_BIT, self.1)
+  pub fn is_2to1(&self) -> bool {
+    self.0 & Self::IS_2TO1_BIT != 0
+  }
+
+  #[inline(always)]
+  pub fn index(&self) -> usize {
+    ((self.0 & !Self::SWAP_BIT) >> 1) as usize
+  }
+
+  #[inline(always)]
+  pub fn swapped(&self) -> Self {
+    Self(self.0 ^ Self::SWAP_BIT, PhantomData)
   }
 }
 
