@@ -114,6 +114,29 @@
             inherit vine;
           };
 
+          checks = {
+            tree-sitter-check = pkgs.stdenv.mkDerivation {
+              name = "tree-sitter-check";
+
+              src = ./.;
+
+              nativeBuildInputs = [
+                pkgs.nushell
+                pkgs.nodejs_24
+                pkgs.tree-sitter
+              ];
+
+              buildPhase = ''
+                # fake $HOME b/c tree-sitter writes ~/.config/ files, but inside
+                # nix builds that dir is read-only.
+                export HOME=$PWD/.home
+                cd lsp/tree-sitter-vine
+                nu test.nu
+                touch $out
+              '';
+            };
+          };
+
           devShells.default = craneLib.devShell {
             name = "vine-dev";
             nativeBuildInputs = [

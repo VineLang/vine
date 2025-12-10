@@ -21,4 +21,3 @@ let success = (
 if not $success {
   exit 1
 }
- 

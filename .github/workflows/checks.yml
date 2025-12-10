@@ -101,11 +101,5 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v3
-      - uses: hustcer/setup-nu@v3
-        with:
-          version: "0.105.1"
-      - uses: tree-sitter/setup-action@v2
-        with:
-          install-lib: false
-      - run: nu test.nu
-        working-directory: lsp/tree-sitter-vine
+      - uses: cachix/install-nix-action@v31
+      - run: nix build --rebuild --print-build-logs .#checks.x86_64-linux.tree-sitter-check
