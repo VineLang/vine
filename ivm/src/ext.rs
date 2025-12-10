@@ -108,7 +108,7 @@ impl<'ivm> Extrinsics<'ivm> {
 
   pub fn ext_val_as_n32(&self, val: ExtVal<'ivm>) -> u32 {
     assert!(self.n32_ext_ty == val.ty());
-    val.payload()
+    val.payload() as u32
   }
 
   pub fn get_ext_split_fn(&self, ext_fn: ExtFn<'ivm>) -> &dyn ExtSplitFn<'ivm> {
@@ -120,17 +120,20 @@ impl<'ivm> Extrinsics<'ivm> {
   }
 }
 
-/// An external value.
+/// An external value with a 45-bit payload.
 ///
-/// The top 32 bits are the *payload*, and the 16 bits after that the *type* (an
-/// [`ExtTy`]). The interpretation of the payload depends on the type.
+/// The 64-bit value is laid out as follows:
+/// - top 16 bits are the extrinsic's type [`ExtTy`].
+/// - the next 45 bits are the payload.
+/// - the last 3 bits are `Tag::ExtVal as u16` for compatibility with [`Port`].
 ///
-/// The bottom 16 bits are always `Tag::ExtVal as u16` for bit-compatibility
-/// with `ExtVal` ports.
+/// [`Port`]: crate::ivm::Port
 #[derive(Clone, Copy)]
 pub struct ExtVal<'ivm>(u64, PhantomData<fn(&'ivm ()) -> &'ivm ()>);
 
 impl<'ivm> ExtVal<'ivm> {
+  const PAYLOAD_MASK: u64 = 0x0000_FFFF_FFFF_FFF8;
+
   /// Creates an `ExtVal` from the raw bits.
   ///
   /// ## Safety
@@ -148,26 +151,26 @@ impl<'ivm> ExtVal<'ivm> {
 
   /// Creates a new `ExtVal` with a given type and payload.
   #[inline(always)]
-  pub const fn new(ty: ExtTy<'ivm>, payload: u32) -> Self {
-    Self(payload as (u64) << 32 | ty.id() as (u64) << 16 | Tag::ExtVal as u64, PhantomData)
+  pub fn new(ty: ExtTy<'ivm>, payload: u64) -> Self {
+    debug_assert!(payload & !(Self::PAYLOAD_MASK >> 3) == 0, "ExtTy::new with non-payload bits set");
+
+    unsafe { Self::from_bits((ty.id() as (u64) << 48) | ((payload << 3) & Self::PAYLOAD_MASK) | (Tag::ExtVal as u64)) }
   }
 
-  /// Accesses the type of this value.
   #[inline(always)]
   pub fn ty(&self) -> ExtTy<'ivm> {
-    ExtTy((self.0 >> 16) as u16, self.1)
-  }
-
-  /// Accesses the payload of this value.
-  #[inline(always)]
-  pub fn payload(&self) -> u32 {
-    (self.0 >> 32) as u32
+    ExtTy::from_bits((self.0 >> 48) as u16)
   }
 
   #[inline(always)]
-  pub fn as_ty(&self, &ty: &ExtTy<'ivm>) -> u32 {
+  pub fn payload(&self) -> u64 {
+    (self.0 & Self::PAYLOAD_MASK) >> 3
+  }
+
+  #[inline(always)]
+  pub fn as_ty(&self, &ty: &ExtTy<'ivm>) -> u64 {
     assert!(self.ty() == ty);
-    (self.0 >> 32) as u32
+    self.payload()
   }
 }
 
@@ -188,6 +191,10 @@ impl<'ivm> ExtTy<'ivm> {
 
   fn new(ty_id: u16, linear: bool) -> Self {
     Self(ty_id | if linear { Self::LINEAR_BIT } else { 0 }, PhantomData)
+  }
+
+  fn from_bits(bits: u16) -> Self {
+    Self(bits, PhantomData)
   }
 
   const fn id(self) -> u16 {
