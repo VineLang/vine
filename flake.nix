@@ -115,8 +115,8 @@
           };
 
           checks = {
-            tree-sitter-check = pkgs.stdenv.mkDerivation {
-              name = "tree-sitter-check";
+            tree-sitter-vine = pkgs.stdenv.mkDerivation {
+              name = "tree-sitter-vine";
 
               src = ./.;
 
