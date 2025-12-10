@@ -193,10 +193,6 @@ impl<'ivm> ExtTy<'ivm> {
   const fn id(self) -> u16 {
     self.0
   }
-
-  // const fn is_linear(self) -> bool {
-  //   self.0 & Self::LINEAR_BIT != 0
-  // }
 }
 
 /// A type uniquely identifying an extrinsic function.
