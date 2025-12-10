@@ -140,13 +140,27 @@ impl<'ivm, 'ext> IVM<'ivm, 'ext> {
 
   fn call(&mut self, f: Port<'ivm>, lhs: Port<'ivm>) {
     let ext_fn = unsafe { f.as_ext_fn() };
+
+    if !ext_fn.is_2to1() {
+      assert!(!ext_fn.is_swapped());
+      let (out0, out1) = unsafe { f.aux() };
+      self.stats.call += 1;
+
+      let (ctx, func) = self.extrinsics.get_ext_1to2_fn(ext_fn);
+      unsafe {
+        let arg = lhs.as_ext_val();
+        (func)(*ctx, self, arg, out0, out1);
+      };
+      return;
+    }
+
     let (rhs_wire, out) = unsafe { f.aux() };
     if let Some(rhs) = rhs_wire.load_target()
       && rhs.tag() == Tag::ExtVal
     {
       self.stats.call += 1;
       self.free_wire(rhs_wire);
-      let (ctx, func) = self.extrinsics.get_ext_fn(ext_fn);
+      let (ctx, func) = self.extrinsics.get_ext_2to1_fn(ext_fn);
       unsafe {
         let (arg0, arg1) = if ext_fn.is_swapped() {
           (rhs.as_ext_val(), lhs.as_ext_val())
@@ -157,7 +171,8 @@ impl<'ivm, 'ext> IVM<'ivm, 'ext> {
       };
       return;
     }
-    let new_fn = unsafe { self.new_node(Tag::ExtFn, ext_fn.swap().bits()) };
+
+    let new_fn = unsafe { self.new_node(Tag::ExtFn, ext_fn.swapped().bits()) };
     self.link_wire(rhs_wire, new_fn.0);
     self.link_wire(new_fn.1, lhs);
     self.link_wire_wire(new_fn.2, out);

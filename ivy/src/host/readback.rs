@@ -71,7 +71,7 @@ impl<'ctx, 'ivm, 'ext> Reader<'ctx, 'ivm, 'ext> {
         let mut f = unsafe { p.as_ext_fn() };
         let swapped = f.is_swapped();
         if swapped {
-          f = f.swap();
+          f = f.swapped();
         }
         let f_name = self.host.reverse_ext_fns.get(&f).unwrap();
         let (p1, p2) = unsafe { p.aux_ref() };
