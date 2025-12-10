@@ -141,12 +141,12 @@ impl<'ivm, 'ext> IVM<'ivm, 'ext> {
   fn call(&mut self, f: Port<'ivm>, lhs: Port<'ivm>) {
     let ext_fn = unsafe { f.as_ext_fn() };
 
-    if !ext_fn.is_2to1() {
+    if !ext_fn.is_merge() {
       assert!(!ext_fn.is_swapped());
       let (out0, out1) = unsafe { f.aux() };
       self.stats.call += 1;
 
-      let func = self.extrinsics.get_ext_1to2_fn(ext_fn);
+      let func = self.extrinsics.get_ext_split_fn(ext_fn);
       unsafe {
         let arg = lhs.as_ext_val();
         (func)(self, arg, out0, out1);
@@ -160,7 +160,7 @@ impl<'ivm, 'ext> IVM<'ivm, 'ext> {
     {
       self.stats.call += 1;
       self.free_wire(rhs_wire);
-      let func = self.extrinsics.get_ext_2to1_fn(ext_fn);
+      let func = self.extrinsics.get_ext_merge_fn(ext_fn);
       unsafe {
         let (arg0, arg1) = if ext_fn.is_swapped() {
           (rhs.as_ext_val(), lhs.as_ext_val())
