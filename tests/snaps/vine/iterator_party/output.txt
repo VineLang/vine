@@ -958,10 +958,11 @@
 [tests/programs/iterator_party.vi:79:51] 9
 [tests/programs/iterator_party.vi:82:3] [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 [tests/programs/iterator_party.vi:83:3] Set([0, 1, 2, 3, 4])
-[tests/programs/iterator_party.vi:85:3] --- fold ---
-[tests/programs/iterator_party.vi:86:3] (((((_, 0), 1), 2), 3), 4)
-[tests/programs/iterator_party.vi:88:3] --- filter_map, map_while, forked, collect, find, find_map ---
-[tests/programs/iterator_party.vi:98:3] [
+[tests/programs/iterator_party.vi:84:3] Map({ 0: 'a', 1: 'd', 2: 'c' })
+[tests/programs/iterator_party.vi:88:3] --- fold ---
+[tests/programs/iterator_party.vi:89:3] (((((_, 0), 1), 2), 3), 4)
+[tests/programs/iterator_party.vi:91:3] --- filter_map, map_while, forked, collect, find, find_map ---
+[tests/programs/iterator_party.vi:101:3] [
   [0, 1, 0, 2, 0, 1, 6],
   [1, 3, 1, 3, 1, 2],
   [2, 5, 1, 5, 4, 4],
@@ -974,7 +975,7 @@
   [9],
   [],
 ]
-[tests/programs/iterator_party.vi:103:3] [
+[tests/programs/iterator_party.vi:106:3] [
   [0, 1, 0, 2, 0, 1, 6],
   [1, 3, 1, 3, 1, 2],
   [2, 5, 1, 5, 4, 4],
@@ -987,7 +988,7 @@
   [9],
   [],
 ]
-[tests/programs/iterator_party.vi:109:3] [
+[tests/programs/iterator_party.vi:112:3] [
   Some([6]),
   Some([1, 2, 4, 8]),
   Some([1, 2, 4, 8]),
@@ -1000,7 +1001,7 @@
   Some([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]),
   None(),
 ]
-[tests/programs/iterator_party.vi:114:3] [
+[tests/programs/iterator_party.vi:117:3] [
   Some(6),
   Some(2),
   Some(4),
