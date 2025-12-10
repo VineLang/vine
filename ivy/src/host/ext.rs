@@ -78,8 +78,8 @@ impl<'ivm> Host<'ivm> {
   ) -> impl ExtTyAnnotation<'ivm, u32> + 'ivm {
     let n32_ty = extrinsics.n32_ext_ty();
     self.register_ext_ty("N32".into(), n32_ty);
-    let as_n32 = move |x: ExtVal<'ivm>| x.as_ty(&n32_ty);
-    let new_n32 = move |x: u32| ExtVal::new(n32_ty, x);
+    let as_n32 = move |x: ExtVal<'ivm>| x.as_ty(&n32_ty) as u32;
+    let new_n32 = move |x: u32| ExtVal::new(n32_ty, x as u64);
     (as_n32, new_n32)
   }
 
@@ -89,8 +89,8 @@ impl<'ivm> Host<'ivm> {
   ) -> impl ExtTyAnnotation<'ivm, f32> + 'ivm {
     let f32_ty = extrinsics.new_ext_ty(false);
     self.register_ext_ty("F32".into(), f32_ty);
-    let as_f32 = move |x: ExtVal<'ivm>| f32::from_bits(x.as_ty(&f32_ty));
-    let new_f32 = move |x: f32| ExtVal::new(f32_ty, x.to_bits());
+    let as_f32 = move |x: ExtVal<'ivm>| f32::from_bits(x.as_ty(&f32_ty) as u32);
+    let new_f32 = move |x: f32| ExtVal::new(f32_ty, x.to_bits() as u64);
     (as_f32, new_f32)
   }
 

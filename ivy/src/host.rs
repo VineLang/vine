@@ -66,11 +66,11 @@ impl<'ivm> Host<'ivm> {
   }
 
   pub fn new_f32(&self, payload: f32) -> ExtVal<'ivm> {
-    ExtVal::new(self.ext_tys["F32"], payload.to_bits())
+    ExtVal::new(self.ext_tys["F32"], payload.to_bits() as u64)
   }
 
   pub fn new_n32(&self, payload: u32) -> ExtVal<'ivm> {
-    ExtVal::new(self.ext_tys["N32"], payload)
+    ExtVal::new(self.ext_tys["N32"], payload as u64)
   }
 
   pub fn new_io(&self) -> ExtVal<'ivm> {
