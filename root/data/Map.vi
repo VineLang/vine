@@ -1,5 +1,5 @@
 
-use data::Iterator;
+use data::Iterator::{Iterator, Collect};
 use ops::{Cast, comparison::Ord};
 
 pub struct* Map[K, V](Set[(K, V)]);
@@ -152,6 +152,12 @@ pub mod Map[K, V; Ord[K]] {
       fn call(Value(), (&(_: K, value: V),)) -> &V {
         &value
       }
+    }
+  }
+
+  pub impl collect[K?, V?; Ord[K]]: Collect[Map[K, V], (K, V)] {
+    fn collect[I; Iterator[I, (K, V)]](iter: I) -> Map[K, V] {
+      Map(iter.collect[Set, (K, V), _]())
     }
   }
 
