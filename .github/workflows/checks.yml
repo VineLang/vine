@@ -102,4 +102,4 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: cachix/install-nix-action@v31
-      - run: nix build --rebuild --print-build-logs .#checks.x86_64-linux.tree-sitter-check
+      - run: nix build --print-build-logs .#checks.x86_64-linux.tree-sitter-check
