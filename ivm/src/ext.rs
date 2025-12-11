@@ -152,9 +152,16 @@ impl<'ivm> ExtVal<'ivm> {
   /// Creates a new `ExtVal` with a given type and payload.
   #[inline(always)]
   pub fn new(ty: ExtTy<'ivm>, payload: u64) -> Self {
-    debug_assert!(payload & !(Self::PAYLOAD_MASK >> 3) == 0, "ExtTy::new with non-payload bits set");
+    debug_assert!(
+      payload & !(Self::PAYLOAD_MASK >> 3) == 0,
+      "ExtTy::new with non-payload bits set"
+    );
 
-    unsafe { Self::from_bits((ty.id() as (u64) << 48) | ((payload << 3) & Self::PAYLOAD_MASK) | (Tag::ExtVal as u64)) }
+    unsafe {
+      Self::from_bits(
+        (ty.id() as (u64) << 48) | ((payload << 3) & Self::PAYLOAD_MASK) | (Tag::ExtVal as u64),
+      )
+    }
   }
 
   #[inline(always)]
