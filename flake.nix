@@ -83,9 +83,20 @@
           cp -r ${./root} $out/lib/root
         '';
 
-        grammars = pkgs.callPackage ./lsp/grammars.nix { };
-        docs = pkgs.callPackage ./docs/docs.nix {
+        grammars = import ./lsp/grammars.nix {
+          inherit (pkgs)
+            lib
+            stdenv
+            stdenvNoCC
+            tree-sitter
+            nodejs_24
+            nushell
+            ;
+        };
+        docs = import ./docs/docs.nix {
           inherit
+            system
+            pkgs
             flake-utils
             grammars
             hyptyp
