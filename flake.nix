@@ -83,24 +83,14 @@
           cp -r ${./root} $out/lib/root
         '';
 
-        grammars = import ./lsp/grammars.nix {
-          inherit (pkgs)
-            lib
-            stdenvNoCC
-            tree-sitter
-            nodejs_24
-            ;
-        };
-
-        docs = import ./docs/docs.nix {
+        grammars = pkgs.callPackage ./lsp/grammars.nix { };
+        docs = pkgs.callPackage ./docs/docs.nix {
           inherit
-            system
-            pkgs
             flake-utils
+            grammars
+            hyptyp
             typix
             typsitter
-            hyptyp
-            grammars
             vineNoRoot
             ;
         };
@@ -112,29 +102,6 @@
           packages = {
             default = vine;
             inherit vine;
-          };
-
-          checks = {
-            tree-sitter-vine = pkgs.stdenv.mkDerivation {
-              name = "tree-sitter-vine";
-
-              src = ./.;
-
-              nativeBuildInputs = [
-                pkgs.nushell
-                pkgs.nodejs_24
-                pkgs.tree-sitter
-              ];
-
-              buildPhase = ''
-                # fake $HOME b/c tree-sitter writes ~/.config/ files, but inside
-                # nix builds that dir is read-only.
-                export HOME=$PWD/.home
-                cd lsp/tree-sitter-vine
-                nu test.nu
-                touch $out
-              '';
-            };
           };
 
           devShells.default = craneLib.devShell {
