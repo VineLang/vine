@@ -55,15 +55,15 @@ in
 
   checks = {
     tree-sitter-vine = check "tree-sitter-vine" [
-      ../root/.
-      ../vine/examples/.
-      ../tests/programs/.
-      ../lsp/tree-sitter-vine/.
+      ../root
+      ../vine/examples
+      ../tests/programs
+      ../lsp/tree-sitter-vine
     ];
 
     tree-sitter-ivy = check "tree-sitter-ivy" [
-      ../ivy/examples/.
-      ../lsp/tree-sitter-ivy/.
+      ../ivy/examples
+      ../lsp/tree-sitter-ivy
     ];
   };
 }
