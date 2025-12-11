@@ -1014,3 +1014,18 @@
   Some(9),
   None(),
 ]
+[tests/programs/iterator_party.vi:124:3] --- chunks ---
+[tests/programs/iterator_party.vi:79:51] 0
+[tests/programs/iterator_party.vi:79:51] 1
+[tests/programs/iterator_party.vi:79:51] 2
+[tests/programs/iterator_party.vi:126:5] [0, 1, 2]
+[tests/programs/iterator_party.vi:79:51] 3
+[tests/programs/iterator_party.vi:79:51] 4
+[tests/programs/iterator_party.vi:79:51] 5
+[tests/programs/iterator_party.vi:126:5] [3, 4, 5]
+[tests/programs/iterator_party.vi:79:51] 6
+[tests/programs/iterator_party.vi:79:51] 7
+[tests/programs/iterator_party.vi:79:51] 8
+[tests/programs/iterator_party.vi:126:5] [6, 7, 8]
+[tests/programs/iterator_party.vi:79:51] 9
+[tests/programs/iterator_party.vi:126:5] [9]

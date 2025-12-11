@@ -170,6 +170,33 @@ pub mod Iterator[I, T; Iterator[I, T]] {
     }
   }
 
+  pub fn .chunks[... I](iter: I, size: N32) -> Chunks[I] {
+    Chunks(Some(iter, size))
+  }
+
+  pub struct* Chunks[I](Option[(I, N32)]);
+
+  pub mod Chunks[I] {
+    pub impl iterator[... T; Iterator[I, T]]: Iterator[Chunks[I], List[T]] {
+      fn advance(Chunks[I](chunks)) -> Option[(List[T], Chunks[I])] {
+        assert chunks is Some((iter, size)) else { None() }
+
+        let chunk = [];
+
+        while iter.advance() is Some((value, rest)) {
+          chunk.push_back(value);
+          iter = rest;
+
+          if chunk.len() >= size {
+            return Some(chunk, Chunks(Some(iter, size)));
+          }
+        }
+
+        Some(chunk, Chunks(None()))
+      }
+    }
+  }
+
   pub fn .take[... I?](iter: I, count: N32) -> Take[I] {
     Take(iter, count)
   }

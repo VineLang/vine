@@ -119,4 +119,9 @@ pub fn main(_: &IO) {
       nums.iter_ref().find_map(fn* (&l: &List[N32]) { l.at(i) }).as_fork()
     }).collect[List, _, _]().show()
   }")
+
+  debug::log("--- chunks ---");
+  for x in iter_ref.chunks(3) {
+    debug::log("{x.show()}");
+  }
 }
