@@ -1,5 +1,5 @@
 
-use ops::Cast;
+use ops::{Cast, comparison::Eq};
 
 /// A contiguous, indexed collection of `T`.
 ///
@@ -343,6 +343,23 @@ pub mod Array {
     self
   }
 
+  pub impl eq[T; Eq[T]]: Eq[Array[T]] {
+    fn eq(&Array[T](len, node), &Array[T](len_other, other)) -> Bool {
+      if len != len_other {
+        return false;
+      }
+      if len == 0 {
+        true
+      } else {
+        Node::eq(len, &node, &other)
+      }
+    }
+
+    fn ne(&a: &Array[T], &b: &Array[T]) -> Bool {
+      !(a == b)
+    }
+  }
+
   #[become(unsafe::duplicate)]
   pub impl fork[T+]: Fork[Array[T]] {
     fn fork(&Array[T](len, node)) -> Array[T] {
@@ -447,6 +464,18 @@ mod Node {
       let (lx, ly) = unzip_with((len + 1) / 2, l, f);
       let (rx, ry) = unzip_with(len / 2, r, f);
       (Node(lx, rx), Node(ly, ry))
+    }
+  }
+
+  /// Checks wether two nodes of the same lengths are equal. This method is only same to call on
+  /// nodes of the same lengths.
+  pub fn eq[T; Eq[T]](len: N32, &self: &Node[T], &other: &Node[T]) -> Bool {
+    if len == 1 {
+      &self as &T == &other as &T
+    } else {
+      let &Node(l, r) = &self;
+      let &Node(other_l, other_r) = &other;
+      eq((len + 1) / 2, &l, &other_l) and eq(len / 2, &r, &other_r)
     }
   }
 
