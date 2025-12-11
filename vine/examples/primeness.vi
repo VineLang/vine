@@ -2,7 +2,7 @@
 const end: N32 = 46;
 
 pub fn main(&io: &IO) {
-  for n in 0..(end + 1) {
+  for n in 0..=end {
     let primeness = primeness(n);
 
     io.println("{n}: " ++ match primeness {

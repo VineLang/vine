@@ -2,7 +2,7 @@
 const end: N32 = 10_000;
 
 pub fn main(&io: &IO) {
-  for n in 2..(end + 1) {
+  for n in 2..=end {
     let prime = for d in 2..n {
       if n % d == 0 {
         break false;

@@ -2,7 +2,7 @@
 const end: N32 = 100;
 
 pub fn main(&io: &IO) {
-  for n in 1..(end + 1) {
+  for n in 1..=end {
     let sum = sum_divisors(n);
     let class = when {
       sum == n + 1 { " (prime)" }
