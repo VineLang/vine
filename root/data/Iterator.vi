@@ -170,6 +170,9 @@ pub mod Iterator[I, T; Iterator[I, T]] {
     }
   }
 
+  /// Returns an iterator of `List[T]`s, each with length `size`.
+  /// The last value returned by this iterator may have length less than `size`,
+  /// if the number of elements in `iter` is not evenly divisible by `size`.
   pub fn .chunks[... I](iter: I, size: N32) -> Chunks[I] {
     Chunks(Some(iter, size))
   }
