@@ -111,29 +111,4 @@ impl<'ivm, 'ext> IVM<'ivm, 'ext> {
     unsafe { addr.other_half().as_word().store(Word::from_bits(0)) }
     addr
   }
-
-  // /// Allocates a `T`-sized region of memory within the heap.
-  // #[inline]
-  // fn alloc(&mut self, val: T) -> &'ivm mut T {
-  //   self.stats.mem_alloc += 2;
-  //   let addr = if self.alloc.head != Addr::NULL {
-  //     let addr = self.alloc.head;
-  //     let next = unsafe { Addr(addr.as_word().load().ptr()) };
-  //     self.alloc.head = next;
-  //     addr
-  //   } else {
-  //     self.stats.mem_heap += 2;
-  //     let index = self.alloc.next;
-  //     self.alloc.next += 1;
-  //     if let Some(node) = self.alloc.heap.0.get(index) {
-  //       Addr(node as *const Node as *const ())
-  //     } else {
-  //       self.alloc = self.alloc_pool.pop().expect("OOM");
-  //       return self.alloc_node();
-  //     }
-  //   };
-  //   unsafe { addr.as_word().store(Word::from_bits(0)) }
-  //   unsafe { addr.other_half().as_word().store(Word::from_bits(0)) }
-  //   addr
-  // }
 }
