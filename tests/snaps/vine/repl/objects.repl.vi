@@ -85,14 +85,6 @@ error: expected type `{ p: ?487 }`; found `{ a: N32, b: N32, c: N32 }`
    @ input:1:18
  1 | do { let { p } = x }
 
-error: search limit reached when finding flex of type `?487`
-   @ input:1:12
- 1 | do { let { p } = x }
-
-error: cannot drop `?487`
-   @ input:1:12
- 1 | do { let { p } = x }
-
 
 let io: IO = <IO>;
 let x: { a: N32, b: N32, c: N32 } = { a: 1, b: 2, c: 3 };

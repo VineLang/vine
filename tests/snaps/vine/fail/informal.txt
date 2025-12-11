@@ -18,16 +18,8 @@ error: expected a space expression; found a value expression
    @ tests/programs/fail/informal.vi:5:3
  5 |   1 + 1 = 2;
 
-error: search limit reached when finding impl of trait `Drop[~?11]`
-   @ tests/programs/fail/informal.vi:6:8
- 6 |   ~_ = _;
-
 error: expected a value expression; found a space expression
    @ tests/programs/fail/informal.vi:6:8
- 6 |   ~_ = _;
-
-error: search limit reached when finding impl of trait `Drop[?11]`
-   @ tests/programs/fail/informal.vi:6:4
  6 |   ~_ = _;
 
 error: expected a value expression; found a space expression
@@ -37,22 +29,6 @@ error: expected a value expression; found a space expression
 error: expected a space expression; found a value expression
    @ tests/programs/fail/informal.vi:7:9
  7 |   _ += ~1;
-
-error: search limit reached when finding impl of trait `Drop[?13]`
-   @ tests/programs/fail/informal.vi:7:3
- 7 |   _ += ~1;
-
-error: search limit reached when finding impl of trait `Drop[~?13]`
-   @ tests/programs/fail/informal.vi:7:3
- 7 |   _ += ~1;
-
-error: search limit reached when finding impl of trait `Drop[?17]`
-   @ tests/programs/fail/informal.vi:8:15
- 8 |   let ~&_ = ~&_;
-
-error: search limit reached when finding impl of trait `Drop[~?17]`
-   @ tests/programs/fail/informal.vi:8:15
- 8 |   let ~&_ = ~&_;
 
 error: expected a space expression; found a value expression
    @ tests/programs/fail/informal.vi:8:14
@@ -66,7 +42,7 @@ error: expected a complete pattern
    @ tests/programs/fail/informal.vi:9:7
  9 |   let IO::I() = io;
 
-error: variable of type `&?26` read whilst uninitialized
+error: variable of type `&_` read whilst uninitialized
    @ tests/programs/fail/informal.vi:4:14
  4 | pub fn main(*io) {
 
