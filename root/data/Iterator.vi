@@ -459,7 +459,7 @@ pub mod Iterator[I, T; Iterator[I, T]] {
     }
   }
 
-  pub fn .max[... I, T?; Ord[T]](iter: I) -> Option[T] {
+  pub fn .max[... T?; Ord[T]](iter: I) -> Option[T] {
     if iter.advance() is Some(max, iter) {
       for value in iter {
         if value > max {
@@ -472,7 +472,7 @@ pub mod Iterator[I, T; Iterator[I, T]] {
     }
   }
 
-  pub fn .min[... I, T?; Ord[T]](iter: I) -> Option[T] {
+  pub fn .min[... T?; Ord[T]](iter: I) -> Option[T] {
     if iter.advance() is Some(min, iter) {
       for value in iter {
         if value < min {
