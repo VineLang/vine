@@ -467,7 +467,7 @@ mod Node {
     }
   }
 
-  /// Checks wether two nodes of the same lengths are equal. This method is only same to call on
+  /// Checks wether two nodes of the same lengths are equal. This method is only safe to call on
   /// nodes of the same lengths.
   pub fn eq[T; Eq[T]](len: N32, &self: &Node[T], &other: &Node[T]) -> Bool {
     if len == 1 {
