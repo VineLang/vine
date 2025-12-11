@@ -1,16 +1,16 @@
 use std::{fs, io, path::PathBuf};
 
 use anyhow::Result;
-use clap::{Args, CommandFactory, Parser};
+use clap::{Args, CommandFactory};
 use clap_complete::generate;
 use rustyline::DefaultEditor;
 
 use ivm::{IVM, ext::Extrinsics, heap::Heap};
-use ivy::{host::Host, parser::IvyParser, repl::Repl};
+use ivy::{host::Host, parser::Parser, repl::Repl};
 
 use crate::{Optimizations, RunArgs};
 
-#[derive(Debug, Parser)]
+#[derive(Debug, clap::Parser)]
 #[command(name = "ivy", version, about = "Ivy's CLI", propagate_version = true)]
 pub enum IvyCommand {
   #[command(about = "Run an Ivy program")]
@@ -24,7 +24,7 @@ pub enum IvyCommand {
 
 impl IvyCommand {
   pub fn execute() -> Result<()> {
-    match Self::parse() {
+    match <Self as clap::Parser>::parse() {
       IvyCommand::Run(run) => run.execute(),
       IvyCommand::Optimize(optimize) => optimize.execute(),
       IvyCommand::Repl(repl) => repl.execute(),
@@ -44,7 +44,7 @@ pub struct IvyRunCommand {
 impl IvyRunCommand {
   pub fn execute(self) -> Result<()> {
     let src_contents = fs::read_to_string(self.src.clone())?;
-    let nets = IvyParser::parse(&src_contents).unwrap();
+    let nets = Parser::parse(&src_contents).unwrap();
     self.run_args.run(nets, false);
     Ok(())
   }
@@ -77,7 +77,7 @@ pub struct IvyReplCommand {
 impl IvyReplCommand {
   pub fn execute(self) -> Result<()> {
     let src = self.src.map(fs::read_to_string).unwrap_or(Ok(String::new()))?;
-    let nets = IvyParser::parse(&src).unwrap();
+    let nets = Parser::parse(&src).unwrap();
 
     let mut host = &mut Host::default();
     let heap = Heap::new();

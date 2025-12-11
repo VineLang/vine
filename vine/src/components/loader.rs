@@ -9,7 +9,7 @@ use std::{
 use vine_util::{idx::IdxVec, new_idx};
 
 use crate::{
-  components::parser::VineParser,
+  components::parser::Parser,
   structures::{
     ast::{
       Ident, Item, ItemKind, ModKind, Span,
@@ -117,7 +117,7 @@ impl Loader {
     };
 
     let src = &self.files[file].src;
-    let mut items = VineParser::parse(src, file)?;
+    let mut items = Parser::parse(file, src)?;
     let span = Span { file, start: 0, end: src.len() };
     self.load_deps(&path, &mut items, diags);
     Ok(ModKind::Loaded(span, Some(file), items))

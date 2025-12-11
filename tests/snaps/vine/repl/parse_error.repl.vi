@@ -1,0 +1,193 @@
+
+let io: IO = <IO>;
+> unsafe::erase(io)
+
+let io: IO;
+> /clear io
+
+> io.println(let "Hello, world!")
+error: expected `)` or an expression; found `let`
+   @ input:1:12
+ 1 | io.println(let "Hello, world!")
+
+
+> io.println("Hello, world!" let)
+error: expected an operator, `,`, or `)`; found `let`
+   @ input:1:28
+ 1 | io.println("Hello, world!" let)
+
+
+> io.println(Hello world!)
+error: expected `::`, `[`, `(`, an operator, `,`, or `)`; found an identifier
+   @ input:1:18
+ 1 | io.println(Hello world!)
+
+
+> let let: leet = leet
+error: expected `fn` or a pattern; found `let`
+   @ input:1:5
+ 1 | let let: leet = leet
+
+
+> let leet: let = leet
+error: expected a type; found `let`
+   @ input:1:11
+ 1 | let leet: let = leet
+
+
+> let leet: leet = let
+error: expected an expression; found `let`
+   @ input:1:18
+ 1 | let leet: leet = let
+
+
+> as far as the eye can see
+error: expected `/`, eof, an item, a statement, or an expression; found `as`
+   @ input:1:1
+ 1 | as far as the eye can see
+
+
+> mod mod { leet }
+error: expected `;` or an identifier; found `mod`
+   @ input:1:5
+ 1 | mod mod { leet }
+
+
+> mod mood { let }
+error: expected `}` or an item; found `let`
+   @ input:1:12
+ 1 | mod mood { let }
+
+
+> struct enum
+error: expected `+`, `?`, `*`, or an identifier; found `enum`
+   @ input:1:8
+ 1 | struct enum
+
+
+> struct foo {}
+error: expected `[` or `(`; found `{`
+   @ input:1:12
+ 1 | struct foo {}
+
+
+> struct foo(let)
+error: expected `pub`, `)`, or a type; found `let`
+   @ input:1:12
+ 1 | struct foo(let)
+
+
+> enum foo { let }
+error: expected `}` or an identifier; found `let`
+   @ input:1:12
+ 1 | enum foo { let }
+
+
+> enum foo { leet let }
+error: expected `(`; found `let`
+   @ input:1:17
+ 1 | enum foo { leet let }
+
+
+> enum foo { leet(let) }
+error: expected `)` or a type; found `let`
+   @ input:1:17
+ 1 | enum foo { leet(let) }
+
+
+> enum foo { leet(leet let) }
+error: expected `::`, `[`, `,`, or `)`; found `let`
+   @ input:1:22
+ 1 | enum foo { leet(leet let) }
+
+
+> enum foo { leet() let }
+error: expected `,` or `}`; found `let`
+   @ input:1:19
+ 1 | enum foo { leet() let }
+
+
+> match a { b { c }, d { e } }
+error: expected `}` or a pattern; found `,`
+   @ input:1:18
+ 1 | match a { b { c }, d { e } }
+
+
+> when a { b { c }, d { e } }
+error: expected `.`, `->`, or `{`; found an identifier
+   @ input:1:6
+ 1 | when a { b { c }, d { e } }
+
+
+> when { b { c }, d { e } }
+error: expected `}`, `_`, or an expression; found `,`
+   @ input:1:15
+ 1 | when { b { c }, d { e } }
+
+
+> { let x = 1 }
+error: expected `}` or an identifier; found `let`
+   @ input:1:3
+ 1 | { let x = 1 }
+
+
+> do { x: 1 }
+error: expected `::`, `[`, `(`, an operator, `;`, `}`, an item, a statement, or an expression; found `:`
+   @ input:1:7
+ 1 | do { x: 1 }
+
+
+> (fn hi() {})
+error: expected `+`, `?`, `*`, or `(`; found an identifier
+   @ input:1:5
+ 1 | (fn hi() {})
+
+
+> (fn (!) {})
+error: expected `)` or a pattern; found `!`
+   @ input:1:6
+ 1 | (fn (!) {})
+
+
+> use
+error: expected `{`, `#`, or an identifier; found eof
+   @ input:1:4
+ 1 | use
+
+
+> use #
+error: expected an identifier; found eof
+   @ input:1:6
+ 1 | use #
+
+
+> use #foo
+error: cannot find `#foo`
+   @ input:1:6
+ 1 | use #foo
+
+
+> use #foo::
+error: expected an identifier or `{`; found eof
+   @ input:1:11
+ 1 | use #foo::
+
+
+> use #foo::{
+error: expected `}` or an identifier; found eof
+   @ input:1:12
+ 1 | use #foo::{
+
+
+> use #foo::{bar
+error: expected `::`, `as`, `,`, or `}`; found eof
+   @ input:1:15
+ 1 | use #foo::{bar
+
+
+> use #foo::{bar as _
+error: expected `,` or `}`; found eof
+   @ input:1:20
+ 1 | use #foo::{bar as _
+
+

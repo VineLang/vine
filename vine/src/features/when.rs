@@ -1,10 +1,10 @@
-use vine_util::parser::Parser;
+use vine_util::parser::Parse;
 
 use crate::{
   components::{
     distiller::{Distiller, TargetDistillation},
     lexer::Token,
-    parser::VineParser,
+    parser::Parser,
     resolver::{Resolver, TargetInfo},
   },
   structures::{
@@ -17,14 +17,14 @@ use crate::{
   tools::fmt::{Formatter, doc::Doc},
 };
 
-impl VineParser<'_> {
+impl Parser<'_> {
   pub(crate) fn parse_expr_when(&mut self) -> Result<ExprKind, Diag> {
     self.expect(Token::When)?;
     let label = self.parse_label()?;
     let ty = self.parse_arrow_ty()?;
     self.expect(Token::OpenBrace)?;
     let mut arms = Vec::new();
-    while !self.check(Token::Hole) && !self.check(Token::CloseBrace) {
+    while !self.check(Token::CloseBrace) && !self.check(Token::Hole) {
       let cond = self.parse_expr()?;
       let then = self.parse_block()?;
       arms.push((cond, then));

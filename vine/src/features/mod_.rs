@@ -1,10 +1,10 @@
-use vine_util::parser::Parser;
+use vine_util::parser::Parse;
 
 use crate::{
   components::{
     charter::Charter,
     lexer::Token,
-    parser::{BRACE, VineParser},
+    parser::{BRACE, Parser},
   },
   structures::{
     ast::{ItemKind, ModItem, ModKind, Span},
@@ -14,7 +14,7 @@ use crate::{
   tools::fmt::{Formatter, doc::Doc},
 };
 
-impl VineParser<'_> {
+impl Parser<'_> {
   pub(crate) fn parse_mod_item(&mut self) -> Result<(Span, ItemKind), Diag> {
     let mod_span = self.span();
     self.expect(Token::Mod)?;

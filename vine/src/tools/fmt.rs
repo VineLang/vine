@@ -3,7 +3,7 @@ pub mod doc;
 use doc::{Doc, Writer};
 
 use crate::{
-  components::{loader::FileId, parser::VineParser},
+  components::{loader::FileId, parser::Parser},
   structures::{
     ast::{
       Expr, ExprKind, Flex, Impl, ImplKind, Item, ItemKind, Pat, PatKind, Span, Stmt, StmtKind,
@@ -19,7 +19,7 @@ pub struct Formatter<'src> {
 
 impl<'src> Formatter<'src> {
   pub fn fmt(src: &str) -> Result<String, Diag> {
-    let ast = VineParser::parse(src, FileId(0))?;
+    let ast = Parser::parse(FileId(0), src)?;
     let fmt = Formatter { src };
     let doc = Doc::concat_vec(
       fmt.line_break_separated(

@@ -1,9 +1,9 @@
-use vine_util::parser::Parser;
+use vine_util::parser::Parse;
 
 use crate::{
   components::{
     lexer::Token,
-    parser::{PATH, VineParser},
+    parser::{PATH, Parser},
     resolver::{Resolver, ScopeBinding},
   },
   structures::{
@@ -19,7 +19,7 @@ use crate::{
   tools::fmt::{Formatter, doc::Doc},
 };
 
-impl VineParser<'_> {
+impl Parser<'_> {
   pub(crate) fn parse_path(&mut self) -> Result<Path, Diag> {
     let span = self.start_span();
     let absolute = self.eat(Token::Hash)?;

@@ -1,0 +1,33 @@
+unsafe::erase(io)
+/clear io
+io.println(let "Hello, world!")
+io.println("Hello, world!" let)
+io.println(Hello world!)
+let let: leet = leet
+let leet: let = leet
+let leet: leet = let
+as far as the eye can see
+mod mod { leet }
+mod mood { let }
+struct enum
+struct foo {}
+struct foo(let)
+enum foo { let }
+enum foo { leet let }
+enum foo { leet(let) }
+enum foo { leet(leet let) }
+enum foo { leet() let }
+match a { b { c }, d { e } }
+when a { b { c }, d { e } }
+when { b { c }, d { e } }
+{ let x = 1 }
+do { x: 1 }
+(fn hi() {})
+(fn (!) {})
+use
+use #
+use #foo
+use #foo::
+use #foo::{
+use #foo::{bar
+use #foo::{bar as _

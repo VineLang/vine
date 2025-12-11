@@ -1,7 +1,7 @@
-use vine_util::parser::Parser;
+use vine_util::parser::Parse;
 
 use crate::{
-  components::{lexer::Token, parser::VineParser, resolver::Resolver},
+  components::{lexer::Token, parser::Parser, resolver::Resolver},
   structures::{
     ast::{AssertStmt, Span, Stmt, StmtKind},
     diag::Diag,
@@ -11,7 +11,7 @@ use crate::{
   tools::fmt::{Formatter, doc::Doc},
 };
 
-impl VineParser<'_> {
+impl Parser<'_> {
   pub(crate) fn parse_stmt_assert(&mut self) -> Result<StmtKind, Diag> {
     self.expect(Token::Assert)?;
     let expr = self.parse_expr()?;

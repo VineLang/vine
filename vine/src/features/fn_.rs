@@ -1,7 +1,7 @@
 use std::mem::take;
 
 use ivy::ast::Tree;
-use vine_util::parser::Parser;
+use vine_util::parser::Parse;
 
 use crate::{
   components::{
@@ -10,7 +10,7 @@ use crate::{
     emitter::Emitter,
     finder::{Error as FinderError, Finder},
     lexer::Token,
-    parser::{BP, VineParser},
+    parser::{BP, Parser},
     resolver::{Resolver, ScopeBinding},
   },
   structures::{
@@ -29,7 +29,7 @@ use crate::{
   tools::fmt::{Formatter, doc::Doc},
 };
 
-impl VineParser<'_> {
+impl Parser<'_> {
   pub(crate) fn parse_fn_item(&mut self) -> Result<(Span, ItemKind), Diag> {
     self.expect(Token::Fn)?;
     let method = self.eat(Token::Dot)?;

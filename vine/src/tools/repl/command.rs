@@ -1,7 +1,7 @@
-use vine_util::parser::Parser;
+use vine_util::parser::Parse;
 
 use crate::{
-  components::{lexer::Token, parser::VineParser},
+  components::{lexer::Token, parser::Parser},
   structures::{
     ast::{Ident, Stmt},
     diag::Diag,
@@ -39,7 +39,7 @@ pub const HELP: &str = "
 /set show_scope [bool]  enable/disable printing the scope before each command
 ";
 
-impl<'src> VineParser<'src> {
+impl<'src> Parser<'src> {
   pub(super) fn parse_repl_command(&mut self) -> Result<ReplCommand, Diag> {
     Ok(if self.eat(Token::Slash)? {
       let span = self.span();
@@ -49,7 +49,7 @@ impl<'src> VineParser<'src> {
         "scope" => ReplCommand::Scope,
         "clear" => {
           let mut vars = Vec::new();
-          while self.state.token.is_some() {
+          while !self.check(Token::Eof) {
             vars.push(self.parse_ident()?);
           }
           ReplCommand::Clear(vars)
@@ -66,7 +66,7 @@ impl<'src> VineParser<'src> {
       }
     } else {
       let mut stmts = Vec::new();
-      while self.state.token.is_some() {
+      while !self.check(Token::Eof) {
         stmts.push(self.parse_stmt()?);
       }
       ReplCommand::Run(stmts)

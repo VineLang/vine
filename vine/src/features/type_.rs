@@ -1,7 +1,7 @@
-use vine_util::parser::Parser;
+use vine_util::parser::Parse;
 
 use crate::{
-  components::{charter::Charter, lexer::Token, parser::VineParser, resolver::Resolver},
+  components::{charter::Charter, lexer::Token, parser::Parser, resolver::Resolver},
   structures::{
     ast::{ItemKind, Path, Span, TypeItem},
     chart::{
@@ -14,7 +14,7 @@ use crate::{
   tools::fmt::{Formatter, doc::Doc},
 };
 
-impl VineParser<'_> {
+impl Parser<'_> {
   pub(crate) fn parse_type_item(&mut self) -> Result<(Span, ItemKind), Diag> {
     self.expect(Token::Type)?;
     let name_span = self.span();

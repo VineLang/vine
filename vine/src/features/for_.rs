@@ -1,11 +1,11 @@
-use vine_util::parser::Parser;
+use vine_util::parser::Parse;
 
 use crate::{
   components::{
     distiller::{Distiller, TargetDistillation},
     lexer::Token,
     matcher::Row,
-    parser::VineParser,
+    parser::Parser,
     resolver::{Resolver, TargetInfo},
   },
   structures::{
@@ -20,7 +20,7 @@ use crate::{
   tools::fmt::{Formatter, doc::Doc},
 };
 
-impl VineParser<'_> {
+impl Parser<'_> {
   pub(crate) fn parse_expr_for(&mut self) -> Result<ExprKind, Diag> {
     self.expect(Token::For)?;
     let label = self.parse_label()?;

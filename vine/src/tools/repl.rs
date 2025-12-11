@@ -6,13 +6,13 @@ use ivm::{
   wire::Wire,
 };
 use ivy::host::Host;
-use vine_util::parser::{Parser, ParserState};
 
 use crate::{
   compiler::{Compiler, Hooks},
   components::{
     charter::{Charter, ExtractItems},
-    parser::VineParser,
+    lexer::Lexer,
+    parser::Parser,
     resolver::Resolver,
   },
   structures::{
@@ -319,8 +319,7 @@ impl<'ctx, 'ivm, 'ext, 'comp> Repl<'ctx, 'ivm, 'ext, 'comp> {
 
   fn parse_input(&mut self, line: &str) -> Result<(Span, ReplCommand), Diag> {
     let file = self.compiler.loader.add_file(None, "input".into(), line.into());
-    let mut parser = VineParser { state: ParserState::new(line), file };
-    parser.bump()?;
+    let mut parser = Parser::new(Lexer::new(file, line))?;
     let span = parser.start_span();
     let command = parser.parse_repl_command()?;
     let span = parser.end_span(span);

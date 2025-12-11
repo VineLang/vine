@@ -1,15 +1,16 @@
 use ivy::{
   ast::{Net, Tree},
-  parser::IvyParser,
+  lexer::Lexer as IvyLexer,
+  parser::Parser as IvyParser,
 };
-use vine_util::parser::Parser;
+use vine_util::{lexer::Lex, parser::Parse};
 
 use crate::{
   components::{
     distiller::Distiller,
     emitter::Emitter,
     lexer::Token,
-    parser::{PAREN_COMMA, VineParser},
+    parser::{PAREN_COMMA, Parser},
     resolver::Resolver,
   },
   structures::{
@@ -22,7 +23,7 @@ use crate::{
   tools::fmt::{Formatter, doc::Doc},
 };
 
-impl VineParser<'_> {
+impl Parser<'_> {
   pub(crate) fn parse_inline_ivy(&mut self) -> Result<ExprKind, Diag> {
     let span = self.span();
     self.bump()?;
@@ -41,11 +42,11 @@ impl VineParser<'_> {
       self.unexpected()?;
     }
     let net_span = self.start_span();
-    let net = self.switch(
-      |state| IvyParser { state },
-      IvyParser::parse_net_inner,
-      |_| Diag::InvalidIvy { span },
-    )?;
+    let mut ivy_lexer = IvyLexer::new(self.lexer().src());
+    ivy_lexer.teleport(self.lexer().offset());
+    let mut ivy_parser = IvyParser::new(ivy_lexer).map_err(|_| Diag::InvalidIvy { span })?;
+    let net = ivy_parser.parse_net_inner().map_err(|_| Diag::InvalidIvy { span })?;
+    self.teleport(ivy_parser.lexer().offset())?;
     let net_span = self.end_span(net_span);
     Ok(ExprKind::InlineIvy(binds, ty, net_span, net))
   }

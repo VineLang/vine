@@ -1,9 +1,9 @@
-use vine_util::parser::Parser;
+use vine_util::parser::Parse;
 
 use crate::{
   components::{
     lexer::Token,
-    parser::{BP, VineParser},
+    parser::{BP, Parser},
     resolver::Resolver,
   },
   structures::{
@@ -15,7 +15,7 @@ use crate::{
   tools::fmt::{Formatter, doc::Doc},
 };
 
-impl VineParser<'_> {
+impl Parser<'_> {
   pub(crate) fn _parse_expr_range(&mut self, left_bound: Option<Expr>) -> Result<ExprKind, Diag> {
     if self.eat(Token::DotDot)? {
       let right_bound = self.maybe_parse_expr_bp(BP::Range)?;

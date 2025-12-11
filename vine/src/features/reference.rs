@@ -1,5 +1,5 @@
 use ivy::ast::Tree;
-use vine_util::{idx::IdxVec, parser::Parser};
+use vine_util::{idx::IdxVec, parser::Parse};
 
 use crate::{
   components::{
@@ -7,7 +7,7 @@ use crate::{
     emitter::Emitter,
     lexer::Token,
     matcher::{MatchVar, MatchVarForm, MatchVarKind, Matcher, Row, VarId},
-    parser::{BP, VineParser},
+    parser::{BP, Parser},
     resolver::Resolver,
   },
   structures::{
@@ -20,7 +20,7 @@ use crate::{
   tools::fmt::{Formatter, doc::Doc},
 };
 
-impl VineParser<'_> {
+impl Parser<'_> {
   pub(crate) fn parse_expr_ref(&mut self, span: usize) -> Result<ExprKind, Diag> {
     if self.eat(Token::Amp)? {
       Ok(ExprKind::Ref(self.parse_expr_bp(BP::Prefix)?, false))

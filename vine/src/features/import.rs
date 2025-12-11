@@ -1,12 +1,15 @@
 use std::collections::{BTreeMap, hash_map::Entry};
 
-use vine_util::parser::{Delimiters, Parser};
+use vine_util::{
+  lexer::Lex,
+  parser::{Delimiters, Parse},
+};
 
 use crate::{
   components::{
     charter::Charter,
     lexer::Token,
-    parser::{BRACE_COMMA, VineParser},
+    parser::{BRACE_COMMA, Parser},
     resolver::Resolver,
   },
   structures::{
@@ -18,7 +21,7 @@ use crate::{
   tools::fmt::{Formatter, doc::Doc},
 };
 
-impl VineParser<'_> {
+impl Parser<'_> {
   pub(crate) fn parse_use_item(&mut self) -> Result<(Span, ItemKind), Diag> {
     self.expect(Token::Use)?;
     let span = self.start_span();
@@ -57,7 +60,7 @@ impl VineParser<'_> {
         self.parse_use_tree(&mut tree.children)?;
       } else {
         self.parse_delimited(BRACE_COMMA, |self_| {
-          if self_.state.lexer.slice() == &*name.0 {
+          if self_.lexer().slice() == &*name.0 {
             self_.expect(Token::Ident)?;
             self_.parse_use_tree_alias(name.clone(), tree)?;
           } else {

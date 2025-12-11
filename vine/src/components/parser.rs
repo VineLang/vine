@@ -1,9 +1,12 @@
 use std::mem::transmute;
 
-use vine_util::parser::{Parser, ParserState};
+use vine_util::parser::{Parse, ParserState};
 
 use crate::{
-  components::{lexer::Token, loader::FileId},
+  components::{
+    lexer::{Lexer, Token},
+    loader::FileId,
+  },
   structures::{
     ast::{Key, Sign},
     diag::Diag,
@@ -15,38 +18,38 @@ use crate::structures::ast::{
   LogicalOp, Pat, PatKind, Span, Stmt, StmtKind, Trait, TraitKind, Ty, TyKind, Vis,
 };
 
-pub struct VineParser<'src> {
-  pub(crate) state: ParserState<'src, Token>,
+pub struct Parser<'src> {
   pub(crate) file: FileId,
+  pub(crate) state: ParserState<'src, Lexer<'src>>,
 }
 
-impl<'src> Parser<'src> for VineParser<'src> {
+impl<'src> Parse<'src> for Parser<'src> {
   type Token = Token;
+  type Lexer = Lexer<'src>;
   type Error = Diag;
 
-  fn state(&mut self) -> &mut ParserState<'src, Self::Token> {
+  fn state(&mut self) -> &mut ParserState<'src, Lexer<'src>> {
     &mut self.state
-  }
-
-  fn lex_error(&self) -> Self::Error {
-    Diag::LexError { span: self.span() }
   }
 
   fn unexpected_error(&self) -> Diag {
     Diag::UnexpectedToken {
       span: self.span(),
-      expected: self.state.expected,
+      expected: self.state.expected.clone(),
       found: self.state.token,
     }
   }
 }
 
-impl<'src> VineParser<'src> {
-  pub fn parse(src: &'src str, file: FileId) -> Result<Vec<Item>, Diag> {
-    let mut parser = VineParser { state: ParserState::new(src), file };
-    parser.bump()?;
+impl<'src> Parser<'src> {
+  pub fn new(lexer: Lexer<'src>) -> Result<Self, Diag> {
+    Ok(Parser { file: lexer.file, state: ParserState::new(lexer)? })
+  }
+
+  pub fn parse(file: FileId, src: &'src str) -> Result<Vec<Item>, Diag> {
+    let mut parser = Parser::new(Lexer::new(file, src))?;
     let mut items = Vec::new();
-    while parser.state.token.is_some() {
+    while !parser.check(Token::Eof) {
       items.push(parser.parse_item()?);
     }
     Ok(items)
@@ -57,6 +60,7 @@ impl<'src> VineParser<'src> {
   }
 
   fn maybe_parse_item(&mut self) -> Result<Option<Item>, Diag> {
+    self.state.expected.start_group(Token::GroupItem);
     let span = self.start_span();
     let mut doc = Vec::new();
     while self.check(Token::DocComment) {
@@ -77,8 +81,14 @@ impl<'src> VineParser<'src> {
       _ if self.check(Token::Trait) => self.parse_trait_item()?,
       _ if self.check(Token::Impl) => self.parse_impl_item()?,
       _ if self.check(Token::Use) => self.parse_use_item()?,
-      _ if attrs.is_empty() => return Ok(None),
-      _ => self.unexpected()?,
+      _ => {
+        if doc.is_empty() && attrs.is_empty() {
+          self.state.expected.end_group();
+          return Ok(None);
+        } else {
+          self.unexpected()?
+        }
+      }
     };
     let span = self.end_span(span);
     Ok(Some(Item { span, vis, name_span, docs: doc, attrs, kind }))
@@ -188,6 +198,7 @@ impl<'src> VineParser<'src> {
   }
 
   fn _maybe_parse_expr_prefix(&mut self, span: usize) -> Result<Option<ExprKind>, Diag> {
+    self.state.expected.start_group(Token::GroupExpr);
     if self.check(Token::Amp) || self.check(Token::AmpAmp) {
       return Ok(Some(self.parse_expr_ref(span)?));
     }
@@ -266,10 +277,12 @@ impl<'src> VineParser<'src> {
     if self.check(Token::InlineIvy) {
       return Ok(Some(self.parse_inline_ivy()?));
     }
+    self.state.expected.end_group();
     Ok(None)
   }
 
   fn parse_expr_postfix(&mut self, lhs: Expr, bp: BP) -> Result<Result<ExprKind, Expr>, Diag> {
+    self.state.expected.start_group(Token::GroupExprPostfix);
     for &(lbp, associativity, token, op) in BINARY_OP_TABLE {
       let rbp = match associativity {
         Associativity::Left => lbp.inc(),
@@ -363,9 +376,6 @@ impl<'src> VineParser<'src> {
         self.expect(Token::CloseBracket)?;
         return Ok(Ok(ExprKind::Cast(lhs, ty, true)));
       }
-      if self.check(Token::Num) {
-        return Ok(Ok(self._parse_expr_tuple_field(lhs)?));
-      }
       let ident_span = self.span();
       let ident = self.parse_ident()?;
       if self.check(Token::OpenBracket) || self.check(Token::OpenParen) {
@@ -377,10 +387,16 @@ impl<'src> VineParser<'src> {
       }
     }
 
+    if self.check(Token::TupleKey) {
+      return Ok(Ok(self._parse_expr_tuple_field(lhs)?));
+    }
+
     if self.check(Token::OpenParen) {
       let args = self.parse_exprs()?;
       return Ok(Ok(ExprKind::Call(lhs, args)));
     }
+
+    self.state.expected.end_group();
 
     Ok(Err(lhs))
   }
@@ -412,6 +428,7 @@ impl<'src> VineParser<'src> {
   }
 
   fn _parse_pat_prefix(&mut self, span: usize) -> Result<PatKind, Diag> {
+    self.state.expected.start_group(Token::GroupPat);
     if self.eat(Token::Hole)? {
       return Ok(PatKind::Hole);
     }
@@ -433,6 +450,7 @@ impl<'src> VineParser<'src> {
     if self.check(Token::OpenBrace) {
       return self.parse_pat_object();
     }
+    self.state.expected.end_group();
     self.unexpected()
   }
 
@@ -452,6 +470,7 @@ impl<'src> VineParser<'src> {
   }
 
   fn _parse_ty(&mut self, span: usize) -> Result<TyKind, Diag> {
+    self.state.expected.start_group(Token::GroupTy);
     if self.eat(Token::Hole)? {
       return Ok(TyKind::Hole);
     }
@@ -479,6 +498,7 @@ impl<'src> VineParser<'src> {
     if self.check(Token::Ident) || self.check(Token::Hash) {
       return Ok(TyKind::Path(self.parse_path()?));
     }
+    self.state.expected.end_group();
     self.unexpected()
   }
 
@@ -534,6 +554,10 @@ impl<'src> VineParser<'src> {
   }
 
   fn _parse_stmt(&mut self) -> Result<StmtKind, Diag> {
+    if let Some(item) = self.maybe_parse_item()? {
+      return Ok(StmtKind::Item(item));
+    }
+    self.state.expected.start_group(Token::GroupStmt);
     if self.check(Token::Assert) {
       return self.parse_stmt_assert();
     }
@@ -542,9 +566,6 @@ impl<'src> VineParser<'src> {
     }
     if self.eat(Token::Semi)? {
       return Ok(StmtKind::Empty);
-    }
-    if let Some(item) = self.maybe_parse_item()? {
-      return Ok(StmtKind::Item(item));
     }
     if self.check(Token::If)
       || self.check(Token::When)
@@ -569,6 +590,7 @@ impl<'src> VineParser<'src> {
     if self.eat(Token::Continue)? {
       return self.parse_stmt_continue();
     }
+    self.state.expected.end_group();
     let expr = self.parse_expr()?;
     let semi = self.eat(Token::Semi)?;
     Ok(StmtKind::Expr(expr, semi))
