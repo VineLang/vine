@@ -101,6 +101,7 @@ impl Resolver<'_> {
     self.initialize(const_def.def, const_def.generics);
     let ty = self.types.import(&self.sigs.concrete_consts[const_id], None).ty;
     let root = self.resolve_expr_type(&const_def.value, ty);
+    self.types.finish_inference();
     let fragment = self.finish_fragment(
       const_def.span,
       self.chart.defs[const_def.def].path.clone(),
