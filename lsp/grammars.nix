@@ -22,6 +22,30 @@ let
         cp -r . $out
       '';
     };
+
+  check =
+    name:
+    fileset:
+    stdenv.mkDerivation {
+      inherit name;
+      src = lib.fileset.toSource {
+        root = ../.;
+        fileset = lib.fileset.unions fileset;
+      };
+      nativeBuildInputs = [
+        nushell
+        nodejs_24
+        tree-sitter
+      ];
+      buildPhase = ''
+        # fake $HOME b/c tree-sitter writes ~/.config/ files, but inside
+        # nix builds that dir is read-only.
+        export HOME=$PWD/.home
+        cd lsp/${name}
+        nu test.nu
+        touch $out
+      '';
+    };
 in
 {
   packages = {
@@ -30,60 +54,16 @@ in
   };
 
   checks = {
-    tree-sitter-vine = stdenv.mkDerivation {
-      name = "tree-sitter-vine";
+    tree-sitter-vine = check "tree-sitter-vine" [
+      ../root/.
+      ../vine/examples/.
+      ../tests/programs/.
+      ../lsp/tree-sitter-vine/.
+    ];
 
-      src = lib.fileset.toSource {
-        root = ../.;
-        fileset = lib.fileset.unions [
-          ../root/.
-          ../vine/examples/.
-          ../tests/programs/.
-          ../lsp/tree-sitter-vine/.
-        ];
-      };
-
-      nativeBuildInputs = [
-        nushell
-        nodejs_24
-        tree-sitter
-      ];
-
-      buildPhase = ''
-        # fake $HOME b/c tree-sitter writes ~/.config/ files, but inside
-        # nix builds that dir is read-only.
-        export HOME=$PWD/.home
-        cd lsp/tree-sitter-vine
-        nu test.nu
-        touch $out
-      '';
-    };
-
-    tree-sitter-ivy = stdenv.mkDerivation {
-      name = "tree-sitter-ivy";
-
-      src = lib.fileset.toSource {
-        root = ../.;
-        fileset = lib.fileset.unions [
-          ../ivy/examples/.
-          ../lsp/tree-sitter-ivy/.
-        ];
-      };
-
-      nativeBuildInputs = [
-        nushell
-        nodejs_24
-        tree-sitter
-      ];
-
-      buildPhase = ''
-        # fake $HOME b/c tree-sitter writes ~/.config/ files, but inside
-        # nix builds that dir is read-only.
-        export HOME=$PWD/.home
-        cd lsp/tree-sitter-ivy
-        nu test.nu
-        touch $out
-      '';
-    };
+    tree-sitter-ivy = check "tree-sitter-ivy" [
+      ../ivy/examples/.
+      ../lsp/tree-sitter-ivy/.
+    ];
   };
 }
