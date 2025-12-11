@@ -148,6 +148,26 @@ let io: IO = <IO>;
 Array([2, 4, 6, 8, 10, 12, 14, 16, 18])
 
 let io: IO = <IO>;
+> [1,2,3] as Array == [1,2,3] as Array
+true
+
+let io: IO = <IO>;
+> [] as Array[N32] == [] as Array[N32]
+true
+
+let io: IO = <IO>;
+> [] as Array[N32] == [1] as Array
+false
+
+let io: IO = <IO>;
+> [1,2,3] as Array == [] as Array[N32]
+false
+
+let io: IO = <IO>;
+> [1,2,3] as Array == [3,2,1] as Array
+false
+
+let io: IO = <IO>;
 > List::new(10, "")
 ["", "", "", "", "", "", "", "", "", ""]
 
@@ -305,23 +325,23 @@ error: expected type `{ a: N32, b: N32 }`; found `{ a: N32 }`
 
 let io: IO = <IO>;
 > do { let x; x = (x, x); }
-error: expected type `?1599`; found `(?1599, ?1599)`
+error: expected type `?1745`; found `(?1745, ?1745)`
    @ input:1:17
  1 | do { let x; x = (x, x); }
 
-error: search limit reached when finding flex of type `?1599`
+error: search limit reached when finding flex of type `?1745`
    @ input:1:10
  1 | do { let x; x = (x, x); }
 
-error: cannot drop `?1599`
+error: cannot drop `?1745`
    @ input:1:10
  1 | do { let x; x = (x, x); }
 
-error: variable of type `?1599` read whilst uninitialized
+error: variable of type `?1745` read whilst uninitialized
    @ input:1:10
  1 | do { let x; x = (x, x); }
 
-error: cannot fork `?1599`
+error: cannot fork `?1745`
    @ input:1:10
  1 | do { let x; x = (x, x); }
 
@@ -367,27 +387,27 @@ error: cannot infer type
    @ input:1:5
  1 | let x; x.a; x.a
 
-error: search limit reached when finding flex of type `?1727`
+error: search limit reached when finding flex of type `?1873`
    @ input:1:8
  1 | let x; x.a; x.a
 
-error: search limit reached when finding impl of trait `Drop[?1727]`
+error: search limit reached when finding impl of trait `Drop[?1873]`
    @ input:1:8
  1 | let x; x.a; x.a
 
-error: search limit reached when finding flex of type `?1727`
+error: search limit reached when finding flex of type `?1873`
    @ input:1:13
  1 | let x; x.a; x.a
 
-error: search limit reached when finding impl of trait `Drop[?1727]`
+error: search limit reached when finding impl of trait `Drop[?1873]`
    @ input:1:1
  1 | let x; x.a; x.a
 
-error: search limit reached when finding flex of type `?1727`
+error: search limit reached when finding flex of type `?1873`
    @ input:1:5
  1 | let x; x.a; x.a
 
-error: variable of type `?1727` read whilst uninitialized
+error: variable of type `?1873` read whilst uninitialized
    @ input:1:5
  1 | let x; x.a; x.a
 
