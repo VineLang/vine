@@ -1014,7 +1014,7 @@
   Some(9),
   None(),
 ]
-[tests/programs/iterator_party.vi:123:3] --- chunks ---
+[tests/programs/iterator_party.vi:123:3] --- chunks 3 ---
 [tests/programs/iterator_party.vi:79:51] 0
 [tests/programs/iterator_party.vi:79:51] 1
 [tests/programs/iterator_party.vi:79:51] 2
@@ -1029,3 +1029,45 @@
 [tests/programs/iterator_party.vi:125:5] [6, 7, 8]
 [tests/programs/iterator_party.vi:79:51] 9
 [tests/programs/iterator_party.vi:125:5] [9]
+[tests/programs/iterator_party.vi:128:3] --- chunks 1 ---
+[tests/programs/iterator_party.vi:79:51] 0
+[tests/programs/iterator_party.vi:130:5] [0]
+[tests/programs/iterator_party.vi:79:51] 1
+[tests/programs/iterator_party.vi:130:5] [1]
+[tests/programs/iterator_party.vi:79:51] 2
+[tests/programs/iterator_party.vi:130:5] [2]
+[tests/programs/iterator_party.vi:79:51] 3
+[tests/programs/iterator_party.vi:130:5] [3]
+[tests/programs/iterator_party.vi:79:51] 4
+[tests/programs/iterator_party.vi:130:5] [4]
+[tests/programs/iterator_party.vi:79:51] 5
+[tests/programs/iterator_party.vi:130:5] [5]
+[tests/programs/iterator_party.vi:79:51] 6
+[tests/programs/iterator_party.vi:130:5] [6]
+[tests/programs/iterator_party.vi:79:51] 7
+[tests/programs/iterator_party.vi:130:5] [7]
+[tests/programs/iterator_party.vi:79:51] 8
+[tests/programs/iterator_party.vi:130:5] [8]
+[tests/programs/iterator_party.vi:79:51] 9
+[tests/programs/iterator_party.vi:130:5] [9]
+[tests/programs/iterator_party.vi:133:3] --- chunks 0 ---
+[tests/programs/iterator_party.vi:79:51] 0
+[tests/programs/iterator_party.vi:135:5] [0]
+[tests/programs/iterator_party.vi:79:51] 1
+[tests/programs/iterator_party.vi:135:5] [1]
+[tests/programs/iterator_party.vi:79:51] 2
+[tests/programs/iterator_party.vi:135:5] [2]
+[tests/programs/iterator_party.vi:79:51] 3
+[tests/programs/iterator_party.vi:135:5] [3]
+[tests/programs/iterator_party.vi:79:51] 4
+[tests/programs/iterator_party.vi:135:5] [4]
+[tests/programs/iterator_party.vi:79:51] 5
+[tests/programs/iterator_party.vi:135:5] [5]
+[tests/programs/iterator_party.vi:79:51] 6
+[tests/programs/iterator_party.vi:135:5] [6]
+[tests/programs/iterator_party.vi:79:51] 7
+[tests/programs/iterator_party.vi:135:5] [7]
+[tests/programs/iterator_party.vi:79:51] 8
+[tests/programs/iterator_party.vi:135:5] [8]
+[tests/programs/iterator_party.vi:79:51] 9
+[tests/programs/iterator_party.vi:135:5] [9]
