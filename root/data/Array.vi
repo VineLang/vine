@@ -345,14 +345,7 @@ pub mod Array {
 
   pub impl eq[T; Eq[T]]: Eq[Array[T]] {
     fn eq(&Array[T](len, node), &Array[T](len_other, other)) -> Bool {
-      if len != len_other {
-        return false;
-      }
-      if len == 0 {
-        true
-      } else {
-        Node::eq(len, &node, &other)
-      }
+      len == len_other and (len == 0 or Node::eq(len, &node, &other))
     }
 
     fn ne(&a: &Array[T], &b: &Array[T]) -> Bool {
