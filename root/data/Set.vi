@@ -1,7 +1,7 @@
 
 use data::Iterator::{Iterator, Collect};
 use debug::Show;
-use ops::{Cast, comparison::Ord};
+use ops::{Cast, Concat, comparison::Ord};
 
 pub struct Set[T]((N32, SetData[T]));
 
@@ -58,6 +58,15 @@ pub mod Set[T; Ord[T]] {
         }
       }
       old
+    }
+  }
+
+  pub impl concat[... T?]: Concat[Set[T], Set[T], Set[T]] {
+    fn concat(self: Set[T], other: Set[T]) -> Set[T] {
+      for value in other {
+        self.insert(value);
+      }
+      self
     }
   }
 

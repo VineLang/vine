@@ -1,6 +1,6 @@
 
 use data::Iterator::{Iterator, Collect};
-use ops::{Cast, comparison::Ord};
+use ops::{Cast, Concat, comparison::Ord};
 
 pub struct* Map[K, V](Set[(K, V)]);
 
@@ -37,6 +37,12 @@ pub mod Map[K, V; Ord[K]] {
 
   pub fn .insert[... K?](&self: &Map[K, V], key: K, value: V) -> Option[V] {
     Option::map(self!.insert((key, value)), fn? ((_, v)) { v })
+  }
+
+  pub impl concat[... K?, V?]: Concat[Map[K, V], Map[K, V], Map[K, V]] {
+    fn concat(self: Map[K, V], other: Map[K, V]) -> Map[K, V] {
+      Map(self! ++ other!)
+    }
   }
 
   pub fn .has[...](&self: &Map[K, V], &key: &K) -> Bool {
