@@ -229,6 +229,9 @@ impl<'a> Resolver<'a> {
       ty: self.types.new(TypeKind::Ref(ty)),
       kind: Box::new(TirExprKind::Ref(root)),
     };
+    if !self.diags.errors.is_empty() {
+      self.types.finish_inference();
+    }
     let fragment = self.finish_fragment(span, path, root, false);
     let fragment_id = self.fragments.push(fragment);
     let mut bindings =

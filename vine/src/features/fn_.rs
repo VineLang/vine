@@ -198,6 +198,7 @@ impl Resolver<'_> {
     let (ty, closure_id) =
       self.resolve_closure(span, Flex::None, &fn_def.params, &fn_def.ret_ty, &fn_def.body, false);
     let root = TirExpr { span, ty, kind: Box::new(TirExprKind::Closure(closure_id)) };
+    self.types.finish_inference();
     let fragment =
       self.finish_fragment(span, self.chart.defs[fn_def.def].path.clone(), root, fn_def.frameless);
     let fragment_id = self.fragments.push(fragment);

@@ -91,6 +91,7 @@ pub enum TypeKind {
   Ref(Type),
   Key(Ident),
   Never,
+  Default,
   Error(ErrorGuaranteed),
 }
 
@@ -254,6 +255,7 @@ impl Types {
       (TypeKind::Ref(a), TypeKind::Ref(b)) => self.unify(*a, *b),
       (TypeKind::Key(a), TypeKind::Key(b)) if a == b => Success,
       (TypeKind::Never, TypeKind::Never) => Success,
+      (TypeKind::Default, TypeKind::Default) => Success,
       _ => Failure,
     };
 
@@ -354,7 +356,7 @@ impl Types {
     match self.kind(ty) {
       Some((_, TypeKind::Tuple(elements))) => elements.iter().all(|&x| self.self_dual(x)),
       Some((_, TypeKind::Object(entries))) => entries.values().all(|&x| self.self_dual(x)),
-      Some((_, TypeKind::Error(_))) => true,
+      Some((_, TypeKind::Default | TypeKind::Error(_))) => true,
       _ => false,
     }
   }
@@ -395,6 +397,9 @@ impl Types {
             *str += "~";
           }
           match kind {
+            TypeKind::Default => {
+              *str += "_";
+            }
             TypeKind::Tuple(els) => {
               *str += "(";
               self._show_comma_separated(chart, els, str);
@@ -568,6 +573,7 @@ impl Types {
       | Some((_, TypeKind::Tuple(..)))
       | Some((_, TypeKind::Object(..)))
       | Some((_, TypeKind::Never))
+      | Some((_, TypeKind::Default))
       | None => Ok(None),
       Some((_, TypeKind::Error(err))) => Err(*err),
     }
@@ -577,6 +583,16 @@ impl Types {
     self.types.clear();
     self.error = None;
     self.nil = None;
+  }
+
+  pub fn finish_inference(&mut self) {
+    for (_, node) in &mut self.types {
+      if let TypeNode::Root { state, .. } = node
+        && !matches!(state, TypeState::Known(..))
+      {
+        *state = TypeState::Known(Inverted(false), TypeKind::Default);
+      }
+    }
   }
 }
 
@@ -685,6 +701,7 @@ impl TypeKind {
       ),
       TypeKind::Param(i, n) => TypeKind::Param(*i, n.clone()),
       TypeKind::Never => TypeKind::Never,
+      TypeKind::Default => TypeKind::Default,
       TypeKind::Error(err) => TypeKind::Error(*err),
     }
   }
@@ -692,9 +709,11 @@ impl TypeKind {
   fn children(&self) -> impl Iterator<Item = Type> + '_ {
     multi_iter! { Children { Zero, One, Vec, Object, Closure } }
     match self {
-      TypeKind::Param(..) | TypeKind::Fn(_) | TypeKind::Never | TypeKind::Error(_) => {
-        Children::Zero([])
-      }
+      TypeKind::Param(..)
+      | TypeKind::Fn(_)
+      | TypeKind::Never
+      | TypeKind::Default
+      | TypeKind::Error(_) => Children::Zero([]),
       TypeKind::Ref(t) => Children::One([*t]),
       TypeKind::Key(_) => Children::Zero([]),
       TypeKind::Tuple(els)

@@ -35,10 +35,6 @@ error: cannot find impl of trait `Concat[String, N32, ?96]`
    @ input:1:1
  1 | "abc" ++ 123
 
-error: search limit reached when finding impl of trait `Drop[?93]`
-   @ input:1:1
- 1 | "abc" ++ 123
-
 
 let io: IO = <IO>;
 > [true, false].show().as[String]
@@ -329,22 +325,6 @@ error: expected type `?1745`; found `(?1745, ?1745)`
    @ input:1:17
  1 | do { let x; x = (x, x); }
 
-error: search limit reached when finding flex of type `?1745`
-   @ input:1:10
- 1 | do { let x; x = (x, x); }
-
-error: cannot drop `?1745`
-   @ input:1:10
- 1 | do { let x; x = (x, x); }
-
-error: variable of type `?1745` read whilst uninitialized
-   @ input:1:10
- 1 | do { let x; x = (x, x); }
-
-error: cannot fork `?1745`
-   @ input:1:10
- 1 | do { let x; x = (x, x); }
-
 
 let io: IO = <IO>;
 > let (a: N32, b: N32);
@@ -387,30 +367,6 @@ error: cannot infer type
    @ input:1:5
  1 | let x; x.a; x.a
 
-error: search limit reached when finding flex of type `?1873`
-   @ input:1:8
- 1 | let x; x.a; x.a
-
-error: search limit reached when finding impl of trait `Drop[?1873]`
-   @ input:1:8
- 1 | let x; x.a; x.a
-
-error: search limit reached when finding flex of type `?1873`
-   @ input:1:13
- 1 | let x; x.a; x.a
-
-error: search limit reached when finding impl of trait `Drop[?1873]`
-   @ input:1:1
- 1 | let x; x.a; x.a
-
-error: search limit reached when finding flex of type `?1873`
-   @ input:1:5
- 1 | let x; x.a; x.a
-
-error: variable of type `?1873` read whilst uninitialized
-   @ input:1:5
- 1 | let x; x.a; x.a
-
 
 let io: IO = <IO>;
 > Ok(true).try
@@ -422,18 +378,6 @@ error: no function to return from
 let io: IO = <IO>;
 > fn foo() -> N32 { Ok(123).try }
 error: cannot try `Result[N32, ?2]` in a function returning `N32`
-   @ input:1:19
- 1 | fn foo() -> N32 { Ok(123).try }
-
-error: search limit reached when finding flex of type `?2`
-   @ input:1:19
- 1 | fn foo() -> N32 { Ok(123).try }
-
-error: search limit reached when finding flex of type `Result[N32, ?2]`
-   @ input:1:19
- 1 | fn foo() -> N32 { Ok(123).try }
-
-error: search limit reached when finding flex of type `?2`
    @ input:1:19
  1 | fn foo() -> N32 { Ok(123).try }
 

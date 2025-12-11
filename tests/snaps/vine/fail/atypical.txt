@@ -146,57 +146,9 @@ error: entrypoint cannot be generic
    @ tests/programs/fail/atypical.vi:6:8
  6 | pub fn main[T, U](io: IO) {
 
-error: search limit reached when finding flex of type `?0`
-   @ tests/programs/fail/atypical.vi:4:8
- 4 | fn foo(x, y: Foo) {}
-
-error: search limit reached when finding flex of type `(?1, ??, ??)`
-   @ tests/programs/fail/atypical.vi:4:11
- 4 | fn foo(x, y: Foo) {}
-
-error: cannot drop `?0`
-   @ tests/programs/fail/atypical.vi:4:8
- 4 | fn foo(x, y: Foo) {}
-
-error: cannot drop `(?1, ??, ??)`
-   @ tests/programs/fail/atypical.vi:4:11
- 4 | fn foo(x, y: Foo) {}
-
-error: search limit reached when finding impl of trait `Drop[?29]`
-    @ tests/programs/fail/atypical.vi:12:3
- 12 |   1();
-
-error: search limit reached when finding impl of trait `Drop[?34]`
-    @ tests/programs/fail/atypical.vi:13:14
- 13 |   let x = 3; 2 + ~x;
-
 error: expected a complete pattern
     @ tests/programs/fail/atypical.vi:22:7
  22 |   let Ay::Yay() = 0;
-
-error: search limit reached when finding impl of trait `Drop[?75]`
-    @ tests/programs/fail/atypical.vi:23:4
- 23 |   (loop { break "x" } + 1);
-
-error: search limit reached when finding impl of trait `Drop[?85]`
-    @ tests/programs/fail/atypical.vi:28:14
- 28 |   let x = 1; ~x + ~x;
-
-error: search limit reached when finding flex of type `?19`
-    @ tests/programs/fail/atypical.vi:10:8
- 10 |   let (a, b) = 0;
-
-error: search limit reached when finding flex of type `?20`
-    @ tests/programs/fail/atypical.vi:10:11
- 10 |   let (a, b) = 0;
-
-error: search limit reached when finding flex of type `?54`
-    @ tests/programs/fail/atypical.vi:18:14
- 18 |   let Thing((x,)) = Foo(1);
-
-error: search limit reached when finding flex of type `?79`
-    @ tests/programs/fail/atypical.vi:24:8
- 24 |   let &x: N32 = loop { continue };
 
 error: unconditional infinite loops are invalid
    @ tests/programs/fail/atypical.vi:6:8
@@ -206,21 +158,9 @@ error: cannot drop `IO`
    @ tests/programs/fail/atypical.vi:6:19
  6 | pub fn main[T, U](io: IO) {
 
-error: cannot drop `?19`
-    @ tests/programs/fail/atypical.vi:10:8
- 10 |   let (a, b) = 0;
-
-error: cannot drop `?20`
-    @ tests/programs/fail/atypical.vi:10:11
- 10 |   let (a, b) = 0;
-
 error: variable of type `N32` read whilst uninitialized
     @ tests/programs/fail/atypical.vi:11:7
  11 |   let x; x + 1;
-
-error: cannot drop `?54`
-    @ tests/programs/fail/atypical.vi:18:14
- 18 |   let Thing((x,)) = Foo(1);
 
 error: cannot drop `U`
     @ tests/programs/fail/atypical.vi:21:7
