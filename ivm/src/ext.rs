@@ -45,7 +45,7 @@ pub struct Extrinsics<'ivm> {
 
 impl Default for Extrinsics<'_> {
   fn default() -> Self {
-    let n32_ext_ty_id = ExtTyId::new(0, false);
+    let n32_ext_ty_id = ExtTyId::new(0, true);
 
     Self {
       ext_split_fns: Vec::new(),

@@ -80,7 +80,7 @@ impl<'ivm> Host<'ivm> {
   }
 
   fn register_f32_ext_ty(&mut self, extrinsics: &mut Extrinsics<'ivm>) -> impl ExtTy<'ivm, f32> {
-    let f32_ty = extrinsics.new_ext_ty(false);
+    let f32_ty = extrinsics.new_ext_ty(true);
     self.register_ext_ty_id("F32".into(), f32_ty.ty_id());
     f32_ty
   }
