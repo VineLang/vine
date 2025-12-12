@@ -1071,3 +1071,8 @@
 [tests/programs/iterator_party.vi:135:5] [8]
 [tests/programs/iterator_party.vi:79:51] 9
 [tests/programs/iterator_party.vi:135:5] [9]
+[tests/programs/iterator_party.vi:138:3] --- max, min ---
+[tests/programs/iterator_party.vi:141:3] max: 9
+[tests/programs/iterator_party.vi:142:3] min: 0
+[tests/programs/iterator_party.vi:146:3] max: None()
+[tests/programs/iterator_party.vi:147:3] min: None()

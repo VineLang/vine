@@ -134,4 +134,15 @@ pub fn main(_: &IO) {
   for x in iter_ref.chunks(0) {
     debug::log("{x.show()}");
   }
+
+  debug::log("--- max, min ---");
+  let iter = [1, 2, 3, 4, 9, 6, 0, 8, 7].iter();
+
+  debug::log("max: {iter.max().assume()}");
+  debug::log("min: {iter.min().assume()}");
+
+  let iter = ([] as List[String]).iter();
+
+  debug::log("max: {iter.max().show()}");
+  debug::log("min: {iter.min().show()}");
 }

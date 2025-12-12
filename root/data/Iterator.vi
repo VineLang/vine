@@ -1,5 +1,5 @@
 
-use #root::ops::Cast;
+use #root::ops::{Cast, comparison::Ord};
 
 pub trait Iterator[Self, Item] {
   #[builtin = "advance"]
@@ -454,6 +454,32 @@ pub mod Iterator[I, T; Iterator[I, T]] {
         current = value;
       }
       Some(current)
+    } else {
+      None()
+    }
+  }
+
+  pub fn .max[... T?; Ord[T]](iter: I) -> Option[T] {
+    if iter.advance() is Some(max, iter) {
+      for value in iter {
+        if value > max {
+          max = value;
+        }
+      }
+      Some(max)
+    } else {
+      None()
+    }
+  }
+
+  pub fn .min[... T?; Ord[T]](iter: I) -> Option[T] {
+    if iter.advance() is Some(min, iter) {
+      for value in iter {
+        if value < min {
+          min = value;
+        }
+      }
+      Some(min)
     } else {
       None()
     }
