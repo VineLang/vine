@@ -1,42 +1,64 @@
-use core::marker::PhantomData;
-
 use std::{
   io::{self, Read, Write},
   ops::{Add, Div, Mul, Sub},
 };
 
 use ivm::{
-  ext::{ExtFn, ExtTy, ExtTyId, ExtVal, Extrinsics},
+  ext::{ExtFn, ExtTy, ExtTyId, Extrinsics},
   port::Port,
 };
 
 use super::Host;
 
-macro_rules! register_merge_ext_fns {
-  ($self:ident, $ext:ident, $($name:expr => |$a:ident: $a_ty:ident, $b:ident: $b_ty:ident| -> $c_ty:ident $body:block ),*) => {
-    $($self.register_ext_fn($name.into(), $ext.new_merge_ext_fn(move |ivm, $a, $b, out| {
-      #[allow(unused)]
-      let $a = $a_ty.into_value($a).unwrap();
-      #[allow(unused)]
-      let $b = $b_ty.into_value($b).unwrap();
-      let c = $c_ty.from_value({ $body });
-      ivm.link_wire(out, Port::new_ext_val(c));
-    }));)*
+macro_rules! register_ext_fns {
+  ($self:ident, $ext:ident, $($rest:tt)*) => {
+    register_ext_fns!(@recurse $self, $ext, $($rest)* ,);
   };
-}
 
-macro_rules! register_split_ext_fns {
-  ($self:ident, $ext:ident, $($name:expr => |$a:ident: $a_ty:ident| -> ( $b_ty:ident , $c_ty:ident ) $body:block ),*) => {
-    $($self.register_ext_fn($name.into(), $ext.new_split_ext_fn(move |ivm, $a, out0, out1| {
-      #[allow(unused)]
-      let $a = $a_ty.into_value($a).unwrap();
+  (@recurse $self:ident, $ext:ident,
+    $name:expr => |$a:ident : $a_ty:ident| -> $c_ty:ident $body:block,
+    $($rest:tt)*
+  ) => {
+    $self.register_ext_fn($name.into(), $ext.new_merge_ext_fn(move |ivm, $a, _b, out| {
+      let $a = $a_ty.from_ext_val($a).unwrap();
+      let c = $c_ty.into_ext_val({ $body });
+      ivm.link_wire(out, Port::new_ext_val(c));
+    }));
+
+    register_ext_fns!(@recurse $self, $ext, $($rest)*);
+  };
+
+  (@recurse $self:ident, $ext:ident,
+    $name:expr => |$a:ident : $a_ty:ident, $b:ident : $b_ty:ident| -> $c_ty:ident $body:block,
+    $($rest:tt)*
+  ) => {
+    $self.register_ext_fn($name.into(), $ext.new_merge_ext_fn(move |ivm, $a, $b, out| {
+      let $a = $a_ty.from_ext_val($a).unwrap();
+      let $b = $b_ty.from_ext_val($b).unwrap();
+      let c = $c_ty.into_ext_val({ $body });
+      ivm.link_wire(out, Port::new_ext_val(c));
+    }));
+
+    register_ext_fns!(@recurse $self, $ext, $($rest)*);
+  };
+
+  (@recurse $self:ident, $ext:ident,
+    $name:expr => |$a:ident : $a_ty:ident| -> ( $b_ty:ident , $c_ty:ident ) $body:block,
+    $($rest:tt)*
+  ) => {
+    $self.register_ext_fn($name.into(), $ext.new_split_ext_fn(move |ivm, $a, out0, out1| {
+      let $a = $a_ty.from_ext_val($a).unwrap();
       let (b, c) = { $body };
-      let b = $b_ty.from_value(b);
-      let c = $c_ty.from_value(c);
+      let b = $b_ty.into_ext_val(b);
+      let c = $c_ty.into_ext_val(c);
       ivm.link_wire(out0, Port::new_ext_val(b));
       ivm.link_wire(out1, Port::new_ext_val(c));
-    }));)*
+    }));
+
+    register_ext_fns!(@recurse $self, $ext, $($rest)*);
   };
+
+  (@recurse $self:ident, $ext:ident,) => {};
 }
 
 impl<'ivm> Host<'ivm> {
@@ -45,26 +67,26 @@ impl<'ivm> Host<'ivm> {
     self.reverse_ext_fns.insert(f, name);
   }
 
-  pub fn register_ext_ty<T>(&mut self, name: String, ty: ExtTy<'ivm, T>) {
-    self.ext_tys.insert(name.clone(), ty.ty_id());
-    self.reverse_ext_tys.insert(ty.ty_id(), name);
+  pub fn register_ext_ty_id(&mut self, name: String, ty_id: ExtTyId<'ivm>) {
+    self.ext_tys.insert(name.clone(), ty_id);
+    self.reverse_ext_tys.insert(ty_id, name);
   }
 
-  fn register_n32_ext_ty(&mut self, extrinsics: &mut Extrinsics<'ivm>) -> ExtTy<'ivm, u32> {
+  fn register_n32_ext_ty(&mut self, extrinsics: &mut Extrinsics<'ivm>) -> impl ExtTy<'ivm, u32> {
     let n32_ty = extrinsics.n32_ext_ty();
-    self.register_ext_ty("N32".into(), n32_ty);
+    self.register_ext_ty_id("N32".into(), n32_ty.ty_id());
     n32_ty
   }
 
-  fn register_f32_ext_ty(&mut self, extrinsics: &mut Extrinsics<'ivm>) -> ExtTy<'ivm, f32> {
+  fn register_f32_ext_ty(&mut self, extrinsics: &mut Extrinsics<'ivm>) -> impl ExtTy<'ivm, f32> {
     let f32_ty = extrinsics.new_ext_ty(false);
-    self.register_ext_ty("F32".into(), f32_ty);
+    self.register_ext_ty_id("F32".into(), f32_ty.ty_id());
     f32_ty
   }
 
-  fn register_io_ext_ty(&mut self, extrinsics: &mut Extrinsics<'ivm>) -> ExtTy<'ivm, ()> {
+  fn register_io_ext_ty(&mut self, extrinsics: &mut Extrinsics<'ivm>) -> impl ExtTy<'ivm, ()> {
     let io_ty = extrinsics.new_ext_ty(false);
-    self.register_ext_ty("IO".into(), io_ty);
+    self.register_ext_ty_id("IO".into(), io_ty.ty_id());
     io_ty
   }
 
@@ -73,9 +95,12 @@ impl<'ivm> Host<'ivm> {
     let f32 = self.register_f32_ext_ty(extrinsics);
     let io = self.register_io_ext_ty(extrinsics);
 
-    register_merge_ext_fns!(self, extrinsics,
-      // "seq" => |a: any, _b: any| -> any { a },
+    self.register_ext_fn(
+      "seq".into(),
+      extrinsics.new_merge_ext_fn(move |ivm, a, _b, out| ivm.link_wire(out, Port::new_ext_val(a))),
+    );
 
+    register_ext_fns!(self, extrinsics,
       "n32_add" => |a: n32, b: n32| -> n32 { a.wrapping_add(b) },
       "n32_sub" => |a: n32, b: n32| -> n32 { a.wrapping_sub(b) },
       "n32_mul" => |a: n32, b: n32| -> n32 { a.wrapping_mul(b) },
@@ -110,10 +135,10 @@ impl<'ivm> Host<'ivm> {
       "f32_lt" => |a: f32, b: f32| -> n32 { (a < b) as u32 },
       "f32_le" => |a: f32, b: f32| -> n32 { (a <= b) as u32 },
 
-      "n32_to_f32" => |a: n32, _b: n32| -> f32 { a as f32 },
-      "f32_to_n32" => |a: f32, _b: n32| -> n32 { a as u32 },
-      "f32_to_bits" => |a: f32, _b: n32| -> n32 { a.to_bits() },
-      "f32_from_bits" => |a: n32, _b: n32| -> f32 { f32::from_bits(a) },
+      "n32_to_f32" => |a: n32| -> f32 { a as f32 },
+      "f32_to_n32" => |a: f32| -> n32 { a as u32 },
+      "f32_to_bits" => |a: f32| -> n32 { a.to_bits() },
+      "f32_from_bits" => |a: n32| -> f32 { f32::from_bits(a) },
 
       "i32_div" => |a: n32, b: n32| -> n32 { (a as i32 / b as i32) as u32 },
       "i32_rem" => |a: n32, b: n32| -> n32 { (a as i32 % b as i32) as u32 },
@@ -121,19 +146,16 @@ impl<'ivm> Host<'ivm> {
       "i32_lt" => |a: n32, b: n32| -> n32 { ((a as i32) < (b as i32)) as u32 },
       "i32_le" => |a: n32, b: n32| -> n32 { ((a as i32) <= (b as i32)) as u32 },
 
-      "io_print_char" => |a: io, b: n32| -> io {
+      "io_print_char" => |_io: io, b: n32| -> io {
         print!("{}", char::try_from(b).unwrap());
       },
-      "io_print_byte" => |a: io, b: n32| -> io {
+      "io_print_byte" => |_io: io, b: n32| -> io {
         io::stdout().write_all(&[b as u8]).unwrap();
-      }
-      // "io_flush" => |a: io, _b: any| -> io {
-      //   io::stdout().flush().unwrap();
-      // }
-    );
-
-    register_split_ext_fns!(self, extrinsics,
-      "io_read_byte" => |a: io| -> (n32, io) {
+      },
+      "io_flush" => |_io: io| -> io {
+        io::stdout().flush().unwrap();
+      },
+      "io_read_byte" => |_io: io| -> (n32, io) {
         let mut buf = [0];
         _ = io::stdin().read(&mut buf).unwrap();
         (buf[0] as u32, ())
