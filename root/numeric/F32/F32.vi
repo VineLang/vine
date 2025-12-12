@@ -97,22 +97,22 @@ pub mod F32 {
 
   pub impl from_n32: Cast[N32, F32] {
     fn cast(n: N32) -> F32 {
-      inline_ivy! (n <- n) -> F32 { out n = @n32_to_f32(0 out) }
+      inline_ivy! (n <- n) -> F32 { out n = @n32_to_f32(_ out) }
     }
   }
 
   pub impl to_n32: Cast[F32, N32] {
     fn cast(n: F32) -> N32 {
-      inline_ivy! (n <- n) -> N32 { out n = @f32_to_n32(0 out) }
+      inline_ivy! (n <- n) -> N32 { out n = @f32_to_n32(_ out) }
     }
   }
 
   pub fn .to_bits(n: F32) -> N32 {
-    inline_ivy! (n <- n) -> N32 { out n = @f32_to_bits(0 out) }
+    inline_ivy! (n <- n) -> N32 { out n = @f32_to_bits(_ out) }
   }
 
   pub fn from_bits(n: N32) -> F32 {
-    inline_ivy! (n <- n) -> F32 { out n = @f32_from_bits(0 out) }
+    inline_ivy! (n <- n) -> F32 { out n = @f32_from_bits(_ out) }
   }
 
   pub fn from_parts(negative: Bool, raw_exp: N32, mantissa: N32) -> F32 {

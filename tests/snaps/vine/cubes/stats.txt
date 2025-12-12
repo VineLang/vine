@@ -1,10 +1,10 @@
 
 Interactions
-  Total            1_454_164
+  Total            1_454_464
   Annihilate         648_479
   Commute             24_849
   Copy               196_475
-  Erase              222_912
+  Erase              223_212
   Expand             120_010
   Call               167_952
   Branch              73_487
