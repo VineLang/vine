@@ -1,10 +1,10 @@
 
 Interactions
-  Total           715_953_143
+  Total           721_196_023
   Annihilate      168_591_021
   Commute                   0
   Copy            201_808_179
-  Erase            47_917_987
+  Erase            53_160_867
   Expand           21_862_376
   Call            254_961_858
   Branch           20_811_722

@@ -19,10 +19,11 @@ macro_rules! register_ext_fns {
     $name:expr => |$a:ident : $a_ty:ident| -> $c_ty:ident $body:block,
     $($rest:tt)*
   ) => {
-    $self.register_ext_fn($name.into(), $ext.new_merge_ext_fn(move |ivm, $a, _b, out| {
+    $self.register_ext_fn($name.into(), $ext.new_split_ext_fn(move |ivm, $a, out0, out1| {
       let $a = $a_ty.from_ext_val($a).unwrap();
-      let c = $c_ty.into_ext_val({ $body });
-      ivm.link_wire(out, Port::new_ext_val(c));
+      let res = $c_ty.into_ext_val({ $body });
+      ivm.link_wire(out0, Port::ERASE);
+      ivm.link_wire(out1, Port::new_ext_val(res));
     }));
 
     register_ext_fns!(@recurse $self, $ext, $($rest)*);

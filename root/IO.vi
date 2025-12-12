@@ -22,7 +22,7 @@ pub mod IO {
   /// Prints the given character to stdout.
   pub fn .print_char(&io: &IO, char: Char) {
     inline_ivy! (io0 <- io, io1 -> io, char <- char) -> () { _
-      io0 = @io_print_char(char io1) 
+      io0 = @io_print_char(char io1)
     }
   }
 
@@ -34,14 +34,14 @@ pub mod IO {
 
   pub fn .print_byte(&io: &IO, byte: N32) {
     inline_ivy! (io0 <- io, io1 -> io, byte <- byte) -> () { _
-      io0 = @io_print_byte(byte io1) 
+      io0 = @io_print_byte(byte io1)
     }
   }
 
   /// Flushes any buffered output to stdout.
   pub fn .flush(&io: &IO) {
     inline_ivy! (io0 <- io, io1 -> io) -> () { _
-      io0 = @io_flush(0 io1) 
+      io0 = @io_flush(_ io1)
     }
   }
 
