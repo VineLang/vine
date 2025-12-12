@@ -187,6 +187,7 @@ impl<'ivm> Debug for ExtVal<'ivm> {
 
 /// A trait to be implemented for `ExtTyId<'ivm>` when a Rust type `T` can be
 /// treated as an IVM extrinsic type.
+#[allow(clippy::wrong_self_convention)]
 pub trait ExtTy<'ivm, T>: 'ivm + Copy {
   fn from_ext_val(self, x: ExtVal<'ivm>) -> Option<T> {
     if self.ty_id() == x.ty_id() { Some(self.from_payload(x.payload())) } else { None }
