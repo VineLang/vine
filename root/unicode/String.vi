@@ -106,16 +106,12 @@ pub mod String {
     if self.len() < prefix.len() {
       return false;
     }
-    let self_iter = self.iter_ref();
-    for &a in &prefix {
-      let (&b, _self_iter) = self_iter.advance().assume();
-      self_iter = _self_iter;
+    for (&a, &b) in self.iter_ref().zip(prefix.iter_ref()) {
       if a != b {
-        break false;
+        return false;
       }
-    } else {
-      true
     }
+    true
   }
 
   pub fn .split_at(String(chars), i: N32) -> (String, String) {
