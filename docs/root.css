@@ -26,6 +26,10 @@ h2 {
   padding-top: .5em;
 }
 
+h2 a[href^="#"] {
+  text-decoration: none;
+}
+
 :is(h1, h2, h3) {
   display: flex;
   justify-content: space-between;
