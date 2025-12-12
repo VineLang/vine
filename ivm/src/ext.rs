@@ -90,9 +90,8 @@ impl<'ivm> Extrinsics<'ivm> {
     if self.ext_tys as usize >= Self::MAX_EXT_TY_COUNT {
       panic!("IVM reached maximum amount of registered extrinsic unboxed types.");
     } else {
-      let ext_ty_id = ExtTyId::new(self.ext_tys, copy);
       self.ext_tys += 1;
-      ext_ty_id
+      ExtTyId::new(self.ext_tys, copy)
     }
   }
 
@@ -169,12 +168,14 @@ impl<'ivm> ExtVal<'ivm> {
     (self.0 & Self::PAYLOAD_MASK) >> 3
   }
 
+  /// Interprets this extrinsic value as a `T` through [`ExtTy<'ivm, T>`].
   #[inline(always)]
-  pub unsafe fn as_ty<T>(self) -> Option<T>
+  pub fn as_ty<T>(self) -> T
   where
     ExtTyId<'ivm>: ExtTy<'ivm, T>,
   {
-    ExtTy::from_ext_val(self.ty_id(), self)
+    // this never returns `None` since self.ty_id() == self.ty_id()
+    ExtTy::from_ext_val(self.ty_id(), self).unwrap()
   }
 }
 
