@@ -6,6 +6,13 @@ s.starts_with(&"hello ")
 s.starts_with(&"world")
 s.starts_with(&"held")
 s.starts_with(&"hello world! hi")
+s.ends_with(&"")
+s.ends_with(&"!")
+s.ends_with(&"world!")
+s.ends_with(&"hello")
+s.ends_with(&"hello world! hi")
+"".ends_with(&"")
+"".ends_with(&"hi")
 "" == ""
 "" != ""
 "hello" == "hello"
