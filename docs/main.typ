@@ -58,7 +58,7 @@
 
   sidebar-header: site => _ => {
     if root-docs { 
-    t.a(class: "logo", href: "/docs/")[#t.img(class: "logo", src: "/logo.svg")]
+      t.a(class: "logo", href: "/docs/")[#t.img(class: "logo", src: "/logo.svg")]
       t.p[#t.a( href: "/docs/features/root")[« About the Root Library]]
     } else {
       t.a(class: "logo", href: "/")[#t.img(class: "logo", src: "/logo.svg")]
