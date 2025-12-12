@@ -83,7 +83,6 @@ impl<'ivm> Extrinsics<'ivm> {
     }
   }
 
-  // TODO: `copy` should be inferred from `T`.
   pub fn new_ext_ty<T>(&mut self, copy: bool) -> impl ExtTy<'ivm, T>
   where
     ExtTyId<'ivm>: ExtTy<'ivm, T>,
