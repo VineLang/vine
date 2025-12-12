@@ -6,7 +6,7 @@ use indexmap::{
 };
 
 use ivm::{
-  ext::{ExtFn, ExtTyId, ExtVal},
+  ext::{ExtFn, ExtTy, ExtTyId, ExtVal},
   global::Global,
 };
 
@@ -66,18 +66,15 @@ impl<'ivm> Host<'ivm> {
   }
 
   pub fn new_f32(&self, payload: f32) -> ExtVal<'ivm> {
-    todo!()
-    // ExtVal::new(self.ext_tys["F32"], payload.to_bits() as u64)
+    ExtTy::<'ivm, f32>::into_ext_val(self.ext_tys["F32"], payload)
   }
 
   pub fn new_n32(&self, payload: u32) -> ExtVal<'ivm> {
-    todo!()
-    // ExtVal::new(self.ext_tys["N32"], payload as u64)
+    ExtTy::<'ivm, u32>::into_ext_val(self.ext_tys["N32"], payload)
   }
 
   pub fn new_io(&self) -> ExtVal<'ivm> {
-    todo!()
-    // ExtVal::new(self.ext_tys["IO"], 0)
+    ExtTy::<'ivm, ()>::into_ext_val(self.ext_tys["IO"], ())
   }
 
   pub fn instantiate_ext_fn(&self, ext_fn_name: &str, swap: bool) -> Option<ExtFn<'ivm>> {
