@@ -86,21 +86,22 @@
         grammars = import ./lsp/grammars.nix {
           inherit (pkgs)
             lib
+            stdenv
             stdenvNoCC
             tree-sitter
             nodejs_24
+            nushell
             ;
         };
-
         docs = import ./docs/docs.nix {
           inherit
             system
             pkgs
             flake-utils
+            grammars
+            hyptyp
             typix
             typsitter
-            hyptyp
-            grammars
             vineNoRoot
             ;
         };
