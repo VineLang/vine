@@ -6,7 +6,7 @@ use indexmap::{
 };
 
 use ivm::{
-  ext::{ExtFn, ExtTy, ExtVal},
+  ext::{ExtFn, ExtTyId, ExtVal},
   global::Global,
 };
 
@@ -29,8 +29,8 @@ pub struct Host<'ivm> {
   ext_fns: HashMap<String, ExtFn<'ivm>>,
   reverse_ext_fns: HashMap<ExtFn<'ivm>, String>,
 
-  ext_tys: HashMap<String, ExtTy<'ivm>>,
-  reverse_ext_tys: HashMap<ExtTy<'ivm>, String>,
+  ext_tys: HashMap<String, ExtTyId<'ivm>>,
+  reverse_ext_tys: HashMap<ExtTyId<'ivm>, String>,
 
   /// This is an `IndexMap` instead of an `IndexSet` so that the raw entry API
   /// can be used.
@@ -66,15 +66,18 @@ impl<'ivm> Host<'ivm> {
   }
 
   pub fn new_f32(&self, payload: f32) -> ExtVal<'ivm> {
-    ExtVal::new(self.ext_tys["F32"], payload.to_bits() as u64)
+    todo!()
+    // ExtVal::new(self.ext_tys["F32"], payload.to_bits() as u64)
   }
 
   pub fn new_n32(&self, payload: u32) -> ExtVal<'ivm> {
-    ExtVal::new(self.ext_tys["N32"], payload as u64)
+    todo!()
+    // ExtVal::new(self.ext_tys["N32"], payload as u64)
   }
 
   pub fn new_io(&self) -> ExtVal<'ivm> {
-    ExtVal::new(self.ext_tys["IO"], 0)
+    todo!()
+    // ExtVal::new(self.ext_tys["IO"], 0)
   }
 
   pub fn instantiate_ext_fn(&self, ext_fn_name: &str, swap: bool) -> Option<ExtFn<'ivm>> {
