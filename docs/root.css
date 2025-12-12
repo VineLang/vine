@@ -26,7 +26,7 @@ h2 {
   padding-top: .5em;
 }
 
-a.anchor {
+h2 a[href^="#"] {
   text-decoration: none;
 }
 

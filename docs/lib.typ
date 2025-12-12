@@ -67,10 +67,6 @@
 #let op = vi_.with("1 ", " 1")
 #let vstr = vi_.with("\"", "\"")
 
-#let api_anchor_link = (name) => {
-  t.a(name: name, href: "#" + name, class: "anchor")[#raw(name)]
-}
-
 #let src = (file, line: none) => {
   let url = "https://github.com/VineLang/vine/tree/main/" + file
   let label = file
