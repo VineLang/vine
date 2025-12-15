@@ -165,9 +165,13 @@ impl<'ivm> ExtVal<'ivm> {
     (self.0 & Self::PAYLOAD_MASK) >> 3
   }
 
-  /// Interprets this extrinsic value as a `T` without checking its type id.
-  pub unsafe fn cast<T: ExtTyCast<'ivm>>(self) -> T
-  {
+  /// Interprets this extrinsic value as a `T` without checking its [`ExtTyId`].
+  ///
+  /// # Safety
+  ///
+  /// This [`ExtVal`]'s payload must be valid to cast into a `T` using
+  /// [`ExtTyCast::from_paylaod`].
+  pub unsafe fn cast<T: ExtTyCast<'ivm>>(self) -> T {
     unsafe { T::from_payload(self.payload()) }
   }
 }
@@ -199,11 +203,7 @@ impl<'ivm, T> ExtTy<'ivm, T> {
   where
     T: ExtTyCast<'ivm>,
   {
-    if ext.ty_id() == self.0 {
-      Some(unsafe { T::from_payload(ext.payload()) })
-    } else {
-      None
-    }
+    if ext.ty_id() == self.0 { Some(unsafe { T::from_payload(ext.payload()) }) } else { None }
   }
 
   pub fn into_ext_val(self, value: T) -> ExtVal<'ivm>
@@ -215,36 +215,42 @@ impl<'ivm, T> ExtTy<'ivm, T> {
 }
 
 pub trait ExtTyCast<'ivm> {
-  unsafe fn from_payload(payload: u64) -> Self;
   fn into_payload(self) -> u64;
+
+  /// Casts an [`ExtVal`]'s payload to a `Self`.
+  ///
+  /// # Safety
+  ///
+  /// `payload` must have been returned from [`into_payload`].
+  unsafe fn from_payload(payload: u64) -> Self;
 }
 
 impl<'ivm> ExtTyCast<'ivm> for u32 {
-  unsafe fn from_payload(payload: u64) -> u32 {
-    payload as u32
-  }
-
   fn into_payload(self) -> u64 {
     self as u64
+  }
+
+  unsafe fn from_payload(payload: u64) -> u32 {
+    payload as u32
   }
 }
 
 impl<'ivm> ExtTyCast<'ivm> for f32 {
-  unsafe fn from_payload(payload: u64) -> f32 {
-    f32::from_bits(payload as u32)
-  }
-
   fn into_payload(self) -> u64 {
     self.to_bits() as u64
+  }
+
+  unsafe fn from_payload(payload: u64) -> f32 {
+    f32::from_bits(payload as u32)
   }
 }
 
 impl<'ivm> ExtTyCast<'ivm> for () {
-  unsafe fn from_payload(_payload: u64) {}
-
   fn into_payload(self) -> u64 {
     0
   }
+
+  unsafe fn from_payload(_payload: u64) {}
 }
 
 /// The type id of an external value.
