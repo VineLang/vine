@@ -170,7 +170,7 @@ impl<'ivm> ExtVal<'ivm> {
   /// # Safety
   ///
   /// This [`ExtVal`]'s payload must be valid to cast into a `T` using
-  /// [`ExtTyCast::from_paylaod`].
+  /// [`ExtTyCast::from_payload`].
   pub unsafe fn cast<T: ExtTyCast<'ivm>>(self) -> T {
     unsafe { T::from_payload(self.payload()) }
   }
