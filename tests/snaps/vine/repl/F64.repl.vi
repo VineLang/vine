@@ -1,0 +1,154 @@
+
+let io: IO = <IO>;
+> use #root::numeric::F64
+
+let io: IO = <IO>;
+> let x = 3.141592 as F64
+
+let io: IO = <IO>;
+let x: F64 = ≈3.14159203;
+> x + (x - 2.0 as F64)
+≈4.28318405
+
+let io: IO = <IO>;
+let x: F64 = ≈3.14159203;
+> x * (x - 2.0 as F64)
+≈3.58641648
+
+let io: IO = <IO>;
+let x: F64 = ≈3.14159203;
+> x - (x - 2.0 as F64)
+≈2.0
+
+let io: IO = <IO>;
+let x: F64 = ≈3.14159203;
+> x / (x - 2.0 as F64)
+≈2.7519393
+
+let io: IO = <IO>;
+let x: F64 = ≈3.14159203;
+> x % (x - 2.0 as F64)
+≈8.58407974e-1
+
+let io: IO = <IO>;
+let x: F64 = ≈3.14159203;
+> x ** 2
+≈9.8696003
+
+let io: IO = <IO>;
+let x: F64 = ≈3.14159203;
+> x ** -2
+≈1.01321228e-1
+
+let io: IO = <IO>;
+let x: F64 = ≈3.14159203;
+> x ** x ** x
+≈1.34007914e18
+
+let io: IO = <IO>;
+let x: F64 = ≈3.14159203;
+> -x
+≈-3.14159203
+
+let io: IO = <IO>;
+let x: F64 = ≈3.14159203;
+> +x
+≈3.14159203
+
+let io: IO = <IO>;
+let x: F64 = ≈3.14159203;
+> x == x
+true
+
+let io: IO = <IO>;
+let x: F64 = ≈3.14159203;
+> (1.0 as F64) / x == x ** -1
+true
+
+let io: IO = <IO>;
+let x: F64 = ≈3.14159203;
+> F64::nan
+≈NaN
+
+let io: IO = <IO>;
+let x: F64 = ≈3.14159203;
+> F64::inf
+≈inf
+
+let io: IO = <IO>;
+let x: F64 = ≈3.14159203;
+> F64::neg_inf
+≈-inf
+
+let io: IO = <IO>;
+let x: F64 = ≈3.14159203;
+> F64::nan == F64::nan
+false
+
+let io: IO = <IO>;
+let x: F64 = ≈3.14159203;
+> F64::inf == F64::inf
+true
+
+let io: IO = <IO>;
+let x: F64 = ≈3.14159203;
+> F64::neg_inf == F64::neg_inf
+true
+
+let io: IO = <IO>;
+let x: F64 = ≈3.14159203;
+> x as F32
+3.14159203
+
+let io: IO = <IO>;
+let x: F64 = ≈3.14159203;
+> x as N64
+3
+
+let io: IO = <IO>;
+let x: F64 = ≈3.14159203;
+> x.to_bits()
+4614256655138291712
+
+let io: IO = <IO>;
+let x: F64 = ≈3.14159203;
+> F64::from_bits(x.to_bits())
+≈3.14159203
+
+let io: IO = <IO>;
+let x: F64 = ≈3.14159203;
+> let parts = x.to_parts()
+
+let io: IO = <IO>;
+let x: F64 = ≈3.14159203;
+let parts: { mantissa: N64, negative: Bool, raw_exp: N64 } = { mantissa: 2570636710903808, negative: false, raw_exp: 1024 };
+> F64::from_parts(parts.negative, parts.raw_exp, parts.mantissa)
+≈3.14159203
+
+let io: IO = <IO>;
+let x: F64 = ≈3.14159203;
+let parts: { mantissa: N64, negative: Bool, raw_exp: N64 } = { mantissa: 2570636710903808, negative: false, raw_exp: 1024 };
+> x.abs()
+≈3.14159203
+
+let io: IO = <IO>;
+let x: F64 = ≈3.14159203;
+let parts: { mantissa: N64, negative: Bool, raw_exp: N64 } = { mantissa: 2570636710903808, negative: false, raw_exp: 1024 };
+> (-x).abs()
+≈3.14159203
+
+let io: IO = <IO>;
+let x: F64 = ≈3.14159203;
+let parts: { mantissa: N64, negative: Bool, raw_exp: N64 } = { mantissa: 2570636710903808, negative: false, raw_exp: 1024 };
+> x.is_nan()
+false
+
+let io: IO = <IO>;
+let x: F64 = ≈3.14159203;
+let parts: { mantissa: N64, negative: Bool, raw_exp: N64 } = { mantissa: 2570636710903808, negative: false, raw_exp: 1024 };
+> F64::parse("3.141592") == Some(x)
+true
+
+let io: IO = <IO>;
+let x: F64 = ≈3.14159203;
+let parts: { mantissa: N64, negative: Bool, raw_exp: N64 } = { mantissa: 2570636710903808, negative: false, raw_exp: 1024 };

@@ -102,6 +102,7 @@ impl<'host, 'ctx, 'ivm, 'ext> Repl<'host, 'ctx, 'ivm, 'ext> {
         }
       },
       Tree::BlackBox(t) => self.inject(*t),
+      Tree::F64(_) => todo!(),
     }
   }
 }

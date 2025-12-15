@@ -264,6 +264,39 @@ impl<'ivm> ExtTyCast<'ivm> for f32 {
   }
 }
 
+#[repr(align(8))]
+pub struct Aligned<T>(T);
+
+impl<'ivm> ExtTyCast<'ivm> for f64 {
+  const COPY: bool = false;
+
+  #[cfg(miri)]
+  fn into_payload(self) -> u64 {
+    let pointer = Box::into_raw(Box::new(Aligned(self)));
+    pointer.expose_provenance() as u64
+  }
+
+  #[cfg(not(miri))]
+  fn into_payload(self) -> u64 {
+    let pointer = Box::into_raw(Box::new(Aligned(self)));
+    pointer as u64
+  }
+
+  #[cfg(miri)]
+  unsafe fn from_payload(payload: u64) -> Self {
+    let ptr = std::ptr::with_exposed_provenance_mut(payload as usize);
+    let Aligned(f) = unsafe { *Box::from_raw(ptr) };
+    f
+  }
+
+  #[cfg(not(miri))]
+  unsafe fn from_payload(payload: u64) -> Self {
+    let ptr = payload as *mut Aligned<f64>;
+    let Aligned(f) = unsafe { *Box::from_raw(ptr) };
+    f
+  }
+}
+
 /// Used for the `IO` extrinsic type.
 impl<'ivm> ExtTyCast<'ivm> for () {
   const COPY: bool = false;
