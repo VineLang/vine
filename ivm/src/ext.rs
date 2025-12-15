@@ -287,9 +287,9 @@ impl<'ivm> ExtTyId<'ivm> {
 /// A type uniquely identifying an extrinsic function.
 ///
 /// The highest bit denotes whether the function arguments are swapped.
-/// The middle 14 bits denote an index in one of `ext_split_fns` or
-/// `ext_merge_fns`. The lowest bit denotes which of `ext_split_fns` or
-/// `ext_merge_fns` the index applies to.
+/// The second-highest bit denotes whether this is a merge or split ext fn.
+/// The lowest 14 bits denote an index into one of `ext_split_fns` or
+/// `ext_merge_fns`.
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct ExtFn<'ivm>(u16, PhantomData<fn(&'ivm ()) -> &'ivm ()>);
 
