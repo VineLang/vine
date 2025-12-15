@@ -73,19 +73,19 @@ impl<'ivm> Host<'ivm> {
     self.reverse_ext_tys.insert(ty_id, name);
   }
 
-  fn register_n32_ext_ty(&mut self, extrinsics: &mut Extrinsics<'ivm>) -> impl ExtTy<'ivm, u32> {
+  fn register_n32_ext_ty(&mut self, extrinsics: &mut Extrinsics<'ivm>) -> ExtTy<'ivm, u32> {
     let n32_ty = extrinsics.n32_ext_ty();
     self.register_ext_ty_id("N32".into(), n32_ty.ty_id());
     n32_ty
   }
 
-  fn register_f32_ext_ty(&mut self, extrinsics: &mut Extrinsics<'ivm>) -> impl ExtTy<'ivm, f32> {
+  fn register_f32_ext_ty(&mut self, extrinsics: &mut Extrinsics<'ivm>) -> ExtTy<'ivm, f32> {
     let f32_ty = extrinsics.new_ext_ty(true);
     self.register_ext_ty_id("F32".into(), f32_ty.ty_id());
     f32_ty
   }
 
-  fn register_io_ext_ty(&mut self, extrinsics: &mut Extrinsics<'ivm>) -> impl ExtTy<'ivm, ()> {
+  fn register_io_ext_ty(&mut self, extrinsics: &mut Extrinsics<'ivm>) -> ExtTy<'ivm, ()> {
     let io_ty = extrinsics.new_ext_ty(false);
     self.register_ext_ty_id("IO".into(), io_ty.ty_id());
     io_ty

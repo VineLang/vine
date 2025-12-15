@@ -38,20 +38,20 @@ pub struct Extrinsics<'ivm> {
   ext_tys: u16,
 
   /// An always-present extrinsic type of n32 numbers.
-  n32_ext_ty_id: ExtTyId<'ivm>,
+  n32_ext_ty: ExtTy<'ivm, u32>,
 
   phantom: PhantomData<fn(&'ivm ()) -> &'ivm ()>,
 }
 
 impl Default for Extrinsics<'_> {
   fn default() -> Self {
-    let n32_ext_ty_id = ExtTyId::new(0, true);
+    let n32_ext_ty = ExtTyId::new(0, true).into();
 
     Self {
       ext_split_fns: Vec::new(),
       ext_merge_fns: Vec::new(),
       ext_tys: 1,
-      n32_ext_ty_id,
+      n32_ext_ty,
       phantom: PhantomData,
     }
   }
@@ -83,20 +83,17 @@ impl<'ivm> Extrinsics<'ivm> {
     }
   }
 
-  pub fn new_ext_ty<T>(&mut self, copy: bool) -> impl ExtTy<'ivm, T>
-  where
-    ExtTyId<'ivm>: ExtTy<'ivm, T>,
-  {
+  pub fn new_ext_ty<T>(&mut self, copy: bool) -> ExtTy<'ivm, T> {
     if self.ext_tys as usize >= Self::MAX_EXT_TY_COUNT {
       panic!("IVM reached maximum amount of registered extrinsic unboxed types.");
     } else {
       self.ext_tys += 1;
-      ExtTyId::new(self.ext_tys, copy)
+      ExtTyId::new(self.ext_tys, copy).into()
     }
   }
 
-  pub fn n32_ext_ty(&self) -> impl ExtTy<'ivm, u32> {
-    self.n32_ext_ty_id
+  pub fn n32_ext_ty(&self) -> ExtTy<'ivm, u32> {
+    self.n32_ext_ty
   }
 
   pub fn ext_val_as_n32(&self, x: ExtVal<'ivm>) -> u32 {
@@ -168,14 +165,10 @@ impl<'ivm> ExtVal<'ivm> {
     (self.0 & Self::PAYLOAD_MASK) >> 3
   }
 
-  /// Interprets this extrinsic value as a `T` through [`ExtTy<'ivm, T>`].
-  #[inline(always)]
-  pub fn as_ty<T>(self) -> T
-  where
-    ExtTyId<'ivm>: ExtTy<'ivm, T>,
+  /// Interprets this extrinsic value as a `T` without checking its type id.
+  pub unsafe fn cast<T: ExtTyCast<'ivm>>(self) -> T
   {
-    // this never returns `None` since self.ty_id() == self.ty_id()
-    ExtTy::from_ext_val(self.ty_id(), self).unwrap()
+    unsafe { T::from_payload(self.payload()) }
   }
 }
 
@@ -185,59 +178,71 @@ impl<'ivm> Debug for ExtVal<'ivm> {
   }
 }
 
-/// A trait to be implemented for `ExtTyId<'ivm>` when a Rust type `T` can be
-/// treated as an IVM extrinsic type.
-#[allow(clippy::wrong_self_convention)]
-pub trait ExtTy<'ivm, T>: 'ivm + Copy {
-  fn from_ext_val(self, x: ExtVal<'ivm>) -> Option<T> {
-    if self.ty_id() == x.ty_id() { Some(self.from_payload(x.payload())) } else { None }
-  }
+#[derive(Clone, Copy)]
+pub struct ExtTy<'ivm, T>(ExtTyId<'ivm>, PhantomData<T>);
 
-  fn into_ext_val(self, value: T) -> ExtVal<'ivm> {
-    ExtVal::new(self.ty_id(), self.into_payload(value))
+impl<'ivm, T> From<ExtTyId<'ivm>> for ExtTy<'ivm, T> {
+  fn from(ty_id: ExtTyId<'ivm>) -> Self {
+    Self(ty_id, PhantomData)
   }
-
-  fn ty_id(self) -> ExtTyId<'ivm>;
-  fn from_payload(self, payload: u64) -> T;
-  fn into_payload(self, value: T) -> u64;
 }
 
-impl<'ivm> ExtTy<'ivm, u32> for ExtTyId<'ivm> {
-  fn ty_id(self) -> ExtTyId<'ivm> {
-    self
+impl<'ivm, T> ExtTy<'ivm, T> {
+  #[inline(always)]
+  pub fn ty_id(self) -> ExtTyId<'ivm> {
+    self.0
   }
 
-  fn from_payload(self, payload: u64) -> u32 {
+  /// Interprets this extrinsic value as a `T` through [`ExtTy<'ivm, T>`].
+  #[inline(always)]
+  pub fn from_ext_val(self, ext: ExtVal<'ivm>) -> Option<T>
+  where
+    T: ExtTyCast<'ivm>,
+  {
+    if ext.ty_id() == self.0 {
+      Some(unsafe { T::from_payload(ext.payload()) })
+    } else {
+      None
+    }
+  }
+
+  pub fn into_ext_val(self, value: T) -> ExtVal<'ivm>
+  where
+    T: ExtTyCast<'ivm>,
+  {
+    ExtVal::new(self.ty_id(), T::into_payload(value))
+  }
+}
+
+pub trait ExtTyCast<'ivm> {
+  unsafe fn from_payload(payload: u64) -> Self;
+  fn into_payload(self) -> u64;
+}
+
+impl<'ivm> ExtTyCast<'ivm> for u32 {
+  unsafe fn from_payload(payload: u64) -> u32 {
     payload as u32
   }
 
-  fn into_payload(self, value: u32) -> u64 {
-    value as u64
+  fn into_payload(self) -> u64 {
+    self as u64
   }
 }
 
-impl<'ivm> ExtTy<'ivm, f32> for ExtTyId<'ivm> {
-  fn ty_id(self) -> ExtTyId<'ivm> {
-    self
-  }
-
-  fn from_payload(self, payload: u64) -> f32 {
+impl<'ivm> ExtTyCast<'ivm> for f32 {
+  unsafe fn from_payload(payload: u64) -> f32 {
     f32::from_bits(payload as u32)
   }
 
-  fn into_payload(self, value: f32) -> u64 {
-    value.to_bits() as u64
+  fn into_payload(self) -> u64 {
+    self.to_bits() as u64
   }
 }
 
-impl<'ivm> ExtTy<'ivm, ()> for ExtTyId<'ivm> {
-  fn ty_id(self) -> ExtTyId<'ivm> {
-    self
-  }
+impl<'ivm> ExtTyCast<'ivm> for () {
+  unsafe fn from_payload(_payload: u64) {}
 
-  fn from_payload(self, _payload: u64) {}
-
-  fn into_payload(self, (): ()) -> u64 {
+  fn into_payload(self) -> u64 {
     0
   }
 }

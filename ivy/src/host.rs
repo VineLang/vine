@@ -65,16 +65,20 @@ impl<'ivm> Host<'ivm> {
     labels.get_index(label as usize).unwrap().0
   }
 
+  fn ext_ty<T>(&self, name: &'static str) -> ExtTy<'ivm, T> {
+    self.ext_tys[name].into()
+  }
+
   pub fn new_f32(&self, payload: f32) -> ExtVal<'ivm> {
-    ExtTy::<'ivm, f32>::into_ext_val(self.ext_tys["F32"], payload)
+    self.ext_ty("F32").into_ext_val(payload)
   }
 
   pub fn new_n32(&self, payload: u32) -> ExtVal<'ivm> {
-    ExtTy::<'ivm, u32>::into_ext_val(self.ext_tys["N32"], payload)
+    self.ext_ty("N32").into_ext_val(payload)
   }
 
   pub fn new_io(&self) -> ExtVal<'ivm> {
-    ExtTy::<'ivm, ()>::into_ext_val(self.ext_tys["IO"], ())
+    self.ext_ty("IO").into_ext_val(())
   }
 
   pub fn instantiate_ext_fn(&self, ext_fn_name: &str, swap: bool) -> Option<ExtFn<'ivm>> {
