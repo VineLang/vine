@@ -155,11 +155,14 @@ impl<'ivm> ExtVal<'ivm> {
     }
   }
 
+  /// Returns the type id of this value.
   #[inline(always)]
   pub fn ty_id(&self) -> ExtTyId<'ivm> {
     ExtTyId::from_bits((self.0 >> 48) as u16)
   }
 
+  /// Returns the 45-bit payload of this value as the _lowest_ 45 bits in a
+  /// `u64`. The highest 19 bits are guaranteed to be zero.
   #[inline(always)]
   fn payload(&self) -> u64 {
     (self.0 & Self::PAYLOAD_MASK) >> 3
@@ -198,6 +201,9 @@ impl<'ivm, T> ExtTy<'ivm, T> {
   }
 
   /// Interprets this extrinsic value as a `T` through [`ExtTy<'ivm, T>`].
+  ///
+  /// If `ext`'s [`ExtVal::ty_id`] does not match [`self::ty_id`], this returns
+  /// `None`.
   #[inline(always)]
   pub fn from_ext_val(self, ext: ExtVal<'ivm>) -> Option<T>
   where
@@ -206,6 +212,7 @@ impl<'ivm, T> ExtTy<'ivm, T> {
     if ext.ty_id() == self.0 { Some(unsafe { T::from_payload(ext.payload()) }) } else { None }
   }
 
+  /// Converts `value` into an [`ExtVal`] with `self` as the type id.
   pub fn into_ext_val(self, value: T) -> ExtVal<'ivm>
   where
     T: ExtTyCast<'ivm>,
@@ -214,7 +221,13 @@ impl<'ivm, T> ExtTy<'ivm, T> {
   }
 }
 
+/// A trait describing how to convert between an [`ExtVal`] and a `Self`.
+///
+/// Types which can be converted to/from a 45-bit payload, can implement
+/// `ExtTyCast`.
 pub trait ExtTyCast<'ivm> {
+  /// Converts `Self` into an [`ExtVal`] payload. This function _must_ return
+  /// a `u64` value with the highest 19 bits set to zero.
   fn into_payload(self) -> u64;
 
   /// Casts an [`ExtVal`]'s payload to a `Self`.
@@ -226,30 +239,37 @@ pub trait ExtTyCast<'ivm> {
 }
 
 impl<'ivm> ExtTyCast<'ivm> for u32 {
+  #[inline(always)]
   fn into_payload(self) -> u64 {
     self as u64
   }
 
+  #[inline(always)]
   unsafe fn from_payload(payload: u64) -> u32 {
     payload as u32
   }
 }
 
 impl<'ivm> ExtTyCast<'ivm> for f32 {
+  #[inline(always)]
   fn into_payload(self) -> u64 {
     self.to_bits() as u64
   }
 
+  #[inline(always)]
   unsafe fn from_payload(payload: u64) -> f32 {
     f32::from_bits(payload as u32)
   }
 }
 
+/// Used for the `IO` extrinsic type.
 impl<'ivm> ExtTyCast<'ivm> for () {
+  #[inline(always)]
   fn into_payload(self) -> u64 {
     0
   }
 
+  #[inline(always)]
   unsafe fn from_payload(_payload: u64) {}
 }
 
