@@ -250,6 +250,18 @@ impl<'ivm> ExtTyCast<'ivm> for u32 {
   }
 }
 
+impl<'ivm> ExtTyCast<'ivm> for bool {
+  #[inline(always)]
+  fn into_payload(self) -> u64 {
+    self as u64
+  }
+
+  #[inline(always)]
+  unsafe fn from_payload(payload: u64) -> bool {
+    payload != 0
+  }
+}
+
 impl<'ivm> ExtTyCast<'ivm> for f32 {
   #[inline(always)]
   fn into_payload(self) -> u64 {
