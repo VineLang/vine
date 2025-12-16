@@ -66,7 +66,7 @@ pub mod debug {
   #[frameless]
   pub fn log[T; Cast[T, String]](msg: T) {
     let &state = debug_state();
-    let frame = state.stack.top().assume();
+    let &frame = state.stack.top().assume();
     state.io.print("[{frame.file}:{frame.line}:{frame.col}] {msg}\n")
   }
 
@@ -144,9 +144,9 @@ pub mod Stack {
 
   use #root::data::Iterator;
 
-  pub fn .top(&Stack((present, frame), _)) -> Option[Frame] {
+  pub fn .top(&Stack((present, frame), _)) -> Option[&Frame] {
     if present {
-      Some(frame)
+      Some(&frame)
     } else {
       None()
     }
