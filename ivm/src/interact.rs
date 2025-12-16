@@ -17,13 +17,24 @@ impl<'ivm, 'ext> IVM<'ivm, 'ext> {
   /// Link two ports.
   pub fn link(&mut self, a: Port<'ivm>, b: Port<'ivm>) {
     use Tag::*;
-    match (a.tag(), b.tag()) {
-      (Wire, _) => self.link_wire(unsafe { a.as_wire() }, b),
-      (_, Wire) => self.link_wire(unsafe { b.as_wire() }, a),
-      sym!(Global | Erase) | sym!(ExtVal | Erase) => self.stats.erase += 1,
-      sym!(Comb) | sym!(ExtFn) if a.label() == b.label() => self.active_fast.push((a, b)),
-      sym!(Global, _) | sym!(Comb | ExtFn | Branch) => self.active_slow.push((a, b)),
-      sym!(Erase, _) | sym!(ExtVal, _) => self.active_fast.push((a, b)),
+    match ((a.tag(), a), (b.tag(), b)) {
+      ((Wire, a), (_, b)) => self.link_wire(unsafe { a.as_wire() }, b),
+      ((_, a), (Wire, b)) => self.link_wire(unsafe { b.as_wire() }, a),
+      sym!((Global | Erase, _)) => self.stats.erase += 1,
+      sym!((ExtVal, n), (Erase, _)) => {
+        let n = unsafe { n.as_ext_val() };
+        if !n.ty_id().is_copy() {
+          self.flags.ext_erase = true;
+        }
+        self.stats.erase += 1;
+      }
+      ((Comb, a), (Comb, b)) | ((ExtFn, a), (ExtFn, b)) if a.label() == b.label() => {
+        self.active_fast.push((a, b))
+      }
+      sym!((Global, a), (_, b)) | ((Comb | ExtFn | Branch, a), (Comb | ExtFn | Branch, b)) => {
+        self.active_slow.push((a, b))
+      }
+      sym!((Erase, a), (_, b)) | sym!((ExtVal, a), (_, b)) => self.active_fast.push((a, b)),
     }
   }
 
@@ -85,7 +96,14 @@ impl<'ivm, 'ext> IVM<'ivm, 'ext> {
       {
         self.annihilate(a, b)
       }
-      sym!((Erase, n), (_, b)) | sym!((ExtVal, n), (Comb, b)) => self.copy(n, b),
+      sym!((Erase, n), (_, b)) => self.copy(n, b),
+      sym!((ExtVal, n), (Comb, b)) => {
+        let x = unsafe { n.as_ext_val() };
+        if !x.ty_id().is_copy() {
+          self.flags.ext_copy = true;
+        }
+        self.copy(n, b);
+      }
       ((Comb | ExtFn | Branch, a), (Comb | ExtFn | Branch, b)) => self.commute(a, b),
       sym!((ExtFn, f), (ExtVal, v)) => self.call(f, v),
       sym!((Branch, b), (ExtVal, v)) => self.branch(b, v),

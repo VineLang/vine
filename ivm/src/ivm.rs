@@ -4,6 +4,7 @@ use std::time::Instant;
 use crate::{
   allocator::Allocator,
   ext::{Extrinsics, OpaqueExtFn},
+  flags::Flags,
   heap::Heap,
   port::Port,
   stats::Stats,
@@ -13,6 +14,9 @@ use crate::{
 pub struct IVM<'ivm, 'ext> {
   /// Execution statistics of this IVM.
   pub stats: Stats,
+
+  /// Error flags set during interactions.
+  pub flags: Flags,
 
   pub(crate) extrinsics: &'ext Extrinsics<'ivm>,
 
@@ -53,6 +57,7 @@ impl<'ivm, 'ext> IVM<'ivm, 'ext> {
       inert_links: Vec::new(),
       inert_nodes: Vec::new(),
       stats: Stats::default(),
+      flags: Flags::default(),
     }
   }
 

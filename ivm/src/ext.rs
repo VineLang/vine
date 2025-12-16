@@ -255,7 +255,9 @@ impl<'ivm> ExtTyCast<'ivm> for () {
 
 /// The type id of an external value.
 ///
-/// The highest bit specifies whether it is copyable.
+/// The highest bit specifies whether it is copyable. If a non-copyable
+/// [`ExtVal`] is copied or erased during reduction, an error flag will
+/// be set on the [`IVM`].
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct ExtTyId<'ivm>(u16, PhantomData<fn(&'ivm ()) -> &'ivm ()>);
 
@@ -277,9 +279,8 @@ impl<'ivm> ExtTyId<'ivm> {
     self.0
   }
 
-  #[allow(unused)]
   #[inline(always)]
-  fn is_copy(self) -> bool {
+  pub fn is_copy(self) -> bool {
     self.0 & Self::COPY_BIT != 0
   }
 }

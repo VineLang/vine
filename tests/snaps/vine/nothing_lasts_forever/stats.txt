@@ -1,6 +1,10 @@
 
 Error: the net did not return its `IO` handle
 
+Error: a non-copyable extrinsic was copied
+
+Error: a non-copyable extrinsic was erased
+
 Interactions
   Total                5_514
   Annihilate           2_318
