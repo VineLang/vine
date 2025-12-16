@@ -286,7 +286,7 @@ impl Synthesizer<'_> {
     let file = self.string(pos.file);
     let line = Tree::N32(pos.line as u32 + 1);
     let col = Tree::N32(pos.col as u32 + 1);
-    Net::new(Tree::n_ary("tup", [col, file, line, path]))
+    Net::new(Tree::n_ary("tup", [Tree::N32(1), Tree::n_ary("tup", [col, file, line, path])]))
   }
 
   fn synthesize_debug_state(&mut self) -> Net {
