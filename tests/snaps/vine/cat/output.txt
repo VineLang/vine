@@ -1,6 +1,3 @@
-
-pub fn main(&io: &IO) {
-  while io.read_line() is Some(line) {
-    io.println(line);
-  }
-}
+héllo 😀
+bad:���
+still ok ascii

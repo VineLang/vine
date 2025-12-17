@@ -18,7 +18,7 @@ fn tests(t: &mut DynTester) {
   env::set_current_dir("..").unwrap();
 
   let brainfuck_input = b">,[>,]<[.<]\nlufsseccus lasrever"; // cspell:disable-line
-  let cat_input = include_bytes!("../vine/examples/cat.vi");
+  let cat_input = b"h\xC3\xA9llo \xF0\x9F\x98\x80\nbad:\xC3\x28\xFF\xFE\nstill ok ascii\n";
   let fib_repl_input_iv = b"1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n21\n100\n999999\n";
   let fib_repl_input_vi = b"1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n21\n100\n999999\n\nabc\n";
   let guessing_game_input = b"a seed\na maximum number\n100\n50\n75\n63\n56\n60\n58\n57";
