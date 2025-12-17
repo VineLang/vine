@@ -181,7 +181,7 @@ impl<'ivm> Debug for ExtVal<'ivm> {
 }
 
 #[derive(Clone, Copy)]
-pub struct ExtTy<'ivm, T>(ExtTyId<'ivm>, PhantomData<T>);
+pub struct ExtTy<'ivm, T>(ExtTyId<'ivm>, PhantomData<fn(T) -> T>);
 
 impl<'ivm, T> ExtTy<'ivm, T> {
   pub fn new_unchecked(ty_id: ExtTyId<'ivm>) -> Self {
