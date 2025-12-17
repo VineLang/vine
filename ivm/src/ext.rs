@@ -132,19 +132,18 @@ impl<'ivm> ExtVal<'ivm> {
     self.0
   }
 
-  /// Creates a new `ExtVal` with a given type and payload.
+  /// Creates a new `ExtVal` with a given type and 45-bit payload.
+  ///
+  /// The provided 45-bit payload can only occupy bits 48..3 (inclusive) of the
+  /// provided `u64` value. That is, the highest 16 bits and lowest 3 bits must
+  /// be set to zero.
   #[inline(always)]
   pub fn new(ty_id: ExtTyId<'ivm>, payload: u64) -> Self {
-    debug_assert!(
-      payload & !(Self::PAYLOAD_MASK >> 3) == 0,
-      "ExtVal::new with non-payload bits set"
-    );
+    debug_assert!(payload & !Self::PAYLOAD_MASK == 0, "ExtVal::new with non-payload bits set");
 
     unsafe {
       Self::from_bits(
-        ((ty_id.bits() as u64) << 48)
-          | ((payload << 3) & Self::PAYLOAD_MASK)
-          | (Tag::ExtVal as u64),
+        ((ty_id.bits() as u64) << 48) | (payload & Self::PAYLOAD_MASK) | (Tag::ExtVal as u64),
       )
     }
   }
@@ -155,11 +154,13 @@ impl<'ivm> ExtVal<'ivm> {
     ExtTyId::from_bits((self.0 >> 48) as u16)
   }
 
-  /// Returns the 45-bit payload of this value as the _lowest_ 45 bits in a
-  /// `u64`. The highest 19 bits are guaranteed to be zero.
+  /// Returns the unshifted 45-bit payload of this value.
+  ///
+  /// The payload is located between bits 48 and 3 in the returned `u64`.
+  /// The highest 16 bits and lowest 3 bits are guaranteed to be zero.
   #[inline(always)]
   fn payload(&self) -> u64 {
-    (self.0 & Self::PAYLOAD_MASK) >> 3
+    self.0 & Self::PAYLOAD_MASK
   }
 
   /// Interprets this extrinsic value as a `T` without checking its [`ExtTyId`].
@@ -220,8 +221,10 @@ impl<'ivm, T> ExtTy<'ivm, T> {
 pub trait ExtTyCast<'ivm> {
   const COPY: bool;
 
-  /// Converts `Self` into an [`ExtVal`] payload. This function _must_ return
-  /// a `u64` value with the highest 19 bits set to zero.
+  /// Converts `Self` into an unshifted [`ExtVal`] 45-bit payload.
+  ///
+  /// The returned value must not have bits outside of [`ExtVal::PAYLOAD_MASK`].
+  /// That is, the highest 16 bits and lowest 3 bits must be set to zero.
   fn into_payload(self) -> u64;
 
   /// Casts an [`ExtVal`]'s payload to a `Self`.
@@ -237,12 +240,12 @@ impl<'ivm> ExtTyCast<'ivm> for u32 {
 
   #[inline(always)]
   fn into_payload(self) -> u64 {
-    self as u64
+    (self as u64) << 3
   }
 
   #[inline(always)]
   unsafe fn from_payload(payload: u64) -> u32 {
-    payload as u32
+    (payload >> 3) as u32
   }
 }
 
@@ -251,12 +254,12 @@ impl<'ivm> ExtTyCast<'ivm> for f32 {
 
   #[inline(always)]
   fn into_payload(self) -> u64 {
-    self.to_bits() as u64
+    (self.to_bits() as u64) << 3
   }
 
   #[inline(always)]
   unsafe fn from_payload(payload: u64) -> f32 {
-    f32::from_bits(payload as u32)
+    f32::from_bits((payload >> 3) as u32)
   }
 }
 
