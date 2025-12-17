@@ -207,5 +207,5 @@ fn read_bytes_into_utf8_u32<const N: usize>(first_byte: u8) -> Option<u32> {
 
   buf[3 - N] = first_byte;
 
-  str::from_utf8(&buf[3 - N..]).ok().and_then(|s| s.chars().nth(0)).map(u32::from)
+  str::from_utf8(&buf[3 - N..]).ok().and_then(|s| s.chars().next()).map(u32::from)
 }
