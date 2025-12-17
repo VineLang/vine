@@ -180,6 +180,32 @@ impl<'ivm> Host<'ivm> {
 
         (byte, ())
       }
+      "io_read_char" => |_io: io| -> (n32, io) {
+        let mut buf = [0];
+        let count = io::stdin().read(&mut buf).unwrap();
+        let c = match (count, buf[0].leading_ones()) {
+          (0, _) => Some(u32::MAX),
+          (_, 0) => Some(buf[0] as u32),
+          (_, 2) => read_bytes_into_utf8_u32::<1>(buf[0]),
+          (_, 3) => read_bytes_into_utf8_u32::<2>(buf[0]),
+          (_, 4) => read_bytes_into_utf8_u32::<3>(buf[0]),
+          _ => None,
+        };
+
+        (c.unwrap_or(char::REPLACEMENT_CHARACTER as u32), ())
+      }
     );
   }
+}
+
+fn read_bytes_into_utf8_u32<const N: usize>(first_byte: u8) -> Option<u32> {
+  let mut buf = [0, 0, 0, 0];
+  let count = io::stdin().read(&mut buf[4 - N..]).unwrap();
+  if count != N {
+    return None;
+  }
+
+  buf[3 - N] = first_byte;
+
+  str::from_utf8(&buf[3 - N..]).ok().and_then(|s| s.chars().nth(0)).map(u32::from)
 }

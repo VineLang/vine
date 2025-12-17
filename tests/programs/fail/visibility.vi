@@ -16,7 +16,7 @@ mod lib {
 
 // bad: ~1 error per line
 fn main(&io: &IO) {
-  io.read_char();
+  io.read_charmander();
   let lib::x: lib::x = lib::x;
   let lib::y: lib::y = lib::y;
   pub fn x() {}

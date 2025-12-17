@@ -56,16 +56,15 @@ pub mod IO {
 
   /// Reads a line from stdin.
   pub fn .read_line(&io: &IO) -> Option[String] {
-    let byte = io._read_byte();
-    if byte != eof {
-      Some(if byte == '\n' {
+    if io._read_char() is char and char != eof {
+      Some(if char == '\n' {
         ""
       } else {
-        let chars = [byte];
+        let chars = [char];
         loop {
-          byte = io._read_byte();
-          if byte != '\n' and byte != eof {
-            chars ++= [byte];
+          char = io._read_char();
+          if char != '\n' and char != eof {
+            chars ++= [char];
             continue;
           }
         }
@@ -80,28 +79,45 @@ pub mod IO {
   pub fn .full_input(&io: &IO) -> String {
     let chars = [];
     loop {
-      let byte = io._read_byte();
-      if byte == eof {
-        String(chars)
-      } else {
-        chars ++= [byte];
+      if io._read_char() is char and char != eof {
+        chars ++= [char];
         continue;
+      } else {
+        String(chars)
       }
+    }
+  }
+
+  /// Reads a UTF-8 code point from stdin, returning `None()` if nothing was
+  /// read. If an invalid UTF-8 char is encountered, `Some(U+FFFD)` is returned.
+  pub fn .read_char(&io: &IO) -> Option[Char] {
+    if io._read_char() is char and char != eof {
+      Some(char)
+    } else {
+      None()
+    }
+  }
+
+  /// Reads a UTF-8 code point from stdin, returning `eof` if nothing was
+  /// read. If an invalid UTF-8 char is encountered, `U+FFFD` is returned.
+  fn ._read_char(&io: &IO) -> Char {
+    inline_ivy! (io0 <- io, io1 -> io) -> Char {
+      char
+      io0 = @io_read_char(char io1)
     }
   }
 
   /// Reads a byte from stdin, returning `None()` if nothing was read.
   pub fn .read_byte(&io: &IO) -> Option[Char] {
-    let byte = io._read_byte();
-    if byte == eof {
-      None()
-    } else {
+    if io._read_byte() is byte and byte != eof {
       Some(byte)
+    } else {
+      None()
     }
   }
 
-  /// Reads a byte from stdin, returning `N32::maximum` if nothing was read.
-  pub fn ._read_byte(&io: &IO) -> Char {
+  /// Reads a byte from stdin, returning `eof` if nothing was read.
+  fn ._read_byte(&io: &IO) -> Char {
     inline_ivy! (io0 <- io, io1 -> io) -> Char {
       byte
       io0 = @io_read_byte(byte io1)
