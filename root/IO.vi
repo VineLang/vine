@@ -6,6 +6,8 @@
 pub type IO;
 
 pub mod IO {
+  pub const EOF: Char = '\0' - 1;
+
   /// Prints the given string to stdout with a trailing newline.
   pub fn .println(&io: &IO, str: String) {
     io.print(str);
@@ -55,14 +57,14 @@ pub mod IO {
   /// Reads a line from stdin.
   pub fn .read_line(&io: &IO) -> Option[String] {
     let byte = io.read_byte();
-    if byte != '\0' {
+    if byte != IO::EOF {
       Some(if byte == '\n' {
         ""
       } else {
         let chars = [byte];
         loop {
           byte = io.read_byte();
-          if byte != '\n' and byte != '\0' {
+          if byte != '\n' and byte != IO::EOF {
             chars ++= [byte];
             continue;
           }
@@ -79,7 +81,7 @@ pub mod IO {
     let chars = [];
     loop {
       let byte = io.read_byte();
-      if byte == '\0' {
+      if byte == IO::EOF {
         String(chars)
       } else {
         chars ++= [byte];
@@ -88,6 +90,7 @@ pub mod IO {
     }
   }
 
+  /// Returns `IO::EOF` if nothing is read.
   pub fn .read_byte(&io: &IO) -> Char {
     inline_ivy! (io0 <- io, io1 -> io) -> Char {
       byte

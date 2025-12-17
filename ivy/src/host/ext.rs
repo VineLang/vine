@@ -175,8 +175,10 @@ impl<'ivm> Host<'ivm> {
       }
       "io_read_byte" => |_io: io| -> (n32, io) {
         let mut buf = [0];
-        _ = io::stdin().read(&mut buf).unwrap();
-        (buf[0] as u32, ())
+        let count = io::stdin().read(&mut buf).unwrap();
+        let byte = if count == 0 { u32::MAX } else { buf[0] as u32 };
+
+        (byte, ())
       }
     );
   }

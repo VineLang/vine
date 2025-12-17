@@ -2,7 +2,8 @@
 :: {
   x(io0 io2)
   io0 = @io_read_byte(dup(byte0 byte1) io1)
-  byte0 = ?(::a ::b x(byte1 x(io1 io2)))
+  byte0 = @n32_eq(4294967295 is_eof)
+  is_eof = ?(::b ::a x(byte1 x(io1 io2)))
 }
 
 ::a {
