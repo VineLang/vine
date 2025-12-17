@@ -44,46 +44,18 @@ impl Emitter<'_> {
     };
     let w = self.new_wire();
     let io = self.new_wire();
-    let len = self.new_wire();
-    let buf = self.new_wire();
-    let end = self.new_wire();
+    let stack = self.new_wire();
     let debug = self.debug_state.as_mut().unwrap();
     let val = replace(&mut debug.0, w.0);
-    self.pairs.push((
-      val,
-      Tree::n_ary(
-        "tup",
-        [
-          io.0,
-          Tree::ExtFn("n32_add".into(), false, Box::new(Tree::N32(1)), Box::new(len.0)),
-          buf.0,
-          end.0,
-        ],
-      ),
-    ));
+    self.pairs.push((val, Tree::n_ary("tup", [io.0, stack.0])));
     let new_value = Tree::n_ary(
       "tup",
-      [
-        io.1,
-        len.1,
-        Tree::n_ary("tup", [Tree::Global(format!(":synthetic:{index}")), buf.1]),
-        end.1,
-      ],
+      [io.1, Tree::n_ary("tup", [Tree::Global(format!(":synthetic:{index}")), stack.1])],
     );
     let io = self.new_wire();
-    let len = self.new_wire();
-    let buf = self.new_wire();
-    let end = self.new_wire();
-    let new_space = Tree::n_ary(
-      "tup",
-      [
-        io.0,
-        Tree::ExtFn("n32_sub".into(), false, Box::new(Tree::N32(1)), Box::new(len.0)),
-        Tree::n_ary("tup", [Tree::Erase, buf.0]),
-        end.0,
-      ],
-    );
-    self.pairs.push((w.1, Tree::n_ary("tup", [io.1, len.1, buf.1, end.1])));
+    let stack = self.new_wire();
+    let new_space = Tree::n_ary("tup", [io.0, Tree::n_ary("tup", [Tree::Erase, stack.0])]);
+    self.pairs.push((w.1, Tree::n_ary("tup", [io.1, stack.1])));
     Tree::Comb("ref".into(), Box::new(new_value), Box::new(new_space))
   }
 
@@ -127,9 +99,8 @@ pub(crate) fn main_net_debug(main: Tree) -> Net {
                     "tup",
                     [
                       Tree::Var("io0".into()),
-                      Tree::N32(0),
-                      Tree::Var("x".into()),
-                      Tree::Var("x".into()),
+                      Tree::n_ary("tup", [Tree::N32(0), Tree::Erase]),
+                      Tree::Erase,
                     ],
                   ),
                   Tree::n_ary("tup", [Tree::Var("io2".into()), Tree::Erase]),

@@ -14,7 +14,7 @@ pub mod debug {
     _ = msg as String;
   }
 
-  pub fn backtrace() -> Option[&List[Frame]] {
+  pub fn backtrace() -> Option[&Stack] {
     None()
   }
 
@@ -56,7 +56,7 @@ pub mod debug {
   /// Whether debug mode is enabled.
   pub const enabled: Bool = true;
 
-  struct DebugState({ io: IO, stack: List[Frame] });
+  struct DebugState({ io: IO, stack: Stack });
 
   #[builtin = "debug_state"]
   fn debug_state() -> &DebugState {
@@ -66,12 +66,12 @@ pub mod debug {
   #[frameless]
   pub fn log[T; Cast[T, String]](msg: T) {
     let &state = debug_state();
-    let frame = state.stack.get(0).assume();
+    let &frame = state.stack.top().assume();
     state.io.print("[{frame.file}:{frame.line}:{frame.col}] {msg}\n")
   }
 
   #[frameless]
-  pub fn backtrace() -> Option[&List[Frame]] {
+  pub fn backtrace() -> Option[&Stack] {
     Some(debug_state().*.stack.&)
   }
 
@@ -123,12 +123,42 @@ pub mod debug {
   }
 }
 
-pub struct* Frame(pub { path: List[String], file: String, line: N32, col: N32 });
+pub struct Frame(pub { path: List[String], file: String, line: N32, col: N32 });
 
 pub mod Frame {
+  pub impl fork: Fork[Frame] = unsafe::duplicate;
+  pub impl drop: Drop[Frame] = unsafe::erase;
+
   pub impl to_string: Cast[Frame, String] {
     fn cast(Frame({ path, file, line, col })) -> String {
       "#{path.join("::")} ({file}:{line}:{col})"
+    }
+  }
+}
+
+pub struct Stack((Bool, Frame), Stack);
+
+pub mod Stack {
+  pub impl fork: Fork[Stack] = unsafe::duplicate;
+  pub impl drop: Drop[Stack] = unsafe::erase;
+
+  use #root::data::Iterator;
+
+  pub fn .top(&Stack((present, frame), _)) -> Option[&Frame] {
+    if present {
+      Some(&frame)
+    } else {
+      None()
+    }
+  }
+
+  pub impl iter: Iterator[Stack, Frame] {
+    fn advance(Stack((present, frame), rest)) -> Option[(Frame, Stack)] {
+      if present {
+        Some(frame, rest)
+      } else {
+        None()
+      }
     }
   }
 }
