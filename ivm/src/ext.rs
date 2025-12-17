@@ -91,7 +91,7 @@ impl<'ivm> Extrinsics<'ivm> {
   }
 
   pub fn ext_val_as_n32(&self, x: ExtVal<'ivm>) -> u32 {
-    self.n32_ext_ty().from_ext_val(x).unwrap()
+    self.n32_ext_ty().unwrap_ext_val(x).unwrap()
   }
 
   pub fn get_ext_split_fn(&self, ext_fn: ExtFn<'ivm>) -> &dyn ExtSplitFn<'ivm> {
@@ -198,7 +198,7 @@ impl<'ivm, T> ExtTy<'ivm, T> {
   /// If `ext`'s [`ExtVal::ty_id`] does not match [`self::ty_id`], this returns
   /// `None`.
   #[inline(always)]
-  pub fn from_ext_val(self, ext: ExtVal<'ivm>) -> Option<T>
+  pub fn unwrap_ext_val(self, ext: ExtVal<'ivm>) -> Option<T>
   where
     T: ExtTyCast<'ivm>,
   {
@@ -206,7 +206,8 @@ impl<'ivm, T> ExtTy<'ivm, T> {
   }
 
   /// Converts `value` into an [`ExtVal`] with `self` as the type id.
-  pub fn into_ext_val(self, value: T) -> ExtVal<'ivm>
+  #[inline(always)]
+  pub fn wrap_ext_val(self, value: T) -> ExtVal<'ivm>
   where
     T: ExtTyCast<'ivm>,
   {

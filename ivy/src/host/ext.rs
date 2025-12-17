@@ -21,7 +21,7 @@ macro_rules! register_ext_fns {
   ) => {
     $self.register_ext_fn($name.into(), $ext.new_split_ext_fn(move |ivm, $a, out0, out1| {
       #[allow(unused)]
-      let $a = $a_ty.from_ext_val($a).unwrap();
+      let $a = $a_ty.unwrap_ext_val($a).unwrap();
       let _ = { $body };
       ivm.link_wire(out0, Port::ERASE);
       ivm.link_wire(out1, Port::ERASE);
@@ -36,8 +36,8 @@ macro_rules! register_ext_fns {
     $($rest:tt)*
   ) => {
     $self.register_ext_fn($name.into(), $ext.new_split_ext_fn(move |ivm, $a, out0, out1| {
-      let $a = $a_ty.from_ext_val($a).unwrap();
-      let res = $c_ty.into_ext_val({ $body });
+      let $a = $a_ty.unwrap_ext_val($a).unwrap();
+      let res = $c_ty.wrap_ext_val({ $body });
       ivm.link_wire(out0, Port::ERASE);
       ivm.link_wire(out1, Port::new_ext_val(res));
     }));
@@ -50,9 +50,9 @@ macro_rules! register_ext_fns {
     $($rest:tt)*
   ) => {
     $self.register_ext_fn($name.into(), $ext.new_merge_ext_fn(move |ivm, $a, $b, out| {
-      let $a = $a_ty.from_ext_val($a).unwrap();
-      let $b = $b_ty.from_ext_val($b).unwrap();
-      let c = $c_ty.into_ext_val({ $body });
+      let $a = $a_ty.unwrap_ext_val($a).unwrap();
+      let $b = $b_ty.unwrap_ext_val($b).unwrap();
+      let c = $c_ty.wrap_ext_val({ $body });
       ivm.link_wire(out, Port::new_ext_val(c));
     }));
 
@@ -64,10 +64,10 @@ macro_rules! register_ext_fns {
     $($rest:tt)*
   ) => {
     $self.register_ext_fn($name.into(), $ext.new_split_ext_fn(move |ivm, $a, out0, out1| {
-      let $a = $a_ty.from_ext_val($a).unwrap();
+      let $a = $a_ty.unwrap_ext_val($a).unwrap();
       let (b, c) = { $body };
-      let b = $b_ty.into_ext_val(b);
-      let c = $c_ty.into_ext_val(c);
+      let b = $b_ty.wrap_ext_val(b);
+      let c = $c_ty.wrap_ext_val(c);
       ivm.link_wire(out0, Port::new_ext_val(b));
       ivm.link_wire(out1, Port::new_ext_val(c));
     }));
