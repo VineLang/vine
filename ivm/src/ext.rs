@@ -324,13 +324,18 @@ impl<'ivm> ExtFn<'ivm> {
   const ID_MASK: u16 = 0x3FFF;
 
   #[inline(always)]
-  pub fn new_split(id: usize) -> Self {
+  fn new_split(id: usize) -> Self {
     Self(id as u16, PhantomData)
   }
 
   #[inline(always)]
-  pub fn new_merge(id: usize) -> Self {
+  fn new_merge(id: usize) -> Self {
     Self(id as u16 | Self::MERGE_BIT, PhantomData)
+  }
+
+  #[inline(always)]
+  fn index(&self) -> usize {
+    (self.0 & Self::ID_MASK) as usize
   }
 
   #[inline(always)]
@@ -346,11 +351,6 @@ impl<'ivm> ExtFn<'ivm> {
   #[inline(always)]
   pub fn is_merge(&self) -> bool {
     self.0 & Self::MERGE_BIT != 0
-  }
-
-  #[inline(always)]
-  pub fn index(&self) -> usize {
-    (self.0 & Self::ID_MASK) as usize
   }
 
   #[inline(always)]
