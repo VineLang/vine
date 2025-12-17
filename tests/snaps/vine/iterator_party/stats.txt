@@ -3,11 +3,11 @@ Interactions
   Total            1_720_809
   Annihilate       1_013_988
   Commute              1_117
-  Copy               134_703
-  Erase              237_233
-  Expand             109_343
-  Call               167_170
-  Branch              57_255
+  Copy               134_693
+  Erase              237_221
+  Expand             109_337
+  Call               167_156
+  Branch              57_249
 
 Memory
   Heap             2_071_568 B
