@@ -76,12 +76,7 @@ pub fn main(&io: &IO) {
   }
 
   let fn input() {
-    let byte = io.read_byte();
-    tape_head = if byte == IO::EOF {
-      0
-    } else {
-      byte as N32
-    };
+    tape_head = io.read_byte().or_use(0 as Char) as N32;
   }
 
   let fn output() {

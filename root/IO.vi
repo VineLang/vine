@@ -6,7 +6,7 @@
 pub type IO;
 
 pub mod IO {
-  pub const EOF: Char = 0xffffffff as Char;
+  const eof: Char = N32::maximum as Char;
 
   /// Prints the given string to stdout with a trailing newline.
   pub fn .println(&io: &IO, str: String) {
@@ -56,15 +56,15 @@ pub mod IO {
 
   /// Reads a line from stdin.
   pub fn .read_line(&io: &IO) -> Option[String] {
-    let byte = io.read_byte();
-    if byte != IO::EOF {
+    let byte = io._read_byte();
+    if byte != eof {
       Some(if byte == '\n' {
         ""
       } else {
         let chars = [byte];
         loop {
-          byte = io.read_byte();
-          if byte != '\n' and byte != IO::EOF {
+          byte = io._read_byte();
+          if byte != '\n' and byte != eof {
             chars ++= [byte];
             continue;
           }
@@ -80,8 +80,8 @@ pub mod IO {
   pub fn .full_input(&io: &IO) -> String {
     let chars = [];
     loop {
-      let byte = io.read_byte();
-      if byte == IO::EOF {
+      let byte = io._read_byte();
+      if byte == eof {
         String(chars)
       } else {
         chars ++= [byte];
@@ -90,8 +90,18 @@ pub mod IO {
     }
   }
 
-  /// Returns `IO::EOF` if nothing is read.
-  pub fn .read_byte(&io: &IO) -> Char {
+  /// Reads a byte from stdin, returning `None()` if nothing was read.
+  pub fn .read_byte(&io: &IO) -> Option[Char] {
+    let byte = io._read_byte();
+    if byte == eof {
+      None()
+    } else {
+      Some(byte)
+    }
+  }
+
+  /// Reads a byte from stdin, returning `N32::maximum` if nothing was read.
+  pub fn ._read_byte(&io: &IO) -> Char {
     inline_ivy! (io0 <- io, io1 -> io) -> Char {
       byte
       io0 = @io_read_byte(byte io1)
