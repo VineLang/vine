@@ -96,13 +96,13 @@ impl<'ivm> Host<'ivm> {
   }
 
   fn register_f32_ext_ty(&mut self, extrinsics: &mut Extrinsics<'ivm>) -> ExtTy<'ivm, f32> {
-    let f32_ty = extrinsics.new_ext_ty(true);
+    let f32_ty = extrinsics.new_ext_ty();
     self.register_ext_ty_id("F32".into(), f32_ty.ty_id());
     f32_ty
   }
 
   fn register_io_ext_ty(&mut self, extrinsics: &mut Extrinsics<'ivm>) -> ExtTy<'ivm, ()> {
-    let io_ty = extrinsics.new_ext_ty(false);
+    let io_ty = extrinsics.new_ext_ty();
     self.register_ext_ty_id("IO".into(), io_ty.ty_id());
     io_ty
   }
@@ -111,7 +111,6 @@ impl<'ivm> Host<'ivm> {
     let n32 = self.register_n32_ext_ty(extrinsics);
     let f32 = self.register_f32_ext_ty(extrinsics);
     let io = self.register_io_ext_ty(extrinsics);
-    let bool: ExtTy<'ivm, bool> = n32.ty_id().into();
 
     self.register_ext_fn(
       "seq".into(),
@@ -148,10 +147,10 @@ impl<'ivm> Host<'ivm> {
       "f32_div" => |a: f32, b: f32| -> f32 { a.div(b) }
       "f32_rem" => |a: f32, b: f32| -> f32 { a.rem_euclid(b) }
 
-      "f32_eq" => |a: f32, b: f32| -> bool { a == b }
-      "f32_ne" => |a: f32, b: f32| -> bool { a != b }
-      "f32_lt" => |a: f32, b: f32| -> bool { a < b }
-      "f32_le" => |a: f32, b: f32| -> bool { a <= b }
+      "f32_eq" => |a: f32, b: f32| -> n32 { (a == b) as u32 }
+      "f32_ne" => |a: f32, b: f32| -> n32 { (a != b) as u32 }
+      "f32_lt" => |a: f32, b: f32| -> n32 { (a < b) as u32 }
+      "f32_le" => |a: f32, b: f32| -> n32 { (a <= b) as u32 }
 
       "n32_to_f32" => |a: n32| -> f32 { a as f32 }
       "f32_to_n32" => |a: f32| -> n32 { a as u32 }

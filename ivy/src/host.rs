@@ -66,7 +66,7 @@ impl<'ivm> Host<'ivm> {
   }
 
   fn ext_ty<T>(&self, name: &'static str) -> ExtTy<'ivm, T> {
-    self.ext_tys[name].into()
+    ExtTy::new_unchecked(self.ext_tys[name])
   }
 
   pub fn new_f32(&self, payload: f32) -> ExtVal<'ivm> {
