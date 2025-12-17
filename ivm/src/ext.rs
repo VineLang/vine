@@ -283,7 +283,7 @@ impl<'ivm> ExtTyCast<'ivm> for () {
 /// [`ExtVal`] is copied or erased during reduction, an error flag will
 /// be set on the [`IVM`].
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct ExtTyId<'ivm>(u16, PhantomData<fn(&'ivm ()) -> &'ivm ()>);
+pub struct ExtTyId<'ivm>(u16, PhantomData<&'ivm mut &'ivm ()>);
 
 impl<'ivm> ExtTyId<'ivm> {
   const COPY_BIT: u16 = 0x8000;
