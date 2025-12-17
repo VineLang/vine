@@ -178,7 +178,6 @@ impl<'ivm, 'ext> IVM<'ivm, 'ext> {
       self.link_wire(new_fn.1, lhs);
       self.link_wire_wire(new_fn.2, out);
     } else {
-      assert!(!ext_fn.is_swapped());
       self.stats.call += 1;
       let func = self.extrinsics.get_ext_split_fn(ext_fn);
       let (out0, out1) = unsafe { f.aux() };

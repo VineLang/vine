@@ -209,6 +209,7 @@ impl<'l, 'ast, 'ivm> Serializer<'l, 'ast, 'ivm> {
         let b = self.serialize_tree(b);
         match self.host.instantiate_ext_fn(f, *swap) {
           Some(ext_fn) => {
+            assert!(ext_fn.is_merge() || !swap, "Only merge ext fns can be swap");
             self.push(Instruction::Binary(Tag::ExtFn, ext_fn.bits(), to, a, b));
           }
           None => {
