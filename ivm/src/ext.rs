@@ -11,21 +11,21 @@ use core::{
 use crate::{ivm::IVM, port::Tag, wire::Wire};
 
 macro_rules! trait_alias {
-  ($($(#[$attr:meta])* $vis:vis trait $name:ident[$($gen:tt)*] = ($($trait:tt)*);)*) => {$(
+  ($($(#[$attr:meta])* $vis:vis trait $name:ident = ($($trait:tt)*);)*) => {$(
     $(#[$attr])*
-    $vis trait $name<$($gen)*>: $($trait)* {}
-    impl<$($gen)*, T> $name<$($gen)*> for T where T: $($trait)* {}
+    $vis trait $name<'ivm>: $($trait)* {}
+    impl<'ivm, T> $name<'ivm> for T where T: $($trait)* {}
   )*};
 }
 
 trait_alias! {
   /// A trait alias for `ExtVal -> (ExtVal, ExtVal)` extrinsic functions.
-  pub trait ExtSplitFn['ivm] = (
+  pub trait ExtSplitFn = (
     for<'a, 'ext> Fn(&'a mut IVM<'ivm, 'ext>, ExtVal<'ivm>, Wire<'ivm>, Wire<'ivm>) + Send + Sync + 'ivm
   );
 
   /// A trait alias for `(ExtVal, ExtVal) -> ExtVal` extrinsic functions.
-  pub trait ExtMergeFn['ivm] = (
+  pub trait ExtMergeFn = (
     for<'a, 'ext> Fn(&'a mut IVM<'ivm, 'ext>, ExtVal<'ivm>, ExtVal<'ivm>, Wire<'ivm>) + Send + Sync + 'ivm
   );
 }
