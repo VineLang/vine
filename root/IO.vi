@@ -6,7 +6,7 @@
 pub type IO;
 
 pub mod IO {
-  pub const EOF: Char = '\0' - 1;
+  pub const EOF: Char = 0xffffffff as Char;
 
   /// Prints the given string to stdout with a trailing newline.
   pub fn .println(&io: &IO, str: String) {
