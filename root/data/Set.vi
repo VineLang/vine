@@ -221,6 +221,19 @@ pub mod Set[T; Ord[T]] {
     }
   }
 
+  /// Maps the values of the set
+  ///
+  /// Safety: Is only safe if the order of elements is preserved by the mapping function.
+  pub.data fn .map[... U, F*; fn F(T) -> U](Set[T](len, data), f: F) -> Set[U] {
+    if len == 0 {
+      unsafe::erase(data);
+      Set::empty
+    } else {
+      let (left, value, right) = data;
+      Set::new(Set::map(left, f), f(value), Set::map(right, f))
+    }
+  }
+
   pub impl iter_ref[...]: Cast[&Set[T], IterRef[T]] {
     fn cast(&self: &Set[T]) -> IterRef[T] {
       IterRef(&self, [])
