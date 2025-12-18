@@ -166,9 +166,9 @@ impl<'ivm> Host<'ivm> {
         let c = match (count, buf[0].leading_ones()) {
           (0, _) => Some(u32::MAX),
           (_, 0) => Some(buf[0] as u32),
-          (_, 2) => read_bytes_into_utf8_u32::<1>(buf[0]),
-          (_, 3) => read_bytes_into_utf8_u32::<2>(buf[0]),
-          (_, 4) => read_bytes_into_utf8_u32::<3>(buf[0]),
+          (_, 2) => read_bytes_into_utf8_u32(buf[0], 1),
+          (_, 3) => read_bytes_into_utf8_u32(buf[0], 2),
+          (_, 4) => read_bytes_into_utf8_u32(buf[0], 3),
           _ => None,
         };
 
@@ -178,21 +178,21 @@ impl<'ivm> Host<'ivm> {
   }
 }
 
-/// Reads `N` bytes from stdin, and returns the `u32` representation of the
+/// Reads `n` bytes from stdin, and returns the `u32` representation of the
 /// UTF-8 codepoint composed of the `first_byte` and the 1-3 read bytes.
 ///
-/// If less than `N` bytes are read, or if the bytes are invalid UTF-8, `None`
+/// If less than `n` bytes are read, or if the bytes are invalid UTF-8, `None`
 /// is reaturned.
-fn read_bytes_into_utf8_u32<const N: usize>(first_byte: u8) -> Option<u32> {
-  const { assert!(1 <= N && N <= 3) };
+fn read_bytes_into_utf8_u32(first_byte: u8, n: usize) -> Option<u32> {
+  assert!((1..=3).contains(&n));
 
-  let buf = &mut [0; 4][..(N + 1)];
+  let buf = &mut [0; 4][..(n + 1)];
   let count = io::stdin().read(&mut buf[1..]).unwrap();
-  if count != N {
+  if count != n {
     return None;
   }
 
   buf[0] = first_byte;
 
-  str::from_utf8(buf).ok().and_then(|s| s.chars().next()).map(u32::from)
+  Some(str::from_utf8(buf).ok()?.chars().next()? as u32)
 }
