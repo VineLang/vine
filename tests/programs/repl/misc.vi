@@ -26,6 +26,8 @@ let a = Array::from_fn(5, do { let x = 0; (fn* () { let n = x; x += 1; n }) });
 a.for_each(fn* (v: N32) { io.println("{v}")})
 0 - a.fold_front(0, fn* (a: N32, b: N32) { a - b })
 0 - a.fold_back(5, fn* (a: N32, b: N32) { a - b })
+a.fold_unordered(fn* (a: N32, b: N32) { a + b })
+Array::empty[N32].fold_unordered(fn* (a: N32, b: N32) { a + b })
 a.get(3)
 a.at(5)
 /clear a

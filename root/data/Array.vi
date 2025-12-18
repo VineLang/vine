@@ -146,6 +146,15 @@ pub mod Array {
     }
   }
 
+  pub fn .fold_unordered[T, F*; fn F(T, T) -> T](Array[T](len, node), f: F) -> Option[T] {
+    if len == 0 {
+      unsafe::erase(node);
+      None()
+    } else {
+      Some(node.fold_unordered(len, f))
+    }
+  }
+
   /// The length of the array. `O(1)`
   /// ```vi
   /// let array = [1, 2, 3] as Array;
@@ -412,6 +421,15 @@ mod Node {
       (&l, (len + 1) / 2)
     } else {
       (&r, len / 2)
+    }
+  }
+
+  pub fn .fold_unordered[T, F*; fn F(T, T) -> T](node: Node[T], len: N32, f: F) -> T {
+    if len == 1 {
+      node as T
+    } else {
+      let Node(l, r) = node;
+      f(l.fold_unordered((len + 1) / 2, f), r.fold_unordered(len / 2, f))
     }
   }
 
