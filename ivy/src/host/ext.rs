@@ -198,14 +198,21 @@ impl<'ivm> Host<'ivm> {
   }
 }
 
+/// Reads `N` bytes from stdin, and returns the `u32` representation of the
+/// UTF-8 codepoint composed of the `first_byte` and the 1-3 read bytes.
+///
+/// If less than `N` bytes are read, or if the bytes are invalid UTF-8, `None`
+/// is reaturned.
 fn read_bytes_into_utf8_u32<const N: usize>(first_byte: u8) -> Option<u32> {
-  let mut buf = [0, 0, 0, 0];
-  let count = io::stdin().read(&mut buf[4 - N..]).unwrap();
+  const { assert!(1 <= N && N <= 3) };
+
+  let buf = &mut [0; 4][..(N + 1)];
+  let count = io::stdin().read(&mut buf[1..]).unwrap();
   if count != N {
     return None;
   }
 
-  buf[3 - N] = first_byte;
+  buf[0] = first_byte;
 
-  str::from_utf8(&buf[3 - N..]).ok().and_then(|s| s.chars().next()).map(u32::from)
+  str::from_utf8(buf).ok().and_then(|s| s.chars().next()).map(u32::from)
 }
