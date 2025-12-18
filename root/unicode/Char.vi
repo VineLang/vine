@@ -48,6 +48,19 @@ pub mod Char {
     ('a' <= char <= 'z') | ('A' <= char <= 'Z') | ('0' <= char <= '9')
   }
 
+  pub fn .escape(char: Char) -> String {
+    when {
+      ' ' <= char <= '~' { "{char}" }
+      char == '\0' { "\\0" }
+      char == '\t' { "\\t" }
+      char == '\r' { "\\r" }
+      char == '\n' { "\\n" }
+      char as N32 < 16 { "\\x0{char.as[N32].to_hex_raw()}" }
+      char as N32 < 128 { "\\x{char.as[N32].to_hex_raw()}" }
+      _ { "\\u\{{char.as[N32].to_hex_raw()}}" }
+    }
+  }
+
   pub impl to_string: Cast[Char, String] {
     fn cast(self: Char) -> String {
       [self] as String
@@ -55,8 +68,13 @@ pub mod Char {
   }
 
   pub impl show: Show[Char] {
-    fn show(&self: &Char) -> Show {
-      Show::Literal("'{self}'")
+    fn show(&char: &Char) -> Show {
+      Show::Literal("'{
+        when {
+          char == '\'' { "\\'" }
+          _ { char.escape() }
+        }
+      }'")
     }
   }
 
