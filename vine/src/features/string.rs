@@ -165,13 +165,14 @@ impl<'src> Lex<'src> for StrLexer<'src> {
           self.bump_ok(StrToken::Char(char::from_u32(digit_0 << 4 | digit_1).unwrap()))
         }
         Some('u') => {
-          if self.bump() != Some('{') {
+          self.bump();
+          if !self.eat('{') {
             return Err(self.invalid_escape());
           }
           let start = self.offset();
           self.bump_while(|c| c.is_ascii_hexdigit());
           let end = self.offset();
-          if self.bump() != Some('}') {
+          if !self.eat('}') {
             return Err(self.invalid_escape());
           }
           let Some(char) =
@@ -179,7 +180,7 @@ impl<'src> Lex<'src> for StrLexer<'src> {
           else {
             return Err(self.invalid_escape());
           };
-          self.bump_ok(StrToken::Char(char))
+          Ok(StrToken::Char(char))
         }
         _ => Err(self.invalid_escape())?,
       },

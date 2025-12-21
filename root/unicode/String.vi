@@ -196,7 +196,15 @@ pub mod String {
 
   pub impl show: Show[String] {
     fn show(&self: &String) -> Show {
-      Show::Literal("\"{self}\"")
+      let escaped = "";
+      for char in self {
+        escaped ++= when {
+          char == '"' { "\\\"" }
+          char == '{' { "\\\{" }
+          _ { char.escape() }
+        };
+      }
+      Show::Literal("\"{escaped}\"")
     }
   }
 }

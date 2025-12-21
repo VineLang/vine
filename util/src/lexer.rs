@@ -64,6 +64,15 @@ pub trait Lex<'src> {
     self.char()
   }
 
+  fn eat(&mut self, char: char) -> bool {
+    if self.char() == Some(char) {
+      self.bump();
+      true
+    } else {
+      false
+    }
+  }
+
   fn start_token(&mut self) {
     let state = self.state_mut();
     state.token_start = state.offset;

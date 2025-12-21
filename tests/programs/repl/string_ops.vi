@@ -34,3 +34,5 @@ x
 "abcdefg".split_at(3)
 "abcdefg".split_at(0)
 "abcdefg".split_at(7)
+"\0\t\r\n\x04\x06\x46\u{4646}\"\{'"
+"\0\t\r\n\x04\x06\x46\u{4646}\"\{'"!

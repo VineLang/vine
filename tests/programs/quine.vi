@@ -1,0 +1,9 @@
+
+const template: (String, String) = (
+  "\nconst template: (String, String) = ",
+  ";\n\npub fn main(&io: &IO) \{\n  io.println(\"\{template.0}\{template.show()}\{template.1}\");\n}",
+);
+
+pub fn main(&io: &IO) {
+  io.println("{template.0}{template.show()}{template.1}");
+}

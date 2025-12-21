@@ -156,8 +156,7 @@ let io: IO = <IO>;
 let s: String = "hello world!";
 let x: String = "hi";
 > "\n\n\n\n\t\thello    \n\t    world\n\n\n \t\n".trim()
-"hello    
-	    world"
+"hello    \n\t    world"
 
 let io: IO = <IO>;
 let s: String = "hello world!";
@@ -188,6 +187,18 @@ let s: String = "hello world!";
 let x: String = "hi";
 > "abcdefg".split_at(7)
 ("abcdefg", "")
+
+let io: IO = <IO>;
+let s: String = "hello world!";
+let x: String = "hi";
+> "\0\t\r\n\x04\x06\x46\u{4646}\"\{'"
+"\0\t\r\n\x04\x06F\u{4646}\"\{'"
+
+let io: IO = <IO>;
+let s: String = "hello world!";
+let x: String = "hi";
+> "\0\t\r\n\x04\x06\x46\u{4646}\"\{'"!
+['\0', '\t', '\r', '\n', '\x04', '\x06', 'F', '\u{4646}', '"', '{', '\'']
 
 let io: IO = <IO>;
 let s: String = "hello world!";
