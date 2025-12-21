@@ -114,6 +114,19 @@ pub mod String {
     true
   }
 
+  pub fn .ends_with(&self: &String, &suffix: &String) -> Bool {
+    if self.len() < suffix.len() {
+      return false;
+    }
+    let skip = self.len() - suffix.len();
+    for (&a, &b) in self.iter_ref().skip(skip).zip(suffix.iter_ref()) {
+      if a != b {
+        return false;
+      }
+    }
+    true
+  }
+
   pub fn .split_at(String(chars), i: N32) -> (String, String) {
     let (prefix, suffix) = chars.split_at(i);
     (String(prefix), String(suffix))

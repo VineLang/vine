@@ -39,6 +39,41 @@ false
 
 let io: IO = <IO>;
 let s: String = "hello world!";
+> s.ends_with(&"")
+true
+
+let io: IO = <IO>;
+let s: String = "hello world!";
+> s.ends_with(&"!")
+true
+
+let io: IO = <IO>;
+let s: String = "hello world!";
+> s.ends_with(&"world!")
+true
+
+let io: IO = <IO>;
+let s: String = "hello world!";
+> s.ends_with(&"hello")
+false
+
+let io: IO = <IO>;
+let s: String = "hello world!";
+> s.ends_with(&"hello world! hi")
+false
+
+let io: IO = <IO>;
+let s: String = "hello world!";
+> "".ends_with(&"")
+true
+
+let io: IO = <IO>;
+let s: String = "hello world!";
+> "".ends_with(&"hi")
+false
+
+let io: IO = <IO>;
+let s: String = "hello world!";
 > "" == ""
 true
 
