@@ -98,6 +98,16 @@ pub mod Map[K, V; Ord[K]] {
     self!.remove_max()
   }
 
+  pub fn .map_values[... U, F*; fn F(&K, V) -> U](self: Map[K, V], f: F) -> Map[K, U] {
+    Map(Set::map(
+      self!,
+      fn* ((k, v)) {
+        let new_val = f(&k, v);
+        (k, new_val)
+      },
+    ))
+  }
+
   pub impl iter_ref[...]: Cast[&Map[K, V], IterRef[K, V]] {
     fn cast(&self: &Map[K, V]) -> IterRef[K, V] {
       IterRef(self!.iter_ref())

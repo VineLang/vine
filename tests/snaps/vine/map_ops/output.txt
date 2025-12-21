@@ -7,6 +7,7 @@ true
 one
 four
 one hundred twenty three thousand four hundred fifty six
+Map({ 1: 4, 4: 8, 123456: 123512 })
 Map({
   1: "one",
   4: "four",

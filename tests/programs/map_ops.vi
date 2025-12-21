@@ -14,6 +14,7 @@ pub fn main(&io: &IO) {
 
   map.keys().for_each(fn* (&k: &N32) { io.println("{k}") });
   map.values().for_each(fn* (&v: &String) { io.println("{v}") });
+  io.println("{map.map_values(fn* (&k: &N32, s: String) { k + s.len() }).show()}");
 
   io.println("{(map ++ Map::empty).show()}");
   io.println("{(Map::empty ++ map).show()}");
