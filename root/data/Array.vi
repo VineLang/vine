@@ -146,12 +146,12 @@ pub mod Array {
     }
   }
 
-  pub fn .fold_unordered[T, F*; fn F(T, T) -> T](Array[T](len, node), f: F) -> Option[T] {
+  pub fn .reduce_unordered[T, F*; fn F(T, T) -> T](Array[T](len, node), f: F) -> Option[T] {
     if len == 0 {
       unsafe::erase(node);
       None()
     } else {
-      Some(node.fold_unordered(len, f))
+      Some(node.reduce_unordered(len, f))
     }
   }
 
@@ -424,12 +424,12 @@ mod Node {
     }
   }
 
-  pub fn .fold_unordered[T, F*; fn F(T, T) -> T](node: Node[T], len: N32, f: F) -> T {
+  pub fn .reduce_unordered[T, F*; fn F(T, T) -> T](node: Node[T], len: N32, f: F) -> T {
     if len == 1 {
       node as T
     } else {
       let Node(l, r) = node;
-      f(l.fold_unordered((len + 1) / 2, f), r.fold_unordered(len / 2, f))
+      f(l.reduce_unordered((len + 1) / 2, f), r.reduce_unordered(len / 2, f))
     }
   }
 

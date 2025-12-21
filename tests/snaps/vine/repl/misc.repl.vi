@@ -123,12 +123,12 @@ let a: Array[N32] = Array([0, 1, 2, 3, 4]);
 
 let io: IO = <IO>;
 let a: Array[N32] = Array([0, 1, 2, 3, 4]);
-> a.fold_unordered(fn* (a: N32, b: N32) { a + b })
+> a.reduce_unordered(fn* (a: N32, b: N32) { a + b })
 Some(10)
 
 let io: IO = <IO>;
 let a: Array[N32] = Array([0, 1, 2, 3, 4]);
-> Array::empty[N32].fold_unordered(fn* (a: N32, b: N32) { a + b })
+> Array::empty[N32].reduce_unordered(fn* (a: N32, b: N32) { a + b })
 None()
 
 let io: IO = <IO>;
