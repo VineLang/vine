@@ -123,6 +123,16 @@ let a: Array[N32] = Array([0, 1, 2, 3, 4]);
 
 let io: IO = <IO>;
 let a: Array[N32] = Array([0, 1, 2, 3, 4]);
+> a.reduce_unordered(fn* (a: N32, b: N32) { a + b })
+Some(10)
+
+let io: IO = <IO>;
+let a: Array[N32] = Array([0, 1, 2, 3, 4]);
+> Array::empty[N32].reduce_unordered(fn* (a: N32, b: N32) { a + b })
+None()
+
+let io: IO = <IO>;
+let a: Array[N32] = Array([0, 1, 2, 3, 4]);
 > a.get(3)
 Some(3)
 
@@ -321,7 +331,7 @@ error: expected type `{ a: N32, b: N32 }`; found `{ a: N32 }`
 
 let io: IO = <IO>;
 > do { let x; x = (x, x); }
-error: expected type `?1745`; found `(?1745, ?1745)`
+error: expected type `?1839`; found `(?1839, ?1839)`
    @ input:1:17
  1 | do { let x; x = (x, x); }
 
