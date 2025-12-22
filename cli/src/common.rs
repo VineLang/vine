@@ -87,7 +87,7 @@ impl RunArgs {
       eprintln!("{}", ivm.stats);
     }
 
-    if no_io || vicious {
+    if no_io || vicious || !ivm.flags.success() {
       exit(1);
     }
   }
