@@ -76,7 +76,7 @@ pub fn main(&io: &IO) {
   }
 
   let fn input() {
-    tape_head = io.read_byte('\0') as N32;
+    tape_head = io.read_byte().or_use(0 as Char) as N32;
   }
 
   let fn output() {

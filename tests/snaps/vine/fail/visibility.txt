@@ -22,9 +22,9 @@ error: circular import
     @ tests/programs/fail/visibility.vi:33:18
  33 | use #visibility::circular;
 
-error: type `IO` has no method `read_char`
+error: type `IO` has no method `_read_char`
     @ tests/programs/fail/visibility.vi:19:3
- 19 |   io.read_char();
+ 19 |   io._read_char();
 
 error: the value `#visibility::lib::x` is only visible within `#visibility::lib`
     @ tests/programs/fail/visibility.vi:20:24

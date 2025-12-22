@@ -53,13 +53,16 @@
 }
 
 ::read_num::loop {
-  fn(ref(dup(io0 io1) io2) s)
-  io0 = @io_read_byte(10 dup(byte0 byte1))
-  byte0 = @n32_eq(10 ?(
+  fn(ref(io0 io2) s)
+  io0 = @io_read_byte(dup(byte0 dup(byte1 byte2)) io1)
+  byte1 = @n32_eq(10 is_lf)
+  byte2 = @n32_eq(0xffffffff is_eof)
+  is_lf = @n32_or(is_eof should_stop)
+  should_stop = ?(
     ::read_num::cont
     ::read_num::end
-    fn(ref(io1 io2) fn(byte1 s))
-  ))
+    fn(ref(io1 io2) fn(byte0 s))
+  )
 }
 
 ::read_num::cont {

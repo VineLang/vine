@@ -80,7 +80,12 @@ pub(crate) fn main_net_debug(main: Tree) -> Net {
     root: Tree::n_ary(
       "x",
       [
-        Tree::n_ary("dup", [Tree::Var("io0".into()), Tree::Var("io1".into())]),
+        Tree::ExtFn(
+          "io_split".into(),
+          false,
+          Box::new(Tree::Var("io0".into())),
+          Box::new(Tree::Var("io1".into())),
+        ),
         Tree::Var("io3".into()),
       ],
     ),
@@ -114,7 +119,7 @@ pub(crate) fn main_net_debug(main: Tree) -> Net {
             [
               Tree::Var("io1".into()),
               Tree::ExtFn(
-                "seq".into(),
+                "io_join".into(),
                 false,
                 Box::new(Tree::Var("io2".into())),
                 Box::new(Tree::Var("io3".into())),

@@ -20,7 +20,15 @@ impl<'ivm, 'ext> IVM<'ivm, 'ext> {
     match (a.tag(), b.tag()) {
       (Wire, _) => self.link_wire(unsafe { a.as_wire() }, b),
       (_, Wire) => self.link_wire(unsafe { b.as_wire() }, a),
-      sym!(Global | Erase) | sym!(ExtVal | Erase) => self.stats.erase += 1,
+      sym!(Global | Erase) => self.stats.erase += 1,
+      sym!(ExtVal | Erase) => {
+        if (a.tag() == ExtVal && !unsafe { a.as_ext_val() }.ty_id().is_copy())
+          || (b.tag() == ExtVal && !unsafe { b.as_ext_val() }.ty_id().is_copy())
+        {
+          self.flags.ext_erase = true;
+        }
+        self.stats.erase += 1
+      }
       sym!(Comb) | sym!(ExtFn) if a.label() == b.label() => self.active_fast.push((a, b)),
       sym!(Global, _) | sym!(Comb | ExtFn | Branch) => self.active_slow.push((a, b)),
       sym!(Erase, _) | sym!(ExtVal, _) => self.active_fast.push((a, b)),
@@ -85,7 +93,14 @@ impl<'ivm, 'ext> IVM<'ivm, 'ext> {
       {
         self.annihilate(a, b)
       }
-      sym!((Erase, n), (_, b)) | sym!((ExtVal, n), (Comb, b)) => self.copy(n, b),
+      sym!((Erase, n), (_, b)) => self.copy(n, b),
+      sym!((ExtVal, n), (Comb, b)) => {
+        let x = unsafe { n.as_ext_val() };
+        if !x.ty_id().is_copy() {
+          self.flags.ext_copy = true;
+        }
+        self.copy(n, b);
+      }
       ((Comb | ExtFn | Branch, a), (Comb | ExtFn | Branch, b)) => self.commute(a, b),
       sym!((ExtFn, f), (ExtVal, v)) => self.call(f, v),
       sym!((Branch, b), (ExtVal, v)) => self.branch(b, v),
@@ -140,20 +155,35 @@ impl<'ivm, 'ext> IVM<'ivm, 'ext> {
 
   fn call(&mut self, f: Port<'ivm>, lhs: Port<'ivm>) {
     let ext_fn = unsafe { f.as_ext_fn() };
-    let (rhs_wire, out) = unsafe { f.aux() };
-    if let Some(rhs) = rhs_wire.load_target()
-      && rhs.tag() == Tag::ExtVal
-    {
+
+    if ext_fn.is_merge() {
+      let (rhs_wire, out) = unsafe { f.aux() };
+      if let Some(rhs) = rhs_wire.load_target()
+        && rhs.tag() == Tag::ExtVal
+      {
+        self.stats.call += 1;
+        self.free_wire(rhs_wire);
+        let func = self.extrinsics.get_ext_merge_fn(ext_fn);
+        let (arg0, arg1) = if ext_fn.is_swapped() {
+          unsafe { (rhs.as_ext_val(), lhs.as_ext_val()) }
+        } else {
+          unsafe { (lhs.as_ext_val(), rhs.as_ext_val()) }
+        };
+        (func)(self, arg0, arg1, out);
+        return;
+      }
+
+      let new_fn = unsafe { self.new_node(Tag::ExtFn, ext_fn.swapped().bits()) };
+      self.link_wire(rhs_wire, new_fn.0);
+      self.link_wire(new_fn.1, lhs);
+      self.link_wire_wire(new_fn.2, out);
+    } else {
       self.stats.call += 1;
-      self.free_wire(rhs_wire);
-      let result = unsafe { self.extrinsics.call(ext_fn, lhs.as_ext_val(), rhs.as_ext_val()) };
-      self.link_wire(out, Port::new_ext_val(result));
-      return;
+      let func = self.extrinsics.get_ext_split_fn(ext_fn);
+      let (out0, out1) = unsafe { f.aux() };
+      let arg = unsafe { lhs.as_ext_val() };
+      (func)(self, arg, out0, out1);
     }
-    let new_fn = unsafe { self.new_node(Tag::ExtFn, ext_fn.swap().bits()) };
-    self.link_wire(rhs_wire, new_fn.0);
-    self.link_wire(new_fn.1, lhs);
-    self.link_wire_wire(new_fn.2, out);
   }
 
   fn branch(&mut self, b: Port<'ivm>, v: Port<'ivm>) {

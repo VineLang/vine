@@ -1,12 +1,12 @@
 
 Interactions
-  Total                   73
+  Total                   74
   Annihilate              24
   Commute                  0
-  Copy                    12
-  Erase                    7
+  Copy                     6
+  Erase                    8
   Expand                  12
-  Call                    12
+  Call                    18
   Branch                   6
 
 Memory

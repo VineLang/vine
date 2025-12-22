@@ -39,7 +39,7 @@ pub mod Term {
       Term::Lambda(param, body) {
         let var = new_var(depth);
         bind(param, Term::Spine(var, []));
-        "\\{var}. {body.print_normal(depth + 1)}"
+        "λ{var}. {body.print_normal(depth + 1)}"
       }
       Term::Spine(var, args) {
         if args.len() == 0 {
@@ -103,7 +103,7 @@ mod Parser {
     }
     let char = self.chars.get(0).assume();
     when {
-      char == '\\' {
+      char == '\\' or char == 'λ' {
         self.chars.pop_front();
         self.skip_ws();
         let var = self.parse_var();

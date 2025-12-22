@@ -50,10 +50,10 @@ impl<'ctx, 'ivm, 'ext> Reader<'ctx, 'ivm, 'ext> {
       Tag::Erase => Tree::Erase,
       Tag::ExtVal => {
         let val = unsafe { p.as_ext_val() };
-        let ext_ty_name = self.host.reverse_ext_tys.get(&val.ty()).unwrap();
+        let ext_ty_name = self.host.reverse_ext_tys.get(&val.ty_id()).unwrap();
         match ext_ty_name.as_str() {
-          "N32" => Tree::N32(val.payload()),
-          "F32" => Tree::F32(f32::from_bits(val.payload())),
+          "N32" => Tree::N32(unsafe { val.cast::<u32>() }),
+          "F32" => Tree::F32(unsafe { val.cast::<f32>() }),
           "IO" => Tree::Var("#io".into()),
           name => Tree::Var(format!("#{name}")),
         }
@@ -71,7 +71,7 @@ impl<'ctx, 'ivm, 'ext> Reader<'ctx, 'ivm, 'ext> {
         let mut f = unsafe { p.as_ext_fn() };
         let swapped = f.is_swapped();
         if swapped {
-          f = f.swap();
+          f = f.swapped();
         }
         let f_name = self.host.reverse_ext_fns.get(&f).unwrap();
         let (p1, p2) = unsafe { p.aux_ref() };

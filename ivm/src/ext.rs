@@ -8,84 +8,115 @@ use core::{
   marker::PhantomData,
 };
 
-use crate::port::Tag;
+use crate::{ivm::IVM, port::Tag, wire::Wire};
 
-#[derive(Default)]
+macro_rules! trait_alias {
+  ($($(#[$attr:meta])* $vis:vis trait $name:ident = ($($trait:tt)*);)*) => {$(
+    $(#[$attr])*
+    $vis trait $name<'ivm>: $($trait)* {}
+    impl<'ivm, T> $name<'ivm> for T where T: $($trait)* {}
+  )*};
+}
+
+trait_alias! {
+  /// A trait alias for `ExtVal -> (ExtVal, ExtVal)` extrinsic functions.
+  pub trait ExtSplitFn = (
+    for<'a, 'ext> Fn(&'a mut IVM<'ivm, 'ext>, ExtVal<'ivm>, Wire<'ivm>, Wire<'ivm>) + Send + Sync + 'ivm
+  );
+
+  /// A trait alias for `(ExtVal, ExtVal) -> ExtVal` extrinsic functions.
+  pub trait ExtMergeFn = (
+    for<'a, 'ext> Fn(&'a mut IVM<'ivm, 'ext>, ExtVal<'ivm>, ExtVal<'ivm>, Wire<'ivm>) + Send + Sync + 'ivm
+  );
+}
+
 pub struct Extrinsics<'ivm> {
-  ext_fns: Vec<Box<dyn Fn(ExtVal<'ivm>, ExtVal<'ivm>) -> ExtVal<'ivm> + Sync + 'ivm>>,
+  ext_split_fns: Vec<Box<dyn ExtSplitFn<'ivm>>>,
+  ext_merge_fns: Vec<Box<dyn ExtMergeFn<'ivm>>>,
 
-  /// Number of registered light (unboxed) ext types
-  light_ext_ty: u16,
+  /// Number of registered extrinsic types.
+  ext_tys: u16,
 
-  n32_ext_ty: Option<ExtTy<'ivm>>,
+  /// An always-present extrinsic type of n32 numbers.
+  n32_ext_ty: ExtTy<'ivm, u32>,
 
   phantom: PhantomData<fn(&'ivm ()) -> &'ivm ()>,
 }
 
-impl<'ivm> Extrinsics<'ivm> {
-  pub const MAX_EXT_FN_KIND_COUNT: usize = 0x7FFF;
-  pub const MAX_LIGHT_EXT_TY_COUNT: usize = 0x7FFF;
+impl Default for Extrinsics<'_> {
+  fn default() -> Self {
+    let n32_ext_ty = ExtTy::new_unchecked(ExtTyId::new(0, true));
 
-  pub fn register_ext_fn(
-    &mut self,
-    f: impl Fn([ExtVal<'ivm>; 2]) -> [ExtVal<'ivm>; 1] + Sync + 'ivm,
-  ) -> ExtFn<'ivm> {
-    if self.ext_fns.len() >= Self::MAX_EXT_FN_KIND_COUNT {
-      panic!("IVM reached maximum amount of registered extrinsic functions.");
-    } else {
-      let ext_fn = ExtFn(self.ext_fns.len() as u16, PhantomData);
-      self.ext_fns.push(Box::new(move |a, b| f([a, b])[0]));
-      ext_fn
+    Self {
+      ext_split_fns: Vec::new(),
+      ext_merge_fns: Vec::new(),
+      ext_tys: 1,
+      n32_ext_ty,
+      phantom: PhantomData,
     }
-  }
-
-  pub fn register_light_ext_ty(&mut self) -> ExtTy<'ivm> {
-    if self.light_ext_ty as usize >= Self::MAX_LIGHT_EXT_TY_COUNT {
-      panic!("IVM reached maximum amount of registered extrinsic unboxed types.");
-    } else {
-      let ext_ty = ExtTy::from_id_and_rc(self.light_ext_ty, false);
-      self.light_ext_ty += 1;
-      ext_ty
-    }
-  }
-
-  pub fn register_n32_ext_ty(&mut self) -> ExtTy<'ivm> {
-    let n32_ext_ty = self.register_light_ext_ty();
-    assert!(self.n32_ext_ty.replace(n32_ext_ty).is_none());
-    n32_ext_ty
-  }
-
-  pub fn call(
-    &self,
-    ext_fn: ExtFn<'ivm>,
-    mut arg0: ExtVal<'ivm>,
-    mut arg1: ExtVal<'ivm>,
-  ) -> ExtVal<'ivm> {
-    let closure =
-      self.ext_fns.get(ext_fn.kind() as usize).expect("ext_fn with given ID not found!");
-    if ext_fn.is_swapped() {
-      (arg0, arg1) = (arg1, arg0)
-    };
-    (closure)(arg0, arg1)
-  }
-
-  pub fn ext_val_as_n32(&self, val: ExtVal<'ivm>) -> u32 {
-    assert!(self.n32_ext_ty.is_some_and(move |x| val.ty() == x));
-    val.payload()
   }
 }
 
-/// An external value.
+impl<'ivm> Extrinsics<'ivm> {
+  pub const MAX_EXT_FN_COUNT: usize = 0x3FFF;
+  pub const MAX_EXT_TY_COUNT: usize = 0x7FFF;
+
+  pub fn new_split_ext_fn(&mut self, f: impl ExtSplitFn<'ivm>) -> ExtFn<'ivm> {
+    assert!(self.ext_split_fns.len() < Self::MAX_EXT_FN_COUNT);
+
+    let ext_fn = ExtFn::new_split(self.ext_split_fns.len());
+    let f = Box::new(f) as Box<dyn ExtSplitFn<'ivm>>;
+    self.ext_split_fns.push(f);
+    ext_fn
+  }
+
+  pub fn new_merge_ext_fn(&mut self, f: impl ExtMergeFn<'ivm>) -> ExtFn<'ivm> {
+    assert!(self.ext_merge_fns.len() < Self::MAX_EXT_FN_COUNT);
+
+    let ext_fn = ExtFn::new_merge(self.ext_merge_fns.len());
+    let f = Box::new(f) as Box<dyn ExtMergeFn<'ivm>>;
+    self.ext_merge_fns.push(f);
+    ext_fn
+  }
+
+  pub fn new_ext_ty<T: ExtTyCast<'ivm>>(&mut self) -> ExtTy<'ivm, T> {
+    assert!((self.ext_tys as usize) < Self::MAX_EXT_TY_COUNT);
+
+    self.ext_tys += 1;
+    ExtTy::new_unchecked(ExtTyId::new(self.ext_tys, T::COPY))
+  }
+
+  pub fn n32_ext_ty(&self) -> ExtTy<'ivm, u32> {
+    self.n32_ext_ty
+  }
+
+  pub fn ext_val_as_n32(&self, x: ExtVal<'ivm>) -> u32 {
+    self.n32_ext_ty().unwrap_ext_val(x).unwrap()
+  }
+
+  pub fn get_ext_split_fn(&self, ext_fn: ExtFn<'ivm>) -> &dyn ExtSplitFn<'ivm> {
+    self.ext_split_fns.get(ext_fn.index()).expect("unknown extrinsic function")
+  }
+
+  pub fn get_ext_merge_fn(&self, ext_fn: ExtFn<'ivm>) -> &dyn ExtMergeFn<'ivm> {
+    self.ext_merge_fns.get(ext_fn.index()).expect("unknown extrinsic function")
+  }
+}
+
+/// An external value with a 45-bit payload.
 ///
-/// The top 32 bits are the *payload*, and the 16 bits after that the *type* (an
-/// [`ExtTy`]). The interpretation of the payload depends on the type.
+/// The 64-bit value is laid out as follows:
+/// - top 16 bits are the extrinsic's type id [`ExtTyId`].
+/// - the next 45 bits are the payload.
+/// - the last 3 bits are `Tag::ExtVal as u16` for compatibility with [`Port`].
 ///
-/// The bottom 16 bits are always `Tag::ExtVal as u16` for bit-compatibility
-/// with `ExtVal` ports.
+/// [`Port`]: crate::ivm::Port
 #[derive(Clone, Copy)]
 pub struct ExtVal<'ivm>(u64, PhantomData<fn(&'ivm ()) -> &'ivm ()>);
 
 impl<'ivm> ExtVal<'ivm> {
+  const PAYLOAD_MASK: u64 = 0x0000_FFFF_FFFF_FFF8;
+
   /// Creates an `ExtVal` from the raw bits.
   ///
   /// ## Safety
@@ -101,27 +132,45 @@ impl<'ivm> ExtVal<'ivm> {
     self.0
   }
 
-  /// Creates a new `ExtVal` with a given type and payload.
+  /// Creates a new `ExtVal` with a given type and 45-bit payload.
+  ///
+  /// The provided 45-bit payload can only occupy bits 48..3 (inclusive) of the
+  /// provided `u64` value. That is, the highest 16 bits and lowest 3 bits must
+  /// be set to zero.
   #[inline(always)]
-  pub const fn new(ty: ExtTy<'ivm>, payload: u32) -> Self {
-    Self(payload as (u64) << 32 | ty.id() as (u64) << 16 | Tag::ExtVal as u64, PhantomData)
-  }
-  /// Accesses the type of this value.
-  #[inline(always)]
-  pub fn ty(&self) -> ExtTy<'ivm> {
-    ExtTy((self.0 >> 16) as u16, self.1)
+  pub fn new(ty_id: ExtTyId<'ivm>, payload: u64) -> Self {
+    debug_assert!(payload & !Self::PAYLOAD_MASK == 0, "ExtVal::new with non-payload bits set");
+
+    unsafe {
+      Self::from_bits(
+        ((ty_id.bits() as u64) << 48) | (payload & Self::PAYLOAD_MASK) | (Tag::ExtVal as u64),
+      )
+    }
   }
 
-  /// Accesses the payload of this value.
+  /// Returns the type id of this value.
   #[inline(always)]
-  pub fn payload(&self) -> u32 {
-    (self.0 >> 32) as u32
+  pub fn ty_id(&self) -> ExtTyId<'ivm> {
+    ExtTyId::from_bits((self.0 >> 48) as u16)
   }
 
+  /// Returns the unshifted 45-bit payload of this value.
+  ///
+  /// The payload is located between bits 48 and 3 in the returned `u64`.
+  /// The highest 16 bits and lowest 3 bits are guaranteed to be zero.
   #[inline(always)]
-  pub fn as_ty(&self, &ty: &ExtTy<'ivm>) -> u32 {
-    assert!(self.ty() == ty);
-    (self.0 >> 32) as u32
+  fn payload(&self) -> u64 {
+    self.0 & Self::PAYLOAD_MASK
+  }
+
+  /// Interprets this extrinsic value as a `T` without checking its [`ExtTyId`].
+  ///
+  /// # Safety
+  ///
+  /// This [`ExtVal`]'s payload must be valid to cast into a `T` using
+  /// [`ExtTyCast::from_payload`].
+  pub unsafe fn cast<T: ExtTyCast<'ivm>>(self) -> T {
+    unsafe { T::from_payload(self.payload()) }
   }
 }
 
@@ -131,29 +180,163 @@ impl<'ivm> Debug for ExtVal<'ivm> {
   }
 }
 
-/// The type of an external value.
-/// The higher bit specifies whether it is reference-counted.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct ExtTy<'ivm>(u16, PhantomData<fn(&'ivm ()) -> &'ivm ()>);
+#[derive(Clone, Copy)]
+pub struct ExtTy<'ivm, T>(ExtTyId<'ivm>, PhantomData<fn(T) -> T>);
 
-impl<'ivm> ExtTy<'ivm> {
-  fn from_id_and_rc(n: u16, rc: bool) -> Self {
-    Self(n | if rc { 0x8000 } else { 0 }, PhantomData)
+impl<'ivm, T> ExtTy<'ivm, T> {
+  pub fn new_unchecked(ty_id: ExtTyId<'ivm>) -> Self {
+    Self(ty_id, PhantomData)
   }
 
-  const fn id(self) -> u16 {
+  #[inline(always)]
+  pub fn ty_id(self) -> ExtTyId<'ivm> {
     self.0
+  }
+
+  /// Interprets this extrinsic value as a `T` through [`ExtTy<'ivm, T>`].
+  ///
+  /// If `ext`'s [`ExtVal::ty_id`] does not match [`self::ty_id`], this returns
+  /// `None`.
+  #[inline(always)]
+  pub fn unwrap_ext_val(self, ext: ExtVal<'ivm>) -> Option<T>
+  where
+    T: ExtTyCast<'ivm>,
+  {
+    if ext.ty_id() == self.0 { Some(unsafe { T::from_payload(ext.payload()) }) } else { None }
+  }
+
+  /// Converts `value` into an [`ExtVal`] with `self` as the type id.
+  #[inline(always)]
+  pub fn wrap_ext_val(self, value: T) -> ExtVal<'ivm>
+  where
+    T: ExtTyCast<'ivm>,
+  {
+    ExtVal::new(self.ty_id(), T::into_payload(value))
   }
 }
 
-/// A reference to an external function. The lower 15 bits are an [`ExtFnKind`],
-/// determining the logic of the function, and the top bit denotes whether the
-/// parameters to the function have been swapped.
+/// A trait describing how to convert between an [`ExtVal`] and a `Self`.
+///
+/// Types which can be converted to/from a 45-bit payload, can implement
+/// `ExtTyCast`.
+pub trait ExtTyCast<'ivm> {
+  const COPY: bool;
+
+  /// Converts `Self` into an unshifted [`ExtVal`] 45-bit payload.
+  ///
+  /// The returned value must not have bits outside of [`ExtVal::PAYLOAD_MASK`].
+  /// That is, the highest 16 bits and lowest 3 bits must be set to zero.
+  fn into_payload(self) -> u64;
+
+  /// Casts an [`ExtVal`]'s payload to a `Self`.
+  ///
+  /// # Safety
+  ///
+  /// `payload` must have been returned from [`into_payload`].
+  unsafe fn from_payload(payload: u64) -> Self;
+}
+
+impl<'ivm> ExtTyCast<'ivm> for u32 {
+  const COPY: bool = true;
+
+  #[inline(always)]
+  fn into_payload(self) -> u64 {
+    (self as u64) << 3
+  }
+
+  #[inline(always)]
+  unsafe fn from_payload(payload: u64) -> u32 {
+    (payload >> 3) as u32
+  }
+}
+
+impl<'ivm> ExtTyCast<'ivm> for f32 {
+  const COPY: bool = true;
+
+  #[inline(always)]
+  fn into_payload(self) -> u64 {
+    (self.to_bits() as u64) << 3
+  }
+
+  #[inline(always)]
+  unsafe fn from_payload(payload: u64) -> f32 {
+    f32::from_bits((payload >> 3) as u32)
+  }
+}
+
+/// Used for the `IO` extrinsic type.
+impl<'ivm> ExtTyCast<'ivm> for () {
+  const COPY: bool = false;
+
+  #[inline(always)]
+  fn into_payload(self) -> u64 {
+    0
+  }
+
+  #[inline(always)]
+  unsafe fn from_payload(_payload: u64) {}
+}
+
+/// The type id of an external value.
+///
+/// The highest bit specifies whether it is copyable. If a non-copyable
+/// [`ExtVal`] is copied or erased during reduction, an error flag will
+/// be set on the [`IVM`].
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub struct ExtTyId<'ivm>(u16, PhantomData<&'ivm mut &'ivm ()>);
+
+impl<'ivm> ExtTyId<'ivm> {
+  const COPY_BIT: u16 = 0x8000;
+
+  #[inline(always)]
+  fn new(ty_id: u16, copy: bool) -> Self {
+    Self::from_bits(ty_id | if copy { Self::COPY_BIT } else { 0 })
+  }
+
+  #[inline(always)]
+  fn from_bits(bits: u16) -> Self {
+    Self(bits, PhantomData)
+  }
+
+  #[inline(always)]
+  fn bits(self) -> u16 {
+    self.0
+  }
+
+  #[inline(always)]
+  pub fn is_copy(self) -> bool {
+    self.0 & Self::COPY_BIT != 0
+  }
+}
+
+/// A type uniquely identifying an extrinsic function.
+///
+/// The highest bit denotes whether the function arguments are swapped.
+/// The second-highest bit denotes whether this is a merge or split ext fn.
+/// The lowest 14 bits denote an index into one of `ext_split_fns` or
+/// `ext_merge_fns`.
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct ExtFn<'ivm>(u16, PhantomData<fn(&'ivm ()) -> &'ivm ()>);
 
 impl<'ivm> ExtFn<'ivm> {
   const SWAP_BIT: u16 = 0x8000;
+  const MERGE_BIT: u16 = 0x4000;
+  const ID_MASK: u16 = 0x3FFF;
+
+  #[inline(always)]
+  fn new_split(id: usize) -> Self {
+    Self(id as u16, PhantomData)
+  }
+
+  #[inline(always)]
+  fn new_merge(id: usize) -> Self {
+    Self(id as u16 | Self::MERGE_BIT, PhantomData)
+  }
+
+  #[inline(always)]
+  fn index(&self) -> usize {
+    (self.0 & Self::ID_MASK) as usize
+  }
 
   #[inline(always)]
   pub fn bits(&self) -> u16 {
@@ -161,18 +344,18 @@ impl<'ivm> ExtFn<'ivm> {
   }
 
   #[inline(always)]
-  pub fn kind(&self) -> u16 {
-    self.0 & !Self::SWAP_BIT
-  }
-
-  #[inline(always)]
   pub fn is_swapped(&self) -> bool {
-    (self.0 >> 15) == 1
+    self.0 & Self::SWAP_BIT != 0
   }
 
   #[inline(always)]
-  pub fn swap(&self) -> Self {
-    Self(self.0 ^ Self::SWAP_BIT, self.1)
+  pub fn is_merge(&self) -> bool {
+    self.0 & Self::MERGE_BIT != 0
+  }
+
+  #[inline(always)]
+  pub fn swapped(&self) -> Self {
+    Self(self.0 ^ Self::SWAP_BIT, PhantomData)
   }
 }
 

@@ -12,6 +12,7 @@ pub use ivm::*;
 
 pub mod addr;
 pub mod ext;
+pub mod flags;
 pub mod global;
 pub mod heap;
 pub mod instruction;

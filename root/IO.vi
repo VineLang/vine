@@ -6,6 +6,8 @@
 pub type IO;
 
 pub mod IO {
+  const eof: Char = N32::maximum as Char;
+
   /// Prints the given string to stdout with a trailing newline.
   pub fn .println(&io: &IO, str: String) {
     io.print(str);
@@ -22,7 +24,7 @@ pub mod IO {
   /// Prints the given character to stdout.
   pub fn .print_char(&io: &IO, char: Char) {
     inline_ivy! (io0 <- io, io1 -> io, char <- char) -> () { _
-      io0 = @io_print_char(char io1) 
+      io0 = @io_print_char(char io1)
     }
   }
 
@@ -34,14 +36,14 @@ pub mod IO {
 
   pub fn .print_byte(&io: &IO, byte: N32) {
     inline_ivy! (io0 <- io, io1 -> io, byte <- byte) -> () { _
-      io0 = @io_print_byte(byte io1) 
+      io0 = @io_print_byte(byte io1)
     }
   }
 
   /// Flushes any buffered output to stdout.
   pub fn .flush(&io: &IO) {
     inline_ivy! (io0 <- io, io1 -> io) -> () { _
-      io0 = @io_flush(0 io1) 
+      io0 = @io_flush(_ io1)
     }
   }
 
@@ -54,16 +56,15 @@ pub mod IO {
 
   /// Reads a line from stdin.
   pub fn .read_line(&io: &IO) -> Option[String] {
-    let byte = io.read_byte('\0');
-    if byte != '\0' {
-      Some(if byte == '\n' {
+    if io._read_char() is char and char != eof {
+      Some(if char == '\n' {
         ""
       } else {
-        let chars = [byte];
+        let chars = [char];
         loop {
-          byte = io.read_byte('\n');
-          if byte != '\n' {
-            chars ++= [byte];
+          char = io._read_char();
+          if char != '\n' and char != eof {
+            chars ++= [char];
             continue;
           }
         }
@@ -78,21 +79,48 @@ pub mod IO {
   pub fn .full_input(&io: &IO) -> String {
     let chars = [];
     loop {
-      let byte = io.read_byte('\0');
-      if byte == '\0' {
-        String(chars)
-      } else {
-        chars ++= [byte];
+      if io._read_char() is char and char != eof {
+        chars ++= [char];
         continue;
+      } else {
+        String(chars)
       }
     }
   }
 
-  pub fn .read_byte(&io: &IO, default: Char) -> Char {
-    inline_ivy! (io0 <- io, io3 -> io, default <- default) -> Char {
+  /// Reads a UTF-8 code point from stdin, returning `None()` if nothing was
+  /// read. If an invalid UTF-8 char is encountered, `Some(U+FFFD)` is returned.
+  pub fn .read_char(&io: &IO) -> Option[Char] {
+    if io._read_char() is char and char != eof {
+      Some(char)
+    } else {
+      None()
+    }
+  }
+
+  /// Reads a UTF-8 code point from stdin, returning `eof` if nothing was
+  /// read. If an invalid UTF-8 char is encountered, `U+FFFD` is returned.
+  fn ._read_char(&io: &IO) -> Char {
+    inline_ivy! (io0 <- io, io1 -> io) -> Char {
+      char
+      io0 = @io_read_char(char io1)
+    }
+  }
+
+  /// Reads a byte from stdin, returning `None()` if nothing was read.
+  pub fn .read_byte(&io: &IO) -> Option[Char] {
+    if io._read_byte() is byte and byte != eof {
+      Some(byte)
+    } else {
+      None()
+    }
+  }
+
+  /// Reads a byte from stdin, returning `eof` if nothing was read.
+  fn ._read_byte(&io: &IO) -> Char {
+    inline_ivy! (io0 <- io, io1 -> io) -> Char {
       byte
-      io0 = dup(io1 io2)
-      io1 = @io_read_byte(default dup(byte @seq$(io2 io3))) 
+      io0 = @io_read_byte(byte io1)
     }
   }
 
@@ -106,7 +134,7 @@ pub mod IO {
   pub fn .forever(&io: &IO) -> Bool {
     inline_ivy! (io0 <- io, io1 -> io) -> Bool {
       signal
-      io0 = dup(io1 @seq$(1 signal))
+      io0 = @io_ready(signal io1)
     }
   }
 }

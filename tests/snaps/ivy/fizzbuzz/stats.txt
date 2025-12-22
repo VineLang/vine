@@ -1,10 +1,10 @@
 
 Interactions
-  Total           83_903_704
+  Total           84_903_704
   Annihilate      21_896_297
   Commute                  0
   Copy            14_348_148
-  Erase           13_481_481
+  Erase           14_481_481
   Expand           6_807_408
   Call            20_696_296
   Branch           6_674_074

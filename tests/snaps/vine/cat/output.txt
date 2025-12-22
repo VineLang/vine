@@ -1,6 +1,4 @@
-
-pub fn main(&io: &IO) {
-  while io.read_line() is Some(line) {
-    io.println(line);
-  }
-}
+Xin chào!
+���
+नम!
+Hello!

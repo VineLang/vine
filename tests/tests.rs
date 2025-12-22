@@ -18,11 +18,11 @@ fn tests(t: &mut DynTester) {
   env::set_current_dir("..").unwrap();
 
   let brainfuck_input = b">,[>,]<[.<]\nlufsseccus lasrever"; // cspell:disable-line
-  let cat_input = include_bytes!("../vine/examples/cat.vi");
+  let cat_input = b"Xin ch\xc3\xa0o!\n\xc3\x28\xff\xfe\n\xe0\xa4\xa8\xe0\xa4\xae!\nHello!\n";
   let fib_repl_input_iv = b"1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n21\n100\n999999\n";
   let fib_repl_input_vi = b"1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n21\n100\n999999\n\nabc\n";
   let guessing_game_input = b"a seed\na maximum number\n100\n50\n75\n63\n56\n60\n58\n57";
-  let lambda_input = b"(\\2.((2 2) 2))(\\f.\\x.(f(f x)))\n(\\a.\\b.b)((\\x.(x x))(\\x.(x x)))";
+  let lambda_input = "(λ2.((2 2) 2))(λf.λx.(f(f x)))\n(λa.λb.b)((λx.(x x))(λx.(x x)))".as_bytes();
   let life_input = b"step 100\nstep 418\n\n\n\n\n\n\n";
 
   t.group("ivy", |t| {
