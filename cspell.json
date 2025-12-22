@@ -9,6 +9,7 @@
     "centimanes",
     "cfgs",
     "cmps",
+    "codepoint"
     "combinators",
     "concat",
     "condvar",

@@ -182,7 +182,7 @@ impl<'ivm> Host<'ivm> {
 /// UTF-8 codepoint composed of the `first_byte` and the 1-3 read bytes.
 ///
 /// If less than `n` bytes are read, or if the bytes are invalid UTF-8, `None`
-/// is reaturned.
+/// is returned.
 fn read_bytes_into_utf8_u32(first_byte: u8, n: usize) -> Option<u32> {
   assert!((1..=3).contains(&n));
 
