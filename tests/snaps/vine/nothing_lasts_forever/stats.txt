@@ -1,26 +1,24 @@
 
 Error: the net did not return its `IO` handle
 
-Error: a non-copyable extrinsic was copied
-
 Error: a non-copyable extrinsic was erased
 
 Interactions
-  Total                5_514
+  Total                5_465
   Annihilate           2_318
   Commute                  0
-  Copy                   538
-  Erase                  681
+  Copy                   490
+  Erase                  680
   Expand                 534
   Call                 1_042
   Branch                 401
 
 Parallelism
-  Depth                3_399
+  Depth                3_352
   Breadth                  1
   Speedup                 21 cB
 
 Memory
-  Heap                   768 B
-  Allocated          107_216 B
-  Freed              107_216 B
+  Heap                   752 B
+  Allocated          106_448 B
+  Freed              106_448 B

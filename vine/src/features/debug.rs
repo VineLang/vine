@@ -119,7 +119,7 @@ pub(crate) fn main_net_debug(main: Tree) -> Net {
             [
               Tree::Var("io1".into()),
               Tree::ExtFn(
-                "seq".into(),
+                "io_join".into(),
                 false,
                 Box::new(Tree::Var("io2".into())),
                 Box::new(Tree::Var("io3".into())),

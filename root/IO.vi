@@ -134,7 +134,7 @@ pub mod IO {
   pub fn .forever(&io: &IO) -> Bool {
     inline_ivy! (io0 <- io, io1 -> io) -> Bool {
       signal
-      io0 = dup(io1 @seq$(1 signal))
+      io0 = @io_ready(signal io1)
     }
   }
 }

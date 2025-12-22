@@ -93,11 +93,6 @@ impl<'ivm> Host<'ivm> {
     let f32 = self.register_f32_ext_ty(extrinsics);
     let io = self.register_io_ext_ty(extrinsics);
 
-    self.register_ext_fn(
-      "seq".into(),
-      extrinsics.new_merge_ext_fn(move |ivm, a, _b, out| ivm.link_wire(out, Port::new_ext_val(a))),
-    );
-
     register_ext_fns!(match (self, extrinsics) {
       "n32_add" => |a: n32, b: n32| -> n32 { a.wrapping_add(b) },
       "n32_sub" => |a: n32, b: n32| -> n32 { a.wrapping_sub(b) },
@@ -144,7 +139,10 @@ impl<'ivm> Host<'ivm> {
       "i32_lt" => |a: n32, b: n32| -> n32 { ((a as i32) < (b as i32)) as u32 },
       "i32_le" => |a: n32, b: n32| -> n32 { ((a as i32) <= (b as i32)) as u32 },
 
+      "io_join" => |_io_a: io, _io_b: io| -> io {},
       "io_split" => |_io: io| -> (io, io) { ((), ()) },
+      "io_ready" => |_io: io| -> (n32, io) { (1, ()) },
+
       "io_print_char" => |_io: io, b: n32| -> io {
         print!("{}", char::try_from(b).unwrap());
       },
