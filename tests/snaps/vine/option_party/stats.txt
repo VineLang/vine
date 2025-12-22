@@ -1,7 +1,7 @@
 
 Error: the net did not return its `IO` handle
 
-Error: a non-copyable extrinsic was erased
+Error: a linear extrinsic was erased
 
 Interactions
   Total               20_532

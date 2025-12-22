@@ -77,10 +77,10 @@ impl RunArgs {
     }
 
     if ivm.flags.ext_copy {
-      eprintln!("\nError: a non-copyable extrinsic was copied");
+      eprintln!("\nError: a linear extrinsic was copied");
     }
     if ivm.flags.ext_erase {
-      eprintln!("\nError: a non-copyable extrinsic was erased");
+      eprintln!("\nError: a linear extrinsic was erased");
     }
 
     if !self.no_stats {
