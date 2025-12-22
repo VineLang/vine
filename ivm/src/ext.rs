@@ -8,7 +8,7 @@ use core::{
   marker::PhantomData,
 };
 
-use crate::{ivm::IVM, port::Tag, wire::Wire};
+use crate::{ivm::IVM, port::Tag, wire::Wire, word::Word};
 
 macro_rules! trait_alias {
   ($($(#[$attr:meta])* $vis:vis trait $name:ident = ($($trait:tt)*);)*) => {$(
@@ -270,28 +270,15 @@ pub struct Aligned<T>(T);
 impl<'ivm> ExtTyCast<'ivm> for f64 {
   const COPY: bool = false;
 
-  #[cfg(miri)]
+  #[inline(always)]
   fn into_payload(self) -> u64 {
     let pointer = Box::into_raw(Box::new(Aligned(self)));
-    pointer.expose_provenance() as u64
+    Word::from_ptr(pointer.cast()).bits()
   }
 
-  #[cfg(not(miri))]
-  fn into_payload(self) -> u64 {
-    let pointer = Box::into_raw(Box::new(Aligned(self)));
-    pointer as u64
-  }
-
-  #[cfg(miri)]
+  #[inline(always)]
   unsafe fn from_payload(payload: u64) -> Self {
-    let ptr = std::ptr::with_exposed_provenance_mut(payload as usize);
-    let Aligned(f) = unsafe { *Box::from_raw(ptr) };
-    f
-  }
-
-  #[cfg(not(miri))]
-  unsafe fn from_payload(payload: u64) -> Self {
-    let ptr = payload as *mut Aligned<f64>;
+    let ptr = Word::from_bits(payload).ptr().cast_mut().cast();
     let Aligned(f) = unsafe { *Box::from_raw(ptr) };
     f
   }
