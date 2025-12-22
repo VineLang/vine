@@ -1,13 +1,13 @@
 
 Interactions
-  Total               65_034
-  Annihilate          33_682
+  Total               68_169
+  Annihilate          34_983
   Commute                222
-  Copy                 6_265
-  Erase                9_402
-  Expand               5_423
-  Call                 7_123
-  Branch               2_917
+  Copy                 6_613
+  Erase                9_747
+  Expand               5_742
+  Call                 7_680
+  Branch               3_182
 
 Parallelism
   Depth               15_586

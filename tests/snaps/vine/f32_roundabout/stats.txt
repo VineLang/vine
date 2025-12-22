@@ -1,13 +1,13 @@
 
 Interactions
-  Total           41_860_137
-  Annihilate      19_933_373
+  Total           41_820_137
+  Annihilate      19_915_373
   Commute            570_904
-  Copy             5_386_898
-  Erase            5_700_079
-  Expand           3_283_795
-  Call             5_056_267
-  Branch           1_928_821
+  Copy             5_382_898
+  Erase            5_696_079
+  Expand           3_279_795
+  Call             5_050_267
+  Branch           1_924_821
 
 Memory
   Heap             2_255_312 B
