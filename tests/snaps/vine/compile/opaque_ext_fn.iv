@@ -9,6 +9,8 @@
   fn(_ fn(w2 _)) = _
 }
 
+::root::ops::flex::Drop::ref::drop:s1 { fn(_ fn(ref(w0 w0) _)) }
+
 ::opaque_ext_fn::main:s1 {
   fn(_ fn(w0 _))
   fn(_ fn(w0 _)) = ::root::ops::flex::Drop::ref::drop:s1
@@ -17,6 +19,4 @@
 }
 
 ::opaque_ext_fn::custom_ext_fn:s1 { fn(_ fn(@custom_ext_fn(w5 w2) fn(w5 w2))) }
-
-::root::ops::flex::Drop::ref::drop:s1 { fn(_ fn(ref(w0 w0) _)) }
 

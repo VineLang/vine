@@ -290,8 +290,20 @@ impl Synthesizer<'_> {
   }
 
   fn synthesize_debug_state(&mut self) -> Net {
-    let w = self.new_wire();
-    Net::new(Tree::n_ary("fn", [Tree::n_ary("dbg", [w.0, Tree::Erase]), w.1]))
+    if self.debug {
+      let x = self.new_wire();
+      let y = self.new_wire();
+      Net::new(Tree::n_ary(
+        "fn",
+        [
+          Tree::n_ary("dbg", [x.0, Tree::Erase]),
+          Tree::n_ary("enum", [Tree::n_ary("enum", [x.1, y.0]), Tree::Erase, y.1]),
+        ],
+      ))
+    } else {
+      let x = self.new_wire();
+      Net::new(Tree::n_ary("fn", [Tree::Erase, Tree::n_ary("enum", [Tree::Erase, x.0, x.1])]))
+    }
   }
 
   fn enum_(
