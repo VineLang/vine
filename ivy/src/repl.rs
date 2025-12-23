@@ -68,6 +68,7 @@ impl<'host, 'ctx, 'ivm, 'ext> Repl<'host, 'ctx, 'ivm, 'ext> {
       Tree::Erase => Port::ERASE,
       Tree::N32(value) => Port::new_ext_val(self.host.new_n32(value)),
       Tree::F32(value) => Port::new_ext_val(self.host.new_f32(value)),
+      Tree::F64(value) => Port::new_ext_val(self.host.new_f64(value)),
       Tree::Global(name) => Port::new_global(self.host.get(&name).unwrap()),
       Tree::Comb(label, a, b) => {
         let label = Host::label_to_u16(label, &mut self.host.comb_labels);

@@ -314,4 +314,10 @@ pub mod N64 {
       b - a
     }
   }
+
+  pub impl to_n64: Cast[Bool, N64] {
+    fn cast(b: Bool) -> N64 {
+      N64(unsafe::transmute(b), 0)
+    }
+  }
 }

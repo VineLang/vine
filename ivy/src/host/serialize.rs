@@ -198,6 +198,22 @@ impl<'l, 'ast, 'ivm> Serializer<'l, 'ast, 'ivm> {
       Tree::F32(num) => {
         self.push(Instruction::Nilary(to, Port::new_ext_val(self.host.new_f32(*num))))
       }
+      Tree::F64(num) => {
+        let bits = num.to_bits();
+        let lo = bits as u32;
+        let hi = (bits >> 32) as u32;
+        let rl = self.current.instructions.new_register();
+        let rh = self.current.instructions.new_register();
+        self.push(Instruction::Nilary(rl, Port::new_ext_val(self.host.new_n32(lo))));
+        self.push(Instruction::Nilary(rh, Port::new_ext_val(self.host.new_n32(hi))));
+        self.push(Instruction::Binary(
+          Tag::ExtFn,
+          self.host.instantiate_ext_fn("f64_from_bits", false).unwrap().bits(),
+          rl,
+          rh,
+          to,
+        ));
+      }
       Tree::Comb(label, a, b) => {
         let label = Host::label_to_u16(label, &mut self.host.comb_labels);
         let a = self.serialize_tree(a);

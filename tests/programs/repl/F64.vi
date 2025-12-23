@@ -1,0 +1,30 @@
+use #root::numeric::F64
+let x = 3.141592 as F64
+x + (x - 2.0 as F64)
+x * (x - 2.0 as F64)
+x - (x - 2.0 as F64)
+x / (x - 2.0 as F64)
+x % (x - 2.0 as F64)
+x ** 2
+x ** -2
+x ** x ** x
+-x
++x
+x == x
+(1.0 as F64) / x == x ** -1
+F64::nan
+F64::inf
+F64::neg_inf
+F64::nan == F64::nan
+F64::inf == F64::inf
+F64::neg_inf == F64::neg_inf
+x as F32
+x as N64
+x.to_bits()
+F64::from_bits(x.to_bits())
+let parts = x.to_parts()
+F64::from_parts(parts.negative, parts.raw_exp, parts.mantissa)
+x.abs()
+(-x).abs()
+x.is_nan()
+F64::parse("3.141592") == Some(x)

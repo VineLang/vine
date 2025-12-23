@@ -60,7 +60,7 @@ impl Net {
 impl Tree {
   fn is_nilary(&self) -> bool {
     match self {
-      Tree::Erase | Tree::N32(_) | Tree::F32(_) | Tree::Global(_) => true,
+      Tree::Erase | Tree::N32(_) | Tree::F32(_) | Tree::F64(_) | Tree::Global(_) => true,
       Tree::Comb(..) | Tree::ExtFn(..) | Tree::Branch(..) | Tree::Var(_) => false,
       Tree::BlackBox(t) => t.is_nilary(),
     }
