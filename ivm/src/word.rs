@@ -19,7 +19,7 @@ use core::{
 /// A 64-bit value with provenance.
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[repr(transparent)]
-pub(crate) struct Word(#[cfg(not(miri))] u64, #[cfg(miri)] *mut ());
+pub struct Word(#[cfg(not(miri))] u64, #[cfg(miri)] *mut ());
 
 impl Word {
   /// Creates a new `Word` with the given `bits` and no provenance.
@@ -118,7 +118,7 @@ impl NonZeroWord {
   #[cfg(miri)]
   #[inline(always)]
   pub const unsafe fn new_unchecked(word: Word) -> Self {
-    NonZeroWord(NonNull::new_unchecked(word.0))
+    unsafe { NonZeroWord(NonNull::new_unchecked(word.0)) }
   }
 
   #[cfg(not(miri))]
