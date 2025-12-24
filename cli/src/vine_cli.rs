@@ -3,6 +3,7 @@ use std::{
   io::{self, IsTerminal, Read, stderr, stdin, stdout},
   path::PathBuf,
   process::exit,
+  sync::mpsc,
   time::{Duration, Instant},
 };
 
@@ -11,8 +12,7 @@ use clap::{Args, CommandFactory, Parser};
 
 use ivm::{IVM, ext::Extrinsics, heap::Heap};
 use ivy::{ast::Nets, host::Host};
-use notify::RecursiveMode;
-use notify_debouncer_mini::new_debouncer;
+use notify::{RecommendedWatcher, RecursiveMode, Watcher};
 use rustyline::DefaultEditor;
 use vine::{
   compiler::Compiler,
@@ -230,7 +230,7 @@ pub struct VineCheckCommand {
   check: CheckArgs,
   #[arg(long)]
   watch: Vec<PathBuf>,
-  #[arg(long, default_value = "100")]
+  #[arg(long, default_value = "50")]
   debounce: u64,
 }
 
@@ -290,19 +290,20 @@ impl VineCheckCommand {
     if self.watch.is_empty() {
       check();
     } else {
-      clear();
-      check();
-
-      let mut debouncer = new_debouncer(Duration::from_millis(self.debounce), move |_| {
-        clear();
-        check();
-      })?;
+      let (send, recv) = mpsc::channel();
+      let mut watcher = RecommendedWatcher::new(send, Default::default())?;
 
       for path in self.watch {
-        debouncer.watcher().watch(&path, RecursiveMode::Recursive)?;
+        watcher.watch(&path, RecursiveMode::Recursive)?;
       }
 
-      loop {}
+      let debounce = Duration::from_millis(self.debounce);
+      loop {
+        clear();
+        check();
+        _ = recv.recv();
+        while recv.recv_timeout(debounce).is_ok() {}
+      }
     }
 
     Ok(())
