@@ -3,6 +3,7 @@ use std::{
   io::{self, IsTerminal, Read, stderr, stdin, stdout},
   path::PathBuf,
   process::exit,
+  time::{Duration, Instant},
 };
 
 use anyhow::Result;
@@ -10,6 +11,8 @@ use clap::{Args, CommandFactory, Parser};
 
 use ivm::{IVM, ext::Extrinsics, heap::Heap};
 use ivy::{ast::Nets, host::Host};
+use notify::RecursiveMode;
+use notify_debouncer_mini::new_debouncer;
 use rustyline::DefaultEditor;
 use vine::{
   compiler::Compiler,
@@ -27,6 +30,7 @@ pub enum VineCommand {
   Run(VineRunCommand),
   /// Compile a Vine program to Ivy
   Build(VineBuildCommand),
+  Check(VineCheckCommand),
   /// Run tests in a Vine program
   Test(VineTestCommand),
 
@@ -46,6 +50,7 @@ impl VineCommand {
     match Self::parse() {
       VineCommand::Run(run) => run.execute(),
       VineCommand::Build(build) => build.execute(),
+      VineCommand::Check(check) => check.execute(),
       VineCommand::Test(test) => test.execute(),
       VineCommand::Repl(repl) => repl.execute(),
       VineCommand::Fmt(fmt) => fmt.execute(),
@@ -54,6 +59,15 @@ impl VineCommand {
       VineCommand::Doc(doc) => doc.execute(),
     }
   }
+}
+
+#[derive(Debug, Args)]
+pub struct CheckArgs {
+  entrypoints: Vec<String>,
+  #[arg(long = "lib")]
+  libs: Vec<PathBuf>,
+  #[arg(long)]
+  no_root: bool,
 }
 
 #[derive(Debug, Args)]
@@ -211,6 +225,91 @@ impl VineBuildCommand {
 }
 
 #[derive(Debug, Args)]
+pub struct VineCheckCommand {
+  #[command(flatten)]
+  check: CheckArgs,
+  #[arg(long)]
+  watch: Vec<PathBuf>,
+  #[arg(long, default_value = "100")]
+  debounce: u64,
+}
+
+impl VineCheckCommand {
+  pub fn execute(mut self) -> Result<()> {
+    if !self.check.no_root {
+      self.check.libs.push(root_path())
+    }
+
+    let config = Config::new(true, true);
+    let mut compiler = Compiler::new(config);
+
+    for lib in self.check.libs {
+      compiler.loader.load_mod(&lib, &mut compiler.diags);
+    }
+
+    if compiler.check(()).is_err() {
+      eprint_diags(&compiler);
+      exit(1);
+    }
+
+    let checkpoint = compiler.checkpoint();
+
+    let Colors { reset, red, yellow, green, grey, .. } = colors(&stderr());
+
+    let mut check = move || {
+      let start = Instant::now();
+
+      compiler.revert(&checkpoint);
+
+      for glob in &self.check.entrypoints {
+        for entry in glob::glob(glob).unwrap() {
+          let entry = entry.unwrap();
+          compiler.loader.load_mod(&entry, &mut compiler.diags);
+        }
+      }
+
+      _ = compiler.check(());
+
+      eprint_diags(&compiler);
+
+      let color = if !compiler.diags.errors.is_empty() {
+        red
+      } else if !compiler.diags.warnings.is_empty() {
+        yellow
+      } else {
+        green
+      };
+
+      eprintln!("{color}finished{reset} {grey}in{reset} {:?}", start.elapsed());
+    };
+
+    let clear = || {
+      eprint!("\x1b[H\x1b[3J\x1b[2J");
+    };
+
+    if self.watch.is_empty() {
+      check();
+    } else {
+      clear();
+      check();
+
+      let mut debouncer = new_debouncer(Duration::from_millis(self.debounce), move |_| {
+        clear();
+        check();
+      })?;
+
+      for path in self.watch {
+        debouncer.watcher().watch(&path, RecursiveMode::Recursive)?;
+      }
+
+      loop {}
+    }
+
+    Ok(())
+  }
+}
+
+#[derive(Debug, Args)]
 pub struct VineReplCommand {
   #[arg(long = "lib")]
   libs: Vec<PathBuf>,
@@ -283,19 +382,16 @@ impl VineFmtCommand {
 
 #[derive(Debug, Args)]
 pub struct VineLspCommand {
-  #[arg(long = "lib")]
-  libs: Vec<PathBuf>,
-  entrypoints: Vec<String>,
-  #[arg(long)]
-  no_root: bool,
+  #[command(flatten)]
+  check: CheckArgs,
 }
 
 impl VineLspCommand {
   pub fn execute(mut self) -> Result<()> {
-    if !self.no_root {
-      self.libs.push(root_path());
+    if !self.check.no_root {
+      self.check.libs.push(root_path());
     };
-    lsp(self.libs, self.entrypoints);
+    lsp(self.check.libs, self.check.entrypoints);
     Ok(())
   }
 }
@@ -348,18 +444,8 @@ fn print_diags(compiler: &Compiler) {
 }
 
 fn _print_diags(mut w: impl io::Write + IsTerminal, compiler: &Compiler) -> io::Result<()> {
-  let colorized = w.is_terminal();
-  macro_rules! ansi {
-    ($str:literal) => {
-      if colorized { concat!("\x1b[", $str, "m") } else { "" }
-    };
-  }
-  let bold = ansi!("1");
-  let red = ansi!("91");
-  let yellow = ansi!("33");
-  let grey = ansi!("2;39");
-  let reset = ansi!("0");
-  let underline = ansi!("4");
+  let Colors { reset, bold, underline, grey, red, yellow, .. } = colors(&w);
+
   let errors = compiler.diags.errors.iter().map(|x| (red, "error", x));
   let warnings = compiler.diags.warnings.iter().map(|x| (yellow, "warning", x));
 
@@ -394,4 +480,30 @@ fn _print_diags(mut w: impl io::Write + IsTerminal, compiler: &Compiler) -> io::
   }
 
   Ok(())
+}
+
+struct Colors {
+  reset: &'static str,
+  bold: &'static str,
+  underline: &'static str,
+  grey: &'static str,
+  red: &'static str,
+  yellow: &'static str,
+  green: &'static str,
+}
+
+fn colors(t: &impl IsTerminal) -> Colors {
+  if t.is_terminal() {
+    Colors {
+      reset: "\x1b[0m",
+      bold: "\x1b[1m",
+      underline: "\x1b[4m",
+      grey: "\x1b[2;39m",
+      red: "\x1b[91m",
+      yellow: "\x1b[33m",
+      green: "\x1b[32m",
+    }
+  } else {
+    Colors { reset: "", bold: "", underline: "", grey: "", red: "", yellow: "", green: "" }
+  }
 }

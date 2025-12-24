@@ -67,6 +67,11 @@ impl Compiler {
     }
   }
 
+  pub fn check(&mut self, hooks: impl Hooks) -> Result<(), ErrorGuaranteed> {
+    let checkpoint = self.checkpoint();
+    self._check(hooks, &checkpoint)
+  }
+
   pub fn compile(&mut self, hooks: impl Hooks) -> Result<Nets, ErrorGuaranteed> {
     let checkpoint = self.checkpoint();
     self._compile(hooks, &checkpoint)
@@ -74,9 +79,18 @@ impl Compiler {
 
   fn _compile(
     &mut self,
-    mut hooks: impl Hooks,
+    hooks: impl Hooks,
     checkpoint: &Checkpoint,
   ) -> Result<Nets, ErrorGuaranteed> {
+    self._check(hooks, checkpoint)?;
+    Ok(self.nets_from(checkpoint))
+  }
+
+  fn _check(
+    &mut self,
+    mut hooks: impl Hooks,
+    checkpoint: &Checkpoint,
+  ) -> Result<(), ErrorGuaranteed> {
     let root = self.loader.finish();
     self.diags.bail()?;
 
@@ -140,7 +154,7 @@ impl Compiler {
 
     self.diags.bail()?;
 
-    Ok(self.nets_from(checkpoint))
+    Ok(())
   }
 
   pub fn nets_from(&mut self, checkpoint: &Checkpoint) -> Nets {
