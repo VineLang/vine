@@ -36,15 +36,28 @@ impl<'ivm, 'ext> IVM<'ivm, 'ext> {
   }
 
   /// Link a wire and a port.
-  pub fn link_wire(&mut self, a: Wire<'ivm>, b: Port<'ivm>) {
+  pub fn link_wire(&mut self, mut a: Wire<'ivm>, b: Port<'ivm>) {
     let b = self.follow(b);
-    if unsafe { Port::new_wire(a.clone()).bits() == b.bits() } {
-      self.free_wire(a);
-      return;
-    }
-    if let Some(s) = a.swap_target(Some(unsafe { b.clone() })) {
-      self.free_wire(a);
-      self.link(s, b);
+    let mut len = 0;
+    loop {
+      if unsafe { Port::new_wire(a.clone()).bits() == b.bits() } {
+        self.free_wire(a);
+        self.stats.max_len = self.stats.max_len.max(len);
+        return;
+      }
+      if let Some(s) = a.swap_target(Some(unsafe { b.clone() })) {
+        len += 1;
+        self.free_wire(a);
+        if s.tag() == Tag::Wire {
+          a = unsafe { s.as_wire() };
+        } else {
+          self.stats.max_len = self.stats.max_len.max(len);
+          return self.link(s, b);
+        }
+      } else {
+        self.stats.max_len = self.stats.max_len.max(len);
+        return;
+      }
     }
   }
 
@@ -57,7 +70,9 @@ impl<'ivm, 'ext> IVM<'ivm, 'ext> {
   /// Follows as many `Wire`s with active targets as currently possible.
   #[inline]
   pub fn follow(&mut self, mut p: Port<'ivm>) -> Port<'ivm> {
+    let mut len = 0;
     while p.tag() == Tag::Wire {
+      len += 1;
       if let Some(q) = unsafe { p.clone().as_wire() }.load_target() {
         self.free_wire(unsafe { p.as_wire() });
         p = q;
@@ -65,6 +80,7 @@ impl<'ivm, 'ext> IVM<'ivm, 'ext> {
         break;
       }
     }
+    self.stats.max_len = self.stats.max_len.max(len);
     p
   }
 

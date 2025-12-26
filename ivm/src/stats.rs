@@ -17,6 +17,8 @@ pub struct Stats {
   pub call: u64,
   pub branch: u64,
 
+  pub max_len: u64,
+
   /// Depth of the execution
   pub depth: u64,
 
@@ -95,6 +97,7 @@ impl Display for Stats {
         ("  Branch", Some((self.branch, ""))),
         ("", None),
       ]),
+      Some(&[("", None), ("Max Len", Some((self.max_len, ""))), ("", None)]),
       (self.depth != 0).then_some(&[
         ("Parallelism", None),
         ("  Depth", Some((self.depth, ""))),
