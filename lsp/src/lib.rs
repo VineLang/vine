@@ -42,7 +42,7 @@ impl Backend {
     }
 
     let start = Instant::now();
-    _ = lsp.compiler.compile(());
+    _ = lsp.compiler.check(());
     eprintln!("compiled in {:?}", start.elapsed());
 
     let mut diags_by_file = HashMap::<FileId, (Vec<&Diag>, Vec<&Diag>)>::new();
@@ -415,7 +415,7 @@ pub async fn lsp(libs: Vec<PathBuf>, entrypoints: Vec<String>) {
     compiler.loader.load_mod(&lib, &mut compiler.diags);
   }
 
-  _ = compiler.compile(());
+  _ = compiler.check(());
   let checkpoint = compiler.checkpoint();
 
   let (service, socket) = LspService::new(|client| Backend {
