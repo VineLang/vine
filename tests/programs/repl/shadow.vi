@@ -1,0 +1,5 @@
+impl show: Show[~&()];
+fn foo() -> N32 { 4 }
+foo()
+fn foo() -> N32 { 6 }
+foo()
