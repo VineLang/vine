@@ -172,9 +172,9 @@ impl<'ctx, 'ivm, 'ext, 'comp> Repl<'ctx, 'ivm, 'ext, 'comp> {
         let mut extractor = ExtractItems::default();
         extractor.visit(&mut *self.block);
         if !extractor.items.is_empty() {
+          *self.repl_mod =
+            charter.new_def(Ident("repl".into()), "<repl>".into(), Some(*self.repl_mod));
           for item in extractor.items {
-            *self.repl_mod =
-              charter.new_def(Ident("repl".into()), "<repl>".into(), Some(*self.repl_mod));
             charter.chart_item(VisId::Def(*self.repl_mod), item, *self.repl_mod, GenericsId::NONE);
             self.extracted_items = true;
           }
