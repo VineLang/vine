@@ -97,6 +97,7 @@ fn tests(t: &mut DynTester) {
     test_vi(t, "tests/programs/specializations.vi", b"", ".txt", true, false, false);
     test_vi(t, "tests/programs/square_case.vi", b"", ".txt", true, false, false);
     test_vi(t, "tests/programs/the_greatest_show.vi", b"", ".txt", true, false, false);
+    test_vi(t, "tests/programs/tiny_f64.vi", b"", ".txt", true, false, false);
     test_vi(t, "tests/programs/verbose_add.vi", b"", ".txt", true, false, false);
     test_vi(t, "tests/programs/when_break_continue.vi", b"", ".txt", true, false, false);
 

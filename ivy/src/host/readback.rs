@@ -55,6 +55,7 @@ impl<'ctx, 'ivm, 'ext> Reader<'ctx, 'ivm, 'ext> {
           "N32" => Tree::N32(unsafe { val.cast::<u32>() }),
           "F32" => Tree::F32(unsafe { val.cast::<f32>() }),
           "F64" => Tree::F64(unsafe { val.cast::<f64>() }),
+          "IO" => Tree::Var("<IO>".into()),
           _ => unreachable!("invalid ext ty in pre-reduce: `{ext_ty_name}`"),
         }
       }

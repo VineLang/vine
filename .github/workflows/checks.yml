@@ -67,9 +67,11 @@ jobs:
             target
           key: ${{ runner.os }}-test-${{ hashFiles('**/Cargo.lock') }}
       - run: cargo run --bin vine build vine/examples/cat.vi > cat.iv
+      - run: cargo run --bin vine build tests/programs/tiny_f64.vi > tiny_f64.iv
       - name: test miri
         run: |
           [[ "$(echo 'Hello, miri!' | MIRIFLAGS=-Zmiri-disable-isolation cargo miri run --bin ivy run cat.iv)" == "Hello, miri!" ]]
+          [[ "MIRIFLAGS=-Zmiri-disable-isolation cargo miri run --bin ivy run tiny_f64.iv --heap 1500" == "12 + 34 = 46" ]]
 
   fmt:
     runs-on: ubuntu-latest

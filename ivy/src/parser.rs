@@ -64,6 +64,11 @@ impl<'src> Parser<'src> {
     self.parse_f32_like(token, ParseError::InvalidNum)
   }
 
+  fn parse_f64(&mut self) -> Result<f64, ParseError<'src>> {
+    let token = self.expect(Token::F64)?;
+    self.parse_f64_like(token.strip_suffix("f64").unwrap(), ParseError::InvalidNum)
+  }
+
   fn parse_net(&mut self) -> Result<Net, ParseError<'src>> {
     self.expect(Token::OpenBrace)?;
     let net = self.parse_net_inner()?;
@@ -95,6 +100,10 @@ impl<'src> Parser<'src> {
 
     if self.check(Token::F32) {
       return Ok(Tree::F32(self.parse_f32()?));
+    }
+
+    if self.check(Token::F64) {
+      return Ok(Tree::F64(self.parse_f64()?));
     }
 
     if self.check(Token::Global) {
