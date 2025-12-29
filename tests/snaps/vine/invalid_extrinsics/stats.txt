@@ -1,0 +1,22 @@
+
+Error: an extrinsic function received value of an unexpected type
+
+Interactions
+  Total                   19
+  Annihilate               6
+  Commute                  0
+  Copy                     2
+  Erase                    7
+  Expand                   3
+  Call                     1
+  Branch                   0
+
+Parallelism
+  Depth                    5
+  Breadth                  3
+  Speedup                 58 cB
+
+Memory
+  Heap                   176 B
+  Allocated              240 B
+  Freed                  240 B
