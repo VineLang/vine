@@ -98,8 +98,10 @@ impl<'ivm, 'ext> IVM<'ivm, 'ext> {
         let x = unsafe { n.as_ext_val() };
         if !x.ty_id().is_copy() {
           self.flags.ext_copy = true;
+          self.copy(Port::ERASE, b);
+        } else {
+          self.copy(n, b);
         }
-        self.copy(n, b);
       }
       ((Comb | ExtFn | Branch, a), (Comb | ExtFn | Branch, b)) => self.commute(a, b),
       sym!((ExtFn, f), (ExtVal, v)) => self.call(f, v),
@@ -192,8 +194,18 @@ impl<'ivm, 'ext> IVM<'ivm, 'ext> {
     let (a, o) = unsafe { b.aux() };
     let (b, z, p) = unsafe { self.new_node(Tag::Branch, 0) };
     self.link_wire(a, b);
-    let (y, n) = if val == 0 { (z, p) } else { (p, z) };
-    self.link_wire(n, Port::ERASE);
-    self.link_wire_wire(o, y);
+    match val {
+      Some(val) => {
+        let (y, n) = if val == 0 { (z, p) } else { (p, z) };
+        self.link_wire(n, Port::ERASE);
+        self.link_wire_wire(o, y);
+      }
+      None => {
+        self.flags.ext_ty_mismatch = true;
+        self.link_wire(z, Port::ERASE);
+        self.link_wire(p, Port::ERASE);
+        self.link_wire(o, Port::ERASE);
+      }
+    }
   }
 }

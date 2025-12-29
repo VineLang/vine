@@ -21,9 +21,14 @@ macro_rules! register_ext_fns {
 
   (@impl $ext:ident, |$a:ident : $a_ty:ident| $body:block) => {
     $ext.new_split_ext_fn(move |ivm, $a, out0, out1| {
-      #[allow(unused)]
-      let $a = $a_ty.unwrap_ext_val($a).unwrap();
-      let () = $body;
+      let $a = $a_ty.unwrap_ext_val($a);
+
+      if let Some($a) = $a {
+        let () = $body;
+      } else {
+        ivm.flags.ext_ty_mismatch = true;
+      }
+
       ivm.link_wire(out0, Port::ERASE);
       ivm.link_wire(out1, Port::ERASE);
     })
@@ -31,30 +36,53 @@ macro_rules! register_ext_fns {
 
   (@impl $ext:ident, |$a:ident : $a_ty:ident| -> $c_ty:ident $body:block) => {
     $ext.new_split_ext_fn(move |ivm, $a, out0, out1| {
-      let $a = $a_ty.unwrap_ext_val($a).unwrap();
-      let res = $c_ty.wrap_ext_val($body);
-      ivm.link_wire(out0, Port::ERASE);
-      ivm.link_wire(out1, Port::new_ext_val(res));
+      let $a = $a_ty.unwrap_ext_val($a);
+
+      let (val0, val1) = if let Some($a) = $a {
+        let res = $c_ty.wrap_ext_val($body);
+        (Port::ERASE, Port::new_ext_val(res))
+      } else {
+        ivm.flags.ext_ty_mismatch = true;
+        (Port::ERASE, Port::ERASE)
+      };
+
+      ivm.link_wire(out0, val0);
+      ivm.link_wire(out1, val1);
     })
   };
 
   (@impl $ext:ident, |$a:ident : $a_ty:ident, $b:ident : $b_ty:ident| -> $c_ty:ident $body:block) => {
     $ext.new_merge_ext_fn(move |ivm, $a, $b, out| {
-      let $a = $a_ty.unwrap_ext_val($a).unwrap();
-      let $b = $b_ty.unwrap_ext_val($b).unwrap();
-      let c = $c_ty.wrap_ext_val($body);
-      ivm.link_wire(out, Port::new_ext_val(c));
+      let $a = $a_ty.unwrap_ext_val($a);
+      let $b = $b_ty.unwrap_ext_val($b);
+
+      let val = if let (Some($a), Some($b)) = ($a, $b) {
+        Port::new_ext_val($c_ty.wrap_ext_val($body))
+      } else {
+        ivm.flags.ext_ty_mismatch = true;
+        Port::ERASE
+      };
+
+      ivm.link_wire(out, val);
     })
   };
 
   (@impl $ext:ident, |$a:ident : $a_ty:ident| -> ($b_ty:ident, $c_ty:ident) $body:block) => {
     $ext.new_split_ext_fn(move |ivm, $a, out0, out1| {
-      let $a = $a_ty.unwrap_ext_val($a).unwrap();
-      let (b, c) = $body;
-      let b = $b_ty.wrap_ext_val(b);
-      let c = $c_ty.wrap_ext_val(c);
-      ivm.link_wire(out0, Port::new_ext_val(b));
-      ivm.link_wire(out1, Port::new_ext_val(c));
+      let $a = $a_ty.unwrap_ext_val($a);
+
+      let (val0, val1) = if let Some($a) = $a {
+        let (b, c) = $body;
+        let b = $b_ty.wrap_ext_val(b);
+        let c = $c_ty.wrap_ext_val(c);
+        (Port::new_ext_val(b), Port::new_ext_val(c))
+      } else {
+        ivm.flags.ext_ty_mismatch = true;
+        (Port::ERASE, Port::ERASE)
+      };
+
+      ivm.link_wire(out0, val0);
+      ivm.link_wire(out1, val1);
     })
   };
 }

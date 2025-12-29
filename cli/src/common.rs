@@ -82,6 +82,9 @@ impl RunArgs {
     if ivm.flags.ext_erase {
       eprintln!("\nError: a linear extrinsic was erased");
     }
+    if ivm.flags.ext_ty_mismatch {
+      eprintln!("\nError: an extrinsic function received value of an unexpected type");
+    }
 
     if !self.no_stats {
       eprintln!("{}", ivm.stats);
