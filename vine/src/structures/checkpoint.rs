@@ -223,6 +223,7 @@ impl Builtins {
       n32,
       i32,
       f32,
+      f64,
       nat,
       char,
       io,
@@ -261,6 +262,7 @@ impl Builtins {
     revert_idx(bool, checkpoint.opaque_types);
     revert_idx(n32, checkpoint.opaque_types);
     revert_idx(f32, checkpoint.opaque_types);
+    revert_idx(f64, checkpoint.opaque_types);
     revert_idx(i32, checkpoint.opaque_types);
     revert_idx(nat, checkpoint.structs);
     revert_idx(char, checkpoint.opaque_types);
