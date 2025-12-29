@@ -33,6 +33,7 @@ a.at(5)
 /clear a
 [1,2,3,4,5,6,7,8,9].as[Array].reversed().as[List]
 [1,2,3,4,5,6,7,8,9].as[Array].map_unordered(fn* (val: N32) { val * 2 })
+[1,2,3,4,5,6,7,8,9].as[Array].unzip_with(fn* (val: N32) { (val - 1, val * 2) })
 [1,2,3] as Array == [1,2,3] as Array
 [] as Array[N32] == [] as Array[N32]
 [] as Array[N32] == [1] as Array

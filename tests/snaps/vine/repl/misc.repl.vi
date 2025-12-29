@@ -154,6 +154,10 @@ let io: IO = <IO>;
 Array([2, 4, 6, 8, 10, 12, 14, 16, 18])
 
 let io: IO = <IO>;
+> [1,2,3,4,5,6,7,8,9].as[Array].unzip_with(fn* (val: N32) { (val - 1, val * 2) })
+(Array([0, 1, 2, 3, 4, 5, 6, 7, 8]), Array([2, 4, 6, 8, 10, 12, 14, 16, 18]))
+
+let io: IO = <IO>;
 > [1,2,3] as Array == [1,2,3] as Array
 true
 
@@ -331,7 +335,7 @@ error: expected type `{ a: N32, b: N32 }`; found `{ a: N32 }`
 
 let io: IO = <IO>;
 > do { let x; x = (x, x); }
-error: expected type `?1839`; found `(?1839, ?1839)`
+error: expected type `?1920`; found `(?1920, ?1920)`
    @ input:1:17
  1 | do { let x; x = (x, x); }
 

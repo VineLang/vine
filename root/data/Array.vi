@@ -352,6 +352,26 @@ pub mod Array {
     self
   }
 
+  // Unzips the array with a given function producing two new arrays.
+  /// ```vi
+  /// let array = [1, 2, 3] as Array;
+  /// let (left, right) = array.unzip_with(fn* (val: N32) { (val - 1, val * 2) });
+  /// left // Array([0, 1, 2])
+  /// right // Array([2, 4, 6])
+  /// ```
+  pub fn .unzip_with[T, F*, U, V; fn F(T) -> (U, V)](Array[T](len, node), f: F) -> (
+    Array[U],
+    Array[V],
+  ) {
+    if len == 0 {
+      unsafe::erase(node);
+      (Array::empty, Array::empty)
+    } else {
+      let (left, right) = Node::unzip_with(len, node, f);
+      (Array(len, left), Array(len, right))
+    }
+  }
+
   pub impl eq[T; Eq[T]]: Eq[Array[T]] {
     fn eq(&Array[T](len, node), &Array[T](len_other, other)) -> Bool {
       len == len_other and (len == 0 or Node::eq(len, &node, &other))
