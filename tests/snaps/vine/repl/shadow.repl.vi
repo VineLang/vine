@@ -1,0 +1,23 @@
+
+let io: IO = <IO>;
+> impl show: Show[~&()];
+error: cannot find impl of trait `Show[~&()]`
+   @ input:1:6
+ 1 | impl show: Show[~&()];
+
+
+let io: IO = <IO>;
+> fn foo() -> N32 { 4 }
+
+let io: IO = <IO>;
+> foo()
+4
+
+let io: IO = <IO>;
+> fn foo() -> N32 { 6 }
+
+let io: IO = <IO>;
+> foo()
+6
+
+let io: IO = <IO>;

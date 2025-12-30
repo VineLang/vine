@@ -18,7 +18,6 @@ use crate::{
   structures::{
     ast::{Block, Ident, Span, Stmt, visit::VisitMut},
     chart::{DefId, GenericsId, VisId},
-    checkpoint::Checkpoint,
     diag::{Diag, ErrorGuaranteed},
     resolutions::FragmentId,
     tir::Local,
@@ -131,10 +130,11 @@ impl<'ctx, 'ivm, 'ext, 'comp> Repl<'ctx, 'ivm, 'ext, 'comp> {
     let mut ty = None;
     let mut bindings = Vec::new();
     let mut interface = None;
+    let mut repl_mod = self.repl_mod;
 
     let hooks = ExecHooks {
       path: path.clone(),
-      repl_mod: self.repl_mod,
+      repl_mod: &mut repl_mod,
       scope: &mut self.scope,
       block: &mut block,
       types: &mut self.types,
@@ -149,12 +149,13 @@ impl<'ctx, 'ivm, 'ext, 'comp> Repl<'ctx, 'ivm, 'ext, 'comp> {
 
     let fragment = fragment.unwrap();
     let ty = ty.unwrap();
+    self.repl_mod = repl_mod;
 
     self.line += 1;
 
     struct ExecHooks<'ivm, 'a> {
       path: String,
-      repl_mod: DefId,
+      repl_mod: &'a mut DefId,
       scope: &'a mut Vec<ScopeEntry<'ivm>>,
       block: &'a mut Block,
       types: &'a mut Types,
@@ -170,15 +171,13 @@ impl<'ctx, 'ivm, 'ext, 'comp> Repl<'ctx, 'ivm, 'ext, 'comp> {
       fn chart(&mut self, charter: &mut Charter<'_>) {
         let mut extractor = ExtractItems::default();
         extractor.visit(&mut *self.block);
-        for item in extractor.items {
-          charter.chart_item(VisId::Def(self.repl_mod), item, self.repl_mod, GenericsId::NONE);
-          self.extracted_items = true;
-        }
-      }
-
-      fn pre_resolve(&mut self, resolver: &mut Resolver<'_>) {
-        if self.extracted_items {
-          resolver.finder_cache.revert(&Checkpoint::default());
+        if !extractor.items.is_empty() {
+          *self.repl_mod =
+            charter.new_def(Ident("repl".into()), "<repl>".into(), Some(*self.repl_mod));
+          for item in extractor.items {
+            charter.chart_item(VisId::Def(*self.repl_mod), item, *self.repl_mod, GenericsId::NONE);
+            self.extracted_items = true;
+          }
         }
       }
 
@@ -186,7 +185,7 @@ impl<'ctx, 'ivm, 'ext, 'comp> Repl<'ctx, 'ivm, 'ext, 'comp> {
         let (fragment, ty, mut bindings) = resolver._resolve_repl(
           self.block.span,
           self.path.clone(),
-          self.repl_mod,
+          *self.repl_mod,
           self.types.clone(),
           self.scope.iter().map(|entry| (entry.name.clone(), entry.span, entry.ty)),
           self.block,
