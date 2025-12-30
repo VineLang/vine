@@ -83,6 +83,10 @@ impl<'ivm> Port<'ivm> {
     unsafe { Self(NonZeroWord::new_unchecked(word), PhantomData) }
   }
 
+  pub(crate) fn bits(&self) -> Word {
+    self.0.get()
+  }
+
   /// Constructs a port from its bit representation, if its tag is valid.
   ///
   /// ## Safety
