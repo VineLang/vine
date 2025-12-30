@@ -58,11 +58,11 @@ pub mod Map[K, V; Ord[K]] {
   }
 
   pub fn .at_or_insert[... K?, V?](&self: &Map[K, V], key: K, value: V) -> &V {
-    let ~insert;
-    let old = self.insert(key, ~insert);
+    let loop insert;
+    let old = self.insert(key, insert);
     let value = old.or_use(value);
     let ref = &value;
-    ~insert = value;
+    insert = value;
     ref
   }
 

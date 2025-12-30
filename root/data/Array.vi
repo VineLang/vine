@@ -77,13 +77,12 @@ pub mod Array {
     if len == 0 {
       Array::empty
     } else {
-      let ~ins;
-      let (node, outs) = Node::unzip_with(len, ~ins, fn* (f: F) { (f(), f) });
+      let loop ins;
+      let (node, outs) = Node::unzip_with(len, ins, fn* (f: F) { (f(), f) });
       let outs = Array(len, outs);
       outs.pop_back().assume();
       outs.push_front(f);
-      let Array(_, outs) = outs;
-      ~ins = outs;
+      Array(_, ins) = outs;
       Array(len, node)
     }
   }
@@ -113,12 +112,11 @@ pub mod Array {
       unsafe::erase(node);
       initial
     } else {
-      let ~ins;
-      let zipped = Array(len, Node::zip_with(len, ~ins, node, f));
+      let loop ins;
+      let zipped = Array(len, Node::zip_with(len, ins, node, f));
       let out = zipped.pop_back().assume();
       zipped.push_front(initial);
-      let Array(_, node) = zipped;
-      ~ins = node;
+      Array(_, ins) = zipped;
       out
     }
   }
@@ -136,12 +134,11 @@ pub mod Array {
       unsafe::erase(node);
       initial
     } else {
-      let ~ins;
-      let zipped = Array(len, Node::zip_with(len, ~ins, node, f));
+      let loop ins;
+      let zipped = Array(len, Node::zip_with(len, ins, node, f));
       let out = zipped.pop_front().assume();
       zipped.push_back(initial);
-      let Array(_, node) = zipped;
-      ~ins = node;
+      Array(_, ins) = zipped;
       out
     }
   }

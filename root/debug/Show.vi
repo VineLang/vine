@@ -87,8 +87,7 @@ pub mod Show {
     max_width: N32,
     indent: N32,
   ) -> (N32, String, Bool) {
-    let ~_multiline;
-    let multiline: Bool = ~_multiline;
+    let loop multiline;
     let total_width = 0;
     let str = "";
     let first = true;
@@ -114,7 +113,7 @@ pub mod Show {
     if multiline {
       str ++= newline(indent);
     }
-    ~_multiline = total_width > max_width;
+    multiline = total_width > max_width;
     (total_width, str, multiline)
   }
 

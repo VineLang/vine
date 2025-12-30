@@ -104,12 +104,12 @@ mod DisjointSet {
   }
 
   pub fn .find(&DisjointSet(array), i: N32) -> N32 {
-    let ~root;
+    let loop root;
     while array.at(i) is Some(&Node::Child(parent)) {
       i = parent;
-      parent = ~root;
+      parent = root;
     }
-    ~root = i;
+    root = i;
     i
   }
 
