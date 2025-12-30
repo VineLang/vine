@@ -5,35 +5,35 @@ use ops::{Cast, bitwise::{BitAnd, BitOr, BitXor, Not}, comparison::{Eq, Ord}};
 pub type Bool;
 
 pub mod Bool {
-  pub impl fork: Fork[Bool] = unsafe::duplicate;
-  pub impl drop: Drop[Bool] = unsafe::erase;
+  pub impl : Fork[Bool] = unsafe::duplicate;
+  pub impl : Drop[Bool] = unsafe::erase;
 
-  pub impl bit_and: BitAnd[Bool, Bool, Bool] {
+  pub impl : BitAnd[Bool, Bool, Bool] {
     fn bit_and(a: Bool, b: Bool) -> Bool {
       inline_ivy! (a <- a, b <- b) -> Bool { out a = @n32_and(b out) }
     }
   }
 
-  pub impl bit_or: BitOr[Bool, Bool, Bool] {
+  pub impl : BitOr[Bool, Bool, Bool] {
     fn bit_or(a: Bool, b: Bool) -> Bool {
       inline_ivy! (a <- a, b <- b) -> Bool { out a = @n32_or(b out) }
     }
   }
 
-  pub impl bit_xor: BitXor[Bool, Bool, Bool] {
+  pub impl : BitXor[Bool, Bool, Bool] {
     fn bit_xor(a: Bool, b: Bool) -> Bool {
       inline_ivy! (a <- a, b <- b) -> Bool { out a = @n32_xor(b out) }
     }
   }
 
   #[builtin = "bool_not"]
-  pub impl not: Not[Bool, Bool] {
+  pub impl : Not[Bool, Bool] {
     fn not(a: Bool) -> Bool {
       inline_ivy! (a <- a) -> Bool { out a = @n32_eq(0 out) }
     }
   }
 
-  pub impl eq: Eq[Bool] {
+  pub impl : Eq[Bool] {
     fn eq(&a: &Bool, &b: &Bool) -> Bool {
       inline_ivy! (a <- a, b <- b) -> Bool { out a = @n32_eq(b out) }
     }
@@ -43,7 +43,7 @@ pub mod Bool {
     }
   }
 
-  pub impl ord: Ord[Bool] {
+  pub impl : Ord[Bool] {
     fn lt(&a: &Bool, &b: &Bool) -> Bool {
       inline_ivy! (a <- a, b <- b) -> Bool { out a = @n32_lt(b out) }
     }
@@ -67,7 +67,7 @@ pub mod Bool {
     }
   }
 
-  pub impl show: Show[Bool] {
+  pub impl : Show[Bool] {
     fn show(&self: &Bool) -> Show {
       Show::Literal("{self}")
     }

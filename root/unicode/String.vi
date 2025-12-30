@@ -132,7 +132,7 @@ pub mod String {
     (String(prefix), String(suffix))
   }
 
-  pub impl eq: Eq[String] {
+  pub impl : Eq[String] {
     fn eq(&self: &String, &other: &String) -> Bool {
       self! == other!
     }
@@ -142,7 +142,7 @@ pub mod String {
     }
   }
 
-  pub impl ord: Ord[String] {
+  pub impl : Ord[String] {
     fn cmp(&a: &String, &b: &String) -> Ord {
       a!.cmp(&b!)
     }
@@ -156,7 +156,7 @@ pub mod String {
     }
   }
 
-  pub impl concat: Concat[String, String, String] {
+  pub impl : Concat[String, String, String] {
     fn concat(String(a), String(b)) -> String {
       String(a ++ b)
     }
@@ -194,7 +194,7 @@ pub mod String {
     }
   }
 
-  pub impl show: Show[String] {
+  pub impl : Show[String] {
     fn show(&self: &String) -> Show {
       let escaped = "";
       for char in self {

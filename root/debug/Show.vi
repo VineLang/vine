@@ -17,7 +17,7 @@ pub enum* Show {
 }
 
 pub mod Show {
-  pub impl to_string: Cast[Show, String] {
+  pub impl : Cast[Show, String] {
     fn cast(self: Show) -> String {
       self.format(80)
     }
