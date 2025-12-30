@@ -48,17 +48,24 @@ async function activate(context: vscode.ExtensionContext) {
 function activateLsp(context: vscode.ExtensionContext) {
   context.subscriptions.push(vscode.commands.registerCommand("vine.restartServer", restartServer));
 
-  const config = vscode.workspace.getConfiguration("vine");
-
-  const entrypoints = config.get("entrypoints") as string[];
-  const cli = config.get("cli") as string[];
-  const lspOptions = config.get("lspOptions") as string[];
-
   const outputChannel = vscode.window.createOutputChannel("Vine LSP");
 
+  function cmdLine(): string[] {
+    const config = vscode.workspace.getConfiguration("vine");
+    const cli = config.get("cli") as string[];
+    const lspOptions = config.get("lspOptions") as string[];
+    const entrypoints = config.get("entrypoints") as string[];
+
+    return [...cli, "lsp", ...lspOptions, ...entrypoints];
+  }
+
   const run = {
-    command: cli[0],
-    args: [...cli.slice(1), "lsp", ...lspOptions, ...entrypoints],
+    get command(): string {
+      return cmdLine()[0];
+    },
+    get args(): string[] {
+      return cmdLine().slice(1);
+    },
     options: {},
   };
 
