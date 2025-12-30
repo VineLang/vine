@@ -356,7 +356,9 @@ pub mod Array {
   ///
   /// Safety: Errors if the two arrays have different lengths.
   /// ```vi
-  /// ["ab", "x"].as[Array].zip_with(["cd", "yz"].as[Array], Concat::concat) // Array(["abcd", "xyz"])
+  /// let left = ["ab", "x"] as Array;
+  /// let right = ["cd", "yz"] as Array;
+  /// left.zip_with(right, Concat::concat) // Array(["abcd", "xyz"])
   /// ```
   pub fn .zip_with[T, U, V, F*; fn F(T, U) -> V](
     Array[T](len_left, left),
@@ -365,9 +367,7 @@ pub mod Array {
   ) -> Array[V] {
     when {
       len_left != len_right {
-        unsafe::erase(left);
-        unsafe::erase(right);
-        unsafe::eraser
+        debug::error_with("`Array::zip_with` called on arrays of unequal lengths", (left, right))
       }
       len_left == 0 {
         unsafe::erase(left);
@@ -380,10 +380,10 @@ pub mod Array {
 
   // Unzips the array with a given function producing two new arrays.
   /// ```vi
-  /// let array = [1, 2, 3] as Array;
-  /// let (left, right) = ["abcde", "qwerty"].as[Array].unzip_with(fn* (s: String) { s.split_at(3)})
+  /// let array = ["abcde", "qwerty"] as Array;
+  /// let (left, right) = array.unzip_with(fn* (s: String) { s.split_at(3) })
   /// left // Array(["abc", "qwe"])
-  /// right // Array(["de", "rty"]))
+  /// right // Array(["de", "rty"])
   /// ```
   pub fn .unzip_with[T, F*, U, V; fn F(T) -> (U, V)](Array[T](len, node), f: F) -> (
     Array[U],

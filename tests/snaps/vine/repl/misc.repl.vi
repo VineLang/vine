@@ -154,7 +154,7 @@ let io: IO = <IO>;
 Array([2, 4, 6, 8, 10, 12, 14, 16, 18])
 
 let io: IO = <IO>;
-> ["abcde", "qwerty"].as[Array].unzip_with(fn* (s: String) { s.split_at(3)})
+> ["abcde", "qwerty"].as[Array].unzip_with(fn* (s: String) { s.split_at(3) })
 (Array(["abc", "qwe"]), Array(["de", "rty"]))
 
 let io: IO = <IO>;
