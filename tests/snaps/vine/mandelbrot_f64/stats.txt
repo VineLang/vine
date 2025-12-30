@@ -1,10 +1,10 @@
 
 Interactions
-  Total           10_231_664
+  Total           10_259_789
   Annihilate       2_132_217
   Commute                  0
   Copy               281_338
-  Erase              866_425
+  Erase              894_550
   Expand             270_137
   Call             6_411_505
   Branch             270_042
