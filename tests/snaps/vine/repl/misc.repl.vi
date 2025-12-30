@@ -1,6 +1,6 @@
 
 let io: IO = <IO>;
-> use #root::data::Array;
+> use #root::{data::Array, ops::Concat};
 
 let io: IO = <IO>;
 > fn _foo() {}
@@ -156,6 +156,10 @@ Array([2, 4, 6, 8, 10, 12, 14, 16, 18])
 let io: IO = <IO>;
 > ["abcde", "qwerty"].as[Array].unzip_with(fn* (s: String) { s.split_at(3)})
 (Array(["abc", "qwe"]), Array(["de", "rty"]))
+
+let io: IO = <IO>;
+> ["ab", "x"].as[Array].zip_with(["cd", "yz"].as[Array], Concat::concat)
+Array(["abcd", "xyz"])
 
 let io: IO = <IO>;
 > [1,2,3] as Array == [1,2,3] as Array
@@ -335,7 +339,7 @@ error: expected type `{ a: N32, b: N32 }`; found `{ a: N32 }`
 
 let io: IO = <IO>;
 > do { let x; x = (x, x); }
-error: expected type `?1913`; found `(?1913, ?1913)`
+error: expected type `?1956`; found `(?1956, ?1956)`
    @ input:1:17
  1 | do { let x; x = (x, x); }
 

@@ -352,6 +352,32 @@ pub mod Array {
     self
   }
 
+  /// Zips the two arrays with a given function combining the corresponding elements.
+  ///
+  /// Safety: Errors if the two arrays have different lengths.
+  /// ```vi
+  /// ["ab", "x"].as[Array].zip_with(["cd", "yz"].as[Array], Concat::concat) // Array(["abcd", "xyz"])
+  /// ```
+  pub fn .zip_with[T, U, V, F*; fn F(T, U) -> V](
+    Array[T](len_left, left),
+    Array[U](len_right, right),
+    f: F,
+  ) -> Array[V] {
+    when {
+      len_left != len_right {
+        unsafe::erase(left);
+        unsafe::erase(right);
+        unsafe::eraser
+      }
+      len_left == 0 {
+        unsafe::erase(left);
+        unsafe::erase(right);
+        Array::empty
+      }
+      _ { Array(len_left, Node::zip_with(len_left, left, right, f)) }
+    }
+  }
+
   // Unzips the array with a given function producing two new arrays.
   /// ```vi
   /// let array = [1, 2, 3] as Array;
