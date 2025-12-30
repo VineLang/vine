@@ -42,12 +42,20 @@ pub mod I32 {
 
   pub impl div: Div[I32, I32, I32] {
     fn div(a: I32, b: I32) -> I32 {
+      if debug::enabled and b == +0 {
+        return debug::error("division by zero");
+      }
+
       inline_ivy! (a <- a, b <- b) -> I32 { out a = @i32_div(b out) }
     }
   }
 
   pub impl rem: Rem[I32, I32, I32] {
     fn rem(a: I32, b: I32) -> I32 {
+      if debug::enabled and b == +0 {
+        return debug::error("division by zero");
+      }
+
       inline_ivy! (a <- a, b <- b) -> I32 { out a = @i32_rem(b out) }
     }
   }

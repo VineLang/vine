@@ -125,12 +125,20 @@ pub mod N64 {
 
   pub impl div: Div[N64, N64, N64] {
     fn div(a: N64, d: N64) -> N64 {
+      if debug::enabled and d == 0[N64] {
+        return debug::error("division by zero");
+      }
+
       a.div_rem(d).0
     }
   }
 
   pub impl rem: Rem[N64, N64, N64] {
     fn rem(a: N64, d: N64) -> N64 {
+      if debug::enabled and d == 0[N64] {
+        return debug::error("division by zero");
+      }
+
       a.div_rem(d).1
     }
   }

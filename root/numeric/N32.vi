@@ -48,12 +48,20 @@ pub mod N32 {
 
   pub impl div: Div[N32, N32, N32] {
     fn div(a: N32, b: N32) -> N32 {
+      if debug::enabled and b == 0 {
+        return debug::error("division by zero");
+      }
+
       inline_ivy! (a <- a, b <- b) -> N32 { out a = @n32_div(b out) }
     }
   }
 
   pub impl rem: Rem[N32, N32, N32] {
     fn rem(a: N32, b: N32) -> N32 {
+      if debug::enabled and b == 0 {
+        return debug::error("division by zero");
+      }
+
       inline_ivy! (a <- a, b <- b) -> N32 { out a = @n32_rem(b out) }
     }
   }
