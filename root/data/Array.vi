@@ -355,9 +355,9 @@ pub mod Array {
   // Unzips the array with a given function producing two new arrays.
   /// ```vi
   /// let array = [1, 2, 3] as Array;
-  /// let (left, right) = array.unzip_with(fn* (val: N32) { (val - 1, val * 2) });
-  /// left // Array([0, 1, 2])
-  /// right // Array([2, 4, 6])
+  /// let (left, right) = ["abcde", "qwerty"].as[Array].unzip_with(fn* (s: String) { s.split_at(3)})
+  /// left // Array(["abc", "qwe"])
+  /// right // Array(["de", "rty"]))
   /// ```
   pub fn .unzip_with[T, F*, U, V; fn F(T) -> (U, V)](Array[T](len, node), f: F) -> (
     Array[U],
