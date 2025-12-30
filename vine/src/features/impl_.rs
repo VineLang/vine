@@ -203,9 +203,9 @@ impl Charter<'_> {
     ty_generics: GenericsId,
     vis: VisId,
     ty: DefTypeKind,
+    span: Span,
     flex: Flex,
   ) {
-    let span = Span::NONE;
     if flex.fork() {
       let _generic_params = GenericParams { inherit: true, ..GenericParams::empty(span) };
       let generics = self._chart_generics(def, ty_generics, _generic_params, true, Flex::Fork);
