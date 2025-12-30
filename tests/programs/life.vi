@@ -289,7 +289,7 @@ pub mod Tap {
     ref
   }
 
-  pub impl fork[T]: Fork[Tap[T]] {
+  pub impl [T]: Fork[Tap[T]] {
     fn fork(&tap: &Tap[T]) -> Tap[T] {
       let Tap(recv_a, send_c) = tap;
       let Pipe(send_b, recv_b) = Pipe::empty;
@@ -298,7 +298,7 @@ pub mod Tap {
     }
   }
 
-  pub impl drop[T]: Drop[Tap[T]] {
+  pub impl [T]: Drop[Tap[T]] {
     fn drop(Tap[T](Recv(recv), Send(~send))) {
       send = recv;
     }

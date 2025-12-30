@@ -12,10 +12,10 @@ pub mod Iterator[I, T; Iterator[I, T]] {
   pub struct Empty[T](());
 
   pub mod Empty {
-    pub impl fork[T]: Fork[Empty[T]];
-    pub impl drop[T]: Drop[Empty[T]];
+    pub impl [T]: Fork[Empty[T]];
+    pub impl [T]: Drop[Empty[T]];
 
-    pub impl iterator[T]: Iterator[Empty[T], T] {
+    pub impl [T]: Iterator[Empty[T], T] {
       fn advance(Empty[T]()) -> Option[(T, Empty[T])] {
         None()
       }
@@ -29,7 +29,7 @@ pub mod Iterator[I, T; Iterator[I, T]] {
   pub struct* One[T](Option[T]);
 
   pub mod One {
-    pub impl iterator[T]: Iterator[One[T], T] {
+    pub impl [T]: Iterator[One[T], T] {
       fn advance(One[T](value)) -> Option[(T, One[T])] {
         Option::map(value, fn? (value) { (value, One(None())) })
       }
@@ -43,7 +43,7 @@ pub mod Iterator[I, T; Iterator[I, T]] {
   pub struct* FromNext[F](F);
 
   pub mod FromNext {
-    pub impl iterator[T, F*; fn F() -> Option[T]]: Iterator[FromNext[F], T] {
+    pub impl [T, F*; fn F() -> Option[T]]: Iterator[FromNext[F], T] {
       fn advance(FromNext[F](f)) -> Option[(T, FromNext[F])] {
         if f() is Some(value) {
           Some(value, FromNext(f))
@@ -61,7 +61,7 @@ pub mod Iterator[I, T; Iterator[I, T]] {
   pub struct* Map[I, F]((I, F));
 
   pub mod Map[...] {
-    pub impl iterator[... U, F*; fn F(T) -> U]: Iterator[Map[I, F], U] {
+    pub impl [... U, F*; fn F(T) -> U]: Iterator[Map[I, F], U] {
       fn advance(Map[I, F](iter, f)) -> Option[(U, Map[I, F])] {
         match iter.advance() {
           Some(value, iter) { Some(f(value), iter.map(f)) }
@@ -78,7 +78,7 @@ pub mod Iterator[I, T; Iterator[I, T]] {
   pub struct* Filter[I, F]((I, F));
 
   pub mod Filter[...] {
-    pub impl iterator[... T?, F*; fn F(&T) -> Bool]: Iterator[Filter[I, F], T] {
+    pub impl [... T?, F*; fn F(&T) -> Bool]: Iterator[Filter[I, F], T] {
       fn advance(Filter[I, F](iter, f)) -> Option[(T, Filter[I, F])] {
         loop {
           match iter.advance() {
@@ -104,7 +104,7 @@ pub mod Iterator[I, T; Iterator[I, T]] {
   pub struct* FilterMap[I, F]((I, F));
 
   pub mod FilterMap[...] {
-    pub impl iterator[... U, F*; fn F(T) -> Option[U]]: Iterator[FilterMap[I, F], U] {
+    pub impl [... U, F*; fn F(T) -> Option[U]]: Iterator[FilterMap[I, F], U] {
       fn advance(FilterMap[I, F](iter, f)) -> Option[(U, FilterMap[I, F])] {
         loop {
           match iter.advance() {
@@ -130,7 +130,7 @@ pub mod Iterator[I, T; Iterator[I, T]] {
   pub struct* Skip[I]((I, N32));
 
   pub mod Skip[...] {
-    pub impl iterator[... T?]: Iterator[Skip[I], T] {
+    pub impl [... T?]: Iterator[Skip[I], T] {
       fn advance(Skip[I](iter, count)) -> Option[(T, Skip[I])] {
         while count != 0 {
           count -= 1;
@@ -152,7 +152,7 @@ pub mod Iterator[I, T; Iterator[I, T]] {
   pub struct* SkipWhile[I, F]((I, Option[F]));
 
   pub mod SkipWhile[...] {
-    pub impl iterator[... T?, F*; fn F(&T) -> Bool]: Iterator[SkipWhile[I, F], T] {
+    pub impl [... T?, F*; fn F(&T) -> Bool]: Iterator[SkipWhile[I, F], T] {
       fn advance(SkipWhile[I, F](iter, f)) -> Option[(T, SkipWhile[I, F])] {
         if f is Some(f) {
           while iter.advance() is Some(value, _iter) {
@@ -182,7 +182,7 @@ pub mod Iterator[I, T; Iterator[I, T]] {
   pub struct* Chunks[I](Option[I], N32);
 
   pub mod Chunks[I] {
-    pub impl iterator[... T; Iterator[I, T]]: Iterator[Chunks[I], List[T]] {
+    pub impl [... T; Iterator[I, T]]: Iterator[Chunks[I], List[T]] {
       fn advance(Chunks[I](iter, size)) -> Option[(List[T], Chunks[I])] {
         assert iter is Some(iter) else { None() }
         assert iter.advance() is Some((value, iter)) else { None() }
@@ -216,7 +216,7 @@ pub mod Iterator[I, T; Iterator[I, T]] {
   pub struct* Take[I]((I, N32));
 
   pub mod Take[...] {
-    pub impl iterator[... I?]: Iterator[Take[I], T] {
+    pub impl [... I?]: Iterator[Take[I], T] {
       fn advance(Take[I](iter, count)) -> Option[(T, Take[I])] {
         if count != 0 and iter.advance() is Some(value, iter) {
           Some(value, Take(iter, count - 1))
@@ -234,7 +234,7 @@ pub mod Iterator[I, T; Iterator[I, T]] {
   pub struct* TakeWhile[I, F]((I, F));
 
   pub mod TakeWhile[...] {
-    pub impl iterator[... I?, T?, F*; fn F(&T) -> Bool]: Iterator[TakeWhile[I, F], T] {
+    pub impl [... I?, T?, F*; fn F(&T) -> Bool]: Iterator[TakeWhile[I, F], T] {
       fn advance(TakeWhile[I, F](iter, f)) -> Option[(T, TakeWhile[I, F])] {
         if iter.advance() is Some(value, iter) and f(&value) {
           Some(value, TakeWhile(iter, f))
@@ -252,7 +252,7 @@ pub mod Iterator[I, T; Iterator[I, T]] {
   pub struct* MapWhile[I, F]((I, F));
 
   pub mod MapWhile[...] {
-    pub impl iterator[... I?, U, F*; fn F(T) -> Option[U]]: Iterator[MapWhile[I, F], U] {
+    pub impl [... I?, U, F*; fn F(T) -> Option[U]]: Iterator[MapWhile[I, F], U] {
       fn advance(MapWhile[I, F](iter, f)) -> Option[(U, MapWhile[I, F])] {
         if iter.advance() is Some(value, iter) and f(value) is Some(value) {
           Some(value, MapWhile(iter, f))
@@ -270,7 +270,7 @@ pub mod Iterator[I, T; Iterator[I, T]] {
   pub struct* Zip[I, J]((I, J));
 
   pub mod Zip[...] {
-    pub impl iterator[... I?, T?, J?, U; Iterator[J, U]]: Iterator[Zip[I, J], (T, U)] {
+    pub impl [... I?, T?, J?, U; Iterator[J, U]]: Iterator[Zip[I, J], (T, U)] {
       fn advance(Zip[I, J](i, j)) -> Option[((T, U), Zip[I, J])] {
         if i.advance() is Some(t, i) and j.advance() is Some(u, j) {
           Some((t, u), Zip(i, j))
@@ -288,7 +288,7 @@ pub mod Iterator[I, T; Iterator[I, T]] {
   pub struct* Flatten[I, J]((Option[J], I));
 
   pub mod Flatten {
-    pub impl iterator[I, J, T; Iterator[I, J], Iterator[J, T]]: Iterator[Flatten[I, J], T] {
+    pub impl [I, J, T; Iterator[I, J], Iterator[J, T]]: Iterator[Flatten[I, J], T] {
       fn advance(Flatten[I, J](j, i)) -> Option[(T, Flatten[I, J])] {
         if j is Some(j) and j.advance() is Some(t, j) {
           Some(t, Flatten(Some(j), i))
@@ -321,7 +321,7 @@ pub mod Iterator[I, T; Iterator[I, T]] {
   pub struct* Concat[I, J]((Option[I], J));
 
   pub mod Concat[...] {
-    pub impl iterator[... J; Iterator[J, T]]: Iterator[Concat[I, J], T] {
+    pub impl [... J; Iterator[J, T]]: Iterator[Concat[I, J], T] {
       fn advance(Concat[I, J](i, j)) -> Option[(T, Concat[I, J])] {
         when {
           i is Some(i) and i.advance() is Some(value, i) { Some(value, Concat(Some(i), j)) }
@@ -339,7 +339,7 @@ pub mod Iterator[I, T; Iterator[I, T]] {
   pub struct* Enumerate(&N32);
 
   pub mod Enumerate {
-    pub impl call[T]: fn Enumerate(T) -> (N32, T) {
+    pub impl [T]: fn Enumerate(T) -> (N32, T) {
       fn call(Enumerate(&index), (value: T,)) -> (N32, T) {
         let result = (index, value);
         index += 1;
@@ -355,7 +355,7 @@ pub mod Iterator[I, T; Iterator[I, T]] {
   pub struct* Inspect[F](F);
 
   pub mod Inspect {
-    pub impl Inspect[T, F*; fn F(&T)]: fn Inspect[F](T) -> T {
+    pub impl [T, F*; fn F(&T)]: fn Inspect[F](T) -> T {
       fn call(Inspect[F](f), (value: T,)) -> T {
         f(&value);
         value

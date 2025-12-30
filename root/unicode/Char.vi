@@ -10,13 +10,13 @@ use ops::{Cast, arithmetic::{Add, Sub}, comparison::{Eq, Ord}};
 pub type Char;
 
 pub mod Char {
-  pub impl fork: Fork[Char] = unsafe::duplicate;
-  pub impl drop: Drop[Char] = unsafe::erase;
+  pub impl : Fork[Char] = unsafe::duplicate;
+  pub impl : Drop[Char] = unsafe::erase;
 
   pub impl from_n32: Cast[N32, Char] = unsafe::transmute;
   pub impl to_n32: Cast[Char, N32] = unsafe::transmute;
 
-  pub impl eq: Eq[Char] {
+  pub impl : Eq[Char] {
     fn eq(&a: &Char, &b: &Char) -> Bool {
       inline_ivy! (a <- a, b <- b) -> Bool { out a = @n32_eq(b out) }
     }
@@ -26,7 +26,7 @@ pub mod Char {
     }
   }
 
-  pub impl ord: Ord[Char] {
+  pub impl : Ord[Char] {
     fn lt(&a: &Char, &b: &Char) -> Bool {
       inline_ivy! (a <- a, b <- b) -> Bool { out a = @n32_lt(b out) }
     }
@@ -67,7 +67,7 @@ pub mod Char {
     }
   }
 
-  pub impl show: Show[Char] {
+  pub impl : Show[Char] {
     fn show(&char: &Char) -> Show {
       Show::Literal("'{
         when {

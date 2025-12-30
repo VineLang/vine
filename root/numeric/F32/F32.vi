@@ -12,22 +12,22 @@ pub mod F32 {
   pub const inf: F32 = inline_ivy! () -> F32 { +inf };
   pub const neg_inf: F32 = inline_ivy! () -> F32 { -inf };
 
-  pub impl fork: Fork[F32] = unsafe::duplicate;
-  pub impl drop: Drop[F32] = unsafe::erase;
+  pub impl : Fork[F32] = unsafe::duplicate;
+  pub impl : Drop[F32] = unsafe::erase;
 
-  pub impl add: Add[F32, F32, F32] {
+  pub impl : Add[F32, F32, F32] {
     fn add(a: F32, b: F32) -> F32 {
       inline_ivy! (a <- a, b <- b) -> F32 { out a = @f32_add(b out) }
     }
   }
 
-  pub impl sub: Sub[F32, F32, F32] {
+  pub impl : Sub[F32, F32, F32] {
     fn sub(a: F32, b: F32) -> F32 {
       inline_ivy! (a <- a, b <- b) -> F32 { out a = @f32_sub(b out) }
     }
   }
 
-  pub impl mul: Mul[F32, F32, F32] {
+  pub impl : Mul[F32, F32, F32] {
     fn mul(a: F32, b: F32) -> F32 {
       inline_ivy! (a <- a, b <- b) -> F32 { out a = @f32_mul(b out) }
     }
@@ -49,31 +49,31 @@ pub mod F32 {
     }
   }
 
-  pub impl div: Div[F32, F32, F32] {
+  pub impl : Div[F32, F32, F32] {
     fn div(a: F32, b: F32) -> F32 {
       inline_ivy! (a <- a, b <- b) -> F32 { out a = @f32_div(b out) }
     }
   }
 
-  pub impl rem: Rem[F32, F32, F32] {
+  pub impl : Rem[F32, F32, F32] {
     fn rem(a: F32, b: F32) -> F32 {
       inline_ivy! (a <- a, b <- b) -> F32 { out a = @f32_rem(b out) }
     }
   }
 
-  pub impl pos: Pos[F32, F32] {
+  pub impl : Pos[F32, F32] {
     fn pos(a: F32) -> F32 {
       a
     }
   }
 
-  pub impl neg: Neg[F32, F32] {
+  pub impl : Neg[F32, F32] {
     fn neg(a: F32) -> F32 {
       inline_ivy! (a <- a) -> F32 { out a = @f32_sub$(-0.0 out) }
     }
   }
 
-  pub impl eq: Eq[F32] {
+  pub impl : Eq[F32] {
     fn eq(&a: &F32, &b: &F32) -> Bool {
       inline_ivy! (a <- a, b <- b) -> Bool { out a = @f32_eq(b out) }
     }
@@ -83,13 +83,13 @@ pub mod F32 {
     }
   }
 
-  pub impl lt: Lt[F32] {
+  pub impl : Lt[F32] {
     fn lt(&a: &F32, &b: &F32) -> Bool {
       inline_ivy! (a <- a, b <- b) -> Bool { out a = @f32_lt(b out) }
     }
   }
 
-  pub impl le: Le[F32] {
+  pub impl : Le[F32] {
     fn le(&a: &F32, &b: &F32) -> Bool {
       inline_ivy! (a <- a, b <- b) -> Bool { out a = @f32_le(b out) }
     }
@@ -139,7 +139,7 @@ pub mod F32 {
     }
   }
 
-  pub impl show: Show[F32] {
+  pub impl : Show[F32] {
     fn show(&self: &F32) -> Show {
       Show::Literal("{self}")
     }
