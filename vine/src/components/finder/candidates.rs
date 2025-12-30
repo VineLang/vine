@@ -253,7 +253,9 @@ impl<'a> CandidateSetBuilder<'a> {
           f(self, vis, (self.chart.traits[trait_id].def, Level::Within))
         }
         for &Binding { vis, kind: DefImplKind::Impl(impl_id), .. } in &def.impl_kinds {
-          if let ImplType::Trait(trait_id, _) = &self.sigs.impls[impl_id].inner.ty {
+          if self.chart.impls[impl_id].name.is_some()
+            && let ImplType::Trait(trait_id, _) = &self.sigs.impls[impl_id].inner.ty
+          {
             f(self, vis, (self.chart.traits[*trait_id].def, Level::Within))
           }
         }
@@ -270,6 +272,13 @@ impl<'a> CandidateSetBuilder<'a> {
             f(self, binding.vis, (member, Level::Direct))
           }
         }
+        for &Binding { vis, kind: DefImplKind::Impl(impl_id), .. } in &def.impl_kinds {
+          if self.chart.impls[impl_id].name.is_none()
+            && let ImplType::Trait(trait_id, _) = &self.sigs.impls[impl_id].inner.ty
+          {
+            f(self, vis, (self.chart.traits[*trait_id].def, Level::Within))
+          }
+        }
       }
       Level::WithinAncestors => {
         f(self, VisId::Pub, (def_id, Level::Within));
@@ -283,13 +292,16 @@ impl<'a> CandidateSetBuilder<'a> {
   }
 
   fn add_direct_candidate(&self, set: &mut CandidateSetHandle, (def_id, level): Node) {
-    if level != Level::Direct {
+    if level == Level::WithinAncestors {
       return;
     }
 
+    let direct = level == Level::Direct;
+
     let def = &self.chart.defs[def_id];
 
-    if let Some(Binding { vis, kind: DefValueKind::Fn(fn_id), .. }) = def.value_kind
+    if direct
+      && let Some(Binding { vis, kind: DefValueKind::Fn(fn_id), .. }) = def.value_kind
       && self.chart.fn_is_method(fn_id)
     {
       let set = self.sets.get_mut(set);
@@ -299,7 +311,7 @@ impl<'a> CandidateSetBuilder<'a> {
     for &Binding { vis, kind: DefImplKind::Impl(impl_id), .. } in &def.impl_kinds {
       if let ImplType::Trait(trait_id, _) = &self.sigs.impls[impl_id].inner.ty {
         let impl_ = &self.chart.impls[impl_id];
-        if !impl_.manual {
+        if !impl_.manual && impl_.name.is_some() == direct {
           let set = self.sets.get_mut(set);
           let key = (*trait_id, impl_.basic);
           set.impls.entry(key).or_default().entry(impl_id).or_default().insert(vis);
