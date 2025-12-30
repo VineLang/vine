@@ -6,21 +6,21 @@ Error: a linear extrinsic was erased
 Error: an extrinsic function encountered an unspecified error
 
 Interactions
-  Total                  117
-  Annihilate              34
+  Total                   89
+  Annihilate              23
   Commute                  0
-  Copy                    28
-  Erase                   40
-  Expand                  14
+  Copy                    25
+  Erase                   32
+  Expand                   8
   Call                     1
   Branch                   0
 
 Parallelism
   Depth                   23
-  Breadth                  5
-  Speedup                 71 cB
+  Breadth                  3
+  Speedup                 59 cB
 
 Memory
-  Heap                   960 B
-  Allocated            1_568 B
-  Freed                1_568 B
+  Heap                   896 B
+  Allocated            1_168 B
+  Freed                1_168 B

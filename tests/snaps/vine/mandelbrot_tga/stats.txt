@@ -1,15 +1,15 @@
 
 Interactions
-  Total           721_196_023
-  Annihilate      168_591_021
+  Total           721_196_020
+  Annihilate      168_591_020
   Commute                   0
   Copy            201_808_179
-  Erase            53_160_867
-  Expand           21_862_376
+  Erase            53_160_866
+  Expand           21_862_375
   Call            254_961_858
   Branch           20_811_722
 
 Memory
   Heap                  1_264 B
-  Allocated    14_334_484_528 B
-  Freed        14_334_484_528 B
+  Allocated    14_334_484_496 B
+  Freed        14_334_484_496 B
