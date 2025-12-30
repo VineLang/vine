@@ -197,6 +197,8 @@ impl<'ivm> Host<'ivm> {
       "f64_lt" => |a: f64, b: f64| -> n32 { (a < b) as u32 },
       "f64_le" => |a: f64, b: f64| -> n32 { (a <= b) as u32 },
 
+      "n32_to_f64" => |n: n32| -> f64 { n as f64 },
+      "f64_to_n32" => |f: f64| -> n32 { f as u32 },
       "f32_to_f64" => |f: f32| -> f64 { f as f64 },
       "f64_to_f32" => |f: f64| -> f32 { f as f32 },
       "n64_to_f64" => |lo: n32, hi: n32| -> f64 { u64_from_parts(lo, hi) as f64 },

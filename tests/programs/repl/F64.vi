@@ -28,3 +28,5 @@ x.abs()
 (-x).abs()
 x.is_nan()
 F64::parse("3.141592") == Some(x)
+3.1415[F64] as N32
+123456[N32] as F64

@@ -112,13 +112,13 @@ pub mod F64 {
 
   pub impl from_n32: Cast[N32, F64] {
     fn cast(n: N32) -> F64 {
-      n as N64 as F64
+      inline_ivy! (n <- n) -> F64 { out n = @n32_to_f64(_ out) }
     }
   }
 
   pub impl to_n32: Cast[F64, N32] {
     fn cast(f: F64) -> N32 {
-      f as N64 as N32
+      inline_ivy! (f <- f) -> N32 { out f = @f64_to_n32(_ out) }
     }
   }
 
