@@ -258,7 +258,6 @@ impl Analyzer<'_> {
           continue;
         }
         if interior != Effect::Pass && exterior != Effect::Pass {
-          assert!(!exterior.pass());
           let barrier = interior.barrier();
           let output = interior.write() && exterior.read();
           let input = exterior.write() && (interior.read() || output && interior.pass());

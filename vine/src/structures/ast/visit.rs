@@ -1,6 +1,6 @@
 use crate::structures::ast::{
-  Block, Expr, ExprKind, GenericArgs, GenericParams, Impl, ImplKind, Item, ItemKind, ModKind, Pat,
-  PatKind, Stmt, StmtKind, Trait, TraitKind, Ty, TyKind,
+  Block, Expr, ExprKind, GenericArgs, GenericParams, Impl, ImplKind, Item, ItemKind, LetStmtKind,
+  ModKind, Pat, PatKind, Stmt, StmtKind, Trait, TraitKind, Ty, TyKind,
 };
 
 /// Mutably walks over the AST.
@@ -274,7 +274,7 @@ pub trait VisitMut<'a> {
         self.visit(&mut a.else_);
       }
       StmtKind::Let(l) => {
-        if let Some(init) = &mut l.init {
+        if let LetStmtKind::Init(init) = &mut l.kind {
           self.visit_expr(init);
         }
         self.visit_pat(&mut l.bind);

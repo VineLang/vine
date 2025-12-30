@@ -3,9 +3,9 @@ use vine_util::parser::Parse;
 use crate::{
   components::{distiller::Distiller, lexer::Token, parser::Parser, resolver::Resolver},
   structures::{
-    ast::{LetStmt, Span, Stmt, StmtKind},
+    ast::{LetStmt, LetStmtKind, Span, Stmt, StmtKind},
     diag::Diag,
-    tir::{TirExpr, TirExprKind, TirPat},
+    tir::{TirExpr, TirExprKind, TirExprLetKind, TirPat},
     types::Type,
     vir::{Port, Stage, Step},
   },
@@ -18,10 +18,17 @@ impl Parser<'_> {
     if self.check(Token::Fn) {
       return self._parse_stmt_let_fn();
     }
+    let loop_ = self.eat(Token::Loop)?;
     let bind = self.parse_pat()?;
-    let init = self.eat_then(Token::Eq, Self::parse_expr)?;
+    let kind = if loop_ {
+      LetStmtKind::Loop
+    } else if self.eat(Token::Eq)? {
+      LetStmtKind::Init(self.parse_expr()?)
+    } else {
+      LetStmtKind::Uninit
+    };
     self.eat(Token::Semi)?;
-    Ok(StmtKind::Let(LetStmt { bind, init }))
+    Ok(StmtKind::Let(LetStmt { bind, kind }))
   }
 }
 
@@ -29,10 +36,12 @@ impl<'src> Formatter<'src> {
   pub(crate) fn fmt_stmt_let(&self, stmt: &LetStmt) -> Doc<'src> {
     Doc::concat([
       Doc("let "),
-      self.fmt_pat(&stmt.bind),
-      match &stmt.init {
-        Some(e) => Doc::concat([Doc(" = "), self.fmt_expr(e)]),
-        None => Doc::EMPTY,
+      match &stmt.kind {
+        LetStmtKind::Init(expr) => {
+          Doc::concat([self.fmt_pat(&stmt.bind), Doc(" = "), self.fmt_expr(expr)])
+        }
+        LetStmtKind::Uninit => self.fmt_pat(&stmt.bind),
+        LetStmtKind::Loop => Doc::concat([Doc("loop "), self.fmt_pat(&stmt.bind)]),
       },
       Doc(";"),
     ])
@@ -47,12 +56,16 @@ impl Resolver<'_> {
     stmt: &LetStmt,
     rest: &[Stmt],
   ) -> TirExprKind {
-    let init = stmt.init.as_ref().map(|init| self.resolve_expr(init));
+    let kind = match &stmt.kind {
+      LetStmtKind::Init(expr) => TirExprLetKind::Init(self.resolve_expr(expr)),
+      LetStmtKind::Uninit => TirExprLetKind::Uninit,
+      LetStmtKind::Loop => TirExprLetKind::Loop,
+    };
     let bind = self.resolve_pat(&stmt.bind);
-    if let Some(init) = &init {
+    if let TirExprLetKind::Init(init) = &kind {
       self.expect_type(init.span, init.ty, bind.ty);
     }
-    TirExprKind::Let(bind, init, self.resolve_stmts_type(span, rest, ty))
+    TirExprKind::Let(bind, kind, self.resolve_stmts_type(span, rest, ty))
   }
 }
 
@@ -61,15 +74,21 @@ impl Distiller<'_> {
     &mut self,
     stage: &mut Stage,
     pat: &TirPat,
-    init: &Option<TirExpr>,
+    kind: &TirExprLetKind,
     continuation: &TirExpr,
   ) -> Port {
-    if let Some(init) = init {
-      let value = self.distill_expr_value(stage, init);
-      let pat = self.distill_pat_value(stage, pat);
-      stage.steps.push(Step::Link(pat, value));
-    } else {
-      self.distill_pat_nil(stage, pat);
+    match kind {
+      TirExprLetKind::Init(init) => {
+        let value = self.distill_expr_value(stage, init);
+        let pat = self.distill_pat_value(stage, pat);
+        stage.steps.push(Step::Link(pat, value));
+      }
+      TirExprLetKind::Uninit => {
+        self.distill_pat_uninit(stage, pat);
+      }
+      TirExprLetKind::Loop => {
+        self.distill_pat_loop(stage, pat);
+      }
     }
     self.distill_expr_value(stage, continuation)
   }

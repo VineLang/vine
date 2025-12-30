@@ -280,7 +280,14 @@ pub enum StmtKind {
 #[derive(Debug, Clone)]
 pub struct LetStmt {
   pub bind: Pat,
-  pub init: Option<Expr>,
+  pub kind: LetStmtKind,
+}
+
+#[derive(Debug, Clone)]
+pub enum LetStmtKind {
+  Init(Expr),
+  Uninit,
+  Loop,
 }
 
 #[derive(Debug, Clone)]
