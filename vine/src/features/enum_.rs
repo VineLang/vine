@@ -33,12 +33,14 @@ use crate::{
 impl Parser<'_> {
   pub(crate) fn parse_enum_item(&mut self) -> Result<(Span, ItemKind), Diag> {
     self.expect(Token::Enum)?;
+    let flex_span = self.start_span();
     let flex = self.parse_flex()?;
+    let flex_span = self.end_span(flex_span);
     let name_span = self.span();
     let name = self.parse_ident()?;
     let generics = self.parse_generic_params()?;
     let variants = self.parse_delimited(BRACE_COMMA, Self::parse_variant)?;
-    Ok((name_span, ItemKind::Enum(EnumItem { flex, name, generics, variants })))
+    Ok((name_span, ItemKind::Enum(EnumItem { flex_span, flex, name, generics, variants })))
   }
 
   fn parse_variant(&mut self) -> Result<Variant, Diag> {
@@ -89,7 +91,7 @@ impl Charter<'_> {
     self.chart.enums.push_to(enum_id, enum_def);
     let ty_kind = DefTypeKind::Enum(enum_id);
     self.define_type(span, def, vis, ty_kind);
-    self.chart_flex_impls(def, generics, vis, ty_kind, enum_item.flex);
+    self.chart_flex_impls(def, generics, vis, ty_kind, enum_item.flex_span, enum_item.flex);
     ChartedItem::Enum(def, enum_id)
   }
 }

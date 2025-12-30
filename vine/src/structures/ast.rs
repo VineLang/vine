@@ -65,6 +65,7 @@ pub struct TypeItem {
 
 #[derive(Debug, Clone)]
 pub struct StructItem {
+  pub flex_span: Span,
   pub flex: Flex,
   pub name: Ident,
   pub generics: GenericParams,
@@ -74,6 +75,7 @@ pub struct StructItem {
 
 #[derive(Debug, Clone)]
 pub struct EnumItem {
+  pub flex_span: Span,
   pub flex: Flex,
   pub name: Ident,
   pub generics: GenericParams,
