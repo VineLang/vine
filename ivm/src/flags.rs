@@ -5,8 +5,8 @@ pub struct Flags {
   pub ext_copy: bool,
   /// A non-copyable extrinsic was erased.
   pub ext_erase: bool,
-  /// An extrinsic function was passed an extrinsic value of an unexpected type.
-  pub ext_ty_mismatch: bool,
+  /// An extrinsic function encountered an unspecified error.
+  pub ext_generic: bool,
 }
 
 impl Flags {

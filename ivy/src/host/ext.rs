@@ -26,7 +26,7 @@ macro_rules! register_ext_fns {
       if let Some($a) = $a {
         let () = $body;
       } else {
-        ivm.flags.ext_ty_mismatch = true;
+        ivm.flags.ext_generic = true;
       }
 
       ivm.link_wire(out0, Port::ERASE);
@@ -36,15 +36,14 @@ macro_rules! register_ext_fns {
 
   (@impl $ext:ident, |$a:ident : $a_ty:ident| -> $c_ty:ident $body:block) => {
     $ext.new_split_ext_fn(move |ivm, $a, out0, out1| {
-      let $a = $a_ty.unwrap_ext_val($a);
-
-      let (val0, val1) = if let Some($a) = $a {
-        let res = $c_ty.wrap_ext_val($body);
-        (Port::ERASE, Port::new_ext_val(res))
-      } else {
-        ivm.flags.ext_ty_mismatch = true;
+      let (val0, val1) = (|| {
+        let $a = $a_ty.unwrap_ext_val($a)?;
+        let res = $c_ty.maybe_wrap_ext_val($body)?;
+        Some((Port::ERASE, Port::new_ext_val(res)))
+      })().unwrap_or_else(|| {
+        ivm.flags.ext_generic = true;
         (Port::ERASE, Port::ERASE)
-      };
+      });
 
       ivm.link_wire(out0, val0);
       ivm.link_wire(out1, val1);
@@ -53,15 +52,15 @@ macro_rules! register_ext_fns {
 
   (@impl $ext:ident, |$a:ident : $a_ty:ident, $b:ident : $b_ty:ident| -> $c_ty:ident $body:block) => {
     $ext.new_merge_ext_fn(move |ivm, $a, $b, out| {
-      let $a = $a_ty.unwrap_ext_val($a);
-      let $b = $b_ty.unwrap_ext_val($b);
-
-      let val = if let (Some($a), Some($b)) = ($a, $b) {
-        Port::new_ext_val($c_ty.wrap_ext_val($body))
-      } else {
-        ivm.flags.ext_ty_mismatch = true;
+      let val = (|| {
+        let $a = $a_ty.unwrap_ext_val($a)?;
+        let $b = $b_ty.unwrap_ext_val($b)?;
+        let res = $c_ty.maybe_wrap_ext_val($body)?;
+        Some(Port::new_ext_val(res))
+      })().unwrap_or_else(|| {
+        ivm.flags.ext_generic = true;
         Port::ERASE
-      };
+      });
 
       ivm.link_wire(out, val);
     })
@@ -69,17 +68,16 @@ macro_rules! register_ext_fns {
 
   (@impl $ext:ident, |$a:ident : $a_ty:ident| -> ($b_ty:ident, $c_ty:ident) $body:block) => {
     $ext.new_split_ext_fn(move |ivm, $a, out0, out1| {
-      let $a = $a_ty.unwrap_ext_val($a);
-
-      let (val0, val1) = if let Some($a) = $a {
+      let (val0, val1) = (|| {
+        let $a = $a_ty.unwrap_ext_val($a)?;
         let (b, c) = $body;
-        let b = $b_ty.wrap_ext_val(b);
-        let c = $c_ty.wrap_ext_val(c);
-        (Port::new_ext_val(b), Port::new_ext_val(c))
-      } else {
-        ivm.flags.ext_ty_mismatch = true;
+        let b = $b_ty.maybe_wrap_ext_val(b)?;
+        let c = $c_ty.maybe_wrap_ext_val(c)?;
+        Some((Port::new_ext_val(b), Port::new_ext_val(c)))
+      })().unwrap_or_else(|| {
+        ivm.flags.ext_generic = true;
         (Port::ERASE, Port::ERASE)
-      };
+      });
 
       ivm.link_wire(out0, val0);
       ivm.link_wire(out1, val1);
@@ -125,7 +123,7 @@ impl<'ivm> Host<'ivm> {
       "n32_add" => |a: n32, b: n32| -> n32 { a.wrapping_add(b) },
       "n32_sub" => |a: n32, b: n32| -> n32 { a.wrapping_sub(b) },
       "n32_mul" => |a: n32, b: n32| -> n32 { a.wrapping_mul(b) },
-      "n32_div" => |a: n32, b: n32| -> n32 { a.wrapping_div(b) },
+      "n32_div" => |a: n32, b: n32| -> n32 { a.checked_div(b) },
       "n32_rem" => |a: n32, b: n32| -> n32 { a.wrapping_rem(b) },
 
       "n32_eq" => |a: n32, b: n32| -> n32 { (a == b) as u32 },

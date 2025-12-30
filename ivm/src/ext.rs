@@ -213,6 +213,16 @@ impl<'ivm, T> ExtTy<'ivm, T> {
   {
     ExtVal::new(self.ty_id(), T::into_payload(value))
   }
+
+  /// Converts a potentially optional `value` into an [`ExtVal`] with `self` as
+  /// the type id.
+  #[inline(always)]
+  pub fn maybe_wrap_ext_val(self, value: impl Into<Option<T>>) -> Option<ExtVal<'ivm>>
+  where
+    T: ExtTyCast<'ivm>,
+  {
+    value.into().map(|value| self.wrap_ext_val(value))
+  }
 }
 
 /// A trait describing how to convert between an [`ExtVal`] and a `Self`.

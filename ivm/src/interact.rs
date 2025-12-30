@@ -201,7 +201,7 @@ impl<'ivm, 'ext> IVM<'ivm, 'ext> {
         self.link_wire_wire(o, y);
       }
       None => {
-        self.flags.ext_ty_mismatch = true;
+        self.flags.ext_generic = true;
         self.link_wire(z, Port::ERASE);
         self.link_wire(p, Port::ERASE);
         self.link_wire(o, Port::ERASE);

@@ -1,9 +1,4 @@
 
-pub fn main(&_io: &IO) {
-  let f = 1.0;
-  let n = 1;
-  inline_ivy! (n <- n, f <- f) -> () {
-    out
-    f = @n32_add(n out)
-  };
+pub fn main(&io: &IO) {
+  io.println("{1 + unsafe::transmute[F32, N32](2.0)}");
 }

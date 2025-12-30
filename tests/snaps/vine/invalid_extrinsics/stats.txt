@@ -1,22 +1,26 @@
 
-Error: an extrinsic function received value of an unexpected type
+Error: the net did not return its `IO` handle
+
+Error: a linear extrinsic was erased
+
+Error: an extrinsic function encountered an unspecified error
 
 Interactions
-  Total                   19
-  Annihilate               6
+  Total                  117
+  Annihilate              34
   Commute                  0
-  Copy                     2
-  Erase                    7
-  Expand                   3
+  Copy                    28
+  Erase                   40
+  Expand                  14
   Call                     1
   Branch                   0
 
 Parallelism
-  Depth                    5
-  Breadth                  3
-  Speedup                 58 cB
+  Depth                   23
+  Breadth                  5
+  Speedup                 71 cB
 
 Memory
-  Heap                   176 B
-  Allocated              240 B
-  Freed                  240 B
+  Heap                   960 B
+  Allocated            1_568 B
+  Freed                1_568 B
