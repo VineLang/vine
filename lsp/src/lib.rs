@@ -11,7 +11,6 @@ use tower_lsp::{Client, LanguageServer, LspService, Server, jsonrpc::Result, lsp
 use vine::{
   compiler::Compiler,
   components::{loader::FileId, parser::Parser},
-  features::cfg::Config,
   structures::{
     ast::{Item, ItemKind, Span, visit::VisitMut},
     checkpoint::Checkpoint,
@@ -409,8 +408,7 @@ pub async fn lsp(libs: Vec<PathBuf>, entrypoints: Vec<String>) {
   let stdin = tokio::io::stdin();
   let stdout = tokio::io::stdout();
 
-  let config = Config::new(true, true);
-  let mut compiler = Compiler::new(config);
+  let mut compiler = Compiler::new(true);
   for lib in libs {
     compiler.loader.load_mod(&lib, &mut compiler.diags);
   }

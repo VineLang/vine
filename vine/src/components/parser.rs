@@ -128,12 +128,6 @@ impl<'src> Parser<'src> {
         self.expect(Token::CloseParen)?;
         AttrKind::Become(path)
       }
-      "cfg" => {
-        self.expect(Token::OpenParen)?;
-        let cfg = self.parse_cfg()?;
-        self.expect(Token::CloseParen)?;
-        AttrKind::Cfg(cfg)
-      }
       "frameless" => AttrKind::Frameless,
       "test" => AttrKind::Test,
       _ => Err(Diag::UnknownAttribute { span: ident_span })?,
