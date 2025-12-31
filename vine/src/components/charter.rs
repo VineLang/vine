@@ -182,6 +182,10 @@ impl Charter<'_> {
         ChartedItem::Fn(_, FnId::Concrete(id)) => Some(id),
         _ => None,
       };
+      let concrete_const_id = match item {
+        ChartedItem::Const(_, ConstId::Concrete(id)) => Some(id),
+        _ => None,
+      };
       match attr.kind {
         AttrKind::Builtin(builtin) => {
           if !self.chart_builtin(item, builtin) {
@@ -246,6 +250,14 @@ impl Charter<'_> {
             self.diags.error(Diag::BadSelfDualAttr { span });
           }
         },
+        AttrKind::Configurable => {
+          let Some(concrete_const_id) = concrete_const_id else {
+            self.diags.error(Diag::BadTestAttr { span });
+            continue;
+          };
+
+          self.chart.concrete_consts[concrete_const_id].configurable = true;
+        }
       }
     }
   }

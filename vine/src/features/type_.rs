@@ -130,6 +130,7 @@ impl Resolver<'_> {
     let generics_id = self.chart.type_aliases[type_alias_id].generics;
     let (type_params, _) = self.resolve_generics(path, generics_id, inference);
     Resolver::new(
+      self.config,
       self.chart,
       self.sigs,
       self.diags,

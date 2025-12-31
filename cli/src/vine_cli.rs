@@ -1,4 +1,5 @@
 use std::{
+  collections::HashMap,
   env,
   ffi::OsStr,
   fmt, fs,
@@ -78,20 +79,19 @@ pub struct LibArgs {
 }
 
 impl LibArgs {
-  fn initialize(mut self, debug: bool) -> (Compiler, IdxVec<FileId, PathBuf>) {
+  fn initialize(mut self, compiler: &mut Compiler) -> IdxVec<FileId, PathBuf> {
     if !self.no_root {
       self.libs.push(root_source())
     }
 
-    let mut compiler = Compiler::new(debug);
     let mut file_paths = IdxVec::new();
 
-    let mut loader = Loader::new(&mut compiler, RealFS, Some(&mut file_paths));
+    let mut loader = Loader::new(compiler, RealFS, Some(&mut file_paths));
     for lib in self.libs {
       loader.load_mod(lib.name, lib.path);
     }
 
-    (compiler, file_paths)
+    file_paths
   }
 }
 
@@ -109,11 +109,14 @@ pub struct CompileArgs {
   libs: LibArgs,
   #[arg(long)]
   debug: bool,
+  #[arg(long, num_args = 2, value_names = ["KEY", "VALUE"])]
+  config: Vec<String>,
 }
 
 impl CompileArgs {
   fn initialize(self) -> Compiler {
-    let (mut compiler, _) = self.libs.initialize(self.debug);
+    let mut compiler = Compiler::new(self.debug, build_config(self.config));
+    self.libs.initialize(&mut compiler);
 
     let mut loader = Loader::new(&mut compiler, RealFS, None);
     loader.load_main_mod(self.main.name, self.main.path);
@@ -257,7 +260,8 @@ pub struct VineCheckCommand {
 
 impl VineCheckCommand {
   pub fn execute(self) -> Result<()> {
-    let (mut compiler, _) = self.check.libs.initialize(false);
+    let mut compiler = Compiler::default();
+    self.check.libs.initialize(&mut compiler);
 
     if compiler.check(()).is_err() {
       eprint_diags(&compiler);
@@ -334,6 +338,8 @@ pub struct VineReplCommand {
   #[arg(long)]
   no_debug: bool,
   args: Vec<String>,
+  #[arg(long, num_args = 2)]
+  config: Vec<String>,
 }
 
 impl VineReplCommand {
@@ -345,7 +351,8 @@ impl VineReplCommand {
     host.register_runtime_extrinsics(&mut extrinsics, self.args);
 
     let mut ivm = IVM::new(&heap, &extrinsics);
-    let (mut compiler, _) = self.libs.initialize(!self.no_debug);
+    let mut compiler = Compiler::new(!self.no_debug, build_config(self.config));
+    self.libs.initialize(&mut compiler);
     let mut repl = match Repl::new(host, &mut ivm, &mut compiler) {
       Ok(repl) => repl,
       Err(_) => {
@@ -430,7 +437,8 @@ pub struct VineLspCommand {
 
 impl VineLspCommand {
   pub fn execute(self) -> Result<()> {
-    let (compiler, file_paths) = self.check.libs.initialize(false);
+    let mut compiler = Compiler::default();
+    let file_paths = self.check.libs.initialize(&mut compiler);
     lsp(compiler, file_paths, self.check.entrypoints);
     Ok(())
   }
@@ -603,4 +611,13 @@ impl TypedValueParser for ParseSource {
       }
     }
   }
+}
+
+fn build_config(args: Vec<String>) -> HashMap<String, String> {
+  let mut args = args.into_iter();
+  let mut config = HashMap::new();
+  while args.len() != 0 {
+    config.insert(args.next().unwrap(), args.next().unwrap());
+  }
+  config
 }

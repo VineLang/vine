@@ -45,6 +45,8 @@ pub enum SyntheticItem {
   CallFromFn(usize),
   Frame(String, Span),
   DebugState,
+  N32(u32),
+  String(String),
 }
 
 struct Synthesizer<'a> {
@@ -128,6 +130,8 @@ impl Synthesizer<'_> {
       SyntheticItem::CallFromFn(params) => self.synthesize_call_from_fn(params),
       SyntheticItem::Frame(path, span) => self.synthesize_frame(path, span),
       SyntheticItem::DebugState => self.synthesize_debug_state(),
+      SyntheticItem::N32(n32) => self.synthesize_n32(n32),
+      SyntheticItem::String(string) => self.synthesize_string(string),
     };
     self.nets.insert(stage, net);
   }
@@ -318,6 +322,14 @@ impl Synthesizer<'_> {
     }
   }
 
+  fn synthesize_n32(&mut self, n32: u32) -> Net {
+    Net::new(Tree::N32(n32))
+  }
+
+  fn synthesize_string(&mut self, string: String) -> Net {
+    Net::new(self.string(&string))
+  }
+
   fn enum_(
     &mut self,
     enum_id: EnumId,
@@ -466,7 +478,9 @@ impl SyntheticItem {
       | SyntheticItem::EnumVariantNames(_)
       | SyntheticItem::EnumReconstruct(_)
       | SyntheticItem::Frame(..)
-      | SyntheticItem::DebugState => Rels::default(),
+      | SyntheticItem::DebugState
+      | SyntheticItem::N32(_)
+      | SyntheticItem::String(_) => Rels::default(),
       SyntheticItem::EnumMatch(_) => {
         Rels { consts: IdxVec::new(), fns: IdxVec::from([FnRel::Impl(TirImpl::Param(0), 1)]) }
       }

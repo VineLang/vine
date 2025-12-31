@@ -207,6 +207,7 @@ impl Charter<'_> {
       ty: const_item.ty,
       value,
       unsafe_,
+      configurable: false,
     });
     self.define_value(span, def, vis, DefValueKind::Const(ConstId::Concrete(const_id)));
     let charted_item = ChartedItem::Const(def, ConstId::Concrete(const_id));

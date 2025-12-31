@@ -158,6 +158,7 @@ pub struct ConcreteConstDef {
   pub ty: Ty,
   pub value: Expr,
   pub unsafe_: bool,
+  pub configurable: bool,
 }
 
 new_idx!(pub ConcreteFnId);

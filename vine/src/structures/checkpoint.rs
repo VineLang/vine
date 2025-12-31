@@ -70,6 +70,7 @@ impl Compiler {
     let Compiler {
       debug: _,
       loaded: _,
+      config: _,
       files,
       chart,
       sigs,
@@ -353,11 +354,12 @@ impl Signatures {
 
 impl Resolutions {
   fn revert(&mut self, checkpoint: &Checkpoint) {
-    let Resolutions { consts, fns, impls, main } = self;
+    let Resolutions { consts, fns, impls, main, config } = self;
     consts.truncate(checkpoint.concrete_consts.0);
     fns.truncate(checkpoint.concrete_fns.0);
     impls.truncate(checkpoint.impls.0);
     revert_idx(main, checkpoint.fragments);
+    config.retain(|&k, _| k < checkpoint.concrete_consts);
   }
 }
 

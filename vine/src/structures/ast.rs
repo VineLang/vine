@@ -181,6 +181,7 @@ pub enum AttrKind {
   Basic,
   Become(Path),
   Frameless,
+  Configurable,
   Test,
   SelfDual,
 }

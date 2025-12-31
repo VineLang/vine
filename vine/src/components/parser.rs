@@ -133,6 +133,7 @@ impl<'src> Parser<'src> {
       "frameless" => AttrKind::Frameless,
       "test" => AttrKind::Test,
       "self_dual" => AttrKind::SelfDual,
+      "configurable" => AttrKind::Configurable,
       _ => Err(Diag::UnknownAttribute { span: ident_span })?,
     };
     self.expect(Token::CloseBracket)?;

@@ -1,12 +1,17 @@
+use std::collections::HashMap;
+
 use vine_util::{idx::IdxVec, new_idx};
 
-use crate::structures::{
-  chart::{
-    Chart, ConcreteConstId, ConcreteFnId, ConstId, DefId, FnId, GenericsId, ImplId, TraitConstId,
-    TraitFnId, TraitId,
+use crate::{
+  components::synthesizer::SyntheticItem,
+  structures::{
+    chart::{
+      Chart, ConcreteConstId, ConcreteFnId, ConstId, DefId, FnId, GenericsId, ImplId, TraitConstId,
+      TraitFnId, TraitId,
+    },
+    diag::ErrorGuaranteed,
+    tir::{Tir, TirImpl},
   },
-  diag::ErrorGuaranteed,
-  tir::{Tir, TirImpl},
 };
 
 #[derive(Debug, Default)]
@@ -15,6 +20,7 @@ pub struct Resolutions {
   pub fns: IdxVec<ConcreteFnId, FragmentId>,
   pub impls: IdxVec<ImplId, Result<ResolvedImpl, ErrorGuaranteed>>,
   pub main: Option<FragmentId>,
+  pub config: HashMap<ConcreteConstId, SyntheticItem>,
 }
 
 #[derive(Debug)]

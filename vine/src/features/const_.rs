@@ -11,6 +11,7 @@ use crate::{
     lexer::Token,
     parser::Parser,
     resolver::Resolver,
+    synthesizer::SyntheticItem,
   },
   structures::{
     ast::{ConstItem, ItemKind, Path, Span},
@@ -19,7 +20,7 @@ use crate::{
     resolutions::ConstRelId,
     signatures::ConstSig,
     tir::{TirExpr, TirExprKind},
-    types::{Type, TypeCtx},
+    types::{Inverted, Type, TypeCtx, TypeKind},
     vir::{Port, Stage, Step},
   },
   tools::fmt::{Formatter, doc::Doc},
@@ -77,6 +78,7 @@ impl Charter<'_> {
       ty: const_item.ty,
       value,
       unsafe_: false,
+      configurable: false,
     });
     self.define_value(span, def, vis, DefValueKind::Const(ConstId::Concrete(const_id)));
     ChartedItem::Const(def, ConstId::Concrete(const_id))
@@ -104,9 +106,15 @@ impl Resolver<'_> {
   pub(crate) fn resolve_const_def(&mut self, const_id: ConcreteConstId) {
     let const_def = &self.chart.concrete_consts[const_id];
     self.initialize(const_def.def, const_def.generics, const_def.unsafe_);
+
     let ty = self.types.import(&self.sigs.concrete_consts[const_id], None).ty;
     let root = self.resolve_expr_type(&const_def.value, ty);
     self.types.finish_inference();
+
+    if const_def.configurable {
+      self.resolve_config(const_def.span, const_id, &const_def.name.0, ty);
+    }
+
     let fragment = self.finish_fragment(
       const_def.span,
       self.chart.defs[const_def.def].path.clone(),
@@ -115,6 +123,49 @@ impl Resolver<'_> {
     );
     let fragment_id = self.fragments.push(fragment);
     self.resolutions.consts.push_to(const_id, fragment_id);
+  }
+
+  fn resolve_config(&mut self, span: Span, const_id: ConcreteConstId, name: &str, ty: Type) {
+    let item = match self.types.kind(ty) {
+      Some((Inverted(false), TypeKind::Opaque(id, _))) if Some(*id) == self.chart.builtins.bool => {
+        match self.config.get(name) {
+          None => Ok(None),
+          Some(value) if value == "true" => Ok(Some(SyntheticItem::N32(1))),
+          Some(value) if value == "false" => Ok(Some(SyntheticItem::N32(0))),
+          Some(value) => Err(value),
+        }
+      }
+      Some((Inverted(false), TypeKind::Opaque(id, _))) if Some(*id) == self.chart.builtins.n32 => {
+        match self.config.get(name) {
+          None => Ok(None),
+          Some(value) => match value.parse::<u32>() {
+            Ok(value) => Ok(Some(SyntheticItem::N32(value))),
+            Err(_) => Err(value),
+          },
+        }
+      }
+      Some((Inverted(false), TypeKind::Struct(id, _, _)))
+        if Some(*id) == self.chart.builtins.string =>
+      {
+        match self.config.get(name) {
+          None => Ok(None),
+          Some(value) => Ok(Some(SyntheticItem::String(value.clone()))),
+        }
+      }
+      _ => {
+        self.diags.error(Diag::InvalidConfigType { span });
+        return;
+      }
+    };
+    match item {
+      Ok(Some(item)) => {
+        self.resolutions.config.insert(const_id, item);
+      }
+      Ok(None) => {}
+      Err(value) => {
+        self.diags.error(Diag::InvalidConfigValue { span, value: value.clone() });
+      }
+    }
   }
 
   pub(crate) fn resolve_expr_path_const(
