@@ -147,3 +147,8 @@ pub enum Variant[I, R] {
   Init(I),
   Rest(R),
 }
+
+#[builtin = "IfConst"]
+pub trait IfConst[I, T, F] {
+  const condition: Bool;
+}

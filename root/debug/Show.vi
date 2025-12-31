@@ -1,7 +1,7 @@
 
 use ops::Cast;
 use data::List as List_;
-use derive::{Enum, Object as Object_, Struct, Tuple as Tuple_, Variant};
+use derive::{Enum, IfConst, Object as Object_, Struct, Tuple as Tuple_, Variant};
 
 #[builtin = "Show"]
 pub trait Show[T] {
@@ -210,6 +210,16 @@ pub mod Show {
   pub impl ref[T; Show[T]]: Show[&T] {
     fn show(&&value: &&T) -> Show {
       Show::Constructor("&", value.show())
+    }
+  }
+
+  pub impl if_const[I, T, F; IfConst[I, T, F], Show[T], Show[F]]: Show[I] {
+    fn show(&value: &I) -> Show {
+      if IfConst::condition {
+        Show::show(unsafe::transmute[&I, &T](&value))
+      } else {
+        Show::show(unsafe::transmute[&I, &F](&value))
+      }
     }
   }
 }

@@ -498,6 +498,9 @@ impl<'src> Parser<'src> {
     if self.check(Token::Ident) || self.check(Token::Hash) {
       return Ok(TyKind::Path(self.parse_path()?));
     }
+    if self.check(Token::If) {
+      return self.parse_ty_if();
+    }
     self.state.expected.end_group();
     self.unexpected()
   }

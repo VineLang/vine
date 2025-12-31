@@ -7,8 +7,11 @@ use crate::{
   components::loader::Loader,
   structures::{
     ast::{Ident, Span},
-    chart::{Chart, EnumId, FnId, StructId, TraitConstId, TraitFnId, TraitId, VariantId},
-    resolutions::{FnRel, FnRelId, Rels},
+    chart::{
+      Chart, ConcreteConstId, ConstId, EnumId, FnId, StructId, TraitConstId, TraitFnId, TraitId,
+      VariantId,
+    },
+    resolutions::{ConstRelId, FnRel, FnRelId, Rels},
     signatures::Signatures,
     specializations::{Spec, Specializations},
     template::global_name,
@@ -23,6 +26,7 @@ pub enum SyntheticImpl {
   Object(Ident, usize),
   Struct(StructId),
   Enum(EnumId),
+  IfConst(ConcreteConstId),
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -34,6 +38,7 @@ pub enum SyntheticItem {
   EnumVariantNames(EnumId),
   EnumMatch(EnumId),
   EnumReconstruct(EnumId),
+  ConstAlias(ConcreteConstId),
   FnFromCall(usize),
   CallFromFn(usize),
   Frame(String, Span),
@@ -116,6 +121,7 @@ impl Synthesizer<'_> {
       SyntheticItem::EnumVariantNames(enum_id) => self.synthesize_enum_variant_names(enum_id),
       SyntheticItem::EnumMatch(enum_id) => self.synthesize_enum_match(enum_id),
       SyntheticItem::EnumReconstruct(enum_id) => self.synthesize_enum_reconstruct(enum_id),
+      SyntheticItem::ConstAlias(_) => self.synthesize_const_alias(),
       SyntheticItem::FnFromCall(params) => self.synthesize_fn_from_call(params),
       SyntheticItem::CallFromFn(params) => self.synthesize_call_from_fn(params),
       SyntheticItem::Frame(path, span) => self.synthesize_frame(path, span),
@@ -243,6 +249,10 @@ impl Synthesizer<'_> {
     cur_net
   }
 
+  fn synthesize_const_alias(&self) -> Net {
+    Net::new(self.const_rel(ConstRelId(0)))
+  }
+
   fn synthesize_fn_from_call(&mut self, params: usize) -> Net {
     let (fn_, call) = self._fn_call(params);
     Net { root: fn_, pairs: vec![(self.fn_rel(FnRelId(0)), call)] }
@@ -363,6 +373,15 @@ impl Synthesizer<'_> {
     }
   }
 
+  fn const_rel(&self, id: ConstRelId) -> Tree {
+    match self.spec.rels.consts[id] {
+      Ok(spec_id) => {
+        Tree::Global(global_name(self.specs.specs[spec_id].as_ref().unwrap(), StageId(0)))
+      }
+      Err(_) => Tree::Erase,
+    }
+  }
+
   fn fn_receiver(&mut self) -> Tree {
     if self.debug {
       let w = self.new_wire();
@@ -403,6 +422,7 @@ impl SyntheticImpl {
         TraitFnId(1) => SyntheticItem::EnumReconstruct(enum_id),
         _ => unreachable!(),
       },
+      SyntheticImpl::IfConst(_) => unreachable!(),
     }
   }
 
@@ -420,6 +440,10 @@ impl SyntheticImpl {
       SyntheticImpl::Enum(enum_id) => match const_id {
         TraitConstId(0) => SyntheticItem::Ident(chart.enums[enum_id].name.clone()),
         TraitConstId(1) => SyntheticItem::EnumVariantNames(enum_id),
+        _ => unreachable!(),
+      },
+      SyntheticImpl::IfConst(id) => match const_id {
+        TraitConstId(0) => SyntheticItem::ConstAlias(id),
         _ => unreachable!(),
       },
     }
@@ -450,6 +474,9 @@ impl SyntheticItem {
           vec![TirImpl::Param(0)],
         )]),
       },
+      SyntheticItem::ConstAlias(id) => {
+        Rels { consts: IdxVec::from([(ConstId::Concrete(*id), Vec::new())]), fns: IdxVec::new() }
+      }
     }
   }
 }

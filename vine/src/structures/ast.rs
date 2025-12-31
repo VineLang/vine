@@ -321,6 +321,7 @@ pub enum ExprKind {
   Assign(bool, Expr, Expr),
   Match(Expr, Option<Ty>, Vec<(Pat, Block)>),
   If(Expr, Option<Ty>, Block, Option<Block>),
+  IfConst(Path, Block, Option<Block>),
   When(Label, Option<Ty>, Vec<(Expr, Block)>, Option<Block>),
   While(Label, Expr, Option<Ty>, Block, Option<Block>),
   Loop(Label, Option<Ty>, Block),
@@ -442,6 +443,7 @@ pub enum TyKind {
   Key(Ident),
   Inverse(Ty),
   Path(Path),
+  IfConst(Path, Ty, Option<Ty>),
   Error(ErrorGuaranteed),
 }
 
