@@ -175,25 +175,8 @@ pub enum AttrKind {
   Manual,
   Basic,
   Become(Path),
-  Cfg(Cfg),
   Frameless,
   Test,
-}
-
-#[derive(Debug, Clone)]
-pub struct Cfg {
-  pub span: Span,
-  pub kind: Box<CfgKind>,
-}
-
-#[derive(Debug, Clone)]
-pub enum CfgKind {
-  Bool(Ident),
-  Paren(Cfg),
-  Literal(bool),
-  And(Cfg, Cfg),
-  Or(Cfg, Cfg),
-  Not(Cfg),
 }
 
 pub type GenericParams = Generics<TypeParam, ImplParam>;

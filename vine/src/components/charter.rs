@@ -2,7 +2,6 @@ use std::mem::replace;
 
 use crate::{
   components::loader::Module,
-  features::cfg::Config,
   structures::{
     annotations::Annotations,
     ast::{Attr, AttrKind, Flex, Ident, Item, ItemKind, ModKind, Span, Vis, visit::VisitMut},
@@ -15,7 +14,6 @@ use crate::structures::chart::*;
 
 pub struct Charter<'a> {
   pub chart: &'a mut Chart,
-  pub config: &'a Config,
   pub diags: &'a mut Diags,
   pub annotations: &'a mut Annotations,
 }
@@ -95,10 +93,6 @@ impl Charter<'_> {
     parent: DefId,
     parent_generics: GenericsId,
   ) {
-    if !self.enabled(&item.attrs) {
-      return;
-    }
-
     let subitems = extract_subitems(&mut item);
 
     let span = item.name_span;
@@ -214,7 +208,6 @@ impl Charter<'_> {
           };
           self.chart.concrete_fns[concrete_fn_id].frameless = true;
         }
-        AttrKind::Cfg(_) => {}
         AttrKind::Test => {
           let Some(concrete_fn_id) = concrete_fn_id else {
             self.diags.error(Diag::BadTestAttr { span });

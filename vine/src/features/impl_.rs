@@ -92,9 +92,6 @@ impl Charter<'_> {
     let kind = match impl_item.kind {
       ImplItemKind::Direct(_, items) => {
         for subitem in items {
-          if !self.enabled(&subitem.attrs) {
-            continue;
-          }
           let span = subitem.name_span;
           if !matches!(subitem.vis, Vis::Private) {
             self.diags.error(Diag::ImplItemVis { span });
