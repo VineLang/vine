@@ -448,7 +448,8 @@ module.exports = grammar({
     expr_match: $ => seq("match", $._expr, delimited("{", "", "}", $.match_arm)),
     match_arm: $ => seq($._pat, $.block),
 
-    expr_if: $ => prec.right(seq("if", $._expr, $.block, optional(seq("else", $.block)))),
+    expr_if: $ =>
+      prec.right(seq("if", optional("const"), $._expr, $.block, optional(seq("else", $.block)))),
 
     expr_when: $ => seq("when", optional($._label), delimited("{", "", "}", $.when_arm)),
     when_arm: $ => seq($._expr, $.block),
@@ -665,6 +666,7 @@ module.exports = grammar({
         $.ty_ref,
         $.ty_inverse,
         $.ty_path,
+        $.ty_if_const,
       ),
 
     ty_hole: $ => "_",
@@ -677,6 +679,10 @@ module.exports = grammar({
     ty_ref: $ => seq("&", $._ty),
     ty_inverse: $ => seq("~", $._ty),
     ty_path: $ => $.path,
+    ty_if_const: $ =>
+      prec.right(
+        seq("if", "const", $.path, "{", $._ty, "}", optional(seq("else", "{", $._ty, "}"))),
+      ),
 
     _impl: $ =>
       choice(
