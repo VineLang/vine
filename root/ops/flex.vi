@@ -1,5 +1,5 @@
 
-use derive::{Composite, Enum, Struct, Variant};
+use derive::{Composite, Enum, IfConst, Struct, Variant};
 
 #[builtin = "Fork"]
 pub trait Fork[T] {
@@ -66,6 +66,16 @@ pub mod Fork {
       }
     }
   }
+
+  pub impl if_const[I, T, F; IfConst[I, T, F], Fork[T], Fork[F]]: Fork[I] {
+    fn fork(&self: &I) -> I {
+      if IfConst::condition {
+        unsafe::transmute[T, I](*unsafe::transmute[&I, &T](&self))
+      } else {
+        unsafe::transmute[F, I](*unsafe::transmute[&I, &F](&self))
+      }
+    }
+  }
 }
 
 pub mod Drop {
@@ -114,6 +124,16 @@ pub mod Drop {
       match self {
         Variant::Init(_) {}
         Variant::Rest(_) {}
+      }
+    }
+  }
+
+  pub impl if_const[I, T, F; IfConst[I, T, F], Drop[T], Drop[F]]: Drop[I] {
+    fn drop(self: I) {
+      if IfConst::condition {
+        unsafe::transmute[I, T](self);
+      } else {
+        unsafe::transmute[I, F](self);
       }
     }
   }

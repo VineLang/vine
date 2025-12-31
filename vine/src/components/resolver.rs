@@ -491,6 +491,7 @@ impl<'a> Resolver<'a> {
       ExprKind::Assign(dir, space, value) => self.resolve_expr_assign(span, *dir, space, value),
       ExprKind::Match(scrutinee, ty, arms) => self.resolve_match(span, scrutinee, ty, arms),
       ExprKind::If(cond, ty, then, else_) => self.resolve_expr_if(span, cond, ty, then, else_),
+      ExprKind::IfConst(cond, then, else_) => self.resolve_expr_if_const(span, cond, then, else_),
       ExprKind::When(label, ty, arms, leg) => {
         self.resolve_expr_when(span, label.clone(), ty, arms, leg)
       }
@@ -605,6 +606,9 @@ impl<'a> Resolver<'a> {
       TyKind::Key(ident) => self.types.new(TypeKind::Key(ident.clone())),
       TyKind::Inverse(inner) => self.resolve_ty_inverse(inner, inference),
       TyKind::Path(path) => self.resolve_ty_path(path, inference),
+      TyKind::IfConst(cond, then, else_) => {
+        self.resolve_ty_if_const(span, cond, then, else_, inference)
+      }
       TyKind::Fn(path) => self.resolve_ty_fn(path),
     }
   }

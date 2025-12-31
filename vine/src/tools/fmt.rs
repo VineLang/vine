@@ -197,6 +197,7 @@ impl<'src> Formatter<'src> {
       ExprKind::Assign(inverted, space, value) => self.fmt_expr_assign(*inverted, space, value),
       ExprKind::Match(expr, ty, arms) => self.fmt_expr_match(expr, ty, arms),
       ExprKind::If(cond, ty, then, else_) => self.fmt_expr_if(cond, ty, then, else_),
+      ExprKind::IfConst(cond, then, else_) => self.fmt_expr_if_const(cond, then, else_),
       ExprKind::When(label, ty, arms, leg) => self.fmt_expr_when(label.clone(), ty, arms, leg),
       ExprKind::While(label, cond, ty, body, else_) => {
         self.fmt_expr_while(label.clone(), cond, ty, body, else_)
@@ -268,6 +269,7 @@ impl<'src> Formatter<'src> {
       TyKind::Path(path) => self.fmt_path(path),
       TyKind::Fn(path) => Doc::concat([Doc("fn "), self.fmt_path(path)]),
       TyKind::Object(object) => self.fmt_ty_object(object),
+      TyKind::IfConst(cond, then, else_) => self.fmt_ty_if_const(cond, then, else_),
     }
   }
 

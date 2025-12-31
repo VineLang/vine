@@ -303,6 +303,8 @@ diags! {
     ["unused variable"]
   UnusedItem
     ["unused item"]
+  IfConstGeneric
+    ["the condition of an `if const` cannot be generic"]
   BadTestAttr
     ["the `#[test]` attribute can only be applied to a function"]
 }
