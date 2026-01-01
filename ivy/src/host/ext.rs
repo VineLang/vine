@@ -21,9 +21,14 @@ macro_rules! register_ext_fns {
 
   (@impl $ext:ident, |$a:ident : $a_ty:ident| $body:block) => {
     $ext.new_split_ext_fn(move |ivm, $a, out0, out1| {
-      #[allow(unused)]
-      let $a = $a_ty.unwrap_ext_val($a).unwrap();
-      let () = $body;
+      let $a = $a_ty.unwrap_ext_val($a);
+
+      if let Some($a) = $a {
+        let () = $body;
+      } else {
+        ivm.flags.ext_generic = true;
+      }
+
       ivm.link_wire(out0, Port::ERASE);
       ivm.link_wire(out1, Port::ERASE);
     })
@@ -31,30 +36,51 @@ macro_rules! register_ext_fns {
 
   (@impl $ext:ident, |$a:ident : $a_ty:ident| -> $c_ty:ident $body:block) => {
     $ext.new_split_ext_fn(move |ivm, $a, out0, out1| {
-      let $a = $a_ty.unwrap_ext_val($a).unwrap();
-      let res = $c_ty.wrap_ext_val($body);
-      ivm.link_wire(out0, Port::ERASE);
-      ivm.link_wire(out1, Port::new_ext_val(res));
+      let (val0, val1) = (|| {
+        let $a = $a_ty.unwrap_ext_val($a)?;
+        let res = $c_ty.wrap_ext_val($body);
+        Some((Port::ERASE, Port::new_ext_val(res)))
+      })().unwrap_or_else(|| {
+        ivm.flags.ext_generic = true;
+        (Port::ERASE, Port::ERASE)
+      });
+
+      ivm.link_wire(out0, val0);
+      ivm.link_wire(out1, val1);
     })
   };
 
   (@impl $ext:ident, |$a:ident : $a_ty:ident, $b:ident : $b_ty:ident| -> $c_ty:ident $body:block) => {
     $ext.new_merge_ext_fn(move |ivm, $a, $b, out| {
-      let $a = $a_ty.unwrap_ext_val($a).unwrap();
-      let $b = $b_ty.unwrap_ext_val($b).unwrap();
-      let c = $c_ty.wrap_ext_val($body);
-      ivm.link_wire(out, Port::new_ext_val(c));
+      let val = (|| {
+        let $a = $a_ty.unwrap_ext_val($a)?;
+        let $b = $b_ty.unwrap_ext_val($b)?;
+        let res = $c_ty.wrap_ext_val($body);
+        Some(Port::new_ext_val(res))
+      })().unwrap_or_else(|| {
+        ivm.flags.ext_generic = true;
+        Port::ERASE
+      });
+
+      ivm.link_wire(out, val);
     })
   };
 
   (@impl $ext:ident, |$a:ident : $a_ty:ident| -> ($b_ty:ident, $c_ty:ident) $body:block) => {
     $ext.new_split_ext_fn(move |ivm, $a, out0, out1| {
-      let $a = $a_ty.unwrap_ext_val($a).unwrap();
-      let (b, c) = $body;
-      let b = $b_ty.wrap_ext_val(b);
-      let c = $c_ty.wrap_ext_val(c);
-      ivm.link_wire(out0, Port::new_ext_val(b));
-      ivm.link_wire(out1, Port::new_ext_val(c));
+      let (val0, val1) = (|| {
+        let $a = $a_ty.unwrap_ext_val($a)?;
+        let (b, c) = $body;
+        let b = $b_ty.wrap_ext_val(b);
+        let c = $c_ty.wrap_ext_val(c);
+        Some((Port::new_ext_val(b), Port::new_ext_val(c)))
+      })().unwrap_or_else(|| {
+        ivm.flags.ext_generic = true;
+        (Port::ERASE, Port::ERASE)
+      });
+
+      ivm.link_wire(out0, val0);
+      ivm.link_wire(out1, val1);
     })
   };
 }
@@ -97,8 +123,8 @@ impl<'ivm> Host<'ivm> {
       "n32_add" => |a: n32, b: n32| -> n32 { a.wrapping_add(b) },
       "n32_sub" => |a: n32, b: n32| -> n32 { a.wrapping_sub(b) },
       "n32_mul" => |a: n32, b: n32| -> n32 { a.wrapping_mul(b) },
-      "n32_div" => |a: n32, b: n32| -> n32 { a.wrapping_div(b) },
-      "n32_rem" => |a: n32, b: n32| -> n32 { a.wrapping_rem(b) },
+      "n32_div" => |a: n32, b: n32| -> n32 { a.checked_div(b)? },
+      "n32_rem" => |a: n32, b: n32| -> n32 { a.checked_rem(b)? },
 
       "n32_eq" => |a: n32, b: n32| -> n32 { (a == b) as u32 },
       "n32_ne" => |a: n32, b: n32| -> n32 { (a != b) as u32 },
@@ -133,8 +159,8 @@ impl<'ivm> Host<'ivm> {
       "f32_to_bits" => |a: f32| -> n32 { a.to_bits() },
       "f32_from_bits" => |a: n32| -> f32 { f32::from_bits(a) },
 
-      "i32_div" => |a: n32, b: n32| -> n32 { (a as i32 / b as i32) as u32 },
-      "i32_rem" => |a: n32, b: n32| -> n32 { (a as i32 % b as i32) as u32 },
+      "i32_div" => |a: n32, b: n32| -> n32 { (a as i32).checked_div(b as i32)? as u32 },
+      "i32_rem" => |a: n32, b: n32| -> n32 { (a as i32).checked_rem(b as i32)? as u32 },
       "i32_shr" => |a: n32, b: n32| -> n32 { (a as i32).wrapping_shr(b) as u32 },
       "i32_lt" => |a: n32, b: n32| -> n32 { ((a as i32) < (b as i32)) as u32 },
       "i32_le" => |a: n32, b: n32| -> n32 { ((a as i32) <= (b as i32)) as u32 },

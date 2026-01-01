@@ -59,11 +59,13 @@ fn tests(t: &mut DynTester) {
     test_vi(t, "tests/programs/cond_diverge.vi", b"", ".txt", true, false, false);
     test_vi(t, "tests/programs/cubes.vi", b"", ".txt", true, false, false);
     test_vi(t, "tests/programs/cyclist.vi", b"", ".txt", true, false, false);
+    test_vi(t, "tests/programs/div_by_zero.vi", b"", ".txt", false, true, true);
     test_vi(t, "tests/programs/f32_roundabout.vi", b"", ".txt", false, false, false);
     test_vi(t, "tests/programs/final_countdown.vi", b"", ".txt", true, false, false);
     test_vi(t, "tests/programs/find_primes.vi", b"", ".txt", true, false, false);
     test_vi(t, "tests/programs/heap.vi", b"", ".txt", true, false, false);
     test_vi(t, "tests/programs/int_edges.vi", b"", ".txt", false, false, false);
+    test_vi(t, "tests/programs/invalid_extrinsics.vi", b"", ".txt", true, false, true);
     test_vi(t, "tests/programs/inverse.vi", b"", ".txt", true, false, false);
     test_vi(t, "tests/programs/iterator_party.vi", b"", ".txt", false, true, false);
     test_vi(t, "tests/programs/lambda.vi", lambda_input, ".txt", true, false, false);

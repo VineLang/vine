@@ -90,8 +90,8 @@ impl<'ivm> Extrinsics<'ivm> {
     self.n32_ext_ty
   }
 
-  pub fn ext_val_as_n32(&self, x: ExtVal<'ivm>) -> u32 {
-    self.n32_ext_ty().unwrap_ext_val(x).unwrap()
+  pub fn ext_val_as_n32(&self, x: ExtVal<'ivm>) -> Option<u32> {
+    self.n32_ext_ty().unwrap_ext_val(x)
   }
 
   pub fn get_ext_split_fn(&self, ext_fn: ExtFn<'ivm>) -> &dyn ExtSplitFn<'ivm> {

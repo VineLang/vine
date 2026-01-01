@@ -82,6 +82,9 @@ impl RunArgs {
     if ivm.flags.ext_erase {
       eprintln!("\nError: a linear extrinsic was erased");
     }
+    if ivm.flags.ext_generic {
+      eprintln!("\nError: an extrinsic function encountered an unspecified error");
+    }
 
     if !self.no_stats {
       eprintln!("{}", ivm.stats);
