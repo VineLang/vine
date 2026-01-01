@@ -352,6 +352,52 @@ pub mod Array {
     self
   }
 
+  /// Zips the two arrays with a given function combining the corresponding elements.
+  ///
+  /// Safety: Errors if the two arrays have different lengths.
+  /// ```vi
+  /// let left = ["ab", "x"] as Array;
+  /// let right = ["cd", "yz"] as Array;
+  /// left.zip_with(right, Concat::concat) // Array(["abcd", "xyz"])
+  /// ```
+  pub fn .zip_with[T, U, V, F*; fn F(T, U) -> V](
+    Array[T](len_left, left),
+    Array[U](len_right, right),
+    f: F,
+  ) -> Array[V] {
+    when {
+      len_left != len_right {
+        debug::error_with("`Array::zip_with` called on arrays of unequal lengths", (left, right))
+      }
+      len_left == 0 {
+        unsafe::erase(left);
+        unsafe::erase(right);
+        Array::empty
+      }
+      _ { Array(len_left, Node::zip_with(len_left, left, right, f)) }
+    }
+  }
+
+  // Unzips the array with a given function producing two new arrays.
+  /// ```vi
+  /// let array = ["abcde", "qwerty"] as Array;
+  /// let (left, right) = array.unzip_with(fn* (s: String) { s.split_at(3) })
+  /// left // Array(["abc", "qwe"])
+  /// right // Array(["de", "rty"])
+  /// ```
+  pub fn .unzip_with[T, F*, U, V; fn F(T) -> (U, V)](Array[T](len, node), f: F) -> (
+    Array[U],
+    Array[V],
+  ) {
+    if len == 0 {
+      unsafe::erase(node);
+      (Array::empty, Array::empty)
+    } else {
+      let (left, right) = Node::unzip_with(len, node, f);
+      (Array(len, left), Array(len, right))
+    }
+  }
+
   pub impl eq[T; Eq[T]]: Eq[Array[T]] {
     fn eq(&Array[T](len, node), &Array[T](len_other, other)) -> Bool {
       len == len_other and (len == 0 or Node::eq(len, &node, &other))

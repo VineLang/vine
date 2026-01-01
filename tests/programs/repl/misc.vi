@@ -1,4 +1,4 @@
-use #root::data::Array;
+use #root::{data::Array, ops::Concat};
 fn _foo() {}
 1.as[String]
 1.0.as[String]
@@ -33,6 +33,8 @@ a.at(5)
 /clear a
 [1,2,3,4,5,6,7,8,9].as[Array].reversed().as[List]
 [1,2,3,4,5,6,7,8,9].as[Array].map_unordered(fn* (val: N32) { val * 2 })
+["abcde", "qwerty"].as[Array].unzip_with(fn* (s: String) { s.split_at(3) })
+["ab", "x"].as[Array].zip_with(["cd", "yz"].as[Array], Concat::concat)
 [1,2,3] as Array == [1,2,3] as Array
 [] as Array[N32] == [] as Array[N32]
 [] as Array[N32] == [1] as Array
