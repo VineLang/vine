@@ -360,6 +360,7 @@ impl Types {
     match self.kind(ty) {
       Some((_, TypeKind::Tuple(elements))) => elements.iter().all(|&x| self.self_dual(x)),
       Some((_, TypeKind::Object(entries))) => entries.values().all(|&x| self.self_dual(x)),
+      Some((_, TypeKind::IfConst(_, t, f))) => self.self_dual(*t) && self.self_dual(*f),
       Some((_, TypeKind::Default | TypeKind::Error(_))) => true,
       _ => false,
     }
