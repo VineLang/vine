@@ -18,4 +18,3 @@ jobs:
           gh pr edit ${{ github.event.pull_request.number }} --base dev
         env:
           GH_TOKEN: ${{ github.token }}
-
