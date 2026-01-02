@@ -369,6 +369,7 @@ module.exports = grammar({
     stmt_let: $ =>
       prec.right(seq(
         "let",
+        optional("loop"),
         $._pat,
         optional(seq(
           "=",

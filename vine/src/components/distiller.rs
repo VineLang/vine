@@ -256,7 +256,7 @@ impl<'r> Distiller<'r> {
         self.distill_expr_value_closure(stage, span, ty, *closure_id)
       }
       TirExprKind::Seq(ignored, continuation) => self.distill_seq(stage, ignored, continuation),
-      TirExprKind::Let(pat, init, continuation) => self.distill_let(stage, pat, init, continuation),
+      TirExprKind::Let(pat, kind, continuation) => self.distill_let(stage, pat, kind, continuation),
       TirExprKind::Do(label, block) => self.distill_do(stage, span, *label, block),
       TirExprKind::If(cond, then, else_) => self.distill_if(stage, span, ty, cond, then, else_),
       TirExprKind::When(target, arms, leg) => {
@@ -375,21 +375,40 @@ impl<'r> Distiller<'r> {
     }
   }
 
-  pub(crate) fn distill_pat_nil(&mut self, stage: &mut Stage, pat: &TirPat) {
+  pub(crate) fn distill_pat_uninit(&mut self, stage: &mut Stage, pat: &TirPat) {
     match &*pat.kind {
       TirPatKind::Hole | TirPatKind::Error(_) => {}
       TirPatKind::Composite(els) => {
-        els.iter().for_each(|e| self.distill_pat_nil(stage, e));
+        els.iter().for_each(|e| self.distill_pat_uninit(stage, e));
       }
       TirPatKind::Struct(_, inner)
       | TirPatKind::Enum(_, _, inner)
       | TirPatKind::Ref(inner)
       | TirPatKind::Deref(inner)
       | TirPatKind::Inverse(inner) => {
-        self.distill_pat_nil(stage, inner);
+        self.distill_pat_uninit(stage, inner);
       }
       TirPatKind::Local(local) => {
-        self.distill_pat_nil_local(stage, *local);
+        self.distill_pat_uninit_local(stage, *local);
+      }
+    }
+  }
+
+  pub(crate) fn distill_pat_loop(&mut self, stage: &mut Stage, pat: &TirPat) {
+    match &*pat.kind {
+      TirPatKind::Hole | TirPatKind::Error(_) => {}
+      TirPatKind::Composite(els) => {
+        els.iter().for_each(|e| self.distill_pat_loop(stage, e));
+      }
+      TirPatKind::Struct(_, inner)
+      | TirPatKind::Enum(_, _, inner)
+      | TirPatKind::Ref(inner)
+      | TirPatKind::Deref(inner)
+      | TirPatKind::Inverse(inner) => {
+        self.distill_pat_loop(stage, inner);
+      }
+      TirPatKind::Local(local) => {
+        self.distill_pat_loop_local(stage, *local);
       }
     }
   }

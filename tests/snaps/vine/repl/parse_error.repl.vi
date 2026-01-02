@@ -24,7 +24,7 @@ error: expected `::`, `[`, `(`, an operator, `,`, or `)`; found an identifier
 
 
 > let let: leet = leet
-error: expected `fn` or a pattern; found `let`
+error: expected `fn`, `loop`, or a pattern; found `let`
    @ input:1:5
  1 | let let: leet = leet
 

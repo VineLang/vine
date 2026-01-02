@@ -132,11 +132,18 @@ pub enum TirExprKind {
   #[class(value)]
   CallCompare(TirExpr, Vec<(FnRelId, TirExpr)>),
   #[class(value)]
-  Let(TirPat, Option<TirExpr>, TirExpr),
+  Let(TirPat, TirExprLetKind, TirExpr),
   #[class(value)]
   Seq(TirExpr, TirExpr),
   #[class(poly, value, place, space)]
   Error(ErrorGuaranteed),
+}
+
+#[derive(Debug, Clone)]
+pub enum TirExprLetKind {
+  Init(TirExpr),
+  Uninit,
+  Loop,
 }
 
 #[derive(Debug, Clone)]

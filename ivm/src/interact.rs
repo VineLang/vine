@@ -38,6 +38,10 @@ impl<'ivm, 'ext> IVM<'ivm, 'ext> {
   /// Link a wire and a port.
   pub fn link_wire(&mut self, a: Wire<'ivm>, b: Port<'ivm>) {
     let b = self.follow(b);
+    if unsafe { Port::new_wire(a.clone()).bits() == b.bits() } {
+      self.free_wire(a);
+      return;
+    }
     if let Some(s) = a.swap_target(Some(unsafe { b.clone() })) {
       self.free_wire(a);
       self.link(s, b);

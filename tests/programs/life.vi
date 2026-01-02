@@ -129,7 +129,7 @@ pub fn cell(
 pub struct RingNeighbors[P, N]((P, N));
 
 pub fn construct_ring[P, N, F*; fn F(N32, RingNeighbors[P, N]), Channel[N, P]](len: N32, f: F) {
-  let &chan = circular();
+  let loop chan;
   for i in 0..len {
     let (prev, next);
     prev = chan;
@@ -354,9 +354,4 @@ pub mod Channel {
       ((ai, ar) as A, (bi, br) as B)
     };
   }
-}
-
-fn circular[T]() -> &T {
-  let x;
-  &(~x; ~x)
 }

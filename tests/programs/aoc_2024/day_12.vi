@@ -103,12 +103,12 @@ mod Regions {
   }
 
   pub fn .find(&Regions(array), i: N32) -> N32 {
-    let ~root;
+    let loop root;
     while array.at(i) is Some(&Region::Child(p)) {
       i = p;
-      p = ~root;
+      p = root;
     }
-    ~root = i;
+    root = i;
     i
   }
 
