@@ -42,19 +42,13 @@ pub mod F64 {
     }
   }
 
-  pub impl powf: Pow[F64, F64, F64] {
-    fn pow(base: F64, exp: F64) -> F64 {
-      inline_ivy! (base <- base, exp <- exp) -> F64 { out base = @f64_powf(exp out) }
-    }
-  }
-
-  pub impl pown: Pow[F64, N32, F64] {
+  pub impl pow_n32: Pow[F64, N32, F64] {
     fn pow(base: F64, exp: N32) -> F64 {
-      inline_ivy! (base <- base, exp <- exp) -> F64 { out base = @f64_powi(exp out) }
+      Pow::pow_by_squaring(base, exp)
     }
   }
 
-  pub impl powi: Pow[F64, I32, F64] {
+  pub impl pow_i32: Pow[F64, I32, F64] {
     fn pow(base: F64, exp: I32) -> F64 {
       if exp < +0 {
         (1.0 as F64) / (base ** (-exp as N32))

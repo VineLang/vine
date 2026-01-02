@@ -189,9 +189,6 @@ impl<'ivm> Host<'ivm> {
       "f64_div" => |a: f64, b: f64| -> f64 { a / b },
       "f64_rem" => |a: f64, b: f64| -> f64 { a.rem_euclid(b) },
 
-      "f64_powf" => |a: f64, b: f64| -> f64 { a.powf(b) },
-      "f64_powi" => |a: f64, b: n32| -> f64 { a.powi(b as i32) },
-
       "f64_eq" => |a: f64, b: f64| -> n32 { (a == b) as u32 },
       "f64_ne" => |a: f64, b: f64| -> n32 { (a != b) as u32 },
       "f64_lt" => |a: f64, b: f64| -> n32 { (a < b) as u32 },
