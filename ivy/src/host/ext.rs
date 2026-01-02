@@ -23,6 +23,7 @@ macro_rules! register_ext_fns {
     $ext.new_split_ext_fn(move |ivm, $a, out0, out1| {
       let $a = $a_ty.unwrap_ext_val($a);
 
+      #[allow(unused)]
       if let Some($a) = $a {
         let () = $body;
       } else {
