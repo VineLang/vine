@@ -1,0 +1,63 @@
+name: Integration
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - dev
+
+jobs:
+  liana:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions: read-all
+    steps:
+      - uses: actions/checkout@v3
+      - uses: cachix/install-nix-action@v31
+      - run: nix flake check github:nilscrm/liana --override-input vine . -L
+
+  mainline:
+    needs:
+      - liana
+    if: ${{ github.ref_name == 'dev' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - run: |
+          git fetch origin main
+          if [[ -z `git branch origin/main --contains @` ]]; then
+            git push origin `git rev-parse @`:main
+          fi
+
+  notify:
+    needs: [mainline]
+    if: ${{ github.ref_name == 'dev' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - uses: actions/checkout@v3
+      - name: open issue
+        if: ${{ needs.mainline.result == 'skipped' }}
+        run: |
+          gh issue reopen 484
+          gh issue edit 484 --add-assignee ${{ github.event.sender.login }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+      - name: close issue
+        if: ${{ needs.mainline.result == 'success' }}
+        run: |
+          git fetch origin main
+          if [[ `git rev-parse dev` == `git rev-parse origin/main` ]]; then
+            gh issue close 484
+            gh issue edit 484 --remove-assignee @me,`gh issue view 484 --json assignees --jq '[.assignees.[].login] | join(",")'`
+          fi
+        env:
+          GH_TOKEN: ${{ github.token }}
+
