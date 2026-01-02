@@ -7,27 +7,27 @@ let io: IO = <IO>;
 
 let io: IO = <IO>;
 let x: F64 = ≈3.14159203;
-> x + (x - 2.0 as F64)
+> x + (x - 2.0[F64])
 ≈4.28318405
 
 let io: IO = <IO>;
 let x: F64 = ≈3.14159203;
-> x * (x - 2.0 as F64)
+> x * (x - 2.0[F64])
 ≈3.58641648
 
 let io: IO = <IO>;
 let x: F64 = ≈3.14159203;
-> x - (x - 2.0 as F64)
+> x - (x - 2.0[F64])
 ≈2.0
 
 let io: IO = <IO>;
 let x: F64 = ≈3.14159203;
-> x / (x - 2.0 as F64)
+> x / (x - 2.0[F64])
 ≈2.7519393
 
 let io: IO = <IO>;
 let x: F64 = ≈3.14159203;
-> x % (x - 2.0 as F64)
+> x % (x - 2.0[F64])
 ≈8.58407974e-1
 
 let io: IO = <IO>;
