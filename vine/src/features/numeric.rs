@@ -9,7 +9,7 @@ use crate::{
     ast::{ExprKind, Span, Ty},
     diag::Diag,
     tir::{TirExpr, TirExprKind},
-    types::{Type, TypeKind},
+    types::{Inverted, Type, TypeKind},
     vir::{Port, PortKind},
   },
   tools::fmt::{Formatter, doc::Doc},
@@ -19,21 +19,20 @@ impl Parser<'_> {
   pub(crate) fn parse_expr_numeric(&mut self) -> Result<ExprKind, Diag> {
     let span = self.span();
     let token = self.expect(Token::Num)?;
-    match (token.contains('.'), self.eat(Token::OpenBracket)?) {
-      (true, true) => {
-        let ty = self.parse_ty()?;
-        self.expect(Token::CloseBracket)?;
+    let ty = self.eat_then(Token::OpenBracket, |self_| {
+      let ty = self_.parse_ty()?;
+      self_.expect(Token::CloseBracket)?;
+      Ok(ty)
+    })?;
+    match (token.contains('.'), ty) {
+      (true, Some(ty)) => {
         Ok(ExprKind::Float(span, self.parse_f64_like(token, |_| Diag::InvalidNum { span })?, ty))
       }
-      (true, false) => {
-        Ok(ExprKind::F32(self.parse_f32_like(token, |_| Diag::InvalidNum { span })?))
-      }
-      (false, true) => {
-        let ty = self.parse_ty()?;
-        self.expect(Token::CloseBracket)?;
+      (true, None) => Ok(ExprKind::F32(self.parse_f32_like(token, |_| Diag::InvalidNum { span })?)),
+      (false, Some(ty)) => {
         Ok(ExprKind::Nat(span, self.parse_nat_like(token, |_| Diag::InvalidNum { span })?, ty))
       }
-      (false, false) => {
+      (false, None) => {
         Ok(ExprKind::N32(self.parse_u32_like(token, |_| Diag::InvalidNum { span })?))
       }
     }
@@ -67,13 +66,21 @@ impl Resolver<'_> {
     n: f64,
     ty: &Ty,
   ) -> Result<TirExpr, Diag> {
-    let f64_ty = self.builtin_ty(span, "F64", self.chart.builtins.f64);
-    // FIXME: this (implicitly) hardcodes supports for bracketed F64 literals only.
     let ty = self.resolve_ty(ty, true);
-    if self.types.unify(f64_ty, ty).is_success() {
-      Ok(TirExpr::new(span, f64_ty, TirExprKind::F64(n)))
-    } else {
-      Err(self.diags.error(Diag::InvalidNum { span }))?
+    match self.types.kind(ty) {
+      Some((Inverted(false), TypeKind::Opaque(type_id, _)))
+        if Some(*type_id) == self.chart.builtins.f64 =>
+      {
+        let f64_ty = self.builtin_ty(span, "F64", self.chart.builtins.f64);
+        Ok(TirExpr::new(span, f64_ty, TirExprKind::F64(n)))
+      }
+      Some((Inverted(false), TypeKind::Opaque(type_id, _)))
+        if Some(*type_id) == self.chart.builtins.f32 =>
+      {
+        let f32_ty = self.builtin_ty(span, "F32", self.chart.builtins.f32);
+        Ok(TirExpr::new(span, f32_ty, TirExprKind::F32(n as f32)))
+      }
+      _ => Err(self.diags.error(Diag::InvalidNum { span }))?,
     }
   }
 
