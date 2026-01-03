@@ -30,7 +30,7 @@ jobs:
           fetch-depth: 0
       - run: |
           git fetch origin main
-          if [[ -z `git branch origin/main --contains @` ]]; then
+          if ! git merge-base --is-ancestor @ origin/main; then
             git push origin `git rev-parse @`:main
           fi
 
