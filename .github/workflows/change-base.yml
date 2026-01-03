@@ -1,0 +1,20 @@
+name: Change Base
+
+on:
+  pull_request:
+    types: [opened]
+    branches: [main]
+
+jobs:
+  change-base:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v3
+      - run: |
+          gh pr edit ${{ github.event.pull_request.number }} --base dev
+        env:
+          GH_TOKEN: ${{ github.token }}
