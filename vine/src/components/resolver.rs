@@ -525,6 +525,7 @@ impl<'a> Resolver<'a> {
       ExprKind::N32(value) => self.resolve_expr_n32(span, *value),
       ExprKind::F32(value) => self.resolve_expr_f32(span, *value),
       ExprKind::Nat(_, value, ty) => self.resolve_expr_nat(span, value, ty),
+      ExprKind::Float(_, value, ty) => self.resolve_expr_float(span, *value, ty),
       ExprKind::Char(char) => self.resolve_expr_char(span, *char),
       ExprKind::String(init, rest) => self.resolve_expr_string(span, init, rest),
       ExprKind::InlineIvy(binds, ty, _, net) => self.resolve_inline_ivy(span, binds, ty, net),

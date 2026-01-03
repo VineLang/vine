@@ -352,6 +352,7 @@ pub enum ExprKind {
   RangeInclusive(Option<Expr>, Expr),
   N32(u32),
   F32(f32),
+  Float(Span, f64, Ty),
   Nat(Span, Nat, Ty),
   Char(char),
   String(StringSegment, Vec<(Expr, StringSegment)>),

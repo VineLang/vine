@@ -77,6 +77,7 @@ fn tests(t: &mut DynTester) {
     test_vi(t, "tests/programs/loop_break_continue.vi", b"", ".txt", true, false, false);
     test_vi(t, "tests/programs/loop_vi_loop.vi", b"", ".txt", true, false, false);
     test_vi(t, "tests/programs/main.vi", b"", ".txt", false, false, false);
+    test_vi(t, "tests/programs/mandelbrot_f64.vi", b"", ".txt", false, false, false);
     test_vi(t, "tests/programs/map_test.vi", b"", ".txt", false, false, false);
     test_vi(t, "tests/programs/map_ops.vi", b"", ".txt", true, false, false);
     test_vi(t, "tests/programs/maybe_set.vi", b"", ".txt", true, false, false);
@@ -97,6 +98,7 @@ fn tests(t: &mut DynTester) {
     test_vi(t, "tests/programs/specializations.vi", b"", ".txt", true, false, false);
     test_vi(t, "tests/programs/square_case.vi", b"", ".txt", true, false, false);
     test_vi(t, "tests/programs/the_greatest_show.vi", b"", ".txt", true, false, false);
+    test_vi(t, "tests/programs/tiny_f64.vi", b"", ".txt", true, false, false);
     test_vi(t, "tests/programs/verbose_add.vi", b"", ".txt", true, false, false);
     test_vi(t, "tests/programs/when_break_continue.vi", b"", ".txt", true, false, false);
 
@@ -136,6 +138,7 @@ fn tests(t: &mut DynTester) {
       test_vi_repl(t, "tests/programs/repl/basic_repl.vi");
       test_vi_repl(t, "tests/programs/repl/elementwise.vi");
       test_vi_repl(t, "tests/programs/repl/f32_to_string.vi");
+      test_vi_repl(t, "tests/programs/repl/F64.vi");
       test_vi_repl(t, "tests/programs/repl/heap.vi");
       test_vi_repl(t, "tests/programs/repl/i32_misc.vi");
       test_vi_repl(t, "tests/programs/repl/misc.vi");

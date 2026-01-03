@@ -73,6 +73,10 @@ impl<'ivm> Host<'ivm> {
     self.ext_ty("F32").wrap_ext_val(payload)
   }
 
+  pub fn new_f64(&self, payload: f64) -> ExtVal<'ivm> {
+    self.ext_ty("F64").wrap_ext_val(payload)
+  }
+
   pub fn new_n32(&self, payload: u32) -> ExtVal<'ivm> {
     self.ext_ty("N32").wrap_ext_val(payload)
   }

@@ -147,7 +147,7 @@ impl<'ivm> Port<'ivm> {
   /// Constructs a new [`Tag::ExtVal`] port.
   #[inline(always)]
   pub fn new_ext_val(val: ExtVal) -> Self {
-    unsafe { Self::from_bits(Word::from_bits(val.bits())) }
+    unsafe { Self::from_bits(val.bits()) }
   }
 
   /// Unsafely clones a port by copying its bits.
@@ -193,7 +193,7 @@ impl<'ivm> Port<'ivm> {
   #[inline(always)]
   pub unsafe fn as_ext_val(&self) -> ExtVal<'ivm> {
     debug_assert_eq!(self.tag(), Tag::ExtVal);
-    unsafe { ExtVal::from_bits(self.0.get().bits()) }
+    unsafe { ExtVal::from_bits(self.0.get()) }
   }
 
   /// Get the address of this port, interpreted as an [`ExtVal`].

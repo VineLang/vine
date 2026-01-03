@@ -1,0 +1,39 @@
+
+
+use #root::ops::elementwise as _;
+
+const max_iter: N32 = 128;
+const width: N32 = black_box(125);
+const height: N32 = black_box(45);
+const scale: F64 = 2.6[F64];
+const center: (F64, F64) = (-0.8[F64], 0.0[F64]);
+
+pub fn main(&io: &IO) {
+  for j in 0..height {
+    for i in 0..width {
+      let pos = (i as F64 + 0.5[F64], j as F64 + 0.5[F64]) - (width as F64, height as F64) / 2.0[F64];
+      let (x, y) = center + pos * scale / width as F64 * (1.0[F64], 2.0[F64]);
+      io.print_char(if mandelbrot(x, y) {
+        '#'
+      } else {
+        ' '
+      });
+    }
+    io.print_char('\n');
+  }
+}
+
+fn mandelbrot(x0: F64, y0: F64) -> Bool {
+  let x = 0.0[F64];
+  let y = 0.0[F64];
+  let x2 = 0.0[F64];
+  let y2 = 0.0[F64];
+  let i = max_iter;
+  while (i > 0) & (x2 + y2 < 4.0[F64]) {
+    i -= 1;
+    (x, y) = (x2 - y2 + x0, 2.0[F64] * x * y + y0);
+    x2 = x * x;
+    y2 = y * y;
+  }
+  i == 0
+}

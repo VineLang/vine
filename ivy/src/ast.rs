@@ -17,6 +17,7 @@ pub enum Tree {
   Branch(Box<Tree>, Box<Tree>, Box<Tree>),
   N32(u32),
   F32(f32),
+  F64(f64),
   Var(String),
   Global(String),
   BlackBox(Box<Tree>),
@@ -60,6 +61,8 @@ impl Display for Tree {
       Tree::N32(n) => write!(f, "{n}"),
       Tree::F32(n) if n.is_nan() => write!(f, "+NaN"),
       Tree::F32(n) => write!(f, "{n:+?}"),
+      Tree::F64(n) if n.is_nan() => write!(f, "+NaNf64"),
+      Tree::F64(n) => write!(f, "{n:+?}f64"),
       Tree::Var(v) => write!(f, "{v}"),
       Tree::Global(g) => write!(f, "{g}"),
       Tree::BlackBox(b) => write!(f, "#[{b}]"),
@@ -115,7 +118,7 @@ impl Tree {
   pub fn children(&self) -> impl DoubleEndedIterator + ExactSizeIterator<Item = &Self> + Clone {
     multi_iter!(Children { One, Zero, Two, Three });
     match self {
-      Tree::Erase | Tree::N32(_) | Tree::F32(_) | Tree::Var(_) | Tree::Global(_) => {
+      Tree::Erase | Tree::N32(_) | Tree::F32(_) | Tree::F64(_) | Tree::Var(_) | Tree::Global(_) => {
         Children::Zero([])
       }
       Tree::BlackBox(a) => Children::One([&**a]),
@@ -127,7 +130,7 @@ impl Tree {
   pub fn children_mut(&mut self) -> impl DoubleEndedIterator + ExactSizeIterator<Item = &mut Self> {
     multi_iter!(Children { Zero, One, Two, Three });
     match self {
-      Tree::Erase | Tree::N32(_) | Tree::F32(_) | Tree::Var(_) | Tree::Global(_) => {
+      Tree::Erase | Tree::N32(_) | Tree::F32(_) | Tree::F64(_) | Tree::Var(_) | Tree::Global(_) => {
         Children::Zero([])
       }
       Tree::BlackBox(a) => Children::One([&mut **a]),

@@ -175,6 +175,14 @@ pub trait Parse<'src> {
   ) -> Result<f32, Self::Error> {
     token.parse::<f32>().map_err(|_| err(token))
   }
+
+  fn parse_f64_like(
+    &mut self,
+    token: &'src str,
+    err: impl Fn(&'src str) -> Self::Error,
+  ) -> Result<f64, Self::Error> {
+    token.parse::<f64>().map_err(|_| err(token))
+  }
 }
 
 pub struct Delimiters<T: Token> {

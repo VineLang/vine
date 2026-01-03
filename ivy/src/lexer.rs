@@ -23,6 +23,7 @@ pub enum Token {
 
   N32,
   F32,
+  F64,
   Global,
   Ident,
 
@@ -78,7 +79,7 @@ impl<'src> Lex<'src> for Lexer<'src> {
       Some('+' | '-') => {
         self.bump();
         self.bump_while(|c| c.is_ascii_alphanumeric() || matches!(c, '_' | '.' | '+' | '-'));
-        Ok(Token::F32)
+        if self.slice().ends_with("f64") { Ok(Token::F64) } else { Ok(Token::F32) }
       }
 
       Some(':') => {

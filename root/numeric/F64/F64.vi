@@ -1,0 +1,196 @@
+
+use ops::{Cast, arithmetic::{Add, Div, Mul, Neg, Pos, Pow, Rem, Sub}, comparison::{Eq, Le, Lt}};
+
+#[builtin = "F64"]
+pub type F64;
+
+pub mod F64 {
+  pub const nan: F64 = F32::nan as F64;
+  pub const inf: F64 = F32::inf as F64;
+  pub const neg_inf: F64 = F32::neg_inf as F64;
+
+  pub impl fork: Fork[F64] {
+    fn fork(&f: &F64) -> F64 {
+      inline_ivy! (f0 <- f, f1 -> f) -> F64 {
+        f2
+        f0 = @f64_fork(f1 f2)
+      }
+    }
+  }
+
+  pub impl drop: Drop[F64] {
+    fn drop(f: F64) {
+      inline_ivy! (f <- f) -> () { _ f = @f64_drop(_ _) }
+    }
+  }
+
+  pub impl add: Add[F64, F64, F64] {
+    fn add(a: F64, b: F64) -> F64 {
+      inline_ivy! (a <- a, b <- b) -> F64 { out a = @f64_add(b out) }
+    }
+  }
+
+  pub impl sub: Sub[F64, F64, F64] {
+    fn sub(a: F64, b: F64) -> F64 {
+      inline_ivy! (a <- a, b <- b) -> F64 { out a = @f64_sub(b out) }
+    }
+  }
+
+  pub impl mul: Mul[F64, F64, F64] {
+    fn mul(a: F64, b: F64) -> F64 {
+      inline_ivy! (a <- a, b <- b) -> F64 { out a = @f64_mul(b out) }
+    }
+  }
+
+  pub impl pow_n32: Pow[F64, N32, F64] {
+    fn pow(base: F64, exp: N32) -> F64 {
+      Pow::pow_by_squaring(base, exp)
+    }
+  }
+
+  pub impl pow_i32: Pow[F64, I32, F64] {
+    fn pow(base: F64, exp: I32) -> F64 {
+      if exp < +0 {
+        (1.0 as F64) / (base ** (-exp as N32))
+      } else {
+        base ** (exp as N32)
+      }
+    }
+  }
+
+  pub impl div: Div[F64, F64, F64] {
+    fn div(a: F64, b: F64) -> F64 {
+      inline_ivy! (a <- a, b <- b) -> F64 { out a = @f64_div(b out) }
+    }
+  }
+
+  pub impl rem: Rem[F64, F64, F64] {
+    fn rem(a: F64, b: F64) -> F64 {
+      inline_ivy! (a <- a, b <- b) -> F64 { out a = @f64_rem(b out) }
+    }
+  }
+
+  pub impl pos: Pos[F64, F64] {
+    fn pos(f: F64) -> F64 {
+      f
+    }
+  }
+
+  pub impl neg: Neg[F64, F64] {
+    fn neg(f: F64) -> F64 {
+      0.0 as F64 - f
+    }
+  }
+
+  pub impl eq: Eq[F64] {
+    fn eq(&a: &F64, &b: &F64) -> Bool {
+      inline_ivy! (a <- a, b <- b) -> Bool { out a = @f64_eq(b out) }
+    }
+
+    fn ne(&a: &F64, &b: &F64) -> Bool {
+      inline_ivy! (a <- a, b <- b) -> Bool { out a = @f64_ne(b out) }
+    }
+  }
+
+  pub impl lt: Lt[F64] {
+    fn lt(&a: &F64, &b: &F64) -> Bool {
+      inline_ivy! (a <- a, b <- b) -> Bool { out a = @f64_lt(b out) }
+    }
+  }
+
+  pub impl le: Le[F64] {
+    fn le(&a: &F64, &b: &F64) -> Bool {
+      inline_ivy! (a <- a, b <- b) -> Bool { out a = @f64_le(b out) }
+    }
+  }
+
+  pub impl from_n32: Cast[N32, F64] {
+    fn cast(n: N32) -> F64 {
+      inline_ivy! (n <- n) -> F64 { out n = @n32_to_f64(_ out) }
+    }
+  }
+
+  pub impl to_n32: Cast[F64, N32] {
+    fn cast(f: F64) -> N32 {
+      inline_ivy! (f <- f) -> N32 { out f = @f64_to_n32(_ out) }
+    }
+  }
+
+  pub impl from_f32: Cast[F32, F64] {
+    fn cast(f: F32) -> F64 {
+      inline_ivy! (f <- f) -> F64 { out f = @f32_to_f64(_ out) }
+    }
+  }
+
+  pub impl to_f32: Cast[F64, F32] {
+    fn cast(f: F64) -> F32 {
+      inline_ivy! (f <- f) -> F32 { out f = @f64_to_f32(_ out) }
+    }
+  }
+
+  pub impl from_n64: Cast[N64, F64] {
+    fn cast(N64(lo, hi): N64) -> F64 {
+      inline_ivy! (lo <- lo, hi <- hi) -> F64 { out lo = @n64_to_f64(hi out) }
+    }
+  }
+
+  pub impl to_n64: Cast[F64, N64] {
+    fn cast(f: F64) -> N64 {
+      let lo;
+      let hi;
+      inline_ivy! (f <- f, lo -> lo, hi -> hi) -> N64 { _ f = @f64_to_n64(lo hi) };
+      N64(lo, hi)
+    }
+  }
+
+  pub fn .to_bits(f: F64) -> N64 {
+    let lo;
+    let hi;
+    inline_ivy! (f <- f, lo -> lo, hi -> hi) -> N64 { _ f = @f64_to_bits(lo hi) };
+    N64(lo, hi)
+  }
+
+  pub fn from_bits(N64(lo, hi): N64) -> F64 {
+    inline_ivy! (lo <- lo, hi <- hi) -> F64 { out lo = @f64_from_bits(hi out) }
+  }
+
+  pub fn from_parts(negative: Bool, raw_exp: N64, mantissa: N64) -> F64 {
+    F64::from_bits(negative as N64 << 63 | raw_exp << 52 | mantissa)
+  }
+
+  pub fn .to_parts(f: F64) -> { negative: Bool, raw_exp: N64, mantissa: N64 } {
+    let bits = f.to_bits();
+    let negative = (bits >> 63) == 1[N64];
+    let raw_exp = (bits >> 52) & 0x7ff[N64];
+    let mantissa = bits & 0xfffffffffffff[N64];
+    { negative, raw_exp, mantissa }
+  }
+
+  pub fn .is_nan(f: F64) -> Bool {
+    f != f
+  }
+
+  pub fn .abs(f: F64) -> F64 {
+    if f < (0.0 as F64) {
+      -f
+    } else {
+      f
+    }
+  }
+
+  pub impl show: Show[F64] {
+    fn show(&self: &F64) -> Show {
+      Show::Literal("≈{self as F32}")
+    }
+  }
+
+  pub impl to_string: Cast[F64, String] {
+    fn cast(self: F64) -> String {
+      "{self.show()}"
+    }
+  }
+
+  pub fn parse(str: String) -> Option[F64] {
+    F32::parse(str).map(fn? (f: F32) { f as F64 })
+  }
+}
