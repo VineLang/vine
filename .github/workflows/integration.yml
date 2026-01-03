@@ -36,7 +36,7 @@ jobs:
 
   notify:
     needs: [mainline]
-    if: ${{ github.ref_name == 'dev' }}
+    if: ${{ always() && github.ref_name == 'dev' }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
