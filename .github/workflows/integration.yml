@@ -7,18 +7,28 @@ on:
       - dev
 
 jobs:
-  liana:
+  integration-tests:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions: read-all
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - repo: liana
+            flake: github:nilscrm/liana
+          - repo: sat-vi
+            flake: github:nilscrm/sat-vi
+          - repo: vine-page-rank
+            flake: github:nilscrm/vine-page-rank
     steps:
       - uses: actions/checkout@v3
       - uses: cachix/install-nix-action@v31
-      - run: nix flake check github:nilscrm/liana --override-input vine . -L
+      - name: Run ${{ matrix.repo }} integration test
+        run: nix flake check ${{ matrix.flake }} --override-input vine . -L
 
   mainline:
-    needs:
-      - liana
+    needs: [integration-tests]
     if: ${{ github.ref_name == 'dev' }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
