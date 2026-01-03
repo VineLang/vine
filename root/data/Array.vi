@@ -1,6 +1,6 @@
 
 use logical::Nullable;
-use ops::{Cast, Index::{Index, IndexPlace, IndexSpace, IndexValue}, comparison::Eq};
+use ops::{Cast, Concat, Index::{Index, IndexPlace, IndexSpace, IndexValue}, comparison::Eq};
 use util::{duplicate, erase};
 
 /// A contiguous, indexed collection of `T`.
@@ -269,6 +269,37 @@ pub mod Array {
         let value;
         Node::push_front(len, safe &~node.data, ~value);
         Some(value)
+      }
+    }
+  }
+
+  // a (1 + log (b / a))
+  pub impl concat[T]: Concat[Array[T], Array[T], Array[T]] {
+    fn concat(Array[T](len_a, a), Array[T](len_b, b)) -> Array[T] {
+      when {
+        len_a == 0 {
+          safe a.null;
+          Array(len_b, b)
+        }
+        len_b == 0 {
+          safe b.null;
+          Array(len_a, a)
+        }
+        _ { Array(len_a + len_b, safe Nullable::data(Node::concat(len_a, a.data, len_b, b.data))) }
+      }
+    }
+  }
+
+  pub fn .split_at[T](Array[T](len, node), i: N32) -> (Array[T], Array[T]) {
+    when {
+      i == 0 { (Array::empty, Array(len, node)) }
+      i >= len { (Array(len, node), Array::empty) }
+      _ {
+        let len_a = i;
+        let len_b = len - i;
+        let (a: Node[T], b: Node[T]);
+        ~Node::concat(len_a, ~a, len_b, ~b) = safe node.data;
+        (Array(len_a, safe Nullable::data(a)), Array(len_b, safe Nullable::data(b)))
       }
     }
   }
@@ -568,6 +599,34 @@ mod Node {
         &right
       };
       Node::push_back(len / 2, &half, value)
+    }
+  }
+
+  pub fn concat[T](len_a: N32, a: Node[T], len_b: N32, b: Node[T]) -> Node[T] {
+    when {
+      len_a == 1 {
+        Node::push_front(len_b, &b, safe a.leaf);
+        b
+      }
+      len_b == 1 {
+        Node::push_back(len_a, &a, safe b.leaf);
+        a
+      }
+      _ {
+        let safe Node::branch(a_l, a_r) = a;
+        let len_a_l = (len_a + 1) / 2;
+        let len_a_r = len_a / 2;
+        let safe Node::branch(b_l, b_r) = b;
+        let len_b_l = (len_b + 1) / 2;
+        let len_b_r = len_b / 2;
+        if len_a % 2 == 1 {
+          swap(&(len_b_l, b_l), &(len_b_r, b_r));
+        }
+        safe Node::branch(
+          Node::concat(len_a_l, a_l, len_b_l, b_l),
+          Node::concat(len_a_r, a_r, len_b_r, b_r),
+        )
+      }
     }
   }
 }
