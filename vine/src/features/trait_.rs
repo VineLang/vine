@@ -63,9 +63,6 @@ impl Charter<'_> {
     let mut consts = IdxVec::new();
     let mut fns = IdxVec::new();
     for subitem in trait_item.items {
-      if !self.enabled(&subitem.attrs) {
-        continue;
-      }
       let span = subitem.name_span;
       let attrs = subitem.attrs;
       if !matches!(subitem.vis, Vis::Private) {

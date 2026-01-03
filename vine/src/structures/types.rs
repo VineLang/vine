@@ -12,7 +12,7 @@ use vine_util::{
 
 use crate::structures::{
   ast::{Flex, Ident, Span},
-  chart::{Chart, DefId, EnumId, FnId, OpaqueTypeId, StructId, TraitId},
+  chart::{Chart, ConcreteConstId, DefId, EnumId, FnId, OpaqueTypeId, StructId, TraitId},
   diag::{Diag, Diags, ErrorGuaranteed},
   signatures::FnSig,
   tir::ClosureId,
@@ -90,6 +90,7 @@ pub enum TypeKind {
   Closure(ClosureId, Flex, FnSig),
   Ref(Type),
   Key(Ident),
+  IfConst(ConcreteConstId, Type, Type),
   Never,
   Default,
   Error(ErrorGuaranteed),
@@ -239,6 +240,9 @@ impl Types {
       (TypeKind::Error(e), _) | (_, TypeKind::Error(e)) => Indeterminate(*e),
       (TypeKind::Tuple(a), TypeKind::Tuple(b)) => self.unify_types(a, b, inverted),
       (TypeKind::Object(a), TypeKind::Object(b)) => self.unify_objects(a, b, inverted),
+      (TypeKind::IfConst(a, t, e), TypeKind::IfConst(b, u, f)) if a == b => {
+        self.unify(*t, u.invert_if(inverted)).and(self.unify(*e, f.invert_if(inverted)))
+      }
       _ if inverted.0 => Failure,
       (TypeKind::Param(i, _), TypeKind::Param(j, _)) if *i == *j => Success,
       (TypeKind::Opaque(OpaqueTypeId(i), a), TypeKind::Opaque(OpaqueTypeId(j), b))
@@ -356,6 +360,7 @@ impl Types {
     match self.kind(ty) {
       Some((_, TypeKind::Tuple(elements))) => elements.iter().all(|&x| self.self_dual(x)),
       Some((_, TypeKind::Object(entries))) => entries.values().all(|&x| self.self_dual(x)),
+      Some((_, TypeKind::IfConst(_, t, f))) => self.self_dual(*t) && self.self_dual(*f),
       Some((_, TypeKind::Default | TypeKind::Error(_))) => true,
       _ => false,
     }
@@ -462,6 +467,18 @@ impl Types {
             TypeKind::Enum(enum_id, params) => {
               *str += &chart.enums[*enum_id].name.0;
               self._show_params(chart, params, str);
+            }
+            TypeKind::IfConst(const_id, then, else_) => {
+              *str += "if const ";
+              *str += &chart.defs[chart.concrete_consts[*const_id].def].path;
+              *str += " { ";
+              self._show(chart, *then, str);
+              *str += " }";
+              if !matches!(self.kind(*else_), Some((_, TypeKind::Tuple(els))) if els.is_empty()) {
+                *str += " else { ";
+                self._show(chart, *else_, str);
+                *str += " }";
+              }
             }
             TypeKind::Param(_, name) => {
               *str += &name.0;
@@ -572,6 +589,7 @@ impl Types {
       | Some((_, TypeKind::Param(..)))
       | Some((_, TypeKind::Tuple(..)))
       | Some((_, TypeKind::Object(..)))
+      | Some((_, TypeKind::IfConst(..)))
       | Some((_, TypeKind::Never))
       | Some((_, TypeKind::Default))
       | None => Ok(None),
@@ -700,6 +718,7 @@ impl TypeKind {
         },
       ),
       TypeKind::Param(i, n) => TypeKind::Param(*i, n.clone()),
+      TypeKind::IfConst(c, t, e) => TypeKind::IfConst(*c, f(*t), f(*e)),
       TypeKind::Never => TypeKind::Never,
       TypeKind::Default => TypeKind::Default,
       TypeKind::Error(err) => TypeKind::Error(*err),
@@ -707,15 +726,16 @@ impl TypeKind {
   }
 
   fn children(&self) -> impl Iterator<Item = Type> + '_ {
-    multi_iter! { Children { Zero, One, Vec, Object, Closure } }
+    multi_iter! { Children { Zero, One, Two, Vec, Object, Closure } }
     match self {
       TypeKind::Param(..)
       | TypeKind::Fn(_)
       | TypeKind::Never
       | TypeKind::Default
-      | TypeKind::Error(_) => Children::Zero([]),
+      | TypeKind::Error(_)
+      | TypeKind::Key(_) => Children::Zero([]),
       TypeKind::Ref(t) => Children::One([*t]),
-      TypeKind::Key(_) => Children::Zero([]),
+      TypeKind::IfConst(_, t, e) => Children::Two([*t, *e]),
       TypeKind::Tuple(els)
       | TypeKind::Opaque(_, els)
       | TypeKind::Struct(_, els)

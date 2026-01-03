@@ -173,25 +173,8 @@ pub enum AttrKind {
   Manual,
   Basic,
   Become(Path),
-  Cfg(Cfg),
   Frameless,
   Test,
-}
-
-#[derive(Debug, Clone)]
-pub struct Cfg {
-  pub span: Span,
-  pub kind: Box<CfgKind>,
-}
-
-#[derive(Debug, Clone)]
-pub enum CfgKind {
-  Bool(Ident),
-  Paren(Cfg),
-  Literal(bool),
-  And(Cfg, Cfg),
-  Or(Cfg, Cfg),
-  Not(Cfg),
 }
 
 pub type GenericParams = Generics<TypeParam, ImplParam>;
@@ -321,6 +304,7 @@ pub enum ExprKind {
   Assign(bool, Expr, Expr),
   Match(Expr, Option<Ty>, Vec<(Pat, Block)>),
   If(Expr, Option<Ty>, Block, Option<Block>),
+  IfConst(Path, Block, Option<Block>),
   When(Label, Option<Ty>, Vec<(Expr, Block)>, Option<Block>),
   While(Label, Expr, Option<Ty>, Block, Option<Block>),
   Loop(Label, Option<Ty>, Block),
@@ -442,6 +426,7 @@ pub enum TyKind {
   Key(Ident),
   Inverse(Ty),
   Path(Path),
+  IfConst(Path, Ty, Option<Ty>),
   Error(ErrorGuaranteed),
 }
 
