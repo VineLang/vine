@@ -70,7 +70,7 @@ pub mod debug {
   pub struct* WithState[F](F);
 
   pub mod WithState {
-    pub impl call[F, P, R; Fn[F, P, R]]: Fn[WithState[F], P, R] {
+    pub impl [F, P, R; Fn[F, P, R]]: Fn[WithState[F], P, R] {
       fn call(WithState[F](f), params: P) -> R {
         f.call(params)
       }
@@ -88,7 +88,7 @@ pub mod debug {
   pub struct* WithState[F]((&DebugState, F));
 
   pub mod WithState {
-    pub impl call[F, P, R; Fn[F, P, R]]: Fn[WithState[F], P, R] {
+    pub impl [F, P, R; Fn[F, P, R]]: Fn[WithState[F], P, R] {
       #[frameless]
       fn call(WithState[F](state, f), params: P) -> R {
         swap(debug_state().assume(), state);
@@ -110,8 +110,8 @@ fn debug_state() -> Option[&DebugState] {
 pub struct Stack((Bool, Frame), Stack);
 
 pub mod Stack {
-  pub impl fork: Fork[Stack] = unsafe::duplicate;
-  pub impl drop: Drop[Stack] = unsafe::erase;
+  pub impl : Fork[Stack] = unsafe::duplicate;
+  pub impl : Drop[Stack] = unsafe::erase;
 
   use #root::data::Iterator;
 
@@ -123,7 +123,7 @@ pub mod Stack {
     }
   }
 
-  pub impl iter: Iterator[Stack, Frame] {
+  pub impl : Iterator[Stack, Frame] {
     fn advance(Stack((present, frame), rest)) -> Option[(Frame, Stack)] {
       if present {
         Some(frame, rest)
@@ -137,8 +137,8 @@ pub mod Stack {
 pub struct Frame(pub { path: List[String], file: String, line: N32, col: N32 });
 
 pub mod Frame {
-  pub impl fork: Fork[Frame] = unsafe::duplicate;
-  pub impl drop: Drop[Frame] = unsafe::erase;
+  pub impl : Fork[Frame] = unsafe::duplicate;
+  pub impl : Drop[Frame] = unsafe::erase;
 
   pub impl to_string: Cast[Frame, String] {
     fn cast(Frame({ path, file, line, col })) -> String {

@@ -10,7 +10,7 @@ use crate::{
     ast::{Expr, ExprKind, Ident, Pat, PatKind, Path, Span},
     chart::{
       Binding, Def, DefId, DefImplKind, DefPatternKind, DefTypeKind, DefValueKind, MemberKind,
-      VisId,
+      TraitId, VisId,
     },
     diag::Diag,
     tir::{TirExpr, TirExprKind, TirImpl, TirLocal, TirPat, TirPatKind},
@@ -107,6 +107,37 @@ impl Resolver<'_> {
         }
       }
       None => Err(Diag::PathNoAssociated { span: path.span, desc, path: def.path.clone() }),
+    }
+  }
+
+  pub fn resolve_path_impl(
+    &mut self,
+    base: DefId,
+    path: &Path,
+    trait_id: TraitId,
+  ) -> Result<DefImplKind, Diag> {
+    let def_id = self._resolve_path(base, path)?;
+    let def = &self.chart.defs[def_id];
+    match self.sigs.def_impls.get_or_extend(def_id).get(&trait_id).copied() {
+      Some(Binding { span, vis, kind }) => {
+        self.annotations.record_reference(path.span, span);
+        if self.chart.visible(vis, base) {
+          Ok(kind)
+        } else {
+          let VisId::Def(vis_def) = vis else { unreachable!() };
+          Err(Diag::InvisibleImpl {
+            span: path.span,
+            trait_: self.chart.traits[trait_id].name.clone(),
+            path: def.path.clone(),
+            vis: self.chart.defs[vis_def].path.clone(),
+          })
+        }
+      }
+      None => Err(Diag::PathNoImpl {
+        span: path.span,
+        trait_: self.chart.traits[trait_id].name.clone(),
+        path: def.path.clone(),
+      }),
     }
   }
 
@@ -315,9 +346,12 @@ impl Resolver<'_> {
         return TirImpl::Param(index);
       }
     }
-    match self.resolve_path(self.cur_def, path, "impl", |d| d.impl_kind) {
-      Ok(DefImplKind::Impl(id)) => self.resolve_impl_path_impl(path, id, ty),
-      Err(diag) => TirImpl::Error(self.diags.error(diag)),
+    match ty {
+      ImplType::Trait(trait_id, _) => match self.resolve_path_impl(self.cur_def, path, *trait_id) {
+        Ok(DefImplKind::Impl(id)) => self.resolve_impl_path_impl(path, id, ty),
+        Err(diag) => TirImpl::Error(self.diags.error(diag)),
+      },
+      ImplType::Error(err) => TirImpl::Error(*err),
     }
   }
 }

@@ -15,7 +15,7 @@ mod BigEndianNat {
     }
   }
 
-  pub impl shl: Shl[BigEndianNat, N32, BigEndianNat] {
+  pub impl : Shl[BigEndianNat, N32, BigEndianNat] {
     // Only works for 1 <= n <= 31
     // Does not create new parts for overflow
     fn shl(BigEndianNat(parts), n: N32) -> BigEndianNat {

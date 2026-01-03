@@ -4,20 +4,20 @@ use vine_util::{idx::IdxVec, parser::Parse};
 
 use crate::{
   components::{
-    charter::Charter,
+    charter::{ChartedItem, Charter},
     lexer::Token,
     parser::{BRACE, Parser},
     resolver::Resolver,
   },
   structures::{
     ast::{
-      Attr, ConstItem, Flex, FnItem, GenericParams, Ident, ImplItem, ImplItemKind, ItemKind, Path,
-      Span, Vis,
+      Attr, ConstItem, Flex, FnItem, GenericParams, ImplItem, ImplItemKind, ItemKind, Path, Span,
+      Vis,
     },
     chart::{
-      ConcreteConstDef, ConcreteConstId, ConcreteFnDef, ConcreteFnId, ConstId, DefId, DefImplKind,
-      DefTypeKind, DefValueKind, FnId, GenericsId, ImplDef, ImplDefKind, ImplId, ImplSubitem,
-      ImplSubitemKind, TraitConstId, TraitFnId, TraitId, VisId,
+      Binding, ConcreteConstDef, ConcreteConstId, ConcreteFnDef, ConcreteFnId, ConstId, DefId,
+      DefImplKind, DefTypeKind, DefValueKind, FnId, GenericsId, ImplDef, ImplDefKind, ImplId,
+      ImplSubitem, ImplSubitemKind, TraitConstId, TraitFnId, TraitId, VisId,
     },
     diag::{Diag, ErrorGuaranteed},
     resolutions::{Become, ResolvedImpl, ResolvedImplKind},
@@ -32,7 +32,7 @@ impl Parser<'_> {
   pub(crate) fn parse_impl_item(&mut self) -> Result<(Span, ItemKind), Diag> {
     self.expect(Token::Impl)?;
     let name_span = self.span();
-    let name = self.parse_ident()?;
+    let name = self.check_then(Token::Ident, Self::parse_ident)?;
     let generics = self.parse_generic_params()?;
     self.expect(Token::Colon)?;
     let trait_ = self.parse_trait()?;
@@ -54,7 +54,7 @@ impl<'src> Formatter<'src> {
   pub(crate) fn fmt_impl_item(&self, i: &ImplItem) -> Doc<'src> {
     Doc::concat([
       Doc("impl "),
-      Doc(i.name.clone()),
+      if let Some(name) = i.name.clone() { Doc(name) } else { Doc::EMPTY },
       self.fmt_generic_params(&i.generics),
       Doc(": "),
       self.fmt_trait(&i.trait_),
@@ -81,8 +81,12 @@ impl Charter<'_> {
     vis: VisId,
     member_vis: VisId,
     impl_item: ImplItem,
-  ) -> DefId {
-    let def = self.chart_child(parent, span, impl_item.name.clone(), member_vis, true);
+  ) -> ChartedItem {
+    let def = if let Some(name) = impl_item.name.clone() {
+      self.chart_child(parent, span, name, member_vis, true)
+    } else {
+      parent
+    };
     let generics = self.chart_generics(def, parent_generics, impl_item.generics, true);
     let mut subitems = Vec::new();
     let kind = match impl_item.kind {
@@ -120,10 +124,11 @@ impl Charter<'_> {
       manual: false,
       basic: false,
       become_: None,
+      vis,
     });
     self.annotations.record_reference(span, span);
     self.define_impl(span, def, vis, DefImplKind::Impl(impl_id));
-    def
+    ChartedItem::Impl(def, impl_id)
   }
 
   fn chart_impl_fn(
@@ -157,7 +162,7 @@ impl Charter<'_> {
       frameless: false,
     });
     self.define_value(span, def, vis, DefValueKind::Fn(FnId::Concrete(fn_id)));
-    self.chart_attrs(Some(def), attrs);
+    self.chart_attrs(ChartedItem::Fn(def, FnId::Concrete(fn_id)), attrs);
     self.annotations.record_reference(span, span);
     ImplSubitem { span, name: fn_item.name, kind: ImplSubitemKind::Fn(fn_id) }
   }
@@ -187,52 +192,49 @@ impl Charter<'_> {
       value,
     });
     self.define_value(span, def, vis, DefValueKind::Const(ConstId::Concrete(const_id)));
-    self.chart_attrs(Some(def), attrs);
+    self.chart_attrs(ChartedItem::Const(def, ConstId::Concrete(const_id)), attrs);
     self.annotations.record_reference(span, span);
     ImplSubitem { span, name: const_item.name, kind: ImplSubitemKind::Const(const_id) }
   }
 
   pub fn chart_flex_impls(
     &mut self,
-    ty_def: DefId,
+    def: DefId,
     ty_generics: GenericsId,
     vis: VisId,
-    member_vis: VisId,
     ty: DefTypeKind,
+    span: Span,
     flex: Flex,
   ) {
-    let span = Span::NONE;
     if flex.fork() {
-      let name = Ident("fork".into());
-      let def = self.chart_child(ty_def, span, name.clone(), member_vis, false);
       let _generic_params = GenericParams { inherit: true, ..GenericParams::empty(span) };
       let generics = self._chart_generics(def, ty_generics, _generic_params, true, Flex::Fork);
       let impl_ = self.chart.impls.push(ImplDef {
         span,
-        name,
         def,
+        name: None,
         generics,
         kind: ImplDefKind::IndirectFork(ty),
         manual: false,
         basic: false,
         become_: None,
+        vis,
       });
       self.define_impl(span, def, vis, DefImplKind::Impl(impl_));
     }
     if flex.drop() {
-      let name = Ident("drop".into());
-      let def = self.chart_child(ty_def, span, name.clone(), member_vis, false);
       let _generic_params = GenericParams { inherit: true, ..GenericParams::empty(span) };
       let generics = self._chart_generics(def, ty_generics, _generic_params, true, Flex::Drop);
       let impl_ = self.chart.impls.push(ImplDef {
         span,
-        name,
         def,
+        name: None,
         generics,
         kind: ImplDefKind::IndirectDrop(ty),
         manual: false,
         basic: false,
         become_: None,
+        vis,
       });
       self.define_impl(span, def, vis, DefImplKind::Impl(impl_));
     }
@@ -258,13 +260,30 @@ impl Resolver<'_> {
 
     let hover = format!(
       "impl {}{}: {};",
-      impl_def.name,
+      match &impl_def.name {
+        Some(name) => &name.0,
+        None => "",
+      },
       self.show_generics(self.cur_generics, true),
       self.types.show_impl_type(self.chart, &ty)
     );
 
     let types = take(&mut self.types);
     self.annotations.record_signature(impl_def.span, hover);
+    if let ImplType::Trait(trait_id, _) = ty {
+      let old = self
+        .sigs
+        .def_impls
+        .get_or_extend(impl_def.def)
+        .insert(trait_id, Binding { span, vis: impl_def.vis, kind: DefImplKind::Impl(impl_id) });
+      if old.is_some() {
+        self.diags.error(Diag::DuplicateImpl {
+          span,
+          path: self.chart.defs[impl_def.def].path.clone(),
+          trait_: self.chart.traits[trait_id].name.clone(),
+        });
+      }
+    }
     self.sigs.impls.push_to(impl_id, TypeCtx { types, inner: ImplSig { ty } });
   }
 
@@ -377,7 +396,7 @@ impl Resolver<'_> {
           Err(Diag::GenericBecomeAttr { span: args.span })?
         }
         let DefImplKind::Impl(become_id) =
-          self.resolve_path(impl_def.def, become_path, "impl", |d| d.impl_kind)?;
+          self.resolve_path_impl(impl_def.def, become_path, trait_id)?;
         if self.resolutions.impls[become_id].as_ref().map_err(|&e| e)?.trait_id != trait_id {
           Err(Diag::BecomeOtherTrait { span: become_path.span })?
         }

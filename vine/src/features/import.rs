@@ -7,7 +7,7 @@ use vine_util::{
 
 use crate::{
   components::{
-    charter::Charter,
+    charter::{ChartedItem, Charter},
     lexer::Token,
     parser::{BRACE_COMMA, Parser},
     resolver::Resolver,
@@ -137,13 +137,14 @@ impl<'src> Formatter<'src> {
 }
 
 impl Charter<'_> {
-  pub(crate) fn chart_use(&mut self, parent: DefId, vis: VisId, use_item: UseItem) {
+  pub(crate) fn chart_use(&mut self, parent: DefId, vis: VisId, use_item: UseItem) -> ChartedItem {
     for (ident, use_tree) in use_item.absolute {
       self.chart_use_tree(parent, vis, ImportParent::Absolute, ident, use_tree);
     }
     for (ident, use_tree) in use_item.relative {
       self.chart_use_tree(parent, vis, ImportParent::Local, ident, use_tree);
     }
+    ChartedItem::Import
   }
 
   pub(crate) fn chart_use_tree(

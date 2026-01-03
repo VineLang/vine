@@ -83,7 +83,7 @@ pub mod Heap[T; Ord[T]] {
   /// let merged = a ++ b;
   /// merged as List // [0, 1, 2, 3, 4, 5]
   /// ```
-  pub impl merge[...]: Concat[Heap[T], Heap[T], Heap[T]] {
+  pub impl [...]: Concat[Heap[T], Heap[T], Heap[T]] {
     fn concat(self: Heap[T], other: Heap[T]) -> Heap[T] {
       if self.rank() == 0 {
         unsafe::erase(self);
@@ -107,7 +107,7 @@ pub mod Heap[T; Ord[T]] {
   }
 
   #[become(unsafe::duplicate)]
-  pub impl fork[T+]: Fork[Heap[T]] {
+  pub impl [T+]: Fork[Heap[T]] {
     fn fork(&Heap[T](rank, node)) -> Heap[T] {
       if rank == 0 {
         Heap::empty
@@ -119,7 +119,7 @@ pub mod Heap[T; Ord[T]] {
   }
 
   #[become(unsafe::erase)]
-  pub impl drop[T?]: Drop[Heap[T]] {
+  pub impl [T?]: Drop[Heap[T]] {
     fn drop(Heap[T](rank, node)) {
       if rank == 0 {
         unsafe::erase(node);
@@ -189,7 +189,7 @@ pub mod Heap[T; Ord[T]] {
   }
 
   pub mod Iter[...] {
-    pub impl iterator[...]: Iterator[Iter[T], T] {
+    pub impl [...]: Iterator[Iter[T], T] {
       fn advance(Iter[T](heap)) -> Option[(T, Iter[T])] {
         if heap.pop() is Some(value) {
           Some(value, Iter(heap))
@@ -207,7 +207,7 @@ pub mod Heap[T; Ord[T]] {
   /// let heap = [5, 2, 1, 3, 4] as Heap
   /// "{heap.show()}" // Heap([1, 2, 5, 3, 4])
   /// ```
-  pub impl show[T; Show[T]]: Show[Heap[T]] {
+  pub impl [T; Show[T]]: Show[Heap[T]] {
     fn show(&self: &Heap[T]) -> Show {
       Show::Constructor("Heap", Show::List(self._show()))
     }

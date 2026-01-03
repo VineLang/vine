@@ -7,7 +7,7 @@ use vine_util::{
 
 use crate::{
   components::{
-    charter::Charter,
+    charter::{ChartedItem, Charter},
     distiller::{Distiller, Poly},
     emitter::Emitter,
     finder::Finder,
@@ -34,7 +34,9 @@ use crate::{
 impl Parser<'_> {
   pub(crate) fn parse_struct_item(&mut self) -> Result<(Span, ItemKind), Diag> {
     self.expect(Token::Struct)?;
+    let flex_span = self.start_span();
     let flex = self.parse_flex()?;
+    let flex_span = self.end_span(flex_span);
     let name_span = self.span();
     let name = self.parse_ident()?;
     let generics = self.parse_generic_params()?;
@@ -42,7 +44,10 @@ impl Parser<'_> {
     let data_vis = self.parse_vis()?;
     let data = self.parse_delimited(Delimiters { open: None, ..PAREN_COMMA }, Self::parse_ty)?;
     self.eat(Token::Semi)?;
-    Ok((name_span, ItemKind::Struct(StructItem { flex, name, generics, data_vis, data })))
+    Ok((
+      name_span,
+      ItemKind::Struct(StructItem { flex_span, flex, name, generics, data_vis, data }),
+    ))
   }
 }
 
@@ -84,7 +89,7 @@ impl Charter<'_> {
     vis: VisId,
     member_vis: VisId,
     struct_item: StructItem,
-  ) -> DefId {
+  ) -> ChartedItem {
     let def = self.chart_child(parent, span, struct_item.name.clone(), member_vis, true);
     let generics = self.chart_generics(def, parent_generics, struct_item.generics, false);
     let data_vis = self.resolve_vis(parent, struct_item.data_vis);
@@ -100,8 +105,8 @@ impl Charter<'_> {
     self.define_pattern(span, def, data_vis, DefPatternKind::Struct(struct_id));
     let ty_kind = DefTypeKind::Struct(struct_id);
     self.define_type(span, def, vis, ty_kind);
-    self.chart_flex_impls(def, generics, vis, member_vis, ty_kind, struct_item.flex);
-    def
+    self.chart_flex_impls(def, generics, vis, ty_kind, struct_item.flex_span, struct_item.flex);
+    ChartedItem::Struct(def, struct_id)
   }
 }
 

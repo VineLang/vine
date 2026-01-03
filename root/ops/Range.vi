@@ -16,7 +16,7 @@ pub mod Bound {
   pub struct* Exclusive[T](pub T);
 
   pub mod Unbounded {
-    pub impl bound[T]: Bound[Unbounded, T] {
+    pub impl [T]: Bound[Unbounded, T] {
       fn left_of(&Unbounded(), _: &T) -> Bool {
         true
       }
@@ -27,7 +27,7 @@ pub mod Bound {
   }
 
   pub mod Inclusive {
-    pub impl bound[T; Ord[T]]: Bound[Inclusive[T], T] {
+    pub impl [T; Ord[T]]: Bound[Inclusive[T], T] {
       fn left_of(&Inclusive[T](bound), &value: &T) -> Bool {
         bound <= value
       }
@@ -38,7 +38,7 @@ pub mod Bound {
   }
 
   pub mod Exclusive {
-    pub impl bound[T; Ord[T]]: Bound[Exclusive[T], T] {
+    pub impl [T; Ord[T]]: Bound[Exclusive[T], T] {
       fn left_of(&Exclusive[T](bound), &value: &T) -> Bool {
         bound < value
       }
@@ -106,7 +106,7 @@ pub mod Range {
   pub struct InclusiveIter[T](Option[(T, T)]);
 
   pub mod InclusiveIter {
-    pub impl iter[T*; Ord[T], Step[T]]: Iterator[InclusiveIter[T], T] {
+    pub impl [T*; Ord[T], Step[T]]: Iterator[InclusiveIter[T], T] {
       fn advance(InclusiveIter[T](state)) -> Option[(T, InclusiveIter[T])] {
         match state {
           None() { None() }

@@ -54,5 +54,5 @@ pub mod Result {
     }
   }
 
-  pub impl show[T, E; Show[T], Show[E]]: Show[Result[T, E]];
+  pub impl [T, E; Show[T], Show[E]]: Show[Result[T, E]];
 }

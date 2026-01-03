@@ -5,7 +5,11 @@ use vine_util::parser::Parse;
 
 use crate::{
   components::{
-    charter::Charter, distiller::Distiller, emitter::Emitter, lexer::Token, parser::Parser,
+    charter::{ChartedItem, Charter},
+    distiller::Distiller,
+    emitter::Emitter,
+    lexer::Token,
+    parser::Parser,
     resolver::Resolver,
   },
   structures::{
@@ -61,7 +65,7 @@ impl Charter<'_> {
     vis: VisId,
     member_vis: VisId,
     const_item: ConstItem,
-  ) -> DefId {
+  ) -> ChartedItem {
     let def = self.chart_child(parent, span, const_item.name.clone(), member_vis, true);
     let generics = self.chart_generics(def, parent_generics, const_item.generics, true);
     let value = self.ensure_implemented(span, const_item.value);
@@ -74,7 +78,7 @@ impl Charter<'_> {
       value,
     });
     self.define_value(span, def, vis, DefValueKind::Const(ConstId::Concrete(const_id)));
-    def
+    ChartedItem::Const(def, ConstId::Concrete(const_id))
   }
 }
 

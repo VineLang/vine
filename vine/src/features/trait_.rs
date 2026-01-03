@@ -4,7 +4,7 @@ use vine_util::{idx::IdxVec, parser::Parse};
 
 use crate::{
   components::{
-    charter::Charter,
+    charter::{ChartedItem, Charter},
     lexer::Token,
     parser::{BRACE, Parser},
     resolver::Resolver,
@@ -56,7 +56,7 @@ impl Charter<'_> {
     vis: VisId,
     member_vis: VisId,
     trait_item: TraitItem,
-  ) -> DefId {
+  ) -> ChartedItem {
     let def = self.chart_child(parent, span, trait_item.name.clone(), member_vis, true);
     let generics = self.chart_generics(def, parent_generics, trait_item.generics, false);
     let trait_id = self.chart.traits.next_index();
@@ -86,7 +86,7 @@ impl Charter<'_> {
     let trait_ = TraitDef { span, def, name: trait_item.name, generics, consts, fns };
     self.chart.traits.push_to(trait_id, trait_);
     self.define_trait(span, def, vis, DefTraitKind::Trait(trait_id));
-    def
+    ChartedItem::Trait(def, trait_id)
   }
 
   fn chart_trait_fn(
@@ -114,9 +114,9 @@ impl Charter<'_> {
       ret_ty: fn_item.ret,
     });
     let def = self.chart_child(def, span, fn_item.name, vis, true);
-    let kind = DefValueKind::Fn(FnId::Abstract(trait_id, trait_fn_id));
-    self.define_value(span, def, vis, kind);
-    self.chart_attrs(Some(def), attrs);
+    let fn_id = FnId::Abstract(trait_id, trait_fn_id);
+    self.define_value(span, def, vis, DefValueKind::Fn(fn_id));
+    self.chart_attrs(ChartedItem::Fn(def, fn_id), attrs);
   }
 
   fn chart_trait_const(
@@ -138,9 +138,9 @@ impl Charter<'_> {
     let trait_const_id =
       consts.push(TraitConst { span, name: const_item.name.clone(), generics, ty: const_item.ty });
     let def = self.chart_child(def, span, const_item.name, vis, true);
-    let kind = DefValueKind::Const(ConstId::Abstract(trait_id, trait_const_id));
-    self.define_value(span, def, vis, kind);
-    self.chart_attrs(Some(def), attrs);
+    let const_id = ConstId::Abstract(trait_id, trait_const_id);
+    self.define_value(span, def, vis, DefValueKind::Const(const_id));
+    self.chart_attrs(ChartedItem::Const(def, const_id), attrs);
   }
 
   fn chart_trait_subitem_generics(

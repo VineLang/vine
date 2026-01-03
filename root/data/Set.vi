@@ -61,7 +61,7 @@ pub mod Set[T; Ord[T]] {
     }
   }
 
-  pub impl concat[... T?]: Concat[Set[T], Set[T], Set[T]] {
+  pub impl [... T?]: Concat[Set[T], Set[T], Set[T]] {
     fn concat(self: Set[T], other: Set[T]) -> Set[T] {
       for value in other {
         self.insert(value);
@@ -243,7 +243,7 @@ pub mod Set[T; Ord[T]] {
   pub struct IterRef[T]((&Set[T], List[&(T, Set[T])]));
 
   pub mod IterRef[T] {
-    pub impl iterator[...]: Iterator[IterRef[T], &T] {
+    pub impl [...]: Iterator[IterRef[T], &T] {
       fn advance(IterRef[T](node, stack)) -> Option[(&T, IterRef[T])] {
         loop {
           let &Set(len, data) = node;
@@ -263,8 +263,8 @@ pub mod Set[T; Ord[T]] {
       }
     }
 
-    pub impl fork[...]: Fork[IterRef[T]];
-    pub impl drop[...]: Drop[IterRef[T]];
+    pub impl [...]: Fork[IterRef[T]];
+    pub impl [...]: Drop[IterRef[T]];
   }
 
   pub impl iter[...]: Cast[Set[T], Iter[T]] {
@@ -276,7 +276,7 @@ pub mod Set[T; Ord[T]] {
   pub struct* Iter[T]((Set[T], List[(T, Set[T])]));
 
   pub mod Iter[T] {
-    pub impl iterator[...]: Iterator[Iter[T], T] {
+    pub impl [...]: Iterator[Iter[T], T] {
       fn advance(Iter[T](node, stack)) -> Option[(T, Iter[T])] {
         loop {
           let Set(len, data) = node;
@@ -298,7 +298,7 @@ pub mod Set[T; Ord[T]] {
     }
   }
 
-  pub impl collect[T?; Ord[T]]: Collect[Set[T], T] {
+  pub impl [T?; Ord[T]]: Collect[Set[T], T] {
     fn collect[I; Iterator[I, T]](iter: I) -> Set[T] {
       let set = Set::empty;
       for value in iter {
@@ -320,7 +320,7 @@ pub mod Set[T; Ord[T]] {
     }
   }
 
-  pub impl show[... ; Show[T]]: Show[Set[T]] {
+  pub impl [... ; Show[T]]: Show[Set[T]] {
     fn show(&self: &Set[T]) -> Show {
       let entries = [];
       for &value in &self {
@@ -342,7 +342,7 @@ pub mod Set[T; Ord[T]] {
   }
 
   #[become(unsafe::duplicate)]
-  pub impl fork[T+]: Fork[Set[T]] {
+  pub impl [T+]: Fork[Set[T]] {
     fn fork(&Set[T](len, data)) -> Set[T] {
       if len == 0 {
         Set::empty
@@ -353,7 +353,7 @@ pub mod Set[T; Ord[T]] {
   }
 
   #[become(unsafe::erase)]
-  pub impl drop[T?]: Drop[Set[T]] {
+  pub impl [T?]: Drop[Set[T]] {
     fn drop(Set[T](len, data)) {
       if len == 0 {
         unsafe::erase(data);

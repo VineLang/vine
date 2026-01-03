@@ -178,7 +178,7 @@ pub mod List {
     }
   }
 
-  pub impl concat[T]: Concat[List[T], List[T], List[T]] {
+  pub impl [T]: Concat[List[T], List[T], List[T]] {
     fn concat(a: List[T], b: List[T]) -> List[T] {
       let List(a_len, a_buf, ~a_end) = a;
       let List(b_len, b_buf, ~b_end) = b;
@@ -292,7 +292,7 @@ pub mod List {
     self = trimmed;
   }
 
-  pub impl show[T; Show[T]]: Show[List[T]] {
+  pub impl [T; Show[T]]: Show[List[T]] {
     fn show(&self: &List[T]) -> Show {
       let entries = [];
       for &value in &self {
@@ -397,7 +397,7 @@ pub mod List {
   pub struct* Iter[T](List[T]);
 
   pub mod Iter {
-    pub impl iterator[T]: Iterator[Iter[T], T] {
+    pub impl [T]: Iterator[Iter[T], T] {
       fn advance(Iter[T](List(len, buf, end))) -> Option[(T, Iter[T])] {
         if len != 0 {
           let Buf(head, tail) = buf;
@@ -434,7 +434,7 @@ pub mod List {
   pub struct IterRef[T]((N32, &Buf[T], &(N32, ~Buf[T])));
 
   pub mod IterRef {
-    pub impl iterator[T]: Iterator[IterRef[T], &T] {
+    pub impl [T]: Iterator[IterRef[T], &T] {
       fn advance(IterRef[T](len, &buf, &full)) -> Option[(&T, IterRef[T])] {
         if len != 0 {
           let &Buf(head, tail) = &buf;
@@ -445,8 +445,8 @@ pub mod List {
       }
     }
 
-    pub impl fork[T]: Fork[IterRef[T]];
-    pub impl drop[T]: Drop[IterRef[T]];
+    pub impl [T]: Fork[IterRef[T]];
+    pub impl [T]: Drop[IterRef[T]];
 
     /// Convert this iterator into a reference to the remaining tail of the
     /// list. `O(1)`
@@ -462,7 +462,7 @@ pub mod List {
   /// ```vi
   /// (0..6).collect[List, _, _]() // [0, 1, 2, 3, 4, 5]
   /// ```
-  pub impl collect[T]: Collect[List[T], T] {
+  pub impl [T]: Collect[List[T], T] {
     fn collect[I; Iterator[I, T]](iter_ref: I) -> List[T] {
       let list = [];
       for value in iter_ref {
@@ -495,7 +495,7 @@ pub mod List {
     self = self.reversed();
   }
 
-  pub impl eq[T; Eq[T]]: Eq[List[T]] {
+  pub impl [T; Eq[T]]: Eq[List[T]] {
     fn eq(&a: &List[T], &b: &List[T]) -> Bool {
       if a.len() != b.len() {
         return false;
@@ -518,7 +518,7 @@ pub mod List {
     }
   }
 
-  pub impl ord[T; Ord[T]]: Ord[List[T]] {
+  pub impl [T; Ord[T]]: Ord[List[T]] {
     fn cmp(&a: &List[T], &b: &List[T]) -> Ord {
       let a_iter = a.iter_ref();
       let b_iter = b.iter_ref();
@@ -552,7 +552,7 @@ pub mod List {
   }
 
   #[become(unsafe::duplicate)]
-  pub impl fork[T+]: Fork[List[T]] {
+  pub impl [T+]: Fork[List[T]] {
     fn fork(&self: &List[T]) -> List[T] {
       let out = [];
       for &value in &self {
@@ -563,7 +563,7 @@ pub mod List {
   }
 
   #[become(unsafe::erase)]
-  pub impl drop[T?]: Drop[List[T]] {
+  pub impl [T?]: Drop[List[T]] {
     fn drop(self: List[T]) {
       for _ in self {}
     }
