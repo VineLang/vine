@@ -1,8 +1,5 @@
 
 let io: IO = <IO>;
-> use #root::numeric::F64
-
-let io: IO = <IO>;
 > let x = 3.141592 as F64
 
 let io: IO = <IO>;

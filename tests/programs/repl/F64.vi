@@ -1,4 +1,3 @@
-use #root::numeric::F64
 let x = 3.141592 as F64
 x + (x - 2.0[F64])
 x * (x - 2.0[F64])
