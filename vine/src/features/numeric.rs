@@ -71,14 +71,12 @@ impl Resolver<'_> {
       Some((Inverted(false), TypeKind::Opaque(type_id, _)))
         if Some(*type_id) == self.chart.builtins.f64 =>
       {
-        let f64_ty = self.builtin_ty(span, "F64", self.chart.builtins.f64);
-        Ok(TirExpr::new(span, f64_ty, TirExprKind::F64(n)))
+        Ok(TirExpr::new(span, ty, TirExprKind::F64(n)))
       }
       Some((Inverted(false), TypeKind::Opaque(type_id, _)))
         if Some(*type_id) == self.chart.builtins.f32 =>
       {
-        let f32_ty = self.builtin_ty(span, "F32", self.chart.builtins.f32);
-        Ok(TirExpr::new(span, f32_ty, TirExprKind::F32(n as f32)))
+        Ok(TirExpr::new(span, ty, TirExprKind::F32(n as f32)))
       }
       _ => Err(self.diags.error(Diag::InvalidNum { span }))?,
     }
