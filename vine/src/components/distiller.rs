@@ -275,6 +275,7 @@ impl<'r> Distiller<'r> {
       TirExprKind::N32(n) => self.distill_expr_value_n32(ty, *n),
       TirExprKind::F32(f) => self.distill_expr_value_f32(ty, *f),
       TirExprKind::Nat(n) => self.distill_expr_value_nat(ty, n),
+      TirExprKind::F64(f) => self.distill_expr_value_f64(ty, *f),
       TirExprKind::Char(c) => self.distill_expr_value_char(ty, *c),
       TirExprKind::Const(id) => self.distill_expr_value_const(stage, span, ty, *id),
       TirExprKind::Fn => self.distill_expr_value_fn(ty),

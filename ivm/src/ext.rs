@@ -8,7 +8,7 @@ use core::{
   marker::PhantomData,
 };
 
-use crate::{ivm::IVM, port::Tag, wire::Wire};
+use crate::{ivm::IVM, port::Tag, wire::Wire, word::Word};
 
 macro_rules! trait_alias {
   ($($(#[$attr:meta])* $vis:vis trait $name:ident = ($($trait:tt)*);)*) => {$(
@@ -112,7 +112,7 @@ impl<'ivm> Extrinsics<'ivm> {
 ///
 /// [`Port`]: crate::ivm::Port
 #[derive(Clone, Copy)]
-pub struct ExtVal<'ivm>(u64, PhantomData<fn(&'ivm ()) -> &'ivm ()>);
+pub struct ExtVal<'ivm>(Word, PhantomData<fn(&'ivm ()) -> &'ivm ()>);
 
 impl<'ivm> ExtVal<'ivm> {
   const PAYLOAD_MASK: u64 = 0x0000_FFFF_FFFF_FFF8;
@@ -122,13 +122,13 @@ impl<'ivm> ExtVal<'ivm> {
   /// ## Safety
   /// The bits must be a valid representation of an `ExtVal`.
   #[inline(always)]
-  pub unsafe fn from_bits(bits: u64) -> Self {
+  pub unsafe fn from_bits(bits: Word) -> Self {
     Self(bits, PhantomData)
   }
 
   /// Returns the raw bits of this value.
   #[inline(always)]
-  pub fn bits(&self) -> u64 {
+  pub fn bits(&self) -> Word {
     self.0
   }
 
@@ -138,20 +138,23 @@ impl<'ivm> ExtVal<'ivm> {
   /// provided `u64` value. That is, the highest 16 bits and lowest 3 bits must
   /// be set to zero.
   #[inline(always)]
-  pub fn new(ty_id: ExtTyId<'ivm>, payload: u64) -> Self {
-    debug_assert!(payload & !Self::PAYLOAD_MASK == 0, "ExtVal::new with non-payload bits set");
+  pub fn new(ty_id: ExtTyId<'ivm>, payload: Word) -> Self {
+    debug_assert!(
+      payload.bits() & !Self::PAYLOAD_MASK == 0,
+      "ExtVal::new with non-payload bits set"
+    );
 
     unsafe {
-      Self::from_bits(
-        ((ty_id.bits() as u64) << 48) | (payload & Self::PAYLOAD_MASK) | (Tag::ExtVal as u64),
-      )
+      Self::from_bits(payload.map_bits(|payload| {
+        ((ty_id.bits() as u64) << 48) | (payload & Self::PAYLOAD_MASK) | (Tag::ExtVal as u64)
+      }))
     }
   }
 
   /// Returns the type id of this value.
   #[inline(always)]
   pub fn ty_id(&self) -> ExtTyId<'ivm> {
-    ExtTyId::from_bits((self.0 >> 48) as u16)
+    ExtTyId::from_bits((self.0.bits() >> 48) as u16)
   }
 
   /// Returns the unshifted 45-bit payload of this value.
@@ -159,8 +162,8 @@ impl<'ivm> ExtVal<'ivm> {
   /// The payload is located between bits 48 and 3 in the returned `u64`.
   /// The highest 16 bits and lowest 3 bits are guaranteed to be zero.
   #[inline(always)]
-  fn payload(&self) -> u64 {
-    self.0 & Self::PAYLOAD_MASK
+  fn payload(&self) -> Word {
+    self.0.map_bits(|bits| bits & Self::PAYLOAD_MASK)
   }
 
   /// Interprets this extrinsic value as a `T` without checking its [`ExtTyId`].
@@ -176,7 +179,7 @@ impl<'ivm> ExtVal<'ivm> {
 
 impl<'ivm> Debug for ExtVal<'ivm> {
   fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-    write!(f, "ExtVal({:?})", self.0)
+    write!(f, "ExtVal({:?})", self.0.bits())
   }
 }
 
@@ -226,27 +229,27 @@ pub trait ExtTyCast<'ivm> {
   ///
   /// The returned value must not have bits outside of [`ExtVal::PAYLOAD_MASK`].
   /// That is, the highest 16 bits and lowest 3 bits must be set to zero.
-  fn into_payload(self) -> u64;
+  fn into_payload(self) -> Word;
 
   /// Casts an [`ExtVal`]'s payload to a `Self`.
   ///
   /// # Safety
   ///
   /// `payload` must have been returned from [`into_payload`].
-  unsafe fn from_payload(payload: u64) -> Self;
+  unsafe fn from_payload(payload: Word) -> Self;
 }
 
 impl<'ivm> ExtTyCast<'ivm> for u32 {
   const COPY: bool = true;
 
   #[inline(always)]
-  fn into_payload(self) -> u64 {
-    (self as u64) << 3
+  fn into_payload(self) -> Word {
+    Word::from_bits((self as u64) << 3)
   }
 
   #[inline(always)]
-  unsafe fn from_payload(payload: u64) -> u32 {
-    (payload >> 3) as u32
+  unsafe fn from_payload(payload: Word) -> u32 {
+    (payload.bits() >> 3) as u32
   }
 }
 
@@ -254,13 +257,33 @@ impl<'ivm> ExtTyCast<'ivm> for f32 {
   const COPY: bool = true;
 
   #[inline(always)]
-  fn into_payload(self) -> u64 {
-    (self.to_bits() as u64) << 3
+  fn into_payload(self) -> Word {
+    Word::from_bits((self.to_bits() as u64) << 3)
   }
 
   #[inline(always)]
-  unsafe fn from_payload(payload: u64) -> f32 {
-    f32::from_bits((payload >> 3) as u32)
+  unsafe fn from_payload(payload: Word) -> f32 {
+    f32::from_bits((payload.bits() >> 3) as u32)
+  }
+}
+
+#[repr(align(8))]
+pub struct Aligned<T>(T);
+
+impl<'ivm> ExtTyCast<'ivm> for f64 {
+  const COPY: bool = false;
+
+  #[inline(always)]
+  fn into_payload(self) -> Word {
+    let pointer = Box::into_raw(Box::new(Aligned(self)));
+    Word::from_ptr(pointer.cast())
+  }
+
+  #[inline(always)]
+  unsafe fn from_payload(payload: Word) -> Self {
+    let ptr = payload.ptr().cast_mut().cast();
+    let Aligned(f) = unsafe { *Box::from_raw(ptr) };
+    f
   }
 }
 
@@ -269,12 +292,12 @@ impl<'ivm> ExtTyCast<'ivm> for () {
   const COPY: bool = false;
 
   #[inline(always)]
-  fn into_payload(self) -> u64 {
-    0
+  fn into_payload(self) -> Word {
+    Word::from_bits(0)
   }
 
   #[inline(always)]
-  unsafe fn from_payload(_payload: u64) {}
+  unsafe fn from_payload(_payload: Word) {}
 }
 
 /// The type id of an external value.

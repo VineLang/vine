@@ -234,6 +234,7 @@ impl<'src> Formatter<'src> {
       ExprKind::BinaryOpAssign(op, lhs, rhs) => self.fmt_expr_binary_op_assign(op, lhs, rhs),
       ExprKind::N32(_) | ExprKind::F32(_) | ExprKind::Char(_) => self.fmt_verbatim(expr.span),
       ExprKind::Nat(span, _, ty) => self.fmt_expr_nat(*span, ty),
+      ExprKind::Float(span, _, ty) => self.fmt_expr_float(*span, ty),
       ExprKind::String(init, rest) => self.fmt_expr_string(init, rest),
       ExprKind::InlineIvy(binds, ty, net_span, _) => self.fmt_expr_inline_ivy(binds, ty, net_span),
     }

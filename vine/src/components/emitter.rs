@@ -248,6 +248,7 @@ impl<'a> Emitter<'a> {
       PortKind::Nil => Tree::Erase,
       PortKind::N32(n) => Tree::N32(n),
       PortKind::F32(f) => Tree::F32(f),
+      PortKind::F64(f) => Tree::F64(f),
       PortKind::Nat(ref n) => self.emit_nat(n),
       PortKind::Wire(_, w) => Tree::Var(format!("w{}", self.wire_offset + w.0)),
     }

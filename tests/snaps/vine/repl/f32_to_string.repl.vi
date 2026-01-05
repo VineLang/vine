@@ -52,3 +52,15 @@ let io: IO = <IO>;
 1.0e-23
 
 let io: IO = <IO>;
+> 1.0[F32]
+1.0
+
+let io: IO = <IO>;
+> 1.2345[F32]
+1.23450005
+
+let io: IO = <IO>;
+> 6.283185[F32]
+6.28318501
+
+let io: IO = <IO>;

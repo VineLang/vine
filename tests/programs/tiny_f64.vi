@@ -1,0 +1,6 @@
+
+pub fn main(&io: &IO) {
+  let a = 12.0[F64];
+  let b = 34.0[F64];
+  io.println("{a as N32} + {b as N32} = {(a + b) as N32}");
+}

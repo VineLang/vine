@@ -227,6 +227,7 @@ pub enum PortKind {
   Nil,
   N32(u32),
   F32(f32),
+  F64(f64),
   Nat(Nat),
   Wire(Span, WireId),
   Error(ErrorGuaranteed),

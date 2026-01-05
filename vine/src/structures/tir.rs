@@ -120,6 +120,8 @@ pub enum TirExprKind {
   #[class(value)]
   F32(f32),
   #[class(value)]
+  F64(f64),
+  #[class(value)]
   Nat(Nat),
   #[class(value)]
   Char(char),

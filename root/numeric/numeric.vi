@@ -7,3 +7,4 @@ pub mod I32;
 pub mod Int;
 
 pub mod F32;
+pub mod F64;
