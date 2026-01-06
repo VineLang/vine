@@ -318,26 +318,37 @@ impl Resolver<'_> {
   pub(crate) fn resolve_expr_tuple_field(
     &mut self,
     span: Span,
-    tuple: &Expr,
+    expr: &Expr,
     index: usize,
   ) -> Result<TirExpr, Diag> {
-    let tuple = self.resolve_expr(tuple);
-    let (ty, fields) = self.tuple_field(span, tuple.ty, index).ok_or_else(|| {
-      Diag::MissingTupleField { span, ty: self.types.show(self.chart, tuple.ty), i: index }
-    })?;
-    Ok(TirExpr::new(span, ty, TirExprKind::Field(tuple, index, fields)))
+    let expr = self.resolve_expr(expr);
+    let ty = expr.ty;
+    self._resolve_expr_tuple_field(span, expr, index).ok_or_else(|| Diag::MissingTupleField {
+      span,
+      ty: self.types.show(self.chart, ty),
+      i: index,
+    })
   }
 
-  fn tuple_field(&mut self, span: Span, ty: Type, index: usize) -> Option<(Type, Vec<Type>)> {
-    match self.types.force_kind(self.diags, ty) {
-      (inv, TypeKind::Tuple(tuple)) => Some((tuple.get(index)?.invert_if(inv), tuple.clone())),
+  fn _resolve_expr_tuple_field(
+    &mut self,
+    span: Span,
+    expr: TirExpr,
+    index: usize,
+  ) -> Option<TirExpr> {
+    match self.types.force_kind(self.diags, expr.ty) {
+      (inv, TypeKind::Tuple(fields)) => {
+        let ty = fields.get(index)?.invert_if(inv);
+        Some(TirExpr::new(span, ty, TirExprKind::Field(expr, index, fields.clone())))
+      }
       (inv, TypeKind::Struct(struct_id, type_params)) => {
         let struct_id = *struct_id;
         let type_params = &type_params.clone();
-        let data_ty = self.get_struct_data(span, ty, struct_id, type_params);
-        self.tuple_field(span, data_ty.invert_if(inv), index)
+        let data_ty = self.get_struct_data(span, expr.ty, struct_id, type_params);
+        let expr = TirExpr::new(span, data_ty.invert_if(inv), TirExprKind::Rewrap(expr));
+        self._resolve_expr_tuple_field(span, expr, index)
       }
-      (_, TypeKind::Error(_)) => Some((ty, vec![ty; index + 1])),
+      (_, TypeKind::Error(_)) => Some(expr),
       _ => None,
     }
   }
@@ -345,35 +356,44 @@ impl Resolver<'_> {
   pub(crate) fn resolve_expr_object_field(
     &mut self,
     span: Span,
-    object: &Expr,
+    expr: &Expr,
     key: &Key,
   ) -> Result<TirExpr, Diag> {
-    let object = self.resolve_expr(object);
-    let (ty, index, fields) =
-      self.object_field(span, object.ty, key.ident.clone()).ok_or_else(|| {
-        Diag::MissingObjectField {
-          span: key.span,
-          ty: self.types.show(self.chart, object.ty),
-          key: key.ident.clone(),
-        }
-      })?;
-    Ok(TirExpr::new(span, ty, TirExprKind::Field(object, index, fields)))
+    let expr = self.resolve_expr(expr);
+    let ty = expr.ty;
+    self._resolve_expr_object_field(span, expr, key.ident.clone()).ok_or_else(|| {
+      Diag::MissingObjectField {
+        span: key.span,
+        ty: self.types.show(self.chart, ty),
+        key: key.ident.clone(),
+      }
+    })
   }
 
-  fn object_field(&mut self, span: Span, ty: Type, key: Ident) -> Option<(Type, usize, Vec<Type>)> {
-    match self.types.force_kind(self.diags, ty) {
-      (inv, TypeKind::Object(entries)) => entries
-        .iter()
-        .enumerate()
-        .find(|&(_, (k, _))| *k == key)
-        .map(|(i, (_, t))| (t.invert_if(inv), i, entries.values().copied().collect())),
+  fn _resolve_expr_object_field(
+    &mut self,
+    span: Span,
+    expr: TirExpr,
+    key: Ident,
+  ) -> Option<TirExpr> {
+    match self.types.force_kind(self.diags, expr.ty) {
+      (inv, TypeKind::Object(entries)) => {
+        entries.iter().enumerate().find(|&(_, (k, _))| *k == key).map(|(i, (_, t))| {
+          TirExpr::new(
+            span,
+            t.invert_if(inv),
+            TirExprKind::Field(expr, i, entries.values().copied().collect()),
+          )
+        })
+      }
       (inv, TypeKind::Struct(struct_id, type_params)) => {
         let struct_id = *struct_id;
         let type_params = &type_params.clone();
-        let data_ty = self.get_struct_data(span, ty, struct_id, type_params);
-        self.object_field(span, data_ty.invert_if(inv), key)
+        let data_ty = self.get_struct_data(span, expr.ty, struct_id, type_params);
+        let expr = TirExpr::new(span, data_ty.invert_if(inv), TirExprKind::Rewrap(expr));
+        self._resolve_expr_object_field(span, expr, key)
       }
-      (_, TypeKind::Error(_)) => Some((ty, 0, vec![ty])),
+      (_, TypeKind::Error(_)) => Some(expr),
       _ => None,
     }
   }
