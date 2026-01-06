@@ -266,6 +266,9 @@ impl Resolver<'_> {
       Ok(DefValueKind::Enum(enum_id, variant_id)) => {
         self.resolve_expr_path_enum(span, path, enum_id, variant_id, args)
       }
+      Ok(DefValueKind::Union(union_id, variant_id)) => {
+        self.resolve_expr_path_union(span, path, union_id, variant_id, args)
+      }
       Err(diag) => Err(diag)?,
     }
   }
@@ -283,6 +286,9 @@ impl Resolver<'_> {
       }
       Ok(DefPatternKind::Enum(enum_id, variant)) => {
         self.resolve_pat_path_enum(span, path, data, enum_id, variant)
+      }
+      Ok(DefPatternKind::Union(union_id, variant)) => {
+        self.resolve_pat_path_union(span, path, data, union_id, variant)
       }
       Err(diag) => {
         if let (Some(ident), None) = (path.as_ident(), data) {
@@ -302,6 +308,7 @@ impl Resolver<'_> {
     match resolved {
       Ok(DefPatternKind::Struct(struct_id)) => self.resolve_pat_sig_path_struct(path, struct_id),
       Ok(DefPatternKind::Enum(enum_id, _)) => self.resolve_pat_sig_path_enum(path, enum_id),
+      Ok(DefPatternKind::Union(union_id, _)) => self.resolve_pat_sig_path_union(path, union_id),
       Err(_) => {
         if inference {
           self.types.new_var(span)
@@ -323,6 +330,7 @@ impl Resolver<'_> {
       Ok(DefTypeKind::Opaque(opaque_id)) => self.resolve_ty_path_opaque(path, inference, opaque_id),
       Ok(DefTypeKind::Struct(struct_id)) => self.resolve_ty_path_struct(path, inference, struct_id),
       Ok(DefTypeKind::Enum(enum_id)) => self.resolve_ty_path_enum(path, inference, enum_id),
+      Ok(DefTypeKind::Union(union_id)) => self.resolve_ty_path_union(path, inference, union_id),
       Ok(DefTypeKind::Alias(type_alias_id)) => {
         self.resolve_ty_path_alias(path, inference, type_alias_id)
       }
