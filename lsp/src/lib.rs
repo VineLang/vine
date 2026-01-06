@@ -13,7 +13,7 @@ use vine::{
   components::{loader::FileId, parser::Parser},
   features::cfg::Config,
   structures::{
-    ast::{Item, ItemKind, Span, visit::VisitMut},
+    ast::{Ident, Item, ItemKind, Span, visit::VisitMut},
     checkpoint::Checkpoint,
     diag::Diag,
   },
@@ -120,7 +120,9 @@ impl Lsp {
           ItemKind::Type(i) => (SymbolKind::INTERFACE, i.name.clone()),
           ItemKind::Mod(i) => (SymbolKind::MODULE, i.name.clone()),
           ItemKind::Trait(i) => (SymbolKind::INTERFACE, i.name.clone()),
-          ItemKind::Impl(i) => (SymbolKind::CLASS, i.name.clone()),
+          ItemKind::Impl(i) => {
+            (SymbolKind::CLASS, i.name.clone().unwrap_or_else(|| Ident("impl".into())))
+          }
           ItemKind::Use(_) | ItemKind::OuterMod | ItemKind::Taken => return,
         };
         let mut children = Vec::new();

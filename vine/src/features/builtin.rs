@@ -1,13 +1,13 @@
 use vine_util::idx::IntMap;
 
 use crate::{
-  components::{charter::Charter, parser::Parser},
+  components::{
+    charter::{ChartedItem, Charter},
+    parser::Parser,
+  },
   structures::{
     ast::{BinaryOp, ComparisonOp},
-    chart::{
-      Binding, DefId, DefImplKind, DefTraitKind, DefTypeKind, DefValueKind, EnumId, FnId, ImplId,
-      OpaqueTypeId, StructId, TraitId,
-    },
+    chart::{DefId, EnumId, FnId, ImplId, OpaqueTypeId, StructId, TraitId},
     diag::Diag,
   },
 };
@@ -174,10 +174,7 @@ pub struct Builtins {
 }
 
 impl Charter<'_> {
-  pub(crate) fn chart_builtin(&mut self, def_id: Option<DefId>, builtin: Builtin) -> bool {
-    let Some(def_id) = def_id else { return false };
-    let def = &mut self.chart.defs[def_id];
-
+  pub(crate) fn chart_builtin(&mut self, item: ChartedItem, builtin: Builtin) -> bool {
     fn set<T>(builtin: &mut Option<T>, got: Option<T>) -> bool {
       if builtin.is_none() && got.is_some() {
         *builtin = got;
@@ -186,34 +183,34 @@ impl Charter<'_> {
         false
       }
     }
-    let opaque_type_id = match def.type_kind {
-      Some(Binding { kind: DefTypeKind::Opaque(id), .. }) => Some(id),
+    let opaque_type_id = match item {
+      ChartedItem::OpaqueType(_, id) => Some(id),
       _ => None,
     };
-    let struct_id = match def.type_kind {
-      Some(Binding { kind: DefTypeKind::Struct(id), .. }) => Some(id),
+    let struct_id = match item {
+      ChartedItem::Struct(_, id) => Some(id),
       _ => None,
     };
-    let enum_id = match def.type_kind {
-      Some(Binding { kind: DefTypeKind::Enum(id), .. }) => Some(id),
+    let enum_id = match item {
+      ChartedItem::Enum(_, id) => Some(id),
       _ => None,
     };
-    let fn_id = match def.value_kind {
-      Some(Binding { kind: DefValueKind::Fn(kind), .. }) => Some(kind),
+    let fn_id = match item {
+      ChartedItem::Fn(_, id) => Some(id),
       _ => None,
     };
-    let trait_id = match def.trait_kind {
-      Some(Binding { kind: DefTraitKind::Trait(id), .. }) => Some(id),
+    let trait_id = match item {
+      ChartedItem::Trait(_, id) => Some(id),
       _ => None,
     };
-    let impl_id = match def.impl_kind {
-      Some(Binding { kind: DefImplKind::Impl(id), .. }) => Some(id),
+    let impl_id = match item {
+      ChartedItem::Impl(_, id) => Some(id),
       _ => None,
     };
 
     let builtins = &mut self.chart.builtins;
     match builtin {
-      Builtin::Prelude => set(&mut builtins.prelude, Some(def_id)),
+      Builtin::Prelude => set(&mut builtins.prelude, item.def()),
       Builtin::Bool => set(&mut builtins.bool, opaque_type_id),
       Builtin::N32 => set(&mut builtins.n32, opaque_type_id),
       Builtin::I32 => set(&mut builtins.i32, opaque_type_id),

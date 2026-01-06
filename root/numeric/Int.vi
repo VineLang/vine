@@ -28,7 +28,7 @@ pub mod Int {
     magnitude.is_zero()
   }
 
-  pub impl add: Add[Int, Int, Int] {
+  pub impl : Add[Int, Int, Int] {
     fn add(Int(a_sign, a_mag), Int(b_sign, b_mag)) -> Int {
       if a_sign == b_sign {
         Int(a_sign, a_mag + b_mag)
@@ -42,13 +42,13 @@ pub mod Int {
     }
   }
 
-  pub impl sub: Sub[Int, Int, Int] {
+  pub impl : Sub[Int, Int, Int] {
     fn sub(a: Int, b: Int) -> Int {
       a + -b
     }
   }
 
-  pub impl neg: Neg[Int, Int] {
+  pub impl : Neg[Int, Int] {
     fn neg(Int(sign, magnitude)) -> Int {
       if magnitude.is_zero() {
         Int(sign, magnitude)
@@ -64,7 +64,7 @@ pub mod Int {
     }
   }
 
-  pub impl mul: Mul[Int, Int, Int] {
+  pub impl : Mul[Int, Int, Int] {
     fn mul(Int(a_sign, a_mag), Int(b_sign, b_mag)) -> Int {
       if a_mag.is_zero() or b_mag.is_zero() {
         return 0[Int];
@@ -175,7 +175,7 @@ pub mod Int {
     }
   }
 
-  pub impl eq: Eq[Int] {
+  pub impl : Eq[Int] {
     fn eq(&Int(a), &Int(b)) -> Bool {
       a == b
     }
@@ -185,7 +185,7 @@ pub mod Int {
     }
   }
 
-  pub impl ord: Ord[Int] {
+  pub impl : Ord[Int] {
     fn cmp(&Int(a_sign, a_mag), &Int(b_sign, b_mag)) -> Ord {
       when {
         a_sign and !b_sign { Ord::Lt() }
@@ -235,7 +235,7 @@ pub mod Int {
     }
   }
 
-  pub impl show: Show[Int] {
+  pub impl : Show[Int] {
     fn show(&self: &Int) -> Show {
       if self.sign() or self.abs().is_zero() {
         Show::Literal("{self}")

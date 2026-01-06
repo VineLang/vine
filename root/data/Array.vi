@@ -395,7 +395,7 @@ pub mod Array {
     }
   }
 
-  pub impl eq[T; Eq[T]]: Eq[Array[T]] {
+  pub impl [T; Eq[T]]: Eq[Array[T]] {
     fn eq(&Array[T](len, node), &Array[T](len_other, other)) -> Bool {
       len == len_other and (len == 0 or Node::eq(len, &node, &other))
     }
@@ -406,7 +406,7 @@ pub mod Array {
   }
 
   #[become(unsafe::duplicate)]
-  pub impl fork[T+]: Fork[Array[T]] {
+  pub impl [T+]: Fork[Array[T]] {
     fn fork(&Array[T](len, node)) -> Array[T] {
       if len == 0 {
         Array::empty
@@ -417,7 +417,7 @@ pub mod Array {
   }
 
   #[become(unsafe::erase)]
-  pub impl drop[T?]: Drop[Array[T]] {
+  pub impl [T?]: Drop[Array[T]] {
     fn drop(Array[T](len, node)) {
       if len == 0 {
         unsafe::erase(node)
@@ -427,7 +427,7 @@ pub mod Array {
     }
   }
 
-  pub impl show[T; Show[T]]: Show[Array[T]] {
+  pub impl [T; Show[T]]: Show[Array[T]] {
     fn show(&self: &Array[T]) -> Show {
       Show::Constructor("Array", self.&.as[&List].*.show())
     }

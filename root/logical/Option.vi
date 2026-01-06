@@ -67,7 +67,7 @@ pub mod Option {
     result
   }
 
-  pub impl eq[T; Eq[T]]: Eq[Option[T]] {
+  pub impl [T; Eq[T]]: Eq[Option[T]] {
     fn eq(a: &Option[T], b: &Option[T]) -> Bool {
       match (a, b) {
         (&None(), &None()) { true }
@@ -81,5 +81,5 @@ pub mod Option {
     }
   }
 
-  pub impl show[T; Show[T]]: Show[Option[T]];
+  pub impl [T; Show[T]]: Show[Option[T]];
 }

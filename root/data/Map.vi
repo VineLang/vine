@@ -39,7 +39,7 @@ pub mod Map[K, V; Ord[K]] {
     Option::map(self!.insert((key, value)), fn? ((_, v)) { v })
   }
 
-  pub impl concat[... K?, V?]: Concat[Map[K, V], Map[K, V], Map[K, V]] {
+  pub impl [... K?, V?]: Concat[Map[K, V], Map[K, V], Map[K, V]] {
     fn concat(self: Map[K, V], other: Map[K, V]) -> Map[K, V] {
       Map(self! ++ other!)
     }
@@ -117,14 +117,14 @@ pub mod Map[K, V; Ord[K]] {
   pub struct IterRef[K, V](Set::IterRef[(K, V)]);
 
   pub mod IterRef[K, V] {
-    pub impl iterator[...]: Iterator[IterRef[K, V], &(K, V)] {
+    pub impl [...]: Iterator[IterRef[K, V], &(K, V)] {
       fn advance(self: IterRef[K, V]) -> Option[(&(K, V), IterRef[K, V])] {
         unsafe::transmute(self!.advance())
       }
     }
 
-    pub impl fork[...]: Fork[IterRef[K, V]];
-    pub impl drop[...]: Drop[IterRef[K, V]];
+    pub impl [...]: Fork[IterRef[K, V]];
+    pub impl [...]: Drop[IterRef[K, V]];
   }
 
   pub impl iter[...]: Cast[Map[K, V], Iter[K, V]] {
@@ -136,7 +136,7 @@ pub mod Map[K, V; Ord[K]] {
   pub struct* Iter[K, V](Set::Iter[(K, V)]);
 
   pub mod Iter[K, V] {
-    pub impl iterator[...]: Iterator[Iter[K, V], (K, V)] {
+    pub impl [...]: Iterator[Iter[K, V], (K, V)] {
       fn advance(self: Iter[K, V]) -> Option[((K, V), Iter[K, V])] {
         unsafe::transmute(self!.advance())
       }
@@ -150,7 +150,7 @@ pub mod Map[K, V; Ord[K]] {
   pub struct* Key();
 
   pub mod Key {
-    pub impl call[K, V]: fn Key(&(K, V)) -> &K {
+    pub impl [K, V]: fn Key(&(K, V)) -> &K {
       fn call(Key(), (&(key: K, _: V),)) -> &K {
         &key
       }
@@ -164,14 +164,14 @@ pub mod Map[K, V; Ord[K]] {
   pub struct* Value();
 
   pub mod Value {
-    pub impl call[K, V]: fn Value(&(K, V)) -> &V {
+    pub impl [K, V]: fn Value(&(K, V)) -> &V {
       fn call(Value(), (&(_: K, value: V),)) -> &V {
         &value
       }
     }
   }
 
-  pub impl collect[K?, V?; Ord[K]]: Collect[Map[K, V], (K, V)] {
+  pub impl [K?, V?; Ord[K]]: Collect[Map[K, V], (K, V)] {
     fn collect[I; Iterator[I, (K, V)]](iter: I) -> Map[K, V] {
       Map(iter.collect[Set, (K, V), _]())
     }
@@ -183,7 +183,7 @@ pub mod Map[K, V; Ord[K]] {
     }
   }
 
-  pub impl show[... ; Show[K], Show[V]]: Show[Map[K, V]] {
+  pub impl [... ; Show[K], Show[V]]: Show[Map[K, V]] {
     fn show(&self: &Map[K, V]) -> Show {
       let entries = [];
       for &(key, value) in &self {

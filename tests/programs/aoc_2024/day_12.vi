@@ -86,7 +86,7 @@ enum* Region {
 }
 
 mod Region {
-  pub impl show: Show[Region];
+  pub impl : Show[Region];
 }
 
 mod Regions {

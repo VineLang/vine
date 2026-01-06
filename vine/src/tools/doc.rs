@@ -1,11 +1,12 @@
-use std::{fmt::Write, fs, path::Path};
+use std::{borrow::Cow, fmt::Write, fs, path::Path};
 
 use crate::{
   compiler::Compiler,
   components::loader::FileId,
   structures::{
     ast::Span,
-    chart::{DefId, MemberKind, VisId},
+    chart::{Binding, DefId, DefImplKind, MemberKind, VisId},
+    types::ImplType,
   },
 };
 
@@ -26,7 +27,7 @@ struct Tree<'a> {
   id: String,
   src_file: Option<FileId>,
   src: Option<Span>,
-  name: &'a str,
+  name: Cow<'a, str>,
   path: &'a str,
   sigs: Vec<&'a String>,
   docs: Vec<&'a String>,
@@ -40,7 +41,7 @@ impl<'a> Documenter<'a> {
       id: def.path.strip_prefix("#").unwrap().split("::").collect::<Vec<_>>().join("-"),
       src_file: def.file,
       src: def.spans.first().copied(),
-      name: &def.name.0,
+      name: (&def.name.0).into(),
       path: &def.path,
       sigs: Vec::new(),
       docs: Vec::new(),
@@ -51,6 +52,45 @@ impl<'a> Documenter<'a> {
         tree.sigs.extend(&hover.signatures);
         tree.docs.extend(&hover.docs);
       }
+    }
+    let mut impl_sigs = Vec::new();
+    for &Binding { kind: DefImplKind::Impl(impl_id), .. } in &def.impl_kinds {
+      let impl_def = &self.compiler.chart.impls[impl_id];
+      if impl_def.name.is_none()
+        && let ImplType::Trait(trait_id, _) = self.compiler.sigs.impls[impl_id].inner.ty
+        && let Some(hover) = self.compiler.annotations.hovers.get(&impl_def.span)
+      {
+        if hover.docs.is_empty() {
+          impl_sigs.extend(&hover.signatures);
+        } else {
+          let trait_name = &self.compiler.chart.traits[trait_id].name;
+          tree.children.push(Tree {
+            id: format!("{}-impl-{}", tree.id, trait_name),
+            src_file: None,
+            src: Some(impl_def.span),
+            name: format!("impl {}", trait_name).into(),
+            path: tree.path,
+            sigs: hover.signatures.iter().collect(),
+            docs: hover.docs.iter().collect(),
+            children: Vec::new(),
+          });
+        }
+      }
+    }
+    if !impl_sigs.is_empty() {
+      tree.children.insert(
+        0,
+        Tree {
+          id: format!("{}-impl", tree.id),
+          src_file: None,
+          src: None,
+          name: "impl".into(),
+          path: tree.path,
+          sigs: impl_sigs,
+          docs: Vec::new(),
+          children: Vec::new(),
+        },
+      )
     }
     for member in &def.named_members {
       if matches!(member.vis, VisId::Pub)
@@ -64,7 +104,7 @@ impl<'a> Documenter<'a> {
 
   fn output_tree(&self, tree: &Tree, path: &Path, parent: Option<(&str, &str)>) -> String {
     let id = &tree.id;
-    let name = tree.name;
+    let name = tree.name.as_ref();
     let mut str = "#import \"/lib.typ\": *\n\n".to_owned();
 
     let src = self.source_link(tree);

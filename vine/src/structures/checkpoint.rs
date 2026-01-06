@@ -160,9 +160,7 @@ impl Def {
     if self.trait_kind.is_some_and(|k| k.kind.after(checkpoint)) {
       self.trait_kind = None;
     }
-    if self.impl_kind.is_some_and(|k| k.kind.after(checkpoint)) {
-      self.impl_kind = None;
-    }
+    self.impl_kinds.retain_mut(|k| !k.kind.after(checkpoint));
   }
 }
 
@@ -312,6 +310,7 @@ impl Signatures {
       structs,
       enums,
       traits,
+      def_impls,
       impls,
     } = self;
     imports.truncate(checkpoint.imports.0);
@@ -323,6 +322,10 @@ impl Signatures {
     structs.truncate(checkpoint.structs.0);
     enums.truncate(checkpoint.enums.0);
     traits.truncate(checkpoint.traits.0);
+    def_impls.truncate(checkpoint.defs.0);
+    def_impls
+      .values_mut()
+      .for_each(|x| x.retain(|&k, &mut v| k < checkpoint.traits && !v.kind.after(checkpoint)));
     impls.truncate(checkpoint.impls.0);
   }
 }

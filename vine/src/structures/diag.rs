@@ -109,6 +109,8 @@ diags! {
     ["invalid pattern; this path is not a struct or enum variant"]
   DuplicateItem { name: Ident }
     ["duplicate definition of `{name}`"]
+  DuplicateImpl { path: String, trait_: Ident }
+    ["duplicate implementation of `{trait_}` at `{path}`"]
   ExpectedSpaceFoundValueExpr
     ["expected a space expression; found a value expression"]
   ExpectedValueFoundSpaceExpr
@@ -141,6 +143,8 @@ diags! {
     ["expected type `fn {expected}`; found `fn {found}`"]
   PathNoAssociated { desc: &'static str, path: String }
     ["no {desc} associated with `{path}`"]
+  PathNoImpl { trait_: Ident, path: String }
+    ["no impl of `{trait_}` associated with `{path}`"]
   BadGenericCount { path: String, expected: usize, got: usize, kind: &'static str }
     ["`{path}` expects {expected} {kind} parameter{}; was passed {got}", plural(*expected, "s", "")]
   MissingTupleField { ty: String, i: usize }
@@ -179,6 +183,8 @@ diags! {
     ["invalid visibility; expected the name of an ancestor module"]
   InvisibleAssociated { desc: &'static str, path: String, vis: String }
     ["the {desc} `{path}` is only visible within `{vis}`"]
+  InvisibleImpl { trait_: Ident, path: String, vis: String }
+    ["the impl of `{trait_}` at `{path}` is only visible within `{vis}`"]
   VisibleSubitem
     ["subitems must be private"]
   DuplicateKey

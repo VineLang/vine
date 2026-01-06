@@ -48,7 +48,7 @@ pub mod Nat {
     }
   }
 
-  pub impl add: Add[Nat, Nat, Nat] {
+  pub impl : Add[Nat, Nat, Nat] {
     fn add(Nat(a), Nat(b)) -> Nat {
       if a.len() < b.len() {
         swap(&a, &b);
@@ -72,7 +72,7 @@ pub mod Nat {
     }
   }
 
-  pub impl sub: Sub[Nat, Nat, Nat] {
+  pub impl : Sub[Nat, Nat, Nat] {
     fn sub(Nat(a), Nat(b)) -> Nat {
       if a.len() < b.len() {
         // underflow
@@ -135,7 +135,7 @@ pub mod Nat {
     }
   }
 
-  pub impl mul: Mul[Nat, Nat, Nat] {
+  pub impl : Mul[Nat, Nat, Nat] {
     fn mul(a: Nat, b: Nat) -> Nat {
       if a.is_zero() or b.is_zero() {
         return 0[Nat];
@@ -200,19 +200,19 @@ pub mod Nat {
     (Nat(q), rem)
   }
 
-  pub impl div: Div[Nat, Nat, Nat] {
+  pub impl : Div[Nat, Nat, Nat] {
     fn div(a: Nat, d: Nat) -> Nat {
       a.div_rem(d).0
     }
   }
 
-  pub impl rem: Rem[Nat, Nat, Nat] {
+  pub impl : Rem[Nat, Nat, Nat] {
     fn rem(a: Nat, d: Nat) -> Nat {
       a.div_rem(d).1
     }
   }
 
-  pub impl bit_and: BitAnd[Nat, Nat, Nat] {
+  pub impl : BitAnd[Nat, Nat, Nat] {
     fn bit_and(a: Nat, b: Nat) -> Nat {
       let ~trim = true;
       let result = [];
@@ -229,7 +229,7 @@ pub mod Nat {
     }
   }
 
-  pub impl bit_or: BitOr[Nat, Nat, Nat] {
+  pub impl : BitOr[Nat, Nat, Nat] {
     fn bit_or(Nat(a), Nat(b)) -> Nat {
       let result = [];
       while a.len() != 0 and b.len() != 0 {
@@ -239,7 +239,7 @@ pub mod Nat {
     }
   }
 
-  pub impl bit_xor: BitXor[Nat, Nat, Nat] {
+  pub impl : BitXor[Nat, Nat, Nat] {
     fn bit_xor(Nat(a), Nat(b)) -> Nat {
       let ~trim = true;
       let result = [];
@@ -259,7 +259,7 @@ pub mod Nat {
     }
   }
 
-  pub impl shl: Shl[Nat, N32, Nat] {
+  pub impl : Shl[Nat, N32, Nat] {
     fn shl(Nat(a), b: N32) -> Nat {
       let (leading_zeros, rem) = b.div_rem(32);
       if rem != 0 {
@@ -277,7 +277,7 @@ pub mod Nat {
     }
   }
 
-  pub impl shr: Shr[Nat, N32, Nat] {
+  pub impl : Shr[Nat, N32, Nat] {
     fn shr(Nat(a), b: N32) -> Nat {
       let (trim_parts, rem) = b.div_rem(32);
       while trim_parts > 0 and a.pop_front() is Some(_) {
@@ -333,7 +333,7 @@ pub mod Nat {
     }
   }
 
-  pub impl eq: Eq[Nat] {
+  pub impl : Eq[Nat] {
     fn eq(&Nat(a), &Nat(b)) -> Bool {
       a == b
     }
@@ -343,7 +343,7 @@ pub mod Nat {
     }
   }
 
-  pub impl ord: Ord[Nat] {
+  pub impl : Ord[Nat] {
     fn cmp(&Nat(a), &Nat(b)) -> Ord {
       when {
         a.len() < b.len() { Ord::Lt() }
@@ -404,7 +404,7 @@ pub mod Nat {
     }
   }
 
-  pub impl show: Show[Nat] {
+  pub impl : Show[Nat] {
     fn show(&self: &Nat) -> Show {
       Show::Literal("{self}")
     }
