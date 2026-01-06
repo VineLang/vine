@@ -6,7 +6,7 @@ use crate::{
   components::synthesizer::SyntheticImpl,
   structures::{
     ast::{Flex, LogicalOp, Span},
-    chart::{EnumId, FnId, ImplId, StructId, VariantId},
+    chart::{EnumId, FnId, ImplId, VariantId},
     diag::ErrorGuaranteed,
     resolutions::{ConstRelId, FnRelId, Rels},
     types::{Type, Types},
@@ -102,7 +102,7 @@ pub enum TirExprKind {
   #[class(poly, value, space, place)]
   Index(TirExpr, TirExpr),
   #[class(poly, value, place, space)]
-  Struct(StructId, TirExpr),
+  Rewrap(TirExpr),
   #[class(value)]
   Enum(EnumId, VariantId, TirExpr),
   #[class(value, cond)]
@@ -113,8 +113,6 @@ pub enum TirExprKind {
   Is(TirExpr, TirPat),
   #[class(value, cond)]
   LogicalOp(LogicalOp, TirExpr, TirExpr),
-  #[class(poly, value, place, space)]
-  Unwrap(StructId, TirExpr),
   #[class(value)]
   Try(Type, Type, TirExpr),
   #[class(value)]
@@ -162,7 +160,7 @@ pub enum TirPatKind {
   #[class(value, place, space, complete)]
   Hole,
   #[class(value, place, space, complete, incomplete)]
-  Struct(StructId, TirPat),
+  Struct(TirPat),
   #[class(value, place, space, incomplete)]
   Enum(EnumId, VariantId, TirPat),
   #[class(value, place, space, complete)]
