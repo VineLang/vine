@@ -7,28 +7,33 @@ on:
       - dev
 
 jobs:
-  integration-tests:
+  integration-test:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions: read-all
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - repo: liana
-            flake: github:nilscrm/liana
-          - repo: sat-vi
-            flake: github:nilscrm/sat-vi
-          - repo: vine-page-rank
-            flake: github:nilscrm/vine-page-rank
+        repo: [github:nilscrm/liana, github:nilscrm/sat-vi, github:nilscrm/vine-page-rank]
     steps:
       - uses: actions/checkout@v3
       - uses: cachix/install-nix-action@v31
-      - name: Run ${{ matrix.repo }} integration test
-        run: nix flake check ${{ matrix.flake }} --override-input vine . -L
+      - name: Run integration test
+        run: nix flake check ${{ matrix.repo }} --override-input vine . -L
+
+  integration-tests:
+    needs: [integration-test]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Agrregate integration test results
+        run: |
+          if [ "${{ needs.checks.result }}" != "success" ]; then
+            exit 1
+          fi
 
   mainline:
-    needs: [integration-tests]
+    needs: [integration-test]
     if: ${{ github.ref_name == 'dev' }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -45,7 +50,7 @@ jobs:
           fi
 
   notify:
-    needs: [mainline]
+    needs: [integration-tests]
     if: ${{ always() && github.ref_name == 'dev' }}
     runs-on: ubuntu-latest
     permissions:
@@ -54,14 +59,14 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: open issue
-        if: ${{ needs.mainline.result == 'skipped' }}
+        if: ${{ needs.integration-tests.result == 'skipped' || needs.integration-tests.result == 'failure' }}
         run: |
           gh issue reopen 484
           gh issue edit 484 --add-assignee ${{ github.event.sender.login }}
         env:
           GH_TOKEN: ${{ github.token }}
       - name: close issue
-        if: ${{ needs.mainline.result == 'success' }}
+        if: ${{ needs.integration-tests.result == 'success' }}
         run: |
           git fetch origin main
           if [[ `git rev-parse dev` == `git rev-parse origin/main` ]]; then
