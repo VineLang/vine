@@ -15,7 +15,7 @@ use crate::{
   },
   structures::{
     ast::Span,
-    chart::{Chart, DefId, EnumId, GenericsId, StructId, VariantId},
+    chart::{Chart, DefId, EnumId, GenericsId, VariantId},
     diag::{Diags, ErrorGuaranteed},
     resolutions::{ConstRelId, FnRelId, Rels},
     signatures::Signatures,
@@ -142,7 +142,7 @@ pub enum Step {
   Call(Span, FnRelId, Option<Port>, Vec<Port>, Port),
   Const(Span, ConstRelId, Port),
   Composite(Port, Vec<Port>),
-  Struct(StructId, Port, Port),
+  Rewrap(Port, Port),
   Enum(EnumId, VariantId, Port, Port),
   Ref(Port, Port, Port),
   ExtFn(&'static str, bool, Port, Port, Port),
@@ -174,7 +174,7 @@ impl Step {
       }
       Step::Diverge(_, None) => Ports::Zero([]),
       Step::Const(_, _, a) => Ports::One([a]),
-      Step::Link(a, b) | Step::Struct(_, a, b) | Step::Enum(_, _, a, b) => Ports::Two([a, b]),
+      Step::Link(a, b) | Step::Rewrap(a, b) | Step::Enum(_, _, a, b) => Ports::Two([a, b]),
       Step::Call(_, _, f, a, r) => Ports::Fn(f.as_ref().into_iter().chain(a).chain([r])),
       Step::Composite(port, ports) | Step::List(port, ports) => {
         Ports::Tuple([port].into_iter().chain(ports))

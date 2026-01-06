@@ -177,7 +177,11 @@ impl<'a> Emitter<'a> {
       Step::Link(a, b) => {
         self.emit_link(a, b);
       }
-      Step::Struct(id, a, b) => self.emit_struct(*id, a, b),
+      Step::Rewrap(a, b) => {
+        let a = self.emit_port(a);
+        let b = self.emit_port(b);
+        self.pairs.push((a, b))
+      }
       Step::Call(span, rel, recv, args, ret) => self.emit_call(*span, *rel, recv, args, ret),
       Step::Const(span, rel, out) => {
         self.emit_const(span, rel, out);
