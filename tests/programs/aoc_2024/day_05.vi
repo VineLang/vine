@@ -46,7 +46,7 @@ pub fn main(&io: &IO) {
         out ++= [num];
         set_bit(&nums_mask, num, false);
         let ~future;
-        let &future_state = unsafe::move(&~future);
+        let &future_state = safe move(&~future);
         let iter_ref = pending.iter();
         pending = [];
         for (n, mask) in iter_ref {

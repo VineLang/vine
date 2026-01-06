@@ -216,9 +216,9 @@ pub mod Show {
   pub impl if_const[I, T, F; IfConst[I, T, F], Show[T], Show[F]]: Show[I] {
     fn show(&value: &I) -> Show {
       if IfConst::condition {
-        Show::show(unsafe::transmute[&I, &T](&value))
+        Show::show(safe transmute[&I, &T](&value))
       } else {
-        Show::show(unsafe::transmute[&I, &F](&value))
+        Show::show(safe transmute[&I, &F](&value))
       }
     }
   }

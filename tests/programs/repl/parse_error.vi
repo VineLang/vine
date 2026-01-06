@@ -1,4 +1,4 @@
-unsafe::erase(io)
+safe erase(io)
 /clear io
 io.println(let "Hello, world!")
 io.println("Hello, world!" let)

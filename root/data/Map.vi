@@ -46,15 +46,15 @@ pub mod Map[K, V; Ord[K]] {
   }
 
   pub fn .has[...](&self: &Map[K, V], &key: &K) -> Bool {
-    self!.has(&(key, *unsafe::eraser))
+    self!.has(&(key, *safe eraser))
   }
 
   pub fn .at[...](&self: &Map[K, V], &key: &K) -> Option[&V] {
-    Option::map(self!.at_eq(&(key, *unsafe::eraser)), fn? (&(_, v)) { &v })
+    Option::map(self!.at_eq(&(key, *safe eraser)), fn? (&(_, v)) { &v })
   }
 
   pub fn .get[... V+](&self: &Map[K, V], &key: &K) -> Option[V] {
-    Option::map(self!.at_eq(&(key, *unsafe::eraser)), fn? (&(_, v)) { v })
+    Option::map(self!.at_eq(&(key, *safe eraser)), fn? (&(_, v)) { v })
   }
 
   pub fn .at_or_insert[... K?, V?](&self: &Map[K, V], key: K, value: V) -> &V {
@@ -71,23 +71,23 @@ pub mod Map[K, V; Ord[K]] {
   }
 
   pub fn .at_le[...](&self: &Map[K, V], &key: &K) -> Option[&(K, V)] {
-    self!.at_le(&(key, *unsafe::eraser))
+    self!.at_le(&(key, *safe eraser))
   }
 
   pub fn .get_le[... K+, V+](&self: &Map[K, V], &key: &K) -> Option[(K, V)] {
-    self!.get_le(&(key, *unsafe::eraser))
+    self!.get_le(&(key, *safe eraser))
   }
 
   pub fn .at_ge[...](&self: &Map[K, V], &key: &K) -> Option[&(K, V)] {
-    self!.at_ge(&(key, *unsafe::eraser))
+    self!.at_ge(&(key, *safe eraser))
   }
 
   pub fn .get_ge[... K+, V+](&self: &Map[K, V], &key: &K) -> Option[(K, V)] {
-    self!.get_ge(&(key, *unsafe::eraser))
+    self!.get_ge(&(key, *safe eraser))
   }
 
   pub fn .remove[... K?](&self: &Map[K, V], &key: &K) -> Option[V] {
-    Option::map(self!.remove(&(key, *unsafe::eraser)), fn? ((_, v)) { v })
+    Option::map(self!.remove(&(key, *safe eraser)), fn? ((_, v)) { v })
   }
 
   pub fn .remove_min[...](&self: &Map[K, V]) -> Option[(K, V)] {
@@ -145,7 +145,7 @@ pub mod Map[K, V; Ord[K]] {
   pub mod IterRef[K, V] {
     pub impl [...]: Iterator[IterRef[K, V], &(K, V)] {
       fn advance(self: IterRef[K, V]) -> Option[(&(K, V), IterRef[K, V])] {
-        unsafe::transmute(self!.advance())
+        safe transmute(self!.advance())
       }
     }
 
@@ -164,7 +164,7 @@ pub mod Map[K, V; Ord[K]] {
   pub mod Iter[K, V] {
     pub impl [...]: Iterator[Iter[K, V], (K, V)] {
       fn advance(self: Iter[K, V]) -> Option[((K, V), Iter[K, V])] {
-        unsafe::transmute(self!.advance())
+        safe transmute(self!.advance())
       }
     }
   }

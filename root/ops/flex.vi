@@ -18,19 +18,19 @@ pub mod Fork {
     }
   }
 
-  #[become(unsafe::duplicate)]
+  #[become(duplicate)]
   pub impl tuple_nil: Fork[()] {
     fn fork(&()) -> () {}
   }
 
-  #[become(unsafe::duplicate)]
+  #[become(duplicate)]
   pub impl object_nil: Fork[{}] {
     fn fork(&{}) -> {} {
       {}
     }
   }
 
-  #[become(unsafe::duplicate)]
+  #[become(duplicate)]
   pub impl composite[C, K, I, R; Composite[C, K, I, R], Fork[I], Fork[R]]: Fork[C] {
     fn fork(&composite: &C) -> C {
       let &(init, rest) = &composite as &(I, R);
@@ -39,7 +39,7 @@ pub mod Fork {
   }
 
   #[basic]
-  #[become(unsafe::duplicate)]
+  #[become(duplicate)]
   pub impl struct_[S, C; Struct[S, C], Fork[C]]: Fork[S] {
     fn fork(&struct_: &S) -> S {
       let &content = &struct_ as &C;
@@ -48,16 +48,16 @@ pub mod Fork {
   }
 
   #[basic]
-  #[become(unsafe::duplicate)]
+  #[become(duplicate)]
   pub impl enum_[E, V; Enum[E, V], Fork[V]]: Fork[E] {
     fn fork(&self: &E) -> E {
       Enum::match_ref(&self, fn (&variant) { Enum::reconstruct(variant) })
     }
   }
 
-  pub impl never: Fork[!] = unsafe::duplicate;
+  pub impl never: Fork[!] = safe duplicate;
 
-  #[become(unsafe::duplicate)]
+  #[become(duplicate)]
   pub impl variant[I+, R+]: Fork[Variant[I, R]] {
     fn fork(&self: &Variant[I, R]) -> Variant[I, R] {
       match &self {
@@ -70,9 +70,9 @@ pub mod Fork {
   pub impl if_const[I, T, F; IfConst[I, T, F], Fork[T], Fork[F]]: Fork[I] {
     fn fork(&self: &I) -> I {
       if IfConst::condition {
-        unsafe::transmute[T, I](*unsafe::transmute[&I, &T](&self))
+        safe transmute[T, I](*transmute[&I, &T](&self))
       } else {
-        unsafe::transmute[F, I](*unsafe::transmute[&I, &F](&self))
+        safe transmute[F, I](*transmute[&I, &F](&self))
       }
     }
   }
@@ -83,17 +83,17 @@ pub mod Drop {
     fn drop(&_: &T) {}
   }
 
-  #[become(unsafe::erase)]
+  #[become(erase)]
   pub impl tuple_nil: Drop[()] {
     fn drop(()) {}
   }
 
-  #[become(unsafe::erase)]
+  #[become(erase)]
   pub impl object_nil: Drop[{}] {
     fn drop({}) {}
   }
 
-  #[become(unsafe::erase)]
+  #[become(erase)]
   pub impl composite[C, K, I, R; Composite[C, K, I, R], Drop[I], Drop[R]]: Drop[C] {
     fn drop(composite: C) {
       (_, _) = composite as (I, R);
@@ -101,7 +101,7 @@ pub mod Drop {
   }
 
   #[basic]
-  #[become(unsafe::erase)]
+  #[become(erase)]
   pub impl struct_[S, C; Struct[S, C], Drop[C]]: Drop[S] {
     fn drop(struct_: S) {
       _ = struct_ as C;
@@ -109,16 +109,16 @@ pub mod Drop {
   }
 
   #[basic]
-  #[become(unsafe::erase)]
+  #[become(erase)]
   pub impl enum_[E, V; Enum[E, V], Drop[V]]: Drop[E] {
     fn drop(self: E) {
       Enum::match_(self, fn (_) {})
     }
   }
 
-  pub impl never: Drop[!] = unsafe::erase;
+  pub impl never: Drop[!] = safe erase;
 
-  #[become(unsafe::erase)]
+  #[become(erase)]
   pub impl variant[I?, R?]: Drop[Variant[I, R]] {
     fn drop(self: Variant[I, R]) {
       match self {
@@ -131,9 +131,9 @@ pub mod Drop {
   pub impl if_const[I, T, F; IfConst[I, T, F], Drop[T], Drop[F]]: Drop[I] {
     fn drop(self: I) {
       if IfConst::condition {
-        unsafe::transmute[I, T](self);
+        safe transmute[I, T](self);
       } else {
-        unsafe::transmute[I, F](self);
+        safe transmute[I, F](self);
       }
     }
   }

@@ -17,8 +17,8 @@ pub struct N64(pub N32, N32);
 pub mod N64 {
   pub const maximum: N64 = N64(N32::maximum, N32::maximum);
 
-  pub impl : Fork[N64] = unsafe::duplicate;
-  pub impl : Drop[N64] = unsafe::erase;
+  pub impl : Fork[N64] = safe duplicate;
+  pub impl : Drop[N64] = safe erase;
 
   pub impl from_n32: Cast[N32, N64] {
     fn cast(val: N32) -> N64 {
@@ -317,7 +317,7 @@ pub mod N64 {
 
   pub impl to_n64: Cast[Bool, N64] {
     fn cast(b: Bool) -> N64 {
-      N64(unsafe::transmute(b), 0)
+      N64(safe transmute(b), 0)
     }
   }
 }

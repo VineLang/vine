@@ -1,7 +1,7 @@
 
 use derive::{Composite, Struct};
 use ops::Cast;
-use unsafe::transmute;
+use util::transmute;
 
 /// An extrinsic value logically representing a Vine value of type `T`.
 /// The author of `T` is allowed to decide the representation of this type.
@@ -15,12 +15,12 @@ pub trait Ext[T] {
 
 pub mod Ext {
   #[manual]
-  pub impl identity[T]: Ext[T] {
-    fn encode(value: T) -> Ext[T] {
+  pub unsafe impl identity[T]: Ext[T] {
+    unsafe fn encode(value: T) -> Ext[T] {
       transmute(value)
     }
 
-    fn decode(value: Ext[T]) -> T {
+    unsafe fn decode(value: Ext[T]) -> T {
       transmute(value)
     }
   }
@@ -37,30 +37,29 @@ pub mod Ext {
     }
   }
 
-  pub impl n32: Ext[N32] = Ext::identity;
-  pub impl f32: Ext[F32] = Ext::identity;
-  pub impl f64: Ext[F64] = Ext::identity;
-  pub impl char: Ext[Char] = Ext::identity;
-  pub impl io: Ext[IO] = Ext::identity;
+  pub impl n32: Ext[N32] = safe Ext::identity;
+  pub impl f32: Ext[F32] = safe Ext::identity;
+  pub impl f64: Ext[F64] = safe Ext::identity;
+  pub impl char: Ext[Char] = safe Ext::identity;
+  pub impl io: Ext[IO] = safe Ext::identity;
 
   pub impl nil: Ext[()] {
     fn encode(()) -> Ext[()] {
-      transmute(Ext::new_list())
+      safe transmute(Ext::new_list())
     }
 
     fn decode(tup: Ext[()]) -> () {
-      Ext::drop_list(transmute(tup))
+      safe Ext::drop_list(transmute(tup))
     }
   }
 
   pub impl empty: Ext[{}] {
     fn encode({}) -> Ext[{}] {
-      transmute(Ext::new_list())
+      safe transmute(Ext::new_list())
     }
 
     fn decode(obj: Ext[{}]) -> {} {
-      Ext::drop_list(transmute(obj));
-
+      safe Ext::drop_list(transmute(obj));
       {}
     }
   }
@@ -69,17 +68,17 @@ pub mod Ext {
     fn encode(composite: C) -> Ext[C] {
       let (init, rest) = composite as (I, R);
       let init = init as Ext;
-      let rest = transmute[Ext[R], Ext[List[I]]](rest as Ext);
+      let rest = safe transmute[Ext[R], Ext[List[I]]](rest as Ext);
       rest.push(init);
 
-      transmute(rest)
+      safe transmute(rest)
     }
 
     fn decode(composite: Ext[C]) -> C {
-      let rest = transmute[Ext[C], Ext[List[I]]](composite);
-      let init = rest.pop();
+      let rest = safe transmute[Ext[C], Ext[List[I]]](composite);
+      let init = safe rest.pop();
 
-      (init as I, transmute[Ext[List[I]], Ext[R]](rest) as R) as C
+      (init as I, safe transmute[Ext[List[I]], Ext[R]](rest) as R) as C
     }
   }
 
@@ -98,10 +97,10 @@ pub mod Ext {
       let list = [];
 
       for _ in 0..ext.len() {
-        list.push_front(ext.pop() as T);
+        list.push_front(safe ext.pop() as T);
       }
 
-      drop_list(ext);
+      safe drop_list(ext);
 
       list
     }
@@ -110,11 +109,11 @@ pub mod Ext {
   #[basic]
   pub impl struct_[S, C; Struct[S, C], Ext[C]]: Ext[S] {
     fn encode(s: S) -> Ext[S] {
-      transmute[Ext[C], Ext[S]](s as C as Ext)
+      safe transmute[Ext[C], Ext[S]](s as C as Ext)
     }
 
     fn decode(ext: Ext[S]) -> S {
-      transmute[Ext[S], Ext[C]](ext) as C as S
+      safe transmute[Ext[S], Ext[C]](ext) as C as S
     }
   }
 
@@ -134,8 +133,7 @@ pub mod Ext {
     }
   }
 
-  // TODO: mark unsafe
-  fn drop_list[T](list: Ext[List[T]]) {
+  unsafe fn drop_list[T](list: Ext[List[T]]) {
     inline_ivy! (list <- list) -> () {
       _
       list = @list_drop(_ _)
@@ -149,8 +147,7 @@ pub mod Ext {
     };
   }
 
-  // TODO: mark unsafe
-  fn .pop[T](&self: &Ext[List[T]]) -> Ext[T] {
+  unsafe fn .pop[T](&self: &Ext[List[T]]) -> Ext[T] {
     inline_ivy! (list0 <- self, list1 -> self) -> Ext[T] {
       t
       list0 = @list_pop(t list1)

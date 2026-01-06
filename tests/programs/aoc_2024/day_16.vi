@@ -19,10 +19,10 @@ pub fn main(&io: &IO) {
       row.push_back((
         char != '#',
         [
-          (N32::maximum, unsafe::eraser),
-          (N32::maximum, unsafe::eraser),
-          (N32::maximum, unsafe::eraser),
-          (N32::maximum, unsafe::eraser),
+          (N32::maximum, safe eraser),
+          (N32::maximum, safe eraser),
+          (N32::maximum, safe eraser),
+          (N32::maximum, safe eraser),
         ],
         false,
       ));

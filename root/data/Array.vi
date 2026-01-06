@@ -11,7 +11,7 @@ use ops::{Cast, Index::{Index, IndexPlace, IndexSpace, IndexValue}, comparison::
 pub struct Array[T]((N32, Node[T]));
 
 pub mod Array {
-  pub const empty[T]: Array[T] = Array(0, unsafe::eraser);
+  pub const empty[T]: Array[T] = Array(0, safe eraser);
 
   pub fn single[T](value: T) -> Array[T] {
     Array(1, value as Node)
@@ -37,7 +37,7 @@ pub mod Array {
   /// ```
   pub impl from_list[T]: Cast[List[T], Array[T]] {
     fn cast(List[T](len, buf, _end)) -> Array[T] {
-      unsafe::erase(_end);
+      safe erase(_end);
       let array = Array::from_fn(
         len,
         fn* () {
@@ -46,7 +46,7 @@ pub mod Array {
           head
         },
       );
-      unsafe::erase(buf);
+      safe erase(buf);
       array
     }
   }
@@ -109,7 +109,7 @@ pub mod Array {
   /// ```
   pub fn .fold_front[T, U, F*; fn F(U, T) -> U](Array[T](len, node), initial: U, f: F) -> U {
     if len == 0 {
-      unsafe::erase(node);
+      safe erase(node);
       initial
     } else {
       let loop ins;
@@ -131,7 +131,7 @@ pub mod Array {
   /// ```
   pub fn .fold_back[T, U, F*; fn F(U, T) -> U](Array[T](len, node), initial: U, f: F) -> U {
     if len == 0 {
-      unsafe::erase(node);
+      safe erase(node);
       initial
     } else {
       let loop ins;
@@ -145,7 +145,7 @@ pub mod Array {
 
   pub fn .reduce_unordered[T, F*; fn F(T, T) -> T](Array[T](len, node), f: F) -> Option[T] {
     if len == 0 {
-      unsafe::erase(node);
+      safe erase(node);
       None()
     } else {
       Some(node.reduce_unordered(len, f))
@@ -201,7 +201,7 @@ pub mod Array {
   pub fn .push_back[T](&Array[T](len, *node), value: T) {
     if len == 0 {
       let &node = node;
-      unsafe::erase(node);
+      safe erase(node);
       node = value as Node;
     } else {
       let size = len;
@@ -223,7 +223,7 @@ pub mod Array {
   pub fn .push_front[T](&Array[T](len, *node), value: T) {
     if len == 0 {
       let &node = node;
-      unsafe::erase(node);
+      safe erase(node);
       node = value as Node;
     } else {
       let size = len;
@@ -250,7 +250,7 @@ pub mod Array {
       len == 0 { None() }
       len == 1 {
         len = 0;
-        Some(unsafe::move(node) as T)
+        Some(safe move(node) as T)
       }
       _ {
         let size = len;
@@ -262,13 +262,13 @@ pub mod Array {
           if size != 1 {
             continue;
           }
-          let value = unsafe::move(node) as T;
+          let value = safe move(node) as T;
           let Node(left, right) = parent;
           parent = if parity == 0 {
-            unsafe::erase(left);
+            safe erase(left);
             right
           } else {
-            unsafe::erase(right);
+            safe erase(right);
             left
           };
           Some(value)
@@ -288,7 +288,7 @@ pub mod Array {
       len == 0 { None() }
       len == 1 {
         len = 0;
-        Some(unsafe::move(node) as T)
+        Some(safe move(node) as T)
       }
       _ {
         let size = len;
@@ -302,9 +302,9 @@ pub mod Array {
           if size != 1 {
             continue;
           }
-          let value = unsafe::move(node) as T;
-          unsafe::erase(parent);
-          parent = unsafe::move(&left);
+          let value = safe move(node) as T;
+          safe erase(parent);
+          parent = safe move(&left);
           Some(value)
         }
       }
@@ -322,7 +322,7 @@ pub mod Array {
   /// ```
   pub fn .map_unordered[T, U, F*; fn F(T) -> U](Array[T](len, node), f: F) -> Array[U] {
     if len == 0 {
-      unsafe::erase(node);
+      safe erase(node);
       Array::empty
     } else {
       Array(len, Node::map_unordered(node, len, f))
@@ -367,8 +367,8 @@ pub mod Array {
         debug::error_with("`Array::zip_with` called on arrays of unequal lengths", (left, right))
       }
       len_left == 0 {
-        unsafe::erase(left);
-        unsafe::erase(right);
+        safe erase(left);
+        safe erase(right);
         Array::empty
       }
       _ { Array(len_left, Node::zip_with(len_left, left, right, f)) }
@@ -387,7 +387,7 @@ pub mod Array {
     Array[V],
   ) {
     if len == 0 {
-      unsafe::erase(node);
+      safe erase(node);
       (Array::empty, Array::empty)
     } else {
       let (left, right) = Node::unzip_with(len, node, f);
@@ -405,7 +405,7 @@ pub mod Array {
     }
   }
 
-  #[become(unsafe::duplicate)]
+  #[become(duplicate)]
   pub impl [T+]: Fork[Array[T]] {
     fn fork(&Array[T](len, node)) -> Array[T] {
       if len == 0 {
@@ -416,11 +416,11 @@ pub mod Array {
     }
   }
 
-  #[become(unsafe::erase)]
+  #[become(erase)]
   pub impl [T?]: Drop[Array[T]] {
     fn drop(Array[T](len, node)) {
       if len == 0 {
-        unsafe::erase(node)
+        safe erase(node)
       } else {
         Node::drop(len, node)
       }
@@ -460,8 +460,8 @@ pub mod Array {
 struct Node[T]((Node[T], Node[T]));
 
 mod Node {
-  pub impl leaf_to_node[T]: Cast[T, Node[T]] = unsafe::transmute;
-  pub impl node_to_leaf[T]: Cast[Node[T], T] = unsafe::transmute;
+  pub impl leaf_to_node[T]: Cast[T, Node[T]] = safe transmute;
+  pub impl node_to_leaf[T]: Cast[Node[T], T] = safe transmute;
 
   pub fn new[T+](len: N32, value: T) -> Node[T] {
     if len == 1 {

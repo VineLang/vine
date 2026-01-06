@@ -63,7 +63,7 @@ pub mod String {
           break;
         }
       } else {
-        return (prefix, Some(String(unsafe::move(iter_ref.tail()))));
+        return (prefix, Some(String(safe move(iter_ref.tail()))));
       }
       if suffix!.pop_front() is Some(char) {
         prefix ++= String([char]);
@@ -86,7 +86,7 @@ pub mod String {
         return Err(self);
       }
     }
-    Ok(String(unsafe::move(iter_ref.tail())))
+    Ok(String(safe move(iter_ref.tail())))
   }
 
   pub fn .trim_front(String(chars)) -> String {

@@ -5,8 +5,8 @@ use ops::{Cast, bitwise::{BitAnd, BitOr, BitXor, Not}, comparison::{Eq, Ord}};
 pub type Bool;
 
 pub mod Bool {
-  pub impl : Fork[Bool] = unsafe::duplicate;
-  pub impl : Drop[Bool] = unsafe::erase;
+  pub impl : Fork[Bool] = safe duplicate;
+  pub impl : Drop[Bool] = safe erase;
 
   pub impl : BitAnd[Bool, Bool, Bool] {
     fn bit_and(a: Bool, b: Bool) -> Bool {
@@ -73,5 +73,5 @@ pub mod Bool {
     }
   }
 
-  pub impl to_n32: Cast[Bool, N32] = unsafe::transmute;
+  pub impl to_n32: Cast[Bool, N32] = safe transmute;
 }

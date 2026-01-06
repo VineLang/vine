@@ -5,7 +5,7 @@ pub fn main(&io: &IO) {
     io.println("{i}");
     if i == 46 {
       // since `IO::forever` waits on `io` to continue the loop, this will stop the loop early
-      unsafe::erase(&io);
+      safe erase(&io);
     }
     i += 1;
   }

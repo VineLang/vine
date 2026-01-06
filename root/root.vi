@@ -11,7 +11,6 @@ pub mod numeric;
 pub mod ops;
 pub mod rng;
 pub mod unicode;
-pub mod unsafe;
 pub mod IO;
 pub mod util;
 
