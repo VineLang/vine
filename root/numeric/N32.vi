@@ -19,8 +19,8 @@ pub mod N32 {
   /// The maximum `N32` value, `2^32 - 1`.
   pub const maximum: N32 = 0xffffffff;
 
-  pub impl : Fork[N32] = unsafe::duplicate;
-  pub impl : Drop[N32] = unsafe::erase;
+  pub impl : Fork[N32] = safe duplicate;
+  pub impl : Drop[N32] = safe erase;
 
   pub impl : Add[N32, N32, N32] {
     fn add(a: N32, b: N32) -> N32 {

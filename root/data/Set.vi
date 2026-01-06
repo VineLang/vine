@@ -8,7 +8,7 @@ pub struct Set[T]((N32, SetData[T]));
 type SetData[T] = (Set[T], T, Set[T]);
 
 pub mod Set[T; Ord[T]] {
-  pub const empty[T]: Set[T] = Set(0, unsafe::eraser);
+  pub const empty[T]: Set[T] = Set(0, safe eraser);
 
   fn new[T](left: Set[T], value: T, right: Set[T]) -> Set[T] {
     Set(left.len() + right.len() + 1, (left, value, right))
@@ -35,7 +35,7 @@ pub mod Set[T; Ord[T]] {
   pub fn .insert[...](&Set[T](len, data), new: T) -> Option[T] {
     if len == 0 {
       len = 1;
-      unsafe::erase(data);
+      safe erase(data);
       data = (empty, new, empty);
       None()
     } else {
@@ -195,10 +195,10 @@ pub mod Set[T; Ord[T]] {
     len -= 1;
     let &(left, value, right) = &data;
     if left.len() == 0 {
-      let Set(_, right) = unsafe::move(&right);
-      unsafe::erase(data);
+      let Set(_, right) = safe move(&right);
+      safe erase(data);
       data = right;
-      unsafe::move(&value)
+      safe move(&value)
     } else {
       let min = left._remove_min();
       balance_left(&data);
@@ -210,10 +210,10 @@ pub mod Set[T; Ord[T]] {
     len -= 1;
     let &(left, value, right) = &data;
     if right.len() == 0 {
-      let Set(_, left) = unsafe::move(&left);
-      unsafe::erase(data);
+      let Set(_, left) = safe move(&left);
+      safe erase(data);
       data = left;
-      unsafe::move(&value)
+      safe move(&value)
     } else {
       let max = right._remove_max();
       balance_right(&data);
@@ -226,7 +226,7 @@ pub mod Set[T; Ord[T]] {
   /// Safety: Is only safe if the order of elements is preserved by the mapping function.
   pub.data fn .map[... U, F*; fn F(T) -> U](Set[T](len, data), f: F) -> Set[U] {
     if len == 0 {
-      unsafe::erase(data);
+      safe erase(data);
       Set::empty
     } else {
       let (left, value, right) = data;
@@ -281,7 +281,7 @@ pub mod Set[T; Ord[T]] {
         loop {
           let Set(len, data) = node;
           if len == 0 {
-            unsafe::erase(data);
+            safe erase(data);
             break;
           }
           let (left, value, right) = data;
@@ -311,7 +311,7 @@ pub mod Set[T; Ord[T]] {
   pub impl to_list[...]: Cast[Set[T], List[T]] {
     fn cast(Set[T](len, data)) -> List[T] {
       if len == 0 {
-        unsafe::erase(data);
+        safe erase(data);
         []
       } else {
         let (left, value, right) = data;
@@ -341,7 +341,7 @@ pub mod Set[T; Ord[T]] {
     }
   }
 
-  #[become(unsafe::duplicate)]
+  #[become(duplicate)]
   pub impl [T+]: Fork[Set[T]] {
     fn fork(&Set[T](len, data)) -> Set[T] {
       if len == 0 {
@@ -352,11 +352,11 @@ pub mod Set[T; Ord[T]] {
     }
   }
 
-  #[become(unsafe::erase)]
+  #[become(erase)]
   pub impl [T?]: Drop[Set[T]] {
     fn drop(Set[T](len, data)) {
       if len == 0 {
-        unsafe::erase(data);
+        safe erase(data);
       } else {
         _ = data;
       }
@@ -397,13 +397,13 @@ fn balance_right[T](&data: &SetData[T]) {
 fn merge_balanced[T](left: Set[T], right: Set[T]) -> SetData[T] {
   when {
     left.len() == 0 {
-      unsafe::erase(left);
+      safe erase(left);
       let Set(_, data) = right;
       data
     }
     right.len() == 0 {
       let Set(_, data) = left;
-      unsafe::erase(right);
+      safe erase(right);
       data
     }
     left.len() > right.len() {

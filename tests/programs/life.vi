@@ -211,7 +211,7 @@ pub mod Send {
   }
 
   pub fn .close_stream[T](Send[Stream[T]](send)) {
-    unsafe::erase(send);
+    safe erase(send);
   }
 }
 
@@ -228,7 +228,7 @@ pub mod Recv {
   }
 
   pub fn .close_stream[T](Recv[Stream[T]](recv)) {
-    unsafe::erase(recv);
+    safe erase(recv);
   }
 }
 
