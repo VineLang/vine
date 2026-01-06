@@ -349,26 +349,19 @@ impl<'a> Finder<'a> {
       ImplType::Trait(trait_id, type_params) => {
         if Some(*trait_id) == self.chart.builtins.fn_ {
           self.find_auto_impls_fn(type_params, types, found)?;
-        }
-        if Some(*trait_id) == self.chart.builtins.fork {
+        } else if Some(*trait_id) == self.chart.builtins.fork {
           self.find_auto_impls_fork(type_params, types, found);
-        }
-        if Some(*trait_id) == self.chart.builtins.drop {
+        } else if Some(*trait_id) == self.chart.builtins.drop {
           self.find_auto_impls_drop(type_params, types, found);
-        }
-        if Some(*trait_id) == self.chart.builtins.tuple {
+        } else if Some(*trait_id) == self.chart.builtins.tuple {
           self.find_auto_impls_tuple(type_params, types, found);
-        }
-        if Some(*trait_id) == self.chart.builtins.object {
+        } else if Some(*trait_id) == self.chart.builtins.object {
           self.find_auto_impls_object(type_params, types, found);
-        }
-        if Some(*trait_id) == self.chart.builtins.struct_ {
+        } else if Some(*trait_id) == self.chart.builtins.struct_ {
           self.find_auto_impls_struct(type_params, types, found);
-        }
-        if Some(*trait_id) == self.chart.builtins.enum_ {
+        } else if Some(*trait_id) == self.chart.builtins.enum_ {
           self.find_auto_impls_enum(type_params, types, found);
-        }
-        if Some(*trait_id) == self.chart.builtins.if_const {
+        } else if Some(*trait_id) == self.chart.builtins.if_const {
           self.find_auto_impls_if_const(type_params, types, found);
         }
       }
