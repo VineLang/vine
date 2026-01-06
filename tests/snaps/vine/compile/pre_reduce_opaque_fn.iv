@@ -4,7 +4,7 @@
   ::pre_reduce_opaque_fn::main:s1 = fn(_ fn(ref(io0 io1) _))
 }
 
-::root::unsafe::erase::drop:s1 {
+::root::util::erase::drop:s1 {
   fn(_ fn(w2 _))
   fn(_ fn(w2 _)) = _
 }
@@ -19,7 +19,7 @@
   fn(_ w2) = ::pre_reduce_opaque_fn::foo:s1
   fn(_ w3) = ::pre_reduce_opaque_fn::foo:s1
   fn(_ fn(w2 fn(w3 w4))) = ::root::numeric::N32::add:s1
-  fn(_ fn(w4 _)) = ::root::unsafe::erase::drop:s1
+  fn(_ fn(w4 _)) = ::root::util::erase::drop:s1
 }
 
 ::pre_reduce_opaque_fn::foo:s1 {
