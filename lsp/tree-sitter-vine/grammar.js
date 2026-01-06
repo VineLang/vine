@@ -186,6 +186,7 @@ module.exports = grammar({
       seq(
         repeat($.attr),
         optional($.vis),
+        optional("unsafe"),
         "fn",
         optional("."),
         $.ident,
@@ -201,6 +202,7 @@ module.exports = grammar({
       prec.right(seq(
         repeat($.attr),
         optional($.vis),
+        optional("unsafe"),
         "const",
         $.ident,
         optional($.generic_params),
@@ -268,6 +270,7 @@ module.exports = grammar({
       seq(
         repeat($.attr),
         optional($.vis),
+        optional("unsafe"),
         "trait",
         $.ident,
         optional($.generic_params),
@@ -278,6 +281,7 @@ module.exports = grammar({
       prec.right(seq(
         repeat($.attr),
         optional($.vis),
+        optional("unsafe"),
         "impl",
         optional($.ident),
         optional($.generic_params),
@@ -398,6 +402,7 @@ module.exports = grammar({
         "...",
         $.expr_hole,
         $.expr_paren,
+        $.expr_safe,
         $.expr_path,
         $.expr_do,
         $.expr_assign,
@@ -440,6 +445,8 @@ module.exports = grammar({
     expr_hole: $ => "_",
 
     expr_paren: $ => seq("(", $._expr, ")"),
+
+    expr_safe: $ => seq("safe", $._expr),
 
     expr_path: $ => prec.right(seq($.path, optional($.exprs))),
 
@@ -620,6 +627,7 @@ module.exports = grammar({
         "...",
         $.pat_hole,
         $.pat_paren,
+        $.pat_safe,
         $.pat_annotation,
         $.pat_path,
         $.pat_ref,
@@ -631,6 +639,7 @@ module.exports = grammar({
 
     pat_hole: $ => "_",
     pat_paren: $ => seq("(", $._pat, ")"),
+    pat_safe: $ => seq("safe", $._pat),
     pat_annotation: $ => prec(BP.Annotation, seq($._pat, ":", $._ty)),
     pat_path: $ => prec.right(seq($.path, optional($.pats))),
     pat_ref: $ => prec(BP.Prefix, seq("&", $._pat)),
@@ -684,11 +693,13 @@ module.exports = grammar({
       choice(
         $.impl_hole,
         $.impl_paren,
+        $.impl_safe,
         $.impl_fn,
         $.path,
       ),
     impl_hole: $ => "_",
     impl_paren: $ => seq("(", $.path, ")"),
+    impl_safe: $ => seq("safe", $._impl),
     impl_fn: $ => seq("fn", $.path),
 
     _trait: $ =>

@@ -113,7 +113,7 @@ impl Charter<'_> {
 impl Resolver<'_> {
   pub(crate) fn resolve_struct_sig(&mut self, struct_id: StructId) {
     let struct_def = &self.chart.structs[struct_id];
-    self.initialize(struct_def.def, struct_def.generics);
+    self.initialize(struct_def.def, struct_def.generics, false);
     let mut data = struct_def.data.iter().map(|t| self.resolve_ty(t, false)).collect::<Vec<_>>();
     let data =
       if data.len() == 1 { data.pop().unwrap() } else { self.types.new(TypeKind::Tuple(data)) };

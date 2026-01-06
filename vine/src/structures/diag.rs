@@ -305,6 +305,12 @@ diags! {
     ["unused item"]
   BadTestAttr
     ["the `#[test]` attribute can only be applied to a function"]
+  InvalidUnsafe
+    ["`unsafe` cannot be applied to this kind of item"]
+  Unsafe
+   ["this is unsafe"]
+  ImplExpectedSafe { kind: &'static str }
+    ["expected a safe {kind}"]
 }
 
 fn plural<'a>(n: usize, plural: &'a str, singular: &'a str) -> &'a str {

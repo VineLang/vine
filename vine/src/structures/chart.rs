@@ -153,6 +153,7 @@ pub struct ConcreteConstDef {
   pub generics: GenericsId,
   pub ty: Ty,
   pub value: Expr,
+  pub unsafe_: bool,
 }
 
 new_idx!(pub ConcreteFnId);
@@ -167,6 +168,7 @@ pub struct ConcreteFnDef {
   pub ret_ty: Option<Ty>,
   pub body: Block,
   pub frameless: bool,
+  pub unsafe_: bool,
 }
 
 new_idx!(pub OpaqueTypeId);
@@ -227,6 +229,7 @@ pub struct TraitDef {
   pub generics: GenericsId,
   pub consts: IdxVec<TraitConstId, TraitConst>,
   pub fns: IdxVec<TraitFnId, TraitFn>,
+  pub unsafe_: bool,
 }
 
 new_idx!(pub TraitConstId);
@@ -236,6 +239,7 @@ pub struct TraitConst {
   pub name: Ident,
   pub generics: GenericsId,
   pub ty: Ty,
+  pub unsafe_: bool,
 }
 
 new_idx!(pub TraitFnId);
@@ -247,6 +251,7 @@ pub struct TraitFn {
   pub generics: GenericsId,
   pub params: Vec<Pat>,
   pub ret_ty: Option<Ty>,
+  pub unsafe_: bool,
 }
 
 new_idx!(pub ImplId);
@@ -261,11 +266,12 @@ pub struct ImplDef {
   pub basic: bool,
   pub become_: Option<Path>,
   pub vis: VisId,
+  pub unsafe_: bool,
 }
 
 #[derive(Debug, Clone)]
 pub enum ImplDefKind {
-  Direct(Trait, Vec<ImplSubitem>),
+  Direct(/* safe */ bool, Trait, Vec<ImplSubitem>),
   Indirect(Trait, Option<Impl>),
   IndirectFork(DefTypeKind),
   IndirectDrop(DefTypeKind),
@@ -308,10 +314,24 @@ impl Chart {
     }
   }
 
+  pub fn fn_is_unsafe(&self, fn_id: FnId) -> bool {
+    match fn_id {
+      FnId::Concrete(fn_id) => self.concrete_fns[fn_id].unsafe_,
+      FnId::Abstract(trait_id, fn_id) => self.traits[trait_id].fns[fn_id].unsafe_,
+    }
+  }
+
   pub fn const_generics(&self, const_id: ConstId) -> GenericsId {
     match const_id {
       ConstId::Concrete(const_id) => self.concrete_consts[const_id].generics,
       ConstId::Abstract(trait_id, const_id) => self.traits[trait_id].consts[const_id].generics,
+    }
+  }
+
+  pub fn const_is_unsafe(&self, const_id: ConstId) -> bool {
+    match const_id {
+      ConstId::Concrete(const_id) => self.concrete_consts[const_id].unsafe_,
+      ConstId::Abstract(trait_id, const_id) => self.traits[trait_id].consts[const_id].unsafe_,
     }
   }
 

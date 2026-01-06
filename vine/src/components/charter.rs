@@ -145,7 +145,7 @@ impl Charter<'_> {
 
       ItemKind::Use(use_item) => self.chart_use(parent, vis, use_item),
 
-      ItemKind::Taken => ChartedItem::None,
+      ItemKind::Taken => unreachable!(),
     };
 
     if let Some(def) = charted_item.def() {
@@ -162,6 +162,10 @@ impl Charter<'_> {
     }
 
     self.chart_attrs(charted_item, item.attrs);
+
+    if item.unsafe_ {
+      self.chart_unsafe(span, charted_item);
+    }
   }
 
   pub(crate) fn chart_attrs(&mut self, item: ChartedItem, attrs: Vec<Attr>) {
@@ -226,6 +230,27 @@ impl Charter<'_> {
             self.chart.tests.push(concrete_fn_id);
           }
         }
+      }
+    }
+  }
+
+  pub(crate) fn chart_unsafe(&mut self, span: Span, item: ChartedItem) {
+    match item {
+      ChartedItem::Const(_, ConstId::Concrete(const_id)) => {
+        self.chart.concrete_consts[const_id].unsafe_ = true
+      }
+      ChartedItem::Const(_, ConstId::Abstract(..)) => unreachable!(),
+      ChartedItem::Fn(_, FnId::Concrete(fn_id)) => self.chart.concrete_fns[fn_id].unsafe_ = true,
+      ChartedItem::Fn(_, FnId::Abstract(..)) => unreachable!(),
+      ChartedItem::Trait(_, trait_id) => self.chart.traits[trait_id].unsafe_ = true,
+      ChartedItem::Impl(_, impl_id) => self.chart.impls[impl_id].unsafe_ = true,
+      ChartedItem::Import
+      | ChartedItem::Mod(..)
+      | ChartedItem::OpaqueType(..)
+      | ChartedItem::TypeAlias(..)
+      | ChartedItem::Struct(..)
+      | ChartedItem::Enum(..) => {
+        self.diags.error(Diag::InvalidUnsafe { span });
       }
     }
   }
@@ -349,7 +374,6 @@ impl Charter<'_> {
 
 #[derive(Debug, Clone, Copy)]
 pub enum ChartedItem {
-  None,
   Import,
   Mod(DefId),
   Const(DefId, ConstId),
@@ -365,7 +389,7 @@ pub enum ChartedItem {
 impl ChartedItem {
   pub fn def(&self) -> Option<DefId> {
     match self {
-      ChartedItem::None | ChartedItem::Import => None,
+      ChartedItem::Import => None,
       ChartedItem::Mod(def_id)
       | ChartedItem::Const(def_id, _)
       | ChartedItem::Fn(def_id, _)
@@ -401,6 +425,7 @@ impl VisitMut<'_> for ExtractItems {
         name_span: Span::NONE,
         docs: Vec::new(),
         vis: Vis::Private,
+        unsafe_: false,
         attrs: vec![],
         kind: ItemKind::Taken,
       },
