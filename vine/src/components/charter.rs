@@ -122,7 +122,7 @@ impl Charter<'_> {
       }
 
       ItemKind::Enum(enum_item) => {
-        if enum_item.unsafe_ {
+        if item.unsafe_ {
           self.chart_union(parent, parent_generics, span, vis, member_vis, enum_item)
         } else {
           self.chart_enum(parent, parent_generics, span, vis, member_vis, enum_item)

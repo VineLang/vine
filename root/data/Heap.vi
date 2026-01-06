@@ -1,25 +1,26 @@
 
+use logical::Nullable;
 use ops::{Cast, Concat, comparison::Ord};
-use util::{duplicate, erase, eraser};
+use util::{duplicate, erase};
 
 /// A min-heap, which provides efficient access to the smallest value in the heap.
-pub struct Heap[T]((N32, Node[T]));
+pub struct Heap[T]((N32, Nullable[Node[T]]));
 
-struct Node[T]((T, Heap[T], Heap[T]));
+type Node[T] = (T, Heap[T], Heap[T]);
 
 pub mod Heap[T; Ord[T]] {
   /// The empty heap.
   /// ```vi
   /// Heap::empty // Heap([])
   /// ```
-  pub const empty[T]: Heap[T] = Heap(0, safe eraser);
+  pub const empty[T]: Heap[T] = Heap(0, safe Nullable::null());
 
   /// Create a heap containing a single element.
   /// ```vi
   /// Heap::single(46) // Heap([46])
   /// ```
   pub fn single[T](value: T) -> Heap[T] {
-    Heap(1, Node(value, Heap::empty, Heap::empty))
+    Heap(1, safe Nullable::data(value, Heap::empty, Heap::empty))
   }
 
   /// Insert a value into the heap. `O(log n)`
@@ -39,19 +40,19 @@ pub mod Heap[T; Ord[T]] {
     if rank == 0 {
       None()
     } else {
-      let Node(value, left, right) = node;
+      let (value, left, right) = safe node.data;
       Heap(rank, node) = left ++ right;
       Some(value)
     }
   }
 
   /// Peek at the smallest value in the heap. `O(1)`
-  pub fn .peek[...](&Heap[T](rank, *node)) -> Option[&T] {
+  pub fn .peek[...](&Heap[T](rank, node)) -> Option[&T] {
     if rank == 0 {
       None()
     } else {
-      let &Node(*value, _, _) = node;
-      Some(value)
+      let &(value, _, _) = safe &node.data;
+      Some(&value)
     }
   }
 
@@ -63,7 +64,7 @@ pub mod Heap[T; Ord[T]] {
     rank
   }
 
-  fn .value[T](&Heap[T](_, Node(value, _, _))) -> &T {
+  fn .value[T](&Heap[T](_, safe Nullable::data(value, _, _))) -> &T {
     &value
   }
 
@@ -72,7 +73,7 @@ pub mod Heap[T; Ord[T]] {
     if rank == 0 {
       0
     } else {
-      let &Node(_, left, right) = &node;
+      let &(_, left, right) = safe &node.data;
       1 + Heap::count(&left) + Heap::count(&right)
     }
   }
@@ -87,17 +88,17 @@ pub mod Heap[T; Ord[T]] {
   pub impl [...]: Concat[Heap[T], Heap[T], Heap[T]] {
     fn concat(self: Heap[T], other: Heap[T]) -> Heap[T] {
       if self.rank() == 0 {
-        safe erase(self);
+        Heap(_, safe Nullable::null()) = self;
         return other;
       }
       if other.rank() == 0 {
-        safe erase(other);
+        Heap(_, safe Nullable::null()) = other;
         return self;
       }
       if self.value() > other.value() {
         swap(&self, &other);
       }
-      let &Heap(rank, Node(_, left, right)) = &self;
+      let &Heap(rank, safe Nullable::data(_, left, right)) = &self;
       right ++= other;
       if right.rank() > left.rank() {
         swap(&left, &right);
@@ -113,8 +114,8 @@ pub mod Heap[T; Ord[T]] {
       if rank == 0 {
         Heap::empty
       } else {
-        let &Node(value, left, right) = &node;
-        Heap(rank, Node(value, left, right))
+        let &(value, left, right) = safe &node.data;
+        Heap(rank, safe Nullable::data(value, left, right))
       }
     }
   }
@@ -123,9 +124,9 @@ pub mod Heap[T; Ord[T]] {
   pub impl [T?]: Drop[Heap[T]] {
     fn drop(Heap[T](rank, node)) {
       if rank == 0 {
-        safe erase(node);
+        safe node.null;
       } else {
-        Node(_, _, _) = node;
+        safe node.data;
       }
     }
   }
@@ -164,7 +165,7 @@ pub mod Heap[T; Ord[T]] {
       while self.pop() is Some(value) {
         list.push_back(value);
       }
-      safe erase(self);
+      Heap(_, safe Nullable::null()) = self;
       list
     }
   }
@@ -195,7 +196,7 @@ pub mod Heap[T; Ord[T]] {
         if heap.pop() is Some(value) {
           Some(value, Iter(heap))
         } else {
-          safe erase(heap);
+          Heap(_, safe Nullable::null()) = heap;
           None()
         }
       }
@@ -218,7 +219,7 @@ pub mod Heap[T; Ord[T]] {
     if rank == 0 {
       []
     } else {
-      let &Node(value, left, right) = &node;
+      let &(value, left, right) = safe &node.data;
       [value.show()] ++ left._show() ++ right._show()
     }
   }
