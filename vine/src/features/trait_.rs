@@ -65,22 +65,34 @@ impl Charter<'_> {
     for subitem in trait_item.items {
       let span = subitem.name_span;
       let attrs = subitem.attrs;
+      let unsafe_ = subitem.unsafe_;
       if !matches!(subitem.vis, Vis::Private) {
         self.diags.error(Diag::TraitItemVis { span });
       }
       match subitem.kind {
         ItemKind::Fn(item) => {
-          self.chart_trait_fn(vis, def, trait_id, generics, &mut fns, span, attrs, item);
+          self.chart_trait_fn(vis, def, trait_id, generics, &mut fns, span, attrs, unsafe_, item);
         }
         ItemKind::Const(item) => {
-          self.chart_trait_const(vis, def, trait_id, generics, &mut consts, span, attrs, item);
+          self.chart_trait_const(
+            vis,
+            def,
+            trait_id,
+            generics,
+            &mut consts,
+            span,
+            attrs,
+            unsafe_,
+            item,
+          );
         }
         _ => {
           self.diags.error(Diag::InvalidTraitItem { span });
         }
       }
     }
-    let trait_ = TraitDef { span, def, name: trait_item.name, generics, consts, fns };
+    let trait_ =
+      TraitDef { span, def, name: trait_item.name, generics, consts, fns, unsafe_: false };
     self.chart.traits.push_to(trait_id, trait_);
     self.define_trait(span, def, vis, DefTraitKind::Trait(trait_id));
     ChartedItem::Trait(def, trait_id)
@@ -95,6 +107,7 @@ impl Charter<'_> {
     fns: &mut IdxVec<TraitFnId, TraitFn>,
     span: Span,
     attrs: Vec<Attr>,
+    unsafe_: bool,
     fn_item: FnItem,
   ) {
     if fn_item.body.is_some() {
@@ -109,11 +122,13 @@ impl Charter<'_> {
       generics,
       params: fn_item.params,
       ret_ty: fn_item.ret,
+      unsafe_,
     });
     let def = self.chart_child(def, span, fn_item.name, vis, true);
     let fn_id = FnId::Abstract(trait_id, trait_fn_id);
     self.define_value(span, def, vis, DefValueKind::Fn(fn_id));
-    self.chart_attrs(ChartedItem::Fn(def, fn_id), attrs);
+    let charted_item = ChartedItem::Fn(def, fn_id);
+    self.chart_attrs(charted_item, attrs);
   }
 
   fn chart_trait_const(
@@ -125,6 +140,7 @@ impl Charter<'_> {
     consts: &mut IdxVec<TraitConstId, TraitConst>,
     span: Span,
     attrs: Vec<Attr>,
+    unsafe_: bool,
     const_item: ConstItem,
   ) {
     if const_item.value.is_some() {
@@ -132,12 +148,18 @@ impl Charter<'_> {
     }
     let generics =
       self.chart_trait_subitem_generics(span, def, trait_id, trait_generics, const_item.generics);
-    let trait_const_id =
-      consts.push(TraitConst { span, name: const_item.name.clone(), generics, ty: const_item.ty });
+    let trait_const_id = consts.push(TraitConst {
+      span,
+      name: const_item.name.clone(),
+      generics,
+      ty: const_item.ty,
+      unsafe_,
+    });
     let def = self.chart_child(def, span, const_item.name, vis, true);
     let const_id = ConstId::Abstract(trait_id, trait_const_id);
     self.define_value(span, def, vis, DefValueKind::Const(const_id));
-    self.chart_attrs(ChartedItem::Const(def, const_id), attrs);
+    let charted_item = ChartedItem::Const(def, const_id);
+    self.chart_attrs(charted_item, attrs);
   }
 
   fn chart_trait_subitem_generics(
@@ -169,7 +191,7 @@ impl Resolver<'_> {
     let trait_def = &self.chart.traits[trait_id];
     let sig = TraitSig {
       consts: IdxVec::from_iter(trait_def.consts.values().map(|trait_const| {
-        self.initialize(trait_def.def, trait_const.generics);
+        self.initialize(trait_def.def, trait_const.generics, false);
         let ty = self.resolve_ty(&trait_const.ty, false);
 
         let hover = format!(
@@ -184,7 +206,7 @@ impl Resolver<'_> {
         TypeCtx { types: take(&mut self.types), inner: ConstSig { ty } }
       })),
       fns: IdxVec::from_iter(trait_def.fns.values().map(|trait_fn| {
-        self.initialize(trait_def.def, trait_fn.generics);
+        self.initialize(trait_def.def, trait_fn.generics, false);
         let names = trait_fn.params.iter().map(|x| self.param_name(x)).collect();
         let (params, ret_ty) = self._resolve_fn_sig(&trait_fn.params, &trait_fn.ret_ty);
         let sig = FnSig { names, param_tys: params, ret_ty };

@@ -71,6 +71,7 @@ impl<'src> Parser<'src> {
       attrs.push(self.parse_attr()?);
     }
     let vis = self.parse_vis()?;
+    let unsafe_ = self.eat(Token::Unsafe)?;
     let (name_span, kind) = match () {
       _ if self.check(Token::Fn) => self.parse_fn_item()?,
       _ if self.check(Token::Const) => self.parse_const_item()?,
@@ -91,7 +92,7 @@ impl<'src> Parser<'src> {
       }
     };
     let span = self.end_span(span);
-    Ok(Some(Item { span, vis, name_span, docs: doc, attrs, kind }))
+    Ok(Some(Item { span, vis, unsafe_, name_span, docs: doc, attrs, kind }))
   }
 
   pub(crate) fn parse_vis(&mut self) -> Result<Vis, Diag> {
@@ -193,6 +194,9 @@ impl<'src> Parser<'src> {
 
   fn _maybe_parse_expr_prefix(&mut self, span: usize) -> Result<Option<ExprKind>, Diag> {
     self.state.expected.start_group(Token::GroupExpr);
+    if self.eat(Token::Safe)? {
+      return Ok(Some(ExprKind::Safe(self.parse_expr()?)));
+    }
     if self.check(Token::Amp) || self.check(Token::AmpAmp) {
       return Ok(Some(self.parse_expr_ref(span)?));
     }
@@ -428,6 +432,9 @@ impl<'src> Parser<'src> {
 
   fn _parse_pat_prefix(&mut self, span: usize) -> Result<PatKind, Diag> {
     self.state.expected.start_group(Token::GroupPat);
+    if self.eat(Token::Safe)? {
+      return Ok(PatKind::Safe(self.parse_pat()?));
+    }
     if self.eat(Token::Hole)? {
       return Ok(PatKind::Hole);
     }
@@ -518,6 +525,9 @@ impl<'src> Parser<'src> {
   fn _parse_impl(&mut self) -> Result<ImplKind, Diag> {
     if self.eat(Token::Hole)? {
       return Ok(ImplKind::Hole);
+    }
+    if self.eat(Token::Safe)? {
+      return Ok(ImplKind::Safe(self.parse_impl()?));
     }
     if self.check(Token::Ident) || self.check(Token::Hash) {
       return Ok(ImplKind::Path(self.parse_path()?));

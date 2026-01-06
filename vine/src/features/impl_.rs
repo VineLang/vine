@@ -35,6 +35,7 @@ impl Parser<'_> {
     let name = self.check_then(Token::Ident, Self::parse_ident)?;
     let generics = self.parse_generic_params()?;
     self.expect(Token::Colon)?;
+    let safe = self.eat(Token::Safe)?;
     let trait_ = self.parse_trait()?;
     let kind = if self.check(Token::OpenBrace) {
       let span = self.start_span();
@@ -46,7 +47,7 @@ impl Parser<'_> {
       self.expect(Token::Semi)?;
       ImplItemKind::Indirect(impl_)
     };
-    Ok((name_span, ItemKind::Impl(ImplItem { name, generics, trait_, kind })))
+    Ok((name_span, ItemKind::Impl(ImplItem { name, generics, safe, trait_, kind })))
   }
 }
 
@@ -57,6 +58,7 @@ impl<'src> Formatter<'src> {
       if let Some(name) = i.name.clone() { Doc(name) } else { Doc::EMPTY },
       self.fmt_generic_params(&i.generics),
       Doc(": "),
+      if i.safe { Doc("safe ") } else { Doc::EMPTY },
       self.fmt_trait(&i.trait_),
       match &i.kind {
         ImplItemKind::Direct(span, items) => Doc::concat([
@@ -98,17 +100,29 @@ impl Charter<'_> {
           }
           match subitem.kind {
             ItemKind::Const(const_item) => {
-              subitems.push(self.chart_impl_const(def, generics, span, subitem.attrs, const_item))
+              subitems.push(self.chart_impl_const(
+                def,
+                generics,
+                span,
+                subitem.attrs,
+                subitem.unsafe_,
+                const_item,
+              ));
             }
-            ItemKind::Fn(fn_item) => {
-              subitems.push(self.chart_impl_fn(def, generics, span, subitem.attrs, fn_item))
-            }
+            ItemKind::Fn(fn_item) => subitems.push(self.chart_impl_fn(
+              def,
+              generics,
+              span,
+              subitem.attrs,
+              subitem.unsafe_,
+              fn_item,
+            )),
             _ => {
               self.diags.error(Diag::InvalidImplItem { span });
             }
           }
         }
-        ImplDefKind::Direct(impl_item.trait_, subitems)
+        ImplDefKind::Direct(impl_item.safe, impl_item.trait_, subitems)
       }
       ImplItemKind::Indirect(impl_) => ImplDefKind::Indirect(impl_item.trait_, impl_),
     };
@@ -122,6 +136,7 @@ impl Charter<'_> {
       basic: false,
       become_: None,
       vis,
+      unsafe_: false,
     });
     self.annotations.record_reference(span, span);
     self.define_impl(span, def, vis, DefImplKind::Impl(impl_id));
@@ -134,6 +149,7 @@ impl Charter<'_> {
     parent_generics: GenericsId,
     span: Span,
     attrs: Vec<Attr>,
+    unsafe_: bool,
     mut fn_item: FnItem,
   ) -> ImplSubitem {
     if fn_item.method {
@@ -157,9 +173,11 @@ impl Charter<'_> {
       ret_ty: fn_item.ret,
       body,
       frameless: false,
+      unsafe_,
     });
     self.define_value(span, def, vis, DefValueKind::Fn(FnId::Concrete(fn_id)));
-    self.chart_attrs(ChartedItem::Fn(def, FnId::Concrete(fn_id)), attrs);
+    let charted_item = ChartedItem::Fn(def, FnId::Concrete(fn_id));
+    self.chart_attrs(charted_item, attrs);
     self.annotations.record_reference(span, span);
     ImplSubitem { span, name: fn_item.name, kind: ImplSubitemKind::Fn(fn_id) }
   }
@@ -170,6 +188,7 @@ impl Charter<'_> {
     parent_generics: GenericsId,
     span: Span,
     attrs: Vec<Attr>,
+    unsafe_: bool,
     mut const_item: ConstItem,
   ) -> ImplSubitem {
     if const_item.generics.inherit {
@@ -187,9 +206,14 @@ impl Charter<'_> {
       generics,
       ty: const_item.ty,
       value,
+      unsafe_,
     });
     self.define_value(span, def, vis, DefValueKind::Const(ConstId::Concrete(const_id)));
-    self.chart_attrs(ChartedItem::Const(def, ConstId::Concrete(const_id)), attrs);
+    let charted_item = ChartedItem::Const(def, ConstId::Concrete(const_id));
+    self.chart_attrs(charted_item, attrs);
+    if unsafe_ {
+      self.chart_unsafe(span, charted_item);
+    }
     self.annotations.record_reference(span, span);
     ImplSubitem { span, name: const_item.name, kind: ImplSubitemKind::Const(const_id) }
   }
@@ -216,6 +240,7 @@ impl Charter<'_> {
         basic: false,
         become_: None,
         vis,
+        unsafe_: false,
       });
       self.define_impl(span, def, vis, DefImplKind::Impl(impl_));
     }
@@ -232,6 +257,7 @@ impl Charter<'_> {
         basic: false,
         become_: None,
         vis,
+        unsafe_: false,
       });
       self.define_impl(span, def, vis, DefImplKind::Impl(impl_));
     }
@@ -242,9 +268,9 @@ impl Resolver<'_> {
   pub(crate) fn resolve_impl_sig(&mut self, impl_id: ImplId) {
     let impl_def = &self.chart.impls[impl_id];
     let span = impl_def.span;
-    self.initialize(impl_def.def, impl_def.generics);
+    self.initialize(impl_def.def, impl_def.generics, false);
     let ty = match &impl_def.kind {
-      ImplDefKind::Direct(trait_, _) | ImplDefKind::Indirect(trait_, _) => {
+      ImplDefKind::Direct(_, trait_, _) | ImplDefKind::Indirect(trait_, _) => {
         self.resolve_trait(trait_)
       }
       ImplDefKind::IndirectFork(ty) => {
@@ -314,13 +340,16 @@ impl Resolver<'_> {
 
   pub(crate) fn resolve_impl_def(&mut self, impl_id: ImplId) {
     let impl_def = &self.chart.impls[impl_id];
-    self.initialize(impl_def.def, impl_def.generics);
+    self.initialize(impl_def.def, impl_def.generics, impl_def.unsafe_);
     let span = impl_def.span;
     let ty = self.types.import(&self.sigs.impls[impl_id], None).ty;
     let resolved = match &ty {
       ImplType::Trait(trait_id, type_params) => {
         let kind = match &impl_def.kind {
-          ImplDefKind::Direct(_, subitems) => {
+          ImplDefKind::Direct(safe, _, subitems) => {
+            if self.chart.traits[*trait_id].unsafe_ && !safe {
+              self.diags.error(Diag::Unsafe { span });
+            }
             let fns = IdxVec::from_iter(self.sigs.traits[*trait_id].fns.keys().map(|fn_id| {
               self.resolve_impl_subitem_fn(span, subitems, type_params, *trait_id, fn_id)
             }));
@@ -458,6 +487,9 @@ impl Resolver<'_> {
       self.types.import(&self.sigs.traits[trait_id].fns[trait_fn_id], Some(&type_params));
     let found = self.types.import(&self.sigs.concrete_fns[fn_id], None);
     Self::expect_fn_sig(self.diags, self.chart, &mut self.types, span, expected, found);
+    if !self.allow_unsafe && !trait_fn.unsafe_ && self.chart.concrete_fns[fn_id].unsafe_ {
+      self.diags.error(Diag::ImplExpectedSafe { span, kind: "fn" });
+    }
     Ok(fn_id)
   }
 
@@ -492,6 +524,9 @@ impl Resolver<'_> {
         expected: self.types.show(self.chart, expected_ty),
         found: self.types.show(self.chart, found_ty),
       });
+    }
+    if !self.allow_unsafe && !trait_const.unsafe_ && self.chart.concrete_consts[const_id].unsafe_ {
+      self.diags.error(Diag::ImplExpectedSafe { span, kind: "const" });
     }
     Ok(const_id)
   }
@@ -560,23 +595,21 @@ impl Resolver<'_> {
     impl_id: ImplId,
     ty: &ImplType,
   ) -> TirImpl {
+    let span = path.span;
+    if self.chart.impls[impl_id].unsafe_ && !self.allow_unsafe {
+      self.diags.error(Diag::Unsafe { span });
+    }
     let generics_id = self.chart.impls[impl_id].generics;
-    let type_params =
-      self.types.new_vars(path.span, self.sigs.type_params[generics_id].params.len());
+    let type_params = self.types.new_vars(span, self.sigs.type_params[generics_id].params.len());
     let actual_ty = self.types.import(&self.sigs.impls[impl_id], Some(&type_params)).ty;
     // just need inference; errors will be reported later
     _ = self.types.unify_impl_type(&actual_ty, ty);
-    let (type_params, impl_params) = self._resolve_generics(
-      path.span,
-      path.generics.as_ref(),
-      generics_id,
-      true,
-      Some(type_params),
-    );
+    let (type_params, impl_params) =
+      self._resolve_generics(span, path.generics.as_ref(), generics_id, true, Some(type_params));
     let actual_ty = self.types.import(&self.sigs.impls[impl_id], Some(&type_params)).ty;
     if self.types.unify_impl_type(&actual_ty, ty).is_failure() {
       self.diags.error(Diag::ExpectedTypeFound {
-        span: path.span,
+        span,
         expected: self.types.show_impl_type(self.chart, ty),
         found: self.types.show_impl_type(self.chart, &actual_ty),
       });
