@@ -1,9 +1,9 @@
 
 Interactions
-  Total           942_312_194
-  Annihilate      433_134_593
+  Total           944_434_240
+  Annihilate      437_378_685
   Commute             169_830
-  Copy            106_516_235
+  Copy            104_394_189
   Erase           101_546_548
   Expand           68_175_239
   Call            168_424_862
@@ -11,5 +11,5 @@ Interactions
 
 Memory
   Heap             48_624_240 B
-  Allocated    19_445_556_272 B
-  Freed        19_445_556_272 B
+  Allocated    19_547_437_056 B
+  Freed        19_547_437_056 B
