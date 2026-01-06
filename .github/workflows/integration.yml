@@ -28,7 +28,7 @@ jobs:
     steps:
       - name: Agrregate integration test results
         run: |
-          if [ "${{ needs.checks.result }}" != "success" ]; then
+          if [ "${{ needs.integration-test.result }}" != "success" ]; then
             exit 1
           fi
 
