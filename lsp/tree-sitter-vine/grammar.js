@@ -129,6 +129,8 @@ module.exports = grammar({
       "and",
       "or",
       "try",
+      "unsafe",
+      "safe",
     ],
   },
 
