@@ -389,6 +389,7 @@ impl<'r> Distiller<'r> {
       }
       TirPatKind::Struct(inner)
       | TirPatKind::Enum(_, _, inner)
+      | TirPatKind::Union(inner)
       | TirPatKind::Ref(inner)
       | TirPatKind::Deref(inner)
       | TirPatKind::Inverse(inner) => {
@@ -408,6 +409,7 @@ impl<'r> Distiller<'r> {
       }
       TirPatKind::Struct(inner)
       | TirPatKind::Enum(_, _, inner)
+      | TirPatKind::Union(inner)
       | TirPatKind::Ref(inner)
       | TirPatKind::Deref(inner)
       | TirPatKind::Inverse(inner) => {
@@ -432,6 +434,7 @@ impl<'r> Distiller<'r> {
       }
       TirPatKind::Hole => self.distill_pat_value_hole(stage, span, ty),
       TirPatKind::Struct(inner) => self.distill_pat_value_struct(stage, span, ty, inner),
+      TirPatKind::Union(inner) => self.distill_pat_value_union(stage, span, ty, inner),
       TirPatKind::Inverse(inner) => self.distill_pat_value_inverse(stage, inner),
       TirPatKind::Local(local) => self.distill_pat_value_local(stage, span, ty, *local),
       TirPatKind::Composite(elements) => {
@@ -453,6 +456,7 @@ impl<'r> Distiller<'r> {
       TirPatKind::Ref(..) => Port::error(ty, self.diags.error(Diag::RefSpacePat { span })),
       TirPatKind::Hole => self.distill_pat_space_hole(stage, span, ty),
       TirPatKind::Struct(inner) => self.distill_pat_space_struct(stage, span, ty, inner),
+      TirPatKind::Union(inner) => self.distill_pat_space_union(stage, span, ty, inner),
       TirPatKind::Inverse(inner) => self.distill_pat_space_inverse(stage, inner),
       TirPatKind::Local(local) => self.distill_pat_space_local(stage, span, ty, *local),
       TirPatKind::Composite(elements) => {
@@ -472,6 +476,7 @@ impl<'r> Distiller<'r> {
       }
       TirPatKind::Hole => self.distill_pat_place_hole(stage, span, ty),
       TirPatKind::Struct(inner) => self.distill_pat_place_struct(stage, span, ty, inner),
+      TirPatKind::Union(inner) => self.distill_pat_place_union(stage, span, ty, inner),
       TirPatKind::Inverse(inner) => self.distill_pat_place_inverse(stage, inner),
       TirPatKind::Local(local) => self.distill_pat_place_local(stage, span, ty, local),
       TirPatKind::Composite(elements) => {

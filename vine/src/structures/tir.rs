@@ -164,6 +164,8 @@ pub enum TirPatKind {
   #[class(value, place, space, incomplete)]
   Enum(EnumId, VariantId, TirPat),
   #[class(value, place, space, complete)]
+  Union(TirPat),
+  #[class(value, place, space, complete)]
   Local(Local),
   #[class(value, place, complete, incomplete)]
   Ref(TirPat),

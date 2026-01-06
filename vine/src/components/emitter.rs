@@ -173,7 +173,6 @@ impl<'a> Emitter<'a> {
       Step::Invoke(local, invocation) => self.emit_invocation(local, invocation),
       Step::Transfer(transfer) => self.emit_transfer(transfer),
       Step::Diverge(..) => unreachable!(),
-
       Step::Link(a, b) => {
         self.emit_link(a, b);
       }
@@ -190,6 +189,9 @@ impl<'a> Emitter<'a> {
       Step::Ref(reference, value, space) => self.emit_ref(reference, value, space),
       Step::Enum(enum_id, variant_id, port, fields) => {
         self.emit_enum(*enum_id, *variant_id, port, fields)
+      }
+      Step::Union(union_id, variant_id, port, fields) => {
+        self.emit_union(*union_id, *variant_id, port, fields)
       }
       Step::ExtFn(ext_fn, swap, lhs, rhs, out) => {
         self.emit_ext_fn(ext_fn, swap, lhs, rhs, out);

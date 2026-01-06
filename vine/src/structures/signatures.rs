@@ -6,7 +6,7 @@ use crate::structures::{
   ast::Ident,
   chart::{
     Binding, ConcreteConstId, ConcreteFnId, ConstId, DefId, DefImplKind, EnumId, FnId, GenericsId,
-    ImplId, ImportId, MemberKind, StructId, TraitConstId, TraitFnId, TraitId, TypeAliasId,
+    ImplId, ImportId, MemberKind, StructId, TraitConstId, TraitFnId, TraitId, TypeAliasId, UnionId,
     VariantId,
   },
   diag::ErrorGuaranteed,
@@ -24,6 +24,7 @@ pub struct Signatures {
   pub structs: IdxVec<StructId, TypeCtx<StructSig>>,
   pub enums: IdxVec<EnumId, TypeCtx<EnumSig>>,
   pub def_impls: IdxVec<DefId, HashMap<TraitId, Binding<DefImplKind>>>,
+  pub unions: IdxVec<UnionId, TypeCtx<UnionSig>>,
   pub impls: IdxVec<ImplId, TypeCtx<ImplSig>>,
   pub traits: IdxVec<TraitId, TraitSig>,
 }
@@ -81,6 +82,12 @@ pub struct StructSig {
 pub struct EnumSig {
   pub variant_data: IdxVec<VariantId, Type>,
   pub variant_is_nil: IdxVec<VariantId, bool>,
+}
+
+#[derive(Debug)]
+pub struct UnionSig {
+  pub variant_data: IdxVec<VariantId, Type>,
+  pub variant_lookup: HashMap<Ident, VariantId>,
 }
 
 #[derive(Debug)]

@@ -393,6 +393,18 @@ impl Resolver<'_> {
         let expr = TirExpr::new(span, data_ty.invert_if(inv), TirExprKind::Rewrap(expr));
         self._resolve_expr_object_field(span, expr, key)
       }
+      (inv, TypeKind::Union(union_id, type_params)) => {
+        let union_id = *union_id;
+        let type_params = type_params.clone();
+        self.unsafe_(span);
+        let sig = &self.sigs.unions[union_id];
+        let variant_id = *sig.inner.variant_lookup.get(&key)?;
+        let content_ty = self
+          .types
+          .import_with(sig, Some(&type_params), |t, s| t.transfer(&s.variant_data[variant_id]))
+          .invert_if(inv);
+        Some(TirExpr::new(span, content_ty.invert_if(inv), TirExprKind::Rewrap(expr)))
+      }
       (_, TypeKind::Error(_)) => Some(expr),
       _ => None,
     }

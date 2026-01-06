@@ -32,6 +32,7 @@ use crate::{
 
 impl Parser<'_> {
   pub(crate) fn parse_enum_item(&mut self) -> Result<(Span, ItemKind), Diag> {
+    let unsafe_ = self.eat(Token::Unsafe)?;
     self.expect(Token::Enum)?;
     let flex_span = self.start_span();
     let flex = self.parse_flex()?;
@@ -40,7 +41,7 @@ impl Parser<'_> {
     let name = self.parse_ident()?;
     let generics = self.parse_generic_params()?;
     let variants = self.parse_delimited(BRACE_COMMA, Self::parse_variant)?;
-    Ok((name_span, ItemKind::Enum(EnumItem { flex_span, flex, name, generics, variants })))
+    Ok((name_span, ItemKind::Enum(EnumItem { flex_span, unsafe_, flex, name, generics, variants })))
   }
 
   fn parse_variant(&mut self) -> Result<Variant, Diag> {
@@ -53,6 +54,7 @@ impl Parser<'_> {
 impl<'src> Formatter<'src> {
   pub(crate) fn fmt_enum_item(&self, e: &EnumItem) -> Doc<'src> {
     Doc::concat([
+      if e.unsafe_ { Doc("unsafe ") } else { Doc::EMPTY },
       Doc("enum"),
       self.fmt_flex(e.flex),
       Doc(" "),

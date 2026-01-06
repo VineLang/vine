@@ -12,7 +12,7 @@ use crate::{
     chart::{
       Chart, ConcreteConstId, ConcreteFnId, ConstId, Def, DefId, DefImplKind, DefPatternKind,
       DefTraitKind, DefTypeKind, DefValueKind, EnumId, FnId, GenericsId, ImplId, ImportId,
-      MemberKind, OpaqueTypeId, StructId, TraitId, TypeAliasId,
+      MemberKind, OpaqueTypeId, StructId, TraitId, TypeAliasId, UnionId,
     },
     resolutions::{FragmentId, Resolutions},
     signatures::Signatures,
@@ -31,6 +31,7 @@ pub struct Checkpoint {
   pub type_aliases: TypeAliasId,
   pub structs: StructId,
   pub enums: EnumId,
+  pub unions: UnionId,
   pub traits: TraitId,
   pub impls: ImplId,
   pub fragments: FragmentId,
@@ -53,6 +54,7 @@ impl Compiler {
       type_aliases: self.chart.type_aliases.next_index(),
       structs: self.chart.structs.next_index(),
       enums: self.chart.enums.next_index(),
+      unions: self.chart.unions.next_index(),
       traits: self.chart.traits.next_index(),
       impls: self.chart.impls.next_index(),
       fragments: self.fragments.next_index(),
@@ -105,6 +107,7 @@ impl Chart {
       type_aliases,
       structs,
       enums,
+      unions,
       traits,
       impls,
       builtins,
@@ -122,6 +125,7 @@ impl Chart {
     type_aliases.truncate(checkpoint.type_aliases.0);
     structs.truncate(checkpoint.structs.0);
     enums.truncate(checkpoint.enums.0);
+    unions.truncate(checkpoint.unions.0);
     traits.truncate(checkpoint.traits.0);
     impls.truncate(checkpoint.impls.0);
 
@@ -172,6 +176,7 @@ impl DefValueKind {
       DefValueKind::Fn(FnId::Abstract(trait_id, _)) => trait_id >= checkpoint.traits,
       DefValueKind::Struct(struct_id) => struct_id >= checkpoint.structs,
       DefValueKind::Enum(enum_id, _) => enum_id >= checkpoint.enums,
+      DefValueKind::Union(union_id, _) => union_id >= checkpoint.unions,
     }
   }
 }
@@ -183,6 +188,7 @@ impl DefTypeKind {
       DefTypeKind::Alias(type_alias_id) => type_alias_id >= checkpoint.type_aliases,
       DefTypeKind::Struct(struct_id) => struct_id >= checkpoint.structs,
       DefTypeKind::Enum(enum_id) => enum_id >= checkpoint.enums,
+      DefTypeKind::Union(union_id) => union_id >= checkpoint.unions,
     }
   }
 }
@@ -192,6 +198,7 @@ impl DefPatternKind {
     match *self {
       DefPatternKind::Struct(struct_id) => struct_id >= checkpoint.structs,
       DefPatternKind::Enum(enum_id, _) => enum_id >= checkpoint.enums,
+      DefPatternKind::Union(union_id, _) => union_id >= checkpoint.unions,
     }
   }
 }
@@ -320,6 +327,7 @@ impl Signatures {
       type_aliases,
       structs,
       enums,
+      unions,
       traits,
       def_impls,
       impls,
@@ -332,6 +340,7 @@ impl Signatures {
     type_aliases.truncate(checkpoint.type_aliases.0);
     structs.truncate(checkpoint.structs.0);
     enums.truncate(checkpoint.enums.0);
+    unions.truncate(checkpoint.unions.0);
     traits.truncate(checkpoint.traits.0);
     def_impls.truncate(checkpoint.defs.0);
     def_impls

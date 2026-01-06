@@ -122,7 +122,11 @@ impl Charter<'_> {
       }
 
       ItemKind::Enum(enum_item) => {
-        self.chart_enum(parent, parent_generics, span, vis, member_vis, enum_item)
+        if enum_item.unsafe_ {
+          self.chart_union(parent, parent_generics, span, vis, member_vis, enum_item)
+        } else {
+          self.chart_enum(parent, parent_generics, span, vis, member_vis, enum_item)
+        }
       }
 
       ItemKind::Type(type_item) => {
@@ -240,12 +244,13 @@ impl Charter<'_> {
       ChartedItem::Fn(_, FnId::Abstract(..)) => unreachable!(),
       ChartedItem::Trait(_, trait_id) => self.chart.traits[trait_id].unsafe_ = true,
       ChartedItem::Impl(_, impl_id) => self.chart.impls[impl_id].unsafe_ = true,
+      ChartedItem::Enum(..) => unreachable!(),
+      ChartedItem::Union(..) => {}
       ChartedItem::Import
       | ChartedItem::Mod(..)
       | ChartedItem::OpaqueType(..)
       | ChartedItem::TypeAlias(..)
-      | ChartedItem::Struct(..)
-      | ChartedItem::Enum(..) => {
+      | ChartedItem::Struct(..) => {
         self.diags.error(Diag::InvalidUnsafe { span });
       }
     }
@@ -378,6 +383,7 @@ pub enum ChartedItem {
   TypeAlias(DefId, TypeAliasId),
   Struct(DefId, StructId),
   Enum(DefId, EnumId),
+  Union(DefId, UnionId),
   Trait(DefId, TraitId),
   Impl(DefId, ImplId),
 }
@@ -393,6 +399,7 @@ impl ChartedItem {
       | ChartedItem::TypeAlias(def_id, _)
       | ChartedItem::Struct(def_id, _)
       | ChartedItem::Enum(def_id, _)
+      | ChartedItem::Union(def_id, _)
       | ChartedItem::Trait(def_id, _)
       | ChartedItem::Impl(def_id, _) => Some(*def_id),
     }

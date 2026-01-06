@@ -76,7 +76,7 @@ impl<'src> Parser<'src> {
       _ if self.check(Token::Fn) => self.parse_fn_item()?,
       _ if self.check(Token::Const) => self.parse_const_item()?,
       _ if self.check(Token::Struct) => self.parse_struct_item()?,
-      _ if self.check(Token::Enum) => self.parse_enum_item()?,
+      _ if self.check(Token::Enum) || self.check(Token::Unsafe) => self.parse_enum_item()?,
       _ if self.check(Token::Type) => self.parse_type_item()?,
       _ if self.check(Token::Mod) => self.parse_mod_item()?,
       _ if self.check(Token::Trait) => self.parse_trait_item()?,
