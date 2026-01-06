@@ -292,15 +292,9 @@ impl<'a> CandidateSetBuilder<'a> {
   }
 
   fn add_direct_candidate(&self, set: &mut CandidateSetHandle, (def_id, level): Node) {
-    if level == Level::WithinAncestors {
-      return;
-    }
-
-    let direct = level == Level::Direct;
-
     let def = &self.chart.defs[def_id];
 
-    if direct
+    if level == Level::Direct
       && let Some(Binding { vis, kind: DefValueKind::Fn(fn_id), .. }) = def.value_kind
       && self.chart.fn_is_method(fn_id)
     {
@@ -308,13 +302,16 @@ impl<'a> CandidateSetBuilder<'a> {
       set.methods.entry(def.name.clone()).or_default().entry(fn_id).or_default().insert(vis);
     }
 
-    for &Binding { vis, kind: DefImplKind::Impl(impl_id), .. } in &def.impl_kinds {
-      if let ImplType::Trait(trait_id, _) = &self.sigs.impls[impl_id].inner.ty {
-        let impl_ = &self.chart.impls[impl_id];
-        if !impl_.manual && impl_.name.is_some() == direct {
-          let set = self.sets.get_mut(set);
-          let key = (*trait_id, impl_.basic);
-          set.impls.entry(key).or_default().entry(impl_id).or_default().insert(vis);
+    if matches!(level, Level::Direct | Level::Within) {
+      let direct = level == Level::Direct;
+      for &Binding { vis, kind: DefImplKind::Impl(impl_id), .. } in &def.impl_kinds {
+        if let ImplType::Trait(trait_id, _) = &self.sigs.impls[impl_id].inner.ty {
+          let impl_ = &self.chart.impls[impl_id];
+          if !impl_.manual && impl_.name.is_some() == direct {
+            let set = self.sets.get_mut(set);
+            let key = (*trait_id, impl_.basic);
+            set.impls.entry(key).or_default().entry(impl_id).or_default().insert(vis);
+          }
         }
       }
     }
