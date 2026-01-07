@@ -37,7 +37,16 @@ fn tests(t: &mut DynTester) {
     test_vi(t, "vine/examples/fib_repl.vi", fib_repl_input_vi, ".txt", true, false, false, &[]);
     test_vi(t, "vine/examples/fib.vi", b"", ".txt", true, false, false, &[]);
     test_vi(t, "vine/examples/fizzbuzz.vi", b"", ".txt", true, false, false, &[]);
-    test_vi(t, "vine/examples/guessing_game.vi", guessing_game_input, ".txt", true, false, false, &[]);
+    test_vi(
+      t,
+      "vine/examples/guessing_game.vi",
+      guessing_game_input,
+      ".txt",
+      true,
+      false,
+      false,
+      &[],
+    );
     test_vi(t, "vine/examples/hello_world.vi", b"", ".txt", true, false, false, &[]);
     test_vi(t, "vine/examples/mandelbrot_sixel.vi", b"", ".sixel", true, false, false, &[]);
     test_vi(t, "vine/examples/mandelbrot_tga.vi", b"", ".tga", false, false, false, &[]);
@@ -56,7 +65,16 @@ fn tests(t: &mut DynTester) {
     test_vi(t, "tests/programs/break_result.vi", b"", ".txt", true, false, false, &[]);
     test_vi(t, "tests/programs/centimanes.vi", b"", ".txt", true, false, false, &[]);
     test_vi(t, "tests/programs/classify_primes.vi", b"", ".txt", true, false, false, &[]);
-    test_vi(t, "tests/programs/cli_args.vi", b"", ".txt", false, false, false, &["some", "cli", "args"]);
+    test_vi(
+      t,
+      "tests/programs/cli_args.vi",
+      b"",
+      ".txt",
+      false,
+      false,
+      false,
+      &["some", "cli", "args"],
+    );
     test_vi(t, "tests/programs/cond_diverge.vi", b"", ".txt", true, false, false, &[]);
     test_vi(t, "tests/programs/cubes.vi", b"", ".txt", true, false, false, &[]);
     test_vi(t, "tests/programs/cyclist.vi", b"", ".txt", true, false, false, &[]);
