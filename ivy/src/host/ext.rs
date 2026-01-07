@@ -4,7 +4,7 @@ use std::{
 };
 
 use ivm::{
-  ext::{ExtFn, ExtTy, ExtTyId, Extrinsics},
+  ext::{ExtFn, ExtIter, ExtTy, ExtTyId, Extrinsics},
   port::Port,
 };
 
@@ -121,10 +121,34 @@ impl<'ivm> Host<'ivm> {
     f64_ty
   }
 
-  pub fn register_default_extrinsics(&mut self, extrinsics: &mut Extrinsics<'ivm>) {
+  fn register_strs_ext_ty(
+    &mut self,
+    extrinsics: &mut Extrinsics<'ivm>,
+  ) -> ExtTy<'ivm, ExtIter<String>> {
+    let strs_ty = extrinsics.new_ext_ty();
+    self.register_ext_ty_id("STRS".into(), strs_ty.ty_id());
+    strs_ty
+  }
+
+  fn register_str_ext_ty(
+    &mut self,
+    extrinsics: &mut Extrinsics<'ivm>,
+  ) -> ExtTy<'ivm, ExtIter<char>> {
+    let str_ty = extrinsics.new_ext_ty();
+    self.register_ext_ty_id("STR".into(), str_ty.ty_id());
+    str_ty
+  }
+
+  pub fn register_default_extrinsics(
+    &mut self,
+    extrinsics: &mut Extrinsics<'ivm>,
+    args: Vec<String>,
+  ) {
     let n32 = self.register_n32_ext_ty(extrinsics);
     let f32 = self.register_f32_ext_ty(extrinsics);
     let f64 = self.register_f64_ext_ty(extrinsics);
+    let str = self.register_str_ext_ty(extrinsics);
+    let strs = self.register_strs_ext_ty(extrinsics);
     let io = self.register_io_ext_ty(extrinsics);
 
     // u64 to/from (lo: u32, hi: u32) halves
@@ -177,10 +201,6 @@ impl<'ivm> Host<'ivm> {
       "i32_lt" => |a: n32, b: n32| -> n32 { ((a as i32) < (b as i32)) as u32 },
       "i32_le" => |a: n32, b: n32| -> n32 { ((a as i32) <= (b as i32)) as u32 },
 
-      "io_join" => |_io_a: io, _io_b: io| -> io {},
-      "io_split" => |_io: io| -> (io, io) { ((), ()) },
-      "io_ready" => |_io: io| -> (n32, io) { (1, ()) },
-
       "f64_fork" => |f: f64| -> (f64, f64) { (f, f) },
       "f64_drop" => |f: f64| {},
 
@@ -203,6 +223,21 @@ impl<'ivm> Host<'ivm> {
       "f64_to_n64" => |f: f64| -> (n32, n32) { u64_to_parts(f as u64) },
       "f64_to_bits" => |f: f64| -> (n32, n32) { u64_to_parts(f.to_bits()) },
       "f64_from_bits" => |lo: n32, hi: n32| -> f64 { f64::from_bits(u64_from_parts(lo, hi)) },
+
+      "str_len" => |s: str| -> (n32, str) { (s.len() as u32, s) },
+      "str_next" => |s: str| -> (n32, str) { (*s.current()? as u32, s.advance()) },
+      "str_drop" => |s: str| {},
+
+      "io_join" => |_io_a: io, _io_b: io| -> io {},
+      "io_split" => |_io: io| -> (io, io) { ((), ()) },
+      "io_ready" => |_io: io| -> (n32, io) { (1, ()) },
+
+      "io_args" => |io0: io| -> (strs, io) { (ExtIter::new(args.clone()), io0) },
+      "args_len" => |args: strs| -> (n32, strs) { (args.len() as u32, args) },
+      "args_next" => |args: strs| -> (str, strs) {
+        (ExtIter::new(args.current()?.chars().collect()), args.advance())
+      },
+      "args_drop" => |args: strs| {},
 
       "io_print_char" => |_io: io, b: n32| -> io {
         print!("{}", char::try_from(b).unwrap());
