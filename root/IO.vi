@@ -1,4 +1,6 @@
 
+use #root::ops::Cast;
+
 /// A special primitive type used to interact with the outside world.
 /// Values of this type cannot be explicitly constructed; instead,
 /// an IO handle is passed in to `main` at the start of the program.
@@ -136,5 +138,92 @@ pub mod IO {
       signal
       io0 = @io_ready(signal io1)
     }
+  }
+
+  type Args;
+
+  mod Args {
+    pub fn new(&io: &IO) -> Args {
+      inline_ivy! (io0 <- io, io1 -> io) -> Args {
+        args
+        io0 = @io_args(args io1)
+      }
+    }
+
+    pub fn .len(&self: &Args) -> N32 {
+      inline_ivy! (args0 <- self, args1 -> self) -> N32 {
+        len
+        args0 = @args_len(len args1)
+      }
+    }
+
+    pub fn .next(&self: &Args) -> String {
+      inline_ivy! (args0 <- self, args1 -> self) -> ExtString {
+        str
+        args0 = @args_next(str args1)
+      } as String
+    }
+
+    pub impl drop: Drop[Args] {
+      fn drop(self: Args) {
+        inline_ivy! (args <- self) -> () {
+          _
+          args = @args_drop(_ _)
+        }
+      }
+    }
+  }
+
+  type ExtString;
+
+  mod ExtString {
+    pub fn .len(&self: &ExtString) -> N32 {
+      inline_ivy! (str0 <- self, str1 -> self) -> N32 {
+        len
+        str0 = @str_len(len str1)
+      }
+    }
+
+    pub fn .next(&self: &ExtString) -> Char {
+      inline_ivy! (str0 <- self, str1 -> self) -> Char {
+        char
+        str0 = @str_next(char str1)
+      }
+    }
+
+    pub impl drop: Drop[ExtString] {
+      fn drop(self: ExtString) {
+        inline_ivy! (str <- self) -> () {
+          _
+          str = @str_drop(_ _)
+        }
+      }
+    }
+
+    pub impl to_string: Cast[ExtString, String] {
+      fn cast(self: ExtString) -> String {
+        String(List::from_fn(self.len(), fn* () { self.next() }))
+      }
+    }
+  }
+
+  /// Returns the command-line arguments that vine was executed with.
+  ///
+  /// Unlike most other programming languages, the first argument _is not_ a
+  /// path to the binary being executed, it is the first argument provided to
+  /// the vine binary.
+  /// ```vi
+  /// // example.vi
+  /// pub fn main(&io: &IO) {
+  ///   let args = io.args();
+  ///   io.println("args: {args.show()}");
+  /// }
+  ///
+  /// // > vine run example.vi -- some cli args
+  /// // ["some", "cli", "args"]
+  /// ```
+  pub fn .args(&io: &IO) -> List[String] {
+    let args = Args::new(&io);
+    List::from_fn(args.len(), fn* () { args.next() })
   }
 }

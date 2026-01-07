@@ -183,8 +183,15 @@ impl<'ivm> Debug for ExtVal<'ivm> {
   }
 }
 
-#[derive(Clone, Copy)]
 pub struct ExtTy<'ivm, T>(ExtTyId<'ivm>, PhantomData<fn(T) -> T>);
+
+impl<'ivm, T> Clone for ExtTy<'ivm, T> {
+  fn clone(&self) -> Self {
+    *self
+  }
+}
+
+impl<'ivm, T> Copy for ExtTy<'ivm, T> {}
 
 impl<'ivm, T> ExtTy<'ivm, T> {
   pub fn new_unchecked(ty_id: ExtTyId<'ivm>) -> Self {
@@ -284,6 +291,47 @@ impl<'ivm> ExtTyCast<'ivm> for f64 {
     let ptr = payload.ptr().cast_mut().cast();
     let Aligned(f) = unsafe { *Box::from_raw(ptr) };
     f
+  }
+}
+
+pub struct ExtIter<I> {
+  elements: Vec<I>,
+  idx: usize,
+}
+
+impl<I> ExtIter<I> {
+  pub fn new(elements: Vec<I>) -> Self {
+    Self { elements, idx: 0 }
+  }
+
+  #[allow(clippy::len_without_is_empty)]
+  pub fn len(&self) -> usize {
+    self.elements.len()
+  }
+
+  pub fn current(&self) -> Option<&I> {
+    self.elements.get(self.idx)
+  }
+
+  pub fn advance(self) -> Self {
+    Self { elements: self.elements, idx: self.idx + 1 }
+  }
+}
+
+impl<'ivm, I> ExtTyCast<'ivm> for ExtIter<I> {
+  const COPY: bool = false;
+
+  #[inline(always)]
+  fn into_payload(self) -> Word {
+    let pointer = Box::into_raw(Box::new(Aligned(self)));
+    Word::from_ptr(pointer.cast())
+  }
+
+  #[inline(always)]
+  unsafe fn from_payload(payload: Word) -> Self {
+    let ptr = payload.ptr().cast_mut().cast();
+    let Aligned(iter) = unsafe { *Box::from_raw(ptr) };
+    iter
   }
 }
 
