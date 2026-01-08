@@ -104,7 +104,7 @@ impl Resolver<'_> {
       let mut data = variant.data.iter().map(|t| self.resolve_ty(t, false)).collect::<Vec<_>>();
       if data.len() == 1 { data.pop().unwrap() } else { self.types.new(TypeKind::Tuple(data)) }
     }));
-    let variant_is_nil = variant_data.values().map(|&ty| self.types.self_dual(ty)).collect();
+    let variant_is_nil = variant_data.values().map(|&ty| self.types.self_inverse(ty)).collect();
     let hover =
       format!("enum {}{} {{ ... }}", enum_def.name, self.show_generics(self.cur_generics, false),);
     self.annotations.record_signature(enum_def.span, hover);

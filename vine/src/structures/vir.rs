@@ -175,10 +175,9 @@ impl Step {
       }
       Step::Diverge(_, None) => Ports::Zero([]),
       Step::Const(_, _, a) => Ports::One([a]),
-      Step::Link(a, b)
-      | Step::Rewrap(a, b)
-      | Step::Enum(_, _, a, b)
-      | Step::Union(_, _, a, b) => Ports::Two([a, b]),
+      Step::Link(a, b) | Step::Rewrap(a, b) | Step::Enum(_, _, a, b) | Step::Union(_, _, a, b) => {
+        Ports::Two([a, b])
+      }
       Step::Call(_, _, f, a, r) => Ports::Fn(f.as_ref().into_iter().chain(a).chain([r])),
       Step::Composite(port, ports) | Step::List(port, ports) => {
         Ports::Tuple([port].into_iter().chain(ports))
@@ -346,7 +345,7 @@ pub struct VirLocal {
   pub inv: Inverted,
   pub fork: Option<FnRelId>,
   pub drop: Option<FnRelId>,
-  pub self_dual: bool,
+  pub self_inverse: bool,
 }
 
 impl VirLocal {
@@ -371,7 +370,7 @@ impl VirLocal {
       inv: flex.inv,
       fork: flex.fork.map(|impl_| rels.fork_rel(chart, impl_)),
       drop: flex.drop.map(|impl_| rels.drop_rel(chart, impl_)),
-      self_dual: flex.self_dual,
+      self_inverse: flex.self_inverse,
     }
   }
 }
