@@ -99,6 +99,7 @@ impl Charter<'_> {
       name: struct_item.name,
       data_vis,
       data: struct_item.data,
+      self_dual: false,
     });
     self.define_value(span, def, data_vis, DefValueKind::Struct(struct_id));
     self.define_pattern(span, def, data_vis, DefPatternKind::Struct(struct_id));
@@ -129,6 +130,9 @@ impl Resolver<'_> {
       }
     );
     self.annotations.record_signature(struct_def.span, hover);
+    if struct_def.self_dual && !self.types._self_inverse(data, true) {
+      self.diags.error(Diag::NotSelfDual { span: struct_def.span });
+    }
     let types = take(&mut self.types);
     self.sigs.structs.push_to(struct_id, TypeCtx { types, inner: StructSig { data } });
   }
@@ -159,7 +163,7 @@ impl Resolver<'_> {
         found: self.types.show(self.chart, data.ty),
       });
     }
-    let ty = self.types.new(TypeKind::Struct(struct_id, type_params));
+    let ty = self.types.new_struct(self.chart, struct_id, type_params);
     Ok(TirExpr::new(span, ty, TirExprKind::Rewrap(data)))
   }
 
@@ -184,14 +188,14 @@ impl Resolver<'_> {
       self.resolve_generics(path, self.chart.structs[struct_id].generics, true);
     let data_ty = self.types.import(&self.sigs.structs[struct_id], Some(&type_params)).data;
     self.expect_type(data.span, data.ty, data_ty);
-    let ty = self.types.new(TypeKind::Struct(struct_id, type_params));
+    let ty = self.types.new_struct(self.chart, struct_id, type_params);
     Ok(TirPat::new(span, ty, TirPatKind::Struct(data)))
   }
 
   pub(crate) fn resolve_pat_sig_path_struct(&mut self, path: &Path, struct_id: StructId) -> Type {
     let (type_params, _) =
       self.resolve_generics(path, self.chart.structs[struct_id].generics, false);
-    self.types.new(TypeKind::Struct(struct_id, type_params))
+    self.types.new_struct(self.chart, struct_id, type_params)
   }
 
   pub(crate) fn resolve_ty_path_struct(
@@ -202,14 +206,14 @@ impl Resolver<'_> {
   ) -> Type {
     let generics_id = self.chart.structs[struct_id].generics;
     let (type_params, _) = self.resolve_generics(path, generics_id, inference);
-    self.types.new(TypeKind::Struct(struct_id, type_params))
+    self.types.new_struct(self.chart, struct_id, type_params)
   }
 
   pub(crate) fn resolve_expr_unwrap(&mut self, span: Span, inner: &Expr) -> Result<TirExpr, Diag> {
     let inner = self.resolve_expr(inner);
 
     let data_ty = match self.types.force_kind(self.diags, inner.ty) {
-      (inv, TypeKind::Struct(struct_id, type_params)) => {
+      (inv, TypeKind::Struct(struct_id, _, type_params)) => {
         let struct_id = *struct_id;
         let type_params = &type_params.clone();
         self.get_struct_data(span, inner.ty, struct_id, type_params).invert_if(inv)
@@ -385,7 +389,7 @@ impl Finder<'_> {
     types: &Types,
     found: &mut Vec<TypeCtx<TirImpl>>,
   ) {
-    if let Some((Inverted(false), TypeKind::Struct(struct_id, struct_params))) =
+    if let Some((Inverted(false), TypeKind::Struct(struct_id, _, struct_params))) =
       types.kind(type_params[0])
     {
       let struct_ = &self.chart.structs[*struct_id];

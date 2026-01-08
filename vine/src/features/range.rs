@@ -71,7 +71,7 @@ impl Resolver<'_> {
     let Some(range_id) = self.chart.builtins.range else {
       Err(Diag::MissingBuiltin { span, builtin: "Range" })?
     };
-    let ty = self.types.new(TypeKind::Struct(range_id, vec![left_bound.ty, right_bound.ty]));
+    let ty = self.types.new_struct(self.chart, range_id, vec![left_bound.ty, right_bound.ty]);
     Ok(TirExpr::new(
       span,
       ty,
@@ -103,7 +103,7 @@ impl Resolver<'_> {
         };
         Ok(TirExpr {
           span: bound.span,
-          ty: self.types.new(TypeKind::Struct(bound_id, vec![bound_value_ty])),
+          ty: self.types.new_struct(self.chart, bound_id, vec![bound_value_ty]),
           kind: Box::new(TirExprKind::Rewrap(bound)),
         })
       }
@@ -113,7 +113,7 @@ impl Resolver<'_> {
         };
         Ok(TirExpr {
           span,
-          ty: self.types.new(TypeKind::Struct(unbounded_id, vec![])),
+          ty: self.types.new_struct(self.chart, unbounded_id, vec![]),
           kind: Box::new(TirExprKind::Rewrap(TirExpr {
             span,
             ty: self.types.nil(),

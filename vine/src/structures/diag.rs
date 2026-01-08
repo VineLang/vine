@@ -309,6 +309,10 @@ diags! {
     ["the condition of an `if const` cannot be generic"]
   BadTestAttr
     ["the `#[test]` attribute can only be applied to a function"]
+  BadSelfDualAttr
+    ["the `#[self_dual]` attribute can only be applied to a struct or unsafe enum"]
+  NotSelfDual
+    ["this type cannot be self-dual as its content is not self-dual"]
   InvalidUnsafe
     ["`unsafe` cannot be applied to this kind of item"]
   Unsafe

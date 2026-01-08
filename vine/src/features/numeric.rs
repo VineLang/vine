@@ -86,7 +86,7 @@ impl Resolver<'_> {
     let Some(nat_ty) = self.chart.builtins.nat else {
       Err(self.diags.error(Diag::MissingBuiltin { span, builtin: "Nat" }))?
     };
-    let nat_ty = self.types.new(TypeKind::Struct(nat_ty, vec![]));
+    let nat_ty = self.types.new_struct(self.chart, nat_ty, vec![]);
     let ty = self.resolve_ty(ty, true);
     let fn_rel = self.builtin_fn(span, self.chart.builtins.cast, "cast", [nat_ty, ty])?;
     Ok(TirExpr::new(

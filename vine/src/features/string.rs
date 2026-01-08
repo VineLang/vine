@@ -14,7 +14,7 @@ use crate::{
     ast::{Expr, ExprKind, Span, StringSegment},
     diag::Diag,
     tir::{TirExpr, TirExprKind},
-    types::{Type, TypeKind},
+    types::Type,
     vir::{Port, PortKind, Stage, Step},
   },
   tools::fmt::{Formatter, doc::Doc},
@@ -219,7 +219,7 @@ impl Resolver<'_> {
     rest: &[(Expr, StringSegment)],
   ) -> Result<TirExpr, Diag> {
     let string_ty = if let Some(string) = self.chart.builtins.string {
-      self.types.new(TypeKind::Struct(string, Vec::new()))
+      self.types.new_struct(self.chart, string, Vec::new())
     } else {
       self.types.error(self.diags.error(Diag::MissingBuiltin { span, builtin: "String" }))
     };
