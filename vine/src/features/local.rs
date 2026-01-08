@@ -165,7 +165,7 @@ impl Emitter<'_> {
     first.0 = state.spaces;
     state.values.append(&mut first.1);
     first.1 = state.values;
-    if local.self_dual {
+    if local.self_inverse {
       for port in state.past.into_iter().flat_map(|(x, y)| [x, y]).flatten() {
         self.pairs.push((port, Tree::Erase));
       }
