@@ -180,6 +180,7 @@ pub enum AttrKind {
   Cfg(Cfg),
   Frameless,
   Test,
+  SelfDual,
 }
 
 #[derive(Debug, Clone)]

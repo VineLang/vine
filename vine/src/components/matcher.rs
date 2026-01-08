@@ -132,7 +132,7 @@ impl<'d, 'r> Matcher<'d, 'r> {
       Some((Inverted(false), TypeKind::Ref(inner))) => {
         self.match_ref(layer, stage, vars, rows, var_id, *inner);
       }
-      Some((Inverted(false), TypeKind::Struct(struct_id, type_params))) => {
+      Some((Inverted(false), TypeKind::Struct(struct_id, _, type_params))) => {
         let struct_id = *struct_id;
         let sig = &self.distiller.sigs.structs[struct_id];
         let sig = self.distiller.types.import(sig, Some(&type_params.clone()));

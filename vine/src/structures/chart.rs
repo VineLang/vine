@@ -203,6 +203,7 @@ pub struct StructDef {
   pub name: Ident,
   pub data_vis: VisId,
   pub data: Vec<Ty>,
+  pub self_dual: bool,
 }
 
 new_idx!(pub EnumId);
@@ -232,6 +233,7 @@ pub struct UnionDef {
   pub generics: GenericsId,
   pub name: Ident,
   pub variants: IdxVec<VariantId, UnionVariant>,
+  pub self_dual: bool,
 }
 
 #[derive(Debug, Clone)]

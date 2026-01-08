@@ -84,9 +84,9 @@ pub enum TypeKind {
   Tuple(Vec<Type>),
   Object(BTreeMap<Ident, Type>),
   Opaque(OpaqueTypeId, Vec<Type>),
-  Struct(StructId, Vec<Type>),
+  Struct(StructId, /* self_dual */ bool, Vec<Type>),
   Enum(EnumId, Vec<Type>),
-  Union(UnionId, Vec<Type>),
+  Union(UnionId, /* self_dual */ bool, Vec<Type>),
   Fn(FnId),
   Closure(ClosureId, Flex, FnSig),
   Ref(Type),
@@ -171,6 +171,14 @@ impl Types {
     self.types.push(Root { state: Unknown(span), size: 1 }).into()
   }
 
+  pub fn new_struct(&mut self, chart: &Chart, struct_id: StructId, type_params: Vec<Type>) -> Type {
+    self.new(TypeKind::Struct(struct_id, chart.structs[struct_id].self_dual, type_params))
+  }
+
+  pub fn new_union(&mut self, chart: &Chart, union_id: UnionId, type_params: Vec<Type>) -> Type {
+    self.new(TypeKind::Union(union_id, chart.unions[union_id].self_dual, type_params))
+  }
+
   pub fn new_vars(&mut self, span: Span, len: usize) -> Vec<Type> {
     (0..len).iter().map(|_| self.new_var(span)).collect()
   }
@@ -240,12 +248,16 @@ impl Types {
       (TypeKind::Error(e), _) | (_, TypeKind::Error(e)) => Indeterminate(*e),
       (TypeKind::Tuple(a), TypeKind::Tuple(b)) => self.unify_types(a, b, inverted),
       (TypeKind::Object(a), TypeKind::Object(b)) => self.unify_objects(a, b, inverted),
+      (TypeKind::Struct(StructId(i), self_dual, a), TypeKind::Struct(StructId(j), _, b))
+      | (TypeKind::Union(UnionId(i), self_dual, a), TypeKind::Union(UnionId(j), _, b))
+        if i == j && (*self_dual || !inverted.0) =>
+      {
+        self.unify_types(a, b, inverted)
+      }
       _ if inverted.0 => Failure,
       (TypeKind::Param(i, _), TypeKind::Param(j, _)) if *i == *j => Success,
       (TypeKind::Opaque(OpaqueTypeId(i), a), TypeKind::Opaque(OpaqueTypeId(j), b))
-      | (TypeKind::Struct(StructId(i), a), TypeKind::Struct(StructId(j), b))
       | (TypeKind::Enum(EnumId(i), a), TypeKind::Enum(EnumId(j), b))
-      | (TypeKind::Union(UnionId(i), a), TypeKind::Union(UnionId(j), b))
         if *i == *j =>
       {
         self.unify_types(a, b, Inverted(false))
@@ -355,10 +367,29 @@ impl Types {
   }
 
   pub(crate) fn self_inverse(&self, ty: Type) -> bool {
+    self._self_inverse(ty, false)
+  }
+
+  pub(crate) fn _self_inverse(
+    &self,
+    ty: Type,
+    // whether to consider type pamameters as self-inverse; used to check `#[self_dual]`
+    // annotations
+    param: bool,
+  ) -> bool {
     match self.kind(ty) {
-      Some((_, TypeKind::Tuple(elements))) => elements.iter().all(|&x| self.self_inverse(x)),
-      Some((_, TypeKind::Object(entries))) => entries.values().all(|&x| self.self_inverse(x)),
+      Some((_, TypeKind::Tuple(elements))) => {
+        elements.iter().all(|&x| self._self_inverse(x, param))
+      }
+      Some((_, TypeKind::Object(entries))) => {
+        entries.values().all(|&x| self._self_inverse(x, param))
+      }
+      Some((_, TypeKind::Struct(_, true, params)))
+      | Some((_, TypeKind::Union(_, true, params))) => {
+        params.iter().all(|&x| self._self_inverse(x, param))
+      }
       Some((_, TypeKind::Default | TypeKind::Error(_))) => true,
+      Some((_, TypeKind::Param(..))) => param,
       _ => false,
     }
   }
@@ -457,7 +488,7 @@ impl Types {
               *str += &chart.opaque_types[*type_id].name.0;
               self._show_params(chart, params, str);
             }
-            TypeKind::Struct(struct_id, params) => {
+            TypeKind::Struct(struct_id, _, params) => {
               *str += &chart.structs[*struct_id].name.0;
               self._show_params(chart, params, str);
             }
@@ -465,7 +496,7 @@ impl Types {
               *str += &chart.enums[*enum_id].name.0;
               self._show_params(chart, params, str);
             }
-            TypeKind::Union(union_id, params) => {
+            TypeKind::Union(union_id, _, params) => {
               *str += &chart.unions[*union_id].name.0;
               self._show_params(chart, params, str);
             }
@@ -569,9 +600,9 @@ impl Types {
   pub fn get_mod(&self, chart: &Chart, ty: Type) -> Result<Option<DefId>, ErrorGuaranteed> {
     match self.kind(ty).as_ref() {
       Some((_, TypeKind::Opaque(id, _))) => Ok(Some(chart.opaque_types[*id].def)),
-      Some((_, TypeKind::Struct(id, _))) => Ok(Some(chart.structs[*id].def)),
+      Some((_, TypeKind::Struct(id, _, _))) => Ok(Some(chart.structs[*id].def)),
       Some((_, TypeKind::Enum(id, _))) => Ok(Some(chart.enums[*id].def)),
-      Some((_, TypeKind::Union(id, _))) => Ok(Some(chart.unions[*id].def)),
+      Some((_, TypeKind::Union(id, _, _))) => Ok(Some(chart.unions[*id].def)),
       Some((_, TypeKind::Ref(inner))) => self.get_mod(chart, *inner),
       Some((_, TypeKind::Key(..)))
       | Some((_, TypeKind::Fn(..)))
@@ -692,9 +723,9 @@ impl TypeKind {
         TypeKind::Object(els.iter().map(|(k, &v)| (k.clone(), f(v))).collect())
       }
       TypeKind::Opaque(i, els) => TypeKind::Opaque(*i, els.iter().copied().map(f).collect()),
-      TypeKind::Struct(i, els) => TypeKind::Struct(*i, els.iter().copied().map(f).collect()),
+      TypeKind::Struct(i, d, els) => TypeKind::Struct(*i, *d, els.iter().copied().map(f).collect()),
       TypeKind::Enum(i, els) => TypeKind::Enum(*i, els.iter().copied().map(f).collect()),
-      TypeKind::Union(i, els) => TypeKind::Union(*i, els.iter().copied().map(f).collect()),
+      TypeKind::Union(i, d, els) => TypeKind::Union(*i, *d, els.iter().copied().map(f).collect()),
       TypeKind::Ref(t) => TypeKind::Ref(f(*t)),
       TypeKind::Key(k) => TypeKind::Key(k.clone()),
       TypeKind::Fn(i) => TypeKind::Fn(*i),
@@ -726,9 +757,9 @@ impl TypeKind {
       TypeKind::Key(_) => Children::Zero([]),
       TypeKind::Tuple(els)
       | TypeKind::Opaque(_, els)
-      | TypeKind::Struct(_, els)
+      | TypeKind::Struct(_, _, els)
       | TypeKind::Enum(_, els)
-      | TypeKind::Union(_, els) => Children::Vec(els.iter().copied()),
+      | TypeKind::Union(_, _, els) => Children::Vec(els.iter().copied()),
       TypeKind::Object(els) => Children::Object(els.values().copied()),
       TypeKind::Closure(_, _, s) => {
         Children::Closure(s.param_tys.iter().copied().chain([s.ret_ty]))
