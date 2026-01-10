@@ -218,7 +218,7 @@ impl Resolver<'_> {
 
   pub(crate) fn resolve_impl_params(&mut self, generics_id: GenericsId) {
     let generics_def = &self.chart.generics[generics_id];
-    self.initialize(generics_def.def, generics_id);
+    self.initialize(generics_def.def, generics_id, false);
     let mut impl_params =
       generics_def.parent.map(|id| self.sigs.impl_params[id].clone()).unwrap_or_default();
     self.types = take(&mut impl_params.types.types);

@@ -36,12 +36,12 @@ pub fn error[M, T; Cast[M, String]](msg: M) -> T {
       state.io.print("  @ {frame}\n");
     }
   }
-  unsafe::eraser
+  safe eraser
 }
 
 #[frameless]
 pub fn error_with[M, T, U; Cast[M, String]](msg: M, ctx: T) -> U {
-  unsafe::erase(ctx);
+  safe erase(ctx);
   debug::error(msg)
 }
 
@@ -97,14 +97,14 @@ struct DebugState({ io: IO, stack: Stack });
 
 #[builtin = "debug_state"]
 fn debug_state() -> Option[&DebugState] {
-  unsafe::eraser
+  safe eraser
 }
 
 pub struct Stack((Bool, Frame), Stack);
 
 pub mod Stack {
-  pub impl : Fork[Stack] = unsafe::duplicate;
-  pub impl : Drop[Stack] = unsafe::erase;
+  pub impl : Fork[Stack] = safe duplicate;
+  pub impl : Drop[Stack] = safe erase;
 
   use #root::data::Iterator;
 
@@ -130,8 +130,8 @@ pub mod Stack {
 pub struct Frame(pub { path: List[String], file: String, line: N32, col: N32 });
 
 pub mod Frame {
-  pub impl : Fork[Frame] = unsafe::duplicate;
-  pub impl : Drop[Frame] = unsafe::erase;
+  pub impl : Fork[Frame] = safe duplicate;
+  pub impl : Drop[Frame] = safe erase;
 
   pub impl to_string: Cast[Frame, String] {
     fn cast(Frame({ path, file, line, col })) -> String {

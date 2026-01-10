@@ -99,7 +99,7 @@ impl Charter<'_> {
 impl Resolver<'_> {
   pub(crate) fn resolve_enum_sig(&mut self, enum_id: EnumId) {
     let enum_def = &self.chart.enums[enum_id];
-    self.initialize(enum_def.def, enum_def.generics);
+    self.initialize(enum_def.def, enum_def.generics, false);
     let variant_data = IdxVec::from_iter(enum_def.variants.values().map(|variant| {
       let mut data = variant.data.iter().map(|t| self.resolve_ty(t, false)).collect::<Vec<_>>();
       if data.len() == 1 { data.pop().unwrap() } else { self.types.new(TypeKind::Tuple(data)) }

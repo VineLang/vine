@@ -10,11 +10,11 @@ use ops::{Cast, arithmetic::{Add, Sub}, comparison::{Eq, Ord}};
 pub type Char;
 
 pub mod Char {
-  pub impl : Fork[Char] = unsafe::duplicate;
-  pub impl : Drop[Char] = unsafe::erase;
+  pub impl : Fork[Char] = safe duplicate;
+  pub impl : Drop[Char] = safe erase;
 
-  pub impl from_n32: Cast[N32, Char] = unsafe::transmute;
-  pub impl to_n32: Cast[Char, N32] = unsafe::transmute;
+  pub impl from_n32: Cast[N32, Char] = safe transmute;
+  pub impl to_n32: Cast[Char, N32] = safe transmute;
 
   pub impl : Eq[Char] {
     fn eq(&a: &Char, &b: &Char) -> Bool {

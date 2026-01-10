@@ -129,7 +129,7 @@ fn base_cost_func() -> CostFunc {
 }
 
 fn cost_func(c: CostFunc, size: N32, dead_row: N32) -> CostFunc {
-  let o = Array::new(size, Array::new(size, unsafe::eraser[N64]));
+  let o = Array::new(size, Array::new(size, safe eraser[N64]));
   for from in 0..size {
     for to in 0..size {
       let fn test(horiz: Bool) {

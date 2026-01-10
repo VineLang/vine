@@ -39,7 +39,7 @@ pub fn main(&io: &IO) {
         if char == '9' {
           scores += count(in_s);
           ratings += in_n;
-          unsafe::eraser
+          safe eraser
         } else {
           (in_s, in_n)
         }
@@ -138,5 +138,5 @@ fn new_channel[M]() -> (Channel[M], Channel[M]) {
 }
 
 fn neglect_channel[M](d: M) -> Channel[M] {
-  Channel(d, unsafe::eraser)
+  Channel(d, safe eraser)
 }
