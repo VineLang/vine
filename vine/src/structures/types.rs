@@ -381,24 +381,13 @@ impl Types {
     // annotations
     param: bool,
   ) -> bool {
-    match self.kind(ty) {
-      Some((_, TypeKind::Tuple(elements))) => {
-        elements.iter().all(|&x| self._self_inverse(x, param))
+    self.kind(ty).is_some_and(|(_, kind)| {
+      if matches!(kind, TypeKind::Param(..)) {
+        param
+      } else {
+        kind.self_dual() && kind.children().all(|t| self._self_inverse(t, param))
       }
-      Some((_, TypeKind::Object(entries))) => {
-        entries.values().all(|&x| self._self_inverse(x, param))
-      }
-      Some((_, TypeKind::IfConst(_, t, f))) => {
-        self._self_inverse(*t, param) && self._self_inverse(*f, param)
-      }
-      Some((_, TypeKind::Struct(_, true, params)))
-      | Some((_, TypeKind::Union(_, true, params))) => {
-        params.iter().all(|&x| self._self_inverse(x, param))
-      }
-      Some((_, TypeKind::Default | TypeKind::Error(_))) => true,
-      Some((_, TypeKind::Param(..))) => param,
-      _ => false,
-    }
+    })
   }
 
   pub(crate) fn force_kind(&mut self, diags: &mut Diags, ty: Type) -> (Inverted, &TypeKind) {
@@ -433,8 +422,10 @@ impl Types {
           write!(str, "{}?{}", if ty.inv().0 { "~" } else { "" }, ty.idx().0).unwrap()
         }
         Root { state: Known(inv, kind), .. } => {
-          if (*inv ^ ty.inv()).0 {
+          let mut inv = *inv ^ ty.inv();
+          if inv.0 && !kind.self_dual() {
             *str += "~";
+            inv = Inverted(false);
           }
           match kind {
             TypeKind::Default => {
@@ -442,7 +433,7 @@ impl Types {
             }
             TypeKind::Tuple(els) => {
               *str += "(";
-              self._show_comma_separated(chart, els, str);
+              self._show_comma_separated(chart, els, inv, str);
               if els.len() == 1 {
                 *str += ",";
               }
@@ -460,7 +451,7 @@ impl Types {
                   }
                   *str += &key.0;
                   *str += ": ";
-                  self._show(chart, val, str);
+                  self._show(chart, val.invert_if(inv), str);
                   first = false;
                 }
                 *str += " }";
@@ -493,31 +484,31 @@ impl Types {
             }
             TypeKind::Opaque(type_id, params) => {
               *str += &chart.opaque_types[*type_id].name.0;
-              self._show_params(chart, params, str);
+              self._show_params(chart, params, inv, str);
             }
             TypeKind::Struct(struct_id, _, params) => {
               *str += &chart.structs[*struct_id].name.0;
-              self._show_params(chart, params, str);
+              self._show_params(chart, params, inv, str);
             }
             TypeKind::Enum(enum_id, params) => {
               *str += &chart.enums[*enum_id].name.0;
-              self._show_params(chart, params, str);
+              self._show_params(chart, params, inv, str);
             }
             TypeKind::IfConst(const_id, then, else_) => {
               *str += "if const ";
               *str += &chart.defs[chart.concrete_consts[*const_id].def].path;
               *str += " { ";
-              self._show(chart, *then, str);
+              self._show(chart, then.invert_if(inv), str);
               *str += " }";
               if !matches!(self.kind(*else_), Some((_, TypeKind::Tuple(els))) if els.is_empty()) {
                 *str += " else { ";
-                self._show(chart, *else_, str);
+                self._show(chart, else_.invert_if(inv), str);
                 *str += " }";
               }
             }
             TypeKind::Union(union_id, _, params) => {
               *str += &chart.unions[*union_id].name.0;
-              self._show_params(chart, params, str);
+              self._show_params(chart, params, inv, str);
             }
             TypeKind::Param(_, name) => {
               *str += &name.0;
@@ -530,21 +521,21 @@ impl Types {
     }
   }
 
-  fn _show_params(&self, chart: &Chart, params: &[Type], str: &mut String) {
+  fn _show_params(&self, chart: &Chart, params: &[Type], inv: Inverted, str: &mut String) {
     if !params.is_empty() {
       *str += "[";
-      self._show_comma_separated(chart, params, str);
+      self._show_comma_separated(chart, params, inv, str);
       *str += "]";
     }
   }
 
-  fn _show_comma_separated(&self, chart: &Chart, tys: &[Type], str: &mut String) {
+  fn _show_comma_separated(&self, chart: &Chart, tys: &[Type], inv: Inverted, str: &mut String) {
     let mut first = true;
     for &ty in tys {
       if !first {
         *str += ", ";
       }
-      self._show(chart, ty, str);
+      self._show(chart, ty.invert_if(inv), str);
       first = false;
     }
   }
@@ -554,7 +545,7 @@ impl Types {
     match ty {
       ImplType::Trait(trait_id, params) => {
         str += &chart.traits[*trait_id].name.0;
-        self._show_params(chart, params, &mut str);
+        self._show_params(chart, params, Inverted(false), &mut str);
       }
       ImplType::Error(_) => str += "??",
     }
@@ -786,6 +777,18 @@ impl TypeKind {
       TypeKind::Closure(_, _, s) => {
         Children::Closure(s.param_tys.iter().copied().chain([s.ret_ty]))
       }
+    }
+  }
+
+  fn self_dual(&self) -> bool {
+    match self {
+      TypeKind::Tuple(_)
+      | TypeKind::Object(_)
+      | TypeKind::IfConst(..)
+      | TypeKind::Default
+      | TypeKind::Error(_) => true,
+      TypeKind::Struct(_, self_dual, _) | TypeKind::Union(_, self_dual, _) => *self_dual,
+      _ => false,
     }
   }
 }
