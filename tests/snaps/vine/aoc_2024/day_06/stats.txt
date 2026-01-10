@@ -1,11 +1,11 @@
 
 Interactions
-  Total              805_638
+  Total              805_649
   Annihilate         375_596
   Commute              8_823
   Copy               108_424
   Erase               93_975
-  Expand              55_691
+  Expand              55_702
   Call               112_764
   Branch              50_365
 
