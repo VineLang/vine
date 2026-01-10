@@ -7,18 +7,34 @@ on:
       - dev
 
 jobs:
-  liana:
+  integration-test:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions: read-all
+    strategy:
+      fail-fast: false
+      matrix:
+        repo:
+          - github:nilscrm/liana
+          - github:nilscrm/sat-vi
+          - github:nilscrm/vine-page-rank
     steps:
       - uses: actions/checkout@v3
       - uses: cachix/install-nix-action@v31
-      - run: nix flake check github:nilscrm/liana --override-input vine . -L
+      - name: Run integration test
+        run: nix flake check ${{ matrix.repo }} --override-input vine . -L
+
+  integration-tests:
+    needs: [integration-test]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Aggregate integration test results
+        run: |
+          [[ "${{ needs.integration-test.result }}" == "success" ]]
 
   mainline:
-    needs:
-      - liana
+    needs: [integration-tests]
     if: ${{ github.ref_name == 'dev' }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -44,7 +60,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: open issue
-        if: ${{ needs.mainline.result == 'skipped' }}
+        if: ${{ needs.mainline.result == 'skipped' || needs.mainline.result == 'failure' }}
         run: |
           gh issue reopen 484
           gh issue edit 484 --add-assignee ${{ github.event.sender.login }}
