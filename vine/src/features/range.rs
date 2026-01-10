@@ -75,14 +75,11 @@ impl Resolver<'_> {
     Ok(TirExpr::new(
       span,
       ty,
-      TirExprKind::Struct(
-        range_id,
-        TirExpr {
-          span,
-          ty: self.types.new(TypeKind::Tuple(vec![left_bound.ty, right_bound.ty])),
-          kind: Box::new(TirExprKind::Composite(vec![left_bound, right_bound])),
-        },
-      ),
+      TirExprKind::Rewrap(TirExpr {
+        span,
+        ty: self.types.new(TypeKind::Tuple(vec![left_bound.ty, right_bound.ty])),
+        kind: Box::new(TirExprKind::Composite(vec![left_bound, right_bound])),
+      }),
     ))
   }
 
@@ -107,7 +104,7 @@ impl Resolver<'_> {
         Ok(TirExpr {
           span: bound.span,
           ty: self.types.new(TypeKind::Struct(bound_id, vec![bound_value_ty])),
-          kind: Box::new(TirExprKind::Struct(bound_id, bound)),
+          kind: Box::new(TirExprKind::Rewrap(bound)),
         })
       }
       None => {
@@ -117,10 +114,11 @@ impl Resolver<'_> {
         Ok(TirExpr {
           span,
           ty: self.types.new(TypeKind::Struct(unbounded_id, vec![])),
-          kind: Box::new(TirExprKind::Struct(
-            unbounded_id,
-            TirExpr { span, ty: self.types.nil(), kind: Box::new(TirExprKind::Composite(vec![])) },
-          )),
+          kind: Box::new(TirExprKind::Rewrap(TirExpr {
+            span,
+            ty: self.types.nil(),
+            kind: Box::new(TirExprKind::Composite(vec![])),
+          })),
         })
       }
     }
