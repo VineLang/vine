@@ -14,7 +14,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        repo: [github:nilscrm/liana, github:nilscrm/sat-vi, github:nilscrm/vine-page-rank]
+        repo:
+          - github:nilscrm/liana
+          - github:nilscrm/sat-vi
+          - github:nilscrm/vine-page-rank
     steps:
       - uses: actions/checkout@v3
       - uses: cachix/install-nix-action@v31
@@ -26,14 +29,12 @@ jobs:
     if: always()
     runs-on: ubuntu-latest
     steps:
-      - name: Agrregate integration test results
+      - name: Aggregate integration test results
         run: |
-          if [ "${{ needs.integration-test.result }}" != "success" ]; then
-            exit 1
-          fi
+          [[ "${{ needs.integration-test.result }}" == "success" ]]
 
   mainline:
-    needs: [integration-test]
+    needs: [integration-tests]
     if: ${{ github.ref_name == 'dev' }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -50,7 +51,7 @@ jobs:
           fi
 
   notify:
-    needs: [integration-tests]
+    needs: [mainline]
     if: ${{ always() && github.ref_name == 'dev' }}
     runs-on: ubuntu-latest
     permissions:
@@ -59,14 +60,14 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: open issue
-        if: ${{ needs.integration-tests.result == 'skipped' || needs.integration-tests.result == 'failure' }}
+        if: ${{ needs.mainline.result == 'skipped' || needs.mainline.result == 'failure' }}
         run: |
           gh issue reopen 484
           gh issue edit 484 --add-assignee ${{ github.event.sender.login }}
         env:
           GH_TOKEN: ${{ github.token }}
       - name: close issue
-        if: ${{ needs.integration-tests.result == 'success' }}
+        if: ${{ needs.mainline.result == 'success' }}
         run: |
           git fetch origin main
           if [[ `git rev-parse dev` == `git rev-parse origin/main` ]]; then
