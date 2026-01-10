@@ -158,6 +158,7 @@ fn tests(t: &mut DynTester) {
     t.group("repl", |t| {
       test_vi_repl(t, "tests/programs/repl/advanced_repl.vi");
       test_vi_repl(t, "tests/programs/repl/basic_repl.vi");
+      test_vi_repl(t, "tests/programs/repl/distribute_inverse.vi");
       test_vi_repl(t, "tests/programs/repl/elementwise.vi");
       test_vi_repl(t, "tests/programs/repl/extrinsics.vi");
       test_vi_repl(t, "tests/programs/repl/f32_to_string.vi");
