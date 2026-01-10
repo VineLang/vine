@@ -50,6 +50,7 @@ pub enum Builtin {
   Struct,
   Enum,
   Variant,
+  IfConst,
   DebugState,
   Show,
   ShowToString,
@@ -113,6 +114,7 @@ impl Parser<'_> {
       "Struct" => Builtin::Struct,
       "Enum" => Builtin::Enum,
       "Variant" => Builtin::Variant,
+      "IfConst" => Builtin::IfConst,
       "debug_state" => Builtin::DebugState,
       "Show" => Builtin::Show,
       "show_to_string" => Builtin::ShowToString,
@@ -166,6 +168,7 @@ pub struct Builtins {
   pub struct_: Option<TraitId>,
   pub enum_: Option<TraitId>,
   pub variant: Option<EnumId>,
+  pub if_const: Option<TraitId>,
 
   pub debug_state: Option<FnId>,
 
@@ -246,6 +249,7 @@ impl Charter<'_> {
       Builtin::Struct => set(&mut builtins.struct_, trait_id),
       Builtin::Enum => set(&mut builtins.enum_, trait_id),
       Builtin::Variant => set(&mut builtins.variant, enum_id),
+      Builtin::IfConst => set(&mut builtins.if_const, trait_id),
       Builtin::DebugState => set(&mut builtins.debug_state, fn_id),
       Builtin::Show => set(&mut builtins.show, trait_id),
       Builtin::ShowToString => set(&mut builtins.show_to_string, fn_id),

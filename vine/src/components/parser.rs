@@ -128,12 +128,6 @@ impl<'src> Parser<'src> {
         self.expect(Token::CloseParen)?;
         AttrKind::Become(path)
       }
-      "cfg" => {
-        self.expect(Token::OpenParen)?;
-        let cfg = self.parse_cfg()?;
-        self.expect(Token::CloseParen)?;
-        AttrKind::Cfg(cfg)
-      }
       "frameless" => AttrKind::Frameless,
       "test" => AttrKind::Test,
       _ => Err(Diag::UnknownAttribute { span: ident_span })?,
@@ -497,6 +491,9 @@ impl<'src> Parser<'src> {
     }
     if self.check(Token::Ident) || self.check(Token::Hash) {
       return Ok(TyKind::Path(self.parse_path()?));
+    }
+    if self.check(Token::If) {
+      return self.parse_ty_if();
     }
     self.state.expected.end_group();
     self.unexpected()

@@ -61,41 +61,34 @@ pub fn .dbg_msg[T; Show[T]](value: T, msg: String) -> T {
   value
 }
 
-#[cfg(!debug)]
-pub mod debug {
-  pub fn with_state[F](f: F) -> WithState[F] {
-    WithState(f)
-  }
-
-  pub struct* WithState[F](F);
-
-  pub mod WithState {
-    pub impl [F, P, R; Fn[F, P, R]]: Fn[WithState[F], P, R] {
-      fn call(WithState[F](f), params: P) -> R {
-        f.call(params)
-      }
-    }
-  }
+pub fn with_state[F](f: F) -> WithState[F] {
+  WithState(if const debug::enabled {
+    (debug_state().assume(), f)
+  } else {
+    f
+  })
 }
 
-#[cfg(debug)]
-pub mod debug {
-  #[frameless]
-  pub fn with_state[F](f: F) -> WithState[F] {
-    WithState(debug_state().assume(), f)
-  }
+pub struct* WithState[F](if const debug::enabled { (&DebugState, F) } else { F });
 
-  pub struct* WithState[F]((&DebugState, F));
-
-  pub mod WithState {
-    pub impl [F, P, R; Fn[F, P, R]]: Fn[WithState[F], P, R] {
-      #[frameless]
-      fn call(WithState[F](state, f), params: P) -> R {
+pub mod WithState {
+  pub impl [F, P, R; Fn[F, P, R]]: Fn[WithState[F], P, R] {
+    fn call(WithState[F](inner), params: P) -> R {
+      let ret;
+      ~inner = if const debug::enabled {
+        let inner: ~(&DebugState, F);
+        let (state, f) = ~inner;
         swap(debug_state().assume(), state);
-        let ret = f.call(params);
+        ret = f.call(params);
         swap(debug_state().assume(), state);
-        ret
-      }
+        inner
+      } else {
+        let inner: ~F;
+        let f = ~inner;
+        ret = f.call(params);
+        inner
+      };
+      ret
     }
   }
 }

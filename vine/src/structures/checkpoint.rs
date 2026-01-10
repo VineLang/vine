@@ -67,7 +67,6 @@ impl Compiler {
   pub fn revert(&mut self, checkpoint: &Checkpoint) {
     let Compiler {
       debug: _,
-      config: _,
       loader,
       chart,
       sigs,
@@ -252,6 +251,7 @@ impl Builtins {
       struct_,
       enum_,
       variant,
+      if_const,
       debug_state,
       show,
       show_to_string,
@@ -292,6 +292,7 @@ impl Builtins {
     revert_idx(struct_, checkpoint.traits);
     revert_idx(enum_, checkpoint.traits);
     revert_idx(variant, checkpoint.enums);
+    revert_idx(if_const, checkpoint.traits);
     revert_fn(debug_state, checkpoint);
     revert_idx(show, checkpoint.traits);
     revert_fn(show_to_string, checkpoint);

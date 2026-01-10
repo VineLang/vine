@@ -122,6 +122,10 @@ pub trait VisitMut<'a> {
         self.visit(then);
         self.visit(else_);
       }
+      ExprKind::IfConst(_, then, else_) => {
+        self.visit(then);
+        self.visit(else_);
+      }
       ExprKind::When(_, ty, arms, leg) => {
         self.visit(ty);
         for (cond, block) in arms {
@@ -243,6 +247,10 @@ pub trait VisitMut<'a> {
         for (_, v) in o {
           self.visit_type(v);
         }
+      }
+      TyKind::IfConst(_, t, e) => {
+        self.visit(t);
+        self.visit(e);
       }
       TyKind::Error(_) => {}
     }

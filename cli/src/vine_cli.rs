@@ -16,7 +16,6 @@ use notify::{RecommendedWatcher, RecursiveMode, Watcher};
 use rustyline::DefaultEditor;
 use vine::{
   compiler::Compiler,
-  features::cfg::Config,
   tools::{doc::document, fmt::Formatter, repl::Repl},
 };
 use vine_lsp::lsp;
@@ -79,8 +78,6 @@ pub struct CompileArgs {
   no_root: bool,
   #[arg(long)]
   debug: bool,
-  #[arg(hide = true, long, default_value_t)]
-  test: bool,
 }
 
 impl CompileArgs {
@@ -89,8 +86,7 @@ impl CompileArgs {
       self.libs.push(root_path())
     }
 
-    let config = Config::new(self.debug, self.test);
-    let mut compiler = Compiler::new(config);
+    let mut compiler = Compiler::new(self.debug);
 
     compiler.loader.load_main_mod(&self.main, &mut compiler.diags);
     for lib in self.libs {
@@ -166,9 +162,8 @@ pub struct VineTestCommand {
 }
 
 impl VineTestCommand {
-  pub fn execute(mut self) -> Result<()> {
+  pub fn execute(self) -> Result<()> {
     let debug = self.compile.debug;
-    self.compile.test = true;
 
     let (mut nets, mut compiler) = self.compile.compile();
 
@@ -240,8 +235,7 @@ impl VineCheckCommand {
       self.check.libs.push(root_path())
     }
 
-    let config = Config::new(true, true);
-    let mut compiler = Compiler::new(config);
+    let mut compiler = Compiler::new(true);
 
     for lib in self.check.libs {
       compiler.loader.load_mod(&lib, &mut compiler.diags);
@@ -334,8 +328,7 @@ impl VineReplCommand {
     host.register_default_extrinsics(&mut extrinsics);
 
     let mut ivm = IVM::new(&heap, &extrinsics);
-    let config = Config::new(!self.no_debug, false);
-    let mut compiler = Compiler::new(config);
+    let mut compiler = Compiler::new(!self.no_debug);
     let mut repl = match Repl::new(host, &mut ivm, &mut compiler, self.libs) {
       Ok(repl) => repl,
       Err(_) => {

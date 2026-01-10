@@ -14,7 +14,6 @@ use crate::{
     specializer::Specializer,
     synthesizer::synthesize,
   },
-  features::cfg::Config,
   structures::{
     annotations::Annotations,
     ast::Span,
@@ -31,7 +30,6 @@ use crate::{
 };
 
 pub struct Compiler {
-  pub config: Config,
   pub debug: bool,
   pub loader: Loader,
   pub chart: Chart,
@@ -47,11 +45,8 @@ pub struct Compiler {
 }
 
 impl Compiler {
-  pub fn new(config: Config) -> Self {
-    let debug = config.debug();
-
+  pub fn new(debug: bool) -> Self {
     Compiler {
-      config,
       debug,
       loader: Loader::default(),
       chart: Chart::default(),
@@ -96,12 +91,7 @@ impl Compiler {
 
     let chart = &mut self.chart;
 
-    let mut charter = Charter {
-      chart,
-      config: &self.config,
-      diags: &mut self.diags,
-      annotations: &mut self.annotations,
-    };
+    let mut charter = Charter { chart, diags: &mut self.diags, annotations: &mut self.annotations };
     charter.chart(root);
     hooks.chart(&mut charter);
 
