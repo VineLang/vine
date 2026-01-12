@@ -1,5 +1,6 @@
 
 use ops::{Cast, arithmetic::{Add, Sub}, comparison::{Eq, Ord}};
+use util::{duplicate, erase, transmute};
 
 /// A Unicode scalar value, or "character".
 /// ```vi

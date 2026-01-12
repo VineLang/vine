@@ -2,6 +2,7 @@
 use data::Iterator::{Iterator, Collect};
 use debug::Show;
 use ops::{Cast, Concat, comparison::Ord};
+use util::{duplicate, erase, eraser, move};
 
 pub struct Set[T]((N32, SetData[T]));
 

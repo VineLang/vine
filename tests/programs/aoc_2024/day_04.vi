@@ -1,5 +1,5 @@
 
-use #root::data::Iterator::Fused;
+use #root::{data::Iterator::Fused, util::{erase, eraser}};
 
 pub fn main(&io: &IO) {
   let lines = [];

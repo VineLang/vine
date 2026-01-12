@@ -1,5 +1,6 @@
 
 use derive::{Composite, Enum, IfConst, Struct, Variant};
+use util::{duplicate, erase, transmute};
 
 #[builtin = "Fork"]
 pub trait Fork[T] {

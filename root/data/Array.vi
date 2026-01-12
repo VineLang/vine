@@ -1,5 +1,6 @@
 
 use ops::{Cast, Index::{Index, IndexPlace, IndexSpace, IndexValue}, comparison::Eq};
+use util::{duplicate, erase, eraser, move, transmute};
 
 /// A contiguous, indexed collection of `T`.
 ///

@@ -1,4 +1,6 @@
 
+use #root::util::{duplicate, erase};
+
 pub fn main(&io: &IO) {
   refs(&io);
   io.println("");

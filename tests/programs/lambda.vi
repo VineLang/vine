@@ -1,5 +1,5 @@
 
-use #root::data::Map;
+use #root::{data::Map, util::{duplicate, erase, eraser}};
 
 pub fn main(&io: &IO) {
   while io.prompt("> ") is Some(line) {

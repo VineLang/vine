@@ -1,6 +1,7 @@
 
 use data::Iterator::{Iterator, Collect};
 use ops::{Cast, Concat, Range::{Range, Bound}, comparison::{Eq, Ord}};
+use util::{duplicate, erase};
 
 /// A linear collection of `T`.
 ///

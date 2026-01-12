@@ -1,6 +1,6 @@
 
 let io: IO = <IO>;
-> safe erase(io)
+> safe #root::util::erase(io)
 
 let io: IO;
 > /clear io

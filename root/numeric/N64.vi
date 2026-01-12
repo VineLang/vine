@@ -5,6 +5,7 @@ use ops::{
   bitwise::{BitAnd, BitOr, BitXor, Shl, Shr},
   comparison::{Eq, Ord},
 };
+use util::{duplicate, erase, transmute};
 
 /// Natural numbers represented with 64 bits of precision.
 /// ```vi

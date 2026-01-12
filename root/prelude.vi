@@ -10,7 +10,6 @@
 ///   and their variants (`None`, `Some`, `Ok`, `Err`)
 /// - the `Fork` and `Drop` traits
 /// - core utility functions (`black_box`, `replace`, `swap`)
-/// - unsafe utilities (`duplicate`, `erase`, `eraser`, `move`, `transmute`)
 /// - the `debug` module, the `Show` trait, and the `.dbg`/`.dbg_msg` methods
 mod;
 
@@ -22,5 +21,5 @@ pub use #root::{
   numeric::{F32, F64, I32, Int, N32, N64, Nat},
   ops::flex::{Drop, Fork},
   unicode::{Char, String},
-  util::{black_box, duplicate, erase, eraser, move, replace, swap, transmute},
+  util::{black_box, replace, swap},
 };

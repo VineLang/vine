@@ -3,6 +3,7 @@
 mod;
 
 use ops::{Cast, Fn};
+use util::{duplicate, erase, eraser};
 
 pub mod Show;
 

@@ -1,5 +1,5 @@
 
-use #root::data::Array;
+use #root::{data::Array, util::eraser};
 
 pub fn main(&io: &IO) {
   let lines = io.full_input().split_trim("\n");

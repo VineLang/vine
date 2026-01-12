@@ -2,6 +2,7 @@
 use ops::Cast;
 use data::List as List_;
 use derive::{Enum, IfConst, Object as Object_, Opaque, Struct, Tuple as Tuple_, Variant};
+use util::transmute;
 
 #[builtin = "Show"]
 pub trait Show[T] {

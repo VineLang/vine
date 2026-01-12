@@ -5,6 +5,7 @@ use ops::{
   bitwise::{BitAnd, BitOr, BitXor, Not, Shl, Shr},
   comparison::{Eq, Ord},
 };
+use util::{duplicate, erase, transmute};
 
 #[builtin = "I32"]
 pub type I32;

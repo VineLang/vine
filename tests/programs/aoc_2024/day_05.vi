@@ -1,6 +1,5 @@
 
-use #root::ops::elementwise as _;
-use #root::data::Array;
+use #root::{data::Array, ops::elementwise as _, util::move};
 
 pub fn main(&io: &IO) {
   let masks = Array::new(100, ((0, 0), (0, 0)));

@@ -1,5 +1,5 @@
 
-use #root::rng::Pcg32;
+use #root::{rng::Pcg32, util::erase};
 
 const default_size: N32 = 46;
 const default_seed: String = "Conway's Game of Life";

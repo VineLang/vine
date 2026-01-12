@@ -1,5 +1,5 @@
 
-use #root::data::Map;
+use #root::{data::Map, util::{erase, eraser, move}};
 
 pub fn main(&io: &IO) {
   let map = Map::empty[String, _];

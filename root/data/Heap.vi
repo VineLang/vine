@@ -1,5 +1,6 @@
 
 use ops::{Cast, Concat, comparison::Ord};
+use util::{duplicate, erase, eraser};
 
 /// A min-heap, which provides efficient access to the smallest value in the heap.
 pub struct Heap[T]((N32, Node[T]));

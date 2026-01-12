@@ -1,4 +1,6 @@
 
+use #root::util::eraser;
+
 pub fn main(&io: &IO) {
   let fn print_bool(bool) {
     io.println(if bool {
