@@ -4,7 +4,7 @@ use std::{
 };
 
 use ivm::{
-  ext::{ExtFn, ExtIter, ExtTy, ExtTyId, Extrinsics},
+  ext::{ExtFn, ExtIter, ExtTy, ExtTyCast, ExtTyId, Extrinsics},
   port::Port,
 };
 
@@ -103,40 +103,14 @@ impl<'ivm> Host<'ivm> {
     n32_ty
   }
 
-  fn register_f32_ext_ty(&mut self, extrinsics: &mut Extrinsics<'ivm>) -> ExtTy<'ivm, f32> {
-    let f32_ty = extrinsics.new_ext_ty();
-    self.register_ext_ty_id("F32".into(), f32_ty.ty_id());
-    f32_ty
-  }
-
-  fn register_io_ext_ty(&mut self, extrinsics: &mut Extrinsics<'ivm>) -> ExtTy<'ivm, ()> {
-    let io_ty = extrinsics.new_ext_ty();
-    self.register_ext_ty_id("IO".into(), io_ty.ty_id());
-    io_ty
-  }
-
-  fn register_f64_ext_ty(&mut self, extrinsics: &mut Extrinsics<'ivm>) -> ExtTy<'ivm, f64> {
-    let f64_ty = extrinsics.new_ext_ty();
-    self.register_ext_ty_id("F64".into(), f64_ty.ty_id());
-    f64_ty
-  }
-
-  fn register_strs_ext_ty(
+  fn register_ext_ty<T: ExtTyCast<'ivm>>(
     &mut self,
+    name: &'static str,
     extrinsics: &mut Extrinsics<'ivm>,
-  ) -> ExtTy<'ivm, ExtIter<String>> {
-    let strs_ty = extrinsics.new_ext_ty();
-    self.register_ext_ty_id("STRS".into(), strs_ty.ty_id());
-    strs_ty
-  }
-
-  fn register_str_ext_ty(
-    &mut self,
-    extrinsics: &mut Extrinsics<'ivm>,
-  ) -> ExtTy<'ivm, ExtIter<char>> {
-    let str_ty = extrinsics.new_ext_ty();
-    self.register_ext_ty_id("STR".into(), str_ty.ty_id());
-    str_ty
+  ) -> ExtTy<'ivm, T> {
+    let ty = extrinsics.new_ext_ty();
+    self.register_ext_ty_id(name.into(), ty.ty_id());
+    ty
   }
 
   pub fn register_default_extrinsics(
@@ -145,11 +119,11 @@ impl<'ivm> Host<'ivm> {
     args: Vec<String>,
   ) {
     let n32 = self.register_n32_ext_ty(extrinsics);
-    let f32 = self.register_f32_ext_ty(extrinsics);
-    let f64 = self.register_f64_ext_ty(extrinsics);
-    let str = self.register_str_ext_ty(extrinsics);
-    let strs = self.register_strs_ext_ty(extrinsics);
-    let io = self.register_io_ext_ty(extrinsics);
+    let f32 = self.register_ext_ty::<f32>("F32", extrinsics);
+    let f64 = self.register_ext_ty::<f64>("F64", extrinsics);
+    let str = self.register_ext_ty::<ExtIter<char>>("STR", extrinsics);
+    let strs = self.register_ext_ty::<ExtIter<String>>("STRS", extrinsics);
+    let io = self.register_ext_ty::<()>("IO", extrinsics);
 
     // u64 to/from (lo: u32, hi: u32) halves
     let u64_to_parts = |x: u64| (x as u32, (x >> 32) as u32);
