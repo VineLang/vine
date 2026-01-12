@@ -6,9 +6,12 @@
 use core::{
   fmt::{self, Debug},
   marker::PhantomData,
+  ops::{Deref, DerefMut},
 };
 
 use crate::{ivm::IVM, port::Tag, wire::Wire, word::Word};
+
+use std::vec::IntoIter;
 
 macro_rules! trait_alias {
   ($($(#[$attr:meta])* $vis:vis trait $name:ident = ($($trait:tt)*);)*) => {$(
@@ -294,44 +297,45 @@ impl<'ivm> ExtTyCast<'ivm> for f64 {
   }
 }
 
-pub struct ExtIter<I> {
-  elements: Vec<I>,
-  idx: usize,
+#[repr(transparent)]
+pub struct ExtIter<T> {
+  iter: Box<Aligned<IntoIter<T>>>,
 }
 
-impl<I> ExtIter<I> {
-  pub fn new(elements: Vec<I>) -> Self {
-    Self { elements, idx: 0 }
-  }
-
-  #[allow(clippy::len_without_is_empty)]
-  pub fn len(&self) -> usize {
-    self.elements.len()
-  }
-
-  pub fn current(&self) -> Option<&I> {
-    self.elements.get(self.idx)
-  }
-
-  pub fn advance(self) -> Self {
-    Self { elements: self.elements, idx: self.idx + 1 }
+impl<T> ExtIter<T> {
+  pub fn new(elements: Vec<T>) -> Self {
+    Self { iter: Box::new(Aligned(elements.into_iter())) }
   }
 }
 
-impl<'ivm, I> ExtTyCast<'ivm> for ExtIter<I> {
+impl<T> Deref for ExtIter<T> {
+  type Target = IntoIter<T>;
+
+  fn deref(&self) -> &Self::Target {
+    &self.iter.0
+  }
+}
+
+impl<T> DerefMut for ExtIter<T> {
+  fn deref_mut(&mut self) -> &mut Self::Target {
+    &mut self.iter.0
+  }
+}
+
+impl<'ivm, T> ExtTyCast<'ivm> for ExtIter<T> {
   const COPY: bool = false;
 
   #[inline(always)]
   fn into_payload(self) -> Word {
-    let pointer = Box::into_raw(Box::new(Aligned(self)));
+    let pointer = Box::into_raw(self.iter);
     Word::from_ptr(pointer.cast())
   }
 
   #[inline(always)]
   unsafe fn from_payload(payload: Word) -> Self {
     let ptr = payload.ptr().cast_mut().cast();
-    let Aligned(iter) = unsafe { *Box::from_raw(ptr) };
-    iter
+    let iter = unsafe { Box::from_raw(ptr) };
+    Self { iter }
   }
 }
 
