@@ -70,7 +70,8 @@ macro_rules! register_ext_fns {
   (@impl $ext:ident, |$a:ident : $a_ty:ident| -> ($b_ty:ident, $c_ty:ident) $body:block) => {
     $ext.new_split_ext_fn(move |ivm, $a, out0, out1| {
       let (val0, val1) = (|| {
-        let $a = $a_ty.unwrap_ext_val($a)?;
+        #[allow(unused_mut)]
+        let mut $a = $a_ty.unwrap_ext_val($a)?;
         let (b, c) = $body;
         let b = $b_ty.wrap_ext_val(b);
         let c = $c_ty.wrap_ext_val(c);
@@ -199,7 +200,7 @@ impl<'ivm> Host<'ivm> {
       "f64_from_bits" => |lo: n32, hi: n32| -> f64 { f64::from_bits(u64_from_parts(lo, hi)) },
 
       "str_len" => |s: str| -> (n32, str) { (s.len() as u32, s) },
-      "str_next" => |s: str| -> (n32, str) { (*s.current()? as u32, s.advance()) },
+      "str_next" => |s: str| -> (n32, str) { (s.next()? as u32, s) },
       "str_drop" => |s: str| {},
 
       "io_join" => |_io_a: io, _io_b: io| -> io {},
@@ -208,9 +209,8 @@ impl<'ivm> Host<'ivm> {
 
       "io_args" => |io0: io| -> (strs, io) { (ExtIter::new(args.clone()), io0) },
       "args_len" => |args: strs| -> (n32, strs) { (args.len() as u32, args) },
-      "args_next" => |args: strs| -> (str, strs) {
-        (ExtIter::new(args.current()?.chars().collect()), args.advance())
-      },
+      "args_next" =>
+        |args: strs| -> (str, strs) { (ExtIter::new(args.next()?.chars().collect()), args) },
       "args_drop" => |args: strs| {},
 
       "io_print_char" => |_io: io, b: n32| -> io {
