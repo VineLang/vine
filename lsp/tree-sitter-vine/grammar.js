@@ -664,7 +664,7 @@ module.exports = grammar({
 
     path: $ =>
       prec.right(
-        seq(optional("::"), $.ident, repeat(seq("::", $.ident)), optional($.generic_args)),
+        seq(optional("#"), $.ident, repeat(seq("::", $.ident)), optional($.generic_args)),
       ),
 
     _ty: $ =>
