@@ -1,5 +1,5 @@
 
-use #root::ops::Cast;
+use #root::ext::ExtString;
 
 /// A special primitive type used to interact with the outside world.
 /// Values of this type cannot be explicitly constructed; instead,
@@ -170,39 +170,6 @@ pub mod IO {
           _
           args = @args_drop(_ _)
         }
-      }
-    }
-  }
-
-  type ExtString;
-
-  mod ExtString {
-    pub fn .len(&self: &ExtString) -> N32 {
-      inline_ivy! (str0 <- self, str1 -> self) -> N32 {
-        len
-        str0 = @str_len(len str1)
-      }
-    }
-
-    pub fn .next(&self: &ExtString) -> Char {
-      inline_ivy! (str0 <- self, str1 -> self) -> Char {
-        char
-        str0 = @str_next(char str1)
-      }
-    }
-
-    pub impl drop: Drop[ExtString] {
-      fn drop(self: ExtString) {
-        inline_ivy! (str <- self) -> () {
-          _
-          str = @str_drop(_ _)
-        }
-      }
-    }
-
-    pub impl to_string: Cast[ExtString, String] {
-      fn cast(self: ExtString) -> String {
-        String(List::from_fn(self.len(), fn* () { self.next() }))
       }
     }
   }
