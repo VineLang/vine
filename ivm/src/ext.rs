@@ -297,7 +297,6 @@ impl<'ivm> ExtTyCast<'ivm> for f64 {
   }
 }
 
-#[repr(transparent)]
 pub struct ExtIter<T> {
   iter: Box<Aligned<IntoIter<T>>>,
 }
