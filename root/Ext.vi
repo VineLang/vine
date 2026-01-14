@@ -1,0 +1,130 @@
+
+use #root::{derive::Tuple, ops::Cast, unsafe::transmute};
+
+/// An extrinsic value logically representing a Vine value of type `T`.
+/// The author of `T` is allowed to decide the representation of this type.
+pub type Ext[T];
+
+/// Conversion between `T` and `Ext[T]`.
+pub trait Ext[T] {
+  fn encode(value: T) -> Ext[T];
+  fn .decode(value: Ext[T]) -> T;
+}
+
+pub mod Ext {
+  #[manual]
+  pub impl identity[T]: Ext[T] {
+    fn encode(value: T) -> Ext[T] {
+      transmute(value)
+    }
+
+    fn decode(value: Ext[T]) -> T {
+      transmute(value)
+    }
+  }
+
+  pub impl encode[T; Ext[T]]: Cast[T, Ext[T]] {
+    fn cast(value: T) -> Ext[T] {
+      Ext::encode(value)
+    }
+  }
+
+  pub impl decode[T; Ext[T]]: Cast[Ext[T], T] {
+    fn cast(value: Ext[T]) -> T {
+      Ext::decode(value)
+    }
+  }
+
+  pub impl n32: Ext[N32] = Ext::identity;
+  pub impl f32: Ext[F32] = Ext::identity;
+  pub impl f64: Ext[F64] = Ext::identity;
+  pub impl io: Ext[IO] = Ext::identity;
+  pub impl ext[T]: Ext[Ext[T]] = Ext::identity;
+
+  pub impl unary[T; Ext[T]]: Ext[(T,)] {
+    fn encode((value: T,)) -> Ext[(T,)] {
+      transmute[Ext[T], Ext[(T,)]](value as Ext)
+    }
+
+    fn decode(value: Ext[(T,)]) -> (T,) {
+      (transmute[Ext[(T,)], Ext[T]](value) as T,)
+    }
+  }
+
+  pub impl tuple[T, I, R; Tuple[T, I, R], Ext[I], Ext[R]]: Ext[T] {
+    fn encode(tuple: T) -> Ext[T] {
+      let (init, rest) = tuple as (I, R);
+      let init = init as Ext;
+      let rest = rest as Ext;
+
+      inline_ivy! (init <- init, rest <- rest) -> Ext[T] {
+        tup
+        init = @merge(rest tup)
+      }
+    }
+
+    fn decode(tuple: Ext[T]) -> T {
+      let (init: Ext[I], rest: Ext[R]);
+      inline_ivy! (tuple <- tuple, init -> init, rest -> rest) -> () {
+        _
+        tuple = @split(init rest)
+      };
+
+      (init as I, rest as R) as T
+    }
+  }
+}
+
+pub mod Ext[String] {
+  pub fn new_string() -> Ext[String] {
+    inline_ivy! () -> Ext[String] {
+      str
+      0 = @str_new(_ str)
+    }
+  }
+
+  pub fn .len(&self: &Ext[String]) -> N32 {
+    inline_ivy! (str0 <- self, str1 -> self) -> N32 {
+      len
+      str0 = @str_len(len str1)
+    }
+  }
+
+  // TODO: mark unsafe
+  pub fn .at(&self: &Ext[String], i: N32) -> Char {
+    let params = (self, i) as Ext[(Ext[String], N32)];
+    inline_ivy! (params <- params, str1 -> self) -> Char {
+      char
+      params = @str_get(char str1)
+    }
+  }
+
+  // TODO: mark unsafe
+  pub fn .push(&self: &Ext[String], c: Char) {
+    inline_ivy! (str0 <- self, c <- c, str1 -> self) -> () {
+      _
+      str0 = @str_push(c str1)
+    };
+  }
+
+  pub impl drop: Drop[Ext[String]] {
+    fn drop(self: Ext[String]) {
+      inline_ivy! (str <- self) -> () {
+        _
+        str = @str_drop(_ _)
+      }
+    }
+  }
+
+  pub impl ext_string: Ext[String] {
+    fn encode(s: String) -> Ext[String] {
+      let ext = Ext::new_string();
+      s!.iter().for_each(fn* (c) { ext.push(c) });
+      ext
+    }
+
+    fn decode(ext: Ext[String]) -> String {
+      (0..ext.len()).map(fn* (i) { ext.at(i) }).collect[String, _, _]()
+    }
+  }
+}

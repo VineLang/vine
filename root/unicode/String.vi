@@ -1,5 +1,5 @@
 
-use ops::{Cast, Concat, comparison::{Eq, Ord}};
+use #root::{data::Iterator::{Iterator, Collect}, ops::{Cast, Concat, comparison::{Eq, Ord}}};
 
 /// A Unicode string, represented as a list of characters.
 /// ```vi
@@ -191,6 +191,17 @@ pub mod String {
   pub impl iter: Cast[String, List::Iter[Char]] {
     fn cast(String(chars)) -> List::Iter[Char] {
       chars.iter()
+    }
+  }
+
+  /// Collect an iterator of `Char` into a `String`.
+  /// ```vi
+  /// > (48..91).map(fn* (n: N32) { n as Char }).collect[String, _, _]()
+  /// // "0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+  /// ```
+  pub impl : Collect[String, Char] {
+    fn collect[I; Iterator[I, Char]](iter_ref: I) -> String {
+      String(iter_ref.collect[List[Char], _, _]())
     }
   }
 
