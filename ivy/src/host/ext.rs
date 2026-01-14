@@ -225,7 +225,7 @@ impl<'ivm> Host<'ivm> {
       "f64_to_bits" => |f: f64| -> (n32, n32) { u64_to_parts(f.to_bits()) },
       "f64_from_bits" => |lo: n32, hi: n32| -> f64 { f64::from_bits(u64_from_parts(lo, hi)) },
 
-      "str_new" => |_unused: n32| -> str { ExtList::<char>::new() },
+      "str_new" => |_unused: n32| -> str { ExtList::<char>::default() },
       "str_len" => |s: str| -> (n32, str) { (s.len() as u32, s) },
       "str_get" => |params: tup| -> (n32, str) {
         let (s, i) = params.into();

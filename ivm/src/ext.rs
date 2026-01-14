@@ -300,8 +300,8 @@ pub struct ExtList<T> {
   vec: Box<Aligned<Vec<T>>>,
 }
 
-impl<T> ExtList<T> {
-  pub fn new() -> Self {
+impl<T> Default for ExtList<T> {
+  fn default() -> Self {
     Self { vec: Default::default() }
   }
 }
