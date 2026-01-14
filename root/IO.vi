@@ -1,5 +1,5 @@
 
-use #root::ext::ExtString;
+use #root::Ext;
 
 /// A special primitive type used to interact with the outside world.
 /// Values of this type cannot be explicitly constructed; instead,
@@ -143,6 +143,8 @@ pub mod IO {
   type Args;
 
   mod Args {
+    pub impl : Ext[Args] = Ext::identity;
+
     pub fn new(&io: &IO) -> Args {
       inline_ivy! (io0 <- io, io1 -> io) -> Args {
         args
@@ -157,10 +159,12 @@ pub mod IO {
       }
     }
 
-    pub fn .next(&self: &Args) -> String {
-      inline_ivy! (args0 <- self, args1 -> self) -> ExtString {
+    // TODO: mark unsafe
+    pub fn .at(&self: &Args, i: N32) -> String {
+      let params = (self, i) as Ext[(Args, N32)];
+      inline_ivy! (params <- params, args1 -> self) -> Ext[String] {
         str
-        args0 = @args_next(str args1)
+        params = @args_get(str args1)
       } as String
     }
 
@@ -191,6 +195,6 @@ pub mod IO {
   /// ```
   pub fn .args(&io: &IO) -> List[String] {
     let args = Args::new(&io);
-    List::from_fn(args.len(), fn* () { args.next() })
+    (0..args.len()).map(fn* (i) { args.at(i) }).collect[List[String], _, _]()
   }
 }

@@ -5,7 +5,7 @@ mod;
 pub mod data;
 pub mod debug;
 pub mod derive;
-pub mod ext;
+pub mod Ext;
 pub mod logical;
 pub mod numeric;
 pub mod ops;

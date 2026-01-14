@@ -11,8 +11,6 @@ use core::{
 
 use crate::{ivm::IVM, port::Tag, wire::Wire, word::Word};
 
-use std::vec::IntoIter;
-
 macro_rules! trait_alias {
   ($($(#[$attr:meta])* $vis:vis trait $name:ident = ($($trait:tt)*);)*) => {$(
     $(#[$attr])*
@@ -277,6 +275,7 @@ impl<'ivm> ExtTyCast<'ivm> for f32 {
   }
 }
 
+#[derive(Default)]
 #[repr(align(8))]
 pub struct Aligned<T>(T);
 
@@ -297,44 +296,89 @@ impl<'ivm> ExtTyCast<'ivm> for f64 {
   }
 }
 
-pub struct ExtIter<T> {
-  iter: Box<Aligned<IntoIter<T>>>,
+pub struct ExtList<T> {
+  vec: Box<Aligned<Vec<T>>>,
 }
 
-impl<T> ExtIter<T> {
-  pub fn new(elements: Vec<T>) -> Self {
-    Self { iter: Box::new(Aligned(elements.into_iter())) }
+impl<T> ExtList<T> {
+  pub fn new() -> Self {
+    Self { vec: Default::default() }
   }
 }
 
-impl<T> Deref for ExtIter<T> {
-  type Target = IntoIter<T>;
+impl<T> From<Vec<T>> for ExtList<T> {
+  fn from(vec: Vec<T>) -> Self {
+    Self { vec: Box::new(Aligned(vec)) }
+  }
+}
+
+impl From<&str> for ExtList<char> {
+  fn from(s: &str) -> Self {
+    Self { vec: Box::new(Aligned(s.chars().collect())) }
+  }
+}
+
+impl<T> Deref for ExtList<T> {
+  type Target = Vec<T>;
 
   fn deref(&self) -> &Self::Target {
-    &self.iter.0
+    &self.vec.0
   }
 }
 
-impl<T> DerefMut for ExtIter<T> {
+impl<T> DerefMut for ExtList<T> {
   fn deref_mut(&mut self) -> &mut Self::Target {
-    &mut self.iter.0
+    &mut self.vec.0
   }
 }
 
-impl<'ivm, T> ExtTyCast<'ivm> for ExtIter<T> {
+impl<'ivm, T> ExtTyCast<'ivm> for ExtList<T> {
   const COPY: bool = false;
 
   #[inline(always)]
   fn into_payload(self) -> Word {
-    let pointer = Box::into_raw(self.iter);
+    let pointer = Box::into_raw(self.vec);
     Word::from_ptr(pointer.cast())
   }
 
   #[inline(always)]
   unsafe fn from_payload(payload: Word) -> Self {
     let ptr = payload.ptr().cast_mut().cast();
-    let iter = unsafe { Box::from_raw(ptr) };
-    Self { iter }
+    let vec = unsafe { Box::from_raw(ptr) };
+    Self { vec }
+  }
+}
+
+/// A tuple of two extrinsic values of unknown type.
+pub struct ExtTuple<'ivm>(Box<Aligned<(ExtVal<'ivm>, ExtVal<'ivm>)>>);
+
+impl<'ivm> From<(ExtVal<'ivm>, ExtVal<'ivm>)> for ExtTuple<'ivm> {
+  fn from(tup: (ExtVal<'ivm>, ExtVal<'ivm>)) -> Self {
+    Self(Box::new(Aligned(tup)))
+  }
+}
+
+impl<'ivm> From<ExtTuple<'ivm>> for (ExtVal<'ivm>, ExtVal<'ivm>) {
+  fn from(tup: ExtTuple<'ivm>) -> Self {
+    (*tup.0).0
+  }
+}
+
+/// Used for the `IO` extrinsic type.
+impl<'ivm> ExtTyCast<'ivm> for ExtTuple<'ivm> {
+  const COPY: bool = false;
+
+  #[inline(always)]
+  fn into_payload(self) -> Word {
+    let pointer = Box::into_raw(self.0);
+    Word::from_ptr(pointer.cast())
+  }
+
+  #[inline(always)]
+  unsafe fn from_payload(payload: Word) -> Self {
+    let ptr = payload.ptr().cast_mut().cast();
+    let tuple = unsafe { Box::from_raw(ptr) };
+    Self(tuple)
   }
 }
 
