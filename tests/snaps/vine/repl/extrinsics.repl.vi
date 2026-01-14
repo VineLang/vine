@@ -1,0 +1,21 @@
+
+let io: IO = <IO>;
+> use #root::Ext
+
+let io: IO = <IO>;
+> 12345[N32] as Ext[N32] as N32
+12345
+
+let io: IO = <IO>;
+> 1.234[F32] as Ext[F32] as F32
+1.23399997
+
+let io: IO = <IO>;
+> 1.234[F64] as Ext[F64] as F64
+≈1.23399997
+
+let io: IO = <IO>;
+> "abcd" as Ext[String] as String
+"abcd"
+
+let io: IO = <IO>;
