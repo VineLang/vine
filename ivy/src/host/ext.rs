@@ -4,7 +4,7 @@ use std::{
 };
 
 use ivm::{
-  ext::{ExtFn, ExtList, ExtTuple, ExtTy, ExtTyCast, ExtTyId, Extrinsics},
+  ext::{ExtFn, ExtList, ExtTy, ExtTyCast, ExtTyId, ExtVal, Extrinsics},
   port::Port,
 };
 
@@ -14,7 +14,7 @@ macro_rules! register_ext_fns {
   (match ($self:ident, $ext:ident) { $(
     $name:expr => |$($param_name:ident : $param_ty:ident),*| $(-> $out:tt)? $body:block,
   )* }) => {
-    $($self.register_ext_fn($name.into(),
+    $($self.register_ext_fn($name,
       register_ext_fns!(@impl $ext, |$($param_name : $param_ty),*| $(-> $out)? $body)
     );)*
   };
@@ -89,7 +89,8 @@ macro_rules! register_ext_fns {
 }
 
 impl<'ivm> Host<'ivm> {
-  pub fn register_ext_fn(&mut self, name: String, f: ExtFn<'ivm>) {
+  pub fn register_ext_fn(&mut self, name: impl Into<String>, f: ExtFn<'ivm>) {
+    let name = name.into();
     self.ext_fns.insert(name.clone(), f);
     self.reverse_ext_fns.insert(f, name);
   }
@@ -123,9 +124,7 @@ impl<'ivm> Host<'ivm> {
     let n32 = self.register_n32_ext_ty(extrinsics);
     let f32 = self.register_ext_ty::<f32>("F32", extrinsics);
     let f64 = self.register_ext_ty::<f64>("F64", extrinsics);
-    let str = self.register_ext_ty::<ExtList<char>>("STR", extrinsics);
-    let strs = self.register_ext_ty::<ExtList<String>>("STRS", extrinsics);
-    let tup = self.register_ext_ty::<ExtTuple<'ivm>>("TUP", extrinsics);
+    let list = self.register_ext_ty::<ExtList<'ivm>>("LIST", extrinsics);
     let io = self.register_ext_ty::<()>("IO", extrinsics);
 
     // u64 to/from (lo: u32, hi: u32) halves
@@ -133,26 +132,48 @@ impl<'ivm> Host<'ivm> {
     let u64_from_parts = |lo: u32, hi: u32| ((hi as u64) << 32) | (lo as u64);
 
     self.register_ext_fn(
-      "merge".into(),
-      extrinsics.new_merge_ext_fn(move |ivm, a, b, out| {
-        let tup = tup.wrap_ext_val((a, b).into());
-        ivm.link_wire(out, Port::new_ext_val(tup));
+      "list_push",
+      extrinsics.new_merge_ext_fn(move |ivm, l, el, out| {
+        let Some(mut l) = list.unwrap_ext_val(l) else {
+          ivm.flags.ext_generic = true;
+          return;
+        };
+
+        l.push(el);
+
+        ivm.link_wire(out, Port::new_ext_val(list.wrap_ext_val(l)));
       }),
     );
 
     self.register_ext_fn(
-      "split".into(),
-      extrinsics.new_split_ext_fn(move |ivm, val, out0, out1| {
-        let (a, b) = match tup.unwrap_ext_val(val).map(<(_, _)>::from) {
-          Some((a, b)) => (Port::new_ext_val(a), Port::new_ext_val(b)),
-          None => {
-            ivm.flags.ext_generic = true;
-            (Port::ERASE, Port::ERASE)
-          }
+      "list_pop",
+      extrinsics.new_split_ext_fn(move |ivm, l, out0, out1| {
+        let Some(mut l) = list.unwrap_ext_val(l) else {
+          ivm.flags.ext_generic = true;
+          return;
         };
 
-        ivm.link_wire(out0, a);
-        ivm.link_wire(out1, b);
+        let Some(el) = l.pop() else {
+          ivm.flags.ext_generic = true;
+          return;
+        };
+
+        ivm.link_wire(out0, Port::new_ext_val(el));
+        ivm.link_wire(out1, Port::new_ext_val(list.wrap_ext_val(l)));
+      }),
+    );
+
+    self.register_ext_fn(
+      "list_drop",
+      extrinsics.new_split_ext_fn(move |ivm, l, out0, out1| {
+        match list.unwrap_ext_val(l) {
+          Some(l) if !l.is_empty() => ivm.flags.ext_erase = true,
+          None => ivm.flags.ext_generic = true,
+          _ => {}
+        }
+
+        ivm.link_wire(out0, Port::ERASE);
+        ivm.link_wire(out1, Port::ERASE);
       }),
     );
 
@@ -225,33 +246,24 @@ impl<'ivm> Host<'ivm> {
       "f64_to_bits" => |f: f64| -> (n32, n32) { u64_to_parts(f.to_bits()) },
       "f64_from_bits" => |lo: n32, hi: n32| -> f64 { f64::from_bits(u64_from_parts(lo, hi)) },
 
-      "str_new" => |_unused: n32| -> str { ExtList::<char>::default() },
-      "str_len" => |s: str| -> (n32, str) { (s.len() as u32, s) },
-      "str_get" => |params: tup| -> (n32, str) {
-        let (s, i) = params.into();
-        let s = str.unwrap_ext_val(s)?;
-        let i = n32.unwrap_ext_val(i)?;
-        (*s.get(i as usize)? as u32, s)
-      },
-      "str_push" => |s: str, c: n32| -> str {
-        s.push(char::from_u32(c)?);
-        s
-      },
-      "str_drop" => |s: str| {},
+      "list_new" => |_unused: n32| -> list { ExtList::default() },
+      "list_len" => |l: list| -> (n32, list) { (l.len() as u32, l) },
 
       "io_join" => |_io_a: io, _io_b: io| -> io {},
       "io_split" => |_io: io| -> (io, io) { ((), ()) },
       "io_ready" => |_io: io| -> (n32, io) { (1, ()) },
 
-      "io_args" => |io0: io| -> (strs, io) { (args.clone().into(), io0) },
-      "args_len" => |args: strs| -> (n32, strs) { (args.len() as u32, args) },
-      "args_get" => |params: tup| -> (str, strs) {
-        let (args, i) = params.into();
-        let args = strs.unwrap_ext_val(args)?;
-        let i = n32.unwrap_ext_val(i)?;
-        (args.get(i as usize)?.as_str().into(), args)
+      "io_args" => |io0: io| -> (list, io) {
+        let args = args
+          .iter()
+          .map(|s| {
+            let chars = s.chars().map(|c| n32.wrap_ext_val(c as u32)).collect::<Vec<ExtVal>>();
+            list.wrap_ext_val(ExtList::from(chars))
+          })
+          .collect::<Vec<_>>()
+          .into();
+        (args, io0)
       },
-      "args_drop" => |args: strs| {},
 
       "io_print_char" => |_io: io, b: n32| -> io {
         print!("{}", char::try_from(b).unwrap());
