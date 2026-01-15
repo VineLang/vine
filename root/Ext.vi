@@ -1,5 +1,5 @@
 
-use #root::{derive::Tuple, ops::Cast, unsafe::transmute};
+use #root::{derive::{Composite, Struct}, ops::Cast, unsafe::transmute};
 
 /// An extrinsic value logically representing a Vine value of type `T`.
 /// The author of `T` is allowed to decide the representation of this type.
@@ -38,6 +38,7 @@ pub mod Ext {
   pub impl n32: Ext[N32] = Ext::identity;
   pub impl f32: Ext[F32] = Ext::identity;
   pub impl f64: Ext[F64] = Ext::identity;
+  pub impl char: Ext[Char] = Ext::identity;
   pub impl io: Ext[IO] = Ext::identity;
 
   pub impl nil: Ext[()] {
@@ -50,56 +51,72 @@ pub mod Ext {
     }
   }
 
-  pub impl tuple[T, I, R; Tuple[T, I, R], Ext[I], Ext[R]]: Ext[T] {
-    fn encode(tuple: T) -> Ext[T] {
-      let (init, rest) = tuple as (I, R);
+  pub impl composite[C, K, I, R; Composite[C, K, I, R], Ext[I], Ext[R]]: Ext[C] {
+    fn encode(composite: C) -> Ext[C] {
+      let (init, rest) = composite as (I, R);
       let init = init as Ext;
-      let rest = transmute[_, Ext[List[Ext[I]]]](rest as Ext);
+      let rest = transmute[Ext[R], Ext[List[I]]](rest as Ext);
       rest.push(init);
 
       transmute(rest)
     }
 
-    fn decode(tuple: Ext[T]) -> T {
-      let rest = transmute[_, Ext[List[Ext[I]]]](tuple);
+    fn decode(composite: Ext[C]) -> C {
+      let rest = transmute[Ext[C], Ext[List[I]]](composite);
       let init = rest.pop();
 
-      (init as I, transmute[_, Ext[R]](rest) as R) as T
+      (init as I, transmute[Ext[List[I]], Ext[R]](rest) as R) as C
     }
   }
 
-  pub impl string: Ext[String] {
-    fn encode(s: String) -> Ext[String] {
-      let ext = Ext::new_string();
-      for c in s! {
-        ext.push_char(c);
+  pub impl list[T; Ext[T]]: Ext[List[T]] {
+    fn encode(list: List[T]) -> Ext[List[T]] {
+      let ext = Ext::new_list();
+
+      for value in list {
+        ext.push(value as Ext);
       }
 
       ext
     }
 
-    fn decode(ext: Ext[String]) -> String {
-      let str = "";
-      for _ in 0..ext.len_str() {
-        str!.push_front(ext.pop_char());
+    fn decode(ext: Ext[List[T]]) -> List[T] {
+      let list = [];
+
+      for _ in 0..ext.len() {
+        list.push_front(ext.pop() as T);
       }
-      Ext::drop_str(ext)
 
-      str
+      drop_list(ext);
+
+      list
     }
   }
 
-  pub fn new_string() -> Ext[String] {
-    inline_ivy! () -> Ext[String] {
-      str
-      0 = @list_new(_ str)
+  #[basic]
+  pub impl struct_[S, C; Struct[S, C], Ext[C]]: Ext[S] {
+    fn encode(s: S) -> Ext[S] {
+      transmute[Ext[C], Ext[S]](s as C as Ext)
+    }
+
+    fn decode(ext: Ext[S]) -> S {
+      transmute[Ext[S], Ext[C]](ext) as C as S
     }
   }
+
+  pub impl string: Ext[String];
 
   pub fn new_list[T]() -> Ext[List[T]] {
     inline_ivy! () -> Ext[List[T]] {
       list
       0 = @list_new(_ list)
+    }
+  }
+
+  pub fn .len[T](&list: &Ext[List[T]]) -> N32 {
+    inline_ivy! (list0 <- list, list1 -> list) -> N32 {
+      len
+      list0 = @list_len(len list1)
     }
   }
 
@@ -111,46 +128,7 @@ pub mod Ext {
     }
   }
 
-  // TODO: mark unsafe
-  pub fn drop_str(str: Ext[String]) {
-    inline_ivy! (str <- str) -> () {
-      _
-      str = @list_drop(_ _)
-    }
-  }
-
-  pub fn .len_str(&self: &Ext[String]) -> N32 {
-    inline_ivy! (str0 <- self, str1 -> self) -> N32 {
-      len
-      str0 = @list_len(len str1)
-    }
-  }
-
-  pub fn .len_list[T](&self: &Ext[List[T]]) -> N32 {
-    inline_ivy! (str0 <- self, str1 -> self) -> N32 {
-      len
-      str0 = @list_len(len str1)
-    }
-  }
-
-  // TODO: mark unsafe
-  pub fn .push_char(&self: &Ext[String], char: Char) {
-    inline_ivy! (str0 <- self, char <- char, str1 -> self) -> () {
-      _
-      str0 = @list_push(char str1)
-    };
-  }
-
-  // TODO: mark unsafe
-  pub fn .pop_char(&self: &Ext[String]) -> Char {
-    inline_ivy! (str0 <- self, str1 -> self) -> Char {
-      char
-      str0 = @list_pop(char str1)
-    }
-  }
-
-  // TODO: mark unsafe
-  pub fn .push[T](&self: &Ext[List[T]], t: T) {
+  pub fn .push[T](&self: &Ext[List[T]], t: Ext[T]) {
     inline_ivy! (list0 <- self, t <- t, list1 -> self) -> () {
       _
       list0 = @list_push(t list1)
@@ -158,8 +136,8 @@ pub mod Ext {
   }
 
   // TODO: mark unsafe
-  pub fn .pop[T](&self: &Ext[List[T]]) -> T {
-    inline_ivy! (list0 <- self, list1 -> self) -> T {
+  pub fn .pop[T](&self: &Ext[List[T]]) -> Ext[T] {
+    inline_ivy! (list0 <- self, list1 -> self) -> Ext[T] {
       t
       list0 = @list_pop(t list1)
     }
