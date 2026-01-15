@@ -39,15 +39,14 @@ pub mod Ext {
   pub impl f32: Ext[F32] = Ext::identity;
   pub impl f64: Ext[F64] = Ext::identity;
   pub impl io: Ext[IO] = Ext::identity;
-  pub impl ext[T]: Ext[Ext[T]] = Ext::identity;
 
-  pub impl unary[T; Ext[T]]: Ext[(T,)] {
-    fn encode((value: T,)) -> Ext[(T,)] {
-      transmute[Ext[T], Ext[(T,)]](value as Ext)
+  pub impl nil: Ext[()] {
+    fn encode((): ()) -> Ext[()] {
+      transmute(Ext::new_list())
     }
 
-    fn decode(value: Ext[(T,)]) -> (T,) {
-      (transmute[Ext[(T,)], Ext[T]](value) as T,)
+    fn decode(tup: Ext[()]) -> () {
+      Ext::drop_list(transmute(tup))
     }
   }
 
@@ -55,76 +54,114 @@ pub mod Ext {
     fn encode(tuple: T) -> Ext[T] {
       let (init, rest) = tuple as (I, R);
       let init = init as Ext;
-      let rest = rest as Ext;
+      let rest = transmute[_, Ext[List[Ext[I]]]](rest as Ext);
+      rest.push(init);
 
-      inline_ivy! (init <- init, rest <- rest) -> Ext[T] {
-        tup
-        init = @merge(rest tup)
-      }
+      transmute(rest)
     }
 
     fn decode(tuple: Ext[T]) -> T {
-      let (init: Ext[I], rest: Ext[R]);
-      inline_ivy! (tuple <- tuple, init -> init, rest -> rest) -> () {
-        _
-        tuple = @split(init rest)
-      };
+      let rest = transmute[_, Ext[List[Ext[I]]]](tuple);
+      let init = rest.pop();
 
-      (init as I, rest as R) as T
-    }
-  }
-}
-
-pub mod Ext[String] {
-  pub fn new_string() -> Ext[String] {
-    inline_ivy! () -> Ext[String] {
-      str
-      0 = @str_new(_ str)
+      (init as I, transmute[_, Ext[R]](rest) as R) as T
     }
   }
 
-  pub fn .len(&self: &Ext[String]) -> N32 {
-    inline_ivy! (str0 <- self, str1 -> self) -> N32 {
-      len
-      str0 = @str_len(len str1)
-    }
-  }
-
-  // TODO: mark unsafe
-  pub fn .at(&self: &Ext[String], i: N32) -> Char {
-    let params = (self, i) as Ext[(Ext[String], N32)];
-    inline_ivy! (params <- params, str1 -> self) -> Char {
-      char
-      params = @str_get(char str1)
-    }
-  }
-
-  // TODO: mark unsafe
-  pub fn .push(&self: &Ext[String], c: Char) {
-    inline_ivy! (str0 <- self, c <- c, str1 -> self) -> () {
-      _
-      str0 = @str_push(c str1)
-    };
-  }
-
-  pub impl drop: Drop[Ext[String]] {
-    fn drop(self: Ext[String]) {
-      inline_ivy! (str <- self) -> () {
-        _
-        str = @str_drop(_ _)
-      }
-    }
-  }
-
-  pub impl ext_string: Ext[String] {
+  pub impl string: Ext[String] {
     fn encode(s: String) -> Ext[String] {
       let ext = Ext::new_string();
-      s!.iter().for_each(fn* (c) { ext.push(c) });
+      for c in s! {
+        ext.push_char(c);
+      }
+
       ext
     }
 
     fn decode(ext: Ext[String]) -> String {
-      (0..ext.len()).map(fn* (i) { ext.at(i) }).collect[String, _, _]()
+      let str = "";
+      for _ in 0..ext.len_str() {
+        str!.push_front(ext.pop_char());
+      }
+      Ext::drop_str(ext)
+
+      str
+    }
+  }
+
+  pub fn new_string() -> Ext[String] {
+    inline_ivy! () -> Ext[String] {
+      str
+      0 = @list_new(_ str)
+    }
+  }
+
+  pub fn new_list[T]() -> Ext[List[T]] {
+    inline_ivy! () -> Ext[List[T]] {
+      list
+      0 = @list_new(_ list)
+    }
+  }
+
+  // TODO: mark unsafe
+  pub fn drop_list[T](list: Ext[List[T]]) {
+    inline_ivy! (list <- list) -> () {
+      _
+      list = @list_drop(_ _)
+    }
+  }
+
+  // TODO: mark unsafe
+  pub fn drop_str(str: Ext[String]) {
+    inline_ivy! (str <- str) -> () {
+      _
+      str = @list_drop(_ _)
+    }
+  }
+
+  pub fn .len_str(&self: &Ext[String]) -> N32 {
+    inline_ivy! (str0 <- self, str1 -> self) -> N32 {
+      len
+      str0 = @list_len(len str1)
+    }
+  }
+
+  pub fn .len_list[T](&self: &Ext[List[T]]) -> N32 {
+    inline_ivy! (str0 <- self, str1 -> self) -> N32 {
+      len
+      str0 = @list_len(len str1)
+    }
+  }
+
+  // TODO: mark unsafe
+  pub fn .push_char(&self: &Ext[String], char: Char) {
+    inline_ivy! (str0 <- self, char <- char, str1 -> self) -> () {
+      _
+      str0 = @list_push(char str1)
+    };
+  }
+
+  // TODO: mark unsafe
+  pub fn .pop_char(&self: &Ext[String]) -> Char {
+    inline_ivy! (str0 <- self, str1 -> self) -> Char {
+      char
+      str0 = @list_pop(char str1)
+    }
+  }
+
+  // TODO: mark unsafe
+  pub fn .push[T](&self: &Ext[List[T]], t: T) {
+    inline_ivy! (list0 <- self, t <- t, list1 -> self) -> () {
+      _
+      list0 = @list_push(t list1)
+    };
+  }
+
+  // TODO: mark unsafe
+  pub fn .pop[T](&self: &Ext[List[T]]) -> T {
+    inline_ivy! (list0 <- self, list1 -> self) -> T {
+      t
+      list0 = @list_pop(t list1)
     }
   }
 }

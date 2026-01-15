@@ -155,24 +155,24 @@ pub mod IO {
     pub fn .len(&self: &Args) -> N32 {
       inline_ivy! (args0 <- self, args1 -> self) -> N32 {
         len
-        args0 = @args_len(len args1)
+        args0 = @list_len(len args1)
       }
     }
 
     // TODO: mark unsafe
-    pub fn .at(&self: &Args, i: N32) -> String {
-      let params = (self, i) as Ext[(Args, N32)];
-      inline_ivy! (params <- params, args1 -> self) -> Ext[String] {
+    pub fn .pop(&self: &Args) -> String {
+      inline_ivy! (args0 <- self, args1 -> self) -> Ext[String] {
         str
-        params = @args_get(str args1)
+        args0 = @list_pop(str args1)
       } as String
     }
 
+    // TODO: only safe is args is empty
     pub impl drop: Drop[Args] {
       fn drop(self: Args) {
         inline_ivy! (args <- self) -> () {
           _
-          args = @args_drop(_ _)
+          args = @list_drop(_ _)
         }
       }
     }
@@ -194,7 +194,12 @@ pub mod IO {
   /// // ["some", "cli", "args"]
   /// ```
   pub fn .args(&io: &IO) -> List[String] {
-    let args = Args::new(&io);
-    (0..args.len()).map(fn* (i) { args.at(i) }).collect[List[String], _, _]()
+    let args_ext = Args::new(&io);
+    let args = [];
+    for _ in 0..args_ext.len() {
+      args.push_front(args_ext.pop());
+    }
+
+    args
   }
 }
