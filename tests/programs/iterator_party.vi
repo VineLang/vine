@@ -1,4 +1,6 @@
 
+// @build --debug
+
 use #root::data::{Iterator, Map, Set};
 
 pub fn main(_: &IO) {

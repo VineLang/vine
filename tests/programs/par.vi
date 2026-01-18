@@ -1,4 +1,6 @@
 
+// @run -d
+
 use #root::{ops::Cast, rng::Pcg32};
 
 trait Session[A, B] {

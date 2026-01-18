@@ -1,4 +1,6 @@
 
+// @run -d
+
 // https://en.wikipedia.org/wiki/Hecatoncheires
 enum* Centimanes {
   Gyges(),

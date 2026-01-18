@@ -1,4 +1,6 @@
 
+// @run -d
+
 pub fn main(&io: &IO) {
   for a in [false, true].iter() {
     for b in [false, true].iter() {
