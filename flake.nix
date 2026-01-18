@@ -48,6 +48,11 @@
           inherit pkgs craneLib;
         };
 
+        self.tests = import ./tests/tests.nix {
+          inherit pkgs flake-utils;
+          inherit (self) cli;
+        };
+
         self.grammars = import ./lsp/grammars.nix {
           inherit pkgs;
         };
