@@ -86,8 +86,7 @@ impl LibArgs {
     let mut compiler = Compiler::new(debug);
     let mut file_paths = IdxVec::new();
 
-    let mut fs = RealFS::default();
-    let mut loader = Loader::new(&mut compiler, &mut fs, Some(&mut file_paths));
+    let mut loader = Loader::new(&mut compiler, RealFS, Some(&mut file_paths));
     for lib in self.libs {
       loader.load_mod(lib.name, lib.path);
     }
@@ -116,8 +115,7 @@ impl CompileArgs {
   fn initialize(self) -> Compiler {
     let (mut compiler, _) = self.libs.initialize(self.debug);
 
-    let mut fs = RealFS::default();
-    let mut loader = Loader::new(&mut compiler, &mut fs, None);
+    let mut loader = Loader::new(&mut compiler, RealFS, None);
     loader.load_main_mod(self.main.name, self.main.path);
 
     compiler
@@ -275,8 +273,7 @@ impl VineCheckCommand {
 
       compiler.revert(&checkpoint);
 
-      let mut fs = RealFS::default();
-      let mut loader = Loader::new(&mut compiler, &mut fs, None);
+      let mut loader = Loader::new(&mut compiler, RealFS, None);
       for glob in &self.check.entrypoints {
         for entry in glob::glob(glob).unwrap() {
           let path = entry.unwrap();
