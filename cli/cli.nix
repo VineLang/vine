@@ -17,7 +17,6 @@ let
         ../cli
         ../vine/Cargo.toml
         ../lsp/Cargo.toml
-        ../tests/Cargo.toml
       ];
     };
     cargoLock = ../Cargo.lock;
@@ -43,7 +42,6 @@ let
         ../vine/src
         ../lsp
         ../cli
-        ../tests/Cargo.toml
       ];
     };
     cargoLock = ../Cargo.lock;
