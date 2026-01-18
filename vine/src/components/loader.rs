@@ -134,7 +134,10 @@ impl Loader {
   fn _read_file(&mut self, path: &mut PathBuf) -> Result<FileId, io::Error> {
     let src = fs::read_to_string(&*path)?;
     *path = path.canonicalize()?;
-    let name = path.strip_prefix(&self.cwd).unwrap_or(path).display().to_string();
+    let mut name = path.strip_prefix(&self.cwd).unwrap_or(path).display().to_string();
+    if let Some(rest) = name.strip_prefix("/nix/store/") {
+      name = rest.split_once("/").map(|x| x.1).unwrap_or(rest).to_string();
+    }
     Ok(self.add_file(Some(path.clone()), name, src))
   }
 
