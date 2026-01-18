@@ -1,4 +1,6 @@
 
+// @run -d
+
 use #root::util::eraser;
 
 pub fn main(&io: &IO) {

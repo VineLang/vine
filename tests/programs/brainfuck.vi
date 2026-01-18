@@ -1,4 +1,7 @@
 
+// @run -d
+// @input brainfuck
+
 enum? Instruction {
   Inc(),
   Dec(),
