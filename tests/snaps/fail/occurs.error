@@ -1,0 +1,20 @@
+error: expected type `Option[?5]`; found `Option[Option[?5]]`
+   @ occurs.vi:4:9
+ 4 |   foo = if true {
+ 5 |     Some(foo)
+ 6 |   } else {
+ 7 |     None()
+ 8 |   };
+
+error: expected type `?18`; found `(~?18,)`
+    @ occurs.vi:11:7
+ 11 |   x = (~x,);
+
+error: expected type `?20`; found `(?20,)`
+    @ occurs.vi:16:7
+ 16 |   y = (z,);
+
+warning: unused variable
+   @ occurs.vi:2:14
+ 2 | pub fn main(&io: &IO) {
+

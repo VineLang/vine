@@ -1,0 +1,8 @@
+error: invalid continue target
+    @ continue_what.vi:10:9
+ 10 |         continue;
+
+warning: unused variable
+   @ continue_what.vi:2:14
+ 2 | pub fn main(&io: &IO) {}
+

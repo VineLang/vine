@@ -1,0 +1,232 @@
+error: no type associated with `#atypical::foo`
+   @ atypical.vi:3:19
+ 3 | type Foo[X] = (X, foo, _);
+
+error: types in item signatures cannot be elided
+   @ atypical.vi:3:24
+ 3 | type Foo[X] = (X, foo, _);
+
+error: types in item signatures cannot be elided
+   @ atypical.vi:5:12
+ 5 | const bar: _ = do { return };
+
+error: types in item signatures cannot be elided
+   @ atypical.vi:4:8
+ 4 | fn foo(x, y: Foo) {}
+
+error: `#atypical::Foo` expects 1 type parameter; was passed 0
+   @ atypical.vi:4:14
+ 4 | fn foo(x, y: Foo) {}
+
+error: no function to return from
+   @ atypical.vi:5:21
+ 5 | const bar: _ = do { return };
+
+error: expected type `N32`; found `F32`
+   @ atypical.vi:7:16
+ 7 |   let x: N32 = 0.0;
+
+error: expected type `F32`; found `N32`
+   @ atypical.vi:8:16
+ 8 |   let x: F32 = 0;
+
+error: cannot find impl of trait `Add[(N32, N32), F32, ?13]`
+   @ atypical.vi:9:23
+ 9 |   let x: (N32, N32) = (1, 2) + 0.0;
+
+error: expected type `(?19, ?20)`; found `N32`
+    @ atypical.vi:10:16
+ 10 |   let (a, b) = 0;
+
+error: cannot find impl of trait `Fn[N32, (), ?29]`
+    @ atypical.vi:12:3
+ 12 |   1();
+
+error: cannot find impl of trait `Add[N32, ~N32, ?34]`
+    @ atypical.vi:13:14
+ 13 |   let x = 3; 2 + ~x;
+
+error: type `N32` has no method `noop`
+    @ atypical.vi:14:3
+ 14 |   x.noop();
+
+error: expected type `Bool`; found `F32`
+    @ atypical.vi:15:6
+ 15 |   if 0.0 { 0 } else { "" };
+
+error: expected type `N32`; found `String`
+    @ atypical.vi:15:23
+ 15 |   if 0.0 { 0 } else { "" };
+
+error: function expects 1 argument; was passed 3
+    @ atypical.vi:16:3
+ 16 |   main(1, 2, 3);
+
+error: cannot compare `N32` and `F32`
+    @ atypical.vi:17:3
+ 17 |   0 < 0.0 < 0 < 0 < 0.0;
+
+error: cannot compare `F32` and `N32`
+    @ atypical.vi:17:3
+ 17 |   0 < 0.0 < 0 < 0 < 0.0;
+
+error: cannot compare `N32` and `F32`
+    @ atypical.vi:17:3
+ 17 |   0 < 0.0 < 0 < 0 < 0.0;
+
+error: no value associated with `#atypical::Foo`
+    @ atypical.vi:18:21
+ 18 |   let Thing((x,)) = Foo(1);
+
+error: expected type `(N32, N32)`; found `(?54,)`
+    @ atypical.vi:18:13
+ 18 |   let Thing((x,)) = Foo(1);
+
+error: no type associated with `#atypical::foo`
+    @ atypical.vi:19:12
+ 19 |   let foo: foo = foo;
+
+error: expected type `T`; found `N32`
+    @ atypical.vi:20:14
+ 20 |   let x: T = 0;
+
+error: expected type `U`; found `T`
+    @ atypical.vi:21:14
+ 21 |   let x: U = x;
+
+error: expected type `Ay`; found `N32`
+    @ atypical.vi:22:19
+ 22 |   let Ay::Yay() = 0;
+
+error: cannot find impl of trait `Add[String, N32, ?75]`
+    @ atypical.vi:23:4
+ 23 |   (loop { break "x" } + 1);
+
+error: expected type `N32`; found `&?79`
+    @ atypical.vi:24:7
+ 24 |   let &x: N32 = loop { continue };
+
+error: invalid continue target
+    @ atypical.vi:25:3
+ 25 |   continue;
+
+error: invalid break target
+    @ atypical.vi:26:3
+ 26 |   break;
+
+error: expected type `()`; found `F32`
+    @ atypical.vi:27:10
+ 27 |   return 0.0;
+
+error: cannot find impl of trait `Add[~N32, ~N32, ?85]`
+    @ atypical.vi:28:14
+ 28 |   let x = 1; ~x + ~x;
+
+error: cannot find impl of trait `Add[N32, F32, N32]`
+    @ atypical.vi:29:3
+ 29 |   x += 1.0;
+
+error: type `N32` has no method `parse`
+    @ atypical.vi:30:3
+ 30 |   x.parse();
+
+error: invalid break target
+    @ atypical.vi:31:3
+ 31 |   break.stuff;
+
+error: invalid continue target
+    @ atypical.vi:32:14
+ 32 |   do.stuff { continue.stuff };
+
+error: expected type `()`; found `N32`
+    @ atypical.vi:33:3
+ 33 |   123
+
+error: entrypoint cannot be generic
+   @ atypical.vi:6:8
+ 6 | pub fn main[T, U](io: IO) {
+
+error: expected a complete pattern
+    @ atypical.vi:22:7
+ 22 |   let Ay::Yay() = 0;
+
+error: unconditional infinite loops are invalid
+   @ atypical.vi:6:8
+ 6 | pub fn main[T, U](io: IO) {
+
+error: cannot drop `IO`
+   @ atypical.vi:6:19
+ 6 | pub fn main[T, U](io: IO) {
+
+error: variable of type `N32` read whilst uninitialized
+    @ atypical.vi:11:7
+ 11 |   let x; x + 1;
+
+error: cannot drop `U`
+    @ atypical.vi:21:7
+ 21 |   let x: U = x;
+
+error: variable of type `N32` read whilst uninitialized
+    @ atypical.vi:15:3
+ 15 |   if 0.0 { 0 } else { "" };
+
+error: variable of type `N32` read whilst uninitialized
+    @ atypical.vi:24:17
+ 24 |   let &x: N32 = loop { continue };
+
+warning: unused variable
+   @ atypical.vi:4:8
+ 4 | fn foo(x, y: Foo) {}
+
+warning: unused variable
+   @ atypical.vi:4:11
+ 4 | fn foo(x, y: Foo) {}
+
+warning: unused variable
+   @ atypical.vi:7:7
+ 7 |   let x: N32 = 0.0;
+
+warning: unused variable
+   @ atypical.vi:8:7
+ 8 |   let x: F32 = 0;
+
+warning: unused variable
+   @ atypical.vi:9:7
+ 9 |   let x: (N32, N32) = (1, 2) + 0.0;
+
+warning: unused variable
+    @ atypical.vi:18:14
+ 18 |   let Thing((x,)) = Foo(1);
+
+warning: unused variable
+    @ atypical.vi:21:7
+ 21 |   let x: U = x;
+
+warning: unused variable
+    @ atypical.vi:24:8
+ 24 |   let &x: N32 = loop { continue };
+
+warning: unused variable
+    @ atypical.vi:10:8
+ 10 |   let (a, b) = 0;
+
+warning: unused variable
+    @ atypical.vi:10:11
+ 10 |   let (a, b) = 0;
+
+warning: unused variable
+    @ atypical.vi:19:7
+ 19 |   let foo: foo = foo;
+
+warning: unused variable
+   @ atypical.vi:6:19
+ 6 | pub fn main[T, U](io: IO) {
+
+warning: unused item
+   @ atypical.vi:5:7
+ 5 | const bar: _ = do { return };
+
+warning: unused item
+    @ atypical.vi:40:4
+ 40 | fn noop() {}
+
