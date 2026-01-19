@@ -1,4 +1,6 @@
 
+pub mod File;
+
 use #root::Ext;
 
 /// A special primitive type used to interact with the outside world.

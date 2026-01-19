@@ -1,0 +1,99 @@
+
+use #root::Ext;
+use #root::Ext::Unknown;
+
+pub type File;
+
+pub mod File {
+  /// Opens a file in read-only mode.
+  ///
+  /// If you need to write or create a file, see [`Options`].
+  pub fn open(&io: &IO, path: String) -> Result[File, N32] {
+    Options::new().read().open(&io, path)
+  }
+
+  /// Reads all remaining bytes in the file to a list.
+  pub fn .read_bytes(&self: &File, &io: &IO) -> List[N32] {
+    let bytes = [];
+
+    while self.read_byte(&io) is Some(char) {
+      bytes.push_back(char);
+    }
+
+    bytes
+  }
+
+  /// Reads the next byte in the file, returning `None()` on EOF.
+  pub fn .read_byte(&self: &File, &io: &IO) -> Option[N32] {
+    let byte: N32;
+    let is_eof: Bool;
+    let params = (self, io) as Ext;
+    (byte, is_eof, self, io) = inline_ivy! (params <- params) -> Ext[(N32, Bool, File, IO)] {
+      res
+      params = @io_read_byte_file(_ res)
+    } as (
+      _,
+      _,
+      _,
+      _,
+    );
+
+    if is_eof {
+      None()
+    } else {
+      Some(byte)
+    }
+  }
+
+  pub fn .close(self: File, &io: &IO) {
+    inline_ivy! (self <- self, io0 <- io, io1 -> io) -> () {
+      _
+      io0 = @io_close_file(self io1)
+    }
+  }
+
+  pub impl : Ext[File] = Ext::identity;
+
+  /// Options which control how a file is opened, stored as a bit set.
+  pub struct* Options(N32);
+
+  mod Options {
+    pub impl : Ext[Options];
+
+    pub fn new() -> Options {
+      Options(0)
+    }
+
+    pub fn .append(self: Options) -> Options {
+      self! |= 0x1;
+      self
+    }
+
+    pub fn .create(self: Options) -> Options {
+      self! |= 0x10;
+      self
+    }
+
+    pub fn .read(self: Options) -> Options {
+      self! |= 0x100;
+      self
+    }
+
+    pub fn .open(&self: &Options, &io: &IO, path: String) -> Result[File, N32] {
+      let params = (self, path) as Ext;
+      let file: Ext[Unknown];
+      (io, file) = inline_ivy! (params <- params, io <- io) -> Ext[(IO, Ext[Unknown])] {
+        res
+        io = @io_open_file(params res)
+      } as (
+        _,
+        _,
+      );
+
+      match file.as_n32() {
+        Ok(error) { Err(error) }
+        Err(file) { Ok(unsafe::transmute[Ext[Unknown], Ext[File]](file) as File) }
+      }
+    }
+  }
+}

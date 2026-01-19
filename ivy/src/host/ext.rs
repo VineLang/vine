@@ -1,10 +1,11 @@
 use std::{
+  fs::OpenOptions,
   io::{self, Read, Write},
   ops::{Add, Div, Mul, Sub},
 };
 
 use ivm::{
-  ext::{ExtFn, ExtList, ExtTy, ExtTyCast, ExtTyId, ExtVal, Extrinsics},
+  ext::{ExtFile, ExtFn, ExtList, ExtTy, ExtTyCast, ExtTyId, ExtVal, Extrinsics},
   port::Port,
 };
 
@@ -38,7 +39,8 @@ macro_rules! register_ext_fns {
   (@impl $ext:ident, |$a:ident : $a_ty:ident| -> $c_ty:ident $body:block) => {
     $ext.new_split_ext_fn(move |ivm, $a, out0, out1| {
       let (val0, val1) = (|| {
-        let $a = $a_ty.unwrap_ext_val($a)?;
+        #[allow(unused_mut)]
+        let mut $a = $a_ty.unwrap_ext_val($a)?;
         let res = $c_ty.wrap_ext_val($body);
         Some((Port::ERASE, Port::new_ext_val(res)))
       })().unwrap_or_else(|| {
@@ -53,10 +55,10 @@ macro_rules! register_ext_fns {
 
   (@impl $ext:ident, |$a:ident : $a_ty:ident, $b:ident : $b_ty:ident| -> $c_ty:ident $body:block) => {
     $ext.new_merge_ext_fn(move |ivm, $a, $b, out| {
+      #[allow(unused_mut)]
       let val = (|| {
-        #[allow(unused_mut)]
         let mut $a = $a_ty.unwrap_ext_val($a)?;
-        let $b = $b_ty.unwrap_ext_val($b)?;
+        let mut $b = $b_ty.unwrap_ext_val($b)?;
         let res = $c_ty.wrap_ext_val($body);
         Some(Port::new_ext_val(res))
       })().unwrap_or_else(|| {
@@ -124,6 +126,16 @@ impl<'ivm> Host<'ivm> {
     // u64 to/from (lo: u32, hi: u32) halves
     let u64_to_parts = |x: u64| (x as u32, (x >> 32) as u32);
     let u64_from_parts = |lo: u32, hi: u32| ((hi as u64) << 32) | (lo as u64);
+
+    self.register_ext_fn(
+      "is_n32",
+      extrinsics.new_split_ext_fn(move |ivm, unknown, is_n32_out, unknown_out| {
+        let is_n32 = unknown.ty_id() == n32.ty_id();
+
+        ivm.link_wire(is_n32_out, Port::new_ext_val(n32.wrap_ext_val(is_n32 as u32)));
+        ivm.link_wire(unknown_out, Port::new_ext_val(unknown));
+      }),
+    );
 
     register_ext_fns!(match (self, extrinsics) {
       "n32_add" => |a: n32, b: n32| -> n32 { a.wrapping_add(b) },
@@ -204,6 +216,7 @@ impl<'ivm> Host<'ivm> {
     let n32 = extrinsics.n32_ext_ty();
     let list = self.register_ext_ty::<ExtList<'ivm>>("LIST", extrinsics);
     let io = self.register_ext_ty::<()>("IO", extrinsics);
+    let file = self.register_ext_ty::<ExtFile>("FILE", extrinsics);
 
     self.register_ext_fn(
       "list_push",
@@ -300,6 +313,50 @@ impl<'ivm> Host<'ivm> {
 
         (c.unwrap_or(char::REPLACEMENT_CHARACTER as u32), ())
       },
+
+      "io_open_file" => |_io: io, params: list| -> list {
+        let options = n32.unwrap_ext_val(params.pop()?)?;
+        let path = list.unwrap_ext_val(params.pop()?).and_then(|path| unwrap_ext_str(n32, path))?;
+
+        let mut open_options = OpenOptions::new();
+        let open_options = open_options
+          .append(options & 0x1 != 0)
+          .create(options & 0x10 != 0)
+          .read(options & 0x100 != 0);
+
+        let mut res = ExtList::default();
+        match open_options.open(path) {
+          Ok(f) => {
+            res.push(file.wrap_ext_val(f.into()));
+          }
+          Err(err) => {
+            // TODO: put an accurate error code
+            res.push(n32.wrap_ext_val(1));
+          }
+        }
+        res.push(io.wrap_ext_val(()));
+
+        res
+      },
+
+      "io_read_byte_file" => |params: list| -> list {
+        let mut f = file.unwrap_ext_val(params.pop()?)?;
+
+        let () = io.unwrap_ext_val(params.pop()?)?;
+
+        let mut buf = [0u8];
+        let bytes = f.read(&mut buf).unwrap();
+        let mut res = ExtList::default();
+
+        res.push(io.wrap_ext_val(()));
+        res.push(file.wrap_ext_val(f));
+        res.push(n32.wrap_ext_val((bytes == 0) as u32));
+        res.push(n32.wrap_ext_val(buf[0] as u32));
+
+        res
+      },
+
+      "io_close_file" => |_io: io, _f: file| -> io {},
     });
   }
 }
@@ -313,7 +370,7 @@ fn read_bytes_into_utf8_u32(first_byte: u8, n: usize) -> Option<u32> {
   assert!((1..=3).contains(&n));
 
   let buf = &mut [0; 4][..(n + 1)];
-  let count = io::stdin().read(&mut buf[1..]).unwrap();
+  let count = io::stdin().read(&mut buf[1..]).ok()?;
   if count != n {
     return None;
   }
@@ -321,4 +378,12 @@ fn read_bytes_into_utf8_u32(first_byte: u8, n: usize) -> Option<u32> {
   buf[0] = first_byte;
 
   Some(str::from_utf8(buf).ok()?.chars().next()? as u32)
+}
+
+fn unwrap_ext_str<'ivm>(n32: ExtTy<'ivm, u32>, chars: ExtList<'ivm>) -> Option<String> {
+  chars
+    .into_inner()
+    .into_iter()
+    .map(|c| n32.unwrap_ext_val(c).map(char::try_from)?.ok())
+    .collect::<Option<String>>()
 }

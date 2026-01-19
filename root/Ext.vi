@@ -35,11 +35,13 @@ pub mod Ext {
     }
   }
 
+  pub impl bool: Ext[Bool] = Ext::identity;
   pub impl n32: Ext[N32] = Ext::identity;
   pub impl f32: Ext[F32] = Ext::identity;
   pub impl f64: Ext[F64] = Ext::identity;
   pub impl char: Ext[Char] = Ext::identity;
   pub impl io: Ext[IO] = Ext::identity;
+  pub impl ext[T]: Ext[Ext[T]] = Ext::identity;
 
   pub impl nil: Ext[()] {
     fn encode((): ()) -> Ext[()] {
@@ -140,6 +142,23 @@ pub mod Ext {
     inline_ivy! (list0 <- self, list1 -> self) -> Ext[T] {
       t
       list0 = @list_pop(t list1)
+    }
+  }
+
+  /// Used to mark extrinsic values of an unknown type.
+  pub type Unknown;
+
+  /// Interprets `self` to an `Ext[N32]`, returning `Err(self)` on failure.
+  pub fn .as_n32(self: Ext[Unknown]) -> Result[N32, Ext[Unknown]] {
+    let is_n32 = inline_ivy! (ref0 <- self, ref1 -> self) -> Bool {
+      is_n32
+      ref0 = @is_n32(is_n32 ref1)
+    };
+
+    if is_n32 {
+      Ok(transmute[Ext[Unknown], Ext[N32]](self) as N32)
+    } else {
+      Err(self)
     }
   }
 }

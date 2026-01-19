@@ -6,7 +6,10 @@
 use core::{
   fmt::{self, Debug},
   marker::PhantomData,
+  ops::{Deref, DerefMut},
 };
+
+use std::fs::File;
 
 use crate::{ivm::IVM, port::Tag, wire::Wire, word::Word};
 
@@ -316,6 +319,10 @@ impl<'ivm> ExtList<'ivm> {
   pub fn pop(&mut self) -> Option<ExtVal<'ivm>> {
     self.values.0.pop()
   }
+
+  pub fn into_inner(self) -> Vec<ExtVal<'ivm>> {
+    self.values.0
+  }
 }
 
 impl<'ivm> From<Vec<ExtVal<'ivm>>> for ExtList<'ivm> {
@@ -338,6 +345,45 @@ impl<'ivm> ExtTyCast<'ivm> for ExtList<'ivm> {
     let ptr = payload.ptr().cast_mut().cast();
     let values = unsafe { Box::from_raw(ptr) };
     Self { values }
+  }
+}
+
+pub struct ExtFile(Box<Aligned<File>>);
+
+impl From<File> for ExtFile {
+  fn from(file: File) -> Self {
+    Self(Box::new(Aligned(file)))
+  }
+}
+
+impl Deref for ExtFile {
+  type Target = File;
+
+  fn deref(&self) -> &Self::Target {
+    &self.0.0
+  }
+}
+
+impl DerefMut for ExtFile {
+  fn deref_mut(&mut self) -> &mut Self::Target {
+    &mut self.0.0
+  }
+}
+
+impl<'ivm> ExtTyCast<'ivm> for ExtFile {
+  const COPY: bool = false;
+
+  #[inline(always)]
+  fn into_payload(self) -> Word {
+    let pointer = Box::into_raw(self.0);
+    Word::from_ptr(pointer.cast())
+  }
+
+  #[inline(always)]
+  unsafe fn from_payload(payload: Word) -> Self {
+    let ptr = payload.ptr().cast_mut().cast();
+    let file = unsafe { Box::from_raw(ptr) };
+    Self(file)
   }
 }
 
