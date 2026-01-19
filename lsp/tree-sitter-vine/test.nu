@@ -6,7 +6,7 @@ let success = (
     ../../root/**/*.vi
     ../../vine/examples/*.vi
     ../../tests/programs/*.vi
-    ../../tests/programs/aoc_2024/*.vi
+    ../../tests/aoc_2024/*.vi
   | each {
     let path = $in.name
     let success = tree-sitter parse $path | complete | $in.exit_code == 0
