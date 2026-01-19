@@ -55,6 +55,7 @@ let
     ../root
     ../vine/examples
     ../tests/programs
+    ../tests/aoc_2024
     ../lsp/tree-sitter-vine
   ];
 
