@@ -116,66 +116,14 @@ impl<'ivm> Host<'ivm> {
     ty
   }
 
-  pub fn register_default_extrinsics(
-    &mut self,
-    extrinsics: &mut Extrinsics<'ivm>,
-    args: Vec<String>,
-  ) {
+  pub fn register_default_extrinsics(&mut self, extrinsics: &mut Extrinsics<'ivm>) {
     let n32 = self.register_n32_ext_ty(extrinsics);
     let f32 = self.register_ext_ty::<f32>("F32", extrinsics);
     let f64 = self.register_ext_ty::<f64>("F64", extrinsics);
-    let list = self.register_ext_ty::<ExtList<'ivm>>("LIST", extrinsics);
-    let io = self.register_ext_ty::<()>("IO", extrinsics);
 
     // u64 to/from (lo: u32, hi: u32) halves
     let u64_to_parts = |x: u64| (x as u32, (x >> 32) as u32);
     let u64_from_parts = |lo: u32, hi: u32| ((hi as u64) << 32) | (lo as u64);
-
-    self.register_ext_fn(
-      "list_push",
-      extrinsics.new_merge_ext_fn(move |ivm, l, el, out| {
-        let Some(mut l) = list.unwrap_ext_val(l) else {
-          ivm.flags.ext_generic = true;
-          return;
-        };
-
-        l.push(el);
-
-        ivm.link_wire(out, Port::new_ext_val(list.wrap_ext_val(l)));
-      }),
-    );
-
-    self.register_ext_fn(
-      "list_pop",
-      extrinsics.new_split_ext_fn(move |ivm, l, out0, out1| {
-        let Some(mut l) = list.unwrap_ext_val(l) else {
-          ivm.flags.ext_generic = true;
-          return;
-        };
-
-        let Some(el) = l.pop() else {
-          ivm.flags.ext_generic = true;
-          return;
-        };
-
-        ivm.link_wire(out0, Port::new_ext_val(el));
-        ivm.link_wire(out1, Port::new_ext_val(list.wrap_ext_val(l)));
-      }),
-    );
-
-    self.register_ext_fn(
-      "list_drop",
-      extrinsics.new_split_ext_fn(move |ivm, l, out0, out1| {
-        match list.unwrap_ext_val(l) {
-          Some(l) if !l.is_empty() => ivm.flags.ext_erase = true,
-          None => ivm.flags.ext_generic = true,
-          _ => {}
-        }
-
-        ivm.link_wire(out0, Port::ERASE);
-        ivm.link_wire(out1, Port::ERASE);
-      }),
-    );
 
     register_ext_fns!(match (self, extrinsics) {
       "n32_add" => |a: n32, b: n32| -> n32 { a.wrapping_add(b) },
@@ -245,7 +193,65 @@ impl<'ivm> Host<'ivm> {
       "f64_to_n64" => |f: f64| -> (n32, n32) { u64_to_parts(f as u64) },
       "f64_to_bits" => |f: f64| -> (n32, n32) { u64_to_parts(f.to_bits()) },
       "f64_from_bits" => |lo: n32, hi: n32| -> f64 { f64::from_bits(u64_from_parts(lo, hi)) },
+    });
+  }
 
+  pub fn register_runtime_extrinsics(
+    &mut self,
+    extrinsics: &mut Extrinsics<'ivm>,
+    args: Vec<String>,
+  ) {
+    let n32 = extrinsics.n32_ext_ty();
+    let list = self.register_ext_ty::<ExtList<'ivm>>("LIST", extrinsics);
+    let io = self.register_ext_ty::<()>("IO", extrinsics);
+
+    self.register_ext_fn(
+      "list_push",
+      extrinsics.new_merge_ext_fn(move |ivm, l, el, out| {
+        let Some(mut l) = list.unwrap_ext_val(l) else {
+          ivm.flags.ext_generic = true;
+          return;
+        };
+
+        l.push(el);
+
+        ivm.link_wire(out, Port::new_ext_val(list.wrap_ext_val(l)));
+      }),
+    );
+
+    self.register_ext_fn(
+      "list_pop",
+      extrinsics.new_split_ext_fn(move |ivm, l, out0, out1| {
+        let Some(mut l) = list.unwrap_ext_val(l) else {
+          ivm.flags.ext_generic = true;
+          return;
+        };
+
+        let Some(el) = l.pop() else {
+          ivm.flags.ext_generic = true;
+          return;
+        };
+
+        ivm.link_wire(out0, Port::new_ext_val(el));
+        ivm.link_wire(out1, Port::new_ext_val(list.wrap_ext_val(l)));
+      }),
+    );
+
+    self.register_ext_fn(
+      "list_drop",
+      extrinsics.new_split_ext_fn(move |ivm, l, out0, out1| {
+        match list.unwrap_ext_val(l) {
+          Some(l) if !l.is_empty() => ivm.flags.ext_erase = true,
+          None => ivm.flags.ext_generic = true,
+          _ => {}
+        }
+
+        ivm.link_wire(out0, Port::ERASE);
+        ivm.link_wire(out1, Port::ERASE);
+      }),
+    );
+
+    register_ext_fns!(match (self, extrinsics) {
       "list_new" => |_unused: n32| -> list { ExtList::default() },
       "list_len" => |l: list| -> (n32, list) { (l.len() as u32, l) },
 
