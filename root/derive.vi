@@ -152,3 +152,8 @@ pub enum Variant[I, R] {
 pub trait IfConst[I, T, F] {
   const condition: Bool;
 }
+
+#[builtin = "Opaque"]
+pub trait Opaque[Opaque] {
+  const name: String;
+}

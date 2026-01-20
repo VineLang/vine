@@ -1,7 +1,7 @@
 
 use ops::Cast;
 use data::List as List_;
-use derive::{Enum, IfConst, Object as Object_, Struct, Tuple as Tuple_, Variant};
+use derive::{Enum, IfConst, Object as Object_, Opaque, Struct, Tuple as Tuple_, Variant};
 
 #[builtin = "Show"]
 pub trait Show[T] {
@@ -220,6 +220,13 @@ pub mod Show {
       } else {
         Show::show(unsafe::transmute[&I, &F](&value))
       }
+    }
+  }
+
+  #[basic]
+  pub impl opaque[O; Opaque[O]]: Show[O] {
+    fn show(&_opaque: &O) -> Show {
+      Show::Literal("<{Opaque::name}>")
     }
   }
 }
