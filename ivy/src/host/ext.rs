@@ -1,11 +1,11 @@
 use std::{
   fs::OpenOptions,
-  io::{self, Read, Write},
+  io::{self, ErrorKind, Read, Write},
   ops::{Add, Div, Mul, Sub},
 };
 
 use ivm::{
-  ext::{ExtFile, ExtFn, ExtList, ExtTy, ExtTyCast, ExtTyId, ExtVal, Extrinsics},
+  ext::{ExtFile, ExtFn, ExtIoError, ExtList, ExtTy, ExtTyCast, ExtTyId, ExtVal, Extrinsics},
   port::Port,
 };
 
@@ -217,6 +217,7 @@ impl<'ivm> Host<'ivm> {
     let list = self.register_ext_ty::<ExtList<'ivm>>("LIST", extrinsics);
     let io = self.register_ext_ty::<()>("IO", extrinsics);
     let file = self.register_ext_ty::<ExtFile>("FILE", extrinsics);
+    let io_err = self.register_ext_ty::<ExtIoError>("IO_ERR", extrinsics);
 
     self.register_ext_fn(
       "list_push",
@@ -327,17 +328,32 @@ impl<'ivm> Host<'ivm> {
         let mut res = ExtList::default();
         match open_options.open(path) {
           Ok(f) => {
+            res.push(n32.wrap_ext_val(0));
             res.push(file.wrap_ext_val(f.into()));
           }
           Err(err) => {
-            // TODO: put an accurate error code
             res.push(n32.wrap_ext_val(1));
+            res.push(io_err.wrap_ext_val(err.into()));
           }
         }
         res.push(io.wrap_ext_val(()));
 
         res
       },
+
+      "io_error_code" => |error: io_err| -> (n32, io_err) {
+        match error.kind() {
+          ErrorKind::NotFound => (1, error),
+          ErrorKind::PermissionDenied => (2, error),
+          ErrorKind::AlreadyExists => (3, error),
+          ErrorKind::NotADirectory => (4, error),
+          ErrorKind::IsADirectory => (5, error),
+          ErrorKind::ReadOnlyFilesystem => (6, error),
+          _ => (0, error),
+        }
+      },
+
+      "io_error_drop" => |_error: io_err| {},
 
       "io_read_byte_file" => |params: list| -> list {
         let mut f = file.unwrap_ext_val(params.pop()?)?;

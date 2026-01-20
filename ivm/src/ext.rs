@@ -9,7 +9,7 @@ use core::{
   ops::{Deref, DerefMut},
 };
 
-use std::fs::File;
+use std::{fs::File, io};
 
 use crate::{ivm::IVM, port::Tag, wire::Wire, word::Word};
 
@@ -384,6 +384,45 @@ impl<'ivm> ExtTyCast<'ivm> for ExtFile {
     let ptr = payload.ptr().cast_mut().cast();
     let file = unsafe { Box::from_raw(ptr) };
     Self(file)
+  }
+}
+
+pub struct ExtIoError(Box<Aligned<io::Error>>);
+
+impl From<io::Error> for ExtIoError {
+  fn from(error: io::Error) -> Self {
+    Self(Box::new(Aligned(error)))
+  }
+}
+
+impl Deref for ExtIoError {
+  type Target = io::Error;
+
+  fn deref(&self) -> &Self::Target {
+    &self.0.0
+  }
+}
+
+impl DerefMut for ExtIoError {
+  fn deref_mut(&mut self) -> &mut Self::Target {
+    &mut self.0.0
+  }
+}
+
+impl<'ivm> ExtTyCast<'ivm> for ExtIoError {
+  const COPY: bool = false;
+
+  #[inline(always)]
+  fn into_payload(self) -> Word {
+    let pointer = Box::into_raw(self.0);
+    Word::from_ptr(pointer.cast())
+  }
+
+  #[inline(always)]
+  unsafe fn from_payload(payload: Word) -> Self {
+    let ptr = payload.ptr().cast_mut().cast();
+    let error = unsafe { Box::from_raw(ptr) };
+    Self(error)
   }
 }
 

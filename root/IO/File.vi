@@ -1,14 +1,22 @@
 
-use #root::Ext;
+use #root::{Ext, ops::Cast};
 use #root::Ext::Unknown;
 
 pub type File;
 
 pub mod File {
+  pub impl : Show[File] {
+    fn show(&_self: &File) -> Show {
+      Show::Literal("<File>")
+    }
+  }
+
+  pub impl : Ext[File] = Ext::identity;
+
   /// Opens a file in read-only mode.
   ///
   /// If you need to write or create a file, see [`Options`].
-  pub fn open(&io: &IO, path: String) -> Result[File, N32] {
+  pub fn open(&io: &IO, path: String) -> Result[File, Error] {
     Options::new().read().open(&io, path)
   }
 
@@ -52,12 +60,10 @@ pub mod File {
     }
   }
 
-  pub impl : Ext[File] = Ext::identity;
-
   /// Options which control how a file is opened, stored as a bit set.
   pub struct* Options(N32);
 
-  mod Options {
+  pub mod Options {
     pub impl : Ext[Options];
 
     pub fn new() -> Options {
@@ -79,20 +85,90 @@ pub mod File {
       self
     }
 
-    pub fn .open(&self: &Options, &io: &IO, path: String) -> Result[File, N32] {
+    pub fn .open(&self: &Options, &io: &IO, path: String) -> Result[File, Error] {
       let params = (self, path) as Ext;
       let file: Ext[Unknown];
-      (io, file) = inline_ivy! (params <- params, io <- io) -> Ext[(IO, Ext[Unknown])] {
+      let is_error: Bool;
+      (io, file, is_error) = inline_ivy! (params <- params, io <- io) -> Ext[
+        (IO, Ext[Unknown], Bool);
+      ] {
         res
         io = @io_open_file(params res)
-      } as (
-        _,
-        _,
-      );
+      } as (_, _, _);
 
-      match file.as_n32() {
-        Ok(error) { Err(error) }
-        Err(file) { Ok(unsafe::transmute[Ext[Unknown], Ext[File]](file) as File) }
+      if is_error {
+        Err(unsafe::transmute[Ext[Unknown], ExtError](file) as Error)
+      } else {
+        Ok(unsafe::transmute[Ext[Unknown], Ext[File]](file) as File)
+      }
+    }
+  }
+
+  pub enum? Error {
+    NotFound(),
+    PermissionDenied(),
+    AlreadyExists(),
+    NotADirectory(),
+    IsADirectory(),
+    ReadOnlyFilesystem(),
+    Other(ExtError),
+  }
+
+  pub mod Error {
+    pub impl : Show[Error];
+
+    pub impl : Cast[ExtError, Error] {
+      fn cast(error: ExtError) -> Error {
+        let code = error.code();
+
+        if code == 1 {
+          return Error::NotFound();
+        }
+        if code == 2 {
+          return Error::PermissionDenied();
+        }
+        if code == 3 {
+          return Error::AlreadyExists();
+        }
+        if code == 4 {
+          return Error::NotADirectory();
+        }
+        if code == 5 {
+          return Error::IsADirectory();
+        }
+        if code == 6 {
+          return Error::ReadOnlyFilesystem();
+        }
+
+        return Error::Other(error);
+      }
+    }
+  }
+
+  pub type ExtError;
+
+  pub mod ExtError {
+    pub impl : Ext[ExtError] = Ext::identity;
+
+    pub fn .code(&self: &ExtError) -> N32 {
+      inline_ivy! (self0 <- self, self1 -> self) -> N32 {
+        code
+        self0 = @io_error_code(code self1)
+      }
+    }
+
+    pub impl : Drop[ExtError] {
+      fn drop(self: ExtError) {
+        inline_ivy! (self <- self) -> () {
+          _
+          self = @io_error_drop(_ _)
+        }
+      }
+    }
+
+    pub impl : Show[ExtError] {
+      fn show(&self: &ExtError) -> Show {
+        self.code().show()
       }
     }
   }
