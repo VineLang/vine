@@ -167,10 +167,14 @@ impl Finder<'_> {
   ) {
     if let Some((Inverted(false), TypeKind::Opaque(opaque_type_id, _))) = types.kind(type_params[0])
     {
-      found.push(TypeCtx {
-        types: types.clone(),
-        inner: TirImpl::Synthetic(SyntheticImpl::Opaque(*opaque_type_id)),
-      });
+      let opaque_def_id = self.chart.opaque_types[*opaque_type_id].def;
+
+      if self.chart.visible(VisId::Def(opaque_def_id), self.source) {
+        found.push(TypeCtx {
+          types: types.clone(),
+          inner: TirImpl::Synthetic(SyntheticImpl::Opaque(*opaque_type_id)),
+        });
+      }
     }
   }
 }
