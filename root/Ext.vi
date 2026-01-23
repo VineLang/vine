@@ -1,5 +1,7 @@
 
-use #root::{derive::{Composite, Struct}, ops::Cast, unsafe::transmute};
+use derive::{Composite, Struct};
+use ops::Cast;
+use unsafe::transmute;
 
 /// An extrinsic value logically representing a Vine value of type `T`.
 /// The author of `T` is allowed to decide the representation of this type.
@@ -48,6 +50,18 @@ pub mod Ext {
 
     fn decode(tup: Ext[()]) -> () {
       Ext::drop_list(transmute(tup))
+    }
+  }
+
+  pub impl empty: Ext[{}] {
+    fn encode({}: {}) -> Ext[{}] {
+      transmute(Ext::new_list())
+    }
+
+    fn decode(obj: Ext[{}]) -> {} {
+      Ext::drop_list(transmute(obj));
+
+      {}
     }
   }
 
@@ -106,14 +120,14 @@ pub mod Ext {
 
   pub impl string: Ext[String];
 
-  pub fn new_list[T]() -> Ext[List[T]] {
+  fn new_list[T]() -> Ext[List[T]] {
     inline_ivy! () -> Ext[List[T]] {
       list
       0 = @list_new(_ list)
     }
   }
 
-  pub fn .len[T](&list: &Ext[List[T]]) -> N32 {
+  fn .len[T](&list: &Ext[List[T]]) -> N32 {
     inline_ivy! (list0 <- list, list1 -> list) -> N32 {
       len
       list0 = @list_len(len list1)
@@ -121,14 +135,14 @@ pub mod Ext {
   }
 
   // TODO: mark unsafe
-  pub fn drop_list[T](list: Ext[List[T]]) {
+  fn drop_list[T](list: Ext[List[T]]) {
     inline_ivy! (list <- list) -> () {
       _
       list = @list_drop(_ _)
     }
   }
 
-  pub fn .push[T](&self: &Ext[List[T]], t: Ext[T]) {
+  fn .push[T](&self: &Ext[List[T]], t: Ext[T]) {
     inline_ivy! (list0 <- self, t <- t, list1 -> self) -> () {
       _
       list0 = @list_push(t list1)
@@ -136,7 +150,7 @@ pub mod Ext {
   }
 
   // TODO: mark unsafe
-  pub fn .pop[T](&self: &Ext[List[T]]) -> Ext[T] {
+  fn .pop[T](&self: &Ext[List[T]]) -> Ext[T] {
     inline_ivy! (list0 <- self, list1 -> self) -> Ext[T] {
       t
       list0 = @list_pop(t list1)

@@ -290,9 +290,7 @@ fn run_iv(
   if breadth_first {
     args.push("--breadth-first");
   }
-  if !extra_args.is_empty() {
-    args.extend(extra_args.iter());
-  }
+  args.extend(extra_args.iter());
   let (stdout, stderr) = exec(IVY, &args, input, !error);
   test_snapshot(&[group, name, &format!("output{output_ext}")], &stdout);
   let full_stats = String::from_utf8(stderr).unwrap();

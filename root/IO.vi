@@ -152,15 +152,15 @@ pub mod IO {
   ///   io.println("args: {args.show()}");
   /// }
   ///
-  /// // > vine run example.vi -- some cli args
-  /// // ["some", "cli", "args"]
+  /// // vine run example.vi -- some cli args
+  /// // args: ["some", "cli", "args"]
   /// ```
   pub fn .args(&io: &IO) -> List[String] {
-    inline_ivy! (io0 <- io, io1 -> io) -> Ext[List[String]] {
+    let args = inline_ivy! (io0 <- io, io1 -> io) -> Ext[List[String]] {
       args
       io0 = @io_args(args io1)
-    } as List[
-      String;
-    ]
+    };
+
+    args as List[String]
   }
 }
