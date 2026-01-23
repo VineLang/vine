@@ -3,9 +3,11 @@ use vine_util::parser::Parse;
 use crate::{
   components::{
     charter::{ChartedItem, Charter},
+    finder::Finder,
     lexer::Token,
     parser::Parser,
     resolver::Resolver,
+    synthesizer::SyntheticImpl,
   },
   structures::{
     ast::{ItemKind, Path, Span, TypeItem},
@@ -14,7 +16,8 @@ use crate::{
     },
     diag::Diag,
     signatures::{TypeAliasSig, TypeAliasState},
-    types::{Type, TypeKind},
+    tir::TirImpl,
+    types::{Inverted, Type, TypeCtx, TypeKind, Types},
   },
   tools::fmt::{Formatter, doc::Doc},
 };
@@ -152,5 +155,26 @@ impl Resolver<'_> {
     let generics_id = self.chart.opaque_types[opaque_id].generics;
     let (type_params, _) = self.resolve_generics(path, generics_id, inference);
     self.types.new(TypeKind::Opaque(opaque_id, type_params))
+  }
+}
+
+impl Finder<'_> {
+  pub(crate) fn find_auto_impls_opaque(
+    &mut self,
+    type_params: &[Type],
+    types: &Types,
+    found: &mut Vec<TypeCtx<TirImpl>>,
+  ) {
+    if let Some((Inverted(false), TypeKind::Opaque(opaque_type_id, _))) = types.kind(type_params[0])
+    {
+      let opaque_def_id = self.chart.opaque_types[*opaque_type_id].def;
+
+      if self.chart.visible(VisId::Def(opaque_def_id), self.source) {
+        found.push(TypeCtx {
+          types: types.clone(),
+          inner: TirImpl::Synthetic(SyntheticImpl::Opaque(*opaque_type_id)),
+        });
+      }
+    }
   }
 }

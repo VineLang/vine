@@ -8,8 +8,8 @@ use crate::{
   structures::{
     ast::{Ident, Span},
     chart::{
-      Chart, ConcreteConstId, ConstId, EnumId, FnId, StructId, TraitConstId, TraitFnId, TraitId,
-      VariantId,
+      Chart, ConcreteConstId, ConstId, EnumId, FnId, OpaqueTypeId, StructId, TraitConstId,
+      TraitFnId, TraitId, VariantId,
     },
     resolutions::{ConstRelId, FnRel, FnRelId, Rels},
     signatures::Signatures,
@@ -27,6 +27,7 @@ pub enum SyntheticImpl {
   Struct(StructId),
   Enum(EnumId),
   IfConst(ConcreteConstId),
+  Opaque(OpaqueTypeId),
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -422,12 +423,16 @@ impl SyntheticImpl {
         TraitFnId(1) => SyntheticItem::EnumReconstruct(enum_id),
         _ => unreachable!(),
       },
-      SyntheticImpl::IfConst(_) => unreachable!(),
+      SyntheticImpl::Opaque(_) | SyntheticImpl::IfConst(_) => unreachable!(),
     }
   }
 
   pub fn const_(self, chart: &Chart, const_id: TraitConstId) -> SyntheticItem {
     match self {
+      SyntheticImpl::Opaque(opaque_ty_id) => match const_id {
+        TraitConstId(0) => SyntheticItem::Ident(chart.opaque_types[opaque_ty_id].name.clone()),
+        _ => unreachable!(),
+      },
       SyntheticImpl::Tuple(_) => unreachable!(),
       SyntheticImpl::Object(key, _) => match const_id {
         TraitConstId(0) => SyntheticItem::Ident(key),

@@ -252,6 +252,7 @@ impl Builtins {
       enum_,
       variant,
       if_const,
+      opaque,
       debug_state,
       show,
       show_to_string,
@@ -293,6 +294,7 @@ impl Builtins {
     revert_idx(enum_, checkpoint.traits);
     revert_idx(variant, checkpoint.enums);
     revert_idx(if_const, checkpoint.traits);
+    revert_idx(opaque, checkpoint.traits);
     revert_fn(debug_state, checkpoint);
     revert_idx(show, checkpoint.traits);
     revert_fn(show_to_string, checkpoint);
