@@ -9,6 +9,9 @@ Interactions
   Call                 2_786
   Branch               1_157
 
+
+Max Len                   66
+
 Parallelism
   Depth                6_901
   Breadth                  4

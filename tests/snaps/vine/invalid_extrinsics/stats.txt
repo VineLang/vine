@@ -15,6 +15,9 @@ Interactions
   Call                     1
   Branch                   0
 
+
+Max Len                    2
+
 Parallelism
   Depth                   23
   Breadth                  3

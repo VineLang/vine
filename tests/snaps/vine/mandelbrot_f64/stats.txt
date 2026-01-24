@@ -9,6 +9,9 @@ Interactions
   Call             6_411_505
   Branch             270_042
 
+
+Max Len                    2
+
 Memory
   Heap                 1_552 B
   Allocated      205_642_400 B
