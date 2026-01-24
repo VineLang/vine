@@ -64,7 +64,7 @@ impl<'ivm, 'ext> IVM<'ivm, 'ext> {
   /// Link two_wires.
   #[inline(always)]
   pub fn link_wire_wire(&mut self, a: Wire<'ivm>, b: Wire<'ivm>) {
-    self.link_wire(a, Port::new_wire(b));
+    self.link_wire(b, Port::new_wire(a));
   }
 
   /// Follows as many `Wire`s with active targets as currently possible.

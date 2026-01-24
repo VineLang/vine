@@ -10,9 +10,9 @@ Interactions
   Branch             472_286
 
 
-Max Len                    4
+Max Len                   89
 
 Memory
-  Heap             1_011_904 B
-  Allocated      198_101_312 B
-  Freed          198_101_312 B
+  Heap               995_776 B
+  Allocated      198_449_392 B
+  Freed          198_449_392 B
