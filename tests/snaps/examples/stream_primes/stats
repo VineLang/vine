@@ -10,14 +10,14 @@ Interactions
   Branch          11_584_798
 
 
-Max Len                    9
+Max Len                4_939
 
 Parallelism
-  Depth              369_076
-  Breadth                471
+  Depth              374_168
+  Breadth                464
   Speedup                267 cB
 
 Memory
-  Heap               199_888 B
-  Allocated    3_337_173_584 B
-  Freed        3_337_173_584 B
+  Heap               301_744 B
+  Allocated    3_337_125_568 B
+  Freed        3_337_125_568 B

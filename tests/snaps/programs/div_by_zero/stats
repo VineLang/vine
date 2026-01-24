@@ -14,9 +14,9 @@ Interactions
   Branch                  59
 
 
-Max Len                   49
+Max Len                   50
 
 Memory
-  Heap                 4_736 B
-  Allocated           42_384 B
-  Freed               42_384 B
+  Heap                 6_528 B
+  Allocated           42_224 B
+  Freed               42_224 B

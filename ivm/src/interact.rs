@@ -1,3 +1,5 @@
+use std::hash::{BuildHasher, RandomState};
+
 use crate::{
   ivm::IVM,
   port::{Port, PortRef, Tag},
@@ -36,7 +38,10 @@ impl<'ivm, 'ext> IVM<'ivm, 'ext> {
   }
 
   /// Link a wire and a port.
-  pub fn link_wire(&mut self, mut a: Wire<'ivm>, b: Port<'ivm>) {
+  pub fn link_wire(&mut self, mut a: Wire<'ivm>, mut b: Port<'ivm>) {
+    if b.tag() == Tag::Wire && RandomState::new().hash_one(()) % 2 == 1 {
+      (a, b) = (unsafe { b.as_wire() }, Port::new_wire(a))
+    }
     let b = self.follow(b);
     let mut len = 0;
     loop {

@@ -10,9 +10,9 @@ Interactions
   Branch             270_042
 
 
-Max Len                    2
+Max Len                   27
 
 Memory
-  Heap                 1_552 B
-  Allocated      205_642_400 B
-  Freed          205_642_400 B
+  Heap                 2_048 B
+  Allocated      209_420_704 B
+  Freed          209_420_704 B

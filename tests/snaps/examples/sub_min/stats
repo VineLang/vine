@@ -10,9 +10,9 @@ Interactions
   Branch                  55
 
 
-Max Len                    4
+Max Len                   14
 
 Memory
-  Heap                 2_832 B
-  Allocated           25_152 B
-  Freed               25_152 B
+  Heap                 2_992 B
+  Allocated           25_168 B
+  Freed               25_168 B

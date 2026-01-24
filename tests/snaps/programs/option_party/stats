@@ -14,9 +14,9 @@ Interactions
   Branch                 606
 
 
-Max Len                  430
+Max Len                  344
 
 Memory
-  Heap                37_040 B
-  Allocated          458_448 B
-  Freed              458_448 B
+  Heap                31_712 B
+  Allocated          455_648 B
+  Freed              455_648 B
