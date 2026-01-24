@@ -9,6 +9,9 @@ Interactions
   Call                    22
   Branch                   7
 
+
+Max Len                    3
+
 Memory
   Heap                   704 B
   Allocated            4_832 B

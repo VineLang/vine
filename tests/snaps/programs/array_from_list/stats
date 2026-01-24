@@ -9,6 +9,9 @@ Interactions
   Call             7_000_176
   Branch           3_000_080
 
+
+Max Len                   20
+
 Memory
   Heap           240_003_360 B
   Allocated    1_024_024_112 B
