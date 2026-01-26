@@ -37,7 +37,7 @@ impl<'ivm, 'ext> IVM<'ivm, 'ext> {
 
   /// Link a wire and a port.
   pub fn link_wire(&mut self, mut a: Wire<'ivm>, b: Port<'ivm>) {
-    let b = self.follow(b);
+    // let b = self.follow(b);
     let mut len = 0;
     loop {
       if unsafe { Port::new_wire(a.clone()).bits() == b.bits() } {

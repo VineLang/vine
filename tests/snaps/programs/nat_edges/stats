@@ -10,9 +10,9 @@ Interactions
   Branch          13_745_734
 
 
-Max Len                    5
+Max Len                  360
 
 Memory
-  Heap             8_930_096 B
-  Allocated    6_156_399_280 B
-  Freed        6_156_399_280 B
+  Heap            11_953_088 B
+  Allocated    6_156_419_200 B
+  Freed        6_156_419_200 B

@@ -1,4 +1,6 @@
 
+Error: the net created a vicious circle
+
 Interactions
   Total                   19
   Annihilate               9
@@ -10,9 +12,9 @@ Interactions
   Branch                   0
 
 
-Max Len                    2
+Max Len                    4
 
 Memory
   Heap                   176 B
   Allocated              288 B
-  Freed                  288 B
+  Freed                  272 B

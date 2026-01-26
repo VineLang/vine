@@ -10,9 +10,9 @@ Interactions
   Branch                 576
 
 
-Max Len                    3
+Max Len                  128
 
 Memory
-  Heap                 8_464 B
-  Allocated          283_616 B
-  Freed              283_616 B
+  Heap                11_600 B
+  Allocated          284_144 B
+  Freed              284_144 B
