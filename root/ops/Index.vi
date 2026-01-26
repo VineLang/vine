@@ -1,0 +1,36 @@
+
+#[builtin = "Index"]
+pub trait Index[T, K, V] {}
+
+#[builtin = "IndexValue"]
+pub trait IndexValue[T, K, V] {
+  fn .assume_get(self: &T, key: K) -> V;
+}
+
+pub mod IndexValue {
+  #[basic]
+  pub impl by_place[T, K, V+; IndexPlace[T, K, V]]: IndexValue[T, K, V] {
+    fn assume_get(&self: &T, key: K) -> V {
+      *self.assume_at(key)
+    }
+  }
+}
+
+#[builtin = "IndexSpace"]
+pub trait IndexSpace[T, K, V] {
+  fn .assume_set(self: &T, key: K, value: V);
+}
+
+pub mod IndexSpace {
+  #[basic]
+  pub impl by_place[T, K, V?; IndexPlace[T, K, V]]: IndexSpace[T, K, V] {
+    fn assume_set(&self: &T, key: K, value: V) {
+      *self.assume_at(key) = value;
+    }
+  }
+}
+
+#[builtin = "IndexPlace"]
+pub trait IndexPlace[T, K, V] {
+  fn .assume_at(self: &T, key: K) -> &V;
+}

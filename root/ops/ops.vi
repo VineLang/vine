@@ -4,6 +4,7 @@ pub mod bitwise;
 pub mod comparison;
 pub mod elementwise;
 pub mod flex;
+pub mod Index;
 pub mod Range;
 
 pub trait Concat[A, B, O] {
