@@ -202,7 +202,7 @@ impl<'ivm> Host<'ivm> {
     args: Vec<String>,
   ) {
     let n32 = extrinsics.n32_ext_ty();
-    let list = self.register_ext_ty::<ExtList<'ivm>>("LIST", extrinsics);
+    let list = self.register_ext_ty::<ExtList<'ivm>>("List", extrinsics);
     let io = self.register_ext_ty::<()>("IO", extrinsics);
 
     self.register_ext_fn(

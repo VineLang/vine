@@ -44,7 +44,7 @@ pub mod Ext {
   pub impl io: Ext[IO] = Ext::identity;
 
   pub impl nil: Ext[()] {
-    fn encode((): ()) -> Ext[()] {
+    fn encode(()) -> Ext[()] {
       transmute(Ext::new_list())
     }
 
@@ -54,7 +54,7 @@ pub mod Ext {
   }
 
   pub impl empty: Ext[{}] {
-    fn encode({}: {}) -> Ext[{}] {
+    fn encode({}) -> Ext[{}] {
       transmute(Ext::new_list())
     }
 

@@ -140,11 +140,10 @@ pub mod IO {
     }
   }
 
-  /// Returns the command-line arguments that vine was executed with.
+  /// Returns the command-line arguments that Vine was executed with.
   ///
-  /// Unlike most other programming languages, the first argument _is not_ a
-  /// path to the binary being executed, it is the first argument provided to
-  /// the vine binary.
+  /// Unlike many other programming languages, the first argument _is not_ a
+  /// path to the binary being executed; it is an argument like any other.
   /// ```vi
   /// // example.vi
   /// pub fn main(&io: &IO) {
