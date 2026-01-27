@@ -1,4 +1,6 @@
 
+use #root::Ext;
+
 /// A special primitive type used to interact with the outside world.
 /// Values of this type cannot be explicitly constructed; instead,
 /// an IO handle is passed in to `main` at the start of the program.
@@ -136,5 +138,28 @@ pub mod IO {
       signal
       io0 = @io_ready(signal io1)
     }
+  }
+
+  /// Returns the command-line arguments that Vine was executed with.
+  ///
+  /// Unlike many other programming languages, the first argument _is not_ a
+  /// path to the binary being executed; it is an argument like any other.
+  /// ```vi
+  /// // example.vi
+  /// pub fn main(&io: &IO) {
+  ///   let args = io.args();
+  ///   io.println("args: {args.show()}");
+  /// }
+  ///
+  /// // vine run example.vi -- some cli args
+  /// // args: ["some", "cli", "args"]
+  /// ```
+  pub fn .args(&io: &IO) -> List[String] {
+    let args = inline_ivy! (io0 <- io, io1 -> io) -> Ext[List[String]] {
+      args
+      io0 = @io_args(args io1)
+    };
+
+    args as List[String]
   }
 }

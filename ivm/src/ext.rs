@@ -183,8 +183,15 @@ impl<'ivm> Debug for ExtVal<'ivm> {
   }
 }
 
-#[derive(Clone, Copy)]
 pub struct ExtTy<'ivm, T>(ExtTyId<'ivm>, PhantomData<fn(T) -> T>);
+
+impl<'ivm, T> Clone for ExtTy<'ivm, T> {
+  fn clone(&self) -> Self {
+    *self
+  }
+}
+
+impl<'ivm, T> Copy for ExtTy<'ivm, T> {}
 
 impl<'ivm, T> ExtTy<'ivm, T> {
   pub fn new_unchecked(ty_id: ExtTyId<'ivm>) -> Self {
@@ -267,6 +274,7 @@ impl<'ivm> ExtTyCast<'ivm> for f32 {
   }
 }
 
+#[derive(Default)]
 #[repr(align(8))]
 pub struct Aligned<T>(T);
 
@@ -284,6 +292,52 @@ impl<'ivm> ExtTyCast<'ivm> for f64 {
     let ptr = payload.ptr().cast_mut().cast();
     let Aligned(f) = unsafe { *Box::from_raw(ptr) };
     f
+  }
+}
+
+#[derive(Default)]
+pub struct ExtList<'ivm> {
+  values: Box<Aligned<Vec<ExtVal<'ivm>>>>,
+}
+
+impl<'ivm> ExtList<'ivm> {
+  pub fn is_empty(&self) -> bool {
+    self.len() == 0
+  }
+
+  pub fn len(&self) -> usize {
+    self.values.0.len()
+  }
+
+  pub fn push(&mut self, value: ExtVal<'ivm>) {
+    self.values.0.push(value);
+  }
+
+  pub fn pop(&mut self) -> Option<ExtVal<'ivm>> {
+    self.values.0.pop()
+  }
+}
+
+impl<'ivm> From<Vec<ExtVal<'ivm>>> for ExtList<'ivm> {
+  fn from(values: Vec<ExtVal<'ivm>>) -> Self {
+    Self { values: Box::new(Aligned(values)) }
+  }
+}
+
+impl<'ivm> ExtTyCast<'ivm> for ExtList<'ivm> {
+  const COPY: bool = false;
+
+  #[inline(always)]
+  fn into_payload(self) -> Word {
+    let pointer = Box::into_raw(self.values);
+    Word::from_ptr(pointer.cast())
+  }
+
+  #[inline(always)]
+  unsafe fn from_payload(payload: Word) -> Self {
+    let ptr = payload.ptr().cast_mut().cast();
+    let values = unsafe { Box::from_raw(ptr) };
+    Self { values }
   }
 }
 

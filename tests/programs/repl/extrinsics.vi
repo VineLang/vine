@@ -1,0 +1,7 @@
+use #root::Ext
+12345[N32] as Ext[N32] as N32
+1.234[F32] as Ext[F32] as F32
+1.234[F64] as Ext[F64] as F64
+"abcd" as Ext[String] as String
+(123, 1.23[F32], 4.56[F64], "hello") as Ext as (_, _, _, _)
+{a: 123, b: 1.23[F32], c: 4.56[F64], d: "hello"} as Ext as {a: _, b: _, c: _, d: _}
