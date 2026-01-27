@@ -36,7 +36,6 @@ pub unsafe fn duplicate[T](&value: &T) -> T {
   }
 }
 
-#[manual]
 #[builtin = "duplicate"]
 pub unsafe impl duplicate[T]: Fork[T] {
   unsafe fn fork(&self: &T) -> T {
@@ -50,7 +49,6 @@ pub unsafe fn erase[T](value: T) {
   ~eraser = value;
 }
 
-#[manual]
 #[builtin = "erase"]
 pub unsafe impl erase[T]: Drop[T] {
   unsafe fn drop(self: T) {
@@ -66,7 +64,6 @@ pub unsafe fn transmute[C, T](value: C) -> T {
   inline_ivy! (value <- value) -> T { value }
 }
 
-#[manual]
 pub unsafe impl transmute[C, T]: Cast[C, T] {
   unsafe fn cast(value: C) -> T {
     transmute(value)
