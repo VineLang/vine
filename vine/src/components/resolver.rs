@@ -281,6 +281,9 @@ impl<'a> Resolver<'a> {
     {
       Err(Diag::GenericEntrypoint { span })?
     }
+    if fn_def.unsafe_ {
+      Err(Diag::UnsafeEntrypoint { span })?
+    }
     let io = self.builtin_ty(span, "IO", self.chart.builtins.io);
     let io_ref = self.types.new(TypeKind::Ref(io));
     let nil = self.types.nil();

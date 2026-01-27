@@ -347,7 +347,7 @@ impl Resolver<'_> {
       ImplType::Trait(trait_id, type_params) => {
         let kind = match &impl_def.kind {
           ImplDefKind::Direct(safe, _, subitems) => {
-            if self.chart.traits[*trait_id].unsafe_ && !safe {
+            if self.chart.traits[*trait_id].unsafe_ && !safe && !impl_def.unsafe_ {
               self.diags.error(Diag::Unsafe { span });
             }
             let fns = IdxVec::from_iter(self.sigs.traits[*trait_id].fns.keys().map(|fn_id| {

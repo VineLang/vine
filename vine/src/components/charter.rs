@@ -130,7 +130,7 @@ impl Charter<'_> {
       }
 
       ItemKind::Trait(trait_item) => {
-        self.chart_trait(parent, parent_generics, span, vis, member_vis, trait_item)
+        self.chart_trait(parent, parent_generics, span, vis, member_vis, item.unsafe_, trait_item)
       }
 
       ItemKind::Impl(impl_item) => {

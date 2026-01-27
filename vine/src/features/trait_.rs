@@ -55,6 +55,7 @@ impl Charter<'_> {
     span: Span,
     vis: VisId,
     member_vis: VisId,
+    unsafe_: bool,
     trait_item: TraitItem,
   ) -> ChartedItem {
     let def = self.chart_child(parent, span, trait_item.name.clone(), member_vis, true);
@@ -65,13 +66,26 @@ impl Charter<'_> {
     for subitem in trait_item.items {
       let span = subitem.name_span;
       let attrs = subitem.attrs;
-      let unsafe_ = subitem.unsafe_;
+      let subitem_unsafe = subitem.unsafe_;
       if !matches!(subitem.vis, Vis::Private) {
         self.diags.error(Diag::TraitItemVis { span });
       }
+      if !unsafe_ && subitem_unsafe {
+        self.diags.error(Diag::UnsafeItemInSafeTrait { span: subitem.span });
+      }
       match subitem.kind {
         ItemKind::Fn(item) => {
-          self.chart_trait_fn(vis, def, trait_id, generics, &mut fns, span, attrs, unsafe_, item);
+          self.chart_trait_fn(
+            vis,
+            def,
+            trait_id,
+            generics,
+            &mut fns,
+            span,
+            attrs,
+            subitem_unsafe,
+            item,
+          );
         }
         ItemKind::Const(item) => {
           self.chart_trait_const(
@@ -82,7 +96,7 @@ impl Charter<'_> {
             &mut consts,
             span,
             attrs,
-            unsafe_,
+            subitem_unsafe,
             item,
           );
         }
@@ -91,8 +105,7 @@ impl Charter<'_> {
         }
       }
     }
-    let trait_ =
-      TraitDef { span, def, name: trait_item.name, generics, consts, fns, unsafe_: false };
+    let trait_ = TraitDef { span, def, name: trait_item.name, generics, consts, fns, unsafe_ };
     self.chart.traits.push_to(trait_id, trait_);
     self.define_trait(span, def, vis, DefTraitKind::Trait(trait_id));
     ChartedItem::Trait(def, trait_id)

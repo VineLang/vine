@@ -249,6 +249,8 @@ diags! {
     ["expected a value of type `{ty}` to evaluate to"]
   GenericEntrypoint
     ["entrypoint cannot be generic"]
+  UnsafeEntrypoint
+    ["entrypoint cannot be unsafe"]
   InfiniteLoop
     ["unconditional infinite loops are invalid"]
   NonExhaustiveMatch
@@ -313,6 +315,8 @@ diags! {
    ["this is unsafe"]
   ImplExpectedSafe { kind: &'static str }
     ["expected a safe {kind}"]
+  UnsafeItemInSafeTrait
+    ["unsafe items can only exist in unsafe traits"]
 }
 
 fn plural<'a>(n: usize, plural: &'a str, singular: &'a str) -> &'a str {
