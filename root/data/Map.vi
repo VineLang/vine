@@ -1,6 +1,6 @@
 
 use data::Iterator::{Iterator, Collect};
-use ops::{Cast, Concat, comparison::Ord};
+use ops::{Cast, Concat, Index::{Index, IndexPlace, IndexSpace, IndexValue}, comparison::Ord};
 
 pub struct* Map[K, V](Set[(K, V)]);
 
@@ -106,6 +106,32 @@ pub mod Map[K, V; Ord[K]] {
         (k, new_val)
       },
     ))
+  }
+
+  pub impl index[K, V]: Index[Map[K, V], K, V] {}
+
+  pub impl index_value[K?, V+; Ord[K]]: IndexValue[Map[K, V], K, V];
+
+  pub impl index_place[K?, V; Ord[K]]: IndexPlace[Map[K, V], K, V] {
+    fn assume_at(&self: &Map[K, V], key: K) -> &V {
+      self.at(&key).assume()
+    }
+  }
+
+  pub impl index_space[K?, V?; Ord[K]]: IndexSpace[Map[K, V], K, V] {
+    fn assume_set(&self: &Map[K, V], key: K, value: V) {
+      self.insert(key, value);
+    }
+  }
+
+  pub impl index_ref[K, V]: Index[Map[K, V], &K, V] {}
+
+  pub impl index_value_ref[K+, V+; Ord[K]]: IndexValue[Map[K, V], &K, V];
+
+  pub impl index_place_ref[K, V; Ord[K]]: IndexPlace[Map[K, V], &K, V] {
+    fn assume_at(&self: &Map[K, V], &key: &K) -> &V {
+      self.at(&key).assume()
+    }
   }
 
   pub impl iter_ref[...]: Cast[&Map[K, V], IterRef[K, V]] {

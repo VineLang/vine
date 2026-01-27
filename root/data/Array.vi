@@ -1,5 +1,5 @@
 
-use ops::{Cast, comparison::Eq};
+use ops::{Cast, Index::{Index, IndexPlace, IndexSpace, IndexValue}, comparison::Eq};
 
 /// A contiguous, indexed collection of `T`.
 ///
@@ -432,6 +432,18 @@ pub mod Array {
       Show::Constructor("Array", self.&.as[&List].*.show())
     }
   }
+
+  pub impl [T]: Index[Array[T], N32, T] {}
+
+  pub impl [T]: IndexPlace[Array[T], N32, T] {
+    fn assume_at(&self: &Array[T], index: N32) -> &T {
+      self.at(index).assume()
+    }
+  }
+
+  pub impl [T?]: IndexSpace[Array[T], N32, T];
+
+  pub impl [T+]: IndexValue[Array[T], N32, T];
 }
 
 /// The internal tree structure of an array.
