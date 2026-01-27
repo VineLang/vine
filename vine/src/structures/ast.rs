@@ -8,7 +8,9 @@ use ivy::ast::Net;
 use vine_util::{idx, nat::Nat};
 
 use crate::{
-  components::loader::FileId, features::builtin::Builtin, structures::diag::ErrorGuaranteed,
+  components::{lexer::is_ident, loader::FileId},
+  features::builtin::Builtin,
+  structures::diag::ErrorGuaranteed,
 };
 
 pub mod visit;
@@ -99,7 +101,7 @@ pub struct ModItem {
 #[derive(Debug, Clone)]
 pub enum ModKind {
   Loaded(Span, Option<FileId>, Vec<Item>),
-  Unloaded(Span, Option<String>),
+  Unloaded,
   Error(ErrorGuaranteed),
 }
 
@@ -541,6 +543,12 @@ impl ComparisonOp {
 
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Ident(pub String);
+
+impl Ident {
+  pub fn new(str: &str) -> Option<Ident> {
+    is_ident(str).then(|| Ident(str.to_owned()))
+  }
+}
 
 #[derive(Debug, Clone)]
 pub struct Key {

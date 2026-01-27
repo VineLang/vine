@@ -1,31 +1,31 @@
 use std::{
   env::current_dir,
-  fs, io,
-  mem::take,
+  fs,
   path::{Path, PathBuf},
-  str,
 };
 
 use vine_util::{idx::IdxVec, new_idx};
 
 use crate::{
+  compiler::Compiler,
   components::parser::Parser,
   structures::{
     ast::{
       Ident, Item, ItemKind, ModKind, Span,
       visit::{VisitMut, Visitee},
     },
-    checkpoint::Checkpoint,
     diag::{Diag, Diags, FileInfo},
   },
 };
 
 new_idx!(pub FileId);
 
-pub struct Loader {
-  cwd: PathBuf,
-  modules: Vec<Module>,
-  pub files: IdxVec<FileId, FileInfo>,
+pub struct Loader<'a, F: FS> {
+  fs: &'a mut F,
+  file_paths: Option<&'a mut IdxVec<FileId, F::Path>>,
+  files: &'a mut IdxVec<FileId, FileInfo>,
+  loaded: &'a mut Vec<Module>,
+  diags: &'a mut Diags,
 }
 
 pub struct Module {
@@ -34,161 +34,187 @@ pub struct Module {
   pub kind: ModKind,
 }
 
-impl Default for Loader {
-  fn default() -> Self {
-    Self { cwd: current_dir().unwrap(), modules: Vec::new(), files: Default::default() }
-  }
-}
-
-impl Loader {
-  pub fn finish(&mut self) -> Vec<Module> {
-    take(&mut self.modules)
-  }
-
-  pub fn load_main_mod(&mut self, path: &Path, diags: &mut Diags) {
-    self._load_mod(path, diags, true);
-  }
-
-  pub fn load_mod(&mut self, path: &Path, diags: &mut Diags) {
-    self._load_mod(path, diags, false);
-  }
-
-  fn _load_mod(&mut self, path: &Path, diags: &mut Diags, main: bool) {
-    let name = self.auto_mod_name(path);
-    let kind = self.load_file(None, ModSpec::Explicit(path), Span::NONE, diags);
-    self.modules.push(Module { name, main, kind });
-  }
-
-  fn auto_mod_name(&self, path: &Path) -> Ident {
-    Ident(str::from_utf8(path.file_stem().unwrap().as_encoded_bytes()).unwrap().into())
-  }
-
-  pub(crate) fn add_file(&mut self, path: Option<PathBuf>, name: String, src: String) -> FileId {
-    self.files.push(FileInfo::new(path, name, src))
-  }
-
-  fn load_file(
-    &mut self,
-    base: Option<&Path>,
-    spec: ModSpec<'_>,
-    span: Span,
-    diags: &mut Diags,
-  ) -> ModKind {
-    match self._load_file(base, spec, span, diags) {
-      Ok(mod_) => mod_,
-      Err(diag) => ModKind::Error(diags.error(diag)),
+impl<'a, F: FS> Loader<'a, F> {
+  pub fn new(
+    compiler: &'a mut Compiler,
+    fs: &'a mut F,
+    file_paths: Option<&'a mut IdxVec<FileId, F::Path>>,
+  ) -> Self {
+    Loader {
+      fs,
+      file_paths,
+      files: &mut compiler.files,
+      loaded: &mut compiler.loaded,
+      diags: &mut compiler.diags,
     }
   }
 
-  fn _load_file(
-    &mut self,
-    base: Option<&Path>,
-    spec: ModSpec<'_>,
-    span: Span,
-    diags: &mut Diags,
-  ) -> Result<ModKind, Diag> {
-    let (file, path) = match (base, spec) {
-      (None, ModSpec::Explicit(path)) => {
-        let mut path = path.to_owned();
-        (self.read_file(&mut path, span)?, path)
+  pub fn load_main_mod(&mut self, name: Ident, path: F::Path) {
+    self._load_mod(name, path, true);
+  }
+
+  pub fn load_mod(&mut self, name: Ident, path: F::Path) {
+    self._load_mod(name, path, false);
+  }
+
+  fn _load_mod(&mut self, name: Ident, path: F::Path, main: bool) {
+    let kind = match self.fs.kind(&path) {
+      Some(EntryKind::File) => self.load_file(Span::NONE, path, None),
+      Some(EntryKind::Dir) => self.load_dir(Span::NONE, &name, path),
+      None => {
+        let path = self.fs.display(&path);
+        self.error_mod(Diag::CannotRead { span: Span::NONE, path })
       }
-      (Some(base), ModSpec::Explicit(path)) => {
-        let mut path = base.parent().unwrap().join(path);
-        (self.read_file(&mut path, span)?, path)
-      }
-      (Some(base), ModSpec::Implicit(name)) => {
-        if !implicit_path_valid(base) {
-          Err(Diag::DisallowedImplicitMod { span })?
-        }
-        let mut path_1 = base.parent().unwrap().join(format!("{name}.vi"));
-        let mut path_2 = base.parent().unwrap().join(format!("{name}/{name}.vi"));
-        match (self.read_file(&mut path_1, span), self.read_file(&mut path_2, span)) {
-          (Ok(_), Ok(_)) => Err(Diag::AmbiguousImplicitMod { span, name })?,
-          (Ok(info), Err(_)) => (info, path_1),
-          (Err(_), Ok(info)) => (info, path_2),
-          (Err(diag_1), Err(diag_2)) => {
-            let err = diags.error(diag_1);
-            diags.error(diag_2);
-            Err(err)?
-          }
-        }
-      }
-      (None, ModSpec::Implicit(_)) => unreachable!(),
     };
+    self.loaded.push(Module { name, main, kind });
+  }
 
-    let src = &self.files[file].src;
-    let mut items = Parser::parse(file, src)?;
+  fn load_file(&mut self, span: Span, path: F::Path, base: Option<&F::Path>) -> ModKind {
+    let Some(src) = self.fs.read_file(&path) else {
+      let diag = Diag::CannotRead { span, path: self.fs.display(&path) };
+      return self.error_mod(diag);
+    };
+    let file = self.files.next_index();
+    let parse_result = Parser::parse(file, &src);
     let span = Span { file, start: 0, end: src.len() };
-    self.load_deps(&path, &mut items, diags);
-    Ok(ModKind::Loaded(span, Some(file), items))
+    self.files.push_to(file, FileInfo::new(self.fs.display(&path), src));
+    let mut items = match parse_result {
+      Ok(items) => items,
+      Err(diag) => return self.error_mod(diag),
+    };
+    if let Some(file_paths) = &mut self.file_paths {
+      file_paths.push_to(file, path);
+    }
+    self.load_children(base, &mut items);
+    ModKind::Loaded(span, Some(file), items)
   }
 
-  fn read_file(&mut self, path: &mut PathBuf, span: Span) -> Result<FileId, Diag> {
-    self._read_file(path).map_err(|err| Diag::FsError {
-      span,
-      path: path.strip_prefix(&self.cwd).unwrap_or(&*path).to_owned(),
-      err,
-    })
+  fn error_mod(&mut self, diag: Diag) -> ModKind {
+    ModKind::Error(self.diags.error(diag))
   }
 
-  fn _read_file(&mut self, path: &mut PathBuf) -> Result<FileId, io::Error> {
-    let src = fs::read_to_string(&*path)?;
-    *path = path.canonicalize()?;
-    let name = path.strip_prefix(&self.cwd).unwrap_or(path).display().to_string();
-    Ok(self.add_file(Some(path.clone()), name, src))
+  fn load_dir(&mut self, span: Span, name: &Ident, path: F::Path) -> ModKind {
+    let file_path = self.fs.child_file(&path, name);
+    self.load_file(span, file_path, Some(&path))
   }
 
-  pub(crate) fn load_deps<'t>(
-    &mut self,
-    base: &Path,
-    visitee: impl Visitee<'t>,
-    diags: &mut Diags,
-  ) {
-    LoadDeps { loader: self, base, diags }.visit(visitee);
+  fn load_child(&mut self, span: Span, base: Option<&F::Path>, name: &Ident) -> ModKind {
+    let Some(base) = base else { return self.error_mod(Diag::InvalidSubmodule { span }) };
+    let file_path = self.fs.child_file(base, name);
+    let dir_path = self.fs.child_dir(base, name);
+    let file_valid = self.fs.kind(&file_path) == Some(EntryKind::File);
+    let dir_valid = self.fs.kind(&dir_path) == Some(EntryKind::Dir);
+    match (file_valid, dir_valid) {
+      (true, false) => self.load_file(span, file_path, None),
+      (false, true) => self.load_dir(span, name, dir_path),
+      (true, true) => {
+        let diag = Diag::AmbiguousSubmodule {
+          span,
+          file_path: self.fs.display(&file_path),
+          dir_path: self.fs.display(&dir_path),
+        };
+        self.error_mod(diag)
+      }
+      (false, false) => {
+        let diag = Diag::MissingSubmodule {
+          span,
+          file_path: self.fs.display(&file_path),
+          dir_path: self.fs.display(&dir_path),
+        };
+        self.error_mod(diag)
+      }
+    }
   }
 
-  pub(crate) fn revert(&mut self, checkpoint: &Checkpoint) {
-    self.files.truncate(checkpoint.files.0);
+  fn load_children<'t>(&mut self, base: Option<&F::Path>, visitee: impl Visitee<'t>) {
+    LoadChildren { loader: self, base }.visit(visitee);
   }
 }
 
-struct LoadDeps<'a> {
-  loader: &'a mut Loader,
-  base: &'a Path,
-  diags: &'a mut Diags,
+struct LoadChildren<'a, 'b, F: FS> {
+  loader: &'b mut Loader<'a, F>,
+  base: Option<&'b F::Path>,
 }
 
-impl VisitMut<'_> for LoadDeps<'_> {
+impl<F: FS> VisitMut<'_> for LoadChildren<'_, '_, F> {
   fn visit_item(&mut self, item: &mut Item) {
     if let ItemKind::Mod(module) = &mut item.kind
-      && let ModKind::Unloaded(_, path) = &mut module.kind
+      && let ModKind::Unloaded = &mut module.kind
     {
-      module.kind = self.loader.load_file(
-        Some(self.base),
-        match &*path {
-          Some(path) => ModSpec::Explicit(path.as_ref()),
-          None => ModSpec::Implicit(module.name.clone()),
-        },
-        item.name_span,
-        self.diags,
-      );
-      return;
+      module.kind = self.loader.load_child(item.span, self.base, &module.name);
+    } else {
+      self._visit_item(item);
     }
-    self._visit_item(item);
   }
 }
 
-enum ModSpec<'a> {
-  Explicit(&'a Path),
-  Implicit(Ident),
+pub trait FS {
+  type Path;
+
+  fn display(&mut self, path: &Self::Path) -> String;
+
+  fn kind(&mut self, path: &Self::Path) -> Option<EntryKind>;
+
+  fn child_dir(&mut self, path: &Self::Path, name: &Ident) -> Self::Path;
+  fn child_file(&mut self, path: &Self::Path, name: &Ident) -> Self::Path;
+
+  fn read_file(&mut self, path: &Self::Path) -> Option<String>;
 }
 
-fn implicit_path_valid(path: &Path) -> bool {
-  let Some(file_name) = path.file_name() else { return false };
-  let Some(file_name) = file_name.to_str() else { return false };
-  let Some(file_name) = file_name.strip_suffix(".vi") else { return false };
-  let Some(dir) = path.parent() else { return false };
-  let Some(dir_name) = dir.file_name() else { return false };
-  let Some(dir_name) = dir_name.to_str() else { return false };
-  file_name == dir_name
+#[derive(Clone)]
+pub struct RealFS {
+  pub cwd: PathBuf,
+}
+
+impl FS for RealFS {
+  type Path = PathBuf;
+
+  fn display(&mut self, path: &Self::Path) -> String {
+    path.strip_prefix(&self.cwd).unwrap_or(path).display().to_string()
+  }
+
+  fn kind(&mut self, path: &Self::Path) -> Option<EntryKind> {
+    let file_type = fs::metadata(path).ok()?.file_type();
+    if file_type.is_file() {
+      Some(EntryKind::File)
+    } else if file_type.is_dir() {
+      Some(EntryKind::Dir)
+    } else {
+      None
+    }
+  }
+
+  fn child_dir(&mut self, path: &Self::Path, name: &Ident) -> Self::Path {
+    path.join(&name.0)
+  }
+
+  fn child_file(&mut self, path: &Self::Path, name: &Ident) -> Self::Path {
+    let mut path = path.join(&name.0);
+    path.as_mut_os_string().push(".vi");
+    path
+  }
+
+  fn read_file(&mut self, path: &Self::Path) -> Option<String> {
+    fs::read_to_string(path).ok()
+  }
+}
+
+impl RealFS {
+  pub fn detect_name(path: &Path) -> Option<Ident> {
+    let path = path.file_name()?.to_str()?;
+    let path = path.strip_suffix(".vi").unwrap_or(path);
+    Ident::new(path)
+  }
+}
+
+impl Default for RealFS {
+  fn default() -> Self {
+    RealFS { cwd: current_dir().unwrap() }
+  }
+}
+
+#[derive(PartialEq, Eq)]
+pub enum EntryKind {
+  File,
+  Dir,
 }

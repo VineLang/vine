@@ -29,15 +29,9 @@ impl Parser<'_> {
       let items = self.parse_delimited(BRACE, Self::parse_item)?;
       let span = self.end_span(span);
       ModKind::Loaded(span, None, items)
-    } else if self.eat(Token::Eq)? {
-      let path_span = self.start_span();
-      let path = self.parse_string()?;
-      let path_span = self.end_span(path_span);
-      self.expect(Token::Semi)?;
-      ModKind::Unloaded(path_span, Some(path))
     } else {
-      self.expect(Token::Semi)?;
-      ModKind::Unloaded(name_span, None)
+      self.eat(Token::Semi)?;
+      ModKind::Unloaded
     };
     Ok((name_span, ItemKind::Mod(ModItem { name, generics, kind })))
   }
@@ -54,10 +48,7 @@ impl<'src> Formatter<'src> {
           Doc(" "),
           self.fmt_block_like(*span, items.iter().map(|x| (x.span, self.fmt_item(x)))),
         ]),
-        ModKind::Unloaded(span, Some(_)) => {
-          Doc::concat([Doc(" = "), self.fmt_verbatim(*span), Doc(";")])
-        }
-        ModKind::Unloaded(_, None) => Doc::concat([Doc(";")]),
+        ModKind::Unloaded => Doc::concat([Doc(";")]),
         ModKind::Error(_) => unreachable!(),
       },
     ])
@@ -76,9 +67,14 @@ impl Charter<'_> {
   ) -> ChartedItem {
     let def = self.chart_child(parent, span, mod_item.name, member_vis, true);
     let generics = self.chart_generics(def, parent_generics, mod_item.generics, true);
-    let ModKind::Loaded(inner_span, _, _) = mod_item.kind else { unreachable!() };
-    self.annotations.definitions.entry(span).or_default().insert(inner_span);
-    self.chart_mod_kind(vis, mod_item.kind, def, generics);
-    ChartedItem::Mod(def)
+    match mod_item.kind {
+      ModKind::Loaded(inner_span, _, _) => {
+        self.annotations.definitions.entry(span).or_default().insert(inner_span);
+        self.chart_mod_kind(vis, mod_item.kind, def, generics);
+        ChartedItem::Mod(def)
+      }
+      ModKind::Error(err) => ChartedItem::Error(err),
+      ModKind::Unloaded => unreachable!(),
+    }
   }
 }

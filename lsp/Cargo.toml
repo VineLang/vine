@@ -9,6 +9,7 @@ glob = "0.3.1"
 tokio = { version = "1.41.1", features = ["full"] }
 tower-lsp = "0.20.0"
 vine = { path = "../vine" }
+vine-util = { path = "../util" }
 
 [lints.clippy]
 absolute_paths = "warn"

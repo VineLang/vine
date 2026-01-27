@@ -1,8 +1,4 @@
-use std::{
-  fmt::{self, Display},
-  io,
-  path::PathBuf,
-};
+use std::fmt::{self, Display};
 
 use vine_util::lexer::TokenSet;
 
@@ -73,12 +69,14 @@ macro_rules! diags {
 }
 
 diags! {
-  FsError { path: PathBuf, err: io::Error }
-    ["cannot read file `{path}`: {err}", path = path.display()]
-  DisallowedImplicitMod
-    ["implicit submodule paths are only allowed in files of the form `{{mod_name}}/{{mod_name}}.vi`"]
-  AmbiguousImplicitMod { name: Ident }
-    ["ambiguous implicit submodule path; both `{name}.vi` and `{name}/{name}.vi` exist"]
+  CannotRead { path: String }
+    ["cannot read `{path}`"]
+  AmbiguousSubmodule { file_path: String, dir_path: String }
+    ["ambiguous submodule source; both `{file_path}` and `{dir_path}/` exist"]
+  MissingSubmodule { file_path: String, dir_path: String }
+    ["missing submodule; neither `{file_path}` nor `{dir_path}/` exist"]
+  InvalidSubmodule
+    ["cannot include a submodule from another file in a source file"]
   LexError
     ["lexing error"]
   UnexpectedToken { expected: TokenSet<Token>, found: Token }
@@ -333,7 +331,7 @@ fn plural<'a>(n: usize, plural: &'a str, singular: &'a str) -> &'a str {
 
 impl Compiler {
   pub fn show_span(&self, span: Span) -> Option<String> {
-    (span != Span::NONE).then(|| format!("{}", self.loader.files[span.file].get_pos(span.start)))
+    (span != Span::NONE).then(|| format!("{}", self.files[span.file].get_pos(span.start)))
   }
 }
 
@@ -353,16 +351,15 @@ impl From<ErrorGuaranteed> for Diag {
 }
 
 pub struct FileInfo {
-  pub path: Option<PathBuf>,
   pub name: String,
   pub src: String,
   pub line_starts: Vec<usize>,
 }
 
 impl FileInfo {
-  pub fn new(path: Option<PathBuf>, name: String, src: String) -> Self {
+  pub fn new(name: String, src: String) -> Self {
     let line_starts = src.lines().map(|x| x.as_ptr() as usize - src.as_ptr() as usize).collect();
-    FileInfo { path, name, src, line_starts }
+    FileInfo { name, src, line_starts }
   }
 }
 

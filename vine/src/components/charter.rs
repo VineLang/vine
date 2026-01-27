@@ -77,12 +77,17 @@ impl Charter<'_> {
     def: DefId,
     generics: GenericsId,
   ) {
-    let ModKind::Loaded(_, file, items) = module else { unreachable!("module not yet loaded") };
-    if file.is_some() {
-      self.chart.defs[def].file = file;
-    }
-    for item in items {
-      self.chart_item(vis, item, def, generics);
+    match module {
+      ModKind::Loaded(_, file, items) => {
+        if file.is_some() {
+          self.chart.defs[def].file = file;
+        }
+        for item in items {
+          self.chart_item(vis, item, def, generics);
+        }
+      }
+      ModKind::Error(_) => {}
+      ModKind::Unloaded => unreachable!(),
     }
   }
 
@@ -264,6 +269,7 @@ impl Charter<'_> {
       | ChartedItem::Struct(..) => {
         self.diags.error(Diag::InvalidUnsafe { span });
       }
+      ChartedItem::Error(_) => {}
     }
   }
 
@@ -397,12 +403,13 @@ pub enum ChartedItem {
   Union(DefId, UnionId),
   Trait(DefId, TraitId),
   Impl(DefId, ImplId),
+  Error(ErrorGuaranteed),
 }
 
 impl ChartedItem {
   pub fn def(&self) -> Option<DefId> {
     match self {
-      ChartedItem::Import => None,
+      ChartedItem::Import | ChartedItem::Error(_) => None,
       ChartedItem::Mod(def_id)
       | ChartedItem::Const(def_id, _)
       | ChartedItem::Fn(def_id, _)
