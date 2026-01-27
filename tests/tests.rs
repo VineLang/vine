@@ -151,6 +151,7 @@ fn tests(t: &mut DynTester) {
       test_vi_fail(t, "tests/programs/fail/occurs.vi");
       test_vi_fail(t, "tests/programs/fail/opaque_private.vi");
       test_vi_fail(t, "tests/programs/fail/recursive_type_alias.vi");
+      test_vi_fail(t, "tests/programs/fail/unsafe_.vi");
       test_vi_fail(t, "tests/programs/fail/visibility.vi");
     });
 

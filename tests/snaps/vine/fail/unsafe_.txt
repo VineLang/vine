@@ -1,0 +1,32 @@
+error: unsafe items can only exist in unsafe traits
+    @ tests/programs/fail/unsafe_.vi:61:3
+ 61 |   unsafe fn foo(); // error
+
+error: unsafe items can only exist in unsafe traits
+    @ tests/programs/fail/unsafe_.vi:62:3
+ 62 |   unsafe const bar: (); // error
+
+error: this is unsafe
+    @ tests/programs/fail/unsafe_.vi:12:3
+ 12 |   foo; // error
+
+error: this is unsafe
+    @ tests/programs/fail/unsafe_.vi:13:3
+ 13 |   bar(); // error
+
+error: this is unsafe
+    @ tests/programs/fail/unsafe_.vi:25:10
+ 25 | pub impl a: Foo { // error
+
+error: expected a safe fn
+    @ tests/programs/fail/unsafe_.vi:40:13
+ 40 |   unsafe fn foo() {} // error
+
+error: expected a safe const
+    @ tests/programs/fail/unsafe_.vi:42:16
+ 42 |   unsafe const baz: () = (); // error
+
+error: entrypoint cannot be unsafe
+   @ tests/programs/fail/unsafe_.vi:2:15
+ 2 | pub unsafe fn main(_: &IO) {} // error
+
