@@ -163,6 +163,7 @@ fn tests(t: &mut DynTester) {
       test_vi_repl(t, "tests/programs/repl/F64.vi");
       test_vi_repl(t, "tests/programs/repl/heap.vi");
       test_vi_repl(t, "tests/programs/repl/i32_misc.vi");
+      test_vi_repl(t, "tests/programs/repl/index.vi");
       test_vi_repl(t, "tests/programs/repl/misc.vi");
       test_vi_repl(t, "tests/programs/repl/N64.vi");
       test_vi_repl(t, "tests/programs/repl/Nat.vi");
