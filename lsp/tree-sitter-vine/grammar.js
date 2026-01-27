@@ -584,6 +584,7 @@ module.exports = grammar({
         $.chain_deref,
         $.chain_inverse,
         $.chain_as,
+        $.chain_index,
       ),
 
     chain_unwrap: $ => "!",
@@ -595,6 +596,7 @@ module.exports = grammar({
     chain_deref: $ => seq(".", "*"),
     chain_inverse: $ => seq(".", "~"),
     chain_as: $ => seq(".", "as", "[", $._ty, "]"),
+    chain_index: $ => seq(".", "[", $._expr, "]"),
 
     string: $ =>
       seq(
