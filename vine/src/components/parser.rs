@@ -370,6 +370,11 @@ impl<'src> Parser<'src> {
         self.expect(Token::CloseBracket)?;
         return Ok(Ok(ExprKind::Cast(lhs, ty, true)));
       }
+      if self.eat(Token::OpenBracket)? {
+        let index = self.parse_expr()?;
+        self.expect(Token::CloseBracket)?;
+        return Ok(Ok(ExprKind::Index(lhs, index)));
+      }
       let ident_span = self.span();
       let ident = self.parse_ident()?;
       if self.check(Token::OpenBracket) || self.check(Token::OpenParen) {

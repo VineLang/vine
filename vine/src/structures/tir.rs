@@ -99,6 +99,8 @@ pub enum TirExprKind {
   Field(TirExpr, usize, Vec<Type>),
   #[class(value)]
   Call(FnRelId, Option<TirExpr>, Vec<TirExpr>),
+  #[class(poly, value, space, place)]
+  Index(TirExpr, TirExpr),
   #[class(poly, value, place, space)]
   Struct(StructId, TirExpr),
   #[class(value)]

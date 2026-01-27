@@ -132,7 +132,7 @@ impl Distiller<'_> {
           value
         }
         None => {
-          let diag = Diag::CannotFork { span, ty: self.types.show(self.chart, ty.inverse()) };
+          let diag = Diag::CannotDrop { span, ty: self.types.show(self.chart, ty.inverse()) };
           Port::error(ty, self.diags.error(diag))
         }
       },
@@ -144,16 +144,7 @@ impl Distiller<'_> {
       self.diags.error(Diag::MissingBuiltin { span, builtin: "Drop" });
       return;
     };
-    let mut finder = Finder::new(
-      self.chart,
-      self.sigs,
-      self.diags,
-      self.finder_cache,
-      self.def,
-      self.generics,
-      span,
-    );
-    let impl_ = finder.find_impl(&mut self.types, &ImplType::Trait(drop, vec![ty]), false);
+    let impl_ = self.find_impl(span, &ImplType::Trait(drop, vec![ty]), false);
     let fn_rel = self.rels.drop_rel(self.chart, impl_);
     let nil = Port { ty: self.types.nil(), kind: PortKind::Nil };
     stage.steps.push(Step::Call(span, fn_rel, None, vec![port], nil));
