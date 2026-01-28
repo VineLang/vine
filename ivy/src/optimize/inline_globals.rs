@@ -61,7 +61,12 @@ impl Tree {
   fn is_nilary(&self) -> bool {
     match self {
       Tree::Erase | Tree::N32(_) | Tree::F32(_) | Tree::F64(_) | Tree::Global(_) => true,
-      Tree::Comb(..) | Tree::ExtFn(..) | Tree::Branch(..) | Tree::Var(_) => false,
+      Tree::Comb(..)
+      | Tree::ExtFn(..)
+      | Tree::BranchStart(..)
+      | Tree::BranchActive(..)
+      | Tree::BranchSplit(..)
+      | Tree::Var(_) => false,
       Tree::BlackBox(t) => t.is_nilary(),
     }
   }

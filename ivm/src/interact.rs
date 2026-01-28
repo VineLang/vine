@@ -107,9 +107,9 @@ impl<'ivm, 'ext> IVM<'ivm, 'ext> {
           self.copy(n, b);
         }
       }
-      ((Comb | ExtFn | Branch, a), (Comb | ExtFn | Branch, b)) => self.commute(a, b),
+      sym!((Branch, b), (_, a)) => self.branch(b, a),
+      ((Comb | ExtFn, a), (Comb | ExtFn, b)) => self.commute(a, b),
       sym!((ExtFn, f), (ExtVal, v)) => self.call(f, v),
-      sym!((Branch, b), (ExtVal, v)) => self.branch(b, v),
     }
   }
 
@@ -192,24 +192,55 @@ impl<'ivm, 'ext> IVM<'ivm, 'ext> {
     }
   }
 
-  fn branch(&mut self, b: Port<'ivm>, v: Port<'ivm>) {
-    self.stats.branch += 1;
-    let val = self.extrinsics.ext_val_as_n32(unsafe { v.as_ext_val() });
-    let (a, o) = unsafe { b.aux() };
-    let (b, z, p) = unsafe { self.new_node(Tag::Branch, 0) };
-    self.link_wire(a, b);
-    match val {
-      Some(val) => {
-        let (y, n) = if val == 0 { (z, p) } else { (p, z) };
+  fn branch(&mut self, b: Port<'ivm>, o: Port<'ivm>) {
+    match (b.label(), o.tag()) {
+      (Tag::BRANCH_START_LABEL, Tag::ExtVal) => {
+        self.stats.branch += 1;
+        let (bs, ctx) = unsafe { b.aux() };
+        let a = unsafe { self.new_node(Tag::Branch, 1) };
+        self.link_wire(a.1, o);
+        self.link_wire_wire(a.2, ctx);
+        self.link_wire(bs, a.0);
+      }
+      (Tag::BRANCH_START_LABEL, _) => self.commute(b, o),
+      (Tag::BRANCH_ACTIVE_LABEL, Tag::Branch) if o.label() == Tag::BRANCH_SPLIT_LABEL => {
+        self.stats.branch += 1;
+        let (n_wire, ctx) = unsafe { b.aux() };
+        let Some(n) = n_wire
+          .load_target()
+          .and_then(|n| self.extrinsics.ext_val_as_u32(unsafe { n.as_ext_val() }))
+        else {
+          self.flags.ext_generic = true;
+          self.link_wire(n_wire, Port::ERASE);
+          self.link_wire(ctx, Port::ERASE);
+          return;
+        };
+        let (even, odd) = unsafe { o.aux() };
+        n_wire.swap_target(Some(Port::new_ext_val(self.extrinsics.u32_as_ext_val(n >> 1))));
+
+        if n % 2 == 0 {
+          self.link_wire(even, unsafe {
+            Port::new(Tag::Branch, Tag::BRANCH_ACTIVE_LABEL, n_wire.addr())
+          });
+          self.link_wire(odd, Port::ERASE);
+        } else {
+          self.link_wire(odd, unsafe {
+            Port::new(Tag::Branch, Tag::BRANCH_ACTIVE_LABEL, n_wire.addr())
+          });
+          self.link_wire(even, Port::ERASE);
+        }
+      }
+      (Tag::BRANCH_ACTIVE_LABEL, _) => {
+        self.stats.branch += 1;
+        let (n, ctx) = unsafe { b.aux() };
         self.link_wire(n, Port::ERASE);
-        self.link_wire_wire(o, y);
+        self.link_wire(ctx, o);
       }
-      None => {
-        self.flags.ext_generic = true;
-        self.link_wire(z, Port::ERASE);
-        self.link_wire(p, Port::ERASE);
-        self.link_wire(o, Port::ERASE);
+      (Tag::BRANCH_SPLIT_LABEL, Tag::Branch) if o.label() == Tag::BRANCH_ACTIVE_LABEL => {
+        self.branch(o, b)
       }
+      (Tag::BRANCH_SPLIT_LABEL, _) => self.commute(b, o),
+      _ => unreachable!(),
     }
   }
 }

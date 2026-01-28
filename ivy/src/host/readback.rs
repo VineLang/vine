@@ -80,11 +80,15 @@ impl<'ctx, 'ivm, 'ext> Reader<'ctx, 'ivm, 'ext> {
       }
       Tag::Branch => {
         let (p1, p2) = unsafe { p.aux_ref() };
-        let p1 = PortRef::new_wire(&p1);
-        let p1 = self.ivm.follow_ref(&p1);
-        assert_eq!(p1.tag(), Tag::Branch);
-        let (p11, p12) = unsafe { p1.aux_ref() };
-        Tree::Branch(self.read_wire(&p11), self.read_wire(&p12), self.read_wire(&p2))
+        match p.label() {
+          Tag::BRANCH_START_LABEL => Tree::BranchStart(self.read_wire(&p1), self.read_wire(&p2)),
+          Tag::BRANCH_ACTIVE_LABEL => {
+            let n = unsafe { PortRef::new_wire(&p1).as_ext_val().cast::<u32>() };
+            Tree::BranchActive(n, self.read_wire(&p2))
+          }
+          Tag::BRANCH_SPLIT_LABEL => Tree::BranchSplit(self.read_wire(&p1), self.read_wire(&p2)),
+          _ => unreachable!(),
+        }
       }
     }
   }

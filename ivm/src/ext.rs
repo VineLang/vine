@@ -90,7 +90,11 @@ impl<'ivm> Extrinsics<'ivm> {
     self.n32_ext_ty
   }
 
-  pub fn ext_val_as_n32(&self, x: ExtVal<'ivm>) -> Option<u32> {
+  pub fn u32_as_ext_val(&self, n: u32) -> ExtVal<'ivm> {
+    self.n32_ext_ty().wrap_ext_val(n)
+  }
+
+  pub fn ext_val_as_u32(&self, x: ExtVal<'ivm>) -> Option<u32> {
     self.n32_ext_ty().unwrap_ext_val(x)
   }
 

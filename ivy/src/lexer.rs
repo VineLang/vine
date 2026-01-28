@@ -20,6 +20,7 @@ pub enum Token {
   Hole,
   Question,
   Hash,
+  Caret,
 
   N32,
   F32,
@@ -69,6 +70,7 @@ impl<'src> Lex<'src> for Lexer<'src> {
       Some('_') => self.bump_ok(Token::Hole),
       Some('?') => self.bump_ok(Token::Question),
       Some('#') => self.bump_ok(Token::Hash),
+      Some('^') => self.bump_ok(Token::Caret),
 
       Some('0'..='9') => {
         self.bump();

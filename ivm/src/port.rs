@@ -63,11 +63,19 @@ pub enum Tag {
   ExtFn = 6,
 
   /// This port is the principal port of a binary branch node. Its address
-  /// points to a node in the heap, and its label is zero.
+  /// points to a node in the heap. Its label is zero for start branch nodes,
+  /// one for active branch nodes, and two for split branch nodes.
   ///
-  /// Though branch nodes are semantically trinary, at runtime the trinary node
-  /// `?(a b c)` is represented with two binary nodes: `?(?(a b) c)`.
+  /// Though branch nodes are semantically n-ary, at runtime the n-ary node
+  /// `?(b_0 b_1 .. b_n)` is represented with a tree of binary nodes, where
+  /// the placement of `b_i` is deterimined by the binary expansion of `i`.
   Branch = 7,
+}
+
+impl Tag {
+  pub const BRANCH_START_LABEL: u16 = 0;
+  pub const BRANCH_ACTIVE_LABEL: u16 = 1;
+  pub const BRANCH_SPLIT_LABEL: u16 = 2;
 }
 
 impl<'ivm> Port<'ivm> {

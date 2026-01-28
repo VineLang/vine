@@ -100,9 +100,11 @@ impl<'a> Emitter<'a> {
       InterfaceKind::Unconditional(stage) => (self.emit_stage_rel(*stage), target),
       InterfaceKind::Branch(zero, non_zero) => (
         self.emit_port(transfer.data.as_ref().unwrap()),
-        Tree::Branch(
-          Box::new(self.emit_stage_rel(*zero)),
-          Box::new(self.emit_stage_rel(*non_zero)),
+        Tree::BranchStart(
+          Box::new(Tree::BranchSplit(
+            Box::new(self.emit_stage_rel(*zero)),
+            Box::new(self.emit_stage_rel(*non_zero)),
+          )),
           Box::new(target),
         ),
       ),

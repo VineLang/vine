@@ -85,13 +85,22 @@ impl<'host, 'ctx, 'ivm, 'ext> Repl<'host, 'ctx, 'ivm, 'ext> {
         self.inject_to(*b, n.2);
         n.0
       }
-      Tree::Branch(z, p, o) => {
+      Tree::BranchStart(b, c) => {
         let n = unsafe { self.ivm.new_node(Tag::Branch, 0) };
-        let m = unsafe { self.ivm.new_node(Tag::Branch, 0) };
-        self.ivm.link_wire(n.1, m.0);
-        self.inject_to(*z, m.1);
-        self.inject_to(*p, m.2);
-        self.inject_to(*o, n.2);
+        self.inject_to(*b, n.1);
+        self.inject_to(*c, n.2);
+        n.0
+      }
+      Tree::BranchActive(n, c) => {
+        let b = unsafe { self.ivm.new_node(Tag::Branch, 1) };
+        self.inject_to(Tree::N32(n), b.1);
+        self.inject_to(*c, b.2);
+        b.0
+      }
+      Tree::BranchSplit(a, b) => {
+        let n = unsafe { self.ivm.new_node(Tag::Branch, 2) };
+        self.inject_to(*a, n.1);
+        self.inject_to(*b, n.2);
         n.0
       }
       Tree::Var(v) => match self.vars.entry(v) {

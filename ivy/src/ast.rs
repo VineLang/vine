@@ -14,7 +14,9 @@ pub enum Tree {
   Erase,
   Comb(String, Box<Tree>, Box<Tree>),
   ExtFn(String, bool, Box<Tree>, Box<Tree>),
-  Branch(Box<Tree>, Box<Tree>, Box<Tree>),
+  BranchStart(Box<Tree>, Box<Tree>),
+  BranchActive(u32, Box<Tree>),
+  BranchSplit(Box<Tree>, Box<Tree>),
   N32(u32),
   F32(f32),
   F64(f64),
@@ -57,7 +59,9 @@ impl Display for Tree {
       Tree::Erase => write!(f, "_"),
       Tree::Comb(n, a, b) => write!(f, "{n}({a} {b})"),
       Tree::ExtFn(e, swap, a, b) => write!(f, "@{e}{}({a} {b})", if *swap { "$" } else { "" }),
-      Tree::Branch(a, b, c) => write!(f, "?({a} {b} {c})"),
+      Tree::BranchStart(a, b) => write!(f, "?({a} {b})"),
+      Tree::BranchActive(n, b) => write!(f, "?{n}({b})"),
+      Tree::BranchSplit(a, b) => write!(f, "?^({a} {b})"),
       Tree::N32(n) => write!(f, "{n}"),
       Tree::F32(n) if n.is_nan() => write!(f, "+NaN"),
       Tree::F32(n) => write!(f, "{n:+?}"),
@@ -116,26 +120,28 @@ impl Tree {
   }
 
   pub fn children(&self) -> impl DoubleEndedIterator + ExactSizeIterator<Item = &Self> + Clone {
-    multi_iter!(Children { One, Zero, Two, Three });
+    multi_iter!(Children { One, Zero, Two });
     match self {
       Tree::Erase | Tree::N32(_) | Tree::F32(_) | Tree::F64(_) | Tree::Var(_) | Tree::Global(_) => {
         Children::Zero([])
       }
       Tree::BlackBox(a) => Children::One([&**a]),
       Tree::Comb(_, a, b) | Tree::ExtFn(_, _, a, b) => Children::Two([&**a, b]),
-      Tree::Branch(a, b, c) => Children::Three([&**a, b, c]),
+      Tree::BranchActive(_, b) => Children::One([&**b]),
+      Tree::BranchStart(a, b) | Tree::BranchSplit(a, b) => Children::Two([&**a, b]),
     }
   }
 
   pub fn children_mut(&mut self) -> impl DoubleEndedIterator + ExactSizeIterator<Item = &mut Self> {
-    multi_iter!(Children { Zero, One, Two, Three });
+    multi_iter!(Children { Zero, One, Two });
     match self {
       Tree::Erase | Tree::N32(_) | Tree::F32(_) | Tree::F64(_) | Tree::Var(_) | Tree::Global(_) => {
         Children::Zero([])
       }
       Tree::BlackBox(a) => Children::One([&mut **a]),
       Tree::Comb(_, a, b) | Tree::ExtFn(_, _, a, b) => Children::Two([&mut **a, b]),
-      Tree::Branch(a, b, c) => Children::Three([&mut **a, b, c]),
+      Tree::BranchActive(_, b) => Children::One([&mut **b]),
+      Tree::BranchStart(a, b) | Tree::BranchSplit(a, b) => Children::Two([&mut **a, b]),
     }
   }
 }

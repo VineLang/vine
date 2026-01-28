@@ -19,6 +19,7 @@ pub enum ParseError<'src> {
   InvalidNum(&'src str),
   InvalidLabel(&'src str),
   InvalidExtFn(&'src str),
+  InvalidBranch(&'src str),
 }
 
 impl<'src> Parse<'src> for Parser<'src> {
@@ -135,12 +136,28 @@ impl<'src> Parser<'src> {
     }
 
     if self.eat(Token::Question)? {
+      if self.eat(Token::Caret)? {
+        self.expect(Token::OpenParen)?;
+        let a = self.parse_tree()?;
+        let b = self.parse_tree()?;
+        self.expect(Token::CloseParen)?;
+        return Ok(Tree::BranchSplit(Box::new(a), Box::new(b)));
+      }
+
       self.expect(Token::OpenParen)?;
-      let a = self.parse_tree()?;
-      let b = self.parse_tree()?;
-      let c = self.parse_tree()?;
+      let mut branches = Vec::new();
+      while !self.check(Token::CloseParen) {
+        branches.push(self.parse_tree()?);
+      }
       self.expect(Token::CloseParen)?;
-      return Ok(Tree::Branch(Box::new(a), Box::new(b), Box::new(c)));
+
+      let Some(ctx) = branches.pop() else { Err(ParseError::InvalidBranch("Empty branch node"))? };
+      if branches.is_empty() {
+        Err(ParseError::InvalidBranch("Branch nodes must have at one branch"))?
+      }
+      let branches = Box::new(branch_tree(&branches, 0, 0));
+
+      return Ok(Tree::BranchStart(branches, Box::new(ctx)));
     }
 
     if self.eat(Token::Hole)? {
@@ -156,4 +173,15 @@ impl<'src> Parser<'src> {
 
     self.unexpected()
   }
+}
+
+fn branch_tree(branches: &[Tree], path: usize, depth: usize) -> Tree {
+  if (path | 1 << depth) >= branches.len() {
+    return branches[path].clone();
+  }
+
+  let lhs = branch_tree(branches, path, depth + 1);
+  let rhs = branch_tree(branches, path | 1 << depth, depth + 1);
+
+  Tree::BranchSplit(Box::new(lhs), Box::new(rhs))
 }
