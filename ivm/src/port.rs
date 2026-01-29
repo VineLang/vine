@@ -68,7 +68,7 @@ pub enum Tag {
   ///
   /// Though branch nodes are semantically n-ary, at runtime the n-ary node
   /// `?(b_0 b_1 .. b_n)` is represented with a tree of binary nodes, where
-  /// the placement of `b_i` is deterimined by the binary expansion of `i`.
+  /// the placement of `b_i` is determined by the binary expansion of `i`.
   Branch = 7,
 }
 
