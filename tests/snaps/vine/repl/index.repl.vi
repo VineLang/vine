@@ -1,0 +1,75 @@
+
+let io: IO = <IO>;
+> 
+
+let io: IO = <IO>;
+> use #root::data::{Array, Map};
+
+let io: IO = <IO>;
+> 
+
+let io: IO = <IO>;
+> let words = ["i", "have", "a", "dream"] as Array
+
+let io: IO = <IO>;
+let words: Array[String] = Array(["i", "have", "a", "dream"]);
+> words.[0]
+"i"
+
+let io: IO = <IO>;
+let words: Array[String] = Array(["i", "have", "a", "dream"]);
+> words.[1]
+"have"
+
+let io: IO = <IO>;
+let words: Array[String] = Array(["i", "have", "a", "dream"]);
+> words.[2]
+"a"
+
+let io: IO = <IO>;
+let words: Array[String] = Array(["i", "have", "a", "dream"]);
+> words.[3]
+"dream"
+
+let io: IO = <IO>;
+let words: Array[String] = Array(["i", "have", "a", "dream"]);
+> words.[0] = "I"
+
+let io: IO = <IO>;
+let words: Array[String] = Array(["I", "have", "a", "dream"]);
+> words.[3] ++= "."
+
+let io: IO = <IO>;
+let words: Array[String] = Array(["I", "have", "a", "dream."]);
+> /clear words
+
+let io: IO = <IO>;
+> 
+
+let io: IO = <IO>;
+> let foods = Map::empty[String, String]
+
+let io: IO = <IO>;
+let foods: Map[String, String] = Map({});
+> foods.["chicken"] = "tasty"
+
+let io: IO = <IO>;
+let foods: Map[String, String] = Map({ "chicken": "tasty" });
+> foods.["broccoli"] = "healthy"
+
+let io: IO = <IO>;
+let foods: Map[String, String] = Map({ "broccoli": "healthy", "chicken": "tasty" });
+> foods.[&"broccoli"] ++= " and colorful"
+
+let io: IO = <IO>;
+let foods: Map[String, String] = Map({ "broccoli": "healthy and colorful", "chicken": "tasty" });
+> foods.["chicken"]
+"tasty"
+
+let io: IO = <IO>;
+let foods: Map[String, String] = Map({ "broccoli": "healthy and colorful", "chicken": "tasty" });
+> foods.[&"chicken"]
+"tasty"
+
+let io: IO = <IO>;
+let foods: Map[String, String] = Map({ "broccoli": "healthy and colorful", "chicken": "tasty" });

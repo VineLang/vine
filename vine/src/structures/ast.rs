@@ -334,6 +334,7 @@ pub enum ExprKind {
   Cast(Expr, Ty, bool),
   Unwrap(Expr),
   Try(Expr),
+  Index(Expr, Expr),
   RangeExclusive(Option<Expr>, Option<Expr>),
   RangeInclusive(Option<Expr>, Expr),
   N32(u32),

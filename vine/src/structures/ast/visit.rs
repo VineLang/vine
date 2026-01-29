@@ -190,6 +190,10 @@ pub trait VisitMut<'a> {
         self.visit_expr(e);
         self.visit_type(t);
       }
+      ExprKind::Index(expr, index) => {
+        self.visit_expr(expr);
+        self.visit_expr(index);
+      }
       ExprKind::RangeExclusive(start, end) => {
         self.visit(start.as_mut());
         self.visit(end.as_mut());

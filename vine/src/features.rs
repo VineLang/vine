@@ -18,6 +18,7 @@ pub mod hole;
 pub mod if_;
 pub mod impl_;
 pub mod import;
+pub mod index;
 pub mod inline_ivy;
 pub mod inverse;
 pub mod labels;

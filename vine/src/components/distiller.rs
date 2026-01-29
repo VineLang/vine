@@ -6,15 +6,17 @@ use vine_util::{
 };
 
 use crate::{
-  components::finder::FinderCache,
+  components::finder::{Finder, FinderCache},
   structures::{
     ast::Span,
     chart::{Chart, DefId, GenericsId},
     diag::{Diag, Diags, ErrorGuaranteed},
     resolutions::{Fragment, Rels},
     signatures::Signatures,
-    tir::{ClosureId, Local, TargetId, TirExpr, TirExprKind, TirLocal, TirPat, TirPatKind},
-    types::{Type, Types},
+    tir::{
+      ClosureId, Local, TargetId, TirExpr, TirExprKind, TirImpl, TirLocal, TirPat, TirPatKind,
+    },
+    types::{ImplType, Type, Types},
     vir::{
       Header, Interface, InterfaceId, InterfaceKind, Layer, LayerId, Port, Stage, StageId, Step,
       Transfer, Vir, VirLocal,
@@ -196,6 +198,19 @@ impl<'r> Distiller<'r> {
     local
   }
 
+  pub(crate) fn find_impl(&mut self, span: Span, ty: &ImplType, basic: bool) -> TirImpl {
+    let mut finder = Finder::new(
+      self.chart,
+      self.sigs,
+      self.diags,
+      self.finder_cache,
+      self.def,
+      self.generics,
+      span,
+    );
+    finder.find_impl(&mut self.types, ty, basic)
+  }
+
   pub(crate) fn distill_vec<T>(
     &mut self,
     stage: &mut Stage,
@@ -297,6 +312,9 @@ impl<'r> Distiller<'r> {
       TirExprKind::Call(rel, receiver, args) => {
         self.distill_expr_value_call(stage, span, ty, *rel, receiver, args)
       }
+      TirExprKind::Index(expr, index) => {
+        self.distill_expr_value_index(stage, span, expr, index, ty)
+      }
       TirExprKind::String(init, rest) => {
         self.distill_expr_value_string(stage, span, ty, init, rest)
       }
@@ -328,6 +346,9 @@ impl<'r> Distiller<'r> {
       TirExprKind::Composite(elements) => {
         self.distill_expr_space_composite(stage, span, ty, elements)
       }
+      TirExprKind::Index(expr, index) => {
+        self.distill_expr_space_index(stage, span, expr, index, ty)
+      }
     }
   }
 
@@ -349,6 +370,9 @@ impl<'r> Distiller<'r> {
       TirExprKind::Place(value, space) => self.distill_expr_place_place(stage, value, space),
       TirExprKind::Composite(elements) => {
         self.distill_expr_place_composite(stage, span, ty, elements)
+      }
+      TirExprKind::Index(expr, index) => {
+        self.distill_expr_place_index(stage, span, expr, index, ty)
       }
     }
   }
@@ -373,6 +397,7 @@ impl<'r> Distiller<'r> {
       TirExprKind::Field(inner, index, fields) => {
         self.distill_expr_poly_field(stage, span, ty, inner, *index, fields)
       }
+      TirExprKind::Index(expr, index) => self.distill_expr_poly_index(stage, span, expr, index, ty),
     }
   }
 

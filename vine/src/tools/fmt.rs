@@ -213,6 +213,7 @@ impl<'src> Formatter<'src> {
       ExprKind::Cast(expr, ty, postfix) => self.fmt_expr_cast(expr, ty, *postfix),
       ExprKind::Unwrap(expr) => self.fmt_expr_unwrap(expr),
       ExprKind::Try(expr) => self.fmt_expr_try(expr),
+      ExprKind::Index(expr, index) => self.fmt_expr_index(expr, index),
       ExprKind::RangeExclusive(start, end) => self.fmt_expr_range_exclusive(start, end),
       ExprKind::RangeInclusive(start, end) => self.fmt_expr_range_inclusive(start, end),
       ExprKind::Place(value, space) => self.fmt_expr_place(value, space),

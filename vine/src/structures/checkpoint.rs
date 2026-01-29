@@ -240,6 +240,10 @@ impl Builtins {
       drop,
       duplicate,
       erase,
+      index,
+      index_value,
+      index_space,
+      index_place,
       range,
       bound_exclusive,
       bound_inclusive,
@@ -282,6 +286,10 @@ impl Builtins {
     revert_idx(drop, checkpoint.traits);
     revert_idx(duplicate, checkpoint.impls);
     revert_idx(erase, checkpoint.impls);
+    revert_idx(index, checkpoint.traits);
+    revert_idx(index_value, checkpoint.traits);
+    revert_idx(index_space, checkpoint.traits);
+    revert_idx(index_place, checkpoint.traits);
     revert_idx(range, checkpoint.structs);
     revert_idx(bound_exclusive, checkpoint.structs);
     revert_idx(bound_inclusive, checkpoint.structs);

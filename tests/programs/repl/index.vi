@@ -1,0 +1,18 @@
+
+use #root::data::{Array, Map};
+
+let words = ["i", "have", "a", "dream"] as Array
+words.[0]
+words.[1]
+words.[2]
+words.[3]
+words.[0] = "I"
+words.[3] ++= "."
+/clear words
+
+let foods = Map::empty[String, String]
+foods.["chicken"] = "tasty"
+foods.["broccoli"] = "healthy"
+foods.[&"broccoli"] ++= " and colorful"
+foods.["chicken"]
+foods.[&"chicken"]

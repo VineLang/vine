@@ -517,6 +517,7 @@ impl<'a> Resolver<'a> {
       }
       ExprKind::ComparisonOp(init, cmps) => self.resolve_expr_comparison_op(span, init, cmps),
       ExprKind::Cast(inner, to, _) => self.resolve_expr_cast(span, inner, to),
+      ExprKind::Index(expr, index) => self.resolve_expr_index(span, expr, index),
       ExprKind::RangeExclusive(start, end) => {
         self.resolve_expr_range(span, start.as_ref(), end.as_ref(), false)
       }
