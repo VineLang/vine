@@ -1,0 +1,245 @@
+
+// Produces a log that can be validated using the following Rust script:
+//
+// ```rs
+// ---
+// dependencies.regex = "*"
+// ---
+// 
+// use regex::Regex;
+// 
+// fn main() {
+//   let mut re_str = String::new();
+//   let mut re = Regex::new("^$").unwrap();
+//   let mut count = 0;
+//   let mut matches = 0;
+//   for line in std::io::stdin().lines() {
+//     let line = line.unwrap();
+//     let char = line.chars().next().unwrap();
+//     let str = &line[2..];
+//     if char == '/' {
+//       re_str = str.into();
+//       re = Regex::new(&format!("^{str}$")).unwrap();
+//     } else {
+//       if re.is_match(str) != (char == 'T') {
+//         println!("invalid: /{re_str}/ \"{str}\" {char}");
+//       }
+//       if char == 'T' {
+//         matches += 1;
+//       }
+//       count += 1;
+//     }
+//   }
+//   println!("\rchecked {count}; {matches} matches");
+// }
+// ```
+
+use #root::{ops::{ops, Cast, bitwise::BitOr}, rng::Pcg32};
+
+pub enum* Regex {
+  Never(),
+  Empty(),
+  Atom(Char, Bool),
+  Union(Regex, Regex),
+  Concat(Regex, Regex, Bool, Bool),
+  Repeat(Regex, Bool),
+}
+
+pub mod Regex {
+  pub const never: Regex = Regex::Never();
+  pub const empty: Regex = Regex::Empty();
+
+  pub impl from_char: Cast[Char, Regex] {
+    fn cast(char: Char) -> Regex {
+      Atom(char, true)
+    }
+  }
+
+  pub fn .opt(re: Regex) -> Regex {
+    empty | re
+  }
+
+  pub fn .plus(re: Regex) -> Regex {
+    Regex::Repeat(re, false)
+  }
+
+  pub fn .star(re: Regex) -> Regex {
+    Regex::Repeat(re, true)
+  }
+
+  pub impl : BitOr[Regex, Regex, Regex] {
+    fn bit_or(a: Regex, b: Regex) -> Regex {
+      Union(a, b)
+    }
+  }
+
+  pub impl : ops::Concat[Regex, Regex, Regex] {
+    fn concat(a: Regex, b: Regex) -> Regex {
+      let an = a.nullable();
+      let bn = b.nullable();
+      if !an {
+        b.deactivate();
+      }
+      Concat(a, b, an, bn)
+    }
+  }
+
+  fn .deactivate(&self: &Regex) {
+    match &self {
+      &Never() {}
+      &Empty() {}
+      &Atom(_, ready) { ready = false }
+      &Union(a, b) {
+        a.deactivate();
+        b.deactivate();
+      }
+      &Concat(a, b, an, _) {
+        a.deactivate();
+        if an {
+          b.deactivate();
+        }
+      }
+      &Repeat(x, _) { x.deactivate() }
+    }
+  }
+
+  pub fn .check(self: Regex, string: String) -> Bool {
+    if string!.head_tail() is Some(char, rest) {
+      let accept = self.update(char, false);
+      for char in rest {
+        accept = self.update(char, false);
+      }
+      accept
+    } else {
+      self.nullable()
+    }
+  }
+
+  fn .nullable(&self: &Regex) -> Bool {
+    match &self {
+      &Never() { false }
+      &Empty() { true }
+      &Atom(_) { false }
+      &Union(a, b) { a.nullable() or b.nullable() }
+      &Concat(_, _, an, bn) { an & bn }
+      &Repeat(x, n) { n or x.nullable() }
+    }
+  }
+
+  fn .update(&self: &Regex, char: Char, enter: Bool) -> Bool {
+    match &self {
+      &Never() { false }
+      &Empty() { false }
+      &Atom(want, ready) {
+        let accept = ready & (char == want);
+        ready = enter;
+        accept
+      }
+      &Union(a, b) { a.update(char, enter) | b.update(char, enter) }
+      &Concat(a, b, an, bn) {
+        let ac = a.update(char, enter);
+        let bc = b.update(char, ac | an & enter);
+        bc | bn & ac
+      }
+      &Repeat(x, _) {
+        let loop accept: Bool;
+        accept = x.update(char, enter | accept);
+        accept
+      }
+    }
+  }
+
+  pub impl to_string: Cast[Regex, String] {
+    fn cast(self: Regex) -> String {
+      match self {
+        Never() { "!" }
+        Empty() { "()" }
+        Atom(c, _) { "{c}" }
+        Union(a, b) { "({a}|{b})" }
+        Concat(a, b, _, _) { "({a}{b})" }
+        Repeat(x, n) {
+          let char = if n {
+            "*"
+          } else {
+            "+"
+          };
+          "({x}{char})"
+        }
+      }
+    }
+  }
+}
+
+fn .gen_big(&rng: &Pcg32, max: N32) -> N32 {
+  N32::max(rng.gen_n32() % max, rng.gen_n32() % max)
+}
+
+fn .gen_regex(&rng: &Pcg32, max: N32) -> Regex {
+  let size = rng.gen_big(max);
+  rng._gen_regex(size)
+}
+
+fn ._gen_regex(&rng: &Pcg32, size: N32) -> Regex {
+  if size > 0 {
+    size -= 1;
+    let r = rng.gen_n32() % 3;
+    when {
+      r == 0 {
+        let r = rng.gen_n32() % 5;
+        when {
+          r == 0 { rng._gen_regex(size).opt() }
+          r < 3 { rng._gen_regex(size).plus() }
+          _ { rng._gen_regex(size).star() }
+        }
+      }
+      r == 1 {
+        let a = rng.gen_n32() % (size + 1);
+        let b = size - a;
+        rng._gen_regex(a) ++ rng._gen_regex(b)
+      }
+      _ {
+        let a = rng.gen_n32() % (size + 1);
+        let b = size - a;
+        rng._gen_regex(a) | rng._gen_regex(b)
+      }
+    }
+  } else {
+    let r = rng.gen_n32() % 16;
+    when {
+      r == 0 { Regex::never }
+      r < 4 { Regex::empty }
+      _ { ('x' + rng.gen_n32() % 3) as Regex }
+    }
+  }
+}
+
+fn .gen_string(&rng: &Pcg32, size: N32) -> String {
+  let s = "";
+  for _ in 0..rng.gen_big(size) {
+    s! ++= ['x' + rng.gen_n32() % 3];
+  }
+  s
+}
+
+const seed: String = "/^se+d$/";
+const re_count: N32 = black_box(100);
+const str_count: N32 = black_box(100);
+const re_size: N32 = black_box(20);
+const str_size: N32 = black_box(20);
+
+pub fn main(&io: &IO) {
+  let rng = Pcg32::seeded(seed);
+  for _ in 0..re_count {
+    let re = rng.gen_regex(re_size);
+    io.println("/ {re}");
+    for _ in 0..str_count {
+      let str = rng.gen_string(str_size);
+      let code = if re.check(str) {
+        'T'
+      } else {
+        'F'
+      };
+      io.println("{code} {str}");
+    }
+  }
+}
