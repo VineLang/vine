@@ -123,8 +123,8 @@ impl Resolver<'_> {
     path: &Path,
     const_id: ConstId,
   ) -> Result<TirExpr, Diag> {
-    if self.chart.const_is_unsafe(const_id) && !self.allow_unsafe {
-      self.diags.error(Diag::Unsafe { span });
+    if self.chart.const_is_unsafe(const_id) {
+      self.unsafe_(span);
     }
     let (type_params, impl_params) =
       self.resolve_generics(path, self.chart.const_generics(const_id), true);

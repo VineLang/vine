@@ -84,9 +84,7 @@ impl Resolver<'_> {
     ty: &Ty,
     net: &Net,
   ) -> Result<TirExpr, Diag> {
-    if !self.allow_unsafe {
-      self.diags.error(Diag::Unsafe { span });
-    }
+    self.unsafe_(span);
     let binds = Vec::from_iter(
       binds.iter().map(|(name, value, expr)| (name.0.clone(), *value, self.resolve_expr(expr))),
     );

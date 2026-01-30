@@ -292,8 +292,8 @@ impl Resolver<'_> {
     fn_id: FnId,
     args: &Option<Vec<Expr>>,
   ) -> Result<TirExpr, Diag> {
-    if self.chart.fn_is_unsafe(fn_id) && !self.allow_unsafe {
-      self.diags.error(Diag::Unsafe { span });
+    if self.chart.fn_is_unsafe(fn_id) {
+      self.unsafe_(span);
     }
     if let Some(args) = args {
       let generics_id = self.chart.fn_generics(fn_id);
@@ -436,7 +436,7 @@ impl Resolver<'_> {
     match &*param.kind {
       PatKind::Path(path, None) => path.as_ident(),
       PatKind::Paren(pat)
-      | PatKind::Safe(pat)
+      | PatKind::Safe(_, pat)
       | PatKind::Annotation(pat, _)
       | PatKind::Ref(pat)
       | PatKind::Deref(pat)

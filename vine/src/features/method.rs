@@ -42,8 +42,8 @@ impl Resolver<'_> {
     let receiver = self.resolve_expr(receiver);
     let mut args = args.iter().map(|arg| self.resolve_expr(arg)).collect::<Vec<_>>();
     let (fn_id, type_params) = self.find_method(span, receiver.ty, name)?;
-    if !self.allow_unsafe && self.chart.fn_is_unsafe(fn_id) {
-      self.diags.error(Diag::Unsafe { span });
+    if self.chart.fn_is_unsafe(fn_id) {
+      self.unsafe_(span);
     }
     self.annotations.record_reference(name_span, self.chart.fn_span(fn_id));
     let type_params = self.types.import(&type_params, None);

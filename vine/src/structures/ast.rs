@@ -304,7 +304,7 @@ pub struct Expr {
 pub enum ExprKind {
   Hole,
   Paren(Expr),
-  Safe(Expr),
+  Safe(Span, Expr),
   Path(Path, Option<Vec<Expr>>),
   Do(Label, Option<Ty>, Block),
   Assign(bool, Expr, Expr),
@@ -387,7 +387,7 @@ pub struct Pat {
 pub enum PatKind {
   Hole,
   Paren(Pat),
-  Safe(Pat),
+  Safe(Span, Pat),
   Annotation(Pat, Ty),
   Path(Path, Option<Vec<Pat>>),
   Ref(Pat),
@@ -448,7 +448,7 @@ pub struct Impl {
 #[derive(Debug, Clone)]
 pub enum ImplKind {
   Hole,
-  Safe(Impl),
+  Safe(Span, Impl),
   Path(Path),
   Fn(Path),
   Error(ErrorGuaranteed),

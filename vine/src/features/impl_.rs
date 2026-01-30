@@ -596,8 +596,8 @@ impl Resolver<'_> {
     ty: &ImplType,
   ) -> TirImpl {
     let span = path.span;
-    if self.chart.impls[impl_id].unsafe_ && !self.allow_unsafe {
-      self.diags.error(Diag::Unsafe { span });
+    if self.chart.impls[impl_id].unsafe_ {
+      self.unsafe_(span);
     }
     let generics_id = self.chart.impls[impl_id].generics;
     let type_params = self.types.new_vars(span, self.sigs.type_params[generics_id].params.len());

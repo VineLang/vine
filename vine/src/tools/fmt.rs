@@ -167,7 +167,7 @@ impl<'src> Formatter<'src> {
     match &*impl_.kind {
       ImplKind::Error(_) => unreachable!(),
       ImplKind::Hole => Doc("_"),
-      ImplKind::Safe(impl_) => Doc::concat([Doc("safe "), self.fmt_impl(impl_)]),
+      ImplKind::Safe(_, impl_) => Doc::concat([Doc("safe "), self.fmt_impl(impl_)]),
       ImplKind::Path(path) => self.fmt_path(path),
       ImplKind::Fn(path) => Doc::concat([Doc("fn "), self.fmt_path(path)]),
     }
@@ -193,7 +193,7 @@ impl<'src> Formatter<'src> {
     match &*expr.kind {
       ExprKind::Error(_) => unreachable!(),
       ExprKind::Paren(p) => Doc::paren(self.fmt_expr(p)),
-      ExprKind::Safe(expr_) => Doc::concat([Doc("safe "), self.fmt_expr(expr_)]),
+      ExprKind::Safe(_, expr_) => Doc::concat([Doc("safe "), self.fmt_expr(expr_)]),
       ExprKind::Hole => Doc("_"),
       ExprKind::Path(path, args) => self.fmt_expr_path(path, args),
       ExprKind::Do(label, ty, body) => self.fmt_expr_do(label.clone(), ty, body),
@@ -250,7 +250,7 @@ impl<'src> Formatter<'src> {
       PatKind::Error(_) => unreachable!(),
       PatKind::Hole => Doc("_"),
       PatKind::Paren(pat) => Doc::paren(self.fmt_pat(pat)),
-      PatKind::Safe(pat_) => Doc::concat([Doc("safe "), self.fmt_pat(pat_)]),
+      PatKind::Safe(_, pat_) => Doc::concat([Doc("safe "), self.fmt_pat(pat_)]),
       PatKind::Path(path, args) => self.fmt_pat_path(path, args),
       PatKind::Ref(pat) => self.fmt_pat_ref(pat),
       PatKind::Deref(pat) => self.fmt_pat_deref(pat),

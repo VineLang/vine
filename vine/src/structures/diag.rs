@@ -313,6 +313,8 @@ diags! {
     ["`unsafe` cannot be applied to this kind of item"]
   Unsafe
    ["this is unsafe"]
+  UnusedSafe
+   ["unused `safe`"]
   ImplExpectedSafe { kind: &'static str }
     ["expected a safe {kind}"]
   UnsafeItemInSafeTrait
