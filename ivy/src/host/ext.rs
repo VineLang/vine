@@ -4,7 +4,7 @@ use std::{
 };
 
 use ivm::{
-  ext::{ExtFn, ExtList, ExtTy, ExtTyCast, ExtTyId, ExtVal, Extrinsics},
+  ext::{Boxed, ExtFn, ExtTy, ExtTyCast, ExtTyId, ExtVal, Extrinsics},
   port::Port,
 };
 
@@ -202,7 +202,7 @@ impl<'ivm> Host<'ivm> {
     args: Vec<String>,
   ) {
     let n32 = extrinsics.n32_ext_ty();
-    let list = self.register_ext_ty::<ExtList<'ivm>>("List", extrinsics);
+    let list = self.register_ext_ty::<Boxed<Vec<ExtVal<'ivm>>>>("List", extrinsics);
     let io = self.register_ext_ty::<()>("IO", extrinsics);
 
     self.register_ext_fn(
@@ -252,7 +252,7 @@ impl<'ivm> Host<'ivm> {
     );
 
     register_ext_fns!(match (self, extrinsics) {
-      "list_new" => |_unused: n32| -> list { ExtList::default() },
+      "list_new" => |_unused: n32| -> list { Default::default() },
       "list_len" => |l: list| -> (n32, list) { (l.len() as u32, l) },
 
       "io_join" => |_io_a: io, _io_b: io| -> io {},
@@ -264,7 +264,7 @@ impl<'ivm> Host<'ivm> {
           .iter()
           .map(|s| {
             let chars = s.chars().map(|c| n32.wrap_ext_val(c as u32)).collect::<Vec<ExtVal>>();
-            list.wrap_ext_val(ExtList::from(chars))
+            list.wrap_ext_val(chars.into())
           })
           .collect::<Vec<_>>()
           .into();
