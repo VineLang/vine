@@ -171,7 +171,9 @@ impl Resolver<'_> {
       self.types.import_with(&self.sigs.enums[enum_id], Some(&type_params), |t, sig| {
         t.transfer(&sig.variant_data[variant])
       });
-    self.expect_type(data.span, data.ty, data_ty);
+    if let Some(err) = self.expect_type(data.span, data.ty, data_ty) {
+      Err(err)?
+    }
     let ty = self.types.new(TypeKind::Enum(enum_id, type_params));
     Ok(TirPat::new(span, ty, TirPatKind::Enum(enum_id, variant, data)))
   }
