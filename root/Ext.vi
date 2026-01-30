@@ -120,14 +120,14 @@ pub mod Ext {
   pub impl string: Ext[String];
 
   fn new_list[T]() -> Ext[List[T]] {
-    inline_ivy! () -> Ext[List[T]] {
+    safe inline_ivy! () -> Ext[List[T]] {
       list
       0 = @list_new(_ list)
     }
   }
 
   fn .len[T](&list: &Ext[List[T]]) -> N32 {
-    inline_ivy! (list0 <- list, list1 -> list) -> N32 {
+    safe inline_ivy! (list0 <- list, list1 -> list) -> N32 {
       len
       list0 = @list_len(len list1)
     }
@@ -141,7 +141,7 @@ pub mod Ext {
   }
 
   fn .push[T](&self: &Ext[List[T]], t: Ext[T]) {
-    inline_ivy! (list0 <- self, t <- t, list1 -> self) -> () {
+    safe inline_ivy! (list0 <- self, t <- t, list1 -> self) -> () {
       _
       list0 = @list_push(t list1)
     };

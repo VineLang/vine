@@ -342,7 +342,7 @@ pub mod Set[T; Ord[T]] {
     }
   }
 
-  #[become(duplicate)]
+  #[safe become(duplicate)]
   pub impl [T+]: Fork[Set[T]] {
     fn fork(&Set[T](len, data)) -> Set[T] {
       if len == 0 {
@@ -353,7 +353,7 @@ pub mod Set[T; Ord[T]] {
     }
   }
 
-  #[become(erase)]
+  #[safe become(erase)]
   pub impl [T?]: Drop[Set[T]] {
     fn drop(Set[T](len, data)) {
       if len == 0 {

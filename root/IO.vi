@@ -25,7 +25,7 @@ pub mod IO {
 
   /// Prints the given character to stdout.
   pub fn .print_char(&io: &IO, char: Char) {
-    inline_ivy! (io0 <- io, io1 -> io, char <- char) -> () { _
+    safe inline_ivy! (io0 <- io, io1 -> io, char <- char) -> () { _
       io0 = @io_print_char(char io1)
     }
   }
@@ -37,14 +37,14 @@ pub mod IO {
   }
 
   pub fn .print_byte(&io: &IO, byte: N32) {
-    inline_ivy! (io0 <- io, io1 -> io, byte <- byte) -> () { _
+    safe inline_ivy! (io0 <- io, io1 -> io, byte <- byte) -> () { _
       io0 = @io_print_byte(byte io1)
     }
   }
 
   /// Flushes any buffered output to stdout.
   pub fn .flush(&io: &IO) {
-    inline_ivy! (io0 <- io, io1 -> io) -> () { _
+    safe inline_ivy! (io0 <- io, io1 -> io) -> () { _
       io0 = @io_flush(_ io1)
     }
   }
@@ -103,7 +103,7 @@ pub mod IO {
   /// Reads a UTF-8 code point from stdin, returning `eof` if nothing was
   /// read. If an invalid UTF-8 char is encountered, `U+FFFD` is returned.
   fn ._read_char(&io: &IO) -> Char {
-    inline_ivy! (io0 <- io, io1 -> io) -> Char {
+    safe inline_ivy! (io0 <- io, io1 -> io) -> Char {
       char
       io0 = @io_read_char(char io1)
     }
@@ -120,7 +120,7 @@ pub mod IO {
 
   /// Reads a byte from stdin, returning `eof` if nothing was read.
   fn ._read_byte(&io: &IO) -> Char {
-    inline_ivy! (io0 <- io, io1 -> io) -> Char {
+    safe inline_ivy! (io0 <- io, io1 -> io) -> Char {
       byte
       io0 = @io_read_byte(byte io1)
     }
@@ -134,7 +134,7 @@ pub mod IO {
   /// }
   /// ```
   pub fn .forever(&io: &IO) -> Bool {
-    inline_ivy! (io0 <- io, io1 -> io) -> Bool {
+    safe inline_ivy! (io0 <- io, io1 -> io) -> Bool {
       signal
       io0 = @io_ready(signal io1)
     }
@@ -155,7 +155,7 @@ pub mod IO {
   /// // args: ["some", "cli", "args"]
   /// ```
   pub fn .args(&io: &IO) -> List[String] {
-    let args = inline_ivy! (io0 <- io, io1 -> io) -> Ext[List[String]] {
+    let args = safe inline_ivy! (io0 <- io, io1 -> io) -> Ext[List[String]] {
       args
       io0 = @io_args(args io1)
     };

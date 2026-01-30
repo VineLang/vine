@@ -19,19 +19,19 @@ pub mod Fork {
     }
   }
 
-  #[become(duplicate)]
+  #[safe become(duplicate)]
   pub impl tuple_nil: Fork[()] {
     fn fork(&()) -> () {}
   }
 
-  #[become(duplicate)]
+  #[safe become(duplicate)]
   pub impl object_nil: Fork[{}] {
     fn fork(&{}) -> {} {
       {}
     }
   }
 
-  #[become(duplicate)]
+  #[safe become(duplicate)]
   pub impl composite[C, K, I, R; Composite[C, K, I, R], Fork[I], Fork[R]]: Fork[C] {
     fn fork(&composite: &C) -> C {
       let &(init, rest) = &composite as &(I, R);
@@ -40,7 +40,7 @@ pub mod Fork {
   }
 
   #[basic]
-  #[become(duplicate)]
+  #[safe become(duplicate)]
   pub impl struct_[S, C; Struct[S, C], Fork[C]]: Fork[S] {
     fn fork(&struct_: &S) -> S {
       let &content = &struct_ as &C;
@@ -49,7 +49,7 @@ pub mod Fork {
   }
 
   #[basic]
-  #[become(duplicate)]
+  #[safe become(duplicate)]
   pub impl enum_[E, V; Enum[E, V], Fork[V]]: Fork[E] {
     fn fork(&self: &E) -> E {
       Enum::match_ref(&self, fn (&variant) { Enum::reconstruct(variant) })
@@ -58,7 +58,7 @@ pub mod Fork {
 
   pub impl never: Fork[!] = safe duplicate;
 
-  #[become(duplicate)]
+  #[safe become(duplicate)]
   pub impl variant[I+, R+]: Fork[Variant[I, R]] {
     fn fork(&self: &Variant[I, R]) -> Variant[I, R] {
       match &self {
@@ -84,17 +84,17 @@ pub mod Drop {
     fn drop(&_: &T) {}
   }
 
-  #[become(erase)]
+  #[safe become(erase)]
   pub impl tuple_nil: Drop[()] {
     fn drop(()) {}
   }
 
-  #[become(erase)]
+  #[safe become(erase)]
   pub impl object_nil: Drop[{}] {
     fn drop({}) {}
   }
 
-  #[become(erase)]
+  #[safe become(erase)]
   pub impl composite[C, K, I, R; Composite[C, K, I, R], Drop[I], Drop[R]]: Drop[C] {
     fn drop(composite: C) {
       (_, _) = composite as (I, R);
@@ -102,7 +102,7 @@ pub mod Drop {
   }
 
   #[basic]
-  #[become(erase)]
+  #[safe become(erase)]
   pub impl struct_[S, C; Struct[S, C], Drop[C]]: Drop[S] {
     fn drop(struct_: S) {
       _ = struct_ as C;
@@ -110,7 +110,7 @@ pub mod Drop {
   }
 
   #[basic]
-  #[become(erase)]
+  #[safe become(erase)]
   pub impl enum_[E, V; Enum[E, V], Drop[V]]: Drop[E] {
     fn drop(self: E) {
       Enum::match_(self, fn (_) {})
@@ -119,7 +119,7 @@ pub mod Drop {
 
   pub impl never: Drop[!] = safe erase;
 
-  #[become(erase)]
+  #[safe become(erase)]
   pub impl variant[I?, R?]: Drop[Variant[I, R]] {
     fn drop(self: Variant[I, R]) {
       match self {

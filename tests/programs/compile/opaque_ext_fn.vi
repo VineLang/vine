@@ -4,5 +4,5 @@ pub fn main(_: &IO) {
 }
 
 fn custom_ext_fn(a: N32, b: N32) -> N32 {
-  inline_ivy! (a <- a, b <- b) -> N32 { out a = @custom_ext_fn(b out) }
+  safe inline_ivy! (a <- a, b <- b) -> N32 { out a = @custom_ext_fn(b out) }
 }

@@ -552,7 +552,7 @@ pub mod List {
     }
   }
 
-  #[become(duplicate)]
+  #[safe become(duplicate)]
   pub impl [T+]: Fork[List[T]] {
     fn fork(&self: &List[T]) -> List[T] {
       let out = [];
@@ -563,7 +563,7 @@ pub mod List {
     }
   }
 
-  #[become(erase)]
+  #[safe become(erase)]
   pub impl [T?]: Drop[List[T]] {
     fn drop(self: List[T]) {
       for _ in self {}
