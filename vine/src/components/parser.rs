@@ -113,6 +113,7 @@ impl<'src> Parser<'src> {
   fn parse_attr(&mut self) -> Result<Attr, Diag> {
     let span = self.start_span();
     self.expect(Token::HashBracket)?;
+    let safe = self.eat(Token::Safe)?;
     let ident_span = self.start_span();
     let ident = self.expect(Token::Ident)?;
     let ident_span = self.end_span(ident_span);
@@ -135,7 +136,7 @@ impl<'src> Parser<'src> {
     };
     self.expect(Token::CloseBracket)?;
     let span = self.end_span(span);
-    Ok(Attr { span, kind })
+    Ok(Attr { span, safe, kind })
   }
 
   pub fn parse_ident(&mut self) -> Result<Ident, Diag> {

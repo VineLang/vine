@@ -168,6 +168,7 @@ pub enum Vis {
 #[derive(Clone)]
 pub struct Attr {
   pub span: Span,
+  pub safe: bool,
   pub kind: AttrKind,
 }
 

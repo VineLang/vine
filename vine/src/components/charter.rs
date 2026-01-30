@@ -203,6 +203,9 @@ impl Charter<'_> {
             self.diags.error(Diag::DuplicateBecomeAttr { span });
             continue;
           }
+          if !attr.safe {
+            self.diags.error(Diag::Unsafe { span });
+          }
           impl_.become_ = Some(path);
         }
         AttrKind::Frameless => {

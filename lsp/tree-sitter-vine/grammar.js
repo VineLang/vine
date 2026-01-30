@@ -326,7 +326,13 @@ module.exports = grammar({
     vis: $ => seq("pub", optional(seq(".", $.ident))),
 
     attr: $ =>
-      seq("#[", $.ident, optional(choice(seq("=", $.string), seq("(", $._expr, ")"))), "]"),
+      seq(
+        "#[",
+        optional("safe"),
+        $.ident,
+        optional(choice(seq("=", $.string), seq("(", $._expr, ")"))),
+        "]",
+      ),
 
     generic_params: $ => generics(true, $.ty_param, $.impl_param),
     ty_param: $ => seq($.ident, optional($.flex)),
