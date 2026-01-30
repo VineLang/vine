@@ -88,6 +88,8 @@ pub enum Token {
   And,
   Or,
   Try,
+  Unsafe,
+  Safe,
 
   Ident,
   TupleKey,
@@ -300,6 +302,8 @@ impl<'src> Lex<'src> for Lexer<'src> {
           "and" => Ok(Token::And),
           "or" => Ok(Token::Or),
           "try" => Ok(Token::Try),
+          "unsafe" => Ok(Token::Unsafe),
+          "safe" => Ok(Token::Safe),
           "inline_ivy" if self.char() == Some('!') => self.bump_ok(Token::InlineIvy),
           _ => Ok(Token::Ident),
         }
@@ -399,6 +403,8 @@ impl fmt::Display for Token {
       Token::And => "`and`",
       Token::Or => "`or`",
       Token::Try => "`try`",
+      Token::Unsafe => "`unsafe`",
+      Token::Safe => "`safe`",
 
       Token::Ident => "an identifier",
       Token::Num => "a numeric literal",

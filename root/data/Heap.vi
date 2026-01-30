@@ -1,5 +1,6 @@
 
 use ops::{Cast, Concat, comparison::Ord};
+use util::{duplicate, erase, eraser};
 
 /// A min-heap, which provides efficient access to the smallest value in the heap.
 pub struct Heap[T]((N32, Node[T]));
@@ -11,7 +12,7 @@ pub mod Heap[T; Ord[T]] {
   /// ```vi
   /// Heap::empty // Heap([])
   /// ```
-  pub const empty[T]: Heap[T] = Heap(0, unsafe::eraser);
+  pub const empty[T]: Heap[T] = Heap(0, safe eraser);
 
   /// Create a heap containing a single element.
   /// ```vi
@@ -86,11 +87,11 @@ pub mod Heap[T; Ord[T]] {
   pub impl [...]: Concat[Heap[T], Heap[T], Heap[T]] {
     fn concat(self: Heap[T], other: Heap[T]) -> Heap[T] {
       if self.rank() == 0 {
-        unsafe::erase(self);
+        safe erase(self);
         return other;
       }
       if other.rank() == 0 {
-        unsafe::erase(other);
+        safe erase(other);
         return self;
       }
       if self.value() > other.value() {
@@ -106,7 +107,7 @@ pub mod Heap[T; Ord[T]] {
     }
   }
 
-  #[become(unsafe::duplicate)]
+  #[safe become(duplicate)]
   pub impl [T+]: Fork[Heap[T]] {
     fn fork(&Heap[T](rank, node)) -> Heap[T] {
       if rank == 0 {
@@ -118,11 +119,11 @@ pub mod Heap[T; Ord[T]] {
     }
   }
 
-  #[become(unsafe::erase)]
+  #[safe become(erase)]
   pub impl [T?]: Drop[Heap[T]] {
     fn drop(Heap[T](rank, node)) {
       if rank == 0 {
-        unsafe::erase(node);
+        safe erase(node);
       } else {
         Node(_, _, _) = node;
       }
@@ -163,7 +164,7 @@ pub mod Heap[T; Ord[T]] {
       while self.pop() is Some(value) {
         list.push_back(value);
       }
-      unsafe::erase(self);
+      safe erase(self);
       list
     }
   }
@@ -194,7 +195,7 @@ pub mod Heap[T; Ord[T]] {
         if heap.pop() is Some(value) {
           Some(value, Iter(heap))
         } else {
-          unsafe::erase(heap);
+          safe erase(heap);
           None()
         }
       }

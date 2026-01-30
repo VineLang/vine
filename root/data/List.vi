@@ -1,6 +1,7 @@
 
 use data::Iterator::{Iterator, Collect};
 use ops::{Cast, Concat, Range::{Range, Bound}, comparison::{Eq, Ord}};
+use util::{duplicate, erase};
 
 /// A linear collection of `T`.
 ///
@@ -132,7 +133,7 @@ pub mod List {
   }
 
   pub fn .map[T, U, F*; fn F(T) -> U](List[T](l, buf, _end), f: F) -> List[U] {
-    unsafe::erase(_end);
+    safe erase(_end);
     let len = l;
     let cur;
     let result = ~cur;
@@ -143,7 +144,7 @@ pub mod List {
       ~cur = Buf(f(head), ~next);
       ~next = ~cur;
     }
-    unsafe::erase(buf);
+    safe erase(buf);
     List(len, result, cur)
   }
 
@@ -173,7 +174,7 @@ pub mod List {
       let Buf(head, tail) = buf;
       Some(head, List(len - 1, tail, end))
     } else {
-      unsafe::erase((buf, end));
+      safe erase((buf, end));
       None()
     }
   }
@@ -312,7 +313,7 @@ pub mod List {
     if list.len() > 1 {
       let len = list.len();
       let sorted = list.sort_prefix(len);
-      unsafe::erase(list);
+      safe erase(list);
       list = sorted;
     }
   }
@@ -403,7 +404,7 @@ pub mod List {
           let Buf(head, tail) = buf;
           Some(head, Iter(List(len - 1, tail, end)))
         } else {
-          unsafe::erase((buf, end));
+          safe erase((buf, end));
           None()
         }
       }
@@ -551,7 +552,7 @@ pub mod List {
     }
   }
 
-  #[become(unsafe::duplicate)]
+  #[safe become(duplicate)]
   pub impl [T+]: Fork[List[T]] {
     fn fork(&self: &List[T]) -> List[T] {
       let out = [];
@@ -562,7 +563,7 @@ pub mod List {
     }
   }
 
-  #[become(unsafe::erase)]
+  #[safe become(erase)]
   pub impl [T?]: Drop[List[T]] {
     fn drop(self: List[T]) {
       for _ in self {}

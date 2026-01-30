@@ -159,6 +159,7 @@ impl Charter<'_> {
       ret_ty: fn_item.ret,
       body,
       frameless: false,
+      unsafe_: false,
     });
     self.define_value(span, def, vis, DefValueKind::Fn(FnId::Concrete(fn_id)));
     ChartedItem::Fn(def, FnId::Concrete(fn_id))
@@ -168,7 +169,7 @@ impl Charter<'_> {
 impl Resolver<'_> {
   pub(crate) fn resolve_fn_sig(&mut self, fn_id: ConcreteFnId) {
     let fn_def = &self.chart.concrete_fns[fn_id];
-    self.initialize(fn_def.def, fn_def.generics);
+    self.initialize(fn_def.def, fn_def.generics, fn_def.unsafe_);
     let names = fn_def.params.iter().map(|x| self.param_name(x)).collect();
     let (params, ret_ty) = self._resolve_fn_sig(&fn_def.params, &fn_def.ret_ty);
     let sig = FnSig { names, param_tys: params, ret_ty };
@@ -194,7 +195,7 @@ impl Resolver<'_> {
   pub(crate) fn resolve_fn_def(&mut self, fn_id: ConcreteFnId) {
     let fn_def = &self.chart.concrete_fns[fn_id];
     let span = fn_def.span;
-    self.initialize(fn_def.def, fn_def.generics);
+    self.initialize(fn_def.def, fn_def.generics, fn_def.unsafe_);
     let (ty, closure_id) =
       self.resolve_closure(span, Flex::None, &fn_def.params, &fn_def.ret_ty, &fn_def.body, false);
     let root = TirExpr { span, ty, kind: Box::new(TirExprKind::Closure(closure_id)) };
@@ -291,6 +292,9 @@ impl Resolver<'_> {
     fn_id: FnId,
     args: &Option<Vec<Expr>>,
   ) -> Result<TirExpr, Diag> {
+    if self.chart.fn_is_unsafe(fn_id) {
+      self.unsafe_(span);
+    }
     if let Some(args) = args {
       let generics_id = self.chart.fn_generics(fn_id);
       let type_params_len = self.sigs.type_params[generics_id].params.len();
@@ -432,6 +436,7 @@ impl Resolver<'_> {
     match &*param.kind {
       PatKind::Path(path, None) => path.as_ident(),
       PatKind::Paren(pat)
+      | PatKind::Safe(_, pat)
       | PatKind::Annotation(pat, _)
       | PatKind::Ref(pat)
       | PatKind::Deref(pat)

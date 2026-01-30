@@ -76,6 +76,7 @@ impl Charter<'_> {
       generics,
       ty: const_item.ty,
       value,
+      unsafe_: false,
     });
     self.define_value(span, def, vis, DefValueKind::Const(ConstId::Concrete(const_id)));
     ChartedItem::Const(def, ConstId::Concrete(const_id))
@@ -85,7 +86,7 @@ impl Charter<'_> {
 impl Resolver<'_> {
   pub(crate) fn resolve_const_sig(&mut self, const_id: ConcreteConstId) {
     let const_def = &self.chart.concrete_consts[const_id];
-    self.initialize(const_def.def, const_def.generics);
+    self.initialize(const_def.def, const_def.generics, const_def.unsafe_);
     let ty = self.resolve_ty(&const_def.ty, false);
 
     let hover = format!(
@@ -102,7 +103,7 @@ impl Resolver<'_> {
 
   pub(crate) fn resolve_const_def(&mut self, const_id: ConcreteConstId) {
     let const_def = &self.chart.concrete_consts[const_id];
-    self.initialize(const_def.def, const_def.generics);
+    self.initialize(const_def.def, const_def.generics, const_def.unsafe_);
     let ty = self.types.import(&self.sigs.concrete_consts[const_id], None).ty;
     let root = self.resolve_expr_type(&const_def.value, ty);
     self.types.finish_inference();
@@ -122,6 +123,9 @@ impl Resolver<'_> {
     path: &Path,
     const_id: ConstId,
   ) -> Result<TirExpr, Diag> {
+    if self.chart.const_is_unsafe(const_id) {
+      self.unsafe_(span);
+    }
     let (type_params, impl_params) =
       self.resolve_generics(path, self.chart.const_generics(const_id), true);
     let ty = self.types.import(self.sigs.const_sig(const_id), Some(&type_params)).ty;

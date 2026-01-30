@@ -96,7 +96,7 @@ impl Resolver<'_> {
         let slot = self.sigs.type_aliases.get_or_extend(alias_id);
         *slot = TypeAliasState::Resolving;
 
-        self.initialize(alias_def.def, alias_def.generics);
+        self.initialize(alias_def.def, alias_def.generics, false);
         let ty = self.resolve_ty(&alias_def.ty, false);
 
         let hover = format!(

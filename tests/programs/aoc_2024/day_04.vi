@@ -1,5 +1,5 @@
 
-use #root::data::Iterator::Fused;
+use #root::{data::Iterator::Fused, util::{erase, eraser}};
 
 pub fn main(&io: &IO) {
   let lines = [];
@@ -49,7 +49,7 @@ pub fn main(&io: &IO) {
   diamond(
     lines,
     fn* (char: Char, Neighbors[Char](nw, _n, ne, _w, _e, sw, _s, se)) {
-      unsafe::erase((_n, _w, _e, _s));
+      safe erase((_n, _w, _e, _s));
       if char == 'A' {
         let nw = nw.send('A');
         let ne = ne.send('A');
@@ -167,5 +167,5 @@ fn new_channel[M]() -> (Channel[M], Channel[M]) {
 }
 
 fn neglect_channel[M](d: M) -> Channel[M] {
-  Channel(d, unsafe::eraser)
+  Channel(d, safe eraser)
 }

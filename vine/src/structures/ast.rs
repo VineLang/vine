@@ -19,6 +19,7 @@ pub struct Item {
   pub name_span: Span,
   pub docs: Vec<String>,
   pub vis: Vis,
+  pub unsafe_: bool,
   pub attrs: Vec<Attr>,
   pub kind: ItemKind,
 }
@@ -114,6 +115,7 @@ pub struct TraitItem {
 pub struct ImplItem {
   pub name: Option<Ident>,
   pub generics: GenericParams,
+  pub safe: bool,
   pub trait_: Trait,
   pub kind: ImplItemKind,
 }
@@ -166,6 +168,7 @@ pub enum Vis {
 #[derive(Clone)]
 pub struct Attr {
   pub span: Span,
+  pub safe: bool,
   pub kind: AttrKind,
 }
 
@@ -301,6 +304,7 @@ pub struct Expr {
 pub enum ExprKind {
   Hole,
   Paren(Expr),
+  Safe(Span, Expr),
   Path(Path, Option<Vec<Expr>>),
   Do(Label, Option<Ty>, Block),
   Assign(bool, Expr, Expr),
@@ -383,6 +387,7 @@ pub struct Pat {
 pub enum PatKind {
   Hole,
   Paren(Pat),
+  Safe(Span, Pat),
   Annotation(Pat, Ty),
   Path(Path, Option<Vec<Pat>>),
   Ref(Pat),
@@ -443,6 +448,7 @@ pub struct Impl {
 #[derive(Debug, Clone)]
 pub enum ImplKind {
   Hole,
+  Safe(Span, Impl),
   Path(Path),
   Fn(Path),
   Error(ErrorGuaranteed),

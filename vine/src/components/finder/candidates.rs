@@ -307,7 +307,7 @@ impl<'a> CandidateSetBuilder<'a> {
       for &Binding { vis, kind: DefImplKind::Impl(impl_id), .. } in &def.impl_kinds {
         if let ImplType::Trait(trait_id, _) = &self.sigs.impls[impl_id].inner.ty {
           let impl_ = &self.chart.impls[impl_id];
-          if !impl_.manual && impl_.name.is_some() == direct {
+          if !impl_.manual && !impl_.unsafe_ && impl_.name.is_some() == direct {
             let set = self.sets.get_mut(set);
             let key = (*trait_id, impl_.basic);
             set.impls.entry(key).or_default().entry(impl_id).or_default().insert(vis);

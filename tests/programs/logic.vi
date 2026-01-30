@@ -1,4 +1,6 @@
 
+use #root::util::eraser;
+
 pub fn main(&io: &IO) {
   let fn print_bool(bool) {
     io.println(if bool {
@@ -28,10 +30,10 @@ pub fn main(&io: &IO) {
   print_bool(!true);
   print_bool(!!false);
 
-  // Test short-circuiting behavior; `unsafe::eraser` is an eraser node,
+  // Test short-circuiting behavior; `safe eraser` is an eraser node,
   // so would erase `io` if it was evaluated.
   io.println("---");
-  print_bool(true or unsafe::eraser);
-  print_bool(false impl unsafe::eraser);
-  print_bool(false and unsafe::eraser);
+  print_bool(true or safe eraser);
+  print_bool(false impl safe eraser);
+  print_bool(false and safe eraser);
 }

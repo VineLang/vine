@@ -5,6 +5,7 @@ use ops::{
   bitwise::{BitAnd, BitOr, BitXor, Not, Shl, Shr},
   comparison::{Eq, Ord},
 };
+use util::{duplicate, erase, transmute};
 
 #[builtin = "I32"]
 pub type I32;
@@ -13,24 +14,24 @@ pub mod I32 {
   pub const maximum: I32 = +0x7fffffff;
   pub const minimum: I32 = -0x7fffffff;
 
-  pub impl : Fork[I32] = unsafe::duplicate;
-  pub impl : Drop[I32] = unsafe::erase;
+  pub impl : Fork[I32] = safe duplicate;
+  pub impl : Drop[I32] = safe erase;
 
   pub impl : Add[I32, I32, I32] {
     fn add(a: I32, b: I32) -> I32 {
-      inline_ivy! (a <- a, b <- b) -> I32 { out a = @n32_add(b out) }
+      safe inline_ivy! (a <- a, b <- b) -> I32 { out a = @n32_add(b out) }
     }
   }
 
   pub impl : Sub[I32, I32, I32] {
     fn sub(a: I32, b: I32) -> I32 {
-      inline_ivy! (a <- a, b <- b) -> I32 { out a = @n32_sub(b out) }
+      safe inline_ivy! (a <- a, b <- b) -> I32 { out a = @n32_sub(b out) }
     }
   }
 
   pub impl : Mul[I32, I32, I32] {
     fn mul(a: I32, b: I32) -> I32 {
-      inline_ivy! (a <- a, b <- b) -> I32 { out a = @n32_mul(b out) }
+      safe inline_ivy! (a <- a, b <- b) -> I32 { out a = @n32_mul(b out) }
     }
   }
 
@@ -46,7 +47,7 @@ pub mod I32 {
         return debug::error("division by zero");
       }
 
-      inline_ivy! (a <- a, b <- b) -> I32 { out a = @i32_div(b out) }
+      safe inline_ivy! (a <- a, b <- b) -> I32 { out a = @i32_div(b out) }
     }
   }
 
@@ -56,7 +57,7 @@ pub mod I32 {
         return debug::error("division by zero");
       }
 
-      inline_ivy! (a <- a, b <- b) -> I32 { out a = @i32_rem(b out) }
+      safe inline_ivy! (a <- a, b <- b) -> I32 { out a = @i32_rem(b out) }
     }
   }
 
@@ -74,37 +75,37 @@ pub mod I32 {
 
   pub impl : BitAnd[I32, I32, I32] {
     fn bit_and(a: I32, b: I32) -> I32 {
-      inline_ivy! (a <- a, b <- b) -> I32 { out a = @n32_and(b out) }
+      safe inline_ivy! (a <- a, b <- b) -> I32 { out a = @n32_and(b out) }
     }
   }
 
   pub impl : BitOr[I32, I32, I32] {
     fn bit_or(a: I32, b: I32) -> I32 {
-      inline_ivy! (a <- a, b <- b) -> I32 { out a = @n32_or(b out) }
+      safe inline_ivy! (a <- a, b <- b) -> I32 { out a = @n32_or(b out) }
     }
   }
 
   pub impl : BitXor[I32, I32, I32] {
     fn bit_xor(a: I32, b: I32) -> I32 {
-      inline_ivy! (a <- a, b <- b) -> I32 { out a = @n32_xor(b out) }
+      safe inline_ivy! (a <- a, b <- b) -> I32 { out a = @n32_xor(b out) }
     }
   }
 
   pub impl : Shl[I32, N32, I32] {
     fn shl(a: I32, b: N32) -> I32 {
-      inline_ivy! (a <- a, b <- b) -> I32 { out a = @n32_shl(b out) }
+      safe inline_ivy! (a <- a, b <- b) -> I32 { out a = @n32_shl(b out) }
     }
   }
 
   pub impl : Shr[I32, N32, I32] {
     fn shr(a: I32, b: N32) -> I32 {
-      inline_ivy! (a <- a, b <- b) -> I32 { out a = @i32_shr(b out) }
+      safe inline_ivy! (a <- a, b <- b) -> I32 { out a = @i32_shr(b out) }
     }
   }
 
   pub impl : Not[I32, I32] {
     fn not(a: I32) -> I32 {
-      inline_ivy! (a <- a) -> I32 { out a = @n32_xor(0xffffffff out) }
+      safe inline_ivy! (a <- a) -> I32 { out a = @n32_xor(0xffffffff out) }
     }
   }
 
@@ -116,8 +117,8 @@ pub mod I32 {
     }
   }
 
-  pub impl from_n32: Cast[N32, I32] = unsafe::transmute;
-  pub impl to_n32: Cast[I32, N32] = unsafe::transmute;
+  pub impl from_n32: Cast[N32, I32] = safe transmute;
+  pub impl to_n32: Cast[I32, N32] = safe transmute;
 
   pub impl to_string: Cast[I32, String] {
     fn cast(n: I32) -> String {
@@ -156,11 +157,11 @@ pub mod I32 {
 
   pub impl : Ord[I32] {
     fn lt(&a: &I32, &b: &I32) -> Bool {
-      inline_ivy! (a <- a, b <- b) -> Bool { out a = @i32_lt(b out) }
+      safe inline_ivy! (a <- a, b <- b) -> Bool { out a = @i32_lt(b out) }
     }
 
     fn le(&a: &I32, &b: &I32) -> Bool {
-      inline_ivy! (a <- a, b <- b) -> Bool { out a = @i32_le(b out) }
+      safe inline_ivy! (a <- a, b <- b) -> Bool { out a = @i32_le(b out) }
     }
 
     fn cmp(a: &I32, b: &I32) -> Ord {
@@ -170,11 +171,11 @@ pub mod I32 {
 
   pub impl : Eq[I32] {
     fn eq(&a: &I32, &b: &I32) -> Bool {
-      inline_ivy! (a <- a, b <- b) -> Bool { out a = @n32_eq(b out) }
+      safe inline_ivy! (a <- a, b <- b) -> Bool { out a = @n32_eq(b out) }
     }
 
     fn ne(&a: &I32, &b: &I32) -> Bool {
-      inline_ivy! (a <- a, b <- b) -> Bool { out a = @n32_ne(b out) }
+      safe inline_ivy! (a <- a, b <- b) -> Bool { out a = @n32_ne(b out) }
     }
   }
 

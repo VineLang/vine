@@ -1,5 +1,5 @@
 
-use #root::data::Map;
+use #root::{data::Map, util::{duplicate, erase, eraser}};
 
 pub fn main(&io: &IO) {
   while io.prompt("> ") is Some(line) {
@@ -43,7 +43,7 @@ pub mod Term {
       }
       Term::Spine(var, args) {
         if args.len() == 0 {
-          unsafe::erase(args);
+          safe erase(args);
           var
         } else {
           let out = "({var}";
@@ -59,9 +59,9 @@ pub mod Term {
 
   fn bind(uses: List[~Term], term: Term) {
     for ~out in uses.iter() {
-      out = unsafe::duplicate(&term);
+      out = safe duplicate(&term);
     }
-    unsafe::erase(term);
+    safe erase(term);
   }
 
   pub fn parse(source: String) -> Result[Term, String] {
@@ -69,9 +69,9 @@ pub mod Term {
     let parser = Parser({ scope: Map::empty, chars: source as List, error: ~err });
     let term = parser.parse_term();
     ~parser.error = None();
-    unsafe::erase(parser);
+    safe erase(parser);
     if err is Some(error) {
-      unsafe::erase(term);
+      safe erase(term);
       Err(error)
     } else {
       Ok(term)
@@ -108,7 +108,7 @@ mod Parser {
         self.skip_ws();
         let var = self.parse_var();
         self.expect_char('.');
-        self.scope.at_or_insert[; _, _, unsafe::erase](var, []).*.push_front([]);
+        self.scope.at_or_insert[; _, _, safe erase](var, []).*.push_front([]);
         let body = self.parse_atom();
         let uses = self.scope.at(&var).assume().*.pop_front().assume();
         Term::Lambda(uses, body)
@@ -159,8 +159,8 @@ mod Parser {
 
   fn .error[T](&self: &Parser, error: String) -> T {
     ~self.error = Some(error);
-    unsafe::erase(&self);
-    unsafe::eraser
+    safe erase(&self);
+    safe eraser
   }
 }
 

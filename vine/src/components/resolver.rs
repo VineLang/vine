@@ -42,6 +42,8 @@ pub struct Resolver<'a> {
   pub(crate) return_ty: Option<Type>,
   pub(crate) cur_def: DefId,
   pub(crate) cur_generics: GenericsId,
+  pub(crate) allow_unsafe: bool,
+  pub(crate) used_unsafe: bool,
 
   pub(crate) scope: BTreeMap<Ident, Vec<ScopeEntry>>,
   pub(crate) scope_depth: usize,
@@ -102,6 +104,8 @@ impl<'a> Resolver<'a> {
       target_id: Default::default(),
       rels: Default::default(),
       closures: Default::default(),
+      allow_unsafe: false,
+      used_unsafe: false,
     }
   }
 
@@ -190,7 +194,7 @@ impl<'a> Resolver<'a> {
     Ok(fn_id)
   }
 
-  pub(crate) fn initialize(&mut self, def_id: DefId, generics_id: GenericsId) {
+  pub(crate) fn initialize(&mut self, def_id: DefId, generics_id: GenericsId, allow_unsafe: bool) {
     assert!(self.return_ty.is_none());
     self.targets.clear();
     self.types.reset();
@@ -203,6 +207,7 @@ impl<'a> Resolver<'a> {
 
     self.cur_def = def_id;
     self.cur_generics = generics_id;
+    self.allow_unsafe = allow_unsafe;
   }
 
   #[allow(clippy::type_complexity)]
@@ -215,7 +220,7 @@ impl<'a> Resolver<'a> {
     locals: impl Iterator<Item = (Ident, Span, Type)>,
     block: &Block,
   ) -> (FragmentId, Type, Vec<(Local, Ident, Span, Type)>) {
-    self.initialize(def_id, GenericsId::NONE);
+    self.initialize(def_id, GenericsId::NONE, false);
     self.types = types;
     for (name, span, ty) in locals {
       let local = self.locals.push(TirLocal { span, ty });
@@ -278,6 +283,9 @@ impl<'a> Resolver<'a> {
     {
       Err(Diag::GenericEntrypoint { span })?
     }
+    if fn_def.unsafe_ {
+      Err(Diag::UnsafeEntrypoint { span })?
+    }
     let io = self.builtin_ty(span, "IO", self.chart.builtins.io);
     let io_ref = self.types.new(TypeKind::Ref(io));
     let nil = self.types.nil();
@@ -310,6 +318,7 @@ impl<'a> Resolver<'a> {
     let span = impl_.span;
     match &*impl_.kind {
       ImplKind::Hole => self.find_impl(span, ty, false),
+      ImplKind::Safe(span, inner) => self.safe(*span, |self_| self_.resolve_impl_type(inner, ty)),
       ImplKind::Path(path) => self.resolve_impl_path(path, ty),
       ImplKind::Fn(path) => self.resolve_impl_fn(span, path, ty),
       ImplKind::Error(err) => TirImpl::Error(*err),
@@ -487,6 +496,7 @@ impl<'a> Resolver<'a> {
     match &*expr.kind {
       ExprKind::Error(e) => Err(*e)?,
       ExprKind::Paren(e) => self._resolve_expr(e),
+      ExprKind::Safe(span, e) => self.safe(*span, |self_| self_._resolve_expr(e)),
       ExprKind::Do(label, ty, block) => self.resolve_expr_do(span, label.clone(), ty, block),
       ExprKind::Assign(dir, space, value) => self.resolve_expr_assign(span, *dir, space, value),
       ExprKind::Match(scrutinee, ty, arms) => self.resolve_match(span, scrutinee, ty, arms),
@@ -566,6 +576,7 @@ impl<'a> Resolver<'a> {
     match &*pat.kind {
       PatKind::Error(e) => Err(*e)?,
       PatKind::Paren(p) => self._resolve_pat(p),
+      PatKind::Safe(span, p) => self.safe(*span, |self_| self_._resolve_pat(p)),
       PatKind::Annotation(pat, ty) => self.resolve_pat_annotation(span, pat, ty),
       PatKind::Path(path, data) => self.resolve_pat_path(span, path, data),
       PatKind::Hole => self.resolve_pat_hole(span),
@@ -581,6 +592,9 @@ impl<'a> Resolver<'a> {
     let span = pat.span;
     match &*pat.kind {
       PatKind::Paren(inner) => self.resolve_pat_sig(inner, inference),
+      PatKind::Safe(span, inner) => {
+        self.safe(*span, |self_| self_.resolve_pat_sig(inner, inference))
+      }
       PatKind::Annotation(_, ty) => self.resolve_ty(ty, inference),
       PatKind::Path(path, _) => self.resolve_pat_sig_path(span, path, inference),
       PatKind::Ref(inner) => self.resolve_pat_sig_ref(inner, inference),
@@ -630,6 +644,31 @@ impl<'a> Resolver<'a> {
   pub(crate) fn resolve_test_fn(&mut self, concrete_fn_id: ConcreteFnId) {
     if let Err(diag) = self.expect_entrypoint_sig(concrete_fn_id) {
       self.diags.error(diag);
+    }
+  }
+
+  pub(crate) fn safe<T>(&mut self, span: Span, f: impl FnOnce(&mut Self) -> T) -> T {
+    if self.allow_unsafe {
+      self.diags.warn(Diag::UnusedSafe { span });
+      f(self)
+    } else {
+      self.allow_unsafe = true;
+      self.used_unsafe = false;
+      let result = f(self);
+      if !self.used_unsafe {
+        self.diags.warn(Diag::UnusedSafe { span });
+      }
+      self.allow_unsafe = false;
+      self.used_unsafe = false;
+      result
+    }
+  }
+
+  pub(crate) fn unsafe_(&mut self, span: Span) {
+    if self.allow_unsafe {
+      self.used_unsafe = true;
+    } else {
+      self.diags.error(Diag::Unsafe { span });
     }
   }
 }

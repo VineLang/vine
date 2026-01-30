@@ -31,6 +31,8 @@
   "and"
   "or"
   "try"
+  "unsafe"
+  "safe"
   "inline_ivy!"
 ] @keyword
 

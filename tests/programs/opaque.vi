@@ -1,12 +1,14 @@
 
+use #root::util::{erase, eraser};
+
 pub type A;
 
 pub mod A {
-  pub impl : Drop[A] = unsafe::erase;
+  pub impl : Drop[A] = safe erase;
   pub impl : Show[A];
 
   pub fn new() -> A {
-    unsafe::eraser
+    safe eraser
   }
 }
 

@@ -11,7 +11,6 @@
 /// - the `Fork` and `Drop` traits
 /// - core utility functions (`black_box`, `replace`, `swap`)
 /// - the `debug` module, the `Show` trait, and the `.dbg`/`.dbg_msg` methods
-/// - the `unsafe` module
 mod;
 
 pub use #root::{
@@ -22,6 +21,5 @@ pub use #root::{
   numeric::{F32, F64, I32, Int, N32, N64, Nat},
   ops::flex::{Drop, Fork},
   unicode::{Char, String},
-  unsafe,
   util::{black_box, replace, swap},
 };

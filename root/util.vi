@@ -1,4 +1,6 @@
 
+use ops::Cast;
+
 /// Swap the values in two references.
 /// ```vi
 /// let a = 1;
@@ -24,5 +26,46 @@ pub fn replace[T](&a: &T, b: T) -> T {
 }
 
 pub fn black_box[T](value: T) -> T {
-  inline_ivy! (value <- value) -> T { #[value] }
+  safe inline_ivy! (value <- value) -> T { #[value] }
+}
+
+pub unsafe fn duplicate[T](&value: &T) -> T {
+  inline_ivy! (x <- value, x1 -> value) -> T {
+    x2
+    x = dup(x1 x2)
+  }
+}
+
+#[builtin = "duplicate"]
+pub unsafe impl duplicate[T]: Fork[T] {
+  unsafe fn fork(&self: &T) -> T {
+    duplicate(&self)
+  }
+}
+
+pub unsafe const eraser[T]: T = inline_ivy! () -> T { _ };
+
+pub unsafe fn erase[T](value: T) {
+  ~eraser = value;
+}
+
+#[builtin = "erase"]
+pub unsafe impl erase[T]: Drop[T] {
+  unsafe fn drop(self: T) {
+    erase(self)
+  }
+}
+
+pub unsafe fn move[T](&value: &T) -> T {
+  replace(&value, eraser)
+}
+
+pub unsafe fn transmute[C, T](value: C) -> T {
+  inline_ivy! (value <- value) -> T { value }
+}
+
+pub unsafe impl transmute[C, T]: Cast[C, T] {
+  unsafe fn cast(value: C) -> T {
+    transmute(value)
+  }
 }

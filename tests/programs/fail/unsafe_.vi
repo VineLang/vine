@@ -1,0 +1,65 @@
+
+pub unsafe fn main(_: &IO) {} // error
+
+pub unsafe const foo: () = ();
+
+pub unsafe fn bar() {
+  foo; // ok
+  bar(); // ok
+}
+
+pub fn baz() {
+  foo; // error
+  bar(); // error
+  safe foo; // ok
+  safe bar(); // ok
+}
+
+pub unsafe trait Foo {
+  fn foo();
+  unsafe fn bar();
+  const baz: ();
+  unsafe const qux: ();
+}
+
+pub impl a: Foo { // error
+  fn foo() {} // ok
+  fn bar() {} // ok
+  const baz: () = (); // ok
+  const qux: () = (); // ok
+}
+
+pub impl b: safe Foo {
+  fn foo() {} // ok
+  fn bar() {} // ok
+  const baz: () = (); // ok
+  const qux: () = (); // ok
+}
+
+pub impl c: safe Foo { // ok
+  unsafe fn foo() {} // error
+  unsafe fn bar() {} // ok
+  unsafe const baz: () = (); // error
+  unsafe const qux: () = (); // ok
+}
+
+pub unsafe impl d: Foo { // ok
+  fn foo() {} // ok
+  fn bar() {} // ok
+  const baz: () = (); // ok
+  const qux: () = (); // ok
+}
+
+pub unsafe impl e: Foo { // ok
+  unsafe fn foo() {} // ok
+  unsafe fn bar() {} // ok
+  unsafe const baz: () = (); // ok
+  unsafe const qux: () = (); // ok
+}
+
+pub trait Bar {
+  unsafe fn foo(); // error
+  unsafe const bar: (); // error
+}
+
+

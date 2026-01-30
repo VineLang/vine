@@ -82,6 +82,7 @@ pub trait VisitMut<'a> {
       | ExprKind::Char(_)
       | ExprKind::Error(_) => {}
       ExprKind::Paren(a)
+      | ExprKind::Safe(_, a)
       | ExprKind::Ref(a, _)
       | ExprKind::Deref(a, _)
       | ExprKind::Sign(_, a)
@@ -211,9 +212,11 @@ pub trait VisitMut<'a> {
   fn _visit_pat(&mut self, pat: &'a mut Pat) {
     match &mut *pat.kind {
       PatKind::Hole | PatKind::Error(_) => {}
-      PatKind::Paren(a) | PatKind::Ref(a) | PatKind::Deref(a) | PatKind::Inverse(a) => {
-        self.visit_pat(a)
-      }
+      PatKind::Paren(a)
+      | PatKind::Safe(_, a)
+      | PatKind::Ref(a)
+      | PatKind::Deref(a)
+      | PatKind::Inverse(a) => self.visit_pat(a),
       PatKind::Tuple(a) => {
         for t in a {
           self.visit_pat(t);
@@ -263,6 +266,7 @@ pub trait VisitMut<'a> {
   fn _visit_impl(&mut self, impl_: &'a mut Impl) {
     match &mut *impl_.kind {
       ImplKind::Hole | ImplKind::Error(_) => {}
+      ImplKind::Safe(_, p) => self.visit(p),
       ImplKind::Path(p) | ImplKind::Fn(p) => self.visit(&mut p.generics),
     }
   }

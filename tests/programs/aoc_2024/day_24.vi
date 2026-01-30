@@ -1,5 +1,5 @@
 
-use #root::data::Map;
+use #root::{data::Map, util::{erase, eraser, move}};
 
 pub fn main(&io: &IO) {
   let map = Map::empty[String, _];
@@ -7,18 +7,18 @@ pub fn main(&io: &IO) {
   while io.read_line() is Some(line) and line.len() != 0 {
     let (name, value) = line.split_once(": ");
     let value = value.assume()!.get(0).assume() == '1';
-    unsafe::erase(map.insert(name, Wire::input(value)));
+    safe erase(map.insert(name, Wire::input(value)));
   }
 
   let fn at_wire(wire) {
-    map.at_or_insert[; _, _, unsafe::erase](wire, Wire::new())
+    map.at_or_insert[; _, _, safe erase](wire, Wire::new())
   }
 
   while io.read_line() is Some(line) {
     let pieces = line.split(" ");
-    let wire_a = unsafe::move(pieces.at(0).assume());
-    let wire_b = unsafe::move(pieces.at(2).assume());
-    let wire_out = unsafe::move(pieces.at(4).assume());
+    let wire_a = safe move(pieces.at(0).assume());
+    let wire_b = safe move(pieces.at(2).assume());
+    let wire_out = safe move(pieces.at(4).assume());
     let a = (*at_wire(wire_a)).get();
     let b = (*at_wire(wire_b)).get();
     let op = (*pieces.at(1).assume())!.get(0).assume();
@@ -49,7 +49,7 @@ pub fn main(&io: &IO) {
 
   io.println("Part 1: {part1}");
 
-  unsafe::erase(map);
+  safe erase(map);
 }
 
 struct Wire(~Bool, Bool);
@@ -61,7 +61,7 @@ mod Wire {
   }
 
   pub fn .input(value: Bool) -> Wire {
-    Wire(unsafe::eraser, value)
+    Wire(safe eraser, value)
   }
 
   pub fn .get(&Wire(_, value)) -> Bool {
