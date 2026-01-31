@@ -25,7 +25,7 @@ let
 
   hyptypLib = hyptyp.lib.${system} typixLib;
 
-  docCmd = vine: out: "${vine} doc --debug --no-root root/root.vi ${out}";
+  docCmd = vine: out: "${vine} doc --debug --no-root root ${out}";
   rootDocs = pkgs.stdenvNoCC.mkDerivation {
     name = "root-docs";
     src = pkgs.lib.fileset.toSource {
