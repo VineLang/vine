@@ -8,11 +8,7 @@ let x: N32 = 0;
 
 let io: IO = <IO>;
 let x: N32 = 2548;
-> mod fib_repl = "vine/examples/fib_repl.vi";
-
-let io: IO = <IO>;
-let x: N32 = 2548;
-> use fib_repl::fib;
+> use #fib_repl::fib;
 
 let io: IO = <IO>;
 let x: N32 = 2548;
