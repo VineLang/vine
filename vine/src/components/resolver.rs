@@ -132,6 +132,9 @@ impl<'a> Resolver<'a> {
     for id in self.chart.enums.keys_from(checkpoint.enums) {
       self.resolve_enum_sig(id);
     }
+    for id in self.chart.unions.keys_from(checkpoint.unions) {
+      self.resolve_union_sig(id);
+    }
     for id in self.chart.generics.keys_from(checkpoint.generics) {
       self.resolve_impl_params(id);
     }

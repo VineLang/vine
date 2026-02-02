@@ -12,7 +12,7 @@ use vine_util::{
 
 use crate::structures::{
   ast::{Flex, Ident, Span},
-  chart::{Chart, ConcreteConstId, DefId, EnumId, FnId, OpaqueTypeId, StructId, TraitId},
+  chart::{Chart, ConcreteConstId, DefId, EnumId, FnId, OpaqueTypeId, StructId, TraitId, UnionId},
   diag::{Diag, Diags, ErrorGuaranteed},
   signatures::FnSig,
   tir::ClosureId,
@@ -86,6 +86,7 @@ pub enum TypeKind {
   Opaque(OpaqueTypeId, Vec<Type>),
   Struct(StructId, Vec<Type>),
   Enum(EnumId, Vec<Type>),
+  Union(UnionId, Vec<Type>),
   Fn(FnId),
   Closure(ClosureId, Flex, FnSig),
   Ref(Type),
@@ -248,6 +249,7 @@ impl Types {
       (TypeKind::Opaque(OpaqueTypeId(i), a), TypeKind::Opaque(OpaqueTypeId(j), b))
       | (TypeKind::Struct(StructId(i), a), TypeKind::Struct(StructId(j), b))
       | (TypeKind::Enum(EnumId(i), a), TypeKind::Enum(EnumId(j), b))
+      | (TypeKind::Union(UnionId(i), a), TypeKind::Union(UnionId(j), b))
         if *i == *j =>
       {
         self.unify_types(a, b, Inverted(false))
@@ -480,6 +482,10 @@ impl Types {
                 *str += " }";
               }
             }
+            TypeKind::Union(union_id, params) => {
+              *str += &chart.unions[*union_id].name.0;
+              self._show_params(chart, params, str);
+            }
             TypeKind::Param(_, name) => {
               *str += &name.0;
             }
@@ -582,6 +588,7 @@ impl Types {
       Some((_, TypeKind::Opaque(id, _))) => Ok(Some(chart.opaque_types[*id].def)),
       Some((_, TypeKind::Struct(id, _))) => Ok(Some(chart.structs[*id].def)),
       Some((_, TypeKind::Enum(id, _))) => Ok(Some(chart.enums[*id].def)),
+      Some((_, TypeKind::Union(id, _))) => Ok(Some(chart.unions[*id].def)),
       Some((_, TypeKind::Ref(inner))) => self.get_mod(chart, *inner),
       Some((_, TypeKind::Key(..)))
       | Some((_, TypeKind::Fn(..)))
@@ -705,6 +712,7 @@ impl TypeKind {
       TypeKind::Opaque(i, els) => TypeKind::Opaque(*i, els.iter().copied().map(f).collect()),
       TypeKind::Struct(i, els) => TypeKind::Struct(*i, els.iter().copied().map(f).collect()),
       TypeKind::Enum(i, els) => TypeKind::Enum(*i, els.iter().copied().map(f).collect()),
+      TypeKind::Union(i, els) => TypeKind::Union(*i, els.iter().copied().map(f).collect()),
       TypeKind::Ref(t) => TypeKind::Ref(f(*t)),
       TypeKind::Key(k) => TypeKind::Key(k.clone()),
       TypeKind::Fn(i) => TypeKind::Fn(*i),
@@ -739,7 +747,8 @@ impl TypeKind {
       TypeKind::Tuple(els)
       | TypeKind::Opaque(_, els)
       | TypeKind::Struct(_, els)
-      | TypeKind::Enum(_, els) => Children::Vec(els.iter().copied()),
+      | TypeKind::Enum(_, els)
+      | TypeKind::Union(_, els) => Children::Vec(els.iter().copied()),
       TypeKind::Object(els) => Children::Object(els.values().copied()),
       TypeKind::Closure(_, _, s) => {
         Children::Closure(s.param_tys.iter().copied().chain([s.ret_ty]))

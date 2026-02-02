@@ -1,4 +1,5 @@
 
 pub mod Bool;
+pub mod Nullable;
 pub mod Option;
 pub mod Result;

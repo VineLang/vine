@@ -1,18 +1,19 @@
 
 use data::Iterator::{Iterator, Collect};
 use debug::Show;
+use logical::Nullable;
 use ops::{Cast, Concat, comparison::Ord};
-use util::{duplicate, erase, eraser, move};
+use util::{duplicate, erase};
 
-pub struct Set[T]((N32, SetData[T]));
+pub struct Set[T]((N32, Nullable[SetNode[T]]));
 
-type SetData[T] = (Set[T], T, Set[T]);
+type SetNode[T] = (Set[T], T, Set[T]);
 
 pub mod Set[T; Ord[T]] {
-  pub const empty[T]: Set[T] = Set(0, safe eraser);
+  pub const empty[T]: Set[T] = Set(0, safe Nullable::null());
 
   fn new[T](left: Set[T], value: T, right: Set[T]) -> Set[T] {
-    Set(left.len() + right.len() + 1, (left, value, right))
+    Set(left.len() + right.len() + 1, safe Nullable::data(left, value, right))
   }
 
   pub impl from_list[... T?]: Cast[List[T], Set[T]] {
@@ -33,20 +34,20 @@ pub mod Set[T; Ord[T]] {
     len
   }
 
-  pub fn .insert[...](&Set[T](len, data), new: T) -> Option[T] {
+  pub fn .insert[...](&Set[T](len, node), new: T) -> Option[T] {
     if len == 0 {
       len = 1;
-      safe erase(data);
-      data = (empty, new, empty);
+      safe node.null;
+      safe node.data = (empty, new, empty);
       None()
     } else {
-      let &(left, value, right) = &data;
+      let &(left, value, right) = safe &node.data;
       let old;
       match new.cmp(&value) {
         Ord::Lt() {
           old = left.insert(new);
-          len = size(&data);
-          balance_right(&data);
+          len = size(safe &node.data);
+          balance_right(safe &node.data);
         }
         Ord::Eq() {
           old = Some(value);
@@ -54,15 +55,15 @@ pub mod Set[T; Ord[T]] {
         }
         Ord::Gt() {
           old = right.insert(new);
-          len = size(&data);
-          balance_left(&data);
+          len = size(safe &node.data);
+          balance_left(safe &node.data);
         }
       }
       old
     }
   }
 
-  pub impl [... T?]: Concat[Set[T], Set[T], Set[T]] {
+  pub impl concat[... T?]: Concat[Set[T], Set[T], Set[T]] {
     fn concat(self: Set[T], other: Set[T]) -> Set[T] {
       for value in other {
         self.insert(value);
@@ -71,11 +72,11 @@ pub mod Set[T; Ord[T]] {
     }
   }
 
-  pub fn .has[...](&Set[T](len, data), &key: &T) -> Bool {
+  pub fn .has[...](&Set[T](len, node), &key: &T) -> Bool {
     if len == 0 {
       false
     } else {
-      let &(left, value, right) = &data;
+      let &(left, value, right) = safe &node.data;
       match key.cmp(&value) {
         Ord::Lt() { left.has(&key) }
         Ord::Eq() { true }
@@ -84,11 +85,11 @@ pub mod Set[T; Ord[T]] {
     }
   }
 
-  pub fn .at_eq[...](&Set[T](len, data), &key: &T) -> Option[&T] {
+  pub fn .at_eq[...](&Set[T](len, node), &key: &T) -> Option[&T] {
     if len == 0 {
       None()
     } else {
-      let &(left, value, right) = &data;
+      let &(left, value, right) = safe &node.data;
       match key.cmp(&value) {
         Ord::Lt() { left.at_eq(&key) }
         Ord::Eq() { Some(&value) }
@@ -101,11 +102,11 @@ pub mod Set[T; Ord[T]] {
     self.at_eq(key).as_fork()
   }
 
-  pub fn .at_le[...](&Set[T](len, data), &key: &T) -> Option[&T] {
+  pub fn .at_le[...](&Set[T](len, node), &key: &T) -> Option[&T] {
     if len == 0 {
       None()
     } else {
-      let &(left, value, right) = &data;
+      let &(left, value, right) = safe &node.data;
       match key.cmp(&value) {
         Ord::Lt() { left.at_le(&key) }
         Ord::Eq() { Some(&value) }
@@ -124,11 +125,11 @@ pub mod Set[T; Ord[T]] {
     self.at_le(&key).as_fork()
   }
 
-  pub fn .at_ge[...](&Set[T](len, data), &key: &T) -> Option[&T] {
+  pub fn .at_ge[...](&Set[T](len, node), &key: &T) -> Option[&T] {
     if len == 0 {
       None()
     } else {
-      let &(left, value, right) = &data;
+      let &(left, value, right) = safe &node.data;
       match key.cmp(&value) {
         Ord::Lt() {
           if left.at_ge(&key) is Some(value) {
@@ -147,29 +148,29 @@ pub mod Set[T; Ord[T]] {
     self.at_ge(&key).as_fork()
   }
 
-  pub fn .remove[... T](&Set[T](len, data), &key: &T) -> Option[T] {
+  pub fn .remove[... T](&Set[T](len, node), &key: &T) -> Option[T] {
     if len == 0 {
       None()
     } else {
-      let (left, value, right) = data;
+      let (left, value, right) = safe node.data;
       let old;
       match key.cmp(&value) {
         Ord::Lt() {
           old = left.remove(&key);
-          data = (left, value, right);
-          len = Set::size(&data);
-          balance_left(&data);
+          safe node.data = (left, value, right);
+          len = Set::size(safe &node.data);
+          balance_left(safe &node.data);
         }
         Ord::Eq() {
           old = Some(value);
           len -= 1;
-          data = merge_balanced(left, right);
+          node = merge_balanced(left, right);
         }
         Ord::Gt() {
           old = right.remove(&key);
-          data = (left, value, right);
-          len = Set::size(&data);
-          balance_right(&data);
+          safe node.data = (left, value, right);
+          len = Set::size(safe &node.data);
+          balance_right(safe &node.data);
         }
       }
       old
@@ -192,32 +193,32 @@ pub mod Set[T; Ord[T]] {
     }
   }
 
-  fn ._remove_min[T](&Set[T](len, data)) -> T {
+  fn ._remove_min[T](&Set[T](len, node)) -> T {
     len -= 1;
-    let &(left, value, right) = &data;
+    let (left, value, right) = safe node.data;
     if left.len() == 0 {
-      let Set(_, right) = safe move(&right);
-      safe erase(data);
-      data = right;
-      safe move(&value)
+      Set(_, safe Nullable::null()) = left;
+      Set(_, node) = right;
+      value
     } else {
       let min = left._remove_min();
-      balance_left(&data);
+      safe node.data = (left, value, right);
+      balance_left(safe &node.data);
       min
     }
   }
 
-  fn ._remove_max[T](&Set[T](len, data)) -> T {
+  fn ._remove_max[T](&Set[T](len, node)) -> T {
     len -= 1;
-    let &(left, value, right) = &data;
+    let (left, value, right) = safe node.data;
     if right.len() == 0 {
-      let Set(_, left) = safe move(&left);
-      safe erase(data);
-      data = left;
-      safe move(&value)
+      Set(_, node) = left;
+      Set(_, safe Nullable::null()) = right;
+      value
     } else {
       let max = right._remove_max();
-      balance_right(&data);
+      safe node.data = (left, value, right);
+      balance_right(safe &node.data);
       max
     }
   }
@@ -225,12 +226,12 @@ pub mod Set[T; Ord[T]] {
   /// Maps the values of the set
   ///
   /// Safety: Is only safe if the order of elements is preserved by the mapping function.
-  pub.data fn .map[... U, F*; fn F(T) -> U](Set[T](len, data), f: F) -> Set[U] {
+  pub.data fn .map[... U, F*; fn F(T) -> U](Set[T](len, node), f: F) -> Set[U] {
     if len == 0 {
-      safe erase(data);
+      safe node.null;
       Set::empty
     } else {
-      let (left, value, right) = data;
+      let (left, value, right) = safe node.data;
       Set::new(Set::map(left, f), f(value), Set::map(right, f))
     }
   }
@@ -244,16 +245,16 @@ pub mod Set[T; Ord[T]] {
   pub struct IterRef[T]((&Set[T], List[&(T, Set[T])]));
 
   pub mod IterRef[T] {
-    pub impl [...]: Iterator[IterRef[T], &T] {
-      fn advance(IterRef[T](node, stack)) -> Option[(&T, IterRef[T])] {
+    pub impl iterator[...]: Iterator[IterRef[T], &T] {
+      fn advance(IterRef[T](current, stack)) -> Option[(&T, IterRef[T])] {
         loop {
-          let &Set(len, data) = node;
+          let &Set(len, node) = current;
           if len == 0 {
             break;
           }
-          let &(left, value, right) = &data;
+          let &(left, value, right) = safe &node.data;
           stack.push_front(&(value, right));
-          node = &left;
+          current = &left;
           continue;
         }
         if stack.head_tail() is Some(&(value, node), stack) {
@@ -264,8 +265,8 @@ pub mod Set[T; Ord[T]] {
       }
     }
 
-    pub impl [...]: Fork[IterRef[T]];
-    pub impl [...]: Drop[IterRef[T]];
+    pub impl fork[...]: Fork[IterRef[T]];
+    pub impl drop[...]: Drop[IterRef[T]];
   }
 
   pub impl iter[...]: Cast[Set[T], Iter[T]] {
@@ -277,17 +278,17 @@ pub mod Set[T; Ord[T]] {
   pub struct* Iter[T]((Set[T], List[(T, Set[T])]));
 
   pub mod Iter[T] {
-    pub impl [...]: Iterator[Iter[T], T] {
-      fn advance(Iter[T](node, stack)) -> Option[(T, Iter[T])] {
+    pub impl iterator[...]: Iterator[Iter[T], T] {
+      fn advance(Iter[T](current, stack)) -> Option[(T, Iter[T])] {
         loop {
-          let Set(len, data) = node;
+          let Set(len, node) = current;
           if len == 0 {
-            safe erase(data);
+            safe node.null;
             break;
           }
-          let (left, value, right) = data;
+          let (left, value, right) = safe node.data;
           stack.push_front((value, right));
-          node = left;
+          current = left;
           continue;
         }
         if stack.head_tail() is Some((value, node), stack) {
@@ -299,7 +300,7 @@ pub mod Set[T; Ord[T]] {
     }
   }
 
-  pub impl [T?; Ord[T]]: Collect[Set[T], T] {
+  pub impl collect[T?; Ord[T]]: Collect[Set[T], T] {
     fn collect[I; Iterator[I, T]](iter: I) -> Set[T] {
       let set = Set::empty;
       for value in iter {
@@ -310,18 +311,18 @@ pub mod Set[T; Ord[T]] {
   }
 
   pub impl to_list[...]: Cast[Set[T], List[T]] {
-    fn cast(Set[T](len, data)) -> List[T] {
+    fn cast(Set[T](len, node)) -> List[T] {
       if len == 0 {
-        safe erase(data);
+        safe node.null;
         []
       } else {
-        let (left, value, right) = data;
+        let (left, value, right) = safe node.data;
         left as List ++ [value] ++ right as List
       }
     }
   }
 
-  pub impl [... ; Show[T]]: Show[Set[T]] {
+  pub impl show[... ; Show[T]]: Show[Set[T]] {
     fn show(&self: &Set[T]) -> Show {
       let entries = [];
       for &value in &self {
@@ -332,11 +333,11 @@ pub mod Set[T; Ord[T]] {
   }
 
   // TODO(#118): make private once tests can be written inline
-  pub fn .balanced[...](&Set[T](len, data)) -> Bool {
+  pub fn .balanced[...](&Set[T](len, node)) -> Bool {
     if len == 0 {
       true
     } else {
-      let &(left, _, right) = &data;
+      let &(left, _, right) = safe &node.data;
       let x = is_balanced(&left, &right) and is_balanced(&right, &left);
       x and left.balanced() and right.balanced()
     }
@@ -344,76 +345,76 @@ pub mod Set[T; Ord[T]] {
 
   #[safe become(duplicate)]
   pub impl [T+]: Fork[Set[T]] {
-    fn fork(&Set[T](len, data)) -> Set[T] {
+    fn fork(&Set[T](len, node)) -> Set[T] {
       if len == 0 {
         Set::empty
       } else {
-        Set(len, data.fork())
+        Set(len, safe Nullable::data(node.data.fork()))
       }
     }
   }
 
   #[safe become(erase)]
   pub impl [T?]: Drop[Set[T]] {
-    fn drop(Set[T](len, data)) {
+    fn drop(Set[T](len, node)) {
       if len == 0 {
-        safe erase(data);
+        safe node.null;
       } else {
-        _ = data;
+        _ = safe node.data;
       }
     }
   }
 }
 
-fn balance_left[T](&data: &SetData[T]) {
-  let (l, e, r) = data;
-  data = if is_balanced(&l, &r) {
+fn balance_left[T](&node: &SetNode[T]) {
+  let (l, e, r) = node;
+  node = if is_balanced(&l, &r) {
     (l, e, r)
   } else {
-    let Set(_, (rl, re, rr)) = r;
+    let Set(_, safe Nullable::data(rl, re, rr)) = r;
     if is_single(&rl, &rr) {
       (Set::new(l, e, rl), re, rr)
     } else {
-      let Set(_, (rll, rle, rlr)) = rl;
+      let Set(_, safe Nullable::data(rll, rle, rlr)) = rl;
       (Set::new(l, e, rll), rle, Set::new(rlr, re, rr))
     }
   }
 }
 
-fn balance_right[T](&data: &SetData[T]) {
-  let (l, e, r) = data;
-  data = if is_balanced(&r, &l) {
+fn balance_right[T](&node: &SetNode[T]) {
+  let (l, e, r) = node;
+  node = if is_balanced(&r, &l) {
     (l, e, r)
   } else {
-    let Set(_, (ll, le, lr)) = l;
+    let Set(_, safe Nullable::data(ll, le, lr)) = l;
     if is_single(&lr, &ll) {
       (ll, le, Set::new(lr, e, r))
     } else {
-      let Set(_, (lrl, lre, lrr)) = lr;
+      let Set(_, safe Nullable::data(lrl, lre, lrr)) = lr;
       (Set::new(ll, le, lrl), lre, Set::new(lrr, e, r))
     }
   }
 }
 
-fn merge_balanced[T](left: Set[T], right: Set[T]) -> SetData[T] {
+fn merge_balanced[T](Set[T](len_left, left), Set[T](len_right, right)) -> Nullable[SetNode[T]] {
   when {
-    left.len() == 0 {
-      safe erase(left);
-      let Set(_, data) = right;
-      data
+    len_left == 0 {
+      safe left.null;
+      right
     }
-    right.len() == 0 {
-      let Set(_, data) = left;
-      safe erase(right);
-      data
-    }
-    left.len() > right.len() {
-      let value = left._remove_max();
-      (left, value, right)
+    len_right == 0 {
+      safe right.null;
+      left
     }
     _ {
-      let value = right._remove_min();
-      (left, value, right)
+      let left = Set(len_left, left);
+      let right = Set(len_right, right);
+      let value = if len_left > len_right {
+        left._remove_max()
+      } else {
+        right._remove_min()
+      };
+      safe Nullable::data(left, value, right)
     }
   }
 }
@@ -426,6 +427,6 @@ fn is_single[T](&Set[T](a, _), &Set[T](b, _)) -> Bool {
   a <= 2 * b
 }
 
-fn size[T](&(Set(l, _), _, Set(r, _)): &SetData[T]) -> N32 {
+fn size[T](&(Set(l, _), _, Set(r, _)): &SetNode[T]) -> N32 {
   l + r + 1
 }

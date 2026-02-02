@@ -1,11 +1,11 @@
 
 Interactions
-  Total           57_001_450
+  Total           57_001_448
   Annihilate      25_000_657
   Commute                  0
   Copy             8_000_166
-  Erase            9_000_209
-  Expand           4_000_124
+  Erase            9_000_208
+  Expand           4_000_123
   Call             8_000_212
   Branch           3_000_082
 

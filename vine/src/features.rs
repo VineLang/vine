@@ -40,5 +40,6 @@ pub mod struct_;
 pub mod trait_;
 pub mod try_;
 pub mod type_;
+pub mod union;
 pub mod when;
 pub mod while_;

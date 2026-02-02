@@ -229,6 +229,7 @@ module.exports = grammar({
       seq(
         repeat($.attr),
         optional($.vis),
+        optional("unsafe"),
         "enum",
         optional($.flex),
         $.ident,

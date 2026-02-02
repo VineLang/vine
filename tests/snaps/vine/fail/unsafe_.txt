@@ -1,32 +1,64 @@
 error: unsafe items can only exist in unsafe traits
-    @ tests/programs/fail/unsafe_.vi:61:3
- 61 |   unsafe fn foo(); // error
+    @ tests/programs/fail/unsafe_.vi:81:3
+ 81 |   unsafe fn foo(); // error
 
 error: unsafe items can only exist in unsafe traits
-    @ tests/programs/fail/unsafe_.vi:62:3
- 62 |   unsafe const bar: (); // error
+    @ tests/programs/fail/unsafe_.vi:82:3
+ 82 |   unsafe const bar: (); // error
 
 error: this is unsafe
-    @ tests/programs/fail/unsafe_.vi:12:3
- 12 |   foo; // error
+    @ tests/programs/fail/unsafe_.vi:89:1
+ 89 | #[become(p)] // error
 
 error: this is unsafe
-    @ tests/programs/fail/unsafe_.vi:13:3
- 13 |   bar(); // error
+    @ tests/programs/fail/unsafe_.vi:20:3
+ 20 |   foo; // error
 
 error: this is unsafe
-    @ tests/programs/fail/unsafe_.vi:25:10
- 25 | pub impl a: Foo { // error
+    @ tests/programs/fail/unsafe_.vi:21:3
+ 21 |   bar(); // error
+
+error: this is unsafe
+    @ tests/programs/fail/unsafe_.vi:22:3
+ 22 |   inline_ivy! () -> () { _ } // error
+
+error: this is unsafe
+    @ tests/programs/fail/unsafe_.vi:23:18
+ 23 |   let nullable = Nullable::null(); // error
+
+error: this is unsafe
+    @ tests/programs/fail/unsafe_.vi:24:4
+ 24 |   &nullable.null; // error
+
+error: this is unsafe
+    @ tests/programs/fail/unsafe_.vi:25:7
+ 25 |   let Nullable::null() = nullable; // error
+
+error: this is unsafe
+    @ tests/programs/fail/unsafe_.vi:45:10
+ 45 | pub impl a: Foo { // error
 
 error: expected a safe fn
-    @ tests/programs/fail/unsafe_.vi:40:13
- 40 |   unsafe fn foo() {} // error
+    @ tests/programs/fail/unsafe_.vi:60:13
+ 60 |   unsafe fn foo() {} // error
 
 error: expected a safe const
-    @ tests/programs/fail/unsafe_.vi:42:16
- 42 |   unsafe const baz: () = (); // error
+    @ tests/programs/fail/unsafe_.vi:62:16
+ 62 |   unsafe const baz: () = (); // error
 
 error: entrypoint cannot be unsafe
-   @ tests/programs/fail/unsafe_.vi:2:15
- 2 | pub unsafe fn main(_: &IO) {} // error
+   @ tests/programs/fail/unsafe_.vi:4:15
+ 4 | pub unsafe fn main(_: &IO) {} // error
+
+warning: unused `safe`
+    @ tests/programs/fail/unsafe_.vi:16:3
+ 16 |   safe foo; // warning
+
+warning: unused `safe`
+    @ tests/programs/fail/unsafe_.vi:34:3
+ 34 |   safe (); // warning
+
+warning: unused `safe`
+    @ tests/programs/fail/unsafe_.vi:35:8
+ 35 |   safe safe foo; // warning
 

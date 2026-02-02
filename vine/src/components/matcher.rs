@@ -6,7 +6,7 @@ use crate::{
   components::distiller::Distiller,
   structures::{
     ast::Span,
-    chart::{EnumId, StructId, VariantId},
+    chart::{EnumId, VariantId},
     diag::Diag,
     tir::{Local, TirPat, TirPatKind},
     types::{Inverted, Type, TypeKind},
@@ -62,7 +62,7 @@ pub(crate) enum MatchVarKind {
   Local(Local, MatchVarForm),
   Composite(Vec<VarId>),
   Enum(EnumId, VariantId, VarId),
-  Struct(StructId, VarId),
+  Struct(VarId),
   Ref(Local),
 }
 
@@ -136,7 +136,7 @@ impl<'d, 'r> Matcher<'d, 'r> {
         let struct_id = *struct_id;
         let sig = &self.distiller.sigs.structs[struct_id];
         let sig = self.distiller.types.import(sig, Some(&type_params.clone()));
-        self.match_struct(layer, stage, vars, rows, var_id, form, struct_id, sig);
+        self.match_struct(layer, stage, vars, rows, var_id, form, sig);
       }
       Some((Inverted(false), TypeKind::Enum(enum_id, type_params))) => {
         let enum_id = *enum_id;
@@ -254,9 +254,9 @@ impl<'d, 'r> Matcher<'d, 'r> {
           stage.local_read_write(*local, self.span, self.distiller.locals[*local].ty);
         stage.steps.push(Step::Ref(wire.neg, value, space));
       }
-      MatchVarKind::Struct(struct_id, content) => {
+      MatchVarKind::Struct(content) => {
         let content = self.take_var(stage, vars, &vars[*content]);
-        stage.steps.push(Step::Struct(*struct_id, wire.neg, content));
+        stage.steps.push(Step::Rewrap(wire.neg, content));
       }
       MatchVarKind::Enum(enum_id, variant_id, content) => {
         let content = self.take_var(stage, vars, &vars[*content]);

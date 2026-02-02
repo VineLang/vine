@@ -21,6 +21,7 @@ pub struct Chart {
   pub type_aliases: IdxVec<TypeAliasId, TypeAliasDef>,
   pub structs: IdxVec<StructId, StructDef>,
   pub enums: IdxVec<EnumId, EnumDef>,
+  pub unions: IdxVec<UnionId, UnionDef>,
   pub traits: IdxVec<TraitId, TraitDef>,
   pub impls: IdxVec<ImplId, ImplDef>,
   pub builtins: Builtins,
@@ -77,6 +78,7 @@ pub enum DefValueKind {
   Fn(FnId),
   Struct(StructId),
   Enum(EnumId, VariantId),
+  Union(UnionId, VariantId),
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -97,12 +99,14 @@ pub enum DefTypeKind {
   Alias(TypeAliasId),
   Struct(StructId),
   Enum(EnumId),
+  Union(UnionId),
 }
 
 #[derive(Debug, Clone, Copy)]
 pub enum DefPatternKind {
   Struct(StructId),
   Enum(EnumId, VariantId),
+  Union(UnionId, VariantId),
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -214,6 +218,24 @@ pub struct EnumDef {
 new_idx!(pub VariantId);
 #[derive(Debug, Clone)]
 pub struct EnumVariant {
+  pub span: Span,
+  pub def: DefId,
+  pub name: Ident,
+  pub data: Vec<Ty>,
+}
+
+new_idx!(pub UnionId);
+#[derive(Debug, Clone)]
+pub struct UnionDef {
+  pub span: Span,
+  pub def: DefId,
+  pub generics: GenericsId,
+  pub name: Ident,
+  pub variants: IdxVec<VariantId, UnionVariant>,
+}
+
+#[derive(Debug, Clone)]
+pub struct UnionVariant {
   pub span: Span,
   pub def: DefId,
   pub name: Ident,

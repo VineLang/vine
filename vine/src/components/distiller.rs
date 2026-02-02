@@ -294,12 +294,7 @@ impl<'r> Distiller<'r> {
       TirExprKind::Char(c) => self.distill_expr_value_char(ty, *c),
       TirExprKind::Const(id) => self.distill_expr_value_const(stage, span, ty, *id),
       TirExprKind::Fn => self.distill_expr_value_fn(ty),
-      TirExprKind::Struct(struct_id, inner) => {
-        self.distill_expr_value_struct(stage, span, ty, *struct_id, inner)
-      }
-      TirExprKind::Unwrap(struct_id, inner) => {
-        self.distill_expr_value_unwrap(stage, span, ty, *struct_id, inner)
-      }
+      TirExprKind::Rewrap(inner) => self.distill_expr_value_rewrap(stage, span, ty, inner),
       TirExprKind::Ref(place) => self.distill_expr_value_ref(stage, span, ty, place),
       TirExprKind::Inverse(inner) => self.distill_expr_value_inverse(stage, inner),
       TirExprKind::Composite(elements) => {
@@ -335,12 +330,7 @@ impl<'r> Distiller<'r> {
       TirExprKind::Error(err) => Port::error(ty.inverse(), *err),
       TirExprKind![!space] => self.distill_expr_space_coerce_poly(stage, expr, span, ty),
       TirExprKind::Local(local) => self.distill_expr_space_local(stage, span, ty, *local),
-      TirExprKind::Struct(struct_id, inner) => {
-        self.distill_expr_space_struct(stage, span, ty, *struct_id, inner)
-      }
-      TirExprKind::Unwrap(struct_id, inner) => {
-        self.distill_expr_space_unwrap(stage, span, ty, *struct_id, inner)
-      }
+      TirExprKind::Rewrap(inner) => self.distill_expr_space_rewrap(stage, span, ty, inner),
       TirExprKind::Hole => self.distill_expr_space_hole(stage, span, ty),
       TirExprKind::Inverse(inner) => self.distill_expr_space_inverse(stage, inner),
       TirExprKind::Composite(elements) => {
@@ -358,12 +348,7 @@ impl<'r> Distiller<'r> {
     match &*expr.kind {
       TirExprKind::Error(err) => (Port::error(ty, *err), Port::error(ty.inverse(), *err)),
       TirExprKind![!place] => self.distill_expr_place_coerce_poly(stage, expr, span, ty),
-      TirExprKind::Struct(struct_id, inner) => {
-        self.distill_expr_place_struct(stage, span, ty, *struct_id, inner)
-      }
-      TirExprKind::Unwrap(struct_id, inner) => {
-        self.distill_expr_place_unwrap(stage, span, ty, *struct_id, inner)
-      }
+      TirExprKind::Rewrap(inner) => self.distill_expr_place_rewrap(stage, span, ty, inner),
       TirExprKind::Local(local) => self.distill_expr_place_local(stage, span, ty, *local),
       TirExprKind::Deref(reference) => self.distill_expr_place_deref(stage, span, ty, reference),
       TirExprKind::Inverse(inner) => self.distill_expr_place_inverse(stage, inner),
@@ -385,12 +370,7 @@ impl<'r> Distiller<'r> {
       TirExprKind![value && !place && !space] => Poly::Value(self.distill_expr_value(stage, expr)),
       TirExprKind![place && !value && !space] => Poly::Place(self.distill_expr_place(stage, expr)),
       TirExprKind![space && !place && !value] => Poly::Space(self.distill_expr_space(stage, expr)),
-      TirExprKind::Struct(struct_id, inner) => {
-        self.distill_expr_poly_struct(stage, span, ty, *struct_id, inner)
-      }
-      TirExprKind::Unwrap(struct_id, inner) => {
-        self.distill_expr_poly_unwrap(stage, span, ty, *struct_id, inner)
-      }
+      TirExprKind::Rewrap(inner) => self.distill_expr_poly_rewrap(stage, span, ty, inner),
       TirExprKind::Local(_) => Poly::Place(self.distill_expr_place(stage, expr)),
       TirExprKind::Inverse(inner) => self.distill_expr_poly_inverse(stage, inner),
       TirExprKind::Composite(els) => self.distill_expr_poly_composite(stage, span, ty, els),
@@ -407,8 +387,9 @@ impl<'r> Distiller<'r> {
       TirPatKind::Composite(els) => {
         els.iter().for_each(|e| self.distill_pat_uninit(stage, e));
       }
-      TirPatKind::Struct(_, inner)
+      TirPatKind::Struct(inner)
       | TirPatKind::Enum(_, _, inner)
+      | TirPatKind::Union(inner)
       | TirPatKind::Ref(inner)
       | TirPatKind::Deref(inner)
       | TirPatKind::Inverse(inner) => {
@@ -426,8 +407,9 @@ impl<'r> Distiller<'r> {
       TirPatKind::Composite(els) => {
         els.iter().for_each(|e| self.distill_pat_loop(stage, e));
       }
-      TirPatKind::Struct(_, inner)
+      TirPatKind::Struct(inner)
       | TirPatKind::Enum(_, _, inner)
+      | TirPatKind::Union(inner)
       | TirPatKind::Ref(inner)
       | TirPatKind::Deref(inner)
       | TirPatKind::Inverse(inner) => {
@@ -451,9 +433,8 @@ impl<'r> Distiller<'r> {
         Port::error(ty.inverse(), self.diags.error(Diag::DerefNonPlacePat { span }))
       }
       TirPatKind::Hole => self.distill_pat_value_hole(stage, span, ty),
-      TirPatKind::Struct(struct_id, inner) => {
-        self.distill_pat_value_struct(stage, span, ty, *struct_id, inner)
-      }
+      TirPatKind::Struct(inner) => self.distill_pat_value_struct(stage, span, ty, inner),
+      TirPatKind::Union(inner) => self.distill_pat_value_union(stage, span, ty, inner),
       TirPatKind::Inverse(inner) => self.distill_pat_value_inverse(stage, inner),
       TirPatKind::Local(local) => self.distill_pat_value_local(stage, span, ty, *local),
       TirPatKind::Composite(elements) => {
@@ -474,9 +455,8 @@ impl<'r> Distiller<'r> {
       TirPatKind::Deref(..) => Port::error(ty, self.diags.error(Diag::DerefNonPlacePat { span })),
       TirPatKind::Ref(..) => Port::error(ty, self.diags.error(Diag::RefSpacePat { span })),
       TirPatKind::Hole => self.distill_pat_space_hole(stage, span, ty),
-      TirPatKind::Struct(struct_id, inner) => {
-        self.distill_pat_space_struct(stage, span, ty, *struct_id, inner)
-      }
+      TirPatKind::Struct(inner) => self.distill_pat_space_struct(stage, span, ty, inner),
+      TirPatKind::Union(inner) => self.distill_pat_space_union(stage, span, ty, inner),
       TirPatKind::Inverse(inner) => self.distill_pat_space_inverse(stage, inner),
       TirPatKind::Local(local) => self.distill_pat_space_local(stage, span, ty, *local),
       TirPatKind::Composite(elements) => {
@@ -495,9 +475,8 @@ impl<'r> Distiller<'r> {
         (Port::error(ty.inverse(), err), Port::error(ty, err))
       }
       TirPatKind::Hole => self.distill_pat_place_hole(stage, span, ty),
-      TirPatKind::Struct(struct_id, inner) => {
-        self.distill_pat_place_struct(stage, span, ty, *struct_id, inner)
-      }
+      TirPatKind::Struct(inner) => self.distill_pat_place_struct(stage, span, ty, inner),
+      TirPatKind::Union(inner) => self.distill_pat_place_union(stage, span, ty, inner),
       TirPatKind::Inverse(inner) => self.distill_pat_place_inverse(stage, inner),
       TirPatKind::Local(local) => self.distill_pat_place_local(stage, span, ty, local),
       TirPatKind::Composite(elements) => {

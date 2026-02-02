@@ -9,7 +9,6 @@ use crate::{
   components::{
     charter::{ChartedItem, Charter},
     distiller::{Distiller, Poly},
-    emitter::Emitter,
     finder::Finder,
     lexer::Token,
     matcher::{MatchVar, MatchVarForm, MatchVarKind, Matcher, Row, VarId},
@@ -161,7 +160,7 @@ impl Resolver<'_> {
       });
     }
     let ty = self.types.new(TypeKind::Struct(struct_id, type_params));
-    Ok(TirExpr::new(span, ty, TirExprKind::Struct(struct_id, data)))
+    Ok(TirExpr::new(span, ty, TirExprKind::Rewrap(data)))
   }
 
   pub(crate) fn resolve_pat_path_struct(
@@ -186,7 +185,7 @@ impl Resolver<'_> {
     let data_ty = self.types.import(&self.sigs.structs[struct_id], Some(&type_params)).data;
     self.expect_type(data.span, data.ty, data_ty);
     let ty = self.types.new(TypeKind::Struct(struct_id, type_params));
-    Ok(TirPat::new(span, ty, TirPatKind::Struct(struct_id, data)))
+    Ok(TirPat::new(span, ty, TirPatKind::Struct(data)))
   }
 
   pub(crate) fn resolve_pat_sig_path_struct(&mut self, path: &Path, struct_id: StructId) -> Type {
@@ -209,16 +208,16 @@ impl Resolver<'_> {
   pub(crate) fn resolve_expr_unwrap(&mut self, span: Span, inner: &Expr) -> Result<TirExpr, Diag> {
     let inner = self.resolve_expr(inner);
 
-    let (struct_id, data_ty) = match self.types.force_kind(self.diags, inner.ty) {
+    let data_ty = match self.types.force_kind(self.diags, inner.ty) {
       (inv, TypeKind::Struct(struct_id, type_params)) => {
         let struct_id = *struct_id;
         let type_params = &type_params.clone();
-        (struct_id, self.get_struct_data(span, inner.ty, struct_id, type_params).invert_if(inv))
+        self.get_struct_data(span, inner.ty, struct_id, type_params).invert_if(inv)
       }
       _ => Err(Diag::UnwrapNonStruct { span })?,
     };
 
-    Ok(TirExpr::new(span, data_ty, TirExprKind::Unwrap(struct_id, inner)))
+    Ok(TirExpr::new(span, data_ty, TirExprKind::Rewrap(inner)))
   }
 
   pub(crate) fn get_struct_data(
@@ -242,149 +241,71 @@ impl Resolver<'_> {
 }
 
 impl Distiller<'_> {
-  pub(crate) fn distill_expr_value_struct(
+  pub(crate) fn distill_expr_value_rewrap(
     &mut self,
     stage: &mut Stage,
     span: Span,
     ty: Type,
-    struct_id: StructId,
     inner: &TirExpr,
   ) -> Port {
     let inner = self.distill_expr_value(stage, inner);
     let wire = stage.new_wire(span, ty);
-    stage.steps.push(Step::Struct(struct_id, wire.neg, inner));
+    stage.steps.push(Step::Rewrap(wire.neg, inner));
     wire.pos
   }
 
-  pub(crate) fn distill_expr_value_unwrap(
+  pub(crate) fn distill_expr_space_rewrap(
     &mut self,
     stage: &mut Stage,
     span: Span,
     ty: Type,
-    struct_id: StructId,
-    inner: &TirExpr,
-  ) -> Port {
-    let inner = self.distill_expr_value(stage, inner);
-    let wire = stage.new_wire(span, ty);
-    stage.steps.push(Step::Struct(struct_id, inner, wire.neg));
-    wire.pos
-  }
-
-  pub(crate) fn distill_expr_space_struct(
-    &mut self,
-    stage: &mut Stage,
-    span: Span,
-    ty: Type,
-    struct_id: StructId,
     inner: &TirExpr,
   ) -> Port {
     let inner = self.distill_expr_space(stage, inner);
     let wire = stage.new_wire(span, ty);
-    stage.steps.push(Step::Struct(struct_id, wire.pos, inner));
+    stage.steps.push(Step::Rewrap(wire.pos, inner));
     wire.neg
   }
 
-  pub(crate) fn distill_expr_space_unwrap(
+  pub(crate) fn distill_expr_place_rewrap(
     &mut self,
     stage: &mut Stage,
     span: Span,
     ty: Type,
-    struct_id: StructId,
-    inner: &TirExpr,
-  ) -> Port {
-    let inner = self.distill_expr_space(stage, inner);
-    let wire = stage.new_wire(span, ty);
-    stage.steps.push(Step::Struct(struct_id, inner, wire.pos));
-    wire.neg
-  }
-
-  pub(crate) fn distill_expr_place_struct(
-    &mut self,
-    stage: &mut Stage,
-    span: Span,
-    ty: Type,
-    struct_id: StructId,
     inner: &TirExpr,
   ) -> (Port, Port) {
     let (inner_value, inner_space) = self.distill_expr_place(stage, inner);
     let value = stage.new_wire(span, ty);
     let space = stage.new_wire(span, ty);
-    stage.steps.push(Step::Struct(struct_id, value.neg, inner_value));
-    stage.steps.push(Step::Struct(struct_id, space.pos, inner_space));
+    stage.steps.push(Step::Rewrap(value.neg, inner_value));
+    stage.steps.push(Step::Rewrap(space.pos, inner_space));
     (value.pos, space.neg)
   }
 
-  pub(crate) fn distill_expr_place_unwrap(
+  pub(crate) fn distill_expr_poly_rewrap(
     &mut self,
     stage: &mut Stage,
     span: Span,
     ty: Type,
-    struct_id: StructId,
-    inner: &TirExpr,
-  ) -> (Port, Port) {
-    let (inner_value, inner_space) = self.distill_expr_place(stage, inner);
-    let value = stage.new_wire(span, ty);
-    let space = stage.new_wire(span, ty);
-    stage.steps.push(Step::Struct(struct_id, inner_value, value.neg));
-    stage.steps.push(Step::Struct(struct_id, inner_space, space.pos));
-    (value.pos, space.neg)
-  }
-
-  pub(crate) fn distill_expr_poly_struct(
-    &mut self,
-    stage: &mut Stage,
-    span: Span,
-    ty: Type,
-    struct_id: StructId,
     inner: &TirExpr,
   ) -> Poly {
     match self.distill_expr_poly(stage, inner) {
       Poly::Error(err) => Poly::Error(err),
       Poly::Value(inner_value) => {
         let value = stage.new_wire(span, ty);
-        stage.steps.push(Step::Struct(struct_id, value.neg, inner_value));
+        stage.steps.push(Step::Rewrap(value.neg, inner_value));
         Poly::Value(value.pos)
       }
       Poly::Place((inner_value, inner_space)) => {
         let value = stage.new_wire(span, ty);
         let space = stage.new_wire(span, ty);
-        stage.steps.push(Step::Struct(struct_id, value.neg, inner_value));
-        stage.steps.push(Step::Struct(struct_id, space.pos, inner_space));
+        stage.steps.push(Step::Rewrap(value.neg, inner_value));
+        stage.steps.push(Step::Rewrap(space.pos, inner_space));
         Poly::Place((value.pos, space.neg))
       }
       Poly::Space(inner_space) => {
         let space = stage.new_wire(span, ty);
-        stage.steps.push(Step::Struct(struct_id, space.pos, inner_space));
-        Poly::Space(space.neg)
-      }
-    }
-  }
-
-  pub(crate) fn distill_expr_poly_unwrap(
-    &mut self,
-    stage: &mut Stage,
-    span: Span,
-    ty: Type,
-    struct_id: StructId,
-    inner: &TirExpr,
-  ) -> Poly {
-    match self.distill_expr_poly(stage, inner) {
-      Poly::Error(err) => Poly::Error(err),
-      Poly::Value(inner_value) => {
-        let value = stage.new_wire(span, ty);
-        stage.steps.push(Step::Struct(struct_id, inner_value, value.neg));
-        Poly::Value(value.pos)
-      }
-      Poly::Place((inner_value, inner_space)) => {
-        let value = stage.new_wire(span, ty);
-        let space = stage.new_wire(span, ty);
-        stage.steps.push(Step::Struct(struct_id, inner_value, value.neg));
-        stage.steps.push(Step::Struct(struct_id, inner_space, space.pos));
-        Poly::Place((value.pos, space.neg))
-      }
-      Poly::Space(inner_space) => {
-        let space = stage.new_wire(span, ty);
-        stage.steps.push(Step::Struct(struct_id, inner_space, space.pos));
+        stage.steps.push(Step::Rewrap(space.pos, inner_space));
         Poly::Space(space.neg)
       }
     }
@@ -395,12 +316,11 @@ impl Distiller<'_> {
     stage: &mut Stage,
     span: Span,
     ty: Type,
-    struct_id: StructId,
     inner: &TirPat,
   ) -> Port {
     let inner = self.distill_pat_value(stage, inner);
     let wire = stage.new_wire(span, ty);
-    stage.steps.push(Step::Struct(struct_id, wire.pos, inner));
+    stage.steps.push(Step::Rewrap(wire.pos, inner));
     wire.neg
   }
 
@@ -409,12 +329,11 @@ impl Distiller<'_> {
     stage: &mut Stage,
     span: Span,
     ty: Type,
-    struct_id: StructId,
     inner: &TirPat,
   ) -> Port {
     let inner = self.distill_pat_space(stage, inner);
     let wire = stage.new_wire(span, ty);
-    stage.steps.push(Step::Struct(struct_id, wire.neg, inner));
+    stage.steps.push(Step::Rewrap(wire.neg, inner));
     wire.pos
   }
 
@@ -423,14 +342,13 @@ impl Distiller<'_> {
     stage: &mut Stage,
     span: Span,
     ty: Type,
-    struct_id: StructId,
     inner: &TirPat,
   ) -> (Port, Port) {
     let (inner_value, inner_space) = self.distill_pat_place(stage, inner);
     let value = stage.new_wire(span, ty);
     let space = stage.new_wire(span, ty);
-    stage.steps.push(Step::Struct(struct_id, value.pos, inner_value));
-    stage.steps.push(Step::Struct(struct_id, space.neg, inner_space));
+    stage.steps.push(Step::Rewrap(value.pos, inner_value));
+    stage.steps.push(Step::Rewrap(space.neg, inner_space));
     (value.neg, space.pos)
   }
 }
@@ -444,29 +362,19 @@ impl Matcher<'_, '_> {
     mut rows: Vec<Row<'p>>,
     var_id: VarId,
     form: MatchVarForm,
-    struct_id: StructId,
     sig: StructSig,
   ) {
     let content_ty = sig.data;
     let (content_var, content_local) = self.new_var(stage, &mut vars, form, content_ty);
-    let value =
-      self.borrow_var(stage, &mut vars, var_id, MatchVarKind::Struct(struct_id, content_var));
+    let value = self.borrow_var(stage, &mut vars, var_id, MatchVarKind::Struct(content_var));
     let content = stage.new_wire(self.span, content_ty);
-    stage.steps.push(Step::Struct(struct_id, value, content.neg));
+    stage.steps.push(Step::Rewrap(value, content.neg));
     stage.local_barrier_write_to(content_local, content.pos);
     self.eliminate_col(&mut rows, var_id, |pat| match &*pat.kind {
-      TirPatKind::Struct(_, inner) => Some([(content_var, inner)]),
+      TirPatKind::Struct(inner) => Some([(content_var, inner)]),
       _ => unreachable!(),
     });
     self.distill_rows(layer, stage, vars, rows);
-  }
-}
-
-impl Emitter<'_> {
-  pub(crate) fn emit_struct(&mut self, _struct_id: StructId, a: &Port, b: &Port) {
-    let a = self.emit_port(a);
-    let b = self.emit_port(b);
-    self.pairs.push((a, b))
   }
 }
 
