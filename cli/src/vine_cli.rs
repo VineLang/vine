@@ -555,7 +555,7 @@ impl TypedValueParser for ParseSource {
         Err(
           clap::Error::raw(
             ErrorKind::ValueValidation,
-            format!("invalid source name `{}`", name.to_string_lossy()),
+            format!("invalid source name `{}`", name.display()),
           )
           .with_cmd(cmd),
         )
@@ -568,7 +568,7 @@ impl TypedValueParser for ParseSource {
         Err(
           clap::Error::raw(
             ErrorKind::ValueValidation,
-            format!("could not detect name for source with path `{}`", path.to_string_lossy()),
+            format!("could not detect name for source with path `{}`", path.display()),
           )
           .with_cmd(cmd),
         )
