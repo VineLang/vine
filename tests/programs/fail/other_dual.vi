@@ -1,0 +1,42 @@
+
+pub fn main(_: &IO) {}
+
+#[self_dual]
+pub struct A(); // ok
+
+#[self_dual]
+pub struct B[T](T, B[T]); // ok
+
+#[self_dual]
+pub struct C[T, U](T, { u: U }); // ok
+
+#[self_dual]
+pub struct D(N32); // error
+
+#[self_dual]
+pub struct E[T](T, N32); // error
+
+#[self_dual]
+pub struct F[T, U](T, { u: U, v: N32 }); // error
+
+#[self_dual]
+pub unsafe enum G {} // ok
+
+#[self_dual]
+pub unsafe enum H[T] { // ok
+  X(T, H[T]),
+  Y(),
+}
+
+#[self_dual]
+pub unsafe enum I[T] { // error
+  X(T, H[T]),
+  Y(N32),
+}
+
+#[self_dual]
+pub unsafe enum J[T] { // error
+  X(&T, H[T]),
+  Y(T),
+}
+

@@ -1,0 +1,20 @@
+error: this type cannot be self-dual as its content is not self-dual
+    @ tests/programs/fail/other_dual.vi:14:12
+ 14 | pub struct D(N32); // error
+
+error: this type cannot be self-dual as its content is not self-dual
+    @ tests/programs/fail/other_dual.vi:17:12
+ 17 | pub struct E[T](T, N32); // error
+
+error: this type cannot be self-dual as its content is not self-dual
+    @ tests/programs/fail/other_dual.vi:20:12
+ 20 | pub struct F[T, U](T, { u: U, v: N32 }); // error
+
+error: this type cannot be self-dual as its content is not self-dual
+    @ tests/programs/fail/other_dual.vi:32:17
+ 32 | pub unsafe enum I[T] { // error
+
+error: this type cannot be self-dual as its content is not self-dual
+    @ tests/programs/fail/other_dual.vi:38:17
+ 38 | pub unsafe enum J[T] { // error
+
