@@ -92,3 +92,4 @@ impl q: Baz {}
 #[safe become(p)] // ok
 impl r: Baz {}
 
+pub unsafe enum? Qux {}
