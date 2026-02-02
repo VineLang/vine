@@ -78,13 +78,13 @@ impl<'a, F: FS> Loader<'a, F> {
     let parse_result = Parser::parse(file, &src);
     let span = Span { file, start: 0, end: src.len() };
     self.files.push_to(file, FileInfo::new(self.fs.display(&path), src));
+    if let Some(file_paths) = &mut self.file_paths {
+      file_paths.push_to(file, path);
+    }
     let mut items = match parse_result {
       Ok(items) => items,
       Err(diag) => return self.error_mod(diag),
     };
-    if let Some(file_paths) = &mut self.file_paths {
-      file_paths.push_to(file, path);
-    }
     self.load_children(base, &mut items);
     ModKind::Loaded(span, Some(file), items)
   }

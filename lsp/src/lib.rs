@@ -1,5 +1,6 @@
 use std::{
   collections::{BTreeMap, HashMap},
+  env::current_dir,
   path::{Path, PathBuf},
   time::Instant,
 };
@@ -228,7 +229,9 @@ impl Lsp {
   }
 
   fn file_to_uri(&self, file: FileId) -> Url {
-    Url::from_file_path(&self.file_paths[file]).unwrap()
+    let mut path = current_dir().unwrap();
+    path.push(&self.file_paths[file]);
+    Url::from_file_path(&path).unwrap()
   }
 
   fn uri_to_file_id(&self, uri: Url) -> Option<FileId> {
