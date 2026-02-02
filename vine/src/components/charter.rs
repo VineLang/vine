@@ -238,7 +238,7 @@ impl Charter<'_> {
             self.chart.unions[union_id].self_dual = true;
           }
           _ => {
-            self.diags.error(Diag::BadTestAttr { span });
+            self.diags.error(Diag::BadSelfDualAttr { span });
           }
         },
       }
