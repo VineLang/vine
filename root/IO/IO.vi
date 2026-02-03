@@ -1,6 +1,8 @@
 
 use #root::Ext;
 
+pub mod File;
+
 /// A special primitive type used to interact with the outside world.
 /// Values of this type cannot be explicitly constructed; instead,
 /// an IO handle is passed in to `main` at the start of the program.

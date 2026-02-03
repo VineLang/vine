@@ -1,5 +1,6 @@
 use std::{
-  io::{self, Read, Write},
+  fs::{File, OpenOptions},
+  io::{self, Error, ErrorKind, Read, Write},
   ops::{Add, Div, Mul, Sub},
 };
 
@@ -56,7 +57,8 @@ macro_rules! register_ext_fns {
       let val = (|| {
         #[allow(unused_mut)]
         let mut $a = $a_ty.unwrap_ext_val($a)?;
-        let $b = $b_ty.unwrap_ext_val($b)?;
+        #[allow(unused_mut)]
+        let mut $b = $b_ty.unwrap_ext_val($b)?;
         let res = $c_ty.wrap_ext_val($body);
         Some(Port::new_ext_val(res))
       })().unwrap_or_else(|| {
@@ -85,6 +87,40 @@ macro_rules! register_ext_fns {
       ivm.link_wire(out0, val0);
       ivm.link_wire(out1, val1);
     })
+  };
+}
+
+macro_rules! list {
+  ($($expr:tt : $ty:expr),*) => {
+    Boxed::from(vec![$($ty.wrap_ext_val($expr.into())),*])
+  };
+}
+
+macro_rules! tuple {
+  ($($expr:tt : $ty:expr),*) => {
+    {
+      let mut list = list![$($expr : $ty),*];
+      list.reverse();
+      list
+    }
+  };
+}
+
+macro_rules! untuple {
+  ($expr:expr ; $($ty:ident),*) => {
+    ($($ty.unwrap_ext_val($expr.pop()?)?),*)
+  };
+}
+
+macro_rules! result_ok {
+  ($n32:ident; $expr:tt : $ty:expr) => {
+    tuple![false : $n32, $expr : $ty]
+  };
+}
+
+macro_rules! result_err {
+  ($n32:ident; $expr:tt : $ty:expr) => {
+    tuple![true : $n32, $expr : $ty]
   };
 }
 
@@ -204,6 +240,8 @@ impl<'ivm> Host<'ivm> {
     let n32 = extrinsics.n32_ext_ty();
     let list = self.register_ext_ty::<Boxed<Vec<ExtVal<'ivm>>>>("List", extrinsics);
     let io = self.register_ext_ty::<()>("IO", extrinsics);
+    let file = self.register_ext_ty::<Boxed<File>>("File", extrinsics);
+    let error = self.register_ext_ty::<Boxed<Error>>("File", extrinsics);
 
     self.register_ext_fn(
       "list_push",
@@ -255,6 +293,83 @@ impl<'ivm> Host<'ivm> {
       "list_new" => |_unused: n32| -> list { Default::default() },
       "list_len" => |l: list| -> (n32, list) { (l.len() as u32, l) },
 
+      "file_open" => |_io: io, path: list| -> list {
+        let path = ext_val_as_str(n32, path.into_inner())?;
+        let res = OpenOptions::new().read(true).append(true).open(path);
+        let res = match res {
+          Ok(f) => result_ok![n32; f: file],
+          Err(e) => result_err![n32; e: error],
+        };
+        tuple![(): io, res: list]
+      },
+      "file_create" => |_io: io, path: list| -> list {
+        let path = ext_val_as_str(n32, path.into_inner())?;
+        let res = OpenOptions::new().create(true).write(true).truncate(true).open(path);
+        let res = match res {
+          Ok(f) => result_ok![n32; f: file],
+          Err(e) => result_err![n32; e: error],
+        };
+        tuple![(): io, res: list]
+      },
+      "file_close" => |_io: io, _f: file| -> io {},
+      "file_read_byte" => |_io: io, f: file| -> list {
+        let mut buf = [0u8];
+        let res = match f.read(&mut buf) {
+          Ok(bytes) => {
+            let byte = buf[0];
+            let is_eof = bytes == 0;
+            result_ok![n32; (tuple![byte: n32, is_eof: n32]): list]
+          }
+          Err(e) => result_err![n32; e: error],
+        };
+        tuple![(): io, f: file, res: list]
+      },
+      "file_read_char" => |_io: io, f: file| -> list {
+        let res = match read_char(&*f) {
+          Ok((_, Some(c))) => result_ok![n32; (tuple![c: n32, false: n32]): list],
+          Ok((0, None)) => result_ok![n32; (tuple![0u32: n32, true: n32]): list],
+          Ok(_) => result_ok![n32; (tuple![(char::REPLACEMENT_CHARACTER): n32, false: n32]): list],
+          Err(e) => result_err![n32; e: error],
+        };
+        tuple![(): io, f: file, res: list]
+      },
+      "file_write_byte" => |_io: io, params: list| -> list {
+        let (mut f, byte) = untuple![params; file, n32];
+        let res = match f.write_all(&[byte as u8]) {
+          Ok(()) => result_ok![n32; 1u32: n32],
+          Err(e) => result_err![n32; e: error],
+        };
+        tuple![(): io, f: file, res: list]
+      },
+      "file_write_char" => |_io: io, params: list| -> list {
+        let (mut f, c) = untuple![params; file, n32];
+        let c = char::try_from(c).ok()?;
+        let res = match write!(f, "{c}") {
+          Ok(()) => result_ok![n32; 1u32: n32],
+          Err(e) => result_err![n32; e: error],
+        };
+        tuple![(): io, f: file, res: list]
+      },
+
+      "io_error_code" => |e: error| -> (n32, error) {
+        match e.kind() {
+          ErrorKind::NotFound => (1, e),
+          ErrorKind::PermissionDenied => (2, e),
+          ErrorKind::AlreadyExists => (3, e),
+          ErrorKind::NotADirectory => (4, e),
+          ErrorKind::IsADirectory => (5, e),
+          ErrorKind::ReadOnlyFilesystem => (6, e),
+          _ => (0, e),
+        }
+      },
+      "io_error_string" => |e: error| -> (list, error) {
+        let error_string = format!("{:?}", &*e);
+        let chars =
+          error_string.chars().map(|c| n32.wrap_ext_val(c as u32)).collect::<Vec<ExtVal>>();
+        (chars.into(), e)
+      },
+      "io_error_drop" => |e: error| {},
+
       "io_join" => |_io_a: io, _io_b: io| -> io {},
       "io_split" => |_io: io| -> (io, io) { ((), ()) },
       "io_ready" => |_io: io| -> (n32, io) { (1, ()) },
@@ -287,38 +402,61 @@ impl<'ivm> Host<'ivm> {
         (byte, ())
       },
       "io_read_char" => |_io: io| -> (n32, io) {
-        let mut buf = [0];
-        let count = io::stdin().read(&mut buf).unwrap();
-        let c = match (count, buf[0].leading_ones()) {
-          (0, _) => Some(u32::MAX),
-          (_, 0) => Some(buf[0] as u32),
-          (_, 2) => read_bytes_into_utf8_u32(buf[0], 1),
-          (_, 3) => read_bytes_into_utf8_u32(buf[0], 2),
-          (_, 4) => read_bytes_into_utf8_u32(buf[0], 3),
-          _ => None,
-        };
-
-        (c.unwrap_or(char::REPLACEMENT_CHARACTER as u32), ())
+        match read_char(io::stdin()).ok()? {
+          (0, None) => (u32::MAX, ()),
+          (_, None) => (char::REPLACEMENT_CHARACTER as u32, ()),
+          (_, Some(c)) => (c as u32, ()),
+        }
       },
     });
   }
 }
 
-/// Reads `n` bytes from stdin, and returns the `u32` representation of the
-/// UTF-8 codepoint composed of the `first_byte` and the 1-3 read bytes.
+/// Attempts to read a single unicode character from `reader`, returning the
+/// number of bytes read and whether the unicode character they correspond to.
+/// If the read bytes are not a valid UTF-8 character, `(num_bytes, None)` is
+/// returned.
+fn read_char<R: Read>(mut reader: R) -> Result<(usize, Option<char>), io::Error> {
+  let mut buf = [0];
+  let count = reader.read(&mut buf)?;
+
+  match (count, buf[0].leading_ones()) {
+    (0, _) => Ok((0, None)),
+    (_, 0) => Ok((1, Some(buf[0] as char))),
+    (_, 2) => read_bytes_into_char(reader, buf[0], 1),
+    (_, 3) => read_bytes_into_char(reader, buf[0], 2),
+    (_, 4) => read_bytes_into_char(reader, buf[0], 3),
+    _ => Ok((1, None)),
+  }
+}
+
+/// Attempts to read `n` bytes from `reader`, and returns the actual number of
+/// bytes read, and the `char` composed of the `first_byte` and the 1-3 newly
+/// read bytes.
 ///
-/// If less than `n` bytes are read, or if the bytes are invalid UTF-8, `None`
-/// is returned.
-fn read_bytes_into_utf8_u32(first_byte: u8, n: usize) -> Option<u32> {
+/// If less than `n` bytes are read, or if the bytes are invalid UTF-8,
+/// `(num_bytes, None)` is returned.
+fn read_bytes_into_char<R: Read>(
+  mut reader: R,
+  first_byte: u8,
+  n: usize,
+) -> Result<(usize, Option<char>), io::Error> {
   assert!((1..=3).contains(&n));
 
   let buf = &mut [0; 4][..(n + 1)];
-  let count = io::stdin().read(&mut buf[1..]).unwrap();
+  let count = reader.read(&mut buf[1..])?;
   if count != n {
-    return None;
+    return Ok((count, None));
   }
 
   buf[0] = first_byte;
 
-  Some(str::from_utf8(buf).ok()?.chars().next()? as u32)
+  Ok((n, str::from_utf8(buf).ok().and_then(|s| s.chars().next())))
+}
+
+fn ext_val_as_str<'ivm>(n32: ExtTy<'ivm, u32>, chars: Vec<ExtVal<'ivm>>) -> Option<String> {
+  chars
+    .into_iter()
+    .map(|c| n32.unwrap_ext_val(c).map(char::try_from)?.ok())
+    .collect::<Option<String>>()
 }

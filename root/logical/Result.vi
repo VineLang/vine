@@ -15,6 +15,13 @@ pub mod Result {
     }
   }
 
+  pub fn .map_err[T, E, U, F?; fn F(E) -> U](self: Result[T, E], f: F) -> Result[T, U] {
+    match self {
+      Ok(val) { Ok(val) }
+      Err(err) { Err(f(err)) }
+    }
+  }
+
   pub fn .as_ref[T, E](&self: &Result[T, E]) -> Result[&T, &E] {
     match &self {
       &Ok(val) { Ok(&val) }
