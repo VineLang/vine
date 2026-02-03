@@ -111,6 +111,7 @@ fn tests(t: &mut DynTester) {
     test_vi(t, "tests/programs/pretty_div.vi", b"", ".txt", true, false, false, &[]);
     test_vi(t, "tests/programs/primenesses.vi", b"", ".txt", true, false, false, &[]);
     test_vi(t, "tests/programs/quine.vi", b"", ".txt", false, false, false, &[]);
+    test_vi(t, "tests/programs/regex.vi", b"", ".txt", false, false, false, &[]);
     test_vi(t, "tests/programs/segmented_sieve.vi", b"", ".txt", false, false, false, &[]);
     test_vi(t, "tests/programs/sieve.vi", b"", ".txt", false, false, false, &[]);
     test_vi(t, "tests/programs/sort.vi", b"", ".txt", true, false, false, &[]);
