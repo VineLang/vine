@@ -1,0 +1,4 @@
+Creating a file should succeed: Ok(<File>)
+read_string after writing: Tripterygium wilfordii, or 雷公藤.
+read_bytes after writing: Tripterygium wilfordii, or é·å¬è¤.
+A missing file should error: Err(NotFound())
