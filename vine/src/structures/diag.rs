@@ -323,6 +323,8 @@ diags! {
     ["expected a safe {kind}"]
   UnsafeItemInSafeTrait
     ["unsafe items can only exist in unsafe traits"]
+  UnsafeEnumFlex
+    ["unsafe enums cannot have a flex annotation"]
 }
 
 fn plural<'a>(n: usize, plural: &'a str, singular: &'a str) -> &'a str {

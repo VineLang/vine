@@ -10,7 +10,7 @@ use crate::{
     resolver::Resolver,
   },
   structures::{
-    ast::{EnumItem, Expr, Pat, Path, Span},
+    ast::{EnumItem, Expr, Flex, Pat, Path, Span},
     chart::{
       DefId, DefPatternKind, DefTypeKind, DefValueKind, GenericsId, UnionDef, UnionId,
       UnionVariant, VariantId, VisId,
@@ -49,7 +49,9 @@ impl Charter<'_> {
     self.chart.unions.push_to(union_id, union_def);
     let ty_kind = DefTypeKind::Union(union_id);
     self.define_type(span, def, vis, ty_kind);
-    self.chart_flex_impls(def, generics, vis, ty_kind, enum_item.flex_span, enum_item.flex);
+    if enum_item.flex != Flex::None {
+      self.diags.error(Diag::UnsafeEnumFlex { span: enum_item.flex_span });
+    }
     ChartedItem::Union(def, union_id)
   }
 }
