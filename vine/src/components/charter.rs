@@ -230,6 +230,17 @@ impl Charter<'_> {
             self.chart.tests.push(concrete_fn_id);
           }
         }
+        AttrKind::SelfDual => match item {
+          ChartedItem::Struct(_, struct_id) => {
+            self.chart.structs[struct_id].self_dual = true;
+          }
+          ChartedItem::Union(_, union_id) => {
+            self.chart.unions[union_id].self_dual = true;
+          }
+          _ => {
+            self.diags.error(Diag::BadSelfDualAttr { span });
+          }
+        },
       }
     }
   }

@@ -200,7 +200,7 @@ impl Analyzer<'_> {
 
   fn process_local(&mut self, local: Local, declared: Vec<StageId>) {
     let info = &self.locals[local];
-    if info.self_dual {
+    if info.self_inverse {
       return;
     }
     let inv = info.inv;

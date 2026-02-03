@@ -328,7 +328,7 @@ impl Resolver<'_> {
       ImplType::Trait(
         trait_id,
         vec![match ty {
-          DefTypeKind::Struct(struct_id) => self.types.new(TypeKind::Struct(struct_id, params)),
+          DefTypeKind::Struct(struct_id) => self.types.new_struct(self.chart, struct_id, params),
           DefTypeKind::Enum(enum_id) => self.types.new(TypeKind::Enum(enum_id, params)),
           _ => unreachable!(),
         }],

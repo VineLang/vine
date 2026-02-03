@@ -38,7 +38,7 @@ pub struct FlexImpls {
   pub inv: Inverted,
   pub fork: Option<TirImpl>,
   pub drop: Option<TirImpl>,
-  pub self_dual: bool,
+  pub self_inverse: bool,
 }
 
 const STEPS_LIMIT: u32 = 2_000;
@@ -156,9 +156,9 @@ impl<'a> Finder<'a> {
 
     let pos_flex = pos_fork.is_some() || pos_drop.is_some();
     let neg_flex = neg_fork.is_some() || neg_drop.is_some();
-    let self_dual = types.self_dual(ty);
+    let self_inverse = types.self_inverse(ty);
 
-    if pos_flex && neg_flex && !self_dual {
+    if pos_flex && neg_flex && !self_inverse {
       Err(Diag::BiFlexible { span, ty: types.show(self.chart, ty) })?
     }
 
@@ -188,7 +188,7 @@ impl<'a> Finder<'a> {
       assert!(!unify_result.is_failure());
     }
 
-    Ok(FlexImpls { inv, fork, drop, self_dual })
+    Ok(FlexImpls { inv, fork, drop, self_inverse })
   }
 
   pub fn find_impl(&mut self, types: &mut Types, query: &ImplType, basic: bool) -> TirImpl {

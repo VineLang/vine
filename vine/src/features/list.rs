@@ -12,7 +12,7 @@ use crate::{
     ast::{Expr, ExprKind, Span},
     diag::Diag,
     tir::{TirExpr, TirExprKind},
-    types::{Type, TypeKind},
+    types::Type,
     vir::{Port, Stage, Step},
   },
   tools::fmt::{Formatter, doc::Doc},
@@ -45,7 +45,7 @@ impl Resolver<'_> {
     };
     Ok(TirExpr::new(
       span,
-      self.types.new(TypeKind::Struct(list, vec![ty])),
+      self.types.new_struct(self.chart, list, vec![ty]),
       TirExprKind::List(elements),
     ))
   }

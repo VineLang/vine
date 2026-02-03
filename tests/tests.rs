@@ -151,6 +151,7 @@ fn tests(t: &mut DynTester) {
       test_vi_fail(t, "tests/programs/fail/missing_no.vi");
       test_vi_fail(t, "tests/programs/fail/occurs.vi");
       test_vi_fail(t, "tests/programs/fail/opaque_private.vi");
+      test_vi_fail(t, "tests/programs/fail/other_dual.vi");
       test_vi_fail(t, "tests/programs/fail/recursive_type_alias.vi");
       test_vi_fail(t, "tests/programs/fail/unsafe_.vi");
       test_vi_fail(t, "tests/programs/fail/visibility.vi");
@@ -159,6 +160,7 @@ fn tests(t: &mut DynTester) {
     t.group("repl", |t| {
       test_vi_repl(t, "tests/programs/repl/advanced_repl.vi");
       test_vi_repl(t, "tests/programs/repl/basic_repl.vi");
+      test_vi_repl(t, "tests/programs/repl/distribute_inverse.vi");
       test_vi_repl(t, "tests/programs/repl/elementwise.vi");
       test_vi_repl(t, "tests/programs/repl/extrinsics.vi");
       test_vi_repl(t, "tests/programs/repl/f32_to_string.vi");

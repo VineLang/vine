@@ -341,7 +341,7 @@ impl Resolver<'_> {
         let ty = fields.get(index)?.invert_if(inv);
         Some(TirExpr::new(span, ty, TirExprKind::Field(expr, index, fields.clone())))
       }
-      (inv, TypeKind::Struct(struct_id, type_params)) => {
+      (inv, TypeKind::Struct(struct_id, _, type_params)) => {
         let struct_id = *struct_id;
         let type_params = &type_params.clone();
         let data_ty = self.get_struct_data(span, expr.ty, struct_id, type_params);
@@ -386,14 +386,14 @@ impl Resolver<'_> {
           )
         })
       }
-      (inv, TypeKind::Struct(struct_id, type_params)) => {
+      (inv, TypeKind::Struct(struct_id, _, type_params)) => {
         let struct_id = *struct_id;
         let type_params = &type_params.clone();
         let data_ty = self.get_struct_data(span, expr.ty, struct_id, type_params);
         let expr = TirExpr::new(span, data_ty.invert_if(inv), TirExprKind::Rewrap(expr));
         self._resolve_expr_object_field(span, expr, key)
       }
-      (inv, TypeKind::Union(union_id, type_params)) => {
+      (inv, TypeKind::Union(union_id, _, type_params)) => {
         let union_id = *union_id;
         let type_params = type_params.clone();
         self.unsafe_(span);

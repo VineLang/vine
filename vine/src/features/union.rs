@@ -44,7 +44,8 @@ impl Charter<'_> {
         self.define_pattern(span, def, vis, DefPatternKind::Union(union_id, variant_id));
         UnionVariant { span, def, name: variant.name, data: variant.data }
       }));
-    let union_def = UnionDef { span, def, name: enum_item.name, generics, variants };
+    let union_def =
+      UnionDef { span, def, name: enum_item.name, generics, variants, self_dual: false };
     self.chart.unions.push_to(union_id, union_def);
     let ty_kind = DefTypeKind::Union(union_id);
     self.define_type(span, def, vis, ty_kind);
@@ -69,6 +70,9 @@ impl Resolver<'_> {
       self.show_generics(self.cur_generics, false),
     );
     self.annotations.record_signature(union_def.span, hover);
+    if union_def.self_dual && !variant_data.values().all(|&ty| self.types._self_inverse(ty, true)) {
+      self.diags.error(Diag::NotSelfDual { span: union_def.span });
+    }
     let types = take(&mut self.types);
     self
       .sigs
@@ -106,7 +110,7 @@ impl Resolver<'_> {
         found: self.types.show(self.chart, data.ty),
       });
     }
-    let ty = self.types.new(TypeKind::Union(union_id, type_params));
+    let ty = self.types.new_union(self.chart, union_id, type_params);
     Ok(TirExpr::new(span, ty, TirExprKind::Rewrap(data)))
   }
 
@@ -135,13 +139,13 @@ impl Resolver<'_> {
         t.transfer(&sig.variant_data[variant])
       });
     self.expect_type(data.span, data.ty, data_ty);
-    let ty = self.types.new(TypeKind::Union(union_id, type_params));
+    let ty = self.types.new_union(self.chart, union_id, type_params);
     Ok(TirPat::new(span, ty, TirPatKind::Union(data)))
   }
 
   pub(crate) fn resolve_pat_sig_path_union(&mut self, path: &Path, union_id: UnionId) -> Type {
     let (type_params, _) = self.resolve_generics(path, self.chart.unions[union_id].generics, false);
-    self.types.new(TypeKind::Union(union_id, type_params))
+    self.types.new_union(self.chart, union_id, type_params)
   }
 
   pub(crate) fn resolve_ty_path_union(
@@ -152,7 +156,7 @@ impl Resolver<'_> {
   ) -> Type {
     let generics_id = self.chart.unions[union_id].generics;
     let (type_params, _) = self.resolve_generics(path, generics_id, inference);
-    self.types.new(TypeKind::Union(union_id, type_params))
+    self.types.new_union(self.chart, union_id, type_params)
   }
 }
 

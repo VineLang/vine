@@ -180,6 +180,7 @@ pub enum AttrKind {
   Become(Path),
   Frameless,
   Test,
+  SelfDual,
 }
 
 pub type GenericParams = Generics<TypeParam, ImplParam>;
