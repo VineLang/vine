@@ -1,0 +1,260 @@
+
+use Ext::Unknown;
+use ops::Cast;
+use util::transmute;
+
+pub type File;
+
+pub mod File {
+  pub impl : Show[File];
+  pub impl : Ext[File] = safe Ext::identity;
+
+  /// Encodes a `Result` as an extrinsic tuple `(is_error: Bool, data: T | E)`.
+  pub impl result_ext[T, E; Ext[T], Ext[E]]: Ext[Result[T, E]] {
+    fn encode(res: Result[T, E]) -> Ext[Result[T, E]] {
+      match res {
+        Ok(value) { safe transmute[Ext[(Bool, T)], Ext[Result[T, E]]]((false, value) as Ext) }
+        Err(err) { safe transmute[Ext[(Bool, E)], Ext[Result[T, E]]]((true, err) as Ext) }
+      }
+    }
+
+    fn decode(res: Ext[Result[T, E]]) -> Result[T, E] {
+      let (is_error, res) = safe transmute[Ext[Result[T, E]], Ext[(Bool, Ext[Unknown])]](res) as (
+        _,
+        _,
+      );
+      if is_error {
+        Err(safe transmute[Ext[Unknown], Ext[E]](res) as E)
+      } else {
+        Ok(safe transmute[Ext[Unknown], Ext[T]](res) as T)
+      }
+    }
+  }
+
+  /// Opens a file for reading and writing, returning an error if it does not
+  /// exist.
+  ///
+  /// The opened file supports reads and writes, but writes to an existing file
+  /// will append to its existing contents.
+  pub fn open(&io: &IO, path: String) -> Result[File, Error] {
+    let path = path as Ext;
+    let ext = safe inline_ivy! (io <- io, path <- path) -> Ext[(IO, Result[File, ExtError])] {
+      res
+      io = @file_open(path res)
+    };
+    let res: Result[File, ExtError];
+    (io, res) = ext as (_, _);
+
+    res.map_err(fn? (e: ExtError) { e as Error })
+  }
+
+  /// Creates a file for writing. If a file exists at `path`, the
+  /// file is truncated, and an error is not returned.
+  pub fn create(&io: &IO, path: String) -> Result[File, Error] {
+    let path = path as Ext;
+    let ext = safe inline_ivy! (io <- io, path <- path) -> Ext[(IO, Result[File, ExtError])] {
+      res
+      io = @file_create(path res)
+    };
+    let res: Result[File, ExtError];
+    (io, res) = ext as (_, _);
+
+    res.map_err(fn? (e: ExtError) { e as Error })
+  }
+
+  /// Closes the file, returning an error.
+  pub fn .close(self: File, &io: &IO) {
+    safe inline_ivy! (self <- self, io0 <- io, io1 -> io) -> () {
+      _
+      io0 = @file_close(self io1)
+    };
+  }
+
+  /// Reads all remaining bytes in the file into a list of bytes.
+  pub fn .read_bytes(&self: &File, &io: &IO) -> Result[List[N32], Error] {
+    let bytes = [];
+
+    while self.read_byte(&io).try is Some(char) {
+      bytes.push_back(char);
+    }
+
+    Ok(bytes)
+  }
+
+  /// Reads the next byte in the file, returning `None()` on EOF.
+  pub fn .read_byte(&self: &File, &io: &IO) -> Result[Option[N32], Error] {
+    let ext = safe inline_ivy! (io <- io, self <- self) -> Ext[
+      (IO, File, Result[(N32, Bool), ExtError]);
+    ] {
+      res
+      io = @file_read_byte(self res)
+    };
+    let res: Result[(N32, Bool), ExtError];
+    (io, self, res) = ext as (_, _, _);
+
+    match res {
+      Ok((byte, is_eof)) {
+        if is_eof {
+          Ok(None())
+        } else {
+          Ok(Some(byte))
+        }
+      }
+      Err(err) { Err(err as Error) }
+    }
+  }
+
+  /// Reads all remaining data in the file into a `String`.
+  pub fn .read_string(&self: &File, &io: &IO) -> Result[String, Error] {
+    let characters = [];
+
+    while self.read_char(&io).try is Some(char) {
+      characters.push_back(char);
+    }
+
+    Ok(characters as String)
+  }
+
+  /// Reads the next char in the file, returning `None()` on EOF. If the next
+  /// sequence of bytes are not a valid UTF-8 character, the UTF-8 replacement
+  /// character is returned.
+  pub fn .read_char(&self: &File, &io: &IO) -> Result[Option[Char], Error] {
+    let ext = safe inline_ivy! (io <- io, self <- self) -> Ext[
+      (IO, File, Result[(Char, Bool), ExtError]);
+    ] {
+      res
+      io = @file_read_char(self res)
+    };
+    let res: Result[(Char, Bool), ExtError];
+    (io, self, res) = ext as (_, _, _);
+
+    match res {
+      Ok((char, is_eof)) {
+        if is_eof {
+          Ok(None())
+        } else {
+          Ok(Some(char))
+        }
+      }
+      Err(err) { Err(err as Error) }
+    }
+  }
+
+  /// Writes the list of bytes into the file.
+  pub fn .write_bytes(&self: &File, &io: &IO, bytes: List[N32]) -> Result[(), Error] {
+    for byte in bytes {
+      self.write_byte(&io, byte).try;
+    }
+
+    Ok()
+  }
+
+  /// Writes a byte to the file.
+  pub fn .write_byte(&self: &File, &io: &IO, byte: N32) -> Result[(), Error] {
+    let params = (self, byte) as Ext;
+    let ext = safe inline_ivy! (io <- io, params <- params) -> Ext[
+      (IO, File, Result[N32, ExtError]);
+    ] {
+      res
+      io = @file_write_byte(params res)
+    };
+    let res: Result[N32, ExtError];
+    (io, self, res) = ext as (_, _, _);
+
+    match res {
+      Ok(_) { Ok() }
+      Err(err) { Err(err as Error) }
+    }
+  }
+
+  /// Writes a string to the file.
+  pub fn .write_string(&self: &File, &io: &IO, string: String) -> Result[(), Error] {
+    for char in string {
+      self.write_char(&io, char).try;
+    }
+
+    Ok()
+  }
+
+  /// Writes a char to the file.
+  pub fn .write_char(&self: &File, &io: &IO, char: Char) -> Result[(), Error] {
+    let params = (self, char) as Ext;
+    let ext = safe inline_ivy! (io <- io, params <- params) -> Ext[
+      (IO, File, Result[N32, ExtError]);
+    ] {
+      res
+      io = @file_write_char(params res)
+    };
+    let res: Result[N32, ExtError];
+    (io, self, res) = ext as (_, _, _);
+
+    match res {
+      Ok(_) { Ok() }
+      Err(err) { Err(err as Error) }
+    }
+  }
+
+  pub enum? Error {
+    NotFound(),
+    PermissionDenied(),
+    AlreadyExists(),
+    NotADirectory(),
+    IsADirectory(),
+    ReadOnlyFilesystem(),
+    Other(ExtError),
+  }
+
+  pub mod Error {
+    pub impl : Show[Error];
+
+    pub impl : Cast[ExtError, Error] {
+      fn cast(error: ExtError) -> Error {
+        let code = error.code();
+        when {
+          code == 1 { Error::NotFound() }
+          code == 2 { Error::PermissionDenied() }
+          code == 3 { Error::AlreadyExists() }
+          code == 4 { Error::NotADirectory() }
+          code == 5 { Error::IsADirectory() }
+          code == 6 { Error::ReadOnlyFilesystem() }
+          _ { Error::Other(error) }
+        }
+      }
+    }
+  }
+
+  pub type ExtError;
+
+  pub mod ExtError {
+    pub impl : Ext[ExtError] = safe Ext::identity;
+
+    pub fn .code(&self: &ExtError) -> N32 {
+      safe inline_ivy! (self0 <- self, self1 -> self) -> N32 {
+        code
+        self0 = @io_error_code(code self1)
+      }
+    }
+
+    pub fn .message(&self: &ExtError) -> String {
+      safe inline_ivy! (self0 <- self, self1 -> self) -> Ext[String] {
+        message
+        self0 = @io_error_string(message self1)
+      } as String
+    }
+
+    pub impl : Drop[ExtError] {
+      fn drop(self: ExtError) {
+        safe inline_ivy! (self <- self) -> () {
+          _
+          self = @io_error_drop(_ _)
+        }
+      }
+    }
+
+    pub impl : Show[ExtError] {
+      fn show(&self: &ExtError) -> Show {
+        self.message().show()
+      }
+    }
+  }
+}
