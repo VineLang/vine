@@ -59,7 +59,7 @@ impl Compiler {
       impls: self.chart.impls.next_index(),
       fragments: self.fragments.next_index(),
       specs: self.specs.specs.next_index(),
-      files: self.loader.files.next_index(),
+      files: self.files.next_index(),
       candidate_sets: self.finder_cache.candidates.sets.next_index(),
       errors: self.diags.errors.len(),
       warnings: self.diags.warnings.len(),
@@ -69,7 +69,8 @@ impl Compiler {
   pub fn revert(&mut self, checkpoint: &Checkpoint) {
     let Compiler {
       debug: _,
-      loader,
+      loaded: _,
+      files,
       chart,
       sigs,
       resolutions,
@@ -86,9 +87,9 @@ impl Compiler {
     resolutions.revert(checkpoint);
     annotations.revert(checkpoint);
     specs.revert(checkpoint);
-    loader.revert(checkpoint);
     diags.revert(checkpoint);
     finder_cache.revert(checkpoint);
+    files.truncate(checkpoint.files.0);
     fragments.truncate(checkpoint.fragments.0);
     vir.truncate(checkpoint.fragments.0);
     templates.truncate(checkpoint.fragments.0);

@@ -155,10 +155,10 @@ impl<'a> Documenter<'a> {
 
   fn source_link(&self, tree: &Tree) -> String {
     if let Some(file) = tree.src_file {
-      let file = &self.compiler.loader.files[file].name;
+      let file = &self.compiler.files[file].name;
       format!(" #src(\"{}\")", file)
     } else if let Some(span) = tree.src {
-      let pos = self.compiler.loader.files[span.file].get_pos(span.start);
+      let pos = self.compiler.files[span.file].get_pos(span.start);
       format!(" #src(\"{}\", line: {})", pos.file, pos.line + 1)
     } else {
       String::new()

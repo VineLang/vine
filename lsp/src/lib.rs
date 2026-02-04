@@ -1,6 +1,7 @@
 use std::{
   collections::{BTreeMap, HashMap},
-  path::PathBuf,
+  env::current_dir,
+  path::{Path, PathBuf},
   time::Instant,
 };
 
@@ -10,7 +11,10 @@ use tower_lsp::{Client, LanguageServer, LspService, Server, jsonrpc::Result, lsp
 
 use vine::{
   compiler::Compiler,
-  components::{loader::FileId, parser::Parser},
+  components::{
+    loader::{FileId, Loader, RealFS},
+    parser::Parser,
+  },
   structures::{
     ast::{Ident, Item, ItemKind, Span, visit::VisitMut},
     checkpoint::Checkpoint,
@@ -18,9 +22,11 @@ use vine::{
   },
   tools::fmt::Formatter,
 };
+use vine_util::idx::IdxVec;
 
 struct Backend {
   client: Client,
+  fs: RealFS,
   entrypoints: Vec<String>,
   docs: RwLock<HashMap<Url, String>>,
   lsp: RwLock<Lsp>,
@@ -32,11 +38,16 @@ impl Backend {
     let mut lsp = self.lsp.write().await;
     let lsp = &mut *lsp;
     lsp.compiler.revert(&self.checkpoint);
+    lsp.file_paths.truncate(self.checkpoint.files.0);
 
+    let mut fs = self.fs.clone();
+    let mut loader = Loader::new(&mut lsp.compiler, &mut fs, Some(&mut lsp.file_paths));
     for glob in &self.entrypoints {
       for entry in glob::glob(glob).unwrap() {
-        let e = entry.unwrap();
-        lsp.compiler.loader.load_mod(&e, &mut lsp.compiler.diags);
+        let path = entry.unwrap();
+        if let Some(name) = RealFS::detect_name(&path) {
+          loader.load_mod(name, path);
+        }
       }
     }
 
@@ -55,7 +66,7 @@ impl Backend {
     }
 
     let futures = FuturesUnordered::new();
-    for file_id in lsp.compiler.loader.files.keys() {
+    for file_id in lsp.compiler.files.keys() {
       let mut out = Vec::new();
       if let Some((errors, warnings)) = diags_by_file.get(&file_id) {
         for diag in errors {
@@ -74,6 +85,7 @@ impl Backend {
 
 struct Lsp {
   compiler: Compiler,
+  file_paths: IdxVec<FileId, PathBuf>,
 }
 
 impl Lsp {
@@ -104,7 +116,7 @@ impl Lsp {
 
   fn document_symbols(&self, params: DocumentSymbolParams) -> Option<DocumentSymbolResponse> {
     let file = self.uri_to_file_id(params.text_document.uri)?;
-    let ast = Parser::parse(file, &self.compiler.loader.files[file].src).ok()?;
+    let ast = Parser::parse(file, &self.compiler.files[file].src).ok()?;
     struct Visitor<'a> {
       lsp: &'a Lsp,
       symbols: &'a mut Vec<DocumentSymbol>,
@@ -217,23 +229,17 @@ impl Lsp {
   }
 
   fn file_to_uri(&self, file: FileId) -> Url {
-    Url::from_file_path(self.compiler.loader.files[file].path.as_ref().unwrap()).unwrap()
+    let mut path = current_dir().unwrap();
+    path.push(&self.file_paths[file]);
+    Url::from_file_path(&path).unwrap()
   }
 
   fn uri_to_file_id(&self, uri: Url) -> Option<FileId> {
-    Some(
-      self
-        .compiler
-        .loader
-        .files
-        .iter()
-        .find(|(_, info)| info.path.as_deref() == Some(uri.path().as_ref()))?
-        .0,
-    )
+    Some(self.file_paths.iter().find(|(_, path)| **path == AsRef::<Path>::as_ref(&uri.path()))?.0)
   }
 
   fn byte_to_position(&self, file: FileId, byte: usize) -> Position {
-    let pos = self.compiler.loader.files[file].get_pos(byte);
+    let pos = self.compiler.files[file].get_pos(byte);
     Position { line: pos.line as u32, character: pos.col as u32 }
   }
 
@@ -246,7 +252,7 @@ impl Lsp {
 
   fn position_to_byte(&self, file: FileId, position: Position) -> Option<usize> {
     Some(
-      self.compiler.loader.files[file].line_starts.get(position.line as usize)?
+      self.compiler.files[file].line_starts.get(position.line as usize)?
         + position.character as usize,
     )
   }
@@ -406,14 +412,13 @@ impl LanguageServer for Backend {
 
 #[allow(clippy::absolute_paths)]
 #[tokio::main]
-pub async fn lsp(libs: Vec<PathBuf>, entrypoints: Vec<String>) {
+pub async fn lsp(
+  mut compiler: Compiler,
+  file_paths: IdxVec<FileId, PathBuf>,
+  entrypoints: Vec<String>,
+) {
   let stdin = tokio::io::stdin();
   let stdout = tokio::io::stdout();
-
-  let mut compiler = Compiler::new(true);
-  for lib in libs {
-    compiler.loader.load_mod(&lib, &mut compiler.diags);
-  }
 
   _ = compiler.check(());
   let checkpoint = compiler.checkpoint();
@@ -422,8 +427,9 @@ pub async fn lsp(libs: Vec<PathBuf>, entrypoints: Vec<String>) {
     client,
     entrypoints,
     docs: RwLock::new(HashMap::new()),
-    lsp: RwLock::new(Lsp { compiler }),
+    lsp: RwLock::new(Lsp { compiler, file_paths }),
     checkpoint,
+    fs: RealFS::default(),
   });
   Server::new(stdin, stdout, socket).serve(service).await;
 }

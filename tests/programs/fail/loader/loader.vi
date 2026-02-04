@@ -1,0 +1,7 @@
+
+mod file; // ok
+mod dir; // ok
+
+mod missing; // error
+mod ambiguous; // error
+

@@ -1434,6 +1434,7 @@ dependencies = [
  "tokio",
  "tower-lsp",
  "vine",
+ "vine-util",
 ]
 
 [[package]]

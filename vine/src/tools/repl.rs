@@ -1,4 +1,4 @@
-use std::{mem::take, path::PathBuf};
+use std::mem::take;
 
 use ivm::{
   IVM,
@@ -18,7 +18,7 @@ use crate::{
   structures::{
     ast::{Block, Ident, Span, Stmt, visit::VisitMut},
     chart::{DefId, GenericsId, VisId},
-    diag::{Diag, ErrorGuaranteed},
+    diag::{Diag, ErrorGuaranteed, FileInfo},
     resolutions::FragmentId,
     tir::Local,
     types::{Type, TypeKind, Types},
@@ -54,12 +54,7 @@ impl<'ctx, 'ivm, 'ext, 'comp> Repl<'ctx, 'ivm, 'ext, 'comp> {
     mut host: &'ivm mut Host<'ivm>,
     ivm: &'ctx mut IVM<'ivm, 'ext>,
     compiler: &'comp mut Compiler,
-    libs: Vec<PathBuf>,
   ) -> Result<Self, ErrorGuaranteed> {
-    for lib in libs {
-      compiler.loader.load_mod(&lib, &mut compiler.diags);
-    }
-
     let mut repl_mod = DefId::default();
     let nets = compiler.compile(InitHooks(&mut repl_mod))?;
     struct InitHooks<'a>(&'a mut DefId);
@@ -122,8 +117,6 @@ impl<'ctx, 'ivm, 'ext, 'comp> Repl<'ctx, 'ivm, 'ext, 'comp> {
     clear: Vec<Ident>,
   ) -> Result<(), ErrorGuaranteed> {
     let mut block = Block { span, stmts };
-
-    self.compiler.loader.load_deps(".".as_ref(), &mut block, &mut self.compiler.diags);
 
     let path = format!(":repl::{}", self.line);
     let mut fragment = None;
@@ -317,7 +310,7 @@ impl<'ctx, 'ivm, 'ext, 'comp> Repl<'ctx, 'ivm, 'ext, 'comp> {
   }
 
   fn parse_input(&mut self, line: &str) -> Result<(Span, ReplCommand), Diag> {
-    let file = self.compiler.loader.add_file(None, "input".into(), line.into());
+    let file = self.compiler.files.push(FileInfo::new("input".into(), line.into()));
     let mut parser = Parser::new(Lexer::new(file, line))?;
     let span = parser.start_span();
     let command = parser.parse_repl_command()?;

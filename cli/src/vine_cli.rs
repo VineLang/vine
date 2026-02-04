@@ -1,14 +1,20 @@
 use std::{
-  env, fs,
+  env,
+  ffi::OsStr,
+  fs,
   io::{self, IsTerminal, Read, stderr, stdin, stdout},
-  path::PathBuf,
+  path::{Path, PathBuf},
   process::exit,
   sync::mpsc,
   time::{Duration, Instant},
 };
 
 use anyhow::Result;
-use clap::{Args, CommandFactory, Parser};
+use clap::{
+  Args, CommandFactory, Parser,
+  builder::{TypedValueParser, ValueParserFactory},
+  error::ErrorKind,
+};
 
 use ivm::{IVM, ext::Extrinsics, heap::Heap};
 use ivy::{ast::Nets, host::Host};
@@ -16,9 +22,12 @@ use notify::{RecommendedWatcher, RecursiveMode, Watcher};
 use rustyline::DefaultEditor;
 use vine::{
   compiler::Compiler,
+  components::loader::{FileId, Loader, RealFS},
+  structures::ast::Ident,
   tools::{doc::document, fmt::Formatter, repl::Repl},
 };
 use vine_lsp::lsp;
+use vine_util::idx::IdxVec;
 
 use super::{Optimizations, RunArgs};
 
@@ -61,37 +70,55 @@ impl VineCommand {
 }
 
 #[derive(Debug, Args)]
-pub struct CheckArgs {
-  entrypoints: Vec<String>,
+pub struct LibArgs {
   #[arg(long = "lib")]
-  libs: Vec<PathBuf>,
+  libs: Vec<Source>,
   #[arg(long)]
   no_root: bool,
 }
 
+impl LibArgs {
+  fn initialize(mut self, debug: bool) -> (Compiler, IdxVec<FileId, PathBuf>) {
+    if !self.no_root {
+      self.libs.push(root_source())
+    }
+
+    let mut compiler = Compiler::new(debug);
+    let mut file_paths = IdxVec::new();
+
+    let mut fs = RealFS::default();
+    let mut loader = Loader::new(&mut compiler, &mut fs, Some(&mut file_paths));
+    for lib in self.libs {
+      loader.load_mod(lib.name, lib.path);
+    }
+
+    (compiler, file_paths)
+  }
+}
+
+#[derive(Debug, Args)]
+pub struct CheckArgs {
+  entrypoints: Vec<String>,
+  #[command(flatten)]
+  libs: LibArgs,
+}
+
 #[derive(Debug, Args)]
 pub struct CompileArgs {
-  main: PathBuf,
-  #[arg(long = "lib")]
-  libs: Vec<PathBuf>,
-  #[arg(long)]
-  no_root: bool,
+  main: Source,
+  #[command(flatten)]
+  libs: LibArgs,
   #[arg(long)]
   debug: bool,
 }
 
 impl CompileArgs {
-  fn initialize(mut self) -> Compiler {
-    if !self.no_root {
-      self.libs.push(root_path())
-    }
+  fn initialize(self) -> Compiler {
+    let (mut compiler, _) = self.libs.initialize(self.debug);
 
-    let mut compiler = Compiler::new(self.debug);
-
-    compiler.loader.load_main_mod(&self.main, &mut compiler.diags);
-    for lib in self.libs {
-      compiler.loader.load_mod(&lib, &mut compiler.diags);
-    }
+    let mut fs = RealFS::default();
+    let mut loader = Loader::new(&mut compiler, &mut fs, None);
+    loader.load_main_mod(self.main.name, self.main.path);
 
     compiler
   }
@@ -109,7 +136,7 @@ impl CompileArgs {
   }
 }
 
-fn root_path() -> PathBuf {
+fn root_source() -> Source {
   let mut path = env::current_exe().unwrap();
   path.pop();
   let compile_time_root_path = option_env!("VINE_ROOT_PATH");
@@ -118,14 +145,15 @@ fn root_path() -> PathBuf {
   match runtime_root_path.as_deref().or(compile_time_root_path) {
     Some(root_path) => {
       path.push(root_path);
-      path.push("root.vi");
     }
     None => {
       path.push(env!("CARGO_MANIFEST_DIR"));
-      path.push("../root/root.vi");
+      path.pop();
+      path.push("root");
     }
   }
-  path
+
+  Source { name: Ident("root".into()), path }
 }
 
 #[derive(Debug, Args)]
@@ -230,16 +258,8 @@ pub struct VineCheckCommand {
 }
 
 impl VineCheckCommand {
-  pub fn execute(mut self) -> Result<()> {
-    if !self.check.no_root {
-      self.check.libs.push(root_path())
-    }
-
-    let mut compiler = Compiler::new(true);
-
-    for lib in self.check.libs {
-      compiler.loader.load_mod(&lib, &mut compiler.diags);
-    }
+  pub fn execute(self) -> Result<()> {
+    let (mut compiler, _) = self.check.libs.initialize(false);
 
     if compiler.check(()).is_err() {
       eprint_diags(&compiler);
@@ -255,10 +275,14 @@ impl VineCheckCommand {
 
       compiler.revert(&checkpoint);
 
+      let mut fs = RealFS::default();
+      let mut loader = Loader::new(&mut compiler, &mut fs, None);
       for glob in &self.check.entrypoints {
         for entry in glob::glob(glob).unwrap() {
-          let entry = entry.unwrap();
-          compiler.loader.load_mod(&entry, &mut compiler.diags);
+          let path = entry.unwrap();
+          if let Some(name) = RealFS::detect_name(&path) {
+            loader.load_mod(name, path);
+          }
         }
       }
 
@@ -306,10 +330,8 @@ impl VineCheckCommand {
 
 #[derive(Debug, Args)]
 pub struct VineReplCommand {
-  #[arg(long = "lib")]
-  libs: Vec<PathBuf>,
-  #[arg(long)]
-  no_root: bool,
+  #[command(flatten)]
+  libs: LibArgs,
   #[arg(long)]
   echo: bool,
   #[arg(long)]
@@ -318,11 +340,7 @@ pub struct VineReplCommand {
 }
 
 impl VineReplCommand {
-  pub fn execute(mut self) -> Result<()> {
-    if !self.no_root {
-      self.libs.push(root_path())
-    }
-
+  pub fn execute(self) -> Result<()> {
     let host = &mut Host::default();
     let heap = Heap::new();
     let mut extrinsics = Extrinsics::default();
@@ -330,8 +348,8 @@ impl VineReplCommand {
     host.register_runtime_extrinsics(&mut extrinsics, self.args);
 
     let mut ivm = IVM::new(&heap, &extrinsics);
-    let mut compiler = Compiler::new(!self.no_debug);
-    let mut repl = match Repl::new(host, &mut ivm, &mut compiler, self.libs) {
+    let (mut compiler, _) = self.libs.initialize(!self.no_debug);
+    let mut repl = match Repl::new(host, &mut ivm, &mut compiler) {
       Ok(repl) => repl,
       Err(_) => {
         eprint_diags(&compiler);
@@ -383,11 +401,9 @@ pub struct VineLspCommand {
 }
 
 impl VineLspCommand {
-  pub fn execute(mut self) -> Result<()> {
-    if !self.check.no_root {
-      self.check.libs.push(root_path());
-    };
-    lsp(self.check.libs, self.check.entrypoints);
+  pub fn execute(self) -> Result<()> {
+    let (compiler, file_paths) = self.check.libs.initialize(false);
+    lsp(compiler, file_paths, self.check.entrypoints);
     Ok(())
   }
 }
@@ -449,7 +465,7 @@ fn _print_diags(mut w: impl io::Write + IsTerminal, compiler: &Compiler) -> io::
     let Some(span) = diag.span() else { continue };
     writeln!(w, "{color}{severity}{grey}:{reset} {bold}{diag}{reset}")?;
     if let Some(span_str) = compiler.show_span(span) {
-      let file = &compiler.loader.files[span.file];
+      let file = &compiler.files[span.file];
       let start = file.get_pos(span.start);
       let end = file.get_pos(span.end);
       let line_width = (end.line + 1).ilog10() as usize + 1;
@@ -501,5 +517,62 @@ fn colors(t: &impl IsTerminal) -> Colors {
     }
   } else {
     Colors { reset: "", bold: "", underline: "", grey: "", red: "", yellow: "", green: "" }
+  }
+}
+
+#[derive(Clone, Debug)]
+struct Source {
+  name: Ident,
+  path: PathBuf,
+}
+
+impl ValueParserFactory for Source {
+  type Parser = ParseSource;
+  fn value_parser() -> Self::Parser {
+    ParseSource
+  }
+}
+
+#[derive(Clone)]
+struct ParseSource;
+
+impl TypedValueParser for ParseSource {
+  type Value = Source;
+
+  fn parse_ref(
+    &self,
+    cmd: &clap::Command,
+    _: Option<&clap::Arg>,
+    value: &OsStr,
+  ) -> Result<Self::Value, clap::Error> {
+    let bytes = value.as_encoded_bytes();
+    if let Some(index) = bytes.iter().position(|&x| x == b'=') {
+      let name = unsafe { OsStr::from_encoded_bytes_unchecked(&bytes[0..index]) };
+      let path = unsafe { OsStr::from_encoded_bytes_unchecked(&bytes[index + 1..]) };
+      if let Some(name) = name.to_str().and_then(Ident::new) {
+        Ok(Source { name, path: path.to_owned().into() })
+      } else {
+        Err(
+          clap::Error::raw(
+            ErrorKind::ValueValidation,
+            format!("invalid source name `{}`", name.display()),
+          )
+          .with_cmd(cmd),
+        )
+      }
+    } else {
+      let path: &Path = value.as_ref();
+      if let Some(name) = RealFS::detect_name(path) {
+        Ok(Source { name, path: path.to_owned() })
+      } else {
+        Err(
+          clap::Error::raw(
+            ErrorKind::ValueValidation,
+            format!("could not detect name for source with path `{}`", path.display()),
+          )
+          .with_cmd(cmd),
+        )
+      }
+    }
   }
 }

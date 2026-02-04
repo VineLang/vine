@@ -4,13 +4,14 @@ use ivy::ast::{Net, Nets, Tree};
 use vine_util::idx::{Counter, IdxVec};
 
 use crate::{
-  components::loader::Loader,
+  components::loader::FileId,
   structures::{
     ast::{Ident, Span},
     chart::{
       Chart, ConcreteConstId, ConstId, EnumId, FnId, OpaqueTypeId, StructId, TraitConstId,
       TraitFnId, TraitId, VariantId,
     },
+    diag::FileInfo,
     resolutions::{ConstRelId, FnRel, FnRelId, Rels},
     signatures::Signatures,
     specializations::{Spec, Specializations},
@@ -48,7 +49,7 @@ pub enum SyntheticItem {
 
 struct Synthesizer<'a> {
   nets: &'a mut Nets,
-  loader: &'a Loader,
+  files: &'a IdxVec<FileId, FileInfo>,
   chart: &'a Chart,
   sigs: &'a Signatures,
   specs: &'a Specializations,
@@ -61,7 +62,7 @@ struct Synthesizer<'a> {
 pub fn synthesize(
   nets: &mut Nets,
   debug: bool,
-  loader: &Loader,
+  files: &IdxVec<FileId, FileInfo>,
   chart: &Chart,
   sigs: &Signatures,
   specs: &Specializations,
@@ -71,7 +72,7 @@ pub fn synthesize(
   Synthesizer {
     nets,
     debug,
-    loader,
+    files,
     chart,
     sigs,
     specs,
@@ -293,7 +294,7 @@ impl Synthesizer<'_> {
 
   fn synthesize_frame(&mut self, path: String, span: Span) -> Net {
     let path = self.list(path[1..].split("::").collect::<Vec<_>>(), Self::string);
-    let pos = self.loader.files[span.file].get_pos(span.start);
+    let pos = self.files[span.file].get_pos(span.start);
     let file = self.string(pos.file);
     let line = Tree::N32(pos.line as u32 + 1);
     let col = Tree::N32(pos.col as u32 + 1);

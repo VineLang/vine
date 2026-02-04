@@ -1,3 +1,5 @@
+use std::mem::take;
+
 use ivy::ast::{Nets, Tree};
 use vine_util::idx::IdxVec;
 
@@ -8,7 +10,7 @@ use crate::{
     distiller::Distiller,
     emitter::{emit, main_net},
     finder::FinderCache,
-    loader::Loader,
+    loader::{FileId, Module},
     normalizer::normalize,
     resolver::Resolver,
     specializer::Specializer,
@@ -19,7 +21,7 @@ use crate::{
     ast::Span,
     chart::{Chart, VisId},
     checkpoint::Checkpoint,
-    diag::{Diag, Diags, ErrorGuaranteed},
+    diag::{Diag, Diags, ErrorGuaranteed, FileInfo},
     resolutions::{Fragment, FragmentId, Resolutions},
     signatures::Signatures,
     specializations::{SpecKind, Specializations},
@@ -31,7 +33,8 @@ use crate::{
 
 pub struct Compiler {
   pub debug: bool,
-  pub loader: Loader,
+  pub files: IdxVec<FileId, FileInfo>,
+  pub loaded: Vec<Module>,
   pub chart: Chart,
   pub sigs: Signatures,
   pub resolutions: Resolutions,
@@ -48,7 +51,8 @@ impl Compiler {
   pub fn new(debug: bool) -> Self {
     Compiler {
       debug,
-      loader: Loader::default(),
+      files: IdxVec::new(),
+      loaded: Vec::new(),
       chart: Chart::default(),
       sigs: Signatures::default(),
       resolutions: Resolutions::default(),
@@ -86,13 +90,12 @@ impl Compiler {
     mut hooks: impl Hooks,
     checkpoint: &Checkpoint,
   ) -> Result<(), ErrorGuaranteed> {
-    let root = self.loader.finish();
     self.diags.bail()?;
 
     let chart = &mut self.chart;
 
     let mut charter = Charter { chart, diags: &mut self.diags, annotations: &mut self.annotations };
-    charter.chart(root);
+    charter.chart(take(&mut self.loaded));
     hooks.chart(&mut charter);
 
     let mut resolver = Resolver::new(
@@ -166,7 +169,7 @@ impl Compiler {
           synthesize(
             &mut nets,
             self.debug,
-            &self.loader,
+            &self.files,
             &self.chart,
             &self.sigs,
             &self.specs,

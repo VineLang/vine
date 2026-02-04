@@ -149,6 +149,7 @@ fn tests(t: &mut DynTester) {
       test_vi_fail(t, "tests/programs/fail/informal.vi");
       test_vi_fail(t, "tests/programs/fail/is_not.vi");
       test_vi_fail(t, "tests/programs/fail/missing_no.vi");
+      test_vi_fail(t, "tests/programs/fail/loader");
       test_vi_fail(t, "tests/programs/fail/occurs.vi");
       test_vi_fail(t, "tests/programs/fail/opaque_private.vi");
       test_vi_fail(t, "tests/programs/fail/other_dual.vi");
@@ -158,26 +159,26 @@ fn tests(t: &mut DynTester) {
     });
 
     t.group("repl", |t| {
-      test_vi_repl(t, "tests/programs/repl/advanced_repl.vi");
-      test_vi_repl(t, "tests/programs/repl/basic_repl.vi");
-      test_vi_repl(t, "tests/programs/repl/distribute_inverse.vi");
-      test_vi_repl(t, "tests/programs/repl/elementwise.vi");
-      test_vi_repl(t, "tests/programs/repl/extrinsics.vi");
-      test_vi_repl(t, "tests/programs/repl/f32_to_string.vi");
-      test_vi_repl(t, "tests/programs/repl/F64.vi");
-      test_vi_repl(t, "tests/programs/repl/heap.vi");
-      test_vi_repl(t, "tests/programs/repl/i32_misc.vi");
-      test_vi_repl(t, "tests/programs/repl/index.vi");
-      test_vi_repl(t, "tests/programs/repl/misc.vi");
-      test_vi_repl(t, "tests/programs/repl/N64.vi");
-      test_vi_repl(t, "tests/programs/repl/Nat.vi");
-      test_vi_repl(t, "tests/programs/repl/objects.vi");
-      test_vi_repl(t, "tests/programs/repl/parse_error.vi");
-      test_vi_repl(t, "tests/programs/repl/parse_f32.vi");
-      test_vi_repl(t, "tests/programs/repl/randomness.vi");
-      test_vi_repl(t, "tests/programs/repl/shadow.vi");
-      test_vi_repl(t, "tests/programs/repl/slice_and_dice.vi");
-      test_vi_repl(t, "tests/programs/repl/string_ops.vi");
+      test_vi_repl(t, "tests/programs/repl/advanced_repl.vi", &[]);
+      test_vi_repl(t, "tests/programs/repl/basic_repl.vi", &["--lib", "vine/examples/fib_repl.vi"]);
+      test_vi_repl(t, "tests/programs/repl/distribute_inverse.vi", &[]);
+      test_vi_repl(t, "tests/programs/repl/elementwise.vi", &[]);
+      test_vi_repl(t, "tests/programs/repl/extrinsics.vi", &[]);
+      test_vi_repl(t, "tests/programs/repl/f32_to_string.vi", &[]);
+      test_vi_repl(t, "tests/programs/repl/F64.vi", &[]);
+      test_vi_repl(t, "tests/programs/repl/heap.vi", &[]);
+      test_vi_repl(t, "tests/programs/repl/i32_misc.vi", &[]);
+      test_vi_repl(t, "tests/programs/repl/index.vi", &[]);
+      test_vi_repl(t, "tests/programs/repl/misc.vi", &[]);
+      test_vi_repl(t, "tests/programs/repl/N64.vi", &[]);
+      test_vi_repl(t, "tests/programs/repl/Nat.vi", &[]);
+      test_vi_repl(t, "tests/programs/repl/objects.vi", &[]);
+      test_vi_repl(t, "tests/programs/repl/parse_error.vi", &[]);
+      test_vi_repl(t, "tests/programs/repl/parse_f32.vi", &[]);
+      test_vi_repl(t, "tests/programs/repl/randomness.vi", &[]);
+      test_vi_repl(t, "tests/programs/repl/shadow.vi", &[]);
+      test_vi_repl(t, "tests/programs/repl/slice_and_dice.vi", &[]);
+      test_vi_repl(t, "tests/programs/repl/string_ops.vi", &[]);
     });
 
     t.group("compile", |t| {
@@ -241,11 +242,12 @@ fn test_vi_fail(t: &mut DynTester, path: &'static str) {
   });
 }
 
-fn test_vi_repl(t: &mut DynTester, path: &'static str) {
+fn test_vi_repl(t: &mut DynTester, path: &'static str, args: &'static [&'static str]) {
   let name = Path::file_stem(path.as_ref()).unwrap().to_str().unwrap();
   t.test(name, move || {
     let input = fs::read_to_string(path).unwrap();
-    let (stdout, stderr) = exec(VINE, &["repl", "--echo"], input.as_bytes(), true);
+    let args = [&["repl", "--echo"], args].concat();
+    let (stdout, stderr) = exec(VINE, &args, input.as_bytes(), true);
     assert_empty_stderr(&stderr);
     test_snapshot(&["vine", "repl", &format!("{name}.repl.vi")], &stdout);
   });

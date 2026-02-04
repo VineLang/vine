@@ -1,5 +1,6 @@
 use std::fmt;
 
+use unicode_id_start::{is_id_continue, is_id_start};
 use vine_util::lexer::{Lex, LexerState, Token as TokenTrait};
 
 use crate::{
@@ -269,43 +270,15 @@ impl<'src> Lex<'src> for Lexer<'src> {
         self.bump();
         self.bump_while(unicode_id_start::is_id_continue);
         let str = &self.src()[self.range().start..self.offset()];
-        match str {
-          "_" => Ok(Token::Hole),
-          "pub" => Ok(Token::Pub),
-          "mod" => Ok(Token::Mod),
-          "use" => Ok(Token::Use),
-          "as" => Ok(Token::As),
-          "fn" => Ok(Token::Fn),
-          "struct" => Ok(Token::Struct),
-          "enum" => Ok(Token::Enum),
-          "type" => Ok(Token::Type),
-          "trait" => Ok(Token::Trait),
-          "impl" => Ok(Token::Impl),
-          "match" => Ok(Token::Match),
-          "let" => Ok(Token::Let),
-          "const" => Ok(Token::Const),
-          "in" => Ok(Token::In),
-          "is" => Ok(Token::Is),
-          "return" => Ok(Token::Return),
-          "do" => Ok(Token::Do),
-          "loop" => Ok(Token::Loop),
-          "while" => Ok(Token::While),
-          "for" => Ok(Token::For),
-          "break" => Ok(Token::Break),
-          "continue" => Ok(Token::Continue),
-          "if" => Ok(Token::If),
-          "assert" => Ok(Token::Assert),
-          "when" => Ok(Token::When),
-          "else" => Ok(Token::Else),
-          "true" => Ok(Token::True),
-          "false" => Ok(Token::False),
-          "and" => Ok(Token::And),
-          "or" => Ok(Token::Or),
-          "try" => Ok(Token::Try),
-          "unsafe" => Ok(Token::Unsafe),
-          "safe" => Ok(Token::Safe),
-          "inline_ivy" if self.char() == Some('!') => self.bump_ok(Token::InlineIvy),
-          _ => Ok(Token::Ident),
+        match keyword(str) {
+          Some(token) => Ok(token),
+          None => {
+            if str == "inline_ivy" && self.char() == Some('!') {
+              self.bump_ok(Token::InlineIvy)
+            } else {
+              Ok(Token::Ident)
+            }
+          }
         }
       }
 
@@ -314,6 +287,51 @@ impl<'src> Lex<'src> for Lexer<'src> {
       Some(_) => Err(Diag::LexError { span: self.span() }),
     }
   }
+}
+
+fn keyword(str: &str) -> Option<Token> {
+  match str {
+    "_" => Some(Token::Hole),
+    "pub" => Some(Token::Pub),
+    "mod" => Some(Token::Mod),
+    "use" => Some(Token::Use),
+    "as" => Some(Token::As),
+    "fn" => Some(Token::Fn),
+    "struct" => Some(Token::Struct),
+    "enum" => Some(Token::Enum),
+    "type" => Some(Token::Type),
+    "trait" => Some(Token::Trait),
+    "impl" => Some(Token::Impl),
+    "match" => Some(Token::Match),
+    "let" => Some(Token::Let),
+    "const" => Some(Token::Const),
+    "in" => Some(Token::In),
+    "is" => Some(Token::Is),
+    "return" => Some(Token::Return),
+    "do" => Some(Token::Do),
+    "loop" => Some(Token::Loop),
+    "while" => Some(Token::While),
+    "for" => Some(Token::For),
+    "break" => Some(Token::Break),
+    "continue" => Some(Token::Continue),
+    "if" => Some(Token::If),
+    "assert" => Some(Token::Assert),
+    "when" => Some(Token::When),
+    "else" => Some(Token::Else),
+    "true" => Some(Token::True),
+    "false" => Some(Token::False),
+    "and" => Some(Token::And),
+    "or" => Some(Token::Or),
+    "try" => Some(Token::Try),
+    "unsafe" => Some(Token::Unsafe),
+    "safe" => Some(Token::Safe),
+    _ => None,
+  }
+}
+
+pub fn is_ident(str: &str) -> bool {
+  let mut chars = str.chars();
+  chars.next().is_some_and(is_id_start) && chars.all(is_id_continue) && keyword(str).is_none()
 }
 
 impl TokenTrait for Token {
