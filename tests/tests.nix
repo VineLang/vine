@@ -57,7 +57,7 @@ let
         __contentAddressed = true;
       }
       ''
-        echo
+        echo "building ${name}"
         ${vine} build ${vi} ${buildArgs} >$out
       '';
 
@@ -68,6 +68,7 @@ let
       buildArgs ? "",
     }:
     pkgs.runCommand "${name}.error" { } ''
+      echo "building ${name}"
       ! ${vine} build ${vi} ${buildArgs} 2>$out
     '';
 
@@ -83,7 +84,8 @@ let
     pkgs.runCommand name { } ''
       mkdir $out
       cp ${iv} $out/compiled.iv
-      ${if fail then "!" else ""} ${ivy} run $out/compiled.iv --no-perf ${runArgs} <${input} >$out/output.${ext} 2>$out/stats
+      echo "running ${name}"
+      ${if fail then "!" else ""} ${ivy} run $out/compiled.iv --no-perf ${runArgs} <${input} 2>&1 >$out/output.${ext} | tee $out/stats
     '';
 
   tests.fail = forEach (lsVine ./fail) (
@@ -149,7 +151,7 @@ let
       name = sanitize path;
       args = directive "args" "" path;
       log = pkgs.runCommand "${name}.repl.vi" { } ''
-        echo
+        echo "repl ${name}"
         ${vine} repl --echo ${args} <${path} >$out
       '';
     in
@@ -165,7 +167,7 @@ let
       name = sanitize path;
       args = directive "args" "" path;
       formatted = pkgs.runCommand "${name}.fmt.vi" { } ''
-        echo
+        echo "fmt ${name}"
         ${vine} fmt ${args} <${path} >$out
       '';
     in
@@ -230,7 +232,7 @@ let
   snaps = pkgs.writeText "snaps.json" (builtins.toJSON all.snaps);
 
   self.checks.snaps = pkgs.runCommand "snaps" { } ''
-    echo
+    echo checking snaps
     ${pkgs.nushell}/bin/nu ${./snaps.nu} ${snaps} ${./snaps}
     touch $out
   '';
