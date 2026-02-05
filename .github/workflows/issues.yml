@@ -19,7 +19,7 @@ jobs:
         run: |
           let body = gh pr view ${{ github.event.pull_request.number }} --json body | from json | get body
           let url = gh pr view ${{ github.event.pull_request.number }} --json url | from json | get url
-          let issues = $body | parse --regex '(?i)(?:resolves|fixes)\s+#(?P<issue>\d+)'
+          let issues = $body | parse --regex '(?i)(?:(?:clos|resolv)e[sd]?|fix(?:e[sd])?):?\s*#(?P<issue>\d+)'
           let comment = $"completed in ($url)"
           $issues | each { gh issue close $in.issue --reason completed --comment $comment } | ignore
         env:
