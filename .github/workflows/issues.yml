@@ -1,0 +1,26 @@
+name: Close linked issues on PR merge
+
+on:
+  pull_request:
+    types: [closed]
+    branches: [main, dev]
+
+jobs:
+  close-linked-issues:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions: write-all
+    if: github.event.pull_request.merged
+    steps:
+      - uses: actions/checkout@v3
+      - uses: hustcer/setup-nu@v3
+      - name: close linked issues
+        shell: nu {0}
+        run: |
+          let number = ${{ github.event.pull_request.number }}
+          let body = gh pr view $number --json body | from json | get body
+          let issues = $body | parse --regex '(?i)(?:(?:clos|resolv)e[sd]?|fix(?:e[sd])?):?\s*#(?P<issue>\d+)'
+          let comment = $"- #($number)"
+          $issues | each { gh issue close $in.issue --reason completed --comment $comment } | ignore
+        env:
+          GH_TOKEN: ${{ github.token }}
