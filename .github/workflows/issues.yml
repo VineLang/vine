@@ -17,10 +17,10 @@ jobs:
       - name: close linked issues
         shell: nu {0}
         run: |
-          let body = gh pr view ${{ github.event.pull_request.number }} --json body | from json | get body
-          let url = gh pr view ${{ github.event.pull_request.number }} --json url | from json | get url
+          let number = ${{ github.event.pull_request.number }}
+          let body = gh pr view $number --json body | from json | get body
           let issues = $body | parse --regex '(?i)(?:(?:clos|resolv)e[sd]?|fix(?:e[sd])?):?\s*#(?P<issue>\d+)'
-          let comment = $"completed in ($url)"
+          let comment = $"- #($number)"
           $issues | each { gh issue close $in.issue --reason completed --comment $comment } | ignore
         env:
           GH_TOKEN: ${{ github.token }}
