@@ -14,13 +14,13 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        repo:
-          - github:nilscrm/liana
-          - github:nilscrm/sat-vi
-          - github:nilscrm/vine-page-rank
+        command:
+          - build github:nilscrm/liana#checks.x86_64-linux.example
+          - flake check github:nilscrm/sat-vi
+          - flake check github:nilscrm/vine-page-rank
     steps:
       - uses: actions/checkout@v3
-      - run: nix flake check ${{ matrix.repo }} --override-input vine . -L
+      - run: nix ${{ matrix.command }} --override-input vine . -L
 
   integration-tests:
     needs: [integration-test]
