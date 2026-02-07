@@ -3,8 +3,7 @@
   craneLib,
 }:
 let
-
-  self.packages.ivy = craneLib.buildPackage {
+  self.internal.ivyConfig = {
     pname = "ivy";
     version = "0.0.0";
     src = pkgs.lib.fileset.toSource {
@@ -26,9 +25,12 @@ let
     '';
     cargoExtraArgs = "--no-default-features --bin ivy";
     doCheck = false;
+    cargoArtifacts = craneLib.buildDepsOnly self.internal.ivyConfig;
   };
 
-  self.packages.vine-no-root = craneLib.buildPackage {
+  self.packages.ivy = craneLib.buildPackage self.internal.ivyConfig;
+
+  self.internal.vineConfig = {
     pname = "vine";
     version = "0.0.0";
     src = pkgs.lib.fileset.toSource {
@@ -52,7 +54,13 @@ let
     cargoExtraArgs = "--bin vine";
     VINE_ROOT_PATH = "../lib/root";
     doCheck = false;
+    doInstallCargoArtifacts = true;
+    cargoArtifacts = craneLib.buildDepsOnly self.internal.vineConfig;
   };
+
+  self.packages.vine-no-root = craneLib.buildPackage self.internal.vineConfig;
+
+  self.checks.clippy = craneLib.cargoClippy self.internal.vineConfig;
 
   self.packages.vine = pkgs.runCommand "vine" { } ''
     mkdir $out
