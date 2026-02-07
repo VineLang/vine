@@ -1,0 +1,4 @@
+error: cannot read file `/nix/store/kziywifldj3h2nxq1bpn80pbra05f41n-fail/no.vi`: No such file or directory (os error 2)
+   @ missing_no.vi:2:5
+ 2 | mod missing = "no.vi";
+

@@ -1,4 +1,7 @@
 
+// @run -d
+// @fail
+
 pub fn main(&io: &IO) {
   let i = 0;
   while io.forever() {

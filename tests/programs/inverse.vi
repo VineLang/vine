@@ -1,4 +1,6 @@
 
+// @run -d
+
 pub fn main(&io: &IO) {
   refs(&io);
   io.println("");

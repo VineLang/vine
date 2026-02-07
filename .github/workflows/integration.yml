@@ -8,7 +8,7 @@ on:
 
 jobs:
   integration-test:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     timeout-minutes: 15
     permissions: read-all
     strategy:
@@ -20,9 +20,7 @@ jobs:
           - github:nilscrm/vine-page-rank
     steps:
       - uses: actions/checkout@v3
-      - uses: cachix/install-nix-action@v31
-      - name: Run integration test
-        run: nix flake check ${{ matrix.repo }} --override-input vine . -L
+      - run: nix flake check ${{ matrix.repo }} --override-input vine . -L
 
   integration-tests:
     needs: [integration-test]

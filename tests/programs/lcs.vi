@@ -1,4 +1,6 @@
 
+// @run -d
+
 use #root::{ops::comparison::Eq, rng::Pcg32};
 
 pub fn main(&io: &IO) {

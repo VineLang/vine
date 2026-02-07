@@ -40,93 +40,147 @@
           overlays = [ rust-overlay.overlays.default ];
         };
 
-        craneLib = (crane.mkLib pkgs).overrideToolchain (
-          pkgs: pkgs.rust-bin.fromRustupToolchainFile ./rust-toolchain.toml
-        );
+        rustToolchain = pkgs.rust-bin.fromRustupToolchainFile ./rust-toolchain.toml;
+        craneLib = (crane.mkLib pkgs).overrideToolchain (_: rustToolchain);
 
-        vineConfig = {
-          pname = "vine";
-          version = "0.0.0";
-          src = pkgs.lib.fileset.toSource {
-            root = ./.;
-            fileset = pkgs.lib.fileset.unions [
-              ./Cargo.toml
-              ./util
-              ./ivm
-              ./ivy
-              ./vine
-              ./lsp
-              ./cli
-              ./tests/Cargo.toml
-            ];
-          };
-          VINE_ROOT_PATH = "../lib/root";
-          cargoLock = ./Cargo.lock;
-          outputHashes = {
-            "git+https://github.com/tjjfvi/class?rev=99738e6#99738e67dd8fb3b97d65e6fc59b92f04c11519a4" =
-              "sha256-ye8DqeDRXsNpTWpGGlvWxSSc1AiXOLud99dHpB/VhZg=";
-          };
-          doCheck = false;
+        self.cli = import ./cli/cli.nix {
+          inherit pkgs craneLib;
         };
 
-        vineNoRoot = craneLib.buildPackage (
-          vineConfig
-          // {
-            cargoArtifacts = craneLib.buildDepsOnly vineConfig;
-          }
-        );
-
-        vine = pkgs.runCommand "vine" { } ''
-          mkdir $out
-          cp -r ${vineNoRoot}/* $out
-          mkdir $out/lib
-          cp -r ${./root} $out/lib/root
-        '';
-
-        grammars = import ./lsp/grammars.nix {
-          inherit (pkgs)
-            lib
-            stdenv
-            stdenvNoCC
-            tree-sitter
-            nodejs_24
-            nushell
+        self.tests = import ./tests/tests.nix {
+          inherit
+            pkgs
+            flake-utils
+            rustToolchain
+            craneLib
             ;
+          inherit (self) cli;
         };
-        docs = import ./docs/docs.nix {
+
+        self.grammars = import ./lsp/grammars.nix {
+          inherit pkgs;
+        };
+
+        self.docs = import ./docs/docs.nix {
           inherit
             system
             pkgs
             flake-utils
-            grammars
             hyptyp
             typix
             typsitter
-            vineNoRoot
             ;
+          inherit (self) grammars cli;
         };
       in
-      builtins.foldl' pkgs.lib.attrsets.recursiveUpdate
-        {
-          formatter = pkgs.nixfmt-tree;
+      builtins.foldl' pkgs.lib.attrsets.recursiveUpdate {
+        formatter = pkgs.nixfmt-tree;
 
-          packages = {
-            default = vine;
-            inherit vine;
-          };
+        packages.default = self.cli.packages.vine;
 
-          devShells.default = craneLib.devShell {
-            name = "vine-dev";
+        checks.fmt =
+          let
+            processPlugin =
+              plugin:
+              let
+                pieces = builtins.match "^(.+)@([0-9a-f]+)$" plugin;
+                path = pkgs.fetchurl {
+                  url = builtins.elemAt pieces 0;
+                  outputHash = builtins.elemAt pieces 1;
+                  outputHashAlgo = "sha256";
+                };
+              in
+              if pkgs.lib.strings.hasSuffix ".wasm" path then
+                path
+              else
+                let
+                  json = builtins.fromJSON (builtins.readFile path);
+                  id =
+                    {
+                      aarch64-darwin = "darwin-aarch64";
+                      aarch64-linux = "linux-aarch64";
+                      x86_64-darwin = "darwin-x86_64";
+                      x86_64-linux = "linux-x86_64";
+                    }
+                    .${pkgs.stdenv.hostPlatform.system};
+                  rawZip = pkgs.fetchurl {
+                    url = json.${id}.reference;
+                    outputHash = json.${id}.checksum;
+                    outputHashAlgo = "sha256";
+                  };
+                  zip =
+                    if pkgs.stdenv.hostPlatform.isElf then
+                      pkgs.stdenvNoCC.mkDerivation {
+                        name = "plugin.zip";
+                        nativeBuildInputs = [
+                          pkgs.zip
+                          pkgs.unzip
+                          pkgs.autoPatchelfHook
+                          pkgs.libgcc
+                        ];
+                        dontUnpack = true;
+                        buildPhase = ''
+                          unzip ${rawZip}
+                          autoPatchelf .
+                          zip $out *
+                        '';
+                      }
+                    else
+                      rawZip;
+                  plugin = pkgs.writeText "plugin.json" (
+                    builtins.toJSON {
+                      inherit (json)
+                        schemaVersion
+                        kind
+                        name
+                        version
+                        ;
+                      ${id} = {
+                        reference = zip;
+                        checksum = builtins.hashFile "sha256" zip;
+                      };
+                    }
+                  );
+                in
+                "${plugin}@${builtins.hashFile "sha256" plugin}";
+            cfg = builtins.fromJSON (builtins.readFile ./dprint.json);
+            plugins = builtins.concatStringsSep " " (builtins.map processPlugin cfg.plugins);
+          in
+          pkgs.stdenvNoCC.mkDerivation {
+            name = "fmt-check";
+            src = ./.;
             nativeBuildInputs = [
-              pkgs.nushell
-              pkgs.nodejs_24
-              pkgs.tree-sitter
+              pkgs.dprint
+              rustToolchain
             ];
+            buildPhase = ''
+              mkdir -p target/release
+              ln -s ${self.cli.packages.vine}/bin/vine target/release/vine
+              DPRINT_CACHE_DIR=`mktemp -d` dprint check --plugins ${plugins}
+              touch $out
+            '';
           };
-        }
-        [
-          grammars
-          docs
-        ]
+
+        checks.cspell = pkgs.stdenvNoCC.mkDerivation {
+          name = "cspell-check";
+          src = ./.;
+          nativeBuildInputs = [ pkgs.nodePackages.cspell ];
+
+          buildPhase = ''
+            cspell lint --no-progress --config ./cspell.json
+          '';
+
+          installPhase = "touch $out";
+        };
+
+        devShells.default = craneLib.devShell {
+          name = "vine-dev";
+          nativeBuildInputs = [
+            pkgs.nushell
+            pkgs.nodejs_24
+            pkgs.tree-sitter
+          ];
+        };
+      } (builtins.attrValues self)
     );
 }

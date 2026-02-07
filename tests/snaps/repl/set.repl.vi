@@ -1,0 +1,69 @@
+
+let io: IO = <IO>;
+> use #root::data::Set;
+
+let io: IO = <IO>;
+> let s = Set::empty[N32]
+
+let io: IO = <IO>;
+let s: Set[N32] = Set([]);
+> s.insert(1)
+None()
+
+let io: IO = <IO>;
+let s: Set[N32] = Set([1]);
+> s.insert(2)
+None()
+
+let io: IO = <IO>;
+let s: Set[N32] = Set([1, 2]);
+> s.insert(1)
+Some(1)
+
+let io: IO = <IO>;
+let s: Set[N32] = Set([1, 2]);
+> s.insert(1000)
+None()
+
+let io: IO = <IO>;
+let s: Set[N32] = Set([1, 2, 1000]);
+> s.insert(46)
+None()
+
+let io: IO = <IO>;
+let s: Set[N32] = Set([1, 2, 46, 1000]);
+> s.insert(5)
+None()
+
+let io: IO = <IO>;
+let s: Set[N32] = Set([1, 2, 5, 46, 1000]);
+> s.get_le(&50)
+Some(46)
+
+let io: IO = <IO>;
+let s: Set[N32] = Set([1, 2, 5, 46, 1000]);
+> s.get_ge(&50)
+Some(1000)
+
+let io: IO = <IO>;
+let s: Set[N32] = Set([1, 2, 5, 46, 1000]);
+> s.get_ge(&46)
+Some(46)
+
+let io: IO = <IO>;
+let s: Set[N32] = Set([1, 2, 5, 46, 1000]);
+> s.get_le(&46)
+Some(46)
+
+let io: IO = <IO>;
+let s: Set[N32] = Set([1, 2, 5, 46, 1000]);
+> s.remove_min()
+Some(1)
+
+let io: IO = <IO>;
+let s: Set[N32] = Set([2, 5, 46, 1000]);
+> s.remove_max()
+Some(1000)
+
+let io: IO = <IO>;
+let s: Set[N32] = Set([2, 5, 46]);

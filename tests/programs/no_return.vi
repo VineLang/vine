@@ -1,4 +1,6 @@
 
+// @run -d
+
 pub fn main(&io: &IO) {
   io.println("We should see this");
   return;

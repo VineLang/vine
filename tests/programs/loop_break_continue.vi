@@ -1,4 +1,6 @@
 
+// @run -d
+
 const end: N32 = 5;
 
 pub fn main(&io: &IO) {
