@@ -1,6 +1,8 @@
 {
   pkgs,
   flake-utils,
+  rustToolchain,
+  craneLib,
   cli,
 }:
 let
@@ -226,6 +228,45 @@ let
       {
         checks."tests-misc-basic_test" = result;
         snaps."misc/basic_test/output.txt" = result;
+      };
+
+    miri =
+      let
+        cat = "${all.checks."tests-examples-cat"}/compiled.iv";
+        tiny_f64 = "${all.checks."tests-programs-tiny_f64"}/compiled.iv";
+      in
+      {
+        checks."tests-misc-miri" = craneLib.mkCargoDerivation (
+          cli.internal.ivyConfig
+          // {
+            name = "miri-tests";
+            buildPhaseCargoCommand = ''
+              export MIRIFLAGS="-Zmiri-disable-isolation"
+              ivy() { cargo miri run --no-default-features -p vine-cli --bin ivy -- "$@"; }
+              [[ `echo "Hello, miri!" | ivy run ${cat} -H 2K` == "Hello, miri!" ]]
+              [[ `ivy run ${tiny_f64} -H 2K` == "12 + 34 = 46" ]]
+            '';
+            doInstallCargoArtifacts = false;
+            MIRI_SYSROOT = craneLib.mkCargoDerivation ({
+              pname = "miri-sysroot";
+              version = "0.0.0";
+              dontUnpack = true;
+              buildPhaseCargoCommand = ''
+                MIRI_SYSROOT=$out cargo miri setup
+              '';
+              cargoLock =
+                pkgs.runCommand "sysroot-cargoLock"
+                  {
+                    nativeBuildInputs = [ rustToolchain ];
+                  }
+                  ''
+                    cp `rustc --print sysroot`/lib/rustlib/src/rust/library/Cargo.lock $out
+                  '';
+              dontFixup = true;
+              cargoArtifacts = null;
+            });
+          }
+        );
       };
   };
 
