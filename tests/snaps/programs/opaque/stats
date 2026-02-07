@@ -9,12 +9,7 @@ Interactions
   Call                    22
   Branch                   7
 
-Parallelism
-  Depth                  108
-  Breadth                  2
-  Speedup                 36 cB
-
 Memory
-  Heap                 1_344 B
+  Heap                   704 B
   Allocated            4_832 B
   Freed                4_832 B

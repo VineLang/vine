@@ -1,5 +1,8 @@
 
 let io: IO = <IO>;
+> // @libs vine/examples/fib_repl.vi
+
+let io: IO = <IO>;
 > let x = 0
 
 let io: IO = <IO>;

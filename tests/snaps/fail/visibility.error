@@ -1,114 +1,114 @@
 error: subitems must be private
-    @ tests/programs/fail/visibility.vi:22:10
+    @ visibility.vi:22:10
  22 |   pub fn x() {}
 
 error: invalid visibility; expected the name of an ancestor module
-    @ tests/programs/fail/visibility.vi:26:7
+    @ visibility.vi:26:7
  26 |   pub.main use lib::{
 
 error: `#visibility::lib::a::b` is only visible within `#visibility::lib::a`
-    @ tests/programs/fail/visibility.vi:27:8
+    @ visibility.vi:27:8
  27 |     a::b,
 
 error: `#visibility::lib::c` is only visible within `#visibility::lib`
-    @ tests/programs/fail/visibility.vi:28:5
+    @ visibility.vi:28:5
  28 |     c,
 
 error: `#visibility::lib::d::e` is only visible within `#visibility::lib`
-    @ tests/programs/fail/visibility.vi:29:8
+    @ visibility.vi:29:8
  29 |     d::e,
 
 error: circular import
-    @ tests/programs/fail/visibility.vi:33:18
+    @ visibility.vi:33:18
  33 | use #visibility::circular;
 
 error: type `IO` has no method `_read_char`
-    @ tests/programs/fail/visibility.vi:19:3
+    @ visibility.vi:19:3
  19 |   io._read_char();
 
 error: the value `#visibility::lib::x` is only visible within `#visibility::lib`
-    @ tests/programs/fail/visibility.vi:20:24
+    @ visibility.vi:20:24
  20 |   let lib::x: lib::x = lib::x;
 
 error: the type `#visibility::lib::x` is only visible within `#visibility::lib`
-    @ tests/programs/fail/visibility.vi:20:15
+    @ visibility.vi:20:15
  20 |   let lib::x: lib::x = lib::x;
 
 error: the pattern `#visibility::lib::x` is only visible within `#visibility::lib`
-    @ tests/programs/fail/visibility.vi:20:7
+    @ visibility.vi:20:7
  20 |   let lib::x: lib::x = lib::x;
 
 error: `#visibility::lib::y` is only visible within `#visibility::lib`
-    @ tests/programs/fail/visibility.vi:21:24
+    @ visibility.vi:21:24
  21 |   let lib::y: lib::y = lib::y;
 
 error: `#visibility::lib::y` is only visible within `#visibility::lib`
-    @ tests/programs/fail/visibility.vi:21:15
+    @ visibility.vi:21:15
  21 |   let lib::y: lib::y = lib::y;
 
 error: `#visibility::lib::y` is only visible within `#visibility::lib`
-    @ tests/programs/fail/visibility.vi:21:7
+    @ visibility.vi:21:7
  21 |   let lib::y: lib::y = lib::y;
 
 error: `#visibility::main` is only visible within `#visibility`
 
 warning: unused item
-   @ tests/programs/fail/visibility.vi:2:5
+   @ visibility.vi:2:5
  2 | mod lib {
 
 warning: unused item
-    @ tests/programs/fail/visibility.vi:18:4
+    @ visibility.vi:18:4
  18 | fn main(&io: &IO) {
 
 warning: unused item
-    @ tests/programs/fail/visibility.vi:25:5
+    @ visibility.vi:25:5
  25 | mod p {
 
 warning: unused item
-    @ tests/programs/fail/visibility.vi:36:5
+    @ visibility.vi:36:5
  36 | mod q {
 
 warning: unused item
-   @ tests/programs/fail/visibility.vi:3:6
+   @ visibility.vi:3:6
  3 |   fn a() { fn b() {} }
 
 warning: unused item
-    @ tests/programs/fail/visibility.vi:14:10
+    @ visibility.vi:14:10
  14 |   struct y(());
 
 warning: unused item
-   @ tests/programs/fail/visibility.vi:3:15
+   @ visibility.vi:3:15
  3 |   fn a() { fn b() {} }
 
 warning: unused item
-   @ tests/programs/fail/visibility.vi:8:18
+   @ visibility.vi:8:18
  8 |   mod d { pub fn e() {} }
 
 warning: unused item
-    @ tests/programs/fail/visibility.vi:22:10
+    @ visibility.vi:22:10
  22 |   pub fn x() {}
 
 warning: unused item
-    @ tests/programs/fail/visibility.vi:37:6
+    @ visibility.vi:37:6
  37 |   fn x() { lib::d() }
 
 warning: unused item
-    @ tests/programs/fail/visibility.vi:39:8
+    @ visibility.vi:39:8
  39 |     a::c,
 
 warning: unused item
-    @ tests/programs/fail/visibility.vi:40:5
+    @ visibility.vi:40:5
  40 |     d,
 
 warning: unused item
-    @ tests/programs/fail/visibility.vi:43:8
+    @ visibility.vi:43:8
  43 |     d::g,
 
 warning: unused item
-    @ tests/programs/fail/visibility.vi:41:5
+    @ visibility.vi:41:5
  41 |     e,
 
 warning: unused item
-    @ tests/programs/fail/visibility.vi:42:5
+    @ visibility.vi:42:5
  42 |     f,
 

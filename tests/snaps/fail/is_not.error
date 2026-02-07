@@ -1,52 +1,52 @@
 error: types in item signatures cannot be elided
-   @ tests/programs/fail/is_not.vi:2:13
+   @ is_not.vi:2:13
  2 | pub fn main(x) {
 
 error: cannot find `y` in `#is_not::main`
-   @ tests/programs/fail/is_not.vi:3:23
+   @ is_not.vi:3:23
  3 |   if x is y {} else { y }
 
 error: cannot find `y` in `#is_not::main`
-   @ tests/programs/fail/is_not.vi:4:18
+   @ is_not.vi:4:18
  4 |   if !(x is y) { y }
 
 error: cannot find `y` in `#is_not::main`
-   @ tests/programs/fail/is_not.vi:5:16
+   @ is_not.vi:5:16
  5 |   if x is y or y is z { (y, z) }
 
 error: cannot find `y` in `#is_not::main`
-   @ tests/programs/fail/is_not.vi:5:26
+   @ is_not.vi:5:26
  5 |   if x is y or y is z { (y, z) }
 
 error: cannot find `z` in `#is_not::main`
-   @ tests/programs/fail/is_not.vi:5:29
+   @ is_not.vi:5:29
  5 |   if x is y or y is z { (y, z) }
 
 error: missing else block
-   @ tests/programs/fail/is_not.vi:5:3
+   @ is_not.vi:5:3
  5 |   if x is y or y is z { (y, z) }
 
 error: cannot find `y` in `#is_not::main`
-   @ tests/programs/fail/is_not.vi:7:3
+   @ is_not.vi:7:3
  7 |   y
 
 warning: unused variable
-   @ tests/programs/fail/is_not.vi:3:11
+   @ is_not.vi:3:11
  3 |   if x is y {} else { y }
 
 warning: unused variable
-   @ tests/programs/fail/is_not.vi:4:13
+   @ is_not.vi:4:13
  4 |   if !(x is y) { y }
 
 warning: unused variable
-   @ tests/programs/fail/is_not.vi:5:11
+   @ is_not.vi:5:11
  5 |   if x is y or y is z { (y, z) }
 
 warning: unused variable
-   @ tests/programs/fail/is_not.vi:5:21
+   @ is_not.vi:5:21
  5 |   if x is y or y is z { (y, z) }
 
 warning: unused variable
-   @ tests/programs/fail/is_not.vi:6:14
+   @ is_not.vi:6:14
  6 |   while x is y {}
 

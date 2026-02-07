@@ -1,2 +1,2 @@
-error: cannot read `tests/programs/fail/missing_no.vi`
+error: cannot read `#missing_no`
 

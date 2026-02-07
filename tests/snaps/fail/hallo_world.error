@@ -1,36 +1,36 @@
 error: duplicate definition of `println`
-   @ tests/programs/fail/hallo_world.vi:3:3
+   @ hallo_world.vi:3:3
  3 |   println,
 
 error: cannot find `print_ln` in `#root::IO`
-   @ tests/programs/fail/hallo_world.vi:5:3
+   @ hallo_world.vi:5:3
  5 |   print_ln,
 
 error: types in item signatures cannot be elided
-   @ tests/programs/fail/hallo_world.vi:8:13
+   @ hallo_world.vi:8:13
  8 | pub fn main(#root::IO) {
 
 error: no pattern associated with `#root::IO`
-   @ tests/programs/fail/hallo_world.vi:8:13
+   @ hallo_world.vi:8:13
  8 | pub fn main(#root::IO) {
 
 error: cannot find `io` in `#hallo_world::main`
-   @ tests/programs/fail/hallo_world.vi:9:3
+   @ hallo_world.vi:9:3
  9 |   io.println(hallo, world)
 
 error: cannot find `hallo` in `#hallo_world::main`
-   @ tests/programs/fail/hallo_world.vi:9:14
+   @ hallo_world.vi:9:14
  9 |   io.println(hallo, world)
 
 error: cannot find `world` in `#hallo_world::main`
-   @ tests/programs/fail/hallo_world.vi:9:21
+   @ hallo_world.vi:9:21
  9 |   io.println(hallo, world)
 
 warning: unused item
-   @ tests/programs/fail/hallo_world.vi:5:3
+   @ hallo_world.vi:5:3
  5 |   print_ln,
 
 warning: unused item
-   @ tests/programs/fail/hallo_world.vi:3:3
+   @ hallo_world.vi:3:3
  3 |   println,
 

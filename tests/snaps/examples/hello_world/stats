@@ -9,12 +9,7 @@ Interactions
   Call                    41
   Branch                  14
 
-Parallelism
-  Depth                  193
-  Breadth                  1
-  Speedup                 25 cB
-
 Memory
-  Heap                   864 B
+  Heap                   656 B
   Allocated            7_360 B
   Freed                7_360 B

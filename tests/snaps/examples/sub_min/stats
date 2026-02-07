@@ -9,12 +9,7 @@ Interactions
   Call                   125
   Branch                  55
 
-Parallelism
-  Depth                  415
-  Breadth                  3
-  Speedup                 49 cB
-
 Memory
-  Heap                 2_928 B
+  Heap                 2_832 B
   Allocated           26_608 B
   Freed               26_608 B
