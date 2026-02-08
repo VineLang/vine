@@ -107,6 +107,12 @@ let
       ${if fail then "!" else ""} ${ivy} run $out/compiled.iv --no-perf ${runArgs} <${input} 2>&1 >$out/output.${ext} | tee $out/stats
     '';
 
+  interactive =
+    name: args: script:
+    pkgs.runCommand name (args // { inherit script; }) ''
+      bash -vc "$script" >$out 2>&1
+    '';
+
   tests.fail = forEach (ls ./fail) (
     path:
     let
@@ -318,6 +324,21 @@ let
             };
           }
         );
+      };
+
+    reconfigure =
+      let
+        vi = just ./programs/configurable.vi;
+        result = interactive "misc-reconfigure" { inherit vine vi; } ''
+          $vine run --no-stats $vi
+          $vine run --no-stats $vi --config a true --config b 46 --config c hi
+          $vine run --no-stats $vi --config c ""
+          ! $vine run $vi --config a bad --config b bad
+        '';
+      in
+      {
+        checks."tests-misc-reconfigure" = result;
+        snaps."misc/reconfigure.txt" = result;
       };
   };
 

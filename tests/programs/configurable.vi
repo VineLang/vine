@@ -1,0 +1,13 @@
+
+#[configurable]
+const a: Bool = false;
+
+#[configurable]
+const b: N32 = 0;
+
+#[configurable]
+const c: String = "c";
+
+pub fn main(&io: &IO) {
+  io.println("{{ a, b, c }.show()}");
+}

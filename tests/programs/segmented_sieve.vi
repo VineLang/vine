@@ -1,6 +1,7 @@
 
 use #root::data::Array;
 
+#[configurable]
 const max: N32 = 1_000_000;
 
 pub fn main(&io: &IO) {

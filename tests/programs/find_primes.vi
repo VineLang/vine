@@ -1,6 +1,7 @@
 
 // @run -d
 
+#[configurable]
 const max_div: N32 = 100;
 
 pub fn main(&io: &IO) {

@@ -3,11 +3,14 @@
 
 use #root::{ops::comparison::Eq, rng::Pcg32};
 
+#[configurable]
+const len: N32 = 2000;
+
 pub fn main(&io: &IO) {
   let x = [];
   let y = [];
   let rng = Pcg32::default;
-  for _ in 0..2000 {
+  for _ in 0..len {
     x.push_back(rng.gen_n32() & 255);
     y.push_back(rng.gen_n32() & 255);
   }

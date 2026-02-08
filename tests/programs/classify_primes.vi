@@ -1,6 +1,7 @@
 
 // @run -d
 
+#[configurable]
 const max: N32 = 1000;
 
 pub fn main(&io: &IO) {

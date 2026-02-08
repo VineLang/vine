@@ -1,0 +1,12 @@
+error: invalid configuration type
+   @ inconfigurable.vi:2:27
+ 2 | #[configurable] pub const foo: F32 = 1.0;
+
+error: invalid configuration type
+   @ inconfigurable.vi:3:27
+ 3 | #[configurable] pub const bar: List[N32] = [1, 2, 3];
+
+error: invalid configuration type
+   @ inconfigurable.vi:4:27
+ 4 | #[configurable] pub const baz[T]: T = baz;
+
