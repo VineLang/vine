@@ -132,6 +132,7 @@ module.exports = grammar({
       "unsafe",
       "safe",
     ],
+    none: _ => [],
   },
 
   rules: {
@@ -330,7 +331,8 @@ module.exports = grammar({
       seq(
         "#[",
         optional("safe"),
-        $.ident,
+        // @ts-ignore
+        reserved("none", $.ident),
         optional(choice(seq("=", $.string), seq("(", $._expr, ")"))),
         "]",
       ),
