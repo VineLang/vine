@@ -80,13 +80,10 @@ pub fn main(&io: &IO) {
 
 struct* Regions(Array[Region]);
 
+#[impl(Show)]
 enum* Region {
   Root(N32, N32),
   Child(N32),
-}
-
-mod Region {
-  pub impl : Show[Region];
 }
 
 mod Regions {

@@ -3,9 +3,8 @@
 
 use #root::data::Map;
 
+#[impl(Show)]
 struct? Pair[A, B]((A, B));
-
-impl [A, B; Show[A], Show[B]]: Show[Pair[A, B]];
 
 pub fn main(&io: &IO) {
   let the_greatest = {

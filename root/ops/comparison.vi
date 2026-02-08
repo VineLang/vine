@@ -52,6 +52,7 @@ pub trait Ord[T] {
   fn le(a: &T, b: &T) -> Bool;
 }
 
+#[impl(Show)]
 pub enum* Ord {
   Lt(),
   Eq(),
@@ -59,8 +60,6 @@ pub enum* Ord {
 }
 
 pub mod Ord {
-  pub impl : Show[Ord];
-
   pub impl : Neg[Ord, Ord] {
     fn neg(a: Ord) -> Ord {
       match a {

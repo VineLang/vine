@@ -362,6 +362,8 @@ impl Resolver<'_> {
           vec![match ty {
             DefTypeKind::Struct(struct_id) => self.types.new_struct(self.chart, struct_id, params),
             DefTypeKind::Enum(enum_id) => self.types.new(TypeKind::Enum(enum_id, params)),
+            DefTypeKind::Union(union_id) => self.types.new_union(self.chart, union_id, params),
+            DefTypeKind::Opaque(opaque_id) => self.types.new(TypeKind::Opaque(opaque_id, params)),
             _ => unreachable!(),
           }],
         )

@@ -1,6 +1,7 @@
 
 use ops::comparison::Eq;
 
+#[impl(Show)]
 #[builtin = "Option"]
 pub enum* Option[T] {
   Some(T),
@@ -80,6 +81,4 @@ pub mod Option {
       !(a == b)
     }
   }
-
-  pub impl [T; Show[T]]: Show[Option[T]];
 }
