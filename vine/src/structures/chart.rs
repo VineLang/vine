@@ -5,9 +5,7 @@ use vine_util::{idx::IdxVec, new_idx};
 use crate::{
   components::loader::FileId,
   features::builtin::Builtins,
-  structures::ast::{
-    Block, Expr, Flex, Ident, Impl, ImplParam, Pat, Path, Span, Trait, Ty, TypeParam,
-  },
+  structures::ast::{Block, Expr, Ident, Impl, ImplParam, Pat, Path, Span, Trait, Ty, TypeParam},
 };
 
 #[derive(Debug, Default)]
@@ -141,11 +139,22 @@ pub struct GenericsDef {
   pub span: Span,
   pub def: DefId,
   pub parent: Option<GenericsId>,
-  pub type_params: Vec<TypeParam>,
-  pub impl_params: Vec<ImplParam>,
   pub impl_allowed: bool,
-  pub global_flex: Flex,
-  pub trait_: Option<TraitId>,
+  pub kind: GenericsKind,
+}
+
+#[derive(Debug, Clone)]
+pub enum GenericsKind {
+  None,
+  Explicit { types: Vec<TypeParam>, impls: Vec<ImplParam> },
+  Trait { trait_id: TraitId },
+  Derive(DeriveKind),
+}
+
+#[derive(Debug, Clone)]
+pub enum DeriveKind {
+  Fork(Span),
+  Drop(Span),
 }
 
 new_idx!(pub ConcreteConstId);
@@ -298,8 +307,7 @@ pub struct ImplDef {
 pub enum ImplDefKind {
   Direct(/* safe */ bool, Trait, Vec<ImplSubitem>),
   Indirect(Trait, Option<Impl>),
-  IndirectFork(DefTypeKind),
-  IndirectDrop(DefTypeKind),
+  Derive(DeriveKind, DefTypeKind),
 }
 
 #[derive(Debug, Clone)]

@@ -6,10 +6,9 @@ use crate::{
   components::{charter::Charter, lexer::Token, parser::Parser, resolver::Resolver},
   structures::{
     ast::{
-      Flex, GenericArgs, GenericParams, Generics, ImplParam, Path, Span, Trait, TraitKind,
-      TypeParam,
+      GenericArgs, GenericParams, Generics, ImplParam, Path, Span, Trait, TraitKind, TypeParam,
     },
-    chart::{DefId, GenericsDef, GenericsId},
+    chart::{DefId, GenericsDef, GenericsId, GenericsKind},
     diag::{Diag, ErrorGuaranteed},
     signatures::ImplParams,
     tir::TirImpl,
@@ -171,26 +170,12 @@ impl Charter<'_> {
     generics: GenericParams,
     impl_allowed: bool,
   ) -> GenericsId {
-    self._chart_generics(def, parent, generics, impl_allowed, Flex::None)
-  }
-
-  pub(crate) fn _chart_generics(
-    &mut self,
-    def: DefId,
-    parent: GenericsId,
-    generics: GenericParams,
-    impl_allowed: bool,
-    global_flex: Flex,
-  ) -> GenericsId {
     self.chart.generics.push(GenericsDef {
       span: generics.span,
       def,
       parent: generics.inherit.then_some(parent),
-      type_params: generics.types,
-      impl_params: generics.impls,
+      kind: GenericsKind::Explicit { types: generics.types, impls: generics.impls },
       impl_allowed,
-      global_flex,
-      trait_: None,
     })
   }
 }
@@ -201,16 +186,18 @@ impl Resolver<'_> {
     let mut type_params =
       generics_def.parent.map(|id| self.sigs.type_params[id].clone()).unwrap_or_default();
     let base_index = type_params.params.len();
-    for param in &generics_def.type_params {
-      if let Some(&index) = type_params.lookup.get(&param.name)
-        && index < base_index
-      {
-        continue;
-      }
-      let index = type_params.params.len();
-      type_params.params.push(param.name.clone());
-      if type_params.lookup.insert(param.name.clone(), index).is_some() {
-        self.diags.error(Diag::DuplicateTypeParam { span: param.span });
+    if let GenericsKind::Explicit { types, .. } = &generics_def.kind {
+      for param in types {
+        if let Some(&index) = type_params.lookup.get(&param.name)
+          && index < base_index
+        {
+          continue;
+        }
+        let index = type_params.params.len();
+        type_params.params.push(param.name.clone());
+        if type_params.lookup.insert(param.name.clone(), index).is_some() {
+          self.diags.error(Diag::DuplicateTypeParam { span: param.span });
+        }
       }
     }
     self.sigs.type_params.push_to(generics_id, type_params);
@@ -223,60 +210,59 @@ impl Resolver<'_> {
       generics_def.parent.map(|id| self.sigs.impl_params[id].clone()).unwrap_or_default();
     self.types = take(&mut impl_params.types.types);
 
-    if let Some(trait_id) = generics_def.trait_ {
-      let parent = generics_def.parent.unwrap();
-      let type_params = self.sigs.type_params[parent]
-        .params
-        .iter()
-        .enumerate()
-        .map(|(index, name)| self.types.new(TypeKind::Param(index, name.clone())))
-        .collect();
-      impl_params.types.inner.push(ImplType::Trait(trait_id, type_params));
-    }
+    match &generics_def.kind {
+      GenericsKind::None => {}
 
-    for param in &generics_def.type_params {
-      let index = self.sigs.type_params[generics_id].lookup[&param.name];
-      let span = param.span;
-      let ty = self.types.new(TypeKind::Param(index, param.name.clone()));
-      if param.flex.fork() {
-        impl_params.types.inner.push(if let Some(fork) = self.chart.builtins.fork {
-          ImplType::Trait(fork, vec![ty])
-        } else {
-          ImplType::Error(self.diags.error(Diag::MissingBuiltin { span, builtin: "Fork" }))
-        });
-      }
-      if param.flex.drop() {
-        impl_params.types.inner.push(if let Some(drop) = self.chart.builtins.drop {
-          ImplType::Trait(drop, vec![ty])
-        } else {
-          ImplType::Error(self.diags.error(Diag::MissingBuiltin { span, builtin: "Drop" }))
-        });
-      }
-    }
-
-    if generics_def.global_flex != Flex::None {
-      for (index, name) in self.sigs.type_params[generics_id].params.iter().enumerate() {
-        let ty = self.types.new(TypeKind::Param(index, name.clone()));
-        if generics_def.global_flex.fork()
-          && let Some(fork) = self.chart.builtins.fork
-        {
-          impl_params.types.inner.push(ImplType::Trait(fork, vec![ty]));
+      GenericsKind::Explicit { types, impls } => {
+        for param in types {
+          let index = self.sigs.type_params[generics_id].lookup[&param.name];
+          let span = param.span;
+          let ty = self.types.new(TypeKind::Param(index, param.name.clone()));
+          if param.flex.fork() {
+            impl_params.types.inner.push(if let Some(fork) = self.chart.builtins.fork {
+              ImplType::Trait(fork, vec![ty])
+            } else {
+              ImplType::Error(self.diags.error(Diag::MissingBuiltin { span, builtin: "Fork" }))
+            });
+          }
+          if param.flex.drop() {
+            impl_params.types.inner.push(if let Some(drop) = self.chart.builtins.drop {
+              ImplType::Trait(drop, vec![ty])
+            } else {
+              ImplType::Error(self.diags.error(Diag::MissingBuiltin { span, builtin: "Drop" }))
+            });
+          }
         }
-        if generics_def.global_flex.drop()
-          && let Some(drop) = self.chart.builtins.drop
-        {
-          impl_params.types.inner.push(ImplType::Trait(drop, vec![ty]));
+
+        for param in impls {
+          let index = impl_params.types.inner.len();
+          impl_params.types.inner.push(self.resolve_trait(&param.trait_));
+          if let Some(name) = param.name.clone()
+            && impl_params.lookup.insert(name, index).is_some()
+          {
+            self.diags.error(Diag::DuplicateImplParam { span: param.span });
+          }
         }
       }
-    }
 
-    for param in &generics_def.impl_params {
-      let index = impl_params.types.inner.len();
-      impl_params.types.inner.push(self.resolve_trait(&param.trait_));
-      if let Some(name) = param.name.clone()
-        && impl_params.lookup.insert(name, index).is_some()
-      {
-        self.diags.error(Diag::DuplicateImplParam { span: param.span });
+      GenericsKind::Trait { trait_id } => {
+        let parent = generics_def.parent.unwrap();
+        let type_params = self.sigs.type_params[parent]
+          .params
+          .iter()
+          .enumerate()
+          .map(|(index, name)| self.types.new(TypeKind::Param(index, name.clone())))
+          .collect();
+        impl_params.types.inner.push(ImplType::Trait(*trait_id, type_params));
+      }
+
+      GenericsKind::Derive(kind) => {
+        if let Ok(trait_id) = self.resolve_derive_kind(kind) {
+          for (index, name) in self.sigs.type_params[generics_id].params.iter().enumerate() {
+            let ty = self.types.new(TypeKind::Param(index, name.clone()));
+            impl_params.types.inner.push(ImplType::Trait(trait_id, vec![ty]))
+          }
+        }
       }
     }
 

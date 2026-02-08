@@ -281,11 +281,9 @@ impl<'a> Resolver<'a> {
 
   pub(crate) fn expect_entrypoint_sig(&mut self, concrete_fn_id: ConcreteFnId) -> Result<(), Diag> {
     let fn_def = &self.chart.concrete_fns[concrete_fn_id];
-    let generics = &self.chart.generics[fn_def.generics];
     let span = fn_def.span;
-    if !generics.type_params.is_empty()
-      || !generics.impl_params.is_empty()
-      || generics.parent.is_some()
+    if !self.sigs.type_params[fn_def.generics].params.is_empty()
+      || !self.sigs.impl_params[fn_def.generics].types.inner.is_empty()
     {
       Err(Diag::GenericEntrypoint { span })?
     }

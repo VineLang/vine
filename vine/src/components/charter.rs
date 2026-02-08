@@ -4,7 +4,7 @@ use crate::{
   components::loader::Module,
   structures::{
     annotations::Annotations,
-    ast::{Attr, AttrKind, Flex, Ident, Item, ItemKind, ModKind, Span, Vis, visit::VisitMut},
+    ast::{Attr, AttrKind, Ident, Item, ItemKind, ModKind, Span, Vis, visit::VisitMut},
     chart::Chart,
     diag::{Diag, Diags, ErrorGuaranteed},
   },
@@ -27,11 +27,8 @@ impl Charter<'_> {
           span: Span::NONE,
           def: DefId::NONE,
           parent: None,
-          type_params: Vec::new(),
-          impl_params: Vec::new(),
           impl_allowed: true,
-          global_flex: Flex::None,
-          trait_: None,
+          kind: GenericsKind::None,
         },
       );
     }
