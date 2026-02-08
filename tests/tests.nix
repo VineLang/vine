@@ -260,7 +260,7 @@ let
         '';
       in
       {
-        checks."tests-misc-basic_test" = result;
+        checks.tests-misc-basic_test = result;
         snaps."misc/basic_test/output.txt" = result;
       };
 
@@ -272,17 +272,17 @@ let
         };
       in
       {
-        checks."tests-misc-missing_no" = error;
+        checks.tests-misc-missing_no = error;
         snaps."misc/missing_no.error" = error;
       };
 
     miri =
       let
-        cat = "${all.checks."tests-examples-cat"}/compiled.iv";
-        tiny_f64 = "${all.checks."tests-programs-tiny_f64"}/compiled.iv";
+        cat = "${all.checks.tests-examples-cat}/compiled.iv";
+        tiny_f64 = "${all.checks.tests-programs-tiny_f64}/compiled.iv";
       in
       {
-        checks."tests-misc-miri" = craneLib.mkCargoDerivation (
+        checks.tests-misc-miri = craneLib.mkCargoDerivation (
           cli.internal.ivyConfig
           // {
             name = "miri-tests";
@@ -293,7 +293,7 @@ let
               [[ `ivy run ${tiny_f64} -H 2K` == "12 + 34 = 46" ]]
             '';
             doInstallCargoArtifacts = false;
-            MIRI_SYSROOT = craneLib.mkCargoDerivation ({
+            MIRI_SYSROOT = craneLib.mkCargoDerivation {
               pname = "miri-sysroot";
               version = "0.0.0";
               dontUnpack = true;
@@ -310,7 +310,7 @@ let
                   '';
               dontFixup = true;
               cargoArtifacts = null;
-            });
+            };
           }
         );
       };
