@@ -114,27 +114,30 @@ impl<'src> Parser<'src> {
     let span = self.start_span();
     self.expect(Token::HashBracket)?;
     let safe = self.eat(Token::Safe)?;
-    let ident_span = self.start_span();
-    let ident = self.expect(Token::Ident)?;
-    let ident_span = self.end_span(ident_span);
-    let kind = match ident {
-      "builtin" => {
-        self.expect(Token::Eq)?;
-        AttrKind::Builtin(self.parse_builtin()?)
+    let ident_span = self.span();
+    let kind = if self.eat(Token::Impl)? {
+      let traits = self.parse_delimited(PAREN_COMMA, Self::parse_path)?;
+      AttrKind::Impl(traits)
+    } else {
+      match self.expect(Token::Ident)? {
+        "builtin" => {
+          self.expect(Token::Eq)?;
+          AttrKind::Builtin(self.parse_builtin()?)
+        }
+        "manual" => AttrKind::Manual,
+        "basic" => AttrKind::Basic,
+        "become" => {
+          self.expect(Token::OpenParen)?;
+          let path = self.parse_path()?;
+          self.expect(Token::CloseParen)?;
+          AttrKind::Become(path)
+        }
+        "frameless" => AttrKind::Frameless,
+        "test" => AttrKind::Test,
+        "self_dual" => AttrKind::SelfDual,
+        "configurable" => AttrKind::Configurable,
+        _ => Err(Diag::UnknownAttribute { span: ident_span })?,
       }
-      "manual" => AttrKind::Manual,
-      "basic" => AttrKind::Basic,
-      "become" => {
-        self.expect(Token::OpenParen)?;
-        let path = self.parse_path()?;
-        self.expect(Token::CloseParen)?;
-        AttrKind::Become(path)
-      }
-      "frameless" => AttrKind::Frameless,
-      "test" => AttrKind::Test,
-      "self_dual" => AttrKind::SelfDual,
-      "configurable" => AttrKind::Configurable,
-      _ => Err(Diag::UnknownAttribute { span: ident_span })?,
     };
     self.expect(Token::CloseBracket)?;
     let span = self.end_span(span);

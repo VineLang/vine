@@ -148,7 +148,7 @@ impl Charter<'_> {
     let fn_id = FnId::Abstract(trait_id, trait_fn_id);
     self.define_value(span, def, vis, DefValueKind::Fn(fn_id));
     let charted_item = ChartedItem::Fn(def, fn_id);
-    self.chart_attrs(charted_item, attrs);
+    self.chart_attrs(vis, charted_item, attrs);
   }
 
   fn chart_trait_const(
@@ -179,7 +179,7 @@ impl Charter<'_> {
     let const_id = ConstId::Abstract(trait_id, trait_const_id);
     self.define_value(span, def, vis, DefValueKind::Const(const_id));
     let charted_item = ChartedItem::Const(def, const_id);
-    self.chart_attrs(charted_item, attrs);
+    self.chart_attrs(vis, charted_item, attrs);
   }
 }
 

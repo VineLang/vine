@@ -13,9 +13,9 @@ use crate::{
     ast::{Attr, ConstItem, Flex, FnItem, ImplItem, ImplItemKind, ItemKind, Path, Span, Vis},
     chart::{
       Binding, ConcreteConstDef, ConcreteConstId, ConcreteFnDef, ConcreteFnId, ConstId, DefId,
-      DefImplKind, DefTypeKind, DefValueKind, DeriveKind, FnId, GenericsDef, GenericsId,
-      GenericsKind, ImplDef, ImplDefKind, ImplId, ImplSubitem, ImplSubitemKind, TraitConstId,
-      TraitFnId, TraitId, VisId,
+      DefImplKind, DefTraitKind, DefTypeKind, DefValueKind, DeriveKind, FnId, GenericsDef,
+      GenericsId, GenericsKind, ImplDef, ImplDefKind, ImplId, ImplSubitem, ImplSubitemKind,
+      TraitConstId, TraitFnId, TraitId, VisId,
     },
     diag::{Diag, ErrorGuaranteed},
     resolutions::{Become, ResolvedImpl, ResolvedImplKind},
@@ -175,7 +175,7 @@ impl Charter<'_> {
     });
     self.define_value(span, def, vis, DefValueKind::Fn(FnId::Concrete(fn_id)));
     let charted_item = ChartedItem::Fn(def, FnId::Concrete(fn_id));
-    self.chart_attrs(charted_item, attrs);
+    self.chart_attrs(vis, charted_item, attrs);
     self.annotations.record_reference(span, span);
     ImplSubitem { span, name: fn_item.name, kind: ImplSubitemKind::Fn(fn_id) }
   }
@@ -209,7 +209,7 @@ impl Charter<'_> {
     });
     self.define_value(span, def, vis, DefValueKind::Const(ConstId::Concrete(const_id)));
     let charted_item = ChartedItem::Const(def, ConstId::Concrete(const_id));
-    self.chart_attrs(charted_item, attrs);
+    self.chart_attrs(vis, charted_item, attrs);
     if unsafe_ {
       self.chart_unsafe(span, charted_item);
     }
@@ -231,6 +231,19 @@ impl Charter<'_> {
     }
     if flex.drop() {
       self.chart_derive_impl(def, ty_generics, vis, ty, span, DeriveKind::Drop(span));
+    }
+  }
+
+  pub fn chart_derive_impls(
+    &mut self,
+    def: DefId,
+    ty_generics: GenericsId,
+    vis: VisId,
+    ty: DefTypeKind,
+    traits: Vec<Path>,
+  ) {
+    for trait_ in traits {
+      self.chart_derive_impl(def, ty_generics, vis, ty, trait_.span, DeriveKind::Trait(trait_));
     }
   }
 
@@ -314,6 +327,22 @@ impl Resolver<'_> {
       }
       DeriveKind::Drop(span) => {
         self.chart.builtins.drop.ok_or(Diag::MissingBuiltin { span: *span, builtin: "Drop" })
+      }
+      DeriveKind::Trait(trait_) => {
+        let span = trait_.span;
+        if trait_.generics.is_some() {
+          return Err(Diag::DerivePassedArguments { span });
+        }
+        match self.resolve_path(self.cur_def, trait_, "trait", |d| d.trait_kind) {
+          Ok(DefTraitKind::Trait(trait_id)) => {
+            if self.sigs.type_params[self.chart.traits[trait_id].generics].params.len() == 1 {
+              Ok(trait_id)
+            } else {
+              Err(Diag::DeriveMultiParams { span })
+            }
+          }
+          Err(diag) => Err(diag),
+        }
       }
     }
   }

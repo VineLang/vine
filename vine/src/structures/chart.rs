@@ -155,6 +155,7 @@ pub enum GenericsKind {
 pub enum DeriveKind {
   Fork(Span),
   Drop(Span),
+  Trait(Path),
 }
 
 new_idx!(pub ConcreteConstId);

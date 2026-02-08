@@ -161,14 +161,14 @@ impl Charter<'_> {
       self.annotations.record_docs(span, item.docs);
     }
 
-    self.chart_attrs(charted_item, item.attrs);
+    self.chart_attrs(vis, charted_item, item.attrs);
 
     if item.unsafe_ {
       self.chart_unsafe(span, charted_item);
     }
   }
 
-  pub(crate) fn chart_attrs(&mut self, item: ChartedItem, attrs: Vec<Attr>) {
+  pub(crate) fn chart_attrs(&mut self, vis: VisId, item: ChartedItem, attrs: Vec<Attr>) {
     for attr in attrs {
       let span = attr.span;
       let impl_id = match item {
@@ -249,11 +249,33 @@ impl Charter<'_> {
         },
         AttrKind::Configurable => {
           let Some(concrete_const_id) = concrete_const_id else {
+            self.diags.error(Diag::BadTestAttr { span });
             self.diags.error(Diag::BadConfigurableAttr { span });
             continue;
           };
 
           self.chart.concrete_consts[concrete_const_id].configurable = true;
+        }
+        AttrKind::Impl(traits) => {
+          let (def, ty, generics) = match item {
+            ChartedItem::Struct(def, id) => {
+              (def, DefTypeKind::Struct(id), self.chart.structs[id].generics)
+            }
+            ChartedItem::Enum(def, id) => {
+              (def, DefTypeKind::Enum(id), self.chart.enums[id].generics)
+            }
+            ChartedItem::Union(def, id) => {
+              (def, DefTypeKind::Union(id), self.chart.unions[id].generics)
+            }
+            ChartedItem::OpaqueType(def, id) => {
+              (def, DefTypeKind::Opaque(id), self.chart.opaque_types[id].generics)
+            }
+            _ => {
+              self.diags.error(Diag::BadImplAttr { span });
+              continue;
+            }
+          };
+          self.chart_derive_impls(def, generics, vis, ty, traits);
         }
       }
     }
