@@ -1,4 +1,7 @@
 
+#[ext="some_ext_fn"]
+fn testing_something() -> N32;
+
 pub fn main(&io: &IO) {
   io.println("Hello, world!");
 }

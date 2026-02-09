@@ -18,11 +18,11 @@ use crate::{
       Block, Expr, ExprKind, Flex, FnItem, Ident, ItemKind, LetFnStmt, Pat, PatKind, Path, Span,
       Stmt, StmtKind, Ty,
     },
-    chart::{ConcreteFnDef, ConcreteFnId, DefId, DefValueKind, FnId, GenericsId, VisId},
+    chart::{ConcreteFnDef, ConcreteFnId, DefId, DefValueKind, FnBody, FnId, GenericsId, VisId},
     diag::Diag,
     resolutions::{FnRel, FnRelId, Fragment},
     signatures::FnSig,
-    tir::{ClosureId, TirClosure, TirExpr, TirExprKind, TirImpl},
+    tir::{ClosureId, TirClosure, TirExpr, TirExprKind, TirExtImpl, TirImpl},
     types::{ImplType, Inverted, Type, TypeCtx, TypeKind, Types},
     vir::{Header, Interface, InterfaceKind, Port, PortKind, Stage, Step, Transfer},
   },
@@ -148,7 +148,10 @@ impl Charter<'_> {
   ) -> ChartedItem {
     let def = self.chart_child(parent, span, fn_item.name.clone(), member_vis, true);
     let generics = self.chart_generics(def, parent_generics, fn_item.generics, true);
-    let body = self.ensure_implemented(span, fn_item.body);
+    let body = match fn_item.body {
+      Some(block) => FnBody::Block(block),
+      None => FnBody::None,
+    };
     let fn_id = self.chart.concrete_fns.push(ConcreteFnDef {
       span,
       def,
@@ -163,6 +166,23 @@ impl Charter<'_> {
     });
     self.define_value(span, def, vis, DefValueKind::Fn(FnId::Concrete(fn_id)));
     ChartedItem::Fn(def, FnId::Concrete(fn_id))
+  }
+
+  pub(crate) fn chart_fn_body(
+    &mut self,
+    span: Span,
+    body: Option<Block>,
+    ext: Option<&String>,
+  ) -> FnBody {
+    // TODO: this match is sad :(
+    match (ext.is_some(), body) {
+      (true, Some(_)) => {
+        self.diags.error(Diag::ExtBody { span });
+        None
+      }
+      (false, body) => Some(self.ensure_implemented(span, body)),
+      (true, None) => None,
+    }
   }
 }
 
@@ -196,8 +216,21 @@ impl Resolver<'_> {
     let fn_def = &self.chart.concrete_fns[fn_id];
     let span = fn_def.span;
     self.initialize(fn_def.def, fn_def.generics, fn_def.unsafe_);
-    let (ty, closure_id) =
-      self.resolve_closure(span, Flex::None, &fn_def.params, &fn_def.ret_ty, &fn_def.body, false);
+    let (ty, closure_id) = match self.resolve_closure(
+      span,
+      Flex::None,
+      &fn_def.params,
+      &fn_def.ret_ty,
+      fn_def.body.as_ref(),
+      fn_def.ext.to_owned(),
+      false,
+    ) {
+      Ok((ty, closure_id)) => (ty, closure_id),
+      Err(diag) => {
+        self.diags.error(diag);
+        return;
+      }
+    };
     let root = TirExpr { span, ty, kind: Box::new(TirExprKind::Closure(closure_id)) };
     self.types.finish_inference();
     let fragment =
@@ -214,7 +247,8 @@ impl Resolver<'_> {
     ret: &Option<Ty>,
     body: &Block,
   ) -> Result<TirExpr, Diag> {
-    let (ty, closure_id) = self.resolve_closure(span, *flex, params, ret, body, true);
+    let (ty, closure_id) =
+      self.resolve_closure(span, *flex, params, ret, body.into(), None, true)?;
     Ok(TirExpr::new(span, ty, TirExprKind::Closure(closure_id)))
   }
 
@@ -245,11 +279,11 @@ impl Resolver<'_> {
       let params = Vec::from_iter(
         let_fn.params.iter().zip(&param_tys).map(|(p, &ty)| self.resolve_pat_type(p, ty)),
       );
-      let body = self.resolve_block_type(&let_fn.body, ret_ty);
+      let body = self.resolve_block_type(&let_fn.body, ret_ty).into();
       self.exit_scope();
       self.targets = old_targets;
       self.return_ty = old_return_ty;
-      let closure = TirClosure { span, ty, flex: let_fn.flex, params, body };
+      let closure = TirClosure { span, ty, flex: let_fn.flex, params, body, ext_impls: None };
       self.closures[id] = Some(closure);
     }
     stmts
@@ -261,28 +295,49 @@ impl Resolver<'_> {
     flex: Flex,
     params: &[Pat],
     ret: &Option<Ty>,
-    body: &Block,
+    body: Option<&Block>,
+    ext: Option<String>,
     inferred_ret: bool,
-  ) -> (Type, ClosureId) {
+  ) -> Result<(Type, ClosureId), Diag> {
+    // TODO: find implementations of Ext[..] for each param ty and return ty.
     let id = self.closures.push(None);
     let old_targets = take(&mut self.targets);
     self.enter_scope();
     let names = params.iter().map(|x| self.param_name(x)).collect();
     let params = params.iter().map(|p| self.resolve_pat(p)).collect::<Vec<_>>();
     let ret_ty = ret.as_ref().map(|t| self.resolve_ty(t, true)).unwrap_or_else(|| {
-      if inferred_ret { self.types.new_var(body.span) } else { self.types.nil() }
+      if inferred_ret && let Some(body) = body {
+        self.types.new_var(body.span)
+      } else {
+        self.types.nil()
+      }
     });
     let old_return_ty = self.return_ty.replace(ret_ty);
-    let body = self.resolve_block_type(body, ret_ty);
+    let body = body.map(|block| self.resolve_block_type(&block, ret_ty));
     self.exit_scope();
     self.targets = old_targets;
     self.return_ty = old_return_ty;
-    let param_tys = params.iter().map(|x| x.ty).collect();
+    let param_tys: Vec<Type> = params.iter().map(|x| x.ty).collect();
+    let ext_impls = if let Some(ext_fn) = ext {
+      let Some(ext) = self.chart.builtins.ext else {
+        Err(Diag::MissingBuiltin { span, builtin: "Ext" })?
+      };
+      let mut param_impls = Vec::new();
+      for param_ty in &param_tys {
+        let param_impl_type = ImplType::Trait(ext, vec![*param_ty]);
+        param_impls.push(self.find_impl(span, &param_impl_type, false));
+      }
+      let ret_impl_type = ImplType::Trait(ext, vec![ret_ty]);
+      let ret_impl = self.find_impl(span, &ret_impl_type, false);
+      Some(TirExtImpl { ext_fn, ret_ty, ret_impl, param_impls })
+    } else {
+      None
+    };
     let sig = FnSig { names, param_tys, ret_ty };
     let ty = self.types.new(TypeKind::Closure(id, flex, sig));
-    let closure = TirClosure { span, ty, flex, params, body };
+    let closure = TirClosure { span, ty, flex, params, body, ext_impls };
     self.closures[id] = Some(closure);
-    (ty, id)
+    Ok((ty, id))
   }
 
   pub(crate) fn resolve_expr_path_fn(
@@ -468,14 +523,18 @@ impl Distiller<'_> {
     let call = {
       let mut stage = self.new_stage(&mut layer, span, interface);
 
-      let return_local = self.new_local(&mut stage, span, closure.body.ty);
+      let return_local = self.new_local(&mut stage, span, closure.ret_ty());
       let params =
         closure.params.iter().map(|p| self.distill_pat_value(&mut stage, p)).collect::<Vec<_>>();
-      let result = stage.local_read_barrier(return_local, span, closure.body.ty);
+      let result = stage.local_read_barrier(return_local, span, closure.ret_ty());
       stage.header = Header::Fn(params, result);
 
-      self.returns.push(Return { ty: closure.body.ty, layer: stage.layer, local: return_local });
-      let result = self.distill_expr_value(&mut stage, &closure.body);
+      self.returns.push(Return { ty: closure.ret_ty(), layer: stage.layer, local: return_local });
+      let result = if let Some(body) = &closure.body {
+        self.distill_expr_value(&mut stage, body)
+      } else {
+        unimplemented!()
+      };
       stage.local_barrier_write_to(return_local, result);
       self.returns.pop();
 

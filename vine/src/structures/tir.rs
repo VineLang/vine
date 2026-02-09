@@ -27,6 +27,15 @@ pub struct Tir {
   pub root: TirExpr,
 }
 
+/// The implementations of the `Ext` builtin for the types in a closure.
+#[derive(Debug, Clone)]
+pub struct TirExtImpl {
+  pub ext_fn: String,
+  pub ret_ty: Type,
+  pub ret_impl: TirImpl,
+  pub param_impls: Vec<TirImpl>,
+}
+
 #[derive(Debug, Clone)]
 pub struct TirClosure {
   pub span: Span,
@@ -139,6 +148,8 @@ pub enum TirExprKind {
   Seq(TirExpr, TirExpr),
   #[class(poly, value, place, space)]
   Error(ErrorGuaranteed),
+  #[class(value)]
+  Ext(String, TirExpr),
 }
 
 #[derive(Debug, Clone)]

@@ -174,12 +174,22 @@ pub struct Attr {
   pub kind: AttrKind,
 }
 
+impl Attr {
+  pub fn as_ext(&self) -> Option<&String> {
+    match &self.kind {
+      AttrKind::Ext(ext) => Some(ext),
+      _ => None,
+    }
+  }
+}
+
 #[derive(Debug, Clone)]
 pub enum AttrKind {
   Builtin(Builtin),
   Manual,
   Basic,
   Become(Path),
+  Ext(String),
   Frameless,
   Test,
   SelfDual,

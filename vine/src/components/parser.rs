@@ -130,6 +130,10 @@ impl<'src> Parser<'src> {
         self.expect(Token::CloseParen)?;
         AttrKind::Become(path)
       }
+      "ext" => {
+        self.expect(Token::Eq)?;
+        AttrKind::Ext(self.parse_string()?)
+      }
       "frameless" => AttrKind::Frameless,
       "test" => AttrKind::Test,
       "self_dual" => AttrKind::SelfDual,

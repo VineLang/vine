@@ -299,6 +299,10 @@ diags! {
     ["expected `{name}` to be a {kind} configuration value"]
   BadFramelessAttr
     ["the `#[frameless]` attribute can only be applied to a function"]
+  BadExtAttr
+    ["the `#[ext]` attribute can only be applied to a function"]
+  ExtBody
+    ["`#[ext]` functions cannot have a body"]
   UnusedVariable
     ["unused variable"]
   UnusedItem

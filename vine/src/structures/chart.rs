@@ -160,6 +160,13 @@ pub struct ConcreteConstDef {
   pub unsafe_: bool,
 }
 
+#[derive(Debug, Clone)]
+pub enum FnBody {
+  Block(Block),
+  Ext(String),
+  None,
+}
+
 new_idx!(pub ConcreteFnId);
 #[derive(Debug, Clone)]
 pub struct ConcreteFnDef {
@@ -170,7 +177,7 @@ pub struct ConcreteFnDef {
   pub method: bool,
   pub params: Vec<Pat>,
   pub ret_ty: Option<Ty>,
-  pub body: Block,
+  pub body: FnBody,
   pub frameless: bool,
   pub unsafe_: bool,
 }

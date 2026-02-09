@@ -162,7 +162,8 @@ impl Charter<'_> {
     let vis = VisId::Def(parent_def);
     let def = self.chart_child(parent_def, span, fn_item.name.clone(), vis, false);
     let generics = self.chart_generics(def, parent_generics, fn_item.generics, true);
-    let body = self.ensure_implemented(span, fn_item.body);
+    let ext = attrs.iter().find_map(Attr::as_ext);
+    let body = self.chart_fn_body(span, fn_item.body, ext);
     let fn_id = self.chart.concrete_fns.push(ConcreteFnDef {
       span,
       def,
@@ -172,6 +173,7 @@ impl Charter<'_> {
       params: fn_item.params,
       ret_ty: fn_item.ret,
       body,
+      ext: ext.cloned(),
       frameless: false,
       unsafe_,
     });

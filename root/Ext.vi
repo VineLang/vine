@@ -8,6 +8,7 @@ use util::transmute;
 pub type Ext[T];
 
 /// Conversion between `T` and `Ext[T]`.
+#[builtin = "Ext"]
 pub trait Ext[T] {
   fn encode(value: T) -> Ext[T];
   fn .decode(value: Ext[T]) -> T;
@@ -129,12 +130,8 @@ pub mod Ext {
   pub impl string: Ext[String];
 
   pub impl ref[T; Ext[T]]: Ext[&T] {
-    fn encode(ref: &T) -> Ext[&T] {
-      let (v, s) = safe inline_ivy! (ref <- ref) -> (T, ~T) {
-        tup(v s)
-        ref = ref(v s)
-      };
-      let v = v as Ext;
+    fn encode(&ref: &T) -> Ext[&T] {
+      let (v, s) = (ref as Ext, ~ref);
       safe inline_ivy! (v <- v, s <- s) -> Ext[&T] {
         out
         v = @encode_ref(s out)
@@ -146,9 +143,7 @@ pub mod Ext {
         tup(v s)
         ext = @decode_ref(v s)
       };
-      safe inline_ivy! (v <- v.decode(), s <- s) -> &T {
-        ref(v s)
-      }
+      &(v as T; s)
     }
   }
 

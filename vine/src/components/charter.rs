@@ -217,6 +217,11 @@ impl Charter<'_> {
           }
           impl_.become_ = Some(path);
         }
+        AttrKind::Ext(_) => {
+          if concrete_fn_id.is_none() {
+            self.diags.error(Diag::BadExtAttr { span });
+          };
+        }
         AttrKind::Frameless => {
           let Some(concrete_fn_id) = concrete_fn_id else {
             self.diags.error(Diag::BadFramelessAttr { span });
