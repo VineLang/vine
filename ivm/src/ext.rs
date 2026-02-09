@@ -354,6 +354,25 @@ impl<'ivm> ExtTyCast<'ivm> for () {
   unsafe fn from_payload(_payload: Word) {}
 }
 
+pub struct Ref<'ivm>(pub ExtVal<'ivm>, pub Wire<'ivm>);
+
+impl<'ivm> ExtTyCast<'ivm> for Ref<'ivm> {
+  const COPY: bool = false;
+
+  #[inline(always)]
+  fn into_payload(self) -> Word {
+    let pointer = Box::into_raw(Box::new(Aligned(self)));
+    Word::from_ptr(pointer.cast())
+  }
+
+  #[inline(always)]
+  unsafe fn from_payload(payload: Word) -> Self {
+    let ptr = payload.ptr().cast_mut().cast();
+    let (v, s) = *unsafe { Box::from_raw(ptr) };
+    Self(v, s)
+  }
+}
+
 /// The type id of an external value.
 ///
 /// The highest bit specifies whether it is copyable. If a non-copyable

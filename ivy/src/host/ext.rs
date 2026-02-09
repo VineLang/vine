@@ -4,7 +4,7 @@ use std::{
 };
 
 use ivm::{
-  ext::{ExtFn, ExtList, ExtTy, ExtTyCast, ExtTyId, ExtVal, Extrinsics},
+  ext::{ExtFn, ExtList, ExtTy, ExtTyCast, ExtTyId, ExtVal, Extrinsics, Ref},
   port::Port,
 };
 
@@ -204,6 +204,22 @@ impl<'ivm> Host<'ivm> {
     let n32 = extrinsics.n32_ext_ty();
     let list = self.register_ext_ty::<ExtList<'ivm>>("List", extrinsics);
     let io = self.register_ext_ty::<()>("IO", extrinsics);
+    let reference = self.register_ext_ty::<Ref<'ivm>>("Wire", extrinsics);
+
+    self.register_ext_fn("encode_ref", extrinsics.new_split_ext_fn(move |ivm, v, s, out| {
+      ivm.link_wire(out, Port::new_ext_val(reference.wrap_ext_val(Ref(v, s))));
+    }));
+
+    self.register_ext_fn("decode_ref", extrinsics.new_split_ext_fn(move |ivm, r, v, s| {
+      let Some(Ref(rv, rs)) = reference.unwrap_ext_val(r) else {
+        ivm.flags.ext_generic = true;
+        ivm.link_wire(v, Port::ERASE);
+        ivm.link_wire(s, Port::ERASE);
+        return;
+      };
+      ivm.link_wire(v, Port::new_ext_val(rv));
+      ivm.link_wire_wire(s, rs);
+    }));
 
     self.register_ext_fn(
       "list_push",

@@ -37,6 +37,15 @@ pub mod Ext {
     }
   }
 
+  pub impl show[T; Ext[T], Show[T]]: Show[Ext[T]] {
+    fn show(&self: &Ext[T]) -> Show {
+      let t = self as T;
+      let s = t.show();
+      self = t as Ext;
+      s
+    }
+  }
+
   pub impl n32: Ext[N32] = safe Ext::identity;
   pub impl f32: Ext[F32] = safe Ext::identity;
   pub impl f64: Ext[F64] = safe Ext::identity;
@@ -118,6 +127,30 @@ pub mod Ext {
   }
 
   pub impl string: Ext[String];
+
+  pub impl ref[T; Ext[T]]: Ext[&T] {
+    fn encode(ref: &T) -> Ext[&T] {
+      let (v, s) = safe inline_ivy! (ref <- ref) -> (T, ~T) {
+        tup(v s)
+        ref = ref(v s)
+      };
+      let v = v as Ext;
+      safe inline_ivy! (v <- v, s <- s) -> Ext[&T] {
+        out
+        v = @encode_ref(s out)
+      }
+    }
+
+    fn decode(ext: Ext[&T]) -> &T {
+      let (v, s) = safe inline_ivy! (ext <- ext) -> (Ext[T], ~T) {
+        tup(v s)
+        ext = @decode_ref(v s)
+      };
+      safe inline_ivy! (v <- v.decode(), s <- s) -> &T {
+        ref(v s)
+      }
+    }
+  }
 
   fn new_list[T]() -> Ext[List[T]] {
     safe inline_ivy! () -> Ext[List[T]] {
