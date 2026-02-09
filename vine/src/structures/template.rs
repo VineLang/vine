@@ -35,6 +35,7 @@ pub struct TemplateStageRels {
   pub fns: Vec<(FnRelId, Tree)>,
   pub consts: Vec<(ConstRelId, Tree)>,
   pub stages: Vec<(StageId, Tree)>,
+  pub branches: Vec<(Tree, Vec<StageId>, Tree)>,
 }
 
 impl TemplateStage {
@@ -50,6 +51,15 @@ impl TemplateStage {
     }
     for (stage_id, tree) in &self.rels.stages {
       net.pairs.push((tree.clone(), Tree::Global(global_name(spec, *stage_id))));
+    }
+    for (p, stage_ids, ctx) in &self.rels.branches {
+      net.pairs.push((
+        p.clone(),
+        Tree::Branch(
+          stage_ids.iter().map(|stage_id| Tree::Global(global_name(spec, *stage_id))).collect(),
+          Box::new(ctx.clone()),
+        ),
+      ));
     }
     net
   }
