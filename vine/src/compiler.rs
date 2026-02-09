@@ -90,12 +90,14 @@ impl Compiler {
     mut hooks: impl Hooks,
     checkpoint: &Checkpoint,
   ) -> Result<(), ErrorGuaranteed> {
+    let loaded = take(&mut self.loaded);
+
     self.diags.bail()?;
 
     let chart = &mut self.chart;
 
     let mut charter = Charter { chart, diags: &mut self.diags, annotations: &mut self.annotations };
-    charter.chart(take(&mut self.loaded));
+    charter.chart(loaded);
     hooks.chart(&mut charter);
 
     let mut resolver = Resolver::new(
