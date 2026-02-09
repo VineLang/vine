@@ -6,9 +6,15 @@
 use core::{
   fmt::{self, Debug},
   marker::PhantomData,
+  ops::Deref,
 };
 
-use crate::{ivm::IVM, port::Tag, wire::Wire, word::Word};
+use crate::{
+  ivm::IVM,
+  port::{Port, Tag},
+  wire::Wire,
+  word::Word,
+};
 
 macro_rules! trait_alias {
   ($($(#[$attr:meta])* $vis:vis trait $name:ident = ($($trait:tt)*);)*) => {$(
@@ -352,6 +358,33 @@ impl<'ivm> ExtTyCast<'ivm> for () {
 
   #[inline(always)]
   unsafe fn from_payload(_payload: Word) {}
+}
+
+/// A lookup table of trivially-copyable nilary ports.
+pub struct Lookup<'ivm>(pub *const Vec<Port<'ivm>>);
+
+impl<'ivm> Deref for Lookup<'ivm> {
+  type Target = [Port<'ivm>];
+
+  fn deref(&self) -> &Self::Target {
+    unsafe { self.0.as_ref().unwrap() }
+  }
+}
+
+impl<'ivm> ExtTyCast<'ivm> for Lookup<'ivm> {
+  const COPY: bool = false;
+
+  #[inline(always)]
+  fn into_payload(self) -> Word {
+    Word::from_ptr(self.0.cast())
+  }
+
+  #[inline(always)]
+  unsafe fn from_payload(payload: Word) -> Self {
+    let ptr = payload.ptr().cast::<Vec<Port<'ivm>>>();
+    let slice = unsafe { ptr.as_ref() }.unwrap();
+    Self(slice)
+  }
 }
 
 /// The type id of an external value.

@@ -246,13 +246,17 @@ impl<'l, 'ast, 'ivm> Serializer<'l, 'ast, 'ivm> {
         };
         self.push(Instruction::Nilary(to, port));
       }
-      Tree::Branch(z, p, o) => {
-        let a = self.current.instructions.new_register();
-        let z = self.serialize_tree(z);
-        let p = self.serialize_tree(p);
-        self.push(Instruction::Binary(Tag::Branch, 0, a, z, p));
+      Tree::Branch(bs, o) => {
+        let bs = Port::new_ext_val(self.host.instantiate_lookup(bs).unwrap());
+        let b = self.current.instructions.new_register();
+        self.push(Instruction::Nilary(b, bs));
         let o = self.serialize_tree(o);
-        self.push(Instruction::Binary(Tag::Branch, 0, to, a, o));
+        let ext_fn = self.host.instantiate_ext_fn("branch", false).unwrap();
+        self.push(Instruction::Binary(Tag::ExtFn, ext_fn.bits(), to, b, o));
+      }
+      Tree::Lookup(bs) => {
+        let bs = Port::new_ext_val(self.host.instantiate_lookup(bs).unwrap());
+        self.push(Instruction::Nilary(to, bs));
       }
       Tree::Var(v) => {
         let old = self.registers.insert(v, to);

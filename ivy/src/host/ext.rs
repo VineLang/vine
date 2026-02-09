@@ -4,7 +4,7 @@ use std::{
 };
 
 use ivm::{
-  ext::{ExtFn, ExtList, ExtTy, ExtTyCast, ExtTyId, ExtVal, Extrinsics},
+  ext::{ExtFn, ExtList, ExtTy, ExtTyCast, ExtTyId, ExtVal, Extrinsics, Lookup},
   port::Port,
 };
 
@@ -120,6 +120,25 @@ impl<'ivm> Host<'ivm> {
     let n32 = self.register_n32_ext_ty(extrinsics);
     let f32 = self.register_ext_ty::<f32>("F32", extrinsics);
     let f64 = self.register_ext_ty::<f64>("F64", extrinsics);
+    let lookup = self.register_ext_ty::<Lookup<'ivm>>("Lookup", extrinsics);
+
+    self.register_ext_fn(
+      "branch",
+      extrinsics.new_merge_ext_fn(move |ivm, val, branches, out| {
+        let val = n32.unwrap_ext_val(val);
+        let branches = lookup.unwrap_ext_val(branches);
+        let pair = val.zip(branches);
+        // Safety: lookups contain trivially-copyable nilary ports
+        let port = pair.and_then(|(v, bs)| bs.get(v as usize).map(|p| unsafe { p.clone() }));
+        match port {
+          Some(port) => ivm.link_wire(out, port),
+          None => {
+            ivm.flags.ext_generic = true;
+            ivm.link_wire(out, Port::ERASE)
+          }
+        }
+      }),
+    );
 
     // u64 to/from (lo: u32, hi: u32) halves
     let u64_to_parts = |x: u64| (x as u32, (x >> 32) as u32);

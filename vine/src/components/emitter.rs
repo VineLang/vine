@@ -98,14 +98,11 @@ impl<'a> Emitter<'a> {
 
     let pair = match &interface.kind {
       InterfaceKind::Unconditional(stage) => (self.emit_stage_rel(*stage), target),
-      InterfaceKind::Branch(zero, non_zero) => (
-        self.emit_port(transfer.data.as_ref().unwrap()),
-        Tree::Branch(
-          Box::new(self.emit_stage_rel(*zero)),
-          Box::new(self.emit_stage_rel(*non_zero)),
-          Box::new(target),
-        ),
-      ),
+      InterfaceKind::Branch(zero, non_zero) => {
+        let port = self.emit_port(transfer.data.as_ref().unwrap());
+        self.emit_branch(port, vec![*zero, *non_zero], target);
+        return;
+      }
       InterfaceKind::Match(_, stages) => (
         self.emit_port(transfer.data.as_ref().unwrap()),
         Tree::n_ary("enum", stages.iter().map(|&s| self.emit_stage_rel(s)).chain([target])),
@@ -246,6 +243,10 @@ impl<'a> Emitter<'a> {
     let wire = self.new_wire();
     self.rels.stages.push((stage, wire.0));
     wire.1
+  }
+
+  pub(crate) fn emit_branch(&mut self, principal: Tree, stages: Vec<StageId>, ctx: Tree) {
+    self.rels.branches.push((principal, stages, ctx));
   }
 
   pub(crate) fn emit_port(&mut self, port: &Port) -> Tree {
