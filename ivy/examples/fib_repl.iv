@@ -8,7 +8,8 @@
   fn(ref(io0 io3) _)
   io0 = @io_print_byte(62 @io_print_byte(32 @io_flush(0 io1)))
   ::read_num = fn(ref(io1 io2) dup(n0 n1))
-  n0 = ?(::main::end ::main::cont fn(ref(io2 io3) fn(n1 _)))
+  n0 = @n32_eq(0 eq0)
+  eq0 = ?(::main::cont ::main::end fn(ref(io2 io3) fn(n1 _)))
 }
 
 ::main::cont {
@@ -29,9 +30,10 @@
 
 ::fib::loop {
   fn(dup(n0 n1) r)
-  n0 = ?(
-    ::fib::end
+  n0 = @n32_eq(0 eq0)
+  eq0 = ?(
     ::fib::cont
+    ::fib::end
     fn(n1 r)
   )
 }
@@ -78,9 +80,10 @@
 
 ::print_num {
   fn(ref(io0 io2) fn(dup(num0 num1) _))
-  num0 = ?(
-    ::print_num::zero
+  num0 = @n32_eq(0 eq0)
+  eq0 = ?(
     ::print_num::loop
+    ::print_num::zero
     fn(ref(io0 io1) fn(num1 _))
   )
   io1 = @io_print_byte(10 @io_flush(0 io2))
@@ -95,9 +98,10 @@
   fn(ref(io0 io2) fn(dup(n0 n1) _))
   n0 = @n32_rem(10 @n32_add(48 digit))
   n1 = @n32_div(10 dup(rest0 rest1))
-  rest0 = ?(
-    ::print_num::end
+  rest0 = @n32_eq(0 eq0)
+  eq0 = ?(
     ::print_num::loop
+    ::print_num::end
     fn(ref(io0 io1) fn(rest1 _))
   )
   io1 = @io_print_byte(digit io2)
