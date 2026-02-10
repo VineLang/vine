@@ -14,7 +14,8 @@ pub enum Tree {
   Erase,
   Comb(String, Box<Tree>, Box<Tree>),
   ExtFn(String, bool, Box<Tree>, Box<Tree>),
-  Branch(Box<Tree>, Box<Tree>, Box<Tree>),
+  Branch(Vec<Tree>, Box<Tree>),
+  Lookup(Vec<Tree>),
   N32(u32),
   F32(f32),
   F64(f64),
@@ -57,7 +58,14 @@ impl Display for Tree {
       Tree::Erase => write!(f, "_"),
       Tree::Comb(n, a, b) => write!(f, "{n}({a} {b})"),
       Tree::ExtFn(e, swap, a, b) => write!(f, "@{e}{}({a} {b})", if *swap { "$" } else { "" }),
-      Tree::Branch(a, b, c) => write!(f, "?({a} {b} {c})"),
+      Tree::Branch(bs, c) => write!(
+        f,
+        "?({} {c})",
+        bs.iter().map(ToString::to_string).collect::<Vec<String>>().join(" ")
+      ),
+      Tree::Lookup(bs) => {
+        write!(f, "?[{}]", bs.iter().map(ToString::to_string).collect::<Vec<String>>().join(" "))
+      }
       Tree::N32(n) => write!(f, "{n}"),
       Tree::F32(n) if n.is_nan() => write!(f, "+NaN"),
       Tree::F32(n) => write!(f, "{n:+?}"),
@@ -104,6 +112,15 @@ impl Net {
 }
 
 impl Tree {
+  pub fn is_copy(&self) -> bool {
+    match self {
+      Tree::Erase | Tree::N32(_) | Tree::F32(_) | Tree::Global(_) => true,
+      Tree::Lookup(bs) => bs.iter().all(Tree::is_copy),
+      Tree::F64(_) | Tree::Comb(..) | Tree::ExtFn(..) | Tree::Branch(..) | Tree::Var(_) => false,
+      Tree::BlackBox(t) => t.is_copy(),
+    }
+  }
+
   pub fn n_ary(
     label: &str,
     ports: impl IntoIterator<IntoIter: DoubleEndedIterator<Item = Tree>>,
@@ -115,27 +132,29 @@ impl Tree {
       .unwrap_or(Tree::Erase)
   }
 
-  pub fn children(&self) -> impl DoubleEndedIterator + ExactSizeIterator<Item = &Self> + Clone {
-    multi_iter!(Children { One, Zero, Two, Three });
+  pub fn children(&self) -> impl DoubleEndedIterator<Item = &Self> + Clone {
+    multi_iter!(Children { One, Zero, Two, Branch, Lookup });
     match self {
       Tree::Erase | Tree::N32(_) | Tree::F32(_) | Tree::F64(_) | Tree::Var(_) | Tree::Global(_) => {
         Children::Zero([])
       }
       Tree::BlackBox(a) => Children::One([&**a]),
       Tree::Comb(_, a, b) | Tree::ExtFn(_, _, a, b) => Children::Two([&**a, b]),
-      Tree::Branch(a, b, c) => Children::Three([&**a, b, c]),
+      Tree::Branch(bs, c) => Children::Branch(bs.iter().chain([&**c])),
+      Tree::Lookup(bs) => Children::Lookup(bs.iter()),
     }
   }
 
-  pub fn children_mut(&mut self) -> impl DoubleEndedIterator + ExactSizeIterator<Item = &mut Self> {
-    multi_iter!(Children { Zero, One, Two, Three });
+  pub fn children_mut(&mut self) -> impl DoubleEndedIterator<Item = &mut Self> {
+    multi_iter!(Children { Zero, One, Two, Branch, Lookup });
     match self {
       Tree::Erase | Tree::N32(_) | Tree::F32(_) | Tree::F64(_) | Tree::Var(_) | Tree::Global(_) => {
         Children::Zero([])
       }
       Tree::BlackBox(a) => Children::One([&mut **a]),
       Tree::Comb(_, a, b) | Tree::ExtFn(_, _, a, b) => Children::Two([&mut **a, b]),
-      Tree::Branch(a, b, c) => Children::Three([&mut **a, b, c]),
+      Tree::Branch(bs, c) => Children::Branch(bs.iter_mut().chain([&mut **c])),
+      Tree::Lookup(bs) => Children::Lookup(bs.iter_mut()),
     }
   }
 }

@@ -61,13 +61,6 @@ pub enum Tag {
   /// address points to a node in the heap, and its label is the [`ExtFn`] of
   /// this node.
   ExtFn = 6,
-
-  /// This port is the principal port of a binary branch node. Its address
-  /// points to a node in the heap, and its label is zero.
-  ///
-  /// Though branch nodes are semantically trinary, at runtime the trinary node
-  /// `?(a b c)` is represented with two binary nodes: `?(?(a b) c)`.
-  Branch = 7,
 }
 
 impl<'ivm> Port<'ivm> {
@@ -243,7 +236,6 @@ impl<'ivm> Debug for Port<'ivm> {
       Tag::Erase => write!(f, "Erase"),
       Tag::ExtVal => write!(f, "ExtVal({:?})", unsafe { self.as_ext_val() }),
       Tag::ExtFn => write!(f, "ExtFn({:?}, {:?})", unsafe { self.as_ext_fn() }, self.addr()),
-      Tag::Branch => write!(f, "Branch({:?})", self.addr()),
     }
   }
 }

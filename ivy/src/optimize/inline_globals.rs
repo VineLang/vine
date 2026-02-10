@@ -8,7 +8,7 @@ pub fn inline_globals(nets: &mut Nets) -> bool {
   inliner.populate_candidates(nets);
   for (_, net) in nets.iter_mut() {
     for tree in net.trees_mut() {
-      inliner.process(tree);
+      inliner.process(tree, false);
     }
   }
   inliner.inlined
@@ -37,15 +37,18 @@ impl Inliner {
     }
   }
 
-  fn process(&mut self, tree: &mut Tree) {
+  fn process(&mut self, tree: &mut Tree, in_lookup: bool) {
     if let Tree::Global(name) = tree {
-      if let Some(inlined) = self.candidates.get(name) {
+      if let Some(inlined) = self.candidates.get(name)
+        && (!in_lookup || inlined.is_copy())
+      {
         *tree = inlined.clone();
         self.inlined = true;
       }
     } else {
       for t in tree.children_mut() {
-        self.process(t);
+        // TODO: don't do this for the last port of branch nodes
+        self.process(t, in_lookup || matches!(t, Tree::Branch(_, _)));
       }
     }
   }
@@ -60,7 +63,12 @@ impl Net {
 impl Tree {
   fn is_nilary(&self) -> bool {
     match self {
-      Tree::Erase | Tree::N32(_) | Tree::F32(_) | Tree::F64(_) | Tree::Global(_) => true,
+      Tree::Erase
+      | Tree::N32(_)
+      | Tree::F32(_)
+      | Tree::F64(_)
+      | Tree::Lookup(_)
+      | Tree::Global(_) => true,
       Tree::Comb(..) | Tree::ExtFn(..) | Tree::Branch(..) | Tree::Var(_) => false,
       Tree::BlackBox(t) => t.is_nilary(),
     }

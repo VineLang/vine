@@ -6,9 +6,12 @@ use indexmap::{
 };
 
 use ivm::{
-  ext::{ExtFn, ExtTy, ExtTyId, ExtVal},
+  ext::{Ext, ExtFn, ExtTy, ExtTyId, ExtVal, IO, Lookup},
   global::Global,
+  port::Port,
 };
+
+use crate::ast::Tree;
 
 mod ext;
 mod readback;
@@ -25,6 +28,11 @@ pub struct Host<'ivm> {
   /// except that in [`serialize`], we need a few of those pointers to
   /// temporarily be `&UnsafeCell<Global<'ivm>>`s.
   globals: HashMap<String, *const Global<'ivm>>,
+
+  /// Lookup tables of trivially-copyable nilary ports. These are currently only
+  /// used for and constructible through branch nodes.
+  #[allow(clippy::vec_box)]
+  lookups: Vec<Box<Vec<Port<'ivm>>>>,
 
   ext_fns: HashMap<String, ExtFn<'ivm>>,
   reverse_ext_fns: HashMap<ExtFn<'ivm>, String>,
@@ -65,24 +73,50 @@ impl<'ivm> Host<'ivm> {
     labels.get_index(label as usize).unwrap().0
   }
 
-  fn ext_ty<T>(&self, name: &'static str) -> ExtTy<'ivm, T> {
-    ExtTy::new_unchecked(self.ext_tys[name])
+  fn ext_ty<T: Ext<'ivm>>(&self) -> ExtTy<'ivm, T> {
+    ExtTy::new_unchecked(self.ext_tys[T::NAME])
   }
 
   pub fn new_f32(&self, payload: f32) -> ExtVal<'ivm> {
-    self.ext_ty("F32").wrap_ext_val(payload)
+    self.ext_ty::<f32>().wrap_ext_val(payload)
   }
 
   pub fn new_f64(&self, payload: f64) -> ExtVal<'ivm> {
-    self.ext_ty("F64").wrap_ext_val(payload)
+    self.ext_ty::<f64>().wrap_ext_val(payload)
   }
 
   pub fn new_n32(&self, payload: u32) -> ExtVal<'ivm> {
-    self.ext_ty("N32").wrap_ext_val(payload)
+    self.ext_ty::<u32>().wrap_ext_val(payload)
   }
 
   pub fn new_io(&self) -> ExtVal<'ivm> {
-    self.ext_ty("IO").wrap_ext_val(())
+    self.ext_ty::<IO>().wrap_ext_val(IO)
+  }
+
+  pub fn new_lookup(&mut self, lookup: Vec<Port<'ivm>>) -> ExtVal<'ivm> {
+    let lookup = Box::new(lookup);
+    self.lookups.push(lookup);
+    let ptr = &raw const **self.lookups.last().unwrap();
+    self.ext_ty::<Lookup<'ivm>>().wrap_ext_val(Lookup(ptr))
+  }
+
+  pub fn instantiate_lookup(&mut self, lookup: &[Tree]) -> Option<ExtVal<'ivm>> {
+    fn copy_into_port<'ivm>(host: &mut Host<'ivm>, tree: &Tree) -> Option<Port<'ivm>> {
+      match tree {
+        Tree::Erase => Some(Port::ERASE),
+        Tree::N32(n) => Some(Port::new_ext_val(host.new_n32(*n))),
+        Tree::F32(f) => Some(Port::new_ext_val(host.new_f32(*f))),
+        Tree::Lookup(bs) => host.instantiate_lookup(bs).map(Port::new_ext_val),
+        Tree::Global(g) => Some(Port::new_global(host.get(g).unwrap())),
+        Tree::F64(_) | Tree::Comb(..) | Tree::ExtFn(..) | Tree::Branch(..) | Tree::Var(_) => None,
+        Tree::BlackBox(t) => copy_into_port(host, t),
+      }
+    }
+
+    let ports: Vec<Port<'ivm>> =
+      lookup.iter().map(|tree| copy_into_port(self, tree)).collect::<Option<_>>()?;
+
+    Some(self.new_lookup(ports))
   }
 
   pub fn instantiate_ext_fn(&self, ext_fn_name: &str, swap: bool) -> Option<ExtFn<'ivm>> {

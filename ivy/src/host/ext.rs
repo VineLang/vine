@@ -4,7 +4,7 @@ use std::{
 };
 
 use ivm::{
-  ext::{ExtFn, ExtList, ExtTy, ExtTyCast, ExtTyId, ExtVal, Extrinsics},
+  ext::{Ext, ExtFn, ExtList, ExtTy, ExtVal, Extrinsics, IO, Lookup},
   port::Port,
 };
 
@@ -95,31 +95,44 @@ impl<'ivm> Host<'ivm> {
     self.reverse_ext_fns.insert(f, name);
   }
 
-  pub fn register_ext_ty_id(&mut self, name: String, ty_id: ExtTyId<'ivm>) {
-    self.ext_tys.insert(name.clone(), ty_id);
-    self.reverse_ext_tys.insert(ty_id, name);
-  }
-
-  fn register_n32_ext_ty(&mut self, extrinsics: &mut Extrinsics<'ivm>) -> ExtTy<'ivm, u32> {
-    let n32_ty = extrinsics.n32_ext_ty();
-    self.register_ext_ty_id("N32".into(), n32_ty.ty_id());
-    n32_ty
-  }
-
-  fn register_ext_ty<T: ExtTyCast<'ivm>>(
+  fn get_or_register_ext_ty<T: Ext<'ivm>>(
     &mut self,
-    name: &'static str,
     extrinsics: &mut Extrinsics<'ivm>,
   ) -> ExtTy<'ivm, T> {
-    let ty = extrinsics.new_ext_ty();
-    self.register_ext_ty_id(name.into(), ty.ty_id());
-    ty
+    if let Some(ty_id) = self.ext_tys.get(T::NAME) {
+      return ExtTy::new_unchecked(*ty_id);
+    }
+
+    let ext_ty = extrinsics.new_ext_ty::<T>();
+    self.ext_tys.insert(T::NAME.to_owned(), ext_ty.ty_id());
+    self.reverse_ext_tys.insert(ext_ty.ty_id(), T::NAME.to_owned());
+
+    ext_ty
   }
 
   pub fn register_default_extrinsics(&mut self, extrinsics: &mut Extrinsics<'ivm>) {
-    let n32 = self.register_n32_ext_ty(extrinsics);
-    let f32 = self.register_ext_ty::<f32>("F32", extrinsics);
-    let f64 = self.register_ext_ty::<f64>("F64", extrinsics);
+    let n32 = self.get_or_register_ext_ty::<u32>(extrinsics);
+    let f32 = self.get_or_register_ext_ty::<f32>(extrinsics);
+    let f64 = self.get_or_register_ext_ty::<f64>(extrinsics);
+    let lookup = self.get_or_register_ext_ty::<Lookup<'ivm>>(extrinsics);
+
+    self.register_ext_fn(
+      "branch",
+      extrinsics.new_merge_ext_fn(move |ivm, val, branches, out| {
+        let val = n32.unwrap_ext_val(val);
+        let branches = lookup.unwrap_ext_val(branches);
+        let pair = val.zip(branches);
+        // Safety: lookups contain trivially-copyable nilary ports
+        let port = pair.and_then(|(v, bs)| bs.get(v as usize).map(|p| unsafe { p.clone() }));
+        match port {
+          Some(port) => ivm.link_wire(out, port),
+          None => {
+            ivm.flags.ext_generic = true;
+            ivm.link_wire(out, Port::ERASE)
+          }
+        }
+      }),
+    );
 
     // u64 to/from (lo: u32, hi: u32) halves
     let u64_to_parts = |x: u64| (x as u32, (x >> 32) as u32);
@@ -201,9 +214,9 @@ impl<'ivm> Host<'ivm> {
     extrinsics: &mut Extrinsics<'ivm>,
     args: Vec<String>,
   ) {
-    let n32 = extrinsics.n32_ext_ty();
-    let list = self.register_ext_ty::<ExtList<'ivm>>("List", extrinsics);
-    let io = self.register_ext_ty::<()>("IO", extrinsics);
+    let n32 = self.get_or_register_ext_ty::<u32>(extrinsics);
+    let list = self.get_or_register_ext_ty::<ExtList<'ivm>>(extrinsics);
+    let io = self.get_or_register_ext_ty::<IO>(extrinsics);
 
     self.register_ext_fn(
       "list_push",
@@ -255,9 +268,9 @@ impl<'ivm> Host<'ivm> {
       "list_new" => |_unused: n32| -> list { ExtList::default() },
       "list_len" => |l: list| -> (n32, list) { (l.len() as u32, l) },
 
-      "io_join" => |_io_a: io, _io_b: io| -> io {},
-      "io_split" => |_io: io| -> (io, io) { ((), ()) },
-      "io_ready" => |_io: io| -> (n32, io) { (1, ()) },
+      "io_join" => |_io_a: io, _io_b: io| -> io { IO },
+      "io_split" => |_io: io| -> (io, io) { (IO, IO) },
+      "io_ready" => |_io: io| -> (n32, io) { (1, IO) },
 
       "io_args" => |io0: io| -> (list, io) {
         let args = args
@@ -273,18 +286,21 @@ impl<'ivm> Host<'ivm> {
 
       "io_print_char" => |_io: io, b: n32| -> io {
         print!("{}", char::try_from(b).unwrap());
+        IO
       },
       "io_print_byte" => |_io: io, b: n32| -> io {
         io::stdout().write_all(&[b as u8]).unwrap();
+        IO
       },
       "io_flush" => |_io: io| -> io {
         io::stdout().flush().unwrap();
+        IO
       },
       "io_read_byte" => |_io: io| -> (n32, io) {
         let mut buf = [0];
         let count = io::stdin().read(&mut buf).unwrap();
         let byte = if count == 0 { u32::MAX } else { buf[0] as u32 };
-        (byte, ())
+        (byte, IO)
       },
       "io_read_char" => |_io: io| -> (n32, io) {
         let mut buf = [0];
@@ -298,7 +314,7 @@ impl<'ivm> Host<'ivm> {
           _ => None,
         };
 
-        (c.unwrap_or(char::REPLACEMENT_CHARACTER as u32), ())
+        (c.unwrap_or(char::REPLACEMENT_CHARACTER as u32), IO)
       },
     });
   }

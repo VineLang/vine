@@ -1,20 +1,20 @@
 
 Interactions
-  Total                  864
-  Annihilate             463
+  Total                  782
+  Annihilate             422
   Commute                  0
   Copy                    50
-  Erase                  110
+  Erase                   69
   Expand                  86
-  Call                   114
-  Branch                  41
+  Call                   155
+  Branch                   0
 
 Parallelism
-  Depth                  232
+  Depth                  213
   Breadth                  3
-  Speedup                 57 cB
+  Speedup                 56 cB
 
 Memory
-  Heap                 2_592 B
-  Allocated           18_592 B
-  Freed               18_592 B
+  Heap                 2_464 B
+  Allocated           17_280 B
+  Freed               17_280 B

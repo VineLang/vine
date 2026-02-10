@@ -30,7 +30,7 @@ impl<'ivm, 'ext> IVM<'ivm, 'ext> {
         self.stats.erase += 1
       }
       sym!(Comb) | sym!(ExtFn) if a.label() == b.label() => self.active_fast.push((a, b)),
-      sym!(Global, _) | sym!(Comb | ExtFn | Branch) => self.active_slow.push((a, b)),
+      sym!(Global, _) | sym!(Comb | ExtFn) => self.active_slow.push((a, b)),
       sym!(Erase, _) | sym!(ExtVal, _) => self.active_fast.push((a, b)),
     }
   }
@@ -92,9 +92,7 @@ impl<'ivm, 'ext> IVM<'ivm, 'ext> {
         self.copy(c, d)
       }
       sym!((Global, c), (_, p)) => self.expand(c, p),
-      ((Comb, a), (Comb, b)) | ((ExtFn, a), (ExtFn, b)) | ((Branch, a), (Branch, b))
-        if a.label() == b.label() =>
-      {
+      ((Comb, a), (Comb, b)) | ((ExtFn, a), (ExtFn, b)) if a.label() == b.label() => {
         self.annihilate(a, b)
       }
       sym!((Erase, n), (_, b)) => self.copy(n, b),
@@ -107,9 +105,8 @@ impl<'ivm, 'ext> IVM<'ivm, 'ext> {
           self.copy(n, b);
         }
       }
-      ((Comb | ExtFn | Branch, a), (Comb | ExtFn | Branch, b)) => self.commute(a, b),
+      ((Comb | ExtFn, a), (Comb | ExtFn, b)) => self.commute(a, b),
       sym!((ExtFn, f), (ExtVal, v)) => self.call(f, v),
-      sym!((Branch, b), (ExtVal, v)) => self.branch(b, v),
     }
   }
 
@@ -189,27 +186,6 @@ impl<'ivm, 'ext> IVM<'ivm, 'ext> {
       let (out0, out1) = unsafe { f.aux() };
       let arg = unsafe { lhs.as_ext_val() };
       (func)(self, arg, out0, out1);
-    }
-  }
-
-  fn branch(&mut self, b: Port<'ivm>, v: Port<'ivm>) {
-    self.stats.branch += 1;
-    let val = self.extrinsics.ext_val_as_n32(unsafe { v.as_ext_val() });
-    let (a, o) = unsafe { b.aux() };
-    let (b, z, p) = unsafe { self.new_node(Tag::Branch, 0) };
-    self.link_wire(a, b);
-    match val {
-      Some(val) => {
-        let (y, n) = if val == 0 { (z, p) } else { (p, z) };
-        self.link_wire(n, Port::ERASE);
-        self.link_wire_wire(o, y);
-      }
-      None => {
-        self.flags.ext_generic = true;
-        self.link_wire(z, Port::ERASE);
-        self.link_wire(p, Port::ERASE);
-        self.link_wire(o, Port::ERASE);
-      }
     }
   }
 }
