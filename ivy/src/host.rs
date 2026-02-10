@@ -6,7 +6,7 @@ use indexmap::{
 };
 
 use ivm::{
-  ext::{ExtFn, ExtTy, ExtTyId, ExtVal, Lookup},
+  ext::{Ext, ExtFn, ExtTy, ExtTyId, ExtVal, IO, Lookup},
   global::Global,
   port::Port,
 };
@@ -73,31 +73,31 @@ impl<'ivm> Host<'ivm> {
     labels.get_index(label as usize).unwrap().0
   }
 
-  fn ext_ty<T>(&self, name: &'static str) -> ExtTy<'ivm, T> {
-    ExtTy::new_unchecked(self.ext_tys[name])
+  fn ext_ty<T: Ext<'ivm>>(&self) -> ExtTy<'ivm, T> {
+    ExtTy::new_unchecked(self.ext_tys[T::NAME])
   }
 
   pub fn new_f32(&self, payload: f32) -> ExtVal<'ivm> {
-    self.ext_ty("F32").wrap_ext_val(payload)
+    self.ext_ty::<f32>().wrap_ext_val(payload)
   }
 
   pub fn new_f64(&self, payload: f64) -> ExtVal<'ivm> {
-    self.ext_ty("F64").wrap_ext_val(payload)
+    self.ext_ty::<f64>().wrap_ext_val(payload)
   }
 
   pub fn new_n32(&self, payload: u32) -> ExtVal<'ivm> {
-    self.ext_ty("N32").wrap_ext_val(payload)
+    self.ext_ty::<u32>().wrap_ext_val(payload)
   }
 
   pub fn new_io(&self) -> ExtVal<'ivm> {
-    self.ext_ty("IO").wrap_ext_val(())
+    self.ext_ty::<IO>().wrap_ext_val(IO)
   }
 
   pub fn new_lookup(&mut self, lookup: Vec<Port<'ivm>>) -> ExtVal<'ivm> {
     let lookup = Box::new(lookup);
-    let ptr = &raw const *lookup;
     self.lookups.push(lookup);
-    self.ext_ty("Lookup").wrap_ext_val(Lookup(ptr))
+    let ptr = &raw const **self.lookups.last().unwrap();
+    self.ext_ty::<Lookup<'ivm>>().wrap_ext_val(Lookup(ptr))
   }
 
   pub fn instantiate_lookup(&mut self, lookup: &[Tree]) -> Option<ExtVal<'ivm>> {
