@@ -1,7 +1,7 @@
 use std::{
   env,
   ffi::OsStr,
-  fs,
+  fmt, fs,
   io::{self, IsTerminal, Read, stderr, stdin, stdout},
   path::{Path, PathBuf},
   process::exit,
@@ -380,14 +380,45 @@ impl VineReplCommand {
 }
 
 #[derive(Debug, Args)]
-pub struct VineFmtCommand {}
+pub struct VineFmtCommand {
+  files: Option<Vec<PathBuf>>,
+}
 
 impl VineFmtCommand {
   pub fn execute(self) -> Result<()> {
-    let mut src = String::new();
-    stdin().read_to_string(&mut src)?;
-    println!("{}", Formatter::fmt(&src).unwrap());
+    let mut success = true;
+    if let Some(files) = self.files {
+      for path in files {
+        let src = fs::read_to_string(&path)?;
+        if let Some(out) = Self::fmt(path.display(), &src) {
+          fs::write(&path, out)?;
+        } else {
+          success = false;
+        }
+      }
+    } else {
+      let mut src = String::new();
+      stdin().read_to_string(&mut src)?;
+      if let Some(out) = Self::fmt("input", &src) {
+        print!("{out}");
+      } else {
+        success = false;
+      }
+    }
+    if !success {
+      exit(1);
+    }
     Ok(())
+  }
+
+  fn fmt(path: impl fmt::Display, src: &str) -> Option<String> {
+    match Formatter::fmt(src) {
+      Ok(out) => Some(out),
+      Err(diag) => {
+        eprintln!("error formatting {path}:\n{diag}");
+        None
+      }
+    }
   }
 }
 
