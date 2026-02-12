@@ -25,7 +25,7 @@ let x: F64 = ≈3.14159203;
 let io: IO = <IO>;
 let x: F64 = ≈3.14159203;
 > x % (x - 2.0[F64])
-≈8.58407974e-1
+≈0.858407974
 
 let io: IO = <IO>;
 let x: F64 = ≈3.14159203;
@@ -35,7 +35,7 @@ let x: F64 = ≈3.14159203;
 let io: IO = <IO>;
 let x: F64 = ≈3.14159203;
 > x ** -2
-≈1.01321228e-1
+≈0.101321228
 
 let io: IO = <IO>;
 let x: F64 = ≈3.14159203;
@@ -151,7 +151,7 @@ let io: IO = <IO>;
 let x: F64 = ≈3.14159203;
 let parts: { mantissa: N64, negative: Bool, raw_exp: N64 } = { mantissa: 2570636710903808, negative: false, raw_exp: 1024 };
 > 123456[N32] as F64
-≈1.23456e5
+≈123456.0
 
 let io: IO = <IO>;
 let x: F64 = ≈3.14159203;
