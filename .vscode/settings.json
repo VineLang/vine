@@ -24,7 +24,7 @@
     "tests/programs/*.vi",
     "tests/programs/aoc_2024/*.vi",
     "tests/programs/compile/*.vi",
-    "root/root.vi"
+    "root/"
   ],
   "rust-analyzer.check.command": "clippy",
   "editor.formatOnSave": true,
