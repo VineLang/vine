@@ -15,7 +15,7 @@
       "exts": ["rs"]
     }]
   },
-  "excludes": ["tests/fail", "tests/repl", "tests/fmt", "tests/snaps"],
+  "excludes": ["tests/fail/*", "tests/repl/*", "tests/fmt/*", "tests/snaps/*"],
   "plugins": [
     "https://plugins.dprint.dev/g-plane/pretty_yaml-v0.5.0.wasm@eae6b4db51bb656ec28b0cbf3875d30352688fd3c6131dd2646b6f680fff833a",
     "https://plugins.dprint.dev/json-0.19.3.wasm@e89b5f3b5d73712f1b1ca017bce9cdf67de30a7d0dba47807809e0d262b01fb9",
