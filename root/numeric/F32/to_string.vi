@@ -99,13 +99,48 @@ pub impl to_string: Cast[F32, String] {
     if negative {
       chars.push_back('-');
     }
-    // The string should have at least one digit before and after the decimal point.
-    chars ++= ['0' + digits.pop_front().or_use(0), '.', '0' + digits.pop_front().or_use(0)];
-    for digit in digits {
-      chars.push_back('0' + digit);
-    }
 
-    if exp10 != +0 {
+    if -3 <= exp10 <= +8 {
+      let dot_pos = exp10 + +1;
+      if dot_pos <= +0 {
+        chars ++= ['0', '.'];
+        for _ in 0..(-dot_pos as N32) {
+          chars.push_back('0');
+        }
+        for digit in digits {
+          chars.push_back('0' + digit);
+        }
+      } else {
+        let dot_pos = dot_pos as N32;
+        let num_digits = 0;
+        for digit in digits {
+          if num_digits == dot_pos {
+            chars.push_back('.');
+          }
+          chars.push_back('0' + digit);
+          num_digits += 1;
+        }
+        // Fill trailing zeros
+        while num_digits < dot_pos {
+          chars.push_back('0');
+          num_digits += 1;
+        }
+        // Ensure there is always a .0 if it's a whole number
+        if num_digits == dot_pos {
+          chars ++= ['.', '0'];
+        }
+      }
+    } else {
+      // Fallback to Scientific Notation for very large/small numbers
+      chars.push_back('0' + digits.pop_front().or_use(0));
+      chars.push_back('.');
+      if digits.len() == 0 {
+        chars.push_back('0');
+      } else {
+        for digit in digits {
+          chars.push_back('0' + digit);
+        }
+      }
       chars.push_back('e');
       chars ++= (exp10 as String)!;
     }
