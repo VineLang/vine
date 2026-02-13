@@ -70,6 +70,10 @@ pub mod F64 {
     }
   }
 
+  pub fn .sqrt(a: F64) -> F64 {
+    safe inline_ivy! (a <- a) -> F64 { out a = @f64_sqrt(_ out) }
+  }
+
   pub impl pos: Pos[F64, F64] {
     fn pos(f: F64) -> F64 {
       f
