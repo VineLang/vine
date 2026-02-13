@@ -78,7 +78,7 @@ pub mod F64 {
 
   pub impl neg: Neg[F64, F64] {
     fn neg(f: F64) -> F64 {
-      0.0 as F64 - f
+      safe inline_ivy! (f <- f) -> F64 { out f = @f64_sub$(-0.0f64 out) }
     }
   }
 
