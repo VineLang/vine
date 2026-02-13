@@ -7,11 +7,8 @@
 }:
 let
   inherit (builtins)
-    map
     filter
     attrNames
-    dirOf
-    baseNameOf
     concatLists
     attrValues
     concatStringsSep
@@ -340,4 +337,4 @@ let
 
   all = merge ([ self ] ++ concatLists (attrValues tests));
 in
-builtins.removeAttrs all [ "snaps" ]
+removeAttrs all [ "snaps" ]
