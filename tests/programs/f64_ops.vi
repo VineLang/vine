@@ -1,0 +1,41 @@
+
+pub fn main(&io: &IO) {
+  let interesting_floats = [
+    +0.0[F64],
+    -0.0[F64],
+    -42.0[F64],
+    F64::inf,
+    F64::neg_inf,
+    F64::nan,
+    F64::from_bits(0x0000_0000_0000_0001[N64]),
+    F64::from_bits(0x0000_0000_0000_0002[N64]),
+    F64::from_bits(0x0008_0000_0000_0000[N64]),
+    F64::from_bits(0x000f_ffff_ffff_ffff[N64]),
+    F64::from_bits(0x0010_0000_0000_0000[N64]),
+    1.0[F64],
+    F64::from_bits(0x3fef_ffff_ffff_ffff[N64]),
+    F64::from_bits(0x3ff0_0000_0000_0001[N64]),
+    F64::from_bits(0x3fef_ffff_ffff_fffe[N64]),
+    F64::from_bits(0x3ff0_0000_0000_0002[N64]),
+    0.5[F64],
+    2.0[F64],
+    2.718281828459045[F64],
+    3.141592653589793[F64],
+    F64::from_bits(0x3e10_0000_0000_0000[N64]),
+    F64::from_bits(0x41d0_0000_0000_0000[N64]),
+    F64::from_bits(0x3cb0_0000_0000_0000[N64]),
+    F64::from_bits(0x4340_0000_0000_0000[N64]),
+    9007199254740993.0[F64],
+    F64::from_bits(0x4340_0000_0000_0001[N64]),
+    F64::from_bits(0x7fdf_ffff_ffff_ffff[N64]),
+    F64::from_bits(0x7fef_ffff_ffff_ffff[N64]),
+    1.0e-10[F64],
+    1.0e10[F64],
+  ];
+
+  for f in interesting_floats {
+    io.println("{f} = {f.to_bits().to_hex()}");
+    io.println("sqrt({f}) = {f.sqrt()} ({f.sqrt().to_bits().to_hex()})");
+    io.println("");
+  }
+}
