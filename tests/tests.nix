@@ -33,22 +33,25 @@ let
   vine = "${cli.packages.vine}/bin/vine";
   ivy = "${cli.packages.ivy}/bin/ivy";
 
-  directive =
-    keyword: default: src:
+  directives =
+    src:
     let
       content =
         if builtins.readFileType src == "directory" then
           builtins.readFile "${src}/${baseNameOf src}.vi"
         else
           builtins.readFile src;
+    in
+    keyword: default:
+    let
       match = builtins.match "(.*\n)?// @${keyword} ?([^\n]*)\n.*" content;
     in
     if match == null then default else builtins.elemAt match 1;
 
   libs =
-    path:
+    directive:
     let
-      libs = directive "libs" "" path;
+      libs = directive "libs" "";
     in
     if libs == "" then
       ""
@@ -112,7 +115,8 @@ let
     let
       name = sanitize path;
       vi = just path;
-      buildArgs = directive "build" "" vi;
+      directive = directives vi;
+      buildArgs = directive "build" "";
       error = buildFail { inherit name vi buildArgs; };
     in
     {
@@ -130,11 +134,12 @@ let
     let
       name = sanitize path;
       vi = just path;
-      buildArgs = directive "build" "" config;
-      runArgs = directive "run" "" config;
-      input = ./input/${directive "input" "empty" config};
-      ext = directive "output" "txt" config;
-      fail = directive "fail" null config != null;
+      directive = directives config;
+      buildArgs = directive "build" "";
+      runArgs = directive "run" "";
+      input = ./input/${directive "input" "empty"};
+      ext = directive "output" "txt";
+      fail = directive "fail" null != null;
       iv = build { inherit name vi buildArgs; };
       result = run {
         inherit
@@ -185,10 +190,11 @@ let
     path:
     let
       name = sanitize path;
-      args = directive "args" "" path;
+      directive = directives path;
+      args = directive "args" "";
       log = pkgs.runCommand "${name}.repl.vi" { } ''
         echo "repl ${name}"
-        ${vine} repl --echo ${libs path} ${args} <${path} >$out
+        ${vine} repl --echo ${libs directive} ${args} <${path} >$out
       '';
     in
     {
@@ -201,7 +207,8 @@ let
     path:
     let
       name = sanitize path;
-      args = directive "args" "" path;
+      directive = directives path;
+      args = directive "args" "";
       formatted = pkgs.runCommand "${name}.fmt.vi" { } ''
         echo "fmt ${name}"
         ${vine} fmt ${args} <${path} >$out
@@ -218,7 +225,8 @@ let
     let
       name = sanitize path;
       vi = just path;
-      buildArgs = directive "build" "" vi;
+      directive = directives vi;
+      buildArgs = directive "build" "";
       iv = build { inherit name vi buildArgs; };
     in
     {
