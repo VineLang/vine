@@ -154,6 +154,7 @@ impl<'ivm> Host<'ivm> {
       "f32_mul" => |a: f32, b: f32| -> f32 { a.mul(b) },
       "f32_div" => |a: f32, b: f32| -> f32 { a.div(b) },
       "f32_rem" => |a: f32, b: f32| -> f32 { a.rem_euclid(b) },
+      "f32_sqrt" => |a: f32| -> f32 { a.sqrt() },
 
       "f32_eq" => |a: f32, b: f32| -> n32 { (a == b) as u32 },
       "f32_ne" => |a: f32, b: f32| -> n32 { (a != b) as u32 },
@@ -179,6 +180,7 @@ impl<'ivm> Host<'ivm> {
       "f64_mul" => |a: f64, b: f64| -> f64 { a * b },
       "f64_div" => |a: f64, b: f64| -> f64 { a / b },
       "f64_rem" => |a: f64, b: f64| -> f64 { a.rem_euclid(b) },
+      "f64_sqrt" => |a: f64| -> f64 { a.sqrt() },
 
       "f64_eq" => |a: f64, b: f64| -> n32 { (a == b) as u32 },
       "f64_ne" => |a: f64, b: f64| -> n32 { (a != b) as u32 },

@@ -59,6 +59,10 @@ pub mod F32 {
     }
   }
 
+  pub fn .sqrt(a: F32) -> F32 {
+    safe inline_ivy! (a <- a) -> F32 { out a = @f32_sqrt(_ out) }
+  }
+
   pub impl : Pos[F32, F32] {
     fn pos(a: F32) -> F32 {
       a
