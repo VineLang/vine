@@ -14,7 +14,6 @@ pub trait Ext[T] {
 }
 
 pub mod Ext {
-  #[manual]
   pub unsafe impl identity[T]: Ext[T] {
     unsafe fn encode(value: T) -> Ext[T] {
       transmute(value)
@@ -37,11 +36,13 @@ pub mod Ext {
     }
   }
 
+  pub impl bool: Ext[Bool] = safe Ext::identity;
   pub impl n32: Ext[N32] = safe Ext::identity;
   pub impl f32: Ext[F32] = safe Ext::identity;
   pub impl f64: Ext[F64] = safe Ext::identity;
   pub impl char: Ext[Char] = safe Ext::identity;
   pub impl io: Ext[IO] = safe Ext::identity;
+  pub impl ext[T]: Ext[Ext[T]] = safe Ext::identity;
 
   pub impl nil: Ext[()] {
     fn encode(()) -> Ext[()] {
@@ -153,4 +154,7 @@ pub mod Ext {
       list0 = @list_pop(t list1)
     }
   }
+
+  /// Used to mark extrinsic values of an unknown type.
+  pub type Unknown;
 }
