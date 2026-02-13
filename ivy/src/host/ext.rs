@@ -163,7 +163,10 @@ impl<'ivm> Host<'ivm> {
 
       "n32_to_f32" => |a: n32| -> f32 { a as f32 },
       "f32_to_n32" => |a: f32| -> n32 { a as u32 },
-      "f32_to_bits" => |a: f32| -> n32 { a.to_bits() },
+      "f32_to_bits" => |a: f32| -> n32 {
+        // Use unique deterministic bit pattern for NaN values.
+        if a.is_nan() { 0x7FC00000 } else { a.to_bits() }
+      },
       "f32_from_bits" => |a: n32| -> f32 { f32::from_bits(a) },
 
       "i32_div" => |a: n32, b: n32| -> n32 { (a as i32).checked_div(b as i32)? as u32 },
@@ -193,7 +196,10 @@ impl<'ivm> Host<'ivm> {
       "f64_to_f32" => |f: f64| -> f32 { f as f32 },
       "n64_to_f64" => |lo: n32, hi: n32| -> f64 { u64_from_parts(lo, hi) as f64 },
       "f64_to_n64" => |f: f64| -> (n32, n32) { u64_to_parts(f as u64) },
-      "f64_to_bits" => |f: f64| -> (n32, n32) { u64_to_parts(f.to_bits()) },
+      "f64_to_bits" => |f: f64| -> (n32, n32) {
+        // Use unique deterministic bit pattern for NaN values.
+        if f.is_nan() { (0, 0x7FF80000) } else { u64_to_parts(f.to_bits()) }
+      },
       "f64_from_bits" => |lo: n32, hi: n32| -> f64 { f64::from_bits(u64_from_parts(lo, hi)) },
     });
   }

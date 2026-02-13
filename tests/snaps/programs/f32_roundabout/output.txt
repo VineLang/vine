@@ -329,7 +329,7 @@ pass: 0xdb0df898 -> -3.99613034e16 -> 0xdb0df898
 pass: 0x8e630946 -> -2.79843752e-30 -> 0x8e630946
 pass: 0xe7cef4ad -> -1.95464193e24 -> 0xe7cef4ad
 pass: 0x6c81816d -> 1.25250101e27 -> 0x6c81816d
-pass: 0xffea8e2e -> NaN -> 0x7fc00000
+pass: 0x7fc00000 -> NaN -> 0x7fc00000
 pass: 0xda4e40fd -> -1.45138251e16 -> 0xda4e40fd
 pass: 0x7256dd57 -> 4.25583204e30 -> 0x7256dd57
 pass: 0xd6478821 -> -5.48468708e13 -> 0xd6478821
@@ -468,7 +468,7 @@ pass: 0x8c4aec45 -> -1.56326137e-31 -> 0x8c4aec45
 pass: 0x6f9edfda -> 9.8338503e28 -> 0x6f9edfda
 pass: 0x333724d4 -> 4.26415028e-8 -> 0x333724d4
 pass: 0xf41d0d -> 2.24182825e-38 -> 0xf41d0d
-pass: 0x7f89624a -> NaN -> 0x7fc00000
+pass: 0x7fc00000 -> NaN -> 0x7fc00000
 pass: 0xe33f3892 -> -3.52740444e21 -> 0xe33f3892
 pass: 0xc5f5ba93 -> -7863.32178 -> 0xc5f5ba93
 pass: 0xa346dfbf -> -1.07809816e-17 -> 0xa346dfbf
@@ -534,7 +534,7 @@ pass: 0xcc88a42f -> -71639416.0 -> 0xcc88a42f
 pass: 0x61aaa46a -> 3.93474222e20 -> 0x61aaa46a
 pass: 0x76af16d8 -> 1.77561577e33 -> 0x76af16d8
 pass: 0xba50637a -> -7.94939348e-4 -> 0xba50637a
-pass: 0x7fd18e75 -> NaN -> 0x7fc00000
+pass: 0x7fc00000 -> NaN -> 0x7fc00000
 pass: 0x7e327415 -> 5.93013289e37 -> 0x7e327415
 pass: 0x50b06697 -> 2.36761068e10 -> 0x50b06697
 pass: 0x432282bb -> 162.510666 -> 0x432282bb
@@ -876,7 +876,7 @@ pass: 0xe053770c -> -6.09506442e19 -> 0xe053770c
 pass: 0x3d477ea0 -> 0.0487047434 -> 0x3d477ea0
 pass: 0x237b4ca3 -> 1.36229657e-17 -> 0x237b4ca3
 pass: 0xd7060d0 -> 7.40722437e-31 -> 0xd7060d0
-pass: 0xff97bdde -> NaN -> 0x7fc00000
+pass: 0x7fc00000 -> NaN -> 0x7fc00000
 pass: 0x67ad797b -> 1.63842064e24 -> 0x67ad797b
 pass: 0x5520fcd5 -> 1.10629854e13 -> 0x5520fcd5
 pass: 0xac9c5962 -> -4.44371016e-12 -> 0xac9c5962

@@ -109,8 +109,8 @@ pub mod F32 {
     }
   }
 
-  pub fn .to_bits(n: F32) -> N32 {
-    safe inline_ivy! (n <- n) -> N32 { out n = @f32_to_bits(_ out) }
+  pub fn .to_bits(f: F32) -> N32 {
+    safe inline_ivy! (f <- f) -> N32 { out f = @f32_to_bits(_ out) }
   }
 
   pub fn from_bits(n: N32) -> F32 {
