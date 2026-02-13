@@ -1,12 +1,16 @@
 {
-  lib,
-  stdenv,
-  stdenvNoCC,
-  tree-sitter,
-  nodejs_24,
-  nushell,
+  pkgs,
 }:
 let
+  inherit (pkgs)
+    lib
+    stdenv
+    stdenvNoCC
+    tree-sitter
+    nodejs_24
+    nushell
+    ;
+
   grammar =
     name:
     stdenvNoCC.mkDerivation {
@@ -24,8 +28,7 @@ let
     };
 
   check =
-    name:
-    fileset:
+    name: fileset:
     stdenv.mkDerivation {
       inherit name;
       src = lib.fileset.toSource {
@@ -46,24 +49,20 @@ let
         touch $out
       '';
     };
+
+  self.packages.tree-sitter-vine = grammar "tree-sitter-vine";
+  self.checks.tree-sitter-vine = check "tree-sitter-vine" [
+    ../root
+    ../vine/examples
+    ../tests/programs
+    ../tests/aoc_2024
+    ../lsp/tree-sitter-vine
+  ];
+
+  self.packages.tree-sitter-ivy = grammar "tree-sitter-ivy";
+  self.checks.tree-sitter-ivy = check "tree-sitter-ivy" [
+    ../ivy/examples
+    ../lsp/tree-sitter-ivy
+  ];
 in
-{
-  packages = {
-    tree-sitter-vine = grammar "tree-sitter-vine";
-    tree-sitter-ivy = grammar "tree-sitter-ivy";
-  };
-
-  checks = {
-    tree-sitter-vine = check "tree-sitter-vine" [
-      ../root
-      ../vine/examples
-      ../tests/programs
-      ../lsp/tree-sitter-vine
-    ];
-
-    tree-sitter-ivy = check "tree-sitter-ivy" [
-      ../ivy/examples
-      ../lsp/tree-sitter-ivy
-    ];
-  };
-}
+self

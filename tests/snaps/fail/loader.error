@@ -1,0 +1,12 @@
+error: cannot include a submodule from another file in a source file
+   @ loader/file.vi:2:1
+ 2 | mod foo; // error
+
+error: missing submodule; neither `loader/missing.vi` nor `loader/missing/` exist
+   @ loader/loader.vi:5:1
+ 5 | mod missing; // error
+
+error: ambiguous submodule source; both `loader/ambiguous.vi` and `loader/ambiguous/` exist
+   @ loader/loader.vi:6:1
+ 6 | mod ambiguous; // error
+

@@ -26,7 +26,6 @@ use vine_util::idx::IdxVec;
 
 struct Backend {
   client: Client,
-  fs: RealFS,
   entrypoints: Vec<String>,
   docs: RwLock<HashMap<Url, String>>,
   lsp: RwLock<Lsp>,
@@ -40,8 +39,7 @@ impl Backend {
     lsp.compiler.revert(&self.checkpoint);
     lsp.file_paths.truncate(self.checkpoint.files.0);
 
-    let mut fs = self.fs.clone();
-    let mut loader = Loader::new(&mut lsp.compiler, &mut fs, Some(&mut lsp.file_paths));
+    let mut loader = Loader::new(&mut lsp.compiler, RealFS, Some(&mut lsp.file_paths));
     for glob in &self.entrypoints {
       for entry in glob::glob(glob).unwrap() {
         let path = entry.unwrap();
@@ -429,7 +427,6 @@ pub async fn lsp(
     docs: RwLock::new(HashMap::new()),
     lsp: RwLock::new(Lsp { compiler, file_paths }),
     checkpoint,
-    fs: RealFS::default(),
   });
   Server::new(stdin, stdout, socket).serve(service).await;
 }

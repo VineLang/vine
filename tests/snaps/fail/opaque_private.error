@@ -1,0 +1,4 @@
+error: cannot find impl of trait `Show[A]`
+    @ opaque_private.vi:14:10
+ 14 | pub impl : Show[A];
+

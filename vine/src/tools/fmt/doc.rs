@@ -275,7 +275,7 @@ impl Writer {
     self.newline();
   }
 
-  fn newline(&mut self) {
+  pub(crate) fn newline(&mut self) {
     self.out += "\n";
     self.written = 0;
   }

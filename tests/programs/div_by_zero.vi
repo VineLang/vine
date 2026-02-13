@@ -1,4 +1,7 @@
 
+// @build --debug
+// @fail
+
 pub fn main(&io: &IO) {
   io.println("{1 / 0}");
 }

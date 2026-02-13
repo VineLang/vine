@@ -10,15 +10,18 @@
     "commands": [{
       "command": "target/release/vine fmt",
       "exts": ["vi"]
+    }, {
+      "command": "rustfmt",
+      "exts": ["rs"]
     }]
   },
-  "excludes": ["tests/programs/fail", "tests/programs/repl", "tests/programs/fmt", "tests/snaps"],
+  "excludes": ["tests/fail/*", "tests/repl/*", "tests/fmt/*", "tests/snaps/*"],
   "plugins": [
-    "https://plugins.dprint.dev/g-plane/pretty_yaml-v0.5.0.wasm",
-    "https://plugins.dprint.dev/json-0.19.3.wasm",
-    "https://plugins.dprint.dev/markdown-0.17.8.wasm",
-    "https://plugins.dprint.dev/toml-0.6.2.wasm",
-    "https://plugins.dprint.dev/exec-0.5.0.json@8d9972eee71fa1590e04873540421f3eda7674d0f1aae3d7c788615e7b7413d0",
-    "https://plugins.dprint.dev/typescript-0.95.8.wasm"
+    "https://plugins.dprint.dev/g-plane/pretty_yaml-v0.5.0.wasm@eae6b4db51bb656ec28b0cbf3875d30352688fd3c6131dd2646b6f680fff833a",
+    "https://plugins.dprint.dev/json-0.19.3.wasm@e89b5f3b5d73712f1b1ca017bce9cdf67de30a7d0dba47807809e0d262b01fb9",
+    "https://plugins.dprint.dev/markdown-0.17.8.wasm@3c810df549d80bc7682697734bb33a4041d0350b63ed6c17020bdec0fb138eab",
+    "https://plugins.dprint.dev/toml-0.6.2.wasm@a0451faef6244604ec8bfe046bfc293aff62527d09320cfaf53370f118c03bcd",
+    "https://plugins.dprint.dev/typescript-0.95.8.wasm@bba0e941684fc8446984a9a55ce4c4e8d5bfd3c6330435a0cd64c9e092cb0231",
+    "https://plugins.dprint.dev/exec-0.5.0.json@8d9972eee71fa1590e04873540421f3eda7674d0f1aae3d7c788615e7b7413d0"
   ]
 }

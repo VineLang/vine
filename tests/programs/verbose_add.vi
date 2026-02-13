@@ -1,4 +1,6 @@
 
+// @run -d
+
 pub fn main(&io: &IO) {
   io.println(verbose_add(Some(1), Some(2)));
   io.println(verbose_add(None(), Some(2)));

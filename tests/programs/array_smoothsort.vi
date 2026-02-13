@@ -1,4 +1,6 @@
 
+// @run -d
+
 use #root::{data::Array, ops::comparison::Ord};
 
 pub fn main(&io: &IO) {

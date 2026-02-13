@@ -31,6 +31,7 @@ impl<'src> Formatter<'src> {
     );
     let mut writer = Writer::default();
     writer.write_doc(&doc, false);
+    writer.newline();
     Ok(writer.out)
   }
 

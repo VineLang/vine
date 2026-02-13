@@ -1,4 +1,7 @@
 
+// @run -d
+// @fail
+
 pub fn main(&io: &IO) {
   io.println("{1 + safe #root::util::transmute[F32, N32](2.0)}");
 }

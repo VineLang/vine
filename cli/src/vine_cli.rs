@@ -1,7 +1,7 @@
 use std::{
   env,
   ffi::OsStr,
-  fs,
+  fmt, fs,
   io::{self, IsTerminal, Read, stderr, stdin, stdout},
   path::{Path, PathBuf},
   process::exit,
@@ -86,8 +86,7 @@ impl LibArgs {
     let mut compiler = Compiler::new(debug);
     let mut file_paths = IdxVec::new();
 
-    let mut fs = RealFS::default();
-    let mut loader = Loader::new(&mut compiler, &mut fs, Some(&mut file_paths));
+    let mut loader = Loader::new(&mut compiler, RealFS, Some(&mut file_paths));
     for lib in self.libs {
       loader.load_mod(lib.name, lib.path);
     }
@@ -116,8 +115,7 @@ impl CompileArgs {
   fn initialize(self) -> Compiler {
     let (mut compiler, _) = self.libs.initialize(self.debug);
 
-    let mut fs = RealFS::default();
-    let mut loader = Loader::new(&mut compiler, &mut fs, None);
+    let mut loader = Loader::new(&mut compiler, RealFS, None);
     loader.load_main_mod(self.main.name, self.main.path);
 
     compiler
@@ -275,8 +273,7 @@ impl VineCheckCommand {
 
       compiler.revert(&checkpoint);
 
-      let mut fs = RealFS::default();
-      let mut loader = Loader::new(&mut compiler, &mut fs, None);
+      let mut loader = Loader::new(&mut compiler, RealFS, None);
       for glob in &self.check.entrypoints {
         for entry in glob::glob(glob).unwrap() {
           let path = entry.unwrap();
@@ -383,14 +380,45 @@ impl VineReplCommand {
 }
 
 #[derive(Debug, Args)]
-pub struct VineFmtCommand {}
+pub struct VineFmtCommand {
+  files: Option<Vec<PathBuf>>,
+}
 
 impl VineFmtCommand {
   pub fn execute(self) -> Result<()> {
-    let mut src = String::new();
-    stdin().read_to_string(&mut src)?;
-    println!("{}", Formatter::fmt(&src).unwrap());
+    let mut success = true;
+    if let Some(files) = self.files {
+      for path in files {
+        let src = fs::read_to_string(&path)?;
+        if let Some(out) = Self::fmt(path.display(), &src) {
+          fs::write(&path, out)?;
+        } else {
+          success = false;
+        }
+      }
+    } else {
+      let mut src = String::new();
+      stdin().read_to_string(&mut src)?;
+      if let Some(out) = Self::fmt("input", &src) {
+        print!("{out}");
+      } else {
+        success = false;
+      }
+    }
+    if !success {
+      exit(1);
+    }
     Ok(())
+  }
+
+  fn fmt(path: impl fmt::Display, src: &str) -> Option<String> {
+    match Formatter::fmt(src) {
+      Ok(out) => Some(out),
+      Err(diag) => {
+        eprintln!("error formatting {path}:\n{diag}");
+        None
+      }
+    }
   }
 }
 

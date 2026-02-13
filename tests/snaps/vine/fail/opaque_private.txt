@@ -1,4 +1,0 @@
-error: cannot find impl of trait `Show[A]`
-    @ tests/programs/fail/opaque_private.vi:14:10
- 14 | pub impl : Show[A];
-

@@ -1,0 +1,49 @@
+map:
+  None()
+  Some(1)
+  Some(101)
+increment_option:
+  None()
+  Some(1)
+  Some(2)
+flatten:
+  None()
+  None()
+  Some(123)
+add_options:
+  None()
+  None()
+  None()
+  Some(3)
+or_option:
+  None()
+  Some(1)
+  Some(2)
+  Some(1)
+or_use:
+  0
+  1
+is_some:
+  false
+  true
+is_none:
+  true
+  false
+is_some_and:
+  false
+  false
+  true
+is_some_implies:
+  true
+  false
+  true
+take:
+  Some(3)
+  None()
+  None()
+  None()
+assume:
+  42
+ERROR: `Option::assume` called on `None()`
+  @ #root::logical::Option::assume (root/logical/Option.vi:60:16)
+  @ #option_party::main (option_party.vi:85:13)

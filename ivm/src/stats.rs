@@ -68,6 +68,11 @@ impl Stats {
   pub fn speedup(&self) -> u64 {
     ((self.interactions() as f64 / self.depth as f64).log10() * 100.0).round() as u64
   }
+
+  pub fn clear_perf(&mut self) {
+    self.time_total = Duration::ZERO;
+    self.time_clock = Duration::ZERO;
+  }
 }
 
 // This code is very complex, as it avoids doing any allocation. Premature
@@ -112,12 +117,14 @@ impl Display for Stats {
         ("  Heap", Some((self.mem_heap * 8, "B"))),
         ("  Allocated", Some((self.mem_alloc * 8, "B"))),
         ("  Freed", Some((self.mem_free * 8, "B"))),
+      ]),
+      (!self.time_clock.is_zero()).then_some(&[
         ("", None),
         ("Performance", None),
         ("  Time", Some((self.time_clock.as_millis() as u64, "ms"))),
         ("  Speed", Some((self.clock_speed(), "IPS"))),
       ]),
-      (self.workers_used != 0).then_some(&[
+      (!self.time_clock.is_zero() && self.workers_used != 0).then_some(&[
         ("  Working", Some((self.time_total.as_millis() as u64, "ms"))),
         ("  Rate", Some((self.speed(), "IPS"))),
       ]),

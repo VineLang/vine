@@ -1,4 +1,6 @@
 
+// @run some cli args
+
 pub fn main(&io: &IO) {
   let args = io.args();
   io.println("{args.show()}");

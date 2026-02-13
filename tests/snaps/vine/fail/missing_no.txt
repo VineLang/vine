@@ -1,2 +1,0 @@
-error: cannot read `tests/programs/fail/missing_no.vi`
-

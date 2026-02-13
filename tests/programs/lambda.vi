@@ -1,4 +1,7 @@
 
+// @run -d
+// @input lambda
+
 use #root::{data::Map, util::{duplicate, erase, eraser}};
 
 pub fn main(&io: &IO) {

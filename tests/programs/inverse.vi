@@ -1,4 +1,6 @@
 
+// @run -d
+
 use #root::util::{duplicate, erase};
 
 pub fn main(&io: &IO) {

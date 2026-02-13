@@ -1,4 +1,6 @@
 
+// @run -d
+
 use #root::data::Heap;
 use #root::rng::Pcg32;
 

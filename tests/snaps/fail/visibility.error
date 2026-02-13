@@ -1,0 +1,114 @@
+error: subitems must be private
+    @ visibility.vi:22:10
+ 22 |   pub fn x() {}
+
+error: invalid visibility; expected the name of an ancestor module
+    @ visibility.vi:26:7
+ 26 |   pub.main use lib::{
+
+error: `#visibility::lib::a::b` is only visible within `#visibility::lib::a`
+    @ visibility.vi:27:8
+ 27 |     a::b,
+
+error: `#visibility::lib::c` is only visible within `#visibility::lib`
+    @ visibility.vi:28:5
+ 28 |     c,
+
+error: `#visibility::lib::d::e` is only visible within `#visibility::lib`
+    @ visibility.vi:29:8
+ 29 |     d::e,
+
+error: circular import
+    @ visibility.vi:33:18
+ 33 | use #visibility::circular;
+
+error: type `IO` has no method `_read_char`
+    @ visibility.vi:19:3
+ 19 |   io._read_char();
+
+error: the value `#visibility::lib::x` is only visible within `#visibility::lib`
+    @ visibility.vi:20:24
+ 20 |   let lib::x: lib::x = lib::x;
+
+error: the type `#visibility::lib::x` is only visible within `#visibility::lib`
+    @ visibility.vi:20:15
+ 20 |   let lib::x: lib::x = lib::x;
+
+error: the pattern `#visibility::lib::x` is only visible within `#visibility::lib`
+    @ visibility.vi:20:7
+ 20 |   let lib::x: lib::x = lib::x;
+
+error: `#visibility::lib::y` is only visible within `#visibility::lib`
+    @ visibility.vi:21:24
+ 21 |   let lib::y: lib::y = lib::y;
+
+error: `#visibility::lib::y` is only visible within `#visibility::lib`
+    @ visibility.vi:21:15
+ 21 |   let lib::y: lib::y = lib::y;
+
+error: `#visibility::lib::y` is only visible within `#visibility::lib`
+    @ visibility.vi:21:7
+ 21 |   let lib::y: lib::y = lib::y;
+
+error: `#visibility::main` is only visible within `#visibility`
+
+warning: unused item
+   @ visibility.vi:2:5
+ 2 | mod lib {
+
+warning: unused item
+    @ visibility.vi:18:4
+ 18 | fn main(&io: &IO) {
+
+warning: unused item
+    @ visibility.vi:25:5
+ 25 | mod p {
+
+warning: unused item
+    @ visibility.vi:36:5
+ 36 | mod q {
+
+warning: unused item
+   @ visibility.vi:3:6
+ 3 |   fn a() { fn b() {} }
+
+warning: unused item
+    @ visibility.vi:14:10
+ 14 |   struct y(());
+
+warning: unused item
+   @ visibility.vi:3:15
+ 3 |   fn a() { fn b() {} }
+
+warning: unused item
+   @ visibility.vi:8:18
+ 8 |   mod d { pub fn e() {} }
+
+warning: unused item
+    @ visibility.vi:22:10
+ 22 |   pub fn x() {}
+
+warning: unused item
+    @ visibility.vi:37:6
+ 37 |   fn x() { lib::d() }
+
+warning: unused item
+    @ visibility.vi:39:8
+ 39 |     a::c,
+
+warning: unused item
+    @ visibility.vi:40:5
+ 40 |     d,
+
+warning: unused item
+    @ visibility.vi:43:8
+ 43 |     d::g,
+
+warning: unused item
+    @ visibility.vi:41:5
+ 41 |     e,
+
+warning: unused item
+    @ visibility.vi:42:5
+ 42 |     f,
+

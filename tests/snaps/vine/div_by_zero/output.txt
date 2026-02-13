@@ -1,3 +1,0 @@
-ERROR: division by zero
-  @ #root::numeric::N32::div (root/numeric/N32.vi:53:16)
-  @ #div_by_zero::main (tests/programs/div_by_zero.vi:3:16)

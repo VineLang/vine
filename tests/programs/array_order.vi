@@ -1,4 +1,6 @@
 
+// @run -d
+
 use #root::data::Array;
 
 pub fn main(&io: &IO) {

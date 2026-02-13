@@ -28,6 +28,8 @@ impl Optimizations {
 pub struct RunArgs {
   #[arg(long)]
   no_stats: bool,
+  #[arg(long)]
+  no_perf: bool,
   #[arg(long, short, default_value = "0")]
   workers: usize,
   #[arg(long, alias = "depth", short = 'd')]
@@ -86,6 +88,10 @@ impl RunArgs {
     }
     if ivm.flags.ext_generic {
       eprintln!("\nError: an extrinsic function encountered an unspecified error");
+    }
+
+    if self.no_perf {
+      ivm.stats.clear_perf();
     }
 
     if !self.no_stats {

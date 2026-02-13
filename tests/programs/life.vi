@@ -1,4 +1,7 @@
 
+// @run -d
+// @input life
+
 use #root::{rng::Pcg32, util::erase};
 
 const default_size: N32 = 46;

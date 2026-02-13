@@ -19,11 +19,14 @@
       url = "github:TendrilsCompute/hyptyp";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    treefmt-nix = {
+      url = "github:numtide/treefmt-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =
     {
-      self,
       nixpkgs,
       flake-utils,
       rust-overlay,
@@ -31,6 +34,8 @@
       typix,
       typsitter,
       hyptyp,
+      treefmt-nix,
+      ...
     }:
     flake-utils.lib.eachDefaultSystem (
       system:
@@ -40,93 +45,55 @@
           overlays = [ rust-overlay.overlays.default ];
         };
 
-        craneLib = (crane.mkLib pkgs).overrideToolchain (
-          pkgs: pkgs.rust-bin.fromRustupToolchainFile ./rust-toolchain.toml
-        );
+        rustToolchain = pkgs.rust-bin.fromRustupToolchainFile ./rust-toolchain.toml;
+        craneLib = (crane.mkLib pkgs).overrideToolchain (_: rustToolchain);
 
-        vineConfig = {
-          pname = "vine";
-          version = "0.0.0";
-          src = pkgs.lib.fileset.toSource {
-            root = ./.;
-            fileset = pkgs.lib.fileset.unions [
-              ./Cargo.toml
-              ./util
-              ./ivm
-              ./ivy
-              ./vine
-              ./lsp
-              ./cli
-              ./tests/Cargo.toml
-            ];
-          };
-          VINE_ROOT_PATH = "../lib/root";
-          cargoLock = ./Cargo.lock;
-          outputHashes = {
-            "git+https://github.com/tjjfvi/class?rev=99738e6#99738e67dd8fb3b97d65e6fc59b92f04c11519a4" =
-              "sha256-ye8DqeDRXsNpTWpGGlvWxSSc1AiXOLud99dHpB/VhZg=";
-          };
-          doCheck = false;
+        self.cli = import ./cli/cli.nix {
+          inherit pkgs craneLib;
         };
 
-        vineNoRoot = craneLib.buildPackage (
-          vineConfig
-          // {
-            cargoArtifacts = craneLib.buildDepsOnly vineConfig;
-          }
-        );
-
-        vine = pkgs.runCommand "vine" { } ''
-          mkdir $out
-          cp -r ${vineNoRoot}/* $out
-          mkdir $out/lib
-          cp -r ${./root} $out/lib/root
-        '';
-
-        grammars = import ./lsp/grammars.nix {
-          inherit (pkgs)
-            lib
-            stdenv
-            stdenvNoCC
-            tree-sitter
-            nodejs_24
-            nushell
+        self.tests = import ./tests/tests.nix {
+          inherit
+            pkgs
+            flake-utils
+            rustToolchain
+            craneLib
             ;
+          inherit (self) cli;
         };
-        docs = import ./docs/docs.nix {
+
+        self.grammars = import ./lsp/grammars.nix {
+          inherit pkgs;
+        };
+
+        self.docs = import ./docs/docs.nix {
           inherit
             system
             pkgs
             flake-utils
-            grammars
             hyptyp
             typix
             typsitter
-            vineNoRoot
             ;
+          inherit (self) grammars cli;
+        };
+
+        self.style = import ./style.nix {
+          inherit pkgs treefmt-nix;
+          inherit (self) cli;
         };
       in
-      builtins.foldl' pkgs.lib.attrsets.recursiveUpdate
-        {
-          formatter = pkgs.nixfmt-tree;
+      builtins.foldl' pkgs.lib.attrsets.recursiveUpdate {
+        packages.default = self.cli.packages.vine;
 
-          packages = {
-            default = vine;
-            inherit vine;
-          };
-
-          devShells.default = craneLib.devShell {
-            name = "vine-dev";
-            nativeBuildInputs = [
-              pkgs.nushell
-              pkgs.nodejs_24
-              pkgs.tree-sitter
-            ];
-          };
-        }
-        [
-          grammars
-          docs
-        ]
+        devShells.default = craneLib.devShell {
+          name = "vine-dev";
+          nativeBuildInputs = [
+            pkgs.nushell
+            pkgs.nodejs_24
+            pkgs.tree-sitter
+          ];
+        };
+      } (builtins.attrValues self)
     );
 }

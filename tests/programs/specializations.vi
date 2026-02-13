@@ -1,4 +1,6 @@
 
+// @run -d
+
 pub fn main(&io: &IO) {
   io.println("{[1, 2, 3, 4].show()}");
   io.println("{["abc", "def", "ghi"].show()}");

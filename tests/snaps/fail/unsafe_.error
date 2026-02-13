@@ -1,0 +1,68 @@
+error: unsafe items can only exist in unsafe traits
+    @ unsafe_.vi:81:3
+ 81 |   unsafe fn foo(); // error
+
+error: unsafe items can only exist in unsafe traits
+    @ unsafe_.vi:82:3
+ 82 |   unsafe const bar: (); // error
+
+error: this is unsafe
+    @ unsafe_.vi:89:1
+ 89 | #[become(p)] // error
+
+error: unsafe enums cannot have a flex annotation
+    @ unsafe_.vi:95:16
+ 95 | pub unsafe enum? Qux {}
+
+error: this is unsafe
+    @ unsafe_.vi:20:3
+ 20 |   foo; // error
+
+error: this is unsafe
+    @ unsafe_.vi:21:3
+ 21 |   bar(); // error
+
+error: this is unsafe
+    @ unsafe_.vi:22:3
+ 22 |   inline_ivy! () -> () { _ } // error
+
+error: this is unsafe
+    @ unsafe_.vi:23:18
+ 23 |   let nullable = Nullable::null(); // error
+
+error: this is unsafe
+    @ unsafe_.vi:24:4
+ 24 |   &nullable.null; // error
+
+error: this is unsafe
+    @ unsafe_.vi:25:7
+ 25 |   let Nullable::null() = nullable; // error
+
+error: this is unsafe
+    @ unsafe_.vi:45:10
+ 45 | pub impl a: Foo { // error
+
+error: expected a safe fn
+    @ unsafe_.vi:60:13
+ 60 |   unsafe fn foo() {} // error
+
+error: expected a safe const
+    @ unsafe_.vi:62:16
+ 62 |   unsafe const baz: () = (); // error
+
+error: entrypoint cannot be unsafe
+   @ unsafe_.vi:4:15
+ 4 | pub unsafe fn main(_: &IO) {} // error
+
+warning: unused `safe`
+    @ unsafe_.vi:16:3
+ 16 |   safe foo; // warning
+
+warning: unused `safe`
+    @ unsafe_.vi:34:3
+ 34 |   safe (); // warning
+
+warning: unused `safe`
+    @ unsafe_.vi:35:8
+ 35 |   safe safe foo; // warning
+

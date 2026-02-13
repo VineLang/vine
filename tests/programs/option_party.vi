@@ -1,4 +1,7 @@
 
+// @build --debug
+// @fail
+
 pub fn main(&io: &IO) {
   let fn print_option_n32(option: Option[N32]) {
     io.println("  {option.show()}")
