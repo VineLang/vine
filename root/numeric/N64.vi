@@ -292,6 +292,44 @@ pub mod N64 {
     }
   }
 
+  pub fn .to_binary_raw(n: N64) -> String {
+    let chars = [];
+    loop {
+      chars.push_front('0' + (n as N32 & 1));
+      n >>= 1;
+      if !n.is_zero() {
+        continue;
+      }
+    }
+    String(chars)
+  }
+
+  pub fn .to_binary(n: N64) -> String {
+    "0b" ++ n.to_binary_raw()
+  }
+
+  pub fn .to_hex_raw(n: N64) -> String {
+    let chars = [];
+    loop {
+      let nibble = n as N32 & 15;
+      let nibble = if nibble < 10 {
+        '0' + nibble
+      } else {
+        'a' - 10 + nibble
+      };
+      chars.push_front(nibble);
+      n >>= 4;
+      if !n.is_zero() {
+        continue;
+      }
+    }
+    String(chars)
+  }
+
+  pub fn .to_hex(n: N64) -> String {
+    "0x" ++ n.to_hex_raw()
+  }
+
   pub impl : Pow[N64, N32, N64] {
     fn pow(base: N64, exp: N32) -> N64 {
       Pow::pow_by_squaring(base, exp)
