@@ -166,10 +166,6 @@ pub mod F64 {
     { negative, raw_exp, mantissa }
   }
 
-  pub fn .is_nan(f: F64) -> Bool {
-    f != f
-  }
-
   pub fn .abs(f: F64) -> F64 {
     if f < (0.0 as F64) {
       -f
@@ -180,17 +176,36 @@ pub mod F64 {
 
   pub impl show: Show[F64] {
     fn show(&self: &F64) -> Show {
-      Show::Literal("≈{self as F32}")
+      Show::Literal("{self}")
     }
   }
 
-  pub impl to_string: Cast[F64, String] {
-    fn cast(self: F64) -> String {
-      "{self.show()}"
-    }
+  pub fn parse(s: String) -> Option[F64] {
+    Float::parse[F64, N64](s)
   }
 
-  pub fn parse(str: String) -> Option[F64] {
-    F32::parse(str).map(fn? (f: F32) { f as F64 })
+  pub impl float: Float[F64, N64] {
+    const nan: F64 = F64::nan;
+    const inf: F64 = F64::inf;
+    const neg_inf: F64 = F64::neg_inf;
+    const zero: F64 = 0.0[F64];
+
+    const num_mantissa_bits: N32 = 52;
+    const max_exponent: I32 = +1023;
+    const min_exponent: I32 = -1022;
+    const min_subnormal_exponent: I32 = -1074;
+    const max_decimal_digits: N32 = 19;
+
+    fn from_parts(negative: Bool, raw_exp: N32, mantissa: N64) -> F64 {
+      F64::from_bits(negative as N64 << 63 | raw_exp as N64 << 52 | mantissa)
+    }
+
+    fn to_parts(f: F64) -> { negative: Bool, raw_exp: N32, mantissa: N64 } {
+      let bits = f.to_bits();
+      let negative = (bits >> 63) as N32 == 1;
+      let raw_exp = (bits >> 52) as N32 & 0x7ff;
+      let mantissa = bits & 0xfffffffffffff[N64];
+      { negative, raw_exp, mantissa }
+    }
   }
 }
