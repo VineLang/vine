@@ -252,7 +252,7 @@ impl Charter<'_> {
         },
         AttrKind::Configurable => {
           let Some(concrete_const_id) = concrete_const_id else {
-            self.diags.error(Diag::BadTestAttr { span });
+            self.diags.error(Diag::BadConfigurableAttr { span });
             continue;
           };
 
