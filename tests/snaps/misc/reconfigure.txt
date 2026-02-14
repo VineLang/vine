@@ -1,0 +1,15 @@
+$vine run --no-stats $vi
+{ a: false, b: 0, c: "c" }
+$vine run --no-stats $vi --config a true --config b 46 --config c hi
+{ a: true, b: 46, c: "hi" }
+$vine run --no-stats $vi --config c ""
+{ a: false, b: 0, c: "" }
+! $vine run $vi --config a bad --config b bad
+error: invalid configuration value `bad`
+   @ configurable.vi:3:7
+ 3 | const a: Bool = false;
+
+error: invalid configuration value `bad`
+   @ configurable.vi:6:7
+ 6 | const b: N32 = 0;
+

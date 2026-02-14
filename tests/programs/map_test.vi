@@ -1,7 +1,10 @@
 
 use #root::{data::Map, rng::Pcg32};
 
+#[configurable]
 const iterations: N32 = 4600;
+
+#[configurable]
 const seed: String = "dubiously charged umbrella";
 
 pub fn main(&io: &IO) {

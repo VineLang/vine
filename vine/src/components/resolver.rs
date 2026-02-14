@@ -32,6 +32,7 @@ use crate::{
 #[derive(Debug)]
 pub struct Resolver<'a> {
   pub(crate) chart: &'a Chart,
+  pub(crate) config: &'a HashMap<String, String>,
   pub(crate) sigs: &'a mut Signatures,
   pub(crate) diags: &'a mut Diags,
   pub(crate) resolutions: &'a mut Resolutions,
@@ -77,6 +78,7 @@ pub(crate) enum ScopeBinding {
 
 impl<'a> Resolver<'a> {
   pub fn new(
+    config: &'a HashMap<String, String>,
     chart: &'a Chart,
     sigs: &'a mut Signatures,
     diags: &'a mut Diags,
@@ -86,6 +88,7 @@ impl<'a> Resolver<'a> {
     finder_cache: &'a mut FinderCache,
   ) -> Self {
     Resolver {
+      config,
       chart,
       sigs,
       diags,

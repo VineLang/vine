@@ -79,7 +79,13 @@ impl<'a> Specializer<'a> {
   ) -> Result<SpecId, ErrorGuaranteed> {
     let mut impls = impls.iter().map(|x| self.instantiate(fragment_id, args, x)).collect();
     match *const_id {
-      ConstId::Concrete(const_id) => Ok(self.specialize(self.resolutions.consts[const_id], impls)),
+      ConstId::Concrete(const_id) => {
+        if let Some(item) = self.resolutions.config.get(&const_id) {
+          Ok(self.instantiate_synthetic_item(item.clone(), Vec::new()))
+        } else {
+          Ok(self.specialize(self.resolutions.consts[const_id], impls))
+        }
+      }
       ConstId::Abstract(_, const_id) => {
         let mut impl_ = impls.remove(0);
         loop {

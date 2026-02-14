@@ -1,4 +1,4 @@
-use std::mem::take;
+use std::{collections::HashMap, mem::take};
 
 use ivy::ast::{Nets, Tree};
 use vine_util::idx::IdxVec;
@@ -31,8 +31,10 @@ use crate::{
   },
 };
 
+#[derive(Default)]
 pub struct Compiler {
   pub debug: bool,
+  pub config: HashMap<String, String>,
   pub files: IdxVec<FileId, FileInfo>,
   pub loaded: Vec<Module>,
   pub chart: Chart,
@@ -48,22 +50,8 @@ pub struct Compiler {
 }
 
 impl Compiler {
-  pub fn new(debug: bool) -> Self {
-    Compiler {
-      debug,
-      files: IdxVec::new(),
-      loaded: Vec::new(),
-      chart: Chart::default(),
-      sigs: Signatures::default(),
-      resolutions: Resolutions::default(),
-      annotations: Annotations::default(),
-      specs: Specializations::default(),
-      fragments: IdxVec::new(),
-      vir: IdxVec::new(),
-      templates: IdxVec::new(),
-      finder_cache: FinderCache::default(),
-      diags: Diags::default(),
-    }
+  pub fn new(debug: bool, config: HashMap<String, String>) -> Self {
+    Compiler { debug, config, ..Default::default() }
   }
 
   pub fn check(&mut self, hooks: impl Hooks) -> Result<(), ErrorGuaranteed> {
@@ -101,6 +89,7 @@ impl Compiler {
     hooks.chart(&mut charter);
 
     let mut resolver = Resolver::new(
+      &self.config,
       chart,
       &mut self.sigs,
       &mut self.diags,

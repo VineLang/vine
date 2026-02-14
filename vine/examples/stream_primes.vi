@@ -1,4 +1,5 @@
 
+#[configurable]
 const end: N32 = 10_000;
 
 pub fn main(&io: &IO) {
