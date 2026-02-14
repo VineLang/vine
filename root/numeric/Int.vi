@@ -168,7 +168,7 @@ pub mod Int {
 
   pub impl to_n64: Cast[Int, N64] {
     fn cast(Int(_, magnitude)) -> N64 {
-      let parts = magnitude.to_parts();
+      let parts = Nat::to_parts(magnitude);
       let lo = parts.pop_front().or_use(0);
       let hi = parts.pop_front().or_use(0);
       N64(lo, hi)
