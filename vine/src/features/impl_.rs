@@ -10,14 +10,12 @@ use crate::{
     resolver::Resolver,
   },
   structures::{
-    ast::{
-      Attr, ConstItem, Flex, FnItem, GenericParams, ImplItem, ImplItemKind, ItemKind, Path, Span,
-      Vis,
-    },
+    ast::{Attr, ConstItem, Flex, FnItem, ImplItem, ImplItemKind, ItemKind, Path, Span, Vis},
     chart::{
       Binding, ConcreteConstDef, ConcreteConstId, ConcreteFnDef, ConcreteFnId, ConstId, DefId,
-      DefImplKind, DefTypeKind, DefValueKind, FnId, GenericsId, ImplDef, ImplDefKind, ImplId,
-      ImplSubitem, ImplSubitemKind, TraitConstId, TraitFnId, TraitId, VisId,
+      DefImplKind, DefTraitKind, DefTypeKind, DefValueKind, DeriveKind, FnId, GenericsDef,
+      GenericsId, GenericsKind, ImplDef, ImplDefKind, ImplId, ImplSubitem, ImplSubitemKind,
+      TraitConstId, TraitFnId, TraitId, VisId,
     },
     diag::{Diag, ErrorGuaranteed},
     resolutions::{Become, ResolvedImpl, ResolvedImplKind},
@@ -177,7 +175,7 @@ impl Charter<'_> {
     });
     self.define_value(span, def, vis, DefValueKind::Fn(FnId::Concrete(fn_id)));
     let charted_item = ChartedItem::Fn(def, FnId::Concrete(fn_id));
-    self.chart_attrs(charted_item, attrs);
+    self.chart_attrs(vis, charted_item, attrs);
     self.annotations.record_reference(span, span);
     ImplSubitem { span, name: fn_item.name, kind: ImplSubitemKind::Fn(fn_id) }
   }
@@ -211,7 +209,7 @@ impl Charter<'_> {
     });
     self.define_value(span, def, vis, DefValueKind::Const(ConstId::Concrete(const_id)));
     let charted_item = ChartedItem::Const(def, ConstId::Concrete(const_id));
-    self.chart_attrs(charted_item, attrs);
+    self.chart_attrs(vis, charted_item, attrs);
     if unsafe_ {
       self.chart_unsafe(span, charted_item);
     }
@@ -229,39 +227,55 @@ impl Charter<'_> {
     flex: Flex,
   ) {
     if flex.fork() {
-      let _generic_params = GenericParams { inherit: true, ..GenericParams::empty(span) };
-      let generics = self._chart_generics(def, ty_generics, _generic_params, true, Flex::Fork);
-      let impl_ = self.chart.impls.push(ImplDef {
-        span,
-        def,
-        name: None,
-        generics,
-        kind: ImplDefKind::IndirectFork(ty),
-        manual: false,
-        basic: false,
-        become_: None,
-        vis,
-        unsafe_: false,
-      });
-      self.define_impl(span, def, vis, DefImplKind::Impl(impl_));
+      self.chart_derive_impl(def, ty_generics, vis, ty, span, DeriveKind::Fork(span));
     }
     if flex.drop() {
-      let _generic_params = GenericParams { inherit: true, ..GenericParams::empty(span) };
-      let generics = self._chart_generics(def, ty_generics, _generic_params, true, Flex::Drop);
-      let impl_ = self.chart.impls.push(ImplDef {
-        span,
-        def,
-        name: None,
-        generics,
-        kind: ImplDefKind::IndirectDrop(ty),
-        manual: false,
-        basic: false,
-        become_: None,
-        vis,
-        unsafe_: false,
-      });
-      self.define_impl(span, def, vis, DefImplKind::Impl(impl_));
+      self.chart_derive_impl(def, ty_generics, vis, ty, span, DeriveKind::Drop(span));
     }
+  }
+
+  pub fn chart_derive_impls(
+    &mut self,
+    def: DefId,
+    ty_generics: GenericsId,
+    vis: VisId,
+    ty: DefTypeKind,
+    traits: Vec<Path>,
+  ) {
+    for trait_ in traits {
+      self.chart_derive_impl(def, ty_generics, vis, ty, trait_.span, DeriveKind::Trait(trait_));
+    }
+  }
+
+  fn chart_derive_impl(
+    &mut self,
+    def: DefId,
+    ty_generics: GenericsId,
+    vis: VisId,
+    ty: DefTypeKind,
+    span: Span,
+    kind: DeriveKind,
+  ) {
+    let generics = self.chart.generics.push(GenericsDef {
+      span,
+      def,
+      parent: Some(ty_generics),
+      impl_allowed: true,
+      kind: GenericsKind::Derive(kind.clone()),
+    });
+    let impl_ = self.chart.impls.push(ImplDef {
+      span,
+      def,
+      name: None,
+      generics,
+      kind: ImplDefKind::Derive(kind, ty),
+      manual: false,
+      basic: false,
+      become_: None,
+      vis,
+      unsafe_: false,
+    });
+    self.define_impl(span, def, vis, DefImplKind::Impl(impl_));
   }
 }
 
@@ -274,12 +288,7 @@ impl Resolver<'_> {
       ImplDefKind::Direct(_, trait_, _) | ImplDefKind::Indirect(trait_, _) => {
         self.resolve_trait(trait_)
       }
-      ImplDefKind::IndirectFork(ty) => {
-        self.resolve_flex_impl_ty(span, *ty, self.chart.builtins.fork, "Fork")
-      }
-      ImplDefKind::IndirectDrop(ty) => {
-        self.resolve_flex_impl_ty(span, *ty, self.chart.builtins.drop, "Drop")
-      }
+      ImplDefKind::Derive(kind, ty) => self.resolve_derive_impl_ty(kind, *ty),
     };
 
     let hover = format!(
@@ -311,31 +320,55 @@ impl Resolver<'_> {
     self.sigs.impls.push_to(impl_id, TypeCtx { types, inner: ImplSig { ty } });
   }
 
-  fn resolve_flex_impl_ty(
-    &mut self,
-    span: Span,
-    ty: DefTypeKind,
-    trait_id: Option<TraitId>,
-    builtin: &'static str,
-  ) -> ImplType {
-    if let Some(trait_id) = trait_id {
-      let params = Vec::from_iter(
-        self.sigs.type_params[self.cur_generics]
-          .params
-          .iter()
-          .enumerate()
-          .map(|(i, name)| self.types.new(TypeKind::Param(i, name.clone()))),
-      );
-      ImplType::Trait(
-        trait_id,
-        vec![match ty {
-          DefTypeKind::Struct(struct_id) => self.types.new_struct(self.chart, struct_id, params),
-          DefTypeKind::Enum(enum_id) => self.types.new(TypeKind::Enum(enum_id, params)),
-          _ => unreachable!(),
-        }],
-      )
-    } else {
-      ImplType::Error(self.diags.error(Diag::MissingBuiltin { span, builtin }))
+  pub(crate) fn resolve_derive_kind(&mut self, kind: &DeriveKind) -> Result<TraitId, Diag> {
+    match kind {
+      DeriveKind::Fork(span) => {
+        self.chart.builtins.fork.ok_or(Diag::MissingBuiltin { span: *span, builtin: "Fork" })
+      }
+      DeriveKind::Drop(span) => {
+        self.chart.builtins.drop.ok_or(Diag::MissingBuiltin { span: *span, builtin: "Drop" })
+      }
+      DeriveKind::Trait(trait_) => {
+        let span = trait_.span;
+        if trait_.generics.is_some() {
+          return Err(Diag::DerivePassedArguments { span });
+        }
+        match self.resolve_path(self.cur_def, trait_, "trait", |d| d.trait_kind) {
+          Ok(DefTraitKind::Trait(trait_id)) => {
+            if self.sigs.type_params[self.chart.traits[trait_id].generics].params.len() == 1 {
+              Ok(trait_id)
+            } else {
+              Err(Diag::DeriveMultiParams { span })
+            }
+          }
+          Err(diag) => Err(diag),
+        }
+      }
+    }
+  }
+
+  fn resolve_derive_impl_ty(&mut self, kind: &DeriveKind, ty: DefTypeKind) -> ImplType {
+    match self.resolve_derive_kind(kind) {
+      Ok(trait_id) => {
+        let params = Vec::from_iter(
+          self.sigs.type_params[self.cur_generics]
+            .params
+            .iter()
+            .enumerate()
+            .map(|(i, name)| self.types.new(TypeKind::Param(i, name.clone()))),
+        );
+        ImplType::Trait(
+          trait_id,
+          vec![match ty {
+            DefTypeKind::Struct(struct_id) => self.types.new_struct(self.chart, struct_id, params),
+            DefTypeKind::Enum(enum_id) => self.types.new(TypeKind::Enum(enum_id, params)),
+            DefTypeKind::Union(union_id) => self.types.new_union(self.chart, union_id, params),
+            DefTypeKind::Opaque(opaque_id) => self.types.new(TypeKind::Opaque(opaque_id, params)),
+            _ => unreachable!(),
+          }],
+        )
+      }
+      Err(diag) => ImplType::Error(self.diags.error(diag)),
     }
   }
 
@@ -373,9 +406,7 @@ impl Resolver<'_> {
           ImplDefKind::Indirect(_, Some(impl_)) => {
             ResolvedImplKind::Indirect(self.resolve_impl_type(impl_, &ty))
           }
-          ImplDefKind::Indirect(_, None)
-          | ImplDefKind::IndirectFork(_)
-          | ImplDefKind::IndirectDrop(_) => {
+          ImplDefKind::Indirect(_, None) | ImplDefKind::Derive(..) => {
             ResolvedImplKind::Indirect(self.find_impl(span, &ty, true))
           }
         };

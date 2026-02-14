@@ -329,6 +329,12 @@ diags! {
     ["invalid configuration type"]
   InvalidConfigValue { value: String }
     ["invalid configuration value `{value}`"]
+  DerivePassedArguments
+    ["generic arguments cannot be supplied here"]
+  DeriveMultiParams
+    ["expected a trait with exactly one type parameter"]
+  BadImplAttr
+    ["the `#[impl]` attribute can only be applied to a struct, enum, or opaque type definition"]
 }
 
 fn plural<'a>(n: usize, plural: &'a str, singular: &'a str) -> &'a str {

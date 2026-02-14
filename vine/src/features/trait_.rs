@@ -10,10 +10,10 @@ use crate::{
     resolver::Resolver,
   },
   structures::{
-    ast::{Attr, ConstItem, Flex, FnItem, GenericParams, ItemKind, Span, TraitItem, Vis},
+    ast::{Attr, ConstItem, FnItem, ItemKind, Span, TraitItem, Vis},
     chart::{
-      ConstId, DefId, DefTraitKind, DefValueKind, FnId, GenericsDef, GenericsId, TraitConst,
-      TraitConstId, TraitDef, TraitFn, TraitFnId, TraitId, VisId,
+      ConstId, DefId, DefTraitKind, DefValueKind, FnId, GenericsDef, GenericsId, GenericsKind,
+      TraitConst, TraitConstId, TraitDef, TraitFn, TraitFnId, TraitId, VisId,
     },
     diag::Diag,
     signatures::{ConstSig, FnSig, TraitSig},
@@ -63,6 +63,13 @@ impl Charter<'_> {
     let trait_id = self.chart.traits.next_index();
     let mut consts = IdxVec::new();
     let mut fns = IdxVec::new();
+    let sub_generics = self.chart.generics.push(GenericsDef {
+      span,
+      def,
+      parent: Some(generics),
+      impl_allowed: true,
+      kind: GenericsKind::Trait { trait_id },
+    });
     for subitem in trait_item.items {
       let span = subitem.name_span;
       let attrs = subitem.attrs;
@@ -79,7 +86,7 @@ impl Charter<'_> {
             vis,
             def,
             trait_id,
-            generics,
+            sub_generics,
             &mut fns,
             span,
             attrs,
@@ -92,7 +99,7 @@ impl Charter<'_> {
             vis,
             def,
             trait_id,
-            generics,
+            sub_generics,
             &mut consts,
             span,
             attrs,
@@ -121,13 +128,13 @@ impl Charter<'_> {
     span: Span,
     attrs: Vec<Attr>,
     unsafe_: bool,
-    fn_item: FnItem,
+    mut fn_item: FnItem,
   ) {
     if fn_item.body.is_some() {
       self.diags.error(Diag::ImplementedTraitItem { span });
     }
-    let generics =
-      self.chart_trait_subitem_generics(span, def, trait_id, trait_generics, fn_item.generics);
+    fn_item.generics.inherit = true;
+    let generics = self.chart_generics(def, trait_generics, fn_item.generics, true);
     let trait_fn_id = fns.push(TraitFn {
       span,
       method: fn_item.method,
@@ -141,7 +148,7 @@ impl Charter<'_> {
     let fn_id = FnId::Abstract(trait_id, trait_fn_id);
     self.define_value(span, def, vis, DefValueKind::Fn(fn_id));
     let charted_item = ChartedItem::Fn(def, fn_id);
-    self.chart_attrs(charted_item, attrs);
+    self.chart_attrs(vis, charted_item, attrs);
   }
 
   fn chart_trait_const(
@@ -154,13 +161,13 @@ impl Charter<'_> {
     span: Span,
     attrs: Vec<Attr>,
     unsafe_: bool,
-    const_item: ConstItem,
+    mut const_item: ConstItem,
   ) {
     if const_item.value.is_some() {
       self.diags.error(Diag::ImplementedTraitItem { span });
     }
-    let generics =
-      self.chart_trait_subitem_generics(span, def, trait_id, trait_generics, const_item.generics);
+    const_item.generics.inherit = true;
+    let generics = self.chart_generics(def, trait_generics, const_item.generics, true);
     let trait_const_id = consts.push(TraitConst {
       span,
       name: const_item.name.clone(),
@@ -172,30 +179,7 @@ impl Charter<'_> {
     let const_id = ConstId::Abstract(trait_id, trait_const_id);
     self.define_value(span, def, vis, DefValueKind::Const(const_id));
     let charted_item = ChartedItem::Const(def, const_id);
-    self.chart_attrs(charted_item, attrs);
-  }
-
-  fn chart_trait_subitem_generics(
-    &mut self,
-    span: Span,
-    def: DefId,
-    trait_id: TraitId,
-    trait_generics: GenericsId,
-    generics: GenericParams,
-  ) -> GenericsId {
-    if generics.inherit {
-      self.diags.error(Diag::TraitItemInheritGen { span });
-    }
-    self.chart.generics.push(GenericsDef {
-      span,
-      def,
-      parent: Some(trait_generics),
-      type_params: generics.types,
-      impl_params: generics.impls,
-      impl_allowed: true,
-      global_flex: Flex::None,
-      trait_: Some(trait_id),
-    })
+    self.chart_attrs(vis, charted_item, attrs);
   }
 }
 
