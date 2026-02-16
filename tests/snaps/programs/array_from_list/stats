@@ -1,15 +1,15 @@
 
 Interactions
-  Total           57_001_248
-  Annihilate      25_000_554
+  Total           51_001_088
+  Annihilate      22_000_474
   Commute                  0
   Copy             8_000_136
-  Erase            9_000_183
+  Erase            6_000_103
   Expand           4_000_119
-  Call             8_000_176
-  Branch           3_000_080
+  Call            11_000_256
+  Branch                   0
 
 Memory
-  Heap           240_003_360 B
-  Allocated    1_104_024_112 B
-  Freed        1_104_024_112 B
+  Heap           240_002_752 B
+  Allocated    1_008_021_552 B
+  Freed        1_008_021_552 B
