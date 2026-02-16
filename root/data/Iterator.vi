@@ -349,12 +349,12 @@ pub mod Iterator[I, T; Iterator[I, T]] {
     }
   }
 
-  trait Window[W, T] {
+  pub trait Window[W, T] {
     fn start[I; Iterator[I, T]](iter: I) -> Option[(W, I)];
     fn .shift(window: &W, value: T) -> T;
   }
 
-  mod Window {
+  pub mod Window {
     pub impl nil[T]: Window[(), T] {
       fn start[I; Iterator[I, T]](iter: I) -> Option[((), I)] {
         Some((), iter)
