@@ -1,5 +1,6 @@
 
-use #root::ops::{Cast, comparison::Ord};
+use ops::{Cast, comparison::Ord};
+use derive::Tuple;
 
 pub trait Iterator[Self, Item] {
   #[builtin = "advance"]
@@ -344,6 +345,66 @@ pub mod Iterator[I, T; Iterator[I, T]] {
         let result = (index, value);
         index += 1;
         result
+      }
+    }
+  }
+
+  trait Window[W, T] {
+    fn start[I; Iterator[I, T]](iter: I) -> Option[(W, I)];
+    fn .shift(window: &W, value: T) -> T;
+  }
+
+  mod Window {
+    pub impl nil[T]: Window[(), T] {
+      fn start[I; Iterator[I, T]](iter: I) -> Option[((), I)] {
+        Some((), iter)
+      }
+      fn shift(&(), value: T) -> T {
+        value
+      }
+    }
+
+    pub impl tuple[T?, W, R; Tuple[W, T, R], Window[R, T]]: Window[W, T] {
+      fn start[I; Iterator[I, T]](iter: I) -> Option[(W, I)] {
+        if iter.advance() is Some(init, iter) and Window::start[R, T, I](iter) is Some(rest, iter) {
+          Some((init, rest) as W, iter)
+        } else {
+          None()
+        }
+      }
+
+      fn shift(&window: &W, value: T) -> T {
+        let &(init, rest) = &window as &(T, R);
+        let value = rest.shift(value);
+        replace(&init, value)
+      }
+    }
+  }
+
+  pub struct Windows[I, R](Option[R], I);
+
+  pub fn .windows[I, T, R; Iterator[I, T]](iter: I) -> Windows[I, R] {
+    Windows(None(), iter)
+  }
+
+  pub mod Windows {
+    pub impl iter[I, T, W, R; Iterator[I, T], Tuple[W, T, R], Window[R, T], Fork[R], Drop[R]]: Iterator[
+      Windows[I, R], W;
+    ] {
+      fn advance(Windows[I, R](rest, iter)) -> Option[(W, Windows[I, R])] {
+        let (rest, iter) = when {
+          rest is Some(rest) { (rest, iter) }
+          Window::start[R, T, I](iter) is Some(rest, iter) { (rest, iter) }
+          _ {
+            return None();
+          }
+        };
+        if iter.advance() is Some(value, iter) {
+          let init = rest.shift(value);
+          Some((init, rest) as W, Windows(Some(rest), iter))
+        } else {
+          None()
+        }
       }
     }
   }

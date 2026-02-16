@@ -28,6 +28,17 @@ pub fn main(_: &IO) {
     debug::log("{i}: {x}");
   });
 
+  debug::log("--- windows ---");
+  for (x, y) in [1, 2, 3, 4, 5].iter().windows() {
+    debug::log("{x}, {y}");
+  }
+  for (x, y, z) in [6, 7].iter().windows() {
+    debug::log("{x}, {y}, {z}");
+  }
+  for (x, y, z) in [8, 9, 10].iter().windows() {
+    debug::log("{x}, {y}, {z}");
+  }
+
   debug::log("--- take, inspect ---");
   let iter_ref = (0..100).inspect(fn* (&x: &N32) { debug::log("{x}") });
   for x in iter_ref.take(10) {
