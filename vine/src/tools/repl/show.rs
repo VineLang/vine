@@ -86,7 +86,7 @@ impl<'ctx, 'ivm, 'ext, 'comp> Repl<'ctx, 'ivm, 'ext, 'comp> {
     let (ref_, string) = make_node(self.ivm, label_fn, cur);
     let (val_in, val_out) = make_node(self.ivm, label_ref, ref_);
     self.ivm.link_wire(val_in, port);
-    self.ivm.link_wire(root, Port::new_global(self.host.get(&global).unwrap()));
+    self.ivm.link_wire(root, Port::new_global(self.host.get_ref(&global).unwrap()));
     self.ivm.normalize();
     let string = Port::new_wire(string);
     let string_tree = self.host.reader(self.ivm).read_port(&string);

@@ -1,4 +1,4 @@
-use std::{borrow::Cow, collections::HashMap};
+use std::{borrow::Cow, cell::UnsafeCell, collections::HashMap};
 
 use indexmap::{
   IndexMap,
@@ -6,9 +6,10 @@ use indexmap::{
 };
 
 use ivm::{
+  addr::Addr,
   ext::{Ext, ExtFn, ExtTy, ExtTyId, ExtVal, IO, Lookup},
   global::Global,
-  port::Port,
+  port::{Port, Tag},
 };
 
 use crate::ast::Tree;
@@ -47,12 +48,15 @@ pub struct Host<'ivm> {
 }
 
 impl<'ivm> Host<'ivm> {
-  pub fn get(&self, name: &str) -> Option<&'ivm Global<'ivm>> {
+  pub fn get_ref(&self, name: &str) -> Option<&'ivm Global<'ivm>> {
     Some(unsafe { &**self.globals.get(name)? })
   }
 
-  fn get_raw(&self, name: &str) -> Option<*const Global<'ivm>> {
-    self.globals.get(name).copied()
+  pub(crate) fn get_port(&self, name: &str) -> Port<'ivm> {
+    let global = self.globals.get(name).copied().expect("undefined global");
+    // Safety: upholds the requirements of `Tag::Global`, and preserves the interior
+    // mutability.
+    unsafe { Port::new(Tag::Global, 0, Addr(global as *const UnsafeCell<Global> as *const ())) }
   }
 
   pub fn label_to_u16<'l>(
@@ -93,21 +97,14 @@ impl<'ivm> Host<'ivm> {
     self.ext_ty::<IO>().wrap_ext_val(IO)
   }
 
-  pub fn new_lookup(&mut self, lookup: Vec<Port<'ivm>>) -> ExtVal<'ivm> {
-    let lookup = Box::new(lookup);
-    self.lookups.push(lookup);
-    let ptr = &raw const **self.lookups.last().unwrap();
-    self.ext_ty::<Lookup<'ivm>>().wrap_ext_val(Lookup(ptr))
-  }
-
-  pub fn instantiate_lookup(&mut self, lookup: &[Tree]) -> Option<ExtVal<'ivm>> {
+  pub fn new_lookup(&mut self, lookup: &[Tree]) -> Option<Port<'ivm>> {
     fn copy_into_port<'ivm>(host: &mut Host<'ivm>, tree: &Tree) -> Option<Port<'ivm>> {
       match tree {
         Tree::Erase => Some(Port::ERASE),
         Tree::N32(n) => Some(Port::new_ext_val(host.new_n32(*n))),
         Tree::F32(f) => Some(Port::new_ext_val(host.new_f32(*f))),
-        Tree::Lookup(bs) => host.instantiate_lookup(bs).map(Port::new_ext_val),
-        Tree::Global(g) => Some(Port::new_global(host.get(g).unwrap())),
+        Tree::Lookup(bs) => host.new_lookup(bs),
+        Tree::Global(g) => Some(host.get_port(g)),
         Tree::F64(_) | Tree::Comb(..) | Tree::ExtFn(..) | Tree::Branch(..) | Tree::Var(_) => None,
         Tree::BlackBox(t) => copy_into_port(host, t),
       }
@@ -116,7 +113,12 @@ impl<'ivm> Host<'ivm> {
     let ports: Vec<Port<'ivm>> =
       lookup.iter().map(|tree| copy_into_port(self, tree)).collect::<Option<_>>()?;
 
-    Some(self.new_lookup(ports))
+    let lookup = Box::new(ports);
+    self.lookups.push(lookup);
+    let ptr = &raw const **self.lookups.last().unwrap();
+    let ext = self.ext_ty::<Lookup<'ivm>>().wrap_ext_val(Lookup(ptr));
+
+    Some(Port::new_ext_val(ext))
   }
 
   pub fn instantiate_ext_fn(&self, ext_fn_name: &str, swap: bool) -> Option<ExtFn<'ivm>> {
