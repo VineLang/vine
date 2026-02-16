@@ -48,7 +48,6 @@ use std::{
 };
 
 use ivm::{
-  addr::Addr,
   ext::OpaqueExtFn,
   global::{Global, LabelSet},
   instruction::{Instruction, Instructions, Register},
@@ -238,21 +237,20 @@ impl<'l, 'ast, 'ivm> Serializer<'l, 'ast, 'ivm> {
         }
       }
       Tree::Global(name) => {
-        let global = self.host.get_raw(name).expect("undefined global");
-        // Safety: upholds the requirements of `Tag::Global`, and preserves the interior
-        // mutability.
-        let port = unsafe {
-          Port::new(Tag::Global, 0, Addr(global as *const UnsafeCell<Global> as *const ()))
-        };
+        let port = self.host.get_port(name);
         self.push(Instruction::Nilary(to, port));
       }
-      Tree::Branch(z, p, o) => {
-        let a = self.current.instructions.new_register();
-        let z = self.serialize_tree(z);
-        let p = self.serialize_tree(p);
-        self.push(Instruction::Binary(Tag::Branch, 0, a, z, p));
+      Tree::Branch(bs, o) => {
+        let bs = self.host.new_lookup(bs).unwrap();
+        let b = self.current.instructions.new_register();
+        self.push(Instruction::Nilary(b, bs));
         let o = self.serialize_tree(o);
-        self.push(Instruction::Binary(Tag::Branch, 0, to, a, o));
+        let ext_fn = self.host.instantiate_ext_fn("branch", false).unwrap();
+        self.push(Instruction::Binary(Tag::ExtFn, ext_fn.bits(), to, b, o));
+      }
+      Tree::Lookup(bs) => {
+        let bs = self.host.new_lookup(bs).unwrap();
+        self.push(Instruction::Nilary(to, bs));
       }
       Tree::Var(v) => {
         let old = self.registers.insert(v, to);
@@ -287,7 +285,7 @@ impl<'ivm> Bicycle for PropagateLabels<'ivm> {
   }
 
   fn visit(&mut self, cur: Self::Node, mut recurse: impl FnMut(&mut Self, Self::Node)) {
-    // Safety: once we get to `PropagateLabels`, we are no longer mutating thw
+    // Safety: once we get to `PropagateLabels`, we are no longer mutating the
     // `instructions`, only the `labels`, so it is safe to create an
     // `&Instructions` that's held for the entirety of this function.
     let instructions = unsafe { (*cur.get()).instructions.instructions() };

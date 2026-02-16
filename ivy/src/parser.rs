@@ -19,6 +19,8 @@ pub enum ParseError<'src> {
   InvalidNum(&'src str),
   InvalidLabel(&'src str),
   InvalidExtFn(&'src str),
+  InvalidBranch(&'src str),
+  InvalidLookup(&'src str),
 }
 
 impl<'src> Parse<'src> for Parser<'src> {
@@ -135,12 +137,36 @@ impl<'src> Parser<'src> {
     }
 
     if self.eat(Token::Question)? {
-      self.expect(Token::OpenParen)?;
-      let a = self.parse_tree()?;
-      let b = self.parse_tree()?;
-      let c = self.parse_tree()?;
-      self.expect(Token::CloseParen)?;
-      return Ok(Tree::Branch(Box::new(a), Box::new(b), Box::new(c)));
+      if self.eat(Token::OpenParen)? {
+        let mut bs = Vec::new();
+        while !self.check(Token::CloseParen) {
+          bs.push(self.parse_tree()?);
+        }
+        self.expect(Token::CloseParen)?;
+        let Some(ctx) = bs.pop() else {
+          Err(ParseError::InvalidBranch("Branch node cannot be empty"))?
+        };
+        for b in &bs {
+          if !b.is_copy() {
+            Err(ParseError::InvalidBranch("Branch node can only contain copyable nilary ports"))?
+          }
+        }
+        return Ok(Tree::Branch(bs, Box::new(ctx)));
+      }
+
+      if self.eat(Token::OpenBracket)? {
+        let mut bs = Vec::new();
+        while !self.check(Token::CloseBracket) {
+          bs.push(self.parse_tree()?);
+        }
+        self.expect(Token::CloseBracket)?;
+        for b in &bs {
+          if !b.is_copy() {
+            Err(ParseError::InvalidLookup("Lookup node can only contain copyable nilary ports"))?
+          }
+        }
+        return Ok(Tree::Lookup(bs));
+      }
     }
 
     if self.eat(Token::Hole)? {

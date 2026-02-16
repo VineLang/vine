@@ -69,7 +69,7 @@ impl<'host, 'ctx, 'ivm, 'ext> Repl<'host, 'ctx, 'ivm, 'ext> {
       Tree::N32(value) => Port::new_ext_val(self.host.new_n32(value)),
       Tree::F32(value) => Port::new_ext_val(self.host.new_f32(value)),
       Tree::F64(value) => Port::new_ext_val(self.host.new_f64(value)),
-      Tree::Global(name) => Port::new_global(self.host.get(&name).unwrap()),
+      Tree::Global(name) => Port::new_global(self.host.get_ref(&name).unwrap()),
       Tree::Comb(label, a, b) => {
         let label = Host::label_to_u16(label, &mut self.host.comb_labels);
         let n = unsafe { self.ivm.new_node(Tag::Comb, label) };
@@ -85,15 +85,15 @@ impl<'host, 'ctx, 'ivm, 'ext> Repl<'host, 'ctx, 'ivm, 'ext> {
         self.inject_to(*b, n.2);
         n.0
       }
-      Tree::Branch(z, p, o) => {
-        let n = unsafe { self.ivm.new_node(Tag::Branch, 0) };
-        let m = unsafe { self.ivm.new_node(Tag::Branch, 0) };
-        self.ivm.link_wire(n.1, m.0);
-        self.inject_to(*z, m.1);
-        self.inject_to(*p, m.2);
-        self.inject_to(*o, n.2);
-        n.0
+      Tree::Branch(bs, o) => {
+        let bs = self.host.new_lookup(&bs).unwrap();
+        let f = self.host.instantiate_ext_fn("branch", false).unwrap();
+        let b = unsafe { self.ivm.new_node(Tag::ExtFn, f.bits()) };
+        self.ivm.link_wire(b.1, bs);
+        self.inject_to(*o, b.2);
+        b.0
       }
+      Tree::Lookup(bs) => self.host.new_lookup(&bs).unwrap(),
       Tree::Var(v) => match self.vars.entry(v) {
         Entry::Occupied(e) => e.shift_remove(),
         Entry::Vacant(e) => {

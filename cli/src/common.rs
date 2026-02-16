@@ -52,7 +52,7 @@ impl RunArgs {
     host.register_runtime_extrinsics(&mut extrinsics, self.args);
     host.insert_nets(&nets);
 
-    let main = host.get("::").expect("missing main");
+    let main = host.get_ref("::").expect("missing main");
     let mut ivm = IVM::new(&heap, &extrinsics);
     let node = unsafe { ivm.new_node(Tag::Comb, Host::label_to_u16("x", &mut host.comb_labels)) };
     ivm.link_wire(node.1, Port::new_ext_val(host.new_io()));

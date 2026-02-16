@@ -27,7 +27,7 @@ pub fn pre_reduce(nets: &mut Nets) {
     }
     let ivm = &mut IVM::new(heap, &extrinsics);
     let r = ivm.new_wire();
-    ivm.execute(&host.get(name).unwrap().instructions, Port::new_wire(r.0));
+    ivm.execute(&host.get_ref(name).unwrap().instructions, Port::new_wire(r.0));
     ivm.normalize();
     let inert_links = take(&mut ivm.inert_links);
     let inert_nodes = take(&mut ivm.inert_nodes);

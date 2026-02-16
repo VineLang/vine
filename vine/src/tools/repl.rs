@@ -294,7 +294,7 @@ impl<'ctx, 'ivm, 'ext, 'comp> Repl<'ctx, 'ivm, 'ext, 'comp> {
     }));
     self.ivm.link_wire(binds.unwrap(), Port::ERASE);
 
-    self.ivm.execute(&self.host.get(&path).unwrap().instructions, Port::new_wire(root));
+    self.ivm.execute(&self.host.get_ref(&path).unwrap().instructions, Port::new_wire(root));
     self.ivm.normalize();
 
     let mut result = Port::new_wire(result);

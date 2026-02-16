@@ -3,6 +3,7 @@ use std::collections::{HashMap, hash_map::Entry};
 use ivm::{
   IVM,
   addr::Addr,
+  ext::Lookup,
   port::{Port, PortRef, Tag},
   wire::Wire,
 };
@@ -56,6 +57,10 @@ impl<'ctx, 'ivm, 'ext> Reader<'ctx, 'ivm, 'ext> {
           "F32" => Tree::F32(unsafe { val.cast::<f32>() }),
           "F64" => Tree::F64(unsafe { val.cast::<f64>() }),
           "IO" => Tree::Var("<IO>".into()),
+          "Lookup" => {
+            let ports = unsafe { val.cast::<Lookup<'ivm>>() };
+            Tree::Lookup(ports.iter().map(|p| self.read_port(p)).collect())
+          }
           _ => unreachable!("invalid ext ty in pre-reduce: `{ext_ty_name}`"),
         }
       }
@@ -77,14 +82,6 @@ impl<'ctx, 'ivm, 'ext> Reader<'ctx, 'ivm, 'ext> {
         let f_name = self.host.reverse_ext_fns.get(&f).unwrap();
         let (p1, p2) = unsafe { p.aux_ref() };
         Tree::ExtFn(f_name.clone(), swapped, self.read_wire(&p1), self.read_wire(&p2))
-      }
-      Tag::Branch => {
-        let (p1, p2) = unsafe { p.aux_ref() };
-        let p1 = PortRef::new_wire(&p1);
-        let p1 = self.ivm.follow_ref(&p1);
-        assert_eq!(p1.tag(), Tag::Branch);
-        let (p11, p12) = unsafe { p1.aux_ref() };
-        Tree::Branch(self.read_wire(&p11), self.read_wire(&p12), self.read_wire(&p2))
       }
     }
   }

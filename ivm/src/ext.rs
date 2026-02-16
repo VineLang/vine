@@ -6,9 +6,15 @@
 use core::{
   fmt::{self, Debug},
   marker::PhantomData,
+  ops::Deref,
 };
 
-use crate::{ivm::IVM, port::Tag, wire::Wire, word::Word};
+use crate::{
+  ivm::IVM,
+  port::{Port, Tag},
+  wire::Wire,
+  word::Word,
+};
 
 macro_rules! trait_alias {
   ($($(#[$attr:meta])* $vis:vis trait $name:ident = ($($trait:tt)*);)*) => {$(
@@ -37,23 +43,12 @@ pub struct Extrinsics<'ivm> {
   /// Number of registered extrinsic types.
   ext_tys: u16,
 
-  /// An always-present extrinsic type of n32 numbers.
-  n32_ext_ty: ExtTy<'ivm, u32>,
-
   phantom: PhantomData<fn(&'ivm ()) -> &'ivm ()>,
 }
 
 impl Default for Extrinsics<'_> {
   fn default() -> Self {
-    let n32_ext_ty = ExtTy::new_unchecked(ExtTyId::new(0, true));
-
-    Self {
-      ext_split_fns: Vec::new(),
-      ext_merge_fns: Vec::new(),
-      ext_tys: 1,
-      n32_ext_ty,
-      phantom: PhantomData,
-    }
+    Self { ext_split_fns: Vec::new(), ext_merge_fns: Vec::new(), ext_tys: 0, phantom: PhantomData }
   }
 }
 
@@ -79,19 +74,11 @@ impl<'ivm> Extrinsics<'ivm> {
     ext_fn
   }
 
-  pub fn new_ext_ty<T: ExtTyCast<'ivm>>(&mut self) -> ExtTy<'ivm, T> {
+  pub fn new_ext_ty<T: Ext<'ivm>>(&mut self) -> ExtTy<'ivm, T> {
     assert!((self.ext_tys as usize) < Self::MAX_EXT_TY_COUNT);
 
     self.ext_tys += 1;
     ExtTy::new_unchecked(ExtTyId::new(self.ext_tys, T::COPY))
-  }
-
-  pub fn n32_ext_ty(&self) -> ExtTy<'ivm, u32> {
-    self.n32_ext_ty
-  }
-
-  pub fn ext_val_as_n32(&self, x: ExtVal<'ivm>) -> Option<u32> {
-    self.n32_ext_ty().unwrap_ext_val(x)
   }
 
   pub fn get_ext_split_fn(&self, ext_fn: ExtFn<'ivm>) -> &dyn ExtSplitFn<'ivm> {
@@ -171,8 +158,8 @@ impl<'ivm> ExtVal<'ivm> {
   /// # Safety
   ///
   /// This [`ExtVal`]'s payload must be valid to cast into a `T` using
-  /// [`ExtTyCast::from_payload`].
-  pub unsafe fn cast<T: ExtTyCast<'ivm>>(self) -> T {
+  /// [`Ext::from_payload`].
+  pub unsafe fn cast<T: Ext<'ivm>>(self) -> T {
     unsafe { T::from_payload(self.payload()) }
   }
 }
@@ -210,7 +197,7 @@ impl<'ivm, T> ExtTy<'ivm, T> {
   #[inline(always)]
   pub fn unwrap_ext_val(self, ext: ExtVal<'ivm>) -> Option<T>
   where
-    T: ExtTyCast<'ivm>,
+    T: Ext<'ivm>,
   {
     if ext.ty_id() == self.0 { Some(unsafe { T::from_payload(ext.payload()) }) } else { None }
   }
@@ -219,7 +206,7 @@ impl<'ivm, T> ExtTy<'ivm, T> {
   #[inline(always)]
   pub fn wrap_ext_val(self, value: T) -> ExtVal<'ivm>
   where
-    T: ExtTyCast<'ivm>,
+    T: Ext<'ivm>,
   {
     ExtVal::new(self.ty_id(), T::into_payload(value))
   }
@@ -228,9 +215,10 @@ impl<'ivm, T> ExtTy<'ivm, T> {
 /// A trait describing how to convert between an [`ExtVal`] and a `Self`.
 ///
 /// Types which can be converted to/from a 45-bit payload, can implement
-/// `ExtTyCast`.
-pub trait ExtTyCast<'ivm> {
+/// [`Ext`].
+pub trait Ext<'ivm> {
   const COPY: bool;
+  const NAME: &'static str;
 
   /// Converts `Self` into an unshifted [`ExtVal`] 45-bit payload.
   ///
@@ -246,8 +234,9 @@ pub trait ExtTyCast<'ivm> {
   unsafe fn from_payload(payload: Word) -> Self;
 }
 
-impl<'ivm> ExtTyCast<'ivm> for u32 {
+impl<'ivm> Ext<'ivm> for u32 {
   const COPY: bool = true;
+  const NAME: &'static str = "N32";
 
   #[inline(always)]
   fn into_payload(self) -> Word {
@@ -260,8 +249,9 @@ impl<'ivm> ExtTyCast<'ivm> for u32 {
   }
 }
 
-impl<'ivm> ExtTyCast<'ivm> for f32 {
+impl<'ivm> Ext<'ivm> for f32 {
   const COPY: bool = true;
+  const NAME: &'static str = "F32";
 
   #[inline(always)]
   fn into_payload(self) -> Word {
@@ -278,8 +268,9 @@ impl<'ivm> ExtTyCast<'ivm> for f32 {
 #[repr(align(8))]
 pub struct Aligned<T>(T);
 
-impl<'ivm> ExtTyCast<'ivm> for f64 {
+impl<'ivm> Ext<'ivm> for f64 {
   const COPY: bool = false;
+  const NAME: &'static str = "F64";
 
   #[inline(always)]
   fn into_payload(self) -> Word {
@@ -324,8 +315,9 @@ impl<'ivm> From<Vec<ExtVal<'ivm>>> for ExtList<'ivm> {
   }
 }
 
-impl<'ivm> ExtTyCast<'ivm> for ExtList<'ivm> {
+impl<'ivm> Ext<'ivm> for ExtList<'ivm> {
   const COPY: bool = false;
+  const NAME: &'static str = "List";
 
   #[inline(always)]
   fn into_payload(self) -> Word {
@@ -341,9 +333,10 @@ impl<'ivm> ExtTyCast<'ivm> for ExtList<'ivm> {
   }
 }
 
-/// Used for the `IO` extrinsic type.
-impl<'ivm> ExtTyCast<'ivm> for () {
+pub struct IO;
+impl<'ivm> Ext<'ivm> for IO {
   const COPY: bool = false;
+  const NAME: &'static str = "IO";
 
   #[inline(always)]
   fn into_payload(self) -> Word {
@@ -351,7 +344,37 @@ impl<'ivm> ExtTyCast<'ivm> for () {
   }
 
   #[inline(always)]
-  unsafe fn from_payload(_payload: Word) {}
+  unsafe fn from_payload(_payload: Word) -> Self {
+    IO
+  }
+}
+
+/// A lookup table of trivially-copyable nilary ports.
+pub struct Lookup<'ivm>(pub *const Vec<Port<'ivm>>);
+
+impl<'ivm> Deref for Lookup<'ivm> {
+  type Target = [Port<'ivm>];
+
+  fn deref(&self) -> &Self::Target {
+    unsafe { self.0.as_ref().unwrap() }
+  }
+}
+
+impl<'ivm> Ext<'ivm> for Lookup<'ivm> {
+  const COPY: bool = false;
+  const NAME: &'static str = "Lookup";
+
+  #[inline(always)]
+  fn into_payload(self) -> Word {
+    Word::from_ptr(self.0.cast())
+  }
+
+  #[inline(always)]
+  unsafe fn from_payload(payload: Word) -> Self {
+    let ptr = payload.ptr().cast::<Vec<Port<'ivm>>>();
+    let slice = unsafe { ptr.as_ref() }.unwrap();
+    Self(slice)
+  }
 }
 
 /// The type id of an external value.
