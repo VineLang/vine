@@ -88,7 +88,8 @@
 
         devShells.default = craneLib.devShell {
           name = "vine-dev";
-          nativeBuildInputs = [
+          packages = [
+            pkgs.cargo-expand
             pkgs.nushell
             pkgs.nodejs_24
             pkgs.tree-sitter
