@@ -476,7 +476,7 @@ impl Distiller<'_> {
 
       self.returns.push(Return { ty: closure.body.ty, layer: stage.layer, local: return_local });
       let result = self.distill_expr_value(&mut stage, &closure.body);
-      stage.local_barrier_write_to(return_local, result);
+      stage.local_barrier_write_to(return_local, span, result);
       self.returns.pop();
 
       self.finish_stage(stage)
@@ -537,14 +537,14 @@ impl Distiller<'_> {
     wire.pos
   }
 
-  pub(crate) fn distill_return(&mut self, stage: &mut Stage, value: &Option<TirExpr>) {
+  pub(crate) fn distill_return(&mut self, stage: &mut Stage, span: Span, value: &Option<TirExpr>) {
     let value = match value {
       Some(v) => self.distill_expr_value(stage, v),
       None => Port { ty: self.types.nil(), kind: PortKind::Nil },
     };
     let return_ = self.returns.last().unwrap();
 
-    stage.local_barrier_write_to(return_.local, value);
+    stage.local_barrier_write_to(return_.local, span, value);
     stage.steps.push(Step::Diverge(return_.layer, None));
   }
 }

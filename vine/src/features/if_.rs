@@ -216,13 +216,13 @@ impl Distiller<'_> {
     let (mut then_stage, mut else_stage) =
       self.distill_cond(&mut layer, &mut init_stage, span, cond);
     let result = self.distill_expr_value(&mut then_stage, then);
-    then_stage.local_barrier_write_to(local, result);
+    then_stage.local_barrier_write_to(local, span, result);
     self.finish_stage(init_stage);
     self.finish_stage(then_stage);
 
     if let Some(leg) = else_ {
       let result = self.distill_expr_value(&mut else_stage, leg);
-      else_stage.local_barrier_write_to(local, result);
+      else_stage.local_barrier_write_to(local, span, result);
     }
 
     self.finish_stage(else_stage);

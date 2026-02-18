@@ -141,7 +141,7 @@ impl Analyzer<'_> {
       let mut current_segment = HashMap::default();
 
       for step in &stage.steps {
-        if let Step::Invoke(local, invocation) = step {
+        if let Step::Invoke(_, local, invocation) = step {
           let effect = current_segment.entry(*local).or_insert(Effect::Pass);
           let local = &self.locals[*local];
           let other = invocation.effect(local.inv, local.fork.is_some());

@@ -170,7 +170,7 @@ impl<'a> Emitter<'a> {
 
   fn emit_step(&mut self, step: &Step) {
     match step {
-      Step::Invoke(local, invocation) => self.emit_invocation(local, invocation),
+      Step::Invoke(_, local, invocation) => self.emit_invocation(local, invocation),
       Step::Transfer(transfer) => self.emit_transfer(transfer),
       Step::Diverge(..) => unreachable!(),
       Step::Link(a, b) => {

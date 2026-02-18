@@ -78,9 +78,9 @@ impl Distiller<'_> {
     (b, a)
   }
 
-  pub(crate) fn distill_pat_uninit_local(&mut self, stage: &mut Stage, local: Local) {
+  pub(crate) fn distill_pat_uninit_local(&mut self, stage: &mut Stage, span: Span, local: Local) {
     stage.declarations.push(local);
-    stage.local_barrier(local);
+    stage.local_barrier(local, span);
   }
 
   pub(crate) fn distill_pat_loop_local(&mut self, stage: &mut Stage, local: Local) {

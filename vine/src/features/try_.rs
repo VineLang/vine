@@ -90,14 +90,14 @@ impl Distiller<'_> {
 
     let out_local = self.new_local(stage, span, ty);
     let value = ok_stage.local_read_barrier(ok_local, span, ok_ty);
-    ok_stage.local_barrier_write_to(out_local, value);
+    ok_stage.local_barrier_write_to(out_local, span, value);
     self.finish_stage(ok_stage);
 
     let ret = self.returns.last().unwrap();
     let err = err_stage.local_read_barrier(err_local, span, err_ty);
     let result = err_stage.new_wire(span, ret.ty);
     err_stage.steps.push(Step::Enum(result_id, err_variant, result.neg, err));
-    err_stage.local_barrier_write_to(ret.local, result.pos);
+    err_stage.local_barrier_write_to(ret.local, span, result.pos);
     err_stage.steps.push(Step::Diverge(ret.layer, None));
     self.finish_stage(err_stage);
 

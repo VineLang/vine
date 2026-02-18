@@ -131,7 +131,7 @@ impl Distiller<'_> {
     };
 
     let result_local = self.new_local(stage, span, result_ty);
-    stage.local_barrier(result_local);
+    stage.local_barrier(result_local, span);
 
     let value_ty = pat.ty;
     let iter_ty = iter.ty;
@@ -145,7 +145,7 @@ impl Distiller<'_> {
     let inner_iter_local = self.locals.push(TirLocal { span, ty: iter_ty });
 
     let iter = self.distill_expr_value(stage, iter);
-    stage.local_write_to(iter_local, iter);
+    stage.local_write_to(iter_local, span, iter);
 
     let (mut layer, mut init_stage) = self.child_layer(stage, span);
     let mut some_stage = self.new_unconditional_stage(&mut layer, span);
@@ -201,16 +201,16 @@ impl Distiller<'_> {
     });
 
     let iter = some_stage.local_read_barrier(inner_iter_local, span, iter_ty);
-    some_stage.local_barrier_write_to(iter_local, iter);
+    some_stage.local_barrier_write_to(iter_local, span, iter);
     let pat = self.distill_pat_value(&mut some_stage, pat);
-    some_stage.local_read_barrier_to(value_local, pat);
+    some_stage.local_read_barrier_to(value_local, span, pat);
     let result = self.distill_expr_value(&mut some_stage, block);
     some_stage.steps.push(Step::Link(result, Port { ty: self.types.nil(), kind: PortKind::Nil }));
     some_stage.transfer = Some(Transfer::unconditional(init_stage.interface));
 
     if let Some(else_) = else_ {
       let result = self.distill_expr_value(&mut none_stage, else_);
-      none_stage.local_barrier_write_to(result_local, result);
+      none_stage.local_barrier_write_to(result_local, span, result);
     }
 
     self.finish_stage(init_stage);

@@ -78,7 +78,7 @@ impl Distiller<'_> {
     });
 
     let result = self.distill_expr_value(&mut body_stage, block);
-    body_stage.local_barrier_write_to(local, result);
+    body_stage.local_barrier_write_to(local, span, result);
 
     self.finish_stage(body_stage);
     self.finish_layer(layer);
