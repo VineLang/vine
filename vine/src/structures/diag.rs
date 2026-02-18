@@ -263,6 +263,8 @@ diags! {
     ["finding flex of `{ty}` resulted in incompatible impls `Fork[{fork_ty}]` and `Drop[{drop_ty}]`"]
   CannotFork { ty: String }
     ["cannot fork `{ty}`"]
+  ValueLaterUsedHere
+    ["value later used here"]
   CannotDrop { ty: String }
     ["cannot drop `{ty}`"]
   UninitializedVariable { ty: String }

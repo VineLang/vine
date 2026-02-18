@@ -6,7 +6,6 @@ use crate::{
   components::{distiller::Distiller, emitter::Emitter},
   structures::{
     ast::Span,
-    diag::Diag,
     tir::Local,
     types::{Inverted, Type},
     vir::{Invocation, Port, Stage, VirLocal},
@@ -180,54 +179,29 @@ impl Emitter<'_> {
       let source = sources.pop();
       if sinks.is_empty() {
         if let Some(source) = source {
-          match local.drop {
-            Some(drop_rel) => {
-              let drop_tree = self.emit_fn_rel(drop_rel);
-              self.pairs.push((drop_tree, Tree::n_ary("fn", [Tree::Erase, source, Tree::Erase])));
-            }
-            None => {
-              self.diags.error(Diag::CannotDrop {
-                span: local.span,
-                ty: self.vir.types.show(self.chart, local.ty),
-              });
-              self.pairs.push((source, Tree::Erase));
-            }
-          }
+          let drop_rel = local.drop.unwrap();
+          let drop_tree = self.emit_fn_rel(drop_rel);
+          self.pairs.push((drop_tree, Tree::n_ary("fn", [Tree::Erase, source, Tree::Erase])));
         }
       } else {
-        let source = source.unwrap_or_else(|| {
-          self.diags.error(Diag::UninitializedVariable {
-            span: local.span,
-            ty: self.vir.types.show(self.chart, local.ty),
-          });
-          Tree::Erase
-        });
+        let source = source.unwrap();
         if sinks.len() == 1 {
           self.pairs.push((source, sinks.pop().unwrap()));
         } else {
-          match local.fork {
-            Some(fork_rel) => {
-              let sink = sinks
-                .into_iter()
-                .reduce(|former, latter| {
-                  let wire = self.new_wire();
-                  let fork_tree = self.emit_fn_rel(fork_rel);
-                  self.pairs.push((
-                    fork_tree,
-                    Tree::n_ary("fn", [Tree::Erase, Tree::n_ary("ref", [wire.0, latter]), former]),
-                  ));
-                  wire.1
-                })
-                .unwrap();
-              self.pairs.push((source, sink));
-            }
-            None => {
-              self.diags.error(Diag::CannotFork {
-                span: local.span,
-                ty: self.vir.types.show(self.chart, local.ty),
-              });
-            }
-          }
+          let fork_rel = local.fork.unwrap();
+          let sink = sinks
+            .into_iter()
+            .reduce(|former, latter| {
+              let wire = self.new_wire();
+              let fork_tree = self.emit_fn_rel(fork_rel);
+              self.pairs.push((
+                fork_tree,
+                Tree::n_ary("fn", [Tree::Erase, Tree::n_ary("ref", [wire.0, latter]), former]),
+              ));
+              wire.1
+            })
+            .unwrap();
+          self.pairs.push((source, sink));
         }
       }
     }

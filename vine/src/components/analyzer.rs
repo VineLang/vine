@@ -2,30 +2,33 @@ use std::{collections::HashMap, mem::take};
 
 use vine_util::{
   idx::{IdxVec, IntMap},
-  new_idx,
+  multi_iter, new_idx,
 };
 
 use crate::{
   components::analyzer::effect::Effect,
   structures::{
     ast::Span,
+    chart::Chart,
     diag::{Diag, Diags},
     tir::Local,
-    types::Inverted,
+    types::{Inverted, Types},
     vir::{Interface, InterfaceId, InterfaceKind, Invocation, Stage, StageId, Step, Vir, VirLocal},
   },
 };
 
 pub mod effect;
 
-pub fn analyze(diags: &mut Diags, span: Span, vir: &mut Vir) {
+pub fn analyze(chart: &Chart, diags: &mut Diags, span: Span, vir: &mut Vir) {
   Analyzer {
+    chart,
     diags,
     infinite_loop: false,
     span,
     locals: &vir.locals,
     stages: &vir.stages,
     interfaces: &mut vir.interfaces,
+    types: &vir.types,
     effects: IdxVec::from([Effect::Pass]),
     dependent: IdxVec::from([Vec::new()]),
     relations: IdxVec::new(),
@@ -45,6 +48,7 @@ struct Analyzer<'a> {
   locals: &'a IdxVec<Local, VirLocal>,
   stages: &'a IdxVec<StageId, Stage>,
   interfaces: &'a mut IdxVec<InterfaceId, Interface>,
+  types: &'a Types,
   effects: IdxVec<EffectVar, Effect>,
   dependent: IdxVec<EffectVar, Vec<RelationId>>,
   relations: IdxVec<RelationId, (EffectVar, EffectVar, EffectVar, EffectVar)>,
@@ -53,6 +57,7 @@ struct Analyzer<'a> {
   dirty: Vec<EffectVar>,
   local_declarations: IntMap<Local, Vec<StageId>>,
   disconnects: Vec<(StageId, EffectVar, EffectVar)>,
+  chart: &'a Chart,
   diags: &'a mut Diags,
 }
 
@@ -100,9 +105,12 @@ impl Analyzer<'_> {
     let mut forwards = Vec::new();
     let mut backwards = Vec::new();
 
+    let mut strict_non_fork = false;
+
     for interface in self.interfaces.keys() {
       let transfer = self.get_transfer(interface);
       if let InterfaceKind::Inspect(locals) = &self.interfaces[interface].kind {
+        strict_non_fork = true;
         self
           .segments
           .push((transfer.0, locals.iter().map(|&l| (l, Effect::ReadBarrierWrite)).collect()));
@@ -144,7 +152,7 @@ impl Analyzer<'_> {
         if let Step::Invoke(_, local, invocation) = step {
           let effect = current_segment.entry(*local).or_insert(Effect::Pass);
           let local = &self.locals[*local];
-          let other = invocation.effect(local.inv, local.fork.is_some());
+          let other = invocation.effect(local.inv, local.fork.is_some() || !strict_non_fork);
           *effect = if local.inv.0 { other.join(*effect) } else { effect.join(other) };
         } else if let Step::Transfer(transfer) = step {
           if !current_segment.is_empty() {
@@ -206,7 +214,8 @@ impl Analyzer<'_> {
     let inv = info.inv;
     self.fill_segments(local, declared);
     self.fixed_point(inv);
-    self.set_wires(local, inv);
+    self.set_wires(local, inv, info.fork.is_some());
+    self.report_errors(local, info);
   }
 
   fn fill_segments(&mut self, local: Local, declared: Vec<StageId>) {
@@ -245,7 +254,7 @@ impl Analyzer<'_> {
     }
   }
 
-  fn set_wires(&mut self, local: Local, inv: Inverted) {
+  fn set_wires(&mut self, local: Local, inv: Inverted, fork: bool) {
     for interface in self.interfaces.values_mut() {
       if interface.incoming != 0 {
         let interior = self.effects[interface.interior.unwrap()];
@@ -259,7 +268,7 @@ impl Analyzer<'_> {
         }
         if interior != Effect::Pass && exterior != Effect::Pass {
           let barrier = interior.barrier();
-          let output = interior.write() && exterior.read();
+          let output = (interior.write() || !fork && interior.read()) && exterior.read();
           let input = exterior.write() && (interior.read() || output && interior.pass());
           let wire = if inv.0 { (output, barrier, input) } else { (input, barrier, output) };
           interface.wires.insert(local, wire);
@@ -299,6 +308,98 @@ impl Analyzer<'_> {
     );
     *self.interfaces = interfaces;
     transfer
+  }
+
+  fn report_errors(&mut self, local: Local, info: &VirLocal) {
+    let show_ty = || self.types.show(self.chart, info.ty);
+
+    for stage in self.stages.values() {
+      let interface = &self.interfaces[stage.interface];
+      if interface.incoming == 0 {
+        continue;
+      }
+
+      let steps = stage.steps.iter();
+      multi_iter!(Steps { Forward, Backward });
+      let steps = if info.inv.0 { Steps::Forward(steps) } else { Steps::Backward(steps.rev()) };
+
+      let effect = |step: &Step| match step {
+        Step::Invoke(span, l, invocation) if *l == local => {
+          let effect = invocation.effect(info.inv, true);
+          (effect.read(), effect.barrier(), effect.write(), Some(*span))
+        }
+        Step::Transfer(transfer) => {
+          let (i, b, o) =
+            self.interfaces[transfer.interface].wires.get(&local).copied().unwrap_or_default();
+          let (i, b, o) = if info.inv.0 { (o, b, i) } else { (i, b, o) };
+          (i, b, o, None)
+        }
+        _ => (false, false, false, None),
+      };
+
+      let exterior = interface
+        .wires
+        .get(&local)
+        .copied()
+        .map(|(i, _, o)| if info.inv.0 { (o, i) } else { (i, o) });
+
+      let mut consumer = None;
+
+      if let Some((_, output)) = exterior {
+        consumer = output.then_some(None);
+      } else {
+        for step in steps.clone().rev() {
+          let (read, barrier, write, span) = effect(step);
+          if read {
+            consumer = Some(span);
+            break;
+          } else if barrier || write {
+            break;
+          }
+        }
+      }
+
+      for step in steps {
+        let (read, barrier, write, span) = effect(step);
+        if write {
+          if consumer.is_none() && info.drop.is_none() {
+            let span = span.unwrap_or(info.span);
+            self.diags.error(Diag::CannotDrop { span, ty: show_ty() });
+          }
+          consumer = None;
+        }
+        if barrier {
+          if let Some(span) = consumer {
+            let span = span.unwrap_or(info.span);
+            self.diags.error(Diag::UninitializedVariable { span, ty: show_ty() });
+          }
+          consumer = None;
+        }
+        if read {
+          if let Some(consumer_span) = consumer
+            && info.fork.is_none()
+          {
+            let span = span.unwrap_or(info.span);
+            self.diags.error(Diag::CannotFork { span, ty: show_ty() });
+            if let Some(span) = consumer_span {
+              self.diags.warn(Diag::ValueLaterUsedHere { span });
+            }
+          }
+          consumer = Some(span);
+        }
+      }
+
+      if let Some((input, _)) = exterior {
+        if input && consumer.is_none() && info.drop.is_none() {
+          let span = info.span;
+          self.diags.error(Diag::CannotDrop { span, ty: show_ty() });
+        }
+        if !input && let Some(span) = consumer {
+          let span = span.unwrap_or(info.span);
+          self.diags.error(Diag::UninitializedVariable { span, ty: show_ty() });
+        }
+      }
+    }
   }
 }
 
