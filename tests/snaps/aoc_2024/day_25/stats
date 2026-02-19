@@ -15,6 +15,6 @@ Parallelism
   Speedup                 72 cB
 
 Memory
-  Heap                 6_944 B
-  Allocated          401_488 B
-  Freed              401_488 B
+  Heap                 6_928 B
+  Allocated          402_624 B
+  Freed              402_624 B
