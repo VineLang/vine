@@ -1,7 +1,6 @@
 
 use data::Iterator::{Iterator, Collect, Iterate};
 use ops::{Cast, Concat, comparison::{Eq, Ord}};
-use util::move;
 
 /// A Unicode string, represented as a list of characters.
 /// ```vi
@@ -13,8 +12,8 @@ pub struct* String(pub List[Char]);
 
 pub mod String {
   /// The length (number of characters) of the string.
-  pub fn .len(&String(List(len, _, _))) -> N32 {
-    len
+  pub fn .len(&String(chars)) -> N32 {
+    chars.len()
   }
 
   pub fn .split(self: String, sep: String) -> List[String] {
@@ -56,20 +55,17 @@ pub mod String {
     let prefix = "";
     let suffix = self;
     while suffix.len() >= sep.len() {
-      let iter_ref = suffix.iter_ref();
+      let candidate = "";
       for &a in &sep {
-        let (&b, _iter) = iter_ref.advance().assume();
-        iter_ref = _iter;
+        let b = suffix!.pop_front().assume();
+        candidate!.push_back(b);
         if a != b {
+          prefix!.push_back(candidate!.pop_front().assume());
+          suffix = candidate ++ suffix;
           break;
         }
       } else {
-        return (prefix, Some(String(safe move(iter_ref.tail()))));
-      }
-      if suffix!.pop_front() is Some(char) {
-        prefix ++= String([char]);
-      } else {
-        break;
+        return (prefix, Some(suffix));
       }
     }
     (prefix ++ suffix, None())
@@ -79,15 +75,15 @@ pub mod String {
     if self.len() < prefix.len() {
       return Err(prefix);
     }
-    let iter_ref = self.iter_ref();
+    let candidate = "";
     for &a in &prefix {
-      let (&b, _iter) = iter_ref.advance().assume();
-      iter_ref = _iter;
+      let b = self!.pop_front().assume();
+      candidate!.push_back(b);
       if a != b {
-        return Err(self);
+        return Err(candidate ++ self);
       }
     }
-    Ok(String(safe move(iter_ref.tail())))
+    Ok(self)
   }
 
   pub fn .trim_front(String(chars)) -> String {

@@ -25,7 +25,9 @@ use util::{duplicate, erase};
 ///
 /// If frequently accessing elements by index, consider using an array instead.
 #[builtin = "List"]
-pub struct List[T](pub.root N32, Buf[T], ~Buf[T]);
+pub struct List[T](pub.root N32, Stream[T]);
+
+pub struct Stream[T](pub.root Buf[T], ~Buf[T]);
 
 pub.root struct Buf[T](pub.root T, Buf[T]);
 
@@ -43,11 +45,11 @@ pub mod List {
   /// list // [".", ".", "."]
   /// ```
   pub fn new[T*](len: N32, value: T) -> List[T] {
-    let list = [];
+    let stream = Stream::new();
     for _ in 0..len {
-      list.push_back(value);
+      stream.push_back(value);
     }
-    list
+    List(len, stream)
   }
 
   /// Create a list with the given length, where each value is produced
@@ -58,11 +60,11 @@ pub mod List {
   /// list // [1, 2, 3]
   /// ```
   pub fn from_fn[T, F*; fn F() -> T](len: N32, f: F) -> List[T] {
-    let list = [];
+    let stream = Stream::new();
     for _ in 0..len {
-      list.push_back(f());
+      stream.push_back(f());
     }
-    list
+    List(len, stream)
   }
 
   /// Access the `i`th element of the list. `O(i)`
@@ -73,11 +75,8 @@ pub mod List {
   /// list // List(["a", "b", "c"])
   /// ```
   /// If this is being done regularly, consider using an `Array` instead.
-  pub fn .at[T](&List[T](len, *buf, _), i: N32) -> Option[&T] {
-    if i >= len {
-      let &_ = buf;
-      return None();
-    }
+  pub fn .at[T](&List[T](len, Stream(*buf, _)), i: N32) -> Option[&T] {
+    assert i < len else { None() }
     for _ in 0..i {
       let &Buf(_, *tail) = buf;
       buf = tail;
@@ -121,7 +120,7 @@ pub mod List {
   }
 
   pub fn .split_at[T](self: List[T], i: N32) -> (List[T], List[T]) {
-    if i >= self.len() {
+    assert i < self.len() else {
       return (self, []);
     }
     let prefix = [];
@@ -132,20 +131,13 @@ pub mod List {
     (prefix, self)
   }
 
-  pub fn .map[T, U, F*; fn F(T) -> U](List[T](l, buf, _end), f: F) -> List[U] {
-    safe erase(_end);
-    let len = l;
-    let cur;
-    let result = ~cur;
-    for _ in 0..l {
-      let Buf(head, tail) = buf;
-      buf = tail;
-      let next;
-      ~cur = Buf(f(head), ~next);
-      ~next = ~cur;
+  pub fn .map[T, U, F*; fn F(T) -> U](self: List[T], f: F) -> List[U] {
+    let len = self.len();
+    let stream = Stream::new();
+    for val in self {
+      stream.push_back(f(val));
     }
-    safe erase(buf);
-    List(len, result, cur)
+    List(len, stream)
   }
 
   pub fn .filter[T?, F*; fn F(&T) -> Bool](self: List[T], pred: F) -> List[T] {
@@ -158,7 +150,7 @@ pub mod List {
     result
   }
 
-  pub fn .pop_front[T](&List[T](len, buf, _)) -> Option[T] {
+  pub fn .pop_front[T](&List[T](len, Stream(buf, _))) -> Option[T] {
     if len != 0 {
       len -= 1;
       let Buf(head, tail) = buf;
@@ -169,10 +161,10 @@ pub mod List {
     }
   }
 
-  pub fn .head_tail[T](List[T](len, buf, end)) -> Option[(T, List[T])] {
+  pub fn .head_tail[T](List[T](len, Stream(buf, end))) -> Option[(T, List[T])] {
     if len != 0 {
       let Buf(head, tail) = buf;
-      Some(head, List(len - 1, tail, end))
+      Some(head, List(len - 1, Stream(tail, end)))
     } else {
       safe erase((buf, end));
       None()
@@ -180,11 +172,8 @@ pub mod List {
   }
 
   pub impl [T]: Concat[List[T], List[T], List[T]] {
-    fn concat(a: List[T], b: List[T]) -> List[T] {
-      let List(a_len, a_buf, ~a_end) = a;
-      let List(b_len, b_buf, ~b_end) = b;
-      a_end = b_buf;
-      List(a_len + b_len, a_buf, ~b_end)
+    fn concat(List[T](a_len, a_stream), List[T](b_len, b_stream)) -> List[T] {
+      List(a_len + b_len, a_stream ++ b_stream)
     }
   }
 
@@ -220,11 +209,13 @@ pub mod List {
     assert i < list.len() else {
       list.push_back(el);
     }
-    let front = [];
+    let List(len, stream) = list;
+    let front = Stream::new();
     for _ in 0..i {
-      front.push_back(list.pop_front().assume());
+      front.push_back(safe stream.pop_front());
     }
-    list = front ++ [el] ++ list;
+    front.push_back(el);
+    list = List(len + 1, front ++ stream)
   }
 
   pub fn .find[T, F*; fn F(&T) -> Bool](&self: &List[T], pred: F) -> Option[&T] {
@@ -259,16 +250,12 @@ pub mod List {
   /// list.drop_while(fn* (value: N32) { value <= 3 });
   /// list // [5, 0, 6, 0, 2]
   /// ```
-  pub fn .drop_while[T?, F*; fn F(&T) -> Bool](&List[T](len, buf, _), pred: F) {
-    while len != 0 {
-      let Buf(head, tail) = buf;
-      if !pred(&head) {
-        // Assign buffer again to prevent cloning in the else case
-        buf = Buf(head, tail);
+  pub fn .drop_while[T?, F*; fn F(&T) -> Bool](&list: &List[T], pred: F) {
+    while list.pop_front() is Some(value) {
+      if !pred(&value) {
+        list.push_front(value);
         break;
       }
-      buf = tail;
-      len -= 1;
     }
   }
 
@@ -295,11 +282,11 @@ pub mod List {
 
   pub impl [T; Show[T]]: Show[List[T]] {
     fn show(&self: &List[T]) -> Show {
-      let entries = [];
+      let entries = Stream::new();
       for &value in &self {
         entries.push_back(value.show());
       }
-      Show::List(entries)
+      Show::List(List(self.len(), entries))
     }
   }
 
@@ -363,15 +350,10 @@ pub mod List {
   /// [1, 3, 4, 6, 7].is_sorted() // true
   /// ```
   pub fn .is_sorted[T; Ord[T]](&list: &List[T]) -> Bool {
-    let iter_ref = list.iter_ref();
-    assert iter_ref.advance() is Some(prev, iter_ref) else {
-      return true;
-    }
-    for next in iter_ref {
+    for (&prev, &next) in list.iter_ref().windows() {
       if prev > next {
         return false;
       }
-      prev = next;
     }
     true
   }
@@ -399,10 +381,10 @@ pub mod List {
 
   pub mod Iter {
     pub impl [T]: Iterator[Iter[T], T] {
-      fn advance(Iter[T](List(len, buf, end))) -> Option[(T, Iter[T])] {
+      fn advance(Iter[T](List(len, Stream(buf, end)))) -> Option[(T, Iter[T])] {
         if len != 0 {
           let Buf(head, tail) = buf;
-          Some(head, Iter(List(len - 1, tail, end)))
+          Some(head, Iter(List(len - 1, Stream(tail, end))))
         } else {
           safe erase((buf, end));
           None()
@@ -427,19 +409,19 @@ pub mod List {
   /// list // [1. 6. 4. 6]
   /// ```
   pub impl iter_ref[T]: Iterate[&List[T], IterRef[T], &T] {
-    fn iter(&List[T](len, buf, end)) -> IterRef[T] {
-      IterRef(len, &buf, &(len, end))
+    fn iter(&List[T](len, Stream(buf, _))) -> IterRef[T] {
+      IterRef(len, &buf)
     }
   }
 
-  pub struct IterRef[T]((N32, &Buf[T], &(N32, ~Buf[T])));
+  pub struct IterRef[T]((N32, &Buf[T]));
 
   pub mod IterRef {
     pub impl [T]: Iterator[IterRef[T], &T] {
-      fn advance(IterRef[T](len, &buf, &full)) -> Option[(&T, IterRef[T])] {
+      fn advance(IterRef[T](len, &buf)) -> Option[(&T, IterRef[T])] {
         if len != 0 {
           let &Buf(head, tail) = &buf;
-          Some(&head, IterRef(len - 1, &tail, &full))
+          Some(&head, IterRef(len - 1, &tail))
         } else {
           None()
         }
@@ -448,15 +430,6 @@ pub mod List {
 
     pub impl [T]: Fork[IterRef[T]];
     pub impl [T]: Drop[IterRef[T]];
-
-    /// Convert this iterator into a reference to the remaining tail of the
-    /// list. `O(1)`
-    pub fn .tail[T](&IterRef[T](len, &buf, &(full_len, end))) -> &List[T] {
-      full_len -= len;
-      let ref = &List(len, buf, end);
-      full_len += len;
-      ref
-    }
   }
 
   /// Collect the items of an iterator into a list.
@@ -479,11 +452,12 @@ pub mod List {
   /// list.reversed() // [4, 3, 2, 1]
   /// ```
   pub fn .reversed[T](self: List[T]) -> List[T] {
-    let reversed = [];
+    let len = self.len();
+    let reversed = Stream::new();
     for value in self {
       reversed.push_front(value);
     }
-    reversed
+    List(len, reversed)
   }
 
   /// Reverse the elements of the list.
@@ -501,17 +475,12 @@ pub mod List {
       if a.len() != b.len() {
         return false;
       }
-      let a_iter = a.iter_ref();
-      let b_iter = b.iter_ref();
-      for &a in a_iter {
-        let (&b, _b_iter) = b_iter.advance().assume();
-        b_iter = _b_iter;
+      for (a, b) in a.iter_ref().zip(b.iter_ref()) {
         if a != b {
-          break false;
+          return false;
         }
-      } else {
-        true
       }
+      true
     }
 
     fn ne(&a: &List[T], &b: &List[T]) -> Bool {
@@ -555,11 +524,11 @@ pub mod List {
   #[safe become(duplicate)]
   pub impl [T+]: Fork[List[T]] {
     fn fork(&self: &List[T]) -> List[T] {
-      let out = [];
+      let out = Stream::new();
       for &value in &self {
         out.push_back(value);
       }
-      out
+      List(self.len(), out)
     }
   }
 
@@ -568,5 +537,33 @@ pub mod List {
     fn drop(self: List[T]) {
       for _ in self {}
     }
+  }
+}
+
+pub mod Stream {
+  pub fn new[T]() -> Stream[T] {
+    let loop end;
+    Stream(end, ~end)
+  }
+
+  pub fn .push_front[T](&Stream[T](start, _), value: T) {
+    start = Buf(value, start);
+  }
+
+  pub fn .push_back[T](&Stream[T](_, ~end), value: T) {
+    end = Buf(value, end);
+  }
+
+  pub impl [T]: Concat[Stream[T], Stream[T], Stream[T]] {
+    fn concat(Stream[T](a_start, ~a_end), Stream[T](b_start, ~b_end)) -> Stream[T] {
+      a_end = b_start;
+      Stream(a_start, ~b_end)
+    }
+  }
+
+  pub unsafe fn .pop_front[T](&Stream[T](start, _)) -> T {
+    let Buf(head, tail) = start;
+    start = tail;
+    head
   }
 }
