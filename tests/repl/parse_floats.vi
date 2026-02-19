@@ -1,0 +1,105 @@
+F32::parse("0")
+F32::parse("-0")
+F32::parse("42")
+F32::parse("3.14")
+F32::parse("-0.001")
+F32::parse(".5")
+F32::parse("5.")
+F32::parse("000123.4500")
+F32::parse("-000.000")
+F32::parse("+7.2")
+F32::parse("+.8")
+F32::parse("-.0")
+F32::parse("1e3")
+F32::parse("-2.5E-4")
+F32::parse(".1e+1")
+F32::parse("0.1").assume().to_bits().to_hex()
+F32::parse("0.2").assume().to_bits().to_hex()
+F32::parse("0.3").assume().to_bits().to_hex()
+F32::parse("1e10").assume().to_bits().to_hex()
+F32::parse("1e-10").assume().to_bits().to_hex()
+F32::parse("16777219")  // 2²⁴ + 3 → rounds to even 16777220
+F32::parse("1e39")
+F32::parse("inf")
+F32::parse("+inf")
+F32::parse("-inf")
+F32::parse("nan")
+F32::parse("NaN")
+F32::parse("  9.81")
+F32::parse("-2.0\n")
+F32::parse("1,23")
+F32::parse("12 345.6")
+F32::parse("")
+F32::parse(".")
+F32::parse("1e")
+F32::parse("e5")
+F32::parse("-")
+F32::parse("3.1.4")
+F32::parse("6.0221408e23")
+F32::parse("3.4028234663852886e38") // f32::MAX
+F32::parse("1.1754943508222875e-38").assume().to_bits().to_hex()  // smallest normal
+F32::parse("1.401298464324817e-45").assume().to_bits().to_hex()  // smallest subnormal
+F32::parse("1.1754942e-38").assume().to_bits().to_hex()  // largest subnormal
+F32::parse("1.000000059604644775390625").assume().to_bits().to_hex()  // halfway between 1 and next float
+F32::parse("1.000000059604644775390626").assume().to_bits().to_hex()
+F32::parse("1e-46").assume().to_bits().to_hex()  // underflows to +0
+F32::parse("-1e-46").assume().to_bits().to_hex()  // underflows to -0
+F32::parse("3.5e38")  // overflows to +inf
+F32::parse("123456789012345678901234567890")
+F32::parse("0.123456789012345678901234567890")
+F32::parse("1.2345678901234567890e+20")
+F32::parse("9.9999999999999999999e+38")  // should overflow to +∞
+F32::parse("1.0000000000000000001e-45")
+
+F64::parse("0")
+F64::parse("-0")
+F64::parse("42")
+F64::parse("3.14")
+F64::parse("-0.001")
+F64::parse(".5")
+F64::parse("5.")
+F64::parse("000123.4500")
+F64::parse("-000.000")
+F64::parse("+7.2")
+F64::parse("+.8")
+F64::parse("-.0")
+F64::parse("1e3")
+F64::parse("-2.5E-4")
+F64::parse(".1e+1")
+F64::parse("0.1").assume().to_bits().to_hex()
+F64::parse("0.2").assume().to_bits().to_hex()
+F64::parse("0.3").assume().to_bits().to_hex()
+F64::parse("1e10").assume().to_bits().to_hex()
+F64::parse("1e-10").assume().to_bits().to_hex()
+F64::parse("9007199254740995")  // 2⁵³ + 3 → rounds to even 9007199254740996
+F64::parse("1e310")             // overflows to +inf in F64
+F64::parse("inf")
+F64::parse("+inf")
+F64::parse("-inf")
+F64::parse("nan")
+F64::parse("NaN")
+F64::parse("  9.81")
+F64::parse("-2.0\n")
+F64::parse("1,23")
+F64::parse("12 345.6")
+F64::parse("")
+F64::parse(".")
+F64::parse("1e")
+F64::parse("e5")
+F64::parse("-")
+F64::parse("3.1.4")
+F64::parse("6.02214076e23")
+F64::parse("1.7976931348623157e308") // F64::MAX
+F64::parse("2.2250738585072014e-308").assume().to_bits().to_hex() // smallest normal
+F64::parse("4.9406564584124654e-324").assume().to_bits().to_hex() // smallest subnormal
+F64::parse("2.225073858507201e-308").assume().to_bits().to_hex()  // largest subnormal
+F64::parse("1.00000000000000011102230246251565404236316680908203125").assume().to_bits().to_hex()  // exactly halfway between 1 and next F64
+F64::parse("1.00000000000000011102230246251565404236316680908203126").assume().to_bits().to_hex()  // pushes it over the tie-break
+F64::parse("1e-325").assume().to_bits().to_hex()   // underflows to +0
+F64::parse("-1e-325").assume().to_bits().to_hex()  // underflows to -0
+F64::parse("2e308")                                // overflows to +inf
+F64::parse("123456789012345678901234567890")
+F64::parse("0.123456789012345678901234567890")
+F64::parse("1.2345678901234567890e+20")
+F64::parse("9.9999999999999999999e+308") // should overflow to +∞
+F64::parse("1.0000000000000000001e-324")
