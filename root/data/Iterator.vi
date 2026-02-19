@@ -381,7 +381,7 @@ pub mod Iterator[I, T; Iterator[I, T]] {
     }
   }
 
-  pub struct Windows[I, R](Option[R], I);
+  pub struct* Windows[I, R](Option[R], I);
 
   pub fn .windows[I, T, R; Iterator[I, T]](iter: I) -> Windows[I, R] {
     Windows(None(), iter)
