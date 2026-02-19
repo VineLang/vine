@@ -108,7 +108,7 @@ pub mod String {
     if self.len() < prefix.len() {
       return false;
     }
-    for (&a, &b) in self.iter_ref().zip(prefix.iter_ref()) {
+    for (&a, &b) in (&self, &prefix) {
       if a != b {
         return false;
       }
@@ -121,7 +121,7 @@ pub mod String {
       return false;
     }
     let skip = self.len() - suffix.len();
-    for (&a, &b) in self.iter_ref().skip(skip).zip(suffix.iter_ref()) {
+    for (&a, &b) in (self.iter_ref().skip(skip), &suffix) {
       if a != b {
         return false;
       }

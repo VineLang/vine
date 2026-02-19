@@ -216,7 +216,7 @@ pub mod Nat {
     fn bit_and(a: Nat, b: Nat) -> Nat {
       let ~trim = true;
       let result = [];
-      for (a, b) in a!.iter().zip(b!.iter()) {
+      for (a, b) in (a!, b!) {
         let num = a & b;
         if !~trim {
           result.push_back(num);
@@ -350,7 +350,7 @@ pub mod Nat {
         a.len() > b.len() { Ord::Gt() }
         _ {
           let ord = Ord::Eq();
-          for (x, y) in a.iter().zip(b.iter()) {
+          for (x, y) in (a, b) {
             ord = match x.cmp(&y) {
               Ord::Lt() { Ord::Lt() }
               Ord::Eq() { ord }

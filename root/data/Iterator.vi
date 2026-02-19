@@ -1,6 +1,7 @@
 
 use ops::{Cast, comparison::Ord};
 use derive::Tuple;
+use util::transmute;
 
 pub trait Iterator[Self, Item] {
   #[builtin = "advance"]
@@ -264,17 +265,33 @@ pub mod Iterator[I, T; Iterator[I, T]] {
     }
   }
 
-  pub fn .zip[... I?, T?, J?, U; Iterator[J, U]](i: I, j: J) -> Zip[I, J] {
+  pub fn .zip[... I?, T?, J?, U; Iterator[J, U]](i: I, j: J) -> Zip[(I, J)] {
     Zip(i, j)
   }
 
-  pub struct* Zip[I, J]((I, J));
+  pub struct* Zip[Is](Is);
 
-  pub mod Zip[...] {
-    pub impl [... I?, T?, J?, U; Iterator[J, U]]: Iterator[Zip[I, J], (T, U)] {
-      fn advance(Zip[I, J](i, j)) -> Option[((T, U), Zip[I, J])] {
-        if i.advance() is Some(t, i) and j.advance() is Some(u, j) {
-          Some((t, u), Zip(i, j))
+  pub mod Zip[Is] {
+    pub impl iter_singleton[I, T; Iterator[I, T]]: Iterator[Zip[(I,)], (T,)] {
+      fn advance(Zip[(I,)]((iter,))) -> Option[((T,), Zip[(I,)])] {
+        safe transmute[Option[(T, I)], Option[((T,), Zip[(I,)])]](iter.advance())
+      }
+    }
+
+    pub impl iter_tuple[
+      IS, I, IR, TS, T, TR;
+      Tuple[IS, I, IR],
+      Iterator[I, T],
+      Iterator[Zip[IR], TR],
+      Tuple[TS, T, TR],
+      Drop[I],
+      Drop[IR],
+      Drop[T];
+    ]: Iterator[Zip[IS], TS] {
+      fn advance(Zip[IS](iters)) -> Option[(TS, Zip[IS])] {
+        let (i, ir) = iters as (I, IR);
+        if i.advance() is Some(t, i) and Zip(ir).advance() is Some(tr, Zip(ir)) {
+          Some((t, tr) as TS, Zip((i, ir) as IS))
         } else {
           None()
         }
@@ -585,5 +602,25 @@ pub mod Iterate {
 
   pub fn .iter_ref[C, I, T; Iterate[&C, I, T]](&collection: &C) -> I {
     iter(&collection)
+  }
+
+  pub impl iterate_singleton[C, I, T; Iterate[C, I, T]]: Iterate[(C,), Zip[(I,)], (T,)] {
+    fn iter((c: C,)) -> Zip[(I,)] {
+      Zip((c.iter(),))
+    }
+  }
+
+  pub impl iterate_tuple[
+    Cs, C, Cr, Is, I, Ir, Ts, T, Tr;
+    Tuple[Cs, C, Cr],
+    Iterate[C, I, T],
+    Iterate[Cr, Zip[Ir], Tr],
+    Tuple[Is, I, Ir],
+    Tuple[Ts, T, Tr];
+  ]: Iterate[Cs, Zip[Is], Ts] {
+    fn iter(cs: Cs) -> Zip[Is] {
+      let (c, cr) = cs as (C, Cr);
+      Zip((c.iter(), cr.iter()!) as Is)
+    }
   }
 }

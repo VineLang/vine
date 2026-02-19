@@ -63,7 +63,7 @@ pub fn main(_: &IO) {
     debug::log("{a}, {b}");
     let a = (0..a).inspect(fn* (&x: &N32) { debug::log("x: {x}") });
     let b = (0..b).inspect(fn* (&y: &N32) { debug::log("y: {y}") });
-    for t in a.zip(b) {
+    for t in (a, b) {
       debug::log("{t.show()}");
     }
   }
