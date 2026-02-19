@@ -22,8 +22,9 @@
   "vine.entrypoints": [
     "vine/examples/*.vi",
     "tests/programs/*.vi",
-    "tests/programs/aoc_2024/*.vi",
-    "tests/programs/compile/*.vi",
+    "tests/aoc_2024/*.vi",
+    "tests/compile/*.vi",
+    "tests/misc/*.vi",
     "root/"
   ],
   "rust-analyzer.check.command": "clippy",
