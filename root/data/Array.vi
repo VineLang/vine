@@ -1,4 +1,5 @@
 
+use List::Stream;
 use logical::Nullable;
 use ops::{Cast, Index::{Index, IndexPlace, IndexSpace, IndexValue}, comparison::Eq};
 use util::{duplicate, erase};
@@ -38,7 +39,7 @@ pub mod Array {
   /// array // Array([1, 2, 3])
   /// ```
   pub impl from_list[T]: Cast[List[T], Array[T]] {
-    fn cast(List[T](len, buf, _end)) -> Array[T] {
+    fn cast(List[T](len, Stream(buf, _end))) -> Array[T] {
       safe erase(_end);
       let array = Array::from_fn(
         len,
@@ -64,7 +65,7 @@ pub mod Array {
   pub impl to_list[T]: Cast[Array[T], List[T]] {
     fn cast(self: Array[T]) -> List[T] {
       let end;
-      List(self.len(), self.fold_back(~end, fn* (a, b) { List::Buf(b, a) }), end)
+      List(self.len(), Stream(self.fold_back(~end, fn* (a, b) { List::Buf(b, a) }), end))
     }
   }
 
