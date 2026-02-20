@@ -137,7 +137,7 @@ impl Net {
     }
 
     for (i, free) in state.free {
-      if i != state.net.free.len() as usize {
+      if i != state.net.free.len() {
         Err(Diag::MissingFree)?
       }
       state.net.free.push(free);

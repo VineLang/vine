@@ -1,9 +1,6 @@
 use std::{collections::BTreeMap, mem::take};
 
-use hedera::{
-  guide,
-  net::{FlatNet, FlatNode, Wire},
-};
+use hedera::net::{FlatNet, Wire};
 use vine_util::idx::{Counter, IdxVec};
 
 use crate::{
@@ -27,6 +24,7 @@ pub fn emit(
   fragment: &Fragment,
   vir: &Vir,
   specs: &mut Specializations,
+  guide: &Guide,
 ) -> Template {
   let mut emitter = Emitter {
     chart,
@@ -34,6 +32,7 @@ pub fn emit(
     fragment,
     vir,
     specs,
+    guide,
     locals: BTreeMap::new(),
     net: FlatNet::default(),
     wire_offset: 0,
@@ -51,13 +50,13 @@ pub(crate) struct Emitter<'a> {
   pub(crate) fragment: &'a Fragment,
   pub(crate) vir: &'a Vir,
   pub(crate) specs: &'a mut Specializations,
+  pub(crate) guide: &'a Guide,
   pub(crate) locals: BTreeMap<Local, LocalEmissionState>,
   pub(crate) net: FlatNet<TemplateNode>,
   pub(crate) wire_offset: usize,
   pub(crate) wires: Counter<usize>,
   pub(crate) debug: bool,
   pub(crate) debug_state: Option<(Wire, Wire)>,
-  pub(crate) guide: Guide,
 }
 
 impl<'a> Emitter<'a> {
@@ -68,6 +67,7 @@ impl<'a> Emitter<'a> {
       self.wires.0 = stage.wires.0.0;
       let root = self.emit_interface(interface, false);
       let root = self.emit_header(&stage.header, root);
+      self.net.free.push(root);
       self._emit_stage(stage);
       for (local, state) in take(&mut self.locals) {
         self.finish_local(&self.vir.locals[local], state);

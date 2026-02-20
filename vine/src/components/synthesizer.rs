@@ -1,9 +1,11 @@
 use std::mem::take;
 
-use ivy::ast::{Net, Nets, Tree};
-use vine_util::idx::{Counter, IdxVec};
+use hedera::net::{FlatNet, FlatNode, Wire};
+use ivy::ast::{Net, Nets};
+use vine_util::idx::{Counter, IdxVec, RangeExt};
 
 use crate::{
+  compiler::Guide,
   components::loader::FileId,
   structures::{
     ast::{Ident, Span},
@@ -55,7 +57,8 @@ struct Synthesizer<'a> {
   sigs: &'a Signatures,
   specs: &'a Specializations,
   spec: &'a Spec,
-  var_id: Counter<usize>,
+  guide: &'a Guide,
+  net: FlatNet,
   stages: Counter<StageId>,
   debug: bool,
 }
@@ -68,6 +71,7 @@ pub fn synthesize(
   sigs: &Signatures,
   specs: &Specializations,
   spec: &Spec,
+  guide: &Guide,
   item: &SyntheticItem,
 ) {
   Synthesizer {
@@ -77,41 +81,38 @@ pub fn synthesize(
     chart,
     sigs,
     specs,
+    guide,
     spec,
-    var_id: Counter::default(),
+    net: FlatNet::default(),
     stages: Counter::default(),
   }
   .synthesize(item);
 }
 
 impl Synthesizer<'_> {
-  fn new_wire(&mut self) -> (Tree, Tree) {
-    let var = format!("s{}", self.var_id.next());
-    (Tree::Var(var.clone()), Tree::Var(var))
-  }
-
   fn list<T>(
     &mut self,
     items: impl IntoIterator<Item = T, IntoIter: DoubleEndedIterator>,
-    mut f: impl FnMut(&mut Self, T) -> Tree,
-  ) -> Tree {
-    let end = self.new_wire();
-    let mut len = 0;
-    let buf = Tree::n_ary(
-      "tup",
-      items
-        .into_iter()
-        .map(|t| {
-          len += 1;
-          f(self, t)
-        })
-        .chain([end.0]),
-    );
-    Tree::n_ary("tup", [Tree::N32(len), buf, end.1])
+    mut f: impl FnMut(&mut Self, T) -> Wire,
+  ) -> Wire {
+    let mut len = 0u32;
+    let buf = self.net.wire();
+    let mut cur = buf;
+    for item in items {
+      len += 1;
+      let item = f(self, item);
+      let next = self.net.wire();
+      self.net.push(FlatNode(self.guide.tuple, [cur, item, next]));
+      cur = next;
+    }
+    let end = cur;
+    let len = self.net.insert(self.guide.n32.with_data(len), []);
+    self.net.insert(self.guide.tuple, [len, buf, end])
   }
 
-  fn string(&mut self, str: &str) -> Tree {
-    self.list(str.chars(), |_, char| Tree::N32(char as u32))
+  fn string(&mut self, str: &str) -> Wire {
+    self
+      .list(str.chars(), |self_, char| self_.net.insert(self_.guide.n32.with_data(char as u32), []))
   }
 
   fn synthesize(&mut self, item: &SyntheticItem) {
@@ -134,28 +135,30 @@ impl Synthesizer<'_> {
     self.nets.insert(stage, net);
   }
 
-  fn synthesize_composite_deconstruct(&mut self, len: usize) -> Net {
-    let x = self.new_wire();
-    Net::new(if len == 1 {
-      Tree::n_ary("fn", [self.fn_receiver(), x.0, Tree::n_ary("tup", [x.1, Tree::Erase])])
-    } else {
-      Tree::n_ary("fn", [self.fn_receiver(), x.0, x.1])
-    })
+  fn do_fn(&mut self, params: impl IntoIterator<Item = Wire>, ret: Wire) {
+    todo!()
   }
 
-  fn synthesize_composite_reconstruct(&mut self, len: usize) -> Net {
-    let x = self.new_wire();
-    let y = self.new_wire();
-    Net::new(if len == 1 {
-      Tree::n_ary("fn", [self.fn_receiver(), x.0, Tree::Erase, x.1])
-    } else {
-      Tree::n_ary("fn", [self.fn_receiver(), x.0, y.0, Tree::n_ary("tup", [x.1, y.1])])
-    })
+  fn synthesize_composite_deconstruct(&mut self, len: usize) {
+    let [composite, ret, init, rest] = self.net.wires();
+    let rest_fields = self.net.wires.chunk(len - 1);
+    self.do_fn([composite], ret);
+    self.net.add(self.guide.tuple, [composite, init].into_iter().chain(rest_fields.iter()));
+    self.net.add(self.guide.tuple, [ret, init, rest]);
+    self.net.add(self.guide.tuple, [rest].into_iter().chain(rest_fields.iter()));
   }
 
-  fn synthesize_identity(&mut self) -> Net {
-    let x = self.new_wire();
-    Net::new(Tree::n_ary("fn", [self.fn_receiver(), x.0, x.1]))
+  fn synthesize_composite_reconstruct(&mut self, len: usize) {
+    let [composite, init, rest] = self.net.wires();
+    let rest_fields = self.net.wires.chunk(len - 1);
+    self.do_fn([init, rest], composite);
+    self.net.add(self.guide.tuple, [rest].into_iter().chain(rest_fields.iter()));
+    self.net.add(self.guide.tuple, [composite, init].into_iter().chain(rest_fields.iter()));
+  }
+
+  fn synthesize_identity(&mut self) {
+    let x = self.net.wire();
+    self.do_fn([x], x);
   }
 
   fn new_stage(&mut self) -> String {
@@ -163,17 +166,17 @@ impl Synthesizer<'_> {
     global_name(self.spec, id)
   }
 
-  fn synthesize_enum_variant_names(&mut self, enum_id: EnumId) -> Net {
+  fn synthesize_enum_variant_names(&mut self, enum_id: EnumId) {
     let names =
       self.list(self.chart.enums[enum_id].variants.values().map(|x| &*x.name.0), Self::string);
     self.const_(names)
   }
 
-  fn synthesize_enum_match(&mut self, enum_id: EnumId) -> Net {
+  fn synthesize_enum_match(&mut self, enum_id: EnumId) {
     let fn_ = self.fn_rel(FnRelId(0));
-    let f = self.new_wire();
-    let t = self.new_wire();
-    let dbg = self.new_wire();
+    let f = self.net.wire();
+    let t = self.net.wire();
+    let dbg = self.net.wire();
     Net::new(Tree::n_ary(
       "fn",
       [
@@ -182,16 +185,16 @@ impl Synthesizer<'_> {
           enum_id,
           |self_, variant_id| {
             let has_data = !self_.sigs.enums[enum_id].inner.variant_is_nil[variant_id];
-            let data = self_.new_wire();
-            let f = self_.new_wire();
-            let t = self_.new_wire();
-            let dbg = self_.new_wire();
+            let data = self_.net.wire();
+            let f = self_.net.wire();
+            let t = self_.net.wire();
+            let dbg = self_.net.wire();
             Net {
               root: Tree::n_ary(
                 "enum",
                 has_data.then_some(data.0).into_iter().chain([Tree::n_ary(
                   "x",
-                  self_.debug.then_some(dbg.0).into_iter().chain([f.0, t.0]),
+                  self_.debug.then_some(dbg.0).into_iter().chain([f, t]),
                 )]),
               ),
               pairs: Vec::from([(
@@ -199,33 +202,33 @@ impl Synthesizer<'_> {
                 Tree::n_ary(
                   "fn",
                   [
-                    Tree::n_ary("dbg", self_.debug.then_some(dbg.1).into_iter().chain([f.1])),
+                    Tree::n_ary("dbg", self_.debug.then_some(dbg.1).into_iter().chain([f])),
                     self_.variant(variant_id, has_data.then_some(data.1)),
-                    t.1,
+                    t,
                   ],
                 ),
               )]),
             }
           },
-          Tree::n_ary("x", self.debug.then_some(dbg.1).into_iter().chain([f.0, t.0])),
+          Tree::n_ary("x", self.debug.then_some(dbg.1).into_iter().chain([f, t])),
         ),
-        f.1,
-        t.1,
+        f,
+        t,
       ],
     ))
   }
 
-  fn synthesize_enum_reconstruct(&mut self, enum_id: EnumId) -> Net {
+  fn synthesize_enum_reconstruct(&mut self, enum_id: EnumId) {
     let mut cur_net = Net::new(Tree::Erase);
     for (variant_id, is_nil) in self.sigs.enums[enum_id].inner.variant_is_nil.iter().rev() {
       let has_data = !*is_nil;
       let mut prev_net = Some(cur_net);
-      let out = self.new_wire();
+      let out = self.net.wire();
       let match_ = self.match_enum(
         self.chart.builtins.variant.unwrap(),
         |self_, v| {
-          let data = self_.new_wire();
-          if v.0 == 0 {
+          let data = self_.net.wire();
+          if v == 0 {
             Net::new(Tree::n_ary(
               "enum",
               [
@@ -248,30 +251,30 @@ impl Synthesizer<'_> {
     cur_net
   }
 
-  fn synthesize_const_alias(&self) -> Net {
+  fn synthesize_const_alias(&self) {
     Net::new(self.const_rel(ConstRelId(0)))
   }
 
-  fn synthesize_fn_from_call(&mut self, params: usize) -> Net {
+  fn synthesize_fn_from_call(&mut self, params: usize) {
     let (fn_, call) = self._fn_call(params);
     Net { root: fn_, pairs: vec![(self.fn_rel(FnRelId(0)), call)] }
   }
 
-  fn synthesize_call_from_fn(&mut self, params: usize) -> Net {
+  fn synthesize_call_from_fn(&mut self, params: usize) {
     let (fn_, call) = self._fn_call(params);
     Net { root: call, pairs: vec![(self.fn_rel(FnRelId(0)), fn_)] }
   }
 
-  fn _fn_call(&mut self, params: usize) -> (Tree, Tree) {
+  fn _fn_call(&mut self, params: usize) -> (Wire, Wire) {
     let dbg = if self.debug {
-      let wire = self.new_wire();
+      let wire = self.net.wire();
       (Some(wire.0).into_iter(), Some(wire.1).into_iter())
     } else {
       (None.into_iter(), None.into_iter())
     };
-    let recv = self.new_wire();
-    let params = (0..params).map(|_| self.new_wire()).collect::<(Vec<_>, Vec<_>)>();
-    let ret = self.new_wire();
+    let recv = self.net.wire();
+    let params = (0..params).map(|_| self.net.wire()).collect::<(Vec<_>, Vec<_>)>();
+    let ret = self.net.wire();
     (
       Tree::n_ary(
         "fn",
@@ -289,7 +292,7 @@ impl Synthesizer<'_> {
     )
   }
 
-  fn synthesize_frame(&mut self, path: String, span: Span) -> Net {
+  fn synthesize_frame(&mut self, path: String, span: Span) {
     let path = self.list(path[1..].split("::").collect::<Vec<_>>(), Self::string);
     let pos = self.files[span.file].get_pos(span.start);
     let file = self.string(pos.file);
@@ -298,28 +301,28 @@ impl Synthesizer<'_> {
     Net::new(Tree::n_ary("tup", [Tree::N32(1), Tree::n_ary("tup", [col, file, line, path])]))
   }
 
-  fn synthesize_debug_state(&mut self) -> Net {
+  fn synthesize_debug_state(&mut self) {
     if self.debug {
-      let x = self.new_wire();
-      let y = self.new_wire();
+      let x = self.net.wire();
+      let y = self.net.wire();
       Net::new(Tree::n_ary(
         "fn",
         [
-          Tree::n_ary("dbg", [x.0, Tree::Erase]),
-          Tree::n_ary("enum", [Tree::n_ary("enum", [x.1, y.0]), Tree::Erase, y.1]),
+          Tree::n_ary("dbg", [x, Tree::Erase]),
+          Tree::n_ary("enum", [Tree::n_ary("enum", [x, y]), Tree::Erase, y]),
         ],
       ))
     } else {
-      let x = self.new_wire();
-      Net::new(Tree::n_ary("fn", [Tree::Erase, Tree::n_ary("enum", [Tree::Erase, x.0, x.1])]))
+      let x = self.net.wire();
+      Net::new(Tree::n_ary("fn", [Tree::Erase, Tree::n_ary("enum", [Tree::Erase, x, x])]))
     }
   }
 
-  fn synthesize_n32(&mut self, n32: u32) -> Net {
+  fn synthesize_n32(&mut self, n32: u32) {
     Net::new(Tree::N32(n32))
   }
 
-  fn synthesize_string(&mut self, string: String) -> Net {
+  fn synthesize_string(&mut self, string: String) {
     Net::new(self.string(&string))
   }
 
@@ -327,10 +330,10 @@ impl Synthesizer<'_> {
     &mut self,
     enum_id: EnumId,
     variant_id: VariantId,
-    content: impl FnOnce(&mut Self) -> Option<Tree>,
-  ) -> Tree {
+    content: impl FnOnce(&mut Self) -> Option<Wire>,
+  ) -> Wire {
     let enum_def = &self.chart.enums[enum_id];
-    let wire = self.new_wire();
+    let wire = self.net.wire();
     let mut variant = Tree::n_ary("enum", content(self).into_iter().chain([wire.0]));
     Tree::n_ary(
       "enum",
@@ -343,9 +346,9 @@ impl Synthesizer<'_> {
   fn match_enum(
     &mut self,
     enum_id: EnumId,
-    mut arm: impl FnMut(&mut Self, VariantId) -> Net,
-    ctx: Tree,
-  ) -> Tree {
+    mut arm: impl FnMut(&mut Self, VariantId),
+    ctx: Wire,
+  ) -> Wire {
     let enum_def = &self.chart.enums[enum_id];
     Tree::n_ary(
       "enum",
@@ -362,7 +365,7 @@ impl Synthesizer<'_> {
     )
   }
 
-  fn variant(&mut self, variant_id: VariantId, data: Option<Tree>) -> Tree {
+  fn variant(&mut self, variant_id: VariantId, data: Option<Wire>) -> Wire {
     let variant_enum = self.chart.builtins.variant.unwrap();
     let mut cur = self.enum_(variant_enum, VariantId(0), |_| Some(data.unwrap_or(Tree::Erase)));
     for _ in 0..variant_id.0 {
@@ -371,7 +374,7 @@ impl Synthesizer<'_> {
     cur
   }
 
-  fn fn_rel(&self, id: FnRelId) -> Tree {
+  fn fn_rel(&self, id: FnRelId) -> Wire {
     match self.spec.rels.fns[id] {
       Ok((spec_id, stage_id)) => {
         Tree::Global(global_name(self.specs.specs[spec_id].as_ref().unwrap(), stage_id))
@@ -380,7 +383,7 @@ impl Synthesizer<'_> {
     }
   }
 
-  fn const_rel(&self, id: ConstRelId) -> Tree {
+  fn const_rel(&self, id: ConstRelId) -> Wire {
     match self.spec.rels.consts[id] {
       Ok(spec_id) => {
         Tree::Global(global_name(self.specs.specs[spec_id].as_ref().unwrap(), StageId(0)))
@@ -389,12 +392,12 @@ impl Synthesizer<'_> {
     }
   }
 
-  fn fn_receiver(&mut self) -> Tree {
+  fn fn_receiver(&mut self) -> Wire {
     if self.debug {
-      let w = self.new_wire();
+      let w = self.net.wire();
       Tree::Comb(
         "dbg".into(),
-        Box::new(Tree::Comb("ref".into(), Box::new(w.0), Box::new(w.1))),
+        Box::new(Tree::Comb("ref".into(), Box::new(w), Box::new(w))),
         Box::new(Tree::Erase),
       )
     } else {
@@ -402,10 +405,10 @@ impl Synthesizer<'_> {
     }
   }
 
-  fn const_(&mut self, value: Tree) -> Net {
+  fn const_(&mut self, value: Wire) {
     if self.debug {
-      let w = self.new_wire();
-      Net::new(Tree::n_ary("dbg", [Tree::n_ary("ref", [w.0, w.1]), value]))
+      let w = self.net.wire();
+      Net::new(Tree::n_ary("dbg", [Tree::n_ary("ref", [w, w]), value]))
     } else {
       Net::new(value)
     }

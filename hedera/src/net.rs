@@ -71,6 +71,13 @@ impl<N> FlatNet<N> {
     self.nodes.push(node.into())
   }
 
+  pub fn add(&mut self, name: impl Into<Name>, aux: impl IntoIterator<Item = Wire>)
+  where
+    FlatNode: Into<N>,
+  {
+    self.push(FlatNode(name, aux));
+  }
+
   pub fn insert(&mut self, name: impl Into<Name>, aux: impl IntoIterator<Item = Wire>) -> Wire
   where
     FlatNode: Into<N>,
