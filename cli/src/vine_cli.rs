@@ -3,7 +3,7 @@ use std::{
   env,
   ffi::OsStr,
   fmt, fs,
-  io::{self, IsTerminal, Read, stderr, stdin, stdout},
+  io::{self, IsTerminal, Read, Write, stderr, stdin, stdout},
   path::{Path, PathBuf},
   process::exit,
   sync::mpsc,
@@ -171,7 +171,7 @@ impl VineRunCommand {
   pub fn execute(self) -> Result<()> {
     let debug = self.compile.debug;
     let (mut nets, _) = self.compile.compile();
-    self.optimizations.apply(&mut nets);
+    self.optimizations.apply(&mut nets, &[]);
     self.run_args.check(&nets, !debug);
     Ok(())
   }
@@ -185,6 +185,11 @@ pub struct VineTestCommand {
   optimizations: Optimizations,
   #[command(flatten)]
   run_args: RunArgs,
+  /// By default, stdout is captured when running test entrypoints. It is only
+  /// printed to stderr when an error occurs. Setting `no_capture` always prints
+  /// stdout to stderr after the test runs.
+  #[arg(short, long)]
+  no_capture: bool,
   /// The test patterns to run. Test paths containing any of the provided
   /// strings as substrings are run. If none are provided, all tests are run.
   #[arg(long = "test")]
@@ -200,18 +205,32 @@ impl VineTestCommand {
     let tests = Self::matching_tests(&self.tests, &compiler);
     eprintln!("running {} test(s)\n", tests.len());
 
-    let globals: Vec<_> = tests.iter().map(|(_, id)| compiler.global_name(*id)).collect();
-    self.optimizations.apply_keeping(&mut nets, &globals);
+    let entrypoints: Vec<_> = tests.iter().map(|(_, id)| compiler.global_name(*id)).collect();
+    self.optimizations.apply(&mut nets, &entrypoints);
 
+    let Colors { reset, red, green, .. } = colors(&stderr());
+
+    let mut failed = false;
     for (path, test_id) in tests {
       compiler.insert_main_net(&mut nets, test_id);
 
-      eprint!("test {path} ...");
-      if self.run_args.run(&nets).success() {
-        eprintln!("ok");
+      eprint!("test {path} ... ");
+      let (result, output) = self.run_args.output(&nets);
+      if result.success() {
+        eprintln!("{green}ok{reset}");
+        if self.no_capture {
+          io::stderr().write_all(&output)?;
+        }
       } else {
-        eprintln!("FAILED");
+        failed = true;
+        eprintln!("{red}FAILED{reset}");
+        io::stderr().write_all(&output)?;
+        eprintln!();
       }
+    }
+
+    if failed {
+      exit(1);
     }
 
     Ok(())
@@ -249,7 +268,7 @@ pub struct VineBuildCommand {
 impl VineBuildCommand {
   pub fn execute(self) -> Result<()> {
     let (mut nets, _) = self.compile.compile();
-    self.optimizations.apply(&mut nets);
+    self.optimizations.apply(&mut nets, &[]);
     if let Some(out) = self.out {
       fs::write(out, nets.to_string())?;
     } else {
@@ -359,7 +378,7 @@ impl VineReplCommand {
     let heap = Heap::new();
     let mut extrinsics = Extrinsics::default();
     host.register_default_extrinsics(&mut extrinsics);
-    host.register_runtime_extrinsics(&mut extrinsics, &self.args);
+    host.register_runtime_extrinsics(&mut extrinsics, &self.args, io::stdin, io::stdout);
 
     let mut ivm = IVM::new(&heap, &extrinsics);
     let mut compiler = Compiler::new(!self.no_debug, build_config(self.config));

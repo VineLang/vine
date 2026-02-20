@@ -3,9 +3,9 @@ use std::collections::HashSet;
 use crate::ast::{Net, Nets, Tree};
 
 /// Prune unused global nets.
-pub fn prune(nets: &mut Nets, keep: &[String]) {
+pub fn prune(nets: &mut Nets, entrypoints: &[String]) {
   let mut prune = Prune { nets, keep: HashSet::new() };
-  for global in keep.iter().map(String::as_str).chain(["::"]) {
+  for global in entrypoints.iter().map(String::as_str).chain(["::"]) {
     if nets.contains_key(global) {
       prune.visit_global(global);
     }

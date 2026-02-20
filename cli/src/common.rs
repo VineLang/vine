@@ -1,4 +1,8 @@
-use std::process::exit;
+use std::{
+  io::{self, Read, Write},
+  process::exit,
+  sync::{Mutex, MutexGuard},
+};
 
 use clap::Args;
 
@@ -19,15 +23,9 @@ pub struct Optimizations {
 }
 
 impl Optimizations {
-  pub fn apply(&self, nets: &mut Nets) {
+  pub fn apply(&self, nets: &mut Nets, entrypoints: &[String]) {
     if !self.no_opt {
-      Optimizer::default().optimize(nets, &[])
-    }
-  }
-
-  pub fn apply_keeping(&self, nets: &mut Nets, keep: &[String]) {
-    if !self.no_opt {
-      Optimizer::default().optimize(nets, keep)
+      Optimizer::default().optimize(nets, entrypoints)
     }
   }
 }
@@ -48,11 +46,39 @@ pub struct RunArgs {
 }
 
 impl RunArgs {
-  pub fn check(&self, nets: &Nets, debug_hint: bool) {
-    self.run(nets).check(debug_hint);
+  /// Run the nets capturing any stdout and stderr.
+  pub fn output(&self, nets: &Nets) -> (RunResult, Vec<u8>) {
+    pub struct SharedWriter<'a>(pub MutexGuard<'a, Vec<u8>>);
+
+    impl Write for SharedWriter<'_> {
+      fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
+        self.0.extend_from_slice(buf);
+        Ok(buf.len())
+      }
+
+      fn flush(&mut self) -> io::Result<()> {
+        Ok(())
+      }
+    }
+
+    let input: &[u8] = &[];
+    let output = Mutex::default();
+    let result = self.run(nets, || input, || SharedWriter(output.lock().unwrap()));
+
+    (result, output.into_inner().unwrap())
   }
 
-  pub fn run(&self, nets: &Nets) -> RunResult {
+  /// Run the nets forwarding stdout and stderr, exiting if any errors occur.
+  pub fn check(&self, nets: &Nets, debug_hint: bool) {
+    self.run(nets, io::stdin, io::stdout).check(debug_hint);
+  }
+
+  pub fn run<R: Read, W: Write>(
+    &self,
+    nets: &Nets,
+    io_input_fn: impl Copy + Fn() -> R + Send + Sync,
+    io_output_fn: impl Copy + Fn() -> W + Send + Sync,
+  ) -> RunResult {
     let mut host = &mut Host::default();
     let heap = match self.heap {
       Some(size) => Heap::with_size(size).expect("heap allocation failed"),
@@ -61,7 +87,7 @@ impl RunArgs {
     let mut extrinsics = Extrinsics::default();
 
     host.register_default_extrinsics(&mut extrinsics);
-    host.register_runtime_extrinsics(&mut extrinsics, &self.argv);
+    host.register_runtime_extrinsics(&mut extrinsics, &self.argv, io_input_fn, io_output_fn);
     host.insert_nets(nets);
 
     let main = host.get("::").expect("missing main");
@@ -88,7 +114,6 @@ impl RunArgs {
       flags: ivm.flags,
       no_io: out.tag() != Tag::ExtVal || unsafe { out.as_ext_val() }.bits() != host.new_io().bits(),
       vicious: ivm.stats.mem_free < ivm.stats.mem_alloc,
-      output: None,
     }
   }
 }
@@ -98,7 +123,6 @@ pub struct RunResult {
   pub flags: Flags,
   pub no_io: bool,
   pub vicious: bool,
-  pub output: Option<Vec<u8>>,
 }
 
 impl RunResult {
