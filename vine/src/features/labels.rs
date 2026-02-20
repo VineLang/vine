@@ -159,6 +159,7 @@ impl Distiller<'_> {
   pub(crate) fn distill_break(
     &mut self,
     stage: &mut Stage,
+    span: Span,
     label: TargetId,
     value: &Option<TirExpr>,
   ) {
@@ -168,7 +169,7 @@ impl Distiller<'_> {
     };
 
     let label = self.targets[label].as_ref().unwrap();
-    stage.local_barrier_write_to(label.break_value, value);
+    stage.local_barrier_write_to(label.break_value, span, value);
 
     stage.steps.push(Step::Diverge(label.layer, None));
   }

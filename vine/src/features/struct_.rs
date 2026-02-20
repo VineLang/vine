@@ -373,7 +373,7 @@ impl Matcher<'_, '_> {
     let value = self.borrow_var(stage, &mut vars, var_id, MatchVarKind::Struct(content_var));
     let content = stage.new_wire(self.span, content_ty);
     stage.steps.push(Step::Rewrap(value, content.neg));
-    stage.local_barrier_write_to(content_local, content.pos);
+    stage.local_barrier_write_to(content_local, self.span, content.pos);
     self.eliminate_col(&mut rows, var_id, |pat| match &*pat.kind {
       TirPatKind::Struct(inner) => Some([(content_var, inner)]),
       _ => unreachable!(),

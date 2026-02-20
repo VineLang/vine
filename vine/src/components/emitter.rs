@@ -7,7 +7,6 @@ use crate::{
   features::{debug::main_net_debug, local::LocalEmissionState},
   structures::{
     chart::Chart,
-    diag::Diags,
     resolutions::{ConstRelId, FnRelId, Fragment},
     signatures::Signatures,
     specializations::Specializations,
@@ -21,7 +20,6 @@ pub fn emit(
   debug: bool,
   chart: &Chart,
   sigs: &Signatures,
-  diags: &mut Diags,
   fragment: &Fragment,
   vir: &Vir,
   specs: &mut Specializations,
@@ -29,7 +27,6 @@ pub fn emit(
   let mut emitter = Emitter {
     chart,
     sigs,
-    diags,
     fragment,
     vir,
     specs,
@@ -48,7 +45,6 @@ pub fn emit(
 pub(crate) struct Emitter<'a> {
   pub(crate) chart: &'a Chart,
   pub(crate) sigs: &'a Signatures,
-  pub(crate) diags: &'a mut Diags,
   pub(crate) fragment: &'a Fragment,
   pub(crate) vir: &'a Vir,
   pub(crate) specs: &'a mut Specializations,
@@ -170,7 +166,7 @@ impl<'a> Emitter<'a> {
 
   fn emit_step(&mut self, step: &Step) {
     match step {
-      Step::Invoke(local, invocation) => self.emit_invocation(local, invocation),
+      Step::Invoke(_, local, invocation) => self.emit_invocation(local, invocation),
       Step::Transfer(transfer) => self.emit_transfer(transfer),
       Step::Diverge(..) => unreachable!(),
       Step::Link(a, b) => {

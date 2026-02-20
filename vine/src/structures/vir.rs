@@ -133,7 +133,7 @@ pub enum Header {
 
 #[derive(Debug, Clone)]
 pub enum Step {
-  Invoke(Local, Invocation),
+  Invoke(Span, Local, Invocation),
   Transfer(Transfer),
   Diverge(LayerId, Option<Transfer>),
 
@@ -169,7 +169,7 @@ impl Step {
   pub fn ports(&self) -> impl Iterator<Item = &Port> {
     multi_iter!(Ports { Zero, One, Two, Three, Invoke, Transfer, Tuple, Fn, String, Ivy });
     match self {
-      Step::Invoke(_, invocation) => Ports::Invoke(invocation.ports()),
+      Step::Invoke(_, _, invocation) => Ports::Invoke(invocation.ports()),
       Step::Transfer(transfer) | Step::Diverge(_, Some(transfer)) => {
         Ports::Transfer(transfer.data.as_ref())
       }
@@ -262,59 +262,59 @@ impl Stage {
     }
   }
 
-  pub fn local_read_to(&mut self, local: Local, to: Port) {
-    self.steps.push(Step::Invoke(local, Invocation::Read(to)));
+  pub fn local_read_to(&mut self, local: Local, span: Span, to: Port) {
+    self.steps.push(Step::Invoke(span, local, Invocation::Read(to)));
   }
 
-  pub fn local_write_to(&mut self, local: Local, to: Port) {
-    self.steps.push(Step::Invoke(local, Invocation::Write(to)));
+  pub fn local_write_to(&mut self, local: Local, span: Span, to: Port) {
+    self.steps.push(Step::Invoke(span, local, Invocation::Write(to)));
   }
 
-  pub fn local_read_barrier_to(&mut self, local: Local, to: Port) {
-    self.steps.push(Step::Invoke(local, Invocation::ReadBarrier(to)));
+  pub fn local_read_barrier_to(&mut self, local: Local, span: Span, to: Port) {
+    self.steps.push(Step::Invoke(span, local, Invocation::ReadBarrier(to)));
   }
 
-  pub fn local_barrier_write_to(&mut self, local: Local, to: Port) {
-    self.steps.push(Step::Invoke(local, Invocation::BarrierWrite(to)));
+  pub fn local_barrier_write_to(&mut self, local: Local, span: Span, to: Port) {
+    self.steps.push(Step::Invoke(span, local, Invocation::BarrierWrite(to)));
   }
 
-  pub fn local_read_write_to(&mut self, local: Local, o: Port, i: Port) {
-    self.steps.push(Step::Invoke(local, Invocation::ReadWrite(o, i)));
+  pub fn local_read_write_to(&mut self, local: Local, span: Span, o: Port, i: Port) {
+    self.steps.push(Step::Invoke(span, local, Invocation::ReadWrite(o, i)));
   }
 
   pub fn local_read(&mut self, local: Local, span: Span, ty: Type) -> Port {
     let wire = self.new_wire(span, ty);
-    self.local_read_to(local, wire.neg);
+    self.local_read_to(local, span, wire.neg);
     wire.pos
   }
 
   pub fn local_write(&mut self, local: Local, span: Span, ty: Type) -> Port {
     let wire = self.new_wire(span, ty);
-    self.local_write_to(local, wire.pos);
+    self.local_write_to(local, span, wire.pos);
     wire.neg
   }
 
   pub fn local_read_barrier(&mut self, local: Local, span: Span, ty: Type) -> Port {
     let wire = self.new_wire(span, ty);
-    self.local_read_barrier_to(local, wire.neg);
+    self.local_read_barrier_to(local, span, wire.neg);
     wire.pos
   }
 
   pub fn local_barrier_write(&mut self, local: Local, span: Span, ty: Type) -> Port {
     let wire = self.new_wire(span, ty);
-    self.local_barrier_write_to(local, wire.pos);
+    self.local_barrier_write_to(local, span, wire.pos);
     wire.neg
   }
 
   pub fn local_read_write(&mut self, local: Local, span: Span, ty: Type) -> (Port, Port) {
     let o = self.new_wire(span, ty);
     let i = self.new_wire(span, ty);
-    self.local_read_write_to(local, o.neg, i.pos);
+    self.local_read_write_to(local, span, o.neg, i.pos);
     (o.pos, i.neg)
   }
 
-  pub fn local_barrier(&mut self, local: Local) {
-    self.steps.push(Step::Invoke(local, Invocation::Barrier));
+  pub fn local_barrier(&mut self, local: Local, span: Span) {
+    self.steps.push(Step::Invoke(span, local, Invocation::Barrier));
   }
 
   pub fn ext_fn(

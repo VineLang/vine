@@ -109,21 +109,9 @@ impl Compiler {
       hooks.distill(fragment_id, &mut vir);
       let mut vir =
         normalize(chart, &self.sigs, distiller.diags, distiller.finder_cache, fragment, &vir);
-      analyze(distiller.diags, fragment.tir.span, &mut vir);
-      let template =
-        emit(self.debug, chart, &self.sigs, distiller.diags, fragment, &vir, &mut self.specs);
+      analyze(chart, distiller.diags, fragment.tir.span, &mut vir);
       self.vir.push_to(fragment_id, vir);
-      self.templates.push_to(fragment_id, template);
     }
-
-    let mut specializer = Specializer {
-      chart,
-      resolutions: &self.resolutions,
-      fragments: &self.fragments,
-      specs: &mut self.specs,
-      vir: &self.vir,
-    };
-    specializer.specialize_since(checkpoint);
 
     for def in self.chart.defs.values() {
       for member in &def.named_members {
@@ -143,6 +131,22 @@ impl Compiler {
 
   pub fn nets_from(&mut self, checkpoint: &Checkpoint) -> Nets {
     let mut nets = Nets::default();
+
+    for fragment_id in self.fragments.keys_from(checkpoint.fragments) {
+      let fragment = &self.fragments[fragment_id];
+      let vir = &self.vir[fragment_id];
+      let template = emit(self.debug, &self.chart, &self.sigs, fragment, vir, &mut self.specs);
+      self.templates.push_to(fragment_id, template);
+    }
+
+    let mut specializer = Specializer {
+      chart: &self.chart,
+      resolutions: &self.resolutions,
+      fragments: &self.fragments,
+      specs: &mut self.specs,
+      vir: &self.vir,
+    };
+    specializer.specialize_since(checkpoint);
 
     if let Some(main) = self.resolutions.main
       && main >= checkpoint.fragments

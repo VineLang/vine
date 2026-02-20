@@ -128,7 +128,7 @@ impl Distiller<'_> {
       let (mut then_stage, mut else_stage) =
         self.distill_cond(&mut layer, &mut cur_stage, span, cond);
       let result = self.distill_expr_value(&mut then_stage, block);
-      then_stage.local_barrier_write_to(local, result);
+      then_stage.local_barrier_write_to(local, span, result);
       self.finish_stage(cur_stage);
       self.finish_stage(then_stage);
       else_stage.transfer = Some(Transfer { interface: next_stage.interface, data: None });
@@ -140,7 +140,7 @@ impl Distiller<'_> {
       Some(TargetDistillation { layer: layer.id, continue_transfer: None, break_value: local });
     if let Some(leg) = leg {
       let result = self.distill_expr_value(&mut cur_stage, leg);
-      cur_stage.local_barrier_write_to(local, result);
+      cur_stage.local_barrier_write_to(local, span, result);
     }
 
     self.finish_stage(cur_stage);

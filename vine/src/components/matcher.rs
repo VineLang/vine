@@ -25,7 +25,7 @@ impl<'r> Distiller<'r> {
   ) {
     let ty = value.ty;
     let local = self.new_local(stage, span, ty);
-    stage.local_barrier_write_to(local, value);
+    stage.local_barrier_write_to(local, span, value);
     let vars =
       IdxVec::from([MatchVar { ty, kind: MatchVarKind::Local(local, MatchVarForm::Value) }]);
     let mut matcher = Matcher { span, exhaustive: true, distiller: self };
@@ -244,7 +244,7 @@ impl<'d, 'r> Matcher<'d, 'r> {
   ) -> Port {
     let wire = stage.new_wire(self.span, var.ty);
     match &var.kind {
-      MatchVarKind::Local(local, _) => stage.local_read_barrier_to(*local, wire.neg),
+      MatchVarKind::Local(local, _) => stage.local_read_barrier_to(*local, self.span, wire.neg),
       MatchVarKind::Composite(els) => {
         let els = els.iter().map(|&v| self.take_var(stage, vars, &vars[v])).collect();
         stage.steps.push(Step::Composite(wire.neg, els));

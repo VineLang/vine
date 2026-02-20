@@ -1,0 +1,213 @@
+
+struct None();
+struct+ Fork();
+struct? Drop();
+struct* Full();
+
+pub fn main(_: &IO) {}
+
+pub fn normal() {
+  let none: None;
+  None() = none; // error
+  none = None(); // error
+  none = None();
+  None() = none;
+  none = None();
+  None() = none; // error
+  None() = none; // warn
+
+  let fork: Fork;
+  Fork() = fork; // error
+  fork = Fork(); // error
+  fork = Fork();
+  Fork() = fork;
+  fork = Fork();
+  Fork() = fork;
+  Fork() = fork;
+
+  let drop: Drop;
+  Drop() = drop; // error
+  drop = Drop();
+  drop = Drop();
+  Drop() = drop;
+  drop = Drop();
+  Drop() = drop; // error
+  Drop() = drop; // warn
+
+  let full: Full;
+  Full() = full; // error
+  full = Full();
+  full = Full();
+  Full() = full;
+  full = Full();
+  Full() = full;
+  Full() = full;
+}
+
+pub fn normal_staged() {
+  let none: None;
+  if true { None() = none; } // error
+  if true { none = None(); } // error
+  if true { none = None(); }
+  if true { None() = none; }
+  if true { none = None(); }
+  if true { None() = none; } // error
+  if true { None() = none; }
+
+  let fork: Fork;
+  if true { Fork() = fork; } // error
+  if true { fork = Fork(); } // error
+  if true { fork = Fork(); }
+  if true { Fork() = fork; }
+  if true { fork = Fork(); }
+  if true { Fork() = fork; }
+  if true { Fork() = fork; }
+
+  let drop: Drop;
+  if true { Drop() = drop; } // error
+  if true { drop = Drop(); }
+  if true { drop = Drop(); }
+  if true { Drop() = drop; }
+  if true { drop = Drop(); }
+  if true { Drop() = drop; } // error
+  if true { Drop() = drop; }
+
+  let full: Full;
+  if true { Full() = full; } // error
+  if true { full = Full(); }
+  if true { full = Full(); }
+  if true { Full() = full; }
+  if true { full = Full(); }
+  if true { Full() = full; }
+  if true { Full() = full; }
+}
+
+pub fn normal_loop(bool: Bool) {
+  let none: None; // error
+  none = None();
+  while bool { None() = none; } // error
+
+  let fork: Fork; // error
+  fork = Fork();
+  while bool { Fork() = fork; }
+
+  let drop: Drop;
+  drop = Drop();
+  while bool { Drop() = drop; } // error
+
+  let full: Full;
+  full = Full();
+  while bool { Full() = full; }
+}
+
+pub fn normal_if(bool: Bool) {
+  let none: None; // error
+  none = None();
+  if bool { None() = none; }
+
+  let fork: Fork; // error
+  fork = Fork();
+  if bool { Fork() = fork; }
+
+  let drop: Drop;
+  drop = Drop();
+  if bool { Drop() = drop; }
+
+  let full: Full;
+  full = Full();
+  if bool { Full() = full; }
+}
+
+pub fn inverse() {
+  let ~fork: Fork;
+  Fork() = ~fork;
+  Fork() = ~fork;
+  ~fork = Fork();
+  Fork() = ~fork;
+  ~fork = Fork();
+  ~fork = Fork(); // error
+  Fork() = ~fork; // error
+
+  let ~drop: Drop;
+  Drop() = ~drop; // warn
+  Drop() = ~drop; // error
+  ~drop = Drop();
+  Drop() = ~drop;
+  ~drop = Drop();
+  ~drop = Drop();
+  Drop() = ~drop; // error
+
+  let ~full: Full;
+  Full() = ~full;
+  Full() = ~full;
+  ~full = Full();
+  Full() = ~full;
+  ~full = Full();
+  ~full = Full();
+  Full() = ~full; // error
+}
+
+pub fn inverse_staged() {
+  let ~fork: Fork;
+  if true { Fork() = ~fork; }
+  if true { Fork() = ~fork; }
+  if true { ~fork = Fork(); }
+  if true { Fork() = ~fork; }
+  if true { ~fork = Fork(); }
+  if true { ~fork = Fork(); } // error
+  if true { Fork() = ~fork; } // error
+
+  let ~drop: Drop;
+  if true { Drop() = ~drop; }
+  if true { Drop() = ~drop; } // error
+  if true { ~drop = Drop(); }
+  if true { Drop() = ~drop; }
+  if true { ~drop = Drop(); }
+  if true { ~drop = Drop(); }
+  if true { Drop() = ~drop; } // error
+
+  let ~full: Full;
+  if true { Full() = ~full; }
+  if true { Full() = ~full; }
+  if true { ~full = Full(); }
+  if true { Full() = ~full; }
+  if true { ~full = Full(); }
+  if true { ~full = Full(); }
+  if true { Full() = ~full; } // error
+}
+
+pub fn inverse_loop(bool: Bool) {
+  let ~none: None; // error
+  while bool { None() = ~none; } // error
+  ~none = None();
+
+  let ~fork: Fork; // error
+  while bool { Fork() = ~fork; }
+  ~fork = Fork();
+
+  let ~drop: Drop;
+  while bool { Drop() = ~drop; } // error
+  ~drop = Drop();
+
+  let ~full: Full;
+  while bool { Full() = ~full; }
+  ~full = Full();
+}
+
+pub fn inverse_if(bool: Bool) {
+  let ~none: None; // error
+  if bool { None() = ~none; }
+  ~none = None();
+
+  let ~fork: Fork; // error
+  if bool { Fork() = ~fork; }
+  ~fork = Fork();
+
+  let ~drop: Drop;
+  if bool { Drop() = ~drop; }
+  ~drop = Drop();
+
+  let ~full: Full;
+  if bool { Full() = ~full; }
+  ~full = Full();
+}

@@ -210,7 +210,7 @@ impl<'ctx, 'ivm, 'ext, 'comp> Repl<'ctx, 'ivm, 'ext, 'comp> {
             if entry.space.is_some() {
               ports.push(stage.local_read(Local(i), entry.span, entry.ty));
             }
-            stage.local_barrier(Local(i));
+            stage.local_barrier(Local(i), Span::NONE);
             if entry.value.is_some() {
               ports.push(stage.local_write(Local(i), entry.span, entry.ty));
             }

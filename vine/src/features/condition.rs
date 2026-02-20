@@ -133,8 +133,16 @@ impl Distiller<'_> {
         let (mut sub_layer, mut sub_stage) = self.child_layer(stage, span);
         let (mut true_stage, mut false_stage) =
           self.distill_cond(&mut sub_layer, &mut sub_stage, span, cond);
-        true_stage.local_barrier_write_to(local, Port { ty, kind: PortKind::N32(!negate as u32) });
-        false_stage.local_barrier_write_to(local, Port { ty, kind: PortKind::N32(negate as u32) });
+        true_stage.local_barrier_write_to(
+          local,
+          span,
+          Port { ty, kind: PortKind::N32(!negate as u32) },
+        );
+        false_stage.local_barrier_write_to(
+          local,
+          span,
+          Port { ty, kind: PortKind::N32(negate as u32) },
+        );
         self.finish_stage(true_stage);
         self.finish_stage(false_stage);
         self.finish_stage(sub_stage);

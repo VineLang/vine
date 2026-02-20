@@ -247,8 +247,8 @@ impl<'r> Distiller<'r> {
     let span = expr.span;
     match &*expr.kind {
       TirExprKind![!nil] => self.distill_expr_nil_coerce_value(stage, expr),
-      TirExprKind::Return(value) => self.distill_return(stage, value),
-      TirExprKind::Break(label, value) => self.distill_break(stage, *label, value),
+      TirExprKind::Return(value) => self.distill_return(stage, span, value),
+      TirExprKind::Break(label, value) => self.distill_break(stage, span, *label, value),
       TirExprKind::Continue(label) => self.distill_continue(stage, *label),
       TirExprKind::Assign(inverse, space, value) => {
         self.distill_expr_nil_assign(stage, *inverse, space, value)
@@ -396,7 +396,7 @@ impl<'r> Distiller<'r> {
         self.distill_pat_uninit(stage, inner);
       }
       TirPatKind::Local(local) => {
-        self.distill_pat_uninit_local(stage, *local);
+        self.distill_pat_uninit_local(stage, pat.span, *local);
       }
     }
   }
