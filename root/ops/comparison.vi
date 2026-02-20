@@ -100,17 +100,15 @@ pub mod Eq {
   #[basic]
   pub impl enum_[E, V; Enum[E, V], Eq[V]]: Eq[E] {
     fn eq(&a: &E, &b: &E) -> Bool {
-      Enum::match_ref(
-        &a,
-        fn (&a_variant: &V) { Enum::match_ref(&b, fn (&b_variant: &V) { a_variant == b_variant }) },
-      )
+      let &a = &a as &V;
+      let &b = &b as &V;
+      a == b
     }
 
     fn ne(&a: &E, &b: &E) -> Bool {
-      Enum::match_ref(
-        &a,
-        fn (&a_variant: &V) { Enum::match_ref(&b, fn (&b_variant: &V) { a_variant != b_variant }) },
-      )
+      let &a = &a as &V;
+      let &b = &b as &V;
+      a != b
     }
   }
 }
@@ -255,15 +253,21 @@ pub mod Ord {
   #[basic]
   pub impl enum_[E, V; Enum[E, V], Ord[V]]: Ord[E] {
     fn cmp(&a: &E, &b: &E) -> Ord {
-      Enum::match_ref(&a, fn (&a: &V) { Enum::match_ref(&b, fn (&b: &V) { Ord::cmp(&a, &b) }) })
+      let &a = &a as &V;
+      let &b = &b as &V;
+      a.cmp(&b)
     }
 
     fn le(&a: &E, &b: &E) -> Bool {
-      Enum::match_ref(&a, fn (&a: &V) { Enum::match_ref(&b, fn (&b: &V) { Ord::le(&a, &b) }) })
+      let &a = &a as &V;
+      let &b = &b as &V;
+      a <= b
     }
 
     fn lt(&a: &E, &b: &E) -> Bool {
-      Enum::match_ref(&a, fn (&a: &V) { Enum::match_ref(&b, fn (&b: &V) { Ord::lt(&a, &b) }) })
+      let &a = &a as &V;
+      let &b = &b as &V;
+      a < b
     }
   }
 

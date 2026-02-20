@@ -3,8 +3,8 @@
   craneLib,
 }:
 let
-  self.internal.ivyConfig = {
-    pname = "ivy";
+  self.internal.ivmConfig = {
+    pname = "ivm";
     version = "0.0.0";
     src = pkgs.lib.fileset.toSource {
       root = ./..;
@@ -23,12 +23,12 @@ let
       mkdir -p vine/src lsp/src
       touch vine/src/lib.rs lsp/src/lib.rs
     '';
-    cargoExtraArgs = "--no-default-features --bin ivy";
+    cargoExtraArgs = "--no-default-features --bin ivm";
     doCheck = false;
-    cargoArtifacts = craneLib.buildDepsOnly self.internal.ivyConfig;
+    cargoArtifacts = craneLib.buildDepsOnly self.internal.ivmConfig;
   };
 
-  self.packages.ivy = craneLib.buildPackage self.internal.ivyConfig;
+  self.packages.ivm = craneLib.buildPackage self.internal.ivmConfig;
 
   self.internal.vineConfig = {
     pname = "vine";

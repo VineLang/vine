@@ -1,14 +1,20 @@
-use std::mem::take;
+use std::{collections::HashMap, mem::take};
 
 use ivm::{
-  IVM,
-  port::{Port, Tag},
-  wire::Wire,
+  host::{Host, ext::common::IO},
+  program::Program,
+  runtime::{
+    Runtime,
+    ext::ExtTy,
+    port::{Port, Tag},
+    wire::Wire,
+  },
 };
-use ivy::host::Host;
+use ivy::name::{FromTable, Table};
 
 use crate::{
-  compiler::{Compiler, Hooks},
+  backend::{BackendConfig, Target, backend},
+  compiler::{Compiler, Guide, Hooks},
   components::{
     charter::{Charter, ExtractItems},
     lexer::Lexer,
@@ -30,14 +36,21 @@ use crate::{
 mod command;
 mod show;
 
-pub struct Repl<'ctx, 'ivm, 'ext, 'comp> {
-  host: &'ivm mut Host<'ivm>,
-  ivm: &'ctx mut IVM<'ivm, 'ext>,
+pub use show::extrinsics;
+
+pub struct Repl<'ctx, 'ivm, 'rt, 'comp> {
+  table: &'ctx mut Table,
+  host: &'ctx Host<'ivm>,
+  rt: &'ctx mut Runtime<'ivm, 'rt>,
   pub compiler: &'comp mut Compiler,
+  guide: Guide,
+  program: Program<'ivm>,
   repl_mod: DefId,
   line: usize,
   scope: Vec<ScopeEntry<'ivm>>,
   types: Types,
+  io_ext_ty: ExtTy<'ivm, IO>,
+  n32_ext_ty: ExtTy<'ivm, u32>,
   pub options: ReplOptions,
 }
 
@@ -51,19 +64,23 @@ struct ScopeEntry<'ivm> {
 
 impl<'ctx, 'ivm, 'ext, 'comp> Repl<'ctx, 'ivm, 'ext, 'comp> {
   pub fn new(
-    mut host: &'ivm mut Host<'ivm>,
-    ivm: &'ctx mut IVM<'ivm, 'ext>,
+    table: &'ctx mut Table,
+    host: &'ctx Host<'ivm>,
+    rt: &'ctx mut Runtime<'ivm, 'ext>,
     compiler: &'comp mut Compiler,
   ) -> Result<Self, ErrorGuaranteed> {
     let mut repl_mod = DefId::default();
-    let nets = compiler.compile(InitHooks(&mut repl_mod))?;
+    let mut program = Program::default();
+    compile(table, host, compiler, &mut program, InitHooks(&mut repl_mod))?;
     struct InitHooks<'a>(&'a mut DefId);
     impl Hooks for InitHooks<'_> {
       fn chart(&mut self, charter: &mut Charter) {
-        *self.0 = charter.new_def(Ident("repl".into()), "<repl>".into(), None);
+        *self.0 = charter.new_def(Ident("<repl>".into()), "#<repl>".into(), None);
       }
     }
-    host.insert_nets(&nets);
+
+    let io_ext_ty = host.get_ext_ty().unwrap();
+    let n32_ext_ty = host.get_ext_ty().unwrap();
 
     let mut types = Types::default();
     let mut scope = Vec::new();
@@ -72,15 +89,30 @@ impl<'ctx, 'ivm, 'ext, 'comp> Repl<'ctx, 'ivm, 'ext, 'comp> {
         name: Ident("io".into()),
         span: Span::NONE,
         ty: types.new(TypeKind::Opaque(io_type, vec![])),
-        value: Some(Port::new_ext_val(host.new_io())),
+        value: Some(Port::new_ext_val(io_ext_ty.wrap_static(IO))),
         space: None,
       });
     }
 
+    let guide = Guide::build(table);
     let line = 0;
     let options = ReplOptions::default();
 
-    Ok(Repl { host, ivm, compiler, repl_mod, line, scope, types, options })
+    Ok(Repl {
+      table,
+      host,
+      rt,
+      compiler,
+      guide,
+      program,
+      repl_mod,
+      line,
+      scope,
+      types,
+      io_ext_ty,
+      n32_ext_ty,
+      options,
+    })
   }
 
   pub fn exec(&mut self, input: &str) -> Result<(), ErrorGuaranteed> {
@@ -118,7 +150,9 @@ impl<'ctx, 'ivm, 'ext, 'comp> Repl<'ctx, 'ivm, 'ext, 'comp> {
   ) -> Result<(), ErrorGuaranteed> {
     let mut block = Block { span, stmts };
 
-    let path = format!(":repl::{}", self.line);
+    self.line += 1;
+
+    let path = format!("#<repl>:{}", self.line);
     let mut fragment = None;
     let mut ty = None;
     let mut bindings = Vec::new();
@@ -138,13 +172,12 @@ impl<'ctx, 'ivm, 'ext, 'comp> Repl<'ctx, 'ivm, 'ext, 'comp> {
       clear,
       extracted_items: false,
     };
-    let nets = self.compiler.compile(hooks)?;
+
+    compile(self.table, self.host, self.compiler, &mut self.program, hooks)?;
 
     let fragment = fragment.unwrap();
     let ty = ty.unwrap();
     self.repl_mod = repl_mod;
-
-    self.line += 1;
 
     struct ExecHooks<'ivm, 'a> {
       path: String,
@@ -166,7 +199,7 @@ impl<'ctx, 'ivm, 'ext, 'comp> Repl<'ctx, 'ivm, 'ext, 'comp> {
         extractor.visit(&mut *self.block);
         if !extractor.items.is_empty() {
           *self.repl_mod =
-            charter.new_def(Ident("repl".into()), "<repl>".into(), Some(*self.repl_mod));
+            charter.new_def(Ident("<repl>".into()), "#<repl>".into(), Some(*self.repl_mod));
           for item in extractor.items {
             charter.chart_item(VisId::Def(*self.repl_mod), item, *self.repl_mod, GenericsId::NONE);
             self.extracted_items = true;
@@ -202,7 +235,8 @@ impl<'ctx, 'ivm, 'ext, 'comp> Repl<'ctx, 'ivm, 'ext, 'comp> {
           let stage = &mut vir.stages[StageId(0)];
           let wire = stage.new_wire(Span::NONE, self.types.nil());
           stage.steps.push(Step::Transfer(Transfer { interface, data: Some(wire.neg) }));
-          let Header::Entry(mut ports) = take(&mut stage.header) else { unreachable!() };
+          let Header::Const(output) = take(&mut stage.header) else { unreachable!() };
+          let mut ports = vec![output];
           ports.push(wire.pos);
 
           for (i, entry) in self.scope.iter().enumerate().rev() {
@@ -223,56 +257,44 @@ impl<'ctx, 'ivm, 'ext, 'comp> Repl<'ctx, 'ivm, 'ext, 'comp> {
       }
     }
 
-    self.host.insert_nets(&nets);
-
-    let w = self.ivm.new_wire();
+    let w = self.rt.new_wire();
     let root = w.0;
 
-    fn make_node<'ivm>(
-      ivm: &mut IVM<'ivm, '_>,
-      label: u16,
-      wire: Wire<'ivm>,
-    ) -> (Wire<'ivm>, Wire<'ivm>) {
-      let node = unsafe { ivm.new_node(Tag::Comb, label) };
+    fn make_node<'ivm>(ivm: &mut Runtime<'ivm, '_>, wire: Wire<'ivm>) -> (Wire<'ivm>, Wire<'ivm>) {
+      let node = unsafe { ivm.new_node(Tag::Comb, 0) };
       ivm.link_wire(wire, node.0);
       (node.1, node.2)
     }
 
-    let label_x = Host::label_to_u16("x", &mut self.host.comb_labels);
-    let label_ref = Host::label_to_u16("ref", &mut self.host.comb_labels);
-
     let mut cur = w.1;
 
     if self.compiler.debug {
-      let label_dbg = Host::label_to_u16("dbg", &mut self.host.comb_labels);
-      let label_tup = Host::label_to_u16("tup", &mut self.host.comb_labels);
-
       let dbg;
-      (dbg, cur) = make_node(self.ivm, label_dbg, cur);
-      let (dbg_in, dbg_out) = make_node(self.ivm, label_ref, dbg);
-      self.ivm.link_wire(dbg_out, Port::ERASE);
-      let (io, dbg_in) = make_node(self.ivm, label_tup, dbg_in);
-      self.ivm.link_wire(io, Port::new_ext_val(self.host.new_io()));
-      let (len, dbg_in) = make_node(self.ivm, label_tup, dbg_in);
-      self.ivm.link_wire(len, Port::new_ext_val(self.host.new_n32(0)));
-      let (buf, end) = make_node(self.ivm, label_tup, dbg_in);
-      self.ivm.link_wire_wire(buf, end);
+      (dbg, cur) = make_node(self.rt, cur);
+      let (dbg_in, dbg_out) = make_node(self.rt, dbg);
+      self.rt.link_wire(dbg_out, Port::ERASE);
+      let (io, dbg_in) = make_node(self.rt, dbg_in);
+      self.rt.link_wire(io, Port::new_ext_val(self.io_ext_ty.wrap_static(IO)));
+      let (len, dbg_in) = make_node(self.rt, dbg_in);
+      self.rt.link_wire(len, Port::new_ext_val(self.n32_ext_ty.wrap_static(0)));
+      let (buf, end) = make_node(self.rt, dbg_in);
+      self.rt.link_wire_wire(buf, end);
     }
 
     let mut wire;
     for entry in take(&mut self.scope) {
       if let Some(port) = entry.value {
-        (wire, cur) = make_node(self.ivm, label_x, cur);
-        self.ivm.link_wire(wire, port);
+        (wire, cur) = make_node(self.rt, cur);
+        self.rt.link_wire(wire, port);
       }
       if let Some(port) = entry.space {
-        (wire, cur) = make_node(self.ivm, label_x, cur);
-        self.ivm.link_wire(wire, port);
+        (wire, cur) = make_node(self.rt, cur);
+        self.rt.link_wire(wire, port);
       }
     }
 
-    let (binds, cur) = make_node(self.ivm, label_x, cur);
-    let (result, destroy) = make_node(self.ivm, label_ref, cur);
+    let (binds, cur) = make_node(self.rt, cur);
+    let (result, destroy) = make_node(self.rt, cur);
 
     let mut binds = Some(binds);
     let vir = &self.compiler.vir[fragment];
@@ -281,26 +303,27 @@ impl<'ctx, 'ivm, 'ext, 'comp> Repl<'ctx, 'ivm, 'ext, 'comp> {
     self.scope = Vec::from_iter(bindings.into_iter().map(|(local, name, span, ty)| {
       let (value, _, space) = wires.get(&local).copied().unwrap_or_default();
       let value = value.then(|| {
-        let (a, b) = make_node(self.ivm, label_x, binds.take().unwrap());
+        let (a, b) = make_node(self.rt, binds.take().unwrap());
         binds = Some(b);
         Port::new_wire(a)
       });
       let space = space.then(|| {
-        let (a, b) = make_node(self.ivm, label_x, binds.take().unwrap());
+        let (a, b) = make_node(self.rt, binds.take().unwrap());
         binds = Some(b);
         Port::new_wire(a)
       });
       ScopeEntry { name, span, ty, value, space }
     }));
-    self.ivm.link_wire(binds.unwrap(), Port::ERASE);
+    self.rt.link_wire(binds.unwrap(), Port::ERASE);
 
-    self.ivm.execute(&self.host.get(&path).unwrap().instructions, Port::new_wire(root));
-    self.ivm.normalize();
+    let name = self.table.add_path_name(format!(":<repl>:{}", self.line));
+    self.rt.graft(self.program.graft(name).unwrap(), Port::new_wire(root));
+    self.rt.normalize();
 
     let mut result = Port::new_wire(result);
     let output = self.show(ty, &mut result);
-    self.ivm.link_wire(destroy, result);
-    self.ivm.normalize();
+    self.rt.link_wire(destroy, result);
+    self.rt.normalize();
 
     if output != "()" {
       println!("{output}");
@@ -340,3 +363,26 @@ impl<'ctx, 'ivm, 'ext, 'comp> Repl<'ctx, 'ivm, 'ext, 'comp> {
     }
   }
 }
+
+fn compile<'ivm>(
+  table: &mut Table,
+  host: &Host<'ivm>,
+  compiler: &mut Compiler,
+  program: &mut Program<'ivm>,
+  hooks: impl Hooks,
+) -> Result<(), ErrorGuaranteed> {
+  let mut nets = HashMap::new();
+  compiler.compile(table, &mut nets, hooks)?;
+  backend(table, &CONFIG, &mut nets);
+  program.build(host, table, &nets);
+  Ok(())
+}
+
+const CONFIG: BackendConfig = BackendConfig {
+  target: Target::Ivm,
+  optimize: false,
+  optimize_all: false,
+  optimize_limit: None,
+  prune: false,
+  entrypoints: None,
+};

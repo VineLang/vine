@@ -8,7 +8,7 @@ pub unsafe const foo: () = ();
 pub unsafe fn bar() {
   foo; // ok
   bar(); // ok
-  inline_ivy! () -> () { _ } // ok
+  $ivy {} // ok
   let nullable = Nullable::null(); // ok
   &nullable.null; // ok
   let Nullable::null() = nullable; // ok
@@ -19,14 +19,14 @@ pub unsafe fn bar() {
 pub fn baz() {
   foo; // error
   bar(); // error
-  inline_ivy! () -> () { _ } // error
+  $ivy {} // error
   let nullable = Nullable::null(); // error
   &nullable.null; // error
   let Nullable::null() = nullable; // error
 
   safe foo; // ok
   safe bar(); // ok
-  safe inline_ivy! () -> () { _ } // ok
+  safe $ivy {} // ok
   let nullable = safe Nullable::null(); // ok
   safe &nullable.null; // ok
   let safe Nullable::null() = nullable; // ok

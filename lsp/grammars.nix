@@ -61,7 +61,7 @@ let
 
   self.packages.tree-sitter-ivy = grammar "tree-sitter-ivy";
   self.checks.tree-sitter-ivy = check "tree-sitter-ivy" [
-    ../ivy/examples
+    ../ivm/examples
     ../lsp/tree-sitter-ivy
   ];
 in

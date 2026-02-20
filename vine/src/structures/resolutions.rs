@@ -62,23 +62,17 @@ new_idx!(pub FnRelId);
 #[derive(Debug, Clone, Default)]
 pub struct Rels {
   pub consts: IdxVec<ConstRelId, (ConstId, Vec<TirImpl>)>,
-  pub fns: IdxVec<FnRelId, FnRel>,
-}
-
-#[derive(Debug, Clone)]
-pub enum FnRel {
-  Item(FnId, Vec<TirImpl>),
-  Impl(TirImpl, usize),
+  pub fns: IdxVec<FnRelId, (FnId, Vec<TirImpl>)>,
 }
 
 impl Rels {
   pub fn fork_rel(&mut self, chart: &Chart, impl_: TirImpl) -> FnRelId {
     let fork = chart.builtins.fork.unwrap();
-    self.fns.push(FnRel::Item(FnId::Abstract(fork, TraitFnId(0)), vec![impl_]))
+    self.fns.push((FnId::Abstract(fork, TraitFnId(0)), vec![impl_]))
   }
 
   pub fn drop_rel(&mut self, chart: &Chart, impl_: TirImpl) -> FnRelId {
     let drop = chart.builtins.drop.unwrap();
-    self.fns.push(FnRel::Item(FnId::Abstract(drop, TraitFnId(0)), vec![impl_]))
+    self.fns.push((FnId::Abstract(drop, TraitFnId(0)), vec![impl_]))
   }
 }

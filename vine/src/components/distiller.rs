@@ -99,10 +99,16 @@ impl<'r> Distiller<'r> {
     self.locals = fragment.tir.locals.clone();
     self.types = fragment.tir.types.clone();
     self.rels = fragment.tir.rels.clone();
-    let (layer, mut stage) = self.root_layer(fragment.tir.root.span);
+    let (layer, mut stage) = self.root_layer(fragment.tir.body.span);
     self.distill_closures(fragment);
-    let result = self.distill_expr_value(&mut stage, &fragment.tir.root);
-    stage.header = Header::Entry(vec![result]);
+    stage.header = match &fragment.tir.params {
+      Some(params) => {
+        let params = params.iter().map(|p| self.distill_pat_value(&mut stage, p)).collect();
+        let result = self.distill_fn_body(&mut stage, &fragment.tir.body);
+        Header::Fn(params, result)
+      }
+      None => Header::Const(self.distill_expr_value(&mut stage, &fragment.tir.body)),
+    };
     self.finish_stage(stage);
     self.finish_layer(layer);
     self.targets.clear();
@@ -146,7 +152,7 @@ impl<'r> Distiller<'r> {
       span,
       layer: layer.id,
       interface,
-      header: Header::None,
+      header: Header::Bare,
       declarations: Vec::new(),
       steps: Vec::new(),
       transfer: None,
@@ -305,9 +311,7 @@ impl<'r> Distiller<'r> {
         self.distill_expr_value_enum(stage, span, ty, *enum_id, *variant_id, data)
       }
       TirExprKind::List(list) => self.distill_expr_value_list(stage, span, ty, list),
-      TirExprKind::Call(rel, receiver, args) => {
-        self.distill_expr_value_call(stage, span, ty, *rel, receiver, args)
-      }
+      TirExprKind::Call(rel, args) => self.distill_expr_value_call(stage, span, ty, *rel, args),
       TirExprKind::Index(expr, index) => {
         self.distill_expr_value_index(stage, span, expr, index, ty)
       }
@@ -318,8 +322,8 @@ impl<'r> Distiller<'r> {
         self.distill_expr_value_call_compare(stage, span, ty, init, cmps)
       }
 
-      TirExprKind::InlineIvy(binds, net) => {
-        self.distill_expr_value_inline_ivy(stage, span, ty, binds, net)
+      TirExprKind::InlineIvy(table, net, interpolations) => {
+        self.distill_expr_value_inline_ivy(stage, span, ty, table, net, interpolations)
       }
     }
   }
