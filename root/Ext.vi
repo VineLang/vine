@@ -1,5 +1,5 @@
 
-use derive::{Composite, Struct};
+use derive::{Composite, NonNil, Singleton, Struct};
 use ops::Cast;
 use util::transmute;
 
@@ -20,7 +20,7 @@ pub mod Ext {
     }
 
     unsafe fn decode(value: Ext[T]) -> T {
-      transmute(value)
+      transmute[Ext[T], T](value)
     }
   }
 
@@ -46,49 +46,55 @@ pub mod Ext {
 
   pub impl nil: Ext[()] {
     fn encode(()) -> Ext[()] {
-      safe transmute(Ext::new_list())
+      safe $ivy { ^ = ivm:nil }
     }
 
-    fn decode(tup: Ext[()]) -> () {
-      safe Ext::drop_list(transmute(tup))
+    fn decode(nil: Ext[()]) {
+      safe util::erase(nil);
     }
   }
 
   pub impl empty: Ext[{}] {
     fn encode({}) -> Ext[{}] {
-      safe transmute(Ext::new_list())
+      safe $ivy { ^ = ivm:nil }
     }
 
-    fn decode(obj: Ext[{}]) -> {} {
-      safe Ext::drop_list(transmute(obj));
+    fn decode(nil: Ext[{}]) -> {} {
+      safe util::erase(nil);
       {}
     }
   }
 
-  pub impl composite[C, K, I, R; Composite[C, K, I, R], Ext[I], Ext[R]]: Ext[C] {
+  pub impl singleton[S, K, V; Singleton[S, K, V], Ext[V]]: Ext[S] {
+    fn encode(singleton: S) -> Ext[S] {
+      safe transmute[Ext[V], Ext[S]](singleton as V as Ext)
+    }
+
+    fn decode(ext: Ext[S]) -> S {
+      safe transmute[Ext[S], Ext[V]](ext) as V as S
+    }
+  }
+
+  pub impl composite[C, K, I, R; Composite[C, K, I, R], NonNil[R], Ext[I], Ext[R]]: Ext[C] {
     fn encode(composite: C) -> Ext[C] {
       let (init, rest) = composite as (I, R);
       let init = init as Ext;
-      let rest = safe transmute[Ext[R], Ext[List[I]]](rest as Ext);
-      rest.push(init);
-
-      safe transmute(rest)
+      let rest = rest as Ext;
+      safe $ivy { ${init} = vi:ext#2[ivm:pair](${rest} ^) }
     }
 
     fn decode(composite: Ext[C]) -> C {
-      let rest = safe transmute[Ext[C], Ext[List[I]]](composite);
-      let init = safe rest.pop();
-
-      (init as I, safe transmute[Ext[List[I]], Ext[R]](rest) as R) as C
+      let (init: Ext, rest: Ext) = safe $ivy { ${composite} = vi:ext#1[ivm:unpair](^0 ^1) };
+      (init as I, rest as R) as C
     }
   }
 
   pub impl list[T; Ext[T]]: Ext[List[T]] {
     fn encode(list: List[T]) -> Ext[List[T]] {
-      let ext = Ext::new_list();
+      let ext = safe $ivy { ivm:nil = vi:ext#1[ivm:list:new](^) };
 
       for value in list {
-        ext.push(value as Ext);
+        safe $ivy { ${ext} = vi:ext#2[ivm:list:push](${value as Ext} ${~ext}) };
       }
 
       ext
@@ -97,11 +103,13 @@ pub mod Ext {
     fn decode(ext: Ext[List[T]]) -> List[T] {
       let list = [];
 
-      for _ in 0..ext.len() {
-        list.push_front(safe ext.pop() as T);
+      let len: N32 = safe $ivy { ${ext} = vi:ext#1[ivm:list:len](^ ${~ext}) };
+      for _ in 0..len {
+        let value: Ext = safe $ivy { ${ext} = vi:ext#1[ivm:list:pop](^ ${~ext}) };
+        list.push_front(value as T);
       }
 
-      safe drop_list(ext);
+      safe $ivy { ${ext} = vi:ext#1[ivm:list:drop] }
 
       list
     }
@@ -120,38 +128,22 @@ pub mod Ext {
 
   pub impl string: Ext[String];
 
-  fn new_list[T]() -> Ext[List[T]] {
-    safe inline_ivy! () -> Ext[List[T]] {
-      list
-      0 = @list_new(_ list)
+  pub impl result[T, E; Ext[T], Ext[E]]: Ext[Result[T, E]] {
+    fn encode(result: Result[T, E]) -> Ext[Result[T, E]] {
+      match result {
+        Ok(value) { safe transmute[Ext[(Bool, T)], Ext[Result[T, E]]]((true, value) as Ext) }
+        Err(err) { safe transmute[Ext[(Bool, E)], Ext[Result[T, E]]]((false, err) as Ext) }
+      }
     }
-  }
 
-  fn .len[T](&list: &Ext[List[T]]) -> N32 {
-    safe inline_ivy! (list0 <- list, list1 -> list) -> N32 {
-      len
-      list0 = @list_len(len list1)
-    }
-  }
-
-  unsafe fn drop_list[T](list: Ext[List[T]]) {
-    inline_ivy! (list <- list) -> () {
-      _
-      list = @list_drop(_ _)
-    }
-  }
-
-  fn .push[T](&self: &Ext[List[T]], t: Ext[T]) {
-    safe inline_ivy! (list0 <- self, t <- t, list1 -> self) -> () {
-      _
-      list0 = @list_push(t list1)
-    };
-  }
-
-  unsafe fn .pop[T](&self: &Ext[List[T]]) -> Ext[T] {
-    inline_ivy! (list0 <- self, list1 -> self) -> Ext[T] {
-      t
-      list0 = @list_pop(t list1)
+    fn decode(result: Ext[Result[T, E]]) -> Result[T, E] {
+      let tuple = safe transmute[Ext[Result[T, E]], Ext[(Bool, Ext[Unknown])]](result);
+      let (ok, value) = tuple as (Bool, Ext[Unknown]);
+      if ok {
+        Ok(safe transmute[Ext[Unknown], Ext[T]](value) as T)
+      } else {
+        Err(safe transmute[Ext[Unknown], Ext[E]](value) as E)
+      }
     }
   }
 

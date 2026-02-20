@@ -28,6 +28,6 @@ impl Resolver<'_> {
     let inner = self.resolve_expr(inner);
     let to_ty = self.resolve_ty(to, true);
     let rel = self.builtin_fn(span, self.chart.builtins.cast, "cast", [inner.ty, to_ty])?;
-    Ok(TirExpr::new(span, to_ty, TirExprKind::Call(rel, None, vec![inner])))
+    Ok(TirExpr::new(span, to_ty, TirExprKind::Call(rel, vec![inner])))
   }
 }

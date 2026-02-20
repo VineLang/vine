@@ -51,8 +51,9 @@ pub mod Fork {
   #[basic]
   #[safe become(duplicate)]
   pub impl enum_[E, V; Enum[E, V], Fork[V]]: Fork[E] {
-    fn fork(&self: &E) -> E {
-      Enum::match_ref(&self, fn (&variant) { Enum::reconstruct[E, V](variant) })
+    fn fork(&enum_: &E) -> E {
+      let &variant = &enum_ as &V;
+      variant as E
     }
   }
 
@@ -112,8 +113,8 @@ pub mod Drop {
   #[basic]
   #[safe become(erase)]
   pub impl enum_[E, V; Enum[E, V], Drop[V]]: Drop[E] {
-    fn drop(self: E) {
-      Enum::match_(self, fn (_) {})
+    fn drop(enum_: E) {
+      _ = enum_ as V;
     }
   }
 

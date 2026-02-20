@@ -28,19 +28,19 @@ pub mod N32 {
 
   pub impl : Add[N32, N32, N32] {
     fn add(a: N32, b: N32) -> N32 {
-      safe inline_ivy! (a <- a, b <- b) -> N32 { out a = @n32_add(b out) }
+      safe $ivy { ${a} = vi:ext#2[vi:n32:add](${b} ^) }
     }
   }
 
   pub impl : Sub[N32, N32, N32] {
     fn sub(a: N32, b: N32) -> N32 {
-      safe inline_ivy! (a <- a, b <- b) -> N32 { out a = @n32_sub(b out) }
+      safe $ivy { ${a} = vi:ext#2[vi:n32:sub](${b} ^) }
     }
   }
 
   pub impl : Mul[N32, N32, N32] {
     fn mul(a: N32, b: N32) -> N32 {
-      safe inline_ivy! (a <- a, b <- b) -> N32 { out a = @n32_mul(b out) }
+      safe $ivy { ${a} = vi:ext#2[vi:n32:mul](${b} ^) }
     }
   }
 
@@ -56,7 +56,7 @@ pub mod N32 {
         return debug::error("division by zero");
       }
 
-      safe inline_ivy! (a <- a, b <- b) -> N32 { out a = @n32_div(b out) }
+      safe $ivy { ${a} = vi:ext#2[vi:n32:div](${b} ^) }
     }
   }
 
@@ -66,7 +66,7 @@ pub mod N32 {
         return debug::error("division by zero");
       }
 
-      safe inline_ivy! (a <- a, b <- b) -> N32 { out a = @n32_rem(b out) }
+      safe $ivy { ${a} = vi:ext#2[vi:n32:rem](${b} ^) }
     }
   }
 
@@ -88,37 +88,37 @@ pub mod N32 {
 
   pub impl : BitAnd[N32, N32, N32] {
     fn bit_and(a: N32, b: N32) -> N32 {
-      safe inline_ivy! (a <- a, b <- b) -> N32 { out a = @n32_and(b out) }
+      safe $ivy { ${a} = vi:ext#2[vi:n32:and](${b} ^) }
     }
   }
 
   pub impl : BitOr[N32, N32, N32] {
     fn bit_or(a: N32, b: N32) -> N32 {
-      safe inline_ivy! (a <- a, b <- b) -> N32 { out a = @n32_or(b out) }
+      safe $ivy { ${a} = vi:ext#2[vi:n32:or](${b} ^) }
     }
   }
 
   pub impl : BitXor[N32, N32, N32] {
     fn bit_xor(a: N32, b: N32) -> N32 {
-      safe inline_ivy! (a <- a, b <- b) -> N32 { out a = @n32_xor(b out) }
+      safe $ivy { ${a} = vi:ext#2[vi:n32:xor](${b} ^) }
     }
   }
 
   pub impl : Shl[N32, N32, N32] {
     fn shl(a: N32, b: N32) -> N32 {
-      safe inline_ivy! (a <- a, b <- b) -> N32 { out a = @n32_shl(b out) }
+      safe $ivy { ${a} = vi:ext#2[vi:n32:shl](${b} ^) }
     }
   }
 
   pub impl : Shr[N32, N32, N32] {
     fn shr(a: N32, b: N32) -> N32 {
-      safe inline_ivy! (a <- a, b <- b) -> N32 { out a = @n32_shr(b out) }
+      safe $ivy { ${a} = vi:ext#2[vi:n32:shr](${b} ^) }
     }
   }
 
   pub impl : Not[N32, N32] {
     fn not(a: N32) -> N32 {
-      safe inline_ivy! (a <- a) -> N32 { out a = @n32_xor(0xffffffff out) }
+      safe $ivy { ${a} = vi:ext#2[vi:n32:xor](${N32::maximum} ^) }
     }
   }
 
@@ -200,20 +200,20 @@ pub mod N32 {
   }
 
   pub fn .rotate_left(a: N32, b: N32) -> N32 {
-    safe inline_ivy! (a <- a, b <- b) -> N32 { out a = @n32_rotl(b out) }
+    safe $ivy { ${a} = vi:ext#2[vi:n32:rotl](${b} ^) }
   }
 
   pub fn .rotate_right(a: N32, b: N32) -> N32 {
-    safe inline_ivy! (a <- a, b <- b) -> N32 { out a = @n32_rotr(b out) }
+    safe $ivy { ${a} = vi:ext#2[vi:n32:rotr](${b} ^) }
   }
 
   pub impl : Ord[N32] {
     fn lt(&a: &N32, &b: &N32) -> Bool {
-      safe inline_ivy! (a <- a, b <- b) -> Bool { out a = @n32_lt(b out) }
+      safe $ivy { ${a} = vi:ext#2[vi:n32:lt](${b} ^) }
     }
 
     fn le(&a: &N32, &b: &N32) -> Bool {
-      safe inline_ivy! (a <- a, b <- b) -> Bool { out a = @n32_le(b out) }
+      safe $ivy { ${a} = vi:ext#2[vi:n32:le](${b} ^) }
     }
 
     fn cmp(a: &N32, b: &N32) -> Ord {
@@ -223,11 +223,11 @@ pub mod N32 {
 
   pub impl : Eq[N32] {
     fn eq(&a: &N32, &b: &N32) -> Bool {
-      safe inline_ivy! (a <- a, b <- b) -> Bool { out a = @n32_eq(b out) }
+      safe $ivy { ${a} = vi:ext#2[vi:n32:eq](${b} ^) }
     }
 
     fn ne(&a: &N32, &b: &N32) -> Bool {
-      safe inline_ivy! (a <- a, b <- b) -> Bool { out a = @n32_ne(b out) }
+      safe $ivy { ${a} = vi:ext#2[vi:n32:ne](${b} ^) }
     }
   }
 
@@ -296,11 +296,11 @@ pub mod N32 {
   }
 
   pub.numeric fn add_high(a: N32, b: N32) -> Bool {
-    safe inline_ivy! (a <- a, b <- b) -> Bool { out a = @n32_add_high(b out) }
+    safe $ivy { ${a} = vi:ext#2[vi:n32:add_high](${b} ^) }
   }
 
   pub.numeric fn mul_high(a: N32, b: N32) -> N32 {
-    safe inline_ivy! (a <- a, b <- b) -> N32 { out a = @n32_mul_high(b out) }
+    safe $ivy { ${a} = vi:ext#2[vi:n32:mul_high](${b} ^) }
   }
 
   pub fn .leading_zeros(n: N32) -> N32 {

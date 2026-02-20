@@ -1,0 +1,17 @@
+/// Error flags set during interactions.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+pub struct Flags {
+  /// A non-copyable extrinsic was copied.
+  pub ext_copy: bool,
+  /// A non-copyable extrinsic was erased.
+  pub ext_erase: bool,
+  /// An extrinsic function encountered an unspecified error.
+  pub ext_generic: bool,
+  pub invalid_interaction: bool,
+}
+
+impl Flags {
+  pub fn success(self) -> bool {
+    self == Self::default()
+  }
+}

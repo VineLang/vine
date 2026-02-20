@@ -200,9 +200,8 @@ impl<'src> Parser<'src> {
 
   fn _maybe_parse_expr_prefix(&mut self, span: usize) -> Result<Option<ExprKind>, Diag> {
     self.state.expected.start_group(Token::GroupExpr);
-    let token_span = self.span();
     if self.eat(Token::Safe)? {
-      return Ok(Some(ExprKind::Safe(token_span, self.parse_expr()?)));
+      return Ok(Some(ExprKind::Safe(self.end_span(span), self.parse_expr()?)));
     }
     if self.check(Token::Amp) || self.check(Token::AmpAmp) {
       return Ok(Some(self.parse_expr_ref(span)?));
@@ -279,8 +278,11 @@ impl<'src> Parser<'src> {
     if self.eat(Token::Hole)? {
       return Ok(Some(self.parse_expr_hole()?));
     }
-    if self.check(Token::InlineIvy) {
-      return Ok(Some(self.parse_inline_ivy()?));
+    if self.eat(Token::Dollar)? {
+      return match &*self.parse_ident()?.0 {
+        "ivy" => Ok(Some(self.parse_inline_ivy(span)?)),
+        _ => Err(Diag::UnknownMacro { span: self.end_span(span) }),
+      };
     }
     self.state.expected.end_group();
     Ok(None)
@@ -520,7 +522,7 @@ impl<'src> Parser<'src> {
   }
 
   pub(crate) fn parse_arrow_ty(&mut self) -> Result<Option<Ty>, Diag> {
-    self.eat_then(Token::RightArrow, Self::parse_ty)
+    self.eat_then(Token::Arrow, Self::parse_ty)
   }
 
   pub(crate) fn parse_impl(&mut self) -> Result<Impl, Diag> {

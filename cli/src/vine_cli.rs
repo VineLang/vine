@@ -12,26 +12,38 @@ use std::{
 
 use anyhow::Result;
 use clap::{
-  Args, CommandFactory, Parser,
+  Args, CommandFactory, Parser, ValueEnum,
   builder::{TypedValueParser, ValueParserFactory},
   error::ErrorKind,
 };
 
-use ivm::{IVM, ext::Extrinsics, heap::Heap};
-use ivy::{ast::Nets, host::Host};
+use ivm::{
+  host::{Host, IVM},
+  runtime::heap::Heap,
+};
+use ivy::{
+  name::{FromTable, NameId, Table},
+  net::{FlatNet, TreeNet},
+  text::ast::Nets,
+  translate::Translator,
+};
 use notify::{RecommendedWatcher, RecursiveMode, Watcher};
 use rustyline::DefaultEditor;
 use vine::{
+  backend::{BackendConfig, Target, backend, vi_to_ivm},
   compiler::Compiler,
   components::loader::{FileId, Loader, RealFS},
   structures::{ast::Ident, resolutions::FragmentId},
-  tools::{doc::document, fmt::Formatter, repl::Repl},
+  tools::{
+    doc::document,
+    fmt::Formatter,
+    repl::{self, Repl},
+  },
 };
 use vine_lsp::lsp;
 use vine_util::idx::IdxVec;
 
-use super::{Optimizations, RunArgs};
-
+use crate::common::RunArgs;
 #[derive(Debug, Parser)]
 #[command(name = "vine", version, about = "Vine's CLI", propagate_version = true)]
 pub enum VineCommand {
@@ -42,7 +54,6 @@ pub enum VineCommand {
   Check(VineCheckCommand),
   /// Run tests in a Vine program
   Test(VineTestCommand),
-
   Fmt(VineFmtCommand),
   Repl(VineReplCommand),
   Lsp(VineLspCommand),
@@ -124,12 +135,14 @@ impl CompileArgs {
     compiler
   }
 
-  fn compile(self) -> (Nets, Compiler) {
+  fn compile(self) -> (Table, HashMap<NameId, FlatNet>, Compiler) {
     let mut compiler = self.initialize();
-    let result = compiler.compile(());
+    let mut table = Table::default();
+    let mut nets = HashMap::default();
+    let result = compiler.compile(&mut table, &mut nets, ());
     eprint_diags(&compiler);
     match result {
-      Ok(nets) => (nets, compiler),
+      Ok(_) => (table, nets, compiler),
       Err(_) => {
         exit(1);
       }
@@ -157,6 +170,31 @@ fn root_source() -> Source {
   Source { name: Ident("root".into()), path }
 }
 
+#[derive(Debug, Default, Args)]
+pub struct Optimizations {
+  #[arg(long)]
+  no_opt: bool,
+  #[arg(long)]
+  opt_all: bool,
+  #[arg(long)]
+  no_prune: bool,
+  #[arg(long)]
+  opt_limit: Option<usize>,
+}
+
+impl Optimizations {
+  pub fn into_config(&self, target: Target, entrypoints: Option<Vec<NameId>>) -> BackendConfig {
+    BackendConfig {
+      target,
+      entrypoints,
+      optimize: !self.no_opt,
+      optimize_all: self.opt_all,
+      optimize_limit: self.opt_limit,
+      prune: !self.no_prune,
+    }
+  }
+}
+
 #[derive(Debug, Args)]
 pub struct VineRunCommand {
   #[command(flatten)]
@@ -169,10 +207,9 @@ pub struct VineRunCommand {
 
 impl VineRunCommand {
   pub fn execute(self) -> Result<()> {
-    let debug = self.compile.debug;
-    let (mut nets, _) = self.compile.compile();
-    self.optimizations.apply(&mut nets, &[]);
-    self.run_args.check(&nets, !debug);
+    let (ref mut table, mut nets, compiler) = self.compile.compile();
+    backend(table, &self.optimizations.into_config(Target::Ivm, None), &mut nets);
+    self.run_args.run(table, &nets, !compiler.debug);
     Ok(())
   }
 }
@@ -200,22 +237,27 @@ impl VineTestCommand {
   pub fn execute(mut self) -> Result<()> {
     self.compile.debug = true;
 
-    let (mut nets, mut compiler) = self.compile.compile();
+    let (ref mut table, mut nets, mut compiler) = self.compile.compile();
 
     let tests = Self::matching_tests(&self.tests, &compiler);
     eprintln!("running {} test(s)\n", tests.len());
 
-    let entrypoints: Vec<_> = tests.iter().map(|(_, id)| compiler.entrypoint_name(*id)).collect();
-    self.optimizations.apply(&mut nets, &entrypoints);
+    let entrypoints: Vec<_> =
+      tests.iter().map(|(_, id)| compiler.entrypoint_name(table, *id)).collect();
+    backend(table, &self.optimizations.into_config(Target::Ivm, Some(entrypoints)), &mut nets);
+
+    let vi_guide = FromTable::build(table);
+    let ivm_guide = FromTable::build(table);
+    let translator = Translator::new(vi_to_ivm(&vi_guide, &ivm_guide));
 
     let Colors { reset, grey, bold, red, green, .. } = colors(&stderr());
 
     let mut failed = false;
     for (path, test_id) in tests {
-      compiler.insert_main_net(&mut nets, test_id);
+      compiler.insert_main_net(table, &mut nets, test_id, &translator);
 
       eprint!("{grey}test{reset} {bold}{path}{reset} {grey}...{reset} ");
-      let (result, output) = self.run_args.output(&nets);
+      let (result, output) = self.run_args.run_capture(table, &nets);
       if result.success() {
         eprintln!("{green}ok{reset}");
       } else {
@@ -258,16 +300,38 @@ pub struct VineBuildCommand {
   optimizations: Optimizations,
   #[arg(long)]
   out: Option<PathBuf>,
+  #[arg(long, default_value = "ivm")]
+  target: BuildTarget,
+  #[arg(long)]
+  flat: bool,
+}
+
+#[derive(Debug, Clone, Copy, ValueEnum)]
+pub enum BuildTarget {
+  None,
+  Ivm,
 }
 
 impl VineBuildCommand {
   pub fn execute(self) -> Result<()> {
-    let (mut nets, _) = self.compile.compile();
-    self.optimizations.apply(&mut nets, &[]);
-    if let Some(out) = self.out {
-      fs::write(out, nets.to_string())?;
+    let (ref mut table, mut nets, _) = self.compile.compile();
+    let target = match self.target {
+      BuildTarget::None => Target::None,
+      BuildTarget::Ivm => Target::Ivm,
+    };
+    backend(table, &self.optimizations.into_config(target, None), &mut nets);
+    let nets = if self.flat {
+      Nets::from_flat_nets(&nets)
     } else {
-      println!("{nets}");
+      let mut nets = TreeNet::from_flat_nets(&nets);
+      nets.values_mut().for_each(TreeNet::resolve_links);
+      Nets::from_tree_nets(&nets)
+    };
+    let text = nets.print(table);
+    if let Some(out) = self.out {
+      fs::write(out, text)?;
+    } else {
+      println!("{text}");
     }
     Ok(())
   }
@@ -369,16 +433,31 @@ pub struct VineReplCommand {
 
 impl VineReplCommand {
   pub fn execute(self) -> Result<()> {
-    let host = &mut Host::default();
-    let heap = Heap::new();
-    let mut extrinsics = Extrinsics::default();
-    host.register_default_extrinsics(&mut extrinsics);
-    host.register_runtime_extrinsics(&mut extrinsics, &self.args, io::stdin, io::stdout);
+    let mut heap = Heap::new();
+    let table = &mut Table::default();
+    let mut ivm = IVM::new();
+    let mut host = Host::new(&mut ivm);
 
-    let mut ivm = IVM::new(&heap, &extrinsics);
+    use ivm::host::ext::common;
+    host.register(
+      table,
+      (
+        common::fundamental(),
+        common::arithmetic(),
+        common::io_meta(),
+        common::io_stdio(),
+        common::io_args(&self.args),
+        common::io_error(),
+        common::io_file(),
+        repl::extrinsics(),
+      ),
+    );
+
+    let mut runtime = host.init(&mut heap);
+
     let mut compiler = Compiler::new(!self.no_debug, build_config(self.config));
     self.libs.initialize(&mut compiler);
-    let mut repl = match Repl::new(host, &mut ivm, &mut compiler) {
+    let mut repl = match Repl::new(table, &host, &mut runtime, &mut compiler) {
       Ok(repl) => repl,
       Err(_) => {
         eprint_diags(&compiler);
@@ -496,7 +575,7 @@ pub struct VineDocCommand {
 impl VineDocCommand {
   pub fn execute(self) -> Result<()> {
     let mut compiler = self.compile.initialize();
-    let result = compiler.compile(());
+    let result = compiler.check(());
     if document(&compiler, &self.output).is_err() {
       eprint_diags(&compiler);
       if result.is_ok() {

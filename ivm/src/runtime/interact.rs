@@ -1,0 +1,192 @@
+use crate::runtime::{
+  Runtime,
+  port::{Port, PortRef, Tag},
+  wire::Wire,
+};
+
+macro_rules! sym {
+  ($a: pat, $b: pat) => {
+    ($a, $b) | ($b, $a)
+  };
+  ($a: pat) => {
+    ($a, $a)
+  };
+}
+
+impl<'ivm> Runtime<'ivm, '_> {
+  /// Link two ports.
+  pub fn link(&mut self, a: Port<'ivm>, b: Port<'ivm>) {
+    use Tag::*;
+    match (a.tag(), b.tag()) {
+      (Wire, _) => self.link_wire(unsafe { a.as_wire() }, b),
+      (_, Wire) => self.link_wire(unsafe { b.as_wire() }, a),
+      sym!(Graft | Erase) => self.stats.erase += 1,
+      sym!(ExtVal | Erase) => {
+        if (a.tag() == ExtVal && !unsafe { a.as_ext_val() }.ty_id().is_copy())
+          || (b.tag() == ExtVal && !unsafe { b.as_ext_val() }.ty_id().is_copy())
+        {
+          self.flags.ext_erase = true;
+        }
+        self.stats.erase += 1
+      }
+      sym!(Comb) | sym!(ExtFn) if a.label() == b.label() => self.active_fast.push((a, b)),
+      sym!(Graft, _) | sym!(Comb | ExtFn) => self.active_slow.push((a, b)),
+      sym!(Erase, _) | sym!(ExtVal, _) => self.active_fast.push((a, b)),
+    }
+  }
+
+  /// Link a wire and a port.
+  pub fn link_wire(&mut self, a: Wire<'ivm>, b: Port<'ivm>) {
+    let b = self.follow(b);
+    if unsafe { Port::new_wire(a.clone()).bits() == b.bits() } {
+      self.free_wire(a);
+      return;
+    }
+    if let Some(s) = a.swap_target(Some(unsafe { b.clone() })) {
+      self.free_wire(a);
+      self.link(s, b);
+    }
+  }
+
+  /// Link two_wires.
+  #[inline(always)]
+  pub fn link_wire_wire(&mut self, a: Wire<'ivm>, b: Wire<'ivm>) {
+    self.link_wire(a, Port::new_wire(b));
+  }
+
+  /// Follows as many `Wire`s with active targets as currently possible.
+  #[inline]
+  pub fn follow(&mut self, mut p: Port<'ivm>) -> Port<'ivm> {
+    while p.tag() == Tag::Wire {
+      if let Some(q) = unsafe { p.clone().as_wire() }.load_target() {
+        self.free_wire(unsafe { p.as_wire() });
+        p = q;
+      } else {
+        break;
+      }
+    }
+    p
+  }
+
+  /// Non-destructively follows as many `Wire`s with active targets as currently
+  /// possible.
+  #[inline]
+  pub fn follow_ref<'a>(&self, p: &'a Port<'ivm>) -> PortRef<'a, 'ivm> {
+    let mut p = PortRef::from(p);
+    while p.tag() == Tag::Wire {
+      if let Some(q) = unsafe { p.clone().as_wire() }.load_target() {
+        p = PortRef::from_port(q);
+      } else {
+        break;
+      }
+    }
+    p
+  }
+
+  /// Execute an interaction between two principal ports.
+  pub(crate) fn interact(&mut self, a: Port<'ivm>, b: Port<'ivm>) {
+    use Tag::*;
+    match ((a.tag(), a), (b.tag(), b)) {
+      sym!((Wire, _), _) | sym!((Erase | ExtVal, _)) => unreachable!(),
+      sym!((Graft, c), (Comb, d)) if d.label() != 0 => self.copy(c, d),
+      sym!((Graft, c), (_, p)) => self._graft(c, p),
+      ((Comb, a), (Comb, b)) if a.label() == b.label() => self.annihilate(a, b),
+      ((Comb, a), (Comb, b)) => self.commute(a, b),
+      sym!((Erase, n), (_, b)) => self.copy(n, b),
+      sym!((ExtVal, n), (Comb, b)) => {
+        let x = unsafe { n.as_ext_val() };
+        if !x.ty_id().is_copy() {
+          self.flags.ext_copy = true;
+          self.copy(Port::ERASE, b);
+        } else {
+          self.copy(n, b);
+        }
+      }
+      sym!((ExtFn, f), (ExtVal, v)) => self.call(f, v),
+      ((_, a), (_, b)) => {
+        self.flags.invalid_interaction = true;
+        self.link(a, Port::ERASE);
+        self.link(b, Port::ERASE);
+      }
+    }
+  }
+
+  // Note that all of the following functions are technically unsafe -- they
+  // require the ports they are passed to have certain tags. They are not marked
+  // as `unsafe` to reduce noise, and as such must be kept private.
+
+  fn _graft(&mut self, c: Port<'ivm>, p: Port<'ivm>) {
+    self.stats.graft += 1;
+    let graft = unsafe { c.as_graft() };
+    self.graft(graft, p);
+  }
+
+  fn annihilate(&mut self, a: Port<'ivm>, b: Port<'ivm>) {
+    self.stats.annihilate += 1;
+    let (a1, a2) = unsafe { a.aux() };
+    let (b1, b2) = unsafe { b.aux() };
+    self.link_wire_wire(a1, b1);
+    self.link_wire_wire(a2, b2);
+  }
+
+  fn copy(&mut self, n: Port<'ivm>, b: Port<'ivm>) {
+    self.stats.copy += 1;
+    let (x, y) = unsafe { b.aux() };
+    self.link_wire(x, unsafe { n.clone() });
+    self.link_wire(y, n);
+  }
+
+  fn commute(&mut self, a: Port<'ivm>, b: Port<'ivm>) {
+    self.stats.commute += 1;
+    let a_1 = unsafe { self.new_node(a.tag(), a.label()) };
+    let a_2 = unsafe { self.new_node(a.tag(), a.label()) };
+    let b_1 = unsafe { self.new_node(b.tag(), b.label()) };
+    let b_2 = unsafe { self.new_node(b.tag(), b.label()) };
+
+    let (a_0_1, a_0_2) = unsafe { a.aux() };
+    let (b_0_1, b_0_2) = unsafe { b.aux() };
+
+    self.link_wire_wire(a_1.1, b_1.1);
+    self.link_wire_wire(a_1.2, b_2.1);
+    self.link_wire_wire(a_2.1, b_1.2);
+    self.link_wire_wire(a_2.2, b_2.2);
+
+    self.link_wire(a_0_1, b_1.0);
+    self.link_wire(a_0_2, b_2.0);
+    self.link_wire(b_0_1, a_1.0);
+    self.link_wire(b_0_2, a_2.0);
+  }
+
+  fn call(&mut self, f: Port<'ivm>, lhs: Port<'ivm>) {
+    let ext_fn = unsafe { f.as_ext_fn() };
+
+    if ext_fn.is_merge() {
+      let (rhs_wire, out) = unsafe { f.aux() };
+      if let Some(rhs) = rhs_wire.load_target()
+        && rhs.tag() == Tag::ExtVal
+      {
+        self.stats.extrinsic += 1;
+        self.free_wire(rhs_wire);
+        let func = self.extrinsics.get_ext_fn_merge(ext_fn);
+        let (arg0, arg1) = if ext_fn.is_swapped() {
+          unsafe { (rhs.as_ext_val(), lhs.as_ext_val()) }
+        } else {
+          unsafe { (lhs.as_ext_val(), rhs.as_ext_val()) }
+        };
+        (func)(self, arg0, arg1, out);
+        return;
+      }
+
+      let new_fn = unsafe { self.new_node(Tag::ExtFn, ext_fn.swapped().bits()) };
+      self.link_wire(rhs_wire, new_fn.0);
+      self.link_wire(new_fn.1, lhs);
+      self.link_wire_wire(new_fn.2, out);
+    } else {
+      self.stats.extrinsic += 1;
+      let func = self.extrinsics.get_ext_fn_split(ext_fn);
+      let (out0, out1) = unsafe { f.aux() };
+      let arg = unsafe { lhs.as_ext_val() };
+      (func)(self, arg, out0, out1);
+    }
+  }
+}

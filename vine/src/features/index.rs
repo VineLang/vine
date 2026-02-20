@@ -7,7 +7,6 @@ use crate::{
     ast::{Expr, Span},
     chart::{FnId, TraitFnId},
     diag::Diag,
-    resolutions::FnRel,
     tir::{TirExpr, TirExprKind},
     types::{ImplType, Type},
     vir::{Port, PortKind, Stage, Step},
@@ -62,12 +61,11 @@ impl Distiller<'_> {
     let expr_ref = stage.ref_place(span, expr.ty, (expr_pos, expr_neg));
     let impl_type = ImplType::Trait(index_value_trait, vec![expr.ty, index.ty, value_ty]);
     let index_value_impl = self.find_impl(span, &impl_type, false);
-    let assume_get_rel =
-      FnRel::Item(FnId::Abstract(index_value_trait, TraitFnId(0)), vec![index_value_impl]);
+    let assume_get_rel = (FnId::Abstract(index_value_trait, TraitFnId(0)), vec![index_value_impl]);
     let assume_get_rel_id = self.rels.fns.push(assume_get_rel);
     let args = vec![expr_ref, self.distill_expr_value(stage, index)];
     let value = stage.new_wire(span, value_ty);
-    stage.steps.push(Step::Call(span, assume_get_rel_id, None, args, value.neg));
+    stage.steps.push(Step::Call(span, assume_get_rel_id, args, value.neg));
     value.pos
   }
 
@@ -90,13 +88,12 @@ impl Distiller<'_> {
     let expr_ref = stage.ref_place(span, expr.ty, (expr_pos, expr_neg));
     let impl_type = ImplType::Trait(index_space_trait, vec![expr.ty, index.ty, value_ty]);
     let index_space_impl = self.find_impl(span, &impl_type, false);
-    let assume_set_rel =
-      FnRel::Item(FnId::Abstract(index_space_trait, TraitFnId(0)), vec![index_space_impl]);
+    let assume_set_rel = (FnId::Abstract(index_space_trait, TraitFnId(0)), vec![index_space_impl]);
     let assume_set_rel_id = self.rels.fns.push(assume_set_rel);
     let space = stage.new_wire(span, value_ty);
     let args = vec![expr_ref, self.distill_expr_value(stage, index), space.pos];
     let nil = Port { ty: self.types.nil(), kind: PortKind::Nil };
-    stage.steps.push(Step::Call(span, assume_set_rel_id, None, args, nil));
+    stage.steps.push(Step::Call(span, assume_set_rel_id, args, nil));
     space.neg
   }
 
@@ -120,12 +117,11 @@ impl Distiller<'_> {
     let expr_ref = stage.ref_place(span, expr.ty, (expr_pos, expr_neg));
     let impl_type = ImplType::Trait(index_place_trait, vec![expr.ty, index.ty, value_ty]);
     let index_place_impl = self.find_impl(span, &impl_type, false);
-    let assume_at_rel =
-      FnRel::Item(FnId::Abstract(index_place_trait, TraitFnId(0)), vec![index_place_impl]);
+    let assume_at_rel = (FnId::Abstract(index_place_trait, TraitFnId(0)), vec![index_place_impl]);
     let assume_at_rel_id = self.rels.fns.push(assume_at_rel);
     let args = vec![expr_ref, self.distill_expr_value(stage, index)];
     let wire = stage.new_wire(span, value_ty);
-    stage.steps.push(Step::Call(span, assume_at_rel_id, None, args, wire.neg));
+    stage.steps.push(Step::Call(span, assume_at_rel_id, args, wire.neg));
     let value = stage.new_wire(span, value_ty);
     let space = stage.new_wire(span, value_ty);
     stage.steps.push(Step::Ref(wire.pos, value.neg, space.pos));

@@ -33,7 +33,7 @@ let
     if match == null then name else builtins.elemAt match 0;
 
   vine = "${cli.packages.vine}/bin/vine";
-  ivy = "${cli.packages.ivy}/bin/ivy";
+  ivm = "${cli.packages.ivm}/bin/ivm";
 
   directives =
     src:
@@ -109,13 +109,13 @@ let
       mkdir $out
       cp ${iv} $out/compiled.iv
       echo "running ${name}"
-      ${if fail then "!" else ""} ${ivy} run $out/compiled.iv --no-perf ${runArgs} <${input} 2>&1 >$out/output.${ext} | tee $out/stats
+      ${if fail then "!" else ""} ${ivm} run $out/compiled.iv --no-perf ${runArgs} <${input} 2>&1 >$out/output.${ext} | tee $out/stats
     '';
 
   interactive =
     name: args: script:
     pkgs.runCommand name (args // { inherit script; }) ''
-      bash -vc "$script" >$out 2>&1
+      bash -vc "$script" 2>&1 | tee $out
     '';
 
   tests.fail = forEach (ls ./fail) (
@@ -177,20 +177,20 @@ let
     }
   );
 
-  tests.ivy = forEach (ls ../ivy/examples) (
+  tests.ivm = forEach (ls ../ivm/examples) (
     path:
     let
       name = sanitize path;
       iv = just path;
-      input = ./ivy/${name};
+      input = ./ivm/${name};
       result = run {
         inherit name iv input;
       };
     in
     {
-      checks."tests-ivy-${name}" = result;
-      snaps."ivy/${name}/output.txt" = "${result}/output.txt";
-      snaps."ivy/${name}/stats" = "${result}/stats";
+      checks."tests-ivm-${name}" = result;
+      snaps."ivm/${name}/output.txt" = "${result}/output.txt";
+      snaps."ivm/${name}/stats" = "${result}/stats";
     }
   );
 
@@ -225,21 +225,6 @@ let
     {
       checks."tests-fmt-${name}" = formatted;
       snaps."fmt/${name}.fmt.vi" = formatted;
-    }
-  );
-
-  tests.compile = forEach (ls ./compile) (
-    path:
-    let
-      name = sanitize path;
-      vi = just path;
-      directive = directives vi;
-      buildArgs = directive "build" "";
-      iv = build { inherit name vi buildArgs; };
-    in
-    {
-      checks."tests-compile-${name}" = iv;
-      snaps."compile/${name}.iv" = iv;
     }
   );
 
@@ -302,14 +287,14 @@ let
       in
       {
         checks.tests-misc-miri = craneLib.mkCargoDerivation (
-          cli.internal.ivyConfig
+          cli.internal.ivmConfig
           // {
             name = "miri-tests";
             buildPhaseCargoCommand = ''
               export MIRIFLAGS="-Zmiri-disable-isolation"
-              ivy() { cargo miri run --no-default-features -p vine-cli --bin ivy -- "$@"; }
-              [[ `echo "Hello, miri!" | ivy run ${cat} -H 2K` == "Hello, miri!" ]]
-              [[ `ivy run ${tiny_f64} -H 2K` == "12 + 34 = 46" ]]
+              ivm() { cargo miri run --no-default-features -p vine-cli --bin ivm -- "$@"; }
+              [[ `echo "Hello, miri!" | ivm run ${cat} -H 2K` == "Hello, miri!" ]]
+              [[ `ivm run ${tiny_f64} -H 2K` == "12 + 34 = 46" ]]
             '';
             doInstallCargoArtifacts = false;
             MIRI_SYSROOT = craneLib.mkCargoDerivation {

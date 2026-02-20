@@ -91,7 +91,7 @@ impl Resolver<'_> {
             "iter",
             [collection.ty, iter_ty, pat.ty],
           )?;
-          TirExpr::new(span, iter_ty, TirExprKind::Call(rel, None, vec![collection]))
+          TirExpr::new(span, iter_ty, TirExprKind::Call(rel, vec![collection]))
         } else {
           collection
         };
@@ -153,7 +153,7 @@ impl Distiller<'_> {
 
     let iter = init_stage.local_read_barrier(iter_local, span, iter_ty);
     let option = init_stage.new_wire(span, option_ty);
-    init_stage.steps.push(Step::Call(span, rel, None, vec![iter], option.neg));
+    init_stage.steps.push(Step::Call(span, rel, vec![iter], option.neg));
     self.distill_pattern_match(
       span,
       &mut layer,

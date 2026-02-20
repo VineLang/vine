@@ -117,7 +117,7 @@ impl Normalizer<'_> {
             interface,
             span: source.span,
             layer: LayerId::NONE,
-            header: Header::None,
+            header: Header::Bare,
             declarations: Vec::new(),
             steps: Vec::new(),
             transfer: None,

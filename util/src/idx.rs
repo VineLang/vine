@@ -390,6 +390,21 @@ impl<I: Idx, T> IdxSlab<I, T> {
   }
 
   #[inline(always)]
+  pub fn remove(&mut self, index: I) -> T {
+    self.slab.remove(index.into())
+  }
+
+  #[inline(always)]
+  pub fn get(&self, index: I) -> Option<&T> {
+    self.slab.get(index.into())
+  }
+
+  #[inline(always)]
+  pub fn get_mut(&mut self, index: I) -> Option<&mut T> {
+    self.slab.get_mut(index.into())
+  }
+
+  #[inline(always)]
   pub fn iter(&self) -> SlabIter<'_, I, T> {
     self.into_iter()
   }

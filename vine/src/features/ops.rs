@@ -79,7 +79,7 @@ impl Resolver<'_> {
       Sign::Pos => self.builtin_fn(span, self.chart.builtins.pos, "pos", [inner.ty, return_ty])?,
       Sign::Neg => self.builtin_fn(span, self.chart.builtins.neg, "neg", [inner.ty, return_ty])?,
     };
-    Ok(TirExpr::new(span, return_ty, TirExprKind::Call(rel, None, vec![inner])))
+    Ok(TirExpr::new(span, return_ty, TirExprKind::Call(rel, vec![inner])))
   }
 
   pub(crate) fn resolve_expr_binary_op(
@@ -94,7 +94,7 @@ impl Resolver<'_> {
     let return_ty = self.types.new_var(span);
     let fn_id = self.chart.builtins.binary_ops.get(&op).copied().flatten();
     let rel = self.builtin_fn(span, fn_id, op.as_str(), [lhs.ty, rhs.ty, return_ty])?;
-    Ok(TirExpr::new(span, return_ty, TirExprKind::Call(rel, None, vec![lhs, rhs])))
+    Ok(TirExpr::new(span, return_ty, TirExprKind::Call(rel, vec![lhs, rhs])))
   }
 
   pub(crate) fn resolve_expr_binary_op_assign(
@@ -176,7 +176,7 @@ impl Distiller<'_> {
   ) {
     let rhs = self.distill_expr_value(stage, rhs);
     let (lhs, out) = self.distill_expr_place(stage, lhs);
-    stage.steps.push(Step::Call(span, func, None, vec![lhs, rhs], out));
+    stage.steps.push(Step::Call(span, func, vec![lhs, rhs], out));
   }
 
   pub(crate) fn distill_expr_value_call_compare(
@@ -205,11 +205,13 @@ impl Distiller<'_> {
         )
       };
       let result = stage.new_wire(span, ty);
-      stage.steps.push(Step::Call(span, *func, None, vec![lhs.unwrap(), rhs], result.neg));
+      stage.steps.push(Step::Call(span, *func, vec![lhs.unwrap(), rhs], result.neg));
       last_result = if first {
         result.pos
       } else {
-        stage.ext_fn(span, "n32_and", false, last_result, result.pos, ty)
+        let wire = stage.new_wire(span, ty);
+        stage.steps.push(Step::BoolAnd(last_result, result.pos, wire.neg));
+        wire.pos
       };
       lhs = next_lhs;
     }
