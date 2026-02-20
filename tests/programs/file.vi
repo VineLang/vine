@@ -2,7 +2,7 @@
 use #root::IO::File;
 
 pub fn main(&io: &IO) {
-  let write_file = File::create(&io, "/tmp/vine-file-test");
+  let write_file = File::create(&io, "vine-file-test.txt");
   io.println("Creating a file should succeed: {write_file.show()}");
 
   assert write_file is Ok(write_file) else {
@@ -13,18 +13,18 @@ pub fn main(&io: &IO) {
   write_file.write_string(&io, "雷公藤.");
   write_file.close(&io);
 
-  let read_file = File::open(&io, "/tmp/vine-file-test").assume();
+  let read_file = File::open(&io, "vine-file-test.txt").assume();
   let contents = read_file.read_string(&io).assume();
   io.println("read_string after writing: {contents}");
   read_file.close(&io);
 
-  let read_file = File::open(&io, "/tmp/vine-file-test").assume();
+  let read_file = File::open(&io, "vine-file-test.txt").assume();
   let bytes = read_file.read_bytes(&io).assume();
   let bytes = bytes.map(fn* (byte: N32) { byte as Char }) as String;
   io.println("read_bytes after writing: {bytes}");
   read_file.close(&io);
 
-  let missing_file = File::open(&io, "/tmp/no-way-this-file-exists");
+  let missing_file = File::open(&io, "no-way-this-file-exists.txt");
   io.println("A missing file should error: {missing_file.show()}");
   match missing_file {
     Ok(f) { f.close(&io) }
