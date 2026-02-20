@@ -121,38 +121,23 @@ pub mod Ext {
   pub impl string: Ext[String];
 
   fn new_list[T]() -> Ext[List[T]] {
-    safe inline_ivy! () -> Ext[List[T]] {
-      list
-      0 = @list_new(_ list)
-    }
+    safe $ivy { ^ = vi:ext:list:new }
   }
 
   fn .len[T](&list: &Ext[List[T]]) -> N32 {
-    safe inline_ivy! (list0 <- list, list1 -> list) -> N32 {
-      len
-      list0 = @list_len(len list1)
-    }
+    safe $ivy { ${list} = vi:ext:list:len(${~list} ^) }
   }
 
   unsafe fn drop_list[T](list: Ext[List[T]]) {
-    inline_ivy! (list <- list) -> () {
-      _
-      list = @list_drop(_ _)
-    }
+    $ivy { ${list} = vi:ext:list:drop }
   }
 
-  fn .push[T](&self: &Ext[List[T]], t: Ext[T]) {
-    safe inline_ivy! (list0 <- self, t <- t, list1 -> self) -> () {
-      _
-      list0 = @list_push(t list1)
-    };
+  fn .push[T](&list: &Ext[List[T]], t: Ext[T]) {
+    safe $ivy { ${list} = vi:ext:list:push(${t} ${~list}) }
   }
 
-  unsafe fn .pop[T](&self: &Ext[List[T]]) -> Ext[T] {
-    inline_ivy! (list0 <- self, list1 -> self) -> Ext[T] {
-      t
-      list0 = @list_pop(t list1)
-    }
+  unsafe fn .pop[T](&list: &Ext[List[T]]) -> Ext[T] {
+    $ivy { ${list} = vi:ext:list:pop(${~list} ^) }
   }
 
   /// Used to mark extrinsic values of an unknown type.

@@ -15,6 +15,13 @@ impl<'src, L: Lex<'src, Token: Token>> ParserState<'src, L> {
   pub fn new(mut lexer: L) -> Result<Self, L::Error> {
     Ok(ParserState { token: lexer.lex()?, lexer, last_token_end: 0, expected: TokenSet::default() })
   }
+
+  pub fn bump(&mut self) -> Result<(), L::Error> {
+    self.expected.reset();
+    self.last_token_end = self.lexer.range().end;
+    self.token = self.lexer.lex()?;
+    Ok(())
+  }
 }
 
 pub trait Parse<'src> {
@@ -34,10 +41,7 @@ pub trait Parse<'src> {
   }
 
   fn bump(&mut self) -> Result<(), Self::Error> {
-    self.state().expected.reset();
-    self.state().last_token_end = self.lexer().range().end;
-    self.state().token = self.lexer().lex()?;
-    Ok(())
+    self.state().bump()
   }
 
   fn check(&mut self, kind: Self::Token) -> bool {

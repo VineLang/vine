@@ -38,10 +38,7 @@ pub mod File {
   /// will append to its existing contents.
   pub fn open(&io: &IO, path: String) -> Result[File, Error] {
     let path = path as Ext;
-    let ext = safe inline_ivy! (io <- io, path <- path) -> Ext[(IO, Result[File, ExtError])] {
-      res
-      io = @file_open(path res)
-    };
+    let ext: Ext[(IO, Result[File, ExtError])] = safe $ivy { ${io} = root:file:open(${path} ^) };
     let res: Result[File, ExtError];
     (io, res) = ext as (_, _);
 
@@ -52,10 +49,7 @@ pub mod File {
   /// file is truncated, and an error is not returned.
   pub fn create(&io: &IO, path: String) -> Result[File, Error] {
     let path = path as Ext;
-    let ext = safe inline_ivy! (io <- io, path <- path) -> Ext[(IO, Result[File, ExtError])] {
-      res
-      io = @file_create(path res)
-    };
+    let ext: Ext[(IO, Result[File, ExtError])] = safe $ivy { ${io} = root:file:create(${path} ^) };
     let res: Result[File, ExtError];
     (io, res) = ext as (_, _);
 
@@ -64,10 +58,7 @@ pub mod File {
 
   /// Closes the file, returning an error.
   pub fn .close(self: File, &io: &IO) {
-    safe inline_ivy! (self <- self, io0 <- io, io1 -> io) -> () {
-      _
-      io0 = @file_close(self io1)
-    };
+    safe $ivy { ${self} = root:file:close(${io} ${~io}) }
   }
 
   /// Reads all remaining bytes in the file into a list of bytes.
@@ -83,13 +74,11 @@ pub mod File {
 
   /// Reads the next byte in the file, returning `None()` on EOF.
   pub fn .read_byte(&self: &File, &io: &IO) -> Result[Option[N32], Error] {
-    let ext = safe inline_ivy! (io <- io, self <- self) -> Ext[
-      (IO, File, Result[(N32, Bool), ExtError]);
-    ] {
-      res
-      io = @file_read_byte(self res)
-    };
-    let res: Result[(N32, Bool), ExtError];
+    let ext: Ext[(IO, File, Result[(N32, Bool), ExtError])] = safe $ivy { ${io} = root:file:read_byte(
+      ${self}
+      ^
+    ) };
+    let res;
     (io, self, res) = ext as (_, _, _);
 
     match res {
@@ -119,13 +108,11 @@ pub mod File {
   /// sequence of bytes are not a valid UTF-8 character, the UTF-8 replacement
   /// character is returned.
   pub fn .read_char(&self: &File, &io: &IO) -> Result[Option[Char], Error] {
-    let ext = safe inline_ivy! (io <- io, self <- self) -> Ext[
-      (IO, File, Result[(Char, Bool), ExtError]);
-    ] {
-      res
-      io = @file_read_char(self res)
-    };
-    let res: Result[(Char, Bool), ExtError];
+    let ext: Ext[(IO, File, Result[(Char, Bool), ExtError])] = safe $ivy { ${io} = root:file:read_char(
+      ${self}
+      ^
+    ) };
+    let res;
     (io, self, res) = ext as (_, _, _);
 
     match res {
@@ -152,13 +139,11 @@ pub mod File {
   /// Writes a byte to the file.
   pub fn .write_byte(&self: &File, &io: &IO, byte: N32) -> Result[(), Error] {
     let params = (self, byte) as Ext;
-    let ext = safe inline_ivy! (io <- io, params <- params) -> Ext[
-      (IO, File, Result[N32, ExtError]);
-    ] {
-      res
-      io = @file_write_byte(params res)
-    };
-    let res: Result[N32, ExtError];
+    let ext: Ext[(IO, File, Result[N32, ExtError])] = safe $ivy { ${io} = root:file:write_byte(
+      ${params}
+      ^
+    ) };
+    let res;
     (io, self, res) = ext as (_, _, _);
 
     match res {
@@ -179,13 +164,11 @@ pub mod File {
   /// Writes a char to the file.
   pub fn .write_char(&self: &File, &io: &IO, char: Char) -> Result[(), Error] {
     let params = (self, char) as Ext;
-    let ext = safe inline_ivy! (io <- io, params <- params) -> Ext[
-      (IO, File, Result[N32, ExtError]);
-    ] {
-      res
-      io = @file_write_char(params res)
-    };
-    let res: Result[N32, ExtError];
+    let ext: Ext[(IO, File, Result[N32, ExtError])] = safe $ivy { ${io} = root:file:write_char(
+      ${params}
+      ^
+    ) };
+    let res;
     (io, self, res) = ext as (_, _, _);
 
     match res {
@@ -229,25 +212,17 @@ pub mod File {
     pub impl : Ext[ExtError] = safe Ext::identity;
 
     pub fn .code(&self: &ExtError) -> N32 {
-      safe inline_ivy! (self0 <- self, self1 -> self) -> N32 {
-        code
-        self0 = @io_error_code(code self1)
-      }
+      safe $ivy { ${self} = root:io:error:code(^ ${~self}) }
     }
 
     pub fn .message(&self: &ExtError) -> String {
-      safe inline_ivy! (self0 <- self, self1 -> self) -> Ext[String] {
-        message
-        self0 = @io_error_string(message self1)
-      } as String
+      let message: Ext[String] = safe $ivy { ${self} = root:io:error:message(^ ${~self}) };
+      message as String
     }
 
     pub impl : Drop[ExtError] {
       fn drop(self: ExtError) {
-        safe inline_ivy! (self <- self) -> () {
-          _
-          self = @io_error_drop(_ _)
-        }
+        safe $ivy { ${self} = root:io:error:drop }
       }
     }
 

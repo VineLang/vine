@@ -1,3 +1,5 @@
+#![allow(unused)]
+
 use std::mem::take;
 
 use ivm::{
@@ -50,6 +52,15 @@ struct ScopeEntry<'ivm> {
 }
 
 impl<'ctx, 'ivm, 'ext, 'comp> Repl<'ctx, 'ivm, 'ext, 'comp> {
+  pub fn new(
+    _: &'ivm mut Host<'ivm>,
+    _: &'ctx mut IVM<'ivm, 'ext>,
+    _: &'comp mut Compiler,
+  ) -> Result<Self, ErrorGuaranteed> {
+    todo!()
+  }
+
+  #[cfg(false)]
   pub fn new(
     mut host: &'ivm mut Host<'ivm>,
     ivm: &'ctx mut IVM<'ivm, 'ext>,
@@ -110,6 +121,11 @@ impl<'ctx, 'ivm, 'ext, 'comp> Repl<'ctx, 'ivm, 'ext, 'comp> {
     Ok(())
   }
 
+  pub fn run(&mut self, _: Span, _: Vec<Stmt>, _: Vec<Ident>) -> Result<(), ErrorGuaranteed> {
+    todo!()
+  }
+
+  #[cfg(false)]
   pub fn run(
     &mut self,
     span: Span,

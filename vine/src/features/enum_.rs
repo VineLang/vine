@@ -1,9 +1,10 @@
 use std::mem::take;
 
-use ivy::ast::Tree;
+use hedera::name::{NameId, Table};
 use vine_util::{idx::IdxVec, parser::Parse};
 
 use crate::{
+  compiler::Guide,
   components::{
     charter::{ChartedItem, Charter},
     distiller::Distiller,
@@ -18,8 +19,8 @@ use crate::{
   structures::{
     ast::{EnumItem, Expr, ItemKind, Pat, Path, Span, TyKind, Variant},
     chart::{
-      DefId, DefPatternKind, DefTypeKind, DefValueKind, EnumDef, EnumId, EnumVariant, GenericsId,
-      VariantId, VisId,
+      Chart, DefId, DefPatternKind, DefTypeKind, DefValueKind, EnumDef, EnumId, EnumVariant,
+      GenericsId, VariantId, VisId,
     },
     diag::Diag,
     signatures::EnumSig,
@@ -112,15 +113,11 @@ impl Resolver<'_> {
       let mut data = variant.data.iter().map(|t| self.resolve_ty(t, false)).collect::<Vec<_>>();
       if data.len() == 1 { data.pop().unwrap() } else { self.types.new(TypeKind::Tuple(data)) }
     }));
-    let variant_is_nil = variant_data.values().map(|&ty| self.types.self_inverse(ty)).collect();
     let hover =
       format!("enum {}{} {{ ... }}", enum_def.name, self.show_generics(self.cur_generics, false),);
     self.annotations.record_signature(enum_def.span, hover);
     let types = take(&mut self.types);
-    self
-      .sigs
-      .enums
-      .push_to(enum_id, TypeCtx { types, inner: EnumSig { variant_data, variant_is_nil } });
+    self.sigs.enums.push_to(enum_id, TypeCtx { types, inner: EnumSig { variant_data } });
   }
 
   pub(crate) fn resolve_expr_path_enum(
@@ -275,24 +272,11 @@ impl Emitter<'_> {
     port: &Port,
     data: &Port,
   ) {
+    let port = self.emit_port(port);
     let data = self.emit_port(data);
-    let data = if self.sigs.enums[enum_id].inner.variant_is_nil[variant_id] {
-      self.pairs.push((data, Tree::Erase));
-      None
-    } else {
-      Some(data)
-    };
-    let enum_def = &self.chart.enums[enum_id];
-    let wire = self.new_wire();
-    let mut fields = Tree::n_ary("enum", data.into_iter().chain([wire.0]));
-    let enum_ = Tree::n_ary(
-      "enum",
-      (0..enum_def.variants.len())
-        .map(|i| if variant_id.0 == i { take(&mut fields) } else { Tree::Erase })
-        .chain([wire.1]),
-    );
-    let pair = (self.emit_port(port), enum_);
-    self.pairs.push(pair);
+    let enum_name = enum_name(self.table, self.guide, self.chart, enum_id);
+    let variant_name = self.guide.enum_variant.with_children([enum_name]).with_data(variant_id.0);
+    self.net.add(variant_name, port, [data]);
   }
 }
 
@@ -317,4 +301,8 @@ impl Finder<'_> {
       }
     }
   }
+}
+
+pub fn enum_name(table: &mut Table, guide: &Guide, chart: &Chart, enum_id: EnumId) -> NameId {
+  table.add_name(guide.enum_.with_data(chart.enums[enum_id].variants.len()))
 }

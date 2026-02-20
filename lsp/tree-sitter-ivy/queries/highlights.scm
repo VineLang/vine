@@ -1,30 +1,22 @@
 
 [
   "="
-  "#"
+  ","
+  "$"
   "["
   "]"
   "("
   ")"
   "{"
   "}"
-  (erase)
 ] @punctuation
 
-[
-  "@"
-  "?"
-  "$"
-] @operator
+(data "#" @punctuation) @constant.numeric
 
-(ext_fn (ident) @operator)
+((path) @function (#match? @function "^[^:]"))
+((path) @string (#match? @string "^:"))
 
-[(n32) (f32)] @constant.numeric
-
-(global) @function
-
-(comb (ident) @constructor)
+(free) @variable.builtin
 
 (line_comment) @comment
 (block_comment) @comment
-

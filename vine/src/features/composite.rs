@@ -1,6 +1,5 @@
 use std::{collections::BTreeMap, mem::replace};
 
-use ivy::ast::Tree;
 use vine_util::{idx::IdxVec, parser::Parse};
 
 use crate::{
@@ -601,9 +600,10 @@ impl Matcher<'_, '_> {
 }
 
 impl Emitter<'_> {
-  pub(crate) fn emit_composite(&mut self, port: &Port, tuple: &[Port]) {
-    let pair = (self.emit_port(port), Tree::n_ary("tup", tuple.iter().map(|p| self.emit_port(p))));
-    self.pairs.push(pair)
+  pub(crate) fn emit_composite(&mut self, port: &Port, fields: &[Port]) {
+    let port = self.emit_port(port);
+    let fields = fields.iter().map(|p| self.emit_port(p)).collect::<Vec<_>>();
+    self.net.add(self.guide.tuple, port, fields)
   }
 }
 

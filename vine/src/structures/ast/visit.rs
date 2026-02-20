@@ -2,6 +2,7 @@ use crate::structures::ast::{
   Block, Expr, ExprKind, GenericArgs, GenericParams, Impl, ImplKind, Item, ItemKind, LetStmtKind,
   ModKind, Pat, PatKind, Stmt, StmtKind, Trait, TraitKind, Ty, TyKind,
 };
+use hedera::text::ast::Expr as IvyExpr;
 
 /// Mutably walks over the AST.
 ///
@@ -181,11 +182,11 @@ pub trait VisitMut<'a> {
       ExprKind::String(_, i) => {
         self.visit(i.iter_mut().map(|x| &mut x.0));
       }
-      ExprKind::InlineIvy(binds, ty, _, _) => {
-        for (_, _, expr) in binds {
-          self.visit_expr(expr);
+      ExprKind::InlineIvy(_, net) => {
+        for (a, b) in &mut net.stmts {
+          self._visit_ivy_expr(a);
+          self._visit_ivy_expr(b);
         }
-        self.visit_type(ty);
       }
       ExprKind::Cast(e, t, _) => {
         self.visit_expr(e);
@@ -373,6 +374,25 @@ pub trait VisitMut<'a> {
   fn _visit_generic_args(&mut self, generics: &'a mut GenericArgs) {
     self.visit(&mut generics.types);
     self.visit(&mut generics.impls);
+  }
+
+  fn _visit_ivy_expr(&mut self, expr: &'a mut IvyExpr<Expr>) {
+    match expr {
+      IvyExpr::Node(_, children) => {
+        for expr in children {
+          self._visit_ivy_expr(expr);
+        }
+      }
+      IvyExpr::Interpolation(expr) => self.visit_expr(expr),
+      IvyExpr::Wire(_) | IvyExpr::Free(_) => {}
+      IvyExpr::Subnet(expr, stmts) => {
+        self._visit_ivy_expr(expr);
+        for (a, b) in stmts {
+          self._visit_ivy_expr(a);
+          self._visit_ivy_expr(b);
+        }
+      }
+    }
   }
 
   fn visit(&mut self, visitee: impl Visitee<'a>) {

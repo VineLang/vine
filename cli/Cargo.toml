@@ -13,6 +13,7 @@ rustyline = "14.0.0"
 
 ivm = { path = "../ivm" }
 ivy = { path = "../ivy" }
+hedera = { path = "../hedera" }
 vine = { path = "../vine", optional = true }
 vine-lsp = { path = "../lsp", optional = true }
 vine-util = { path = "../util" }

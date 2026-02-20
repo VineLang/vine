@@ -1,6 +1,9 @@
 use std::collections::BTreeMap;
 
-use ivy::ast::Net;
+use hedera::{
+  name::Table,
+  net::{FlatNet, Wire as IvyWire},
+};
 use vine_util::{
   idx::{Counter, IdxVec},
   multi_iter,
@@ -88,7 +91,7 @@ pub enum InterfaceKind {
   Unconditional(StageId),
   Branch(StageId, StageId),
   Match(EnumId, Vec<StageId>),
-  Fn { call: StageId, fork: Option<StageId>, drop: Option<StageId> },
+  Closure { call: StageId, fork: Option<StageId>, drop: Option<StageId> },
   Inspect(Vec<Local>),
 }
 
@@ -99,7 +102,7 @@ impl InterfaceKind {
       InterfaceKind::Unconditional(a) => Stages::One([*a]),
       InterfaceKind::Branch(a, b) => Stages::Two([*a, *b]),
       InterfaceKind::Match(_, s) => Stages::Vec(s.clone()),
-      InterfaceKind::Fn { call, fork, drop } => {
+      InterfaceKind::Closure { call, fork, drop } => {
         Stages::Fn([*call].into_iter().chain(*fork).chain(*drop))
       }
       InterfaceKind::Inspect(_) => Stages::Zero([]),
@@ -123,9 +126,11 @@ pub struct Stage {
 #[derive(Default, Debug, Clone)]
 pub enum Header {
   #[default]
-  None,
-  Match(EnumId, VariantId, Port),
+  Bare,
+  Const(Port),
   Fn(Vec<Port>, Port),
+  Match(EnumId, VariantId, Port),
+  Closure(Vec<Port>, Port),
   Fork(Port, Port),
   Drop,
   Entry(Vec<Port>),
@@ -139,27 +144,30 @@ pub enum Step {
 
   Link(Port, Port),
 
-  Call(Span, FnRelId, Option<Port>, Vec<Port>, Port),
+  Call(Span, FnRelId, Vec<Port>, Port),
   Const(Span, ConstRelId, Port),
   Composite(Port, Vec<Port>),
   Rewrap(Port, Port),
   Enum(EnumId, VariantId, Port, Port),
   Union(UnionId, VariantId, Port, Port),
   Ref(Port, Port, Port),
-  ExtFn(&'static str, bool, Port, Port, Port),
   List(Port, Vec<Port>),
   String(Port, String, Vec<(Port, String)>),
-  InlineIvy(Vec<(String, Port)>, Port, Net),
+  InlineIvy(Port, Table, FlatNet, Vec<(IvyWire, Port)>),
+  BoolNot(Port, Port),
+  BoolAnd(Port, Port, Port),
 }
 
 impl Header {
   pub fn ports(&self) -> impl Iterator<Item = &Port> {
     multi_iter!(Ports { Zero, One, Two, Fn, Vec });
     match self {
-      Header::None | Header::Drop => Ports::Zero([]),
-      Header::Match(_, _, a) => Ports::One([a]),
-      Header::Fn(params, ret) => Ports::Fn(params.iter().chain([ret])),
+      Header::Bare | Header::Drop => Ports::Zero([]),
+      Header::Match(_, _, a) | Header::Const(a) => Ports::One([a]),
       Header::Fork(a, b) => Ports::Two([a, b]),
+      Header::Fn(params, ret) | Header::Closure(params, ret) => {
+        Ports::Fn(params.iter().chain([ret]))
+      }
       Header::Entry(ports) => Ports::Vec(ports),
     }
   }
@@ -175,16 +183,20 @@ impl Step {
       }
       Step::Diverge(_, None) => Ports::Zero([]),
       Step::Const(_, _, a) => Ports::One([a]),
-      Step::Link(a, b) | Step::Rewrap(a, b) | Step::Enum(_, _, a, b) | Step::Union(_, _, a, b) => {
-        Ports::Two([a, b])
-      }
-      Step::Call(_, _, f, a, r) => Ports::Fn(f.as_ref().into_iter().chain(a).chain([r])),
+      Step::Link(a, b)
+      | Step::Rewrap(a, b)
+      | Step::Enum(_, _, a, b)
+      | Step::Union(_, _, a, b)
+      | Step::BoolNot(a, b) => Ports::Two([a, b]),
+      Step::Call(_, _, a, r) => Ports::Fn(a.iter().chain([r])),
       Step::Composite(port, ports) | Step::List(port, ports) => {
         Ports::Tuple([port].into_iter().chain(ports))
       }
-      Step::Ref(a, b, c) | Step::ExtFn(_, _, a, b, c) => Ports::Three([a, b, c]),
+      Step::Ref(a, b, c) | Step::BoolAnd(a, b, c) => Ports::Three([a, b, c]),
       Step::String(a, _, b) => Ports::String([a].into_iter().chain(b.iter().map(|x| &x.0))),
-      Step::InlineIvy(binds, root, _) => Ports::Ivy(binds.iter().map(|x| &x.1).chain([root])),
+      Step::InlineIvy(root, _, _, interpolations) => {
+        Ports::Ivy(interpolations.iter().map(|x| &x.1).chain([root]))
+      }
     }
   }
 }
@@ -228,6 +240,7 @@ impl Port {
 #[derive(Debug, Clone)]
 pub enum PortKind {
   Nil,
+  Bool(bool),
   N32(u32),
   F32(f32),
   F64(f64),
@@ -315,20 +328,6 @@ impl Stage {
 
   pub fn local_barrier(&mut self, local: Local, span: Span) {
     self.steps.push(Step::Invoke(span, local, Invocation::Barrier));
-  }
-
-  pub fn ext_fn(
-    &mut self,
-    span: Span,
-    ext_fn: &'static str,
-    swap: bool,
-    lhs: Port,
-    rhs: Port,
-    ty: Type,
-  ) -> Port {
-    let out = self.new_wire(span, ty);
-    self.steps.push(Step::ExtFn(ext_fn, swap, lhs, rhs, out.neg));
-    out.pos
   }
 
   pub fn ref_place(&mut self, span: Span, ty: Type, (value, space): (Port, Port)) -> Port {

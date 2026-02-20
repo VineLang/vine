@@ -16,7 +16,7 @@ use crate::{
     },
     resolutions::{FragmentId, Resolutions},
     signatures::Signatures,
-    specializations::{SpecId, Specializations},
+    specializations::{ImplTreeId, SpecId, Specializations},
   },
 };
 
@@ -36,6 +36,7 @@ pub struct Checkpoint {
   pub impls: ImplId,
   pub fragments: FragmentId,
   pub specs: SpecId,
+  pub impl_trees: ImplTreeId,
   pub files: FileId,
   pub candidate_sets: CandidateSetId,
   pub errors: usize,
@@ -59,6 +60,7 @@ impl Compiler {
       impls: self.chart.impls.next_index(),
       fragments: self.fragments.next_index(),
       specs: self.specs.specs.next_index(),
+      impl_trees: self.specs.impls.next_index(),
       files: self.files.next_index(),
       candidate_sets: self.finder_cache.candidates.sets.next_index(),
       errors: self.diags.errors.len(),
@@ -384,10 +386,12 @@ impl Annotations {
 
 impl Specializations {
   fn revert(&mut self, checkpoint: &Checkpoint) {
-    let Specializations { lookup, specs, synthetic } = self;
+    let Specializations { lookup, specs, impls, impl_lookup, synthetic } = self;
     specs.truncate(checkpoint.specs.0);
     lookup.truncate(checkpoint.fragments.0);
     lookup.values_mut().for_each(|map| map.retain(|_, s| *s < checkpoint.specs));
+    impls.truncate(checkpoint.impl_trees.0);
+    impl_lookup.retain(|_, s| *s < checkpoint.impl_trees);
     synthetic.retain(|_, s| *s < checkpoint.specs);
   }
 }
