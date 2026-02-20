@@ -173,12 +173,16 @@ impl Compiler {
     nets
   }
 
-  pub fn insert_main_net(&mut self, nets: &mut Nets, main: FragmentId) {
-    let path = &self.fragments[main].path;
-    let vir = &self.vir[main];
+  pub fn global_name(&mut self, fragment_id: FragmentId) -> String {
+    let path = &self.fragments[fragment_id].path;
+    let vir = &self.vir[fragment_id];
     let func = vir.closures[ClosureId(0)];
     let InterfaceKind::Fn { call, .. } = vir.interfaces[func].kind else { unreachable!() };
-    let global = format!("::{}:s{}", &path[1..], call.0);
+    format!("::{}:s{}", &path[1..], call.0)
+  }
+
+  pub fn insert_main_net(&mut self, nets: &mut Nets, main: FragmentId) {
+    let global = self.global_name(main);
     nets.insert("::".into(), main_net(self.debug, Tree::Global(global)));
   }
 }

@@ -17,14 +17,14 @@ pub struct Optimizer {
 }
 
 impl Optimizer {
-  pub fn optimize(&mut self, nets: &mut Nets) {
-    self._optimize(nets);
+  pub fn optimize(&mut self, nets: &mut Nets, keep: &[String]) {
+    self._optimize(nets, keep);
     pre_reduce(nets);
-    self._optimize(nets);
+    self._optimize(nets, keep);
   }
 
-  fn _optimize(&mut self, nets: &mut Nets) {
-    prune(nets);
+  fn _optimize(&mut self, nets: &mut Nets, keep: &[String]) {
+    prune(nets, keep);
     loop {
       for (_, net) in nets.iter_mut() {
         loop {
@@ -40,6 +40,6 @@ impl Optimizer {
         break;
       }
     }
-    prune(nets);
+    prune(nets, keep);
   }
 }

@@ -36,6 +36,7 @@ pub fn error[M, T; Cast[M, String]](msg: M) -> T {
     for frame in state.stack {
       state.io.print("  @ {frame}\n");
     }
+    safe erase(&state.io);
   }
   safe eraser
 }

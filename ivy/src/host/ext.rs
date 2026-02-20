@@ -235,7 +235,7 @@ impl<'ivm> Host<'ivm> {
   pub fn register_runtime_extrinsics(
     &mut self,
     extrinsics: &mut Extrinsics<'ivm>,
-    args: Vec<String>,
+    args: &'ivm [String],
   ) {
     let n32 = extrinsics.n32_ext_ty();
     let list = self.register_ext_ty::<Boxed<Vec<ExtVal<'ivm>>>>("List", extrinsics);

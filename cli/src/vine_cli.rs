@@ -24,7 +24,7 @@ use rustyline::DefaultEditor;
 use vine::{
   compiler::Compiler,
   components::loader::{FileId, Loader, RealFS},
-  structures::ast::Ident,
+  structures::{ast::Ident, resolutions::FragmentId},
   tools::{doc::document, fmt::Formatter, repl::Repl},
 };
 use vine_lsp::lsp;
@@ -185,43 +185,54 @@ pub struct VineTestCommand {
   optimizations: Optimizations,
   #[command(flatten)]
   run_args: RunArgs,
-
-  /// The test path to run. If not provided, all test paths in MAIN are printed.
-  test_path: Option<String>,
+  /// The test patterns to run. Test paths containing any of the provided
+  /// strings as substrings are run. If none are provided, all tests are run.
+  #[arg(long = "test")]
+  tests: Vec<String>,
 }
 
 impl VineTestCommand {
-  pub fn execute(self) -> Result<()> {
-    let debug = self.compile.debug;
+  pub fn execute(mut self) -> Result<()> {
+    self.compile.debug = true;
 
     let (mut nets, mut compiler) = self.compile.compile();
 
-    let Some(test_path) = self.test_path else {
-      for concrete_fn_id in compiler.chart.tests {
-        let def_id = compiler.chart.concrete_fns[concrete_fn_id].def;
-        let path = &compiler.chart.defs[def_id].path;
+    let tests = Self::matching_tests(&self.tests, &compiler);
+    eprintln!("running {} test(s)\n", tests.len());
 
-        println!("{path}");
+    let globals: Vec<_> = tests.iter().map(|(_, id)| compiler.global_name(*id)).collect();
+    self.optimizations.apply_keeping(&mut nets, &globals);
+
+    for (path, test_id) in tests {
+      compiler.insert_main_net(&mut nets, test_id);
+
+      eprint!("test {path} ...");
+      if self.run_args.run(&nets).success() {
+        eprintln!("ok");
+      } else {
+        eprintln!("FAILED");
       }
-
-      return Ok(());
-    };
-
-    let Some(test_concrete_fn_id) = compiler.chart.tests.iter().find(|concrete_fn_id| {
-      let def_id = compiler.chart.concrete_fns[**concrete_fn_id].def;
-      compiler.chart.defs[def_id].path == test_path
-    }) else {
-      eprintln!("test path {test_path:?} does not exist");
-      exit(1);
-    };
-
-    let main_fragment_id = compiler.resolutions.fns[*test_concrete_fn_id];
-    compiler.insert_main_net(&mut nets, main_fragment_id);
-
-    self.optimizations.apply(&mut nets);
-    self.run_args.check(&nets, !debug);
+    }
 
     Ok(())
+  }
+
+  fn matching_tests(tests: &[String], compiler: &Compiler) -> Vec<(String, FragmentId)> {
+    compiler
+      .chart
+      .tests
+      .iter()
+      .copied()
+      .filter_map(|test_id| {
+        let def_id = compiler.chart.concrete_fns[test_id].def;
+        let path = &compiler.chart.defs[def_id].path;
+        if tests.is_empty() || tests.iter().any(|test| path.contains(test)) {
+          Some((path.to_owned(), compiler.resolutions.fns[test_id]))
+        } else {
+          None
+        }
+      })
+      .collect()
   }
 }
 
@@ -348,7 +359,7 @@ impl VineReplCommand {
     let heap = Heap::new();
     let mut extrinsics = Extrinsics::default();
     host.register_default_extrinsics(&mut extrinsics);
-    host.register_runtime_extrinsics(&mut extrinsics, self.args);
+    host.register_runtime_extrinsics(&mut extrinsics, &self.args);
 
     let mut ivm = IVM::new(&heap, &extrinsics);
     let mut compiler = Compiler::new(!self.no_debug, build_config(self.config));

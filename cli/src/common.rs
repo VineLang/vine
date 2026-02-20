@@ -19,9 +19,15 @@ pub struct Optimizations {
 }
 
 impl Optimizations {
-  pub fn apply(self, nets: &mut Nets) {
+  pub fn apply(&self, nets: &mut Nets) {
     if !self.no_opt {
-      Optimizer::default().optimize(nets)
+      Optimizer::default().optimize(nets, &[])
+    }
+  }
+
+  pub fn apply_keeping(&self, nets: &mut Nets, keep: &[String]) {
+    if !self.no_opt {
+      Optimizer::default().optimize(nets, keep)
     }
   }
 }
@@ -42,11 +48,11 @@ pub struct RunArgs {
 }
 
 impl RunArgs {
-  pub fn check(self, nets: &Nets, debug_hint: bool) {
+  pub fn check(&self, nets: &Nets, debug_hint: bool) {
     self.run(nets).check(debug_hint);
   }
 
-  pub fn run(self, nets: &Nets) -> RunResult {
+  pub fn run(&self, nets: &Nets) -> RunResult {
     let mut host = &mut Host::default();
     let heap = match self.heap {
       Some(size) => Heap::with_size(size).expect("heap allocation failed"),
@@ -55,8 +61,8 @@ impl RunArgs {
     let mut extrinsics = Extrinsics::default();
 
     host.register_default_extrinsics(&mut extrinsics);
-    host.register_runtime_extrinsics(&mut extrinsics, self.argv);
-    host.insert_nets(&nets);
+    host.register_runtime_extrinsics(&mut extrinsics, &self.argv);
+    host.insert_nets(nets);
 
     let main = host.get("::").expect("missing main");
     let mut ivm = IVM::new(&heap, &extrinsics);
@@ -120,9 +126,13 @@ impl RunResult {
       eprintln!("{}", stats);
     }
 
-    if self.no_io || self.vicious || !self.flags.success() {
+    if !self.success() {
       exit(1);
     }
+  }
+
+  pub fn success(&self) -> bool {
+    !self.no_io && !self.vicious && self.flags.success()
   }
 }
 
