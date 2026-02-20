@@ -1,6 +1,7 @@
 use std::{
   collections::{BTreeMap, HashMap},
   env::current_dir,
+  fs,
   path::{Path, PathBuf},
   time::Instant,
 };
@@ -46,6 +47,13 @@ impl Backend {
         if let Some(name) = RealFS::detect_name(&path) {
           loader.load_mod(name, path);
         }
+      }
+    }
+
+    for id in lsp.file_paths.keys_from(self.checkpoint.files) {
+      let path = &mut lsp.file_paths[id];
+      if let Ok(path_) = fs::canonicalize(&path) {
+        *path = path_;
       }
     }
 
@@ -412,7 +420,7 @@ impl LanguageServer for Backend {
 #[tokio::main]
 pub async fn lsp(
   mut compiler: Compiler,
-  file_paths: IdxVec<FileId, PathBuf>,
+  mut file_paths: IdxVec<FileId, PathBuf>,
   entrypoints: Vec<String>,
 ) {
   let stdin = tokio::io::stdin();
@@ -420,6 +428,12 @@ pub async fn lsp(
 
   _ = compiler.check(());
   let checkpoint = compiler.checkpoint();
+
+  for path in file_paths.values_mut() {
+    if let Ok(path_) = fs::canonicalize(&path) {
+      *path = path_;
+    }
+  }
 
   let (service, socket) = LspService::new(|client| Backend {
     client,
