@@ -146,7 +146,6 @@ pub enum Step {
   Enum(EnumId, VariantId, Port, Port),
   Union(UnionId, VariantId, Port, Port),
   Ref(Port, Port, Port),
-  ExtFn(&'static str, bool, Port, Port, Port),
   List(Port, Vec<Port>),
   String(Port, String, Vec<(Port, String)>),
   InlineIvy(Vec<(String, Port)>, Port, Net),

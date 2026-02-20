@@ -10,6 +10,7 @@ unicode-id-start = "1.4.0"
 ivm = { path = "../ivm" }
 ivy = { path = "../ivy" }
 vine-util = { path = "../util" }
+hedera = { version = "0.1.0", path = "../hedera" }
 
 [lints.clippy]
 absolute_paths = "warn"

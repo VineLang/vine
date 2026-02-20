@@ -1,3 +1,4 @@
+use hedera::net::Wire;
 use ivy::ast::Tree;
 use vine_util::{nat::Nat, parser::Parse};
 
@@ -120,7 +121,7 @@ impl Distiller<'_> {
 }
 
 impl Emitter<'_> {
-  pub(crate) fn emit_nat(&mut self, n: &Nat) -> Tree {
+  pub(crate) fn emit_nat(&mut self, n: &Nat) -> Wire {
     self.build_list(&n.0, |_, &n| Tree::N32(n))
   }
 }

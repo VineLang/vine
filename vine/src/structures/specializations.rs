@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 
+use hedera::name::{Name, NameId};
 use vine_util::{idx::IdxVec, new_idx};
 
 use crate::{
@@ -15,9 +16,13 @@ use crate::{
 
 #[derive(Debug, Default)]
 pub struct Specializations {
-  pub lookup: IdxVec<FragmentId, HashMap<Vec<ImplTree>, SpecId>>,
+  pub impls: IdxVec<ImplTreeId, ImplTree>,
+  pub impl_lookup: HashMap<ImplTreeKind, ImplTreeId>,
+
+  pub lookup: IdxVec<FragmentId, HashMap<Vec<ImplTreeId>, SpecId>>,
   pub specs: IdxVec<SpecId, Option<Spec>>,
-  pub synthetic: HashMap<(SyntheticItem, Vec<ImplTree>), SpecId>,
+
+  pub synthetic: HashMap<(SyntheticItem, Vec<ImplTreeId>), SpecId>,
 }
 
 impl Specializations {
@@ -29,9 +34,7 @@ impl Specializations {
 new_idx!(pub SpecId);
 #[derive(Debug)]
 pub struct Spec {
-  pub path: String,
-  pub index: usize,
-  pub singular: bool,
+  pub name: Name,
   pub rels: SpecRels,
   pub kind: SpecKind,
 }
@@ -48,13 +51,21 @@ pub struct SpecRels {
   pub consts: IdxVec<ConstRelId, Result<SpecId, ErrorGuaranteed>>,
 }
 
+new_idx!(pub ImplTreeId);
+
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub enum ImplTree {
+pub struct ImplTree {
+  pub name: NameId,
+  pub kind: ImplTreeKind,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub enum ImplTreeKind {
   Error(ErrorGuaranteed),
-  Def(ImplId, Vec<ImplTree>),
-  Fn(FnId, Vec<ImplTree>, usize),
-  Closure(FragmentId, Vec<ImplTree>, ClosureId, usize),
-  ForkClosure(FragmentId, Vec<ImplTree>, ClosureId),
-  DropClosure(FragmentId, Vec<ImplTree>, ClosureId),
+  Def(ImplId, Vec<ImplTreeId>),
+  Fn(FnId, Vec<ImplTreeId>, usize),
+  Closure(FragmentId, Vec<ImplTreeId>, ClosureId, usize),
+  ForkClosure(FragmentId, Vec<ImplTreeId>, ClosureId),
+  DropClosure(FragmentId, Vec<ImplTreeId>, ClosureId),
   Synthetic(SyntheticImpl),
 }

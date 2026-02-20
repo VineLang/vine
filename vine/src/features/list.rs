@@ -1,4 +1,4 @@
-use ivy::ast::Tree;
+use hedera::net::{FlatNode, Wire};
 use vine_util::parser::Parse;
 
 use crate::{
@@ -67,26 +67,26 @@ impl Emitter<'_> {
   pub(crate) fn emit_list(&mut self, port: &Port, list: &[Port]) {
     let port = self.emit_port(port);
     let list = self.build_list(list, Self::emit_port);
-    self.pairs.push((port, list))
+    self.net.link(port, list);
   }
 
   pub(crate) fn build_list<T>(
     &mut self,
-    iter: impl IntoIterator<Item = T, IntoIter: DoubleEndedIterator>,
-    f: fn(&mut Self, T) -> Tree,
-  ) -> Tree {
-    let mut len = 0;
-    let end = self.new_wire();
-    let buf = Tree::n_ary(
-      "tup",
-      iter
-        .into_iter()
-        .map(|t| {
-          len += 1;
-          f(self, t)
-        })
-        .chain([end.0]),
-    );
-    Tree::n_ary("tup", [Tree::N32(len), buf, end.1])
+    iter: impl IntoIterator<Item = T>,
+    f: fn(&mut Self, T) -> Wire,
+  ) -> Wire {
+    let mut len = 0u32;
+    let buf = self.net.wire();
+    let mut cur = buf;
+    for item in iter {
+      len += 1;
+      let item = f(self, item);
+      let next = self.net.wire();
+      self.net.push(FlatNode(self.guide.tuple, [cur, item, next]));
+      cur = next;
+    }
+    let end = cur;
+    let len = self.net.insert(self.guide.n32.with_data(len), []);
+    self.net.insert(self.guide.tuple, [len, buf, end])
   }
 }

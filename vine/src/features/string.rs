@@ -1,4 +1,4 @@
-use ivy::ast::Tree;
+use hedera::net::FlatNode;
 
 use vine_util::{
   lexer::{Lex, LexerState},
@@ -265,43 +265,43 @@ impl Distiller<'_> {
 
 impl Emitter<'_> {
   pub(crate) fn emit_string(&mut self, port: &Port, init: &str, rest: &Vec<(Port, String)>) {
-    let const_len = init.chars().count() + rest.iter().map(|x| x.1.chars().count()).sum::<usize>();
-    let len = self.new_wire();
-    let start = self.new_wire();
-    let end = self.new_wire();
+    let [len, buf] = self.net.wires();
     let port = self.emit_port(port);
-    self.pairs.push((
-      port,
-      Tree::n_ary(
-        "tup",
-        [
-          len.0,
-          Tree::n_ary("tup", init.chars().map(|c| Tree::N32(c as u32)).chain([start.0])),
-          end.0,
-        ],
-      ),
-    ));
-    let mut cur_len = Tree::N32(const_len as u32);
-    let mut cur_buf = start.1;
-    for (port, seg) in rest {
-      let next_len = self.new_wire();
-      let next_buf = self.new_wire();
-      let port = self.emit_port(port);
-      self.pairs.push((
-        port,
-        Tree::n_ary(
-          "tup",
-          [
-            Tree::ExtFn("n32_add".into(), false, Box::new(cur_len), Box::new(next_len.0)),
-            cur_buf,
-            Tree::n_ary("tup", seg.chars().map(|c| Tree::N32(c as u32)).chain([next_buf.0])),
-          ],
-        ),
-      ));
-      cur_len = next_len.1;
-      cur_buf = next_buf.1;
+
+    let mut static_len = 0u32;
+    let mut dyn_len = Vec::new();
+
+    let mut cur = buf;
+
+    for char in init.chars() {
+      static_len += 1;
+      let next = self.net.wire();
+      let char = self.net.insert(self.guide.n32.with_data(char as u32), []);
+      self.net.push(FlatNode(self.guide.tuple, [cur, char, next]));
+      cur = next;
     }
-    self.pairs.push((cur_len, len.1));
-    self.pairs.push((cur_buf, end.1));
+
+    for (port, seg) in rest {
+      let port = self.emit_port(port);
+      let [port_len, next] = self.net.wires();
+      self.net.push(FlatNode(self.guide.tuple, [port, port_len, cur, next]));
+      cur = next;
+      dyn_len.push(port_len);
+
+      for char in seg.chars() {
+        static_len += 1;
+        let next = self.net.wire();
+        let char = self.net.insert(self.guide.n32.with_data(char as u32), []);
+        self.net.push(FlatNode(self.guide.tuple, [cur, char, next]));
+        cur = next;
+      }
+    }
+
+    let end = cur;
+
+    dyn_len.push(len);
+    self.net.push(FlatNode(self.guide.n32_add.with_data(static_len), dyn_len));
+
+    self.net.push(FlatNode(self.guide.tuple, [port, len, buf, end]));
   }
 }

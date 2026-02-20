@@ -272,6 +272,7 @@ new_idx!(pub TraitConstId);
 #[derive(Debug, Clone)]
 pub struct TraitConst {
   pub span: Span,
+  pub def: DefId,
   pub name: Ident,
   pub generics: GenericsId,
   pub ty: Ty,
@@ -282,6 +283,7 @@ new_idx!(pub TraitFnId);
 #[derive(Debug, Clone)]
 pub struct TraitFn {
   pub span: Span,
+  pub def: DefId,
   pub method: bool,
   pub name: Ident,
   pub generics: GenericsId,
@@ -374,6 +376,13 @@ impl Chart {
     match fn_id {
       FnId::Concrete(fn_id) => self.concrete_fns[fn_id].span,
       FnId::Abstract(trait_id, fn_id) => self.traits[trait_id].fns[fn_id].span,
+    }
+  }
+
+  pub fn fn_def(&self, fn_id: FnId) -> DefId {
+    match fn_id {
+      FnId::Concrete(fn_id) => self.concrete_fns[fn_id].def,
+      FnId::Abstract(trait_id, fn_id) => self.traits[trait_id].fns[fn_id].def,
     }
   }
 }

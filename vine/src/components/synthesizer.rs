@@ -35,7 +35,6 @@ pub enum SyntheticImpl {
 pub enum SyntheticItem {
   CompositeDeconstruct(usize),
   CompositeReconstruct(usize),
-  Ident(Ident),
   Identity,
   EnumVariantNames(EnumId),
   EnumMatch(EnumId),
@@ -120,7 +119,6 @@ impl Synthesizer<'_> {
     let net = match item.clone() {
       SyntheticItem::CompositeDeconstruct(len) => self.synthesize_composite_deconstruct(len),
       SyntheticItem::CompositeReconstruct(len) => self.synthesize_composite_reconstruct(len),
-      SyntheticItem::Ident(ident) => self.synthesize_ident(ident),
       SyntheticItem::Identity => self.synthesize_identity(),
       SyntheticItem::EnumVariantNames(enum_id) => self.synthesize_enum_variant_names(enum_id),
       SyntheticItem::EnumMatch(enum_id) => self.synthesize_enum_match(enum_id),
@@ -153,11 +151,6 @@ impl Synthesizer<'_> {
     } else {
       Tree::n_ary("fn", [self.fn_receiver(), x.0, y.0, Tree::n_ary("tup", [x.1, y.1])])
     })
-  }
-
-  fn synthesize_ident(&mut self, ident: Ident) -> Net {
-    let str = self.string(&ident.0);
-    self.const_(str)
   }
 
   fn synthesize_identity(&mut self) -> Net {
@@ -420,11 +413,11 @@ impl Synthesizer<'_> {
 }
 
 impl SyntheticImpl {
-  pub fn fn_(self, _: &Chart, fn_id: TraitFnId) -> SyntheticItem {
+  pub fn fn_(&self, _: &Chart, fn_id: TraitFnId) -> SyntheticItem {
     match self {
       SyntheticImpl::Tuple(len) | SyntheticImpl::Object(_, len) => match fn_id {
-        TraitFnId(0) => SyntheticItem::CompositeDeconstruct(len),
-        TraitFnId(1) => SyntheticItem::CompositeReconstruct(len),
+        TraitFnId(0) => SyntheticItem::CompositeDeconstruct(*len),
+        TraitFnId(1) => SyntheticItem::CompositeReconstruct(*len),
         _ => unreachable!(),
       },
       SyntheticImpl::Struct(_) => match fn_id {
@@ -432,36 +425,36 @@ impl SyntheticImpl {
         _ => unreachable!(),
       },
       SyntheticImpl::Enum(enum_id) => match fn_id {
-        TraitFnId(0) => SyntheticItem::EnumMatch(enum_id),
-        TraitFnId(1) => SyntheticItem::EnumReconstruct(enum_id),
+        TraitFnId(0) => SyntheticItem::EnumMatch(*enum_id),
+        TraitFnId(1) => SyntheticItem::EnumReconstruct(*enum_id),
         _ => unreachable!(),
       },
       SyntheticImpl::Opaque(_) | SyntheticImpl::IfConst(_) => unreachable!(),
     }
   }
 
-  pub fn const_(self, chart: &Chart, const_id: TraitConstId) -> SyntheticItem {
+  pub fn const_(&self, chart: &Chart, const_id: TraitConstId) -> SyntheticItem {
     match self {
       SyntheticImpl::Opaque(opaque_ty_id) => match const_id {
-        TraitConstId(0) => SyntheticItem::Ident(chart.opaque_types[opaque_ty_id].name.clone()),
+        TraitConstId(0) => SyntheticItem::String(chart.opaque_types[*opaque_ty_id].name.0.clone()),
         _ => unreachable!(),
       },
       SyntheticImpl::Tuple(_) => unreachable!(),
       SyntheticImpl::Object(key, _) => match const_id {
-        TraitConstId(0) => SyntheticItem::Ident(key),
+        TraitConstId(0) => SyntheticItem::String(key.0.clone()),
         _ => unreachable!(),
       },
       SyntheticImpl::Struct(struct_id) => match const_id {
-        TraitConstId(0) => SyntheticItem::Ident(chart.structs[struct_id].name.clone()),
+        TraitConstId(0) => SyntheticItem::String(chart.structs[*struct_id].name.0.clone()),
         _ => unreachable!(),
       },
       SyntheticImpl::Enum(enum_id) => match const_id {
-        TraitConstId(0) => SyntheticItem::Ident(chart.enums[enum_id].name.clone()),
-        TraitConstId(1) => SyntheticItem::EnumVariantNames(enum_id),
+        TraitConstId(0) => SyntheticItem::String(chart.enums[*enum_id].name.0.clone()),
+        TraitConstId(1) => SyntheticItem::EnumVariantNames(*enum_id),
         _ => unreachable!(),
       },
       SyntheticImpl::IfConst(id) => match const_id {
-        TraitConstId(0) => SyntheticItem::ConstAlias(id),
+        TraitConstId(0) => SyntheticItem::ConstAlias(*id),
         _ => unreachable!(),
       },
     }
@@ -473,7 +466,6 @@ impl SyntheticItem {
     match self {
       SyntheticItem::CompositeDeconstruct(_)
       | SyntheticItem::CompositeReconstruct(_)
-      | SyntheticItem::Ident(_)
       | SyntheticItem::Identity
       | SyntheticItem::EnumVariantNames(_)
       | SyntheticItem::EnumReconstruct(_)

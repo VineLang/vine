@@ -1,16 +1,20 @@
 use std::{collections::BTreeMap, mem::take};
 
-use ivy::ast::{Net, Tree};
+use hedera::{
+  guide,
+  net::{FlatNet, FlatNode, Wire},
+};
 use vine_util::idx::{Counter, IdxVec};
 
 use crate::{
+  compiler::Guide,
   features::{debug::main_net_debug, local::LocalEmissionState},
   structures::{
     chart::Chart,
     resolutions::{ConstRelId, FnRelId, Fragment},
     signatures::Signatures,
     specializations::Specializations,
-    template::{Template, TemplateStage, TemplateStageRels},
+    template::{Template, TemplateNode},
     tir::Local,
     vir::{Header, Interface, InterfaceKind, Port, PortKind, Stage, StageId, Step, Transfer, Vir},
   },
@@ -31,10 +35,9 @@ pub fn emit(
     vir,
     specs,
     locals: BTreeMap::new(),
-    pairs: Vec::new(),
+    net: FlatNet::default(),
     wire_offset: 0,
     wires: Counter::default(),
-    rels: TemplateStageRels::default(),
     debug_state: None,
     debug,
   };
@@ -49,16 +52,16 @@ pub(crate) struct Emitter<'a> {
   pub(crate) vir: &'a Vir,
   pub(crate) specs: &'a mut Specializations,
   pub(crate) locals: BTreeMap<Local, LocalEmissionState>,
-  pub(crate) pairs: Vec<(Tree, Tree)>,
+  pub(crate) net: FlatNet<TemplateNode>,
   pub(crate) wire_offset: usize,
   pub(crate) wires: Counter<usize>,
-  pub(crate) rels: TemplateStageRels,
   pub(crate) debug: bool,
-  pub(crate) debug_state: Option<(Tree, Tree)>,
+  pub(crate) debug_state: Option<(Wire, Wire)>,
+  pub(crate) guide: Guide,
 }
 
 impl<'a> Emitter<'a> {
-  pub fn emit_stage(&mut self, stage: &Stage) -> Option<TemplateStage> {
+  pub fn emit_stage(&mut self, stage: &Stage) -> Option<FlatNet<TemplateNode>> {
     let interface = &self.vir.interfaces[stage.interface];
     (interface.incoming != 0 && !interface.inline()).then(|| {
       self.wire_offset = 0;
@@ -70,10 +73,10 @@ impl<'a> Emitter<'a> {
         self.finish_local(&self.vir.locals[local], state);
       }
       if self.debug {
-        self.pairs.push(self.debug_state.take().unwrap());
+        let (a, b) = self.debug_state.take().unwrap();
+        self.net.link(a, b);
       }
-      let net = Net { root, pairs: take(&mut self.pairs) };
-      TemplateStage { net, rels: take(&mut self.rels) }
+      take(&mut self.net)
     })
   }
 
@@ -132,7 +135,7 @@ impl<'a> Emitter<'a> {
     }
   }
 
-  fn emit_interface(&mut self, interface: &Interface, interior: bool) -> Tree {
+  fn emit_interface(&mut self, interface: &Interface, interior: bool) -> Wire {
     if let InterfaceKind::Inspect(locals) = &interface.kind {
       assert!(interior);
       Tree::n_ary(
@@ -175,7 +178,7 @@ impl<'a> Emitter<'a> {
       Step::Rewrap(a, b) => {
         let a = self.emit_port(a);
         let b = self.emit_port(b);
-        self.pairs.push((a, b))
+        self.net.link(a, b);
       }
       Step::Call(span, rel, recv, args, ret) => self.emit_call(*span, *rel, recv, args, ret),
       Step::Const(span, rel, out) => {
@@ -189,9 +192,6 @@ impl<'a> Emitter<'a> {
       Step::Union(union_id, variant_id, port, fields) => {
         self.emit_union(*union_id, *variant_id, port, fields)
       }
-      Step::ExtFn(ext_fn, swap, lhs, rhs, out) => {
-        self.emit_ext_fn(ext_fn, swap, lhs, rhs, out);
-      }
       Step::List(port, list) => self.emit_list(port, list),
       Step::String(port, init, rest) => self.emit_string(port, init, rest),
       Step::InlineIvy(binds, out, net) => {
@@ -203,60 +203,40 @@ impl<'a> Emitter<'a> {
   fn emit_link(&mut self, a: &Port, b: &Port) {
     let a = self.emit_port(a);
     let b = self.emit_port(b);
-    self.pairs.push((a, b))
+    self.net.link(a, b);
   }
 
-  fn emit_ext_fn(
-    &mut self,
-    ext_fn: &&'static str,
-    swap: &bool,
-    lhs: &Port,
-    rhs: &Port,
-    out: &Port,
-  ) {
-    let pair = (
-      self.emit_port(lhs),
-      Tree::ExtFn(
-        ext_fn.to_string(),
-        *swap,
-        Box::new(self.emit_port(rhs)),
-        Box::new(self.emit_port(out)),
-      ),
-    );
-    self.pairs.push(pair)
+  pub(crate) fn emit_fn_rel(&mut self, rel: FnRelId) -> Wire {
+    let wire = self.net.wire();
+    self.net.push(TemplateNode::Fn(rel, wire));
+    wire
   }
 
-  pub(crate) fn emit_fn_rel(&mut self, rel: FnRelId) -> Tree {
-    let wire = self.new_wire();
-    self.rels.fns.push((rel, wire.0));
-    wire.1
+  pub(crate) fn emit_const_rel(&mut self, rel: ConstRelId) -> Wire {
+    let wire = self.net.wire();
+    self.net.push(TemplateNode::Const(rel, wire));
+    wire
   }
 
-  pub(crate) fn emit_const_rel(&mut self, rel: ConstRelId) -> Tree {
-    let wire = self.new_wire();
-    self.rels.consts.push((rel, wire.0));
-    wire.1
+  pub(crate) fn emit_stage_rel(&mut self, stage: StageId) -> Wire {
+    let wire = self.net.wire();
+    self.net.push(TemplateNode::Stage(stage, wire));
+    wire
   }
 
-  pub(crate) fn emit_stage_rel(&mut self, stage: StageId) -> Tree {
-    let wire = self.new_wire();
-    self.rels.stages.push((stage, wire.0));
-    wire.1
-  }
-
-  pub(crate) fn emit_port(&mut self, port: &Port) -> Tree {
+  pub(crate) fn emit_port(&mut self, port: &Port) -> Wire {
     match port.kind {
-      PortKind::Error(_) => Tree::Erase,
-      PortKind::Nil => Tree::Erase,
-      PortKind::N32(n) => Tree::N32(n),
-      PortKind::F32(f) => Tree::F32(f),
-      PortKind::F64(f) => Tree::F64(f),
+      PortKind::Error(_) => self.net.insert(self.guide.eraser, []),
+      PortKind::Nil => self.net.insert(self.guide.tuple, []),
+      PortKind::N32(n) => self.net.insert(self.guide.n32.with_data(n), []),
+      PortKind::F32(n) => self.net.insert(self.guide.f32.with_data(n), []),
+      PortKind::F64(n) => self.net.insert(self.guide.f64.with_data(n), []),
       PortKind::Nat(ref n) => self.emit_nat(n),
-      PortKind::Wire(_, w) => Tree::Var(format!("w{}", self.wire_offset + w.0)),
+      PortKind::Wire(_, w) => Wire(self.wire_offset + w.0),
     }
   }
 
-  fn emit_header(&mut self, header: &Header, root: Tree) -> Tree {
+  fn emit_header(&mut self, header: &Header, root: Wire) -> Wire {
     match header {
       Header::None => self.with_debug(root),
       Header::Match(enum_id, variant_id, data) => {
@@ -291,14 +271,9 @@ impl<'a> Emitter<'a> {
       }
     }
   }
-
-  pub(crate) fn new_wire(&mut self) -> (Tree, Tree) {
-    let label = format!("w{}", self.wires.next());
-    (Tree::Var(label.clone()), Tree::Var(label))
-  }
 }
 
-pub(crate) fn main_net(debug: bool, main: Tree) -> Net {
+pub(crate) fn main_net(debug: bool, main: Wire) -> Net {
   if debug {
     main_net_debug(main)
   } else {

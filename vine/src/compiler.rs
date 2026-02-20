@@ -1,6 +1,11 @@
-use std::{collections::HashMap, mem::take};
+use std::{collections::HashMap, fmt, mem::take};
 
-use ivy::ast::{Nets, Tree};
+use hedera::{
+  guide,
+  name::{FromTable, Name, NameId, Table},
+  net::FlatNet,
+};
+use ivy::ast::Tree;
 use vine_util::idx::IdxVec;
 
 use crate::{
@@ -59,18 +64,26 @@ impl Compiler {
     self._check(hooks, &checkpoint)
   }
 
-  pub fn compile(&mut self, hooks: impl Hooks) -> Result<Nets, ErrorGuaranteed> {
+  pub fn compile(
+    &mut self,
+    hooks: impl Hooks,
+    table: &mut Table,
+    nets: &mut HashMap<NameId, FlatNet>,
+  ) -> Result<(), ErrorGuaranteed> {
     let checkpoint = self.checkpoint();
-    self._compile(hooks, &checkpoint)
+    self._compile(hooks, &checkpoint, table, nets)
   }
 
   fn _compile(
     &mut self,
     hooks: impl Hooks,
     checkpoint: &Checkpoint,
-  ) -> Result<Nets, ErrorGuaranteed> {
+    table: &mut Table,
+    nets: &mut HashMap<NameId, FlatNet>,
+  ) -> Result<(), ErrorGuaranteed> {
     self._check(hooks, checkpoint)?;
-    Ok(self.nets_from(checkpoint))
+    self.nets_from(checkpoint, table, nets);
+    Ok(())
   }
 
   fn _check(
@@ -129,8 +142,13 @@ impl Compiler {
     Ok(())
   }
 
-  pub fn nets_from(&mut self, checkpoint: &Checkpoint) -> Nets {
-    let mut nets = Nets::default();
+  pub fn nets_from(
+    &mut self,
+    checkpoint: &Checkpoint,
+    table: &mut Table,
+    nets: &mut HashMap<NameId, FlatNet>,
+  ) {
+    let guide = &Guide::build(table);
 
     for fragment_id in self.fragments.keys_from(checkpoint.fragments) {
       let fragment = &self.fragments[fragment_id];
@@ -151,7 +169,7 @@ impl Compiler {
     if let Some(main) = self.resolutions.main
       && main >= checkpoint.fragments
     {
-      self.insert_main_net(&mut nets, main);
+      self.insert_main_net(table, nets, main);
     }
 
     for spec_id in self.specs.specs.keys_from(checkpoint.specs) {
@@ -174,20 +192,26 @@ impl Compiler {
         }
       }
     }
-    nets
   }
 
-  pub fn entrypoint_name(&mut self, fragment_id: FragmentId) -> String {
-    let path = &self.fragments[fragment_id].path;
-    let vir = &self.vir[fragment_id];
+  pub fn entrypoint_name(&mut self, entrypoint: FragmentId, table: &mut Table) -> NameId {
+    let path = &self.fragments[entrypoint].path;
+    let vir = &self.vir[entrypoint];
     let func = vir.closures[ClosureId(0)];
     let InterfaceKind::Fn { call, .. } = vir.interfaces[func].kind else { unreachable!() };
     format!("::{}:s{}", &path[1..], call.0)
   }
 
-  pub fn insert_main_net(&mut self, nets: &mut Nets, main: FragmentId) {
-    let global = self.entrypoint_name(main);
-    nets.insert("::".into(), main_net(self.debug, Tree::Global(global)));
+  pub fn insert_main_net(
+    &mut self,
+    entrypoint: FragmentId,
+    table: &mut Table,
+    nets: &mut HashMap<NameId, FlatNet>,
+  ) {
+    let global = self.entrypoint_name(entrypoint, table);
+    let main = table.add_path("::");
+    let main = table.add_name(main.to_name());
+    nets.insert(main, main_net(self.debug, Tree::Global(global)));
   }
 }
 
@@ -199,3 +223,48 @@ pub trait Hooks {
 }
 
 impl Hooks for () {}
+
+guide!(pub(crate) Guide {
+  ref_: "vi:ref",
+  tuple: "vi:tuple",
+  eraser: "vi:eraser",
+  dup: "vi:dup",
+  enum_: "vi:enum",
+  n32: "vi:n32",
+  n32_add: "vi:n32:add",
+  f32: "vi:f32",
+  f64: "vi:f64",
+
+  fn_: "vi:fn",
+  fn_fork: "vi:fn:fork",
+  fn_drop: "vi:fn:drop",
+
+  error: "vi:error",
+
+  synthetic_tuple: "vi:synthetic:Tuple",
+  synthetic_object: "vi:synthetic:Object",
+  synthetic_struct: "vi:synthetic:Struct",
+  synthetic_enum: "vi:synthetic:Enum",
+  synthetic_if_const: "vi:synthetic:IfConst",
+  synthetic_opaque : "vi:synthetic:Opaque",
+
+  synthetic_composite_deconstruct: "vi:synthetic:composite_deconstruct",
+  synthetic_composite_reconstruct: "vi:synthetic:composite_reconstruct",
+  synthetic_identity: "vi:synthetic:identity",
+  synthetic_enum_variant_names: "vi:synthetic:enum_variant_names",
+  synthetic_enum_match: "vi:synthetic:enum_match",
+  synthetic_enum_reconstruct: "vi:synthetic:enum_reconstruct",
+  synthetic_const_alias: "vi:synthetic:const_alias",
+  synthetic_fn_from_call: "vi:synthetic:fn_from_call",
+  synthetic_call_from_fn: "vi:synthetic:call_from_fn",
+  synthetic_frame: "vi:synthetic:frame",
+  synthetic_debug_state: "vi:synthetic:debug_state",
+  synthetic_n32: "vi:synthetic:n32",
+  synthetic_string: "vi:synthetic:string",
+});
+
+impl fmt::Debug for Guide {
+  fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    f.debug_struct("Guide").finish_non_exhaustive()
+  }
+}
