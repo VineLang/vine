@@ -159,7 +159,7 @@ error: cannot drop `IO`
  6 | pub fn main[T, U](io: IO) {
 
 error: variable of type `N32` read whilst uninitialized
-    @ atypical.vi:11:7
+    @ atypical.vi:11:10
  11 |   let x; x + 1;
 
 error: cannot drop `U`
@@ -169,6 +169,10 @@ error: cannot drop `U`
 error: variable of type `N32` read whilst uninitialized
     @ atypical.vi:15:3
  15 |   if 0.0 { 0 } else { "" };
+
+error: variable of type `String` read whilst uninitialized
+    @ atypical.vi:23:4
+ 23 |   (loop { break "x" } + 1);
 
 error: variable of type `N32` read whilst uninitialized
     @ atypical.vi:24:17
