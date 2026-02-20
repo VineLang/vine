@@ -172,7 +172,7 @@ impl VineRunCommand {
     let debug = self.compile.debug;
     let (mut nets, _) = self.compile.compile();
     self.optimizations.apply(&mut nets);
-    self.run_args.run(nets, !debug);
+    self.run_args.check(&nets, !debug);
     Ok(())
   }
 }
@@ -219,7 +219,7 @@ impl VineTestCommand {
     compiler.insert_main_net(&mut nets, main_fragment_id);
 
     self.optimizations.apply(&mut nets);
-    self.run_args.run(nets, !debug);
+    self.run_args.check(&nets, !debug);
 
     Ok(())
   }

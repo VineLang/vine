@@ -5,8 +5,10 @@ use clap::Args;
 use ivm::{
   IVM,
   ext::Extrinsics,
+  flags::Flags,
   heap::Heap,
   port::{Port, Tag},
+  stats::Stats,
 };
 use ivy::{ast::Nets, host::Host, optimize::Optimizer};
 
@@ -40,7 +42,11 @@ pub struct RunArgs {
 }
 
 impl RunArgs {
-  pub fn run(self, nets: Nets, debug_hint: bool) {
+  pub fn check(self, nets: &Nets, debug_hint: bool) {
+    self.run(nets).check(debug_hint);
+  }
+
+  pub fn run(self, nets: &Nets) -> RunResult {
     let mut host = &mut Host::default();
     let heap = match self.heap {
       Some(size) => Heap::with_size(size).expect("heap allocation failed"),
@@ -67,38 +73,54 @@ impl RunArgs {
     }
 
     let out = ivm.follow(Port::new_wire(node.2));
-    let no_io =
-      out.tag() != Tag::ExtVal || unsafe { out.as_ext_val() }.bits() != host.new_io().bits();
-    let vicious = ivm.stats.mem_free < ivm.stats.mem_alloc;
-    if no_io {
+    if self.no_perf {
+      ivm.stats.clear_perf();
+    }
+
+    RunResult {
+      stats: (!self.no_stats).then_some(ivm.stats),
+      flags: ivm.flags,
+      no_io: out.tag() != Tag::ExtVal || unsafe { out.as_ext_val() }.bits() != host.new_io().bits(),
+      vicious: ivm.stats.mem_free < ivm.stats.mem_alloc,
+      output: None,
+    }
+  }
+}
+
+pub struct RunResult {
+  pub stats: Option<Stats>,
+  pub flags: Flags,
+  pub no_io: bool,
+  pub vicious: bool,
+  pub output: Option<Vec<u8>>,
+}
+
+impl RunResult {
+  pub fn check(&self, debug_hint: bool) {
+    if self.no_io {
       eprintln!("\nError: the net did not return its `IO` handle");
       if debug_hint {
         eprintln!("  hint: try running the program in `--debug` mode to see error messages");
       }
     }
-    if vicious {
+    if self.vicious {
       eprintln!("\nError: the net created a vicious circle");
     }
-
-    if ivm.flags.ext_copy {
+    if self.flags.ext_copy {
       eprintln!("\nError: a linear extrinsic was copied");
     }
-    if ivm.flags.ext_erase {
+    if self.flags.ext_erase {
       eprintln!("\nError: a linear extrinsic was erased");
     }
-    if ivm.flags.ext_generic {
+    if self.flags.ext_generic {
       eprintln!("\nError: an extrinsic function encountered an unspecified error");
     }
 
-    if self.no_perf {
-      ivm.stats.clear_perf();
+    if let Some(stats) = &self.stats {
+      eprintln!("{}", stats);
     }
 
-    if !self.no_stats {
-      eprintln!("{}", ivm.stats);
-    }
-
-    if no_io || vicious || !ivm.flags.success() {
+    if self.no_io || self.vicious || !self.flags.success() {
       exit(1);
     }
   }
