@@ -267,12 +267,14 @@ let
       let
         vi = just ./misc/basic_test.vi;
         result = pkgs.runCommand "misc-basic_test" { } ''
-          ${vine} test --no-stats ${vi} "#basic_test::test" >$out
+          ! ${vine} test --no-stats ${vi} "#basic_test::test" 2>>$out
+          echo 'setting --no-capture' >>$out
+          ! ${vine} test --no-capture --no-stats ${vi} "#basic_test::test" 2>>$out
         '';
       in
       {
         checks.tests-misc-basic_test = result;
-        snaps."misc/basic_test/output.txt" = result;
+        snaps."misc/basic_test/stderr.txt" = result;
       };
 
     missing_no =
