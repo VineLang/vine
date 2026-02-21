@@ -3,9 +3,9 @@ use ops::{Cast, comparison::Ord};
 use derive::Tuple;
 use util::transmute;
 
-pub trait Iterator[Self, Item] {
+pub trait[I] Iterator[T] {
   #[builtin = "advance"]
-  fn .advance(self: Self) -> Option[(Item, Self)];
+  fn .advance(iter: I) -> Option[(T, I)];
 }
 
 pub mod Iterator[I, T; Iterator[I, T]] {
@@ -366,7 +366,7 @@ pub mod Iterator[I, T; Iterator[I, T]] {
     }
   }
 
-  pub trait Window[W, T] {
+  pub trait[] Window[W, T] {
     fn start[I; Iterator[I, T]](iter: I) -> Option[(W, I)];
     fn .shift(window: &W, value: T) -> T;
   }
@@ -566,7 +566,7 @@ pub mod Iterator[I, T; Iterator[I, T]] {
   pub use Collect::collect as _;
 }
 
-pub trait Collect[C, T] {
+pub trait[C] Collect[T] {
   fn .collect[I; Iterator[I, T]](iter: I) -> C;
 }
 
@@ -588,7 +588,7 @@ pub mod Fused {
   }
 }
 
-pub trait Iterate[C, I, T] {
+pub trait[C] Iterate[I, T] {
   #[builtin = "iter"]
   fn .iter(c: C) -> I;
 }

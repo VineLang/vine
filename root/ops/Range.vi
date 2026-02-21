@@ -2,7 +2,7 @@
 use comparison::Ord;
 use data::Iterator;
 
-pub trait Bound[B, T] {
+pub trait[B] Bound[T] {
   fn .left_of(self: &B, value: &T) -> Bool;
   fn .right_of(self: &B, value: &T) -> Bool;
 }
@@ -59,7 +59,7 @@ pub mod Range {
 
   use Bound::{Exclusive, Inclusive};
 
-  pub trait Step[T] {
+  pub trait[T] Step {
     fn .step(x: T) -> T;
   }
 

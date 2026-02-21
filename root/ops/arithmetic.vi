@@ -1,20 +1,20 @@
 
-pub trait Add[A, B, O] {
+pub trait[A, B] Add[O] {
   #[builtin = "add"]
   fn add(a: A, b: B) -> O;
 }
 
-pub trait Sub[A, B, O] {
+pub trait[A, B] Sub[O] {
   #[builtin = "sub"]
   fn sub(a: A, b: B) -> O;
 }
 
-pub trait Mul[A, B, O] {
+pub trait[A, B] Mul[O] {
   #[builtin = "mul"]
   fn mul(a: A, b: B) -> O;
 }
 
-pub trait Pow[B, E, O] {
+pub trait[B, E] Pow[O] {
   #[builtin = "pow"]
   fn pow(base: B, exp: E) -> O;
 }
@@ -33,22 +33,22 @@ pub mod Pow {
   }
 }
 
-pub trait Div[A, B, O] {
+pub trait[A, B] Div[O] {
   #[builtin = "div"]
   fn div(a: A, b: B) -> O;
 }
 
-pub trait Rem[A, B, O] {
+pub trait[A, B] Rem[O] {
   #[builtin = "rem"]
   fn rem(a: A, b: B) -> O;
 }
 
-pub trait Pos[A, O] {
+pub trait[A] Pos[O] {
   #[builtin = "pos"]
   fn pos(a: A) -> O;
 }
 
-pub trait Neg[A, O] {
+pub trait[A] Neg[O] {
   #[builtin = "neg"]
   fn neg(a: A) -> O;
 }

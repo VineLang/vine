@@ -5,7 +5,7 @@ use derive::{Enum, IfConst, Object as Object_, Opaque, Struct, Tuple as Tuple_, 
 use util::transmute;
 
 #[builtin = "Show"]
-pub trait Show[T] {
+pub trait[T] Show {
   fn .show(self: &T) -> Show;
 }
 
@@ -122,7 +122,7 @@ pub mod Show {
     "\n" ++ String(List_::new(indent, ' '))
   }
 
-  pub trait ShowTuple[T] {
+  pub trait[] ShowTuple[T] {
     fn .show_tuple(&self: &T) -> List_[Show];
   }
 
@@ -147,7 +147,7 @@ pub mod Show {
     }
   }
 
-  pub trait ShowObject[T] {
+  pub trait[] ShowObject[T] {
     fn .show_object(&self: &T) -> List_[(Show, Show)];
   }
 
@@ -179,7 +179,7 @@ pub mod Show {
     }
   }
 
-  pub trait ShowVariant[V] {
+  pub trait[] ShowVariant[V] {
     fn .show_variant(&self: &V, variant_names: List_[String]) -> Show;
   }
 

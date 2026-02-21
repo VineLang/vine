@@ -336,7 +336,7 @@ pub mod Exchange {
   }
 }
 
-pub trait Channel[A, B] {
+pub trait[A] Channel[B] {
   const pair: (A, B);
 }
 

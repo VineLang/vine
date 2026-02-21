@@ -3,7 +3,7 @@
 
 use #root::{ops::Cast, rng::Pcg32};
 
-trait Session[A, B] {
+trait[A] Session[B] {
   fn fork[F; fn F(A)](f: F) -> B;
 }
 

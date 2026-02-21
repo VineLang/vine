@@ -2,7 +2,7 @@
 use derive::Tuple;
 use ops::arithmetic::Neg;
 
-pub trait Eq[T] {
+pub trait[T] Eq {
   #[builtin = "eq"]
   fn eq(a: &T, b: &T) -> Bool;
 
@@ -46,7 +46,7 @@ pub mod Eq {
   }
 }
 
-pub trait Ord[T] {
+pub trait[T] Ord {
   fn .cmp(a: &T, b: &T) -> Ord;
   fn lt(a: &T, b: &T) -> Bool;
   fn le(a: &T, b: &T) -> Bool;
@@ -143,7 +143,7 @@ pub mod Ord {
   }
 }
 
-pub trait Lt[T] {
+pub trait[T] Lt {
   #[builtin = "lt"]
   fn .lt(a: &T, b: &T) -> Bool;
 }
@@ -161,7 +161,7 @@ pub mod Lt {
   }
 }
 
-pub trait Le[T] {
+pub trait[T] Le {
   #[builtin = "le"]
   fn .le(a: &T, b: &T) -> Bool;
 }

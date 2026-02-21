@@ -8,7 +8,7 @@ use util::transmute;
 pub type Ext[T];
 
 /// Conversion between `T` and `Ext[T]`.
-pub trait Ext[T] {
+pub trait[T] Ext {
   fn encode(value: T) -> Ext[T];
   fn .decode(value: Ext[T]) -> T;
 }

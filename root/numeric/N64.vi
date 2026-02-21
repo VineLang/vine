@@ -2,7 +2,7 @@
 use ops::{
   Cast,
   arithmetic::{Add, Div, Mul, Pow, Rem, Sub},
-  bitwise::{BitAnd, BitOr, BitXor, Shl, Shr},
+  bitwise::{BitAnd, BitOr, BitXor, Not, Shl, Shr},
   comparison::{Eq, Ord},
 };
 use util::{duplicate, erase, transmute};
@@ -209,6 +209,12 @@ pub mod N64 {
       } else {
         N64(al >> bits | ah << (31 - bits) << 1, ah >> bits)
       }
+    }
+  }
+
+  pub impl not: Not[N64, N64] {
+    fn not(N64(l, h)) -> N64 {
+      N64(!l, !h)
     }
   }
 
