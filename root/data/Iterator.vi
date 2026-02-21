@@ -1,5 +1,5 @@
 
-use ops::{Cast, comparison::Ord};
+use ops::comparison::Ord;
 use derive::Tuple;
 use util::transmute;
 
@@ -594,9 +594,9 @@ pub trait[C] Iterate[I, T] {
 }
 
 pub mod Iterate {
-  pub impl iterate[C, I, T; Cast[C, I], Iterator[I, T]]: Iterate[C, I, T] {
-    fn iter(collection: C) -> I {
-      collection as I
+  pub impl iterator[I, T; Iterator[I, T]]: Iterate[I, I, T] {
+    fn iter(iter: I) -> I {
+      iter
     }
   }
 

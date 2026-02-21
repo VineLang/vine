@@ -1,5 +1,5 @@
 
-use data::Iterator::{Iterator, Collect};
+use data::Iterator::{Iterator, Collect, Iterate};
 use ops::{Cast, Concat, comparison::{Eq, Ord}};
 use util::move;
 
@@ -184,14 +184,14 @@ pub mod String {
     }
   }
 
-  pub impl iter_ref: Cast[&String, List::IterRef[Char]] {
-    fn cast(&String(chars)) -> List::IterRef[Char] {
+  pub impl iter_ref: Iterate[&String, List::IterRef[Char], &Char] {
+    fn iter(&String(chars)) -> List::IterRef[Char] {
       chars.iter_ref()
     }
   }
 
-  pub impl iter: Cast[String, List::Iter[Char]] {
-    fn cast(String(chars)) -> List::Iter[Char] {
+  pub impl iter: Iterate[String, List::Iter[Char], Char] {
+    fn iter(String(chars)) -> List::Iter[Char] {
       chars.iter()
     }
   }
