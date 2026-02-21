@@ -6,7 +6,7 @@ use crate::{
   components::{
     charter::{ChartedItem, Charter},
     lexer::Token,
-    parser::{BRACE, Parser},
+    parser::{BRACE, BRACKET_COMMA, Parser},
     resolver::Resolver,
   },
   structures::{
@@ -25,20 +25,26 @@ use crate::{
 impl Parser<'_> {
   pub(crate) fn parse_trait_item(&mut self) -> Result<(Span, ItemKind), Diag> {
     self.expect(Token::Trait)?;
+    let inherent_params = self.parse_delimited(BRACKET_COMMA, Self::parse_type_param)?;
     let name_span = self.span();
     let name = self.parse_ident()?;
     let generics = self.parse_generic_params()?;
     let items_span = self.start_span();
     let items = self.parse_delimited(BRACE, Self::parse_item)?;
     let items_span = self.end_span(items_span);
-    Ok((name_span, ItemKind::Trait(TraitItem { name, generics, items_span, items })))
+    Ok((
+      name_span,
+      ItemKind::Trait(TraitItem { inherent_params, name, generics, items_span, items }),
+    ))
   }
 }
 
 impl<'src> Formatter<'src> {
   pub(crate) fn fmt_trait_item(&self, t: &TraitItem) -> Doc<'src> {
     Doc::concat([
-      Doc("trait "),
+      Doc("trait"),
+      Doc::bracket_comma(t.inherent_params.iter().map(|p| self.fmt_type_param(p))),
+      Doc(" "),
       Doc(t.name.clone()),
       self.fmt_generic_params(&t.generics),
       Doc(" "),
@@ -56,9 +62,12 @@ impl Charter<'_> {
     vis: VisId,
     member_vis: VisId,
     unsafe_: bool,
-    trait_item: TraitItem,
+    mut trait_item: TraitItem,
   ) -> ChartedItem {
     let def = self.chart_child(parent, span, trait_item.name.clone(), member_vis, true);
+    let inherent_params = trait_item.inherent_params.len();
+    trait_item.inherent_params.append(&mut trait_item.generics.types);
+    trait_item.generics.types = trait_item.inherent_params;
     let generics = self.chart_generics(def, parent_generics, trait_item.generics, false);
     let trait_id = self.chart.traits.next_index();
     let mut consts = IdxVec::new();
@@ -112,7 +121,16 @@ impl Charter<'_> {
         }
       }
     }
-    let trait_ = TraitDef { span, def, name: trait_item.name, generics, consts, fns, unsafe_ };
+    let trait_ = TraitDef {
+      span,
+      def,
+      name: trait_item.name,
+      generics,
+      inherent_params,
+      consts,
+      fns,
+      unsafe_,
+    };
     self.chart.traits.push_to(trait_id, trait_);
     self.define_trait(span, def, vis, DefTraitKind::Trait(trait_id));
     ChartedItem::Trait(def, trait_id)

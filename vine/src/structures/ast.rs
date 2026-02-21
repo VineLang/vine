@@ -107,6 +107,7 @@ pub enum ModKind {
 
 #[derive(Debug, Clone)]
 pub struct TraitItem {
+  pub inherent_params: Vec<TypeParam>,
   pub name: Ident,
   pub generics: GenericParams,
   pub items_span: Span,

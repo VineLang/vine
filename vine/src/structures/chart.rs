@@ -262,6 +262,7 @@ pub struct TraitDef {
   pub def: DefId,
   pub name: Ident,
   pub generics: GenericsId,
+  pub inherent_params: usize,
   pub consts: IdxVec<TraitConstId, TraitConst>,
   pub fns: IdxVec<TraitFnId, TraitFn>,
   pub unsafe_: bool,

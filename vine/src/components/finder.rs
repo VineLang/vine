@@ -321,10 +321,10 @@ impl<'a> Finder<'a> {
       let key = &(*trait_id, basic);
       self.get_candidates(&mut found, self.general_candidates().impls.get(key));
 
-      let trait_def = self.chart.traits[*trait_id].def;
-      self.get_candidates(&mut found, self.cache.candidates.get_within(trait_def).impls.get(key));
+      let trait_ = &self.chart.traits[*trait_id];
+      self.get_candidates(&mut found, self.cache.candidates.get_within(trait_.def).impls.get(key));
 
-      for &param in params {
+      for &param in &params[0..trait_.inherent_params] {
         if let Some(mod_id) = types.get_mod(self.chart, param)? {
           self.get_candidates(&mut found, self.cache.candidates.get_within(mod_id).impls.get(key));
         }
