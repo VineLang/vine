@@ -139,9 +139,14 @@ impl Normalizer<'_> {
             );
             let local = self.locals.push(vir_local);
             stage.declarations.push(local);
-            stage.local_barrier_write_to(local, Port { ty, kind: PortKind::Wire(span, wire) });
+            stage.local_barrier_write_to(
+              local,
+              span,
+              Port { ty, kind: PortKind::Wire(span, wire) },
+            );
             new_stage.local_read_barrier_to(
               local,
+              span,
               Port { ty: ty.inverse(), kind: PortKind::Wire(span, wire) },
             );
           }

@@ -42,7 +42,3 @@ error: expected a complete pattern
    @ informal.vi:9:7
  9 |   let IO::I() = io;
 
-error: variable of type `&_` read whilst uninitialized
-   @ informal.vi:4:14
- 4 | pub fn main(*io) {
-

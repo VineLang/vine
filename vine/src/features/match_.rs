@@ -91,7 +91,7 @@ impl Distiller<'_> {
       .map(|(pat, expr)| {
         let mut stage = self.new_unconditional_stage(&mut layer, span);
         let result = self.distill_expr_value(&mut stage, expr);
-        stage.local_barrier_write_to(local, result);
+        stage.local_barrier_write_to(local, span, result);
         let interface = stage.interface;
         self.finish_stage(stage);
         Row::new(Some(pat), interface)

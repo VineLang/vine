@@ -1,0 +1,164 @@
+error: cannot fork `None`
+    @ inflexible.vi:16:12
+ 16 |   None() = none; // error
+
+error: cannot drop `None`
+    @ inflexible.vi:12:3
+ 12 |   none = None(); // error
+
+error: variable of type `None` read whilst uninitialized
+    @ inflexible.vi:11:12
+ 11 |   None() = none; // error
+
+error: cannot drop `Fork`
+    @ inflexible.vi:21:3
+ 21 |   fork = Fork(); // error
+
+error: variable of type `Fork` read whilst uninitialized
+    @ inflexible.vi:20:12
+ 20 |   Fork() = fork; // error
+
+error: cannot fork `Drop`
+    @ inflexible.vi:34:12
+ 34 |   Drop() = drop; // error
+
+error: variable of type `Drop` read whilst uninitialized
+    @ inflexible.vi:29:12
+ 29 |   Drop() = drop; // error
+
+error: variable of type `Full` read whilst uninitialized
+    @ inflexible.vi:38:12
+ 38 |   Full() = full; // error
+
+error: variable of type `None` read whilst uninitialized
+    @ inflexible.vi:49:22
+ 49 |   if true { None() = none; } // error
+
+error: cannot drop `None`
+    @ inflexible.vi:50:13
+ 50 |   if true { none = None(); } // error
+
+error: cannot fork `None`
+    @ inflexible.vi:54:22
+ 54 |   if true { None() = none; } // error
+
+error: variable of type `Fork` read whilst uninitialized
+    @ inflexible.vi:58:22
+ 58 |   if true { Fork() = fork; } // error
+
+error: cannot drop `Fork`
+    @ inflexible.vi:59:13
+ 59 |   if true { fork = Fork(); } // error
+
+error: variable of type `Drop` read whilst uninitialized
+    @ inflexible.vi:67:22
+ 67 |   if true { Drop() = drop; } // error
+
+error: cannot fork `Drop`
+    @ inflexible.vi:72:22
+ 72 |   if true { Drop() = drop; } // error
+
+error: variable of type `Full` read whilst uninitialized
+    @ inflexible.vi:76:22
+ 76 |   if true { Full() = full; } // error
+
+error: cannot fork `None`
+    @ inflexible.vi:88:25
+ 88 |   while bool { None() = none; } // error
+
+error: cannot drop `None`
+    @ inflexible.vi:86:7
+ 86 |   let none: None; // error
+
+error: cannot drop `Fork`
+    @ inflexible.vi:90:7
+ 90 |   let fork: Fork; // error
+
+error: cannot fork `Drop`
+    @ inflexible.vi:96:25
+ 96 |   while bool { Drop() = drop; } // error
+
+error: cannot drop `None`
+     @ inflexible.vi:104:7
+ 104 |   let none: None; // error
+
+error: cannot drop `Fork`
+     @ inflexible.vi:108:7
+ 108 |   let fork: Fork; // error
+
+error: variable of type `~Fork` read whilst uninitialized
+     @ inflexible.vi:129:13
+ 129 |   Fork() = ~fork; // error
+
+error: cannot drop `~Fork`
+     @ inflexible.vi:128:4
+ 128 |   ~fork = Fork(); // error
+
+error: variable of type `~Drop` read whilst uninitialized
+     @ inflexible.vi:138:13
+ 138 |   Drop() = ~drop; // error
+
+error: cannot fork `~Drop`
+     @ inflexible.vi:133:13
+ 133 |   Drop() = ~drop; // error
+
+error: variable of type `~Full` read whilst uninitialized
+     @ inflexible.vi:147:13
+ 147 |   Full() = ~full; // error
+
+error: cannot drop `~Fork`
+     @ inflexible.vi:157:14
+ 157 |   if true { ~fork = Fork(); } // error
+
+error: variable of type `~Fork` read whilst uninitialized
+     @ inflexible.vi:158:23
+ 158 |   if true { Fork() = ~fork; } // error
+
+error: cannot fork `~Drop`
+     @ inflexible.vi:162:23
+ 162 |   if true { Drop() = ~drop; } // error
+
+error: variable of type `~Drop` read whilst uninitialized
+     @ inflexible.vi:167:23
+ 167 |   if true { Drop() = ~drop; } // error
+
+error: variable of type `~Full` read whilst uninitialized
+     @ inflexible.vi:176:23
+ 176 |   if true { Full() = ~full; } // error
+
+error: cannot drop `~None`
+     @ inflexible.vi:181:26
+ 181 |   while bool { None() = ~none; } // error
+
+error: variable of type `~None` read whilst uninitialized
+     @ inflexible.vi:180:8
+ 180 |   let ~none: None; // error
+
+error: cannot drop `~Fork`
+     @ inflexible.vi:184:8
+ 184 |   let ~fork: Fork; // error
+
+error: cannot fork `~Drop`
+     @ inflexible.vi:189:26
+ 189 |   while bool { Drop() = ~drop; } // error
+
+error: variable of type `~None` read whilst uninitialized
+     @ inflexible.vi:198:8
+ 198 |   let ~none: None; // error
+
+error: cannot drop `~Fork`
+     @ inflexible.vi:202:8
+ 202 |   let ~fork: Fork; // error
+
+warning: value later used here
+    @ inflexible.vi:17:12
+ 17 |   None() = none; // warn
+
+warning: value later used here
+    @ inflexible.vi:35:12
+ 35 |   Drop() = drop; // warn
+
+warning: value later used here
+     @ inflexible.vi:132:13
+ 132 |   Drop() = ~drop; // warn
+

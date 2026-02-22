@@ -99,7 +99,7 @@ impl Distiller<'_> {
     else_: &Option<TirExpr>,
   ) -> Port {
     let local = self.new_local(stage, span, ty);
-    stage.local_barrier(local);
+    stage.local_barrier(local, span);
     let (mut layer, mut cond_stage) = self.child_layer(stage, span);
 
     *self.targets.get_or_extend(label) = Some(TargetDistillation {
@@ -117,7 +117,7 @@ impl Distiller<'_> {
 
     if let Some(else_) = else_ {
       let result = self.distill_expr_value(&mut else_stage, else_);
-      else_stage.local_barrier_write_to(local, result);
+      else_stage.local_barrier_write_to(local, span, result);
     }
 
     self.finish_stage(cond_stage);
