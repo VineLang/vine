@@ -331,7 +331,7 @@ impl Analyzer<'_> {
         Step::Transfer(transfer) => {
           let (i, b, o) =
             self.interfaces[transfer.interface].wires.get(&local).copied().unwrap_or_default();
-          let (i, b, o) = if info.inv.0 { (o, b, i) } else { (i, b, o) };
+          let (i, o) = if info.inv.0 { (o, i) } else { (i, o) };
           (i, b, o, None)
         }
         _ => (false, false, false, None),
