@@ -12,6 +12,7 @@ use ops::{
 /// x // 46
 /// ```
 #[builtin = "Nat"]
+#[impl(Default)]
 pub struct* Nat(List[N32]);
 
 pub mod Nat {

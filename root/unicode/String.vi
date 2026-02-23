@@ -8,6 +8,7 @@ use util::move;
 /// let string = "12 + 34 = {12 + 34}";
 /// string // "12 + 34 = 46"
 /// ```
+#[impl(Default)]
 #[builtin = "String"]
 pub struct* String(pub List[Char]);
 

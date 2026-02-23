@@ -10,6 +10,10 @@ pub struct Set[T]((N32, Nullable[SetNode[T]]));
 type SetNode[T] = (Set[T], T, Set[T]);
 
 pub mod Set[T; Ord[T]] {
+  pub impl [T]: Default[Set[T]] {
+    const default: Set[T] = Set::empty[T];
+  }
+
   pub const empty[T]: Set[T] = Set(0, safe Nullable::null());
 
   fn new[T](left: Set[T], value: T, right: Set[T]) -> Set[T] {

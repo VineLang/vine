@@ -17,6 +17,10 @@ pub mod I32 {
   pub impl : Fork[I32] = safe duplicate;
   pub impl : Drop[I32] = safe erase;
 
+  pub impl : Default[I32] {
+    const default: I32 = +0;
+  }
+
   pub impl : Add[I32, I32, I32] {
     fn add(a: I32, b: I32) -> I32 {
       safe inline_ivy! (a <- a, b <- b) -> I32 { out a = @n32_add(b out) }

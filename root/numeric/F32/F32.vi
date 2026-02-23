@@ -16,6 +16,10 @@ pub mod F32 {
   pub impl : Fork[F32] = safe duplicate;
   pub impl : Drop[F32] = safe erase;
 
+  pub impl : Default[F32] {
+    const default: F32 = 0.0[F32];
+  }
+
   pub impl : Add[F32, F32, F32] {
     fn add(a: F32, b: F32) -> F32 {
       safe inline_ivy! (a <- a, b <- b) -> F32 { out a = @f32_add(b out) }

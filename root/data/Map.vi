@@ -3,6 +3,7 @@ use data::Iterator::{Iterator, Collect};
 use ops::{Cast, Concat, Index::{Index, IndexPlace, IndexSpace, IndexValue}, comparison::Ord};
 use util::{eraser, transmute};
 
+#[impl(Default)]
 pub struct* Map[K, V](Set[(K, V)]);
 
 impl ord_entry[K, V; Ord[K]]: Ord[(K, V)] {

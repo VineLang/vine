@@ -9,6 +9,10 @@ pub mod F64 {
   pub const inf: F64 = F32::inf as F64;
   pub const neg_inf: F64 = F32::neg_inf as F64;
 
+  pub impl : Default[F64] {
+    const default: F64 = 0.0[F64];
+  }
+
   pub impl fork: Fork[F64] {
     fn fork(&f: &F64) -> F64 {
       safe inline_ivy! (f0 <- f, f1 -> f) -> F64 {

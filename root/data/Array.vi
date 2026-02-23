@@ -13,6 +13,10 @@ use util::{duplicate, erase};
 pub struct Array[T]((N32, Nullable[Node[T]]));
 
 pub mod Array {
+  pub impl [T]: Default[Array[T]] {
+    const default: Array[T] = Array::empty[T];
+  }
+
   pub const empty[T]: Array[T] = Array(0, safe Nullable::null());
 
   pub fn single[T](value: T) -> Array[T] {

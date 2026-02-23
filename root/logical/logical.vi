@@ -1,5 +1,6 @@
 
 pub mod Bool;
+pub mod Default;
 pub mod Nullable;
 pub mod Option;
 pub mod Result;

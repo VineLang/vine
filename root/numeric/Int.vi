@@ -1,6 +1,7 @@
 
 use ops::{Cast, arithmetic::{Add, Div, Mul, Neg, Pow, Rem, Sub}, comparison::{Eq, Ord}};
 
+#[impl(Default)]
 pub struct* Int(Bool, Nat);
 
 pub mod Int {

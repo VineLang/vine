@@ -30,6 +30,10 @@ pub struct List[T](pub.root N32, Buf[T], ~Buf[T]);
 pub.root struct Buf[T](pub.root T, Buf[T]);
 
 pub mod List {
+  pub impl [T]: Default[List[T]] {
+    const default: List[T] = List::empty[T];
+  }
+
   pub const empty[T]: List[T] = [];
 
   /// The length of the list. `O(1)`
