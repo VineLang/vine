@@ -9,6 +9,10 @@ pub mod Bool {
   pub impl : Fork[Bool] = safe duplicate;
   pub impl : Drop[Bool] = safe erase;
 
+  pub impl : Default[Bool] {
+    const default: Bool = false;
+  }
+
   pub impl : BitAnd[Bool, Bool, Bool] {
     fn bit_and(a: Bool, b: Bool) -> Bool {
       safe inline_ivy! (a <- a, b <- b) -> Bool { out a = @n32_and(b out) }

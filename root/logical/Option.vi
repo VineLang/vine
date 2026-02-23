@@ -9,6 +9,10 @@ pub enum* Option[T] {
 }
 
 pub mod Option {
+  pub impl [T]: Default[Option[T]] {
+    const default: Option[T] = None();
+  }
+
   pub fn .map[T, U, F?; fn F(T) -> U](self: Option[T], f: F) -> Option[U] {
     match self {
       Some(val) { Some(f(val)) }

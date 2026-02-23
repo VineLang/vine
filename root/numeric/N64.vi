@@ -21,6 +21,10 @@ pub mod N64 {
   pub impl : Fork[N64] = safe duplicate;
   pub impl : Drop[N64] = safe erase;
 
+  pub impl : Default[N64] {
+    const default: N64 = 0[N64];
+  }
+
   pub impl from_n32: Cast[N32, N64] {
     fn cast(val: N32) -> N64 {
       N64(val, 0)
