@@ -39,17 +39,9 @@ pub mod Array {
   /// array // Array([1, 2, 3])
   /// ```
   pub impl from_list[T]: Cast[List[T], Array[T]] {
-    fn cast(List[T](len, Stream(buf, _end))) -> Array[T] {
-      safe erase(_end);
-      let array = Array::from_fn(
-        len,
-        fn* () {
-          let List::Buf(head, tail) = buf;
-          buf = tail;
-          head
-        },
-      );
-      safe erase(buf);
+    fn cast(List[T](len, front, end)) -> Array[T] {
+      let array = Array::from_fn(len, fn* () { safe front.pop() });
+      safe (Stream::done(), ~Stream::done()) = (front, end);
       array
     }
   }
@@ -64,8 +56,10 @@ pub mod Array {
   /// ```
   pub impl to_list[T]: Cast[Array[T], List[T]] {
     fn cast(self: Array[T]) -> List[T] {
-      let end;
-      List(self.len(), Stream(self.fold_back(~end, fn* (a, b) { List::Buf(b, a) }), end))
+      let len = self.len();
+      let (front, back) = Stream::pair;
+      Array::for_each(self, fn* (value: T) { back.push(value) });
+      List(len, front, back)
     }
   }
 

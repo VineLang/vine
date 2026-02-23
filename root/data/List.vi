@@ -25,11 +25,12 @@ use util::{duplicate, erase};
 ///
 /// If frequently accessing elements by index, consider using an array instead.
 #[builtin = "List"]
-pub struct List[T](pub.root N32, Stream[T]);
+pub struct List[T](pub.root N32, Stream[T], ~Stream[T]);
 
-pub struct Stream[T](pub.root Buf[T], ~Buf[T]);
-
-pub.root struct Buf[T](pub.root T, Buf[T]);
+pub.root unsafe enum Stream[T] {
+  done(),
+  more(T, Stream[T]),
+}
 
 pub mod List {
   pub const empty[T]: List[T] = [];
@@ -45,11 +46,11 @@ pub mod List {
   /// list // [".", ".", "."]
   /// ```
   pub fn new[T*](len: N32, value: T) -> List[T] {
-    let stream = Stream::new();
+    let (front, back) = Stream::pair;
     for _ in 0..len {
-      stream.push_back(value);
+      back.push(value);
     }
-    List(len, stream)
+    List(len, front, back)
   }
 
   /// Create a list with the given length, where each value is produced
@@ -60,11 +61,11 @@ pub mod List {
   /// list // [1, 2, 3]
   /// ```
   pub fn from_fn[T, F*; fn F() -> T](len: N32, f: F) -> List[T] {
-    let stream = Stream::new();
+    let (front, back) = Stream::pair;
     for _ in 0..len {
-      stream.push_back(f());
+      back.push(f());
     }
-    List(len, stream)
+    List(len, front, back)
   }
 
   /// Access the `i`th element of the list. `O(i)`
@@ -75,14 +76,13 @@ pub mod List {
   /// list // List(["a", "b", "c"])
   /// ```
   /// If this is being done regularly, consider using an `Array` instead.
-  pub fn .at[T](&List[T](len, Stream(*buf, _)), i: N32) -> Option[&T] {
+  pub fn .at[T](&List[T](len, front, _), i: N32) -> Option[&T] {
     assert i < len else { None() }
+    let cursor = &front;
     for _ in 0..i {
-      let &Buf(_, *tail) = buf;
-      buf = tail;
+      cursor = safe cursor.*.tail();
     }
-    let &Buf(*head, _) = buf;
-    Some(head)
+    Some(safe cursor.*.head())
   }
 
   /// Get the `i`th element of the list. `O(i)`
@@ -133,11 +133,20 @@ pub mod List {
 
   pub fn .map[T, U, F*; fn F(T) -> U](self: List[T], f: F) -> List[U] {
     let len = self.len();
-    let stream = Stream::new();
+    let (front, back) = Stream::pair;
     for val in self {
-      stream.push_back(f(val));
+      back.push(f(val));
     }
-    List(len, stream)
+    List(len, front, back)
+  }
+
+  pub fn .map_ref[T, U, F*; fn F(&T) -> U](&self: &List[T], f: F) -> List[U] {
+    let len = self.len();
+    let (front, back) = Stream::pair;
+    for &val in &self {
+      back.push(f(&val));
+    }
+    List(len, front, back)
   }
 
   pub fn .filter[T?, F*; fn F(&T) -> Bool](self: List[T], pred: F) -> List[T] {
@@ -150,30 +159,29 @@ pub mod List {
     result
   }
 
-  pub fn .pop_front[T](&List[T](len, Stream(buf, _))) -> Option[T] {
+  pub fn .pop_front[T](&List[T](len, front, _)) -> Option[T] {
     if len != 0 {
       len -= 1;
-      let Buf(head, tail) = buf;
-      buf = tail;
-      Some(head)
+      Some(safe front.pop())
     } else {
       None()
     }
   }
 
-  pub fn .head_tail[T](List[T](len, Stream(buf, end))) -> Option[(T, List[T])] {
+  pub fn .head_tail[T](List[T](len, front, back)) -> Option[(T, List[T])] {
     if len != 0 {
-      let Buf(head, tail) = buf;
-      Some(head, List(len - 1, Stream(tail, end)))
+      let head = safe front.pop();
+      Some(head, List(len - 1, front, back))
     } else {
-      safe erase((buf, end));
+      safe (Stream::done(), ~Stream::done()) = (front, back);
       None()
     }
   }
 
   pub impl [T]: Concat[List[T], List[T], List[T]] {
-    fn concat(List[T](a_len, a_stream), List[T](b_len, b_stream)) -> List[T] {
-      List(a_len + b_len, a_stream ++ b_stream)
+    fn concat(List[T](a_len, a_front, a_back), List[T](b_len, b_front, b_back)) -> List[T] {
+      ~a_back = b_front;
+      List(a_len + b_len, a_front, b_back)
     }
   }
 
@@ -209,13 +217,13 @@ pub mod List {
     assert i < list.len() else {
       list.push_back(el);
     }
-    let List(len, stream) = list;
-    let front = Stream::new();
+    let &List(len, front, _) = &list;
+    let cursor = &front;
     for _ in 0..i {
-      front.push_back(safe stream.pop_front());
+      cursor = safe cursor.*.tail();
     }
-    front.push_back(el);
-    list = List(len + 1, front ++ stream)
+    cursor.*.push(el);
+    len += 1;
   }
 
   pub fn .find[T, F*; fn F(&T) -> Bool](&self: &List[T], pred: F) -> Option[&T] {
@@ -282,11 +290,7 @@ pub mod List {
 
   pub impl [T; Show[T]]: Show[List[T]] {
     fn show(&self: &List[T]) -> Show {
-      let entries = Stream::new();
-      for &value in &self {
-        entries.push_back(value.show());
-      }
-      Show::List(List(self.len(), entries))
+      Show::List(self.map_ref(Show::show))
     }
   }
 
@@ -381,12 +385,12 @@ pub mod List {
 
   pub mod Iter {
     pub impl [T]: Iterator[Iter[T], T] {
-      fn advance(Iter[T](List(len, Stream(buf, end)))) -> Option[(T, Iter[T])] {
+      fn advance(Iter[T](List(len, front, end))) -> Option[(T, Iter[T])] {
         if len != 0 {
-          let Buf(head, tail) = buf;
-          Some(head, Iter(List(len - 1, Stream(tail, end))))
+          let head = safe front.pop();
+          Some(head, Iter(List(len - 1, front, end)))
         } else {
-          safe erase((buf, end));
+          safe (Stream::done(), ~Stream::done()) = (front, end);
           None()
         }
       }
@@ -409,19 +413,19 @@ pub mod List {
   /// list // [1. 6. 4. 6]
   /// ```
   pub impl iter_ref[T]: Iterate[&List[T], IterRef[T], &T] {
-    fn iter(&List[T](len, Stream(buf, _))) -> IterRef[T] {
-      IterRef(len, &buf)
+    fn iter(&List[T](len, front, _)) -> IterRef[T] {
+      IterRef(len, &front)
     }
   }
 
-  pub struct IterRef[T]((N32, &Buf[T]));
+  pub struct IterRef[T]((N32, &Stream[T]));
 
   pub mod IterRef {
     pub impl [T]: Iterator[IterRef[T], &T] {
-      fn advance(IterRef[T](len, &buf)) -> Option[(&T, IterRef[T])] {
+      fn advance(IterRef[T](len, cursor)) -> Option[(&T, IterRef[T])] {
         if len != 0 {
-          let &Buf(head, tail) = &buf;
-          Some(&head, IterRef(len - 1, &tail))
+          let head = safe cursor.*.head();
+          Some(head, IterRef(len - 1, safe cursor.*.tail()))
         } else {
           None()
         }
@@ -453,11 +457,11 @@ pub mod List {
   /// ```
   pub fn .reversed[T](self: List[T]) -> List[T] {
     let len = self.len();
-    let reversed = Stream::new();
+    let (front, back) = Stream::pair;
     for value in self {
-      reversed.push_front(value);
+      front.push(value);
     }
-    List(len, reversed)
+    List(len, front, back)
   }
 
   /// Reverse the elements of the list.
@@ -524,11 +528,7 @@ pub mod List {
   #[safe become(duplicate)]
   pub impl [T+]: Fork[List[T]] {
     fn fork(&self: &List[T]) -> List[T] {
-      let out = Stream::new();
-      for &value in &self {
-        out.push_back(value);
-      }
-      List(self.len(), out)
+      self.map_ref(Fork::fork)
     }
   }
 
@@ -541,29 +541,36 @@ pub mod List {
 }
 
 pub mod Stream {
-  pub fn new[T]() -> Stream[T] {
-    let loop end;
-    Stream(end, ~end)
+  pub const pair[T]: (Stream[T], ~Stream[T]) = do {
+    let loop stream;
+    (stream, ~stream)
+  };
+
+  pub fn .push[T](&stream: &Stream[T], value: T) {
+    stream = safe Stream::more(value, stream);
   }
 
-  pub fn .push_front[T](&Stream[T](start, _), value: T) {
-    start = Buf(value, start);
-  }
-
-  pub fn .push_back[T](&Stream[T](_, ~end), value: T) {
-    end = Buf(value, end);
-  }
-
-  pub impl [T]: Concat[Stream[T], Stream[T], Stream[T]] {
-    fn concat(Stream[T](a_start, ~a_end), Stream[T](b_start, ~b_end)) -> Stream[T] {
-      a_end = b_start;
-      Stream(a_start, ~b_end)
-    }
-  }
-
-  pub unsafe fn .pop_front[T](&Stream[T](start, _)) -> T {
-    let Buf(head, tail) = start;
-    start = tail;
+  pub unsafe fn .pop[T](&stream: &Stream[T]) -> T {
+    let Stream::more(head, tail) = stream;
+    stream = tail;
     head
+  }
+
+  pub unsafe fn .head[T](&stream: &Stream[T]) -> &T {
+    let &Stream::more(head, _) = &stream;
+    &head
+  }
+
+  pub unsafe fn .tail[T](&stream: &Stream[T]) -> &Stream[T] {
+    let &Stream::more(_, tail) = &stream;
+    &tail
+  }
+
+  pub use back::push as _;
+
+  pub mod back {
+    pub fn .push[T](&~stream: &~Stream[T], value: T) {
+      stream.push(value);
+    }
   }
 }
