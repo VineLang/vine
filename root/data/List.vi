@@ -120,9 +120,7 @@ pub mod List {
   }
 
   pub fn .split_at[T](self: List[T], i: N32) -> (List[T], List[T]) {
-    assert i < self.len() else {
-      return (self, []);
-    }
+    assert i < self.len() else { (self, []) }
     let prefix = [];
     while i != 0 and self.pop_front() is Some(value) {
       prefix.push_back(value);
@@ -418,7 +416,7 @@ pub mod List {
     }
   }
 
-  pub struct IterRef[T]((N32, &Stream[T]));
+  pub struct IterRef[T](N32, &Stream[T]);
 
   pub mod IterRef {
     pub impl [T]: Iterator[IterRef[T], &T] {
