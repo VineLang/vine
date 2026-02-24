@@ -75,7 +75,7 @@ pub trait VisitMut<'a> {
 
   fn _visit_expr(&mut self, expr: &'a mut Expr) {
     match &mut *expr.kind {
-      ExprKind::Hole
+      ExprKind::Hole(_)
       | ExprKind::Bool(_)
       | ExprKind::N32(_)
       | ExprKind::F32(_)

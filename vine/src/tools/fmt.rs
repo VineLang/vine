@@ -195,7 +195,7 @@ impl<'src> Formatter<'src> {
       ExprKind::Error(_) => unreachable!(),
       ExprKind::Paren(p) => Doc::paren(self.fmt_expr(p)),
       ExprKind::Safe(_, expr_) => Doc::concat([Doc("safe "), self.fmt_expr(expr_)]),
-      ExprKind::Hole => Doc("_"),
+      ExprKind::Hole(ty) => self.fmt_expr_hole(ty),
       ExprKind::Path(path, args) => self.fmt_expr_path(path, args),
       ExprKind::Do(label, ty, body) => self.fmt_expr_do(label.clone(), ty, body),
       ExprKind::Assign(inverted, space, value) => self.fmt_expr_assign(*inverted, space, value),
