@@ -549,7 +549,7 @@ impl<'a> Resolver<'a> {
       ExprKind::Bool(..) | ExprKind::Is(..) | ExprKind::LogicalOp(..) => {
         Ok(self.resolve_cond(expr))
       }
-      ExprKind::Hole => self.resolve_expr_hole(span),
+      ExprKind::Hole(ty) => self.resolve_expr_hole(span, ty.as_ref()),
       ExprKind::Deref(inner, _) => self.resolve_expr_deref(span, inner),
       ExprKind::Inverse(inner, _) => self.resolve_expr_inverse(span, inner),
       ExprKind::Place(value, space) => self.resolve_expr_place(span, value, space),

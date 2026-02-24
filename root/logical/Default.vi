@@ -1,6 +1,7 @@
 
 use #root::derive::{Composite, Struct};
 
+#[builtin = "Default"]
 pub trait Default[T] {
   const default: T;
 }

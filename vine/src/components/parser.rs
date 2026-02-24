@@ -277,7 +277,7 @@ impl<'src> Parser<'src> {
       return Ok(Some(self.parse_expr_match()?));
     }
     if self.eat(Token::Hole)? {
-      return Ok(Some(ExprKind::Hole));
+      return Ok(Some(self.parse_expr_hole()?));
     }
     if self.check(Token::InlineIvy) {
       return Ok(Some(self.parse_inline_ivy()?));

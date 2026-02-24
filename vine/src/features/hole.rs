@@ -1,17 +1,44 @@
+use vine_util::parser::Parse;
+
 use crate::{
-  components::{distiller::Distiller, resolver::Resolver},
+  components::{distiller::Distiller, lexer::Token, parser::Parser, resolver::Resolver},
   structures::{
-    ast::Span,
+    ast::{ExprKind, Span, Ty},
+    chart::{ConstId, TraitConstId},
     diag::Diag,
     tir::{TirExpr, TirExprKind, TirPat, TirPatKind},
-    types::Type,
+    types::{ImplType, Type},
     vir::{Port, Stage},
   },
+  tools::fmt::{Formatter, doc::Doc},
 };
 
+impl<'src> Parser<'src> {
+  pub(crate) fn parse_expr_hole(&mut self) -> Result<ExprKind, Diag> {
+    let ty = self.eat_then(Token::OpenBracket, |self_| {
+      let ty = self_.parse_ty()?;
+      self_.expect(Token::CloseBracket)?;
+      Ok(ty)
+    })?;
+    Ok(ExprKind::Hole(ty))
+  }
+}
+
 impl Resolver<'_> {
-  pub(crate) fn resolve_expr_hole(&mut self, span: Span) -> Result<TirExpr, Diag> {
-    Ok(TirExpr::new(span, self.types.new_var(span), TirExprKind::Hole))
+  pub(crate) fn resolve_expr_hole(&mut self, span: Span, ty: Option<&Ty>) -> Result<TirExpr, Diag> {
+    let Some(ty) = ty else {
+      return Ok(TirExpr::new(span, self.types.new_var(span), TirExprKind::Hole));
+    };
+    let ty = self.resolve_ty(ty, true);
+    let Some(default_trait) = self.chart.builtins.default else {
+      Err(Diag::MissingBuiltin { span, builtin: "Default" })?
+    };
+    let default_impl_type = ImplType::Trait(default_trait, vec![ty]);
+    let default_impl = self.find_impl(span, &default_impl_type, false);
+    let default_const = ConstId::Abstract(default_trait, TraitConstId(0));
+    let default_const_rel = self.rels.consts.push((default_const, vec![default_impl]));
+
+    Ok(TirExpr::new(span, ty, TirExprKind::Const(default_const_rel)))
   }
 
   pub(crate) fn resolve_pat_hole(&mut self, span: Span) -> Result<TirPat, Diag> {
@@ -53,5 +80,16 @@ impl Distiller<'_> {
   ) -> (Port, Port) {
     let wire = stage.new_wire(span, ty);
     (wire.neg, wire.pos)
+  }
+}
+
+impl<'src> Formatter<'src> {
+  pub(crate) fn fmt_expr_hole(&self, ty: &Option<Ty>) -> Doc<'src> {
+    if let Some(ty) = ty {
+      let ty = self.fmt_ty(ty);
+      Doc::concat([Doc("_["), ty, Doc("]")])
+    } else {
+      Doc("_")
+    }
   }
 }
