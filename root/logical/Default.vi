@@ -16,11 +16,11 @@ pub mod Default {
   }
 
   pub impl composite[C, K, I, R; Composite[C, K, I, R], Default[I], Default[R]]: Default[C] {
-    const default: C = Composite::reconstruct(Default::default[I], Default::default[R]);
+    const default: C = Composite::reconstruct(_[I], _[R]);
   }
 
   #[basic]
   pub impl struct_[S, C; Struct[S, C], Default[C]]: Default[S] {
-    const default: S = Struct::reconstruct(Default::default[C]);
+    const default: S = Struct::reconstruct(_[C]);
   }
 }
