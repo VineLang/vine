@@ -1,0 +1,31 @@
+
+use ops::comparison::Eq;
+
+// TODO: Change Mantissa to associated type once Vine supports them.
+pub trait[F] Float[Mantissa] {
+  const nan: F;
+  const inf: F;
+  const neg_inf: F;
+  const zero: F;
+
+  const num_mantissa_bits: N32;
+  const num_exponent_bits: N32;
+
+  const max_exponent: I32;
+  const min_exponent: I32;
+  const min_subnormal_exponent: I32;
+
+  const max_decimal_digits: N32;
+
+  fn from_parts(negative: Bool, raw_exp: N32, mantissa: Mantissa) -> F;
+  fn .to_parts(f: F) -> { negative: Bool, raw_exp: N32, mantissa: Mantissa };
+}
+
+pub mod Float {
+  pub fn .is_nan[F?; Eq[F]](f: F) -> Bool {
+    f != f
+  }
+
+  pub mod parse;
+  pub mod to_string;
+}

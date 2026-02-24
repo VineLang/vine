@@ -6,9 +6,6 @@ use util::{duplicate, erase};
 pub type F32;
 
 pub mod F32 {
-  pub mod parse;
-  pub mod to_string;
-
   pub const nan: F32 = safe inline_ivy! () -> F32 { +NaN };
   pub const inf: F32 = safe inline_ivy! () -> F32 { +inf };
   pub const neg_inf: F32 = safe inline_ivy! () -> F32 { -inf };
@@ -67,6 +64,10 @@ pub mod F32 {
     }
   }
 
+  pub fn .sqrt(a: F32) -> F32 {
+    safe inline_ivy! (a <- a) -> F32 { out a = @f32_sqrt(_ out) }
+  }
+
   pub impl : Pos[F32, F32] {
     fn pos(a: F32) -> F32 {
       a
@@ -113,28 +114,24 @@ pub mod F32 {
     }
   }
 
-  pub fn .to_bits(n: F32) -> N32 {
-    safe inline_ivy! (n <- n) -> N32 { out n = @f32_to_bits(_ out) }
+  pub impl from_i32: Cast[I32, F32] {
+    fn cast(i: I32) -> F32 {
+      safe inline_ivy! (i <- i) -> F32 { out i = @i32_to_f32(_ out) }
+    }
+  }
+
+  pub impl to_i32: Cast[F32, I32] {
+    fn cast(f: F32) -> I32 {
+      safe inline_ivy! (f <- f) -> I32 { out f = @f32_to_i32(_ out) }
+    }
+  }
+
+  pub fn .to_bits(f: F32) -> N32 {
+    safe inline_ivy! (f <- f) -> N32 { out f = @f32_to_bits(_ out) }
   }
 
   pub fn from_bits(n: N32) -> F32 {
     safe inline_ivy! (n <- n) -> F32 { out n = @f32_from_bits(_ out) }
-  }
-
-  pub fn from_parts(negative: Bool, raw_exp: N32, mantissa: N32) -> F32 {
-    F32::from_bits(negative as N32 << 31 | raw_exp << 23 | mantissa)
-  }
-
-  pub fn .to_parts(f: F32) -> { negative: Bool, raw_exp: N32, mantissa: N32 } {
-    let bits = f.to_bits();
-    let negative = (bits >> 31) == 1;
-    let raw_exp = (bits >> 23) & 0xff;
-    let mantissa = bits & 0x7FFFFF;
-    { negative, raw_exp, mantissa }
-  }
-
-  pub fn .is_nan(f: F32) -> Bool {
-    f != f
   }
 
   pub fn .abs(f: F32) -> F32 {
@@ -148,6 +145,37 @@ pub mod F32 {
   pub impl : Show[F32] {
     fn show(&self: &F32) -> Show {
       Show::Literal("{self}")
+    }
+  }
+
+  pub fn parse(s: String) -> Option[F32] {
+    Float::parse[F32, N32](s)
+  }
+
+  pub impl float: Float[F32, N32] {
+    const nan: F32 = F32::nan;
+    const inf: F32 = F32::inf;
+    const neg_inf: F32 = F32::neg_inf;
+    const zero: F32 = 0.0;
+
+    const num_mantissa_bits: N32 = 23;
+    const num_exponent_bits: N32 = 8;
+
+    const max_exponent: I32 = +127;
+    const min_exponent: I32 = -126;
+    const min_subnormal_exponent: I32 = -149;
+    const max_decimal_digits: N32 = 9;
+
+    fn from_parts(negative: Bool, raw_exp: N32, mantissa: N32) -> F32 {
+      F32::from_bits(negative as N32 << 31 | raw_exp << 23 | mantissa)
+    }
+
+    fn to_parts(f: F32) -> { negative: Bool, raw_exp: N32, mantissa: N32 } {
+      let bits = f.to_bits();
+      let negative = (bits >> 31) == 1;
+      let raw_exp = (bits >> 23) & 0xff;
+      let mantissa = bits & 0x7FFFFF;
+      { negative, raw_exp, mantissa }
     }
   }
 }

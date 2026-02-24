@@ -1,0 +1,81 @@
+
+pub const ln2_hi: F64 = 6.93147180369123816490e-01[F64];
+pub const ln2_lo: F64 = 1.90821492927058770002e-10[F64];
+pub const log2e: F64 = 1.44269504088896338700e+00[F64];
+
+const num_mantissa_bits: N32 = Float::num_mantissa_bits[F64, _];
+const max_exponent: I32 = Float::max_exponent[F64, _];
+
+const exp_mask: N32 = (1[N32] << Float::num_exponent_bits[F64, _]) - 1;
+
+// normalize returns a normal number y and exponent exp
+// satisfying x == y × 2**exp. It assumes x is finite and non-zero.
+pub.F64 fn normalize(x: F64) -> (F64, I32) {
+  // 2**-1022
+  const SmallestNormal: F64 = 2.2250738585072014e-308[F64];
+  if x.abs() < SmallestNormal {
+    return (x * (1[N64] << 52) as F64, -52);
+  }
+  return (x, +0);
+}
+
+/// Breaks f into a normalized fraction
+/// and an integral power of two.
+/// It returns frac and exp satisfying f == frac × 2**exp,
+/// with the absolute value of frac in the interval [½, 1).
+///
+/// Special cases are:
+///
+///	fraction_exponent(±0) = ±0, 0
+///	fraction_exponent(±Inf) = ±Inf, 0
+///	fraction_exponent(NaN) = NaN, 0
+pub.F64 fn fraction_exponent(f: F64) -> { frac: F64, exp: I32 } {
+  if f == 0.0[F64] or f.is_nan() or f == F64::inf or f == F64::neg_inf {
+    return { frac: f, exp: +0 };
+  }
+  let (frac, exp) = normalize(f);
+  let x = frac.to_bits();
+  exp += ((x >> num_mantissa_bits) as N32 & exp_mask) as I32 - (max_exponent - +1);
+  x &= !(exp_mask as N64 << num_mantissa_bits);
+  x |= (max_exponent - +1) as N32 as N64 << num_mantissa_bits;
+  let frac = F64::from_bits(x);
+  { frac, exp }
+}
+
+/// Inverse operation to fraction_exponent.
+pub.F64 fn apply_exponent(frac: F64, exp: I32) -> F64 {
+  // special cases
+  if frac == 0.0[F64] or frac == F64::inf or frac == F64::neg_inf or frac.is_nan() {
+    return frac;
+  }
+  let (frac, e) = normalize(frac);
+  exp += e;
+  let x = frac.to_bits();
+  exp += ((x >> num_mantissa_bits) as N32 & exp_mask) as I32 - max_exponent;
+  if exp < -1075 {
+    // underflow
+    return if frac < 0.0[F64] {
+      -0.0[F64]
+    } else {
+      0.0[F64]
+    };
+  }
+  if exp > +1023 {
+    // overflow
+    return if frac < 0.0[F64] {
+      F64::neg_inf
+    } else {
+      F64::inf
+    };
+  }
+  let m = 1.0[F64];
+  if exp < -1022 {
+    // denormalize
+    exp += +53
+    // 2**-53
+    m = 1.0[F64] / (1 << 53) as F64
+  }
+  x &= !(exp_mask as N64 << num_mantissa_bits);
+  x |= (exp + max_exponent) as N32 as N64 << num_mantissa_bits;
+  return m * F64::from_bits(x);
+}
