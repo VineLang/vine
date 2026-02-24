@@ -11,7 +11,9 @@ pub fn prune(nets: &mut Nets, entrypoints: &[String]) {
     }
   }
   let keep = prune.keep;
-  nets.retain(|name, _| keep.contains(name));
+  if !keep.is_empty() {
+    nets.retain(|name, _| keep.contains(name));
+  }
 }
 
 struct Prune<'a> {

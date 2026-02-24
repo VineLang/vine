@@ -266,10 +266,11 @@ let
     test =
       let
         vi = just ./misc/basic_test.vi;
-        result = pkgs.runCommand "misc-basic_test" { } ''
-          ! ${vine} test --no-stats ${vi} "#basic_test::test" 2>>$out
-          echo 'setting --no-capture' >>$out
-          ! ${vine} test --no-capture --no-stats ${vi} "#basic_test::test" 2>>$out
+
+        result = interactive "misc-basic_test" { inherit vine vi; } ''
+          ! $vine test --no-stats $vi
+          ! $vine test --no-stats --no-capture $vi
+          $vine test --no-stats --test test_proper_div $vi
         '';
       in
       {

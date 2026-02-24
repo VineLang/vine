@@ -205,25 +205,24 @@ impl VineTestCommand {
     let tests = Self::matching_tests(&self.tests, &compiler);
     eprintln!("running {} test(s)\n", tests.len());
 
-    let entrypoints: Vec<_> = tests.iter().map(|(_, id)| compiler.global_name(*id)).collect();
+    let entrypoints: Vec<_> = tests.iter().map(|(_, id)| compiler.entrypoint_name(*id)).collect();
     self.optimizations.apply(&mut nets, &entrypoints);
 
-    let Colors { reset, red, green, .. } = colors(&stderr());
+    let Colors { reset, grey, bold, red, green, .. } = colors(&stderr());
 
     let mut failed = false;
     for (path, test_id) in tests {
       compiler.insert_main_net(&mut nets, test_id);
 
-      eprint!("test {path} ... ");
+      eprint!("{grey}test{reset} {bold}{path}{reset} {grey}...{reset} ");
       let (result, output) = self.run_args.output(&nets);
       if result.success() {
         eprintln!("{green}ok{reset}");
-        if self.no_capture {
-          io::stderr().write_all(&output)?;
-        }
       } else {
         failed = true;
         eprintln!("{red}FAILED{reset}");
+      }
+      if self.no_capture || !result.success() {
         io::stderr().write_all(&output)?;
         eprintln!();
       }
@@ -241,15 +240,11 @@ impl VineTestCommand {
       .chart
       .tests
       .iter()
-      .copied()
-      .filter_map(|test_id| {
+      .filter_map(|&test_id| {
         let def_id = compiler.chart.concrete_fns[test_id].def;
         let path = &compiler.chart.defs[def_id].path;
-        if tests.is_empty() || tests.iter().any(|test| path.contains(test)) {
-          Some((path.to_owned(), compiler.resolutions.fns[test_id]))
-        } else {
-          None
-        }
+        (tests.is_empty() || tests.iter().any(|test| path.contains(test)))
+          .then(|| (path.to_owned(), compiler.resolutions.fns[test_id]))
       })
       .collect()
   }

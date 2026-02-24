@@ -173,7 +173,7 @@ impl Compiler {
     nets
   }
 
-  pub fn global_name(&mut self, fragment_id: FragmentId) -> String {
+  pub fn entrypoint_name(&mut self, fragment_id: FragmentId) -> String {
     let path = &self.fragments[fragment_id].path;
     let vir = &self.vir[fragment_id];
     let func = vir.closures[ClosureId(0)];
@@ -182,7 +182,7 @@ impl Compiler {
   }
 
   pub fn insert_main_net(&mut self, nets: &mut Nets, main: FragmentId) {
-    let global = self.global_name(main);
+    let global = self.entrypoint_name(main);
     nets.insert("::".into(), main_net(self.debug, Tree::Global(global)));
   }
 }

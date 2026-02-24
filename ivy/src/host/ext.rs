@@ -232,18 +232,13 @@ impl<'ivm> Host<'ivm> {
     });
   }
 
-  pub fn register_runtime_extrinsics<R, W, FI, FO>(
+  pub fn register_runtime_extrinsics<R: Read, W: Write>(
     &mut self,
     extrinsics: &mut Extrinsics<'ivm>,
     args: &'ivm [String],
-    io_input_fn: FI,
-    io_output_fn: FO,
-  ) where
-    FI: Copy + Fn() -> R + Send + Sync + 'ivm,
-    FO: Copy + Fn() -> W + Send + Sync + 'ivm,
-    R: Read,
-    W: Write,
-  {
+    io_input_fn: impl Copy + Fn() -> R + Send + Sync + 'ivm,
+    io_output_fn: impl Copy + Fn() -> W + Send + Sync + 'ivm,
+  ) {
     let n32 = extrinsics.n32_ext_ty();
     let list = self.register_ext_ty::<Boxed<Vec<ExtVal<'ivm>>>>("List", extrinsics);
     let io = self.register_ext_ty::<()>("IO", extrinsics);
@@ -394,22 +389,22 @@ impl<'ivm> Host<'ivm> {
       },
 
       "io_print_char" => |_io: io, b: n32| -> io {
-        write!((io_output_fn)(), "{}", char::try_from(b).unwrap()).unwrap();
+        write!(io_output_fn(), "{}", char::try_from(b).unwrap()).unwrap();
       },
       "io_print_byte" => |_io: io, b: n32| -> io {
-        (io_output_fn)().write_all(&[b as u8]).unwrap();
+        io_output_fn().write_all(&[b as u8]).unwrap();
       },
       "io_flush" => |_io: io| -> io {
-        (io_output_fn)().flush().unwrap();
+        io_output_fn().flush().unwrap();
       },
       "io_read_byte" => |_io: io| -> (n32, io) {
         let mut buf = [0];
-        let count = (io_input_fn)().read(&mut buf).unwrap();
+        let count = io_input_fn().read(&mut buf).unwrap();
         let byte = if count == 0 { u32::MAX } else { buf[0] as u32 };
         (byte, ())
       },
       "io_read_char" => |_io: io| -> (n32, io) {
-        match read_char((io_input_fn)()).ok()? {
+        match read_char(io_input_fn()).ok()? {
           (0, None) => (u32::MAX, ()),
           (_, None) => (char::REPLACEMENT_CHARACTER as u32, ()),
           (_, Some(c)) => (c as u32, ()),

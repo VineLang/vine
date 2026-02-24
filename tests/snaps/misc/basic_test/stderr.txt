@@ -1,3 +1,4 @@
+! $vine test --no-stats $vi
 running 4 test(s)
 
 test #basic_test::test_div_by_zero ... FAILED
@@ -12,7 +13,7 @@ This should always be printed because of failure
 ERROR: This message should also be printed
   @ #basic_test::test_capture_failed (basic_test.vi:20:3)
 
-setting --no-capture
+! $vine test --no-stats --no-capture $vi
 running 4 test(s)
 
 test #basic_test::test_div_by_zero ... FAILED
@@ -21,10 +22,16 @@ ERROR: division by zero
   @ #basic_test::test_div_by_zero (basic_test.vi:4:3)
 
 test #basic_test::test_proper_div ... ok
+
 test #basic_test::test_capture_ok ... ok
 This should be printed if --no-capture is set
+
 test #basic_test::test_capture_failed ... FAILED
 This should always be printed because of failure
 ERROR: This message should also be printed
   @ #basic_test::test_capture_failed (basic_test.vi:20:3)
 
+$vine test --no-stats --test test_proper_div $vi
+running 1 test(s)
+
+test #basic_test::test_proper_div ... ok
