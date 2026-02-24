@@ -20,8 +20,7 @@ x as F32
 x as N64
 x.to_bits()
 F64::from_bits(x.to_bits())
-let parts = x.to_parts()
-F64::from_parts(parts.negative, parts.raw_exp, parts.mantissa)
+x.to_parts()
 x.abs()
 (-x).abs()
 x.is_nan()
