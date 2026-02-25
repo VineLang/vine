@@ -1,11 +1,23 @@
 
-pub fn helper_fn(&io: &IO) {
-  io.println("the helper fn ran!");
+#[test]
+pub fn test_div_by_zero(&_io: &IO) {
+  1 / 0;
 }
 
 #[test]
-pub fn test(&io: &IO) {
-  helper_fn(&io);
+pub fn test_proper_div(&_io: &IO) {
+  1 / 1;
+}
+
+#[test]
+pub fn test_capture_ok(&io: &IO) {
+  io.println("This should be printed if --no-capture is set");
+}
+
+#[test]
+pub fn test_capture_failed(&io: &IO) {
+  io.println("This should always be printed because of failure");
+  debug::error("This message should also be printed")
 }
 
 pub fn main(&_io: &IO) {}

@@ -3,7 +3,7 @@ use std::{
   env,
   ffi::OsStr,
   fmt, fs,
-  io::{self, IsTerminal, Read, stderr, stdin, stdout},
+  io::{self, IsTerminal, Read, Write, stderr, stdin, stdout},
   path::{Path, PathBuf},
   process::exit,
   sync::mpsc,
@@ -24,7 +24,7 @@ use rustyline::DefaultEditor;
 use vine::{
   compiler::Compiler,
   components::loader::{FileId, Loader, RealFS},
-  structures::ast::Ident,
+  structures::{ast::Ident, resolutions::FragmentId},
   tools::{doc::document, fmt::Formatter, repl::Repl},
 };
 use vine_lsp::lsp;
@@ -171,8 +171,8 @@ impl VineRunCommand {
   pub fn execute(self) -> Result<()> {
     let debug = self.compile.debug;
     let (mut nets, _) = self.compile.compile();
-    self.optimizations.apply(&mut nets);
-    self.run_args.run(nets, !debug);
+    self.optimizations.apply(&mut nets, &[]);
+    self.run_args.check(&nets, !debug);
     Ok(())
   }
 }
@@ -185,43 +185,68 @@ pub struct VineTestCommand {
   optimizations: Optimizations,
   #[command(flatten)]
   run_args: RunArgs,
-
-  /// The test path to run. If not provided, all test paths in MAIN are printed.
-  test_path: Option<String>,
+  /// By default, stdout is captured when running test entrypoints. It is only
+  /// printed to stderr when an error occurs. Setting `no_capture` always prints
+  /// stdout to stderr after the test runs.
+  #[arg(short, long)]
+  no_capture: bool,
+  /// The test patterns to run. Test paths containing any of the provided
+  /// strings as substrings are run. If none are provided, all tests are run.
+  #[arg(long = "test")]
+  tests: Vec<String>,
 }
 
 impl VineTestCommand {
-  pub fn execute(self) -> Result<()> {
-    let debug = self.compile.debug;
+  pub fn execute(mut self) -> Result<()> {
+    self.compile.debug = true;
 
     let (mut nets, mut compiler) = self.compile.compile();
 
-    let Some(test_path) = self.test_path else {
-      for concrete_fn_id in compiler.chart.tests {
-        let def_id = compiler.chart.concrete_fns[concrete_fn_id].def;
-        let path = &compiler.chart.defs[def_id].path;
+    let tests = Self::matching_tests(&self.tests, &compiler);
+    eprintln!("running {} test(s)\n", tests.len());
 
-        println!("{path}");
+    let entrypoints: Vec<_> = tests.iter().map(|(_, id)| compiler.entrypoint_name(*id)).collect();
+    self.optimizations.apply(&mut nets, &entrypoints);
+
+    let Colors { reset, grey, bold, red, green, .. } = colors(&stderr());
+
+    let mut failed = false;
+    for (path, test_id) in tests {
+      compiler.insert_main_net(&mut nets, test_id);
+
+      eprint!("{grey}test{reset} {bold}{path}{reset} {grey}...{reset} ");
+      let (result, output) = self.run_args.output(&nets);
+      if result.success() {
+        eprintln!("{green}ok{reset}");
+      } else {
+        failed = true;
+        eprintln!("{red}FAILED{reset}");
       }
+      if self.no_capture || !result.success() {
+        io::stderr().write_all(&output)?;
+        eprintln!();
+      }
+    }
 
-      return Ok(());
-    };
-
-    let Some(test_concrete_fn_id) = compiler.chart.tests.iter().find(|concrete_fn_id| {
-      let def_id = compiler.chart.concrete_fns[**concrete_fn_id].def;
-      compiler.chart.defs[def_id].path == test_path
-    }) else {
-      eprintln!("test path {test_path:?} does not exist");
+    if failed {
       exit(1);
-    };
-
-    let main_fragment_id = compiler.resolutions.fns[*test_concrete_fn_id];
-    compiler.insert_main_net(&mut nets, main_fragment_id);
-
-    self.optimizations.apply(&mut nets);
-    self.run_args.run(nets, !debug);
+    }
 
     Ok(())
+  }
+
+  fn matching_tests(tests: &[String], compiler: &Compiler) -> Vec<(String, FragmentId)> {
+    compiler
+      .chart
+      .tests
+      .iter()
+      .filter_map(|&test_id| {
+        let def_id = compiler.chart.concrete_fns[test_id].def;
+        let path = &compiler.chart.defs[def_id].path;
+        (tests.is_empty() || tests.iter().any(|test| path.contains(test)))
+          .then(|| (path.to_owned(), compiler.resolutions.fns[test_id]))
+      })
+      .collect()
   }
 }
 
@@ -238,7 +263,7 @@ pub struct VineBuildCommand {
 impl VineBuildCommand {
   pub fn execute(self) -> Result<()> {
     let (mut nets, _) = self.compile.compile();
-    self.optimizations.apply(&mut nets);
+    self.optimizations.apply(&mut nets, &[]);
     if let Some(out) = self.out {
       fs::write(out, nets.to_string())?;
     } else {
@@ -348,7 +373,7 @@ impl VineReplCommand {
     let heap = Heap::new();
     let mut extrinsics = Extrinsics::default();
     host.register_default_extrinsics(&mut extrinsics);
-    host.register_runtime_extrinsics(&mut extrinsics, self.args);
+    host.register_runtime_extrinsics(&mut extrinsics, &self.args, io::stdin, io::stdout);
 
     let mut ivm = IVM::new(&heap, &extrinsics);
     let mut compiler = Compiler::new(!self.no_debug, build_config(self.config));

@@ -3,11 +3,15 @@ use std::collections::HashSet;
 use crate::ast::{Net, Nets, Tree};
 
 /// Prune unused global nets.
-pub fn prune(nets: &mut Nets) {
-  if nets.contains_key("::") {
-    let mut prune = Prune { nets, keep: HashSet::new() };
-    prune.visit_global("::");
-    let keep = prune.keep;
+pub fn prune(nets: &mut Nets, entrypoints: &[String]) {
+  let mut prune = Prune { nets, keep: HashSet::new() };
+  for global in entrypoints.iter().map(String::as_str).chain(["::"]) {
+    if nets.contains_key(global) {
+      prune.visit_global(global);
+    }
+  }
+  let keep = prune.keep;
+  if !keep.is_empty() {
     nets.retain(|name, _| keep.contains(name));
   }
 }

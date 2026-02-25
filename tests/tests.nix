@@ -266,13 +266,16 @@ let
     test =
       let
         vi = just ./misc/basic_test.vi;
-        result = pkgs.runCommand "misc-basic_test" { } ''
-          ${vine} test --no-stats ${vi} "#basic_test::test" >$out
+
+        result = interactive "misc-basic_test" { inherit vine vi; } ''
+          ! $vine test --no-stats $vi
+          ! $vine test --no-stats --no-capture $vi
+          $vine test --no-stats --test test_proper_div $vi
         '';
       in
       {
         checks.tests-misc-basic_test = result;
-        snaps."misc/basic_test/output.txt" = result;
+        snaps."misc/basic_test/stderr.txt" = result;
       };
 
     missing_no =

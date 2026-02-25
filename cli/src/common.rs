@@ -1,12 +1,18 @@
-use std::process::exit;
+use std::{
+  io::{self, Read, Write},
+  process::exit,
+  sync::{Mutex, MutexGuard},
+};
 
 use clap::Args;
 
 use ivm::{
   IVM,
   ext::Extrinsics,
+  flags::Flags,
   heap::Heap,
   port::{Port, Tag},
+  stats::Stats,
 };
 use ivy::{ast::Nets, host::Host, optimize::Optimizer};
 
@@ -17,9 +23,9 @@ pub struct Optimizations {
 }
 
 impl Optimizations {
-  pub fn apply(self, nets: &mut Nets) {
+  pub fn apply(&self, nets: &mut Nets, entrypoints: &[String]) {
     if !self.no_opt {
-      Optimizer::default().optimize(nets)
+      Optimizer::default().optimize(nets, entrypoints)
     }
   }
 }
@@ -40,7 +46,39 @@ pub struct RunArgs {
 }
 
 impl RunArgs {
-  pub fn run(self, nets: Nets, debug_hint: bool) {
+  /// Run the nets capturing any stdout and stderr.
+  pub fn output(&self, nets: &Nets) -> (RunResult, Vec<u8>) {
+    pub struct SharedWriter<'a>(pub MutexGuard<'a, Vec<u8>>);
+
+    impl Write for SharedWriter<'_> {
+      fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
+        self.0.extend_from_slice(buf);
+        Ok(buf.len())
+      }
+
+      fn flush(&mut self) -> io::Result<()> {
+        Ok(())
+      }
+    }
+
+    let input: &[u8] = &[];
+    let output = Mutex::default();
+    let result = self.run(nets, || input, || SharedWriter(output.lock().unwrap()));
+
+    (result, output.into_inner().unwrap())
+  }
+
+  /// Run the nets forwarding stdout and stderr, exiting if any errors occur.
+  pub fn check(&self, nets: &Nets, debug_hint: bool) {
+    self.run(nets, io::stdin, io::stdout).check(debug_hint);
+  }
+
+  pub fn run<R: Read, W: Write>(
+    &self,
+    nets: &Nets,
+    io_input_fn: impl Copy + Fn() -> R + Send + Sync,
+    io_output_fn: impl Copy + Fn() -> W + Send + Sync,
+  ) -> RunResult {
     let mut host = &mut Host::default();
     let heap = match self.heap {
       Some(size) => Heap::with_size(size).expect("heap allocation failed"),
@@ -49,8 +87,8 @@ impl RunArgs {
     let mut extrinsics = Extrinsics::default();
 
     host.register_default_extrinsics(&mut extrinsics);
-    host.register_runtime_extrinsics(&mut extrinsics, self.args);
-    host.insert_nets(&nets);
+    host.register_runtime_extrinsics(&mut extrinsics, &self.args, io_input_fn, io_output_fn);
+    host.insert_nets(nets);
 
     let main = host.get("::").expect("missing main");
     let mut ivm = IVM::new(&heap, &extrinsics);
@@ -67,40 +105,58 @@ impl RunArgs {
     }
 
     let out = ivm.follow(Port::new_wire(node.2));
-    let no_io =
-      out.tag() != Tag::ExtVal || unsafe { out.as_ext_val() }.bits() != host.new_io().bits();
-    let vicious = ivm.stats.mem_free < ivm.stats.mem_alloc;
-    if no_io {
+    if self.no_perf {
+      ivm.stats.clear_perf();
+    }
+
+    RunResult {
+      stats: (!self.no_stats).then_some(ivm.stats),
+      flags: ivm.flags,
+      no_io: out.tag() != Tag::ExtVal || unsafe { out.as_ext_val() }.bits() != host.new_io().bits(),
+      vicious: ivm.stats.mem_free < ivm.stats.mem_alloc,
+    }
+  }
+}
+
+pub struct RunResult {
+  pub stats: Option<Stats>,
+  pub flags: Flags,
+  pub no_io: bool,
+  pub vicious: bool,
+}
+
+impl RunResult {
+  pub fn check(&self, debug_hint: bool) {
+    if self.no_io {
       eprintln!("\nError: the net did not return its `IO` handle");
       if debug_hint {
         eprintln!("  hint: try running the program in `--debug` mode to see error messages");
       }
     }
-    if vicious {
+    if self.vicious {
       eprintln!("\nError: the net created a vicious circle");
     }
-
-    if ivm.flags.ext_copy {
+    if self.flags.ext_copy {
       eprintln!("\nError: a linear extrinsic was copied");
     }
-    if ivm.flags.ext_erase {
+    if self.flags.ext_erase {
       eprintln!("\nError: a linear extrinsic was erased");
     }
-    if ivm.flags.ext_generic {
+    if self.flags.ext_generic {
       eprintln!("\nError: an extrinsic function encountered an unspecified error");
     }
 
-    if self.no_perf {
-      ivm.stats.clear_perf();
+    if let Some(stats) = &self.stats {
+      eprintln!("{}", stats);
     }
 
-    if !self.no_stats {
-      eprintln!("{}", ivm.stats);
-    }
-
-    if no_io || vicious || !ivm.flags.success() {
+    if !self.success() {
       exit(1);
     }
+  }
+
+  pub fn success(&self) -> bool {
+    !self.no_io && !self.vicious && self.flags.success()
   }
 }
 
