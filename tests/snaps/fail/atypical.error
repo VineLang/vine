@@ -38,11 +38,15 @@ error: expected type `(?19, ?20)`; found `N32`
     @ atypical.vi:10:16
  10 |   let (a, b) = 0;
 
-error: cannot find impl of trait `Fn[N32, (), ?29]`
+error: search limit reached when finding impl of trait `Add[?22, N32, ?24]`
+    @ atypical.vi:11:10
+ 11 |   let x; x + 1;
+
+error: cannot find impl of trait `Fn[N32, (), ?26]`
     @ atypical.vi:12:3
  12 |   1();
 
-error: cannot find impl of trait `Add[N32, ~N32, ?34]`
+error: cannot find impl of trait `Add[N32, ~N32, ?31]`
     @ atypical.vi:13:14
  13 |   let x = 3; 2 + ~x;
 
@@ -78,7 +82,7 @@ error: no value associated with `#atypical::Foo`
     @ atypical.vi:18:21
  18 |   let Thing((x,)) = Foo(1);
 
-error: expected type `(N32, N32)`; found `(?54,)`
+error: expected type `(N32, N32)`; found `(?51,)`
     @ atypical.vi:18:13
  18 |   let Thing((x,)) = Foo(1);
 
@@ -98,11 +102,11 @@ error: expected type `Ay`; found `N32`
     @ atypical.vi:22:19
  22 |   let Ay::Yay() = 0;
 
-error: cannot find impl of trait `Add[String, N32, ?75]`
+error: cannot find impl of trait `Add[String, N32, ?72]`
     @ atypical.vi:23:4
  23 |   (loop { break "x" } + 1);
 
-error: expected type `N32`; found `&?79`
+error: expected type `N32`; found `&?76`
     @ atypical.vi:24:7
  24 |   let &x: N32 = loop { continue };
 
@@ -118,7 +122,7 @@ error: expected type `()`; found `F32`
     @ atypical.vi:27:10
  27 |   return 0.0;
 
-error: cannot find impl of trait `Add[~N32, ~N32, ?85]`
+error: cannot find impl of trait `Add[~N32, ~N32, ?82]`
     @ atypical.vi:28:14
  28 |   let x = 1; ~x + ~x;
 
@@ -157,10 +161,6 @@ error: unconditional infinite loops are invalid
 error: cannot drop `IO`
    @ atypical.vi:6:19
  6 | pub fn main[T, U](io: IO) {
-
-error: variable of type `N32` read whilst uninitialized
-    @ atypical.vi:11:10
- 11 |   let x; x + 1;
 
 error: cannot drop `U`
     @ atypical.vi:21:7
