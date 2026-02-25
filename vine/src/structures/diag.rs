@@ -255,8 +255,6 @@ diags! {
     ["match arms do not cover all possible cases"]
   AmbiguousPolyformicComposite
     ["composite expression in polyformic position has elements of mixed forms"]
-  PolyformicHole
-    ["holes cannot occur in a polyformic position"]
   FlexSearchLimit { ty: String }
     ["search limit reached when finding flex of type `{ty}`"]
   BiFlexible { ty: String }

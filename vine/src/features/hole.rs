@@ -28,19 +28,6 @@ impl Resolver<'_> {
   pub(crate) fn resolve_expr_hole(&mut self, span: Span, ty: Option<&Ty>) -> Result<TirExpr, Diag> {
     let ty = ty.map(|ty| self.resolve_ty(ty, true)).unwrap_or_else(|| self.types.new_var(span));
     Ok(TirExpr::new(span, ty, TirExprKind::Hole))
-    // let Some(ty) = ty else {
-    // };
-    // let ty = self.resolve_ty(ty, true);
-    // let Some(default_trait) = self.chart.builtins.default else {
-    //   Err(Diag::MissingBuiltin { span, builtin: "Default" })?
-    // };
-    // let default_impl_type = ImplType::Trait(default_trait, vec![ty]);
-    // let default_impl = self.find_impl(span, &default_impl_type, false);
-    // let default_const = ConstId::Abstract(default_trait, TraitConstId(0));
-    // let default_const_rel = self.rels.consts.push((default_const,
-    // vec![default_impl]));
-
-    // Ok(TirExpr::new(span, ty, TirExprKind::Const(default_const_rel)))
   }
 
   pub(crate) fn resolve_pat_hole(&mut self, span: Span) -> Result<TirPat, Diag> {
@@ -115,11 +102,13 @@ impl Distiller<'_> {
 
 impl<'src> Formatter<'src> {
   pub(crate) fn fmt_expr_hole(&self, ty: &Option<Ty>) -> Doc<'src> {
-    if let Some(ty) = ty {
-      let ty = self.fmt_ty(ty);
-      Doc::concat([Doc("_["), ty, Doc("]")])
-    } else {
-      Doc("_")
-    }
+    Doc::concat([
+      Doc("_"),
+      if let Some(ty) = ty {
+        Doc::concat([Doc("["), self.fmt_ty(ty), Doc("]")])
+      } else {
+        Doc::EMPTY
+      },
+    ])
   }
 }
