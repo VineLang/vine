@@ -30,11 +30,11 @@ error: expected a space expression; found a value expression
    @ informal.vi:7:9
  7 |   _ += ~1;
 
-error: holes cannot occur in a polyformic position
+error: cannot find impl of trait `Default[_]`
    @ informal.vi:7:3
  7 |   _ += ~1;
 
-error: holes cannot occur in a polyformic position
+error: cannot find impl of trait `Default[_]`
    @ informal.vi:8:15
  8 |   let ~&_ = ~&_;
 

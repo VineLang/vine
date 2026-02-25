@@ -85,6 +85,15 @@ impl Distiller<'_> {
     self.drop_space(span, stage, ty)
   }
 
+  pub(crate) fn distill_expr_place_hole(
+    &mut self,
+    stage: &mut Stage,
+    span: Span,
+    ty: Type,
+  ) -> (Port, Port) {
+    (self.distill_expr_value_hole(stage, span, ty), self.drop_space(span, stage, ty))
+  }
+
   pub(crate) fn distill_pat_value_hole(&mut self, stage: &mut Stage, span: Span, ty: Type) -> Port {
     self.drop_space(span, stage, ty)
   }
