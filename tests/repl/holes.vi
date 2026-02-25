@@ -2,6 +2,9 @@
 _ ++ [1, 2, 3]
 "abc" ++ _
 (_, _) = (1, 2)
+_[N32]
+let x: &N32 = &_
+/clear x
 #[impl(Default, Show)] struct* Chain[T](T, Option[Chain[T]])
 let x = _[Chain[()]]
 let y: Chain[()] = _
@@ -10,4 +13,3 @@ let y: Chain[()] = _
 (_[N32], _[N32]) = (1, 2) // error
 "abc" ++ _[N32] // error
 _ // error
-_[N32] // error

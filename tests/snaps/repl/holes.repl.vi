@@ -15,6 +15,17 @@ let io: IO = <IO>;
 > (_, _) = (1, 2)
 
 let io: IO = <IO>;
+> _[N32]
+0
+
+let io: IO = <IO>;
+> let x: &N32 = &_
+
+let io: IO = <IO>;
+let x: &N32 = &(0);
+> /clear x
+
+let io: IO = <IO>;
 > #[impl(Default, Show)] struct* Chain[T](T, Option[Chain[T]])
 
 let io: IO = <IO>;
@@ -41,23 +52,20 @@ let io: IO = <IO>;
 
 let io: IO = <IO>;
 > "abc" ++ _[N32] // error
-error: cannot find impl of trait `Concat[String, N32, ?121]`
+error: cannot find impl of trait `Concat[String, N32, ?151]`
    @ input:1:1
  1 | "abc" ++ _[N32] // error
 
 
 let io: IO = <IO>;
 > _ // error
-error: holes cannot occur in a polyformic position
+error: found several impls of trait `Default[?148]`
    @ input:1:1
  1 | _ // error
 
-
-let io: IO = <IO>;
-> _[N32] // error
-error: holes cannot occur in a polyformic position
+error: search limit reached when finding impl of trait `Drop[?148]`
    @ input:1:1
- 1 | _[N32] // error
+ 1 | _ // error
 
 
 let io: IO = <IO>;
