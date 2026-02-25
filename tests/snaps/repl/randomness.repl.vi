@@ -3,7 +3,7 @@ let io: IO = <IO>;
 > use #root::rng::Pcg32;
 
 let io: IO = <IO>;
-> let rng = Pcg32::default
+> let rng = Pcg32::canonical
 
 let io: IO = <IO>;
 let rng: Pcg32 = <Pcg32>;

@@ -4,11 +4,11 @@ pub struct* Pcg32(N64, N64);
 
 pub mod Pcg32 {
   /// A canonical Pcg32 instance.
-  pub const default: Pcg32 = new(0xcafef00d_d15ea5e5[N64], 0x14057b7e_f767814f[N64]);
+  pub const canonical: Pcg32 = new(0xcafef00d_d15ea5e5[N64], 0x14057b7e_f767814f[N64]);
 
   /// Create a Pcg32 RNG based on a given seed string.
   pub fn seeded(seed: String) -> Pcg32 {
-    let rng = Pcg32::default;
+    let rng = Pcg32::canonical;
     for char in seed {
       rng.mix(char as N32)
     }
