@@ -153,7 +153,8 @@ impl Compiler {
     for fragment_id in self.fragments.keys_from(checkpoint.fragments) {
       let fragment = &self.fragments[fragment_id];
       let vir = &self.vir[fragment_id];
-      let template = emit(self.debug, &self.chart, &self.sigs, fragment, vir, &mut self.specs);
+      let template =
+        emit(self.debug, &self.chart, &self.sigs, fragment, vir, &mut self.specs, guide);
       self.templates.push_to(fragment_id, template);
     }
 
@@ -163,6 +164,8 @@ impl Compiler {
       fragments: &self.fragments,
       specs: &mut self.specs,
       vir: &self.vir,
+      guide,
+      table,
     };
     specializer.specialize_since(checkpoint);
 
@@ -186,6 +189,7 @@ impl Compiler {
             &self.chart,
             &self.sigs,
             &self.specs,
+            guide,
             spec,
             item,
           );
