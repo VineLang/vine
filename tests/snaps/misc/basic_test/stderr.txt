@@ -3,7 +3,7 @@ running 4 test(s)
 
 test #basic_test::test_div_by_zero ... FAILED
 ERROR: division by zero
-  @ #root::numeric::N32::div (root/numeric/N32.vi:53:16)
+  @ #root::numeric::N32::div (root/numeric/N32.vi:57:16)
   @ #basic_test::test_div_by_zero (basic_test.vi:4:3)
 
 test #basic_test::test_proper_div ... ok
@@ -18,7 +18,7 @@ running 4 test(s)
 
 test #basic_test::test_div_by_zero ... FAILED
 ERROR: division by zero
-  @ #root::numeric::N32::div (root/numeric/N32.vi:53:16)
+  @ #root::numeric::N32::div (root/numeric/N32.vi:57:16)
   @ #basic_test::test_div_by_zero (basic_test.vi:4:3)
 
 test #basic_test::test_proper_div ... ok
