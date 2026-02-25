@@ -26,19 +26,21 @@ impl<'src> Parser<'src> {
 
 impl Resolver<'_> {
   pub(crate) fn resolve_expr_hole(&mut self, span: Span, ty: Option<&Ty>) -> Result<TirExpr, Diag> {
-    let Some(ty) = ty else {
-      return Ok(TirExpr::new(span, self.types.new_var(span), TirExprKind::Hole));
-    };
-    let ty = self.resolve_ty(ty, true);
-    let Some(default_trait) = self.chart.builtins.default else {
-      Err(Diag::MissingBuiltin { span, builtin: "Default" })?
-    };
-    let default_impl_type = ImplType::Trait(default_trait, vec![ty]);
-    let default_impl = self.find_impl(span, &default_impl_type, false);
-    let default_const = ConstId::Abstract(default_trait, TraitConstId(0));
-    let default_const_rel = self.rels.consts.push((default_const, vec![default_impl]));
+    let ty = ty.map(|ty| self.resolve_ty(ty, true)).unwrap_or_else(|| self.types.new_var(span));
+    Ok(TirExpr::new(span, ty, TirExprKind::Hole))
+    // let Some(ty) = ty else {
+    // };
+    // let ty = self.resolve_ty(ty, true);
+    // let Some(default_trait) = self.chart.builtins.default else {
+    //   Err(Diag::MissingBuiltin { span, builtin: "Default" })?
+    // };
+    // let default_impl_type = ImplType::Trait(default_trait, vec![ty]);
+    // let default_impl = self.find_impl(span, &default_impl_type, false);
+    // let default_const = ConstId::Abstract(default_trait, TraitConstId(0));
+    // let default_const_rel = self.rels.consts.push((default_const,
+    // vec![default_impl]));
 
-    Ok(TirExpr::new(span, ty, TirExprKind::Const(default_const_rel)))
+    // Ok(TirExpr::new(span, ty, TirExprKind::Const(default_const_rel)))
   }
 
   pub(crate) fn resolve_pat_hole(&mut self, span: Span) -> Result<TirPat, Diag> {
@@ -55,6 +57,25 @@ impl Resolver<'_> {
 }
 
 impl Distiller<'_> {
+  pub(crate) fn distill_expr_value_hole(
+    &mut self,
+    stage: &mut Stage,
+    span: Span,
+    ty: Type,
+  ) -> Port {
+    let Some(default_trait) = self.chart.builtins.default else {
+      return Port::error(
+        ty.inverse(),
+        self.diags.error(Diag::MissingBuiltin { span, builtin: "Default" }),
+      );
+    };
+    let default_impl_type = ImplType::Trait(default_trait, vec![ty]);
+    let default_impl = self.find_impl(span, &default_impl_type, false);
+    let default_const = ConstId::Abstract(default_trait, TraitConstId(0));
+    let default_const_rel = self.rels.consts.push((default_const, vec![default_impl]));
+
+    self.distill_expr_value_const(stage, span, ty, default_const_rel)
+  }
   pub(crate) fn distill_expr_space_hole(
     &mut self,
     stage: &mut Stage,

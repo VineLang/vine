@@ -1,14 +1,14 @@
 
 let io: IO = <IO>;
-> 1[N32] + _[N32]
+> 1 + _
 1
 
 let io: IO = <IO>;
-> _[List] ++ [1, 2, 3]
+> _ ++ [1, 2, 3]
 [1, 2, 3]
 
 let io: IO = <IO>;
-> "abc" ++ _[String]
+> "abc" ++ _
 "abc"
 
 let io: IO = <IO>;
@@ -18,8 +18,16 @@ let io: IO = <IO>;
 > #[impl(Default, Show)] struct* Chain[T](T, Option[Chain[T]])
 
 let io: IO = <IO>;
-> _[Chain[()]]
-Chain((), None())
+> let x = _[Chain[()]]
+
+let io: IO = <IO>;
+let x: Chain[()] = Chain((), None());
+> let y: Chain[()] = _
+
+let io: IO = <IO>;
+let x: Chain[()] = Chain((), None());
+let y: Chain[()] = Chain((), None());
+> /clear x y
 
 let io: IO = <IO>;
 > #[impl(Default)] enum TrafficLight { Red(), Green(), Blue() } // error
@@ -30,20 +38,26 @@ error: cannot find impl of trait `Default[TrafficLight]`
 
 let io: IO = <IO>;
 > (_[N32], _[N32]) = (1, 2) // error
-error: expected a space expression; found a value expression
-   @ input:1:2
- 1 | (_[N32], _[N32]) = (1, 2) // error
 
-error: expected a space expression; found a value expression
-   @ input:1:10
- 1 | (_[N32], _[N32]) = (1, 2) // error
+let io: IO = <IO>;
+> "abc" ++ _[N32] // error
+error: cannot find impl of trait `Concat[String, N32, ?121]`
+   @ input:1:1
+ 1 | "abc" ++ _[N32] // error
 
 
 let io: IO = <IO>;
-> "abc" ++ _[_] // error
-error: found several impls of trait `Default[?74]`
-   @ input:1:10
- 1 | "abc" ++ _[_] // error
+> _ // error
+error: holes cannot occur in a polyformic position
+   @ input:1:1
+ 1 | _ // error
+
+
+let io: IO = <IO>;
+> _[N32] // error
+error: holes cannot occur in a polyformic position
+   @ input:1:1
+ 1 | _[N32] // error
 
 
 let io: IO = <IO>;

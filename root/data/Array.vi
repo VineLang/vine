@@ -14,7 +14,7 @@ pub struct Array[T]((N32, Nullable[Node[T]]));
 
 pub mod Array {
   pub impl [T]: Default[Array[T]] {
-    const default: Array[T] = Array::empty[T];
+    const default: Array[T] = Array::empty;
   }
 
   pub const empty[T]: Array[T] = Array(0, safe Nullable::null());

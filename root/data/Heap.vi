@@ -10,7 +10,7 @@ type Node[T] = (T, Heap[T], Heap[T]);
 
 pub mod Heap[T; Ord[T]] {
   pub impl [T]: Default[Heap[T]] {
-    const default: Heap[T] = Heap::empty[T];
+    const default: Heap[T] = Heap::empty;
   }
 
   /// The empty heap.

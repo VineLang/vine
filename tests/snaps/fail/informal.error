@@ -18,17 +18,25 @@ error: expected a space expression; found a value expression
    @ informal.vi:5:3
  5 |   1 + 1 = 2;
 
-error: expected a value expression; found a space expression
+error: cannot find impl of trait `Default[_]`
    @ informal.vi:6:8
  6 |   ~_ = _;
 
-error: expected a value expression; found a space expression
+error: cannot find impl of trait `Default[_]`
    @ informal.vi:6:4
  6 |   ~_ = _;
 
 error: expected a space expression; found a value expression
    @ informal.vi:7:9
  7 |   _ += ~1;
+
+error: holes cannot occur in a polyformic position
+   @ informal.vi:7:3
+ 7 |   _ += ~1;
+
+error: holes cannot occur in a polyformic position
+   @ informal.vi:8:15
+ 8 |   let ~&_ = ~&_;
 
 error: expected a space expression; found a value expression
    @ informal.vi:8:14

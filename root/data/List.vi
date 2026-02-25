@@ -31,7 +31,7 @@ pub.root struct Buf[T](pub.root T, Buf[T]);
 
 pub mod List {
   pub impl [T]: Default[List[T]] {
-    const default: List[T] = List::empty[T];
+    const default: List[T] = List::empty;
   }
 
   pub const empty[T]: List[T] = [];
