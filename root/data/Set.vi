@@ -11,7 +11,7 @@ type SetNode[T] = (Set[T], T, Set[T]);
 
 pub mod Set[T; Ord[T]] {
   pub impl [T]: Default[Set[T]] {
-    const default: Set[T] = Set::empty[T];
+    const default: Set[T] = Set::empty;
   }
 
   pub const empty[T]: Set[T] = Set(0, safe Nullable::null());
