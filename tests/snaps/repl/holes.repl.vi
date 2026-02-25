@@ -1,0 +1,49 @@
+
+let io: IO = <IO>;
+> 1[N32] + _[N32]
+1
+
+let io: IO = <IO>;
+> _[List] ++ [1, 2, 3]
+[1, 2, 3]
+
+let io: IO = <IO>;
+> "abc" ++ _[String]
+"abc"
+
+let io: IO = <IO>;
+> (_, _) = (1, 2)
+
+let io: IO = <IO>;
+> #[impl(Default, Show)] struct* Chain[T](T, Option[Chain[T]])
+
+let io: IO = <IO>;
+> _[Chain[()]]
+Chain((), None())
+
+let io: IO = <IO>;
+> #[impl(Default)] enum TrafficLight { Red(), Green(), Blue() } // error
+error: cannot find impl of trait `Default[TrafficLight]`
+   @ input:1:8
+ 1 | #[impl(Default)] enum TrafficLight { Red(), Green(), Blue() } // error
+
+
+let io: IO = <IO>;
+> (_[N32], _[N32]) = (1, 2) // error
+error: expected a space expression; found a value expression
+   @ input:1:2
+ 1 | (_[N32], _[N32]) = (1, 2) // error
+
+error: expected a space expression; found a value expression
+   @ input:1:10
+ 1 | (_[N32], _[N32]) = (1, 2) // error
+
+
+let io: IO = <IO>;
+> "abc" ++ _[_] // error
+error: found several impls of trait `Default[?74]`
+   @ input:1:10
+ 1 | "abc" ++ _[_] // error
+
+
+let io: IO = <IO>;

@@ -1,0 +1,9 @@
+1[N32] + _[N32]
+_[List] ++ [1, 2, 3]
+"abc" ++ _[String]
+(_, _) = (1, 2)
+#[impl(Default, Show)] struct* Chain[T](T, Option[Chain[T]])
+_[Chain[()]]
+#[impl(Default)] enum TrafficLight { Red(), Green(), Blue() } // error
+(_[N32], _[N32]) = (1, 2) // error
+"abc" ++ _[_] // error
