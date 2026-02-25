@@ -175,7 +175,7 @@ pub mod Show {
   #[basic]
   pub impl struct_[S, C; Struct[S, C], Show[C]]: Show[S] {
     fn show(&struct_: &S) -> Show {
-      Show::Constructor(Struct::name, Show::show(&struct_ as &C))
+      Show::Constructor(Struct::name[S, C], Show::show(&struct_ as &C))
     }
   }
 
@@ -186,7 +186,7 @@ pub mod Show {
   #[basic]
   pub impl enum_[E, V; Enum[E, V], ShowVariant[V]]: Show[E] {
     fn show(&enum_: &E) -> Show {
-      Enum::match_ref(&enum_, fn (&variant: &V) { variant.show_variant(Enum::variant_names) })
+      Enum::match_ref(&enum_, fn (&variant: &V) { variant.show_variant(Enum::variant_names[E, V]) })
     }
   }
 
@@ -227,7 +227,7 @@ pub mod Show {
   #[basic]
   pub impl opaque[O; Opaque[O]]: Show[O] {
     fn show(&_opaque: &O) -> Show {
-      Show::Literal("<{Opaque::name}>")
+      Show::Literal("<{Opaque::name[O]}>")
     }
   }
 }

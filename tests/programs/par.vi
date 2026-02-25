@@ -4,7 +4,7 @@
 use #root::{ops::Cast, rng::Pcg32};
 
 trait[A] Session[B] {
-  fn fork[F; fn F(A)](f: F) -> B;
+  fn fork[F; fn F(B)](f: F) -> A;
 }
 
 impl nil_session: Session[(), ()] {
@@ -36,15 +36,15 @@ mod Channel {
     out = value;
   }
 
-  pub fn .choose[T, P, Q, F; Session[P, Q], fn F(P) -> T](Channel[~T, ()](~out, ()), choice: F) -> Q {
-    Session::fork[P, Q, _](fn (p: P) {
-      out = choice(p);
+  pub fn .choose[T, P, Q, F; Session[P, Q], fn F(Q) -> T](Channel[~T, ()](~out, ()), choice: F) -> P {
+    Session::fork[P, Q, _](fn (q: Q) {
+      out = choice(q);
     })
   }
 }
 
 impl channel_session[T, P, Q; Session[P, Q]]: Session[Recv[T, P], Send[T, Q]] {
-  fn fork[F; fn F(Channel[T, P])](f: F) -> Send[T, Q] {
+  fn fork[F; fn F(Send[T, Q])](f: F) -> Recv[T, P] {
     let value;
     Channel(~value, Session::fork[P, Q, _](fn (s) { f(Channel(value, s)) }))
   }
@@ -89,7 +89,7 @@ fn start_playing(&io: &IO) -> Game {
   use Outcome::{Draw, Loss, Win};
   use Winner::{First, Second, Third};
 
-  Session::fork[_, Game, _](fn (game: GameDual) {
+  Session::fork[Game, _, _](fn (game: GameDual) {
     let ((player1, player2, player3), winner) = game.recv();
 
     loop {
@@ -121,9 +121,9 @@ fn start_playing(&io: &IO) -> Game {
       }
 
       let fn draw() {
-        player1 = outcome1.choose[_, _, Player, _](fn (x) { Draw(x) });
-        player2 = outcome2.choose[_, _, Player, _](fn (x) { Draw(x) });
-        player3 = outcome3.choose[_, _, Player, _](fn (x) { Draw(x) });
+        player1 = outcome1.choose[_, Player, _, _](fn (x) { Draw(x) });
+        player2 = outcome2.choose[_, Player, _, _](fn (x) { Draw(x) });
+        player3 = outcome3.choose[_, Player, _, _](fn (x) { Draw(x) });
         io.println("Draw...");
       }
 
@@ -155,7 +155,7 @@ fn random_player(&rng: &Pcg32) -> Player {
       Move::Down()
     }
   }
-  Session::fork[Round, _, _](fn (round: Round) {
+  Session::fork[Player, _, _](fn (round: Round) {
     while round.send(random_move()).recv1() is Outcome::Draw(next_round) {
       round = next_round;
     }

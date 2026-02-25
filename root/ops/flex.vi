@@ -52,7 +52,7 @@ pub mod Fork {
   #[safe become(duplicate)]
   pub impl enum_[E, V; Enum[E, V], Fork[V]]: Fork[E] {
     fn fork(&self: &E) -> E {
-      Enum::match_ref(&self, fn (&variant) { Enum::reconstruct(variant) })
+      Enum::match_ref(&self, fn (&variant) { Enum::reconstruct[E, V](variant) })
     }
   }
 

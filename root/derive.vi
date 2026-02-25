@@ -116,7 +116,7 @@ pub mod Struct {
 
   pub impl cast_reconstruct[S, C; Struct[S, C]]: Cast[C, S] {
     fn cast(content: C) -> S {
-      Struct::reconstruct(content)
+      Struct::reconstruct[S, C](content)
     }
   }
 }
@@ -135,7 +135,7 @@ pub mod Enum {
       enum_,
       fn (variant: V) {
         let result = f(&variant);
-        enum_ = Enum::reconstruct(variant);
+        enum_ = Enum::reconstruct[E, V](variant);
         result
       },
     )
