@@ -19,6 +19,9 @@ let io: IO = <IO>;
 0
 
 let io: IO = <IO>;
+> _[(Bool,)].0 = false
+
+let io: IO = <IO>;
 > let x: &N32 = &_
 
 let io: IO = <IO>;
@@ -52,18 +55,18 @@ let io: IO = <IO>;
 
 let io: IO = <IO>;
 > "abc" ++ _[N32] // error
-error: cannot find impl of trait `Concat[String, N32, ?151]`
+error: cannot find impl of trait `Concat[String, N32, ?164]`
    @ input:1:1
  1 | "abc" ++ _[N32] // error
 
 
 let io: IO = <IO>;
 > _ // error
-error: found several impls of trait `Default[?148]`
+error: found several impls of trait `Default[?161]`
    @ input:1:1
  1 | _ // error
 
-error: search limit reached when finding impl of trait `Drop[?148]`
+error: search limit reached when finding impl of trait `Drop[?161]`
    @ input:1:1
  1 | _ // error
 

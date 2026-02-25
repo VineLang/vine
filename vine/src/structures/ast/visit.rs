@@ -75,8 +75,7 @@ pub trait VisitMut<'a> {
 
   fn _visit_expr(&mut self, expr: &'a mut Expr) {
     match &mut *expr.kind {
-      ExprKind::Hole(_)
-      | ExprKind::Bool(_)
+      ExprKind::Bool(_)
       | ExprKind::N32(_)
       | ExprKind::F32(_)
       | ExprKind::Char(_)
@@ -101,6 +100,7 @@ pub trait VisitMut<'a> {
         self.visit_expr(b);
       }
 
+      ExprKind::Hole(a) => self.visit(a),
       ExprKind::Path(path, args) => {
         self.visit(&mut path.generics);
         self.visit(args);
