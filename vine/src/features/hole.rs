@@ -51,10 +51,7 @@ impl Distiller<'_> {
     ty: Type,
   ) -> Port {
     let Some(default_trait) = self.chart.builtins.default else {
-      return Port::error(
-        ty.inverse(),
-        self.diags.error(Diag::MissingBuiltin { span, builtin: "Default" }),
-      );
+      return Port::error(ty, self.diags.error(Diag::MissingBuiltin { span, builtin: "Default" }));
     };
     let default_impl_type = ImplType::Trait(default_trait, vec![ty]);
     let default_impl = self.find_impl(span, &default_impl_type, false);
