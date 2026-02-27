@@ -39,9 +39,9 @@ pub mod Array {
   /// array // Array([1, 2, 3])
   /// ```
   pub impl from_list[T]: Cast[List[T], Array[T]] {
-    fn cast(List[T](len, front, end)) -> Array[T] {
+    fn cast(List[T](len, front, back)) -> Array[T] {
       let array = Array::from_fn(len, fn* () { safe front.pop() });
-      safe (Stream::done(), ~Stream::done()) = (front, end);
+      safe (Stream::done(), ~Stream::done()) = (front, back);
       array
     }
   }

@@ -383,12 +383,12 @@ pub mod List {
 
   pub mod Iter {
     pub impl [T]: Iterator[Iter[T], T] {
-      fn advance(Iter[T](List(len, front, end))) -> Option[(T, Iter[T])] {
+      fn advance(Iter[T](List(len, front, back))) -> Option[(T, Iter[T])] {
         if len != 0 {
           let head = safe front.pop();
-          Some(head, Iter(List(len - 1, front, end)))
+          Some(head, Iter(List(len - 1, front, back)))
         } else {
-          safe (Stream::done(), ~Stream::done()) = (front, end);
+          safe (Stream::done(), ~Stream::done()) = (front, back);
           None()
         }
       }
