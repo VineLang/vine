@@ -538,7 +538,7 @@ pub mod List {
   }
 }
 
-pub mod Stream {
+pub.root mod Stream {
   pub const pair[T]: (Stream[T], ~Stream[T]) = do {
     let loop stream;
     (stream, ~stream)
