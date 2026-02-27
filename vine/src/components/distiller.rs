@@ -263,11 +263,11 @@ impl<'r> Distiller<'r> {
     let span = expr.span;
     let ty = expr.ty;
     match &*expr.kind {
-      TirExprKind::Hole => self.distill_expr_value_hole(stage, span, ty),
       TirExprKind::Error(err) => Port::error(ty, *err),
       TirExprKind![nil] => self.distill_expr_value_coerce_nil(stage, expr, ty),
       TirExprKind![!value] => self.distill_expr_value_coerce_poly(stage, expr, span, ty),
       TirExprKind![cond] => self.distill_cond_bool(stage, span, ty, expr, false),
+      TirExprKind::Hole => self.distill_expr_value_hole(stage, span, ty),
       TirExprKind::Closure(closure_id) => {
         self.distill_expr_value_closure(stage, span, ty, *closure_id)
       }
