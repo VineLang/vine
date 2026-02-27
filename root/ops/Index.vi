@@ -1,9 +1,9 @@
 
 #[builtin = "Index"]
-pub trait Index[T, K, V] {}
+pub trait[T] Index[K, V] {}
 
 #[builtin = "IndexValue"]
-pub trait IndexValue[T, K, V] {
+pub trait[T] IndexValue[K, V] {
   fn .assume_get(self: &T, key: K) -> V;
 }
 
@@ -17,7 +17,7 @@ pub mod IndexValue {
 }
 
 #[builtin = "IndexSpace"]
-pub trait IndexSpace[T, K, V] {
+pub trait[T] IndexSpace[K, V] {
   fn .assume_set(self: &T, key: K, value: V);
 }
 
@@ -31,6 +31,6 @@ pub mod IndexSpace {
 }
 
 #[builtin = "IndexPlace"]
-pub trait IndexPlace[T, K, V] {
+pub trait[T] IndexPlace[K, V] {
   fn .assume_at(self: &T, key: K) -> &V;
 }

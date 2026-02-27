@@ -5,7 +5,7 @@ use derive::{Enum, IfConst, Object as Object_, Opaque, Struct, Tuple as Tuple_, 
 use util::transmute;
 
 #[builtin = "Show"]
-pub trait Show[T] {
+pub trait[T] Show {
   fn .show(self: &T) -> Show;
 }
 
@@ -122,7 +122,7 @@ pub mod Show {
     "\n" ++ String(List_::new(indent, ' '))
   }
 
-  pub trait ShowTuple[T] {
+  pub trait[] ShowTuple[T] {
     fn .show_tuple(&self: &T) -> List_[Show];
   }
 
@@ -147,7 +147,7 @@ pub mod Show {
     }
   }
 
-  pub trait ShowObject[T] {
+  pub trait[] ShowObject[T] {
     fn .show_object(&self: &T) -> List_[(Show, Show)];
   }
 
@@ -175,18 +175,18 @@ pub mod Show {
   #[basic]
   pub impl struct_[S, C; Struct[S, C], Show[C]]: Show[S] {
     fn show(&struct_: &S) -> Show {
-      Show::Constructor(Struct::name, Show::show(&struct_ as &C))
+      Show::Constructor(Struct::name[S, C], Show::show(&struct_ as &C))
     }
   }
 
-  pub trait ShowVariant[V] {
+  pub trait[] ShowVariant[V] {
     fn .show_variant(&self: &V, variant_names: List_[String]) -> Show;
   }
 
   #[basic]
   pub impl enum_[E, V; Enum[E, V], ShowVariant[V]]: Show[E] {
     fn show(&enum_: &E) -> Show {
-      Enum::match_ref(&enum_, fn (&variant: &V) { variant.show_variant(Enum::variant_names) })
+      Enum::match_ref(&enum_, fn (&variant: &V) { variant.show_variant(Enum::variant_names[E, V]) })
     }
   }
 
@@ -227,7 +227,7 @@ pub mod Show {
   #[basic]
   pub impl opaque[O; Opaque[O]]: Show[O] {
     fn show(&_opaque: &O) -> Show {
-      Show::Literal("<{Opaque::name}>")
+      Show::Literal("<{Opaque::name[O]}>")
     }
   }
 }

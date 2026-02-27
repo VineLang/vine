@@ -274,6 +274,7 @@ module.exports = grammar({
         optional($.vis),
         optional("unsafe"),
         "trait",
+        $.generic_params,
         $.ident,
         optional($.generic_params),
         delimited("{", "", "}", $._item),

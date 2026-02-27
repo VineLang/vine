@@ -22,7 +22,7 @@ impl Parser<'_> {
     self.parse_generics(true, Self::parse_type_param, Self::parse_impl_param)
   }
 
-  fn parse_type_param(&mut self) -> Result<TypeParam, Diag> {
+  pub(crate) fn parse_type_param(&mut self) -> Result<TypeParam, Diag> {
     let span = self.start_span();
     let name = self.parse_ident()?;
     let flex = self.parse_flex()?;
@@ -98,7 +98,7 @@ impl<'src> Formatter<'src> {
     self.fmt_generics(generics, |t| self.fmt_ty(t), |p| self.fmt_impl(p))
   }
 
-  fn fmt_type_param(&self, param: &TypeParam) -> Doc<'src> {
+  pub(crate) fn fmt_type_param(&self, param: &TypeParam) -> Doc<'src> {
     Doc::concat([Doc(param.name.clone()), self.fmt_flex(param.flex)])
   }
 

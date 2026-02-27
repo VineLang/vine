@@ -3,12 +3,12 @@ use derive::{Composite, Enum, IfConst, Struct, Variant};
 use util::{duplicate, erase, transmute};
 
 #[builtin = "Fork"]
-pub trait Fork[T] {
+pub trait[T] Fork {
   fn .fork(&self: &T) -> T;
 }
 
 #[builtin = "Drop"]
-pub trait Drop[T] {
+pub trait[T] Drop {
   fn .drop(self: T);
 }
 
@@ -52,7 +52,7 @@ pub mod Fork {
   #[safe become(duplicate)]
   pub impl enum_[E, V; Enum[E, V], Fork[V]]: Fork[E] {
     fn fork(&self: &E) -> E {
-      Enum::match_ref(&self, fn (&variant) { Enum::reconstruct(variant) })
+      Enum::match_ref(&self, fn (&variant) { Enum::reconstruct[E, V](variant) })
     }
   }
 

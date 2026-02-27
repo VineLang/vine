@@ -2,7 +2,7 @@
 use ops::Cast;
 
 #[builtin = "Tuple"]
-pub trait Tuple[Tuple, Init, Rest] {
+pub trait[] Tuple[Tuple, Init, Rest] {
   fn deconstruct(tuple: Tuple) -> (Init, Rest);
   fn reconstruct(init: Init, rest: Rest) -> Tuple;
 }
@@ -12,7 +12,7 @@ pub mod Tuple {
 }
 
 #[builtin = "Object"]
-pub trait Object[Object, Key, Init, Rest] {
+pub trait[] Object[Object, Key, Init, Rest] {
   const key: String;
   fn deconstruct(object: Object) -> (Init, Rest);
   fn reconstruct(init: Init, rest: Rest) -> Object;
@@ -22,7 +22,7 @@ pub mod Object {
   pub use Composite::{cast_deconstruct, cast_reconstruct};
 }
 
-pub trait Singleton[Singleton, Key, Value] {
+pub trait[] Singleton[Singleton, Key, Value] {
   fn deconstruct(composite: Singleton) -> Value;
   fn reconstruct(value: Value) -> Singleton;
 }
@@ -61,7 +61,7 @@ pub mod Singleton {
   }
 }
 
-pub trait Composite[Composite, Key, Init, Rest] {
+pub trait[] Composite[Composite, Key, Init, Rest] {
   fn deconstruct(composite: Composite) -> (Init, Rest);
   fn reconstruct(init: Init, rest: Rest) -> Composite;
 }
@@ -101,7 +101,7 @@ pub mod Composite {
 }
 
 #[builtin = "Struct"]
-pub trait Struct[Struct, Content] {
+pub trait[Struct] Struct[Content] {
   const name: String;
   fn deconstruct(struct_: Struct) -> Content;
   fn reconstruct(content: Content) -> Struct;
@@ -116,13 +116,13 @@ pub mod Struct {
 
   pub impl cast_reconstruct[S, C; Struct[S, C]]: Cast[C, S] {
     fn cast(content: C) -> S {
-      Struct::reconstruct(content)
+      Struct::reconstruct[S, C](content)
     }
   }
 }
 
 #[builtin = "Enum"]
-pub trait Enum[Enum, Variants] {
+pub trait[Enum] Enum[Variants] {
   const name: String;
   const variant_names: List[String];
   fn match_[F, T; fn F(Variants) -> T](enum_: Enum, f: F) -> T;
@@ -135,7 +135,7 @@ pub mod Enum {
       enum_,
       fn (variant: V) {
         let result = f(&variant);
-        enum_ = Enum::reconstruct(variant);
+        enum_ = Enum::reconstruct[E, V](variant);
         result
       },
     )
@@ -149,11 +149,11 @@ pub enum Variant[I, R] {
 }
 
 #[builtin = "IfConst"]
-pub unsafe trait IfConst[I, T, F] {
+pub unsafe trait[] IfConst[I, T, F] {
   const condition: Bool;
 }
 
 #[builtin = "Opaque"]
-pub trait Opaque[Opaque] {
+pub trait[Opaque] Opaque {
   const name: String;
 }

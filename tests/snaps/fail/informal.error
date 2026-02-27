@@ -2,7 +2,7 @@ error: types in item signatures cannot be elided
    @ informal.vi:4:13
  4 | pub fn main(*io) {
 
-error: cannot find impl of trait `Add[?13, ~N32, ?13]`
+error: search limit reached when finding impl of trait `Add[?13, ~N32, ?13]`
    @ informal.vi:7:3
  7 |   _ += ~1;
 

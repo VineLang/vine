@@ -1,5 +1,5 @@
 
-use data::Iterator::{Iterator, Collect};
+use data::Iterator::{Iterator, Collect, Iterate};
 use ops::{Cast, Concat, Range::{Range, Bound}, comparison::{Eq, Ord}};
 use util::{duplicate, erase};
 
@@ -389,8 +389,8 @@ pub mod List {
   /// 4
   /// 6
   /// ```
-  pub impl iter[T]: Cast[List[T], Iter[T]] {
-    fn cast(self: List[T]) -> Iter[T] {
+  pub impl iter[T]: Iterate[List[T], Iter[T], T] {
+    fn iter(self: List[T]) -> Iter[T] {
       Iter(self)
     }
   }
@@ -426,8 +426,8 @@ pub mod List {
   /// }
   /// list // [1. 6. 4. 6]
   /// ```
-  pub impl iter_ref[T]: Cast[&List[T], IterRef[T]] {
-    fn cast(&List[T](len, buf, end)) -> IterRef[T] {
+  pub impl iter_ref[T]: Iterate[&List[T], IterRef[T], &T] {
+    fn iter(&List[T](len, buf, end)) -> IterRef[T] {
       IterRef(len, &buf, &(len, end))
     }
   }

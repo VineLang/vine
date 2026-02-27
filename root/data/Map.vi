@@ -1,5 +1,5 @@
 
-use data::Iterator::{Iterator, Collect};
+use data::Iterator::{Iterator, Collect, Iterate};
 use ops::{Cast, Concat, Index::{Index, IndexPlace, IndexSpace, IndexValue}, comparison::Ord};
 use util::{eraser, transmute};
 
@@ -135,8 +135,8 @@ pub mod Map[K, V; Ord[K]] {
     }
   }
 
-  pub impl iter_ref[...]: Cast[&Map[K, V], IterRef[K, V]] {
-    fn cast(&self: &Map[K, V]) -> IterRef[K, V] {
+  pub impl iter_ref[...]: Iterate[&Map[K, V], IterRef[K, V], &(K, V)] {
+    fn iter(&self: &Map[K, V]) -> IterRef[K, V] {
       IterRef(self!.iter_ref())
     }
   }
@@ -154,8 +154,8 @@ pub mod Map[K, V; Ord[K]] {
     pub impl [...]: Drop[IterRef[K, V]];
   }
 
-  pub impl iter[...]: Cast[Map[K, V], Iter[K, V]] {
-    fn cast(self: Map[K, V]) -> Iter[K, V] {
+  pub impl iter[...]: Iterate[Map[K, V], Iter[K, V], (K, V)] {
+    fn iter(self: Map[K, V]) -> Iter[K, V] {
       Iter(self!.iter())
     }
   }

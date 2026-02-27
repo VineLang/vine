@@ -314,17 +314,20 @@ impl<'a> Finder<'a> {
     types: &Types,
     query: &ImplType,
     basic: bool,
-  ) -> Result<BTreeSet<ImplId>, ErrorGuaranteed> {
+  ) -> Result<BTreeSet<ImplId>, Error> {
     let mut found = BTreeSet::new();
 
     if let ImplType::Trait(trait_id, params) = query {
       let key = &(*trait_id, basic);
       self.get_candidates(&mut found, self.general_candidates().impls.get(key));
 
-      let trait_def = self.chart.traits[*trait_id].def;
-      self.get_candidates(&mut found, self.cache.candidates.get_within(trait_def).impls.get(key));
+      let trait_ = &self.chart.traits[*trait_id];
+      self.get_candidates(&mut found, self.cache.candidates.get_within(trait_.def).impls.get(key));
 
-      for &param in params {
+      for &param in &params[0..trait_.inherent_params] {
+        if types.kind(param).is_none() {
+          Err(Error::Timeout)?
+        }
         if let Some(mod_id) = types.get_mod(self.chart, param)? {
           self.get_candidates(&mut found, self.cache.candidates.get_within(mod_id).impls.get(key));
         }

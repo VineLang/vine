@@ -1,5 +1,5 @@
 
-use data::Iterator::{Iterator, Collect};
+use data::Iterator::{Iterator, Collect, Iterate};
 use debug::Show;
 use logical::Nullable;
 use ops::{Cast, Concat, comparison::Ord};
@@ -236,8 +236,8 @@ pub mod Set[T; Ord[T]] {
     }
   }
 
-  pub impl iter_ref[...]: Cast[&Set[T], IterRef[T]] {
-    fn cast(&self: &Set[T]) -> IterRef[T] {
+  pub impl iter_ref[...]: Iterate[&Set[T], IterRef[T], &T] {
+    fn iter(&self: &Set[T]) -> IterRef[T] {
       IterRef(&self, [])
     }
   }
@@ -269,8 +269,8 @@ pub mod Set[T; Ord[T]] {
     pub impl drop[...]: Drop[IterRef[T]];
   }
 
-  pub impl iter[...]: Cast[Set[T], Iter[T]] {
-    fn cast(self: Set[T]) -> Iter[T] {
+  pub impl iter[...]: Iterate[Set[T], Iter[T], T] {
+    fn iter(self: Set[T]) -> Iter[T] {
       Iter(self, [])
     }
   }

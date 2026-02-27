@@ -1,8 +1,8 @@
 
 use comparison::Ord;
-use data::Iterator;
+use data::Iterator::{Iterator, Iterate};
 
-pub trait Bound[B, T] {
+pub trait[B] Bound[T] {
   fn .left_of(self: &B, value: &T) -> Bool;
   fn .right_of(self: &B, value: &T) -> Bool;
 }
@@ -59,7 +59,7 @@ pub mod Range {
 
   use Bound::{Exclusive, Inclusive};
 
-  pub trait Step[T] {
+  pub trait[T] Step {
     fn .step(x: T) -> T;
   }
 
@@ -95,10 +95,10 @@ pub mod Range {
     }
   }
 
-  pub impl inclusive_iter[T*; Ord[T], Step[T]]: Cast[
-    Range[Inclusive[T], Inclusive[T]], InclusiveIter[T];
+  pub impl inclusive_iter[T*; Ord[T], Step[T]]: Iterate[
+    Range[Inclusive[T], Inclusive[T]], InclusiveIter[T], T;
   ] {
-    fn cast(Range[Inclusive[T], Inclusive[T]](Inclusive(start), Inclusive(end))) -> InclusiveIter[T] {
+    fn iter(Range[Inclusive[T], Inclusive[T]](Inclusive(start), Inclusive(end))) -> InclusiveIter[T] {
       InclusiveIter(Some(start, end))
     }
   }

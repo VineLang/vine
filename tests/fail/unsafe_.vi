@@ -35,7 +35,7 @@ pub fn baz() {
   safe safe foo; // warning
 }
 
-pub unsafe trait Foo {
+pub unsafe trait[] Foo {
   fn foo();
   unsafe fn bar();
   const baz: ();
@@ -77,12 +77,12 @@ pub unsafe impl e: Foo { // ok
   unsafe const qux: () = (); // ok
 }
 
-pub trait Bar {
+pub trait[] Bar {
   unsafe fn foo(); // error
   unsafe const bar: (); // error
 }
 
-trait Baz {}
+trait[] Baz {}
 
 impl p: Baz {}
 

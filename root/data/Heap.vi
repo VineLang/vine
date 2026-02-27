@@ -2,6 +2,7 @@
 use logical::Nullable;
 use ops::{Cast, Concat, comparison::Ord};
 use util::{duplicate, erase};
+use data::Iterator::{Iterator, Iterate};
 
 /// A min-heap, which provides efficient access to the smallest value in the heap.
 pub struct Heap[T]((N32, Nullable[Node[T]]));
@@ -184,8 +185,8 @@ pub mod Heap[T; Ord[T]] {
   /// 2
   /// 3
   /// ```
-  pub impl iter[...]: Cast[Heap[T], Iter[T]] {
-    fn cast(self: Heap[T]) -> Iter[T] {
+  pub impl iter[...]: Iterate[Heap[T], Iter[T], T] {
+    fn iter(self: Heap[T]) -> Iter[T] {
       Iter(self)
     }
   }
