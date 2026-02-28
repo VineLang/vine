@@ -17,7 +17,7 @@ use crate::{
     synthesizer::SyntheticImpl,
   },
   structures::{
-    ast::{Expr, ItemKind, Pat, Path, Span, StructItem, Vis},
+    ast::{Expr, ItemKind, Pat, Path, Span, StructItem, TyKind, Vis},
     chart::{
       DefId, DefPatternKind, DefTypeKind, DefValueKind, GenericsId, StructDef, StructId, VisId,
     },
@@ -52,24 +52,34 @@ impl Parser<'_> {
 
 impl<'src> Formatter<'src> {
   pub(crate) fn fmt_struct_item(&self, s: &StructItem) -> Doc<'src> {
+    let tys = if let [ty] = &*s.data
+      && let TyKind::Tuple(tys) = &*ty.kind
+      && tys.len() != 1
+    {
+      tys
+    } else {
+      &s.data
+    };
     Doc::concat([
       Doc("struct"),
       self.fmt_flex(s.flex),
       Doc(" "),
       Doc(s.name.clone()),
       self.fmt_generic_params(&s.generics),
-      Doc("("),
-      self._fmt_vis(&s.data_vis),
-      Doc::delimited(
-        ")",
-        if !matches!(s.data_vis, Vis::Private) { " " } else { "" },
-        ")",
-        false,
-        false,
-        true,
-        false,
-        s.data.iter().map(|t| self.fmt_ty(t)),
-      ),
+      if matches!(s.data_vis, Vis::Private) {
+        Doc::paren_comma(tys.iter().map(|t| self.fmt_ty(t)))
+      } else {
+        Doc::concat([
+          Doc("("),
+          self.fmt_vis(&s.data_vis),
+          if let [ty] = &**tys {
+            self.fmt_ty(ty)
+          } else {
+            Doc::paren_comma(tys.iter().map(|t| self.fmt_ty(t)))
+          },
+          Doc(")"),
+        ])
+      },
       Doc(";"),
     ])
   }
