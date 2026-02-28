@@ -11,7 +11,7 @@ pub trait[I] Iterator[T] {
 pub mod Iterator[I, T; Iterator[I, T]] {
   pub const empty[T]: Empty[T] = Empty();
 
-  pub struct Empty[T](());
+  pub struct Empty[T]();
 
   pub mod Empty {
     pub impl [T]: Fork[Empty[T]];
@@ -60,7 +60,7 @@ pub mod Iterator[I, T; Iterator[I, T]] {
     Map(iter, f)
   }
 
-  pub struct* Map[I, F]((I, F));
+  pub struct* Map[I, F](I, F);
 
   pub mod Map[...] {
     pub impl [... U, F*; fn F(T) -> U]: Iterator[Map[I, F], U] {
@@ -77,7 +77,7 @@ pub mod Iterator[I, T; Iterator[I, T]] {
     Filter(iter, f)
   }
 
-  pub struct* Filter[I, F]((I, F));
+  pub struct* Filter[I, F](I, F);
 
   pub mod Filter[...] {
     pub impl [... T?, F*; fn F(&T) -> Bool]: Iterator[Filter[I, F], T] {
@@ -103,7 +103,7 @@ pub mod Iterator[I, T; Iterator[I, T]] {
     FilterMap(iter, f)
   }
 
-  pub struct* FilterMap[I, F]((I, F));
+  pub struct* FilterMap[I, F](I, F);
 
   pub mod FilterMap[...] {
     pub impl [... U, F*; fn F(T) -> Option[U]]: Iterator[FilterMap[I, F], U] {
@@ -129,7 +129,7 @@ pub mod Iterator[I, T; Iterator[I, T]] {
     Skip(iter, count)
   }
 
-  pub struct* Skip[I]((I, N32));
+  pub struct* Skip[I](I, N32);
 
   pub mod Skip[...] {
     pub impl [... T?]: Iterator[Skip[I], T] {
@@ -151,7 +151,7 @@ pub mod Iterator[I, T; Iterator[I, T]] {
     SkipWhile(iter, Some(f))
   }
 
-  pub struct* SkipWhile[I, F]((I, Option[F]));
+  pub struct* SkipWhile[I, F](I, Option[F]);
 
   pub mod SkipWhile[...] {
     pub impl [... T?, F*; fn F(&T) -> Bool]: Iterator[SkipWhile[I, F], T] {
@@ -215,7 +215,7 @@ pub mod Iterator[I, T; Iterator[I, T]] {
     Take(iter, count)
   }
 
-  pub struct* Take[I]((I, N32));
+  pub struct* Take[I](I, N32);
 
   pub mod Take[...] {
     pub impl [... I?]: Iterator[Take[I], T] {
@@ -233,7 +233,7 @@ pub mod Iterator[I, T; Iterator[I, T]] {
     TakeWhile(iter, f)
   }
 
-  pub struct* TakeWhile[I, F]((I, F));
+  pub struct* TakeWhile[I, F](I, F);
 
   pub mod TakeWhile[...] {
     pub impl [... I?, T?, F*; fn F(&T) -> Bool]: Iterator[TakeWhile[I, F], T] {
@@ -251,7 +251,7 @@ pub mod Iterator[I, T; Iterator[I, T]] {
     MapWhile(iter, f)
   }
 
-  pub struct* MapWhile[I, F]((I, F));
+  pub struct* MapWhile[I, F](I, F);
 
   pub mod MapWhile[...] {
     pub impl [... I?, U, F*; fn F(T) -> Option[U]]: Iterator[MapWhile[I, F], U] {
@@ -303,7 +303,7 @@ pub mod Iterator[I, T; Iterator[I, T]] {
     Flatten(None(), iter)
   }
 
-  pub struct* Flatten[I, J]((Option[J], I));
+  pub struct* Flatten[I, J](Option[J], I);
 
   pub mod Flatten {
     pub impl [I, J, T; Iterator[I, J], Iterator[J, T]]: Iterator[Flatten[I, J], T] {
@@ -336,7 +336,7 @@ pub mod Iterator[I, T; Iterator[I, T]] {
     }
   }
 
-  pub struct* Concat[I, J]((Option[I], J));
+  pub struct* Concat[I, J](Option[I], J);
 
   pub mod Concat[...] {
     pub impl [... J; Iterator[J, T]]: Iterator[Concat[I, J], T] {

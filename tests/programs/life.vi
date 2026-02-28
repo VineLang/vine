@@ -129,7 +129,7 @@ pub fn cell(
   se.close_stream();
 }
 
-pub struct RingNeighbors[P, N]((P, N));
+pub struct RingNeighbors[P, N](P, N);
 
 pub fn construct_ring[P, N, F*; fn F(N32, RingNeighbors[P, N]), Channel[N, P]](len: N32, f: F) {
   let loop chan;
@@ -201,7 +201,7 @@ pub enum? Signal {
   Stop(),
 }
 
-pub struct Stream[T]((T, Stream[T]));
+pub struct Stream[T](T, Stream[T]);
 
 pub struct Send[T](~T);
 pub mod Send {
@@ -235,7 +235,7 @@ pub mod Recv {
   }
 }
 
-pub struct Pipe[T]((Send[T], Recv[T]));
+pub struct Pipe[T](Send[T], Recv[T]);
 pub mod Pipe {
   pub const empty[T]: Pipe[T] = do {
     let stream;
@@ -276,7 +276,7 @@ pub impl channel_recv_send[T]: Channel[Recv[T], Send[T]] {
   };
 }
 
-pub struct Tap[T]((Recv[T], Send[T]));
+pub struct Tap[T](Recv[T], Send[T]);
 pub mod Tap {
   pub fn .tap[T](Tap[T](recv, send)) -> &T {
     let data = recv.recv();
@@ -308,7 +308,7 @@ pub mod Tap {
   }
 }
 
-pub struct Exchange[T]((Send[T], Recv[T]));
+pub struct Exchange[T](Send[T], Recv[T]);
 pub mod Exchange {
   pub const pair[T]: (Exchange[T], Exchange[T]) = do {
     let Pipe(send_a, recv_a) = Pipe::empty;

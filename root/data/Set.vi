@@ -5,7 +5,7 @@ use logical::Nullable;
 use ops::{Cast, Concat, comparison::Ord};
 use util::{duplicate, erase};
 
-pub struct Set[T]((N32, Nullable[SetNode[T]]));
+pub struct Set[T](N32, Nullable[SetNode[T]]);
 
 type SetNode[T] = (Set[T], T, Set[T]);
 
@@ -242,7 +242,7 @@ pub mod Set[T; Ord[T]] {
     }
   }
 
-  pub struct IterRef[T]((&Set[T], List[&(T, Set[T])]));
+  pub struct IterRef[T](&Set[T], List[&(T, Set[T])]);
 
   pub mod IterRef[T] {
     pub impl iterator[...]: Iterator[IterRef[T], &T] {
@@ -275,7 +275,7 @@ pub mod Set[T; Ord[T]] {
     }
   }
 
-  pub struct* Iter[T]((Set[T], List[(T, Set[T])]));
+  pub struct* Iter[T](Set[T], List[(T, Set[T])]);
 
   pub mod Iter[T] {
     pub impl iterator[...]: Iterator[Iter[T], T] {

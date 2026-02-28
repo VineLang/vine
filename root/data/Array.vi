@@ -11,7 +11,7 @@ use util::{duplicate, erase};
 ///
 /// Iterating over all of the values is less efficient; if this is being done
 /// regularly, consider using a `List[T]` instead.
-pub struct Array[T]((N32, Nullable[Node[T]]));
+pub struct Array[T](N32, Nullable[Node[T]]);
 
 pub mod Array {
   pub const empty[T]: Array[T] = Array(0, safe Nullable::null());
