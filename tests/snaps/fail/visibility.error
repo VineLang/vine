@@ -53,20 +53,8 @@ error: `#visibility::lib::y` is only visible within `#visibility::lib`
 error: `#visibility::main` is only visible within `#visibility`
 
 warning: unused item
-   @ visibility.vi:2:5
- 2 | mod lib {
-
-warning: unused item
     @ visibility.vi:18:4
  18 | fn main(&io: &IO) {
-
-warning: unused item
-    @ visibility.vi:25:5
- 25 | mod p {
-
-warning: unused item
-    @ visibility.vi:36:5
- 36 | mod q {
 
 warning: unused item
    @ visibility.vi:3:6

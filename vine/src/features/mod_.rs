@@ -66,6 +66,9 @@ impl Charter<'_> {
     mod_item: ModItem,
   ) -> ChartedItem {
     let def = self.chart_child(parent, span, mod_item.name, member_vis, true);
+    // Add an artificial reference to submodules to prevent erroneous unused item
+    // warnings.
+    self.annotations.record_reference(span, span);
     let generics = self.chart_generics(def, parent_generics, mod_item.generics, true);
     match mod_item.kind {
       ModKind::Loaded(inner_span, _, _) => {
