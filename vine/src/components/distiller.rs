@@ -267,6 +267,7 @@ impl<'r> Distiller<'r> {
       TirExprKind![nil] => self.distill_expr_value_coerce_nil(stage, expr, ty),
       TirExprKind![!value] => self.distill_expr_value_coerce_poly(stage, expr, span, ty),
       TirExprKind![cond] => self.distill_cond_bool(stage, span, ty, expr, false),
+      TirExprKind::Hole => self.distill_expr_value_hole(stage, span, ty),
       TirExprKind::Closure(closure_id) => {
         self.distill_expr_value_closure(stage, span, ty, *closure_id)
       }
@@ -348,6 +349,7 @@ impl<'r> Distiller<'r> {
     match &*expr.kind {
       TirExprKind::Error(err) => (Port::error(ty, *err), Port::error(ty.inverse(), *err)),
       TirExprKind![!place] => self.distill_expr_place_coerce_poly(stage, expr, span, ty),
+      TirExprKind::Hole => self.distill_expr_place_hole(stage, span, ty),
       TirExprKind::Rewrap(inner) => self.distill_expr_place_rewrap(stage, span, ty, inner),
       TirExprKind::Local(local) => self.distill_expr_place_local(stage, span, ty, *local),
       TirExprKind::Deref(reference) => self.distill_expr_place_deref(stage, span, ty, reference),
@@ -369,7 +371,7 @@ impl<'r> Distiller<'r> {
       TirExprKind::Error(err) => Poly::Error(*err),
       TirExprKind![value && !place && !space] => Poly::Value(self.distill_expr_value(stage, expr)),
       TirExprKind![place && !value && !space] => Poly::Place(self.distill_expr_place(stage, expr)),
-      TirExprKind![space && !place && !value] => Poly::Space(self.distill_expr_space(stage, expr)),
+      TirExprKind::Hole => Poly::Place(self.distill_expr_place_hole(stage, span, ty)),
       TirExprKind::Rewrap(inner) => self.distill_expr_poly_rewrap(stage, span, ty, inner),
       TirExprKind::Local(_) => Poly::Place(self.distill_expr_place(stage, expr)),
       TirExprKind::Inverse(inner) => self.distill_expr_poly_inverse(stage, inner),

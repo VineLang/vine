@@ -45,5 +45,5 @@ take:
 assume:
   42
 ERROR: `Option::assume` called on `None()`
-  @ #root::logical::Option::assume (root/logical/Option.vi:61:16)
+  @ #root::logical::Option::assume (root/logical/Option.vi:65:16)
   @ #option_party::main (option_party.vi:85:13)

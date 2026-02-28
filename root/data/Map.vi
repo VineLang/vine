@@ -20,6 +20,10 @@ impl ord_entry[K, V; Ord[K]]: Ord[(K, V)] {
 }
 
 pub mod Map[K, V; Ord[K]] {
+  pub impl [K, V]: Default[Map[K, V]] {
+    const default: Map[K, V] = Map::empty;
+  }
+
   pub const empty[K, V]: Map[K, V] = Map(Set::empty);
 
   pub impl from_list[... K?, V?]: Cast[List[(K, V)], Map[K, V]] {
