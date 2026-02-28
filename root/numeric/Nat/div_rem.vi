@@ -5,7 +5,7 @@ struct? BigEndianNat(List[N32]);
 mod BigEndianNat {
   pub impl from_nat: Cast[Nat, BigEndianNat] {
     fn cast(n: Nat) -> BigEndianNat {
-      BigEndianNat(n.to_parts().reversed())
+      BigEndianNat(Nat::to_parts(n).reversed())
     }
   }
 

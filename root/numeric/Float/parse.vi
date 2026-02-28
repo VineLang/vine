@@ -1,0 +1,194 @@
+
+use ops::{Cast, comparison::Ord};
+use ops::arithmetic::{Add, Neg, Sub};
+use ops::bitwise::{BitAnd, Shl, Shr};
+use ops::comparison::Eq;
+
+pub mod parse[
+  F, Mantissa;
+  Float[F, Mantissa],
+  Drop[Mantissa],
+  Fork[Mantissa],
+  Neg[F, F],
+  Cast[Nat, Mantissa],
+  Cast[Mantissa, N32],
+  Add[Mantissa, N32, Mantissa],
+  Sub[Mantissa, N32, Mantissa],
+  Eq[Mantissa],
+  Shl[Mantissa, N32, Mantissa],
+  Shr[Mantissa, N32, Mantissa],
+  BitAnd[Mantissa, Mantissa, Mantissa];
+] {
+  // TODO: implement Eisel-Lemire algorithm for fast parsing of most cases
+  pub fn parse[...](str: String) -> Option[F] {
+    let prefix = match str!.pop_front() {
+      Some(char) { char }
+      None() {
+        return None();
+      }
+    };
+    let is_negative = when {
+      prefix == '-' { true }
+      prefix == '+' { false }
+      _ {
+        str!.push_front(prefix);
+        false
+      }
+    };
+
+    let value = when {
+      str == "NaN" or str == "nan" { Float::nan[F, _] }
+      str == "inf" { Float::inf[F, _] }
+      _ {
+        let mantissa = 0[Nat];
+        let next_char = str!.pop_front();
+        let seen_digit = false;
+        while next_char is Some(char) and ('0' <= char <= '9') {
+          mantissa = mantissa * 10 + (char - '0') as N32;
+          seen_digit = true;
+          next_char = str!.pop_front();
+        }
+        let exp10 = +0;
+        if next_char is Some(char) and char == '.' {
+          next_char = str!.pop_front();
+          while next_char is Some(char) and ('0' <= char <= '9') {
+            mantissa = mantissa * 10 + (char - '0') as N32;
+            seen_digit = true;
+            exp10 -= +1;
+            next_char = str!.pop_front();
+          }
+        }
+        if !seen_digit {
+          return None();
+        }
+        if next_char is Some(char) {
+          if char != 'e' and char != 'E' {
+            return None();
+          }
+          assert I32::parse(str) is Some(exp) else {
+            return None();
+          }
+          exp10 += exp;
+        }
+
+        if mantissa.is_zero() {
+          Float::zero[F, _]
+        } else {
+          Rational::from_decimal(mantissa, exp10) as F
+        }
+      }
+    };
+
+    if is_negative {
+      Some(-value)
+    } else {
+      Some(value)
+    }
+  }
+
+  struct Rational({ num: Nat, den: Nat, exp: I32 });
+
+  mod Rational[...] {
+    pub fn from_decimal(mantissa: Nat, exp10: I32) -> Rational {
+      if exp10 >= +0 {
+        Rational({ num: mantissa * 5[Nat] ** (exp10 as N32), den: 1[Nat], exp: exp10 })
+      } else {
+        Rational({ num: mantissa, den: 5[Nat] ** (-exp10 as N32), exp: exp10 })
+      }
+    }
+
+    // Normalizes the fraction to [1, 2).
+    // Does not terminate on zero.
+    fn .normalize(&Rational({ num, den, exp })) {
+      let den_shift = den << 1;
+      while num >= den_shift {
+        den = den_shift;
+        den_shift <<= 1;
+        exp += +1;
+      }
+
+      while num < den {
+        num <<= 1;
+        exp -= +1;
+      }
+    }
+
+    // Does not terminate on zero
+    pub impl to_float[...]: Cast[Rational, F] {
+      fn cast(self: Rational) -> F {
+        self.normalize();
+        let Rational({ num, den, exp }) = self;
+
+        if exp > Float::max_exponent[F, _] {
+          return Float::inf[F, _];
+        }
+        if exp < Float::min_subnormal_exponent[F, _] - +1 {
+          return Float::zero[F, _];
+        }
+
+        if exp >= Float::min_exponent[F, _] {
+          // Normal range
+          let (q, r) = (num << Float::num_mantissa_bits[F, _]).div_rem(den);
+          let mantissa = q as Mantissa;
+
+          // Round mantissa
+          match (r << 1).cmp(&den) {
+            Ord::Gt() {
+              mantissa += 1;
+            }
+            Ord::Eq() {
+              if mantissa as N32 & 1 == 1 {
+                mantissa += 1;
+              }
+            }
+            _ {}
+          };
+
+          // If mantissa was rounded up to 2.0, shift by one to stay in [1, 2) range
+          if mantissa == (1[Mantissa] << Float::num_mantissa_bits[F, _] + 1) {
+            mantissa >>= 1;
+            exp += +1;
+            // Number can overflow when rounding up
+            if exp > Float::max_exponent[F, _] {
+              return Float::inf[F, _];
+            }
+          }
+          // clear implicit 1
+          mantissa &= (1[Mantissa] << Float::num_mantissa_bits[F, _]) - 1;
+          return Float::from_parts[F, _](false, (exp + Float::max_exponent[F, _]) as N32, mantissa);
+        }
+
+        // Subnormal float
+        if exp == Float::min_subnormal_exponent[F, _] - +1 {
+          // In some edge cases, this can still be a valid number as it might round up to the smallest subnormal.
+          den <<= 1;
+        } else {
+          num <<= (exp - Float::min_subnormal_exponent[F, _]) as N32;
+        }
+        let (q, r) = num.div_rem(den);
+        let mantissa = q as Mantissa;
+
+        // round to nearest, ties-to-even
+        match (r << 1).cmp(&den) {
+          Ord::Gt() {
+            mantissa += 1;
+          }
+          Ord::Eq() {
+            if mantissa as N32 & 1 == 1 {
+              mantissa += 1;
+            }
+          }
+          _ {}
+        }
+
+        if mantissa == 0[Mantissa] {
+          return Float::zero[F, _];
+        }
+
+        // rounding can push a subnormal to the smallest normal. This still works as it just sets
+        // the lowest bit of the exponent.
+        Float::from_parts[F, _](false, 0, mantissa)
+      }
+    }
+  }
+}

@@ -8,3 +8,4 @@ pub mod Int;
 
 pub mod F32;
 pub mod F64;
+pub mod Float;
