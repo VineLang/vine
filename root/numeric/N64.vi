@@ -13,7 +13,7 @@ use util::{duplicate, erase, transmute};
 /// x // 9999999999
 /// ```
 /// `N64` values are always in the range `[0, 2^64) = [0, 18_446_744_073_709_551_616)`.
-pub struct N64(pub N32, N32);
+pub struct N64(pub (N32, N32));
 
 pub mod N64 {
   pub const maximum: N64 = N64(N32::maximum, N32::maximum);

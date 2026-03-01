@@ -5,7 +5,7 @@ use util::{duplicate, erase};
 use data::Iterator::{Iterator, Iterate};
 
 /// A min-heap, which provides efficient access to the smallest value in the heap.
-pub struct Heap[T]((N32, Nullable[Node[T]]));
+pub struct Heap[T](N32, Nullable[Node[T]]);
 
 type Node[T] = (T, Heap[T], Heap[T]);
 

@@ -73,7 +73,7 @@ pub fn main(&io: &IO) {
   io.println("X-MAS: {matches}");
 }
 
-struct Channel[M]((M, ~M));
+struct Channel[M](M, ~M);
 
 mod Channel {
   pub fn .send[M](Channel[M](got, ~out), value: M) -> M {
@@ -104,7 +104,7 @@ fn check(Channel[Char](i, ~o), recv: Char) -> N32 {
   }
 }
 
-struct Neighbors[M]((
+struct Neighbors[M](
   Channel[M],
   Channel[M],
   Channel[M],
@@ -113,7 +113,7 @@ struct Neighbors[M]((
   Channel[M],
   Channel[M],
   Channel[M],
-));
+);
 
 fn diamond[T*, M*, F*; fn F(T, Neighbors[M])](grid: List[List[T]], f: F, d: M) {
   let width = (*grid.at(0).assume()).len();

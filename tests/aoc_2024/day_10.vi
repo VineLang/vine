@@ -87,7 +87,7 @@ fn count((a, b, c, d, e, f, g, h): Set) -> N32 {
   c32(a) + c32(b) + c32(c) + c32(d) + c32(e) + c32(f) + c32(g) + c32(h)
 }
 
-struct Channel[M]((M, ~M));
+struct Channel[M](M, ~M);
 
 mod Channel {
   pub fn .send[M](Channel[M](got, ~out), value: M) -> M {
@@ -96,7 +96,7 @@ mod Channel {
   }
 }
 
-struct Neighbors[M]((Channel[M], Channel[M], Channel[M], Channel[M]));
+struct Neighbors[M](Channel[M], Channel[M], Channel[M], Channel[M]);
 
 fn cross[M*, F*; fn F(Char, Neighbors[M])](grid: List[List[Char]], f: F, d: M) {
   let width = (*grid.at(0).assume()).len();

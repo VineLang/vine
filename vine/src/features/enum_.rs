@@ -16,7 +16,7 @@ use crate::{
     synthesizer::SyntheticImpl,
   },
   structures::{
-    ast::{EnumItem, Expr, ItemKind, Pat, Path, Span, Variant},
+    ast::{EnumItem, Expr, ItemKind, Pat, Path, Span, TyKind, Variant},
     chart::{
       DefId, DefPatternKind, DefTypeKind, DefValueKind, EnumDef, EnumId, EnumVariant, GenericsId,
       VariantId, VisId,
@@ -60,7 +60,15 @@ impl<'src> Formatter<'src> {
       self.fmt_generic_params(&e.generics),
       Doc(" "),
       Doc::brace_comma_multiline(e.variants.iter().map(|v| {
-        Doc::concat([Doc(v.name.clone()), Doc::paren_comma(v.data.iter().map(|t| self.fmt_ty(t)))])
+        let tys = if let [ty] = &*v.data
+          && let TyKind::Tuple(tys) = &*ty.kind
+          && tys.len() != 1
+        {
+          tys
+        } else {
+          &v.data
+        };
+        Doc::concat([Doc(v.name.clone()), Doc::paren_comma(tys.iter().map(|t| self.fmt_ty(t)))])
       })),
     ])
   }

@@ -13,7 +13,7 @@ impl nil_session: Session[(), ()] {
   }
 }
 
-struct Channel[T, S]((T, S));
+struct Channel[T, S](T, S);
 
 type Recv[T, S] = Channel[T, S];
 type Send[T, S] = Channel[~T, S];

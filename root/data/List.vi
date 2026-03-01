@@ -25,7 +25,7 @@ use util::{duplicate, erase};
 ///
 /// If frequently accessing elements by index, consider using an array instead.
 #[builtin = "List"]
-pub struct List[T](pub.root N32, Stream[T], ~Stream[T]);
+pub struct List[T](pub.root (N32, Stream[T], ~Stream[T]));
 
 pub.root unsafe enum Stream[T] {
   done(),
