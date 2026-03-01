@@ -10,7 +10,7 @@ const exp_mask: N32 = (1[N32] << Float::num_exponent_bits[F64, _]) - 1;
 
 // normalize returns a normal number y and exponent exp
 // satisfying x == y × 2**exp. It assumes x is finite and non-zero.
-pub.F64 fn normalize(x: F64) -> (F64, I32) {
+pub fn normalize(x: F64) -> (F64, I32) {
   // 2**-1022
   const SmallestNormal: F64 = 2.2250738585072014e-308[F64];
   if x.abs() < SmallestNormal {
@@ -29,7 +29,7 @@ pub.F64 fn normalize(x: F64) -> (F64, I32) {
 ///	fraction_exponent(±0) = ±0, 0
 ///	fraction_exponent(±Inf) = ±Inf, 0
 ///	fraction_exponent(NaN) = NaN, 0
-pub.F64 fn fraction_exponent(f: F64) -> { frac: F64, exp: I32 } {
+pub fn fraction_exponent(f: F64) -> { frac: F64, exp: I32 } {
   if f == 0.0[F64] or f.is_nan() or f == F64::inf or f == F64::neg_inf {
     return { frac: f, exp: +0 };
   }
@@ -43,7 +43,7 @@ pub.F64 fn fraction_exponent(f: F64) -> { frac: F64, exp: I32 } {
 }
 
 /// Inverse operation to fraction_exponent.
-pub.F64 fn apply_exponent(frac: F64, exp: I32) -> F64 {
+pub fn apply_exponent(frac: F64, exp: I32) -> F64 {
   // special cases
   if frac == 0.0[F64] or frac == F64::inf or frac == F64::neg_inf or frac.is_nan() {
     return frac;

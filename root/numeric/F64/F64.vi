@@ -1,10 +1,10 @@
 
 use ops::{Cast, arithmetic::{Add, Div, Mul, Neg, Pos, Pow, Rem, Sub}, comparison::{Eq, Le, Lt}};
 
-pub mod common;
-
 #[builtin = "F64"]
 pub type F64;
+
+mod common;
 
 pub mod F64 {
   pub mod exp;
