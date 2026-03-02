@@ -1,5 +1,5 @@
 
-use derive::{Struct, Tuple};
+use derive::{Enum, Struct, Tuple, Variant};
 use ops::arithmetic::Neg;
 
 pub trait[T] Eq {
@@ -53,6 +53,71 @@ pub mod Eq {
 
     fn ne(&a: &S, &b: &S) -> Bool {
       &a as &C != &b as &C
+    }
+  }
+
+  pub impl never: Eq[!] {
+    fn eq(&_: &!, &_: &!) -> Bool {
+      true
+    }
+
+    fn ne(&_: &!, &_: &!) -> Bool {
+      false
+    }
+  }
+
+  // We don't have a blanket implementation of Eq for Unit to prevent unwanted invocations.
+  // To support enums with unit variants, we implement it manually.
+  pub impl unit_variant[R; Eq[R]]: Eq[Variant[(), R]] {
+    fn eq(&a: &Variant[(), R], &b: &Variant[(), R]) -> Bool {
+      match &(a, b) {
+        &(Variant::Init(_), Variant::Init(_)) { true }
+        &(Variant::Rest(a_rest), Variant::Rest(b_rest)) { a_rest == b_rest }
+        _ { false }
+      }
+    }
+
+    fn ne(&a: &Variant[(), R], &b: &Variant[(), R]) -> Bool {
+      match &(a, b) {
+        &(Variant::Init(_), Variant::Init(_)) { false }
+        &(Variant::Rest(a_rest), Variant::Rest(b_rest)) { a_rest != b_rest }
+        _ { true }
+      }
+    }
+  }
+
+  pub impl variant[I, R; Eq[I], Eq[R]]: Eq[Variant[I, R]] {
+    fn eq(&a: &Variant[I, R], &b: &Variant[I, R]) -> Bool {
+      match &(a, b) {
+        &(Variant::Init(a_init), Variant::Init(b_init)) { a_init == b_init }
+        &(Variant::Rest(a_rest), Variant::Rest(b_rest)) { a_rest == b_rest }
+        _ { false }
+      }
+    }
+
+    fn ne(&a: &Variant[I, R], &b: &Variant[I, R]) -> Bool {
+      match &(a, b) {
+        &(Variant::Init(a_init), Variant::Init(b_init)) { a_init != b_init }
+        &(Variant::Rest(a_rest), Variant::Rest(b_rest)) { a_rest != b_rest }
+        _ { true }
+      }
+    }
+  }
+
+  #[basic]
+  pub impl enum_[E, V; Enum[E, V], Eq[V]]: Eq[E] {
+    fn eq(&a: &E, &b: &E) -> Bool {
+      Enum::match_ref(
+        &a,
+        fn (&a_variant: &V) { Enum::match_ref(&b, fn (&b_variant: &V) { a_variant == b_variant }) },
+      )
+    }
+
+    fn ne(&a: &E, &b: &E) -> Bool {
+      Enum::match_ref(
+        &a,
+        fn (&a_variant: &V) { Enum::match_ref(&b, fn (&b_variant: &V) { a_variant != b_variant }) },
+      )
     }
   }
 }
