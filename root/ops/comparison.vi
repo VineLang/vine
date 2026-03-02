@@ -1,5 +1,5 @@
 
-use derive::Tuple;
+use derive::{Struct, Tuple};
 use ops::arithmetic::Neg;
 
 pub trait[T] Eq {
@@ -42,6 +42,17 @@ pub mod Eq {
 
     fn ne(&&a: &&T, &&b: &&T) -> Bool {
       a != b
+    }
+  }
+
+  #[basic]
+  pub impl struct_[S, C; Struct[S, C], Eq[C]]: Eq[S] {
+    fn eq(&a: &S, &b: &S) -> Bool {
+      &a as &C == &b as &C
+    }
+
+    fn ne(&a: &S, &b: &S) -> Bool {
+      &a as &C != &b as &C
     }
   }
 }
@@ -118,6 +129,21 @@ pub mod Ord {
     }
   }
 
+  #[basic]
+  pub impl struct_[S, C; Struct[S, C], Ord[C]]: Ord[S] {
+    fn cmp(&a: &S, &b: &S) -> Ord {
+      Ord::cmp(&a as &C, &b as &C)
+    }
+
+    fn lt(&a: &S, &b: &S) -> Bool {
+      &a as &C < &b as &C
+    }
+
+    fn le(&a: &S, &b: &S) -> Bool {
+      &a as &C <= &b as &C
+    }
+  }
+
   pub fn gt[T; Ord[T]](&a: &T, &b: &T) -> Bool {
     b < a
   }
@@ -159,6 +185,13 @@ pub mod Lt {
   pub fn .gt[T; Lt[T]](&a: &T, &b: &T) -> Bool {
     b < a
   }
+
+  #[basic]
+  pub impl struct_[S, C; Struct[S, C], Lt[C]]: Lt[S] {
+    fn lt(&a: &S, &b: &S) -> Bool {
+      Lt::lt(&a as &C, &b as &C)
+    }
+  }
 }
 
 pub trait[T] Le {
@@ -176,5 +209,12 @@ pub mod Le {
   #[builtin = "ge"]
   pub fn .ge[T; Le[T]](&a: &T, &b: &T) -> Bool {
     b <= a
+  }
+
+  #[basic]
+  pub impl struct_[S, C; Struct[S, C], Le[C]]: Le[S] {
+    fn le(&a: &S, &b: &S) -> Bool {
+      Le::le(&a as &C, &b as &C)
+    }
   }
 }
