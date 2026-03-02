@@ -1,6 +1,7 @@
 
+use ops::comparison::Eq;
 
-#[impl(Show)]
+#[impl(Show, Eq)]
 #[builtin = "Result"]
 pub enum* Result[T, E] {
   Ok(T),
