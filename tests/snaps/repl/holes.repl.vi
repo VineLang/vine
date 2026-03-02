@@ -1,15 +1,7 @@
 
 let io: IO = <IO>;
-> 1 + _
-1
-
-let io: IO = <IO>;
-> _ ++ [1, 2, 3]
-[1, 2, 3]
-
-let io: IO = <IO>;
-> "abc" ++ _
-"abc"
+> if false { 1 } else { _ }
+0
 
 let io: IO = <IO>;
 > (_, _) = (1, 2)
@@ -51,22 +43,33 @@ error: cannot find impl of trait `Default[TrafficLight]`
 
 
 let io: IO = <IO>;
+> 1 + _ // error
+error: search limit reached when finding impl of trait `Add[N32, ?121, ?122]`
+   @ input:1:1
+ 1 | 1 + _ // error
+
+error: cannot find impl of trait `Default[_]`
+   @ input:1:5
+ 1 | 1 + _ // error
+
+
+let io: IO = <IO>;
 > (_[N32], _[N32]) = (1, 2) // error
 
 let io: IO = <IO>;
 > "abc" ++ _[N32] // error
-error: cannot find impl of trait `Concat[String, N32, ?164]`
+error: cannot find impl of trait `Concat[String, N32, ?134]`
    @ input:1:1
  1 | "abc" ++ _[N32] // error
 
 
 let io: IO = <IO>;
 > _ // error
-error: found several impls of trait `Default[?161]`
+error: search limit reached when finding impl of trait `Default[?131]`
    @ input:1:1
  1 | _ // error
 
-error: search limit reached when finding impl of trait `Drop[?161]`
+error: search limit reached when finding impl of trait `Drop[?131]`
    @ input:1:1
  1 | _ // error
 

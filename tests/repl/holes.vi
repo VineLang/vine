@@ -1,6 +1,4 @@
-1 + _
-_ ++ [1, 2, 3]
-"abc" ++ _
+if false { 1 } else { _ }
 (_, _) = (1, 2)
 _[N32]
 _[(Bool,)].0 = false
@@ -11,6 +9,7 @@ let x = _[Chain[()]]
 let y: Chain[()] = _
 /clear x y
 #[impl(Default)] enum TrafficLight { Red(), Green(), Blue() } // error
+1 + _ // error
 (_[N32], _[N32]) = (1, 2) // error
 "abc" ++ _[N32] // error
 _ // error
