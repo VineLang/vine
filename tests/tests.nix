@@ -16,7 +16,6 @@ let
 
   inherit (pkgs.lib.strings)
     hasSuffix
-    removeSuffix
     splitString
     ;
 
@@ -25,7 +24,13 @@ let
 
   ls_ = pred: dir: map (child: /${dir}/${child}) (filter pred (attrNames (builtins.readDir dir)));
   ls = ls_ (x: true);
-  sanitize = path: removeSuffix ".iv" (removeSuffix ".vi" (baseNameOf path));
+  sanitize =
+    path:
+    let
+      name = baseNameOf path;
+      match = builtins.match "(.*)\\.[a-z]+" name;
+    in
+    if match == null then name else builtins.elemAt match 0;
 
   vine = "${cli.packages.vine}/bin/vine";
   ivy = "${cli.packages.ivy}/bin/ivy";
@@ -41,9 +46,9 @@ let
     in
     keyword: default:
     let
-      match = builtins.match "(.*\n)?// @${keyword} ?([^\n]*)\n.*" content;
+      match = builtins.match "(.*\n)?(//|#) @${keyword} ?([^\n]*)\n.*" content;
     in
-    if match == null then default else builtins.elemAt match 1;
+    if match == null then default else builtins.elemAt match 2;
 
   libs =
     directive:
@@ -345,20 +350,92 @@ let
       };
   };
 
-  snaps = pkgs.writeText "snaps.json" (builtins.toJSON all.snaps);
+  tests.verify = forEach (ls_ (p: !(hasSuffix ".lock" p)) ./verify) (
+    path:
+    let
+      name = sanitize path;
+      directive = directives path;
+      snapshotName = directive "snap" null;
+      snapshot = all.snaps.${snapshotName};
+      reproduce = (directive "reproduce" null) != null;
+      bin =
+        if hasSuffix ".rs" path then
+          craneLib.mkCargoDerivation {
+            pname = name;
+            version = "0.0.0";
+            buildPhaseCargoCommand = ''
+              CARGO_TARGET_DIR=target cargo build -r -Z script --manifest-path ${just path}
+              mkdir -p $out/bin
+              mv target/release/${name} $out/bin/${name}
+            '';
+            dontUnpack = true;
+            doInstallCargoArtifacts = false;
+            cargoArtifacts = null;
+            cargoLock = verify/${name}.lock;
+          }
+          + /bin/${name}
+        else
+          path;
+      nativeBuildInputs = [ pkgs.python3 ];
+      check =
+        if reproduce then
+          pkgs.testers.testEqualContents {
+            assertion = snapshotName;
+            actual = snapshot;
+            expected =
+              pkgs.runCommand "reproduce-${name}"
+                {
+                  inherit nativeBuildInputs;
+                }
+                ''
+                  echo reproducing ${snapshotName}
+                  ${bin} >$out
+                '';
+          }
+        else
+          pkgs.runCommand "verify-${name}"
+            {
+              inherit nativeBuildInputs;
+            }
+            ''
+              echo verifying ${snapshot}
+              ${bin} <${snapshot}
+              touch $out
+            '';
+    in
+    {
+      checks."tests-verify-${name}" = check;
+      verified.${snapshotName} = true;
+    }
+  );
+
+  self.apps.tests-generate-lock = flake-utils.lib.mkApp {
+    drv = pkgs.writeShellScriptBin "generate-verify-lock" ''
+      name="$1"
+      dir=`mktemp -d`
+      CARGO_TARGET_DIR="$dir" ${rustToolchain}/bin/cargo -Z script generate-lockfile --manifest-path "tests/verify/$name.rs"
+      mv "$dir/Cargo.lock" "tests/verify/$name.lock"
+    '';
+  };
+
+  snaps = removeAttrs all.snaps (attrNames all.verified);
+  snapsJson = pkgs.writeText "snaps.json" (builtins.toJSON snaps);
 
   self.checks.snaps = pkgs.runCommand "snaps" { } ''
     echo checking snaps
-    ${pkgs.nushell}/bin/nu ${./snaps.nu} ${snaps} ${./snaps}
+    ${pkgs.nushell}/bin/nu ${./snaps.nu} ${snapsJson} ${./snaps}
     touch $out
   '';
 
   self.apps.snaps = flake-utils.lib.mkApp {
     drv = pkgs.writeShellScriptBin "snaps" ''
-      ${pkgs.nushell}/bin/nu ${./snaps.nu} ${snaps} ./tests/snaps --write
+      ${pkgs.nushell}/bin/nu ${./snaps.nu} ${snapsJson} ./tests/snaps --write
     '';
   };
 
   all = merge ([ self ] ++ concatLists (attrValues tests));
 in
-removeAttrs all [ "snaps" ]
+removeAttrs all [
+  "snaps"
+  "verified"
+]
