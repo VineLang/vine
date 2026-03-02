@@ -13,6 +13,7 @@ use util::{duplicate, erase, transmute};
 /// x // 9999999999
 /// ```
 /// `N64` values are always in the range `[0, 2^64) = [0, 18_446_744_073_709_551_616)`.
+#[impl(Eq)]
 pub struct N64(pub (N32, N32));
 
 pub mod N64 {
@@ -219,16 +220,6 @@ pub mod N64 {
   pub impl : Not[N64, N64] {
     fn not(N64(al, ah)) -> N64 {
       N64(!al, !ah)
-    }
-  }
-
-  pub impl : Eq[N64] {
-    fn eq(&N64(al, ah), &N64(bl, bh)) -> Bool {
-      al == bl and ah == bh
-    }
-
-    fn ne(&N64(al, ah), &N64(bl, bh)) -> Bool {
-      al != bl or ah != bh
     }
   }
 

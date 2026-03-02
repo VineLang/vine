@@ -7,7 +7,7 @@ use ops::{Cast, Concat, comparison::{Eq, Ord}};
 /// let string = "12 + 34 = {12 + 34}";
 /// string // "12 + 34 = 46"
 /// ```
-#[impl(Default)]
+#[impl(Default, Eq, Ord)]
 #[builtin = "String"]
 pub struct* String(pub List[Char]);
 
@@ -129,30 +129,6 @@ pub mod String {
   pub fn .split_at(String(chars), i: N32) -> (String, String) {
     let (prefix, suffix) = chars.split_at(i);
     (String(prefix), String(suffix))
-  }
-
-  pub impl : Eq[String] {
-    fn eq(&self: &String, &other: &String) -> Bool {
-      self! == other!
-    }
-
-    fn ne(&self: &String, &other: &String) -> Bool {
-      self! != other!
-    }
-  }
-
-  pub impl : Ord[String] {
-    fn cmp(&a: &String, &b: &String) -> Ord {
-      a!.cmp(&b!)
-    }
-
-    fn lt(a: &String, b: &String) -> Bool {
-      Ord::lt_from_cmp(a, b)
-    }
-
-    fn le(a: &String, b: &String) -> Bool {
-      Ord::le_from_cmp(a, b)
-    }
   }
 
   pub impl : Concat[String, String, String] {
