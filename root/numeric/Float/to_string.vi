@@ -1,0 +1,160 @@
+
+use ops::Cast;
+use ops::comparison::{Eq, Ord};
+use ops::bitwise::{BitOr, Shl};
+
+pub impl to_string[
+  F*, Mantissa;
+  Float[F, Mantissa],
+  Drop[Mantissa],
+  Eq[F],
+  Cast[Nat, Mantissa],
+  Cast[Mantissa, Nat],
+  BitOr[Mantissa, Mantissa, Mantissa],
+  Shl[Mantissa, N32, Mantissa];
+]: Cast[F, String] {
+  fn cast(f: F) -> String {
+    if f.is_nan() {
+      return "NaN";
+    }
+    if f == Float::inf[F, _] {
+      return "inf";
+    }
+    if f == Float::neg_inf[F, _] {
+      return "-inf";
+    }
+
+    let { negative, raw_exp, mantissa } = f.to_parts();
+
+    if f == Float::zero[F, _] {
+      if negative {
+        return "-0.0";
+      } else {
+        return "0.0";
+      }
+    }
+
+    let exp = raw_exp as I32 - Float::max_exponent[F, _] - Float::num_mantissa_bits[F, _] as I32;
+
+    if raw_exp == 0 {
+      // Subnormal
+      exp += +1;
+    } else {
+      // Set implicit 1 bit in mantissa
+      mantissa |= 1[Mantissa] << Float::num_mantissa_bits[F, _];
+    }
+
+    let num = mantissa as Nat;
+    let den = 1[Nat];
+
+    if exp >= +0 {
+      num <<= exp as N32;
+    } else {
+      den <<= -exp as N32;
+    }
+
+    let exp10 = +0;
+
+    // Scale fraction to range [1, 10)
+    let den_times_10 = den * 10;
+    while num >= den_times_10 {
+      den = den_times_10;
+      den_times_10 *= 10;
+      exp10 += +1;
+    }
+
+    while num < den {
+      num *= 10;
+      exp10 -= +1;
+    }
+
+    // Use enough bits to be able to round trip the float.
+    let digits = [];
+    for _ in 0..(Float::max_decimal_digits[F, _] - 1) {
+      let (digit, rem) = num.div_rem(den);
+      num = rem * 10;
+      digits.push_front(digit as N32);
+    }
+    // last digit
+    let (last_digit, rem) = num.div_rem(den);
+    let last_digit = last_digit as N32;
+    digits.push_front(last_digit);
+
+    // Round correctly
+    let carry = match (rem * 2).cmp(&den) {
+      Ord::Gt() { true }
+      Ord::Eq() { (last_digit & 1) == 1 }
+      _ { false }
+    };
+    if carry {
+      for &digit in &digits {
+        digit += 1;
+        if digit == 10 {
+          digit = 0;
+        } else {
+          carry = false;
+          break;
+        }
+      }
+    }
+    if carry {
+      digits = [1];
+      exp10 += +1;
+    } else {
+      digits.drop_while(fn* (&digit: &N32) { digit == 0 });
+    }
+    digits.reverse();
+
+    let chars = [];
+    if negative {
+      chars.push_back('-');
+    }
+
+    if -3 <= exp10 <= +8 {
+      let dot_pos = exp10 + +1;
+      if dot_pos <= +0 {
+        chars ++= ['0', '.'];
+        for _ in 0..(-dot_pos as N32) {
+          chars.push_back('0');
+        }
+        for digit in digits {
+          chars.push_back('0' + digit);
+        }
+      } else {
+        let dot_pos = dot_pos as N32;
+        let num_digits = 0;
+        for digit in digits {
+          if num_digits == dot_pos {
+            chars.push_back('.');
+          }
+          chars.push_back('0' + digit);
+          num_digits += 1;
+        }
+        // Fill trailing zeros
+        while num_digits < dot_pos {
+          chars.push_back('0');
+          num_digits += 1;
+        }
+        // Ensure there is always a .0 if it's a whole number
+        if num_digits == dot_pos {
+          chars ++= ['.', '0'];
+        }
+      }
+    } else {
+      // Fallback to Scientific Notation for very large/small numbers
+      chars.push_back('0' + digits.pop_front().or_use(0));
+      chars.push_back('.');
+      if digits.len() == 0 {
+        chars.push_back('0');
+      } else {
+        for digit in digits {
+          chars.push_back('0' + digit);
+        }
+      }
+      chars.push_back('e');
+      chars ++= (exp10 as String)!;
+    }
+
+    String(chars)
+  }
+}
