@@ -306,19 +306,20 @@ impl Synthesizer<'_> {
   }
 
   fn synthesize_debug_state(&mut self) -> Net {
+    let option_enum = self.chart.builtins.option.unwrap();
+    let none_variant = VariantId(0);
+    let some_variant = VariantId(1);
     if self.debug {
       let x = self.new_wire();
-      let y = self.new_wire();
       Net::new(Tree::n_ary(
         "fn",
         [
           Tree::n_ary("dbg", [x.0, Tree::Erase]),
-          Tree::n_ary("enum", [Tree::n_ary("enum", [x.1, y.0]), Tree::Erase, y.1]),
+          self.enum_(option_enum, some_variant, |_| Some(x.1)),
         ],
       ))
     } else {
-      let x = self.new_wire();
-      Net::new(Tree::n_ary("fn", [Tree::Erase, Tree::n_ary("enum", [Tree::Erase, x.0, x.1])]))
+      Net::new(Tree::n_ary("fn", [Tree::Erase, self.enum_(option_enum, none_variant, |_| None)]))
     }
   }
 

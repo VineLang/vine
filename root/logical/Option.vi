@@ -4,8 +4,8 @@ use ops::comparison::{Eq, Ord};
 #[impl(Show, Eq, Ord)]
 #[builtin = "Option"]
 pub enum* Option[T] {
-  Some(T),
   None(),
+  Some(T),
 }
 
 pub mod Option {

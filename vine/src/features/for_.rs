@@ -138,8 +138,8 @@ impl Distiller<'_> {
     let tuple_ty = self.types.new(TypeKind::Tuple(vec![value_ty, iter_ty]));
     let option_ty = self.types.new(TypeKind::Enum(option_enum, vec![tuple_ty]));
     let nil_ty = self.types.nil();
-    let some_variant = VariantId(0);
-    let none_variant = VariantId(1);
+    let none_variant = VariantId(0);
+    let some_variant = VariantId(1);
     let iter_local = self.new_local(stage, span, iter_ty);
     let value_local = self.locals.push(TirLocal { span, ty: value_ty });
     let inner_iter_local = self.locals.push(TirLocal { span, ty: iter_ty });
