@@ -1,5 +1,5 @@
 use std::{
-  collections::{BTreeMap, HashMap, hash_map::Entry},
+  collections::{BTreeMap, HashMap, HashSet, hash_map::Entry},
   fmt::{self, Debug, Write},
   mem::take,
   ops::{BitXor, BitXorAssign},
@@ -20,7 +20,7 @@ use crate::structures::{
 
 /// A type variable, or its inverse. The high bit of the usize denotes the
 /// inverse. The remaining bits are a `TypeIdx`.
-#[derive(Clone, Copy, PartialEq, Eq)]
+#[derive(Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Type(usize);
 new_idx!(pub TypeIdx; n => ["t{n}"]);
 
@@ -405,6 +405,21 @@ impl Types {
     }
   }
 
+  pub fn related(&self, ty: Type) -> HashSet<TypeIdx> {
+    let mut related = HashSet::new();
+    let mut stack = vec![ty];
+    while let Some(ty) = stack.pop() {
+      if !related.insert(self.find(ty).idx()) {
+        continue;
+      }
+      let Some((_, kind)) = self.kind(ty) else { continue };
+      for ty in kind.children() {
+        stack.push(ty);
+      }
+    }
+    related
+  }
+
   pub fn show(&self, chart: &Chart, ty: Type) -> String {
     let mut str = String::new();
     self._show(chart, ty, &mut str);
@@ -635,8 +650,13 @@ impl Types {
   }
 
   pub fn finish_inference(&mut self) {
-    for (_, node) in &mut self.types {
-      if let TypeNode::Root { state, .. } = node
+    self.finish_inference_excluding(&HashSet::new());
+  }
+
+  pub fn finish_inference_excluding(&mut self, excluding: &HashSet<TypeIdx>) {
+    for (ty, node) in &mut self.types {
+      if !excluding.contains(&ty)
+        && let TypeNode::Root { state, .. } = node
         && !matches!(state, TypeState::Known(..))
       {
         *state = TypeState::Known(Inverted(false), TypeKind::Default);
