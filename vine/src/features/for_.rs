@@ -208,10 +208,7 @@ impl Distiller<'_> {
     some_stage.steps.push(Step::Link(result, Port { ty: self.types.nil(), kind: PortKind::Nil }));
     some_stage.transfer = Some(Transfer::unconditional(init_stage.interface));
 
-    let hole = TirExpr::new(span, result_ty, TirExprKind::Hole);
-    let else_ = else_.as_ref().unwrap_or(&hole);
-    let result = self.distill_expr_value(&mut none_stage, else_);
-    none_stage.local_barrier_write_to(result_local, span, result);
+    self.distill_expr_value_else(&mut none_stage, result_local, span, result_ty, else_);
 
     self.finish_stage(init_stage);
     self.finish_stage(some_stage);

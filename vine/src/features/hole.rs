@@ -9,7 +9,7 @@ use crate::{
     ast::{ExprKind, Span, Ty},
     chart::{ConstId, TraitConstId},
     diag::Diag,
-    tir::{TirExpr, TirExprKind, TirImpl, TirPat, TirPatKind},
+    tir::{Local, TirExpr, TirExprKind, TirImpl, TirPat, TirPatKind},
     types::{ImplType, Inverted, Type, TypeCtx, TypeKind, Types},
     vir::{Port, Stage},
   },
@@ -112,6 +112,20 @@ impl Distiller<'_> {
   ) -> (Port, Port) {
     let wire = stage.new_wire(span, ty);
     (wire.neg, wire.pos)
+  }
+
+  pub(crate) fn distill_expr_value_else(
+    &mut self,
+    stage: &mut Stage,
+    local: Local,
+    span: Span,
+    ty: Type,
+    else_: &Option<TirExpr>,
+  ) {
+    let hole = TirExpr::new(span, ty, TirExprKind::Hole);
+    let else_ = else_.as_ref().unwrap_or(&hole);
+    let result = self.distill_expr_value(stage, else_);
+    stage.local_barrier_write_to(local, span, result);
   }
 }
 

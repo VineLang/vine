@@ -220,10 +220,7 @@ impl Distiller<'_> {
     self.finish_stage(init_stage);
     self.finish_stage(then_stage);
 
-    let hole = TirExpr::new(span, ty, TirExprKind::Hole);
-    let else_ = else_.as_ref().unwrap_or(&hole);
-    let result = self.distill_expr_value(&mut else_stage, else_);
-    else_stage.local_barrier_write_to(local, span, result);
+    self.distill_expr_value_else(&mut else_stage, local, span, ty, else_);
 
     self.finish_stage(else_stage);
     self.finish_layer(layer);
