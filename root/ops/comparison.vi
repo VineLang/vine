@@ -139,6 +139,21 @@ pub mod Ord {
     }
   }
 
+  #[manual]
+  pub impl nil: Ord[()] {
+    fn cmp(&(), &()) -> Ord {
+      Ord::Eq()
+    }
+
+    fn lt(&(), &()) -> Bool {
+      false
+    }
+
+    fn le(&(), &()) -> Bool {
+      true
+    }
+  }
+
   pub impl unary[T; Ord[T]]: Ord[(T,)] {
     fn cmp(&(a: T,), &(b: T,)) -> Ord {
       Ord::cmp(&a, &b)
@@ -199,6 +214,56 @@ pub mod Ord {
 
     fn le(&a: &S, &b: &S) -> Bool {
       &a as &C <= &b as &C
+    }
+  }
+
+  pub impl never: Ord[!] {
+    fn cmp(&_: &!, &_: &!) -> Ord {
+      debug::error("unreachable")
+    }
+
+    fn lt(&_: &!, &_: &!) -> Bool {
+      debug::error("unreachable")
+    }
+
+    fn le(&_: &!, &_: &!) -> Bool {
+      debug::error("unreachable")
+    }
+  }
+
+  pub impl variant[I, R; Ord[I], Ord[R]]: Ord[Variant[I, R]] {
+    fn cmp(&a: &Variant[I, R], &b: &Variant[I, R]) -> Ord {
+      match &(a, b) {
+        &(Variant::Init(a_init), Variant::Init(b_init)) { a_init.cmp(&b_init) }
+        &(Variant::Rest(a_rest), Variant::Rest(b_rest)) { a_rest.cmp(&b_rest) }
+        &(Variant::Init(_), Variant::Rest(_)) { Ord::Lt() }
+        &(Variant::Rest(_), Variant::Init(_)) { Ord::Gt() }
+      }
+    }
+
+    fn lt(&a: &Variant[I, R], &b: &Variant[I, R]) -> Bool {
+      Ord::lt_from_cmp(&a, &b)
+    }
+
+    fn le(&a: &Variant[I, R], &b: &Variant[I, R]) -> Bool {
+      Ord::le_from_cmp(&a, &b)
+    }
+  }
+
+  pub impl variant_nil[R; Ord[R]]: Ord[Variant[(), R]] = variant[; nil, _];
+
+  #[basic]
+  pub impl enum_[E, V; Enum[E, V], Ord[V]]: Ord[E] {
+    fn cmp(&a: &E, &b: &E) -> Ord {
+      Enum::match_ref(&a, fn (&a: &V) { Enum::match_ref(&b, fn (&b: &V) { Ord::cmp(&a, &b) }) })
+    }
+
+    fn le(&a: &E, &b: &E) -> Bool {
+      Enum::match_ref(&a, fn (&a: &V) { Enum::match_ref(&b, fn (&b: &V) { Ord::le(&a, &b) }) })
+    }
+
+    fn lt(&a: &E, &b: &E) -> Bool {
+      Enum::match_ref(&a, fn (&a: &V) { Enum::match_ref(&b, fn (&b: &V) { Ord::lt(&a, &b) }) })
     }
   }
 

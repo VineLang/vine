@@ -13,8 +13,19 @@ pub fn main(&io: &IO) {
       (rng.gen_n32() % 100, i)
     },
   );
+  let option_list = list.map(fn* (x) {
+    if rng.gen_n32() % 8 == 0 {
+      None()
+    } else {
+      Some(x)
+    }
+  });
+
   list.sort[; ord_first]();
   io.println("{list.is_sorted()}");
+
+  option_list.sort();
+  io.println("{option_list.show()}");
 }
 
 #[manual]
