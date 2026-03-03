@@ -11,6 +11,17 @@ pub trait[T] Eq {
 }
 
 pub mod Eq {
+  #[manual]
+  pub impl nil: Eq[()] {
+    fn eq(&(), &()) -> Bool {
+      true
+    }
+
+    fn ne(&(), &()) -> Bool {
+      false
+    }
+  }
+
   pub impl unary[T; Eq[T]]: Eq[(T,)] {
     fn eq(&(a: T,), &(b: T,)) -> Bool {
       a == b
@@ -58,31 +69,11 @@ pub mod Eq {
 
   pub impl never: Eq[!] {
     fn eq(&_: &!, &_: &!) -> Bool {
-      true
+      debug::error("unreachable")
     }
 
     fn ne(&_: &!, &_: &!) -> Bool {
-      false
-    }
-  }
-
-  // We don't have a blanket implementation of Eq for Unit to prevent unwanted invocations.
-  // To support enums with unit variants, we implement it manually.
-  pub impl unit_variant[R; Eq[R]]: Eq[Variant[(), R]] {
-    fn eq(&a: &Variant[(), R], &b: &Variant[(), R]) -> Bool {
-      match &(a, b) {
-        &(Variant::Init(_), Variant::Init(_)) { true }
-        &(Variant::Rest(a_rest), Variant::Rest(b_rest)) { a_rest == b_rest }
-        _ { false }
-      }
-    }
-
-    fn ne(&a: &Variant[(), R], &b: &Variant[(), R]) -> Bool {
-      match &(a, b) {
-        &(Variant::Init(_), Variant::Init(_)) { false }
-        &(Variant::Rest(a_rest), Variant::Rest(b_rest)) { a_rest != b_rest }
-        _ { true }
-      }
+      debug::error("unreachable")
     }
   }
 
@@ -103,6 +94,8 @@ pub mod Eq {
       }
     }
   }
+
+  pub impl variant_nil[R; Eq[R]]: Eq[Variant[(), R]] = variant[; nil, _];
 
   #[basic]
   pub impl enum_[E, V; Enum[E, V], Eq[V]]: Eq[E] {
