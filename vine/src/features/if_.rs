@@ -119,9 +119,9 @@ impl Resolver<'_> {
     let then = self.resolve_block_type(then, ty);
     self.exit_scope();
     let else_ = else_.as_ref().map(|leg| self.resolve_block_type(leg, ty));
-    let nil = self.types.nil();
-    if else_.is_none() && self.types.unify(ty, nil).is_failure() {
-      self.diags.error(Diag::MissingElse { span });
+    if self.types.kind(ty).is_none() {
+      let nil = self.types.nil();
+      assert!(self.types.unify(ty, nil).is_success());
     }
     Ok(TirExpr::new(span, ty, TirExprKind::If(cond, then, else_)))
   }
@@ -220,10 +220,10 @@ impl Distiller<'_> {
     self.finish_stage(init_stage);
     self.finish_stage(then_stage);
 
-    if let Some(leg) = else_ {
-      let result = self.distill_expr_value(&mut else_stage, leg);
-      else_stage.local_barrier_write_to(local, span, result);
-    }
+    let hole = TirExpr::new(span, ty, TirExprKind::Hole);
+    let else_ = else_.as_ref().unwrap_or(&hole);
+    let result = self.distill_expr_value(&mut else_stage, else_);
+    else_stage.local_barrier_write_to(local, span, result);
 
     self.finish_stage(else_stage);
     self.finish_layer(layer);
