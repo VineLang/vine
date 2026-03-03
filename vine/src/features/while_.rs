@@ -76,9 +76,9 @@ impl Resolver<'_> {
         let block = self_.resolve_block_nil(block);
         self_.exit_scope();
         let else_ = else_.as_ref().map(|b| self_.resolve_block_type(b, ty));
-        let nil = self_.types.nil();
-        if else_.is_none() && self_.types.unify(ty, nil).is_failure() {
-          self_.diags.error(Diag::MissingElse { span });
+        if self_.types.kind(ty).is_none() {
+          let nil = self_.types.nil();
+          assert!(self_.types.unify(ty, nil).is_success());
         }
         (cond, block, else_)
       },
@@ -115,10 +115,10 @@ impl Distiller<'_> {
     then_stage.steps.push(Step::Link(result, Port { ty: self.types.nil(), kind: PortKind::Nil }));
     then_stage.transfer = Some(Transfer::unconditional(cond_stage.interface));
 
-    if let Some(else_) = else_ {
-      let result = self.distill_expr_value(&mut else_stage, else_);
-      else_stage.local_barrier_write_to(local, span, result);
-    }
+    let hole = TirExpr::new(span, ty, TirExprKind::Hole);
+    let else_ = else_.as_ref().unwrap_or(&hole);
+    let result = self.distill_expr_value(&mut else_stage, else_);
+    else_stage.local_barrier_write_to(local, span, result);
 
     self.finish_stage(cond_stage);
     self.finish_stage(then_stage);
