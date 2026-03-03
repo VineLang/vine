@@ -36,6 +36,7 @@ pub enum SyntheticImpl {
   Enum(EnumId),
   IfConst(ConcreteConstId),
   Opaque(OpaqueTypeId),
+  DefaultNil,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -52,6 +53,7 @@ pub enum SyntheticItem {
   DebugState,
   N32(u32),
   String(String),
+  ConstNil,
 }
 
 struct Synthesizer<'a> {
@@ -122,6 +124,7 @@ impl Synthesizer<'_> {
 
   fn synthesize(&mut self, item: &SyntheticItem) {
     self.stage(|self_| match item.clone() {
+      SyntheticItem::ConstNil => self_.synthesize_const_nil(),
       SyntheticItem::CompositeDeconstruct(len) => self_.synthesize_composite_deconstruct(len),
       SyntheticItem::CompositeReconstruct(len) => self_.synthesize_composite_reconstruct(len),
       SyntheticItem::Identity => self_.synthesize_identity(),
@@ -151,6 +154,11 @@ impl Synthesizer<'_> {
     } else {
       self.net.free.push(value);
     }
+  }
+
+  fn synthesize_const_nil(&mut self) {
+    let eraser = self.net.make(self.guide.tuple, []);
+    self.const_(eraser);
   }
 
   fn synthesize_composite_deconstruct(&mut self, len: usize) {
@@ -385,15 +393,12 @@ impl SyntheticImpl {
         _ => unreachable!(),
       },
       SyntheticImpl::Opaque(_) | SyntheticImpl::IfConst(_) => unreachable!(),
+      SyntheticImpl::DefaultNil => unreachable!(),
     }
   }
 
   pub fn const_(&self, chart: &Chart, const_id: TraitConstId) -> SyntheticItem {
     match self {
-      SyntheticImpl::Opaque(opaque_ty_id) => match const_id {
-        TraitConstId(0) => SyntheticItem::String(chart.opaque_types[*opaque_ty_id].name.0.clone()),
-        _ => unreachable!(),
-      },
       SyntheticImpl::Tuple(_) => unreachable!(),
       SyntheticImpl::Object(key, _) => match const_id {
         TraitConstId(0) => SyntheticItem::String(key.0.clone()),
@@ -412,6 +417,14 @@ impl SyntheticImpl {
         TraitConstId(0) => SyntheticItem::ConstAlias(*id),
         _ => unreachable!(),
       },
+      SyntheticImpl::Opaque(opaque_ty_id) => match const_id {
+        TraitConstId(0) => SyntheticItem::String(chart.opaque_types[*opaque_ty_id].name.0.clone()),
+        _ => unreachable!(),
+      },
+      SyntheticImpl::DefaultNil => match const_id {
+        TraitConstId(0) => SyntheticItem::ConstNil,
+        _ => unreachable!(),
+      },
     }
   }
 }
@@ -419,7 +432,8 @@ impl SyntheticImpl {
 impl SyntheticItem {
   pub fn rels(&self) -> Rels {
     match self {
-      SyntheticItem::CompositeDeconstruct(_)
+      SyntheticItem::ConstNil
+      | SyntheticItem::CompositeDeconstruct(_)
       | SyntheticItem::CompositeReconstruct(_)
       | SyntheticItem::Identity
       | SyntheticItem::EnumVariantNames(_)

@@ -346,6 +346,7 @@ fn synthetic_impl_name(
       let name = add_name(table, &chart.defs[chart.opaque_types[*opaque_id].def].path);
       guide.synthetic_opaque.with_children([name])
     }
+    SyntheticImpl::DefaultNil => guide.synthetic_default_nil.into(),
   }
 }
 
@@ -387,6 +388,7 @@ fn synthetic_item_name(
     SyntheticItem::Frame(path, span) => guide.synthetic_frame.with_payload(frame_data(path, *span)),
     SyntheticItem::N32(n) => guide.synthetic_n32.with_payload(*n),
     SyntheticItem::String(str) => guide.synthetic_string.with_payload(Nat::encode_string(str)),
+    SyntheticItem::ConstNil => guide.synthetic_const_nil.into(),
   }
 }
 
