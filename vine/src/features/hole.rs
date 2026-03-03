@@ -1,13 +1,16 @@
 use vine_util::parser::Parse;
 
 use crate::{
-  components::{distiller::Distiller, lexer::Token, parser::Parser, resolver::Resolver},
+  components::{
+    distiller::Distiller, finder::Finder, lexer::Token, parser::Parser, resolver::Resolver,
+    synthesizer::SyntheticImpl,
+  },
   structures::{
     ast::{ExprKind, Span, Ty},
     chart::{ConstId, TraitConstId},
     diag::Diag,
-    tir::{TirExpr, TirExprKind, TirPat, TirPatKind},
-    types::{ImplType, Type},
+    tir::{TirExpr, TirExprKind, TirImpl, TirPat, TirPatKind},
+    types::{ImplType, Inverted, Type, TypeCtx, TypeKind, Types},
     vir::{Port, Stage},
   },
   tools::fmt::{Formatter, doc::Doc},
@@ -21,6 +24,21 @@ impl<'src> Parser<'src> {
       Ok(ty)
     })?;
     Ok(ExprKind::Hole(ty))
+  }
+}
+
+impl Finder<'_> {
+  pub(crate) fn find_auto_impls_default(
+    &mut self,
+    type_params: &[Type],
+    types: &Types,
+    found: &mut Vec<TypeCtx<TirImpl>>,
+  ) {
+    let [ty] = *type_params else { unreachable!() };
+    if let Some((Inverted(false), TypeKind::Default)) = types.kind(ty) {
+      let types = types.clone();
+      found.push(TypeCtx { types, inner: TirImpl::Synthetic(SyntheticImpl::Default) });
+    }
   }
 }
 

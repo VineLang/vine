@@ -29,6 +29,7 @@ pub enum SyntheticImpl {
   Enum(EnumId),
   IfConst(ConcreteConstId),
   Opaque(OpaqueTypeId),
+  Default,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -47,6 +48,7 @@ pub enum SyntheticItem {
   DebugState,
   N32(u32),
   String(String),
+  ConstEraser,
 }
 
 struct Synthesizer<'a> {
@@ -118,6 +120,7 @@ impl Synthesizer<'_> {
   fn synthesize(&mut self, item: &SyntheticItem) {
     let stage = self.new_stage();
     let net = match item.clone() {
+      SyntheticItem::ConstEraser => self.const_(Tree::Erase),
       SyntheticItem::CompositeDeconstruct(len) => self.synthesize_composite_deconstruct(len),
       SyntheticItem::CompositeReconstruct(len) => self.synthesize_composite_reconstruct(len),
       SyntheticItem::Ident(ident) => self.synthesize_ident(ident),
@@ -437,15 +440,12 @@ impl SyntheticImpl {
         _ => unreachable!(),
       },
       SyntheticImpl::Opaque(_) | SyntheticImpl::IfConst(_) => unreachable!(),
+      SyntheticImpl::Default => unreachable!(),
     }
   }
 
   pub fn const_(self, chart: &Chart, const_id: TraitConstId) -> SyntheticItem {
     match self {
-      SyntheticImpl::Opaque(opaque_ty_id) => match const_id {
-        TraitConstId(0) => SyntheticItem::Ident(chart.opaque_types[opaque_ty_id].name.clone()),
-        _ => unreachable!(),
-      },
       SyntheticImpl::Tuple(_) => unreachable!(),
       SyntheticImpl::Object(key, _) => match const_id {
         TraitConstId(0) => SyntheticItem::Ident(key),
@@ -464,6 +464,14 @@ impl SyntheticImpl {
         TraitConstId(0) => SyntheticItem::ConstAlias(id),
         _ => unreachable!(),
       },
+      SyntheticImpl::Opaque(opaque_ty_id) => match const_id {
+        TraitConstId(0) => SyntheticItem::Ident(chart.opaque_types[opaque_ty_id].name.clone()),
+        _ => unreachable!(),
+      },
+      SyntheticImpl::Default => match const_id {
+        TraitConstId(0) => SyntheticItem::ConstEraser,
+        _ => unreachable!(),
+      },
     }
   }
 }
@@ -471,7 +479,8 @@ impl SyntheticImpl {
 impl SyntheticItem {
   pub fn rels(&self) -> Rels {
     match self {
-      SyntheticItem::CompositeDeconstruct(_)
+      SyntheticItem::ConstEraser
+      | SyntheticItem::CompositeDeconstruct(_)
       | SyntheticItem::CompositeReconstruct(_)
       | SyntheticItem::Ident(_)
       | SyntheticItem::Identity
