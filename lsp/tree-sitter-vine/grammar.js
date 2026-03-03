@@ -452,7 +452,7 @@ module.exports = grammar({
 
     expr_num: $ => prec.right(seq($.num, optional(seq("[", $._ty, "]")))),
 
-    expr_hole: $ => "_",
+    expr_hole: $ => prec.right(seq("_", optional($.generic_params))),
 
     expr_paren: $ => seq("(", $._expr, ")"),
 

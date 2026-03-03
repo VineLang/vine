@@ -308,7 +308,7 @@ pub struct Expr {
 
 #[derive(Debug, Clone)]
 pub enum ExprKind {
-  Hole,
+  Hole(Option<Ty>),
   Paren(Expr),
   Safe(Span, Expr),
   Path(Path, Option<Vec<Expr>>),

@@ -33,6 +33,10 @@ pub.root unsafe enum Stream[T] {
 }
 
 pub mod List {
+  pub impl [T]: Default[List[T]] {
+    const default: List[T] = List::empty;
+  }
+
   pub const empty[T]: List[T] = [];
 
   /// The length of the list. `O(1)`

@@ -51,7 +51,7 @@ pub struct TirExpr {
 
 #[derive(Debug, Clone, Classes)]
 pub enum TirExprKind {
-  #[class(space)]
+  #[class(poly, value, space, place)]
   Hole,
   #[class(value)]
   Const(ConstRelId),
