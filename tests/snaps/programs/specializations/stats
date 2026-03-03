@@ -10,11 +10,11 @@ Interactions
   Branch                 269
 
 Parallelism
-  Depth                  523
-  Breadth                 10
-  Speedup                101 cB
+  Depth                  550
+  Breadth                  9
+  Speedup                 99 cB
 
 Memory
-  Heap                16_016 B
+  Heap                15_792 B
   Allocated          111_040 B
   Freed              111_040 B

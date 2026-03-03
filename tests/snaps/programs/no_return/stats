@@ -10,9 +10,9 @@ Interactions
   Branch                  19
 
 Parallelism
-  Depth                  256
+  Depth                  274
   Breadth                  1
-  Speedup                 24 cB
+  Speedup                 21 cB
 
 Memory
   Heap                   944 B

@@ -10,11 +10,11 @@ Interactions
   Branch                 367
 
 Parallelism
-  Depth                  964
+  Depth                  985
   Breadth                 10
-  Speedup                102 cB
+  Speedup                101 cB
 
 Memory
-  Heap                28_448 B
+  Heap                28_464 B
   Allocated          215_232 B
   Freed              215_232 B

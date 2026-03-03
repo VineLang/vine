@@ -10,11 +10,11 @@ Interactions
   Branch                 804
 
 Parallelism
-  Depth                1_070
+  Depth                1_084
   Breadth                 13
   Speedup                113 cB
 
 Memory
-  Heap                13_536 B
+  Heap                12_144 B
   Allocated          310_928 B
   Freed              310_928 B

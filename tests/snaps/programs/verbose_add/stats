@@ -10,11 +10,11 @@ Interactions
   Branch                  52
 
 Parallelism
-  Depth                  233
+  Depth                  244
   Breadth                  4
-  Speedup                 68 cB
+  Speedup                 66 cB
 
 Memory
-  Heap                 2_784 B
+  Heap                 2_752 B
   Allocated           24_000 B
   Freed               24_000 B

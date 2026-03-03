@@ -10,9 +10,9 @@ Interactions
   Branch                  89
 
 Parallelism
-  Depth                  230
+  Depth                  238
   Breadth                  8
-  Speedup                 95 cB
+  Speedup                 94 cB
 
 Memory
   Heap                 9_328 B

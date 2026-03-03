@@ -10,9 +10,9 @@ Interactions
   Branch                 118
 
 Parallelism
-  Depth                1_096
+  Depth                1_171
   Breadth                  1
-  Speedup                 29 cB
+  Speedup                 26 cB
 
 Memory
   Heap                 2_848 B

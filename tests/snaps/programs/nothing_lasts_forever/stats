@@ -14,9 +14,9 @@ Interactions
   Branch                 401
 
 Parallelism
-  Depth                3_352
+  Depth                3_436
   Breadth                  1
-  Speedup                 21 cB
+  Speedup                 20 cB
 
 Memory
   Heap                   752 B

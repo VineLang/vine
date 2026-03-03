@@ -10,9 +10,9 @@ Interactions
   Branch                  12
 
 Parallelism
-  Depth                  165
+  Depth                  176
   Breadth                  1
-  Speedup                 26 cB
+  Speedup                 23 cB
 
 Memory
   Heap                   832 B
