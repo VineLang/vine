@@ -1,5 +1,5 @@
 use std::{
-  collections::{BTreeMap, HashMap},
+  collections::{BTreeMap, HashMap, HashSet},
   mem::take,
 };
 
@@ -74,6 +74,14 @@ pub(crate) struct TargetInfo {
 pub(crate) enum ScopeBinding {
   Local(Local, Span, Type),
   Closure(ClosureId, Span, Type),
+}
+
+impl ScopeBinding {
+  pub(crate) fn ty(&self) -> Type {
+    match self {
+      &ScopeBinding::Local(_, _, ty) | &ScopeBinding::Closure(_, _, ty) => ty,
+    }
+  }
 }
 
 impl<'a> Resolver<'a> {
@@ -240,9 +248,18 @@ impl<'a> Resolver<'a> {
       ty: self.types.new(TypeKind::Ref(ty)),
       kind: Box::new(TirExprKind::Ref(root)),
     };
-    if !self.diags.errors.is_empty() {
-      self.types.finish_inference();
-    }
+    let visible_tys = if self.diags.errors.is_empty() {
+      self
+        .scope
+        .values()
+        .flat_map(|entries| entries.first())
+        .flat_map(|entry| self.types.related(entry.binding.ty()))
+        .chain(self.types.related(ty))
+        .collect()
+    } else {
+      HashSet::new()
+    };
+    self.types.finish_inference_excluding(&visible_tys);
     let fragment = self.finish_fragment(span, path, root, false);
     let fragment_id = self.fragments.push(fragment);
     let mut bindings =

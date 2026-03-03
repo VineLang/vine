@@ -48,10 +48,6 @@ error: search limit reached when finding impl of trait `Add[N32, ?121, ?122]`
    @ input:1:1
  1 | 1 + _ // error
 
-error: cannot find impl of trait `Default[_]`
-   @ input:1:5
- 1 | 1 + _ // error
-
 
 let io: IO = <IO>;
 > (_[N32], _[N32]) = (1, 2) // error
