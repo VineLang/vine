@@ -1,0 +1,42 @@
+
+fn first_digit(s: String) -> Option[Char] {
+  for c in s! {
+    if '0' <= c <= '9' {
+      break Some(c);
+    }
+  }
+}
+
+fn first_bit(n: N32) -> Option[N32] {
+  let i = 0;
+  while n > 0 {
+    if n % 2 != 0 {
+      break Some(i);
+    }
+    n >>= 1;
+    i += 1;
+  }
+}
+
+fn relu(x: F32) -> F32 {
+  if x > 0.0 {
+    x
+  }
+}
+
+pub fn main(&io: &IO) {
+  let nums = [0b100000, 0b110000, 0b101000, 0b100100, 0b100010, 0b100001, 0b000000];
+  for num in nums {
+    io.println("first_bit({num}) = {first_bit(num).show()}");
+  }
+
+  let strings = ["The Taking of Pelham 123", "Carnegieplein 2, 2517 KJ Den Haag", "House of Leaves"];
+  for string in strings {
+    io.println("first_digit({string}) = {first_digit(string).show()}");
+  }
+
+  let floats = [-321.0, -123.0, -0.0, +0.0, +123.0, +321.0];
+  for float in floats {
+    io.println("relu({float}) = {relu(float).show()}");
+  }
+}

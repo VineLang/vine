@@ -4,6 +4,7 @@
   "words": [
     "antinodes",
     "brainfuck",
+    "carnegieplein",
     "centimanes",
     "cmps",
     "codepoint",
@@ -19,6 +20,7 @@
     "freelist",
     "furiosity",
     "gyges",
+    "haag",
     "hexdigit",
     "hfsq",
     "horiz",
@@ -41,6 +43,7 @@
     "primenesses",
     "readback",
     "rels",
+    "relu",
     "Remez",
     "repr",
     "rfold",
