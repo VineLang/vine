@@ -1,0 +1,16 @@
+first_bit(32) = Some(5)
+first_bit(48) = Some(4)
+first_bit(40) = Some(3)
+first_bit(36) = Some(2)
+first_bit(34) = Some(1)
+first_bit(33) = Some(0)
+first_bit(0) = None()
+first_digit(The Taking of Pelham 123) = Some('1')
+first_digit(Carnegieplein 2, 2517 KJ Den Haag) = Some('2')
+first_digit(House of Leaves) = None()
+relu(-321.0) = 0.0
+relu(-123.0) = 0.0
+relu(-0.0) = 0.0
+relu(0.0) = 0.0
+relu(123.0) = 123.0
+relu(321.0) = 321.0
