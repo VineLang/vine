@@ -10,9 +10,9 @@ Interactions
   Branch                 108
 
 
-Max Len                   22
+Max Len                    3
 
 Memory
-  Heap                 3_168 B
-  Allocated           44_496 B
-  Freed               44_496 B
+  Heap                 2_832 B
+  Allocated           44_416 B
+  Freed               44_416 B

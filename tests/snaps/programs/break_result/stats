@@ -10,14 +10,14 @@ Interactions
   Branch                  12
 
 
-Max Len                   12
+Max Len                    3
 
 Parallelism
-  Depth                  166
+  Depth                  165
   Breadth                  1
   Speedup                 26 cB
 
 Memory
-  Heap                   816 B
-  Allocated            6_192 B
-  Freed                6_192 B
+  Heap                   832 B
+  Allocated            6_336 B
+  Freed                6_336 B

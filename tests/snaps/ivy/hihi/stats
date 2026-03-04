@@ -10,9 +10,9 @@ Interactions
   Branch                   0
 
 
-Max Len                    3
+Max Len                    2
 
 Memory
   Heap                   272 B
-  Allocated              464 B
-  Freed                  464 B
+  Allocated              480 B
+  Freed                  480 B

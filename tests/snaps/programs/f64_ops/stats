@@ -10,9 +10,9 @@ Interactions
   Branch             768_838
 
 
-Max Len                  176
+Max Len                    3
 
 Memory
-  Heap                68_640 B
-  Allocated      415_170_096 B
-  Freed          415_170_096 B
+  Heap                58_496 B
+  Allocated      406_356_960 B
+  Freed          406_356_960 B

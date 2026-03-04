@@ -10,9 +10,9 @@ Interactions
   Branch              54_180
 
 
-Max Len                   54
+Max Len                    3
 
 Memory
-  Heap                20_000 B
-  Allocated       23_043_184 B
-  Freed           23_043_184 B
+  Heap                18_432 B
+  Allocated       22_828_960 B
+  Freed           22_828_960 B
