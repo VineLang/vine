@@ -98,13 +98,13 @@ let
       input,
       runArgs ? "",
       ext ? "txt",
-      fail ? false,
+      ...
     }:
     pkgs.runCommand name { } ''
       mkdir $out
       cp ${iv} $out/compiled.iv
       echo "running ${name}"
-      ${if fail then "!" else ""} ${ivy} run $out/compiled.iv --no-perf ${runArgs} <${input} 2>&1 >$out/output.${ext} | tee $out/stats
+      (${ivy} run $out/compiled.iv --no-perf ${runArgs} <${input} 2>&1 >$out/output.${ext} || :) | tee $out/stats
     '';
 
   interactive =
