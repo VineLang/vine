@@ -375,33 +375,32 @@ let
           }
           + /bin/${name}
         else
-          path;
+          pkgs.stdenvNoCC.mkDerivation {
+            name = baseNameOf path;
+            inherit nativeBuildInputs;
+            dontUnpack = true;
+            buildPhase = ''
+              cp ${path} $out
+              patchShebangs --build $out
+            '';
+          };
       nativeBuildInputs = [ pkgs.python3 ];
       check =
         if reproduce then
           pkgs.testers.testEqualContents {
             assertion = snapshotName;
             actual = snapshot;
-            expected =
-              pkgs.runCommand "reproduce-${name}"
-                {
-                  inherit nativeBuildInputs;
-                }
-                ''
-                  echo reproducing ${snapshotName}
-                  ${bin} >$out
-                '';
+            expected = pkgs.runCommand "reproduce-${name}" { } ''
+              echo reproducing ${snapshotName}
+              ${bin} >$out
+            '';
           }
         else
-          pkgs.runCommand "verify-${name}"
-            {
-              inherit nativeBuildInputs;
-            }
-            ''
-              echo verifying ${snapshot}
-              ${bin} <${snapshot}
-              touch $out
-            '';
+          pkgs.runCommand "verify-${name}" { } ''
+            echo verifying ${snapshot}
+            ${bin} <${snapshot}
+            touch $out
+          '';
     in
     {
       checks."tests-verify-${name}" = check;
