@@ -24,7 +24,7 @@ use rustyline::DefaultEditor;
 use vine::{
   compiler::Compiler,
   components::loader::{FileId, Loader, RealFS},
-  structures::{ast::Ident, resolutions::FragmentId},
+  structures::{ast::Ident, diag::Color, resolutions::FragmentId},
   tools::{doc::document, fmt::Formatter, repl::Repl},
 };
 use vine_lsp::lsp;
@@ -517,39 +517,29 @@ fn print_diags(compiler: &Compiler) {
 }
 
 fn _print_diags(mut w: impl io::Write + IsTerminal, compiler: &Compiler) -> io::Result<()> {
-  let Colors { reset, bold, underline, grey, red, yellow, .. } = colors(&w);
+  let Colors { reset, bold, underline, grey, red, yellow, green } = colors(&w);
 
-  let errors = compiler.diags.errors.iter().map(|x| (red, "error", x));
-  let warnings = compiler.diags.warnings.iter().map(|x| (yellow, "warning", x));
-
-  for (color, severity, diag) in errors.chain(warnings) {
-    let Some(span) = diag.span() else { continue };
-    writeln!(w, "{color}{severity}{grey}:{reset} {bold}{diag}{reset}")?;
-    if let Some(span_str) = compiler.show_span(span) {
-      let file = &compiler.files[span.file];
-      let start = file.get_pos(span.start);
-      let end = file.get_pos(span.end);
-      let line_width = (end.line + 1).ilog10() as usize + 1;
-      writeln!(w, " {:>line_width$}{grey} @ {span_str}", "")?;
-      for line in start.line..=end.line {
-        let line_start = file.line_starts[line];
-        let line_end = file.line_starts.get(line + 1).copied().unwrap_or(file.src.len());
-        let line_str = &file.src[line_start..line_end];
-        let line_str =
-          line_str.strip_suffix("\r\n").or(line_str.strip_suffix("\n")).unwrap_or(line_str);
-        let start = if line == start.line { start.col } else { 0 };
-        let end = if line == end.line { end.col } else { line_str.len() };
-        writeln!(
-          w,
-          " {grey}{:>line_width$} |{reset} {}{color}{underline}{}{reset}{}",
-          line + 1,
-          &line_str[..start],
-          &line_str[start..end],
-          &line_str[end..],
-        )?;
+  for diag_lines in compiler.format_diags() {
+    for diag_span in diag_lines {
+      if diag_span.bold {
+        write!(w, "{bold}")?;
+      }
+      match diag_span.color {
+        Some(Color::Grey) => write!(w, "{grey}")?,
+        Some(Color::Red) => write!(w, "{red}")?,
+        Some(Color::Yellow) => write!(w, "{yellow}")?,
+        Some(Color::Green) => write!(w, "{green}")?,
+        _ => (),
+      }
+      if diag_span.underline {
+        write!(w, "{underline}")?;
+      }
+      write!(w, "{}", diag_span.content)?;
+      if diag_span.is_styled() {
+        write!(w, "{reset}")?;
       }
     }
-    writeln!(w,)?;
+    writeln!(w)?;
   }
 
   Ok(())

@@ -1,4 +1,7 @@
-use std::fmt::{self, Display};
+use std::{
+  borrow::Cow,
+  fmt::{self, Display},
+};
 
 use vine_util::lexer::TokenSet;
 
@@ -343,9 +346,96 @@ fn plural<'a>(n: usize, plural: &'a str, singular: &'a str) -> &'a str {
   if n == 1 { singular } else { plural }
 }
 
+#[derive(Default)]
+pub struct DiagSpan<'a> {
+  pub color: Option<Color>,
+  pub underline: bool,
+  pub bold: bool,
+  pub content: Cow<'a, str>,
+}
+
+impl<'a> DiagSpan<'a> {
+  fn new<S: Into<Cow<'a, str>>>(content: S) -> Self {
+    Self { content: content.into(), ..Self::default() }
+  }
+
+  pub fn is_styled(&self) -> bool {
+    self.color.is_some() || self.underline || self.bold
+  }
+
+  fn color(self, color: Color) -> Self {
+    Self { color: Some(color), ..self }
+  }
+
+  fn underline(self) -> Self {
+    Self { underline: true, ..self }
+  }
+
+  fn bold(self) -> Self {
+    Self { bold: true, ..self }
+  }
+}
+
+#[derive(Clone, Copy)]
+pub enum Color {
+  Grey,
+  Red,
+  Yellow,
+  Green,
+}
+
 impl Compiler {
   pub fn show_span(&self, span: Span) -> Option<String> {
     (span != Span::NONE).then(|| format!("{}", self.files[span.file].get_pos(span.start)))
+  }
+
+  pub fn format_diags(&self) -> impl Iterator<Item = Vec<DiagSpan<'_>>> {
+    use Color::*;
+
+    let errors = self.diags.errors.iter().map(|x| (Red, "error", x));
+    let warnings = self.diags.warnings.iter().map(|x| (Yellow, "warning", x));
+
+    errors
+      .chain(warnings)
+      .flat_map(|(color, severity, diag)| {
+        let span = diag.span()?;
+        let mut diag_lines = vec![vec![
+          DiagSpan::new(severity).color(color),
+          DiagSpan::new(": ").color(Grey),
+          DiagSpan::new(diag.to_string()).bold(),
+        ]];
+
+        if let Some(span_str) = self.show_span(span) {
+          let file = &self.files[span.file];
+          let start = file.get_pos(span.start);
+          let end = file.get_pos(span.end);
+          let line_width = (end.line + 1).ilog10() as usize + 1;
+          diag_lines.push(vec![
+            DiagSpan::new(format!(" {:>line_width$}", "")),
+            DiagSpan::new(" @ ").color(Grey),
+            DiagSpan::new(span_str).color(Grey),
+          ]);
+
+          for line in start.line..=end.line {
+            let line_start = file.line_starts[line];
+            let line_end = file.line_starts.get(line + 1).copied().unwrap_or(file.src.len());
+            let line_str = &file.src[line_start..line_end];
+            let line_str =
+              line_str.strip_suffix("\r\n").or(line_str.strip_suffix("\n")).unwrap_or(line_str);
+            let start = if line == start.line { start.col } else { 0 };
+            let end = if line == end.line { end.col } else { line_str.len() };
+            diag_lines.push(vec![
+              DiagSpan::new(format!(" {:>line_width$} | ", line + 1)).color(Grey),
+              DiagSpan::new(&line_str[..start]),
+              DiagSpan::new(&line_str[start..end]).color(color).underline(),
+              DiagSpan::new(&line_str[end..]),
+            ]);
+          }
+        }
+        diag_lines.push(vec![]);
+        Some(diag_lines)
+      })
+      .flatten()
   }
 }
 
