@@ -1,6 +1,6 @@
 
 use data::Iterator::{Iterator, Collect, Iterate};
-use ops::{Cast, Concat, comparison::{Eq, Ord}};
+use ops::{Cast, Concat};
 
 /// A Unicode string, represented as a list of characters.
 /// ```vi

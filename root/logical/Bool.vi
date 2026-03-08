@@ -1,5 +1,5 @@
 
-use ops::{Cast, bitwise::{BitAnd, BitOr, BitXor, Not}, comparison::{Eq, Ord}};
+use ops::{Cast, bitwise::{BitAnd, BitOr, BitXor, Not}};
 use util::{duplicate, erase, transmute};
 
 #[builtin = "Bool"]

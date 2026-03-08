@@ -1,6 +1,4 @@
 
-use ops::comparison::Eq;
-
 // TODO: Change Mantissa to associated type once Vine supports them.
 pub trait[F] Float[Mantissa] {
   const nan: F;

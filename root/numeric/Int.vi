@@ -1,5 +1,5 @@
 
-use ops::{Cast, arithmetic::{Add, Div, Mul, Neg, Pow, Rem, Sub}, comparison::{Eq, Ord}};
+use ops::{Cast, arithmetic::{Add, Div, Mul, Neg, Pow, Rem, Sub}};
 
 #[impl(Default)]
 pub struct* Int(Bool, Nat);

@@ -1,7 +1,7 @@
 
 // @run -d
 
-use #root::{ops::comparison::Ord, rng::Pcg32};
+use #root::rng::Pcg32;
 
 pub fn main(&io: &IO) {
   let i = 0;

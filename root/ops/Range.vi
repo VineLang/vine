@@ -1,5 +1,4 @@
 
-use comparison::Ord;
 use data::Iterator::{Iterator, Iterate};
 
 pub trait[B] Bound[T] {

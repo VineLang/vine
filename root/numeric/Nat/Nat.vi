@@ -3,7 +3,6 @@ use ops::{
   Cast,
   arithmetic::{Add, Div, Mul, Pow, Rem, Sub},
   bitwise::{BitAnd, BitOr, BitXor, Shl, Shr},
-  comparison::{Eq, Ord},
 };
 
 /// Arbitrary-precision natural numbers.

@@ -1,7 +1,7 @@
 
 // @run -d
 
-use #root::{ops::comparison::Eq, rng::Pcg32};
+use #root::rng::Pcg32;
 
 #[configurable]
 const len: N32 = 2000;
