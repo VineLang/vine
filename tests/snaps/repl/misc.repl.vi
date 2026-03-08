@@ -97,6 +97,19 @@ false
 
 let io: IO = <IO>;
 let l: List[I32] = [+1, +2, -18, +4];
+> let l = [Some(10), None(), Some(3), None(), Some(5)];
+
+let io: IO = <IO>;
+let l: List[Option[N32]] = [Some(10), None(), Some(3), None(), Some(5)];
+> l.sort();
+
+let io: IO = <IO>;
+let l: List[Option[N32]] = [None(), None(), Some(3), Some(5), Some(10)];
+> l
+[None(), None(), Some(3), Some(5), Some(10)]
+
+let io: IO = <IO>;
+let l: List[Option[N32]] = [None(), None(), Some(3), Some(5), Some(10)];
 > /clear l
 
 let io: IO = <IO>;
@@ -339,7 +352,7 @@ error: expected type `{ a: N32, b: N32 }`; found `{ a: N32 }`
 
 let io: IO = <IO>;
 > do { let x; x = (x, x); }
-error: expected type `?1956`; found `(?1956, ?1956)`
+error: expected type `?2034`; found `(?2034, ?2034)`
    @ input:1:17
  1 | do { let x; x = (x, x); }
 
