@@ -23,19 +23,19 @@ pub mod I32 {
 
   pub impl : Add[I32, I32, I32] {
     fn add(a: I32, b: I32) -> I32 {
-      safe inline_ivy! (a <- a, b <- b) -> I32 { out a = @n32_add(b out) }
+      safe $ivy { ${a} = vi:n32:add(${b} ^) }
     }
   }
 
   pub impl : Sub[I32, I32, I32] {
     fn sub(a: I32, b: I32) -> I32 {
-      safe inline_ivy! (a <- a, b <- b) -> I32 { out a = @n32_sub(b out) }
+      safe $ivy { ${a} = vi:n32:sub(${b} ^) }
     }
   }
 
   pub impl : Mul[I32, I32, I32] {
     fn mul(a: I32, b: I32) -> I32 {
-      safe inline_ivy! (a <- a, b <- b) -> I32 { out a = @n32_mul(b out) }
+      safe $ivy { ${a} = vi:n32:mul(${b} ^) }
     }
   }
 
@@ -51,7 +51,7 @@ pub mod I32 {
         return debug::error("division by zero");
       }
 
-      safe inline_ivy! (a <- a, b <- b) -> I32 { out a = @i32_div(b out) }
+      safe $ivy { ${a} = vi:i32:div(${b} ^) }
     }
   }
 
@@ -61,7 +61,7 @@ pub mod I32 {
         return debug::error("division by zero");
       }
 
-      safe inline_ivy! (a <- a, b <- b) -> I32 { out a = @i32_rem(b out) }
+      safe $ivy { ${a} = vi:i32:rem(${b} ^) }
     }
   }
 
@@ -79,37 +79,37 @@ pub mod I32 {
 
   pub impl : BitAnd[I32, I32, I32] {
     fn bit_and(a: I32, b: I32) -> I32 {
-      safe inline_ivy! (a <- a, b <- b) -> I32 { out a = @n32_and(b out) }
+      safe $ivy { ${a} = vi:n32:and(${b} ^) }
     }
   }
 
   pub impl : BitOr[I32, I32, I32] {
     fn bit_or(a: I32, b: I32) -> I32 {
-      safe inline_ivy! (a <- a, b <- b) -> I32 { out a = @n32_or(b out) }
+      safe $ivy { ${a} = vi:n32:or(${b} ^) }
     }
   }
 
   pub impl : BitXor[I32, I32, I32] {
     fn bit_xor(a: I32, b: I32) -> I32 {
-      safe inline_ivy! (a <- a, b <- b) -> I32 { out a = @n32_xor(b out) }
+      safe $ivy { ${a} = vi:n32:xor(${b} ^) }
     }
   }
 
   pub impl : Shl[I32, N32, I32] {
     fn shl(a: I32, b: N32) -> I32 {
-      safe inline_ivy! (a <- a, b <- b) -> I32 { out a = @n32_shl(b out) }
+      safe $ivy { ${a} = vi:n32:shl(${b} ^) }
     }
   }
 
   pub impl : Shr[I32, N32, I32] {
     fn shr(a: I32, b: N32) -> I32 {
-      safe inline_ivy! (a <- a, b <- b) -> I32 { out a = @i32_shr(b out) }
+      safe $ivy { ${a} = vi:i32:shr(${b} ^) }
     }
   }
 
   pub impl : Not[I32, I32] {
     fn not(a: I32) -> I32 {
-      safe inline_ivy! (a <- a) -> I32 { out a = @n32_xor(0xffffffff out) }
+      safe $ivy { ${a} = vi:n32:xor(${N32::maximum} ^) }
     }
   }
 
@@ -161,11 +161,11 @@ pub mod I32 {
 
   pub impl : Ord[I32] {
     fn lt(&a: &I32, &b: &I32) -> Bool {
-      safe inline_ivy! (a <- a, b <- b) -> Bool { out a = @i32_lt(b out) }
+      safe $ivy { ${a} = vi:i32:lt(${b} ^) }
     }
 
     fn le(&a: &I32, &b: &I32) -> Bool {
-      safe inline_ivy! (a <- a, b <- b) -> Bool { out a = @i32_le(b out) }
+      safe $ivy { ${a} = vi:i32:le(${b} ^) }
     }
 
     fn cmp(a: &I32, b: &I32) -> Ord {
@@ -175,11 +175,11 @@ pub mod I32 {
 
   pub impl : Eq[I32] {
     fn eq(&a: &I32, &b: &I32) -> Bool {
-      safe inline_ivy! (a <- a, b <- b) -> Bool { out a = @n32_eq(b out) }
+      safe $ivy { ${a} = vi:n32:eq(${b} ^) }
     }
 
     fn ne(&a: &I32, &b: &I32) -> Bool {
-      safe inline_ivy! (a <- a, b <- b) -> Bool { out a = @n32_ne(b out) }
+      safe $ivy { ${a} = vi:n32:ne(${b} ^) }
     }
   }
 

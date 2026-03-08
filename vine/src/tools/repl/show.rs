@@ -1,3 +1,5 @@
+#![allow(unused)]
+
 use std::mem::replace;
 
 use ivm::{
@@ -12,7 +14,6 @@ use crate::{
   structures::{
     ast::Span,
     chart::GenericsId,
-    template::global_name,
     types::{ImplType, Type},
   },
 };
@@ -20,12 +21,18 @@ use crate::{
 use super::Repl;
 
 impl<'ctx, 'ivm, 'ext, 'comp> Repl<'ctx, 'ivm, 'ext, 'comp> {
+  pub fn show(&mut self, _: Type, _: &mut Port<'ivm>) -> String {
+    todo!()
+  }
+
+  #[cfg(false)]
   pub fn show(&mut self, ty: Type, port: &mut Port<'ivm>) -> String {
     let (new_port, string) = self._show(ty, replace(port, Port::ERASE));
     *port = new_port;
     string.unwrap_or_else(|| format!("<{}>", self.types.show(&self.compiler.chart, ty)))
   }
 
+  #[cfg(false)]
   fn _show(&mut self, ty: Type, port: Port<'ivm>) -> (Port<'ivm>, Option<String>) {
     let (Some(show), Some(show_to_string)) =
       (self.compiler.chart.builtins.show, self.compiler.chart.builtins.show_to_string)
@@ -56,14 +63,15 @@ impl<'ctx, 'ivm, 'ext, 'comp> Repl<'ctx, 'ivm, 'ext, 'comp> {
       fragments: &self.compiler.fragments,
       vir: &self.compiler.vir,
     };
-    let impl_ = specializer.instantiate(None, &Vec::new(), &impl_);
-    let Ok((spec_id, stage_id)) = specializer.instantiate_fn_id(show_to_string, vec![impl_]) else {
+    let Ok((spec_id, stage_id)) =
+      specializer.instantiate_fn_rel(None, &Vec::new(), &(show_to_string, vec![impl_]))
+    else {
       return (port, None);
     };
 
     let nets = self.compiler.nets_from(&checkpoint);
     self.host.insert_nets(&nets);
-    let global = global_name(self.compiler.specs.specs[spec_id].as_ref().unwrap(), stage_id);
+    let global = self.compiler.specs.specs[spec_id].as_ref().unwrap().name.with_data(stage_id.0);
 
     let label_fn = Host::label_to_u16("fn", &mut self.host.comb_labels);
     let label_ref = Host::label_to_u16("ref", &mut self.host.comb_labels);

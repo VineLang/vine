@@ -1,6 +1,6 @@
 use std::mem::take;
 
-use ivy::ast::Tree;
+use hedera::net::Wire;
 use vine_util::parser::Parse;
 
 use crate::{
@@ -18,9 +18,9 @@ use crate::{
       Block, Expr, ExprKind, Flex, FnItem, Ident, ItemKind, LetFnStmt, Pat, PatKind, Path, Span,
       Stmt, StmtKind, Ty,
     },
-    chart::{ConcreteFnDef, ConcreteFnId, DefId, DefValueKind, FnId, GenericsId, VisId},
+    chart::{ConcreteFnDef, ConcreteFnId, DefId, DefValueKind, FnId, GenericsId, TraitFnId, VisId},
     diag::Diag,
-    resolutions::{FnRel, FnRelId, Fragment},
+    resolutions::{FnRelId, Fragment},
     signatures::FnSig,
     tir::{ClosureId, TirClosure, TirExpr, TirExprKind, TirImpl},
     types::{ImplType, Inverted, Type, TypeCtx, TypeKind, Types},
@@ -196,12 +196,19 @@ impl Resolver<'_> {
     let fn_def = &self.chart.concrete_fns[fn_id];
     let span = fn_def.span;
     self.initialize(fn_def.def, fn_def.generics, fn_def.unsafe_);
-    let (ty, closure_id) =
-      self.resolve_closure(span, Flex::None, &fn_def.params, &fn_def.ret_ty, &fn_def.body, false);
-    let root = TirExpr { span, ty, kind: Box::new(TirExprKind::Closure(closure_id)) };
+    let params = fn_def.params.iter().map(|p| self.resolve_pat(p)).collect();
+    let ret_ty = self.resolve_arrow_ty(span, &fn_def.ret_ty, false);
+    self.return_ty = Some(ret_ty);
+    let body = self.resolve_block_type(&fn_def.body, ret_ty);
+    self.return_ty = None;
     self.types.finish_inference();
-    let fragment =
-      self.finish_fragment(span, self.chart.defs[fn_def.def].path.clone(), root, fn_def.frameless);
+    let fragment = self.finish_fragment(
+      span,
+      self.chart.defs[fn_def.def].path.clone(),
+      Some(params),
+      body,
+      fn_def.frameless,
+    );
     let fragment_id = self.fragments.push(fragment);
     self.resolutions.fns.push_to(fn_id, fragment_id);
   }
@@ -318,8 +325,8 @@ impl Resolver<'_> {
       for (arg, ty) in args.iter().zip(sig.param_tys) {
         self.expect_type(arg.span, arg.ty, ty);
       }
-      let rel = self.rels.fns.push(FnRel::Item(fn_id, impl_params));
-      Ok(TirExpr::new(span, sig.ret_ty, TirExprKind::Call(rel, None, args)))
+      let rel = self.rels.fns.push((fn_id, impl_params));
+      Ok(TirExpr::new(span, sig.ret_ty, TirExprKind::Call(rel, args)))
     } else {
       _ = self.resolve_generics(path, GenericsId::NONE, true);
       Ok(TirExpr::new(span, self.types.new(TypeKind::Fn(fn_id)), TirExprKind::Fn))
@@ -399,14 +406,12 @@ impl Resolver<'_> {
     let Some(fn_) = self.chart.builtins.fn_ else {
       Err(Diag::MissingBuiltin { span, builtin: "Fn" })?
     };
-    let args = args.iter().map(|arg| self.resolve_expr(arg)).collect::<Vec<_>>();
+    let args = self.resolve_expr_tuple(span, args)?;
     let ret_ty = self.types.new_var(span);
-    let arg_tys = args.iter().map(|x| x.ty).collect();
-    let impl_type =
-      ImplType::Trait(fn_, vec![func.ty, self.types.new(TypeKind::Tuple(arg_tys)), ret_ty]);
+    let impl_type = ImplType::Trait(fn_, vec![func.ty, args.ty, ret_ty]);
     let impl_ = self.find_impl(span, &impl_type, false);
-    let rel = self.rels.fns.push(FnRel::Impl(impl_, args.len()));
-    Ok(TirExpr::new(span, ret_ty, TirExprKind::Call(rel, Some(func), args)))
+    let rel = self.rels.fns.push((FnId::Abstract(fn_, TraitFnId(0)), vec![impl_]));
+    Ok(TirExpr::new(span, ret_ty, TirExprKind::Call(rel, vec![func, args])))
   }
 
   pub(crate) fn resolve_expr_return(
@@ -468,16 +473,11 @@ impl Distiller<'_> {
     let call = {
       let mut stage = self.new_stage(&mut layer, span, interface);
 
-      let return_local = self.new_local(&mut stage, span, closure.body.ty);
       let params =
         closure.params.iter().map(|p| self.distill_pat_value(&mut stage, p)).collect::<Vec<_>>();
-      let result = stage.local_read_barrier(return_local, span, closure.body.ty);
-      stage.header = Header::Fn(params, result);
 
-      self.returns.push(Return { ty: closure.body.ty, layer: stage.layer, local: return_local });
-      let result = self.distill_expr_value(&mut stage, &closure.body);
-      stage.local_barrier_write_to(return_local, span, result);
-      self.returns.pop();
+      let result = self.distill_fn_body(&mut stage, &closure.body);
+      stage.header = Header::Closure(params, result);
 
       self.finish_stage(stage)
     };
@@ -499,9 +499,20 @@ impl Distiller<'_> {
     });
 
     self.interfaces[interface] =
-      Some(Interface::new(interface, layer.id, InterfaceKind::Fn { call, fork, drop }));
+      Some(Interface::new(interface, layer.id, InterfaceKind::Closure { call, fork, drop }));
 
     self.finish_layer(layer);
+  }
+
+  pub(crate) fn distill_fn_body(&mut self, stage: &mut Stage, body: &TirExpr) -> Port {
+    let span = body.span;
+    let return_local = self.new_local(stage, span, body.ty);
+    let result = stage.local_read_barrier(return_local, span, body.ty);
+    self.returns.push(Return { ty: body.ty, layer: stage.layer, local: return_local });
+    let body = self.distill_expr_value(stage, body);
+    stage.local_barrier_write_to(return_local, span, body);
+    self.returns.pop();
+    result
   }
 
   pub(crate) fn distill_expr_value_fn(&mut self, ty: Type) -> Port {
@@ -527,13 +538,11 @@ impl Distiller<'_> {
     span: Span,
     ty: Type,
     rel: FnRelId,
-    receiver: &Option<TirExpr>,
     args: &[TirExpr],
   ) -> Port {
-    let receiver = receiver.as_ref().map(|r| self.distill_expr_value(stage, r));
     let args = args.iter().map(|s| self.distill_expr_value(stage, s)).collect::<Vec<_>>();
     let wire = stage.new_wire(span, ty);
-    stage.steps.push(Step::Call(span, rel, receiver, args, wire.neg));
+    stage.steps.push(Step::Call(span, rel, args, wire.neg));
     wire.pos
   }
 
@@ -550,27 +559,29 @@ impl Distiller<'_> {
 }
 
 impl Emitter<'_> {
-  pub(crate) fn emit_call(
+  pub(crate) fn emit_call(&mut self, span: Span, rel: FnRelId, args: &[Port], ret: &Port) {
+    let args = args.iter().map(|x| self.emit_port(x)).collect::<Vec<_>>();
+    let ret = self.emit_port(ret);
+    self._emit_call(span, rel, args, ret);
+  }
+
+  pub(crate) fn _emit_call(
     &mut self,
     span: Span,
     rel: FnRelId,
-    recv: &Option<Port>,
-    args: &[Port],
-    ret: &Port,
+    args: impl IntoIterator<Item = Wire>,
+    ret: Wire,
   ) {
     let func = self.emit_fn_rel(rel);
-    let mut recv = recv.as_ref().map(|p| self.emit_port(p)).unwrap_or(Tree::Erase);
+    let mut args = args.into_iter().collect::<Vec<_>>();
+    args.push(ret);
+    let call = self.net.make(self.guide.fn_, args);
     if self.debug {
-      recv = Tree::Comb("dbg".into(), Box::new(self.tap_debug_call(span)), Box::new(recv));
+      let dbg = self.tap_debug_call(span);
+      self.net.add(self.guide.dbg, func, [dbg, call]);
+    } else {
+      self.net.link(func, call);
     }
-    let pair = (
-      func,
-      Tree::n_ary(
-        "fn",
-        [recv].into_iter().chain(args.iter().chain([ret]).map(|p| self.emit_port(p))),
-      ),
-    );
-    self.pairs.push(pair)
   }
 }
 
@@ -600,7 +611,6 @@ impl Finder<'_> {
         }
       }
       Some((Inverted(false), TypeKind::Closure(closure_id, _, closure_sig))) => {
-        let param_count = closure_sig.param_tys.len();
         let mut types = types.clone();
         let closure_params = types.new(TypeKind::Tuple(closure_sig.param_tys.clone()));
         if types
@@ -608,7 +618,7 @@ impl Finder<'_> {
           .and(types.unify(closure_sig.ret_ty, ret))
           .is_success()
         {
-          found.push(TypeCtx { types, inner: TirImpl::Closure(*closure_id, param_count) });
+          found.push(TypeCtx { types, inner: TirImpl::Closure(*closure_id) });
         }
       }
       _ => {}

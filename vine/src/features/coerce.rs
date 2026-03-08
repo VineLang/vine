@@ -116,7 +116,7 @@ impl Distiller<'_> {
           let ref_ = stage.new_wire(span, ref_ty);
           stage.steps.push(Step::Ref(ref_.neg, value, space));
           let out = stage.new_wire(span, ty);
-          stage.steps.push(Step::Call(span, fork_rel, None, vec![ref_.pos], out.neg));
+          stage.steps.push(Step::Call(span, fork_rel, vec![ref_.pos], out.neg));
           out.pos
         }
         None => {
@@ -128,7 +128,7 @@ impl Distiller<'_> {
         Some(impl_) => {
           let drop_rel = self.rels.drop_rel(self.chart, impl_);
           let nil = Port { ty: self.types.nil(), kind: PortKind::Nil };
-          stage.steps.push(Step::Call(span, drop_rel, None, vec![space], nil));
+          stage.steps.push(Step::Call(span, drop_rel, vec![space], nil));
           value
         }
         None => {
@@ -147,7 +147,7 @@ impl Distiller<'_> {
     let impl_ = self.find_impl(span, &ImplType::Trait(drop, vec![ty]), false);
     let fn_rel = self.rels.drop_rel(self.chart, impl_);
     let nil = Port { ty: self.types.nil(), kind: PortKind::Nil };
-    stage.steps.push(Step::Call(span, fn_rel, None, vec![port], nil));
+    stage.steps.push(Step::Call(span, fn_rel, vec![port], nil));
   }
 
   pub(crate) fn drop_space(&mut self, span: Span, stage: &mut Stage, ty: Type) -> Port {

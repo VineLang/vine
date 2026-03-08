@@ -1,5 +1,6 @@
 use std::fmt::{self, Display};
 
+use hedera::text::ast::Diag as IvyDiag;
 use vine_util::lexer::TokenSet;
 
 use crate::{
@@ -93,10 +94,12 @@ diags! {
     ["invalid escape"]
   InvalidUnicode
     ["invalid unicode escape"]
-  InvalidIvy
-    ["invalid inline ivy"]
+  InvalidIvy { diag: IvyDiag }
+    ["invalid inline ivy: {diag}"]
   UnknownAttribute
     ["unknown attribute"]
+  UnknownMacro
+    ["unknown macro"]
   BadBuiltin
     ["bad builtin"]
   CannotResolve { ident: Ident, module: String }

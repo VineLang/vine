@@ -6,9 +6,9 @@ use util::{duplicate, erase};
 pub type F32;
 
 pub mod F32 {
-  pub const nan: F32 = safe inline_ivy! () -> F32 { +NaN };
-  pub const inf: F32 = safe inline_ivy! () -> F32 { +inf };
-  pub const neg_inf: F32 = safe inline_ivy! () -> F32 { -inf };
+  pub const nan: F32 = 0.0 / 0.0;
+  pub const inf: F32 = 1.0 / 0.0;
+  pub const neg_inf: F32 = -inf;
 
   pub impl : Fork[F32] = safe duplicate;
   pub impl : Drop[F32] = safe erase;
@@ -19,19 +19,19 @@ pub mod F32 {
 
   pub impl : Add[F32, F32, F32] {
     fn add(a: F32, b: F32) -> F32 {
-      safe inline_ivy! (a <- a, b <- b) -> F32 { out a = @f32_add(b out) }
+      safe $ivy { ${a} = vi:f32:add(${b} ^) }
     }
   }
 
   pub impl : Sub[F32, F32, F32] {
     fn sub(a: F32, b: F32) -> F32 {
-      safe inline_ivy! (a <- a, b <- b) -> F32 { out a = @f32_sub(b out) }
+      safe $ivy { ${a} = vi:f32:sub(${b} ^) }
     }
   }
 
   pub impl : Mul[F32, F32, F32] {
     fn mul(a: F32, b: F32) -> F32 {
-      safe inline_ivy! (a <- a, b <- b) -> F32 { out a = @f32_mul(b out) }
+      safe $ivy { ${a} = vi:f32:mul(${b} ^) }
     }
   }
 
@@ -58,18 +58,18 @@ pub mod F32 {
 
   pub impl : Div[F32, F32, F32] {
     fn div(a: F32, b: F32) -> F32 {
-      safe inline_ivy! (a <- a, b <- b) -> F32 { out a = @f32_div(b out) }
+      safe $ivy { ${a} = vi:f32:div(${b} ^) }
     }
   }
 
   pub impl : Rem[F32, F32, F32] {
     fn rem(a: F32, b: F32) -> F32 {
-      safe inline_ivy! (a <- a, b <- b) -> F32 { out a = @f32_rem(b out) }
+      safe $ivy { ${a} = vi:f32:rem(${b} ^) }
     }
   }
 
   pub fn .sqrt(a: F32) -> F32 {
-    safe inline_ivy! (a <- a) -> F32 { out a = @f32_sqrt(_ out) }
+    safe $ivy { ${a} = vi:f32:sqrt(^) }
   }
 
   pub impl : Pos[F32, F32] {
@@ -80,62 +80,62 @@ pub mod F32 {
 
   pub impl : Neg[F32, F32] {
     fn neg(a: F32) -> F32 {
-      safe inline_ivy! (a <- a) -> F32 { out a = @f32_sub$(-0.0 out) }
+      -0.0 - a
     }
   }
 
   pub impl : Eq[F32] {
     fn eq(&a: &F32, &b: &F32) -> Bool {
-      safe inline_ivy! (a <- a, b <- b) -> Bool { out a = @f32_eq(b out) }
+      safe $ivy { ${a} = vi:f32:eq(${b} ^) }
     }
 
     fn ne(&a: &F32, &b: &F32) -> Bool {
-      safe inline_ivy! (a <- a, b <- b) -> Bool { out a = @f32_ne(b out) }
+      safe $ivy { ${a} = vi:f32:ne(${b} ^) }
     }
   }
 
   pub impl : Lt[F32] {
     fn lt(&a: &F32, &b: &F32) -> Bool {
-      safe inline_ivy! (a <- a, b <- b) -> Bool { out a = @f32_lt(b out) }
+      safe $ivy { ${a} = vi:f32:lt(${b} ^) }
     }
   }
 
   pub impl : Le[F32] {
     fn le(&a: &F32, &b: &F32) -> Bool {
-      safe inline_ivy! (a <- a, b <- b) -> Bool { out a = @f32_le(b out) }
+      safe $ivy { ${a} = vi:f32:le(${b} ^) }
     }
   }
 
   pub impl from_n32: Cast[N32, F32] {
     fn cast(n: N32) -> F32 {
-      safe inline_ivy! (n <- n) -> F32 { out n = @n32_to_f32(_ out) }
+      safe $ivy { ${n} = vi:n32:to_f32(^) }
     }
   }
 
   pub impl to_n32: Cast[F32, N32] {
     fn cast(n: F32) -> N32 {
-      safe inline_ivy! (n <- n) -> N32 { out n = @f32_to_n32(_ out) }
+      safe $ivy { ${n} = vi:f32:to_n32(^) }
     }
   }
 
   pub impl from_i32: Cast[I32, F32] {
     fn cast(i: I32) -> F32 {
-      safe inline_ivy! (i <- i) -> F32 { out i = @i32_to_f32(_ out) }
+      safe $ivy { ${i} = vi:i32:to_f32(^) }
     }
   }
 
   pub impl to_i32: Cast[F32, I32] {
     fn cast(f: F32) -> I32 {
-      safe inline_ivy! (f <- f) -> I32 { out f = @f32_to_i32(_ out) }
+      safe $ivy { ${f} = vi:f32:to_i32(^) }
     }
   }
 
   pub fn .to_bits(f: F32) -> N32 {
-    safe inline_ivy! (f <- f) -> N32 { out f = @f32_to_bits(_ out) }
+    safe $ivy { ${f} = vi:f32:to_bits(^) }
   }
 
   pub fn from_bits(n: N32) -> F32 {
-    safe inline_ivy! (n <- n) -> F32 { out n = @f32_from_bits(_ out) }
+    safe $ivy { ${n} = vi:f32:from_bits(^) }
   }
 
   pub fn .abs(f: F32) -> F32 {

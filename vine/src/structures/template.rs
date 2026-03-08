@@ -1,71 +1,108 @@
-use std::fmt::Write;
+use std::{collections::HashMap, convert::Infallible, iter};
 
-use ivy::ast::{Net, Nets, Tree};
+use hedera::{
+  name::{Name, NameId, Table},
+  net::{FlatDecode, FlatEncode, FlatNet, FlatNode, Wire},
+};
 use vine_util::idx::IdxVec;
 
-use crate::structures::{
-  resolutions::{ConstRelId, FnRelId},
-  specializations::{Spec, Specializations},
-  vir::StageId,
+use crate::{
+  compiler::Guide,
+  structures::{
+    resolutions::{ConstRelId, FnRelId},
+    specializations::{Spec, Specializations},
+    vir::StageId,
+  },
 };
 
 #[derive(Debug)]
 pub struct Template {
-  pub stages: IdxVec<StageId, Option<TemplateStage>>,
+  pub stages: IdxVec<StageId, Option<FlatNet<TemplateNode>>>,
 }
 
 impl Template {
-  pub fn instantiate(&self, nets: &mut Nets, specs: &Specializations, spec: &Spec) {
+  pub fn instantiate(
+    &self,
+    table: &mut Table,
+    guide: &Guide,
+    nets: &mut HashMap<NameId, FlatNet>,
+    specs: &Specializations,
+    spec: &Spec,
+  ) {
     for (stage_id, stage) in self.stages.iter() {
       if let Some(stage) = stage {
-        nets.insert(global_name(spec, stage_id), stage.instantiate(specs, spec));
+        let name = table.add_name(spec.name.clone().with_data(stage_id.0));
+        nets.insert(name, stage.clone().encode(&mut EncodeCtx { table, guide, specs, spec }));
       }
     }
   }
 }
 
-#[derive(Debug)]
-pub struct TemplateStage {
-  pub net: Net,
-  pub rels: TemplateStageRels,
+#[derive(Debug, Clone)]
+pub enum TemplateNode {
+  Raw(FlatNode),
+  Fn(FnRelId, Wire),
+  Const(ConstRelId, Wire),
+  Stage(StageId, Wire),
+  If(StageId, StageId, Wire, Wire),
+  Match(NameId, Vec<StageId>, Wire, Wire),
 }
 
-#[derive(Debug, Default)]
-pub struct TemplateStageRels {
-  pub fns: Vec<(FnRelId, Tree)>,
-  pub consts: Vec<(ConstRelId, Tree)>,
-  pub stages: Vec<(StageId, Tree)>,
-}
-
-impl TemplateStage {
-  pub fn instantiate(&self, specs: &Specializations, spec: &Spec) -> Net {
-    let mut net = self.net.clone();
-    for (fn_rel_id, tree) in &self.rels.fns {
-      let (spec_id, stage_id) = spec.rels.fns[*fn_rel_id].unwrap();
-      net.pairs.push((tree.clone(), Tree::Global(global_name(specs.spec(spec_id), stage_id))));
-    }
-    for (const_rel_id, tree) in &self.rels.consts {
-      let spec_id = spec.rels.consts[*const_rel_id].unwrap();
-      net.pairs.push((tree.clone(), Tree::Global(global_name(specs.spec(spec_id), StageId(0)))));
-    }
-    for (stage_id, tree) in &self.rels.stages {
-      net.pairs.push((tree.clone(), Tree::Global(global_name(spec, *stage_id))));
-    }
-    net
+impl From<FlatNode> for TemplateNode {
+  fn from(node: FlatNode) -> Self {
+    TemplateNode::Raw(node)
   }
 }
 
-pub fn global_name(spec: &Spec, stage_id: StageId) -> String {
-  let mut str = if spec.path.starts_with("#") {
-    format!("::{}", &spec.path[1..])
-  } else {
-    spec.path.to_owned()
-  };
-  if !spec.singular {
-    write!(str, ":{}", spec.index).unwrap();
+struct EncodeCtx<'a> {
+  table: &'a mut Table,
+  guide: &'a Guide,
+  specs: &'a Specializations,
+  spec: &'a Spec,
+}
+
+impl FlatEncode<EncodeCtx<'_>> for TemplateNode {
+  fn encode(node: Self, ctx: &mut EncodeCtx<'_>) -> FlatNode {
+    match node {
+      TemplateNode::Raw(node) => node,
+      TemplateNode::Fn(fn_rel_id, wire) => {
+        let (spec_id, stage_id) = ctx.spec.rels.fns[fn_rel_id].unwrap();
+        FlatNode(ctx.global(ctx.specs.spec(spec_id), stage_id), wire, [])
+      }
+      TemplateNode::Const(const_rel_id, wire) => {
+        let spec_id = ctx.spec.rels.consts[const_rel_id].unwrap();
+        FlatNode(ctx.global(ctx.specs.spec(spec_id), StageId(0)), wire, [])
+      }
+      TemplateNode::Stage(stage_id, wire) => FlatNode(ctx.global(ctx.spec, stage_id), wire, []),
+      TemplateNode::If(then, else_, bool, out) => {
+        let then = ctx._global(ctx.spec, then);
+        let else_ = ctx._global(ctx.spec, else_);
+        FlatNode(ctx.guide.bool_if.with_children([then, else_]), bool, [out])
+      }
+      TemplateNode::Match(enum_name, stages, enum_, out) => {
+        let name = ctx.guide.enum_match.with_children(
+          iter::once(enum_name).chain(stages.into_iter().map(|s| ctx._global(ctx.spec, s))),
+        );
+        FlatNode(name, enum_, [out])
+      }
+    }
   }
-  if stage_id.0 != 0 {
-    write!(str, ":s{}", stage_id.0).unwrap();
+}
+
+impl EncodeCtx<'_> {
+  fn global(&mut self, spec: &Spec, stage_id: StageId) -> Name {
+    let name = self._global(spec, stage_id);
+    self.guide.global.with_children([name])
   }
-  str
+
+  fn _global(&mut self, spec: &Spec, stage_id: StageId) -> NameId {
+    self.table.add_name(spec.name.clone().with_data(stage_id.0))
+  }
+}
+
+impl FlatDecode<()> for TemplateNode {
+  type Error = Infallible;
+  fn decode(node: FlatNode, _: &mut ()) -> Result<Self, Self::Error> {
+    Ok(TemplateNode::Raw(node))
+  }
 }

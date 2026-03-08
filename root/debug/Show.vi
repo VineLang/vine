@@ -186,7 +186,8 @@ pub mod Show {
   #[basic]
   pub impl enum_[E, V; Enum[E, V], ShowVariant[V]]: Show[E] {
     fn show(&enum_: &E) -> Show {
-      Enum::match_ref(&enum_, fn (&variant: &V) { variant.show_variant(Enum::variant_names[E, V]) })
+      let &variant = &enum_ as &V;
+      variant.show_variant(Enum::variant_names[E, V])
     }
   }
 

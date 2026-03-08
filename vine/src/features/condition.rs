@@ -4,10 +4,9 @@ use crate::{
     ast::{Expr, ExprKind, LogicalOp, Pat, Span},
     chart::FnId,
     diag::Diag,
-    resolutions::FnRel,
     tir::{TirExpr, TirExprKind, TirImpl},
     types::Type,
-    vir::{Interface, InterfaceKind, Layer, Port, PortKind, Stage, Transfer},
+    vir::{Interface, InterfaceKind, Layer, Port, PortKind, Stage, Step, Transfer},
   },
   tools::fmt::{Formatter, doc::Doc},
 };
@@ -43,13 +42,13 @@ impl Resolver<'_> {
     let inner = self.resolve_expr(inner);
     let return_ty = self.types.new_var(span);
     let rel = self.builtin_fn(span, self.chart.builtins.not, "not", [inner.ty, return_ty])?;
-    if let FnRel::Item(FnId::Abstract(..), impls) = &self.rels.fns[rel]
+    if let (FnId::Abstract(..), impls) = &self.rels.fns[rel]
       && let [TirImpl::Def(id, _)] = **impls
       && self.chart.builtins.bool_not == Some(id)
     {
       return Ok(TirExpr::new(span, return_ty, TirExprKind::Not(inner)));
     }
-    Ok(TirExpr::new(span, return_ty, TirExprKind::Call(rel, None, vec![inner])))
+    Ok(TirExpr::new(span, return_ty, TirExprKind::Call(rel, vec![inner])))
   }
 
   pub(crate) fn resolve_cond(&mut self, cond: &Expr) -> TirExpr {
@@ -121,28 +120,22 @@ impl Distiller<'_> {
       TirExprKind![!cond] => {
         let value = self.distill_expr_value(stage, cond);
         if negate {
-          stage.ext_fn(span, "n32_eq", false, value, Port { ty, kind: PortKind::N32(0) }, ty)
+          let wire = stage.new_wire(span, ty);
+          stage.steps.push(Step::BoolNot(wire.neg, value));
+          wire.pos
         } else {
           value
         }
       }
-      TirExprKind::Bool(bool) => Port { ty, kind: PortKind::N32((*bool ^ negate) as u32) },
+      TirExprKind::Bool(bool) => Port { ty, kind: PortKind::Bool(*bool ^ negate) },
       TirExprKind::Not(inner) => self.distill_cond_bool(stage, span, ty, inner, !negate),
       _ => {
         let local = self.new_local(stage, span, cond.ty);
         let (mut sub_layer, mut sub_stage) = self.child_layer(stage, span);
         let (mut true_stage, mut false_stage) =
           self.distill_cond(&mut sub_layer, &mut sub_stage, span, cond);
-        true_stage.local_barrier_write_to(
-          local,
-          span,
-          Port { ty, kind: PortKind::N32(!negate as u32) },
-        );
-        false_stage.local_barrier_write_to(
-          local,
-          span,
-          Port { ty, kind: PortKind::N32(negate as u32) },
-        );
+        true_stage.local_barrier_write_to(local, span, Port { ty, kind: PortKind::Bool(!negate) });
+        false_stage.local_barrier_write_to(local, span, Port { ty, kind: PortKind::Bool(negate) });
         self.finish_stage(true_stage);
         self.finish_stage(false_stage);
         self.finish_stage(sub_stage);
@@ -168,7 +161,7 @@ impl Distiller<'_> {
         self.interfaces[interface] = Some(Interface::new(
           interface,
           layer.id,
-          InterfaceKind::Branch(false_stage.id, true_stage.id),
+          InterfaceKind::Branch(true_stage.id, false_stage.id),
         ));
         stage.transfer = Some(Transfer { interface, data: Some(bool) });
         (true_stage, false_stage)

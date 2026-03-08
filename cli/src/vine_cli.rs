@@ -3,7 +3,7 @@ use std::{
   env,
   ffi::OsStr,
   fmt, fs,
-  io::{self, IsTerminal, Read, Write, stderr, stdin, stdout},
+  io::{self, IsTerminal, Read, stderr, stdin, stdout},
   path::{Path, PathBuf},
   process::exit,
   sync::mpsc,
@@ -17,14 +17,20 @@ use clap::{
   error::ErrorKind,
 };
 
+use hedera::{
+  name::{NameId, Table},
+  net::{FlatNet, TreeNet},
+  prune::prune,
+  text::ast::Nets,
+};
 use ivm::{IVM, ext::Extrinsics, heap::Heap};
-use ivy::{ast::Nets, host::Host};
+use ivy::host::Host;
 use notify::{RecommendedWatcher, RecursiveMode, Watcher};
 use rustyline::DefaultEditor;
 use vine::{
   compiler::Compiler,
   components::loader::{FileId, Loader, RealFS},
-  structures::{ast::Ident, resolutions::FragmentId},
+  structures::ast::Ident,
   tools::{doc::document, fmt::Formatter, repl::Repl},
 };
 use vine_lsp::lsp;
@@ -124,12 +130,14 @@ impl CompileArgs {
     compiler
   }
 
-  fn compile(self) -> (Nets, Compiler) {
+  fn compile(self) -> (Table, HashMap<NameId, FlatNet>, Compiler) {
     let mut compiler = self.initialize();
-    let result = compiler.compile(());
+    let mut table = Table::default();
+    let mut nets = HashMap::default();
+    let result = compiler.compile((), &mut table, &mut nets);
     eprint_diags(&compiler);
     match result {
-      Ok(nets) => (nets, compiler),
+      Ok(_) => (table, nets, compiler),
       Err(_) => {
         exit(1);
       }
@@ -169,11 +177,12 @@ pub struct VineRunCommand {
 
 impl VineRunCommand {
   pub fn execute(self) -> Result<()> {
-    let debug = self.compile.debug;
-    let (mut nets, _) = self.compile.compile();
-    self.optimizations.apply(&mut nets, &[]);
-    self.run_args.check(&nets, !debug);
-    Ok(())
+    todo!()
+    // let debug = self.compile.debug;
+    // let (mut nets, _) = self.compile.compile();
+    // self.optimizations.apply(&mut nets, &[]);
+    // self.run_args.check(&nets, !debug);
+    // Ok(())
   }
 }
 
@@ -197,6 +206,11 @@ pub struct VineTestCommand {
 }
 
 impl VineTestCommand {
+  pub fn execute(self) -> Result<()> {
+    todo!()
+  }
+
+  #[cfg(false)]
   pub fn execute(mut self) -> Result<()> {
     self.compile.debug = true;
 
@@ -235,6 +249,7 @@ impl VineTestCommand {
     Ok(())
   }
 
+  #[cfg(false)]
   fn matching_tests(tests: &[String], compiler: &Compiler) -> Vec<(String, FragmentId)> {
     compiler
       .chart
@@ -262,12 +277,18 @@ pub struct VineBuildCommand {
 
 impl VineBuildCommand {
   pub fn execute(self) -> Result<()> {
-    let (mut nets, _) = self.compile.compile();
-    self.optimizations.apply(&mut nets, &[]);
+    let (mut table, mut nets, _) = self.compile.compile();
+    let main = table.add_path("vi:main");
+    let main = table.add_name(main);
+    prune(&table, &mut nets, [main]);
+    let mut nets = TreeNet::from_flat_nets(nets);
+    nets.values_mut().for_each(TreeNet::resolve_links);
+    let nets = Nets::from_tree_nets(nets);
+    let text = nets.print(&table);
     if let Some(out) = self.out {
-      fs::write(out, nets.to_string())?;
+      fs::write(out, text)?;
     } else {
-      println!("{nets}");
+      println!("{text}");
     }
     Ok(())
   }
@@ -496,7 +517,7 @@ pub struct VineDocCommand {
 impl VineDocCommand {
   pub fn execute(self) -> Result<()> {
     let mut compiler = self.compile.initialize();
-    let result = compiler.compile(());
+    let result = compiler.check(());
     if document(&compiler, &self.output).is_err() {
       eprint_diags(&compiler);
       if result.is_ok() {

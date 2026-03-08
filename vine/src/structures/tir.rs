@@ -1,5 +1,8 @@
 use class::Classes;
-use ivy::ast::Net;
+use hedera::{
+  name::Table,
+  net::{FlatNet, Wire},
+};
 use vine_util::{idx::IdxVec, nat::Nat, new_idx};
 
 use crate::{
@@ -24,7 +27,8 @@ pub struct Tir {
   pub locals: IdxVec<Local, TirLocal>,
   pub rels: Rels,
   pub closures: IdxVec<ClosureId, TirClosure>,
-  pub root: TirExpr,
+  pub params: Option<Vec<TirPat>>,
+  pub body: TirExpr,
 }
 
 #[derive(Debug, Clone)]
@@ -98,7 +102,7 @@ pub enum TirExprKind {
   #[class(poly)]
   Field(TirExpr, usize, Vec<Type>),
   #[class(value)]
-  Call(FnRelId, Option<TirExpr>, Vec<TirExpr>),
+  Call(FnRelId, Vec<TirExpr>),
   #[class(poly, value, space, place)]
   Index(TirExpr, TirExpr),
   #[class(poly, value, place, space)]
@@ -128,7 +132,7 @@ pub enum TirExprKind {
   #[class(value)]
   String(String, Vec<(TirExpr, String)>),
   #[class(value)]
-  InlineIvy(Vec<(String, bool, TirExpr)>, Net),
+  InlineIvy(Table, FlatNet, Vec<(Wire, TirExpr)>),
   #[class(nil, value)]
   CallAssign(FnRelId, TirExpr, TirExpr),
   #[class(value)]
@@ -185,7 +189,7 @@ pub enum TirImpl {
   Param(usize),
   Def(ImplId, Vec<TirImpl>),
   Fn(FnId, Vec<TirImpl>, usize),
-  Closure(ClosureId, usize),
+  Closure(ClosureId),
   ForkClosure(ClosureId),
   DropClosure(ClosureId),
   Synthetic(SyntheticImpl),

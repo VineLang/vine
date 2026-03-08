@@ -537,15 +537,10 @@ module.exports = grammar({
     expr_range: $ =>
       prec.left(BP.Range, seq(optional($._expr), choice("..", "..="), optional($._expr))),
 
-    expr_inline_ivy: $ =>
-      seq(
-        "inline_ivy!",
-        delimited("(", ",", ")", seq($.ident, choice("<-", "->"), $._expr)),
-        optional($.block_ty),
-        $.inline_ivy,
-      ),
+    expr_inline_ivy: $ => seq("$", "ivy", $.ivy),
 
-    inline_ivy: $ => new RustRegex("\\{[^\\{\\}]+\\}"),
+    ivy: $ => $._braced,
+    _braced: $ => seq(new RustRegex("\\{"), repeat(choice($._braced, new RustRegex("[^{}]+"))), new RustRegex("\\}")),
 
     expr_chain: $ => prec(BP.Max, seq($._expr, $._chain)),
 

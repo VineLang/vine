@@ -1,4 +1,4 @@
-use ivy::ast::Tree;
+use hedera::net::Wire;
 use vine_util::{nat::Nat, parser::Parse};
 
 use crate::{
@@ -92,11 +92,7 @@ impl Resolver<'_> {
     Ok(TirExpr::new(
       span,
       ty,
-      TirExprKind::Call(
-        fn_rel,
-        None,
-        vec![TirExpr::new(span, nat_ty, TirExprKind::Nat(n.clone()))],
-      ),
+      TirExprKind::Call(fn_rel, vec![TirExpr::new(span, nat_ty, TirExprKind::Nat(n.clone()))]),
     ))
   }
 }
@@ -120,7 +116,7 @@ impl Distiller<'_> {
 }
 
 impl Emitter<'_> {
-  pub(crate) fn emit_nat(&mut self, n: &Nat) -> Tree {
-    self.build_list(&n.0, |_, &n| Tree::N32(n))
+  pub(crate) fn emit_nat(&mut self, n: &Nat) -> Wire {
+    self.build_list(&n.0, |self_, &n| self_.net.make(self_.guide.n32.with_data(n), []))
   }
 }

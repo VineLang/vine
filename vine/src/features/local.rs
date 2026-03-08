@@ -1,6 +1,6 @@
 use std::mem::take;
 
-use ivy::ast::Tree;
+use hedera::net::Wire;
 
 use crate::{
   components::{distiller::Distiller, emitter::Emitter},
@@ -90,9 +90,9 @@ impl Distiller<'_> {
 #[derive(Debug)]
 pub(crate) struct LocalEmissionState {
   inv: Inverted,
-  past: Vec<(Vec<Tree>, Vec<Tree>)>,
-  spaces: Vec<Tree>,
-  values: Vec<Tree>,
+  past: Vec<(Vec<Wire>, Vec<Wire>)>,
+  spaces: Vec<Wire>,
+  values: Vec<Wire>,
 }
 
 impl Emitter<'_> {
@@ -109,20 +109,20 @@ impl Emitter<'_> {
     match invocation {
       Invocation::Barrier => self.local(*local).barrier(),
       Invocation::Read(port) => {
-        let tree = self.emit_port(port);
-        self.local(*local).read(tree)
+        let wire = self.emit_port(port);
+        self.local(*local).read(wire)
       }
       Invocation::Write(port) => {
-        let tree = self.emit_port(port);
-        self.local(*local).write(tree)
+        let wire = self.emit_port(port);
+        self.local(*local).write(wire)
       }
       Invocation::ReadBarrier(port) => {
-        let tree = self.emit_port(port);
-        self.local(*local).read_barrier(tree)
+        let wire = self.emit_port(port);
+        self.local(*local).read_barrier(wire)
       }
       Invocation::BarrierWrite(port) => {
-        let tree = self.emit_port(port);
-        self.local(*local).barrier_write(tree)
+        let wire = self.emit_port(port);
+        self.local(*local).barrier_write(wire)
       }
       Invocation::ReadWrite(a, b) => {
         let a = self.emit_port(a);
@@ -138,19 +138,19 @@ impl Emitter<'_> {
     read: bool,
     barrier: bool,
     write: bool,
-  ) -> (Option<Tree>, Option<Tree>) {
+  ) -> (Option<Wire>, Option<Wire>) {
     let read = read.then(|| {
-      let w = self.new_wire();
-      self.local(local).read(w.0);
-      w.1
+      let w = self.net.wire();
+      self.local(local).read(w);
+      w
     });
     if barrier {
       self.local(local).barrier();
     }
     let write = write.then(|| {
-      let w = self.new_wire();
-      self.local(local).write(w.0);
-      w.1
+      let w = self.net.wire();
+      self.local(local).write(w);
+      w
     });
     (read, write)
   }
@@ -166,7 +166,7 @@ impl Emitter<'_> {
     first.1 = state.values;
     if local.self_inverse {
       for port in state.past.into_iter().flat_map(|(x, y)| [x, y]).flatten() {
-        self.pairs.push((port, Tree::Erase));
+        self.net.add(self.guide.tuple, port, []);
       }
       return;
     }
@@ -180,28 +180,26 @@ impl Emitter<'_> {
       if sinks.is_empty() {
         if let Some(source) = source {
           let drop_rel = local.drop.unwrap();
-          let drop_tree = self.emit_fn_rel(drop_rel);
-          self.pairs.push((drop_tree, Tree::n_ary("fn", [Tree::Erase, source, Tree::Erase])));
+          let ret = self.net.wire();
+          self._emit_call(local.span, drop_rel, [source], ret);
+          self.net.add(self.guide.tuple, ret, []);
         }
       } else {
         let source = source.unwrap();
         if sinks.len() == 1 {
-          self.pairs.push((source, sinks.pop().unwrap()));
+          self.net.link(source, sinks.pop().unwrap());
         } else {
           let fork_rel = local.fork.unwrap();
           let sink = sinks
             .into_iter()
             .reduce(|former, latter| {
-              let wire = self.new_wire();
-              let fork_tree = self.emit_fn_rel(fork_rel);
-              self.pairs.push((
-                fork_tree,
-                Tree::n_ary("fn", [Tree::Erase, Tree::n_ary("ref", [wire.0, latter]), former]),
-              ));
-              wire.1
+              let wire = self.net.wire();
+              let ref_ = self.net.make(self.guide.ref_, [wire, latter]);
+              self._emit_call(local.span, fork_rel, [ref_], former);
+              wire
             })
             .unwrap();
-          self.pairs.push((source, sink));
+          self.net.link(source, sink);
         }
       }
     }
@@ -209,31 +207,31 @@ impl Emitter<'_> {
 }
 
 impl LocalEmissionState {
-  fn read(&mut self, tree: Tree) {
-    self.spaces.push(tree);
+  fn read(&mut self, wire: Wire) {
+    self.spaces.push(wire);
     if self.inv.0 {
       self.barrier();
     }
   }
 
-  fn read_barrier(&mut self, tree: Tree) {
-    self.read(tree);
+  fn read_barrier(&mut self, wire: Wire) {
+    self.read(wire);
     self.barrier();
   }
 
-  fn write(&mut self, tree: Tree) {
+  fn write(&mut self, wire: Wire) {
     if !self.inv.0 {
       self.barrier();
     }
-    self.values.push(tree);
+    self.values.push(wire);
   }
 
-  fn barrier_write(&mut self, tree: Tree) {
+  fn barrier_write(&mut self, wire: Wire) {
     self.barrier();
-    self.write(tree);
+    self.write(wire);
   }
 
-  fn read_write(&mut self, a: Tree, b: Tree) {
+  fn read_write(&mut self, a: Wire, b: Wire) {
     self.read(a);
     self.write(b);
   }
