@@ -18,7 +18,7 @@ use clap::{
 };
 
 use ivm::{IVM, ext::Extrinsics, heap::Heap};
-use ivy::{ast::Nets, host::Host};
+use ivy::{ast::Nets, host::Host, run::Run};
 use notify::{RecommendedWatcher, RecursiveMode, Watcher};
 use rustyline::DefaultEditor;
 use vine::{
@@ -210,12 +210,13 @@ impl VineTestCommand {
 
     let Colors { reset, grey, bold, red, green, .. } = colors(&stderr());
 
+    let run = Run::from(self.run_args);
     let mut failed = false;
     for (path, test_id) in tests {
       compiler.insert_main_net(&mut nets, test_id);
 
       eprint!("{grey}test{reset} {bold}{path}{reset} {grey}...{reset} ");
-      let (result, output) = self.run_args.output(&nets);
+      let (result, output) = run.output(&nets);
       if result.success() {
         eprintln!("{green}ok{reset}");
       } else {
