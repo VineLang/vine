@@ -10,11 +10,11 @@ Interactions
   Branch                 920
 
 Parallelism
-  Depth                1_587
-  Breadth                  9
-  Speedup                 99 cB
+  Depth                1_791
+  Breadth                  8
+  Speedup                 93 cB
 
 Memory
-  Heap                 2_960 B
+  Heap                 2_528 B
   Allocated          307_392 B
   Freed              307_392 B

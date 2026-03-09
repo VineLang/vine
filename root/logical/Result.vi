@@ -1,6 +1,5 @@
 
-
-#[impl(Show)]
+#[impl(Show, Eq, Ord)]
 #[builtin = "Result"]
 pub enum* Result[T, E] {
   Ok(T),

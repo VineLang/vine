@@ -1,6 +1,5 @@
 
 use ops::Cast;
-use ops::comparison::{Eq, Ord};
 use ops::bitwise::{BitOr, Shl};
 
 pub impl to_string[

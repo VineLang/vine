@@ -1,8 +1,7 @@
 
-use ops::{Cast, comparison::Ord};
+use ops::Cast;
 use ops::arithmetic::{Add, Neg, Sub};
 use ops::bitwise::{BitAnd, Shl, Shr};
-use ops::comparison::Eq;
 
 pub mod parse[
   F, Mantissa;

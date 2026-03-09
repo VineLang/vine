@@ -1,5 +1,5 @@
 
-use ops::{Cast, arithmetic::{Add, Sub}, comparison::{Eq, Ord}};
+use ops::{Cast, arithmetic::{Add, Sub}};
 use util::{duplicate, erase, transmute};
 
 /// A Unicode scalar value, or "character".

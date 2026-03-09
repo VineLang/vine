@@ -10,9 +10,9 @@ Interactions
   Branch                  25
 
 Parallelism
-  Depth                  210
+  Depth                  222
   Breadth                  2
-  Speedup                 38 cB
+  Speedup                 36 cB
 
 Memory
   Heap                 1_696 B

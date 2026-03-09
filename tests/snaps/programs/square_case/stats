@@ -10,11 +10,11 @@ Interactions
   Branch                 287
 
 Parallelism
-  Depth                3_123
+  Depth                3_379
   Breadth                  1
-  Speedup                 28 cB
+  Speedup                 25 cB
 
 Memory
-  Heap                 1_072 B
+  Heap                 1_120 B
   Allocated          113_360 B
   Freed              113_360 B

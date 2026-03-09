@@ -334,7 +334,7 @@ module.exports = grammar({
         optional("safe"),
         // @ts-ignore
         reserved("none", $.ident),
-        optional(choice(seq("=", $.string), seq("(", $._expr, ")"))),
+        optional(choice(seq("=", $.string), delimited("(", ",", ")", $._expr))),
         "]",
       ),
 

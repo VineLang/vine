@@ -10,11 +10,11 @@ Interactions
   Branch             392_242
 
 Parallelism
-  Depth            3_653_340
+  Depth            3_667_344
   Breadth                  2
   Speedup                 34 cB
 
 Memory
-  Heap             4_298_032 B
+  Heap             3_972_688 B
   Allocated      176_463_584 B
   Freed          176_463_584 B

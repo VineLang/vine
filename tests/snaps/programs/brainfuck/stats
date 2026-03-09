@@ -10,11 +10,11 @@ Interactions
   Branch                 315
 
 Parallelism
-  Depth                3_046
+  Depth                3_174
   Breadth                  2
-  Speedup                 42 cB
+  Speedup                 40 cB
 
 Memory
-  Heap                 3_792 B
+  Heap                 3_744 B
   Allocated          175_680 B
   Freed              175_680 B

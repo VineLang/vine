@@ -1,5 +1,5 @@
 
-use ops::{Cast, arithmetic::{Add, Div, Mul, Neg, Pos, Pow, Rem, Sub}, comparison::{Eq, Le, Lt}};
+use ops::{Cast, arithmetic::{Add, Div, Mul, Neg, Pos, Pow, Rem, Sub}, comparison::{Le, Lt}};
 use util::{duplicate, erase};
 
 #[builtin = "F32"]

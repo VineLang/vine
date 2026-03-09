@@ -10,11 +10,11 @@ Interactions
   Branch                 163
 
 Parallelism
-  Depth                  184
+  Depth                  188
   Breadth                 13
-  Speedup                114 cB
+  Speedup                113 cB
 
 Memory
-  Heap                 8_496 B
+  Heap                 8_096 B
   Allocated           50_544 B
   Freed               50_544 B

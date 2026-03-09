@@ -1,5 +1,5 @@
 
-use derive::Tuple;
+use derive::{Enum, Struct, Tuple, Variant};
 use ops::arithmetic::Neg;
 
 pub trait[T] Eq {
@@ -11,6 +11,17 @@ pub trait[T] Eq {
 }
 
 pub mod Eq {
+  #[manual]
+  pub impl nil: Eq[()] {
+    fn eq(&(), &()) -> Bool {
+      true
+    }
+
+    fn ne(&(), &()) -> Bool {
+      false
+    }
+  }
+
   pub impl unary[T; Eq[T]]: Eq[(T,)] {
     fn eq(&(a: T,), &(b: T,)) -> Bool {
       a == b
@@ -44,6 +55,64 @@ pub mod Eq {
       a != b
     }
   }
+
+  #[basic]
+  pub impl struct_[S, C; Struct[S, C], Eq[C]]: Eq[S] {
+    fn eq(&a: &S, &b: &S) -> Bool {
+      &a as &C == &b as &C
+    }
+
+    fn ne(&a: &S, &b: &S) -> Bool {
+      &a as &C != &b as &C
+    }
+  }
+
+  pub impl never: Eq[!] {
+    fn eq(&_: &!, &_: &!) -> Bool {
+      debug::error("unreachable")
+    }
+
+    fn ne(&_: &!, &_: &!) -> Bool {
+      debug::error("unreachable")
+    }
+  }
+
+  pub impl variant[I, R; Eq[I], Eq[R]]: Eq[Variant[I, R]] {
+    fn eq(&a: &Variant[I, R], &b: &Variant[I, R]) -> Bool {
+      match &(a, b) {
+        &(Variant::Init(a_init), Variant::Init(b_init)) { a_init == b_init }
+        &(Variant::Rest(a_rest), Variant::Rest(b_rest)) { a_rest == b_rest }
+        _ { false }
+      }
+    }
+
+    fn ne(&a: &Variant[I, R], &b: &Variant[I, R]) -> Bool {
+      match &(a, b) {
+        &(Variant::Init(a_init), Variant::Init(b_init)) { a_init != b_init }
+        &(Variant::Rest(a_rest), Variant::Rest(b_rest)) { a_rest != b_rest }
+        _ { true }
+      }
+    }
+  }
+
+  pub impl variant_nil[R; Eq[R]]: Eq[Variant[(), R]] = variant[; nil, _];
+
+  #[basic]
+  pub impl enum_[E, V; Enum[E, V], Eq[V]]: Eq[E] {
+    fn eq(&a: &E, &b: &E) -> Bool {
+      Enum::match_ref(
+        &a,
+        fn (&a_variant: &V) { Enum::match_ref(&b, fn (&b_variant: &V) { a_variant == b_variant }) },
+      )
+    }
+
+    fn ne(&a: &E, &b: &E) -> Bool {
+      Enum::match_ref(
+        &a,
+        fn (&a_variant: &V) { Enum::match_ref(&b, fn (&b_variant: &V) { a_variant != b_variant }) },
+      )
+    }
+  }
 }
 
 pub trait[T] Ord {
@@ -67,6 +136,21 @@ pub mod Ord {
         Ord::Eq() { Ord::Eq() }
         Ord::Gt() { Ord::Lt() }
       }
+    }
+  }
+
+  #[manual]
+  pub impl nil: Ord[()] {
+    fn cmp(&(), &()) -> Ord {
+      Ord::Eq()
+    }
+
+    fn lt(&(), &()) -> Bool {
+      false
+    }
+
+    fn le(&(), &()) -> Bool {
+      true
     }
   }
 
@@ -118,6 +202,71 @@ pub mod Ord {
     }
   }
 
+  #[basic]
+  pub impl struct_[S, C; Struct[S, C], Ord[C]]: Ord[S] {
+    fn cmp(&a: &S, &b: &S) -> Ord {
+      Ord::cmp(&a as &C, &b as &C)
+    }
+
+    fn lt(&a: &S, &b: &S) -> Bool {
+      &a as &C < &b as &C
+    }
+
+    fn le(&a: &S, &b: &S) -> Bool {
+      &a as &C <= &b as &C
+    }
+  }
+
+  pub impl never: Ord[!] {
+    fn cmp(&_: &!, &_: &!) -> Ord {
+      debug::error("unreachable")
+    }
+
+    fn lt(&_: &!, &_: &!) -> Bool {
+      debug::error("unreachable")
+    }
+
+    fn le(&_: &!, &_: &!) -> Bool {
+      debug::error("unreachable")
+    }
+  }
+
+  pub impl variant[I, R; Ord[I], Ord[R]]: Ord[Variant[I, R]] {
+    fn cmp(&a: &Variant[I, R], &b: &Variant[I, R]) -> Ord {
+      match &(a, b) {
+        &(Variant::Init(a_init), Variant::Init(b_init)) { a_init.cmp(&b_init) }
+        &(Variant::Rest(a_rest), Variant::Rest(b_rest)) { a_rest.cmp(&b_rest) }
+        &(Variant::Init(_), Variant::Rest(_)) { Ord::Lt() }
+        &(Variant::Rest(_), Variant::Init(_)) { Ord::Gt() }
+      }
+    }
+
+    fn lt(&a: &Variant[I, R], &b: &Variant[I, R]) -> Bool {
+      Ord::lt_from_cmp(&a, &b)
+    }
+
+    fn le(&a: &Variant[I, R], &b: &Variant[I, R]) -> Bool {
+      Ord::le_from_cmp(&a, &b)
+    }
+  }
+
+  pub impl variant_nil[R; Ord[R]]: Ord[Variant[(), R]] = variant[; nil, _];
+
+  #[basic]
+  pub impl enum_[E, V; Enum[E, V], Ord[V]]: Ord[E] {
+    fn cmp(&a: &E, &b: &E) -> Ord {
+      Enum::match_ref(&a, fn (&a: &V) { Enum::match_ref(&b, fn (&b: &V) { Ord::cmp(&a, &b) }) })
+    }
+
+    fn le(&a: &E, &b: &E) -> Bool {
+      Enum::match_ref(&a, fn (&a: &V) { Enum::match_ref(&b, fn (&b: &V) { Ord::le(&a, &b) }) })
+    }
+
+    fn lt(&a: &E, &b: &E) -> Bool {
+      Enum::match_ref(&a, fn (&a: &V) { Enum::match_ref(&b, fn (&b: &V) { Ord::lt(&a, &b) }) })
+    }
+  }
+
   pub fn gt[T; Ord[T]](&a: &T, &b: &T) -> Bool {
     b < a
   }
@@ -159,6 +308,13 @@ pub mod Lt {
   pub fn .gt[T; Lt[T]](&a: &T, &b: &T) -> Bool {
     b < a
   }
+
+  #[basic]
+  pub impl struct_[S, C; Struct[S, C], Lt[C]]: Lt[S] {
+    fn lt(&a: &S, &b: &S) -> Bool {
+      Lt::lt(&a as &C, &b as &C)
+    }
+  }
 }
 
 pub trait[T] Le {
@@ -176,5 +332,12 @@ pub mod Le {
   #[builtin = "ge"]
   pub fn .ge[T; Le[T]](&a: &T, &b: &T) -> Bool {
     b <= a
+  }
+
+  #[basic]
+  pub impl struct_[S, C; Struct[S, C], Le[C]]: Le[S] {
+    fn le(&a: &S, &b: &S) -> Bool {
+      Le::le(&a as &C, &b as &C)
+    }
   }
 }

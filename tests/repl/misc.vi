@@ -21,6 +21,9 @@ l.find(fn* (&x: &I32) { x == +7 })
 l.contains(&+1)
 l.contains(&+4)
 l.contains(&+7)
+let l = [Some(10), None(), Some(3), None(), Some(5)];
+l.sort();
+l
 /clear l
 let a = Array::from_fn(5, do { let x = 0; (fn* () { let n = x; x += 1; n }) });
 a.for_each(fn* (v: N32) { io.println("{v}")})

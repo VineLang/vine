@@ -10,9 +10,9 @@ Interactions
   Branch                  72
 
 Parallelism
-  Depth                  697
+  Depth                  718
   Breadth                  1
-  Speedup                 18 cB
+  Speedup                 17 cB
 
 Memory
   Heap                 1_040 B

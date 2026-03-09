@@ -10,11 +10,11 @@ Interactions
   Branch                 328
 
 Parallelism
-  Depth                3_267
+  Depth                3_398
   Breadth                  1
-  Speedup                 30 cB
+  Speedup                 28 cB
 
 Memory
-  Heap                 8_672 B
-  Allocated          132_000 B
-  Freed              132_000 B
+  Heap                 8_480 B
+  Allocated          131_984 B
+  Freed              131_984 B

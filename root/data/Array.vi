@@ -1,7 +1,7 @@
 
 use List::Stream;
 use logical::Nullable;
-use ops::{Cast, Index::{Index, IndexPlace, IndexSpace, IndexValue}, comparison::Eq};
+use ops::{Cast, Index::{Index, IndexPlace, IndexSpace, IndexValue}};
 use util::{duplicate, erase};
 
 /// A contiguous, indexed collection of `T`.

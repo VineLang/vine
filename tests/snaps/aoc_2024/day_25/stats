@@ -10,11 +10,11 @@ Interactions
   Branch               1_188
 
 Parallelism
-  Depth                3_736
+  Depth                3_760
   Breadth                  5
   Speedup                 72 cB
 
 Memory
-  Heap                 6_928 B
+  Heap                 6_864 B
   Allocated          405_056 B
   Freed              405_056 B

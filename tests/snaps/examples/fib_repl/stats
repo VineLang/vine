@@ -10,9 +10,9 @@ Interactions
   Branch           1_000_499
 
 Parallelism
-  Depth           12_005_423
+  Depth           13_005_701
   Breadth                  1
-  Speedup                 28 cB
+  Speedup                 25 cB
 
 Memory
   Heap                 1_152 B
