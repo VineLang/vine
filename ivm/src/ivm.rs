@@ -63,16 +63,23 @@ impl<'ivm, 'ext> IVM<'ivm, 'ext> {
 
   /// Normalize all nets in this IVM.
   pub fn normalize(&mut self) {
+    #[cfg(not(target_arch = "wasm32"))]
     let start = Instant::now();
-    loop {
-      self.do_fast();
-      if let Some((a, b)) = self.active_slow.pop() {
-        self.interact(a, b)
-      } else {
-        break;
-      }
+    while self.normalize_batch() > 0 {}
+    #[cfg(not(target_arch = "wasm32"))]
+    {
+      self.stats.time_clock += start.elapsed();
     }
-    self.stats.time_clock += start.elapsed();
+  }
+
+  pub fn normalize_batch(&mut self) -> usize {
+    let mut interactions = self.active_fast.len();
+    self.do_fast();
+    if let Some((a, b)) = self.active_slow.pop() {
+      self.interact(a, b);
+      interactions += 1;
+    }
+    interactions
   }
 
   pub(crate) fn do_fast(&mut self) {
@@ -86,19 +93,35 @@ impl<'ivm, 'ext> IVM<'ivm, 'ext> {
   /// This is useful to get the depth (longest critical path) of the computation
   /// to understand the parallelism of the program.
   pub fn normalize_breadth_first(&mut self) {
+    #[cfg(not(target_arch = "wasm32"))]
     let start = Instant::now();
     let mut work = vec![];
-    loop {
-      mem::swap(&mut work, &mut self.active_fast);
-      work.append(&mut self.active_slow);
-      if work.is_empty() {
-        break;
-      }
-      for (a, b) in work.drain(..) {
-        self.interact(a, b);
-      }
-      self.stats.depth += 1;
+    while self.normalize_breadth_first_batch(&mut work) > 0 {}
+    #[cfg(not(target_arch = "wasm32"))]
+    {
+      self.stats.time_clock += start.elapsed();
     }
-    self.stats.time_clock += start.elapsed();
+  }
+
+  pub fn normalize_breadth_first_batch(
+    &mut self,
+    work: &mut Vec<(Port<'ivm>, Port<'ivm>)>,
+  ) -> usize {
+    mem::swap(work, &mut self.active_fast);
+    work.append(&mut self.active_slow);
+    if work.is_empty() {
+      return 0;
+    }
+    self.stats.depth += 1;
+    let interactions = work.len();
+    for (a, b) in work.drain(..) {
+      self.interact(a, b);
+    }
+    interactions
+  }
+
+  /// Returns whether any active pairs exist.
+  pub fn is_finished(&self) -> bool {
+    self.active_fast.is_empty() && self.active_slow.is_empty()
   }
 }

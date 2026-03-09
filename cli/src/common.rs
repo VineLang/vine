@@ -53,8 +53,7 @@ impl RunArgs {
     let no_stats = self.no_stats;
     let no_perf = self.no_perf;
 
-    let run = Run::from(self);
-    let mut result = run.run(nets, io::stdin, io::stdout);
+    let mut result = Run::from(self).run(nets, io::stdin, io::stdout);
     if no_perf {
       result.stats.clear_perf();
     }
