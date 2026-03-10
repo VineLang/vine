@@ -4,6 +4,9 @@
 use #root::data::Heap;
 use #root::rng::Pcg32;
 
+#[configurable]
+const iterations: N32 = 50;
+
 pub fn main(&io: &IO) {
   let heap = Heap::empty[N32];
   let list = [];
@@ -33,7 +36,7 @@ pub fn main(&io: &IO) {
     }
   }
 
-  for _ in 0..50 {
+  for _ in 0..iterations {
     add();
     compare();
     add();
@@ -44,7 +47,7 @@ pub fn main(&io: &IO) {
 
   io.println("{heap.show()}");
 
-  for _ in 0..50 {
+  for _ in 0..iterations {
     pop();
     compare();
     pop();

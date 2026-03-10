@@ -1,8 +1,11 @@
 
 use #root::data::Array;
 
+#[configurable]
+const len: N32 = 1000000;
+
 pub fn main(&io: &IO) {
-  let l = List::new(1000000, 0);
+  let l = List::new(len, 0);
   let a = l as Array;
   io.println("{a.len()}");
 }
