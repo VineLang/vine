@@ -187,18 +187,23 @@ fn .gen_string(&rng: &Pcg32, size: N32) -> String {
 }
 
 const seed: String = "/^se+d$/";
-const re_count: N32 = black_box(100);
-const str_count: N32 = black_box(100);
-const re_size: N32 = black_box(20);
-const str_size: N32 = black_box(20);
+
+#[configurable]
+const re_count: N32 = 100;
+#[configurable]
+const str_count: N32 = 100;
+#[configurable]
+const re_size: N32 = 20;
+#[configurable]
+const str_size: N32 = 20;
 
 pub fn main(&io: &IO) {
   let rng = Pcg32::seeded(seed);
-  for _ in 0..re_count {
-    let re = rng.gen_regex(re_size);
+  for _ in 0..black_box(re_count) {
+    let re = rng.gen_regex(black_box(re_size));
     io.println("/ {re}");
-    for _ in 0..str_count {
-      let str = rng.gen_string(str_size);
+    for _ in 0..black_box(str_count) {
+      let str = rng.gen_string(black_box(str_size));
       let code = if re.check(str) {
         'T'
       } else {

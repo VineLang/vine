@@ -1,9 +1,12 @@
 
 use #root::rng::Pcg32;
 
+#[configurable]
+const iterations: N32 = 100_000;
+
 pub fn main(&io: &IO) {
   let rng = Pcg32::seeded("how many logs could a log calculator calculate if a log calculator could calculate logs");
-  for _ in 0..100_000 {
+  for _ in 0..iterations {
     let n = N64(rng.gen_n32(), rng.gen_n32()) >> rng.gen_n32();
     let b = rng.gen_n32() >> rng.gen_n32();
     assert n > 0[N64] and b > 1 else {}

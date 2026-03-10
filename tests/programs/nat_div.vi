@@ -3,6 +3,9 @@
 
 use #root::rng::Pcg32;
 
+#[configurable]
+const iterations: N32 = 1000;
+
 pub fn main(&io: &IO) {
   let rng = Pcg32::seeded("Nat::div_rem ");
   let fn gen_nat() {
@@ -13,7 +16,7 @@ pub fn main(&io: &IO) {
     Nat::from_parts(parts)
   }
 
-  for _ in 0..1000 {
+  for _ in 0..iterations {
     let a = gen_nat();
     let b = gen_nat() >> (rng.gen_n32() & 255);
 

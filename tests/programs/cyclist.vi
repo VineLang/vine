@@ -1,9 +1,12 @@
 
 // @run -d
 
+#[configurable]
+const len: N32 = 32;
+
 pub fn main(&io: &IO) {
   let list = [0];
-  while list.len() < 32 {
+  while list.len() < len {
     list ++= list.map(fn* (x: N32) { list.len() + x });
   }
 

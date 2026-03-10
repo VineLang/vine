@@ -1,9 +1,12 @@
 
 use #root::rng::Pcg32;
 
+#[configurable]
+const iterations: N32 = 1000;
+
 pub fn main(&io: &IO) {
   let rng = Pcg32::seeded("N64::div_rem");
-  for _ in 0..1000 {
+  for _ in 0..iterations {
     let a = N64(rng.gen_n32(), rng.gen_n32());
     let b = N64(rng.gen_n32(), rng.gen_n32()) >> rng.gen_n32();
     if b != 0[N64] {

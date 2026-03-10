@@ -18,10 +18,13 @@ fn cube_root(x: F32) -> F32 {
   }
 }
 
+#[configurable]
+const iterations: N32 = 100;
+
 pub fn main(&io: &IO) {
   let seed = "impeccably stylish penguin";
   let rng = Pcg32::seeded(seed);
-  for _ in 0..100 {
+  for _ in 0..iterations {
     let x = rng.gen_n32() as F32;
     if rng.gen_n32() % 2 == 0 {
       x = -x;
