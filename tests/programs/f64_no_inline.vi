@@ -1,0 +1,7 @@
+
+pub fn main(&io: &IO) {
+  match Some() {
+    Some() { 0.0[F64] }
+    None() { 0.0[F64] }
+  };
+}
