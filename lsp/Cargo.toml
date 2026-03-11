@@ -6,10 +6,14 @@ edition = "2024"
 [dependencies]
 futures = "0.3.31"
 glob = "0.3.1"
-tokio = { version = "1.41.1", features = ["full"] }
-tower-lsp = "0.20.0"
+tokio = { version = "1.41.1", default-features = false }
+tower-lsp = { version = "0.20.0" }
 vine = { path = "../vine" }
 vine-util = { path = "../util" }
 
 [lints.clippy]
 absolute_paths = "warn"
+
+[features]
+default = ["tokio/full"]
+wasm = ["tokio/rt", "tokio/macros", "tokio/sync"]

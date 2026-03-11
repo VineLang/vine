@@ -7,7 +7,10 @@ use std::{
 };
 
 use futures::{StreamExt, stream::FuturesUnordered};
-use tokio::sync::RwLock;
+use tokio::{
+  io::{AsyncRead, AsyncWrite},
+  sync::RwLock,
+};
 use tower_lsp::{Client, LanguageServer, LspService, Server, jsonrpc::Result, lsp_types::*};
 
 use vine::{
@@ -235,9 +238,18 @@ impl Lsp {
   }
 
   fn file_to_uri(&self, file: FileId) -> Url {
-    let mut path = current_dir().unwrap();
-    path.push(&self.file_paths[file]);
-    Url::from_file_path(&path).unwrap()
+    #[cfg(feature = "wasm")]
+    {
+      let mut path = "file://".to_owned();
+      path.push_str(self.file_paths[file].to_str().unwrap());
+      Url::parse(path.as_str()).unwrap()
+    }
+    #[cfg(not(feature = "wasm"))]
+    {
+      let mut path = current_dir().unwrap();
+      path.push(&self.file_paths[file]);
+      Url::from_file_path(&path).unwrap()
+    }
   }
 
   fn uri_to_file_id(&self, uri: Url) -> Option<FileId> {
@@ -417,15 +429,24 @@ impl LanguageServer for Backend {
 }
 
 #[allow(clippy::absolute_paths)]
-#[tokio::main]
+#[cfg(not(feature = "wasm"))]
+pub fn lsp_stdio(
+  compiler: Compiler,
+  file_paths: IdxVec<FileId, PathBuf>,
+  entrypoints: Vec<String>,
+) {
+  lsp(compiler, file_paths, entrypoints, tokio::io::stdin(), tokio::io::stdout());
+}
+
+#[cfg_attr(feature = "wasm", tokio::main(flavor = "current_thread"))]
+#[cfg_attr(not(feature = "wasm"), tokio::main)]
 pub async fn lsp(
   mut compiler: Compiler,
   mut file_paths: IdxVec<FileId, PathBuf>,
   entrypoints: Vec<String>,
+  stdin: impl AsyncRead + Unpin,
+  stdout: impl AsyncWrite,
 ) {
-  let stdin = tokio::io::stdin();
-  let stdout = tokio::io::stdout();
-
   _ = compiler.check(());
   let checkpoint = compiler.checkpoint();
 

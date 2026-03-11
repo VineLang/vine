@@ -27,7 +27,7 @@ use vine::{
   structures::{ast::Ident, diag::Color, resolutions::FragmentId},
   tools::{doc::document, fmt::Formatter, repl::Repl},
 };
-use vine_lsp::lsp;
+use vine_lsp::lsp_stdio;
 use vine_util::idx::IdxVec;
 
 use super::{Optimizations, RunArgs};
@@ -465,7 +465,7 @@ impl VineLspCommand {
   pub fn execute(self) -> Result<()> {
     let mut compiler = Compiler::default();
     let file_paths = self.check.libs.initialize(&mut compiler);
-    lsp(compiler, file_paths, self.check.entrypoints);
+    lsp_stdio(compiler, file_paths, self.check.entrypoints);
     Ok(())
   }
 }
