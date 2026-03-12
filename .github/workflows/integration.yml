@@ -18,6 +18,7 @@ jobs:
           - build github:nilscrm/liana#checks.x86_64-linux.example
           - flake check github:nilscrm/sat-vi
           - flake check github:nilscrm/vine-page-rank
+          - flake check github:nilscrm/quant-vi
     steps:
       - uses: actions/checkout@v3
       - run: nix ${{ matrix.command }} --override-input vine . -L
