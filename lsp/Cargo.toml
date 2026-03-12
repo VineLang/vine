@@ -11,6 +11,8 @@ tower-lsp = { version = "0.20.0" }
 vine = { path = "../vine" }
 vine-util = { path = "../util" }
 
+tracing = "0.1"
+
 [lints.clippy]
 absolute_paths = "warn"
 

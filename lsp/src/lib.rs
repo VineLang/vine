@@ -9,14 +9,14 @@ use std::{
 use futures::{StreamExt, stream::FuturesUnordered};
 use tokio::{
   io::{AsyncRead, AsyncWrite},
-  sync::RwLock,
+  sync::{RwLock, RwLockReadGuard},
 };
 use tower_lsp::{Client, LanguageServer, LspService, Server, jsonrpc::Result, lsp_types::*};
 
 use vine::{
   compiler::Compiler,
   components::{
-    loader::{FileId, Loader, RealFS},
+    loader::{EntryKind, FS, FileId, Loader, RealFS},
     parser::Parser,
   },
   structures::{
@@ -27,6 +27,40 @@ use vine::{
   tools::fmt::Formatter,
 };
 use vine_util::idx::IdxVec;
+
+struct LspFS<'a> {
+  docs: RwLockReadGuard<'a, HashMap<Url, String>>,
+}
+
+impl<'a> LspFS<'a> {
+  fn new(docs: RwLockReadGuard<'a, HashMap<Url, String>>) -> Self {
+    Self { docs }
+  }
+}
+
+impl FS for LspFS<'_> {
+  type Path = PathBuf;
+
+  fn kind(&mut self, path: &Self::Path) -> Option<EntryKind> {
+    if self.docs.contains_key(&path_to_url(path)?) {
+      Some(EntryKind::File)
+    } else {
+      RealFS.kind(path)
+    }
+  }
+
+  fn child_dir(&mut self, path: &Self::Path, name: &Ident) -> Self::Path {
+    RealFS.child_dir(path, name)
+  }
+
+  fn child_file(&mut self, path: &Self::Path, name: &Ident) -> Self::Path {
+    RealFS.child_dir(path, name)
+  }
+
+  fn read_file(&mut self, path: &Self::Path) -> Option<String> {
+    self.docs.get(&path_to_url(path)?).cloned().or(RealFS.read_file(path))
+  }
+}
 
 struct Backend {
   client: Client,
@@ -43,10 +77,10 @@ impl Backend {
     lsp.compiler.revert(&self.checkpoint);
     lsp.file_paths.truncate(self.checkpoint.files.0);
 
-    let mut loader = Loader::new(&mut lsp.compiler, RealFS, Some(&mut lsp.file_paths));
-    for glob in &self.entrypoints {
-      for entry in glob::glob(glob).unwrap() {
-        let path = entry.unwrap();
+    let mut loader =
+      Loader::new(&mut lsp.compiler, LspFS::new(self.docs.read().await), Some(&mut lsp.file_paths));
+    for entrypoint in &self.entrypoints {
+      for path in glob::glob(entrypoint).unwrap().flatten().chain([PathBuf::from(entrypoint)]) {
         if let Some(name) = RealFS::detect_name(&path) {
           loader.load_mod(name, path);
         }
@@ -60,9 +94,16 @@ impl Backend {
       }
     }
 
-    let start = Instant::now();
-    _ = lsp.compiler.check(());
-    eprintln!("compiled in {:?}", start.elapsed());
+    #[cfg(not(feature = "wasm"))]
+    {
+      let start = Instant::now();
+      _ = lsp.compiler.check(());
+      eprintln!("compiled in {:?}", start.elapsed());
+    }
+    #[cfg(feature = "wasm")]
+    {
+      _ = lsp.compiler.check(());
+    }
 
     let mut diags_by_file = HashMap::<FileId, (Vec<&Diag>, Vec<&Diag>)>::new();
     for diag in &lsp.compiler.diags.errors {
@@ -238,18 +279,7 @@ impl Lsp {
   }
 
   fn file_to_uri(&self, file: FileId) -> Url {
-    #[cfg(feature = "wasm")]
-    {
-      let mut path = "file://".to_owned();
-      path.push_str(self.file_paths[file].to_str().unwrap());
-      Url::parse(path.as_str()).unwrap()
-    }
-    #[cfg(not(feature = "wasm"))]
-    {
-      let mut path = current_dir().unwrap();
-      path.push(&self.file_paths[file]);
-      Url::from_file_path(&path).unwrap()
-    }
+    path_to_url(&self.file_paths[file]).unwrap()
   }
 
   fn uri_to_file_id(&self, uri: Url) -> Option<FileId> {
@@ -360,6 +390,7 @@ impl LanguageServer for Backend {
     if let Some(change) = params.content_changes.into_iter().last() {
       self.docs.write().await.insert(uri, change.text);
     }
+    self.refresh().await
   }
 
   async fn did_close(&self, params: DidCloseTextDocumentParams) {
@@ -428,18 +459,30 @@ impl LanguageServer for Backend {
   }
 }
 
+pub fn path_to_url<P: AsRef<Path>>(path: P) -> Option<Url> {
+  #[cfg(feature = "wasm")]
+  {
+    let mut s = "file://".to_owned();
+    s.push_str(path.as_ref().to_str()?);
+    Url::parse(&s).ok()
+  }
+  #[cfg(not(feature = "wasm"))]
+  {
+    Url::from_file_path(current_dir().unwrap().join(path)).ok()
+  }
+}
+
 #[allow(clippy::absolute_paths)]
 #[cfg(not(feature = "wasm"))]
-pub fn lsp_stdio(
+#[tokio::main]
+pub async fn lsp_stdio(
   compiler: Compiler,
   file_paths: IdxVec<FileId, PathBuf>,
   entrypoints: Vec<String>,
 ) {
-  lsp(compiler, file_paths, entrypoints, tokio::io::stdin(), tokio::io::stdout());
+  lsp(compiler, file_paths, entrypoints, tokio::io::stdin(), tokio::io::stdout()).await;
 }
 
-#[cfg_attr(feature = "wasm", tokio::main(flavor = "current_thread"))]
-#[cfg_attr(not(feature = "wasm"), tokio::main)]
 pub async fn lsp(
   mut compiler: Compiler,
   mut file_paths: IdxVec<FileId, PathBuf>,
@@ -450,6 +493,7 @@ pub async fn lsp(
   _ = compiler.check(());
   let checkpoint = compiler.checkpoint();
 
+  #[cfg(not(feature = "wasm"))]
   for path in file_paths.values_mut() {
     if let Ok(path_) = fs::canonicalize(&path) {
       *path = path_;
