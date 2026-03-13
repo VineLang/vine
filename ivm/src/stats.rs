@@ -69,6 +69,10 @@ impl Stats {
     ((self.interactions() as f64 / self.depth as f64).log10() * 100.0).round() as u64
   }
 
+  pub fn mem_current(&self) -> u64 {
+    self.mem_alloc - self.mem_free
+  }
+
   pub fn clear_perf(&mut self) {
     self.time_total = Duration::ZERO;
     self.time_clock = Duration::ZERO;
@@ -112,12 +116,9 @@ impl Display for Stats {
         ("  Moved", Some((self.work_move, ""))),
         ("", None),
       ]),
-      Some(&[
-        ("Memory", None),
-        ("  Heap", Some((self.mem_heap * 8, "B"))),
-        ("  Allocated", Some((self.mem_alloc * 8, "B"))),
-        ("  Freed", Some((self.mem_free * 8, "B"))),
-      ]),
+      Some(&[("Memory", None), ("  Heap", Some((self.mem_heap * 8, "B")))]),
+      (self.mem_current() != 0).then_some(&[("  Current", Some((self.mem_current() * 8, "B")))]),
+      Some(&[("  Allocated", Some((self.mem_alloc * 8, "B")))]),
       (!self.time_clock.is_zero()).then_some(&[
         ("", None),
         ("Performance", None),
