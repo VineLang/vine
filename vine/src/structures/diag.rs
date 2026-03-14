@@ -424,12 +424,18 @@ impl Compiler {
               line_str.strip_suffix("\r\n").or(line_str.strip_suffix("\n")).unwrap_or(line_str);
             let start = if line == start.line { start.col } else { 0 };
             let end = if line == end.line { end.col } else { line_str.len() };
-            diag_lines.push(vec![
-              DiagSpan::new(format!(" {:>line_width$} | ", line + 1)).color(Grey),
-              DiagSpan::new(&line_str[..start]),
-              DiagSpan::new(&line_str[start..end]).color(color).underline(),
-              DiagSpan::new(&line_str[end..]),
-            ]);
+            let mut diag =
+              vec![DiagSpan::new(format!(" {:>line_width$} | ", line + 1)).color(Grey)];
+            if start > line_str.len() {
+              diag.extend([DiagSpan::new(line_str), DiagSpan::new(" ").color(color).underline()])
+            } else {
+              diag.extend([
+                DiagSpan::new(&line_str[..start]),
+                DiagSpan::new(&line_str[start..end]).color(color).underline(),
+                DiagSpan::new(&line_str[end..]),
+              ]);
+            }
+            diag_lines.push(diag);
           }
         }
         diag_lines.push(vec![]);
