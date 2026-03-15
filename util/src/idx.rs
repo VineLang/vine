@@ -8,6 +8,9 @@ use std::{
   slice, vec,
 };
 
+#[cfg(feature = "rkyv")]
+use rkyv::{Archive, Deserialize, Serialize};
+
 #[doc(hidden)]
 pub use nohash_hasher::IsEnabled;
 
@@ -46,6 +49,7 @@ macro_rules! new_idx {
 }
 
 #[allow(non_snake_case)]
+#[cfg_attr(feature = "rkyv", derive(Archive, Deserialize, Serialize))]
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct IdxVec<I: Idx, T> {
   pub vec: Vec<T>,

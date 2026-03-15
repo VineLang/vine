@@ -6,6 +6,10 @@ edition = "2024"
 [dependencies]
 hashbrown = "0.14.5"
 nohash-hasher = "0.2.0"
+rkyv = { version = "0.8.15", optional = true }
+
+[features]
+rkyv = ["dep:rkyv"]
 
 [lints.clippy]
 absolute_paths = "warn"
