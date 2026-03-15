@@ -80,13 +80,14 @@ impl Run {
         ivm.normalize_batch()
       };
 
-      if interactions > n || ivm.is_finished() {
+      if interactions > n {
         inspect_fn(ivm.stats, output.0.lock().unwrap().drain(..).collect());
         interactions = 0;
       }
     }
 
     let out = ivm.follow(root);
+    inspect_fn(ivm.stats, output.0.lock().unwrap().drain(..).collect());
     RunResult {
       stats: ivm.stats,
       flags: ivm.flags,
