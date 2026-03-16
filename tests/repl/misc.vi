@@ -112,3 +112,8 @@ for i in 0..10 { if i % 2 == 1 { continue } io.println("{i}") }
 Some(123) is None
 do { let list = [1, 3]; list.insert(1, 2); list.insert(100, 4); list }
 [1, 8, 2, 4, 6] as #root::data::Heap as List
+let x = []
+x.push_back("hello");
+/clear x
+for i in 1..10 { if i % 2 == 1 { break i; } }
+for i in 1..10 { if i % 2 == 2 { break i; } }
