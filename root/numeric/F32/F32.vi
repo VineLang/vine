@@ -5,7 +5,12 @@ use util::{duplicate, erase};
 #[builtin = "F32"]
 pub type F32;
 
+mod common;
+
 pub mod F32 {
+  pub mod exp;
+  pub mod ln;
+
   pub const nan: F32 = 0.0 / 0.0;
   pub const inf: F32 = 1.0 / 0.0;
   pub const neg_inf: F32 = -inf;

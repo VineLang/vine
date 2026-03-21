@@ -31,9 +31,9 @@ pub fn main(&io: &IO) {
   ];
 
   for f in interesting_floats {
-    let sqrt = f.sqrt();
-    io.println("{f} = {f.to_bits().to_hex()}");
-    io.println("sqrt({f}) = {sqrt} ({sqrt.to_bits().to_hex()})");
+    io.println("sqrt {f.to_bits()} {f.sqrt().to_bits()}");
+    io.println("exp {f.to_bits()} {f.exp().to_bits()}");
+    io.println("ln {f.to_bits()} {f.ln().to_bits()}");
     io.println("");
   }
 }
