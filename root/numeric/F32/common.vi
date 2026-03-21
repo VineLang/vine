@@ -1,0 +1,53 @@
+
+// 2**-(127 - 1)
+const smallest_subnormal: F32 = 1.1754943508222875079687365e-38;
+const num_mantissa_bits: N32 = Float::num_mantissa_bits[F32, _];
+const max_exponent: I32 = Float::max_exponent[F32, _];
+const exp_mask: N32 = (1[N32] << Float::num_exponent_bits[F32, _]) - 1;
+
+/// normalize returns a normal number y and exponent exp
+/// satisfying x == y × 2**exp. It assumes x is finite and non-zero.
+pub fn .normalize(x: F32) -> (F32, I32) {
+  if x.abs() < smallest_subnormal {
+    return (x * (1 << num_mantissa_bits) as F32, -num_mantissa_bits);
+  }
+  return (x, +0);
+}
+
+/// Calculates frac * 2 ^ exp.
+pub fn apply_exponent(frac: F32, exp: I32) -> F32 {
+  // special cases
+  if frac == 0.0 or frac == F32::inf or frac == F32::neg_inf or frac.is_nan() {
+    return frac;
+  }
+  let (frac, e) = frac.normalize();
+  exp += e;
+  let x = frac.to_bits();
+  exp += ((x >> num_mantissa_bits) as N32 & exp_mask) as I32 - max_exponent;
+  if exp < -149 {
+    // underflow
+    return if frac < 0.0 {
+      -0.0
+    } else {
+      0.0
+    };
+  }
+  if exp > +127 {
+    // overflow
+    return if frac < 0.0 {
+      F32::neg_inf
+    } else {
+      F32::inf
+    };
+  }
+  let m = 1.0;
+  if exp < -126 {
+    // denormalize
+    exp += +24
+    // 2**-24
+    m = 1.0 / (1 << 24) as F32
+  }
+  x &= !(exp_mask << num_mantissa_bits);
+  x |= (exp + max_exponent) as N32 << num_mantissa_bits;
+  return m * F32::from_bits(x);
+}

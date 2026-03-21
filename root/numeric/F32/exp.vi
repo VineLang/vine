@@ -1,0 +1,83 @@
+
+// Adapted from https://github.com/rust-lang/compiler-builtins/blob/libm-v0.2.16/libm/src/math/exp.rs
+//
+// origin: FreeBSD /usr/src/lib/msun/src/e_expf.c
+//
+// Conversion to float by Ian Lance Taylor, Cygnus Support, ian@cygnus.com.
+//
+// ====================================================
+// Copyright (C) 1993 by Sun Microsystems, Inc. All rights reserved.
+//
+// Developed at SunPro, a Sun Microsystems, Inc. business.
+// Permission to use, copy, modify, and distribute this
+// software is freely granted, provided that this notice
+// is preserved.
+// ====================================================
+
+const ln2_hi: F32 = 6.9314575195e-01;
+const ln2_lo: F32 = 1.4286067653e-06;
+const inv_ln2: F32 = 1.4426950216e+00;
+
+const P1: F32 = 1.6666625440e-1;
+const P2: F32 = -2.7667332906e-3;
+
+const overflow: F32 = 88.7228394[F32];
+const underflow: F32 = -103.972084[F32];
+
+/// Exponential, base *e* (F32)
+///
+/// Calculate the exponential of `f`, that is, *e* raised to the power `f`
+/// (where *e* is the base of the natural system of logarithms, approximately 2.71828).
+pub fn .exp(f: F32) -> F32 {
+  when {
+    f.is_nan() { f }
+    f >= overflow { F32::inf }
+    f <= underflow { 0.0 }
+    _ {
+      let hf = f.to_bits();
+      // high word of |f|
+      hf &= 0x7fffffff;
+
+      // argument reduction
+      when {
+        hf > 0x3eb17218 {
+          // if |f| > 0.5 ln2
+          // sign bit of f
+          let is_negative = (hf >> 31) == 1;
+          let k = when {
+            hf > 0x3f851592 {
+              if is_negative {
+                // if f < 1.5 ln2
+                (inv_ln2 * f - 0.5[F32]) as I32
+              } else {
+                // if f > 1.5 ln2
+                (inv_ln2 * f + 0.5[F32]) as I32
+              }
+            }
+            is_negative { -1 }
+            _ { +1 }
+          };
+          let kf = k as F32;
+          let hi = f - kf * ln2_hi;
+          // k*ln2hi is exact here
+          let lo = kf * ln2_lo;
+          f = hi - lo;
+          exp_poly_approximation(f, hi, lo, k)
+        }
+        hf > 0x39000000 { exp_poly_approximation(f, f, 0.0, +0) }
+        _ { 1.0 + f }
+      }
+    }
+  }
+}
+
+fn exp_poly_approximation(f: F32, hi: F32, lo: F32, k: I32) -> F32 {
+  let ff = f * f;
+  let c = f - ff * (P1 + ff * P2);
+  let y = 1.0 + (f * c / (2.0 - c) - lo + hi);
+  if k == +0 {
+    y
+  } else {
+    common::apply_exponent(y, k)
+  }
+}
