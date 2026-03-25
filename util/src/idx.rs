@@ -12,6 +12,7 @@ use std::{
 pub use nohash_hasher::IsEnabled;
 
 pub use nohash_hasher::{IntMap, IntSet};
+use slab::Slab;
 
 pub trait Idx: Copy + Eq + Ord + Hash + IsEnabled + From<usize> + Into<usize> + Debug {}
 impl Idx for usize {}
@@ -356,5 +357,117 @@ impl<I: Idx> Counter<I> {
     I: Default,
   {
     self.0 = I::default();
+  }
+}
+
+#[allow(non_snake_case)]
+#[derive(Clone)]
+pub struct IdxSlab<I: Idx, T> {
+  pub slab: Slab<T>,
+  PhantomData: PhantomData<fn(&I)>,
+}
+
+impl<I: Idx, T> IdxSlab<I, T> {
+  #[inline(always)]
+  pub const fn new() -> Self {
+    IdxSlab { slab: Slab::new(), PhantomData }
+  }
+
+  #[inline(always)]
+  pub fn len(&self) -> usize {
+    self.slab.len()
+  }
+
+  #[inline(always)]
+  pub fn is_empty(&self) -> bool {
+    self.slab.is_empty()
+  }
+
+  #[must_use]
+  #[inline(always)]
+  pub fn insert(&mut self, value: T) -> I {
+    self.slab.insert(value).into()
+  }
+
+  #[inline(always)]
+  pub fn iter(&self) -> SlabIter<'_, I, T> {
+    self.into_iter()
+  }
+
+  #[inline(always)]
+  pub fn iter_mut(&mut self) -> SlabIterMut<'_, I, T> {
+    self.into_iter()
+  }
+
+  pub fn clear(&mut self) {
+    self.slab.clear();
+  }
+}
+
+impl<I: Idx, T> Index<I> for IdxSlab<I, T> {
+  type Output = T;
+
+  fn index(&self, index: I) -> &T {
+    &self.slab[index.into()]
+  }
+}
+
+impl<I: Idx, T> IndexMut<I> for IdxSlab<I, T> {
+  fn index_mut(&mut self, index: I) -> &mut T {
+    &mut self.slab[index.into()]
+  }
+}
+
+impl<I: Idx + Debug, T: Debug> Debug for IdxSlab<I, T> {
+  fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    let mut f = f.debug_map();
+    f.entries(self.iter());
+    f.finish()
+  }
+}
+
+impl<I: Idx, T> From<Slab<T>> for IdxSlab<I, T> {
+  fn from(slab: Slab<T>) -> Self {
+    IdxSlab { slab, PhantomData }
+  }
+}
+
+impl<I: Idx, T> From<IdxSlab<I, T>> for Slab<T> {
+  fn from(value: IdxSlab<I, T>) -> Self {
+    value.slab
+  }
+}
+
+impl<I: Idx, T> Default for IdxSlab<I, T> {
+  fn default() -> Self {
+    Self { slab: Default::default(), PhantomData }
+  }
+}
+
+pub type SlabIntoIter<I, T> = Map<slab::IntoIter<T>, MapEntry<I, T>>;
+pub type SlabIter<'a, I, T> = Map<slab::Iter<'a, T>, MapEntry<I, &'a T>>;
+pub type SlabIterMut<'a, I, T> = Map<slab::IterMut<'a, T>, MapEntry<I, &'a mut T>>;
+
+impl<I: Idx, T> IntoIterator for IdxSlab<I, T> {
+  type Item = (I, T);
+  type IntoIter = SlabIntoIter<I, T>;
+  fn into_iter(self) -> Self::IntoIter {
+    self.slab.into_iter().map(map_entry)
+  }
+}
+
+impl<'a, I: Idx, T> IntoIterator for &'a IdxSlab<I, T> {
+  type Item = (I, &'a T);
+  type IntoIter = SlabIter<'a, I, T>;
+  fn into_iter(self) -> Self::IntoIter {
+    self.slab.iter().map(map_entry)
+  }
+}
+
+impl<'a, I: Idx, T> IntoIterator for &'a mut IdxSlab<I, T> {
+  type Item = (I, &'a mut T);
+  type IntoIter = SlabIterMut<'a, I, T>;
+  fn into_iter(self) -> Self::IntoIter {
+    self.slab.iter_mut().map(map_entry)
   }
 }
