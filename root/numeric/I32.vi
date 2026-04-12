@@ -11,7 +11,7 @@ pub type I32;
 
 pub mod I32 {
   pub const maximum: I32 = +0x7fffffff;
-  pub const minimum: I32 = -0x7fffffff;
+  pub const minimum: I32 = -0x80000000;
 
   pub impl : Fork[I32] = safe duplicate;
   pub impl : Drop[I32] = safe erase;
