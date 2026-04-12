@@ -29,7 +29,7 @@ for a_sign in [False, True]:
             else:
               print(f"{a} = {b}")
 
-      for b in [-0x7fffffff, -1, +1, +2, 0x7fffffff]:
+      for b in [-0x80000000, -1, +1, +2, 0x7fffffff]:
         q, r = divmod(a, b)
         if (a < 0) != (b < 0) and r != 0:
           q += 1
