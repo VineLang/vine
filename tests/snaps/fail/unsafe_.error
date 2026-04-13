@@ -24,7 +24,7 @@ error: this is unsafe
 
 error: this is unsafe
     @ unsafe_.vi:22:3
- 22 |   inline_ivy! () -> () { _ } // error
+ 22 |   $ivy {} // error
 
 error: this is unsafe
     @ unsafe_.vi:23:18
