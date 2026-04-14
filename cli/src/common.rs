@@ -55,23 +55,9 @@ impl RunArgs {
       result.stats.clear_perf();
     }
 
-    if result.no_io {
-      eprintln!("\nError: the net did not return its `IO` handle");
-      if debug_hint {
-        eprintln!("  hint: try running the program in `--debug` mode to see error messages");
-      }
-    }
-    if result.vicious {
-      eprintln!("\nError: the net created a vicious circle");
-    }
-    if result.flags.ext_copy {
-      eprintln!("\nError: a linear extrinsic was copied");
-    }
-    if result.flags.ext_erase {
-      eprintln!("\nError: a linear extrinsic was erased");
-    }
-    if result.flags.ext_generic {
-      eprintln!("\nError: an extrinsic function encountered an unspecified error");
+    let error = result.error_message(debug_hint);
+    if !error.is_empty() {
+      eprintln!("\n{error}");
     }
 
     if !no_stats {

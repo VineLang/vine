@@ -13,4 +13,18 @@ impl Flags {
   pub fn success(self) -> bool {
     self == Self::default()
   }
+
+  pub fn error_message(&self) -> String {
+    let mut messages = Vec::new();
+    if self.ext_copy {
+      messages.push("Error: a linear extrinsic was copied");
+    }
+    if self.ext_erase {
+      messages.push("Error: a linear extrinsic was erased");
+    }
+    if self.ext_generic {
+      messages.push("Error: an extrinsic function encountered an unspecified error");
+    }
+    messages.join("\n\n")
+  }
 }

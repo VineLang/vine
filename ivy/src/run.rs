@@ -138,6 +138,24 @@ impl RunResult {
   pub fn success(&self) -> bool {
     !self.no_io && !self.vicious && self.flags.success()
   }
+
+  pub fn error_message(&self, debug_hint: bool) -> String {
+    let mut messages = Vec::new();
+    if self.no_io {
+      messages.push("Error: the net did not return its `IO` handle");
+      if debug_hint {
+        messages.push("  hint: try running the program in `--debug` mode to see error messages");
+      }
+    }
+    if self.vicious {
+      messages.push("Error: the net created a vicious circle");
+    }
+    let flags_message = self.flags.error_message();
+    if !flags_message.is_empty() {
+      messages.push(&flags_message);
+    }
+    messages.join("\n\n")
+  }
 }
 
 #[derive(Default)]
