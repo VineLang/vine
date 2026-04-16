@@ -31,7 +31,7 @@ fn main() {
     if expected.is_nan() && actual.is_nan() {
       correct += 1;
     } else if expected.to_bits().abs_diff(actual_bits) > max_ulp_diff {
-      println!(
+      eprintln!(
         "incorrect {op} {f:.17}: expected = {expected:.17} ({:x}), actual = {actual:.17} ({actual_bits:x})",
         expected.to_bits()
       );
@@ -40,7 +40,7 @@ fn main() {
     }
   }
 
-  println!("checked {count}; {correct} correct");
+  eprintln!("checked {count}; {correct} correct");
   if correct != count {
     std::process::exit(1);
   }
