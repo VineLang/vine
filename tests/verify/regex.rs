@@ -23,7 +23,7 @@ fn main() {
       re = Regex::new(&format!("^{str}$")).unwrap();
     } else {
       if re.is_match(str) != (char == 'T') {
-        println!("invalid: /{re_str}/ \"{str}\" {char}");
+        eprintln!("invalid: /{re_str}/ \"{str}\" {char}");
         invalid = true;
       }
       if char == 'T' {
@@ -32,7 +32,7 @@ fn main() {
       count += 1;
     }
   }
-  println!("\rchecked {count}; {matches} matches");
+  eprintln!("\rchecked {count}; {matches} matches");
   if invalid {
     std::process::exit(1);
   }
