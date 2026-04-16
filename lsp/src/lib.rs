@@ -5,12 +5,17 @@ use std::{
   path::{Path, PathBuf},
 };
 
-use futures::{StreamExt, stream::FuturesUnordered};
+use futures::{FutureExt, StreamExt, stream::FuturesUnordered};
+use serde::{Deserialize, Serialize};
 use tokio::{
   io::{AsyncRead, AsyncWrite},
   sync::RwLock,
 };
-use tower_lsp::{Client, LanguageServer, LspService, Server, jsonrpc::Result, lsp_types::*};
+use tower_lsp::{
+  Client, LanguageServer, LspService, Server,
+  jsonrpc::Result,
+  lsp_types::{notification::Notification, *},
+};
 
 use vine::{
   compiler::Compiler,
@@ -21,7 +26,7 @@ use vine::{
   structures::{
     ast::{Ident, Item, ItemKind, Span, visit::VisitMut},
     checkpoint::Checkpoint,
-    diag::Diag,
+    diag::{Color as DiagColor, Diag, DiagSpan},
   },
   tools::fmt::Formatter,
 };
@@ -119,8 +124,10 @@ impl Backend {
         }
       }
       let uri = lsp.file_to_uri(file_id);
-      futures.push(self.client.publish_diagnostics(uri, out, None));
+      futures.push(self.client.publish_diagnostics(uri, out, None).boxed());
     }
+    let playground_diags = PlaygroundDiagSpan::from_diags(lsp.compiler.format_diags());
+    futures.push(self.client.send_notification::<PlaygroundDiagnostics>(playground_diags).boxed());
     futures.collect::<()>().await;
   }
 }
@@ -449,6 +456,54 @@ impl LanguageServer for Backend {
   async fn shutdown(&self) -> Result<()> {
     Ok(())
   }
+}
+
+struct PlaygroundDiagnostics;
+
+impl Notification for PlaygroundDiagnostics {
+  type Params = Vec<Vec<PlaygroundDiagSpan>>;
+
+  const METHOD: &'static str = "$vine/playgroundDiagnostics";
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct PlaygroundDiagSpan {
+  pub color: Option<PlaygroundDiagColor>,
+  pub underline: bool,
+  pub bold: bool,
+  pub content: String,
+}
+
+impl PlaygroundDiagSpan {
+  pub fn from_diags<'a>(diag_lines: impl Iterator<Item = Vec<DiagSpan<'a>>>) -> Vec<Vec<Self>> {
+    diag_lines.map(|line| line.into_iter().map(PlaygroundDiagSpan::from).collect()).collect()
+  }
+}
+
+impl<'a> From<DiagSpan<'a>> for PlaygroundDiagSpan {
+  fn from(diag_span: DiagSpan) -> Self {
+    let color = diag_span.color.map(|color| match color {
+      DiagColor::Grey => PlaygroundDiagColor::Grey,
+      DiagColor::Red => PlaygroundDiagColor::Red,
+      DiagColor::Yellow => PlaygroundDiagColor::Yellow,
+      DiagColor::Green => PlaygroundDiagColor::Green,
+    });
+    Self {
+      color,
+      underline: diag_span.underline,
+      bold: diag_span.bold,
+      content: diag_span.content.into_owned(),
+    }
+  }
+}
+
+#[derive(Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum PlaygroundDiagColor {
+  Grey,
+  Red,
+  Yellow,
+  Green,
 }
 
 fn glob(entrypoint: &str) -> impl IntoIterator<Item = PathBuf> {

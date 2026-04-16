@@ -1365,6 +1365,7 @@ version = "0.0.0"
 dependencies = [
  "futures",
  "glob",
+ "serde",
  "tokio",
  "tower-lsp",
  "vine",
