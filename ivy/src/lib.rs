@@ -4,3 +4,4 @@ pub mod lexer;
 pub mod optimize;
 pub mod parser;
 pub mod repl;
+pub mod run;

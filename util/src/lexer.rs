@@ -120,9 +120,11 @@ pub trait Lex<'src> {
             depth -= 1;
           }
         }
-        _ => {
+        Some(_) => {
           self.bump();
         }
+        // TODO: this isn't quite right as the EOF error is not reported.
+        None => break,
       }
     }
   }
