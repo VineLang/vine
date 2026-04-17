@@ -215,6 +215,6 @@ impl Emitter<'_> {
   ) {
     let a = self.emit_port(a);
     let b = self.emit_port(b);
-    self.pairs.push((a, b))
+    self.net.link(a, b)
   }
 }

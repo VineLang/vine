@@ -1,21 +1,28 @@
-use std::mem::take;
+use std::{
+  collections::HashMap,
+  iter,
+  mem::{replace, take},
+};
 
-use ivy::ast::{Net, Nets, Tree};
-use vine_util::idx::{Counter, IdxVec};
+use ivy::{
+  name::{NameId, Table},
+  net::{FlatNet, Wire},
+};
+use vine_util::idx::{Counter, IdxVec, RangeExt};
 
 use crate::{
+  compiler::Guide,
   components::loader::FileId,
+  features::enum_::enum_name,
   structures::{
     ast::{Ident, Span},
     chart::{
       Chart, ConcreteConstId, ConstId, EnumId, FnId, OpaqueTypeId, StructId, TraitConstId,
-      TraitFnId, TraitId, VariantId,
+      TraitFnId, VariantId,
     },
     diag::FileInfo,
-    resolutions::{ConstRelId, FnRel, FnRelId, Rels},
-    signatures::Signatures,
+    resolutions::{ConstRelId, FnRelId, Rels},
     specializations::{Spec, Specializations},
-    template::global_name,
     tir::TirImpl,
     vir::StageId,
   },
@@ -35,14 +42,12 @@ pub enum SyntheticImpl {
 pub enum SyntheticItem {
   CompositeDeconstruct(usize),
   CompositeReconstruct(usize),
-  Ident(Ident),
   Identity,
   EnumVariantNames(EnumId),
-  EnumMatch(EnumId),
+  EnumDeconstruct(EnumId),
   EnumReconstruct(EnumId),
   ConstAlias(ConcreteConstId),
-  FnFromCall(usize),
-  CallFromFn(usize),
+  CallFn(FnId, usize, usize),
   Frame(String, Span),
   DebugState,
   N32(u32),
@@ -50,25 +55,27 @@ pub enum SyntheticItem {
 }
 
 struct Synthesizer<'a> {
-  nets: &'a mut Nets,
+  nets: &'a mut HashMap<NameId, FlatNet>,
   files: &'a IdxVec<FileId, FileInfo>,
   chart: &'a Chart,
-  sigs: &'a Signatures,
   specs: &'a Specializations,
   spec: &'a Spec,
-  var_id: Counter<usize>,
+  table: &'a mut Table,
+  guide: &'a Guide,
+  net: FlatNet,
   stages: Counter<StageId>,
   debug: bool,
 }
 
 pub fn synthesize(
-  nets: &mut Nets,
+  nets: &mut HashMap<NameId, FlatNet>,
   debug: bool,
   files: &IdxVec<FileId, FileInfo>,
   chart: &Chart,
-  sigs: &Signatures,
   specs: &Specializations,
   spec: &Spec,
+  table: &mut Table,
+  guide: &Guide,
   item: &SyntheticItem,
 ) {
   Synthesizer {
@@ -76,356 +83,296 @@ pub fn synthesize(
     debug,
     files,
     chart,
-    sigs,
     specs,
+    table,
+    guide,
     spec,
-    var_id: Counter::default(),
+    net: FlatNet::default(),
     stages: Counter::default(),
   }
   .synthesize(item);
 }
 
 impl Synthesizer<'_> {
-  fn new_wire(&mut self) -> (Tree, Tree) {
-    let var = format!("s{}", self.var_id.next());
-    (Tree::Var(var.clone()), Tree::Var(var))
-  }
-
   fn list<T>(
     &mut self,
     items: impl IntoIterator<Item = T, IntoIter: DoubleEndedIterator>,
-    mut f: impl FnMut(&mut Self, T) -> Tree,
-  ) -> Tree {
-    let end = self.new_wire();
-    let mut len = 0;
-    let buf = Tree::n_ary(
-      "tup",
-      items
-        .into_iter()
-        .map(|t| {
-          len += 1;
-          f(self, t)
-        })
-        .chain([end.0]),
-    );
-    Tree::n_ary("tup", [Tree::N32(len), buf, end.1])
+    mut f: impl FnMut(&mut Self, T) -> Wire,
+  ) -> Wire {
+    let mut len = 0u32;
+    let buf = self.net.wire();
+    let mut cur = buf;
+    for item in items {
+      len += 1;
+      let item = f(self, item);
+      let next = self.net.wire();
+      self.net.add(self.guide.tuple, cur, [item, next]);
+      cur = next;
+    }
+    let end = cur;
+    let len = self.net.make(self.guide.n32.with_payload(len), []);
+    self.net.make(self.guide.tuple, [len, buf, end])
   }
 
-  fn string(&mut self, str: &str) -> Tree {
-    self.list(str.chars(), |_, char| Tree::N32(char as u32))
+  fn string(&mut self, str: &str) -> Wire {
+    self.list(str.chars(), |self_, char| {
+      self_.net.make(self_.guide.n32.with_payload(char as u32), [])
+    })
   }
 
   fn synthesize(&mut self, item: &SyntheticItem) {
-    let stage = self.new_stage();
-    let net = match item.clone() {
-      SyntheticItem::CompositeDeconstruct(len) => self.synthesize_composite_deconstruct(len),
-      SyntheticItem::CompositeReconstruct(len) => self.synthesize_composite_reconstruct(len),
-      SyntheticItem::Ident(ident) => self.synthesize_ident(ident),
-      SyntheticItem::Identity => self.synthesize_identity(),
-      SyntheticItem::EnumVariantNames(enum_id) => self.synthesize_enum_variant_names(enum_id),
-      SyntheticItem::EnumMatch(enum_id) => self.synthesize_enum_match(enum_id),
-      SyntheticItem::EnumReconstruct(enum_id) => self.synthesize_enum_reconstruct(enum_id),
-      SyntheticItem::ConstAlias(_) => self.synthesize_const_alias(),
-      SyntheticItem::FnFromCall(params) => self.synthesize_fn_from_call(params),
-      SyntheticItem::CallFromFn(params) => self.synthesize_call_from_fn(params),
-      SyntheticItem::Frame(path, span) => self.synthesize_frame(path, span),
-      SyntheticItem::DebugState => self.synthesize_debug_state(),
-      SyntheticItem::N32(n32) => self.synthesize_n32(n32),
-      SyntheticItem::String(string) => self.synthesize_string(string),
-    };
-    self.nets.insert(stage, net);
+    self.stage(|self_| match item.clone() {
+      SyntheticItem::CompositeDeconstruct(len) => self_.synthesize_composite_deconstruct(len),
+      SyntheticItem::CompositeReconstruct(len) => self_.synthesize_composite_reconstruct(len),
+      SyntheticItem::Identity => self_.synthesize_identity(),
+      SyntheticItem::EnumVariantNames(enum_id) => self_.synthesize_enum_variant_names(enum_id),
+      SyntheticItem::EnumDeconstruct(enum_id) => self_.synthesize_enum_deconstruct(enum_id),
+      SyntheticItem::EnumReconstruct(enum_id) => self_.synthesize_enum_reconstruct(enum_id),
+      SyntheticItem::ConstAlias(_) => self_.synthesize_const_alias(),
+      SyntheticItem::CallFn(_, _, params) => self_.synthesize_call_fn(params),
+      SyntheticItem::Frame(path, span) => self_.synthesize_frame(path, span),
+      SyntheticItem::DebugState => self_.synthesize_debug_state(),
+      SyntheticItem::N32(n32) => self_.synthesize_n32(n32),
+      SyntheticItem::String(string) => self_.synthesize_string(string),
+    });
   }
 
-  fn synthesize_composite_deconstruct(&mut self, len: usize) -> Net {
-    let x = self.new_wire();
-    Net::new(if len == 1 {
-      Tree::n_ary("fn", [self.fn_receiver(), x.0, Tree::n_ary("tup", [x.1, Tree::Erase])])
+  fn fn_(&mut self, params: impl IntoIterator<Item = Wire>, ret: Wire) {
+    let root = self.net.make(self.guide.fn_, params.into_iter().chain([ret]));
+    self.const_(root)
+  }
+
+  fn const_(&mut self, value: Wire) {
+    if self.debug {
+      let dbg = self.net.wire();
+      let borrow = self.net.make(self.guide.ref_, [dbg, dbg]);
+      let root = self.net.make(self.guide.dbg, [borrow, value]);
+      self.net.free.push(root);
     } else {
-      Tree::n_ary("fn", [self.fn_receiver(), x.0, x.1])
-    })
+      self.net.free.push(value);
+    }
   }
 
-  fn synthesize_composite_reconstruct(&mut self, len: usize) -> Net {
-    let x = self.new_wire();
-    let y = self.new_wire();
-    Net::new(if len == 1 {
-      Tree::n_ary("fn", [self.fn_receiver(), x.0, Tree::Erase, x.1])
-    } else {
-      Tree::n_ary("fn", [self.fn_receiver(), x.0, y.0, Tree::n_ary("tup", [x.1, y.1])])
-    })
+  fn synthesize_composite_deconstruct(&mut self, len: usize) {
+    let [composite, ret, init, rest] = self.net.wires();
+    let rest_fields = self.net.wires.chunk(len - 1);
+    self.fn_([composite], ret);
+    self.net.add(self.guide.tuple, composite, iter::once(init).chain(rest_fields.iter()));
+    self.net.add(self.guide.tuple, ret, [init, rest]);
+    self.net.add(self.guide.tuple, rest, rest_fields.iter());
   }
 
-  fn synthesize_ident(&mut self, ident: Ident) -> Net {
-    let str = self.string(&ident.0);
-    self.const_(str)
+  fn synthesize_composite_reconstruct(&mut self, len: usize) {
+    let [composite, init, rest] = self.net.wires();
+    let rest_fields = self.net.wires.chunk(len - 1);
+    self.fn_([init, rest], composite);
+    self.net.add(self.guide.tuple, rest, rest_fields.iter());
+    self.net.add(self.guide.tuple, composite, iter::once(init).chain(rest_fields.iter()));
   }
 
-  fn synthesize_identity(&mut self) -> Net {
-    let x = self.new_wire();
-    Net::new(Tree::n_ary("fn", [self.fn_receiver(), x.0, x.1]))
+  fn synthesize_identity(&mut self) {
+    let x = self.net.wire();
+    self.fn_([x], x);
   }
 
-  fn new_stage(&mut self) -> String {
+  fn stage(&mut self, f: impl FnOnce(&mut Self)) -> NameId {
+    let old_net = take(&mut self.net);
     let id = self.stages.next();
-    global_name(self.spec, id)
+    let name = self.table.add_name(self.spec.name.clone().with_payload(id.0));
+    f(self);
+    let net = replace(&mut self.net, old_net);
+    self.nets.insert(name, net);
+    name
   }
 
-  fn synthesize_enum_variant_names(&mut self, enum_id: EnumId) -> Net {
+  fn synthesize_enum_variant_names(&mut self, enum_id: EnumId) {
     let names =
       self.list(self.chart.enums[enum_id].variants.values().map(|x| &*x.name.0), Self::string);
     self.const_(names)
   }
 
-  fn synthesize_enum_match(&mut self, enum_id: EnumId) -> Net {
-    let fn_ = self.fn_rel(FnRelId(0));
-    let f = self.new_wire();
-    let t = self.new_wire();
-    let dbg = self.new_wire();
-    Net::new(Tree::n_ary(
-      "fn",
-      [
-        Tree::n_ary("dbg", self.debug.then_some(dbg.0).into_iter().chain([Tree::Erase])),
-        self.match_enum(
-          enum_id,
-          |self_, variant_id| {
-            let has_data = !self_.sigs.enums[enum_id].inner.variant_is_nil[variant_id];
-            let data = self_.new_wire();
-            let f = self_.new_wire();
-            let t = self_.new_wire();
-            let dbg = self_.new_wire();
-            Net {
-              root: Tree::n_ary(
-                "enum",
-                has_data.then_some(data.0).into_iter().chain([Tree::n_ary(
-                  "x",
-                  self_.debug.then_some(dbg.0).into_iter().chain([f.0, t.0]),
-                )]),
-              ),
-              pairs: Vec::from([(
-                fn_.clone(),
-                Tree::n_ary(
-                  "fn",
-                  [
-                    Tree::n_ary("dbg", self_.debug.then_some(dbg.1).into_iter().chain([f.1])),
-                    self_.variant(variant_id, has_data.then_some(data.1)),
-                    t.1,
-                  ],
-                ),
-              )]),
-            }
-          },
-          Tree::n_ary("x", self.debug.then_some(dbg.1).into_iter().chain([f.0, t.0])),
-        ),
-        f.1,
-        t.1,
-      ],
-    ))
+  fn synthesize_enum_deconstruct(&mut self, enum_id: EnumId) {
+    let [enum_, variant] = self.net.wires();
+    self.fn_([enum_], variant);
+    self.match_enum(enum_id, enum_, variant, |self_, variant_id, content, ctx| {
+      let variant = self_.create_variant(variant_id, content);
+      self_.net.link(ctx, variant);
+    });
   }
 
-  fn synthesize_enum_reconstruct(&mut self, enum_id: EnumId) -> Net {
-    let mut cur_net = Net::new(Tree::Erase);
-    for (variant_id, is_nil) in self.sigs.enums[enum_id].inner.variant_is_nil.iter().rev() {
-      let has_data = !*is_nil;
-      let mut prev_net = Some(cur_net);
-      let out = self.new_wire();
-      let match_ = self.match_enum(
-        self.chart.builtins.variant.unwrap(),
-        |self_, v| {
-          let data = self_.new_wire();
-          if v.0 == 0 {
-            Net::new(Tree::n_ary(
-              "enum",
-              [
-                if has_data { data.0 } else { Tree::Erase },
-                self_.enum_(enum_id, variant_id, |_| has_data.then_some(data.1)),
-              ],
-            ))
-          } else {
-            prev_net.take().unwrap()
-          }
-        },
-        out.0,
-      );
-      if variant_id.0 == 0 {
-        cur_net = Net::new(Tree::n_ary("fn", [self.fn_receiver(), match_, out.1]));
-      } else {
-        cur_net = Net::new(Tree::n_ary("enum", [match_, out.1]));
-      }
+  fn synthesize_enum_reconstruct(&mut self, enum_id: EnumId) {
+    let [enum_, variant] = self.net.wires();
+    self.fn_([enum_], variant);
+    self.match_variant(enum_id, enum_, variant, |self_, variant_id, content, ctx| {
+      let variant = self_.enum_(enum_id, variant_id, content);
+      self_.net.link(ctx, variant);
+    });
+  }
+
+  fn synthesize_const_alias(&mut self) {
+    let const_ = self.const_rel(ConstRelId(0));
+    self.net.free.push(const_);
+  }
+
+  fn synthesize_call_fn(&mut self, params: usize) {
+    let [recv, tuple, ret] = self.net.wires();
+    let params = self.net.wires.chunk(params);
+    let mut root = self.net.make(self.guide.fn_, [recv, tuple, ret]);
+    self.net.add(self.guide.tuple, recv, []);
+    self.net.add(self.guide.tuple, tuple, params.iter());
+    let mut call = self.net.make(self.guide.fn_, params.iter().chain([ret]));
+    if self.debug {
+      let dbg = self.net.wire();
+      root = self.net.make(self.guide.dbg, [dbg, root]);
+      call = self.net.make(self.guide.dbg, [dbg, call]);
     }
-    cur_net
+    self.net.free.push(root);
+    let fn_ = self.fn_rel(FnRelId(0));
+    self.net.link(fn_, call);
   }
 
-  fn synthesize_const_alias(&self) -> Net {
-    Net::new(self.const_rel(ConstRelId(0)))
-  }
-
-  fn synthesize_fn_from_call(&mut self, params: usize) -> Net {
-    let (fn_, call) = self._fn_call(params);
-    Net { root: fn_, pairs: vec![(self.fn_rel(FnRelId(0)), call)] }
-  }
-
-  fn synthesize_call_from_fn(&mut self, params: usize) -> Net {
-    let (fn_, call) = self._fn_call(params);
-    Net { root: call, pairs: vec![(self.fn_rel(FnRelId(0)), fn_)] }
-  }
-
-  fn _fn_call(&mut self, params: usize) -> (Tree, Tree) {
-    let dbg = if self.debug {
-      let wire = self.new_wire();
-      (Some(wire.0).into_iter(), Some(wire.1).into_iter())
-    } else {
-      (None.into_iter(), None.into_iter())
-    };
-    let recv = self.new_wire();
-    let params = (0..params).map(|_| self.new_wire()).collect::<(Vec<_>, Vec<_>)>();
-    let ret = self.new_wire();
-    (
-      Tree::n_ary(
-        "fn",
-        [Tree::n_ary("dbg", dbg.0.chain([recv.0]))].into_iter().chain(params.0).chain([ret.0]),
-      ),
-      Tree::n_ary(
-        "fn",
-        [
-          Tree::n_ary("dbg", dbg.1.chain([Tree::Erase])),
-          recv.1,
-          Tree::n_ary("tup", params.1),
-          ret.1,
-        ],
-      ),
-    )
-  }
-
-  fn synthesize_frame(&mut self, path: String, span: Span) -> Net {
+  fn synthesize_frame(&mut self, path: String, span: Span) {
     let path = self.list(path[1..].split("::").collect::<Vec<_>>(), Self::string);
     let pos = self.files[span.file].get_pos(span.start);
     let file = self.string(pos.file);
-    let line = Tree::N32(pos.line as u32 + 1);
-    let col = Tree::N32(pos.col as u32 + 1);
-    Net::new(Tree::n_ary("tup", [Tree::N32(1), Tree::n_ary("tup", [col, file, line, path])]))
+    let line = self.net.make(self.guide.n32.with_payload(pos.line as u32 + 1), []);
+    let col = self.net.make(self.guide.n32.with_payload(pos.col as u32 + 1), []);
+    let frame = self.net.make(self.guide.tuple, [col, file, line, path]);
+    let continuation = self.net.make(self.guide.n32.with_payload(1u32), []);
+    let entry = self.net.make(self.guide.tuple, [continuation, frame]);
+    self.net.free.push(entry);
   }
 
-  fn synthesize_debug_state(&mut self) -> Net {
-    let option_enum = self.chart.builtins.option.unwrap();
-    let none_variant = VariantId(0);
-    let some_variant = VariantId(1);
+  fn synthesize_debug_state(&mut self) {
     if self.debug {
-      let x = self.new_wire();
-      Net::new(Tree::n_ary(
-        "fn",
-        [
-          Tree::n_ary("dbg", [x.0, Tree::Erase]),
-          self.enum_(option_enum, some_variant, |_| Some(x.1)),
-        ],
-      ))
+      let ref_ = self.net.wire();
+      let option = self.enum_(self.chart.builtins.option.unwrap(), VariantId(1), ref_);
+      let fn_ = self.net.make(self.guide.fn_, [option]);
+      let root = self.net.make(self.guide.dbg, [ref_, fn_]);
+      self.net.free.push(root);
     } else {
-      Net::new(Tree::n_ary("fn", [Tree::Erase, self.enum_(option_enum, none_variant, |_| None)]))
+      let nil = self.net.make(self.guide.tuple, []);
+      let option = self.enum_(self.chart.builtins.option.unwrap(), VariantId(0), nil);
+      let fn_ = self.net.make(self.guide.fn_, [option]);
+      self.net.free.push(fn_);
     }
   }
 
-  fn synthesize_n32(&mut self, n32: u32) -> Net {
-    Net::new(Tree::N32(n32))
+  fn synthesize_n32(&mut self, n32: u32) {
+    let n32 = self.net.make(self.guide.n32.with_payload(n32), []);
+    self.const_(n32);
   }
 
-  fn synthesize_string(&mut self, string: String) -> Net {
-    Net::new(self.string(&string))
+  fn synthesize_string(&mut self, string: String) {
+    let string = self.string(&string);
+    self.const_(string);
   }
 
-  fn enum_(
-    &mut self,
-    enum_id: EnumId,
-    variant_id: VariantId,
-    content: impl FnOnce(&mut Self) -> Option<Tree>,
-  ) -> Tree {
-    let enum_def = &self.chart.enums[enum_id];
-    let wire = self.new_wire();
-    let mut variant = Tree::n_ary("enum", content(self).into_iter().chain([wire.0]));
-    Tree::n_ary(
-      "enum",
-      (0..enum_def.variants.len())
-        .map(|i| if variant_id.0 == i { take(&mut variant) } else { Tree::Erase })
-        .chain([wire.1]),
-    )
+  fn enum_(&mut self, enum_id: EnumId, variant_id: VariantId, content: Wire) -> Wire {
+    let enum_name = enum_name(self.table, self.guide, self.chart, enum_id);
+    let name = self.guide.enum_variant.with_children([enum_name]).with_payload(variant_id.0);
+    self.net.make(name, [content])
   }
 
   fn match_enum(
     &mut self,
     enum_id: EnumId,
-    mut arm: impl FnMut(&mut Self, VariantId) -> Net,
-    ctx: Tree,
-  ) -> Tree {
+    enum_: Wire,
+    ctx: Wire,
+    mut arm: impl FnMut(&mut Self, VariantId, Wire, Wire),
+  ) {
+    let enum_name = enum_name(self.table, self.guide, self.chart, enum_id);
     let enum_def = &self.chart.enums[enum_id];
-    Tree::n_ary(
-      "enum",
-      enum_def
-        .variants
-        .keys()
-        .map(|i| {
-          let stage = self.new_stage();
-          let net = arm(self, i);
-          self.nets.insert(stage.clone(), net);
-          Tree::Global(stage)
+    let stages = enum_def
+      .variants
+      .keys()
+      .map(|i| {
+        self.stage(|self_| {
+          let [content, ctx] = self_.net.wires();
+          let free = self_.net.make(self_.guide.interface, [content, ctx]);
+          self_.net.free.push(free);
+          arm(self_, i, content, ctx)
         })
-        .chain([ctx]),
-    )
+      })
+      .collect::<Vec<_>>();
+    let name = self.guide.enum_match.with_children(iter::once(enum_name).chain(stages));
+    self.net.add(name, enum_, [ctx]);
   }
 
-  fn variant(&mut self, variant_id: VariantId, data: Option<Tree>) -> Tree {
+  fn create_variant(&mut self, variant_id: VariantId, data: Wire) -> Wire {
     let variant_enum = self.chart.builtins.variant.unwrap();
-    let mut cur = self.enum_(variant_enum, VariantId(0), |_| Some(data.unwrap_or(Tree::Erase)));
+    let mut cur = self.enum_(variant_enum, VariantId(0), data);
     for _ in 0..variant_id.0 {
-      cur = self.enum_(variant_enum, VariantId(1), |_| Some(cur));
+      cur = self.enum_(variant_enum, VariantId(1), cur);
     }
     cur
   }
 
-  fn fn_rel(&self, id: FnRelId) -> Tree {
+  fn match_variant(
+    &mut self,
+    enum_id: EnumId,
+    variant: Wire,
+    ctx: Wire,
+    mut arm: impl FnMut(&mut Self, VariantId, Wire, Wire),
+  ) {
+    let mut iter = self.chart.enums[enum_id].variants.keys();
+    self._match_variant(&mut iter, variant, ctx, &mut arm);
+  }
+
+  fn _match_variant(
+    &mut self,
+    variants: &mut impl Iterator<Item = VariantId>,
+    variant: Wire,
+    ctx: Wire,
+    arm: &mut impl FnMut(&mut Self, VariantId, Wire, Wire),
+  ) {
+    if let Some(i) = variants.next() {
+      self.match_enum(
+        self.chart.builtins.variant.unwrap(),
+        variant,
+        ctx,
+        |self_, v, content, ctx| {
+          if v.0 == 0 {
+            arm(self_, i, content, ctx)
+          } else {
+            self_._match_variant(variants, content, ctx, arm);
+          }
+        },
+      );
+    } else {
+      self.net.link(variant, ctx);
+    }
+  }
+
+  fn fn_rel(&mut self, id: FnRelId) -> Wire {
     match self.spec.rels.fns[id] {
       Ok((spec_id, stage_id)) => {
-        Tree::Global(global_name(self.specs.specs[spec_id].as_ref().unwrap(), stage_id))
+        let spec = self.specs.specs[spec_id].as_ref().unwrap();
+        let name = self.table.add_name(spec.name.clone().with_payload(stage_id.0));
+        self.net.make(self.guide.graft.with_children([name]), [])
       }
-      Err(_) => Tree::Erase,
+      Err(_) => self.net.make(self.guide.eraser, []),
     }
   }
 
-  fn const_rel(&self, id: ConstRelId) -> Tree {
+  fn const_rel(&mut self, id: ConstRelId) -> Wire {
     match self.spec.rels.consts[id] {
       Ok(spec_id) => {
-        Tree::Global(global_name(self.specs.specs[spec_id].as_ref().unwrap(), StageId(0)))
+        let spec = self.specs.specs[spec_id].as_ref().unwrap();
+        let name = self.table.add_name(spec.name.clone());
+        self.net.make(self.guide.graft.with_children([name]), [])
       }
-      Err(_) => Tree::Erase,
-    }
-  }
-
-  fn fn_receiver(&mut self) -> Tree {
-    if self.debug {
-      let w = self.new_wire();
-      Tree::Comb(
-        "dbg".into(),
-        Box::new(Tree::Comb("ref".into(), Box::new(w.0), Box::new(w.1))),
-        Box::new(Tree::Erase),
-      )
-    } else {
-      Tree::Erase
-    }
-  }
-
-  fn const_(&mut self, value: Tree) -> Net {
-    if self.debug {
-      let w = self.new_wire();
-      Net::new(Tree::n_ary("dbg", [Tree::n_ary("ref", [w.0, w.1]), value]))
-    } else {
-      Net::new(value)
+      Err(_) => self.net.make(self.guide.eraser, []),
     }
   }
 }
 
 impl SyntheticImpl {
-  pub fn fn_(self, _: &Chart, fn_id: TraitFnId) -> SyntheticItem {
+  pub fn fn_(&self, _: &Chart, fn_id: TraitFnId) -> SyntheticItem {
     match self {
       SyntheticImpl::Tuple(len) | SyntheticImpl::Object(_, len) => match fn_id {
-        TraitFnId(0) => SyntheticItem::CompositeDeconstruct(len),
-        TraitFnId(1) => SyntheticItem::CompositeReconstruct(len),
+        TraitFnId(0) => SyntheticItem::CompositeDeconstruct(*len),
+        TraitFnId(1) => SyntheticItem::CompositeReconstruct(*len),
         _ => unreachable!(),
       },
       SyntheticImpl::Struct(_) => match fn_id {
@@ -433,36 +380,36 @@ impl SyntheticImpl {
         _ => unreachable!(),
       },
       SyntheticImpl::Enum(enum_id) => match fn_id {
-        TraitFnId(0) => SyntheticItem::EnumMatch(enum_id),
-        TraitFnId(1) => SyntheticItem::EnumReconstruct(enum_id),
+        TraitFnId(0) => SyntheticItem::EnumDeconstruct(*enum_id),
+        TraitFnId(1) => SyntheticItem::EnumReconstruct(*enum_id),
         _ => unreachable!(),
       },
       SyntheticImpl::Opaque(_) | SyntheticImpl::IfConst(_) => unreachable!(),
     }
   }
 
-  pub fn const_(self, chart: &Chart, const_id: TraitConstId) -> SyntheticItem {
+  pub fn const_(&self, chart: &Chart, const_id: TraitConstId) -> SyntheticItem {
     match self {
       SyntheticImpl::Opaque(opaque_ty_id) => match const_id {
-        TraitConstId(0) => SyntheticItem::Ident(chart.opaque_types[opaque_ty_id].name.clone()),
+        TraitConstId(0) => SyntheticItem::String(chart.opaque_types[*opaque_ty_id].name.0.clone()),
         _ => unreachable!(),
       },
       SyntheticImpl::Tuple(_) => unreachable!(),
       SyntheticImpl::Object(key, _) => match const_id {
-        TraitConstId(0) => SyntheticItem::Ident(key),
+        TraitConstId(0) => SyntheticItem::String(key.0.clone()),
         _ => unreachable!(),
       },
       SyntheticImpl::Struct(struct_id) => match const_id {
-        TraitConstId(0) => SyntheticItem::Ident(chart.structs[struct_id].name.clone()),
+        TraitConstId(0) => SyntheticItem::String(chart.structs[*struct_id].name.0.clone()),
         _ => unreachable!(),
       },
       SyntheticImpl::Enum(enum_id) => match const_id {
-        TraitConstId(0) => SyntheticItem::Ident(chart.enums[enum_id].name.clone()),
-        TraitConstId(1) => SyntheticItem::EnumVariantNames(enum_id),
+        TraitConstId(0) => SyntheticItem::String(chart.enums[*enum_id].name.0.clone()),
+        TraitConstId(1) => SyntheticItem::EnumVariantNames(*enum_id),
         _ => unreachable!(),
       },
       SyntheticImpl::IfConst(id) => match const_id {
-        TraitConstId(0) => SyntheticItem::ConstAlias(id),
+        TraitConstId(0) => SyntheticItem::ConstAlias(*id),
         _ => unreachable!(),
       },
     }
@@ -474,26 +421,17 @@ impl SyntheticItem {
     match self {
       SyntheticItem::CompositeDeconstruct(_)
       | SyntheticItem::CompositeReconstruct(_)
-      | SyntheticItem::Ident(_)
       | SyntheticItem::Identity
       | SyntheticItem::EnumVariantNames(_)
+      | SyntheticItem::EnumDeconstruct(_)
       | SyntheticItem::EnumReconstruct(_)
       | SyntheticItem::Frame(..)
       | SyntheticItem::DebugState
       | SyntheticItem::N32(_)
       | SyntheticItem::String(_) => Rels::default(),
-      SyntheticItem::EnumMatch(_) => {
-        Rels { consts: IdxVec::new(), fns: IdxVec::from([FnRel::Impl(TirImpl::Param(0), 1)]) }
-      }
-      SyntheticItem::CallFromFn(params) => {
-        Rels { consts: IdxVec::new(), fns: IdxVec::from([FnRel::Impl(TirImpl::Param(0), *params)]) }
-      }
-      SyntheticItem::FnFromCall(_) => Rels {
+      SyntheticItem::CallFn(fn_id, impls, _) => Rels {
         consts: IdxVec::new(),
-        fns: IdxVec::from([FnRel::Item(
-          FnId::Abstract(TraitId(usize::MAX), TraitFnId(0)),
-          vec![TirImpl::Param(0)],
-        )]),
+        fns: IdxVec::from([(*fn_id, (0..*impls).map(TirImpl::Param).collect())]),
       },
       SyntheticItem::ConstAlias(id) => {
         Rels { consts: IdxVec::from([(ConstId::Concrete(*id), Vec::new())]), fns: IdxVec::new() }

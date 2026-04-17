@@ -1,15 +1,14 @@
 
 Interactions
-  Total                  246
-  Annihilate             124
+  Total                  195
+  Annihilate              96
   Commute                  0
-  Copy                    19
-  Erase                   48
-  Expand                  26
-  Call                    22
-  Branch                   7
+  Copy                    13
+  Erase                   18
+  Graft                   31
+  Extrinsic               37
 
 Memory
   Heap                   704 B
-  Allocated            4_832 B
-  Freed                4_832 B
+  Allocated            4_000 B
+  Freed                4_000 B

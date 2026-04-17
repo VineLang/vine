@@ -54,6 +54,7 @@
     "tripterygium",
     "underflows",
     "uninit",
+    "unpair",
     "unpark",
     "unshifted",
     "untuple",
@@ -61,7 +62,8 @@
     "visitee",
     "whnf",
     "wilfordii",
-    "woah"
+    "woah",
+    "xoring"
   ],
   "dictionaries": [
     "rust"

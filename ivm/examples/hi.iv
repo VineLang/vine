@@ -1,0 +1,16 @@
+
+// Prints `Hi\n`.
+iv:main {
+  ^ = ivm:x(io0 io_final)
+  io0 = ivm:ext:merge[root:io:print_char](ivm:n32#72 io1) // 72 = 'H'
+  io1 = ivm:ext:merge[root:io:print_char](
+    // 73 = 'I'; lowercase by xoring with 32
+    char { ivm:n32#73 = ivm:ext:merge[vi:n32:xor](ivm:n32#32 char) }
+    io2
+  )
+  io2 = ivm:ext:merge[root:io:print_char](ivm:graft[:constants:newline] io3)
+  io_final = io3
+}
+
+:constants:newline { ^ = ivm:n32#10 }
+

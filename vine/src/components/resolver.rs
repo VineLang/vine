@@ -19,7 +19,7 @@ use crate::{
     chart::{Chart, ConcreteFnId, DefId, DefTraitKind, FnId, GenericsId, OpaqueTypeId},
     checkpoint::Checkpoint,
     diag::{Diag, Diags, ErrorGuaranteed},
-    resolutions::{FnRel, FnRelId, Fragment, FragmentId, Rels, Resolutions},
+    resolutions::{FnRelId, Fragment, FragmentId, Rels, Resolutions},
     signatures::{FnSig, Signatures},
     tir::{
       ClosureId, Local, TargetId, Tir, TirClosure, TirExpr, TirExprKind, TirImpl, TirLocal, TirPat,
@@ -243,7 +243,7 @@ impl<'a> Resolver<'a> {
     if !self.diags.errors.is_empty() {
       self.types.finish_inference();
     }
-    let fragment = self.finish_fragment(span, path, root, false);
+    let fragment = self.finish_fragment(span, path, None, root, false);
     let fragment_id = self.fragments.push(fragment);
     let mut bindings =
       Vec::from_iter(take(&mut self.scope).into_iter().filter_map(|(name, entries)| {
@@ -427,7 +427,8 @@ impl<'a> Resolver<'a> {
     &mut self,
     span: Span,
     path: String,
-    root: TirExpr,
+    params: Option<Vec<TirPat>>,
+    body: TirExpr,
     frameless: bool,
   ) -> Fragment {
     Fragment {
@@ -441,7 +442,8 @@ impl<'a> Resolver<'a> {
         locals: take(&mut self.locals),
         closures: unwrap_idx_vec(take(&mut self.closures)),
         rels: take(&mut self.rels),
-        root,
+        params,
+        body,
       },
       frameless,
     }
@@ -479,7 +481,7 @@ impl<'a> Resolver<'a> {
         true,
         Some(Vec::from(type_params)),
       );
-      Ok(self.rels.fns.push(FnRel::Item(fn_id, impl_params)))
+      Ok(self.rels.fns.push((fn_id, impl_params)))
     } else {
       Err(Diag::MissingBuiltin { span, builtin: name })?
     }
@@ -544,7 +546,7 @@ impl<'a> Resolver<'a> {
       ExprKind::Float(_, value, ty) => self.resolve_expr_float(span, *value, ty),
       ExprKind::Char(char) => self.resolve_expr_char(span, *char),
       ExprKind::String(init, rest) => self.resolve_expr_string(span, init, rest),
-      ExprKind::InlineIvy(binds, ty, _, net) => self.resolve_inline_ivy(span, binds, ty, net),
+      ExprKind::InlineIvy(table, net) => self.resolve_inline_ivy(span, table, net),
       ExprKind::Try(result) => self.resolve_expr_try(span, result),
       ExprKind::Bool(..) | ExprKind::Is(..) | ExprKind::LogicalOp(..) => {
         Ok(self.resolve_cond(expr))

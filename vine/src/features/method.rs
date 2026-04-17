@@ -4,7 +4,6 @@ use crate::{
     ast::{Expr, GenericArgs, Ident, Span},
     chart::FnId,
     diag::{Diag, ErrorGuaranteed},
-    resolutions::FnRel,
     tir::{TirExpr, TirExprKind},
     types::{Inverted, Type, TypeCtx, TypeKind},
   },
@@ -88,7 +87,7 @@ impl Resolver<'_> {
     Ok(TirExpr::new(
       span,
       sig.ret_ty,
-      TirExprKind::Call(self.rels.fns.push(FnRel::Item(fn_id, impl_params)), None, args),
+      TirExprKind::Call(self.rels.fns.push((fn_id, impl_params)), args),
     ))
   }
 

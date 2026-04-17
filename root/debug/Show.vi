@@ -186,7 +186,8 @@ pub mod Show {
   #[basic]
   pub impl enum_[E, V; Enum[E, V], ShowVariant[V]]: Show[E] {
     fn show(&enum_: &E) -> Show {
-      Enum::match_ref(&enum_, fn (&variant: &V) { variant.show_variant(Enum::variant_names[E, V]) })
+      let &variant = &enum_ as &V;
+      variant.show_variant(Enum::variant_names[E, V])
     }
   }
 
@@ -232,9 +233,11 @@ pub mod Show {
   }
 }
 
-#[builtin = "show_to_string"]
-fn show_to_string[T; Show[T]](&value: &T) -> String {
+type Repl;
+#[builtin = "repl_show"]
+fn repl_show[T; Show[T]](repl: Repl, &value: &T) {
   // silence unused item warning
-  show_to_string;
-  "{value.show()}"
+  repl_show;
+  let str = "{value.show()}";
+  safe $ivy { ${repl} = vi:ext#2[vi:repl:show](${str as Ext}) };
 }

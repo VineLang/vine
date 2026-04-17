@@ -1,6 +1,5 @@
 use std::mem::take;
 
-use ivy::ast::Tree;
 use vine_util::parser::Parse;
 
 use crate::{
@@ -108,7 +107,7 @@ impl Resolver<'_> {
     self.initialize(const_def.def, const_def.generics, const_def.unsafe_);
 
     let ty = self.types.import(&self.sigs.concrete_consts[const_id], None).ty;
-    let root = self.resolve_expr_type(&const_def.value, ty);
+    let body = self.resolve_expr_type(&const_def.value, ty);
     self.types.finish_inference();
 
     if const_def.configurable {
@@ -118,7 +117,8 @@ impl Resolver<'_> {
     let fragment = self.finish_fragment(
       const_def.span,
       self.chart.defs[const_def.def].path.clone(),
-      root,
+      None,
+      body,
       false,
     );
     let fragment_id = self.fragments.push(fragment);
@@ -205,9 +205,9 @@ impl Emitter<'_> {
     let out = self.emit_port(out);
     if self.debug {
       let dbg = self.tap_debug_call(*span);
-      self.pairs.push((rel, Tree::n_ary("dbg", [dbg, out])));
+      self.net.add(self.guide.dbg, rel, [dbg, out]);
     } else {
-      self.pairs.push((rel, out));
+      self.net.link(rel, out);
     }
   }
 }

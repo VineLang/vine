@@ -153,16 +153,17 @@ impl Charter<'_> {
     }
     fn_item.generics.inherit = true;
     let generics = self.chart_generics(def, trait_generics, fn_item.generics, true);
+    let def = self.chart_child(def, span, fn_item.name.clone(), vis, true);
     let trait_fn_id = fns.push(TraitFn {
       span,
+      def,
       method: fn_item.method,
-      name: fn_item.name.clone(),
+      name: fn_item.name,
       generics,
       params: fn_item.params,
       ret_ty: fn_item.ret,
       unsafe_,
     });
-    let def = self.chart_child(def, span, fn_item.name, vis, true);
     let fn_id = FnId::Abstract(trait_id, trait_fn_id);
     self.define_value(span, def, vis, DefValueKind::Fn(fn_id));
     let charted_item = ChartedItem::Fn(def, fn_id);
@@ -186,14 +187,15 @@ impl Charter<'_> {
     }
     const_item.generics.inherit = true;
     let generics = self.chart_generics(def, trait_generics, const_item.generics, true);
+    let def = self.chart_child(def, span, const_item.name.clone(), vis, true);
     let trait_const_id = consts.push(TraitConst {
       span,
-      name: const_item.name.clone(),
+      def,
+      name: const_item.name,
       generics,
       ty: const_item.ty,
       unsafe_,
     });
-    let def = self.chart_child(def, span, const_item.name, vis, true);
     let const_id = ConstId::Abstract(trait_id, trait_const_id);
     self.define_value(span, def, vis, DefValueKind::Const(const_id));
     let charted_item = ChartedItem::Const(def, const_id);

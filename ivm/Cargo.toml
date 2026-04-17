@@ -4,6 +4,8 @@ version = "0.0.0"
 edition = "2024"
 
 [dependencies]
+ivy = { path = "../ivy" }
+vine-util = { path = "../util" }
 
 [lints.clippy]
 absolute_paths = "warn"

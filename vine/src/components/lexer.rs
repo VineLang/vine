@@ -45,8 +45,7 @@ pub enum Token {
   Gt,
   Le,
   Ge,
-  RightArrow,
-  LeftArrow,
+  Arrow,
   Shl,
   Shr,
   OpenBrace,
@@ -65,7 +64,6 @@ pub enum Token {
   Struct,
   Enum,
   Type,
-  InlineIvy,
   Trait,
   Impl,
   Match,
@@ -161,11 +159,10 @@ impl<'src> Lex<'src> for Lexer<'src> {
         _ => Ok(Token::Hash),
       },
       Some('-') => match self.bump() {
-        Some('>') => self.bump_ok(Token::RightArrow),
+        Some('>') => self.bump_ok(Token::Arrow),
         _ => Ok(Token::Minus),
       },
       Some('<') => match self.bump() {
-        Some('-') => self.bump_ok(Token::LeftArrow),
         Some('<') => self.bump_ok(Token::Shl),
         Some('=') => self.bump_ok(Token::Le),
         _ => Ok(Token::Lt),
@@ -270,16 +267,7 @@ impl<'src> Lex<'src> for Lexer<'src> {
         self.bump();
         self.bump_while(unicode_id_start::is_id_continue);
         let str = &self.src()[self.range().start..self.offset()];
-        match keyword(str) {
-          Some(token) => Ok(token),
-          None => {
-            if str == "inline_ivy" && self.char() == Some('!') {
-              self.bump_ok(Token::InlineIvy)
-            } else {
-              Ok(Token::Ident)
-            }
-          }
-        }
+        Ok(keyword(str).unwrap_or(Token::Ident))
       }
 
       None => Ok(Token::Eof),
@@ -377,8 +365,7 @@ impl fmt::Display for Token {
       Token::Gt => "`>`",
       Token::Le => "`<=`",
       Token::Ge => "`>=`",
-      Token::RightArrow => "`->`",
-      Token::LeftArrow => "`<-`",
+      Token::Arrow => "`->`",
       Token::Shl => "`<<`",
       Token::Shr => "`>>`",
       Token::OpenBrace => "`{`",
@@ -397,7 +384,6 @@ impl fmt::Display for Token {
       Token::Struct => "`struct`",
       Token::Enum => "`enum`",
       Token::Type => "`type`",
-      Token::InlineIvy => "`inline_ivy!`",
       Token::Trait => "`trait`",
       Token::Impl => "`impl`",
       Token::Match => "`match`",

@@ -1,6 +1,6 @@
 
 use ops::{Cast, bitwise::{BitAnd, BitOr, BitXor, Not}};
-use util::{duplicate, erase, transmute};
+use util::{duplicate, erase};
 
 #[builtin = "Bool"]
 pub type Bool;
@@ -15,46 +15,46 @@ pub mod Bool {
 
   pub impl : BitAnd[Bool, Bool, Bool] {
     fn bit_and(a: Bool, b: Bool) -> Bool {
-      safe inline_ivy! (a <- a, b <- b) -> Bool { out a = @n32_and(b out) }
+      safe $ivy { ${a} = vi:ext#2[vi:bool:and](${b} ^) }
     }
   }
 
   pub impl : BitOr[Bool, Bool, Bool] {
     fn bit_or(a: Bool, b: Bool) -> Bool {
-      safe inline_ivy! (a <- a, b <- b) -> Bool { out a = @n32_or(b out) }
+      safe $ivy { ${a} = vi:ext#2[vi:bool:or](${b} ^) }
     }
   }
 
   pub impl : BitXor[Bool, Bool, Bool] {
     fn bit_xor(a: Bool, b: Bool) -> Bool {
-      safe inline_ivy! (a <- a, b <- b) -> Bool { out a = @n32_xor(b out) }
+      safe $ivy { ${a} = vi:ext#2[vi:bool:xor](${b} ^) }
     }
   }
 
   #[builtin = "bool_not"]
   pub impl : Not[Bool, Bool] {
     fn not(a: Bool) -> Bool {
-      safe inline_ivy! (a <- a) -> Bool { out a = @n32_eq(0 out) }
+      safe $ivy { ${a} = vi:ext#1[vi:bool:not](^) }
     }
   }
 
   pub impl : Eq[Bool] {
     fn eq(&a: &Bool, &b: &Bool) -> Bool {
-      safe inline_ivy! (a <- a, b <- b) -> Bool { out a = @n32_eq(b out) }
+      safe $ivy { ${a} = vi:ext#2[vi:bool:eq](${b} ^) }
     }
 
     fn ne(&a: &Bool, &b: &Bool) -> Bool {
-      safe inline_ivy! (a <- a, b <- b) -> Bool { out a = @n32_ne(b out) }
+      safe $ivy { ${a} = vi:ext#2[vi:bool:xor](${b} ^) }
     }
   }
 
   pub impl : Ord[Bool] {
     fn lt(&a: &Bool, &b: &Bool) -> Bool {
-      safe inline_ivy! (a <- a, b <- b) -> Bool { out a = @n32_lt(b out) }
+      safe $ivy { ${a} = vi:ext#2[vi:bool:lt](${b} ^) }
     }
 
     fn le(&a: &Bool, &b: &Bool) -> Bool {
-      safe inline_ivy! (a <- a, b <- b) -> Bool { out a = @n32_le(b out) }
+      safe $ivy { ${a} = vi:ext#2[vi:bool:le](${b} ^) }
     }
 
     fn cmp(a: &Bool, b: &Bool) -> Ord {
@@ -78,5 +78,9 @@ pub mod Bool {
     }
   }
 
-  pub impl to_n32: Cast[Bool, N32] = safe transmute;
+  pub impl to_n32: Cast[Bool, N32] {
+    fn cast(self: Bool) -> N32 {
+      safe $ivy { ${self} = vi:ext#1[vi:bool:to_n32](^) }
+    }
+  }
 }
