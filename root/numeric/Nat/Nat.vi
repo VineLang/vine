@@ -216,7 +216,7 @@ pub mod Nat {
     fn bit_and(a: Nat, b: Nat) -> Nat {
       let ~trim = true;
       let result = [];
-      for (a, b) in (a!, b!) {
+      for (a, b) in a!.iter().zip_shortest(b!.iter()) {
         let num = a & b;
         if !~trim {
           result.push_back(num);

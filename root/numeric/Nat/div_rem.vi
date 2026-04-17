@@ -90,7 +90,7 @@ pub fn .div_rem(a: Nat, d: Nat) -> (Nat, Nat) {
     let ~borrow;
     let underflow = a_hi < ~borrow;
 
-    for (&a_num, &d_num) in (&a!, &d!) {
+    for (&a_num, &d_num) in a!.iter_ref().zip_shortest(d!.iter_ref()) {
       let &borrow = &~borrow;
       let N64(prod, new_borrow) = N64::mul_n32_n32(d_num, q_est) + borrow;
       new_borrow += (a_num < prod) as N32;
