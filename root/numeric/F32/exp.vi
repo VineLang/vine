@@ -35,6 +35,7 @@ pub fn .exp(f: F32) -> F32 {
     f <= underflow { 0.0 }
     _ {
       let hf = f.to_bits();
+      let is_negative = (hf >> 31) == 1;
       // high word of |f|
       hf &= 0x7fffffff;
 
@@ -42,8 +43,6 @@ pub fn .exp(f: F32) -> F32 {
       when {
         hf > 0x3eb17218 {
           // if |f| > 0.5 ln2
-          // sign bit of f
-          let is_negative = (hf >> 31) == 1;
           let k = when {
             hf > 0x3f851592 {
               if is_negative {
