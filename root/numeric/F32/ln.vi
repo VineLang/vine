@@ -36,9 +36,8 @@ pub fn .ln(f: F32) -> F32 {
         // log(+-0)=-inf
         return -1.0 / (f * f);
       }
-      if (bits >> 31) != 0 {
-        // log(-#) = NaN
-        return (f - f) / 0.0;
+      if bits as I32 < +0 {
+        return F32::nan;
       }
       // subnormal number, scale up f
       k -= +25;

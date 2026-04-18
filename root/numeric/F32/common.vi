@@ -1,6 +1,4 @@
 
-// 2**-(127 - 1)
-const smallest_subnormal: F32 = 1.1754943508222875079687365e-38;
 const num_mantissa_bits: N32 = Float::num_mantissa_bits[F32, _];
 const max_exponent: I32 = Float::max_exponent[F32, _];
 const exp_mask: N32 = (1[N32] << Float::num_exponent_bits[F32, _]) - 1;
@@ -8,7 +6,7 @@ const exp_mask: N32 = (1[N32] << Float::num_exponent_bits[F32, _]) - 1;
 /// normalize returns a normal number y and exponent exp
 /// satisfying x == y × 2**exp. It assumes x is finite and non-zero.
 pub fn .normalize(x: F32) -> (F32, I32) {
-  if x.abs() < smallest_subnormal {
+  if x.to_bits() & (exp_mask << num_mantissa_bits) == 0 {
     return (x * (1 << num_mantissa_bits) as F32, -num_mantissa_bits);
   }
   return (x, +0);

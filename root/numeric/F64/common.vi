@@ -3,8 +3,6 @@ pub const ln2_hi: F64 = 6.93147180369123816490e-01[F64];
 pub const ln2_lo: F64 = 1.90821492927058770002e-10[F64];
 pub const log2e: F64 = 1.44269504088896338700e+00[F64];
 
-// 2**-1022
-const smallest_subnormal: F64 = 2.2250738585072014e-308[F64];
 const num_mantissa_bits: N32 = Float::num_mantissa_bits[F64, _];
 const max_exponent: I32 = Float::max_exponent[F64, _];
 const exp_mask: N32 = (1[N32] << Float::num_exponent_bits[F64, _]) - 1;
@@ -12,7 +10,7 @@ const exp_mask: N32 = (1[N32] << Float::num_exponent_bits[F64, _]) - 1;
 /// normalize returns a normal number y and exponent exp
 /// satisfying x == y × 2**exp. It assumes x is finite and non-zero.
 pub fn .normalize(x: F64) -> (F64, I32) {
-  if x.abs() < smallest_subnormal {
+  if (x.to_bits() >> num_mantissa_bits) as N32 & exp_mask == 0 {
     return (x * (1[N64] << 52) as F64, -52);
   }
   return (x, +0);
