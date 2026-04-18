@@ -1,12 +1,12 @@
 
 Interactions
-  Total               57_314
-  Annihilate          27_533
+  Total               56_992
+  Annihilate          27_396
   Commute                216
-  Copy                 6_898
-  Erase                3_890
-  Graft                5_906
-  Extrinsic           12_871
+  Copy                 6_909
+  Erase                3_838
+  Graft                5_827
+  Extrinsic           12_806
 
 Parallelism
   Depth               15_452
@@ -14,6 +14,6 @@ Parallelism
   Speedup                 57 cB
 
 Memory
-  Heap                85_008 B
-  Allocated        1_234_224 B
-  Freed            1_234_224 B
+  Heap                84_896 B
+  Allocated        1_228_976 B
+  Freed            1_228_976 B
