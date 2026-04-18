@@ -1,0 +1,55 @@
+
+use #root::ops::{Cast, arithmetic::{Add, Mul, Pow}};
+
+enum* Unary {
+  Z(),
+  S(Unary),
+}
+
+mod Unary {
+  pub impl : Add[Unary, Unary, Unary] {
+    fn add(x: Unary, y: Unary) -> Unary {
+      match y {
+        S(y) { S(x + y) }
+        Z() { x }
+      }
+    }
+  }
+
+  pub impl : Mul[Unary, Unary, Unary] {
+    fn mul(x: Unary, y: Unary) -> Unary {
+      match y {
+        S(y) { x * y + x }
+        Z() { Z() }
+      }
+    }
+  }
+
+  pub impl : Pow[Unary, Unary, Unary] {
+    fn pow(x: Unary, y: Unary) -> Unary {
+      match y {
+        S(y) { x ** y * x }
+        Z() { S(Z()) }
+      }
+    }
+  }
+
+  pub impl : Cast[Unary, String] {
+    fn cast(n: Unary) -> String {
+      match n {
+        S(n) { "{n}·" }
+        Z() { "" }
+      }
+    }
+  }
+}
+
+use Unary::{S, Z};
+
+pub fn main(&io: &IO) {
+  let x = S(S(Z()));
+  let y = S(S(S(x)));
+  io.println("{x} + {y} = {x + y}");
+  io.println("{x} * {y} = {x * y}");
+  io.println("{x} ^ {y} = {x ** y}");
+}
