@@ -1,0 +1,67 @@
+
+use #root::derive::Struct;
+
+trait[T] Become {
+  const became: Bool;
+}
+
+#[manual]
+impl become[T]: Become[T] {
+  const became: Bool = true;
+}
+
+#[manual]
+impl unbecoming[T]: Become[T] {
+  const became: Bool = false;
+}
+
+#[basic]
+#[safe become(become)]
+impl struct_[S, T, U; Struct[S, (T, U)], Become[T], Become[U]]: Become[S] = unbecoming;
+
+struct A();
+impl a: Become[A] = become;
+
+struct B();
+#[safe become(become)]
+impl b: Become[B] = unbecoming;
+
+struct C[T]();
+#[safe become(become)]
+impl c[T; Become[T]]: Become[C[T]] = unbecoming;
+
+#[impl(Become)]
+struct D[T, U](T, U);
+
+#[impl(Become)]
+struct E[T](T, E[T]);
+
+struct P();
+impl p: Become[P] = unbecoming;
+
+struct Q[T]();
+impl q[T; Become[T]]: Become[Q[T]] = unbecoming;
+
+pub fn main(&io: &IO) {
+  io.test[A]();
+  io.test[B]();
+  io.test[C[A]]();
+  io.test[C[B]]();
+  io.test[C[C[B]]]();
+  io.test[D[A, B]]();
+  io.test[D[A, C[B]]]();
+  io.test[D[A, D[A, A]]]();
+  io.test[E[A]]();
+  io.test[E[E[A]]]();
+  io.println("-----");
+  io.test[P]();
+  io.test[C[P]]();
+  io.test[Q[A]]();
+  io.test[C[C[P]]]();
+  io.test[D[A, P]]();
+  io.test[E[P]]();
+}
+
+fn .test[T; Become[T]](&io: &IO) {
+  io.println("{Become::became[T]}");
+}
