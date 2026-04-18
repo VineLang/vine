@@ -1,4 +1,6 @@
 
+use #root::rng::Pcg32;
+
 pub fn main(&io: &IO) {
   let interesting_floats = [
     +0.0[F64],
@@ -33,14 +35,15 @@ pub fn main(&io: &IO) {
     1.0e10[F64],
   ];
 
+  let rng = Pcg32::seeded("how many logs could a log calculator calculate if a log calculator could calculate logs");
+  for _ in 0..100 {
+    interesting_floats.push_back(F64::from_bits(N64(rng.gen_n32(), rng.gen_n32())));
+  }
+
   for f in interesting_floats {
-    io.println("{f} = {f.to_bits().to_hex()}");
-    let sqrt = f.sqrt();
-    io.println("sqrt({f}) = {sqrt} ({sqrt.to_bits().to_hex()})");
-    let exp = f.exp();
-    io.println("exp({f}) = {exp} ({exp.to_bits().to_hex()})");
-    let ln = f.ln();
-    io.println("ln({f}) = {ln} ({ln.to_bits().to_hex()})");
+    io.println("sqrt {f.to_bits()} {f.sqrt().to_bits()}");
+    io.println("exp {f.to_bits()} {f.exp().to_bits()}");
+    io.println("ln {f.to_bits()} {f.ln().to_bits()}");
     io.println("");
   }
 }

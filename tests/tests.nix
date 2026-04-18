@@ -398,13 +398,15 @@ let
         else
           pkgs.runCommand "verify-${name}" { } ''
             echo verifying ${snapshot}
-            ${bin} <${snapshot}
-            touch $out
+            ${bin} <${snapshot} 2>&1 | tee $out
           '';
     in
     {
       checks."tests-verify-${name}" = check;
       verified.${snapshotName} = true;
+    }
+    // pkgs.lib.optionalAttrs (!reproduce) {
+      snaps."verify/${name}.txt" = check;
     }
   );
 

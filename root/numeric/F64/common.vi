@@ -5,15 +5,12 @@ pub const log2e: F64 = 1.44269504088896338700e+00[F64];
 
 const num_mantissa_bits: N32 = Float::num_mantissa_bits[F64, _];
 const max_exponent: I32 = Float::max_exponent[F64, _];
-
 const exp_mask: N32 = (1[N32] << Float::num_exponent_bits[F64, _]) - 1;
 
-// normalize returns a normal number y and exponent exp
-// satisfying x == y × 2**exp. It assumes x is finite and non-zero.
-pub fn normalize(x: F64) -> (F64, I32) {
-  // 2**-1022
-  const SmallestNormal: F64 = 2.2250738585072014e-308[F64];
-  if x.abs() < SmallestNormal {
+/// normalize returns a normal number y and exponent exp
+/// satisfying x == y × 2**exp. It assumes x is finite and non-zero.
+pub fn .normalize(x: F64) -> (F64, I32) {
+  if (x.to_bits() >> num_mantissa_bits) as N32 & exp_mask == 0 {
     return (x * (1[N64] << 52) as F64, -52);
   }
   return (x, +0);
@@ -33,7 +30,7 @@ pub fn fraction_exponent(f: F64) -> { frac: F64, exp: I32 } {
   if f == 0.0[F64] or f.is_nan() or f == F64::inf or f == F64::neg_inf {
     return { frac: f, exp: +0 };
   }
-  let (frac, exp) = normalize(f);
+  let (frac, exp) = f.normalize();
   let x = frac.to_bits();
   exp += ((x >> num_mantissa_bits) as N32 & exp_mask) as I32 - (max_exponent - +1);
   x &= !(exp_mask as N64 << num_mantissa_bits);
@@ -48,7 +45,7 @@ pub fn apply_exponent(frac: F64, exp: I32) -> F64 {
   if frac == 0.0[F64] or frac == F64::inf or frac == F64::neg_inf or frac.is_nan() {
     return frac;
   }
-  let (frac, e) = normalize(frac);
+  let (frac, e) = frac.normalize();
   exp += e;
   let x = frac.to_bits();
   exp += ((x >> num_mantissa_bits) as N32 & exp_mask) as I32 - max_exponent;
